@@ -270,7 +270,7 @@
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="true">
+            <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="false">
               <xs:annotation>
                 <xs:documentation> By setting it to <pre>"true"</pre>, the intraband
                   contribution is included in the calculation for the finite q. 
@@ -569,6 +569,15 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="intraband" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation> Set to <pre>"false"</pre> to not use transition between states at same n but different k.
+                  Note: If the unit cell used in the calculation is not primitive, the n index does not corresponds to then
+                  physical band index due to the umklapp process at the cell boundaries.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="tr" type="xs:boolean"
               default="true">
               <xs:annotation>
@@ -669,15 +678,6 @@
               <xs:annotation>
                 <xs:documentation>
                   Use ScaLAPACK or not.
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="intraband" type="xs:boolean"
-              default="true">
-              <xs:annotation>
-                <xs:documentation> Set to <pre>"false"</pre> not use transition between states at same n but different k.
-                  Note: If the unit cell used in the calculation is not primitive, the n index does not corresponds to then
-                  physical band index due to the umklapp process at the cell boundaries.
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>

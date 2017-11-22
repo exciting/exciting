@@ -410,7 +410,7 @@ module m_putgetexcitons
       ! Read Meta data
       read(unexc, pos=1)&
         & fcoup_,&       ! Was the TDA used?
-        & fesel_,&       ! Where the transitions selected by energy?
+        & fesel_,&       ! Were the transitions selected by energy?
         & nk_max_,&      ! Number of non-reduced k-points 
         & nk_bse_,&      ! Number of k-points used in the bse hamiltonian
         & hamsize_,&     ! Size of the RR block of the BSE hamiltonian and number of considered transitions
@@ -579,6 +579,7 @@ module m_putgetexcitons
       end if
 
       distributed = drvec%isdistributed
+
       if(.not. distributed .and. sane) then 
         if(present(davec)) then 
           call put_excitons(evals(a1:a2), drvec%za(:,a1:a2), avec=davec%za(:,a1:a2),&

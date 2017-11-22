@@ -1528,7 +1528,6 @@
 10	src_gw/task_emac.f90	/^      10 format(7G12.4)$/;"	l	subroutine:task_emac	file:
 10	src_gw/task_emac_q.f90	/^      10 format(7F12.4)$/;"	l	subroutine:task_emac_q	file:
 10	src_gw/ylm.f90	/^   10    continue$/;"	l	subroutine:ylm	file:
-10	src_inputparser/xstasklauncher.F90	/^10  continue$/;"	l	subroutine:xstasklauncher	file:
 10	src_lib/gcd.f90	/^10    Continue$/;"	l	function:gcd	file:
 10	src_lib/rfinterp.f90	/^10       Continue$/;"	l	subroutine:rfinterp	file:
 10	src_lib/rotaxang.f90	/^10    Continue$/;"	l	subroutine:rotaxang	file:
@@ -1550,11 +1549,10 @@
 10	src_sym/findsymgenr.F90	/^10       Continue$/;"	l	subroutine:findsymgenr	file:
 10	src_vdwdf/read_gradients.f90	/^  10  write(*,'(a)') '   Density gradients are calculated using a three-point formula'$/;"	l	subroutine:read_gradients	file:
 10	src_xc/modxcifc.f90	/^10 continue$/;"	l	subroutine:xcifc	file:
-10	src_xs/b_findgqmap.f90	/^10  continue$/;"	l	subroutine:b_findgqmap	file:
 10	src_xs/bandgap.F90	/^10       Continue$/;"	l	subroutine:bandgap	file:
 10	src_xs/bandgap.F90	/^10    Continue$/;"	l	subroutine:writebandgap	file:
-10	src_xs/bse.F90	/^      10 continue$/;"	l	subroutine:bse	file:
 10	src_xs/findgqmap.F90	/^10  continue$/;"	l	subroutine:findgqmap	file:
+10	src_xs/findgqmap.f90	/^10  continue$/;"	l	subroutine:findgqmap	file:
 10	src_xs/findsymi.F90	/^10       Continue$/;"	l	file:
 10	src_xs/modfxcifc.F90	/^10       Continue$/;"	l	subroutine:fxcifc	file:
 10	updatespecies.f90	/^  10 continue$/;"	l	subroutine:updatespecies	file:
@@ -6047,8 +6045,8 @@
 20	src_phonon/phonon.f90	/^20 continue$/;"	l	subroutine:phonon	file:
 20	src_raman/dcell.f90	/^20             Continue$/;"	l	subroutine:dcell	file:
 20	src_rdmft/rdmvaryn.f90	/^20    Continue$/;"	l	subroutine:rdmvaryn	file:
-20	src_xs/b_findgqmap.f90	/^20    continue$/;"	l	subroutine:b_findgqmap	file:
 20	src_xs/findgqmap.F90	/^20    continue$/;"	l	subroutine:findgqmap	file:
+20	src_xs/findgqmap.f90	/^20    continue$/;"	l	subroutine:findgqmap	file:
 200	ARPACK/EXAMPLES/BAND/dnband.f	/^  200          continue $/;"	l	subroutine:dnband	file:
 200	ARPACK/EXAMPLES/BAND/snband.f	/^  200          continue $/;"	l	subroutine:snband	file:
 200	BLAS/cgemm.f	/^  200         CONTINUE$/;"	l	subroutine:CGEMM	file:
@@ -13497,10 +13495,10 @@ A6	src_raman/mod_raman.f90	/^real(8) :: A0,A1,A2,A3,A4,A5,A6$/;"	v	module:raman_
 ABORT	src_vdwdf/Cuba-3.2/src/common/stddecl.h	86;"	d
 ABS	libXC/src/xc_config.h	30;"	d
 ABS	libXC/src/xc_config.h	6;"	d
-ACLOCAL	libXC/Makefile	/^ACLOCAL = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run aclocal-1.11$/;"	m
-ACLOCAL	libXC/build/Makefile	/^ACLOCAL = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run aclocal-1.11$/;"	m
-ACLOCAL	libXC/src/Makefile	/^ACLOCAL = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run aclocal-1.11$/;"	m
-ACLOCAL	libXC/testsuite/Makefile	/^ACLOCAL = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run aclocal-1.11$/;"	m
+ACLOCAL	libXC/Makefile	/^ACLOCAL = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run aclocal-1.11$/;"	m
+ACLOCAL	libXC/build/Makefile	/^ACLOCAL = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run aclocal-1.11$/;"	m
+ACLOCAL	libXC/src/Makefile	/^ACLOCAL = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run aclocal-1.11$/;"	m
+ACLOCAL	libXC/testsuite/Makefile	/^ACLOCAL = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run aclocal-1.11$/;"	m
 ACLOCAL_AMFLAGS	libXC/Makefile	/^ACLOCAL_AMFLAGS = -I m4$/;"	m
 ACLOCAL_M4	libXC/Makefile	/^ACLOCAL_M4 = $(top_srcdir)\/aclocal.m4$/;"	m
 ACLOCAL_M4	libXC/build/Makefile	/^ACLOCAL_M4 = $(top_srcdir)\/aclocal.m4$/;"	m
@@ -13517,10 +13515,10 @@ ALLOCA	libXC/build/Makefile	/^ALLOCA = $/;"	m
 ALLOCA	libXC/src/Makefile	/^ALLOCA = $/;"	m
 ALLOCA	libXC/testsuite/Makefile	/^ALLOCA = $/;"	m
 AMP	FoX/wxml/m_wxml_escape.F90	/^  integer, parameter :: AMP /;"	v	module:m_wxml_escape
-AMTAR	libXC/Makefile	/^AMTAR = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run tar$/;"	m
-AMTAR	libXC/build/Makefile	/^AMTAR = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run tar$/;"	m
-AMTAR	libXC/src/Makefile	/^AMTAR = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run tar$/;"	m
-AMTAR	libXC/testsuite/Makefile	/^AMTAR = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run tar$/;"	m
+AMTAR	libXC/Makefile	/^AMTAR = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run tar$/;"	m
+AMTAR	libXC/build/Makefile	/^AMTAR = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run tar$/;"	m
+AMTAR	libXC/src/Makefile	/^AMTAR = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run tar$/;"	m
+AMTAR	libXC/testsuite/Makefile	/^AMTAR = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run tar$/;"	m
 AM_RECURSIVE_TARGETS	libXC/Makefile	/^AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGETS:-recursive=) \\$/;"	m
 APOS	FoX/wxml/m_wxml_escape.F90	/^  integer, parameter :: APOS /;"	v	module:m_wxml_escape
 AR	BLAS/Makefile	/^AR = ar$/;"	m
@@ -13554,18 +13552,18 @@ ATT_NOTATION	FoX/common/m_common_element.F90	/^  integer, parameter :: ATT_NOTAT
 ATT_NULL	FoX/common/m_common_element.F90	/^  integer, parameter :: ATT_NULL /;"	v	module:m_common_element
 ATT_REQUIRED	FoX/common/m_common_element.F90	/^  integer, parameter :: ATT_REQUIRED /;"	v	module:m_common_element
 ATT_TYPES	FoX/common/m_common_element.F90	/^  character(len=8), parameter :: ATT_TYPES(/;"	v	module:m_common_element
-AUTOCONF	libXC/Makefile	/^AUTOCONF = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run autoconf$/;"	m
-AUTOCONF	libXC/build/Makefile	/^AUTOCONF = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run autoconf$/;"	m
-AUTOCONF	libXC/src/Makefile	/^AUTOCONF = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run autoconf$/;"	m
-AUTOCONF	libXC/testsuite/Makefile	/^AUTOCONF = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run autoconf$/;"	m
-AUTOHEADER	libXC/Makefile	/^AUTOHEADER = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run autoheader$/;"	m
-AUTOHEADER	libXC/build/Makefile	/^AUTOHEADER = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run autoheader$/;"	m
-AUTOHEADER	libXC/src/Makefile	/^AUTOHEADER = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run autoheader$/;"	m
-AUTOHEADER	libXC/testsuite/Makefile	/^AUTOHEADER = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run autoheader$/;"	m
-AUTOMAKE	libXC/Makefile	/^AUTOMAKE = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run automake-1.11$/;"	m
-AUTOMAKE	libXC/build/Makefile	/^AUTOMAKE = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run automake-1.11$/;"	m
-AUTOMAKE	libXC/src/Makefile	/^AUTOMAKE = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run automake-1.11$/;"	m
-AUTOMAKE	libXC/testsuite/Makefile	/^AUTOMAKE = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run automake-1.11$/;"	m
+AUTOCONF	libXC/Makefile	/^AUTOCONF = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run autoconf$/;"	m
+AUTOCONF	libXC/build/Makefile	/^AUTOCONF = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run autoconf$/;"	m
+AUTOCONF	libXC/src/Makefile	/^AUTOCONF = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run autoconf$/;"	m
+AUTOCONF	libXC/testsuite/Makefile	/^AUTOCONF = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run autoconf$/;"	m
+AUTOHEADER	libXC/Makefile	/^AUTOHEADER = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run autoheader$/;"	m
+AUTOHEADER	libXC/build/Makefile	/^AUTOHEADER = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run autoheader$/;"	m
+AUTOHEADER	libXC/src/Makefile	/^AUTOHEADER = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run autoheader$/;"	m
+AUTOHEADER	libXC/testsuite/Makefile	/^AUTOHEADER = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run autoheader$/;"	m
+AUTOMAKE	libXC/Makefile	/^AUTOMAKE = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run automake-1.11$/;"	m
+AUTOMAKE	libXC/build/Makefile	/^AUTOMAKE = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run automake-1.11$/;"	m
+AUTOMAKE	libXC/src/Makefile	/^AUTOMAKE = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run automake-1.11$/;"	m
+AUTOMAKE	libXC/testsuite/Makefile	/^AUTOMAKE = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run automake-1.11$/;"	m
 AWK	libXC/Makefile	/^AWK = gawk$/;"	m
 AWK	libXC/build/Makefile	/^AWK = gawk$/;"	m
 AWK	libXC/src/Makefile	/^AWK = gawk$/;"	m
@@ -14835,19 +14833,19 @@ FCCPP	libXC/Makefile	/^FCCPP = \/lib\/cpp -C -ansi$/;"	m
 FCCPP	libXC/build/Makefile	/^FCCPP = \/lib\/cpp -C -ansi$/;"	m
 FCCPP	libXC/src/Makefile	/^FCCPP = \/lib\/cpp -C -ansi$/;"	m
 FCCPP	libXC/testsuite/Makefile	/^FCCPP = \/lib\/cpp -C -ansi$/;"	m
-FCFLAGS	libXC/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT$/;"	m
-FCFLAGS	libXC/build/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT$/;"	m
-FCFLAGS	libXC/src/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT$/;"	m
-FCFLAGS	libXC/testsuite/Makefile	/^FCFLAGS = -cpp -DXS -DISO -DLIBXC -DIFORT -DUSEOMP -DFFWT$/;"	m
+FCFLAGS	libXC/Makefile	/^FCFLAGS = -u -fpp1 -nbs -pc80 -pad -align -unroll -O3 -ip -no-fp-port -mno-ieee-fp -vec-report0 -no-prec-div$/;"	m
+FCFLAGS	libXC/build/Makefile	/^FCFLAGS = -u -fpp1 -nbs -pc80 -pad -align -unroll -O3 -ip -no-fp-port -mno-ieee-fp -vec-report0 -no-prec-div$/;"	m
+FCFLAGS	libXC/src/Makefile	/^FCFLAGS = -u -fpp1 -nbs -pc80 -pad -align -unroll -O3 -ip -no-fp-port -mno-ieee-fp -vec-report0 -no-prec-div$/;"	m
+FCFLAGS	libXC/testsuite/Makefile	/^FCFLAGS = -u -fpp1 -nbs -pc80 -pad -align -unroll -O3 -ip -no-fp-port -mno-ieee-fp -vec-report0 -no-prec-div$/;"	m
 FCFLAGS_f90	libXC/Makefile	/^FCFLAGS_f90 = $/;"	m
 FCFLAGS_f90	libXC/build/Makefile	/^FCFLAGS_f90 = $/;"	m
 FCFLAGS_f90	libXC/src/Makefile	/^FCFLAGS_f90 = $/;"	m
 FCFLAGS_f90	libXC/testsuite/Makefile	/^FCFLAGS_f90 = $/;"	m
 FCLD	libXC/src/Makefile	/^FCLD = $(FC)$/;"	m
-FCLIBS	libXC/Makefile	/^FCLIBS =  -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -LI_CLCK_SUBSTITUTE_INSTALLDIR\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
-FCLIBS	libXC/build/Makefile	/^FCLIBS =  -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -LI_CLCK_SUBSTITUTE_INSTALLDIR\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
-FCLIBS	libXC/src/Makefile	/^FCLIBS =  -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -LI_CLCK_SUBSTITUTE_INSTALLDIR\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
-FCLIBS	libXC/testsuite/Makefile	/^FCLIBS =  -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -LI_CLCK_SUBSTITUTE_INSTALLDIR\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
+FCLIBS	libXC/Makefile	/^FCLIBS =  -L\/home1\/aurich\/lib -L\/home1\/aurich\/curl\/lib -L\/users\/stud\/aurich\/lib -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/home1\/aurich\/lib\/..\/lib\/ -L\/home1\/aurich\/curl\/lib\/..\/lib\/ -L\/users\/stud\/aurich\/lib\/..\/lib\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home1\/aurich\/lib\/ -L\/home1\/aurich\/curl\/lib\/ -L\/users\/stud\/aurich\/lib\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
+FCLIBS	libXC/build/Makefile	/^FCLIBS =  -L\/home1\/aurich\/lib -L\/home1\/aurich\/curl\/lib -L\/users\/stud\/aurich\/lib -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/home1\/aurich\/lib\/..\/lib\/ -L\/home1\/aurich\/curl\/lib\/..\/lib\/ -L\/users\/stud\/aurich\/lib\/..\/lib\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home1\/aurich\/lib\/ -L\/home1\/aurich\/curl\/lib\/ -L\/users\/stud\/aurich\/lib\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
+FCLIBS	libXC/src/Makefile	/^FCLIBS =  -L\/home1\/aurich\/lib -L\/home1\/aurich\/curl\/lib -L\/users\/stud\/aurich\/lib -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/home1\/aurich\/lib\/..\/lib\/ -L\/home1\/aurich\/curl\/lib\/..\/lib\/ -L\/users\/stud\/aurich\/lib\/..\/lib\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home1\/aurich\/lib\/ -L\/home1\/aurich\/curl\/lib\/ -L\/users\/stud\/aurich\/lib\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
+FCLIBS	libXC/testsuite/Makefile	/^FCLIBS =  -L\/home1\/aurich\/lib -L\/home1\/aurich\/curl\/lib -L\/users\/stud\/aurich\/lib -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4 -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64_lin -L\/home1\/aurich\/lib\/..\/lib\/ -L\/home1\/aurich\/curl\/lib\/..\/lib\/ -L\/users\/stud\/aurich\/lib\/..\/lib\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/x86_64-linux-gnu\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/..\/lib\/ -L\/lib\/x86_64-linux-gnu\/ -L\/lib\/..\/lib64 -L\/lib\/..\/lib\/ -L\/usr\/lib\/x86_64-linux-gnu\/ -L\/usr\/lib\/..\/lib\/ -L\/home1\/aurich\/lib\/ -L\/home1\/aurich\/curl\/lib\/ -L\/users\/stud\/aurich\/lib\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/lib\/intel64_lin\/ -L\/home1\/aurich\/intel\/\/clck\/2017.0.014\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/ipp\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/compiler\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/mkl\/lib\/intel64\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/tbb\/lib\/intel64\/gcc4.7\/ -L\/home1\/aurich\/intel\/compilers_and_libraries_2017.0.098\/linux\/daal\/..\/tbb\/lib\/intel64_lin\/gcc4.4\/ -L\/usr\/lib\/gcc\/x86_64-linux-gnu\/4.9\/..\/..\/..\/ -L\/lib64 -L\/lib\/ -L\/usr\/lib -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl$/;"	m
 FCLINK	libXC/src/Makefile	/^FCLINK = $(LIBTOOL) --mode=link --tag=F77 $(FCLD) $(AM_FCFLAGS) $(FCFLAGS) \\$/;"	m
 FC_FUNC	libXC/config.h	27;"	d
 FC_FUNC_	libXC/config.h	30;"	d
@@ -15218,10 +15216,10 @@ Lower	src_vdwdf/Cuba-3.2/src/divonne/Split.c	18;"	d	file:
 LowerBound	src_mixing/lib/LimitDMIX.F90	/^        real*8 LowerBound,/;"	v
 M	FoX/utils/fox_m_utils_mtprng.F90	/^    integer(INT32), parameter :: M /;"	v	module:fox_m_utils_mtprng
 MAKE	Makefile	/^MAKE = make$/;"	m
-MAKEINFO	libXC/Makefile	/^MAKEINFO = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run makeinfo$/;"	m
-MAKEINFO	libXC/build/Makefile	/^MAKEINFO = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run makeinfo$/;"	m
-MAKEINFO	libXC/src/Makefile	/^MAKEINFO = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run makeinfo$/;"	m
-MAKEINFO	libXC/testsuite/Makefile	/^MAKEINFO = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/missing --run makeinfo$/;"	m
+MAKEINFO	libXC/Makefile	/^MAKEINFO = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run makeinfo$/;"	m
+MAKEINFO	libXC/build/Makefile	/^MAKEINFO = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run makeinfo$/;"	m
+MAKEINFO	libXC/src/Makefile	/^MAKEINFO = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run makeinfo$/;"	m
+MAKEINFO	libXC/testsuite/Makefile	/^MAKEINFO = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/missing --run makeinfo$/;"	m
 MANIFEST_TOOL	libXC/Makefile	/^MANIFEST_TOOL = :$/;"	m
 MANIFEST_TOOL	libXC/build/Makefile	/^MANIFEST_TOOL = :$/;"	m
 MANIFEST_TOOL	libXC/src/Makefile	/^MANIFEST_TOOL = :$/;"	m
@@ -18086,22 +18084,22 @@ abort	src_vdwdf/Cuba-3.2/src/suave/decl.h	/^  jmp_buf abort;$/;"	m	struct:_this
 abort	src_vdwdf/Cuba-3.2/src/vegas/decl.h	/^  jmp_buf abort;$/;"	m	struct:_this
 abort1	src_vdwdf/Cuba-3.2/src/common/stddecl.h	117;"	d
 abort2	src_vdwdf/Cuba-3.2/src/common/stddecl.h	118;"	d
-abs_builddir	libXC/Makefile	/^abs_builddir = \/home\/development\/bse_v2.0_stable\/src\/libXC$/;"	m
-abs_builddir	libXC/build/Makefile	/^abs_builddir = \/home\/development\/bse_v2.0_stable\/src\/libXC\/build$/;"	m
-abs_builddir	libXC/src/Makefile	/^abs_builddir = \/home\/development\/bse_v2.0_stable\/src\/libXC\/src$/;"	m
-abs_builddir	libXC/testsuite/Makefile	/^abs_builddir = \/home\/development\/bse_v2.0_stable\/src\/libXC\/testsuite$/;"	m
-abs_srcdir	libXC/Makefile	/^abs_srcdir = \/home\/development\/bse_v2.0_stable\/src\/libXC$/;"	m
-abs_srcdir	libXC/build/Makefile	/^abs_srcdir = \/home\/development\/bse_v2.0_stable\/src\/libXC\/build$/;"	m
-abs_srcdir	libXC/src/Makefile	/^abs_srcdir = \/home\/development\/bse_v2.0_stable\/src\/libXC\/src$/;"	m
-abs_srcdir	libXC/testsuite/Makefile	/^abs_srcdir = \/home\/development\/bse_v2.0_stable\/src\/libXC\/testsuite$/;"	m
-abs_top_builddir	libXC/Makefile	/^abs_top_builddir = \/home\/development\/bse_v2.0_stable\/src\/libXC$/;"	m
-abs_top_builddir	libXC/build/Makefile	/^abs_top_builddir = \/home\/development\/bse_v2.0_stable\/src\/libXC$/;"	m
-abs_top_builddir	libXC/src/Makefile	/^abs_top_builddir = \/home\/development\/bse_v2.0_stable\/src\/libXC$/;"	m
-abs_top_builddir	libXC/testsuite/Makefile	/^abs_top_builddir = \/home\/development\/bse_v2.0_stable\/src\/libXC$/;"	m
-abs_top_srcdir	libXC/Makefile	/^abs_top_srcdir = \/home\/development\/bse_v2.0_stable\/src\/libXC$/;"	m
-abs_top_srcdir	libXC/build/Makefile	/^abs_top_srcdir = \/home\/development\/bse_v2.0_stable\/src\/libXC$/;"	m
-abs_top_srcdir	libXC/src/Makefile	/^abs_top_srcdir = \/home\/development\/bse_v2.0_stable\/src\/libXC$/;"	m
-abs_top_srcdir	libXC/testsuite/Makefile	/^abs_top_srcdir = \/home\/development\/bse_v2.0_stable\/src\/libXC$/;"	m
+abs_builddir	libXC/Makefile	/^abs_builddir = \/home1\/aurich\/excitings\/rcprep\/src\/libXC$/;"	m
+abs_builddir	libXC/build/Makefile	/^abs_builddir = \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/build$/;"	m
+abs_builddir	libXC/src/Makefile	/^abs_builddir = \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/src$/;"	m
+abs_builddir	libXC/testsuite/Makefile	/^abs_builddir = \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/testsuite$/;"	m
+abs_srcdir	libXC/Makefile	/^abs_srcdir = \/home1\/aurich\/excitings\/rcprep\/src\/libXC$/;"	m
+abs_srcdir	libXC/build/Makefile	/^abs_srcdir = \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/build$/;"	m
+abs_srcdir	libXC/src/Makefile	/^abs_srcdir = \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/src$/;"	m
+abs_srcdir	libXC/testsuite/Makefile	/^abs_srcdir = \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/testsuite$/;"	m
+abs_top_builddir	libXC/Makefile	/^abs_top_builddir = \/home1\/aurich\/excitings\/rcprep\/src\/libXC$/;"	m
+abs_top_builddir	libXC/build/Makefile	/^abs_top_builddir = \/home1\/aurich\/excitings\/rcprep\/src\/libXC$/;"	m
+abs_top_builddir	libXC/src/Makefile	/^abs_top_builddir = \/home1\/aurich\/excitings\/rcprep\/src\/libXC$/;"	m
+abs_top_builddir	libXC/testsuite/Makefile	/^abs_top_builddir = \/home1\/aurich\/excitings\/rcprep\/src\/libXC$/;"	m
+abs_top_srcdir	libXC/Makefile	/^abs_top_srcdir = \/home1\/aurich\/excitings\/rcprep\/src\/libXC$/;"	m
+abs_top_srcdir	libXC/build/Makefile	/^abs_top_srcdir = \/home1\/aurich\/excitings\/rcprep\/src\/libXC$/;"	m
+abs_top_srcdir	libXC/src/Makefile	/^abs_top_srcdir = \/home1\/aurich\/excitings\/rcprep\/src\/libXC$/;"	m
+abs_top_srcdir	libXC/testsuite/Makefile	/^abs_top_srcdir = \/home1\/aurich\/excitings\/rcprep\/src\/libXC$/;"	m
 abscutares	src_inputparser/inputmodules.f90	/^ real(8)::abscutares(/;"	k	type:writeexcitons_type
 abscutres	src_inputparser/inputmodules.f90	/^ real(8)::abscutres(/;"	k	type:writeexcitons_type
 ac	spacegroup/modmain.f90	/^real(8) ab,ac,/;"	v	module:modmain
@@ -18447,7 +18445,7 @@ atposcm	mod_atoms.F90	/^      Real (8) :: atposcm /;"	v	module:mod_atoms
 atposcnew	spacegroup/modspacegroup.f90	/^real(8)::atposcnew(/;"	v	module:modspacegroup
 atposl	spacegroup/modmain.f90	/^real(8) atposl(/;"	v	module:modmain
 atposl	src_gw/mod_misc_gw.f90	/^    real(8) :: atposl(/;"	v	module:mod_misc_gw
-atposl	src_xs/xas/modxas.f90	/^      real(8) :: atposl(/;"	v	module:modxas
+atposl	src_xs/modxas.f90	/^      real(8) :: atposl(/;"	v	module:modxas
 atposlnew	spacegroup/modspacegroup.f90	/^real(8)::atposlnew(/;"	v	module:modspacegroup
 atsave	mod_atoms.F90	/^      Real (8) :: atsave /;"	v	module:mod_atoms
 attDefault	FoX/common/m_common_element.F90	/^    integer :: attDefault /;"	k	type:attribute_t
@@ -18636,41 +18634,10 @@ b_PBE_sol	libXC/src/gga_x_hjs.c	/^static const FLOAT b_PBE_sol[] = $/;"	v	file:
 b_TH1	libXC/src/gga_xc_th.c	/^static int   b_TH1[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0};$/;"	v	file:
 b_TH2	libXC/src/gga_xc_th.c	/^static int   b_TH2[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1};$/;"	v	file:
 b_TH3	libXC/src/gga_xc_th.c	/^static int   b_TH3[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0};$/;"	v	file:
-b_bse	src_xs/b_bse.f90	/^subroutine b_bse(/;"	s
-b_bsegenspec	src_xs/b_bsegenspec.f90	/^subroutine b_bsegenspec(/;"	s
-b_bselauncher	src_xs/b_bselauncher.f90	/^subroutine b_bselauncher$/;"	s
-b_bsesurvey	src_xs/b_bsesurvey.f90	/^subroutine b_bsesurvey$/;"	s
-b_ematgntsum	src_xs/m_b_ematqk.f90	/^    subroutine b_ematgntsum(/;"	s	module:m_b_ematqk
-b_ematqk	src_xs/m_b_ematqk.f90	/^    subroutine b_ematqk(/;"	s	module:m_b_ematqk
-b_ematqk_core	src_xs/m_b_ematqk.f90	/^    subroutine b_ematqk_core(/;"	s	module:m_b_ematqk
-b_ematqkgir	src_xs/m_b_ematqk.f90	/^    subroutine b_ematqkgir(/;"	s	module:m_b_ematqk
-b_ematqkgmt	src_xs/m_b_ematqk.f90	/^    subroutine b_ematqkgmt(/;"	s	module:m_b_ematqk
-b_exccoulint	src_xs/b_exccoulint.f90	/^subroutine b_exccoulint(/;"	s
-b_exccoulintlauncher	src_xs/b_exccoulintlauncher.f90	/^subroutine b_exccoulintlauncher$/;"	s
-b_findgqmap	src_xs/b_findgqmap.f90	/^subroutine b_findgqmap(/;"	s
-b_getbseinfo	src_xs/m_putgetbsemat.f90	/^    subroutine b_getbseinfo(/;"	s	module:m_putgetbsemat
-b_getbsemat	src_xs/m_putgetbsemat.f90	/^    subroutine b_getbsemat(/;"	s	module:m_putgetbsemat
-b_getevecfv0	src_xs/b_getevecfv0.f90	/^subroutine b_getevecfv0(/;"	s
-b_getevecfv0	src_xs/m_b_getgrst.f90	/^    subroutine b_getevecfv0(/;"	s	module:m_b_getgrst
-b_getevecfv1	src_xs/b_getevecfv1.f90	/^subroutine b_getevecfv1(/;"	s
-b_getevecfv1	src_xs/m_b_getgrst.f90	/^    subroutine b_getevecfv1(/;"	s	module:m_b_getgrst
 b_m08_hx	libXC/src/mgga_x_m08.c	/^static const FLOAT b_m08_hx[12] = {$/;"	v	file:
 b_m08_so	libXC/src/mgga_x_m08.c	/^static const FLOAT b_m08_so[12] = {$/;"	v	file:
 b_m11	libXC/src/mgga_x_m08.c	/^static const FLOAT b_m11[12] = {$/;"	v	file:
 b_m11_l	libXC/src/mgga_x_m08.c	/^static const FLOAT b_m11_l[12] = {$/;"	v	file:
-b_match0	src_xs/m_b_getgrst.f90	/^    subroutine b_match0(/;"	s	module:m_b_getgrst
-b_match1	src_xs/m_b_getgrst.f90	/^    subroutine b_match1(/;"	s	module:m_b_getgrst
-b_putbseinfo	src_xs/m_putgetbsemat.f90	/^    subroutine b_putbseinfo(/;"	s	module:m_putgetbsemat
-b_putbsemat	src_xs/m_putgetbsemat.f90	/^    subroutine b_putbsemat(/;"	s	module:m_putgetbsemat
-b_putbsereset	src_xs/m_putgetbsemat.f90	/^    subroutine b_putbsereset$/;"	s	module:m_putgetbsemat
-b_scrcoulint	src_xs/b_scrcoulint.f90	/^subroutine b_scrcoulint(/;"	s
-b_scrcoulintlauncher	src_xs/b_scrcoulintlauncher.f90	/^subroutine b_scrcoulintlauncher$/;"	s
-b_screenlauncher	src_xs/b_screenlauncher.f90	/^subroutine b_screenlauncher$/;"	s
-b_wavefmt1	src_xs/m_b_getgrst.f90	/^    subroutine b_wavefmt1(/;"	s	module:m_b_getgrst
-b_writeexcevec	src_xs/b_writeexcevec.f90	/^subroutine b_writeexcevec$/;"	s
-b_writekpathweights	src_xs/b_writekpathweights.f90	/^subroutine b_writekpathweights$/;"	s
-b_xsgeneigvec	src_xs/b_xsgeneigvec.f90	/^subroutine b_xsgeneigvec(/;"	s
-b_xsgeneigveclauncher	src_xs/b_xsgeneigveclauncher.f90	/^subroutine b_xsgeneigveclauncher(/;"	s
 backup0	src_xs/backup0.F90	/^Subroutine backup0$/;"	s
 backup1	src_xs/backup1.F90	/^Subroutine backup1$/;"	s
 backup2	src_xs/backup2.F90	/^Subroutine backup2$/;"	s
@@ -18737,7 +18704,6 @@ betainc	src_inputparser/inputmodules.f90	/^ real(8)::betainc$/;"	k	type:groundst
 betalrcdyn	src_inputparser/inputmodules.f90	/^ real(8)::betalrcdyn$/;"	k	type:tddft_type
 beval	src_xs/mod_exciton_wf.f90	/^  real(8),    allocatable :: beval(/;"	v	module:mod_exciton_wf
 bevec	src_xs/mod_exciton_wf.f90	/^  complex(8), allocatable :: bevec(/;"	v	module:mod_exciton_wf
-beyond	src_inputparser/inputmodules.f90	/^ logical::beyond$/;"	k	type:BSE_type
 bfcmt	spacegroup/modmain.f90	/^real(8) bfcmt(/;"	v	module:modmain
 bfcmt	spacegroup/modspacegroup.f90	/^real(8)::bfcmt(/;"	v	module:modspacegroup
 bfcmt	src_inputparser/inputmodules.f90	/^ real(8)::bfcmt(/;"	k	type:atom_type
@@ -18774,7 +18740,6 @@ blacsbarrier	src_xs/modscl.f90	/^    subroutine blacsbarrier(/;"	s	module:modscl
 blacsinfo	src_xs/modscl.f90	/^  type blacsinfo$/;"	t	module:modscl
 blaswrappers	src_xs/summations.F90	/^Module blaswrappers$/;"	m
 blend103	src_vdwdf/blend103.f90	/^subroutine blend103(/;"	s
-blindread	src_inputparser/inputmodules.f90	/^ logical::blindread$/;"	k	type:BSE_type
 blocks	src_inputparser/inputmodules.f90	/^ character(512)::blocks$/;"	k	type:BSE_type
 blocksnumber	src_inputparser/inputmodules.f90	/^ integer::blocksnumber$/;"	k	type:BSE_type
 bloechlcor	src_libbzint/bloechlcor.f90	/^       subroutine bloechlcor(/;"	s
@@ -18877,7 +18842,7 @@ broad	src_inputparser/inputmodules.f90	/^ real(8)::broad$/;"	k	type:raman_type
 broad	src_inputparser/inputmodules.f90	/^ real(8)::broad$/;"	k	type:xs_type
 brokenNS	FoX/dom/m_dom_dom.F90	/^    logical :: brokenNS /;"	k	type:documentExtras
 brzint	src_lib/brzint.f90	/^Subroutine brzint /;"	s
-bse	src_xs/bse.F90	/^Subroutine bse$/;"	s
+bse	src_xs/bse.f90	/^subroutine bse(/;"	s
 bsed	src_xs/modxs.F90	/^      Complex (8) :: bsed,/;"	v	module:modxs
 bsedd	src_xs/modxs.F90	/^      Complex (8) :: bsed, bsedl, bsedu, bsedd$/;"	v	module:modxs
 bsedgrid	src_xs/bsedgrid.F90	/^Subroutine bsedgrid /;"	s
@@ -18885,8 +18850,10 @@ bsedgridinit	src_xs/bsedgridinit.F90	/^Subroutine bsedgridinit /;"	s
 bsedirsing	src_inputparser/inputmodules.f90	/^ logical::bsedirsing$/;"	k	type:BSE_type
 bsedl	src_xs/modxs.F90	/^      Complex (8) :: bsed, bsedl,/;"	v	module:modxs
 bsedu	src_xs/modxs.F90	/^      Complex (8) :: bsed, bsedl, bsedu,/;"	v	module:modxs
-bsegenspec	src_xs/bsegenspec.F90	/^Subroutine bsegenspec /;"	s
+bsegenspec	src_xs/bsegenspec.f90	/^subroutine bsegenspec(/;"	s
+bselauncher	src_xs/bselauncher.f90	/^subroutine bselauncher$/;"	s
 bsesoldiag	src_xs/bsesoldiag.F90	/^subroutine bsesoldiag(/;"	s
+bsesurvey	src_xs/bsesurvey.f90	/^subroutine bsesurvey$/;"	s
 bsetype	src_inputparser/inputmodules.f90	/^ character(512)::bsetype$/;"	k	type:BSE_type
 bsetypenumber	src_inputparser/inputmodules.f90	/^ integer::bsetypenumber$/;"	k	type:BSE_type
 bspline_1d_constructor_auto_knots	src_xs/bspline_oo_module.f90	/^    pure function bspline_1d_constructor_auto_knots(/;"	f
@@ -19220,6 +19187,7 @@ chgpart	mod_charge_and_moment.F90	/^      real(8), allocatable :: chgpart(/;"	v	
 chgtot	mod_charge_and_moment.F90	/^      Real (8) :: chgtot$/;"	v	module:mod_charge_and_moment
 chgval	mod_charge_and_moment.F90	/^      Real (8) :: chgval$/;"	v	module:mod_charge_and_moment
 chgzn	mod_charge_and_moment.F90	/^      Real (8) :: chgzn$/;"	v	module:mod_charge_and_moment
+chibarq	src_inputparser/inputmodules.f90	/^ logical::chibarq$/;"	k	type:BSE_type
 chicomp	src_inputparser/inputmodules.f90	/^ integer,pointer::chicomp(/;"	k	type:shg_type
 child	src_vdwdf/Cuba-3.2/src/cuhre/decl.h	/^  int ncores, *child;$/;"	m	struct:_this
 child	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  int ncores, running, *child;$/;"	m	struct:_this
@@ -20153,7 +20121,7 @@ ecmt	mod_potential_and_density.F90	/^      Real (8), Allocatable :: ecmt /;"	v	m
 econv	src_inputparser/inputmodules.f90	/^ real(8)::econv(/;"	k	type:BSE_type
 econv	src_xs/modbse.f90	/^  real(8) :: econv(/;"	v	module:modbse
 ecore	src_libbzint/tetra_internal.f90	/^      real(8),pointer :: ecore(/;"	v	module:tetra_internal
-ecore	src_xs/xas/modxas.f90	/^	  real(8), allocatable :: ecore(/;"	v	module:modxas
+ecore	src_xs/modxas.f90	/^	  real(8), allocatable :: ecore(/;"	v	module:modxas
 ecvcut	species/modspecies.F90	/^real(8) :: ecvcut$/;"	v	module:modspecies
 edgins	src_other/delaunay.f	/^      subroutine edgins(/;"	s
 eecs	src_inputparser/inputmodules.f90	/^ integer::eecs$/;"	k	type:BSE_type
@@ -20206,29 +20174,34 @@ elstack_item	FoX/common/m_common_elstack.F90	/^  type :: elstack_item$/;"	t	modu
 elstack_t	FoX/common/m_common_elstack.F90	/^  type :: elstack_t$/;"	t	module:m_common_elstack
 elval	species/modspecies.F90	/^real(8) :: elval(/;"	v	module:modspecies
 emass_si	eos/modmain.f90	/^real(8), parameter :: emass_si=/;"	v	module:modmain
-emat_ccket	src_xs/m_b_ematqk.f90	/^  logical :: emat_ccket$/;"	v	module:m_b_ematqk
+emat_ccket	src_xs/m_ematqk.f90	/^  logical :: emat_ccket$/;"	v	module:m_ematqk
 ematbdcmbs	src_xs/ematbdcmbs.F90	/^subroutine ematbdcmbs(/;"	s
 ematbdlims	src_xs/ematbdlims.F90	/^subroutine ematbdlims(/;"	s
 ematgntsum	src_xs/ematgntsum.F90	/^Subroutine ematgntsum /;"	s
+ematgntsum	src_xs/m_ematqk.f90	/^    subroutine ematgntsum(/;"	s	module:m_ematqk
 ematgrids_finalize	mod_ematgrids.f90	/^    subroutine ematgrids_finalize(/;"	s	module:mod_ematgrids
 ematgrids_init	mod_ematgrids.f90	/^    subroutine ematgrids_init(/;"	s	module:mod_ematgrids
 ematgrids_initialized	mod_ematgrids.f90	/^    logical function ematgrids_initialized(/;"	f	module:mod_ematgrids
 ematgrids_write_grids	mod_ematgrids.f90	/^    subroutine ematgrids_write_grids(/;"	s	module:mod_ematgrids
-ematq	src_xs/ematq.F90	/^Subroutine ematq /;"	s
+ematq	src_xs/ematq.F90	/^subroutine ematq(/;"	s
 ematqalloc	src_xs/ematqalloc.F90	/^subroutine ematqalloc$/;"	s
 ematqdealloc	src_xs/ematqdealloc.F90	/^subroutine ematqdealloc$/;"	s
 ematqk	src_xs/ematqk.F90	/^Subroutine ematqk /;"	s
-ematqk1	src_xs/ematqk1.F90	/^Subroutine ematqk1 /;"	s
+ematqk	src_xs/m_ematqk.f90	/^    subroutine ematqk(/;"	s	module:m_ematqk
+ematqk_core	src_xs/m_ematqk.f90	/^    subroutine ematqk_core(/;"	s	module:m_ematqk
+ematqk_sv	src_xs/mod_variation.f90	/^    subroutine ematqk_sv(/;"	s	module:mod_variation
 ematqkgir	src_xs/ematqkgir.F90	/^Subroutine ematqkgir /;"	s
+ematqkgir	src_xs/m_ematqk.f90	/^    subroutine ematqkgir(/;"	s	module:m_ematqk
 ematqkgmt	src_xs/ematqkgmt.F90	/^Subroutine ematqkgmt /;"	s
+ematqkgmt	src_xs/m_ematqk.f90	/^    subroutine ematqkgmt(/;"	s	module:m_ematqk
 ematrad	src_xs/ematrad.F90	/^subroutine ematrad(/;"	s
 ematraddir	src_xs/modxs.F90	/^      character(256) :: ematraddir$/;"	v	module:modxs
-ematradoo	src_xs/m_b_ematqk.f90	/^Subroutine ematradoo /;"	s	module:m_b_ematqk
-ematradou	src_xs/m_b_ematqk.f90	/^  Subroutine ematradou /;"	s	module:m_b_ematqk
-ematraduo	src_xs/m_b_ematqk.f90	/^  Subroutine ematraduo /;"	s	module:m_b_ematqk
-ematsumoo	src_xs/m_b_ematqk.f90	/^  Subroutine ematsumoo /;"	s	module:m_b_ematqk
-ematsumou	src_xs/m_b_ematqk.f90	/^  Subroutine ematsumou /;"	s	module:m_b_ematqk
-ematsumuo	src_xs/m_b_ematqk.f90	/^  Subroutine ematsumuo /;"	s	module:m_b_ematqk
+ematradoo	src_xs/m_ematqk.f90	/^    Subroutine ematradoo /;"	s	module:m_ematqk
+ematradou	src_xs/m_ematqk.f90	/^      Subroutine ematradou /;"	s	module:m_ematqk
+ematraduo	src_xs/m_ematqk.f90	/^      Subroutine ematraduo /;"	s	module:m_ematqk
+ematsumoo	src_xs/m_ematqk.f90	/^      Subroutine ematsumoo /;"	s	module:m_ematqk
+ematsumou	src_xs/m_ematqk.f90	/^      Subroutine ematsumou /;"	s	module:m_ematqk
+ematsumuo	src_xs/m_ematqk.f90	/^      Subroutine ematsumuo /;"	s	module:m_ematqk
 emattest	src_xs/emattest.F90	/^Subroutine emattest$/;"	s
 emattim	src_xs/emattim.F90	/^      Subroutine emattim /;"	s	module:m_emattim
 emattype	src_inputparser/inputmodules.f90	/^ integer::emattype$/;"	k	type:xs_type
@@ -20419,7 +20392,8 @@ evlmincut	src_xs/modxs.F90	/^      Real (8) :: evlmin, evlmax, evlmincut,/;"	v	m
 evsystem	src_eigensystem/modfvsystem.f90	/^    Type evsystem$/;"	t	module:modfvsystem
 ex_coef	mod_potential_and_density.F90	/^      Real (8) :: ex_coef$/;"	v	module:mod_potential_and_density
 exactupdatevectors	src_iterative_solver/src_diis/exactupdatevectors.f90	/^Subroutine exactupdatevectors /;"	s
-exccoulint	src_xs/exccoulint.F90	/^subroutine exccoulint$/;"	s
+exccoulint	src_xs/exccoulint.f90	/^subroutine exccoulint(/;"	s
+exccoulintlauncher	src_xs/exccoulintlauncher.f90	/^subroutine exccoulintlauncher$/;"	s
 exccplot	src_inputparser/inputmodules.f90	/^  type(exccplot_/;"	k	type:properties_type
 exccplot_type	src_inputparser/inputmodules.f90	/^type exccplot_type$/;"	t	module:modinput
 exchange	src_inputparser/inputmodules.f90	/^ character(512)::exchange$/;"	k	type:libxc_type
@@ -20681,6 +20655,7 @@ findband	findband.f90	/^Subroutine findband /;"	s
 findgntn0	src_xs/findgntn0.F90	/^      Subroutine findgntn0 /;"	s	module:m_findgntn0
 findgntn0_clear	src_xs/findgntn0.F90	/^      Subroutine findgntn0_clear$/;"	s	module:m_findgntn0
 findgqmap	src_xs/findgqmap.F90	/^subroutine findgqmap(/;"	s
+findgqmap	src_xs/findgqmap.f90	/^subroutine findgqmap(/;"	s
 findgroupq	src_xs/findgroupq.F90	/^Subroutine findgroupq /;"	s
 findigp0	findigp0.f90	/^Subroutine findigp0 /;"	s
 findindep	src_raman/construct_symvec.f90	/^subroutine findindep(/;"	s	module:m_symvec
@@ -21275,7 +21250,7 @@ genplot2d	src_stm/genplot2d.F90	/^Subroutine genplot2d(/;"	s
 genplot3d	src_stm/genplot3d.F90	/^Subroutine genplot3d(/;"	s
 genpmat	src_optics/genpmat.f90	/^Subroutine genpmat /;"	s
 genpmatcor	src_gw/genpmatcor.f90	/^subroutine genpmatcor(/;"	s
-genpmatcorxs	src_xs/xas/genpmatcorxs.f90	/^subroutine genpmatcorxs(/;"	s
+genpmatcorxs	src_xs/genpmatcorxs.f90	/^subroutine genpmatcorxs(/;"	s
 genpmatcv_k	src_gw/mod_pmat.f90	/^  subroutine genpmatcv_k(/;"	s	module:mod_pmat
 genpmatcv_radial	src_gw/mod_pmat.f90	/^  subroutine genpmatcv_radial(/;"	s	module:mod_pmat
 genpmatvv_k	src_gw/mod_pmat.f90	/^  subroutine genpmatvv_k(/;"	s	module:mod_pmat
@@ -21309,7 +21284,7 @@ genvmatk	genvmatk.f90	/^Subroutine genvmatk /;"	s
 genvmatlu	src_LDAU/genvmatlu.f90	/^Subroutine genvmatlu$/;"	s
 genvmatlu_12	src_LDAU/genvmatlu.f90	/^Subroutine genvmatlu_12$/;"	s
 genvxcig	src_gw/src_vxc/genvxcig.f90	/^subroutine genvxcig$/;"	s
-genweights	src_xs/b_writekpathweights.f90	/^    subroutine genweights(/;"	s	subroutine:b_writekpathweights
+genweights	src_xs/writekpathweights.f90	/^    subroutine genweights(/;"	s	subroutine:writekpathweights
 genwfsv	genwfsv.f90	/^Subroutine genwfsv /;"	s
 genwfsv_new	genwfsv_new.f90	/^subroutine genwfsv_new(/;"	s
 genwgrid	src_xs/genwgrid.F90	/^    subroutine genwgrid(/;"	s	module:m_genwgrid
@@ -21448,11 +21423,13 @@ get_value_by_key_ns_len	FoX/common/m_common_attrs.F90	/^  pure function get_valu
 get_vxc	libXC/testsuite/xc-consistency.c	/^void get_vxc(xc_func_type *func, double point[5], double *e, double der[5])$/;"	f
 getapwcmt	src_xs/getapwcmt.F90	/^    subroutine getapwcmt(/;"	s	module:m_getapwcmt
 getbsediag	src_xs/getbsediag.F90	/^subroutine getbsediag$/;"	s
-getbsemat	src_xs/getbsemat.F90	/^subroutine getbsemat(/;"	s
+getbseinfo	src_xs/m_putgetbsemat.f90	/^    subroutine getbseinfo(/;"	s	module:m_putgetbsemat
+getbsemat	src_xs/m_putgetbsemat.f90	/^    subroutine getbsemat(/;"	s	module:m_putgetbsemat
 getchildNodes	FoX/dom/m_dom_dom.F90	/^function getchildNodes(/;"	f	module:m_dom_dom
 getdata	FoX/dom/m_dom_dom.F90	/^function getdata(/;"	f	module:m_dom_dom
 getdata_len	FoX/dom/m_dom_dom.F90	/^  pure function getdata_len(/;"	f	module:m_dom_dom
 getdevaldoccsv	src_xs/getdevaldoccsv.F90	/^subroutine getdevaldoccsv(/;"	s
+getdiffocc	src_xs/mod_variation.f90	/^  subroutine getdiffocc(/;"	s	module:mod_variation
 getdlmm	src_gw/getdlmm.f90	/^complex(8) function getdlmm(/;"	f
 getdocType	FoX/dom/m_dom_dom.F90	/^function getdocType(/;"	f	module:m_dom_dom
 getdocc	src_xs/getdocc.F90	/^subroutine getdocc(/;"	s
@@ -21473,10 +21450,15 @@ getevalsvgw	src_gw/getevalsvgw.f90	/^subroutine getevalsvgw(/;"	s
 getevalsvgw_new	src_gw/getevalsvgw_new.f90	/^subroutine getevalsvgw_new(/;"	s
 getevalsvr	getevalsv.f90	/^    subroutine getevalsvr(/;"	s	module:m_getevalsvr
 getevecfv	getevecfv.f90	/^Subroutine getevecfv /;"	s
-getevecfv0	src_xs/getevecfv0.F90	/^subroutine getevecfv0(/;"	s
+getevecfv0	src_xs/getevecfv0.f90	/^subroutine getevecfv0(/;"	s
+getevecfv0	src_xs/m_getgrst.f90	/^    subroutine getevecfv0(/;"	s	module:m_getgrst
+getevecfv1	src_xs/getevecfv1.f90	/^subroutine getevecfv1(/;"	s
+getevecfv1	src_xs/m_getgrst.f90	/^    subroutine getevecfv1(/;"	s	module:m_getgrst
 getevecfvgw	src_gw/getevecfvgw.f90	/^subroutine getevecfvgw(/;"	s
 getevecfvr	getevecfv.f90	/^      Subroutine getevecfvr /;"	s	module:m_getevecfvr
 getevecsv	getevecsv.f90	/^Subroutine getevecsv /;"	s
+getevecsv0	src_xs/m_getgrst.f90	/^    subroutine getevecsv0(/;"	s	module:m_getgrst
+getevecsv1	src_xs/m_getgrst.f90	/^    subroutine getevecsv1(/;"	s	module:m_getgrst
 getevecsvgw	src_gw/getevecsvgw.f90	/^Subroutine getevecsvgw(/;"	s
 getevecsvgw_new	src_gw/getevecsvgw_new.f90	/^subroutine getevecsvgw_new(/;"	s
 getevecsvr	getevecsv.f90	/^      Subroutine getevecsvr /;"	s	module:m_getevecsvr
@@ -21493,7 +21475,7 @@ getlatticerepetition	src_vdW/vdw_general_routines.f90	/^  Subroutine getlatticer
 getlines	src_xs/m_readoscillator.f90	/^        subroutine getlines(/;"	s	subroutine:readoscillator
 getliveNodeLists	FoX/dom/m_dom_dom.F90	/^function getliveNodeLists(/;"	f	module:m_dom_dom
 getlocmt	src_xs/getlocmt.F90	/^      Subroutine getlocmt /;"	s	module:m_getlocmt
-getmuo	src_xs/b_exccoulint.f90	/^    subroutine getmuo(/;"	s	subroutine:b_exccoulint
+getmuo	src_xs/exccoulint.f90	/^    subroutine getmuo(/;"	s	subroutine:exccoulint
 getname	FoX/dom/m_dom_dom.F90	/^function getname(/;"	f	module:m_dom_dom
 getname_len	FoX/dom/m_dom_dom.F90	/^  pure function getname_len(/;"	f	module:m_dom_dom
 getnamespaceNodes	FoX/dom/m_dom_dom.F90	/^  function getnamespaceNodes(/;"	f	module:m_dom_dom
@@ -21519,8 +21501,8 @@ getpmatxas	src_xs/getpmat.F90	/^    Subroutine getpmatxas /;"	s	module:m_getpmat
 getpreviousSibling	FoX/dom/m_dom_dom.F90	/^function getpreviousSibling(/;"	f	module:m_dom_dom
 getpublicId	FoX/dom/m_dom_dom.F90	/^function getpublicId(/;"	f	module:m_dom_dom
 getpublicId_len	FoX/dom/m_dom_dom.F90	/^  pure function getpublicId_len(/;"	f	module:m_dom_dom
-getpwesra	src_xs/b_scrcoulint.f90	/^    subroutine getpwesra(/;"	s	subroutine:b_scrcoulint
-getpwesrr	src_xs/b_scrcoulint.f90	/^    subroutine getpwesrr(/;"	s	subroutine:b_scrcoulint
+getpwesra	src_xs/scrcoulint.f90	/^    subroutine getpwesra(/;"	s	subroutine:scrcoulint
+getpwesrr	src_xs/scrcoulint.f90	/^    subroutine getpwesrr(/;"	s	subroutine:scrcoulint
 getrandom	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^  void (*getrandom)(struct _this *t, real *x);$/;"	m	struct:__anon63
 getrank	src_eigensystem/modfvsystem.f90	/^    Function getrank /;"	f	module:modfvsystem
 getreadonly	FoX/dom/m_dom_dom.F90	/^function getreadonly(/;"	f	module:m_dom_dom
@@ -21850,7 +21832,6 @@ hall	spacegroup/modmain.f90	/^character(20) hall$/;"	v	module:modmain
 hall	spacegroup/modspacegroup.f90	/^character(20)::hall$/;"	v	module:modspacegroup
 haloij	mod_eigensystem.F90	/^      Complex (8), Allocatable :: haloij(/;"	v	module:mod_eigensystem
 haloijSize	mod_eigensystem.F90	/^      integer, allocatable :: haloijSize(/;"	v	module:mod_eigensystem
-hamidx	src_xs/bse.F90	/^      Integer Function hamidx /;"	f	subroutine:bse
 hamidx	src_xs/modbse.f90	/^    integer(4) function hamidx(/;"	f	module:modbse
 hamidx	src_xs/writebevec.f90	/^      Integer Function hamidx /;"	f	subroutine:writebevec
 hamidx_back	src_xs/modbse.f90	/^    subroutine hamidx_back(/;"	s	module:modbse
@@ -22209,7 +22190,9 @@ ik2ikpq	src_gw/mod_kpointset.f90	/^        integer, allocatable :: ik2ikpq(/;"	k
 ik2ikqmt	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ik2ikqmt(/;"	k	type:kkqmt_set
 ik2ikqmt_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ik2ikqmt_nr(/;"	k	type:kkqmt_set
 ik2ikqmtm	src_xs/modbse.f90	/^  integer(4), dimension(:), allocatable :: ik2ikqmtp, ik2ikqmtm,/;"	v	module:modbse
+ik2ikqmtm_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: ik2ikqmtp_(:), ik2ikqmtm_(/;"	v	module:m_putgetexcitons
 ik2ikqmtp	src_xs/modbse.f90	/^  integer(4), dimension(:), allocatable :: ik2ikqmtp,/;"	v	module:modbse
+ik2ikqmtp_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: ik2ikqmtp_(/;"	v	module:m_putgetexcitons
 ikcbm	src_gw/mod_bands.f90	/^    integer(4) :: ikcbm$/;"	v	module:mod_bands
 ikikp2ig_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikikp2ig_nr(/;"	k	type:p_set
 ikikp2ig_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikikp2ig_nr(/;"	k	type:q_set
@@ -22228,7 +22211,6 @@ ikmap	mod_kpoint.F90	/^      Integer, Allocatable :: ikmap /;"	v	module:mod_kpoi
 ikmap	src_gw/mod_kpointset.f90	/^        integer(4), allocatable ::  ikmap(/;"	k	type:k_set
 ikmap_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: ngridk_(:), ikmap_(/;"	v	module:m_putgetexcitons
 ikmapikq	src_xs/modxs.F90	/^      Integer, Allocatable, target :: ikmapikq /;"	v	module:modxs
-ikmapikq_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: ikmapikq_(/;"	v	module:m_putgetexcitons
 ikmapikq_ptr	src_xs/mod_ematptr.f90	/^  integer(4), pointer :: ikmapikq_ptr(/;"	v	module:mod_ematptr
 ikmapnr	mod_kpoint.F90	/^      Integer, Allocatable :: ikmapnr /;"	v	module:mod_kpoint
 ikmapnr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable ::  ikmapnr(/;"	k	type:k_set
@@ -22240,6 +22222,8 @@ ikpid	src_libbzint/kgen_internals.f90	/^      integer, allocatable  :: ikpid(/;"
 ikpik2iqivgnr	src_gw/mod_kpointset.f90	/^    subroutine ikpik2iqivgnr(/;"	s	module:mod_kpointset
 ikqmt2ik	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikqmt2ik(/;"	k	type:kkqmt_set
 ikqmt2ik_nr	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ikqmt2ik_nr(/;"	k	type:kkqmt_set
+ikqmtm2ikqmtp	src_xs/modbse.f90	/^  integer(4), dimension(:), allocatable :: ik2ikqmtp, ik2ikqmtm, ikqmtm2ikqmtp$/;"	v	module:modbse
+ikqmtm2ikqmtp_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: ik2ikqmtp_(:), ik2ikqmtm_(:), ikqmtm2ikqmtp_(/;"	v	module:m_putgetexcitons
 ikstrmapiknr	src_xs/modxs.F90	/^      Integer, Allocatable :: ikstrmapiknr /;"	v	module:modxs
 iksubmap	src_xs/modxs.F90	/^      Integer, Allocatable :: iksubmap /;"	v	module:modxs
 iksubpt	src_xs/modxs.F90	/^      Integer :: iksubpt$/;"	v	module:modxs
@@ -22255,7 +22239,6 @@ ilor	src_xs/bspline_oo_module.f90	/^        integer :: ilor /;"	v
 ilos	src_xs/bspline_oo_module.f90	/^        integer :: ilos /;"	v
 iloy	src_xs/bspline_oo_module.f90	/^        integer :: iloy /;"	v
 iloz	src_xs/bspline_oo_module.f90	/^        integer :: iloz /;"	v
-imk2imkqmtp	src_xs/modbse.f90	/^  integer(4), dimension(:), allocatable :: ik2ikqmtp, ik2ikqmtm, imk2imkqmtp$/;"	v	module:modbse
 implementation	FoX/dom/m_dom_dom.F90	/^    type(DOMImplementation), pointer :: implementation /;"	k	type:documentExtras
 importNode	FoX/dom/m_dom_dom.F90	/^  function importNode(/;"	f	module:m_dom_dom
 inDocument	FoX/dom/m_dom_dom.F90	/^    logical :: inDocument /;"	k	type:Node
@@ -22441,10 +22424,10 @@ inputnp	src_inputparser/modinputdom.f90	/^      Type (Node), Pointer :: doc, inp
 insertBefore	FoX/dom/m_dom_dom.F90	/^  function insertBefore(/;"	f	module:m_dom_dom
 insertData	FoX/dom/m_dom_dom.F90	/^  subroutine insertData(/;"	s	module:m_dom_dom
 inspecies	species/modspecies.F90	/^character(256) :: bname,str,apwdescr,apwtype,suffix,inspecies$/;"	v	module:modspecies
-install_sh	libXC/Makefile	/^install_sh = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/install-sh$/;"	m
-install_sh	libXC/build/Makefile	/^install_sh = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/install-sh$/;"	m
-install_sh	libXC/src/Makefile	/^install_sh = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/install-sh$/;"	m
-install_sh	libXC/testsuite/Makefile	/^install_sh = ${SHELL} \/home\/development\/bse_v2.0_stable\/src\/libXC\/install-sh$/;"	m
+install_sh	libXC/Makefile	/^install_sh = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/install-sh$/;"	m
+install_sh	libXC/build/Makefile	/^install_sh = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/install-sh$/;"	m
+install_sh	libXC/src/Makefile	/^install_sh = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/install-sh$/;"	m
+install_sh	libXC/testsuite/Makefile	/^install_sh = ${SHELL} \/home1\/aurich\/excitings\/rcprep\/src\/libXC\/install-sh$/;"	m
 install_sh_DATA	libXC/Makefile	/^install_sh_DATA = $(install_sh) -c -m 644$/;"	m
 install_sh_DATA	libXC/build/Makefile	/^install_sh_DATA = $(install_sh) -c -m 644$/;"	m
 install_sh_DATA	libXC/src/Makefile	/^install_sh_DATA = $(install_sh) -c -m 644$/;"	m
@@ -22491,7 +22474,7 @@ internal	FoX/common/m_common_element.F90	/^    logical :: internal /;"	k	type:el
 internalEntityDecl_handler	FoX/dom/m_dom_parse.f90	/^  subroutine internalEntityDecl_handler(/;"	s
 internal_error	FoX/dom/m_dom_error.f90	/^  subroutine internal_error(/;"	s	module:m_dom_error
 interpolate	src_inputparser/inputmodules.f90	/^  type(interpolate_/;"	k	type:phonons_type
-interpolate_kpathweights	src_xs/b_writekpathweights.f90	/^    subroutine interpolate_kpathweights(/;"	s	subroutine:b_writekpathweights
+interpolate_kpathweights	src_xs/writekpathweights.f90	/^    subroutine interpolate_kpathweights(/;"	s	subroutine:writekpathweights
 interpolate_type	src_inputparser/inputmodules.f90	/^type interpolate_type$/;"	t	module:modinput
 intevecpm	src_gw/src_tests/intevecpm.f90	/^      subroutine intevecpm(/;"	s
 intevecpp	src_gw/src_tests/intevecpp.f90	/^      subroutine intevecpp(/;"	s
@@ -22501,9 +22484,9 @@ intgv	src_gw/mod_kpointset.f90	/^        integer, allocatable :: intgv(/;"	k	typ
 intins	src_other/delaunay.f	/^      subroutine intins(/;"	s
 intnodes	src_libbzint/polyhedron.f90	/^      real(8), dimension(3,20) :: intnodes /;"	v	module:polyhedron
 intorder	src_inputparser/inputmodules.f90	/^ integer::intorder$/;"	k	type:writekpathweights_type
-intraband	src_inputparser/inputmodules.f90	/^ logical::intraband$/;"	k	type:BSE_type
 intraband	src_inputparser/inputmodules.f90	/^ logical::intraband$/;"	k	type:dielmat_type
 intraband	src_inputparser/inputmodules.f90	/^ logical::intraband$/;"	k	type:moke_type
+intraband	src_inputparser/inputmodules.f90	/^ logical::intraband$/;"	k	type:screening_type
 intraband	src_inputparser/inputmodules.f90	/^ logical::intraband$/;"	k	type:tddft_type
 intv	src_inputparser/inputmodules.f90	/^ real(8)::intv(/;"	k	type:energywindow_type
 intw	src_libbzint/intw.f90	/^       subroutine intw(/;"	s
@@ -23063,8 +23046,7 @@ kcw	src_gw/modgw.f90	/^    complex(8), allocatable :: kcw(/;"	v	module:modgw
 kerndiag	src_inputparser/inputmodules.f90	/^ logical::kerndiag$/;"	k	type:tddft_type
 kernel	src_vdwdf/modules.f90	/^   real*8, allocatable :: kernel(/;"	v	module:param
 kernxc	src_xs/kernxc.F90	/^Subroutine kernxc$/;"	s
-kernxc_bse	src_xs/kernxc_bse.F90	/^Subroutine kernxc_bse$/;"	s
-kernxc_bse3	src_xs/kernxc_bse3.F90	/^Subroutine kernxc_bse3$/;"	s
+kernxc_bse	src_xs/kernxc_bse.F90	/^subroutine kernxc_bse$/;"	s
 key	FoX/common/m_common_attrs.F90	/^    character(len=1), pointer, dimension(:) :: key /;"	k	type:dict_item
 key	src_vdwdf/Cuba-3.2/demo/demo-fortran.F	/^	integer key$/;"	v	program:CubaTest
 key	src_vdwdf/Cuba-3.2/src/cuhre/decl.h	/^  count key, nregions;$/;"	m	struct:_this
@@ -23133,10 +23115,10 @@ kndi	ioarray.F90	/^      Integer, Parameter :: kndi /;"	v	module:ioarray
 kndr	ioarray.F90	/^      Integer, Parameter :: kndr /;"	v	module:ioarray
 kordexc	src_inputparser/inputmodules.f90	/^ logical::kordexc$/;"	k	type:tetra_type
 koulims	src_xs/modbse.f90	/^  integer(4), allocatable :: koulims(/;"	v	module:modbse
-koulims_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: ikmapikq_(:), kousize_(:), koulims_(/;"	v	module:m_putgetexcitons
+koulims_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: kousize_(:), koulims_(/;"	v	module:m_putgetexcitons
 kousize	src_xs/modbse.f90	/^  integer(4), allocatable :: kousize(/;"	v	module:modbse
 kousize_	src_xs/m_putgetbsemat.f90	/^  integer(4), allocatable :: kousize_(/;"	v	module:m_putgetbsemat
-kousize_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: ikmapikq_(:), kousize_(/;"	v	module:m_putgetexcitons
+kousize_	src_xs/m_putgetexcitons.f90	/^  integer(4), allocatable :: kousize_(/;"	v	module:m_putgetexcitons
 kparf	src_xs/modxs.F90	/^      Integer :: kparf$/;"	v	module:modxs
 kpari	src_xs/modxs.F90	/^      Integer :: kpari$/;"	v	module:modxs
 kpathlength_	src_xs/m_read_bandstructure.f90	/^  real(8), allocatable :: vklpath_(:,:,:), kpathlength_(/;"	v	module:m_read_bandstructure
@@ -23251,7 +23233,7 @@ lattice_type	spacegroup/sginputmodule.f90	/^type lattice_type$/;"	t	module:modsy
 lbfgs_driver	lbfgs_driver.f90	/^subroutine lbfgs_driver$/;"	s
 lchargelinene	lchargelinene.f90	/^subroutine lchargelinene$/;"	s
 lcoremax	src_gw/mod_core_states.f90	/^    integer(4) :: lcoremax$/;"	v	module:mod_core_states
-lcoremax	src_xs/xas/modxas.f90	/^      integer(4) :: lcoremax /;"	v	module:modxas
+lcoremax	src_xs/modxas.f90	/^      integer(4) :: lcoremax /;"	v	module:modxas
 ld0006	src_gw/src_tests/Lebedev-Laikov.f90	/^       subroutine ld0006(/;"	s
 ld0014	src_gw/src_tests/Lebedev-Laikov.f90	/^       subroutine ld0014(/;"	s
 ld0026	src_gw/src_tests/Lebedev-Laikov.f90	/^       subroutine ld0026(/;"	s
@@ -23643,7 +23625,7 @@ lworkl	ARPACK/EXAMPLES/SYM/ssdrv3.f	/^      integer          ido, n, nev, ncv, l
 lworkl	ARPACK/EXAMPLES/SYM/ssdrv4.f	/^      integer          ido, n, nev, ncv, lworkl,/;"	v	program:ssdrv4
 lworkl	ARPACK/EXAMPLES/SYM/ssdrv5.f	/^      integer          ido, n, nev, ncv, lworkl,/;"	v	program:ssdrv5
 lworkl	ARPACK/EXAMPLES/SYM/ssdrv6.f	/^      integer          ido, n, nev, ncv, lworkl,/;"	v	program:ssdrv6
-lxas	src_xs/xas/modxas.f90	/^    integer(4) :: lxas$/;"	v	module:modxas
+lxas	src_xs/modxas.f90	/^    integer(4) :: lxas$/;"	v	module:modxas
 lxsmax	species/modspecies.F90	/^integer :: lxsmax$/;"	v	module:modspecies
 m	ARPACK/EXAMPLES/BAND/cnbdr1.f	/^     &                 a(lda,ma/;"	v	program:cnbdr1
 m	ARPACK/EXAMPLES/BAND/cnbdr2.f	/^     &                 a(lda,ma/;"	v	program:cnbdr2
@@ -23708,8 +23690,6 @@ m2map	src_xs/findgntn0.F90	/^      Integer, Allocatable :: l1map (:), m1map (:, 
 m2shape	src_xs/findgntn0.F90	/^      Integer, Allocatable :: m1shape (:), l2shape (:, :), m2shape /;"	v	module:m_findgntn0
 m3map	src_xs/findgntn0.F90	/^      Integer, Allocatable :: l3map (:, :, :, :, :), m3map /;"	v	module:m_findgntn0
 m3shape	src_xs/findgntn0.F90	/^      Integer, Allocatable :: l3shape (:, :, :, :), m3shape /;"	v	module:m_findgntn0
-m_b_ematqk	src_xs/m_b_ematqk.f90	/^module m_b_ematqk$/;"	m
-m_b_getgrst	src_xs/m_b_getgrst.f90	/^module m_b_getgrst$/;"	m
 m_bandgap	src_xs/bandgap.F90	/^Module m_bandgap$/;"	m
 m_common_attrs	FoX/common/m_common_attrs.F90	/^module m_common_attrs$/;"	m
 m_common_buffer	FoX/common/m_common_buffer.F90	/^module m_common_buffer$/;"	m
@@ -23740,6 +23720,7 @@ m_dyson	src_xs/dyson.F90	/^Module m_dyson$/;"	m
 m_dysonsym	src_xs/dysonsym.F90	/^Module m_dysonsym$/;"	m
 m_dzmatmult	src_xs/m_dzmatmult.f90	/^module m_dzmatmult$/;"	m
 m_eigvec	src_raman/eigvec.f90	/^module m_eigvec$/;"	m
+m_ematqk	src_xs/m_ematqk.f90	/^module m_ematqk$/;"	m
 m_emattim	src_xs/emattim.F90	/^Module m_emattim$/;"	m
 m_filedel	src_xs/filedel.F90	/^Module m_filedel$/;"	m
 m_findgntn0	src_xs/findgntn0.F90	/^Module m_findgntn0$/;"	m
@@ -23762,6 +23743,7 @@ m_getevalfvr	getevalfv.f90	/^Module m_getevalfvr$/;"	m
 m_getevalsvr	getevalsv.f90	/^module m_getevalsvr$/;"	m
 m_getevecfvr	getevecfv.f90	/^Module m_getevecfvr$/;"	m
 m_getevecsvr	getevecsv.f90	/^Module m_getevecsvr$/;"	m
+m_getgrst	src_xs/m_getgrst.f90	/^module m_getgrst$/;"	m
 m_getlocmt	src_xs/getlocmt.F90	/^Module m_getlocmt$/;"	m
 m_getoccsvr	getoccsv.f90	/^Module m_getoccsvr$/;"	m
 m_getpemat	src_xs/getpemat.F90	/^module m_getpemat$/;"	m
@@ -23861,9 +23843,10 @@ mainDoc	FoX/dom/m_dom_parse.f90	/^  type(Node), pointer, save  :: mainDoc /;"	v	
 mainlb	Lbfgsb.3.0/lbfgsb.f	/^      subroutine mainlb(/;"	s
 make_token_group	FoX/common/m_common_element.F90	/^  function make_token_group(/;"	f	module:m_common_element
 make_token_group_len	FoX/common/m_common_element.F90	/^  pure function make_token_group_len(/;"	f	module:m_common_element
-makeexcli	src_xs/b_exccoulint.f90	/^    subroutine makeexcli(/;"	s	subroutine:b_exccoulint
+makeexcli	src_xs/exccoulint.f90	/^    subroutine makeexcli(/;"	s	subroutine:exccoulint
 makegk	mod_xsgrids.f90	/^  logical :: makegk,/;"	v	module:mod_xsgrids
 makegq	mod_xsgrids.f90	/^  logical :: makegk, makegq$/;"	v	module:mod_xsgrids
+makemeasure	src_xs/m_setup_bse.f90	/^    subroutine makemeasure(/;"	s	module:m_setup_bse
 makeoscistr_dist	src_xs/m_makeoscistr.f90	/^    subroutine makeoscistr_dist(/;"	s	module:m_makeoscistr
 makespectrum	src_xs/m_makespectrum.f90	/^    subroutine makespectrum(/;"	s	module:m_makespectrum
 makespectrum_dist	src_xs/m_makespectrum.f90	/^    subroutine makespectrum_dist(/;"	s	module:m_makespectrum
@@ -23874,7 +23857,7 @@ mandir	libXC/Makefile	/^mandir = ${datarootdir}\/man$/;"	m
 mandir	libXC/build/Makefile	/^mandir = ${datarootdir}\/man$/;"	m
 mandir	libXC/src/Makefile	/^mandir = ${datarootdir}\/man$/;"	m
 mandir	libXC/testsuite/Makefile	/^mandir = ${datarootdir}\/man$/;"	m
-map_inputdata	src_xs/b_writekpathweights.f90	/^    subroutine map_inputdata(/;"	s	subroutine:b_writekpathweights
+map_inputdata	src_xs/writekpathweights.f90	/^    subroutine map_inputdata(/;"	s	subroutine:writekpathweights
 mapkto01	src_xs/genqvkloff.F90	/^Subroutine mapkto01 /;"	s
 mapto01	src_libbzint/reduk.f90	/^  subroutine mapto01(/;"	s	subroutine:reduk
 mapxsparameters	src_xs/mapxsparameters.F90	/^Subroutine mapxsparameters$/;"	s
@@ -23882,6 +23865,8 @@ mass	src_inputparser/speciesmodules.f90	/^ real(8)::mass$/;"	k	type:sp_type
 masstensor	src_inputparser/inputmodules.f90	/^  type(masstensor_/;"	k	type:properties_type
 masstensor_type	src_inputparser/inputmodules.f90	/^type masstensor_type$/;"	t	module:modinput
 match	match.f90	/^Subroutine match /;"	s
+match0	src_xs/m_getgrst.f90	/^    subroutine match0(/;"	s	module:m_getgrst
+match1	src_xs/m_getgrst.f90	/^    subroutine match1(/;"	s	module:m_getgrst
 matchingOrder	src_inputparser/speciesmodules.f90	/^ integer::matchingOrder$/;"	k	type:wf_type
 matrixtocomplexdp	FoX/fsys/fox_m_fsys_parse_input.F90	/^  subroutine matrixtocomplexdp(/;"	s	module:fox_m_fsys_parse_input
 matrixtocomplexsp	FoX/fsys/fox_m_fsys_parse_input.F90	/^  subroutine matrixtocomplexsp(/;"	s	module:fox_m_fsys_parse_input
@@ -24311,6 +24296,7 @@ md	ARPACK/EXAMPLES/NONSYM/sndrv3.f	/^     &                  workl(3*maxncv*maxn
 mdfqtype	src_inputparser/inputmodules.f90	/^ integer::mdfqtype$/;"	k	type:tddft_type
 me	ARPACK/EXAMPLES/NONSYM/dndrv3.f	/^     &                  md(maxn), me(/;"	v	program:dndrv3
 me	ARPACK/EXAMPLES/NONSYM/sndrv3.f	/^     &                  md(maxn), me(/;"	v	program:sndrv3
+measure	src_inputparser/inputmodules.f90	/^ logical::measure$/;"	k	type:BSE_type
 meffig	mod_potential_and_density.F90	/^      Complex (8), Allocatable :: veffig (:),meffig /;"	v	module:mod_potential_and_density
 mersenne	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^    } mersenne;$/;"	m	union:__anon63::__anon64	typeref:struct:__anon63::__anon64::__anon66
 metallic	src_gw/mod_bands.f90	/^    logical :: metallic$/;"	v	module:mod_bands
@@ -24373,8 +24359,8 @@ mixernumber	src_inputparser/inputmodules.f90	/^ integer::mixernumber$/;"	k	type:
 mixerswitch	src_inputparser/inputmodules.f90	/^ integer::mixerswitch$/;"	k	type:groundstate_type
 mixmsec	src_mixing/mixmsec.f90	/^Subroutine mixmsec /;"	s
 mixpulay	src_mixing/mixpulay.f90	/^Subroutine mixpulay /;"	s
-mj	src_xs/xas/modxas.f90	/^    real(8), allocatable :: mj(/;"	v	module:modxas
-mj2ml	src_xs/xas/modxas.f90	/^  integer function mj2ml(/;"	f	module:modxas
+mj	src_xs/modxas.f90	/^    real(8), allocatable :: mj(/;"	v	module:modxas
+mj2ml	src_xs/modxas.f90	/^  integer function mj2ml(/;"	f	module:modxas
 mkdir_p	libXC/Makefile	/^mkdir_p = \/bin\/mkdir -p$/;"	m
 mkdir_p	libXC/build/Makefile	/^mkdir_p = \/bin\/mkdir -p$/;"	m
 mkdir_p	libXC/src/Makefile	/^mkdir_p = \/bin\/mkdir -p$/;"	m
@@ -24474,6 +24460,7 @@ mod_selfenergy	src_gw/mod_selfenergy.f90	/^module mod_selfenergy$/;"	m
 mod_spin	mod_spin.F90	/^Module mod_spin$/;"	m
 mod_symmetry	mod_symmetry.F90	/^Module mod_symmetry$/;"	m
 mod_timing	mod_timing.F90	/^Module mod_timing$/;"	m
+mod_variation	src_xs/mod_variation.f90	/^module mod_variation$/;"	m
 mod_vxc	src_gw/src_vxc/mod_vxc.f90	/^module mod_vxc$/;"	m
 mod_xsf_format	mod_xsf_format.f90	/^module mod_xsf_format$/;"	m
 mod_xsgrids	mod_xsgrids.f90	/^module mod_xsgrids$/;"	m
@@ -24574,10 +24561,9 @@ modspdeflist	modspdb.f90	/^Module modspdeflist$/;"	m
 modspecies	species/modspecies.F90	/^module   modspecies$/;"	m
 modsym	src_sym/modsym.F90	/^Module modsym$/;"	m
 modsymmetries	spacegroup/sginputmodule.f90	/^module modsymmetries$/;"	m
-modxas	src_xs/xas/modxas.f90	/^module modxas$/;"	m
+modxas	src_xs/modxas.f90	/^module modxas$/;"	m
 modxcifc	src_xc/modxcifc.f90	/^module modxcifc$/;"	m
 modxs	src_xs/modxs.F90	/^Module modxs$/;"	m
-modxsmain	src_xs/xsmain.F90	/^Module modxsmain$/;"	m
 moke	src_inputparser/inputmodules.f90	/^  type(moke_/;"	k	type:properties_type
 moke	src_optics/moke.f90	/^subroutine moke$/;"	s
 moke_type	src_inputparser/inputmodules.f90	/^type moke_type$/;"	t	module:modinput
@@ -24900,12 +24886,12 @@ ncell	spacegroup/modspacegroup.f90	/^integer::ncell(/;"	v	module:modspacegroup
 ncell	spacegroup/sginputmodule.f90	/^ integer::ncell(/;"	k	type:lattice_type
 ncell	src_raman/mod_raman.f90	/^integer :: ncell$/;"	v	module:raman_coeff
 ncg	src_gw/mod_core_states.f90	/^    integer(4) :: ncg$/;"	v	module:mod_core_states
-ncg	src_xs/xas/modxas.f90	/^      integer(4) :: ncg /;"	v	module:modxas
+ncg	src_xs/modxas.f90	/^      integer(4) :: ncg /;"	v	module:modxas
 nclm	src_gw/mod_core_states.f90	/^    integer(4) :: nclm$/;"	v	module:mod_core_states
-nclm	src_xs/xas/modxas.f90	/^      integer(4) :: nclm /;"	v	module:modxas
+nclm	src_xs/modxas.f90	/^      integer(4) :: nclm /;"	v	module:modxas
 ncmag	mod_spin.F90	/^      Logical :: ncmag$/;"	v	module:mod_spin
 ncmax	src_gw/mod_core_states.f90	/^    integer(4) :: ncmax$/;"	v	module:mod_core_states
-ncmax	src_xs/xas/modxas.f90	/^      integer(4) :: ncmax$/;"	v	module:modxas
+ncmax	src_xs/modxas.f90	/^      integer(4) :: ncmax$/;"	v	module:modxas
 ncols	src_xs/modscl.f90	/^    integer(4) :: nrows, ncols$/;"	k	type:dzmat
 ncols_loc	src_xs/modscl.f90	/^    integer(4) :: nrows_loc, ncols_loc$/;"	k	type:dzmat
 ncomp	src_vdwdf/Cuba-3.2/demo/demo-fortran.F	/^	integer ndim, ncomp,/;"	v	program:CubaTest
@@ -24988,7 +24974,7 @@ nconv	ARPACK/EXAMPLES/SYM/ssdrv5.f	/^      integer          ido, n, nev, ncv, lw
 nconv	ARPACK/EXAMPLES/SYM/ssdrv6.f	/^      integer          ido, n, nev, ncv, lworkl, info, j, ierr,$/;"	v	program:ssdrv6
 ncore	src_gw/mod_core_states.f90	/^    integer(4), allocatable :: ncore(/;"	v	module:mod_core_states
 ncore	src_libbzint/tetra_internal.f90	/^      integer :: ncore /;"	v	module:tetra_internal
-ncore	src_xs/xas/modxas.f90	/^      integer(4) :: ncore /;"	v	module:modxas
+ncore	src_xs/modxas.f90	/^      integer(4) :: ncore /;"	v	module:modxas
 ncores	src_vdwdf/Cuba-3.2/src/cuhre/decl.h	/^  int ncores, *child;$/;"	m	struct:_this
 ncores	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  int ncores, running, *child;$/;"	m	struct:_this
 ncores	src_vdwdf/Cuba-3.2/src/suave/decl.h	/^  int ncores, *child;$/;"	m	struct:_this
@@ -25624,10 +25610,9 @@ nx	ARPACK/EXAMPLES/SYM/dsdrv1.f	/^      integer          ido, n, nev, ncv, lwork
 nx	ARPACK/EXAMPLES/SYM/ssdrv1.f	/^      integer          ido, n, nev, ncv, lworkl, info, ierr, j, $/;"	v	program:ssdrv1
 nx	src_vdwdf/modules.f90	/^   integer             :: nx,/;"	v	module:param
 nx	src_xs/bspline_oo_module.f90	/^        integer :: nx /;"	v
-nxas	src_xs/xas/modxas.f90	/^       integer(4) :: nxas$/;"	v	module:modxas
+nxas	src_xs/modxas.f90	/^       integer(4) :: nxas$/;"	v	module:modxas
 nxi	ARPACK/EXAMPLES/BAND/cnbdr2.f	/^     &                 n, nxi,/;"	v	program:cnbdr2
 nxi	ARPACK/EXAMPLES/BAND/znbdr2.f	/^     &                 n, nxi,/;"	v	program:znbdr2
-nxstasks	src_xs/xsmain.F90	/^      Integer :: nxstasks$/;"	v	module:modxsmain
 ny	src_vdwdf/modules.f90	/^   integer             :: nx,ny,/;"	v	module:param
 ny	src_xs/bspline_oo_module.f90	/^        integer :: ny /;"	v
 nz	species/modspecies.F90	/^integer :: nz,/;"	v	module:modspecies
@@ -26050,7 +26035,7 @@ prefix	libXC/testsuite/Makefile	/^prefix = \/opt\/etsf$/;"	m
 prefixMapping	FoX/common/m_common_namespaces.F90	/^  type prefixMapping$/;"	t	module:m_common_namespaces
 prefixOfQName	FoX/common/m_common_namecheck.F90	/^  pure function prefixOfQName(/;"	f	module:m_common_namecheck
 prefixes	FoX/common/m_common_namespaces.F90	/^    type(prefixMapping), dimension(:), pointer :: prefixes$/;"	k	type:namespaceDictionary
-preml	src_xs/xas/modxas.f90	/^  real function preml(/;"	f	module:modxas
+preml	src_xs/modxas.f90	/^  real function preml(/;"	f	module:modxas
 prep_ang_int	src_gw/src_tests/mod_ang_int.f90	/^    subroutine prep_ang_int(/;"	s	module:mod_ang_int
 prerotate_preconditioner	src_iterative_solver/src_diis/prerotate_preconditioner.F90	/^Subroutine prerotate_preconditioner /;"	s
 pretty_print	FoX/wxml/m_wxml_core.F90	/^    logical                   :: pretty_print /;"	k	type:xmlf_t
@@ -26176,7 +26161,9 @@ putNodesInDocument	FoX/dom/m_dom_dom.F90	/^  subroutine putNodesInDocument(/;"	s
 put_excitons	src_xs/m_putgetexcitons.f90	/^    subroutine put_excitons(/;"	s	module:m_putgetexcitons
 putapwcmt	src_xs/putapwcmt.F90	/^subroutine putapwcmt(/;"	s
 putbsediag	src_xs/putbsediag.F90	/^Subroutine putbsediag /;"	s
-putbsemat	src_xs/putbsemat.F90	/^subroutine putbsemat(/;"	s
+putbseinfo	src_xs/m_putgetbsemat.f90	/^    subroutine putbseinfo(/;"	s	module:m_putgetbsemat
+putbsemat	src_xs/m_putgetbsemat.f90	/^    subroutine putbsemat(/;"	s	module:m_putgetbsemat
+putbsereset	src_xs/m_putgetbsemat.f90	/^    subroutine putbsereset$/;"	s	module:m_putgetbsemat
 putd_excitons	src_xs/m_putgetexcitons.f90	/^    subroutine putd_excitons(/;"	s	module:m_putgetexcitons
 putemat	src_xs/putemat.F90	/^      Subroutine putemat /;"	s	module:m_putemat
 putematrad	src_xs/putematrad.F90	/^subroutine putematrad(/;"	s
@@ -26979,11 +26966,13 @@ scnrm2	ARPACK/EXAMPLES/SIMPLE/cnsimp.f	/^      Real $/;"	v	program:cnsimp
 scqmap	src_xs/modxs.F90	/^      Integer, Allocatable :: scqmap /;"	v	module:modxs
 scrcoul	src_inputparser/inputmodules.f90	/^  type(scrcoul_/;"	k	type:gw_type
 scrcoul_type	src_inputparser/inputmodules.f90	/^type scrcoul_type$/;"	t	module:modinput
-scrcoulint	src_xs/scrcoulint.F90	/^subroutine scrcoulint$/;"	s
+scrcoulint	src_xs/scrcoulint.f90	/^subroutine scrcoulint(/;"	s
+scrcoulintlauncher	src_xs/scrcoulintlauncher.f90	/^subroutine scrcoulintlauncher$/;"	s
 scrdirname	src_xs/modxs.F90	/^      character(256) :: gqdirname, eps0dirname, scrdirname,/;"	v	module:modxs
 screen	src_xs/screen.F90	/^subroutine screen$/;"	s
 screening	src_inputparser/inputmodules.f90	/^  type(screening_/;"	k	type:xs_type
 screening_type	src_inputparser/inputmodules.f90	/^type screening_type$/;"	t	module:modinput
+screenlauncher	src_xs/screenlauncher.f90	/^subroutine screenlauncher$/;"	s
 screentype	src_inputparser/inputmodules.f90	/^ character(512)::screentype$/;"	k	type:screening_type
 screentypenumber	src_inputparser/inputmodules.f90	/^ integer::screentypenumber$/;"	k	type:screening_type
 scrgeneigvec	src_xs/scrgeneigvec.F90	/^subroutine scrgeneigvec$/;"	s
@@ -27192,7 +27181,7 @@ setup_node_groups	src_mpi/modmpi.F90	/^    subroutine setup_node_groups$/;"	s	mo
 setup_proc_groups	src_mpi/modmpi.F90	/^    subroutine setup_proc_groups(/;"	s	module:modmpi
 setup_pwmat	src_xs/m_setup_pwmat.f90	/^    subroutine setup_pwmat(/;"	s	module:m_setup_pwmat
 setup_pwmat_dist	src_xs/m_setup_pwmat.f90	/^    subroutine setup_pwmat_dist(/;"	s	module:m_setup_pwmat
-setup_xyz	src_xs/b_writekpathweights.f90	/^    subroutine setup_xyz(/;"	s	subroutine:b_writekpathweights
+setup_xyz	src_xs/writekpathweights.f90	/^    subroutine setup_xyz(/;"	s	subroutine:writekpathweights
 setupblacs	src_xs/modscl.f90	/^    subroutine setupblacs(/;"	s	module:modscl
 setuphsvect	src_iterative_solver/src_diis/setuphsvect.F90	/^Subroutine setuphsvect /;"	s
 setupprojectedhamilton	src_iterative_solver/src_diis/setupprojectedhamilton.F90	/^Subroutine setupprojectedhamilton /;"	s
@@ -27564,7 +27553,7 @@ spindex	src_gw/mod_bands.f90	/^    integer, allocatable :: spindex(/;"	v	module:
 spinorb	src_inputparser/inputmodules.f90	/^ logical::spinorb$/;"	k	type:spin_type
 spinpol	src_gw/mod_misc_gw.f90	/^    logical :: spinpol$/;"	v	module:mod_misc_gw
 spinsprl	src_inputparser/inputmodules.f90	/^ logical::spinsprl$/;"	k	type:spin_type
-spj	src_xs/xas/modxas.f90	/^    real(8), allocatable :: spj(/;"	v	module:modxas
+spj	src_xs/modxas.f90	/^    real(8), allocatable :: spj(/;"	v	module:modxas
 spk	mod_atoms.F90	/^      Integer :: spk /;"	v	module:mod_atoms
 spk	species/modspecies.F90	/^integer spn(maxspst),spl(maxspst),spk(/;"	v	module:modspecies
 spl	mod_atoms.F90	/^      Integer :: spl /;"	v	module:mod_atoms
@@ -28293,6 +28282,7 @@ tplane	src_mixing/modmixermsec.f90	/^      Real (8) :: MSECINFO (20), rtrap, SCH
 tpss_eq_13_14	libXC/src/mgga_c_pkzb.c	/^tpss_eq_13_14(FLOAT zeta, FLOAT csi2, int order, FLOAT *C, FLOAT *dCdzeta, FLOAT *dCdcsi2)$/;"	f	file:
 tq	src_xs/bspline_oo_module.f90	/^        real(wp),dimension(:),allocatable :: tq /;"	v
 tqgamma	src_xs/tqgamma.F90	/^logical function tqgamma(/;"	f
+tr	src_inputparser/inputmodules.f90	/^ logical::tr$/;"	k	type:screening_type
 tr	src_xs/bspline_oo_module.f90	/^        real(wp),dimension(:),allocatable :: tr /;"	v
 trace	src_raman/construct_chartabl.f90	/^function trace(/;"	f	subroutine:construct_chartabl
 trans	src_inputparser/inputmodules.f90	/^type(trans_/;"	k	type:trans_type_array
@@ -28425,7 +28415,7 @@ uadua	src_gw/mod_pmat.f90	/^  real(8), allocatable :: uadua(/;"	v	module:mod_pma
 uaduc	src_gw/mod_pmat.f90	/^  real(8), allocatable :: uaduc(/;"	v	module:mod_pmat
 uadulo	src_gw/mod_pmat.f90	/^  real(8), allocatable :: uadulo(/;"	v	module:mod_pmat
 ucore	src_gw/mod_core_states.f90	/^    real(8), allocatable :: ucore(/;"	v	module:mod_core_states
-ucore	src_xs/xas/modxas.f90	/^      real(8), allocatable :: ucore(/;"	v	module:modxas
+ucore	src_xs/modxas.f90	/^      real(8), allocatable :: ucore(/;"	v	module:modxas
 ujlu	mod_LDA_LU.F90	/^      Real (8) :: ujlu /;"	v	module:mod_LDA_LU
 ulodua	src_gw/mod_pmat.f90	/^  real(8), allocatable :: ulodua(/;"	v	module:mod_pmat
 uloduc	src_gw/mod_pmat.f90	/^  real(8), allocatable :: uloduc(/;"	v	module:mod_pmat
@@ -28661,6 +28651,7 @@ values_save	FoX/utils/fox_m_utils_uuid.F90	/^  integer, save :: values_save /;"	
 values_t	libXC/testsuite/xc-regression.c	/^typedef struct values_t {$/;"	s	file:
 values_t	libXC/testsuite/xc-regression.c	/^} values_t;$/;"	t	typeref:struct:values_t	file:
 values_t_copy	libXC/testsuite/xc-regression.c	/^void values_t_copy(values_t *dest, values_t *src)$/;"	f
+variation_multiplication	src_xs/mod_variation.f90	/^  subroutine variation_multiplication(/;"	s	module:mod_variation
 vbas	src_gw/mod_kqpts.f90	/^    complex(8), allocatable :: vbas(/;"	v	module:mod_kqpts
 vccut	src_gw/mod_coulomb_potential.f90	/^    logical :: vccut$/;"	v	module:mod_coulomb_potential
 vchgdst	mod_convergence.F90	/^      Real (8), Allocatable :: vchgdst(/;"	v	module:mod_convergence
@@ -28772,7 +28763,7 @@ vlapl	libXC/testsuite/xc-regression.c	/^  double zk, vrho[2], vsigma[3], vlapl[2
 vmad	mod_potential_and_density.F90	/^      Real (8), Allocatable :: vmad /;"	v	module:mod_potential_and_density
 vmat	src_gw/mod_coulomb_potential.f90	/^    complex(8), allocatable :: vmat(/;"	v	module:mod_coulomb_potential
 vmatlu	mod_LDA_LU.F90	/^      Complex (8), Allocatable :: vmatlu /;"	v	module:mod_LDA_LU
-vmt	src_xs/xas/modxas.f90	/^      real(8) :: vmt(/;"	v	module:modxas
+vmt	src_xs/modxas.f90	/^      real(8) :: vmt(/;"	v	module:modxas
 vnlmat	src_hybrids/mod_hybrids.f90	/^    complex(8), allocatable :: vnlmat(/;"	v	module:mod_hybrids
 vnlrdm	mod_RDMFT.F90	/^      Real (8), Allocatable :: vnlrdm /;"	v	module:mod_RDMFT
 vnlrho	src_advanced/vnlrho.f90	/^Subroutine vnlrho /;"	s
@@ -28867,6 +28858,8 @@ vtau	libXC/testsuite/xc-get_data.c	/^  double vtau[2];        \/* vtaua, vtaub *
 vtau	libXC/testsuite/xc-regression.c	/^  double zk, vrho[2], vsigma[3], vlapl[2], vtau[2];$/;"	m	struct:values_t	file:
 vtlsymc	mod_symmetry.F90	/^      Real (8) :: vtlsymc /;"	v	module:mod_symmetry
 vvlp1d	mod_plotting.F90	/^      Real (8), Allocatable :: vvlp1d /;"	v	module:mod_plotting
+vwdiffar	src_xs/modbse.f90	/^  real(8), allocatable :: vwdiffrr(:), vwdiffar(/;"	v	module:modbse
+vwdiffrr	src_xs/modbse.f90	/^  real(8), allocatable :: vwdiffrr(/;"	v	module:modbse
 vwn_consts	libXC/src/lda_c_vwn.c	/^static vwn_consts_type vwn_consts[2] = {$/;"	v	file:
 vwn_consts_type	libXC/src/lda_c_vwn.c	/^} vwn_consts_type;$/;"	t	typeref:struct:__anon29	file:
 vxcaa	src_gw/src_vxc/vxcaa.f90	/^subroutine vxcaa(/;"	s
@@ -28889,9 +28882,14 @@ warning	FoX/common/m_common_struct.F90	/^    logical :: warning /;"	k	type:xml_d
 warning	warning.f90	/^subroutine warning(/;"	s
 wavefcr	wavefcr.f90	/^Subroutine wavefcr /;"	s
 wavefmt	wavefmt.f90	/^Subroutine wavefmt /;"	s
+wavefmt0	src_xs/m_getgrst.f90	/^    subroutine wavefmt0(/;"	s	module:m_getgrst
+wavefmt1	src_xs/m_getgrst.f90	/^    subroutine wavefmt1(/;"	s	module:m_getgrst
 wavefmt_add	wavefmt.f90	/^Subroutine wavefmt_add /;"	s
 wavefmt_apw	src_xs/wavefmt_apw.F90	/^Subroutine wavefmt_apw /;"	s
 wavefmt_lo	src_xs/wavefmt_lo.F90	/^Subroutine wavefmt_lo /;"	s
+wavefmtsv	src_xs/m_getgrst.f90	/^  subroutine wavefmtsv(/;"	s	module:m_getgrst
+wavefmtsv0	src_xs/m_getgrst.f90	/^  subroutine wavefmtsv0(/;"	s	module:m_getgrst
+wavefmtsv1	src_xs/m_getgrst.f90	/^  subroutine wavefmtsv1(/;"	s	module:m_getgrst
 wc_c	libXC/src/gga_x_wc.c	/^static FLOAT wc_mu, wc_c;$/;"	v	file:
 wc_mu	libXC/src/gga_x_wc.c	/^static FLOAT wc_mu, wc_c;$/;"	v	file:
 wdos	mod_DOS_optics_response.F90	/^      Real (8) :: wdos /;"	v	module:mod_DOS_optics_response
@@ -29226,7 +29224,8 @@ workl	ARPACK/EXAMPLES/SYM/ssdrv5.f	/^     &                 v(ldv,maxncv), workl
 workl	ARPACK/EXAMPLES/SYM/ssdrv6.f	/^     &                 v(ldv,maxncv), workl(/;"	v	program:ssdrv6
 workspacequery	src_xs/bsesoldiag.F90	/^    subroutine workspacequery(/;"	s	subroutine:bsesoldiag
 workspacequery	src_xs/m_dhesolver.f90	/^        subroutine workspacequery(/;"	s	subroutine:dhesolver
-workspacequery	src_xs/m_hesolver.f90	/^        subroutine workspacequery(/;"	s	subroutine:hesolver
+workspacequery_zheevd	src_xs/m_hesolver.f90	/^        subroutine workspacequery_zheevd(/;"	s	subroutine:hesolver
+workspacequery_zheevr	src_xs/m_hesolver.f90	/^        subroutine workspacequery_zheevr(/;"	s	subroutine:hesolver
 wp	src_xs/bspline_sub_module.f90	/^    integer,parameter :: wp /;"	v	module:bspline_sub_module
 wparf	src_xs/modxs.F90	/^      Integer :: wparf$/;"	v	module:modxs
 wpari	src_xs/modxs.F90	/^      Integer :: wpari$/;"	v	module:modxs
@@ -29267,12 +29266,13 @@ writedveff	src_phonon/writedveff.f90	/^Subroutine writedveff /;"	s
 writedynamicalmatrices	src_phonon/writedynamicalmatrices.F90	/^subroutine writedynamicalmatrices(/;"	s
 writeefg	writeefg.f90	/^Subroutine writeefg$/;"	s
 writeeigenvectors	src_inputparser/inputmodules.f90	/^ logical::writeeigenvectors$/;"	k	type:interpolate_type
-writeemat	src_xs/writeemat.F90	/^Subroutine writeemat$/;"	s
+writeemat	src_xs/writeemat.F90	/^subroutine writeemat$/;"	s
 writeematasc	src_xs/writeematasc.F90	/^Subroutine writeematasc$/;"	s
 writeengy	writeengy.f90	/^Subroutine writeengy /;"	s
 writeeps	src_xs/writeeps.F90	/^    subroutine writeeps(/;"	s	module:m_writeeps
 writeeval	writeeval.f90	/^Subroutine writeeval$/;"	s
 writeevec	src_xs/writeevec.F90	/^subroutine writeevec(/;"	s
+writeexcevec	src_xs/writeexcevec.f90	/^subroutine writeexcevec(/;"	s
 writeexcitons	src_inputparser/inputmodules.f90	/^  type(writeexcitons_/;"	k	type:xs_type
 writeexcitons_type	src_inputparser/inputmodules.f90	/^type writeexcitons_type$/;"	t	module:modinput
 writeexpiqr	src_optics/writeexpiqr.f90	/^Subroutine writeexpiqr$/;"	s
@@ -29290,8 +29290,9 @@ writeiktetmap	src_xs/modtetra/modtetra.F90	/^      Subroutine writeiktetmap /;"	
 writeinfo	writeinfo.f90	/^Subroutine writeinfo /;"	s
 writekerr	src_xs/writekerr.F90	/^      Subroutine writekerr /;"	s	module:m_writekerr
 writekmapkq	src_xs/writekmapkq.F90	/^Subroutine writekmapkq /;"	s
-writekpathplot	src_xs/b_writekpathweights.f90	/^    subroutine writekpathplot(/;"	s	subroutine:b_writekpathweights
+writekpathplot	src_xs/writekpathweights.f90	/^    subroutine writekpathplot(/;"	s	subroutine:writekpathweights
 writekpathweights	src_inputparser/inputmodules.f90	/^  type(writekpathweights_/;"	k	type:xs_type
+writekpathweights	src_xs/writekpathweights.f90	/^subroutine writekpathweights$/;"	s
 writekpathweights_type	src_inputparser/inputmodules.f90	/^type writekpathweights_type$/;"	t	module:modinput
 writekpts	writekpts.f90	/^subroutine writekpts$/;"	s
 writelambda	src_phonon/writelambda.f90	/^Subroutine writelambda /;"	s
@@ -29300,8 +29301,8 @@ writeldapu	src_LDAU/writeldapu.f90	/^Subroutine writeldapu$/;"	s
 writelinen	writelinen.f90	/^Subroutine writelinen$/;"	s
 writeloss	src_xs/writeloss.F90	/^    subroutine writeloss(/;"	s	module:m_writeloss
 writelsj	writelsj.f90	/^Subroutine writelsj$/;"	s
+writemeasures	src_xs/modbse.f90	/^    subroutine writemeasures(/;"	s	module:modbse
 writemeta	src_xs/m_putgetbsemat.f90	/^  logical :: writemeta=/;"	v	module:m_putgetbsemat
-writeminus	src_inputparser/inputmodules.f90	/^ logical::writeminus$/;"	k	type:BSE_type
 writeoptminitdata	relax.f90	/^subroutine writeoptminitdata(/;"	s
 writeoscillator	src_xs/writeoscillator.f90	/^    subroutine writeoscillator(/;"	s	module:m_writeoscillator
 writepchgs	writepchgs.F90	/^subroutine writepchgs(/;"	s
@@ -29327,7 +29328,7 @@ writesymt2	src_xs/writesymt2.F90	/^Subroutine writesymt2$/;"	s
 writetime	writetime.f90	/^Subroutine writetime /;"	s
 writetorque	writetorque.f90	/^subroutine writetorque(/;"	s
 writevars	src_xs/writevars.F90	/^      Subroutine writevars /;"	s	module:m_writevars
-writeweights	src_xs/b_writekpathweights.f90	/^    subroutine writeweights(/;"	s	subroutine:b_writekpathweights
+writeweights	src_xs/writekpathweights.f90	/^    subroutine writeweights(/;"	s	subroutine:writekpathweights
 writewiq2	writewiq2.f90	/^Subroutine writewiq2$/;"	s
 writexmlspecies	species/writexmlspecies.F90	/^subroutine writexmlspecies$/;"	s
 writexsgrids	src_inputparser/inputmodules.f90	/^ logical::writexsgrids$/;"	k	type:xs_type
@@ -29378,12 +29379,12 @@ xas	src_inputparser/inputmodules.f90	/^ logical::xas$/;"	k	type:BSE_type
 xasatom	src_inputparser/inputmodules.f90	/^ integer::xasatom$/;"	k	type:BSE_type
 xasedge	src_inputparser/inputmodules.f90	/^ character(512)::xasedge$/;"	k	type:BSE_type
 xasedgenumber	src_inputparser/inputmodules.f90	/^ integer::xasedgenumber$/;"	k	type:BSE_type
-xasfinit	src_xs/xas/xasfinit.f90	/^subroutine xasfinit$/;"	s
+xasfinit	src_xs/xasfinit.f90	/^subroutine xasfinit$/;"	s
 xasgauntgen	src_xs/xsgauntgen.F90	/^  subroutine xasgauntgen /;"	s	module:m_xsgauntgen
-xasinit	src_xs/xas/xasinit.f90	/^subroutine xasinit$/;"	s
+xasinit	src_xs/xasinit.f90	/^subroutine xasinit$/;"	s
 xasspecies	src_inputparser/inputmodules.f90	/^ integer::xasspecies$/;"	k	type:BSE_type
-xasstart	src_xs/xas/modxas.f90	/^    integer(4) :: xasstart,/;"	v	module:modxas
-xasstop	src_xs/xas/modxas.f90	/^    integer(4) :: xasstart, xasstop$/;"	v	module:modxas
+xasstart	src_xs/modxas.f90	/^    integer(4) :: xasstart,/;"	v	module:modxas
+xasstop	src_xs/modxas.f90	/^    integer(4) :: xasstart, xasstop$/;"	v	module:modxas
 xc	src_inputparser/inputmodules.f90	/^ character(512)::xc$/;"	k	type:libxc_type
 xc_am05	src_xc/xc_am05.f90	/^subroutine xc_am05(/;"	s
 xc_am05_labertw	src_xc/xc_am05.f90	/^subroutine xc_am05_labertw(/;"	s
@@ -29498,11 +29499,14 @@ xsfgradients	src_vdwdf/modules.f90	/^   character*180       :: phifile, xsffile,
 xsfileout	src_xs/modxs.F90	/^      Character (256) :: xsfileout$/;"	v	module:modxs
 xsfinit	src_xs/xsfinit.F90	/^subroutine xsfinit$/;"	s
 xsgauntgen	src_xs/xsgauntgen.F90	/^  subroutine xsgauntgen(/;"	s	module:m_xsgauntgen
-xsgeneigvec	src_xs/xsgeneigvec.F90	/^subroutine xsgeneigvec$/;"	s
+xsgeneigvec	src_xs/xsgeneigvec.f90	/^subroutine xsgeneigvec(/;"	s
+xsgeneigveclauncher	src_xs/xsgeneigveclauncher.f90	/^subroutine xsgeneigveclauncher(/;"	s
 xsgnt	src_xs/modxs.F90	/^      Real (8), Allocatable :: xsgnt /;"	v	module:modxs
 xsgntoo	src_xs/modxs.F90	/^      Real (8), Allocatable :: xsgntoo /;"	v	module:modxs
 xsgntou	src_xs/modxs.F90	/^      Real (8), Allocatable :: xsgntou /;"	v	module:modxs
+xsgntousv	src_xs/modxs.F90	/^      Real (8), Allocatable :: xsgntousv /;"	v	module:modxs
 xsgntuo	src_xs/modxs.F90	/^      Real (8), Allocatable :: xsgntuo /;"	v	module:modxs
+xsgntuosv	src_xs/modxs.F90	/^      Real (8), Allocatable :: xsgntuosv /;"	v	module:modxs
 xsgrids_finalize	mod_xsgrids.f90	/^    subroutine xsgrids_finalize(/;"	s	module:mod_xsgrids
 xsgrids_init	mod_xsgrids.f90	/^    subroutine xsgrids_init(/;"	s	module:mod_xsgrids
 xsgrids_initialized	mod_xsgrids.f90	/^    logical function xsgrids_initialized(/;"	f	module:mod_xsgrids
@@ -29510,11 +29514,10 @@ xsgrids_write_grids	mod_xsgrids.f90	/^    subroutine xsgrids_write_grids(/;"	s	m
 xsinit	src_xs/xsinit.F90	/^subroutine xsinit$/;"	s
 xslinopt	src_xs/xslinopt.F90	/^Subroutine xslinopt /;"	s
 xsltpath	src_inputparser/inputmodules.f90	/^ character(1024)::xsltpath$/;"	k	type:input_type
-xsmain	src_xs/xsmain.F90	/^Subroutine xsmain /;"	s
+xsmain	src_xs/xsmain.F90	/^subroutine xsmain(/;"	s
 xssave0	src_xs/xssave0.F90	/^subroutine xssave0$/;"	s
 xst	src_xml/scl_xml_out_module.F90	/^     & charges, atom, xst,/;"	v	module:scl_xml_out_Module
-xstasklauncher	src_inputparser/xstasklauncher.F90	/^subroutine xstasklauncher$/;"	s
-xstasks	src_xs/xsmain.F90	/^      Character (256) :: xstasks /;"	v	module:modxsmain
+xstasklauncher	src_inputparser/xstasklauncher.f90	/^subroutine xstasklauncher$/;"	s
 xstiming	src_xs/timing.F90	/^Subroutine xstiming$/;"	s
 xstype	src_inputparser/inputmodules.f90	/^ character(512)::xstype$/;"	k	type:xs_type
 xstypenumber	src_inputparser/inputmodules.f90	/^ integer::xstypenumber$/;"	k	type:xs_type

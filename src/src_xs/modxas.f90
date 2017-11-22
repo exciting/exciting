@@ -56,16 +56,16 @@ module modxas
 !! plane wave matrix elements array (u-u part)
 !      Complex (8), Allocatable :: xiuu (:, :, :)
 contains
-  integer function mj2ml(m,i)
+  integer function mj2ml(l,m,i)
     implicit none
     real(8), intent(in) :: m
-    integer, intent(in) :: i
+    integer, intent(in) :: l,i
     if (i==1) then
       mj2ml=Int(m-0.50d0)
     else if (i==2) then
       mj2ml=Int(m+0.50d0)
     end if
-    if (mj2ml< -lxas .or. mj2ml> lxas) then
+    if (abs(mj2ml)>l) then
       mj2ml=0.0d0
       !write(*,*) 'MJ= ', m, 'inconsistent with lxas= ', lxas
     end if

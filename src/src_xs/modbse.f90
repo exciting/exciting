@@ -392,7 +392,7 @@ module modbse
       integer(4) :: io1, io2, iu1, iu2
       integer(4) :: iomax, iumax
       integer(4) :: iomin, iumin
-      real(8), parameter :: maxocc = 2.0d0
+      real(8) :: maxocc
       real(8), parameter :: epslat = 1.0d-8
 
       integer(4) :: nk_loc, hamsize_loc
@@ -432,6 +432,12 @@ module modbse
         fensel = .true.
       else
         fensel = .false.
+      end if
+      ! Set maxocc factor: 2.0d0 for spin-unpolarized, 1.0d0 for spin-polarized
+      if (input%groundstate%tevecsv) then
+        maxocc=1.0d0
+      else
+        maxocc=2.0d0
       end if
 
       ! What energy range is of interest?

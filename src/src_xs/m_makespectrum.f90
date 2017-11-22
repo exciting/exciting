@@ -393,6 +393,7 @@ module m_makespectrum
     end subroutine makespectrum_dist
 
     subroutine finalizespectrum(iqmt, nk, nsp, sp)
+      use modinput, only: input
       use modmpi
       use modxs, only: sptclg, ivgigq, ivgmt, unitout
       use mod_lattice, only: omega
@@ -482,16 +483,28 @@ module m_makespectrum
       call timesec(t0)
 
       ! Adjusting prfactor, the factor 2 accounts for spin degeneracy
-      if(iqmt==1) then 
-        ! -1 * 2 * 4 pi * 1/V * 1/nk
-        pref = -2.d0*4.d0*pi/omega/nk
-      else
-        ! 2 * ( (4 pi/|Gmt+qmt|^2)^1/2 )^2 * 1/V * 1/nk
-        igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
-        pref = 2.0d0*sptclg(igqmt,iqmt)**2/omega/nk
-        if(usechibar) then 
-          pref = -pref
+      if(iqmt==1) then
+        if (.not. input%groundstate%tevecsv) then 
+          ! -1 * 2 * 4 pi * 1/V * 1/nk
+          pref = -2.d0*4.d0*pi/omega/nk
+        else
+          ! -1 * 4 pi * 1/V * 1/nk
+          pref = -4.d0*pi/omega/nk
         end if
+      else
+        if (.not. input%groundstate%tevecsv) then
+          ! 2 * ( (4 pi/|Gmt+qmt|^2)^1/2 )^2 * 1/V * 1/nk
+          igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
+          pref = 2.0d0*sptclg(igqmt,iqmt)**2/omega/nk
+        else
+          ! ( (4 pi/|Gmt+qmt|^2)^1/2 )^2 * 1/V * 1/nk
+          igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
+          pref = sptclg(igqmt,iqmt)**2/omega/nk
+        end if
+	! BENJAMIN: stimmt das noch?
+	if (usechibar) then
+	  pref=-pref
+	end if
       end if
 
       ! Add 1 to diagonal elements

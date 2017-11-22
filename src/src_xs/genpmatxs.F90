@@ -15,6 +15,7 @@ Subroutine genpmatxs (ngp, igpig, vgpc, evecfv, evecsv, pmat)
       Use modinput
       Use modmain
       Use modxs, Only: apwcmt, locmt, ripaa, ripalo, riploa, riplolo
+      Use mod_variation, only: variation_multiplication
 ! !INPUT/OUTPUT PARAMETERS:
 !   ngp    : number of G+p-vectors (in,integer)
 !   igpig  : index from G+p-vectors to G-vectors (in,integer(ngkmax))
@@ -55,7 +56,7 @@ Subroutine genpmatxs (ngp, igpig, vgpc, evecfv, evecsv, pmat)
       Complex (8), Allocatable :: pm (:, :, :)
       Complex (8), Allocatable :: cfunt (:, :), h (:, :), pmt (:, :)
       Complex (8), Allocatable :: evecfv1 (:, :), evecfv2 (:, :)
-      Complex (8), Allocatable :: zv2 (:)
+      Complex (8), Allocatable :: zv2 (:), zv3(:,:)
   ! external functions
       Complex (8) zfmtinp
       External zfmtinp
@@ -208,24 +209,12 @@ Subroutine genpmatxs (ngp, igpig, vgpc, evecfv, evecsv, pmat)
       End Do
   ! compute the second-variational momentum matrix elements
       If (input%groundstate%tevecsv) Then
-         Do i = 1, nstsv
-            Do j = 1, nstsv
-               zv (:) = 0.d0
-               k = 0
-               Do ispn = 1, nspinor
-                  Do ist = 1, nstfv
-                     k = k + 1
-                     l = (ispn-1) * nstfv
-                     Do jst = 1, nstfv
-                        l = l + 1
-                        zt1 = conjg (evecsv(k, i)) * evecsv (l, j)
-                        zv (:) = zv (:) + zt1 * pm (ist, jst, :)
-                     End Do
-                  End Do
-               End Do
-               pmat (:, i, j) = zv (:)
-            End Do
-         End Do
+        allocate(zv3(nstsv,nstsv))
+        do j=1,3
+          call variation_multiplication(evecsv,pm(:,:,j),evecsv,zv3,nstsv,nstsv,1,1)
+          pmat (j,:,:)=zv3(:,:)
+        end do
+        deallocate(zv3)
       Else
          Do j = 1, 3
             pmat (j, :, :) = pm (:, :, j)

@@ -111,7 +111,7 @@ subroutine bse(iqmt)
   integer(4), intent(in) :: iqmt
 
   ! Local variables
-  character(*), parameter :: thisname = "b_bse"
+  character(*), parameter :: thisname = "bse"
 
   integer(4) :: i, j
   integer(4) :: nexc
@@ -173,7 +173,7 @@ subroutine bse(iqmt)
   call genfilname(iqmt=iqmtgamma, setfilext=.true.)
   call readfermi
   ! Set ist* variables and ksgap in modxs using findocclims
-  ! Needs: init2 (is called by b_bselauncher)
+  ! Needs: init2 (is called by bselauncher)
   ! On exit: - k-grid quantities are stored in modxs: vkl0, evalsv0 etc
   !            k-qmt/2 grid quantities are stored in default locations: vkl, evalsv etc
   !            This is altered by select_transitions below
@@ -590,7 +590,7 @@ subroutine bse(iqmt)
       write(unitout, '("Info(",a,"):&
         & Writing excition energies and oscillator strengths to text file.")')&
         & trim(thisname)
-      call writeoscillator(hamsize, nexc, -bsegap, exeval, oscsr, iqmt=iqmt)
+      call writeoscillator(hamsize, nexc, nk_bse, -bsegap, exeval, oscsr, iqmt=iqmt)
     end if
 
     ! Allocate arrays used in spectrum construction

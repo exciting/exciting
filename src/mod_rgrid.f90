@@ -586,8 +586,8 @@ contains
               ir0 = ir-np2
             end if
             r = max(r,spr(1,is))
-            lm1=idxlm(lxas,mj2ml(mj(mu),1))
-            lm2=idxlm(lxas,mj2ml(mj(mu),2))
+            lm1=idxlm(lxas,mj2ml(lxas,mj(mu),1))
+            lm2=idxlm(lxas,mj2ml(lxas,mj(mu),2))
             zsum = 0.d0
             	do j = 1, input%groundstate%nprad
                 i = ir0+j-1

@@ -382,6 +382,7 @@ module m_setup_bse
         if(ferror) then 
           write(*, '("Error(setup_bse_block): Info files differ")')
           write(*, '("  efcmpt, efid, sfcmpt, sfcmpt", 4l)') efcmpt, efid, sfcmpt, sfcmpt
+          write(*, '("  efcmpt, sfcmpt, efid, sfid, esfcmpt, esfid", 6l)') efcmpt, sfcmpt, efid, sfid, esfcmpt, esfid
           call terminate
         end if
       end if
@@ -458,7 +459,7 @@ module m_setup_bse
           call setint(ham(i1:i2,j1:j2),&
             & ofac(i1:i2), ofac(j1:j2),&
             & scc=sccli_t(1:inou,1:jnou))
-        else if(useexc) then 
+        else if(useexc) then
           call setint(ham(i1:i2,j1:j2),&
             & ofac(i1:i2), ofac(j1:j2),&
             & exc=excli_t(1:inou,1:jnou))
@@ -499,23 +500,27 @@ module m_setup_bse
           complex(8), intent(in), optional :: scc(:,:)
           complex(8), intent(in), optional :: exc(:,:)
           complex(8), intent(out), optional :: w(:,:), v(:,:)
-          
+          ! local variables
+          real (8) :: excfac 
           integer(4) :: i, j
 
-          if(present(exc) .and. present(scc)) then 
-            if (input%xs%bse%xas) then
-              do j= 1, size(hamblock,2)
-                do i= 1, size(hamblock,1)
-                  hamblock(i,j) = oc1(i)*oc2(j) * (2.0d0*exc(i,j) - scc(i,j))
-                end do
-              end do
+          ! Set prefactor for exchange term in Hamiltonian
+          if (input%xs%bse%xas) then
+            if ((.not. input%groundstate%tevecsv) .and. (input%xs%bse%xasedge == 'K')) then
+              excfac=2.0d0
             else
-              do j= 1, size(hamblock,2)
-                do i= 1, size(hamblock,1)
-                  hamblock(i,j) = oc1(i)*oc2(j) * (2.0d0 * exc(i,j) - scc(i,j))
-                end do
-              end do
+              excfac=1.0d0
             end if
+          else
+            if (.not. input%groundstate%tevecsv) excfac=2.0d0
+            if (input%groundstate%tevecsv) excfac=1.0d0
+          end if
+          if(present(exc) .and. present(scc)) then 
+            do j= 1, size(hamblock,2)
+              do i= 1, size(hamblock,1)
+                hamblock(i,j) = oc1(i)*oc2(j) * (excfac* exc(i,j) - scc(i,j))
+              end do
+            end do
           else if(present(scc)) then 
             do j= 1, size(hamblock,2)
               do i= 1, size(hamblock,1)
@@ -523,21 +528,12 @@ module m_setup_bse
               end do
             end do
           else if(present(exc)) then 
-            if (input%xs%bse%xas) then
-              do j= 1, size(hamblock,2)
-                do i= 1, size(hamblock,1)
-                  hamblock(i,j) = oc1(i)*oc2(j)* 2.0d0 * exc(i,j)
-                end do
+            do j= 1, size(hamblock,2)
+              do i= 1, size(hamblock,1)
+                hamblock(i,j) = oc1(i)*oc2(j) *excfac * exc(i,j)
               end do
-            else
-              do j= 1, size(hamblock,2)
-                do i= 1, size(hamblock,1)
-                  hamblock(i,j) = oc1(i)*oc2(j) * 2.0d0 * exc(i,j)
-                end do
-              end do
-            end if
+            end do
           end if
-
           if(present(w)) then 
             w(:,:) = scc(:,:)
           end if

@@ -151,8 +151,8 @@ subroutine scrcoulint(iqmt, fra)
   ! Making folder for the radial integals pertaining to the plane wave matrix elements
   ematraddir = 'EMATRAD'
 
-  syscommand = 'test ! -d '//trim(adjustl(ematraddir))&
-    & //' && mkdir '//trim(adjustl(ematraddir))
+  syscommand = 'test ! -e '//trim(adjustl(ematraddir))&
+    & //' && mkdir '//trim(adjustl(ematraddir))//' &> /dev/null'
   call system(trim(adjustl(syscommand)))
 
   ! Generate gaunt coefficients used in the construction of 
@@ -178,7 +178,6 @@ subroutine scrcoulint(iqmt, fra)
   ! Note: In the generation of the gaunt coefficients l1 and l3 correspond
   !       to the APW/LOs while l2 corresponds to the exponetial.
   call xsgauntgen(maxl_apwlo, maxl_e, maxl_apwlo)
-  call xasgauntgen (input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax)) 
   ! Find indices for non-zero gaunt coefficients in xsgnt,
   ! and creates index maps, e.g. given l1,m1,l2,m2 -> non zero l3,m3
   ! Up l1 up to maxl_mat, l2 up to maxl_mat, l3 up to maxl_e
@@ -823,6 +822,7 @@ subroutine scrcoulint(iqmt, fra)
   contains
 
     subroutine getpwesrr(moo, muu)
+      use mod_variation, only: ematqk_sv
       complex(8), intent(out) :: moo(:,:,:), muu(:,:,:)
 
       type(bcbs) :: ematbc
@@ -865,9 +865,14 @@ subroutine scrcoulint(iqmt, fra)
       call setptr11()
       ! Calculate M_{o1o2,G} at fixed (k, q)
       if (input%xs%bse%xas) then
+        call xasgauntgen (input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax)) 
         call ematqk_core(iq, ikpnr, moo, ematbc, 'oo')
       else
-        call ematqk(iq, ikpnr, moo, ematbc)
+        if (.not. (input%groundstate%tevecsv)) then 
+          call ematqk(iq, ikpnr, moo, ematbc)
+        else
+          call ematqk_sv(iq, ikpnr, moo, ematbc)
+        end if
       end if
       !-----------------------------------------------------------!
 
@@ -914,7 +919,11 @@ subroutine scrcoulint(iqmt, fra)
       ! Set vkl0_ptr, vkl1_ptr, ... to k-qmt-grid
       call setptr00()
       ! Calculate M_{u1u2,G} at fixed (k, q)
-      call ematqk(iq, ikmnr, muu, ematbc)
+      if (.not. (input%groundstate%tevecsv)) then
+        call ematqk(iq, ikmnr, muu, ematbc)
+      else
+        call ematqk_sv(iq, ikmnr, muu, ematbc)
+      end if
       !------------------------------------------------------------------!
 
       filext0 = fileext0_save
@@ -923,6 +932,8 @@ subroutine scrcoulint(iqmt, fra)
     end subroutine getpwesrr
 
     subroutine getpwesra(mou, muo)
+      use mod_variation, only: ematqk_sv 
+      
       complex(8), intent(out) :: mou(:,:,:), muo(:,:,:)
 
       character(256) :: fileext0_save, fileext_save
@@ -974,7 +985,17 @@ subroutine scrcoulint(iqmt, fra)
       call setptr10()
 
       ! Calculate N_{ou,G} at fixed (k, q)
-      call ematqk(iq, ikpnr, mou, ematbc)
+      if (.not. (input%xs%bse%xas)) then
+        if (.not. (input%groundstate%tevecsv)) then
+          call ematqk(iq, ikpnr, mou, ematbc)
+        else
+          call ematqk_sv(iq, ikpnr, mou, ematbc)
+
+        end if
+      else
+        call xasgauntgen (input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax)) 
+        call ematqk_core(iq, ikpnr, mou, ematbc, 'ou')
+      end if
       !------------------------------------------------------------!
 
       !------------------------------------------------------------------!
@@ -1020,7 +1041,16 @@ subroutine scrcoulint(iqmt, fra)
       call setptr01()
 
       ! Calculate N_{uo,G} at fixed (k, q)
-      call ematqk(iq, ikmnr, muo, ematbc)
+      if (.not. (input%xs%bse%xas)) then
+        if (.not. (input%groundstate%tevecsv)) then
+          call ematqk(iq, ikmnr, muo, ematbc)
+        else
+          call ematqk_sv(iq,ikmnr, muo,ematbc)
+        end if
+      else
+        call xasgauntgen (input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax)) 
+        call ematqk_core(iq, ikmnr, muo, ematbc, 'uo')
+      end if
       !-------------------------------------------------------------!
 
       filext0 = fileext0_save

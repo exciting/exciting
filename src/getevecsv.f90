@@ -12,9 +12,12 @@
 !
 Subroutine getevecsv (vpl, evecsv)
 ! !USES:
-      Use modmain
       Use modinput
       Use modmpi
+      Use mod_eigenvalue_occupancy, only: nstfv, nstsv
+      Use mod_names, only: filetag_evecsv
+      Use mod_kpoint, only: vkl_ptr
+      Use mod_symmetry, only: lspnsymc, symlatc
 ! !DESCRIPTION:
 !   The file where the (second-variational) eigenvectors are stored is
 !   {\tt EVECSV.OUT}.
@@ -124,13 +127,13 @@ Subroutine getevecsv (vpl, evecsv)
 #endif
       Close (70)
 !$OMP END CRITICAL
-      t1 = Abs (vkl(1, ik)-vkl_(1)) + Abs (vkl(2, ik)-vkl_(2)) + Abs &
-     & (vkl(3, ik)-vkl_(3))
+      t1 = Abs (vkl_ptr(1, ik)-vkl_(1)) + Abs (vkl_ptr(2, ik)-vkl_(2)) + Abs &
+     & (vkl_ptr(3, ik)-vkl_(3))
       If (t1 .Gt. input%structure%epslat) Then
          Write (*,*)
          Write (*, '("Error(getevecsv): differing vectors for k-point "&
         &, I8)') ik
-         Write (*, '(" current	  : ", 3G18.10)') vkl (:, ik)
+         Write (*, '(" current	  : ", 3G18.10)') vkl_ptr (:, ik)
          Write (*, '(" EVECSV.OUT : ", 3G18.10)') vkl_
          Write (*, '(" file	  : ", a      )') trim &
         & (outfilenamestring(filetag, ik))

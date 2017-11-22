@@ -18,6 +18,7 @@ module m_setup_pwmat
   use m_writecmplxparts
   use m_xsgauntgen
   use m_findgntn0
+  use mod_variation, only: ematqk_sv
 
   implicit none
 
@@ -27,6 +28,7 @@ module m_setup_pwmat
     ! !ROUTINE: setup_pwmat
     ! !INTERFACE:
     subroutine setup_pwmat(pwmat, iqmt, igqmt)
+      
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     !   integer(4) :: iqmt            ! Index of momentum transfer
@@ -60,10 +62,11 @@ module m_setup_pwmat
       integer(4) :: io, iu, ik, iknr, ikmnr, ik1, ik2
       integer(4) :: ino, inu, ioabs1, iuabs1, ioabs2, iuabs2 
       integer(4) :: a1, numgq
+      integer(4) :: i,j, igq
 
       type(bcbs) :: ematbc
       character(256) :: fileext0_save, fileext_save
-      complex(8), allocatable :: muo(:,:,:), muog(:,:,:)
+      complex(8), allocatable :: muo(:,:,:), muog(:,:,:), mou_(:,:,:)
       integer(4), allocatable, target :: ikm2ikp_dummy(:,:)
       real(8), parameter :: epslat = 1.0d-8
       logical :: fsamekm, fsamekp
@@ -134,7 +137,6 @@ module m_setup_pwmat
       ! the plane wave matrix elements in ematqk.
       call xsgauntgen(max(input%groundstate%lmaxapw, lolmax),&
         & input%xs%lmaxemat, max(input%groundstate%lmaxapw, lolmax))
-      call xasgauntgen (input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax)) 
       ! Find indices for non-zero gaunt coefficients
       call findgntn0(max(input%xs%lmaxapwwf, lolmax),&
         & max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
@@ -201,14 +203,18 @@ module m_setup_pwmat
 
         ! Calculate M_{uo,G} at fixed (k, q)
         if(input%xs%bse%xas) then
+          call xasgauntgen (input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax))
           call ematqk_core(iqmt, ikmnr, muo(1:inu,1:ino,:),ematbc,'uo')
         else
-          call ematqk(iqmt, ikmnr, muo(1:inu,1:ino,:), ematbc)
+          if (.not. (input%groundstate%tevecsv)) then
+            call ematqk(iqmt, ikmnr, muo(1:inu,1:ino,:), ematbc)
+          else
+            call ematqk_sv(iqmt, ikmnr, muo(1:inu,1:ino,:), ematbc)
+          end if
         end if
 
         ! Save only selected G=G_mt
         muog(1:inu, 1:ino, ik) = muo(1:inu,1:ino,igqmt)
-
       end do
 
       ! Gather moug 

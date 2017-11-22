@@ -271,6 +271,9 @@ Module modxs
       Real (8), Allocatable :: xsgntou (:, :, :)
       Real (8), Allocatable :: xsgntuo (:, :, :)
       Real (8), Allocatable :: xsgntoo (:, :, :)
+  ! Spin-dependent Gaunt 
+      Real (8), Allocatable :: xsgntuosv (:, :, :, :)
+      Real (8), Allocatable :: xsgntousv (:, :, :, :)
   ! radial integrals coefficients (APW-APW)
 !      Complex (8), Allocatable :: intrgaa2 (:, :, :)
 !      Complex (8), Allocatable :: intrgalo2 (:, :, :)

@@ -46,6 +46,8 @@ subroutine dfq(iq)
   use m_ematqk
   use m_writecmplxparts
   use m_putgeteps0
+  use mod_variation, only: ematqk_sv
+
 ! !INPUT/OUTPUT PARAMETERS:
 ! In:
 ! integer(4) :: iq  ! q-point index
@@ -133,7 +135,7 @@ subroutine dfq(iq)
   integer(4) :: numpo
   integer(4) :: oct1, oct2, un
   logical :: tq0
-  logical :: doares
+  logical :: doares, fintraband
   type(bcbs) :: bc
 
   ! External functions
@@ -185,6 +187,8 @@ subroutine dfq(iq)
     doares = .not. input%xs%screening%tr
   end if
 
+  ! Set whether intraband should be used
+  fintraband=input%xs%tddft%intraband .or. input%xs%screening%intraband
   ! File extension for q-point (not in 'screen')
   if( .not. tscreen) call genfilname(iqmt=iq, setfilext=.true.)
 
@@ -483,7 +487,38 @@ subroutine dfq(iq)
         bc%iu2 = istu4
         ikmapikq_ptr => ikmapikq
         call setptr01
-        call ematqk(iq, ik, xiuo, bc)
+        
+        if (.not. input%groundstate%tevecsv) then
+          call ematqk(iq, ik, xiou, bc)
+        else
+          call ematqk_sv(iq, ik, xiou, bc)
+        end if
+        ! Get uo
+        if(allocated(xiuo)) deallocate(xiuo)
+        allocate(xiuo(nst3, nst4, n))
+
+        ! Note:
+        ! The uo plane wave matrix elements are not needed
+        ! if the time reversal symmetry is applied to the 
+        ! anti-resonant part of Chi0. 
+
+        ! t.r. sym not used
+        if( doares ) then
+          bc%n1 = nst3
+          bc%n2 = nst4
+          bc%il1 = istl3
+          bc%il2 = istl4
+          bc%iu1 = istu3
+          bc%iu2 = istu4
+          ikmapikq_ptr => ikmapikq
+          call setptr01
+          if (.not. input%groundstate%tevecsv) then
+            call ematqk(iq, ik, xiuo, bc)
+          else
+            call ematqk_sv(iq, ik, xiuo, bc)
+          end if
+        end if
+
       end if
 
 !********************************************************!
@@ -547,7 +582,6 @@ subroutine dfq(iq)
       stop
 #endif            
     end if
-
     ! Not screen: Turn off anti-resonant terms (type 2-1 band combinations) for Kohn-Sham
     ! response function (default skip if)
     if(( .not. input%xs%tddft%aresdf) .and. ( .not. tscreen)) then
@@ -602,7 +636,7 @@ subroutine dfq(iq)
         ! Set diagonal to zero (project out intra-band contributions)?
         ! Intraband default changed to true
         if( ist1 .eq. ist2) then 
-          if(.not. input%xs%tddft%intraband) then
+          if(.not. fintraband) then
             xiou(j, ist2, :) = zzero
           end if
         end if
