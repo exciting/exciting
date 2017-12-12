@@ -1,69 +1,61 @@
 exciting.tar 
 exciting.tar.gz
+
+# Ignore git folder and ignore file
+.git*
+
+# ?
 *.spec
 *.deb
-.git*
-src/species/species
 debian/debian/usr
+
+# No species ?
+src/species/species
+
+# Ignore some tests ?
 test02/runlapackmpi/startmpirun
+
 *.err
 testprogram?
+
+# ?
 mpiconf.inc
 version.inc
-*.f90_*
+
+# Ignore object files and certain temporary extensions
 *.o
 *.mod
 *.a
+*.f90_*
 *.old
+
 .deps
-bin/*
 *.arg
-info.xml
-excitingmpi
-excitingsmp
+
+# Ignore executables
+bin/*
 exciting_debug
 exciting_gfortran
 exciting_interfaces
-*.OUT
-*.TXT
-*.OUT.*
-.out.xml
-*.out
-build/*/exciting
+
+# ? Some IDE files?
 .cdtproject
 .cproject
 .project
 .pydevproject
 .settings
-.metadata
-build/gfortran
-build/mpi
-build/serial
-build/debug
-src/eos/eos
-src/spacegroup/spacegroup
-src/stateconvert/stateconvert
-src/stateinfo/stateinfo
-src/species/species
-src/src_try
-src/tools/atkp
-local
-examples/xs
-.cdtproject
-.project
 .settings/*
-make.inc
-make.out
+.metadata
+
+# Why is that even here?
 mpif.h
+
 fort.*
 *.diff
 *.orig
 outerr.*
-*.tex
-*.aux
-*.dvi
-*.log
-*.toc
+
+# WTF?
 testsummary.*
 .DS*
 ._.DS*
@@ -73,6 +65,49 @@ startmpirun
 results
 _current
 *.lo
+
+
+# Ignore text editor files
+*.save
+*.swp
+*.un~
+*~
+
+# Ignore TeX files
+*.tex
+*.aux
+*.dvi
+*.log
+*.toc
+
+# xml schemata not included ?
+xml/schema/wiki/
+xml/sgroupinput.xsd
+xml/excitinginput.xsd
+
+# Ignore automatically generated fortran files
+src/src_inputparser/inputmodules.f90
+src/src_inputparser/speciesmodules.f90
+
+# Exclude some sources ?
+src/eos/eos
+src/spacegroup/spacegroup
+src/stateconvert/stateconvert
+src/stateinfo/stateinfo
+src/species/species
+src/src_try
+src/tools/atkp
+local
+examples/xs
+
+# Ignore (some?) libXC sources
+#src/libXC/testsuite/xc-consistency
+#src/libXC/testsuite/xc-get_data
+#src/libXC/testsuite/xc-regression
+#src/libXC/config.h.in
+#src/libXC/configure
+
+# Makefiles not needed for build?
 Makefile.blas
 Makefile.fft
 Makefile.lapack
@@ -80,17 +115,16 @@ Makefile.libarpack
 Makefile.libbzint
 Makefile.libmsec
 Makefile.mkmf
-xml/schema/wiki/
-xml/sgroupinput.xsd
-xml/excitinginput.xsd
-src/src_inputparser/inputmodules.f90
-src/src_inputparser/speciesmodules.f90
-*.save
-*.swp
-src/libXC/testsuite/xc-consistency
-src/libXC/testsuite/xc-get_data
-src/libXC/testsuite/xc-regression
-src/libXC/config.h.in
-src/libXC/configure
-src/libXC/config.h.in~
-*.un~
+
+# Ignore generated make files
+make.inc
+make.out
+
+# Ignore output/input files 
+info.xml
+*.OUT
+*.TXT
+*.OUT.*
+.out.xml
+*.out
+

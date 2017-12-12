@@ -37,6 +37,9 @@ Other Licenses
 	LIBXC (GPL 3.0)
 	http://www.tddft.org/programs/octopus/wiki/index.php/Libxc
 
+        BSPLINE-FORTRAN: Multidimensional B-Spline Interpolation of Data on a Regular Grid
+        https://github.com/jacobwilliams/bspline-fortran
+
 
 Compile
 	The code can be compiled  by running 

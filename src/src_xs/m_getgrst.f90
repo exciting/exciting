@@ -27,9 +27,9 @@ module m_getgrst
     !
     ! !DESCRIPTION:
     !   This routine is a wrapper for {\tt getevecfv} that changes the $k$ and $G+k$ 
-    !   quantities in {\tt mod_kpoint} and {\tt mod_Gkvector} to the corresponding
+    !   quantities in {\tt mod\_kpoint} and {\tt mod\_Gkvector} to the corresponding
     !   quantities saved in {\tt modxs} (nmatmax0, vkl0,  ngk0, etc.), changes
-    !   the file extension in {\tt mod_misc} accordingly, reads in the Eigenvector
+    !   the file extension in {\tt mod\_misc} accordingly, reads in the Eigenvector
     !   and finally restores the original state.
     !
     ! !REVISION HISTORY:
@@ -74,6 +74,7 @@ module m_getgrst
 
       filext = filext0
       ! Call to getevecfv with changed default (G+)k-set pointers / matrix size
+      evecfvt(:,:,:)=zzero
       call getevecfv(vpl, vgpl, evecfvt)
 
       ! Restore default pointers
@@ -100,7 +101,6 @@ module m_getgrst
       use mod_eigenvalue_occupancy, only: nstfv
       use mod_ematptr
       use mod_constants, only: zzero
-      use mod_misc, only: filext
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
     !   real(8) :: vpl(3)          ! k-point vector in lattice coordinates
@@ -110,9 +110,9 @@ module m_getgrst
     !
     ! !DESCRIPTION:
     !   This routine is a wrapper for {\tt getevecfv} that changes the $k$ and $G+k$ 
-    !   quantities in {\tt mod_kpoint} and {\tt mod_Gkvector} to the corresponding
+    !   quantities in {\tt mod\_kpoint} and {\tt mod\_Gkvector} to the corresponding
     !   quantities saved in {\tt modxs} (nmatmax0, vkl0,  ngk0, etc.), changes
-    !   the file extension in {\tt mod_misc} accordingly, reads in the Eigenvector
+    !   the file extension in {\tt mod\_misc} accordingly, reads in the Eigenvector
     !   and finally restores the original state.
     !
     ! !REVISION HISTORY:
@@ -121,7 +121,8 @@ module m_getgrst
     !EOP
     !BOC
       implicit none
-     ! Arguments
+
+      ! Arguments
       real(8), intent(in) :: vpl(3)
       real(8), intent(in) :: vgpl(3,ngkmax1_ptr,nspnfv)
       complex(8), intent(out) :: evecfvt(nmatmax1_ptr,nstfv,nspnfv)
@@ -152,7 +153,6 @@ module m_getgrst
 
       ! Call to getevecfv with changed default (G+)k-set pointers / matrix size
       evecfvt(:,:,:)=zzero
-      !write(*,*) 'filext in getevecsv:', filext
       call getevecfv(vpl, vgpl, evecfvt)
 
      ! Restore default pointers
