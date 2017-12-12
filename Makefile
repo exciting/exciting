@@ -98,6 +98,7 @@ clean:
 	cd build/mpi; $(MAKE) clean cleanlibs
 	cd build/smp; $(MAKE) clean cleanlibs
 	cd build/debug; $(MAKE) clean cleanlibs
+	cd build/debugmpi; $(MAKE) clean cleanlibs
 	cd build/mpiandsmp; $(MAKE) clean cleanlibs
 	cd src/eos; $(MAKE) clean
 	cd src/spacegroup; $(MAKE) clean
@@ -116,7 +117,7 @@ libxcclean:
 	cd src/libXC && make clean 
 
 tgz::doc #libxcclean
-	tar --exclude-from=".gitignore"  --transform 's,^,/exciting/,' -c -v -f ./exciting.tar *
+	tar --exclude-from=".gitignore"  --transform 's,^,exciting/,' -c -v -f ./exciting.tar *
 	gzip  -f --best ./exciting.tar 
 	du -h ./exciting.tar.gz 
 

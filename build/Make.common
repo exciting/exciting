@@ -3,7 +3,6 @@
 	
 SOURCEDIRS=	\
 	../../src/ \
-	../../src/src_xs/xas/ \
 	../../src/src_xs/ ../../src/src_xs/modtetra \
 	../../src/src_fermisurfdx/ \
 	../../src/src_iterative_solver/ \
