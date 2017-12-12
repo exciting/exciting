@@ -1,7 +1,7 @@
 include ../make.inc
 include ../libraries.inc
 
-FC = $(F90MT) $(CPP_ON_OPT) -Ifinclude
+FC = $(F90MT) $(CPP_ON_OPTS) -Ifinclude
 
 F77=$(F77MT)
 ### default

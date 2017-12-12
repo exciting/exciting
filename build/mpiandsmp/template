@@ -1,7 +1,7 @@
 include ../make.inc
 include ../libraries.inc
 
-FC = $(MPIF90MT) $(CPP_ON_OPT)
+FC = $(MPIF90MT) $(CPP_ON_OPTS)
 FFLAGS = $(MPISMPF90_OPTS) -Ifinclude
 LD = $(FC)
 LDFLAGS = $(MPISMPF90_OPTS) $(SMP_LIBS) $(INTERNALLIBS)

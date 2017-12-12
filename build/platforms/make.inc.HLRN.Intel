@@ -24,7 +24,7 @@ F77_DEBUGOPTS = -g -O0 -debug all -implicitnone -warn unused \
 #MPIF90 = mpif90-ifort
 #MPIF90 = ftn -fopenmp  
 MPIF90 = ftn -dynamic -xCORE-AVX-I
-MPIF90_OPTS = $(F90_OPTS) $(CPP_ON_OPT) -DMPI -DMPIRHO -DMPISEC 
+MPIF90_OPTS = $(F90_OPTS) $(CPP_ON_OPTS) -DMPI -DMPIRHO -DMPISEC 
 
 F77MT=$(F77)
 F90MT=$(F90)

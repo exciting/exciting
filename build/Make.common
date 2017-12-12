@@ -127,14 +127,14 @@ ifeq ($(HLRN),true)
 lib/libxc.a: 
 	cd ../../src/libXC/ && \
 	module swap craype-$(CNODE_ARCH) craype-$(LNODE_ARCH) && \
-	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPT)" CC=$(CC) FCCPP=$(FCCPP) --enable-static=yes --enable-shared=no &&\
+	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPTS)" CC=$(CC) FCCPP=$(FCCPP) --enable-static=yes --enable-shared=no &&\
 	module swap craype-$(LNODE_ARCH) craype-$(CNODE_ARCH) && \
 	make 
 	cp -r ../../src/libXC/src/.libs/libxc.a ./lib/libxc.a
 else
 lib/libxc.a: 
 	cd ../../src/libXC/ && \
-	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPT)" CC=$(CC) FCCPP=$(FCCPP) --enable-static=yes --enable-shared=no &&\
+	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPTS)" CC=$(CC) FCCPP=$(FCCPP) --enable-static=yes --enable-shared=no &&\
 	make 
 	cp -r ../../src/libXC/src/.libs/libxc.a ./lib/libxc.a
 endif
