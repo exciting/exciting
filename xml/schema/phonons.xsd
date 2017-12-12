@@ -103,7 +103,7 @@
                             A corrected dynamical matrix which fulfills the accoustic sumrule is output to the
                             file <pre>DYNMAT_SUMRULE.OUT</pre>.  
                             It is obtained by subtracting the three lowest eigenvectors from the original matrix:
-                            <inlinemath>D_{ij}^{\bf q}\rightarrow D_{ij}^{\bf q}-\sum_{k=1}^3 \omega_k^0 v_{k;i}^0 v_{k;j}^0</inlinemath>
+                            <inlinemath>D_{ij}^{\bf q}\rightarrow D_{ij}^{\bf q}-\sum_{k=1}^3 (\omega_k^0)^2 v_{k;i}^0 v_{k;j}^0</inlinemath>
                             for all <inlinemath>{\bf q}</inlinemath>, where <inlinemath>\omega_k^0</inlinemath> 
                             is the <inlinemath>k</inlinemath>th eigenvalue of the <inlinemath>{\bf q}=0</inlinemath> dynamical matrix 
                             and <inlinemath>v_{k;i}^0</inlinemath> the <inlinemath>i</inlinemath>th component of its eigenvector.</p>
