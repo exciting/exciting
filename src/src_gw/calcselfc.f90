@@ -55,8 +55,8 @@ subroutine calcselfc(iq)
       nblk = 1
     else
       nblk = mdim / mblksiz
+      if (mod(mdim,mblksiz) /= 0) nblk = nblk+1
     end if
-    if (mod(mdim,mblksiz) /= 0) nblk = nblk+1
     
     !-------------------------------------------
     ! products M*W^c*M

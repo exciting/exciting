@@ -83,8 +83,8 @@ subroutine calcepsilon(iq,iomstart,iomend)
       nblk = 1
     else
       nblk = mdim / mblksiz
+      if ( mod(mdim,mblksiz) /= 0 ) nblk = nblk+1
     end if
-    if ( mod(mdim,mblksiz) /= 0 ) nblk = nblk+1
 
     ! arrays to store products of KS eigenvectors with the matching coefficients
     allocate(eveckalm(nstsv,apwordmax,lmmaxapw,natmtot))
@@ -181,8 +181,10 @@ subroutine calcepsilon(iq,iomstart,iomend)
       do iblk = 1, nblk
       
         mstart = numin+(iblk-1)*mblksiz
-        mend = min(nstdf,mstart+mblksiz-1)
-        nmdim = ndim*(mend-mstart+1)
+        mend   = min(nstdf,mstart+mblksiz-1)
+        nmdim  = ndim*(mend-mstart+1)
+
+        print*, iblk, nblk, mstart, mend
 
         allocate(minmmat(mbsiz,ndim,mstart:mend))
         msize = sizeof(minmmat)*b2mb
