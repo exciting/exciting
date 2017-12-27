@@ -57,6 +57,10 @@ subroutine calcbradket(ia,is)
     ias = idxas(ia,is)
     if (input%gw%debug) write(fdebug,100) ias, trim(spname(is))
 
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(none) SHARED(input,nmix,ncore,is,ias,spl,bigl,nrmt,umix,ucore,bradketc,apword,apwfr,lofr,nlorb,lorbl,utype,ftype,bradketa,bradketlo,spr,fdebug) PRIVATE(ir,irm,io1,ist1,ist2,l1,l2,fr,cf,gr,ilo1,ilo2,io2)
+!$OMP DO SCHEDULE(dynamic)
+#endif
     ! Loop over radial mixed functions
     do irm = 1, nmix(ias)
 
@@ -307,6 +311,10 @@ subroutine calcbradket(ia,is)
       end do ! ilo1
 
     end do ! irm
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
 
     100 format(/,5x,'Integrals <v_(NL)u_(l1)|u_(l2)> for atom ',I4,", ", &
     &       A,/,13x,'N',3x,'L',2x,'l1',1x,'u_',4x,'l2',1x,'u_',8x,    &

@@ -30,17 +30,18 @@ subroutine calcepsilon(iq,iomstart,iomend)
     integer(4) :: iom
     integer(4) :: ik, jk, ispn
     integer(4) :: im, jm, iop, jop
+    integer(4) :: ibl,nbl,blstart,blend
     
     integer(4) :: ndim, mdim, nmdim
     integer(4) :: nblk, iblk, mstart, mend
     
     integer(8) :: recl
       
-    real(8)    :: tstart, tend, t0, t1
+    real(8)    :: tstart, tend, t0, t1, ta ,tb
     
     complex(8) :: coefb
     complex(8) :: head(3,3)
-    complex(8), allocatable :: minm(:,:,:)
+    complex(8), allocatable :: minm(:,:,:),mnm(:,:)
     complex(8), allocatable :: evecsv(:,:,:)
     
 !!EXTERNAL ROUTINES: 
@@ -179,7 +180,8 @@ subroutine calcepsilon(iq,iomstart,iomend)
       ! Loop over m-blocks in M^i_{nm}(\vec{k},\vec{q})
       !=================================================
       do iblk = 1, nblk
-      
+
+       call timesec(ta)      
         mstart = numin+(iblk-1)*mblksiz
         mend   = min(nstdf,mstart+mblksiz-1)
         nmdim  = ndim*(mend-mstart+1)
@@ -203,6 +205,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
         !==============
         ! Body
         !==============
+if (.true.) then
         allocate(minm(mbsiz,ndim,mstart:mend))
         do iom = iomstart, iomend
 
@@ -220,6 +223,108 @@ subroutine calcepsilon(iq,iomstart,iomend)
         end do ! iom
 
         deallocate(minm, minmmat)
+elseif (.false.) then
+
+        nbl=mbsiz/32
+        if (nbl*32.ne.mbsiz) nbl=nbl+1
+
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(mnm,iom,im,ie1,ie2,ibl,blstart,blend)
+#endif
+        allocate(mnm(ndim,mstart:mend))
+
+        do iom = iomstart, iomend
+#ifdef USEOMP
+!$OMP DO SCHEDULE(DYNAMIC)
+#endif
+          do ibl=1,nbl
+            blstart=(ibl-1)*32
+            if (ibl.lt.nbl) then
+              blend=ibl*32
+            else
+              blend=mbsiz
+            endif
+!          do im=1,mbsiz
+            do ie2 = mstart, mend
+              do ie1 = 1, ndim
+                mnm(ie1,ie2) = fnm(ie1,ie2,iom,ik) * conjg(minmmat(im,ie1,ie2))
+              end do ! ie1
+            end do ! ie2
+
+            call zgemv('n',mbsiz,nmdim,coefb,minmmat,mbsiz,mnm,1,zone,epsilon(1,im,iom),1)
+          
+!          end do ! im
+          end do ! ibl
+#ifdef USEOMP
+!$OMP END DO NOWAIT 
+#endif
+
+        end do ! iom
+        deallocate(mnm)
+
+#ifdef USEOMP
+!$OMP END PARALLEL 
+#endif
+
+
+
+        deallocate(minmmat)
+else
+
+
+        nbl=mbsiz/32
+        if (nbl*32.ne.mbsiz) nbl=nbl+1
+
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(minm,iom,ie1,ie2,ibl,blstart,blend)
+#endif
+        allocate(minm(32,ndim,mstart:mend))
+
+        do iom = iomstart, iomend
+#ifdef USEOMP
+!$OMP DO SCHEDULE(DYNAMIC)
+#endif
+          do ibl=1,nbl
+            blstart=(ibl-1)*32+1
+            if (ibl.lt.nbl) then
+              blend=ibl*32
+            else
+              blend=mbsiz
+            endif
+
+!          do im=1,mbsiz,32
+            do ie2 = mstart, mend
+              do ie1 = 1, ndim
+                minm(1:blend-blstart+1,ie1,ie2) = conjg(fnm(ie1,ie2,iom,ik)) * (minmmat(blstart:blend,ie1,ie2))
+              end do ! ie1
+            end do ! ie2
+
+           call zgemm( 'n', 'h', mbsiz, blend-blstart+1, nmdim, coefb, minmmat, mbsiz, minm, 32, zone, epsilon(1,blstart,iom), mbsiz)
+           
+!            call zgemv('n',mbsiz,nmdim,coefb,minmmat,mbsiz,mnm,1,zone,epsilon(1,im,iom),1)
+
+!          end do ! im
+           enddo !ibl
+#ifdef USEOMP
+!$OMP END DO NOWAIT 
+#endif
+          
+
+
+        end do ! iom
+        deallocate(minm)
+
+#ifdef USEOMP
+!$OMP END PARALLEL 
+#endif
+
+
+
+        deallocate(minmmat)
+
+endif
+       call timesec(tb)      
+       write(*,*) iblk,' time:',tb-ta
 
       end do ! iblk
       

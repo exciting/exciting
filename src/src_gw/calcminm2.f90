@@ -89,7 +89,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     allocate(veckp(mstart:mend))
 
 #ifdef USEOMP
-!$OMP DO
+!$OMP DO SCHEDULE(DYNAMIC)
 #endif
     ! loop over MT product basis functions
     do imix = 1, locmatsiz
@@ -229,7 +229,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     end do ! igk1
 
 !#ifdef USEOMP
-!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(igq,igk1,igk2,tmat,tmat2,mnn,ie1,ie2)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(igq,igk1,igk2,tmat,tmat2,mnn,ie1,ie2)
 !#endif
 
     allocate(tmat(ngk2,ngk1))
@@ -237,7 +237,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     allocate(mnn(mdim,ndim))
 
 !#ifdef USEOMP
-!!$OMP DO
+!$OMP DO
 !#endif    
     do igq = 1, Gqset%ngk(1,iq)
         
@@ -273,7 +273,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
       
     end do ! igq
 !#ifdef USEOMP    
-!!$OMP END DO
+!$OMP END DO
 !#endif
 
     deallocate(tmat)
@@ -281,7 +281,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     deallocate(mnn)
     
 !#ifdef USEOMP
-!!$OMP END PARALLEL
+!$OMP END PARALLEL
 !#endif    
 
     deallocate(igqk12)

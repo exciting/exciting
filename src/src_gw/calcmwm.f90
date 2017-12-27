@@ -28,9 +28,15 @@ subroutine calcmwm(nstart, nend, mstart, mend, minm)
     !-------------------------------------------------
     ! calculate \sum_{ij} M^i_{nm}* W^c_{ij} M^j_{nm}
     !-------------------------------------------------
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(wm,iom,ie1,ie2)
+#endif
     allocate(wm(mbsiz))
     do iom = 1, freq%nomeg
       do ie2 = mstart, mend
+#ifdef USEOMP
+!$OMP DO SCHEDULE(DYNAMIC)
+#endif
         do ie1 = nstart, nend
           call zhemv( 'u', mbsiz, zone, epsilon(:,:,iom), mbsiz, &
           &           minmmat(:,ie1,ie2), 1, zzero, wm, 1)
@@ -42,9 +48,16 @@ subroutine calcmwm(nstart, nend, mstart, mend, minm)
             &                          zdotc(mbsiz,minmmat(:,ie1,ie2),1,epsw1(:,iom,1),1))
           end if ! singular term
         end do
+#ifdef USEOMP
+!$OMP END DO NOWAIT 
+#endif
       end do
     end do ! iom
     deallocate(wm)
+#ifdef USEOMP
+!$OMP END PARALLEL
+#endif
+
       
     return
 end subroutine

@@ -22,7 +22,7 @@ subroutine calcselfc(iq)
     integer(4), intent(in) :: iq
     
 !!LOCAL VARIABLES:            
-    integer(4) :: ik, ikp, jk, ispn
+    integer(4) :: ik, ikp, jk, ispn, ie1
     integer(4) :: mdim, iblk, nblk, mstart, mend
     integer(4) :: fid
     character(120) :: fname_mwm
@@ -95,12 +95,19 @@ subroutine calcselfc(iq)
       
       ! get KS eigenvectors
       call timesec(t0)
+if (.true.) then
       allocate(evecsv(nmatmax,nstsv,nspinor))
       call getevecsvgw('GW_EVECSV.OUT',jk,kqset%vkl(:,jk),nmatmax,nstsv,nspinor,evecsv)
       eveckp = conjg(evecsv(:,:,ispn))
       call getevecsvgw('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
       eveck = evecsv(:,:,ispn)
       deallocate(evecsv)
+else
+      Call getevecfv (kqset%vkl(:, jk), Gkset%vgkl(:, :, :, jk), eveck)
+      eveckp=conjg(eveck)
+      Call getevecfv (kqset%vkl(:, ik), Gkset%vgkl(:, :, :, ik), eveck)
+endif
+
       call timesec(t1)
       time_io = time_io+t1-t0
         
@@ -148,7 +155,16 @@ subroutine calcselfc(iq)
         call timesec(t1)
         time_io = time_io+t1-t0
       end if
-    
+
+if (.false.) then
+      write(*,*)
+      write(*,*) '(k,kp,q)',ik,ikp,iq
+      do ie1 = ibgw, nbgw
+        write(*,*) 'state ',ie1,selfec(ie1,1,ikp)
+      enddo
+      selfec=0d0
+endif
+
     end do ! ikp
     end do ! ispn
     
