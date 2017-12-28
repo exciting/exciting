@@ -138,31 +138,31 @@ subroutine calcselfx(iq)
       
         ! sum over occupied states
         sx = zzero
-        do ie2 = 1, mdim
-          !======================= 
-          ! Valence contribution
-          !======================= 
-          if (ie2 <= nomax) then
-            mvm = zdotc(mbsiz,minmmat(:,ie1,ie2),1,minmmat(:,ie1,ie2),1)
-            sx = sx - kiw(ie2,jk)*mvm           
-          else
-            !============================= 
-            ! Core electron contribution
-            !============================= 
-            icg = ie2-nomax
-            is = corind(icg,1)
-            ia = corind(icg,2)
-            ias = idxas(ia,is)
-            ic = corind(icg,3)
-            mvm = zdotc(mbsiz,minmmat(:,ie1,ie2),1,minmmat(:,ie1,ie2),1)
-            sx = sx - ciw(ic,ias)*mvm
-          end if ! occupied states
 
-        end do ! ie2
+        !=======================
+        ! Valence contribution
+        !======================= 
+        do ie2 = 1, nomax
+          mvm = zdotc(mbsiz,minmmat(:,ie1,ie2),1,minmmat(:,ie1,ie2),1)
+          sx = sx - kiw(ie2,jk)*mvm
+        end do
 
         ! add singular term (q->0)
-        if (Gamma.and.(ie1<=nomax)) sx = sx - sxs2*singc2*kiw(ie1,ik)*kqset%nkpt
-        
+        if (Gamma .and. (ie1<=nomax)) sx = sx - sxs2*singc2*kiw(ie1,ik)*kqset%nkpt
+
+        !============================= 
+        ! Core electron contribution
+        !============================= 
+        do ie2 = nomax+1, mdim
+          icg = ie2-nomax
+          is = corind(icg,1)
+          ia = corind(icg,2)
+          ias = idxas(ia,is)
+          ic = corind(icg,3)
+          mvm = zdotc(mbsiz,minmmat(:,ie1,ie2),1,minmmat(:,ie1,ie2),1)
+          sx = sx - ciw(ic,ias)*mvm
+        end do
+
         selfex(ie1,ikp) = selfex(ie1,ikp) + sx
         
       end do ! ie1
