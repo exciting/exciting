@@ -47,7 +47,7 @@ subroutine writepmatxs_hdf5
   complex(8), allocatable :: apwalmt(:, :, :, :)
   complex(8), allocatable :: evecfvt(:, :)
   complex(8), allocatable :: evecsvt(:, :)
-  complex(8), allocatable :: pmat(:, :, :)
+  complex(8), allocatable :: pmat(:, :, :,:)
   character(256) :: string
   logical :: fast
   character(*), parameter :: thisname="writepmatxs"
@@ -99,9 +99,9 @@ subroutine writepmatxs_hdf5
 
   ! Allocate the momentum matrix elements array
   if (input%xs%bse%xas) then ! Allocation for xas calculation
-    allocate(pmat(3, ncg, nstsv))
+    allocate(pmat(3, ncg, nstsv,nkpt))
   else
-    allocate(pmat(3, nstsv, nstsv))
+    allocate(pmat(3, nstsv, nstsv,nkpt))
   end if  
 
   ! Get eigenvectors for qmt=0, i.e. set file extension to _QMT001
@@ -133,13 +133,6 @@ subroutine writepmatxs_hdf5
     end if
   end if
   kloop: do ik = kpari, kparf
-    if (rank == 0) then 
-      write(cik, '(I4.4)') ik
-      if (.not. hdf5_exist_group(fhdf5, "/pmat/", trim(adjustl(cik)))) then
-        call hdf5_create_group(fhdf5,"/pmat/", trim(adjustl(cik)))
-      end if
-      gname="/pmat/"//trim(adjustl(cik))
-    end if
     if(task .ne. 120) call chkpt(2, (/ task, ik /), 'ematqk:&
      & task, k - point index; momentum matrix elements')
 
@@ -163,10 +156,10 @@ subroutine writepmatxs_hdf5
 
       ! Calculate the momentum matrix elements
       if((input%xs%bse%xas) .and. (task .le. 400)) then
-        call genpmatcorxs(ik, ngk(1, ik), apwalmt, evecfvt, evecsvt, pmat)
+        call genpmatcorxs(ik, ngk(1, ik), apwalmt, evecfvt, evecsvt, pmat(:,:,:,ik))
       else
         call genpmatxs(ngk(1, ik), igkig(1, 1, ik),&
-         & vgkc(1, 1, 1, ik), evecfvt, evecsvt, pmat)
+         & vgkc(1, 1, 1, ik), evecfvt, evecsvt, pmat(:,:,:,ik))
       end if
 
     else
@@ -176,14 +169,21 @@ subroutine writepmatxs_hdf5
        & apwalmt, evecfvt, evecsvt, pmat)
 
     end if
-    ! Write hdf5
-    if (rank == 0) then
-      write(*,*) 'shape(pmat)=', shape(pmat)
-      write(*,*) "pmat(1,1,1)=", pmat(1,1,1)
-      call hdf5_write(fhdf5,gname,'pmat', pmat(1,1,1), shape(pmat(:,:,:)))
-    end if
     
   end do kloop
+  if (rank == 0) then
+    do ik=1,nkpt 
+      write(cik, '(I4.4)') ik
+      if (.not. hdf5_exist_group(fhdf5, "/pmat/", trim(adjustl(cik)))) then
+        call hdf5_create_group(fhdf5,"/pmat/", trim(adjustl(cik)))
+      end if
+      gname="/pmat/"//trim(adjustl(cik))
+      ! Write hdf5
+      !write(*,*) 'shape(pmat)=', shape(pmat)
+      !write(*,*) "pmat(1,1,1)=", pmat(1,1,1)
+      call hdf5_write(fhdf5,gname,'pmat', pmat(1,1,1), shape(pmat(:,:,:,ik)))
+    end do
+  end if
 #endif
   call barrier(callername=trim(thisname))
 
