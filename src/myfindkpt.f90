@@ -24,6 +24,8 @@ subroutine myfindkpt( vpl, kset, isym, ik)
       if( t1 .lt. input%structure%epslat) return
     end do
   end do
-  isym = 0
+  write (*, '("Error (myfindkpt): equivalent k-point not in set")')
+  write (*, '("Requested k-point : ", 3G18.10)') vpl
+  call terminate
   return
 End Subroutine

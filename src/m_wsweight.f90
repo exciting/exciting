@@ -92,6 +92,7 @@ Subroutine ws_weight (vrl, vrsl, vpl, zwght, kgrid)
             End Do
          End Do
       End Do
+      call r3mv( ainv, v0, v1)
 ! divide by number of equivalent vectors
       zwght = zwght / dble(n)
       Return

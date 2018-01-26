@@ -201,6 +201,8 @@
             </xs:attribute>
             <xs:attribute ex:importance="essential" ex:unit="Hartree" ref="scissor" default="0.0d0"/>
             <xs:attribute ex:importance="expert" ex:unit="" name="jdos" type="xs:boolean" default="false"/>
+            <xs:attribute ex:importance="expert" ex:unit="" name="wannier" type="xs:boolean" default="false"/>
+            <xs:attribute ex:importance="expert" ex:unit="" name="ngridkint" type="integertriple" default="0 0 0"/>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="LSJ" maxOccurs="1" minOccurs="0">
@@ -851,14 +853,16 @@
               </xs:element>
             </xs:sequence>
 
-            <xs:attribute ex:importance="essential" ex:unit="" name="input" default="groundstate">
+            <xs:attribute ex:importance="essential" ex:unit="" name="input" default="gs">
               <xs:simpleType>
                 <xs:restriction base="xs:string">
-                  <xs:enumeration value="groundstate">
+                  <xs:enumeration value="gs">
                   </xs:enumeration>
                   <xs:enumeration value="gw">
                   </xs:enumeration>
                   <xs:enumeration value="hybrid">
+                  </xs:enumeration>
+                  <xs:enumeration value="qsgw">
                   </xs:enumeration>
                 </xs:restriction>
               </xs:simpleType>
@@ -883,6 +887,10 @@
                   </xs:enumeration>
                   <xs:enumeration value="fromfile">
                   </xs:enumeration>
+                  <xs:enumeration value="disentangle">
+                  </xs:enumeration>
+                  <xs:enumeration value="skip">
+                  </xs:enumeration>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
@@ -902,6 +910,12 @@
               </xs:annotation>
             </xs:attribute>
 
+            <xs:attribute ex:importance="essential" ex:unit="" name="nwf" type="xs:integer" default="0">
+              <xs:annotation>
+                <xs:documentation>Number of Wannier functions to be created from the given energy windows.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
             <xs:attribute ex:importance="essential" ex:unit="" name="uncertainty" type="fortrandouble" default="1.d-6">
               <xs:annotation>
                   <xs:documentation>Cut-off for convergence</xs:documentation>
@@ -914,13 +928,13 @@
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="essential" ex:unit="" name="innerwindow" type="vect2d" use="optional" default="0.d0 0.d0">
+            <xs:attribute ex:importance="essential" ex:unit="" name="innerwindow" type="vect2d" use="optional" default="0.0d0 0.0d0">
               <xs:annotation>
                 <xs:documentation>Inner energy-window for band-disentanglement.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="essential" ex:unit="" name="outerwindow" type="vect2d" use="optional" default="0.d0 0.d0">
+            <xs:attribute ex:importance="essential" ex:unit="" name="outerwindow" type="vect2d" use="optional" default="0.0d0 0.0d0">
               <xs:annotation>
                 <xs:documentation>Outer energy-window for band-disentanglement.</xs:documentation>
               </xs:annotation>

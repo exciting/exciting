@@ -95,19 +95,27 @@ Subroutine connect (cvec, plotdef, nv, np, vpl, dv, dp)
             dp (ip) = 0.d0
          End Do
       Else
+         dp( 1) = 0.d0
+         vpl( :, 1) = vvl( :, 1)
+         n = 1
          Do iv = 1, nv - 1
-            t1 = dble (np) * dv (iv) / dt
-            ip0 = Nint (t1) + 1
-            If (ip0 .Lt. 1) ip0 = 1
-            t1 = dble (np) * dv (iv+1) / dt
-            ip1 = Nint (t1)
-            If (ip1 .Gt. np) ip1 = np
-            n = ip1 - ip0
-            If (n .Le. 0) n = 1
-            Do ip = ip0, ip1
-               f = dble (ip-ip0) / dble (n)
-               dp (ip) = f * seg (iv) + dv (iv)
-               vpl (:, ip) = vvl (:, iv) * (1.d0-f) + vvl (:, iv+1) * f
+            t1 = (np-nv)*seg( iv)/dt 
+            !t1 = dble (np) * dv (iv) / dt
+            !ip0 = Nint (t1) + 1
+            !If (ip0 .Lt. 1) ip0 = 1
+            !t1 = dble (np) * dv (iv+1) / dt
+            !ip1 = Nint (t1)
+            !If (ip1 .Gt. np) ip1 = np
+            !n = ip1 - ip0
+            !If (n .Le. 0) n = 1
+            ip1 = 1+nint( t1)
+            if( iv .eq. nv-1) ip1 = np - n
+
+            Do ip = 1, ip1
+               f = dble( ip)/ip1
+               n = n + 1
+               dp( n) = f*seg( iv) + dv( iv)
+               vpl( :, n) = vvl( :, iv)*(1.d0 - f) + vvl( :, iv+1)*f
             End Do
          End Do
       End If

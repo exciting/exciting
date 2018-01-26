@@ -66,7 +66,7 @@ subroutine getevecsvgw_new(fname,ik,vpl,nmatmax,nstsv,nspinor,evecsv)
         write(*,*)
         stop
       end if
-      evecsv(:,:,:) = evecsv_(:,:,:)
+      evecsv(:,:,:) = evecsv_(1:nmatmax, 1:nstsv, 1:nspinor)
     else
       write(*,*)
       write(*,*) "ERROR(getevecsvgw_new): File ", trim(fname), " does not exist!"

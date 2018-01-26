@@ -1,5 +1,5 @@
 
-subroutine getevalqp(nkp2,kvecs2,eqp2)
+subroutine getevalqp(nkp2,kvecs2,eqp2,bc)
 
   use modinput
   use modmain
@@ -12,6 +12,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   integer, intent(in) :: nkp2
   real(8), intent(in) :: kvecs2(3,nkp2)
   real(8), intent(out):: eqp2( nstsv, nkp2)
+  real(8), optional, intent(out) :: bc( 0:3, natmtot, nstsv, nkp2)
 
   logical       :: exist
   integer(4)    :: ik, ib, nb, nk, nqp
@@ -25,7 +26,6 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
 
   ! for band-character
   real(4) :: su
-  real(4), allocatable :: bc(:,:,:,:)
   integer :: lmax, is, ia, ias, ist, l
 
   !-----------------------------------------------------------------------------
@@ -78,7 +78,6 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
     read(70, Rec=ik) nk, ib, nb, kvecs1(:,ik), &
     &    eqp1(ibgw:nbgw,ik), eks1(ibgw:nbgw,ik), &
     &    eferqp, eferks
-    write(*,'(1000F13.6)') eqp1( wf_fst:wf_lst, ik)
 
     !write(fgw,*) '# ik    kvecs1    ibgw,    nbgw'
     !write(fgw,*) ik, kvecs1(:,ik), ib, nb
@@ -138,6 +137,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
     allocate( vkl( 3, nkp1))
     vkl = kvecs1
     do ik = 1, wf_kset%nkpt
+      write(*,*) ik
       call findkpt( wf_kset%vkl( :, ik), nb, ib)
       eqpwan( :, ik) = eqp1( wf_fst:wf_lst, ib)
     end do
@@ -150,6 +150,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
     !allocate( bc( natmtot, 0:lmax, wf_fst:wf_lst, nkp2))
     !call wannier_interpolate_eval( eqpwan, nkp2, kvecs2_, eqpwanint)!, bandchar=bc, lmax=-1)
     call wfint_init( int_kset, eqpwan)
+    if( present( bc)) call wfint_interpolate_bandchar( 3, bc( :, :, wf_fst:wf_lst, :))
     do ib = wf_fst, wf_lst
       do ik = 1, nkp2
         !eqp2( ib, ik) = eqpwanint( ib, ik) - eferqp - efermi
@@ -180,7 +181,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
     call fourintp(de1, nkp1, kvecs1, de2, nkp2, vkl, nbgw-ibgw+1)
     do ib = ibgw, min(nbgw,nstsv)
        do ik = 1, nkpt
-          eqp2(ib,ik) = eqp2(ib,ik)+dble(de2(ik,ib))-eferqp
+          eqp2(ib,ik) = eqp2(ib,ik)+dble(de2(ik,ib))+eferks-eferqp
        end do 
      end do
   end if

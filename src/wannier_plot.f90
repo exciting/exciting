@@ -94,10 +94,10 @@ subroutine wannier_plot( fst, lst, cell)
       end if
 
       if( associated( input%properties%wannierplot%plot3d)) then
-        call r3mv( ainv, wf_centers( :, ist) + cellc - s*(v1+v2+v3), input%properties%wannierplot%plot3d%box%origin%coord)
-        call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v1-v2-v3), input%properties%wannierplot%plot3d%box%pointarray(1)%point%coord)
-        call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v2-v3-v1), input%properties%wannierplot%plot3d%box%pointarray(2)%point%coord)
-        call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v3-v1-v2), input%properties%wannierplot%plot3d%box%pointarray(3)%point%coord)
+        call r3mv( ainv, wf_centers( :, ist-wf_fst+1) + cellc - s*(v1+v2+v3), input%properties%wannierplot%plot3d%box%origin%coord)
+        call r3mv( ainv, wf_centers( :, ist-wf_fst+1) + cellc + s*(v1-v2-v3), input%properties%wannierplot%plot3d%box%pointarray(1)%point%coord)
+        call r3mv( ainv, wf_centers( :, ist-wf_fst+1) + cellc + s*(v2-v3-v1), input%properties%wannierplot%plot3d%box%pointarray(2)%point%coord)
+        call r3mv( ainv, wf_centers( :, ist-wf_fst+1) + cellc + s*(v3-v1-v2), input%properties%wannierplot%plot3d%box%pointarray(3)%point%coord)
         grid( ist) = gen_3d_rgrid( input%properties%wannierplot%plot3d, 0)
       end if
     end do
@@ -129,134 +129,6 @@ subroutine wannier_plot( fst, lst, cell)
     zdatatot(:,:) = zzero
     ! calculate the Wannier function on the grid
 
-!    allocate( zdata( grid%npt))
-!    allocate( wfmt( lmmaxapw, nrmtmax, natmtot, nspinor, wf_fst:wf_lst))
-!    allocate( wfir( ngrtot, nspinor, wf_fst:wf_lst))
-!
-!      allocate( dmatk( wf_fst:wf_lst, maxdim, lmmaxapw, natmtot, wf_kset%nkpt))
-!
-!      dmatk = zzero
-!
-!      ! build k-point density coefficients
-!#ifdef USEOMP                
-!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, ngknr, apwalm, evecfv, is, ia, ias, l, m, lm, o, ilo1)
-!#endif
-!      allocate( evecfv( nmatmax, nstfv, nspnfv))
-!      allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
-!#ifdef USEOMP                
-!!$OMP DO
-!#endif
-!      do ik = 1, wf_kset%nkpt
-!        ngknr = wf_Gkset%ngk( 1, ik)
-!
-!        ! get matching coefficients
-!        call match( ngknr, wf_Gkset%gkc( :, 1, ik), wf_Gkset%tpgkc( :, :, 1, ik), wf_Gkset%sfacgk( :, :, 1, ik), apwalm( :, :, :, :, 1))
-!          
-!#ifdef USEOMP                
-!!$OMP CRITICAL (readevec)
-!#endif
-!        ! read eigenvector      
-!        if( input%properties%wannier%input .eq. "groundstate") then
-!          call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evecfv)
-!        else if( input%properties%wannier%input .eq. "hybrid") then
-!          call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evecfv)
-!        else if( input%properties%wannier%input .eq. "gw") then
-!          call getevecsvgw_new( "GW_EVECSV.OUT", ik, wf_kset%vkl( :, ik), nmatmax, nstfv, nspnfv, evecfv)
-!        else
-!          call terminate
-!        end if
-!#ifdef USEOMP                
-!!$OMP END CRITICAL (readevec)
-!#endif
-!
-!        do is = 1, nspecies
-!          do ia = 1, natoms( is)
-!            ias = idxas( ia, is)
-!            ! APW contribution
-!            do l = 0, input%groundstate%lmaxapw
-!              do m = -l, l
-!                lm = idxlm( l, m)
-!                do o = 1, apword( l, is)
-!                  call zgemv( 'T', ngknr, wf_nst, zone, &
-!                       evecfv( 1:ngknr, wf_fst:wf_lst, 1), ngknr, &
-!                       apwalm( 1:ngknr, o, lm, ias, 1), 1, zzero, &
-!                       dmatk( :, o2idx( o, l, is), lm, ias, ik), 1)
-!                end do
-!              end do
-!            end do
-!            ! LO contribution
-!            do ilo1 = 1, nlorb( is)
-!              l = lorbl( ilo1, is)
-!              do m = -l, l
-!                lm = idxlm( l, m)
-!                dmatk( :, lo2idx( ilo1, l, is), lm, ias, ik) = evecfv( ngknr+idxlo( lm, ilo1, ias), wf_fst:wf_lst, 1)
-!              end do
-!            end do
-!          end do
-!        end do
-!      end do
-!#ifdef USEOMP                
-!!$OMP END DO
-!#endif
-!      deallocate( evecfv, apwalm)
-!#ifdef USEOMP                
-!!$OMP END PARALLEL
-!#endif
-!
-!      ! build R-point density coefficients
-!      allocate( dmatr( wf_fst:wf_lst, maxdim, lmmaxapw, natmtot))
-!      dmatr = zzero
-!      do ik = 1, wf_kset%nkpt
-!        call ws_weight( dble( cell), dble( cell), wf_kset%vkl( :, ik), phase, kgrid=.true.)
-!        do is = 1, nspecies
-!          do ia = 1, natoms( is)
-!            ias = idxas( ia, is)
-!            do lm = 1, lmmaxapw
-!              call zgemm( 'T', 'N', wf_nst, maxdim, wf_nst, conjg( phase), &
-!                   wf_transform( :, :, ik), wf_nst, &
-!                   dmatk( :, :, lm, ias, ik), wf_nst, zone, &
-!                   dmatr( :, :, lm, ias), wf_nst)
-!            end do
-!          end do
-!        end do
-!      end do
-!      
-!      deallocate( dmatk)
-!
-!      call plotmat( transpose( dmatr( ist, :, :, 1)))
-!      write(*,*)
-!      call plotmat( transpose( dmatr( ist, :, :, 2)))
-!
-!      ! build radial functions
-!      wfmt(:,:,:,:,:) = zzero
-!      do is = 1, nspecies
-!        do ia = 1, natoms( is)
-!          ias = idxas( ia, is)
-!          do l = 0, input%groundstate%lmaxapw
-!            do m = -l, l
-!              lm = idxlm( l, m)
-!              do o = 1, apword( l, is)
-!                wfmt( lm, :, ias, 1, ist) = wfmt( lm, :, ias, 1, ist) + dmatr( ist, o2idx( o, l, is), lm, ias)*apwfr( :, 1, o, l, ias)
-!              end do
-!            end do
-!          end do
-!          do ilo1 = 1, nlorb( is)
-!            l = lorbl( ilo1, is)
-!            do m = -l, l
-!              lm = idxlm( l, m)
-!              wfmt( lm, :, ias, 1, ist) = wfmt( lm, :, ias, 1, ist) + dmatr( ist, lo2idx( ilo1, l, is), lm, ias)*lofr( :, 1, ilo1, ias)
-!            end do
-!          end do
-!        end do
-!      end do
-!
-!      call calc_zdata_rgrid( grid, 1, wfmt(:,:,:,1,ist), wfir(:,1,ist), zdatatot, nosym=.true.)
-
-
-
-    !call print_rgrid( grid)
-    !stop
-
 
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, ip, ik, evecfv, evecsv, apwalm, evec, wfmt, wfir, zdata, phase, is, ia, ias)
@@ -267,7 +139,6 @@ subroutine wannier_plot( fst, lst, cell)
     allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot))
     allocate( evecfv( nmatmax, nstfv))
     allocate( evec( nmatmax))
-    allocate( evecsv( nstsv, nstsv))
 #ifdef USEOMP
 !$OMP DO
 #endif
@@ -276,18 +147,7 @@ subroutine wannier_plot( fst, lst, cell)
 #ifdef USEOMP
 !$OMP CRITICAL (readevec)
 #endif
-      write(*,'(2(3F13.6,3x))') wf_kset%vkl( :, ik), vklnr( :, iknr)
-      ! get the eigenvectors and values from file
-      if( input%properties%wannier%input .eq. "groundstate") then
-        call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evecfv)
-      else if( input%properties%wannier%input .eq. "hybrid") then
-        call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evecfv)
-      else if( input%properties%wannier%input .eq. "gw") then
-        call getevecsvgw_new( "GW_EVECSV.OUT", ik, wf_kset%vkl( :, ik), nmatmax, nstfv, nspinor, evecfv)
-      else
-        call terminate
-      end if
-      call getevecsv( wf_kset%vkl( :, ik), evecsv)
+      call wannier_getevec( ik, evecfv)
 #ifdef USEOMP
 !$OMP END CRITICAL (readevec)
 #endif
@@ -298,10 +158,10 @@ subroutine wannier_plot( fst, lst, cell)
       call ws_weight( dble( cell), dble( cell), wf_kset%vkl( :, ik), phase, .true.)
 
       do ist = fst, lst
-        call zgemv( 'N', nmatmax, wf_nst, zone, &
-             evecfv( :, wf_fst:wf_lst), nmatmax, &
-             wf_transform( :, ist, ik), 1, zzero, &
-             evec, 1)
+        call zgemv( 'n', nmatmax, wf_nwf, zone, &
+               evecfv( :, wf_fst:wf_lst), nmatmax, &
+               wf_transform( :, ist-wf_fst+1, ik), 1, zzero, &
+               evec, 1)
         
         ! calculate the wavefunctions for all states
         wfmt(:,:,:,:) = zzero
@@ -328,7 +188,7 @@ subroutine wannier_plot( fst, lst, cell)
 #ifdef USEOMP
 !$OMP END DO 
 #endif
-    deallocate( zdata, wfmt, wfir, apwalm, evecfv, evecsv, evec)
+    deallocate( zdata, wfmt, wfir, apwalm, evecfv, evec)
 #ifdef USEOMP
 !$OMP END PARALLEL 
 #endif
@@ -341,7 +201,7 @@ subroutine wannier_plot( fst, lst, cell)
     do ist = fst, lst
       phi = 0.d0
       do ip = 1, grid( ist)%npt
-        dist( ip) = norm2( grid( ist)%vpc( :, ip) - wf_centers( :, ist) - cellc(:))
+        dist( ip) = norm2( grid( ist)%vpc( :, ip) - wf_centers( :, ist-wf_fst+1) - cellc(:))
         s = atan2( aimag( zdatatot( ip, ist)), dble( zdatatot( ip, ist)))
         !write(*,'(F23.16)') s
         if( s .gt. 0.5d0*pi) s = s - pi
@@ -354,7 +214,7 @@ subroutine wannier_plot( fst, lst, cell)
       s = atan2( aimag( zdatatot( ip, ist)), dble( zdatatot( ip, ist)))
       if( abs( phi - s) .gt. 0.5d0*pi) phi = mod( phi+pi, pi)
       write(*,*) ip
-      write(*,'(3F13.6)') wf_centers( :, ist) + cellc
+      write(*,'(3F13.6)') wf_centers( :, ist-wf_fst+1) + cellc
       write(*,'(3F13.6)') grid( ist)%vpc( :, ip)
       write(*,'(3F13.6)') minval( grid( ist)%vpc( 1, :)), minval( grid( ist)%vpc( 2, :)), minval( grid( ist)%vpc( 3, :))
       write(*,'(3F13.6)') maxval( grid( ist)%vpc( 1, :)), maxval( grid( ist)%vpc( 2, :)), maxval( grid( ist)%vpc( 3, :))

@@ -37,7 +37,7 @@ subroutine zgesdd_wrapper( mat, xsize, ysize, sval, lsvec, rsvec)
          rsvec, ysize, &
          work, -1, rwork, iwork, info)
     lwork = nint( dble( work(1)))
-    deallocate( work)
+    if( allocated( work)) deallocate( work)
 
     allocate( work( lwork))
 

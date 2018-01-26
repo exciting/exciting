@@ -47,8 +47,9 @@ Subroutine init1
       External gauntyry
 !
       wannierband = .false.
-      if( associated( input%properties%bandstructure)) wannierband = input%properties%bandstructure%wannier
-      write(*,'("init1")')
+      if( associated( input%properties)) then
+        if( associated( input%properties%bandstructure)) wannierband = input%properties%bandstructure%wannier
+      end if
       Call timesec (ts0)
 !
 !---------------------!

@@ -25,11 +25,9 @@ Subroutine propertylauncher
 
        !--------------------------------------------------------
       if( associated( input%properties%wannier)) then
-        if( input%properties%wannier%input .ne. "gw") then
           call rereadinput
           call wannierlauncher
           !call task_eph 
-        end if
       end if
  
       
@@ -237,15 +235,19 @@ Subroutine propertylauncher
 
       If (associated(input%properties%bandstructure)) Then
          call rereadinput
-         ! tasks are: 20, 21
-         task = 20
-         Call bandstr
+         if( .not. input%properties%bandstructure%wannier) then
+           ! tasks are: 20, 21
+           task = 20
+           Call bandstr
+         end if
       End If
 
       If (associated(input%properties%dos)) Then
          call rereadinput
-         task = 10
-         Call dos
+         if( .not. input%properties%dos%wannier) then
+           task = 10
+           Call dos
+         end if
       End If
 
       If (associated(input%properties%fermisurfaceplot)) Then

@@ -766,12 +766,12 @@ CONTAINS
         ! Structure factor
         allocate(self%sfacgk(self%ngkmax,natmtot,nspnfv,kset%nkpt))
 
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ispn, ik, igp, ig)
+!$OMP DO COLLAPSE(2)
+#endif    
         do ispn = 1, nspnfv
           do ik = 1, kset%nkpt
-#ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(igp,ig)
-!$OMP DO
-#endif    
             do igp = 1, self%ngk(ispn,ik)
               ig = igk2ig(igp,ik,ispn)
               ! index to G-vector
@@ -783,17 +783,16 @@ CONTAINS
               ! G+k-vector length and (theta, phi) coordinates
               call sphcrd(self%vgkc(:,igp,ispn,ik),self%gkc(igp,ispn,ik),&
               &           self%tpgkc(:,igp,ispn,ik))
-              ! generate structure factors for G+k-vectors
-              call gensfacgp(self%ngk(ispn,ik),self%vgkc(:,:,ispn,ik), &
-              &              self%ngkmax,self%sfacgk(:,:,ispn,ik))
-
             end do
+            ! generate structure factors for G+k-vectors
+            call gensfacgp(self%ngk(ispn,ik),self%vgkc(:,:,ispn,ik), &
+            &              self%ngkmax,self%sfacgk(:,:,ispn,ik))
+          end do
+        end do
 #ifdef USEOMP
 !$OMP END DO
 !$OMP END PARALLEL
 #endif    
-          end do
-        end do
         deallocate(igk2ig)
 
         !! Also make non-reduced quantities
@@ -858,12 +857,12 @@ CONTAINS
           ! Structure factor
           allocate(self%sfacgknr(self%ngknrmax,natmtot,nspnfv,kset%nkptnr))
 
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ispn, ik, igp, ig)
+!$OMP DO COLLAPSE(2)
+#endif    
           do ispn = 1, nspnfv
             do ik = 1, kset%nkptnr
-#ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(igp,ig)
-!$OMP DO
-#endif    
               do igp = 1, self%ngknr(ispn,ik)
                 ig = igk2ig(igp,ik,ispn)
                 ! index to G-vector
@@ -875,16 +874,16 @@ CONTAINS
                 ! G+k-vector length and (theta, phi) coordinates
                 call sphcrd(self%vgknrc(:,igp,ispn,ik),self%gknrc(igp,ispn,ik),&
                 &           self%tpgknrc(:,igp,ispn,ik))
-                ! generate structure factors for G+k-vectors
-                call gensfacgp(self%ngknr(ispn,ik),self%vgknrc(:,:,ispn,ik), &
-                &              self%ngknrmax,self%sfacgknr(:,:,ispn,ik))
               end do
+              ! generate structure factors for G+k-vectors
+              call gensfacgp(self%ngknr(ispn,ik),self%vgknrc(:,:,ispn,ik), &
+              &              self%ngknrmax,self%sfacgknr(:,:,ispn,ik))
+            end do
+          end do
 #ifdef USEOMP
 !$OMP END DO
 !$OMP END PARALLEL
 #endif    
-            end do
-          end do
           deallocate(igk2ig)
 
         ! No libzint

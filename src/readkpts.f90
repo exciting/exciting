@@ -8,8 +8,8 @@ Subroutine readkpts
       logical :: xfastest
       type( k_set) :: ksettmp
 
-      Integer :: ik, iq, ix, iy, iz
-      real(8) :: bla, blubb
+      Integer :: ik, iq, ix, iy, iz, d2
+      real(8) :: d1
 
       Open (50, File='KPOINTS'//trim(filext), Action='read', Form='formatted')
       read( 50, '(I6, " : nkpt; k-point, vkl, wkpt, nmat below")') nk
@@ -18,7 +18,8 @@ Subroutine readkpts
         call terminate
       end if
       Do iq = 1, nk
-         read (50, '(I6, 4G18.10, 2I8)') ik, vk (:, ik), bla, blubb
+         read (50, *) ik, vk (:, ik), d1, d2
+         !write(*,'(I6,4G18.10,I8)') ik, vk( :, ik), d1, d2
       End Do
       Close (50)
 

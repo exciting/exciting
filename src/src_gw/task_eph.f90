@@ -21,7 +21,7 @@ subroutine task_eph()
   use m_wsweight
   use m_getunit
   use m_plotmat
-  use m_wannier_interpolate 
+  use mod_wfint
   use mod_symmetry
   use mod_dynmat 
   use mod_constants, only: zzero
@@ -35,6 +35,7 @@ subroutine task_eph()
     integer    :: im, iknr, imode
     complex(8) :: vc
     real   (8) :: efold, evtmp, cbmold, evtmp1
+    type( k_set) :: int_kset ! interpolation k-set (path)
 
     real(8), allocatable :: eval1     (:,:) ! original eigenvalues on the KS mesh 
     real(8), allocatable :: eval2     (:,:) ! Wannier interpolated eigenvalues 
@@ -193,7 +194,13 @@ subroutine task_eph()
   if( allocated(evalpath)) deallocate( evalpath)
   allocate( evalpath( nstfv, nkpt))
   evalpath = 0.d0
-  call wannier_interpolate_eval ( eval1( wf_fst:wf_lst,:), nkpt, vkl, evalpath( wf_fst:wf_lst,:))!, lmax=-1)
+  ! I have changed this in accordance with the new interface to Wannier interpolation. (Sebastian, 24.11.17)
+  call generate_k_vectors( int_kset, bvec, (/1, 1, nkpt/), (/0.d0, 0.d0, 0.d0/), .false.)
+  int_kset%vkl = vkl
+  int_kset%vkc = vkc
+  call wfint_init( int_kset, eval1( wf_fst:wf_lst, :))
+  evalpath( wf_fst:wf_lst, :) = wfint_eval
+  !call wannier_interpolate_eval ( eval1( wf_fst:wf_lst,:), nkpt, vkl, evalpath( wf_fst:wf_lst,:))!, lmax=-1)
   !
   ! Print out the band on the path as a test  
   if (.true.) then
@@ -281,8 +288,12 @@ subroutine task_eph()
 
 !  call wannier_interpolate_eval( eval1( wf_fst:wf_lst,:), wf_kset%nkpt, wf_kset%vkl, &
 !                                 eval2( wf_fst:wf_lst,:), ngridkqtot, kqsetd%kqmtset%vkl, wf_fst, wf_lst)
-  call wannier_interpolate_eval( eval1( wf_fst:wf_lst,:), ngridkqtot, kqsetd%kqmtset%vkl,eval2( wf_fst:wf_lst,:))!,lmax=-1)
+  !call wannier_interpolate_eval( eval1( wf_fst:wf_lst,:), ngridkqtot, kqsetd%kqmtset%vkl,eval2( wf_fst:wf_lst,:))!,lmax=-1)
                                  !eval2( wf_fst:wf_lst,:), kqsetd%kset%nkpt, kqsetd%kqmtset%vkl, wf_fst, wf_lst)
+
+  ! I have changed this in accordance with the new interface to Wannier interpolation. (Sebastian, 24.11.17)
+  call wfint_init( kqsetd%kqmtset, eval1( wf_fst:wf_lst, :))
+  eval2( wf_fst:wf_lst, :) = wfint_eval
  
   ! find the Fermi energy on the new mesh
   if (ik == 1) then
