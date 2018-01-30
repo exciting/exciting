@@ -57,6 +57,7 @@ module mod_wfutil
       velo = 0.d0
       mass = 0.d0
       call wfint_interpolate_ederiv( velo, mass)
+      !call wfint_interpolate_eigvec
       !write(*,*) wf_npp1d, tmp_kset%nkpt, wfint_kset%nkpt
       !call wfint_interpolate_gwpermat
       !stop
@@ -85,7 +86,7 @@ module mod_wfutil
       if( input%properties%bandstructure%character) then
         lmax = min( 4, input%groundstate%lmaxapw)
         allocate( bc( 0:lmax, natmtot, wf_nwf, wfint_kset%nkpt))
-        call wfint_interpolate_bandchar( lmax, bc)
+        call wfint_interpolate_bandchar_new( lmax, bc)
         
         call xml_AddAttribute( xf, "character", "true")
         call xml_NewElement( xf, "title")

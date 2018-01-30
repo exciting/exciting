@@ -47,121 +47,27 @@ module mod_wfint
       type( k_set), intent( in) :: int_kset
       real(8), optional, intent( in) :: evalin_( wf_fst:wf_lst, wf_kset%nkpt)
     
-      integer :: ik, ist, un, recl, nkpqp, fstqp, lstqp, nk, isym, iq, nkequi, isymequi( wf_kset%nkpt), ikequi( wf_kset%nkpt)
-      real(8) :: vl(3), efermiqp, efermiks
-      character(256) :: fname, fxt
-      logical :: exist
-      real(8), allocatable :: evalfv(:,:), evalinks(:,:), evalinqp(:,:), evalqp(:), evalks(:)
-      complex(8), allocatable :: evecqp(:,:,:), auxmat(:,:)
+      integer :: ik, ist, fst, lst
+      real(8), allocatable :: evalfv(:,:), evalin(:,:)
 
       if( wfint_initialized) call wfint_destroy
 
       wfint_kset = int_kset
     
-      allocate( evalinks( wf_fst:wf_lst, wf_kset%nkpt))
-      allocate( evalinqp( wf_fst:wf_lst, wf_kset%nkpt))
+      allocate( evalin( wf_fst:wf_lst, wf_kset%nkpt))
     
-      if( .true. .and. wf_disentangle) then
-        evalinks = 0.d0
-        do ist = 1, wf_nwf
-          evalinks( wf_fst+ist-1, :) = wf_sub_eval( ist, :)
-        end do
-      else
-        if( present( evalin_)) then
-          evalinks = evalin_
-          !do ik = 1, wf_kset%nkpt
-          !  write(*,'(I,1000F13.6)') ik, evalin( :, ik)
-          !end do
-        else
-          !if( input%properties%wannier%input .eq. "gw") then
-          !  call getunit( un)
-          !  write( fname, '("EVALQP.OUT")')
-          !  inquire( file=trim( fname), exist=exist)
-          !  if( .not. exist) then
-          !    write( *, '("Error (wfint_init): File EVALQP.OUT does not exist!")')
-          !    call terminate
-          !  end if
-          !  inquire( iolength=recl) nkpqp, fstqp, lstqp
-          !  open( un, file=trim( fname), action='read', form='unformatted', access='direct', recl=recl)
-          !  read( un, rec=1), nkpqp, fstqp, lstqp
-          !  close( un)
-          !  if( fstqp .gt. wf_fst) then
-          !    write( *, '("Error (wfint_init): First QP band (",I3,") is greater than first wannierized band (",I3,").")') fstqp, wf_fst
-          !    call terminate
-          !  end if
-          !  if( lstqp .lt. wf_lst) then
-          !    write( *, '("Error (wfint_init): Last QP band (",I3,") is less than last wannierized band (",I3,").")') lstqp, wf_lst
-          !    call terminate
-          !  end if
-          !  allocate( evalqp( fstqp:lstqp))
-          !  allocate( evalks( fstqp:lstqp))
-
-          !  fxt = filext
-          !  write( filext, '("_GW.OUT")')
-          !  call readfermi
-          !  filext = fxt
-          !  call getunit( un)
-          !  inquire( iolength=recl) nkpqp, fstqp, lstqp, vl, evalqp, evalks!, efermiqp, efermiks
-          !  open( un, file=trim( fname), action='read', form='unformatted', access='direct', recl=recl)
-          !  do ik = 1, nkpqp
-          !    read( un, rec=ik) nk, fstqp, lstqp, vl, evalqp, evalks!, efermiqp, efermiks
-          !    call findequivkpt( vl, wf_kset, nkequi, isymequi, ikequi)
-          !    do iq = 1, nkequi
-          !      ! energies in EVALQP are already shifted
-          !      evalinqp( :, ikequi( iq)) = evalqp( wf_fst:wf_lst)! + efermi
-          !      evalinks( :, ikequi( iq)) = evalks( wf_fst:wf_lst)
-          !    end do
-          !  end do
-          !  close( un)
-          !  deallocate( evalqp, evalks)
-          !else
-          !  allocate( evalfv( nstfv, nspnfv))
-          !  do ik = 1, wf_kset%nkpt
-          !    call getevalfv( wf_kset%vkl( :, ik), evalfv)
-          !    evalinks( :, ik) = evalfv( wf_fst:wf_lst, 1)
-          !  end do
-          !  deallocate( evalfv)
-          !end if
-          call wannier_geteval( evalfv, fstqp, lstqp)
-          evalinks = evalfv( wf_fst:wf_lst, :)
-        end if
-      end if
+      call wannier_geteval( evalfv, fst, lst)
+      evalin = evalfv( wf_fst:wf_lst, :)
     
       call wfint_rvectors
 
       allocate( wfint_eval( wf_nwf, wfint_kset%nkpt))
       allocate( wfint_transform( wf_nwf, wf_nwf, wfint_kset%nkpt))
       
-      if( input%properties%wannier%input .eq. "gw") then
-        ! new version. Correct sorted
-        !allocate( evecqp( wf_fst:wf_lst, wf_fst:wf_lst, wfint_kset%nkpt))
-        !allocate( auxmat( wf_fst:wf_lst, wf_fst:wf_lst))
-        !call wfint_interpolate_eigsys( evalinqp)
-        !deallocate( evalinqp)
-        !allocate( evalinqp( wf_fst:wf_lst, wfint_kset%nkpt))
-        !evecqp = wfint_transform
-        !evalinqp = wfint_eval
-        !call wfint_interpolate_eigsys( evalinks)
-        !do ik = 1, wfint_kset%nkpt
-        !  call zgemm( 'c', 'n', wf_nwf, wf_nwf, wf_nwf, zone, &
-        !       wfint_transform( :, :, ik), wf_nwf, &
-        !       evecqp( :, :, ik), wf_nwf, zzero, &
-        !       auxmat, wf_nwf)
-        !  call dgemv( 'n', wf_nwf, wf_nwf, 1.d0, &
-        !       abs( auxmat)**2, wf_nwf, &
-        !       evalinqp( :, ik), 1, 0.d0, &
-        !       wfint_eval( :, ik), 1)
-        !end do
-        !deallocate( evecqp, auxmat)
-
-        ! old version. Energy sorted
-        call wfint_interpolate_eigsys( evalinks)
-      else
-        call wfint_interpolate_eigsys( evalinks)
-      end if
+      call wfint_interpolate_eigsys( evalin)
     
       wfint_initialized = .true.
-      deallocate( evalinks, evalinqp)
+      deallocate( evalin, evalfv)
 
       return
     end subroutine wfint_init
@@ -288,7 +194,7 @@ module mod_wfint
         do j = 1, wf_nwf
           do i = 1, wf_nwf
             call r3mv( latvec, dble( wfint_rvec( :, ir)), vc)
-            vc = wf_centers( :, j) + vc - wf_centers( :, i)
+            vc = vc + wf_centers( :, j) - wf_centers( :, i)
             v1 = vc
             d = norm2( vc)
             ! map to WS cell
@@ -297,8 +203,8 @@ module mod_wfint
                 do ks = -2, 2           
                   call r3mv( latvec, dble( (/is, js, ks/)*wf_kset%ngridk), vs)
                   if( norm2( vc - vs) .lt. d) then
-                    d = norm2( vc - vs)
                     v1 = vc - vs
+                    d = norm2( v1)
                   end if
                 end do
               end do
@@ -384,8 +290,11 @@ module mod_wfint
       integer :: nrpt, ix, iy, iz, ik, iq, ir
       real(8) :: dotp
       complex(8) :: ftweight
+      logical :: new
     
       complex(8), allocatable :: auxmat(:,:), auxmat2(:,:), ueu(:,:,:), hamilton(:,:,:), hamiltonr(:,:,:)
+
+      new = .false.
 
       !**********************************************
       ! interpolated eigenenergies and corresponding 
@@ -397,18 +306,18 @@ module mod_wfint
 #ifdef USEOMP
 !$omp parallel default( shared) private( ik, iy, auxmat)
 #endif
-      allocate( auxmat( wf_nwf, wf_nwf))
+      allocate( auxmat( wf_fst:wf_lst, wf_nwf))
 #ifdef USEOMP
 !$omp do
 #endif
       do ik = 1, wf_kset%nkpt
         auxmat = zzero
-        do iy = 1, wf_nwf
-          auxmat( iy, :) = wf_transform( iy, :, ik)*evalin( wf_fst+iy-1, ik)
+        do iy = wf_fst, wf_lst
+          auxmat( iy, :) = wf_transform( iy, :, ik)*evalin( iy, ik)
         end do
-        call zgemm( 'c', 'n', wf_nwf, wf_nwf, wf_nwf, zone, &
-               wf_transform( :, :, ik), wf_nwf, &
-               auxmat, wf_nwf, zzero, &
+        call zgemm( 'c', 'n', wf_nwf, wf_nwf, wf_nst, zone, &
+               wf_transform( :, :, ik), wf_nst, &
+               auxmat, wf_nst, zzero, &
                ueu( :, :, ik), wf_nwf)
       end do
 #ifdef USEOMP
@@ -423,59 +332,65 @@ module mod_wfint
       allocate( hamilton( wf_nwf, wf_nwf, wfint_kset%nkpt))
       allocate( hamiltonr( wf_nwf, wf_nwf, wfint_nrpt))
 
+      if( .not. new) then
+
 #ifdef USEOMP
-!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iy)
-!!$OMP DO
+!!$omp parallel default( shared) private( iy)
+!!$omp do
 #endif
-      do iy = 1, wf_nwf
-        call zgemm( 'n', 'n', wf_nwf, wfint_kset%nkpt, wf_kset%nkpt, zone, &
-             ueu( iy, :, :), wf_nwf, &
-             cmplx( wfint_phase, 0, 8), wf_kset%nkpt, zzero, &
-             hamilton( iy, :, :), wf_nwf)
-      end do
+        do iy = 1, wf_nwf
+          call zgemm( 'n', 'n', wf_nwf, wfint_kset%nkpt, wf_kset%nkpt, zone, &
+                 ueu( iy, :, :), wf_nwf, &
+                 cmplx( wfint_phase, 0, 8), wf_kset%nkpt, zzero, &
+                 hamilton( iy, :, :), wf_nwf)
+        end do
 #ifdef USEOMP
-!!$OMP END DO
-!!$OMP END PARALLEL
+!!$omp end do
+!!$omp end parallel
 #endif
 
-!#ifdef USEOMP
-!!$omp parallel default( shared) private( ir, ik)
-!!$omp do
-!#endif
-!      do ir = 1, wfint_nrpt
-!        hamiltonr( :, :, ir) = zzero
-!        do ik = 1, wf_kset%nkpt
-!          hamiltonr( :, :, ir) = hamiltonr( :, :, ir) + ueu( :, :, ik)*conjg( wfint_pkr( ik, ir))/wf_kset%nkpt
-!        end do
-!      end do
-!#ifdef USEOMP
-!!$omp end do
-!!$omp end parallel
-!#endif
-!
-!#ifdef USEOMP
-!!$omp parallel default( shared) private( iq, ir, ix, iy, iz, dotp, ftweight)
-!!$omp do
-!#endif
-!      do iq = 1, wfint_kset%nkpt
-!        hamilton( :, :, iq) = zzero
-!        do ir = 1, wfint_nrpt
-!          do ix = 1, wf_nwf
-!            do iy = 1, wf_nwf
-!              ftweight = zzero
-!              do iz = 1, wfint_wdistmul( ix, iy, ir)
-!                dotp = twopi*dot_product( wfint_kset%vkl( :, iq), dble( wfint_wdistvec( :, iz, ix, iy, ir)))
-!                ftweight = ftweight + cmplx( cos( dotp), sin( dotp), 8)
-!              end do
-!              hamilton( ix, iy, iq) = hamilton( ix, iy, iq) + ftweight/wfint_rmul( ir)/wfint_wdistmul( ix, iy, ir)*hamiltonr( ix, iy, ir)
-!            end do
-!          end do
-!        end do
-!      end do
-!#ifdef USEOMP
-!!$omp end do
-!!$omp end parallel
-!#endif
+      else
+
+#ifdef USEOMP
+!$omp parallel default( shared) private( ir, ik)
+!$omp do
+#endif
+      do ir = 1, wfint_nrpt
+        hamiltonr( :, :, ir) = zzero
+        do ik = 1, wf_kset%nkpt
+          hamiltonr( :, :, ir) = hamiltonr( :, :, ir) + ueu( :, :, ik)*conjg( wfint_pkr( ik, ir))/wf_kset%nkpt
+        end do
+      end do
+#ifdef USEOMP
+!$omp end do
+!$omp end parallel
+#endif
+
+#ifdef USEOMP
+!$omp parallel default( shared) private( iq, ir, ix, iy, iz, dotp, ftweight)
+!$omp do
+#endif
+      do iq = 1, wfint_kset%nkpt
+        hamilton( :, :, iq) = zzero
+        do ir = 1, wfint_nrpt
+          do ix = 1, wf_nwf
+            do iy = 1, wf_nwf
+              ftweight = zzero
+              do iz = 1, wfint_wdistmul( ix, iy, ir)
+                dotp = twopi*dot_product( wfint_kset%vkl( :, iq), dble( wfint_wdistvec( :, iz, ix, iy, ir)))
+                dotp = dotp + dot_product( wfint_kset%vkc( :, iq), wf_centers( :, iy) - wf_centers( :, ix))
+                ftweight = ftweight + cmplx( cos( dotp), sin( dotp), 8)
+              end do
+              hamilton( ix, iy, iq) = hamilton( ix, iy, iq) + ftweight/wfint_rmul( ir)/wfint_wdistmul( ix, iy, ir)*hamiltonr( ix, iy, ir)
+            end do
+          end do
+        end do
+      end do
+#ifdef USEOMP
+!$omp end do
+!$omp end parallel
+#endif
+      end if
       deallocate( ueu, hamiltonr)
     
       ! diagonalize interpolated Hamiltonian
@@ -643,9 +558,9 @@ module mod_wfint
       real(8), intent( out) :: velo_( 3, wf_nwf, wfint_kset%nkpt)
       real(8), intent( out) :: mass_( 3, 3, wf_nwf, wfint_kset%nkpt)
 
-      integer :: ik, iq, ir, ist, jst, d1, d2, ndeg, sdeg, ddeg
-      real(8) :: eps1, eps2, vr(3), vk(3)
-      complex(8) :: hamwr( wf_nwf, wf_nwf, wfint_nrpt), hamwk( wf_nwf, wf_nwf)
+      integer :: ik, iq, ir, ist, jst, im, d1, d2, ndeg, sdeg, ddeg
+      real(8) :: dotp, eps1, eps2, vr(3), vk(3)
+      complex(8) :: ftweight, hamwr( wf_nwf, wf_nwf, wfint_nrpt), hamwk( wf_nwf, wf_nwf)
       complex(8) :: velo( wf_nwf, wf_nwf, 3, wfint_kset%nkpt)
       complex(8) :: dmat( wf_nwf, wf_nwf, 3, wfint_kset%nkpt)
       complex(8) :: mass( wf_nwf, wf_nwf, 3, 3, wfint_kset%nkpt)
@@ -656,32 +571,34 @@ module mod_wfint
       real(8) :: r3mdet
 
       eps1 = 1.d-4
-      eps2 = 1.d-3
-      ddeg = 1
+      eps2 = 1.d-2
+      ddeg = 0
 
       velo_ = 0.d0
       mass_ = 0.d0
 
       call wannier_geteval( evalin, ist, jst)
 
-      allocate( auxmat( wf_nwf, wf_nwf))
+      allocate( auxmat( wf_fst:wf_lst, wf_nwf))
       allocate( transform( wf_nwf, wf_nwf, wfint_kset%nkpt))
 
       ! get R-dependent Hamiltonian in Wannier gauge
       hamwr = zzero
       do ik = 1, wf_kset%nkpt
         auxmat = zzero
-        do ist = 1, wf_nwf
-          auxmat( ist, :) = wf_transform( ist, :, ik)*evalin( wf_fst+ist-1, ik)
+        do ist = wf_fst, wf_lst
+          auxmat( ist, :) = wf_transform( ist, :, ik)*evalin( ist, ik)
         end do
-        call zgemm( 'c', 'n', wf_nwf, wf_nwf, wf_nwf, zone, &
-               wf_transform( :, :, ik), wf_nwf, &
-               auxmat, wf_nwf, zzero, &
+        call zgemm( 'c', 'n', wf_nwf, wf_nwf, wf_nst, zone, &
+               wf_transform( :, :, ik), wf_nst, &
+               auxmat, wf_nst, zzero, &
                hamwk, wf_nwf)
         do ir = 1, wfint_nrpt
           hamwr( :, :, ir) = hamwr( :, :, ir) + conjg( wfint_pkr( ik, ir))/wf_kset%nkpt*hamwk
         end do
       end do
+      deallocate( auxmat)
+      allocate( auxmat( wf_nwf, wf_nwf))
 
       velo = zzero
       mass = zzero
@@ -689,12 +606,28 @@ module mod_wfint
 
       ! get first band-derivative (velocity)
       do d1 = 1, 3
+#ifdef USEOMP
+!$omp parallel default( shared) private( iq, ir, ist, jst, im, sdeg, ndeg, vr, ftweight, dotp, hamwk, auxmat, degmat, degevec, degeval)
+!$omp do
+#endif
         do iq = 1, wfint_kset%nkpt
           hamwk = zzero
           do ir = 1, wfint_nrpt
             call r3mv( input%structure%crystal%basevect, dble( wfint_rvec( :, ir)), vr)
+            !do ist = 1, wf_nwf
+            !  do jst = 1, wf_nwf
+            !    ftweight = zzero
+            !    do im = 1, wfint_wdistmul( ist, jst, ir)
+            !      call r3mv( input%structure%crystal%basevect, dble( wfint_wdistvec( :, im, ist, jst, ir)), vr)
+            !      dotp = dot_product( wfint_kset%vkc( :, iq), vr + wf_centers( :, jst) - wf_centers( :, ist))
+            !      ftweight = ftweight + cmplx( cos( dotp), sin( dotp), 8)
+            !    end do
+            !    hamwk( ist, jst) = hamwk( ist, jst) + zi*vr( d1)*ftweight/wfint_rmul( ir)/wfint_wdistmul( ist, jst, ir)*hamwr( ist, jst, ir)
+            !  end do
+            !end do
             hamwk = hamwk + zi*vr( d1)*wfint_pqr( iq, ir)*hamwr( :, :, ir)
           end do
+
           call zgemm( 'n', 'n', wf_nwf, wf_nwf, wf_nwf, zone, &
                  hamwk, wf_nwf, &
                  wfint_transform( :, :, iq), wf_nwf, zzero, &
@@ -735,6 +668,10 @@ module mod_wfint
             end if
           end do
         end do
+#ifdef USEOMP
+!$omp end do
+!$omp end parallel
+#endif
 
         ! set up D-matrix
         do iq = 1, wfint_kset%nkpt
@@ -750,11 +687,26 @@ module mod_wfint
 
       do d1 = 1, 3
         ! get second band-derivative (inverse effective mass)
+#ifdef USEOMP
+!$omp parallel default( shared) private( iq, d2, ir, ist, jst, im, sdeg, ndeg, vr, ftweight, dotp, hamwk, auxmat, degmat, degevec, degeval)
+!$omp do
+#endif
         do iq = 1, wfint_kset%nkpt
           do d2 = 1, 3
             hamwk = zzero
             do ir = 1, wfint_nrpt
               call r3mv( input%structure%crystal%basevect, dble( wfint_rvec( :, ir)), vr)
+              !do ist = 1, wf_nwf
+              !  do jst = 1, wf_nwf
+              !    ftweight = zzero
+              !    do im = 1, wfint_wdistmul( ist, jst, ir)
+              !      call r3mv( input%structure%crystal%basevect, dble( wfint_wdistvec( :, im, ist, jst, ir)), vr)
+              !      dotp = dot_product( wfint_kset%vkc( :, iq), vr + wf_centers( :, jst) - wf_centers( :, ist))
+              !      ftweight = ftweight + cmplx( cos( dotp), sin( dotp), 8)
+              !    end do
+              !    hamwk( ist, jst) = hamwk( ist, jst) - vr( d1)*vr( d2)*ftweight/wfint_rmul( ir)/wfint_wdistmul( ist, jst, ir)*hamwr( ist, jst, ir)
+              !  end do
+              !end do
               hamwk = hamwk - vr( d1)*vr( d2)*wfint_pqr( iq, ir)*hamwr( :, :, ir)
             end do
             call zgemm( 'n', 'n', wf_nwf, wf_nwf, wf_nwf, zone, &
@@ -787,11 +739,11 @@ module mod_wfint
                 do ist = 1, ndeg
                   mass( sdeg-ndeg+ist, sdeg-ndeg+ist, d1, d2, iq) = cmplx( degeval( ist), 0, 8)
                 end do
-                call zgemm( 'n', 'n', wf_nwf, ndeg, ndeg, zone, &
-                       wfint_transform( :, (sdeg-ndeg+1):sdeg, iq), wf_nwf, &
-                       degevec, ndeg, zzero, &
-                       auxmat( :, 1:ndeg), wf_nwf)
-                wfint_transform( :, (sdeg-ndeg+1):sdeg, iq) = auxmat( :, 1:ndeg)
+                !call zgemm( 'n', 'n', wf_nwf, ndeg, ndeg, zone, &
+                !       wfint_transform( :, (sdeg-ndeg+1):sdeg, iq), wf_nwf, &
+                !       degevec, ndeg, zzero, &
+                !       auxmat( :, 1:ndeg), wf_nwf)
+                !wfint_transform( :, (sdeg-ndeg+1):sdeg, iq) = auxmat( :, 1:ndeg)
                 deallocate( degmat, degevec, degeval)
               else
                 sdeg = sdeg + 1
@@ -799,13 +751,15 @@ module mod_wfint
             end do
           end do
         end do
+#ifdef USEOMP
+!$omp end do
+!$omp end parallel
+#endif
       end do
 
       velo_ = 0.d0
       mass_ = 0.d0
       do iq = 1, wfint_kset%nkpt
-        write(*,'("--------------------")')
-        write(*,'(I,5x,3F13.6)') iq, wfint_kset%vkc( :, iq)
         vk = wfint_kset%vkc( :, iq+1) - wfint_kset%vkc( :, iq)
         vk = vk/norm2( vk)
         do ist = 1, wf_nwf
@@ -814,10 +768,6 @@ module mod_wfint
           !  call r3minv( dble( mass( ist, ist, :, :, iq)), mass_( :, :, ist, iq))
           !end if
           mass_( :, :, ist, iq) = dble( mass( ist, ist, :, :, iq))
-          write(*,'(i,3f13.6,3x,f13.6)') ist, velo_( :, ist, iq), dot_product( velo_( :, ist, iq), vk)
-          write(*,'(3f13.6)') mass_( 1, :, ist, iq)
-          write(*,'(3f13.6)') mass_( 2, :, ist, iq)
-          write(*,'(3f13.6)') mass_( 3, :, ist, iq)
         end do
       end do
 
@@ -829,14 +779,16 @@ module mod_wfint
     subroutine wfint_find_bandgap
       use mod_eigenvalue_occupancy, only: occmax
       use mod_charge_and_moment, only: chgval
+      use mod_lattice, only: bvec, omega
 
-      integer :: iq, nvm, iqvbm, iqcbm, ndiv(3), degvbm, degcbm, ist
-      real(8) :: vvbm(3), vcbm(3), v0(3), w(3), d(3), evbm, ecbm, eps
+      integer :: iq, nvm, iqvbm, iqcbm, ndiv(3), degvbm, degcbm, ist, n1, n2, n3
+      real(8) :: vvbm(3), vcbm(3), v0(3), w(3), d(3), evbm, ecbm, eps, rho, lb1, lb2, lb3, vb
       type( k_set) :: tmp_kset
 
       real(8), allocatable :: velo(:,:,:), mass(:,:,:,:)
 
-      eps = 1.d-4
+      eps = 1.d-6
+      rho = 300.d0
 
       nvm = nint( chgval/occmax)
       if( (wf_fst .ne. 1) .and. (wf_fst .le. nvm)) then
@@ -853,8 +805,20 @@ module mod_wfint
 
       nvm = nvm - wf_fst + 1
 
-      ndiv = (/10, 10, 10/)
+      lb1 = norm2( bvec( :, 1))
+      lb2 = norm2( bvec( :, 2))
+      lb3 = norm2( bvec( :, 3))
+      vb = 8.0d0*pi**3/omega
+      n1 = max( 1, nint( (rho*lb1*lb1*vb/lb2/lb3)**(1.d0/3)))
+      n2 = max( 1, nint( (rho*lb2*lb2*vb/lb3/lb1)**(1.d0/3)))
+      n3 = max( 1, nint( (rho*lb3*lb3*vb/lb1/lb2)**(1.d0/3)))
+      ndiv = (/n1, n2, n3/)
+      write(*,*) ndiv
+
       w = (/1.d0, 1.d0, 1.d0/)
+      if( ndiv(1) .eq. 1) w(1) = 0.d0
+      if( ndiv(2) .eq. 1) w(2) = 0.d0
+      if( ndiv(3) .eq. 1) w(3) = 0.d0
       d = w/ndiv
 
       call generate_k_vectors( tmp_kset, bvec, 3*ndiv, (/0.d0, 0.d0, 0.d0/), .true.)
@@ -891,6 +855,9 @@ module mod_wfint
         
       ! find CBM
       w = (/1.d0, 1.d0, 1.d0/)
+      if( ndiv(1) .eq. 1) w(1) = 0.d0
+      if( ndiv(2) .eq. 1) w(2) = 0.d0
+      if( ndiv(3) .eq. 1) w(3) = 0.d0
       d = w/ndiv
       do while( norm2( d) .gt. input%structure%epslat)
         w = 2.d0*d
@@ -924,31 +891,31 @@ module mod_wfint
       end do
 
       write(*,*) "VALENCE-BAND MAXIMUM"
-      write(*,'(" position (lattice):   ",3f13.6)') wfint_kset%vkl( :, 1)
-      write(*,'("          (cartesian): ",3f13.6)') wfint_kset%vkc( :, 1)
-      write(*,'(" energy (Hartree):     ",f13.6)') wfint_eval( nvm, 1)
-      write(*,'("        (eV):          ",f13.6)') wfint_eval( nvm, 1)*27.211396641308
-      write(*,'(" degeneracy:           ",i6)') degvbm
-      write(*,'(" band-gradient:        ",3f13.6)') velo( :, nvm, 1)
-      write(*,'(" effecitve mass tensor:",3f13.6)') mass( 1, :, nvm, 1)
-      write(*,'("                       ",3f13.6)') mass( 2, :, nvm, 1)
-      write(*,'("                       ",3f13.6)') mass( 3, :, nvm, 1)
+      write(*,'(" position (lattice):      ",3f13.6)') wfint_kset%vkl( :, 1)
+      write(*,'("          (cartesian):    ",3f13.6)') wfint_kset%vkc( :, 1)
+      write(*,'(" energy (Hartree):        ",f13.6)') wfint_eval( nvm, 1)
+      write(*,'("        (eV):             ",f13.6)') wfint_eval( nvm, 1)*27.211396641308
+      write(*,'(" degeneracy:              ",i6)') degvbm
+      write(*,'(" band gradient:           ",3f13.6)') velo( :, nvm, 1)
+      write(*,'(" band Hessian:            ",3f13.6)') mass( 1, :, nvm, 1)
+      write(*,'(" (inverse effective mass) ",3f13.6)') mass( 2, :, nvm, 1)
+      write(*,'("                          ",3f13.6)') mass( 3, :, nvm, 1)
       write(*,*)
 
       write(*,*) "CONDUCTION-BAND MINIMUM"
-      write(*,'(" position (lattice):   ",3f13.6)') wfint_kset%vkl( :, 2)
-      write(*,'("          (cartesian): ",3f13.6)') wfint_kset%vkc( :, 2)
-      write(*,'(" energy (Hartree):     ",f13.6)') wfint_eval( nvm+1, 2)
-      write(*,'("        (eV):          ",f13.6)') wfint_eval( nvm+1, 2)*27.211396641308
-      write(*,'(" degeneracy:           ",i6)') degcbm
-      write(*,'(" band-gradient:        ",3f13.6)') velo( :, nvm+1, 2)
-      write(*,'(" effecitve mass tensor:",3f13.6)') mass( 1, :, nvm+1, 2)
-      write(*,'("                       ",3f13.6)') mass( 2, :, nvm+1, 2)
-      write(*,'("                       ",3f13.6)') mass( 3, :, nvm+1, 2)
+      write(*,'(" position (lattice):      ",3f13.6)') wfint_kset%vkl( :, 2)
+      write(*,'("          (cartesian):    ",3f13.6)') wfint_kset%vkc( :, 2)
+      write(*,'(" energy (Hartree):        ",f13.6)') wfint_eval( nvm+1, 2)
+      write(*,'("        (eV):             ",f13.6)') wfint_eval( nvm+1, 2)*27.211396641308
+      write(*,'(" degeneracy:              ",i6)') degcbm
+      write(*,'(" band gradient:           ",3f13.6)') velo( :, nvm+1, 2)
+      write(*,'(" band Hessian:            ",3f13.6)') mass( 1, :, nvm+1, 2)
+      write(*,'(" (inverse effective mass) ",3f13.6)') mass( 2, :, nvm+1, 2)
+      write(*,'("                          ",3f13.6)') mass( 3, :, nvm+1, 2)
       write(*,*)
 
-      write(*,'(" gap (Hartree):        ",f13.6)') wfint_eval( nvm+1, 2) - wfint_eval( nvm, 1)
-      write(*,'("     (eV):             ",f13.6)') (wfint_eval( nvm+1, 2) - wfint_eval( nvm, 1))*27.211396641308
+      write(*,'(" gap (Hartree):           ",f13.6)') wfint_eval( nvm+1, 2) - wfint_eval( nvm, 1)
+      write(*,'("     (eV):                ",f13.6)') (wfint_eval( nvm+1, 2) - wfint_eval( nvm, 1))*27.211396641308
       return
     end subroutine wfint_find_bandgap
 
@@ -1109,7 +1076,7 @@ module mod_wfint
       allocate( evecfv( nmatmax, nstfv, nspnfv))
       allocate( psik( ngrtot, wf_nwf))
       allocate( psiq( ngrtot, wf_nwf, wfint_kset%nkpt))
-      allocate( auxmat( ngrtot, wf_nwf))
+      allocate( auxmat( ngrtot, wf_fst:wf_lst))
 
       psiq = zzero
       do ik = 1, wf_kset%nkpt
@@ -1121,9 +1088,9 @@ module mod_wfint
 !!$omp parallel default( shared) private( ist, igk)
 !!$omp do
 !#endif
-        do ist = 1, wf_nwf
+        do ist = wf_fst, wf_lst
           do igk = 1, wf_Gkset%ngk( 1, ik)
-            auxmat( igfft( wf_Gkset%igkig( igk, 1, ik)), ist) = evecfv( igk, wf_fst+ist-1, 1)
+            auxmat( igfft( wf_Gkset%igkig( igk, 1, ik)), ist) = evecfv( igk, ist, 1)
           end do
         end do
 !#ifdef USEOMP
@@ -1131,10 +1098,10 @@ module mod_wfint
 !!$omp end parallel
 !#endif
         
-        call zgemm( 'n', 'n', ngrtot, wf_nwf, wf_nwf, zone, &
-             auxmat, ngrtot, &
-             wf_transform( :, :, ik), wf_nwf, zzero, &
-             psik, ngrtot)
+        call zgemm( 'n', 'n', ngrtot, wf_nwf, wf_nst, zone, &
+               auxmat, ngrtot, &
+               wf_transform( :, :, ik), wf_nst, zzero, &
+               psik, ngrtot)
 #ifdef USEOMP
 !$omp parallel default( shared) private( iq)
 !$omp do
@@ -1786,7 +1753,7 @@ subroutine wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, td
       lammax = maxdim
    
       ! build k-point density coefficients
-      allocate( radcoeffk( wf_nwf, maxdim, lmmax, natmtot, wf_kset%nkpt))
+      allocate( radcoeffk( wf_fst:wf_lst, maxdim, lmmax, natmtot, wf_kset%nkpt))
       allocate( evecfv( nmatmax, nstfv, nspnfv))
       allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
       radcoeffk(:,:,:,:,:) = zzero
@@ -1808,10 +1775,10 @@ subroutine wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, td
               do m1 = -l1, l1
                 lm1 = idxlm( l1, m1)
                 do o = 1, apword( l1, is)
-                  call zgemv( 'T', ngknr, wf_nwf, zone, &
-                       evecfv( :, wf_fst:(wf_fst+wf_nwf-1), 1), nmatmax, &
-                       apwalm( :, o, lm1, ias, 1), 1, zzero, &
-                       radcoeffk( :, o2idx( o, l1, is), lm1, ias, ik), 1)
+                  call zgemv( 't', ngknr, wf_nwf, zone, &
+                         evecfv( :, wf_fst:wf_lst, 1), nmatmax, &
+                         apwalm( :, o, lm1, ias, 1), 1, zzero, &
+                         radcoeffk( :, o2idx( o, l1, is), lm1, ias, ik), 1)
                 end do
               end do
             end do
@@ -1821,7 +1788,7 @@ subroutine wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, td
               if( l1 .le. lmax) then
                 do m1 = -l1, l1
                   lm1 = idxlm( l1, m1)
-                  radcoeffk( :, lo2idx( ilo1, l1, is), lm1, ias, ik) = evecfv( ngknr+idxlo( lm1, ilo1, ias), wf_fst:(wf_fst+wf_nwf-1), 1)
+                  radcoeffk( :, lo2idx( ilo1, l1, is), lm1, ias, ik) = evecfv( ngknr+idxlo( lm1, ilo1, ias), wf_fst:wf_lst, 1)
                 end do
               end if
             end do
@@ -1845,9 +1812,9 @@ subroutine wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, td
             do ia = 1, natoms( is)
               ias = idxas( ia, is)
               do lm1 = 1, lmmax
-                call zgemm( 't', 'n', wf_nwf, maxdim, wf_nwf, conjg( wfint_pkr( ik, ir))/wf_kset%nkpt, &
-                       wf_transform( :, :, ik), wf_nwf, &
-                       radcoeffk( :, :, lm1, ias, ik), wf_nwf, zone, &
+                call zgemm( 't', 'n', wf_nwf, maxdim, wf_nst, conjg( wfint_pkr( ik, ir))/wf_kset%nkpt, &
+                       wf_transform( :, :, ik), wf_nst, &
+                       radcoeffk( :, :, lm1, ias, ik), wf_nst, zone, &
                        radcoeffr( :, :, lm1, ias, ir), wf_nwf)
               end do
             end do
@@ -1869,32 +1836,29 @@ subroutine wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, td
 
     subroutine wfint_interpolate_me( mein, meout)
       complex(8), intent( in) :: mein( wf_fst:wf_lst, wf_fst:wf_lst, wf_kset%nkpt)
-      complex(8), intent( out) :: meout( wf_fst:wf_lst, wf_fst:wf_lst, wfint_kset%nkpt)
+      complex(8), intent( out) :: meout( wf_nwf, wf_nwf, wfint_kset%nkpt)
 
-      !!!!!
-      ! correct wf_nst and wf_nwf here
-      !!!!!
       integer :: ir, ik, iq, ist
       complex(8), allocatable :: okwan(:,:,:), or(:,:,:), oqwan(:,:), ou(:,:)
 
-      allocate( okwan( wf_fst:wf_lst, wf_fst:wf_lst, wf_kset%nkpt))
+      allocate( okwan( wf_nwf, wf_nwf, wf_kset%nkpt))
 
 #ifdef USEOMP                
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, ir, ou)
 #endif
-      allocate( ou( wf_fst:wf_lst, wf_fst:wf_lst))
+      allocate( ou( wf_fst:wf_lst, wf_nwf))
 #ifdef USEOMP                
 !$OMP DO  
 #endif
       do ik = 1, wf_kset%nkpt
-        call zgemm( 'N', 'N', wf_nst, wf_nst, wf_nst, zone, &
-             mein( :, :, ik), wf_nst, &
-             wf_transform( :, :, ik), wf_nst, zzero, &
-             ou, wf_nst)
-        call zgemm( 'C', 'N', wf_nst, wf_nst, wf_nst, zone, &
-             wf_transform( :, :, ik), wf_nst, &
-             ou, wf_nst, zzero, &
-             okwan( :, :, ik), wf_nst)
+        call zgemm( 'n', 'n', wf_nst, wf_nwf, wf_nst, zone, &
+               mein( :, :, ik), wf_nst, &
+               wf_transform( :, :, ik), wf_nst, zzero, &
+               ou, wf_nst)
+        call zgemm( 'c', 'n', wf_nwf, wf_nwf, wf_nst, zone, &
+               wf_transform( :, :, ik), wf_nst, &
+               ou, wf_nst, zzero, &
+               okwan( :, :, ik), wf_nwf)
       end do
 #ifdef USEOMP                
 !$OMP END DO  
@@ -1904,13 +1868,13 @@ subroutine wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, td
 !$OMP END PARALLEL
 #endif
 
-      allocate( or( wf_fst:wf_lst, wf_fst:wf_lst, wfint_nrpt))
+      allocate( or( wf_nwf, wf_nwf, wfint_nrpt))
 
-      do ist = wf_fst, wf_lst
-        call zgemm( 'n', 'n', wf_nst, wf_kset%nkpt, wf_kset%nkpt, zone/wf_kset%nkpt, &
-               okwan( ist, :, :), wf_nst, &
+      do ist = 1, wf_nwf
+        call zgemm( 'n', 'n', wf_nwf, wf_kset%nkpt, wf_kset%nkpt, zone/wf_kset%nkpt, &
+               okwan( ist, :, :), wf_nwf, &
                conjg( wfint_pkr), wf_kset%nkpt, zzero, &
-               or( ist, :, :), wf_nst)
+               or( ist, :, :), wf_nwf)
       end do
 
       deallocate( okwan)
@@ -1918,8 +1882,8 @@ subroutine wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, td
 #ifdef USEOMP                
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iq, ir, ou, oqwan)
 #endif
-      allocate( ou( wf_fst:wf_lst, wf_fst:wf_lst))
-      allocate( oqwan( wf_fst:wf_lst, wf_fst:wf_lst))
+      allocate( ou( wf_nwf, wf_nwf))
+      allocate( oqwan( wf_nwf, wf_nwf))
 #ifdef USEOMP                
 !$OMP DO  
 #endif
@@ -1928,14 +1892,14 @@ subroutine wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, td
         do ir = 1, wfint_nrpt
           oqwan(:,:) = oqwan(:,:) + or( :, :, ir)*wfint_pqr( iq, ir)
         end do
-        call zgemm( 'n', 'n', wf_nst, wf_nst, wf_nst, zone, &
-               oqwan, wf_nst, &
-               wfint_transform( :, :, iq), wf_nst, zzero, &
-               ou, wf_nst)
-        call zgemm( 'c', 'n', wf_nst, wf_nst, wf_nst, zone, &
-               wfint_transform( :, :, iq), wf_nst, &
-               ou, wf_nst, zzero, &
-               meout( :, :, iq), wf_nst)
+        call zgemm( 'n', 'n', wf_nwf, wf_nwf, wf_nwf, zone, &
+               oqwan, wf_nwf, &
+               wfint_transform( :, :, iq), wf_nwf, zzero, &
+               ou, wf_nwf)
+        call zgemm( 'c', 'n', wf_nwf, wf_nwf, wf_nwf, zone, &
+               wfint_transform( :, :, iq), wf_nwf, &
+               ou, wf_nwf, zzero, &
+               meout( :, :, iq), wf_nwf)
       end do
 #ifdef USEOMP                
 !$OMP END DO  
@@ -2144,19 +2108,25 @@ subroutine wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, td
 !--------------------------------------------------------------------------------------
 
     subroutine wfint_interpolate_eigvec
-      integer :: ik, iq, ig, igk, ir, ist
+      integer :: ik, iq, ig, igk, ir, ist, is, ia, ias, io, l, m, lm, ilo1, ilo2, ngk_, ngq_, vi(3)
       integer :: ngkmaxint, nmatmaxint
+      complex(8) :: phase
 
-      complex(8), allocatable :: evecfv(:,:,:), evectmp(:,:), evecrotk(:,:), evecrotq(:,:)
+      complex(8), allocatable :: evecfv(:,:,:), evectmpapw(:,:), evectmplo(:,:), evecrotkapw(:,:), evecrotqapw(:,:), evecrotklo(:,:), evecrotqlo(:,:), auxmat(:,:)
+      complex(8), allocatable :: apwalm1(:,:,:,:), apwalm2(:,:,:,:), matchc1(:,:), matchc2(:,:), olp(:,:)
 
       call generate_Gk_vectors( wfint_Gkset, wfint_kset, wf_Gset, wf_Gkset%gkmax)
       ngkmaxint = wfint_Gkset%ngkmax
       nmatmaxint = ngkmaxint + nlotot
 
       allocate( evecfv( nmatmax, nstfv, nspinor))
-      allocate( evectmp( wf_Gset%ngrtot, wf_fst:wf_lst))
-      allocate( evecrotk( wf_Gset%ngrtot, wf_nwf))
-      allocate( evecrotq( wf_Gset%ngrtot, wf_nwf))
+      allocate( evectmpapw( wf_Gset%ngrtot, wf_fst:wf_lst))
+      allocate( evectmplo( nlotot, wf_fst:wf_lst))
+      allocate( evecrotkapw( wf_Gset%ngrtot, wf_nwf))
+      allocate( evecrotqapw( wf_Gset%ngrtot, wf_nwf))
+      allocate( evecrotklo( nlotot, wf_nwf))
+      allocate( evecrotqlo( nlotot, wf_nwf))
+      allocate( auxmat( wf_nwf, wf_nwf))
       
       if( allocated( wfint_evec)) deallocate( wfint_evec)
       allocate( wfint_evec( nmatmaxint, wf_nwf, wfint_kset%nkpt))
@@ -2165,45 +2135,192 @@ subroutine wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, td
       do ik = 1, wf_kset%nkpt
         write(*,*) ik
         call wannier_getevec( ik, evecfv)
-        evectmp = zzero
+
+        evectmpapw = zzero
 #ifdef USEOMP
 !$omp parallel default( shared) private( igk, ig)
 !$omp do
 #endif
         do igk = 1, wf_Gkset%ngk( 1, ik)
           ig = wf_Gkset%igkig( igk, 1, ik)
-          evectmp( ig, :) = evecfv( igk, wf_fst:wf_lst, 1)
+          evectmpapw( ig, :) = evecfv( igk, wf_fst:wf_lst, 1)
         end do
 #ifdef USEOMP
 !$omp end do
 !$omp end parallel
 #endif
+        evectmplo = evecfv( (wf_Gkset%ngk( 1, ik)+1):(wf_Gkset%ngk( 1, ik)+nlotot), wf_fst:wf_lst, 1)
+
         call zgemm( 'n', 'n', wf_Gset%ngrtot, wf_nwf, wf_nst, zone, &
-               evectmp, wf_Gset%ngrtot, &
+               evectmpapw, wf_Gset%ngrtot, &
                wf_transform( :, :, ik), wf_nst, zzero, &
-               evecrotk, wf_Gset%ngrtot)
+               evecrotkapw, wf_Gset%ngrtot)
+        call zgemm( 'n', 'n', nlotot, wf_nwf, wf_nst, zone, &
+               evectmplo, nlotot, &
+               wf_transform( :, :, ik), wf_nst, zzero, &
+               evecrotklo, nlotot)
+
         do iq = 1, wfint_kset%nkpt
           call zgemm( 'n', 'n', wf_Gset%ngrtot, wf_nwf, wf_nwf, cmplx( wfint_phase( ik, iq), 0, 8), &
-                 evecrotk, wf_Gset%ngrtot, &
+                 evecrotkapw, wf_Gset%ngrtot, &
                  wfint_transform( :, :, iq), wf_nwf, zzero, &
-                 evecrotq, wf_Gset%ngrtot)
+                 evecrotqapw, wf_Gset%ngrtot)
+          call zgemm( 'n', 'n', nlotot, wf_nwf, wf_nwf, cmplx( wfint_phase( ik, iq), 0, 8), &
+                 evecrotklo, nlotot, &
+                 wfint_transform( :, :, iq), wf_nwf, zzero, &
+                 evecrotqlo, nlotot)
 #ifdef USEOMP
 !$omp parallel default( shared) private( igk, ig)
 !$omp do
 #endif
           do igk = 1, wfint_Gkset%ngk( 1, iq)
             ig = wfint_Gkset%igkig( igk, 1, iq)
-            wfint_evec( igk, :, iq) = wfint_evec( igk, :, iq) + evecrotq( ig, :)
+            wfint_evec( igk, :, iq) = wfint_evec( igk, :, iq) + evecrotqapw( ig, :)
           end do
 #ifdef USEOMP
 !$omp end do
 !$omp end parallel
 #endif
+          wfint_evec( (wfint_Gkset%ngk( 1, iq)+1):(wfint_Gkset%ngk( 1, iq)+nlotot), :, iq) = &
+            wfint_evec( (wfint_Gkset%ngk( 1, iq)+1):(wfint_Gkset%ngk( 1, iq)+nlotot), :, iq) + evecrotqlo
         end do
       end do
 
-      deallocate( evecfv, evectmp, evecrotk, evecrotq)
-      
+
+      deallocate( evecfv, evectmpapw, evectmplo, evecrotkapw, evecrotklo, evecrotqapw, evecrotqlo, auxmat)
+
+      ik = 92
+      iq = 93
+      write(*,'(3f13.6)') wf_kset%vkl( :, ik)
+      write(*,'(3f13.6)') wf_kset%vkl( :, iq)
+
+      ngkmax = ngkmaxint
+      nmatmax = nmatmaxint
+      allocate( olp( nmatmax, nmatmax))
+      allocate( apwalm1( ngkmax, apwordmax, lmmaxapw, natmtot))
+      allocate( apwalm2( ngkmax, apwordmax, lmmaxapw, natmtot))
+      allocate( auxmat( ngkmax, lmmaxapw))
+      allocate( matchc1( apwordmax*lmmaxapw, ngkmax))
+      allocate( matchc2( apwordmax*lmmaxapw, ngkmax))
+      olp = zzero
+      apwalm1 = zzero
+      apwalm2 = zzero
+      ngq_ = wf_Gkset%ngk( 1, iq)
+      ngk_ = wf_Gkset%ngk( 1, ik)
+      write(*,*) ngk_, ngkmax
+
+      call wannier_genradfun
+      call match( ngk_, wf_Gkset%gkc( :, 1, ik), wf_Gkset%tpgkc( :, :, 1, ik), wf_Gkset%sfacgk( :, :, 1, ik), apwalm1)
+      call match( ngq_, wf_Gkset%gkc( :, 1, iq), wf_Gkset%tpgkc( :, :, 1, iq), wf_Gkset%sfacgk( :, :, 1, iq), apwalm2)
+
+      do is = 1, nspecies
+        do ia = 1, natoms( is)
+          ias = idxas( ia, is)
+          matchc1 = zzero
+          matchc2 = zzero
+          ig = 0
+          do l = 0, input%groundstate%lmaxapw
+            do m = -l, l
+              lm = idxlm( l, m)
+              do io = 1, apword( l, is)
+                ig = ig + 1
+                matchc1( ig, 1:ngk_) = apwalm1( 1:ngk_, io, lm, ias)
+                matchc2( ig, 1:ngq_) = apwalm1( 1:ngq_, io, lm, ias)
+              end do
+            end do
+          end do
+          call zgemm( 'c', 'n', ngk_, ngq_, ig, zone, &
+                 matchc1, apwordmax*lmmaxapw, &
+                 matchc2, apwordmax*lmmaxapw, zone, &
+                 olp, nmatmax)
+          do ilo1 = 1, nlorb( is)
+            l = lorbl( ilo1, is)
+            do io = 1, apword( l, is)
+              do m = -l, l
+                lm = idxlm( l, m)
+                olp( 1:ngk_, ngq_+idxlo( lm, ilo1, ias)) = olp( 1:ngk_, ngq_+idxlo( lm, ilo1, ias)) + &
+                    conjg( apwalm1( 1:ngk_, io, lm, ias))*cmplx( oalo( io, ilo1, ias), 0, 8)
+                olp( ngk_+idxlo( lm, ilo1, ias), 1:ngq_) = olp( ngk_+idxlo( lm, ilo1, ias), 1:ngq_) + &
+                    apwalm2( 1:ngq_, io, lm, ias)*cmplx( oalo( io, ilo1, ias), 0, 8)
+              end do
+            end do      
+            do ilo2 = 1, nlorb( is)
+              if( lorbl( ilo2, is) .eq. l) then
+                do m = -l, l
+                  lm = idxlm( l, m)
+                  olp( ngk_+idxlo( lm, ilo1, ias), ngq_+idxlo( lm, ilo2, ias)) = olp( ngk_+idxlo( lm, ilo1, ias), ngq_+idxlo( lm, ilo2, ias)) +&
+                      cmplx( ololo( ilo1, ilo2, ias), 0, 8)
+                end do
+              end if
+            end do
+          end do      
+        end do
+      end do
+
+      do igk = 1, ngk_
+        do ia = 1, ngq_
+          vi = wf_Gset%ivg( :, wf_Gkset%igkig( igk, 1, ik)) - wf_Gset%ivg( :, wf_Gkset%igkig( ia, 1, iq))
+          ig = wf_Gset%ivgig( vi(1), vi(2), vi(3))
+          if( (ig .gt. 0) .and. (ig .le. wf_Gset%ngvec)) then
+            olp( igk, ia) = olp( igk, ia) + cfunig( ig)
+          end if
+        end do
+      end do
+
+      call writematlab( olp( 1:(ngk_+nlotot), 1:(ngq_+nlotot)), 'olp')
+      call writematlab( olp( 1:(ngk_+nlotot), 1:(ngq_+nlotot)), 'olp')
+
+      write(*,*) "ende olp"
+
+      deallocate( auxmat)
+      allocate( auxmat( nmatmax, wf_nwf))
+      allocate( evectmplo( wf_nwf, wf_nwf))
+      allocate( evecfv( nmatmax, nstfv, nspinor))
+      allocate( evecrotkapw( nmatmax, wf_nwf))
+      allocate( evecrotqapw( nmatmax, wf_nwf))
+
+      call wannier_getevec( ik, evecfv)
+      evecrotkapw = evecfv( :, wf_fst:wf_lst, 1)
+      call wannier_getevec( iq, evecfv)
+      evecrotqapw = evecfv( :, wf_fst:wf_lst, 1)
+
+      call writematlab( olp( 1:(ngk_+nlotot), 1:(ngk_+nlotot)), 'olp')
+      call writematlab( evecfv( 1:(ngk_+nlotot), wf_fst:wf_lst, 1), 'evec')
+
+      call zgemm( 'n', 'n', ngk_+nlotot, wf_nwf, ngq_+nlotot, zone, &
+             olp, nmatmax, &
+             !wfint_evec( :, :, iq), nmatmax, zzero, &
+             evecrotqapw, nmatmax, zzero, &
+             auxmat, nmatmax)
+      call zgemm( 'c', 'n', wf_nwf, wf_nwf, ngk_+nlotot, zone, &
+             !wfint_evec( :, :, ik), nmatmax, &
+             evecrotkapw, nmatmax, &
+             auxmat, nmatmax, zzero, &
+             evectmplo, wf_nwf)
+      call plotmat( evectmplo)
+      write(*,*)
+      !write(*,*)
+      !call zgemm( 'c', 'n', wf_nwf, wf_nwf, ngk_+nlotot, zone, &
+      !       evecfv( :, wf_fst:wf_lst, 1), nmatmax, &
+      !       evecfv( :, wf_fst:wf_lst, 1), nmatmax, zzero, &
+      !       evectmplo, wf_nwf)
+      !call plotmat( evectmplo)
+
+      deallocate( auxmat, evectmplo, evecfv)
+
+      phase = zzero
+      do ir = 1, wfint_nrpt
+        phase = phase + wfint_pqr( ik, ir)!/wfint_rmul( ir)
+      end do
+      write(*,'(3f13.6)') wfint_kset%vkl( :, ik)
+      write(*,'("phase k: ", 2F13.6)') phase
+
+      phase = zzero
+      do ir = 1, wfint_nrpt
+        phase = phase + wfint_pqr( iq, ir)!/wfint_rmul( ir)
+      end do
+      write(*,'(3f13.6)') wfint_kset%vkl( :, iq)
+      write(*,'("phase q: ", 2F13.6)') phase
       return
     end subroutine wfint_interpolate_eigvec
 

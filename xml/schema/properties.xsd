@@ -904,7 +904,7 @@
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="essential" ex:unit="" name="lst" type="xs:integer" default="0">
+            <xs:attribute ex:importance="essential" ex:unit="" name="lst" type="xs:integer" default="1">
               <xs:annotation>
                 <xs:documentation>Highest state from which Wannier functions are constructed.</xs:documentation>
               </xs:annotation>
