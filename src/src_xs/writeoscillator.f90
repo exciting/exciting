@@ -41,6 +41,7 @@ module m_writeoscillator
       syscommand = 'test ! -e '//trim(adjustl(excitondir))//' && mkdir '//trim(adjustl(excitondir))
       call system(trim(adjustl(syscommand)))
 
+      ! Generate file name
       if(input%xs%bse%coupling) then
         tdastring=''
       else
@@ -50,7 +51,9 @@ module m_writeoscillator
           tdastring="-TDA"
         end if
       end if
-
+      if(input%xs%bse%bsetype == "IP") then
+        tdastring=''
+      end if
       bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
 

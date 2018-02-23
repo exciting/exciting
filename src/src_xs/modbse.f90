@@ -1088,6 +1088,7 @@ module modbse
         call system(trim(adjustl(syscommand)))
       end if
 
+      ! Generate file name
       if(input%xs%bse%coupling) then
         tdastring=''
       else
@@ -1097,7 +1098,9 @@ module modbse
           tdastring="-TDA"
         end if
       end if
-
+      if(input%xs%bse%bsetype == "IP") then
+        tdastring=''
+      end if
       bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
 

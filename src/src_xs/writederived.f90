@@ -53,6 +53,9 @@ subroutine writederived(iqmt, eps, nw, w)
       tdastring="-TDA"
     end if
   end if
+  if(input%xs%bse%bsetype == "IP") then
+    tdastring=''
+  end if
 
   bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
   scrtypestring = '-'//trim(input%xs%screening%screentype)
