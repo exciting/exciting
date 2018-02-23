@@ -34,7 +34,10 @@ subroutine kubo
     complex (8), allocatable :: seebeck(:)
     complex (8), allocatable :: thermalcond(:)
     complex (8), allocatable :: zt(:)
+    complex (8), allocatable :: echarge(:)
+!    complex (8), allocatable :: nf(:)
     complex (8), allocatable :: td(:) ! Transport distribution function
+    complex (8), allocatable :: ndos(:) ! Density of states
     complex (8), allocatable :: eta(:)
     integer :: wgrid
     integer :: kfirst, klast
@@ -68,11 +71,14 @@ subroutine kubo
     
     allocate(w(wgrid))
     allocate(td(wgrid))
+    allocate(ndos(wgrid))
     allocate(sigma(wgrid))
     allocate(sigmab(tempgrid*mugrid))
     allocate(seebeck(tempgrid*mugrid))
     allocate(thermalcond(tempgrid*mugrid))
     allocate(zt(tempgrid*mugrid))
+    allocate(echarge(tempgrid*mugrid))
+    !allocate(nf(tempgrid*mugrid))
 
 ! generate energy grid
     !wmax = input%properties%dielmat%wmax
@@ -179,8 +185,11 @@ subroutine kubo
 
     tempi=input%properties%dielmat%temprange(1)
     tempf=input%properties%dielmat%temprange(2)
-    if (input%properties%dielmat%tempgrid == 1) then
-       temps=1
+    if (tempi == tempf) then
+       tempf=tempi+1
+       temps=temps+2
+    else if (input%properties%dielmat%tempgrid == 1) then
+       temps=tempf+1
     else
        temps=(tempf-tempi)/(input%properties%dielmat%tempgrid-1)
     end if
@@ -214,7 +223,10 @@ subroutine kubo
         seebeck(:) = zzero
         thermalcond(:) = zzero
         zt(:) = zzero
+        echarge(:) = zzero
+        !nf(:) = zzero
         td(:) = zzero
+        ndos(:) = zzero
         wplas = 0.0d0
         do ik = kfirst, klast
 
@@ -280,7 +292,7 @@ subroutine kubo
                   !td(iw) = td(iw)+ zt1/input%properties%dielmat%drude(2)*sdelta(input%groundstate%stypenumber,t1)/input%groundstate%swidth
                   !write(*,*) 1/input%properties%dielmat%drude(2)
                   td(iw) = td(iw)+ zt1*sdelta(input%groundstate%stypenumber,t1)/input%groundstate%swidth
-
+                  ndos(iw) = ndos(iw) + sdelta(input%groundstate%stypenumber,t1)/input%groundstate%swidth
                end do ! iw
             end do ! ist
 
@@ -436,6 +448,8 @@ subroutine kubo
                  sigmab(n) = sigmab(n) + td(iw)*t3
                  seebeck(n) = seebeck(n) + td(iw)*t3*t1
                  thermalcond(n) = thermalcond(n) + td(iw)*t3*(t1**2)
+                 echarge(n)=echarge(n) + ndos(iw)/(exp(t1)+1)
+                 !nf(n)=nf(n)+ndos(iw)
                  !sigmab(n) = sigmab(n) + td(iw)*sdelta(3,t1)/(temp*kb)
                  !seebeck(n) = seebeck(n) + td(iw)*sdelta(3,t1)/(temp*kb)*(-1)*t1
                  !thermalcond(n) = thermalcond(n) + td(iw)*sdelta(3,t1)/(temp*kb)*(t1**2)
@@ -447,6 +461,9 @@ subroutine kubo
               seebeck(n) = t1*zt1*kb*temp*seebeck(n)/sigmab(n)
               thermalcond(n) = t1*zt1*(kb**2)*temp*temp*thermalcond(n)
               zt(n) = sigmab(n)*seebeck(n)**2/(thermalcond(n))
+              echarge(n) = t1*zt1*echarge(n)
+              !nf(n)=t1*zt1*nf(n)*0.5
+              !write(*,*) nf(n)
               !zt(n) = t1*zt1*(kb**2)*temp*temp*thermalcond(n)
               !write(*,*) temp, mu, sigmab(n)
 
@@ -455,10 +472,14 @@ subroutine kubo
 
         zt1 = zi/(omega*dble(nkptnr))
         sigma(:) = zt1*sigma(:)
-
+        write (*,*) tempi, kb, efermi
         do iw = 1, wgrid
-           t1 = (efermi-w(iw))/(tempi*kb)
-           sigmaboltz(l) = sigmaboltz(l) + td(iw)*sdelta(3,t1)/(tempi*kb)
+           !t1 = (efermi-w(iw))/(tempi*kb)
+           !sigmaboltz(l) = sigmaboltz(l) + td(iw)*sdelta(3,t1)/(tempi*kb)
+           t1 = -(efermi-w(iw))/(tempi*kb)
+           t2 = exp(t1)
+           t3 = t2/((t2+1)**2 * tempi*kb)
+           sigmaboltz(l) = sigmaboltz(l) + td(iw)*t3
            !write (*,*) td(iw), sdelta(3,t1), t1, sigmaboltz(l), l
         end do ! iw
         
@@ -528,7 +549,7 @@ subroutine kubo
             write(*, '("  Transport distribution written to ", a)') trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
             do iw = 1, wgrid
-                write(60, '(3G18.10)') t1*w(iw), td(iw)
+                !write(60, '(4G18.10)') t1*w(iw), td(iw)
             end do
            close(60)
 ! write the optical conductivity from Boltzmann
@@ -542,7 +563,7 @@ subroutine kubo
                   n=n+1
                   write(60, '(4G18.10)') temp, mu, sigmab(n)
                end do
-               write(60, ' ')
+               !write(60, ' ')
             end do
            close(60)
 ! write the Seebeck coefficient from Boltzmann
@@ -556,7 +577,7 @@ subroutine kubo
                   n=n+1
                   write(60, '(4G18.10)') temp, mu, seebeck(n)
                end do
-               write(60, ' ')
+               !write(60, ' ')
             end do
            close(60)
 ! write the thermal conductivity from Boltzmann
@@ -570,7 +591,7 @@ subroutine kubo
                   n=n+1
                   write(60, '(4G18.10)') temp, mu, thermalcond(n)
                end do
-               write(60, ' ')
+               !write(60, ' ')
             end do
            close(60)
 
@@ -585,10 +606,23 @@ subroutine kubo
                   n=n+1
                   write(60, '(4G18.10)') temp, mu, zt(n)
                end do
-               write(60, ' ')
             end do
            close(60)
 
+! write the total charge for Boltzmann
+            write(fname, '("CHARGE_", 2I1, ".OUT")') a, b
+            write(*, '("  Total charge for a given chemical potential and temperature ", a)') trim(adjustl(fname))
+            open(60, file=trim(fname), action='WRITE', form='FORMATTED')
+            n=0
+            do mu = mui, muf, mus
+               do temp = tempi, tempf, temps
+               !do mu = mui, muf, mus
+                  n=n+1
+                  write(60, '(4G18.10)') temp, mu, echarge(n)
+               end do
+            end do
+           close(60)
+           
            
 ! write the dielectric function to file
             write(fname, '("EPSILON_", 2I1, ".OUT")') a, b
@@ -663,6 +697,6 @@ subroutine kubo
     
     deallocate(pmat)
     deallocate(evalsvt,occsvt)
-    deallocate(w,sigma,sigmab,seebeck,thermalcond,zt,eta,td)
-    
+    deallocate(w,sigma,sigmab,seebeck,thermalcond,zt,eta,td,ndos,echarge)
+    !deallocate(nf)
 end subroutine

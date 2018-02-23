@@ -1,0 +1,36 @@
+F90 = ifort
+F90_OPTS = -O3 -ip -unroll  -scalar_rep -openmp -DUSEOMP 
+CPP_ON_OPT = -cpp -DXS -DISO -DLIBXC -DIFORT -DFFTW
+F77 = $(F90)
+F77_OPTS = -O3
+LIB_ARP =libarpack.a
+export USE_SYS_LAPACK=true
+LIB_LPK = -mkl=parallel 
+LIB_FFT = fftlib.a
+LIB_BZINT = libbzint.a
+
+LIBS = $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
+
+F90_DEBUGOPTS = -g -O0 -debug all -implicitnone -warn unused \
+   -fp-stack-check -heap-arrays -ftrapuv -check pointers \
+   -check bounds -check all -check noarg_temp_created -traceback
+F77_DEBUGOPTS = -g -O0 -debug all -implicitnone -warn unused \
+   -fp-stack-check -heap-arrays -ftrapuv -check pointers \
+   -check bounds -check all -check noarg_temp_created -traceback
+
+#Ignore if you don't have MPI or smplibs
+
+# check for the correct name of your mpif90 compiler
+MPIF90 = mpif90-ifort
+MPIF90_OPTS = $(F90_OPTS) $(CPP_ON_OPT) -DMPI -DMPIRHO -DMPISEC -DMPI1
+
+F77MT=$(F77)
+F90MT=$(F90)
+SMP_LIBS = $(LIB_ARP) -mkl=parallel  $(LIB_FFT) $(LIB_BZINT)
+SMPF90_OPTS = $(F90_OPTS)
+SMPF77_OPTS = $(SMPF90_OPTS)
+MPISMPF90_OPTS = $(SMPF90_OPTS) -DMPI -DMPIRHO -DMPISECBUILDMPI=false
+MPIF90MT = $(MPIF90)
+BUILDMPI = true
+BUILDSMP = true
+BUILDMPI=true
