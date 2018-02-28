@@ -549,7 +549,7 @@ subroutine kubo
             write(*, '("  Transport distribution written to ", a)') trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
             do iw = 1, wgrid
-                !write(60, '(4G18.10)') t1*w(iw), td(iw)
+                write(60, '(4G18.10)') t1*w(iw), td(iw)
             end do
            close(60)
 ! write the optical conductivity from Boltzmann
