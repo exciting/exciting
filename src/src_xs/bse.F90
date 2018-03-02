@@ -276,7 +276,6 @@ Subroutine bse
                         ! write partially occupied states in the output    
                         If (kdocc(s1) .Gt. input%groundstate%epsocc .And. &
                         &   kdocc(s1) .Lt. 2.d0-input%groundstate%epsocc) Then
-                          Write (*,*) 'kdocc s1', kdocc(s1), s1
                         End If
                         ! add exchange term
                         Select Case (trim(input%xs%bse%bsetype))
