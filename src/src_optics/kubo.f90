@@ -444,7 +444,15 @@ subroutine kubo
               do iw = 1, wgrid
                  t1 = -(mu-w(iw))/(temp*kb)
                  t2 = exp(t1)
-                 t3 = t2/((t2+1)**2 * temp*kb)
+                 if (t1 > 40) then
+                    t3=0
+                 else if (t1 < -40 ) then
+                    t3=0
+                 else
+                    t2 = exp(t1)
+                    t3 = t2/((t2+1)**2 * tempi*kb)
+                 end if
+                 !t3 = t2/((t2+1)**2 * temp*kb)
                  sigmab(n) = sigmab(n) + td(iw)*t3
                  seebeck(n) = seebeck(n) + td(iw)*t3*t1
                  thermalcond(n) = thermalcond(n) + td(iw)*t3*(t1**2)
