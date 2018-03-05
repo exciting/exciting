@@ -44,7 +44,7 @@ module m_read_bandstructure
 
       !   Read in index of lowest and highest band and the number of steps along the path
       allocate(brange_(3))
-      read(un,'(a2,i8,1x,i8,1x,i8)') commentchar, brange_(1), brange_(2), brange_(3)
+      read(un,*) commentchar, brange_(1), brange_(2), brange_(3)
       ib1=brange_(1)
       ib2=brange_(2)
       nsteps=brange_(3)
@@ -56,7 +56,7 @@ module m_read_bandstructure
       ! Read in kpoints, pathlengths and energy values
       do ib = ib1, ib2
         do istep = 1, nsteps
-          read(un,'(2i6, 3f12.6, 2E18.10)')&
+          read(un,*)&
             & ibread, istepread, vklpath_(:,istep,ib), kpathlength_(istep, ib),&
             & energyval_(istep, ib)
         end do
