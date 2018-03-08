@@ -480,7 +480,7 @@ subroutine kubo
               zt1 = twopi**3/(omega*dble(nkptnr))
               t1 = (wtdff-wtdfi)/dble(nwtdf)
               sigmab(n) = t1*zt1*sigmab(n) !/input%properties%dielmat%drude(2)
-              seebeck(n) = t1*zt1*kb*temp*seebeck(n)/sigmab(n)
+              seebeck(n) = t1*zt1*kb*temp*seebeck(n)  !/sigmab(n)
               thermalcond(n) = t1*zt1*(kb**2)*temp*temp*thermalcond(n)
               zt(n) = sigmab(n)*seebeck(n)**2/(thermalcond(n))
               echarge(n) = t1*zt1*echarge(n)
