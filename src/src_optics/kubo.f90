@@ -10,15 +10,16 @@ subroutine kubo
     integer :: ik, jk, isym
     integer :: ist, jst, iw
     integer :: recl, iostat
-    integer :: mugrid, tempgrid
+    integer :: mugrid, tempgrid, nwtdf
     integer :: n
     logical :: exist, intraband, drude
     real(8) :: wplas, swidth, eji, t1, t2, t3
     real(8) :: v1 (3), v2 (3), sc(3,3)
     real(8) :: kb
-    real(8) :: deltaw, dshift
+    real(8) :: dshift
+    real(8) :: wtdfi, wtdff
     real(8) :: tempi,tempf,temps,temp
-    real(8) :: mui, muf, mus, mu, deltamu
+    real(8) :: mui, muf, mus, mu
     complex(8) :: sigmaboltz(9)
     complex(8) :: sigmak(9)
     complex(8) :: sigmaktwo(9)
@@ -26,6 +27,7 @@ subroutine kubo
     character(256) :: fname
 ! allocatable arrays
     real(8), allocatable :: w(:)
+    real(8), allocatable :: wtdf(:)
     real(8), allocatable :: evalsvt(:), occsvt(:)
     complex (8), allocatable :: pmat(:,:,:)
     complex (8), allocatable :: pmatd(:,:,:)
@@ -38,6 +40,7 @@ subroutine kubo
 !    complex (8), allocatable :: nf(:)
     complex (8), allocatable :: td(:) ! Transport distribution function
     complex (8), allocatable :: ndos(:) ! Density of states
+    complex (8), allocatable :: fermidis(:) ! Fermi distribution
     complex (8), allocatable :: eta(:)
     integer :: wgrid
     integer :: kfirst, klast
@@ -62,16 +65,21 @@ subroutine kubo
 
 ! working arrays
     wgrid = input%properties%dielmat%wgrid
+
     mugrid = input%properties%dielmat%mugrid
-    tempgrid = input%properties%dielmat%tempgrid
+    tempgrid = input%properties%dielmat%tgrid
+    nwtdf = input%properties%dielmat%nwtdf
+
     dshift = input%properties%dielmat%dshift
 !    write(*,*) wgrid
 !    write(*,*) mugrid
 !    write(*,*) tempgrid
     
     allocate(w(wgrid))
-    allocate(td(wgrid))
-    allocate(ndos(wgrid))
+
+    allocate(wtdf(nwtdf))
+    allocate(td(nwtdf))
+    allocate(ndos(nwtdf))
     allocate(sigma(wgrid))
     allocate(sigmab(tempgrid*mugrid))
     allocate(seebeck(tempgrid*mugrid))
@@ -81,12 +89,16 @@ subroutine kubo
     !allocate(nf(tempgrid*mugrid))
 
 ! generate energy grid
-    !wmax = input%properties%dielmat%wmax
-    deltaw = input%properties%dielmat%deltaw
-    
-    t1 = deltaw/(dble(wgrid))
+    wmax = input%properties%dielmat%wmax
     Do iw = 1, wgrid
-        w(iw) = t1*(iw-1)-deltaw/(1.0*2)+efermi
+        w(iw) = wmax*(iw-1)/dble(wgrid)
+    End Do
+
+    wtdfi = input%properties%dielmat%windtdf(1)
+    wtdff = input%properties%dielmat%windtdf(2)
+    t1 = (wtdff-wtdfi)/dble(nwtdf-1)       
+    Do iw = 1, nwtdf
+       wtdf(iw) = wtdfi + t1*(iw-1)
     End Do
 
 ! if element "drude" present, use the specified parameters for the Drude term 
@@ -110,6 +122,7 @@ subroutine kubo
 
 ! smearing factor
     swidth = input%properties%dielmat%swidth
+
 
 ! finite lifetime broadening to mimic the experimental resolution
 ! chosen according to PRB86, 125139 (2012)
@@ -183,32 +196,29 @@ subroutine kubo
     sigmak(:) = zzero
     sigmaktwo(:) = zzero
 
-    tempi=input%properties%dielmat%temprange(1)
-    tempf=input%properties%dielmat%temprange(2)
+    tempi=input%properties%dielmat%windtemp(1)
+    tempf=input%properties%dielmat%windtemp(2)
     if (tempi == tempf) then
        tempf=tempi+1
        temps=temps+2
-    else if (input%properties%dielmat%tempgrid == 1) then
+    else if (input%properties%dielmat%tgrid == 1) then
        temps=tempf+1
     else
-       temps=(tempf-tempi)/(input%properties%dielmat%tempgrid-1)
+       temps=(tempf-tempi)/(input%properties%dielmat%tgrid-1)
     end if
+
+    mui=input%properties%dielmat%windmu(1)
+    muf=input%properties%dielmat%windmu(2)
+    if (mui == muf) then
+       muf=mui+1
+       mus=mus+2
+    else if (input%properties%dielmat%mugrid == 1) then
+       mus=muf+1
+    else
+       mus=(muf-mui)/(input%properties%dielmat%mugrid-1)
+    end if
+
     
-    deltamu=input%properties%dielmat%deltamu
-    if (input%properties%dielmat%mugrid == 1) then
-       mus=1
-    else
-       mus=(deltamu)/(input%properties%dielmat%mugrid-1)
-    end if
-
-    if (mus == 1) then
-       mui=efermi
-       muf=efermi+0.5
-    else
-       mui=efermi-deltamu/2.0
-       muf=efermi+deltamu/2.0
-    end if
-
     do l = 1, ncomp
         
         a = epscomp(1,l)
@@ -287,12 +297,15 @@ subroutine kubo
 !--------------------------       
             do ist = 1, nstsv
                zt1 = pmat(a,ist,ist)*conjg(pmat(b,ist,ist))
-               do iw = 1, wgrid
-                  t1 = (evalsvt(ist)-w(iw))/input%groundstate%swidth
+               do iw = 1, nwtdf
+                  t1 = (evalsvt(ist)-wtdf(iw))/swidth
+                  !t1 = (evalsvt(ist)-wtdf(iw))/input%groundstate%swidth
                   !td(iw) = td(iw)+ zt1/input%properties%dielmat%drude(2)*sdelta(input%groundstate%stypenumber,t1)/input%groundstate%swidth
                   !write(*,*) 1/input%properties%dielmat%drude(2)
-                  td(iw) = td(iw)+ zt1*sdelta(input%groundstate%stypenumber,t1)/input%groundstate%swidth
-                  ndos(iw) = ndos(iw) + sdelta(input%groundstate%stypenumber,t1)/input%groundstate%swidth
+                  td(iw) = td(iw)+ zt1*sdelta(input%groundstate%stypenumber,t1)/swidth
+                  ndos(iw) = ndos(iw) + sdelta(input%groundstate%stypenumber,t1)/swidth
+                  !td(iw) = td(iw)+ zt1*sdelta(input%groundstate%stypenumber,t1)/input%groundstate%swidth
+                  !ndos(iw) = ndos(iw) + sdelta(input%groundstate%stypenumber,t1)/input%groundstate%swidth
                end do ! iw
             end do ! ist
 
@@ -415,7 +428,8 @@ subroutine kubo
         &                  ierr)
         call MPI_AllReduce(MPI_IN_PLACE, &
         &                  td, &
-        &                  wgrid, &
+!        &                  wgrid, &
+        &                  nwtdf, &  
         &                  MPI_DOUBLE_COMPLEX, &
         &                  MPI_SUM, &
         &                  MPI_COMM_WORLD, &
@@ -441,8 +455,8 @@ subroutine kubo
            !do mu = mui, muf, mus
               n=n+1
               !write(*,*) n
-              do iw = 1, wgrid
-                 t1 = -(mu-w(iw))/(temp*kb)
+              do iw = 1, nwtdf
+                 t1 = -(mu-wtdf(iw))/(temp*kb)
                  t2 = exp(t1)
                  if (t1 > 40) then
                     t3=0
@@ -450,7 +464,7 @@ subroutine kubo
                     t3=0
                  else
                     t2 = exp(t1)
-                    t3 = t2/((t2+1)**2 * tempi*kb)
+                    t3 = t2/((t2+1)**2 * temp*kb)
                  end if
                  !t3 = t2/((t2+1)**2 * temp*kb)
                  sigmab(n) = sigmab(n) + td(iw)*t3
@@ -464,7 +478,7 @@ subroutine kubo
               !write (*,*) td(iw), sdelta(3,t1), t1, sigmaboltz(l), l
               end do ! iw
               zt1 = twopi**3/(omega*dble(nkptnr))
-              t1 = deltaw/dble(wgrid)
+              t1 = (wtdff-wtdfi)/dble(nwtdf)
               sigmab(n) = t1*zt1*sigmab(n) !/input%properties%dielmat%drude(2)
               seebeck(n) = t1*zt1*kb*temp*seebeck(n)/sigmab(n)
               thermalcond(n) = t1*zt1*(kb**2)*temp*temp*thermalcond(n)
@@ -481,18 +495,25 @@ subroutine kubo
         zt1 = zi/(omega*dble(nkptnr))
         sigma(:) = zt1*sigma(:)
         write (*,*) tempi, kb, efermi
-        do iw = 1, wgrid
+        do iw = 1, nwtdf
            !t1 = (efermi-w(iw))/(tempi*kb)
            !sigmaboltz(l) = sigmaboltz(l) + td(iw)*sdelta(3,t1)/(tempi*kb)
-           t1 = -(efermi-w(iw))/(tempi*kb)
+           t1 = -(efermi-wtdf(iw))/(tempi*kb)
            t2 = exp(t1)
-           t3 = t2/((t2+1)**2 * tempi*kb)
+           if (t1 > 40) then
+              t3=0
+           else if (t1 < -40 ) then
+              t3=0
+           else
+              t2 = exp(t1)
+              t3 = t2/((t2+1)**2 * tempi*kb)
+           end if
            sigmaboltz(l) = sigmaboltz(l) + td(iw)*t3
            !write (*,*) td(iw), sdelta(3,t1), t1, sigmaboltz(l), l
         end do ! iw
         
         zt1 = twopi**3/(omega*dble(nkptnr))
-        t1 = deltaw/dble(wgrid)
+        t1 = (wtdff-wtdfi)/dble(wgrid)
         sigmaboltz(l) = t1*zt1*sigmaboltz(l)
         write (*,*) sigmaboltz(l)
 
@@ -553,11 +574,12 @@ subroutine kubo
             end do
             close(61)
 ! write the transport distribution function from Boltzmann
+            zt1 = twopi**3/(omega*dble(nkptnr))
             write(fname, '("TD_", 2I1, ".OUT")') a, b
             write(*, '("  Transport distribution written to ", a)') trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
-            do iw = 1, wgrid
-                write(60, '(4G18.10)') t1*w(iw), td(iw)
+            do iw = 1, nwtdf
+                write(60, '(4G18.10)') t1*wtdf(iw), td(iw)*zt1
             end do
            close(60)
 ! write the optical conductivity from Boltzmann
