@@ -296,7 +296,7 @@ subroutine kubo
 !--------------------------       
 !--------------------------       
             do ist = 1, nstsv
-               zt1 = pmat(a,ist,ist)*conjg(pmat(b,ist,ist))
+               zt1 = occsvt(ist)*pmat(a,ist,ist)*conjg(pmat(b,ist,ist))
                do iw = 1, nwtdf
                   t1 = (evalsvt(ist)-wtdf(iw))/swidth
                   !t1 = (evalsvt(ist)-wtdf(iw))/input%groundstate%swidth
@@ -484,6 +484,13 @@ subroutine kubo
               thermalcond(n) = t1*zt1*(kb**2)*temp*temp*thermalcond(n)
               zt(n) = (seebeck(n)**2)/(sigmab(n)*thermalcond(n))
               echarge(n) = t1*zt1*echarge(n)
+
+              !sigmab(n) = t1*zt1*sigmab(n) !/input%properties%dielmat%drude(2)
+              !seebeck(n) = t1*zt1*kb*temp*seebeck(n)  !/sigmab(n)
+              !thermalcond(n) = t1*zt1*(kb**2)*temp*temp*thermalcond(n)
+              !zt(n) = (seebeck(n)**2)/(sigmab(n)*thermalcond(n))
+              !echarge(n) = t1*zt1*echarge(n)
+
               !nf(n)=t1*zt1*nf(n)*0.5
               !write(*,*) nf(n)
               !zt(n) = t1*zt1*(kb**2)*temp*temp*thermalcond(n)
