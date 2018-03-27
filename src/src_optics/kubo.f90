@@ -294,9 +294,10 @@ subroutine kubo
 !--------------------------
 ! Transport distribution
 !--------------------------       
-!--------------------------       
+!--------------------------
             do ist = 1, nstsv
-               zt1 = occsvt(ist)*pmat(a,ist,ist)*conjg(pmat(b,ist,ist))
+               zt1 = occmax*wkpt(ik)*pmat(a,ist,ist)*conjg(pmat(b,ist,ist))
+               #zt1 = occmax*pmat(a,ist,ist)*conjg(pmat(b,ist,ist))
                do iw = 1, nwtdf
                   t1 = (evalsvt(ist)-wtdf(iw))/swidth
                   !t1 = (evalsvt(ist)-wtdf(iw))/input%groundstate%swidth
@@ -502,6 +503,8 @@ subroutine kubo
         zt1 = zi/(omega*dble(nkptnr))
         sigma(:) = zt1*sigma(:)
         write (*,*) tempi, kb, efermi
+        write (*,*) nkptnr
+
         do iw = 1, nwtdf
            !t1 = (efermi-w(iw))/(tempi*kb)
            !sigmaboltz(l) = sigmaboltz(l) + td(iw)*sdelta(3,t1)/(tempi*kb)
