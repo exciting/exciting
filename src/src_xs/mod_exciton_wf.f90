@@ -36,8 +36,9 @@ contains
     use mod_cube_format
     implicit none    
     ! local
-    integer :: i, ip, np, lambda
+    integer :: i, ip, np, lambda, exciton_min, exciton_max
     integer :: igrid(3)
+    integer, allocatable :: exciton_range(:)
     integer :: ndim_h, ndim_e
     real(8) :: boxl(4,3)
     real(8),    allocatable :: vvl(:,:)
@@ -135,11 +136,22 @@ contains
     end if
     ! call print_rgrid(r_e)
 
+    !-----------------------------------------------------------------------------------------
+    ! determine the needed exciton range from input (only for input%xs%bse%beyond)
+    !-----------------------------------------------------------------------------------------
+    allocate(exciton_range(size(input%xs%excitonplot%excitonarray)))
+    do ipair = 1, size(input%xs%excitonplot%excitonarray)
+        exciton_range(ipair) = input%xs%excitonPlot%excitonarray(ipair)%exciton%lambda
+    end do
+    exciton_min = minval(exciton_range)
+    exciton_max = maxval(exciton_range)
+    deallocate(exciton_range)
+
     !----------------------------------------
     ! read exciton wavefunction coefficients
     !----------------------------------------
     ! Get data form EXCCOEFF*.OUT
-    call get_excitons()
+    call get_excitons(a1 = exciton_min, a2 = exciton_max)
     ! Check compatibility (needs TDA and fixed number of transition over all k)
     if(fcoup_ .eqv. .true. .or. fesel_ .eqv. .true.) then 
       write(*,*) "Error(plot_excitonWavefunction): Data retrieved with get_excitions invalid"
@@ -241,7 +253,7 @@ contains
       end select
 
     end do ! ipair
-
+    
     deallocate(beval,bevec)
     call delete_rgrid(r_h)
     call delete_rgrid(r_e)
