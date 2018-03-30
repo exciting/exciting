@@ -48,7 +48,8 @@ subroutine kubo
 ! external functions
     real(8) sdelta
 
-    kb =  0.30036326d-5 ! Boltzmann constant Ha/K
+    !kb =  0.30036326d-5 ! Boltzmann constant Ha/K
+    kb =  3.1668114d-6
 
     
     if (rank==0) then
@@ -238,6 +239,7 @@ subroutine kubo
         td(:) = zzero
         ndos(:) = zzero
         wplas = 0.0d0
+        write(*,*) kfirst,klast
         do ik = kfirst, klast
 
 ! equivalent reduced k-point
@@ -296,8 +298,8 @@ subroutine kubo
 !--------------------------       
 !--------------------------
             do ist = 1, nstsv
-               zt1 = occmax*wkpt(ik)*pmat(a,ist,ist)*conjg(pmat(b,ist,ist))
-               #zt1 = occmax*pmat(a,ist,ist)*conjg(pmat(b,ist,ist))
+               zt1 = occmax*pmat(a,ist,ist)*conjg(pmat(b,ist,ist))
+               !zt1 = occmax*pmat(a,ist,ist)*conjg(pmat(b,ist,ist))
                do iw = 1, nwtdf
                   t1 = (evalsvt(ist)-wtdf(iw))/swidth
                   !t1 = (evalsvt(ist)-wtdf(iw))/input%groundstate%swidth
@@ -502,7 +504,7 @@ subroutine kubo
 
         zt1 = zi/(omega*dble(nkptnr))
         sigma(:) = zt1*sigma(:)
-        write (*,*) tempi, kb, efermi
+        !write (*,*) tempi, kb, efermi
         write (*,*) nkptnr
 
         do iw = 1, nwtdf
