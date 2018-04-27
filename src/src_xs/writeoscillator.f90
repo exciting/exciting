@@ -90,7 +90,7 @@ module m_writeoscillator
         io2=3
         ! Set diagonal values
         do o1=io1,io2
-          buf(o1,o1,:)=pref*oscstrr(:,o1)
+          buf(o1,o1,:)=pref*abs(oscstrr(:,o1))**2
         end do
         ! Set off-diagonal values
         if (input%xs%dfoffdiag) then
@@ -109,7 +109,7 @@ module m_writeoscillator
           end do !o2
         end do !o1
       else ! qmt != 0
-        oscstrr_(1,1,:)=pref*oscstrr(:,1)
+        oscstrr_(1,1,:)=pref*abs(oscstrr(:,1))**2
       end if 
       !write hdf5 output
       gname="excitons"//trim(bsetypestring)//trim(scrtypestring)

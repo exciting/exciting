@@ -154,7 +154,6 @@ module m_b_ematqk
       !write(*,*) "shape(evecfv1_ptr)", shape(evecfv1_ptr)
       call b_getevecfv1(vkl1_ptr(1:3, ikq),&
        & vgkl1_ptr(1:3, 1:ngkmax1_ptr, 1:nspnfv, ikq), evecfv1_ptr)
-
       ! Save local orbital coefficients
       evecfvu(:, :) = evecfv1_ptr(ngk1_ptr(1, ikq)+1:ngk1_ptr(1, ikq)+nlotot,&
         & bc%il2:bc%iu2, 1)
