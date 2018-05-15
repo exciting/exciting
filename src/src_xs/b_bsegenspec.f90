@@ -23,12 +23,12 @@ subroutine b_bsegenspec()
 
   implicit none
 
-  integer(4) :: io1, no, nexc, nk, nw
+  integer(4) :: io1, io2, no, nexc, nk, nw
   integer(4) :: iqmt, iqmti, iqmtf, nqmt, iq1, iq2
   logical :: fcoup, foff
   real(8), allocatable :: evals(:), bindevals(:), w(:)
   complex(8), allocatable :: oscir(:)
-  complex(8), allocatable :: oscirmat(:,:)
+  complex(8), allocatable :: oscirmat(:,:,:)
   complex(8), allocatable, dimension(:,:,:) :: symspectr
 
   character(*), parameter :: thisname = "b_bsegenspec"
@@ -75,24 +75,32 @@ subroutine b_bsegenspec()
 
       if(iqmt == 1) then 
         no = 3
+        do io1=1, no
+          if (foff) then
+            do io2=1, no
+              call readoscillator(iqmt, io1, io2, evals, bindevals, oscir)
+              if(.not. allocated(oscirmat)) then 
+                allocate(oscirmat(size(oscir), 3, 3))
+              end if
+              oscirmat(:,io1,io2)=oscir 
+            end do
+          else
+            call readoscillator(iqmt, io1, io1, evals, bindevals, oscir)
+            if(.not. allocated(oscirmat)) then 
+              allocate(oscirmat(size(oscir), 3, 3))
+            end if
+            oscirmat(:,io1,io1)=oscir 
+          end if
+        end do
       else
         no = 1
+        call readoscillator(iqmt, no, no, evals, bindevals, oscir)
+        if(.not. allocated(oscirmat)) then 
+          allocate(oscirmat(size(oscir), 3, 3))
+        end if
+        oscirmat(:,no,no)=oscir 
       end if
 
-      !! Read in directional components
-
-      do io1 = 1, no
-
-        call readoscillator(iqmt, io1, evals, bindevals, oscir)
-
-        if(.not. allocated(oscirmat)) then 
-          allocate(oscirmat(size(oscir), 3))
-          oscirmat = zzero
-        end if
-
-        oscirmat(:,io1) = oscir
-      
-      end do
       if(allocated(oscir)) deallocate(oscir)
 
       !! Make the spectrum
@@ -111,7 +119,9 @@ subroutine b_bsegenspec()
       end if
 
       ! Calculate lattice symmetrized spectrum.
-      call makespectrum(iqmt, nexc, nk, evals, oscirmat, symspectr)
+      call redospectrum(iqmt, nexc, nk, evals, oscirmat, symspectr)
+      !print *, symspectr(1,1,:)
+      !call makespectrum(iqmt, nexc, nk, evals, oscirmat, symspectr)
 
       ! Generate an evenly spaced frequency grid 
       nw = input%xs%energywindow%points
