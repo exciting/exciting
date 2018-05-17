@@ -79,7 +79,7 @@ module mod_pwmat
             end do
           end do
           nlmlammax = maxval( nlmlam, 1)
-          write(*,'("pwmat init: nlmlammax = :",I4)') nlmlammax
+          !write(*,'("pwmat init: nlmlammax = :",I4)') nlmlammax
 
           ! build non-zero Gaunt list
           allocate( idxgnt( pw_lmaxapw + 1, (pw_lmaxapw + 1)**2, (pw_lmaxapw + 1)**2), &
@@ -379,7 +379,7 @@ module mod_pwmat
           ! find matching coefficients for k-point k
           call match( ngknr, gkqc, tpgkqc, sfacgkq, apwalm)
           
-          allocate( evecshort1( pw_fst2:pw_lst2, nlmlammax))
+          allocate( evecshort1( pw_fst1:pw_lst1, nlmlammax))
           allocate( auxmat( pw_fst1:pw_lst1, nlmlammax))
           
           do is = 1, nspecies

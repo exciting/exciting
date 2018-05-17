@@ -112,9 +112,10 @@ Subroutine bandstr
       call fourintp(e0,nkpt0,vkl0,e1,nkpt,vkl,nstsv)
       emin =  1.d5
       emax = -1.d5
-      do ist = 1, nstsv
-        do ik = 1, nkpt
-          evalsv(ist,ik) = dble(e1(ik,ist))
+      do ik = 1, nkpt
+        do ist = 1, nstsv
+          evalsv(ist,ik) = dble(e1(ik,ist)) - efermi
+          if(evalsv(ist,ik) .gt. 0.d0) evalsv(ist,ik) = evalsv(ist,ik) + input%properties%bandstructure%scissor
           emin = min(emin, evalsv(ist, ik))
           emax = max(emax, evalsv(ist, ik))
         end do

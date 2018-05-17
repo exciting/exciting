@@ -25,9 +25,10 @@ Subroutine propertylauncher
 
        !--------------------------------------------------------
       if( associated( input%properties%wannier)) then
-          call rereadinput
-          call wannierlauncher
-          !call task_eph 
+          if( input%properties%wannier%do .ne. "skip") then
+            call rereadinput
+            call wannierlauncher
+          end if
       end if
  
       

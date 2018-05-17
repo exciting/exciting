@@ -29,7 +29,8 @@ SOURCEDIRS=	\
 	../../src/src_gw/src_acfreq/ \
 	../../src/src_gw/src_vxc \
 	../../src/src_gw/src_tests \
-	../../src/src_wannier
+	../../src/src_wannier \
+	../../src/my_helpers
 	
 GeneratedFiles=  ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90	
 LIBXCMOD= ../../src/libXC/src/libxc.f90  ../../src/libXC/src/libxc_funcs.f90

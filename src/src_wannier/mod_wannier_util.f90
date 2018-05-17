@@ -31,8 +31,7 @@ module mod_wfutil
       type( xmlf_t), save :: xf
       character(256) :: fxt, fname, buffer
 
-      real(8), allocatable :: wf_dvp1d(:), wf_vplp1d(:,:), wf_dpp1d(:), bc(:,:,:,:), velo(:,:,:), mass(:,:,:,:)
-      real(8), allocatable :: velonum(:), massnum(:), cf(:,:)
+      real(8), allocatable :: wf_dvp1d(:), wf_vplp1d(:,:), wf_dpp1d(:), bc(:,:,:,:), velo(:,:,:), mass(:,:,:,:), deriv(:,:,:)
 
       ! generate k-points along path
       wf_nvp1d = size( input%properties%bandstructure%plot1d%path%pointarray)
@@ -40,7 +39,6 @@ module mod_wfutil
       allocate( wf_dvp1d( wf_nvp1d))
       allocate( wf_vplp1d( 3, wf_npp1d))
       allocate( wf_dpp1d( wf_npp1d))
-      allocate( velonum( wf_npp1d), massnum( wf_npp1d), cf( 3, wf_npp1d))
       call connect( bvec, input%properties%bandstructure%plot1d, wf_nvp1d, wf_npp1d, wf_vplp1d, wf_dvp1d, wf_dpp1d)
       call generate_k_vectors( tmp_kset, bvec, (/1, 1, wf_npp1d/), (/0.d0, 0.d0, 0.d0/), .false.)
       !write(*,*) wf_npp1d, tmp_kset%nkpt
@@ -50,13 +48,31 @@ module mod_wfutil
       end do
 
       ! interpolate energies
-      !call wfint_find_bandgap
       call wfint_init( tmp_kset)
-      allocate( velo( 3, wf_nwf, wfint_kset%nkpt))
-      allocate( mass( 3, 3, wf_nwf, wfint_kset%nkpt))
-      velo = 0.d0
-      mass = 0.d0
-      call wfint_interpolate_ederiv( velo, mass)
+      
+      ! interpolate band-derivatives
+      if( input%properties%bandstructure%deriv) then
+        allocate( deriv( 2, wf_nwf, wfint_kset%nkpt))
+        allocate( velo( 3, wf_nwf, wfint_kset%nkpt))
+        allocate( mass( 3, 3, wf_nwf, wfint_kset%nkpt))
+        call wfint_interpolate_ederiv( velo, mass)
+        do ist = 1, wf_nwf
+          do iq = 1, wfint_kset%nkpt
+            if( iq .eq. 1) then
+              dk = wfint_kset%vkc( :, iq+1) - wfint_kset%vkc( :, iq)
+            else if( iq .eq. wfint_kset%nkpt) then
+              dk = wfint_kset%vkc( :, iq) - wfint_kset%vkc( :, iq-1)
+            else
+              dk = wfint_kset%vkc( :, iq+1) - wfint_kset%vkc( :, iq-1)
+            end if
+            dk = dk/norm2( dk)
+            call r3mv( mass( :, :, ist, iq), dk, v)
+            deriv( 1, ist, iq) = dot_product( velo( :, ist, iq), dk)
+            deriv( 2, ist, iq) = dot_product( dk, v)
+          end do
+        end do
+      end if
+
       !call wfint_interpolate_eigvec
       !write(*,*) wf_npp1d, tmp_kset%nkpt, wfint_kset%nkpt
       !call wfint_interpolate_gwpermat
@@ -69,7 +85,7 @@ module mod_wfutil
       filext = fxt
       write( fxt, '(".OUT")')
       if( input%properties%wannier%input .eq. "gw") write( fxt, '("_GW.OUT")')
-      !wfint_eval = wfint_eval - efermi
+      if( wf_fermizero) wfint_eval = wfint_eval - efermi
       emin = minval( minval( wfint_eval, 1), 1)
       emax = maxval( maxval( wfint_eval, 1), 1)
 
@@ -86,7 +102,7 @@ module mod_wfutil
       if( input%properties%bandstructure%character) then
         lmax = min( 4, input%groundstate%lmaxapw)
         allocate( bc( 0:lmax, natmtot, wf_nwf, wfint_kset%nkpt))
-        call wfint_interpolate_bandchar_new( lmax, bc)
+        call wfint_interpolate_bandchar( lmax, bc)
         
         call xml_AddAttribute( xf, "character", "true")
         call xml_NewElement( xf, "title")
@@ -119,6 +135,12 @@ module mod_wfutil
                 call xml_AddAttribute( xf, "eval", trim( adjustl( buffer)))
                 write( buffer, '(5G18.10)') sum
                 call xml_AddAttribute( xf, "sum", trim( adjustl( buffer)))
+                if( input%properties%bandstructure%deriv) then
+                  write( buffer, '(5G18.10)') deriv( 1, ist, iq) 
+                  call xml_AddAttribute( xf, "deriv1", trim( adjustl( buffer)))
+                  write( buffer, '(5G18.10)') deriv( 2, ist, iq) 
+                  call xml_AddAttribute( xf, "deriv2", trim( adjustl( buffer)))
+                end if
                 do l = 0, lmax
                   call xml_NewElement( xf, "bc")
                   write( buffer, *) l
@@ -128,11 +150,15 @@ module mod_wfutil
                   call xml_endElement( xf, "bc")
                 end do
                 call xml_endElement( xf, "point")
-                write( un, '(2G18.10, 20F12.6)') wf_dpp1d( iq), wfint_eval( ist, iq), sum, bc( :, ias, ist, iq)
+                if( input%properties%bandstructure%deriv) then
+                  write( un, '(2G18.10, 20F12.6)') wf_dpp1d( iq), wfint_eval( ist, iq), sum, bc( :, ias, ist, iq), deriv( :, ist, iq)
+                else
+                  write( un, '(2G18.10, 20F12.6)') wf_dpp1d( iq), wfint_eval( ist, iq), sum, bc( :, ias, ist, iq)
+                end if
               end do
               call xml_endElement( xf, "band")
               write( un, *)
-              write( un, *)
+              !write( un, *)
             end do
             call xml_endElement( xf, "atom")
             close( un)
@@ -154,29 +180,28 @@ module mod_wfutil
         call xml_endElement( xf, "title")
         do ist = 1, wf_nwf
           call xml_NewElement( xf, "band")
-          call fderiv( 1, wf_npp1d, wf_dpp1d, wfint_eval( ist, :), velonum, cf)
-          call fderiv( 2, wf_npp1d, wf_dpp1d, wfint_eval( ist, :), massnum, cf)
           do iq = 1, wfint_kset%nkpt
-            if( iq .eq. wfint_kset%nkpt) then
-              dk = wfint_kset%vkc( :, iq) - wfint_kset%vkc( :, iq-1)
+            if( input%properties%bandstructure%deriv) then
+              write( un, '(4G18.10)') wf_dpp1d( iq), wfint_eval( ist, iq), deriv( :, ist, iq)
             else
-              dk = wfint_kset%vkc( :, iq+1) - wfint_kset%vkc( :, iq)
+              write( un, '(4G18.10)') wf_dpp1d( iq), wfint_eval( ist, iq)
             end if
-            dk = dk/norm2( dk)
-            call r3mv( mass( :, :, ist, iq), dk, v)
-            write( un, '(6G18.10)') wf_dpp1d( iq), wfint_eval( ist, iq), &
-                dot_product( velo( :, ist, iq), dk), velonum( iq), &
-                dot_product( dk, v), massnum( iq)
             call xml_NewElement( xf, "point")
             write( buffer, '(5G18.10)') wf_dpp1d( iq)
             call xml_AddAttribute( xf, "distance", trim( adjustl( buffer)))
             write( buffer, '(5G18.10)') wfint_eval( ist, iq)
             call xml_AddAttribute (xf, "eval", trim( adjustl( buffer)))
+            if( input%properties%bandstructure%deriv) then
+              write( buffer, '(5G18.10)') deriv( 1, ist, iq) 
+              call xml_AddAttribute( xf, "deriv1", trim( adjustl( buffer)))
+              write( buffer, '(5G18.10)') deriv( 2, ist, iq) 
+              call xml_AddAttribute( xf, "deriv2", trim( adjustl( buffer)))
+            end if
             call xml_endElement( xf, "point")
           end do
           call xml_endElement( xf, "band")
           write( un, *)
-          write( un, *)
+          !write( un, *)
         end do
         close( un)
         write(*,*)
@@ -184,7 +209,9 @@ module mod_wfutil
         write(*,*) "band structure plot written to BAND_WANNIER"//trim( fxt)
       end if
       write(*,*)
-      write(*, '(" Fermi energy is at zero in plot")')
+      if( wf_fermizero) then
+        write(*, '(" Fermi energy is at zero in plot")')
+      end if
 
       ! vertex lines
       call getunit( un)
@@ -216,13 +243,15 @@ module mod_wfutil
       call getunit( un)
       if( input%properties%wannier%input .eq. "gw") then
         open( un, file='bandstructure_wannier_gw.dat', action='write', form='formatted')
+      else if( input%properties%wannier%input .eq. "qsgw") then
+        open( un, file='bandstructure_wannier_qsgw.dat', action='write', form='formatted')
       else
         open( un, file='bandstructure_wannier.dat', action='write', form='formatted')
       end if
-      write( un, *) "# ", wf_fst, wf_lst, wfint_kset%nkpt
+      write( un, *) "# ", wf_fst, wf_fst+wf_nwf-1, wfint_kset%nkpt
       do ist = 1, wf_nwf
         do iq = 1, wfint_kset%nkpt
-          write( un, '(2I6,3F12.6,2G18.10)') ist, iq, wfint_kset%vkl( :, iq), wf_dpp1d( iq), wfint_eval( ist, iq)
+          write( un, '(2I6,3F12.6,2G18.10)') ist+wf_fst-1, iq, wfint_kset%vkl( :, iq), wf_dpp1d( iq), wfint_eval( ist, iq)
         end do
         write( un, *)
       end do
@@ -467,8 +496,10 @@ module mod_wfutil
          write(*,*) "    Joint density of states written to JDOS_WANNIER"//trim( filext)
          write(*,*)
       end if
-      write(*,*) "    Fermi energy is at zero in plot"
-      write(*,*)
+      if( wf_fermizero) then
+        write(*,*) "    Fermi energy is at zero in plot"
+        write(*,*)
+      end if
       write(*,*) "    DOS units are states/Hartree/unit cell"
       write(*,*)
 

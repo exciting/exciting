@@ -1,6 +1,5 @@
 
 subroutine wannier_plot( fst, lst, cell)
-    use modmain
     use modinput
     use modplotlabels
     use mod_rgrid
@@ -8,7 +7,7 @@ subroutine wannier_plot( fst, lst, cell)
     use mod_cube_format
     use mod_wannier
     use m_wsweight
-    use mod_lattice
+    use mod_lattice, only: omega, ainv
     use modmpi, only : rank
     implicit none
     ! input/output
@@ -17,7 +16,7 @@ subroutine wannier_plot( fst, lst, cell)
     integer :: ip, np, iv, nv, ik, iknr, ist, jst, is, ia, ias, maxdim, l, m, lm, o, ilo1, ngknr, maxnpt
     character(80) :: fname
     integer :: igrid(3)
-    real(8) :: boxl(4,3), cellc(3), s, phi, v1(3), v2(3), v3(3)
+    real(8) :: boxl(4,3), cellc(3), s, phi, v1(3), v2(3), v3(3), rrange( 2, fst:lst), irange( 2, fst:lst)
     integer :: lmcnt( 0:input%groundstate%lmaxapw, nspecies), &
                o2idx( apwordmax, 0:input%groundstate%lmaxapw, nspecies), &
                lo2idx( nlomax, 0:input%groundstate%lmaxapw, nspecies)
@@ -38,17 +37,9 @@ subroutine wannier_plot( fst, lst, cell)
     ! WARNING: make sure that the correct state is read and correct global k-point arrays are definded
     !call init0
     !call init1    
-    fname = filext
-    if( input%properties%wannier%input .eq. "hybrid") filext = '_PBE.OUT'
-    call readstate
-    filext = fname
-    call readfermi
-    call linengy
-    call genapwfr
-    call genlofr
-    call olprad
+    call wannier_genradfun
 
-    if ((fst<wf_fst) .or. (lst>wf_lst)) then
+    if ((fst<1) .or. (lst>wf_nwf)) then
       if (rank==0) then
         write (*,*)
         write (*, '("Error (wannierplot): state out of range : ", I8)') ist
@@ -64,14 +55,14 @@ subroutine wannier_plot( fst, lst, cell)
     v1 = input%properties%wannierplot%plot3d%box%pointarray(1)%point%coord
     v2 = input%properties%wannierplot%plot3d%box%pointarray(2)%point%coord
     v3 = input%properties%wannierplot%plot3d%box%pointarray(3)%point%coord
-    s = input%structure%crystal%scale
+    s = omega**(1.d0/3.d0)
     do ist = fst, lst
       if (associated(input%properties%wannierplot%plot1d)) then
         nv = size(input%properties%wannierplot%plot1d%path%pointarray)
         if (nv < 1) then
           if (rank==0) then
             write (*,*)
-            write (*,*) "Error (wannierplot): Wrong plot specification!"
+            write (*,*) "Error (wannier_plot): Wrong plot specification!"
             write (*,*)
           end if
           stop
@@ -80,7 +71,7 @@ subroutine wannier_plot( fst, lst, cell)
         If (np < nv) then
           if (rank==0) then
             write (*,*)
-            write (*,*) "Error (wannierplot): Wrong plot specification!"
+            write (*,*) "Error (wannier_plot): Wrong plot specification!"
             write (*,*)
           end if
           stop
@@ -94,10 +85,10 @@ subroutine wannier_plot( fst, lst, cell)
       end if
 
       if( associated( input%properties%wannierplot%plot3d)) then
-        call r3mv( ainv, wf_centers( :, ist-wf_fst+1) + cellc - s*(v1+v2+v3), input%properties%wannierplot%plot3d%box%origin%coord)
-        call r3mv( ainv, wf_centers( :, ist-wf_fst+1) + cellc + s*(v1-v2-v3), input%properties%wannierplot%plot3d%box%pointarray(1)%point%coord)
-        call r3mv( ainv, wf_centers( :, ist-wf_fst+1) + cellc + s*(v2-v3-v1), input%properties%wannierplot%plot3d%box%pointarray(2)%point%coord)
-        call r3mv( ainv, wf_centers( :, ist-wf_fst+1) + cellc + s*(v3-v1-v2), input%properties%wannierplot%plot3d%box%pointarray(3)%point%coord)
+        call r3mv( ainv, wf_centers( :, ist) + cellc - s*(v1+v2+v3), input%properties%wannierplot%plot3d%box%origin%coord)
+        call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v1-v2-v3), input%properties%wannierplot%plot3d%box%pointarray(1)%point%coord)
+        call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v2-v3-v1), input%properties%wannierplot%plot3d%box%pointarray(2)%point%coord)
+        call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v3-v1-v2), input%properties%wannierplot%plot3d%box%pointarray(3)%point%coord)
         grid( ist) = gen_3d_rgrid( input%properties%wannierplot%plot3d, 0)
       end if
     end do
@@ -158,9 +149,9 @@ subroutine wannier_plot( fst, lst, cell)
       call ws_weight( dble( cell), dble( cell), wf_kset%vkl( :, ik), phase, .true.)
 
       do ist = fst, lst
-        call zgemv( 'n', nmatmax, wf_nwf, zone, &
+        call zgemv( 'n', nmatmax, wf_nst, zone, &
                evecfv( :, wf_fst:wf_lst), nmatmax, &
-               wf_transform( :, ist-wf_fst+1, ik), 1, zzero, &
+               wf_transform( :, ist, ik), 1, zzero, &
                evec, 1)
         
         ! calculate the wavefunctions for all states
@@ -201,7 +192,7 @@ subroutine wannier_plot( fst, lst, cell)
     do ist = fst, lst
       phi = 0.d0
       do ip = 1, grid( ist)%npt
-        dist( ip) = norm2( grid( ist)%vpc( :, ip) - wf_centers( :, ist-wf_fst+1) - cellc(:))
+        dist( ip) = norm2( grid( ist)%vpc( :, ip) - wf_centers( :, ist) - cellc(:))
         s = atan2( aimag( zdatatot( ip, ist)), dble( zdatatot( ip, ist)))
         !write(*,'(F23.16)') s
         if( s .gt. 0.5d0*pi) s = s - pi
@@ -213,15 +204,15 @@ subroutine wannier_plot( fst, lst, cell)
       ip = minloc( dist, 1) 
       s = atan2( aimag( zdatatot( ip, ist)), dble( zdatatot( ip, ist)))
       if( abs( phi - s) .gt. 0.5d0*pi) phi = mod( phi+pi, pi)
-      write(*,*) ip
-      write(*,'(3F13.6)') wf_centers( :, ist-wf_fst+1) + cellc
-      write(*,'(3F13.6)') grid( ist)%vpc( :, ip)
-      write(*,'(3F13.6)') minval( grid( ist)%vpc( 1, :)), minval( grid( ist)%vpc( 2, :)), minval( grid( ist)%vpc( 3, :))
-      write(*,'(3F13.6)') maxval( grid( ist)%vpc( 1, :)), maxval( grid( ist)%vpc( 2, :)), maxval( grid( ist)%vpc( 3, :))
+      !write(*,*) ip
+      !write(*,'(3F13.6)') wf_centers( :, ist) + cellc
+      !write(*,'(3F13.6)') grid( ist)%vpc( :, ip)
+      !write(*,'(3F13.6)') minval( grid( ist)%vpc( 1, :)), minval( grid( ist)%vpc( 2, :)), minval( grid( ist)%vpc( 3, :))
+      !write(*,'(3F13.6)') maxval( grid( ist)%vpc( 1, :)), maxval( grid( ist)%vpc( 2, :)), maxval( grid( ist)%vpc( 3, :))
       phase = exp( -zi*phi)
       zdatatot( :, ist) = phase*zdatatot( :, ist)
-      write(*,'(2F13.6)') minval( dble( zdatatot( :, ist))), maxval( dble( zdatatot( :, ist)))
-      write(*,'(2F13.6)') minval( aimag( zdatatot( :, ist))), maxval( aimag( zdatatot( :, ist)))
+      rrange( :, ist) = (/minval( dble( zdatatot( :, ist))), maxval( dble( zdatatot( :, ist)))/)
+      irange( :, ist) = (/minval( aimag( zdatatot( :, ist))), maxval( aimag( zdatatot( :, ist)))/)
     end do
 
     !----------------
@@ -230,6 +221,7 @@ subroutine wannier_plot( fst, lst, cell)
     if (associated(input%properties%wannierplot%plot1d)) then
       ! Output
       if (rank==0) then
+        write(*,'("Info (wannier_plot):")')
         do ist = fst, lst
           write(fname,'("wannier1d-",i4.4,".dat")') ist
           open(77,file=trim(fname),status='Unknown',action='Write')
@@ -240,10 +232,9 @@ subroutine wannier_plot( fst, lst, cell)
           end do
           close(77)
           write(*,*)
-          write(*,'("Info(wannierplot):")')
-          write(*,'(" 1D Wavefunction written to wannier1d-ist.dat")')
-          write(*,*)
-          write(*,'(" for state ", I6)') ist
+          write(*,'(" 1D Wannier function written to wannier1d-",i4.4,".xsf")'), ist
+          write(*,'(" real part range: ",2f13.6)') rrange( :, ist)
+          write(*,'(" imag part range: ",2f13.6)') irange( :, ist)
           write(*,*)
         end do
       end if
@@ -256,6 +247,7 @@ subroutine wannier_plot( fst, lst, cell)
     !----------------
     if (associated(input%properties%wannierplot%plot2d)) then
       if (rank==0) then
+        write(*,'("Info (wannier_plot):")')
         do ist = fst, lst
           write(fname,'("wannier2d-",i4.4,".xsf")') ist
           call str_strip(fname)
@@ -264,10 +256,9 @@ subroutine wannier_plot( fst, lst, cell)
           call write_2d_xsf(fname, 'real',             grid( ist)%boxl(1:3,:), grid( ist)%ngrid, grid( ist)%npt, dble(zdatatot( :, ist)))
           call write_2d_xsf(fname, 'imaginary',        grid( ist)%boxl(1:3,:), grid( ist)%ngrid, grid( ist)%npt, aimag(zdatatot( :, ist)))
           write(*,*)
-          write(*,'("Info(wannierplot):")')
-          write(*,'(" 2D wavefunction  written to wannier2d-ist.xsf")')
-          write(*,*)
-          write(*,'(" for state ", I6)') ist
+          write(*,'(" 2D Wannier function written to wannier2d-",i4.4,".xsf")'), ist
+          write(*,'(" real part range: ",2f13.6)') rrange( :, ist)
+          write(*,'(" imag part range: ",2f13.6)') irange( :, ist)
           write(*,*)
         end do
       end if
@@ -280,6 +271,7 @@ subroutine wannier_plot( fst, lst, cell)
     !----------------
     if (associated(input%properties%wannierplot%plot3d)) then
       if (rank==0) then
+        write(*,'("Info (wannier_plot):")')
         do ist = fst, lst
           write(fname,'("wannier3d-",i4.4,".xsf")') ist
           call str_strip(fname)
@@ -288,10 +280,9 @@ subroutine wannier_plot( fst, lst, cell)
           call write_3d_xsf(fname, 'real',            grid( ist)%boxl(1:4,:), grid( ist)%ngrid, grid( ist)%npt, dble(zdatatot( :, ist)))
           call write_3d_xsf(fname, 'imaginary',       grid( ist)%boxl(1:4,:), grid( ist)%ngrid, grid( ist)%npt, aimag(zdatatot( :, ist)))
           write(*,*)
-          write(*,'("Info(wannierplot):")')
-          write(*,'(" 3D wavefunction written to wannier3d-ist.xsf")')
-          write(*,*)
-          write(*,'(" for state ", I6)') ist
+          write(*,'(" 3D Wannier function written to wannier3d-",i4.4,".xsf")'), ist
+          write(*,'(" real part range: ",2f13.6)') rrange( :, ist)
+          write(*,'(" imag part range: ",2f13.6)') irange( :, ist)
           write(*,*)
           !call write_supercell_xsf('supercell.xsf',(/-2,2/),(/-2,2/),(/-2,2/))
 

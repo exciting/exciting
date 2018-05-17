@@ -19,6 +19,7 @@ Subroutine r3minv (a, b)
 !
 ! !REVISION HISTORY:
 !   Created April 2003 (JKD)
+!   Changed May 2018 (SeTi)
 !EOP
 !BOC
       Implicit None
@@ -27,10 +28,13 @@ Subroutine r3minv (a, b)
       Real (8), Intent (Out) :: b (3, 3)
 ! local variables
       Real (8) :: t1
-      t1 = a (1, 2) * a (2, 3) * a (3, 1) - a (1, 3) * a (2, 2) * a (3, &
-     & 1) + a (1, 3) * a (2, 1) * a (3, 2) - a (1, 1) * a (2, 3) * a &
-     & (3, 2) + a (1, 1) * a (2, 2) * a (3, 3) - a (1, 2) * a (2, 1) * &
-     & a (3, 3)
+! external
+      Real (8) :: r3mdet
+      ! use function r3mdet instead of direct calculation which was implemented before
+      ! because both implementations may differ for small numbers and a check using
+      ! r3mdet before applying r3minv does not necessarily has to work in this case
+      ! (Sebastian)
+      t1 = r3mdet(a)
       If (Abs(t1) .Lt. 1.d-40) Then
          Write (*,*)
          Write (*, '("Error(r3minv): singular matrix")')
