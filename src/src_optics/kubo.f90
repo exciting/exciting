@@ -35,6 +35,7 @@ subroutine kubo
     complex (8), allocatable :: sigmab(:)
     complex (8), allocatable :: seebeck(:)
     complex (8), allocatable :: thermalcond(:)
+    complex (8), allocatable :: conductivity(:)
     complex (8), allocatable :: zt(:)
     complex (8), allocatable :: echarge(:)
 !    complex (8), allocatable :: nf(:)
@@ -85,6 +86,7 @@ subroutine kubo
     allocate(sigmab(tempgrid*mugrid))
     allocate(seebeck(tempgrid*mugrid))
     allocate(thermalcond(tempgrid*mugrid))
+    allocate(conductivity(tempgrid*mugrid))
     allocate(zt(tempgrid*mugrid))
     allocate(echarge(tempgrid*mugrid))
     !allocate(nf(tempgrid*mugrid))
@@ -196,6 +198,7 @@ subroutine kubo
     sigmaboltz(:) = zzero
     sigmak(:) = zzero
     sigmaktwo(:) = zzero
+    conductivity(:) = zzero
 
     tempi=input%properties%dielmat%windtemp(1)
     tempf=input%properties%dielmat%windtemp(2)
@@ -306,11 +309,41 @@ subroutine kubo
                   !td(iw) = td(iw)+ zt1/input%properties%dielmat%drude(2)*sdelta(input%groundstate%stypenumber,t1)/input%groundstate%swidth
                   !write(*,*) 1/input%properties%dielmat%drude(2)
                   td(iw) = td(iw)+ zt1*sdelta(input%groundstate%stypenumber,t1)/swidth
-                  ndos(iw) = ndos(iw) + sdelta(input%groundstate%stypenumber,t1)/swidth
+                  ndos(iw) = ndos(iw) + occmax*sdelta(input%groundstate%stypenumber,t1)/swidth
                   !td(iw) = td(iw)+ zt1*sdelta(input%groundstate%stypenumber,t1)/input%groundstate%swidth
                   !ndos(iw) = ndos(iw) + sdelta(input%groundstate%stypenumber,t1)/input%groundstate%swidth
                end do ! iw
             end do ! ist
+
+
+            n=0
+            do mu = mui, muf, mus
+           
+               do temp = tempi, tempf, temps
+
+                  n=n+1
+                  do ist = 1, nstsv
+                  !do iw = 1, nwtdf
+                     t1 = -(mu-evalsvt(ist))/(temp*kb)
+                     t2 = exp(t1)
+                     if (t1 > 40) then
+                        t3=0
+                     else if (t1 < -40 ) then
+                        t3=0
+                     else
+                        t2 = exp(t1)
+                        t3 = t2/((t2+1)**2 * temp*kb)
+                     end if
+                     zt1=occmax*pmat(a,ist,ist)*conjg(pmat(b,ist,ist))
+                     conductivity(n) = conductivity(n) + zt1*t3
+                  end do ! iw
+                  !zt1 = twopi**3/(omega*dble(nkptnr))
+                  !t1 = (wtdff-wtdfi)/dble(nwtdf)
+                  !conductivity(n) = conductivity(n)*zt1 
+               end do ! mu
+            end do ! temp
+
+            
 
 !--------------------------
 ! sigmak from Kubo
@@ -480,7 +513,7 @@ subroutine kubo
                  !thermalcond(n) = thermalcond(n) + td(iw)*sdelta(3,t1)/(temp*kb)*(t1**2)
               !write (*,*) td(iw), sdelta(3,t1), t1, sigmaboltz(l), l
               end do ! iw
-              zt1 = twopi**3/(omega*dble(nkptnr))
+              zt1 = 1/(omega*dble(nkptnr))
               t1 = (wtdff-wtdfi)/dble(nwtdf)
               sigmab(n) = t1*zt1*sigmab(n) !/input%properties%dielmat%drude(2)
               seebeck(n) = t1*zt1*kb*temp*seebeck(n)  !/sigmab(n)
@@ -524,8 +557,8 @@ subroutine kubo
            !write (*,*) td(iw), sdelta(3,t1), t1, sigmaboltz(l), l
         end do ! iw
         
-        zt1 = twopi**3/(omega*dble(nkptnr))
-        t1 = (wtdff-wtdfi)/dble(wgrid)
+        zt1 = 1/(omega*dble(nkptnr))
+        t1 = (wtdff-wtdfi)/dble(nwtdf)
         sigmaboltz(l) = t1*zt1*sigmaboltz(l)
         write (*,*) sigmaboltz(l)
 
@@ -536,6 +569,16 @@ subroutine kubo
            sigmaktwo(l) = zt1*sigmaktwo(l)
            write (*,*) sigmaktwo(l)
         end if
+
+        n=0
+        zt1 = 1/(omega*dble(nkptnr))
+        do mu = mui, muf, mus
+           do temp = tempi, tempf, temps      
+              n=n+1
+              conductivity(n) = conductivity(n)*zt1 
+           end do ! mu
+        end do ! temp
+
 
         
 ! add the intraband contribution
@@ -608,6 +651,23 @@ subroutine kubo
                !write(60, ' ')
             end do
            close(60)
+
+! write the electrical conductivity from Boltzmann
+            write(fname, '("COND_", 2I1, ".OUT")') a, b
+            write(*, '("  Electrical conductivity tensor written to ", a)') trim(adjustl(fname))
+            open(60, file=trim(fname), action='WRITE', form='FORMATTED')
+            n=0
+            do mu = mui, muf, mus
+               do temp = tempi, tempf, temps
+               !do mu = mui, muf, mus
+                  n=n+1
+                  write(60, '(4G18.10)') temp, mu, conductivity(n)
+               end do
+               !write(60, ' ')
+            end do
+           close(60)
+
+
 ! write the Seebeck coefficient from Boltzmann
             write(fname, '("SEEBECK_", 2I1, ".OUT")') a, b
             write(*, '("  Seebeck coefficient tensor written to ", a)') trim(adjustl(fname))
@@ -739,6 +799,6 @@ subroutine kubo
     
     deallocate(pmat)
     deallocate(evalsvt,occsvt)
-    deallocate(w,sigma,sigmab,seebeck,thermalcond,zt,eta,td,ndos,echarge)
+    deallocate(w,sigma,sigmab,seebeck,thermalcond,zt,eta,td,ndos,echarge,conductivity)
     !deallocate(nf)
 end subroutine
