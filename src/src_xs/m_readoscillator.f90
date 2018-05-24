@@ -4,13 +4,13 @@ module m_readoscillator
 
   contains
 
-    subroutine readoscillator(iqmt, io1, evals, bindevals, oscir)
+    subroutine readoscillator(iqmt, io1, io2, evals, bindevals, oscir)
       use modinput
       use m_getunit
       use m_genfilname
 
       integer(4), intent(in) :: iqmt
-      integer(4), intent(in) :: io1
+      integer(4), intent(in) :: io1, io2
       real(8), allocatable, intent(inout), optional :: evals(:), bindevals(:)
       complex(8), allocatable, intent(inout), optional :: oscir(:)
 
@@ -23,7 +23,7 @@ module m_readoscillator
 
       character(*), parameter :: thisname = "readoscillator"
 
-      if(iqmt /= 1 .and. io1/=1 ) then 
+      if((iqmt /= 1 .and. io1/=1 ) .or. (iqmt /=1 .and. io1/=io2)) then 
         write(*,*) "iqmt /= 1 but io1 /= 1"
         stop
       end if
@@ -54,7 +54,7 @@ module m_readoscillator
           & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
           & nar= .not. input%xs%bse%aresbse, filnam=fnexc)
       else
-        call genfilname(dirname=trim(excitondir), basename='EXCITON', tq0=.true., oc1=io1, oc2=io1,&
+        call genfilname(dirname=trim(excitondir), basename='EXCITON', tq0=.true., oc1=io1, oc2=io2,&
           & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
           & nar= .not. input%xs%bse%aresbse, filnam=fnexc)
       end if
