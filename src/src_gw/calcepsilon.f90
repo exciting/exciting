@@ -35,7 +35,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
     
     integer(8) :: recl
       
-    real(8)    :: tstart, tend, t0, t1
+    real(8)    :: tstart, tend, t0, t1, q0(3)
     
     complex(8) :: coefb
     complex(8) :: head(3,3)
@@ -76,6 +76,9 @@ subroutine calcepsilon(iq,iomstart,iomend)
     mdim = nstdf-numin+1
     nmdim = ndim*mdim
     
+    print*, nmdim
+    print*, '0', sum(epsilon)
+    
     ! arrays to store products of KS eigenvectors with the matching coefficients
     allocate(eveckalm(nstsv,apwordmax,lmmaxapw,natmtot))
     allocate(eveckpalm(nstsv,apwordmax,lmmaxapw,natmtot))
@@ -89,7 +92,15 @@ subroutine calcepsilon(iq,iomstart,iomend)
     !==================================================
     ! Calculate the q-dependent BZ integration weights
     !==================================================
-    call qdepwtet(iq,iomstart,iomend,ndim)
+    !==================================================
+    ! Calculate the q-dependent BZ integration weights
+    !==================================================
+    select case (trim(input%gw%qdepw))
+    case('sum')
+      call qdepwsum(iq,iomstart,iomend,ndim)
+    case default
+      call qdepwtet(iq,iomstart,iomend,ndim)
+    end select
 
     !==========================
     ! Momentum matrix elements
@@ -183,11 +194,9 @@ subroutine calcepsilon(iq,iomstart,iomend)
             &                       minmmat(1:mbsiz,ie1,ie2)
           end do ! ie1
         end do ! ie2
-          
         call zgemm( 'n','c',mbsiz,mbsiz,nmdim, &
         &            coefb,minm,mbsiz,minmmat,mbsiz, &
         &            zone,epsilon(:,:,iom),mbsiz)
-          
       end do ! iom
       
     end do ! ik
@@ -251,6 +260,28 @@ subroutine calcepsilon(iq,iomstart,iomend)
         epsilon(im,im,iom) = zone+epsilon(im,im,iom)
       end do ! im
     end do ! iom
+    
+    if (.true.) then
+        open(11,file='head.dat')
+        open(21,file='wings.dat')
+        write(11,*) "# omega        eps00(NLF)       eps_M      eps^{-1}"
+        write(21,*) "# Wings of the dielectric function"
+        q0 = input%gw%scrcoul%q0eps
+        q0 = q0 / sqrt(dot_product(q0,q0))
+        do iom = 1, freq%nomeg
+            write(11,'(3f16.6)') freq%freqs(iom), dot_product(q0,matmul(epsh(iom,:,:),q0))
+            write(21,*) '# iom=', iom
+            do iop = 1, 3
+                write(21,*) '# vector component=', iop
+                do im = 1, mbsiz, 10
+                    write(21,'(i4,2f12.4,8x,2f12.4)') im, epsw1(im,iom,iop), epsw2(im,iom,iop)
+                end do
+            end do
+            write(21,*)
+        end do
+        close(11)
+        close(21)
+    end if
     
     ! timing
     call timesec(tend)

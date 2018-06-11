@@ -64,6 +64,8 @@ subroutine init_dft_eigenvalues()
     !---------------------------------------------------------
     call bandstructure_analysis('Kohn-Sham bandstructure analysis', &
     &  1,nstsv,kset%nkpt,evalsv(1:nstsv,:),efermi)
+
+    print*, nomax, numin
        
     !-----------------------------------------------------------------
     ! Check for consistency with specified QP bands range [ibgw,nbgw]
@@ -72,7 +74,7 @@ subroutine init_dft_eigenvalues()
     if ((ibgw<1) .or. (ibgw>nstsv)) ibgw = 1
     if (ibgw >= numin) then
         if (myrank==0) then
-          write(*,*) "ERROR(init_dft_eigenvalues): Wrong QP bands interval is chosen!"
+          write(*,*) "ERROR(init_dft_eigenvalues): Wrong QP bands interval!"
           write(*,*) "  ibgw = ", ibgw, " >= CBM = ", numin
         end if
         stop
@@ -85,7 +87,7 @@ subroutine init_dft_eigenvalues()
     end if
     if (nbgw <= nomax) then
         if (myrank==0) then
-          write(*,*) "ERROR(init_dft_eigenvalues): Wrong QP bands interval is chosen!"
+          write(*,*) "ERROR(init_dft_eigenvalues): Wrong QP bands interval!"
           write(*,*) "  nbgw = ", nbgw, " <= VBM = ", nomax
         end if
         stop

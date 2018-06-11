@@ -239,6 +239,10 @@ Subroutine init0
 !-------------------------------------!
 !     lattice and symmetry set up     !
 !-------------------------------------!
+! for convenience - create a copy
+      avec(:,1) = input%structure%crystal%basevect(:,1)
+      avec(:,2) = input%structure%crystal%basevect(:,2)
+      avec(:,3) = input%structure%crystal%basevect(:,3)
 ! generate the reciprocal lattice vectors and unit cell volume
       Call reciplat
 ! compute the inverse of the lattice vector matrix

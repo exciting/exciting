@@ -58,7 +58,7 @@ subroutine angular_averaging(iom,n,bi)
 
     ! definition of L = H-conjg(U)*S (B.14) = \epsilon_{00}+LFE
     L(:,:) = epsh(iom,:,:)-matmul(v,s)
-        
+
     ! symmetrize the dielectric tensor
     dtns(:,:) = L(:,:)
     do iop = 1, 3

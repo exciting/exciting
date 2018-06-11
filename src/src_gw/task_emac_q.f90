@@ -4,6 +4,7 @@ subroutine task_emac_q()
     use modinput
     use modmain
     use modgw
+    use mod_coulomb_potential, only: barc, delete_coulomb_potential
     use mod_mpi_gw
     use m_getunit
       

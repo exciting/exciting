@@ -404,6 +404,8 @@ CONTAINS
         end if
         !
         ! generate G+k data set
+        if (allocated(self%igigk)) deallocate(self%igigk)
+        allocate(self%igigk(Gset%ngrtot,nspnfv,kset%nkpt))
         if (allocated(self%igkig)) deallocate(self%igkig)
         allocate(self%igkig(self%ngkmax,nspnfv,kset%nkpt))
         if (allocated(self%vgkl)) deallocate(self%vgkl)
@@ -424,6 +426,8 @@ CONTAINS
 #endif    
             do igp = 1, self%ngk(ispn,ik)
               ig = igk2ig(igp,ik,ispn)
+              ! index from G and k to G+k vector
+              self%igigk(ig,ispn,ik) = igp
               ! index to G-vector
               self%igkig(igp,ispn,ik) = ig
               ! G+k-vector in lattice coordinates
@@ -451,6 +455,7 @@ CONTAINS
     subroutine delete_Gk_vectors(self)
         type(Gk_set), intent(INOUT) :: self
         if (allocated(self%ngk)) deallocate(self%ngk)
+        if (allocated(self%igigk)) deallocate(self%igkig)
         if (allocated(self%igkig)) deallocate(self%igkig)
         if (allocated(self%vgkl)) deallocate(self%vgkl)
         if (allocated(self%vgkc)) deallocate(self%vgkc)

@@ -205,8 +205,7 @@ function rcutoff(tol,eta,lambdamax) result(rcf)
 !\verb"lambdamax".      
 !
 !!USES:
-    use modmain,     only: pi
-    use mod_misc_gw, only: avec
+    use modmain,     only: pi, avec
     use incgamma,    only: incgam
       
 !!INPUT PARAMETERS:

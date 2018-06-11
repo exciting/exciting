@@ -56,7 +56,7 @@ subroutine calcinveps(iomstart,iomend)
     
       ! array for body and its inverse
       b(1:mbsiz,1:mbsiz) = epsilon(1:mbsiz,1:mbsiz,iom)
-
+      
       !------------------------
       ! invert the body
       !------------------------

@@ -12,9 +12,10 @@ subroutine setbarcev(evtol)
 ! bare coulomb matrix in terms of evtol
 !
 !!USES:
-    use modmain,               only : zone, zzero
+    use modmain,               only: zone, zzero
     use modgw
-    use mod_mpi_gw,            only : myrank
+    use mod_coulomb_potential
+    use mod_mpi_gw,            only: myrank
 
 !!INPUT PARAMETERS: 
     implicit none

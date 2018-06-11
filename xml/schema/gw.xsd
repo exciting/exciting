@@ -227,6 +227,11 @@
                   Default: (1,1,1)
                   </xs:documentation></xs:annotation>
                 </xs:attribute>
+                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="swidth" default="1.0d-4">
+                  <xs:annotation><xs:documentation>
+                  Smearing parameter.
+                  </xs:documentation></xs:annotation>
+                </xs:attribute>
               </xs:complexType>
             </xs:element>            
             
@@ -416,6 +421,19 @@
             <xs:annotation>
               <xs:documentation>
                 Determine the basis size for the Fourier-series based interpolation subroutine used for the QP bandstructure plot.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="qdepw" type="xs:string" default="tet">
+            <xs:annotation>
+              <xs:documentation>
+                  Option for calculating occupation, k/q- and frequency dependent prefactors in the expression for polarizability. 
+                  Valid options are:
+                  <list>
+                    <li>tet (default) - Using the tetrahedron method as implemented in LibBZInt library</li>
+                    <li>sum - Straightforward implementation (for testing purposes)</li>
+                </list>
               </xs:documentation>
             </xs:annotation>
           </xs:attribute>

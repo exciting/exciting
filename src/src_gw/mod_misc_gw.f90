@@ -12,8 +12,6 @@ module mod_misc_gw
 
 ! shortcut for atomic position array
     real(8) :: atposl(3,_MAXATOMS_,_MAXSPECIES_)
-! shortcut for basis vectors
-    real(8) :: avec(3,3)
 ! lengths of the basis vectors
     real(8) :: alat(3)      
 ! 2*pi/a, 2*pi/b, 2*pi/c
@@ -35,17 +33,13 @@ contains
 !-------------------------------------------------------------------------------
 
     subroutine init_misc_gw
+        use modmain, only: avec
         implicit none
         integer :: i, is, ia, ias
         integer :: ig, ifg
     
 ! reciprocal cell volume
         vi = 1.0d0/omega
-
-! shortcut for basis vectors 
-        avec(:,1) = input%structure%crystal%basevect(:,1)
-        avec(:,2) = input%structure%crystal%basevect(:,2)
-        avec(:,3) = input%structure%crystal%basevect(:,3)
 
 ! reciprocal lattice basis lengths
         do i = 1, 3

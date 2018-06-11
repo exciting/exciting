@@ -5,7 +5,7 @@ subroutine calcbarcmb_ipw_ipw(iq)
     use modmain,               only : zzero, zone, pi
     use modgw,                 only : Gset, Gamma, kqset, Gqset, Gqbarc
     use mod_product_basis,     only : locmatsiz, mpwipw
-    use mod_coulomb_potential, only : barc, rccut, i_sz, vccut
+    use mod_coulomb_potential, only : barc, rcut, vccut
     implicit none
     ! input variables
     integer, intent(in) :: iq
@@ -28,7 +28,6 @@ subroutine calcbarcmb_ipw_ipw(iq)
     ipw0 = 1
     if (Gamma) then 
       ipw0 = 2
-      !if (vccut) tmat1(1:ngq,1) = i_sz*mpwipw(1:ngq,1)
     end if
     
 #ifdef USEOMP
@@ -52,14 +51,14 @@ subroutine calcbarcmb_ipw_ipw(iq)
       
           case('0d')
             vc = 1.d0/gqlen
-            vc = vc*(1.d0-dcos(dsqrt(gqlen)*rccut))
+            vc = vc*(1.d0-dcos(dsqrt(gqlen)*rcut))
       
           case ('2d')
             ! version by Ismail-Beigi (fixed rc = L_z/2)
             kxy = dsqrt(gqvec(1)*gqvec(1)+gqvec(2)*gqvec(2))
             kz = dabs(gqvec(3))
             vc = 4.0d0*pi/gqlen
-            vc = vc*(1.d0-dexp(-kxy*rccut)*dcos(kz*rccut))
+            vc = vc*(1.d0-dexp(-kxy*rcut)*dcos(kz*rcut))
           
           case default
             write(*,*) 'ERROR(calcbarcmb_ipw_ipw): Specified cutoff type is not implemented!'

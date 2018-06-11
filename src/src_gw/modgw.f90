@@ -9,7 +9,6 @@ module modgw
     use mod_bands
     use mod_kpointset
     use mod_frequency
-    use mod_coulomb_potential
     use mod_dielectric_function
     use mod_selfenergy
 

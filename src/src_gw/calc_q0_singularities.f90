@@ -59,8 +59,7 @@ contains
     !---------------------------------------------------------
     real(8) function faux(vql)
         use modinput
-        use modmain,     only: pi, twopi, bvec
-        use mod_misc_gw, only: avec
+        use modmain,     only: pi, twopi, avec, bvec
         ! input parameters
         real(8), intent(in) :: vql(3)
         ! local variables

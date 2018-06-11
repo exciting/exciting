@@ -95,38 +95,12 @@ subroutine init_kqpoint_set()
       write(fid,*) 'Plane-wave cutoff for the bare Coulomb potential &
       &<gqmaxbarc>: ', gqmaxbarc
     end if
-    
-    ! determine the number of G+q combinations which satisfy |G+q|<gqmaxbarc
-    if (allocated(Gqbarc%ngk)) deallocate(Gqbarc%ngk)
-    allocate(Gqbarc%ngk(nspnfv,kqset%nkpt))
-    if (allocated(Gqbarc%igkig)) deallocate(Gqbarc%igkig)
-    allocate(Gqbarc%igkig(Gset%ngrtot,nspnfv,kqset%nkpt))
-    Gqbarc%igkig(:,:,:) = 0
-    if (allocated(Gqbarc%igigk)) deallocate(Gqbarc%igigk)
-    allocate(Gqbarc%igigk(Gset%ngrtot,nspnfv,kqset%nkpt))
-    Gqbarc%igigk(:,:,:) = 0
-    do ispn = 1, nspnfv
-      do ik = 1, kqset%nkpt
-        igk = 0
-        do ig = 1, Gset%ngrtot
-          v(:) = Gset%vgc(:,ig)+kqset%vkc(:,ik)
-          t = sqrt(v(1)*v(1)+v(2)*v(2)+v(3)*v(3))
-          if (t < gqmaxbarc) then
-            igk = igk+1
-            Gqbarc%igigk(ig,ispn,ik) = igk
-            Gqbarc%igkig(igk,ispn,ik) = ig
-          end if
-        end do ! ig
-        Gqbarc%ngk(ispn,ik) = igk
-      end do ! ik
-    end do ! ispn
 
-    ! maximum number of G+k vectors
-    Gqbarc%ngkmax = maxval(Gqbarc%ngk)
-    if (Gqbarc%ngkmax > Gset%ngrtot) then
-      write(*,*) 'ERROR(init_kqpoint_set) ngkmax > ngrtot'
-      stop
-    end if
+    call generate_Gk_vectors(Gqbarc, &
+    &                        ksetnr, &
+    &                        Gset, &
+    &                        gqmaxbarc)
+    !if ((input%gw%debug).and.(rank==0)) call print_Gk_vectors(Gqbarc,fid)
       
     !============================    
     ! delete the dummy k-set

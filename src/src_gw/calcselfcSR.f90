@@ -3,7 +3,8 @@ subroutine calcselfcSR(iq,iomstart,iomend)
 
     use modmain
     use modgw
-    use mod_mpi_gw, only : myrank
+    use mod_coulomb_potential
+    use mod_mpi_gw,            only: myrank
     implicit none
     integer, intent(in) :: iq
     integer, intent(in) :: iomstart, iomend
@@ -59,8 +60,8 @@ subroutine calcselfcSR(iq,iomstart,iomend)
     if (Gamma) then
       ipw0 = 2
       beta = (6.d0*pi/(omega*kqset%nkpt))**(1.d0/3.d0)
-      i_sz = 16.d0*pi*pi*kqset%nkpt/omega*(beta-lambda*dsqrt(pi)*derf(beta/(2.d0*lambda)))
-      tmat(:,1) = i_sz*mpwmix(:,1)
+      vcq0 = 16.d0*pi*pi*kqset%nkpt/omega*(beta-lambda*dsqrt(pi)*derf(beta/(2.d0*lambda)))
+      tmat(:,1) = vcq0*mpwmix(:,1)
     end if
     
     !------------------

@@ -13,8 +13,9 @@ subroutine task_gw()
 !
 !!USES:
     use modinput
-    use modmain,               only : zzero, evalsv, efermi
+    use modmain,               only: zzero, evalsv, efermi
     use modgw
+    use mod_coulomb_potential
     use mod_mpi_gw
     use m_getunit
     use mod_hdf5
@@ -24,7 +25,6 @@ subroutine task_gw()
     integer(4) :: ikp, iq, fid, ik
     real(8)    :: t0, t1
     integer(4) :: recl
-    real(8)    :: ab_plane, ab_norm(3), q0_vol
     integer    :: im
     complex(8) :: vc
 
@@ -84,61 +84,33 @@ subroutine task_gw()
     singc1 = 0.d0
     singc2 = 0.d0
     
-    if (vccut) then
-    
-      select case (trim(input%gw%barecoul%cutofftype))
-      
-        case('0d')
-          rccut = 0.5d0*dsqrt(dot_product(avec(:,3),avec(:,3)))
-          i_sz = twopi*rccut**2
-    
-        case('2d')
-          !--------------------------------------------------------
-          ! Spherically averaged value of the integral around q->0
-          !--------------------------------------------------------
-          ! cutoff length
-          rccut = 0.5d0*dsqrt(dot_product(avec(:,3),avec(:,3)))
-          ! ab-plane surface area
-          call r3cross(avec(:,1),avec(:,2),ab_norm(:))
-          ab_plane = dsqrt(dot_product(ab_norm(:),ab_norm(:)))
-          q0_vol   = twopi/dsqrt(pi*ab_plane*kqset%nkpt)
-          i_sz = q0_vol*rccut - ((q0_vol*rccut)**2.0d0)/4.0d0
-          i_sz = 2.d0*ab_plane*kqset%nkpt*i_sz
-          ! if (myrank) then
-          !   write(*,*)
-          !   write(*,*) 'LIMIT q->0'
-          !   write(*,*) ' nqpt = ', kqset%nkpt
-          !   write(*,*) ' rccut = ', rccut
-          !   write(*,*) ' ab_norm = ', ab_norm
-          !   write(*,*) ' ab_plane = ', ab_plane
-          !   write(*,*) ' q0_vol = ', q0_vol
-          !   write(*,*) ' i_sz = ', i_sz
-          !   write(*,*)
-          ! end if
-      
-        case default
-          write(*,*) 'ERROR(task_gw): Specified cutoff type is not implemented!'
-        
-      end select
-        
-    else
-      
-        select case (trim(input%gw%selfenergy%singularity))
-          case('none')
-            singc1 = 0.d0
-            singc2 = 0.d0
-          case('mpb')
-            ! Auxiliary function method
-            call setsingc
-          case('crg')  
-            ! Auxiliary function method
-            call calc_q0_singularities
-          case default
-            write(*,*) 'ERROR(task_gw): Unknown singularity treatment scheme!'
-            stop
-        end select
+    select case (trim(input%gw%barecoul%cutofftype))
 
-    end if
+        case('none')
+            select case (trim(input%gw%selfenergy%singularity))
+              case('mpb')
+                ! Auxiliary function method
+                call setsingc
+              case('crg')  
+                ! Auxiliary function method
+                call calc_q0_singularities
+              case default
+                write(*,*) 'ERROR(task_gw): Unknown singularity treatment scheme!'
+                stop
+            end select
+
+        case('0d')
+            call vcoul_q0_0d()
+    
+        case('1d')
+            call vcoul_q0_1d(kqset%nkpt)
+
+        case('2d')
+            call vcoul_q0_2d(kqset%nkpt)
+       
+    end select
+
+    print*, 'singc=', singc1, singc2
     
     ! initialize self-energy arrays
     call init_selfenergy(ibgw,nbgw,kset%nkpt,freq%nomeg)

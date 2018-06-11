@@ -14,6 +14,7 @@ subroutine parse_gwinput
     use modinput
     use modmain
     use modgw
+    use mod_coulomb_potential, only: vccut
     use modmpi
     implicit none
  
@@ -304,6 +305,9 @@ subroutine parse_gwinput
       case('0d')
         vccut = .true.
         if (rank==0) write(fgw,*) '  Spherical (0d) cutoff is applied'
+      case('1d')
+        vccut = .true.
+        if (rank==0) write(fgw,*) '  Wired (1d) cutoff is applied (1d periodicity along z-axis)'
       case('2d')
         vccut = .true.
         if (rank==0) write(fgw,*) '  Slab (2d) cutoff is applied (vacuum along z-axis)'
@@ -312,6 +316,7 @@ subroutine parse_gwinput
         if (rank==0) write(*,*) '  Currently supported options are:'
         if (rank==0) write(*,*) '  none - No cutoff (default)'
         if (rank==0) write(*,*) '  0d   - Spherical (0d) cutoff'
+        if (rank==0) write(*,*) '  1d   - Wired (1d) cutoff (periodicity along z-axis)'
         if (rank==0) write(*,*) '  2d   - Slab geometry (vacuum along z-axis)'
         stop
     end select

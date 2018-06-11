@@ -13,6 +13,7 @@ subroutine calcbarcmb(iq)
 !!USES:
     use modinput
     use modgw
+    use mod_coulomb_potential
     use mod_mpi_gw, only: myrank
     
 !!INPUT PARAMETERS: 
@@ -30,6 +31,8 @@ subroutine calcbarcmb(iq)
     integer,    allocatable :: iwork(:), ifail(:), isuppz(:)
 
     real(8), external :: dlamch
+
+    character(len=256) :: filename
       
 !!REVISION HISTORY:
 ! 
@@ -147,6 +150,16 @@ end if
     !call timesec(t1)
     !write(*,*) 'barc diagonalization', t1-t0
 
+    ! output
+    ! write(filename,10) iq
+    ! 10 format("vcoul-iq",i4".out")
+    ! call str_strip(filename)
+    ! open(unit=10, File=filename, Status='Unknown')
+    ! do imix = 1, matsiz
+    !     write(10,*) imix, barcev(imix)
+    ! end do
+    ! close(10)
+
 !----------------------    
 ! debug info
 !----------------------
@@ -167,6 +180,11 @@ end if
         end do
       end do
     endif !debug
+
+    ! do imix = 1, matsiz
+    !     write(10,'(i5,e16.6)') imix, barcev(imix)
+    ! end do
+    ! stop
 
     call timesec(tend)
     time_barcmb = time_barcmb+tend-tstart
