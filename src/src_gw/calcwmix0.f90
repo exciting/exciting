@@ -4,7 +4,7 @@
 !
 !!INTERFACE:
 !
-subroutine calcwmix0
+subroutine calcwmix0(wi0)
 !
 !!DESCRIPTION:
 !
@@ -15,11 +15,13 @@ subroutine calcwmix0
     use modmain,               only : pi, zzero, idxas
     use modgw,                 only : Gqset, fdebug
     use mod_product_basis,     only : locmatsiz, matsiz, mpwipw, mbindex, rtl
-    use mod_coulomb_potential, only : wi0
     use mod_misc_gw,           only : vi
+    implicit none
+
+!!INPUT
+    complex(8), intent(out) :: wi0(matsiz)
 
 !!LOCAL VARIABLES:
-    implicit none
     integer(4) :: imix, l1, irm
     integer(4) :: ia, is, ias
     integer(4) :: igq
@@ -32,9 +34,6 @@ subroutine calcwmix0
 !
 !EOP
 !BOC
-    if (allocated(wi0)) deallocate(wi0)
-    allocate(wi0(matsiz))
-    wi0(1:matsiz) = zzero
 
     !---------
     ! MT part

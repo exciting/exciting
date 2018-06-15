@@ -258,12 +258,17 @@ subroutine parse_gwinput
     select case (trim(input%gw%selfenergy%singularity))
       case('none')
         if (rank==0) write(fgw,*) 'No scheme is used (test purpose only)'
+      case('avg')
+        if (rank==0) write(fgw,*) 'Replace the singular term by the corresponding spherical average over small volume arounf Gamma point.'
       case('mpb')
         if (rank==0) write(fgw,*) 'Auxiliary function method by &
         &S. Massidda, M. Posternak, and A. Baldereschi, PRB 48, 5058 (1993)'
       case('crg')  
         if (rank==0) write(fgw,*) 'Auxiliary function method by &
         &P. Carrier, S. Rohra, and A. Goerling, PRB 75, 205126 (2007)'
+      case('rim')  
+        if (rank==0) write(fgw,*) 'RIM by Yambo'
+
       case default
         write(*,*) 'ERROR(parse_gwinput): Unknown singularity treatment scheme!'
         stop
@@ -320,6 +325,8 @@ subroutine parse_gwinput
         if (rank==0) write(*,*) '  2d   - Slab geometry (vacuum along z-axis)'
         stop
     end select
+    ! Coulomb potential truncation techniques are implemented only for the PW basis
+    if (vccut) input%gw%barecoul%basis = "pw"
     if (rank==0) call linmsg(fgw,'-','')
     
 !-------------------------------------------------------------------------------

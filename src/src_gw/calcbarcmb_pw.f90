@@ -13,36 +13,29 @@ subroutine calcbarcmb_pw(iq)
     real(8),    allocatable :: vc(:)
     complex(8), allocatable :: tmat(:,:)
     
-    real(8) :: kxy, kz, ab_plane, ab_norm(3), q0_vol
-    
     npw = Gqbarc%ngk(1,iq)
-    
     allocate(vc(npw))
-    vc(:) = 0.d0
-        
+       
     select case (trim(input%gw%barecoul%cutofftype))
 
-      case('none')
-        ! no cutoff
-        if (Gamma) then
-          ipw0 = 2
-        else
-          ipw0 = 1
-        end if          
-        do ipw = ipw0, npw
-          vc(ipw) = 4.0d0*pi / Gqbarc%gkc(ipw,1,iq)**2
-        end do
-
       case('0d')
-        call vcoul_0d(iq, Gqbarc, vc)
+        call vcoul_0d(Gamma, iq, Gqbarc, vc)
 
       case('1d')
-        call vcoul_1d(iq, Gqbarc, vc)
-        if (Gamma) vc(1) = vcq0
+        call vcoul_1d(Gamma, iq, Gqbarc, vc)
 
       case('2d')
-        call vcoul_2d(iq, Gqbarc, vc)
-        if (Gamma) vc(1) = vcq0
+        call vcoul_2d(Gamma, iq, Gqbarc, vc)
+
+      case('none')
+       
+        if (trim(input%gw%selfenergy%singularity) == 'rim') then
+            call vcoul_3d_RIM(Gamma, input%gw%ngridq, iq, Gqbarc, vc)
+            if (Gamma) singc2 = vc(1)/(4.d0*pi)/dble(kqset%nkpt)            
+        else
+            call vcoul_3d(Gamma, iq, Gqbarc, vc)
+            ! singc2 should come from task_gw
+        end if
 
     end select
 

@@ -18,7 +18,7 @@ subroutine calcselfcSR(iq,iomstart,iomend)
     complex(8), allocatable :: work(:)
     real(8),    allocatable :: rwork(:)
 
-    real(8) :: beta
+    real(8)    :: beta, vcq0
     
     integer(4) :: ik, ikp, jk, ispn
     integer(4) :: ie, iom

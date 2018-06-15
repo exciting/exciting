@@ -58,7 +58,7 @@ subroutine calcbarcmb(iq)
       call calcbarcmb_pw(iq)
       
     case('mb')
-    
+
       if (Gamma) then
         !------------------------------------------------
         ! Matrix elements for the singular q=0, L=0 case
@@ -159,10 +159,12 @@ end if
     !     write(10,*) imix, barcev(imix)
     ! end do
     ! close(10)
+    ! stop 'vcoul'
 
-!----------------------    
-! debug info
-!----------------------
+    !----------------------    
+    ! debug info
+    !----------------------
+
     if (input%gw%debug) then
       !----------------------    
       ! Memory usage info
@@ -180,11 +182,6 @@ end if
         end do
       end do
     endif !debug
-
-    ! do imix = 1, matsiz
-    !     write(10,'(i5,e16.6)') imix, barcev(imix)
-    ! end do
-    ! stop
 
     call timesec(tend)
     time_barcmb = time_barcmb+tend-tstart

@@ -16,7 +16,6 @@ subroutine calcmpwmix(iq)
     use modgw,                 only : Gset, Gamma, kqset, Gqset, Gqbarc
     use mod_product_basis,     only : matsiz, maxbigl, nmix, bigl, umix, &
     &                                 locmatsiz, mpwipw, mpwmix
-    use mod_coulomb_potential, only : wi0
     use mod_misc_gw,           only : vi, atposl, alat
     
 !!INPUT PARAMETERS:      
@@ -36,6 +35,9 @@ subroutine calcmpwmix(iq)
     complex(8) :: expg, prefac
     complex(8) :: sph((maxbigl+1)*(maxbigl+1))
     complex(8), allocatable :: tmat1(:,:), tmat2(:,:)
+
+    ! Matrix elements between mixed functions and a constant function
+    complex(8), allocatable :: wi0(:)
  
 !!REVISION HISTORY:
 !   Created: Mar 2014 by DIN
@@ -51,10 +53,7 @@ subroutine calcmpwmix(iq)
     const = 4.d0*pi*sqrt(vi)
       
     if (Gamma) then
-      ipw0 = 2
-      call calcwmix0
-      mpwmix(1:matsiz,1) = wi0(1:matsiz)
-      deallocate(wi0)
+      ipw0 = 2      
     else
       ipw0 = 1
     end if
