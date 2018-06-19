@@ -21,23 +21,32 @@ subroutine calcbarcmb_pw(iq)
       case('0d')
         call vcoul_0d(Gamma, iq, Gqbarc, vc)
 
-      case('1d')
-        call vcoul_1d(Gamma, iq, Gqbarc, vc)
+      case('1d') 
+        if (trim(input%gw%selfenergy%singularity) == 'rim') then
+            call vcoul_1d_RIM(Gamma, input%gw%ngridq, iq, Gqbarc, vc)
+            if (Gamma) singc2 = vc(1)/(4.d0*pi)/dble(kqset%nkpt)
+        else
+            call vcoul_1d(Gamma, iq, Gqbarc, vc)
+        end if
 
       case('2d')
         call vcoul_2d(Gamma, iq, Gqbarc, vc)
 
-      case('none')
-       
+      case('none')       
         if (trim(input%gw%selfenergy%singularity) == 'rim') then
             call vcoul_3d_RIM(Gamma, input%gw%ngridq, iq, Gqbarc, vc)
-            if (Gamma) singc2 = vc(1)/(4.d0*pi)/dble(kqset%nkpt)            
+            if (Gamma) singc2 = vc(1)/(4.d0*pi)/dble(kqset%nkpt)
         else
             call vcoul_3d(Gamma, iq, Gqbarc, vc)
-            ! singc2 should come from task_gw
         end if
 
     end select
+
+    if (Gamma) then
+        ipw0 = 2
+    else
+        ipw0 = 1
+    end if
 
     allocate(tmat(matsiz,npw))
     do ipw = 1, npw

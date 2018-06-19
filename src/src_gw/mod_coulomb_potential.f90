@@ -190,7 +190,7 @@ contains
         ! local
         integer(4) :: igk, igk0
         integer(4) :: nx, ny, i, j
-        real(8)    :: a, b, gpk(3), t1
+        real(8)    :: a, b, vgpk(3), t1
         real(8), allocatable :: x(:), wx(:)
         real(8), allocatable :: y(:), wy(:)
         real(8), parameter :: small = 1.d-6
@@ -218,101 +218,48 @@ contains
         a = 0.5d0*sqrt(dot_product(avec(:,1), avec(:,1)))
         b = 0.5d0*sqrt(dot_product(avec(:,2), avec(:,2)))
 
-        if (.true.) then
+        !------------------------------------
+        ! Double Gauss-Legendre quadrature
+        !------------------------------------
+        nx = 64
+        ny = 64
+        allocate(x(nx), wx(nx))
+        allocate(y(ny), wy(ny))
 
-            !------------------------------------
-            ! Double Gauss-Legendre quadrature
-            !------------------------------------
-            nx = 64
-            ny = 64
-            allocate(x(nx), wx(nx))
-            allocate(y(ny), wy(ny))
+        ! generate grid
+        call gauleg(-a, a, x, wx, nx)
+        call gauleg(-b, b, y, wy, ny)
 
-            ! generate grid
-            call gauleg(-a, a, x, wx, nx)
-            call gauleg(-b, b, y, wy, ny)
-
-            do igk = igk0, Gkset%ngk(1,ik)
-                gpk(:) = Gkset%vgkc(:,igk,1,ik)
-                ! case q_z -> 0
-                if (abs(gpk(3)) < small) gpk(3) = small
-                vcoul(igk) = 0.d0
-                do i = 1, nx
-                do j = 1, ny
-                    vcoul(igk) = vcoul(igk) + &
-                                 wx(i) * wy(j) * K0cosXY( x(i), y(j) )
-                end do
-                end do
-                vcoul(igk) = 2.d0 * vcoul(igk)
+        do igk = igk0, Gkset%ngk(1,ik)
+            vgpk(:) = Gkset%vgkc(:,igk,1,ik)
+            ! case q_z -> 0
+            if (abs(vgpk(3)) < small) vgpk(3) = small
+            vcoul(igk) = 0.d0
+            do i = 1, nx
+            do j = 1, ny
+                vcoul(igk) = vcoul(igk) + &
+                                wx(i) * wy(j) * K0cosXY(vgpk, x(i), y(j) )
             end do
-            deallocate(x, wx)
-            deallocate(y, wy)
-
-        else
-            
-            ! ===================================================
-            ! === Setup for the quadrature of matrix elements ===
-            ! ===================================================
-            qopt     = 6     ! Quadrature method, see quadrature routine.
-            ntrial   = 30    ! Max number of attempts.
-            accuracy = 0.001 ! Fractional accuracy required.
-            npts     = 6     ! Initial number of point (only for Gauss-Legendre method).
- 
-            do igk = igk0, Gkset%ngk(1,ik)
-                gpk(:) = Gkset%vgkc(:,igk,1,ik)
-                if (gpk(3) < small) gpk(3) = small
-                call quadrature(K0cos_dy, 0.d0, +a, qopt, quad, ierr, ntrial, accuracy, npts)
-                if (ierr /= 0) then
-                    write(*,*)
-                    write(*,'(a,i3)') 'Error(mod_coulomb_potential::vcoul1d) Accuracy not reached'
-                    write(*,*)
-                    stop
-                end if
-                vcoul(igk) = 2.d0*(2.d0*quad)
             end do
+            vcoul(igk) = 2.d0 * vcoul(igk)
+        end do
+        deallocate(x, wx)
+        deallocate(y, wy)
 
-        end if
+    end subroutine
 
-    contains
 
-        real(8) function K0cosXY(x, y)
+    real(8) function K0cosXY(vgpk, x, y)
             implicit none
+            real(8), intent(in) :: vgpk(3)
             real(8), intent(in) :: x
             real(8), intent(in) :: y
             ! local
             real(8) :: arg, k0
-            arg = abs(gpk(3)) * sqrt(x*x+y*y)
+            arg = abs(vgpk(3)) * sqrt(x*x+y*y)
             call calck0(arg, k0, 1)
-            K0cosXY = k0 * cos(gpk(1)*x + gpk(2)*y)
-        end function
-
-        real(8) function K0cos(yy)
-            real(8), intent(in) :: yy
-            real(8) :: k0, rho, arg
-            ! K0cos(y) = K0(\rho*|qpg_z|)*COS(x.qpg_x+y*qpg_y)
-            rho = sqrt(xx_**2+yy**2) 
-            arg = abs(gpk(3)) * rho
-            call CALCK0(arg, k0, 1)
-            K0cos = k0 * cos(gpk(1)*xx_ + gpk(2)*yy)
-        end function K0cos
-
-        real(8) function K0cos_dy(xx)
-            real(8), intent(in) :: xx
-            integer(4) :: ierr
-            real(8)    :: quad
-            ! K0cos_dy(x)=\int_{-b/2}^{b/2} K0(|qpg_z|\rho)cos(x.qpg_x+y.qpg_y)dy$
-            xx_ = xx ! make it visible in K0cos
-            call quadrature(K0cos, -b, +b, qopt, quad, ierr, ntrial, accuracy, npts)
-            if (ierr /= 0) then
-                write(*,*)
-                write(*,'(a,i3)') 'Error(mod_coulomb_potential::K0cos_dy) Accuracy not reached'
-                write(*,*)
-                stop
-            end if
-            K0cos_dy = quad
-        end function K0cos_dy
-
-    end subroutine
+            K0cosXY = k0 * cos(vgpk(1)*x + vgpk(2)*y)
+    end function
 
 
     subroutine vcoul_2d(Gamma, ik, Gkset, vcoul)
@@ -454,5 +401,132 @@ contains
 
     end subroutine
 
+
+    subroutine vcoul_1d_RIM(Gamma, ngridk, ik, Gkset, vc)
+        use modmain, only: bvec, omega, pi
+        use mod_kpointset
+        implicit none
+        ! input/output
+        logical(4),   intent(in)  :: Gamma
+        integer(4),   intent(in)  :: ngridk(3)
+        integer(4),   intent(in)  :: ik
+        type(Gk_set), intent(in)  :: Gkset
+        real(8),      intent(out) :: vc(Gkset%ngk(1,ik))
+        ! local
+        integer(4) :: i, i1, i2, i3, nq, iq
+        integer(4) :: ngk, igk, igk0
+        integer(4) :: n(3), n0, nx, ny
+        real(8)    :: box(3), bmin, bmax, bvol
+        real(8)    :: q, vgpq(3), gpq2, intf
+        real(8)    :: a, b
+        real(8), allocatable :: q1(:), q2(:), q3(:), vq(:,:)
+        real(8), allocatable :: w1(:), w2(:), w3(:), wq(:)
+        real(8), allocatable :: x(:), wx(:)
+        real(8), allocatable :: y(:), wy(:)
+       
+
+        ! Rectangular integration volume
+        bvol = (2.d0*pi)**3 / omega / dble(product(ngridk))
+
+        ! Determine the integration volume size
+        box(1) = 0.5d0 * sqrt(dot_product(bvec(:,1),bvec(:,1))) / dble(ngridk(1))
+        box(2) = 0.5d0 * sqrt(dot_product(bvec(:,2),bvec(:,2))) / dble(ngridk(2))
+        box(3) = 0.5d0 * sqrt(dot_product(bvec(:,3),bvec(:,3))) / dble(ngridk(3))
+        bmin = minval(box)
+        bmax = maxval(box)
+
+        n0   = 7
+        n(1) = 1
+        n(2) = 1
+        n(3) = n0
+        if (Gamma) then
+            n(3) = 4*n0
+        end if
+
+        ! print*, 'grid=', n
+        ! print*, 'bmin=', bmin
+        ! print*, 'box=', box
+
+        ! Generate the integration grid and corresponding weights
+        allocate(q1(n(1)), w1(n(1)))
+        allocate(q2(n(2)), w2(n(2)))
+        allocate(q3(n(3)), w3(n(3)))
+        call gauleg(-box(1), box(1), q1, w1, n(1))
+        call gauleg(-box(2), box(2), q2, w2, n(2))
+        call gauleg(-box(3), box(3), q3, w3, n(3))
+
+        ! setup q-points
+        nq = product(n)
+        allocate(vq(3,nq), wq(nq))
+        iq = 0
+        do i1 = 1, n(1)
+        do i2 = 1, n(2)
+        do i3 = 1, n(3)
+            iq = iq+1
+            vq(1,iq) = q1(i1)
+            vq(2,iq) = q2(i2)
+            vq(3,iq) = q3(i3)
+            wq(iq)   = w1(i1) * w2(i2) * w3(i3)
+        end do
+        end do
+        end do
+        deallocate(q1, q2, q3)
+        deallocate(w1, w2, w3)
+
+        ! test
+        ! intf = 0.d0
+        ! do iq = 1, nq
+        !     intf = intf + wq(iq)
+        ! end do
+        ! print*, 'TEST integral=', intf, bvol
+
+        !------------------------------------------------
+        ! Integration over a small volume around k-point
+        !------------------------------------------------
+        a = 0.5d0*sqrt(dot_product(avec(:,1), avec(:,1)))
+        b = 0.5d0*sqrt(dot_product(avec(:,2), avec(:,2)))
+
+        ! Parameters for integrating over 2D WS cell
+        nx = 64
+        ny = 64
+        allocate(x(nx), wx(nx))
+        allocate(y(ny), wy(ny))
+        call gauleg(-a, a, x, wx, nx)
+        call gauleg(-b, b, y, wy, ny)
+
+        ngk = Gkset%ngk(1,ik)
+        do igk = 1, ngk
+            intf = 0.d0
+            do iq = 1, nq
+                vgpq(:) = vq(:,iq) + Gkset%vgkc(:,igk,1,ik)
+                intf    = intf + wq(iq) * vc_1d(vgpq)
+            end do
+            vc(igk) = intf / bvol
+        end do
+        deallocate(vq, wq)
+        deallocate(x, wx)
+        deallocate(y, wy)
+
+    contains
+
+        real(8) function vc_1d(vgpk)
+            use modmain, only: avec
+            implicit none
+            real(8)    :: vgpk(3)
+            integer(4) :: ix, iy
+            real(8), parameter :: small = 1.d-6
+            ! case q_z -> 0
+            if (abs(vgpk(3)) < small) vgpk(3) = small
+            vc_1d = 0.d0
+            do ix = 1, nx
+            do iy = 1, ny
+                vc_1d = vc_1d + &
+                        wx(ix) * wy(iy) * K0cosXY(vgpk, x(ix), y(iy) )
+            end do
+            end do
+            vc_1d = 2.d0 * vc_1d
+        end function
+
+    end subroutine
 
 end module

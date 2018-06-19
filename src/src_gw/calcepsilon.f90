@@ -76,9 +76,6 @@ subroutine calcepsilon(iq,iomstart,iomend)
     mdim = nstdf-numin+1
     nmdim = ndim*mdim
     
-    print*, nmdim
-    print*, '0', sum(epsilon)
-    
     ! arrays to store products of KS eigenvectors with the matching coefficients
     allocate(eveckalm(nstsv,apwordmax,lmmaxapw,natmtot))
     allocate(eveckpalm(nstsv,apwordmax,lmmaxapw,natmtot))
@@ -261,7 +258,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
       end do ! im
     end do ! iom
     
-    if (.true.) then
+    if (.false.) then
         open(11,file='head.dat')
         open(21,file='wings.dat')
         write(11,*) "# omega        eps00(NLF)       eps_M      eps^{-1}"

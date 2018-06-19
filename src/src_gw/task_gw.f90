@@ -80,11 +80,6 @@ subroutine task_gw()
     
     ! occupancy dependent BZ integration weights
     call kintw
-    
-
-    call vcoul_q0_3d(kqset%nkpt, singc2)
-    print*, 'AVG=', singc2
-
 
     !---------------------------------------
     ! treatment of singularities at G+q->0
@@ -100,16 +95,19 @@ subroutine task_gw()
               case('crg')  
                 ! Auxiliary function method
                 call calc_q0_singularities
+              case('avg')
+                ! Spherical average
+                call vcoul_q0_3d(kqset%nkpt, singc2)
             end select
 
         case('0d')
             call vcoul_q0_0d(singc2)
     
         case('1d')
-            call vcoul_q0_1d(kqset%nkpt,singc2)
+            call vcoul_q0_1d(kqset%nkpt, singc2)
 
         case('2d')
-            call vcoul_q0_2d(kqset%nkpt,singc2)
+            call vcoul_q0_2d(kqset%nkpt, singc2)
        
     end select
 

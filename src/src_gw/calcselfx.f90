@@ -55,9 +55,11 @@ subroutine calcselfx(iq)
     ! singular term prefactor (q->0)
     sxs2 = 4.d0*pi*vi
 
-    print*, ''
-    print*, 'singc2=', singc2, sxs2*singc2
-    print*, ''
+    if (Gamma) then
+      print*, ''
+      print*, 'selfx: singc2=', singc2
+      print*, ''
+    end if
 
     !----------------------------------------
     ! Set v-diagonal mixed product basis set
