@@ -49,7 +49,7 @@ subroutine calcbarcmb_pw(iq)
     end if
 
     allocate(tmat(matsiz,npw))
-    do ipw = 1, npw
+    do ipw = ipw0, npw
       tmat(:,ipw) = vc(ipw)*mpwmix(:,ipw)
     end do ! ipw
     deallocate(vc)
