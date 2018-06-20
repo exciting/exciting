@@ -43,7 +43,7 @@ module m_makeoscistr
       write(unitout, '("Info(",a,"):&
         & Making oscillator strengths (distributed).")') trim(thisname)
       write(unitout, '("Info(",a,"): iqmt=", i4)') trim(thisname), iqmt
-      write(unitout, '("Info(",a,"): Qmt=", 3E15.6)') trim(thisname), totalqlmt(:,iqmt)
+      write(unitout, '("Info(",a,"): Qmt=", 3F15.6)') trim(thisname), totalqlmt(:,iqmt)
       if(useip) then
         write(unitout, '("Info(",a,"): Using IP approximation")') trim(thisname)
       end if
@@ -55,7 +55,7 @@ module m_makeoscistr
         write(unitout, '("Info(",a,"):&
           & Using zero momentum transfer formalismus.")') trim(thisname)
         write(unitout, '("Info(",a,"):&
-          & Making oscillator strengths using Dipole operator matrix elements.")')&
+          & Making oscillator strengths using dipole operator matrix elements.")')&
           & trim(thisname)
 
         nopt=3
@@ -74,7 +74,7 @@ module m_makeoscistr
           call new_dzmat(dprojmat, hamsize, nopt, binfo, rblck=binfo%mblck, cblck=1)
 
           ! Build position operator matrix elements
-          write(unitout, '("  Building Dmat.")')
+          write(unitout, '("  Building Dipole matrix.")')
           call timesec(t0)
 
           ! Build D-matrix from P-matrix
@@ -87,7 +87,8 @@ module m_makeoscistr
           dprojmat%za=conjg(zi*dprojmat%za)
 
           call timesec(t1)
-          write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+          if (input%xs%BSE%outputlevelnumber == 1) &
+            & write(unitout, '("    Time needed",f12.3,"s")') t1-t0
           !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 
         else
@@ -129,7 +130,7 @@ module m_makeoscistr
         ! Build plane wave matrix elements 
         ! (the pwe generation is parallel over mpiglobal if distribute=true, meaning
         !  also processes that are not on the 2d blacs grid contribute) 
-        write(unitout, '("  Building Pwmat.")')
+        write(unitout, '("  Building Plane-wave matrix elements.")')
         call timesec(t0)
 
         ! Generate resonant plane wave matrix elements for G=Gmt and q=qmt
@@ -146,7 +147,8 @@ module m_makeoscistr
         end if
 
         call timesec(t1)
-        write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+        if (input%xs%BSE%outputlevelnumber == 1) &
+          & write(unitout, '("    Time needed",f12.3,"s")') t1-t0
         !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 
       ! qmt 0 or not
@@ -259,10 +261,12 @@ module m_makeoscistr
         call del_dzmat(dprojmat)
 
         call timesec(t1)
-        write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+        if (input%xs%BSE%outputlevelnumber == 1) &
+          & write(unitout, '("    Time needed",f12.3,"s")') t1-t0
 
         call timesec(ts1)
-        write(unitout, '("  Oszillator strengths made in:", f12.3,"s")') ts1-ts0
+        if (input%xs%BSE%outputlevelnumber == 1) &
+          & write(unitout, '("  Oszillator strengths made in:", f12.3,"s")') ts1-ts0
 
       else
 

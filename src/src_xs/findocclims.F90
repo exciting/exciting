@@ -240,15 +240,18 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
     write(unitout, '(a)') 'Info(findocclims): Partially occupied states present'
   end if
   if(ksgap) then
-    write(unitout, '(a)') 'Info(findocclims): System has Kohn-Sham gap'
-    write(unitout, '(a,E23.16)') '  Gap/H: ', ksgapval
-    write(unitout, '(a,E23.16)') '  Gap/eV: ', ksgapval*h2ev
-    write(unitout, '(a)') 'Info(findocclims): Minimal gap for momentum tranfer:'
-    write(unitout, '(a,I8)') '  iq: ', iq
-    write(unitout, '(a,E23.16)') '  Gap(q)/H: ', qgap
-    write(unitout, '(a,E23.16)') '  Gap(q)/eV: ', qgap*h2ev
+    if (input%xs%BSE%outputlevelnumber == 1) then
+      write(unitout, '(a)') 'Info(findocclims): System has Kohn-Sham gap'
+      write(unitout, '(a,F23.16)') '  Gap/H: ', ksgapval
+      write(unitout, '(a,F23.16)') '  Gap/eV: ', ksgapval*h2ev
+      write(unitout, '(a)') 'Info(findocclims): Minimal gap for momentum tranfer:'
+      write(unitout, '(a,I8)') '  iq: ', iq
+      write(unitout, '(a,F23.16)') '  Gap(q)/H: ', qgap
+      write(unitout, '(a,F23.16)') '  Gap(q)/eV: ', qgap*h2ev
+    end if
   else
-    write(unitout, '(a)') 'Info(findocclims): No Kohn-Sham gap found'
+    if (input%xs%BSE%outputlevelnumber == 1) &
+      & write(unitout, '(a)') 'Info(findocclims): No Kohn-Sham gap found'
   end if
 
   ! Debug output
@@ -267,7 +270,9 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
   if( .not. t) deallocate(evalsv0)
 
   call timesec(t1)
-  write(unitout, '(a, f12.6)') 'Info(findocclims): Time needed/s = ', t1-t0
+  if (input%xs%BSE%outputlevelnumber == 1) then
+    write(unitout, '(a, f12.6)') 'Info(findocclims): Time needed/s = ', t1-t0
+    end if
 
 end subroutine findocclims
 !EOC

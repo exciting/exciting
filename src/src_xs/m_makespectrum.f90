@@ -453,7 +453,7 @@ module m_makespectrum
       zbrd = zi*input%xs%broad
 
       write(unitout, '("Info(",a,"):&
-        & Making spectrum using formula for coupling with time reversed ar basis.")')&
+        & Making spectrum using formula for coupling with time reversed AR basis.")')&
         & trim(thisname)
       if(iqmt == 1) then 
         write(unitout, '("Info(",a,"):&
@@ -476,7 +476,6 @@ module m_makespectrum
       ! resonant = poles for positive omega        !
       ! anti-resonant = poles for negative omega   !
       !++++++++++++++++++++++++++++++++++++++++++++!
-      write(unitout, '("  Making energy denominators ENW.")')
       call timesec(t0)
 
       ! enw_{w, \lambda} = 1/(w - E_\lambda + i\delta) + 1/(-w - E_\lambda - i\delta)
@@ -506,14 +505,12 @@ module m_makespectrum
       !$OMP END PARALLEL DO
 
       call timesec(t1)
-      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
       !++++++++++++++++++++++++++++++++++++++++++++!
       
       !++++++++++++++++++++++++++++++++++++++++++++!
       ! Helper matrix build form resonant          !
       ! oscillator strenghs                        !
       !++++++++++++++++++++++++++++++++++++++++++++!
-      write(unitout, '("  Making helper matrix tmat.")')
       call timesec(t0)
 
       if(iqmt == 1) then 
@@ -569,7 +566,6 @@ module m_makespectrum
       end do
 
       call timesec(t1)
-      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
       !++++++++++++++++++++++++++++++++++++++++++++!
            
       !++++++++++++++++++++++++++++++++++++++++++++!
@@ -577,7 +573,6 @@ module m_makespectrum
       ! Chi_{Gmt,Gmt}(qmt,omega) for qmt/=0,
       ! \bar{P}^{ij}_{00}(0,omega) for qmt=0
       !++++++++++++++++++++++++++++++++++++++++++++!
-      write(unitout, '("  Calculating spectrum.")')
       call timesec(t0)
 
       call new_dzmat(dns_spectr, nfreq, nopt, binfo,&
@@ -614,7 +609,8 @@ module m_makespectrum
 
       ! Total time for spectrum construction
       call timesec(ts1)
-      write(unitout, '("  Spectrum made in", f12.3, "s")') ts1-ts0
+      if (input%xs%BSE%outputlevelnumber == 1) &
+        & write(unitout, '("  Spectrum made in", f12.3, "s")') ts1-ts0
 
     end subroutine makespectrum_dist
 
@@ -805,7 +801,8 @@ module m_makespectrum
       end if
 
       call timesec(t1)
-      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+      if (input%xs%BSE%outputlevelnumber == 1) &
+        & write(unitout, '("    Time needed",f12.3,"s")') t1-t0
     end subroutine finalizespectrum
 
 end module m_makespectrum

@@ -53,10 +53,9 @@ module m_setup_dmat
       allocate(pmuok(3, nu_bse_max, no_bse_max, nk_bse))
       pmuok=zzero
 
-      write(unitout, '("  Reading Pmat.")')
       call timesec(t0)
       if(associated(input%gw)) then
-        write(unitout, '("  Also renormalizing Pmat with GW eigenvalues.")')
+        write(unitout, '("  Renormalizing momentum matrix elements with GW eigenvalues.")')
       end if
       ! Read in all needed momentum matrix elements
       do ik = 1, nk_bse
@@ -105,9 +104,9 @@ module m_setup_dmat
         end if 
       end do
       call timesec(t1)
-      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+      if (input%xs%BSE%outputlevelnumber == 1) &
+        & write(unitout, '("    Time needed for reading pmat",f12.3,"s")') t1-t0
 
-      write(unitout, '("  Building Dmat.")')
       call timesec(t0)
       !$OMP PARALLEL DO &
       !$OMP& DEFAULT(SHARED), PRIVATE(a1,iuabs,ioabs,iknr,iu,io,ik)
@@ -138,7 +137,8 @@ module m_setup_dmat
       deallocate(pmuok)
 
       call timesec(t1)
-      write(unitout, '("    Time needed",f12.3,"s")') t1-t0
+      if (input%xs%BSE%outputlevelnumber == 1) &
+        & write(unitout, '("    Time needed for constructing dmat",f12.3,"s")') t1-t0
       !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
     end subroutine setup_dmat
     !EOC

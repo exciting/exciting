@@ -320,25 +320,25 @@ module m_setup_bse
           usescc = .false.
           useexc = .false.
           if(mpiglobal%rank==0) then
-            write(unitout, '("Info(setup_bse_block): Using IP")')
+            write(unitout, '("Info(setup_bse_block): Using IP approximation")')
           end if
         case('singlet')
           usescc = .true.
           useexc = .true.
           if(mpiglobal%rank==0) then
-            write(unitout, '("Info(setup_bse_block): Using singlet")')
+            write(unitout, '("Info(setup_bse_block): Singlet spin state")')
           end if
         case('triplet')
           usescc = .true.
           useexc = .false.
           if(mpiglobal%rank==0) then
-            write(unitout, '("Info(setup_bse_block): Using triplet")')
+            write(unitout, '("Info(setup_bse_block): Triplet spin state")')
           end if
         case('RPA')
           usescc = .false.
           useexc = .true.
           if(mpiglobal%rank==0) then
-            write(unitout, '("Info(setup_bse_block): Using RPA")')
+            write(unitout, '("Info(setup_bse_block): Using RPA approximation")')
           end if
       end select
 
@@ -359,11 +359,12 @@ module m_setup_bse
 
       sinfofname = trim(infofbasename)//'_'//trim(sfname)
       einfofname = trim(infofbasename)//'_'//trim(efname)
-
-      if(usescc) write(unitout, '("  Reading form info from ", a)')&
-        & trim(sinfofname)
-      if(useexc) write(unitout, '("  Reading form info from ", a)')&
-        & trim(einfofname)
+      if (input%xs%BSE%outputlevelnumber == 1) then
+        if(usescc) write(unitout, '("  Reading form info from ", a)')&
+          & trim(sinfofname)
+        if(useexc) write(unitout, '("  Reading form info from ", a)')&
+          & trim(einfofname)
+      end if
 
       ! Check saved Quantities for compatiblity
       sfcmpt=.false.
@@ -386,11 +387,13 @@ module m_setup_bse
           call terminate
         end if
       end if
-
-      if(usescc) write(unitout, '("  Reading form W from ", a)') trim(sfname)
-      if(usescc) write(unitout, '("  compatible:",l," identical:",l)') sfcmpt, sfid
-      if(useexc) write(unitout, '("  Reading form V from ", a)') trim(efname)
-      if(usescc) write(unitout, '("  compatible:",l," identical:",l)') efcmpt, efid
+      
+      if (input%xs%BSE%outputlevelnumber == 1) then
+        if(usescc) write(unitout, '("  Reading form W from ", a)') trim(sfname)
+        if(usescc) write(unitout, '("  compatible:",l," identical:",l)') sfcmpt, sfid
+        if(useexc) write(unitout, '("  Reading form V from ", a)') trim(efname)
+        if(usescc) write(unitout, '("  compatible:",l," identical:",l)') efcmpt, efid
+      end if
 
       ! Allocate measures
       if(fmeasure) then
@@ -489,9 +492,10 @@ module m_setup_bse
       end do
 
       call timesec(ts1)
-      write(unitout, '(" Matrix build.")')
-      write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
-
+      write(unitout, '(" Hamiltonian constructed.")')
+      if (input%xs%BSE%outputlevelnumber == 1) then
+        write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
+      end if
       contains
 
         subroutine setint(hamblock, oc1, oc2, scc, exc, w, v)
@@ -913,25 +917,25 @@ module m_setup_bse
             usescc = .false.
             useexc = .false.
             if(mpiglobal%rank==0) then
-              write(unitout, '("Info(setup_bse_block_dist): Using IP")')
+              write(unitout, '("Info(setup_bse_block_dist): Using IP approximation")')
             end if
           case('singlet')
             usescc = .true.
             useexc = .true.
             if(mpiglobal%rank==0) then
-              write(unitout, '("Info(setup_bse_block_dist): Using singlet")')
+              write(unitout, '("Info(setup_bse_block_dist): Singlet spin state")')
             end if
           case('triplet')
             usescc = .true.
             useexc = .false.
             if(mpiglobal%rank==0) then
-              write(unitout, '("Info(setup_bse_block_dist): Using triplet")')
+              write(unitout, '("Info(setup_bse_block_dist): Triplet spin state")')
             end if
           case('RPA')
             usescc = .false.
             useexc = .true.
             if(mpiglobal%rank==0) then
-              write(unitout, '("Info(setup_bse_block_dist): Using RPA")')
+              write(unitout, '("Info(setup_bse_block_dist): Using RPA approximation")')
             end if
         end select
 
@@ -963,11 +967,12 @@ module m_setup_bse
 
           sinfofname = trim(infofbasename)//'_'//trim(sfname)
           einfofname = trim(infofbasename)//'_'//trim(efname)
-
-          if(usescc) write(unitout, '("  Reading info from ", a)')&
-            & trim(sinfofname)
-          if(useexc) write(unitout, '("  Reading info from ", a)')&
-            & trim(einfofname)
+          if (input%xs%BSE%outputlevelnumber == 1) then
+            if(usescc) write(unitout, '("  Reading info from ", a)')&
+              & trim(sinfofname)
+            if(useexc) write(unitout, '("  Reading info from ", a)')&
+              & trim(einfofname)
+          end if
 
           ! Check saved quantities for compatibility
           sfcmpt=.false.
@@ -989,11 +994,12 @@ module m_setup_bse
               call terminate
             end if
           end if
-
-          if(usescc) write(unitout, '("  Reading W from ", a)') trim(sfname)
-          if(usescc) write(unitout, '("  compatible:",l," identical:",l)') sfcmpt, sfid
-          if(useexc) write(unitout, '("  Reading V from ", a)') trim(efname)
-          if(usescc) write(unitout, '("  compatible:",l," identical:",l)') efcmpt, efid
+          if (input%xs%BSE%outputlevelnumber == 1) then
+            if(usescc) write(unitout, '("  Reading W from ", a)') trim(sfname)
+            if(usescc) write(unitout, '("  compatible:",l," identical:",l)') sfcmpt, sfid
+            if(useexc) write(unitout, '("  Reading V from ", a)') trim(efname)
+            if(usescc) write(unitout, '("  compatible:",l," identical:",l)') efcmpt, efid
+          end if
 
           allocate(excli_t(nou_bse_max, nou_bse_max))
           allocate(sccli_t(nou_bse_max, nou_bse_max))

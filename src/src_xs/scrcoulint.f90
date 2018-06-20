@@ -185,12 +185,14 @@ subroutine scrcoulint(iqmt, fra)
   !       to the APW/LOs while l3 corresponds to the exponetial.
   call findgntn0(maxl_mat, maxl_mat, maxl_e, xsgnt)
 
-  write(unitout, '(a)') 'Info(' // thisname // '):&
-    & Gaunt coefficients generated within lmax values:'
-  write(unitout, '(a, i8)') "lmax1 = lmaxapw =", input%groundstate%lmaxapw
-  write(unitout, '(a, i8)') "lmax2 = lmaxemat=", input%xs%lmaxemat
-  write(unitout, '(a, i8)') "lmax3 = lmaxapw =", input%groundstate%lmaxapw
-  call flushifc(unitout)
+  if (input%xs%BSE%outputlevelnumber == 1) then
+    write(unitout, '(a)') 'Info(' // thisname // '):&
+      & Gaunt coefficients generated within lmax values:'
+    write(unitout, '(a, i8)') "lmax1 = lmaxapw =", input%groundstate%lmaxapw
+    write(unitout, '(a, i8)') "lmax2 = lmaxemat=", input%xs%lmaxemat
+    write(unitout, '(a, i8)') "lmax3 = lmaxapw =", input%groundstate%lmaxapw
+    call flushifc(unitout)
+  end if
 
   ! Read Fermi energy from file EFERMI
   ! Use EFERMI_QMT001.OUT (corresponding to the xs groundstate run for the unshifted k grid)
@@ -201,6 +203,7 @@ subroutine scrcoulint(iqmt, fra)
   ! This also reads in 
   ! mod_eigevalue_occupancy:evalsv, mod_eigevalue_occupancy:occsv 
   ! modxs:evalsv0, modxs:occsv0
+  call printline(unitout, '-')
   write(unitout, '(a)') 'Info(' // thisname // '):&
     & Inspecting occupations...'
   call flushifc(unitout)
@@ -210,6 +213,7 @@ subroutine scrcoulint(iqmt, fra)
   ! Select relevant transitions for the construction
   ! of the BSE hamiltonian
   ! Also sets nkkp_bse, nk_bse 
+  call printline(unitout, '-')
   write(unitout, '(a)') 'Info(' // thisname // '):&
     & Selecting transitions...'
   call flushifc(unitout)
@@ -235,6 +239,7 @@ subroutine scrcoulint(iqmt, fra)
     call genfilname(basename=scclifbasename, iqmt=iqmt, filnam=scclifname)
   end if
 
+  call printline(unitout, '-')
   write(unitout, '("Info(",a,"): Size of file ",a," will be about ", f12.6, " GB" )')&
     & trim(thisname), trim(scclifbasename),&
     & int(nou_bse_max,8)**2*int(nkkp_bse,8)*16.0d0/1024.0d0**3
@@ -310,15 +315,19 @@ subroutine scrcoulint(iqmt, fra)
   call init1offs(k_kqmtp%kqmtset%vkloff)
   ! Check whether k+-qmt/2 grids are identical to k grid
   if(all(abs(k_kqmtp%kqmtset%vkloff-k_kqmtp%kset%vkloff) < epslat)) then 
-    write(unitout, '("Info(scrcoulint):&
-      & k+qmt/2-grid is identical for to iqmt=1 grid, iqmt=",i3)') iqmt
+    if (iqmt .ne. 1) then
+      write(unitout, '("Info(scrcoulint):&
+        & k+qmt/2-grid is identical for to iqmt=1 grid, iqmt=",i3)') iqmt
+    end if
     fsamekp=.true.
   else
     fsamekp=.false.
   end if
   if(all(abs(k_kqmtm%kqmtset%vkloff-k_kqmtm%kset%vkloff) < epslat)) then 
-    write(unitout, '("Info(scrcoulint):&
-      & k-qmt/2-grid is identical for to iqmt=1 grid, iqmt=",i3)') iqmt
+    if (iqmt .ne. 1) then
+      write(unitout, '("Info(scrcoulint):&
+        & k-qmt/2-grid is identical for to iqmt=1 grid, iqmt=",i3)') iqmt
+    end if
     fsamekm=.true.
   else
     fsamekm=.false.
@@ -380,13 +389,13 @@ subroutine scrcoulint(iqmt, fra)
     ! and save them to disk.
     filext = fileext_ematrad_write
     call putematrad(iqr, iqrnr)
-
+#ifndef MPI
     if(mpiglobal%rank == 0) then
       write(6, '(a,"Scrcoulint progess WGGp(q):", f10.3)', advance="no")&
         & achar( 13), 100.0d0*dble(iqr-qpari+1)/dble(qparf-qpari+1)
       flush(6)
     end if
-
+#endif
   end do
 
   if(mpiglobal%rank == 0) then
@@ -403,7 +412,8 @@ subroutine scrcoulint(iqmt, fra)
 
   if(mpiglobal%rank == 0) then
     call timesec(tscc1)
-    write(unitout, '("  Timing (in seconds):", f12.3)') tscc1 - tscc0
+    if (input%xs%BSE%outputlevelnumber == 1) &
+      & write(unitout, '("  Timing (in seconds):", f12.3)') tscc1 - tscc0
   end if
   !--------------------------------------------------------------------------------!
 
@@ -431,7 +441,7 @@ subroutine scrcoulint(iqmt, fra)
   end if
 
   if(mpiglobal%rank == 0) then
-    write(unitout, '("Info(scrcoulint): W matrix elements")')
+    write(unitout, '("Info(scrcoulint): Calculating W matrix elements")')
     call timesec(tscc0)
   end if
 
@@ -798,7 +808,8 @@ subroutine scrcoulint(iqmt, fra)
 
   if(mpiglobal%rank == 0) then
     call timesec(tscc1)
-    write(unitout, '("  Timing (in seconds):", f12.3)') tscc1 - tscc0
+    if (input%xs%BSE%outputlevelnumber == 1) &
+      & write(unitout, '("  Timing (in seconds):", f12.3)') tscc1 - tscc0
   end if
 
   ! Deallocate helper array 

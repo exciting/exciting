@@ -190,7 +190,8 @@ module m_writeoscillator
           & "|Osc. Str.|",&
           & "Re(Osc. Str. Res.)",&
           & "Im(Osc. Str. Res.)"
-        frmt='(I8,5(1x,E23.16))'
+        !frmt='(I8,5(1x,E23.16))'
+        frmt='(I8,2(1x,F23.16),3(1x,E23.16))'
         do lambda = 1, nexc
           write(unexc, frmt) lambda,&
             & evalre(lambda)*escale,&

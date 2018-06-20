@@ -143,10 +143,12 @@ subroutine exccoulint(iqmt)
   !       to the APW/LOs while l3 corresponds to the exponetial.
   call findgntn0(maxl_mat, maxl_mat, maxl_e, xsgnt)
 
-  if(rank .eq. 0) then
-    write(unitout, '(a,3i8)') 'Info(' // thisname // '):&
-      & Gaunt coefficients generated within lmax values:',&
-      & input%groundstate%lmaxapw, input%xs%lmaxemat, input%groundstate%lmaxapw
+  if (input%xs%BSE%outputlevelnumber == 1) then
+    write(unitout, '(a)') 'Info(' // thisname // '):&
+      & Gaunt coefficients generated within lmax values:'
+    write(unitout, '(a, i8)') "lmax1 = lmaxapw =", input%groundstate%lmaxapw
+    write(unitout, '(a, i8)') "lmax2 = lmaxemat=", input%xs%lmaxemat
+    write(unitout, '(a, i8)') "lmax3 = lmaxapw =", input%groundstate%lmaxapw
     call flushifc(unitout)
   end if
 
@@ -159,11 +161,21 @@ subroutine exccoulint(iqmt)
   ! This also reads in 
   ! mod_eigevalue_occupancy:evalsv, mod_eigevalue_occupancy:occsv 
   ! modxs:evalsv0, modxs:occsv0
+  call printline(unitout, '-')
+  write(unitout, '(a)') 'Info(' // thisname // '):&
+    & Inspecting occupations...'
+  call flushifc(unitout)
+  
   call setranges_modxs(iqmt)
 
   ! Select relevant transitions for the construction
   ! of the BSE hamiltonian
   ! Also sets nkkp_bse, nk_bse 
+  call printline(unitout, '-')
+  write(unitout, '(a)') 'Info(' // thisname // '):&
+    & Selecting transitions...'
+  call flushifc(unitout)
+  
   call select_transitions(iqmt, serial=.false.)
 
   ! Write support information to file
@@ -185,7 +197,7 @@ subroutine exccoulint(iqmt)
   else
     call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=exclifname)
   end if
-
+  call printline(unitout, '-')
   write(unitout, '("Info(",a,"): Size of file ",a," will be about ", f12.6, " GB" )')&
     & trim(thisname), trim(exclifbasename),&
     & int(nou_bse_max,8)**2*int(nkkp_bse,8)*16.0d0/1024.0d0**3
@@ -209,15 +221,19 @@ subroutine exccoulint(iqmt)
   call init1offs(k_kqmtp%kqmtset%vkloff)
   ! Check whether k+-qmt/2 grids are identical to k grid
   if(all(abs(k_kqmtp%kqmtset%vkloff-k_kqmtp%kset%vkloff) < epslat)) then 
-    write(unitout, '("Info(exccoulint):&
-      & k+qmt/2-grid is identical to iqmt=1 grid for, iqmt=",i3)') iqmt
+    if (iqmt .ne. 1) then
+      write(unitout, '("Info(exccoulint):&
+        & k+qmt/2-grid is identical to iqmt=1 grid for, iqmt=",i3)') iqmt
+    end if
     fsamekp=.true.
   else
     fsamekp=.false.
   end if
   if(all(abs(k_kqmtm%kqmtset%vkloff-k_kqmtm%kset%vkloff) < epslat)) then 
-    write(unitout, '("Info(exccoulint):&
-      & k-qmt/2-grid is identical to iqmt=1 grid for, iqmt=",i3)') iqmt
+    if (iqmt .ne. 1) then
+      write(unitout, '("Info(exccoulint):&
+        & k-qmt/2-grid is identical to iqmt=1 grid for, iqmt=",i3)') iqmt
+    end if
     fsamekm=.true.
   else
     fsamekm=.false.
@@ -429,7 +445,8 @@ subroutine exccoulint(iqmt)
 
   if(mpiglobal%rank == 0) then
     call timesec(tpw1)
-    write(unitout, '("  Timing (in seconds)	   :", f12.3)') tpw1 - tpw0
+    if(input%xs%BSE%outputlevelnumber == 1) &
+      & write(unitout, '("  Timing (in seconds)	   :", f12.3)') tpw1 - tpw0
   end if
 
   call findgntn0_clear

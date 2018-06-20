@@ -179,6 +179,11 @@ subroutine bse(iqmt)
   !            This is altered by select_transitions below
   !          - Saves mappings k -> k+qmt/2, k -> k-qmt/2 and k-qmt/2 -> k+qmt/2 
   !            to modbse
+  call printline(unitout, '-')
+  write(unitout, '(a)') 'Info(' // thisname // '):&
+    & Inspecting occupations...'
+  call flushifc(unitout)
+  
   call setranges_modxs(iqmt)
   !---------------------------------------------------------------------------!
 
@@ -233,6 +238,11 @@ subroutine bse(iqmt)
   ! Note: Operates on mpiglobal
   ! Note: On exit k-grid/2 quantities are stored in vkl0, evalsv0 etc and
   !       k+qmt/2 grid quantities are stored in vkl, evalsv etc
+  call printline(unitout, '-')
+  write(unitout, '(a)') 'Info(' // thisname // '):&
+    & Selecting transitions...'
+  call flushifc(unitout)
+
   if(fdist) then 
     ! Use all ranks on mpiglobal
     call select_transitions(iqmt, serial=.false.)
@@ -246,6 +256,7 @@ subroutine bse(iqmt)
   ! (includes scissor).
   bsegap = minval(de)
   ! Write some Info
+  call printline(unitout, '-')
   write(unitout,*)
   write(unitout, '("Info(",a,"):&
     & bsegap-scissor, bsegap (eV):", E23.16,1x,E23.16)')&
@@ -282,8 +293,8 @@ subroutine bse(iqmt)
       write(unitout, '("Info(",a,"): Assembling BSE matrix")')&
         & trim(thisname)
       write(unitout, '("  RR/RA blocks of global BSE-Hamiltonian:")')
-      write(unitout, '("  Shape=",i8)') hamsize
-      write(unitout, '("  nk_bse=", i8)') nk_bse
+      write(unitout, '("  Size of the Hamiltonian:",i8)') hamsize
+      write(unitout, '("  Number of k-points:", i8)') nk_bse
       ramscale=1.0d0
 
       if(fcoup) then
@@ -300,8 +311,9 @@ subroutine bse(iqmt)
         & max local RAM needed for BSE matrices ~ ", f12.6, " GB" )')&
         & trim(thisname),&
         & dble(ramscale)*dham%nrows_loc*dham%ncols_loc*16.0d0/1024.0d0**3
+      write(unitout,*)
       !------------------------------------------------------------------------!
-
+      call printline(unitout, '-')
       !------------------------------------------------------------------------!
       ! Assemble Hamiltonian matrix
       !------------------------------------------------------------------------!
@@ -317,7 +329,8 @@ subroutine bse(iqmt)
 
       call timesec(ts1)
       write(unitout, '("All processes build their local matrix")')
-      write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
+      if (input%xs%BSE%outputlevelnumber == 1) &
+        & write(unitout, '("Timing (in seconds)	   :", f12.3)') ts1 - ts0
       !------------------------------------------------------------------------!
 
       !------------------------------------------------------------------------!
@@ -437,16 +450,17 @@ subroutine bse(iqmt)
         end if
       else
         write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
-        write(unitout, '("  i1=",i8," i2=",i8)') i1, i2
+        write(unitout, '("         i1=",i8," i2=",i8)') i1, i2
       end if
-      write(unitout, '("  Timing (in seconds)	   :", f12.3)') ts1 - ts0
+      if (input%xs%BSE%outputlevelnumber == 1) &
+        & write(unitout, '("  Timing (in seconds)	   :", f12.3)') ts1 - ts0
       write(unitout,*)
 
       if(nexc < 1) then 
         write(unitout, '("No eigenvalues found the energy window, check input")')
         call terminate
-      end if
-        
+      end if  
+      call printline(unitout, '-')
       !------------------------------------------------------------------------!
 
       ! Testing
@@ -519,7 +533,8 @@ subroutine bse(iqmt)
           end do
           call dzinvert(dcpmat)
           call timesec(ts1)
-          write(unitout, '("  Time needed",f12.3,"s")') ts1-ts0
+          if (input%xs%BSE%outputlevelnumber == 1) &
+            & write(unitout, '("  Time needed",f12.3,"s")') ts1-ts0
           !===========================================================!
 
           ! Make selected eigenvectors
@@ -587,6 +602,8 @@ subroutine bse(iqmt)
     if(bicurrent%isroot) then
       ! Write excition energies and oscillator strengths to 
       ! text file. 
+      write(unitout,*)
+      call printline(unitout, '-')
       write(unitout, '("Info(",a,"):&
         & Writing excition energies and oscillator strengths to text file.")')&
         & trim(thisname)

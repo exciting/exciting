@@ -198,7 +198,7 @@ module mod_xsgrids
       end if
 
       ! Info
-      if(.false.) then 
+      if(input%xs%BSE%outputlevelnumber == 1) then 
         write(*,*) "Info(xsgrids_init):"
         write(*,'(a, 3i5)') "  ngridk = ", ngridk
         write(*,'(a, 3E10.3)') "  kvkloff = ", k_kqmtp%kset%vkloff
@@ -219,8 +219,9 @@ module mod_xsgrids
       initialized = .true.
 
       call timesec(t1)
-      write(unitout,'("Info(",a,"): Time needed/s =", f12.6)') trim(thisname), t1-t0
-
+      if (input%xs%BSE%outputlevelnumber == 1) then
+        write(unitout,'("Info(",a,"): Time needed [s] =", f12.6)') trim(thisname), t1-t0
+      end if
     end subroutine xsgrids_init
     !EOC
 

@@ -663,6 +663,35 @@
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="BSE" minOccurs="0" maxOccurs="1">
           <xs:complexType>
+          <xs:attribute ex:importance="expert" ex:unit="" name="outputlevel" default="normal">
+            <xs:annotation>
+              <xs:documentation> 
+                Specify amount of information which is printed to files:
+                <list>
+                    <li>normal - (default) standard information</li>
+                    <li>exper   - detailed output</li>
+                </list>
+              </xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="normal">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>0</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
+                <xs:enumeration value="expert">
+                  <xs:annotation>
+                    <xs:appinfo>
+                      <oldnr>1</oldnr>
+                    </xs:appinfo>
+                  </xs:annotation>
+                </xs:enumeration>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="nosym" type="xs:boolean"
               default="false">
               <xs:annotation>

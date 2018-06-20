@@ -258,6 +258,7 @@ subroutine dfq(iq)
   ! Find highest (partially) occupied and lowest (partially) unoccupied states
   ! for k and k+q points 
   !write(*,*) "dfq: ikmapikq(:,iq)", ikmapikq(:,iq)
+  
   call findocclims(iq, ikmapikq(:,iq), istocc0, istunocc0, isto0, isto, istu0, istu)
   istunocc = istunocc0
   istocc = istocc0
@@ -267,28 +268,29 @@ subroutine dfq(iq)
   call ematbdcmbs(input%xs%emattype)
 
   ! Check if q-point is gamma point (uses mod_qpoint::vqc)
-  write(unitout, *)
-  write(unitout, '(a,i4)') 'Info(' // trim(thisname) // '):&
-   & Calculating screening for q-point: ', iq 
-  tq0 = tqgamma(iq)
-  if(tq0) then
-    write(unitout, '(a)') 'Info(' // trim(thisname) // '):&
-     & Gamma q-point: using momentum matrix elements for dielectric function'
+  if (input%xs%BSE%outputlevelnumber == 1) then
+    write(unitout, *)
+    write(unitout, '(a,i4)') 'Info(' // trim(thisname) // '):&
+    & Calculating screening for q-point: ', iq 
+    tq0 = tqgamma(iq)
+    if(tq0) then
+      write(unitout, '(a)') 'Info(' // trim(thisname) // '):&
+       & Gamma q-point: using momentum matrix elements for dielectric function'
+    end if
+    ! Write out matrix size of response function and contributing bands
+    write(unitout, '(a, i6)') 'Info(' // thisname // '):&
+      & number of G + q vectors (local field effects):', ngq(iq)
+    write(unitout, '(a, 4i6)') 'Info(' // thisname // '):&
+      & lowest (partially)  unoccupied state: ', istunocc0
+    write(unitout, '(a, 4i6)') 'Info(' // thisname // '):&
+      & highest (partially) occupied state  : ', istocc0
+    write(unitout, '(a, 4i5)') 'Info(' // thisname // '):&
+      & band-combination limits  nst1,  nst2,  nst3,  nst4:',  nst1,  nst2,  nst3,  nst4 
+    write(unitout, '(a, 4i5)') 'Info(' // thisname // '):&
+      & band-combination limits istl1, istu1, istl2, istu2:', istl1, istu1, istl2, istu2
+    write(unitout, '(a, 4i5)') 'Info(' // thisname // '):&
+      & band-combination limits istl3, istu3, istl4, istu4:', istl3, istu3, istl4, istu4
   end if
-  ! Write out matrix size of response function and contributing bands
-  write(unitout, '(a, i6)') 'Info(' // thisname // '):&
-    & number of G + q vectors (local field effects):', ngq(iq)
-  write(unitout, '(a, 4i6)') 'Info(' // thisname // '):&
-    & lowest (partially)  unoccupied state: ', istunocc0
-  write(unitout, '(a, 4i6)') 'Info(' // thisname // '):&
-    & highest (partially) occupied state  : ', istocc0
-  write(unitout, '(a, 4i5)') 'Info(' // thisname // '):&
-    & band-combination limits  nst1,  nst2,  nst3,  nst4:',  nst1,  nst2,  nst3,  nst4 
-  write(unitout, '(a, 4i5)') 'Info(' // thisname // '):&
-    & band-combination limits istl1, istu1, istl2, istu2:', istl1, istu1, istl2, istu2
-  write(unitout, '(a, 4i5)') 'Info(' // thisname // '):&
-    & band-combination limits istl3, istu3, istl4, istu4:', istl3, istu3, istl4, istu4
-
   ! Allocate arrays for eigenvalue and occupation number differences
   if(allocated(deou)) deallocate(deou)
   allocate(deou(nst1, nst2))
@@ -387,7 +389,8 @@ subroutine dfq(iq)
     call filedel(trim(fnetim))
 
     ! Write information
-    write(unitout, '(a, i6)') 'Info(' // thisname // '):&
+    if (input%xs%BSE%outputlevelnumber == 1) &
+      & write(unitout, '(a, i6)') 'Info(' // thisname // '):&
       & number of G + q vectors:', ngq(iq)
     call ematqalloc
   end if

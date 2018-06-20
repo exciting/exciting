@@ -184,9 +184,12 @@ module modbse
       ! Set k and G+k variables in the standard locations mod_kpoint and mod_Gkvector 
       ! to those of the k' grid.
       call init1offs(vkqmtploff)
-
+      
+      write(unitout, '("Info(setranges_modxs): Determining k+qmt/2 grid")') 
       if(all(abs(vkloff-vkqmtploff) < epslat)) then 
-        write(unitout, '("Info(setranges_modxs): (+) Same k-grids for iqmt=1 and iqmt=",i3)') iqmt
+        if (iqmt .ne. 1) then
+          write(unitout, '("Info(setranges_modxs): (+) Same k-grids for iqmt=1 and iqmt=",i3)') iqmt
+        end if
         fsamek=.true.
       else
         write(unitout, '("Info(setranges_modxs): (+) Different k-grids for iqmt=1 and iqmt=",i3)') iqmt
@@ -245,8 +248,12 @@ module modbse
       ! to those of the k' grid.
       call init1offs(vkqmtmloff)
 
+      write(unitout, '("Info(setranges_modxs): Determining k-qmt/2 grid")') 
+      
       if(all(abs(vkloff-vkqmtmloff) < epslat)) then 
-        write(unitout, '("Info(setranges_modxs): (-) Same k-grids for iqmt=1 and iqmt=",i3)') iqmt
+        if (iqmt .ne. 1) then
+          write(unitout, '("Info(setranges_modxs): (-) Same k-grids for iqmt=1 and iqmt=",i3)') iqmt
+        end if
         fsamek=.true.
       else
         write(unitout, '("Info(setranges_modxs): (-) Different k-grids for iqmt=1 and iqmt=",i3)') iqmt
@@ -335,9 +342,10 @@ module modbse
       end if  
 
       call timesec(t1)
-      write(unitout, '("Info(setranges_modxs):&
-        & Time needed/s = ", f12.7)') t1-t0
-
+      if (input%xs%BSE%outputlevelnumber == 1) then
+        write(unitout, '("Info(setranges_modxs):&
+          & Time needed/s = ", f12.7)') t1-t0
+      end if
     end subroutine setranges_modxs
     !EOC
 
@@ -517,10 +525,14 @@ module modbse
            considered (partially) occupied band.", istunocc0, io1
       end if
 
-      write(unitout, '("Info(select_transitions): Searching for transitions in&
-        & the band interval:")')
-      write(unitout, '("  io1:", i4, " io2:", i4, " iu1:", i4, " iu2:", i4)')&
-        & io1, io2, iu1, iu2
+      write(unitout, '("Info(select_transitions): Inspecting transitions in the &
+        & band interval:")')
+      !write(unitout, '("  io1:", i4, " io2:", i4, " iu1:", i4, " iu2:", i4)')&
+      !  & io1, io2, iu1, iu2
+      write(unitout, '("  lowest occupied state:", i4)') io1
+      write(unitout, '("  highest occupied state:", i4)') io2
+      write(unitout, '("  lowest unoccupied state:", i4)') iu1
+      write(unitout, '("  highest unoccupied state:", i4)') iu2
       if(fensel) then
         write(unitout, '("Info(select_transitions): Selecting KS/QP transitions in&
           & the energy interval:")')
@@ -534,7 +546,7 @@ module modbse
           & max(econv(1), -wl)*h2ev, econv(2)*h2ev
       end if
       write(unitout, '("  Opening gap with a scissor of: ",&
-        & E10.3,"/H ", E10.3,"/eV")'), sci, sci*h2ev
+        & F10.3,"/H ", F10.3,"/eV")'), sci, sci*h2ev
 
       !! Read in eigenvalues and occupancies for k-qmt/2 and k+qmt/2
 
@@ -548,21 +560,27 @@ module modbse
 
       ! Check for coinciding k-grids 
       if(all(abs(vkqmtmloff-vkloff) < epslat)) then
-        write(unitout, '("Info(select_transitions): Same k-grids for - and ref. grids at iqmt=",i3)') iqmt
+        if (iqmt .ne. 1) then
+          write(unitout, '("Info(select_transitions): Same k-grids for - and ref. grids at iqmt=",i3)') iqmt
+        end if
         fsamek0=.true.
       else
         write(unitout, '("Info(select_transitions): Different k-grids for - and ref. grids at iqmt=",i3)') iqmt
         fsamek0=.false.
       end if
       if(all(abs(vkqmtploff-vkloff) < epslat)) then
-        write(unitout, '("Info(select_transitions): Same k-grids for + and ref. grids at iqmt=",i3)') iqmt
+        if (iqmt .ne. 1) then
+          write(unitout, '("Info(select_transitions): Same k-grids for + and ref. grids at iqmt=",i3)') iqmt
+        end if
         fsamek1=.true.
       else
         write(unitout, '("Info(select_transitions): Different k-grids for + and ref. grids at iqmt=",i3)') iqmt
         fsamek1=.false.
       end if
       if(all(abs(vkqmtmloff-vkqmtploff) < epslat)) then
-        write(unitout, '("Info(select_transitions): Same k-grids for + and - grids at iqmt=",i3)') iqmt
+        if (iqmt .ne. 1) then
+          write(unitout, '("Info(select_transitions): Same k-grids for + and - grids at iqmt=",i3)') iqmt
+        end if
         fsamek=.true.
       else
         write(unitout, '("Info(select_transitions): Different k-grids for + and - grids at iqmt=",i3)') iqmt
@@ -975,9 +993,10 @@ module modbse
       end if
 
       call timesec(t1)
-      write(unitout, '("Info(select_transitions):&
-        & Time needed/s:", f12.7)') t1-t0
-
+      if (input%xs%BSE%outputlevelnumber == 1) then
+        write(unitout, '("Info(select_transitions):&
+          & Time needed/s:", f12.7)') t1-t0
+      end if
       if( .not. fserial) then 
         call barrier(callername=trim(thisname))
       end if

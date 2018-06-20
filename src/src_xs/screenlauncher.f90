@@ -16,7 +16,8 @@ subroutine screenlauncher
                    & qparf, unitout, totalqlmt, qvkloff,&
                    & gqdirname, eps0dirname, scrdirname, timingdirname,&
                    & ikmapikq, nkpt0, vkl0, usefilext0, filext0, filexteps,&
-                   & iqmt0, iqmt1, evalsv0
+                   & iqmt0, iqmt1, evalsv0, istocc0, istunocc0, isto0, isto,&
+                   & istu0, istu, nst1, nst2, ngq
   use mod_xsgrids
   use m_genfilname
   use m_filedel
@@ -176,10 +177,33 @@ subroutine screenlauncher
 
   ! Set *.OUT as file extension for screening files
   call genfilname(fileext=filexteps)
-
+  ! write band combinations to INFOXS.OUT
+  if (mpiglobal%rank == 0) then
+    input%xs%emattype = 1
+    do iq=1, nqpt
+      call findocclims(iq, ikmapikq(:,iq), istocc0, istunocc0, isto0, isto, istu0, istu)
+      call ematbdcmbs(input%xs%emattype)
+      if (iq == 1) then
+        write(unitout, '(a, 4i6)') 'Info(' // thisname // '):&
+          & lowest (partially)  unoccupied state: ', istunocc0
+        write(unitout, '(a, 4i6)') 'Info(' // thisname // '):&
+          & highest (partially) occupied state  : ', istocc0
+        write(unitout, '(a, i5)') 'Info(' // thisname // '):&
+          & number of occupied states considered:',  nst1 
+        write(unitout, '(a, i5)') 'Info(' // thisname // '):&
+          & number of unoccupied states considered:',  nst2
+      end if
+      write(unitout, *)
+      write(unitout, '(a, i6,a,i6)') 'Info(' // thisname // '):&
+        & number of G + q vectors for q-point :', iq, ' : ', ngq(iq)
+    end do
+    call printline(unitout, "-")
+  end if
   ! Use q point parallelization instead of frequency w points
   call genparidxran('q', nqpt)
-
+  write(unitout,*)
+  write(unitout, '(a, i4)') 'Info(' // thisname // '): Starting loop over q-points'
+  write(unitout, *)
   ! Loop over q-points 
   do iq = qpari, qparf
 
@@ -192,9 +216,11 @@ subroutine screenlauncher
     ! Generate screening for the given q-point
     call dfq(iq)
 
-    write(unitout, '(a, i8)') 'Info(' // thisname // '): Kohn Sham&
-      & response function finished for q - point:', iq
-    call printline(unitout, "-")
+    if (input%xs%BSE%outputlevelnumber == 1) then
+      write(unitout, '(a, i8)') 'Info(' // thisname // '): Kohn Sham&
+        & response function finished for q - point:', iq
+      call printline(unitout, "-")
+    end if
 
     if(mpiglobal%rank == 0) then
       write(6, '(a,"screenlauncher: Progess epsilon(q):", f10.3)', advance="no")&
@@ -317,6 +343,9 @@ subroutine screenlauncher
       ! Use q point parallelization instead of w
       call genparidxran('q', nqpt)
 
+      write(unitout, '(a, i4)') 'Info(' // thisname // '): Starting loop over q-points'
+      write(unitout, *)
+      call printline(unitout, "-")
       ! Loop over q-points 
       do iq = qpari, qparf
 
@@ -328,12 +357,14 @@ subroutine screenlauncher
         ! Generate screening for the given q-point
         call dfq(iq)
 
-        write(unitout, '(a, i4)') 'Info(' // thisname // '): Kohn Sham&
-          & response function finished for q - point:', iq
-        call printline(unitout, "-")
-        write(unitout, *)
+        if (input%xs%BSE%outputlevelnumber == 1) then
+          write(unitout, '(a, i4)') 'Info(' // thisname // '): Kohn Sham&
+            & response function finished for q - point:', iq
+          call printline(unitout, "-")
+          write(unitout, *)
+        end if
 
-        if(mpiglobal%rank == 0) then
+        if((mpiglobal%rank == 0) .and. (input%xs%BSE%outputlevelnumber == 1)) then
           write(6, '(a,"screenlauncher: Progess epsilon(q):", f10.3)', advance="no")&
             & achar( 13), 100.0d0*dble(iq-qpari+1)/dble(qparf-qpari+1)
           flush(6)
