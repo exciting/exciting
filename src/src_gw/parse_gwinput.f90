@@ -14,7 +14,7 @@ subroutine parse_gwinput
     use modinput
     use modmain
     use modgw
-    use mod_coulomb_potential, only: vccut
+    use mod_coulomb_potential, only: vccut, rcut
     use modmpi
     implicit none
  
@@ -325,6 +325,7 @@ subroutine parse_gwinput
         if (rank==0) write(*,*) '  2d   - Slab geometry (vacuum along z-axis)'
         stop
     end select
+    rcut = input%gw%barecoul%rcut
     ! Coulomb potential truncation techniques are implemented only for the PW basis
     if (vccut) input%gw%barecoul%basis = "pw"
     if (rank==0) call linmsg(fgw,'-','')

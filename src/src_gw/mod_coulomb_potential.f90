@@ -190,14 +190,10 @@ contains
         ! local
         integer(4) :: igk, igk0
         integer(4) :: nx, ny, i, j
-        real(8)    :: a, b, vgpk(3), t1
+        real(8)    :: a, b, vgpk(3), intf
         real(8), allocatable :: x(:), wx(:)
         real(8), allocatable :: y(:), wy(:)
         real(8), parameter :: small = 1.d-6
-        ! integration
-        integer(4) :: qopt, ntrial, npts, ierr
-        real(8)    :: accuracy
-        real(8) :: xx_, yy_, quad
 
         ! check if the unit cell orthorombic
         t1 = dot_product(avec(:,1), avec(:,2))
@@ -221,8 +217,8 @@ contains
         !------------------------------------
         ! Double Gauss-Legendre quadrature
         !------------------------------------
-        nx = 64
-        ny = 64
+        nx = 128*nint(2.d0*a/10.d0)
+        ny = 128*nint(2.d0*b/10.d0)
         allocate(x(nx), wx(nx))
         allocate(y(ny), wy(ny))
 
@@ -234,14 +230,13 @@ contains
             vgpk(:) = Gkset%vgkc(:,igk,1,ik)
             ! case q_z -> 0
             if (abs(vgpk(3)) < small) vgpk(3) = small
-            vcoul(igk) = 0.d0
+            intf = 0.d0
             do i = 1, nx
             do j = 1, ny
-                vcoul(igk) = vcoul(igk) + &
-                                wx(i) * wy(j) * K0cosXY(vgpk, x(i), y(j) )
+                intf = intf + wx(i) * wy(j) * K0cosXY(vgpk, x(i), y(j) )
             end do
             end do
-            vcoul(igk) = 2.d0 * vcoul(igk)
+            vcoul(igk) = 2.d0 * intf
         end do
         deallocate(x, wx)
         deallocate(y, wy)
@@ -256,10 +251,61 @@ contains
             real(8), intent(in) :: y
             ! local
             real(8) :: arg, k0
+            real(8), external :: dbesk0
             arg = abs(vgpk(3)) * sqrt(x*x+y*y)
-            call calck0(arg, k0, 1)
-            K0cosXY = k0 * cos(vgpk(1)*x + vgpk(2)*y)
+            K0cosXY = dbesk0(arg) * cos(vgpk(1)*x + vgpk(2)*y)
     end function
+
+
+    subroutine vcoul_1d_Rozzi(Gamma, ik, Gkset, vcoul)
+        use mod_kpointset
+        implicit none
+        logical,      intent(in)  :: Gamma
+        integer(4),   intent(in)  :: ik
+        type(Gk_set), intent(in)  :: Gkset
+        real(8),      intent(out) :: vcoul(:)
+        ! local
+        integer(4) :: igk, igk0
+        integer(4) :: nr, ir
+        real(8)    :: k, kxy, kz, rkxy, rkz, r0
+        real(8), allocatable :: r(:)
+        real(8), allocatable :: fr(:), gr(:), cf(:,:)
+        real(8), parameter :: small = 1.d-6
+        real(8), external :: dbesk0, dbesk1, dbesj0, dbesj1
+
+        ! generate grid
+        nr = 128
+        allocate(r(nr))
+        r0 = 1.d-4
+        do ir = 1, nr
+            r(ir) = r0 + (dble(ir-1)/dble(nr-1))**3*(rcut-r0)
+        end do
+        
+        allocate(fr(nr), gr(nr), cf(3,nr))
+        do igk = 1, Gkset%ngk(1,ik)
+            k   = Gkset%gkc(igk,1,ik)
+            kxy = sqrt( Gkset%vgkc(1,igk,1,ik)**2 +  Gkset%vgkc(2,igk,1,ik)**2 ) ! k_perpendicular
+            kz  = abs(Gkset%vgkc(3,igk,1,ik))
+            if ( kz > small ) then
+                rkxy = rcut*kxy
+                rkz  = rcut*kz
+                vcoul(igk) = 4.d0*pi / k**2 * ( &
+                             1.d0 + rkxy * dbesj1(rkxy) * dbesk0(rkz) - &
+                             rkz * dbesj0(rkxy) * dbesk1(rkz) )
+            else if ( (kz < small) .and. (abs(kxy) > small) ) then
+                do ir = 1, nr
+                    fr(ir) = r(ir)*log(r(ir))*dbesj0(kxy*r(ir))
+                end do
+                call fderiv(-1, nr, r, fr, gr, cf)
+                vcoul(igk) = -4.d0*pi * gr(nr)
+            else if ( (kz < small) .and. (abs(kxy) < small)) then
+                vcoul(igk) = -pi * rcut**2 * (2.d0*log(rcut)-1.d0)
+            end if
+        end do
+        deallocate(fr, gr, cf)
+        deallocate(r)
+
+    end subroutine
 
 
     subroutine vcoul_2d(Gamma, ik, Gkset, vcoul)
@@ -346,12 +392,12 @@ contains
 
         ! create uniform 3-d grid
         do i = 1, 3
-            n(i) = dble(n0)*nint(b(i)/bmin)
+            n(i) = nint(dble(n0)*b(i)/bmin)
         end do
         
-        ! print*, 'grid=', n
-        ! print*, 'bmin=', bmin
-        ! print*, 'b=', b
+        print*, 'grid=', n
+        print*, 'bmin=', bmin
+        print*, 'b=', b
 
         ! Generate the integration grid and corresponding weights
         allocate(q1(n(1)), w1(n(1)))
@@ -487,8 +533,8 @@ contains
         b = 0.5d0*sqrt(dot_product(avec(:,2), avec(:,2)))
 
         ! Parameters for integrating over 2D WS cell
-        nx = 64
-        ny = 64
+        nx = 64*nint(2.d0*a/10.d0)
+        ny = 64*nint(2.d0*b/10.d0)
         allocate(x(nx), wx(nx))
         allocate(y(ny), wy(ny))
         call gauleg(-a, a, x, wx, nx)

@@ -175,6 +175,7 @@
                 <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="stctol" default="1.0d-15"> </xs:attribute>
                 <xs:attribute ex:importance="expert" ex:unit="" name="barcevtol" type="fortrandouble" default="0.1d0"> </xs:attribute>
                 <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="cutofftype" default="none"></xs:attribute>
+                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="rcut" default="10.d0"></xs:attribute>
                 <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="basis" default="mb"></xs:attribute>
               </xs:complexType>
             </xs:element>
