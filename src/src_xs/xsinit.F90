@@ -3,13 +3,13 @@
 ! See the file COPYING for license details.
 !
 !
-subroutine xsinit
-  use modinput, only: input, isspinspiral
+subroutine xsinit(j, plan)
+  use modinput, only: input, isspinspiral, plan_type
   use mod_names,only: revert_names
   use mod_qpoint,only: ngridq
   use mod_constants,only: h2ev
   use mod_spin,only: ncmag
-  use mod_misc,only: versionname, task, githash, notelns, notes
+  use mod_misc,only: versionname, githash, notelns, notes
   use modmpi
   use modxs,only: calledxs, init0symonly, cputim0i, cntrate, &
                 & systim0i, systimcum, xsfileout, fnetim, &
@@ -23,14 +23,22 @@ subroutine xsinit
   use m_genfilname,only: genfilname
 
   implicit none
-
+  integer, intent(in) :: j
+  type(plan_type), intent(in) :: plan
   ! local variables
   character(10) :: dat, tim
-  integer :: i
+  character(500) :: taskname
+  integer :: i, task
   real(8) :: tv(3)
   real(8), parameter :: eps=1.d-7
   character(77) :: string
 
+  !--------------------------------!
+  !     set taskname and number    !
+  !--------------------------------!
+  task=plan%doonlyarray(j)%doonly%tasknumber
+  taskname=plan%doonlyarray(j)%doonly%task
+  
   ! Backups of groundstate variables
   call backup0
   call backup1
@@ -70,7 +78,7 @@ subroutine xsinit
   
   ! write to info file
   call printline(unitout,"=")
-  write(string,'("EXCITING ", a, " started for task ",i6)') trim(versionname), task
+  write(string,'("EXCITING ", a, " started for task ",a," (",i3,")")') trim(versionname), trim(taskname), task
   call printtext(unitout,"=",string)
   if(calledxs .eq. 1) then
     write(string,'("version hash id: ",a)') githash

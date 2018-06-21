@@ -109,20 +109,22 @@ subroutine xsgeneigvec(qi, qf, nqpts, vql, qvkloff, tscr, tmqmt)
     if(tscr) then 
       write(unitout, '("Using screening GS parameters.")')
     end if
-    write(unitout, '("vqlmt = ", 3g18.10)') vqlmt(1:3,iq)
-    write(unitout, '("vqcmt = ", 3g18.10)') vqcmt(1:3,iq)
-    write(unitout, '("Norm2 = ", 1g18.10)') norm2(vqcmt(1:3,iq))
-    if(norm2(vqcmt(1:3,iq)) > 1.0d-8) then 
-      write(unitout, '("vqcmt/Norm2 = ", 3g18.10)') vqcmt(1:3,iq)/norm2(vqcmt(1:3,iq))
+    if (input%xs%BSE%outputlevelnumber == 1) then
+      write(unitout, '("vqlmt = ", 3g18.10)') vqlmt(1:3,iq)
+      write(unitout, '("vqcmt = ", 3g18.10)') vqcmt(1:3,iq)
+      write(unitout, '("Norm2 = ", 1g18.10)') norm2(vqcmt(1:3,iq))
+      if(norm2(vqcmt(1:3,iq)) > 1.0d-8) then 
+        write(unitout, '("vqcmt/Norm2 = ", 3g18.10)') vqcmt(1:3,iq)/norm2(vqcmt(1:3,iq))
+      end if
+      write(unitout, '("k-grid offset derived form qmt and k offset:")')
+      write(unitout, '("qvkloff = ", 3g18.10)') qvkloff(1:3,iq)
+      write(unitout, '("qvkloff/ngridk = ", 3g18.10)') qvkloff(1:3,iq)/input%xs%ngridk
+      if(iq /= 1 .and. all(abs(qvkloff(1:3,iq)-qvkloff(1:3,1)) < epslat)) then
+        write(unitout, '("Info(", a, "): Q-point ", i4,&
+        &  " has the same k-grid offset as the Q=0 qmt point, skipping GS calculation.")')&
+        &  thisname, iq
     end if
-    write(unitout, '("k-grid offset derived form qmt and k offset:")')
-    write(unitout, '("qvkloff = ", 3g18.10)') qvkloff(1:3,iq)
-    write(unitout, '("qvkloff/ngridk = ", 3g18.10)') qvkloff(1:3,iq)/input%xs%ngridk
-    if(iq /= 1 .and. all(abs(qvkloff(1:3,iq)-qvkloff(1:3,1)) < epslat)) then
-      write(unitout, '("Info(", a, "): Q-point ", i4,&
-      &  " has the same k-grid offset as the Q=0 qmt point, skipping GS calculation.")')&
-      &  thisname, iq
-      call printline(unitout, "-")
+    call printline(unitout, "-")
       cycle
     else
       call printline(unitout, "-")

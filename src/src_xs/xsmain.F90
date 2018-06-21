@@ -48,7 +48,7 @@ subroutine xsmain(plan, nxstasks)
     task = plan%doonlyarray(i)%doonly%tasknumber
 
     ! initialization for xs tasks (dependent on task number)
-    call xsinit
+    call xsinit(i,plan)
 
     select case(task)
 
