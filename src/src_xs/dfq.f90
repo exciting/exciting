@@ -267,12 +267,12 @@ subroutine dfq(iq)
   !   When coming from the df routine, i.e. screen emattype is set to 1, so o-u,u-o
   call ematbdcmbs(input%xs%emattype)
 
+  tq0 = tqgamma(iq)
   ! Check if q-point is gamma point (uses mod_qpoint::vqc)
   if (input%xs%BSE%outputlevelnumber == 1) then
     write(unitout, *)
     write(unitout, '(a,i4)') 'Info(' // trim(thisname) // '):&
     & Calculating screening for q-point: ', iq 
-    tq0 = tqgamma(iq)
     if(tq0) then
       write(unitout, '(a)') 'Info(' // trim(thisname) // '):&
        & Gamma q-point: using momentum matrix elements for dielectric function'
