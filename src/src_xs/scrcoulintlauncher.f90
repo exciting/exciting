@@ -59,7 +59,7 @@ subroutine scrcoulintlauncher
   ! Info output
   call printline(unitout, "+")
   write(unitout, '("Info(",a,"):", a)') trim(thisname),&
-    & " Setting up screened interaction matrix."
+    & " Setting up screened Coulomb interaction matrix W."
   write(unitout, '("Info(",a,"):", a, i3, a, i3)') trim(thisname),&
     & " Using momentum transfer vectors from list : ", iqmti, " to", iqmtf
   call printline(unitout, "+")
@@ -77,9 +77,9 @@ subroutine scrcoulintlauncher
       write(unitout, '("Info(",a,"):", a)') trim(thisname), &
         & " Calculating screened Coulomb interaction matrix W"
       write(unitout, '("Info(",a,"):", a, i3)') trim(thisname), &
-        & " Momentum tranfer list index: iqmt=", iqmt
+        & " Momentum transfer list index: iqmt=", iqmt
       write(unitout, '("Info(",a,"):", a, 3f8.3)') trim(thisname), &
-        & " Momentum tranfer: vqmtl=", vqmt(1:3)
+        & " Momentum transfer: vqmtl=", vqmt(1:3)
       call printline(unitout, "+")
       write(unitout,*)
     end if

@@ -324,13 +324,13 @@ module modbse
       write(unitout, '("Info(setranges_modxs):&
         & Number of states considered:",i9)') nstsv
       write(unitout, '("Info(setranges_modxs):&
-        & Number of (partially) occupied state:", i9)') no_max
+        & Number of (partially) occupied states:", i9)') no_max
       write(unitout, '("Info(setranges_modxs):&
-        & Highest (partially) occupied state:", i9)') iomax
+        & Highest (partially) occupied states:", i9)') iomax
       write(unitout, '("Info(setranges_modxs):&
-        & Number of (partially) unoccupied state:", i9)') nu_max
+        & Number of (partially) unoccupied states:", i9)') nu_max
       write(unitout, '("Info(setranges_modxs):&
-        & Lowest (partially) unoccupied state:", i9)') iumin
+        & Lowest (partially) unoccupied states:", i9)') iumin
 
       if(ksgapval == 0.0d0) then
         write(unitout, '("Warning(setranges_modxs): The system has no gap")')

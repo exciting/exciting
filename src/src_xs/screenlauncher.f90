@@ -221,18 +221,21 @@ subroutine screenlauncher
       call printline(unitout, "-")
     end if
 
+#ifndef MPI
     if(mpiglobal%rank == 0) then
       write(6, '(a,"screenlauncher: Progess epsilon(q):", f10.3)', advance="no")&
         & achar( 13), 100.0d0*dble(iq-qpari+1)/dble(qparf-qpari+1)
       flush(6)
     end if
+#endif
 
   end do
 
+#ifndef MPI
   if(mpiglobal%rank == 0) then
     write(6, *)
   end if
-
+#endif
   if(rank == 0) then 
     call printline(unitout, "+")
     write(unitout, '(a, i8)') 'Info(' // thisname // '):&
@@ -362,19 +365,21 @@ subroutine screenlauncher
           call printline(unitout, "-")
           write(unitout, *)
         end if
-
-        if((mpiglobal%rank == 0) .and. (input%xs%BSE%outputlevelnumber == 1)) then
+#ifndef MPI
+        if((mpiglobal%rank == 0)) then
           write(6, '(a,"screenlauncher: Progess epsilon(q):", f10.3)', advance="no")&
             & achar( 13), 100.0d0*dble(iq-qpari+1)/dble(qparf-qpari+1)
           flush(6)
         end if
+#endif MPI
 
       end do
 
+#ifndef MPI
       if(mpiglobal%rank == 0) then
         write(6, *)
       end if
-
+#endif MPI
       ! Synchronize
       call barrier(callername=trim(thisname))
 

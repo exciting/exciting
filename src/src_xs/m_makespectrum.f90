@@ -457,7 +457,7 @@ module m_makespectrum
         & trim(thisname)
       if(iqmt == 1) then 
         write(unitout, '("Info(",a,"):&
-         & Using formalism for vaninshing momentum transfer.")') trim(thisname)
+         & Using formalism for vanishing momentum transfer.")') trim(thisname)
         if(useoff) then
           write(unitout, '("Info(",a,"): Including off diagonals.")') trim(thisname)
         end if
@@ -700,7 +700,7 @@ module m_makespectrum
 
       write(unitout, '("Info(",a,"): Finalizing spectrum.")') trim(thisname)
       if(usechibar) then 
-        write(unitout, '("Info(",a,"): Using modified Chi to build spectrum.")') trim(thisname)
+        write(unitout, '("Info(",a,"): Using modified density-response function to build spectrum.")') trim(thisname)
       end if
       call timesec(t0)
 

@@ -259,8 +259,7 @@ subroutine bse(iqmt)
   call printline(unitout, '-')
   write(unitout,*)
   write(unitout, '("Info(",a,"):&
-    & bsegap-scissor, bsegap (eV):", E23.16,1x,E23.16)')&
-    & trim(thisname), (bsegap-sci)*h2ev, bsegap*h2ev
+    &bsegap (eV):", F23.16)') trim(thisname), bsegap*h2ev
   !---------------------------------------------------------------------------!
 
   ! Independent particle approximation needs no solution of any EVP

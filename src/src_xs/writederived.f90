@@ -32,7 +32,7 @@ subroutine writederived(iqmt, eps, nw, w)
 
   character(*), parameter :: thisname = "writederived"
 
-  write(unitout, '("Info(",a,"): Writing eps_m derived quantities.")') trim(thisname)
+  write(unitout, '("Info(",a,"): Writing quantities derived from the macroscopic dielectric function.")') trim(thisname)
 
   epsilondir='EPSILON'
   lossdir='LOSS'

@@ -173,9 +173,9 @@ subroutine bselauncher
     ! Info out
     call printline(unitout, "-")
     write(unitout, '("Info(",a,"):", a, i3)') trim(thisname),&
-      & " Momentum tranfer list index: iqmt=", iqmt
+      & " Momentum transfer list index: iqmt=", iqmt
     write(unitout, '("Info(",a,"):", a, 3f8.3)') trim(thisname),&
-      & " Momentum tranfer: vqmtl=", vqmt(1:3)
+      & " Momentum transfer: vqmtl=", vqmt(1:3)
     call printline(unitout, "-")
 
     ! Assemble and solve BSE
@@ -187,18 +187,21 @@ subroutine bselauncher
       &trim(thisname), iqmt
     call printline(unitout, "-")
 
+#ifndef MPI
     if(mpiglobal%rank == 0) then
       write(6, '(a,"BSE(q) Progress:", f10.3)', advance="no")&
         & achar( 13), 100.0d0*dble(iqmt-iqmti+1)/dble(iq2-iq1+1)
       flush(6)
     end if
-
+#endif
   end do
   !---------------------------------------------------------------------------!
 
+#ifndef MPI
   if(mpiglobal%rank == 0) then
     write(6, *)
   end if
+#endif
 
   if(iq2<0) then
     write(*, '("Info(",a,"): Rank= ", i3, " is idle.")')&

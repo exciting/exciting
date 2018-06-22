@@ -398,9 +398,11 @@ subroutine scrcoulint(iqmt, fra)
 #endif
   end do
 
+#ifndef MPI
   if(mpiglobal%rank == 0) then
     write(6, *)
   end if
+#endif
 
   ! Set file extesion for later read EMATRAD in getematrad
   ! (some ranks may not participate in the qr loop above)
@@ -778,13 +780,13 @@ subroutine scrcoulint(iqmt, fra)
 
     deallocate(igqmap)
     deallocate(wfc)
-
+#ifndef MPI
     if(mpiglobal%rank == 0) then
       write(6, '(a,"Scrcoulint progess W:", f10.3)', advance="no")&
         & achar( 13), 100.0d0*dble(ikkp-ppari+1)/dble(pparf-ppari+1)
       flush(6)
     end if
-
+#endif
   ! End loop over(k,kp)-pairs
   end do kkploop
 
@@ -799,10 +801,11 @@ subroutine scrcoulint(iqmt, fra)
   deallocate(bsedt)
   !   Write BSE kernel diagonal parameters
   if(mpiglobal%rank .eq. 0) call putbsediag('BSEDIAG.OUT')
-  
+#ifndef MPI 
   if(mpiglobal%rank == 0) then
     write(6, *)
   end if
+#endif
   if(allocated(igqmap)) deallocate(igqmap)
   if(allocated(wfc)) deallocate(wfc)
 

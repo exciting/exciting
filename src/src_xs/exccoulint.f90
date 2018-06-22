@@ -316,19 +316,21 @@ subroutine exccoulint(iqmt)
 
     ! and save it for all ik
     ematuok(1:inu, 1:ino, 1:numgq, ik) = muo(1:inu, 1:ino, 1:numgq)
-
+#ifndef MPI
     if(mpiglobal%rank == 0) then
       write(6, '(a,"Exccoulint - muo progress:", f10.3)', advance="no")&
         & achar( 13), 100.0d0*dble(ik-kpari+1)/dble(kparf-kpari+1)
       flush(6)
     end if
+#endif
 
   end do
 
+#ifndef MPI
   if(mpiglobal%rank == 0) then
     write(6, *)
   end if
-
+#endif
   ! Helper no longer needed
   if(allocated(muo)) deallocate(muo)
 
@@ -427,20 +429,20 @@ subroutine exccoulint(iqmt)
 
     ! Parallel write
     call putbsemat(exclifname, 77, ikkp, iqmt, excli)
-
+#ifndef MPI
     if(mpiglobal%rank == 0) then
       write(6, '(a,"Exccoulint progess:", f10.3)', advance="no")&
         & achar( 13), 100.0d0*dble(ikkp-ppari+1)/dble(pparf-ppari+1)
       flush(6)
     end if
-
+#endif
   ! End loop over(k,kp) pairs
   end do kkp
-
+#ifndef MPI
   if(mpiglobal%rank == 0) then
     write(6,*)
   end if
-  
+#endif
   call barrier(callername=trim(thisname))
 
   if(mpiglobal%rank == 0) then
