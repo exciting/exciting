@@ -86,14 +86,14 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   !------------------------------
   ! Data-set consistency check
   !------------------------------
-  if ((ibgw /= 1).or.(nbgw < nstsv)) then
-    write(*,*)
-    write(*,*)'WARNING(getevalqp):'
-    write(*,*)'  Quasiparticle energies has been calculated for the interval of bands:'
-    write(*,*)'  [ibgw,nbgw]=[', ibgw, nbgw,']'
-    write(*,*)'  Check whether it is that you need ...'
-    write(*,*)
-  end if
+  !if ((ibgw /= 1).or.(nbgw < nstsv)) then
+  !  write(*,*)
+  !  write(*,*)'WARNING(getevalqp):'
+  !  write(*,*)'  Quasiparticle energies has been calculated for the interval of bands:'
+  !  write(*,*)'  [ibgw,nbgw]=[', ibgw, nbgw,']'
+  !  write(*,*)'  Check whether it is that you need ...'
+  !  write(*,*)
+  !end if
 
   !----------------------------------------------
   ! Special case of only one k-point (molecules)
