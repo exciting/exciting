@@ -188,12 +188,16 @@ contains
         type(Gk_set), intent(in)  :: Gkset
         real(8),      intent(out) :: vcoul(:)
         ! local
-        integer(4) :: igk, igk0
-        integer(4) :: nx, ny, i, j
-        real(8)    :: a, b, vgpk(3), intf
-        real(8), allocatable :: x(:), wx(:)
-        real(8), allocatable :: y(:), wy(:)
+        integer(4) :: igk, igk0, n
+        real(8)    :: a, b, vgpk(3), intf, t1
         real(8), parameter :: small = 1.d-6
+
+        ! Romberg integration
+        integer(4), parameter :: dim_num = 2
+        real(8)    :: alim(dim_num), blim(dim_num)
+        integer(4) :: sub_num(dim_num)
+        integer(4) :: it_max, ind, eval_num
+        real(8)    :: tol
 
         ! check if the unit cell orthorombic
         t1 = dot_product(avec(:,1), avec(:,2))
@@ -213,33 +217,49 @@ contains
 
         a = 0.5d0*sqrt(dot_product(avec(:,1), avec(:,1)))
         b = 0.5d0*sqrt(dot_product(avec(:,2), avec(:,2)))
+        
+        alim(1) = 0 ; alim(2) = -b
+        blim(1) = a ; blim(2) =  b
+        
+        sub_num(1) = nint(dble(64)*a/10.d0)
+        sub_num(2) = nint(dble(64)*b/10.d0)
 
-        !------------------------------------
-        ! Double Gauss-Legendre quadrature
-        !------------------------------------
-        nx = 128*nint(2.d0*a/10.d0)
-        ny = 128*nint(2.d0*b/10.d0)
-        allocate(x(nx), wx(nx))
-        allocate(y(ny), wy(ny))
-
-        ! generate grid
-        call gauleg(-a, a, x, wx, nx)
-        call gauleg(-b, b, y, wy, ny)
+        it_max = 1000
+        tol    = 0.1d0
 
         do igk = igk0, Gkset%ngk(1,ik)
             vgpk(:) = Gkset%vgkc(:,igk,1,ik)
             ! case q_z -> 0
             if (abs(vgpk(3)) < small) vgpk(3) = small
-            intf = 0.d0
-            do i = 1, nx
-            do j = 1, ny
-                intf = intf + wx(i) * wy(j) * K0cosXY(vgpk, x(i), y(j) )
-            end do
-            end do
-            vcoul(igk) = 2.d0 * intf
+            call romberg_nd( func, alim, blim, dim_num, sub_num, it_max, tol, intf, ind, eval_num )
+            if (ind < 0) print*, 'The error tolerance could not be achieved'
+            vcoul(igk) = 2.d0 * 2.d0*intf ! extra factor 2 comes from the limits
         end do
-        deallocate(x, wx)
-        deallocate(y, wy)
+
+       
+    contains
+
+        function func(dim_num, x)
+            integer(4) :: dim_num
+            real(8)    :: func
+            real(8)    :: x(dim_num)
+            ! local
+            real(8) :: arg, t1, t2
+            real(8), external :: dbesk0
+            t1 = sqrt( x(1)*x(1) + x(2)*x(2) )
+            if (t1 > small) then
+                arg  = t1 * abs(vgpk(3))
+                t2   = dbesk0(arg)
+                if (abs(t2) > small) then
+                    func = t2 * dcos( vgpk(1)*x(1) + vgpk(2)*x(2) )
+                else
+                    func = 0.d0
+                end if
+            else
+                func = 0.d0
+            end if
+            return
+        end function
 
     end subroutine
 
@@ -370,10 +390,14 @@ contains
         integer(4) :: ngk, igk, igk0
         integer(4) :: n(3), n0
         real(8)    :: b(3), bmin, bmax, bvol
-        real(8)    :: q, vgpq(3), gpq2, intf
-        real(8), allocatable :: q1(:), q2(:), q3(:), vq(:,:)
-        real(8), allocatable :: w1(:), w2(:), w3(:), wq(:)
+        real(8)    :: vgpk(3), intf
         real(8), parameter :: small = 1.d-6
+        ! Romberg integration
+        integer(4), parameter :: dim_num = 3
+        real(8)    :: alim(dim_num), blim(dim_num)
+        integer(4) :: sub_num(dim_num)
+        integer(4) :: it_max, ind, eval_num
+        real(8)    :: tol
 
         ! Rectangular integration volume
         bvol = (2.d0*pi)**3 / omega / dble(product(ngridk))
@@ -385,7 +409,7 @@ contains
         bmin = minval(b)
         bmax = maxval(b)
 
-        n0 = 3
+        n0 = 2
         if (Gamma) then
             n0 = 4*n0
         end if
@@ -399,51 +423,35 @@ contains
         print*, 'bmin=', bmin
         print*, 'b=', b
 
-        ! Generate the integration grid and corresponding weights
-        allocate(q1(n(1)), w1(n(1)))
-        allocate(q2(n(2)), w2(n(2)))
-        allocate(q3(n(3)), w3(n(3)))
-        call gauleg(-b(1), b(1), q1, w1, n(1))
-        call gauleg(-b(2), b(2), q2, w2, n(2))
-        call gauleg(-b(3), b(3), q3, w3, n(3))
-
-        ! setup q-points
-        nq = product(n)
-        allocate(vq(3,nq), wq(nq))
-        iq = 0
-        do i1 = 1, n(1)
-        do i2 = 1, n(2)
-        do i3 = 1, n(3)
-            iq = iq+1
-            vq(1,iq) = q1(i1)
-            vq(2,iq) = q2(i2)
-            vq(3,iq) = q3(i3)
-            wq(iq)   = w1(i1) * w2(i2) * w3(i3)
-        end do
-        end do
-        end do
-        deallocate(q1, q2, q3)
-        deallocate(w1, w2, w3)
-
-        ! test
-        ! intf = 0.d0
-        ! do iq = 1, nq
-        !     intf = intf + wq(iq)
-        ! end do
-        ! print*, 'TEST integral=', intf, bvol
-
         ! Integration over a small volume around k-point
+        alim(1) = -b(1) ; alim(2) = -b(2) ; alim(3) = -b(3)
+        blim(1) =  b(1) ; blim(2) =  b(2) ; blim(3) =  b(3)
+        
+        sub_num(:) = n(:)
+
+        it_max = 1000
+        tol    = 0.1d0
+
         ngk = Gkset%ngk(1,ik)
         do igk = 1, ngk
-            intf = 0.d0
-            do iq = 1, nq
-                vgpq(:) = vq(:,iq) + Gkset%vgkc(:,igk,1,ik)
-                gpq2    = dot_product(vgpq,vgpq)
-                intf    = intf + wq(iq) / gpq2
-            end do
+            vgpk(:) = Gkset%vgkc(:,igk,1,ik)
+            call romberg_nd( func, alim, blim, dim_num, sub_num, it_max, tol, intf, ind, eval_num )
+            if (ind < 0) print*, 'The error tolerance could not be achieved'
             vc(igk) = 4.d0*pi * intf / bvol
         end do
-        deallocate(vq, wq)
+
+    contains
+
+        function func(dim_num, x)
+            integer(4) :: dim_num
+            real(8)    :: func
+            real(8)    :: x(dim_num)
+            ! local
+            real(8) :: v(3)
+            v(1:3) = x(1:3) + vgpk(1:3)
+            func   = 1.d0 / ( v(1)*v(1) + v(2)*v(2) + v(3)*v(3) )
+            return
+        end function
 
     end subroutine
 
