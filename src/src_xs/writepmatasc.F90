@@ -26,6 +26,7 @@ subroutine writepmatasc
   use m_putpmat
   use m_genfilname
   use mod_hdf5
+  use m_getunit, only: getunit
 
 ! !DESCRIPTION:
 !   Calculates the momentum matrix elements using routine {\tt genpmat} and
@@ -166,10 +167,8 @@ subroutine writepmatasc
       Do ist1 = 1, nstsv
         Do ist2 = 1, nstsv
           Do oct = 1, 3
-            Write (un, '(3i8, i4, 4g18.10)') ik, ist1, ist2, oct, &
-              & pmat (oct, ist1, ist2), Abs (pmat(oct, ist1, ist2)), &
-              & Abs (pmat(oct, ist2, ist1)-conjg(pmat(oct, ist1, &
-              & ist2)))
+            Write (un, '(3i8, i4, 2g18.10)') ik, ist1, ist2, oct, &
+              & pmat (oct, ist1, ist2, ik)
           End Do
         End Do
       End Do
@@ -178,14 +177,14 @@ subroutine writepmatasc
         Do ist2 = 1, nstsv
           Do oct = 1, 3
             Write (un, '(3i8, i4, 2g18.10)') ik, ist1, ist2, oct, &
-              & pmat (oct, ist1, ist2)
+              & pmat (oct, ist1, ist2, ik)
           End Do
         End Do
       End Do
     end if
 #endif
   end do kloop
-  #ifdef _HDF5_
+#ifdef _HDF5_
   if (rank == 0) then
     do ik=1,nkpt 
       write(cik, '(I4.4)') ik
@@ -196,7 +195,7 @@ subroutine writepmatasc
       ! Write hdf5
       !write(*,*) 'shape(pmat)=', shape(pmat)
       !write(*,*) "pmat(1,1,1)=", pmat(1,1,1)
-      call hdf5_write(fhdf5,gname,'pmat', pmat(1,1,1), shape(pmat(:,:,:,ik)))
+      call hdf5_write(fhdf5,gname,'pmat', pmat(1,1,1,1), shape(pmat(:,:,:,ik)))
     end do
   end if
 #endif
