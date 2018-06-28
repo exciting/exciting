@@ -11,7 +11,6 @@ module mod_wannier_variables
     real(8) :: win_i(2), win_o(2)
     integer, allocatable :: win_ii(:,:), win_io(:,:)
     integer, allocatable :: win_ni(:), win_no(:)
-    complex(8), allocatable :: subspace(:,:,:)
   end type wannier_group
 
 ! module variables
@@ -88,6 +87,7 @@ module mod_wannier_variables
       if( allocated( wf_n_wgt)) deallocate( wf_n_wgt)
       if( allocated( wf_n_wgts)) deallocate( wf_n_wgts)
       if( allocated( wf_n_usedshells)) deallocate( wf_n_usedshells)
+      if( allocated( wf_groups)) deallocate( wf_groups)
       wf_initialized = .false.
     end subroutine wannier_destroy
 end module mod_wannier_variables

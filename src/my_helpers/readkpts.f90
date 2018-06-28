@@ -18,7 +18,7 @@ Subroutine readkpts
         call terminate
       end if
       Do iq = 1, nk
-         read (50, *) ik, vk (:, ik), d1, d2
+         read (50, *) ik, vk(:, ik), d1, d2
          !write(*,'(I6,4G18.10,I8)') ik, vk( :, ik), d1, d2
       End Do
       Close (50)

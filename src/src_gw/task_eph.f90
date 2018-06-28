@@ -362,10 +362,10 @@ subroutine task_eph()
   !===========================================================================    
 
 #ifdef MPI
-  call set_mpi_group(kqset%kqmtset%nkpt)
+  call set_mpi_group(kqsetd%kqmtset%nkpt)
   call mpi_set_range(nproc_row, &
   &                  myrank_row, &
-  &                  kqset%kqmtset%nkpt, 1, &
+  &                  kqsetd%kqmtset%nkpt, 1, &
   &                  iqstart, iqend)
   call mpi_set_range(nproc_col, &
   &                  myrank_col, &

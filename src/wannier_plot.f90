@@ -134,7 +134,7 @@ subroutine wannier_plot( fst, lst, cell)
 !$OMP DO
 #endif
     do iknr = 1, nkptnr
-      call myfindkpt( vklnr( :, iknr), wf_kset, ip, ik)
+      call findkptinset( vklnr( :, iknr), wf_kset, ip, ik)
 #ifdef USEOMP
 !$OMP CRITICAL (readevec)
 #endif

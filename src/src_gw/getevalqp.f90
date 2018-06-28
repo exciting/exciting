@@ -3,7 +3,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2,bc)
 
   use modinput
   use modmain
-  use modgw,    only: kset, ibgw, nbgw, nkp1, kvecs1, eks1, eqp1, eferqp
+  use modgw,    only: ibgw, nbgw, nkp1, kvecs1, eks1, eqp1, eferqp
   use mod_wannier
   use mod_wfint
 
@@ -23,10 +23,6 @@ subroutine getevalqp(nkp2,kvecs2,eqp2,bc)
   real(8),    allocatable :: eqp(:), eqpwan(:,:), eqpwanint(:,:)
   complex(8), allocatable :: de1(:,:), de2(:,:)
   type( k_set) :: int_kset
-
-  ! for band-character
-  real(4) :: su
-  integer :: lmax, is, ia, ias, ist, l
 
   !-----------------------------------------------------------------------------
   ! Read the file

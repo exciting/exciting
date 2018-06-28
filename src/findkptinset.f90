@@ -1,4 +1,4 @@
-subroutine myfindkpt( vpl, kset, isym, ik)
+subroutine findkptinset( vpl, kset, isym, ik)
   use modmain
   use modinput
   use mod_kpointset

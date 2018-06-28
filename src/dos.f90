@@ -221,9 +221,9 @@ Subroutine dos
       End Do
 
 ! generate energy grid
-      dw = (input%properties%dos%winddos(2)-input%properties%dos%winddos(1)) / dble (input%properties%dos%nwdos)
+      dw = (input%properties%dos%winddos(2)-input%properties%dos%winddos(1)) / dble (input%properties%dos%nwdos - 1)
       Do iw = 1, input%properties%dos%nwdos
-         w (iw) = dw * dble (iw-0.5d0) + input%properties%dos%winddos (1)
+         w (iw) = dw * dble (iw-1) + input%properties%dos%winddos (1)
       End Do
 ! number of subdivisions used for interpolation
       nsk (:) = Max(input%properties%dos%ngrdos/input%groundstate%ngridk(:), 1)
@@ -271,10 +271,17 @@ if (rank==0) then
             End Do
          End Do
 ! BZ integration
-         Call brzint (input%properties%dos%nsmdos, &
-        & input%groundstate%ngridk, nsk, ikmap, &
-        & input%properties%dos%nwdos, input%properties%dos%winddos, nstsv, nstsv, &
-        & e(:,:,ispn), f, g(:,ispn))
+         if( input%properties%dos%newint) then
+           Call brzint_new (input%properties%dos%nsmdos, &
+          & input%groundstate%ngridk, nsk, ikmap, &
+          & input%properties%dos%nwdos, input%properties%dos%winddos, nstsv, nstsv, &
+          & e(:,:,ispn), f, g(:,ispn))
+         else
+           Call brzint (input%properties%dos%nsmdos, &
+          & input%groundstate%ngridk, nsk, ikmap, &
+          & input%properties%dos%nwdos, input%properties%dos%winddos, nstsv, nstsv, &
+          & e(:,:,ispn), f, g(:,ispn))
+         end if
 ! multiply by the maximum occupancy (spin-polarised: 1, unpolarised: 2)
          g (:, ispn) = occmax * g (:, ispn)
          Do iw = 1, input%properties%dos%nwdos
@@ -307,6 +314,7 @@ if (rank==0) then
           end if
           edif(:,:,:) = 0.d0
           do ik = 1, nkpt
+            write(*,'(i,3f13.6)') ik, vkl( :, ik)
             n = 0
             do ist = nstsv, 1, -1
             if (evalsv(ist,ik)<=efermi) then
@@ -318,19 +326,28 @@ if (rank==0) then
                 edif(n,m,ik) = evalsv(jst,ik)-evalsv(ist,ik)+input%properties%dos%scissor
               end if
               end do
+              write(*,'(2i5,100f23.16)') ist, n, edif( n, 1:5, ik)
             end if
             end do 
           end do ! ik
+          write(*,*) m, n
           ! State dependent JDOS 
           allocate(ej(m,nkpt))
           allocate(fj(m,nkpt))
           fj(:,:) = 1.d0
           do ist = 1, n
             ej(:,:) = edif(ist,1:m,:)
-            call brzint(input%properties%dos%nsmdos, &
-            &           input%groundstate%ngridk, nsk, ikmap, &
-            &           input%properties%dos%nwdos, input%properties%dos%winddos, &
-            &           m, m, ej, fj, gp)
+            if( input%properties%dos%newint) then
+              call brzint_new(input%properties%dos%nsmdos, &
+              &           input%groundstate%ngridk, nsk, ikmap, &
+              &           input%properties%dos%nwdos, input%properties%dos%winddos, &
+              &           m, m, ej, fj, gp)
+            else
+              call brzint(input%properties%dos%nsmdos, &
+              &           input%groundstate%ngridk, nsk, ikmap, &
+              &           input%properties%dos%nwdos, input%properties%dos%winddos, &
+              &           m, m, ej, fj, gp)
+            end if
             gp(:) = occmax*gp(:)
             do iw = 1, input%properties%dos%nwdos
               if (dabs(w(iw))>1.d-4) then
@@ -354,10 +371,18 @@ if (rank==0) then
             ej(i,:) = edif(ist,jst,:)
           end do
           end do
-          call brzint(input%properties%dos%nsmdos, &
-          &           input%groundstate%ngridk, nsk, ikmap, &
-          &           input%properties%dos%nwdos, input%properties%dos%winddos, &
-          &           n*m, n*m, ej, fj, gp)
+          write(*,*) input%properties%dos%nsmdos, nsk, input%properties%dos%nwdos, input%properties%dos%winddos
+          if( input%properties%dos%newint) then
+            call brzint_new(input%properties%dos%nsmdos, &
+            &           input%groundstate%ngridk, nsk, ikmap, &
+            &           input%properties%dos%nwdos, input%properties%dos%winddos, &
+            &           n*m, n*m, ej, fj, gp)
+          else
+            call brzint(input%properties%dos%nsmdos, &
+            &           input%groundstate%ngridk, nsk, ikmap, &
+            &           input%properties%dos%nwdos, input%properties%dos%winddos, &
+            &           n*m, n*m, ej, fj, gp)
+          end if
           gp(:) = occmax*gp(:)
           do iw = 1, input%properties%dos%nwdos
             if (dabs(w(iw))>1.d-4) then
@@ -408,10 +433,17 @@ if (rank==0) then
                            f (ist, ik) = bc (lm, ispn, ias, ist, ik)
                         End Do
                      End Do
-                     Call brzint (input%properties%dos%nsmdos, &
-                    &  input%groundstate%ngridk, nsk, ikmap, &
-                    &  input%properties%dos%nwdos, input%properties%dos%winddos, &
-                    &  nstsv, nstsv, e(:, :, ispn), f, gp)
+                     if( input%properties%dos%newint) then
+                       Call brzint_new (input%properties%dos%nsmdos, &
+                      &  input%groundstate%ngridk, nsk, ikmap, &
+                      &  input%properties%dos%nwdos, input%properties%dos%winddos, &
+                      &  nstsv, nstsv, e(:, :, ispn), f, gp)
+                     else
+                       Call brzint (input%properties%dos%nsmdos, &
+                      &  input%groundstate%ngridk, nsk, ikmap, &
+                      &  input%properties%dos%nwdos, input%properties%dos%winddos, &
+                      &  nstsv, nstsv, e(:, :, ispn), f, gp)
+                     end if
                      gp (:) = occmax * gp (:)
                      Call xml_NewElement (xf, "diagram")
                      Write (buffer,*) ispn

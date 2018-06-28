@@ -24,17 +24,17 @@ Subroutine propertylauncher
 !      end if
 
        !--------------------------------------------------------
-      if( associated( input%properties%wannier)) then
-          if( input%properties%wannier%do .ne. "skip") then
-            call rereadinput
-            call wannierlauncher
-          end if
+      if( associated( input%properties%wannier) .and. (rank .eq. 0)) then
+        if( input%properties%wannier%do .ne. "skip") then
+          call rereadinput
+          call wannierlauncher
+        end if
       end if
  
       
 
       !--------------------------------------------------------
-      if( associated( input%properties%wannierplot)) then
+      if( associated( input%properties%wannierplot) .and. (rank .eq. 0)) then
         call rereadinput
         call wannier_plot( input%properties%wannierplot%fst, input%properties%wannierplot%lst, input%properties%wannierplot%cell)
       end if

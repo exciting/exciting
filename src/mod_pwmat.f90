@@ -127,8 +127,9 @@ module mod_pwmat
 
           real(8), allocatable :: radint(:,:,:)
 
-          vecql(:) = vecql_(:)
-          vecgl(:) = vecgl_(:)
+          vecql = vecql_ + dble( vecgl_)
+          call r3frac( input%structure%epslat, vecql, vecgl)
+          !write(*,'("vq and vg: ",3f13.6,3i)') vecql, vecgl
           call r3mv( bvec, vecql, vecqc)
           call r3mv( bvec, dble( vecgl), vecgc)
           
@@ -314,7 +315,7 @@ module mod_pwmat
           pwmat(:,:) = zzero
 
           ! check if q-vector is zero
-          t1 = vecql(1)**2 + vecql(2)**2 + vecql(3)**2
+          t1 = norm2( vecql + dble( vecgl))
           if( t1 .lt. input%structure%epslat) then
             do i = 0, min( pw_nst1, pw_nst2)-1
               pwmat( pw_fst1+i, pw_fst2+i) = zone
@@ -356,10 +357,10 @@ module mod_pwmat
                   ! lam belongs to apw
                   if( lam2apwlo( lam, l, is) .gt. 0) then
                     o = lam2apwlo( lam, l, is)
-                    call zgemv( 'T', ngkq, pw_nst2, zone, &
-                         evec2, nmatmax, &
-                         apwalm( :, o, lm, ias), 1, zzero, &
-                         auxvec, 1)
+                    call zgemv( 't', ngkq, pw_nst2, zone, &
+                           evec2, nmatmax, &
+                           apwalm( :, o, lm, ias), 1, zzero, &
+                           auxvec, 1)
                     evecshort2( :, idxlmlam( lm, lam, is), ias) = auxvec( 1:pw_nst2)
                   end if
                   ! lam belongs to lo
@@ -425,12 +426,7 @@ module mod_pwmat
           !     interstitial matrix elements     !
           !--------------------------------------!
  
-          !ikq = ikmapikq (ik, iq)
-          veckql = veckl + vecql        !vkql = veckql
-                
-          ! umklapp treatment
-          call r3frac( input%structure%epslat, veckql, shift)
-          shift = -shift
+          shift = g
           
           allocate( cfunmat( ngknr, ngkq))
           allocate( auxmat( pw_fst1:pw_lst1, ngkq))
@@ -439,7 +435,7 @@ module mod_pwmat
             do igq = 1, ngkq
               ig1 = igkignr( igk)
               ig2 = igkqig( igq)
-              g = ivg( :, ig1) - ivg( :, ig2) - shift
+              g = ivg( :, ig1) - ivg( :, ig2) + shift - vecgl
               if( (g(1) .ge. intgv(1,1)) .and. (g(1) .le. intgv(1,2)) .and. &
                   (g(2) .ge. intgv(2,1)) .and. (g(2) .le. intgv(2,2)) .and. &
                   (g(3) .ge. intgv(3,1)) .and. (g(3) .le. intgv(3,2))) then
@@ -448,14 +444,14 @@ module mod_pwmat
             end do
           end do
 
-          call zgemm( 'C', 'N', pw_nst1, ngkq, ngknr, zone, &
-               evec1, nmatmax, &
-               cfunmat, ngknr, zzero, &
-               auxmat, pw_nst1)
-          call zgemm( 'N', 'N', pw_nst1, pw_nst2, ngkq, zone, &
-               auxmat, pw_nst1, &
-               evec2, nmatmax, zone, &
-               pwmat, pw_nst1)
+          call zgemm( 'c', 'n', pw_nst1, ngkq, ngknr, zone, &
+                 evec1, nmatmax, &
+                 cfunmat, ngknr, zzero, &
+                 auxmat, pw_nst1)
+          call zgemm( 'n', 'n', pw_nst1, pw_nst2, ngkq, zone, &
+                 auxmat, pw_nst1, &
+                 evec2, nmatmax, zone, &
+                 pwmat, pw_nst1)
 
           deallocate( auxmat, cfunmat, igkignr, igkqig)
 

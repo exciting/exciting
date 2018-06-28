@@ -22,6 +22,7 @@ module mod_wannier_projection
 
   integer :: wfpro_nradfun
   integer :: wfpro_nprojtot
+  integer :: wfpro_lmax
   
   integer, allocatable :: wfpro_nst(:), wfpro_states(:,:,:), wfpro_projst(:,:), wfpro_projused(:)
   real(8), allocatable :: wfpro_radfun(:,:)
@@ -97,6 +98,7 @@ module mod_wannier_projection
       nnl = 0
       wfpro_nst = 0
       wfpro_states = 0
+      wfpro_lmax = 0
 
       ! get occupancy per state
       do is = 1, nspecies
@@ -117,6 +119,7 @@ module mod_wannier_projection
               if( (n .eq. spn( ist, is)) .and. (l .eq. spl( ist, is)) .and..not. spcore( ist, is) .and. (nnl( nl, is)/nemax .eq. 1)) then
                 wfpro_nst( is) = wfpro_nst( is) + 1
                 wfpro_states( :, wfpro_nst( is), is) = (/n, l/)
+                wfpro_lmax = max( wfpro_lmax, l)
                 exit
               end if
             end do
@@ -137,6 +140,7 @@ module mod_wannier_projection
                 wfpro_nst( is) = wfpro_nst( is) + 1
                 if( nnl( nl, is) .le. m) nunocc = nunocc + 1
                 wfpro_states( :, wfpro_nst( is), is) = (/nl-l, l/)
+                wfpro_lmax = max( wfpro_lmax, l)
               end if
               m = m + 2*(2*l + 1)
             end do
@@ -189,7 +193,7 @@ module mod_wannier_projection
     subroutine wfpro_genradfun
       integer :: is, ia, ias, ist, l, n, nr, io1, io2, ord(2), dord, np
       integer :: iradfun, nn, ir, j, info
-      real(8) :: line( 0:(2*wfpro_noccmax+wfpro_nunocc-1), 0:4, nspecies), t1
+      real(8) :: line( 0:(2*wfpro_noccmax+wfpro_nunocc-1), 0:wfpro_lmax, nspecies), t1
 
       real(8) :: vr( nrmtmax), fr( nrmtmax), gr( nrmtmax), cf( 3, nrmtmax)
       real(8) :: p0( nrmtmax, maxlorbord), p1( nrmtmax, maxlorbord)
@@ -204,7 +208,7 @@ module mod_wannier_projection
       real(8) :: polynom
       external polynom
       
-      call wfpro_getline( (2*wfpro_noccmax+wfpro_nunocc-1), 4, line)
+      call wfpro_getline( (2*wfpro_noccmax+wfpro_nunocc-1), wfpro_lmax, line)
 
       ! generate radial functions (copied from genlofr)
       allocate( wfpro_radfun( nrmtmax, wfpro_nradfun))
@@ -319,7 +323,7 @@ module mod_wannier_projection
       real(8) :: t0, t1
       real(8) :: fr( nrmtmax), gr( nrmtmax), cf( 3, nrmtmax)
 
-      real(8), allocatable :: rolpi(:,:), radfun(:,:)
+      real(8), allocatable :: rolpi(:,:)
       complex(8), allocatable :: evecfv(:,:,:), apwalm(:,:,:,:,:), auxmat(:,:)
 
       call timesec( t0)
@@ -531,7 +535,7 @@ module mod_wannier_projection
         nproj2 = input%properties%wannier%grouparray( igroup)%group%nproj
         if( nproj2 .eq. 0) nproj2 = wf_nprojtot
         if( nproj1 .eq. 0) then
-          wf_groups( igroup)%nprojused = nproj2
+          wf_groups( igroup)%nprojused = min( wf_nprojtot, nproj2)
         else
           wf_groups( igroup)%nprojused = nproj1
         end if

@@ -184,8 +184,8 @@ module mod_optkgrid
       !call optkgrid_findmin1d( 2, st, n, intv0, st(2))
       !call optkgrid_findmin1d( 3, st, n, intv0, st(3))
       
-      s = 0.d0
       st = s0
+      s = 0.d0
       intv(:,1) = intv0
       intv(:,2) = intv0
       intv(:,3) = intv0

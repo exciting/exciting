@@ -10,9 +10,9 @@ MODULE mod_kpointset
         integer(4) :: nkpt                  ! number of k-points
         logical :: isreduced                ! Symmetry was used in construction
         logical :: usedlibzint              ! Was build with libzint
-        real(8), allocatable :: bvec(:,:)   ! Reciprocal lattice basis
-        real(8), allocatable :: vkloff(:)   ! Offset of k-grid in k-coordinates
-        integer(4), allocatable :: ngridk(:)! Number of k-points along [0,1) in each lattice direction
+        real(8) :: bvec(3,3)                ! Reciprocal lattice basis
+        real(8) :: vkloff(3)                ! Offset of k-grid in k-coordinates
+        integer(4) :: ngridk(3)             ! Number of k-points along [0,1) in each lattice direction
 
         ! Reduced quantities
         integer(4), allocatable :: ivk(:,:) ! 3d integer index of k points
@@ -46,7 +46,7 @@ MODULE mod_kpointset
     type G_set
         ! grid parameters
         real(8) :: gmaxvr     ! Maximum G vector length
-        real(8), allocatable :: bvec(:,:)    ! Lattice basis vectors
+        real(8) :: bvec(3,3)  ! Lattice basis vectors
         integer :: ngrtot     ! total number of grid points
         integer, allocatable :: intgv(:,:) ! integer grid size
         ! G-points
@@ -261,7 +261,7 @@ CONTAINS
         integer(4) :: mnd
         integer(4) :: ikloff(3)
         integer(4) :: dkloff
-        integer(4) :: i1, i2, ik, nsym, isym, lspl
+        integer(4) :: i1, i2, i3, ik, nsym, isym, lspl
         integer(4), allocatable :: symmat(:,:,:)
         integer(4), allocatable :: ivk(:,:)
         integer(4), allocatable :: iwkp(:)
@@ -282,12 +282,8 @@ CONTAINS
         self%usedlibzint = uselz
         self%isreduced = reduce
 
-        if (allocated(self%bvec)) deallocate(self%bvec)
-        allocate(self%bvec(3,3))
         self%bvec = bvec
 
-        if (allocated(self%vkloff)) deallocate(self%vkloff)
-        allocate(self%vkloff(3))
         if(any(abs(vkloff) > 1.0d0) .or. any(vkloff < 0.0d0)) then 
           write(*,*) "Warning(generate_k_vectors): vkloff mapped back to first k-parallelepiped"
           write(*,*) "vkloff",vkloff
@@ -296,8 +292,6 @@ CONTAINS
         end if
         self%vkloff = vkloff
 
-        if (allocated(self%ngridk)) deallocate(self%ngridk)
-        allocate(self%ngridk(3))
         self%ngridk = ngridk
 
         ! non reduced 
@@ -382,6 +376,17 @@ CONTAINS
               call r3mv(bvec,self%vkl(:,ik),self%vkc(:,ik))
               self%wkpt(ik) = dble(iwkp(ik))/dble(self%nkptnr)
           enddo ! ik
+
+          ! ikmap (added May 2018, SeTi)
+          ik = 0
+          do i1 = 0, self%ngridk(1) - 1
+            do i2 = 0, self%ngridk(2) - 1
+              do i3 = 0, self%ngridk(3) - 1
+                ik = ik + 1
+                self%ikmap( i1, i2, i3) = self%ik2ikp( ik)
+              end do
+            end do
+          end do
           
           deallocate(symmat,ivk,iwkp)
 
@@ -425,10 +430,6 @@ CONTAINS
 !-------------------------------------------------------------------------------
     subroutine delete_k_vectors(self)
         type(k_set), intent(INOUT) :: self
-        if (allocated(self%bvec)) deallocate(self%bvec)
-        if (allocated(self%vkloff)) deallocate(self%vkloff)
-        if (allocated(self%ngridk)) deallocate(self%ngridk)
-
         if (allocated(self%ivk)) deallocate(self%ivk)
         if (allocated(self%vkl)) deallocate(self%vkl)
         if (allocated(self%vkc)) deallocate(self%vkc)
@@ -537,8 +538,6 @@ CONTAINS
         real(8), allocatable :: rar(:)
 
         ! Reciprocal lattice basis
-        if (allocated(self%bvec)) deallocate(self%bvec)
-        allocate(self%bvec(3,3))
         self%bvec = bvec
 
         ! G grid dimensions
@@ -645,7 +644,6 @@ CONTAINS
 !-------------------------------------------------------------------------------
     subroutine delete_G_vectors(self)
         type(G_set), intent(INOUT) :: self
-        if (allocated(self%bvec)) deallocate(self%bvec)
         if (allocated(self%intgv)) deallocate(self%intgv)
         if (allocated(self%vgc)) deallocate(self%vgc)
         if (allocated(self%gc)) deallocate(self%gc)

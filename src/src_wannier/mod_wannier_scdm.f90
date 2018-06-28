@@ -2,6 +2,7 @@ module mod_wannier_scdm
   use mod_wannier_variables
   use mod_wannier_helper,       only: wannier_geteval, wannier_getevec
   use mod_wannier_maxloc,       only: wannier_loc
+  use m_linalg
 
   use mod_APW_LO,               only: apwordmax
   use mod_atoms,                only: natmtot, nspecies, natoms, idxas, spr 
@@ -30,7 +31,7 @@ module mod_wannier_scdm
 
       integer :: ik, ir, irmt, ist, is, ia, ias, igk, la1, la2, la3, n1, n2, n3, i, j, np2, ir0, lm, fst, lst
       real(8) :: rho, r, t1, t2,  vl(3), vc(3)
-      real(8) :: mu, sigma(2), fe
+      real(8) :: sigma(2), fe
       complex(8) :: zsum
 
       real(8), allocatable :: xa(:), ya(:), c(:), sval(:), eval(:)
@@ -211,7 +212,7 @@ module mod_wannier_scdm
             zeta( ist, :) = fe*zeta( ist, :)
           end if
         end do
-        call zgesdd_wrapper( zeta, wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, sval, lsvec, rsvec)
+        call zsvd( zeta, sval, lsvec, rsvec)
         ! for numerical stability
         !do i = 1, wf_nwf
         !  if( sval( i) .lt. 1.d-12) lsvec( :, i) = zzero
@@ -233,7 +234,7 @@ module mod_wannier_scdm
                  ur( 1:wf_groups( wf_group)%win_no( ik), :), wf_groups( wf_group)%win_no( ik), &
                  ur( 1:wf_groups( wf_group)%win_no( ik), :), wf_groups( wf_group)%win_no( ik), zzero, &
                  y( 1:wf_groups( wf_group)%win_no( ik), 1:wf_groups( wf_group)%win_no( ik)), wf_groups( wf_group)%win_no( ik))
-          call diaghermat( wf_groups( wf_group)%win_no( ik), y( 1:wf_groups( wf_group)%win_no( ik), 1:wf_groups( wf_group)%win_no( ik)), &
+          call zhediag( y( 1:wf_groups( wf_group)%win_no( ik), 1:wf_groups( wf_group)%win_no( ik)), &
                   eval( 1:wf_groups( wf_group)%win_no( ik)), lsvec( 1:wf_groups( wf_group)%win_no( ik), 1:wf_groups( wf_group)%win_no( ik)))
           y = zzero
           do ist = 1, wf_groups( wf_group)%nwf - wf_groups( wf_group)%win_ni( ik)
@@ -254,7 +255,7 @@ module mod_wannier_scdm
                  ur, wf_groups( wf_group)%nst, &
                  wf_transform( wf_groups( wf_group)%fst:wf_groups( wf_group)%lst, wf_groups( wf_group)%fwf:wf_groups( wf_group)%lwf, ik), wf_groups( wf_group)%nst, zzero, &
                  x, wf_groups( wf_group)%nwf)
-          call zgesdd_wrapper( x, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nwf, sval, lsvec( 1:wf_groups( wf_group)%nwf, 1:wf_groups( wf_group)%nwf), rsvec)
+          call zsvd( x, sval, lsvec( 1:wf_groups( wf_group)%nwf, 1:wf_groups( wf_group)%nwf), rsvec)
           call zgemm( 'n', 'n', wf_groups( wf_group)%nwf, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nwf, zone, &
                  lsvec( 1:wf_groups( wf_group)%nwf, 1:wf_groups( wf_group)%nwf), wf_groups( wf_group)%nwf, &
                  rsvec, wf_groups( wf_group)%nwf, zzero, &

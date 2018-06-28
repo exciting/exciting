@@ -4,6 +4,7 @@ module mod_wannier_subspace
   use mod_wannier_opf
   use mod_wannier_helper
   use mod_eigenvalue_occupancy, only: efermi
+  use m_linalg
 
   implicit none
 
@@ -14,10 +15,10 @@ contains
     subroutine wannier_subspace
       use m_plotmat
 
-      integer :: ik, ikb, i, nik, nikb, nok, nokb, n, is, ni, idxn, jst, fst, lst, it, maxit, iproj
+      integer :: ik, ikb, i, nik, nikb, nok, nokb, n, ni, idxn, fst, lst, it, maxit, iproj
       real(8) :: mixing, maxdiff, omegai0, t0, t1, fac, win(2)
       real(8) :: omegai, omegaik, omegaiinner
-      complex(8) :: tmpz, zdotc
+      complex(8) :: zdotc
 
       integer, allocatable :: idxo(:) 
       real(8), allocatable :: sval(:), eval(:), evalmem(:,:), score(:,:), scoresum(:)
@@ -118,8 +119,7 @@ contains
                projm, wf_groups( wf_group)%nst, &
                wf_opf, wf_groups( wf_group)%nprojused, zzero, & 
                auxmat, wf_groups( wf_group)%nst)
-        call zgesdd_wrapper( auxmat( 1:(nok+nik), :), &
-               nok+nik, wf_groups( wf_group)%nwf, &
+        call zsvd( auxmat( 1:(nok+nik), :), &
                sval( 1:wf_groups( wf_group)%nwf), &
                lsvec( 1:(nok+nik), 1:(nok+nik)), &
                rsvec)
@@ -146,7 +146,7 @@ contains
         !end do
 
         lsvec = zzero
-        call diaghermat( nok, auxmat2( (nik+1):(nok+nik), (nik+1):(nok+nik)), sval( 1:nok), lsvec( 1:nok, 1:nok))
+        call zhediag( auxmat2( (nik+1):(nok+nik), (nik+1):(nok+nik)), sval( 1:nok), lsvec( 1:nok, 1:nok))
         !write(*,*) nk, mk, wf_groups( wf_group)%nwf - mk
         !call plotmat( auxmat2( (mk+1):(nk+mk), (mk+1):(nk+mk)))
         !write(*,*)
@@ -311,7 +311,7 @@ contains
         omegai = 0.d0
         if( it .eq. 1) mixing = 1.d0
 #ifdef USEOMP
-!$omp parallel default( shared) private( ik, ikb, i, n, nik, nok, nikb, nokb, idxn, auxmat, eval, evec, omegaik, tmpz) reduction(+:omegai)
+!$omp parallel default( shared) private( ik, ikb, i, n, nik, nok, nikb, nokb, idxn, auxmat, eval, evec, omegaik) reduction(+:omegai)
 !$omp do
 #endif
         do ik = 1, wf_kset%nkpt
@@ -360,7 +360,7 @@ contains
 
             end do
             n = wf_groups( wf_group)%nwf - nik
-            call diaghermat( nok, z( 1:nok, 1:nok, ik), eval( 1:nok), evec( 1:nok, 1:nok))
+            call zhediag( z( 1:nok, 1:nok, ik), eval( 1:nok), evec( 1:nok, 1:nok))
             !write(*,'(1000f13.6)') sum( wf_n_wgt( 1:wf_n_ntot)), eval( 1:nk)
             do i = 1, n
               subspace_mem( 1:nok, i, ik) = evec( 1:nok, nok-i+1)
@@ -384,11 +384,11 @@ contains
 !$omp end parallel
 #endif
         omegai = (omegai + omegaiinner)/wf_kset%nkpt
-        write(*,'(1a1,i8,f23.16,$)') char(13), it, omegai
+        !write(*,'(1a1,i8,f23.16,$)') char(13), it, omegai
 
         subspace = subspace_mem
       end do
-      write(*,*)
+      !write(*,*)
 
       wf_transform( :, wf_groups( wf_group)%fwf:wf_groups( wf_group)%lwf, :) = zzero
       do ik = 1, wf_kset%nkpt

@@ -1,5 +1,6 @@
 module mod_wannier_maxloc
   use mod_wannier_variables
+  use m_linalg
 
   use mod_constants,            only: zone, zzero, zi, pi, twopi
   use modinput
@@ -67,7 +68,7 @@ module mod_wannier_maxloc
       ! local variables
       integer :: ik, convun
       real(8) :: grad, nwgt
-      real(8) :: omegastart, omegamean, uncertainty, omega_new, omega_old
+      real(8) :: omegastart, omegamean, uncertainty, omega_old
       real(8) :: t0, t1, t2
       complex(8) :: auxmat( wf_groups( wf_group)%nwf, wf_groups( wf_group)%nwf)
       logical :: success
@@ -106,7 +107,7 @@ module mod_wannier_maxloc
         call getunit( convun)
         write( convfname, '("maxloc_conv_",i3.3,".dat")'), wf_group
         open( convun, file=trim( convfname), action='write', form='formatted')
-        write( convun, '("# Iteration   Time   Omega   DeltaOmega   dOmega   Step   Gradient   CGstep   OmegaEvaluations")')
+        write( convun, '("# Iteration   Time   Omega   DeltaOmega   dOmega   Step   Gradient   Uncertainty   CGstep   OmegaEvaluations")')
       end if
 
       write( wf_info, '(" minimize localization functional Omega...")')
@@ -195,7 +196,7 @@ module mod_wannier_maxloc
         ! diagonalize update directions
         do ik = 1, wf_kset%nkpt
           auxmat = zi*mlwf_dir( :, :, ik)/nwgt
-          call diaghermat( wf_groups( wf_group)%nwf, auxmat, mlwf_dir_eval( :, ik), mlwf_dir_evec( :, :, ik))
+          call zhediag( auxmat, mlwf_dir_eval( :, ik), mlwf_dir_evec( :, :, ik))
         end do
 #ifdef USEOMP
 !!$omp end do
@@ -240,9 +241,9 @@ module mod_wannier_maxloc
           gradhist(1) = grad
         end if
 
-        if( mod( cntit, nwrite) .eq. 0) call wannier_writetransform
+        if( (mod( cntit, nwrite) .eq. 0) .and. (cntit .ne. maxit)) call wannier_writetransform
 
-        if( mlwf_omega .gt. 2.d0*omegastart) success = .true.
+        if( mlwf_omega .gt. omegastart+abs( omegastart)) success = .true.
         if( uncertainty .le. input%properties%wannier%grouparray( wf_group)%group%uncertainty) success = .true.
         if( maxval( gradhist) .le. input%properties%wannier%grouparray( wf_group)%group%uncertainty) success = .true.
         if( cntit .lt. minit) success = .false.
@@ -257,7 +258,7 @@ module mod_wannier_maxloc
       !* end of minimization
       !************************************************************
 
-      if( mlwf_omega .gt. 2.d0*omegastart) then
+      if( mlwf_omega .gt. omegastart+abs( omegastart)) then
         write(*, '("Error (wannier_maxloc): Localization functional diverged. Procedure aborted after ",I4," loops.")') cntit
       else if( cntit .ge. maxit) then
         write(*, '("Error (wannier_maxloc): Not converged after ",I6," cycles.")') maxit
@@ -907,7 +908,7 @@ module mod_wannier_maxloc
             noise( jst, ist) = -conjg( z)
           end do
         end do
-        call diaghermat( wf_nwf, zi*noise, eval, evec)
+        call zhediag( zi*noise, eval, evec)
         do ist = 1, wf_nwf
           auxmat1( :, ist) = exp( -zi*nl*eval( ist))*evec( :, ist)
         end do
@@ -935,13 +936,12 @@ module mod_wannier_maxloc
     end subroutine wannier_addnoise
 
     subroutine wannier_loc( totonly)
-      use mod_lattice, only : ainv
       logical, optional, intent( in) :: totonly
 
-      integer :: iknr, is, n, i, j, k, idxn
+      integer :: iknr, j, k, idxn
       complex(8), allocatable :: auxmat(:,:)
       real(8), allocatable :: logsum(:,:), log2sum(:,:), abssum(:,:), abs2sum(:,:)
-      real(8) :: tmp, o, oi, od, ood, v3(3)
+      real(8) :: tmp
       logical :: tot
 
       tot = .false.
@@ -975,7 +975,7 @@ module mod_wannier_maxloc
       end if
 
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, is, i, n, idxn, auxmat)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, idxn)
 !$OMP DO COLLAPSE( 2)
 #endif
       do iknr = 1, wf_kset%nkpt
@@ -1000,7 +1000,7 @@ module mod_wannier_maxloc
       abssum = 0.d0
       abs2sum = 0.d0
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( j, i, n, idxn, iknr, tmp, is)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( j, idxn, iknr, tmp, k)
 !$OMP DO COLLAPSE(2)
 #endif
       do idxn = 1, wf_n_ntot
@@ -1016,7 +1016,7 @@ module mod_wannier_maxloc
             if( .not. tot) then
               do k = wf_groups( wf_group)%fwf, wf_groups( wf_group)%lwf
                 abs2sum( j, idxn) = abs2sum( j, idxn) + 0.5d0*( dble( wf_m( j, k, iknr, idxn)*conjg( wf_m( j, k, iknr, idxn))) + &
-                                                                   dble( wf_m( k, j, iknr, idxn)*conjg( wf_m( k, j, iknr, idxn))))
+                                                                dble( wf_m( k, j, iknr, idxn)*conjg( wf_m( k, j, iknr, idxn))))
               end do
             end if
           end do
@@ -1033,7 +1033,7 @@ module mod_wannier_maxloc
 
       wf_centers( :, wf_groups( wf_group)%fwf:wf_groups( wf_group)%lwf) = 0.d0
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( i, n, j, is, idxn)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( j, idxn)
 !$OMP DO 
 #endif
       do j = wf_groups( wf_group)%fwf, wf_groups( wf_group)%lwf
@@ -1059,7 +1059,7 @@ module mod_wannier_maxloc
 
       if( tot) then
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( i, is, n, idxn, j)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( idxn, j)
 !$OMP DO
 #endif
         do j = wf_groups( wf_group)%fwf, wf_groups( wf_group)%lwf
@@ -1075,7 +1075,7 @@ module mod_wannier_maxloc
 #endif
       else
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( i, is, n, idxn, j)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( idxn, j)
 !$OMP DO
 #endif
         do j = wf_groups( wf_group)%fwf, wf_groups( wf_group)%lwf
@@ -1103,15 +1103,12 @@ module mod_wannier_maxloc
     end subroutine wannier_loc
 
     subroutine wannier_phases
-      integer :: ik, ist, idxn, i, n
+      integer :: ik, ist, idxn, i
 
-      integer :: ipiv1( wf_n_ntot), ipiv2( wf_n_ntot)
+      integer :: ipiv1( wf_n_ntot)
       real(8) :: m1( wf_n_ntot, wf_n_ntot)
       real(8) :: m2( wf_n_ntot, wf_n_ntot)
-      real(8) :: mt1( wf_n_ntot, wf_n_ntot)
-      real(8) :: mt2( wf_n_ntot, wf_n_ntot)
-      real(8) :: p( wf_n_ntot, wf_n_ntot)
-      real(8) :: rhs( wf_n_ntot), res( wf_n_ntot), l(wf_n_ntot), c(3)
+      real(8) :: rhs( wf_n_ntot), l(wf_n_ntot), c(3)
 
       if( .not. allocated( wf_sheet)) allocate( wf_sheet( wf_nwf, wf_n_ntot))
 

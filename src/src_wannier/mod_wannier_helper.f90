@@ -2,11 +2,13 @@ module mod_wannier_helper
   use mod_wannier_variables
 
   use mod_spin,                 only: nspinor, nspnfv
-  use mod_eigensystem,          only: nmatmax 
+  use mod_eigensystem,          only: nmatmax, nmat, npmat 
+  use mod_APW_LO,               only: nlotot
   use mod_lattice,              only: bvec
   use mod_Gvector,              only: intgv
   use mod_Gkvector,             only: gkmax
   use mod_eigenvalue_occupancy, only: nstfv
+  use mod_charge_and_moment,    only: chgval
   use mod_misc,                 only: filext
   use modinput
   use mod_kpoint
@@ -18,6 +20,7 @@ module mod_wannier_helper
   contains
 
     subroutine wannier_setkpts
+      integer :: ik, ispn
       !write(*,*) "k set"
       select case (input%properties%wannier%input)
         case( "gs")
@@ -29,7 +32,8 @@ module mod_wannier_helper
             wf_kset%vkl = vkl
             wf_kset%vkc = vkc
           end if
-          call generate_k_vectors( wf_kset_red, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .true.)
+          call generate_k_vectors( wf_kset_red, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .true., .false.)
+          nstfv = int( chgval/2.d0) + input%groundstate%nempty + 1
         case( "gw")
           call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, input%gw%reduceq)
           vkl = wf_kset%vkl
@@ -40,6 +44,7 @@ module mod_wannier_helper
           vkcnr = wf_kset%vkc
           nkptnr = wf_kset%nkpt
           call generate_k_vectors( wf_kset_red, bvec, input%gw%ngridq, input%gw%vqloff, .true.)
+          nstfv = int( chgval/2.d0) + input%gw%nempty + 1
         case( "qsgw")
           call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, input%gw%reduceq)
           vkl = wf_kset%vkl
@@ -66,7 +71,8 @@ module mod_wannier_helper
           !  end do
           !end do
           call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .false.)
-          call generate_k_vectors( wf_kset_red, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .true., .false.)
+          call generate_k_vectors( wf_kset_red, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .true., .true.)
+          nstfv = int( chgval/2.d0) + input%groundstate%nempty + 1
         case default
           write(*, '(" ERROR (wannier_setkpt): ",a," is not a valid input.")') input%properties%wannier%input
           call terminate
@@ -77,6 +83,22 @@ module mod_wannier_helper
       !write(*,*) "G+k set"
       !write(*,*) gkmax
       call generate_Gk_vectors( wf_Gkset, wf_kset, wf_Gset, gkmax)
+
+      nmatmax = 0
+      if( allocated( nmat)) deallocate( nmat)
+      allocate( nmat( nspnfv, wf_kset%nkpt))
+      if( allocated( npmat)) deallocate( npmat)
+      allocate( npmat( nspnfv, wf_kset%nkpt))
+      do ik = 1, wf_kset%nkpt
+        do ispn = 1, nspnfv
+          nmat( ispn, ik) = wf_Gkset%ngk( ispn, ik) + nlotot
+          nmatmax = max( nmatmax, nmat( ispn, ik))
+! packed matrix sizes
+          npmat( ispn, ik) = (nmat( ispn, ik)*( nmat(ispn, ik)+1))/2
+! the number of first-variational states should not exceed the matrix size
+          nstfv = min( nstfv, nmat( ispn, ik))
+        end do
+      end do
       return
     end subroutine wannier_setkpts
 

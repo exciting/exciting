@@ -5,10 +5,10 @@ MODULE mod_opt_tetra
   PRIVATE
   
   integer :: ntetra                        ! total number of tetrahedra
-  real(8), allocatable, save :: tetra(:,:) ! k-point index of tetrahedra corners                           
+  integer, allocatable, save :: tetra(:,:) ! k-point index of tetrahedra corners                           
   real(8), allocatable, save :: wlsm(:,:)  ! weights for the optimized tetrahedrom method
 
-  PUBLIC opt_tetra_init, opt_tetra_efermi, opt_tetra_occ, opt_tetra_dos
+  PUBLIC opt_tetra_init, opt_tetra_efermi, opt_tetra_occ, opt_tetra_dos, opt_tetra_dos_win
 
 CONTAINS
 !
@@ -183,7 +183,7 @@ subroutine opt_tetra_init(tetra_type, bvec, ngridk, nkp, ikmap)
 end subroutine opt_tetra_init
 !
 !----------------------------------------------------------------------------
-subroutine opt_tetra_efermi(nelec,nkp,nbnd,ebnd,ef,occ)
+subroutine opt_tetra_efermi(nelec, nkp, nbnd, ebnd, ef, occ, ef0, df0)
   !----------------------------------------------------------------------------
   !
   ! calculate fermi energy by using bisection method
@@ -193,29 +193,45 @@ subroutine opt_tetra_efermi(nelec,nkp,nbnd,ebnd,ef,occ)
   integer, intent(in) :: nkp             ! # of k-points in irr-BZ
   integer, intent(in) :: nbnd            ! # of bands
   real(8), intent(in) :: ebnd(nbnd,nkp)  ! Kohn-Sham energies
+  real(8), intent(in), optional :: ef0, df0
   ! output
   real(8), intent(out) :: ef             ! the fermi energy
   real(8), intent(out) :: occ(nbnd,nkp)  ! occupation numbers of each k
   ! local variables
   integer :: ik, iter, maxiter = 500
-  real(8) :: elw, eup, sumk
+  real(8) :: elw, eup, sumk, his(2,2)
   !
   ! find bounds for the fermi energy
   !
-  elw = minval(ebnd(1:nbnd,1:nkp))
-  eup = maxval(ebnd(1:nbnd,1:nkp))
+  if( present( ef0) .and. present( df0)) then
+    elw = ef0 - df0
+    eup = ef0 + df0
+  else
+    elw = minval(ebnd(1:nbnd,1:nkp))
+    eup = maxval(ebnd(1:nbnd,1:nkp))
+  end if
   !
   ! bisection method
   !
   do iter = 1, maxiter
      !
-     ef = (eup+elw)*0.5d0
+     if( iter .gt. 2) then
+        ! linear extrapolation instead for faster convergence (June 2018 SeTi)
+        ef = (nelec - his(2,1))/(his(2,2) - his(2,1))*(his(1,2) - his(1,1)) + his(1,1)
+        if( (ef .lt. elw) .or. (ef .gt. eup)) ef = (eup+elw)*0.5d0
+     else
+        ef = (eup+elw)*0.5d0
+     end if
      !
      ! calc. # of electrons 
      !
      call opt_tetra_occ(nkp, nbnd, ebnd, ef, occ)
      sumk = sum(occ(1:nbnd,1:nkp))
-     !write(*,*) iter, ef, sumk
+     write(*,'(i,3f23.16)') iter, ef, sumk, nelec
+     his(1,1) = his(1,2)
+     his(2,1) = his(2,2)
+     his(1,2) = ef
+     his(2,2) = sumk
      !
      ! convergence check
      !
@@ -228,7 +244,7 @@ subroutine opt_tetra_efermi(nelec,nkp,nbnd,ebnd,ef,occ)
      end if
      !
   end do ! iter
-  if (iter >= maxiter) write(6,*) "(opt_tetra_weights) Not converged", iter
+  if (iter >= maxiter) write(6,*) "(opt_tetra_efermi) Not converged", iter
   !
 end subroutine opt_tetra_efermi
 !
@@ -250,6 +266,10 @@ subroutine opt_tetra_occ(nkp, nbnd, ebnd, ef, occ)
   !
   occ(1:nbnd,1:nkp) = 0.d0
   !
+#ifdef USEOMP
+!$omp parallel default( shared) private( it, ib, e, ii, ik, idx, rar, i, a, c, wocc)
+!$omp do
+#endif
   do it = 1, ntetra
      !
      do ib = 1, nbnd
@@ -312,12 +332,22 @@ subroutine opt_tetra_occ(nkp, nbnd, ebnd, ef, occ)
         !
         do ii = 1, 20
            ik = tetra(ii,it)
+#ifdef USEOMP
+!$omp atomic update
+#endif
            occ(ib,ik) = occ(ib,ik) + dot_product(wlsm(1:4,ii), wocc(idx(1:4)))
+#ifdef USEOMP
+!$omp end atomic
+#endif
         end do
         !
      end do ! ib
      !
   end do ! it
+#ifdef USEOMP
+!$omp end do
+!$omp end parallel
+#endif
   !
   occ(:,:) = occ(:,:) / dble(ntetra)
   !
@@ -342,6 +372,10 @@ subroutine opt_tetra_dos(nkp, nbnd, ebnd, ef, dfde)
   !
   dfde(1:nbnd,1:nkp) = 0.d0
   !
+#ifdef USEOMP
+!$omp parallel default( shared) private( it, ib, e, ii, ik, idx, rar, i, a, c, wdos)
+!$omp do collapse(2)
+#endif
   do it = 1, ntetra
      !
      do ib = 1, nbnd
@@ -400,14 +434,128 @@ subroutine opt_tetra_dos(nkp, nbnd, ebnd, ef, dfde)
         !
         do ii = 1, 20
            ik = tetra(ii,it)
+#ifdef USEOMP
+!$omp atomic update
+#endif
            dfde(ib,ik) = dfde(ib,ik) + dot_product(wlsm(1:4,ii), wdos(idx(1:4)))
+#ifdef USEOMP
+!$omp end atomic
+#endif
         end do
         !
      end do ! ib
      !
   end do ! it
+#ifdef USEOMP
+!$omp end do
+!$omp end parallel
+#endif
   !
 end subroutine opt_tetra_dos
+!
+!--------------------------------------------------------------------------------------
+subroutine opt_tetra_dos_win( nkp, nbnd, ebnd, ef, nsube, dos)
+  !------------------------------------------------------------------------------------
+  !
+  ! calculate occupation with given fermi energy
+  !
+  integer, intent(in)    :: nkp, nbnd, nsube
+  real(8), intent(in)    :: ebnd(nbnd,nkp), ef( nsube)
+  real(8), intent(out)   :: dos( nsube)
+  !
+  integer :: ik, it, ib, i, ii, ie
+  real(8) :: e(4), c(3), a(4,4), v(20)
+  real(8) :: wdos(4)
+  integer :: idx(4)
+  real(8) :: rar(4)
+  logical :: dosum
+  !
+#ifdef USEOMP
+!$omp parallel default( shared) private( it, ib, e, ii, ik, idx, rar, i, a, c, wdos, ie, dosum, v)
+!$omp do collapse(2)
+#endif
+  do it = 1, ntetra
+     !
+     do ib = 1, nbnd
+        !
+        e(1:4) = 0.d0
+        do ii = 1, 20
+           ik = tetra(ii, it)
+           e(1:4) = e(1:4) + wlsm(1:4,ii) * ebnd(ib,ik)
+        end do
+        !
+        call sortidx(4, e, idx)
+        rar(:) = e(:)
+        do i = 1, 4
+          e(i) = rar(idx(i))
+        end do
+        !
+        do ie = 1, nsube
+          do ii = 1, 4
+            a(ii,1:4) = (ef( ie)-e(1:4)) / (e(ii)-e(1:4))
+          end do
+          !
+          dosum = .true.
+          if( e(1) <= ef( ie) .and. ef( ie) < e(2) ) then
+             !
+             c(1) = a(2,1) * a(3,1) * a(4,1) / (ef( ie) - e(1))
+             wdos(1) = a(1,2) + a(1,3) + a(1,4)
+             wdos(2:4) = a(2:4,1)
+             wdos(1:4) = wdos(1:4) * c(1)
+             !
+          else if( e(2) <= ef( ie) .and. ef( ie) < e(3)) then
+             !
+             c(1) = a(2,3) * a(3,1) + a(3,2) * a(2,4)
+             wdos(1) = a(1,4) * c(1) + a(1,3) * a(3,1) * a(2,3)
+             wdos(2) = a(2,3) * c(1) + a(2,4) * a(2,4) * a(3,2)
+             wdos(3) = a(3,2) * c(1) + a(3,1) * a(3,1) * a(2,3)
+             wdos(4) = a(4,1) * c(1) + a(4,2) * a(2,4) * a(3,2)
+             c(1)  = 1d0 / (e(4) - e(1))
+             wdos(1:4) = wdos(1:4) * c(1)
+             !
+          else if( e(3) <= ef( ie) .and. ef( ie) < e(4)) then
+             !
+             c(1) = a(1,4) * a(2,4) * a(3,4) / (e(4) - ef( ie))
+             wdos(1:3)  = a(1:3,4)
+             wdos(4)  = a(4,1) + a(4,2) + a(4,3)
+             wdos(1:4) = wdos(1:4) * c(1)
+             !
+          else if (e(4) <= ef( ie)) then
+             !
+             wdos(1:4) = 0.d0
+             dosum = .false.
+             !
+          else
+             !
+             wdos(1:4) = 0.d0
+             dosum = .false.
+             !
+          end if
+          !
+          wdos(1:4) = wdos(1:4) / dble(ntetra)
+          !
+          if( dosum) then
+            call dgemv( 't', 4, 20, 1.d0, wlsm, 4, wdos( idx( 1:4)), 1, 0.d0, v, 1)
+#ifdef USEOMP
+!$omp atomic update
+#endif
+            dos( ie) = dos( ie) + sum( v)
+#ifdef USEOMP
+!$omp end atomic
+#endif
+          end if
+
+        end do
+        !
+     end do ! ib
+     !
+  end do ! it
+#ifdef USEOMP
+!$omp end do
+!$omp end parallel
+#endif
+  !
+end subroutine opt_tetra_dos_win
 !
 END MODULE
 

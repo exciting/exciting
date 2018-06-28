@@ -1487,7 +1487,6 @@
 10	findsymlat.f90	/^10                               Continue$/;"	l	subroutine:findsymlat	file:
 10	gendmat.f90	/^10                      Continue$/;"	l	subroutine:gendmat	file:
 10	gengvec.f90	/^10    Continue$/;"	l	subroutine:gengvec	file:
-10	genppts.f90	/^10          continue$/;"	l	subroutine:genppts	file:
 10	genrmesh.f90	/^10       Continue$/;"	l	subroutine:genrmesh	file:
 10	genshtmat.f90	/^10    Continue$/;"	l	subroutine:genshtmat	file:
 10	hartfock.f90	/^10    Continue$/;"	l	subroutine:hartfock	file:
@@ -13508,10 +13507,10 @@ A6	src_raman/mod_raman.f90	/^real(8) :: A0,A1,A2,A3,A4,A5,A6$/;"	v	module:raman_
 ABORT	src_vdwdf/Cuba-3.2/src/common/stddecl.h	86;"	d
 ABS	libXC/src/xc_config.h	30;"	d
 ABS	libXC/src/xc_config.h	6;"	d
-ACLOCAL	libXC/Makefile	/^ACLOCAL = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run aclocal-1.11$/;"	m
-ACLOCAL	libXC/build/Makefile	/^ACLOCAL = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run aclocal-1.11$/;"	m
-ACLOCAL	libXC/src/Makefile	/^ACLOCAL = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run aclocal-1.11$/;"	m
-ACLOCAL	libXC/testsuite/Makefile	/^ACLOCAL = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run aclocal-1.11$/;"	m
+ACLOCAL	libXC/Makefile	/^ACLOCAL = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run aclocal-1.11$/;"	m
+ACLOCAL	libXC/build/Makefile	/^ACLOCAL = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run aclocal-1.11$/;"	m
+ACLOCAL	libXC/src/Makefile	/^ACLOCAL = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run aclocal-1.11$/;"	m
+ACLOCAL	libXC/testsuite/Makefile	/^ACLOCAL = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run aclocal-1.11$/;"	m
 ACLOCAL_AMFLAGS	libXC/Makefile	/^ACLOCAL_AMFLAGS = -I m4$/;"	m
 ACLOCAL_M4	libXC/Makefile	/^ACLOCAL_M4 = $(top_srcdir)\/aclocal.m4$/;"	m
 ACLOCAL_M4	libXC/build/Makefile	/^ACLOCAL_M4 = $(top_srcdir)\/aclocal.m4$/;"	m
@@ -13528,10 +13527,10 @@ ALLOCA	libXC/build/Makefile	/^ALLOCA = $/;"	m
 ALLOCA	libXC/src/Makefile	/^ALLOCA = $/;"	m
 ALLOCA	libXC/testsuite/Makefile	/^ALLOCA = $/;"	m
 AMP	FoX/wxml/m_wxml_escape.F90	/^  integer, parameter :: AMP /;"	v	module:m_wxml_escape
-AMTAR	libXC/Makefile	/^AMTAR = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run tar$/;"	m
-AMTAR	libXC/build/Makefile	/^AMTAR = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run tar$/;"	m
-AMTAR	libXC/src/Makefile	/^AMTAR = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run tar$/;"	m
-AMTAR	libXC/testsuite/Makefile	/^AMTAR = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run tar$/;"	m
+AMTAR	libXC/Makefile	/^AMTAR = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run tar$/;"	m
+AMTAR	libXC/build/Makefile	/^AMTAR = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run tar$/;"	m
+AMTAR	libXC/src/Makefile	/^AMTAR = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run tar$/;"	m
+AMTAR	libXC/testsuite/Makefile	/^AMTAR = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run tar$/;"	m
 AMU_RY	src_gw/read_dyn-sub.f90	/^  REAL(8),     PARAMETER   :: AMU_RY /;"	v	module:mod_dynmat
 AM_RECURSIVE_TARGETS	libXC/Makefile	/^AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGETS:-recursive=) \\$/;"	m
 APOS	FoX/wxml/m_wxml_escape.F90	/^  integer, parameter :: APOS /;"	v	module:m_wxml_escape
@@ -13566,18 +13565,18 @@ ATT_NOTATION	FoX/common/m_common_element.F90	/^  integer, parameter :: ATT_NOTAT
 ATT_NULL	FoX/common/m_common_element.F90	/^  integer, parameter :: ATT_NULL /;"	v	module:m_common_element
 ATT_REQUIRED	FoX/common/m_common_element.F90	/^  integer, parameter :: ATT_REQUIRED /;"	v	module:m_common_element
 ATT_TYPES	FoX/common/m_common_element.F90	/^  character(len=8), parameter :: ATT_TYPES(/;"	v	module:m_common_element
-AUTOCONF	libXC/Makefile	/^AUTOCONF = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run autoconf$/;"	m
-AUTOCONF	libXC/build/Makefile	/^AUTOCONF = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run autoconf$/;"	m
-AUTOCONF	libXC/src/Makefile	/^AUTOCONF = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run autoconf$/;"	m
-AUTOCONF	libXC/testsuite/Makefile	/^AUTOCONF = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run autoconf$/;"	m
-AUTOHEADER	libXC/Makefile	/^AUTOHEADER = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run autoheader$/;"	m
-AUTOHEADER	libXC/build/Makefile	/^AUTOHEADER = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run autoheader$/;"	m
-AUTOHEADER	libXC/src/Makefile	/^AUTOHEADER = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run autoheader$/;"	m
-AUTOHEADER	libXC/testsuite/Makefile	/^AUTOHEADER = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run autoheader$/;"	m
-AUTOMAKE	libXC/Makefile	/^AUTOMAKE = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run automake-1.11$/;"	m
-AUTOMAKE	libXC/build/Makefile	/^AUTOMAKE = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run automake-1.11$/;"	m
-AUTOMAKE	libXC/src/Makefile	/^AUTOMAKE = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run automake-1.11$/;"	m
-AUTOMAKE	libXC/testsuite/Makefile	/^AUTOMAKE = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run automake-1.11$/;"	m
+AUTOCONF	libXC/Makefile	/^AUTOCONF = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run autoconf$/;"	m
+AUTOCONF	libXC/build/Makefile	/^AUTOCONF = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run autoconf$/;"	m
+AUTOCONF	libXC/src/Makefile	/^AUTOCONF = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run autoconf$/;"	m
+AUTOCONF	libXC/testsuite/Makefile	/^AUTOCONF = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run autoconf$/;"	m
+AUTOHEADER	libXC/Makefile	/^AUTOHEADER = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run autoheader$/;"	m
+AUTOHEADER	libXC/build/Makefile	/^AUTOHEADER = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run autoheader$/;"	m
+AUTOHEADER	libXC/src/Makefile	/^AUTOHEADER = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run autoheader$/;"	m
+AUTOHEADER	libXC/testsuite/Makefile	/^AUTOHEADER = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run autoheader$/;"	m
+AUTOMAKE	libXC/Makefile	/^AUTOMAKE = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run automake-1.11$/;"	m
+AUTOMAKE	libXC/build/Makefile	/^AUTOMAKE = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run automake-1.11$/;"	m
+AUTOMAKE	libXC/src/Makefile	/^AUTOMAKE = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run automake-1.11$/;"	m
+AUTOMAKE	libXC/testsuite/Makefile	/^AUTOMAKE = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run automake-1.11$/;"	m
 AWK	libXC/Makefile	/^AWK = gawk$/;"	m
 AWK	libXC/build/Makefile	/^AWK = gawk$/;"	m
 AWK	libXC/src/Makefile	/^AWK = gawk$/;"	m
@@ -15234,10 +15233,10 @@ Lower	src_vdwdf/Cuba-3.2/src/divonne/Split.c	18;"	d	file:
 LowerBound	src_mixing/lib/LimitDMIX.F90	/^        real*8 LowerBound,/;"	v
 M	FoX/utils/fox_m_utils_mtprng.F90	/^    integer(INT32), parameter :: M /;"	v	module:fox_m_utils_mtprng
 MAKE	Makefile	/^MAKE = make$/;"	m
-MAKEINFO	libXC/Makefile	/^MAKEINFO = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run makeinfo$/;"	m
-MAKEINFO	libXC/build/Makefile	/^MAKEINFO = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run makeinfo$/;"	m
-MAKEINFO	libXC/src/Makefile	/^MAKEINFO = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run makeinfo$/;"	m
-MAKEINFO	libXC/testsuite/Makefile	/^MAKEINFO = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/missing --run makeinfo$/;"	m
+MAKEINFO	libXC/Makefile	/^MAKEINFO = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run makeinfo$/;"	m
+MAKEINFO	libXC/build/Makefile	/^MAKEINFO = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run makeinfo$/;"	m
+MAKEINFO	libXC/src/Makefile	/^MAKEINFO = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run makeinfo$/;"	m
+MAKEINFO	libXC/testsuite/Makefile	/^MAKEINFO = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/missing --run makeinfo$/;"	m
 MANIFEST_TOOL	libXC/Makefile	/^MANIFEST_TOOL = :$/;"	m
 MANIFEST_TOOL	libXC/build/Makefile	/^MANIFEST_TOOL = :$/;"	m
 MANIFEST_TOOL	libXC/src/Makefile	/^MANIFEST_TOOL = :$/;"	m
@@ -18102,22 +18101,22 @@ abort	src_vdwdf/Cuba-3.2/src/suave/decl.h	/^  jmp_buf abort;$/;"	m	struct:_this
 abort	src_vdwdf/Cuba-3.2/src/vegas/decl.h	/^  jmp_buf abort;$/;"	m	struct:_this
 abort1	src_vdwdf/Cuba-3.2/src/common/stddecl.h	117;"	d
 abort2	src_vdwdf/Cuba-3.2/src/common/stddecl.h	118;"	d
-abs_builddir	libXC/Makefile	/^abs_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC$/;"	m
-abs_builddir	libXC/build/Makefile	/^abs_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/build$/;"	m
-abs_builddir	libXC/src/Makefile	/^abs_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/src$/;"	m
-abs_builddir	libXC/testsuite/Makefile	/^abs_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/testsuite$/;"	m
-abs_srcdir	libXC/Makefile	/^abs_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC$/;"	m
-abs_srcdir	libXC/build/Makefile	/^abs_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/build$/;"	m
-abs_srcdir	libXC/src/Makefile	/^abs_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/src$/;"	m
-abs_srcdir	libXC/testsuite/Makefile	/^abs_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/testsuite$/;"	m
-abs_top_builddir	libXC/Makefile	/^abs_top_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC$/;"	m
-abs_top_builddir	libXC/build/Makefile	/^abs_top_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC$/;"	m
-abs_top_builddir	libXC/src/Makefile	/^abs_top_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC$/;"	m
-abs_top_builddir	libXC/testsuite/Makefile	/^abs_top_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC$/;"	m
-abs_top_srcdir	libXC/Makefile	/^abs_top_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC$/;"	m
-abs_top_srcdir	libXC/build/Makefile	/^abs_top_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC$/;"	m
-abs_top_srcdir	libXC/src/Makefile	/^abs_top_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC$/;"	m
-abs_top_srcdir	libXC/testsuite/Makefile	/^abs_top_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC$/;"	m
+abs_builddir	libXC/Makefile	/^abs_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC$/;"	m
+abs_builddir	libXC/build/Makefile	/^abs_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/build$/;"	m
+abs_builddir	libXC/src/Makefile	/^abs_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/src$/;"	m
+abs_builddir	libXC/testsuite/Makefile	/^abs_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/testsuite$/;"	m
+abs_srcdir	libXC/Makefile	/^abs_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC$/;"	m
+abs_srcdir	libXC/build/Makefile	/^abs_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/build$/;"	m
+abs_srcdir	libXC/src/Makefile	/^abs_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/src$/;"	m
+abs_srcdir	libXC/testsuite/Makefile	/^abs_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/testsuite$/;"	m
+abs_top_builddir	libXC/Makefile	/^abs_top_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC$/;"	m
+abs_top_builddir	libXC/build/Makefile	/^abs_top_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC$/;"	m
+abs_top_builddir	libXC/src/Makefile	/^abs_top_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC$/;"	m
+abs_top_builddir	libXC/testsuite/Makefile	/^abs_top_builddir = \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC$/;"	m
+abs_top_srcdir	libXC/Makefile	/^abs_top_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC$/;"	m
+abs_top_srcdir	libXC/build/Makefile	/^abs_top_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC$/;"	m
+abs_top_srcdir	libXC/src/Makefile	/^abs_top_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC$/;"	m
+abs_top_srcdir	libXC/testsuite/Makefile	/^abs_top_srcdir = \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC$/;"	m
 ac	spacegroup/modmain.f90	/^real(8) ab,ac,/;"	v	module:modmain
 ac	spacegroup/modspacegroup.f90	/^real(8)::ab, ac,/;"	v	module:modspacegroup
 ac	spacegroup/sginputmodule.f90	/^ real(8)::ac$/;"	k	type:lattice_type
@@ -18816,6 +18815,8 @@ broad	src_inputparser/inputmodules.f90	/^ real(8)::broad$/;"	k	type:xs_type
 brokenNS	FoX/dom/m_dom_dom.F90	/^    logical :: brokenNS /;"	k	type:documentExtras
 brot	src_wannier/mod_optkgrid.f90	/^  real(8) :: brot(/;"	v	module:mod_optkgrid
 brzint	src_lib/brzint.f90	/^Subroutine brzint /;"	s
+brzint_jdos	src_lib/brzint_jdos.f90	/^subroutine brzint_jdos(/;"	s
+brzint_new	src_lib/brzint_new.f90	/^subroutine brzint_new(/;"	s
 bse	src_xs/bse.F90	/^Subroutine bse$/;"	s
 bsed	src_xs/modxs.F90	/^      Complex (8) :: bsed,/;"	v	module:modxs
 bsedd	src_xs/modxs.F90	/^      Complex (8) :: bsed, bsedl, bsedu, bsedd$/;"	v	module:modxs
@@ -18866,8 +18867,8 @@ builddir	libXC/src/Makefile	/^builddir = .$/;"	m
 builddir	libXC/testsuite/Makefile	/^builddir = .$/;"	m
 building	FoX/common/m_common_struct.F90	/^    logical :: building /;"	k	type:xml_doc_state
 bvec	mod_lattice.F90	/^      Real (8) :: bvec /;"	v	module:mod_lattice
-bvec	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: bvec(/;"	k	type:G_set
-bvec	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: bvec(/;"	k	type:k_set
+bvec	src_gw/mod_kpointset.f90	/^        real(8) :: bvec(/;"	k	type:G_set
+bvec	src_gw/mod_kpointset.f90	/^        real(8) :: bvec(/;"	k	type:k_set
 bxcir	mod_potential_and_density.F90	/^      Real (8), Allocatable :: bxcir /;"	v	module:mod_potential_and_density
 bxcmt	mod_potential_and_density.F90	/^      Real (8), Allocatable :: bxcmt /;"	v	module:mod_potential_and_density
 bxnl	src_hybrids/mod_hybrids.f90	/^    complex(8), allocatable :: bxnl(/;"	v	module:mod_hybrids
@@ -19047,8 +19048,10 @@ cfftmi	fftlib/cfftnd.f90	/^subroutine cfftmi /;"	s
 cfftnd	fftlib/cfftnd.f90	/^subroutine cfftnd(/;"	s
 cfunig	mod_Gvector.F90	/^      Complex (8), Allocatable :: cfunig /;"	v	module:mod_Gvector
 cfunir	mod_Gvector.F90	/^      Real (8), Allocatable :: cfunir /;"	v	module:mod_Gvector
+cg	src_inputparser/inputmodules.f90	/^ character(512)::cg$/;"	k	type:group_type
 cgcoef	src_gw/mod_product_basis.f90	/^    real(8), allocatable :: cgcoef(/;"	v	module:mod_product_basis
 cgetv0	ARPACK/SRC/cgetv0.f	/^      subroutine cgetv0 /;"	s
+cgnumber	src_inputparser/inputmodules.f90	/^ integer::cgnumber$/;"	k	type:group_type
 cgparam	src_wannier/mod_wannier_maxloc.f90	/^  real(8) :: cgparam$/;"	v	module:mod_wannier_maxloc
 char2int	src_gw/ioutils.f90	/^      subroutine char2int(/;"	s
 charact	src_raman/mod_raman.f90	/^complex (8),allocatable :: charact(/;"	v	module:raman_symmetry
@@ -19703,11 +19706,8 @@ dfthalfparam_type	src_inputparser/inputmodules.f90	/^type dfthalfparam_type$/;"	
 dftim	src_xs/dftim.F90	/^      Subroutine dftim /;"	s	module:m_dftim
 dgetv0	ARPACK/SRC/dgetv0.f	/^      subroutine dgetv0 /;"	s
 dgrid	src_xs/modxs.F90	/^      Logical :: dgrid$/;"	v	module:modxs
-diaggenmat	my_helpers/diaggenmat.f90	/^Subroutine diaggenmat /;"	s
-diaghermat	my_helpers/diaghermat.f90	/^Subroutine diaghermat /;"	s
 diagrealmat	diagrealmat.f90	/^Subroutine diagrealmat /;"	s
 diagsgi	src_gw/diagsgi.f90	/^subroutine diagsgi(/;"	s
-diagsymmat	my_helpers/diagsymmat.f90	/^Subroutine diagsymmat /;"	s
 dict	FoX/wxml/m_wxml_core.F90	/^    type(dicti/;"	k	type:xmlf_t
 dict_item	FoX/common/m_common_attrs.F90	/^  type dict_item$/;"	t	module:m_common_attrs
 dict_item_ptr	FoX/common/m_common_attrs.F90	/^  type dict_item_ptr$/;"	t	module:m_common_attrs
@@ -19756,6 +19756,7 @@ dl	ARPACK/EXAMPLES/NONSYM/dndrv2.f	/^     &                  dd(maxn), dl(/;"	v	
 dl	ARPACK/EXAMPLES/NONSYM/dndrv4.f	/^     &                  dd(maxn), dl(/;"	v	program:dndrv4
 dl	ARPACK/EXAMPLES/NONSYM/sndrv2.f	/^     &                  dd(maxn), dl(/;"	v	program:sndrv2
 dl	ARPACK/EXAMPLES/NONSYM/sndrv4.f	/^     &                  dd(maxn), dl(/;"	v	program:sndrv4
+dlamch	mod_linalg.f90	/^  real(8), external :: dlamch$/;"	v	module:m_linalg
 dlamch	src_iterative_solver/src_diis/diisinterfaces.F90	/^      Real (8) :: dlamch$/;"	v	module:diisinterfaces
 dlapy2	ARPACK/EXAMPLES/BAND/dnbdr1.f	/^      Double precision $/;"	v	program:dnbdr1
 dlapy2	ARPACK/EXAMPLES/BAND/dnbdr2.f	/^      Double precision $/;"	v	program:dnbdr2
@@ -19885,6 +19886,7 @@ dopart_type	src_inputparser/inputmodules.f90	/^type dopart_type$/;"	t	module:mod
 dopart_type_array	src_inputparser/inputmodules.f90	/^type dopart_type_array$/;"	t	module:modinput
 dopartarray	src_inputparser/inputmodules.f90	/^  type(dopart_type_array),pointer::dopartarray(/;"	k	type:parts_type
 doprerotate_preconditioner	src_iterative_solver/SclControlModule.F90	/^      Function doprerotate_preconditioner /;"	f	module:sclcontroll
+dordmax	src_inputparser/inputmodules.f90	/^ integer::dordmax$/;"	k	type:projection_type
 doreallocate_i4_d1	src_gw/reallocate.f90	/^          subroutine doreallocate_i4_d1(/;"	s	module:reallocate
 doreallocate_i4_d2	src_gw/reallocate.f90	/^          subroutine doreallocate_i4_d2(/;"	s	module:reallocate
 doreallocate_i4_d3	src_gw/reallocate.f90	/^          subroutine doreallocate_i4_d3(/;"	s	module:reallocate
@@ -20195,6 +20197,7 @@ epslat	spacegroup/modmain.f90	/^real(8), parameter :: epslat=/;"	v	module:modmai
 epslat	spacegroup/modspacegroup.f90	/^real(8), parameter :: epslat=/;"	v	module:modspacegroup
 epslat	spacegroup/sginputmodule.f90	/^ real(8)::epslat$/;"	k	type:lattice_type
 epslat	src_inputparser/inputmodules.f90	/^ real(8)::epslat$/;"	k	type:structure_type
+epsld	src_inputparser/inputmodules.f90	/^ real(8)::epsld$/;"	k	type:projection_type
 epsmaxloc	src_inputparser/inputmodules.f90	/^ real(8)::epsmaxloc$/;"	k	type:group_type
 epsmb	src_inputparser/inputmodules.f90	/^ real(8)::epsmb$/;"	k	type:mixbasis_type
 epsocc	src_inputparser/inputmodules.f90	/^ real(8)::epsocc$/;"	k	type:groundstate_type
@@ -20317,7 +20320,6 @@ exists	src_inputparser/inputmodules.f90	/^logical::exists$/;"	k	type:TSvdW_type
 exists	src_inputparser/inputmodules.f90	/^logical::exists$/;"	k	type:mossbauer_type
 exists	src_inputparser/inputmodules.f90	/^logical::exists$/;"	k	type:reformatdynmat_type
 exists	src_inputparser/inputmodules.f90	/^logical::exists$/;"	k	type:symmetries_type
-exists	src_inputparser/inputmodules.f90	/^logical::exists$/;"	k	type:wanniergap_type
 exit_hybrids	src_hybrids/mod_hybrids.f90	/^    subroutine exit_hybrids(/;"	s	module:mod_hybrids
 exitarg	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^  void *exitarg;$/;"	m	struct:__anon62
 exitfun	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^  subroutine exitfun;$/;"	m	struct:__anon62
@@ -21494,6 +21496,7 @@ getstructplot1d	src_inputparser/inputmodules.f90	/^function getstructplot1d(/;"	
 getstructplot2d	src_inputparser/inputmodules.f90	/^function getstructplot2d(/;"	f	module:modinput
 getstructplot3d	src_inputparser/inputmodules.f90	/^function getstructplot3d(/;"	f	module:modinput
 getstructpoint	src_inputparser/inputmodules.f90	/^function getstructpoint(/;"	f	module:modinput
+getstructprojection	src_inputparser/inputmodules.f90	/^function getstructprojection(/;"	f	module:modinput
 getstructprojector	src_inputparser/inputmodules.f90	/^function getstructprojector(/;"	f	module:modinput
 getstructproperties	src_inputparser/inputmodules.f90	/^function getstructproperties(/;"	f	module:modinput
 getstructqpointset	src_inputparser/inputmodules.f90	/^function getstructqpointset(/;"	f	module:modinput
@@ -22287,10 +22290,10 @@ inputnumber	src_inputparser/inputmodules.f90	/^ integer::inputnumber$/;"	k	type:
 insertBefore	FoX/dom/m_dom_dom.F90	/^  function insertBefore(/;"	f	module:m_dom_dom
 insertData	FoX/dom/m_dom_dom.F90	/^  subroutine insertData(/;"	s	module:m_dom_dom
 inspecies	species/modspecies.F90	/^character(256) :: bname,str,apwdescr,apwtype,suffix,inspecies$/;"	v	module:modspecies
-install_sh	libXC/Makefile	/^install_sh = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/install-sh$/;"	m
-install_sh	libXC/build/Makefile	/^install_sh = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/install-sh$/;"	m
-install_sh	libXC/src/Makefile	/^install_sh = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/install-sh$/;"	m
-install_sh	libXC/testsuite/Makefile	/^install_sh = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier\/src\/libXC\/install-sh$/;"	m
+install_sh	libXC/Makefile	/^install_sh = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/install-sh$/;"	m
+install_sh	libXC/build/Makefile	/^install_sh = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/install-sh$/;"	m
+install_sh	libXC/src/Makefile	/^install_sh = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/install-sh$/;"	m
+install_sh	libXC/testsuite/Makefile	/^install_sh = ${SHELL} \/home1\/Sebastian\/exciting\/exciting-wannier-projection\/src\/libXC\/install-sh$/;"	m
 install_sh_DATA	libXC/Makefile	/^install_sh_DATA = $(install_sh) -c -m 644$/;"	m
 install_sh_DATA	libXC/build/Makefile	/^install_sh_DATA = $(install_sh) -c -m 644$/;"	m
 install_sh_DATA	libXC/src/Makefile	/^install_sh_DATA = $(install_sh) -c -m 644$/;"	m
@@ -23605,6 +23608,7 @@ m_getx0	src_xs/getx0.F90	/^Module m_getx0$/;"	m
 m_gndstateq	src_xs/gndstateq.F90	/^Module m_gndstateq$/;"	m
 m_got	src_vdwdf/Cuba-3.2/tools/partview.cpp	/^  int m_dimx, m_dimy, m_got;$/;"	m	class:PartitionPlane	file:
 m_ieee	FoX/fsys/m_ieee.f90	/^module m_ieee$/;"	m
+m_linalg	mod_linalg.f90	/^module m_linalg$/;"	m
 m_pade	src_xs/pade.F90	/^Module m_pade$/;"	m
 m_plotmat	plotmat.f90	/^module m_plotmat$/;"	m
 m_printer	src_vdwdf/Cuba-3.2/tools/partview.cpp	/^  QPrinter *m_printer;$/;"	m	class:PartitionViewer	file:
@@ -24168,6 +24172,7 @@ mindeviation	src_vdwdf/Cuba-3.2/demo/demo-fortran.F	/^	double precision border, 
 mindeviation	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  real maxchisq, mindeviation;$/;"	m	struct:_this
 mindeviation	src_vdwdf/modules.f90	/^   double precision border, maxchisq, mindeviation$/;"	v	module:param
 mindevsq	src_vdwdf/Cuba-3.2/src/divonne/decl.h	/^  real nneed, maxerrsq, mindevsq;$/;"	m	struct:__anon39
+mindist	src_inputparser/inputmodules.f90	/^ logical::mindist$/;"	k	type:wannier_type
 mine0	mod_APW_LO.F90	/^      real(8) :: mine0$/;"	v	module:mod_APW_LO
 minenergy	src_iterative_solver/minenergy.f90	/^Subroutine minenergy /;"	s
 mineval	src_vdwdf/Cuba-3.2/demo/demo-fortran.F	/^	integer ndim, ncomp, last, seed, mineval,/;"	v	program:CubaTest
@@ -25077,12 +25082,13 @@ ngrid	src_inputparser/inputmodules.f90	/^ integer::ngrid$/;"	k	type:elnes_type
 ngrid	src_xs/modxs.F90	/^        integer :: ngrid(/;"	k	type:fftmap_type
 ngrid0	mod_phonon.F90	/^      Integer :: ngrid0 /;"	v	module:mod_phonon
 ngridgq	src_xs/modxs.F90	/^      Integer :: ngridgq /;"	v	module:modxs
-ngridk	src_gw/mod_kpointset.f90	/^        integer(4), allocatable :: ngridk(/;"	k	type:k_set
+ngridk	src_gw/mod_kpointset.f90	/^        integer(4) :: ngridk(/;"	k	type:k_set
 ngridk	src_inputparser/inputmodules.f90	/^ integer::ngridk(/;"	k	type:groundstate_type
 ngridk	src_inputparser/inputmodules.f90	/^ integer::ngridk(/;"	k	type:screening_type
 ngridk	src_inputparser/inputmodules.f90	/^ integer::ngridk(/;"	k	type:xs_type
 ngridk_b	src_xs/modxs.F90	/^      Integer :: ngridk_b /;"	v	module:modxs
 ngridkint	src_inputparser/inputmodules.f90	/^ integer::ngridkint(/;"	k	type:dos_type
+ngridkint	src_inputparser/inputmodules.f90	/^ integer::ngridkint(/;"	k	type:wanniergap_type
 ngridkqtot	src_gw/modgw.f90	/^    integer(4) :: ngridkqtot$/;"	v	module:modgw
 ngridksub	src_inputparser/inputmodules.f90	/^ integer::ngridksub(/;"	k	type:BSE_type
 ngridq	mod_qpoint.F90	/^      Integer :: ngridq /;"	v	module:mod_qpoint
@@ -25271,6 +25277,8 @@ nprad	src_inputparser/inputmodules.f90	/^ integer::nprad$/;"	k	type:groundstate_
 nproc_col	src_gw/mod_mpi_gw.f90	/^    integer :: nproc_col /;"	v	module:mod_mpi_gw
 nproc_row	src_gw/mod_mpi_gw.f90	/^    integer :: nproc_row /;"	v	module:mod_mpi_gw
 nproc_tot	src_gw/mod_mpi_gw.f90	/^    integer :: nproc_tot /;"	v	module:mod_mpi_gw
+nproj	src_inputparser/inputmodules.f90	/^ integer::nproj$/;"	k	type:group_type
+nprojtot	src_inputparser/inputmodules.f90	/^ integer::nprojtot$/;"	k	type:projection_type
 nprojused	src_wannier/mod_wannier_variables.f90	/^    integer :: nprojused$/;"	k	type:wannier_group
 npsden	src_inputparser/inputmodules.f90	/^ integer::npsden$/;"	k	type:groundstate_type
 npt	mod_rgrid.f90	/^    integer :: npt$/;"	k	type:rgrid
@@ -25398,6 +25406,7 @@ numr	ARPACK/EXAMPLES/NONSYM/dndrv6.f	/^     &                  tol, numr,/;"	v	p
 numr	ARPACK/EXAMPLES/NONSYM/sndrv5.f	/^     &                  tol, numr,/;"	v	program:sndrv5
 numr	ARPACK/EXAMPLES/NONSYM/sndrv6.f	/^     &                  tol, numr,/;"	v	program:sndrv6
 numsop	src_raman/mod_raman.f90	/^integer :: numsop$/;"	v	module:raman_symmetry
+nunocc	src_inputparser/inputmodules.f90	/^ integer::nunocc$/;"	k	type:projection_type
 nup	src_gw/mod_product_basis.f90	/^    integer(4) :: nup$/;"	v	module:mod_product_basis
 nv	src_other/delaunay.f	/^      integer nv,/;"	v	program:main
 nva	src_xs/mod_exciton_wf.f90	/^  integer, allocatable :: nva(/;"	v	module:mod_exciton_wf
@@ -25563,6 +25572,7 @@ open_xml_file	FoX/sax/m_sax_operate.F90	/^  subroutine open_xml_file(/;"	s	modul
 open_xml_string	FoX/sax/m_sax_operate.F90	/^  subroutine open_xml_string(/;"	s	module:m_sax_operate
 operator	FoX/common/m_common_content_model.F90	/^    integer :: operator /;"	k	type:content_particle_t
 opt_tetra_dos	mod_opt_tetra.f90	/^subroutine opt_tetra_dos(/;"	s	module:mod_opt_tetra
+opt_tetra_dos_win	mod_opt_tetra.f90	/^subroutine opt_tetra_dos_win(/;"	s	module:mod_opt_tetra
 opt_tetra_efermi	mod_opt_tetra.f90	/^subroutine opt_tetra_efermi(/;"	s	module:mod_opt_tetra
 opt_tetra_init	mod_opt_tetra.f90	/^subroutine opt_tetra_init(/;"	s	module:mod_opt_tetra
 opt_tetra_occ	mod_opt_tetra.f90	/^subroutine opt_tetra_occ(/;"	s	module:mod_opt_tetra
@@ -25933,6 +25943,8 @@ program_transform_name	libXC/build/Makefile	/^program_transform_name = s,x,x,$/;
 program_transform_name	libXC/src/Makefile	/^program_transform_name = s,x,x,$/;"	m
 program_transform_name	libXC/testsuite/Makefile	/^program_transform_name = s,x,x,$/;"	m
 projectedsecequn	src_iterative_solver/src_diis/projectedsecequn.F90	/^Subroutine projectedsecequn /;"	s
+projection	src_inputparser/inputmodules.f90	/^  type(projection_/;"	k	type:wannier_type
+projection_type	src_inputparser/inputmodules.f90	/^type projection_type$/;"	t	module:modinput
 projector	src_inputparser/inputmodules.f90	/^type(projector_/;"	k	type:projector_type_array
 projector_type	src_inputparser/inputmodules.f90	/^type projector_type$/;"	t	module:modinput
 projector_type_array	src_inputparser/inputmodules.f90	/^type projector_type_array$/;"	t	module:modinput
@@ -26122,6 +26134,8 @@ r3mv	src_lib/r3mv.f90	/^Subroutine r3mv /;"	s
 r3taxi	spacegroup/r3taxi.f90	/^real(8) function r3taxi(/;"	f
 r3taxi	src_lib/r3taxi.f90	/^Real (8) Function r3taxi /;"	f
 r3taxi Source File r3taxi f90	spacegroup/doc.tex	/^\\section{Routine\/Function Prologues} \\label{app:ProLogues}$/;"	b
+r3ws	spacegroup/r3ws.f90	/^subroutine r3ws(/;"	s
+r3ws	src_lib/r3ws.f90	/^subroutine r3ws(/;"	s
 r_path	src_gw/src_tests/mod_rpath.f90	/^    type r_path$/;"	t	module:mod_rpath
 radialgridtype	species/species.f90	/^  character(80) :: radialgridtype$/;"	v	program:species
 radialgridtype	src_inputparser/inputmodules.f90	/^ character(512)::radialgridtype$/;"	k	type:groundstate_type
@@ -26568,6 +26582,7 @@ rotzflm	rotzflm.f90	/^Subroutine rotzflm /;"	s
 row	src_vdwdf/Cuba-3.2/src/divonne/Split.c	/^  real lhs, row, sol;$/;"	m	struct:__anon45	file:
 rpath	src_gw/src_tests/mod_rpath.f90	/^    type(r_path) :: rpath$/;"	v	module:mod_rpath
 rpath	src_inputparser/inputmodules.f90	/^ character(512)::rpath$/;"	k	type:gw_type
+rpinv	mod_linalg.f90	/^    subroutine rpinv(/;"	s	module:m_linalg
 rpmat	src_inputparser/inputmodules.f90	/^ logical::rpmat$/;"	k	type:gw_type
 rrint	src_gw/mod_product_basis.f90	/^    real(8), allocatable :: rrint(/;"	v	module:mod_product_basis
 rschrodapp	src_lib/rschrodapp.f90	/^Subroutine rschrodapp /;"	s
@@ -26576,6 +26591,8 @@ rschrodint	src_lib/rschrodint.f90	/^Subroutine rschrodint /;"	s
 rsq	src_vdwdf/Cuba-3.2/demo/demo-c.c	30;"	d	file:
 rst	src_gw/setrindex.f90	/^    integer(4), allocatable :: rst(/;"	v	module:fouri
 rstr	src_gw/sigma.f90	/^    real(8), allocatable :: rstr(/;"	v	module:strconst
+rsvd	mod_linalg.f90	/^    subroutine rsvd(/;"	s	module:m_linalg
+rsydiag	mod_linalg.f90	/^    subroutine rsydiag(/;"	s	module:m_linalg
 rtl	src_gw/mod_product_basis.f90	/^    real(8), allocatable :: rtl(/;"	v	module:mod_product_basis
 rtorat	mod_kpoint.F90	/^      Subroutine rtorat /;"	s	module:mod_kpoint
 rtorat	src_gw/mod_kpointset.f90	/^    subroutine rtorat(/;"	s	module:mod_kpointset
@@ -27209,7 +27226,6 @@ skipgnd	src_xs/modxs.F90	/^      Logical :: skipgnd$/;"	v	module:modxs
 skippedEntity_handler	FoX/dom/m_dom_parse.f90	/^  subroutine skippedEntity_handler(/;"	s
 skippedExternal	FoX/sax/m_sax_types.F90	/^    logical :: skippedExternal /;"	k	type:sax_parser_t
 skiprandom	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^  void (*skiprandom)(struct _this *t, cnumber n);$/;"	m	struct:__anon63
-sl	src_inputparser/inputmodules.f90	/^ real(8)::sl$/;"	k	type:group_type
 sl0	src_wannier/mod_wannier_maxloc.f90	/^  real(8) :: sl0$/;"	v	module:mod_wannier_maxloc
 slapy2	ARPACK/EXAMPLES/BAND/cnbdr1.f	/^     &                  scnrm2, slapy2$/;"	v	program:cnbdr1
 slapy2	ARPACK/EXAMPLES/BAND/cnbdr2.f	/^     &                  scnrm2, slapy2$/;"	v	program:cnbdr2
@@ -27296,9 +27312,7 @@ sol	src_vdwdf/Cuba-3.2/src/divonne/Split.c	/^  real lhs, row, sol;$/;"	m	struct:
 solvediis	src_iterative_solver/src_diis/solvediis.F90	/^Subroutine solvediis /;"	s
 solvediislin	src_iterative_solver/src_diis/solvediislin.F90	/^Subroutine solvediislin /;"	s
 solver	src_inputparser/inputmodules.f90	/^  type(solver_/;"	k	type:groundstate_type
-solver	src_inputparser/inputmodules.f90	/^ character(512)::solver$/;"	k	type:group_type
 solver_type	src_inputparser/inputmodules.f90	/^type solver_type$/;"	t	module:modinput
-solvernumber	src_inputparser/inputmodules.f90	/^ integer::solvernumber$/;"	k	type:group_type
 solvewithlapack	src_eigensystem/modfvsystem.f90	/^    Subroutine solvewithlapack(/;"	s	module:modfvsystem
 sopmat	src_raman/mod_raman.f90	/^real(8) :: sopmat(/;"	v	module:raman_symmetry
 sopmatc	src_raman/mod_raman.f90	/^real(8) :: sopmatc(/;"	v	module:raman_symmetry
@@ -27478,6 +27492,7 @@ statestype	src_inputparser/inputmodules.f90	/^ character(512)::statestype$/;"	k	
 statestype	src_inputparser/inputmodules.f90	/^ character(512)::statestype$/;"	k	type:range_type
 stctol	src_inputparser/inputmodules.f90	/^ real(8)::stctol$/;"	k	type:barecoul_type
 stdesc	src_gw/src_acfreq/stdesc.f90	/^      subroutine stdesc(/;"	s
+step	src_inputparser/inputmodules.f90	/^ real(8)::step$/;"	k	type:group_type
 step	src_wannier/mod_wannier_maxloc.f90	/^  real(8) :: step,/;"	v	module:mod_wannier_maxloc
 stepbound	src_mixing/stepbound.f90	/^Subroutine stepbound /;"	s
 steps	src_inputparser/inputmodules.f90	/^ integer::steps$/;"	k	type:path_type
@@ -27633,8 +27648,8 @@ stringtonumbergroundstateoutputlevel	src_inputparser/inputmodules.f90	/^ integer
 stringtonumbergroundstatestype	src_inputparser/inputmodules.f90	/^ integer function  stringtonumbergroundstatestype(/;"	f	module:modinput
 stringtonumbergroundstatevdWcorrection	src_inputparser/inputmodules.f90	/^ integer function  stringtonumbergroundstatevdWcorrection(/;"	f	module:modinput
 stringtonumbergroundstatexctype	src_inputparser/inputmodules.f90	/^ integer function  stringtonumbergroundstatexctype(/;"	f	module:modinput
+stringtonumbergroupcg	src_inputparser/inputmodules.f90	/^ integer function  stringtonumbergroupcg(/;"	f	module:modinput
 stringtonumbergroupmethod	src_inputparser/inputmodules.f90	/^ integer function  stringtonumbergroupmethod(/;"	f	module:modinput
-stringtonumbergroupsolver	src_inputparser/inputmodules.f90	/^ integer function  stringtonumbergroupsolver(/;"	f	module:modinput
 stringtonumberlibxccorrelation	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberlibxccorrelation(/;"	f	module:modinput
 stringtonumberlibxcexchange	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberlibxcexchange(/;"	f	module:modinput
 stringtonumberlibxcxc	src_inputparser/inputmodules.f90	/^ integer function  stringtonumberlibxcxc(/;"	f	module:modinput
@@ -27687,7 +27702,6 @@ subdir	libXC/src/Makefile	/^subdir = src$/;"	m
 subdir	libXC/testsuite/Makefile	/^subdir = testsuite$/;"	m
 subroutine	src_vdwdf/Cuba-3.2/src/common/stddecl.h	/^typedef void (*subroutine)();$/;"	t
 subsm	Lbfgsb.3.0/lbfgsb.f	/^      subroutine subsm /;"	s
-subspace	src_wannier/mod_wannier_variables.f90	/^    complex(8), allocatable :: subspace(/;"	k	type:wannier_group
 subsymc	src_sym/modsym.F90	/^      Integer :: subsymc /;"	v	module:modsym
 suffix	species/modspecies.F90	/^character(256) :: bname,str,apwdescr,apwtype,suffix,/;"	v	module:modspecies
 sum	src_vdwdf/Cuba-3.2/src/suave/Sample.c	/^  real sum, sqsum;$/;"	m	struct:__anon58	file:
@@ -27855,7 +27869,7 @@ tetiw	src_libbzint/tetiw.f90	/^       subroutine tetiw(/;"	s
 tetiwifc	src_xs/modtetra/modtetra.F90	/^      Subroutine tetiwifc /;"	s
 tetiwsurf	src_libbzint/tetiwsurf.f90	/^       subroutine tetiwsurf(/;"	s
 tetln	src_libbzint/tetra_internal.f90	/^      integer,pointer:: tetln(/;"	v	module:tetra_internal
-tetra	mod_opt_tetra.f90	/^  real(8), allocatable, save :: tetra(/;"	v	module:mod_opt_tetra
+tetra	mod_opt_tetra.f90	/^  integer, allocatable, save :: tetra(/;"	v	module:mod_opt_tetra
 tetra	src_inputparser/inputmodules.f90	/^  type(tetra_/;"	k	type:xs_type
 tetra_internal	src_libbzint/tetra_internal.f90	/^      module tetra_internal$/;"	m
 tetra_type	src_inputparser/inputmodules.f90	/^type tetra_type$/;"	t	module:modinput
@@ -28225,6 +28239,7 @@ umbulor	src_gw/mod_product_basis.f90	/^    real(8), allocatable :: umbulor(/;"	v
 umi	src_other/delaunay.f	/^      subroutine umi(/;"	s
 umix	src_gw/mod_product_basis.f90	/^    real(8), pointer :: umix(/;"	v	module:mod_product_basis
 unEscape_alloc	FoX/utils/fox_m_utils_uri.F90	/^  function unEscape_alloc(/;"	f	module:fox_m_utils_uri
+uncertainty	src_inputparser/inputmodules.f90	/^ real(8)::uncertainty$/;"	k	type:group_type
 und	ioarray.F90	/^      Integer, Parameter :: und /;"	v	module:ioarray
 unit	FoX/common/m_common_buffer.F90	/^    integer                       :: unit$/;"	k	type:buffer_t
 unit1	src_xs/modxs.F90	/^      Integer :: unit1,/;"	v	module:modxs
@@ -28528,7 +28543,7 @@ vkl0	src_xs/modxs.F90	/^      Real (8), Allocatable :: vkl0 /;"	v	module:modxs
 vklem	src_inputparser/inputmodules.f90	/^ real(8)::vklem(/;"	k	type:masstensor_type
 vklnr	mod_kpoint.F90	/^      Real (8), Allocatable :: vklnr /;"	v	module:mod_kpoint
 vklnr	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vklnr(/;"	k	type:k_set
-vkloff	src_gw/mod_kpointset.f90	/^        real(8), allocatable :: vkloff(/;"	k	type:k_set
+vkloff	src_gw/mod_kpointset.f90	/^        real(8) :: vkloff(/;"	k	type:k_set
 vkloff	src_inputparser/inputmodules.f90	/^ real(8)::vkloff(/;"	k	type:BSE_type
 vkloff	src_inputparser/inputmodules.f90	/^ real(8)::vkloff(/;"	k	type:groundstate_type
 vkloff	src_inputparser/inputmodules.f90	/^ real(8)::vkloff(/;"	k	type:screening_type
@@ -28766,7 +28781,6 @@ wf_n_wgt	src_wannier/mod_wannier_variables.f90	/^  real(8), allocatable :: wf_n_
 wf_n_wgts	src_wannier/mod_wannier_variables.f90	/^  real(8), allocatable :: wf_n_wgts(/;"	v	module:mod_wannier_variables
 wf_ngroups	src_wannier/mod_wannier_variables.f90	/^  integer :: wf_ngroups$/;"	v	module:mod_wannier_variables
 wf_nprojtot	src_wannier/mod_wannier_variables.f90	/^  integer :: wf_nprojtot /;"	v	module:mod_wannier_variables
-wf_nprojused	src_wannier/mod_wannier_variables.f90	/^  integer :: wf_nprojused /;"	v	module:mod_wannier_variables
 wf_nst	src_wannier/mod_wannier_variables.f90	/^  integer :: wf_nst /;"	v	module:mod_wannier_variables
 wf_nwf	src_wannier/mod_wannier_variables.f90	/^  integer :: wf_nwf /;"	v	module:mod_wannier_variables
 wf_omega	src_wannier/mod_wannier_variables.f90	/^  real(8), allocatable :: wf_omega(/;"	v	module:mod_wannier_variables
@@ -28776,7 +28790,6 @@ wf_omega_od	src_wannier/mod_wannier_variables.f90	/^  real(8), allocatable :: wf
 wf_opf	src_wannier/mod_wannier_variables.f90	/^  complex(8), allocatable :: wf_opf(/;"	v	module:mod_wannier_variables
 wf_projection	src_wannier/mod_wannier_variables.f90	/^  complex(8), allocatable :: wf_projection(/;"	v	module:mod_wannier_variables
 wf_projst	src_wannier/mod_wannier_variables.f90	/^  integer, allocatable :: wf_projst(/;"	v	module:mod_wannier_variables
-wf_projused	src_wannier/mod_wannier_variables.f90	/^  integer, allocatable :: wf_projused(/;"	v	module:mod_wannier_variables
 wf_sheet	src_wannier/mod_wannier_variables.f90	/^  integer, allocatable :: wf_sheet(/;"	v	module:mod_wannier_variables
 wf_t0	src_wannier/mod_wannier_variables.f90	/^  real(8) :: wf_t0$/;"	v	module:mod_wannier_variables
 wf_transform	src_wannier/mod_wannier_variables.f90	/^  complex(8), allocatable :: wf_transform(/;"	v	module:mod_wannier_variables
@@ -28798,7 +28811,6 @@ wfint_destroywf	src_wannier/mod_wannier_interpolate.f90	/^    subroutine wfint_d
 wfint_efermi	src_wannier/mod_wannier_interpolate.f90	/^  real(8) :: wfint_efermi /;"	v	module:mod_wfint
 wfint_eval	src_wannier/mod_wannier_interpolate.f90	/^  real(8), allocatable :: wfint_eval(/;"	v	module:mod_wfint
 wfint_evec	src_wannier/mod_wannier_interpolate.f90	/^  complex(8), allocatable :: wfint_evec(/;"	v	module:mod_wfint
-wfint_find_bandgap	src_wannier/mod_wannier_interpolate.f90	/^    subroutine wfint_find_bandgap$/;"	s	module:mod_wfint
 wfint_gen_radcoeffr	src_wannier/mod_wannier_interpolate.f90	/^    subroutine wfint_gen_radcoeffr(/;"	s	module:mod_wfint
 wfint_gen_radolp	src_wannier/mod_wannier_interpolate.f90	/^    subroutine wfint_gen_radolp(/;"	s	module:mod_wfint
 wfint_getwfir	src_wannier/mod_wannier_interpolate.f90	/^    subroutine wfint_getwfir(/;"	s	module:mod_wfint
@@ -28836,21 +28848,30 @@ wfplot	wfplot.f90	/^Subroutine wfplot(/;"	s
 wfplot_new	wfplot_new.f90	/^subroutine wfplot_new(/;"	s
 wfplot_type	src_inputparser/inputmodules.f90	/^type wfplot_type$/;"	t	module:modinput
 wfpro_dordmax	src_wannier/mod_wannier_projection.f90	/^  integer :: wfpro_dordmax /;"	v	module:mod_wannier_projection
+wfpro_epsld	src_wannier/mod_wannier_projection.f90	/^  real(8) :: wfpro_epsld /;"	v	module:mod_wannier_projection
 wfpro_genradfun	src_wannier/mod_wannier_projection.f90	/^    subroutine wfpro_genradfun$/;"	s	module:mod_wannier_projection
 wfpro_getline	src_wannier/mod_wannier_projection.f90	/^    subroutine wfpro_getline(/;"	s	module:mod_wannier_projection
 wfpro_getstates	src_wannier/mod_wannier_projection.f90	/^    subroutine wfpro_getstates$/;"	s	module:mod_wannier_projection
+wfpro_lmax	src_wannier/mod_wannier_projection.f90	/^  integer :: wfpro_lmax$/;"	v	module:mod_wannier_projection
+wfpro_noccmax	src_wannier/mod_wannier_projection.f90	/^  integer :: wfpro_noccmax /;"	v	module:mod_wannier_projection
+wfpro_nproj	src_wannier/mod_wannier_projection.f90	/^  integer :: wfpro_nproj /;"	v	module:mod_wannier_projection
+wfpro_nprojtot	src_wannier/mod_wannier_projection.f90	/^  integer :: wfpro_nprojtot$/;"	v	module:mod_wannier_projection
 wfpro_nradfun	src_wannier/mod_wannier_projection.f90	/^  integer :: wfpro_nradfun$/;"	v	module:mod_wannier_projection
 wfpro_nst	src_wannier/mod_wannier_projection.f90	/^  integer, allocatable :: wfpro_nst(/;"	v	module:mod_wannier_projection
 wfpro_nunocc	src_wannier/mod_wannier_projection.f90	/^  integer :: wfpro_nunocc /;"	v	module:mod_wannier_projection
 wfpro_projection	src_wannier/mod_wannier_projection.f90	/^    subroutine wfpro_projection$/;"	s	module:mod_wannier_projection
+wfpro_projst	src_wannier/mod_wannier_projection.f90	/^  integer, allocatable :: wfpro_nst(:), wfpro_states(:,:,:), wfpro_projst(/;"	v	module:mod_wannier_projection
+wfpro_projused	src_wannier/mod_wannier_projection.f90	/^  integer, allocatable :: wfpro_nst(:), wfpro_states(:,:,:), wfpro_projst(:,:), wfpro_projused(/;"	v	module:mod_wannier_projection
 wfpro_radfun	src_wannier/mod_wannier_projection.f90	/^  real(8), allocatable :: wfpro_radfun(/;"	v	module:mod_wannier_projection
 wfpro_radint	src_wannier/mod_wannier_projection.f90	/^  real(8), allocatable :: wfpro_radint(/;"	v	module:mod_wannier_projection
 wfpro_removeldprojf	src_wannier/mod_wannier_projection.f90	/^    subroutine wfpro_removeldprojf(/;"	s	module:mod_wannier_projection
+wfpro_selectprojf	src_wannier/mod_wannier_projection.f90	/^    subroutine wfpro_selectprojf$/;"	s	module:mod_wannier_projection
 wfpro_showproj	src_wannier/mod_wannier_projection.f90	/^    subroutine wfpro_showproj$/;"	s	module:mod_wannier_projection
 wfpro_states	src_wannier/mod_wannier_projection.f90	/^  integer, allocatable :: wfpro_nst(:), wfpro_states(/;"	v	module:mod_wannier_projection
 wfproj	src_inputparser/speciesmodules.f90	/^ logical::wfproj$/;"	k	type:lo_type
 wfutil_bandstructure	src_wannier/mod_wannier_util.f90	/^    subroutine wfutil_bandstructure$/;"	s	module:mod_wfutil
 wfutil_dos	src_wannier/mod_wannier_util.f90	/^    subroutine wfutil_dos$/;"	s	module:mod_wfutil
+wfutil_find_bandgap	src_wannier/mod_wannier_util.f90	/^    subroutine wfutil_find_bandgap$/;"	s	module:mod_wfutil
 wgauss	src_gw/calcselfeph.f90	/^function wgauss /;"	f
 wght	src_other/delaunay.f	/^      double precision xcor, ycor, zcor, wght$/;"	v	program:main
 wgrid	src_inputparser/inputmodules.f90	/^ integer::wgrid$/;"	k	type:dielmat_type
@@ -29200,6 +29221,7 @@ writebandgapgrid	src_xs/bandgap.F90	/^Subroutine writebandgapgrid$/;"	s
 writebevec	src_xs/writebevec.f90	/^Subroutine writebevec$/;"	s
 writechg	writechg.f90	/^Subroutine writechg /;"	s
 writecmplxparts	src_xs/m_writecmplxparts.f90	/^    subroutine writecmplxparts(/;"	s	module:m_writecmplxparts
+writeconv	src_inputparser/inputmodules.f90	/^ logical::writeconv$/;"	k	type:group_type
 writedielt	src_xs/writedielt.F90	/^Subroutine writedielt /;"	s
 writedveff	src_phonon/writedveff.f90	/^Subroutine writedveff /;"	s
 writedynamicalmatrices	src_phonon/writedynamicalmatrices.F90	/^subroutine writedynamicalmatrices(/;"	s
@@ -29562,10 +29584,11 @@ zfmtinp	zfmtinp.f90	/^Complex (8) Function zfmtinp /;"	f
 zfshtapw	mod_SHT.F90	/^      Complex (8), Allocatable :: zfshtapw /;"	v	module:mod_SHT
 zfshtvr	mod_SHT.F90	/^      Complex (8), Allocatable :: zfshtvr /;"	v	module:mod_SHT
 zfunir	src_gw/mod_misc_gw.f90	/^    complex(8), allocatable :: zfunir(/;"	v	module:mod_misc_gw
+zgediag	mod_linalg.f90	/^    subroutine zgediag(/;"	s	module:m_linalg
 zgemm_wrap	src_xs/summations.F90	/^      Subroutine zgemm_wrap /;"	s	module:blaswrappers
-zgesdd_wrapper	my_helpers/zgesdd_wrapper.f90	/^subroutine zgesdd_wrapper(/;"	s
 zgetv0	ARPACK/SRC/zgetv0.f	/^      subroutine zgetv0 /;"	s
 zhalf	mod_constants.F90	/^      Complex (8), Parameter :: zhalf /;"	v	module:mod_constants
+zhediag	mod_linalg.f90	/^    subroutine zhediag(/;"	s	module:m_linalg
 zi	mod_constants.F90	/^      Complex (8), Parameter :: zi /;"	v	module:mod_constants
 zil	mod_constants.F90	/^      Complex (8), Allocatable :: zil /;"	v	module:mod_constants
 zinvert_hermitian	src_xs/invert.F90	/^      Subroutine zinvert_hermitian /;"	s	module:invert
@@ -29611,12 +29634,14 @@ znsimp	ARPACK/EXAMPLES/SIMPLE/znsimp.f	/^      program znsimp /;"	p
 zone	mod_constants.F90	/^      Complex (8), Parameter :: zone /;"	v	module:mod_constants
 zone	src_raman/mod_raman.f90	/^complex(8), parameter :: zone /;"	v	module:raman_params
 zoutpr	src_xs/zoutpr.F90	/^Subroutine zoutpr /;"	s
+zpinv	mod_linalg.f90	/^    subroutine zpinv(/;"	s	module:m_linalg
 zpotclmt	zpotclmt.f90	/^Subroutine zpotclmt /;"	s
 zpotcoul	zpotcoul.f90	/^Subroutine zpotcoul /;"	s
 zrange	src_inputparser/inputmodules.f90	/^ real(8)::zrange(/;"	k	type:region_type
 zrhogp	src_advanced/zrhogp.f90	/^Subroutine zrhogp /;"	s
 zsortc	ARPACK/SRC/zsortc.f	/^      subroutine zsortc /;"	s
 zstatn	ARPACK/SRC/zstatn.f	/^      subroutine zstatn$/;"	s
+zsvd	mod_linalg.f90	/^    subroutine zsvd(/;"	s	module:m_linalg
 ztol_sorteq	src_libbzint/tetra_internal.f90	/^      real(8):: ztol_sorteq /;"	v	module:tetra_internal
 ztol_vol	src_libbzint/tetra_internal.f90	/^      real(8):: ztol_vol /;"	v	module:tetra_internal
 ztorflm	src_lib/ztorflm.f90	/^Subroutine ztorflm /;"	s

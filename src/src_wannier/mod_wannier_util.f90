@@ -26,7 +26,7 @@ module mod_wfutil
       !EOP
       !BOC
       integer :: wf_nvp1d, wf_npp1d, iq, iv, lmax, un, is, ia, ias, ist, l
-      real(8) :: sum, emin, emax, dk(3), v(3)
+      real(8) :: sum, emin, emax, dk(3), v(3), m(3,3)
       type( k_set) :: tmp_kset
       type( xmlf_t), save :: xf
       character(256) :: fxt, fname, buffer
@@ -52,7 +52,7 @@ module mod_wfutil
       
       ! interpolate band-derivatives
       if( input%properties%bandstructure%deriv) then
-        allocate( deriv( 2, wf_nwf, wfint_kset%nkpt))
+        allocate( deriv( 3, wf_nwf, wfint_kset%nkpt))
         allocate( velo( 3, wf_nwf, wfint_kset%nkpt))
         allocate( mass( 3, 3, wf_nwf, wfint_kset%nkpt))
         call wfint_interpolate_ederiv( velo, mass)
@@ -67,8 +67,11 @@ module mod_wfutil
             end if
             dk = dk/norm2( dk)
             call r3mv( mass( :, :, ist, iq), dk, v)
+            call r3minv( mass( :, :, ist, iq), m)
             deriv( 1, ist, iq) = dot_product( velo( :, ist, iq), dk)
             deriv( 2, ist, iq) = dot_product( dk, v)
+            call r3mv( m, dk, v)
+            deriv( 3, ist, iq) = dot_product( dk, v)
           end do
         end do
       end if
@@ -140,6 +143,8 @@ module mod_wfutil
                   call xml_AddAttribute( xf, "deriv1", trim( adjustl( buffer)))
                   write( buffer, '(5G18.10)') deriv( 2, ist, iq) 
                   call xml_AddAttribute( xf, "deriv2", trim( adjustl( buffer)))
+                  write( buffer, '(5G18.10)') deriv( 3, ist, iq) 
+                  call xml_AddAttribute( xf, "mass", trim( adjustl( buffer)))
                 end if
                 do l = 0, lmax
                   call xml_NewElement( xf, "bc")
@@ -182,9 +187,9 @@ module mod_wfutil
           call xml_NewElement( xf, "band")
           do iq = 1, wfint_kset%nkpt
             if( input%properties%bandstructure%deriv) then
-              write( un, '(4G18.10)') wf_dpp1d( iq), wfint_eval( ist, iq), deriv( :, ist, iq)
+              write( un, '(5G18.10)') wf_dpp1d( iq), wfint_eval( ist, iq), deriv( :, ist, iq)
             else
-              write( un, '(4G18.10)') wf_dpp1d( iq), wfint_eval( ist, iq)
+              write( un, '(2G18.10)') wf_dpp1d( iq), wfint_eval( ist, iq)
             end if
             call xml_NewElement( xf, "point")
             write( buffer, '(5G18.10)') wf_dpp1d( iq)
@@ -196,6 +201,8 @@ module mod_wfutil
               call xml_AddAttribute( xf, "deriv1", trim( adjustl( buffer)))
               write( buffer, '(5G18.10)') deriv( 2, ist, iq) 
               call xml_AddAttribute( xf, "deriv2", trim( adjustl( buffer)))
+              write( buffer, '(5G18.10)') deriv( 3, ist, iq) 
+              call xml_AddAttribute( xf, "mass", trim( adjustl( buffer)))
             end if
             call xml_endElement( xf, "point")
           end do
@@ -280,11 +287,11 @@ module mod_wfutil
       !   Created November 2017 (SeTi)
       !EOP
       !BOC
-      integer :: lmax, lmmax, is, ia, ias, l, m, lm, ie, ntrans, un, n, ist
+      integer :: lmax, lmmax, is, ia, ias, l, m, lm, ie, un, n, ist
       integer :: intgrid(3), nsmooth, neffk, nsube
       real(8) :: ewin(2), scissor
       logical :: genpdos, genjdos
-      character(256) :: fname, fxt
+      character(256) :: fname
       character(512) :: buffer
       type (xmlf_t), save :: xf
 
@@ -311,7 +318,7 @@ module mod_wfutil
 
       allocate( e( nsube))
       do ie = 1, nsube
-        e( ie) = ewin(1) + (ie-0.5d0)*(ewin(2)-ewin(1))/nsube
+        e( ie) = ewin(1) + dble( ie-1)*(ewin(2)-ewin(1))/(nsube-1)
       end do
 
       allocate( tdos( nsube))
@@ -368,12 +375,12 @@ module mod_wfutil
 
       do ie = 1, nsube
         call xml_NewElement (xf, "point")
-        write( buffer, '(G18.10)') e( ie)
+        write( buffer, '(G18.10E3)') e( ie)
         call xml_AddAttribute( xf, "e", trim( adjustl( buffer)))
-        write( buffer, '(G18.10)') occmax*tdos( ie)
+        write( buffer, '(G18.10E3)') occmax*tdos( ie)
         call xml_AddAttribute( xf, "dos", trim( adjustl( buffer)))
         call xml_endElement( xf, "point")
-        write( un, '(2G18.10)') e( ie), occmax*tdos( ie)
+        write( un, '(2G18.10E3)') e( ie), occmax*tdos( ie)
       end do
       write( un, *)
       close( un)
@@ -407,12 +414,12 @@ module mod_wfutil
                 call xml_AddAttribute( xf, "m", trim( adjustl( buffer)))
                 do ie = 1, nsube
                   call xml_NewElement( xf, "point")
-                  write( buffer, '(G18.10)') e( ie)
+                  write( buffer, '(G18.10E3)') e( ie)
                   call xml_AddAttribute (xf, "e", trim( adjustl( buffer)))
-                  write( buffer, '(G18.10)') occmax*pdos( ie, lm, ias)
+                  write( buffer, '(G18.10E3)') occmax*pdos( ie, lm, ias)
                   call xml_AddAttribute (xf, "dos", trim( adjustl( buffer)))
                   call xml_endElement( xf, "point")
-                  write( un, '(2G18.10)') e( ie), occmax*pdos( ie, lm, ias)
+                  write( un, '(2G18.10E3)') e( ie), occmax*pdos( ie, lm, ias)
                   tdos( ie) = tdos( ie) - pdos( ie, lm, ias)
                 end do
                 write( un, *)
@@ -432,12 +439,12 @@ module mod_wfutil
         call xml_AddAttribute( xf, "nspin", trim( adjustl( buffer)))
         do ie = 1, nsube
           call xml_NewElement( xf, "point")
-          write( buffer, '(G18.10)') e( ie)
+          write( buffer, '(G18.10E3)') e( ie)
           call xml_AddAttribute (xf, "e", trim( adjustl( buffer)))
-          write( buffer, '(G18.10)') occmax*tdos( ie)
+          write( buffer, '(G18.10E3)') occmax*tdos( ie)
           call xml_AddAttribute (xf, "dos", trim( adjustl( buffer)))
           call xml_endElement( xf, "point")
-          write( un, '(2G18.10)') e( ie), occmax*tdos( ie)
+          write( un, '(2G18.10E3)') e( ie), occmax*tdos( ie)
         end do
         write( un, *)
         close( un)
@@ -453,9 +460,9 @@ module mod_wfutil
         do ist = 1, n
           do ie = 1, nsube
             if( abs( e( ie)) .gt. 1.d-4) then
-              write( un, '(3G18.10)') e( ie), occmax*jdos( ie, ist)/(e( ie)*e( ie))/dble(m*n), occmax*jdos( ie, ist)
+              write( un, '(3G18.10E3)') e( ie), occmax*jdos( ie, ist)/(e( ie)*e( ie))/dble(m*n), occmax*jdos( ie, ist)
             else
-              write( un, '(3G18.10)') e( ie), 0.d0, occmax*jdos( ie, ist)
+              write( un, '(3G18.10E3)') e( ie), 0.d0, occmax*jdos( ie, ist)
             end if
           end do
           write( un, *)
@@ -465,9 +472,9 @@ module mod_wfutil
         open( un, file='TJDOS_WANNIER'//trim( filext), action='write', form='formatted')
         do ie = 1, nsube
           if( abs( e( ie)) .gt. 1.d-4) then
-            write( un, '(3G18.10)') e( ie), occmax*jdos( ie, 0)/( e( ie)*e( ie))/dble(m*n), occmax*jdos( ie, 0)
+            write( un, '(3G18.10E3)') e( ie), occmax*jdos( ie, 0)/( e( ie)*e( ie))/dble(m*n), occmax*jdos( ie, 0)
           else
-            write( un, '(3G18.10)') e( ie), 0.d0, occmax*jdos( ie, 0)
+            write( un, '(3G18.10E3)') e( ie), 0.d0, occmax*jdos( ie, 0)
           end if
         end do
         write( un, *)
@@ -505,6 +512,193 @@ module mod_wfutil
 
       return
     end subroutine wfutil_dos
+
+!--------------------------------------------------------------------------------------
+    
+    subroutine wfutil_find_bandgap
+      use mod_eigenvalue_occupancy, only: occmax
+      use mod_charge_and_moment, only: chgval
+      use mod_lattice, only: bvec
+      use mod_optkgrid, only: getoptkgrid
+      use m_getunit
+
+      integer :: iq, nvm, iqvbm, iqcbm, ndiv(3), degvbm, degcbm, ist, n1, un, iv(3)
+      real(8) :: vvbm(3), vcbm(3), v0(3), w(3), d(3), m(3,3), evbm, ecbm, eps, rad, opt, ropt
+      type( k_set) :: tmp_kset
+      logical :: findvbm, findcbm
+
+      real(8), allocatable :: velo(:,:,:), mass(:,:,:,:)
+
+      call getunit( un)
+
+      eps = 1.d-6
+      rad = 2.d-2
+
+      findvbm = .true.
+      findcbm = .true.
+
+      nvm = nint( chgval/occmax)
+      if( (wf_fst .ne. 1) .and. (wf_fst .le. nvm)) then
+        write( *, '(" Warning (wfint_find_bandgap): The lowest wannierized band is ",I3,". All bands below are considered to be fully occupied.")') wf_fst
+      end if
+      if( wf_fst .gt. nvm) then
+        write( *, '(" Warning (wfint_find_bandgap): No valence bands have been wannierized. Cannot find VBM.")')
+        findvbm = .false.
+      end if
+      if( (wf_lst .le. nvm)) then
+        write( *, '(" Warning (wfint_find_bandgap): No conduction bands have been wannierized. Cannot find CBM.")')
+        findcbm = .false.
+      end if
+
+      nvm = nvm - wf_fst + 1
+
+      if( minval( input%properties%wanniergap%ngridkint) .gt. 0) then
+        ndiv = input%properties%wanniergap%ngridkint
+      else
+        call getoptkgrid( rad, bvec, ndiv, opt, ropt)
+        write( *, '(" Warning (wfint_find_bandgap): No interpolation grid given. I use ",3i4,".")') ndiv
+      end if
+
+      w = (/1.d0, 1.d0, 1.d0/)
+      if( ndiv(1) .eq. 1) w(1) = 0.d0
+      if( ndiv(2) .eq. 1) w(2) = 0.d0
+      if( ndiv(3) .eq. 1) w(3) = 0.d0
+      d = w/ndiv
+
+      call generate_k_vectors( tmp_kset, bvec, 3*ndiv, (/0.d0, 0.d0, 0.d0/), .true., uselibzint=.true.)
+      call wfint_init( tmp_kset)
+
+      if( findvbm .and. findcbm) then
+        if( maxval( wfint_eval( nvm, :)) .gt. minval( wfint_eval( nvm+1, :))) then
+          write( *, '(" Error (wfint_find_bandgap): I think your system is metalic. No gap can be found.")')
+          return
+        end if
+      end if
+
+      if( findvbm) then
+        iqvbm = maxloc( wfint_eval( nvm, :), 1)
+        evbm = wfint_eval( nvm, iqvbm)
+        vvbm = wfint_kset%vkl( :, iqvbm)
+      end if
+
+      if( findcbm) then
+        iqcbm = minloc( wfint_eval( nvm+1, :), 1)
+        ecbm = wfint_eval( nvm+1, iqcbm)
+        vcbm = wfint_kset%vkl( :, iqcbm)
+      end if
+
+      ! find VBM
+      do while( (norm2( d) .gt. eps) .and. findvbm)
+        w = 2.d0*d
+        d = w/ndiv
+        v0 = vvbm - 0.5d0*(w - d)
+        call generate_k_vectors( tmp_kset, bvec, ndiv, (/0.d0, 0.d0, 0.d0/), .false., uselibzint=.true.)
+        do iq = 1, tmp_kset%nkpt
+          tmp_kset%vkl( :, iq) = tmp_kset%vkl( :, iq)*w + v0
+          call r3mv( bvec, tmp_kset%vkl( :, iq), tmp_kset%vkc( :, iq))
+        end do
+        call wfint_init( tmp_kset)
+        iqvbm = maxloc( wfint_eval( nvm, :), 1)
+        evbm = wfint_eval( nvm, iqvbm)
+        vvbm = wfint_kset%vkl( :, iqvbm)
+        call r3ws( input%structure%epslat, bvec, vvbm, iv)
+        write(*,'(3f13.6,f23.16)') vvbm, evbm
+      end do
+        
+      ! find CBM
+      w = (/1.d0, 1.d0, 1.d0/)
+      if( ndiv(1) .eq. 1) w(1) = 0.d0
+      if( ndiv(2) .eq. 1) w(2) = 0.d0
+      if( ndiv(3) .eq. 1) w(3) = 0.d0
+      d = w/ndiv
+      do while( (norm2( d) .gt. input%structure%epslat) .and. findcbm)
+        w = 2.d0*d
+        d = w/ndiv
+        v0 = vcbm - 0.5d0*(w - d)
+        call generate_k_vectors( tmp_kset, bvec, ndiv, (/0.d0, 0.d0, 0.d0/), .false.)
+        do iq = 1, tmp_kset%nkpt
+          tmp_kset%vkl( :, iq) = tmp_kset%vkl( :, iq)*w + v0
+          call r3mv( bvec, tmp_kset%vkl( :, iq), tmp_kset%vkc( :, iq))
+        end do
+        call wfint_init( tmp_kset)
+        iqcbm = minloc( wfint_eval( nvm+1, :), 1)
+        ecbm = wfint_eval( nvm+1, iqvbm)
+        vcbm = wfint_kset%vkl( :, iqcbm)
+        call r3ws( input%structure%epslat, bvec, vcbm, iv)
+        write(*,'(3f13.6,f23.16)') vcbm, ecbm
+      end do
+
+      allocate( velo( 3, wf_nwf, wfint_kset%nkpt))
+      allocate( mass( 3, 3, wf_nwf, wfint_kset%nkpt))
+
+      open( un, file='GAP_WANNIER.OUT', action='write', form='formatted')
+
+      if( findvbm) then
+        call generate_k_vectors( tmp_kset, bvec, (/1, 1, 1/), (/0.d0, 0.d0, 0.d0/), .false.)
+        tmp_kset%vkl( :, 1) = vvbm
+        call r3mv( bvec, tmp_kset%vkl( :, 1), tmp_kset%vkc( :, 1))
+        call wfint_init( tmp_kset)
+        call wfint_interpolate_ederiv( velo, mass)
+        degvbm = 0
+        do ist = 1, wf_nwf
+          if( abs( wfint_eval( ist, 1) - wfint_eval( nvm, 1)) .lt. eps) degvbm = degvbm + 1
+        end do
+        evbm = wfint_eval( nvm, 1)
+
+        write( un, *) "VALENCE-BAND MAXIMUM"
+        write( un, '(" position (lattice):      ",3f13.6)') wfint_kset%vkl( :, 1)
+        write( un, '("          (cartesian):    ",3f13.6)') wfint_kset%vkc( :, 1)
+        write( un, '(" energy (Hartree):        ",f13.6)') evbm
+        write( un, '("        (eV):             ",f13.6)') evbm*27.211396641308
+        write( un, '(" degeneracy:              ",i6)') degvbm
+        do n1 = 1, degvbm
+          call r3minv( mass( :, :, nvm-n1+1, 1), m)
+          write( un, '(" band gradient ",i2,":        ",3f13.6)') n1, velo( :, nvm-n1+1, 1)
+          write( un, '(" effective mass ",i2,":       ",3f13.6)') n1, m( 1, :)
+          write( un, '("                          ",3f13.6)') m( 2, :)
+          write( un, '("                          ",3f13.6)') m( 3, :)
+        end do
+        write( un, *)
+      end if
+
+      if( findcbm) then
+        call generate_k_vectors( tmp_kset, bvec, (/1, 1, 1/), (/0.d0, 0.d0, 0.d0/), .false.)
+        tmp_kset%vkl( :, 1) = vcbm
+        call r3mv( bvec, tmp_kset%vkl( :, 1), tmp_kset%vkc( :, 1))
+        call wfint_init( tmp_kset)
+        call wfint_interpolate_ederiv( velo, mass)
+        degcbm = 0
+        do ist = 1, wf_nwf
+          if( abs( wfint_eval( ist, 1) - wfint_eval( nvm+1, 1)) .lt. eps) degcbm = degcbm + 1
+        end do
+        ecbm = wfint_eval( nvm+1, 1)
+
+        write( un, *) "CONDUCTION-BAND MINIMUM"
+        write( un, '(" position (lattice):      ",3f13.6)') wfint_kset%vkl( :, 1)
+        write( un, '("          (cartesian):    ",3f13.6)') wfint_kset%vkc( :, 1)
+        write( un, '(" energy (Hartree):        ",f13.6)') ecbm
+        write( un, '("        (eV):             ",f13.6)') ecbm*27.211396641308
+        write( un, '(" degeneracy:              ",i6)') degcbm
+        do n1 = 1, degcbm
+          call r3minv( mass( :, :, nvm+n1, 1), m)
+          write( un, '(" band gradient ",i2,":        ",3f13.6)') n1, velo( :, nvm+n1, 1)
+          write( un, '(" effective mass ",i2,":       ",3f13.6)') n1, m( 1, :)
+          write( un, '("                          ",3f13.6)') m( 2, :)
+          write( un, '("                          ",3f13.6)') m( 3, :)
+        end do
+        write( un, *)
+      end if
+
+      if( findvbm .and. findcbm) then
+        write( un, '(" gap (Hartree):           ",f13.6)') ecbm - evbm
+        write( un, '("     (eV):                ",f13.6)') (ecbm - evbm)*27.211396641308
+      end if
+
+      close( un)
+
+      return
+    end subroutine wfutil_find_bandgap
+
 
 !--------------------------------------------------------------------------------------
 

@@ -9,7 +9,7 @@ subroutine wannierlauncher
       ! generate Wannier functions
       call wannier_init
       if( input%properties%wannier%do .eq. "fromscratch") then
-        call wannier_writeinfo_lo
+        if( input%properties%wannier%printproj) call wannier_writeinfo_lo
         call wannier_writeinfo_overall
         call printbox( wf_info, '*', "Wannierization")
         do wf_group = 1, wf_ngroups
@@ -54,20 +54,20 @@ subroutine wannierlauncher
       
       else if( input%properties%wannier%do .eq. "fromfile") then
         call wannier_gen_fromfile
-        call wannier_writeinfo_lo
-        call wannier_writeinfo_overall
+        if( input%properties%wannier%printproj) call wannier_writeinfo_lo
 
       else
         call wannier_gen_fromfile
-        call wannier_writeinfo_lo
+        if( input%properties%wannier%printproj) call wannier_writeinfo_lo
         call wannier_writeinfo_overall
         do wf_group = 1, wf_ngroups
+          call wannier_writeinfo_task
           call wannier_maxloc
         end do
         call wannier_writetransform
       end if
-      
-      call wannier_writeinfo_finish
+
+      if( input%properties%wannier%do .ne. "fromfile") call wannier_writeinfo_finish
 
       ! further tasks if requested
       ! bandstructure
@@ -80,7 +80,7 @@ subroutine wannierlauncher
       end if
       ! band gap
       if( associated( input%properties%wanniergap)) then
-        call wfint_find_bandgap
+        call wfutil_find_bandgap
       end if
     else
       write(*,*) " Error (wannierlauncher): Wannier element in input not found."

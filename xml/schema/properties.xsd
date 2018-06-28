@@ -41,12 +41,12 @@
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="wannier" default="false" type="xs:boolean">
               <xs:annotation>
-                <xs:documentation>Use Wannier interpolated energies.</xs:documentation>
+                <xs:documentation>Wannier interpolation is used for calculating the band-structure.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="deriv" default="false" type="xs:boolean">
               <xs:annotation>
-                <xs:documentation>In addition calculate first and second band-derivative using Wannier interpolation.</xs:documentation>
+                <xs:documentation>In addition, the first and second band-derivative is computed using Wannier interpolation.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
           </xs:complexType>
@@ -204,10 +204,42 @@
                 </xs:appinfo>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="essential" ex:unit="Hartree" ref="scissor" default="0.0d0"/>
-            <xs:attribute ex:importance="expert" ex:unit="" name="jdos" type="xs:boolean" default="false"/>
-            <xs:attribute ex:importance="expert" ex:unit="" name="wannier" type="xs:boolean" default="false"/>
-            <xs:attribute ex:importance="expert" ex:unit="" name="ngridkint" type="integertriple" default="0 0 0"/>
+            <xs:attribute ex:importance="essential" ex:unit="Hartree" ref="scissor" default="0.0d0">
+              <xs:annotation>
+                <xs:documentation>The scissor operator is applied, i.e. all bands above the fermi-level are shifted by the given value. 
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="jdos" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>If true, in addition, the joint density of states is computed. 
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="wannier" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>If true, Wannier interpolation is used to perform the BZ integration.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="newint" type="xs:boolean" default="false">
+              <xs:annotation>
+                  <xs:documentation>If true, a new (partially analytical) routine for the BZ integration is used. It is more efficient for high values of <pre>ngrdos</pre> and give less noisy results.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="lonly" type="xs:boolean" default="false">
+              <xs:annotation>
+                  <xs:documentation>If true, the partial density of states is computed only l-resolved but not l- and m-resoveld.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="ngridkint" type="integertriple" default="0 0 0">
+              <xs:annotation>
+                  <xs:documentation>The dense integration grid on which the energies are interpolated when <pre>wannier</pre> is set to <pre>true</pre>.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="LSJ" maxOccurs="1" minOccurs="0">
@@ -838,7 +870,7 @@
         <xs:element ex:importance="essential" ex:unit="" name="wannier" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation> 
-            When the <elementref>wannier</elementref> element is present, in addition Wannier functions ares calculated.
+            When the <elementref>wannier</elementref> element is present, in addition Wannier functions are calculated.
             </xs:documentation>
           </xs:annotation>
           <xs:complexType>
@@ -851,11 +883,38 @@
 
             <xs:attribute ex:importance="expert" ex:unit="" name="mindist" default="true" type="xs:boolean">
               <xs:annotation>
-                <xs:documentation>Use minimal distances for interpolation.</xs:documentation>
+                  <xs:documentation>Use minimal distances for interpolation. This is more accurate for coarse k-grids but also more costly.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="printproj" default="false" type="xs:boolean">
+              <xs:annotation>
+                  <xs:documentation>If true the projection functions are written to <pre>WANNIER_INFO.OUT</pre>.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="experimental" ex:unit="" name="cutshell" default="false" type="xs:boolean">
+              <xs:annotation>
+                <xs:documentation>If true no multiples of neighbor vectors are used in finite difference approximation.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="experimental" ex:unit="" name="minshell" default="1" type="xs:integer">
+              <xs:annotation>
+                <xs:documentation>Minimum number of shells used for finite difference approximation.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="experimental" ex:unit="" name="nbzshell" default="1 1 1" type="integertriple">
+              <xs:annotation>
+                <xs:documentation>Number of unit-cells in each direction considered in finite difference approximation.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
             <xs:attribute ex:importance="essential" ex:unit="" name="input" default="gs">
+              <xs:annotation>
+                <xs:documentation>Specifies, which method was used for the input calculation.</xs:documentation>
+              </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:string">
                   <xs:enumeration value="gs">
@@ -871,6 +930,9 @@
             </xs:attribute>
 
             <xs:attribute ex:importance="essential" ex:unit="" name="do" default="fromscratch">
+              <xs:annotation>
+                <xs:documentation>Specifies, whether Wannier functions are calculated from scratch, skipped, read in from file or maximally localized starting from a previous result from file.</xs:documentation>
+              </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:string">
                   <xs:enumeration value="fromscratch">
@@ -912,7 +974,7 @@
 
                   <xs:attribute ex:importance="essential" ex:unit="" name="epsld" type="fortrandouble" default="1.d-3">
                     <xs:annotation>
-                      <xs:documentation>Tolerance for removing linear dependent local orbitals.</xs:documentation>
+                      <xs:documentation>Tolerance for removing linear dependent local-orbitals.</xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
 
@@ -943,6 +1005,9 @@
                   </xs:sequence>
 
                   <xs:attribute ex:importance="essential" ex:unit="" name="method" default="opfmax">
+                    <xs:annotation>
+                        <xs:documentation>Defines the method that is used for computing Wannier functions. The options are simple projection (<pre>pro</pre>), optimized projection functions (OPFs) (<pre>opf</pre>), maximal localization starting from simple projection (<pre>promax</pre>), maximal localization starting from OPFs (<pre>opfmax</pre>) and band-disentanglement (<pre>disentangle</pre>).</xs:documentation>
+                    </xs:annotation>
                     <xs:simpleType>
                       <xs:restriction base="xs:string">
                         <xs:enumeration value="pro">
@@ -993,25 +1058,25 @@
 
                   <xs:attribute ex:importance="essential" ex:unit="" name="uncertainty" type="fortrandouble" default="0.d0">
                     <xs:annotation>
-                        <xs:documentation>Convergency cut-off (uncertainty) for MLWFs</xs:documentation>
+                        <xs:documentation>Convergency cut-off (uncertainty) for MLWFs. The minimization is stopped when the uncertainty of the spread functional is smaller than the given value.</xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
 
                   <xs:attribute ex:importance="essential" ex:unit="" name="epsmaxloc" type="fortrandouble" default="1.d-6">
                     <xs:annotation>
-                        <xs:documentation>Convergency cut-off (gradient) for MLWFs</xs:documentation>
+                        <xs:documentation>Convergency cut-off (gradient) for MLWFs. The minimization is stopped when the norm of the gradient of the spread functional is smaller than the given value.</xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
 
                   <xs:attribute ex:importance="essential" ex:unit="" name="epsopf" type="fortrandouble" default="1.d-2">
                     <xs:annotation>
-                        <xs:documentation>Convergency cut-off for OPFs</xs:documentation>
+                        <xs:documentation>Convergency cut-off for OPFs. The minimization is stopped when the change in the spread functional between the last two sweeps is smaller than the given value.</xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
 
                   <xs:attribute ex:importance="essential" ex:unit="" name="epsdis" type="fortrandouble" default="1.d-4">
                     <xs:annotation>
-                        <xs:documentation>Convergency cut-off for subspace disentanglement</xs:documentation>
+                        <xs:documentation>Convergency cut-off for subspace disentanglement.</xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
 
@@ -1028,6 +1093,9 @@
                   </xs:attribute>
 
                   <xs:attribute ex:importance="essential" ex:unit="" name="cg" default="hs">
+                    <xs:annotation>
+                        <xs:documentation>Specifies which conjugate gradient update parameter is used for the minimization. The options are steepest descent (<pre>sd</pre>), Hestenes-Stiefel (<pre>hs</pre>), Fletcher-Reeves (<pre>fr</pre>), Polak-Ribiere (<pre>pr</pre>) and Hager-Zhang (<pre>hz</pre>).</xs:documentation>
+                    </xs:annotation>
                     <xs:simpleType>
                       <xs:restriction base="xs:string">
                         <xs:enumeration value="sd">
@@ -1046,11 +1114,11 @@
 
                   <xs:attribute ex:importance="essential" ex:unit="" name="step" type="fortrandouble" default="0.5d0">
                     <xs:annotation>
-                        <xs:documentation>Step-length used for minimization if no line-search is done</xs:documentation>
+                        <xs:documentation>Step-length used for minimization if no line-search is done.</xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
 
-                  <xs:attribute ex:importance="essential" ex:unit="" name="noise" type="fortrandouble" default="0.0d0">
+                  <xs:attribute ex:importance="experimental" ex:unit="" name="noise" type="fortrandouble" default="0.0d0">
                     <xs:annotation>
                         <xs:documentation>Add some noise to transformation when stucked.</xs:documentation>
                     </xs:annotation>
@@ -1058,7 +1126,7 @@
 
                   <xs:attribute ex:importance="essential" ex:unit="" name="ls" default="true" type="xs:boolean">
                     <xs:annotation>
-                      <xs:documentation>Use line-search for minimization.</xs:documentation>
+                      <xs:documentation>If true, a line-search is made in the minimization.</xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
 
@@ -1076,7 +1144,7 @@
 
                   <xs:attribute ex:importance="expert" ex:unit="" name="lambdaopf" type="fortrandouble" default="1.0d0">
                     <xs:annotation>
-                        <xs:documentation>Lambda in the OPF Lagrangian</xs:documentation>
+                        <xs:documentation>Lambda in the Lagrangian of the optimized projection functions (OPF).</xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
 
@@ -1120,7 +1188,7 @@
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="essential" ex:unit="" name="cell" type="integertriple" default="0 0 0">
+            <xs:attribute ex:importance="experimental" ex:unit="" name="cell" type="integertriple" default="0 0 0">
               <xs:annotation>
                   <xs:documentation>unit cell.</xs:documentation>
               </xs:annotation>
@@ -1143,7 +1211,7 @@
 
             <xs:attribute ex:importance="expert" ex:unit="" name="ngridkint" type="integertriple" default="0 0 0">
               <xs:annotation>
-                  <xs:documentation>Interpolation grid.</xs:documentation>
+                  <xs:documentation>Interpolation grid used for extrema search.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 

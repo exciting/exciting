@@ -1,6 +1,7 @@
 module mod_wannier_opf
   use mod_wannier_variables
   use mod_wannier_maxloc, only: wannier_loc, wannier_phases
+  use m_linalg
 
   use mod_constants,      only: zone, zzero, zi, twopi
   use modinput
@@ -16,7 +17,6 @@ contains
     !
     subroutine wannier_gen_opf( maxit, nowrite)
       ! !USES:
-      use mod_lattice, only: ainv
       use m_plotmat
       ! !INPUT/OUTPUT PARAMETERS:
       !   bandstart : n1, lowest band index of the band range used for generation of
@@ -35,11 +35,11 @@ contains
       integer, optional, intent( in) :: maxit
       logical, optional, intent( in) :: nowrite
       ! local variables
-      integer :: iknr, is, n, nx, iproj, i, j, l, ix, minit, ntot, idxn, ist, jst, a, iv(3)
+      integer :: iknr, is, n, nx, iproj, i, j, minit, idxn, ist, a
       real(8) :: lambda, sum_n_wgt, phi, phimean, uncertainty, theta, evalmin, omegamin, x1
       real(8) :: opf_min_q(3,3), opf_min_p(3,1), opf_min_c, opf_min_sol(3), eval(3), revec(3,3), opf_min_big(6,6), opf_min_aux(3,3), r, tp(2)
       real(8) :: t0, t1, t2
-      complex(8) :: opf_min_z(3,1), evec(3,3), evec_big(6,6), eval_big(6), r1, r2, tmp
+      complex(8) :: opf_min_z(3,1), evec_big(6,6), eval_big(6), r1, r2, tmp
       logical :: opf_nowrite
 
       ! allocatable arrays
@@ -89,7 +89,7 @@ contains
                wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, iknr), wf_nst, &
                projection, wf_groups( wf_group)%nst, zzero, &
                opf_projm( :, :, iknr), wf_groups( wf_group)%nwf)
-        call zgesdd_wrapper( opf_projm( :, :, iknr), wf_groups( wf_group)%nwf, wf_groups( wf_group)%nprojused, sval, lsvec, rsvec)
+        call zsvd( opf_projm( :, :, iknr), sval, lsvec, rsvec)
         ! for numerical stability
         !do ist = 1, wf_nst
         !  if( sval( ist) .lt. 1.d-12) lsvec( :, ist) = zzero
@@ -199,7 +199,7 @@ contains
               !opf_min_c = 0.25d0*opf_t( is)*abs( opf_x( i, i, is) + opf_x( j, j, is))**2
             end do
 
-            call diagsymmat( 3, opf_min_q, eval, revec)
+            call rsydiag( opf_min_q, eval, revec)
             if( j .le. wf_groups( wf_group)%nwf) then
               opf_min_sol(:) = revec( :, 1)
               if( opf_min_sol(1) .lt. 0.d0) opf_min_sol = -opf_min_sol
@@ -210,7 +210,7 @@ contains
               opf_min_big( 4, 1) = 1.d0
               opf_min_big( 5, 2) = 1.d0
               opf_min_big( 6, 3) = 1.d0
-              call diaggenmat( 6, cmplx( opf_min_big, 0, 8), eval_big, evec_big)
+              call zgediag( cmplx( opf_min_big, 0, 8), eval_big, evec_big)
               evalmin = maxval( abs( eval_big))
               do is = 1, 6
                 if( abs( aimag( eval_big( is))) .lt. input%structure%epslat) evalmin = min( evalmin, dble( eval_big( is)))
@@ -219,17 +219,7 @@ contains
                 opf_min_q( is, is) = opf_min_q( is, is) - evalmin
               end do
               if( minval( eval(:) - evalmin) .lt. 1.d-6) then
-                call zgesdd_wrapper( cmplx( opf_min_q, 0.d0, 8), 3, 3, eval, lsvec, rsvec)
-                lsvec = conjg( transpose( lsvec))
-                rsvec = conjg( transpose( rsvec))
-                do is = 1, 3
-                  if( eval( is) .gt. 1.d-6) then
-                    rsvec( :, is) = rsvec( :, is)/eval( is)
-                  else
-                    rsvec( :, is) = zzero
-                  end if
-                end do
-                opf_min_aux = dble( matmul( rsvec, lsvec))
+                call rpinv( opf_min_q, opf_min_aux)
                 call r3mv( opf_min_aux, -0.5d0*opf_min_p(:,1), opf_min_sol)
                 call r3mv( opf_min_q, opf_min_sol, opf_min_aux(:,1))
                 if( (norm2( opf_min_aux(:,1) + 0.5d0*opf_min_p(:,1)) .ge. 1.d-6) .or. (norm2( opf_min_sol) .gt. 1.d0)) then
@@ -324,7 +314,7 @@ contains
                opf_projm( :, :, iknr), wf_groups( wf_group)%nwf, &
                wf_opf, wf_groups( wf_group)%nprojused, zzero, &
                projm, wf_groups( wf_group)%nwf)
-        call zgesdd_wrapper( projm, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nwf, sval2, lsvec2, rsvec2)
+        call zsvd( projm, sval2, lsvec2, rsvec2)
         ! for numerical stability
         !do ist = 1, wf_nst
         !  if( sval2( ist) .lt. 1.d-12) lsvec2( :, ist) = zzero

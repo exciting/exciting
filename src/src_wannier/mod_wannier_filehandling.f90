@@ -154,9 +154,33 @@ module mod_wannier_filehandling
 
       ! groups
       do igroup = 1, wf_ngroups
+        read( un) wf_groups( igroup)%method
+        read( un) wf_groups( igroup)%fst, wf_groups( igroup)%lst, wf_groups( igroup)%nst 
+        read( un) wf_groups( igroup)%fwf, wf_groups( igroup)%lwf, wf_groups( igroup)%nwf 
+        read( un) wf_groups( igroup)%nprojused
+        read( un) wf_groups( igroup)%win_i
+        read( un) wf_groups( igroup)%win_o
+
         if( allocated( wf_groups( igroup)%projused)) deallocate( wf_groups( igroup)%projused)
         allocate( wf_groups( igroup)%projused( wf_nprojtot))
-        read( un) wf_groups( igroup)
+        read( un) wf_groups( igroup)%projused
+
+        if( wf_groups( igroup)%method .eq. 'disentangle') then
+          read( un) fst_, lst_
+          if( allocated( wf_groups( igroup)%win_ii)) deallocate( wf_groups( igroup)%win_ii)
+          allocate( wf_groups( igroup)%win_ii( fst_, lst_))
+          if( allocated( wf_groups( igroup)%win_io)) deallocate( wf_groups( igroup)%win_io)
+          allocate( wf_groups( igroup)%win_io( fst_, lst_))
+          read( un) wf_groups( igroup)%win_ii
+          read( un) wf_groups( igroup)%win_io
+
+          if( allocated( wf_groups( igroup)%win_ni)) deallocate( wf_groups( igroup)%win_ni)
+          allocate( wf_groups( igroup)%win_ni( wf_kset%nkpt))
+          if( allocated( wf_groups( igroup)%win_no)) deallocate( wf_groups( igroup)%win_no)
+          allocate( wf_groups( igroup)%win_no( wf_kset%nkpt))
+          read( un) wf_groups( igroup)%win_ni
+          read( un) wf_groups( igroup)%win_no
+        end if
       end do
 
       ! transformation matrices
@@ -226,7 +250,23 @@ module mod_wannier_filehandling
 
       ! groups
       do igroup = 1, wf_ngroups
-        write( un) wf_groups( igroup)
+        write( un) wf_groups( igroup)%method
+        write( un) wf_groups( igroup)%fst, wf_groups( igroup)%lst, wf_groups( igroup)%nst 
+        write( un) wf_groups( igroup)%fwf, wf_groups( igroup)%lwf, wf_groups( igroup)%nwf 
+        write( un) wf_groups( igroup)%nprojused
+        write( un) wf_groups( igroup)%win_i
+        write( un) wf_groups( igroup)%win_o
+
+        write( un) wf_groups( igroup)%projused
+
+        if( wf_groups( igroup)%method .eq. 'disentangle') then
+          write( un) shape( wf_groups( igroup)%win_ii)
+          write( un) wf_groups( igroup)%win_ii
+          write( un) wf_groups( igroup)%win_io
+
+          write( un) wf_groups( igroup)%win_ni
+          write( un) wf_groups( igroup)%win_no
+        end if
       end do
 
       ! transformation matrices
@@ -787,7 +827,7 @@ module mod_wannier_filehandling
       write( wf_info, '(" #bands involved:",T30,13x,I3)') wf_nst
       write( wf_info, '(" #Wannier functions:",T30,13x,I3)') wf_nwf
       write( wf_info, '(" #groups:",T30,13x,I3)') wf_ngroups
-      write( wf_info, '(" #k-points:",T30,13x,I3)') wf_kset%nkpt
+      write( wf_info, '(" #k-points:",T30,11x,I5)') wf_kset%nkpt
       call flushifc( wf_info)
 !#ifdef MPI
 !        call barrier
