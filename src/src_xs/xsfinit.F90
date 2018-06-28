@@ -3,6 +3,7 @@
 ! See the file COPYING for license details.
 !
 !
+<<<<<<< HEAD
 subroutine xsfinit
   use modinput, only: input
   use mod_misc, only: task, versionname

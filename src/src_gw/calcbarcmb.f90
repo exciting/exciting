@@ -65,8 +65,6 @@ subroutine calcbarcmb(iq)
         !call timesec(t1)
         !write(*,*) 'barcq0', t1-t0 
       end if
-      
-      !if (vccut) call calcmpwmix(iq)
         
       !-----------------------------------------------------------
       ! Matrix elements between MT and MT mixed product functions

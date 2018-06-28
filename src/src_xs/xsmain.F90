@@ -71,7 +71,7 @@ subroutine xsmain(plan, nxstasks)
       ! Taksname 'writepmatasc'
       case(321)
         ! ASCII output of momentum matrix elements
-        call writepmatxs_hdf5
+        call writepmatasc
 
       ! Taskname 'pmatxs2orig'
       case(322)

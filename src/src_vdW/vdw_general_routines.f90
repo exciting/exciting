@@ -143,5 +143,19 @@ Contains
     vdw_force_pairwiseC6 = -s6*vdw_force_pairwiseC6
   End Function vdw_force_pairwiseC6
 
-
+  Subroutine set_default_vdW_parameters
+    Use modinput
+    Use inputdom
+    Implicit None
+    
+    If ( .Not. (associated(input%groundstate%DFTD2parameters))) Then
+       ! set the default values if element not present
+       input%groundstate%DFTD2parameters => getstructDFTD2parameters (emptynode)
+    End If
+    If ( .Not. (associated(input%groundstate%TSvdWparameters))) Then
+       ! set the default values if element not present
+       input%groundstate%TSvdWparameters => getstructTSvdWparameters (emptynode)
+    End If
+  End Subroutine set_default_vdW_parameters
+  
 End Module vdw_general_routines

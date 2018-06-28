@@ -15,9 +15,9 @@
         </xs:annotation>
         <xs:complexType>
           <xs:all>
-          
-            <xs:element ex:importance="essential" ex:unit="" ref="plot1d"/>
 
+            <xs:element ex:importance="essential" ex:unit="" ref="plot1d"/>
+          
             <xs:element ex:importance="expert" ex:unit="" name="freqgrid" maxOccurs="1" minOccurs="0">
               <xs:annotation>
                 <xs:documentation>
@@ -235,68 +235,81 @@
           <xs:attribute ex:importance="expert" ex:unit="" name="taskname" type="xs:string" use="optional" default="g0w0">
             <xs:annotation>
               <xs:documentation>
-                  Type of calculations.
+                  Type of calculations. Available tasks:
+                  <list>
+                    <li>g0w0   - G0W0 calculations</li>
+                    <li>g0w0<inlinemath>\_</inlinemath>x - Exchange only (Hartree-Fock) G0W0 calculations</li>
+                    <li>gw0    - Partially self-consistent GW0 calculations</li>
+                    <li>cohsex - Coulomb-hole and screened-exchange (COHSEX) approximation</li>
+                    <li>band   - QP banstructure as obtained by Fourier interpolation</li>
+                    <li>dos    - QP density of states</li>
+                    <li>emac   - Calculate the macroscopic dielectric function</li>
+                    <li>vxc    - Calculate diagonal matrix elements of the exchange-correlation potential</li>
+                    <li>pmat   - Calculate matrix elements of the momentum operator</li>
+                    <li>acon   - Perform analytic continuation of the correlation self-energy from imaginary to real frequency and calculate QP energies</li>
+                  </list>
+
   	          </xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
           <xs:attribute ex:importance="expert" ex:unit="" name="iik" type="xs:integer" use="optional" default="1">
             <xs:annotation>
-              <xs:documentation>Lower bound for the k-point number</xs:documentation>
+              <xs:documentation>Lower bound for the k-point number (for test only).</xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
           <xs:attribute ex:importance="expert" ex:unit="" name="jjk" type="xs:integer" use="optional" default="1">
             <xs:annotation>
-              <xs:documentation>Upper bound for the k-point number</xs:documentation>
+              <xs:documentation>Upper bound for the k-point number (for test only).</xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
           <xs:attribute ex:importance="expert" ex:unit="" name="igmin" type="xs:integer" use="optional" default="1">
             <xs:annotation>
-              <xs:documentation>Lower bound for the G-vector number</xs:documentation>
+              <xs:documentation>Lower bound for the G-vector number (for test only).</xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
           <xs:attribute ex:importance="expert" ex:unit="" name="igmax" type="xs:integer" use="optional" default="1">
             <xs:annotation>
-              <xs:documentation>Upper bound for the G-vector number</xs:documentation>
+              <xs:documentation>Upper bound for the G-vector number (for test only).</xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
           <xs:attribute ex:importance="expert" ex:unit="" name="ibmin" type="xs:integer" use="optional" default="1">
             <xs:annotation>
-              <xs:documentation>Lower bound for the band number</xs:documentation>
+              <xs:documentation>Lower bound for the band number (for test only).</xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
           <xs:attribute ex:importance="expert" ex:unit="" name="ibmax" type="xs:integer" use="optional" default="1">
             <xs:annotation>
-              <xs:documentation>Upper bound for the band number</xs:documentation>
+              <xs:documentation>Upper bound for the band number (for test only).</xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
           <xs:attribute ex:importance="expert" ex:unit="" name="ibmin2" type="xs:integer" use="optional" default="1">
             <xs:annotation>
-             <xs:documentation>Lower bound for the band number</xs:documentation>
+             <xs:documentation>Lower bound for the band number (for test only).</xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
           <xs:attribute ex:importance="expert" ex:unit="" name="ibmax2" type="xs:integer" use="optional" default="1">
             <xs:annotation>
-              <xs:documentation>Upper bound for the band number</xs:documentation>
+              <xs:documentation>Upper bound for the band number (for test only).</xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
           <xs:attribute ex:importance="expert" ex:unit="" name="at1" type="xs:integer" use="optional" default="1">
             <xs:annotation>
-              <xs:documentation>First atom number</xs:documentation>
+              <xs:documentation>First atom number (for test only)</xs:documentation>
             </xs:annotation>
           </xs:attribute>
           
           <xs:attribute ex:importance="expert" ex:unit="" name="at2" type="xs:integer" use="optional" default="1">
             <xs:annotation>
-              <xs:documentation>Second atom number</xs:documentation>
+              <xs:documentation>Second atom number (for test only).</xs:documentation>
             </xs:annotation>
           </xs:attribute>
 
@@ -332,11 +345,12 @@
             <xs:annotation>
               <xs:documentation>
                   Option for treating core. Valid options are:
-                      all - All electron calculation;
-                      val - Valence electrons only;
-                      vab - Valence-only without cores in mixbasis;
-                      xal - All electron for exchange only.
-                  Default value: all.
+                  <list>
+                    <li>all - All electron calculation</li>
+                    <li>val - Valence electron only calculation</li>
+                    <li>vab - Core electrons are excluded from the mixed product basis</li>
+                    <li>xal - All electron treatment of the exchange self-energy only</li>
+                </list>
               </xs:documentation>
             </xs:annotation>
           </xs:attribute>
@@ -349,16 +363,6 @@
             </xs:annotation>
           </xs:attribute>
 
-          <xs:attribute ex:importance="expert" ex:unit="" name="bzconv" type="xs:string" default="tetra">
-            <xs:annotation>
-              <xs:documentation>
-                 BZ convolution option:
-                   tetra - Use the linearized tetrahedron method;
-                   sum   - Simple sum over k-points (test only).
-	            </xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
-          
           <xs:attribute ex:importance="expert" ex:unit="" name="debug" type="xs:boolean" default="false">
             <xs:annotation>
               <xs:documentation>
@@ -392,13 +396,13 @@
             </xs:annotation>
           </xs:attribute>
           
-          <xs:attribute ex:importance="expert" ex:unit="" name="mblksiz" type="xs:integer" default="64">
+          <!--xs:attribute ex:importance="expert" ex:unit="" name="mblksiz" type="xs:integer" default="64">
             <xs:annotation>
               <xs:documentation>
 	              To reduce memory usage, big matrices are considered to be split into blocks, each with a size of mblksiz (not supported). 
 	          </xs:documentation>
             </xs:annotation>
-          </xs:attribute>
+          </xs:attribute-->
           
           <xs:attribute ex:importance="expert" ex:unit="" name="rpmat" type="xs:boolean" default="false">
             <xs:annotation>

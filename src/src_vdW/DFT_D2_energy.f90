@@ -1,12 +1,14 @@
 Subroutine DFT_D2_energy
   Use mod_energy, Only: e_disp
   Use DFT_D2_module, Only : loadoldpar!, s6, sr6, damping_const, cutoff
-  Use vdw_general_routines, Only: vdw_energy_pairwiseC6
+  Use vdw_general_routines, Only: vdw_energy_pairwiseC6, set_default_vdW_parameters
   Use mod_atoms, Only: natmtot
   Use modinput
   Implicit None
   Real(8), Allocatable :: C6ab(:,:), R0ab(:,:)
 
+  Call set_default_vdW_parameters
+  
   If ( input%groundstate%do .Eq. "skip" ) Then
      Call init0
   End If

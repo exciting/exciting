@@ -114,13 +114,13 @@ for i in range(0,79):
 #%!%!% ------------ Calculating the first derivative and Cross-Validation Error ------------ %!%!%#
 #%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%#
 
-OBJ = open('Stress.in', 'r')
+OBJ = open('STRESS.IN', 'r')
 
 # Range of Deformation
 RoD = OBJ.read().strip().split()
 
 if (len(RoD) != 3*SCs):
-    sys.exit('\n ... Oops ERROR: Something is WRONG in the "Stress.in" file !?!?!?\n')
+    sys.exit('\n ... Oops ERROR: Something is WRONG in the "STRESS.IN" file !?!?!?\n')
 
 os.chdir('Energy-vs-Strain')
 
@@ -156,7 +156,7 @@ for i in range(1, SCs+1):
 
 A1 = np.array(A1)
 if (len(A1) != SCs):
-    sys.exit('\n ... Oops ERROR: The number of data in the "Stress.in" is NOT equal to ' + \
+    sys.exit('\n ... Oops ERROR: The number of data in the "STRESS.IN" is NOT equal to ' + \
     str(SCs)+'\n')
 
 S = zeros((3,3))

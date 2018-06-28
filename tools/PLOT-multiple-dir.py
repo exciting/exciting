@@ -109,7 +109,7 @@ narg  = len(sys.argv)-1
 
 if (narg<2): 
     print "\nIncorrect number of arguments. **Usage**:\n\n",
-    print "PLOT-multiple.py FILE DIRECTORY1 DIRECTORY2 ...\n"
+    print "PLOT-multiple-dir.py FILE DIRECTORY1 DIRECTORY2 ...\n"
     sys.exit()
 
 #-------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-F90 = ifort
+F90 = ifort 
 F90_OPTS = -O3 -ip -unroll  -scalar_rep -openmp -DUSEOMP 
 CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DIFORT
 F77 = $(F90)

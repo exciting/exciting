@@ -2,11 +2,14 @@ Subroutine TS_vdW_energy
   !Tkatchenko-Scheffler van der Waals correction 
   Use mod_energy, Only: e_disp
   Use TS_vdW_module, Only: get_TS_parameters, C6ab, R0_eff_ab!, s6, sr6, damping_const, cutoff
-  Use vdw_general_routines, Only: vdw_energy_pairwiseC6
+  Use vdw_general_routines, Only: vdw_energy_pairwiseC6, set_default_vdW_parameters
   Use mod_atoms, Only: natmtot
   Use modinput
   Implicit None
-!  Real(8), Allocatable :: C6ab(:,:), R0_eff_ab(:,:)
+  !  Real(8), Allocatable :: C6ab(:,:), R0_eff_ab(:,:)
+
+  Call set_default_vdW_parameters
+  
   If ( input%groundstate%do .Eq. "skip" ) Then
      Call init0
      ! read density from file

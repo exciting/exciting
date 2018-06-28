@@ -243,6 +243,7 @@ else
            Open (50, File='BAND.OUT', Action='WRITE', Form='FORMATTED')
 
            Call xml_NewElement (xf, "bandstructure")
+           Call xml_AddAttribute (xf, "character", "false")
            Call xml_NewElement (xf, "title")
            Call xml_AddCharacters (xf, trim(input%title))
            Call xml_endElement (xf, "title")

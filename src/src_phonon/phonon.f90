@@ -183,7 +183,7 @@ Subroutine phonon
 #endif
          j = chdir('./'//trim(adjustl(phdirname)))
 ! run the ground-state calculation
-         if (task .eq. 1) call writestate
+         if ( (rank .eq. 0) .and. (task .eq. 1) ) call writestate
          Call gndstate
 ! read STATE.OUT file with current extension
          call readstate
@@ -223,7 +223,7 @@ Subroutine phonon
 ! generate new file names
          Call phfext (iq, is, ia, ip, iph, 2, filext, filextdyn, phdirname)
 ! write STATE.OUT file with updated extension for use in gndstate
-         call writestate
+         if ( rank .eq. 0) call writestate
 #ifdef MPI
          call MPI_Barrier(MPI_Comm_World, ierr)
 #endif

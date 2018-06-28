@@ -261,7 +261,7 @@
 @    yaxis  bar color 1
 @    yaxis  bar linestyle 1
 @    yaxis  bar linewidth 3.0
-@    yaxis  label "DOS [states/Ha]"
+@    yaxis  label "DOS [states/Ha/cell]"
 @    yaxis  label layout para
 @    yaxis  label place auto
 @    yaxis  label char size 1.800000

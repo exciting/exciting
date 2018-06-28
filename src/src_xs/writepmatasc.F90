@@ -6,7 +6,7 @@
 !BOP
 ! !ROUTINE: writepmatxs
 ! !INTERFACE:
-subroutine writepmatxs_hdf5
+subroutine writepmatasc
 ! !USES:
   use modinput, only: input
   use modmpi, only: procs, rank, firstofset, lastofset, barrier
@@ -55,7 +55,7 @@ subroutine writepmatxs_hdf5
   ! External functions
   logical, external :: tqgamma
 
-  integer :: ist
+  integer :: ist, ist1, ist2, oct, un
 
   !write(*,*) "writepmatxs here at rank", rank
 
@@ -107,7 +107,6 @@ subroutine writepmatxs_hdf5
   ! Get eigenvectors for qmt=0, i.e. set file extension to _QMT001
   call genfilname(iqmt=iqmtgamma, setfilext=.true.)
 
-  if(.true.) then
     if(allocated(apwcmt)) deallocate(apwcmt)
     allocate(apwcmt(nstfv, apwordmax, lmmaxapw, natmtot))
     if(allocated(ripaa)) deallocate(ripaa)
@@ -125,13 +124,16 @@ subroutine writepmatxs_hdf5
 
     ! Calculate gradient of radial functions times spherical harmonics
     call pmatrad
-  end if
 #ifdef _HDF5_
   if (rank == 0) then
     if (.not. hdf5_exist_group(fhdf5, "/", "pmat")) then
       call hdf5_create_group(fhdf5,"/", "pmat")
     end if
   end if
+#else
+  call getunit(un)
+  open(un, File="PMAT_XS_ASC.OUT",Action="write")
+#endif
   kloop: do ik = kpari, kparf
     if(task .ne. 120) call chkpt(2, (/ task, ik /), 'ematqk:&
      & task, k - point index; momentum matrix elements')
@@ -144,33 +146,46 @@ subroutine writepmatxs_hdf5
     call match(ngk(1, ik), gkc(1, 1, ik), tpgkc(1, 1, 1, ik),&
       & sfacgk(1, 1, 1, ik), apwalmt)
 
-    if(.true.) then
+    ! Generate apw expansion coefficients for muffin-tin
+     call genapwcmt(input%groundstate%lmaxapw, ngk(1, ik), 1,&
+       & nstfv, apwalmt, evecfvt, apwcmt)
 
-      ! Generate apw expansion coefficients for muffin-tin
-       call genapwcmt(input%groundstate%lmaxapw, ngk(1, ik), 1,&
-         & nstfv, apwalmt, evecfvt, apwcmt)
+    ! Generate local orbital expansion coefficients for muffin-tin
+    if(nlotot .gt. 0) & 
+      & call genlocmt(ngk(1, ik), 1, nstfv, evecfvt, locmt)
 
-      ! Generate local orbital expansion coefficients for muffin-tin
-      if(nlotot .gt. 0) & 
-        & call genlocmt(ngk(1, ik), 1, nstfv, evecfvt, locmt)
-
-      ! Calculate the momentum matrix elements
-      if((input%xs%bse%xas) .and. (task .le. 400)) then
-        call genpmatcorxs(ik, ngk(1, ik), apwalmt, evecfvt, evecsvt, pmat(:,:,:,ik))
-      else
-        call genpmatxs(ngk(1, ik), igkig(1, 1, ik),&
-         & vgkc(1, 1, 1, ik), evecfvt, evecsvt, pmat(:,:,:,ik))
-      end if
-
+    ! Calculate the momentum matrix elements
+    if((input%xs%bse%xas) .and. (task .le. 400)) then
+      call genpmatcorxs(ik, ngk(1, ik), apwalmt, evecfvt, evecsvt, pmat(:,:,:,ik))
     else
-
-      ! Calculate the momentum matrix elements
-      call genpmat(ngk(1, ik), igkig(1, 1, ik), vgkc(1, 1, 1, ik),&
-       & apwalmt, evecfvt, evecsvt, pmat)
-
+      call genpmatxs(ngk(1, ik), igkig(1, 1, ik),&
+       & vgkc(1, 1, 1, ik), evecfvt, evecsvt, pmat(:,:,:,ik))
     end if
-    
+#ifndef _HDF5_
+    if (.NOT. input%xs%bse%xas) then
+      Do ist1 = 1, nstsv
+        Do ist2 = 1, nstsv
+          Do oct = 1, 3
+            Write (un, '(3i8, i4, 4g18.10)') ik, ist1, ist2, oct, &
+              & pmat (oct, ist1, ist2), Abs (pmat(oct, ist1, ist2)), &
+              & Abs (pmat(oct, ist2, ist1)-conjg(pmat(oct, ist1, &
+              & ist2)))
+          End Do
+        End Do
+      End Do
+    else
+      Do ist1 = 1, ncg
+        Do ist2 = 1, nstsv
+          Do oct = 1, 3
+            Write (un, '(3i8, i4, 2g18.10)') ik, ist1, ist2, oct, &
+              & pmat (oct, ist1, ist2)
+          End Do
+        End Do
+      End Do
+    end if
+#endif
   end do kloop
+  #ifdef _HDF5_
   if (rank == 0) then
     do ik=1,nkpt 
       write(cik, '(I4.4)') ik
@@ -186,17 +201,17 @@ subroutine writepmatxs_hdf5
   end if
 #endif
   call barrier(callername=trim(thisname))
-
+#ifndef _HDF5_
+  close(un)
+#endif
   inquire(iolength=reclen) vkl(:, ik), nstsv, pmat
   deallocate(apwalmt, evecfvt, evecsvt, pmat)
 
-  if(.true.) then
-    deallocate(apwcmt)
-    deallocate(ripaa)
-    if(nlotot .gt. 0) then
-      deallocate(locmt)
-      deallocate(ripalo, riploa, riplolo)
-    end if
+  deallocate(apwcmt)
+  deallocate(ripaa)
+  if(nlotot .gt. 0) then
+    deallocate(locmt)
+    deallocate(ripalo, riploa, riplolo)
   end if
 
   call barrier(callername=trim(thisname))
@@ -218,6 +233,6 @@ subroutine writepmatxs_hdf5
   ! Reset global file extension to default
   call genfilname(setfilext=.true.)
 
-end subroutine writepmatxs_hdf5
+end subroutine writepmatasc
 !EOC
 

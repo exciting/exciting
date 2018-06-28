@@ -11,7 +11,6 @@ subroutine write_gw_parameters_hdf5
     call hdf5_write(fgwh5,"/parameters","ibgw",input%gw%ibgw)
     call hdf5_write(fgwh5,"/parameters","nbgw",input%gw%nbgw)
     call hdf5_write(fgwh5,"/parameters","ngridq",input%gw%ngridq(1),(/3/))
-    call hdf5_write(fgwh5,"/parameters","mblksiz",input%gw%mblksiz)
     
     call hdf5_create_group(fgwh5,"/parameters","freqgrid")
     call hdf5_write(fgwh5,"/parameters/freqgrid","nomeg",input%gw%freqgrid%nomeg)

@@ -38,7 +38,13 @@ subroutine calcbarcmb_ipw_ipw(iq)
     do ipw = ipw0, npw
       gqvec(1:3) = Gset%vgc(1:3,Gqbarc%igkig(ipw,1,iq))+kqset%vqc(1:3,iq)
       gqlen = gqvec(1)*gqvec(1)+gqvec(2)*gqvec(2)+gqvec(3)*gqvec(3)
-      
+    
+      ! when testing Gamma=.false. case
+      if (abs(gqlen) < 1.d-8) then
+        write(*,*) 'WARNING(calcbarcmb_ipw_ipw.f90): Zero length vector!' 
+        cycle
+      endif
+     
       if (vccut) then
       
         ! apply cutoff
