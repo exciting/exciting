@@ -575,6 +575,115 @@
         </xs:element>
 
 
+        <xs:element ex:importance="expert" ex:unit="" name="boltzequ" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>
+              Calculate the dielectric tensor in IP-RPA (without local-field effect) for q=0.
+            </xs:documentation>
+          </xs:annotation>          
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element ex:importance="expert" ex:unit="" name="condcomp" type="integerpair" minOccurs="0" maxOccurs="9">
+                <xs:annotation>
+                  <xs:documentation>Components of the dielectric tensor to be calculated.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+            </xs:sequence>
+
+	    <xs:attribute ex:importance="essential" ex:unit="" name="wmax" type="fortrandouble" default="0.30">
+              <xs:annotation>
+                <xs:documentation>Energy maximum for the dielectric matrix calculations.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+ 	    <xs:attribute ex:importance="essential" ex:unit="" name="deltaw" type="fortrandouble" default="0.30">
+              <xs:annotation>
+                <xs:documentation>Energy range around the EFermi for the dielectric matrix calculations.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="essential" ex:unit="" name="wgrid" type="xs:integer" default="400">
+              <xs:annotation>
+                <xs:documentation>Number of grid points inside [efermi-deltaw/2,efermi+deltaw/2] interval.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="swidth" type="fortrandouble" default="0.01d0">
+              <xs:annotation>
+                <xs:documentation>Broadening factor to fit the experimental resolution.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+            <xs:attribute ex:importance="expert" ex:unit="" name="scissor" type="fortrandouble" default="0.0d0">
+              <xs:annotation>
+                <xs:documentation>Value of the "scissor" correction.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="false">
+              <xs:annotation>
+                <xs:documentation> The intraband attribute is <pre>"true"</pre> if the intraband
+                  term is to be added to the optical matrix.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>            
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="drude" type="vect2d" default="0.0d0 0.0d0">
+              <xs:annotation>
+                  <xs:documentation>
+                  Parameters for the Drude term used for calculating the intraband contribution:
+                  First value determines the plasma frequency, second - the lifetime broadening.
+                  </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+          
+            <xs:attribute ex:importance="expert" ex:unit="" name="tevout" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation><pre>"true"</pre> if energy outputs are in eV.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>            
+
+	    <xs:attribute ex:importance="expert" ex:unit="" name="windtdf" type="vect2d" default="-0.5d0 0.5d0">
+              <xs:annotation>
+                <xs:documentation>Frequency/energy window of transport distribution function.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="nwtdf" type="xs:integer" default="100">
+              <xs:annotation>
+                <xs:documentation>Number of frequency/energy points in the transport distribution function.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+	    <xs:attribute ex:importance="expert" ex:unit="" name="tgrid" type="xs:integer" default="1">
+              <xs:annotation>
+                <xs:documentation>Number of temperature points in the interval [temp_inital temp_final].</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="windtemp" type="vect2d" default="300.0d0 300.0d0">
+              <xs:annotation>
+                <xs:documentation>Window of the temperature [temp_inital temp_final] in Kelvin.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="mugrid" type="xs:integer" default="1">
+              <xs:annotation>
+                <xs:documentation>Number of grid points of the chemical potential in the interval [mu_initial mu_final] in Ha.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="windmu" type="vect2d" default="0.0d0 0.0d0">
+              <xs:annotation>
+                <xs:documentation>Window of the chemical potential [mu_inital mu_final] in Kelvin.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+          </xs:complexType>
+        </xs:element>
+
+
+
 	<xs:element ex:importance="expert" ex:unit="" name="raman" minOccurs="0" maxOccurs="1">
             <xs:annotation>
                <xs:documentation>Compute first order Raman spectra.
