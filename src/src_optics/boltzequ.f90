@@ -275,7 +275,9 @@ subroutine boltzequ
         end do ! temp
 
         zt1 = 1/(omega*dble(nkptnr))
-        conductivity(:) = zt1*t1*conductivity(:)
+        conductivity(:) = zt1*conductivity(:)
+        conductseebeck(:) = zt1*conductseebeck(:)
+        conductthermal(:) = zt1*conductthermal(:)
 
         end if
 
@@ -303,7 +305,9 @@ subroutine boltzequ
             write(fname, '("SIGMAB_", 2I1, ".OUT")') a, b
             write(*, '("  Optical conductivity tensor written to ", a)') trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
+            t3 = 1.0d0
             if (input%properties%boltzequ%tsiout) t3 = hartree*(ech)**2/((hbar)**2*ab)
+
             n=0
             do mu = mui, muf, mus
                do temp = tempi, tempf, temps
@@ -318,13 +322,14 @@ subroutine boltzequ
             write(fname, '("SEEBECK_", 2I1, ".OUT")') a, b
             write(*, '("  Seebeck coefficient tensor written to ", a)') trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
-            if (input%properties%boltzequ%tsiout) t3 = hartree/(ech)
+            t1 = 1.0d0
+            if (input%properties%boltzequ%tsiout) t3 = h2ev !/e!hartree/(ech)
 
             n=0
             do mu = mui, muf, mus
                do temp = tempi, tempf, temps
                   n=n+1
-                  write(60, '(4G18.10)') temp, mu*t1, seebeck(n)
+                  write(60, '(4G18.10)') temp, mu*t1, seebeck(n)*t3
                end do
             end do
            close(60)
@@ -332,13 +337,14 @@ subroutine boltzequ
             write(fname, '("THERMALCOND_", 2I1, ".OUT")') a, b
             write(*, '("  Thermal conductivity tensor written to ", a)') trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
+            t3 = 1.0d0
             if (input%properties%boltzequ%tsiout) t3 = (hartree/(ech))**2*hartree/hbar
 
             n=0
             do mu = mui, muf, mus
                do temp = tempi, tempf, temps
                   n=n+1
-                  write(60, '(4G18.10)') temp, mu*t1, thermalcond(n)
+                  write(60, '(4G18.10)') temp, mu*t1, thermalcond(n)*t3
                end do
             end do
             close(60)            
@@ -360,12 +366,14 @@ subroutine boltzequ
             write(fname, '("COND_", 2I1, ".OUT")') a, b
             write(*, '("  Electrical conductivity written to ", a)') trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
+            t3 = 1.0d0
             if (input%properties%boltzequ%tsiout) t3 = hartree*(ech)**2/((hbar)**2*ab)
+
             n=0
             do mu = mui, muf, mus
                do temp = tempi, tempf, temps
                   n=n+1
-                  write(60, '(4G18.10)') temp, mu*t1, conductivity(n)
+                  write(60, '(4G18.10)') temp, mu*t1, conductivity(n)*t3
                end do
                !write(60, ' ')
             end do
@@ -375,12 +383,14 @@ subroutine boltzequ
             write(fname, '("CONDSEEBECK_", 2I1, ".OUT")') a, b
             write(*, '("  Seebeck coefficient written to ", a)') trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
-            if (input%properties%boltzequ%tsiout) t3 = hartree/(ech)
+            t3 = 1.0d0
+            if (input%properties%boltzequ%tsiout) t3 = h2ev !artree/(ech)
+
             n=0
             do mu = mui, muf, mus
                do temp = tempi, tempf, temps
                   n=n+1
-                  write(60, '(4G18.10)') temp, mu, conductseebeck(n)
+                  write(60, '(4G18.10)') temp, mu*t1, conductseebeck(n)*t3
                end do
                !write(60, ' ')
             end do
@@ -390,12 +400,14 @@ subroutine boltzequ
             write(fname, '("CONDTHERMAL_", 2I1, ".OUT")') a, b
             write(*, '(" Thermal conductivity written to ", a)') trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
+            t3 = 1.0d0
             if (input%properties%boltzequ%tsiout) t3 = (hartree/(ech))**2*hartree/hbar
+
             n=0
             do mu = mui, muf, mus
                do temp = tempi, tempf, temps
                   n=n+1
-                  write(60, '(4G18.10)') temp, mu*t1, conductthermal(n)
+                  write(60, '(4G18.10)') temp, mu*t1, conductthermal(n)*t3
                end do
                !write(60, ' ')
             end do

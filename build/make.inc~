@@ -1,5 +1,5 @@
 F90 = ifort
-F90_OPTS = -O3 -ip -unroll  -scalar_rep -openmp -DUSEOMP 
+F90_OPTS = -O3 -ip -unroll  -scalar_rep -qopenmp -DUSEOMP 
 CPP_ON_OPT = -cpp -DXS -DISO -DLIBXC -DIFORT -DFFTW
 F77 = $(F90)
 F77_OPTS = -O3
@@ -21,7 +21,7 @@ F77_DEBUGOPTS = -g -O0 -debug all -implicitnone -warn unused \
 #Ignore if you don't have MPI or smplibs
 
 # check for the correct name of your mpif90 compiler
-MPIF90 = mpif90-ifort
+MPIF90 = mpiifort
 MPIF90_OPTS = $(F90_OPTS) $(CPP_ON_OPT) -DMPI -DMPIRHO -DMPISEC -DMPI1
 
 F77MT=$(F77)
