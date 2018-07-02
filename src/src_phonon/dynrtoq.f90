@@ -8,6 +8,7 @@
 !
 Subroutine dynrtoq (vpl, dynr, dynp)
       Use modmain
+      use m_wsweight
       Implicit None
 ! arguments
       Real (8), Intent (In) :: vpl (3)

@@ -27,6 +27,18 @@ module modgw
     character(128) :: fgwh5
     character(128) :: path, cik
 
+    !-----------------------------------
+    ! variables for e-ph coupling calc  
+    !-----------------------------------
+    integer(4) :: ibeph 
+    integer(4) :: nbeph 
+    integer(4) :: ibsumeph 
+    integer(4) :: nbsumeph 
+    integer(4) :: nomegeph 
+    integer(4) :: ngridkqtot
+    real   (8) :: efnew, cbm
+    real   (8), allocatable :: g2eph (:) 
+
     ! Lower band index for GW output
     integer(4) :: ibgw
     ! Upper band index for GW output
@@ -45,6 +57,8 @@ module modgw
     ! reciprocal space variables !
     !--------------------------------!
     type(k_set)  :: kset
+    type(k_set)  :: qsetd
+    type(kkqmt_set) :: kqsetd
     type(kq_set) :: kqset
     type(G_set)  :: Gset
     type(Gk_set) :: Gkset, Gqset, Gqbarc

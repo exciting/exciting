@@ -16,6 +16,30 @@ Subroutine propertylauncher
 ! properties which depend on the ground state only
 
       !--------------------------------------------------------
+!      if( associated( input%properties%wannier)) then
+!        if( input%properties%wannier%input .ne. "gw") then
+!          call rereadinput
+!          call wannierlauncher
+!        end if
+!      end if
+
+       !--------------------------------------------------------
+      if( associated( input%properties%wannier) .and. (rank .eq. 0)) then
+        if( input%properties%wannier%do .ne. "skip") then
+          call rereadinput
+          call wannierlauncher
+        end if
+      end if
+ 
+      
+
+      !--------------------------------------------------------
+      if( associated( input%properties%wannierplot) .and. (rank .eq. 0)) then
+        call rereadinput
+        call wannier_plot( input%properties%wannierplot%fst, input%properties%wannierplot%lst, input%properties%wannierplot%cell)
+      end if
+
+      !--------------------------------------------------------
       If (associated(input%properties%chargedensityplot)) Then
          call rereadinput
          call rhoplot
@@ -212,15 +236,19 @@ Subroutine propertylauncher
 
       If (associated(input%properties%bandstructure)) Then
          call rereadinput
-         ! tasks are: 20, 21
-         task = 20
-         Call bandstr
+         if( .not. input%properties%bandstructure%wannier) then
+           ! tasks are: 20, 21
+           task = 20
+           Call bandstr
+         end if
       End If
 
       If (associated(input%properties%dos)) Then
          call rereadinput
-         task = 10
-         Call dos
+         if( .not. input%properties%dos%wannier) then
+           task = 10
+           Call dos
+         end if
       End If
 
       If (associated(input%properties%fermisurfaceplot)) Then

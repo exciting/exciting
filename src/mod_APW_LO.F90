@@ -55,6 +55,8 @@ Module mod_APW_LO
       Integer :: lorbdm (maxlorbord, maxlorb, _MAXSPECIES_)
 ! lorbve is .true. if the linearisation energies are allowed to vary
       Logical :: lorbve (maxlorbord, maxlorb, _MAXSPECIES_)
+! lorbwfproj is .true. if the local-orbital is used as a Wannier-projector for bandstructure interpolation
+      Logical :: lorbwfproj (maxlorb, _MAXSPECIES_)
 ! local-orbital radial functions
       Real (8), Allocatable :: lofr (:, :, :, :)
 ! energy step size for locating the band energy

@@ -357,6 +357,8 @@ Subroutine readspeciesxml
           if (string .eq. 'apw+lo') then
             nlo = nlo+1
             lorbl(nlo, is) = lx
+	    !custom defined APW+lo orbitals are not used for Wannier-projection yet
+            lorbwfproj(nlo, is) = .FALSE.
             if (lorbl(nlo, is) .Gt. input%groundstate%lmaxmat) then
               write (*,*)
               write (*, '("Error(readinput): lorbl > lmaxmat : ", 2I8)') &
@@ -395,6 +397,7 @@ Subroutine readspeciesxml
      Do ilx = 1, size(speziesdeflist(is)%sp%basis%loarray)
         ilo = nlo+ilx
         lorbl(ilo, is) = speziesdeflist(is)%sp%basis%loarray(ilx)%lo%l
+	lorbwfproj(ilo, is) = speziesdeflist(is)%sp%basis%loarray(ilx)%lo%wfproj
         lorbord(ilo, is) = size(speziesdeflist(is)%sp%basis%loarray(ilx)%lo%wfarray)
         If (lorbl(ilo, is) .Lt. 0) Then
            Write (*,*)

@@ -205,12 +205,20 @@ use modinput
         endif
         ir=ir+1
       enddo
-      do while ((ir.le.nr).and.(g1(ir)*g1(ir-1).gt.0d0))
-        ir=ir+1
+      do while( ir.le.nr)
+        if( g1(ir)*g1(ir-1).gt.0d0) then
+          ir=ir+1
+        else
+          exit
+        end if
       enddo
       ir=ir+1
-      do while ((ir.lt.nr).and.(g1(ir)*g1(ir-1).gt.0d0).and.(g0(ir)*g0(ir-1).gt.0d0))
-        ir=ir+1
+      do while( ir.lt.nr)
+        if( (g1(ir)*g1(ir-1).gt.0d0).and.(g0(ir)*g0(ir-1).gt.0d0)) then
+          ir=ir+1
+        else
+          exit
+        end if
       enddo
 !      write(*,*) ir
       

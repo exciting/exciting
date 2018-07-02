@@ -12,20 +12,20 @@
       implicit none     
 ! !INPUT PARAMETERS:
 
-      integer(4), intent(in) :: nik                 ! Number of irreducible k-points
-      integer(4), intent(in) :: nb                  ! Maximum number of bands
-      integer(4), intent(in) :: nsp                 ! =1 / 2 for spin unpolarized/polarized caculations 
-      real(8),    intent(in) :: eb(nb,nik,nsp)      ! Band energies
-      integer(4), intent(in) :: ntet                ! Number of tetrahedra
-      integer(4), intent(in) :: tetc(4,*)           ! id. numbers of the corners of the tetrahedr
-      integer(4), intent(in) :: wtet(*)             ! weight of each tetrahedron
-      real(8), intent(in)    :: vt                  ! the volume of the tetrahedra
-      real(8), intent(in)    :: emin, emax          ! energy range
-      integer(4)             :: np                  ! number of points
+      integer, intent(in) :: nik                 ! Number of irreducible k-points
+      integer, intent(in) :: nb                  ! Maximum number of bands
+      integer, intent(in) :: nsp                 ! =1 / 2 for spin unpolarized/polarized caculations 
+      real(8), intent(in) :: eb(nb,nik,nsp)      ! Band energies
+      integer, intent(in) :: ntet                ! Number of tetrahedra
+      integer, intent(in) :: tetc(4,*)           ! id. numbers of the corners of the tetrahedr
+      integer, intent(in) :: wtet(*)             ! weight of each tetrahedron
+      real(8), intent(in) :: vt                  ! the volume of the tetrahedra
+      real(8), intent(in) :: emin, emax          ! energy range
+      integer             :: np                  ! number of points
      
       
 ! !OUTPUT PARAMETERS:      
-      real(8), intent(out)   :: dos(np,nsp)         ! the density of states
+      real(8), intent(out) :: dos(np,nsp)         ! the density of states
 
 ! !REVISION HISTORY:
 !
@@ -34,8 +34,8 @@
 !
 ! !LOCAL VARIABLES:
 
-      integer(4) :: i,isp
-      real(8)    :: ein,sfact
+      integer :: i,isp
+      real(8) :: ein,sfact
       real(8), external :: dostet
 
 !EOP

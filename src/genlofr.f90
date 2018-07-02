@@ -94,6 +94,10 @@ Subroutine genlofr
 !          Call rdirac (1,nodes+ilo+1, ilo, ilo+1, nodes, nr, spr(:,is), vr, &
 !            & energyp, p0s,q0s,.false.)
 !         write(*,*) 'n=',nodes,0.5d0*(energy+energyp)
+!          do ir = 1, nrmt( is)
+!            write(*,'(2F13.6)') spr( ir, is), p0s( ir)
+!          end do
+!          write(*,*)
         enddo
         do nodes=0,20
           ehi=ens(nodes)
@@ -237,7 +241,6 @@ Subroutine genlofr
                  End Do
             
                endif
-
             End Do
          End Do
       End Do

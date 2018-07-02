@@ -86,14 +86,18 @@ Subroutine brzint (nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, g)
 ! length of interval
       wd = wint (2) - wint (1)
 ! energy step size
-      dw = wd / dble (nw)
+      dw = wd / dble (nw-1)
       dwi = 1.d0 / dw
       g (:) = 0.d0
+#ifdef USEOMP
+!$omp parallel default( shared) private( j1, k1, j2, k2, j3, k3, i000, i001, i010, i011, i100, i101, i110, i111, i1, p1, q1, f00, f01, f10, f11, e00, e01, e10, e11, i2, p2, q2, f0, f1, e0, e1, i3, p3, q3, i, fs, es, t1, iw)
+!$omp do collapse(3)
+#endif
       Do j1 = 0, ngridk (1) - 1
-         k1 = Mod (j1+1, ngridk(1))
          Do j2 = 0, ngridk (2) - 1
-            k2 = Mod (j2+1, ngridk(2))
             Do j3 = 0, ngridk (3) - 1
+               k1 = Mod (j1+1, ngridk(1))
+               k2 = Mod (j2+1, ngridk(2))
                k3 = Mod (j3+1, ngridk(3))
                i000 = ikmap (j1, j2, j3)
                i001 = ikmap (j1, j2, k3)
@@ -130,8 +134,15 @@ Subroutine brzint (nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, g)
                               es = e0 (i) * q3 + e1 (i) * p3
                               t1 = (es-wint(1)) * dwi
                               iw = Nint (t1) + 1
-                              If ((iw .Ge. 1) .And. (iw .Le. nw)) g &
-                             & (iw) = g (iw) + fs
+                              If ((iw .Ge. 1) .And. (iw .Le. nw)) then
+#ifdef USEOMP
+!$omp atomic update
+#endif
+                                 g (iw) = g (iw) + fs
+#ifdef USEOMP
+!$omp end atomic
+#endif
+                              End If
                            End If
                         End Do
                      End Do
@@ -140,6 +151,10 @@ Subroutine brzint (nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, g)
             End Do
          End Do
       End Do
+#ifdef USEOMP
+!$omp end do
+!$omp end parallel
+#endif
 ! normalise function
       t1 = dw * dble (ngridk(1)*ngridk(2)*ngridk(3)) * dble &
      & (nsk(1)*nsk(2)*nsk(3))

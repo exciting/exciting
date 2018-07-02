@@ -16,6 +16,9 @@ module mod_selfenergy
     target mwm
     
     ! The correlation sel-fenergy
+    complex(8), allocatable :: selfeph(:,:,:)
+    complex(8), allocatable :: selfeph0(:,:)
+    real(8),    allocatable :: speceph(:,:,:)
     complex(8), allocatable :: selfec(:,:,:)
     complex(8), allocatable :: selfecSR(:,:,:)
     complex(8), allocatable :: selfecw2(:,:,:)

@@ -7,6 +7,7 @@
 !
 !
 Subroutine ematgntsum (iq, igq, integrals)
+  use mod_qpoint
       Use modmain
       Use modinput
       Use modxs
@@ -16,6 +17,10 @@ Subroutine ematgntsum (iq, igq, integrals)
   ! arguments
       Integer, Intent (In) :: iq, igq
       complex(8) :: integrals(apwmaxsize+lomaxsize,apwmaxsize+lomaxsize,natmtot)
+
+  integer :: un, un2, j
+  character(256) :: fname, tmp1, tmpq1, tmpq2, tmpq3
+
   ! local variables
       Integer :: is, ia, ias,iaug1,iaug2
       Integer :: l1, l2, l3, m2, lm2
@@ -133,24 +138,44 @@ Subroutine ematgntsum (iq, igq, integrals)
                         End Do
                      End Do
                   End Do
-
-
                End Do
             End Do
+          !if( norm2( vql( :, iq) - (/0.25, 0.25, 0.25/)) .lt. input%structure%epslat) then
+          !  do l2 = 0, lmax3
+          !    do io2 = 1, apword( l2, is)
+          !      do m2 = -l2, l2
+          !        lm2 = idxlm( l2, m2)
 
-          iaug2=0
-          do l3=0,input%xs%lmaxapwwf
-            do m3=-l3,l3
-              do io2=1,apword(l3,is)
-                iaug2=iaug2+1
-                lm3=idxlm(l3,m3)
+          !        do l1 = 0, lmax1
+          !          do io1 = 1, apword( l1, is)
+          !            do m1 = -l1, l1
+          !              lm1 = idxlm( l1, m1)
 
-                iaug1=0
-                do l1=0,input%xs%lmaxapwwf
-                  do m1=-l1,l1
-                      do io1=1,apword(l1,is)
-                        iaug1=iaug1+1
-                        lm1=idxlm(l1,m1)
+          !              write( *, '(2I3,3x,3I3,3x,3I3,SP,F23.16,F23.16)') is, ia, l1, m1, io1, l2, m2, io2, intrgaa( lm1, io1, lm2, io2)                         
+
+          !            end do
+          !          end do
+          !        end do
+
+          !      end do
+          !    end do
+          !  end do
+          !end if
+            
+
+          iaug1=0
+          do l1=0,input%xs%lmaxapwwf
+            do m1=-l1,l1
+              do io1=1,apword(l1,is)
+                iaug1=iaug1+1
+                lm1=idxlm(l1,m1)
+                iaug2=0
+                do l3=0,input%xs%lmaxapwwf
+                  do m3=-l3,l3
+                    do io2=1,apword(l3,is)
+                      iaug2=iaug2+1
+                      lm3=idxlm(l3,m3)
+
                         integrals(iaug2,iaug1,ias)=intrgaa (lm1, io1, lm3, io2)
                       enddo
                     enddo
@@ -317,6 +342,24 @@ Subroutine ematgntsum (iq, igq, integrals)
                   End Do
                End Do
             End Do
+
+            !if( iq .eq. 2) then
+            !  write(*,*) vql( :, iq) 
+            !  do ilo2 = 1, nlorb( is)
+            !    l2 = lorbl( ilo2, is)
+            !    do m2 = -l2, l2
+            !      lm2 = idxlm( l2, m2)
+            !      do ilo1 = 1, nlorb( is)
+            !        l1 = lorbl( ilo1, is)
+            !        do m1 = -l1, l1
+            !          lm1 = idxlm( l1, m1)
+            !            write( *, '(7I3,3x,SP,E23.16,E23.16,"i")') ilo1, l1, m1, ilo2, l2, m2, ias, intrglolo( m1, ilo1, m2, ilo2)
+            !        end do
+            !      end do
+            !    end do
+            !  end do
+            !end if
+
 
           iaug2=0
           Do ilo2 = 1, nlorb (is)

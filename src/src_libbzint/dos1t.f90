@@ -34,7 +34,7 @@
 !
 ! !LOCAL VARIABLES:
  
-       integer(4) :: index,i
+       integer :: index,i
        real(8)    :: br,denom,eij
        real(8)    :: e21,e31,e41,e32,e42,e43
  

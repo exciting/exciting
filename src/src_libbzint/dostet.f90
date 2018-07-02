@@ -17,19 +17,19 @@
       
 ! !INPUT PARAMETERS:
 
-      integer(4), intent(in) :: nsp ! Number of spin
-      integer(4), intent(in) :: nik ! Number of irreducible k-points
-      integer(4), intent(in) :: nbd ! Maximum number of bands
+      integer, intent(in) :: nsp ! Number of spin
+      integer, intent(in) :: nik ! Number of irreducible k-points
+      integer, intent(in) :: nbd ! Maximum number of bands
       real(8), intent(in) :: eband(nbd,nik,nsp) ! Band energies
-      integer(4), intent(in) :: ntet        ! Number of tetrahedra
-      integer(4), intent(in) :: tetc(4,*)! id. numbers of the corners  of the tetrahedra
-      integer(4), intent(in) :: wtet(*)  ! weight of each tetrahedron
-      real(8), intent(in)    :: vt         ! the volume of the tetrahedra
-      real(8), intent(in)    :: e      !  energy
+      integer, intent(in) :: ntet        ! Number of tetrahedra
+      integer, intent(in) :: tetc(4,*)! id. numbers of the corners  of the tetrahedra
+      integer, intent(in) :: wtet(*)  ! weight of each tetrahedron
+      real(8), intent(in) :: vt         ! the volume of the tetrahedra
+      real(8), intent(in) :: e      !  energy
 
 ! !LOCAL VARIABLES:
 
-      integer(4) :: itet,i,ib,isp
+      integer :: itet,i,ib,isp
       real(8), dimension(4) :: ee
       real(8), external :: dos1t
 

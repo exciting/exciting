@@ -178,6 +178,17 @@ subroutine gw_main()
         case('sepl') 
             if (rank==0) call plot_selfenergy
 
+        case('wannier')
+            !call init_gw
+            if( associated( input%properties%wannier)) then
+              input%properties%wannier%input = "gw"
+              !input%properties%wannier%fst = ibgw
+              !input%properties%wannier%lst = nbgw
+              call wannierlauncher
+              !call task_eph ()
+              call task_band 
+            end if
+
         ! (testing option) Check the rotational matrix for MB functions
         ! case('rotmat')
             ! if (rank==0) call test_mbrotmat

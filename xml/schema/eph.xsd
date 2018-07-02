@@ -1,0 +1,161 @@
+<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
+    <xs:include id="common" schemaLocation="common.xsd"/>
+    <xs:annotation>
+        <xs:appinfo>
+            <parent>/input</parent>
+            <root>eph</root>
+        </xs:appinfo>
+    </xs:annotation>
+    <xs:element ex:importance="expert" ex:unit="" name="eph">
+        <xs:annotation>
+            <xs:documentation>Electron-phonon calculation setup.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:all>
+
+            <xs:element ex:importance="expert" ex:unit="" name="freqgrideph" maxOccurs="1" minOccurs="0">
+              <xs:annotation>
+                <xs:documentation>
+                   Frequecy grid parameters.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="nomegeph" default="16"> 
+                  <xs:annotation><xs:documentation>
+                  Number of frequency (grid) points.
+                  </xs:documentation></xs:annotation>
+                </xs:attribute>
+                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="freqmaxeph" default="1.0d0">
+                  <xs:annotation><xs:documentation>
+                  Parameter of the double frequency grid technique.
+                  </xs:documentation></xs:annotation>
+                </xs:attribute>
+              </xs:complexType>
+            </xs:element>
+ 
+            <xs:element ex:importance="expert" ex:unit="" name="selfenergyeph" maxOccurs="1" minOccurs="0">
+              <xs:annotation>
+                <xs:documentation>
+                   Options related to the calculations of the correlation self-energy.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+
+                <xs:all>
+                  <xs:element ex:importance="expert" ex:unit="" name="SpectralFunctionPloteph" maxOccurs="1" minOccurs="0">
+                    <xs:annotation>
+                    <xs:documentation>
+                    Parameters for the self-energy and spectral function visualization.
+                    </xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                      <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="axis" default="real"> 
+                        <xs:annotation><xs:documentation>
+                        Real ("real") or imaginary ("imag") frequency axis for visialization.
+                        </xs:documentation></xs:annotation>
+                      </xs:attribute>
+                      <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="nwgrid" default="1001"> 
+                        <xs:annotation><xs:documentation>
+                        Number of grid points within the visualization interval.
+                        </xs:documentation></xs:annotation>
+                      </xs:attribute>
+                      <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="Hartree" name="wmin" default="-10"> 
+                        <xs:annotation><xs:documentation>
+                        Lower bound for the visualization frequency interval.
+                        </xs:documentation></xs:annotation>
+                      </xs:attribute>
+                      <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="Hartree" name="wmax" default="10"> 
+                        <xs:annotation><xs:documentation>
+                        Upper bound for the visualization frequency interval.
+                        </xs:documentation></xs:annotation>
+                      </xs:attribute>
+                      <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="Hartree" name="eta" default="1.0d-4"> 
+                        <xs:annotation><xs:documentation>
+                        Smearing parameter (small number).
+                        </xs:documentation></xs:annotation>
+                      </xs:attribute>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:all>
+
+              </xs:complexType>
+            </xs:element>
+          </xs:all>
+
+          <xs:attribute ex:importance="expert" ex:unit="" name="tasknameeph" type="xs:string" use="optional" default="eph">
+            <xs:annotation>
+              <xs:documentation>
+                  Type of calculations. Available tasks:
+                  <list>
+                    <li>eph    -  eph calculations</li>
+                  </list>
+
+  	          </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+         
+          <xs:attribute ex:importance="expert" ex:unit="" name="nemptyeph" type="xs:integer" use="optional" default="0">
+            <xs:annotation>
+              <xs:documentation>Number of empty states (cutoff parameter) used in e-ph. If not specified, the same number as for the groundstate calculations is used.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+
+          <xs:attribute ex:importance="expert" ex:unit="" name="ibsumeph" type="xs:integer" use="optional" default="1">
+            <xs:annotation>
+              <xs:documentation>Lower band index for the summation in e-ph calculations.</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="nbsumeph" type="xs:integer" use="optional" default="0">
+            <xs:annotation>
+              <xs:documentation>Upper band index for the summation electron-phonon coupling output. 
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="ibeph" type="xs:integer" use="optional" default="1">
+            <xs:annotation>
+              <xs:documentation>Lower band index for e-ph output.</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="nbeph" type="xs:integer" use="optional" default="0">
+            <xs:annotation>
+              <xs:documentation>Upper band index for electron-phonon coupling output. If not specified, the maximum number of the available states is used.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+                    
+          <xs:attribute ex:importance="expert" ex:unit="" name="debugeph" type="xs:boolean" default="false">
+            <xs:annotation>
+              <xs:documentation>
+	          Print debugging information.
+	            </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+
+          <xs:attribute ex:importance="essential" ex:unit="" name="ngridqeph" type="integertriple" default="0 0 0">
+            <xs:annotation>
+              <xs:documentation>
+                k/q-point grid size to be used in e-ph calculations. 
+                If not specified,  (2,2,2) k-grid is used.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="vqloffeph" type="vect3d" default="0.0d0 0.0d0 0.0d0">
+            <xs:annotation>
+              <xs:documentation>
+                The <inlinemath>{\mathbf k/q}</inlinemath>-point offset vector in lattice coordinates.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

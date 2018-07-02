@@ -10,9 +10,9 @@ MODULE mod_kpointset
         integer(4) :: nkpt                  ! number of k-points
         logical :: isreduced                ! Symmetry was used in construction
         logical :: usedlibzint              ! Was build with libzint
-        real(8), allocatable :: bvec(:,:)   ! Reciprocal lattice basis
-        real(8), allocatable :: vkloff(:)   ! Offset of k-grid in k-coordinates
-        integer(4), allocatable :: ngridk(:)! Number of k-points along [0,1) in each lattice direction
+        real(8) :: bvec(3,3)                ! Reciprocal lattice basis
+        real(8) :: vkloff(3)                ! Offset of k-grid in k-coordinates
+        integer(4) :: ngridk(3)             ! Number of k-points along [0,1) in each lattice direction
 
         ! Reduced quantities
         integer(4), allocatable :: ivk(:,:) ! 3d integer index of k points
@@ -46,9 +46,9 @@ MODULE mod_kpointset
     type G_set
         ! grid parameters
         real(8) :: gmaxvr     ! Maximum G vector length
-        real(8), allocatable :: bvec(:,:)    ! Lattice basis vectors
+        real(8) :: bvec(3,3)  ! Lattice basis vectors
         integer :: ngrtot     ! total number of grid points
-        integer, allocatable :: intgv(:,:) ! integer grid size
+        integer :: intgv(3,2) ! integer grid size
         ! G-points
         integer :: ngvec                  ! number of G-points
         real(8), allocatable :: vgc(:,:)  ! Cartesian coodinates of lattice
@@ -152,6 +152,22 @@ MODULE mod_kpointset
     end type kkqmt_set
 
 !-------------------------------------------------------------------------------    
+    type km_set
+
+      ! The k-grid build by inverting the input k-grid
+      ! and mapping the result back to the unit cell.
+      ! It differs form the input grid, if vkloff is non-zero
+      type(k_set) :: kset
+
+      ! Index mapping between k-grid and -k-grid
+      integer(4), allocatable :: ik2ikm(:)
+      integer(4), allocatable :: ikm2ik(:)
+      integer(4), allocatable :: ik2ikm_nr(:)
+      integer(4), allocatable :: ikm2ik_nr(:)
+
+    end type km_set
+
+!-------------------------------------------------------------------------------    
     type q_set
         ! q-grid, i.e. the differece vectors k'-k
         type(k_set) :: qset
@@ -245,7 +261,7 @@ CONTAINS
         integer(4) :: mnd
         integer(4) :: ikloff(3)
         integer(4) :: dkloff
-        integer(4) :: i1, i2, ik, nsym, isym, lspl
+        integer(4) :: i1, i2, i3, ik, nsym, isym, lspl
         integer(4), allocatable :: symmat(:,:,:)
         integer(4), allocatable :: ivk(:,:)
         integer(4), allocatable :: iwkp(:)
@@ -266,22 +282,16 @@ CONTAINS
         self%usedlibzint = uselz
         self%isreduced = reduce
 
-        if (allocated(self%bvec)) deallocate(self%bvec)
-        allocate(self%bvec(3,3))
         self%bvec = bvec
 
-        if (allocated(self%vkloff)) deallocate(self%vkloff)
-        allocate(self%vkloff(3))
-        self%vkloff = vkloff
         if(any(abs(vkloff) > 1.0d0) .or. any(vkloff < 0.0d0)) then 
           write(*,*) "Warning(generate_k_vectors): vkloff mapped back to first k-parallelepiped"
-          write(*,*) "vkloff", vkloff
-          call r3frac(epslat, self%vkloff, iv)
-          write(*,*) "vkloffp", self%vkloff, "kshift", iv
+          write(*,*) "vkloff",vkloff
+          call r3frac(epslat, vkloff, iv)
+          write(*,*) "vkloffp",vkloff, "kshift", iv
         end if
+        self%vkloff = vkloff
 
-        if (allocated(self%ngridk)) deallocate(self%ngridk)
-        allocate(self%ngridk(3))
         self%ngridk = ngridk
 
         ! non reduced 
@@ -366,6 +376,17 @@ CONTAINS
               call r3mv(bvec,self%vkl(:,ik),self%vkc(:,ik))
               self%wkpt(ik) = dble(iwkp(ik))/dble(self%nkptnr)
           enddo ! ik
+
+          ! ikmap (added May 2018, SeTi)
+          ik = 0
+          do i1 = 0, self%ngridk(1) - 1
+            do i2 = 0, self%ngridk(2) - 1
+              do i3 = 0, self%ngridk(3) - 1
+                ik = ik + 1
+                self%ikmap( i1, i2, i3) = self%ik2ikp( ik)
+              end do
+            end do
+          end do
           
           deallocate(symmat,ivk,iwkp)
 
@@ -409,10 +430,6 @@ CONTAINS
 !-------------------------------------------------------------------------------
     subroutine delete_k_vectors(self)
         type(k_set), intent(INOUT) :: self
-        if (allocated(self%bvec)) deallocate(self%bvec)
-        if (allocated(self%vkloff)) deallocate(self%vkloff)
-        if (allocated(self%ngridk)) deallocate(self%ngridk)
-
         if (allocated(self%ivk)) deallocate(self%ivk)
         if (allocated(self%vkl)) deallocate(self%vkl)
         if (allocated(self%vkc)) deallocate(self%vkc)
@@ -521,13 +538,9 @@ CONTAINS
         real(8), allocatable :: rar(:)
 
         ! Reciprocal lattice basis
-        if (allocated(self%bvec)) deallocate(self%bvec)
-        allocate(self%bvec(3,3))
         self%bvec = bvec
 
         ! G grid dimensions
-        if (allocated(self%intgv)) deallocate(self%intgv)
-        allocate(self%intgv(3,2))
         self%intgv(:,:) = intgv(:,:)
 
         ! Number of G points on grid 
@@ -629,8 +642,6 @@ CONTAINS
 !-------------------------------------------------------------------------------
     subroutine delete_G_vectors(self)
         type(G_set), intent(INOUT) :: self
-        if (allocated(self%bvec)) deallocate(self%bvec)
-        if (allocated(self%intgv)) deallocate(self%intgv)
         if (allocated(self%vgc)) deallocate(self%vgc)
         if (allocated(self%gc)) deallocate(self%gc)
         if (allocated(self%ivg)) deallocate(self%ivg)
@@ -750,12 +761,12 @@ CONTAINS
         ! Structure factor
         allocate(self%sfacgk(self%ngkmax,natmtot,nspnfv,kset%nkpt))
 
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ispn, ik, igp, ig)
+!$OMP DO COLLAPSE(2)
+#endif    
         do ispn = 1, nspnfv
           do ik = 1, kset%nkpt
-#ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(igp,ig)
-!$OMP DO
-#endif    
             do igp = 1, self%ngk(ispn,ik)
               ig = igk2ig(igp,ik,ispn)
               ! index to G-vector
@@ -768,20 +779,19 @@ CONTAINS
               call sphcrd(self%vgkc(:,igp,ispn,ik),self%gkc(igp,ispn,ik),&
               &           self%tpgkc(:,igp,ispn,ik))
             end do
+            ! generate structure factors for G+k-vectors
+            call gensfacgp(self%ngk(ispn,ik),self%vgkc(:,:,ispn,ik), &
+            &              self%ngkmax,self%sfacgk(:,:,ispn,ik))
+          end do
+        end do
 #ifdef USEOMP
 !$OMP END DO
 !$OMP END PARALLEL
 #endif    
-            ! generate structure factors for G+k-vectors
-            call gensfacgp(self%ngk(ispn,ik),self%vgkc(:,:,ispn,ik), &
-            &              self%ngkmax,self%sfacgk(:,:,ispn,ik))
-
-          end do
-        end do
         deallocate(igk2ig)
 
         !! Also make non-reduced quantities
-        if(kset%usedlibzint .eqv. .false.) then
+        if(kset%usedlibzint == .false.) then
 
           ! Map (igknr,iknr,ispin) --> ig
           allocate(igk2ig(gset%ngrtot,kset%nkptnr,nspnfv))
@@ -842,12 +852,12 @@ CONTAINS
           ! Structure factor
           allocate(self%sfacgknr(self%ngknrmax,natmtot,nspnfv,kset%nkptnr))
 
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ispn, ik, igp, ig)
+!$OMP DO COLLAPSE(2)
+#endif    
           do ispn = 1, nspnfv
             do ik = 1, kset%nkptnr
-#ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(igp,ig)
-!$OMP DO
-#endif    
               do igp = 1, self%ngknr(ispn,ik)
                 ig = igk2ig(igp,ik,ispn)
                 ! index to G-vector
@@ -860,16 +870,15 @@ CONTAINS
                 call sphcrd(self%vgknrc(:,igp,ispn,ik),self%gknrc(igp,ispn,ik),&
                 &           self%tpgknrc(:,igp,ispn,ik))
               end do
+              ! generate structure factors for G+k-vectors
+              call gensfacgp(self%ngknr(ispn,ik),self%vgknrc(:,:,ispn,ik), &
+              &              self%ngknrmax,self%sfacgknr(:,:,ispn,ik))
+            end do
+          end do
 #ifdef USEOMP
 !$OMP END DO
 !$OMP END PARALLEL
 #endif    
-              ! generate structure factors for G+k-vectors
-              call gensfacgp(self%ngknr(ispn,ik),self%vgknrc(:,:,ispn,ik), &
-              &              self%ngknrmax,self%sfacgknr(:,:,ispn,ik))
-
-            end do
-          end do
           deallocate(igk2ig)
 
         ! No libzint
@@ -1469,6 +1478,141 @@ CONTAINS
         return
 
     end subroutine print_kkqmt_vectors
+
+!-------------------------------------------------------------------------------
+
+    subroutine generate_km_vectors(self,kset)
+        type(km_set), intent(OUT) :: self
+        type(k_set), intent(IN) :: kset
+
+        real(8), parameter :: epslat=1.d-6
+        real(8) :: v1(3), vkloff_km(3)
+        integer :: iv(3), idxnr, idxr, ik
+
+        ! Clear self
+        call delete_km_vectors(self)
+
+        ! Derive -k-grid offset form k-grid offset
+        ! vkloff: Offset vector in coordinates "k-grid coordinates {b_i/N_i}"
+        !   --> vkloff/ngridk: Offset vector in b_i coordinates
+        ! ngridk: The N_i's 
+
+        ! Map -vkloff in lattice coordinates back to [0,1]
+        v1 = -kset%vkloff/kset%ngridk 
+        call r3frac(epslat, v1, iv)
+
+        ! Check origin of shifted k-grid
+        !   Shifted k-grid origin vector is outside [0,1) unit cell
+        if(any(v1 .ge. 1.d0)) then
+          ! Replace v1 with corresponding vector in unit cell
+          ! and discard shifting G vector
+          call r3frac(epslat, v1, iv)
+          ! v1 in k-grid coordinates
+          vkloff_km = v1*kset%ngridk
+          ! Get corresponding vector in first k-parallelepiped
+          ! (The components of vkloff should be in [0,1) )
+          if(any(vkloff_km .ge. 1.d0)) then
+            call r3frac(epslat, vkloff_km, iv)
+          end if
+        !   Shifted k-grid origin vector is inside [0,1) unit cell
+        !   but not within first k-parallelepiped
+        else if(any(v1*kset%ngridk .ge. 1.d0)) then
+          vkloff_km = v1*kset%ngridk
+          call r3frac(epslat, vkloff_km, iv)
+        !   Shifted k-grid origin vector is inside first k-parallelepiped 
+        else
+          vkloff_km = v1*kset%ngridk
+        end if
+
+        ! Generate -k-set
+        call generate_k_vectors(self%kset, kset%bvec, kset%ngridk,&
+          & vkloff_km, kset%isreduced, uselibzint=kset%usedlibzint)
+
+        ! Generate map between non reduced k and  non reduced -k set
+
+        ! Build map iknr --> ikmnr
+        allocate(self%ik2ikm_nr(kset%nkptnr))
+        do ik = 1, kset%nkptnr
+           ! Build -k vector from k grid
+           v1 = -kset%vklnr(:, ik)
+           ! Map back to [0,1)
+           call r3frac(epslat, v1, iv)
+           ! Get corresponding non-reduced 3d index of -k grid
+           iv = nint(v1*self%kset%ngridk-self%kset%vkloff)
+           ! Get non-reduced 1d index form 3d index
+           idxnr = self%kset%ikmapnr(iv(1), iv(2), iv(3))
+           ! Write map 
+           self%ik2ikm_nr(ik) = idxnr
+        end do
+
+        ! Build map ikmnr --> iknr
+        allocate(self%ikm2ik_nr(self%kset%nkptnr))
+        call sortidx(self%kset%nkptnr, dble(self%ik2ikm_nr),self%ikm2ik_nr)
+
+        ! Build map ik --> ikm
+        allocate(self%ik2ikm(kset%nkpt))
+        do ik = 1, kset%nkpt
+          self%ik2ikm(ik) = &
+            & self%kset%ik2ikp( self%ik2ikm_nr( kset%ikp2ik(ik) ) )
+        end do
+
+        ! Build map ikq --> ik 
+        allocate(self%ikm2ik(self%kset%nkpt))
+        do ik = 1, self%kset%nkpt
+          self%ikm2ik(ik) = &
+            & kset%ik2ikp( self%ikm2ik_nr( self%kset%ikp2ik(ik) ) )
+        end do
+
+    end subroutine generate_km_vectors
+
+!-------------------------------------------------------------------------------
+    subroutine delete_km_vectors(self)
+        type(km_set), intent(INOUT) :: self
+        call delete_k_vectors(self%kset)
+        if(allocated(self%ik2ikm)) deallocate(self%ik2ikm)
+        if(allocated(self%ikm2ik)) deallocate(self%ikm2ik)
+        if(allocated(self%ik2ikm_nr)) deallocate(self%ik2ikm_nr)
+        if(allocated(self%ikm2ik_nr)) deallocate(self%ikm2ik_nr)
+    end subroutine delete_km_vectors
+!-------------------------------------------------------------------------------
+
+    subroutine print_km_vectors(self, kset, funit)
+        implicit none
+        type(km_set), intent(IN) :: self
+        type(k_set), intent(IN) :: kset
+        integer, intent(IN) :: funit
+        integer :: ik, i, j
+
+        call boxmsg(funit,'-','k set')
+        call print_k_vectors(kset,funit)
+
+        call boxmsg(funit,'-','-k set')
+        call print_k_vectors(self%kset,funit)
+
+        call boxmsg(funit,'-','Maps non-reduced')
+        write(funit,*) 'Mapping from k to -k grid: < ik2ikm_nr >'
+        write(funit,*) 'Mapping from -k to k grid: < ikm2ik_nr >'
+        write(funit,*) '< iknr    ik2ikm_nr    ikm2ik_nr >'
+        do ik = 1, kset%nkptnr
+          write(funit,101) ik, self%ik2ikm_nr(ik), self%ikm2ik_nr(ik)
+        end do
+        101 format(3i11)
+
+        call boxmsg(funit,'-','Maps reduced')
+        write(funit,*) 'Mapping from k to -k grid: < ik2ikm >'
+        write(funit,*) '< ik    ik2ikm >'
+        do ik = 1, kset%nkpt
+          write(funit,'(2i11)') ik, self%ik2ikm(ik)
+        end do
+        write(funit,*) 'Mapping from -k to k grid: < ikm2ik >'
+        write(funit,*) '< ikm    ikm2ik >'
+        do ik = 1, self%kset%nkpt
+          write(funit,'(2i11)') ik, self%ikm2ik(ik)
+        end do
+
+        return
+
+    end subroutine print_km_vectors
 
 !-------------------------------------------------------------------------------
     subroutine generate_q_vectors(self, kset, kpset, gset, reduceq)

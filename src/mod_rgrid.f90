@@ -38,7 +38,7 @@ contains
     write(*,*) " size: ", self%npt
     write(*,*) " ip  vpl  mtpoint  atom"
     do ip = 1, self%npt
-      write(*,'(i4,3f12.4,L)') ip, self%vpl(:,ip), self%mtpoint(ip)
+      write(*,'(i6,3f12.4,L)') ip, self%vpl(:,ip), self%mtpoint(ip)
       if (self%mtpoint(ip)) then 
         write(*,'(2i4,4x,3i4)') self%atom(:,ip), self%iv(:,ip)
       end if
@@ -318,7 +318,7 @@ contains
           &     + boxl(1,:)
           self%vpl(:,ip) = v1(:)
           ! convert point to Cartesian coordinates
-          call r3frac(input%structure%epslat, v1, iv)
+          !call r3frac(input%structure%epslat, v1, iv)
           call r3mv(input%structure%crystal%basevect, v1, v2)
           self%vpc(:,ip) = v2(:)
         end do
@@ -382,7 +382,7 @@ contains
               self%iv(:,ip) = iv(:)-(/i1,i2,i3/)
               go to 10
             end if            
-          end do
+            end do
           end do
           end do
         end do ! ia
@@ -394,7 +394,7 @@ contains
   end subroutine
 
   !----------------------------------------------------------------------------
-  subroutine calc_zdata_rgrid(self,ik,wfmt,wfir,zdata)
+  subroutine calc_zdata_rgrid(self,ik,wfmt,wfir,zdata,nosym)
     use modmain
     implicit none
 
@@ -403,16 +403,36 @@ contains
     complex(8),  intent(in)  :: wfmt(lmmaxapw,nrmtmax,natmtot)
     complex(8),  intent(in)  :: wfir(ngrtot)
     complex(8),  intent(out) :: zdata(*)
+    logical, optional, intent(in) :: nosym
     ! local
-    integer :: ip0, ip, is, ia, ias, ir, i, j, lm, ig, igp
-    real(8) :: vl(3), vc(3), v(3), r
+    integer :: ip0, ip, is, ia, ias, ir, i, j, lm, ig, igp, ngktmp
+    real(8) :: vl(3), vc(3), v(3), r, vgkltmp( 3, ngkmax, nspnfv), vkltmp(3)
     complex(8), allocatable :: zylm(:)
+    integer, allocatable :: igkignr(:)
+    real(8), allocatable :: vgkcnr(:,:,:), gkcnr(:), tpgkcnr(:,:)
     ! interpolation variables
     integer :: np2, ir0, iv(3), nx, ny, nz
     real(8) :: t1, t2, phs, phsav
     complex(8) :: zsum, z
     real(8), allocatable :: xa(:), ya(:), c(:)
     real(8), external :: polynom
+
+    if( present( nosym)) then
+      if( nosym) then
+        vkltmp = vklnr( :, ik)
+        allocate( igkignr( ngkmax), vgkcnr( 3, ngkmax, nspnfv), gkcnr( ngkmax), tpgkcnr( 2, ngkmax))
+        call gengpvec( vklnr( :, ik), vkcnr( :, ik), ngktmp, igkignr, vgkltmp, vgkcnr(:,:,1), gkcnr, tpgkcnr)
+        deallocate( igkignr, vgkcnr, gkcnr, tpgkcnr)
+      else
+        ngktmp = ngk( 1, ik)
+        vgkltmp = vgkl( :, :, :, ik)
+        vkltmp = vkl( :, ik)
+      end if
+    else
+      ngktmp = ngk( 1, ik)
+      vgkltmp = vgkl( :, :, :, ik)
+      vkltmp = vkl( :, ik)
+    end if
 
     np2 = input%groundstate%nprad/2
 
@@ -474,9 +494,9 @@ contains
         zdata(ip) = zsum
 
         v(:) = dble(self%iv(:,ip))
-        t1 = twopi*(vkl(1,ik)*v(1)+ &
-        &           vkl(2,ik)*v(2)+ &
-        &           vkl(3,ik)*v(3))
+        t1 = twopi*(vkltmp(1)*v(1)+ &
+        &           vkltmp(2)*v(2)+ &
+        &           vkltmp(3)*v(3))
         zdata(ip) = zsum*cmplx(dcos(t1),dsin(t1),8)
 
       else
@@ -484,10 +504,10 @@ contains
         ! point belong to IS region
         !----------------------------
         zsum = 0.d0
-        do igp = 1, ngk(1,ik)
-          t1 = twopi*(vgkl(1,igp,1,ik)*vl(1)+ &
-          &           vgkl(2,igp,1,ik)*vl(2)+ &
-          &           vgkl(3,igp,1,ik)*vl(3))
+        do igp = 1, ngktmp
+          t1 = twopi*(vgkltmp(1,igp,1)*vl(1)+ &
+          &           vgkltmp(2,igp,1)*vl(2)+ &
+          &           vgkltmp(3,igp,1)*vl(3))
           zsum = zsum + wfir(igp)*cmplx(dcos(t1),dsin(t1),8)
         end do
         zdata(ip) = zsum

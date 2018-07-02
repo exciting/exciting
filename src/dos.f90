@@ -149,10 +149,14 @@ Subroutine dos
          th = - Acos (v1(3))
          Call axangsu2 (v3, th, su2)
       End If
+
 ! loop over k-points
       Do ik = 1, nkpt
 ! get the eigenvalues/vectors from file
          Call getevalsv (vkl(1, ik), evalsv(1, ik))
+         
+         If (input%properties%dos%lmirep) Then
+         
          Call getevecfv (vkl(1, ik), vgkl(:, :, :, ik), evecfv)
          Call getevecsv (vkl(1, ik), evecsv)
 ! find the matching coefficients
@@ -167,20 +171,18 @@ Subroutine dos
                Call gendmat (.False., .False., 0, lmax, is, ia, &
               & ngk(:, ik), apwalm, evecfv, evecsv, lmmax, dmat)
 ! convert (l,m) part to an irreducible representation if required
-               If (input%properties%dos%lmirep) Then
-                  Do ist = 1, nstsv
-                     Do ispn = 1, nspinor
-                        Do jspn = 1, nspinor
-                           Call zgemm ('N', 'N', lmmax, lmmax, lmmax, &
-                          & zone, ulm(:, :, ias), lmmax, dmat(:,:,ispn,jspn,ist), &
-                          & lmmax, zzero, a, lmmax)
-                           Call zgemm ('N', 'C', lmmax, lmmax, lmmax, &
-                          & zone, a, lmmax, ulm(:, :, ias), lmmax, &
-                          & zzero, dmat(:, :, ispn, jspn, ist), lmmax)
-                        End Do
+               Do ist = 1, nstsv
+                  Do ispn = 1, nspinor
+                     Do jspn = 1, nspinor
+                        Call zgemm ('N', 'N', lmmax, lmmax, lmmax, &
+                       & zone, ulm(:, :, ias), lmmax, dmat(:,:,ispn,jspn,ist), &
+                       & lmmax, zzero, a, lmmax)
+                        Call zgemm ('N', 'C', lmmax, lmmax, lmmax, &
+                       & zone, a, lmmax, ulm(:, :, ias), lmmax, &
+                       & zzero, dmat(:, :, ispn, jspn, ist), lmmax)
                      End Do
                   End Do
-               End If
+               End Do
 ! spin rotate the density matrices to desired spin-quantisation axis
                If (associated(input%groundstate%spin) .And. ( .Not. tsqaz)) Then
                   Do ist = 1, nstsv
@@ -213,10 +215,13 @@ Subroutine dos
                Call z2mmct (dm1, su2, sdmat(:, :, ist, ik))
             End Do
          End If
+
+         End If
+
       End Do
 
 ! generate energy grid
-      dw = (input%properties%dos%winddos(2)-input%properties%dos%winddos(1)) / dble (input%properties%dos%nwdos)
+      dw = (input%properties%dos%winddos(2)-input%properties%dos%winddos(1)) / dble (input%properties%dos%nwdos - 1)
       Do iw = 1, input%properties%dos%nwdos
          w (iw) = dw * dble (iw-1) + input%properties%dos%winddos (1)
       End Do
@@ -262,14 +267,21 @@ if (rank==0) then
                If (e(ist, ik, ispn) .Gt. 0.d0) e (ist, ik, ispn) = &
               & e (ist, ik, ispn) + input%properties%dos%scissor
 ! use diagonal of spin density matrix for weight
-               f (ist, ik) = dble (sdmat(ispn, ispn, ist, ik))
+               f (ist, ik) = 1.d0
             End Do
          End Do
 ! BZ integration
-         Call brzint (input%properties%dos%nsmdos, &
-        & input%groundstate%ngridk, nsk, ikmap, &
-        & input%properties%dos%nwdos, input%properties%dos%winddos, nstsv, nstsv, &
-        & e(:,:,ispn), f, g(:,ispn))
+         if( input%properties%dos%newint) then
+           Call brzint_new (input%properties%dos%nsmdos, &
+          & input%groundstate%ngridk, nsk, ikmap, &
+          & input%properties%dos%nwdos, input%properties%dos%winddos, nstsv, nstsv, &
+          & e(:,:,ispn), f, g(:,ispn))
+         else
+           Call brzint (input%properties%dos%nsmdos, &
+          & input%groundstate%ngridk, nsk, ikmap, &
+          & input%properties%dos%nwdos, input%properties%dos%winddos, nstsv, nstsv, &
+          & e(:,:,ispn), f, g(:,ispn))
+         end if
 ! multiply by the maximum occupancy (spin-polarised: 1, unpolarised: 2)
          g (:, ispn) = occmax * g (:, ispn)
          Do iw = 1, input%properties%dos%nwdos
@@ -302,6 +314,7 @@ if (rank==0) then
           end if
           edif(:,:,:) = 0.d0
           do ik = 1, nkpt
+            write(*,'(i,3f13.6)') ik, vkl( :, ik)
             n = 0
             do ist = nstsv, 1, -1
             if (evalsv(ist,ik)<=efermi) then
@@ -313,19 +326,28 @@ if (rank==0) then
                 edif(n,m,ik) = evalsv(jst,ik)-evalsv(ist,ik)+input%properties%dos%scissor
               end if
               end do
+              write(*,'(2i5,100f23.16)') ist, n, edif( n, 1:5, ik)
             end if
             end do 
           end do ! ik
+          write(*,*) m, n
           ! State dependent JDOS 
           allocate(ej(m,nkpt))
           allocate(fj(m,nkpt))
           fj(:,:) = 1.d0
           do ist = 1, n
             ej(:,:) = edif(ist,1:m,:)
-            call brzint(input%properties%dos%nsmdos, &
-            &           input%groundstate%ngridk, nsk, ikmap, &
-            &           input%properties%dos%nwdos, input%properties%dos%winddos, &
-            &           m, m, ej, fj, gp)
+            if( input%properties%dos%newint) then
+              call brzint_new(input%properties%dos%nsmdos, &
+              &           input%groundstate%ngridk, nsk, ikmap, &
+              &           input%properties%dos%nwdos, input%properties%dos%winddos, &
+              &           m, m, ej, fj, gp)
+            else
+              call brzint(input%properties%dos%nsmdos, &
+              &           input%groundstate%ngridk, nsk, ikmap, &
+              &           input%properties%dos%nwdos, input%properties%dos%winddos, &
+              &           m, m, ej, fj, gp)
+            end if
             gp(:) = occmax*gp(:)
             do iw = 1, input%properties%dos%nwdos
               if (dabs(w(iw))>1.d-4) then
@@ -349,10 +371,18 @@ if (rank==0) then
             ej(i,:) = edif(ist,jst,:)
           end do
           end do
-          call brzint(input%properties%dos%nsmdos, &
-          &           input%groundstate%ngridk, nsk, ikmap, &
-          &           input%properties%dos%nwdos, input%properties%dos%winddos, &
-          &           n*m, n*m, ej, fj, gp)
+          write(*,*) input%properties%dos%nsmdos, nsk, input%properties%dos%nwdos, input%properties%dos%winddos
+          if( input%properties%dos%newint) then
+            call brzint_new(input%properties%dos%nsmdos, &
+            &           input%groundstate%ngridk, nsk, ikmap, &
+            &           input%properties%dos%nwdos, input%properties%dos%winddos, &
+            &           n*m, n*m, ej, fj, gp)
+          else
+            call brzint(input%properties%dos%nsmdos, &
+            &           input%groundstate%ngridk, nsk, ikmap, &
+            &           input%properties%dos%nwdos, input%properties%dos%winddos, &
+            &           n*m, n*m, ej, fj, gp)
+          end if
           gp(:) = occmax*gp(:)
           do iw = 1, input%properties%dos%nwdos
             if (dabs(w(iw))>1.d-4) then
@@ -403,10 +433,17 @@ if (rank==0) then
                            f (ist, ik) = bc (lm, ispn, ias, ist, ik)
                         End Do
                      End Do
-                     Call brzint (input%properties%dos%nsmdos, &
-                    &  input%groundstate%ngridk, nsk, ikmap, &
-                    &  input%properties%dos%nwdos, input%properties%dos%winddos, &
-                    &  nstsv, nstsv, e(:, :, ispn), f, gp)
+                     if( input%properties%dos%newint) then
+                       Call brzint_new (input%properties%dos%nsmdos, &
+                      &  input%groundstate%ngridk, nsk, ikmap, &
+                      &  input%properties%dos%nwdos, input%properties%dos%winddos, &
+                      &  nstsv, nstsv, e(:, :, ispn), f, gp)
+                     else
+                       Call brzint (input%properties%dos%nsmdos, &
+                      &  input%groundstate%ngridk, nsk, ikmap, &
+                      &  input%properties%dos%nwdos, input%properties%dos%winddos, &
+                      &  nstsv, nstsv, e(:, :, ispn), f, gp)
+                     end if
                      gp (:) = occmax * gp (:)
                      Call xml_NewElement (xf, "diagram")
                      Write (buffer,*) ispn

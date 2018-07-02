@@ -70,5 +70,5 @@ Subroutine groundstatetasklauncher
     else
         splittfile= .False.
     end if
-    
+
 end subroutine
