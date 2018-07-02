@@ -251,13 +251,11 @@ subroutine boltzequ
         end do ! iw
 
         n=0
-        m=0
         do mu = mui, muf, mus
            
            do temp = tempi, tempf, temps
 
               n=n+1
-              m=m+1
               do iw = 1, nwtdf
                  t1 = -(mu-wtdf(iw))/(temp*kb)
                  t2 = exp(t1)
@@ -286,7 +284,6 @@ subroutine boltzequ
               conductivity(n) = zt1*conductivity(n)
 
            end do ! temp
-           m=0
         end do ! mu
 
         !zt1 = 1/(omega*dble(nkptnr))
