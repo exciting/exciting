@@ -11,7 +11,7 @@ subroutine solve_QP_equation()
 
     implicit none
     integer(4), parameter :: nitermax = 100
-    real(8),    parameter :: etol = 1.d-4
+    real(8),    parameter :: etol = 1.d-6
     integer(4) :: iter, ik, ib, nz
     real(8)    :: enk, egap, efdos, dzf2, scissor
     complex(8) :: ein, dsigma, znk, zf, dzf
@@ -37,11 +37,15 @@ subroutine solve_QP_equation()
 
         do ib = ibgw, nbgw
             
+            ! I think, the shift wrt efermi is important due to the requirement to
+            ! have a self-consistency at efermi where Self_c = 0
             enk = evalsv(ib,ik) - efermi
             ein = cmplx(enk,0.d0,8)
 
             converged = .false.
             do iter = 1, nitermax
+
+                print*, ik, ib, iter, ein
 
                 if (abs(ein) > 0.d0) then
                     f(:) = selfec(ib,1:freq%nomeg,ik)
@@ -83,7 +87,7 @@ subroutine solve_QP_equation()
                 write(*,'(a,f8.4,a,f8.4)') 'Absolute error = ', abs(zf), ' > ', etol
             end if
 
-            ! Quasiparticle energy
+            ! Quasiparticle energy (shifted back to have it in absolute units)
             evalqp(ib,ik) = dble(ein) + efermi
 
             write(fid,'(i4,4x,2f10.6,4x,f10.6,4x,2f10.6,4x,f10.6)') ib, ein+efermi, dble(selfex(ib,ik)), sigc(ib,ik), dble(vxcnn(ib,ik))

@@ -36,15 +36,15 @@ subroutine calcevalqp
     select case (input%gw%taskname)
       
       case('g0w0','gw0','acon')
-        ! call calcevalqp_gw
+        ! call calcevalqp_gw ! old version / different iterative scheme
         call solve_QP_equation()
          
       case('g0w0_x')
       
         do ik = 1, kset%nkpt
           do ie = ibgw, nbgw
-            evalqp(ie,ik) = evalsv(ie,ik)+ &
-            &  dble(selfex(ie,ik))-dble(vxcnn(ie,ik))
+            evalqp(ie,ik) = evalsv(ie,ik) + &
+                            dble(selfex(ie,ik)-vxcnn(ie,ik))
           end do ! ie
         end do ! ik
           
@@ -57,8 +57,7 @@ subroutine calcevalqp
             !&  dble(selfex(ie,ik))+dble(selfec(ie,1,ik))- &
             !&  dble(vxcnn(ie,ik))
             evalqp(ie,ik) = evalsv(ie,ik)+ &
-            &  dble(sigsx(ie,ik))+dble(sigch(ie,ik))- &
-            &  dble(vxcnn(ie,ik))
+                            dble(sigsx(ie,ik)+sigch(ie,ik)-vxcnn(ie,ik))
           end do ! ie
         end do ! ik
                   
