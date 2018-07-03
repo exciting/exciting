@@ -3,6 +3,7 @@ subroutine write_qp_energies(fname)
 
     use modinput
     use modgw
+    use mod_vxc, only: vxcnn
     use m_getunit
     implicit none 
     character(len=*), intent(in) :: fname
@@ -35,17 +36,17 @@ subroutine write_qp_energies(fname)
           case('g0w0','gw0','acon')
             sx = dble(selfex(ie,ikp))
             sc = dble(sigc(ie,ikp))
-            z = znorm(ie,ikp)
+            z  = znorm(ie,ikp)
           
           case('g0w0_x')
             sx = dble(selfex(ie,ikp))
             sc = 0.d0
-            z = 0.d0
+            z  = 0.d0
          
           case('cohsex')
             sx = dble(sigsx(ie,ikp))
             sc = dble(sigch(ie,ikp))
-            z = 0.d0
+            z  = 0.d0
         
         end select
           
@@ -62,7 +63,7 @@ subroutine write_qp_energies(fname)
     close(fid)
 
     1 format('k-point #',i6,':',4f12.6)
-    2 format(' state    E_KS      E_HF       E_GW       Sx         Sc         Vxc         DE_HF        DE_GW       Znk')    
+    2 format(' state    E_KS      E_HF       E_GW       Sx         Sc         Vxc        DE_HF      DE_GW      Znk')    
     3 format(i4,'  ',f10.5,' ',f10.5,' ',f10.5,' ',f10.5,' ',f10.5,' ',f10.5,' ',f10.5,' ',f10.5,' ',f10.5)
 
     return 

@@ -8,7 +8,8 @@ subroutine plot_selfenergy()
     use mod_hdf5
     use mod_mpi_gw
     use m_getunit
-    use mod_pade
+    use mod_vxc
+    ! use mod_pade
     implicit none
     ! local variables
     integer :: ik, ik_, ie, ie_, fid, recl
@@ -168,31 +169,31 @@ subroutine plot_selfenergy()
               !----------------
               ! real frequency
               !----------------
-              call padecof(freq%nomeg,zx,zy,n,p)
-              do iom = 1, nom
-                ein = cmplx(om(iom),eta,8)
-                call gpade(freq%nomeg,zx,n,p,ein,sigma)
-                if (om(iom)<0.d0) then
-                  selfc(ie,iom,ik) = conjg(sigma)
-                else
-                  selfc(ie,iom,ik) = sigma
-                end if
-              end do
+              ! call padecof(freq%nomeg,zx,zy,n,p)
+              ! do iom = 1, nom
+              !   ein = cmplx(om(iom),eta,8)
+              !   call gpade(freq%nomeg,zx,n,p,ein,sigma)
+              !   if (om(iom)<0.d0) then
+              !     selfc(ie,iom,ik) = conjg(sigma)
+              !   else
+              !     selfc(ie,iom,ik) = sigma
+              !   end if
+              ! end do
                         
             case('imag')
               !----------------
               ! complex frequency
               !----------------
-              call padecof(freq%nomeg,zx,zy,n,p)
-              do iom = 1, nom
-                ein = cmplx(0.d0,om(iom),8)
-                if (om(iom)<0.d0) then
-                  call gpade(freq%nomeg,-zx,n,conjg(p),ein,sigma)
-                else
-                  call gpade(freq%nomeg,zx,n,p,ein,sigma)
-                end if
-                selfc(ie,iom,ik) = sigma
-              end do
+              ! call padecof(freq%nomeg,zx,zy,n,p)
+              ! do iom = 1, nom
+              !   ein = cmplx(0.d0,om(iom),8)
+              !   if (om(iom)<0.d0) then
+              !     call gpade(freq%nomeg,-zx,n,conjg(p),ein,sigma)
+              !   else
+              !     call gpade(freq%nomeg,zx,n,p,ein,sigma)
+              !   end if
+              !   selfc(ie,iom,ik) = sigma
+              ! end do
 
             case default
               stop "Error(plot_selfenergy): Unknown axis type!"

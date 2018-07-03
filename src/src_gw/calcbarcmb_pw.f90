@@ -22,14 +22,9 @@ subroutine calcbarcmb_pw(iq)
         call vcoul_0d(Gamma, iq, Gqbarc, vc)
 
       case('1d') 
-        if (trim(input%gw%selfenergy%singularity) == 'rim') then
-            call vcoul_1d_RIM(Gamma, input%gw%ngridq, iq, Gqbarc, vc)
-            ! if (Gamma) singc2 = vc(1)/(4.d0*pi)/dble(kqset%nkpt)
-        else
-            call vcoul_1d(Gamma, iq, Gqbarc, vc)
-            ! call vcoul_1d_Rozzi(Gamma, iq, Gqbarc, vc)
-            ! if (Gamma) singc2 = vc(1)/(4.d0*pi)/dble(kqset%nkpt)
-        end if
+        call vcoul_1d(Gamma, iq, Gqbarc, vc)
+        ! call vcoul_1d_Rozzi(Gamma, iq, Gqbarc, vc)
+        ! if (Gamma) singc2 = vc(1)/(4.d0*pi)/dble(kqset%nkpt)
 
       case('2d')
         call vcoul_2d(Gamma, iq, Gqbarc, vc)

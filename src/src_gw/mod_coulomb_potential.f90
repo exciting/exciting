@@ -38,6 +38,8 @@ contains
         real(8), intent(out) :: sing
         rcut = 0.5d0*dsqrt(dot_product(avec(:,3),avec(:,3)))
         sing = 2.d0*pi*rcut**2
+         ! 4pi/Nk prefactor is due to definition of the singular term in \Self_x
+        sing = sing / (4.d0*pi)
     end subroutine
 
     subroutine vcoul_q0_1d(nkpt, sing)
@@ -174,7 +176,7 @@ contains
         end if
         do igk = igk0, Gkset%ngk(1,ik)
             k = Gkset%gkc(igk,1,ik)
-            vcoul(igk) = 4.d0*pi/k**2 * (1.d0 - cos( k*rcut ))
+            vcoul(igk) = 4.d0*pi/k**2 * (1.d0 - dcos( k*rcut ))
         end do
     end subroutine
 
@@ -451,134 +453,6 @@ contains
             v(1:3) = x(1:3) + vgpk(1:3)
             func   = 1.d0 / ( v(1)*v(1) + v(2)*v(2) + v(3)*v(3) )
             return
-        end function
-
-    end subroutine
-
-
-    subroutine vcoul_1d_RIM(Gamma, ngridk, ik, Gkset, vc)
-        use modmain, only: bvec, omega, pi
-        use mod_kpointset
-        implicit none
-        ! input/output
-        logical(4),   intent(in)  :: Gamma
-        integer(4),   intent(in)  :: ngridk(3)
-        integer(4),   intent(in)  :: ik
-        type(Gk_set), intent(in)  :: Gkset
-        real(8),      intent(out) :: vc(Gkset%ngk(1,ik))
-        ! local
-        integer(4) :: i, i1, i2, i3, nq, iq
-        integer(4) :: ngk, igk, igk0
-        integer(4) :: n(3), n0, nx, ny
-        real(8)    :: box(3), bmin, bmax, bvol
-        real(8)    :: q, vgpq(3), gpq2, intf
-        real(8)    :: a, b
-        real(8), allocatable :: q1(:), q2(:), q3(:), vq(:,:)
-        real(8), allocatable :: w1(:), w2(:), w3(:), wq(:)
-        real(8), allocatable :: x(:), wx(:)
-        real(8), allocatable :: y(:), wy(:)
-       
-
-        ! Rectangular integration volume
-        bvol = (2.d0*pi)**3 / omega / dble(product(ngridk))
-
-        ! Determine the integration volume size
-        box(1) = 0.5d0 * sqrt(dot_product(bvec(:,1),bvec(:,1))) / dble(ngridk(1))
-        box(2) = 0.5d0 * sqrt(dot_product(bvec(:,2),bvec(:,2))) / dble(ngridk(2))
-        box(3) = 0.5d0 * sqrt(dot_product(bvec(:,3),bvec(:,3))) / dble(ngridk(3))
-        bmin = minval(box)
-        bmax = maxval(box)
-
-        n0   = 7
-        n(1) = 1
-        n(2) = 1
-        n(3) = n0
-        if (Gamma) then
-            n(3) = 4*n0
-        end if
-
-        ! print*, 'grid=', n
-        ! print*, 'bmin=', bmin
-        ! print*, 'box=', box
-
-        ! Generate the integration grid and corresponding weights
-        allocate(q1(n(1)), w1(n(1)))
-        allocate(q2(n(2)), w2(n(2)))
-        allocate(q3(n(3)), w3(n(3)))
-        call gauleg(-box(1), box(1), q1, w1, n(1))
-        call gauleg(-box(2), box(2), q2, w2, n(2))
-        call gauleg(-box(3), box(3), q3, w3, n(3))
-
-        ! setup q-points
-        nq = product(n)
-        allocate(vq(3,nq), wq(nq))
-        iq = 0
-        do i1 = 1, n(1)
-        do i2 = 1, n(2)
-        do i3 = 1, n(3)
-            iq = iq+1
-            vq(1,iq) = q1(i1)
-            vq(2,iq) = q2(i2)
-            vq(3,iq) = q3(i3)
-            wq(iq)   = w1(i1) * w2(i2) * w3(i3)
-        end do
-        end do
-        end do
-        deallocate(q1, q2, q3)
-        deallocate(w1, w2, w3)
-
-        ! test
-        ! intf = 0.d0
-        ! do iq = 1, nq
-        !     intf = intf + wq(iq)
-        ! end do
-        ! print*, 'TEST integral=', intf, bvol
-
-        !------------------------------------------------
-        ! Integration over a small volume around k-point
-        !------------------------------------------------
-        a = 0.5d0*sqrt(dot_product(avec(:,1), avec(:,1)))
-        b = 0.5d0*sqrt(dot_product(avec(:,2), avec(:,2)))
-
-        ! Parameters for integrating over 2D WS cell
-        nx = 64*nint(2.d0*a/10.d0)
-        ny = 64*nint(2.d0*b/10.d0)
-        allocate(x(nx), wx(nx))
-        allocate(y(ny), wy(ny))
-        call gauleg(-a, a, x, wx, nx)
-        call gauleg(-b, b, y, wy, ny)
-
-        ngk = Gkset%ngk(1,ik)
-        do igk = 1, ngk
-            intf = 0.d0
-            do iq = 1, nq
-                vgpq(:) = vq(:,iq) + Gkset%vgkc(:,igk,1,ik)
-                intf    = intf + wq(iq) * vc_1d(vgpq)
-            end do
-            vc(igk) = intf / bvol
-        end do
-        deallocate(vq, wq)
-        deallocate(x, wx)
-        deallocate(y, wy)
-
-    contains
-
-        real(8) function vc_1d(vgpk)
-            use modmain, only: avec
-            implicit none
-            real(8)    :: vgpk(3)
-            integer(4) :: ix, iy
-            real(8), parameter :: small = 1.d-6
-            ! case q_z -> 0
-            if (abs(vgpk(3)) < small) vgpk(3) = small
-            vc_1d = 0.d0
-            do ix = 1, nx
-            do iy = 1, ny
-                vc_1d = vc_1d + &
-                        wx(ix) * wy(iy) * K0cosXY(vgpk, x(ix), y(iy) )
-            end do
-            end do
-            vc_1d = 2.d0 * vc_1d
         end function
 
     end subroutine

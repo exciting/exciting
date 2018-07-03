@@ -203,23 +203,20 @@ subroutine parse_gwinput
     end if
     if (rank==0) write(fgw,*) 'Solution of the QP equation:'
     select case (input%gw%selfenergy%iopes)
-        case(-2)
-            if (rank==0) write(fgw,*) " -2 - perturbative G0W0 without renormalization Z (testing)"
         case(0)
-            if (rank==0) write(fgw,*) "  0 - perturbative G0W0 without energy shift"
+            if (rank==0) write(fgw,*) "  0 - perturbative solution of QP-equation without energy shift"
         case(1)
-            if (rank==0) write(fgw,*) "  1 - perturbative G0W0 with energy shift"
+            if (rank==0) write(fgw,*) "  1 - perturbative solution of QP-equation with energy shift"
         case(2)
-            if (rank==0) write(fgw,*) "  2 - iterative G0W0 with energy shift"
+            if (rank==0) write(fgw,*) "  2 - iterative solution of QP-equation"
         case(3)
-            if (rank==0) write(fgw,*) "  3 - iterative G0W0 without energy shift"
+            ! if (rank==0) write(fgw,*) "  3 - iterative solution of QP-equation"
         case default
             if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal value for input%gw%SelfEnergy%iopes'
             if (rank==0) write(*,*) '  Currently supported options are:'
-            if (rank==0) write(*,*) '  0 - perturbative G0W0 without energy shift'
-            if (rank==0) write(*,*) '  1 - perturbative G0W0 with energy shift'
-            if (rank==0) write(*,*) '  2 - iterative G0W0 with energy shift'
-            if (rank==0) write(*,*) '  3 - iterative G0W0 without energy shift'
+            if (rank==0) write(*,*) '  0 - perturbative solution of QP-equation without energy shift'
+            if (rank==0) write(*,*) '  1 - perturbative solution of QP-equation with energy shift'
+            if (rank==0) write(*,*) '  2 - iterative solution of QP-equation'
             stop        
     end select
     if (rank==0) write(fgw,*) 'Analytic continuation method:'
@@ -267,8 +264,7 @@ subroutine parse_gwinput
         if (rank==0) write(fgw,*) 'Auxiliary function method by &
         &P. Carrier, S. Rohra, and A. Goerling, PRB 75, 205126 (2007)'
       case('rim')  
-        if (rank==0) write(fgw,*) 'RIM by Yambo'
-
+        if (rank==0) write(fgw,*) '(experimantal) RIM by Yambo'
       case default
         write(*,*) 'ERROR(parse_gwinput): Unknown singularity treatment scheme!'
         stop

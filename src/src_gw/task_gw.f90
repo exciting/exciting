@@ -98,6 +98,10 @@ subroutine task_gw()
               case('avg')
                 ! Spherical average
                 call vcoul_q0_3d(kqset%nkpt, singc2)
+              case('rim')
+                ! Spherical average
+              case default
+                call calc_q0_singularities
             end select
 
         case('0d')

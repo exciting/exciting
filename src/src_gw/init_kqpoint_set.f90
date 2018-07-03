@@ -25,7 +25,6 @@ subroutine init_kqpoint_set()
     &                       input%gw%ngridq, &
     &                       input%gw%vqloff, &
     &                       input%groundstate%reducek)
-    if (rank==0) call print_k_vectors(kset,fgw)
     
     if ((input%gw%debug).and.(rank==0)) then
       call getunit(fid)

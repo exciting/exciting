@@ -16,12 +16,12 @@ subroutine calcevalqp
 !
 !!USES:
     use modinput
-    use modmain, only : evalsv, efermi, zzero
-    use modgw,   only : ibgw, nbgw, kset, evalqp, eferqp, &
-    &                   sigc, znorm, selfex, selfec, vxcnn, &
-    &                   nbandsgw, nvelgw, &
-    &                   sigsx, sigch, fgw
-       
+    use modmain, only: evalsv, efermi, zzero
+    use modgw,   only: ibgw, nbgw, kset, evalqp, eferqp, &
+    &                  sigc, znorm, selfex, selfec, &
+    &                  nbandsgw, nvelgw, &
+    &                  sigsx, sigch, fgw
+    use mod_vxc, only: vxcnn
     implicit none
     integer :: nb, ie, ik
     real(8) :: egap, df
@@ -36,7 +36,8 @@ subroutine calcevalqp
     select case (input%gw%taskname)
       
       case('g0w0','gw0','acon')
-        call calcevalqp_gw
+        ! call calcevalqp_gw
+        call solve_QP_equation()
          
       case('g0w0_x')
       
@@ -86,7 +87,9 @@ contains
         use modmain, only : zzero
         use modgw,   only : freq, evalks, evalqp, eferqp, nvelgw, &
         &                   nomax, numin, hev, selfex, selfec, &
-        &                   iopac, vxcnn
+        &                   iopac, ikvbm
+        use mod_vxc, only: vxcnn
+
        
         implicit none
         integer(4) :: ie 
@@ -105,20 +108,7 @@ contains
 
         real(8), parameter :: etol=1.0d-6
         integer, parameter :: nitmax=100
-        
-        write(fgw,*)
-        select case(input%gw%selfenergy%iopes)
-          case(0)
-            write(fgw,*) 'Perform perturbative G0W0 without energy shift'
-          case(1)
-            write(fgw,*) 'Perform perturbative G0W0 with energy shift'
-          case(2)
-            write(fgw,*) 'Perform iterative G0W0 without energy shift'
-          case(3)
-            write(fgw,*) 'Perform iterative G0W0 with energy shift'
-        end select
-        write(fgw,*)
-      
+             
         ! initialize QP energies with KS values
         evalqp(ibgw:nbgw,1:kset%nkpt) = evalsv(ibgw:nbgw,1:kset%nkpt)
       
@@ -127,10 +117,23 @@ contains
         allocate(a(npar),sc(freq%nomeg),poles(npar))
         allocate(sacpar(npar,ibgw:nbgw,kset%nkpt))
 
+        if (input%gw%selfenergy%iopes==1) then
+          enk  = evalsv(nomax,ikvbm)-efermi
+          call setsac(iopac,freq%nomeg, &
+                      npar,enk,selfec(nomax,1:freq%nomeg,ikvbm),freq%freqs,a,poles)
+          ein = cmplx(enk,0.0d0,8)
+          call getsac(iopac,freq%nomeg, &
+                      npar,enk,ein,freq%freqs,a,sigma,dsig)
+          znk = 1.0d0/(1.0d0-dble(dsig))       
+          es = znk * dble(selfex(nomax,ikvbm) + sigma - vxcnn(nomax,ikvbm))
+          print*, 'es=', es, enk, sigma
+        else
+          es = 0.d0
+        end if
+
         !----------------------------------
         ! Start iterative procedure
         !----------------------------------      
-        es = 0.0d0
         egap = 0.0d0
         ierror = 0
         do it = 0, nitmax
@@ -158,9 +161,9 @@ contains
               ! Apply the energy shift
               !--------------------------
               if (input%gw%selfenergy%iopes==2) then 
-                ein = cmplx(evalqp(ie,ikp),0.0d0,8)
+                ein = cmplx(evalqp(ie,ikp),0.d0,8)
               else if (input%gw%selfenergy%iopes==3) then 
-                ein = cmplx(evalqp(ie,ikp)-es,0.0d0,8)
+                ein = cmplx(evalqp(ie,ikp)-es,0.d0,8)
               else 
                 ein = cmplx(enk,0.0d0,8)
               endif
@@ -175,7 +178,7 @@ contains
               sigc(ie,ikp) = sigma
 
               ! Set the renormalization factor              
-              znk = 1.0d0/(1.0d0-real(dsig))
+              znk = 1.0d0/(1.0d0-dble(dsig))
               if ((znk>1.d0) .or. (znk<0.5d0)) then
                 write(fgw,*) 'WARNING(calcevalqp):'
                 write(fgw,100) ikp, ie, enk, znk, sigma, dsig
@@ -194,9 +197,6 @@ contains
               
               select case(input%gw%selfenergy%iopes)
               
-                case(-2) ! no renormalization
-                  delta = snk-vxcnk
-              
                 case(-1) ! self-consistent GW0
                   delta = znk*(snk-vxcnk+enk0-enk)
 
@@ -209,21 +209,22 @@ contains
                 case(2) 
                   delta = snk-vxcnk
 
-                case(3) 
+                case(3)
                   if (it==0) then
                     delta = znk*(snk-vxcnk)
                   else
                     delta = snk-vxcnk
-                  endif
+                  end if
                   
-              end select 
+              end select
+
               evalqp(ie,ikp) = enk+delta
             
           enddo ! ie
         enddo ! ikp
         
         ! if non-iterative scheme is applied
-        if (input%gw%selfenergy%iopes<2) exit 
+        if (input%gw%selfenergy%iopes<2) exit
         
         ! Calculate Fermi energy
         call fermi_exciting(input%groundstate%tevecsv, &
@@ -260,7 +261,7 @@ contains
         ! Perform next iteration
         es = eferqp
         egapold = egap
-         
+
       enddo ! it
       
       if (it>nitmax) ierror = 1
