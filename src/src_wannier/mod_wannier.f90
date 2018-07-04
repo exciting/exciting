@@ -891,6 +891,8 @@ module mod_wannier
                 coeff( 1, wf_n_nshells) = coeff( 1, wf_n_nshells) + tmp_n_vl( iy, i, j)**2
                 coeff( 2, wf_n_nshells) = coeff( 2, wf_n_nshells) + tmp_n_vl( iz, i, j)**2
                 coeff( 3, wf_n_nshells) = coeff( 3, wf_n_nshells) + tmp_n_vl( iy, i, j)*tmp_n_vl( iz, i, j)
+                wf_n_ntot = wf_n_ntot + 1
+                nvec( :, wf_n_ntot) = tmp_n_vl( :, i, j)
               end do
             else
               do i = 1, tmp_n_n( j)

@@ -622,7 +622,7 @@ module mod_wfutil
         evbm = wfint_eval( nvm, iqvbm)
         vvbm = wfint_kset%vkl( :, iqvbm)
         call r3ws( input%structure%epslat, bvec, vvbm, iv)
-        write(*,'(3f13.6,f23.16)') vvbm, evbm
+        !write(*,'(3f13.6,f23.16)') vvbm, evbm
       end do
         
       ! find CBM
@@ -645,7 +645,7 @@ module mod_wfutil
         ecbm = wfint_eval( nvm+1, iqvbm)
         vcbm = wfint_kset%vkl( :, iqcbm)
         call r3ws( input%structure%epslat, bvec, vcbm, iv)
-        write(*,'(3f13.6,f23.16)') vcbm, ecbm
+        !write(*,'(3f13.6,f23.16)') vcbm, ecbm
       end do
 
       allocate( velo( 3, wf_nwf, wfint_kset%nkpt))
@@ -677,8 +677,8 @@ module mod_wfutil
           write( un, '(" effective mass ",i2,":       ",3f13.6)') n1, m( 1, :)
           write( un, '("                          ",3f13.6)') m( 2, :)
           write( un, '("                          ",3f13.6)') m( 3, :)
+          write( un, *)
         end do
-        write( un, *)
       end if
 
       if( findcbm) then
@@ -705,8 +705,8 @@ module mod_wfutil
           write( un, '(" effective mass ",i2,":       ",3f13.6)') n1, m( 1, :)
           write( un, '("                          ",3f13.6)') m( 2, :)
           write( un, '("                          ",3f13.6)') m( 3, :)
+          write( un, *)
         end do
-        write( un, *)
       end if
 
       if( findvbm .and. findcbm) then
@@ -715,6 +715,8 @@ module mod_wfutil
       end if
 
       close( un)
+
+      write(*,'(" Infos on bandgap written to GAP_WANNIER.OUT.")')
 
       return
     end subroutine wfutil_find_bandgap
