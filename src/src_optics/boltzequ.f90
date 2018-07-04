@@ -220,7 +220,7 @@ subroutine boltzequ
                end do ! mu
             end do ! temp
 
-        end do
+         end do
                     
 #ifdef MPI
         call MPI_AllReduce(MPI_IN_PLACE, &
@@ -239,59 +239,60 @@ subroutine boltzequ
         &                  ierr)
         call MPI_Barrier(MPI_COMM_WORLD,ierr)
 #endif
+        
         if (rank==0) then
 
-        ncharge=0.0d0
-        do iw = 1, nwtdf
-           if ( wtdf(iw) < efermi ) then
-              ncharge=ncharge+ndos(iw)
-           else if ( wtdf(iw) == efermi) then
-              ncharge=ncharge+0.5*ndos(iw)
-           end if                      
-        end do ! iw
+           ncharge=0.0d0
+           do iw = 1, nwtdf
+              if ( wtdf(iw) < efermi ) then
+                 ncharge=ncharge+ndos(iw)
+              else if ( wtdf(iw) == efermi) then
+                 ncharge=ncharge+0.5*ndos(iw)
+              end if
+           end do ! iw
 
-        n=0
-        do mu = mui, muf, mus
+           n=0
+           do mu = mui, muf, mus
            
-           do temp = tempi, tempf, temps
+              do temp = tempi, tempf, temps
 
-              n=n+1
-              do iw = 1, nwtdf
-                 t1 = -(mu-wtdf(iw))/(temp*kb)
-                 t2 = exp(t1)
-                 if (t1 > 40) then
-                    t3=0
-                 else if (t1 < -40 ) then
-                    t3=0
-                 else
+                 n=n+1
+                 do iw = 1, nwtdf
+                    t1 = -(mu-wtdf(iw))/(temp*kb)
                     t2 = exp(t1)
-                    t3 = t2/((t2+1)**2 * temp*kb)
-                 end if
-                 sigmab(n) = sigmab(n) + td(iw)*t3
-                 seebeck(n) = seebeck(n) + td(iw)*t3*t1
-                 thermalcond(n) = thermalcond(n) + td(iw)*t3*(t1**2)
-                 echarge(n)=echarge(n) + ndos(iw)/(exp(t1)+1)
+                    if (t1 > 40) then
+                       t3=0
+                    else if (t1 < -40 ) then
+                       t3=0
+                    else
+                       t2 = exp(t1)
+                       t3 = t2/((t2+1)**2 * temp*kb)
+                    end if
+                    sigmab(n) = sigmab(n) + td(iw)*t3
+                    seebeck(n) = seebeck(n) + td(iw)*t3*t1
+                    thermalcond(n) = thermalcond(n) + td(iw)*t3*(t1**2)
+                    echarge(n)=echarge(n) + ndos(iw)/(exp(t1)+1)
               
-              end do ! iw
-              zt1 = 1/(omega*dble(nkptnr))
-              t1 = (wtdff-wtdfi)/dble(nwtdf)
-              sigmab(n) = t1*zt1*sigmab(n) 
-              seebeck(n) = (-1)*t1*zt1*kb*seebeck(n)/(sigmab(n))
-              thermalcond(n) = t1*zt1*(kb**2)*temp*thermalcond(n)
-              zt(n) = (seebeck(n)**2*sigmab(n))/(thermalcond(n))*temp
-              echarge(n) = zt1*t1*(ncharge-echarge(n))
+                 end do ! iw
+                 zt1 = 1/(omega*dble(nkptnr))
+                 t1 = (wtdff-wtdfi)/dble(nwtdf-1)
+                 write(*,*) t1
+                 sigmab(n) = t1*zt1*sigmab(n) 
+                 seebeck(n) = (-1)*t1*zt1*kb*seebeck(n)/(sigmab(n))
+                 thermalcond(n) = t1*zt1*(kb**2)*temp*thermalcond(n)
+                 zt(n) = (seebeck(n)**2*sigmab(n))/(thermalcond(n))*temp
+                 echarge(n) = zt1*t1*(ncharge-echarge(n))
 
-              conductivity(n) = zt1*conductivity(n)
+                 conductivity(n) = zt1*conductivity(n)
 
-           end do ! temp
-        end do ! mu
+              end do ! temp
+           end do ! mu
 
-        !zt1 = 1/(omega*dble(nkptnr))
-        !conductivity(:) = zt1*conductivity(:)
+           !conductivity(:) = zt1*conductivity(:)
 
+     
         end if
 
-        
 
 !-----------------------------------------------
 ! Print the output spectra
@@ -304,18 +305,18 @@ subroutine boltzequ
 ! write the transport distribution function from Boltzmann
             zt1 = 1/(omega*dble(nkptnr))
             write(fname, '("TD_", 2I1, ".OUT")') a, b
-            write(*, '("  Transport distribution written to ", a)') trim(adjustl(fname))
+            write(*, '("  Transport distribution  of component ", 2I1, " written to ", a)') a, b, trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
             t3 = 1.0d0
             if (input%properties%boltzequ%tsiout) t3 = 1/(hbar*ab)
             do iw = 1, nwtdf
-                write(60, '(4G18.10)') t1*wtdf(iw), td(iw)*zt1*t3
+                write(60, '(6G18.10)') t1*wtdf(iw), td(iw)*zt1*t3, ndos(iw)*zt1
             end do
            close(60)
 
 ! write the optical conductivity from Boltzmann
             write(fname, '("ELECTCOND_", 2I1, ".OUT")') a, b
-            write(*, '("  Electrical conductivity of the component", 2I1, " written to ", a)') a, b, trim(adjustl(fname))
+            write(*, '("  Electrical conductivity of component ", 2I1, " written to ", a)') a, b, trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
             t3 = 1.0d0
             if (input%properties%boltzequ%tsiout) t3 = hartree*(ech)**2/((hbar)**2*ab)
@@ -332,7 +333,7 @@ subroutine boltzequ
 
 ! write the Seebeck coefficient from Boltzmann
             write(fname, '("SEEBECK_", 2I1, ".OUT")') a, b
-            write(*, '("  Seebeck coefficient written to ", a)') trim(adjustl(fname))
+            write(*, '("  Seebeck coefficient of component ", 2I1, " written to ", a)') a, b, trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
             t3 = 1.0d0
             if (input%properties%boltzequ%tsiout) t3 = h2ev !/e!hartree/(ech)
@@ -347,7 +348,7 @@ subroutine boltzequ
            close(60)
 ! write the thermal conductivity from Boltzmann
             write(fname, '("THERMALCOND_", 2I1, ".OUT")') a, b
-            write(*, '("  Thermal conductivity written to ", a)') trim(adjustl(fname))
+            write(*, '("  Thermal conductivity of component ", 2I1, " written to ", a)') a, b, trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
             t3 = 1.0d0
             if (input%properties%boltzequ%tsiout) t3 = (hartree)**3/(ab*(hbar)**2)
@@ -363,7 +364,7 @@ subroutine boltzequ
 
 ! write the figure of merit from Boltzmann
             write(fname, '("ZT_", 2I1, ".OUT")') a, b
-            write(*, '("  Figure of merit zT for the component written to ", a)') trim(adjustl(fname))
+            write(*, '("  Figure of merit zT of component ", 2I1, " written to ", a)') a, b, trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
             n=0
             do mu = mui, muf, mus
@@ -375,21 +376,21 @@ subroutine boltzequ
             close(60)
 
 ! write the electrical conductivity from Boltzmann
-            write(fname, '("SIGMA_B_", 2I1, ".OUT")') a, b
-            write(*, '("  Alternative calculation of the electrical conductivity written to ", a)') trim(adjustl(fname))
-            open(60, file=trim(fname), action='WRITE', form='FORMATTED')
-            t3 = 1.0d0
-            if (input%properties%boltzequ%tsiout) t3 = hartree*(ech)**2/((hbar)**2*ab)
+            !write(fname, '("SIGMA_B_", 2I1, ".OUT")') a, b
+            !write(*, '("  Alternative calculation of the electrical conductivity for component ", 2I1, "written to ", a)') a, b, trim(adjustl(fname))
+            !open(60, file=trim(fname), action='WRITE', form='FORMATTED')
+            !t3 = 1.0d0
+            !if (input%properties%boltzequ%tsiout) t3 = hartree*(ech)**2/((hbar)**2*ab)
 
-            n=0
-            do mu = mui, muf, mus
-               do temp = tempi, tempf, temps
-                  n=n+1
-                  write(60, '(4G18.10)') temp, mu*t1, conductivity(n)*t3
-               end do
+            !n=0
+            !do mu = mui, muf, mus
+            !   do temp = tempi, tempf, temps
+            !      n=n+1
+            !      write(60, '(4G18.10)') temp, mu*t1, conductivity(n)*t3
+            !   end do
                !write(60, ' ')
-            end do
-           close(60)
+            !end do
+           !close(60)
 
 ! write the total charge for Boltzmann
             write(fname, '("CHARGE_", 2I1, ".OUT")') a, b
