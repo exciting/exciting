@@ -181,6 +181,13 @@ Subroutine propertylauncher
          call dielmat
       End If    
 
+! BoltzEqu       
+      If (associated(input%properties%boltzequ)) Then
+         call rereadinput
+         Call boltzequ
+      End If    
+
+      
 ! MOKE effect      
       If (associated(input%properties%moke)) Then
          call rereadinput
