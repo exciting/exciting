@@ -154,11 +154,7 @@ Subroutine propertylauncher
 ! IP-RPA dielectric tensor      
       If (associated(input%properties%dielmat)) Then
          call rereadinput
-         if(input%properties%dielmat%kubodc) then
-            call kubo
-         else
-            call dielmat
-         end if
+         call dielmat
       End If    
 
 ! BoltzEqu       

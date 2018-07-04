@@ -522,13 +522,6 @@
               </xs:annotation>
             </xs:attribute>            
 
-
-	    <xs:attribute ex:importance="expert" ex:unit="" name="kubodc"  type="xs:boolean" default="false">
-              <xs:annotation>
-                <xs:documentation> Kubo.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
 	    <xs:attribute ex:importance="expert" ex:unit="" name="windtdf" type="vect2d" default="-0.5d0 0.5d0">
               <xs:annotation>
                 <xs:documentation>Frequency/energy window of transport distribution function.</xs:documentation>
