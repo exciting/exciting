@@ -15,14 +15,6 @@ Subroutine propertylauncher
 
 ! properties which depend on the ground state only
 
-      !--------------------------------------------------------
-!      if( associated( input%properties%wannier)) then
-!        if( input%properties%wannier%input .ne. "gw") then
-!          call rereadinput
-!          call wannierlauncher
-!        end if
-!      end if
-
        !--------------------------------------------------------
       if( associated( input%properties%wannier) .and. (rank .eq. 0)) then
         if( input%properties%wannier%do .ne. "skip") then
@@ -31,14 +23,6 @@ Subroutine propertylauncher
         end if
       end if
  
-      
-
-      !--------------------------------------------------------
-      if( associated( input%properties%wannierplot) .and. (rank .eq. 0)) then
-        call rereadinput
-        call wannier_plot( input%properties%wannierplot%fst, input%properties%wannierplot%lst, input%properties%wannierplot%cell)
-      end if
-
       !--------------------------------------------------------
       If (associated(input%properties%chargedensityplot)) Then
          call rereadinput

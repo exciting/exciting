@@ -192,7 +192,7 @@ module mod_wannier
         do idxn = 1, wf_n_ntot
           call pwmat_init_qg( wf_n_vl( :, idxn), (/0, 0, 0/))
           cntk = 0
-          write(*,'(1a1,"  neighbor ",i2," of ",i2,": ",i3,"%",$)') char(13), idxn, wf_n_ntot, nint( 100.d0*cntk/wf_kset%nkpt)
+          !write(*,'(1a1,"  neighbor ",i2," of ",i2,": ",i3,"%",$)') char(13), idxn, wf_n_ntot, nint( 100.d0*cntk/wf_kset%nkpt)
 #ifdef USEOMP
 !!$omp parallel default( shared) private( iknr, evecfv1, evecfv2)
 #endif
@@ -225,7 +225,7 @@ module mod_wannier
 #ifdef USEOMP
 !!$omp end atomic
 #endif
-            write(*,'(1a1,"o neighbor ",i2," of ",i2,": ",i3,"%",$)') char(13), idxn, wf_n_ntot, nint( 100.d0*cntk/wf_kset%nkpt)
+            !write(*,'(1a1,"o neighbor ",i2," of ",i2,": ",i3,"%",$)') char(13), idxn, wf_n_ntot, nint( 100.d0*cntk/wf_kset%nkpt)
           end do
 #ifdef USEOMP
 !!$omp end do
@@ -234,7 +234,7 @@ module mod_wannier
 #ifdef USEOMP
 !!$omp end parallel
 #endif
-          write(*,*)
+          !write(*,*)
         end do
 
         !write(*,*) "destroy"

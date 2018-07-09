@@ -589,9 +589,11 @@ module mod_wfint
       complex(8) :: velo( wf_nwf, wf_nwf, 3, wfint_kset%nkpt)
       complex(8) :: dmat( wf_nwf, wf_nwf, 3, wfint_kset%nkpt)
       complex(8) :: mass( wf_nwf, wf_nwf, 3, 3, wfint_kset%nkpt)
+      real(8) :: degeval( wf_nwf)
+      complex(8) :: degmat( wf_nwf, wf_nwf), degevec( wf_nwf, wf_nwf)
       
-      real(8), allocatable :: evalin(:,:), degeval(:)
-      complex(8), allocatable :: auxmat(:,:), degmat(:,:), degevec(:,:), transform(:,:,:)
+      real(8), allocatable :: evalin(:,:)
+      complex(8), allocatable :: auxmat(:,:)
 
       eps1 = 1.d-4
       eps2 = 1.d-2
@@ -603,7 +605,6 @@ module mod_wfint
       call wannier_geteval( evalin, ist, jst)
 
       allocate( auxmat( wf_fst:wf_lst, wf_nwf))
-      allocate( transform( wf_nwf, wf_nwf, wfint_kset%nkpt))
 
       ! get R-dependent Hamiltonian in Wannier gauge
       hamwr = zzero
@@ -676,12 +677,11 @@ module mod_wfint
               sdeg = sdeg + 1
             end do
             if( ndeg .gt. 1) then
-              allocate( degmat( ndeg, ndeg), degevec( ndeg, ndeg), degeval( ndeg))
-              degmat = velo( (sdeg-ndeg+1):sdeg, (sdeg-ndeg+1):sdeg, d1, iq)
-              call zhediag( degmat, degeval, degevec)
+              degmat( 1:ndeg, 1:ndeg) = velo( (sdeg-ndeg+1):sdeg, (sdeg-ndeg+1):sdeg, d1, iq)
+              call zhediag( degmat( 1:ndeg, 1:ndeg), degeval( 1:ndeg), degevec( 1:ndeg, 1:ndeg))
               call zgemm( 'n', 'n', wf_nwf, ndeg, ndeg, zone, &
                      wfint_transform( :, (sdeg-ndeg+1):sdeg, iq), wf_nwf, &
-                     degevec, ndeg, zzero, &
+                     degevec, wf_nwf, zzero, &
                      auxmat( :, 1:ndeg), wf_nwf)
               wfint_transform( :, (sdeg-ndeg+1):sdeg, iq) = auxmat( :, 1:ndeg)
               call zgemm( 'n', 'n', wf_nwf, wf_nwf, wf_nwf, zone, &
@@ -692,7 +692,6 @@ module mod_wfint
                      wfint_transform( :, :, iq), wf_nwf, &
                      auxmat, wf_nwf, zzero, &
                      velo( :, :, d1, iq), wf_nwf)
-              deallocate( degmat, degevec, degeval)
             else
               sdeg = sdeg + 1
             end if
@@ -771,9 +770,8 @@ module mod_wfint
                 sdeg = sdeg + 1
               end do
               if( ndeg .gt. 1) then
-                allocate( degmat( ndeg, ndeg), degevec( ndeg, ndeg), degeval( ndeg))
-                degmat = mass( (sdeg-ndeg+1):sdeg, (sdeg-ndeg+1):sdeg, d1, d2, iq)
-                call zhediag( degmat, degeval, degevec)
+                degmat( 1:ndeg, 1:ndeg) = mass( (sdeg-ndeg+1):sdeg, (sdeg-ndeg+1):sdeg, d1, d2, iq)
+                call zhediag( degmat( 1:ndeg, 1:ndeg), degeval( 1:ndeg), degevec( 1:ndeg, 1:ndeg))
                 do ist = 1, ndeg
                   mass( sdeg-ndeg+ist, sdeg-ndeg+ist, d1, d2, iq) = cmplx( degeval( ist), 0, 8)
                 end do
@@ -782,7 +780,6 @@ module mod_wfint
                 !       degevec, ndeg, zzero, &
                 !       auxmat( :, 1:ndeg), wf_nwf)
                 !wfint_transform( :, (sdeg-ndeg+1):sdeg, iq) = auxmat( :, 1:ndeg)
-                deallocate( degmat, degevec, degeval)
               else
                 sdeg = sdeg + 1
               end if

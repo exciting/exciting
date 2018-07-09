@@ -32,7 +32,7 @@ module mod_wannier_filehandling
 
       inquire( file=trim( wf_filename)//"_SETUP"//trim( filext), exist=success)
       if( .not. success) then
-        write(*,*) 'ERROR (wannier_readsetup): File '//trim( wf_filename)//"_SETUP"//trim( filext)//' does not exist.'
+        write(*,*) 'Error (wannier_readsetup): File '//trim( wf_filename)//"_SETUP"//trim( filext)//' does not exist.'
         return
       end if
       open( un, file=trim( wf_filename)//"_SETUP"//trim( filext), action='READ', form='UNFORMATTED', status='OLD')
@@ -97,7 +97,7 @@ module mod_wannier_filehandling
       success = .true.
       inquire( file=trim( wf_filename)//"_TRANSFORM"//trim( filext), exist=success)
       if( .not. success) then
-        write(*,*) 'ERROR (wannier_readtransform): File '//trim( wf_filename)//"_TRANSFORM"//trim( filext)//' does not exist.'
+        write(*,*) 'Error (wannier_readtransform): File '//trim( wf_filename)//"_TRANSFORM"//trim( filext)//' does not exist.'
         return
       end if
       open( un, file=trim( wf_filename)//"_TRANSFORM"//trim( filext), action='READ', form='UNFORMATTED', status='OLD')
@@ -192,7 +192,7 @@ module mod_wannier_filehandling
         vkl_tmp( 3, :) = wf_kset%vkl( 3, :) - vkl_( 3)
         iz = minloc( norm2( vkl_tmp( :, :), 1), 1)
         if( norm2( vkl_tmp( :, iz)) .gt. input%structure%epslat) then
-          write( *, '(" ERROR (wannier_readtransform): k-point in file not in k-point-set.")')
+          write( *, '(" Error (wannier_readtransform): k-point in file not in k-point-set.")')
           write( *, '(3F23.6)') vkl_
           stop
         end if
@@ -229,7 +229,7 @@ module mod_wannier_filehandling
       !  end do
       !end do
       close( un)
-      if( success) write(*,*) 'Transformation matrices successfully read.'
+      if( success) write(*,*) 'Info (wannier_readtransform): Transformation matrices successfully read.'
       return
     end subroutine wannier_readtransform
     

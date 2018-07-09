@@ -82,6 +82,10 @@ subroutine wannierlauncher
       if( associated( input%properties%wanniergap)) then
         call wfutil_find_bandgap
       end if
+      ! visualization
+      if( associated( input%properties%wannierplot)) then
+        call wfutil_plot( input%properties%wannierplot%fst, input%properties%wannierplot%lst, input%properties%wannierplot%cell)
+      end if
     else
       write(*,*) " Error (wannierlauncher): Wannier element in input not found."
       stop
