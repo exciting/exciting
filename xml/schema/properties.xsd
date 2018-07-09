@@ -629,23 +629,16 @@
 
             <xs:attribute ex:importance="expert" ex:unit="" name="tevout" type="xs:boolean" default="false">
               <xs:annotation>
-                <xs:documentation>If <pre>"true"</pre> energy outputs are in eV.</xs:documentation>
+                <xs:documentation>If <pre>"true"</pre>, energy outputs are in eV.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
             <xs:attribute ex:importance="expert" ex:unit="" name="tsiout" type="xs:boolean" default="false">
               <xs:annotation>
-                <xs:documentation>If <pre>"true"</pre>, then transport coefficients are given in SI units.</xs:documentation>
+                <xs:documentation>If <pre>"true"</pre>, transport coefficients are given in SI units: Seebeckcoefficient in V/K , electrical conductivity over tau in S/(m s) , thermal conductivity over tau in W/(mK s). </xs:documentation>
               </xs:annotation>
             </xs:attribute>            
 
-
-            <xs:attribute ex:importance="expert" ex:unit="" name="swidth" type="fortrandouble" default="0.01d0">
-              <xs:annotation>
-                <xs:documentation>Broadening factor to fit the experimental resolution.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            
 	    <xs:attribute ex:importance="expert" ex:unit="" name="windtdf" type="vect2d" default="-0.5d0 0.5d0">
               <xs:annotation>
                 <xs:documentation>Frequency/energy window of transport distribution function.</xs:documentation>
@@ -658,9 +651,15 @@
               </xs:annotation>
             </xs:attribute>
 
+            <xs:attribute ex:importance="expert" ex:unit="" name="swidth" type="fortrandouble" default="0.01d0">
+              <xs:annotation>
+                <xs:documentation>Broadening factor used in the calculation of the transport distribution function.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
 	    <xs:attribute ex:importance="expert" ex:unit="" name="tgrid" type="xs:integer" default="1">
               <xs:annotation>
-                <xs:documentation>Number of temperature points in the interval [temp_inital temp_final].</xs:documentation>
+                <xs:documentation>Number of temperature values in the interval [temp_inital temp_final].</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
@@ -672,7 +671,7 @@
 
             <xs:attribute ex:importance="essential" ex:unit="" name="mugrid" type="xs:integer" default="1">
               <xs:annotation>
-                <xs:documentation>Number of grid points of the chemical potential in the interval [mu_initial mu_final] in Ha.</xs:documentation>
+                <xs:documentation>Number of values for the chemical potential in the interval [mu_initial mu_final] in Ha.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
