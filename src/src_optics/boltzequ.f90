@@ -1,4 +1,4 @@
-!
+
 subroutine boltzequ
     use modmain
     use modinput
@@ -307,9 +307,9 @@ subroutine boltzequ
             write(*, '("  Transport distribution of component ", 2I1, " written to ", a)') a, b, trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
             t3 = 1.0d0
-            if (input%properties%boltzequ%tsiout) t3 = 1/(hbar*ab)
+            if (input%properties%boltzequ%tsiout) t3 = hartree/(hbar**2*ab)
             do iw = 1, nwtdf
-                write(60, '(6G18.10)') t1*wtdf(iw), td(iw)*zt1*t3, ndos(iw)*zt1
+                write(60, '(3G18.10)') t1*wtdf(iw), td(iw)*zt1*t3
             end do
            close(60)
 
