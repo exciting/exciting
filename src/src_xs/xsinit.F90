@@ -143,25 +143,23 @@ subroutine xsinit(j, plan)
   !------------------------!
   !     spin variables     !
   !------------------------!
-  ! warn for non-collinear spin polarized calculations
-  if(ncmag) then
-    write(unitout,*)
-    write(unitout, '("Warning(xsinit): calculation is spin polarized&
-      & non-collinear. Formalism may be incomplete.")')
-    write(unitout,*)
-  end if
-  if(associated(input%groundstate%spin) .and. (input%xs%gqmax .gt. eps)) then
-    write(unitout,*)
-    write(unitout, '("Warning(xsinit): spin-polarized&
-    & calculation with local field effects (gqmax > 0).&
-    & Formalism may be incomplete.")')
-    write(unitout,*)
-  end if
   ! no spin-spirals
   if(isspinspiral()) then
     write(unitout,*)
     write(unitout, '("Error(xsinit): xs-part not working&
       & for spin-spirals")')
+    write(unitout,*)
+    call terminate
+  end if
+
+  !-----------------------------!
+  !     Core Non-TDA calc.s     !
+  !-----------------------------!
+  if((input%xs%BSE%xas) .and. (input%xs%BSE%coupling)) then
+    write(unitout,*)
+    write(unitout, '("Error(xsinit): Calculations of Core BSE&
+      & spectra beyond the Tamm-Dancoff approximation not implemented yet. &
+      &Please contact the developers at exciting-code.org")')
     write(unitout,*)
     call terminate
   end if

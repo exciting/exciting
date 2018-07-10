@@ -193,8 +193,10 @@ subroutine screenlauncher
         write(unitout, '(a, i5)') 'Info(' // thisname // '):&
           & number of unoccupied states considered:',  nst2
       end if
-      write(unitout, '(a, i6,a,i6)') 'Info(' // thisname // '):&
-        & number of G + q vectors for q-point :', iq, ' : ', ngq(iq)
+      if (input%xs%BSE%outputlevelnumber == 1) then
+        write(unitout, '(a, i6,a,i6)') 'Info(' // thisname // '):&
+          & number of G + q vectors for q-point :', iq, ' : ', ngq(iq)
+      end if
     end do
     call printline(unitout, "-")
   end if
