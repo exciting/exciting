@@ -65,7 +65,7 @@ module mod_wannier_projection
               call rschroddme( 0, l, 0, elo, nr, spr( :, is), vr, nn, p0s, hp0, q0s, q1s) 
               flo = hp0( nr)
               if( ehi .lt. elo) then
-                write(*,*) 'warning'
+                write(*,*) 'Error (wfpro_getline): Oops! This was not supposed to happen.'
                 stop
               endif
               do while( ehi - elo .gt. 1d-6)

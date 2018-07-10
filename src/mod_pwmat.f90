@@ -435,7 +435,7 @@ module mod_pwmat
             do igq = 1, ngkq
               ig1 = igkignr( igk)
               ig2 = igkqig( igq)
-              g = ivg( :, ig1) - ivg( :, ig2) + shift - vecgl
+              g = ivg( :, ig1) - ivg( :, ig2) + shift + vecgl
               if( (g(1) .ge. intgv(1,1)) .and. (g(1) .le. intgv(1,2)) .and. &
                   (g(2) .ge. intgv(2,1)) .and. (g(2) .le. intgv(2,2)) .and. &
                   (g(3) .ge. intgv(3,1)) .and. (g(3) .le. intgv(3,2))) then

@@ -647,7 +647,7 @@ module mod_wannier_maxloc
         last_step = step
       else
         write(*,*)
-        write(*,*) "WTF"
+        write(*,*) "Error (wannier_linesearch): Oops! This was not supposed to happen."
         write(*,*)
         !stop
       end if
