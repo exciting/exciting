@@ -1,5 +1,5 @@
 F90 = ftn
-F90_OPTS = -O3 -ip -unroll -scalar_rep -dynamic -xCORE-AVX-I -openmp 
+F90_OPTS = -O3 -ip -unroll -scalar_rep -dynamic -xCORE-AVX-I -qopenmp 
 CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DUSEOMP
 F77 = $(F90)
 F77_OPTS = -O3
@@ -21,7 +21,6 @@ F77_DEBUGOPTS = -g -O0 -debug all -implicitnone -warn unused \
 #Ignore if you don't have MPI or smplibs
 
 # check for the correct name of your mpif90 compiler
-#MPIF90 = mpif90-ifort
 #MPIF90 = ftn -fopenmp  
 MPIF90 = ftn -dynamic -xCORE-AVX-I
 MPIF90_OPTS = $(F90_OPTS) $(CPP_ON_OPTS) -DMPI -DMPIRHO -DMPISEC 

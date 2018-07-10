@@ -1,5 +1,5 @@
 F90 = ifort 
-F90_OPTS = -O3 -ip -unroll  -scalar_rep -openmp -DUSEOMP 
+F90_OPTS = -O3 -ip -unroll  -scalar_rep -qopenmp -DUSEOMP 
 CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DIFORT
 F77 = $(F90)
 F77_OPTS = -O3
