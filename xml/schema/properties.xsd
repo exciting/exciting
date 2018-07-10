@@ -997,79 +997,7 @@
           </xs:annotation>
           <xs:complexType>
 
-            <xs:attribute ex:importance="essential" ex:unit="" name="fermizero" default="true" type="xs:boolean">
-              <xs:annotation>
-                <xs:documentation>Set Fermi energy to zero.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
-            <xs:attribute ex:importance="expert" ex:unit="" name="mindist" default="true" type="xs:boolean">
-              <xs:annotation>
-                  <xs:documentation>Use minimal distances for interpolation. This is more accurate for coarse k-grids but also more costly.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
-            <xs:attribute ex:importance="expert" ex:unit="" name="printproj" default="false" type="xs:boolean">
-              <xs:annotation>
-                  <xs:documentation>If true the projection functions are written to <pre>WANNIER_INFO.OUT</pre>.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
-            <xs:attribute ex:importance="experimental" ex:unit="" name="cutshell" default="false" type="xs:boolean">
-              <xs:annotation>
-                <xs:documentation>If true no multiples of neighbor vectors are used in finite difference approximation.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
-            <xs:attribute ex:importance="experimental" ex:unit="" name="minshell" default="1" type="xs:integer">
-              <xs:annotation>
-                <xs:documentation>Minimum number of shells used for finite difference approximation.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
-            <xs:attribute ex:importance="experimental" ex:unit="" name="nbzshell" default="1 1 1" type="integertriple">
-              <xs:annotation>
-                <xs:documentation>Number of unit-cells in each direction considered in finite difference approximation.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
-            <xs:attribute ex:importance="essential" ex:unit="" name="input" default="gs">
-              <xs:annotation>
-                <xs:documentation>Specifies, which method was used for the input calculation.</xs:documentation>
-              </xs:annotation>
-              <xs:simpleType>
-                <xs:restriction base="xs:string">
-                  <xs:enumeration value="gs">
-                  </xs:enumeration>
-                  <xs:enumeration value="gw">
-                  </xs:enumeration>
-                  <xs:enumeration value="hybrid">
-                  </xs:enumeration>
-                  <xs:enumeration value="qsgw">
-                  </xs:enumeration>
-                </xs:restriction>
-              </xs:simpleType>
-            </xs:attribute>
-
-            <xs:attribute ex:importance="essential" ex:unit="" name="do" default="fromscratch">
-              <xs:annotation>
-                <xs:documentation>Specifies, whether Wannier functions are calculated from scratch, skipped, read in from file or maximally localized starting from a previous result from file.</xs:documentation>
-              </xs:annotation>
-              <xs:simpleType>
-                <xs:restriction base="xs:string">
-                  <xs:enumeration value="fromscratch">
-                  </xs:enumeration>
-                  <xs:enumeration value="fromfile">
-                  </xs:enumeration>
-                  <xs:enumeration value="maxfromfile">
-                  </xs:enumeration>
-                  <xs:enumeration value="skip">
-                  </xs:enumeration>
-                </xs:restriction>
-              </xs:simpleType>
-            </xs:attribute>
-
-            <xs:all>
+            <xs:sequence>
               <xs:element ex:importance="essential" ex:unit="" name="projection" minOccurs="0" maxOccurs="1">
                 <xs:annotation>
                   <xs:documentation>Various parameters on the local-orbital set for the projection.</xs:documentation>
@@ -1094,7 +1022,7 @@
                     </xs:annotation>
                   </xs:attribute>
 
-                  <xs:attribute ex:importance="essential" ex:unit="" name="epsld" type="fortrandouble" default="1.d-3">
+                  <xs:attribute ex:importance="essential" ex:unit="" name="epsld" type="fortrandouble" default="1.0d-3">
                     <xs:annotation>
                       <xs:documentation>Tolerance for removing linear dependent local-orbitals.</xs:documentation>
                     </xs:annotation>
@@ -1102,9 +1030,7 @@
 
                 </xs:complexType>
               </xs:element>
-            </xs:all>
 
-            <xs:sequence>
               <xs:element ex:importance="essential" ex:unit="" name="group" minOccurs="0" maxOccurs="unbounded">
                 <xs:annotation>
                   <xs:documentation>Defines a group of bands from which Wannier functions are calculated.</xs:documentation>
@@ -1178,25 +1104,25 @@
                     </xs:annotation>
                   </xs:attribute>
 
-                  <xs:attribute ex:importance="essential" ex:unit="" name="uncertainty" type="fortrandouble" default="0.d0">
+                  <xs:attribute ex:importance="essential" ex:unit="" name="uncertainty" type="fortrandouble" default="0.0d0">
                     <xs:annotation>
                         <xs:documentation>Convergency cut-off (uncertainty) for MLWFs. The minimization is stopped when the uncertainty of the spread functional is smaller than the given value.</xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
 
-                  <xs:attribute ex:importance="essential" ex:unit="" name="epsmaxloc" type="fortrandouble" default="1.d-6">
+                  <xs:attribute ex:importance="essential" ex:unit="" name="epsmaxloc" type="fortrandouble" default="1.0d-6">
                     <xs:annotation>
                         <xs:documentation>Convergency cut-off (gradient) for MLWFs. The minimization is stopped when the norm of the gradient of the spread functional is smaller than the given value.</xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
 
-                  <xs:attribute ex:importance="essential" ex:unit="" name="epsopf" type="fortrandouble" default="1.d-2">
+                  <xs:attribute ex:importance="essential" ex:unit="" name="epsopf" type="fortrandouble" default="1.0d-2">
                     <xs:annotation>
                         <xs:documentation>Convergency cut-off for OPFs. The minimization is stopped when the change in the spread functional between the last two sweeps is smaller than the given value.</xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
 
-                  <xs:attribute ex:importance="essential" ex:unit="" name="epsdis" type="fortrandouble" default="1.d-4">
+                  <xs:attribute ex:importance="essential" ex:unit="" name="epsdis" type="fortrandouble" default="1.0d-4">
                     <xs:annotation>
                         <xs:documentation>Convergency cut-off for subspace disentanglement.</xs:documentation>
                     </xs:annotation>
@@ -1285,6 +1211,78 @@
                 </xs:complexType>
               </xs:element>
             </xs:sequence>
+            <xs:attribute ex:importance="essential" ex:unit="" name="fermizero" default="true" type="xs:boolean">
+              <xs:annotation>
+                <xs:documentation>Set Fermi energy to zero.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="mindist" default="true" type="xs:boolean">
+              <xs:annotation>
+                  <xs:documentation>Use minimal distances for interpolation. This is more accurate for coarse k-grids but also more costly.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="printproj" default="false" type="xs:boolean">
+              <xs:annotation>
+                  <xs:documentation>If true the projection functions are written to <pre>WANNIER_INFO.OUT</pre>.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="experimental" ex:unit="" name="cutshell" default="false" type="xs:boolean">
+              <xs:annotation>
+                <xs:documentation>If true no multiples of neighbor vectors are used in finite difference approximation.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="experimental" ex:unit="" name="minshell" default="1" type="xs:integer">
+              <xs:annotation>
+                <xs:documentation>Minimum number of shells used for finite difference approximation.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="experimental" ex:unit="" name="nbzshell" default="1 1 1" type="integertriple">
+              <xs:annotation>
+                <xs:documentation>Number of unit-cells in each direction considered in finite difference approximation.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="input" default="gs">
+              <xs:annotation>
+                <xs:documentation>Specifies, which method was used for the input calculation.</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="gs">
+                  </xs:enumeration>
+                  <xs:enumeration value="gw">
+                  </xs:enumeration>
+                  <xs:enumeration value="hybrid">
+                  </xs:enumeration>
+                  <xs:enumeration value="qsgw">
+                  </xs:enumeration>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="do" default="fromscratch">
+              <xs:annotation>
+                <xs:documentation>Specifies, whether Wannier functions are calculated from scratch, skipped, read in from file or maximally localized starting from a previous result from file.</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="fromscratch">
+                  </xs:enumeration>
+                  <xs:enumeration value="fromfile">
+                  </xs:enumeration>
+                  <xs:enumeration value="maxfromfile">
+                  </xs:enumeration>
+                  <xs:enumeration value="skip">
+                  </xs:enumeration>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
                   
           </xs:complexType>
         </xs:element>      
@@ -1294,10 +1292,15 @@
             <xs:documentation>Wannier function plot.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
-            <xs:annotation>
+            <!--xs:annotation>
               <xs:documentation>Plot the Wannier function for given index range.</xs:documentation>
-            </xs:annotation>
+            </xs:annotation-->
 
+            <xs:all>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0"/>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0"/>
+            </xs:all>
             <xs:attribute ex:importance="essential" ex:unit="" name="fst" type="xs:integer" default="0">
               <xs:annotation>
                   <xs:documentation>First Wannier function.</xs:documentation>
@@ -1316,11 +1319,6 @@
               </xs:annotation>
             </xs:attribute>
 
-            <xs:all>
-              <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0"/>
-              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
-              <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0"/>
-            </xs:all>
 
           </xs:complexType>
         </xs:element>

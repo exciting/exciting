@@ -13,7 +13,8 @@ $status=failed;
 $didarpack=failed;
 while(<INFO>)
 	{
-	if (m/\| EXCITING .+stopped/){
+#	if (m/\| EXCITING .+stopped/){
+	if (m/ EXCITING .+stopped/){
 		$status="passed";
 	}
 		if (m/ARPACK iterations/){
@@ -41,7 +42,7 @@ close INFO;
 $status=failed;
 while(<INFO>)
 	{
-	if (m/\| EXCITING .+stopped/){
+	if (m/ EXCITING .+stopped/){
 		$status="passed";
 	}
 }

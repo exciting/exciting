@@ -14,7 +14,7 @@ $status     = 'failed';
 $iterations = 0;
 $rightmixer = 'failed';
 while (<INFO>) {
-	if (m/\| EXCITING.+stopped/) {
+	if (m/ EXCITING.+stopped/) {
 		$status = "passed";
 	}
 	if (m/ SCF iteration number :\s*(\d+)/) {
@@ -65,7 +65,7 @@ $status     = "failed";
 $iterations = 0;
 $rightmixer = 'failed';
 while (<INFO>) {
-	if (m/\| EXCITING .+stopped/) {
+	if (m/ EXCITING .+stopped/) {
 		$status = "passed";
 	}
 	if (m/Iteration number :\s*(\d+)/) {
@@ -114,7 +114,7 @@ $status     = 'failed';
 $iterations = 0;
 $rightmixer = 'failed';
 while (<INFO>) {
-	if (m/\| EXCITING .+stopped/) {
+	if (m/ EXCITING .+stopped/) {
 		$status = "passed";
 	}
 	if (m/Iteration number :\s*(\d+)/) {

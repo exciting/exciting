@@ -1,7 +1,7 @@
 from lxml import etree
 import math
 
-eps_tol = 1.e-8
+eps_tol = 3.e-8
 
 root = etree.Element("report")
 
@@ -13,12 +13,13 @@ def mse_eps(ftest_path,fref_path):
 
     err = 0
     n = 0
-    for lt, lr in zip (ftest.readlines(),fref.readlines()):
+    for lt, lr in zip (ftest.readlines()[18:],fref.readlines()):
         tRE = float(lt.split()[1]) 
         rRE = float(lr.split()[1]) 
-
         tIM = float(lt.split()[2]) 
         rIM = float(lr.split()[2]) 
+        #print 'real diff=', tRE-rRE
+        #print 'imag diff=', tIM-rIM
     
         err = err + ( tRE - rRE )*( tRE - rRE ) + ( tIM - rIM )*( tIM - rIM )
         n = n + 1
@@ -53,11 +54,11 @@ def add_test_xml(root, tpassed, name_txt, description_txt, directory_txt):
 # assert BSE
 ########################################
 tdir = "runBSE"
-ftest_path = tdir + "/EPSILON_NAR_BSEsinglet_SCRfull_OC11.OUT"
+ftest_path = tdir + "/EPSILON/EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT"
 fref_path = "reference/"+tdir+"/EPSILON_NAR_BSEsinglet_SCRfull_OC11.OUT"
 
 mse = mse_eps(ftest_path,fref_path)
-
+print 'mse(BSE)=', mse
 tpassed = mse < eps_tol
 name_txt = "Dielectric function of LiF with BSE" 
 description_txt = "Passes if mean square error of real and imaginary parts of dielectric function lower than %g"%(eps_tol)
@@ -72,7 +73,7 @@ ftest_path = tdir + "/EPSILON_NAR_FXCMB1_OC11_QMT001.OUT"
 fref_path = "reference/"+tdir+"/EPSILON_NAR_FXCMB1_OC11_QMT001.OUT"
 
 mse = mse_eps(ftest_path,fref_path)
-
+print 'mse(TDDFT)=', mse
 tpassed = mse < eps_tol
 name_txt = "Dielectric function of LiF with TDDFT using BSE derived kernel" 
 description_txt = "Passes if mean square error of real and imaginary parts of dielectric function lower than %g"%(eps_tol)

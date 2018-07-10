@@ -494,11 +494,19 @@ module m_makespectrum
           ! Get corresponding global indices
           ig = denw%r2g(i)
           jg = denw%c2g(j)
-          denw%za(i,j) = zone/(freq(ig)-bevalre(jg)+zbrd)&
-                       &+ zone/(-freq(ig)-bevalre(jg)-zbrd)
+          if (input%xs%BSE%aresbse) then
+            denw%za(i,j) = zone/(freq(ig)-bevalre(jg)+zbrd)&
+                         &+ zone/(-freq(ig)-bevalre(jg)-zbrd)
+          else
+            denw%za(i,j) = zone/(freq(ig)-bevalre(jg)+zbrd)
+          end if
 #else
-          denw%za(i,j) = zone/(freq(i)-bevalre(j)+zbrd)&
-                       &+ zone/(-freq(i)-bevalre(j)-zbrd)
+          if (input%xs%BSE%aresbse) then
+            denw%za(i,j) = zone/(freq(i)-bevalre(j)+zbrd)&
+                         &+ zone/(-freq(i)-bevalre(j)-zbrd)
+          else
+            denw%za(i,j) = zone/(freq(i)-bevalre(j)+zbrd)
+          end if
 #endif
         end do
       end do

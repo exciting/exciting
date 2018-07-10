@@ -160,7 +160,7 @@
       </plot1d>
     </bandstructure>
     
-    <dos/>
+    <dos nwdos="501"/>
     
     <fermisurfaceplot nstfsp="1"/>
     
