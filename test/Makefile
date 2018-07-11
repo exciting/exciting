@@ -91,8 +91,8 @@ cleantests::
 	-rm -f  test*/run*/*_ini.xml
 	-rm -f  test*/run*/bandstructure.xml
 	-rm -f  test*/run*/fermisurface.xml
-	-rm -f  test*/run*/LOSS*
-	-rm -f  test*/run*/EPSILON*
+	-rm -rf  test*/run*/LOSS
+	-rm -rf  test*/run*/EPSILON
 	-rm -f  test*/run*/atoms*
 	-rm -f  test*/run*/info*xml
 	-rm -f  test*/run*/geometry*xml
