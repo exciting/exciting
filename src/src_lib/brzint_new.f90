@@ -42,7 +42,8 @@ subroutine brzint_new( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, g)
   real(8), intent( in) :: wint(2), e(ld, *), f( ld, *)
   real(8), intent( out) :: g( nw)
 ! local variables
-  integer :: mat(8,8), i, j, ist, i3, j1, j2, j3, k1, k2, k3, iw, iw1, iw2, iint, inside(2,2), corner(2,2)
+  integer :: mat(8,8), i, j, ist, i3, j1, j2, j3, k1, k2, k3, iw, iw1, iw2, iint
+  logical :: inside(2,2), corner(2,2)
   real(8) :: z, wd, dw, dwi, w(nw), t1, ce(4), cf(4), a0, x0, x1, y0, y1, a, b, eps, intbound(2,2)
   real(8) :: e0(n,8), f0(n,8), ae(n,8), af(n,8)
 
@@ -137,8 +138,8 @@ subroutine brzint_new( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, g)
 
                 do iw = iw1, iw2
                   a0 = ce(1) + w( iw)
-                  inside = 0
-                  corner = 0
+                  inside = .false.
+                  corner = .false.
 
                   if( abs( a0*ce(4) - ce(2)*ce(3)) .gt. eps) then
                     ! a3 != 0
@@ -151,7 +152,7 @@ subroutine brzint_new( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, g)
                       else
                         x0 = 2.d0
                       end if
-                      if( (x0 .ge. eps) .and. (x0 .le. 1.d0-eps)) inside(1,1) = 1
+                      if( (x0 .ge. eps) .and. (x0 .le. 1.d0-eps)) inside(1,1) = .true.
 
                       x1 = -(a0 + ce(3))
                       if( abs( ce(2) + ce(4)) .gt. eps) then
@@ -159,7 +160,7 @@ subroutine brzint_new( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, g)
                       else
                         x1 = 2.d0
                       end if
-                      if( (x1 .ge. eps) .and. (x1 .le. 1.d0-eps)) inside(2,1) = 1
+                      if( (x1 .ge. eps) .and. (x1 .le. 1.d0-eps)) inside(2,1) = .true.
                       
                       y0 = -a0
                       if( abs( ce(3)) .gt. eps) then
@@ -167,9 +168,9 @@ subroutine brzint_new( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, g)
                       else
                         y0 = 2.d0
                       end if
-                      if( (y0 .ge. eps) .and. (y0 .le. 1.d0-eps)) inside(1,2) = 1
-                      if( (abs( y0) .lt. eps) .and. (abs( x0) .lt. eps)) corner(1,1) = 1
-                      if( (abs( y0-1.d0) .lt. eps) .and. (abs( x1) .lt. eps)) corner(1,2) = 1
+                      if( (y0 .ge. eps) .and. (y0 .le. 1.d0-eps)) inside(1,2) = .true.
+                      if( (abs( y0) .lt. eps) .and. (abs( x0) .lt. eps)) corner(1,1) = .true.
+                      if( (abs( y0-1.d0) .lt. eps) .and. (abs( x1) .lt. eps)) corner(1,2) = .true.
                       
                       y1 = -(a0 + ce(2))
                       if( abs( ce(3) + ce(4)) .gt. eps) then
@@ -177,9 +178,9 @@ subroutine brzint_new( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, g)
                       else
                         y1 = 2.d0
                       end if
-                      if( (y1 .ge. eps) .and. (y1 .le. 1.d0-eps)) inside(2,2) = 1
-                      if( (abs( y1) .lt. eps) .and. (abs( x0-1.d0) .lt. eps)) corner(2,1) = 1
-                      if( (abs( y1-1.d0) .lt. eps) .and. (abs( x1-1.d0) .lt. eps)) corner(2,2) = 1
+                      if( (y1 .ge. eps) .and. (y1 .le. 1.d0-eps)) inside(2,2) = .true.
+                      if( (abs( y1) .lt. eps) .and. (abs( x0-1.d0) .lt. eps)) corner(2,1) = .true.
+                      if( (abs( y1-1.d0) .lt. eps) .and. (abs( x1-1.d0) .lt. eps)) corner(2,2) = .true.
 
                       iint = 0
                       ! inside cases
@@ -342,7 +343,7 @@ subroutine brzint_new( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, g)
                       else
                         x0 = 2.d0
                       end if
-                      if( (x0 .ge. eps) .and. (x0 .le. 1.d0-eps)) inside(1,1) = 1
+                      if( (x0 .ge. eps) .and. (x0 .le. 1.d0-eps)) inside(1,1) = .true.
 
                       x1 = -(a0 + ce(3))
                       if( abs( ce(2)) .gt. eps) then
@@ -350,13 +351,13 @@ subroutine brzint_new( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, g)
                       else
                         x1 = 2.d0
                       end if
-                      if( (x1 .ge. eps) .and. (x1 .le. 1.d0-eps)) inside(2,1) = 1
+                      if( (x1 .ge. eps) .and. (x1 .le. 1.d0-eps)) inside(2,1) = .true.
                       
                       y0 = -a0/ce(3)
-                      if( (y0 .ge. eps) .and. (y0 .le. 1.d0-eps)) inside(1,2) = 1
+                      if( (y0 .ge. eps) .and. (y0 .le. 1.d0-eps)) inside(1,2) = .true.
                       
                       y1 = -(a0 + ce(2))/ce(3)
-                      if( (y1 .ge. eps) .and. (y1 .le. 1.d0-eps)) inside(2,2) = 1
+                      if( (y1 .ge. eps) .and. (y1 .le. 1.d0-eps)) inside(2,2) = .true.
                       
                       if( inside(1,2)) then
                         if( inside(2,2)) then

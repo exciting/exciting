@@ -19,7 +19,7 @@ module mod_optkgrid
       real(8), intent( out) :: opt, ropt
 
       integer :: i, j, k
-      real(8) :: rot(3,3), m1(3,3), v1(3), km(3,3), c, s, p, t, phi(3), reg(3,2), optmax
+      real(8) :: rot(3,3), m1(3,3), v1(3), v2(3), km(3,3), c, s, p, t, phi(3), reg(3,2), optmax
 
       eye = 0.d0
       eye(1,1) = 1.d0
@@ -95,9 +95,9 @@ module mod_optkgrid
 
       ! find optimal relations
       v1 = (/1.d0, y0, z0/)
-      call optkgrid_findmin( v1, 10, (/-1.d0, 1.d0/), v1)
-      call optkgrid_insphere( v1, p)
-      optmax = 48.d0*dsqrt(3.d0)*p**3/(abs( brot(2,2)*brot(3,3)*v1(1)*v1(2)*v1(3)))
+      call optkgrid_findmin( v1, 10, (/-1.d0, 1.d0/), v2)
+      call optkgrid_insphere( v2, p)
+      optmax = 48.d0*dsqrt(3.d0)*p**3/(abs( brot(2,2)*brot(3,3)*v2(1)*v2(2)*v2(3)))
       
       ! find optimal integer grid
       v1(1) = norm2( bvec(:,1))*p/(v1(1)*r)
@@ -192,8 +192,10 @@ module mod_optkgrid
 
       do while( norm2( st - s) .gt. input%structure%epslat)
         s = st
-        call optkgrid_findmin1d( 2, st, n, intv(:,2), st(2))
-        call optkgrid_findmin1d( 3, st, n, intv(:,3), st(3))
+        call optkgrid_findmin1d( 2, st, n, intv(:,2), w)
+        st(2) = w
+        call optkgrid_findmin1d( 3, st, n, intv(:,3), w)
+        st(3) = w
         w = intv(2,2) - intv(1,2)
         intv(1,2) = -0.25d0*w
         intv(2,2) =  0.25d0*w

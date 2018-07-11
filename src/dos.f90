@@ -314,7 +314,6 @@ if (rank==0) then
           end if
           edif(:,:,:) = 0.d0
           do ik = 1, nkpt
-            write(*,'(i5,3f13.6)') ik, vkl(:,ik)
             n = 0
             do ist = nstsv, 1, -1
             if (evalsv(ist,ik)<=efermi) then
@@ -326,11 +325,9 @@ if (rank==0) then
                 edif(n,m,ik) = evalsv(jst,ik)-evalsv(ist,ik)+input%properties%dos%scissor
               end if
               end do
-              write(*,'(2i5,100f23.16)') ist, n, edif( n, 1:5, ik)
             end if
             end do 
           end do ! ik
-          write(*,*) m, n
           ! State dependent JDOS 
           allocate(ej(m,nkpt))
           allocate(fj(m,nkpt))
