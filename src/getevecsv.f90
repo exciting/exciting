@@ -108,8 +108,7 @@ Subroutine getevecsv (vpl, evecsv)
         &)') ik
          Write (*, '(" current    : ", I8)') nstsv
          Write (*, '(" EVECSV.OUT : ", I8)') nstsv_
-         Write (*, '(" file	     : ", a	 )') trim &
-        & (outfilenamestring(filetag, ik))
+         Write (*, '(" file	     : ", a)') trim(outfilenamestring(filetag,ik))
          Write (*,*)
          Stop
       End If

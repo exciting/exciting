@@ -314,7 +314,7 @@ if (rank==0) then
           end if
           edif(:,:,:) = 0.d0
           do ik = 1, nkpt
-            write(*,'(i,3f13.6)') ik, vkl( :, ik)
+            write(*,'(i5,3f13.6)') ik, vkl(:,ik)
             n = 0
             do ist = nstsv, 1, -1
             if (evalsv(ist,ik)<=efermi) then

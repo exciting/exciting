@@ -103,8 +103,7 @@ Subroutine getoccsv (vpl, occsvp)
         &') ik
          Write (*, '(" current    : ", I8)') nstsv
          Write (*, '(" OCCSV.OUT  : ", I8)') nstsv_
-         Write (*, '(" file	     : ", a	 )') trim &
-        & (outfilenamestring(filetag, ik))
+         Write (*, '(" file	     : ", a)') trim(outfilenamestring(filetag,ik))
          Write (*,*)
          Stop
       End If
@@ -130,8 +129,7 @@ Subroutine getoccsv (vpl, occsvp)
         & I8)') ik
          Write (*, '(" current    : ", 3G18.10)') vkl (:, ik)
          Write (*, '(" OCCSV.OUT  : ", 3G18.10)') vkl_
-         Write (*, '(" file	     : ", a	 )') trim &
-        & (outfilenamestring(filetag, ik))
+         Write (*, '(" file	     : ", a)') trim(outfilenamestring(filetag,ik))
          Write (*,*)
          Stop
       End If
@@ -142,8 +140,7 @@ Subroutine getoccsv (vpl, occsvp)
         &8)') ik
          Write (*, '(" current    : ", I8)') nstsv
          Write (*, '(" OCCSV.OUT  : ", I8)') nstsv_
-         Write (*, '(" file	     : ", a	 )') trim &
-        & (outfilenamestring(filetag, ik))
+         Write (*, '(" file	     : ", a)') trim(outfilenamestring(filetag,ik))
          Write (*,*)
          Stop
       End If
