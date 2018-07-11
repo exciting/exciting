@@ -723,7 +723,7 @@ module mod_wannier_maxloc
         grad(2) = dble( zdotc( wf_kset%nkpt*wf_nwf*wf_nwf, mlwf_grad, 1, mlwf_dir, 1))/nwgt
       end do  
 
-      write(*,'(i,3(2f13.6,5x))') k, bracket(1:2), val(1:2), grad(1:2)
+      !write(*,'(i,3(2f13.6,5x))') k, bracket(1:2), val(1:2), grad(1:2)
       do while( goon)
         ! strong Wolfe condition fulfilled
         if( (val(1) - val0 .le. delta*bracket(1)*grad0) .and. (grad(1) .gt. sigma*grad0)) exit
@@ -747,7 +747,7 @@ module mod_wannier_maxloc
         end if
         k = k + 1
         eps = eps0*abs( val(1))
-        write(*,'(i,3(2f13.6,5x))') k, bracket(1:2), val(1:2), grad(1:2)
+        !write(*,'(i,3(2f13.6,5x))') k, bracket(1:2), val(1:2), grad(1:2)
       end do
       
       step = bracket(1)

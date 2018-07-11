@@ -281,7 +281,7 @@ function qe_erf (x)
      !
      !  erf(6)=1-10^(-17) cannot be distinguished from 1
      !
-     qe_erf = sign (1.0, x)  
+     qe_erf = sign (1.0d0, x)  
   else  
      if (abs (x)  <= 0.47) then  
         x2 = x**2  

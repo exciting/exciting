@@ -791,7 +791,7 @@ CONTAINS
         deallocate(igk2ig)
 
         !! Also make non-reduced quantities
-        if(kset%usedlibzint == .false.) then
+        if(kset%usedlibzint .eqv. .false.) then
 
           ! Map (igknr,iknr,ispin) --> ig
           allocate(igk2ig(gset%ngrtot,kset%nkptnr,nspnfv))

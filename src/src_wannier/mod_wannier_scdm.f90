@@ -126,7 +126,7 @@ module mod_wannier_scdm
       call zgeqp3( wf_groups( wf_group)%nst, grid%npt, wfongrid, wf_groups( wf_group)%nst, lp_jpvt, lp_tau, lp_work, lp_lwork, lp_rwork, lp_info)
       write(*,*) lp_info
       do ir = 1, wf_groups( wf_group)%nwf
-        write(*,'(i,3f13.6)') lp_jpvt( ir), grid%vpl( :, lp_jpvt( ir))
+        write(*,'(i6,3f13.6)') lp_jpvt( ir), grid%vpl( :, lp_jpvt( ir))
       end do
       deallocate( lp_tau, lp_work, lp_rwork)
 

@@ -83,7 +83,7 @@ subroutine eqpongrid
             call r3mv( bvec, vk - vvl( :, ik), s)
             call findkpt( vk, is, iv)
             do is = wf_fst, wf_lst
-              write( 50, '(8G18.10,I)') dt + norm2( s), eks( is, iv)-eferqp, vk, vkl( :, iv), iv
+              write( 50, '(8G18.10,I6)') dt + norm2( s), eks( is, iv)-eferqp, vk, vkl( :, iv), iv
             end do
             write( 50, *)
           end if
