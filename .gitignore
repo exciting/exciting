@@ -104,8 +104,6 @@ examples/xs
 src/libXC/testsuite/xc-consistency
 src/libXC/testsuite/xc-get_data
 src/libXC/testsuite/xc-regression
-src/libXC/config.h.in
-src/libXC/configure
 
 # Makefiles not needed for build?
 Makefile.blas

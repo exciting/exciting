@@ -18,12 +18,11 @@
 
   <xsl:text>
 
-    \documentclass{article}
-
-
+\documentclass{article}
 
 \usepackage{amsmath}
 \usepackage{graphicx}
+\usepackage{underscore}
 
 \bibliographystyle {plain}
 \errorstopmode

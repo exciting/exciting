@@ -277,18 +277,18 @@ function qe_erf (x)
   data q1 / 2.150588758698612E2, 9.116490540451490E1, &
             1.508279763040779E1, 1.000000000000000 /
   !
-  if (abs (x) > 6.0) then  
+  if (abs (x) > 6.d0) then  
      !
      !  erf(6)=1-10^(-17) cannot be distinguished from 1
      !
-     qe_erf = sign (1.0d0, x)  
+     qe_erf = sign (1.d8, x)  
   else  
-     if (abs (x)  <= 0.47) then  
+     if (abs (x)  <= 0.47d0) then  
         x2 = x**2  
         qe_erf=x *(p1 (1) + x2 * (p1 (2) + x2 * (p1 (3) + x2 * p1 (4) ) ) ) &
                 / (q1 (1) + x2 * (q1 (2) + x2 * (q1 (3) + x2 * q1 (4) ) ) )
      else  
-        qe_erf = 1.0 - qe_erfc (x)  
+        qe_erf = 1.d0 - qe_erfc (x)  
      endif
   endif
   !

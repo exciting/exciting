@@ -132,7 +132,7 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
         &)') ik
          Write (*, '(" current    : ", I8)') nstfv
          Write (*, '(" EVECFV.OUT : ", I8)') nstfv_
-         Write (*, '(" file	     : ", a	 )') trim(outfilenamestring(filetag, ik))
+         Write (*, '(" file	     : ", a)') trim(outfilenamestring(filetag,ik))
          Write (*,*)
          Stop
       End If
@@ -158,8 +158,7 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
         &, I8)') ik
          Write (*, '(" current	  : ", 3G18.10)') vkl_ptr (:, ik)
          Write (*, '(" EVECFV.OUT : ", 3G18.10)') vkl_
-         Write (*, '(" file	  : ", a      )') trim &
-        & (outfilenamestring(filetag, ik))
+         Write (*, '(" file	  : ", a)') trim(outfilenamestring(filetag,ik))
          Write (*,*)
          Stop
       End If
@@ -169,8 +168,7 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
         &, I8)') ik
          Write (*, '(" current	  : ", I8)') nmatmax_ptr
          Write (*, '(" EVECFV.OUT : ", I8)') nmatmax_
-         Write (*, '(" file	  : ", a      )') trim &
-        & (outfilenamestring(filetag, ik))
+         Write (*, '(" file	  : ", a)') trim(outfilenamestring(filetag,ik))
          Write (*,*)
          Stop
       End If
@@ -181,8 +179,7 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
         &I8)') ik
          Write (*, '(" current	  : ", I8)') nstfv
          Write (*, '(" EVECFV.OUT : ", I8)') nstfv_
-         Write (*, '(" file	  : ", a      )') trim &
-        & (outfilenamestring(filetag, ik))
+         Write (*, '(" file	  : ", a)') trim(outfilenamestring(filetag,ik))
          Write (*,*)
          Stop
       End If
@@ -193,7 +190,7 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
         & I8)') ik
          Write (*, '(" current	  : ", I8)') nspnfv
          Write (*, '(" EVECFV.OUT : ", I8)') nspnfv_
-         Write (*, '(" file	  : ", a      )') trim(outfilenamestring(filetag,ik))
+         Write (*, '(" file	  : ", a)') trim(outfilenamestring(filetag,ik))
          Write (*,*)
          Stop
       End If

@@ -49,7 +49,7 @@ module m_linalg
       call zgeev( 'n', 'v', m, cpy, m, eval, vl, m, evec, m, work, lwork, rwork, info)
 
       if( info .ne. 0) then
-        write(*,'("Error (zgediag): Diagonalization failed. ZGEEV returned info ",i3)') info
+        write(*,'("Error (zgediag): Diagonalization failed. ZGEEV returned info ",i4)') info
         stop
       end if
 
@@ -103,7 +103,7 @@ module m_linalg
       call zheevr( 'v', 'a', 'u', m, cpy, m, vl, vu, 1, m, eps, n, eval, evec, m, isuppz, work, lwork, rwork, lrwork, iwork, liwork, info)
 
       if( info .ne. 0) then
-        write(*,'("Error (zhediag): Diagonalization failed. ZHEEVR returned info ",i3)') info
+        write(*,'("Error (zhediag): Diagonalization failed. ZHEEVR returned info ",i4)') info
         stop
       end if
 
@@ -151,7 +151,7 @@ module m_linalg
       call dsytrd( 'u', m, cpy, m, diag, offd, tau, work, lwork, info)
 
       if( info .ne. 0) then
-        write(*,'("Error (rsydiag): Tridiagonalization failed. DSYTRD returned info ",i3)') info
+        write(*,'("Error (rsydiag): Tridiagonalization failed. DSYTRD returned info ",i4)') info
         stop
       end if
 
@@ -176,7 +176,7 @@ module m_linalg
       call dsteqr( 'v', m, eval, offd, evec, m, work, info)
 
       if( info .ne. 0) then
-        write(*, '("Error( rsydiag): Diagonalisation failed. DSTEQR returned info", i3)') info
+        write(*, '("Error( rsydiag): Diagonalisation failed. DSTEQR returned info", i4)') info
         stop
       end if
 
@@ -232,7 +232,7 @@ module m_linalg
       allocate( work( lwork))
       call zgesdd( 'a', m, n, cpy, m, sval, lsvec, m, rsvec, n, work, lwork, rwork, iwork, info)
       if( info .ne. 0) then
-        write(*,'("Error (zsvd): SVD failed. ZGESDD returned info ",i3)') info
+        write(*,'("Error (zsvd): SVD failed. ZGESDD returned info ",i4)') info
         stop
       end if
 
@@ -283,7 +283,7 @@ module m_linalg
       allocate( work( lwork))
       call dgesdd( 'a', m, n, cpy, m, sval, lsvec, m, rsvec, n, work, lwork, iwork, info)
       if( info .ne. 0) then
-        write(*,'("Error (rsvd): SVD failed. DGESDD returned info ",i3)') info
+        write(*,'("Error (rsvd): SVD failed. DGESDD returned info ",i4)') info
         stop
       end if
 
