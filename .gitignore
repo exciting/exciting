@@ -126,3 +126,6 @@ info.xml
 .out.xml
 *.out
 
+# Ignore files generated in compilation
+/build/serial/exciting
+/build/mpi/exciting
