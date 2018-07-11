@@ -231,6 +231,13 @@ subroutine boltzequ
         &                  MPI_COMM_WORLD, &
         &                  ierr)
         call MPI_AllReduce(MPI_IN_PLACE, &
+        &                  ndos, &
+        &                  nwtdf, &  
+        &                  MPI_DOUBLE_COMPLEX, &
+        &                  MPI_SUM, &
+        &                  MPI_COMM_WORLD, &
+        &                  ierr)
+        call MPI_AllReduce(MPI_IN_PLACE, &
         &                  conductivity, &
         &                  nwtdf, &  
         &                  MPI_DOUBLE_COMPLEX, &
