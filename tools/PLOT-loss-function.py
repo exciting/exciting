@@ -52,11 +52,18 @@ for i,fname in enumerate(fnames):
     labels.append({})
     print "Parsing "+fname
     sfname = fname.split("/")[-1].split("_")
-    if "FXCRPA" in sfname: legend="RPA "
-    if "FXCALDA" in sfname: legend="ALDA "
-    if not "NLF" in sfname: legend=legend+"(LFE) "
-    if "NLF" in sfname: legend=legend+"(no-LFE) "
-    if sfname[-2][0:2]=="OC": legend=legend+"Optical(%s)"%(sfname[-2][2:])
+    #legends for BSE calculations
+    if "BSE" in sfname[1].split("-"):
+        legend=fname.split(".")[-3].split("_")[-1]
+        if legend[:2]=="OC":
+            legend='QMT001('+legend[2:]+')'
+    #legends for TDDFT calculations
+    else:
+        if "FXCRPA" in sfname: legend="RPA "
+        if "FXCALDA" in sfname: legend="ALDA "
+        if not "NLF" in sfname: legend=legend+"(LFE) "
+        if "NLF" in sfname: legend=legend+"(no-LFE) "
+        if sfname[-2][0:2]=="OC": legend=legend+"Optical(%s)"%(sfname[-2][2:])
     legends.append(legend)
     tree=etree.parse(fname)
     if "LOSS" in sfname: rootelement="loss"
@@ -97,7 +104,7 @@ for i in range(nfiles):
 ax.legend(loc=2)
 #ax.legend()
 
-ax.set_xlim(0.0,54.0)
+ax.set_xlim(min([min(xdata[i]) for i in range(nfiles)]),max([max(xdata[i]) for i in range(nfiles)]))
 ax.set_ylim(0)
 ax.set_xlabel(str.capitalize(labels[0]["xlabel"])+" [eV]")
 ax.set_ylabel(str.capitalize(labels[0]["ylabel"]))
