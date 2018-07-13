@@ -55,14 +55,36 @@ Subroutine plot1d (labels, nf, lmax, ld, rfmt, rfir, plotdef)
   Type (xmlf_t), Save :: xf
   ! allocatable arrays
   Real (8), Allocatable :: fp (:, :)
+  
+  If ((nf .Lt. 1) .Or. (nf .Gt. 4)) Then
+     Write (*,*)
+     Write (*, '("Error(plot1d): invalid number of functions : ", I&
+          &8)') nf
+     Write (*,*)
+     Stop
+  End If
+  
+  ! connect the plotting vertices
+  nvp1d = size(plotdef%path%pointarray)
+  npp1d = plotdef%path%steps
+  If (allocated(dvp1d)) deallocate (dvp1d)
+  Allocate (dvp1d(nvp1d))
+  If (allocated(vplp1d)) deallocate (vplp1d)
+  Allocate (vplp1d(3, npp1d))
+  If (allocated(dpp1d)) deallocate (dpp1d)
+  Allocate (dpp1d(npp1d))
+  Call connect(input%structure%crystal%basevect, plotdef, &
+  &            size(plotdef%path%pointarray), plotdef%path%steps, &
+  &            vplp1d, dvp1d, dpp1d)
+  
+  ! evaluate function at each point 
+  Allocate (fp(npp1d, nf))
+  fp = 0.d0
+  Do i = 1, nf
+     Call rfarray(lmax, ld, rfmt(:, :, :, i), rfir(:, i), npp1d, vplp1d, fp(:, i))
+  End Do
+  
   If (rank .Eq. 0) Then
-     If ((nf .Lt. 1) .Or. (nf .Gt. 4)) Then
-        Write (*,*)
-        Write (*, '("Error(plot1d): invalid number of functions : ", I&
-             &8)') nf
-        Write (*,*)
-        Stop
-     End If
      write(buffer,*)  labels%filename , ".xml"
      Call xml_OpenFile ( adjustl(trim(buffer)), xf, replace=.True. ,  pretty_print=.True.)
      Call xml_NewElement (xf, "plot1d")
@@ -80,24 +102,6 @@ Subroutine plot1d (labels, nf, lmax, ld, rfmt, rfir, plotdef)
      Call xml_AddAttribute (xf, "latexunit", get_latexunit(labels,2))
      Call xml_AddAttribute (xf, "graceunit", get_graceunit(labels,2))
      Call xml_endElement (xf, "axis")
-     ! connect the plotting vertices
-     nvp1d = size (plotdef%path%pointarray)
-     npp1d = plotdef%path%steps
-     If (allocated(dvp1d)) deallocate (dvp1d)
-     Allocate (dvp1d(nvp1d))
-     If (allocated(vplp1d)) deallocate (vplp1d)
-     Allocate (vplp1d(3, npp1d))
-     If (allocated(dpp1d)) deallocate (dpp1d)
-     Allocate (dpp1d(npp1d))
-     Call connect(input%structure%crystal%basevect, plotdef, &
-     &            size(plotdef%path%pointarray), plotdef%path%steps, &
-     &            vplp1d, dvp1d, dpp1d)
-     ! evaluate function at each point 
-     Allocate (fp(npp1d, nf))
-     fp = 0.d0
-     Do i = 1, nf
-        Call rfarray(lmax, ld, rfmt(:, :, :, i), rfir(:, i), npp1d, vplp1d, fp(:, i))
-     End Do
      ! write the point distances and function to file
      do i = 1, nf
         call xml_NewElement(xf, "function")
