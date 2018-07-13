@@ -51,8 +51,8 @@ label = str(sys.argv[1])
 
 #-------------------------------------------------------------------------------
 
-rsmd_file = current+"/"+rlabel+label+'/RMSDVEFF.OUT'
-info_file = current+"/"+rlabel+label+'/INFO.OUT'
+rsmd_file = label+'/RMSDVEFF.OUT'
+info_file = label+'/INFO.OUT'
 lrsmd = os.path.exists(rsmd_file)
 linfo = os.path.exists(info_file)
 lonlyinfo=False

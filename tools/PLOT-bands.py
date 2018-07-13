@@ -88,7 +88,7 @@ for i in range(len(gwene)):
 ################################################################################
     
 figcolor = 'white'
-dpi = 100
+dpi = 300
 fig = plt.figure(figsize=(16,10),dpi=dpi)
 fig.figurePatch.set_edgecolor(figcolor)
 fig.figurePatch.set_facecolor(figcolor)
@@ -167,7 +167,7 @@ ax1.plot(x0,y0,'k:',lw=1.0)
 ax1.set_xlim(0,max(ksene[0][0]))
 ax1.set_ylim(ymin,ymax)
 pyl.grid(True)
-fig.savefig('EXX_LDA.png',format='png',bbox_inches=0,dpi=45)
+fig.savefig('EXX_LDA.png',format='png',bbox_inches=0,dpi=300)
 fig.savefig('EXX_LDA.eps',format='eps',bbox_inches=0)
 
 plt.show()

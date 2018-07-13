@@ -81,7 +81,7 @@ if (os.path.exists(INF) == False):
 #--------------------------------------------------------------------------------------------------
 
 #%!%!%--- Calculate Space-Group Number and classify it ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
-os.system('xsltproc $EXCITINGSCRIPTS/exciting2sgroup.xsl '+ INF +' > sgroup.in')
+os.system('xsltproc $EXCITINGTOOLS/exciting2sgroup.xsl '+ INF +' > sgroup.in')
 
 SIN = open('sgroup.in', 'r')
 l1  = SIN.readline()
@@ -378,7 +378,7 @@ for i in def_list:
         OUTOBJ   = open(fileName, 'w')
         OUTOBJ.write(ET.tostring(root, method         ='xml',
                                        pretty_print   =True ,
-                                       xml_declaration=True ,
+                                       xml_declaration=False ,
                                        encoding       ='UTF-8'))
         OUTOBJ.close()
         # -----------------------------------------------------------------------------------------

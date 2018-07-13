@@ -51,8 +51,7 @@ label = str(sys.argv[1])
 
 #-------------------------------------------------------------------------------
 
-inpf = current+"/"+rlabel+label+'/INFO.OUT'
-if (label == 'r'): inpf=rundir+'/xc-rundir/INFO.OUT'
+inpf = label+'/INFO.OUT'
      
 if (str(os.path.exists(inpf))=='False'): 
     sys.exit("\nERROR: file "+inpf+" not found!\n")

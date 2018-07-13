@@ -42,33 +42,11 @@ if (str(os.path.exists('energy-vs-volume'))=='False'):
 
 #-------------------------------------------------------------------------------
 
-order_of_fit = 6\
-            #input("\nEnter the order of polynomial to be used in the fit >>>> ")
-if (order_of_fit < 0): 
-    sys.exit("ERROR: Order of polynomial must be positive!\n")
-print
-
-#print "==============================="
-#print "Lattice symmetry codes"
-#print "-------------------------------"
-#print "1 --> Simple cubic (sc)"
-#print "2 --> Body-centered cubic (bcc)"
-#print "3 --> Face-centered cubic (fcc)"
-#print "-------------------------------"
-#print "0 --> Others"
-#print "===============================\n"
-
-scheck = "3"\
-     #raw_input("Enter lattice symmetry code [default 0] >>>> ").replace(" ", "") 
-
-isym   = 0
-factor = 1
-if ( scheck == "1" ): isym = 1 ; factor=1 ; slabel = "(sc) "
-if ( scheck == "2" ): isym = 2 ; factor=2 ; slabel = "(bcc)"
-if ( scheck == "3" ): isym = 3 ; factor=4 ; slabel = "(fcc)"
-#print "Verification lattice symmetry code      >>>>", isym
+order_of_fit = 3
 
 #-------------------------------------------------------------------------------
+
+print
 
 energy = []
 strain = []
@@ -82,7 +60,7 @@ while True:
     line = line.strip()
     if len(line) == 0: break
     energy.append(float(line.split()[1]))
-    strain.append(float(line.split()[0]))
+    strain.append((float(line.split()[0]))**(-2./3.))
 
 strain,energy=sortstrain(strain,energy)
 
@@ -97,21 +75,39 @@ unitconv        = joule2hartree/bohr_radius**3*10.**3
 
 fitr = numpy.polyfit(strain,energy,order_of_fit)
 curv = numpy.poly1d(fitr)
+oned = numpy.poly1d(numpy.polyder(fitr,1))
 bulk = numpy.poly1d(numpy.polyder(fitr,2))
+bpri = numpy.poly1d(numpy.polyder(fitr,3))
 vmin = numpy.roots(numpy.polyder(fitr))
 
-dmin=[]
+dmin = []
 for i in range(len(vmin)):
     if (abs(vmin[i].imag) < 1.e-10): 
         if (strain[0] <= vmin[i] and vmin[i] <= strain[-1]): 
-            if(bulk(vmin[i]) > 0): dmin.append(vmin[i].real)
-
-xvol = numpy.linspace(strain[0],strain[-1],100)
+            if(bulk(vmin[i]) > 0): dmin.append((vmin[i].real))
 
 chi = 0
 for i in range(len(energy)): 
     chi=chi+(energy[i]-curv(strain[i]))**2
 chi=sqrt(chi)/len(energy)
+
+#-------------------------------------------------------------------------------
+
+xvol = numpy.linspace(strain[0],strain[-1],100)
+
+rvol = [] ; rene = [] 
+for i in range(len(xvol)): 
+    rvol.append(xvol[i]**(-3./2.))
+    rene.append(curv(xvol[i]))
+    
+rstr = [] 
+for i in range(len(strain)): 
+    rstr.append(strain[i]**(-3./2.))
+    
+rmin = [] ; emin = [] 
+for i in range(len(dmin)): 
+    rmin.append(dmin[i]**(-3./2.))
+    emin.append(curv(dmin[i]))
 
 #-------------------------------------------------------------------------------
 
@@ -163,28 +159,26 @@ for line in ax.get_xticklines() + ax.get_yticklines():
 plt.xticks(size=fonttick)
 plt.yticks(size=fonttick)
 pyl.grid(True)
-plt.plot(xvol,curv(xvol),'b-',label='n='+str(order_of_fit)+' fit')
-plt.plot(strain,energy,'go',label='calculated')
-plt.plot(dmin,curv(dmin),'ro')
+plt.plot(rvol,curv(xvol),'b-',label='birch-murnaghan fit')
+plt.plot(rstr,energy,'go',label='calculated')
+plt.plot(rmin,emin,'ro')
 plt.legend(loc=9,borderaxespad=.8,numpoints=1)
 
 ymax  = max(max(curv(xvol)),max(energy))
 ymin  = min(min(curv(xvol)),min(energy))
-dxx   = abs(max(xvol)-min(xvol))/18
+dxx   = abs(max(rvol)-min(rvol))/18
 dyy   = abs(ymax-ymin)/18
 ax.yaxis.set_major_formatter(yfmt)
-ax.set_xlim(min(xvol)-dxx,max(xvol)+dxx)
+ax.set_xlim(min(rvol)-dxx,max(rvol)+dxx)
 ax.set_ylim(ymin-dyy,ymax+dyy)
 
 ax.xaxis.set_major_locator(MaxNLocator(7))
 
-plt.savefig('PLOT.ps', orientation='portrait',format='eps')
+#plt.savefig('PLOT.ps', orientation='portrait',format='eps')
 plt.savefig('PLOT.png',orientation='portrait',format='png',dpi=dpipng)
 
 #-------------------------------------------------------------------------------
 
-#print 
-#print "##############################################\n"
 if (len(dmin) > 1): 
     print 
     print "##############################################\n"
@@ -193,27 +187,28 @@ if (len(dmin) > 1):
 
 fmt='%11.5f'
 amt='%10.4f'
-bmt='%8.3f'
+bmt='%9.3f'
 pmt='%16.10f'
 lmt='%10.2f'
 
 for i in range(len(dmin)):
-    v0=dmin[len(dmin)-1-i]
+    x0=dmin[len(dmin)-1-i]
+    v0=rmin[len(rmin)-1-i]
     a0sc=(1*v0)**(0.33333333333)
     abcc=(2*v0)**(0.33333333333)
     afcc=(4*v0)**(0.33333333333)
-    a0=(factor*v0)**(0.33333333333)
-    b0=bulk(v0)*v0*unitconv
-#    print 'Optimal volume   = ', fmt%(v0), '[Bohr^3]'
-#    if (isym > 0): print 'Lattice constant =', slabel, afmt%(a0), '[Bohr]'
-#    print 'Bulk modulus     = ', fmt%(b0), '[GPa]'
-#    print
-#    print 'Log(chi)         = ', lmt%(log10(chi))
-#    print
+    
+    derivV2 = 4./9. * x0**5. * bulk(x0)
+    derivV3 = (-20./9. * x0**(13./2.) * bulk(x0) -
+                8./27. * x0**(15./2.) * bpri(x0))
+    b0 = derivV2 / x0**(3./2.) * unitconv
+    bp = -1 - x0**(-3./2.) * derivV3 / derivV2
+
+    
     print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-    print "     V0        B0                   a-sc       a-bcc      a-fcc     log(chi)"
-    print fmt%(v0), bmt%(b0), "          ",  
-    print amt%(a0sc), amt%(abcc), amt%(afcc), lmt%(log10(chi))
+    print "     V0        B0         Bp        a-sc       a-bcc      a-fcc     log(chi)"
+    print fmt%(v0), bmt%(b0), bmt%(bp),  
+    print amt%(a0sc), amt%(abcc), amt%(afcc), lmt%(log10(chi))#, emin[0]
     print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
     print
     

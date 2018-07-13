@@ -155,7 +155,7 @@ if (os.path.exists(INF) == False):
 #--------------------------------------------------------------------------------------------------
 
 #%!%!%--- Calculate Space-group number and classify it ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
-os.system('xsltproc $EXCITINGSCRIPTS/exciting2sgroup.xsl '+ INF +' > sgroup.in')
+os.system('xsltproc $EXCITINGTOOLS/exciting2sgroup.xsl '+ INF +' > sgroup.in')
 os.system('sgroup sgroup.in 1>sgroup.out 2>sgroup.err')
 os.system('rm -f sgroup.in ')
 
@@ -540,7 +540,7 @@ for i in Lag_strain_list:
         OUTOBJ   = open(fileName, 'w')
         OUTOBJ.write(ET.tostring(root, method         ='xml',
                                        pretty_print   =True ,
-                                       xml_declaration=True ,
+                                       xml_declaration=False ,
                                        encoding       ='UTF-8'))
         OUTOBJ.close()
         # -----------------------------------------------------------------------------------------

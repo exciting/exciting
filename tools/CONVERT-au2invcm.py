@@ -205,10 +205,11 @@ nqpt = iqpt
 print "Total number of q-points :", (imt%nqpt)
 print "--------------------------------------------\n"
 fmt = '%10.4f'
+imt = '%3i'
 for iqpt in range(nqpt):
-    print 'q-point ',iqpt+1,' is ',qvec[iqpt][0],qvec[iqpt][1],qvec[iqpt][2]
+    print 'q-point',(imt%(iqpt+1)),' is ',qvec[iqpt][0],qvec[iqpt][1],qvec[iqpt][2]
     for imode in range(3*natmtot):
-        print '   mode ',imode+1,' with frequency',
+        print '   mode',(imt%(imode+1)),'     frequency:',
         print (fmt%(freq[iqpt][imode]*ha2rcm)),' cm-1'
     print
       

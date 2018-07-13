@@ -53,7 +53,7 @@ for line in open(infile2):
 ################################################################################
     
 figcolor = 'white'
-dpi = 100
+dpi = 300
 fig, ax1 = plt.subplots( 1, 1, figsize=(16,10), dpi=dpi)
 fig.figurePatch.set_edgecolor(figcolor)
 fig.figurePatch.set_facecolor(figcolor)
@@ -99,7 +99,7 @@ leg.draw_frame(True)
 ax1.set_xlim(xmin,xmax)
 ax1.set_ylim(0,1.2*ymax)
 ax1.grid( True)
-fig.savefig('PBE0_PBE_dos_wannier.png',format='png',bbox_inches=0,dpi=45)
+fig.savefig('PBE0_PBE_dos_wannier.png',format='png',bbox_inches=0,dpi=300)
 fig.savefig('PBE0_PBE_dos_wannier.eps',format='eps',bbox_inches=0)
 
 plt.show()

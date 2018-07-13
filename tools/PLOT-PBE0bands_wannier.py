@@ -107,7 +107,7 @@ for i in range(len(waene)):
 ################################################################################
     
 figcolor = 'white'
-dpi = 100
+dpi = 300
 fig, (ax1, ax2) = plt.subplots( 1, 2, sharey=True, sharex=True, figsize=(24,10), dpi=dpi)
 fig.figurePatch.set_edgecolor(figcolor)
 fig.figurePatch.set_facecolor(figcolor)
@@ -213,7 +213,7 @@ ax1.set_xlim(0,max(ksene[0][0]))
 ax1.set_ylim(-25,20)
 ax1.grid( True)
 ax2.grid( True)
-fig.savefig('PBE0_PBE_wannier.png',format='png',bbox_inches=0,dpi=45)
+fig.savefig('PBE0_PBE_wannier.png',format='png',bbox_inches=0,dpi=300)
 fig.savefig('PBE0_PBE_wannier.eps',format='eps',bbox_inches=0)
 
 plt.show()

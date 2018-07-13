@@ -107,7 +107,7 @@ for i in range(0,displ_points):
     output_obj = open(outputfile,"w")
     output_obj.write(etree.tostring(input_rut, method='xml',
                                                pretty_print=True,
-                                               xml_declaration=True,
+                                               xml_declaration=False,
                                                encoding='UTF-8'))
     output_obj.close()
 
@@ -133,7 +133,7 @@ if (linfty):
     output_obj = open(outputfile,"w")
     output_obj.write(etree.tostring(input_rut, method='xml',
                                                pretty_print=True,
-                                               xml_declaration=True,
+                                               xml_declaration=False,
                                                encoding='UTF-8'))
     output_obj.close()
 

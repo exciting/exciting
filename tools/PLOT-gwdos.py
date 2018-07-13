@@ -61,7 +61,7 @@ del list1, list2
 ################################################################################
     
 figcolor = 'white'
-dpi = 100
+dpi = 300
 fig = plt.figure(figsize=(15,10),dpi=dpi)
 fig.figurePatch.set_edgecolor(figcolor)
 fig.figurePatch.set_facecolor(figcolor)

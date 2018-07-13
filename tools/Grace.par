@@ -1,5 +1,5 @@
 #--- Grace_d2E.par --------------------
-page size 840, 595
+page size 450, 310
 with line
     line on
     line 0.08, 0.40, 0.08, 0.54
@@ -46,7 +46,7 @@ with string
 #--------------------------------------
 
 #--- Grace_d3E.par --------------------
-page size 840, 595
+page size 450, 310
 with line
     line on
     line 0.08, 0.40, 0.08, 0.54
@@ -93,7 +93,7 @@ with string
 #--------------------------------------
 
 #--- Grace_d1S.par --------------------
-page size 840, 595
+page size 450, 310
 with line
     line on
     line 0.08, 0.41, 0.08, 0.50
@@ -123,7 +123,7 @@ with string
 #--------------------------------------
 
 #--- Grace_d2S.par --------------------
-page size 840, 595
+page size 450, 310
 with line
     line on
     line 0.08, 0.4, 0.08, 0.52
@@ -152,7 +152,7 @@ with string
 #--------------------------------------
 
 #--- Grace_CVe.par --------------------
-page size 840, 595
+page size 450, 310
 with string
     string on
     string 0.1, 0.35
@@ -219,7 +219,7 @@ with g0
     s2 line color 2
 
 #--- Grace_d1E.par --------------------
-page size 840, 595
+page size 450, 310
 with line
     line on
     line 0.08, 0.45, 0.08, 0.55

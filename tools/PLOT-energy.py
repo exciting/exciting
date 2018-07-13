@@ -45,8 +45,8 @@ if (os.path.exists('vasp')):             ylabel = r'Energy [Ry]'
 inpf = ' '
 
 if (os.path.exists('energy-vs-strain')): 
-     inpf   = 'energy-vs-strain'
-     xlabel = r'Lagrangian strain'
+    inpf   = 'energy-vs-strain'
+    xlabel = r'Lagrangian strain'
 
 if (os.path.exists('energy-vs-displacement')): 
     inpf   = 'energy-vs-displacement'
@@ -63,7 +63,11 @@ if (os.path.exists('energy-vs-ngrid')):
 if (os.path.exists('energy-vs-alat')): 
     inpf   = 'energy-vs-alat'
     xlabel = r'Lattice parameter [Bohr]'
-     
+    
+if (os.path.exists('energy-vs-step')): 
+    inpf   = 'energy-vs-step'
+    xlabel = r'Step'     
+
 if (str(os.path.exists(inpf))=='False'): 
     sys.exit("\nERROR: file "+inpf+" not found!\n")
     

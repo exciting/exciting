@@ -36,7 +36,7 @@ while test:
 
 ## settings for the plot ##
 figcolor = 'white'
-dpi = 100
+dpi = 300
 fig = plt.figure(figsize=(15,10),dpi=dpi)
 fig.figurePatch.set_edgecolor(figcolor)
 fig.figurePatch.set_facecolor(figcolor)
@@ -114,7 +114,7 @@ for line in ax.get_xticklines() + ax.get_yticklines():
 plt.legend(loc='upper center')
 #plt.legend(bbox_to_anchor=(0.85,0.95))
 plt.savefig('XC.eps',  orientation='portrait',format='eps')
-plt.savefig('XC.png', orientation='portrait',format='png',dpi=45)
+plt.savefig('XC.png', orientation='portrait',format='png',dpi=300)
 plt.show()
 
 

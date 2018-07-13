@@ -229,7 +229,7 @@ chi=sqrt(chi)/len(volume)
 fmt='%10.4f' ; amt='%10.4f' ; emt='%9.5f' ; bmt='%8.3f' ; pmt='%16.10f' ; lmt='%10.2f'
 a2t='%12.3f' ; a3t='%14.3f' ; al0='%7.4f'
 
-string     = "     V0        B0        BP         a-sc       as-bcc      a-fcc     log(chi)"
+string     = "     V0        B0        BP         a-sc       a-bcc      a-fcc     log(chi)"
     
 if (lexses):
     a2  = b0 * bfactor

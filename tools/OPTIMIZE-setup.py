@@ -80,7 +80,7 @@ if (os.path.exists(INF) == False):
 #--------------------------------------------------------------------------------------------------
 
 #%!%!%--- Calculating the Space-Group Number and classifying it ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!
-os.system('xsltproc $EXCITINGSCRIPTS/exciting2sgroup.xsl '+ INF +' > sgroup.in')
+os.system('$EXCITINGTOOLS/exciting2sgroup.py '+ INF +' sgroup.in')
 os.system('sgroup sgroup.in 1>sgroup.out 2>sgroup.err; rm -f sgroup.in ')
 
 if (os.path.getsize('sgroup.err') != 0):
@@ -399,7 +399,7 @@ for s in range(-ptn, ptn+1):
     OUTOBJ   = open(fileName, 'w')
     OUTOBJ.write(ET.tostring(root, method         ='xml',
                                    pretty_print   =True ,
-                                   xml_declaration=True ,
+                                   xml_declaration=False ,
                                    encoding       ='UTF-8'))
     OUTOBJ.close()
     os.chdir('../')

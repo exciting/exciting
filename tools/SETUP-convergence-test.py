@@ -88,7 +88,7 @@ for ngk in range(min_ngk, max_ngk, 2):    # sweeping in variables ngk and rgkm
  
         fileobj2.write(ET.tostring(root,
                                    pretty_print=True,
-                                   xml_declaration=True,
+                                   xml_declaration=False,
                                    encoding='UTF-8'))
                # The line above assigns the modified variable (groundstate) 
                # to the field groundstate

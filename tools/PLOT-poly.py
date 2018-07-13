@@ -42,10 +42,14 @@ if (str(os.path.exists('energy-vs-volume'))=='False'):
 
 #-------------------------------------------------------------------------------
 
-order_of_fit = 6\
-            #input("\nEnter the order of polynomial to be used in the fit >>>> ")
-if (order_of_fit < 0): 
-    sys.exit("ERROR: Order of polynomial must be positive!\n")
+order_of_fit = 6
+
+narg  = len(sys.argv)-1
+
+if (narg>0): order_of_fit = int(sys.argv[1])
+
+#-------------------------------------------------------------------------------
+
 print
 
 #print "==============================="
@@ -98,6 +102,7 @@ unitconv        = joule2hartree/bohr_radius**3*10.**3
 fitr = numpy.polyfit(strain,energy,order_of_fit)
 curv = numpy.poly1d(fitr)
 bulk = numpy.poly1d(numpy.polyder(fitr,2))
+bpri = numpy.poly1d(numpy.polyder(fitr,3))
 vmin = numpy.roots(numpy.polyder(fitr))
 
 dmin=[]
@@ -193,7 +198,7 @@ if (len(dmin) > 1):
 
 fmt='%11.5f'
 amt='%10.4f'
-bmt='%8.3f'
+bmt='%9.3f'
 pmt='%16.10f'
 lmt='%10.2f'
 
@@ -204,6 +209,7 @@ for i in range(len(dmin)):
     afcc=(4*v0)**(0.33333333333)
     a0=(factor*v0)**(0.33333333333)
     b0=bulk(v0)*v0*unitconv
+    bp=-(1+v0*bpri(v0)/bulk(v0))
 #    print 'Optimal volume   = ', fmt%(v0), '[Bohr^3]'
 #    if (isym > 0): print 'Lattice constant =', slabel, afmt%(a0), '[Bohr]'
 #    print 'Bulk modulus     = ', fmt%(b0), '[GPa]'
@@ -211,8 +217,8 @@ for i in range(len(dmin)):
 #    print 'Log(chi)         = ', lmt%(log10(chi))
 #    print
     print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-    print "     V0        B0                   a-sc       a-bcc      a-fcc     log(chi)"
-    print fmt%(v0), bmt%(b0), "          ",  
+    print "     V0        B0         Bp        a-sc       a-bcc      a-fcc     log(chi)"
+    print fmt%(v0), bmt%(b0), bmt%(bp),  
     print amt%(a0sc), amt%(abcc), amt%(afcc), lmt%(log10(chi))
     print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
     print

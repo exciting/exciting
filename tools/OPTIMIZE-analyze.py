@@ -285,7 +285,7 @@ if (mod == 'VOL'):
     OUTOBJ = open(eos+'-optimized.xml', 'w')
     OUTOBJ.write(ET.tostring(root, method         ='xml',
                                    pretty_print   =True ,
-                                   xml_declaration=True ,
+                                   xml_declaration=False ,
                                    encoding       ='UTF-8'))
     OUTOBJ.close()
     print   ' Optimized lattice parameter saved into the file: "' + eos + '-optimized.xml".'\
@@ -390,7 +390,7 @@ if (mod != 'VOL'):
     OUTOBJ   = open(mod.lower()+'-optimized.xml', 'w')
     OUTOBJ.write(ET.tostring(root, method         ='xml',
                                    pretty_print   =True ,
-                                   xml_declaration=True ,
+                                   xml_declaration=False ,
                                    encoding       ='UTF-8'))
     OUTOBJ.close()
 
@@ -491,10 +491,10 @@ dxx = (max_x-min_x)/18
 ax.set_xlim(min_x-dxx,max_x+dxx)
 
 if (mod == 'VOL'):
-    plt.savefig(eos+'_eos.png', orientation='portrait',format='png',dpi=80)
+    plt.savefig(eos+'_eos.png', orientation='portrait',format='png',dpi=300)
     plt.savefig(eos+'_eos.eps', orientation='portrait',format='eps')
 else:
-    plt.savefig(mod.lower()+'.png', orientation='portrait',format='png',dpi=80)
+    plt.savefig(mod.lower()+'.png', orientation='portrait',format='png',dpi=300)
     plt.savefig(mod.lower()+'.eps', orientation='portrait',format='eps')
 
 #plt.show()

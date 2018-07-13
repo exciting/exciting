@@ -163,7 +163,7 @@ for i in range(len(volume)):
 
 chi=sqrt(chi)/len(volume)
 
-fmt='%10.4f'
+fmt='%11.5f'
 amt='%10.4f'
 bmt='%8.3f'
 pmt='%16.10f'

@@ -283,7 +283,7 @@ for i in range(1, SCs+1):
 
     #--- Plotting -----------------------------------------------------------------------------
     if (os.path.exists('Grace.par') == False):
-        os.system("cp -f $EXCITINGSCRIPTS/Grace.par .")
+        os.system("cp -f $EXCITINGTOOLS/Grace.par .")
 
     Gf    = open('Grace.par', 'r')
     Glines= Gf.readlines()
