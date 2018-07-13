@@ -42,11 +42,12 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
   real(8), intent( in) :: wint(2), e( ld, *), f( ld, *), fmax
   real(8), intent( out) :: g( nw, n)
 ! local variables
-  integer :: mat(8,8), i, j, ist, jst, i3, j1, j2, j3, k1, k2, k3, iw, iw1, iw2, iint, inside(2,2), corner(2,2)
-  real(8) :: z, wd, dw, dwi, w(nw), t1, ce(4), cf1(4), cf2(4), a0, x0, x1, y0, y1, a, b, eps, intbound(2,2)
+  integer :: mat(8,8), i, j, ist, jst, i3, j1, j2, j3, k1, k2, k3, iw, iw1, iw2, iint, ipt
+  logical :: inside(2,2), corner(2,2)
+  real(8) :: z, wd, dw, dwi, w(nw), t1, ce(4), cf1(4), cf2(4), a0, x0, x1, y0, y1, a, b, eps, delta, intbound(2,2), pts(2,2)
   real(8) :: e0(n,8), f0(n,8), ae(n,8), af(n,8)
 
-  eps = 1.d-15
+  eps = 1.d-20
 
   mat(1,:) = (/ 1,  0,  0,  0,  0,  0,  0,  0/)
   mat(2,:) = (/-1,  1,  0,  0,  0,  0,  0,  0/)
@@ -82,7 +83,7 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
 
 
 #ifdef USEOMP
-!$omp parallel default( shared) private( j1, j2, j3, k1, k2, k3, e0, f0, ae, af, ist, jst, i3, z, ce, cf1, cf2, a, b, iw1, iw2, iw, a0, inside, corner, t1, x0, x1, y0, y1, iint, intbound, i, j)
+!$omp parallel default( shared) private( j1, j2, j3, k1, k2, k3, e0, f0, ae, af, ist, jst, i3, z, ce, cf1, cf2, a, b, iw1, iw2, iw, a0, inside, corner, t1, x0, x1, y0, y1, iint, ipt, intbound, pts, i, j)
 !$omp do collapse(3)
 #endif
   do j1 = 0, ngridk(1) - 1
@@ -148,10 +149,11 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
 
                 do iw = iw1, iw2
                   a0 = ce(1) + w( iw)
-                  inside = 0
-                  corner = 0
+                  inside = .false.
+                  corner = .false.
+                  delta = a0*ce(4) - ce(2)*ce(3)
 
-                  if( abs( a0*ce(4) - ce(2)*ce(3)) .gt. eps) then
+                  if( abs( delta) .gt. eps) then
                     ! a3 != 0
                     if( abs( ce(4)) .gt. eps) then
                       t1 = 1.d0/ce(4)
@@ -162,7 +164,7 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
                       else
                         x0 = 2.d0
                       end if
-                      if( (x0 .ge. eps) .and. (x0 .le. 1.d0-eps)) inside(1,1) = 1
+                      if( (x0 .ge. eps) .and. (x0 .le. 1.d0-eps)) inside(1,1) = .true.
 
                       x1 = -(a0 + ce(3))
                       if( abs( ce(2) + ce(4)) .gt. eps) then
@@ -170,7 +172,7 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
                       else
                         x1 = 2.d0
                       end if
-                      if( (x1 .ge. eps) .and. (x1 .le. 1.d0-eps)) inside(2,1) = 1
+                      if( (x1 .ge. eps) .and. (x1 .le. 1.d0-eps)) inside(2,1) = .true.
                       
                       y0 = -a0
                       if( abs( ce(3)) .gt. eps) then
@@ -178,9 +180,9 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
                       else
                         y0 = 2.d0
                       end if
-                      if( (y0 .ge. eps) .and. (y0 .le. 1.d0-eps)) inside(1,2) = 1
-                      if( (abs( y0) .lt. eps) .and. (abs( x0) .lt. eps)) corner(1,1) = 1
-                      if( (abs( y0-1.d0) .lt. eps) .and. (abs( x1) .lt. eps)) corner(1,2) = 1
+                      if( (y0 .ge. eps) .and. (y0 .le. 1.d0-eps)) inside(1,2) = .true.
+                      if( (abs( y0) .lt. eps) .and. (abs( x0) .lt. eps)) corner(1,1) = .true.
+                      if( (abs( y0-1.d0) .lt. eps) .and. (abs( x1) .lt. eps)) corner(1,2) = .true.
                       
                       y1 = -(a0 + ce(2))
                       if( abs( ce(3) + ce(4)) .gt. eps) then
@@ -188,11 +190,12 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
                       else
                         y1 = 2.d0
                       end if
-                      if( (y1 .ge. eps) .and. (y1 .le. 1.d0-eps)) inside(2,2) = 1
-                      if( (abs( y1) .lt. eps) .and. (abs( x0-1.d0) .lt. eps)) corner(2,1) = 1
-                      if( (abs( y1-1.d0) .lt. eps) .and. (abs( x1-1.d0) .lt. eps)) corner(2,2) = 1
+                      if( (y1 .ge. eps) .and. (y1 .le. 1.d0-eps)) inside(2,2) = .true.
+                      if( (abs( y1) .lt. eps) .and. (abs( x0-1.d0) .lt. eps)) corner(2,1) = .true.
+                      if( (abs( y1-1.d0) .lt. eps) .and. (abs( x1-1.d0) .lt. eps)) corner(2,2) = .true.
 
                       iint = 0
+                      ipt = 0
                       ! inside cases
                       if( inside(1,2)) then
                         if( inside(2,2)) then
@@ -253,6 +256,8 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
                           if( inside(2,1)) then
                             iint = 1
                             intbound(:,1) = (/x1, 1.d0/)
+                            ipt = 1
+                            pts(:,1) = (/0.d0, 0.d0/)
                           ! y0=0, y1 in, x1 out
                           else
                             iint = 1
@@ -263,6 +268,9 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
                           if( inside(2,1)) then
                             iint = 1
                             intbound(:,1) = (/0.d0, x1/)
+                          else
+                            ipt = 1
+                            pts(:,1) = (/0.d0, 0.d0/)
                           end if
                         end if
                       else if( corner(1,2)) then
@@ -271,6 +279,8 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
                           if( inside(1,1)) then
                             iint = 1
                             intbound(:,1) = (/x0, 1.d0/)
+                            ipt = 1
+                            pts(:,1) = (/0.d0, 1.d0/)
                           ! y0=1, y1 in, x0 out
                           else
                             iint = 1
@@ -281,6 +291,9 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
                           if( inside(1,1)) then
                             iint = 1
                             intbound(:,1) = (/0.d0, x0/)
+                          else
+                            ipt = 1
+                            pts(:,1) = (/0.d0, 1.d0/)
                           end if
                         end if
                       else if( corner(2,1)) then
@@ -289,6 +302,8 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
                           if( inside(2,1)) then
                             iint = 1
                             intbound(:,1) = (/0.d0, x1/)
+                            ipt = 1
+                            pts(:,1) = (/1.d0, 0.d0/)
                           ! y1=0, y0 in, x1 out
                           else
                             iint = 1
@@ -299,6 +314,9 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
                           if( inside(2,1)) then
                             iint = 1
                             intbound(:,1) = (/x1, 1.d0/)
+                          else
+                            ipt = 1
+                            pts(:,1) = (/1.d0, 0.d0/)
                           end if
                         end if
                       else if( corner(2,2)) then
@@ -307,6 +325,8 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
                           if( inside(1,1)) then
                             iint = 1
                             intbound(:,1) = (/0.d0, x0/)
+                            ipt = 1
+                            pts(:,1) = (/1.d0, 1.d0/)
                           ! y1=1, y0 in, x0 out
                           else
                             iint = 1
@@ -317,7 +337,31 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
                           if( inside(1,1)) then
                             iint = 1
                             intbound(:,1) = (/x0, 1.d0/)
+                          else
+                            ipt = 1
+                            pts(:,1) = (/1.d0, 1.d0/)
                           end if
+                        end if
+                      end if
+
+                      ! two corner cases
+                      if( (abs( y0) .lt. eps) .and. (abs( y1 - 1.d0) .lt. eps)) then
+                        if( delta .gt. 0.d0) then
+                          iint = 1
+                          intbound(:,1) = (/0.d0, 1.d0/)
+                        else
+                          ipt = 2
+                          pts(:,1) = (/0.d0, 0.d0/)
+                          pts(:,2) = (/1.d0, 1.d0/)
+                        end if
+                      else if( (abs( y0 - 1.d0) .lt. eps) .and. (abs( y1) .lt. eps)) then
+                        if( delta .lt. 0.d0) then
+                          iint = 1
+                          intbound(:,1) = (/0.d0, 1.d0/)
+                        else
+                          ipt = 2
+                          pts(:,1) = (/1.d0, 0.d0/)
+                          pts(:,2) = (/0.d0, 1.d0/)
                         end if
                       end if
 
@@ -332,14 +376,28 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
                           a = a + b*(intbound(2,i) - intbound(1,i))
                           b = a0*ce(4)*ce(4)*cf1(3) - ce(2)*ce(3)*ce(4)*cf1(3) - a0*ce(3)*ce(4)*cf1(4) + ce(2)*ce(3)*ce(3)*cf1(4)
                           a = a + b*(1.d0/(ce(3) + ce(4)*intbound(2,i)) - 1.d0/(ce(3) + ce(4)*intbound(1,i)))
+                          if( abs( a) .gt. eps) then
 #ifdef USE  OMP
 !$omp atomic update
 #endif
-                          if( abs( a) .gt. eps) g( iw, ist) = g( iw, ist) + t1**3*sign( 1.d0, ce(3)+ce(4)*intbound(j,i))*a
+                            g( iw, ist) = g( iw, ist) + t1*sign( t1*t1, ce(3)+ce(4)*intbound(j,i))*a
 #ifdef USE  OMP
 !$omp end atomic
 #endif
+                          end if
                         end if
+                      end do
+                    
+                      ! point contributions
+                      do i = 1, ipt
+#ifdef USE  OMP
+!$omp atomic update
+#endif
+                        g( iw, ist) = g( iw, ist) + (cf1(1) + cf1(2)*pts(1,i) + cf1(3)*pts(2,i) + cf1(4)*pts(1,i)*pts(2,i))/abs(ce(3) + ce(4)*pts(1,i))
+#ifdef USE  OMP
+!$omp end atomic
+#endif
+                        !write(*,'(i,2f13.6,3x,4f13.6,3x,f23.16)') ipt, pts(:,i), cf1, (cf1(1) + cf1(2)*pts(1,i) + cf1(3)*pts(2,i) + cf1(4)*pts(1,i)*pts(2,i))/abs(ce(3) + ce(4)*pts(1,i))
                       end do
                     
                     ! a3 = 0, a2 != 0
@@ -353,7 +411,7 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
                       else
                         x0 = 2.d0
                       end if
-                      if( (x0 .ge. eps) .and. (x0 .le. 1.d0-eps)) inside(1,1) = 1
+                      if( (x0 .ge. eps) .and. (x0 .le. 1.d0-eps)) inside(1,1) = .true.
 
                       x1 = -(a0 + ce(3))
                       if( abs( ce(2)) .gt. eps) then
@@ -361,13 +419,13 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
                       else
                         x1 = 2.d0
                       end if
-                      if( (x1 .ge. eps) .and. (x1 .le. 1.d0-eps)) inside(2,1) = 1
+                      if( (x1 .ge. eps) .and. (x1 .le. 1.d0-eps)) inside(2,1) = .true.
                       
                       y0 = -a0/ce(3)
-                      if( (y0 .ge. eps) .and. (y0 .le. 1.d0-eps)) inside(1,2) = 1
+                      if( (y0 .ge. eps) .and. (y0 .le. 1.d0-eps)) inside(1,2) = .true.
                       
                       y1 = -(a0 + ce(2))/ce(3)
-                      if( (y1 .ge. eps) .and. (y1 .le. 1.d0-eps)) inside(2,2) = 1
+                      if( (y1 .ge. eps) .and. (y1 .le. 1.d0-eps)) inside(2,2) = .true.
                       
                       if( inside(1,2)) then
                         if( inside(2,2)) then
@@ -408,17 +466,19 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
                           a = a + b/2.d0*(intbound(2,i)**2 - intbound(1,i)**2)
                           b = ce(2)*cf1(4)
                           a = a + b/3.d0*(intbound(2,i)**3 - intbound(1,i)**3)
+                          if( abs( a) .gt. eps) then
 #ifdef USE  OMP
 !$omp atomic update
 #endif
-                          if( abs( a) .gt. eps) g( iw, ist) = g( iw, ist) + t1*abs( t1)*a
+                            g( iw, ist) = g( iw, ist) + t1*abs( t1)*a
 #ifdef USE  OMP
 !$omp end atomic
 #endif
+                          end if
                         end if
                       end do
                     else
-                      write(*,*) "a3=a2=0 correction missing"
+                      !write(*,*) "a3=a2=0 correction missing"
                     end if
 
                   end if

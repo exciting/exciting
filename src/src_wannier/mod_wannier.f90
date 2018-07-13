@@ -218,13 +218,13 @@ module mod_wannier
                  evecfv1( :, wf_fst:wf_lst, 1), &
                  evecfv2( :, wf_fst:wf_lst, 1), &
                  wf_m0( :, :, iknr, idxn))
-#ifdef USEOMP
+!#ifdef USEOMP
 !!$omp atomic update
-#endif
-            cntk = cntk + 1
-#ifdef USEOMP
+!#endif
+!            cntk = cntk + 1
+!#ifdef USEOMP
 !!$omp end atomic
-#endif
+!#endif
             !write(*,'(1a1,"o neighbor ",i2," of ",i2,": ",i3,"%",$)') char(13), idxn, wf_n_ntot, nint( 100.d0*cntk/wf_kset%nkpt)
           end do
 #ifdef USEOMP
@@ -884,7 +884,7 @@ module mod_wannier
           !  end do
           !end if              
 
-          if( wf_n_usedshells( j)) then
+          if( wf_n_usedshells( j) .ne. 0) then
             wf_n_nshells = wf_n_nshells + 1
             if( d .eq. 3) then
               do i = 1, tmp_n_n( j)
@@ -913,7 +913,7 @@ module mod_wannier
               wf_n_wgts( 1:wf_n_nshells) = matmul( coeffinv( 1:wf_n_nshells, 1:d), right( 1:d))
             end if
           else
-            write(*,'("shell ",i," is linear dependend")') j
+            !write(*,'("shell ",i3," is linear dependend")') j
           end if
           j = j+1
         end do
@@ -935,7 +935,7 @@ module mod_wannier
       d = 0
       wf_n_nshells = 0
       do j = 1, nshell
-        if( wf_n_usedshells( j)) then
+        if( wf_n_usedshells( j) .ne. 0) then
           wf_n_nshells = wf_n_nshells + 1
           do i = 1, tmp_n_n( j)
             d = d + 1

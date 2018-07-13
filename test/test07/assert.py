@@ -55,10 +55,9 @@ def add_test_xml(root, tpassed, name_txt, description_txt, directory_txt):
 ########################################
 tdir = "runBSE"
 ftest_path = tdir + "/EPSILON/EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT"
-fref_path = "reference/"+tdir+"/EPSILON_NAR_BSEsinglet_SCRfull_OC11.OUT"
+fref_path = "reference/"+tdir+"/EPSILON_NAR_BSEsinglet_SCRfull_OC11.REF"
 
 mse = mse_eps(ftest_path,fref_path)
-print 'mse(BSE)=', mse
 tpassed = mse < eps_tol
 name_txt = "Dielectric function of LiF with BSE" 
 description_txt = "Passes if mean square error of real and imaginary parts of dielectric function lower than %g"%(eps_tol)
@@ -70,10 +69,9 @@ add_test_xml(root, tpassed, name_txt, description_txt, directory_txt)
 ########################################
 tdir = "runtddftBSE"
 ftest_path = tdir + "/EPSILON_NAR_FXCMB1_OC11_QMT001.OUT"
-fref_path = "reference/"+tdir+"/EPSILON_NAR_FXCMB1_OC11_QMT001.OUT"
+fref_path = "reference/"+tdir+"/EPSILON_NAR_FXCMB1_OC11_QMT001.REF"
 
 mse = mse_eps(ftest_path,fref_path)
-print 'mse(TDDFT)=', mse
 tpassed = mse < eps_tol
 name_txt = "Dielectric function of LiF with TDDFT using BSE derived kernel" 
 description_txt = "Passes if mean square error of real and imaginary parts of dielectric function lower than %g"%(eps_tol)

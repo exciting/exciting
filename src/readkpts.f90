@@ -12,7 +12,7 @@ Subroutine readkpts
       real(8) :: d1
 
       Open (50, File='KPOINTS'//trim(filext), Action='read', Form='formatted')
-      read( 50, '(I6, " : nkpt; k-point, vkl, wkpt, nmat below")') nk
+      read( 50, '(I6,39a)') nk
       if( nk .ne. nkpt) then
         write( *, '("ERROR (readkpts): Different number of kpoints.")')
         stop
