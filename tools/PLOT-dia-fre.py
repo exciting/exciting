@@ -11,6 +11,9 @@ import pylab             as pyl
 import numpy
 import os
 
+import matplotlib.style
+if matplotlib.__version__.split(".")[0]=="2": matplotlib.style.use('classic')
+
 #-------------------------------------------------------------------------------
     
 def change(n1,n2,i1,i2,x):

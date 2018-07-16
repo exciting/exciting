@@ -17,6 +17,9 @@ import numpy
 from   scipy import *
 from   scipy.optimize import leastsq
 
+import matplotlib.style
+if matplotlib.__version__.split(".")[0]=="2": matplotlib.style.use('classic')
+
 #-------------------------------------------------------------------------------
 
 def sortstrain(s,e):

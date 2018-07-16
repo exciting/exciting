@@ -31,6 +31,9 @@ import matplotlib.pyplot as plt
 import pylab             as pyl
 from   scipy.optimize import fmin_powell
 
+import matplotlib.style
+if matplotlib.__version__.split(".")[0]=="2": matplotlib.style.use('classic')
+
 #%!%!%--- CONSTANTS ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!
 _e   =  1.602176565e-19         # elementary charge
 Bohr =  5.291772086e-11         # a.u. to meter

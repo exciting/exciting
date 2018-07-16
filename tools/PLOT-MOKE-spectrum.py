@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import os
 import sys
 
+import matplotlib.style
+if matplotlib.__version__.split(".")[0]=="2": matplotlib.style.use('classic')
+
 #-------------------------------------------------------------------------------
 
 def shell_value(variable,vlist,default):

@@ -16,6 +16,8 @@ import matplotlib.ticker     as ptk
 import matplotlib.pyplot     as plt
 import pylab                 as pyl
 
+import matplotlib.style
+if matplotlib.__version__.split(".")[0]=="2": matplotlib.style.use('classic')
 
 root=os.getcwd()
 order_of_fit=2

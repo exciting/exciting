@@ -13,6 +13,9 @@ import numpy
 import sys
 import os
 
+import matplotlib.style
+if matplotlib.__version__.split(".")[0]=="2": matplotlib.style.use('classic')
+
 #-------------------------------------------------------------------------------
 
 def sortstrain(s,e):

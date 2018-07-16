@@ -8,8 +8,10 @@ import matplotlib.pyplot as plt
 import pylab as pyl
 import os
 
-factor=27.211396132 ## conversion hartree -> eV
+import matplotlib.style
+if matplotlib.__version__.split(".")[0]=="2": matplotlib.style.use('classic')
 
+factor=27.211396132 ## conversion hartree -> eV
 
 ###################
 # Read input data #

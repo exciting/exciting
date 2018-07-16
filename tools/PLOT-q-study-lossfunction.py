@@ -6,6 +6,8 @@ from lxml import etree
 import os
 import sys
 
+import matplotlib.style
+if matplotlib.__version__.split(".")[0]=="2": matplotlib.style.use('classic')
 
 #-------------------------------------------------------------------------------
 #Check arguments
@@ -14,8 +16,6 @@ if narg!=3:
     print "\nIncorrect number of arguments\n\n*** Usage: ***\n $>PLOT-lossfkt.py EMIN EMAX OFFSET \nThe spectra will be ploted in the energy range [EMIN,EMAX]. \nOFFSET is a numerical value for the offset between the curves.\n**************\n"
     sys.exit()
 
-
-
 emin=float(sys.argv[1])
 emax=float(sys.argv[2])
 offset=float(sys.argv[3])
@@ -23,7 +23,6 @@ offset=float(sys.argv[3])
 if emin>=emax:
     print "\nEMIN should be smaller than EMAX. Exiting\n\n*** Usage: ***\n $>PLOT-lossfkt.py EMIN EMAX OFFSET \nThe spectra will be ploted in the energy range [EMIN,EMAX]. \nOFFSET is a numerical value for the offset between the curves.\n**************\n"
     sys.exit()
-
 
 #-------------------------------------------------------------------------------
 #Parse LOSS function data files
