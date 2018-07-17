@@ -378,6 +378,7 @@ CONTAINS
           enddo ! ik
 
           ! ikmap (added May 2018, SeTi)
+          self%ivk = ivk
           ik = 0
           do i1 = 0, self%ngridk(1) - 1
             do i2 = 0, self%ngridk(2) - 1
@@ -412,14 +413,12 @@ CONTAINS
 
           ! 1d non-reduced index -> 1d reduced index
           do ik =1, self%nkptnr
-            self%ik2ikp(ik) =&
-              & self%ikmap(self%ivknr(1,ik), self%ivknr(2,ik), self%ivknr(3,ik))
+            self%ik2ikp(ik) = self%ikmap(self%ivknr(1,ik), self%ivknr(2,ik), self%ivknr(3,ik))
           end do
 
           ! 1d reduced index -> 1d non-reduced index
           do ik =1, self%nkpt
-            self%ikp2ik(ik) =&
-              & self%ikmapnr(self%ivk(1,ik), self%ivk(2,ik), self%ivk(3,ik))
+            self%ikp2ik(ik) = self%ikmapnr(self%ivk(1,ik), self%ivk(2,ik), self%ivk(3,ik))
           end do
 
         end if

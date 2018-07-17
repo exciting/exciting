@@ -81,10 +81,7 @@ module mod_wfutil
       !stop
 
       ! set Fermi energy to zero in output
-      fxt = filext
-      if( input%properties%wannier%input .eq. "gw") write( filext, '("_GW.OUT")')
-      call readfermi
-      filext = fxt
+      call wannier_getefermi( efermi)
       write( fxt, '(".OUT")')
       if( input%properties%wannier%input .eq. "gw") write( fxt, '("_GW.OUT")')
       if( wf_fermizero) wfint_eval = wfint_eval - efermi
@@ -214,6 +211,7 @@ module mod_wfutil
         write(*,'("Info (wfutil_bandstructure):")')
         write(*,*) "band structure plot written to BAND_WANNIER"//trim( fxt)
       end if
+      write(*,'(" Fermi energy is ",g18.10," Hartree.")') efermi
       if( wf_fermizero) then
         write(*,*) "Fermi energy is at zero in plot"
       end if
@@ -514,6 +512,7 @@ module mod_wfutil
       if( genjdos) then
          write(*,*) "Joint density of states written to JDOS_WANNIER"//trim( filext)
       end if
+      write(*,'(" Fermi energy is ",g18.10," Hartree.")') wfint_efermi
       if( wf_fermizero) then
         write(*,*) "Fermi energy is at zero in plot"
       end if

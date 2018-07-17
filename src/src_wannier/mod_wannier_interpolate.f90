@@ -438,10 +438,11 @@ module mod_wfint
     ! !ROUTINE: wfint_interpolate_occupancy
     ! !INTERFACE:
     !
-    subroutine wfint_interpolate_occupancy
+    subroutine wfint_interpolate_occupancy( usetetra)
       ! !USES:
       use mod_eigenvalue_occupancy, only: occmax
       use mod_charge_and_moment, only: chgval
+      use mod_opt_tetra
       ! !DESCRIPTION:
       !   Calclulates the interpolated occupation numbers for the wannierized bands and
       !   interpolated Fermi energy.
@@ -449,126 +450,19 @@ module mod_wfint
       ! !REVISION HISTORY:
       !   Created July 2017 (SeTi)
       !EOP
+      logical, optional, intent( in) :: usetetra
       !BOC
+      real(8) :: eval( wf_fst:(wf_fst+wf_nwf-1), wfint_kset%nkpt)
+      real(8) :: occ( wf_fst:(wf_fst+wf_nwf-1), wfint_kset%nkpt)
+      eval = wfint_eval
 
-      integer, parameter :: maxit = 1000
-      
-      integer :: iq, ist, nvm, it
-      real(8) :: e0, e1, fermidos, chg, x, t1
-      
-      real(8) :: sdelta, stheta
-      
-      real(8), allocatable :: occ_tmp(:,:)
-    
-      allocate( wfint_occ( wf_nwf, wfint_kset%nkpt))
-      allocate( occ_tmp( wf_lst, wfint_kset%nkpt))
-
-      if( input%groundstate%stypenumber .ge. 0 ) then
-        t1 = 1.d0/input%groundstate%swidth
-        nvm = nint( chgval/occmax)
-        if( (wf_fst .ne. 1) .and. (wf_fst .le. nvm)) then
-          write( *, '(" Warning (wfint_interpolate_occupancy): The lowest wannierized band is ",I3,". All bands below are considered to be fully occupied.")') wf_fst
-          occ_tmp( 1:(wf_fst-1), :) = occmax
-        end if
-        if( wf_fst .gt. nvm) then
-          write( *, '(" Warning (wfint_interpolate_occupancy): No valence bands have been wannierized. All wannierized bands are considered to be unoccupied. Fermi energy set to lowest interpolated energy.")')
-          wfint_occ = 0
-          wfint_efermi = minval( wfint_eval( 1, :))
-          return
-        end if
-        if( (wf_lst .le. nvm)) then
-          write( *, '(" Warning (wfint_interpolate_occupancy): At least one conduction band has to be wannierized in order to determine occupancies. All wannierized bands are considered to be fully occupied. Fermi energy set to highest interpolated energy.")')
-          wfint_occ = occmax
-          wfint_efermi = maxval( wfint_eval( wf_nwf, :))
-          return
-        end if
-        ! check for insulator or semiconductor
-        e0 = maxval( wfint_eval( nvm-wf_fst+1, :))
-        e1 = minval( wfint_eval( nvm-wf_fst+2, :))
-        wfint_efermi = 0.5*(e0 + e1)
-        !write(*,*) nvm, nvm-wf_fst+1, e0, e1
-    
-        fermidos = 0.d0
-        chg = 0.d0
-#ifdef USEOMP                
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iq, ist, x) reduction(+: chg, fermidos)
-!$OMP DO  
-#endif
-        do iq = 1, wfint_kset%nkpt
-          do ist = 1, wf_fst-1
-            chg = chg + wfint_kset%wkpt( iq)*occ_tmp( ist, iq)
-          end do
-          do ist = 1, wf_nwf
-            x = (wfint_eval( ist, iq) - wfint_efermi)*t1
-            fermidos = fermidos + wfint_kset%wkpt( iq)*sdelta( input%groundstate%stypenumber, x)*t1
-            occ_tmp( wf_fst+ist-1, iq) = occmax*stheta( input%groundstate%stypenumber, -x)
-            chg = chg + wfint_kset%wkpt( iq)*occ_tmp( wf_fst+ist-1, iq)
-          end do
-        end do
-#ifdef USEOMP
-!$OMP END DO
-!$OMP END PARALLEL
-#endif
-        fermidos = fermidos + occmax
-        it = 0
-        if( (e1 .ge. e0) .and. (abs( chg - chgval) .lt. input%groundstate%epsocc)) then
-          write( *, '(" Info (wannier_interpolate_occupancy): System has gap. Simplistic method used in determining efermi and occupation")')
-        else
-        ! metal found
-          e0 = wfint_eval( 1, 1)
-          e1 = e0
-          do ist = 1, wf_nwf
-            e0 = min( e0, minval( wfint_eval( ist, :)))
-            e1 = max( e1, maxval( wfint_eval( ist, :)))
-          end do
-    
-          do while( it .lt. maxit)
-            wfint_efermi = 0.5*(e0 + e1)
-            chg = 0.d0
-#ifdef USEOMP                
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iq, ist, x) reduction(+: chg)
-!$OMP DO  
-#endif
-            do iq = 1, wfint_kset%nkpt
-              do ist = 1, wf_fst-1
-                chg = chg + wfint_kset%wkpt( iq)*occ_tmp( ist, iq)
-              end do
-              do ist = 1, wf_nwf
-                x = (wfint_efermi - wfint_eval( ist, iq))*t1
-                occ_tmp( wf_fst+ist-1, iq) = occmax*stheta( input%groundstate%stypenumber, x)
-                chg = chg + wfint_kset%wkpt( iq)*occ_tmp( wf_fst+ist-1, iq)
-              end do
-            end do
-#ifdef USEOMP
-!$OMP END DO
-!$OMP END PARALLEL
-#endif
-            if( chg .lt. chgval) then
-              e0 = wfint_efermi
-            else
-              e1 = wfint_efermi
-            end if
-            if( (e1-e0) .lt. input%groundstate%epsocc) then
-              it = maxit+1
-            else
-              it = it + 1
-            end if
-          end do
-        end if
-        if( it .eq. maxit) then
-          write( *, '("Error (wfint_interpolate_occupancy): Fermi energy could not be found.")')
-          stop
-        end if
+      if( present( usetetra)) then
+        call wannier_occupy( wfint_kset, eval, wf_fst, wf_fst+wf_nwf-1, wfint_efermi, occ, usetetra_=usetetra)
       else
-        write( *, '("Error (wfint_interpolate_occupancy): Not implemented for this stype.")')
-        stop
+        call wannier_occupy( wfint_kset, eval, wf_fst, wf_fst+wf_nwf-1, wfint_efermi, occ)
       end if
 
-      wfint_occ(:,:) = occ_tmp( wf_fst:(wf_fst+wf_nwf-1), :)
-      deallocate( occ_tmp)
-    
-      !write(*,*) wfint_efermi
-
+      wfint_occ = occ
       return
     end subroutine wfint_interpolate_occupancy
     !EOC
@@ -1255,8 +1149,6 @@ subroutine wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, td
       call wfint_interpolate_occupancy
       !write(*,'(F23.16)') wfint_efermi
       
-      call opt_tetra_init( 2, wfint_kset%bvec, wfint_kset%ngridk, wfint_kset%nkpt, wfint_kset%ikmap)
-      call opt_tetra_efermi( chgval/dble( occmax)-wf_fst+1, wfint_kset%nkpt, wf_nwf, wfint_eval, wfint_efermi, wfint_occ, ef0=wfint_efermi, df0=1.d-2)
       !call opt_tetra_efermi( chgval/dble( occmax)-wf_fst+1, wfint_kset%nkpt, wf_nwf, wfint_eval, wfint_efermi, wfint_occ)
       do iq = 1, wfint_kset%nkpt
         wfint_occ( :, iq) = dble( occmax)/wfint_kset%wkpt( iq)*wfint_occ( :, iq)

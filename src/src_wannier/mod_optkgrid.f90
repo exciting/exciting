@@ -218,6 +218,7 @@ module mod_optkgrid
       s = s0
       intv = intv0
       x0 = s0(d)
+      x = x0
 
       ddx = 1.d0
 

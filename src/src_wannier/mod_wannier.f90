@@ -1011,11 +1011,8 @@ module mod_wannier
               end if
             end if
 
-            fxt = filext
-            if( input%properties%wannier%input .eq. "gw") write( filext, '("_GW.OUT")')
-            call readfermi
-            filext = fxt
             call wannier_geteval( evalfv, fst, lst)
+            call wannier_occupy( wf_kset, evalfv, fst, lst, efermi)
             allocate( wf_groups( igroup)%win_ii( lst-fst+1, wf_kset%nkpt), wf_groups( igroup)%win_io( lst-fst+1, wf_kset%nkpt))
             allocate( wf_groups( igroup)%win_ni( wf_kset%nkpt), wf_groups( igroup)%win_no( wf_kset%nkpt))
             wf_groups( igroup)%win_ii = 0
