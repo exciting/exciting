@@ -62,11 +62,14 @@ for i,fname in enumerate(fnames):
             legend='QMT001('+legend[2:]+')'
     #legends for TDDFT calculations
     else:
-        if "FXCRPA" in sfname: legend="RPA "
-        if "FXCALDA" in sfname: legend="ALDA "
-        if not "NLF" in sfname: legend=legend+"(LFE) "
-        if "NLF" in sfname: legend=legend+"(no-LFE) "
-        if sfname[-2][0:2]=="OC": legend=legend+"Optical(%s)"%(sfname[-2][2:])
+        if "QMT001" in sfname:
+            if "FXCRPA" in sfname: legend="RPA "
+            if "FXCALDA" in sfname: legend="ALDA "
+            if not "NLF" in sfname: legend=legend+"(LFE) "
+            if "NLF" in sfname: legend=legend+"(no-LFE) "
+            if sfname[-2][0:2]=="OC": legend=legend+"Optical(%s)"%(sfname[-2][2:])
+        else:
+            legend=fname.split('.')[-3].split('_')[-1]
     legends.append(legend)
     tree=etree.parse(fname)
     if "LOSS" in sfname: rootelement="loss"
