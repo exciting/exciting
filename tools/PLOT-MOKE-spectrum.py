@@ -8,6 +8,9 @@ import sys
 import matplotlib.style
 if matplotlib.__version__.split(".")[0]=="2": matplotlib.style.use('classic')
 
+plt.gcf().subplots_adjust(bottom=0.12)
+plt.gcf().subplots_adjust(left=0.15)
+
 #-------------------------------------------------------------------------------
 
 def shell_value(variable,vlist,default):
@@ -52,21 +55,23 @@ f.close()
 #-------------------------------------------------------------------------------
 #Plot LOSS function/s 
 colors=['k','r','g','b','y','c','m']
-fig=plt.figure(1,figsize=(8,5.5))
+fig=plt.figure(1,figsize=(8,5.0))
 
-params = {'font.size':15,
-          'xtick.major.size': 5,
-          'ytick.major.size': 5,
+params = {'font.size':19,
+          'xtick.major.size': 7,
+          'ytick.major.size': 7,
+          'xtick.major.width': 2,
+          'ytick.major.width': 2,
           'patch.linewidth': 1.5,
           'axes.linewidth': 2.,
           'axes.formatter.limits': (-4, 6),
           'lines.linewidth': 1.8,
           'lines.markeredgewidth':2.0,
           'lines.markersize':18,
-          'legend.fontsize':11,
+          'legend.fontsize':22,
           'legend.borderaxespad':1,
-          'legend.borderpad':0.5,
-          'savefig.dpi':80}
+          'legend.borderpad':0.2,
+          'savefig.dpi':300}
 
 plt.rcParams.update(params)
 
@@ -81,7 +86,7 @@ ax.legend(loc=1)
 #ax.set_xlim(0.0,54.0)
 #ax.set_ylim(0)
 ax.set_xlabel("Energy [eV]")
-ax.set_ylabel("deg")
+ax.set_ylabel("Kerr angle [deg]")
 
 plt.savefig('PLOT.ps',  orientation='portrait',format='eps')
 plt.savefig('PLOT.png', orientation='portrait',format='png',dpi=dpipng)
