@@ -10,7 +10,7 @@ use warnings;
 # If nothing was passed 
 if (@ARGV == 0) {
 
-  print "---------------------------------------------------------\n";
+  print "\n___ Compilation options __________________________________________________\n\n";
 
   # open platforms subdirectory
   opendir(my $PDIR, "build/platforms") or die("Cannot open directory");
@@ -34,7 +34,11 @@ if (@ARGV == 0) {
 
       $platform=$1;
 
-      print $count." ".$platform."\n";
+      if ($count<10) {
+        print "   ".$count."   ".$platform."\n";
+      } else {
+        print "  ".$count."   ".$platform."\n";
+      }
 
       $count++;
 
@@ -50,7 +54,9 @@ if (@ARGV == 0) {
     }
   }
 
-  print "\nEnter the number of the platform that suites your system best:  ";
+  print "__________________________________________________________________________\n\n";
+  print " Enter the number of the platform that suites your system best:\n\n";
+  print " ===>  ";
 
   my $sel=<>;
 
@@ -58,8 +64,9 @@ if (@ARGV == 0) {
     print "\ntry again\n\n";
     exit;
   } else {
-    print "\nYou use the makefile from:\n\n build/platforms/" . $fileslist[$sel];
-    print "\n\nIf the compilation fails, edit \"build/make.inc\" and execute \"make\" again.\n"
+    print "__________________________________________________________________________\n\n";
+    print " You use the makefile from:\n\n build/platforms/" . $fileslist[$sel];
+    print "\n\n If the compilation fails, edit \"build/make.inc\" and execute \"make\" again.\n"
   }
 
   my $filename="build/platforms/" . $fileslist[$sel];
@@ -77,11 +84,12 @@ if (@ARGV == 0) {
 
   # Ask for mpi usage
 
+  print "__________________________________________________________________________\n";
+  print "\n If MPI is installed, do you want to include k-point parallelization ?\n\n";
   my $optdone = 0;
   while($optdone == 0){
 
-    print "\nIf you have MPI installed you can build exciting with k-point parallelization support.\n\n";
-    print "Build MPI binary ? (yes/No)  ";
+    print " == (yes/No) ==>  ";
     my $MPI=<>;
 
     if($MPI =~ m/yes/i){
@@ -97,7 +105,7 @@ if (@ARGV == 0) {
       $usempi=0;
 
     } else {
-      print "Please choose yes or no";
+      print "\n PLEASE CHOOSE yes or no *************************************************\n\n";
       $optdone=0;
     }
 
@@ -108,10 +116,11 @@ if (@ARGV == 0) {
   $optdone = 0;
   if($usempi == 1) {
 
+    print "__________________________________________________________________________\n";
+    print "\n If you have ScaLapack installed, do you want to use it in exciting?\n\n";
     while($optdone == 0){
 
-      print "\nIf you have ScaLapack installed you can use it in parts of exciting.\n\n";
-      print "Build with ScaLapack? (yes/No)  ";
+      print " == (yes/No) ==>  ";
       my $SCL=<>;
 
       if($SCL =~ m/yes/i){
@@ -128,7 +137,7 @@ if (@ARGV == 0) {
         system("echo \'LIBS_MPI = '' \'>>build/make.inc"); 
 
       } else {
-        print "Please choose yes or no";
+        print "\n PLEASE CHOOSE yes or no *************************************************\n\n";
         $optdone=0;
       }
 

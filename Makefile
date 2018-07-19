@@ -5,12 +5,19 @@ default: build/make.inc all
 
 # Scipt that copies a platform specific template make.inc files to build/make.inc
 build/make.inc:
+	@echo ""
 	perl ./setup.pl
 
-all: serial mpi
-
 # Include platform specific variable settings (will be passed on to other make calls)
-include build/make.inc
+-include build/make.inc
+
+info:
+	@echo ""
+	@echo "___ Starting compilation _________________________________________________"
+	@echo ""
+	@sleep 3
+
+all: info serial mpi
 
 serial:
 	cd build/serial; $(MAKE) 
@@ -48,8 +55,6 @@ speciesdoc::
 	xsltproc --stringparam importancelevels "spacegroup" ../../xml/schematolatex.xsl ../../xml/species.xsd > species.tex;\
 	pdflatex species.tex;pdflatex species.tex;
 
-
-
 expandedschema::
 	xsltproc xml/schema/schemaexpand.xsl xml/schema/input.xsd >xml/excitinginput.xsd ;\
 
@@ -65,7 +70,6 @@ Splitt_inputdoc::
 
 inputdocwiki:xml/schema/*.xsd 
 	cd xml/schema; $(MAKE) 
-
 
 stateconvertdoc::
 	cd src/stateconvert; $(MAKE) doc;\

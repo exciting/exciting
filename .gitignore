@@ -129,3 +129,6 @@ info.xml
 # Ignore files generated in compilation
 /build/serial/exciting
 /build/mpi/exciting
+
+# Ignore tag files
+tags

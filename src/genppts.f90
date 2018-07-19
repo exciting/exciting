@@ -97,6 +97,8 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
 
       if (allocated(iwkp)) deallocate(iwkp)
       allocate(iwkp(nppt))
+      if (allocated(ivk)) deallocate(ivk)
+      allocate(ivk(3,nppt))
         
       ntet = 6*nppt
       if (allocated(wtet)) deallocate(wtet)
@@ -107,9 +109,10 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
 
       ! LibBZInt library call
       call kgen_exciting(bvec,nsym,symmat, &
-      &                  input%groundstate%ngridk,ikloff,dkloff, &
-      &                  nkpt,ivk,dvk,ik2ikp,ikp2ik,iwkp, &
+      &                  ngridp,ikloff,dkloff, &
+      &                  nppt,ivk,dvk,ik2ikp,ikp2ik,iwkp, &
       &                  ntet,tnodes,wtet,tvol,mnd)
+      !nkpt = nppt
 
       ip = 0
       do i1 = 0, ngridp(1)-1
