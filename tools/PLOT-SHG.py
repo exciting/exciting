@@ -114,8 +114,8 @@ for ilines in range(len(lines)):
 f.close()
 
 plt.plot(x,y1,'r',label="Real")
-plt.plot(x,y2,'b',label="Imag")
-plt.plot(x,y3,'k',label="Mod")
+plt.plot(x,y2,'b',label="Imaginary")
+plt.plot(x,y3,'k',label="Modulus")
 
 xmin=min(min(x),xmin) ; xmax=max(max(x),xmax)
 ymin=min(min(y1),ymin) ; ymax=max(max(y1),ymax)
