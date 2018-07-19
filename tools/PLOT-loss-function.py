@@ -30,18 +30,31 @@ dpipng = int(shell_value('DPIPNG',ev_list,300)[0])
 
 #-------------------------------------------------------------------------------
 #Check arguments
-nfiles=len(sys.argv)-1
+nfiles=0
+for i in sys.argv[1:]:
+    if i[:2] != '--':
+        nfiles=nfiles+1
+    else:
+        handler=i[2:]
 if nfiles<1:
     print "\nERROR: Nothing to plot!\n"
-    print "**Usage**:    PLOT-loss-function.py lossfile-1.xml lossfile-2.xml\n"
+    print "**Usage**:    PLOT-loss-function.py --legend-handler lossfile-1.xml lossfile-2.xml\n"
     sys.exit()
 
 fnames=[]
 for i in range(nfiles):
-    fnames.append(sys.argv[i+1])
+    fnames.append(sys.argv[i+2])
     if not os.path.isfile(fnames[i]):
         print "Error: file \"%s\" doesn't exist"%(fnames[i])
         sys.exit()
+if nfiles==len(sys.argv)-1:
+    print "Error: Provide a legend handler!"
+    sys.exit()
+
+if not handler in ["qmt","kernel"]:
+    print "Error: The legend handler has to be either 'kernel' or 'qmt'"
+    sys.exit()
+print fnames
 #-------------------------------------------------------------------------------
 #Parse LOSS function data files
 xdata=[]
@@ -57,19 +70,24 @@ for i,fname in enumerate(fnames):
     sfname = fname.split("/")[-1].split("_")
     #legends for BSE calculations
     if "BSE" in sfname[1].split("-"):
-        legend=fname.split(".")[-3].split("_")[-1]
-        if legend[:2]=="OC":
-            legend='QMT001('+legend[2:]+')'
+        if handler=='qmt':
+            legend=fname.split(".")[-3].split("_")[-1]
+            if legend[:2]=="OC":
+                legend='QMT001('+legend[2:]+')'
+        if handler=='kernels':
+            print "BSE Calculations do not have kernels!"
+            sys.exit()
     #legends for TDDFT calculations
     else:
-        if "QMT001" in sfname:
+        if handler=="kernel":
             if "FXCRPA" in sfname: legend="RPA "
             if "FXCALDA" in sfname: legend="ALDA "
             if not "NLF" in sfname: legend=legend+"(LFE) "
             if "NLF" in sfname: legend=legend+"(no-LFE) "
+        if handler=="qmt":
             if sfname[-2][0:2]=="OC": legend=legend+"Optical(%s)"%(sfname[-2][2:])
-        else:
-            legend=fname.split('.')[-3].split('_')[-1]
+            else:
+                legend=fname.split('.')[-3].split('_')[-1]
     legends.append(legend)
     tree=etree.parse(fname)
     if "LOSS" in sfname: rootelement="loss"
