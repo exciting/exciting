@@ -270,8 +270,11 @@ Subroutine gndstate
         write (60,*)
         write (60, '(" Total time spent (seconds)", T45, ": ", F12.2)') tsg1-tsg0
         if (lwarning) call printbox(60,"-","CAUTION! Warnings have been written in file WARNING.OUT !")
+        !write(string,'("EXCITING ", a, " stopped")') trim(versionname)
+        !call printbox(60,"=",string)
+        call printline(60,"=")
         write(string,'("EXCITING ", a, " stopped")') trim(versionname)
-        call printbox(60,"=",string)
+        call printtext(60,"=",string)        
         close (60)
     endif
    
