@@ -275,6 +275,7 @@ Subroutine gndstate
         call printline(60,"=")
         write(string,'("EXCITING ", a, " stopped")') trim(versionname)
         call printtext(60,"=",string)        
+        call printline(60,"=")
         close (60)
     endif
    
