@@ -155,7 +155,7 @@ Subroutine dos
 ! get the eigenvalues/vectors from file
          Call getevalsv (vkl(1, ik), evalsv(1, ik))
          
-         If (input%properties%dos%lmirep) Then
+         
          
          Call getevecfv (vkl(1, ik), vgkl(:, :, :, ik), evecfv)
          Call getevecsv (vkl(1, ik), evecsv)
@@ -171,18 +171,20 @@ Subroutine dos
                Call gendmat (.False., .False., 0, lmax, is, ia, &
               & ngk(:, ik), apwalm, evecfv, evecsv, lmmax, dmat)
 ! convert (l,m) part to an irreducible representation if required
-               Do ist = 1, nstsv
-                  Do ispn = 1, nspinor
-                     Do jspn = 1, nspinor
-                        Call zgemm ('N', 'N', lmmax, lmmax, lmmax, &
-                       & zone, ulm(:, :, ias), lmmax, dmat(:,:,ispn,jspn,ist), &
-                       & lmmax, zzero, a, lmmax)
-                        Call zgemm ('N', 'C', lmmax, lmmax, lmmax, &
-                       & zone, a, lmmax, ulm(:, :, ias), lmmax, &
-                       & zzero, dmat(:, :, ispn, jspn, ist), lmmax)
-                     End Do
-                  End Do
-               End Do
+               If (input%properties%dos%lmirep) Then
+                   Do ist = 1, nstsv
+                      Do ispn = 1, nspinor
+                         Do jspn = 1, nspinor
+                            Call zgemm ('N', 'N', lmmax, lmmax, lmmax, &
+                           & zone, ulm(:, :, ias), lmmax, dmat(:,:,ispn,jspn,ist), &
+                           & lmmax, zzero, a, lmmax)
+                            Call zgemm ('N', 'C', lmmax, lmmax, lmmax, &
+                           & zone, a, lmmax, ulm(:, :, ias), lmmax, &
+                           & zzero, dmat(:, :, ispn, jspn, ist), lmmax)
+                         End Do
+                      End Do
+                   End Do
+               End IF
 ! spin rotate the density matrices to desired spin-quantisation axis
                If (associated(input%groundstate%spin) .And. ( .Not. tsqaz)) Then
                   Do ist = 1, nstsv
@@ -214,8 +216,6 @@ Subroutine dos
                Call z2mm (su2, sdmat(:, :, ist, ik), dm1)
                Call z2mmct (dm1, su2, sdmat(:, :, ist, ik))
             End Do
-         End If
-
          End If
 
       End Do
@@ -267,7 +267,7 @@ if (rank==0) then
                If (e(ist, ik, ispn) .Gt. 0.d0) e (ist, ik, ispn) = &
               & e (ist, ik, ispn) + input%properties%dos%scissor
 ! use diagonal of spin density matrix for weight
-               f (ist, ik) = 1.d0
+               f (ist, ik) = dble (sdmat(ispn, ispn, ist, ik))
             End Do
          End Do
 ! BZ integration

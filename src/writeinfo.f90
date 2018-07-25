@@ -44,8 +44,11 @@ Subroutine writeinfo (fnum)
       call printline(fnum,"=")
       write (string,'("EXCITING ", a, " started")') trim(versionname)
       call printtext(fnum,"=",string)
-      Write (string,'("version hash id: ",a)') githash
-      call printtext(fnum,"=",string)
+      if (len(trim(githash)) > 0) then
+          write(string,'("version hash id: ",a)') githash
+          call printtext(fnum,"=",string)
+      end if
+      call printtext(fnum,"=","")
 #ifdef MPI
       Write (string,'("MPI version using ",i6," processor(s)")') procs
       call printtext(fnum,"=",string)
