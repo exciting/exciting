@@ -182,7 +182,7 @@ for i in range(0,displ_points):
               set("coord",str(fmt%ntm[j,0])+str(fmt%ntm[j,1])+str(fmt%ntm[j,2]))
 
     nnk = []
-    nkfactor=2**(1./6.)
+    nkfactor=1./2**(1./6.)
     nnk.append(int(ref_ngridk[0]*nkfactor+0.5))
     nnk.append(int(ref_ngridk[1]*nkfactor+0.5))
     nnk.append(int(ref_ngridk[2]*nkfactor/sqrt(2.)+0.5))

@@ -2,14 +2,13 @@
 # -*- coding: utf-8 -*-
 #_______________________________________________________________________________
 
-from lxml import etree
-from numpy import *
+from   lxml import etree
+from   numpy import *
 import os
 import copy
 import matplotlib as mpl
 import numpy
 import sys
-#import os
 
 import matplotlib.transforms as ptf
 import matplotlib.ticker     as ptk
@@ -19,57 +18,62 @@ import pylab                 as pyl
 import matplotlib.style
 if matplotlib.__version__.split(".")[0]=="2": matplotlib.style.use('classic')
 
+#-------------------------------------------------------------------------------
+
 root=os.getcwd()
 order_of_fit=2
 
-## Create the list of input directories ##
+#-------------------------------------------------------------------------------
+# Create the list of input directories 
+
 test=True
 dirs=[]
+
 print "\n################################################\n"
-print "    Enter list of working directories "
-print '    Entering "Quit" will terminate the input\n'
-print "################################################\n"
+print " Enter the names of the working directories. \n"
+print ' Enter "(Q)uit" or "(q)uit" to terminate input\n'
+print "------------------------------------------------\n"
 
 while test:
-	dir=raw_input("directory name: ")
-	if len(dir)==0 or dir=="Quit" or dir=="quit":
-		test=False
+	dir=raw_input(" Directory name ==> ")
+	if dir[0:1]=="q" or dir[0:1]=="Q" or dir=="Quit" or dir=="quit": test=False
 	dirs.append(dir)
+	
+print "\n################################################\n"
 
-## settings for the plot ##
+#-------------------------------------------------------------------------------
+# settings for the plot 
+
 figcolor = 'white'
 dpi = 300
-fig = plt.figure(figsize=(15,10),dpi=dpi)
+fig = plt.figure(figsize=(14.5,10),dpi=dpi)
 fig.figurePatch.set_edgecolor(figcolor)
 fig.figurePatch.set_facecolor(figcolor)
 
-mpl.rcParams['axes.linewidth'] = 3.0 # set the value globally
-mpl.rcParams['grid.linewidth'] = 1.5
-mpl.rcParams['xtick.labelsize'] = 25
-mpl.rcParams['ytick.labelsize'] = 25
-mpl.rcParams['axes.edgecolor'] = 'black'
-mpl.rcParams['axes.labelsize'] = '25'     # fontsize of the x any y labels
+mpl.rcParams['axes.linewidth' ] = 4.0 
+mpl.rcParams['grid.linewidth' ] = 1.5
+mpl.rcParams['xtick.labelsize'] = 30
+mpl.rcParams['ytick.labelsize'] = 30
+mpl.rcParams['axes.edgecolor' ] = 'black'
+mpl.rcParams['axes.labelsize' ] = 45     
 mpl.rcParams['axes.labelcolor'] = 'black'
-mpl.rcParams['axes.axisbelow'] = 'True'   # whether axis gridlines and ticks are below
-                                          # the axes elements (lines, text, etc)
-mpl.rcParams['legend.fontsize'] = '25'
-plt.rcParams['xtick.major.pad'] = '15'
-plt.rcParams['ytick.major.pad'] = '10'
+mpl.rcParams['axes.axisbelow' ] = 'True'   
+mpl.rcParams['legend.fontsize'] = 30
+plt.rcParams['xtick.major.pad'] = 20
+plt.rcParams['ytick.major.pad'] = 10
+
 colors=['b','r','g','y','k']
-fontlabel=30
-plt.subplots_adjust(left=0.16, right=0.97,
-                    bottom=0.15, top=0.92,
-                    wspace=None, hspace=None)
-ax   = fig.add_subplot(111)
-xlabel=u'Volume [Bohr\u00B3]'
-ylabel=r'Energy [Ha]'
-ax.text(0.5,-0.12,xlabel,size=fontlabel,
-        transform=ax.transAxes,ha='center',va='center',rotation=0)
-ax.text(-0.145,0.5,ylabel,size=fontlabel,
-        transform=ax.transAxes,ha='center',va='center',rotation=90)
+
+ax1 = fig.add_axes([0.2,0.18,0.75,0.76])
+
+ax1.xaxis.set_label_position('bottom')
+ax1.set_ylabel('Energy - E$\mathregular{_{min}}$ [Ha]', labelpad=19)
+ax1.set_xlabel('Volume [Bohr$\mathregular{^{3}}$]', labelpad=13)
 pyl.grid(True)
 
-## Read inputs ##
+#-------------------------------------------------------------------------------
+# Read inputs 
+
 for j in range(len(dirs)-1):
 	dir=dirs[j]
 	infile=root+"/"+dir+"/input-01.xml"
@@ -77,11 +81,14 @@ for j in range(len(dirs)-1):
 	try:
 		tree = etree.parse(infile)
 		groundstate=tree.xpath('/input/groundstate')
-		## get the name of the functional ##
+		#
+		# get the name of the functional ---------------------------------------
+		#
 		try:
 			libxc=tree.xpath('/input/groundstate/libxc')
 			try:
-				functional=libxc[0].attrib['correlation']+"+"+libxc[0].attrib['exchange']
+				functional=libxc[0].attrib['correlation']+"+"\
+                          +libxc[0].attrib['exchange']
 			except:
 				functional=libxc[0].attrib['xc']
 		except:
@@ -89,7 +96,9 @@ for j in range(len(dirs)-1):
 				functional=groundstate[0].attrib['xctype']
 			except:
 				functional="GGA_PBE_SOL"
-		## read values for the plot ##
+		#		
+		# read values for the plot ---------------------------------------------
+		#
 		input_energy = open(root+"/"+dir+"/energy-vs-volume","r")
 		lines=input_energy.readlines()
 		input_energy.close()
@@ -98,26 +107,38 @@ for j in range(len(dirs)-1):
 			strain=(float(lines[i].split()[0]))
 			liste.append([strain,energy])
 		liste=sorted(liste)
-		## prepare values for the plot ##
+		#
+		# prepare values for the plot ------------------------------------------
+		#
 		energy=[liste[i][1] for i in range(len(liste))]
-                strain=[liste[i][0] for i in range(len(liste))]
-                fitr = numpy.polyfit(strain,energy,order_of_fit)
-                curv = numpy.poly1d(fitr)
-                vmin = numpy.roots(numpy.polyder(fitr))
-                xvol = numpy.linspace(strain[0],strain[-1],100)
-                plt.plot(xvol,curv(xvol)-curv(vmin[0]),label=functional,color=colors[j],lw=4.0)
+		emin=min(energy)
+		for i in range(len(energy)): energy[i]=energy[i]-emin 
+		strain=[liste[i][0] for i in range(len(liste))]
+		ax1.plot(strain,energy,color=colors[j],label=functional,\
+                         marker='o',markersize=12,linewidth=3.0,)
 	except:
 		print "no valid input file in: ",dir 
 
-## plot ##
-for line in ax.get_xticklines() + ax.get_yticklines():
+#-------------------------------------------------------------------------------
+# Plot
+
+for line in ax1.get_xticklines() + ax1.get_yticklines():
     line.set_markersize(8)
     line.set_markeredgewidth(3)
-plt.legend(loc='upper center')
-#plt.legend(bbox_to_anchor=(0.85,0.95))
-plt.savefig('XC.eps',  orientation='portrait',format='eps')
-plt.savefig('XC.png', orientation='portrait',format='png',dpi=300)
-plt.show()
 
+leg=ax1.legend(loc="upper center",borderaxespad=0.5,numpoints=1)
+leg.get_frame().set_linewidth(4.0)
+leg.get_frame().set_edgecolor("grey")
+leg.draw_frame(True)
 
+plt.ylim(ymin=-0.001)
+xmin, xmax = plt.xlim()
+plt.hlines(0.0,xmin,xmax,linewidth=3.0,linestyles="dashed")
+
+plt.savefig('PLOT.eps', orientation='portrait',format='eps')
+plt.savefig('PLOT.png', orientation='portrait',format='png',dpi=300)
+
+sys.exit()    
+
+#-------------------------------------------------------------------------------
 
