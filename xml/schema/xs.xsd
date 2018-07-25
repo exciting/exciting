@@ -1385,12 +1385,12 @@
                             <xs:documentation>Read BSE eigenvalues and regenerate dielectric and loss functions.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
-                        <xs:enumeration value="writebevec">
+                        <xs:enumeration value="writeexcitons">
                           <xs:annotation>
                             <xs:appinfo>
                               <oldnr>447</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>ASCII output of BSE eigenvalus.</xs:documentation>
+                            <xs:documentation>ASCII output of BSE eigenvalues.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <!-- Interpolate the excitonic weights onto a banstructure -->
