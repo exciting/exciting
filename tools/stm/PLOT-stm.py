@@ -9,6 +9,9 @@ import numpy as np
 import os
 import sys
 
+import matplotlib.style
+if matplotlib.__version__.split(".")[0]=="2": matplotlib.style.use('classic')
+
 args = sys.argv[1:]
 
 if "-mode" not in args:

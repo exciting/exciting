@@ -63,7 +63,19 @@ while 1:
   
 ifile = open("input.xml","r")
 iroot = et.parse(ifile).getroot()
-ipath = iroot[3][0][0][0]
+
+iphod = -1
+while True: 
+    iphod = iphod+1
+    if ( str(iroot[iphod].tag) == "phonons" ): break
+
+iphpl = -1
+while True: 
+    iphpl = iphpl+1
+    if ( str(iroot[iphod][iphpl].tag) == "phonondispplot" ): break
+
+ipath = iroot[iphod][iphpl][0][0]
+
 llist = []
 for i in range(len(ipath)):
     label = " "
