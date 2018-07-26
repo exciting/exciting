@@ -31,11 +31,17 @@ dpipng = int(shell_value('DPIPNG',ev_list,300)[0])
 #-------------------------------------------------------------------------------
 #Check arguments
 nfiles=0
+handler=''
 for i in sys.argv[1:]:
     if i[:2] != '--':
         nfiles=nfiles+1
     else:
         handler=i[2:]
+
+if not handler in ["qmt","kernel"]:
+    print "Error: The legend handler has to be either 'kernel' or 'qmt'"
+    sys.exit()
+
 if nfiles<1:
     print "\nERROR: Nothing to plot!\n"
     print "**Usage**:    PLOT-loss-function.py --legend-handler lossfile-1.xml lossfile-2.xml\n"
@@ -51,9 +57,6 @@ if nfiles==len(sys.argv)-1:
     print "Error: Provide a legend handler!"
     sys.exit()
 
-if not handler in ["qmt","kernel"]:
-    print "Error: The legend handler has to be either 'kernel' or 'qmt'"
-    sys.exit()
 print fnames
 #-------------------------------------------------------------------------------
 #Parse LOSS function data files
