@@ -12,7 +12,7 @@ subroutine writekpathweights
   character(*), parameter :: thisname = 'writekpathweights'
   character(256) :: exckpathdir, syscommand
 
-  logical :: fwritegridweights
+  logical :: fwritegridweights, fxas
   integer(4) :: iqmt, iqmti, iqmtf, nqmt, iq1, iq2
   real(8) :: en1, en2
   integer(4) :: i1, i2
@@ -35,7 +35,8 @@ subroutine writekpathweights
   real(8), allocatable :: rvw(:,:), rcw(:,:), arvw(:,:), arcw(:,:)
 
   if(mpiglobal%rank == 0) then 
-
+    ! determine whether core excitons are visualized
+    fxas=input%xs%BSE%xas
     ! Set defaults if writeexcitons is not specified
     if( .not. associated(input%xs%writekpathweights)) then
       write(unitout,'("Error(",a,"):&
@@ -178,8 +179,10 @@ subroutine writekpathweights
         !! Make resonant weights
         abs2 = abs(rvec_(1:hamsize_,lambda))**2
         !   Valence 
-        call genweights(ivmin, ivmax, hamsize_, nk_max_,&
-          & smap_(2,:), smap_(3,:), abs2, rvwgrid, ik2ikqmtp_)
+        if (.not. fxas) then
+          call genweights(ivmin, ivmax, hamsize_, nk_max_,&
+            & smap_(2,:), smap_(3,:), abs2, rvwgrid, ik2ikqmtp_)
+        end if
         !   Conduction
         call genweights(icmin, icmax, hamsize_, nk_max_,&
           & smap_(1,:), smap_(3,:), abs2, rcwgrid, ik2ikqmtm_)
@@ -188,8 +191,10 @@ subroutine writekpathweights
         if(fcoup_) then 
           abs2 = abs(avec_(1:hamsize_, lambda))**2
           !   Valence
-          call genweights(ivmin, ivmax, hamsize_, nk_max_,&
-            & smap_(2,:), smap_(3,:), abs2, arvwgrid, ik2ikqmtp_)
+          if (.not. fxas) then
+            call genweights(ivmin, ivmax, hamsize_, nk_max_,&
+              & smap_(2,:), smap_(3,:), abs2, arvwgrid, ik2ikqmtp_)
+          end if
           !   Conduction
           call genweights(icmin, icmax, hamsize_, nk_max_,&
             & smap_(1,:), smap_(3,:), abs2, arcwgrid, ik2ikqmtm_)
@@ -206,8 +211,10 @@ subroutine writekpathweights
 
         !! Resonant weights
         !   Valence
-        call interpolate_kpathweights(iv1, iv2, x, y, z,&
-          & rvwgrid(:,iv1:iv2), rvw(:,iv1:iv2))
+        if (.not. fxas) then
+          call interpolate_kpathweights(iv1, iv2, x, y, z,&
+            & rvwgrid(:,iv1:iv2), rvw(:,iv1:iv2))
+        end if
         !   Conduction
         call interpolate_kpathweights(ic1, ic2, x0, y0, z0,&
           & rcwgrid(:,ic1:ic2), rcw(:,ic1:ic2))
@@ -215,8 +222,10 @@ subroutine writekpathweights
         if(fcoup_) then 
           !! Anti-resonant weights
           !   Valence
-          call interpolate_kpathweights(iv1, iv2, x, y, z,&
-            & arvwgrid(:,iv1:iv2), arvw(:,iv1:iv2))
+          if (.not. fxas) then
+            call interpolate_kpathweights(iv1, iv2, x, y, z,&
+              & arvwgrid(:,iv1:iv2), arvw(:,iv1:iv2))
+          end if
           !   Conduction
           call interpolate_kpathweights(ic1, ic2, x0, y0, z0,&
             & arcwgrid(:,ic1:ic2), arcw(:,ic1:ic2))
@@ -574,7 +583,7 @@ subroutine writekpathweights
           write(un, '(2E24.16)', advance="no")&
             & kpathlength_(istep, ib), energyval_(istep, ib)*escale
 
-          if(iv1 <= ib .and. ib <= iv2) then
+          if(iv1 <= ib .and. ib <= iv2 .and. .not. fxas) then
             if(fcoup_) then 
               write(un, '(2E24.16)') rvw(istep, ib), arvw(istep, ib) 
             else
