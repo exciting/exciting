@@ -1,108 +1,127 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 #_______________________________________________________________________________
 
+from   lxml  import etree as et
+from   pylab import *
 import sys
-import matplotlib as mpl
-import matplotlib.pyplot as plt
+import matplotlib         as mpl
+import matplotlib.pyplot  as plt
+import matplotlib.ticker  as ptk 
 import matplotlib.patches as mpatches
+import pylab              as pyl
+import numpy
 import os
 
 import matplotlib.style
 if matplotlib.__version__.split(".")[0]=="2": matplotlib.style.use('classic')
 
-factor=27.211396132 ## conversion hartree -> eV
+#-------------------------------------------------------------------------------
+# Read arguments
 
-###################
-# Read input data #
-###################
+narg   = len(sys.argv)-1
+plabel = "|"
+mcolor = "w"
 
-## Create the list of input directories ##
-root=os.getcwd()
+if (narg > 0): xxmin  = float(sys.argv[1])
+if (narg > 1): xxmax  = float(sys.argv[2])
+if (narg > 2): 
+    plabel = str(sys.argv[3])
+    mcolor = "b" 
+   
+#-------------------------------------------------------------------------------
+# Read data
 
-# DOS from TDOS.OUT
+ene0=[]
 dos0=[]
-list1=[]
-list2=[]
-infile=root+"/TDOS.OUT"
-for line in open(infile):
+for line in open("TDOS.OUT"):
     i_line=line.split()
     if len(i_line):
-       list1.append(float(i_line[0])*factor)
-       list2.append(float(i_line[1])/factor)
-    else:
-       dos0.append([list1,list2])
-       list1=[]
-       list2=[]
+       eneval=float(i_line[0])*27.21138601949571
+       dosval=float(i_line[1])/27.21138601949571
+       ene0.append(eneval)
+       dos0.append(dosval)
 
-# DOS from TDOS_WANNIER.OUT
+enew=[]
 dosw=[]
-list1=[]
-list2=[]
-infile2=root+"/TDOS_WANNIER.OUT"
-for line in open(infile2):
+for line in open("TDOS_WANNIER.OUT"):
     i_line=line.split()
     if len(i_line):
-       list1.append(float(i_line[0])*factor)
-       list2.append(float(i_line[1])/factor) # convert to eV
-    else:
-       dosw.append([list1,list2])
-       list1=[]
-       list2=[]
+       eneval=float(i_line[0])*27.21138601949571
+       dosval=float(i_line[1])/27.21138601949571
+       enew.append(eneval)
+       dosw.append(dosval)
 
-################################################################################
-## Settings for the plot #######################################################
-################################################################################
-    
-figcolor = 'white'
-dpi = 300
-fig, ax1 = plt.subplots( 1, 1, figsize=(16,10), dpi=dpi)
-fig.figurePatch.set_edgecolor(figcolor)
-fig.figurePatch.set_facecolor(figcolor)
+#-------------------------------------------------------------------------------
+# Settings for the plot
 
-mpl.rcParams['axes.linewidth'] = 3.0 # set the value globally
-mpl.rcParams['grid.linewidth'] = 1.5
-mpl.rcParams['xtick.labelsize'] = 30
-mpl.rcParams['ytick.labelsize'] = 30
-mpl.rcParams['axes.edgecolor'] = 'black'
-mpl.rcParams['axes.labelsize'] = '30'     # fontsize of the x any y labels
-mpl.rcParams['axes.labelcolor'] = 'black'
-mpl.rcParams['axes.axisbelow'] = 'True'   # whether axis gridlines and ticks are below
-                                          # the axes elements (lines, text, etc)
-mpl.rcParams['legend.fontsize'] = '25'
-plt.rcParams['xtick.major.pad'] = '10'
-plt.rcParams['ytick.major.pad'] = '10'
+fontlabel=22
+fontlegend=16
+fonttick=16
+fonttickx=16
 
-#############################
-##    Bandstructure plot   ##
-#############################
+params = {'font.family': 'sans-serif',
+          'ytick.minor.size': 6,
+          'xtick.major.pad': 8,
+          'ytick.major.pad': 4,
+          'patch.linewidth': 2.,
+          'axes.linewidth': 2.5,
+          'lines.linewidth': 2.0,
+          'lines.markersize': 5.0,
+          'axes.formatter.limits': (-5, 6)}
+
+plt.rcParams.update(params)
+
+plt.subplots_adjust(left=0.20, right=0.93,
+                    bottom=0.28, top=0.92,
+                    wspace=None, hspace=None)
+                    
+yfmt = ptk.ScalarFormatter(useOffset=True,useMathText=True)
+fig  = matplotlib.pyplot.figure(1, figsize=(8,5.5)) 
+ax1  = fig.add_subplot(111)
 
 ax1.xaxis.set_label_position('bottom')
-ax1.yaxis.label.set_size(40)
-ax1.set_ylabel('DOS [states/eV/unit cell]')
-ax1.tick_params(axis='both', which='major', labelsize=mpl.rcParams['axes.labelsize'])
 
+ax1.text(-0.12,0.5,'DOS [states/eV/unit cell]',size=fontlabel,
+        transform=ax1.transAxes,ha='center',va='center',rotation=90)
+ax1.text(0.5,-0.16,'Energy [eV]',size=fontlabel,
+        transform=ax1.transAxes,ha='center',va='center',rotation=0)
 
+#-------------------------------------------------------------------------------
 # Tick size
-for line in ax1.get_xticklines() + ax1.get_yticklines():
-    line.set_markersize(10)
-    line.set_markeredgewidth(2)
 
-ymax=max(max(dos0[0][1]),max(dosw[0][1]))
-xmin=min(min(dos0[0][0]),min(dosw[0][0]))
-xmax=max(max(dos0[0][0]),max(dosw[0][0]))
-ax1.fill_between(dosw[0][0],dosw[0][1],color='r')
-legend1 = mpatches.Patch( color='r', label='DOS Wannier')
-legend2, = ax1.plot(dos0[0][0],dos0[0][1],'b',lw=2.0,label='DOS coarse grid')
+for line in ax1.get_xticklines() + ax1.get_yticklines(): line.set_markersize(9)
+for line in ax1.get_yticklines(): line.set_markeredgewidth(2)
+for line in ax1.get_xticklines(): line.set_markeredgewidth(2)
 
-leg=ax1.legend(handles=[legend1,legend2],bbox_to_anchor=(0.3,1),loc=2,borderaxespad=0.)
-leg.draw_frame(True)
+#-------------------------------------------------------------------------------
+# Plot
 
-ax1.set_xlim(xmin,xmax)
-ax1.set_ylim(0,1.2*ymax)
-ax1.grid( True)
-fig.savefig('PBE0_PBE_dos_wannier.png',format='png',bbox_inches=0,dpi=300)
-fig.savefig('PBE0_PBE_dos_wannier.eps',format='eps',bbox_inches=0)
+ax1.plot(enew,dosw,'r-',label="",color="firebrick")
+plt.fill_between(enew,dosw, color="darksalmon")
+legend1 = mpatches.Patch( facecolor='darksalmon', edgecolor='firebrick', lw=2.0, label='DOS Wannier')
 
-plt.show()
+legend2, = ax1.plot(ene0,dos0,'r-',color="mediumblue", label="DOS original grid")
+		 
+plt.xlim( xmin=min( min( ene0), min( enew)))
+plt.xlim( xmax=max( max( ene0), max( enew)))
+if ( narg > 0): plt.xlim(xmin=xxmin)
+if ( narg > 1): plt.xlim(xmax=xxmax)
+
+plt.xticks(size=fonttickx)
+plt.yticks(size=fonttick)
+
+ax1.text(1,1.05,plabel,size=fontlabel, color=mcolor,
+             transform=ax1.transAxes,ha='right',va='center',rotation=0)
+
+leg = ax1.legend(handles=[legend1,legend2],loc='best',borderaxespad=1.0)
+leg.get_frame().set_edgecolor('#CCCCCC')
+
+fig.subplots_adjust(left=None, bottom=None, right=None, wspace=None, hspace=None)
+
+fig.savefig('PBE0_PBE_dos_wannier.png',format='png',bbox_inches='tight',dpi=300)
+fig.savefig('PBE0_PBE_dos_wannier.pdf',format='pdf',bbox_inches=0)
+
 sys.exit()    
+
+#-------------------------------------------------------------------------------
