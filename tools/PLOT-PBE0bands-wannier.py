@@ -5,6 +5,7 @@
 import sys
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import pylab as pyl
 import os
 
 import matplotlib.style
@@ -20,12 +21,12 @@ factor=27.211396132 ## conversion hartree -> eV
 root=os.getcwd()
 
 print "\n################################################\n"
-print "    Enter the working directories \n"
+print " Enter the names of the working directories \n"
+print "------------------------------------------------\n"
+LDA_dir=raw_input(" PBE  directory ==> ")
+EXX_dir=raw_input(" PBE0 directory ==> ")
+print 
 print "################################################\n"
-LDA_dir=raw_input("name of PBE directory: ")
-EXX_dir=raw_input("name of PBE0 directory: ")
-print "\n"
-
 
 # DFT states from DFT/BAND.OUT
 ksene=[]
@@ -72,7 +73,6 @@ for line in open(infile2):
        list1=[]
        list2=[]
 
-
 # Read info about x-ticks position
 bandlines=[]
 infile3=root+"/"+EXX_dir+"/BANDLINES.OUT"
@@ -110,20 +110,21 @@ for i in range(len(waene)):
     
 figcolor = 'white'
 dpi = 300
-fig, (ax1, ax2) = plt.subplots( 1, 2, sharey=True, sharex=True, figsize=(24,10), dpi=dpi)
+fig = plt.figure(figsize=(24,10),dpi=dpi)
+#fig, (ax1, ax2) = plt.subplots( 1, 2, sharey=True, sharex=True, figsize=(24,10), dpi=dpi)
 fig.figurePatch.set_edgecolor(figcolor)
 fig.figurePatch.set_facecolor(figcolor)
 
-mpl.rcParams['axes.linewidth'] = 3.0 # set the value globally
+mpl.rcParams['axes.linewidth'] = 4.0 # set the value globally
 mpl.rcParams['grid.linewidth'] = 1.5
 mpl.rcParams['xtick.labelsize'] = 30
 mpl.rcParams['ytick.labelsize'] = 30
 mpl.rcParams['axes.edgecolor'] = 'black'
-mpl.rcParams['axes.labelsize'] = '30'     # fontsize of the x any y labels
+mpl.rcParams['axes.labelsize'] = 50     # fontsize of the x any y labels
 mpl.rcParams['axes.labelcolor'] = 'black'
 mpl.rcParams['axes.axisbelow'] = 'True'   # whether axis gridlines and ticks are below
                                           # the axes elements (lines, text, etc)
-mpl.rcParams['legend.fontsize'] = '25'
+mpl.rcParams['legend.fontsize'] = '30'
 plt.rcParams['xtick.major.pad'] = '10'
 plt.rcParams['ytick.major.pad'] = '10'
 
@@ -131,17 +132,15 @@ plt.rcParams['ytick.major.pad'] = '10'
 ##    Bandstructure plot   ##
 #############################
 
-#ax1 = fig.add_axes([0.1,0.1,0.8,0.8])
-#ax2 = fig.add_axes([0.1,0.1,0.8,0.8])
-ax1.xaxis.grid(True,which='major',color='k',linestyle='-',linewidth=2)
-ax2.xaxis.grid(True,which='major',color='k',linestyle='-',linewidth=2)
+ax1 = fig.add_subplot( 121)
+ax2 = fig.add_subplot( 122, sharex=ax1, sharey=ax1)
+ax1.xaxis.grid(True,which='major',color='k',linestyle='-',linewidth=3)
+ax2.xaxis.grid(True,which='major',color='k',linestyle='-',linewidth=3)
 ax1.xaxis.set_label_position('bottom')
-ax1.yaxis.label.set_size(40)
 ax1.set_xticks(bandlines)
 labels = ax1.set_xticklabels(('W','L','$\Gamma$','X','W','K'))
 ax1.set_ylabel('Energy [eV]')
-ax1.tick_params(axis='both', which='major', labelsize=mpl.rcParams['axes.labelsize'])
-ax2.tick_params(axis='both', which='major', labelsize=mpl.rcParams['axes.labelsize'])
+plt.setp( ax2.get_yticklabels(), visible=False)
 
 
 # Tick size
@@ -188,7 +187,6 @@ else:
                 if (y>ymax):
                         ymax=y
 
-
 for i in range(bandlen-1):
     ax1.plot(ksene[i][0],ksene[i][1],'b',lw=3.0)
     ax1.plot(gwene[i][0],gwene[i][1],'r',lw=3.0)
@@ -196,13 +194,18 @@ for i in range(bandlen-1):
     ax2.plot(waene[i][0],waene[i][1],'r',lw=3.0)
 i=bandlen-1
 ax1.plot(ksene[i][0],ksene[i][1],'b',lw=3.0,label='PBE')
-ax1.plot(gwene[i][0],gwene[i][1],'r',lw=3.0,label='PBE0 Fourier')
+ax1.plot(gwene[i][0],gwene[i][1],'r',lw=3.0,label='PBE0 F')
 ax2.plot(ksene[i][0],ksene[i][1],'b',lw=3.0,label='PBE')
-ax2.plot(waene[i][0],waene[i][1],'r',lw=3.0,label='PBE0 Wannier')
+ax2.plot(waene[i][0],waene[i][1],'r',lw=3.0,label='PBE0 W')
 
-leg=ax1.legend(bbox_to_anchor=(0.675,0.15),loc=2,borderaxespad=0.)
+#leg=ax1.legend(bbox_to_anchor=(0.825,0.23),loc=2,borderaxespad=0.)
+leg=ax1.legend(loc=4,borderaxespad=0.5)
+leg.get_frame().set_linewidth(4.0)
+leg.get_frame().set_edgecolor("grey")
 leg.draw_frame(True)
-leg=ax2.legend(bbox_to_anchor=(0.675,0.15),loc=2,borderaxespad=0.)
+leg=ax2.legend(loc=4,borderaxespad=0.5)
+leg.get_frame().set_linewidth(4.0)
+leg.get_frame().set_edgecolor("grey")
 leg.draw_frame(True)
 
 # add zero level
@@ -212,11 +215,12 @@ ax1.plot(x0,y0,'k:',lw=1.0)
 ax2.plot(x0,y0,'k:',lw=1.0)
 #ymax=40.0
 ax1.set_xlim(0,max(ksene[0][0]))
-ax1.set_ylim(-25,20)
+ax1.set_ylim(-25,15)
 ax1.grid( True)
 ax2.grid( True)
+fig.tight_layout()
 fig.savefig('PBE0_PBE_wannier.png',format='png',bbox_inches=0,dpi=300)
 fig.savefig('PBE0_PBE_wannier.eps',format='eps',bbox_inches=0)
 
-plt.show()
+#plt.show()
 sys.exit()    
