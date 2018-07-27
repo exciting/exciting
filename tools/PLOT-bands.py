@@ -172,5 +172,4 @@ pyl.grid(True)
 fig.savefig('EXX_LDA.png',format='png',bbox_inches=0,dpi=300)
 fig.savefig('EXX_LDA.eps',format='eps',bbox_inches=0)
 
-plt.show()
 sys.exit()    

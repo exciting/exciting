@@ -500,5 +500,4 @@ else:
     plt.savefig(mod.lower()+'.png', orientation='portrait',format='png',dpi=300)
     plt.savefig(mod.lower()+'.eps', orientation='portrait',format='eps')
 
-#plt.show()
 #--------------------------------------------------------------------------------------------------

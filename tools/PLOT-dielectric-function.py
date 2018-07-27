@@ -108,7 +108,6 @@ plt.title( "Macroscopic dielectric function", fontsize=mpl.rcParams['ytick.label
 fig.savefig( outname1, format='png', bbox_inches='tight', dpi=300)
 fig.savefig( outname2, format='pdf', bbox_inches=0)
 
-plt.show()
 sys.exit()    
 
 #-------------------------------------------------------------------------------
