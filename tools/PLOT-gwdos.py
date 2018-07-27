@@ -116,6 +116,5 @@ ax1.plot(x0,y0,'k:',lw=1.0)
 # save the figure
 plt.savefig('PLOT-dos.ps',  orientation='portrait',format='eps')
 plt.savefig('PLOT-dos.png', orientation='portrait',format='png',dpi=dpipng)
-# plt.show()
 
 sys.exit()    
