@@ -81,6 +81,8 @@ for i in range(len(ipath)):
     label = " "
     if 'label' in ipath[i].attrib: label = ipath[i].attrib['label']
     if ( label == 'Gamma'): label = u'\u0393'
+    if ( label == 'gamma'): label = u'\u0393'
+    if ( label == 'GAMMA'): label = u'\u0393'
     llist.append(label)
 
 #-------------------------------------------------------------------------------
@@ -117,7 +119,7 @@ ax1.xaxis.grid(True,which='major',color='k',linestyle='-',linewidth=2)
 ax1.xaxis.set_label_position('bottom')
 ax1.set_xticks(bandlines)
 
-labels = ax1.set_xticklabels(llist)
+ax1.set_xticklabels(llist)
 
 ax1.text(-0.16,0.5,'Frequency [cm$\mathregular{^{-1}}$]',size=fontlabel,
         transform=ax1.transAxes,ha='center',va='center',rotation=90)
