@@ -38,12 +38,12 @@ module mod_wfutil
       allocate( wf_dvp1d( wf_nvp1d))
       allocate( wf_vplp1d( 3, wf_npp1d))
       allocate( wf_dpp1d( wf_npp1d))
-      call connect( bvec, input%properties%bandstructure%plot1d, wf_nvp1d, wf_npp1d, wf_vplp1d, wf_dvp1d, wf_dpp1d)
-      call generate_k_vectors( tmp_kset, bvec, (/1, 1, wf_npp1d/), (/0.d0, 0.d0, 0.d0/), .false.)
+      call connect( wf_kset%bvec, input%properties%bandstructure%plot1d, wf_nvp1d, wf_npp1d, wf_vplp1d, wf_dvp1d, wf_dpp1d)
+      call generate_k_vectors( tmp_kset, wf_kset%bvec, (/1, 1, wf_npp1d/), (/0.d0, 0.d0, 0.d0/), .false.)
       !write(*,*) wf_npp1d, tmp_kset%nkpt
       do iq = 1, tmp_kset%nkpt
         tmp_kset%vkl( :, iq) = wf_vplp1d( :, iq)
-        call r3mv( bvec, tmp_kset%vkl( :, iq), tmp_kset%vkc( :, iq))
+        call r3mv( wf_kset%bvec, tmp_kset%vkl( :, iq), tmp_kset%vkc( :, iq))
       end do
 
       ! interpolate energies
@@ -113,7 +113,7 @@ module mod_wfutil
           call xml_AddAttribute( xf, "chemicalSymbol", trim( input%structure%speciesarray( is)%species%chemicalSymbol))
           do ia = 1, natoms( is)
             call xml_NewElement( xf, "atom")
-            write( buffer, '(5G18.10)') atposc (:, ia, is)
+            write( buffer, '(5G20.10)') atposc (:, ia, is)
             call xml_AddAttribute( xf, "coord", trim( adjustl( buffer)))
             ias = idxas( ia, is)
             write( fname, '("BAND_WANNIER_S", I2.2, "_A", I4.4)') is, ia
@@ -128,33 +128,33 @@ module mod_wfutil
                   sum = sum + bc( l, ias, ist, iq)
                 end do
                 call xml_NewElement( xf, "point")
-                write( buffer, '(5G18.10)') wf_dpp1d( iq)
+                write( buffer, '(5G20.10)') wf_dpp1d( iq)
                 call xml_AddAttribute( xf, "distance", trim( adjustl( buffer)))
-                write( buffer, '(5G18.10)') wfint_eval( ist, iq)
+                write( buffer, '(5G20.10)') wfint_eval( ist, iq)
                 call xml_AddAttribute( xf, "eval", trim( adjustl( buffer)))
-                write( buffer, '(5G18.10)') sum
+                write( buffer, '(5G20.10)') sum
                 call xml_AddAttribute( xf, "sum", trim( adjustl( buffer)))
                 if( input%properties%bandstructure%deriv) then
-                  write( buffer, '(5G18.10)') deriv( 1, ist, iq) 
+                  write( buffer, '(5G20.10)') deriv( 1, ist, iq) 
                   call xml_AddAttribute( xf, "deriv1", trim( adjustl( buffer)))
-                  write( buffer, '(5G18.10)') deriv( 2, ist, iq) 
+                  write( buffer, '(5G20.10)') deriv( 2, ist, iq) 
                   call xml_AddAttribute( xf, "deriv2", trim( adjustl( buffer)))
-                  write( buffer, '(5G18.10)') deriv( 3, ist, iq) 
+                  write( buffer, '(5G20.10)') deriv( 3, ist, iq) 
                   call xml_AddAttribute( xf, "mass", trim( adjustl( buffer)))
                 end if
                 do l = 0, lmax
                   call xml_NewElement( xf, "bc")
                   write( buffer, *) l
                   call xml_AddAttribute( xf, "l", trim( adjustl( buffer)))
-                  write( buffer, '(5G18.10)') bc( l, ias, ist, iq)
+                  write( buffer, '(5G20.10)') bc( l, ias, ist, iq)
                   call xml_AddAttribute( xf, "character", trim( adjustl( buffer)))
                   call xml_endElement( xf, "bc")
                 end do
                 call xml_endElement( xf, "point")
                 if( input%properties%bandstructure%deriv) then
-                  write( un, '(2G18.10, 20F12.6)') wf_dpp1d( iq), wfint_eval( ist, iq), sum, bc( :, ias, ist, iq), deriv( :, ist, iq)
+                  write( un, '(2G20.10, 20F12.6)') wf_dpp1d( iq), wfint_eval( ist, iq), sum, bc( :, ias, ist, iq), deriv( :, ist, iq)
                 else
-                  write( un, '(2G18.10, 20F12.6)') wf_dpp1d( iq), wfint_eval( ist, iq), sum, bc( :, ias, ist, iq)
+                  write( un, '(2G20.10, 20F12.6)') wf_dpp1d( iq), wfint_eval( ist, iq), sum, bc( :, ias, ist, iq)
                 end if
               end do
               call xml_endElement( xf, "band")
@@ -183,21 +183,21 @@ module mod_wfutil
           call xml_NewElement( xf, "band")
           do iq = 1, wfint_kset%nkpt
             if( input%properties%bandstructure%deriv) then
-              write( un, '(5G18.10)') wf_dpp1d( iq), wfint_eval( ist, iq), deriv( :, ist, iq)
+              write( un, '(5G20.10)') wf_dpp1d( iq), wfint_eval( ist, iq), deriv( :, ist, iq)
             else
-              write( un, '(2G18.10)') wf_dpp1d( iq), wfint_eval( ist, iq)
+              write( un, '(2G20.10)') wf_dpp1d( iq), wfint_eval( ist, iq)
             end if
             call xml_NewElement( xf, "point")
-            write( buffer, '(5G18.10)') wf_dpp1d( iq)
+            write( buffer, '(5G20.10)') wf_dpp1d( iq)
             call xml_AddAttribute( xf, "distance", trim( adjustl( buffer)))
-            write( buffer, '(5G18.10)') wfint_eval( ist, iq)
+            write( buffer, '(5G20.10)') wfint_eval( ist, iq)
             call xml_AddAttribute (xf, "eval", trim( adjustl( buffer)))
             if( input%properties%bandstructure%deriv) then
-              write( buffer, '(5G18.10)') deriv( 1, ist, iq) 
+              write( buffer, '(5G20.10)') deriv( 1, ist, iq) 
               call xml_AddAttribute( xf, "deriv1", trim( adjustl( buffer)))
-              write( buffer, '(5G18.10)') deriv( 2, ist, iq) 
+              write( buffer, '(5G20.10)') deriv( 2, ist, iq) 
               call xml_AddAttribute( xf, "deriv2", trim( adjustl( buffer)))
-              write( buffer, '(5G18.10)') deriv( 3, ist, iq) 
+              write( buffer, '(5G20.10)') deriv( 3, ist, iq) 
               call xml_AddAttribute( xf, "mass", trim( adjustl( buffer)))
             end if
             call xml_endElement( xf, "point")
@@ -221,18 +221,18 @@ module mod_wfutil
       open( un, file='BANDLINES_WANNIER'//trim( fxt), action='write', form='formatted')
       do iv = 1, wf_nvp1d
         call xml_NewElement( xf, "vertex")
-        write( buffer, '(5G18.10)') wf_dvp1d( iv)
+        write( buffer, '(5G20.10)') wf_dvp1d( iv)
         call xml_AddAttribute( xf, "distance", trim( adjustl( buffer)))
-        write( buffer, '(5G18.10)') emax
+        write( buffer, '(5G20.10)') emax
         call xml_AddAttribute( xf, "upperboundary", trim( adjustl( buffer)))
-        write( buffer, '(5G18.10)') emin
+        write( buffer, '(5G20.10)') emin
         call xml_AddAttribute( xf, "lowerboundary", trim( adjustl( buffer)))
         call xml_AddAttribute( xf, "label", trim( adjustl( input%properties%bandstructure%plot1d%path%pointarray( iv)%point%label))) 
-        write( buffer, '(5G18.10)') input%properties%bandstructure%plot1d%path%pointarray( iv)%point%coord
+        write( buffer, '(5G20.10)') input%properties%bandstructure%plot1d%path%pointarray( iv)%point%coord
         call xml_AddAttribute( xf, "coord", trim( adjustl( buffer)))
         call xml_endElement( xf, "vertex")
-        write( un, '(2G18.10)') wf_dvp1d( iv), emin
-        write( un, '(2G18.10)') wf_dvp1d( iv), emax
+        write( un, '(2G20.10)') wf_dvp1d( iv), emin
+        write( un, '(2G20.10)') wf_dvp1d( iv), emax
         write( un, *)
       end do
       close( un)
@@ -253,7 +253,7 @@ module mod_wfutil
       write( un, *) "# ", wf_fst, wf_fst+wf_nwf-1, wfint_kset%nkpt
       do ist = 1, wf_nwf
         do iq = 1, wfint_kset%nkpt
-          write( un, '(2I6,3F12.6,2G18.10)') ist+wf_fst-1, iq, wfint_kset%vkl( :, iq), wf_dpp1d( iq), wfint_eval( ist, iq)
+          write( un, '(2I6,3F12.6,2G20.10)') ist+wf_fst-1, iq, wfint_kset%vkl( :, iq), wf_dpp1d( iq), wfint_eval( ist, iq)
         end do
         write( un, *)
       end do
@@ -370,12 +370,12 @@ module mod_wfutil
 
       do ie = 1, nsube
         call xml_NewElement (xf, "point")
-        write( buffer, '(G18.10E3)') e( ie)
+        write( buffer, '(G20.10E3)') e( ie)
         call xml_AddAttribute( xf, "e", trim( adjustl( buffer)))
-        write( buffer, '(G18.10E3)') occmax*tdos( ie)
+        write( buffer, '(G20.10E3)') occmax*tdos( ie)
         call xml_AddAttribute( xf, "dos", trim( adjustl( buffer)))
         call xml_endElement( xf, "point")
-        write( un, '(2G18.10E3)') e( ie), occmax*tdos( ie)
+        write( un, '(2G20.10E3)') e( ie), occmax*tdos( ie)
       end do
       write( un, *)
       close( un)
@@ -406,12 +406,12 @@ module mod_wfutil
                 call xml_AddAttribute( xf, "l", trim( adjustl( buffer)))
                 do ie = 1, nsube
                   call xml_NewElement( xf, "point")
-                  write( buffer, '(G18.10E3)') e( ie)
+                  write( buffer, '(G20.10E3)') e( ie)
                   call xml_AddAttribute (xf, "e", trim( adjustl( buffer)))
-                  write( buffer, '(G18.10E3)') occmax*pdos( ie, l+1, ias)
+                  write( buffer, '(G20.10E3)') occmax*pdos( ie, l+1, ias)
                   call xml_AddAttribute (xf, "dos", trim( adjustl( buffer)))
                   call xml_endElement( xf, "point")
-                  write( un, '(2G18.10E3)') e( ie), occmax*pdos( ie, l+1, ias)
+                  write( un, '(2G20.10E3)') e( ie), occmax*pdos( ie, l+1, ias)
                   tdos( ie) = tdos( ie) - pdos( ie, l+1, ias)
                 end do
                 write( un, *)
@@ -428,12 +428,12 @@ module mod_wfutil
                   call xml_AddAttribute( xf, "m", trim( adjustl( buffer)))
                   do ie = 1, nsube
                     call xml_NewElement( xf, "point")
-                    write( buffer, '(G18.10E3)') e( ie)
+                    write( buffer, '(G20.10E3)') e( ie)
                     call xml_AddAttribute (xf, "e", trim( adjustl( buffer)))
-                    write( buffer, '(G18.10E3)') occmax*pdos( ie, lm, ias)
+                    write( buffer, '(G20.10E3)') occmax*pdos( ie, lm, ias)
                     call xml_AddAttribute (xf, "dos", trim( adjustl( buffer)))
                     call xml_endElement( xf, "point")
-                    write( un, '(2G18.10E3)') e( ie), occmax*pdos( ie, lm, ias)
+                    write( un, '(2G20.10E3)') e( ie), occmax*pdos( ie, lm, ias)
                     tdos( ie) = tdos( ie) - pdos( ie, lm, ias)
                   end do
                   write( un, *)
@@ -454,12 +454,12 @@ module mod_wfutil
         call xml_AddAttribute( xf, "nspin", trim( adjustl( buffer)))
         do ie = 1, nsube
           call xml_NewElement( xf, "point")
-          write( buffer, '(G18.10E3)') e( ie)
+          write( buffer, '(G20.10E3)') e( ie)
           call xml_AddAttribute (xf, "e", trim( adjustl( buffer)))
-          write( buffer, '(G18.10E3)') occmax*tdos( ie)
+          write( buffer, '(G20.10E3)') occmax*tdos( ie)
           call xml_AddAttribute (xf, "dos", trim( adjustl( buffer)))
           call xml_endElement( xf, "point")
-          write( un, '(2G18.10E3)') e( ie), occmax*tdos( ie)
+          write( un, '(2G20.10E3)') e( ie), occmax*tdos( ie)
         end do
         write( un, *)
         close( un)
@@ -475,9 +475,9 @@ module mod_wfutil
         do ist = 1, n
           do ie = 1, nsube
             if( abs( e( ie)) .gt. 1.d-4) then
-              write( un, '(3G18.10E3)') e( ie), occmax*jdos( ie, ist)/(e( ie)*e( ie))/dble(m*n), occmax*jdos( ie, ist)
+              write( un, '(3G20.10E3)') e( ie), occmax*jdos( ie, ist)/(e( ie)*e( ie))/dble(m*n), occmax*jdos( ie, ist)
             else
-              write( un, '(3G18.10E3)') e( ie), 0.d0, occmax*jdos( ie, ist)
+              write( un, '(3G20.10E3)') e( ie), 0.d0, occmax*jdos( ie, ist)
             end if
           end do
           write( un, *)
@@ -487,9 +487,9 @@ module mod_wfutil
         open( un, file='TJDOS_WANNIER'//trim( filext), action='write', form='formatted')
         do ie = 1, nsube
           if( abs( e( ie)) .gt. 1.d-4) then
-            write( un, '(3G18.10E3)') e( ie), occmax*jdos( ie, 0)/( e( ie)*e( ie))/dble(m*n), occmax*jdos( ie, 0)
+            write( un, '(3G20.10E3)') e( ie), occmax*jdos( ie, 0)/( e( ie)*e( ie))/dble(m*n), occmax*jdos( ie, 0)
           else
-            write( un, '(3G18.10E3)') e( ie), 0.d0, occmax*jdos( ie, 0)
+            write( un, '(3G20.10E3)') e( ie), 0.d0, occmax*jdos( ie, 0)
           end if
         end do
         write( un, *)
@@ -527,7 +527,6 @@ module mod_wfutil
     subroutine wfutil_find_bandgap
       use mod_eigenvalue_occupancy, only: occmax
       use mod_charge_and_moment, only: chgval
-      use mod_lattice, only: bvec
       use mod_optkgrid, only: getoptkgrid
       use m_getunit
 
@@ -564,7 +563,7 @@ module mod_wfutil
       if( minval( input%properties%wanniergap%ngridkint) .gt. 0) then
         ndiv = input%properties%wanniergap%ngridkint
       else
-        call getoptkgrid( rad, bvec, ndiv, opt, ropt)
+        call getoptkgrid( rad, wf_kset%bvec, ndiv, opt, ropt)
         write( *, '(" Warning (wfint_find_bandgap): No interpolation grid given. I use ",3i4,".")') ndiv
       end if
 
@@ -574,7 +573,7 @@ module mod_wfutil
       if( ndiv(3) .eq. 1) w(3) = 0.d0
       d = w/ndiv
 
-      call generate_k_vectors( tmp_kset, bvec, 3*ndiv, (/0.d0, 0.d0, 0.d0/), .true., uselibzint=.true.)
+      call generate_k_vectors( tmp_kset, wf_kset%bvec, 3*ndiv, (/0.d0, 0.d0, 0.d0/), .true., uselibzint=.true.)
       call wfint_init( tmp_kset)
 
       if( findvbm .and. findcbm) then
@@ -601,16 +600,16 @@ module mod_wfutil
         w = 2.d0*d
         d = w/ndiv
         v0 = vvbm - 0.5d0*(w - d)
-        call generate_k_vectors( tmp_kset, bvec, ndiv, (/0.d0, 0.d0, 0.d0/), .false., uselibzint=.true.)
+        call generate_k_vectors( tmp_kset, wf_kset%bvec, ndiv, (/0.d0, 0.d0, 0.d0/), .false., uselibzint=.true.)
         do iq = 1, tmp_kset%nkpt
           tmp_kset%vkl( :, iq) = tmp_kset%vkl( :, iq)*w + v0
-          call r3mv( bvec, tmp_kset%vkl( :, iq), tmp_kset%vkc( :, iq))
+          call r3mv( wf_kset%bvec, tmp_kset%vkl( :, iq), tmp_kset%vkc( :, iq))
         end do
         call wfint_init( tmp_kset)
         iqvbm = maxloc( wfint_eval( nvm, :), 1)
         evbm = wfint_eval( nvm, iqvbm)
         vvbm = wfint_kset%vkl( :, iqvbm)
-        call r3ws( input%structure%epslat, bvec, vvbm, iv)
+        call r3ws( input%structure%epslat, wf_kset%bvec, vvbm, iv)
         !write(*,'(3f13.6,f23.16)') vvbm, evbm
       end do
         
@@ -624,16 +623,16 @@ module mod_wfutil
         w = 2.d0*d
         d = w/ndiv
         v0 = vcbm - 0.5d0*(w - d)
-        call generate_k_vectors( tmp_kset, bvec, ndiv, (/0.d0, 0.d0, 0.d0/), .false.)
+        call generate_k_vectors( tmp_kset, wf_kset%bvec, ndiv, (/0.d0, 0.d0, 0.d0/), .false.)
         do iq = 1, tmp_kset%nkpt
           tmp_kset%vkl( :, iq) = tmp_kset%vkl( :, iq)*w + v0
-          call r3mv( bvec, tmp_kset%vkl( :, iq), tmp_kset%vkc( :, iq))
+          call r3mv( wf_kset%bvec, tmp_kset%vkl( :, iq), tmp_kset%vkc( :, iq))
         end do
         call wfint_init( tmp_kset)
         iqcbm = minloc( wfint_eval( nvm+1, :), 1)
         ecbm = wfint_eval( nvm+1, iqvbm)
         vcbm = wfint_kset%vkl( :, iqcbm)
-        call r3ws( input%structure%epslat, bvec, vcbm, iv)
+        call r3ws( input%structure%epslat, wf_kset%bvec, vcbm, iv)
         !write(*,'(3f13.6,f23.16)') vcbm, ecbm
       end do
 
@@ -643,9 +642,9 @@ module mod_wfutil
       open( un, file='GAP_WANNIER.OUT', action='write', form='formatted')
 
       if( findvbm) then
-        call generate_k_vectors( tmp_kset, bvec, (/1, 1, 1/), (/0.d0, 0.d0, 0.d0/), .false.)
+        call generate_k_vectors( tmp_kset, wf_kset%bvec, (/1, 1, 1/), (/0.d0, 0.d0, 0.d0/), .false.)
         tmp_kset%vkl( :, 1) = vvbm
-        call r3mv( bvec, tmp_kset%vkl( :, 1), tmp_kset%vkc( :, 1))
+        call r3mv( wf_kset%bvec, tmp_kset%vkl( :, 1), tmp_kset%vkc( :, 1))
         call wfint_init( tmp_kset)
         call wfint_interpolate_ederiv( velo, mass)
         degvbm = 0
@@ -671,9 +670,9 @@ module mod_wfutil
       end if
 
       if( findcbm) then
-        call generate_k_vectors( tmp_kset, bvec, (/1, 1, 1/), (/0.d0, 0.d0, 0.d0/), .false.)
+        call generate_k_vectors( tmp_kset, wf_kset%bvec, (/1, 1, 1/), (/0.d0, 0.d0, 0.d0/), .false.)
         tmp_kset%vkl( :, 1) = vcbm
-        call r3mv( bvec, tmp_kset%vkl( :, 1), tmp_kset%vkc( :, 1))
+        call r3mv( wf_kset%bvec, tmp_kset%vkl( :, 1), tmp_kset%vkc( :, 1))
         call wfint_init( tmp_kset)
         call wfint_interpolate_ederiv( velo, mass)
         degcbm = 0
@@ -723,10 +722,9 @@ module mod_wfutil
       ! input/output
       integer, intent(in) :: fst, lst, cell(3)
       ! local variables
-      integer :: ip, np, iv, nv, ik, iknr, ist, jst, is, ia, ias, maxdim, l, m, lm, o, ilo1, ngknr, maxnpt
+      integer :: ip, np, iv(3), nv, ik, iknr, ist, jst, is, ia, ias, maxdim, l, m, lm, o, ilo1, ngknr, maxnpt
       character(80) :: fname
-      integer :: igrid(3)
-      real(8) :: boxl(4,3), cellc(3), s, phi, v1(3), v2(3), v3(3), rrange( 2, fst:lst), irange( 2, fst:lst)
+      real(8) :: boxl(4,3), cellc(3), s, phi, v0(3), v1(3), v2(3), v3(3), rrange( 2, fst:lst), irange( 2, fst:lst)
       integer :: lmcnt( 0:input%groundstate%lmaxapw, nspecies), &
                  o2idx( apwordmax, 0:input%groundstate%lmaxapw, nspecies), &
                  lo2idx( nlomax, 0:input%groundstate%lmaxapw, nspecies)
@@ -758,9 +756,6 @@ module mod_wfutil
       allocate( grid( fst:lst))
   
       ! generate plotting grids
-      v1 = input%properties%wannierplot%plot3d%box%pointarray(1)%point%coord
-      v2 = input%properties%wannierplot%plot3d%box%pointarray(2)%point%coord
-      v3 = input%properties%wannierplot%plot3d%box%pointarray(3)%point%coord
       s = omega**(1.d0/3.d0)
       do ist = fst, lst
         if (associated(input%properties%wannierplot%plot1d)) then
@@ -779,10 +774,23 @@ module mod_wfutil
         end if
   
         if (associated(input%properties%wannierplot%plot2d)) then
+          v0 = input%properties%wannierplot%plot2d%parallelogram%origin%coord
+          v1 = input%properties%wannierplot%plot2d%parallelogram%pointarray(1)%point%coord
+          v2 = input%properties%wannierplot%plot2d%parallelogram%pointarray(2)%point%coord
+          !call r3mv( ainv, wf_centers( :, ist) + cellc - s*(v1+v2), input%properties%wannierplot%plot2d%parallelogram%origin%coord)
+          !call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v1-v2), input%properties%wannierplot%plot2d%parallelogram%pointarray(1)%point%coord)
+          !call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v2-v1), input%properties%wannierplot%plot2d%parallelogram%pointarray(2)%point%coord)
+          call r3mv( ainv, wf_centers( :, ist), v3)
+          input%properties%wannierplot%plot2d%parallelogram%origin%coord              = v0 + v3 + cell - v1 - v2
+          input%properties%wannierplot%plot2d%parallelogram%pointarray(1)%point%coord = v0 + v3 + cell + v1 - v2
+          input%properties%wannierplot%plot2d%parallelogram%pointarray(2)%point%coord = v0 + v3 + cell - v1 + v2
           grid( ist) = gen_2d_rgrid(input%properties%wannierplot%plot2d, 0)
         end if
   
         if( associated( input%properties%wannierplot%plot3d)) then
+          v1 = input%properties%wannierplot%plot3d%box%pointarray(1)%point%coord
+          v2 = input%properties%wannierplot%plot3d%box%pointarray(2)%point%coord
+          v3 = input%properties%wannierplot%plot3d%box%pointarray(3)%point%coord
           call r3mv( ainv, wf_centers( :, ist) + cellc - s*(v1+v2+v3), input%properties%wannierplot%plot3d%box%origin%coord)
           call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v1-v2-v3), input%properties%wannierplot%plot3d%box%pointarray(1)%point%coord)
           call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v2-v3-v1), input%properties%wannierplot%plot3d%box%pointarray(2)%point%coord)
@@ -928,13 +936,12 @@ module mod_wfutil
             !write(77,'(2f16.6)') grid%vpd(ip), wkpt(ik)*nkptnr*abs(zdata(ip))**2
           end do
           close(77)
-          write(*,'(" 1D Wannier function written to wannier1d-",i4.4,".xsf")'), ist
+          write(*,'(" 1D Wannier function written to wannier1d-",i4.4,".dat")'), ist
           write(*,'(" real part range: ",2f13.6)') rrange( :, ist)
           write(*,'(" imag part range: ",2f13.6)') irange( :, ist)
           write(*,*)
+          call delete_rgrid( grid( ist))
         end do
-  
-        call delete_rgrid( grid( ist))
       end if
   
       !----------------
@@ -953,9 +960,8 @@ module mod_wfutil
           write(*,'(" real part range: ",2f13.6)') rrange( :, ist)
           write(*,'(" imag part range: ",2f13.6)') irange( :, ist)
           write(*,*)
+          call delete_rgrid( grid( ist))
         end do
-  
-        call delete_rgrid( grid( ist))
       end if
   
       !----------------
