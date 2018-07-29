@@ -1,10 +1,27 @@
+#!/usr/bin/python
+
 import os
 from pylab import *
 import sys
 import xml.dom.minidom as dom
 
 Arg=sys.argv
-Arg.remove("PLOT-Transport.py")
+Arg=Arg[1:]
+
+params = {'xtick.major.size': 5,
+          'ytick.major.size': 5,
+          'patch.linewidth': 1.5,
+          'axes.linewidth': 2.,
+          'axes.formatter.limits': (-4, 6),
+          'lines.linewidth': 1.0,
+          'lines.markeredgewidth':2.0,
+          'lines.markersize':18,
+          'legend.fontsize':11,
+          'legend.borderaxespad':1,
+          'legend.borderpad':0.5}
+
+plt.rcParams.update(params)
+
 #Arg=[ "pattern[S,PF,ZT]","T=300,t=1.0"]
 #List of files
 List=os.listdir(str(os.getcwd()))
@@ -82,9 +99,6 @@ except:
     print("Error: input.xml not found")
     sys.exit()
 ########
-
-
-
 
 
 #Arguments
@@ -173,7 +187,7 @@ K2={"kappa":"THERMALCOND_","sigma":"ELECTCOND_", "ZT":"ZT_","S":"SEEBECK_","PF":
 #XYlabel font
 font = {'family': 'sans',
         'weight': 'bold',
-        'size': 13,
+        'size': 14,
         }
 #######
 #Plotroutine for pattern
@@ -181,7 +195,7 @@ u=u.split("[")
 if "pattern" in u :
         #plots.reverse()
         plots=u[1].split(",")
-        f,ax=subplots(len(plots),sharex=True,figsize=(12,12))
+        f,ax=plt.subplots(len(plots),sharex=True,figsize=(6.5,7))
         n=0
         for l in plots:
             plots=u[1].split(",")
@@ -227,17 +241,18 @@ if "pattern" in u :
             xlabel(labx, fontdict=font)
             ax[n].legend(prop=font)
             n+=1
-        f.subplots_adjust(hspace=0.1)
+        f.subplots_adjust(hspace=0.08)
         f.set_figheight(9)
-        f.set_figwidth(8)
+        f.set_figwidth(7)
         f.tight_layout()
+                    
         savefig(str(os.getcwd())+"/"+"pattern_Plot.png",orientation='portrait',format='png',dpi=100)
 #######
 #For single plots
 w=w.split("[")
 if "single" in w :
     for l in w[1].split(","):
-        figure(figsize=(8.8,7))
+        plt.figure(figsize=(6.5,5.3))
         if l=="PF":#PF Factor
                 for k in List:
                     if k.count("ELECTCOND_")>0:
