@@ -1,126 +1,163 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #_______________________________________________________________________________
 
 from   lxml  import etree as et
-from   pylab import *
 import sys
 import matplotlib         as mpl
 import matplotlib.pyplot  as plt
-import matplotlib.ticker  as ptk 
 import matplotlib.patches as mpatches
 import pylab              as pyl
-import numpy
 import os
+import numpy              as np
+from readrawdata import readrawdata
 
 import matplotlib.style
 if matplotlib.__version__.split(".")[0]=="2": matplotlib.style.use('classic')
 
+factor=27.211396132 ## conversion hartree -> eV
+
 #-------------------------------------------------------------------------------
 # Read arguments
 
-narg   = len(sys.argv)-1
-plabel = "|"
-mcolor = "w"
+narg = len(sys.argv)-1
+lgw  = False
+lwa  = False
+case = " "
 
-if (narg > 0): xxmin  = float(sys.argv[1])
-if (narg > 1): xxmax  = float(sys.argv[2])
-if (narg > 2): 
-    plabel = str(sys.argv[3])
-    mcolor = "b" 
-   
+if( narg == 1):
+    case = str( sys.argv[1])
+elif( narg == 2):
+    xxmin = float( sys.argv[1])
+    xxmax = float( sys.argv[2])
+elif( narg == 3):
+    xxmin = float( sys.argv[1])
+    xxmax = float( sys.argv[2])
+    case = str( sys.argv[3])
+elif( narg > 3):
+    print( "\n ERROR: Invalid number of arguments.\n")
+    sys.exit(" Usage: PLOT-compare-dos.py Energy_min Energy_max CASE\n")
+
+if (case.strip().lower() == "gw"): lgw = True
+if (case.strip().lower() == "wannier"): lwa = True
+
+if lgw: print( "\n Comparison for GW calculations\n")
+if lwa: print( "\n Comparison for WANNIER calculations\n")
+
+if ( os.path.exists('GW_INFO.OUT') and not lgw ):
+    print( "\n ERROR: This is a GW directory! Check your command line:\n")
+    sys.exit(" Usage: PLOT-compare-dos.py Energy_min Energy_max GW\n")
+    
+if ( not os.path.exists('GW_INFO.OUT') and lgw ):
+    sys.exit(" ERROR: This is NOT a GW directory! Delete GW from the command line!\n")
+
+if ( os.path.exists('WANNIER_INFO.OUT') and not lwa ):
+    print( "\n ERROR: This is a WANNIER directory! Check your command line:\n")
+    sys.exit(" Usage: PLOT-compare-dos.py Energy_min Energy_max WANNIER\n")
+    
+if ( not os.path.exists('WANNIER_INFO.OUT') and lwa ):
+    sys.exit(" ERROR: This is NOT a WANNIER directory! Delete WANNIER from the command line!\n")
+
 #-------------------------------------------------------------------------------
-# Read data
+# Create the list of input directories 
 
-ene0=[]
-dos0=[]
-for line in open("TDOS.OUT"):
-    i_line=line.split()
-    if len(i_line):
-       eneval=float(i_line[0])*27.21138601949571
-       dosval=float(i_line[1])/27.21138601949571
-       ene0.append(eneval)
-       dos0.append(dosval)
+root=os.getcwd()
 
-enew=[]
-dosw=[]
-for line in open("TDOS_WANNIER.OUT"):
-    i_line=line.split()
-    if len(i_line):
-       eneval=float(i_line[0])*27.21138601949571
-       dosval=float(i_line[1])/27.21138601949571
-       enew.append(eneval)
-       dosw.append(dosval)
+if(not lgw and not lwa):
+    print( "\n################################################\n")
+    print( " Enter the names of the 2 directories to compare\n")
+    print( "------------------------------------------------\n")
+    dirone=raw_input(" Directory 1 ==> ")
+    dirtwo=raw_input(" Directory 2 ==> ")
+    print 
+    print( "################################################\n")
 
 #-------------------------------------------------------------------------------
-# Settings for the plot
+# Read data from dirone
 
-fontlabel=22
-fontlegend=16
-fonttick=16
-fonttickx=16
+if lgw:
+    infile=root+"/TDOS.OUT"
+    label1 = "KS"
+elif lwa:
+    infile=root+"/TDOS.OUT"
+    label1 = "original grid"
+else:
+    infile=root+"/"+dirone+"/TDOS.OUT"
+    label1 = dirone
+dos1, dim1 = readrawdata( infile)
+dos1[:,0,:] *= factor
+dos1[:,1,:] /= factor
 
-params = {'font.family': 'sans-serif',
-          'ytick.minor.size': 6,
-          'xtick.major.pad': 8,
-          'ytick.major.pad': 4,
-          'patch.linewidth': 2.,
-          'axes.linewidth': 2.5,
-          'lines.linewidth': 2.0,
-          'lines.markersize': 5.0,
-          'axes.formatter.limits': (-5, 6)}
+#-------------------------------------------------------------------------------
+# Read data from dirtwo
 
-plt.rcParams.update(params)
+if lgw:
+    infile=root+"/TDOS-QP.OUT"
+    label2 = "$\mathregular{G_0W_0}$"
+elif lwa:
+    infile=root+"/TDOS_WANNIER.OUT"
+    label2 = "Wannier"
+else:
+    infile = root+"/"+dirtwo+"/TDOS.OUT"
+    label2 = dirtwo
+dos2, dim2 = readrawdata( infile)
+dos2[:,0,:] *= factor
+dos2[:,1,:] /= factor
 
-plt.subplots_adjust(left=0.20, right=0.93,
-                    bottom=0.28, top=0.92,
-                    wspace=None, hspace=None)
-                    
-yfmt = ptk.ScalarFormatter(useOffset=True,useMathText=True)
-fig  = matplotlib.pyplot.figure(1, figsize=(8,5.5)) 
-ax1  = fig.add_subplot(111)
+#-------------------------------------------------------------------------------
+# Settings for the plot 
+    
+figcolor = 'white'
+dpi = 300
+fig = plt.figure(figsize=(15,10),dpi=dpi)
+fig.patch.set_edgecolor(figcolor)
+fig.patch.set_facecolor(figcolor)
+
+mpl.rcParams['axes.linewidth']  = 4.0     # set the value globally
+mpl.rcParams['grid.linewidth']  = 1.5
+mpl.rcParams['xtick.labelsize'] = 30
+mpl.rcParams['ytick.labelsize'] = 30
+mpl.rcParams['axes.edgecolor']  = 'black'
+mpl.rcParams['axes.labelsize']  = 40      # fontsize of the x any y labels
+mpl.rcParams['axes.labelcolor'] = 'black'
+mpl.rcParams['axes.axisbelow']  = 'True'  # whether axis gridlines and ticks are below
+                                          # the axes elements (lines, text, etc)
+mpl.rcParams['legend.fontsize'] = 30
+plt.rcParams['xtick.major.pad'] = 10
+plt.rcParams['ytick.major.pad'] = 10
+
+#-------------------------------------------------------------------------------
+# DOS plot 
+
+#ax1 = fig.add_axes([0.14,0.1,0.8,0.8])
+ax1 = fig.add_subplot( 111)
 
 ax1.xaxis.set_label_position('bottom')
+ax1.set_xlabel('Energy [eV]')
+ax1.set_ylabel('DOS [states/eV/unit cell]', labelpad=20)
 
-ax1.text(-0.12,0.5,'DOS [states/eV/unit cell]',size=fontlabel,
-        transform=ax1.transAxes,ha='center',va='center',rotation=90)
-ax1.text(0.5,-0.16,'Energy [eV]',size=fontlabel,
-        transform=ax1.transAxes,ha='center',va='center',rotation=0)
+for line in ax1.get_xticklines() + ax1.get_yticklines():
+    line.set_markersize(10)
+    line.set_markeredgewidth(2)
 
-#-------------------------------------------------------------------------------
-# Tick size
+ax1.fill_between( dos2[0,0,:], dos2[0,1,:], color='darksalmon')
+ax1.plot( dos2[0,0,:], dos2[0,1,:], color='firebrick', lw=3.0)
+legend2 = mpatches.Patch( facecolor='darksalmon', edgecolor='firebrick', lw=3.0, label=label2)
+legend1, = ax1.plot( dos1[0,0,:], dos1[0,1,:], color='mediumblue', lw=3.0, label=label1)
 
-for line in ax1.get_xticklines() + ax1.get_yticklines(): line.set_markersize(9)
-for line in ax1.get_yticklines(): line.set_markeredgewidth(2)
-for line in ax1.get_xticklines(): line.set_markeredgewidth(2)
+leg = ax1.legend( handles=[legend1, legend2], loc='best',borderaxespad=0.5)
+leg.get_frame().set_linewidth(4.0)
+leg.get_frame().set_edgecolor("grey")
+leg.draw_frame(True)
 
-#-------------------------------------------------------------------------------
-# Plot
+if ( narg < 2):
+    xxmin = max( np.amin( dos1[0,0,:]), np.amin( dos2[0,0,:]))
+    xxmax = min( np.amax( dos1[0,0,:]), np.amax( dos2[0,0,:]))
+plt.xlim( xmin=xxmin, xmax=xxmax)
 
-ax1.plot(enew,dosw,'r-',label="",color="firebrick")
-plt.fill_between(enew,dosw, color="darksalmon")
-legend1 = mpatches.Patch( facecolor='darksalmon', edgecolor='firebrick', lw=2.0, label='DOS Wannier')
-
-legend2, = ax1.plot(ene0,dos0,'r-',color="mediumblue", label="DOS original grid")
-		 
-plt.xlim( xmin=min( min( ene0), min( enew)))
-plt.xlim( xmax=max( max( ene0), max( enew)))
-if ( narg > 0): plt.xlim(xmin=xxmin)
-if ( narg > 1): plt.xlim(xmax=xxmax)
-
-plt.xticks(size=fonttickx)
-plt.yticks(size=fonttick)
-
-ax1.text(1,1.05,plabel,size=fontlabel, color=mcolor,
-             transform=ax1.transAxes,ha='right',va='center',rotation=0)
-
-leg = ax1.legend(handles=[legend1,legend2],loc='best',borderaxespad=1.0)
-leg.get_frame().set_edgecolor('grey')
-
-fig.subplots_adjust(left=None, bottom=None, right=None, wspace=None, hspace=None)
-
-fig.savefig('PBE0_PBE_dos_wannier.png',format='png',bbox_inches='tight',dpi=300)
-fig.savefig('PBE0_PBE_dos_wannier.pdf',format='pdf',bbox_inches=0)
+fig.tight_layout()
+fig.savefig('PLOT.png',format='png',bbox_inches=0,dpi=300)
+fig.savefig('PLOT.eps',format='eps',bbox_inches=0)
 
 sys.exit()    
 

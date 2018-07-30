@@ -24,9 +24,19 @@ lgw  = False
 lwa  = False
 case = " "
 
-if (narg > 0): yymin = float(sys.argv[1])
-if (narg > 1): yymax = float(sys.argv[2])
-if (narg > 2): case  =   str(sys.argv[3])
+if( narg == 1):
+    case = str( sys.argv[1])
+elif( narg == 2):
+    yymin = float( sys.argv[1])
+    yymax = float( sys.argv[2])
+elif( narg == 3):
+    yymin = float( sys.argv[1])
+    yymax = float( sys.argv[2])
+    case = str( sys.argv[3])
+elif( narg > 3):
+    print( "\n ERROR: Invalid number of arguments.\n")
+    sys.exit(" Usage: PLOT-compare-bands.py Energy_min Energy_max CASE\n")
+
 if (case.strip().lower() == "gw"): lgw = True
 if (case.strip().lower() == "wannier"): lwa = True
 
@@ -39,9 +49,6 @@ if ( os.path.exists('GW_INFO.OUT') and not lgw ):
     
 if ( not os.path.exists('GW_INFO.OUT') and lgw ):
     sys.exit(" ERROR: This is NOT a GW directory! Delete GW from the command line!\n")
-
-#-------------------------------------------------------------------------------
-# Read input data
 
 #-------------------------------------------------------------------------------
 # Create the list of input directories 
@@ -189,7 +196,7 @@ mpl.rcParams['grid.linewidth']  = 1.5
 mpl.rcParams['xtick.labelsize'] = 30
 mpl.rcParams['ytick.labelsize'] = 30
 mpl.rcParams['axes.edgecolor']  = 'black'
-mpl.rcParams['axes.labelsize']  = 50      # fontsize of the x any y labels
+mpl.rcParams['axes.labelsize']  = 40      # fontsize of the x any y labels
 mpl.rcParams['axes.labelcolor'] = 'black'
 mpl.rcParams['axes.axisbelow']  = 'True'  # whether axis gridlines and ticks are below
                                           # the axes elements (lines, text, etc)
@@ -217,7 +224,7 @@ else:
 ax1.xaxis.set_label_position('bottom')
 ax1.set_xticks(bandlines)
 ax1.set_xticklabels(llist)
-ax1.set_ylabel('Energy [eV]')
+ax1.set_ylabel('Energy [eV]', labelpad=20)
 
 for line in ax1.get_xticklines() + ax1.get_yticklines():
     line.set_markersize(10)
@@ -258,8 +265,7 @@ if lwa:
     leg.get_frame().set_edgecolor("grey")
     leg.draw_frame(True)
 
-if ( narg > 0): plt.ylim(ymin=yymin)
-if ( narg > 1): plt.ylim(ymax=yymax)
+if ( narg > 1): plt.ylim( ymin=yymin, ymax=yymax)
 
 fig.tight_layout()
 fig.savefig('PLOT.png',format='png',bbox_inches=0,dpi=300)
