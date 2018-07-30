@@ -176,8 +176,10 @@ subroutine task_gw()
     
     ! each process does a subset
     do iq = iqstart, iqend
-    
-      write(*,*) '(task_gw): q-point cycle, iq = ', iq
+  
+      if ((input%gw%debug).and.(rank==0)) then
+        write(fdebug,*) '(task_gw): q-point cycle, iq = ', iq
+      end if
     
       Gamma = gammapoint(kqset%vqc(:,iq))
           

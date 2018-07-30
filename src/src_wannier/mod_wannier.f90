@@ -805,7 +805,8 @@ module mod_wannier
       allocate( work( 1), iwork( 8*j))
 
       if( sum( wf_kset%ngridk) .eq. 1) then
-        write(*,'(" Error (wannier_geometry): Wannier Functions for single k-point only not yet implemented.")')
+        write(*,*)
+        write(*,'("Error (wannier_geometry): Wannier Functions for single k-point only not yet implemented.")')
         stop
       else if( minval( wf_kset%ngridk) .eq. 1) then
         if( sum( wf_kset%ngridk) .eq. maxval( wf_kset%ngridk) + 2) then
@@ -951,8 +952,9 @@ module mod_wannier
               if( ix .gt. 0) then
                 wf_n_ik( d, iknr) = iy
               else
-                write( *, '(" Error (wannier_geometry): wrong neighboring vector.")')
-                write( *, '(3F13.6)') wf_n_vl( :, d)
+                write(*,*)
+                write( *, '("Error (wannier_geometry): wrong neighboring vector.")')
+                write( *, '(x,3F13.6)') wf_n_vl( :, d)
                 stop
               end if
 
@@ -962,8 +964,9 @@ module mod_wannier
               if( ix .gt. 0) then
                 wf_n_ik2( d, iknr) = iy
               else
-                write( *, '(" Error (wannier_geometry): wrong neighboring vector.")')
-                write( *, '(3F13.6)') wf_n_vl( :, d)
+                write(*,*)
+                write( *, '("Error (wannier_geometry): wrong neighboring vector.")')
+                write( *, '(x,3F13.6)') wf_n_vl( :, d)
                 stop
               end if
             end do
@@ -1006,7 +1009,8 @@ module mod_wannier
             if( norm2( wf_groups( igroup)%win_i) .gt. input%structure%epslat) then
               if( (wf_groups( igroup)%win_i(1) .lt. wf_groups( igroup)%win_o(1)) .or. &
                   (wf_groups( igroup)%win_i(2) .gt. wf_groups( igroup)%win_o(2))) then
-                write( *, '(" Error (wannier_readinput): The inner window must be fully contained within the outer window for group ",I2,".")') igroup
+                write(*,*)
+                write( *, '("Error (wannier_readinput): The inner window must be fully contained within the outer window for group ",I2,".")') igroup
                 stop
               end if
             end if
@@ -1042,17 +1046,20 @@ module mod_wannier
             wf_groups( igroup)%nwf = input%properties%wannier%grouparray( igroup)%group%nwf
             if( wf_groups( igroup)%nwf .lt. 1) then
               wf_groups( igroup)%nwf = nint( 0.5d0*(maxval( wf_groups( igroup)%win_ni) + minval( wf_groups( igroup)%win_ni + wf_groups( igroup)%win_no)))
-              write( *, '(" Warning (wannier_readinput): Number of Wannier functions (nwf) not set for group ",I2,". I chose nwf = ",I3)') igroup, wf_groups( igroup)%nwf
+              write(*,*)
+              write( *, '("Warning (wannier_readinput): Number of Wannier functions (nwf) not set for group ",I2,". I chose nwf = ",I3)') igroup, wf_groups( igroup)%nwf
             end if
 
             do ik = 1, wf_kset%nkpt
               if( wf_groups( igroup)%win_no( ik) + wf_groups( igroup)%win_ni( ik) .lt. wf_groups( igroup)%nwf) then
-                write( *, '(" Error (wannier_readinput): Outer window contains less than nwf (",I3,") bands for k-point ",3F13.6," in group ",I2,".")') &
+                write(*,*)
+                write( *, '("Error (wannier_readinput): Outer window contains less than nwf (",I3,") bands for k-point ",3F13.6," in group ",I2,".")') &
                     wf_groups( igroup)%nwf, wf_kset%vkl( :, ik), igroup
                 stop
               end if
               if( wf_groups( igroup)%win_ni( ik) .gt. wf_groups( igroup)%nwf) then
-                write( *, '(" Error (wannier_readinput): Inner window contains more than nwf (",I3,") bands for k-point ",3F13.6," in group ",I2,".")') &
+                write(*,*)
+                write( *, '("Error (wannier_readinput): Inner window contains more than nwf (",I3,") bands for k-point ",3F13.6," in group ",I2,".")') &
                     wf_groups( igroup)%nwf, wf_kset%vkl( :, ik), igroup
                 stop
               end if
@@ -1065,12 +1072,14 @@ module mod_wannier
           end if  
 
           if( wf_groups( igroup)%fst .lt. 1) then
-            write( *, '(" Error (wannier_readinput): The lowest band (fst) is smaller than 1 for group ",I2,".")') igroup
+            write(*,*)
+            write( *, '("Error (wannier_readinput): The lowest band (fst) is smaller than 1 for group ",I2,".")') igroup
             stop
           end if
 
           if( wf_groups( igroup)%lst .gt. nstfv) then
-            write( *, '(" Error (wannier_readinput): The highest band (lst = ",I4,") is greater than total number of states (nstfv = ",I4,") for group ",I2,".")') &
+            write(*,*)
+            write( *, '("Error (wannier_readinput): The highest band (lst = ",I4,") is greater than total number of states (nstfv = ",I4,") for group ",I2,".")') &
                 wf_groups( igroup)%lst, nstfv, igroup
             stop
           end if
@@ -1079,13 +1088,15 @@ module mod_wannier
 
           if( input%properties%wannier%input .eq. "gw") then
             if( (wf_groups( igroup)%fst .lt. input%gw%ibgw) .or. (wf_groups( igroup)%fst .gt. input%gw%nbgw)) then
-              write( *, '(" Error (wannier_readinput): lower band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")'), &
+              write(*,*)
+              write( *, '("Error (wannier_readinput): lower band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")'), &
                   wf_groups( igroup)%fst, input%gw%ibgw, input%gw%nbgw-1, igroup
               stop
             end if
           else
             if( (wf_groups( igroup)%fst .lt. 1) .or. (wf_groups( igroup)%fst .gt. nstfv)) then
-              write( *, '(" Error (wannier_readinput): lower band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")'), &
+              write(*,*)
+              write( *, '("Error (wannier_readinput): lower band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")'), &
                   wf_groups( igroup)%fst, 1, nstfv-1, igroup
               stop
             end if
@@ -1093,13 +1104,15 @@ module mod_wannier
 
           if( input%properties%wannier%input .eq. "gw") then
             if( wf_groups( igroup)%lst .gt. input%gw%nbgw) then
-              write( *, '(" Error (wannier_readinput): upper band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")'), &
+              write(*,*)
+              write( *, '("Error (wannier_readinput): upper band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")'), &
                   wf_groups( igroup)%lst, wf_groups( igroup)%fst+1, input%gw%nbgw, igroup
               stop
             end if
           else
             if( wf_groups( igroup)%lst .gt. nstfv) then
-              write( *, '(" Error (wannier_readinput): upper band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")'), &
+              write(*,*)
+              write( *, '("Error (wannier_readinput): upper band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")'), &
                   wf_groups( igroup)%lst, wf_groups( igroup)%fst+1, nstfv, igroup
               stop
             end if
@@ -1126,21 +1139,24 @@ module mod_wannier
 
         inquire( file=trim( wf_filename)//"_TRANSFORM"//trim( filext), exist=success)
         if( .not. success) then
-          write(*,*) 'Error (wannier_readinput): File '//trim( wf_filename)//"_TRANSFORM"//trim( filext)//' does not exist.'
+          write(*,*)
+          write(*, '"(Error (wannier_readinput): File '//trim( wf_filename)//"_TRANSFORM"//trim( filext)//' does not exist.")')
           return
         end if
         open( un, file=trim( wf_filename)//"_TRANSFORM"//trim( filext), action='READ', form='UNFORMATTED', status='OLD')
         read( un) fst_, lst_, nst_, nwf_, nkpt_, disentangle_
         !wf_disentangle = disentangle_
         if( (fst_ .ne. wf_fst) .or. (lst_ .ne. wf_lst)) then
-          write( *, '(" Warning (wannier_readinput): different band-ranges in input (",I4,":",I4,") and file (",I4,":",I4,").")'), wf_fst, wf_lst, fst_, lst_
+          write(*,*)
+          write( *, '("Warning (wannier_readinput): different band-ranges in input (",I4,":",I4,") and file (",I4,":",I4,").")'), wf_fst, wf_lst, fst_, lst_
           write( *, '(" Use data from file.")')
           wf_fst = fst_
           wf_lst = lst_
           wf_nst = nst_
         end if
         if( nwf_ .ne. wf_nwf) then
-          write( *, '(" Warning (wannier_readinput): different number of Wannier functions in input (",I4,") and file (",I4,").")') wf_nwf, nwf_
+          write(*,*)
+          write( *, '("Warning (wannier_readinput): different number of Wannier functions in input (",I4,") and file (",I4,").")') wf_nwf, nwf_
           write( *, '(" Use data from file.")')
           wf_nwf = nwf_
         end if

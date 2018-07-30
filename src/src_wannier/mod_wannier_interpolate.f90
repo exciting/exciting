@@ -777,6 +777,7 @@ module mod_wfint
       end do
 
       if( lammax .ne. maxdim) then
+        write(*,*)
         write(*,'("Error (wfint_interpolate_density): Oops! Something went wrong.")')
         stop
       end if
@@ -1125,7 +1126,8 @@ subroutine wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, td
       genjdos = .false.
       if( present( jdos)) genjdos = .true.
       if( genjdos .and. (.not. present( mtrans) .or. .not. present( ntrans))) then
-        write(*,*) "Error (wfint_interpolate_dos): Joint DOS requested but missing arguments for number of transitions."
+        write(*,*)
+        write(*, '("Error (wfint_interpolate_dos): Joint DOS requested but missing arguments for number of transitions.")')
         stop
       end if
 
@@ -1428,7 +1430,8 @@ subroutine wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, td
         maxdim = max( maxdim, maxval( lamcnt( :, is)))
       end do
       if( maxdim .ne. lammax) then
-        write( *, '(" Error (wfint_interpolate_dmat): Inconsistent input. Check lmax and lammax.")')
+        write(*,*)
+        write( *, '("Error (wfint_interpolate_dmat): Inconsistent input. Check lmax and lammax.")')
         stop
       end if
 

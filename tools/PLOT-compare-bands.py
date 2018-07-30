@@ -8,6 +8,8 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pylab as pyl
 import os
+import numpy as np
+from readrawdata import readrawdata
 
 import matplotlib.style
 if matplotlib.__version__.split(".")[0]=="2": matplotlib.style.use('classic')
@@ -19,17 +21,20 @@ factor=27.211396132 ## conversion hartree -> eV
 
 narg = len(sys.argv)-1
 lgw  = False
-gw   = " "
+lwa  = False
+case = " "
 
 if (narg > 0): yymin = float(sys.argv[1])
 if (narg > 1): yymax = float(sys.argv[2])
-if (narg > 2): gw    =   str(sys.argv[3])
-if (gw == "GW" or gw == "gw"): lgw = True
+if (narg > 2): case  =   str(sys.argv[3])
+if (case.strip().lower() == "gw"): lgw = True
+if (case.strip().lower() == "wannier"): lwa = True
 
-if lgw: print "\n Comparison for GW calculations\n"
+if lgw: print( "\n Comparison for GW calculations\n")
+if lwa: print( "\n Comparison for WANNIER calculations\n")
 
 if ( os.path.exists('GW_INFO.OUT') and not lgw ):
-    print "\n ERROR: This is a GW directory! Check your command line:\n"
+    print( "\n ERROR: This is a GW directory! Check your command line:\n")
     sys.exit(" Usage: PLOT-compare-bands.py Energy_min Energy_max GW\n")
     
 if ( not os.path.exists('GW_INFO.OUT') and lgw ):
@@ -44,83 +49,98 @@ if ( not os.path.exists('GW_INFO.OUT') and lgw ):
 root=os.getcwd()
 
 if (not lgw):
-    print "\n################################################\n"
-    print " Enter the names of the 2 directories to compare\n"
-    print "------------------------------------------------\n"
+    print( "\n################################################\n")
+    print( " Enter the names of the 2 directories to compare\n")
+    print( "------------------------------------------------\n")
     dirone=raw_input(" Directory 1 ==> ")
     dirtwo=raw_input(" Directory 2 ==> ")
     print 
-    print "################################################\n"
+    print( "################################################\n")
+
+    wandir = 0
+    if ( os.path.exists(root+"/"+dirone+"/WANNIER_INFO.OUT")):
+        wandir = 1
+        if( not lwa):
+            print( "\n ERROR: Directory 1 is a WANNIER directory! Check your command line:\n")
+            sys.exit(" Usage: PLOT-compare-bands.py Energy_min Energy_max WANNIER\n")
+        
+    if ( os.path.exists(root+"/"+dirtwo+"/WANNIER_INFO.OUT")):
+        if( wandir == 1):
+            sys.exit( "\n ERROR: Both directories are WANNIER directories! Nothing to compare with.\n")
+        else:
+            wandir = 2
+        if( not lwa):
+            print( "\n ERROR: Directory 2 is a WANNIER directory! Check your command line:\n")
+            sys.exit(" Usage: PLOT-compare-bands.py Energy_min Energy_max WANNIER\n")
+    
+    if ( wandir == 0 and lwa):
+        sys.exit(" ERROR: No directory is a WANNIER directory! Delete WANNIER from the command line!\n")
 
 #-------------------------------------------------------------------------------
 # Read data from dirone
 
-ksene=[]
-list1=[]
-list2=[]
-if  lgw:
-    infile="BAND.OUT"
-    dirone="KS"
+if lgw:
+    infile=root+"/BAND.OUT"
+    label1 = "KS"
+elif lwa:
+    infile=root+"/"+dirone+"/BAND.OUT"
+    label1 = dirone
+    if( wandir == 1):
+        label1 += " F"
 else:
     infile=root+"/"+dirone+"/BAND.OUT"
-for line in open(infile):
-    i_line=line.split()
-    if len(i_line):
-       list1.append(float(i_line[0]))
-       list2.append(float(i_line[1])*factor) # convert to eV
-    else:
-       ksene.append([list1,list2])
-       list1=[]
-       list2=[]
+    label1 = dirone
+band1, dim1 = readrawdata( infile)
+band1[:,1,:] *= factor
 
 #-------------------------------------------------------------------------------
 # Read data from dirtwo
 
-gwene=[]
-list1=[]
-list2=[]
-if  lgw:
-    infile2="BAND-QP.OUT"
-    dirtwo="$\mathregular{G_0W_0}$"
+if lgw:
+    infile=root+"/BAND-QP.OUT"
+    label2 = "$\mathregular{G_0W_0}$"
+elif lwa:
+    infile=root+"/"+dirtwo+"/BAND.OUT"
+    label2 = dirtwo
+    if( wandir == 2):
+        label2 += " F"
 else:
-    infile2=root+"/"+dirtwo+"/BAND.OUT"
-for line in open(infile2):
-    i_line=line.split()
-    if len(i_line):
-       list1.append(float(i_line[0]))
-       list2.append(float(i_line[1])*factor) # convert to eV
+    infile = root+"/"+dirtwo+"/BAND.OUT"
+    label2 = dirtwo
+band2, dim2 = readrawdata( infile)
+band2[:,1,:] *= factor
+
+#-------------------------------------------------------------------------------
+# Read Wannier bands if needed
+
+if lwa:
+    if( wandir == 1):
+        infile=root+"/"+dirone+"/BAND_WANNIER.OUT"
+        label3 = dirone+" W"
     else:
-       gwene.append([list1,list2])
-       list1=[]
-       list2=[]
+        infile=root+"/"+dirtwo+"/BAND_WANNIER.OUT"
+        label3 = dirtwo+" W"
+    band3, dim3 = readrawdata( infile)
+    band3[:,1,:] *= factor
 
 #-------------------------------------------------------------------------------
 # Read info about x-ticks position
 
-bandlines=[]
-
-if  lgw:
-    infile3="BANDLINES.OUT"
+if lgw:
+    infile=root+"/BANDLINES.OUT"
 else:
-    infile3=root+"/"+dirtwo+"/BANDLINES.OUT"
-fid=open(infile3)
-while 1:
-    line=fid.readline()
-    if not line:
-        break
-    i_line=line.split()
-    bandlines.append(float(i_line[0]))
-    # skip next two lines
-    fid.readline()
-    fid.readline()
+    infile=root+"/"+dirtwo+"/BANDLINES.OUT"
+bandlin, bandlindim = readrawdata( infile)
+bandlines = bandlin[:,0,0]
     
 #-------------------------------------------------------------------------------
 # Read info about x-ticks labels
   
-if  lgw:
-    ifile = open("input.xml","r")
+if lgw:
+    infile = root+"/input.xml"
 else:
-    ifile = open(dirtwo+"/input.xml","r")
+    infile = root+"/"+dirtwo+"/input.xml"
+ifile = open( infile, "r")
 iroot = et.parse(ifile).getroot()
 iphod = -1
 while True: 
@@ -137,9 +157,7 @@ llist = []
 for i in range(len(ipath)):
     label = " "
     if 'label' in ipath[i].attrib: label = ipath[i].attrib['label']
-    if ( label == 'Gamma'): label = u'\u0393'
-    if ( label == 'gamma'): label = u'\u0393'
-    if ( label == 'GAMMA'): label = u'\u0393'
+    if ( label.strip().lower() == 'gamma'): label = u'\u0393'
     llist.append(label)
 
 #-------------------------------------------------------------------------------
@@ -147,24 +165,24 @@ for i in range(len(ipath)):
 
 if (not lgw):
     ivbm=4
-    ks0=max(ksene[ivbm-1][1])
-    gw0=max(gwene[ivbm-1][1])
-    for i in range(len(ksene)):
-        for j in range(len(ksene[i][1])):
-            ksene[i][1][j]=ksene[i][1][j]-ks0
-
-    for i in range(len(gwene)):
-        for j in range(len(gwene[i][1])):
-            gwene[i][1][j]=gwene[i][1][j]-gw0
-        
+    bnd0 = np.amax( band1[ivbm-1,1,:])
+    band1[:,1,:] -= bnd0
+    bnd0 = np.amax( band2[ivbm-1,1,:])
+    band2[:,1,:] -= bnd0
+    if lwa: 
+        bnd0 = np.amax( band3[ivbm-1,1,:])
+        band3[:,1,:] -= bnd0
 #-------------------------------------------------------------------------------
 # Settings for the plot 
     
 figcolor = 'white'
 dpi = 300
-fig = plt.figure(figsize=(15,10),dpi=dpi)
-fig.figurePatch.set_edgecolor(figcolor)
-fig.figurePatch.set_facecolor(figcolor)
+if lwa:
+    fig = plt.figure(figsize=(25,10),dpi=dpi)
+else:
+    fig = plt.figure(figsize=(15,10),dpi=dpi)
+fig.patch.set_edgecolor(figcolor)
+fig.patch.set_facecolor(figcolor)
 
 mpl.rcParams['axes.linewidth']  = 4.0     # set the value globally
 mpl.rcParams['grid.linewidth']  = 1.5
@@ -182,8 +200,20 @@ plt.rcParams['ytick.major.pad'] = 10
 #-------------------------------------------------------------------------------
 # Band structure plot 
 
-ax1 = fig.add_axes([0.14,0.1,0.8,0.8])
-ax1.xaxis.grid(True,which='major',color='k',linestyle='-',linewidth=3)
+#ax1 = fig.add_axes([0.14,0.1,0.8,0.8])
+if lwa:
+    ax1 = fig.add_subplot( 121)
+    ax2 = fig.add_subplot( 122, sharex=ax1, sharey=ax1)
+    ax1.xaxis.grid(True,which='major',color='k',linestyle='-',linewidth=3)
+    ax2.xaxis.grid(True,which='major',color='k',linestyle='-',linewidth=3)
+    ax1.axhline(y=0,linestyle="dashed",linewidth=3,color="black")
+    ax2.axhline(y=0,linestyle="dashed",linewidth=3,color="black")
+    plt.setp( ax2.get_yticklabels(), visible=False)
+else:
+    ax1 = fig.add_subplot( 111)
+    ax1.xaxis.grid(True,which='major',color='k',linestyle='-',linewidth=3)
+    ax1.axhline(y=0,linestyle="dashed",linewidth=3,color="black")
+
 ax1.xaxis.set_label_position('bottom')
 ax1.set_xticks(bandlines)
 ax1.set_xticklabels(llist)
@@ -192,53 +222,46 @@ ax1.set_ylabel('Energy [eV]')
 for line in ax1.get_xticklines() + ax1.get_yticklines():
     line.set_markersize(10)
     line.set_markeredgewidth(2)
+if lwa:
+    for line in ax2.get_xticklines() + ax2.get_yticklines():
+        line.set_markersize(10)
+        line.set_markeredgewidth(2)
 
-ymin=1000.0
-ymax=-1000.0
-## get values for ymin and ymax
-len1=len(ksene) 
-len2=len(gwene)
-if len1<len2:
-        bandlen=len1
-	for i in range(len(ksene)):
-		y=min(ksene[i][1])
-    		if (y<ymin):
-        		ymin=y
-    		y=max(ksene[i][1])
-    		if (y>ymax):
-        		ymax=y
-
-else:
-        bandlen=len2
-        for i in range(len(gwene)):
-                y=min(gwene[i][1])
-                if (y<ymin):
-                        ymin=y
-                y=max(gwene[i][1])
-                if (y>ymax):
-                        ymax=y
+bandlen = min( dim1[2], dim2[2])
+if lwa:
+    bandlen = min( bandlen, dim3[2])
                         
-ax1.axhline(y=0,linestyle="dashed",linewidth=3,color="black")
-
 for i in range(bandlen-1):
-    ax1.plot(ksene[i][0],ksene[i][1],'b',lw=3.0)
-    ax1.plot(gwene[i][0],gwene[i][1],'r',lw=3.0)
+    ax1.plot( band1[i,0,:], band1[i,1,:], color='mediumblue', lw=3.0)
+    ax1.plot( band2[i,0,:], band2[i,1,:], color='firebrick', lw=3.0)
 i=bandlen-1
 
-ax1.plot(ksene[i][0],ksene[i][1],'b',lw=3.0,label=dirone)
-ax1.plot(gwene[i][0],gwene[i][1],'r',lw=3.0,label=dirtwo)
+ax1.plot( band1[i,0,:], band1[i,1,:], color='mediumblue', lw=3.0, label=label1)
+ax1.plot( band2[i,0,:], band2[i,1,:], color='firebrick', lw=3.0, label=label2)
 
 leg=ax1.legend(loc=4,borderaxespad=0.5)
 leg.get_frame().set_linewidth(4.0)
 leg.get_frame().set_edgecolor("grey")
 leg.draw_frame(True)
 
-#ax1.set_xlim(0,max(ksene[0][0]))
-#ax1.set_ylim(-25,15)
+if lwa:
+    for i in range(bandlen-1):
+        ax2.plot( band1[i,0,:], band1[i,1,:], color='mediumblue', lw=3.0)
+        ax2.plot( band3[i,0,:], band3[i,1,:], color='firebrick', lw=3.0)
+    i=bandlen-1
+    
+    ax2.plot( band1[i,0,:], band1[i,1,:], color='mediumblue', lw=3.0, label=label1)
+    ax2.plot( band3[i,0,:], band3[i,1,:], color='firebrick', lw=3.0, label=label3)
+
+    leg=ax2.legend(loc=4,borderaxespad=0.5)
+    leg.get_frame().set_linewidth(4.0)
+    leg.get_frame().set_edgecolor("grey")
+    leg.draw_frame(True)
 
 if ( narg > 0): plt.ylim(ymin=yymin)
 if ( narg > 1): plt.ylim(ymax=yymax)
 
+fig.tight_layout()
 fig.savefig('PLOT.png',format='png',bbox_inches=0,dpi=300)
 fig.savefig('PLOT.eps',format='eps',bbox_inches=0)
 
