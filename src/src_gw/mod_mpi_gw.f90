@@ -40,8 +40,9 @@ module mod_mpi_gw
 contains
 
   !-----------------------------------------------------------------------------
-    subroutine init_mpi_gw
+    subroutine init_mpi_gw()
 #ifdef MPI
+        integer :: fid
         integer :: namelen
         character(len=MPI_MAX_PROCESSOR_NAME) :: processor_name
         
@@ -52,9 +53,10 @@ contains
         call MPI_Comm_rank(mycomm,myrank,ierr)
         
         call MPI_get_processor_name(processor_name,namelen,ierr)
-        write(*,*)
-        write(*,*) "Process ", myrank, " of ", nproc_tot, &
-        &          " running on ", trim(processor_name)
+        !write(*,*)
+        !write(*,*) "Process ", myrank, " of ", nproc_tot, &
+        !&          " running on ", trim(processor_name)
+        !write(*,*)
 #else
         nproc_tot = 1
         nproc_col = 1

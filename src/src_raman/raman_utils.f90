@@ -136,8 +136,10 @@ Contains
       Character (*), Intent (In) :: fnam
     ! local variables
       logical :: existent, opened
-      integer :: iw, funit
+      integer :: iw, funit, ncommentlines
       real (8) :: w, eps_re, eps_im, eps_rekk
+    ! Set number of comment lines to skip in EPSILON*.OUT
+      ncommentlines=18
     ! check if file exists
       Inquire (File=trim(fnam), Exist=existent)
       if (.not. existent) then
@@ -151,6 +153,9 @@ Contains
       End If
       Call getunit (funit)
       Open (funit, File=trim(fnam), Action='read')
+      do iw = 1, ncommentlines
+         read(funit,*)
+      enddo
       do iw = 1, nwdf
          read(funit, *) w, eps_re, eps_im
          df(imode, istep, i1, i2, iw) = cmplx (eps_re, eps_im, 8)

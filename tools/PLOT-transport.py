@@ -193,7 +193,7 @@ else:
 #   "ELECTCOND_":{False:r"$\mathbf{\sigma/\tau}$ $\mathbf{[(\Omega cm\ s)^{-1}]}$",True:r"$\mathbf{\sigma$ $[(\Omega cm)^{-1}]}$"},
 #   "THERMALCOND_":{False:r"$\mathbf{\kappa/\tau}$ $\mathbf{[W (cm K\ s)^{-1}]}$",True:r"$\mathbf{\kappa$ $[W (K cm\ )^{-1}]}$"},
 #   "PF_":{False:r"$\mathbf{\sigma S^2/\tau}$ $\mathbf{[\mu W (cm K^2\ s)^{-1}]}$",True:r"$\mathbf{\sigma S^2$ $[\mu W/cm$ $K^2]}$"}}
-K={"SEEBECK_":{True:r"${S\ [\mu V/K]$",False:r"$S\ [\mu V/K]$"},"ZT_":{True:r"$ZT$",False:r"$ZT$"},
+K={"SEEBECK_":{True:r"$S\ [\mu V/K]$",False:r"$S\ [\mu V/K]$"},"ZT_":{True:r"$ZT$",False:r"$ZT$"},
    "ELECTCOND_":{False:r"$\sigma/\tau$ $[(\Omega cm\ s)^{-1}]$",True:r"$\sigma$ $[(\Omega cm)^{-1}]$"},
    "THERMALCOND_":{False:r"$\kappa/\tau$ $[W (cm K\ s)^{-1}]$",True:r"$\kappa$ $[W (K cm\ )^{-1}]$"},
    "PF_":{False:r"$\sigma S^2/\tau$ $[\mu W (cm K^2\ s)^{-1}]$",True:r"$\sigma S^2$ $[\mu W/cm$ $K^2]$"}}

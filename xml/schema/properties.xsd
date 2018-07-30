@@ -635,7 +635,7 @@
 
             <xs:attribute ex:importance="expert" ex:unit="" name="tsiout" type="xs:boolean" default="false">
               <xs:annotation>
-                <xs:documentation>If <pre>"true"</pre>, transport coefficients are given in SI units: Seebeckcoefficient in V/K , electrical conductivity over tau in S/(m s) , thermal conductivity over tau in W/(mK s). </xs:documentation>
+                <xs:documentation>If <pre>"true"</pre>, transport coefficients are given in SI units: Seebeck coefficient in V/K , electrical conductivity over tau in S/(m s) , thermal conductivity over tau in W/(mK s). </xs:documentation>
               </xs:annotation>
             </xs:attribute>            
 
@@ -677,7 +677,7 @@
 
             <xs:attribute ex:importance="expert" ex:unit="" name="windmu" type="vect2d" default="0.0d0 0.0d0">
               <xs:annotation>
-                <xs:documentation>Window of the chemical potential [mu_inital mu_final] in Kelvin.</xs:documentation>
+                <xs:documentation>Window of the chemical potential [mu_inital mu_final] in Ha.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             
