@@ -115,7 +115,7 @@ ax1.text(1,1.05,plabel,size=fontlabel, color=mcolor,
              transform=ax1.transAxes,ha='right',va='center',rotation=0)
 
 leg = ax1.legend(handles=[legend1,legend2],loc='best',borderaxespad=1.0)
-leg.get_frame().set_edgecolor('#CCCCCC')
+leg.get_frame().set_edgecolor('grey')
 
 fig.subplots_adjust(left=None, bottom=None, right=None, wspace=None, hspace=None)
 

@@ -65,7 +65,8 @@ module mod_wannier_projection
               call rschroddme( 0, l, 0, elo, nr, spr( :, is), vr, nn, p0s, hp0, q0s, q1s) 
               flo = hp0( nr)
               if( ehi .lt. elo) then
-                write(*,*) 'Error (wfpro_getline): Oops! This was not supposed to happen.'
+                write(*,*)
+                write(*, '("Error (wfpro_getline): Oops! This was not supposed to happen.")')
                 stop
               endif
               do while( ehi - elo .gt. 1d-6)
@@ -544,13 +545,15 @@ module mod_wannier_projection
         ! if special projectors are defined use them
         if( (wf_groups( igroup)%method .eq. "pro") .or. (wf_groups( igroup)%method .eq. "promax")) then
           if( wf_groups( igroup)%nprojused .ne. wf_groups( igroup)%nwf) then
-            write( *, '(" Error (wfpro_selectprojf): The number of projectors must be equal to the number of Wannier functions for group ",I2,".")') igroup
+            write(*,*)
+            write( *, '("Error (wfpro_selectprojf): The number of projectors must be equal to the number of Wannier functions for group ",I2,".")') igroup
             stop
           end if
           do iproj = 1, nproj1
             if( (input%properties%wannier%grouparray( igroup)%group%projectorarray( iproj)%projector%nr .lt. 1) .or. &
                 (input%properties%wannier%grouparray( igroup)%group%projectorarray( iproj)%projector%nr .gt. wf_nprojtot)) then
-              write( *, '(" Error (wfpro_selectprojf): ",I4," is not a valid index for projection local-orbitals in group ",I2,".")') &
+              write(*,*)
+              write( *, '("Error (wfpro_selectprojf): ",I4," is not a valid index for projection local-orbitals in group ",I2,".")') &
                   input%properties%wannier%grouparray( igroup)%group%projectorarray( iproj)%projector%nr, igroup
               write(*, '(" Here is a list of local-orbitals that can be used for projection:")')
               call wfpro_showproj
@@ -564,13 +567,15 @@ module mod_wannier_projection
             .or. (wf_groups( igroup)%method .eq. "scdmmax") &
             .or. (wf_groups( igroup)%method .eq. "disentangle")) then
           if( wf_groups( igroup)%nprojused .lt. wf_groups( igroup)%nwf) then
-            write( *, '(" Error (wfpro_selectprojf): The number of projectors must be greater or equal to the number of Wannier functions for group ",I2,".")') igroup
+            write(*,*)
+            write( *, '("Error (wfpro_selectprojf): The number of projectors must be greater or equal to the number of Wannier functions for group ",I2,".")') igroup
             stop
           end if
           do iproj = 1, nproj1
             if( (input%properties%wannier%grouparray( igroup)%group%projectorarray( iproj)%projector%nr .lt. 1) .or. &
                 (input%properties%wannier%grouparray( igroup)%group%projectorarray( iproj)%projector%nr .gt. wf_nprojtot)) then
-              write( *, '(" Error (wfpro_selectprojf): ",I4," is not a valid index for projection local-orbitals in group ",I2,".")') &
+              write(*,*)
+              write( *, '("Error (wfpro_selectprojf): ",I4," is not a valid index for projection local-orbitals in group ",I2,".")') &
                   input%properties%wannier%grouparray( igroup)%group%projectorarray( iproj)%projector%nr, igroup
               write(*, '(" Here is a list of local-orbitals that can be used for projection:")')
               call wfpro_showproj

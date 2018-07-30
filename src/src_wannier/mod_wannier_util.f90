@@ -169,7 +169,7 @@ module mod_wfutil
         write(*,*)
         write(*, '("Info (wfutil_bandstructure):")')
         write(*,*) "band structure plot written to BAND_WANNIER_Sss_Aaaaa"//trim( fxt)
-        write(*, '("	for all species and atoms")')
+        write(*,*) "for all species and atoms"
         deallocate( bc)
 
       ! without bandcharacter
@@ -236,7 +236,7 @@ module mod_wfutil
         write( un, *)
       end do
       close( un)
-      write(*,*) "vertex location lines written to BANDLINES_WANNIER"//trim( fxt)
+      write(*,*) "Vertex location lines written to BANDLINES_WANNIER"//trim( fxt)
       write(*,*)
       call xml_endElement( xf, "bandstructure")
       call xml_close( xf)
@@ -294,7 +294,8 @@ module mod_wfutil
 
       if( minval( input%properties%dos%ngridkint, 1) .le. 0) then
         intgrid = 2*wf_kset%ngridk
-        write(*, '(" Warning (wfutil_dos): No or invalid interpolation grid (ngridkint) given: I use twice the original grid.")')
+        write(*,*)
+        write(*, '("Warning (wfutil_dos): No or invalid interpolation grid (ngridkint) given: I use twice the original grid.")')
         write(*,'(" given grid: ",3I5)') input%properties%dos%ngridkint
         write(*,'(" used grid:  ",3I5)') intgrid
       else
@@ -547,14 +548,17 @@ module mod_wfutil
 
       nvm = nint( chgval/occmax)
       if( (wf_fst .ne. 1) .and. (wf_fst .le. nvm)) then
-        write( *, '(" Warning (wfint_find_bandgap): The lowest wannierized band is ",I3,". All bands below are considered to be fully occupied.")') wf_fst
+        write(*,*)
+        write( *, '("Warning (wfint_find_bandgap): The lowest wannierized band is ",I3,". All bands below are considered to be fully occupied.")') wf_fst
       end if
       if( wf_fst .gt. nvm) then
-        write( *, '(" Warning (wfint_find_bandgap): No valence bands have been wannierized. Cannot find VBM.")')
+        write(*,*)
+        write( *, '("Warning (wfint_find_bandgap): No valence bands have been wannierized. Cannot find VBM.")')
         findvbm = .false.
       end if
       if( (wf_lst .le. nvm)) then
-        write( *, '(" Warning (wfint_find_bandgap): No conduction bands have been wannierized. Cannot find CBM.")')
+        write(*,*)
+        write( *, '("Warning (wfint_find_bandgap): No conduction bands have been wannierized. Cannot find CBM.")')
         findcbm = .false.
       end if
 
@@ -564,7 +568,8 @@ module mod_wfutil
         ndiv = input%properties%wanniergap%ngridkint
       else
         call getoptkgrid( rad, wf_kset%bvec, ndiv, opt, ropt)
-        write( *, '(" Warning (wfint_find_bandgap): No interpolation grid given. I use ",3i4,".")') ndiv
+        write(*,*)
+        write( *, '("Warning (wfint_find_bandgap): No interpolation grid given. I use ",3i4,".")') ndiv
       end if
 
       w = (/1.d0, 1.d0, 1.d0/)
@@ -578,7 +583,8 @@ module mod_wfutil
 
       if( findvbm .and. findcbm) then
         if( maxval( wfint_eval( nvm, :)) .gt. minval( wfint_eval( nvm+1, :))) then
-          write( *, '(" Error (wfint_find_bandgap): I think your system is metalic. No gap can be found.")')
+          write(*,*)
+          write( *, '("Error (wfint_find_bandgap): I think your system is metalic. No gap can be found.")')
           return
         end if
       end if
@@ -748,7 +754,8 @@ module mod_wfutil
       call wannier_genradfun
   
       if ((fst<1) .or. (lst>wf_nwf)) then
-        write (*, '("Error (wfutil_plot): state out of range : ", I8)') ist
+        write(*,*)
+        write(*, '("Error (wfutil_plot): state out of range : ", I8)') ist
         stop
       end if
   
@@ -761,12 +768,14 @@ module mod_wfutil
         if (associated(input%properties%wannierplot%plot1d)) then
           nv = size(input%properties%wannierplot%plot1d%path%pointarray)
           if (nv < 1) then
-            write (*,*) "Error (wfutil_plot): Wrong plot specification!"
+            write(*,*)
+            write(*, '("Error (wfutil_plot): Wrong plot specification!")')
             stop
           end if
           np = input%properties%wannierplot%plot1d%path%steps
           If (np < nv) then
-            write (*,*) "Error (wfutil_plot): Wrong plot specification!"
+            write(*,*)
+            write(*, '("Error (wfutil_plot): Wrong plot specification!")')
             stop
           end if
   
@@ -926,6 +935,7 @@ module mod_wfutil
       !----------------
       if (associated(input%properties%wannierplot%plot1d)) then
         ! Output
+        write(*,*)
         write(*,'("Info (wfutil_plot):")')
         do ist = fst, lst
           write(fname,'("wannier1d-",i4.4,".dat")') ist
@@ -948,6 +958,7 @@ module mod_wfutil
       ! 2D case
       !----------------
       if (associated(input%properties%wannierplot%plot2d)) then
+        write(*,*)
         write(*,'("Info (wannier_plot):")')
         do ist = fst, lst
           write(fname,'("wannier2d-",i4.4,".xsf")') ist
@@ -968,6 +979,7 @@ module mod_wfutil
       ! 3D case
       !----------------
       if (associated(input%properties%wannierplot%plot3d)) then
+        write(*,*)
         write(*,'("Info (wannier_plot):")')
         do ist = fst, lst
           write(fname,'("wannier3d-",i4.4,".xsf")') ist

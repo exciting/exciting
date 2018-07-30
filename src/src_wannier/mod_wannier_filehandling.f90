@@ -32,25 +32,29 @@ module mod_wannier_filehandling
 
       inquire( file=trim( wf_filename)//"_SETUP"//trim( filext), exist=success)
       if( .not. success) then
-        write(*,*) 'Error (wannier_readsetup): File '//trim( wf_filename)//"_SETUP"//trim( filext)//' does not exist.'
+        write(*,*)
+        write(*, '("Error (wannier_readsetup): File '//trim( wf_filename)//"_SETUP"//trim( filext)//' does not exist.")')
         return
       end if
       open( un, file=trim( wf_filename)//"_SETUP"//trim( filext), action='READ', form='UNFORMATTED', status='OLD')
       read( un) fst_, lst_, nst_, nwf_, nkpt_, nprojtot_, disentangle_
       !wf_disentangle = disentangle_
       if( (fst_ .ne. wf_fst) .or. (lst_ .ne. wf_lst)) then
-        write( *, '(" Warning (wannier_readsetup): different band-ranges in input (",I4,":",I4,") and file (",I4,":",I4,").")'), wf_fst, wf_lst, fst_, lst_
+        write(*,*)
+        write( *, '("Warning (wannier_readsetup): different band-ranges in input (",I4,":",I4,") and file (",I4,":",I4,").")'), wf_fst, wf_lst, fst_, lst_
         write( *, '(" Use data from file.")')
         wf_fst = fst_
         wf_lst = lst_
       end if
       if( nwf_ .ne. wf_nwf) then
-        write( *, '(" Warning (wannier_readsetup): different number of Wannier functions in input (",I4,") and file (",I4,").")') wf_nwf, nwf_
+        write(*,*)
+        write( *, '("Warning (wannier_readsetup): different number of Wannier functions in input (",I4,") and file (",I4,").")') wf_nwf, nwf_
         write( *, '(" Use data from file.")')
         wf_nwf = nwf_
       end if
       if( nkpt_ .ne. wf_kset%nkpt) then
-        write( *, '(" Error (wannier_readsetup): different number of k-points in input (",I4,") and file (",I4,").")'), wf_kset%nkpt, nkpt_
+        write(*,*)
+        write( *, '("Error (wannier_readsetup): different number of k-points in input (",I4,") and file (",I4,").")'), wf_kset%nkpt, nkpt_
         stop
       end if
 
@@ -97,7 +101,8 @@ module mod_wannier_filehandling
       success = .true.
       inquire( file=trim( wf_filename)//"_TRANSFORM"//trim( filext), exist=success)
       if( .not. success) then
-        write(*,*) 'Error (wannier_readtransform): File '//trim( wf_filename)//"_TRANSFORM"//trim( filext)//' does not exist.'
+        write(*,*)
+        write(*, '("Error (wannier_readtransform): File '//trim( wf_filename)//"_TRANSFORM"//trim( filext)//' does not exist.")')
         return
       end if
       open( un, file=trim( wf_filename)//"_TRANSFORM"//trim( filext), action='READ', form='UNFORMATTED', status='OLD')
@@ -105,23 +110,27 @@ module mod_wannier_filehandling
       ! global parameters
       read( un) fst_, lst_, nst_, nwf_, nkpt_, ngroups_, wf_nprojtot
       if( (fst_ .ne. wf_fst) .or. (lst_ .ne. wf_lst)) then
-        write( *, '(" Warning (wannier_readtransform): different band-ranges in input (",I4,":",I4,") and file (",I4,":",I4,").")'), wf_fst, wf_lst, fst_, lst_
+        write(*,*)
+        write( *, '("Warning (wannier_readtransform): different band-ranges in input (",I4,":",I4,") and file (",I4,":",I4,").")'), wf_fst, wf_lst, fst_, lst_
         write( *, '(" Use data from file.")')
         wf_fst = fst_
         wf_lst = lst_
       end if
       wf_nst = wf_lst - wf_fst + 1
       if( nwf_ .ne. wf_nwf) then
-        write( *, '(" Warning (wannier_readtransform): different number of Wannier functions in input (",I4,") and file (",I4,").")') wf_nwf, nwf_
+        write(*,*)
+        write( *, '("Warning (wannier_readtransform): different number of Wannier functions in input (",I4,") and file (",I4,").")') wf_nwf, nwf_
         write( *, '(" Use data from file.")')
         wf_nwf = nwf_
       end if
       if( nkpt_ .ne. wf_kset%nkpt) then
-        write( *, '(" Error (wannier_readtransform): different number of k-points in input (",I4,") and file (",I4,").")'), wf_kset%nkpt, nkpt_
+        write(*,*)
+        write( *, '("Error (wannier_readtransform): different number of k-points in input (",I4,") and file (",I4,").")'), wf_kset%nkpt, nkpt_
         stop
       end if
       if( ngroups_ .ne. wf_ngroups) then
-        write( *, '(" Warning (wannier_readtransform): different groups of bands in input (",I4,") and file (",I4,").")') wf_ngroups, ngroups_
+        write(*,*)
+        write( *, '("Warning (wannier_readtransform): different groups of bands in input (",I4,") and file (",I4,").")') wf_ngroups, ngroups_
         write( *, '(" Use data from file.")')
         wf_ngroups = ngroups_
       end if
@@ -192,8 +201,9 @@ module mod_wannier_filehandling
         vkl_tmp( 3, :) = wf_kset%vkl( 3, :) - vkl_( 3)
         iz = minloc( norm2( vkl_tmp( :, :), 1), 1)
         if( norm2( vkl_tmp( :, iz)) .gt. input%structure%epslat) then
-          write( *, '(" Error (wannier_readtransform): k-point in file not in k-point-set.")')
-          write( *, '(3F23.6)') vkl_
+          write(*,*)
+          write( *, '("Error (wannier_readtransform): k-point in file not in k-point-set.")')
+          write( *, '(x,3F23.6)') vkl_
           stop
         end if
         do iy = 1, wf_nwf
@@ -229,7 +239,10 @@ module mod_wannier_filehandling
       !  end do
       !end do
       close( un)
-      if( success) write(*,*) 'Info (wannier_readtransform): Transformation matrices successfully read.'
+      if( success) then
+        write(*,*)
+        write(*, '("Info (wannier_readtransform): Transformation matrices successfully read.")')
+      end if
       return
     end subroutine wannier_readtransform
     
@@ -361,7 +374,10 @@ module mod_wannier_filehandling
         end do
         nlmomax = max( nlmomax, nlmo( is))
       end do
-      if( nlmomax .ne. lmmaxapw*apwordmax) write(*,*) "ERROR (wannier_writefun): wrong nlmomax"
+      if( nlmomax .ne. lmmaxapw*apwordmax) then
+        write(*,*)
+        write(*, '("Error (wannier_writefun): wrong nlmomax")')
+      end if
 
       call readstate
       call readfermi
@@ -532,33 +548,38 @@ module mod_wannier_filehandling
     
       read( un) wf_fst_, wf_lst_, lmaxapw_, apwordmax_, nlmomax_, nlotot_, lolmmax_, nlomax_, natmtot_, nrmtmax_, ngrtot_, ngrid_
       if( (wf_fst_ .ne. wf_fst) .or. (wf_lst_ .ne. wf_lst)) then
+        write(*,*)
         write(*, '("Error (wannier_readfun): invalid band ranges")')
-        write (*, '(" current	   : ", 2I8)') wf_fst, wf_lst
-        write (*, '(" in file      : ", 2I8)') wf_fst_, wf_lst_
+        write(*, '(" current	   : ", 2I8)') wf_fst, wf_lst
+        write(*, '(" in file      : ", 2I8)') wf_fst_, wf_lst_
         stop
       end if
       if( nrmtmax_ .ne. nrmtmax) then
+        write(*,*)
         write(*, '("Error (wannier_readfun): invalid number of radial points")')
-        write (*, '(" current	   : ", I8)') nrmtmax
-        write (*, '(" in file      : ", I8)') nrmtmax_
+        write(*, '(" current	   : ", I8)') nrmtmax
+        write(*, '(" in file      : ", I8)') nrmtmax_
         stop
       end if
       if( lmaxapw_ .ne. input%groundstate%lmaxapw) then
+        write(*,*)
         write(*, '("Error (wannier_readfun): invalid maximum l")')
-        write (*, '(" current	   : ", I8)') input%groundstate%lmaxapw
-        write (*, '(" in file      : ", I8)') lmaxapw_
+        write(*, '(" current	   : ", I8)') input%groundstate%lmaxapw
+        write(*, '(" in file      : ", I8)') lmaxapw_
         stop
       end if
       if( natmtot_ .ne. natmtot) then
+        write(*,*)
         write(*, '("Error (wannier_readfun): invalid number of atoms")')
-        write (*, '(" current	   : ", I8)') natmtot
-        write (*, '(" in file      : ", I8)') natmtot_
+        write(*, '(" current	   : ", I8)') natmtot
+        write(*, '(" in file      : ", I8)') natmtot_
         stop
       end if
       if( nlotot_ .ne. nlotot) then
+        write(*,*)
         write(*, '("Error (wannier_readfun): invalid number of local-orbitals")')
-        write (*, '(" current	   : ", I8)') nlotot
-        write (*, '(" in file      : ", I8)') nlotot_
+        write(*, '(" current	   : ", I8)') nlotot
+        write(*, '(" in file      : ", I8)') nlotot_
         stop
       end if
 
@@ -607,23 +628,27 @@ module mod_wannier_filehandling
       success = .true.
       inquire( file=trim( wf_filename)//"_EMAT"//trim( filext), exist=success)
       if( .not. success) then
-        write(*,*) 'Error (wannier_reademat): File '//trim( wf_filename)//"_EMAT"//trim( filext)//' does not exist.'
+        write(*,*)
+        write(*, '("Error (wannier_reademat): File '//trim( wf_filename)//"_EMAT"//trim( filext)//' does not exist.")')
         return
       end if
       open( un, file=trim( wf_filename)//"_EMAT"//trim( filext), action='READ', form='UNFORMATTED', status='OLD')
       read( un) fst_, lst_, nst_, ntot_, nkpt_
       if( (fst_ .gt. wf_fst) .or. (lst_ .lt. wf_lst)) then
-        write( *, '(" Error (wannier_reademat): bands in input (",I4,":",I4,") out of file band range (",I4,":",I4,").")'), wf_fst, wf_lst, fst_, lst_
+        write(*,*)
+        write( *, '("Error (wannier_reademat): bands in input (",I4,":",I4,") out of file band range (",I4,":",I4,").")'), wf_fst, wf_lst, fst_, lst_
         success = .false.
         return
       end if
       if( ntot_ .ne. wf_n_ntot) then
-        write( *, '(" Error (wannier_reademat): different number of BZ-neighbors in input (",I4,") and file (",I4,").")'), wf_n_ntot, ntot_
+        write(*,*)
+        write( *, '("Error (wannier_reademat): different number of BZ-neighbors in input (",I4,") and file (",I4,").")'), wf_n_ntot, ntot_
         success = .false.
         return
       end if
       if( nkpt_ .ne. wf_kset%nkpt) then
-        write( *, '(" Error (wannier_reademat): different number of k-points in input (",I4,") and file (",I4,").")'), wf_kset%nkpt, nkpt_
+        write(*,*)
+        write( *, '("Error (wannier_reademat): different number of k-points in input (",I4,") and file (",I4,").")'), wf_kset%nkpt, nkpt_
         success = .false.
         return
       end if
@@ -649,8 +674,9 @@ module mod_wannier_filehandling
             vkl_tmp( 3, :) = wf_kset%vkl( 3, :) - vkl_( 3)
             iz = minloc( norm2( vkl_tmp( :, :), 1), 1)
             if( norm2( wf_kset%vkl( :, iz) - vkl_(:)) .gt. input%structure%epslat) then
-              write( *, '(" Error (wannier_reademat): k-point in file not in k-point-set.")')
-              write( *, '(3F23.6)') vkl_
+              write(*,*)
+              write( *, '("Error (wannier_reademat): k-point in file not in k-point-set.")')
+              write( *, '(x,3F23.6)') vkl_
               success = .false.
               stop
             end if
@@ -662,8 +688,9 @@ module mod_wannier_filehandling
             end do
           end do
         else
-          write( *, '(" Error (wannier_reademat): neighboring vector in file not consistent with input.")')
-          write( *, '(3F23.6)') vln
+          write(*,*)
+          write( *, '("Error (wannier_reademat): neighboring vector in file not consistent with input.")')
+          write( *, '(x,3F23.6)') vln
         end if
       end do
       !do ik = 1, wf_kset%nkpt
@@ -896,20 +923,20 @@ module mod_wannier_filehandling
 
       call printbox( wf_info, '*', "Wannier functions")
       write( wf_info, *)
-      write( wf_info, '(6x,"#",20x,"localization center (lattice)",5x,"Omega (bohr^2)",3x,"Omega_I (bohr^2)",3x,"Omega_D (bohr^2)",2x,"Omega_OD (bohr^2)")')
+      write( wf_info, '(3x,"#",13x,"localization center (lattice)",11x,"Omega",6x,"Omega_I",6x,"Omega_D",5x,"Omega_OD")')
       write( wf_info, '(80("="))')
 
       do igroup = 1, wf_ngroups
         do i = wf_groups( igroup)%fwf, wf_groups( igroup)%lwf
           call r3mv( ainv, wf_centers( :, i), vl)
-          write( wf_info, '(6x,I4,7x,3F13.6,4(3x,F16.6))') i, vl, wf_omega( i), wf_omega_i( i), wf_omega_d( i), wf_omega_od( i)
+          write( wf_info, '(I4,3x,3F13.6,3x,4F13.6)') i, vl, wf_omega( i), wf_omega_i( i), wf_omega_d( i), wf_omega_od( i)
         end do
         if( igroup .lt. wf_ngroups) write( wf_info, '(80("-"))')
       end do
 
       write( wf_info, '(80("="))')
-      write( wf_info, '(50x,"total:",4(3x,F16.6))') sum( wf_omega), sum( wf_omega_i), sum( wf_omega_d), sum( wf_omega_od)
-      write( wf_info, '(48x,"average:",4(3x,F16.6))') sum( wf_omega)/wf_nwf, sum( wf_omega_i)/wf_nwf, sum( wf_omega_d)/wf_nwf, sum( wf_omega_od)/wf_nwf
+      write( wf_info, '(43x,"total:",4F13.6)') sum( wf_omega), sum( wf_omega_i), sum( wf_omega_d), sum( wf_omega_od)
+      write( wf_info, '(41x,"average:",4F13.6)') sum( wf_omega)/wf_nwf, sum( wf_omega_i)/wf_nwf, sum( wf_omega_d)/wf_nwf, sum( wf_omega_od)/wf_nwf
 
       write( wf_info, *)
       call flushifc( wf_info)
