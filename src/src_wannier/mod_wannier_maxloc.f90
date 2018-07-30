@@ -259,8 +259,10 @@ module mod_wannier_maxloc
       !************************************************************
 
       if( mlwf_omega .gt. omegastart+abs( omegastart)) then
+        write(*,*)
         write(*, '("Error (wannier_maxloc): Localization functional diverged. Procedure aborted after ",I4," loops.")') cntit
       else if( cntit .ge. maxit) then
+        write(*,*)
         write(*, '("Error (wannier_maxloc): Not converged after ",I6," cycles.")') maxit
       end if
         
@@ -647,7 +649,7 @@ module mod_wannier_maxloc
         last_step = step
       else
         write(*,*)
-        write(*,*) "Error (wannier_linesearch): Oops! This was not supposed to happen."
+        write(*, '("Error (wannier_linesearch): Oops! This was not supposed to happen.")')
         write(*,*)
         !stop
       end if
@@ -955,7 +957,8 @@ module mod_wannier_maxloc
 
       !if( .not. wf_initialized) call wannier_init
       if( .not. allocated( wf_m0)) then
-        write(*,*) "Error (wannier_loc): Matrix elements not available."
+        write(*,*)
+        write(*, '("Error (wannier_loc): Matrix elements not available.")')
         stop
       end if
       if( .not. allocated( wf_m)) allocate( wf_m( wf_nwf, wf_nwf, wf_kset%nkpt, wf_n_ntot))

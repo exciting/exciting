@@ -80,7 +80,8 @@ module mod_wannier_helper
           call generate_k_vectors( wf_kset_red, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .true., .true.)
           nstfv = int( chgval/2.d0) + input%groundstate%nempty + 1
         case default
-          write(*, '(" ERROR (wannier_setkpt): ",a," is not a valid input.")') input%properties%wannier%input
+          write(*,*)
+          write(*, '("Error (wannier_setkpt): ",a," is not a valid input.")') input%properties%wannier%input
           stop
       end select
       call generate_G_vectors( wf_Gset, bvec, intgv, input%groundstate%gmaxvr)
@@ -200,6 +201,7 @@ module mod_wannier_helper
         write( fname, '("EVALQP.OUT")')
         inquire( file=trim( fname), exist=exist)
         if( .not. exist) then
+          write(*,*)
           write( *, '("Error (wfint_init): File EVALQP.OUT does not exist!")')
           stop
         end if
@@ -262,17 +264,20 @@ module mod_wannier_helper
 
       nvm = nint( chgval/occmax)
       if( (fst .ne. 1) .and. (fst .le. nvm)) then
-        write( *, '(" Warning (wannier_occupy): The lowest band given is ",I3,". All bands below are considered to be fully occupied.")') fst
+        write(*,*)
+        write( *, '("Warning (wannier_occupy): The lowest band given is ",I3,". All bands below are considered to be fully occupied.")') fst
         occ_tmp( 1:(fst-1), :) = occmax
       end if
       if( fst .gt. nvm) then
-        write( *, '(" Warning (wannier_occupy): No valence bands given. All are considered to be unoccupied. Fermi energy set to lowest energy given.")')
+        write(*,*)
+        write( *, '("Warning (wannier_occupy): No valence bands given. All are considered to be unoccupied. Fermi energy set to lowest energy given.")')
         if( present( occ)) occ = 0.d0
         efermi = minval( eval( fst, :))
         return
       end if
       if( (lst .le. nvm)) then
-        write( *, '(" Warning (wannier_occupy): At least one conduction band has to be given in order to determine occupancies. All bands given are considered to be fully occupied. Fermi energy set to highest energy given.")')
+        write(*,*)
+        write( *, '("Warning (wannier_occupy): At least one conduction band has to be given in order to determine occupancies. All bands given are considered to be fully occupied. Fermi energy set to highest energy given.")')
         if( present( occ)) occ = occmax
         efermi = maxval( eval( lst, :))
         return
@@ -301,7 +306,8 @@ module mod_wannier_helper
 !$OMP END PARALLEL
 #endif
       if( (e1 .ge. e0) .and. (abs( chg - chgval) .lt. input%groundstate%epsocc)) then
-        write( *, '(" Info (wannier_occupy): System has gap. Simplistic method used in determining efermi and occupation")')
+        write(*,*)
+        write( *, '("Info (wannier_occupy): System has gap. Fermi level set to the middle of the gap.")')
         usetetra = .false.
       else
         ! metal found
@@ -350,6 +356,7 @@ module mod_wannier_helper
           usetetra = .true.
           if( present( usetetra_)) usetetra = usetetra_
           if( it .eq. maxit) then
+            write(*,*)
             write( *, '("Error (wannier_occupy): Fermi energy could not be found.")')
             stop
           end if
@@ -358,6 +365,7 @@ module mod_wannier_helper
           df = 1.d0
           if( present( usetetra_)) usetetra = usetetra_
           if( .not. usetetra) then
+            write(*,*)
             write( *, '("Error (wannier_occupy): Not implemented for this stype.")')
             stop
           end if
@@ -365,7 +373,8 @@ module mod_wannier_helper
       end if
 
       if( usetetra) then
-        write( *, '(" Info (wannier_occupy): Use tetrahedron method in determining efermi and occupation")')
+        write(*,*)
+        write( *, '("Info (wannier_occupy): Use tetrahedron method in determining efermi and occupation")')
         call opt_tetra_init( 2, kset%bvec, kset%ngridk, kset%nkpt, kset%ikmap)
         call opt_tetra_efermi( chgval/dble( occmax)-fst+1, kset%nkpt, lst-fst+1, eval( fst:lst, :), efermi, occ_tmp( fst:lst, :), ef0=efermi, df0=df)
       end if
