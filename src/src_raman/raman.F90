@@ -63,6 +63,9 @@ integer, allocatable :: irep(:)
 Logical :: existent, existent1, eq_done, nlf
 ! file handling
 Character(256) :: raman_filext, raman_stepdir, fileeps(3, 3)
+! check whether plan was specified in xs element
+Logical :: dplan
+Integer :: nxstasksmax, taskindex
 #ifndef IFORT
   integer system, chdir
 #endif
@@ -174,6 +177,8 @@ allocate( b2(input%properties%raman%ninter) )
 allocate( b3(input%properties%raman%ninter) )
 allocate( b4(input%properties%raman%ninter) )
 !
+!check whether plan element is specified in xs element
+dplan=associated(input%xs%plan)
 if (rank .eq. 0) then
    ! header for INFO_RAMAN.OUT
    Write (99, '("+-----------------------------------------------------------+")')
@@ -709,6 +714,9 @@ do imode = 1, nmode
 !  compute optical spectra according to input
          call xstasklauncher
 !
+!  if the user did not specify a plan element, deallocate the plan constructed in xstasklauncher       
+         if (.not. dplan) deallocate(input%xs%plan)
+            deallocate(input%xs%plan)
 !  read from files
          do oct1 = 1, 3
             do oct2 = 1, 3

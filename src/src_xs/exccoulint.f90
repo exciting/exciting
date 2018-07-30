@@ -318,7 +318,7 @@ subroutine exccoulint(iqmt)
     ematuok(1:inu, 1:ino, 1:numgq, ik) = muo(1:inu, 1:ino, 1:numgq)
 #ifndef MPI
     if(mpiglobal%rank == 0) then
-      write(6, '(a,"Exccoulint - muo progress:", f10.3)', advance="no")&
+      write(6, '(a,"Calculating Plane-wave matrix elements:          ", f10.3)', advance="no")&
         & achar( 13), 100.0d0*dble(ik-kpari+1)/dble(kparf-kpari+1)
       flush(6)
     end if
@@ -431,7 +431,7 @@ subroutine exccoulint(iqmt)
     call putbsemat(exclifname, 77, ikkp, iqmt, excli)
 #ifndef MPI
     if(mpiglobal%rank == 0) then
-      write(6, '(a,"Exccoulint progess:", f10.3)', advance="no")&
+      write(6, '(a,"Calculating Exchange Interaction Matrix Elements:", f10.3)', advance="no")&
         & achar( 13), 100.0d0*dble(ikkp-ppari+1)/dble(pparf-ppari+1)
       flush(6)
     end if

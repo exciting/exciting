@@ -391,7 +391,7 @@ subroutine scrcoulint(iqmt, fra)
     call putematrad(iqr, iqrnr)
 #ifndef MPI
     if(mpiglobal%rank == 0) then
-      write(6, '(a,"Scrcoulint progess WGGp(q):", f10.3)', advance="no")&
+      write(6, '(a,"Calculating Screened Coulomb Potential:          ", f10.3)', advance="no")&
         & achar( 13), 100.0d0*dble(iqr-qpari+1)/dble(qparf-qpari+1)
       flush(6)
     end if
@@ -782,7 +782,7 @@ subroutine scrcoulint(iqmt, fra)
     deallocate(wfc)
 #ifndef MPI
     if(mpiglobal%rank == 0) then
-      write(6, '(a,"Scrcoulint progess W:", f10.3)', advance="no")&
+      write(6, '(a,"Calculating Screened Coulomb Matrix Elements:    ", f10.3)', advance="no")&
         & achar( 13), 100.0d0*dble(ikkp-ppari+1)/dble(pparf-ppari+1)
       flush(6)
     end if
