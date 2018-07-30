@@ -22,16 +22,13 @@ subroutine gw_main()
     call timesec(tstart)
     call init_timing    
 
-    ! initialize GW MPI environment
-    call init_mpi_gw
 
     !---------------------
     ! Main GW output file
     !---------------------
     if (rank==0) then
         call getunit(fgw)
-        ! open(fgw,File='GW_INFO.OUT')
-        open(fgw,File='GW_INFO.OUT',Access='Append')
+        open(fgw,File='GW_INFO.OUT')
         if (input%gw%debug) then
             call getunit(fdebug)
             open(fdebug,File='debug.info',Action='Write')
@@ -39,6 +36,11 @@ subroutine gw_main()
         call boxmsg(fgw,'=','Main GW output file')
         call flushifc(fgw)
     end if
+    
+    !----------------------------------------------
+    ! initialize GW MPI environment
+    !----------------------------------------------
+    call init_mpi_gw
     
     !-----------------------------------------------------------
     ! Parse and check the validity of some GW input parameters
