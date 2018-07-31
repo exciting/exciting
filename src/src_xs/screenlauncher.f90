@@ -225,7 +225,7 @@ subroutine screenlauncher
 
 #ifndef MPI
     if(mpiglobal%rank == 0) then
-      write(6, '(a,"screenlauncher: Progess epsilon(q):", f10.3)', advance="no")&
+      write(6, '(a,"Calculating RPA Dielectric Function:             ", f10.3)', advance="no")&
         & achar( 13), 100.0d0*dble(iq-qpari+1)/dble(qparf-qpari+1)
       flush(6)
     end if
