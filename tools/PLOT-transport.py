@@ -182,7 +182,7 @@ def Read_data(file,l):
 
 #Xlabel
 #Xl={"SI":{"T":"$\mathbf{\mu\ [eV]}$","mu":"$\mathbf{T [K]}$"},"Au":{"T":"$\mathbf{\mu$ $[a.u.]}$","$\mu$":"$\mathbf{T\ [a.u.]}$"}}
-Xl={"SI":{"T":"$\mu\ [eV]$","mu":"$T [K]$"},"Au":{"T":"$\mu$ $[a.u.]$","$\mu$":"$T\ [a.u.]$"}}
+Xl={"SI":{"T":"$\mathregular{\mu\ [eV]}$","mu":"$\mathregular{T\ [K]}$"},"Au":{"T":"$\mathregular{\mu}$ $\mathregular{[a.u.]}$","mu":"$\mathregular{T\ [a.u.]}$"}}
 labx=Xl["SI" if ("SI" in Arg) else "Au"][cu.split("=")[0]]
 #Ylabels
 if tau=="t=1.0":
@@ -193,10 +193,10 @@ else:
 #   "ELECTCOND_":{False:r"$\mathbf{\sigma/\tau}$ $\mathbf{[(\Omega cm\ s)^{-1}]}$",True:r"$\mathbf{\sigma$ $[(\Omega cm)^{-1}]}$"},
 #   "THERMALCOND_":{False:r"$\mathbf{\kappa/\tau}$ $\mathbf{[W (cm K\ s)^{-1}]}$",True:r"$\mathbf{\kappa$ $[W (K cm\ )^{-1}]}$"},
 #   "PF_":{False:r"$\mathbf{\sigma S^2/\tau}$ $\mathbf{[\mu W (cm K^2\ s)^{-1}]}$",True:r"$\mathbf{\sigma S^2$ $[\mu W/cm$ $K^2]}$"}}
-K={"SEEBECK_":{True:r"$S\ [\mu V/K]$",False:r"$S\ [\mu V/K]$"},"ZT_":{True:r"$ZT$",False:r"$ZT$"},
-   "ELECTCOND_":{False:r"$\sigma/\tau$ $[(\Omega cm\ s)^{-1}]$",True:r"$\sigma$ $[(\Omega cm)^{-1}]$"},
-   "THERMALCOND_":{False:r"$\kappa/\tau$ $[W (cm K\ s)^{-1}]$",True:r"$\kappa$ $[W (K cm\ )^{-1}]$"},
-   "PF_":{False:r"$\sigma S^2/\tau$ $[\mu W (cm K^2\ s)^{-1}]$",True:r"$\sigma S^2$ $[\mu W/cm$ $K^2]$"}}
+K={"SEEBECK_":{True:r"$\mathregular{S\, [\mu V/K]}$",False:r"$\mathregular{S\, [\mu V/K]}$"},"ZT_":{True:r"$\mathregular{ZT}$",False:r"$\mathregular{ZT}$"},
+   "ELECTCOND_":{False:r"$\mathregular{\sigma/\tau \, [(\Omega cm\, s)^{-1}]}$",True:r"$\mathregular{\sigma \, [(\Omega cm)^{-1}]}$"},
+   "THERMALCOND_":{False:r"$\mathregular{\kappa/\tau \, [W (cm K s)^{-1}]}$",True:r"$\mathregular{\kappa \, [W (K cm)^{-1}]}$"},
+   "PF_":{False:r"$\mathregular{\sigma S^2/\tau \, [\mu W (cm K^2 s)^{-1}]}$",True:r"$\mathregular{\sigma S^2 \, [\mu W (cm K^2)^{-1}]}$"}}
 
 
 K2={"kappa":"THERMALCOND_","sigma":"ELECTCOND_", "ZT":"ZT_","S":"SEEBECK_","PF":"PF_"}
@@ -230,7 +230,18 @@ if "pattern" in u :
                                         print("Error- Check data in file :"+j+"or "+k)
                                         sys.exit()
                                     ax[n].plot(X,PF,label=R[k.split("_")[1].replace(".OUT","")],linewidth=1.7,)
-                                    ax[n].legend()
+                                    ax[n].legend(loc='best')
+                                    
+                                    if min(PF) < 0:
+                                        yr=max(PF)-min(PF)
+                                        ax[n].set_ylim(min(PF)-yr*0.05, max(PF)+yr*0.05)
+                                    else:
+                                        yr=max(PF)
+                                        ax[n].set_ylim(0, max(PF)+yr*0.05)
+
+                                    xr=max(X)-min(X)
+                                    ax[n].set_xlim(min(X)-xr*0.05, max(X)+xr*0.05)
+
                                     if "Au" in Arg:
                                         ax[n].set_ylabel(K[K2[l]][tf].split("in")[0])#, fontdict=font)
                                     else:
@@ -242,9 +253,18 @@ if "pattern" in u :
                         try:
                             if l=="sigma" or l=="kappa":
                                 ax[n].plot(X,Y,label=R[k.replace(K2[l],"").replace(".OUT","")],linewidth=1.7,)
-                                ax[n].set_ylim(0)
                             else:
                                 ax[n].plot(X,Y,label=R[k.replace(K2[l],"").replace(".OUT","")],linewidth=1.7,)
+                                
+                            if min(Y) < 0:
+                                yr=max(Y)-min(Y)
+                                ax[n].set_ylim(min(Y)-yr*0.05, max(Y)+yr*0.05)
+                            else:
+                                yr=max(Y)
+                                ax[n].set_ylim(0, max(Y)+yr*0.05)
+
+                            xr=max(X)-min(X)
+                            ax[n].set_xlim(min(X)-xr*0.05, max(X)+xr*0.05)
 
                         except:
                             print("Error- Check data in file :"+cu+"or "+k)
@@ -252,11 +272,12 @@ if "pattern" in u :
 
                         if "Au" in Arg:
                             ax[n].set_ylabel(K[K2[l]][tf].split("in")[0]) #, fontdict=font)
+
                         else:
                             ax[n].set_ylabel(K[K2[l]][tf]) #, fontdict=font)
             
             xlabel(labx) #, fontdict=font)
-            ax[n].legend()#prop=font)
+            ax[n].legend(loc='best')#prop=font)
             
             n+=1
         f.subplots_adjust(hspace=0.08)
@@ -286,7 +307,18 @@ if "single" in w :
                                         print("or "+cu+","+tau)
                                         sys.exit()
                                     plot(X,PF,label=R[k.split("_")[1].replace(".OUT","")],linewidth=1.7)
-                                    legend()
+                                    legend(loc='best')
+
+                                    if min(PF) < 0:
+                                        yr=max(PF)-min(PF)
+                                        ylim(min(PF)-yr*0.05, max(PF)+yr*0.05)
+                                    else:
+                                        #yr=max(PF)
+                                        ylim(0, max(PF)*1.05)
+                                        
+                                    xr=max(X)-min(X)
+                                    xlim(min(X)-xr*0.05, max(X)+xr*0.05)
+
                                     if "Au" in Arg:
                                         ylabel(K[K2[l]][tf].split("in")[0])#, fontdict=font)
                                     else:
@@ -299,9 +331,17 @@ if "single" in w :
                     try:
                         if l=="sigma" or l=="kappa":
                             plot(X,Y,label=R[k.replace(K2[l],"").replace(".OUT","")],linewidth=1.7,)
-                            ylim(0)
                         else:
                             plot(X,Y,label=R[k.replace(K2[l],"").replace(".OUT","")],linewidth=1.7,)
+                            
+                        if min(Y) < 0:
+                            yr=max(Y)-min(Y)
+                            ylim(min(Y)-yr*0.05, max(Y)+yr*0.05)
+                        else:
+                            ylim(0, max(Y)*1.05)
+                        xr=max(X)-min(X)
+                        xlim(min(X)-xr*0.05, max(X)+xr*0.05)
+
                     except:
                         print("Error- Check data in file :"+k)
                         print("or "+cu+","+tau)
@@ -311,7 +351,7 @@ if "single" in w :
                     else:
                         ylabel(K[K2[l]][tf])#, fontdict=font)
         xlabel(labx)#,fontdict=font)
-        legend()#prop=font)
+        legend(loc='best')#prop=font)
         plt.tight_layout()
 
         l1=K2[l]
