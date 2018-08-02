@@ -763,50 +763,54 @@ module mod_wfutil
       allocate( grid( fst:lst))
   
       ! generate plotting grids
-      s = omega**(1.d0/3.d0)
-      do ist = fst, lst
-        if (associated(input%properties%wannierplot%plot1d)) then
-          nv = size(input%properties%wannierplot%plot1d%path%pointarray)
-          if (nv < 1) then
-            write(*,*)
-            write(*, '("Error (wfutil_plot): Wrong plot specification!")')
-            stop
-          end if
-          np = input%properties%wannierplot%plot1d%path%steps
-          If (np < nv) then
-            write(*,*)
-            write(*, '("Error (wfutil_plot): Wrong plot specification!")')
-            stop
-          end if
-  
-          grid( ist) = gen_1d_rgrid(input%properties%wannierplot%plot1d)
+      if (associated(input%properties%wannierplot%plot1d)) then
+        nv = size(input%properties%wannierplot%plot1d%path%pointarray)
+        if (nv < 1) then
+          write(*,*)
+          write(*, '("Error (wfutil_plot): Wrong plot specification!")')
+          stop
+        end if
+        np = input%properties%wannierplot%plot1d%path%steps
+        If (np < nv) then
+          write(*,*)
+          write(*, '("Error (wfutil_plot): Wrong plot specification!")')
+          stop
         end if
   
-        if (associated(input%properties%wannierplot%plot2d)) then
-          v0 = input%properties%wannierplot%plot2d%parallelogram%origin%coord
-          v1 = input%properties%wannierplot%plot2d%parallelogram%pointarray(1)%point%coord
-          v2 = input%properties%wannierplot%plot2d%parallelogram%pointarray(2)%point%coord
-          !call r3mv( ainv, wf_centers( :, ist) + cellc - s*(v1+v2), input%properties%wannierplot%plot2d%parallelogram%origin%coord)
-          !call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v1-v2), input%properties%wannierplot%plot2d%parallelogram%pointarray(1)%point%coord)
-          !call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v2-v1), input%properties%wannierplot%plot2d%parallelogram%pointarray(2)%point%coord)
+        do ist = fst, lst
+          grid( ist) = gen_1d_rgrid(input%properties%wannierplot%plot1d)
+        end do
+      end if
+  
+      if (associated(input%properties%wannierplot%plot2d)) then
+        v0 = input%properties%wannierplot%plot2d%parallelogram%origin%coord
+        v1 = input%properties%wannierplot%plot2d%parallelogram%pointarray(1)%point%coord
+        v2 = input%properties%wannierplot%plot2d%parallelogram%pointarray(2)%point%coord
+        !call r3mv( ainv, wf_centers( :, ist) + cellc - s*(v1+v2), input%properties%wannierplot%plot2d%parallelogram%origin%coord)
+        !call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v1-v2), input%properties%wannierplot%plot2d%parallelogram%pointarray(1)%point%coord)
+        !call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v2-v1), input%properties%wannierplot%plot2d%parallelogram%pointarray(2)%point%coord)
+        do ist = fst, lst
           call r3mv( ainv, wf_centers( :, ist), v3)
           input%properties%wannierplot%plot2d%parallelogram%origin%coord              = v0 + v3 + cell - v1 - v2
           input%properties%wannierplot%plot2d%parallelogram%pointarray(1)%point%coord = v0 + v3 + cell + v1 - v2
           input%properties%wannierplot%plot2d%parallelogram%pointarray(2)%point%coord = v0 + v3 + cell - v1 + v2
           grid( ist) = gen_2d_rgrid(input%properties%wannierplot%plot2d, 0)
-        end if
+        end do
+      end if
   
-        if( associated( input%properties%wannierplot%plot3d)) then
-          v1 = input%properties%wannierplot%plot3d%box%pointarray(1)%point%coord
-          v2 = input%properties%wannierplot%plot3d%box%pointarray(2)%point%coord
-          v3 = input%properties%wannierplot%plot3d%box%pointarray(3)%point%coord
+      if( associated( input%properties%wannierplot%plot3d)) then
+        v1 = input%properties%wannierplot%plot3d%box%pointarray(1)%point%coord
+        v2 = input%properties%wannierplot%plot3d%box%pointarray(2)%point%coord
+        v3 = input%properties%wannierplot%plot3d%box%pointarray(3)%point%coord
+        s = omega**(1.d0/3.d0)
+        do ist = fst, lst
           call r3mv( ainv, wf_centers( :, ist) + cellc - s*(v1+v2+v3), input%properties%wannierplot%plot3d%box%origin%coord)
           call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v1-v2-v3), input%properties%wannierplot%plot3d%box%pointarray(1)%point%coord)
           call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v2-v3-v1), input%properties%wannierplot%plot3d%box%pointarray(2)%point%coord)
           call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v3-v1-v2), input%properties%wannierplot%plot3d%box%pointarray(3)%point%coord)
           grid( ist) = gen_3d_rgrid( input%properties%wannierplot%plot3d, 0)
-        end if
-      end do
+        end do
+      end if
   
       maxdim = 0
       do is = 1, nspecies
