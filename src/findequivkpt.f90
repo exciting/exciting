@@ -25,10 +25,11 @@ subroutine findequivkpt( vpl, kset, nk, isym, ik)
       v2(:) = kset%vkl( :, iq)
       call r3frac( input%structure%epslat, v2, iv)
       t1 = sum( abs( v1-v2))
-      if( t1 .lt. input%structure%epslat) then
+      if( (t1 .lt. input%structure%epslat) .and. .not. (any( ik .eq. iq))) then
         nk = nk + 1
         ik( nk) = iq
         isym( nk) = is
+        exit
       end if
     end do
   end do

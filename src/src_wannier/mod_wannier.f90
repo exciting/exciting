@@ -173,6 +173,7 @@ module mod_wannier
           write( wf_info, '(5x,"#k-points: ",T40,7x,I6)') wf_kset%nkpt
           write( wf_info, '(5x,"#neighbors per k-point: ",T40,7x,I6)') wf_n_ntot
         end if
+        write(*, '( "Recalculate plane-wave matrix-elements.")')
       end if
 
       if( .not. success) then          
