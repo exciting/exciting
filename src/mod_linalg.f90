@@ -123,19 +123,19 @@ module m_linalg
       m = size( mat, 1)
 
       if( m .le. 0) then
-        write(*,'("Error (zhediag): Invalid matrix dimension.")')
+        write(*,'("Error (rsydiag): Invalid matrix dimension.")')
         stop
       end if
       if( size( mat, 2) .ne. m) then
-        write(*,'("Error (zhediag): The matrix must be squared.")')
+        write(*,'("Error (rsydiag): The matrix must be squared.")')
         stop
       end if
       if( size( eval, 1) .ne. m) then
-        write(*,'("Error (zhediag): The eigenvalue array must have the same dimension as the matrix.")')
+        write(*,'("Error (rsydiag): The eigenvalue array must have the same dimension as the matrix.")')
         stop
       end if
       if( (size( evec, 1) .ne. m) .or. (size( evec, 2) .ne. m)) then
-        write(*,'("Error (zhediag): The eigenvector array must have the same dimension as the matrix.")')
+        write(*,'("Error (rsydiag): The eigenvector array must have the same dimension as the matrix.")')
         stop
       end if
 
