@@ -6,22 +6,22 @@ module mod_wfint
   implicit none
 
 ! module variables
-  type( k_set) :: wfint_kset                        ! k-point set on which the interpolation is performed
+  type( k_set)  :: wfint_kset                       ! k-point set on which the interpolation is performed
   type( Gk_set) :: wfint_Gkset                      ! G+k-point set on which the interpolation is performed
-  logical :: wfint_initialized = .false.
-  logical :: wfint_mindist                          ! use minimum distances interpolation method
-  real(8) :: wfint_efermi                           ! interpolated fermi energy
+  logical       :: wfint_initialized = .false.
+  logical       :: wfint_mindist                    ! use minimum distances interpolation method
+  real(8)       :: wfint_efermi                     ! interpolated fermi energy
 
-  real(8), allocatable :: wfint_eval(:,:)           ! interpolated eigenenergies
+  real(8), allocatable    :: wfint_eval(:,:)        ! interpolated eigenenergies
   complex(8), allocatable :: wfint_evec(:,:,:)      ! interpolated eigenvectors
   complex(8), allocatable :: wfint_transform(:,:,:) ! corresponding expansion coefficients
-  real(8), allocatable :: wfint_occ(:,:)            ! interpolated occupation numbers
-  real(8), allocatable :: wfint_phase(:,:)          ! summed phase factors in interpolation
+  real(8), allocatable    :: wfint_occ(:,:)         ! interpolated occupation numbers
+  real(8), allocatable    :: wfint_phase(:,:)       ! summed phase factors in interpolation
   complex(8), allocatable :: wfint_pkr(:,:)
   complex(8), allocatable :: wfint_pqr(:,:)
 
   ! R vector set
-  integer :: wfint_nrpt
+  integer              :: wfint_nrpt
   integer, allocatable :: wfint_rvec(:,:)
   integer, allocatable :: wfint_rmul(:)
   integer, allocatable :: wfint_wdistvec(:,:,:,:,:)
@@ -46,7 +46,7 @@ module mod_wfint
       !   Created July 2017 (SeTi)
       !EOP
       !BOC
-      type( k_set), intent( in) :: int_kset
+      type( k_set), intent( in)      :: int_kset
       real(8), optional, intent( in) :: evalin_( wf_fst:wf_lst, wf_kset%nkpt)
     
       integer :: fst, lst
@@ -63,7 +63,13 @@ module mod_wfint
         evalin = evalin_
       else
         call wannier_geteval( evalfv, fst, lst)
+        if( (fst .gt. wf_fst) .or. (lst .lt. wf_lst)) then
+          write(*,*)
+          write(*, '("Error (wfint_init): Eigenenergies out of range of Wannier functions.")')
+          stop
+        end if
         evalin = evalfv( wf_fst:wf_lst, :)
+        deallocate( evalfv)
       end if
     
       call wfint_rvectors
@@ -74,7 +80,7 @@ module mod_wfint
       call wfint_interpolate_eigsys( evalin)
     
       wfint_initialized = .true.
-      deallocate( evalin, evalfv)
+      deallocate( evalin)
 
       return
     end subroutine wfint_init
@@ -99,13 +105,18 @@ module mod_wfint
       !EOP
       !BOC
     
-      if( allocated( wfint_phase)) deallocate( wfint_phase)
-      if( allocated( wfint_pkr)) deallocate( wfint_pkr)
-      if( allocated( wfint_pqr)) deallocate( wfint_pqr)
-      if( allocated( wfint_eval)) deallocate( wfint_eval)
-      if( allocated( wfint_evec)) deallocate( wfint_evec)
+      if( allocated( wfint_phase))     deallocate( wfint_phase)
+      if( allocated( wfint_pkr))       deallocate( wfint_pkr)
+      if( allocated( wfint_pqr))       deallocate( wfint_pqr)
+      if( allocated( wfint_eval))      deallocate( wfint_eval)
+      if( allocated( wfint_evec))      deallocate( wfint_evec)
       if( allocated( wfint_transform)) deallocate( wfint_transform)
-      if( allocated( wfint_occ)) deallocate( wfint_occ)
+      if( allocated( wfint_occ))       deallocate( wfint_occ)
+      if( allocated( wfint_rvec))      deallocate( wfint_rvec)
+      if( allocated( wfint_rvec))      deallocate( wfint_rvec)
+      if( allocated( wfint_rmul))      deallocate( wfint_rmul)
+      if( allocated( wfint_wdistvec))  deallocate( wfint_wdistvec)
+      if( allocated( wfint_wdistmul))  deallocate( wfint_wdistmul)
       wfint_initialized = .false.
       return
     end subroutine wfint_destroy
@@ -351,10 +362,51 @@ module mod_wfint
     
       ! calculate interpolated Hamiltonian
       allocate( hamilton( wf_nwf, wf_nwf, wfint_kset%nkpt))
-      allocate( hamiltonr( wf_nwf, wf_nwf, wfint_nrpt))
 
-      if( .not. wfint_mindist) then
+      if( wfint_mindist) then
+        allocate( hamiltonr( wf_nwf, wf_nwf, wfint_nrpt))
 
+#ifdef USEOMP
+!$omp parallel default( shared) private( ir, ik)
+!$omp do
+#endif
+        do ir = 1, wfint_nrpt
+          hamiltonr( :, :, ir) = zzero
+          do ik = 1, wf_kset%nkpt
+            hamiltonr( :, :, ir) = hamiltonr( :, :, ir) + ueu( :, :, ik)*conjg( wfint_pkr( ik, ir))/wf_kset%nkpt
+          end do
+        end do
+#ifdef USEOMP
+!$omp end do
+!$omp end parallel
+#endif
+
+#ifdef USEOMP
+!$omp parallel default( shared) private( iq, ir, ix, iy, iz, dotp, ftweight)
+!$omp do
+#endif
+        do iq = 1, wfint_kset%nkpt
+          hamilton( :, :, iq) = zzero
+          do ir = 1, wfint_nrpt
+            do ix = 1, wf_nwf
+              do iy = 1, wf_nwf
+                ftweight = zzero
+                do iz = 1, wfint_wdistmul( ix, iy, ir)
+                  dotp = twopi*dot_product( wfint_kset%vkl( :, iq), dble( wfint_wdistvec( :, iz, ix, iy, ir)))
+                  dotp = dotp + dot_product( wfint_kset%vkc( :, iq), wf_centers( :, iy) - wf_centers( :, ix))
+                  ftweight = ftweight + cmplx( cos( dotp), sin( dotp), 8)
+                end do
+                hamilton( ix, iy, iq) = hamilton( ix, iy, iq) + ftweight/wfint_rmul( ir)/wfint_wdistmul( ix, iy, ir)*hamiltonr( ix, iy, ir)
+              end do
+            end do
+          end do
+        end do
+#ifdef USEOMP
+!$omp end do
+!$omp end parallel
+#endif
+        deallocate( hamiltonr)        
+      else
 #ifdef USEOMP
 !!$omp parallel default( shared) private( iy)
 !!$omp do
@@ -370,49 +422,8 @@ module mod_wfint
 !!$omp end parallel
 #endif
 
-      else
-
-#ifdef USEOMP
-!$omp parallel default( shared) private( ir, ik)
-!$omp do
-#endif
-      do ir = 1, wfint_nrpt
-        hamiltonr( :, :, ir) = zzero
-        do ik = 1, wf_kset%nkpt
-          hamiltonr( :, :, ir) = hamiltonr( :, :, ir) + ueu( :, :, ik)*conjg( wfint_pkr( ik, ir))/wf_kset%nkpt
-        end do
-      end do
-#ifdef USEOMP
-!$omp end do
-!$omp end parallel
-#endif
-
-#ifdef USEOMP
-!$omp parallel default( shared) private( iq, ir, ix, iy, iz, dotp, ftweight)
-!$omp do
-#endif
-      do iq = 1, wfint_kset%nkpt
-        hamilton( :, :, iq) = zzero
-        do ir = 1, wfint_nrpt
-          do ix = 1, wf_nwf
-            do iy = 1, wf_nwf
-              ftweight = zzero
-              do iz = 1, wfint_wdistmul( ix, iy, ir)
-                dotp = twopi*dot_product( wfint_kset%vkl( :, iq), dble( wfint_wdistvec( :, iz, ix, iy, ir)))
-                dotp = dotp + dot_product( wfint_kset%vkc( :, iq), wf_centers( :, iy) - wf_centers( :, ix))
-                ftweight = ftweight + cmplx( cos( dotp), sin( dotp), 8)
-              end do
-              hamilton( ix, iy, iq) = hamilton( ix, iy, iq) + ftweight/wfint_rmul( ir)/wfint_wdistmul( ix, iy, ir)*hamiltonr( ix, iy, ir)
-            end do
-          end do
-        end do
-      end do
-#ifdef USEOMP
-!$omp end do
-!$omp end parallel
-#endif
       end if
-      deallocate( ueu, hamiltonr)
+      deallocate( ueu)
     
       ! diagonalize interpolated Hamiltonian
 #ifdef USEOMP
@@ -618,7 +629,6 @@ module mod_wfint
           do d2 = 1, 3
             hamwk = zzero
             do ir = 1, wfint_nrpt
-              call r3mv( input%structure%crystal%basevect, dble( wfint_rvec( :, ir)), vr)
               if( wfint_mindist) then
                 do ist = 1, wf_nwf
                   do jst = 1, wf_nwf
@@ -632,6 +642,7 @@ module mod_wfint
                   end do
                 end do
               else
+                call r3mv( input%structure%crystal%basevect, dble( wfint_rvec( :, ir)), vr)
                 hamwk = hamwk - vr( d1)*vr( d2)*wfint_pqr( iq, ir)*hamwr( :, :, ir)
               end if
             end do
@@ -697,6 +708,8 @@ module mod_wfint
           mass_( :, :, ist, iq) = dble( mass( ist, ist, :, :, iq))
         end do
       end do
+
+      deallocate( evalin, auxmat)
 
       return
     end subroutine wfint_interpolate_ederiv
@@ -1390,10 +1403,10 @@ subroutine wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, td
 !--------------------------------------------------------------------------------------
       
     subroutine wfint_interpolate_dmat( lmax, lammax, iq, radcoeffr, radolp, dmat, diagonly)
-      integer, intent( in) :: lmax, lammax, iq
-      complex(8), intent( in) :: radcoeffr( wf_nwf, lammax, (lmax+1)**2, natmtot, wf_kset%nkpt)
-      real(8), intent( in) :: radolp( lammax, lammax, 0:lmax, natmtot)
-      complex(8), intent( out) :: dmat( (lmax+1)**2, (lmax+1)**2, wf_nwf, natmtot)
+      integer, intent( in)           :: lmax, lammax, iq
+      complex(8), intent( in)        :: radcoeffr( wf_nwf, lammax, (lmax+1)**2, natmtot, wf_kset%nkpt)
+      real(8), intent( in)           :: radolp( lammax, lammax, 0:lmax, natmtot)
+      complex(8), intent( out)       :: dmat( (lmax+1)**2, (lmax+1)**2, wf_nwf, natmtot)
       logical, optional, intent( in) :: diagonly
 
       integer :: ir, is, ia, ias, o, l1, m1, lm1, m2, lm2, ilo1, maxdim, ist, jst
@@ -1464,16 +1477,16 @@ subroutine wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, td
                   end do
                 else
                   call zgemm( 't', 'n', maxdim, wf_nwf, wf_nwf, wfint_pqr( iq, ir), &
-                       radcoeffr( :, :, lm1, ias, ir), wf_nwf, &
-                       wfint_transform( :, :, iq), wf_nwf, zone, &
-                       radcoeffq1, maxdim)
+                         radcoeffr( :, :, lm1, ias, ir), wf_nwf, &
+                         wfint_transform( :, :, iq), wf_nwf, zone, &
+                         radcoeffq1, maxdim)
                 end if
               end do
               if( diag) then
                 call zgemm( 't', 'n', maxdim, wf_nwf, maxdim, zone, &
-                     cmplx( radolp( :, :, l1, ias), 0, 8), maxdim, &
-                     radcoeffq1, maxdim, zzero, &
-                     auxmat, maxdim)
+                       cmplx( radolp( :, :, l1, ias), 0, 8), maxdim, &
+                       radcoeffq1, maxdim, zzero, &
+                       auxmat, maxdim)
                 do ist = 1, wf_nwf
                   dmat( lm1, lm1, ist, ias) = zdotc( lamcnt( l1, is), radcoeffq1( :, ist), 1, auxmat( :, ist), 1) 
                 end do
@@ -1498,15 +1511,15 @@ subroutine wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, td
                       end do
                     else
                       call zgemm( 't', 'n', maxdim, wf_nwf, wf_nwf, wfint_pqr( iq, ir), &
-                           radcoeffr( :, :, lm2, ias, ir), wf_nwf, &
-                           wfint_transform( :, :, iq), wf_nwf, zone, &
-                           radcoeffq2, maxdim)
+                             radcoeffr( :, :, lm2, ias, ir), wf_nwf, &
+                             wfint_transform( :, :, iq), wf_nwf, zone, &
+                             radcoeffq2, maxdim)
                     end if
                   end do
                   call zgemm( 't', 'n', maxdim, wf_nwf, maxdim, zone, &
-                       cmplx( radolp( :, :, l1, ias), 0, 8), maxdim, &
-                       radcoeffq1, maxdim, zzero, &
-                       auxmat, maxdim)
+                         cmplx( radolp( :, :, l1, ias), 0, 8), maxdim, &
+                         radcoeffq1, maxdim, zzero, &
+                         auxmat, maxdim)
                   do ist = 1, wf_nwf
                     dmat( lm1, lm2, ist, ias) = zdotc( lamcnt( l1, is), radcoeffq2( :, ist), 1, auxmat( :, ist), 1) 
                   end do
