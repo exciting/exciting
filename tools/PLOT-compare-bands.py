@@ -33,7 +33,7 @@ elif( narg == 3):
     yymin = float( sys.argv[1])
     yymax = float( sys.argv[2])
     case = str( sys.argv[3])
-elif( narg > 3):
+elif( narg == 0 or narg > 3):
     print( "\n ERROR: Invalid number of arguments.\n")
     sys.exit(" Usage: PLOT-compare-bands.py Energy_min Energy_max CASE\n")
 

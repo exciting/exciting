@@ -187,7 +187,7 @@ module mod_wannier_helper
 
     subroutine wannier_geteval( eval, fst, lst)
       real(8), allocatable, intent( out) :: eval(:,:)
-      integer, intent( out) :: fst, lst
+      integer, intent( out)              :: fst, lst
 
       integer :: ik, ist, un, recl, nkpqp, fstqp, lstqp, nk, isym, iq, nkequi, isymequi( wf_kset%nkpt), ikequi( wf_kset%nkpt)
       real(8) :: vl(3), efermiqp, efermiks
@@ -211,9 +211,9 @@ module mod_wannier_helper
         close( un)
         allocate( evalqp( fstqp:lstqp))
         allocate( evalks( fstqp:lstqp))
-        allocate( eval( fstqp:lstqp, wf_kset%nkpt))
         fst = fstqp
         lst = lstqp
+        allocate( eval( fst:lst, wf_kset%nkpt))
         inquire( iolength=recl) nkpqp, fstqp, lstqp, vl, evalqp, evalks, efermiqp, efermiks
         open( un, file=trim( fname), action='read', form='unformatted', access='direct', recl=recl)
         do ik = 1, nkpqp
@@ -227,9 +227,9 @@ module mod_wannier_helper
         deallocate( evalqp, evalks)
       else
         allocate( evalfv( nstfv, nspnfv))
-        allocate( eval( nstfv, wf_kset%nkpt))
         fst = 1
         lst = nstfv
+        allocate( eval( fst:lst, wf_kset%nkpt))
         do ik = 1, wf_kset%nkpt
           call getevalfv( wf_kset%vkl( :, ik), evalfv)
           eval( :, ik) = evalfv( :, 1)

@@ -647,12 +647,15 @@ module mod_wfutil
 
       open( un, file='GAP_WANNIER.OUT', action='write', form='formatted')
 
+      call generate_k_vectors( tmp_kset, wf_kset%bvec, (/1, 1, 2/), (/0.d0, 0.d0, 0.d0/), .false.)
+      if( findvbm) tmp_kset%vkl( :, 1) = vvbm
+      if( findcbm) tmp_kset%vkl( :, 2) = vcbm
+      call r3mv( wf_kset%bvec, tmp_kset%vkl( :, 1), tmp_kset%vkc( :, 1))
+      call r3mv( wf_kset%bvec, tmp_kset%vkl( :, 2), tmp_kset%vkc( :, 2))
+      call wfint_init( tmp_kset)
+      call wfint_interpolate_ederiv( velo, mass)
+
       if( findvbm) then
-        call generate_k_vectors( tmp_kset, wf_kset%bvec, (/1, 1, 1/), (/0.d0, 0.d0, 0.d0/), .false.)
-        tmp_kset%vkl( :, 1) = vvbm
-        call r3mv( wf_kset%bvec, tmp_kset%vkl( :, 1), tmp_kset%vkc( :, 1))
-        call wfint_init( tmp_kset)
-        call wfint_interpolate_ederiv( velo, mass)
         degvbm = 0
         do ist = 1, wf_nwf
           if( abs( wfint_eval( ist, 1) - wfint_eval( nvm, 1)) .lt. eps) degvbm = degvbm + 1
@@ -676,26 +679,21 @@ module mod_wfutil
       end if
 
       if( findcbm) then
-        call generate_k_vectors( tmp_kset, wf_kset%bvec, (/1, 1, 1/), (/0.d0, 0.d0, 0.d0/), .false.)
-        tmp_kset%vkl( :, 1) = vcbm
-        call r3mv( wf_kset%bvec, tmp_kset%vkl( :, 1), tmp_kset%vkc( :, 1))
-        call wfint_init( tmp_kset)
-        call wfint_interpolate_ederiv( velo, mass)
         degcbm = 0
         do ist = 1, wf_nwf
-          if( abs( wfint_eval( ist, 1) - wfint_eval( nvm+1, 1)) .lt. eps) degcbm = degcbm + 1
+          if( abs( wfint_eval( ist, 2) - wfint_eval( nvm+1, 2)) .lt. eps) degcbm = degcbm + 1
         end do
-        ecbm = wfint_eval( nvm+1, 1)
+        ecbm = wfint_eval( nvm+1, 2)
 
         write( un, *) "CONDUCTION-BAND MINIMUM"
-        write( un, '(" position (lattice):      ",3f13.6)') wfint_kset%vkl( :, 1)
-        write( un, '("          (cartesian):    ",3f13.6)') wfint_kset%vkc( :, 1)
+        write( un, '(" position (lattice):      ",3f13.6)') wfint_kset%vkl( :, 2)
+        write( un, '("          (cartesian):    ",3f13.6)') wfint_kset%vkc( :, 2)
         write( un, '(" energy (Hartree):        ",f13.6)') ecbm
         write( un, '("        (eV):             ",f13.6)') ecbm*27.211396641308
         write( un, '(" degeneracy:              ",i6)') degcbm
         do n1 = 1, degcbm
-          call r3minv( mass( :, :, nvm+n1, 1), m)
-          write( un, '(" band gradient ",i2,":        ",3f13.6)') n1, velo( :, nvm+n1, 1)
+          call r3minv( mass( :, :, nvm+n1, 2), m)
+          write( un, '(" band gradient ",i2,":        ",3f13.6)') n1, velo( :, nvm+n1, 2)
           write( un, '(" effective mass ",i2,":       ",3f13.6)') n1, m( 1, :)
           write( un, '("                          ",3f13.6)') m( 2, :)
           write( un, '("                          ",3f13.6)') m( 3, :)
@@ -717,7 +715,7 @@ module mod_wfutil
 
 !--------------------------------------------------------------------------------------
 
-  subroutine wfutil_plot( fst, lst, cell)
+    subroutine wfutil_plot( fst, lst, cell)
       use modplotlabels
       use mod_rgrid
       use mod_xsf_format
@@ -763,50 +761,54 @@ module mod_wfutil
       allocate( grid( fst:lst))
   
       ! generate plotting grids
-      s = omega**(1.d0/3.d0)
-      do ist = fst, lst
-        if (associated(input%properties%wannierplot%plot1d)) then
-          nv = size(input%properties%wannierplot%plot1d%path%pointarray)
-          if (nv < 1) then
-            write(*,*)
-            write(*, '("Error (wfutil_plot): Wrong plot specification!")')
-            stop
-          end if
-          np = input%properties%wannierplot%plot1d%path%steps
-          If (np < nv) then
-            write(*,*)
-            write(*, '("Error (wfutil_plot): Wrong plot specification!")')
-            stop
-          end if
-  
-          grid( ist) = gen_1d_rgrid(input%properties%wannierplot%plot1d)
+      if (associated(input%properties%wannierplot%plot1d)) then
+        nv = size(input%properties%wannierplot%plot1d%path%pointarray)
+        if (nv < 1) then
+          write(*,*)
+          write(*, '("Error (wfutil_plot): Wrong plot specification!")')
+          stop
+        end if
+        np = input%properties%wannierplot%plot1d%path%steps
+        If (np < nv) then
+          write(*,*)
+          write(*, '("Error (wfutil_plot): Wrong plot specification!")')
+          stop
         end if
   
-        if (associated(input%properties%wannierplot%plot2d)) then
-          v0 = input%properties%wannierplot%plot2d%parallelogram%origin%coord
-          v1 = input%properties%wannierplot%plot2d%parallelogram%pointarray(1)%point%coord
-          v2 = input%properties%wannierplot%plot2d%parallelogram%pointarray(2)%point%coord
-          !call r3mv( ainv, wf_centers( :, ist) + cellc - s*(v1+v2), input%properties%wannierplot%plot2d%parallelogram%origin%coord)
-          !call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v1-v2), input%properties%wannierplot%plot2d%parallelogram%pointarray(1)%point%coord)
-          !call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v2-v1), input%properties%wannierplot%plot2d%parallelogram%pointarray(2)%point%coord)
+        do ist = fst, lst
+          grid( ist) = gen_1d_rgrid(input%properties%wannierplot%plot1d)
+        end do
+      end if
+  
+      if (associated(input%properties%wannierplot%plot2d)) then
+        v0 = input%properties%wannierplot%plot2d%parallelogram%origin%coord
+        v1 = input%properties%wannierplot%plot2d%parallelogram%pointarray(1)%point%coord
+        v2 = input%properties%wannierplot%plot2d%parallelogram%pointarray(2)%point%coord
+        !call r3mv( ainv, wf_centers( :, ist) + cellc - s*(v1+v2), input%properties%wannierplot%plot2d%parallelogram%origin%coord)
+        !call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v1-v2), input%properties%wannierplot%plot2d%parallelogram%pointarray(1)%point%coord)
+        !call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v2-v1), input%properties%wannierplot%plot2d%parallelogram%pointarray(2)%point%coord)
+        do ist = fst, lst
           call r3mv( ainv, wf_centers( :, ist), v3)
           input%properties%wannierplot%plot2d%parallelogram%origin%coord              = v0 + v3 + cell - v1 - v2
           input%properties%wannierplot%plot2d%parallelogram%pointarray(1)%point%coord = v0 + v3 + cell + v1 - v2
           input%properties%wannierplot%plot2d%parallelogram%pointarray(2)%point%coord = v0 + v3 + cell - v1 + v2
           grid( ist) = gen_2d_rgrid(input%properties%wannierplot%plot2d, 0)
-        end if
+        end do
+      end if
   
-        if( associated( input%properties%wannierplot%plot3d)) then
-          v1 = input%properties%wannierplot%plot3d%box%pointarray(1)%point%coord
-          v2 = input%properties%wannierplot%plot3d%box%pointarray(2)%point%coord
-          v3 = input%properties%wannierplot%plot3d%box%pointarray(3)%point%coord
+      if( associated( input%properties%wannierplot%plot3d)) then
+        v1 = input%properties%wannierplot%plot3d%box%pointarray(1)%point%coord
+        v2 = input%properties%wannierplot%plot3d%box%pointarray(2)%point%coord
+        v3 = input%properties%wannierplot%plot3d%box%pointarray(3)%point%coord
+        s = omega**(1.d0/3.d0)
+        do ist = fst, lst
           call r3mv( ainv, wf_centers( :, ist) + cellc - s*(v1+v2+v3), input%properties%wannierplot%plot3d%box%origin%coord)
           call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v1-v2-v3), input%properties%wannierplot%plot3d%box%pointarray(1)%point%coord)
           call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v2-v3-v1), input%properties%wannierplot%plot3d%box%pointarray(2)%point%coord)
           call r3mv( ainv, wf_centers( :, ist) + cellc + s*(v3-v1-v2), input%properties%wannierplot%plot3d%box%pointarray(3)%point%coord)
           grid( ist) = gen_3d_rgrid( input%properties%wannierplot%plot3d, 0)
-        end if
-      end do
+        end do
+      end if
   
       maxdim = 0
       do is = 1, nspecies
@@ -1005,5 +1007,5 @@ module mod_wfutil
       deallocate( zdatatot, grid)
      
       return
-  end subroutine wfutil_plot
+    end subroutine wfutil_plot
 end module mod_wfutil
