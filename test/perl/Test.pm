@@ -30,15 +30,15 @@ sub assert_file_same_within {
  		}
 		
 	}
-	print @error;
+        $maxerror=max(@error);
+	print "Maximal deviation = $maxerror\n";
 	$status='failed';
-if(max( @error) <$tol)
-	{
- 	$status='passed';
+        
+        if (max(@error) < $tol){
+            $status='passed';
  	}
- 	close  FILE1;
- 	close  FILE2;
- 	$maxerror=max(@error );
+ 	close FILE1;
+ 	close FILE2;
 
 %test=(status => $status,
 	line => $linenr,
@@ -55,19 +55,20 @@ sub initreport{ #call with filename
   $writer->xmlDecl( 'UTF-8' );
   $writer->pi('xml-stylesheet', 'href="./report.xsl" type="text/xsl"');
   $writer->startTag("report");
-return $writer
- }
+  return $writer
+}
+  
 sub closereport{
-$writer=@_[0] ;
+  $writer=@_[0] ;
   $writer->endTag("report");
   $writer->end();
   $output=$writer-> getOutput();
   $output->close();
-  }
+}
   
 sub writetestreport(%$) { #hash with values and writer object
-$writer=@_[1];
-$elements=@_[0];
+  $writer=@_[1];
+  $elements=@_[0];
   $writer->startTag("test");
   #,"directory" => @_[0]->{"directory"}, 
   #                  "name"=>@_[0]->{"name"});
@@ -82,7 +83,7 @@ $elements=@_[0];
 			
   } 
   $writer->endTag("test");  
-return 1;
+  return 1;
 }
 
 return 1

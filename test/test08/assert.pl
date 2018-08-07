@@ -7,12 +7,10 @@ use Test;
 
 $writer= Test::initreport("report.xml");
 
-
-
-
 %statusse=Test::assert_file_same_within( "./reference/EVALQP.REF",
 	"rungw/EVALQP.DAT",5.0);
- Test::writetestreport({
+
+Test::writetestreport({
  		"directory"=>"test08/ ",
  		"name"=>"GW quasiparticle banstructure",
  		"description"=>"The test is passed if the quasiparticle banstructure differs
@@ -20,4 +18,4 @@ $writer= Test::initreport("report.xml");
  		 reference/EVALQP.REF difference=".  %statusse->{maxerror},
  		"status"=> %statusse->{status}}, $writer);
 
- Test::closereport($writer);
+Test::closereport($writer);
