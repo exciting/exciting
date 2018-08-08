@@ -66,6 +66,10 @@ Character(256) :: raman_filext, raman_stepdir, fileeps(3, 3)
 ! check whether plan was specified in xs element
 Logical :: dplan
 Integer :: nxstasksmax, taskindex
+! BSE variables
+Logical :: fcoup
+character(256) :: frmt, tdastring, bsetypestring, scrtypestring, &
+  &               epsilondir
 #ifndef IFORT
   integer system, chdir
 #endif
@@ -613,9 +617,26 @@ do imode = 1, nmode
                 & fxctypestr=input%xs%tddft%fxctype, tq0=.true., &
                 & oc1=oct1, oc2=oct2, iqmt=1, filnam=fneps)
             else
-               Call genfilname (basename='EPSILON', tq0=.True., oc1=oct1, &
-                & oc2=oct2, bsetype=input%xs%bse%bsetype, &
-                & scrtype=input%xs%screening%screentype, nar= .Not. &
+              fcoup = input%xs%bse%coupling
+              epsilondir='EPSILON'
+              if(fcoup) then
+                tdastring=''
+              else
+                if(input%xs%bse%chibarq) then 
+                  tdastring="-TDA-BAR"
+                else
+                  tdastring="-TDA"
+                end if
+              end if
+              if(input%xs%bse%bsetype == "IP") then
+                tdastring=''
+              end if
+              bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
+              scrtypestring = '-'//trim(input%xs%screening%screentype)
+
+               Call genfilname (dirname=trim(epsilondir),basename='EPSILON', tq0=.True., oc1=oct1, &
+                & oc2=oct2, bsetype=trim(bsetypestring), &
+                & scrtype=trim(scrtypestring), nar= .Not. &
                 & input%xs%bse%aresbse, filnam=fneps)
             endif
             fileeps(oct1, oct2) = fneps
