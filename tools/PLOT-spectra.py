@@ -56,7 +56,7 @@ for i,fname in enumerate(fnames):
     xdata.append([])
     ydata.append([])
     labels.append({})
-    print "Parsing "+fname
+    print "\n Parsing "+fname
     sfname = fname.split("/")[-1]
     sfname = re.split('_|-',sfname)
     
@@ -93,6 +93,8 @@ for i,fname in enumerate(fnames):
     for elem in tree.xpath('/%s/map'%(rootelement)):
         xdata[i].append(float(elem.attrib["variable1"]))
         ydata[i].append(float(elem.attrib["function%d"%(function)]))
+
+print
 
 #-------------------------------------------------------------------------------
 # Settings for the plot
