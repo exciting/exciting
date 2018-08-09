@@ -14,6 +14,7 @@ Subroutine writephnlist(nppt,vpl,twrev,fname)
       character(*), intent(in) :: fname
 ! local variables
       Integer :: n, iq, i, j, is, ia, ip
+      Real (8) :: er, ei, eeps
 ! allocatable arrays
       Real (8), Allocatable :: w (:)
       Complex (8), Allocatable :: ev (:, :)
@@ -26,6 +27,8 @@ Subroutine writephnlist(nppt,vpl,twrev,fname)
       Allocate (dynq(n, n, nqpt))
       Allocate (dynp(n, n))
       Allocate (dynr(n, n, ngridq(1)*ngridq(2)*ngridq(3)))
+! set threshold for the eigenvector components
+      eeps = 1E-15
 ! read in the dynamical matrices
       Call readdyn (.true.,dynq)
 ! apply the acoustic sum rule
@@ -48,13 +51,20 @@ Subroutine writephnlist(nppt,vpl,twrev,fname)
                    Do ia = 1, natoms (is)
                       Do ip = 1, 3
                          i = i + 1
+                         er = dreal(ev(i, j))
+                         if (dabs(er) .lt. eeps) then 
+                             er = 0.E0
+                         end if
+                         ei = dimag(ev(i, j))
+                         if (dabs(ei) .lt. eeps) then 
+                             ei = 0.E0
+                         end if
+                         ev(i, j) = cmplx(er, ei)
                          If (i .Eq. 1) Then
-                            Write (50, '(3I4, 2G18.10, " : species, atom, p&
-                           &olarisation, eigenvector")') is, ia, ip, ev (i, &
-                           & j)
+                            Write (50, '(3I4, 2G18.10, " : species, atom, polarisation, eigenvector")')&
+                           & is, ia, ip, ev (i, j)
                          Else
-                            Write (50, '(3I4, 2G18.10)') is, ia, ip, ev (i, &
-                           & j)
+                            Write (50, '(3I4, 2G18.10)') is, ia, ip, ev (i, j)
                          End If
                       End Do
                    End Do
