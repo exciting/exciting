@@ -42,12 +42,12 @@ subroutine checkevalqp(nkp2,kvecs2,eqp2)
   !------------------------------
   ! Data-set consistency check
   !------------------------------
-  if ((ibgw < ioglobalmin).or.(nbgw+ibgw-1 < iuglobalmax)) then
+  if ((ibgw > ioglobalmin).or.(nbgw < iuglobalmax)) then
     write(*,*)
-    write(*,*)'WARNING(getevalqp):'
+    write(*,*)'ERROR(getevalqp):'
     write(*,*)'  Quasiparticle band interval does not agree with BSE band interval!'
     write(*,*)'  Quasiparticle band interval:'
-    write(*,*)'  [lowest band, highest band]=[', ibgw, ibgw+nbgw-1,']'
+    write(*,*)'  [lowest band, highest band]=[', ibgw, nbgw,']'
     write(*,*)'  BSE band interval:'
     write(*,*)'  [lowest band, highest band]=[', ioglobalmin, iuglobalmax,']'
     write(*,*)
