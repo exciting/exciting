@@ -34,11 +34,18 @@ Subroutine phonon
       integer system, chdir
 #endif
       integer :: j
-      logical :: existent
+      logical :: existent, fautokpt, fforces, fcell
 !------------------------!
 !     initialisation     !
 !------------------------!
+      fautokpt=.True.
+      fforces=.False.
+      fcell=.False.
+      ! store input parameters
+      if (input%groundstate%tforce) fforces=.True.
+      if (input%structure%primcell) fcell=.True.
 ! require forces
+
       input%groundstate%tforce = .True.
 ! no primitive cell determination
       input%structure%primcell = .False.
@@ -51,6 +58,7 @@ Subroutine phonon
                           input%structure%crystal%basevect(3, :)**2)
          input%groundstate%radkpt = Max(genrad(1), genrad(2), genrad(3))
          input%groundstate%autokpt = .True.
+         fautokpt=.False.
       endif
 ! initialise universal variables
       Call init0
@@ -294,4 +302,11 @@ Subroutine phonon
       if (rank.eq.0)  Call writedveff (iq, is, ia, ip, dveffmt, dveffir)
       Go To 10
 20 continue
+! restore autokpt if necessary
+if (.not. fautokpt) then
+  input%groundstate%autokpt=.False.
+endif
+! restore input parameters
+input%groundstate%tforce=fforces
+input%structure%primcell=fcell
 End Subroutine
