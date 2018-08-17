@@ -1,4 +1,87 @@
-      SUBROUTINE gga_x_wpbeh(rho,s,omega,Fx_wpbe,d1rfx,d1sfx)
+	subroutine gga_x_wpbeh(rho, grho, sx, v1x, v2x)
+	!-----------------------------------------------------------------------
+	  !     gradient corrections for exchange and correlation - Hartree a.u.
+	  !     See comments at the beginning of module for implemented cases
+	  !
+	  !     input:  rho, grho=|\nabla rho|^2
+	  !     definition:  E_x = \int E_x(rho,grho) dr
+	  !     output: sx = E_x(rho,grho)
+	  !             v1x= D(E_x)/D(rho)
+	  !             v2x= D(E_x)/D( D rho/D r_alpha ) / |\nabla rho|
+	  !
+	  implicit none
+
+	  real*8 :: rho, grho, sx, v1x, v2x
+	  real*8 :: sx__,v1x__, v2x__
+	  real*8 :: sxsr, v1xsr, v2xsr
+  	  real*8 , parameter:: small = 1.E-10d0
+
+	  ! exchange
+	  if (rho <= small) then
+	     sx = 0.0d0
+	     v1x = 0.0d0
+	     v2x = 0.0d0
+	  else  ! 'pbexsr'
+	!     call pbex (rho, grho, 1, sx, v1x, v2x)
+	!     if(exx_started) then
+	       call pbexsr (rho, grho, sxsr, v1xsr, v2xsr, screening_parameter)
+	!       sx = sx - exx_fraction * sxsr
+	!       v1x = v1x - exx_fraction * v1xsr
+	!       v2x = v2x - exx_fraction * v2xsr
+	  endif
+	  !
+	  return
+	end subroutine gga_x_wpbeh
+
+
+
+      SUBROUTINE pbexsr(RHO,GRHO,sx,V1X,V2X,OMEGA)
+!-----------------------------------------------------------------------
+!
+!      INCLUDE 'cnst.inc'
+!      use kinds, ONLY : DP
+
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      PARAMETER(SMALL=1.D-20,SMAL2=1.D-08)
+      PARAMETER(US=0.161620459673995492D0,AX=-0.738558766382022406D0, &
+                UM=0.2195149727645171D0,UK=0.8040D0,UL=UM/UK)
+      REAL*8, PARAMETER :: f1 = -1.10783814957303361d0, alpha = 2.0d0/3.0d0
+!     ==--------------------------------------------------------------==
+
+!      CALL XC(RHO,EX,EC,VX,VC)
+      RS = RHO**(1.0d0/3.0d0)
+      VX = (4.0d0/3.0d0)*f1*alpha*RS
+
+!      AA    = DMAX1(GRHO,SMAL2)
+      AA    = GRHO
+!      RR    = RHO**(-4.0_DP/3.0_DP)
+      RR    = 1.0d0/(RHO*RS)
+      EX    = AX/RR
+      S2    = AA*RR*RR*US*US
+
+      S = SQRT(S2)
+      IF(S.GT.8.3d0) THEN
+        S = 8.572844D0 - 18.796223D0/S2
+      ENDIF
+      CALL wpbe_analy_erfc_approx_grad(RHO,S,OMEGA,FX,D1X,D2X)
+      sx = EX*FX        ! - EX
+      DSDN = -4.D0/3.D0*S/RHO
+      V1X = VX*FX + (DSDN*D2X+D1X)*EX   ! - VX
+      DSDG = US*RR
+      V2X = EX*1.D0/SQRT(AA)*DSDG*D2X
+
+! NOTE, here sx is the total energy density,
+! not just the gradient correction energy density as e.g. in pbex()
+! And the same goes for the potentials V1X, V2X
+
+!     ==--------------------------------------------------------------==
+      RETURN
+      END SUBROUTINE pbexsr
+
+
+      SUBROUTINE wpbe_analy_erfc_approx_grad(rho,s,omega,Fx_wpbe, &
+                      d1rfx,d1sfx)
 !--------------------------------------------------------------------
 !
 !     wPBE Enhancement Factor (erfc approx.,analytical, gradients)
@@ -600,4 +683,5 @@
 
       endif
 
-      END SUBROUTINE
+      END SUBROUTINE wpbe_analy_erfc_approx_grad
+
