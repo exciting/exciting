@@ -34,8 +34,8 @@ subroutine scf_cycle(verbosity)
     ! Charge distance
     Real (8), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
     Real (8), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
-
     acoord = "lattice"
+
     if (input%structure%cartesian) acoord = "cartesian"
 
     If ((verbosity>-1).and.(rank==0)) Then

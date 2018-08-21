@@ -77,6 +77,10 @@ Module mod_potential_and_density
       Real (8), Allocatable :: ecmt (:, :, :)
 ! interstitial real-space correlation energy density
       Real (8), Allocatable :: ecir (:)
+! muffin-tin short-range exchange energy density
+      Real (8), Allocatable :: exsrmt (:, :, :)
+! interstitial short-range real-space exchange energy density
+      Real (8), Allocatable :: exsrir (:)
 ! type of mixing to use for the potential
 !replaced by inputstructureinteger::mixtype
 ! adaptive mixing parameters
