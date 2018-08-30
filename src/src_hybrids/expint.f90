@@ -31,6 +31,7 @@
 
       IF (.NOT. ((n >= 0).AND.(x >= 0.0).AND.((x > 0.0).OR.(n > 1)))) THEN
 !!         CALL errore('expint','bad arguments', 1)
+           STOP
       END IF
 
       IF (n == 0) THEN
@@ -54,7 +55,8 @@
             h = h*del
             IF (ABS(del-1.0d0) <= EPS) EXIT
          END DO
-!!         IF (i > maxit) CALL errore('expint','continued fraction failed',1)
+         IF (i > maxit) STOP !CALL errore('expint','continued fraction failed',1)
+           !STOP
          expint = h*EXP(-x)
       ELSE
          IF (nm1 /= 0) THEN
@@ -80,7 +82,7 @@
             expint = expint+del
             IF (ABS(del) < ABS(expint)*eps) EXIT
          END DO
-!!         IF (i > maxit) CALL errore('expint','series failed',1)
+         IF (i > maxit) STOP !CALL errore('expint','series failed',1)
       END IF
 
       END FUNCTION EXPINT

@@ -4,7 +4,6 @@
 ! See the file COPYING for license details.
 
 module modxcifc
-
 use libxcifc
 !Use scl_xml_out_Module
 
@@ -65,6 +64,7 @@ subroutine xcifc(xctype,n,rho,rhoup,rhodn,grho,gup,gdn,g2rho,g2up,g2dn,g3rho, &
 !   Modiefied Januar 2013 (UW)
 !EOP
 !BOC
+Use modinput, only: input
 implicit none
 ! mandatory arguments
 integer, intent(in) :: xctype(3)
@@ -227,8 +227,8 @@ case(20,21,22,300,406,408)
    .and.present(vc)) then
 ! IF added by CECI for hybrid
     if (xctype(1)==408) then
-       omega_hyb=1.d0
-       !omega=input%groundstate%Hybrid%omega
+       !omega_hyb=1.d0
+       omega_hyb=input%groundstate%Hybrid%omega
        call gga_x_wpbeh(n,rho,grho,exsr,vxsr,omega_hyb)
     endif
     allocate(ra(n,6))

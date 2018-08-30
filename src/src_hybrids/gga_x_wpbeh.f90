@@ -45,6 +45,8 @@
         sx(i) = EX*FX        ! - EX
         DSDN = -4.D0/3.D0*S/RHO(i)
         V1X(i) = VX*FX + (DSDN*D2X+D1X)*EX   ! - VX
+        write(1002,*) "sr: i, sx, v1x", i, sx(i), v1x(i) 
+        call flushifc(1002)
 !       DSDG = US*RR
 !       V2X = EX*1.D0/SQRT(AA)*DSDG*D2X
       enddo
