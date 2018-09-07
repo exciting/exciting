@@ -49,11 +49,12 @@ subroutine bandstructure_analysis(title,ib,nb,nkpt,eband,efermi)
     &                          efermi)
     
     ! check for VBM and CBM overlap (metal)
-    if ((nomax >= numin).or.(dabs(fermidos)>1.d-4)) then
-        metallic = .true.
-    else
-        metallic = .false.
-    end if
+    ! if ((nomax >= numin).or.(dabs(fermidos)>1.d-4)) then
+    !     metallic = .true.
+    ! else
+    !     metallic = .false.
+    ! end if
+    metallic = .false.
     
     if (rank==0) then
       if (metallic) then

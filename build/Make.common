@@ -12,7 +12,7 @@ SOURCEDIRS=	\
 	../../src/src_optics/ \
 	../../src/src_LDAU/ \
 	../../src/src_rdmft/ \
-	../../src/src_lib/ \
+	../../src/src_lib/ ../../src/src_lib/bessel \
 	../../src/src_advanced/ \
 	../../src/src_eigensystem/ \
 	../../src/src_mpi/ \

@@ -4,6 +4,7 @@ subroutine task_eps_r
     use modinput
     use modmain
     use modgw
+    use mod_coulomb_potential
     use mod_mpi_gw
     use m_getunit
     use mod_hdf5

@@ -11,9 +11,10 @@ subroutine calcselfx(iq)
 !
 !!USES:
     use modinput
-    use modmain,    only : nstfv, apwordmax, lmmaxapw, natmtot, nspnfv, &
-    &                      pi, idxas, zzero, nmatmax, zone, occsv
+    use modmain,               only: nstfv, apwordmax, lmmaxapw, natmtot, nspnfv, &
+                                     pi, idxas, zzero, nmatmax, zone, occsv
     use modgw
+    use mod_coulomb_potential
     use mod_mpi_gw, only : myrank
     use mod_hdf5
       
@@ -27,7 +28,7 @@ subroutine calcselfx(iq)
     real(8)    :: tstart, tend, t0, t1
     integer(4) :: ie1, ie2, im
     integer(4) :: ia, is, ias, ic, icg
-    real(8)    :: wkq, sxs2
+    real(8)    :: wkq, sxs2, fnk
     complex(8) :: sx, vc
     complex(8) :: mvm     ! Sum_ij{M^i*V^c_{ij}*conjg(M^j)}
     complex(8), allocatable :: evecsv(:,:,:)
@@ -50,28 +51,29 @@ subroutine calcselfx(iq)
     !   write(*,*)
     ! end if
     call timesec(tstart)
-   
-    if (vccut) then
-      sxs2 = 0.d0
-      !----------------------------------------
-      ! Set v-diagonal mixed product basis set
-      !----------------------------------------
-      mbsiz = matsiz
-      if (allocated(barc)) deallocate(barc)
-      allocate(barc(matsiz,mbsiz))
-      barc(:,:) = zzero
-      do im = 1, matsiz
+    
+    ! singular term prefactor (q->0)
+    sxs2 = 4.d0*pi*vi
+
+    if (Gamma) then
+      print*, ''
+      print*, 'selfx: singc2=', singc2
+      print*, ''
+    end if
+
+    !----------------------------------------
+    ! Set v-diagonal mixed product basis set
+    !----------------------------------------
+    mbsiz = matsiz
+    if (allocated(barc)) deallocate(barc)
+    allocate(barc(matsiz,mbsiz))
+    barc(:,:) = zzero
+    do im = 1, matsiz
+      if (barcev(im) > 0.d0) then
         vc = cmplx(barcev(im),0.d0,8)
         barc(:,im) = vmat(:,im)*sqrt(vc)
-      end do
-    else
-      ! singular term prefactor (q->0)
-      sxs2 = -4.d0*pi*vi
-      !----------------------------------------
-      ! Set v-diagonal mixed product basis set
-      !----------------------------------------
-      call setbarcev(0.d0)
-    end if
+      end if
+    end do
     
     !--------------------------------------------------
     ! total number of states (n->m + n->c transisions)
@@ -160,9 +162,12 @@ subroutine calcselfx(iq)
         end do ! ie2
         
         ! add singular term (q->0)
-        if (Gamma.and.(ie1<=nomax)) sx = sx+sxs2*singc2*kiw(ie1,ik)*kqset%nkpt
-        !if (Gamma.and.(dabs(kiw(ie1,ik))>1.d-6)) sx = sx+sxs2*singc2*kiw(ie1,ik)*kqset%nkpt
-        
+        if (Gamma.and.(ie1<=nomax)) then
+          ! occupation number
+          fnk = kiw(ie1,ik)*kqset%nkpt
+          sx  = sx - sxs2 * fnk * singc2
+        end if
+
         selfex(ie1,ikp) = selfex(ie1,ikp)+sx
         
       end do ! ie1

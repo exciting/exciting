@@ -768,6 +768,8 @@ CONTAINS
           do ik = 1, kset%nkpt
             do igp = 1, self%ngk(ispn,ik)
               ig = igk2ig(igp,ik,ispn)
+              ! index from G and k to G+k vector
+              self%igigk(ig,ispn,ik) = igp
               ! index to G-vector
               self%igkig(igp,ispn,ik) = ig
               ! G+k-vector in lattice coordinates
@@ -891,6 +893,7 @@ CONTAINS
         type(Gk_set), intent(INOUT) :: self
 
         if (allocated(self%ngk)) deallocate(self%ngk)
+        if (allocated(self%igigk)) deallocate(self%igkig)
         if (allocated(self%igkig)) deallocate(self%igkig)
         if (allocated(self%igigk)) deallocate(self%igigk)
         if (allocated(self%vgkl)) deallocate(self%vgkl)

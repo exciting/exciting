@@ -7,6 +7,7 @@ subroutine calc_vxnl()
 ! !USES:    
     use modmain
     use modgw
+    use mod_coulomb_potential, only: delete_coulomb_potential
     use modfvsystem
     use mod_hybrids
     use modmpi

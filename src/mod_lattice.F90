@@ -12,7 +12,7 @@ Module mod_lattice
 !     lattice parameters     !
 !----------------------------!
 ! lattice vectors stored column-wise
-!replaced by inputstructurereal(8)::avec(3, 3)
+      real(8)  :: avec(3,3) ! DN: an alias for input%structure%crystal%basevect (will be initialized in init0
 ! inverse of lattice vector matrix
       Real (8) :: ainv (3, 3)
 ! reciprocal lattice vectors

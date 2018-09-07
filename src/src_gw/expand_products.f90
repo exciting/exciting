@@ -131,8 +131,9 @@ contains
   !
   !=============================================================================
     subroutine expand_products_block(ik,iq,nstart,nend,mstart,mend,minm,iflag)
-        use modmain,    only : zone, zzero
-        use modgw,      only : locmatsiz, matsiz, mbsiz, barc, fgw
+        use modmain,               only: zone, zzero
+        use modgw,                 only: locmatsiz, matsiz, mbsiz, fgw
+        use mod_coulomb_potential, only: barc
         use mod_mpi_gw
         implicit none
         ! input variables

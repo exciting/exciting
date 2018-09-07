@@ -20,10 +20,10 @@ subroutine sigma(iq,lambdamax)
 !!USES:
     use modinput
     use modmain, only : nspecies, natoms, idxas, atposc, &
-    &                   zzero, bvec, pi, natmtot, zi
+    &                   zzero, avec, bvec, pi, natmtot, zi
     use modgw,   only : kqset, fdebug
     use mod_coulomb_potential, only : sgm
-    use mod_misc_gw, only : avec, vi    
+    use mod_misc_gw, only : vi    
     use strconst
       
 !!INPUT PARAMETERS:

@@ -12,9 +12,10 @@ subroutine setbarcev(evtol)
 ! bare coulomb matrix in terms of evtol
 !
 !!USES:
-    use modmain,               only : zone, zzero
+    use modmain,               only: zone, zzero
     use modgw
-    use mod_mpi_gw,            only : myrank
+    use mod_coulomb_potential
+    use mod_mpi_gw,            only: myrank
 
 !!INPUT PARAMETERS: 
     implicit none
@@ -27,6 +28,7 @@ subroutine setbarcev(evtol)
     complex(8) :: vc
     integer(4), allocatable :: im_kept(:) ! indicate which barc eigenvectors
                                           ! are kept as basis functions
+    complex(8), allocatable :: wi0(:)
     complex(8), allocatable :: wi0new(:)
 
 !!REVISION HISTORY:
@@ -50,9 +52,11 @@ subroutine setbarcev(evtol)
     end do 
 
     if (Gamma) then
-      call calcwmix0
+      allocate(wi0(matsiz))
+      call calcwmix0(wi0)
       allocate(wi0new(matsiz))
       call zgemv('c',matsiz,matsiz,zone,vmat,matsiz,wi0,1,zzero,wi0new,1)
+      deallocate(wi0)
       ! find the index of the diagonalized barc eigenvector that has maximal 
       ! overlap with G=0 (constant) plane wave
       test2 = 0.0d0
@@ -72,7 +76,7 @@ subroutine setbarcev(evtol)
         im_kept(immax) = 0
         mbsiz = mbsiz-1
       end if
-      deallocate(wi0,wi0new)
+      deallocate(wi0new)
     end if
     10 format("immax, max(wi0new), barcev(immax): ",i4,4x,f8.3,4x,f9.6)
     

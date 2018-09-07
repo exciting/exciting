@@ -4,12 +4,10 @@ module modgw
     use mod_core_states
     use mod_product_basis
     use mod_gaunt_coefficients
-    use mod_vxc
     use mod_misc_gw
     use mod_bands
     use mod_kpointset
     use mod_frequency
-    use mod_coulomb_potential
     use mod_dielectric_function
     use mod_selfenergy
 

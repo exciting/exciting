@@ -13,9 +13,10 @@ subroutine calcvxcnn
 
 !!USES:
     use modinput
-    use modmain, only : apwordmax, lmmaxapw, lmmaxvr, natmtot, nlomax, &
-    &                   nstfv, nspinor, nstsv, nmatmax, nspecies, zzero, &
-    &                   nmat, natoms, vxcmt, vxcir, zone
+    use modmain, only: apwordmax, lmmaxapw, lmmaxvr, natmtot, nlomax, &
+    &                  nstfv, nspinor, nstsv, nmatmax, nspecies, zzero, &
+    &                  nmat, natoms, vxcmt, vxcir, zone
+    use mod_vxc
     use modgw
     use modmpi
     use m_getunit
@@ -142,13 +143,15 @@ subroutine calcvxcnn
         call hdf5_write(fgwh5,path,"vxcnn",vxcnn(1,ik),(/nbandsgw/))
       end do
 #else    
-    ! print results into file VXCNN.OUT
+      ! print results into binary file VXCNN.OUT 
+      call write_vxcnn()
+      ! and text file VXCNN.DAT
       call getunit(fid)
-      open(fid,file='VXCNN.OUT',form='FORMATTED',status='UNKNOWN')
+      open(fid,file='VXCNN.DAT',form='FORMATTED',status='UNKNOWN')
       do ik = 1, kset%nkpt
         write(fid,'("ik=",i4,"    vkl=",3f8.4)') ik, kset%vkl(:,ik)
         do i = ibgw, nbgw
-          write(fid,'(i4,2f12.4)') i, vxcnn(i,ik)
+          write(fid,'(i4,2f16.6)') i, vxcnn(i,ik)
         end do
         write(fid,*)
       end do

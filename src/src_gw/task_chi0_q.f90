@@ -2,8 +2,9 @@
 subroutine task_chi0_q
 
     use modinput
-    use modmain,               only : zzero, evalsv, efermi
+    use modmain,               only: zzero, evalsv, efermi
     use modgw
+    use mod_coulomb_potential
     use mod_mpi_gw
     use m_getunit
     use mod_hdf5

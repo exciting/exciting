@@ -14,6 +14,7 @@ subroutine parse_gwinput
     use modinput
     use modmain
     use modgw
+    use mod_coulomb_potential, only: vccut, rcut
     use modmpi
     implicit none
  
@@ -204,23 +205,20 @@ subroutine parse_gwinput
     end if
     if (rank==0) write(fgw,*) 'Solution of the QP equation:'
     select case (input%gw%selfenergy%iopes)
-        case(-2)
-            if (rank==0) write(fgw,*) " -2 - perturbative G0W0 without renormalization Z (testing)"
         case(0)
-            if (rank==0) write(fgw,*) "  0 - perturbative G0W0 without energy shift"
+            if (rank==0) write(fgw,*) "  0 - perturbative solution of QP-equation without energy shift"
         case(1)
-            if (rank==0) write(fgw,*) "  1 - perturbative G0W0 with energy shift"
+            if (rank==0) write(fgw,*) "  1 - perturbative solution of QP-equation with energy shift"
         case(2)
-            if (rank==0) write(fgw,*) "  2 - iterative G0W0 with energy shift"
+            if (rank==0) write(fgw,*) "  2 - iterative solution of QP-equation"
         case(3)
-            if (rank==0) write(fgw,*) "  3 - iterative G0W0 without energy shift"
+            ! if (rank==0) write(fgw,*) "  3 - iterative solution of QP-equation"
         case default
             if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal value for input%gw%SelfEnergy%iopes'
             if (rank==0) write(*,*) '  Currently supported options are:'
-            if (rank==0) write(*,*) '  0 - perturbative G0W0 without energy shift'
-            if (rank==0) write(*,*) '  1 - perturbative G0W0 with energy shift'
-            if (rank==0) write(*,*) '  2 - iterative G0W0 with energy shift'
-            if (rank==0) write(*,*) '  3 - iterative G0W0 without energy shift'
+            if (rank==0) write(*,*) '  0 - perturbative solution of QP-equation without energy shift'
+            if (rank==0) write(*,*) '  1 - perturbative solution of QP-equation with energy shift'
+            if (rank==0) write(*,*) '  2 - iterative solution of QP-equation'
             stop        
     end select
     if (rank==0) write(fgw,*) 'Analytic continuation method:'
@@ -259,12 +257,16 @@ subroutine parse_gwinput
     select case (trim(input%gw%selfenergy%singularity))
       case('none')
         if (rank==0) write(fgw,*) 'No scheme is used (test purpose only)'
+      case('avg')
+        if (rank==0) write(fgw,*) 'Replace the singular term by the corresponding spherical average over small volume arounf Gamma point.'
       case('mpb')
         if (rank==0) write(fgw,*) 'Auxiliary function method by &
         &S. Massidda, M. Posternak, and A. Baldereschi, PRB 48, 5058 (1993)'
       case('crg')  
         if (rank==0) write(fgw,*) 'Auxiliary function method by &
         &P. Carrier, S. Rohra, and A. Goerling, PRB 75, 205126 (2007)'
+      case('rim')  
+        if (rank==0) write(fgw,*) '(experimantal) RIM by Yambo'
       case default
         write(*,*) 'ERROR(parse_gwinput): Unknown singularity treatment scheme!'
         stop
@@ -306,6 +308,9 @@ subroutine parse_gwinput
       case('0d')
         vccut = .true.
         if (rank==0) write(fgw,*) '  Spherical (0d) cutoff is applied'
+      case('1d')
+        vccut = .true.
+        if (rank==0) write(fgw,*) '  Wired (1d) cutoff is applied (1d periodicity along z-axis)'
       case('2d')
         vccut = .true.
         if (rank==0) write(fgw,*) '  Slab (2d) cutoff is applied (vacuum along z-axis)'
@@ -314,9 +319,13 @@ subroutine parse_gwinput
         if (rank==0) write(*,*) '  Currently supported options are:'
         if (rank==0) write(*,*) '  none - No cutoff (default)'
         if (rank==0) write(*,*) '  0d   - Spherical (0d) cutoff'
+        if (rank==0) write(*,*) '  1d   - Wired (1d) cutoff (periodicity along z-axis)'
         if (rank==0) write(*,*) '  2d   - Slab geometry (vacuum along z-axis)'
         stop
     end select
+    rcut = input%gw%barecoul%rcut
+    ! Coulomb potential truncation techniques are implemented only for the PW basis
+    if (vccut) input%gw%barecoul%basis = "pw"
     if (rank==0) call linmsg(fgw,'-','')
     
 !-------------------------------------------------------------------------------

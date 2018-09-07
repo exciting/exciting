@@ -13,6 +13,7 @@ subroutine calcbarcmb(iq)
 !!USES:
     use modinput
     use modgw
+    use mod_coulomb_potential
     use mod_mpi_gw, only: myrank
     
 !!INPUT PARAMETERS: 
@@ -30,6 +31,8 @@ subroutine calcbarcmb(iq)
     integer,    allocatable :: iwork(:), ifail(:), isuppz(:)
 
     real(8), external :: dlamch
+
+    character(len=256) :: filename
       
 !!REVISION HISTORY:
 ! 
@@ -55,7 +58,7 @@ subroutine calcbarcmb(iq)
       call calcbarcmb_pw(iq)
       
     case('mb')
-    
+
       if (Gamma) then
         !------------------------------------------------
         ! Matrix elements for the singular q=0, L=0 case
@@ -147,9 +150,21 @@ end if
     !call timesec(t1)
     !write(*,*) 'barc diagonalization', t1-t0
 
-!----------------------    
-! debug info
-!----------------------
+    ! output
+    ! write(filename,10) iq
+    ! 10 format("vcoul-iq",i4".out")
+    ! call str_strip(filename)
+    ! open(unit=10, File=filename, Status='Unknown')
+    ! do imix = 1, matsiz
+    !     write(10,*) imix, barcev(imix)
+    ! end do
+    ! close(10)
+    ! stop 'vcoul'
+
+    !----------------------    
+    ! debug info
+    !----------------------
+
     if (input%gw%debug) then
       !----------------------    
       ! Memory usage info
