@@ -87,12 +87,17 @@ subroutine calc_vxnl()
       !---------------------------------------
       ! Integration over BZ
       !---------------------------------------
+      !CECI
+      write(1005,*) "kset%nkpt",kqset%nkpt 
+        call flushifc(1005)
       do iq = 1, kqset%nkpt
           
         Gamma = gammapoint(kqset%vqc(:,iq))
 
         ! Set the size of the basis for the corresponding q-point
         matsiz = locmatsiz+Gqset%ngk(1,iq)
+        write(1005,*) "matsiz, locmatsiz, Gqset%ngk(1,iq)",iq,matsiz, locmatsiz, Gqset%ngk(1,iq) 
+        call flushifc(1005)
         call diagsgi(iq)
         call calcmpwipw(iq)
 
@@ -121,6 +126,7 @@ subroutine calc_vxnl()
         ! M^i_{nm}+M^i_{cm}
         allocate(minmmat(mbsiz,nstfv,1:mdim))
         minmmat(:,:,:) = zzero
+        !CECI all the time
         call expand_products(ik,iq,1,nstfv,-1,1,mdim,nomax,minmmat)
         call delete_coulomb_potential
            

@@ -108,7 +108,7 @@ subroutine calcbarcmb(iq)
       
     if (allocated(barcev)) deallocate(barcev)
     allocate(barcev(matsiz))
-    
+!!CECI, why do we have if (.false.)??    
 if (.false.) then 
     vmat(1:matsiz,1:matsiz) = barc(1:matsiz,1:matsiz)
     deallocate(barc)  

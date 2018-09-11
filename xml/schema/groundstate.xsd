@@ -2768,6 +2768,13 @@
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
+            <xs:enumeration value="GGA_PBE_SR">
+              <xs:annotation>
+                <xs:appinfo>
+                  <oldnr>23</oldnr>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:enumeration>
             <xs:enumeration value="GGA_WC">
               <xs:annotation>
                 <xs:appinfo>

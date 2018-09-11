@@ -17,7 +17,7 @@ contains
 ! g3up,g3dn,grho2,gup2,gdn2,gupdn,ex,ec,vx,vc,vxup,vxdn,vcup,vcdn,dxdg2,dxdgu2, &
 ! dxdgd2,dxdgud,dcdg2,dcdgu2,dcdgd2,dcdgud)
 subroutine xcifc(xctype,n,rho,rhoup,rhodn,grho,gup,gdn,g2rho,g2up,g2dn,g3rho, &
- g3up,g3dn,grho2,gup2,gdn2,gupdn,ex,ec,exsr,vx,vc,vxsr,vxup,vxdn,vcup,vcdn,dxdg2,&
+ g3up,g3dn,grho2,gup2,gdn2,gupdn,ex,ec,vx,vc,vxup,vxdn,vcup,vcdn,dxdg2,&
  dxdgu2,dxdgd2,dxdgud,dcdg2,dcdgu2,dcdgd2,dcdgud)
 ! !INPUT/OUTPUT PARAMETERS:
 !   xctype : type of exchange-correlation functional (in,integer(3))
@@ -40,10 +40,8 @@ subroutine xcifc(xctype,n,rho,rhoup,rhodn,grho,gup,gdn,g2rho,g2up,g2dn,g3rho, &
 !   gupdn  : (grad rhoup).(grad rhodn) (in,real(n),optional)
 !   ex     : exchange energy density (out,real(n),optional)
 !   ec     : correlation energy density (out,real(n),optional)
-!   exsr   : exchange energy density short-range (out,real(n),optional)
 !   vx     : spin-unpolarised exchange potential (out,real(n),optional)
 !   vc     : spin-unpolarised correlation potential (out,real(n),optional)
-!   vxsr   : spin-unpolarised exchange potential short-range (out,real(n),optional)
 !   vxup   : spin-up exchange potential (out,real(n),optional)
 !   vxdn   : spin-down exchange potential (out,real(n),optional)
 !   vcup   : spin-up correlation potential (out,real(n),optional)
@@ -88,10 +86,8 @@ real(8), optional, intent(in) :: gdn2(*)
 real(8), optional, intent(in) :: gupdn(*)
 real(8), optional, intent(out) :: ex(*)
 real(8), optional, intent(out) :: ec(*)
-real(8), optional, intent(out) :: exsr(*)
 real(8), optional, intent(out) :: vx(*)
 real(8), optional, intent(out) :: vc(*)
-real(8), optional, intent(out) :: vxsr(*)
 real(8), optional, intent(out) :: vxup(*)
 real(8), optional, intent(out) :: vxdn(*)
 real(8), optional, intent(out) :: vcup(*)
@@ -124,10 +120,8 @@ case(1)
 ! No density-derived exchange-correlation energy or potential
   if (present(ex)) ex(1:n)=0.d0
   if (present(ec)) ec(1:n)=0.d0
-  if (present(ec)) exsr(1:n)=0.d0
   if (present(vx)) vx(1:n)=0.d0
   if (present(vc)) vc(1:n)=0.d0
-  if (present(vx)) vxsr(1:n)=0.d0
   if (present(vxup)) vxup(1:n)=0.d0
   if (present(vxdn)) vxdn(1:n)=0.d0
   if (present(vcup)) vcup(1:n)=0.d0
@@ -192,7 +186,7 @@ case(5)
     goto 10
   end if
 !CECI look here, do you need to add type 408?
-case(20,21,22,300,406,408)
+case(20,21,22,300,406,408,23)
 ! original PBE kappa
   kappa=0.804d0
   if (xctype(1).eq.21) then
@@ -226,19 +220,21 @@ case(20,21,22,300,406,408)
    .and.present(g3rho).and.present(ex).and.present(ec).and.present(vx) &
    .and.present(vc)) then
 ! IF added by CECI for hybrid
-    if (xctype(1)==408) then
-       !omega_hyb=1.d0
-       omega_hyb=input%groundstate%Hybrid%omega
-       call gga_x_wpbeh(n,rho,grho,exsr,vxsr,omega_hyb)
-    endif
-    allocate(ra(n,6))
-    ra(1:n,1)=0.5d0*rho(1:n)
-    ra(1:n,2)=0.5d0*grho(1:n)
-    ra(1:n,3)=0.5d0*g2rho(1:n)
-    ra(1:n,4)=0.25d0*g3rho(1:n)
-    call xc_pbe(n,kappa,mu,beta,ra(:,1),ra(:,1),grho,ra(:,2),ra(:,2),ra(:,3), &
-     ra(:,3),g3rho,ra(:,4),ra(:,4),ex,ec,vx,ra(:,5),vc,ra(:,6))
-    deallocate(ra)
+    !if (xctype(1)==408 .or. xctype(1)==23) then !CECI:test
+    if (xctype(1)==23) then
+       omega_hyb=0.106d0 !CECI test
+       !omega_hyb=input%groundstate%Hybrid%omega
+       call gga_x_wpbeh(n,rho,grho,ex,vx,omega_hyb)
+    else
+       allocate(ra(n,6))
+       ra(1:n,1)=0.5d0*rho(1:n)
+       ra(1:n,2)=0.5d0*grho(1:n)
+       ra(1:n,3)=0.5d0*g2rho(1:n)
+       ra(1:n,4)=0.25d0*g3rho(1:n)
+       call xc_pbe(n,kappa,mu,beta,ra(:,1),ra(:,1),grho,ra(:,2),ra(:,2),ra(:,3), &
+       ra(:,3),g3rho,ra(:,4),ra(:,4),ex,ec,vx,ra(:,5),vc,ra(:,6))
+       deallocate(ra)
+     endif
   else
     goto 10
   end if
@@ -371,6 +367,10 @@ case(21)
 case(22)
   xcdescr='PBEsol, Phys. Rev. Lett. 100, 136406 (2008)'
   xcspin=1
+  xcgrad=1
+case(23)
+  xcdescr='PBE short range:testonly'
+  xcspin=0
   xcgrad=1
 case(26)
   xcdescr='Wu-Cohen exchange + PBE correlation, Phys. Rev. B 73, 235116 (2006)'

@@ -51,6 +51,7 @@ subroutine scf_cycle(verbosity)
 ! initialise or read the charge density and potentials from file
 
 !! TIME - Begin of initialisation segment 
+
     Call timesec (ts0)
     If ((task .Eq. 1) .Or. (task .Eq. 3)) Then
         Call readstate
@@ -73,6 +74,7 @@ subroutine scf_cycle(verbosity)
         time_pot_init=tin1-tin0
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Density and potential initialised from atomic data")')
     End If
+
     Call genmeffig
     If ((verbosity>-1).and.(rank==0)) then
         write (60, *)
@@ -482,7 +484,9 @@ subroutine scf_cycle(verbosity)
 ! output forces to INFO.OUT
 !            if (input%groundstate%tforce) call writeforce(60,input%relax%outputlevelnumber)
 ! write band-gap if the dos at the Fermi energy is smaller than the given threshold
-            if (fermidos<1.0d-4) call printbandgap(60)
+!!CECI I REMOUVE THISSSS IF
+            !if (fermidos<1.0d-4) call printbandgap(60)
+            call printbandgap(60)
 ! check for WRITE file
             Inquire (File='WRITE', Exist=exist)
             If (exist) Then

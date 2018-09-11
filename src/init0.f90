@@ -447,11 +447,6 @@ Subroutine init0
       Allocate (ecmt(lmmaxvr, nrmtmax, natmtot))
       If (allocated(ecir)) deallocate (ecir)
       Allocate (ecir(ngrtot))
-! short-range exchange energy density 
-      If (allocated(exsrmt)) deallocate (exsrmt)
-      Allocate (exsrmt(lmmaxvr, nrmtmax, natmtot))
-      If (allocated(exsrir)) deallocate (exsrir)
-      Allocate (exsrir(ngrtot))
 ! effective potential
       If (allocated(veffmt)) deallocate (veffmt)
       Allocate (veffmt(lmmaxvr, nrmtmax, natmtot))

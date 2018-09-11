@@ -10,6 +10,7 @@
 Module diisinterfaces
 !
       Implicit None
+      !!!CECI, why double definition for zdoct
       Complex (8) zdotc
       Real (8) :: dlamch
       External zdotc, dlamch

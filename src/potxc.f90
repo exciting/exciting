@@ -38,7 +38,7 @@ real(8), allocatable :: ex(:),ec(:),vxc(:)
 real(8), allocatable :: vx(:),vxup(:),vxdn(:)
 real(8), allocatable :: vc(:),vcup(:),vcdn(:)
 !short-range energy and potential needed for hybrids (HSE)
-real(8), allocatable :: vxsr(:), exsr(:)
+!real(8), allocatable :: vxsr(:), exsr(:)
 real(8), allocatable :: dxdg2(:),dxdgu2(:),dxdgd2(:),dxdgud(:)
 real(8), allocatable :: dcdg2(:),dcdgu2(:),dcdgd2(:),dcdgud(:)
 real(8), allocatable :: mag(:,:),bxc(:,:)
@@ -68,14 +68,16 @@ else
   allocate(vx(n),vc(n))
   if (xcgrad.eq.1) then
     allocate(grho(n),g2rho(n),g3rho(n))
-    if (xctype(1)==408) then
-       allocate(vxsr(n),exsr(n))
-    endif
+   ! if (xctype(1)==408 .or. xctype(1)==23) then !CECI:test
+    !if (xctype(1)==408) then
+   !    allocate(vxsr(n),exsr(n))
+   ! endif
   else if (xcgrad.eq.2) then
     allocate(g2rho(n),gvrho(3*n),grho2(n))
     allocate(dxdg2(n),dcdg2(n))
   end if
 end if
+
  
 !---------------------------------------!
 !     muffin-tin potential and field    !
@@ -173,7 +175,6 @@ do is=1,nspecies
         call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,bxc(:,idm), &
          lmmaxvr,0.d0,bxcmt(:,:,ias,idm),lmmaxvr)
       end do
-      
     else
 !--------------------------!
 !     spin-unpolarised     !
@@ -185,14 +186,15 @@ do is=1,nspecies
 !        call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho,ex=ex, &
 !                   ec=ec,vx=vx,vc=vc)
       !!CECI I need to add this part also for the rest of the contribution
-
-        if (xctype(1)==408) then
-          call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho, ex=ex,&
-              ec=ec,exsr=exsr, vx=vx, vc=vc, vxsr=vxsr)
-        else 
+      !CECI: test
+   !     if (xctype(1)==408 .or. xctype(1)==23) then
+        !if (xctype(1)==408) then
+   !       call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho, ex=ex,&
+   !           ec=ec,exsr=exsr, vx=vx, vc=vc, vxsr=vxsr)
+   !     else 
         call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho,ex=ex, &
                    ec=ec,vx=vx,vc=vc)
-        endif
+   !     endif
       else if (xcgrad.eq.2) then
         call ggamt_2a(is,ia,g2rho,gvrho,grho2)
         call xcifc(xctype,n=n,rho=rho,grho2=grho2,ex=ex,ec=ec,vx=vx,vc=vc, &
@@ -201,8 +203,9 @@ do is=1,nspecies
       end if
       if (xctype(1)==100) then
          vxc(1:n)=vx(1:n)+ec_coef*vc(1:n)
-      elseif (xctype(1)==408) then !HSE
-         vxc(1:n)=vc(1:n)+vx(1:n)-ex_coef*vxsr(1:n)     
+      !CECI:test
+    !  elseif (xctype(1)==408) then !HSE
+    !     vxc(1:n)=vc(1:n)+vx(1:n)-ex_coef*vxsr(1:n)     
       else
          vxc(1:n)=(1-ex_coef)*vx(1:n)+ec_coef*vc(1:n)
       end if
@@ -213,17 +216,15 @@ do is=1,nspecies
                0.d0,exmt(:,:,ias),lmmaxvr)
     call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,ec,lmmaxvr, &
                0.d0,ecmt(:,:,ias),lmmaxvr)
-!ADDED BY CECI
-    if (xctype(1)==408) then
-       call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,exsr,lmmaxvr, &
-               0.d0,exsrmt(:,:,ias),lmmaxvr)
-    endif
 !! CECI LOOK HERE               
-    if ((xctype(1).ne.100).and.(xctype(1).ne.408)) then
+  if ((xctype(1).ne.100)) then !CECItest
+!    if ((xctype(1).ne.100).and.(xctype(1).ne.408)) then
        exmt(:,:,ias) = (1.d0-ex_coef)*exmt(:,:,ias)
-    else if (xctype(1)==408) then
-       exmt(:,:,ias) = exmt(:,:,ias)-ex_coef*exsrmt(:,:,ias)
-    end if
+    !CECI:test
+!    elseif (xctype(1)==408) then !HSE
+!    else if (xctype(1)==408) then
+!       exmt(:,:,ias) = exmt(:,:,ias)-ex_coef*exsrmt(:,:,ias)
+  end if
     ecmt(:,:,ias) = ec_coef*ecmt(:,:,ias)
     
 ! convert exchange-correlation potential to spherical harmonics
@@ -322,16 +323,8 @@ else
     call xcifc(xctype,n=ngrtot,rho=rhoir,ex=exir,ec=ecir,vx=vx,vc=vc)
   else if (xcgrad.eq.1) then
     call ggair_1(grho,g2rho,g3rho)
-    !!CECI I need to add this part also for the rest of the contribution
-!  call xcifc(xctype,n=ngrtot,rho=rhoir,grho=grho,g2rho=g2rho,g3rho=g3rho, &
-!             ex=exir,ec=ecir,vx=vx,vc=vc)
-    if (xctype(1)==408) then
-      call xcifc(xctype,n=ngrtot,rho=rhoir,grho=grho,g2rho=g2rho,g3rho=g3rho, ex=exir,&
-              ec=ecir,exsr=exsrir, vx=vx, vc=vc, vxsr=vxsr)
-    else 
-      call xcifc(xctype,n=ngrtot,rho=rhoir,grho=grho,g2rho=g2rho,g3rho=g3rho, &
+    call xcifc(xctype,n=ngrtot,rho=rhoir,grho=grho,g2rho=g2rho,g3rho=g3rho, &
              ex=exir,ec=ecir,vx=vx,vc=vc)
-    endif
   else if (xcgrad.eq.2) then
     call ggair_2a(g2rho,gvrho,grho2)
     call xcifc(xctype,n=ngrtot,rho=rhoir,grho2=grho2,ex=exir,ec=ecir,vx=vx, &
@@ -339,12 +332,15 @@ else
     call ggair_2b(g2rho,gvrho,vx,vc,dxdg2,dcdg2)
   end if
   !!CECI there is something strange here?? what is it? Maybe it is working anyway but INCONSISTENCE
-  if (xctype(1).ne.100) then
+  if ((xctype(1).ne.100)) then
+  !.and. (xctype(1).ne.408) .and. (xctype(1).ne.23) ) then !CECItest
+  !if ((xctype(1).ne.100) .and. (xctype(1).ne.408)) then
     vxcir(1:ngrtot) = (1.d0-ex_coef)*vx(1:ngrtot)+ec_coef*vc(1:ngrtot)
     exir(:) = (1.d0-ex_coef)*exir(:)
-  elseif (xctype(1)==408) then !HSE
-    vxcir(1:ngrtot)=vc(1:ngrtot)+vx(1:ngrtot)-ex_coef*vxsr(1:ngrtot)     
-    exir(:) = exir(:)-ex_coef*exsrir(:)
+  !CECI:test
+!  elseif (xctype(1)==408) then !HSE
+!    vxcir(1:ngrtot)=vc(1:ngrtot)+vx(1:ngrtot)-ex_coef*vxsr(1:ngrtot)     
+!    exir(:) = exir(:)-ex_coef*exsrir(:)
   else
     vxcir(1:ngrtot) = vx(1:ngrtot)+ec_coef*vc(1:ngrtot)
   end if
@@ -384,7 +380,7 @@ else
   deallocate(vx,vc)
   if (xcgrad.eq.1) then
     deallocate(grho,g2rho,g3rho)
-    if (xctype(1)==408) deallocate(vxsr)
+    !if (xctype(1)==408) deallocate(vxsr)
   else if (xcgrad.eq.2) then
     deallocate(g2rho,gvrho,grho2)
     deallocate(dxdg2,dcdg2)
