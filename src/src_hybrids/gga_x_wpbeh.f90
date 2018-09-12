@@ -1,4 +1,4 @@
-      SUBROUTINE gga_x_wpbeh(n,RHO,GRHO,sx,V1X, OMEGA)
+      SUBROUTINE gga_x_wpbeh(n,RHO,GRHO,sx,V1X, v2x,OMEGA)
 !      SUBROUTINE gga_x_wpbeh(RHO,GRHO,sx,V1X,V2X,OMEGA)
 !-----------------------------------------------------------------------
 !
@@ -10,7 +10,7 @@
       REAL*8, INTENT(in) :: grho(n)
       REAL*8, INTENT(out) :: sx(n)
       REAL*8, INTENT(out) :: v1x(n)
-      REAL*8 :: v2x(n)
+      REAL*8, intent(out) :: v2x(n)
       REAL*8, INTENT(in) :: omega
 ! NOTE, here sx is the total energy density,
 ! not just the gradient correction energy density as e.g. in pbex()
@@ -25,16 +25,17 @@
       REAL*8 :: RS, VX, AA, RR, EX, S2, S, DSDN, DSDG, FX, D1X, D2X
 !     ==--------------------------------------------------------------==
 
-sx=0.0d0
-v1x=0.0d0
-v2x=0.0d0
+      sx(:) = 0.0d0
+      v1x(:) = 0.0d0
+      v2x(:) = 0.0d0
       do i=1,n
 !!      CALL XC(RHO,EX,EC,VX,VC)
         RS = RHO(i)**(1.0d0/3.0d0)
         VX = (4.0d0/3.0d0)*f1*alpha*RS
 
 !!      AA    = DMAX1(GRHO,SMAL2)
-        AA    = GRHO(i)
+!!        AA    = GRHO(i)
+        AA    = GRHO(i)**2
 !!      RR    = RHO**(-4.0_DP/3.0_DP)
         RR    = 1.0d0/(RHO(i)*RS)
         EX    = AX/RR  !rho(i)*E_x^{LDA}
@@ -53,7 +54,8 @@ v2x=0.0d0
         write(1002,*) "sr: i, sx, v1x", i, sx(i), v1x(i) 
         call flushifc(1002)
         DSDG = US*RR
-        V2X(i) = EX*1.D0/SQRT(AA)*DSDG*D2X  
+        !V2X(i) = EX*1.D0/SQRT(AA)*DSDG*D2X  
+        V2X(i) = EX*DSDG*D2X  
       enddo
 
 !     ==--------------------------------------------------------------==

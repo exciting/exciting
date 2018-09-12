@@ -25,7 +25,7 @@ use modxcifc
 implicit none
 ! local variables
 integer is,ia,ias
-integer n,nr,ir,idm,i
+integer n,nr,ir,idm,i,j
 real(8) bext(3),t1,t2,t3,t4,ta,tb
 ! allocatable arrays
 real(8), allocatable :: rho(:),rhoup(:),rhodn(:)
@@ -36,6 +36,7 @@ real(8), allocatable :: g3rho(:),g3up(:),g3dn(:)
 real(8), allocatable :: grho2(:),gup2(:),gdn2(:),gupdn(:)
 real(8), allocatable :: ex(:),ec(:),vxc(:)
 real(8), allocatable :: vx(:),vxup(:),vxdn(:)
+real(8), allocatable :: v2xsr(:)!,gv2xsr(:)
 real(8), allocatable :: vc(:),vcup(:),vcdn(:)
 !short-range energy and potential needed for hybrids (HSE)
 !real(8), allocatable :: vxsr(:), exsr(:)
@@ -68,10 +69,12 @@ else
   allocate(vx(n),vc(n))
   if (xcgrad.eq.1) then
     allocate(grho(n),g2rho(n),g3rho(n))
-   ! if (xctype(1)==408 .or. xctype(1)==23) then !CECI:test
     !if (xctype(1)==408) then
    !    allocate(vxsr(n),exsr(n))
    ! endif
+    if (xctype(1)==23) then
+       allocate(v2xsr(n))!,gv2xsr(n))
+    endif
   else if (xcgrad.eq.2) then
     allocate(g2rho(n),gvrho(3*n),grho2(n))
     allocate(dxdg2(n),dcdg2(n))
@@ -183,18 +186,18 @@ do is=1,nspecies
         call xcifc(xctype,n=n,rho=rho,ex=ex,ec=ec,vx=vx,vc=vc)
       else if (xcgrad.eq.1) then
         call ggamt_1(is,ia,grho,g2rho,g3rho)
-!        call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho,ex=ex, &
-!                   ec=ec,vx=vx,vc=vc)
-      !!CECI I need to add this part also for the rest of the contribution
-      !CECI: test
-   !     if (xctype(1)==408 .or. xctype(1)==23) then
         !if (xctype(1)==408) then
    !       call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho, ex=ex,&
    !           ec=ec,exsr=exsr, vx=vx, vc=vc, vxsr=vxsr)
    !     else 
-        call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho,ex=ex, &
+        if (xctype(1)==23) then
+           call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho,ex=ex, &
+                   ec=ec,vx=vx, vc=vc,v2xsr=v2xsr)
+           call gv2xmt(is,ia,grho,vx,v2xsr) 
+        else
+           call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho,ex=ex, &
                    ec=ec,vx=vx,vc=vc)
-   !     endif
+        endif
       else if (xcgrad.eq.2) then
         call ggamt_2a(is,ia,g2rho,gvrho,grho2)
         call xcifc(xctype,n=n,rho=rho,grho2=grho2,ex=ex,ec=ec,vx=vx,vc=vc, &
@@ -323,8 +326,14 @@ else
     call xcifc(xctype,n=ngrtot,rho=rhoir,ex=exir,ec=ecir,vx=vx,vc=vc)
   else if (xcgrad.eq.1) then
     call ggair_1(grho,g2rho,g3rho)
-    call xcifc(xctype,n=ngrtot,rho=rhoir,grho=grho,g2rho=g2rho,g3rho=g3rho, &
+    if (xctype(1)==23)  then
+       call xcifc(xctype,n=ngrtot,rho=rhoir,grho=grho,g2rho=g2rho,g3rho=g3rho, &
+             ex=exir,ec=ecir,vx=vx, vc=vc,v2xsr=v2xsr)
+       call gv2xir(grho,vx,v2xsr) 
+    else
+       call xcifc(xctype,n=ngrtot,rho=rhoir,grho=grho,g2rho=g2rho,g3rho=g3rho, &
              ex=exir,ec=ecir,vx=vx,vc=vc)
+    endif
   else if (xcgrad.eq.2) then
     call ggair_2a(g2rho,gvrho,grho2)
     call xcifc(xctype,n=ngrtot,rho=rhoir,grho2=grho2,ex=exir,ec=ecir,vx=vx, &

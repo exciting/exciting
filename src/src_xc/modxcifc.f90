@@ -17,7 +17,7 @@ contains
 ! g3up,g3dn,grho2,gup2,gdn2,gupdn,ex,ec,vx,vc,vxup,vxdn,vcup,vcdn,dxdg2,dxdgu2, &
 ! dxdgd2,dxdgud,dcdg2,dcdgu2,dcdgd2,dcdgud)
 subroutine xcifc(xctype,n,rho,rhoup,rhodn,grho,gup,gdn,g2rho,g2up,g2dn,g3rho, &
- g3up,g3dn,grho2,gup2,gdn2,gupdn,ex,ec,vx,vc,vxup,vxdn,vcup,vcdn,dxdg2,&
+ g3up,g3dn,grho2,gup2,gdn2,gupdn,ex,ec,vx,v2xsr,vc,vxup,vxdn,vcup,vcdn,dxdg2,&
  dxdgu2,dxdgd2,dxdgud,dcdg2,dcdgu2,dcdgd2,dcdgud)
 ! !INPUT/OUTPUT PARAMETERS:
 !   xctype : type of exchange-correlation functional (in,integer(3))
@@ -42,6 +42,7 @@ subroutine xcifc(xctype,n,rho,rhoup,rhodn,grho,gup,gdn,g2rho,g2up,g2dn,g3rho, &
 !   ec     : correlation energy density (out,real(n),optional)
 !   vx     : spin-unpolarised exchange potential (out,real(n),optional)
 !   vc     : spin-unpolarised correlation potential (out,real(n),optional)
+!   v2xsr  : spin-unpolarised short-range exchange potential second term(out,real(n),optional)
 !   vxup   : spin-up exchange potential (out,real(n),optional)
 !   vxdn   : spin-down exchange potential (out,real(n),optional)
 !   vcup   : spin-up correlation potential (out,real(n),optional)
@@ -88,6 +89,7 @@ real(8), optional, intent(out) :: ex(*)
 real(8), optional, intent(out) :: ec(*)
 real(8), optional, intent(out) :: vx(*)
 real(8), optional, intent(out) :: vc(*)
+real(8), optional, intent(out) :: v2xsr(*)
 real(8), optional, intent(out) :: vxup(*)
 real(8), optional, intent(out) :: vxdn(*)
 real(8), optional, intent(out) :: vcup(*)
@@ -122,6 +124,7 @@ case(1)
   if (present(ec)) ec(1:n)=0.d0
   if (present(vx)) vx(1:n)=0.d0
   if (present(vc)) vc(1:n)=0.d0
+  if (present(v2xsr)) v2xsr(1:n)=0.d0
   if (present(vxup)) vxup(1:n)=0.d0
   if (present(vxdn)) vxdn(1:n)=0.d0
   if (present(vcup)) vcup(1:n)=0.d0
@@ -224,7 +227,7 @@ case(20,21,22,300,406,408,23)
     if (xctype(1)==23) then
        omega_hyb=0.106d0 !CECI test
        !omega_hyb=input%groundstate%Hybrid%omega
-       call gga_x_wpbeh(n,rho,grho,ex,vx,omega_hyb)
+       call gga_x_wpbeh(n,rho,grho,ex,vx,v2xsr,omega_hyb)
     else
        allocate(ra(n,6))
        ra(1:n,1)=0.5d0*rho(1:n)

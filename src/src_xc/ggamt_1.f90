@@ -8,7 +8,7 @@
 ! !ROUTINE: ggamt_1
 ! !INTERFACE:
 
-
+!!CECI verify that you did not change anything by mistake
 subroutine ggamt_1(is, ia, grho, g2rho, g3rho)
 ! !USES:
 use modinput
@@ -33,7 +33,7 @@ real(8), intent(out) :: grho(lmmaxvr, nrmtmax)
 real(8), intent(out) :: g2rho(lmmaxvr, nrmtmax)
 real(8), intent(out) :: g3rho(lmmaxvr, nrmtmax)
 ! local variables
-integer::ias, nr, i
+integer::ias, nr, i, j
 ! allocatable arrays
 real(8), allocatable :: grfmt(:, :, :), gvrho(:, :, :), rfmt(:, :)
 allocate(grfmt(lmmaxvr, nrmtmax, 3), gvrho(lmmaxvr, nrmtmax, 3))
