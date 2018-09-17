@@ -9,9 +9,6 @@ Subroutine DFT_D2_energy
 
   Call set_default_vdW_parameters
   
-  If ( input%groundstate%do .Eq. "skip" ) Then
-     Call init0
-  End If
   Allocate(C6ab(natmtot, natmtot), R0ab(natmtot, natmtot))
 
   Call loadoldpar(C6ab,R0ab)
