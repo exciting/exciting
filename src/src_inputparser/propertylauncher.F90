@@ -80,10 +80,18 @@ Subroutine propertylauncher
       
       !--------------------------------------------------------
       If (associated(input%properties%TSvdW)) Then
+         If ( input%groundstate%do .Eq. "skip" ) Then
+            Call init0
+            ! read density from file
+            Call readstate
+         End If
          Call TS_vdW_energy
       End If
 
       If (associated(input%properties%DFTD2)) Then
+         If ( input%groundstate%do .Eq. "skip" ) Then
+            Call init0
+         End If
          Call DFT_D2_energy
       End If
 
