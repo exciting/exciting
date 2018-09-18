@@ -81,7 +81,7 @@ if (os.path.exists(INF) == False):
 #--------------------------------------------------------------------------------------------------
 
 #%!%!%--- Calculate Space-Group Number and classify it ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
-os.system('xsltproc $EXCITINGTOOLS/exciting2sgroup.xsl '+ INF +' > sgroup.in')
+os.system('$EXCITINGTOOLS/exciting2sgroup.py '+ INF +' sgroup.in')
 
 SIN = open('sgroup.in', 'r')
 l1  = SIN.readline()

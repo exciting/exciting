@@ -306,7 +306,7 @@ LC_Dic = {              \
 #-------------------------------------------------------------------------------            
 # calculating space-group number and classifying it
 
-os.system('$EXCITINGSCRIPTS/exciting2sgroup.py '+inputfile+' sgroup.in')
+os.system('$EXCITINGTOOLS/exciting2sgroup.py '+inputfile+' sgroup.in')
 os.system('sgroup sgroup.in 1>sgroup.out 2>sgroup.err')
 os.system('rm -f sgroup.in ')
 os.system('touch exciting')
