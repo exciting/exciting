@@ -104,10 +104,15 @@ real(8), optional, intent(out) :: dcdgd2(*)
 real(8), optional, intent(out) :: dcdgud(*)
 ! local variables
 real(8) kappa,mu,beta
+real(8), allocatable:: val1(:),val2(:)
 ! local variable for PBE short-range (hybrid HSE)
 real(8) omega_hyb
 ! automatic arrays
 real(8), allocatable :: ra(:,:)
+! test variables
+real(8) :: rho1, grho1, ex1, vx1, v2xsr1
+integer :: iflag, i
+allocate(val1(n),val2(n))
 if (n.le.0) then
   write(*,*)
   write(*,'("Error(xcifc): n <= 0 : ",I8)') n
@@ -225,9 +230,36 @@ case(20,21,22,300,406,408,23)
 ! IF added by CECI for hybrid
     !if (xctype(1)==408 .or. xctype(1)==23) then !CECI:test
     if (xctype(1)==23) then
-       omega_hyb=0.106d0 !CECI test
-       !omega_hyb=input%groundstate%Hybrid%omega
-       call gga_x_wpbeh(n,rho,grho,ex,vx,v2xsr,omega_hyb)
+       if (.false.) then
+       do i=1,n
+         ex(i)=0.0d0
+         vx(i)=0.0d0
+         v2xsr(i)=0.0d0
+         rho1=rho(i)
+         grho1=grho(i)**2
+         ex1=0.0d0
+         vx1=0.0d0
+         v2xsr1=0.0d0
+         call pbex(rho1,grho1,1,ex1,vx1,v2xsr1)
+         ex(i)=ex1
+         vx(i)=vx1
+         v2xsr(i)=v2xsr1
+       enddo
+       endif
+       !omega_hyb=0.106d0 !CECI test
+       if (.true.) then
+          omega_hyb=0.0001d0 !CECI test
+          !omega_hyb=input%groundstate%Hybrid%omega
+          call gga_x_wpbeh(n,rho,grho,ex,vx,v2xsr,omega_hyb)
+       endif
+       allocate(ra(n,6))
+       ra(1:n,1)=0.5d0*rho(1:n)
+       ra(1:n,2)=0.5d0*grho(1:n)
+       ra(1:n,3)=0.5d0*g2rho(1:n)
+       ra(1:n,4)=0.25d0*g3rho(1:n)
+       call xc_pbe(n,kappa,mu,beta,ra(:,1),ra(:,1),grho,ra(:,2),ra(:,2),ra(:,3), &
+       ra(:,3),g3rho,ra(:,4),ra(:,4),VAL1,ec,VAL2,ra(:,5),vc,ra(:,6))
+       deallocate(ra)
     else
        allocate(ra(n,6))
        ra(1:n,1)=0.5d0*rho(1:n)

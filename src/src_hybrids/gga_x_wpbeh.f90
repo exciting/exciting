@@ -51,49 +51,16 @@
         DSDN = -4.D0/3.D0*S/RHO(i)
         !D1X = D FX / D r_alpha, D2X = D FX / D s
         V1X(i) = VX*FX + (DSDN*D2X+D1X)*EX   ! - VX
-        write(1002,*) "sr: i, sx, v1x", i, sx(i), v1x(i) 
-        call flushifc(1002)
         DSDG = US*RR
-        !V2X(i) = EX*1.D0/SQRT(AA)*DSDG*D2X  
-        V2X(i) = EX*DSDG*D2X  
+        V2X(i) = EX*1.D0/SQRT(AA)*DSDG*D2X  
+        !V2X(i) = EX*DSDG*D2X  
+        write(1002,*) sqrt(aa), fx, v2x(i)
+        call flushifc(1002)
+        write(1006,*) rho(i), fx, (DSDN*D2X+D1X)*EX
+        call flushifc(1006)
+        
       enddo
 
 !     ==--------------------------------------------------------------==
       RETURN
       END SUBROUTINE gga_x_wpbeh
-
-!      subroutine gcxc(rho, grho, sx, v1x, v2x)
-!      !-----------------------------------------------------------------------
-!      !     gradient corrections for exchange and correlation - Hartree a.u.
-!      !     See comments at the beginning of module for implemented cases
-!      !
-!      !     input:  rho, grho=|\nabla rho|^2
-!      !     definition:  E_x = \int E_x(rho,grho) dr
-!      !     output: sx = E_x(rho,grho)
-!      !             v1x= D(E_x)/D(rho)
-!      !             v2x= D(E_x)/D( D rho/D r_alpha ) / |\nabla rho|
-!      !
-!      implicit none
-!
-!      real*8 :: rho, grho, sx, v1x, v2x
-!      real*8 :: sx__,v1x__, v2x__
-!      real*8 :: sxsr, v1xsr, v2xsr
-!      real*8 , parameter:: small = 1.E-10d0
-!
-!      ! exchange
-!      if (rho <= small) then
-!         sx = 0.0d0
-!         v1x = 0.0d0
-!         v2x = 0.0d0
-!      else  ! 'pbexsr'
-!     call pbex (rho, grho, 1, sx, v1x, v2x)
-!     if(exx_started) then
-!         call pbexsr (rho, grho, sxsr, v1xsr, v2xsr, screening_parameter)
-!       sx = sx - exx_fraction * sxsr
-!       v1x = v1x - exx_fraction * v1xsr
-!       v2x = v2x - exx_fraction * v2xsr
-!      endif
-!
-!      return
-!      end subroutine gxcx
-

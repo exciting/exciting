@@ -135,7 +135,9 @@ subroutine scf_cycle(verbosity)
     tstop = .False.
     engytot = 0.d0
     fm = 0.d0
-
+ !Added from CECi
+ Call energy
+ call writeengy(60)
 ! delete any existing eigenvector files
     If ((rank .Eq. 0) .And. ((task .Eq. 0) .Or. (task .Eq. 2))) Call delevec
 
@@ -144,7 +146,8 @@ subroutine scf_cycle(verbosity)
 !----------------------------------------!
 ! begin the self-consistent loop
 !----------------------------------------!
-    Do iscl = 1, input%groundstate%maxscl
+!    Do iscl = 1, input%groundstate%maxscl
+    Do iscl = 1, input%groundstate%maxscl-1 !CECI
 !
 ! exit self-consistent loop if last iteration is complete
         if (tlast) then

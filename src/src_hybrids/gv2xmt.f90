@@ -5,41 +5,50 @@ use mod_Gvector
 use mod_muffin_tin
 use mod_SHT
 use mod_atoms
+use mod_potential_and_density
 implicit none
 ! arguments
 integer, intent(in) :: is
 integer, intent(in) :: ia
 real(8), intent(in) :: grho(lmmaxvr, nrmtmax)
-real(8) :: gvrho(lmmaxvr, nrmtmax, 3)
+real(8) :: gvrho(lmmaxvr, nrmtmax, 3), grfmt(lmmaxvr, nrmtmax, 3)
 real(8), intent(inout) :: vx(lmmaxvr, nrmtmax)
 real(8), intent(in) :: v2xsr(lmmaxvr, nrmtmax)
 ! local variables
-integer::ias,nr, i
+integer::ias,nr, i, j
 ! allocatable arrays
-real(8), allocatable :: v2xsrmt(:, :), gv2x(:, :), gv2xsri(:,:)
-real(8), allocatable :: gv2xsrmt(:, :, :)
-allocate(v2xsrmt(lmmaxvr, nrmtmax), gv2x(lmmaxvr, nrmtmax),gv2xsri(lmmaxvr,nrmtmax))
-allocate(gv2xsrmt(lmmaxvr, nrmtmax, 3))
+real(8), allocatable :: v2xmt(:, :,:), gv2x(:, :)
+real(8), allocatable :: gv2xsrmt(:, :, :), gv2xsri(:,:,:), v2x(:,:,:) 
+allocate(v2xmt(lmmaxvr, nrmtmax,3), gv2x(lmmaxvr, nrmtmax))
+allocate(gv2xsrmt(lmmaxvr, nrmtmax, 3),gv2xsri(lmmaxvr,nrmtmax,3),v2x(lmmaxvr,nrmtmax,3))
 ias=idxas(ia, is)
 nr=nrmt(is)
-! convert v2xsr to spherical harmonics
-!v2xsr(:,:)=v2xsr(:,:)*sqrt(grho(:,:))
-call dgemm('N', 'N', lmmaxvr, nr, lmmaxvr, 1.d0, rfshtvr, lmmaxvr, v2xsr, lmmaxvr, 0.d0, &
- v2xsrmt, lmmaxvr)
-! compute grad v2xsr
-call gradrfmt(input%groundstate%lmaxvr, nr, spr(:, is), lmmaxvr, nrmtmax, v2xsrmt, gv2xsrmt)
-gv2x(:, 1:nr)=0.d0
+call gradrfmt(input%groundstate%lmaxvr, nr, spr(:, is), lmmaxvr,&
+& nrmtmax, rhomt(:, :, ias), grfmt)
 do i=1, 3
-!  call dgemm('N', 'N', lmmaxvr, nr, lmmaxvr, 1.d0, rbshtvr, lmmaxvr, grho(:, :), &
-!   lmmaxvr, 0.d0, gvrho(:, :, i), lmmaxvr)
-  gvrho(:,:,i)=0.d0
+  call dgemm('N', 'N', lmmaxvr, nr, lmmaxvr, 1.d0, rbshtvr, lmmaxvr, grfmt(:, :, i), &
+   lmmaxvr, 0.d0, gvrho(:, :, i), lmmaxvr)
+  v2x(:,:,i)=v2xsr(:,:)*gvrho(:,:,i)
+  call dgemm('N', 'N', lmmaxvr, nr, lmmaxvr, 1.d0, rfshtvr, lmmaxvr, v2x(:,:,i), lmmaxvr, 0.d0, &
+       v2xmt(:,:,i), lmmaxvr)
+  call gradrfmt(input%groundstate%lmaxvr, nr, spr(:, is), lmmaxvr, nrmtmax, v2xmt(:,:,i), gv2xsrmt(:,:,:))
   call dgemm('N', 'N', lmmaxvr, nr, lmmaxvr, 1.d0, rbshtvr, lmmaxvr, gv2xsrmt(:, :, i), &
-   lmmaxvr, 0.d0, gv2xsri, lmmaxvr)
-!this should be changed, verifyyyy!!!
-  gv2x(:, 1:nr)=gv2x(:, 1:nr)+gv2xsri(:, 1:nr)* &
-                (gvrho(:, 1:nr, i)/grho(:,1:nr))
+   lmmaxvr, 0.d0, gv2xsri(:,:,i), lmmaxvr)    
 end do
-!gv2xsr(:, 1:nr)=sqrt(gv2xsri(:, 1:nr, 1)**2+gv2xsri(:, 1:nr, 2)**2+gv2xsri(:, 1:nr, 3)**2)
+gv2x(:, 1:nr)=gv2xsri(:, 1:nr,1) +gv2xsri(:, 1:nr,2) +gv2xsri(:, 1:nr,3) !* &
+write(*,*) "before", i, vx(1,1) 
 vx(:,1:nr)=vx(:,1:nr)-gv2x(:,1:nr)
+write(*,*) "after", i, vx(1,1) 
+if (ia==1) then
+do i =1, nr
+  write(7000,*) i, vx(1,i),gv2x(1,i)  
+  call flushifc(7000)
+  do j=1, lmmaxvr
+  write(8000,*) i,j, vx(j,i)
+  call flushifc(8000)
+  enddo
+enddo
+endif
+
 return
 end subroutine

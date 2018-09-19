@@ -233,6 +233,13 @@ do is=1,nspecies
 ! convert exchange-correlation potential to spherical harmonics
     call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,vxc,lmmaxvr, &
                 0.d0,vxcmt(:,:,ias),lmmaxvr)
+  if (ias==1) then
+  do i=1,nr
+     write(5000,*) spr(i,is), vxcmt(1,i,ias)
+     CALL FLUSHIFC(5000) 
+  enddo
+  endif
+  
       
   end do
 end do
@@ -334,6 +341,10 @@ else
        call xcifc(xctype,n=ngrtot,rho=rhoir,grho=grho,g2rho=g2rho,g3rho=g3rho, &
              ex=exir,ec=ecir,vx=vx,vc=vc)
     endif
+    do ir=1,ngrtot
+    write(10000,*) ir, vx(ir)
+    call flushifc(10000)
+    enddo
   else if (xcgrad.eq.2) then
     call ggair_2a(g2rho,gvrho,grho2)
     call xcifc(xctype,n=ngrtot,rho=rhoir,grho2=grho2,ex=exir,ec=ecir,vx=vx, &
