@@ -1,6 +1,10 @@
 
 module mod_selfenergy
 
+    use mod_frequency
+
+    type(frequency) :: freq_selfc
+
     ! Analytical continuation type
     integer :: iopac ! 0/1
 
@@ -32,6 +36,7 @@ module mod_selfenergy
     !-------------!
     
     ! Original KS energies (evalsv will updated via self-consistent cycle)
+    real(8) :: eferks
     real(8), allocatable :: evalks(:,:)
     
     ! QP energies
@@ -51,12 +56,13 @@ module mod_selfenergy
 contains
 
     !---------------------------------------------------------------------------
-    subroutine init_selfenergy(ibgw,nbgw,nkpt,nomeg)
+    subroutine init_selfenergy(ibgw,nbgw,nkpt)
         use modinput
         implicit none
         integer, intent(in) :: ibgw, nbgw
         integer, intent(in) :: nkpt
-        integer, intent(in) :: nomeg
+        ! local
+        integer(4) :: nw
        
         ! KS eigenvalues
         if (allocated(evalks)) deallocate(evalks)
@@ -67,21 +73,42 @@ contains
         if (allocated(evalqp)) deallocate(evalqp)
         allocate(evalqp(ibgw:nbgw,nkpt))
         evalqp(:,:) = 0.d0
-        
+
+        ! Exchange self-energy        
         if (allocated(selfex)) deallocate(selfex)
         allocate(selfex(ibgw:nbgw,nkpt))
         selfex(:,:) = 0.d0
+
+        ! Correlation self-energy
+        if ( associated(input%gw%selfenergy%wgrid) ) then
+          call generate_freqgrid( freq_selfc, &
+                                  input%gw%selfenergy%wgrid%grid, &
+                                  'imfreq', &
+                                  input%gw%selfenergy%wgrid%nw, &
+                                  input%gw%selfenergy%wgrid%wmin, &
+                                  input%gw%selfenergy%wgrid%wmax)
+        else
+          call generate_freqgrid( freq_selfc, &
+                                  input%gw%freqgrid%fgrid, &
+                                  input%gw%freqgrid%fconv, &
+                                  input%gw%freqgrid%nomeg, &
+                                  input%gw%freqgrid%freqmin, &
+                                  input%gw%freqgrid%freqmax)
+        end if
+        call print_freqgrid( freq_selfc, 6 )
+        
+        nw = freq_selfc%nomeg
         
         if (input%gw%taskname.ne.'g0w0_x') then
           if (allocated(selfec)) deallocate(selfec)
-          allocate(selfec(ibgw:nbgw,nomeg,nkpt))
+          allocate(selfec(ibgw:nbgw,nw,nkpt))
           selfec(:,:,:) = 0.d0
           if (input%gw%selfenergy%secordw) then
             if (allocated(selfecSR)) deallocate(selfecSR)
-            allocate(selfecSR(ibgw:nbgw,nomeg,nkpt))
+            allocate(selfecSR(ibgw:nbgw,nw,nkpt))
             selfecSR(:,:,:) = 0.d0
             if (allocated(selfecw2)) deallocate(selfecw2)
-            allocate(selfecw2(ibgw:nbgw,nomeg,nkpt))
+            allocate(selfecw2(ibgw:nbgw,nw,nkpt))
             selfecw2(:,:,:) = 0.d0
           end if
           if (input%gw%taskname.ne.'cohsex') then
@@ -118,15 +145,18 @@ contains
       if (allocated(sigc))   deallocate(sigc)
       if (allocated(sigsx))  deallocate(sigsx)
       if (allocated(sigch))  deallocate(sigch)
+      ! frequency grid
+      if (allocated(freq_selfc%freqs)) deallocate(freq_selfc%freqs)
+      if (allocated(freq_selfc%womeg)) deallocate(freq_selfc%womeg)
     end subroutine
         
     !---------------------------------------------------------------------------
-    subroutine write_selfenergy(ibgw,nbgw,nkpt,nomeg)
+    subroutine write_selfenergy(ibgw,nbgw,nkpt,nw)
       use modinput
       implicit none
       integer, intent(in) :: ibgw, nbgw
       integer, intent(in) :: nkpt
-      integer, intent(in) :: nomeg
+      integer, intent(in) :: nw
       ! local variables
       integer :: fid, ie, ik, iom
       fid = 777
@@ -137,7 +167,7 @@ contains
       ! correlation
       if (input%gw%taskname.ne.'g0w0_x') then
         open(fid,file='SELFC.OUT',form='UNFORMATTED',status='UNKNOWN')
-        write(fid) ibgw, nbgw, nomeg, nkpt, selfec
+        write(fid) ibgw, nbgw, nw, nkpt, selfec
         close(fid)
         if (input%gw%taskname=='cohsex') then
           open(fid,file='COHSEX.OUT',form='UNFORMATTED',status='UNKNOWN')
@@ -160,7 +190,7 @@ contains
       if (input%gw%taskname.ne.'g0w0_x') then
         open(fid,file='SELFC.DAT',form='FORMATTED',status='UNKNOWN')
         write(fid,*) '# iom    ik    ie    selfec'
-        do iom = 1, nomeg
+        do iom = 1, nw
         do ik = 1, nkpt
         do ie = ibgw, nbgw
           write(fid,'(3i6,2f18.6)') iom, ik, ie, selfec(ie,iom,ik)
@@ -173,7 +203,7 @@ contains
           !open(fid,file='SELFCW2.DAT',form='FORMATTED',status='UNKNOWN')
           open(fid,file='SELFCSR.DAT',form='FORMATTED',status='UNKNOWN')
           write(fid,*) '# iom    ik    ie    selfec'
-          do iom = 1, nomeg
+          do iom = 1, nw
           do ik = 1, nkpt
           do ie = ibgw, nbgw
             write(fid,'(3i6,2f18.6)') iom, ik, ie, selfecSR(ie,iom,ik)

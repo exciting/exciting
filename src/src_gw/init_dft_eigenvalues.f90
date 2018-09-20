@@ -64,8 +64,6 @@ subroutine init_dft_eigenvalues()
     !---------------------------------------------------------
     call bandstructure_analysis('Kohn-Sham bandstructure analysis', &
     &  1,nstsv,kset%nkpt,evalsv(1:nstsv,:),efermi)
-
-    print*, nomax, numin
        
     !-----------------------------------------------------------------
     ! Check for consistency with specified QP bands range [ibgw,nbgw]

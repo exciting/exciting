@@ -7,7 +7,7 @@ subroutine calcselfc(iq)
 !      
 !!DESCRIPTION:
 !
-! This subroutine calculates the q-dependent correaltion self-energy
+! This subroutine calculates the q-dependent correlation self-energy
 !
 !!USES:
     use modinput

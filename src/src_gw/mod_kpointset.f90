@@ -705,12 +705,9 @@ CONTAINS
         ! Map (igk,ik,ispin) --> ig
         allocate(igk2ig(gset%ngrtot,kset%nkpt,nspnfv))
         igk2ig(:,:,:) = 0
-        allocate(ig2igk(gset%ngrtot,kset%nkpt,nspnfv))
-        ig2igk(:,:,:) = 0
         
         ! Determine the number of G+k combinations which satisfy |G+k|<gkmax
         allocate(self%ngk(nspnfv,kset%nkpt))
-        igmax = 0
         do ispn = 1, nspnfv
           do ik = 1, kset%nkpt
             igp = 0
@@ -720,8 +717,6 @@ CONTAINS
               if (t1 < gkmax .or. fg0 .and. ig == 1) then
                 igp = igp+1
                 igk2ig(igp,ik,ispn) = ig
-                ig2igk(ig,ik,ispn) = igp
-                igmax = max(igmax,ig)
               end if
             end do ! ig
             self%ngk(ispn,ik) = igp
@@ -738,10 +733,9 @@ CONTAINS
         ! generate G+k data set
 
         ! Map (ig, ispin, ik) --> igk
-        allocate(self%igigk(igmax,kset%nkpt,nspnfv))
-        self%igigk(:,:,:) = ig2igk(1:igmax,:,:)
-        deallocate(ig2igk)
-
+        if (allocated(self%igigk)) deallocate(self%igigk)
+        allocate(self%igigk(Gset%ngrtot,nspnfv,kset%nkpt))
+        
         ! Map (igk, ispin, ik) --> ig
         allocate(self%igkig(self%ngkmax,nspnfv,kset%nkpt))
 

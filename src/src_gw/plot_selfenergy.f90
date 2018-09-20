@@ -9,6 +9,7 @@ subroutine plot_selfenergy()
     use mod_mpi_gw
     use m_getunit
     use mod_vxc
+    use mod_pade
     ! use mod_pade
     implicit none
     ! local variables
@@ -16,9 +17,9 @@ subroutine plot_selfenergy()
     integer :: npar, iom, nw
     character(20) :: s1, s2
     real(8) :: egap, enk, scr, sci, t1, df
-    complex(8) :: ein, dsig, sigma, zt1
+    complex(8) :: ein, dsig, sigma, dsigma, zt1
     
-    integer :: nom, iom0(1), i
+    integer :: nom, i
     real(8) :: wmin, wmax, div, eta
     real(8), allocatable :: om(:), w(:)
     
@@ -28,8 +29,6 @@ subroutine plot_selfenergy()
     complex(8), allocatable :: selfc(:,:,:)
     real(8),    allocatable :: spectr(:,:,:)
     
-    complex(8), allocatable :: p(:,:)
-
     complex(8), allocatable :: zvec(:)
     real(8),    allocatable :: tvec(:)
     
@@ -47,12 +46,13 @@ subroutine plot_selfenergy()
     &                      input%gw%freqgrid%fgrid, &
     &                      input%gw%freqgrid%fconv, &
     &                      input%gw%freqgrid%nomeg, &
+    &                      input%gw%freqgrid%freqmin, &
     &                      input%gw%freqgrid%freqmax)
  
     if (allocated(evalsv)) deallocate(evalsv)
     allocate(evalsv(nstsv,kset%nkpt))
     allocate(vxcnn(ibgw:nbgw,kset%nkpt))
-    call init_selfenergy(ibgw,nbgw,kset%nkpt,freq%nomeg)
+    call init_selfenergy(ibgw,nbgw,kset%nkpt)
     
     ! read data from files
 #ifdef _HDF5_
@@ -73,19 +73,10 @@ subroutine plot_selfenergy()
       &                     nstsv,evalsv(1,ik))
       evalks(ibgw:nbgw,ik) = evalsv(ibgw:nbgw,ik)
     end do
-    call getunit(fid)
-    open(fid,file='VXCNN.OUT',form='FORMATTED',status='OLD',action='READ')
-    do ik = 1, kset%nkpt
-      read(fid,*) s1, ik_, s2, kset%vkl(:,ik)
-      do ie = ibgw, nbgw
-        read(fid,*) ie_, vxcnn(ie,ik)
-      end do
-      read(fid,*)
-    end do
-    close(fid)
     if (allocated(evalqp)) deallocate(evalqp)
     allocate(evalqp(nstsv,kset%nkpt))
     call getevalqp(kset%nkpt,kset%vkl,evalqp)
+    call read_vxcnn()
     call readselfx
     call readselfc
 #endif
@@ -117,27 +108,18 @@ subroutine plot_selfenergy()
     axis = trim(input%gw%selfenergy%SpectralFunctionPlot%axis)
     eta = input%gw%selfenergy%SpectralFunctionPlot%eta
 
-    div = (wmax-wmin)/dble(nom)
+    div = (wmax-wmin)/dble(nom-1)
     allocate(om(nom))
     om(:) = 0.d0  
     do iom = 1, nom
-      om(iom) = wmin+dble(iom)*div
+      om(iom) = wmin + dble(iom-1)*div
     end do
-    iom0 = 0
-    iom0 = minloc(om,om>0)
-    ! write(*,*) 'iom0=', iom0
-    ! write(*,*) om(iom0-1), om(iom0)
 
-    ! doubled grid from -wmax to wmax
     allocate(zx(freq%nomeg))
     allocate(zy(freq%nomeg))
     do iom = 1, freq%nomeg
-      zx(iom) = zi*freq%freqs(iom)
+      zx(iom) = cmplx(0.d0, freq%freqs(iom), 8)
     end do
-
-    ! Pade scheme only parameters 
-    n = input%gw%selfenergy%npol
-    allocate(p(n,n))
 
     ! MPF scheme only parameters 
     ! input%gw%selfenergy%npol = 2
@@ -153,12 +135,11 @@ subroutine plot_selfenergy()
     do ik = 1, kset%nkpt
       do ie = ibgw, nbgw
 
-        ! enk = evalks(ie,ik)-efermi
+        enk = evalks(ie,ik)-efermi
         ! enk = evalqp(ie,ik)-eferqp
-        do iom = 1, freq%nomeg
-          zy(iom) = selfec(ie,iom,ik)
-        end do
 
+        zy(:) = selfec(ie,:,ik)
+ 
         if (iopac==0) then
           !-------------------
           ! Pade-approximant
@@ -169,31 +150,29 @@ subroutine plot_selfenergy()
               !----------------
               ! real frequency
               !----------------
-              ! call padecof(freq%nomeg,zx,zy,n,p)
-              ! do iom = 1, nom
-              !   ein = cmplx(om(iom),eta,8)
-              !   call gpade(freq%nomeg,zx,n,p,ein,sigma)
-              !   if (om(iom)<0.d0) then
-              !     selfc(ie,iom,ik) = conjg(sigma)
-              !   else
-              !     selfc(ie,iom,ik) = sigma
-              !   end if
-              ! end do
+              do iom = 1, nom
+                ein = cmplx(om(iom),eta,8)
+                if ( om(iom) < 0.d0 ) then
+                    call pade_approximant(freq%nomeg, -zx, conjg(zy), ein, sigma, dsigma)
+                else
+                    call pade_approximant(freq%nomeg, zx, zy, ein, sigma, dsigma)
+                end if
+                selfc(ie,iom,ik) = sigma
+              end do
                         
             case('imag')
               !----------------
               ! complex frequency
               !----------------
-              ! call padecof(freq%nomeg,zx,zy,n,p)
-              ! do iom = 1, nom
-              !   ein = cmplx(0.d0,om(iom),8)
-              !   if (om(iom)<0.d0) then
-              !     call gpade(freq%nomeg,-zx,n,conjg(p),ein,sigma)
-              !   else
-              !     call gpade(freq%nomeg,zx,n,p,ein,sigma)
-              !   end if
-              !   selfc(ie,iom,ik) = sigma
-              ! end do
+              do iom = 1, nom
+                ein = cmplx(0.d0,om(iom),8)
+                if ( om(iom) < 0.d0 ) then
+                    call pade_approximant(freq%nomeg, -zx, conjg(zy), ein, sigma, dsigma)
+                else
+                    call pade_approximant(freq%nomeg, zx, zy, ein, sigma, dsigma)
+                end if
+                selfc(ie,iom,ik) = sigma
+              end do
 
             case default
               stop "Error(plot_selfenergy): Unknown axis type!"
@@ -226,13 +205,13 @@ subroutine plot_selfenergy()
               ! complex frequency
               !----------------
               call setsac(iopac,freq%nomeg,npar,-1.d0,selfec(ie,:,ik),freq%freqs,a,poles)
-              do iom = 1, iom0(1)-1
+              do iom = 1, nom
                 ein = cmplx(0.d0,om(iom),8)
                 call getsac(iopac,nom,npar,-1.d0,ein,om,a,sigma,dsig)
                 selfc(ie,iom,ik) = sigma
               end do
               call setsac(iopac,freq%nomeg,npar,1.d0,selfec(ie,:,ik),freq%freqs,a,poles)
-              do iom = iom0(1), nom
+              do iom = 1, nom
                 ein = cmplx(0.d0,om(iom),8)
                 call getsac(iopac,nom,npar,1.d0,ein,om,a,sigma,dsig)
                 selfc(ie,iom,ik) = sigma
@@ -320,7 +299,6 @@ subroutine plot_selfenergy()
     ! clear memory
     deallocate(om)
     deallocate(a,poles)
-    deallocate(p)
     call delete_selfenergy
     deallocate(evalsv)
     deallocate(vxcnn)

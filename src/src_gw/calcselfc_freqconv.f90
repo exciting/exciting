@@ -6,7 +6,8 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
     use modinput
     use modmain, only : pi, zzero, evalsv, idxas, evalcr, efermi
     use modgw,   only : ibgw, nbgw, nstse, kset, kqset, freq, selfec, mwm, &
-    &                   ncg, corind, fdebug
+    &                   ncg, corind, fdebug, freq_selfc
+    use mod_aaa_approximant
     ! input variables
     implicit none
     integer(4), intent(in) :: ikp
@@ -15,11 +16,13 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
     ! local variables            
     integer(4) :: ik, jk, jkp
     integer(4) :: ia, is, ias, ic, icg
-    integer(4) :: ie1, ie2
-    integer(4) :: iom, jom
-    real(8)    :: enk
-    complex(8) :: xnm(1:freq%nomeg)
-    complex(8) :: sc, zt1, zt2, zt3
+    integer(4) :: ie1, ie2, i1, i2, n, m
+    integer(4) :: iom, jom, kom
+    real(8)    :: enk, wdiff, w_sc, f1, f2
+    complex(8) :: xnm(1:freq%nomeg), xnm_intp
+    complex(8) :: sc, zt1, zt2
+
+    type(aaa_approximant) :: aaa
     
     ! k point
     ik = kset%ikp2ik(ikp)
@@ -30,60 +33,98 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
     !------------------------
     ! loop over frequencies
     !------------------------
-#ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(iom,ie1,ie2,enk,xnm,icg,is,ia,ic,ias,zt1,sc,jom,zt2,zt3)
-!$OMP DO
-#endif
-    do iom = 1, freq%nomeg
-      ! loop over states
-      do ie1 = ibgw, nbgw
       
-        ! sum over states
-        do ie2 = 1, mdim
+    do ie1 = ibgw, nbgw
+      
+      do ie2 = 1, mdim
         
-          if (ie2<=nstse) then
-            !============================= 
-            ! Valence electron contribution
-            !============================= 
-            enk = evalsv(ie2,jkp)-efermi
-            xnm(1:freq%nomeg) = mwm(ie1,ie2,1:freq%nomeg)
-          else
-            !============================= 
-            ! Core electron contribution
-            !=============================
-            icg = ie2-nstse
-            is = corind(icg,1)
-            ia = corind(icg,2)
-            ic = corind(icg,3)
-            ias = idxas(ia,is)
-            enk = evalcr(ic,ias)-efermi
-            xnm(1:freq%nomeg) = mwm(ie1,ie2,1:freq%nomeg)
-          end if ! val/cor
+        if ( ie2 <= nstse ) then
+          !============================= 
+          ! Valence electron contribution
+          !============================= 
+          enk = evalsv(ie2,jkp)-efermi
+        else
+          !============================= 
+          ! Core electron contribution
+          !=============================
+          icg = ie2-nstse
+          is = corind(icg,1)
+          ia = corind(icg,2)
+          ic = corind(icg,3)
+          ias = idxas(ia,is)
+          enk = evalcr(ic,ias)-efermi
+        end if ! val/cor
           
+        xnm(:) = mwm(ie1,ie2,:)
+
+        if (ikp==2 .and. iq==2 .and. ie1==1 .and. ie2==1) then
+          do iom = 1, freq%nomeg
+            write(10,'(3f18.6)') freq%freqs(iom), xnm(iom)
+          end do
+        end if
+
+        ! AAA approximant
+        call set_aaa_approximant(aaa, cmplx(freq%freqs, 0.d0, 8), xnm)
+
+        ! Self-energy frequency grid
+        do iom = 1, freq_selfc%nomeg
+
+          w_sc = freq_selfc%freqs(iom)
+
+          !----------------------
+          ! Interpolation block
+          !----------------------
+
+          ! Linear interpolation
+          ! if ( w_sc < freq%freqs(1) ) then
+          !   kom = 1
+          ! else if ( w_sc > freq%freqs(freq%nomeg) )  then
+          !   kom = freq%nomeg
+          ! else
+          !   do jom = 1, freq%nomeg-1
+          !     if ( (freq%freqs(jom) <= w_sc) .and. (w_sc < freq%freqs(jom+1)) ) then
+          !       kom = jom
+          !       exit
+          !     end if
+          !   end do
+          ! end if
+          ! print*, 'iom', iom, w_sc
+          ! print*, 'kom', kom, freq%freqs(kom)
+          ! Linear interpolation
+          ! wdiff = freq%freqs(kom+1)-freq%freqs(kom)
+          ! xnm_intp = xnm(kom) + ( xnm(kom+1)-xnm(kom) ) * ( w_sc-freq%freqs(kom) ) / wdiff         
+
+          ! call s1%evaluate( w_sc, 0, f1, iflag)
+          ! call s2%evaluate( w_sc, 0, f2, iflag)
+          ! xnm_intp = cmplx(f1, f2, 8)
+
+          xnm_intp = reval_aaa_approximant( aaa, cmplx(w_sc, 0.d0, 8) )
+
+          if (ikp==2 .and. iq==2 .and. ie1==1 .and. ie2==1) write(11,'(3f18.6)') w_sc, xnm_intp
+
           !------------------------
           ! Frequency convolution
           !------------------------
+
           ! (enk-iu)^2
-          zt1 = cmplx(enk,-freq%freqs(iom),8)
-          sc = 0.d0
+          zt1 = cmplx( enk, -w_sc, 8)
+
+          sc = zzero
           do jom = 1, freq%nomeg
-            zt2 = cmplx(freq%freqs(jom)*freq%freqs(jom),0.0d0,8)
-            zt3 = freq%womeg(jom)/(zt1*zt1+zt2)
-            sc = sc+(xnm(jom)-xnm(iom))*zt3
+            zt2 = freq%womeg(jom) / ( freq%freqs(jom)**2 + zt1**2 )
+            sc = sc + ( xnm(jom) - xnm_intp ) * zt2
           end do
-          sc = zt1*sc/pi+xnm(iom)*sign(0.5d0,enk)
+          sc = sc * zt1 / pi + xnm_intp * sign( 0.5d0, enk )
 
           ! sum over states
-          selfec(ie1,iom,ikp) = selfec(ie1,iom,ikp)+sc
-                  
-        end do ! ie2
-        
-      end do ! ie1
-    end do ! iom
-#ifdef USEOMP
-!$OMP END DO
-!$OMP END PARALLEL
-#endif    
+          selfec(ie1,iom,ikp) = selfec(ie1,iom,ikp) + sc
+
+        end do ! frequency loop
+
+
+      end do ! ie2
+
+    end do ! ie1
 
     if (input%gw%debug) then
       write(fdebug,*) 'CORRELATION SELF-ENERGY: iq=', iq, ' ikp=', ikp

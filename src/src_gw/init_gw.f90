@@ -131,6 +131,7 @@ subroutine init_gw()
       &                      input%gw%freqgrid%fgrid, &
       &                      input%gw%freqgrid%fconv, &
       &                      input%gw%freqgrid%nomeg, &
+      &                      input%gw%freqgrid%freqmin, &
       &                      input%gw%freqgrid%freqmax)
       if (rank==0) call print_freqgrid(freq,fgw)
 #ifdef _HDF5_      
@@ -145,6 +146,7 @@ subroutine init_gw()
     else
       ! frequency independent method
       freq%nomeg = 1
+      freq%freqmin = 0.d0
       freq%freqmax = 0.d0
       freq%fconv = 'imfreq'
       allocate(freq%freqs(freq%nomeg))

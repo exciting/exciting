@@ -87,7 +87,7 @@ recursive subroutine quadrature(func, xmin, xmax, qopt, quad, ierr, ntrial, accu
 
     case (2)
         ! === Extended Simpson rule based on trapezoidal O(1/N^4) ===
-        do it=1,NT
+        do it = 1, NT
             call trapezoidal(func, it, xmin, xmax, st)
             if (it == 1) then 
                 quad = st

@@ -129,7 +129,7 @@ subroutine calcvxcnn
     deallocate(vxcrlolo)
     
 #ifdef MPI
-    call mpi_allgatherv_ifc(kset%nkpt,rlen=nstsv,zbuf=vxcnn)
+    call mpi_allgatherv_ifc(kset%nkpt,nstsv,zbuf=vxcnn)
     call barrier
 #endif
 

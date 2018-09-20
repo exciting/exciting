@@ -4,7 +4,7 @@ subroutine solve_QP_equation()
     use modinput
     use modmain, only: evalsv, efermi
     use modgw,   only: kset, ibgw, nbgw, nvelgw, nbandsgw, evalqp, eferqp, &
-                       freq, selfex, selfec, sigc, znorm
+                       freq, selfex, selfec, sigc, znorm, freq_selfc
     use mod_vxc, only: vxcnn
     use mod_pade
     use m_getunit
@@ -19,13 +19,9 @@ subroutine solve_QP_equation()
     logical    :: converged
     integer    :: fid
     
-    print*, ''
-    print*, 'Solving QP equation'
-    print*, ''
-
-    nz = freq%nomeg
+    nz = freq_selfc%nomeg
     allocate(z(nz), f(nz))
-    z(:) = cmplx(0.d0,freq%freqs(:),8)
+    z(:) = cmplx( 0.d0, freq_selfc%freqs(:), 8)
 
     call getunit(fid)
     open(fid,file='EVALQP-CMPLX.DAT',action='WRITE',form='FORMATTED')
@@ -45,16 +41,14 @@ subroutine solve_QP_equation()
             converged = .false.
             do iter = 1, nitermax
 
-                print*, ik, ib, iter, ein
+                ! print*, ik, ib, iter, ein
 
-                if (abs(ein) > 0.d0) then
-                    f(:) = selfec(ib,1:freq%nomeg,ik)
-                    call pade_approximant(nz, z, f, &
-                                        ein, sigc(ib,ik), dsigma)
+                if ( enk > 0.d0) then
+                    f(:) = selfec(ib,:,ik)
+                    call pade_approximant(nz, z, f, ein, sigc(ib,ik), dsigma)
                 else
-                    f(:) = conjg(selfec(ib,1:freq%nomeg,ik))
-                    call pade_approximant(nz, conjg(z), f, &
-                                            ein, sigc(ib,ik), dsigma)
+                    f(:) = conjg(selfec(ib,:,ik))
+                    call pade_approximant(nz, conjg(z), f, ein, sigc(ib,ik), dsigma)
                 end if
 
                 if (input%gw%selfenergy%iopes == 0 ) then

@@ -116,7 +116,7 @@ subroutine task_gw()
     end select
 
     ! initialize self-energy arrays
-    call init_selfenergy(ibgw,nbgw,kset%nkpt,freq%nomeg)
+    call init_selfenergy(ibgw,nbgw,kset%nkpt)
 
     !===========================================================================
     ! Main loop: BZ integration
@@ -234,7 +234,7 @@ subroutine task_gw()
       write(*,*) "sum selfex done"  
       if (input%gw%taskname.ne.'g0w0_x') then
         ! G0W0 and GW0 approximations
-        call mpi_sum_array(0,selfec,nbandsgw,freq%nomeg,kset%nkpt,mycomm_row)
+        call mpi_sum_array(0,selfec,nbandsgw,freq_selfc%nomeg,kset%nkpt,mycomm_row)
         if (input%gw%selfenergy%secordw) then
           call mpi_sum_array(0,selfecw2,nbandsgw,freq%nomeg,kset%nkpt,mycomm_row)
           call mpi_sum_array(0,selfecSR,nbandsgw,freq%nomeg,kset%nkpt,mycomm_row)
@@ -267,10 +267,10 @@ subroutine task_gw()
         call hdf5_write(fgwh5,path,"selfex",selfex(1,ik),(/nbandsgw/))
         ! correlation
         if (input%gw%taskname.ne.'g0w0_x') &
-        &  call hdf5_write(fgwh5,path,"selfec",selfec(1,1,ik),(/nbandsgw,freq%nomeg/))
+        &  call hdf5_write(fgwh5,path,"selfec",selfec(1,1,ik),(/nbandsgw,freq_selfc%nomeg/))
       end do
 #else
-      call write_selfenergy(ibgw,nbgw,kset%nkpt,freq%nomeg)
+      call write_selfenergy(ibgw,nbgw,kset%nkpt,freq_selfc%nomeg)
 #endif
       call timesec(t1)
       time_io = time_io+t1-t0

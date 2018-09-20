@@ -88,6 +88,7 @@ subroutine task_eph()
   &                      'eqdist', &
   &                      'refreq', &
   &                      input%eph%freqgrideph%nomegeph, &
+  &                      0.d0, &
   &                      input%eph%freqgrideph%freqmaxeph)
   do iw = 1, nomegeph 
     freq%freqs(iw)= freq%freqs(iw) - input%eph%freqgrideph%freqmaxeph / 2 

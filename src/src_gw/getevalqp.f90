@@ -6,7 +6,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   use mod_constants, only: zzero
   use mod_kpoint, only: nkpt, vkl
   use mod_eigenvalue_occupancy, only: nstsv
-  use modgw, only: ibgw, nbgw, nkp1, kvecs1, eks1, eqp1, eferqp
+  use modgw, only: ibgw, nbgw, nkp1, kvecs1, eks1, eqp1, eferqp, eferks
 
   implicit none
       
@@ -17,9 +17,7 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   logical       :: exist
   integer(4)    :: ik, ib, nb, nk, nqp
   integer(4)    :: recl
-  real(8)       :: eferks
   character(30) :: fname
-  integer(4), allocatable :: idx(:)
   real(8),    allocatable :: eqp(:)
   complex(8), allocatable :: de1(:,:), de2(:,:)
 
@@ -57,7 +55,6 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
   &    Access='DIRECT', Recl=recl)
   
   nqp = nbgw-ibgw+1
-  allocate(idx(nqp))
   allocate(eqp(nqp))
 
   do ik = 1, nkp1
@@ -81,7 +78,6 @@ subroutine getevalqp(nkp2,kvecs2,eqp2)
     !end if
   end do ! ik
   close(70)
-  deallocate(idx)
 
   !------------------------------
   ! Data-set consistency check

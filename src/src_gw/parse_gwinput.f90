@@ -110,7 +110,11 @@ subroutine parse_gwinput
         case('rotmat')
             if (rank==0) write(fgw,*) '  rotmat - (testing option) Calculate and check the MB rotation matrices (symmetry feature)'
         case('wannier')
-            if (rank==0) write(fgw,*) '  wannoer - (testing option) Wannier-interpolate QP-energies'
+            if (rank==0) write(fgw,*) '  wannier - (testing option) Wannier-interpolate QP-energies'
+        case('aaa')
+            if (rank==0) write(fgw,*) '  AAA interpolate'
+        case('specfunc')
+            if (rank==0) write(fgw,*) '  Compute spectral function'
         
         case default
             if (rank==0) write(*,*) 'ERROR(parse_gwinput): Wrong task name!'
@@ -171,9 +175,8 @@ subroutine parse_gwinput
           if (rank==0) write(fgw,*) '           from 0 to freqmax and from freqmax to infinity'
         case('gauleg')
           if (rank==0) write(fgw,*) '  gauleg - Grid for Gauss-Legendre quadrature, from 0 to freqmax'
-        case default
-          if (rank==0) write(*,*) 'ERROR(parse_gwinput): Unknown frequency grid type!'
-          stop
+        case('GL2')
+          if (rank==0) write(fgw,*) '  GL2    - Gauss-Legendre quadrature from 0 to infinity'
       end select
       if (rank==0) write(fgw,*) 'Convolution method:'
       select case (input%gw%freqgrid%fconv)
@@ -230,6 +233,9 @@ subroutine parse_gwinput
         case('mpf','MPF')
             iopac = 1
             if (rank==0) write(fgw,*) " mpf - Multi-pole fitting (by Rojas, Godby and Needs PRL 74, 1827 (1995))"
+        case('aaa','AAA')
+            iopac = 0
+            if (rank==0) write(fgw,*) "aaa: Y. Nakatsukasa, O. Sete, L. N. Trefethen, The AAA algorithm for rational approximation, SIAM J. Sci. Comp. 40 (2018), A1494-A1522"
         case default
             if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal value for input%gw%SelfEnergy%actype'
             if (rank==0) write(*,*) '  Currently supported options are:'

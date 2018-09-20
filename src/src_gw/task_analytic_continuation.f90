@@ -25,6 +25,7 @@ subroutine task_analytic_continuation()
     &                      input%gw%freqgrid%fgrid, &
     &                      input%gw%freqgrid%fconv, &
     &                      input%gw%freqgrid%nomeg, &
+    &                      input%gw%freqgrid%freqmin, &
     &                      input%gw%freqgrid%freqmax)
     
     if (myrank==0) then
@@ -33,7 +34,7 @@ subroutine task_analytic_continuation()
       if (allocated(evalsv)) deallocate(evalsv)
       allocate(evalsv(nstsv,kset%nkpt))
       allocate(vxcnn(ibgw:nbgw,kset%nkpt))
-      call init_selfenergy(ibgw,nbgw,kset%nkpt,freq%nomeg)
+      call init_selfenergy(ibgw,nbgw,kset%nkpt)
     
       ! read data from files
 #ifdef _HDF5_

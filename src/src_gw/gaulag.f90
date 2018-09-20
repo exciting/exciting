@@ -46,9 +46,9 @@
       
 ! !DEFINED PARAMETERS:
 
-      integer(4), parameter :: maxit = 10
+      integer(4), parameter :: maxit = 100
       
-      real(8),    parameter :: eps = 3.0d-14
+      real(8),    parameter :: eps = 1.0d-12
             
 
 !

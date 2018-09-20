@@ -8,6 +8,7 @@ subroutine gw_main()
     use mod_mpi_gw
     use m_getunit
     use mod_hdf5
+    use mod_aaa_approximant
     
     implicit none
     character(80) :: fname
@@ -194,6 +195,12 @@ subroutine gw_main()
         ! (testing option) Check the rotational matrix for MB functions
         ! case('rotmat')
             ! if (rank==0) call test_mbrotmat
+
+        case('aaa')
+            if (rank==0) call test_aaa()
+
+        case('specfunc')
+            if (rank==0) call spectralFunction()
 
     end select
     
