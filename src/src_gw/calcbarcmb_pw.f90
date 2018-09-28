@@ -54,6 +54,7 @@ subroutine calcbarcmb_pw(iq)
         
       else
         ! no cutoff
+        !CECI this is the 3d
         vc = 4.0d0*pi/gpq2
         
       end if

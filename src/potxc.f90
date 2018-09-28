@@ -238,6 +238,11 @@ do is=1,nspecies
      write(5000,*) spr(i,is), vxcmt(1,i,ias)
      CALL FLUSHIFC(5000) 
   enddo
+  do i=1,nr
+     write(9000,*) spr(i,is), rhomt(30,i,ias)
+     CALL FLUSHIFC(9000) 
+  enddo
+     close(9000)
   endif
   
       
@@ -345,6 +350,12 @@ else
     write(10000,*) ir, vx(ir)
     call flushifc(10000)
     enddo
+    close(10000)
+    do ir=1,ngrtot
+    write(20000,*) ir, rhoir(ir)
+    call flushifc(20000)
+    enddo
+    close(20000)
   else if (xcgrad.eq.2) then
     call ggair_2a(g2rho,gvrho,grho2)
     call xcifc(xctype,n=ngrtot,rho=rhoir,grho2=grho2,ex=exir,ec=ecir,vx=vx, &
@@ -400,7 +411,7 @@ else
   deallocate(vx,vc)
   if (xcgrad.eq.1) then
     deallocate(grho,g2rho,g3rho)
-    !if (xctype(1)==408) deallocate(vxsr)
+    if (xctype(1)==23) deallocate(v2xsr)
   else if (xcgrad.eq.2) then
     deallocate(g2rho,gvrho,grho2)
     deallocate(dxdg2,dcdg2)

@@ -51,7 +51,7 @@ subroutine scf_cycle(verbosity)
 ! initialise or read the charge density and potentials from file
 
 !! TIME - Begin of initialisation segment 
-
+    write(*,*) xctype
     Call timesec (ts0)
     If ((task .Eq. 1) .Or. (task .Eq. 3)) Then
         Call readstate
@@ -146,8 +146,8 @@ subroutine scf_cycle(verbosity)
 !----------------------------------------!
 ! begin the self-consistent loop
 !----------------------------------------!
-!    Do iscl = 1, input%groundstate%maxscl
-    Do iscl = 1, input%groundstate%maxscl-1 !CECI
+    Do iscl = 1, input%groundstate%maxscl
+!    Do iscl = 1, input%groundstate%maxscl-1 !CECI
 !
 ! exit self-consistent loop if last iteration is complete
         if (tlast) then
@@ -337,6 +337,7 @@ subroutine scf_cycle(verbosity)
 #endif
 
 #ifdef MPI
+
         If ((input%groundstate%xctypenumber.Lt.0).Or. &
         &   (xctype(2).Ge.400).Or. &
         &   (xctype(1).Ge.400)) &
@@ -487,9 +488,7 @@ subroutine scf_cycle(verbosity)
 ! output forces to INFO.OUT
 !            if (input%groundstate%tforce) call writeforce(60,input%relax%outputlevelnumber)
 ! write band-gap if the dos at the Fermi energy is smaller than the given threshold
-!!CECI I REMOUVE THISSSS IF
-            !if (fermidos<1.0d-4) call printbandgap(60)
-            call printbandgap(60)
+            if (fermidos<1.0d-4) call printbandgap(60)
 ! check for WRITE file
             Inquire (File='WRITE', Exist=exist)
             If (exist) Then
