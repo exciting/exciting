@@ -36,7 +36,7 @@ real(8), allocatable :: g3rho(:),g3up(:),g3dn(:)
 real(8), allocatable :: grho2(:),gup2(:),gdn2(:),gupdn(:)
 real(8), allocatable :: ex(:),ec(:),vxc(:)
 real(8), allocatable :: vx(:),vxup(:),vxdn(:)
-real(8), allocatable :: v2xsr(:)!,gv2xsr(:)
+real(8), allocatable :: exsr(:),vxsr(:),v2xsr(:)!,gv2xsr(:)
 real(8), allocatable :: vc(:),vcup(:),vcdn(:)
 !short-range energy and potential needed for hybrids (HSE)
 !real(8), allocatable :: vxsr(:), exsr(:)
@@ -46,6 +46,10 @@ real(8), allocatable :: mag(:,:),bxc(:,:)
 
 n=lmmaxvr*nrmtmax
 !!CECI allocate in the following part also exsr(n) and vxsr(n), and add in the rest the case for HSE sr part
+!if (allocated(rho)) deallocate(rho)
+!if (allocated(ex)) deallocate(ex)
+!if (allocated(ec)) deallocate(ec)
+!if (allocated(vxc)) deallocate(vxc)
 allocate(rho(n),ex(n),ec(n),vxc(n))
 if (associated(input%groundstate%spin)) then
   allocate(mag(n,3),bxc(n,3))
@@ -72,8 +76,11 @@ else
     !if (xctype(1)==408) then
    !    allocate(vxsr(n),exsr(n))
    ! endif
-    if (xctype(1)==23) then
-       allocate(v2xsr(n))!,gv2xsr(n))
+    if (xctype(1)==23.or.xctype(1)==408) then
+       if (allocated(exsr)) deallocate(exsr)
+       if (allocated(vxsr)) deallocate(vxsr)
+       if (allocated(v2xsr)) deallocate(v2xsr)
+       allocate(exsr(n),vxsr(n),v2xsr(n))!,gv2xsr(n))
     endif
   else if (xcgrad.eq.2) then
     allocate(g2rho(n),gvrho(3*n),grho2(n))
@@ -192,8 +199,14 @@ do is=1,nspecies
    !     else 
         if (xctype(1)==23) then
            call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho,ex=ex, &
-                   ec=ec,vx=vx, vc=vc,v2xsr=v2xsr)
-           call gv2xmt(is,ia,grho,vx,v2xsr) 
+                   ec=ec,exsr=exsr,vx=vx,vc=vc,vxsr=vxsr,v2xsr=v2xsr)
+           call gv2xmt(is,ia,grho,vxsr,v2xsr)
+           vx=vxsr
+           ex=exsr 
+        elseif (xctype(1)==408) then
+           call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho,ex=ex, &
+                   ec=ec,exsr=exsr,vx=vx,vc=vc,vxsr=vxsr,v2xsr=v2xsr)
+           call gv2xmt(is,ia,grho,vxsr,v2xsr)
         else
            call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho,ex=ex, &
                    ec=ec,vx=vx,vc=vc)
@@ -207,28 +220,36 @@ do is=1,nspecies
       if (xctype(1)==100) then
          vxc(1:n)=vx(1:n)+ec_coef*vc(1:n)
       !CECI:test
-    !  elseif (xctype(1)==408) then !HSE
-    !     vxc(1:n)=vc(1:n)+vx(1:n)-ex_coef*vxsr(1:n)     
+      elseif (xctype(1)==408) then !HSE
+         vxc(1:n)=vc(1:n)+vx(1:n)-ex_coef*vxsr(1:n)     
       else
          vxc(1:n)=(1-ex_coef)*vx(1:n)+ec_coef*vc(1:n)
       end if
     end if
     
+    if ((xctype(1).ne.100).and.(xctype(1).ne.408)) then
+       ex(1:n) = (1.d0-ex_coef)*ex(1:n)
+       !CECI:test
+    elseif (xctype(1)==408) then !HSE
+       ex(1:n) = ex(1:n)-ex_coef*exsr(1:n)
+    end if
+    ec(1:n) = ec_coef*ec(1:n)
 ! convert exchange and correlation energy densities to spherical harmonics
     call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,ex,lmmaxvr, &
                0.d0,exmt(:,:,ias),lmmaxvr)
     call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,ec,lmmaxvr, &
                0.d0,ecmt(:,:,ias),lmmaxvr)
 !! CECI LOOK HERE               
-  if ((xctype(1).ne.100)) then !CECItest
-!    if ((xctype(1).ne.100).and.(xctype(1).ne.408)) then
-       exmt(:,:,ias) = (1.d0-ex_coef)*exmt(:,:,ias)
-    !CECI:test
-!    elseif (xctype(1)==408) then !HSE
-!    else if (xctype(1)==408) then
-!       exmt(:,:,ias) = exmt(:,:,ias)-ex_coef*exsrmt(:,:,ias)
-  end if
-    ecmt(:,:,ias) = ec_coef*ecmt(:,:,ias)
+!  if ((xctype(1).ne.100)) then !CECItest
+!  if ((xctype(1).ne.100).and.(xctype(1).ne.408)) then
+!     exmt(:,:,ias) = (1.d0-ex_coef)*exmt(:,:,ias)
+!    !CECI:test
+!  elseif (xctype(1)==408) then !HSE
+!     call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,exsr,lmmaxvr, &
+!               0.d0,exmtsr(:,:,ias),lmmaxvr)
+!     exmt(:,:,ias) = exmt(:,:,ias)-ex_coef*exsrmt(:,:,ias)
+!  end if
+!    ecmt(:,:,ias) = ec_coef*ecmt(:,:,ias)
     
 ! convert exchange-correlation potential to spherical harmonics
     call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,vxc,lmmaxvr, &
@@ -339,9 +360,15 @@ else
   else if (xcgrad.eq.1) then
     call ggair_1(grho,g2rho,g3rho)
     if (xctype(1)==23)  then
-       call xcifc(xctype,n=ngrtot,rho=rhoir,grho=grho,g2rho=g2rho,g3rho=g3rho, &
-             ex=exir,ec=ecir,vx=vx, vc=vc,v2xsr=v2xsr)
-       call gv2xir(grho,vx,v2xsr) 
+       call xcifc(xctype,n=ngrtot,rho=rhoir,grho=grho,g2rho=g2rho,g3rho=g3rho, ex=exir,&
+             ec=ecir,exsr=exsr,vx=vx,vc=vc,vxsr=vxsr,v2xsr=v2xsr)
+       call gv2xir(grho,vxsr,v2xsr) 
+       vx=vxsr
+       exir=exsr
+    elseif (xctype(1)==408)  then
+       call xcifc(xctype,n=ngrtot,rho=rhoir,grho=grho,g2rho=g2rho,g3rho=g3rho, ex=exir,&
+             ec=ecir,exsr=exsr,vx=vx,vc=vc,vxsr=vxsr,v2xsr=v2xsr)
+       call gv2xir(grho,vxsr,v2xsr) 
     else
        call xcifc(xctype,n=ngrtot,rho=rhoir,grho=grho,g2rho=g2rho,g3rho=g3rho, &
              ex=exir,ec=ecir,vx=vx,vc=vc)
@@ -363,17 +390,17 @@ else
     call ggair_2b(g2rho,gvrho,vx,vc,dxdg2,dcdg2)
   end if
   !!CECI there is something strange here?? what is it? Maybe it is working anyway but INCONSISTENCE
-  if ((xctype(1).ne.100)) then
-  !.and. (xctype(1).ne.408) .and. (xctype(1).ne.23) ) then !CECItest
-  !if ((xctype(1).ne.100) .and. (xctype(1).ne.408)) then
+  !if ((xctype(1).ne.100)) then
+  !!.and. (xctype(1).ne.408) .and. (xctype(1).ne.23) ) then !CECItest
+  if ((xctype(1).ne.100) .and. (xctype(1).ne.408)) then
     vxcir(1:ngrtot) = (1.d0-ex_coef)*vx(1:ngrtot)+ec_coef*vc(1:ngrtot)
     exir(:) = (1.d0-ex_coef)*exir(:)
   !CECI:test
-!  elseif (xctype(1)==408) then !HSE
-!    vxcir(1:ngrtot)=vc(1:ngrtot)+vx(1:ngrtot)-ex_coef*vxsr(1:ngrtot)     
-!    exir(:) = exir(:)-ex_coef*exsrir(:)
+   elseif (xctype(1)==408) then !HSE
+     vxcir(1:ngrtot)=vc(1:ngrtot)+vx(1:ngrtot)-ex_coef*vxsr(1:ngrtot)     
+     exir(:) = exir(:)-ex_coef*exsr(:)
   else
-    vxcir(1:ngrtot) = vx(1:ngrtot)+ec_coef*vc(1:ngrtot)
+     vxcir(1:ngrtot) = vx(1:ngrtot)+ec_coef*vc(1:ngrtot)
   end if
   ecir(:) = ec_coef*ecir(:)
 
@@ -411,7 +438,7 @@ else
   deallocate(vx,vc)
   if (xcgrad.eq.1) then
     deallocate(grho,g2rho,g3rho)
-    if (xctype(1)==23) deallocate(v2xsr)
+    if (xctype(1)==23 .or. xctype(1)==408) deallocate(exsr,vxsr,v2xsr)
   else if (xcgrad.eq.2) then
     deallocate(g2rho,gvrho,grho2)
     deallocate(dxdg2,dcdg2)

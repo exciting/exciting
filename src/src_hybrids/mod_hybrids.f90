@@ -28,6 +28,13 @@ module mod_hybrids
     ! complex(8), allocatable :: mincmat(:,:,:)
     ! complex(8), allocatable :: micmmat(:,:,:)
     complex(8), allocatable :: miccmat(:,:,:)
+    
+   ! The matrix representation of the long-range bare coulomb potential in the mixed basis            
+    complex(8), allocatable :: barc_lr(:,:)
+
+    ! full set of the eigenvalues of long-range barcoul matrix
+    real(8), allocatable :: barcev_lr(:)
+
 
 !*******************************************************************************
 contains
