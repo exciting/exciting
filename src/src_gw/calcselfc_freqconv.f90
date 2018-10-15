@@ -57,11 +57,11 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
           
         xnm(:) = mwm(ie1,ie2,:)
 
-        if (ikp==2 .and. iq==2 .and. ie1==1 .and. ie2==1) then
-          do iom = 1, freq%nomeg
-            write(10,'(3f18.6)') freq%freqs(iom), xnm(iom)
-          end do
-        end if
+        ! if (ikp==2 .and. iq==2 .and. ie1==1 .and. ie2==1) then
+        !   do iom = 1, freq%nomeg
+        !     write(10,'(3f18.6)') freq%freqs(iom), xnm(iom)
+        !   end do
+        ! end if
 
         ! AAA approximant
         call set_aaa_approximant(aaa, cmplx(freq%freqs, 0.d0, 8), xnm)
@@ -75,32 +75,9 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
           ! Interpolation block
           !----------------------
 
-          ! Linear interpolation
-          ! if ( w_sc < freq%freqs(1) ) then
-          !   kom = 1
-          ! else if ( w_sc > freq%freqs(freq%nomeg) )  then
-          !   kom = freq%nomeg
-          ! else
-          !   do jom = 1, freq%nomeg-1
-          !     if ( (freq%freqs(jom) <= w_sc) .and. (w_sc < freq%freqs(jom+1)) ) then
-          !       kom = jom
-          !       exit
-          !     end if
-          !   end do
-          ! end if
-          ! print*, 'iom', iom, w_sc
-          ! print*, 'kom', kom, freq%freqs(kom)
-          ! Linear interpolation
-          ! wdiff = freq%freqs(kom+1)-freq%freqs(kom)
-          ! xnm_intp = xnm(kom) + ( xnm(kom+1)-xnm(kom) ) * ( w_sc-freq%freqs(kom) ) / wdiff         
-
-          ! call s1%evaluate( w_sc, 0, f1, iflag)
-          ! call s2%evaluate( w_sc, 0, f2, iflag)
-          ! xnm_intp = cmplx(f1, f2, 8)
-
           xnm_intp = reval_aaa_approximant( aaa, cmplx(w_sc, 0.d0, 8) )
 
-          if (ikp==2 .and. iq==2 .and. ie1==1 .and. ie2==1) write(11,'(3f18.6)') w_sc, xnm_intp
+          ! if (ikp==2 .and. iq==2 .and. ie1==1 .and. ie2==1) write(11,'(3f18.6)') w_sc, xnm_intp
 
           !------------------------
           ! Frequency convolution
@@ -125,6 +102,8 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
       end do ! ie2
 
     end do ! ie1
+
+    call delete_aaa_approximant(aaa)
 
     if (input%gw%debug) then
       write(fdebug,*) 'CORRELATION SELF-ENERGY: iq=', iq, ' ikp=', ikp

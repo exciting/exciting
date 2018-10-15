@@ -197,7 +197,7 @@ subroutine gw_main()
             ! if (rank==0) call test_mbrotmat
 
         case('aaa')
-            if (rank==0) call test_aaa()
+            if (rank==0) call test_aaa_2()
 
         case('specfunc')
             if (rank==0) call spectralFunction()

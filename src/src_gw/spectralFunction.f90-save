@@ -56,8 +56,6 @@ subroutine spectralFunction()
     axis = trim(input%gw%selfenergy%SpectralFunctionPlot%axis)
     eta  = input%gw%selfenergy%SpectralFunctionPlot%eta
     tol  = input%gw%selfenergy%SpectralFunctionPlot%tol
-
-    if (axis /= 'real' .and. axis /= 'imag') stop 'Error(spectralFunction): Wrong axis type!'
     
     allocate( w(nw) )
     w(:) = 0.d0  
@@ -83,24 +81,27 @@ subroutine spectralFunction()
             
             if (input%gw%selfenergy%actype == 'aaa' ) then
                 ! Compute the approximant
-                if (axis == 'real') then
-                    call set_aaa_approximant(aaa_plus, -zj, fj, tol, .true.)  ! <----- No idea why only this works ????
-                else
-                    call set_aaa_approximant(aaa_plus, zj, fj, tol, .true.)
+                call set_aaa_approximant(aaa_minus, zj, conjg(fj), tol)
+                if ( .true. ) then
+                    print*, ''
+                    print*, 'Number of support points: ', aaa_plus%nj
+                    ! print*, 'Weights:', aaa_plus%wj(:)
+                    ! print*, 'Errors:', aaa_plus%ej(:)
+                    print*, ''
                 end if
-                call init_aaa_approximant(aaa_minus, aaa_plus%nj, -aaa_plus%zj, &
-                                          conjg(aaa_plus%fj), conjg(aaa_plus%wj))
+                !---------------------------------------------------------------
+                ! Negative frequencies (use the symmetry properties of Sigma_c)
+                !---------------------------------------------------------------
+                call init_aaa_approximant(aaa_plus, aaa_minus%nj, -aaa_minus%zj, &
+                                          conjg(aaa_minus%fj), conjg(aaa_minus%wj), aaa_minus%ej)
             end if
 
             enk = evalks(ie,ik) - eferks
 
             do iw = 1, nw
             
-                if (axis == 'real') then
-                    zw = cmplx( w(iw), 0.d0, 8 )
-                else
-                    zw = cmplx( 0.d0, w(iw), 8 )
-                end if
+                ! zw = cmplx( w(iw), 0.d0, 8 )
+                zw = cmplx( 0.d0, w(iw), 8 )
 
                 ! AAA
                 if ( w(iw) > 0.d0 ) then
@@ -161,12 +162,8 @@ subroutine spectralFunction()
         write(71,*); write(71,*)
         !---------------------------
         write(71,*) '# ik = ', ik
-        do iom = -freq_selfc%nomeg, freq_selfc%nomeg
-            if (iom < 0) then
-                write(72,trim(frmt2)) -freq_selfc%freqs(abs(iom)), conjg(selfec(:,abs(iom),ik))
-            else if (iom > 0) then
-                write(72,trim(frmt2)) freq_selfc%freqs(iom), selfec(:,iom,ik)
-            end if
+        do iom = 1, freq_selfc%nomeg
+            write(72,trim(frmt2)) freq_selfc%freqs(iom), selfec(:,iom,ik)
         end do
         write(72,*); write(72,*)
     end do

@@ -137,8 +137,10 @@ CONTAINS
         case('cubic')
             n = self%nomeg
             do i = 1, n
-                self%freqs(i) = self%freqmin + (dble(i-1)/dble(n-1))**3 * (self%freqmax-self%freqmin)
+                self%freqs(i) = self%freqmin + &
+                    (dble(i-1)/dble(n-1))**3 * (self%freqmax-self%freqmin)
             end do
+            self%womeg(:) = 1.d0 / dble(n)
         
         end select
         

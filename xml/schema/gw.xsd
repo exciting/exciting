@@ -102,6 +102,11 @@
                         Smearing parameter (small number).
                         </xs:documentation></xs:annotation>
                       </xs:attribute>
+                      <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="tol" default="1.0d-14">
+                        <xs:annotation><xs:documentation>
+                          Tolerance factor used in generating support points in AAA-interpolation.
+                        </xs:documentation></xs:annotation>
+                      </xs:attribute>
                     </xs:complexType>
                   </xs:element>
 
@@ -132,11 +137,11 @@
                         <xs:annotation><xs:documentation>
                           Upper frequency limit.
                         </xs:documentation></xs:annotation>
-                      </xs:attribute>
+                      </xs:attribute>                      
                     </xs:complexType>
                   </xs:element>
 
-                </xs:all>
+                </xs:all>               
 
                 <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="nempty" default="0"> 
                   <xs:annotation><xs:documentation>

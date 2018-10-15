@@ -4,27 +4,87 @@ module mod_aaa_approximant
     implicit none
 
     type aaa_approximant
-        integer(4) :: nj                 ! number of support points
-        complex(8), allocatable :: zj(:) ! support point coordinates
-        complex(8), allocatable :: fj(:) ! function values
-        complex(8), allocatable :: wj(:) ! barycentric weights
-        real(8),    allocatable :: ej(:) ! error at support points
+        integer(4) :: nj                  ! number of support points
+        complex(8), allocatable :: zj(:)  ! support point coordinates
+        complex(8), allocatable :: fj(:)  ! function values
+        complex(8), allocatable :: wj(:)  ! barycentric weights
+        integer(4) :: npol                ! number of poles
+        complex(8), allocatable :: pol(:) ! poles
+        complex(8), allocatable :: res(:) ! residues
+        complex(8), allocatable :: zer(:) ! zeros of rational function in barycentric form
     end type
 
     complex(8), parameter :: zero = cmplx(0.d0, 0.d0, 8)
+    complex(8), parameter :: zone = cmplx(1.d0, 0.d0, 8)
 
 contains
 
 !--------------------------------------------------------------------------------    
+    function linspace(a, b, n)
+        implicit none
+        complex(8), intent(in) :: a
+        complex(8), intent(in) :: b
+        integer(4), intent(in) :: n
+        complex(8), dimension(n) :: linspace
+        integer(4) :: i
+        complex(8) :: step
+        if (n < 1) then
+            stop 'Error(linspace): Wrong number of points!'
+        else if (n == 1) then
+            linspace(1) = a
+        else
+            step = (b-a) / dble(n-1)
+            do i = 1, n
+                linspace(i) = a + dble(i-1)*step
+            end do
+        end if
+    end function
+
+!--------------------------------------------------------------------------------    
+    subroutine test_aaa_2()
+        use modinput
+        implicit none
+        integer(4) :: n
+        complex(8) :: a, b
+        complex(8), allocatable :: z(:), f(:)
+        real(8), parameter :: pi = 3.14159265359d0
+        integer(4) :: i
+        real(8) :: tol
+        type(aaa_approximant) :: aaa
+
+        a = cmplx(-0.5d0, 0.d0, 8)
+        b = cmplx(0.5d0, 0.15d0*pi, 8)
+        n = 1000
+
+        allocate(z(n), f(n))
+        z = linspace(a, b, n)
+        do i = 1, n
+            z(i) = exp(z(i))
+            f(i) = tan(0.5d0*pi*z(i))
+            ! print*, z(i), f(i)
+        end do
+
+        ! Compute the approximant
+        tol = input%gw%selfenergy%SpectralFunctionPlot%tol
+        call set_aaa_approximant(aaa, z, f, tol, .true.)
+        print*, ''
+        print*, 'Number of support points: ', aaa%nj
+        print*, ''
+        deallocate(z, f)
+        
+    end subroutine
+
+!--------------------------------------------------------------------------------    
     subroutine test_aaa()
+        use modinput
         implicit none
         integer(4) :: n, j
-        real(8)    :: a, b, d
+        real(8)    :: a, b, d, tol
         complex(8), allocatable :: z(:), f(:), fr(:)
         type(aaa_approximant) :: aaa
 
         ! Define support points
-        n = 6
+        n = 100
         allocate(z(n), f(n))
 
         a = -1.d0
@@ -32,15 +92,16 @@ contains
         d = (b-a) / dble(n-1)
         do j = 1, n
             z(j) = cmplx(a + dble(j-1)*d, 0.d0, 8)
-            f(j) = exp(z(j))
+            ! f(j) = exp(z(j))
+            f(j) = log(2.d0 + z(j)**4) / (1.d0-16.d0*z(j)**4)
             ! print*, j, zj(j), fj(j)
         end do
 
         ! Compute the approximant
-        call set_aaa_approximant(aaa, z, f)
+        tol = input%gw%selfenergy%SpectralFunctionPlot%tol
+        call set_aaa_approximant(aaa, z, f, tol, .true.)
         print*, ''
         print*, 'Number of support points: ', aaa%nj
-        print*, 'Error at support points: ', aaa%ej(:)
         print*, ''
         deallocate(z, f)
 
@@ -53,7 +114,8 @@ contains
         open(77, file="aaa_approximant.dat")
         do j = 1, n
             z(j) = cmplx(a + dble(j-1)*d, 0.d0, 8)
-            f(j) = exp(z(j))
+            ! f(j) = exp(z(j))
+            f(j) = log(2.d0 + z(j)**4) / (1.d0-16.d0*z(j)**4)
             fr(j) = reval_aaa_approximant(aaa, z(j))
             write(77,'(3f18.6)') dble(z(j)), dble(f(j)), dble(fr(j))
         end do
@@ -110,17 +172,19 @@ contains
         if (allocated(aaa%zj)) deallocate(aaa%zj)
         if (allocated(aaa%fj)) deallocate(aaa%fj)
         if (allocated(aaa%wj)) deallocate(aaa%wj)
+        if (allocated(aaa%pol)) deallocate(aaa%pol)
+        if (allocated(aaa%res)) deallocate(aaa%res)
+        if (allocated(aaa%zer)) deallocate(aaa%zer)
     end subroutine
 
 
 !--------------------------------------------------------------------------------    
-    subroutine init_aaa_approximant(aaa, n, z, f, w, e)
+    subroutine init_aaa_approximant(aaa, n, z, f, w)
         type(aaa_approximant), intent(out) :: aaa
         integer(4), intent(in) :: n
         complex(8), intent(in) :: z(:)
         complex(8), intent(in) :: f(:)
         complex(8), intent(in) :: w(:)
-        real(8),    intent(in) :: e(:)
         integer(4) :: j
         aaa%nj = n
         if (allocated(aaa%zj)) deallocate(aaa%zj)
@@ -129,33 +193,30 @@ contains
         allocate(aaa%fj(aaa%nj))
         if (allocated(aaa%wj)) deallocate(aaa%wj)
         allocate(aaa%wj(aaa%nj))
-        if (allocated(aaa%ej)) deallocate(aaa%ej)
-        allocate(aaa%ej(aaa%nj))
         do j = 1, aaa%nj
             aaa%zj(j) = z(j)
             aaa%fj(j) = f(j)
             aaa%wj(j) = w(j)
-            aaa%ej(j) = e(j)
         end do
     end subroutine
 
 
 !--------------------------------------------------------------------------------    
-    subroutine set_aaa_approximant(aaa, Z, F)
+    subroutine set_aaa_approximant(aaa, Z, F, tol, cleanup_flag)
         implicit none
         ! input/output
         type(aaa_approximant), intent(out) :: aaa
-        complex(8),            intent(in)  :: Z(:)
-        complex(8),            intent(in)  :: F(:)
+        complex(8), intent(in)             :: Z(:)
+        complex(8), intent(in)             :: F(:)
+        real(8),    intent(in), optional   :: tol
+        logical(8), intent(in), optional   :: cleanup_flag 
         ! parameters
-        integer(4), parameter :: mmax = 1000
-        real(8),    parameter :: tol = 1.d-8
+        integer(4),   parameter :: mmax = 1000
         
         ! local variables
         integer(4) :: npts, j, jj, jmax(1), m, mm
-        real(8)    :: reltol
+        real(8)    :: reltol, error
         integer(4), allocatable :: jndx(:)
-        real(8),    allocatable :: error(:)
         complex(8), allocatable :: RS(:,:), LS(:,:)
         complex(8), allocatable :: A(:,:), B(:,:), C(:,:)
         complex(8), allocatable :: R(:), N(:), D(:)
@@ -168,9 +229,16 @@ contains
         npts = size(Z)
         ! print*, 'npts=', npts
 
-        ! relative tolerance <---- check it later
-        reltol = tol ! * znorm(F)
-        ! print*, 'reltol=', reltol
+        ! relative tolerance
+        if ( .not. present(tol) ) then
+            reltol = 1.d-8
+        else
+            reltol = tol
+        end if
+        ! reltol = reltol * znorm(F)
+        print*, ''
+        print*, 'reltol=', reltol
+        print*, ''
 
         ! Left scaling matrix
         allocate(LS(npts,npts))
@@ -182,9 +250,6 @@ contains
         ! Right scaling matrix
         allocate(RS(npts,npts))
         RS(:,:) = zero
-
-        ! Error at sampling points
-        allocate(error(mmax))
 
         ! SVD arrays
         allocate(sval(mmax))
@@ -278,20 +343,292 @@ contains
             end do
 
             ! Error in the sample points
-            error(m) = maxval(abs(F-R))
+            error = maxval(abs(F-R))
+            write(*,*) 'iter=', m, 'error=', error
 
             ! Check if converged
-            if (error(m) <= reltol) exit
+            if (error <= reltol) exit
 
         end do ! m
         deallocate(sval, rsvec)
         deallocate(A, B, C)
         deallocate(RS, LS)
+        deallocate(jndx)
 
         ! Save results into an object
-        call init_aaa_approximant(aaa, m, zj, fj, wj, error)
+        call init_aaa_approximant(aaa, m, zj, fj, wj)
+        deallocate(zj, fj, wj)
+
+        ! Remove spurious pole-zero pairs
+        if (present(cleanup_flag)) then
+            if (cleanup_flag) then
+                call prz(aaa)
+                call cleanup(aaa, Z, F, tol)
+            end if
+        end if
         
-        deallocate(zj, fj, wj, error)
+    end subroutine
+
+
+!--------------------------------------------------------------------------------
+    subroutine prz(aaa)
+        implicit none
+        type(aaa_approximant), intent(InOut) :: aaa
+        ! local
+        integer(4) :: m, i, j
+        integer(4), allocatable :: idxPol(:)
+        
+        complex(8), allocatable :: B(:,:), E(:,:)
+        complex(8), allocatable :: D(:), N(:)
+        complex(8) :: DD, NN
+
+        integer(4) :: ndim
+        complex(8), allocatable :: alpha(:), beta(:)
+
+        m = aaa%nj
+
+        ! Compute poles via generalized eigenvalue problem
+        allocate(B(m+1,m+1), E(m+1,m+1))
+        B(:,:) = zero
+        E(:,:) = zero
+
+        E(1,1) = zero
+        do i = 2, m+1
+            B(i,i) = zone
+            E(1,i) = aaa%wj(i-1)
+            E(i,1) = zone
+            E(i,i) = aaa%zj(i-1)
+        end do
+        ! do i = 1, m+1
+        !     write(*,'(100f12.6)') dble(E(i,:))
+        ! end do
+
+        ! Generalized eigenvalue problem
+        ndim = m+1
+        allocate(alpha(ndim), beta(ndim))
+        call mkl_zggev(ndim, E, B, alpha, beta)
+
+        ! Remove zeros of denominator at infinity
+        allocate(idxPol(ndim))
+        aaa%nPol = 0
+        write(*,*)
+        do i = 1, ndim
+            write(*,*) 'pole=', alpha(i)/beta(i)
+            if (abs(beta(i)) > 1.d-16) then
+                aaa%nPol = aaa%nPol+1
+                idxPol(aaa%nPol) = i
+            end if
+        end do
+        write(*,*)
+        write(*,*) "nPol=", aaa%nPol
+        write(*,*)
+        if (aaa%nPol < 1) stop "Error(prz): No poles found!"
+
+        if (allocated(aaa%pol)) deallocate(aaa%pol)
+        allocate(aaa%pol(aaa%nPol))
+        do i = 1, aaa%nPol
+            j = idxPol(i)
+            aaa%pol(i) = alpha(j) / beta(j)
+        end do
+        deallocate(idxPol)
+
+        ! Compute residues via formula for res of quotient of analytic functions
+        if (allocated(aaa%res)) deallocate(aaa%res)
+        allocate(aaa%res(aaa%nPol))
+        allocate(N(aaa%nj), D(aaa%nj))
+        do i = 1, aaa%nPol
+            do j = 1, aaa%nj
+                N(j) = 1.d0 / (aaa%pol(i) - aaa%zj(j))
+                D(j) = -1.d0 / (aaa%pol(i) - aaa%zj(j))**2
+            end do
+            NN = dot_product(N(:), aaa%wj(:)*aaa%fj(:))
+            DD = dot_product(D(:), aaa%wj(:))
+            aaa%res(i) = NN / DD
+            write(*,*) 'res=', aaa%res(i)
+        end do
+        write(*,*)
+        deallocate(N, D)
+
+        ! Compute zeros via generalized eigenvalue problem
+        B(:,:) = zero
+        E(:,:) = zero
+        do i = 2, m+1
+            B(i,i) = zone
+            E(1,i) = aaa%wj(i-1)*aaa%fj(i-1)
+            E(i,1) = zone
+            E(i,i) = aaa%zj(i-1)
+        end do
+        ! do i = 1, m+1
+        !     write(*,'(100f12.6)') dble(E(i,:))
+        ! end do
+        call mkl_zggev(ndim, E, B, alpha, beta)
+
+        if (allocated(aaa%zer)) deallocate(aaa%zer)
+        allocate(aaa%zer(aaa%nPol))
+        j = 0
+        do i = 1, ndim
+            write(*,*) 'zer=', alpha(i) / beta(i)
+            if (abs(beta(i)) > 1.d-16) then
+                j = j+1
+                aaa%zer(j) = alpha(i)/beta(i)
+            end if
+        end do
+        write(*,*)
+        deallocate(alpha, beta)
+
+        deallocate(E, B)
+
+    end subroutine
+
+
+!--------------------------------------------------------------------------------
+    subroutine cleanup(aaa, Z, F, cleanup_tol)
+        implicit none
+        type(aaa_approximant), intent(inout) :: aaa
+        complex(8), intent(in) :: Z(:)
+        complex(8), intent(in) :: F(:)
+        real(8), intent(in) :: cleanup_tol
+        ! local
+        integer(4) :: i, j, jmin(1), k, m
+        real(8) :: tol
+        integer(4) :: nFD
+        integer(4), allocatable :: idxFD(:), idxList(:)
+        real(8), allocatable :: azp(:)
+
+        integer(4) :: nj_new, m_new
+        complex(8), allocatable :: zj_new(:), fj_new(:), wj_new(:)
+        complex(8), allocatable :: Z_new(:), F_new(:)
+
+        complex(8), allocatable :: RS(:,:), LS(:,:), C(:,:), A(:,:)
+        real(8),    allocatable :: sval(:)
+        complex(8), allocatable :: rsvec(:,:)
+        
+        ! Find negligible residues (Froissart doublets)
+        tol = cleanup_tol ! * znorm(F)
+        print*, 'FD tol=', tol
+
+        allocate(idxFD(aaa%npol))
+        nFD = 0
+        do i = 1, aaa%npol
+            if (abs(aaa%res(i)) < tol) then
+                nFD = nFD+1
+                idxFD(nFD) = i
+            end if
+        end do
+        if (nFD == 0) then
+            ! Nothing to do
+            return
+        else
+            print*, 'Found ', nFD, ' Froissart doublets'
+            do i = 1, nFD
+                j = idxFD(i)
+                print*, i, aaa%pol(j), aaa%res(j), aaa%zer(j)
+            end do
+        end if
+
+        ! For each spurious pole find and remove closest support point
+        allocate(azp(aaa%nj))
+        allocate(idxList(nFD))
+        do i = 1, nFD
+            azp(:) = abs(aaa%zj(:) - aaa%pol(idxFD(i)))
+            jmin = minloc(azp)
+            idxList(i) = jmin(1)
+        end do
+        deallocate(azp)
+        deallocate(idxFD)
+
+        ! Remove corresponding support points
+        nj_new = aaa%nj-nFD
+        allocate(zj_new(nj_new), fj_new(nj_new))
+        j = 0
+        do i = 1, aaa%nj
+            if (any(idxList /= i)) then
+                j = j+1
+                zj_new(j) = aaa%zj(i)
+                fj_new(j) = aaa%fj(i)
+                print*, dble(zj_new(j)), dble(fj_new(j))
+            end if
+        end do
+        print*, 'j=', j
+        deallocate(idxList)
+
+        ! Remove support points z from sample set
+        m = size(Z)
+        m_new = 0
+        allocate(idxList(m))
+        do i = 1, m
+            print*, 'Z=', dble(Z(i))
+            if ( all( abs(Z(i)-zj_new) > 1.d-14 ) ) then
+                m_new = m_new+1
+                idxList(m_new) = i
+            end if
+        end do
+        print*, "m_new=", m_new
+
+        ! Build Loewner matrix
+        allocate(LS(m_new,m_new))
+        LS(:,:) = zero
+        do i = 1, m_new
+            LS(i,i) = F(idxList(i))
+        end do
+        allocate(RS(nj_new,nj_new))
+        RS(:,:) = zero
+        do i = 1, nj_new
+            RS(i,i) = fj_new(i)
+        end do
+        allocate(C(m_new,nj_new))
+        do i = 1, m_new
+            C(i,:) = 1.d0 / (Z(idxList(i)) - zj_new(:))
+        end do
+        allocate(A(m_new,nj_new))
+        A = matmul(LS, C) - matmul(C, RS)
+        deallocate(LS, RS, C)
+        
+        ! Weight vector = min singular vector
+        allocate(rsvec(nj_new,nj_new), sval(nj_new))
+        call mkl_svd(m_new, nj_new, A, rsvec, sval)
+        allocate(wj_new(nj_new))
+        wj_new(:) = rsvec(:,nj_new)
+        deallocate(A, rsvec, sval)
+
+        ! Save results into an object
+        call init_aaa_approximant(aaa, nj_new, zj_new, fj_new, wj_new)
+        deallocate(zj_new, fj_new, wj_new)
+        
+    end subroutine
+
+!--------------------------------------------------------------------------------
+    subroutine mkl_zggev(ndim, A, B, alpha, beta)
+        implicit none
+        ! input/output
+        integer(4), intent(in) :: ndim
+        complex(8), intent(in) :: A(ndim, ndim)
+        complex(8), intent(in) :: B(ndim, ndim)
+        complex(8), intent(out) :: alpha(ndim)
+        complex(8), intent(out) :: beta(ndim)
+        ! local
+        integer(4) :: ldvl, ldvr, lwork
+        real(8), allocatable :: rwork(:)
+        complex(8), allocatable :: work(:), vl(:,:), vr(:,:)
+        integer(4) :: info 
+
+        ldvl = max(1, ndim)
+        ldvr = max(1, ndim)
+
+        lwork = -1
+        allocate(rwork(8*ndim))
+        allocate(work(1))
+        call zggev('N', 'N', ndim, A, ndim, B, ndim, alpha, beta, &
+                   vl, ldvl, vr, ldvr, work, lwork, rwork, info)
+        if (info /= 0) stop 'Error executing zggev!'
+        lwork = work(1)
+        deallocate(work)
+
+        allocate(work(lwork))
+        call zggev('N', 'N', ndim, A, ndim, B, ndim, alpha, beta, &
+                   vl, ldvl, vr, ldvr, work, lwork, rwork, info)
+        if (info /= 0) stop 'Error executing zggev!'
+        deallocate(rwork, work)
 
     end subroutine
 
@@ -379,5 +716,6 @@ contains
 
         return
     end subroutine
+
 
 end module
