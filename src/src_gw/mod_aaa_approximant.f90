@@ -48,19 +48,23 @@ contains
         complex(8) :: a, b
         complex(8), allocatable :: z(:), f(:)
         real(8), parameter :: pi = 3.14159265359d0
-        integer(4) :: i
+        integer(4) :: j
         real(8) :: tol
         type(aaa_approximant) :: aaa
 
+        print*, '-----------------------------------------'
+        print*, 'Test AAA 2: Poles of function tan(pi*z/2)'
+        print*, '-----------------------------------------'
+
         a = cmplx(-0.5d0, 0.d0, 8)
-        b = cmplx(0.5d0, 0.15d0*pi, 8)
+        b = cmplx(0.5d0, 15d0*pi, 8)
         n = 1000
 
         allocate(z(n), f(n))
         z = linspace(a, b, n)
-        do i = 1, n
-            z(i) = exp(z(i))
-            f(i) = tan(0.5d0*pi*z(i))
+        do j = 1, n
+            z(j) = exp(z(j))
+            f(j) = tan(0.5d0*pi*z(j))
             ! print*, z(i), f(i)
         end do
 
@@ -71,29 +75,34 @@ contains
         print*, 'Number of support points: ', aaa%nj
         print*, ''
         deallocate(z, f)
+
+        call delete_aaa_approximant(aaa)
         
     end subroutine
 
 !--------------------------------------------------------------------------------    
-    subroutine test_aaa()
+    subroutine test_aaa_1()
         use modinput
         implicit none
         integer(4) :: n, j
-        real(8)    :: a, b, d, tol
+        real(8)    :: tol
+        complex(8) :: a, b
         complex(8), allocatable :: z(:), f(:), fr(:)
         type(aaa_approximant) :: aaa
 
-        ! Define support points
-        n = 100
-        allocate(z(n), f(n))
+        print*, '------------------------------------------'
+        print*, 'Test AAA 1: Rational approximant of exp(z)'
+        print*, '------------------------------------------'
 
-        a = -1.d0
-        b =  1.d0
-        d = (b-a) / dble(n-1)
+        ! Define support points
+        a = cmplx(-1.d0, 0.d0, 8)
+        b = cmplx( 1.d0, 0.d0, 8)
+        n = 100
+
+        allocate(z(n), f(n))
+        z = linspace(a, b, n)
         do j = 1, n
-            z(j) = cmplx(a + dble(j-1)*d, 0.d0, 8)
-            ! f(j) = exp(z(j))
-            f(j) = log(2.d0 + z(j)**4) / (1.d0-16.d0*z(j)**4)
+            f(j) = exp(z(j))
             ! print*, j, zj(j), fj(j)
         end do
 
@@ -106,16 +115,13 @@ contains
         deallocate(z, f)
 
         ! Compute values of the barycentric rational function
+        a = cmplx(-3.d0, 0.d0, 8)
+        b = cmplx( 3.d0, 0.d0, 8)
         n = 100
         allocate(z(n), f(n), fr(n))
-        a = -3.d0
-        b =  3.d0
-        d = (b-a) / dble(n-1)
         open(77, file="aaa_approximant.dat")
         do j = 1, n
-            z(j) = cmplx(a + dble(j-1)*d, 0.d0, 8)
-            ! f(j) = exp(z(j))
-            f(j) = log(2.d0 + z(j)**4) / (1.d0-16.d0*z(j)**4)
+            f(j) = exp(z(j))
             fr(j) = reval_aaa_approximant(aaa, z(j))
             write(77,'(3f18.6)') dble(z(j)), dble(f(j)), dble(fr(j))
         end do
@@ -231,11 +237,11 @@ contains
 
         ! relative tolerance
         if ( .not. present(tol) ) then
-            reltol = 1.d-8
+            reltol = 1.d-13
         else
             reltol = tol
         end if
-        ! reltol = reltol * znorm(F)
+        reltol = reltol * znorm(F)
         print*, ''
         print*, 'reltol=', reltol
         print*, ''

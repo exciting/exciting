@@ -111,8 +111,8 @@ subroutine parse_gwinput
             if (rank==0) write(fgw,*) '  rotmat - (testing option) Calculate and check the MB rotation matrices (symmetry feature)'
         case('wannier')
             if (rank==0) write(fgw,*) '  wannier - (testing option) Wannier-interpolate QP-energies'
-        case('aaa')
-            if (rank==0) write(fgw,*) '  AAA interpolate'
+        case('test_aaa')
+            if (rank==0) write(fgw,*) '  Test AAA interpolation'
         case('specfunc')
             if (rank==0) write(fgw,*) '  Compute spectral function'
         

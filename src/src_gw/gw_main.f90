@@ -196,7 +196,8 @@ subroutine gw_main()
         ! case('rotmat')
             ! if (rank==0) call test_mbrotmat
 
-        case('aaa')
+        case('test_aaa')
+            if (rank==0) call test_aaa_1()
             if (rank==0) call test_aaa_2()
 
         case('specfunc')
