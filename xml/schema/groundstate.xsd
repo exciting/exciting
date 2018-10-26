@@ -348,7 +348,7 @@
               default="0.11d0">
               <xs:annotation>
                 <xs:documentation> Define the value for the screening parameter. 
-                  The default value (omega=0.11d0) corresponds to HSE06 that was optimized for solids.
+                  The default value (omega=0.106d0) corresponds to HSE06 that was optimized for solids.
                   In HSE03 omega=0.15d0.
                   </xs:documentation>
               </xs:annotation>

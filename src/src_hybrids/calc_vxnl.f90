@@ -88,18 +88,21 @@ subroutine calc_vxnl()
       ! Integration over BZ
       !---------------------------------------
       !CECI
-      write(1005,*) "kset%nkpt",kqset%nkpt 
-        call flushifc(1005)
+!      write(1005,*) "kset%nkpt",kqset%nkpt 
+!        call flushifc(1005)
       do iq = 1, kqset%nkpt
           
         Gamma = gammapoint(kqset%vqc(:,iq))
 
         ! Set the size of the basis for the corresponding q-point
         matsiz = locmatsiz+Gqset%ngk(1,iq)
-        write(1005,*) "matsiz, locmatsiz, Gqset%ngk(1,iq)",iq,matsiz, locmatsiz, Gqset%ngk(1,iq) 
-        call flushifc(1005)
+!        write(1005,*) "matsiz, locmatsiz, Gqset%ngk(1,iq)",iq,matsiz, locmatsiz, Gqset%ngk(1,iq) 
+!        write(*,*) matsiz
+!        call flushifc(1005)
         call diagsgi(iq)
+        !write(*,*) sgi(:,:)
         call calcmpwipw(iq)
+        !write(*,*) mpwipw(:,:) 
 
         !------------------------------------               
         ! Calculate the bare Coulomb matrix
@@ -113,7 +116,7 @@ subroutine calc_vxnl()
 
         ik  = kset%ikp2ik(ikp)
         jk  = kqset%kqid(ik,iq)
-
+!        write(*,*) ikp, ik, iq, jk
         ! k-q vector 
         call getevecfv(kqset%vkl(:,jk),Gkset%vgkl(:,:,:,jk),eveck)
         eveckp = conjg(eveck)
@@ -129,7 +132,6 @@ subroutine calc_vxnl()
         !CECI all the time
         call expand_products(ik,iq,1,nstfv,-1,1,mdim,nomax,minmmat)
         call delete_coulomb_potential
-           
         do ie1 = 1, nstfv
           do ie2 = ie1, nstfv
             zt1 = zzero
@@ -208,6 +210,5 @@ subroutine calc_vxnl()
     
     call cpu_time(tend)
     if (rank==0) call write_cputime(fgw,tend-tstart, 'CALC_VXNL')
-    
-    return
+   return
 end subroutine

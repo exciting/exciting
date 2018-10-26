@@ -14,6 +14,8 @@ subroutine calcbarcmb(iq)
     use modinput
     use modgw
     use mod_mpi_gw, only: myrank
+    use modmain
+    use mod_hybrids, only: barc_lr
     
 !!INPUT PARAMETERS: 
     implicit none
@@ -47,6 +49,11 @@ subroutine calcbarcmb(iq)
     allocate(barc(matsiz,matsiz))
     barc(:,:) = 0.d0
     
+    if (xctype(1)==408) then 
+        if (allocated(barc_lr)) deallocate(barc_lr)
+        allocate(barc_lr(matsiz,matsiz))
+        barc_lr(:,:)=0.d0    
+    endif
     select case (trim(input%gw%barecoul%basis))
     
     case('pw')
@@ -90,6 +97,12 @@ subroutine calcbarcmb(iq)
       !call timesec(t1)
       !write(*,*) 'calcbarcmb_ipw_ipw', t1-t0
       
+      if (xctype(1)==408) then
+          write(*,*) "CECI"  
+          call calcmpwmix(iq)
+          call calcbarcmb_lr(iq)
+          barc(:,:)=barc(:,:)-barc_lr(:,:)
+      endif
     case default
     
       write(*,*) 'ERROR(calcbarcmb): Unknown basis type!'
@@ -108,7 +121,6 @@ subroutine calcbarcmb(iq)
       
     if (allocated(barcev)) deallocate(barcev)
     allocate(barcev(matsiz))
-!!CECI, why do we have if (.false.)??    
 if (.false.) then 
     vmat(1:matsiz,1:matsiz) = barc(1:matsiz,1:matsiz)
     deallocate(barc)  

@@ -48,7 +48,6 @@ subroutine setbarcev(evtol)
         mbsiz = mbsiz-1
       end if 
     end do 
-
     if (Gamma) then
       call calcwmix0
       allocate(wi0new(matsiz))
