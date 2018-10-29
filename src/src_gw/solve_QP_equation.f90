@@ -34,28 +34,31 @@ subroutine solve_QP_equation()
         do ib = ibgw, nbgw
             
             ! I think, the shift wrt efermi is important due to the requirement to
-            ! have a self-consistency at efermi where Self_c = 0
+            ! have a self-consistency at E_Fermi where Self_c = 0
             enk = evalsv(ib,ik) - efermi
-            ein = cmplx(enk,0.d0,8)
+            ein = cmplx(enk, 0.d0, 8)
 
             converged = .false.
             do iter = 1, nitermax
 
-                ! print*, ik, ib, iter, ein
+                print*, ik, ib, iter, ein
 
-                if ( enk > 0.d0) then
-                    f(:) = selfec(ib,:,ik)
-                    call pade_approximant(nz, z, f, ein, sigc(ib,ik), dsigma)
-                else
-                    f(:) = conjg(selfec(ib,:,ik))
-                    call pade_approximant(nz, conjg(z), f, ein, sigc(ib,ik), dsigma)
-                end if
+                ! Analytical continuation
+                call eval_ac(nz, z, selfec(ib,:,ik), ein, sigc(ib,ik), dsigma)
+                print*, 'sigc=', sigc(ib,ik)
+                print*, 'dsigma=', dsigma
 
-                if (input%gw%selfenergy%iopes == 0 ) then
+                if (input%gw%selfenergy%iopes == 0) then
                     ! Perturbative solution (single iteration)
                     znk = 1.0d0 / (1.0d0-dsigma)
                     znorm(ib,ik)  = dble(znk)
                     ein = enk + znk * ( selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik) )
+                    converged = .true.
+                    exit
+                else if (input%gw%selfenergy%iopes == 1) then
+                    ! Perturbative solution without renormalization
+                    znorm(ib,ik)  = 1.d0
+                    ein = enk + selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik)
                     converged = .true.
                     exit
                 end if

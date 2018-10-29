@@ -111,7 +111,11 @@ subroutine calcscgw0
           !===========================================================
           ! Calculate the contribution to the correlation self-energy
           !===========================================================
-          call calcselfc_freqconv(ikp,iq,mdim)
+          if ( associated(input%gw%selfenergy%wgrid) ) then
+            call calcselfc_freqconv_v2(ikp,iq,mdim)
+          else
+            call calcselfc_freqconv_v1(ikp,iq,mdim)
+          end if
           
         end do ! ikp
         

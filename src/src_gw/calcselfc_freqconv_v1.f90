@@ -2,12 +2,11 @@
 ! Calculates the q-dependent correlation term of the self-energy
 ! using the frequency convolution
 !==================================================================
-subroutine calcselfc_freqconv(ikp,iq,mdim)
+subroutine calcselfc_freqconv_v1(ikp,iq,mdim)
     use modinput
     use modmain, only : pi, zzero, evalsv, idxas, evalcr, efermi
     use modgw,   only : ibgw, nbgw, nstse, kset, kqset, freq, selfec, mwm, &
     &                   ncg, corind, fdebug, freq_selfc
-    use mod_aaa_approximant
     ! input variables
     implicit none
     integer(4), intent(in) :: ikp
@@ -19,10 +18,8 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
     integer(4) :: ie1, ie2, i1, i2, n, m
     integer(4) :: iom, jom, kom
     real(8)    :: enk, wdiff, w_sc, f1, f2
-    complex(8) :: xnm(1:freq%nomeg), xnm_intp
+    complex(8) :: xnm(1:freq%nomeg)
     complex(8) :: sc, zt1, zt2
-
-    type(aaa_approximant) :: aaa
     
     ! k point
     ik = kset%ikp2ik(ikp)
@@ -63,21 +60,10 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
         !   end do
         ! end if
 
-        ! AAA approximant
-        call set_aaa_approximant(aaa, cmplx(freq%freqs, 0.d0, 8), xnm)
-
         ! Self-energy frequency grid
         do iom = 1, freq_selfc%nomeg
 
           w_sc = freq_selfc%freqs(iom)
-
-          !----------------------
-          ! Interpolation block
-          !----------------------
-
-          xnm_intp = reval_aaa_approximant( aaa, cmplx(w_sc, 0.d0, 8) )
-
-          ! if (ikp==2 .and. iq==2 .and. ie1==1 .and. ie2==1) write(11,'(3f18.6)') w_sc, xnm_intp
 
           !------------------------
           ! Frequency convolution
@@ -89,9 +75,9 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
           sc = zzero
           do jom = 1, freq%nomeg
             zt2 = freq%womeg(jom) / ( freq%freqs(jom)**2 + zt1**2 )
-            sc = sc + ( xnm(jom) - xnm_intp ) * zt2
+            sc = sc + ( xnm(jom) - xnm(iom) ) * zt2
           end do
-          sc = sc * zt1 / pi + xnm_intp * sign( 0.5d0, enk )
+          sc = sc * zt1 / pi + xnm(iom) * sign( 0.5d0, enk )
 
           ! sum over states
           selfec(ie1,iom,ikp) = selfec(ie1,iom,ikp) + sc
@@ -103,7 +89,7 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
 
     end do ! ie1
 
-    call delete_aaa_approximant(aaa)
+    ! call delete_aaa_approximant(aaa)
 
     if (input%gw%debug) then
       write(fdebug,*) 'CORRELATION SELF-ENERGY: iq=', iq, ' ikp=', ikp

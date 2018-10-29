@@ -175,10 +175,6 @@ subroutine task_gw()
       !===============================
       call calcselfx(iq)
       
-      if (input%gw%selfenergy%secordw) then
-        call calcselfcSR(iq,iomstart,iomend)
-      end if
-    
       if (input%gw%taskname.ne.'g0w0_x') then
         !========================================
         ! Set v-diagonal MB and reduce its size

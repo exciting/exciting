@@ -55,7 +55,7 @@ subroutine spectralFunction()
     wmax = input%gw%selfenergy%SpectralFunctionPlot%wmax
     axis = trim(input%gw%selfenergy%SpectralFunctionPlot%axis)
     eta  = input%gw%selfenergy%SpectralFunctionPlot%eta
-    tol  = input%gw%selfenergy%SpectralFunctionPlot%tol
+    tol  = input%gw%selfenergy%tol
 
     if (axis /= 'real' .and. axis /= 'imag') stop 'Error(spectralFunction): Wrong axis type!'
     
@@ -84,9 +84,9 @@ subroutine spectralFunction()
             if (input%gw%selfenergy%actype == 'aaa' ) then
                 ! Compute the approximant
                 if (axis == 'real') then
-                    call set_aaa_approximant(aaa_plus, -zj, fj, tol, .true.)  ! <----- No idea why only this works ????
+                    call set_aaa_approximant(aaa_plus, -zj, fj, tol)  ! <----- No idea why only this works ????
                 else
-                    call set_aaa_approximant(aaa_plus, zj, fj, tol, .true.)
+                    call set_aaa_approximant(aaa_plus, zj, fj, tol)
                 end if
                 call init_aaa_approximant(aaa_minus, aaa_plus%nj, -aaa_plus%zj, &
                                           conjg(aaa_plus%fj), conjg(aaa_plus%wj))
@@ -102,11 +102,10 @@ subroutine spectralFunction()
                     zw = cmplx( 0.d0, w(iw), 8 )
                 end if
 
-                ! AAA
                 if ( w(iw) > 0.d0 ) then
 
                     if (input%gw%selfenergy%actype == 'aaa' ) then
-                        sc = reval_aaa_approximant( aaa_plus, zw )
+                        sc = get_aaa_approximant( aaa_plus, zw )
                     else if (input%gw%selfenergy%actype == 'pade' ) then
                         call pade_approximant(size(zj), zj, fj, zw, sc, dsc)
                     end if
@@ -114,7 +113,7 @@ subroutine spectralFunction()
                 else
 
                     if (input%gw%selfenergy%actype == 'aaa' ) then
-                        sc = reval_aaa_approximant( aaa_minus, zw )
+                        sc = get_aaa_approximant( aaa_minus, zw )
                     else if (input%gw%selfenergy%actype == 'pade' ) then
                         call pade_approximant(size(zj), conjg(zj), conjg(fj), zw, sc, dsc)
                     end if
@@ -132,13 +131,14 @@ subroutine spectralFunction()
 
             end do
             
-            ! exit
-
         end do ! ie
-   
-        ! exit
 
     end do ! ik
+
+    if (input%gw%selfenergy%actype == 'aaa') then
+        call delete_aaa_approximant(aaa_plus)
+        call delete_aaa_approximant(aaa_minus)
+    end if
 
     ! Format specification
     n = nbgw-ibgw+1

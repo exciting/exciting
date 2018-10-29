@@ -36,7 +36,7 @@ CONTAINS
         real(8),         intent(IN)  :: freqmax
 ! local variables
         integer :: i, n
-        real(8) :: t1, t2
+        real(8) :: t1, t2, step
         real(8), allocatable :: u(:)
         real(8), allocatable :: wu(:)
 
@@ -60,14 +60,9 @@ CONTAINS
             stop
         end select
         
-! number of frequencies
-        if ((self%fgrid=='gaule2').or.(self%fgrid=='GAULE2')) then
-            ! always even for 'gaule2' grid type
-            n = nomeg-mod(nomeg,2)
-            self%nomeg = n
-        else
-            self%nomeg = nomeg
-        end if
+! number of frequencies is always even
+        n = nomeg - mod(nomeg,2)
+        self%nomeg = n
 
 ! cutoff frequencies
         self%freqmin = freqmin
@@ -99,8 +94,7 @@ CONTAINS
                                 ! +
                                 ! Gauss-Legendre quadrature from freqmax to infinity
             n = self%nomeg/2
-            allocate(u(n))
-            allocate(wu(n))
+            allocate(u(n), wu(n))
             call gauleg(-1.0d0,1.0d0,u,wu,n)
             do i = 1, n
                 self%freqs(i) = self%freqmax*(u(i)+1.0d0)/2.0d0
@@ -108,8 +102,7 @@ CONTAINS
                 self%womeg(i) = self%freqmax*wu(i)/2.0d0
                 self%womeg(2*n-i+1) = 2.0d0*self%freqmax*wu(i)/((u(i)+1.0d0)*(u(i)+1.0d0))
             enddo ! i  
-            deallocate(u)
-            deallocate(wu)
+            deallocate(u, wu)
           
         case('gauleg','GAULEG') ! Grid for Gauss-Legendre quadrature from 0 to omegamax
             call gauleg(0.0d0,self%freqmax,self%freqs,self%womeg,self%nomeg)
@@ -122,6 +115,7 @@ CONTAINS
                 self%freqs(i) = u(i) / ( 1.d0 - u(i) )
                 self%womeg(i) = wu(i) * ( 1.d0 - u(i) )**(-2)
             end do
+            deallocate(u, wu)
 
         case('exp')
             n = self%nomeg
@@ -139,8 +133,23 @@ CONTAINS
             do i = 1, n
                 self%freqs(i) = self%freqmin + &
                     (dble(i-1)/dble(n-1))**3 * (self%freqmax-self%freqmin)
+                self%womeg(i) = 1.d0 / dble(n)
             end do
-            self%womeg(:) = 1.d0 / dble(n)
+
+        case('mix')
+            n = self%nomeg/2
+            step = (self%freqmax-self%freqmin) / dble(n-1)
+            ! uniform grid from 0 to w_max
+            do i = 1, n
+                self%freqs(i) = self%freqmin + dble(i-1)*step
+                self%womeg(i) = 1.d0/dble(self%nomeg)
+            enddo
+            ! non-uniform grid from w_max to infty
+            do i = 1, n
+                self%freqs(n+i) = self%freqmax + dble(i)*step + &
+                    (dble(i-1)/dble(n-1))**3 * (100.d0-self%freqmax-dble(n)*step)
+                self%womeg(n+i) = 1.d0/dble(self%nomeg)
+            end do
         
         end select
         

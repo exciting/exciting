@@ -69,7 +69,7 @@ contains
         end do
 
         ! Compute the approximant
-        tol = input%gw%selfenergy%SpectralFunctionPlot%tol
+        tol = input%gw%selfenergy%tol
         call set_aaa_approximant(aaa, z, f, tol, .true.)
         print*, ''
         print*, 'Number of support points: ', aaa%nj
@@ -107,7 +107,7 @@ contains
         end do
 
         ! Compute the approximant
-        tol = input%gw%selfenergy%SpectralFunctionPlot%tol
+        tol = input%gw%selfenergy%tol
         call set_aaa_approximant(aaa, z, f, tol, .true.)
         print*, ''
         print*, 'Number of support points: ', aaa%nj
@@ -122,7 +122,7 @@ contains
         open(77, file="aaa_approximant.dat")
         do j = 1, n
             f(j) = exp(z(j))
-            fr(j) = reval_aaa_approximant(aaa, z(j))
+            fr(j) = get_aaa_approximant(aaa, z(j))
             write(77,'(3f18.6)') dble(z(j)), dble(f(j)), dble(fr(j))
         end do
         close(77)
@@ -132,11 +132,11 @@ contains
     end subroutine
 
 !--------------------------------------------------------------------------------    
-    function reval_aaa_approximant(aaa, z) result(zr)
+    function get_aaa_approximant(aaa, z) result(fz)
         implicit none
         type(aaa_approximant), intent(in) :: aaa
         complex(8), intent(in) :: z
-        complex(8)             :: zr
+        complex(8)             :: fz
         ! local
         real(8), parameter     :: epstol = 1.d-16
         logical    :: ldone
@@ -149,7 +149,7 @@ contains
         do j = 1, aaa%nj
             zdiff = z-aaa%zj(j)
             if (abs(zdiff) < epstol) then
-                zr = aaa%fj(j)
+                fz = aaa%fj(j)
                 ldone = .true.
                 exit
             end if
@@ -164,7 +164,7 @@ contains
             end do
             N = dot_product(C(:), aaa%wj(:)*aaa%fj(:))
             D = dot_product(C(:), aaa%wj(:))
-            zr = N / D
+            fz = N / D
             deallocate(C)
         end if
 
@@ -208,14 +208,15 @@ contains
 
 
 !--------------------------------------------------------------------------------    
-    subroutine set_aaa_approximant(aaa, Z, F, tol, cleanup_flag)
+    subroutine set_aaa_approximant(aaa, Z, F, tol, cleanup_flag, cleanup_tol)
         implicit none
         ! input/output
         type(aaa_approximant), intent(out) :: aaa
         complex(8), intent(in)             :: Z(:)
         complex(8), intent(in)             :: F(:)
         real(8),    intent(in), optional   :: tol
-        logical(8), intent(in), optional   :: cleanup_flag 
+        logical(8), intent(in), optional   :: cleanup_flag
+        real(8),    intent(in), optional   :: cleanup_tol
         ! parameters
         integer(4),   parameter :: mmax = 1000
         
@@ -236,15 +237,13 @@ contains
         ! print*, 'npts=', npts
 
         ! relative tolerance
-        if ( .not. present(tol) ) then
-            reltol = 1.d-13
-        else
+        if (present(tol)) then
             reltol = tol
+        else
+            reltol = 1.d-13
         end if
         reltol = reltol * znorm(F)
-        print*, ''
-        print*, 'reltol=', reltol
-        print*, ''
+        ! print*, 'reltol=', reltol
 
         ! Left scaling matrix
         allocate(LS(npts,npts))
@@ -350,7 +349,7 @@ contains
 
             ! Error in the sample points
             error = maxval(abs(F-R))
-            write(*,*) 'iter=', m, 'error=', error
+            ! write(*,*) 'iter=', m, 'error=', error
 
             ! Check if converged
             if (error <= reltol) exit
@@ -368,8 +367,15 @@ contains
         ! Remove spurious pole-zero pairs
         if (present(cleanup_flag)) then
             if (cleanup_flag) then
+                if (present(cleanup_tol)) then
+                    reltol = cleanup_tol
+                else
+                    reltol = 1.d-13
+                end if
+                reltol = reltol * znorm(F)
+                print*, 'FD tol=', reltol
                 call prz(aaa)
-                call cleanup(aaa, Z, F, tol)
+                call cleanup(aaa, Z, F, reltol)
             end if
         end if
         
@@ -510,9 +516,6 @@ contains
         complex(8), allocatable :: rsvec(:,:)
         
         ! Find negligible residues (Froissart doublets)
-        tol = cleanup_tol ! * znorm(F)
-        print*, 'FD tol=', tol
-
         allocate(idxFD(aaa%npol))
         nFD = 0
         do i = 1, aaa%npol

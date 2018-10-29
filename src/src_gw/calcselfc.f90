@@ -51,11 +51,13 @@ subroutine calcselfc(iq)
     else
       mdim = nstse
     end if
+
+    
     
     !-------------------------------------------
     ! products M*W^c*M
     !-------------------------------------------
-    if (myrank_col==0) then
+    if (myrank_col == 0) then
       allocate(mwm(ibgw:nbgw,1:mdim,1:freq%nomeg))
       msize = sizeof(mwm)*b2mb
       ! write(*,'(" calcselfc: size(mwm) (Mb):",f12.2)') msize
@@ -120,7 +122,11 @@ subroutine calcselfc(iq)
         if (input%gw%taskname=='cohsex') then
           call calcselfc_cohsex(ikp,iq,mdim)
         else
-          call calcselfc_freqconv(ikp,iq,mdim)
+          if ( associated(input%gw%selfenergy%wgrid) ) then
+            call calcselfc_freqconv_v2(ikp,iq,mdim)
+          else
+            call calcselfc_freqconv_v1(ikp,iq,mdim)
+          end if
         end if
           
         if (input%gw%taskname=='gw0') then
@@ -133,13 +139,6 @@ subroutine calcselfc(iq)
 
       end if
       
-      !if (input%gw%selfenergy%secordw) then 
-      !---------------------------------
-      ! Second order screened exchange
-      !---------------------------------
-      !  call calcsecordwselfc(ikp,iq,mdim)
-      !end if
-    
     end do ! ikp
     end do ! ispn
     
