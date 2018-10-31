@@ -49,7 +49,7 @@ subroutine calcbarcmb(iq)
     allocate(barc(matsiz,matsiz))
     barc(:,:) = 0.d0
     
-    if (xctype(1)==408) then 
+    if (xctype(1)==408 ) then 
         if (allocated(barc_lr)) deallocate(barc_lr)
         allocate(barc_lr(matsiz,matsiz))
         barc_lr(:,:)=0.d0    
@@ -60,19 +60,35 @@ subroutine calcbarcmb(iq)
     
       call calcmpwmix(iq)
       call calcbarcmb_pw(iq)
+      if (xctype(1)==408) then
+	 write(*,*) "HSE with pw not implemented yet"
+         STOP
+      endif
       
     case('mb')
     
       if (Gamma) then
+           if (xctype(1)==408) then
+!               write(*,*) "deb1"
+               call calcmpwmix(iq)
+               call calcbarcmb_lr(iq)
+               barc(:,:)=barc_lr(:,:)
+ !              write(*,*) "deb2"
+           else     
         !------------------------------------------------
         ! Matrix elements for the singular q=0, L=0 case
         !------------------------------------------------
         !call timesec(t0)
-        call barcq0
+              call barcq0
+              call calcbarcmb_mt_mt(iq)
+              call calcbarcmb_ipw_mt(iq)
+              call calcbarcmb_ipw_ipw(iq)
         !call timesec(t1)
         !write(*,*) 'barcq0', t1-t0 
-      end if
-        
+           end if
+       else
+ 
+      
       !-----------------------------------------------------------
       ! Matrix elements between MT and MT mixed product functions
       !-----------------------------------------------------------
@@ -103,6 +119,7 @@ subroutine calcbarcmb(iq)
           call calcbarcmb_lr(iq)
           barc(:,:)=barc(:,:)-barc_lr(:,:)
       endif
+    endif
     case default
     
       write(*,*) 'ERROR(calcbarcmb): Unknown basis type!'
