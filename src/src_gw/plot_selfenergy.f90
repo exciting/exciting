@@ -38,66 +38,17 @@ subroutine plot_selfenergy()
     call init0
     input%groundstate%stypenumber = -1
     call init1
+    call init_kqpoint_set
 
     nvelgw = chgval-occmax*dble(ibgw-1)
     nbandsgw = nbgw-ibgw+1
-    call init_kqpoint_set
-    call generate_freqgrid(freq, &
-    &                      input%gw%freqgrid%fgrid, &
-    &                      input%gw%freqgrid%fconv, &
-    &                      input%gw%freqgrid%nomeg, &
-    &                      input%gw%freqgrid%freqmin, &
-    &                      input%gw%freqgrid%freqmax)
- 
-    if (allocated(evalsv)) deallocate(evalsv)
-    allocate(evalsv(nstsv,kset%nkpt))
-    allocate(vxcnn(ibgw:nbgw,kset%nkpt))
-    call init_selfenergy(ibgw,nbgw,kset%nkpt)
     
-    ! read data from files
-#ifdef _HDF5_
-    !call hdf5_read(fgwh5,"/","efermi",efermi)
-    do ik = 1, kset%nkpt
-      write(cik,'(I4.4)') ik
-      path = "/kpoints/"//trim(adjustl(cik))
-      call hdf5_read(fgwh5,path,"evalks",evalks(ibgw,ik),(/nbandsgw/))
-      evalsv(:,ik) = evalks(:,ik)
-      call hdf5_read(fgwh5,path,"vxcnn",vxcnn(ibgw,ik),(/nbandsgw/))
-      call hdf5_read(fgwh5,path,"selfex",selfex(ibgw,ik),(/nbandsgw/))
-      call hdf5_read(fgwh5,path,"selfec",selfec(ibgw,1,ik),(/nbandsgw,freq%nomeg/))
-    end do ! ik
-#else
-    do ik = 1, kset%nkpt
-      ik_ = kset%ikp2ik(ik)
-      call getevalsvgw_new('GW_EVALSV.OUT',ik_,kqset%vkl(:,ik_), &
-      &                     nstsv,evalsv(1,ik))
-      evalks(ibgw:nbgw,ik) = evalsv(ibgw:nbgw,ik)
-    end do
-    if (allocated(evalqp)) deallocate(evalqp)
-    allocate(evalqp(nstsv,kset%nkpt))
-    call getevalqp(kset%nkpt,kset%vkl,evalqp)
+    allocate(vxcnn(ibgw:nbgw,kset%nkpt))
     call read_vxcnn()
-    call readselfx
-    call readselfc
-#endif
-
-    ! KS states analysis
-    call fermi_exciting(input%groundstate%tevecsv, &
-    &                   nvelgw, &
-    &                   nbandsgw,kset%nkpt,evalks(ibgw:nbgw,:), &
-    &                   kset%ntet,kset%tnodes,kset%wtet,kset%tvol, &
-    &                   efermi,egap,df)
-    call bandstructure_analysis('KS',ibgw,nbgw,kset%nkpt, &
-    &                           evalks(ibgw:nbgw,:),efermi)
-
-    ! QP states analysis
-    call fermi_exciting(input%groundstate%tevecsv, &
-    &                   nvelgw, &
-    &                   nbandsgw,kset%nkpt,evalqp(ibgw:nbgw,:), &
-    &                   kset%ntet,kset%tnodes,kset%wtet,kset%tvol, &
-    &                   eferqp,egap,df)
-    call bandstructure_analysis('G0W0',ibgw,nbgw,kset%nkpt, &
-    &                           evalqp(ibgw:nbgw,:),eferqp)
+    
+    call init_selfenergy(ibgw,nbgw,kset%nkpt)
+    call readselfx()
+    call readselfc()
 
     ! Frequency grid for the spectral function
     if (.not.associated(input%gw%selfenergy%SpectralFunctionPlot)) &
@@ -115,10 +66,10 @@ subroutine plot_selfenergy()
       om(iom) = wmin + dble(iom-1)*div
     end do
 
-    allocate(zx(freq%nomeg))
-    allocate(zy(freq%nomeg))
-    do iom = 1, freq%nomeg
-      zx(iom) = cmplx(0.d0, freq%freqs(iom), 8)
+    allocate(zx(freq_selfc%nomeg))
+    allocate(zy(freq_selfc%nomeg))
+    do iom = 1, freq_selfc%nomeg
+      zx(iom) = cmplx(0.d0, freq_selfc%freqs(iom), 8)
     end do
 
     ! MPF scheme only parameters 
@@ -135,7 +86,8 @@ subroutine plot_selfenergy()
     do ik = 1, kset%nkpt
       do ie = ibgw, nbgw
 
-        enk = evalks(ie,ik)-efermi
+        enk = evalks(ie,ik)
+        ! enk = evalks(ie,ik)-efermi
         ! enk = evalqp(ie,ik)-eferqp
 
         zy(:) = selfec(ie,:,ik)
@@ -153,9 +105,9 @@ subroutine plot_selfenergy()
               do iom = 1, nom
                 ein = cmplx(om(iom),eta,8)
                 if ( om(iom) < 0.d0 ) then
-                    call pade_approximant(freq%nomeg, -zx, conjg(zy), ein, sigma, dsigma)
+                    call pade_approximant(freq_selfc%nomeg, conjg(zx), conjg(zy), ein, sigma, dsigma)
                 else
-                    call pade_approximant(freq%nomeg, zx, zy, ein, sigma, dsigma)
+                    call pade_approximant(freq_selfc%nomeg, zx, zy, ein, sigma, dsigma)
                 end if
                 selfc(ie,iom,ik) = sigma
               end do
@@ -167,9 +119,9 @@ subroutine plot_selfenergy()
               do iom = 1, nom
                 ein = cmplx(0.d0,om(iom),8)
                 if ( om(iom) < 0.d0 ) then
-                    call pade_approximant(freq%nomeg, -zx, conjg(zy), ein, sigma, dsigma)
+                    call pade_approximant(freq_selfc%nomeg, -zx, conjg(zy), ein, sigma, dsigma)
                 else
-                    call pade_approximant(freq%nomeg, zx, zy, ein, sigma, dsigma)
+                    call pade_approximant(freq_selfc%nomeg, zx, zy, ein, sigma, dsigma)
                 end if
                 selfc(ie,iom,ik) = sigma
               end do
@@ -189,7 +141,7 @@ subroutine plot_selfenergy()
               !----------------
               ! real frequency
               !----------------
-              call setsac(iopac,freq%nomeg,npar,1.d0,selfec(ie,:,ik),freq%freqs,a,poles)
+              call setsac(iopac,freq_selfc%nomeg,npar,1.d0,selfec(ie,:,ik),freq_selfc%freqs,a,poles)
               do iom = 1, nom
                 ein = cmplx(om(iom),eta,8)
                 call getsac(iopac,nom,npar,1.d0,ein,om,a,sigma,dsig)
@@ -204,13 +156,13 @@ subroutine plot_selfenergy()
               !----------------
               ! complex frequency
               !----------------
-              call setsac(iopac,freq%nomeg,npar,-1.d0,selfec(ie,:,ik),freq%freqs,a,poles)
+              call setsac(iopac,freq_selfc%nomeg,npar,-1.d0,selfec(ie,:,ik),freq_selfc%freqs,a,poles)
               do iom = 1, nom
                 ein = cmplx(0.d0,om(iom),8)
                 call getsac(iopac,nom,npar,-1.d0,ein,om,a,sigma,dsig)
                 selfc(ie,iom,ik) = sigma
               end do
-              call setsac(iopac,freq%nomeg,npar,1.d0,selfec(ie,:,ik),freq%freqs,a,poles)
+              call setsac(iopac,freq_selfc%nomeg,npar,1.d0,selfec(ie,:,ik),freq_selfc%freqs,a,poles)
               do iom = 1, nom
                 ein = cmplx(0.d0,om(iom),8)
                 call getsac(iopac,nom,npar,1.d0,ein,om,a,sigma,dsig)
@@ -235,19 +187,6 @@ subroutine plot_selfenergy()
 
       end do ! ie
     end do ! ik
-
-    !---------
-    ! ie = 4
-    ! do iom = freq%nomeg, 1, -1
-    !   write(7,'(3f18.6)') -freq%freqs(iom), conjg(selfec(ie,iom,1))
-    ! end do
-    ! do iom = 1, freq%nomeg
-    !   write(7,'(3f18.6)') freq%freqs(iom), selfec(ie,iom,1)
-    ! end do
-    ! do iom = 1, nom
-    !     write(8,'(3f18.6)') om(iom), selfc(ie,iom,1)
-    ! end do
-    !---------
     
     ik = 1
     kset%nkpt = 1

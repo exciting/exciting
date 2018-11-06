@@ -132,7 +132,7 @@
                         <xs:annotation><xs:documentation>
                           Upper frequency limit.
                         </xs:documentation></xs:annotation>
-                      </xs:attribute>                      
+                      </xs:attribute>
                     </xs:complexType>
                   </xs:element>
 

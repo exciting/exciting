@@ -92,7 +92,8 @@ subroutine spectralFunction()
                                           conjg(aaa_plus%fj), conjg(aaa_plus%wj))
             end if
 
-            enk = evalks(ie,ik) - eferks
+            enk = evalks(ie,ik)
+            ! enk = evalks(ie,ik) - eferks
 
             do iw = 1, nw
             
@@ -102,20 +103,20 @@ subroutine spectralFunction()
                     zw = cmplx( 0.d0, w(iw), 8 )
                 end if
 
-                if ( w(iw) > 0.d0 ) then
-
-                    if (input%gw%selfenergy%actype == 'aaa' ) then
-                        sc = get_aaa_approximant( aaa_plus, zw )
-                    else if (input%gw%selfenergy%actype == 'pade' ) then
-                        call pade_approximant(size(zj), zj, fj, zw, sc, dsc)
-                    end if
-
-                else
+                if ( w(iw) < 0.d0 ) then
 
                     if (input%gw%selfenergy%actype == 'aaa' ) then
                         sc = get_aaa_approximant( aaa_minus, zw )
                     else if (input%gw%selfenergy%actype == 'pade' ) then
                         call pade_approximant(size(zj), conjg(zj), conjg(fj), zw, sc, dsc)
+                    end if
+                    
+                else
+                    
+                    if (input%gw%selfenergy%actype == 'aaa' ) then
+                        sc = get_aaa_approximant( aaa_plus, zw )
+                    else if (input%gw%selfenergy%actype == 'pade' ) then
+                        call pade_approximant(size(zj), zj, fj, zw, sc, dsc)
                     end if
 
                 end if
@@ -160,7 +161,7 @@ subroutine spectralFunction()
         write(70,*); write(70,*)
         write(71,*); write(71,*)
         !---------------------------
-        write(71,*) '# ik = ', ik
+        write(72,*) '# ik = ', ik
         do iom = -freq_selfc%nomeg, freq_selfc%nomeg
             if (iom < 0) then
                 write(72,trim(frmt2)) -freq_selfc%freqs(abs(iom)), conjg(selfec(:,abs(iom),ik))
