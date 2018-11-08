@@ -34,18 +34,13 @@ subroutine spectralFunction()
     nvelgw = chgval-occmax*dble(ibgw-1)
     nbandsgw = nbgw-ibgw+1
 
-    if (allocated(evalks)) deallocate(evalks)
-    allocate(evalks(ibgw:nbgw,kset%nkpt))
-    if (allocated(evalqp)) deallocate(evalqp)
-    allocate(evalqp(ibgw:nbgw,kset%nkpt))
-    call readevalqp()
-
     allocate(vxcnn(ibgw:nbgw,kset%nkpt))
     call read_vxcnn()
     
     call init_selfenergy(ibgw,nbgw,kset%nkpt)
     call readselfx()
     call readselfc()
+    call readevalqp()
 
     ! Frequency grid for the spectral function
     if ( .not.associated(input%gw%selfenergy%SpectralFunctionPlot) ) &
@@ -92,30 +87,29 @@ subroutine spectralFunction()
                                           conjg(aaa_plus%fj), conjg(aaa_plus%wj))
             end if
 
-            enk = evalks(ie,ik)
-            ! enk = evalks(ie,ik) - eferks
+            enk = evalks(ie,ik)-eferks
 
             do iw = 1, nw
             
                 if (axis == 'real') then
-                    zw = cmplx( w(iw), 0.d0, 8 )
+                    zw = cmplx(w(iw), 0.d0, 8)
                 else
-                    zw = cmplx( 0.d0, w(iw), 8 )
+                    zw = cmplx(0.d0, w(iw), 8)
                 end if
 
-                if ( w(iw) < 0.d0 ) then
+                if (w(iw) < 0.d0) then
 
-                    if (input%gw%selfenergy%actype == 'aaa' ) then
-                        sc = get_aaa_approximant( aaa_minus, zw )
-                    else if (input%gw%selfenergy%actype == 'pade' ) then
-                        call pade_approximant(size(zj), conjg(zj), conjg(fj), zw, sc, dsc)
+                    if (input%gw%selfenergy%actype == 'aaa') then
+                        sc = get_aaa_approximant(aaa_minus, zw)
+                    else if (input%gw%selfenergy%actype == 'pade') then
+                        call pade_approximant(size(zj), -zj, conjg(fj), zw, sc, dsc)
                     end if
                     
                 else
                     
-                    if (input%gw%selfenergy%actype == 'aaa' ) then
-                        sc = get_aaa_approximant( aaa_plus, zw )
-                    else if (input%gw%selfenergy%actype == 'pade' ) then
+                    if (input%gw%selfenergy%actype == 'aaa') then
+                        sc = get_aaa_approximant(aaa_plus, zw)
+                    else if (input%gw%selfenergy%actype == 'pade') then
                         call pade_approximant(size(zj), zj, fj, zw, sc, dsc)
                     end if
 
@@ -125,9 +119,10 @@ subroutine spectralFunction()
                 sc_ac(ie,iw,ik) = sc
 
                 ! Spectral function
-                sRe = dble( selfex(ie,ik) + sc_ac(ie,iw,ik) )
-                sIm = aimag( sc_ac(ie,iw,ik) )
-                div = ( w(iw) - enk - sRe + dble( vxcnn(ie,ik) ) )**2 + sIm**2
+                dsc = selfex(ie,ik) + sc_ac(ie,iw,ik) - vxcnn(ie,ik)
+                sRe = dble(dsc)
+                sIm = aimag(dsc)
+                div = (w(iw)-enk-sRe)**2 + sIm**2
                 sf(ie,iw,ik) = 1.d0/pi * abs(sIm) / div
 
             end do
@@ -149,31 +144,46 @@ subroutine spectralFunction()
 
     ! Output
     open(70,file='SpectralFunction.dat',form='FORMATTED',status='UNKNOWN',action='WRITE')
-    open(71,file='SelfC-AC.dat',form='FORMATTED',status='UNKNOWN',action='WRITE')
-    open(72,file='SelfC-Im.dat',form='FORMATTED',status='UNKNOWN',action='WRITE')
+    open(71,file='SelfC-AC-Re.dat',form='FORMATTED',status='UNKNOWN',action='WRITE')
+    open(72,file='SelfC-AC-Im.dat',form='FORMATTED',status='UNKNOWN',action='WRITE')
+    open(73,file='Delta.dat',form='FORMATTED',status='UNKNOWN',action='WRITE')
+    open(74,file='SelfC-Re.dat',form='FORMATTED',status='UNKNOWN',action='WRITE')
+    open(75,file='SelfC-Im.dat',form='FORMATTED',status='UNKNOWN',action='WRITE')
     do ik = 1, kset%nkpt
         write(70,*) '# ik = ', ik
         write(71,*) '# ik = ', ik
+        write(72,*) '# ik = ', ik
+        write(73,*) '# ik = ', ik
         do iw = 1, nw
-            write(70,trim(frmt1)) w(iw), sf(:,iw,ik)
-            write(71,trim(frmt2)) w(iw), sc_ac(:,iw,ik)
+            write(70,trim(frmt1)) w(iw)+eferks, sf(:,iw,ik)
+            write(71,trim(frmt1)) w(iw), dble(sc_ac(:,iw,ik))
+            write(72,trim(frmt1)) w(iw), aimag(sc_ac(:,iw,ik))
+            write(73,trim(frmt1)) w(iw), dble(w(iw)-evalks(:,ik)-selfex(:,ik)+vxcnn(:,ik))
         end do
         write(70,*); write(70,*)
         write(71,*); write(71,*)
+        write(72,*); write(72,*)
+        write(73,*); write(73,*)
         !---------------------------
-        write(72,*) '# ik = ', ik
+        write(74,*) '# ik = ', ik
+        write(75,*) '# ik = ', ik
         do iom = -freq_selfc%nomeg, freq_selfc%nomeg
             if (iom < 0) then
-                write(72,trim(frmt2)) -freq_selfc%freqs(abs(iom)), conjg(selfec(:,abs(iom),ik))
+                write(74,trim(frmt1)) -freq_selfc%freqs(abs(iom)), dble(conjg(selfec(:,abs(iom),ik)))
+                write(75,trim(frmt1)) -freq_selfc%freqs(abs(iom)), aimag(conjg(selfec(:,abs(iom),ik)))
             else if (iom > 0) then
-                write(72,trim(frmt2)) freq_selfc%freqs(iom), selfec(:,iom,ik)
+                write(74,trim(frmt1)) freq_selfc%freqs(iom), dble(selfec(:,iom,ik))
+                write(75,trim(frmt1)) freq_selfc%freqs(iom), aimag(selfec(:,iom,ik))
             end if
         end do
-        write(72,*); write(72,*)
+        write(74,*); write(74,*)
+        write(75,*); write(75,*)
     end do
     close(70)
     close(71)
     close(72)
+    close(73)
+    close(74)
 
     ! clear memory
     deallocate(w, zj, fj)

@@ -63,7 +63,7 @@ subroutine calcselfc_freqconv_v2(ikp, iq, mdim)
           om1 = 0.d0 ! freq%freqs(1)
           
           sc = zzero
-          do jom = 1, freq%nomeg
+          do jom = 1, freq%nomeg ! convolution integral
 
             !  Omega_{l+1}
             jom1 = min(jom+1, freq%nomeg)

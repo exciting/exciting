@@ -54,12 +54,6 @@ subroutine calcselfc_freqconv_v1(ikp,iq,mdim)
           
         xnm(:) = mwm(ie1,ie2,:)
 
-        ! if (ikp==2 .and. iq==2 .and. ie1==1 .and. ie2==1) then
-        !   do iom = 1, freq%nomeg
-        !     write(10,'(3f18.6)') freq%freqs(iom), xnm(iom)
-        !   end do
-        ! end if
-
         ! Self-energy frequency grid
         do iom = 1, freq_selfc%nomeg
 
@@ -69,7 +63,7 @@ subroutine calcselfc_freqconv_v1(ikp,iq,mdim)
           ! Frequency convolution
           !------------------------
 
-          ! (enk-iu)^2
+          ! (enk-iu)
           zt1 = cmplx( enk, -w_sc, 8)
 
           sc = zzero
@@ -77,19 +71,16 @@ subroutine calcselfc_freqconv_v1(ikp,iq,mdim)
             zt2 = freq%womeg(jom) / ( freq%freqs(jom)**2 + zt1**2 )
             sc = sc + ( xnm(jom) - xnm(iom) ) * zt2
           end do
-          sc = sc * zt1 / pi + xnm(iom) * sign( 0.5d0, enk )
+          sc = sc * zt1 / pi + xnm(iom) * sign(0.5d0, enk)
 
           ! sum over states
           selfec(ie1,iom,ikp) = selfec(ie1,iom,ikp) + sc
 
         end do ! frequency loop
 
-
       end do ! ie2
 
     end do ! ie1
-
-    ! call delete_aaa_approximant(aaa)
 
     if (input%gw%debug) then
       write(fdebug,*) 'CORRELATION SELF-ENERGY: iq=', iq, ' ikp=', ikp

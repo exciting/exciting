@@ -61,9 +61,9 @@ CONTAINS
             write(*,*) '  - imfreq : weights calculated for imaginary frequencies'
             stop
         end select
-        
-        ! number of frequencies (always even)
-        self%nomeg = nomeg - mod(nomeg,2)
+
+        ! number of frequencies
+        self%nomeg = nomeg
 
         ! cutoff frequencies
         self%freqmin = freqmin
@@ -77,13 +77,13 @@ CONTAINS
 
         select case (self%fgrid) 
 
-        case('eqdist','EQDIST') ! Equaly spaced mesh (for tests purposes only)
+        case('eqdist') ! Equaly spaced mesh (for tests purposes only)
             do i = 1, self%nomeg
                 self%freqs(i) = self%freqmin + dble(i-1)*(self%freqmax-self%freqmin)/dble(self%nomeg-1)
                 self%womeg(i) = 1.d0/dble(self%nomeg)
             enddo  
       
-        case('gaulag','GAULAG') ! Grid for Gauss-Laguerre quadrature
+        case('gaulag') ! Grid for Gauss-Laguerre quadrature
             allocate(wu(self%nomeg))
             call gaulag(self%freqs, wu, self%nomeg, -1.0d0)
             do i = 1, self%nomeg
@@ -91,7 +91,17 @@ CONTAINS
             enddo  
             deallocate(wu)
 
-        case('gaule2','GAULE2') ! Grid for Gauss-Legendre quadrature from 0 to freqmax 
+        case('gauleg') ! Grid for Gauss-Legendre quadrature from 0 to infinity
+            n = self%nomeg
+            allocate( u(n), wu(n) )
+            call gauleg(0.d0, 1.d0, u, wu, n)
+            do i = 1, n
+                self%freqs(i) = u(i) / ( 1.d0 - u(i) )
+                self%womeg(i) = wu(i) * ( 1.d0 - u(i) )**(-2)
+            end do
+            deallocate(u, wu)
+
+        case('gauleg2') ! Grid for Gauss-Legendre quadrature from 0 to freqmax 
                                 ! +
                                 ! Gauss-Legendre quadrature from freqmax to infinity
             self%nomeg = nomeg - mod(nomeg,2)
@@ -104,19 +114,6 @@ CONTAINS
                 self%womeg(i) = self%freqmax*wu(i)/2.0d0
                 self%womeg(2*n-i+1) = 2.0d0*self%freqmax*wu(i)/((u(i)+1.0d0)*(u(i)+1.0d0))
             enddo ! i  
-            deallocate(u, wu)
-          
-        case('gauleg','GAULEG') ! Grid for Gauss-Legendre quadrature from 0 to omegamax
-            call gauleg(0.0d0,self%freqmax,self%freqs,self%womeg,self%nomeg)
-
-        case('GL2') ! Grid for Gauss-Legendre quadrature from 0 to infinity
-            n = self%nomeg
-            allocate( u(n), wu(n) )
-            call gauleg(0.d0, 1.d0, u, wu, n)
-            do i = 1, n
-                self%freqs(i) = u(i) / ( 1.d0 - u(i) )
-                self%womeg(i) = wu(i) * ( 1.d0 - u(i) )**(-2)
-            end do
             deallocate(u, wu)
 
         case('exp')
@@ -139,6 +136,7 @@ CONTAINS
             end do
 
         case('mix')
+            self%nomeg = nomeg - mod(nomeg,2)
             n = self%nomeg/2
             step = (self%freqmax-self%freqmin) / dble(n-1)
             ! uniform grid from 0 to w_max
@@ -156,7 +154,7 @@ CONTAINS
         case('tanh')
             ! Hyperbolic tangent stretching
             n = self%nomeg
-            delta = 6.0
+            delta = self%freqmin
             do i = 1, n
                 sigma = dble(i)/dble(n) - 1.d0
                 self%freqs(i) = self%freqmax * (1.d0 + tanh(delta*sigma) / tanh(delta))
@@ -201,11 +199,11 @@ CONTAINS
             n = nomeg+1
             allocate(u(n), wu(n))
             call clenshaw_curtis_compute(n, u, wu)
-            write(*,*)
-            do i = 1, n
-                write(*,*) i, u(i), wu(i)
-            end do
-            write(*,*)
+            ! write(*,*)
+            ! do i = 1, n
+            !     write(*,*) i, u(i), wu(i)
+            ! end do
+            ! write(*,*)
             self%nomeg = 2*(n-2)
             if (allocated(self%freqs)) deallocate(self%freqs)
             allocate(self%freqs(self%nomeg))

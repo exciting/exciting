@@ -36,7 +36,7 @@ subroutine calcevalqp
     select case (input%gw%taskname)
       
       case('g0w0','gw0','acon')
-        ! call calcevalqp_gw ! old version / different iterative scheme
+        ! call calcevalqp_gw() ! old version / different iterative scheme
         call solve_QP_equation()
          
       case('g0w0_x')

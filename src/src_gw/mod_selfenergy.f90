@@ -87,6 +87,7 @@ contains
                                   input%gw%selfenergy%wgrid%nw, &
                                   input%gw%selfenergy%wgrid%wmin, &
                                   input%gw%selfenergy%wgrid%wmax)
+            call print_freqgrid( freq_selfc, 6 )
         else
           call generate_freqgrid( freq_selfc, &
                                   input%gw%freqgrid%fgrid, &
@@ -95,7 +96,6 @@ contains
                                   input%gw%freqgrid%freqmin, &
                                   input%gw%freqgrid%freqmax)
         end if
-        call print_freqgrid( freq_selfc, 6 )
         
         nw = freq_selfc%nomeg
         

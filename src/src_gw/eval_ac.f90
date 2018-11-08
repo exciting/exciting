@@ -18,17 +18,15 @@ subroutine eval_ac(ni, zi, fi, z, fz, dfz)
     select case( trim(input%gw%selfenergy%actype) )
         
         case('pade')
-            print*, '---> Pade'
-            if ( dble(z) > 0.d0) then
+            if (dble(z) > 0.d0) then
                 call pade_approximant(ni, zi, fi, z, fz, dfz)
             else
-                call pade_approximant(ni, conjg(zi), conjg(fi), z, fz, dfz)
+                call pade_approximant(ni, -zi, conjg(fi), z, fz, dfz)
             end if
 
         case('aaa')
-            print*, '---> AAA'
             tol  = input%gw%selfenergy%tol
-            if ( dble(z) > 0.d0) then
+            if (dble(z) > 0.d0) then
                 call set_aaa_approximant(aaa, -zi, fi, tol)
             else
                 call set_aaa_approximant(aaa, zi, conjg(fi), tol)

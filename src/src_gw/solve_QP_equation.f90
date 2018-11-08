@@ -11,10 +11,10 @@ subroutine solve_QP_equation()
 
     implicit none
     integer(4), parameter :: nitermax = 100
-    real(8),    parameter :: etol = 1.d-6
+    real(8),    parameter :: etol = 1.d-4
     integer(4) :: iter, ik, ib, nz
     real(8)    :: enk, egap, efdos, dzf2, scissor
-    complex(8) :: ein, dsigma, znk, zf, dzf
+    complex(8) :: ein, ein_prev, dsigma, znk, zf, dzf
     complex(8), allocatable :: z(:), f(:)
     logical    :: converged
     integer    :: fid
@@ -33,43 +33,44 @@ subroutine solve_QP_equation()
 
         do ib = ibgw, nbgw
             
-            ! I think, the shift wrt efermi is important due to the requirement to
-            ! have a self-consistency at E_Fermi where Self_c = 0
-            enk = evalsv(ib,ik) - efermi
+            enk = evalsv(ib,ik)-efermi
             ein = cmplx(enk, 0.d0, 8)
+            ein_prev = ein
 
             converged = .false.
             do iter = 1, nitermax
 
-                print*, ik, ib, iter, ein
+                ! print*, ''
+                ! print*, 'iter=', iter
+                ! print*, 'ik, ib, ein=', ik, ib, ein
 
                 ! Analytical continuation
                 call eval_ac(nz, z, selfec(ib,:,ik), ein, sigc(ib,ik), dsigma)
-                print*, 'sigc=', sigc(ib,ik)
-                print*, 'dsigma=', dsigma
+                ! print*, 'sigc=', sigc(ib,ik)
+                ! print*, 'dsigma=', dsigma
 
                 if (input%gw%selfenergy%iopes == 0) then
                     ! Perturbative solution (single iteration)
-                    znk = 1.0d0 / (1.0d0-dsigma)
+                    znk = zone / (zone-dsigma)
                     znorm(ib,ik)  = dble(znk)
-                    ein = enk + znk * ( selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik) )
+                    ein = enk + znk * (selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik))
                     converged = .true.
                     exit
                 else if (input%gw%selfenergy%iopes == 1) then
                     ! Perturbative solution without renormalization
                     znorm(ib,ik)  = 1.d0
                     ein = enk + selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik)
-                    converged = .true.
-                    exit
                 end if
 
-                ! f(z) = E^{KS} + \Sigma_x + \Sigma_c(z) - Vxc - z
-                zf = enk + selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik) - ein
+                ! Error function
+                zf = ein - ein_prev
 
-                if ( abs(zf) < etol ) then
+                if (abs(zf) < etol) then
                     converged = .true.
                     exit
                 else
+                    ! Prepare for next iteration
+                    ein_prev = ein
                     ! apply next Newton-Raphson step
                     dzf  = dsigma - zone
                     dzf2 = abs(dzf)**2
@@ -84,16 +85,19 @@ subroutine solve_QP_equation()
                 write(*,'(a,f8.4,a,f8.4)') 'Absolute error = ', abs(zf), ' > ', etol
             end if
 
-            ! Quasiparticle energy (shifted back to have it in absolute units)
-            evalqp(ib,ik) = dble(ein) + efermi
+            ! Quasiparticle energy
+            evalqp(ib,ik) = dble(ein)
 
-            write(fid,'(i4,4x,2f10.6,4x,f10.6,4x,2f10.6,4x,f10.6)') ib, ein+efermi, dble(selfex(ib,ik)), sigc(ib,ik), dble(vxcnn(ib,ik))
+            write(fid,'(i4,4x,2f10.6,4x,f10.6,4x,2f10.6,4x,f10.6)') ib, ein, dble(selfex(ib,ik)), sigc(ib,ik), dble(vxcnn(ib,ik))
 
         end do ! ib
 
         write(fid,*) ; write(fid,*)
 
     end do ! ik
+
+    close(fid)
+    deallocate(z, f)
         
     ! Calculate Fermi energy
     call fermi_exciting(input%groundstate%tevecsv, &
@@ -102,7 +106,11 @@ subroutine solve_QP_equation()
     &                   kset%ntet, kset%tnodes, kset%wtet, kset%tvol, &
     &                   eferqp, egap, efdos)
 
-    deallocate(z, f)
-    close(fid)
+    ! Shift QP energies to align KS and QP Fermi energies
+    do ik = 1, kset%nkpt
+        do ib = ibgw, nbgw
+            evalqp(ib,ik) = evalqp(ib,ik) - eferqp + efermi
+        end do
+    end do    
 
 end subroutine

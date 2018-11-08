@@ -27,12 +27,13 @@ subroutine gw_main()
     !---------------------
     ! Main GW output file
     !---------------------
-    if (rank==0) then
+    if (rank == 0) then
         call getunit(fgw)
-        open(fgw,File='GW_INFO.OUT')
+        open(fgw, File='GW_INFO.OUT')
+        ! open(fgw, File='GW_INFO.OUT', Access='Append')
         if (input%gw%debug) then
             call getunit(fdebug)
-            open(fdebug,File='debug.info',Action='Write')
+            open(fdebug, File='debug.info', Action='Write')
         end if
         call boxmsg(fgw,'=','Main GW output file')
         call flushifc(fgw)
