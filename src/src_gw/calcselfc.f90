@@ -105,9 +105,9 @@ subroutine calcselfc(iq)
       time_io = time_io+t1-t0
         
       ! Calculate M^i_{nm}+M^i_{cm}
-      call expand_evec(ik,'t')
-      call expand_evec(jk,'c')
-      call expand_products(ik,iq,ibgw,nbgw,-1,1,mdim,nstse,minmmat)
+      call expand_evec(ik, 't')
+      call expand_evec(jk, 'c')
+      call expand_products(ik, iq, ibgw, nbgw, -1, 1, mdim, nstse, minmmat)
 
       !================================================================
       ! Calculate weight(q)*Sum_ij{M^i*W^c_{ij}(k,q;\omega)*conjg(M^j)}
@@ -120,12 +120,13 @@ subroutine calcselfc(iq)
       if (myrank_col==0) then
         
         if (input%gw%taskname=='cohsex') then
-          call calcselfc_cohsex(ikp,iq,mdim)
+          call calcselfc_cohsex(ikp, iq, mdim)
         else
           if ( associated(input%gw%selfenergy%wgrid) ) then
-            call calcselfc_freqconv_v2(ikp,iq,mdim)
+            ! call calcselfc_freqconv_v2(ikp, iq, mdim)
+            call calcselfc_freqconv_v3(ikp, iq, mdim)
           else
-            call calcselfc_freqconv_v1(ikp,iq,mdim)
+            call calcselfc_freqconv_v1(ikp, iq, mdim)
           end if
         end if
           
