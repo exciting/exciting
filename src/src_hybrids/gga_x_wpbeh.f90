@@ -54,11 +54,6 @@
         DSDG = US*RR
         V2X(i) = EX*1.D0/SQRT(AA)*DSDG*D2X  
         !V2X(i) = EX*DSDG*D2X  
-        write(1002,*) sqrt(aa), fx, v2x(i)
-        call flushifc(1002)
-        write(1006,*) rho(i), fx, (DSDN*D2X+D1X)*EX
-        call flushifc(1006)
-        
       enddo
 
 !     ==--------------------------------------------------------------==

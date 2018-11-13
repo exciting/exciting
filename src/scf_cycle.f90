@@ -51,7 +51,6 @@ subroutine scf_cycle(verbosity)
 ! initialise or read the charge density and potentials from file
 
 !! TIME - Begin of initialisation segment 
-    write(*,*) xctype
     Call timesec (ts0)
     If ((task .Eq. 1) .Or. (task .Eq. 3)) Then
         Call readstate

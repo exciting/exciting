@@ -36,19 +36,7 @@ do i=1, 3
    lmmaxvr, 0.d0, gv2xsri(:,:,i), lmmaxvr)    
 end do
 gv2x(:, 1:nr)=gv2xsri(:, 1:nr,1) +gv2xsri(:, 1:nr,2) +gv2xsri(:, 1:nr,3) !* &
-!write(*,*) "before", i, vx(1,1) 
 vx(:,1:nr)=vx(:,1:nr)-gv2x(:,1:nr)
-!write(*,*) "after", i, vx(1,1) 
-if (ia==1) then
-do i =1, nr
-  write(7000,*) i, vx(1,i),gv2x(1,i)  
-  call flushifc(7000)
-  do j=1, lmmaxvr
-  write(8000,*) i,j, vx(j,i)
-  call flushifc(8000)
-  enddo
-enddo
-endif
 
 return
 end subroutine

@@ -345,7 +345,7 @@
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="essential" ex:unit="" name="omega" type="fortrandouble"
-              default="0.11d0">
+              default="0.106d0">
               <xs:annotation>
                 <xs:documentation> Define the value for the screening parameter. 
                   The default value (omega=0.106d0) corresponds to HSE06 that was optimized for solids.

@@ -113,7 +113,6 @@ do i=1,n
     else
       call c_pbe(beta,rs,z,t,uu,vv,ww,ec(i),vcup(i),vcdn(i))
     end if
-    write(1001,*) "PBE, i, ex(i), vxip(i), vxdn(i)", i , ex(i), vxup(i), vxdn(i)
   else
     ex(i)=0.d0
     ec(i)=0.d0

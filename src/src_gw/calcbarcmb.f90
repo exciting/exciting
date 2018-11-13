@@ -49,23 +49,19 @@ subroutine calcbarcmb(iq)
     allocate(barc(matsiz,matsiz))
     barc(:,:) = 0.d0
     
-    if (xctype(1)==408 ) then 
-        if (allocated(barc_lr)) deallocate(barc_lr)
-        allocate(barc_lr(matsiz,matsiz))
-        barc_lr(:,:)=0.d0    
-    endif
     select case (trim(input%gw%barecoul%basis))
     
     case('pw')
     
       call calcmpwmix(iq)
       call calcbarcmb_pw(iq)
-      if (xctype(1)==408) then
-	 write(*,*) "HSE with pw not implemented yet"
-         STOP
-      endif
       
     case('mb')
+    if (xctype(1)==408 ) then 
+        if (allocated(barc_lr)) deallocate(barc_lr)
+        allocate(barc_lr(matsiz,matsiz))
+        barc_lr(:,:)=0.d0    
+    endif
     
       if (Gamma) then
            if (xctype(1)==408) then

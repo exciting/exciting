@@ -9,7 +9,7 @@ subroutine calcbarcmb_lr(iq)
 
     integer(4) :: i, ipw, ipw0, npw
     real(8) :: vc, exp_omega
-    real(8) omega_hyb
+    real(8) :: omega_hyb
     real(8) :: gpq(3), gpq2
     complex(8), allocatable :: tmat(:,:)
        
@@ -56,7 +56,6 @@ subroutine calcbarcmb_lr(iq)
     &          barc_lr,matsiz)
     
     deallocate(tmat)
-    write(*,*) "deb7"     
       
     return  
 end subroutine

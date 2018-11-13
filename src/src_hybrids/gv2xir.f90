@@ -31,7 +31,6 @@ allocate(zfft1_rho(ngrtot), zfft2_rho(ngrtot),rhog(ngrtot))
 zfft1_rho(:)=rhoir(:)
 call zfftifc(3, ngrid, -1, zfft1_rho)
 rhog(:)=zfft1_rho(:)
-!write(*,*) sum(rhoir)
 ! |grad rho|
 rfir(:)=0.d0
 do i=1,3
