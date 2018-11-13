@@ -74,7 +74,7 @@ subroutine init_hybrids()
 !--------------------------------------------------------------
 ! Calculate the integrals to treat the singularities at G+q->0
 !--------------------------------------------------------------
-    call setsingc
+   call setsingc
 
 ! Gaunt coefficients
     lmax = max(input%groundstate%lmaxapw+1, &

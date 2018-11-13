@@ -171,7 +171,7 @@ end if
 
     !call timesec(t1)
     !write(*,*) 'barc diagonalization', t1-t0
-
+    
 !----------------------    
 ! debug info
 !----------------------

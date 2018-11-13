@@ -21,12 +21,12 @@ subroutine calc_vxnl()
 
     integer(4) :: ikp, ik, jk, iq, ikp_
     integer(4) :: ie1, ie2, ie3, icg, icg1
-    integer(4) :: ist, l
+    integer(4) :: ist, l, im
     integer(4) :: i, j, k, jst, ispn
     integer(4) :: is, ia, ias, ic
     integer(4) :: n, nmdim, m, mdim
-    real(8)    :: tstart, tend
-    complex(8) :: mvm, zt1    
+    real(8)    :: tstart, tend, sxs2
+    complex(8) :: mvm, zt1, vc
     integer    :: ikfirst, iklast
     
     complex(8), allocatable :: minm(:,:,:)
@@ -101,7 +101,27 @@ subroutine calc_vxnl()
         ! Calculate the bare Coulomb matrix
         !------------------------------------
         call calcbarcmb(iq)
+        if (xctype(1)==408) then
+          sxs2 = 0.d0
+          !----------------------------------------
+          ! Set v-diagonal mixed product basis set
+          !----------------------------------------
+          mbsiz = matsiz
+          if (allocated(barc)) deallocate(barc)
+          allocate(barc(matsiz,mbsiz))
+          barc(:,:) = zzero
+          do im = 1, matsiz
+            vc = cmplx(barcev(im),0.d0,8)
+            barc(:,im) = vmat(:,im)*sqrt(vc)
+          end do
+      else
+        ! singular term prefactor (q->0)
+        sxs2 = -4.d0*pi*vi
+        !----------------------------------------
+        ! Set v-diagonal mixed product basis set
+        !----------------------------------------
         call setbarcev(0.d0)
+      end if
 
         !------------------------------------------------------------
         ! Calculate the M^i_{nm}(k,q) matrix elements for given k and q
@@ -150,7 +170,7 @@ subroutine calc_vxnl()
           ! add singular term (q->0)
           if (Gamma.and.(ie1<=nomax)) then
             vxnl(ie1,ie1,ikp) = vxnl(ie1,ie1,ikp) &
-                               -4.d0*pi*vi*singc2*kiw(ie1,ik)*kqset%nkpt
+                               +sxs2*singc2*kiw(ie1,ik)*kqset%nkpt
           end if
         end do ! ie1
 
