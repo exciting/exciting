@@ -64,25 +64,14 @@ subroutine calcbarcmb(iq)
     endif
     
       if (Gamma) then
-           if (xctype(1)==408) then
-!               write(*,*) "deb1"
-               call calcmpwmix(iq)
-               call calcbarcmb_lr(iq)
-               barc(:,:)=barc_lr(:,:)
- !              write(*,*) "deb2"
-           else     
         !------------------------------------------------
         ! Matrix elements for the singular q=0, L=0 case
         !------------------------------------------------
         !call timesec(t0)
-              call barcq0
-              call calcbarcmb_mt_mt(iq)
-              call calcbarcmb_ipw_mt(iq)
-              call calcbarcmb_ipw_ipw(iq)
+         call barcq0
         !call timesec(t1)
         !write(*,*) 'barcq0', t1-t0 
-           end if
-       else
+      end if
  
       
       !-----------------------------------------------------------
@@ -115,7 +104,7 @@ subroutine calcbarcmb(iq)
           call calcbarcmb_lr(iq)
           barc(:,:)=barc(:,:)-barc_lr(:,:)
       endif
-    endif
+!    endif
     case default
     
       write(*,*) 'ERROR(calcbarcmb): Unknown basis type!'
