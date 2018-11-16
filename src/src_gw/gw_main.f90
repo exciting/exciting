@@ -143,10 +143,6 @@ subroutine gw_main()
         case('kqgen')
             if (rank==0) call test_kqpts
 
-        ! (testing option) Test generation of k- k/q-dependent BZ integration weights
-        case('bzintw')
-            if (rank==0) call test_bzintw
-
         ! (testing option) Calculate LAPW basis functions for plotting
         case('lapw')
             call init_gw
@@ -178,10 +174,6 @@ subroutine gw_main()
         ! case('coul')
         !    if (rank==0) call test_coulpot
 
-        ! (testing option) Plot the self-energy
-        case('sepl') 
-            if (rank==0) call plot_selfenergy
-
         case('wannier')
             !call init_gw
             if( associated( input%properties%wannier)) then
@@ -200,9 +192,6 @@ subroutine gw_main()
         case('test_aaa')
             if (rank==0) call test_aaa_1()
             if (rank==0) call test_aaa_2()
-
-        case('specfunc')
-            if (rank==0) call spectralFunction()
 
     end select
     

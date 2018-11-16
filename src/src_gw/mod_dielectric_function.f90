@@ -82,24 +82,7 @@ contains
           if (allocated(eps00)) deallocate(eps00)
           allocate(eps00(iomstart:iomend,3,3))
           eps00(:,:,:) = 0.d0
-        end if ! Gamma
-        ! Second order screened potential W^{(2)}
-        if (input%gw%selfenergy%secordw) then
-          if (allocated(vPv)) deallocate(vPv)
-          allocate(vPv(mbsiz,mbsiz,iomstart:iomend))
-          if (Gamma) then
-            if (allocated(vPvh)) deallocate(vPvh)
-            allocate(vPvh(iomstart:iomend))
-            vPvh(:) = 0.d0    
-            if (allocated(vPvw1)) deallocate(vPvw1)
-            allocate(vPvw1(mbsiz,iomstart:iomend))
-            vPvw1(:,:) = 0.d0
-            if (allocated(vPvw2)) deallocate(vPvw2)
-            allocate(vPvw2(mbsiz,iomstart:iomend))
-            vPvw2(:,:) = 0.d0
-          end if
-        end if
-    
+        end if ! Gamma   
     end subroutine
     
     subroutine delete_dielectric_function(Gamma)
@@ -112,14 +95,6 @@ contains
           if (allocated(epsw1)) deallocate(epsw1)
           if (allocated(epsw2)) deallocate(epsw2)
           if (allocated(eps00)) deallocate(eps00)
-        end if
-        if (input%gw%selfenergy%secordw) then
-          if (allocated(vPv)) deallocate(vPv)
-          if (Gamma) then
-            if (allocated(vPvh)) deallocate(vPvh)
-            if (allocated(vPvw1)) deallocate(vPvw1)
-            if (allocated(vPvw2)) deallocate(vPvw2)
-          end if
         end if
     end subroutine
                                          

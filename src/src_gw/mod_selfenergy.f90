@@ -5,9 +5,6 @@ module mod_selfenergy
 
     type(frequency) :: freq_selfc
 
-    ! Analytical continuation type
-    integer :: iopac ! 0/1
-
     !--------------!
     ! self-energy  ! 
     !--------------!
@@ -19,13 +16,11 @@ module mod_selfenergy
     complex(8), allocatable :: mwm(:,:,:)
     target mwm
     
-    ! The correlation sel-fenergy
+    ! The correlation self-energy
     complex(8), allocatable :: selfeph(:,:,:)
     complex(8), allocatable :: selfeph0(:,:)
     real(8),    allocatable :: speceph(:,:,:)
     complex(8), allocatable :: selfec(:,:,:)
-    complex(8), allocatable :: selfecSR(:,:,:)
-    complex(8), allocatable :: selfecw2(:,:,:)
     
     ! Correction factors for (q^-1) and (q^-2) singularities
     real(8) :: singc1
@@ -80,21 +75,20 @@ contains
         selfex(:,:) = 0.d0
 
         ! Correlation self-energy
-        if ( associated(input%gw%selfenergy%wgrid) ) then
-          call generate_freqgrid( freq_selfc, &
-                                  input%gw%selfenergy%wgrid%grid, &
-                                  'imfreq', &
-                                  input%gw%selfenergy%wgrid%nw, &
-                                  input%gw%selfenergy%wgrid%wmin, &
-                                  input%gw%selfenergy%wgrid%wmax)
-            call print_freqgrid( freq_selfc, 6 )
+        if (input%gw%selfenergy%method == 'cd') then
+          call generate_freqgrid(freq_selfc, &
+                                 input%gw%selfenergy%wgrid%type, &
+                                 'refreq', &
+                                 input%gw%selfenergy%wgrid%size, &
+                                 input%gw%selfenergy%wgrid%wmin, &
+                                 input%gw%selfenergy%wgrid%wmax)
         else
-          call generate_freqgrid( freq_selfc, &
-                                  input%gw%freqgrid%fgrid, &
-                                  input%gw%freqgrid%fconv, &
-                                  input%gw%freqgrid%nomeg, &
-                                  input%gw%freqgrid%freqmin, &
-                                  input%gw%freqgrid%freqmax)
+          call generate_freqgrid(freq_selfc, &
+                                 input%gw%freqgrid%fgrid, &
+                                 input%gw%freqgrid%fconv, &
+                                 input%gw%freqgrid%nomeg, &
+                                 input%gw%freqgrid%freqmin, &
+                                 input%gw%freqgrid%freqmax)
         end if
         
         nw = freq_selfc%nomeg
@@ -103,14 +97,6 @@ contains
           if (allocated(selfec)) deallocate(selfec)
           allocate(selfec(ibgw:nbgw,nw,nkpt))
           selfec(:,:,:) = 0.d0
-          if (input%gw%selfenergy%secordw) then
-            if (allocated(selfecSR)) deallocate(selfecSR)
-            allocate(selfecSR(ibgw:nbgw,nw,nkpt))
-            selfecSR(:,:,:) = 0.d0
-            if (allocated(selfecw2)) deallocate(selfecw2)
-            allocate(selfecw2(ibgw:nbgw,nw,nkpt))
-            selfecw2(:,:,:) = 0.d0
-          end if
           if (input%gw%taskname.ne.'cohsex') then
             ! Correlation self-energy at real frequencies after AC procedure
             if (allocated(sigc)) deallocate(sigc)
@@ -139,8 +125,6 @@ contains
       if (allocated(evalqp)) deallocate(evalqp)
       if (allocated(selfex)) deallocate(selfex)
       if (allocated(selfec)) deallocate(selfec)
-      if (allocated(selfecSR)) deallocate(selfecSR)
-      if (allocated(selfecw2)) deallocate(selfecw2)
       if (allocated(znorm))  deallocate(znorm)
       if (allocated(sigc))   deallocate(sigc)
       if (allocated(sigsx))  deallocate(sigsx)
@@ -174,46 +158,68 @@ contains
           write(fid) ibgw, nbgw, nkpt, selfec, sigsx, sigch
           close(fid)
         end if
-      end if
-      !-----------------
-      ! Text version
-      !-----------------
-      open(fid,file='SELFX.DAT',form='FORMATTED',status='UNKNOWN')
-      write(fid,*) '# ik    ie    selfex'
-      do ik = 1, nkpt
-      do ie = ibgw, nbgw
-        write(fid,'(2i6,2f18.6)') ik, ie, selfex(ie,ik)
-      end do
-      write(fid,*)
-      end do
-      close(fid)
-      if (input%gw%taskname.ne.'g0w0_x') then
-        open(fid,file='SELFC.DAT',form='FORMATTED',status='UNKNOWN')
-        write(fid,*) '# iom    ik    ie    selfec'
-        do iom = 1, nw
-        do ik = 1, nkpt
-        do ie = ibgw, nbgw
-          write(fid,'(3i6,2f18.6)') iom, ik, ie, selfec(ie,iom,ik)
-        end do
-        write(fid,*)
-        end do
-        end do
-        close(fid)
-        if (input%gw%selfenergy%secordw) then
-          !open(fid,file='SELFCW2.DAT',form='FORMATTED',status='UNKNOWN')
-          open(fid,file='SELFCSR.DAT',form='FORMATTED',status='UNKNOWN')
-          write(fid,*) '# iom    ik    ie    selfec'
-          do iom = 1, nw
-          do ik = 1, nkpt
-          do ie = ibgw, nbgw
-            write(fid,'(3i6,2f18.6)') iom, ik, ie, selfecSR(ie,iom,ik)
-          end do
-          write(fid,*)
-          end do
-          end do
-          close(fid)
-        end if
-      end if
+      end if     
     end subroutine
-    
+
+    !---------------------------------------------------------------------------
+    subroutine plot_selfc_iw()
+      implicit none
+      integer(4) :: ik, iw, nk, nb
+      character(22) :: frmt
+      nb = size(selfec,1)
+      nk = size(selfec,3)
+      !--------------------------------------
+      ! Self-energy along the imaginary axis
+      !--------------------------------------
+      open(71, file='SelfC-Re-iW.dat', form='FORMATTED', status='UNKNOWN', action='WRITE')
+      open(72, file='SelfC-Im-iW.dat', form='FORMATTED', status='UNKNOWN', action='WRITE')
+      write(frmt, '("(",i8,"f14.6)")') 1+nb
+      do ik = 1, nk
+          write(71,*) '# ik = ', ik
+          write(72,*) '# ik = ', ik
+          do iw = -freq_selfc%nomeg, freq_selfc%nomeg
+              if (iw < 0) then
+                  write(71,trim(frmt)) -freq_selfc%freqs(abs(iw)), dble(conjg(selfec(:,abs(iw),ik)))
+                  write(72,trim(frmt)) -freq_selfc%freqs(abs(iw)), aimag(conjg(selfec(:,abs(iw),ik)))
+              else if (iw > 0) then
+                  write(71,trim(frmt)) freq_selfc%freqs(iw), dble(selfec(:,iw,ik))
+                  write(72,trim(frmt)) freq_selfc%freqs(iw), aimag(selfec(:,iw,ik))
+              end if
+          end do
+          write(71,*); write(72,*)
+          write(71,*); write(72,*)
+      end do
+      close(71)
+      close(72)
+    end subroutine
+
+    !---------------------------------------------------------------------------
+    subroutine plot_selfc()
+      implicit none
+      integer(4) :: ik, nk, nb, iw
+      real(8) :: w
+      character(22) :: frmt
+      nb = size(selfec,1)
+      nk = size(selfec,3)
+      !--------------------------------------
+      ! Self-energy along the real axis
+      !--------------------------------------
+      open(71, file='SelfC-Re.dat', form='FORMATTED', status='UNKNOWN', action='WRITE')
+      open(72, file='SelfC-Im.dat', form='FORMATTED', status='UNKNOWN', action='WRITE')
+      write(frmt, '("(",i8,"f14.6)")') 1+nb
+      do ik = 1, nk
+          write(71,*) '# ik = ', ik
+          write(72,*) '# ik = ', ik
+          do iw = 1, freq_selfc%nomeg
+            w = freq_selfc%freqs(iw)
+            write(71,trim(frmt)) w, dble(selfec(:,iw,ik))
+            write(72,trim(frmt)) w, aimag(selfec(:,iw,ik))
+        end do
+        write(71,*); write(72,*)
+        write(71,*); write(72,*)
+      end do
+      close(71)
+      close(72)
+    end subroutine
+
 end module

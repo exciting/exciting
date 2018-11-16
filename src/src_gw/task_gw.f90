@@ -16,6 +16,7 @@ subroutine task_gw()
     use modmain,               only: zzero, evalsv, efermi
     use modgw
     use mod_coulomb_potential
+    use mod_vxc,               only: vxcnn
     use mod_mpi_gw
     use m_getunit
     use mod_hdf5
@@ -27,9 +28,14 @@ subroutine task_gw()
     integer(4) :: recl
     integer    :: im
     complex(8) :: vc
-
     integer(4) :: Nk
     real(8)    :: omega_BZ, Vk, beta, sxdiv
+    character(80) :: frmt
+
+    integer(4) :: iom, ib
+    real(8) :: w, sRe, sIm, div
+    complex(8) :: dsc
+    real(8), allocatable :: sf(:)
 
 !!REVISION HISTORY:
 !
@@ -225,98 +231,67 @@ subroutine task_gw()
     
 #ifdef MPI
     if ((nproc_row>1).and.(myrank_col==0)) then
-      write(*,*) "sum self-energy from different q-points"
       call mpi_sum_array(0,selfex,nbandsgw,kset%nkpt,mycomm_row)
-      write(*,*) "sum selfex done"  
       if (input%gw%taskname.ne.'g0w0_x') then
         ! G0W0 and GW0 approximations
         call mpi_sum_array(0,selfec,nbandsgw,freq_selfc%nomeg,kset%nkpt,mycomm_row)
-        if (input%gw%selfenergy%secordw) then
-          call mpi_sum_array(0,selfecw2,nbandsgw,freq%nomeg,kset%nkpt,mycomm_row)
-          call mpi_sum_array(0,selfecSR,nbandsgw,freq%nomeg,kset%nkpt,mycomm_row)
-        end if
         if (input%gw%taskname=='cohsex') then
-          ! COHSEX
           call mpi_sum_array(0,sigsx,nbandsgw,kset%nkpt,mycomm_row)
           call mpi_sum_array(0,sigch,nbandsgw,kset%nkpt,mycomm_row)
-        end if ! cohsex
-        write(*,*) "sum selfec done"  
+        end if
       end if ! selfec
     endif
 #endif
+
+    !===============================================================================
+    ! output block
+    !===============================================================================
+   
+    if (myrank == 0) then
     
-    if (myrank==0) then
-    
+      if (input%gw%selfenergy%method == "ac") then
+        ! Analytical continuation of the correlation self-energy from the complex to the real frequency axis
+        call plot_selfc_iw()
+        call calcselfc_ac()
+      end if
+      
       !===============================
       ! Write self-energies to files
       !===============================
-      call timesec(t0)
-#ifdef _HDF5_
-      do ik = 1, kset%nkpt
-        write(cik,'(I4.4)') ik
-        path = "/kpoints/"//trim(adjustl(cik))
-        if (.not.hdf5_exist_group(fgwh5,"/kpoints",cik)) &
-        &  call hdf5_create_group(fgwh5,"/kpoints",cik)
-        ! k-point
-        call hdf5_write(fgwh5,path,"vkl",kset%vkl(1,ik),(/3/))
-        ! exchange
-        call hdf5_write(fgwh5,path,"selfex",selfex(1,ik),(/nbandsgw/))
-        ! correlation
-        if (input%gw%taskname.ne.'g0w0_x') &
-        &  call hdf5_write(fgwh5,path,"selfec",selfec(1,1,ik),(/nbandsgw,freq_selfc%nomeg/))
-      end do
-#else
       call write_selfenergy(ibgw,nbgw,kset%nkpt,freq_selfc%nomeg)
-#endif
-      call timesec(t1)
-      time_io = time_io+t1-t0
-      
-      ! KS band structure
-      evalks(ibgw:nbgw,:) = evalsv(ibgw:nbgw,:) 
-      !call bandanalysis('KS',ibgw,nbgw,evalks(ibgw:nbgw,:),efermi)
-      call bandstructure_analysis('KS', &
-      &  ibgw,nbgw,kset%nkpt,evalks(ibgw:nbgw,:),efermi)
+      call plot_selfc()
+      call plot_spectral_function()      
       
       !=======================================
       ! Calculate the quasiparticle energies
       !=======================================
-      call calcevalqp
-      
-      !------------------------------------------------------
-      ! Write quasi-particle energies to file
-      !------------------------------------------------------
-      call timesec(t0)
+
+      ! KS band structure
+      evalks(ibgw:nbgw,:) = evalsv(ibgw:nbgw,:) 
+      call bandstructure_analysis('KS', &
+          ibgw,nbgw,kset%nkpt,evalks(ibgw:nbgw,:),efermi)
+
+      ! solve QP equation
+      call calcevalqp()
       call write_qp_energies('EVALQP.DAT')
-      call timesec(t1)
-      time_io = time_io+t1-t0
       
       ! G0W0 QP band structure
       select case (input%gw%taskname)
       
         case('g0w0_x')
-          !call bandanalysis('G0W0_X',ibgw,nbgw,evalqp(ibgw:nbgw,:),eferqp)
           call bandstructure_analysis('G0W0_X', &
-          &  ibgw,nbgw,kset%nkpt,evalqp(ibgw:nbgw,:),eferqp)
+              ibgw,nbgw,kset%nkpt,evalqp(ibgw:nbgw,:),eferqp)
       
         case('cohsex')
-          !call bandanalysis('COHSEX',ibgw,nbgw,evalqp(ibgw:nbgw,:),eferqp)
           call bandstructure_analysis('COHSEX', &
-          &  ibgw,nbgw,kset%nkpt,evalqp(ibgw:nbgw,:),eferqp)
+              ibgw,nbgw,kset%nkpt,evalqp(ibgw:nbgw,:),eferqp)
           
         case('g0w0','gw0')
-          !call bandanalysis('G0W0',ibgw,nbgw,evalqp(ibgw:nbgw,:),eferqp)
           call bandstructure_analysis('G0W0', &
-          &  ibgw,nbgw,kset%nkpt,evalqp(ibgw:nbgw,:),eferqp)
+              ibgw,nbgw,kset%nkpt,evalqp(ibgw:nbgw,:),eferqp)
           
       end select
       
-      if (input%gw%selfenergy%secordw) then 
-      !---------------------------------
-      ! Second order screened exchange
-      !---------------------------------
-        call selfcGW_vs_selfcW2
-      end if
- 
     end if ! myrank
     
     !--------------------------------------------------------

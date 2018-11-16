@@ -227,38 +227,13 @@ subroutine parse_gwinput
     if (rank==0) write(fgw,*) 'Analytic continuation method:'
     select case (trim(input%gw%selfenergy%actype))
         case('pade','Pade','PADE')
-            iopac = 0
             if (rank==0) write(fgw,*) " pade - Thiele's reciprocal difference method &
             &(by H. J. Vidberg and J. W. Serence, J. Low Temp. Phys. 29, 179 (1977))"
-        case('mpf','MPF')
-            iopac = 1
-            if (rank==0) write(fgw,*) " mpf - Multi-pole fitting (by Rojas, Godby and Needs PRL 74, 1827 (1995))"
         case('aaa','AAA')
-            iopac = 0
             if (rank==0) write(fgw,*) "aaa: Y. Nakatsukasa, O. Sete, L. N. Trefethen, The AAA algorithm for rational approximation, SIAM J. Sci. Comp. 40 (2018), A1494-A1522"
         case default
             if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal value for input%gw%SelfEnergy%actype'
-            if (rank==0) write(*,*) '  Currently supported options are:'
-            if (rank==0) write(*,*) "  pade - Thiele's reciprocal difference method &
-            &(by Vidberg and Serence, J. Low Temp. Phys. 29, 179 (1977))"
-            if (rank==0) write(*,*) "  mpf  - Multi-pole fitting (by Rojas, Godby and Needs (PRL 74, 1827 (1995))"
     end select
-    if (input%gw%selfenergy%npol==0) then
-        select case (trim(input%gw%selfenergy%actype))
-        case('pade','Pade','PADE')
-            input%gw%selfenergy%npol = input%gw%freqgrid%nomeg/2
-        case('mpf','MPF')
-            input%gw%selfenergy%npol = 2
-        end select
-    else
-        if (input%gw%selfenergy%npol>input%gw%freqgrid%nomeg) then
-            if (rank==0) then
-                write(*,*) 'ERROR(parse_gwinput): the number of poles cannot exceed the number of frequencies!'
-                stop
-            end if
-        end if
-    endif
-    if (rank==0) write(fgw,*) 'Number of poles used in analytic continuation:', input%gw%selfenergy%npol
     if (rank==0) write(fgw,*) 'Scheme to treat singularities:'
     select case (trim(input%gw%selfenergy%singularity))
       case('none')

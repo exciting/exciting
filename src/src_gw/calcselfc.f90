@@ -122,11 +122,12 @@ subroutine calcselfc(iq)
         if (input%gw%taskname=='cohsex') then
           call calcselfc_cohsex(ikp, iq, mdim)
         else
-          if ( associated(input%gw%selfenergy%wgrid) ) then
-            ! call calcselfc_freqconv_v2(ikp, iq, mdim)
-            call calcselfc_freqconv_v3(ikp, iq, mdim)
-          else
-            call calcselfc_freqconv_v1(ikp, iq, mdim)
+          if (input%gw%selfenergy%method == 'cd') then
+            ! Contour deformation technique
+            call calcselfc_freqconv_cd(ikp, iq, mdim)
+          else if (input%gw%selfenergy%method == 'ac') then
+            ! Imaginary frequency formalism
+            call calcselfc_freqconv_ac(ikp, iq, mdim)
           end if
         end if
           

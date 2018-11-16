@@ -199,19 +199,6 @@ subroutine calcepsilon(iq,iomstart,iomend)
     end do ! ik
     end do ! ispn
     
-    if (input%gw%selfenergy%secordw) then
-      !---------------------------------
-      ! Second order screened exchange:
-      ! -- store v^{1/2}*P_{0}*v^{1/2}
-      !---------------------------------
-      vPv(:,:,:) = -epsilon(:,:,:)
-      if (Gamma) then
-        vPvh(:) = -(epsh(:,1,1)+ epsh(:,2,2)+epsh(:,3,3))/3.d0
-        vPvw1(:,:) = -(epsw1(:,:,1)+epsw1(:,:,2)+epsw1(:,:,3))/dsqrt(3.d0)
-        vPvw2(:,:) = -(epsw2(:,:,1)+epsw2(:,:,2)+epsw2(:,:,3))/dsqrt(3.d0)
-      end if
-    end if
-    
     !-------------------
     ! Clear memory
     !-------------------

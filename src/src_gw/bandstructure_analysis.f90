@@ -6,15 +6,15 @@ subroutine bandstructure_analysis(title,ib,nb,nkpt,eband,efermi)
 
     implicit none
     character(len=*), intent(in) :: title
-    integer, intent(in) :: ib, nb, nkpt
-    real(8), intent(in) :: eband(ib:nb,nkpt)
-    real(8), intent(in) :: efermi
+    integer, intent(in)    :: ib, nb, nkpt
+    real(8), intent(in)    :: eband(ib:nb,nkpt)
+    real(8), intent(inout) :: efermi
     ! local variables
     real(8) :: ebmax, ebmin, egf, ego
     real(8) :: fermidos
-    
+
     real(8), external :: dostet_exciting
-    
+   
     if (rank==0) then
       call boxmsg(fgw,'-',trim(title))
       write(fgw,'(a,f10.4)') " Fermi energy: ", efermi
@@ -49,12 +49,11 @@ subroutine bandstructure_analysis(title,ib,nb,nkpt,eband,efermi)
     &                          efermi)
     
     ! check for VBM and CBM overlap (metal)
-    ! if ((nomax >= numin).or.(dabs(fermidos)>1.d-4)) then
-    !     metallic = .true.
-    ! else
-    !     metallic = .false.
-    ! end if
-    metallic = .false.
+    if ((nomax >= numin).or.(abs(fermidos)>1.d-4)) then
+        metallic = .true.
+    else
+        metallic = .false.
+    end if
     
     if (rank==0) then
       if (metallic) then
@@ -62,29 +61,26 @@ subroutine bandstructure_analysis(title,ib,nb,nkpt,eband,efermi)
         write(fgw,*) "WARNING(bandstructure_analysis): Valence and Conduction bands overlap (metal)!"
       else
         egf = eband(numin,ikcbm)-eband(nomax,ikvbm)
-        !ego = eband(numin,ikvcm)-eband(nomax,ikvcm)
-        ego = eband(numin,1)-eband(nomax,1)
         if (ikvbm == ikcbm) then 
           ! direct gap
           write(fgw,10) ' Direct BandGap (eV):', egf*hev
           write(fgw,11) kset%vkl(:,ikvbm), ikvbm
-          write(fgw,10) ' Optical BandGap (eV):', ego*hev
         else
           ! indirect gap
-          write(fgw,10) ' Fundamental BandGap (eV):', egf*hev
+          write(fgw,10) ' Indirect BandGap (eV):', egf*hev
           write(fgw,12) kset%vkl(:,ikvbm), ikvbm, kset%vkl(:,ikcbm), ikcbm
-          write(fgw,10) ' Optical BandGap (eV):', ego*hev
-          !write(fgw,11) kset%vkl(:,ikvcm), ikvcm
+          write(fgw,10) ' Direct Bandgap at VBM (eV):', (eband(numin,ikvbm)-eband(nomax,ikvbm))*hev
+          write(fgw,10) ' Direct Bandgap at CBM (eV):', (eband(numin,ikcbm)-eband(nomax,ikcbm))*hev
         end if
       end if
       call linmsg(fgw,'-','')
       call flushifc(fgw)
     end if
     
-    10 format(a,T40,f10.4)
-    11 format(' at k      = ',3f8.3,' ik = ',i5)
-    12 format(' at k(VBM) = ',3f8.3,' ik = ',i5,/,&
-    &         '    k(CBM) = ',3f8.3,' ik = ',i5)
+10 format(a,T40,f10.4)
+11 format(' at k      = ',3f8.3,' ik = ',i5)
+12 format(' at k(VBM) = ',3f8.3,' ik = ',i5,/,&
+&         '    k(CBM) = ',3f8.3,' ik = ',i5)
     
     return
 end subroutine

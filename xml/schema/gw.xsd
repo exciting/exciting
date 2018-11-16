@@ -39,7 +39,7 @@
                     'eqdist'  - equidistant frequencies from 0 to freqmax;
                     'gaulag' - Gauss-Laguerre quadrature from 0 to infinity;
                     'gauleg' - Gauss-Legendre quadrature from 0 to freqmax;
-                    'gaule2' (default) - double Gauss-Legendre quadrature from 0 to freqmax and from freqmax to infinity.
+                    'gauleg2' (default) - double Gauss-Legendre quadrature from 0 to freqmax and from freqmax to infinity.
                   </xs:documentation></xs:annotation>
                 </xs:attribute>
                 <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="nomeg" default="16"> 
@@ -67,44 +67,7 @@
                 </xs:documentation>
               </xs:annotation>
               <xs:complexType>
-
                 <xs:all>
-
-                  <xs:element ex:importance="expert" ex:unit="" name="SpectralFunctionPlot" maxOccurs="1" minOccurs="0">
-                    <xs:annotation>
-                    <xs:documentation>
-                    Parameters for the self-energy and spectral function visualization.
-                    </xs:documentation>
-                    </xs:annotation>
-                    <xs:complexType>
-                      <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="axis" default="real"> 
-                        <xs:annotation><xs:documentation>
-                        Real ("real") or imaginary ("imag") frequency axis for visialization.
-                        </xs:documentation></xs:annotation>
-                      </xs:attribute>
-                      <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="nwgrid" default="1001"> 
-                        <xs:annotation><xs:documentation>
-                        Number of grid points within the visualization interval.
-                        </xs:documentation></xs:annotation>
-                      </xs:attribute>
-                      <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="Hartree" name="wmin" default="-10"> 
-                        <xs:annotation><xs:documentation>
-                        Lower bound for the visualization frequency interval.
-                        </xs:documentation></xs:annotation>
-                      </xs:attribute>
-                      <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="Hartree" name="wmax" default="10"> 
-                        <xs:annotation><xs:documentation>
-                        Upper bound for the visualization frequency interval.
-                        </xs:documentation></xs:annotation>
-                      </xs:attribute>
-                      <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="Hartree" name="eta" default="1.0d-4"> 
-                        <xs:annotation><xs:documentation>
-                        Smearing parameter (small number).
-                        </xs:documentation></xs:annotation>
-                      </xs:attribute>
-                    </xs:complexType>
-                  </xs:element>
-
                   <xs:element ex:importance="expert" ex:unit="" name="wgrid" minOccurs="0" maxOccurs="1">
                     <xs:annotation>
                       <xs:documentation>
@@ -112,31 +75,35 @@
                       </xs:documentation>
                     </xs:annotation>
                     <xs:complexType>
-                      <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="grid" default="eqdist">
+                      <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="type" default="eqdist">
                         <xs:annotation><xs:documentation>
-                          Frequency grid type:
-                            'eqdist' - equidistant frequencies from wmin to wmax.
+                          Frequency grid type.
                         </xs:documentation></xs:annotation>
                       </xs:attribute>
-                      <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="nw" default="100"> 
+                      <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="size" default="100"> 
                         <xs:annotation><xs:documentation>
                           Number of grid points.
                         </xs:documentation></xs:annotation>
                       </xs:attribute>
-                      <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="wmin" default="0.0d0">
+                      <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="wmin" default="-3.0d0">
                         <xs:annotation><xs:documentation>
                           Lower frequency limit.
                         </xs:documentation></xs:annotation>
                       </xs:attribute>
-                      <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="wmax" default="10.0d0">
+                      <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="wmax" default="3.0d0">
                         <xs:annotation><xs:documentation>
                           Upper frequency limit.
                         </xs:documentation></xs:annotation>
                       </xs:attribute>
                     </xs:complexType>
                   </xs:element>
+                </xs:all>
 
-                </xs:all>               
+                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="method" default="AC"> 
+                  <xs:annotation><xs:documentation>
+                    Technique to compute the frequency convolution integral: AC - analytical continuation; CD- contour deformation.
+                  </xs:documentation></xs:annotation>
+                </xs:attribute>
 
                 <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="nempty" default="0"> 
                   <xs:annotation><xs:documentation>
@@ -169,24 +136,12 @@
                   </xs:documentation></xs:annotation>
                 </xs:attribute>
                 
-                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="npol" default="0"> 
-                  <xs:annotation><xs:documentation>
-                    Number of poles used in the analytical continuation.
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-                
                 <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="singularity" default="mpb"> 
                   <xs:annotation><xs:documentation>
                     Treatment of the integrable singular terms:
                     'none': No special treatment (test purpose only);  
                     'mpb' : Auxiliary function method by S. Massidda, M. Posternak, and A. Baldereschi, PRB 48, 5058 (1993);
                     'crg' : Auxiliary function method by P. Carrier, S. Rohra, and A. Goerling, PRB 75, 205126 (2007).
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-                
-                <xs:attribute ex:importance="expert" type="xs:boolean" ex:unit="" name="secordw" default="false"> 
-                  <xs:annotation><xs:documentation>
-                    Calculate second order screened exchange contribution.
                   </xs:documentation></xs:annotation>
                 </xs:attribute>
                 

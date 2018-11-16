@@ -4,13 +4,13 @@ MODULE mod_frequency
 
 !-------------------------------------------------------------------------------    
     type frequency
-        character(40) :: fgrid          ! grid type
-        character(40) :: fconv          ! type of the frequency dependence
-        integer :: nomeg                ! grid size
-        real(8) :: freqmin              ! lower cutoff frequency
-        real(8) :: freqmax              ! upper cutoff frequency
-        real(8), allocatable :: freqs(:)! frequency grid
-        real(8), allocatable :: womeg(:)! integration weights
+        character(40) :: fgrid           ! grid type
+        character(40) :: fconv           ! real/imaginary frequency
+        integer(4)    :: nomeg           ! grid size
+        real(8)       :: freqmin         ! lower cutoff frequency
+        real(8)       :: freqmax         ! upper cutoff frequency
+        real(8), allocatable :: freqs(:) ! frequency grid
+        real(8), allocatable :: womeg(:) ! integration weights
     end type frequency
 
     external gaulag
@@ -45,22 +45,8 @@ CONTAINS
         ! grid type        
         self%fgrid = trim(fgrid)
 
-        ! frequency dependence type
+        ! frequency treatment
         self%fconv = trim(fconv)
-        select case (self%fconv)
-        case('nofreq')
-            self%nomeg = 1
-        case('refreq')
-        case('imfreq')
-        case default
-            write(*,*) 'ERROR(mod_frequency::generate_freqgrid):&
-            &  Unknown frequency convolution method!'
-            write(*,*) '  Currently supported options are:'
-            write(*,*) '  - nofreq : no frequecy dependence of the weights'
-            write(*,*) '  - refreq : weights calculated for real frequencies'
-            write(*,*) '  - imfreq : weights calculated for imaginary frequencies'
-            stop
-        end select
 
         ! number of frequencies
         self%nomeg = nomeg
@@ -226,51 +212,22 @@ CONTAINS
     end subroutine
 
     !-------------------------------------------------------------------------------
-
     subroutine print_freqgrid(self,funit)
         implicit none
         type(frequency), intent(IN) :: self
         integer,         intent(IN) :: funit
         ! local variables
         integer :: i
-
         call boxmsg(funit,'-','frequency grid')
-        write(funit,*) 'Type: < fgrid >'
-        select case (self%fgrid)
-            case('eqdist','EQDIST')
-                write(funit,*) '  - Equaly spaced mesh (for tests purposes only)'
-            case('gaulag','GAULAG')
-                write(funit,*) '  - Grid for Gauss-Laguerre quadrature'
-            case('gaule2','GAULE2')
-                write(funit,*) '  - Grid for double Gauss-Legendre quadrature,'
-                write(funit,*) '    from 0 to freqmax and from freqmax to infinity'
-            case('gauleg','GAULEG')
-                write(funit,*) '  - Grid for Gauss-Legendre quadrature, from 0 to freqmax'
-            case('GL2')
-                write(funit,*) '  - Gauss-Legendre from 0 to infinity'
-
-        end select
-        write(funit,*) 'Convolution method: < fconv >'
-        select case (self%fconv)
-            case('nofreq')
-                write(funit,*) '  - nofreq : no frequecy dependence of the weights'
-            case('refreq')
-                write(funit,*) '  - refreq : weights calculated for real frequecies'
-            case('imfreq')
-                write(funit,*) '  - imfreq : weights calculated for imaginary frequecies'
-            case default
-                write(*,*) 'ERROR(mod_frequency::generate_freqgrid) &
-               & Unknown frequency convolution method!'
-                stop
-        end select
-        write(funit,*) 'Number of frequencies: < nomeg >', self%nomeg
-        write(funit,*) 'Cutoff frequency: < freqmax >', self%freqmax
-        write(funit,*) 'frequency list: < #    freqs    weight >'
+        write(funit,*) 'Type: < fgrid >', self%fgrid
+        write(funit,*) 'Frequency axis: < fconv >', self%fconv
+        write(funit,*) 'Number of frequencies: < nomeg > ', self%nomeg
+        write(funit,*) 'Cutoff frequency: < freqmax > ', self%freqmax
+        write(funit,*) 'frequency list: < #    freqs    weight > '
         do i = 1, self%nomeg
             write(funit,'(i4,1p,2g18.10)') i, self%freqs(i), self%womeg(i)
         enddo    
         call linmsg(funit,'-','')   
-
     end subroutine
 
 END MODULE

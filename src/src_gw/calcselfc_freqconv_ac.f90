@@ -2,7 +2,7 @@
 ! Calculates the q-dependent correlation term of the self-energy
 ! using the frequency convolution
 !==================================================================
-subroutine calcselfc_freqconv_v1(ikp,iq,mdim)
+subroutine calcselfc_freqconv_ac(ikp,iq,mdim)
     use modinput
     use modmain, only : pi, zzero, evalsv, idxas, evalcr, efermi
     use modgw,   only : ibgw, nbgw, nstse, kset, kqset, freq, selfec, mwm, &
@@ -51,17 +51,17 @@ subroutine calcselfc_freqconv_v1(ikp,iq,mdim)
           ias = idxas(ia,is)
           enk = evalcr(ic,ias)-efermi
         end if ! val/cor
-          
-        xnm(:) = mwm(ie1,ie2,:)
+        
+        ! Re W
+        xnm(:) = cmplx( dble(mwm(ie1,ie2,:)), 0.d0, 8)
 
-        ! Self-energy frequency grid
         do iom = 1, freq_selfc%nomeg
 
           w_sc = freq_selfc%freqs(iom)
 
-          !------------------------
-          ! Frequency convolution
-          !------------------------
+          !--------------------------------
+          ! frequency convolution integral
+          !--------------------------------
 
           ! (enk-iu)
           zt1 = cmplx( enk, -w_sc, 8)
@@ -69,9 +69,9 @@ subroutine calcselfc_freqconv_v1(ikp,iq,mdim)
           sc = zzero
           do jom = 1, freq%nomeg
             zt2 = freq%womeg(jom) / ( freq%freqs(jom)**2 + zt1**2 )
-            sc = sc + ( xnm(jom) - xnm(iom) ) * zt2
+            sc = sc + (xnm(jom)-xnm(iom)) * zt2
           end do
-          sc = sc * zt1 / pi + xnm(iom) * sign(0.5d0, enk)
+          sc = sc*zt1/pi + xnm(iom) * sign(0.5d0, enk)
 
           ! sum over states
           selfec(ie1,iom,ikp) = selfec(ie1,iom,ikp) + sc
@@ -81,17 +81,6 @@ subroutine calcselfc_freqconv_v1(ikp,iq,mdim)
       end do ! ie2
 
     end do ! ie1
-
-    if (input%gw%debug) then
-      write(fdebug,*) 'CORRELATION SELF-ENERGY: iq=', iq, ' ikp=', ikp
-      write(fdebug,*) 'omega    state    Sigma_c'
-      do iom = 1, freq%nomeg
-        do ie1 = ibgw, nbgw
-          write(fdebug,*) iom, ie1, selfec(ie1,iom,ikp)
-        end do
-      end do
-      write(fdebug,*)
-    end if
-    
+   
     return
 end subroutine    

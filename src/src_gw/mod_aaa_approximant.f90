@@ -286,7 +286,7 @@ contains
 
             ! Case when all points are used but convergence is not reached
             if ( m == npts ) then
-                stop 'ERROR(mod_aaa_approximant) Convergence cannot be reached! Try to increase the input data size.'
+                stop 'ERROR(mod_aaa_approximant) Convergence cannot be reached! Increase the tolerance or the sampling data size.'
             end if
 
             ! Select next supporting point where error is largest

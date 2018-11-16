@@ -2,7 +2,7 @@
 ! Calculates the q-dependent correlation term of the self-energy
 ! using the frequency convolution
 !==================================================================
-subroutine calcselfc_freqconv_v3(ikp,iq,mdim)
+subroutine calcselfc_freqconv_cd(ikp,iq,mdim)
     use modinput
     use modmain, only : pi, zzero, evalsv, idxas, evalcr, efermi
     use modgw,   only : ibgw, nbgw, nstse, kset, kqset, freq, selfec, mwm, &
@@ -18,10 +18,10 @@ subroutine calcselfc_freqconv_v3(ikp,iq,mdim)
     integer(4) :: ik, jk, jkp
     integer(4) :: ia, is, ias, ic, icg
     integer(4) :: ie1, ie2, i1, i2, n, m
-    integer(4) :: iom, jom, kom
-    real(8)    :: enk, wdiff, w_sc, f1, f2
+    integer(4) :: iom, jom, jom1
+    real(8)    :: enk, w, om1, om2
     complex(8) :: xnm(1:freq%nomeg), xnm_intp
-    complex(8) :: sc, zt1, zt2, dfz
+    complex(8) :: sc, dfz, w_ac
     type(aaa_approximant) :: aaa
     
     ! k point
@@ -57,56 +57,66 @@ subroutine calcselfc_freqconv_v3(ikp,iq,mdim)
         
         xnm(:) = mwm(ie1,ie2,:)
 
-        call set_aaa_approximant(aaa, cmplx(0.d0,freq%freqs,8), xnm, 1.d-14)
+        if (input%gw%selfenergy%actype == 'aaa') &
+          call set_aaa_approximant(aaa, cmplx(0.d0,-freq%freqs,8), xnm, input%gw%selfenergy%tol)
         
         ! Self-energy frequency grid
         do iom = 1, freq_selfc%nomeg
 
-          w_sc = freq_selfc%freqs(iom)
-
-          ! interpolation
-          ! call pade_approximant(freq%nomeg, cmplx(0.d0,freq%freqs,8), xnm, &
-          !                       cmplx(0.d0,w_sc,8), xnm_intp, dfz)
-          xnm_intp = get_aaa_approximant(aaa, cmplx(0.d0,w_sc,8))
-          ! print*, iom
-          ! print*, xnm(iom)
-          ! print*, xnm_intp
-
-          !------------------------
-          ! Frequency convolution
-          !------------------------
-
-          ! (enk-iu)
-          zt1 = cmplx(enk, -w_sc, 8)
-
           sc = zzero
-          do jom = 1, freq%nomeg
-            zt2 = freq%womeg(jom) / (freq%freqs(jom)**2 + zt1**2)
-            sc = sc + ( xnm(jom) - xnm_intp ) * zt2
-          end do
-          sc = sc * zt1 / pi + xnm_intp * sign(0.5d0, enk)
+          w = freq_selfc%freqs(iom)-enk ! (w - e_nk)
 
+          !------------------------------------
+          ! 1) frequency convolution integral
+          !------------------------------------
+          
+          om1 = 0.d0 ! Omega_{l}
+          do jom = 1, freq%nomeg
+            jom1 = min(jom+1, freq%nomeg) !  Omega_{l+1}
+            om2 = 0.5d0 * (freq%freqs(jom1) + freq%freqs(jom))
+            sc = sc + xnm(jom) * (atan(om2/w) - atan(om1/w))
+            om1 = om2 ! next integration sub-interval
+          end do
+          sc = sc / pi
+
+          !------------------------------------
+          ! 2) contribution from W poles
+          !------------------------------------         
+          w_ac = cmplx(abs(w), 0.d0, 8) ! |w-e_nk|-i*eta
+          
+          ! Analytical continuation
+          if (input%gw%selfenergy%actype == 'pade') then
+            call pade_approximant(freq%nomeg, cmplx(0.d0,freq%freqs,8), xnm, &
+                                  w_ac, xnm_intp, dfz)
+          else if (input%gw%selfenergy%actype == 'aaa') then
+            xnm_intp = get_aaa_approximant(aaa, w_ac)
+          end if
+
+          sc = sc + (theta(-enk)*theta(-w) - theta(w)*theta(enk)) * xnm_intp
+          
           ! sum over states
-          selfec(ie1,iom,ikp) = selfec(ie1,iom,ikp) + sc
+          selfec(ie1,iom,ikp) = selfec(ie1,iom,ikp) - sc
 
         end do ! frequency loop
 
-        call delete_aaa_approximant(aaa)
+        if (input%gw%selfenergy%actype == 'aaa') &
+          call delete_aaa_approximant(aaa)
 
       end do ! ie2
 
     end do ! ie1
-
-    if (input%gw%debug) then
-      write(fdebug,*) 'CORRELATION SELF-ENERGY: iq=', iq, ' ikp=', ikp
-      write(fdebug,*) 'omega    state    Sigma_c'
-      do iom = 1, freq%nomeg
-        do ie1 = ibgw, nbgw
-          write(fdebug,*) iom, ie1, selfec(ie1,iom,ikp)
-        end do
-      end do
-      write(fdebug,*)
-    end if
-    
+   
     return
+
+contains
+
+    real(8) function theta(x)
+      real(8), intent(in) :: x
+      if (x > 0.d0) then
+        theta = 1.d0
+      else
+        theta = 0.d0
+      end if
+    end function
+
 end subroutine    
