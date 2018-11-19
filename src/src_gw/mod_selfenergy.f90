@@ -76,6 +76,8 @@ contains
 
         ! Correlation self-energy
         if (input%gw%selfenergy%method == 'cd') then
+          if ( .not.associated(input%gw%selfenergy%wgrid) ) &
+              input%gw%selfenergy%wgrid => getstructwgrid(emptynode)
           call generate_freqgrid(freq_selfc, &
                                  input%gw%selfenergy%wgrid%type, &
                                  'refreq', &

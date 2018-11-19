@@ -80,17 +80,17 @@
                           Frequency grid type.
                         </xs:documentation></xs:annotation>
                       </xs:attribute>
-                      <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="size" default="100"> 
+                      <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="size" default="200">
                         <xs:annotation><xs:documentation>
                           Number of grid points.
                         </xs:documentation></xs:annotation>
                       </xs:attribute>
-                      <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="wmin" default="-3.0d0">
+                      <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="wmin" default="-1.0d0">
                         <xs:annotation><xs:documentation>
                           Lower frequency limit.
                         </xs:documentation></xs:annotation>
                       </xs:attribute>
-                      <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="wmax" default="3.0d0">
+                      <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="wmax" default="1.0d0">
                         <xs:annotation><xs:documentation>
                           Upper frequency limit.
                         </xs:documentation></xs:annotation>

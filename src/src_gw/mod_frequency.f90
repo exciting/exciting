@@ -25,6 +25,26 @@ CONTAINS
         if (allocated(self%womeg)) deallocate(self%womeg)
     end subroutine
 
+
+    !-------------------------------------------------------------------------------
+    function copy_freqgrid(self_in) result(self_out)
+        implicit none
+        type(frequency), intent(IN) :: self_in
+        type(frequency)             :: self_out
+        self_out%fgrid = self_in%fgrid
+        self_out%fconv = self_in%fconv
+        self_out%nomeg = self_in%nomeg
+        self_out%freqmin = self_in%freqmin
+        self_out%freqmax = self_in%freqmax
+        if (allocated(self_out%freqs)) deallocate(self_out%freqs)
+        allocate(self_out%freqs(self_out%nomeg))
+        self_out%freqs =  self_in%freqs
+        if (allocated(self_out%womeg)) deallocate(self_out%womeg)
+        allocate(self_out%womeg(self_out%nomeg))
+        self_out%womeg =  self_in%womeg
+    end function
+
+
 !-------------------------------------------------------------------------------
     subroutine generate_freqgrid(self,fgrid,fconv,nomeg,freqmin,freqmax)
         implicit none

@@ -30,7 +30,7 @@ subroutine calcselfc_ac()
 
     ! real frequency grid
     if ( .not.associated(input%gw%selfenergy%wgrid) ) &
-        input%gw%selfenergy%wgrid => getstructwgrid(emptynode)   
+        input%gw%selfenergy%wgrid => getstructwgrid(emptynode)
     call generate_freqgrid(freq_selfc, &
                            input%gw%selfenergy%wgrid%type, &
                            'refreq', &
