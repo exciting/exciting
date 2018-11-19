@@ -57,24 +57,28 @@ subroutine calcselfc_freqconv_cd(ikp,iq,mdim)
         
         xnm(:) = mwm(ie1,ie2,:)
 
-        if (input%gw%selfenergy%actype == 'aaa') &
-          call set_aaa_approximant(aaa, cmplx(0.d0,-freq%freqs,8), xnm, input%gw%selfenergy%tol)
+        if (input%gw%selfenergy%actype == 'aaa') then
+          call set_aaa_approximant(aaa, &
+                                   cmplx(0.d0,freq%freqs,8), &
+                                   xnm, &
+                                   input%gw%selfenergy%tol)
+        end if
         
         ! Self-energy frequency grid
         do iom = 1, freq_selfc%nomeg
 
-          sc = zzero
-          w = freq_selfc%freqs(iom)-enk ! (w - e_nk)
-
+          w = freq_selfc%freqs(iom)
+          
           !------------------------------------
           ! 1) frequency convolution integral
           !------------------------------------
-          
+          sc = zzero
+
           om1 = 0.d0 ! Omega_{l}
           do jom = 1, freq%nomeg
             jom1 = min(jom+1, freq%nomeg) !  Omega_{l+1}
             om2 = 0.5d0 * (freq%freqs(jom1) + freq%freqs(jom))
-            sc = sc + xnm(jom) * (atan(om2/w) - atan(om1/w))
+            sc = sc + xnm(jom) * (atan(om2/(w-enk)) - atan(om1/(w-enk)))
             om1 = om2 ! next integration sub-interval
           end do
           sc = sc / pi
@@ -82,7 +86,7 @@ subroutine calcselfc_freqconv_cd(ikp,iq,mdim)
           !------------------------------------
           ! 2) contribution from W poles
           !------------------------------------         
-          w_ac = cmplx(abs(w), 0.d0, 8) ! |w-e_nk|-i*eta
+          w_ac = cmplx(abs(w-enk), 0.d0, 8) ! |w-e_nk|-i*eta
           
           ! Analytical continuation
           if (input%gw%selfenergy%actype == 'pade') then
@@ -90,9 +94,10 @@ subroutine calcselfc_freqconv_cd(ikp,iq,mdim)
                                   w_ac, xnm_intp, dfz)
           else if (input%gw%selfenergy%actype == 'aaa') then
             xnm_intp = get_aaa_approximant(aaa, w_ac)
+            xnm_intp = conjg(xnm_intp)
           end if
-
-          sc = sc + (theta(-enk)*theta(-w) - theta(w)*theta(enk)) * xnm_intp
+          sc = sc + (theta(enk-w)*theta(-enk) - &
+                     theta(w-enk)*theta(enk)) * xnm_intp
           
           ! sum over states
           selfec(ie1,iom,ikp) = selfec(ie1,iom,ikp) - sc

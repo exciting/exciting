@@ -162,32 +162,25 @@ CONTAINS
                 self%womeg(i) = 1.d0/dble(n)
             end do
 
-        case('clencurt2')
-            ! Commensurate condition: N = j*(n+2)-2
-            self%nomeg = nomeg - mod(nomeg,2)
+        case('clencurt1')
+            ! Clenshaw-Curtis grid [-1,1]
             allocate(self%freqs(self%nomeg))
             allocate(self%womeg(self%nomeg))
-            n = self%nomeg/2
-            allocate(u(n), wu(n))
-            wu(:) = 0.d0
+            n = self%nomeg
+            ell = self%freqmax
+            self%womeg(:) = 0.d0
             do i = 1, n
                 ii = n-i+1
                 t = pi * dble(i) / dble(n+1)
-                u(ii) = cos(t)
+                self%freqs(ii) = ell * cos(t)
                 do j = 1, n
-                    wu(ii) = wu(ii) + sin(dble(j)*t) * (1.d0 - cos(dble(j)*pi) ) / dble(j)
+                    self%womeg(ii) = self%womeg(ii) + sin(dble(j)*t) * (1.d0 - cos(dble(j)*pi) ) / dble(j)
                 end do
-                wu(ii) = sin(t) * 2.d0/dble(n+1) * wu(ii)
+                self%womeg(ii) = self%womeg(ii) * ell * sin(t) * 2.0/dble(n + 1)
             end do
-            do i = 1, n
-                self%freqs(i) = self%freqmax * (u(i)+1.0d0) / 2.0d0
-                self%freqs(2*n-i+1) = 2.0d0 * self%freqmax / (u(i)+1.0d0)
-                self%womeg(i) = self%freqmax * wu(i) / 2.0d0
-                self%womeg(2*n-i+1) = 2.0d0 * self%freqmax * wu(i) / ((u(i)+1.0d0)*(u(i)+1.0d0))
-            enddo ! i
-            deallocate(u, wu)
 
-        case('clencurt')
+        case('clencurt2')
+            ! Clenshaw-Curtis grid [0,infinity]
             allocate(self%freqs(self%nomeg))
             allocate(self%womeg(self%nomeg))
             n = self%nomeg          
@@ -201,6 +194,20 @@ CONTAINS
                     self%womeg(ii) = self%womeg(ii) + sin(dble(j)*t) * (1.d0 - cos(dble(j)*pi) ) / dble(j)
                 end do
                 self%womeg(ii) = self%womeg(ii) * 2.d0 * ell * sin(t) / (1.d0 - cos(t))**2 * 2.0/dble(n + 1)
+            end do
+
+        case('clencurt3')
+            ! Clenshaw-Curtis grid [-infinity,infinity]
+            allocate(self%freqs(self%nomeg))
+            allocate(self%womeg(self%nomeg))
+            n = self%nomeg          
+            ell = self%freqmax
+            self%womeg(:) = 0.d0
+            do i = 1, n
+                ii = n-i+1
+                t = pi * dble(i) / dble(n+1)
+                self%freqs(ii) = ell * cotan(t)
+                self%womeg(ii) = ell * pi / (sin(t)**2 * dble(n+1))
             end do
 
         case default
@@ -219,8 +226,8 @@ CONTAINS
         ! local variables
         integer :: i
         call boxmsg(funit,'-','frequency grid')
-        write(funit,*) 'Type: < fgrid >', self%fgrid
-        write(funit,*) 'Frequency axis: < fconv >', self%fconv
+        write(funit,*) 'Type: < fgrid > ', self%fgrid
+        write(funit,*) 'Frequency axis: < fconv > ', self%fconv
         write(funit,*) 'Number of frequencies: < nomeg > ', self%nomeg
         write(funit,*) 'Cutoff frequency: < freqmax > ', self%freqmax
         write(funit,*) 'frequency list: < #    freqs    weight > '

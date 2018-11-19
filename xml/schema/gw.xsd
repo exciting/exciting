@@ -33,7 +33,7 @@
                     'imfreq' - weights calculated for imaginary frequecies.
                   </xs:documentation></xs:annotation>
                 </xs:attribute>
-                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="fgrid" default="gaule2"> 
+                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="fgrid" default="gauleg2"> 
                   <xs:annotation><xs:documentation>
                   Frequency integration grid type:
                     'eqdist'  - equidistant frequencies from 0 to freqmax;

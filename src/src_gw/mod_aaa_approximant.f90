@@ -215,7 +215,7 @@ contains
         complex(8), intent(in)             :: Z(:)
         complex(8), intent(in)             :: F(:)
         real(8),    intent(in), optional   :: tol
-        logical(8), intent(in), optional   :: cleanup_flag
+        logical,    intent(in), optional   :: cleanup_flag
         real(8),    intent(in), optional   :: cleanup_tol
         ! parameters
         integer(4),   parameter :: mmax = 1000
@@ -240,7 +240,7 @@ contains
         if (present(tol)) then
             reltol = tol
         else
-            reltol = 1.d-13
+            reltol = 1.d-14
         end if
         reltol = reltol * znorm(F)
         ! print*, 'reltol=', reltol
