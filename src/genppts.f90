@@ -24,7 +24,7 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
     real(8), intent(out) :: wppt(ngridp(1)*ngridp(2)*ngridp(3))
     ! local variables
     integer :: i1, i2, i3, ip, jp, ipnr, jpnr
-    integer :: isym, lspl, iv (3), starr(48)
+    integer :: isym, lspl, iv (3), starr(maxsymcrys)
     real(8) :: v1 (3), v2 (3), v3 (3)
     real(8) :: b (3, 3), s (3, 3), t1, t2
     logical, allocatable :: done(:)
