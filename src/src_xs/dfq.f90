@@ -468,9 +468,11 @@ subroutine dfq(iq)
       bc%iu2 = istu2
       ikmapikq_ptr => ikmapikq
       call setptr01
-      call ematqk(iq, ik, xiou, bc)
-
-
+      if (.not. input%groundstate%tevecsv) then
+        call ematqk(iq, ik, xiou, bc)
+      else
+        call ematqk_sv(iq, ik, xiou, bc)
+      end if
       ! Get uo
       if(allocated(xiuo)) deallocate(xiuo)
       allocate(xiuo(nst3, nst4, n))
@@ -490,38 +492,11 @@ subroutine dfq(iq)
         bc%iu2 = istu4
         ikmapikq_ptr => ikmapikq
         call setptr01
-        
         if (.not. input%groundstate%tevecsv) then
-          call ematqk(iq, ik, xiou, bc)
+          call ematqk(iq, ik, xiuo, bc)
         else
-          call ematqk_sv(iq, ik, xiou, bc)
+          call ematqk_sv(iq, ik, xiuo, bc)
         end if
-        ! Get uo
-        if(allocated(xiuo)) deallocate(xiuo)
-        allocate(xiuo(nst3, nst4, n))
-
-        ! Note:
-        ! The uo plane wave matrix elements are not needed
-        ! if the time reversal symmetry is applied to the 
-        ! anti-resonant part of Chi0. 
-
-        ! t.r. sym not used
-        if( doares ) then
-          bc%n1 = nst3
-          bc%n2 = nst4
-          bc%il1 = istl3
-          bc%il2 = istl4
-          bc%iu1 = istu3
-          bc%iu2 = istu4
-          ikmapikq_ptr => ikmapikq
-          call setptr01
-          if (.not. input%groundstate%tevecsv) then
-            call ematqk(iq, ik, xiuo, bc)
-          else
-            call ematqk_sv(iq, ik, xiuo, bc)
-          end if
-        end if
-
       end if
 
 !********************************************************!
