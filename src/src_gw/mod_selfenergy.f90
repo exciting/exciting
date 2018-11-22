@@ -37,6 +37,9 @@ module mod_selfenergy
     ! QP energies
     real(8) :: eferqp
     real(8), allocatable :: evalqp(:,:)
+
+    ! Chemical potential alignment
+    real(8) :: deltaE
     
     ! Linearization (renormalization) factor
     real(8),    allocatable :: znorm(:,:)

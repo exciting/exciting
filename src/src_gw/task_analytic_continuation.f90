@@ -31,34 +31,31 @@ subroutine task_analytic_continuation()
     if (myrank==0) then
     
       ! allocate the arrays
-      if (allocated(evalsv)) deallocate(evalsv)
-      allocate(evalsv(nstsv,kset%nkpt))
+      
       allocate(vxcnn(ibgw:nbgw,kset%nkpt))
       call init_selfenergy(ibgw,nbgw,kset%nkpt)
+
+      ! real frequency grid
+      if ( .not.associated(input%gw%selfenergy%wgrid) ) &
+          input%gw%selfenergy%wgrid => getstructwgrid(emptynode)
+      call delete_freqgrid(freq_selfc)
+      call generate_freqgrid(freq_selfc, &
+                           input%gw%selfenergy%wgrid%type, &
+                           'refreq', &
+                           input%gw%selfenergy%wgrid%size, &
+                           input%gw%selfenergy%wgrid%wmin, &
+                           input%gw%selfenergy%wgrid%wmax)
+      deallocate(selfec)
+      allocate(selfec(ibgw:nbgw,freq_selfc%nomeg,kset%nkpt))
     
-      ! read data from files
-#ifdef _HDF5_
-      !call hdf5_read(fgwh5,"/","efermi",efermi)
-      do ik = 1, kset%nkpt
-        write(cik,'(I4.4)') ik
-        path = "/kpoints/"//trim(adjustl(cik))
-        call hdf5_read(fgwh5,path,"evalks",evalks(ibgw,ik),(/nbandsgw/))
-        evalsv(:,ik) = evalks(:,ik)
-        call hdf5_read(fgwh5,path,"vxcnn",vxcnn(ibgw,ik),(/nbandsgw/))
-        call hdf5_read(fgwh5,path,"selfex",selfex(ibgw,ik),(/nbandsgw/))
-        call hdf5_read(fgwh5,path,"selfec",selfec(ibgw,1,ik),(/nbandsgw,freq%nomeg/))
-      end do ! ik
-#else
-      do ik = 1, kset%nkpt
-        ik_ = kset%ikp2ik(ik)
-        call getevalsvgw_new('GW_EVALSV.OUT',ik_,kqset%vkl(:,ik_), &
-        &                     nstsv,evalsv(1,ik))
-        evalks(ibgw:nbgw,ik) = evalsv(ibgw:nbgw,ik)
-      end do
+      ! read data from files     
+      call readevalqp()
+      if (allocated(evalsv)) deallocate(evalsv)
+      allocate(evalsv(nstsv,kset%nkpt))
+      evalsv(:,:) = evalks(:,:)
       call read_vxcnn()
       call readselfx()
       call readselfc()
-#endif
 
       ! KS states analysis
       call fermi_exciting(input%groundstate%tevecsv, &
@@ -77,8 +74,8 @@ subroutine task_analytic_continuation()
       !------------------------------------------------------
       ! Write quasi-particle energies to file
       !------------------------------------------------------
-      call write_qp_energies('EVALQP-AC.DAT')
-      call bandstructure_analysis('G0W0-AC',ibgw,nbgw,kset%nkpt,&
+      call write_qp_energies('EVALQP.DAT')
+      call bandstructure_analysis('G0W0',ibgw,nbgw,kset%nkpt,&
       &                            evalqp(ibgw:nbgw,:),eferqp)
  
       !----------------------------------------

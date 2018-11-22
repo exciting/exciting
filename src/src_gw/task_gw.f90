@@ -254,7 +254,9 @@ subroutine task_gw()
         call plot_selfc_iw()
         call calcselfc_ac()
       end if
-      
+
+ !$OMP critical
+
       !===============================
       ! Write self-energies to files
       !===============================
@@ -291,7 +293,8 @@ subroutine task_gw()
               ibgw,nbgw,kset%nkpt,evalqp(ibgw:nbgw,:),eferqp)
           
       end select
-      
+
+!$OMP end critical
     end if ! myrank
     
     !--------------------------------------------------------

@@ -29,27 +29,20 @@ subroutine init_dft_eigenvalues()
       call getevalsvgw_new('GW_EVALSV.OUT',ik0,kqset%vkl(:,ik0), &
       &                     nstsv,evalsv(1,ik))
     end do
-    
+
     !----------------------------------------
     ! find Fermi energy (LIBBZINT routine)
     !----------------------------------------
-    !n = min( int(chgval/2.d0)+10, nstsv)
-    !call fermi( kset%nkpt, n, &
-    !&           evalsv(1:n,:), &
-    !&           kset%ntet, &
-    !&           kset%tnodes, &
-    !&           kset%wtet, &
-    !&           kset%tvol, &
-    !&           chgval,nspinor,efermi,egap)
     call fermi_exciting(input%groundstate%tevecsv, &
     &                   chgval, &
     &                   nstsv,nkpt,evalsv, &
     &                   ntet,tnodes,wtet,tvol, &
     &                   efermi,egap,fermidos)
-    
-    !evalsv(:,:) = evalsv(:,:)-efermi
-    !evalcr(:,:) = evalcr(:,:)-efermi
-    !efermi = 0.d0
+
+    ! Setup the energy scale: Ef_KS = 0
+    evalsv(:,:) = evalsv(:,:)-efermi
+    evalcr(:,:) = evalcr(:,:)-efermi
+    efermi = 0.d0
     
     ! apply scissor shift
     !e0 = 0.0037 ! 0.1 eV
@@ -64,7 +57,7 @@ subroutine init_dft_eigenvalues()
     !---------------------------------------------------------
     call bandstructure_analysis('Kohn-Sham bandstructure analysis', &
     &  1,nstsv,kset%nkpt,evalsv(1:nstsv,:),efermi)
-       
+
     !-----------------------------------------------------------------
     ! Check for consistency with specified QP bands range [ibgw,nbgw]
     !-----------------------------------------------------------------

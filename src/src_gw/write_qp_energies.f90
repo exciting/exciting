@@ -12,7 +12,7 @@ subroutine write_qp_energies(fname)
   integer(4) :: ie
   integer(4) :: ikp
   integer(4) :: fid
-  real(8)    :: deltae, deltax
+  real(8)    :: de, dx
   real(8)    :: ehf, eks, egw
   real(8)    :: vxc, sx, scr, sci, z
 
@@ -29,7 +29,7 @@ subroutine write_qp_energies(fname)
 
       eks = evalks(ie,ikp)
       egw = evalqp(ie,ikp)
-      deltae = egw-eks
+      de = egw-eks
       
       vxc = dble(vxcnn(ie,ikp))
       
@@ -55,11 +55,11 @@ subroutine write_qp_energies(fname)
       
       end select
         
-      deltax = sx-vxc
-      ehf = eks+deltax
+      dx = sx-vxc
+      ehf = eks+dx
 
       write(fid,3) ie, eks, ehf, egw, &
-      &            sx, scr, sci, vxc, deltax, deltae, z
+      &            sx, scr, sci, vxc, dx, de, z
       
     enddo ! ie
     write(fid,*)

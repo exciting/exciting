@@ -10,6 +10,7 @@ subroutine plot_spectral_function()
     complex(8) :: dsc
     character(22) :: frmt
     real(8), allocatable :: sf(:)
+
     open(70,file='SpectralFunction.dat',form='FORMATTED',status='UNKNOWN',action='WRITE')
     open(71,file='Delta.dat',form='FORMATTED',status='UNKNOWN',action='WRITE')
     write(frmt, '("(",i8,"f14.6)")') 1 + nbgw-ibgw+1
@@ -36,4 +37,5 @@ subroutine plot_spectral_function()
     deallocate(sf)
     close(70)
     close(71)
+
 end subroutine

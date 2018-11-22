@@ -66,13 +66,5 @@ subroutine calcevalqp
     &                   kset%ntet,kset%tnodes,kset%wtet,kset%tvol, &
     &                   eferqp,egap,df)
 
-    ! Shift QP energies to align KS and QP Fermi energies
-    do ik = 1, kset%nkpt
-      do ie = ibgw, nbgw
-          evalqp(ie,ik) = evalqp(ie,ik) - eferqp + efermi
-      end do
-    end do
-    eferqp = efermi
-
 end subroutine
 !EOC        

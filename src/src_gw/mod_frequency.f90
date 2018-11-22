@@ -74,6 +74,9 @@ CONTAINS
         ! cutoff frequencies
         self%freqmin = freqmin
         self%freqmax = freqmax
+        if ( self%freqmin > self%freqmax ) then
+            stop 'Error(mod_frequency::generate_freqgrid) freqmin > freqmax: Check your input!'
+        end if
 
         if (allocated(self%freqs)) deallocate(self%freqs)
         if (allocated(self%womeg)) deallocate(self%womeg)
