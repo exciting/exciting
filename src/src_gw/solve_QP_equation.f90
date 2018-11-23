@@ -9,7 +9,7 @@ subroutine solve_QP_equation()
     use mod_pade
     use m_getunit
     implicit none
-    integer(4), parameter :: nitermax = 100
+    integer(4), parameter :: nitermax = 1000
     real(8),    parameter :: etol = 1.d-4
     integer(4) :: iter, ik, ib, nz
     real(8)    :: enk, eqp, eqp_prev, diff, dzf2
@@ -22,12 +22,11 @@ subroutine solve_QP_equation()
     ! Alignment of the chemical potential:
     !   ef + de = ef + Sigma(kf, ef + de)
     !------------------------------------------
-    variant = 2
-    select case (variant)
-        case(1)
+    select case (input%gw%selfenergy%eshift)
+        case(0)
             ! no shift
             de = 0.d0
-        case(2)
+        case(1)
             ! like in Lucia's book
             enk = evalsv(nomax,ikvbm)-efermi
             sx = enk + selfex(nomax,ikvbm) - vxcnn(nomax,ikvbm)
@@ -49,7 +48,7 @@ subroutine solve_QP_equation()
             end do
             if (.not.converged) write(*,*) 'Problem with convergence!'
             de = eqp - enk
-        case(3)
+        case(2)
             ! like in Bruneval&Gatti's article
             enk = evalsv(nomax,ikvbm)-efermi
             call get_selfc(freq_selfc%nomeg, freq_selfc%freqs, selfec(nomax,:,ikvbm), &
@@ -75,31 +74,35 @@ subroutine solve_QP_equation()
             converged = .false.
             do iter = 1, nitermax
 
-                if (input%gw%selfenergy%iopes == 0) then
-                    ! Perturbative solution (single iteration)
-                    call get_selfc( freq_selfc%nomeg, freq_selfc%freqs, selfec(ib,:,ik), &
-                                    enk, sigc(ib,ik), dsigma )
-                    znk = zone / (zone-dsigma)
-                    znorm(ib,ik)  = dble(znk)
-                    eqp = enk + znorm(ib,ik)*dble(selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik)) + &
-                          (1.d0-znorm(ib,ik))*deltaE
-                    converged = .true.
-                    exit
-                else if (input%gw%selfenergy%iopes == 1) then
-                    ! Perturbative solution without renormalization
-                    call get_selfc( freq_selfc%nomeg, freq_selfc%freqs, selfec(ib,:,ik), &
-                                    enk, sigc(ib,ik), dsigma )
-                    eqp = enk + dble(selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik))
-                    znorm(ib,ik)  = 1.d0
-                    converged = .true.
-                    exit
-                else if (input%gw%selfenergy%iopes == 2) then
-                    ! Iterative solution
-                    call get_selfc( freq_selfc%nomeg, freq_selfc%freqs, selfec(ib,:,ik), &
-                                    eqp-deltaE, sigc(ib,ik), dsigma )
-                    eqp = enk + selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik)
-                    znorm(ib,ik)  = 1.d0
-                end if
+                select case (input%gw%selfenergy%eqpsolver)
+                    case(0)
+                        ! Perturbative solution (single iteration)
+                        call get_selfc( freq_selfc%nomeg, freq_selfc%freqs, selfec(ib,:,ik), &
+                                        enk, sigc(ib,ik), dsigma )
+                        znk = zone / (zone-dsigma)
+                        znorm(ib,ik)  = dble(znk)
+                        eqp = enk + znorm(ib,ik)*dble(selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik)) + &
+                            (1.d0-znorm(ib,ik))*deltaE
+                        converged = .true.
+                        exit
+                    case(1)
+                        ! Perturbative solution without renormalization
+                        call get_selfc( freq_selfc%nomeg, freq_selfc%freqs, selfec(ib,:,ik), &
+                                        enk, sigc(ib,ik), dsigma )
+                        eqp = enk + dble(selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik))
+                        znorm(ib,ik)  = 1.d0
+                        converged = .true.
+                        exit
+                    case(2)
+                        ! Iterative solution
+                        call get_selfc( freq_selfc%nomeg, freq_selfc%freqs, selfec(ib,:,ik), &
+                                        eqp-deltaE, sigc(ib,ik), dsigma )
+                        eqp = enk + selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik)
+                        znorm(ib,ik)  = 1.d0
+                    case default
+                        write(*,*) 'Error(solve_QP_equation) Non supported value: eqpsolver =', input%gw%selfenergy%eqpsolver
+                        stop
+                end select
 
                 ! Error function
                 diff = eqp - eqp_prev

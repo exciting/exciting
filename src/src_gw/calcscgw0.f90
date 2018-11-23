@@ -60,7 +60,7 @@ subroutine calcscgw0
     egk(:) = evalqp(numin,:)-evalqp(nomax,:)
     
     ! disable energy shift in calcevalqp.f90
-    input%gw%selfenergy%iopes=-1
+    input%gw%selfenergy%eqpsolver=-1
     nscmax = 100
     epsilon_sc = 1.d-6
     do isc = 1, nscmax

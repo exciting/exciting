@@ -20,7 +20,8 @@ subroutine write_gw_parameters_hdf5
 
     call hdf5_create_group(fgwh5,"/parameters","selfenergy")
     call hdf5_write(fgwh5,"/parameters/selfenergy","nempty",input%gw%selfenergy%nempty)
-    call hdf5_write(fgwh5,"/parameters/selfenergy","iopes",input%gw%selfenergy%iopes)
+    call hdf5_write(fgwh5,"/parameters/selfenergy","eqpsolver",input%gw%selfenergy%eqpsolver)
+    call hdf5_write(fgwh5,"/parameters/selfenergy","eshift",input%gw%selfenergy%eshift)
     call hdf5_write(fgwh5,"/parameters/selfenergy","actype",input%gw%selfenergy%actype)
    
     call hdf5_create_group(fgwh5,"/parameters","mixbasis")

@@ -262,7 +262,6 @@ subroutine task_gw()
       !===============================
       call write_selfenergy(ibgw,nbgw,kset%nkpt,freq_selfc%nomeg)
       call plot_selfc()
-      call plot_spectral_function()      
       
       !=======================================
       ! Calculate the quasiparticle energies
@@ -275,6 +274,7 @@ subroutine task_gw()
 
       ! solve QP equation
       call calcevalqp()
+      call plot_spectral_function()
       call write_qp_energies('EVALQP.DAT')
       
       ! G0W0 QP band structure

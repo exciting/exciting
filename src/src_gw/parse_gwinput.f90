@@ -207,22 +207,28 @@ subroutine parse_gwinput
       if (rank==0) write(fgw,*) 'Number of empty states:', input%gw%selfenergy%nempty
     end if
     if (rank==0) write(fgw,*) 'Solution of the QP equation:'
-    select case (input%gw%selfenergy%iopes)
+    select case (input%gw%selfenergy%eqpsolver)
         case(0)
-            if (rank==0) write(fgw,*) "  0 - perturbative solution of QP-equation without energy shift"
+            if (rank==0) write(fgw,*) "  0 - perturbative solution"
         case(1)
-            if (rank==0) write(fgw,*) "  1 - perturbative solution of QP-equation with energy shift"
+            if (rank==0) write(fgw,*) "  1 - Z=1 solution"
         case(2)
-            if (rank==0) write(fgw,*) "  2 - iterative solution of QP-equation"
-        case(3)
-            ! if (rank==0) write(fgw,*) "  3 - iterative solution of QP-equation"
+            if (rank==0) write(fgw,*) "  2 - iterative solution"
         case default
-            if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal value for input%gw%SelfEnergy%iopes'
-            if (rank==0) write(*,*) '  Currently supported options are:'
-            if (rank==0) write(*,*) '  0 - perturbative solution of QP-equation without energy shift'
-            if (rank==0) write(*,*) '  1 - perturbative solution of QP-equation with energy shift'
-            if (rank==0) write(*,*) '  2 - iterative solution of QP-equation'
-            stop        
+            if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal value for input%gw%SelfEnergy%eqpsolver'
+            stop
+    end select
+    if (rank==0) write(fgw,*) 'Energy alignment:'
+    select case (input%gw%selfenergy%eshift)
+        case(0)
+            if (rank==0) write(fgw,*) "  0 - no alignment"
+        case(1)
+            if (rank==0) write(fgw,*) "  1 - self-consistency at the Fermi level (iterative)"
+        case(2)
+            if (rank==0) write(fgw,*) "  2 - self-consistency at the Fermi level (perturbative)"
+        case default
+            if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal value for input%gw%SelfEnergy%eshift'
+            stop
     end select
     if (rank==0) write(fgw,*) 'Analytic continuation method:'
     select case (trim(input%gw%selfenergy%actype))

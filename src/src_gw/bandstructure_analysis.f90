@@ -69,8 +69,8 @@ subroutine bandstructure_analysis(title,ib,nb,nkpt,eband,efermi)
           ! indirect gap
           write(fgw,10) ' Indirect BandGap (eV):', egf*hev
           write(fgw,12) kset%vkl(:,ikvbm), ikvbm, kset%vkl(:,ikcbm), ikcbm
-          write(fgw,10) ' Direct Bandgap at VBM (eV):', (eband(numin,ikvbm)-eband(nomax,ikvbm))*hev
-          write(fgw,10) ' Direct Bandgap at CBM (eV):', (eband(numin,ikcbm)-eband(nomax,ikcbm))*hev
+          write(fgw,10) ' Direct Bandgap at k(VBM) (eV):', (eband(numin,ikvbm)-eband(nomax,ikvbm))*hev
+          write(fgw,10) ' Direct Bandgap at k(CBm) (eV):', (eband(numin,ikcbm)-eband(nomax,ikcbm))*hev
         end if
       end if
       call linmsg(fgw,'-','')
@@ -80,7 +80,7 @@ subroutine bandstructure_analysis(title,ib,nb,nkpt,eband,efermi)
 10 format(a,T40,f10.4)
 11 format(' at k      = ',3f8.3,' ik = ',i5)
 12 format(' at k(VBM) = ',3f8.3,' ik = ',i5,/,&
-&         '    k(CBM) = ',3f8.3,' ik = ',i5)
+&         '    k(CBm) = ',3f8.3,' ik = ',i5)
     
     return
 end subroutine

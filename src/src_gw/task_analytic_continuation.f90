@@ -70,6 +70,7 @@ subroutine task_analytic_continuation()
       ! Calculate the quasiparticle energies
       !======================================
       call calcevalqp
+      call plot_spectral_function()
       
       !------------------------------------------------------
       ! Write quasi-particle energies to file
