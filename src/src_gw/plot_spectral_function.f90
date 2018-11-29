@@ -1,5 +1,6 @@
 
 subroutine plot_spectral_function()
+    use modinput
     use modmain,        only: pi, evalsv, efermi
     use mod_vxc,        only: vxcnn
     use mod_selfenergy, only: selfex, selfec, freq_selfc, deltaE
@@ -27,7 +28,7 @@ subroutine plot_spectral_function()
                                 w-deltaE, sc, dsc )
                 sxc = selfex(ib,ik) + sc - vxcnn(ib,ik)
                 sRe = dble(sxc)
-                sIm = aimag(sxc)
+                sIm = aimag(sxc) + input%gw%selfenergy%swidth
                 div = (w-evalsv(ib,ik)-sRe)**2 + sIm**2
                 sf(ib) = 1.d0/pi * abs(sIm) / div
             end do

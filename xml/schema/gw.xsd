@@ -133,7 +133,6 @@
                   <xs:annotation><xs:documentation>
                     Analytical continuation scheme:
                     'pade': Pade's approximant (by H. J. Vidberg and J. W. Serence, J. Low Temp. Phys. 29, 179 (1977))
-                    'mpf':  Multi-Pole Fitting (by H. N Rojas, R. W. Godby and R. J. Needs, Phys. Rev. Lett. 74, 1827 (1995))
                     'aaa': Y. Nakatsukasa, O. Sete, L. N. Trefethen, "The AAA algorithm for rational approximation", SIAM J. Sci. Comp. 40 (2018), A1494-A1522
                   </xs:documentation></xs:annotation>
                 </xs:attribute>
@@ -141,6 +140,12 @@
                 <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="tol" default="1.0d-13">
                   <xs:annotation><xs:documentation>
                     Tolerance factor used in generating support points in AAA-interpolation.
+                  </xs:documentation></xs:annotation>
+                </xs:attribute>
+
+                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="swidth" default="1.0d-6">
+                  <xs:annotation><xs:documentation>
+                    Smearing parameter for visualizing the spectral function.
                   </xs:documentation></xs:annotation>
                 </xs:attribute>
                 
