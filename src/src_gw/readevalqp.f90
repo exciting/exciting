@@ -53,14 +53,6 @@ subroutine readevalqp()
             write(*,*) 'ERROR(readevalqp): Inconsistent k-points!'
             stop
         end if
-        if ( .false. ) then
-            write(*,*) '# ik    vkl    ib,    nb'
-            write(*,'(i4,3f12.4,2i4)') ik, vkl, ib, nb
-            write(*,*) '# ib    eqp    eks,   eferqp,   eferks'
-            do ib = ibgw, nbgw
-                write(*,'(i4,4f12.7)') ib, evalqp(ib,ik), evalks(ib,ik), eferqp, eferks
-            end do
-        end if
     end do ! ik
     
     close(70)

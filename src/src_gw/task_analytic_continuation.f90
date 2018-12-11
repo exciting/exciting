@@ -51,7 +51,7 @@ subroutine task_analytic_continuation()
       ! read data from files     
       call readevalqp()
       if (allocated(evalsv)) deallocate(evalsv)
-      allocate(evalsv(nstsv,kset%nkpt))
+      allocate(evalsv(ibgw:nbgw,kset%nkpt))
       evalsv(:,:) = evalks(:,:)
       call read_vxcnn()
       call readselfx()
@@ -85,7 +85,7 @@ subroutine task_analytic_continuation()
       call putevalqp()
       
       ! clear memory
-      deallocate(evalsv)
+      deallocate(evalks, evalsv)
       deallocate(vxcnn)
       call delete_selfenergy
       

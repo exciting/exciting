@@ -82,7 +82,7 @@ subroutine solve_QP_equation()
                         znk = zone / (zone-dsigma)
                         znorm(ib,ik)  = dble(znk)
                         eqp = enk + znorm(ib,ik)*dble(selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik)) + &
-                            (1.d0-znorm(ib,ik))*deltaE
+                              (1.d0-znorm(ib,ik))*deltaE
                         converged = .true.
                         exit
                     case(1)
