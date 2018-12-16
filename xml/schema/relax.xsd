@@ -170,7 +170,7 @@
                 </xs:annotation>
             </xs:attribute>
             
-            <xs:attribute ex:importance="expert" name="taubfgs" type="fortrandouble" default="0.3d0" 
+            <xs:attribute ex:importance="expert" name="taubfgs" type="fortrandouble" default="5.0d0" 
 	                  use="optional">
                 <xs:annotation>
                     <xs:documentation>
