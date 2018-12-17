@@ -54,22 +54,7 @@ subroutine relax
 !_____________________________________________________________
 ! Write first (if required) the starting configuration on file
 
-    if (rank .Eq. 0) then
-      if ((input%relax%history).and. (input%relax%addtohistory)) then
-        call writehistory
-      elseif (input%relax%history) then
-        select case (trim(input%relax%historyformat))
-        case('xyz','XYZ')
-             call system ('mv history.xyz history.xyz.backup >& /dev/null')
-        case('gulp','GULP')
-             call system ('mv history.gin history.gin.backup >& /dev/null')
-        case default
-            write(*,*)'ERROR(relax): Unknown output format'
-            stop
-        end select
-        call writehistory
-      end if
-    end if
+    if (rank .Eq. 0) call writehistory
 
 !__________________________________________________
 ! Use "fromfile" option during the optimization run
