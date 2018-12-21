@@ -567,39 +567,27 @@
         <xs:element ex:importance="expert" ex:unit="" name="boltzequ" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>
-              Calculate the transport coefficients from the Boltzmann equation.
+              Calculate the electronic transport coefficients from the Boltzmann equation.
             </xs:documentation>
           </xs:annotation>          
           <xs:complexType>
             <xs:sequence>
               <xs:element ex:importance="expert" ex:unit="" name="condcomp" type="integerpair" minOccurs="0" maxOccurs="9">
                 <xs:annotation>
-                  <xs:documentation>Components of the conductivtiy tensor to be calculated.</xs:documentation>
+                  <xs:documentation>Components of the tensors for the electronic transport coefficients to be calculated.</xs:documentation>
                 </xs:annotation>
               </xs:element>
             </xs:sequence>
 
-            <xs:attribute ex:importance="expert" ex:unit="" name="tevout" type="xs:boolean" default="false">
-              <xs:annotation>
-                <xs:documentation>If <pre>"true"</pre>, energy outputs are in eV.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
-            <xs:attribute ex:importance="expert" ex:unit="" name="tsiout" type="xs:boolean" default="false">
-              <xs:annotation>
-                <xs:documentation>If <pre>"true"</pre>, transport coefficients are given in SI units: Seebeck coefficient in V/K , electrical conductivity over tau in S/(m s) , thermal conductivity over tau in W/(mK s). </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>            
-
 	    <xs:attribute ex:importance="expert" ex:unit="" name="windtdf" type="vect2d" default="-0.5d0 0.5d0">
               <xs:annotation>
-                <xs:documentation>Frequency/energy window of transport distribution function.</xs:documentation>
+                <xs:documentation>Frequency (or energy) window for the evaluation of the transport distribution function.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
             <xs:attribute ex:importance="essential" ex:unit="" name="nwtdf" type="xs:integer" default="100">
               <xs:annotation>
-                <xs:documentation>Number of frequency/energy points in the transport distribution function.</xs:documentation>
+                <xs:documentation>Number of frequency (or energy) points for the evaluation of the transport distribution function.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
@@ -609,29 +597,41 @@
               </xs:annotation>
             </xs:attribute>
 
-	    <xs:attribute ex:importance="expert" ex:unit="" name="tgrid" type="xs:integer" default="1">
-              <xs:annotation>
-                <xs:documentation>Number of temperature values in the interval [temp_inital temp_final].</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
             <xs:attribute ex:importance="expert" ex:unit="" name="windtemp" type="vect2d" default="300.0d0 300.0d0">
               <xs:annotation>
-                <xs:documentation>Window of the temperature [temp_inital temp_final] in Kelvin.</xs:documentation>
+                <xs:documentation>Temperature window for the evaluation of the transport coefficients in Kelvin.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="essential" ex:unit="" name="mugrid" type="xs:integer" default="1">
+	    <xs:attribute ex:importance="expert" ex:unit="" name="tgrid" type="xs:integer" default="1">
               <xs:annotation>
-                <xs:documentation>Number of values for the chemical potential in the interval [mu_initial mu_final] in Ha.</xs:documentation>
+                <xs:documentation>Number of temperature points.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
             <xs:attribute ex:importance="expert" ex:unit="" name="windmu" type="vect2d" default="0.0d0 0.0d0">
               <xs:annotation>
-                <xs:documentation>Window of the chemical potential [mu_inital mu_final] in Ha.</xs:documentation>
+                <xs:documentation>Chemical potential window for the evaluation of the transport coefficients.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
+
+	    <xs:attribute ex:importance="essential" ex:unit="" name="mugrid" type="xs:integer" default="1">
+              <xs:annotation>
+                <xs:documentation>Number of chemical potential points.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+	    <xs:attribute ex:importance="expert" ex:unit="" name="tevout" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>If <pre>"true"</pre>, output energies are in eV.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="tsiout" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>If <pre>"true"</pre>, output transport coefficients are given in SI units: Seebeck coefficient in V/K , electrical conductivity over relaxation time in S/(m s) , thermal conductivity over relaxation time in W/(mK s). </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>            
             
           </xs:complexType>
         </xs:element>
