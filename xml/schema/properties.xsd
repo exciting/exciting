@@ -512,22 +512,16 @@
                 </xs:annotation>
               </xs:element>
             </xs:sequence>
-
-	    <xs:attribute ex:importance="essential" ex:unit="" name="wmax" type="fortrandouble" default="0.30">
-              <xs:annotation>
-                <xs:documentation>Energy maximum for the dielectric matrix calculations.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
             
- 	    <xs:attribute ex:importance="essential" ex:unit="" name="deltaw" type="fortrandouble" default="0.30">
+            <xs:attribute ex:importance="essential" ex:unit="" name="wmax" type="fortrandouble" default="0.30">
               <xs:annotation>
-                <xs:documentation>Energy range around the EFermi for the dielectric matrix calculations.</xs:documentation>
+                <xs:documentation>Upper energy limit for the dielectric matrix calculations.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             
             <xs:attribute ex:importance="essential" ex:unit="" name="wgrid" type="xs:integer" default="400">
               <xs:annotation>
-                <xs:documentation>Number of grid points inside [efermi-deltaw/2,efermi+deltaw/2] interval.</xs:documentation>
+                <xs:documentation>Number of grid points inside [0,wmax] interval.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
@@ -558,55 +552,13 @@
                   </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-
+	    
           
             <xs:attribute ex:importance="expert" ex:unit="" name="tevout" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation><pre>"true"</pre> if energy outputs are in eV.</xs:documentation>
               </xs:annotation>
             </xs:attribute>            
-
-	    <xs:attribute ex:importance="expert" ex:unit="" name="windtdf" type="vect2d" default="-0.5d0 0.5d0">
-              <xs:annotation>
-                <xs:documentation>Frequency/energy window of transport distribution function.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
-            <xs:attribute ex:importance="essential" ex:unit="" name="nwtdf" type="xs:integer" default="100">
-              <xs:annotation>
-                <xs:documentation>Number of frequency/energy points in the transport distribution function.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
-	    <xs:attribute ex:importance="expert" ex:unit="" name="tgrid" type="xs:integer" default="1">
-              <xs:annotation>
-                <xs:documentation>Number of temperature points in the interval [temp_inital temp_final].</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
-            <xs:attribute ex:importance="expert" ex:unit="" name="windtemp" type="vect2d" default="300.0d0 300.0d0">
-              <xs:annotation>
-                <xs:documentation>Window of the temperature [temp_inital temp_final] in Kelvin.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
-            <xs:attribute ex:importance="essential" ex:unit="" name="mugrid" type="xs:integer" default="1">
-              <xs:annotation>
-                <xs:documentation>Number of grid points of the chemical potential in the interval [mu_initial mu_final] in Ha.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
-            <xs:attribute ex:importance="expert" ex:unit="" name="windmu" type="vect2d" default="0.0d0 0.0d0">
-              <xs:annotation>
-                <xs:documentation>Window of the chemical potential [mu_inital mu_final] in Kelvin.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            
- 	    <xs:attribute ex:importance="expert" ex:unit="" name="dshift" type="fortrandouble" default="0.0">
-              <xs:annotation>
-                <xs:documentation>Delta of momentum matrix elements to calculate the second derivative of the energy. If dshift=0.0, no second derivative is calculated.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
 
           </xs:complexType>
         </xs:element>

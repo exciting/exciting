@@ -190,10 +190,10 @@ module m_dzmatmult
       else if(ropa /= rmatc) then 
         write(*,'("dzmatmult@rank",i2,":(Warning) ropa /= rmatc",2i4)') ropa, rmatc 
       end if
-      if(copb > rmatc) then 
+      if(copb > cmatc) then 
         write(*,'("dzmatmult@rank",i2,":(ERROR) copb > cmatc",2i4)') copb, cmatc 
         call terminate
-      else if(copb > rmatc) then 
+      else if(copb > cmatc) then 
         write(*,'("dzmatmult@rank",i2,":(Warning) copb /= cmatc",2i4)') copb, cmatc 
       end if
 

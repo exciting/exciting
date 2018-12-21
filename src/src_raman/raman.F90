@@ -737,7 +737,6 @@ do imode = 1, nmode
 !
 !  if the user did not specify a plan element, deallocate the plan constructed in xstasklauncher       
          if (.not. dplan) deallocate(input%xs%plan)
-            deallocate(input%xs%plan)
 !  read from files
          do oct1 = 1, 3
             do oct2 = 1, 3
