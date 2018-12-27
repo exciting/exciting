@@ -104,71 +104,39 @@ subroutine calcbarcmb(iq)
 ! Diagonalize the bare coulomb matrix
 !===============================================================================
 
-    !call timesec(t0)
-
     if (allocated(vmat)) deallocate(vmat)
     allocate(vmat(matsiz,matsiz))
-      
+    vmat(:,:) = barc(:,:)
+    deallocate(barc)
+    
     if (allocated(barcev)) deallocate(barcev)
     allocate(barcev(matsiz))
     
-if (.false.) then 
-    vmat(1:matsiz,1:matsiz) = barc(1:matsiz,1:matsiz)
-    deallocate(barc)  
-    lwork = 2*matsiz
-    allocate(work(lwork),rwork(3*matsiz))
-    call zheev( 'v','u',matsiz,vmat,matsiz, &
-    &           barcev,work,lwork,rwork,info)
-    call errmsg(info.ne.0,'CALCBARCMB',"Fail to diag. barc by zheev !!!")
-    deallocate(work,rwork)
-else
     lrwork = -1
     liwork = -1
     lwork = -1
     iu = matsiz
     abstol = 2.d0*dlamch('S')
-    allocate(work(1),rwork(1),iwork(1),isuppz(1))
-    call zheevr('V', 'A', 'U', matsiz, barc, matsiz, vl, vu, il, iu, &
-    &           abstol, neval, barcev, vmat, matsiz, isuppz, work, lwork, rwork, &
-    &           lrwork, iwork, liwork, info)
-    call errmsg(info.ne.0,'CALCBARCMB',"Fail to diag. barc by zheevr !!!")
+    allocate(work(1),rwork(1),iwork(1))
+    call zheevd('V', 'U', matsiz, vmat, matsiz, barcev, work, lwork, rwork, lrwork, iwork, liwork, info)
+    call errmsg(info.ne.0, 'CALCBARCMB', "Fail to diag. barc by zheevd !!!")
+
     lrwork=int(rwork(1))
     liwork=int(iwork(1))
     lwork=int(work(1))
     ! write(*,*) lrwork,liwork,lwork
-    deallocate(work,rwork,iwork,isuppz)
+    deallocate(work,rwork,iwork)
+
     allocate(work(lwork),rwork(lrwork),iwork(liwork))
-    allocate(isuppz(2*matsiz))
-    call zheevr('V', 'A', 'U', matsiz, barc, matsiz, vl, vu, il, iu, &
-    &           abstol, neval, barcev, vmat, matsiz, isuppz, work, lwork, rwork, &
-    &           lrwork, iwork, liwork, info)
-    call errmsg(info.ne.0,'CALCBARCMB',"Fail to diag. barc by zheevr !!!")
-    deallocate(work,rwork,iwork,isuppz)
-    deallocate(barc)
-end if
+    call zheevd('V', 'U', matsiz, vmat, matsiz, barcev, work, lwork, rwork, lrwork, iwork, liwork, info)
+    call errmsg(info.ne.0, 'CALCBARCMB', "Fail to diag. barc by zheevd !!!")
+    deallocate(work,rwork,iwork)
 
-    !call timesec(t1)
-    !write(*,*) 'barc diagonalization', t1-t0
-
-    ! output
-    ! write(filename,10) iq
-    ! 10 format("vcoul-iq",i4".out")
-    ! call str_strip(filename)
-    ! open(unit=10, File=filename, Status='Unknown')
-    ! do imix = 1, matsiz
-    !     write(10,*) imix, barcev(imix)
-    ! end do
-    ! close(10)
-    ! stop 'vcoul'
-
-    !----------------------    
-    ! debug info
-    !----------------------
+!----------------------    
+! debug info
+!----------------------
 
     if (input%gw%debug) then
-      !----------------------    
-      ! Memory usage info
-      !----------------------
       msize = sizeof(barcev)*b2mb+sizeof(vmat)*b2mb
       write(*,'("calcbarcmb: rank, size(Coulomb potential) (Mb):",i4,f12.2)') myrank, msize
       write(fdebug,*) "### barcev ###"

@@ -5,7 +5,7 @@ subroutine calcbarcmb_ipw_ipw(iq)
     use modmain,               only : zzero, zone, pi
     use modgw,                 only : Gset, Gamma, kqset, Gqset, Gqbarc
     use mod_product_basis,     only : locmatsiz, mpwipw
-    use mod_coulomb_potential, only : barc, rcut, vccut
+    use mod_coulomb_potential, only : barc
     implicit none
     ! input variables
     integer, intent(in) :: iq
@@ -13,8 +13,9 @@ subroutine calcbarcmb_ipw_ipw(iq)
     integer :: npw, ipw, ipw0  ! PW
     integer :: ngq, igq, jgq   ! IPW
     real(8) :: gqvec(3), gqlen
-    real(8) :: vc, kxy, kz
+    real(8) :: vc
     complex(8), allocatable :: tmat1(:,:), tmat2(:,:)
+    
     ! external routine 
     external zgemm    
     
@@ -26,51 +27,21 @@ subroutine calcbarcmb_ipw_ipw(iq)
     tmat1(:,:) = zzero
     
     ipw0 = 1
-    if (Gamma) then 
-      ipw0 = 2
-    end if
+    if (Gamma) ipw0 = 2
     
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ipw,gqvec,gqlen,vc,kxy,kz,igq)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ipw,gqvec,gqlen,vc,igq)
 !$OMP DO
 #endif    
     do ipw = ipw0, npw
       gqvec(1:3) = Gset%vgc(1:3,Gqbarc%igkig(ipw,1,iq))+kqset%vqc(1:3,iq)
       gqlen = gqvec(1)*gqvec(1)+gqvec(2)*gqvec(2)+gqvec(3)*gqvec(3)
-    
-      ! when testing Gamma=.false. case
       if (abs(gqlen) < 1.d-8) then
         write(*,*) 'WARNING(calcbarcmb_ipw_ipw.f90): Zero length vector!' 
         cycle
       endif
-     
-      if (vccut) then
-      
-        ! apply cutoff
-        select case (trim(input%gw%barecoul%cutofftype))
-      
-          case('0d')
-            vc = 1.d0/gqlen
-            vc = vc*(1.d0-dcos(dsqrt(gqlen)*rcut))
-      
-          case ('2d')
-            ! version by Ismail-Beigi (fixed rc = L_z/2)
-            kxy = dsqrt(gqvec(1)*gqvec(1)+gqvec(2)*gqvec(2))
-            kz = dabs(gqvec(3))
-            vc = 4.0d0*pi/gqlen
-            vc = vc*(1.d0-dexp(-kxy*rcut)*dcos(kz*rcut))
-          
-          case default
-            write(*,*) 'ERROR(calcbarcmb_ipw_ipw): Specified cutoff type is not implemented!'
-          
-          end select
-          
-      else
-      
-        ! no cutoff
-        vc = 4.0d0*pi/gqlen
-        
-      end if
+    
+      vc = 4.0d0*pi/gqlen
       
       do igq = 1, ngq
         tmat1(igq,ipw) = vc*mpwipw(igq,ipw)

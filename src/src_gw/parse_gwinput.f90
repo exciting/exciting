@@ -321,21 +321,12 @@ subroutine parse_gwinput
     if (.not.associated(input%gw%scrcoul)) &
     &  input%gw%scrcoul => getstructscrcoul(emptynode)
     if (rank==0) write(fgw,*) 'Screened Coulomb potential parameters:'
-    if (rank==0) write(fgw,*) '  Type of averaging: ', trim(input%gw%scrcoul%sciavtype)
-    select case (trim(input%gw%scrcoul%sciavtype))
-      case('isotropic')
-        if (rank==0) write(fgw,'(a,3f8.4)') '  Averaging direction: ', input%gw%scrcoul%q0eps
-      case('anisotropic')
-        if (rank==0) write(fgw,*) '  Angular momentum cutoff: ', input%gw%scrcoul%lmaxdielt
-        if (rank==0) write(fgw,*) '  Number of points used for the Lebedev-Laikov grid: ', input%gw%scrcoul%nleblaik
-        if (rank==0) write(fgw,*) '  Averaging of the body of the dielectric function: ', input%gw%scrcoul%sciavbd
-      case default
-        if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal value for input%gw%scrcoul%sciavtype'
-        if (rank==0) write(*,*) '  Currently supported options are:'
-        if (rank==0) write(*,*) '  isotropic - Simple averaging along the direction given in q0eps'
-        if (rank==0) write(*,*) '  anisotropic - Anisotropic screening following Freysold et al.'
-        stop
-    end select
+    if (rank==0) write(fgw,*) '  Type: ', trim(input%gw%scrcoul%scrtype)
+    if (trim(input%gw%scrcoul%scrtype)=='ppm') then
+      if (rank==0) write(fgw,*) '  Plasmon frequency: ', input%gw%scrcoul%omegap
+    end if
+    if (rank==0) write(fgw,*) '  Averaging direction: ', input%gw%scrcoul%q0eps
+    if (rank==0) write(fgw,*) '  Smearing: ', input%gw%scrcoul%swidth
     if (rank==0) call linmsg(fgw,'-','')
     
 !-------------------------------------------------------------------------------
@@ -432,6 +423,18 @@ subroutine parse_gwinput
         input%groundstate%vkloff = input%gw%vqloff
     end if
     
+    !-------------------------------------------------------------------------------
+    ! Matrix block size
+    !-------------------------------------------------------------------------------
+    mblksiz = input%gw%mblksiz
+    if (mblksiz<=0) then
+      if (rank==0) write(*,*) 'ERROR(parse_gwinput): Negative matrix block size specifies!'
+      if (rank==0) write(*,*) '  mblksiz =', mblksiz, ' < 0'
+      stop
+    end if
+    if (rank==0) write(fgw,*)
+    if (rank==0) write(fgw,*) ' Matrix block size: ', mblksiz
+
     call flushifc(fgw)
       
     return
