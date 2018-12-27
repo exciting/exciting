@@ -36,11 +36,6 @@ subroutine calcselfc(iq)
 !
 !EOP
 !BOC
-    ! if (myrank==0) then
-    !   write(*,*)
-    !   write(*,*) ' ---- calcselfc started ----'
-    !   write(*,*)
-    ! end if
     call timesec(tstart)
     
     !------------------------
@@ -101,11 +96,12 @@ subroutine calcselfc(iq)
       ! get KS eigenvectors
       call timesec(t0)
       allocate(evecsv(nmatmax,nstsv,nspinor))
-      call getevecsvgw_new('GW_EVECSV.OUT',jk,kqset%vkl(:,jk),nmatmax,nstsv,nspinor,evecsv)
+      call getevecsvgw('GW_EVECSV.OUT',jk,kqset%vkl(:,jk),nmatmax,nstsv,nspinor,evecsv)
       eveckp = conjg(evecsv(:,:,ispn))
-      call getevecsvgw_new('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
+      call getevecsvgw('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
       eveck = evecsv(:,:,ispn)
       deallocate(evecsv)
+
       call timesec(t1)
       time_io = time_io+t1-t0
         

@@ -63,35 +63,23 @@ subroutine calcbarcmb(iq)
         !------------------------------------------------
         ! Matrix elements for the singular q=0, L=0 case
         !------------------------------------------------
-        !call timesec(t0)
         call barcq0
-        !call timesec(t1)
-        !write(*,*) 'barcq0', t1-t0 
       end if
         
       !-----------------------------------------------------------
       ! Matrix elements between MT and MT mixed product functions
       !-----------------------------------------------------------
-      !call timesec(t0)
       call calcbarcmb_mt_mt(iq)
-      !call timesec(t1)
-      !write(*,*) 'calcbarcmb_mt_mt', t1-t0 
     
       !-----------------------------------------------------------
       ! Matrix elements between an atomic mixed function and an IPW
       !-----------------------------------------------------------
-      !call timesec(t0)
       call calcbarcmb_ipw_mt(iq)
-      !call timesec(t1)
-      !write(*,*) 'calcbarcmb_ipw_mt', t1-t0 
     
       !-----------------------------------------------------------
       ! Matrix elements between two IPW's
       !-----------------------------------------------------------
-      !call timesec(t0)
       call calcbarcmb_ipw_ipw(iq)
-      !call timesec(t1)
-      !write(*,*) 'calcbarcmb_ipw_ipw', t1-t0
       
     case default
     

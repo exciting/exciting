@@ -9,21 +9,26 @@ subroutine write_dft_orbitals
     implicit none
     ! local variables
     integer :: ik, ib, ist, jst, ispn, i, j
-    integer :: fid1, fid2, recl
+    integer :: fid1, fid2, fid3, recl
     integer,    allocatable :: idx(:)
     real(8),    allocatable :: evalsv_(:)
+    real(8),    allocatable :: occsv_(:)
     complex(8), allocatable :: evecfvt(:,:)
-    complex(8), allocatable :: evecsv(:,:,:), evecsvt(:,:), evecsv_(:,:)
+    complex(8), allocatable :: evecsv(:,:,:), evecsvt(:,:), evecsv_(:,:,:)
   
     if (allocated(evalsv)) deallocate(evalsv)
     allocate(evalsv(nstsv,nkpt))
+    if (allocated(occsv)) deallocate(occsv)
+    allocate(occsv(nstsv,nkpt))
+    
     allocate(evecsv(nmatmax,nstsv,nspinor))
     if (input%groundstate%tevecsv) then
       allocate(evecfvt(nmatmax,nstfv))
       allocate(evecsvt(nstsv,nstsv))
       if (.not.ncmag) then
         allocate(evalsv_(nstsv))
-        allocate(evecsv_(nmatmax,nstsv))
+        allocate(occsv_(nstsv))
+        allocate(evecsv_(nmatmax,nstsv,nspinor))
         allocate(idx(nstsv))
       end if
     end if
@@ -39,8 +44,11 @@ subroutine write_dft_orbitals
     inquire(IoLength=recl) nstsv, vkl(:,1), evalsv(:,1)
     open(fid1,File='GW_EVALSV.OUT',Form='UNFORMATTED',Access='DIRECT',Recl=recl)
     call getunit(fid2)
+    inquire(IoLength=recl) nstsv, vkl(:,1), occsv(:,1)
+    open(fid2,File='GW_OCCSV.OUT',Form='UNFORMATTED',Access='DIRECT',Recl=recl)
+    call getunit(fid3)
     inquire(IoLength=recl) nmatmax, nstsv, nspinor, vkl(:,1), evecsv
-    open(fid2,File='GW_EVECSV.OUT',Form='UNFORMATTED',Access='DIRECT',Recl=recl)
+    open(fid3,File='GW_EVECSV.OUT',Form='UNFORMATTED',Access='DIRECT',Recl=recl)
 !#endif
 
     ! write(*,*) 'nspinor=', nspinor
@@ -53,7 +61,13 @@ subroutine write_dft_orbitals
       !-----------------
       evalsv = 0.d0
       call getevalsv(vkl(:,ik),evalsv(:,ik))
-      
+
+      !-----------------
+      ! state occupation
+      !-----------------
+      occsv = 0.d0
+      call getoccsv(vkl(:,ik), occsv(:,ik))
+
       !-----------------
       ! eigenvectors
       !-----------------
@@ -80,24 +94,27 @@ subroutine write_dft_orbitals
         
         if (.not.ncmag) then
           write(*,*) 'sort evalsv'
-        !------------------------------------------------------
-        ! Spin-collinear case: order in energy increasing order
-        !------------------------------------------------------
+          !------------------------------------------------------
+          ! Spin-collinear case: order in energy increasing order
+          !------------------------------------------------------
           evalsv_(:) = evalsv(:,ik)
           call sortidx(nstsv,evalsv_,idx)
-          do ispn = 1, nspinor
-            evecsv_(:,:) = evecsv(:,:,ispn)
-            do ib = 1, nstsv
-              evalsv(ib,ik) = evalsv_(idx(ib))
-              evecsv(:,ib,ispn) = evecsv_(:,idx(ib))
-              spindex(ib,ik) = idx(ib)
-            end do
+          occsv_(:) = occsv(:,ik)
+          evecsv_(:,:,:) = evecsv(:,:,:)
+          do ib = 1, nstsv
+            evalsv(ib,ik)  = evalsv_(idx(ib))
+            occsv(ib,ik)   = occsv_(idx(ib))
+            spindex(ib,ik) = idx(ib)
+            do ispn = 1, nspinor
+              evecsv(:,ib,ispn) = evecsv_(:,idx(ib),ispn)
+            end do          
           end do
+
         end if ! ncmag
         
       else
       
-        call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecsv)
+        call getevecfv(vkl(:,ik), vgkl(:,:,:,ik), evecsv)
         
       end if
       
@@ -111,7 +128,8 @@ subroutine write_dft_orbitals
 !#else
       ! store in Fortran binary
       write(fid1,Rec=ik) nstsv, vkl(:,ik), evalsv(:,ik)
-      write(fid2,Rec=ik) nmatmax, nstsv, nspinor, vkl(:,ik), evecsv
+      write(fid2,Rec=ik) nstsv, vkl(:,ik), occsv(:,ik)
+      write(fid3,Rec=ik) nmatmax, nstsv, nspinor, vkl(:,ik), evecsv
 !#endif
 
     end do ! ik
@@ -123,6 +141,7 @@ subroutine write_dft_orbitals
       deallocate(evecsvt)
       if (.not.ncmag) then
         deallocate(evalsv_)
+        deallocate(occsv_)
         deallocate(evecsv_)
         deallocate(idx)
       end if
@@ -131,6 +150,7 @@ subroutine write_dft_orbitals
 !#ifndef _HDF5_
     close(fid1)
     close(fid2)
+    close(fid3)
 !#endif
 
     return

@@ -102,7 +102,7 @@ subroutine calchead(ik,iomstart,iomend,ndim)
           epsh(iom,iop,jop) = epsh(iom,iop,jop)- &
           &                   coefh*zsum/(freq%freqs(iom)**2)
         end if ! metallic
-        
+
       end do ! iom
     end do ! iop
     end do ! jop

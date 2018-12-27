@@ -115,7 +115,6 @@ subroutine parse_gwinput
             if (rank==0) write(fgw,*) '  Test AAA interpolation'
         case('specfunc')
             if (rank==0) write(fgw,*) '  Compute spectral function'
-        
         case default
             if (rank==0) write(*,*) 'ERROR(parse_gwinput): Wrong task name!'
             if (rank==0) write(*,*)

@@ -21,8 +21,8 @@ subroutine fermi_exciting(lspin,nel,nb,nik,eband,ntet,tetc,wtet,vt,efer,eg,df)
     integer :: nvm
     real(8) :: evbm, ecbm, eint
     real(8) :: ocmin, ocmax, ocint, sfact
-    integer :: nitmax = 200
-    real(8) :: eps = 1.d-8
+    integer :: nitmax = 100
+    real(8) :: eps = 1.d-4
     real(8) :: eb(nb,nik)
 
     logical :: debug=.false.
@@ -64,8 +64,8 @@ subroutine fermi_exciting(lspin,nel,nb,nik,eband,ntet,tetc,wtet,vt,efer,eg,df)
     end if
     
     ! find the minimal and maximal band energy  
-    evbm = minval(eb)
-    ecbm = maxval(eb,mask=eb<1.d3)
+    evbm = minval(eb, mask = eb > -2.d0)
+    ecbm = maxval(eb, mask = eb <  2.d0)
     if (debug) write(6,*) 'evbm, ecbm = ', evbm, ecbm
     
     ocmin = sfact*idos_exciting(nb,nik,eb,ntet,tetc,wtet,vt,evbm)
@@ -84,11 +84,11 @@ subroutine fermi_exciting(lspin,nel,nb,nik,eband,ntet,tetc,wtet,vt,efer,eg,df)
     ! Use bisection method to determine solver the equation N( Efermi ) = Nel
     !--------------------------------------------------------------------------
     do it = 1, nitmax
-      eint = evbm+0.5d0*(ecbm-evbm)
+      eint = evbm + 0.5d0*(ecbm-evbm)
       ocint = sfact*idos_exciting(nb,nik,eb,ntet,tetc,wtet,vt,eint)
       if (debug) write(6,2) it, evbm, ecbm, eint, ocmin, ocmax, ocint
-      if (abs(ocint-nel)<eps) exit  
-      if (ocint>nel) then
+      if (abs(ocint-nel) < eps) exit
+      if (ocint > nel) then
         ecbm = eint
         ocmax = ocint
       else
@@ -97,8 +97,10 @@ subroutine fermi_exciting(lspin,nel,nb,nik,eband,ntet,tetc,wtet,vt,efer,eg,df)
       end if
     end do
     if (it>=nitmax) then
-      write(6,'(a)')  'ERROR(libbzint::fermi_exciting): Failed to converge!'
-      stop
+      write(6,'(a)')  'WARNING(libbzint::fermi_exciting): Convergence is not reached!'
+      write(6,1) '#it',"evbm","ecbm","eint","ocmin","ocmax","ocint"
+      write(6,2) it, evbm, ecbm, eint, ocmin, ocmax, ocint
+      ! stop
     end if
 
     df = sfact*dostet_exciting(nb,nik,eb,ntet,tetc,wtet,vt,eint)

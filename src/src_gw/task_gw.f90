@@ -83,6 +83,8 @@ subroutine task_gw()
         call calcpmatgw
       end if
     end if
+
+    print*, "here"
     
     ! occupancy dependent BZ integration weights
     call kintw

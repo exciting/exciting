@@ -126,6 +126,9 @@ subroutine gw_main()
         ! Calculate and store the (q,\omega)-dependent dielectric function
         case('eps_r')
             call task_eps_r
+
+        case('vcoul')
+            call test_vcoul
                         
         ! Calculate the eigenvalues the LDA dielectric function and its inverse
         ! case('epsev')

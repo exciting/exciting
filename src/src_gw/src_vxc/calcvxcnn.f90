@@ -92,7 +92,7 @@ subroutine calcvxcnn
 !      path = "/kpoints/"//trim(adjustl(cik))
 !      call hdf5_read(fgwh5,path,"evecsv",evecsv(1,1),(/nmatmax,nstsv/))
 !#else
-      call getevecsvgw_new('GW_EVECSV.OUT',ik0,kqset%vkl(:,ik0),nmatmax,nstsv,nspinor,evec)
+      call getevecsvgw('GW_EVECSV.OUT',ik0,kqset%vkl(:,ik0),nmatmax,nstsv,nspinor,evec)
 !#endif
 
       ! find the matching coefficients
