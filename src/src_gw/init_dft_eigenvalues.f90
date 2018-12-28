@@ -9,17 +9,17 @@ subroutine init_dft_eigenvalues()
     use mod_hdf5
     implicit none
     
-    integer :: ik, ik0, n
-    integer :: ib
-    real(8) :: e0, e1, egap
-    
-    integer, allocatable :: idx(:)
-    real(8), allocatable :: ev(:)
+    integer :: ik, ik0
+    real(8) :: e0, egap
     
     if (allocated(evalsv)) deallocate(evalsv)
     allocate(evalsv(nstsv,kset%nkpt))
     evalsv(:,:) = 0.d0
 
+    if (allocated(occsv)) deallocate(occsv)
+    allocate(occsv(nstsv,kset%nkpt))
+    occsv(:,:) = 0.d0
+    
     !----------------------------------------
     ! Read KS eigenvalues from file EVALSV.OUT
     !----------------------------------------

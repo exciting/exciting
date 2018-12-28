@@ -6,7 +6,7 @@ subroutine calcselfc_freqconv_cd(ikp,iq,mdim)
     use modinput
     use modmain, only : pi, zzero, evalsv, idxas, evalcr, efermi
     use modgw,   only : ibgw, nbgw, nstse, kset, kqset, freq, selfec, mwm, &
-    &                   ncg, corind, fdebug, freq_selfc
+    &                   corind, freq_selfc
     use mod_pade
     use mod_aaa_approximant
     ! input variables
@@ -17,7 +17,7 @@ subroutine calcselfc_freqconv_cd(ikp,iq,mdim)
     ! local variables            
     integer(4) :: ik, jk, jkp
     integer(4) :: ia, is, ias, ic, icg
-    integer(4) :: ie1, ie2, i1, i2, n, m
+    integer(4) :: ie1, ie2
     integer(4) :: iom, jom, jom1
     real(8)    :: enk, w, om1, om2
     complex(8) :: xnm(1:freq%nomeg), xnm_intp

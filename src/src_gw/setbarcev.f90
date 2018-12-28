@@ -52,14 +52,19 @@ subroutine setbarcev(evtol)
     end do 
 
     if (Gamma) then
+      
       allocate(wi0(matsiz))
+      wi0(:) = 0.d0
       call calcwmix0(wi0)
+      
       allocate(wi0new(matsiz))
+      wi0new(:) = 0.d0
       call zgemv('c',matsiz,matsiz,zone,vmat,matsiz,wi0,1,zzero,wi0new,1)
       deallocate(wi0)
+      
       ! find the index of the diagonalized barc eigenvector that has maximal 
       ! overlap with G=0 (constant) plane wave
-      test2 = 0.0d0
+      test2 = 0.d0
       do im = 1, matsiz
         test1 = dble(wi0new(im)*conjg(wi0new(im)))
         if (test1 > test2) then
@@ -78,7 +83,7 @@ subroutine setbarcev(evtol)
       end if
       deallocate(wi0new)
     end if
-    10 format("immax, max(wi0new), barcev(immax): ",i4,4x,f8.3,4x,f9.6)
+    10 format("immax, max(wi0new), barcev(immax): ",i4,4x,f12.6,4x,f12.6)
     
     if (mbsiz < matsiz) then
       if (myrank==0) then

@@ -12,10 +12,9 @@ subroutine calcselfc_ac()
 
     ! local variables
     type(aaa_approximant) :: aaa_minus, aaa_plus
-    integer(4) :: iw, ik, ib, n
-    real(8)    :: w, div, sRe, sIm
+    integer(4) :: iw, ik, ib
+    real(8)    :: w
     complex(8) :: sc, dsc
-    character(80) :: frmt
     complex(8), allocatable :: zj(:), fj(:,:,:)
 
     ! imaginary frequency grid

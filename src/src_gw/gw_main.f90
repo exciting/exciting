@@ -11,7 +11,6 @@ subroutine gw_main()
     use mod_aaa_approximant
     
     implicit none
-    character(80) :: fname
     real(8) :: tstart, tend
 
     !--------------------------------------------

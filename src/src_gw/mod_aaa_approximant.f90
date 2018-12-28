@@ -221,7 +221,7 @@ contains
         integer(4),   parameter :: mmax = 1000
         
         ! local variables
-        integer(4) :: npts, j, jj, jmax(1), m, mm
+        integer(4) :: npts, j, jj, jmax(1), m
         real(8)    :: reltol, error
         integer(4), allocatable :: jndx(:)
         complex(8), allocatable :: RS(:,:), LS(:,:)
@@ -501,7 +501,7 @@ contains
         complex(8), intent(in) :: F(:)
         real(8), intent(in) :: cleanup_tol
         ! local
-        integer(4) :: i, j, jmin(1), k, m
+        integer(4) :: i, j, jmin(1), m
         real(8) :: tol
         integer(4) :: nFD
         integer(4), allocatable :: idxFD(:), idxList(:)
@@ -509,8 +509,6 @@ contains
 
         integer(4) :: nj_new, m_new
         complex(8), allocatable :: zj_new(:), fj_new(:), wj_new(:)
-        complex(8), allocatable :: Z_new(:), F_new(:)
-
         complex(8), allocatable :: RS(:,:), LS(:,:), C(:,:), A(:,:)
         real(8),    allocatable :: sval(:)
         complex(8), allocatable :: rsvec(:,:)
@@ -701,21 +699,21 @@ contains
         ! check for convergence.
         !
         if( info > 0 ) then
-        write(*,*)'The algorithm computing svd failed to converge.'
-        stop
+          write(*,*)'The algorithm computing svd failed to converge.'
+          stop
         end if
         !
         ! Eigenvalues: \lambda = S^{+}*S
         !
         eval(:) = 0.d0
-        do i = 1, m
-        eval(i) = S(i)*S(i)
+        do i = 1, lmn
+          eval(i) = S(i)*S(i)
         end do
         !
         ! Eigenvectors
         !
         do i = 1, n
-        evec(:,i) = conjg(VT(i,:))
+          evec(:,i) = conjg(VT(i,:))
         end do
 
         deallocate(A_)

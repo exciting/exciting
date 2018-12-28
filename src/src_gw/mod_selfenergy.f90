@@ -95,7 +95,7 @@ contains
                                  input%gw%freqgrid%freqmin, &
                                  input%gw%freqgrid%freqmax)
         end if
-        call print_freqgrid(freq_selfc,6)
+        ! call print_freqgrid(freq_selfc,6)
         
         nw = freq_selfc%nomeg
         

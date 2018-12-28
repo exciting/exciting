@@ -1,6 +1,7 @@
 
 subroutine qdepwsum(iq,iomstart,iomend,ndim)
-      
+    
+    use modinput
     use modmain
     use modgw
 
@@ -12,7 +13,7 @@ subroutine qdepwsum(iq,iomstart,iomend,ndim)
     integer(4) :: iom, n, m
     integer(4) :: ik, jk, ikp, jkp
     integer(4) :: ia, is, ias, ic, icg
-    real(8)    :: de, wkp, e0, eta, ff
+    real(8)    :: de, wkp, ene, occ, eta, ff
     complex(8) :: z1, z2
     real(8)    :: tstart,tend
     complex(8), allocatable :: om(:)
@@ -29,7 +30,7 @@ subroutine qdepwsum(iq,iomstart,iomend,ndim)
     select case (freq%fconv)
       case('refreq')
         om(iomstart:iomend) = freq%freqs(iomstart:iomend)
-        eta = input%gw%scrcoul%swidth
+        eta = input%gw%freqgrid%eta
       case('imfreq')
         om(iomstart:iomend) = zi*freq%freqs(iomstart:iomend)
         eta = 0.d0
@@ -47,21 +48,23 @@ subroutine qdepwsum(iq,iomstart,iomend,ndim)
       do n = 1, ndim
 
         if (n <= nomax) then
-          e0 = evalsv(n,ikp)
+          ene = evalsv(n,ikp)
+          occ = occsv(n,ikp)/occmax
         else
           icg = n - nomax
           is  = corind(icg,1)
           ia  = corind(icg,2)
           ic  = corind(icg,3)
           ias = idxas(ia,is)
-          e0  = evalcr(ic,ias)
+          ene = evalcr(ic,ias)
+          occ = 1.d0
         end if
 
         do m = numin, nstsv
           
           do iom = iomstart, iomend
-            ff = occsv(n,ikp)/occmax * ( 1.d0 - occsv(m,jkp)/occmax )
-            de = evalsv(m,jkp) - e0
+            ff = occ * ( 1.d0 - occsv(m,jkp)/occmax )
+            de = evalsv(m,jkp) - ene
             z1 = om(iom) - de + zi*eta
             z2 = om(iom) + de - zi*eta
             fnm(n,m,iom,ik) = ff * (1.d0/z1 - 1.d0/z2) * wkp
