@@ -10,12 +10,6 @@ Subroutine TS_vdW_energy
 
   Call set_default_vdW_parameters
   
-  If ( input%groundstate%do .Eq. "skip" ) Then
-     Call init0
-     ! read density from file
-     Call readstate
-  End If
-
   If (.Not. Allocated(C6ab)) Then
      Allocate(C6ab(natmtot,natmtot), R0_eff_ab(natmtot,natmtot))
      Call get_TS_parameters()

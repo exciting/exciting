@@ -155,7 +155,7 @@ if (os.path.exists(INF) == False):
 #--------------------------------------------------------------------------------------------------
 
 #%!%!%--- Calculate Space-group number and classify it ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%
-os.system('xsltproc $EXCITINGTOOLS/exciting2sgroup.xsl '+ INF +' > sgroup.in')
+os.system('$EXCITINGTOOLS/exciting2sgroup.py '+ INF +' sgroup.in')
 os.system('sgroup sgroup.in 1>sgroup.out 2>sgroup.err')
 os.system('rm -f sgroup.in ')
 
