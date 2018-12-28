@@ -57,6 +57,11 @@
                   Upper frequency limit.                  
                   </xs:documentation></xs:annotation>
                 </xs:attribute>
+                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="eta" default="1.0d-3">
+                  <xs:annotation><xs:documentation>
+                  Numerical (complex) smearing parameter used for in the real frequecy convolution.
+                  </xs:documentation></xs:annotation>
+                </xs:attribute>
               </xs:complexType>
             </xs:element>
  
@@ -99,9 +104,9 @@
                   </xs:element>
                 </xs:all>
 
-                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="method" default="AC"> 
+                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="method" default="ac"> 
                   <xs:annotation><xs:documentation>
-                    Technique to compute the frequency convolution integral: AC - analytical continuation; CD- contour deformation.
+                    Technique to compute the frequency convolution integral: ac - analytical continuation; cd- contour deformation.
                   </xs:documentation></xs:annotation>
                 </xs:attribute>
 
@@ -210,29 +215,6 @@
                 <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="omegap" default="1.0d0"> 
                 <xs:annotation><xs:documentation>
                   Plasmon-pole model fitting parameter (plasmon frequency).
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="sciavtype" default="isotropic">
-                  <xs:annotation><xs:documentation>
-                  Type of volume averaging: 
-                    isotropic - Simple averaging along a specified direction using 
-                                only diagonal components of the dielectric tensor;
-                    anisotropic - Anisotropic screening by C. Freysoldt et al., CPC 176, 1-13 (2007).
-                  </xs:documentation></xs:annotation>
-                 </xs:attribute>
-                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="lmaxdielt" default="2"> 
-                  <xs:annotation><xs:documentation>
-                  Angular momentum cutoff in anisotropy treatment.
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="nleblaik" default="5810">
-                  <xs:annotation><xs:documentation>
-                  Number of Lebedev-Laikov grid points in anisotropy treatment.
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-                <xs:attribute ex:importance="expert" type="xs:boolean" ex:unit="" name="sciavbd" default="false"> 
-                  <xs:annotation><xs:documentation>
-                  Flag for anisotropic averaging of the dielectric tensor 'body' part.
                   </xs:documentation></xs:annotation>
                 </xs:attribute>
                 <xs:attribute ex:importance="expert" ex:unit="" name="q0eps" type="vect3d" default="1.0d0 1.0d0 1.0d0">
@@ -416,13 +398,13 @@
             </xs:annotation>
           </xs:attribute>
           
-          <!--xs:attribute ex:importance="expert" ex:unit="" name="mblksiz" type="xs:integer" default="64">
+          <xs:attribute ex:importance="expert" ex:unit="" name="mblksiz" type="xs:integer" default="32">
             <xs:annotation>
               <xs:documentation>
-	              To reduce memory usage, big matrices are considered to be split into blocks, each with a size of mblksiz (not supported). 
+	              To reduce memory usage, big matrices are considered to be split into blocks, each with a size of mblksiz. 
 	          </xs:documentation>
             </xs:annotation>
-          </xs:attribute-->
+          </xs:attribute>
           
           <xs:attribute ex:importance="expert" ex:unit="" name="rpmat" type="xs:boolean" default="false">
             <xs:annotation>

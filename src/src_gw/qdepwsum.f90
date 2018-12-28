@@ -60,7 +60,7 @@ subroutine qdepwsum(iq,iomstart,iomend,ndim)
         do m = numin, nstsv
           
           do iom = iomstart, iomend
-            ff = 1.d0 !occsv(n,ikp)/occmax * ( 1.d0 - occsv(m,jkp)/occmax )
+            ff = occsv(n,ikp)/occmax * ( 1.d0 - occsv(m,jkp)/occmax )
             de = evalsv(m,jkp) - e0
             z1 = om(iom) - de + zi*eta
             z2 = om(iom) + de - zi*eta
@@ -74,25 +74,18 @@ subroutine qdepwsum(iq,iomstart,iomend,ndim)
     end do ! ik
 
     deallocate(om)
-    
-    !-------------------------
-    ! Debugging info
-    !-------------------------
-    if (input%gw%debug) then
-      write(fdebug,*)'------------------------------------------------------'
-      write(fdebug,*)'       convolution weights for iq =',iq
-      write(fdebug,*)'------------------------------------------------------'
-      write(fdebug,*)
+
+    if (.false.) then
       iom = 1
       do ik = 1, kqset%nkpt
-        do n = 1, ndim
+        write(*,*) 'iq, ik = ', iq, ik
+        do n = 1, nomax
         do m = numin, nstsv
-          write(fdebug,10) n, m, iom, ik, fnm(n,m,iom,ik)
+          write(*,'(2i4,2f12.6)') n, m, fnm(n,m,iom,ik)
         end do
         end do
       end do
-      10 format('  n =',i4,' m =',i4,' iom =',i4,' ik =',i4,' fnm =',2g16.8)
-    end if ! debug
+    end if
 
     call timesec(tend)
     time_bzinit = time_bzinit+tend-tstart

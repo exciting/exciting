@@ -13,7 +13,7 @@ subroutine task_analytic_continuation()
     ! local variables
     integer :: ik, ik_, ie, ie_, fid, recl
     real(8) :: egap
-    character(20) :: s1, s2
+    character(20) :: s1, s2, v(3)
        
     call init0
     call init1
@@ -27,7 +27,7 @@ subroutine task_analytic_continuation()
     &                      input%gw%freqgrid%nomeg, &
     &                      input%gw%freqgrid%freqmin, &
     &                      input%gw%freqgrid%freqmax)
-    
+
     if (myrank==0) then
     
       ! allocate the arrays
@@ -60,12 +60,12 @@ subroutine task_analytic_continuation()
       ! KS states analysis
       call fermi_exciting(input%groundstate%tevecsv, &
       &                   nvelgw, &
-      &                   nbandsgw,kset%nkpt,evalks(ibgw:nbgw,:), &
-      &                   kset%ntet,kset%tnodes,kset%wtet,kset%tvol, &
-      &                   efermi,egap)
+      &                   nbandsgw, kset%nkpt, evalks(ibgw:nbgw,:), &
+      &                   kset%ntet, kset%tnodes, kset%wtet,kset%tvol, &
+      &                   efermi, egap, fermidos)
       call bandstructure_analysis('KS', &
       &  ibgw,nbgw,kset%nkpt,evalks(ibgw:nbgw,:),efermi)
-    
+
       !======================================
       ! Calculate the quasiparticle energies
       !======================================

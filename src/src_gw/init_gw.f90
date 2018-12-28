@@ -124,9 +124,11 @@ subroutine init_gw()
     
     ! Frequency grid initialization
     call timesec(t0)
+
     if (input%gw%taskname=='g0w0' .or. &
     &   input%gw%taskname=='gw0'  .or. &
     &   input%gw%taskname=='emac') then
+    
       call generate_freqgrid(freq, &
       &                      input%gw%freqgrid%fgrid, &
       &                      input%gw%freqgrid%fconv, &
@@ -144,6 +146,7 @@ subroutine init_gw()
 #endif
 
     else
+    
       ! frequency independent method
       freq%nomeg = 1
       freq%freqmin = 0.d0
@@ -153,6 +156,7 @@ subroutine init_gw()
       freq%freqs(1) = 1.d-3
       allocate(freq%womeg(freq%nomeg))
       freq%womeg(1) = 1.d0
+      
     end if
       
     call timesec(t1)

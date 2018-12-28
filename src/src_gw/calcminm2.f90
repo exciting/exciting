@@ -1,16 +1,5 @@
-!BOP
-!
-!!ROUTINE: calcminm
-!
-!!INTERFACE:
-!
+
 subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
-!
-! !DESCRIPTION:
-!
-!This subroutine calculates the matrix elements $M^i_{nm}(\vec{k},\vec{q})$ 
-!
-!!USES:
     use modinput
     use modmain,               only : nspecies, natoms, idxas, idxlm, idxlo, &
     &                                 zzero, zone, intgv, apword, nlorb, lorbl, &
@@ -22,15 +11,13 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     use mod_misc_gw,           only : vi, atposl
     use mod_gaunt_coefficients
 
-!!INPUT PARAMETERS:
     implicit none
-    integer(4), intent(in) :: ik   ! the index of the first k-point
-    integer(4), intent(in) :: iq   ! the index of the q-point
-    integer(4), intent(in) :: nstart, nend  ! range of n states
-    integer(4), intent(in) :: mstart, mend  ! range of m states
+    integer(4), intent(in) :: ik
+    integer(4), intent(in) :: iq
+    integer(4), intent(in) :: nstart, nend
+    integer(4), intent(in) :: mstart, mend
     complex(8), intent(out):: minm(matsiz,nstart:nend,mstart:mend)
       
-!!LOCAL VARIABLES:
     integer(4) :: jk
     integer(4) :: bl, bm
     integer(4) :: i, ia, is, ias 
@@ -54,23 +41,14 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     
     complex(8) :: phs, bk
     complex(8), allocatable :: tmat(:,:), tmat2(:,:), mnn(:,:)
-    complex(8), allocatable :: lok(:,:),lokp(:,:) ,veck(:),veckp(:)
+    complex(8), allocatable :: lok(:,:), lokp(:,:) ,veck(:), veckp(:)
+
 !dir$ attributes align:64 :: tmat
 !dir$ attributes align:64 :: lok
 !dir$ attributes align:64 :: lokp
 
-!!EXTERNAL ROUTINES: 
     external :: zgemm
     real(8), external :: gaunt
-
-!!REVISION HISTORY:
-! 
-! Created  23th. Feb. 2004 by RGA
-! Last modified 20th. Jul. 2004 by RGA
-! Revisited 29.04.2011 by DIN
-!
-!EOP
-!BOC
 
     call timesec(tstart)
 
@@ -111,7 +89,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     allocate(veckp(mstart:mend))
 
 #ifdef USEOMP
-!$OMP DO
+!$OMP DO SCHEDULE(DYNAMIC)
 #endif
     ! loop over MT product basis functions
     do imix = 1, locmatsiz
@@ -251,7 +229,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     end do ! igk1
 
 !#ifdef USEOMP
-!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(igq,igk1,igk2,tmat,tmat2,mnn,ie1,ie2)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(igq,igk1,igk2,tmat,tmat2,mnn,ie1,ie2)
 !#endif
 
     allocate(tmat(ngk2,ngk1))
@@ -259,7 +237,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     allocate(mnn(mdim,ndim))
 
 !#ifdef USEOMP
-!!$OMP DO
+!$OMP DO
 !#endif    
     do igq = 1, Gqset%ngk(1,iq)
         
@@ -295,7 +273,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
       
     end do ! igq
 !#ifdef USEOMP    
-!!$OMP END DO
+!$OMP END DO
 !#endif
 
     deallocate(tmat)
@@ -303,7 +281,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     deallocate(mnn)
     
 !#ifdef USEOMP
-!!$OMP END PARALLEL
+!$OMP END PARALLEL
 !#endif    
 
     deallocate(igqk12)
@@ -325,5 +303,4 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
   
     return
 end subroutine
-!EOC      
 

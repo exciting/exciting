@@ -23,9 +23,9 @@ subroutine eptest(ik,jk,iq)
 
     ! get KS eigenvectors
     allocate(evecsv(nmatmax,nstsv,nspinor))
-    call getevecsvgw_new('GW_EVECSV.OUT',jk,kqset%vkl(:,jk),nmatmax,nstsv,nspinor,evecsv)
+    call getevecsvgw('GW_EVECSV.OUT',jk,kqset%vkl(:,jk),nmatmax,nstsv,nspinor,evecsv)
     eveckp = conjg(evecsv(:,:,1))
-    call getevecsvgw_new('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
+    call getevecsvgw('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
     eveck = evecsv(:,:,1)
     deallocate(evecsv)
 

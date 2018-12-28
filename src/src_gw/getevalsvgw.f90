@@ -1,50 +1,63 @@
 
-subroutine getevalsvgw(ik,eval)
-    use modmain
+subroutine getevalsvgw(fname,ik,vpl,nstsv,evalsv)
     use m_getunit
     implicit none
-    integer, intent(in)  :: ik
-    real(8), intent(out) :: eval(nstsv)
-! local variables
-    integer :: fid, recl
-    integer :: nstsv_
-    real(8) :: vkl_(3)
-    character(256) :: filename
+    ! arguments
+    character(*) :: fname
+    integer, intent(In) :: ik
+    real(8), intent(In) :: vpl(3)
+    integer, intent(In) :: nstsv
+    real(8), intent(Out):: evalsv(nstsv)
+    ! local variables
     logical :: exist
+    integer :: recl, fid
+    integer :: nstsv_, ist
+    real(8) :: vpl_(3), t1
+    real(8), allocatable :: evalsv_(:)
     
-    filename = "EVALSV_GW.OUT"
-
-!-------------------------------------------------------------------
-!   read the KS eigenenergies (only for the irreducible k-points)
-!-------------------------------------------------------------------
-
-    inquire(File=trim(filename), Exist=exist)
-    if (.not.exist) then
-        write(*,*) 'ERROR(getevalsvgw): File does not exist!'
+    inquire(File=trim(fname),Exist=exist)
+    if (exist) then
+      call getunit(fid)
+      inquire(IoLength=recl) vpl_, nstsv_
+      open(fid,File=trim(fname),Action='READ',Form='UNFORMATTED', &
+      &    Access='DIRECT',Recl=recl)
+      read(fid,Rec=1) nstsv_
+      close(fid)
+      if (nstsv_<nstsv) then
+        write(*,*)
+        write(*,'("ERROR(getevalsvgw): Wrong number of states")')
+        write(*,'("  input size : ", i8)') nstsv
+        write(*,'(" ",a," : ",i8)') trim(fname), nstsv_
+        write(*,*)
         stop
-    end if
-
-    ! find the record length
-    inquire(IoLength=recl) vkl_, nstsv_
-    call getunit(fid)  
-    open(fid, File=trim(filename), Action='READ', &
-    &  Form='UNFORMATTED', Access='DIRECT', Recl=recl)
-    read(fid, Rec=1) vkl_, nstsv_
-    close(fid)
-
-    if (nstsv_ < nstsv) then
-        write(*,*) 'ERROR(getevalsvgw): Different number of states!'
-        write(*,*) '   Required: nstsv  =', nstsv
-        write(*,*) '  Available: nstsv_ =', nstsv_
+      end if
+      allocate(evalsv_(nstsv_))
+      inquire(IoLength=recl) nstsv_, vpl_, evalsv_
+      open(fid,File=trim(fname),Action='READ',Form='UNFORMATTED', &
+      &    Access='DIRECT',Recl=recl)
+      read(fid,Rec=ik) nstsv_, vpl_, evalsv_
+      close(fid)
+      t1 = dabs(vpl(1)-vpl_(1)) + &
+      &    dabs(vpl(2)-vpl_(2)) + &
+      &    dabs(vpl(3)-vpl_(3))
+      if (t1 > 1.d-6) then
+        write(*,*)
+        write(*,'("ERROR(getevalsvgw): Differing vectors for k-point",i8)') ik
+        write(*,'("  input vector : ", 3G18.10)') vpl
+        write(*,'(" ",a," : ",3G18.10)') trim(fname), vpl_
+        write(*,*)
         stop
+      end if
+      do ist = 1, nstsv
+        evalsv(ist) = evalsv_(ist)
+      end do
+    else
+      write(*,*)
+      write(*,'("ERROR(getevecsvgw): File ",a," does not exist!")')  trim(fname)
+      write(*,*)
+      stop
     end if
-
-    eval(:) = 0.d0
-    inquire(IoLength=recl) vkl_, nstsv_, eval
-    open(fid, File=trim(filename), Action='READ', &
-    &  Form='UNFORMATTED', Access='DIRECT', Recl=recl)
-    read(fid, Rec=ik) vkl_, nstsv_, eval
-    close(fid)
-    
+      
     return
 end subroutine
+

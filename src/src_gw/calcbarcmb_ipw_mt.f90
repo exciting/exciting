@@ -1,13 +1,13 @@
-!
+
 subroutine calcbarcmb_ipw_mt(iq)
-!
+
     use modinput
     use modmain,               only : pi, nspecies, nrmt, spr, natoms, &
-    &                                 idxas, idxlm, zi, zzero, zone
+    &                                 idxas, idxlm, zi, zzero, zone,nrmtmax
     use modgw,                 only : Gset, Gamma, kqset, Gqset, Gqbarc
     use mod_product_basis,     only : locmatsiz, maxbigl, nmix, bigl, umix, &
     &                                 mpwipw, mpwmix
-    use mod_coulomb_potential, only : barc, rcut, vccut
+    use mod_coulomb_potential, only : barc
     use mod_misc_gw,           only : vi, atposl
     implicit none
     ! input variables
@@ -20,7 +20,7 @@ subroutine calcbarcmb_ipw_mt(iq)
     real(8) :: const, x
     real(8) :: gvec(3), gqvec(3), gqlen, gpr
     real(8) :: janl
-    real(8) :: vc, kxy, kz
+    real(8) :: vc
     real(8), allocatable :: fr(:), gr(:), cf(:,:)
     real(8), allocatable :: bessl(:,:)
     complex(8) :: expg, prefac
@@ -28,6 +28,79 @@ subroutine calcbarcmb_ipw_mt(iq)
     complex(8), allocatable :: tmat1(:,:), tmat2(:,:)
     ! external routine 
     external zgemm
+    integer :: polyord
+    parameter (polyord=3)
+    integer :: ipiv(polyord+1),io1,io2
+    integer :: mid,info,lwork
+    real(8), allocatable :: poly(:,:),weight(:,:),ints(:),abscissa(:),work(:)
+    logical :: usesplines
+
+    usesplines = .false.
+
+    if (.not.usesplines) then
+      allocate(poly(0:polyord,0:polyord))
+      allocate(ints(0:polyord))
+      allocate(abscissa(0:polyord))
+
+      allocate(work(1))
+      call dgetri(polyord+1,poly,polyord+1,ipiv,work,-1,info)
+      lwork=int(work(1))
+      deallocate(work)
+      allocate(work(lwork))
+     
+      allocate(weight(nrmtmax,nspecies))
+      weight=0d0
+
+      do is=1,nspecies
+        nr=nrmt(is)
+        mid=polyord/2
+        do ir=2,nr-polyord-1
+          abscissa(0:polyord)=spr(ir:ir+polyord,is)-spr(ir,is)
+          poly(:,0)=1d0
+          do io2=1,polyord
+            do io1=0,polyord
+              poly(io1,io2)=poly(io1,io2-1)*abscissa(io1)
+            enddo
+          enddo
+          do io1=0,polyord
+            ints(io1)=(poly(mid+1,io1)*abscissa(mid+1)-poly(mid,io1)*abscissa(mid))/dble(io1+1)
+          enddo
+          call dgetrf(polyord+1,polyord+1,poly,polyord+1,ipiv,info)
+          call dgetri(polyord+1,poly,polyord+1,ipiv,work,lwork,info)
+          call dgemm('N','N',1,polyord+1,polyord+1,1d0,ints(0),1,poly(0,0),polyord+1,1d0,weight(ir,is),1)
+        enddo
+
+        abscissa(0:polyord)=spr(1:1+polyord,is)-spr(1,is)
+        poly(:,0)=1d0
+        do io2=1,polyord
+          do io1=0,polyord
+            poly(io1,io2)=poly(io1,io2-1)*abscissa(io1)
+          enddo
+        enddo
+        do io1=0,polyord
+          ints(io1)=(poly(mid+1,io1)*abscissa(mid+1)-poly(0,io1)*abscissa(0))/dble(io1+1)
+        enddo
+        call dgetrf(polyord+1,polyord+1,poly,polyord+1,ipiv,info)
+        call dgetri(polyord+1,poly,polyord+1,ipiv,work,lwork,info)
+        call dgemm('N','N',1,polyord+1,polyord+1,1d0,ints(0),1,poly(0,0),polyord+1,1d0,weight(1,is),1)
+
+        abscissa(0:polyord)=spr(nr-polyord:nr,is)-spr(nr-polyord,is)
+        poly(:,0)=1d0
+        do io2=1,polyord
+          do io1=0,polyord
+            poly(io1,io2)=poly(io1,io2-1)*abscissa(io1)
+          enddo
+        enddo
+        do io1=0,polyord
+          ints(io1)=(poly(polyord,io1)*abscissa(polyord)-poly(mid,io1)*abscissa(mid))/dble(io1+1)
+        enddo
+        call dgetrf(polyord+1,polyord+1,poly,polyord+1,ipiv,info)
+        call dgetri(polyord+1,poly,polyord+1,ipiv,work,lwork,info)
+        call dgemm('N','N',1,polyord+1,polyord+1,1d0,ints(0),1,poly(0,0),polyord+1,1d0,weight(nr-polyord,is),1)
+      enddo
+      deallocate(poly,abscissa,ints,work)
+
+    endif
     
     npw = Gqbarc%ngk(1,iq)
     ngq = Gqset%ngk(1,iq)
@@ -39,12 +112,12 @@ subroutine calcbarcmb_ipw_mt(iq)
     tmat1(:,:) = zzero
     
     ipw0 = 1
-    if (Gamma) then
-      ipw0 = 2
-    end if
+    if (Gamma) ipw0 = 2
     
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ipw,gvec,gqvec,gqlen,vc,kxy,kz,sph,imix,is,nr,bessl,ir,x,fr,gr,cf,ia,ias,gpr,expg,irm,l1,janl,prefac,m1)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ipw,gvec,gqvec,gqlen,vc,sph,imix,is,nr,bessl,ir,x,fr,gr,cf,ia,ias,gpr,expg,irm,l1,janl,prefac,m1,l1m1)
+#endif
+#ifdef USEOMP
 !$OMP DO
 #endif
     do ipw = ipw0, npw
@@ -55,40 +128,12 @@ subroutine calcbarcmb_ipw_mt(iq)
       gqvec(1:3) = Gset%vgc(1:3,Gqbarc%igkig(ipw,1,iq))+kqset%vqc(1:3,iq)
       ! length of G+q vector
       gqlen = dsqrt(gqvec(1)*gqvec(1)+gqvec(2)*gqvec(2)+gqvec(3)*gqvec(3))
-
-      ! when testing Gamma=.false. case
       if (abs(gqlen) < 1.d-8) then
         write(*,*) 'WARNING(calcbarcmb_ipw_mt.f90): Zero length vector!' 
         cycle
       endif
-      
-      if (vccut) then
      
-        ! apply cutoff
-        select case (trim(input%gw%barecoul%cutofftype))
-      
-          case('0d')
-            vc = 1.d0/(gqlen*gqlen)
-            vc = vc*(1.d0-dcos(gqlen*rcut))
-      
-          case ('2d')
-            ! version by Ismail-Beigi (fixed rc = L_z/2)
-            kxy = dsqrt(gqvec(1)*gqvec(1)+gqvec(2)*gqvec(2))
-            kz = dabs(gqvec(3))
-            vc = 1.d0/(gqlen*gqlen)
-            vc = vc*(1.d0-dexp(-kxy*rcut)*dcos(kz*rcut))
-          
-          case default
-            write(*,*) 'ERROR(calcbarcmb_ipw_mt): Specified cutoff type is not implemented!'
-          
-        end select
-      
-      else
-      
-        ! no cutoff
-        vc = 1.d0/(gqlen*gqlen)
-       
-      end if
+      vc = 1.d0/(gqlen*gqlen)
       
       !----------------------
       ! Calculate Y_lm(q+G)
@@ -125,11 +170,18 @@ subroutine calcbarcmb_ipw_mt(iq)
             ! Calculate the radial integral J_{aNL}
             !---------------------------------------
             l1 = bigl(irm,ias)
-            do ir = 1, nr
-              fr(ir) = bessl(ir,l1)*umix(ir,irm,ias)*spr(ir,is)
-            end do ! ir
-            call fderiv(-1,nr,spr(1:nr,is),fr,gr,cf)
-            janl = gr(nr)
+            if (usesplines) then
+              do ir = 1, nr
+                fr(ir) = bessl(ir,l1)*umix(ir,irm,ias)*spr(ir,is)
+              end do ! ir
+              call fderiv(-1,nr,spr(1:nr,is),fr,gr,cf)
+              janl = gr(nr)
+            else
+              janl=0d0
+              Do ir = 1, nr
+                janl=janl+bessl(ir,l1)*umix(ir,irm,ias)*spr(ir,is)*weight(ir,is)
+              End Do              
+            endif
             prefac = cmplx(const*janl*vc,0.d0,8)*expg*((-zi)**l1)
             do m1 = -l1, l1
               imix = imix + 1
@@ -142,14 +194,18 @@ subroutine calcbarcmb_ipw_mt(iq)
         
         deallocate(bessl)
         deallocate(fr,gr,cf)
-        
       end do ! is
       
     end do ! ig
 #ifdef USEOMP
 !$OMP END DO
+#endif
+
+
+#ifdef USEOMP
 !$OMP END PARALLEL
 #endif
+    if (allocated(weight)) deallocate(weight)
 
     !-------------------------------------------------
     ! \Sum_G' \tilde{S}^{*}_{G'i}(q) J_{aNL}(|G'+q|) 
@@ -179,4 +235,3 @@ subroutine calcbarcmb_ipw_mt(iq)
     !end do
     
 end subroutine
-

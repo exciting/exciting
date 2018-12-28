@@ -103,7 +103,7 @@ subroutine kintw()
         end do
       end if
     endif
-      
+
     return
 end subroutine
 !EOC          
