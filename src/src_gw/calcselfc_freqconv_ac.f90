@@ -33,6 +33,7 @@ subroutine calcselfc_freqconv_ac(ikp,iq,mdim)
       
     do ie1 = ibgw, nbgw
       
+      ! sum over states
       do ie2 = 1, mdim
         
         if ( ie2 <= nstse ) then
@@ -55,6 +56,7 @@ subroutine calcselfc_freqconv_ac(ikp,iq,mdim)
         ! Re W
         xnm(:) = cmplx( dble(mwm(ie1,ie2,:)), 0.d0, 8)
 
+        ! for each frequency
         do iom = 1, freq_selfc%nomeg
 
           w_sc = freq_selfc%freqs(iom)

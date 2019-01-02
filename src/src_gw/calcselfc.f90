@@ -1,28 +1,15 @@
-!BOP
-!!ROUTINE: calcselfc
-!
-!!INTERFACE: 
-!
 subroutine calcselfc(iq)
-!      
-!!DESCRIPTION:
-!
-! This subroutine calculates the q-dependent correlation self-energy
-!
-!!USES:
     use modinput
     use modmain,    only : nstsv, apwordmax, lmmaxapw, natmtot, nspnfv, &
     &                      zzero, nmatmax
     use modgw
-    use mod_mpi_gw, only : myrank, myrank_col
+    use mod_mpi_gw, only : myrank
     use m_getunit
-    
-!!INPUT PARAMETERS:
     implicit none
+    ! input/output
     integer(4), intent(in) :: iq
-    
-!!LOCAL VARIABLES:            
-    integer(4) :: ik, ikp, jk, ispn, ie1
+    ! local
+    integer(4) :: ik, ikp, jk, ispn
     integer(4) :: mdim, iblk, nblk, mstart, mend
     integer(4) :: fid
     character(120) :: fname_mwm
@@ -30,12 +17,9 @@ subroutine calcselfc(iq)
     complex(8), allocatable :: evecsv(:,:,:)
     character(len=10), external :: int2str
 
-!!REVISION HISTORY:
-!
-! Created Nov 2013 by DIN
-!
-!EOP
-!BOC
+    write(*,*)
+    write(*,*) ' ---- calcselfc started ----'
+    write(*,*)
     call timesec(tstart)
     
     !------------------------
@@ -50,7 +34,6 @@ subroutine calcselfc(iq)
     !-------------------------------------------------------
     ! determine the number of blocks used in minm operation
     !-------------------------------------------------------
-    nblk = mdim / mblksiz
     if (mblksiz >= mdim) then
       nblk = 1
     else
@@ -62,8 +45,8 @@ subroutine calcselfc(iq)
     ! products M*W^c*M
     !-------------------------------------------
     allocate(mwm(ibgw:nbgw,1:mdim,1:freq%nomeg))
-    ! msize = sizeof(mwm)*b2mb
-    ! write(*,'(" calcselfc: size(mwm) (Mb):",f12.2)') msize
+    msize = sizeof(mwm)*b2mb
+    write(*,'(" calcselfc: size(mwm) (Mb):",f12.2)') msize
  
     !----------------------------
     ! q-dependent M*W*M products
@@ -85,8 +68,8 @@ subroutine calcselfc(iq)
     do ispn = 1, nspinor
     do ikp = 1, kset%nkpt
     
-      ! write(*,*)
-      ! write(*,*) 'calcselfc: k-point loop ikp=', ikp
+      write(*,*)
+      write(*,*) 'calcselfc: k-point loop ikp=', ikp
     
       ! k vector
       ik = kset%ikp2ik(ikp)
@@ -94,20 +77,14 @@ subroutine calcselfc(iq)
       jk = kqset%kqid(ik,iq)
       
       ! get KS eigenvectors
-      call timesec(t0)
       allocate(evecsv(nmatmax,nstsv,nspinor))
-      call getevecsvgw('GW_EVECSV.OUT',jk,kqset%vkl(:,jk),nmatmax,nstsv,nspinor,evecsv)
+      call getevecsvgw('GW_EVECSV.OUT', jk, kqset%vkl(:,jk), nmatmax, nstsv, nspinor, evecsv)
       eveckp = conjg(evecsv(:,:,ispn))
-      call getevecsvgw('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
+      call getevecsvgw('GW_EVECSV.OUT', ik, kqset%vkl(:,ik), nmatmax, nstsv, nspinor, evecsv)
       eveck = evecsv(:,:,ispn)
       deallocate(evecsv)
-
-      call timesec(t1)
-      time_io = time_io+t1-t0
-        
-      ! Calculate M^i_{nm}+M^i_{cm}
-      call expand_evec(ik,'t')
-      call expand_evec(jk,'c')
+      call expand_evec(ik, 't')
+      call expand_evec(jk, 'c')
 
       !=================================
       ! Loop over m-blocks in M^i_{nm}
@@ -118,9 +95,9 @@ subroutine calcselfc(iq)
         mend = min(mdim,mstart+mblksiz-1)
         
         ! m-block M^i_{nm}
-        allocate( minmmat(mbsiz,ibgw:nbgw,mstart:mend) )
-        ! msize = sizeof(minmmat)*b2mb
-        ! write(*,'(" calcselfc: rank, size(minmmat) (Mb):",3i4,f12.2)') myrank, mstart, mend, msize
+        allocate(minmmat(mbsiz,ibgw:nbgw,mstart:mend))
+        msize = sizeof(minmmat)*b2mb
+        write(*,'(" calcselfc: rank, size(minmmat) (Mb):",3i4,f12.2)') myrank, mstart, mend, msize
 
         call expand_products(ik, iq, ibgw, nbgw, -1, mstart, mend, nstse, minmmat)
 
@@ -165,21 +142,17 @@ subroutine calcselfc(iq)
     deallocate(eveckpalm)
     
     ! delete MWM
-    if (myrank_col==0) then
-      deallocate(mwm)
-      ! and close the file
-      if (input%gw%taskname.eq.'gw0') close(fid)
-    end if
+    deallocate(mwm)
+    ! and close the file
+    if (input%gw%taskname.eq.'gw0') close(fid)
     
     ! timing
     call timesec(tend)
     time_selfc = time_selfc+tend-tstart
-    
-    ! if (myrank==0) then
-    !   write(*,*)
-    !   write(*,*) ' ---- calcselfc ended ----'
-    !   write(*,*)
-    ! end if
+
+    write(*,*)
+    write(*,*) ' ---- calcselfc ended ----'
+    write(*,*)
     
     return
 end subroutine
