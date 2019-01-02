@@ -79,7 +79,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
       lokp(ie1,1:)=eveckp(Gkset%ngk(1,jk)+1:,ie1)
     enddo
 
-    !write(*,*) 'nstart,mstart',nstart,nend,mstart,mend
+    write(*,*) 'nstart, mstart', nstart, nend, mstart, mend
 
     
 #ifdef USEOMP
@@ -201,7 +201,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     deallocate(lok,lokp)
 
     call timesec(tmt)
-    if (input%gw%debug) write(*,*) 'calcminm, mt',tmt-tstart
+    write(*,*) 'calcminm, mt', tmt-tstart
 
     !======================
     ! Interstitial region
@@ -228,17 +228,17 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
       end do ! igk2
     end do ! igk1
 
-!#ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(igq,igk1,igk2,tmat,tmat2,mnn,ie1,ie2)
-!#endif
+! !#ifdef USEOMP
+! !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(igq,igk1,igk2,tmat,tmat2,mnn,ie1,ie2)
+! !#endif
 
     allocate(tmat(ngk2,ngk1))
     allocate(tmat2(ngk2,ndim))
     allocate(mnn(mdim,ndim))
 
-!#ifdef USEOMP
-!$OMP DO
-!#endif    
+! !#ifdef USEOMP
+! !$OMP DO
+! !#endif    
     do igq = 1, Gqset%ngk(1,iq)
         
       do igk1 = 1, ngk1 ! loop over G+k
@@ -272,17 +272,17 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
       end do ! ie1
       
     end do ! igq
-!#ifdef USEOMP    
-!$OMP END DO
-!#endif
+! !#ifdef USEOMP    
+! !$OMP END DO
+! !#endif
 
     deallocate(tmat)
     deallocate(tmat2)
     deallocate(mnn)
     
-!#ifdef USEOMP
-!$OMP END PARALLEL
-!#endif    
+! !#ifdef USEOMP
+! !$OMP END PARALLEL
+! !#endif    
 
     deallocate(igqk12)
     
@@ -290,7 +290,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     ! timing
     call timesec(tend)
     time_minm = time_minm+tend-tstart
-    if (input%gw%debug) write(*,*) 'calcminm, ir', tend-tmt
+    write(*,*) 'calcminm, ir', tend-tmt
 
     !write(*,*) ' minmmat ik, iq: ', ik, iq
     !do imix = 1, matsiz, matsiz/10

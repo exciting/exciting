@@ -151,7 +151,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
 
                 ! call timesec(ta)
                 mstart = numin + (iblk-1)*mblksiz
-                mend   = min(nstdf,mstart+mblksiz-1)
+                mend   = min(nstdf, mstart+mblksiz-1)
                 nmdim  = ndim*(mend-mstart+1)
                 print*, iblk, nblk, mstart, mend
 

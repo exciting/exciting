@@ -170,7 +170,7 @@ subroutine init_gw()
     !------------------------------
     ! print the memory usage info
     !------------------------------
-    call print_memory_usage
+    ! call print_memory_usage
 
     ! timing
     call timesec(tend)
