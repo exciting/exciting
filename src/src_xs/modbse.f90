@@ -106,6 +106,7 @@ module modbse
       use mod_Gkvector, only: gkmax
       use modxs, only: totalqlmt, evalsv0, usefilext0, filext0,&
                      & ksgap, ksgapval, qmtpgap, qmtmgap, unitout
+      use modxas, only: ncg
       use m_genfilname
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
@@ -135,7 +136,7 @@ module modbse
 
       real(8), parameter :: epslat = 1.0d-8
 
-      logical :: fgap, fsamek
+      logical :: fgap, fsamek, fxas
       real(8) :: gap
       real(8) :: t0,t1
 
@@ -195,7 +196,7 @@ module modbse
         write(unitout, '("Info(setranges_modxs): (+) Different k-grids for iqmt=1 and iqmt=",i3)') iqmt
         fsamek=.false.
       end if
-
+      fxas=input%xs%BSE%xas
       ! Allocate k eigenvalues
       ! Note: If evalsv0 is allocated before findocclims is called it gets read in 
       ! and stays allocated.
@@ -312,7 +313,11 @@ module modbse
       iuref = iumin 
       ioref = 1
       nk_max = nkptnr
-      no_max = iomax
+      if (fxas) then
+        no_max=ncg
+      else
+        no_max = iomax
+       end if
       nu_max = nstsv-iumin+1
       nou_max = no_max*nu_max
 
@@ -355,7 +360,7 @@ module modbse
     subroutine select_transitions(iqmt, serial, dirname)
       use mod_kpoint, only: vkl
       use modxs, only: usefilext0, filext0, vkl0
-      use modxas, only: xasstart, xasstop, ecore
+      use modxas, only: xasstart, xasstop, ecore, ncg
       use m_genfilname
       use mod_symmetry, only: nsymcrys
     ! !INPUT/OUTPUT PARAMETERS:
@@ -519,7 +524,7 @@ module modbse
 
       end if
 
-      if(istunocc0 < io1) then
+      if((istunocc0 < io1) .and. (.not. fxas)) then
         write(*, '("Waring(select_transitions):", a, 2i4)') &
           & "Lowest (partially) unoccupied band is below the first &
            considered (partially) occupied band.", istunocc0, io1
@@ -709,7 +714,12 @@ module modbse
         kous = 0
         iomax = 0
         iumax = 0
-        iomin = istocc0+1
+        ! Set maximal value for occupied states
+        if (fxas) then
+          iomin=ncg+1
+        else
+          iomin = istocc0+1
+        end if
         iumin = nstsv+1
 
         ! Loop over KS transition energies 
