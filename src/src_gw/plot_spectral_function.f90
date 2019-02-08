@@ -17,8 +17,8 @@ subroutine plot_spectral_function()
     write(frmt, '("(",i8,"f14.6)")') 1 + nbgw-ibgw+1
     allocate(sf(ibgw:nbgw))
     do ik = 1, kset%nkpt
-        write(70,*) '# ik = ', ik
-        write(71,*) '# ik = ', ik
+        write(70,'(a,i4,a,3f12.6,a,3f12.6,a,f12.6)') '# k-point: ik=', ik, '    vkl=', kset%vkl(:,ik), '    vkc=', kset%vkc(:,ik), '    wkpt=', kset%wkpt(ik) 
+        write(71,'(a,i4,a,3f12.6,a,3f12.6,a,f12.6)') '# k-point: ik=', ik, '    vkl=', kset%vkl(:,ik), '    vkc=', kset%vkc(:,ik), '    wkpt=', kset%wkpt(ik) 
         do iw = 1, freq_selfc%nomeg
             w = freq_selfc%freqs(iw)
             ! compute spectral function
