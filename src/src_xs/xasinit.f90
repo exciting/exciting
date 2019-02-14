@@ -142,18 +142,63 @@ subroutine xasinit
     mj(21)=0.5d0
     spj(22)=1.5d0   ! 3d(3/2,3/2)
     mj(22)=1.5d0
-    spj(23)=2.5d0   ! d(5/2,-5/2)
+    spj(23)=2.5d0   ! 3d(5/2,-5/2)
     mj(23)=-2.5d0
-    spj(24)=2.5d0   ! d(5/2,-3/2)
+    spj(24)=2.5d0   ! 3d(5/2,-3/2)
     mj(24)=-1.5d0
-    spj(25)=2.5d0   ! d(5/2,-1/2)
+    spj(25)=2.5d0   ! 3d(5/2,-1/2)
     mj(25)=-0.5d0
-    spj(26)=2.5d0   ! d(5/2,1/2)
+    spj(26)=2.5d0   ! 3d(5/2,1/2)
     mj(26)=0.5d0
-    spj(27)=2.5d0   ! d(5/2,3/2)
+    spj(27)=2.5d0   ! 3d(5/2,3/2)
     mj(27)=1.5d0
-    spj(28)=2.5d0   ! d(5/2,5/2)
+    spj(28)=2.5d0   ! 3d(5/2,5/2)
     mj(28)=2.5d0
+  end if
+  !N1
+  if (ncg .gt. 28) then
+    spj(29)=0.5d0 ! 4s(1/2,-1/2)
+    mj(29)=-0.5d0
+    spj(30)=0.5d0 ! 4s(1/2,1/2)
+    mj(30)=0.5d0
+  end if
+  !N23
+  if (ncg .gt. 30) then
+    spj(31)=0.5d0   ! 4p(1/2,-1/2)
+    mj(31)=-0.5d0
+    spj(32)=0.5d0   ! 4p(1/2,1/2)
+    mj(32)=0.5d0
+    spj(33)=1.5d0   ! 4p(3/2,-3/2)
+    mj(33)=-1.5d0
+    spj(34)=1.5d0   ! 4p(3/2,-1/2)
+    mj(34)=-0.5d0
+    spj(35)=1.5d0   ! 4p(3/2,1/2)
+    mj(35)=0.5d0
+    spj(36)=1.5d0   ! 4p(3/2,3/2)
+    mj(36)=1.5d0
+  end if
+  !N45
+  if (ncg .gt. 36) then
+    spj(37)=1.5d0   ! 4d(3/2,-3/2)
+    mj(37)=-1.5d0
+    spj(38)=1.5d0   ! 4d(3/2,-1/2)
+    mj(38)=-0.5d0
+    spj(39)=1.5d0   ! 4d(3/2,1/2)
+    mj(39)=0.5d0
+    spj(40)=1.5d0   ! 4d(3/2,3/2)
+    mj(40)=1.5d0
+    spj(41)=2.5d0   ! 4d(5/2,-5/2)
+    mj(41)=-2.5d0
+    spj(42)=2.5d0   ! 4d(5/2,-3/2)
+    mj(42)=-1.5d0
+    spj(43)=2.5d0   ! 4d(5/2,-1/2)
+    mj(43)=-0.5d0
+    spj(44)=2.5d0   ! 4d(5/2,1/2)
+    mj(44)=0.5d0
+    spj(45)=2.5d0   ! 4d(5/2,3/2)
+    mj(45)=1.5d0
+    spj(46)=2.5d0   ! 4d(5/2,5/2)
+    mj(46)=2.5d0
   end if
 ! Obtain boundaries for different edges	
   if (input%xs%bse%xasedge .eq. 'K') then
@@ -203,6 +248,34 @@ subroutine xasinit
   elseif (input%xs%bse%xasedge .eq. 'M45') then
     xasstart=19
     xasstop=28
+    lxas=2
+  elseif (input%xs%bse%xasedge .eq. 'N1') then
+    xasstart=29
+    xasstop=30
+    lxas=0
+  elseif (input%xs%bse%xasedge .eq. 'N2') then
+    xasstart=31
+    xasstop=32
+    lxas=1
+  elseif (input%xs%bse%xasedge .eq. 'N3') then
+    xasstart=33
+    xasstop=36
+    lxas=1
+  elseif (input%xs%bse%xasedge .eq. 'N23') then
+    xasstart=31
+    xasstop=36
+    lxas=1
+  elseif (input%xs%bse%xasedge .eq. 'N4') then
+    xasstart=37
+    xasstop=40
+    lxas=2
+  elseif (input%xs%bse%xasedge .eq. 'N5') then
+    xasstart=41
+    xasstop=46
+    lxas=2
+  elseif (input%xs%bse%xasedge .eq. 'N45') then
+    xasstart=37
+    xasstop=46
     lxas=2
   end if
 ! define number of core states in XAS calculation

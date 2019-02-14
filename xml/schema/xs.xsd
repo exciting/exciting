@@ -790,6 +790,13 @@
                   <xs:enumeration value="M4"/>
                   <xs:enumeration value="M5"/>
                   <xs:enumeration value="M45"/>
+                  <xs:enumeration value="N1"/>
+                  <xs:enumeration value="N2"/>
+                  <xs:enumeration value="N3"/>
+                  <xs:enumeration value="N23"/>
+                  <xs:enumeration value="N4"/>
+                  <xs:enumeration value="N5"/>
+                  <xs:enumeration value="N45"/>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
