@@ -48,8 +48,7 @@ subroutine parse_gwinput
       write(fgw,*) 'GW taskname:'
       write(fgw,*)
     end if
-    select case(input%gw%taskname)
-    
+    select case(input%gw%taskname)   
         case('skip')
         case('g0w0')
             if (rank==0) write(fgw,*) '  g0w0 - G0W0 run'
