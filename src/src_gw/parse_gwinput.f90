@@ -450,7 +450,7 @@ subroutine parse_gwinput
     if (rank==0) write(fgw,'(a,2i7)') ' Specified quasiparticle band range: ', ibgw, nbgw
     if (rank==0) write(fgw,*)
 
-    call flushifc(fgw)
+    if (rank==0) call flushifc(fgw)
       
     return
 end subroutine
