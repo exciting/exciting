@@ -4,7 +4,7 @@
 !==================================================================
 subroutine calcselfc_freqconv(ikp,iq,mdim)
     use modinput
-    use modmain, only : pi, zzero, evalsv, idxas, evalcr, efermi
+    use modmain, only : pi, zzero, idxas, evalcr, efermi
     use modgw
     ! input variables
     implicit none
@@ -44,7 +44,7 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
             !============================= 
             ! Valence electron contribution
             !============================= 
-            enk = evalsv(ie2,jkp)-efermi
+            enk = evalfv(ie2,jkp)-efermi
             xnm(1:freq%nomeg) = mwm(ie1,ie2,1:freq%nomeg)
           else
             !============================= 

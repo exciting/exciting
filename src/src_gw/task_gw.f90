@@ -13,13 +13,12 @@ subroutine task_gw()
 !
 !!USES:
     use modinput
-    use modmain,               only: zzero, evalsv, efermi
+    use modmain,               only: zzero, efermi
     use modgw
     use mod_coulomb_potential
     use mod_vxc,               only: vxcnn
     use mod_mpi_gw
     use m_getunit
-    use mod_hdf5
             
 !!LOCAL VARIABLES:
     implicit none
@@ -46,19 +45,6 @@ subroutine task_gw()
     !===========================================================================
     ! Initialization
     !===========================================================================
-    !----------------------------------------------
-    ! Store all important results to the hdf5 file
-    !----------------------------------------------
-#ifdef _HDF5_
-    call hdf5_initialize()
-    fgwh5 = "gw_output.h5"
-    if (rank==0) then
-      call hdf5_create_file(fgwh5)
-      call hdf5_create_group(fgwh5,"/","parameters")
-      if (rank==0) call write_gw_parameters_hdf5
-      call hdf5_create_group(fgwh5,"/","kpoints")
-    end if
-#endif    
     
     ! prepare GW global data
     call init_gw
@@ -85,7 +71,7 @@ subroutine task_gw()
     end if
     
     ! occupancy dependent BZ integration weights
-    call kintw
+    call kintw()
 
     !---------------------------------------
     ! treatment of singularities at G+q->0
@@ -122,7 +108,7 @@ subroutine task_gw()
     end select
 
     ! initialize self-energy arrays
-    call init_selfenergy(ibgw,nbgw,kset%nkpt)
+    call init_selfenergy(ibgw, nbgw, kset%nkpt)
 
     !===========================================================================
     ! Main loop: BZ integration
@@ -158,9 +144,7 @@ subroutine task_gw()
     ! each process does a subset
     do iq = iqstart, iqend
   
-      if ((input%gw%debug).and.(rank==0)) then
-        write(fdebug,*) '(task_gw): q-point cycle, iq = ', iq
-      end if
+      if (rank==0) write(fgw,*) '(task_gw): q-point cycle, iq = ', iq
     
       Gamma = gammapoint(kqset%vqc(:,iq))
           
@@ -249,7 +233,7 @@ subroutine task_gw()
    
     if (myrank == 0) then
     
-      if (input%gw%selfenergy%method == "ac") then
+      if ((input%gw%taskname /= 'g0w0_x') .and. (input%gw%selfenergy%method == "ac")) then
         ! Analytical continuation of the correlation self-energy from the complex to the real frequency axis
         call plot_selfc_iw()
         call calcselfc_ac()
@@ -268,7 +252,7 @@ subroutine task_gw()
       !=======================================
 
       ! KS band structure
-      evalks(ibgw:nbgw,:) = evalsv(ibgw:nbgw,:) 
+      evalks(ibgw:nbgw,:) = evalfv(ibgw:nbgw,:)
       call bandstructure_analysis('KS', &
           ibgw,nbgw,kset%nkpt,evalks(ibgw:nbgw,:),efermi)
 
@@ -293,8 +277,9 @@ subroutine task_gw()
               ibgw,nbgw,kset%nkpt,evalqp(ibgw:nbgw,:),eferqp)
           
       end select
-
+      
 !$OMP end critical
+
     end if ! myrank
     
     !--------------------------------------------------------
@@ -325,22 +310,10 @@ subroutine task_gw()
       ! Save QP energies into binary file
       !----------------------------------------
       call timesec(t0)
-      call putevalqp()
-#ifdef _HDF5_
-      call hdf5_write(fgwh5,"/","efermi",efermi)
-      call hdf5_write(fgwh5,"/","eferqp",eferqp)
-      do ik = 1, kset%nkpt
-        write(cik,'(I4.4)') ik
-        path = "/kpoints/"//trim(adjustl(cik))
-        ! KS energies
-        call hdf5_write(fgwh5,path,"evalks",evalks(1,ik),(/nbandsgw/))
-        ! QP energies
-        call hdf5_write(fgwh5,path,"evalqp",evalqp(1,ik),(/nbandsgw/))
-      end do
-#endif
+      call putevalqp('EVALQP.OUT')
     end if ! myrank
     
-    if (allocated(evalsv)) deallocate(evalsv)
+    if (allocated(evalfv)) deallocate(evalfv)
     call delete_selfenergy
     
     call delete_freqgrid(freq)

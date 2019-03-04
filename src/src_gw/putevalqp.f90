@@ -1,36 +1,30 @@
 
-subroutine putevalqp()
+subroutine putevalqp(fname)
 
-  use modgw
-  use m_getunit
+    use modgw
+    use m_getunit
+    implicit none
+    character(*), intent(in) :: fname
+    integer(4) :: recl
+    integer(4) :: ik
+    integer(4) :: fid
 
-  implicit none
+    inquire(IoLength=recl) kset%nkpt, ibgw, nbgw, &
+                           kset%vkl(:,1), &
+                           evalqp(ibgw:nbgw,1), &
+                           evalks(ibgw:nbgw,1), &
+                           eferqp, efermi
+    call getunit(fid)
+    open(fid, File=trim(fname), Action='WRITE', Form='UNFORMATTED', &
+         Access='DIRECT',status='REPLACE', Recl=recl)
+    do ik = 1, kset%nkpt
+        write(fid, Rec=ik) kset%nkpt, ibgw, nbgw, &
+                           kset%vkl(:,ik), &
+                           evalqp(ibgw:nbgw,ik), &
+                           evalks(ibgw:nbgw,ik), &
+                           eferqp, efermi
+    end do ! ikp
+    close(fid)
 
-  integer :: recl
-  integer :: ik
-  integer :: fid
-
-  inquire(IoLength=recl) kset%nkpt, ibgw, nbgw, &
-  &       kset%vkl(:,1), &
-  &       evalqp(ibgw:nbgw,1), &
-  &       evalks(ibgw:nbgw,1), &
-  &       eferqp, efermi
-
-  call getunit(fid)
-
-  open(fid, File='EVALQP.OUT', Action='WRITE', Form='UNFORMATTED', &
-  &    Access='DIRECT',status='REPLACE', Recl=recl)
-
-  do ik = 1, kset%nkpt
-
-    write(fid, Rec=ik) kset%nkpt, ibgw, nbgw, &
-    &     kset%vkl(:,ik), &
-    &     evalqp(ibgw:nbgw,ik), &
-    &     evalks(ibgw:nbgw,ik), &
-    &     eferqp, efermi
-  end do ! ikp
-
-  close(fid)
-
-  return
+    return
 end subroutine

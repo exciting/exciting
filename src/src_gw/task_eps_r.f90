@@ -64,7 +64,7 @@ subroutine task_eps_r
     end if
     
     ! occupancy dependent BZ integration weights
-    call kintw
+    call kintw()
 
     ! real space definition
     select case (trim(input%gw%rpath))
@@ -237,7 +237,7 @@ end if
     if (allocated(kiw)) deallocate(kiw)
     if (allocated(ciw)) deallocate(ciw)
     
-    if (allocated(evalsv)) deallocate(evalsv)
+    if (allocated(evalfv)) deallocate(evalfv)
     call delete_freqgrid(freq)
     call delete_k_vectors(kset)
     call delete_G_vectors(Gset)

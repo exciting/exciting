@@ -2,68 +2,71 @@
 subroutine init_dft_eigenvalues()
 
     use modinput
-    use modmain, only : nstsv, nmatmax, evalsv, efermi, evalcr, &
-    &                   occmax, occsv, chgval, nspinor
+    use modmain, only : nstfv, nmatmax, efermi, evalcr, &
+                        occmax, chgval, nspinor, filext
     use modgw
     use mod_mpi_gw, only : myrank
     use mod_hdf5
     implicit none
     
-    integer :: ik, ik0
+    integer :: ik, ib
     real(8) :: e0, egap
     
-    if (allocated(evalsv)) deallocate(evalsv)
-    allocate(evalsv(nstsv,kset%nkpt))
-    evalsv(:,:) = 0.d0
+    if (allocated(evalfv)) deallocate(evalfv)
+    allocate(evalfv(nstfv,kset%nkpt))
+    evalfv(:,:) = 0.d0
 
-    if (allocated(occsv)) deallocate(occsv)
-    allocate(occsv(nstsv,kset%nkpt))
-    occsv(:,:) = 0.d0
+    if (allocated(occfv)) deallocate(occfv)
+    allocate(occfv(nstfv,kset%nkpt))
+    occfv(:,:) = 0.d0
     
-    !----------------------------------------
-    ! Read KS eigenvalues from file EVALSV.OUT
-    !----------------------------------------
+    !---------------------------------------------
+    ! Read KS eigenvalues from file EVALFV_GW.OUT
+    !---------------------------------------------
     do ik = 1, kset%nkpt
-      ik0 = kset%ikp2ik(ik)
-      call getevalsvgw('GW_EVALSV.OUT',ik0,kqset%vkl(:,ik0), &
-      &                nstsv,evalsv(:,ik))
-      call getoccsvgw('GW_OCCSV.OUT',ik0,kqset%vkl(:,ik0), &
-      &                nstsv,occsv(:,ik))
+      call getevalfv(kset%vkl(:,ik), evalfv(:,ik))
+      ! write(*,*) 'ik=', ik
+      ! do ib = 1, nstfv
+      !     write(*,*) ib, evalfv(ib,ik)
+      ! end do
+      ! write(*,*)
     end do
 
     !----------------------------------------
     ! find Fermi energy (LIBBZINT routine)
     !----------------------------------------
-    call fermi_exciting(input%groundstate%tevecsv, &
-    &                   chgval, &
-    &                   nstsv,nkpt,evalsv, &
-    &                   ntet,tnodes,wtet,tvol, &
-    &                   efermi,egap,fermidos)
+    call fermi_exciting(.false., &
+                        chgval, &
+                        nstfv, kset%nkpt, evalfv, &
+                        kset%ntet, kset%tnodes, kset%wtet, kset%tvol, &
+                        efermi, egap, fermidos)
+
+    ! Calculate state occupation numbers
+    call tetiw(kset%nkpt, kset%ntet, nstfv, evalfv, kset%tnodes, &
+               kset%wtet, kset%tvol, efermi, occfv)
+    do ik = 1, kset%nkpt
+      do ib = 1, nstfv
+        occfv(ib,ik) = occmax/kset%wkpt(ik)*occfv(ib,ik)
+      end do
+    end do
 
     ! Setup the energy scale: Ef_KS = 0
-    evalsv(:,:) = evalsv(:,:)-efermi
+    evalfv(:,:) = evalfv(:,:)-efermi
     evalcr(:,:) = evalcr(:,:)-efermi
     efermi = 0.d0
-    
-    ! apply scissor shift
-    !e0 = 0.0037 ! 0.1 eV
-    !do ik = 1, kset%nkpt
-    !  do ib = 1, nstsv
-    !    if (evalsv(ib,ik)>efermi) evalsv(ib,ik) = evalsv(ib,ik)+e0
-    !  end do
-    !end do    
 
     !---------------------------------------------------------
     ! Search for the indices of VBM and CBM (nomax and numin)
     !---------------------------------------------------------
     call bandstructure_analysis('Kohn-Sham bandstructure analysis', &
-    &  1,nstsv,kset%nkpt,evalsv(1:nstsv,:),efermi)
+                                1, nstfv, kset%nkpt, evalfv, efermi)
 
     !-----------------------------------------------------------------
     ! Check for consistency with specified QP bands range [ibgw,nbgw]
     !-----------------------------------------------------------------
+
     ! lower QP band index
-    if ( (ibgw<1) .or. (ibgw>nstsv) ) ibgw = 1
+    if ( (ibgw<1) .or. (ibgw>nstfv) ) ibgw = 1
     if (ibgw >= numin) then
         if (myrank==0) then
           write(*,*) "ERROR(init_dft_eigenvalues): Wrong QP bands interval!"
@@ -73,9 +76,9 @@ subroutine init_dft_eigenvalues()
     end if
   
     ! upper QP band index
-    if ((nbgw < 1) .or. (nbgw > nstsv)) then
+    if ((nbgw < 1) .or. (nbgw > nstfv)) then
         ! use just a limited range of states where QP corrections are applied
-        nbgw = nstsv
+        nbgw = nstfv
     end if
     if (nbgw <= nomax) then
         if (myrank==0) then
@@ -88,24 +91,24 @@ subroutine init_dft_eigenvalues()
     !------------------------------------------------------------------
 
     nbandsgw = nbgw-ibgw+1
-    nvelgw = chgval-occmax*dble(ibgw-1)
+    nvelgw = chgval-2.d0*dble(ibgw-1)
     
     ! initialize the number of states to calculate the dielectric function
     nstdf = int(chgval/2.d0)+input%gw%nempty+1
-    if (nstdf > nstsv) then
-      nstdf = nstsv
+    if (nstdf > nstfv) then
+      nstdf = nstfv
       write(fgw,*)
-      write(fgw,*)'WARNING(init_dft_eigenvalues) nstdf > nstsv !'
+      write(fgw,*)'WARNING(init_dft_eigenvalues) nstdf > nstfv !'
       write(fgw,*)
     end if
     
     ! initialize the number of states to calculate the correlation self energy
     if (input%gw%selfenergy%nempty>0) then
         nstse = int(chgval/2.d0)+input%gw%selfenergy%nempty+1
-        if (nstse > nstsv) then
-          nstse = nstsv
+        if (nstse > nstfv) then
+          nstse = nstfv
           write(fgw,*)
-          write(fgw,*)'WARNING(init_dft_eigenvalues) nstse > nstsv !'
+          write(fgw,*)'WARNING(init_dft_eigenvalues) nstse > nstfv !'
           write(fgw,*)
         end if
     else
@@ -119,16 +122,16 @@ subroutine init_dft_eigenvalues()
       write(fgw,*)'Maximum number of LAPW states:             ', nmatmax
       write(fgw,*)'Minimal number of LAPW states:             ', minval(nmat(1,:))
       write(fgw,*)'Number of states used in GW:'
-      write(fgw,*)'    - total KS                             ', nstsv
+      write(fgw,*)'    - total KS                             ', nstfv
       write(fgw,*)'    - occupied                             ', int(chgval/2.d0)
       write(fgw,*)'    - unoccupied                           ', input%gw%nempty
       write(fgw,*)'    - dielectric function                  ', nstdf
       write(fgw,*)'    - self energy                          ', nstse
-      e0 = maxval(evalsv(nstsv,:))
+      e0 = maxval(evalfv(nstfv,:))
       write(fgw,'(a,f12.6)')' Energy of the highest unoccupied state:    ', e0
       write(fgw,*)'Number of valence electrons:               ', int(chgval) 
       write(fgw,*)'Number of valence electrons treated in GW: ', int(nvelgw)
-      if (nstsv<=input%gw%nempty) then
+      if (nstfv<=input%gw%nempty) then
         write(fgw,*)
         write(fgw,*)'WARNING(init_dft_eigenvalues) One uses the maximum number of available states!'
         write(fgw,*)
@@ -140,7 +143,7 @@ subroutine init_dft_eigenvalues()
     ! If symmetry is used
     !------------------------
     if (input%gw%reduceq) call sym_state_degeneracy
-    
+
     return
 end subroutine
 

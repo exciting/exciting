@@ -8,7 +8,7 @@ subroutine eptest(ik,jk,iq)
     integer(4), intent(in) :: jk     ! index of the k'-points.
     integer(4), intent(in) :: iq     ! index of the q-point
     integer :: ispn
-    complex(8), allocatable :: evecsv(:,:,:)
+    complex(8), allocatable :: evecfv(:,:)
     
     call diagsgi(iq)
     call calcmpwipw(iq)
@@ -16,21 +16,21 @@ subroutine eptest(ik,jk,iq)
     matsiz = locmatsiz+Gqset%ngk(1,iq)
     write(*,101) iq, locmatsiz, Gqset%ngk(1,iq), matsiz
     
-    allocate(eveckalm(nstsv,apwordmax,lmmaxapw,natmtot))
-    allocate(eveckpalm(nstsv,apwordmax,lmmaxapw,natmtot))
-    allocate(eveck(nmatmax,nstsv))
-    allocate(eveckp(nmatmax,nstsv))
+    allocate(eveckalm(nstfv,apwordmax,lmmaxapw,natmtot))
+    allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
+    allocate(eveck(nmatmax,nstfv))
+    allocate(eveckp(nmatmax,nstfv))
 
     ! get KS eigenvectors
-    allocate(evecsv(nmatmax,nstsv,nspinor))
-    call getevecsvgw('GW_EVECSV.OUT',jk,kqset%vkl(:,jk),nmatmax,nstsv,nspinor,evecsv)
-    eveckp = conjg(evecsv(:,:,1))
-    call getevecsvgw('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
-    eveck = evecsv(:,:,1)
-    deallocate(evecsv)
+    allocate(evecfv(nmatmax,nstfv))
+    call getevecfv(kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), evecfv)
+    eveckp = conjg(evecfv)
+    call getevecfv(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
+    eveck = evecfv
+    deallocate(evecfv)
 
-    call expand_evec(ik,'t')
-    call expand_evec(jk,'c')
+    call expand_evec(ik, 't')
+    call expand_evec(jk, 'c')
     
     allocate(minmmat(matsiz,nstfv,nstfv))
     call calcminm(ik,iq,1,nstfv,1,nstfv,minmmat)

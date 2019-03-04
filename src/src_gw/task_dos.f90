@@ -6,7 +6,7 @@ subroutine task_dos()
     use modgw
     implicit none
 
-    integer(4) :: ik, ist, nstsv0
+    integer(4) :: ik, ist, nstfv0
     integer(4) :: iw, n, nsk(3)
     integer(4) :: nsmdos, nwdos, ngrdos
     real(8) :: winddos(2)
@@ -48,7 +48,7 @@ subroutine task_dos()
     call getevalqp(nkpt,vkl,evalsv)
     
     ! GW number of states
-    nbgw = min(nstsv,nbgw)
+    nbgw = min(nstfv,nbgw)
     nstqp = nbgw-ibgw+1
     allocate(e(ibgw:nbgw,nkpt))
     e(ibgw:nbgw,:) = evalsv(ibgw:nbgw,:)
@@ -96,7 +96,7 @@ subroutine task_dos()
     if (input%properties%dos%lmirep) then
       lmax = 4
       lmmax = (lmax+1)**2
-      allocate(bc(lmmax,nspinor,natmtot,nstsv,nkpt))
+      allocate(bc(lmmax,nspinor,natmtot,nstfv,nkpt))
       call calc_band_character(lmax,lmmax,bc)
       do is = 1, nspecies
       do ia = 1, natoms(is)
@@ -135,10 +135,11 @@ contains
     !-----------------------------------------------------------------
     subroutine calc_band_character(lmax,lmmax,bc)
       use modmain
+      use mod_hybrids, only: hybridhf
       implicit none
       integer, intent(in)  :: lmax
       integer, intent(in)  :: lmmax
-      real(8), intent(out) :: bc(lmmax,nspinor,natmtot,nstsv,nkpt)
+      real(8), intent(out) :: bc(lmmax,nspinor,natmtot,nstfv,nkpt)
       ! local
       integer :: ik, ispn, jspn, is, ia, ist, ias, lm
       real(8),    allocatable :: elm(:,:)
@@ -153,13 +154,20 @@ contains
       allocate(ulm(lmmax,lmmax,natmtot))
       allocate(a(lmmax,lmmax))
 
-      allocate(dmat(lmmax,lmmax,nspinor,nspinor,nstsv))
+      allocate(dmat(lmmax,lmmax,nspinor,nspinor,nstfv))
       allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv))
       allocate(evecfv(nmatmax,nstfv,nspnfv))
-      allocate(evecsv(nstsv,nstsv))
+      allocate(evecsv(nstfv,nstfv))
 
       ! read density and potentials from file
-      call readstate
+      if (hybridhf) then
+        isreadstate0 = .false.
+        filext = '_PBE.OUT'
+        call readstate()
+        filext = '.OUT'
+      else
+        call readstate()
+      end if
       ! read Fermi energy from file
       call readfermi
       ! find the new linearisation energies
@@ -195,7 +203,7 @@ contains
             &            ngk(:,ik), apwalm, evecfv, evecsv, lmmax, dmat)
 
             ! convert (l,m) part to an irreducible representation if required
-            do ist = 1, nstsv
+            do ist = 1, nstfv
               do ispn = 1, nspinor
                 do jspn = 1, nspinor
                   call zgemm('N', 'N', lmmax, lmmax, lmmax, &
@@ -210,7 +218,7 @@ contains
             end do
 
             ! determine the band characters from the density matrix
-            do ist = 1, nstsv
+            do ist = 1, nstfv
               do ispn = 1, nspinor
                 do lm = 1, lmmax
                   bc(lm,ispn,ias,ist,ik) = dble(dmat(lm,lm,ispn,ispn,ist))

@@ -13,9 +13,9 @@
 !!USES:
     use modinput
     use modmain, only : ngkmax, apwordmax, lmmaxapw, natmtot, &
-    &                   nspecies, natoms, idxas, idxlm, apword, nstsv, &
+    &                   nspecies, natoms, idxas, idxlm, apword, nstfv, &
     &                   lsplsymc, isymlat, symlatc
-    use modgw,   only : kqset, Gkset, eveckalm, eveckpalm, eveck, eveckp
+    use modgw,   only : kqset, Gkqset, eveckalm, eveckpalm, eveck, eveckp
 
 !!INPUT PARAMETERS:
     implicit none
@@ -49,11 +49,11 @@
     allocate(alm(ngkmax,apwordmax,lmmaxapw,natmtot))
     allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
     
-    ngk = Gkset%ngk(1,ik)
+    ngk = Gkqset%ngk(1,ik)
     call match(ngk, &
-    &          Gkset%gkc(:,1,ik), &
-    &          Gkset%tpgkc(:,:,1,ik), &
-    &          Gkset%sfacgk(:,:,1,ik),&
+    &          Gkqset%gkc(:,1,ik), &
+    &          Gkqset%tpgkc(:,:,1,ik), &
+    &          Gkqset%sfacgk(:,:,1,ik),&
     &          apwalm)
 
     select case (trans)
@@ -66,7 +66,7 @@
             do m = -l, l
               lm = idxlm(l,m)
               do io = 1, apword(l,is)
-                do ist = 1, nstsv
+                do ist = 1, nstfv
                   eveckalm(ist,io,lm,ias) = &
                   &  zdotu(ngk,  &
                   &        eveck(1:ngk,ist),1, &
@@ -86,7 +86,7 @@
             do m = -l, l
               lm = idxlm(l,m)
               do io = 1, apword(l,is)
-                do ist = 1, nstsv
+                do ist = 1, nstfv
                   eveckpalm(ist,io,lm,ias) = &
                   &  zdotc(ngk, &
                   &        apwalm(1:ngk,io,lm,ias),1, &

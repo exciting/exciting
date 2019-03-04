@@ -35,7 +35,7 @@ contains
 !--------------------------------------------------------------------------------
   subroutine init_pmat(lcore)
     use modinput
-    use modmain, only : nstsv, apwordmax, lmmaxapw, natmtot, &
+    use modmain, only : nstfv, apwordmax, lmmaxapw, natmtot, &
     &                   nlotot, nlomax, lolmax, nspecies, &
     &                   nlorb, lorbl, apword
     implicit none
@@ -84,10 +84,10 @@ contains
     end do
     ! Precalculated products
     if (allocated(apwcmt)) deallocate(apwcmt)
-    allocate(apwcmt(nstsv,apwordmax,lmmaxapw,natmtot))
+    allocate(apwcmt(nstfv,apwordmax,lmmaxapw,natmtot))
     if (nlotot>0) then
       if (allocated(locmt)) deallocate(locmt)
-      allocate(locmt(nstsv,nlomax,-lolmax:lolmax,natmtot))
+      allocate(locmt(nstfv,nlomax,-lolmax:lolmax,natmtot))
     end if
     ! radial integrals
     call genpmatvv_radial

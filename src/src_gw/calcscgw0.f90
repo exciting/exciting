@@ -13,8 +13,8 @@ subroutine calcscgw0
 !
 !!USES:
     use modinput
-    use modmain,    only : zzero, nstsv, evalsv, efermi
-    use modgw,      only : kset, kqset, freq,  &
+    use modmain,    only : zzero, nstfv, efermi
+    use modgw,      only : kset, kqset, freq,  evalfv, &
     &                      nomax, numin, nbandsgw, ncg, &
     &                      ibgw, nbgw, time_selfc, time_io, fgw
     use mod_selfenergy, only : evalks, evalqp, eferqp, selfec, mwm  
@@ -65,22 +65,22 @@ subroutine calcscgw0
     epsilon_sc = 1.d-6
     do isc = 1, nscmax
     
-      ! update evalsv on the root process
+      ! update evalfv on the root process
       if (myrank_row==0) then
-        evalsv(ibgw:nbgw,:) = evalqp(ibgw:nbgw,:)-eferqp+efermi
+        evalfv(ibgw:nbgw,:) = evalqp(ibgw:nbgw,:)-eferqp+efermi
       end if
         
 #ifdef MPI
-      ! Broadcast evalsv to all processes
+      ! Broadcast evalfv to all processes
       if (nproc_row>1) then
-        call MPI_BCAST(evalsv,nbandsgw*kset%nkpt, &
+        call MPI_BCAST(evalfv, nbandsgw*kset%nkpt, &
         &              MPI_DOUBLE_PRECISION, &
         &              0, mycomm, ierr)
       end if
 #endif
 
       ! combined (core+valence) number of states
-      mdim = nstsv
+      mdim = nstfv
       if (input%gw%coreflag=='all') mdim = mdim+ncg
       
       !====================

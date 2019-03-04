@@ -20,25 +20,18 @@ subroutine calcepsilon(iq,iomstart,iomend)
     integer(4) :: im, iop, jop
     integer(4) :: ndim, mdim, nmdim
     integer(4) :: nblk, iblk, mstart, mend
-    
     integer(8) :: recl
-      
     real(8)    :: tstart, tend
-    
     complex(8) :: head(3,3)
     complex(8), allocatable :: minm(:,:,:)
-    complex(8), allocatable :: evecsv(:,:,:)
-    
+    complex(8), allocatable :: evecfv(:,:)
     external zgemm
         
-    write(*,*)
-    write(*,*) ' ---- calcepsilon started ----'
-    write(*,*)
     call timesec(tstart)
     
     ! memory usage info
-    msize = sizeof(epsilon)*b2mb
-    write(*,'(" calcepsilon: rank, size(epsilon) (Mb):",i4,f8.2)') myrank, msize
+    ! msize = sizeof(epsilon)*b2mb
+    ! write(*,'(" calcepsilon: rank, size(epsilon) (Mb):",i4,f8.2)') myrank, msize
 
     !=============================
     ! Initialization
@@ -54,7 +47,6 @@ subroutine calcepsilon(iq,iomstart,iomend)
     nmdim = ndim*mdim
     
     ! block size
-    print*, mblksiz
     if (mblksiz >= mdim) then
       nblk = 1
     else
@@ -63,12 +55,12 @@ subroutine calcepsilon(iq,iomstart,iomend)
     end if
 
     ! arrays to store products of KS eigenvectors with the matching coefficients
-    allocate(eveckalm(nstsv,apwordmax,lmmaxapw,natmtot))
-    allocate(eveckpalm(nstsv,apwordmax,lmmaxapw,natmtot))
-    allocate(eveck(nmatmax,nstsv))
-    allocate(eveckp(nmatmax,nstsv))
-    msize = (sizeof(eveckalm)+sizeof(eveckpalm)+sizeof(eveck)+sizeof(eveckp))*b2mb
-    write(*,'(" calcepsilon: rank, size(eigenvectors) (Mb):",i4,f12.2)') myrank, msize
+    allocate(eveckalm(nstfv,apwordmax,lmmaxapw,natmtot))
+    allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
+    allocate(eveck(nmatmax,nstfv))
+    allocate(eveckp(nmatmax,nstfv))
+    ! msize = (sizeof(eveckalm)+sizeof(eveckpalm)+sizeof(eveck)+sizeof(eveckp))*b2mb
+    ! write(*,'(" calcepsilon: rank, size(eigenvectors) (Mb):",i4,f12.2)') myrank, msize
     
     !==================================================
     ! Calculate the q-dependent BZ integration weights
@@ -91,7 +83,6 @@ subroutine calcepsilon(iq,iomstart,iomend)
         !---------
         if (allocated(pmatvv)) deallocate(pmatvv)
         allocate(pmatvv(nomax,numin:nstdf,3))
-        ! msize = sizeof(pmatvv)*b2mb
         inquire(iolength=recl) pmatvv
         open(fid_pmatvv,File=fname_pmatvv, &
         &    Action='READ',Form='UNFORMATTED',&
@@ -102,95 +93,87 @@ subroutine calcepsilon(iq,iomstart,iomend)
         if (input%gw%coreflag=='all') then
             if (allocated(pmatcv)) deallocate(pmatcv)
             allocate(pmatcv(ncg,numin:nstdf,3))
-            ! msize = msize+sizeof(pmatcv)*b2mb
             inquire(iolength=recl) pmatcv
             open(fid_pmatcv,File=fname_pmatcv, &
             &    Action='READ',Form='UNFORMATTED', &
             &    Access='DIRECT',Status='OLD',Recl=recl)
         end if
-        ! write(*,'(" calcepsilon: rank, size(pmat) (Mb):",i4,f8.2)') myrank, msize
     end if
     
-    ! spin treatement
-    do ispn = 1, nspinor
-        
-        !=================
-        ! BZ integration
-        !=================
-        write(*,*) 'calcepsilon: k-point summation'
-        do ik = 1, kqset%nkpt
-            write(*,*)
-            write(*,*) 'calcepsilon: rank, (iq, ik):', myrank, iq, ik
+    !=================
+    ! BZ integration
+    !=================
+    write(*,*)
+    do ik = 1, kqset%nkpt
+        write(*,*) 'calcepsilon: rank, (iq, ik):', myrank, iq, ik
+
+        ! k-q point
+        jk = kqset%kqid(ik, iq)
     
-            ! k-q point
-            jk = kqset%kqid(ik, iq)
-      
+        if (Gamma) then
+            ! read the momentum matrix elements
+            call getpmatkgw(ik)
+            ! and compute the head of the dielectric function
+            call calchead(ik,iomstart,iomend,ndim)
+        end if
+    
+        ! get KS eigenvectors
+        allocate(evecfv(nmatmax,nstfv))
+        call getevecfv(kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), evecfv)
+        eveckp = conjg(evecfv)
+        call getevecfv(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
+        eveck = evecfv
+        deallocate(evecfv)
+
+        ! compute products \sum_G C_{k}n * A_{lm}
+        call expand_evec(ik,'t')
+        call expand_evec(jk,'c')
+
+        !=================================================
+        ! Loop over m-blocks in M^i_{nm}(\vec{k},\vec{q})
+        !=================================================
+        do iblk = 1, nblk
+
+            ! call timesec(ta)
+            mstart = numin + (iblk-1)*mblksiz
+            mend   = min(nstdf, mstart+mblksiz-1)
+            nmdim  = ndim * (mend-mstart+1)
+            ! print*, iblk, nblk, mstart, mend
+
+            allocate(minmmat(mbsiz,ndim,mstart:mend))
+            msize = sizeof(minmmat)*b2mb
+            ! write(*,'(" calcepsilon: rank, size(minmmat) (Mb):",3i4,f12.2)') myrank, mstart, mend, msize
+
+            ! compute M^i_{nm}+M^i_{cm}
+            call expand_products(ik, iq, 1, ndim, nomax, mstart, mend, -1, minmmat)
+    
             if (Gamma) then
-                ! read the momentum matrix elements
-                call getpmatkgw(ik)
-                ! and compute the head of the dielectric function
-                call calchead(ik,iomstart,iomend,ndim)
+                ! wings of the dielectric matrix
+                call calcwings(ik, iq, iomstart, iomend, ndim, mstart, mend)
             end if
-      
-            ! get KS eigenvectors
-            allocate(evecsv(nmatmax,nstsv,nspinor))
-            call getevecsvgw('GW_EVECSV.OUT', jk, kqset%vkl(:,jk), nmatmax, nstsv, nspinor, evecsv)
-            eveckp = conjg(evecsv(:,:,ispn))
-            call getevecsvgw('GW_EVECSV.OUT', ik, kqset%vkl(:,ik), nmatmax, nstsv, nspinor, evecsv)
-            eveck = evecsv(:,:,ispn)
-            deallocate(evecsv)
 
-            ! compute products \sum_G C_{k}n * A_{lm}
-            call expand_evec(ik,'t')
-            call expand_evec(jk,'c')
+            ! Body
+            allocate(minm(mbsiz,ndim,mstart:mend))
+            do iom = iomstart, iomend
+                do ie2 = mstart, mend
+                    do ie1 = 1, ndim
+                        minm(1:mbsiz,ie1,ie2) = occmax * fnm(ie1,ie2,iom,ik) * &
+                                                minmmat(1:mbsiz,ie1,ie2)
+                    end do ! ie1
+                end do ! ie2
+                call zgemm( 'n', 'c', mbsiz, mbsiz, nmdim, &
+                            zone, minm, mbsiz, minmmat, mbsiz, &
+                            zone, epsilon(:,:,iom), mbsiz)
+            end do ! iom
+            deallocate(minm)
 
-            !=================================================
-            ! Loop over m-blocks in M^i_{nm}(\vec{k},\vec{q})
-            !=================================================
-            do iblk = 1, nblk
+            deallocate(minmmat)
+            ! call timesec(tb)      
+            ! write(*,*) iblk,' time:',tb-ta
 
-                ! call timesec(ta)
-                mstart = numin + (iblk-1)*mblksiz
-                mend   = min(nstdf, mstart+mblksiz-1)
-                nmdim  = ndim*(mend-mstart+1)
-                print*, iblk, nblk, mstart, mend
-
-                allocate(minmmat(mbsiz,ndim,mstart:mend))
-                msize = sizeof(minmmat)*b2mb
-                write(*,'(" calcepsilon: rank, size(minmmat) (Mb):",3i4,f12.2)') myrank, mstart, mend, msize
-
-                ! compute M^i_{nm}+M^i_{cm}
-                call expand_products(ik, iq, 1, ndim, nomax, mstart, mend, -1, minmmat)
-        
-                if (Gamma) then
-                    ! wings of the dielectric matrix
-                    call calcwings(ik, iq, iomstart, iomend, ndim, mstart, mend)
-                end if
-
-                ! Body
-                allocate(minm(mbsiz,ndim,mstart:mend))
-                do iom = iomstart, iomend
-                    do ie2 = mstart, mend
-                        do ie1 = 1, ndim
-                            minm(1:mbsiz,ie1,ie2) = occmax * fnm(ie1,ie2,iom,ik) * &
-                                                    minmmat(1:mbsiz,ie1,ie2)
-                        end do ! ie1
-                    end do ! ie2
-                    call zgemm( 'n', 'c', mbsiz, mbsiz, nmdim, &
-                                zone, minm, mbsiz, minmmat, mbsiz, &
-                                zone, epsilon(:,:,iom), mbsiz)
-                end do ! iom
-                deallocate(minm)
-
-                deallocate(minmmat)
-                ! call timesec(tb)      
-                ! write(*,*) iblk,' time:',tb-ta
-
-            end do ! iblk
-      
-        end do ! ik
-
-    end do ! ispn
+        end do ! iblk
+    
+    end do ! ik
     
     !-------------------
     ! Clear memory
@@ -238,11 +221,6 @@ subroutine calcepsilon(iq,iomstart,iomend)
     ! timing
     call timesec(tend)
     time_df = time_df+tend-tstart
-    write(*,*) 'time = ', time_df
     
-    write(*,*) 
-    write(*,*) ' ---- calcepsilon ended ----'
-    write(*,*)
-      
     return
 end subroutine

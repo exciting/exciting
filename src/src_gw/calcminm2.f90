@@ -4,7 +4,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     use modmain,               only : nspecies, natoms, idxas, idxlm, idxlo, &
     &                                 zzero, zone, intgv, apword, nlorb, lorbl, &
     &                                 nlomax, pi, apwordmax, nmatmax
-    use modgw,                 only : kqset, Gkset, Gqbarc, Gqset, Gset, fdebug, time_minm
+    use modgw,                 only : kqset, Gkqset, Gqbarc, Gqset, Gset, fdebug, time_minm
     use mod_bands,             only : eveck, eveckp, eveckalm, eveckpalm
     use mod_product_basis,     only : nmix, bigl, bradketa, bradketlo, mpwipw, &
     &                                 matsiz, locmatsiz, mbindex
@@ -50,7 +50,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     external :: zgemm
     real(8), external :: gaunt
 
-    call timesec(tstart)
+    ! call timesec(tstart)
 
     !-----------------------------------------------
     ! Valence and conduction states for both n and n'
@@ -61,6 +61,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     ndim = nend-nstart+1
     mdim = mend-mstart+1
     nmdim = ndim*mdim
+    ! write(*,*) 'nstart, mstart', nstart, nend, mstart, mend
       
     jk = kqset%kqid(ik,iq)
     do i = 1, 3
@@ -69,18 +70,15 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
       ig0(i) = nint(x)
     end do
 
-    allocate(lok(nstart:nend,nmatmax-Gkset%ngk(1,ik)))
+    allocate(lok(nstart:nend,nmatmax-Gkqset%ngk(1,ik)))
     do ie1=nstart,nend
-      lok(ie1,1:)=eveck(Gkset%ngk(1,ik)+1:,ie1)
+      lok(ie1,1:)=eveck(Gkqset%ngk(1,ik)+1:,ie1)
     enddo
 
-    allocate(lokp(mstart:mend,nmatmax-Gkset%ngk(1,jk)))
+    allocate(lokp(mstart:mend,nmatmax-Gkqset%ngk(1,jk)))
     do ie1=mstart,mend
-      lokp(ie1,1:)=eveckp(Gkset%ngk(1,jk)+1:,ie1)
+      lokp(ie1,1:)=eveckp(Gkqset%ngk(1,jk)+1:,ie1)
     enddo
-
-    write(*,*) 'nstart, mstart', nstart, nend, mstart, mend
-
     
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(tmat,imix,is,ia,ias,irm,bl,bm,arg,phs,l1,m1,l1m1,l2min,l2max,l2,m2,l2m2,angint,ie2,io1,io2,ilo2,igk2,ilo1,ie1,igk1,veckp)
@@ -200,8 +198,8 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
 #endif
     deallocate(lok,lokp)
 
-    call timesec(tmt)
-    write(*,*) 'calcminm, mt', tmt-tstart
+    ! call timesec(tmt)
+    ! write(*,*) 'calcminm, mt', tmt-tstart
 
     !======================
     ! Interstitial region
@@ -209,16 +207,16 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     
     ! Loop over the mixed basis functions:
     sqvi = sqrt(vi)
-    ngk1 = Gkset%ngk(1,ik)
-    ngk2 = Gkset%ngk(1,jk)
+    ngk1 = Gkqset%ngk(1,ik)
+    ngk2 = Gkqset%ngk(1,jk)
     
     allocate(igqk12(ngk1,ngk2))
     igqk12(:,:) = 0
     
     do igk1 = 1, ngk1 ! loop over G
       do igk2 = 1, ngk2 ! loop over G'
-        ikv(1:3) = Gset%ivg(1:3,Gkset%igkig(igk1,1,ik)) - &
-        &          Gset%ivg(1:3,Gkset%igkig(igk2,1,jk)) + ig0(1:3)
+        ikv(1:3) = Gset%ivg(1:3,Gkqset%igkig(igk1,1,ik)) - &
+        &          Gset%ivg(1:3,Gkqset%igkig(igk2,1,jk)) + ig0(1:3)
         if((ikv(1).ge.Gset%intgv(1,1)).and.(ikv(1).le.Gset%intgv(1,2)).and. &
         &  (ikv(2).ge.Gset%intgv(2,1)).and.(ikv(2).le.Gset%intgv(2,2)).and. &
         &  (ikv(3).ge.Gset%intgv(3,1)).and.(ikv(3).le.Gset%intgv(3,2)))  then
@@ -288,9 +286,9 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     
     !------------------------------------------------------------------
     ! timing
-    call timesec(tend)
-    time_minm = time_minm+tend-tstart
-    write(*,*) 'calcminm, ir', tend-tmt
+    ! call timesec(tend)
+    ! time_minm = time_minm+tend-tstart
+    ! write(*,*) 'calcminm, ir', tend-tmt
 
     !write(*,*) ' minmmat ik, iq: ', ik, iq
     !do imix = 1, matsiz, matsiz/10

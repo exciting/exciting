@@ -16,6 +16,7 @@ subroutine parse_gwinput
     use modgw
     use mod_coulomb_potential, only: vccut, rcut
     use modmpi
+    use mod_hybrids, only: hybridhf, hyb_beta
     implicit none
  
 ! !LOCAL VARIABLES:
@@ -37,7 +38,7 @@ subroutine parse_gwinput
            & be used in parallel ...'
         end if
         input%gw%debug = input%gw%debug.and.(rank==0)
-    end if
+    end if    
     
 !-------------------------------------------------------------------------------
 ! Task name parser
@@ -114,6 +115,8 @@ subroutine parse_gwinput
             if (rank==0) write(fgw,*) '  Test AAA interpolation'
         case('specfunc')
             if (rank==0) write(fgw,*) '  Compute spectral function'
+        case('sv')
+            if (rank==0) write(fgw,*) '  Apply second variation procedure'
         case default
             if (rank==0) write(*,*) 'ERROR(parse_gwinput): Wrong task name!'
             if (rank==0) write(*,*)
@@ -356,6 +359,25 @@ subroutine parse_gwinput
 !-------------------------------------------------------------------------------
 ! Number of the empty bands used in GW code
 !-------------------------------------------------------------------------------
+    hybridhf = .false.
+    hyb_beta = 1.d0
+    if (associated(input%groundstate%Hybrid)) then
+        if (input%groundstate%Hybrid%exchangetypenumber == 1) then
+            hybridhf = .true.
+            hyb_beta = 1.d0 - input%groundstate%Hybrid%excoeff
+        end if
+    end if
+
+    if (hybridhf) then
+        ! use groundstate parameters from hybrids/groundstate for consistency
+        input%gw%nempty = input%groundstate%nempty
+        input%gw%ngridq = input%groundstate%ngridk
+        input%gw%vqloff = input%groundstate%vkloff
+    end if
+
+!-------------------------------------------------------------------------------
+! Number of the empty bands used in GW code
+!-------------------------------------------------------------------------------
     if (input%gw%nempty<1) then
         if (rank==0) write(fgw,*) 'WARNING(parse_gwinput): Number of empty states is not specified!'
         if (rank==0) write(fgw,*) '  This parameter must be carefully chosen based on the convergence tests'
@@ -365,27 +387,7 @@ subroutine parse_gwinput
         input%gw%nempty = 10
     end if
     input%groundstate%nempty = max(input%gw%nempty,input%gw%selfenergy%nempty)
-    if (rank==0) write(fgw,*)'Number of empty states (GW): ', input%gw%nempty
-        
-!-------------------------------------------------------------------------------
-! Band range where GW corrections are applied
-!-------------------------------------------------------------------------------
-
-! lower QP band index
-    ibgw = input%gw%ibgw
-
-! upper QP band index
-    nbgw = input%gw%nbgw
-    if (nbgw < 1) nbgw = input%groundstate%nempty
-
-    if ( ibgw >= nbgw ) then
-        if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal values for ibgw ot nbgw!'
-        if (rank==0) write(*,*) '    ibgw = ', ibgw, '   nbgw = ', nbgw
-        stop
-    end if
-
-    if (rank==0) write(fgw,'(a,2i7)') ' Quasiparticle band range: ', ibgw, nbgw
-    if (rank==0) write(fgw,*)
+    if (rank==0) write(fgw,*)'Number of empty states (GW): ', input%gw%nempty      
      
 !-------------------------------------------------------------------------------
 ! k/q point grids
@@ -412,9 +414,9 @@ subroutine parse_gwinput
     if (rank==0) write(fgw,*) '  k/q-points grid: ', input%gw%ngridq
     input%groundstate%ngridk = input%gw%ngridq
 
-    rdum = input%gw%vqloff(1)**2+ &
-    &      input%gw%vqloff(2)**2+ &
-    &      input%gw%vqloff(3)**2
+    rdum = input%gw%vqloff(1)**2 + &
+           input%gw%vqloff(2)**2 + &
+           input%gw%vqloff(3)**2
     if (rdum > 1.d-8) then
         if (rank==0) write(fgw,*)'Attention! k/q-point shift is specified!'
         if (rank==0) write(fgw,*)'k/q-shift: ', input%gw%vqloff
@@ -425,13 +427,32 @@ subroutine parse_gwinput
     ! Matrix block size
     !-------------------------------------------------------------------------------
     mblksiz = input%gw%mblksiz
-    if (mblksiz<=0) then
-      if (rank==0) write(*,*) 'ERROR(parse_gwinput): Negative matrix block size specifies!'
-      if (rank==0) write(*,*) '  mblksiz =', mblksiz, ' < 0'
-      stop
+    if (mblksiz > 0) then
+        if (rank==0) write(fgw,*)
+        if (rank==0) write(fgw,*) ' Matrix block size: ', mblksiz
+    else
+        mblksiz = 1000000 ! a big number
     end if
+
+    !-------------------------------------------------------------------------------
+    ! Band range where GW corrections are applied
+    !-------------------------------------------------------------------------------    
+    if (associated(input%groundstate%spin)) then
+        ! Spin-polarized case (special treatment)
+        ibgw = 1
+        nbgw = input%gw%nbgw
+    else
+        ibgw = input%gw%ibgw
+        nbgw = input%gw%nbgw
+        if (nbgw < 1) nbgw = input%gw%nempty
+        if (ibgw >= nbgw) then
+            if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal values for ibgw ot nbgw!'
+            if (rank==0) write(*,*) '    ibgw = ', ibgw, '   nbgw = ', nbgw
+            stop
+        end if
+    end if
+    if (rank==0) write(fgw,'(a,2i7)') ' Quasiparticle band range: ', ibgw, nbgw
     if (rank==0) write(fgw,*)
-    if (rank==0) write(fgw,*) ' Matrix block size: ', mblksiz
 
     call flushifc(fgw)
       

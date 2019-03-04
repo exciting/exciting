@@ -166,7 +166,7 @@ module mod_wannier_helper
       else if( input%properties%wannier%input .eq. "hybrid") then
         call getevecfv( wf_kset%vkl(:, ik), wf_GKset%vgkl( :, :, :, ik), evec)
       else if( input%properties%wannier%input .eq. "gw") then
-        call getevecsvgw( "GW_EVECSV.OUT", ik, wf_kset%vkl( :, ik), nmatmax_ptr, nstfv, nspinor, evec)
+        call getevecfv( wf_kset%vkl(:, ik), wf_GKset%vgkl( :, :, :, ik), evec)
       else
         stop
       end if

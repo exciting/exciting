@@ -1,17 +1,6 @@
-!BOP
-!
-!!ROUTINE: \verb"task_gw"
-!
-!!INTERFACE:
 !      
 subroutine task_eph()
 !      
-!!DESCRIPTION:
-!
-! This subroutine performs one GW cycle and calculates the corresponding
-! quasiparticle energies.
-!
-!!USES:
   Use modinput
   Use modmain
   use modgw
@@ -26,7 +15,6 @@ subroutine task_eph()
   use mod_dynmat 
   use mod_constants, only: zzero
             
-!!LOCAL VARIABLES:
     implicit none
     integer(4) :: ikp, iq, fid, ik, iw, ib, ik1
     real(8)    :: t0, t1
@@ -40,7 +28,6 @@ subroutine task_eph()
     real(8), allocatable :: eval1     (:,:) ! original eigenvalues on the KS mesh 
     real(8), allocatable :: eval2     (:,:) ! Wannier interpolated eigenvalues 
     real(8), allocatable :: evalpath  (:,:) ! Wannier interpolated eigenvalues on a path 
-    real(8), allocatable :: evalfv    (:,:) ! auxiliary eigenvalue storage 
     real(8), allocatable :: phfreq    (:,:) ! original eigenvalues on the KS mesh 
 
     logical    :: l_speceph, l_sigmaeph
@@ -559,7 +546,7 @@ subroutine task_eph()
       ! Save QP energies into binary file
       !----------------------------------------
 !      call timesec(t0)
-      call putevalqp()
+      call putevalqp('EVALQP.OUT')
 #ifdef _HDF5_
       call hdf5_write(fgwh5,"/","efermi",efermi)
       call hdf5_write(fgwh5,"/","eferqp",eferqp)
@@ -587,4 +574,3 @@ subroutine task_eph()
     
     return
 end subroutine
-!EOC

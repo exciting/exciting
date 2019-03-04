@@ -25,7 +25,7 @@ subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
         ! When calculating the dielectric function:
         !
         ! n -> {1:nomax}{1:ncg}, so nsplit=nomax, when core states are treated
-        ! m -> {numin:nstsv},       msplit is ignored
+        ! m -> {numin:nstfv},       msplit is ignored
         !
         ! Important to specify msplit<=0 
         ! to ignore the self energy related part (below)
@@ -72,7 +72,7 @@ subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
       ! When calculating the self energy:
       !
       ! n -> {ibgw:nbgw},      nsplit is ignored
-      ! m -> {1:nstsv}{1:ncg}, so msplit=nstsv, when core states are treated
+      ! m -> {1:nstfv}{1:ncg}, so msplit=nstfv, when core states are treated
       !
       ! Important to specify nsplit<=0 
       ! to ignore the dielectric function part (above)

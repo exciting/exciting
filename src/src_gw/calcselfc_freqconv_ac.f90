@@ -4,9 +4,9 @@
 !==================================================================
 subroutine calcselfc_freqconv_ac(ikp,iq,mdim)
     use modinput
-    use modmain, only : pi, zzero, evalsv, idxas, evalcr, efermi
+    use modmain, only : pi, zzero, idxas, evalcr, efermi
     use modgw,   only : ibgw, nbgw, nstse, kset, kqset, freq, selfec, mwm, &
-    &                   ncg, corind, fdebug, freq_selfc
+    &                   ncg, corind, fdebug, freq_selfc, evalfv
     ! input variables
     implicit none
     integer(4), intent(in) :: ikp
@@ -40,7 +40,7 @@ subroutine calcselfc_freqconv_ac(ikp,iq,mdim)
           !============================= 
           ! Valence electron contribution
           !============================= 
-          enk = evalsv(ie2,jkp)-efermi
+          enk = evalfv(ie2,jkp)-efermi
         else
           !============================= 
           ! Core electron contribution

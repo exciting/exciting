@@ -49,22 +49,22 @@ subroutine task_analytic_continuation()
       allocate(selfec(ibgw:nbgw,freq_selfc%nomeg,kset%nkpt))
     
       ! read data from files     
-      call readevalqp()
-      if (allocated(evalsv)) deallocate(evalsv)
-      allocate(evalsv(ibgw:nbgw,kset%nkpt))
-      evalsv(:,:) = evalks(:,:)
+      call readevalqp('EVALQP.OUT')
+      if (allocated(evalfv)) deallocate(evalfv)
+      allocate(evalfv(ibgw:nbgw,kset%nkpt))
+      evalfv(:,:) = evalks(:,:)
       call read_vxcnn()
       call readselfx()
       call readselfc()
 
       ! KS states analysis
-      call fermi_exciting(input%groundstate%tevecsv, &
+      call fermi_exciting(.false., &
       &                   nvelgw, &
       &                   nbandsgw, kset%nkpt, evalks(ibgw:nbgw,:), &
       &                   kset%ntet, kset%tnodes, kset%wtet,kset%tvol, &
       &                   efermi, egap, fermidos)
-      call bandstructure_analysis('KS', &
-      &  ibgw,nbgw,kset%nkpt,evalks(ibgw:nbgw,:),efermi)
+      call bandstructure_analysis('KS', ibgw, nbgw, kset%nkpt, &
+                                  evalks(ibgw:nbgw,:), efermi)
 
       !======================================
       ! Calculate the quasiparticle energies
@@ -82,10 +82,10 @@ subroutine task_analytic_continuation()
       !----------------------------------------
       ! Save QP energies into binary file
       !----------------------------------------
-      call putevalqp()
+      call putevalqp('EVALQP.OUT')
       
       ! clear memory
-      deallocate(evalks, evalsv)
+      deallocate(evalks, evalfv)
       deallocate(vxcnn)
       call delete_selfenergy
       

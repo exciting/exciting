@@ -28,11 +28,11 @@ subroutine task_band_specfunc()
     nbandsgw = nbgw-ibgw+1
     call init_kqpoint_set
     call generate_freqgrid(freq, &
-    &                      input%gw%freqgrid%fgrid, &
-    &                      input%gw%freqgrid%fconv, &
-    &                      input%gw%freqgrid%nomeg, &
-    &                      input%gw%freqgrid%freqmin, &
-    &                      input%gw%freqgrid%freqmax)
+                           input%gw%freqgrid%fgrid, &
+                           input%gw%freqgrid%fconv, &
+                           input%gw%freqgrid%nomeg, &
+                           input%gw%freqgrid%freqmin, &
+                           input%gw%freqgrid%freqmax)
 
     allocate(vxcnn(ibgw:nbgw,kset%nkpt))
     call init_selfenergy(ibgw,nbgw,kset%nkpt)
@@ -51,29 +51,30 @@ subroutine task_band_specfunc()
     allocate(selfec(ibgw:nbgw,freq_selfc%nomeg,kset%nkpt))
 
     ! read data from files     
-    call readevalqp()
-    if (allocated(evalsv)) deallocate(evalsv)
-    allocate(evalsv(ibgw:nbgw,kset%nkpt))
-    evalsv(:,:) = evalks(:,:)
+    call readevalqp('EVALQP.OUT')
+    if (allocated(evalfv)) deallocate(evalfv)
+    allocate(evalfv(ibgw:nbgw,kset%nkpt))
+    evalfv(:,:) = evalks(:,:)
     call read_vxcnn()
     call readselfx()
     call readselfc()
 
     ! KS states analysis
-    call fermi_exciting(input%groundstate%tevecsv, &
+    call fermi_exciting(.false., &
     &                   nvelgw, &
     &                   nbandsgw, kset%nkpt, evalks(ibgw:nbgw,:), &
     &                   kset%ntet, kset%tnodes, kset%wtet,kset%tvol, &
     &                   efermi, egap, fermidos)
     call bandstructure_analysis('KS', &
-    &  ibgw,nbgw,kset%nkpt,evalks(ibgw:nbgw,:),efermi)
+                                ibgw, nbgw, kset%nkpt, &
+                                evalks(ibgw:nbgw,:), efermi)
 
     ! non-reduced k-points
     call generate_k_vectors(ksetnr, &
-    &                       bvec, &
-    &                       input%gw%ngridq, &
-    &                       input%gw%vqloff, &
-    &                       .false.)
+                            bvec, &
+                            input%gw%ngridq, &
+                            input%gw%vqloff, &
+                            .false.)
 
     !------------------------
     ! Read KS bandstructure
@@ -87,16 +88,16 @@ subroutine task_band_specfunc()
     end if
 
     open(70, File='bandstructure.dat', Action='Read', Status='Old')
-    read(70,*) s, ib0, nstsv, nkpt
+    read(70,*) s, ib0, nstfv, nkpt
     if (allocated(vkl)) deallocate(vkl)
     allocate(vkl(3,nkpt))
     if (allocated(dpp1d)) deallocate(dpp1d)
     allocate(dpp1d(nkpt))
-    if (allocated(evalsv)) deallocate(evalsv)
-    allocate(evalsv(nstsv,nkpt))
-    do ib = ib0, nstsv
+    if (allocated(evalfv)) deallocate(evalfv)
+    allocate(evalfv(nstfv,nkpt))
+    do ib = ib0, nstfv
         do ik = 1, nkpt
-            read(70,*) i, j, vkl(:,ik), dpp1d(ik), evalsv(ib,ik)
+            read(70,*) i, j, vkl(:,ik), dpp1d(ik), evalfv(ib,ik)
         end do
         read(70,*) ! skip line
     end do
@@ -114,7 +115,7 @@ subroutine task_band_specfunc()
                 sxc = selfex(ib,ik) + selfec(ib,iw,ik) - vxcnn(ib,ik)
                 sRe = dble(sxc)
                 sIm = aimag(sxc) + input%gw%selfenergy%swidth
-                div = (w-evalsv(ib,ik_path)-sRe)**2 + sIm**2
+                div = (w-evalfv(ib,ik_path)-sRe)**2 + sIm**2
                 sf(ib) = 1.d0/pi * abs(sIm) / div
             end do
             write(70,'(3f14.6)') dpp1d(ik_path), w, sum(sf(ibgw:nbgw))

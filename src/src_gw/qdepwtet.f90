@@ -14,10 +14,10 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
 !
 !!USES:
     use modinput
-    use modmain, only : natmtot, nstsv, zzero, nspecies, natoms, idxas, &
-    &                   evalcr, efermi, evalsv
+    use modmain, only : natmtot, nstfv, zzero, nspecies, natoms, idxas, &
+    &                   evalcr, efermi
     use modgw,   only : fnm, freq, ncmax, kset, kqset, nomax, numin, &
-    &                   ncg, corind, fdebug, time_bzinit
+    &                   ncg, corind, fdebug, time_bzinit, evalfv
 
 !!INPUT PARAMETERS:
     implicit none
@@ -49,7 +49,7 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
     !---------------------------------------------------------------------
     
     if (allocated(fnm)) deallocate(fnm)
-    allocate(fnm(1:ndim,numin:nstsv,iomstart:iomend,kqset%nkpt))
+    allocate(fnm(1:ndim,numin:nstfv,iomstart:iomend,kqset%nkpt))
     fnm(:,:,:,:) = zzero
 
     ! real or imaginary frequencies
@@ -66,47 +66,47 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
     !====================
     ! valence-valence     
     !====================
-    allocate(eval(nstsv,kqset%nkpt))
+    allocate(eval(nstfv,kqset%nkpt))
     do ik = 1, kqset%nkpt
       ikp = kset%ik2ikp(ik)
-      eval(1:nstsv,ik) = evalsv(1:nstsv,ikp)
+      eval(1:nstfv,ik) = evalfv(1:nstfv,ikp)
     end do
 
-    allocate(cwpar(nstsv,nstsv,kqset%nkpt))
+    allocate(cwpar(nstfv,nstfv,kqset%nkpt))
     if (fflg==2) then
-      allocate(cwparsurf(nstsv,nstsv,kqset%nkpt))
+      allocate(cwparsurf(nstfv,nstfv,kqset%nkpt))
     end if
 
     do iom = iomstart, iomend
-      call tetcw(kqset%nkpt,kqset%ntet,nstsv,kqset%wtet, &
+      call tetcw(kqset%nkpt,kqset%ntet,nstfv,kqset%wtet, &
       &          eval, &
       &          kqset%tnodes,kqset%linkq(:,iq),kqset%kqid(:,iq), &
       &          kqset%tvol,efermi,freq%freqs(iom),fflg, &
       &          cwpar)
       if (fflg==2) then
-        call tetcw(kqset%nkpt,kqset%ntet,nstsv,kqset%wtet, &
+        call tetcw(kqset%nkpt,kqset%ntet,nstfv,kqset%wtet, &
         &          eval, &
         &          kqset%tnodes,kqset%linkq(:,iq),kqset%kqid(:,iq), &
         &          kqset%tvol,efermi,freq%freqs(iom),4, &
         &          cwparsurf)
       end if
       do ik = 1, kqset%nkpt
-        do ib = 1, nstsv
+        do ib = 1, nstfv
           if (eval(ib,kqset%kqid(ik,iq)) > 900.0) &
-          &  cwpar(1:nstsv,ib,ik) = 0.0d0
+          &  cwpar(1:nstfv,ib,ik) = 0.0d0
           if (fflg==2) then
             if (eval(ib,kqset%kqid(ik,iq)) > 900.0) &
-            &  cwparsurf(1:nstsv,ib,ik) = 0.0d0
+            &  cwparsurf(1:nstfv,ib,ik) = 0.0d0
           endif
         end do
       end do
       if (fflg==2) then 
-        fnm(1:nomax,numin:nstsv,iom,1:kqset%nkpt) = &
-        &  cmplx(cwpar(1:nomax,numin:nstsv,1:kqset%nkpt), &
-        &        cwparsurf(1:nomax,numin:nstsv,1:kqset%nkpt)) 
+        fnm(1:nomax,numin:nstfv,iom,1:kqset%nkpt) = &
+        &  cmplx(cwpar(1:nomax,numin:nstfv,1:kqset%nkpt), &
+        &        cwparsurf(1:nomax,numin:nstfv,1:kqset%nkpt)) 
       else 
-        fnm(1:nomax,numin:nstsv,iom,1:kqset%nkpt) = &
-       &   cmplx(cwpar(1:nomax,numin:nstsv,1:kqset%nkpt),0.0)    
+        fnm(1:nomax,numin:nstfv,iom,1:kqset%nkpt) = &
+       &   cmplx(cwpar(1:nomax,numin:nstfv,1:kqset%nkpt),0.0)    
       endif 
     enddo ! iom
 
@@ -129,10 +129,10 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
         ias = idxas(ia,is)
         eval(1,1:kqset%nkpt) = evalcr(ic,ias)
             
-        do ib = numin, nstsv
+        do ib = numin, nstfv
           do ik = 1, kqset%nkpt
             ikp = kset%ik2ikp(ik)
-            eval(2,ik) = evalsv(ib,ikp)
+            eval(2,ik) = evalfv(ib,ikp)
           end do
           ! continue only if the band is at least partially unoccupied
           emaxb = maxval(eval(2,:))
@@ -146,7 +146,7 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
               &          cwpar)
               do ik = 1, kqset%nkpt
                 ikp = kset%ik2ikp(ik)
-                edif = evalsv(ib,ikp)-evalcr(ic,ias)
+                edif = evalfv(ib,ikp)-evalcr(ic,ias)
                 edsq = edif*edif
                 fnm(nomax+icg,ib,iom,ik) = 2.0d0*cwpar(1,2,ik)*edif/(omsq-edsq)
               end do  
@@ -177,7 +177,7 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
       do ik = 1, kqset%nkpt
         write(*,*) 'iq, ik = ', iq, ik
         do n = 1, nomax
-        do m = numin, nstsv
+        do m = numin, nstfv
           write(*,'(2i4,2f12.6)') n, m, fnm(n,m,iom,ik)
         end do
         end do
@@ -195,7 +195,7 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
       iom = 1
       do ik = 1, kqset%nkpt
         do ic = 1, ndim
-        do ib = numin, nstsv
+        do ib = numin, nstfv
           write(fdebug,1) ic, ib, iom, ik, fnm(ic,ib,iom,ik)
         end do
         end do

@@ -10,6 +10,14 @@ module mod_hybrids
 
     implicit none
 
+    ! set true if HF-Hybrids are used as starting point
+    Logical :: hybridhf
+    data hybridhf / .false. /
+
+    ! 1 - alpha 
+    real(8) :: hyb_beta
+    data hyb_beta / 1.d0 /
+
     ! number of HF cycles
     integer :: ihyb
 

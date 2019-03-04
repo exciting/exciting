@@ -16,11 +16,11 @@ subroutine calcevalqp
 !
 !!USES:
     use modinput
-    use modmain, only: evalsv, efermi, zzero
-    use modgw,   only: ibgw, nbgw, kset, evalqp, eferqp, &
-    &                  sigc, znorm, selfex, selfec, &
-    &                  nbandsgw, nvelgw, &
-    &                  sigsx, sigch, fgw
+    use modmain, only: efermi, zzero
+    use modgw,   only: ibgw, nbgw, kset, evalfv, evalqp, eferqp, &
+                       sigc, znorm, selfex, selfec, &
+                       nbandsgw, nvelgw, &
+                       sigsx, sigch, fgw
     use mod_vxc, only: vxcnn
     implicit none
     integer :: nb, ie, ik
@@ -42,7 +42,7 @@ subroutine calcevalqp
       
         do ik = 1, kset%nkpt
           do ie = ibgw, nbgw
-            evalqp(ie,ik) = evalsv(ie,ik) + &
+            evalqp(ie,ik) = evalfv(ie,ik) + &
                             dble(selfex(ie,ik) - vxcnn(ie,ik))
           end do ! ie
         end do ! ik
@@ -52,7 +52,7 @@ subroutine calcevalqp
         do ik = 1, kset%nkpt
           do ie = ibgw, nbgw
             sigsx(ie,ik) = sigsx(ie,ik)+selfex(ie,ik)
-            evalqp(ie,ik) = evalsv(ie,ik) + &
+            evalqp(ie,ik) = evalfv(ie,ik) + &
                             dble(sigsx(ie,ik) + sigch(ie,ik) - vxcnn(ie,ik))
           end do ! ie
         end do ! ik
@@ -60,11 +60,11 @@ subroutine calcevalqp
     end select
 
     ! Calculate Fermi energy
-    call fermi_exciting(input%groundstate%tevecsv, &
+    call fermi_exciting(.false., &
     &                   nvelgw, &
-    &                   nbandsgw,kset%nkpt,evalqp(ibgw:nbgw,:), &
-    &                   kset%ntet,kset%tnodes,kset%wtet,kset%tvol, &
-    &                   eferqp,egap,df)
+    &                   nbandsgw, kset%nkpt, evalqp(ibgw:nbgw,:), &
+    &                   kset%ntet, kset%tnodes, kset%wtet,kset%tvol, &
+    &                   eferqp, egap, df)
 
 end subroutine
 !EOC        

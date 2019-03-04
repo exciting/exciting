@@ -3,7 +3,7 @@ subroutine init_kqpoint_set()
 
     use modinput
     use modmain ,   only : gkmax, bvec, intgv, nspnfv
-    use modgw,      only : kset, Gset, Gkset, kqset, Gqset, Gqbarc, fgw
+    use modgw,      only : kset, Gset, Gkset, kqset, Gkqset, Gqset, Gqbarc, fgw
     use mod_kpointset
     use mod_frequency
     use modmpi,     only : rank
@@ -15,7 +15,7 @@ subroutine init_kqpoint_set()
     type(k_set) :: ksetnr
     real(8) :: gqmax, gqmaxbarc, v(3), t
     
-    !call delete_init1_variables
+    ! call delete_init1_variables()
     
     !====================
     ! k-points (reduced)
@@ -51,13 +51,21 @@ subroutine init_kqpoint_set()
     if ((input%gw%debug).and.(rank==0)) call print_G_vectors(Gset,fid)
     
     !==========================
-    ! G+k-points (non-reduced)
+    ! G+k-points (reduced)
     !==========================
     call generate_Gk_vectors(Gkset, &
+    &                        kset, &
+    &                        Gset, &
+    &                        gkmax)
+
+    !==========================
+    ! G+kq-points (non-reduced)
+    !==========================
+    call generate_Gk_vectors(Gkqset, &
     &                        ksetnr, &
     &                        Gset, &
     &                        gkmax)
-    
+        
     !============
     ! k/q-points
     !============
@@ -67,7 +75,7 @@ subroutine init_kqpoint_set()
     &                        input%gw%vqloff, &
     &                        input%gw%reduceq)
     if ((input%gw%debug).and.(rank==0)) call print_kq_vectors(kqset,fid)
-    
+
     !==========================
     ! G+q-points (non-reduced)
     !==========================
@@ -88,7 +96,7 @@ subroutine init_kqpoint_set()
     ! PW basis set used for calculating the bare Coulomb potential
     !=============================================================
     gqmaxbarc = min(input%gw%BareCoul%pwm*gqmax, &
-    &              input%groundstate%gmaxvr)
+                    input%groundstate%gmaxvr)
     if ((input%gw%debug).and.(rank==0)) then
       write(fid,*)
       write(fid,*) 'Plane-wave cutoff for the bare Coulomb potential &

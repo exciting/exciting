@@ -1,20 +1,20 @@
-subroutine readevalqp()
+
+subroutine readevalqp(fname)
+
     use modgw, only : kset, ibgw, nbgw, evalqp, evalks, eferqp, eferks
     implicit none
+    character(*), intent(in) :: fname
     integer(4)    :: ik, nk, ib, nb
     real(8)       :: vkl(3)
     integer(4)    :: recl
-    character(20) :: fname
     logical       :: exist
 
     !-----------------------------------------------------------------------------
     ! Read the file
     !-----------------------------------------------------------------------------      
-
-    fname = 'EVALQP.OUT'
-    inquire( File=fname, Exist=exist )
+    inquire( File=trim(fname), Exist=exist )
     if ( .not.exist ) then
-        write(*,*)'ERROR(readevalqp): File EVALQP.OUT does not exist!'
+        write(*,*)'ERROR(readevalqp): File ', trim(fname), ' does not exist!'
         stop
     end if
       
@@ -27,14 +27,17 @@ subroutine readevalqp()
     ! Consistency check
     if ( nk /= kset%nkpt ) then
         write(*,*) 'ERROR(readevalqp): Inconsistent number of k-points!'
+        write(*,*) 'nk = ', nk, ' nkpt = ', kset%nkpt
         stop
     end if
     if ( ib /= ibgw ) then
         write(*,*) 'ERROR(readevalqp): Inconsistent number of GW states!'
+        write(*,*) 'ib = ', ib, ' ibgw = ', ibgw
         stop
     end if
     if ( nb /= nbgw ) then
         write(*,*) 'ERROR(readevalqp): Inconsistent number of GW states!'
+        write(*,*) 'nb = ', nb, ' nbgw = ', nbgw
         stop
     end if
 

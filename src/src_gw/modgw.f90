@@ -59,7 +59,7 @@ module modgw
     type(kkqmt_set) :: kqsetd
     type(kq_set) :: kqset
     type(G_set)  :: Gset
-    type(Gk_set) :: Gkset, Gqset, Gqbarc
+    type(Gk_set) :: Gkset, Gkqset, Gqset, Gqbarc
      
     !--------------------------------!
     ! BZ integration weights

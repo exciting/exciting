@@ -398,7 +398,7 @@
             </xs:annotation>
           </xs:attribute>
           
-          <xs:attribute ex:importance="expert" ex:unit="" name="mblksiz" type="xs:integer" default="32">
+          <xs:attribute ex:importance="expert" ex:unit="" name="mblksiz" type="xs:integer" default="0">
             <xs:annotation>
               <xs:documentation>
 	              To reduce memory usage, big matrices are considered to be split into blocks, each with a size of mblksiz. 

@@ -418,7 +418,8 @@ module mod_wannier_filehandling
         else if( input%properties%wannier%input .eq. "hybrid") then
           call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evecfv)
         else if( input%properties%wannier%input .eq. "gw") then
-          call getevecsvgw( "GW_EVECSV.OUT", ik, wf_kset%vkl( :, ik), nmatmax_ptr, nstfv, nspnfv, evecfv)
+          ! call getevecsvgw( "GW_EVECSV.OUT", ik, wf_kset%vkl( :, ik), nmatmax_ptr, nstfv, nspnfv, evecfv)
+          call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evecfv)
         else
           stop
         end if

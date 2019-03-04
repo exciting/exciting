@@ -27,7 +27,7 @@ subroutine calcpmatgw
     integer(8) :: recl
     real(8)    :: tstart, tend, t0, t1
     complex(8), allocatable :: apwalm(:,:,:,:)
-    complex(8), allocatable :: evecsv(:,:,:)
+    complex(8), allocatable :: evecfv(:,:)
     complex(8), allocatable :: pmv_k(:,:,:), pmc_k(:,:,:)
     complex(8), allocatable :: pmv(:,:,:,:), pmc(:,:,:,:)
 
@@ -60,7 +60,7 @@ subroutine calcpmatgw
     call init_pmat(input%gw%coreflag=='all')
 
     allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
-    allocate(evecsv(nmatmax,nstsv,nspinor))
+    allocate(evecfv(nmatmax,nstfv))
     
     !=========================
     ! Loop over k-points
@@ -75,46 +75,45 @@ subroutine calcpmatgw
     end if
     
     do ikp = ikstart, ikend
+
       ik = kset%ikp2ik(ikp)
       
       !-------------------------------------------
       ! find the matching coefficients
       !-------------------------------------------
-      call match(Gkset%ngk(1,ik),Gkset%gkc(:,1,ik), &
-      &          Gkset%tpgkc(:,:,1,ik),Gkset%sfacgk(:,:,1,ik), &
+      call match(Gkqset%ngk(1,ik), Gkqset%gkc(:,1,ik), &
+      &          Gkqset%tpgkc(:,:,1,ik), Gkqset%sfacgk(:,:,1,ik), &
       &          apwalm)
       
       !-------------------------------------------
       ! get the eigenvectors and values from file
       !-------------------------------------------
-      call getevecsvgw('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
+      call getevecfv(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
       
-      do ispn = 1, nspinor
-        call genevecalm(Gkset%ngk(1,ik),nstsv,evecsv(:,:,ispn),apwalm)
-        !------------------------------------      
-        ! valence-valence contribution
-        !------------------------------------
-        call genpmatvv_k(Gkset%ngk(1,ik), Gkset%igkig(:,1,ik), &
-        &                Gkset%vgkc(:,:,1,ik), nstsv, evecsv(:,:,ispn), &
-        &                1, nomax, numin, nstdf, pmv_k)
-        pmv(:,:,:,ikp) = pmv(:,:,:,ikp)+pmv_k(:,:,:)
-        !------------------------------------      
-        ! core-valence contribution
-        !------------------------------------
-        if (input%gw%coreflag=='all') then
-          call genpmatcv_k(kqset%vkl(:,ik), &
-          &                1, ncg, numin, nstdf, pmc_k)
-          pmc(:,:,:,ikp) = pmc(:,:,:,ikp)+pmc_k(:,:,:)
-        endif
-      end do ! ispn
+      call genevecalm(Gkqset%ngk(1,ik), nstfv, evecfv, apwalm)
+      !------------------------------------      
+      ! valence-valence contribution
+      !------------------------------------
+      call genpmatvv_k(Gkqset%ngk(1,ik), Gkqset%igkig(:,1,ik), &
+      &                Gkqset%vgkc(:,:,1,ik), nstfv, evecfv, &
+      &                1, nomax, numin, nstdf, pmv_k)
+      pmv(:,:,:,ikp) = pmv(:,:,:,ikp) + pmv_k(:,:,:)
+      !------------------------------------      
+      ! core-valence contribution
+      !------------------------------------
+      if (input%gw%coreflag=='all') then
+        call genpmatcv_k(kqset%vkl(:,ik), &
+        &                1, ncg, numin, nstdf, pmc_k)
+        pmc(:,:,:,ikp) = pmc(:,:,:,ikp) + pmc_k(:,:,:)
+      endif
 
     end do ! ikp
     
     deallocate(pmv_k)
     if (input%gw%coreflag=='all') deallocate(pmc_k)
     deallocate(apwalm)
-    deallocate(evecsv)
-    call clear_pmat
+    deallocate(evecfv)
+    call clear_pmat()
     
     !==========================
     ! Write results to files
@@ -135,29 +134,17 @@ subroutine calcpmatgw
     
     do ikp = 1, kset%nkpt
       if (rank==ikp2rank(ikp)) then
-#ifdef _HDF5_
-        write(cik,'(I4.4)') ikp
-        path = "/kpoints/"//trim(adjustl(cik))
-        if (.not.hdf5_exist_group(fgwh5,"/kpoints",cik)) &
-        &  call hdf5_create_group(fgwh5,"/kpoints",cik)
-        call hdf5_write(fgwh5,path,"pmatvv", &
-        &               pmv(1,numin,1,ikp),(/nomax,nstdf-numin+1,3/))
-        if (input%gw%coreflag=='all') then
-          call hdf5_write(fgwh5,path,"pmatcv", &
-          &               pmc(1,numin,1,ikp),(/ncg,nstdf-numin+1,3/))
-        end if
-#endif
         call getunit(fid)
         inquire(iolength=recl) pmv(:,:,:,ikp)
         open(fid,File=fname_pmatvv,Action='WRITE',Form='UNFORMATTED',&
-        &    Access='DIRECT',Status='OLD',Recl=recl)
+             Access='DIRECT',Status='OLD',Recl=recl)
         write(fid,rec=ikp) pmv(:,:,:,ikp)
         close(fid)
         if (input%gw%coreflag=='all') then
           call getunit(fid)
           inquire(iolength=recl) pmc(:,:,:,ikp)
           open(fid,File=fname_pmatcv,Action='WRITE',Form='UNFORMATTED',&
-          &    Access='DIRECT',Status='OLD',Recl=recl)
+               Access='DIRECT',Status='OLD',Recl=recl)
           write(fid,rec=ikp) pmc(:,:,:,ikp)
           close(fid)
         end if

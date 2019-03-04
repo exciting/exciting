@@ -1,6 +1,6 @@
 subroutine calcselfc(iq)
     use modinput
-    use modmain,    only : nstsv, apwordmax, lmmaxapw, natmtot, nspnfv, &
+    use modmain,    only : nstfv, apwordmax, lmmaxapw, natmtot, nspnfv, &
     &                      zzero, nmatmax
     use modgw
     use mod_mpi_gw, only : myrank
@@ -14,12 +14,9 @@ subroutine calcselfc(iq)
     integer(4) :: fid
     character(120) :: fname_mwm
     real(8) :: tstart, tend, t0, t1
-    complex(8), allocatable :: evecsv(:,:,:)
+    complex(8), allocatable :: evecfv(:,:)
     character(len=10), external :: int2str
 
-    write(*,*)
-    write(*,*) ' ---- calcselfc started ----'
-    write(*,*)
     call timesec(tstart)
     
     !------------------------
@@ -45,31 +42,29 @@ subroutine calcselfc(iq)
     ! products M*W^c*M
     !-------------------------------------------
     allocate(mwm(ibgw:nbgw,1:mdim,1:freq%nomeg))
-    msize = sizeof(mwm)*b2mb
-    write(*,'(" calcselfc: size(mwm) (Mb):",f12.2)') msize
+    ! msize = sizeof(mwm)*b2mb
+    ! write(*,'(" calcselfc: size(mwm) (Mb):",f12.2)') msize
  
     !----------------------------
     ! q-dependent M*W*M products
     !----------------------------
-    if (input%gw%taskname.eq.'gw0') then
+    if (input%gw%taskname == 'gw0') then
       fname_mwm = 'MWM'//'-q'//trim(int2str(iq))//'.OUT'
       call getunit(fid)
       open(fid,File=fname_mwm,Action='Write',Form='Unformatted')
     end if
     
-    allocate(eveckalm(nstsv,apwordmax,lmmaxapw,natmtot))
-    allocate(eveckpalm(nstsv,apwordmax,lmmaxapw,natmtot))
-    allocate(eveck(nmatmax,nstsv))
-    allocate(eveckp(nmatmax,nstsv))
+    allocate(eveckalm(nstfv,apwordmax,lmmaxapw,natmtot))
+    allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
+    allocate(eveck(nmatmax,nstfv))
+    allocate(eveckp(nmatmax,nstfv))
     
     !================================
     ! loop over irreducible k-points
     !================================
-    do ispn = 1, nspinor
+    write(*,*)
     do ikp = 1, kset%nkpt
-    
-      write(*,*)
-      write(*,*) 'calcselfc: k-point loop ikp=', ikp
+      write(*,*) 'calcselfc: rank, (iq, ikp):', myrank, iq, ikp
     
       ! k vector
       ik = kset%ikp2ik(ikp)
@@ -77,12 +72,13 @@ subroutine calcselfc(iq)
       jk = kqset%kqid(ik,iq)
       
       ! get KS eigenvectors
-      allocate(evecsv(nmatmax,nstsv,nspinor))
-      call getevecsvgw('GW_EVECSV.OUT', jk, kqset%vkl(:,jk), nmatmax, nstsv, nspinor, evecsv)
-      eveckp = conjg(evecsv(:,:,ispn))
-      call getevecsvgw('GW_EVECSV.OUT', ik, kqset%vkl(:,ik), nmatmax, nstsv, nspinor, evecsv)
-      eveck = evecsv(:,:,ispn)
-      deallocate(evecsv)
+      allocate(evecfv(nmatmax,nstfv))
+      call getevecfv(kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), evecfv)
+      eveckp = conjg(evecfv)
+      call getevecfv(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
+      eveck = evecfv
+      deallocate(evecfv)
+
       call expand_evec(ik, 't')
       call expand_evec(jk, 'c')
 
@@ -91,13 +87,13 @@ subroutine calcselfc(iq)
       !=================================
       do iblk = 1, nblk
 
-        mstart = 1+(iblk-1)*mblksiz
-        mend = min(mdim,mstart+mblksiz-1)
+        mstart = 1 + (iblk-1)*mblksiz
+        mend = min(mdim, mstart+mblksiz-1)
         
         ! m-block M^i_{nm}
         allocate(minmmat(mbsiz,ibgw:nbgw,mstart:mend))
         msize = sizeof(minmmat)*b2mb
-        write(*,'(" calcselfc: rank, size(minmmat) (Mb):",3i4,f12.2)') myrank, mstart, mend, msize
+        ! write(*,'(" calcselfc: rank, size(minmmat) (Mb):",3i4,f12.2)') myrank, mstart, mend, msize
 
         call expand_products(ik, iq, ibgw, nbgw, -1, mstart, mend, nstse, minmmat)
 
@@ -134,7 +130,6 @@ subroutine calcselfc(iq)
       end if
 
     end do ! ikp
-    end do ! ispn
     
     deallocate(eveck)
     deallocate(eveckp)
@@ -150,10 +145,5 @@ subroutine calcselfc(iq)
     call timesec(tend)
     time_selfc = time_selfc+tend-tstart
 
-    write(*,*)
-    write(*,*) ' ---- calcselfc ended ----'
-    write(*,*)
-    
     return
 end subroutine
-                        

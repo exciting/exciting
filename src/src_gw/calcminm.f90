@@ -15,7 +15,7 @@ subroutine calcminm(ik,iq,nstart,nend,mstart,mend,minm)
     use modmain,               only : nspecies, natoms, idxas, idxlm, idxlo, &
     &                                 zzero, zone, intgv, apword, nlorb, lorbl, &
     &                                 nlomax, pi, apwordmax, nmatmax
-    use modgw,                 only : kqset, Gkset, Gqbarc, Gqset, Gset, fdebug, time_minm
+    use modgw,                 only : kqset, Gkqset, Gqbarc, Gqset, Gset, fdebug, time_minm
     use mod_bands,             only : eveck, eveckp, eveckalm, eveckpalm
     use mod_product_basis,     only : nmix, bigl, bradketa, bradketlo, mpwipw, &
     &                                 matsiz, locmatsiz, mbindex
@@ -144,7 +144,7 @@ subroutine calcminm(ik,iq,nstart,nend,mstart,mend,minm)
                       
                   do ilo2 = 1, nlorb(is)
                     if (lorbl(ilo2,is)==l2) then
-                      igk2 = Gkset%ngk(1,jk)+idxlo(l2m2,ilo2,ias)
+                      igk2 = Gkqset%ngk(1,jk)+idxlo(l2m2,ilo2,ias)
                       apwterm(io1) = apwterm(io1)+ &
                       &              eveckp(igk2,ie2)* &
                       &              bradketa(3,irm,l1,io1,ilo2,1,ias)
@@ -168,7 +168,7 @@ subroutine calcminm(ik,iq,nstart,nend,mstart,mend,minm)
                         
                     do ilo2 = 1, nlorb(is)
                       if (lorbl(ilo2,is)==l2) then
-                        igk2 = Gkset%ngk(1,jk)+idxlo(l2m2,ilo2,ias)
+                        igk2 = Gkqset%ngk(1,jk)+idxlo(l2m2,ilo2,ias)
                         loterm(ilo1) = loterm(ilo1)+ &
                         &              eveckp(igk2,ie2)* &
                         &              bradketlo(3,irm,ilo1,ilo2,1,ias)
@@ -189,7 +189,7 @@ subroutine calcminm(ik,iq,nstart,nend,mstart,mend,minm)
                       
                   do ilo1 = 1, nlorb(is)
                     if (lorbl(ilo1,is)==l1) then
-                      igk1 = Gkset%ngk(1,ik)+idxlo(l1m1,ilo1,ias)
+                      igk1 = Gkqset%ngk(1,ik)+idxlo(l1m1,ilo1,ias)
                       sumterms = sumterms + &
                       &          eveck(igk1,ie1)*loterm(ilo1)
                     end if
@@ -224,16 +224,16 @@ subroutine calcminm(ik,iq,nstart,nend,mstart,mend,minm)
     
     ! Loop over the mixed basis functions:
     sqvi = sqrt(vi)
-    ngk1 = Gkset%ngk(1,ik)
-    ngk2 = Gkset%ngk(1,jk)
+    ngk1 = Gkqset%ngk(1,ik)
+    ngk2 = Gkqset%ngk(1,jk)
     
     allocate(igqk12(ngk1,ngk2))
     igqk12(:,:) = 0
     
     do igk1 = 1, ngk1 ! loop over G
       do igk2 = 1, ngk2 ! loop over G'
-        ikv(1:3) = Gset%ivg(1:3,Gkset%igkig(igk1,1,ik)) - &
-        &          Gset%ivg(1:3,Gkset%igkig(igk2,1,jk)) + ig0(1:3)
+        ikv(1:3) = Gset%ivg(1:3,Gkqset%igkig(igk1,1,ik)) - &
+        &          Gset%ivg(1:3,Gkqset%igkig(igk2,1,jk)) + ig0(1:3)
         if((ikv(1).ge.Gset%intgv(1,1)).and.(ikv(1).le.Gset%intgv(1,2)).and. &
         &  (ikv(2).ge.Gset%intgv(2,1)).and.(ikv(2).le.Gset%intgv(2,2)).and. &
         &  (ikv(3).ge.Gset%intgv(3,1)).and.(ikv(3).le.Gset%intgv(3,2)))  then

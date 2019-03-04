@@ -3,7 +3,7 @@ subroutine calchead(ik,iomstart,iomend,ndim)
     ! This subroutine calculate the head of the dielectric matrix
     !
     use modinput
-    use modmain, only : zzero, zone, pi, evalsv, evalcr, idxas
+    use modmain, only : zzero, zone, pi, evalcr, idxas
     use modgw
     implicit none
     
@@ -45,7 +45,7 @@ subroutine calchead(ik,iomstart,iomend,ndim)
             do ie1 = 1, ndim
                 if (ie1 <= nomax) then
                     ! valence-valence
-                    edif = evalsv(ie2,ikp)-evalsv(ie1,ikp)
+                    edif = evalfv(ie2,ikp)-evalfv(ie1,ikp)
                     if (dabs(edif) > 1.d-6) then
                         pnm = pmatvv(ie1,ie2,iop)*conjg(pmatvv(ie1,ie2,jop))
                         zsum = zsum + fnm(ie1,ie2,iom,ik)*pnm/(edif*edif)
@@ -57,7 +57,7 @@ subroutine calchead(ik,iomstart,iomend,ndim)
                     ia = corind(icg,2)
                     ias = idxas(ia,is)
                     ic = corind(icg,3)
-                    edif = evalsv(ie2,ikp)-evalcr(ic,ias)
+                    edif = evalfv(ie2,ikp)-evalcr(ic,ias)
                     if (dabs(edif) > 1.0d-6) then
                         pnm = pmatcv(icg,ie2,iop)*conjg(pmatcv(icg,ie2,jop))
                         zsum = zsum + fnm(ie1,ie2,iom,ik)*pnm/(edif*edif)

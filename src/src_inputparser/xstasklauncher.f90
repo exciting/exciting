@@ -4,7 +4,8 @@
 
 subroutine xstasklauncher
   use modinput
-  use modxs, only: temat, skipgnd, hybridhf
+  use modxs, only: temat, skipgnd
+  use mod_hybrids, only: hybridhf
   use inputdom
   use mod_hdf5
 

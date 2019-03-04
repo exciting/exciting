@@ -2,7 +2,7 @@
 subroutine task_chi0_r
 
     use modinput
-    use modmain,               only : zzero, evalsv, efermi
+    use modmain,               only : zzero, efermi
     use modgw
     use mod_mpi_gw
     use m_getunit
@@ -58,7 +58,7 @@ subroutine task_chi0_r
     call clean_gndstate
     
     ! occupancy dependent BZ integration weights
-    call kintw
+    call kintw()
     
     !===========================================================================
     ! Main loop: BZ integration
@@ -247,7 +247,7 @@ if (.false.) then
 end if    
     
     deallocate(chi0)
-    if (allocated(evalsv)) deallocate(evalsv)
+    if (allocated(evalfv)) deallocate(evalfv)
     call delete_freqgrid(freq)
     call delete_k_vectors(kset)
     call delete_G_vectors(Gset)

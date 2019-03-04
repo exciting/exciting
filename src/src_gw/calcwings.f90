@@ -1,6 +1,6 @@
 subroutine calcwings(ik,iq,iomstart,iomend,ndim,mstart,mend)
 
-    use modmain,   only : evalsv, evalcr, pi, zzero, zone, idxas
+    use modmain,   only : evalcr, pi, zzero, zone, idxas
     use modgw    
     implicit none
 
@@ -45,7 +45,7 @@ subroutine calcwings(ik,iq,iomstart,iomend,ndim,mstart,mend)
             ie12 = ie12+1
             if (ie1<=nomax) then            
                 ! valence-valence contribution
-                edif = evalsv(ie1,ikp)-evalsv(ie2,ikp)
+                edif = evalfv(ie1,ikp)-evalfv(ie2,ikp)
                 if (dabs(edif)>1.d-6) then
                     pm(ie12) = pmatvv(ie1,ie2,iop)/edif
                 else
@@ -58,7 +58,7 @@ subroutine calcwings(ik,iq,iomstart,iomend,ndim,mstart,mend)
                 ia = corind(icg,2)
                 ic = corind(icg,3)
                 ias = idxas(ia,is)
-                edif = evalcr(ic,ias)-evalsv(ie2,ikp)
+                edif = evalcr(ic,ias)-evalfv(ie2,ikp)
                 if (dabs(edif)>1.d-6) then
                     pm(ie12) = pmatcv(icg,ie2,iop)/edif
                 else

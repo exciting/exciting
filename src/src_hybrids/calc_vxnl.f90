@@ -51,18 +51,24 @@ subroutine calc_vxnl()
     !------------------------------------------!
     if (allocated(vxnl)) deallocate(vxnl)
     allocate(vxnl(nstfv,nstfv,ikfirst:iklast))
-    vxnl(:,:,:) = zzero
+    vxnl(:,:,:) = zzero    
 
     ! VB / CB state index
-    call find_vbm_cbm(1,nstsv,nkpt,evalsv,efermi,nomax,numin,ikvbm,ikcbm,ikvcm)
+    if (allocated(evalfv)) deallocate(evalfv)
+    allocate(evalfv(nstfv,kset%nkpt))
+    do ik = 1, kset%nkpt
+      call getevalfv(kset%vkl(:,ik), evalfv(:,ik))
+    end do
+    call find_vbm_cbm(1, nstfv, kset%nkpt, evalfv, efermi, &
+                      nomax, numin, ikvbm, ikcbm, ikvcm)
     if (rank==0) then
       write(fgw,'(a,i4)') " Band index of VBM:", nomax
       write(fgw,'(a,i4)') " Band index of CBM:", numin
       write(fgw,*)
     end if
-
     ! BZ integration weights
-    call kintw
+    call kintw()
+    deallocate(evalfv)
 
     !--------------------------------------------------
     ! total number of states (n->m + n->c transisions)
@@ -111,10 +117,10 @@ subroutine calc_vxnl()
         jk  = kqset%kqid(ik,iq)
 
         ! k-q vector 
-        call getevecfv(kqset%vkl(:,jk),Gkset%vgkl(:,:,:,jk),eveck)
+        call getevecfv(kqset%vkl(:,jk), Gkset%vgkl(:,:,:,jk), eveck)
         eveckp = conjg(eveck)
         ! k vector
-        call getevecfv(kqset%vkl(:,ik),Gkset%vgkl(:,:,:,ik),eveck)
+        call getevecfv(kqset%vkl(:,ik), Gkset%vgkl(:,:,:,ik), eveck)
         
         call expand_evec(ik,'t')
         call expand_evec(jk,'c')
@@ -122,7 +128,7 @@ subroutine calc_vxnl()
         ! M^i_{nm}+M^i_{cm}
         allocate(minmmat(mbsiz,nstfv,1:mdim))
         minmmat(:,:,:) = zzero
-        call expand_products(ik,iq,1,nstfv,-1,1,mdim,nomax,minmmat)
+        call expand_products(ik, iq, 1, nstfv, -1, 1, mdim, nomax, minmmat)
         call delete_coulomb_potential
            
         do ie1 = 1, nstfv
@@ -130,22 +136,22 @@ subroutine calc_vxnl()
             zt1 = zzero
             do ie3 = 1, mdim
               if (ie3 <= nomax) then
-                mvm = zdotc(mbsiz,minmmat(:,ie1,ie3),1,minmmat(:,ie2,ie3),1)
-                zt1 = zt1-kiw(ie3,jk)*mvm
+                mvm = zdotc(mbsiz, minmmat(:,ie1,ie3), 1, minmmat(:,ie2,ie3), 1)
+                zt1 = zt1 - kiw(ie3,jk)*mvm
               else
                 !============================= 
                 ! Core electron contribution
                 !============================= 
-                icg = ie3-nomax
+                icg = ie3 - nomax
                 is  = corind(icg,1)
                 ia  = corind(icg,2)
                 ic  = corind(icg,3)
-                mvm = zdotc(mbsiz,minmmat(:,ie1,ie3),1,minmmat(:,ie2,ie3),1)
+                mvm = zdotc(mbsiz, minmmat(:,ie1,ie3), 1, minmmat(:,ie2,ie3), 1)
                 ias = idxas(ia,is)
-                zt1 = zt1-ciw(ic,ias)*mvm
+                zt1 = zt1 - ciw(ic,ias)*mvm
               end if
             end do ! ie3
-            vxnl(ie1,ie2,ikp) = vxnl(ie1,ie2,ikp)+zt1
+            vxnl(ie1,ie2,ikp) = vxnl(ie1,ie2,ikp) + zt1
           end do ! ie2
           !__________________________
           ! add singular term (q->0)

@@ -12,19 +12,19 @@ subroutine sym_state_degeneracy
     real(8) :: e0
     
     if (allocated(n12dgn)) deallocate(n12dgn)
-    allocate(n12dgn(2,nstsv,nkpt))
+    allocate(n12dgn(2,nstfv,nkpt))
 
     do ik = 1, nkpt
 
         if (input%gw%reduceq) then
 
             ist = 1
-            do while (ist <= nstsv)
-                e0 = evalsv(ist,ik)
+            do while (ist <= nstfv)
+                e0 = evalfv(ist,ik)
 ! calculate the number of degenerated states
                 n = 1; jst = ist+1
-                do while (jst <= nstsv)
-                    if (abs(evalsv(jst,ik)-e0) < 1.0d-4) then
+                do while (jst <= nstfv)
+                    if (abs(evalfv(jst,ik)-e0) < 1.0d-4) then
                         n = n+1
                         jst = jst+1
                     else
@@ -42,7 +42,7 @@ subroutine sym_state_degeneracy
         else
    
 ! no symmetry: degeneracy index is set to 1
-            do ist = 1, nstsv
+            do ist = 1, nstfv
                 n12dgn(1,ist,ik) = ist
                 n12dgn(2,ist,ik) = ist
             end do
@@ -54,7 +54,7 @@ subroutine sym_state_degeneracy
 
             write(fdebug,*)
             write(fdebug,*)'Degeneracy state of KS bands: ik = ', ik
-            do ist = 1, nstsv
+            do ist = 1, nstfv
                 write(fdebug,*)'ist, n12dgn: ', ist, n12dgn(:,ist,ik)
             end do
             write(fdebug,*)

@@ -9,6 +9,7 @@ Subroutine init2
 #ifdef XS
       Use modxs
 #endif
+      use mod_hybrids, only: hybridhf
       Implicit None
 ! local variables
       logical :: redq, fremapq

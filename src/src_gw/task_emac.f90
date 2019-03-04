@@ -45,7 +45,7 @@ subroutine task_emac()
     end if
     
     ! occupancy dependent BZ integration weights
-    call kintw
+    call kintw()
     
     !==========
     ! Set q=0

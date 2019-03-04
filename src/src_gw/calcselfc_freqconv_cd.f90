@@ -4,9 +4,9 @@
 !==================================================================
 subroutine calcselfc_freqconv_cd(ikp,iq,mdim)
     use modinput
-    use modmain, only : pi, zzero, evalsv, idxas, evalcr, efermi
+    use modmain, only : pi, zzero, idxas, evalcr, efermi
     use modgw,   only : ibgw, nbgw, nstse, kset, kqset, freq, selfec, mwm, &
-    &                   corind, freq_selfc
+    &                   corind, freq_selfc, evalfv
     use mod_pade
     use mod_aaa_approximant
     ! input variables
@@ -42,7 +42,7 @@ subroutine calcselfc_freqconv_cd(ikp,iq,mdim)
           !============================= 
           ! Valence electron contribution
           !============================= 
-          enk = evalsv(ie2,jkp)-efermi
+          enk = evalfv(ie2,jkp)-efermi
         else
           !============================= 
           ! Core electron contribution

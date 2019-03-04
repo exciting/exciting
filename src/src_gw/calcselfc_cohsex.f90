@@ -4,7 +4,7 @@
 !==================================================================
 subroutine calcselfc_cohsex(ikp,iq,mdim)
     use modinput
-    use modmain, only : zzero, nstsv
+    use modmain, only : zzero, nstfv
     use modgw,   only : ibgw, nbgw, nomax, selfec, mwm, sigch, sigsx, &
     &                   fdebug
     ! input variables
@@ -20,7 +20,7 @@ subroutine calcselfc_cohsex(ikp,iq,mdim)
       sc = zzero
       do ie2 = 1, mdim
         ! occupied states
-        if ((ie2<=nomax).or.(ie2>nstsv)) then
+        if ((ie2<=nomax).or.(ie2>nstfv)) then
           sc = sc-0.5d0*mwm(ie1,ie2,1)
           ! \Sigma_{SEX}
           sigsx(ie1,ikp) = sigsx(ie1,ikp)-mwm(ie1,ie2,1)

@@ -48,28 +48,6 @@ subroutine gw_main()
     !-----------------------------------------------------------
     call parse_gwinput
     
-    !----------------------------------------------
-    ! Store all important results to the hdf5 file
-    !----------------------------------------------
-#ifdef _HDF5_
-    call hdf5_initialize()
-    fgwh5 = "gw_output.h5"
-    if (rank==0) then
-      select case (input%gw%taskname)
-      
-        case('acon','band', 'sepl')
-          continue
-        
-        case default
-          call hdf5_create_file(fgwh5)
-          call hdf5_create_group(fgwh5,"/","parameters")
-          call hdf5_create_group(fgwh5,"/","kpoints")
-          call write_gw_parameters_hdf5
-          
-      end select
-    end if
-#endif
-    
     !----------------
     ! Task selector
     !----------------
@@ -126,9 +104,6 @@ subroutine gw_main()
         case('eps_r')
             call task_eps_r
 
-        case('vcoul')
-            call test_vcoul
-                        
         ! Calculate the eigenvalues the LDA dielectric function and its inverse
         ! case('epsev')
         !    call task_epsev
@@ -197,6 +172,10 @@ subroutine gw_main()
         
         case('specfunc')
             call task_band_specfunc()
+
+        case('sv')
+            call init_gw()
+            call task_second_variation()
 
     end select
     

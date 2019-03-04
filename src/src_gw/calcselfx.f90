@@ -1,10 +1,11 @@
+
 subroutine calcselfx(iq)
 !
 ! Calculate the q-dependent self-energy contribution
 !
     use modinput
-    use modmain, only: nstfv, apwordmax, lmmaxapw, natmtot, nspnfv, &
-                       pi, idxas, zzero, nmatmax, zone, occsv
+    use modmain, only: nstfv, apwordmax, lmmaxapw, natmtot, &
+                       pi, idxas, zzero, nmatmax, zone
     use modgw
     use mod_coulomb_potential
     use mod_mpi_gw, only : myrank
@@ -23,7 +24,7 @@ subroutine calcselfx(iq)
     real(8)    :: wkq, sxs2, fnk
     complex(8) :: sx, vc
     complex(8) :: mvm     ! Sum_ij{M^i*V^c_{ij}*conjg(M^j)}
-    complex(8), allocatable :: evecsv(:,:,:)
+    complex(8), allocatable :: evecfv(:,:)
     
     integer :: k, l, ispn, ist, jst
     complex(8) :: zsum
@@ -31,9 +32,6 @@ subroutine calcselfx(iq)
     ! external routines 
     complex(8), external :: zdotc    
     
-    write(*,*)
-    write(*,*) ' ---- calcselfx started ----'
-    write(*,*)
     call timesec(tstart)
     
     ! singular term prefactor (q->0)
@@ -68,24 +66,22 @@ subroutine calcselfx(iq)
     end if
     nmdim = (nbgw-ibgw+1)*mdim
     
-    allocate(eveckalm(nstsv,apwordmax,lmmaxapw,natmtot))
-    allocate(eveckpalm(nstsv,apwordmax,lmmaxapw,natmtot))
-    allocate(eveck(nmatmax,nstsv))
-    allocate(eveckp(nmatmax,nstsv))
+    allocate(eveckalm(nstfv,apwordmax,lmmaxapw,natmtot))
+    allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
+    allocate(eveck(nmatmax,nstfv))
+    allocate(eveckp(nmatmax,nstfv))
     
     allocate(minmmat(mbsiz,ibgw:nbgw,1:mdim))
     minmmat(:,:,:) = zzero
-    msize = sizeof(minmmat)*b2mb
-    write(*,'(" calcselfx: rank, size(minmmat) (Mb):",i4,f12.2)') myrank, msize
+    ! msize = sizeof(minmmat)*b2mb
+    ! write(*,'(" calcselfx: rank, size(minmmat) (Mb):",i4,f12.2)') myrank, msize
     
     !================================
     ! loop over irreducible k-points
     !================================
-    do ispn = 1, nspinor
+    write(*,*)
     do ikp = 1, kset%nkpt
-    
-      write(*,*)
-      write(*,*) '(calcselfx): k-point loop ikp=', ikp
+      write(*,*) 'calcselfx: rank, (iq, ikp):', myrank, iq, ikp
     
       ! k vector
       ik = kset%ikp2ik(ikp)
@@ -93,14 +89,15 @@ subroutine calcselfx(iq)
       jk = kqset%kqid(ik,iq)
       
       ! get KS eigenvectors
-      allocate(evecsv(nmatmax,nstsv,nspinor))
-      call getevecsvgw('GW_EVECSV.OUT',jk,kqset%vkl(:,jk),nmatmax,nstsv,nspinor,evecsv)
-      eveckp = conjg(evecsv(:,:,ispn))
-      call getevecsvgw('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
-      eveck = evecsv(:,:,ispn)
-      deallocate(evecsv)
-      call expand_evec(ik,'t')
-      call expand_evec(jk,'c')
+      allocate(evecfv(nmatmax,nstfv))
+      call getevecfv(kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), evecfv)
+      eveckp = conjg(evecfv)
+      call getevecfv(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
+      eveck = evecfv
+      deallocate(evecfv)
+
+      call expand_evec(ik, 't')
+      call expand_evec(jk, 'c')
 
       ! Calculate M^i_{nm}+M^i_{cm}
       call expand_products(ik, iq, ibgw, nbgw, -1, 1, mdim, nomax, minmmat)
@@ -163,7 +160,6 @@ subroutine calcselfx(iq)
       end if
       
     end do ! ikp
-    end do ! ispn
 
     deallocate(minmmat)
     deallocate(eveck)
@@ -174,10 +170,6 @@ subroutine calcselfx(iq)
     ! timing
     call timesec(tend)
     time_selfx = time_selfx+tend-tstart
-    
-    write(*,*)
-    write(*,*) ' ---- calcselfx ended ----'
-    write(*,*)
     
     return
 end subroutine

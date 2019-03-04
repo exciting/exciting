@@ -21,7 +21,7 @@ subroutine qdepwsum(iq,iomstart,iomend,ndim)
     call timesec(tstart)
 
     if (allocated(fnm)) deallocate(fnm)
-    allocate(fnm(1:ndim,numin:nstsv,iomstart:iomend,1:kqset%nkpt))
+    allocate(fnm(1:ndim,numin:nstfv,iomstart:iomend,1:kqset%nkpt))
     fnm(:,:,:,:) = zzero
 
     if (allocated(om)) deallocate(om)
@@ -48,8 +48,8 @@ subroutine qdepwsum(iq,iomstart,iomend,ndim)
       do n = 1, ndim
 
         if (n <= nomax) then
-          ene = evalsv(n,ikp)
-          occ = occsv(n,ikp)/occmax
+          ene = evalfv(n,ikp)
+          occ = occfv(n,ikp)/occmax
         else
           icg = n - nomax
           is  = corind(icg,1)
@@ -60,11 +60,11 @@ subroutine qdepwsum(iq,iomstart,iomend,ndim)
           occ = 1.d0
         end if
 
-        do m = numin, nstsv
+        do m = numin, nstfv
           
           do iom = iomstart, iomend
-            ff = occ * ( 1.d0 - occsv(m,jkp)/occmax )
-            de = evalsv(m,jkp) - ene
+            ff = occ * ( 1.d0 - occfv(m,jkp)/occmax )
+            de = evalfv(m,jkp) - ene
             z1 = om(iom) - de + zi*eta
             z2 = om(iom) + de - zi*eta
             fnm(n,m,iom,ik) = ff * (1.d0/z1 - 1.d0/z2) * wkp
@@ -83,7 +83,7 @@ subroutine qdepwsum(iq,iomstart,iomend,ndim)
       do ik = 1, kqset%nkpt
         write(*,*) 'iq, ik = ', iq, ik
         do n = 1, nomax
-        do m = numin, nstsv
+        do m = numin, nstfv
           write(*,'(2i4,2f12.6)') n, m, fnm(n,m,iom,ik)
         end do
         end do

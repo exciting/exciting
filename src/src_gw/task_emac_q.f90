@@ -37,7 +37,7 @@ subroutine task_emac_q()
     call clean_gndstate
     
     ! occupancy dependent BZ integration weights
-    call kintw
+    call kintw()
     
     !==============
     ! Set \omega=0

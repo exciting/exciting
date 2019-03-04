@@ -72,10 +72,10 @@ subroutine setbarcev(evtol)
           test2 = test1
         end if
       end do
-      if (myrank==0) then
-        write(fgw,*)'- Maximum singular eigenvector ###'
-        write(fgw,10) immax, test2, barcev(immax)
-      end if    
+      if (input%gw%debug .and. myrank==0) then
+        write(fdebug,*)'- Maximum singular eigenvector ###'
+        write(fdebug,10) immax, test2, barcev(immax)
+      end if
       ! exclude this matrix element      
       if (im_kept(immax) == 1) then 
         im_kept(immax) = 0
@@ -84,12 +84,14 @@ subroutine setbarcev(evtol)
       deallocate(wi0new)
     end if
     10 format("immax, max(wi0new), barcev(immax): ",i4,4x,f12.6,4x,f12.6)
-    
-    if (mbsiz < matsiz) then
-      if (myrank==0) then
-        write(fgw,*) "Info(setbarcev): Product basis size has been changed"
-        write(fgw,*) " - Old basis set size =", matsiz
-        write(fgw,*) " - New basis set size =", mbsiz
+
+    if (input%gw%debug) then
+      if (mbsiz < matsiz) then
+        if (myrank==0) then
+          write(fdebug,*) "Info(setbarcev): Product basis size has been changed"
+          write(fdebug,*) " - Old basis set size =", matsiz
+          write(fdebug,*) " - New basis set size =", mbsiz
+        end if
       end if
     end if
     

@@ -51,7 +51,8 @@ subroutine fermi_exciting(lspin,nel,nb,nik,eband,ntet,tetc,wtet,vt,efer,eg,df)
     ! insulating system, but such a simplistic way to determine the Fermi energy
     ! is valid only for spin un-polarized cases 
     if (.not.lspin) then 
-      nvm  = nint(nel/2.d0) 
+      nvm  = nint(nel/2.d0)
+      ! print*, "nvm=", nvm
       evbm = maxval(eb(nvm,:))
       ecbm = minval(eb(nvm+1,:))
       eint = (evbm+ecbm)/2.d0
