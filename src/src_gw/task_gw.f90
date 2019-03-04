@@ -281,7 +281,7 @@ subroutine task_gw()
 !$OMP end critical
 
     end if ! myrank
-    
+
     !--------------------------------------------------------
     ! Calculate quasiparticle energies in GW0 approximation 
     !--------------------------------------------------------
@@ -312,8 +312,18 @@ subroutine task_gw()
       call timesec(t0)
       call putevalqp('EVALQP.OUT')
     end if ! myrank
+
+    !-----------------------------------------
+    ! Second-variational treatment if needed
+    !-----------------------------------------
+    if (associated(input%groundstate%spin)) then
+      input%gw%skipgnd = .True.
+      call init_gw()
+      call task_second_variation()
+    end if
     
     if (allocated(evalfv)) deallocate(evalfv)
+    if (allocated(occfv)) deallocate(occfv)
     call delete_selfenergy
     
     call delete_freqgrid(freq)

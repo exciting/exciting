@@ -17,7 +17,7 @@ subroutine init_gw()
     real(8) :: t0, t1, tstart, tend
     integer :: stype_
 
-    call timesec(tstart)  
+    call timesec(tstart)
     
     ! Importantly, current implementation uses exclusively 
     ! "Extended linear tetrahedron method for the calculation of q-dependent
@@ -59,13 +59,13 @@ subroutine init_gw()
           call filedel('OCCSV'//trim(filext))
           call filedel('BROYDEN.OUT')
           call writefermi
-          call writeeval
+          ! call writeeval
         end if
         call barrier
       end if
       
       call readstate()
-      
+
     end if
     
     ! if BSE is used just after GW, libbzint

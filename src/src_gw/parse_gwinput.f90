@@ -357,7 +357,7 @@ subroutine parse_gwinput
     if (rank==0) call linmsg(fgw,'-','')    
     
 !-------------------------------------------------------------------------------
-! Number of the empty bands used in GW code
+! Special treatment in case of hybrid functionals
 !-------------------------------------------------------------------------------
     hybridhf = .false.
     hyb_beta = 1.d0
@@ -367,12 +367,13 @@ subroutine parse_gwinput
             hyb_beta = 1.d0 - input%groundstate%Hybrid%excoeff
         end if
     end if
-
     if (hybridhf) then
         ! use groundstate parameters from hybrids/groundstate for consistency
         input%gw%nempty = input%groundstate%nempty
         input%gw%ngridq = input%groundstate%ngridk
         input%gw%vqloff = input%groundstate%vkloff
+        input%gw%ibgw = 1
+        input%gw%nbgw = 1000000
     end if
 
 !-------------------------------------------------------------------------------
@@ -436,22 +437,17 @@ subroutine parse_gwinput
 
     !-------------------------------------------------------------------------------
     ! Band range where GW corrections are applied
-    !-------------------------------------------------------------------------------    
-    if (associated(input%groundstate%spin)) then
-        ! Spin-polarized case (special treatment)
-        ibgw = 1
-        nbgw = input%gw%nbgw
-    else
-        ibgw = input%gw%ibgw
-        nbgw = input%gw%nbgw
-        if (nbgw < 1) nbgw = input%gw%nempty
-        if (ibgw >= nbgw) then
-            if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal values for ibgw ot nbgw!'
-            if (rank==0) write(*,*) '    ibgw = ', ibgw, '   nbgw = ', nbgw
-            stop
-        end if
+    !-------------------------------------------------------------------------------
+    if (associated(input%groundstate%spin)) input%gw%ibgw = 1
+    ibgw = input%gw%ibgw
+    nbgw = input%gw%nbgw
+    if (nbgw < 1) nbgw = input%gw%nempty
+    if (ibgw >= nbgw) then
+        if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal values for ibgw ot nbgw!'
+        if (rank==0) write(*,*) '    ibgw = ', ibgw, '   nbgw = ', nbgw
+        stop
     end if
-    if (rank==0) write(fgw,'(a,2i7)') ' Quasiparticle band range: ', ibgw, nbgw
+    if (rank==0) write(fgw,'(a,2i7)') ' Specified quasiparticle band range: ', ibgw, nbgw
     if (rank==0) write(fgw,*)
 
     call flushifc(fgw)

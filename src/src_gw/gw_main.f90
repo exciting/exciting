@@ -174,6 +174,7 @@ subroutine gw_main()
             call task_band_specfunc()
 
         case('sv')
+            input%gw%skipgnd = .True.
             call init_gw()
             call task_second_variation()
 

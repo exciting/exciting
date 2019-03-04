@@ -12,9 +12,9 @@ subroutine task_second_variation()
     complex(8), allocatable :: evecsv(:,:)
     complex(8), allocatable :: apwalm(:,:,:,:)
 
+    ! readjust global variables to fit the number of computed fv-QP states
     nstfv = nbgw
     nstsv = nstfv * nspinor
-    ! write(*,*) 'nstfv, nstsv = ', nstfv, nstsv
 
     !------------------------------------
     ! Read first-variational hamiltonian
@@ -27,8 +27,6 @@ subroutine task_second_variation()
     if (allocated(evalfv)) deallocate(evalfv)
     allocate(evalfv(nstfv,kset%nkpt))
     evalfv(:,:) = evalqp(:,:)
-    deallocate(evalqp)
-    deallocate(evalks)
     ! write(*,*) eferks, eferqp
     ! do ik = 1, kset%nkpt
     !     write(*,*) 'ik=', ik
@@ -37,6 +35,8 @@ subroutine task_second_variation()
     !     end do
     !     write(*,*)
     ! end do
+    deallocate(evalqp)
+    deallocate(evalks)
     
     if (allocated(evalsv)) deallocate(evalsv)
     allocate(evalsv(nstsv,kset%nkpt))
@@ -46,11 +46,9 @@ subroutine task_second_variation()
     end do
     call occupy
     evalsv(:,:) = evalsv(:,:)-efermi
-   
     filext = "_KS.OUT"
     if (rank==0) call writeeval()
     filext = "_GW.OUT"
-
     allocate(evalks(nstsv,kset%nkpt))
     evalks(:,:) = evalsv(:,:)
     eferks = 0.d0
@@ -58,8 +56,11 @@ subroutine task_second_variation()
     !------------------------------------
     ! Solve second-variational problem
     !------------------------------------
+    if (allocated(evecfv)) deallocate(evecfv)
     allocate(evecfv(nmatmax,nstfv))
+    if (allocated(evecsv)) deallocate(evecsv)
     allocate(evecsv(nstsv,nstsv))
+    if (allocated(apwalm)) deallocate(apwalm)
     allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
     do ik = 1, kset%nkpt
         call match(Gkset%ngk(1,ik), &
@@ -70,8 +71,10 @@ subroutine task_second_variation()
         call getevecfv(kset%vkl(:,ik), Gkset%vgkl(:,:,:,ik), evecfv)
         call seceqnsv(ik, apwalm, evalfv(:,ik), evecfv, evecsv)
     end do
-    call occupy
     deallocate(evecfv)
+    deallocate(apwalm)
+    call occupy
+
     ! write out the second-variational eigenvalues and occupation numbers
     filext = "_QP.OUT"
     if (rank==0) call writeeval()
