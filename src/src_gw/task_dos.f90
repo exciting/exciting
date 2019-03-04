@@ -135,6 +135,7 @@ contains
     !-----------------------------------------------------------------
     subroutine calc_band_character(lmax,lmmax,bc)
       use modmain
+      use modxs, only: isreadstate0
       use mod_hybrids, only: hybridhf
       implicit none
       integer, intent(in)  :: lmax

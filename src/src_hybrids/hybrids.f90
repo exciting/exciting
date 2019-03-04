@@ -427,6 +427,7 @@ Subroutine hybrids
     call delete_product_basis
     call exit_hybrids
     nullify(input%gw)
+    call rereadinput
       
     Return
 End Subroutine

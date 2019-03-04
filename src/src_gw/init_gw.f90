@@ -48,27 +48,25 @@ subroutine init_gw()
       filext = "_GW.OUT"
       
       call timesec(t0)
-      if (.not.input%gw%skipgnd) then
-          input%groundstate%maxscl = 1
-          call scf_cycle(-2)
-          if (rank==0) then
-            ! safely remove unnecessary files
-            call filedel('EIGVAL'//trim(filext))
-            call filedel('LINENGY'//trim(filext))
-            call filedel('BROYDEN.OUT')
-            ! call filedel('EVALFV'//trim(filext))
-            ! call filedel('EVALSV'//trim(filext))
-            ! call filedel('EVECFV'//trim(filext))
-            ! call filedel('EVECSV'//trim(filext))
-            ! call filedel('EVALCORE'//trim(filext))
-            ! call filedel('OCCSV'//trim(filext))
-            ! call writeeval
-            call writefermi
-          end if
-          call barrier
+      if (.not. input%gw%skipgnd) then
+        input%groundstate%maxscl = 1
+        call scf_cycle(-2)
+        if (rank == 0) then
+          ! safely remove unnecessary files
+          call filedel('EIGVAL'//trim(filext))
+          call filedel('LINENGY'//trim(filext))
+          call filedel('EVALCORE'//trim(filext))
+          call filedel('OCCSV'//trim(filext))
+          call filedel('BROYDEN.OUT')
+          call writefermi
+          call writeeval
+        end if
+        call barrier
       end if
-
-    end if ! hybrid functionals
+      
+      call readstate()
+      
+    end if
     
     ! if BSE is used just after GW, libbzint
     ! may create the segmentation faults when trying to use a general

@@ -56,6 +56,11 @@ contains
         if (allocated(micmmat)) deallocate(micmmat)
         if (allocated(miccmat)) deallocate(miccmat)
 
+        nullify(input%gw%MixBasis)
+        nullify(input%gw%BareCoul)
+        nullify(input%gw)
+        call rereadinput()
+
         return
     end subroutine
 

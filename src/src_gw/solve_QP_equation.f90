@@ -18,8 +18,6 @@ subroutine solve_QP_equation()
     complex(8) :: dsigma, znk
     logical    :: converged
     
-    print*, 'hvb_beta=', hyb_beta
-
     !-----------------------------------------
     ! Alignment of the chemical potential:
     !   ef + de = ef + Sigma(kf, ef + de)

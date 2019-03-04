@@ -3,7 +3,7 @@ subroutine init_dft_eigenvalues()
 
     use modinput
     use modmain, only : nstfv, nmatmax, efermi, evalcr, &
-                        occmax, chgval, nspinor, filext
+                        occmax, chgval, filext
     use modgw
     use mod_mpi_gw, only : myrank
     use mod_hdf5
@@ -46,7 +46,7 @@ subroutine init_dft_eigenvalues()
                kset%wtet, kset%tvol, efermi, occfv)
     do ik = 1, kset%nkpt
       do ib = 1, nstfv
-        occfv(ib,ik) = occmax/kset%wkpt(ik)*occfv(ib,ik)
+        occfv(ib,ik) = 2.d0/kset%wkpt(ik)*occfv(ib,ik) ! prefactor 2 due to spin degeneracy in FV
       end do
     end do
 
