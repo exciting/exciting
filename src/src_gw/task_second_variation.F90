@@ -88,6 +88,9 @@ subroutine task_second_variation()
     ! store the eigenvalues to a file for bandstructure plot
     call putevalqp('EVALQPSV.OUT')
 
+    call bandstructure_analysis('KS', 1, nstsv, kset%nkpt, evalks, eferks)
+    call bandstructure_analysis('QP', 1, nstsv, kset%nkpt, evalqp, eferqp)
+
     deallocate(evalks)
     deallocate(evalqp)
 
