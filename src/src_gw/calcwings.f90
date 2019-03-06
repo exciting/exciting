@@ -21,7 +21,7 @@ subroutine calcwings(ik,iq,iomstart,iomend,ndim,mstart,mend)
     complex(8), allocatable :: pm(:), tvec(:), tmat(:,:)
     
     ! wings prefactor
-    coefw = cmplx(-dsqrt(4.d0*pi*vi)*occmax, 0.d0, 8)
+    coefw = cmplx(-dsqrt(4.d0*pi*vi)*2.d0, 0.d0, 8)
     
     ! irreducible k-point index
     ikp = kset%ik2ikp(ik)

@@ -33,13 +33,14 @@ contains
 !--------------------------------------------------------------------------------
 !
 !--------------------------------------------------------------------------------
-  subroutine init_pmat(lcore)
+  subroutine init_pmat(lcore, nstdf)
     use modinput
-    use modmain, only : nstfv, apwordmax, lmmaxapw, natmtot, &
+    use modmain, only : apwordmax, lmmaxapw, natmtot, &
     &                   nlotot, nlomax, lolmax, nspecies, &
     &                   nlorb, lorbl, apword
     implicit none
     logical, intent(in) :: lcore
+    integer, intent(in) :: nstdf
     integer :: is, ilo, l, m, lm, io
     ! LM-mapping for APW
     if (allocated(lmapwidx)) deallocate(lmapwidx)
@@ -84,10 +85,10 @@ contains
     end do
     ! Precalculated products
     if (allocated(apwcmt)) deallocate(apwcmt)
-    allocate(apwcmt(nstfv,apwordmax,lmmaxapw,natmtot))
+    allocate(apwcmt(nstdf,apwordmax,lmmaxapw,natmtot))
     if (nlotot>0) then
       if (allocated(locmt)) deallocate(locmt)
-      allocate(locmt(nstfv,nlomax,-lolmax:lolmax,natmtot))
+      allocate(locmt(nstdf,nlomax,-lolmax:lolmax,natmtot))
     end if
     ! radial integrals
     call genpmatvv_radial

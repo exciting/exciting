@@ -157,7 +157,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
             do iom = iomstart, iomend
                 do ie2 = mstart, mend
                     do ie1 = 1, ndim
-                        minm(1:mbsiz,ie1,ie2) = occmax * fnm(ie1,ie2,iom,ik) * &
+                        minm(1:mbsiz,ie1,ie2) = 2.d0 * fnm(ie1,ie2,iom,ik) * &
                                                 minmmat(1:mbsiz,ie1,ie2)
                     end do ! ie1
                 end do ! ie2

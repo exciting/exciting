@@ -3,7 +3,6 @@ subroutine task_second_variation()
     use modmain
     use modgw, only: evalqp, evalks, evalfv, ibgw, nbgw, kset, Gkset, &
                      eferks, eferqp
-    use modmpi, only: rank
 
     implicit none
 
@@ -47,7 +46,7 @@ subroutine task_second_variation()
     call occupy
     evalsv(:,:) = evalsv(:,:)-efermi
     filext = "_KS.OUT"
-    if (rank==0) call writeeval()
+    call writeeval()
     filext = "_GW.OUT"
     allocate(evalks(nstsv,kset%nkpt))
     evalks(:,:) = evalsv(:,:)
@@ -77,7 +76,7 @@ subroutine task_second_variation()
 
     ! write out the second-variational eigenvalues and occupation numbers
     filext = "_QP.OUT"
-    if (rank==0) call writeeval()
+    call writeeval()
     filext = "_GW.OUT"
 
     nbgw = nstsv

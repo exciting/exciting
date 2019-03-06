@@ -30,7 +30,7 @@ subroutine calchead(ik,iomstart,iomend,ndim)
     ikp = kset%ik2ikp(ik)     
     
     ! constant prefactor    
-    coefh = cmplx(4.d0*pi*vi*occmax, 0d0, 8)
+    coefh = cmplx(4.d0*pi*vi*2.d0, 0.d0, 8)
     
     ! loop over tensor components
     do jop = 1, 3
@@ -90,7 +90,13 @@ subroutine calchead(ik,iomstart,iomend,ndim)
     ! timing
     call timesec(tend)
     time_dfhead = time_dfhead+tend-tstart
-    if (input%gw%debug) write(fdebug,*) ' ---- calchead finished ----'
+    if (input%gw%debug) then
+        write(fdebug,*) ' ---- calchead finished ----'
+        write(fdebug,*) ' ik = ', ik
+        do iom = iomstart, iomend
+            write(fdebug,*) iom, epsh(iom,1,1)
+        end do        
+    end if
 
     return
 end subroutine

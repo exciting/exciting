@@ -3,7 +3,7 @@ subroutine init_dft_eigenvalues()
 
     use modinput
     use modmain, only : nstfv, nmatmax, efermi, evalcr, &
-                        occmax, chgval, filext
+                        chgval, filext
     use modgw
     use mod_mpi_gw, only : myrank
     use mod_hdf5

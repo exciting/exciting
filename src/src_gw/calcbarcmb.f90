@@ -126,7 +126,7 @@ subroutine calcbarcmb(iq)
 
     if (input%gw%debug) then
       msize = sizeof(barcev)*b2mb+sizeof(vmat)*b2mb
-      write(*,'("calcbarcmb: rank, size(Coulomb potential) (Mb):",i4,f12.2)') myrank, msize
+      write(fdebug,'("calcbarcmb: rank, size(Coulomb potential) (Mb):",i4,f12.2)') myrank, msize
       write(fdebug,*) "### barcev ###"
       do imix = 1, matsiz
         write(fdebug,'(i5,e16.6)') imix, barcev(imix) 

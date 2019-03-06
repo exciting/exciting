@@ -14,10 +14,10 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
 !
 !!USES:
     use modinput
-    use modmain, only : natmtot, nstfv, zzero, nspecies, natoms, idxas, &
+    use modmain, only : natmtot, zzero, nspecies, natoms, idxas, &
     &                   evalcr, efermi
     use modgw,   only : fnm, freq, ncmax, kset, kqset, nomax, numin, &
-    &                   ncg, corind, fdebug, time_bzinit, evalfv
+    &                   ncg, corind, fdebug, time_bzinit, evalfv, nstdf
 
 !!INPUT PARAMETERS:
     implicit none
@@ -49,7 +49,7 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
     !---------------------------------------------------------------------
     
     if (allocated(fnm)) deallocate(fnm)
-    allocate(fnm(1:ndim,numin:nstfv,iomstart:iomend,kqset%nkpt))
+    allocate(fnm(1:ndim,numin:nstdf,iomstart:iomend,kqset%nkpt))
     fnm(:,:,:,:) = zzero
 
     ! real or imaginary frequencies
@@ -66,53 +66,51 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
     !====================
     ! valence-valence     
     !====================
-    allocate(eval(nstfv,kqset%nkpt))
+    allocate(eval(nstdf,kqset%nkpt))
     do ik = 1, kqset%nkpt
       ikp = kset%ik2ikp(ik)
-      eval(1:nstfv,ik) = evalfv(1:nstfv,ikp)
+      eval(1:nstdf,ik) = evalfv(1:nstdf,ikp)
     end do
 
-    allocate(cwpar(nstfv,nstfv,kqset%nkpt))
+    allocate(cwpar(nstdf,nstdf,kqset%nkpt))
     if (fflg==2) then
-      allocate(cwparsurf(nstfv,nstfv,kqset%nkpt))
+      allocate(cwparsurf(nstdf,nstdf,kqset%nkpt))
     end if
 
     do iom = iomstart, iomend
-      call tetcw(kqset%nkpt,kqset%ntet,nstfv,kqset%wtet, &
-      &          eval, &
-      &          kqset%tnodes,kqset%linkq(:,iq),kqset%kqid(:,iq), &
-      &          kqset%tvol,efermi,freq%freqs(iom),fflg, &
-      &          cwpar)
+      call tetcw(kqset%nkpt, kqset%ntet, nstdf, kqset%wtet, &
+                 eval, &
+                 kqset%tnodes, kqset%linkq(:,iq), kqset%kqid(:,iq), &
+                 kqset%tvol, efermi, freq%freqs(iom), fflg, &
+                 cwpar)
       if (fflg==2) then
-        call tetcw(kqset%nkpt,kqset%ntet,nstfv,kqset%wtet, &
-        &          eval, &
-        &          kqset%tnodes,kqset%linkq(:,iq),kqset%kqid(:,iq), &
-        &          kqset%tvol,efermi,freq%freqs(iom),4, &
-        &          cwparsurf)
+        call tetcw(kqset%nkpt, kqset%ntet, nstdf, kqset%wtet, &
+                   eval, &
+                   kqset%tnodes, kqset%linkq(:,iq), kqset%kqid(:,iq), &
+                   kqset%tvol, efermi, freq%freqs(iom), 4, &
+                   cwparsurf)
       end if
       do ik = 1, kqset%nkpt
-        do ib = 1, nstfv
-          if (eval(ib,kqset%kqid(ik,iq)) > 900.0) &
-          &  cwpar(1:nstfv,ib,ik) = 0.0d0
-          if (fflg==2) then
-            if (eval(ib,kqset%kqid(ik,iq)) > 900.0) &
-            &  cwparsurf(1:nstfv,ib,ik) = 0.0d0
-          endif
+        do ib = 1, nstdf
+          if (eval(ib,kqset%kqid(ik,iq)) > 900.0) cwpar(1:nstdf,ib,ik) = 0.0d0
+          if (fflg == 2) then
+            if (eval(ib,kqset%kqid(ik,iq)) > 900.0) cwparsurf(1:nstdf,ib,ik) = 0.0d0
+          end if
         end do
       end do
-      if (fflg==2) then 
-        fnm(1:nomax,numin:nstfv,iom,1:kqset%nkpt) = &
-        &  cmplx(cwpar(1:nomax,numin:nstfv,1:kqset%nkpt), &
-        &        cwparsurf(1:nomax,numin:nstfv,1:kqset%nkpt)) 
+      if (fflg == 2) then 
+        fnm(1:nomax,numin:nstdf,iom,1:kqset%nkpt) = &
+           cmplx(cwpar(1:nomax,numin:nstdf,1:kqset%nkpt), &
+                 cwparsurf(1:nomax,numin:nstdf,1:kqset%nkpt)) 
       else 
-        fnm(1:nomax,numin:nstfv,iom,1:kqset%nkpt) = &
-       &   cmplx(cwpar(1:nomax,numin:nstfv,1:kqset%nkpt),0.0)    
+        fnm(1:nomax,numin:nstdf,iom,1:kqset%nkpt) = &
+            cmplx(cwpar(1:nomax,numin:nstdf,1:kqset%nkpt),0.0)
       endif 
     enddo ! iom
 
     deallocate(eval)
     deallocate(cwpar)
-    if (fflg==2) deallocate(cwparsurf)
+    if (fflg == 2) deallocate(cwparsurf)
     
     !====================
     ! core-valence     
@@ -129,7 +127,7 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
         ias = idxas(ia,is)
         eval(1,1:kqset%nkpt) = evalcr(ic,ias)
             
-        do ib = numin, nstfv
+        do ib = numin, nstdf
           do ik = 1, kqset%nkpt
             ikp = kset%ik2ikp(ik)
             eval(2,ik) = evalfv(ib,ikp)
@@ -151,14 +149,14 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
                 fnm(nomax+icg,ib,iom,ik) = 2.0d0*cwpar(1,2,ik)*edif/(omsq-edsq)
               end do  
               if (fflg==2) then
-                call tetcw(kqset%nkpt,kqset%ntet,2,kqset%wtet, &
-                &          eval, &
-                &          kqset%tnodes,kqset%linkq(:,iq),kqset%kqid(:,iq), &
-                &          kqset%tvol,efermi,freq%freqs(iom),4, &
-                &          cwpar)
+                call tetcw(kqset%nkpt, kqset%ntet, 2, kqset%wtet, &
+                           eval, &
+                           kqset%tnodes, kqset%linkq(:,iq), kqset%kqid(:,iq), &
+                           kqset%tvol, efermi, freq%freqs(iom), 4, &
+                           cwpar)
                 do ik = 1, kqset%nkpt
                   fnm(nomax+icg,ib,iom,ik) = &
-                  &  cmplx(real(fnm(nomax+icg,ib,iom,ik)),cwpar(1,2,ik))
+                      cmplx(real(fnm(nomax+icg,ib,iom,ik)),cwpar(1,2,ik))
                 end do
               end if
             end do ! iom
@@ -172,18 +170,6 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
       
     end if ! core
 
-    if (.false.) then
-      iom = 1
-      do ik = 1, kqset%nkpt
-        write(*,*) 'iq, ik = ', iq, ik
-        do n = 1, nomax
-        do m = numin, nstfv
-          write(*,'(2i4,2f12.6)') n, m, fnm(n,m,iom,ik)
-        end do
-        end do
-      end do
-    end if
-
     !-------------------------
     ! Debugging info
     !-------------------------
@@ -195,7 +181,7 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
       iom = 1
       do ik = 1, kqset%nkpt
         do ic = 1, ndim
-        do ib = numin, nstfv
+        do ib = numin, nstdf
           write(fdebug,1) ic, ib, iom, ik, fnm(ic,ib,iom,ik)
         end do
         end do

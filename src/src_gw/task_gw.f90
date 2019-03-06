@@ -59,14 +59,14 @@ subroutine task_gw()
     call timesec(t1)
 
     ! clean not used anymore global exciting variables
-    call clean_gndstate
+    ! call clean_gndstate ! disabled since it's used later in task_second_variation
     
     if (input%gw%taskname.ne.'g0w0_x') then
       if (.not.input%gw%rpmat) then
         !========================================================
         ! calculate momentum matrix elements and store to a file
         !========================================================
-        call calcpmatgw
+        call calcpmatgw()
       end if
     end if
     
@@ -298,8 +298,7 @@ subroutine task_gw()
         !----------------------------------------
         call write_qp_energies('EVALQP-GW0.DAT')
         !call bandanalysis('GW0',ibgw,nbgw,evalqp(ibgw:nbgw,:),eferqp)
-        call bandstructure_analysis('GW0', &
-        &  ibgw,nbgw,kset%nkpt,evalqp(ibgw:nbgw,:),eferqp)
+        call bandstructure_analysis('GW0', ibgw, nbgw, kset%nkpt, evalqp(ibgw:nbgw,:), eferqp)
         call timesec(t1)
         time_io = time_io+t1-t0
       end if
@@ -309,7 +308,6 @@ subroutine task_gw()
       !----------------------------------------
       ! Save QP energies into binary file
       !----------------------------------------
-      call timesec(t0)
       call putevalqp('EVALQP.OUT')
     end if ! myrank
 
@@ -317,9 +315,7 @@ subroutine task_gw()
     ! Second-variational treatment if needed
     !-----------------------------------------
     if (associated(input%groundstate%spin)) then
-      input%gw%skipgnd = .True.
-      call init_gw()
-      call task_second_variation()
+      if (myrank == 0) call task_second_variation()
     end if
     
     if (allocated(evalfv)) deallocate(evalfv)

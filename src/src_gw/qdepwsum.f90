@@ -49,7 +49,7 @@ subroutine qdepwsum(iq,iomstart,iomend,ndim)
 
         if (n <= nomax) then
           ene = evalfv(n,ikp)
-          occ = occfv(n,ikp)/occmax
+          occ = occfv(n,ikp)/2.d0
         else
           icg = n - nomax
           is  = corind(icg,1)
@@ -63,7 +63,7 @@ subroutine qdepwsum(iq,iomstart,iomend,ndim)
         do m = numin, nstfv
           
           do iom = iomstart, iomend
-            ff = occ * ( 1.d0 - occfv(m,jkp)/occmax )
+            ff = occ * ( 1.d0 - occfv(m,jkp)/2.d0 )
             de = evalfv(m,jkp) - ene
             z1 = om(iom) - de + zi*eta
             z2 = om(iom) + de - zi*eta

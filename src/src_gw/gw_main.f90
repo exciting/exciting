@@ -174,9 +174,11 @@ subroutine gw_main()
             call task_band_specfunc()
 
         case('sv')
-            input%gw%skipgnd = .True.
-            call init_gw()
-            call task_second_variation()
+            if (rank==0) then
+                input%gw%skipgnd = .True.
+                call init_gw()
+                call task_second_variation()
+            end if
 
     end select
     
