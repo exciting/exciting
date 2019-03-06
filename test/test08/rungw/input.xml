@@ -11,68 +11,18 @@
       <atom coord="0.25 0.25 0.25"></atom>
     </species>
   </structure>
-
   <groundstate
     do="fromscratch"
     rgkmax="7.0"
     gmaxvr="12"
-    ngridk="6 6 6"
+    ngridk="2 2 2"
     xctype="LDA_PW"
     >
-    <spin spinorb="true"/>
   </groundstate>
-
-  <!--properties>
-    <bandstructure character="false">
-      <plot1d>
-        <path steps="100">
-          <point coord=" 0.750   0.500   0.250" label="W" />
-          <point coord=" 0.500   0.500   0.500" label="L" />
-          <point coord=" 0.000   0.000   0.000" label="GAMMA" />
-          <point coord=" 0.500   0.500   0.000" label="X" />
-          <point coord=" 0.750   0.500   0.250" label="W" />
-          <point coord=" 0.750   0.375   0.375" label="K" />
-        </path>
-      </plot1d>
-    </bandstructure>
-  </properties-->
-
   <gw
-    taskname="band" coreflag="all" skipgnd="true"
-    ibgw="1" nbgw="20"
-    nempty="100"
-    ngridq="4 4 4"
-    rmax="100"
+    taskname="g0w0" coreflag="all"
+    ibgw="1" nbgw="15"
+    nempty="22"
     >
-    <mixbasis
-      lmaxmb="3"
-      epsmb="1.d-4"
-      gmb="1.0"
-    ></mixbasis>
-    <freqgrid
-      fgrid="clencurt2"
-      nomeg="16"
-      freqmax="1.0"
-    ></freqgrid>
-    <barecoul
-      pwm="2.0"
-      basis="mb"
-      barcevtol="0.2"
-    ></barecoul>
-    <selfenergy
-      method="ac" actype="aaa" tol="1.d-14"
-      singularity="mpb"
-      eqpsolver="0"
-      eshift="1"
-      swidth="1.d-4"
-      >
-      <wgrid
-        type="eqdist"
-        size="1000"
-        wmax="1.0"
-        wmin="-1.5"
-      />
-    </selfenergy>
   </gw>
-  
 </input>

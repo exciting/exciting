@@ -29,10 +29,10 @@ exciting::
 
 test01::
 	cd ./test01/runHe; ../../$(EXE)
-	cd ./test01/runAr; ../../$(EXE) input.xml; cp info.xml info-default.xml; cp atoms.xml atoms-default.xml
-	cd ./test01/runAr; ../../$(EXE) input-nr.xml; cp info.xml info-nr.xml; cp atoms.xml atoms-nr.xml
-	cd ./test01/runAr; ../../$(EXE) input-zora.xml; cp info.xml info-zora.xml; cp atoms.xml atoms-zora.xml
-	cd ./test01/runAr; ../../$(EXE) input-iora.xml; cp info.xml info-iora.xml; cp atoms.xml atoms-iora.xml
+	cd ./test01/runAr; ../../$(EXE) input.xml; cp info.xml info-default.xml 2>/dev/null || :; cp atoms.xml atoms-default.xml 2>/dev/null || :
+	cd ./test01/runAr; ../../$(EXE) input-nr.xml; cp info.xml info-nr.xml 2>/dev/null || :; cp atoms.xml atoms-nr.xml 2>/dev/null || :
+	cd ./test01/runAr; ../../$(EXE) input-zora.xml; cp info.xml info-zora.xml 2>/dev/null || :; cp atoms.xml atoms-zora.xml 2>/dev/null || :
+	cd ./test01/runAr; ../../$(EXE) input-iora.xml; cp info.xml info-iora.xml 2>/dev/null || :; cp atoms.xml atoms-iora.xml 2>/dev/null || :
 	cd ./test01 ; bash assert.sh 
 
 test02::

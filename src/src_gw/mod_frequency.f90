@@ -212,7 +212,7 @@ CONTAINS
             do i = 1, n
                 ii = n-i+1
                 t = pi * dble(i) / dble(n+1)
-                self%freqs(ii) = ell * ( cotan(0.5d0*t) )**2
+                self%freqs(ii) = ell * ( 1.d0/tan(0.5d0*t) )**2
                 do j = 1, n
                     self%womeg(ii) = self%womeg(ii) + sin(dble(j)*t) * (1.d0 - cos(dble(j)*pi) ) / dble(j)
                 end do
@@ -229,7 +229,7 @@ CONTAINS
             do i = 1, n
                 ii = n-i+1
                 t = pi * dble(i) / dble(n+1)
-                self%freqs(ii) = ell * cotan(t)
+                self%freqs(ii) = ell * 1.d0/tan(t)
                 self%womeg(ii) = ell * pi / (sin(t)**2 * dble(n+1))
             end do
 
