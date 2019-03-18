@@ -23,7 +23,6 @@ Subroutine hybrids
     Implicit None
 
     integer :: ik, Recl
-    integer :: ihyb0
     real(8) :: et
 ! time measurements
     Real(8) :: timetot, ts0, ts1, tsg0, tsg1, tin1, tin0, time_hyb
@@ -117,7 +116,7 @@ Subroutine hybrids
     call init_hybrids
     call timesec(ts1)
     time_hyb = time_hyb+ts1-ts0
-    
+    ihyb=0    
 !------------------------------------------!
 ! begin the (external) self-consistent loop
 !------------------------------------------!
@@ -131,18 +130,93 @@ Subroutine hybrids
     !----------------------
     ! restart is requested
     !----------------------
+    write(*,*) "Ceci beforehere"
     if (task==1) then
+    write(*,*) "Ceci beforehere1"
 
-      inquire(File='VNLMAT.OUT', Exist=exist)
+      inquire(File='VNLMAT.OUT', Exist=exist)  !do we need this??? I do not think so
 
       if (exist) then
       
-        ! restart previous (unfinished) PBE0 run
+        ! restart previous (unfinished) hybrid run
 
-        ihyb0 = 1
         call timesec(ts0)
         !______________________________
         ! step 1: read local potential
+        string = filext
+        filext = '_PBE.OUT'
+        call readstate
+        ! generate radial functions
+        call gencore
+        call linengy
+        call genapwfr
+        call genlofr
+        call olprad
+!        call hmlint  !ADDED NOW
+!        Call genmeffig !ADDED NOW
+!        call energykncr   !THIS SHOULD STILL BE TESTED AFTER IN THE RESTART FOR THE KINETIC ENERGY
+!        if (input%groundstate%Hybrid%updateRadial) call updateradial
+        ex_coef = 0.d0
+        ec_coef = 1.d0
+        ! for Libxc use PBE from Libxc
+        if (xctype(1)==100) then
+          xctype_ = xctype
+          xctype = (/100, 101, 130/)
+        end if
+        call scf_cycle(1)
+        call timesec(ts0)
+        call init_product_basis
+        call timesec(ts1)
+     if (rank==0) then
+        write(60,*)
+        write(60, '(" CPU time for init_product_basis (seconds)",T45 ": ", F12.2)') ts1-ts0
+     end if
+        
+        !______________________________
+        ! step 2: read density and (local) potential from previous run
+        filext = string
+        call readstate
+        !______________________________
+        ! step 3: read nonlocal potential matrix
+        call getvnlmat
+         do ik = 1, nkpt
+           write(*,*) "readvnlmat ik=", ik, sum(vnlmat(:,:,ik))
+         end do
+        call timesec(ts1)
+
+        if (rank==0) then
+          call write_cputime(60,ts1-ts0, 'Restart')
+          write(60,*)
+        end if    
+        time_hyb = time_hyb+ts1-ts0
+        !If the calculation stops during the internal scf we nned tofinish the scf
+        task = 7 ! <-- hybrids switcher
+        if (xctype(1) == 100) then
+           xctype = xctype_
+        end if
+        ex_coef = input%groundstate%Hybrid%excoeff
+        ec_coef = input%groundstate%Hybrid%eccoeff
+        call scf_cycle(-1)
+        !rhomtref(:,:,:) = rhomt(:,:,:)
+        !rhoirref(:) = rhoir(:)
+        If (rank==0) Then
+            write(string,'("Hybrids restart")')
+            call printbox(60,"+",string)
+            Call flushifc(60)
+            call writeengy(60)
+            write(60,*)
+            write(60,'(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F18.8)') fermidos
+            call writechg(60,input%groundstate%outputlevelnumber)
+            if (fermidos<1.0d-4) call printbandgap(60)
+            call flushifc(60)
+        end if
+
+        !!!WE SHOULD ADD A WAY TO EXIT IF THE CONVERGENCE IS REACHED, BUT BECAUSE THE CODE STOPPED AT THE LAST HYBRID  STEP IN THE SCF
+
+
+     else
+    write(*,*) "Ceci beforehere2"
+        ! restart previous (unfinished) hybrid run, which have been interupt during the initial SCF with PBE
         string = filext
         filext = '_PBE.OUT'
         call readstate
@@ -153,163 +227,182 @@ Subroutine hybrids
         call genapwfr
         call genlofr
         call olprad
-        !______________________________
-        ! step 2: read density and (local) potential from previous run
-        call readstate
-        !______________________________
-        ! step 3: read nonlocal potential matrix
-        call getvnlmat
-        ! do ik = 1, nkpt
-        !   write(*,*) "readvnlmat ik=", ik, sum(vnlmat(:,:,ik))
-        ! end do
-        call timesec(ts1)
-        if (rank==0) then
-          call write_cputime(60,ts1-ts0, 'Restart')
+        If (rank==0) Then
+            write(string,'("Restart SCF with PBE")')
+            call printbox(60,"+",string)
+            Call flushifc(60)
+        End If
+        ! perform normal DFT self-consistent run
+        ex_coef = 0.d0
+        ec_coef = 1.d0
+        ! for Libxc use PBE from Libxc
+        if (xctype(1)==100) then
+          xctype_ = xctype
+          xctype = (/100, 101, 130/)
+        end if
+        call scf_cycle(-1)
+        if (rank == 0) then
+          call writeengy(60)
           write(60,*)
-        end if    
-        time_hyb = time_hyb+ts1-ts0
-
-      else
-
-        ! restart from the converged groundstate
-        ihyb0 = 0
-
+          write(60,'(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F18.8)') fermidos
+          call writechg(60,input%groundstate%outputlevelnumber)
+          if (fermidos<1.0d-4) call printbandgap(60)
+          call flushifc(60)
+        end if
+        ! update radial functions
+        if (input%groundstate%Hybrid%updateRadial) call updateradial
       end if
 
-    end if
+    else
+!If it is not restart initaial SCF
+!--------------------------------------------------
+! Preliminar SCF with PBE
+!--------------------------------------------------
+      write(*,*) "Ceci here"
+      If (rank==0) Then
+              write(string,'("Preliminar SCF with PBE")')
+              call printbox(60,"+",string)
+              Call flushifc(60)
+      End If
+      ! perform normal DFT self-consistent run
+      ex_coef = 0.d0
+      ec_coef = 1.d0
+      ! for Libxc use PBE from Libxc
+      if (xctype(1)==100) then
+         xctype_ = xctype
+         xctype = (/100, 101, 130/)
+      end if
+      write(*,*) "Ceci here1"
+      call scf_cycle(-1)
+      write(*,*) "Ceci here2"
+      if (rank == 0) then
+         call writeengy(60)
+         write(60,*)
+         write(60,'(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F18.8)') fermidos
+         call writechg(60,input%groundstate%outputlevelnumber)
+         if (fermidos<1.0d-4) call printbandgap(60)
+         call flushifc(60)
+      end if
+      ! update radial functions
+      !if (input%groundstate%Hybrid%updateRadial) call updateradial
+     call timesec(ts0)
+     call init_product_basis
+     call timesec(ts1)
+     if (rank==0) then
+        write(60,*)
+        write(60, '(" CPU time for init_product_basis (seconds)",T45 ": ", F12.2)') ts1-ts0
+     end if
+    endif
+!--------------------------------------------------
+! Inizialize mixed product basis
+!--------------------------------------------------
+     if (rank==0) then
+        write(60,*)
+        write(60, '(" CPU time for init_product_basis (seconds)",T45 ": ", F12.2)') ts1-ts0
+     end if
+!--------------------------------------------------
+! Hybrid functionals settings
+!--------------------------------------------------
+      task = 7 ! <-- hybrids switcher
+      ! restore settings for hybrid functional
+      ex_coef = input%groundstate%Hybrid%excoeff
+      ec_coef = input%groundstate%Hybrid%eccoeff
+      if (xctype(1) == 100) then
+          xctype = xctype_
+      end if
+      ! settings for convergence and mixing
+      input%groundstate%mixerswitch = 1
+      input%groundstate%scfconv = 'charge'
+
 
 !--------------------------------------------------
 ! Main loop
 !--------------------------------------------------
-    do ihyb = ihyb0, input%groundstate%Hybrid%maxscl
+    do ihyb = 1, input%groundstate%Hybrid%maxscl
+
     
+       rhomtref(:,:,:) = rhomt(:,:,:)
+       rhoirref(:) = rhoir(:)
        If (rank==0) Then
             write(string,'("Hybrids iteration number : ", I4)') ihyb
             call printbox(60,"+",string)
             Call flushifc(60)
         End If
-
-        if (ihyb==0) then
-          ! perform normal DFT self-consistent run
-          ex_coef = 0.d0
-          ec_coef = 1.d0
-          ! for Libxc use PBE from Libxc
-          if (xctype(1)==100) then
-              xctype_ = xctype
-              xctype = (/100, 101, 130/)
-          end if
-        else
-          task = 7 ! <-- hybrids switcher
-          ! restore settings for hybrid functional
-          ex_coef = input%groundstate%Hybrid%excoeff
-          ec_coef = input%groundstate%Hybrid%eccoeff
-          if (xctype(1) == 100) then
-              xctype = xctype_
-          end if
-          ! settings for convergence and mixing
-          input%groundstate%mixerswitch = 1
-          input%groundstate%scfconv = 'charge'
-          rhomtref(:,:,:) = rhomt(:,:,:)
-          rhoirref(:) = rhoir(:)
-        end if
         
-!---------------------------
-! KS self-consistent run
-!---------------------------
-        call scf_cycle(-1)
-       
-        ! some output        
-        if (rank == 0) then
-            call writeengy(60)
-            write(60,*)
-            write(60,'(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F18.8)') fermidos
-            call writechg(60,input%groundstate%outputlevelnumber)
-            if (fermidos<1.0d-4) call printbandgap(60)
-            call flushifc(60)
-        end if
-
-!---------------------------
-! Convergence check
-!---------------------------
-        if (ihyb > 0) then
-            ! deltae = dabs(et-engytot)
-            call chgdist(rhomtref,rhoirref)
-            if (rank==0) Then
-              write(60,*)
-              ! write(60,'(" Absolute change in total energy   (target) : ",G13.6," (",G13.6,")")') &
-              ! &     deltae, input%groundstate%epsengy
-              write(60,'(" Charge distance                   (target) : ",G13.6," (",G13.6,")")') &
-              &     chgdst, input%groundstate%epschg
-            end if
-            if (chgdst .lt. input%groundstate%epschg) then
-                if (rank==0) Then
-                    write(string,'("Convergence target is reached")')
-                    call printbox(60,"+",string)
-                    Call flushifc(60)
-                end If
-                exit ! exit ihyb-loop
-            end if
-        end if
-        et = engytot
-
 !-----------------------------------
 ! Calculate the non-local potential
 !-----------------------------------
-        if (input%groundstate%Hybrid%maxscl > 1) then
-          !------------------------------------------
-
-          if (ihyb == ihyb0) then
-            call timesec(ts0)
-            call init_product_basis
-            call timesec(ts1)
-            if (rank==0) then
-              write(60,*)
-              write(60, '(" CPU time for init_product_basis (seconds)",T45 ": ", F12.2)') ts1-ts0
-            end if
-          else
-            if (rank==0) then
-                write(60,*)
-            end if
-          end if
-          !------------------------------------------
-          call timesec(ts0)
-          call calc_vxnl
-          if (rank==0) write(fgw,*) 'vxnl=', sum(vxnl)
-          call timesec(ts1)
-          if (rank==0) then
-              write(60, '(" CPU time for vxnl (seconds)",T45 ": ", F12.2)') ts1-ts0
-          end if
-          !------------------------------------------
-          call timesec(ts0)
-          call calc_vnlmat
-          if (rank==0) write(fgw,*) 'vnlmat=', sum(vnlmat)
-          call timesec(ts1)
-          if (rank==0) then
-              write(60, '(" CPU time for vnlmat (seconds)",T45 ": ", F12.2)') ts1-ts0
-              write(60,*)
-          end if
-          !------------------------------------------
-          if (input%groundstate%Hybrid%savepotential) call putvnlmat
-          ! do ik = 1, nkpt
-          !   write(*,*) "putvnlmat ik=", ik, sum(vnlmat(:,:,ik))
-          ! end do
-          ! update radial functions
-          if ((input%groundstate%Hybrid%updateRadial).and.(ihyb>0)) call updateradial
-
-          time_hyb = time_hyb+ts1-ts0
-          
-        end if
+       if (rank==0) then
+          write(60,*)
+       end if
+       !------------------------------------------
+       call timesec(ts0)
+       call calc_vxnl
+       if (rank==0) write(fgw,*) 'vxnl=', sum(vxnl)
+       call timesec(ts1)
+       if (rank==0) then
+           write(60, '(" CPU time for vxnl (seconds)",T45 ": ", F12.2)') ts1-ts0
+       end if
+       !------------------------------------------
+       call timesec(ts0)
+       write(*,*) "before vnlmat"
+       call calc_vnlmat
+       write(*,*) "after vnlmat"
+       if (rank==0) write(fgw,*) 'vnlmat=', sum(vnlmat)
+       call timesec(ts1)
+       if (rank==0) then
+           write(60, '(" CPU time for vnlmat (seconds)",T45 ": ", F12.2)') ts1-ts0
+           write(60,*)
+       end if
+       !------------------------------------------
+       if (input%groundstate%Hybrid%savepotential) call writevnlmat
+       write(*,*) input%groundstate%Hybrid%savepotential
+        !do ik = 1, nkpt
+        !  write(*,*) "writevnlmat ik=", ik, sum(vnlmat(:,:,ik))
+        !end do
+       time_hyb = time_hyb+ts1-ts0
+       
         
 ! output the current total time
-        timetot = timeinit + timemat + timefv + timesv + timerho  &
-        &       + timepot + timefor + timeio + timemt + timemixer &
-        &       + time_hyb
-            
-        if (rank==0) then
-            write(60, '(" Wall time (seconds)",T45 ": ", F12.2)') timetot
-        end if
+!        timetot = timeinit + timemat + timefv + timesv + timerho  &
+!        &       + timepot + timefor + timeio + timemt + timemixer &
+!        &       + time_hyb
+!            
+!        if (rank==0) then
+!            write(60, '(" Wall time (seconds)",T45 ": ", F12.2)') timetot
+!        end if
+       call scf_cycle(-1)
+       if (rank == 0) then
+           call writeengy(60)
+           write(60,*)
+           write(60,'(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F18.8)') fermidos
+           call writechg(60,input%groundstate%outputlevelnumber)
+           if (fermidos<1.0d-4) call printbandgap(60)
+           call flushifc(60)
+       end if
         
-! exit self-consistent loop if last iteration is complete
+!---------------------------
+! Convergence check
+!---------------------------
+       call chgdist(rhomtref,rhoirref)
+       if (rank==0) Then
+         write(60,*)
+         write(60,'(" Charge distance                   (target) : ",G13.6," (",G13.6,")")') &
+           &     chgdst, input%groundstate%epschg
+       end if
+       if (chgdst .lt. input%groundstate%epschg) then
+           if (rank==0) Then
+               write(string,'("Convergence target is reached")')
+               call printbox(60,"+",string)
+               Call flushifc(60)
+            end If
+            exit ! exit ihyb-loop
+        end if
+        et = engytot
+
+!---------------------------
+! Output information: loop stoped becuase reached maximum scf step 
+!---------------------------
         If (ihyb == input%groundstate%Hybrid%maxscl) Then
             If (rank==0) Then
                 write(string,'("Reached hybrids self-consistent loops maximum : ", I4)') &

@@ -13,6 +13,7 @@
 Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   ! !USES:
       Use modinput
+      Use modmain
       Use mod_Gkvector, only: ngkmax
       Use mod_APW_LO, only: apwordmax
       Use mod_atoms, only: natmtot
@@ -21,7 +22,7 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       Use mod_eigenvalue_occupancy, only: nstfv
       Use mod_potential_and_density, only: ex_coef
       Use modfvsystem
-      Use mod_hybrids, only: ihyb, vnlmat
+      Use mod_hybrids, only: ihyb,hyb0, vnlmat
       use m_plotmat 
 !
   ! !INPUT/OUTPUT PARAMETERS:
@@ -82,8 +83,9 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       if (associated(input%groundstate%Hybrid)) then
          if (input%groundstate%Hybrid%exchangetypenumber == 1) then
             ! Update Hamiltonian
-            if (ihyb > 0) system%hamilton%za(:,:) = &
+            if (task == 7) system%hamilton%za(:,:) = &
             &  system%hamilton%za(:,:) + ex_coef*vnlmat(1:nmatp,1:nmatp,ik)
+           write(*,*) "Ceci: vnlmat ik=", ik, sum(vnlmat(:,:,ik))
          end if
       end if
 
@@ -113,7 +115,8 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
 
       
      if (associated(input%groundstate%Hybrid)) then
-        if ((input%groundstate%Hybrid%exchangetypenumber == 1).and.(ihyb>0)) &
+        !if ((input%groundstate%Hybrid%exchangetypenumber == 1).and.(ihyb>0)) &  CECI
+        if ((input%groundstate%Hybrid%exchangetypenumber == 1).and.task==7) &
         &  call KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
      end if
 

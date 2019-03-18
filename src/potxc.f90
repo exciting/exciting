@@ -188,7 +188,7 @@ do is=1,nspecies
     else
 !--------------------------!
 !     spin-unpolarised     !
-!--------------------------!
+!-------------------------!
       if (xcgrad.le.0) then
         call xcifc(xctype,n=n,rho=rho,ex=ex,ec=ec,vx=vx,vc=vc)
       else if (xcgrad.eq.1) then
@@ -219,7 +219,6 @@ do is=1,nspecies
       end if
       if (xctype(1)==100) then
          vxc(1:n)=vx(1:n)+ec_coef*vc(1:n)
-      !CECI:test
       elseif (xctype(1)==408) then !HSE
          vxc(1:n)=vc(1:n)+vx(1:n)-ex_coef*vxsr(1:n)     
       else
@@ -229,7 +228,6 @@ do is=1,nspecies
     
     if ((xctype(1).ne.100).and.(xctype(1).ne.408)) then
        ex(1:n) = (1.d0-ex_coef)*ex(1:n)
-       !CECI:test
     elseif (xctype(1)==408) then !HSE
        ex(1:n) = ex(1:n)-ex_coef*exsr(1:n)
     end if
@@ -368,13 +366,9 @@ else
     &          vc=vc,dxdg2=dxdg2,dcdg2=dcdg2)
     call ggair_2b(g2rho,gvrho,vx,vc,dxdg2,dcdg2)
   end if
-  !!CECI there is something strange here?? what is it? Maybe it is working anyway but INCONSISTENCE
-  !if ((xctype(1).ne.100)) then
-  !!.and. (xctype(1).ne.408) .and. (xctype(1).ne.23) ) then !CECItest
   if ((xctype(1).ne.100) .and. (xctype(1).ne.408)) then
     vxcir(1:ngrtot) = (1.d0-ex_coef)*vx(1:ngrtot)+ec_coef*vc(1:ngrtot)
     exir(:) = (1.d0-ex_coef)*exir(:)
-  !CECI:test
    elseif (xctype(1)==408) then !HSE
      vxcir(1:ngrtot)=vc(1:ngrtot)+vx(1:ngrtot)-ex_coef*vxsr(1:ngrtot)     
      exir(:) = exir(:)-ex_coef*exsr(:)

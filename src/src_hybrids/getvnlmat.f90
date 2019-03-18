@@ -46,7 +46,7 @@ subroutine getvnlmat()
     ikfirst = firstk(rank)
     iklast = lastk(rank)
  
-     if (allocated(vnlmat)) deallocate(vnlmat)
+    if (allocated(vnlmat)) deallocate(vnlmat)
     allocate(vnlmat(nmatmax,nmatmax,ikfirst:iklast))
 
     inquire(IoLength=recl) nkpt_, nmatmax_, vnlmat(:,:,ikfirst)
@@ -56,6 +56,8 @@ subroutine getvnlmat()
       if ((ik >= ikfirst).and.(ik <= iklast)) then
         read(70, Rec=ik) nkpt_, nmatmax_, vnlmat(:,:,ik)
       end if
+      !CECI
+      read(70, Rec=nkpt+1) exnl
       call barrier
     end do ! ik
     close(70)

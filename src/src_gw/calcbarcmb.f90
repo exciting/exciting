@@ -99,7 +99,6 @@ subroutine calcbarcmb(iq)
       !write(*,*) 'calcbarcmb_ipw_ipw', t1-t0
       
       if (xctype(1)==408) then
-          write(*,*) "CECI"  
           call calcmpwmix(iq)
           call calcbarcmb_lr(iq)
           barc(:,:)=barc(:,:)-barc_lr(:,:)

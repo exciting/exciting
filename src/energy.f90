@@ -14,7 +14,7 @@ Subroutine energy
 ! !USES:
       Use modinput
       Use modmain
-      Use mod_hybrids, only: ihyb, exnl
+      Use mod_hybrids, only: ihyb,hyb0, exnl
 ! !DESCRIPTION:
 !   The {\tt energy} subroutine computes the total energy and its individual contributions. 
 !   The total energy is composed of kinetic, Coulomb, and exchange-correlation energy,
@@ -236,7 +236,9 @@ endif
        End If 
 ! Hybrids
       if (associated(input%groundstate%Hybrid)) then
-        if ((input%groundstate%Hybrid%exchangetypenumber==1).and.(ihyb>0)) then
+        !if ((input%groundstate%Hybrid%exchangetypenumber==1).and.(ihyb>0)) then CECI
+        !if ((input%groundstate%Hybrid%exchangetypenumber==1).and.((ihyb==1 .and. hyb0==1).or.ihyb>1)) then
+        if ((input%groundstate%Hybrid%exchangetypenumber==1).and. task==7) then
            engyx = engyx + ex_coef*exnl
         end if
       end if
@@ -249,7 +251,9 @@ endif
       If ((task .Eq. 5) .Or. (task .Eq. 6)) engyc = 0.d0
 ! Hybrids
       if (associated(input%groundstate%Hybrid)) then
-        if ((input%groundstate%Hybrid%exchangetypenumber==1).and.(ihyb>0)) then
+        !if ((input%groundstate%Hybrid%exchangetypenumber==1).and.(ihyb>0)) then CECI
+        !if ((input%groundstate%Hybrid%exchangetypenumber==1).and.((ihyb==1 .and. hyb0==1).or.ihyb>1)) then
+        if ((input%groundstate%Hybrid%exchangetypenumber==1).and.task==7) then
            engyc = ec_coef*engyc
         end if
       end if      
@@ -318,18 +322,19 @@ endif
         End Do
         Deallocate (evecsv, c)
         
-      else if (associated(input%groundstate%Hybrid)) then
+      else if (associated(input%groundstate%Hybrid)) then    !CECI I DO NOT REALLY LIKE THIS: if we do not insert the hybrid part, the code compute the kinetick eneergy without including the new kinetic energy
         !------------------
         ! HF-based hybrids
         !------------------
         if (input%groundstate%Hybrid%exchangetypenumber == 1) then
-          if (ihyb>0) then
-            engykn = engykncr
+          if (task == 7) then
+            engykn = 0.d0
             do ik = 1, nkpt
               do ist = 1, nstfv
                 engykn = engykn + wkpt(ik)*occsv(ist,ik)*engyknst(ist,ik)
               end do
             end do
+            engykn = engykn + engykncr
           else
             ! Default way
             engykn =  evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
@@ -341,7 +346,7 @@ endif
         end if
         
       else
-        ! Default way
+        !Default way
         engykn =  evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
       end if
 !------------------------------!

@@ -22,7 +22,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Use mod_spin, only: ncmag, nspinor, ndmag
       Use mod_eigenvalue_occupancy, only: nstfv, nstsv, evalsv
       Use mod_APW_LO, only: apwordmax
-      Use mod_hybrids, only: ihyb, bxnl
+      Use mod_hybrids, only: ihyb,hyb0, bxnl
       Use mod_timing, only: timesv
       Implicit None
 ! arguments
@@ -370,7 +370,8 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       if (associated(input%groundstate%Hybrid)) then
          if (input%groundstate%Hybrid%exchangetypenumber == 1) then
             ! Update Hamiltonian
-            if (ihyb>0) evecsv(:,:) = &
+            !if (ihyb>0) evecsv(:,:) = & CECI
+            if ((ihyb>1 .and. hyb0==1).or. ihyb>1) evecsv(:,:) = &
             &  evecsv(:,:) + ex_coef*bxnl(:,:,ik)
          end if
       end if      

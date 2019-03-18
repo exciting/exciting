@@ -12,6 +12,7 @@ module mod_hybrids
 
     ! number of HF cycles
     integer :: ihyb
+    integer :: hyb0
 
     ! non-local exchange energy
     real(8) :: exnl

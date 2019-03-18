@@ -10,7 +10,7 @@ subroutine scf_cycle(verbosity)
     Use modmpi
     Use scl_xml_out_Module
     Use TS_vdW_module, Only: C6ab, R0_eff_ab
-    Use mod_hybrids, only: ihyb
+    Use mod_hybrids, only: ihyb, hyb0
 !
 ! !DESCRIPTION:
 !
@@ -27,6 +27,7 @@ subroutine scf_cycle(verbosity)
     Logical :: tibs, exist
     Integer :: ik, is, ia, idm, id
     Integer :: n, nwork
+    Integer :: maxscl_test
     Real(8), Allocatable :: v(:),forcesum(:,:)
     Real(8) :: timetot, ts0, ts1, tin1, tin0
     character*(77) :: string, acoord
@@ -52,12 +53,19 @@ subroutine scf_cycle(verbosity)
 
 !! TIME - Begin of initialisation segment 
     Call timesec (ts0)
-    If ((task .Eq. 1) .Or. (task .Eq. 3)) Then
+    maxscl_test=input%groundstate%maxscl 
+    If (((task .Eq. 1) .Or. (task .Eq. 3)).and.(.not.associated(input%groundstate%Hybrid))) Then
         Call readstate
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Potential read in from STATE.OUT")')
-    Else If (task==7) Then
-        ! restart from previous PBE0 iteration
+    Else If ((task .Eq. 1) .and. associated(input%groundstate%Hybrid)) Then
+    !    ! restart from previous hybrids iteration
+        maxscl_test=1
+        write(*,*) "write task1", task
         continue    
+    else if (task==7) then
+        if (ihyb==0) maxscl_test=1
+        write(*,*) "write task2", task
+        continue
     Else If (task .Eq. 200) Then
         Call phveff
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Supercell potential constructed from STATE.OUT")')
@@ -134,9 +142,6 @@ subroutine scf_cycle(verbosity)
     tstop = .False.
     engytot = 0.d0
     fm = 0.d0
- !Added from CECi
- Call energy
- call writeengy(60)
 ! delete any existing eigenvector files
     If ((rank .Eq. 0) .And. ((task .Eq. 0) .Or. (task .Eq. 2))) Call delevec
 
@@ -145,7 +150,8 @@ subroutine scf_cycle(verbosity)
 !----------------------------------------!
 ! begin the self-consistent loop
 !----------------------------------------!
-    Do iscl = 1, input%groundstate%maxscl
+   ! Do iscl = 1, input%groundstate%maxscl
+    Do iscl = 1, maxscl_test
 !    Do iscl = 1, input%groundstate%maxscl-1 !CECI
 !
 ! exit self-consistent loop if last iteration is complete
@@ -195,7 +201,7 @@ subroutine scf_cycle(verbosity)
         Call timesec (ts0)
 
         if (task /= 7) then
-          ! No updates of core and valence radial functions during PBE0 run
+          ! No updates of core and valence radial functions during hybrids run
           call gencore          ! generate the core wavefunctions and densities
           call linengy          ! find the new linearization energies
           if (rank==0) call writelinen
@@ -207,6 +213,7 @@ subroutine scf_cycle(verbosity)
         !------------------------------------------------------------
         ! Effective Hamiltonian Setup: Radial and Angular integrals
         !------------------------------------------------------------
+        write(*,*) "CECI, we go here"
         call hmlint
         !call hmlrad
 
@@ -653,8 +660,7 @@ subroutine scf_cycle(verbosity)
     end if
 ! write density and potentials to file only if maxscl > 1
      If ((input%groundstate%maxscl > 1)) Then
-        If (associated(input%groundstate%Hybrid)) Then
-           If ((input%groundstate%Hybrid%exchangetypenumber == 1).and.(ihyb==0)) Then
+        If (associated(input%groundstate%Hybrid).and.task /= 7) Then
              string=filext
              filext='_PBE.OUT'
              Call writestate
@@ -662,9 +668,6 @@ subroutine scf_cycle(verbosity)
              If ((verbosity>-1).and.(rank==0)) Then
                  write(60,*) "writing STATE_PBE.OUT"
              end if
-           Else
-             Call writestate
-           End If
         Else
            Call writestate
         End If
