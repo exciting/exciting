@@ -27,7 +27,7 @@ subroutine scf_cycle(verbosity)
     Logical :: tibs, exist
     Integer :: ik, is, ia, idm, id
     Integer :: n, nwork
-    Integer :: maxscl_test
+ !   Integer :: maxscl_test
     Real(8), Allocatable :: v(:),forcesum(:,:)
     Real(8) :: timetot, ts0, ts1, tin1, tin0
     character*(77) :: string, acoord
@@ -53,18 +53,17 @@ subroutine scf_cycle(verbosity)
 
 !! TIME - Begin of initialisation segment 
     Call timesec (ts0)
-    maxscl_test=input%groundstate%maxscl 
+!    maxscl_test=input%groundstate%maxscl 
     If (((task .Eq. 1) .Or. (task .Eq. 3)).and.(.not.associated(input%groundstate%Hybrid))) Then
         Call readstate
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Potential read in from STATE.OUT")')
     Else If ((task .Eq. 1) .and. associated(input%groundstate%Hybrid)) Then
     !    ! restart from previous hybrids iteration
-        maxscl_test=1
-        write(*,*) "write task1", task
+!        inquire(File='VNLMAT.OUT', Exist=exist)  !do we need this??? I do not think so
+!        if (exist) maxscl_test=1
         continue    
     else if (task==7) then
-        if (ihyb==0) maxscl_test=1
-        write(*,*) "write task2", task
+ !       if (ihyb==0) maxscl_test=1
         continue
     Else If (task .Eq. 200) Then
         Call phveff
@@ -150,8 +149,8 @@ subroutine scf_cycle(verbosity)
 !----------------------------------------!
 ! begin the self-consistent loop
 !----------------------------------------!
-   ! Do iscl = 1, input%groundstate%maxscl
-    Do iscl = 1, maxscl_test
+    Do iscl = 1, input%groundstate%maxscl
+!    Do iscl = 1, maxscl_test
 !    Do iscl = 1, input%groundstate%maxscl-1 !CECI
 !
 ! exit self-consistent loop if last iteration is complete
@@ -213,7 +212,6 @@ subroutine scf_cycle(verbosity)
         !------------------------------------------------------------
         ! Effective Hamiltonian Setup: Radial and Angular integrals
         !------------------------------------------------------------
-        write(*,*) "CECI, we go here"
         call hmlint
         !call hmlrad
 

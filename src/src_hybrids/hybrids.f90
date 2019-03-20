@@ -130,14 +130,13 @@ Subroutine hybrids
     !----------------------
     ! restart is requested
     !----------------------
-    write(*,*) "Ceci beforehere"
     if (task==1) then
-    write(*,*) "Ceci beforehere1"
 
+      !inquire(File='STATE_PBE.OUT', Exist=exist)  !do we need this??? I do not think so
       inquire(File='VNLMAT.OUT', Exist=exist)  !do we need this??? I do not think so
-
-      if (exist) then
       
+      if (exist) then
+
         ! restart previous (unfinished) hybrid run
 
         call timesec(ts0)
@@ -146,59 +145,79 @@ Subroutine hybrids
         string = filext
         filext = '_PBE.OUT'
         call readstate
+        filext = string
         ! generate radial functions
-        call gencore
-        call linengy
-        call genapwfr
-        call genlofr
-        call olprad
-!        call hmlint  !ADDED NOW
-!        Call genmeffig !ADDED NOW
-!        call energykncr   !THIS SHOULD STILL BE TESTED AFTER IN THE RESTART FOR THE KINETIC ENERGY
-!        if (input%groundstate%Hybrid%updateRadial) call updateradial
+        !call gencore
+        !call linengy
+        !call genapwfr
+        !call genlofr
+        !call olprad
+
+       !If (rank==0) Then
+       !     write(string,'("Start restart hybrids")')
+       !     call printbox(60,"+",string)
+       !     Call flushifc(60)
+       ! End If
+        If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
+            write(string,'("Restart SCF with PBE")')
+            call printbox(60,"+",string)
+            Call flushifc(60)
+        End If
+
+    ! perform normal DFT self-consistent run
         ex_coef = 0.d0
         ec_coef = 1.d0
-        ! for Libxc use PBE from Libxc
+       ! for Libxc use PBE from Libxc
         if (xctype(1)==100) then
-          xctype_ = xctype
-          xctype = (/100, 101, 130/)
+           xctype_ = xctype
+           xctype = (/100, 101, 130/)
         end if
-        call scf_cycle(1)
+        call scf_cycle(-1)
+        If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
+        !if (rank == 0) then
+           call writeengy(60)
+           write(60,*)
+           write(60,'(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F18.8)') fermidos
+           call writechg(60,input%groundstate%outputlevelnumber)
+           if (fermidos<1.0d-4) call printbandgap(60)
+           call flushifc(60)
+        end if
+        !update radial functions
+        if (input%groundstate%Hybrid%updateRadial) call updateradial
+!--------------------------------------------------
+! Inizialize mixed product basis
+!--------------------------------------------------
         call timesec(ts0)
         call init_product_basis
         call timesec(ts1)
-     if (rank==0) then
-        write(60,*)
-        write(60, '(" CPU time for init_product_basis (seconds)",T45 ": ", F12.2)') ts1-ts0
-     end if
-        
-        !______________________________
-        ! step 2: read density and (local) potential from previous run
-        filext = string
-        call readstate
-        !______________________________
-        ! step 3: read nonlocal potential matrix
-        call getvnlmat
-         do ik = 1, nkpt
-           write(*,*) "readvnlmat ik=", ik, sum(vnlmat(:,:,ik))
-         end do
-        call timesec(ts1)
+        if ((input%groundstate%outputlevelnumber>1) .and. rank==0) then
+           write(60,*)
+           write(60, '(" CPU time for init_product_basis (seconds)",T45 ": ", F12.2)') ts1-ts0
+        end if
 
-        if (rank==0) then
-          call write_cputime(60,ts1-ts0, 'Restart')
-          write(60,*)
-        end if    
-        time_hyb = time_hyb+ts1-ts0
-        !If the calculation stops during the internal scf we nned tofinish the scf
+!--------------------------------------------------
+! Hybrid functionals settings
+!--------------------------------------------------
         task = 7 ! <-- hybrids switcher
         if (xctype(1) == 100) then
            xctype = xctype_
         end if
         ex_coef = input%groundstate%Hybrid%excoeff
         ec_coef = input%groundstate%Hybrid%eccoeff
+
+
+        call readstate
+          !______________________________
+          ! step 3: read nonlocal potential matrix
+        call getvnlmat
+        call timesec(ts1)
+
+        !if (rank==0) then
+        !    call write_cputime(60,ts1-ts0, 'Restart')
+        !    write(60,*)
+        !end if    
+        time_hyb = time_hyb+ts1-ts0
         call scf_cycle(-1)
-        !rhomtref(:,:,:) = rhomt(:,:,:)
-        !rhoirref(:) = rhoir(:)
         If (rank==0) Then
             write(string,'("Hybrids restart")')
             call printbox(60,"+",string)
@@ -210,109 +229,67 @@ Subroutine hybrids
             if (fermidos<1.0d-4) call printbandgap(60)
             call flushifc(60)
         end if
-
-        !!!WE SHOULD ADD A WAY TO EXIT IF THE CONVERGENCE IS REACHED, BUT BECAUSE THE CODE STOPPED AT THE LAST HYBRID  STEP IN THE SCF
-
-
-     else
-    write(*,*) "Ceci beforehere2"
-        ! restart previous (unfinished) hybrid run, which have been interupt during the initial SCF with PBE
-        string = filext
-        filext = '_PBE.OUT'
-        call readstate
-        filext = string
-        ! generate radial functions
-        call gencore
-        call linengy
-        call genapwfr
-        call genlofr
-        call olprad
         If (rank==0) Then
-            write(string,'("Restart SCF with PBE")')
+            write(string,'("End hybrids restart")')
             call printbox(60,"+",string)
             Call flushifc(60)
         End If
-        ! perform normal DFT self-consistent run
+
+      endif
+      else
+        If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
+            write(string,'("Preliminar PBE SCF")')
+            call printbox(60,"+",string)
+            Call flushifc(60)
+        End If
+
+    ! perform normal DFT self-consistent run
         ex_coef = 0.d0
         ec_coef = 1.d0
-        ! for Libxc use PBE from Libxc
+       ! for Libxc use PBE from Libxc
         if (xctype(1)==100) then
-          xctype_ = xctype
-          xctype = (/100, 101, 130/)
+           xctype_ = xctype
+           xctype = (/100, 101, 130/)
         end if
         call scf_cycle(-1)
-        if (rank == 0) then
-          call writeengy(60)
-          write(60,*)
-          write(60,'(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F18.8)') fermidos
-          call writechg(60,input%groundstate%outputlevelnumber)
-          if (fermidos<1.0d-4) call printbandgap(60)
-          call flushifc(60)
+        If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
+        !if (rank == 0) then
+           call writeengy(60)
+           write(60,*)
+           write(60,'(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F18.8)') fermidos
+           call writechg(60,input%groundstate%outputlevelnumber)
+           if (fermidos<1.0d-4) call printbandgap(60)
+           call flushifc(60)
         end if
-        ! update radial functions
+        !update radial functions
         if (input%groundstate%Hybrid%updateRadial) call updateradial
-      end if
-
-    else
-!If it is not restart initaial SCF
-!--------------------------------------------------
-! Preliminar SCF with PBE
-!--------------------------------------------------
-      write(*,*) "Ceci here"
-      If (rank==0) Then
-              write(string,'("Preliminar SCF with PBE")')
-              call printbox(60,"+",string)
-              Call flushifc(60)
-      End If
-      ! perform normal DFT self-consistent run
-      ex_coef = 0.d0
-      ec_coef = 1.d0
-      ! for Libxc use PBE from Libxc
-      if (xctype(1)==100) then
-         xctype_ = xctype
-         xctype = (/100, 101, 130/)
-      end if
-      write(*,*) "Ceci here1"
-      call scf_cycle(-1)
-      write(*,*) "Ceci here2"
-      if (rank == 0) then
-         call writeengy(60)
-         write(60,*)
-         write(60,'(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F18.8)') fermidos
-         call writechg(60,input%groundstate%outputlevelnumber)
-         if (fermidos<1.0d-4) call printbandgap(60)
-         call flushifc(60)
-      end if
-      ! update radial functions
-      !if (input%groundstate%Hybrid%updateRadial) call updateradial
-     call timesec(ts0)
-     call init_product_basis
-     call timesec(ts1)
-     if (rank==0) then
-        write(60,*)
-        write(60, '(" CPU time for init_product_basis (seconds)",T45 ": ", F12.2)') ts1-ts0
-     end if
-    endif
 !--------------------------------------------------
 ! Inizialize mixed product basis
 !--------------------------------------------------
-     if (rank==0) then
-        write(60,*)
-        write(60, '(" CPU time for init_product_basis (seconds)",T45 ": ", F12.2)') ts1-ts0
-     end if
+        call timesec(ts0)
+        call init_product_basis
+        call timesec(ts1)
+        if ((input%groundstate%outputlevelnumber>1) .and. rank==0) then
+           write(60,*)
+           write(60, '(" CPU time for init_product_basis (seconds)",T45 ": ", F12.2)') ts1-ts0
+        end if
+
 !--------------------------------------------------
 ! Hybrid functionals settings
 !--------------------------------------------------
-      task = 7 ! <-- hybrids switcher
-      ! restore settings for hybrid functional
-      ex_coef = input%groundstate%Hybrid%excoeff
-      ec_coef = input%groundstate%Hybrid%eccoeff
-      if (xctype(1) == 100) then
-          xctype = xctype_
-      end if
-      ! settings for convergence and mixing
-      input%groundstate%mixerswitch = 1
-      input%groundstate%scfconv = 'charge'
+        task = 7 ! <-- hybrids switcher
+        if (xctype(1) == 100) then
+           xctype = xctype_
+        end if
+        ex_coef = input%groundstate%Hybrid%excoeff
+        ec_coef = input%groundstate%Hybrid%eccoeff
+ 
+    endif
+
+ 
+  ! settings for convergence and mixing
+  input%groundstate%mixerswitch = 1
+  input%groundstate%scfconv = 'charge'
 
 
 !--------------------------------------------------
@@ -340,17 +317,19 @@ Subroutine hybrids
        call calc_vxnl
        if (rank==0) write(fgw,*) 'vxnl=', sum(vxnl)
        call timesec(ts1)
-       if (rank==0) then
+       If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
+       !if (rank==0) then
            write(60, '(" CPU time for vxnl (seconds)",T45 ": ", F12.2)') ts1-ts0
        end if
        !------------------------------------------
        call timesec(ts0)
-       write(*,*) "before vnlmat"
+       !write(*,*) "before vnlmat"
        call calc_vnlmat
-       write(*,*) "after vnlmat"
+       !write(*,*) "after vnlmat"
        if (rank==0) write(fgw,*) 'vnlmat=', sum(vnlmat)
        call timesec(ts1)
-       if (rank==0) then
+       If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
+       !if (rank==0) then
            write(60, '(" CPU time for vnlmat (seconds)",T45 ": ", F12.2)') ts1-ts0
            write(60,*)
        end if
