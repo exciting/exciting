@@ -51,6 +51,7 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
   !-IMPORTANT: the first-variational spinor index and the k-point index have been
   ! swapped in the following arrays: ngk, igkig, vgkl, vgkc, gkc, tpgkc, sfacgk
   !
+      write(*,*) "nspnfv=", nspnfv
       Do ispn = 1, nspnfv
      ! find the matching coefficients
          Call timesec(ts0)
@@ -88,6 +89,7 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
         if (input%groundstate%modifiedSV) then
           Call seceqnsv2 (ik, apwalm, evalfv, evecfv, evecsv)
         else
+          write(*,*) "we call seceqnsv"
           Call seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
         endif
       End If

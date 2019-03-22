@@ -80,7 +80,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       End If
 ! number of spin combinations after application of Hamiltonian
       If (associated(input%groundstate%spin)) Then
-         If ((ncmag) .Or. (isspinorb())) Then
+         If ((ncmag) .Or. (isspinorb())) Then   !CECI, I do not understand this condition because if isspinor()=true -> ncmag=true
             nsc = 3
          Else
             nsc = 2
@@ -125,6 +125,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
                         Call dgemv ('N', lmmaxvr, lmmaxvr, 1.d0, &
                        & rbshtvr, lmmaxvr, bxcmt(:, ir, ias, i), 1, &
                        & 0.d0, bmt(:, irc, i), 1)
+                       !CECI: I think I go here but everythinh is zero, 3 direction, the next one is only one
                      End Do
                   End Do
                Else
@@ -146,12 +147,13 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
                   Do i = 1, 3
                      bmt (:, irc, i) = bmt (:, irc, i) + ga4 * &
                     & (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(i)+input%groundstate%spin%bfieldc(i))
+                       !CECI: I think it will be still zero because no magnetic field
                   End Do
                End Do
                call timesec(td)
 !               write(*,*) td-tc
 ! spin-orbit radial function
-               If (isspinorb()) Then
+               If (isspinorb()) Then  !CECI: THIS IS THE IMPORTAT PART FOR SOC
 ! radial derivative of the spherical part of the potential
                   vr (1:nrmt(is)) = veffmt (1, 1:nrmt(is), ias) * y00
                   Call fderiv (1, nrmt(is), spr(:, is), vr, drv, cf)
@@ -367,14 +369,13 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
 !---------------------------------------------------------      
 ! add the second-variational \Sigma_x matrix elements
 !---------------------------------------------------------
-      if (associated(input%groundstate%Hybrid)) then
-         if (input%groundstate%Hybrid%exchangetypenumber == 1) then
-            ! Update Hamiltonian
-            !if (ihyb>0) evecsv(:,:) = & CECI
-            if ((ihyb>1 .and. hyb0==1).or. ihyb>1) evecsv(:,:) = &
-            &  evecsv(:,:) + ex_coef*bxnl(:,:,ik)
-         end if
-      end if      
+!      if (associated(input%groundstate%Hybrid)) then
+!         if (input%groundstate%Hybrid%exchangetypenumber == 1) then
+!            ! Update Hamiltonian
+!            if (task==7) evecsv(:,:) = &
+!            &  evecsv(:,:) + ex_coef*bxnl(:,:,ik)
+!         end if
+!     end if      
       
 ! diagonalise second-variational Hamiltonian
       call timesec(ta)

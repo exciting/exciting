@@ -416,7 +416,8 @@ case(300)
   xcgrad=1
 case(406)
   xcdescr='PBE0, M. Ernzerhof, G. E. Scuseria, J. Chem. Phys. 110 , 5029 (1999)'
-  xcspin=0
+  !xcspin=0 !CECI
+  xcspin=1
   xcgrad=1
 case(407)
   xcdescr='LDA0 (test only)'
@@ -424,7 +425,8 @@ case(407)
   xcgrad=0
 case(408)
   xcdescr='HSE, Jochen Heyd; Gustavo E. Scuseria; Matthias Ernzerhof, J. Chem. Phys. 118, 8207 (2003)'
-  xcspin=0
+  !xcspin=0 !CECI
+  xcspin=1
   xcgrad=1
 case(100)
 ! libxc library functionals

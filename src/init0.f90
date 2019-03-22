@@ -128,7 +128,7 @@ Subroutine init0
 !------------------------!
       If (isspinspiral()) Then
          Select Case (task)
-         Case (2, 3, 15, 51, 52, 53, 61, 62, 63, 120, 121)
+         Case (2, 3, 7, 15, 51, 52, 53, 61, 62, 63, 120, 121) !Ceci added 7
             Write (*,*)
             Write (*, '("Error(init0): spin-spirals do not work with ta&
            &sk ", I4)') task

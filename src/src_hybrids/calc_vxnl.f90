@@ -53,13 +53,20 @@ subroutine calc_vxnl()
     vxnl(:,:,:) = zzero
 
     ! VB / CB state index
+    write(*,*) shape(evalsv), shape(evecsv) 
+     !evalsv=0.d0
     call find_vbm_cbm(1,nstsv,nkpt,evalsv,efermi,nomax,numin,ikvbm,ikcbm,ikvcm)
+    write(*,*) "Ceci vxnl nstsv, nkpt, evalsv,efermi,nomax,numin,ikvbm,ikcbm,ikvcm",nstsv,nkpt,evalsv,efermi,nomax,numin,ikvbm,ikcbm,ikvcm 
+     evalsv=0.d0
     if (rank==0) then
       write(fgw,'(a,i4)') " Band index of VBM:", nomax
       write(fgw,'(a,i4)') " Band index of CBM:", numin
       write(fgw,*)
     end if
-
+    if (isspinorb()) then
+       nomax=nomax/2
+       numin=(numin+1)/2
+    endif
     ! BZ integration weights
     call kintw
 
@@ -74,6 +81,7 @@ subroutine calc_vxnl()
     end if
     nmdim = nstfv*mdim
 
+    write(*,*) "Ceci vxnl nstfv, nmdim, mdim, nomax, ncg", nstfv, nmdim, mdim, nomax, ncg
     allocate(eveckalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveck(nmatmax,nstfv))
