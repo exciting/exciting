@@ -16,7 +16,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Use mod_atoms, only: natmtot, nspecies, natoms, idxas, spr
       Use mod_muffin_tin, only: lmmaxvr, nrcmtmax, lmmaxapw, nrmtmax,&
                               & nrmt, nrcmt, idxlm, rcmt
-      Use mod_potential_and_density, only: bxcmt, veffmt, bxcir, ex_coef
+      Use mod_potential_and_density, only: bxcmt, veffmt, bxcir, ex_coef, ec_coef, xctype
       Use mod_SHT, only: rbshtvr, zbshtvr, zfshtvr
       Use mod_eigensystem, only: nmatmax
       Use mod_spin, only: ncmag, nspinor, ndmag
@@ -24,6 +24,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Use mod_APW_LO, only: apwordmax
       Use mod_hybrids, only: ihyb,hyb0, bxnl
       Use mod_timing, only: timesv
+      Use mod_misc, only: task
       Implicit None
 ! arguments
       Integer, Intent (In) :: ik
@@ -66,6 +67,27 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
 ! external functions
       Complex (8) zdotc, zfmtinp
       External zdotc, zfmtinp
+      
+      integer::xctype_(3)
+!Compute the effective potential with PBE for the soc
+     If (isspinorb()) then
+         If(associated(input%groundstate%Hybrid).and.task==7) then
+            ex_coef = 0.d0
+            ec_coef = 1.d0
+           ! for Libxc use PBE from Libxc
+            if (xctype(1)==100) then
+               xctype_ = xctype
+               xctype = (/100, 101, 130/)
+            end if
+            call poteff()
+!            task = 7 ! <-- hybrids switcher
+            if (xctype(1) == 100) then
+               xctype = xctype_
+            end if
+            ex_coef = input%groundstate%Hybrid%excoeff
+            ec_coef = input%groundstate%Hybrid%eccoeff
+          endif
+      endif
 ! spin-unpolarised case
       If (( .Not. associated(input%groundstate%spin)) .And. (ldapu .Eq. &
      & 0)) Then
