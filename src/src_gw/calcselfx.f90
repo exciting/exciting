@@ -11,11 +11,11 @@ subroutine calcselfx(iq)
     use mod_mpi_gw, only : myrank
     use mod_hdf5
     implicit none
-      
+
     ! input/output
     integer(4), intent(in) :: iq
-    
-    ! local            
+
+    ! local
     integer(4) :: ik, ikp, jk
     integer(4) :: mdim, nmdim
     real(8)    :: tstart, tend, t0, t1
@@ -25,15 +25,15 @@ subroutine calcselfx(iq)
     complex(8) :: sx, vc
     complex(8) :: mvm     ! Sum_ij{M^i*V^c_{ij}*conjg(M^j)}
     complex(8), allocatable :: evecfv(:,:)
-    
+
     integer :: k, l, ispn, ist, jst
     complex(8) :: zsum
-    
-    ! external routines 
-    complex(8), external :: zdotc    
-    
+
+    ! external routines
+    complex(8), external :: zdotc
+
     call timesec(tstart)
-    
+
     ! singular term prefactor (q->0)
     sxs2 = 4.d0*pi*vi
 
@@ -54,7 +54,7 @@ subroutine calcselfx(iq)
     else
         call setbarcev(0.d0)
     end if
-    
+
     !--------------------------------------------------
     ! total number of states (n->m + n->c transisions)
     !--------------------------------------------------
@@ -65,29 +65,29 @@ subroutine calcselfx(iq)
       mdim = nomax
     end if
     nmdim = (nbgw-ibgw+1)*mdim
-    
+
     allocate(eveckalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveck(nmatmax,nstfv))
     allocate(eveckp(nmatmax,nstfv))
-    
+
     allocate(minmmat(mbsiz,ibgw:nbgw,1:mdim))
     minmmat(:,:,:) = zzero
     ! msize = sizeof(minmmat)*b2mb
     ! write(*,'(" calcselfx: rank, size(minmmat) (Mb):",i4,f12.2)') myrank, msize
-    
+
     !================================
     ! loop over irreducible k-points
     !================================
     write(*,*)
     do ikp = 1, kset%nkpt
       write(*,*) 'calcselfx: rank, (iq, ikp):', myrank, iq, ikp
-    
+
       ! k vector
       ik = kset%ikp2ik(ikp)
-      ! k-q vector 
+      ! k-q vector
       jk = kqset%kqid(ik,iq)
-      
+
       ! get KS eigenvectors
       allocate(evecfv(nmatmax,nstfv))
       call getevecfv(kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), evecfv)
@@ -101,29 +101,29 @@ subroutine calcselfx(iq)
 
       ! Calculate M^i_{nm}+M^i_{cm}
       call expand_products(ik, iq, ibgw, nbgw, -1, 1, mdim, nomax, minmmat)
-        
+
       !========================================================
       ! Calculate the contribution to the exchange self-energy
       !========================================================
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ie1,ie2,mvm,icg,is,ia,ias,ic,fnk,sx)
 !$OMP DO
-#endif    
+#endif
       do ie1 = ibgw, nbgw
-      
+
         ! sum over occupied states
         sx = zzero
         do ie2 = 1, mdim
-          !======================= 
+          !=======================
           ! Valence contribution
-          !======================= 
+          !=======================
           if (ie2 <= nomax) then
             mvm = zdotc(mbsiz, minmmat(:,ie1,ie2), 1, minmmat(:,ie1,ie2), 1)
             sx = sx - kiw(ie2,jk)*mvm
           else
-            !============================= 
+            !=============================
             ! Core electron contribution
-            !============================= 
+            !=============================
             icg = ie2-nomax
             is = corind(icg,1)
             ia = corind(icg,2)
@@ -133,16 +133,16 @@ subroutine calcselfx(iq)
             sx = sx - ciw(ic,ias)*mvm
           end if ! occupied states
         end do ! ie2
-        
+
         ! add singular term (q->0)
         if ((Gamma) .and. (ie1 <= nomax)) then
           ! occupation number
-          fnk = kiw(ie1,ik)*kqset%nkpt
+          fnk = kiw(ie1,ik) * kqset%nkpt
           sx  = sx - sxs2*fnk*singc2
         end if
 
         selfex(ie1,ikp) = selfex(ie1,ikp) + sx
-        
+
       end do ! ie1
 #ifdef USEOMP
 !$OMP END DO
@@ -158,7 +158,7 @@ subroutine calcselfx(iq)
         end do
         write(fdebug,*)
       end if
-      
+
     end do ! ikp
 
     deallocate(minmmat)
@@ -170,7 +170,7 @@ subroutine calcselfx(iq)
     ! timing
     call timesec(tend)
     time_selfx = time_selfx+tend-tstart
-    
+
     return
 end subroutine
 !EOC

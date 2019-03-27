@@ -10,7 +10,7 @@ subroutine parse_gwinput
 ! This subroutine check important GW input parameters
 
 ! !USES:
- 
+
     use modinput
     use modmain
     use modgw
@@ -18,16 +18,16 @@ subroutine parse_gwinput
     use modmpi
     use mod_hybrids, only: hybridhf, hyb_beta
     implicit none
- 
+
 ! !LOCAL VARIABLES:
     integer :: idum
     real(8) :: rdum
-      
+
 !EOP
 !BOC
 
     if (rank==0) call boxmsg(fgw,'*',"GW input parameters")
-    
+
 !-------------------------------------------------------------------------------
 ! Debugging mode
 !-------------------------------------------------------------------------------
@@ -38,8 +38,8 @@ subroutine parse_gwinput
            & be used in parallel ...'
         end if
         input%gw%debug = input%gw%debug.and.(rank==0)
-    end if    
-    
+    end if
+
 !-------------------------------------------------------------------------------
 ! Task name parser
 !-------------------------------------------------------------------------------
@@ -49,7 +49,7 @@ subroutine parse_gwinput
       write(fgw,*) 'GW taskname:'
       write(fgw,*)
     end if
-    select case(input%gw%taskname)   
+    select case(input%gw%taskname)
         case('skip')
         case('g0w0')
             if (rank==0) write(fgw,*) '  g0w0 - G0W0 run'
@@ -70,7 +70,7 @@ subroutine parse_gwinput
         case('vxc')
             if (rank==0) write(fgw,*) '  vxc  - Calculate the matrix elements of the DFT exchange-correlation potential'
         case('pmat')
-            if (rank==0) write(fgw,*) '  pmat  - Calculate the matrix elements of the momentum operator'    
+            if (rank==0) write(fgw,*) '  pmat  - Calculate the matrix elements of the momentum operator'
         case('acon')
             if (rank==0) write(fgw,*) '  acon - Perform only the analytic continuation of &
             &the correlation self energy and recalculate QP energies'
@@ -83,7 +83,7 @@ subroutine parse_gwinput
         case('chi0_q')
             if (rank==0) write(fgw,*) '  chi0_q - Calculate polarizability matrix elements for a given q-point'
 !       case('epsev')
-!           if (rank==0) write(fgw,*) '  epsev - Calculate eigenvalues of the dielectric matrix' 
+!           if (rank==0) write(fgw,*) '  epsev - Calculate eigenvalues of the dielectric matrix'
 !       case('wev')
 !           if (rank==0) write(fgw,*) '  wev  - Calculate eigenvalues of the screened Coulomb potential'
 !       case('epsgw')
@@ -134,7 +134,7 @@ subroutine parse_gwinput
             if (rank==0) write(*,*) '  pmat - Calculate the matrix elements of the momentum operator'
             if (rank==0) write(*,*) '  acon - Perform only the analytic continuation of the correlation self energy and &
             &  recalculate QP energies'
-            if (rank==0) write(*,*) '  epsev - Calculate eigenvalues of the dielectric matrix' 
+            if (rank==0) write(*,*) '  epsev - Calculate eigenvalues of the dielectric matrix'
             !if (rank==0) write(fgw,*) '  epgw - Calculate the GW macroscopic dielectric function'
             !if (rank==0) write(fgw,*) '  wev  - Calculate eigenvalues of the screened Coulomb potential'
             if (rank==0) write(*,*) '  lapw - (test option) Calculate LAPW basis functions for plotting'
@@ -149,15 +149,15 @@ subroutine parse_gwinput
             if (rank==0) write(*,*) '  kqgen - (test option) Test generation of k/q-point grids'
             if (rank==0) write(*,*)
             stop
-    end select  
+    end select
     if (rank==0) call linmsg(fgw,'-','')
 
 !-------------------------------------------------------------------------------
-! Frequency integration parameters    
+! Frequency integration parameters
 !-------------------------------------------------------------------------------
     if (.not.associated(input%gw%freqgrid)) &
      &  input%gw%freqgrid => getstructfreqgrid(emptynode)
-     
+
     if (input%gw%taskname=='g0w0' .or. &
     &   input%gw%taskname=='gw0'  .or. &
     &   input%gw%taskname=='emac') then
@@ -196,8 +196,8 @@ subroutine parse_gwinput
           stop
       end select
       if (rank==0) call linmsg(fgw,'-','')
-    end if    
-    
+    end if
+
 !-------------------------------------------------------------------------------
 ! Analytic continuation parameters
 !-------------------------------------------------------------------------------
@@ -250,19 +250,19 @@ subroutine parse_gwinput
       case('mpb')
         if (rank==0) write(fgw,*) 'Auxiliary function method by &
         &S. Massidda, M. Posternak, and A. Baldereschi, PRB 48, 5058 (1993)'
-      case('crg')  
+      case('crg')
         if (rank==0) write(fgw,*) 'Auxiliary function method by &
         &P. Carrier, S. Rohra, and A. Goerling, PRB 75, 205126 (2007)'
-      case('rim')  
+      case('rim')
         if (rank==0) write(fgw,*) '(experimantal) RIM by Yambo'
       case default
         write(*,*) 'ERROR(parse_gwinput): Unknown singularity treatment scheme!'
         stop
     end select
     if (rank==0) call linmsg(fgw,'-','')
-    
+
 !-------------------------------------------------------------------------------
-! Product basis parameters 
+! Product basis parameters
 !-------------------------------------------------------------------------------
     if (.not.associated(input%gw%mixbasis)) &
     &  input%gw%MixBasis => getstructmixbasis(emptynode)
@@ -277,10 +277,10 @@ subroutine parse_gwinput
     if (rank==0) write(fgw,*) '  Interstitial:'
     if (rank==0) write(fgw,*) '    Plane wave cutoff (in units of Gkmax): ', input%gw%MixBasis%gmb
     if (rank==0) call linmsg(fgw,'-','')
-    
-!-------------------------------------------------------------------------------      
+
+!-------------------------------------------------------------------------------
 ! Bare Coulomb potential parameters
-!-------------------------------------------------------------------------------      
+!-------------------------------------------------------------------------------
     if (.not.associated(input%gw%barecoul)) &
     &  input%gw%barecoul => getstructbarecoul(emptynode)
     if (rank==0) write(fgw,*) 'Bare Coulomb potential parameters:'
@@ -315,10 +315,10 @@ subroutine parse_gwinput
     ! Coulomb potential truncation techniques are implemented only for the PW basis
     if (vccut) input%gw%barecoul%basis = "pw"
     if (rank==0) call linmsg(fgw,'-','')
-    
+
 !-------------------------------------------------------------------------------
 ! Parameters for averaging the dielectric function
-!-------------------------------------------------------------------------------     
+!-------------------------------------------------------------------------------
     if (.not.associated(input%gw%scrcoul)) &
     &  input%gw%scrcoul => getstructscrcoul(emptynode)
     if (rank==0) write(fgw,*) 'Screened Coulomb potential parameters:'
@@ -329,7 +329,7 @@ subroutine parse_gwinput
     if (rank==0) write(fgw,*) '  Averaging direction: ', input%gw%scrcoul%q0eps
     if (rank==0) write(fgw,*) '  Smearing: ', input%gw%scrcoul%swidth
     if (rank==0) call linmsg(fgw,'-','')
-    
+
 !-------------------------------------------------------------------------------
 ! Core electrons treatment
 !-------------------------------------------------------------------------------
@@ -354,8 +354,8 @@ subroutine parse_gwinput
             if (rank==0) write(*,*) '    vab - Core states are excluded completely'
             stop
     end select
-    if (rank==0) call linmsg(fgw,'-','')    
-    
+    if (rank==0) call linmsg(fgw,'-','')
+
 !-------------------------------------------------------------------------------
 ! Special treatment in case of hybrid functionals
 !-------------------------------------------------------------------------------
@@ -388,11 +388,11 @@ subroutine parse_gwinput
         input%gw%nempty = 10
     end if
     input%groundstate%nempty = max(input%gw%nempty,input%gw%selfenergy%nempty)
-    if (rank==0) write(fgw,*)'Number of empty states (GW): ', input%gw%nempty      
-     
+    if (rank==0) write(fgw,*)'Number of empty states (GW): ', input%gw%nempty
+
 !-------------------------------------------------------------------------------
 ! k/q point grids
-!-------------------------------------------------------------------------------     
+!-------------------------------------------------------------------------------
     idum = input%gw%ngridq(1)*input%gw%ngridq(1)+ &
     &      input%gw%ngridq(2)*input%gw%ngridq(2)+ &
     &      input%gw%ngridq(3)*input%gw%ngridq(3)
@@ -402,7 +402,7 @@ subroutine parse_gwinput
         if (rank==0) write(fgw,*) '  must be carefully chosen based on the convergence tests.'
         if (rank==0) write(fgw,*) '  Too large values make GW calculations very time consuming.'
         if (rank==0) write(fgw,*)
-        if (rank==0) write(fgw,*) '  Set the default value for input%gw%ngridq:' 
+        if (rank==0) write(fgw,*) '  Set the default value for input%gw%ngridq:'
         input%gw%ngridq = (/2, 2, 2/)
     else
         if ((input%gw%ngridq(1)<=0).or. &
@@ -412,7 +412,7 @@ subroutine parse_gwinput
             stop
         end if
     end if
-    if (rank==0) write(fgw,*) '  k/q-points grid: ', input%gw%ngridq
+    if (rank==0) write(fgw,*) 'k/q-points grid: ', input%gw%ngridq
     input%groundstate%ngridk = input%gw%ngridq
 
     rdum = input%gw%vqloff(1)**2 + &
@@ -423,7 +423,7 @@ subroutine parse_gwinput
         if (rank==0) write(fgw,*)'k/q-shift: ', input%gw%vqloff
         input%groundstate%vkloff = input%gw%vqloff
     end if
-    
+
     !-------------------------------------------------------------------------------
     ! Matrix block size
     !-------------------------------------------------------------------------------
@@ -451,7 +451,7 @@ subroutine parse_gwinput
     if (rank==0) write(fgw,*)
 
     if (rank==0) call flushifc(fgw)
-      
+
     return
 end subroutine
-!EOC      
+!EOC

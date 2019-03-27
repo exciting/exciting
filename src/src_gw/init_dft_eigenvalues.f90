@@ -8,10 +8,10 @@ subroutine init_dft_eigenvalues()
     use mod_mpi_gw, only : myrank
     use mod_hdf5
     implicit none
-    
+
     integer :: ik, ib
     real(8) :: e0, egap
-    
+
     if (allocated(evalfv)) deallocate(evalfv)
     allocate(evalfv(nstfv,kset%nkpt))
     evalfv(:,:) = 0.d0
@@ -19,7 +19,7 @@ subroutine init_dft_eigenvalues()
     if (allocated(occfv)) deallocate(occfv)
     allocate(occfv(nstfv,kset%nkpt))
     occfv(:,:) = 0.d0
-    
+
     !---------------------------------------------
     ! Read KS eigenvalues from file EVALFV_GW.OUT
     !---------------------------------------------
@@ -47,6 +47,7 @@ subroutine init_dft_eigenvalues()
     do ik = 1, kset%nkpt
       do ib = 1, nstfv
         occfv(ib,ik) = 2.d0/kset%wkpt(ik)*occfv(ib,ik) ! prefactor 2 due to spin degeneracy in FV
+        ! print*, ik, ib, occfv(ib,ik)
       end do
     end do
 
@@ -74,7 +75,7 @@ subroutine init_dft_eigenvalues()
         end if
         stop
     end if
-  
+
     ! upper QP band index
     if ((nbgw < 1) .or. (nbgw > nstfv)) then
         ! use just a limited range of states where QP corrections are applied
@@ -92,7 +93,7 @@ subroutine init_dft_eigenvalues()
 
     nbandsgw = nbgw-ibgw+1
     nvelgw = chgval-2.d0*dble(ibgw-1)
-    
+
     ! initialize the number of states to calculate the dielectric function
     nstdf = int(chgval/2.d0)+input%gw%nempty+1
     if (nstdf > nstfv) then
@@ -101,7 +102,7 @@ subroutine init_dft_eigenvalues()
       write(fgw,*)'WARNING(init_dft_eigenvalues) nstdf > nstfv !'
       write(fgw,*)
     end if
-    
+
     ! initialize the number of states to calculate the correlation self energy
     if (input%gw%selfenergy%nempty>0) then
         nstse = int(chgval/2.d0)+input%gw%selfenergy%nempty+1
@@ -116,9 +117,9 @@ subroutine init_dft_eigenvalues()
     end if
 
     !----------------------------------------
-    ! Output band structure summary 
+    ! Output band structure summary
     !----------------------------------------
-    if (myrank==0) then   
+    if (myrank==0) then
       write(fgw,*)'Maximum number of LAPW states:             ', nmatmax
       write(fgw,*)'Minimal number of LAPW states:             ', minval(nmat(1,:))
       write(fgw,*)'Number of states used in GW:'
@@ -129,7 +130,7 @@ subroutine init_dft_eigenvalues()
       write(fgw,*)'    - self energy                          ', nstse
       e0 = maxval(evalfv(nstfv,:))
       write(fgw,'(a,f12.6)')' Energy of the highest unoccupied state:    ', e0
-      write(fgw,*)'Number of valence electrons:               ', int(chgval) 
+      write(fgw,*)'Number of valence electrons:               ', int(chgval)
       write(fgw,*)'Number of valence electrons treated in GW: ', int(nvelgw)
       if (nstfv<=input%gw%nempty) then
         write(fgw,*)
@@ -138,7 +139,7 @@ subroutine init_dft_eigenvalues()
       end if
       call flushifc(fgw)
     end if
-   
+
     !------------------------
     ! If symmetry is used
     !------------------------
@@ -146,4 +147,3 @@ subroutine init_dft_eigenvalues()
 
     return
 end subroutine
-

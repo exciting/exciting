@@ -3,9 +3,9 @@
 !!ROUTINE: \verb"task_gw"
 !
 !!INTERFACE:
-!      
+!
 subroutine task_gw()
-!      
+!
 !!DESCRIPTION:
 !
 ! This subroutine performs one GW cycle and calculates the corresponding
@@ -19,7 +19,7 @@ subroutine task_gw()
     use mod_vxc,               only: vxcnn
     use mod_mpi_gw
     use m_getunit
-            
+
 !!LOCAL VARIABLES:
     implicit none
     integer(4) :: ikp, iq, fid, ik
@@ -45,22 +45,22 @@ subroutine task_gw()
     !===========================================================================
     ! Initialization
     !===========================================================================
-    
+
     ! prepare GW global data
-    call init_gw
-    
+    call init_gw()
+
     !=================================================
-    ! Calculate the diagonal matrix elements of the 
+    ! Calculate the diagonal matrix elements of the
     ! DFT exchange-correlation potential
     !=================================================
     ! it is better to do it here to deallocate cfunir and vxcir arrays
     call timesec(t0)
-    call calcvxcnn
+    call calcvxcnn()
     call timesec(t1)
 
     ! clean not used anymore global exciting variables
     ! call clean_gndstate ! disabled since it's used later in task_second_variation
-    
+
     if (input%gw%taskname.ne.'g0w0_x') then
       if (.not.input%gw%rpmat) then
         !========================================================
@@ -69,7 +69,7 @@ subroutine task_gw()
         call calcpmatgw()
       end if
     end if
-    
+
     ! occupancy dependent BZ integration weights
     call kintw()
 
@@ -84,7 +84,7 @@ subroutine task_gw()
               case('mpb')
                 ! Auxiliary function method
                 call setsingc
-              case('crg')  
+              case('crg')
                 ! Auxiliary function method
                 call calc_q0_singularities
               case('avg')
@@ -98,13 +98,13 @@ subroutine task_gw()
 
         case('0d')
             call vcoul_q0_0d(singc2)
-    
+
         case('1d')
             call vcoul_q0_1d(kqset%nkpt, singc2)
 
         case('2d')
             call vcoul_q0_2d(kqset%nkpt, singc2)
-       
+
     end select
 
     ! initialize self-energy arrays
@@ -140,21 +140,21 @@ subroutine task_gw()
       call boxmsg(fgw,'=','GW cycle')
       call flushifc(fgw)
     end if
-    
+
     ! each process does a subset
     do iq = iqstart, iqend
-  
+
       if (rank==0) write(fgw,*) '(task_gw): q-point cycle, iq = ', iq
-    
+
       Gamma = gammapoint(kqset%vqc(:,iq))
-          
+
       !========================================
       ! Calculate interstitial basis functions
       !========================================
       matsiz = locmatsiz+Gqset%ngk(1,iq)
       call diagsgi(iq)
       call calcmpwipw(iq)
-    
+
       !======================================
       ! Calculate the bare Coulomb potential
       !======================================
@@ -164,7 +164,7 @@ subroutine task_gw()
       ! Calculate \Sigma^{x}_{kn}(q)
       !===============================
       call calcselfx(iq)
-      
+
       if (input%gw%taskname.ne.'g0w0_x') then
         !========================================
         ! Set v-diagonal MB and reduce its size
@@ -203,16 +203,16 @@ subroutine task_gw()
         if (allocated(kcw)) deallocate(kcw)
         if (allocated(unw)) deallocate(unw)
       end if
-      
+
       ! clean unused data
       if (allocated(mpwipw)) deallocate(mpwipw)
       if (allocated(barc)) deallocate(barc)
-      
+
     end do ! iq
-    
+
     if (allocated(kiw)) deallocate(kiw)
     if (allocated(ciw)) deallocate(ciw)
-    
+
 #ifdef MPI
     if ((nproc_row>1).and.(myrank_col==0)) then
       call mpi_sum_array(0,selfex,nbandsgw,kset%nkpt,mycomm_row)
@@ -230,9 +230,9 @@ subroutine task_gw()
     !===============================================================================
     ! output block
     !===============================================================================
-   
+
     if (myrank == 0) then
-    
+
       if ((input%gw%taskname /= 'g0w0_x') .and. (input%gw%selfenergy%method == "ac")) then
         ! Analytical continuation of the correlation self-energy from the complex to the real frequency axis
         call plot_selfc_iw()
@@ -246,7 +246,7 @@ subroutine task_gw()
       !===============================
       call write_selfenergy(ibgw,nbgw,kset%nkpt,freq_selfc%nomeg)
       call plot_selfc()
-      
+
       !=======================================
       ! Calculate the quasiparticle energies
       !=======================================
@@ -260,36 +260,36 @@ subroutine task_gw()
       call calcevalqp()
       call plot_spectral_function()
       call write_qp_energies('EVALQP.DAT')
-      
+
       ! G0W0 QP band structure
       select case (input%gw%taskname)
-      
+
         case('g0w0_x')
           call bandstructure_analysis('G0W0_X', &
               ibgw,nbgw,kset%nkpt,evalqp(ibgw:nbgw,:),eferqp)
-      
+
         case('cohsex')
           call bandstructure_analysis('COHSEX', &
               ibgw,nbgw,kset%nkpt,evalqp(ibgw:nbgw,:),eferqp)
-          
+
         case('g0w0','gw0')
           call bandstructure_analysis('G0W0', &
               ibgw,nbgw,kset%nkpt,evalqp(ibgw:nbgw,:),eferqp)
-          
+
       end select
-      
+
 !$OMP end critical
 
     end if ! myrank
 
     !--------------------------------------------------------
-    ! Calculate quasiparticle energies in GW0 approximation 
+    ! Calculate quasiparticle energies in GW0 approximation
     !--------------------------------------------------------
     if (input%gw%taskname=='gw0') then
-      
+
       ! self-consistent cycle
       call calcscgw0
-      
+
       ! print GW0 QP band structure
       if (myrank==0) then
         call timesec(t0)
@@ -303,7 +303,7 @@ subroutine task_gw()
         time_io = time_io+t1-t0
       end if
     end if
-    
+
     if (myrank==0) then
       !----------------------------------------
       ! Save QP energies into binary file
@@ -317,11 +317,11 @@ subroutine task_gw()
     if (associated(input%groundstate%spin)) then
       if (myrank == 0) call task_second_variation()
     end if
-    
+
     if (allocated(evalfv)) deallocate(evalfv)
     if (allocated(occfv)) deallocate(occfv)
     call delete_selfenergy
-    
+
     call delete_freqgrid(freq)
     call delete_k_vectors(kset)
     call delete_G_vectors(Gset)
@@ -329,7 +329,7 @@ subroutine task_gw()
     call delete_kq_vectors(kqset)
     call delete_Gk_vectors(Gqset)
     call delete_Gk_vectors(Gqbarc)
-    
+
     return
 end subroutine
-!EOC      
+!EOC

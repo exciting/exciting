@@ -8,7 +8,7 @@ subroutine calcvxcnn
 !
 !!DESCRIPTION:
 !
-! This subroutine calculates the diagonal matrix elements of 
+! This subroutine calculates the diagonal matrix elements of
 ! the exchange correlation potential (only for valence states).
 
 !!USES:
@@ -39,11 +39,11 @@ subroutine calcvxcnn
     character(80) :: filext_save
     logical :: isreadstate0_save
 
-!!EXTERNAL ROUTINES: 
+!!EXTERNAL ROUTINES:
     complex(8), external :: zdotc
 
 !!REVISION HISTORY:
-! 
+!
 ! Created    8th. Aug. 2006 by RGA
 ! Revisited       May  2011 by DIN
 !
@@ -61,43 +61,43 @@ subroutine calcvxcnn
       filext = filext_save
       isreadstate0 = isreadstate0_save
     end if
-    
+
     ! Global array to store <n|Vxc|n>
     if (allocated(vxcnn)) deallocate(vxcnn)
     allocate(vxcnn(nstfv,kset%nkpt))
     vxcnn = zzero
-    
+
     ! allocate exchange-correlation integral arrays
     if (allocated(vxcraa)) deallocate(vxcraa)
     allocate(vxcraa(apwordmax, &
-    &               0:input%groundstate%lmaxmat, &
-    &               apwordmax, &
-    &               0:input%groundstate%lmaxapw, &
-    &               0:lmmaxvr, &
-    &               natmtot))
+                    0:input%groundstate%lmaxmat, &
+                    apwordmax, &
+                    0:input%groundstate%lmaxapw, &
+                    0:lmmaxvr, &
+                    natmtot))
     if (allocated(vxcrloa)) deallocate(vxcrloa)
     allocate(vxcrloa(nlomax, &
-    &                apwordmax, &
-    &                0:input%groundstate%lmaxmat, &
-    &                0:lmmaxvr, natmtot))
+                     apwordmax, &
+                     0:input%groundstate%lmaxmat, &
+                     0:lmmaxvr, natmtot))
     if (allocated(vxcrlolo)) deallocate(vxcrlolo)
     allocate(vxcrlolo(nlomax, &
-    &                 nlomax, &
-    &                 0:lmmaxvr, &
-    &                 natmtot))
+                      nlomax, &
+                      0:lmmaxvr, &
+                      natmtot))
 
     ! Calculate radial integrals
     call vxcrad
-    
+
     ! Fourier transform the interstitial part of Vxc
     call genvxcig
-    
+
     allocate(apwalm(Gkset%ngkmax,apwordmax,lmmaxapw,natmtot))
     allocate(evecfv(nmatmax,nstfv))
     allocate(h(nmatmax))
-    
+
     do ik = firstofset(rank,kset%nkpt), lastofset(rank,kset%nkpt)
-        
+
       ngp = Gkset%ngk(1,ik)
 
       call getevecfv(kset%vkl(:,ik), Gkset%vgkl(:,:,:,ik), evecfv)
@@ -119,23 +119,23 @@ subroutine calcvxcnn
         call vxcistl(ngp, Gkset%igkig(:,1,ik), evecfv(:,i), h)
         vxcnn(i,ik) = vxcnn(i,ik) + zdotc(nmat(1,ik), evecfv(:,i), 1, h, 1)
       end do ! i
-      
+
     enddo ! ik
-    
+
     deallocate(h)
     deallocate(apwalm)
     deallocate(evecfv)
     deallocate(vxcraa)
     deallocate(vxcrloa)
     deallocate(vxcrlolo)
-    
+
 #ifdef MPI
     call mpi_allgatherv_ifc(kset%nkpt, nstfv, zbuf=vxcnn)
     call barrier
 #endif
 
     if (rank==0) then
-      ! print results into binary file VXCNN.OUT 
+      ! print results into binary file VXCNN.OUT
       call write_vxcnn()
       ! and text file VXCNN.DAT
       call getunit(fid)
@@ -149,11 +149,9 @@ subroutine calcvxcnn
       end do
       close(fid)
     end if
-      
+
     call timesec(tend)
     time_vxc = time_vxc + (tend-tstart)
-    
+
 end subroutine
 !EOC
-
-

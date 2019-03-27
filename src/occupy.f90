@@ -39,22 +39,22 @@ Subroutine occupy
       Real (8) :: sdelta, stheta
       real(8) :: egap
       real(8) :: dfde(nstsv,nkpt)
-      
+
       character(1024) :: message
-      
+
       external sdelta, stheta
       real(8), external :: dostet_exciting
-      
+
       if ( input%groundstate%stypenumber .ge. 0 ) then
          t1 = 1.d0 / input%groundstate%swidth
 
 !     next lines taken in part from libbzint (STK)
 !
-!!    nvm is the number of bands for an insulating system 
+!!    nvm is the number of bands for an insulating system
 !!    since for a system with gap, the procedure to determine the
 !!    band gap can be unstable, just try first whether it is an
 !!    insulating system, but such a simplicistic way to determine the Fermi energy
-!!    is valid only for no spin polarized cases 
+!!    is valid only for no spin polarized cases
 !
          if (.not.associated(input%groundstate%spin)) then
            nvm  = nint(chgval/occmax)
@@ -88,7 +88,7 @@ Subroutine occupy
                e1 = Max (e1, evalsv(ist, ik))
             End Do
          End Do
-!	 	 
+!
 ! determine the Fermi energy using the bisection method
 !
          Do it = 1, maxit
@@ -135,22 +135,20 @@ Subroutine occupy
          !------------------------------------------------------------
          ! Use the tetrahedron integration method (LIBBZINT library)
          !------------------------------------------------------------
-
          ! Calculate the Fermi energy
          call fermi_exciting(input%groundstate%tevecsv, &
-         &                   chgval, &
-         &                   nstsv,nkpt,evalsv, &
-         &                   ntet,tnodes,wtet,tvol, &
-         &                   efermi,egap,fermidos)
-         
+                             chgval, &
+                             nstsv, nkpt, evalsv, &
+                             ntet, tnodes, wtet, tvol, &
+                             efermi, egap, fermidos)
          ! Calculate state occupation numbers
-         call tetiw(nkpt,ntet,nstsv,evalsv,tnodes,wtet,tvol,efermi,occsv)
+         call tetiw(nkpt, ntet, nstsv, evalsv, tnodes, wtet, tvol, efermi, occsv)
          do ik = 1, nkpt
            do ist = 1, nstsv
-             occsv(ist,ik) = occmax/wkpt(ik)*occsv(ist,ik)
+             occsv(ist,ik) = dble(occmax)/wkpt(ik)*occsv(ist,ik)
            end do
          end do
-         
+
       else  if (input%groundstate%stypenumber==-2) then
          !--------------------------------------
          ! Use the improved tetrahedron method
@@ -160,13 +158,13 @@ Subroutine occupy
            occsv(:,ik) = dble(occmax)/wkpt(ik)*occsv(:,ik)
          end do
          !write(*,*) 'occsv=', occsv(:,1)
-      
+
          call opt_tetra_dos(nkpt,nstsv,evalsv,efermi,dfde)
          fermidos = sum(dfde)
          !write(*,*) 'dos at Ef=', fermidos
-         
+
       End If ! modified tetrahedron integration method
-      
+
       Return
 End Subroutine
 !EOC
