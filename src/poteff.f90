@@ -32,7 +32,9 @@ Subroutine poteff
 !---------------------------------------------
 ! compute the exchange-correlation potential
 !---------------------------------------------
+      write(*,*) "Hello11"
       Call potxc
+      write(*,*) "Hello12"
 
 !---------------------------------
 ! compute the Coulomb potential

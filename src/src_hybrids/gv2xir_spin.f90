@@ -1,11 +1,12 @@
-subroutine gv2xir(grho, vx, v2xsr)
+subroutine gv2xir_spin(grhoin, vx, v2xsr)
 ! !USES:
 use modinput
 use mod_Gvector
 use mod_potential_and_density
 implicit none
 ! arguments
-real(8), intent(in) :: grho(ngrtot)
+real(8), intent(in) :: grhoin(ngrtot)
+real(8), allocatable :: grho(:)
 real(8), intent(inout) :: vx(ngrtot)
 real(8), intent(in) :: v2xsr(ngrtot)
 ! local variables
@@ -21,6 +22,9 @@ allocate(rfir(ngrtot))
 allocate(zfft1_v2x(ngrtot), zfft2_v2x(ngrtot))
 allocate(gvrho(ngrtot, 3))
 allocate(zfft1_rho(ngrtot), zfft2_rho(ngrtot),rhog(ngrtot))
+if (allocated(grho)) deallocate(grho)
+allocate(grho(ngrtot))
+grho(:)=2.d0*grhoin(:)
 zfft1_rho(:)=rhoir(:)
 call zfftifc(3, ngrid, -1, zfft1_rho)
 rhog(:)=zfft1_rho(:)

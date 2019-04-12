@@ -50,6 +50,7 @@ subroutine scf_cycle(verbosity)
 
 !_______________________________________________________________
 ! initialise or read the charge density and potentials from file
+   write(*,*) "Hello1"
 
 !! TIME - Begin of initialisation segment 
     Call timesec (ts0)
@@ -74,8 +75,11 @@ subroutine scf_cycle(verbosity)
         Call timesec(tin1)
         time_density_init=tin1-tin0
         Call timesec(tin0)
+   write(*,*) "Hello2"
         Call poteff
+   write(*,*) "Hello3"
         Call genveffig
+   write(*,*) "Hello4"
         Call timesec(tin1)
         time_pot_init=tin1-tin0
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Density and potential initialised from atomic data")')
@@ -113,7 +117,6 @@ subroutine scf_cycle(verbosity)
     Call timesec (ts1)
     timeinit = timeinit+ts1-ts0
 !! TIME - End of initialisation segment    
-
 !----------------------------------------------------
 !! TIME - Mixer segment
     Call timesec (ts0)
@@ -141,6 +144,9 @@ subroutine scf_cycle(verbosity)
     tstop = .False.
     engytot = 0.d0
     fm = 0.d0
+ !Added from CECi
+ Call energy
+ call writeengy(60)
 ! delete any existing eigenvector files
     If ((rank .Eq. 0) .And. ((task .Eq. 0) .Or. (task .Eq. 2))) Call delevec
 

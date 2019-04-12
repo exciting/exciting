@@ -1,4 +1,4 @@
-      SUBROUTINE gga_x_wpbeh(n,RHO,GRHO,sx,V1X, v2x,OMEGA)
+      SUBROUTINE gga_x_wpbeh_spin(n,RHOin,GRHOin,sx,V1X, v2x,OMEGA)
 !      SUBROUTINE gga_x_wpbeh(RHO,GRHO,sx,V1X,V2X,OMEGA)
 !-----------------------------------------------------------------------
 !
@@ -6,8 +6,10 @@
 !      IMPLICIT REAL*8 (A-H,O-Z)
 
       INTEGER, INTENT(in) :: n
-      REAL*8, INTENT(in) :: rho(n)
-      REAL*8, INTENT(in) :: grho(n)
+      REAL*8, INTENT(in) :: rhoin(n)
+      REAL*8, INTENT(in) :: grhoin(n)
+      REAL*8, allocatable :: rho(:)
+      REAL*8, allocatable :: grho(:)
       REAL*8, INTENT(out) :: sx(n)
       REAL*8, INTENT(out) :: v1x(n)
       REAL*8, intent(out) :: v2x(n)
@@ -24,11 +26,17 @@
       integer i    
       REAL*8 :: RS, VX, AA, RR, EX, S2, S, DSDN, DSDG, FX, D1X, D2X
 !     ==--------------------------------------------------------------==
+      If (allocated(rho)) deallocate(rho)
+      Allocate(rho(n))
+      If (allocated(grho)) deallocate(grho)
+      Allocate(grho(n))
       write(*,*) "Ceci22", n, shape(rho), shape(grho),shape(v1x),&
                    shape(v2x), shape(sx)
       sx(:) = 0.0d0
       v1x(:) = 0.0d0
       v2x(:) = 0.0d0
+        rho(:)=2.d0*rhoin(:)
+        grho(:)=2.d0*grhoin(:) 
       do i=1,n
 !!      CALL XC(RHO,EX,EC,VX,VC)
         RS = RHO(i)**(1.0d0/3.0d0)
@@ -68,4 +76,4 @@
 
 !     ==--------------------------------------------------------------==
       RETURN
-      END SUBROUTINE gga_x_wpbeh
+      END SUBROUTINE gga_x_wpbeh_spin

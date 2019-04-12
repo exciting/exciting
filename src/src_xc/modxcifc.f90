@@ -17,7 +17,7 @@ contains
 ! g3up,g3dn,grho2,gup2,gdn2,gupdn,ex,ec,vx,vc,vxup,vxdn,vcup,vcdn,dxdg2,dxdgu2, &
 ! dxdgd2,dxdgud,dcdg2,dcdgu2,dcdgd2,dcdgud)
 subroutine xcifc(xctype,n,rho,rhoup,rhodn,grho,gup,gdn,g2rho,g2up,g2dn,g3rho, &
- g3up,g3dn,grho2,gup2,gdn2,gupdn,ex,ec,exsr,vx,vc,vxsr,v2xsr,vxup,vxdn,vcup,vcdn,dxdg2,&
+ g3up,g3dn,grho2,gup2,gdn2,gupdn,ex,ec,exsr,vx,vc,vxsr,vxsrup,vxsrdn,v2xsr,v2xsrup,v2xsrdn,vxup,vxdn,vcup,vcdn,dxdg2,&
  dxdgu2,dxdgd2,dxdgud,dcdg2,dcdgu2,dcdgd2,dcdgud)
 ! !INPUT/OUTPUT PARAMETERS:
 !   xctype : type of exchange-correlation functional (in,integer(3))
@@ -90,8 +90,14 @@ real(8), optional, intent(out) :: ec(*)
 real(8), optional, intent(out) :: vx(*)
 real(8), optional, intent(out) :: vc(*)
 real(8), optional, intent(out) :: exsr(*)
+!real(8), optional, intent(out) :: exsrup(*)
+!real(8), optional, intent(out) :: exsrdn(*)
 real(8), optional, intent(out) :: vxsr(*)
+real(8), optional, intent(out) :: vxsrup(*)
+real(8), optional, intent(out) :: vxsrdn(*)
 real(8), optional, intent(out) :: v2xsr(*)
+real(8), optional, intent(out) :: v2xsrup(*)
+real(8), optional, intent(out) :: v2xsrdn(*)
 real(8), optional, intent(out) :: vxup(*)
 real(8), optional, intent(out) :: vxdn(*)
 real(8), optional, intent(out) :: vcup(*)
@@ -113,6 +119,16 @@ real(8), allocatable :: ra(:,:)
 ! test variables
 real(8) :: rho1, grho1, ex1, vx1, v2xsr1
 integer :: iflag, i
+!variable for HSE
+real(8), allocatable:: exsrup(:), exsrdn(:)
+real(8) :: t1
+!Ceci added for hse
+if (allocated(exsrup)) deallocate(exsrup)
+allocate(exsrup(n))
+exsrup(1:n)=0.d0
+if (allocated(exsrdn)) deallocate(exsrdn)
+allocate(exsrdn(n))
+exsrup(1:n)=0.d0
 if (n.le.0) then
   write(*,*)
   write(*,'("Error(xcifc): n <= 0 : ",I8)') n
@@ -122,6 +138,7 @@ end if
 #ifdef DEBUGLIBXC
 write(*,*)"(xcifc)xctype:", xctype
 #endif
+write(*,*) "Ceci1"
 select case(abs(xctype(1)))
 case(1)
 ! No density-derived exchange-correlation energy or potential
@@ -130,8 +147,14 @@ case(1)
   if (present(vx)) vx(1:n)=0.d0
   if (present(vc)) vc(1:n)=0.d0
   if (present(exsr)) exsr(1:n)=0.d0
+ ! if (present(exsrup)) exsrup(1:n)=0.d0
+ ! if (present(exsrdn)) exsrdn(1:n)=0.d0
   if (present(vxsr)) vxsr(1:n)=0.d0
+  if (present(vxsrup)) vxup(1:n)=0.d0
+  if (present(vxsrdn)) vxdn(1:n)=0.d0
   if (present(v2xsr)) v2xsr(1:n)=0.d0
+  if (present(v2xsrup)) v2xsrup(1:n)=0.d0
+  if (present(v2xsrdn)) v2xsrdn(1:n)=0.d0
   if (present(vxup)) vxup(1:n)=0.d0
   if (present(vxdn)) vxdn(1:n)=0.d0
   if (present(vcup)) vcup(1:n)=0.d0
@@ -224,8 +247,44 @@ case(20,21,22,300,406,408,23)
    .and.present(g3up).and.present(g3dn).and.present(ex).and.present(ec) &
    .and.present(vxup).and.present(vxdn).and.present(vcup) &
    .and.present(vcdn)) then
-    call xc_pbe(n,kappa,mu,beta,rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho,g3up, &
-     g3dn,ex,ec,vxup,vxdn,vcup,vcdn)
+    if (xctype(1)==23) then
+       !omega_hyb=0.106d0 !CECI test
+       write(*,*) "Ceci2", n
+       omega_hyb=0.000001d0 !CECI test
+       !write(*,*), rhoup(:), gup(:)
+       call gga_x_wpbeh_spin(n,rhoup,gup,exsrup,vxsrup,v2xsrup,omega_hyb)
+       !call gga_x_wpbeh(n,2.d0*rhoup(1:n),2.d0*gup(1:n),exsrup,vxsrup,v2xsrup,omega_hyb)
+       write(*,*) "Ceci2_down"
+       !call gga_x_wpbeh(n,2.d0*rhodn(n),2.d0*gdn(n),exsrdn,vxsrdn,v2xsrdn,omega_hyb)
+       call gga_x_wpbeh_spin(n,rhodn,gdn,exsrdn,vxsrdn,v2xsrdn,omega_hyb)
+       write(*,*) "Ceci2"
+       call xc_pbe(n,kappa,mu,beta,rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho,g3up, &
+       g3dn,ex,ec,vxup,vxdn,vcup,vcdn)
+       write(*,*) "Ceci2"
+       do i=1,n
+         t1=rhoup(i)+rhodn(i)
+         exsr(i)=(exsrup(i)*rhoup(i)+exsrdn(i)*rhodn(i))/t1 
+         !exsr(i)=0.5d0*(exsrup(i)+exsrdn(i))
+       enddo
+       !v2xsrup(1:n)=2.d0*v2xsrup(1:n)
+       !v2xsrdn(1:n)=2.d0*v2xsrdn(1:n)
+       ex(1:n)=0.d0
+       vxup(1:n)=0.d0
+       vxdn(1:n)=0.d0
+    else if (xctype(1)==408) then
+       omega_hyb=input%groundstate%Hybrid%omega
+       call gga_x_wpbeh_spin(n,rhoup,gup,exsrup,vxsrup,v2xsrup,omega_hyb)
+       call gga_x_wpbeh_spin(n,rhodn,gdn,exsrdn,vxsrdn,v2xsrdn,omega_hyb)
+       do i=1,n
+         t1=rhoup(i)+rhodn(i)
+         exsr(i)=(exsrup(i)*rhoup(i)+exsrdn(i)*rhodn(i))/t1
+       enddo
+       call xc_pbe(n,kappa,mu,beta,rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho,g3up, &
+       g3dn,ex,ec,vxup,vxdn,vcup,vcdn)
+    else
+       call xc_pbe(n,kappa,mu,beta,rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho,g3up, &
+       g3dn,ex,ec,vxup,vxdn,vcup,vcdn)
+    endif
   else if (present(rho).and.present(grho).and.present(g2rho) &
    .and.present(g3rho).and.present(ex).and.present(ec).and.present(vx) &
    .and.present(vc)) then
@@ -233,7 +292,7 @@ case(20,21,22,300,406,408,23)
     !if (xctype(1)==408 .or. xctype(1)==23) then !CECI:test
     if (xctype(1)==23) then
        !omega_hyb=0.106d0 !CECI test
-       omega_hyb=0.11d0 !CECI test
+       omega_hyb=0.00000001d0 !CECI test
        call gga_x_wpbeh(n,rho,grho,exsr,vxsr,v2xsr,omega_hyb)
        allocate(ra(n,6))
        ra(1:n,1)=0.5d0*rho(1:n)
@@ -255,6 +314,7 @@ case(20,21,22,300,406,408,23)
        ra(1:n,4)=0.25d0*g3rho(1:n)
        call xc_pbe(n,kappa,mu,beta,ra(:,1),ra(:,1),grho,ra(:,2),ra(:,2),ra(:,3), &
        ra(:,3),g3rho,ra(:,4),ra(:,4),ex,ec,vx,ra(:,5),vc,ra(:,6))
+       deallocate(ra)
     else
        allocate(ra(n,6))
        ra(1:n,1)=0.5d0*rho(1:n)
@@ -400,7 +460,7 @@ case(22)
   xcgrad=1
 case(23)
   xcdescr='PBE short range:testonly'
-  xcspin=0
+  xcspin=1
   xcgrad=1
 case(26)
   xcdescr='Wu-Cohen exchange + PBE correlation, Phys. Rev. B 73, 235116 (2006)'
