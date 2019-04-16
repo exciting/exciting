@@ -22,7 +22,6 @@ subroutine gw_main()
     call timesec(tstart)
     call init_timing
 
-
     !---------------------
     ! Main GW output file
     !---------------------

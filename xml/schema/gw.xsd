@@ -85,7 +85,7 @@
                           Frequency grid type.
                         </xs:documentation></xs:annotation>
                       </xs:attribute>
-                      <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="size" default="200">
+                      <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="size" default="1000">
                         <xs:annotation><xs:documentation>
                           Number of grid points.
                         </xs:documentation></xs:annotation>
@@ -104,7 +104,7 @@
                   </xs:element>
                 </xs:all>
 
-                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="method" default="ac"> 
+                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="method" default="cd"> 
                   <xs:annotation><xs:documentation>
                     Technique to compute the frequency convolution integral: ac - analytical continuation; cd- contour deformation.
                   </xs:documentation></xs:annotation>
@@ -142,13 +142,13 @@
                   </xs:documentation></xs:annotation>
                 </xs:attribute>
 
-                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="tol" default="1.0d-13">
+                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="tol" default="1.0d-12">
                   <xs:annotation><xs:documentation>
                     Tolerance factor used in generating support points in AAA-interpolation.
                   </xs:documentation></xs:annotation>
                 </xs:attribute>
 
-                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="swidth" default="1.0d-6">
+                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="swidth" default="1.0d-4">
                   <xs:annotation><xs:documentation>
                     Smearing parameter for visualizing the spectral function.
                   </xs:documentation></xs:annotation>

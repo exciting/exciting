@@ -298,7 +298,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Allocate (zv(ngkmax, nsc))
 #ifdef USEOMP
 !$OMP DO
-#endif 
+#endif
 
          Do jst = 1, nstfv
             zfft1 (:) = 0.d0
@@ -350,7 +350,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       deallocate (zfft1,zfft2,zv)
 #ifdef USEOMP
 !$OMP END PARALLEL
-#endif 
+#endif
       End If
 
 !-----------------------------------------
@@ -363,35 +363,11 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
             evecsv (i, i) = evecsv (i, i) + evalfv (ist)
          End Do
       End Do
-      
-!---------------------------------------------------------      
-! add the second-variational \Sigma_x matrix elements
-!---------------------------------------------------------
-      if (associated(input%groundstate%Hybrid)) then
-         if (input%groundstate%Hybrid%exchangetypenumber == 1) then
-            ! Update Hamiltonian
-            if (ihyb>0) evecsv(:,:) = &
-            &  evecsv(:,:) + ex_coef*bxnl(:,:,ik)
-         end if
-      end if      
-      
+
 ! diagonalise second-variational Hamiltonian
       call timesec(ta)
       If (ndmag .Eq. 1) Then
 ! collinear: block diagonalise H
-!         do i=1,nstfv
-!           write(*,*) dble(evecsv(i,i)),dimag(evecsv(i,i))
-!         enddo
-!       do i=1,nstfv
-!        do j=1,nstfv
-!          write(*,*) dble(evecsv(j,i)),dimag(evecsv(j,i))
-!        enddo
-!       enddo
-!stop
-!         write(*,*) dble(sum(evecsv(1:nstfv,1:nstfv))),dimag(sum(evecsv(1:nstfv,1:nstfv)))
-!         write(*,*) dble(sum(evecsv(nstfv+1:2*nstfv,nstfv+1:2*nstfv))),dimag(sum(evecsv(nstfv+1:2*nstfv,nstfv+1:2*nstfv)))
-!         write(*,*) 'sv'
-!         stop
          Call zheev ('V', 'U', nstfv, evecsv, nstsv, evalsv(:, ik), &
         & work, lwork, rwork, info)
          If (info .Ne. 0) Go To 20
@@ -417,14 +393,14 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       call timesec(tb)
 !      write(*,*) 'sv / diagonalization', tb-ta
 
-      timesv = timesv + ts1 - ts0       
+      timesv = timesv + ts1 - ts0
 !$OMP CRITICAL
 !!      timesv = timesv + ts1 - ts0
 !$OMP END CRITICAL
       Return
 20    Continue
       Write (*,*)
-      Write (*, '("Error(seceqnsv):& 
+      Write (*, '("Error(seceqnsv):&
      & diagonalisation of the second-variational Hamiltonian failed")')
       Write (*, '(" for k-point ", I8)') ik
       Write (*, '(" ZHEEV returned INFO = ", I8)') info

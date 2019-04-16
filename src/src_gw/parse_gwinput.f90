@@ -432,13 +432,27 @@ subroutine parse_gwinput
         if (rank==0) write(fgw,*)
         if (rank==0) write(fgw,*) ' Matrix block size: ', mblksiz
     else
-        mblksiz = 1000000 ! a big number
+        mblksiz = 1000000 ! just a big number to account for all available states
+    end if
+
+    !-------------------------------------------------------------------------------
+    ! Matrix block size
+    !-------------------------------------------------------------------------------
+    if (associated(input%groundstate%spin) .and. (ldapu /= 0)) then
+        if (rank==0) then
+            write(*,*)
+            write(*,*) 'Spin-polarized LDA+U is not yet supported!'
+            write(*,*)
+        end if
+        call terminate()
     end if
 
     !-------------------------------------------------------------------------------
     ! Band range where GW corrections are applied
     !-------------------------------------------------------------------------------
-    if (associated(input%groundstate%spin)) input%gw%ibgw = 1
+    ! Does the second-variational treatment require all states?
+    ! It'd be nice to check it and reduce the number of the active states...
+    if (associated(input%groundstate%spin) .or. (ldapu /= 0)) input%gw%ibgw = 1
     ibgw = input%gw%ibgw
     nbgw = input%gw%nbgw
     if (nbgw < 1) nbgw = input%gw%nempty

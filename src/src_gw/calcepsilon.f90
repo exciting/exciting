@@ -26,9 +26,9 @@ subroutine calcepsilon(iq,iomstart,iomend)
     complex(8), allocatable :: minm(:,:,:)
     complex(8), allocatable :: evecfv(:,:)
     external zgemm
-        
+
     call timesec(tstart)
-    
+
     ! memory usage info
     ! msize = sizeof(epsilon)*b2mb
     ! write(*,'(" calcepsilon: rank, size(epsilon) (Mb):",i4,f8.2)') myrank, msize
@@ -36,7 +36,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
     !=============================
     ! Initialization
     !=============================
-    
+
     ! total number of states including the core ones
     if (input%gw%coreflag=='all') then
         ndim = nomax+ncg
@@ -45,7 +45,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
     end if
     mdim = nstdf-numin+1
     nmdim = ndim*mdim
-    
+
     ! block size
     if (mblksiz >= mdim) then
       nblk = 1
@@ -61,7 +61,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
     allocate(eveckp(nmatmax,nstfv))
     ! msize = (sizeof(eveckalm)+sizeof(eveckpalm)+sizeof(eveck)+sizeof(eveckp))*b2mb
     ! write(*,'(" calcepsilon: rank, size(eigenvectors) (Mb):",i4,f12.2)') myrank, msize
-    
+
     !==================================================
     ! Calculate the q-dependent BZ integration weights
     !==================================================
@@ -88,7 +88,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
         &    Action='READ',Form='UNFORMATTED',&
         &    Access='DIRECT',Status='OLD',Recl=recl)
         !----------
-        ! core-val 
+        ! core-val
         !----------
         if (input%gw%coreflag=='all') then
             if (allocated(pmatcv)) deallocate(pmatcv)
@@ -99,7 +99,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
             &    Access='DIRECT',Status='OLD',Recl=recl)
         end if
     end if
-    
+
     !=================
     ! BZ integration
     !=================
@@ -109,19 +109,21 @@ subroutine calcepsilon(iq,iomstart,iomend)
 
         ! k-q point
         jk = kqset%kqid(ik, iq)
-    
+
         if (Gamma) then
             ! read the momentum matrix elements
             call getpmatkgw(ik)
             ! and compute the head of the dielectric function
             call calchead(ik,iomstart,iomend,ndim)
         end if
-    
+
         ! get KS eigenvectors
         allocate(evecfv(nmatmax,nstfv))
-        call getevecfv(kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), evecfv)
+        ! call getevecfv(kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), evecfv)
+        call get_evec_gw(kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), evecfv)
         eveckp = conjg(evecfv)
-        call getevecfv(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
+        ! call getevecfv(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
+        call get_evec_gw(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
         eveck = evecfv
         deallocate(evecfv)
 
@@ -146,7 +148,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
 
             ! compute M^i_{nm}+M^i_{cm}
             call expand_products(ik, iq, 1, ndim, nomax, mstart, mend, -1, minmmat)
-    
+
             if (Gamma) then
                 ! wings of the dielectric matrix
                 call calcwings(ik, iq, iomstart, iomend, ndim, mstart, mend)
@@ -168,13 +170,13 @@ subroutine calcepsilon(iq,iomstart,iomend)
             deallocate(minm)
 
             deallocate(minmmat)
-            ! call timesec(tb)      
+            ! call timesec(tb)
             ! write(*,*) iblk,' time:',tb-ta
 
         end do ! iblk
-    
+
     end do ! ik
-    
+
     !-------------------
     ! Clear memory
     !-------------------
@@ -190,7 +192,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
     deallocate(eveckp)
     deallocate(eveckalm)
     deallocate(eveckpalm)
-    
+
     if (Gamma) then
         ! symmetrize \eps_{00} (head)
         do iom = iomstart, iomend
@@ -217,10 +219,10 @@ subroutine calcepsilon(iq,iomstart,iomend)
             epsilon(im,im,iom) = zone + epsilon(im,im,iom)
         end do ! im
     end do ! iom
-    
+
     ! timing
     call timesec(tend)
     time_df = time_df+tend-tstart
-    
+
     return
 end subroutine

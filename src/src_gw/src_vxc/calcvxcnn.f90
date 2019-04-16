@@ -14,8 +14,9 @@ subroutine calcvxcnn
 !!USES:
     use modinput
     use modmain, only: apwordmax, lmmaxapw, lmmaxvr, natmtot, nlomax, &
-    &                  nstfv, nmatmax, nspecies, zzero, &
-    &                  nmat, natoms, vxcmt, vxcir, zone
+                       nstfv, nmatmax, nspecies, zzero, &
+                       nmat, natoms, vxcmt, vxcir, zone, &
+                       ldapu, llu
     use mod_vxc
     use modgw
     use modmpi
@@ -100,10 +101,12 @@ subroutine calcvxcnn
 
       ngp = Gkset%ngk(1,ik)
 
-      call getevecfv(kset%vkl(:,ik), Gkset%vgkl(:,:,:,ik), evecfv)
+      ! call getevecfv(kset%vkl(:,ik), Gkset%vgkl(:,:,:,ik), evecfv)
+      call get_evec_gw(kset%vkl(:,ik), Gkset%vgkl(:,:,:,ik), evecfv)
 
       ! find the matching coefficients
-      call match(ngp, Gkset%gkc(:,1,ik), Gkset%tpgkc(:,:,1,ik), Gkset%sfacgk(:,:,1,ik), apwalm)
+      call match(ngp, Gkset%gkc(:,1,ik), Gkset%tpgkc(:,:,1,ik), &
+                 Gkset%sfacgk(:,:,1,ik), apwalm)
 
       do i = ibgw, nbgw
         h(:) = zzero
@@ -113,6 +116,12 @@ subroutine calcvxcnn
             call vxcaa(is, ia, ngp, apwalm, evecfv(:,i), h)
             call vxcalo(is, ia, ngp, apwalm, evecfv(:,i), h)
             call vxclolo(is, ia, ngp, evecfv(:,i), h)
+            !----------
+            ! LDA+U
+            !----------
+            if ((ldapu /= 0) .and. (llu(is) >= 0)) then
+              call vmat_ldapu(is, ia, ngp, apwalm, evecfv(:,i), vxcnn(i,ik))
+            end if
           end do
         end do
         ! interstitial contribution

@@ -50,9 +50,9 @@ subroutine task_band()
   close(70)
 
   !--------------------------------------------------------------
-  ! read QP energies from file and perform Fourier interpolation 
+  ! read QP energies from file and perform Fourier interpolation
   !--------------------------------------------------------------
-  if (input%groundstate%tevecsv) then
+  if (associated(input%groundstate%spin)) then
     fname = 'EVALQPSV.OUT'
   else
     fname = 'EVALQP.OUT'
@@ -153,7 +153,7 @@ subroutine task_band()
       call xml_endElement( xf, "bandstructure")
       call xml_close( xf)
       deallocate( bc)
-  end if  
+  end if
 
 
   return

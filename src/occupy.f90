@@ -29,16 +29,17 @@ Subroutine occupy
 !   Simplicistic method for systems with gap added, 2013 (STK)
 !EOP
 !BOC
-      Implicit None
+      implicit none
 ! local variables
-      Integer, Parameter :: maxit = 1000
+      integer, parameter :: maxit = 1000
       real(8), parameter :: de0=1.d0
-      Integer :: ik, ist, it, nvm
-      Real (8) :: e0, e1, chg, x, t1
+      integer :: ik, ist, it, nvm
+      real(8) :: e0, e1, chg, x, t1
 ! external functions
-      Real (8) :: sdelta, stheta
+      real(8) :: sdelta, stheta
       real(8) :: egap
       real(8) :: dfde(nstsv,nkpt)
+      logical :: lspin
 
       character(1024) :: message
 
@@ -136,7 +137,8 @@ Subroutine occupy
          ! Use the tetrahedron integration method (LIBBZINT library)
          !------------------------------------------------------------
          ! Calculate the Fermi energy
-         call fermi_exciting(input%groundstate%tevecsv, &
+         lspin = associated(input%groundstate%spin)
+         call fermi_exciting(lspin, &
                              chgval, &
                              nstsv, nkpt, evalsv, &
                              ntet, tnodes, wtet, tvol, &

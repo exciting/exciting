@@ -61,6 +61,7 @@ subroutine init_gw()
         end if
         call barrier
       end if
+
       call readstate()
 
     end if
@@ -75,7 +76,7 @@ subroutine init_gw()
     time_initkpt = time_initkpt+t1-t0
 
     ! Intialize auxiliary arrays used further for convenience
-    call init_misc_gw
+    call init_misc_gw()
 
     ! Mixed basis initialization
     call timesec(t0)

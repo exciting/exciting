@@ -4,6 +4,7 @@ subroutine task_dos()
     use modinput
     use modmain
     use modgw
+    use mod_hybrids, only: hybridhf
     implicit none
 
     integer(4) :: ik, ist, nstfv0
@@ -25,16 +26,13 @@ subroutine task_dos()
     !-----------------
     ! Initialization
     !-----------------
-
-    ! Note: DOS calculations are performed employing Groundstate Options
-    ! - ngridk
-    ! - smearing etc.
-
-    call rereadinput() ! overwrite some GW parameters
+    input%groundstate%stypenumber = -1
+    task = 1
+    input%groundstate%xctypenumber = 1
+    xctype(1) = 1
     call init0()
     call init1()
-    ! write(*,*) 'nkpt=', nkpt
-    ! write(*,*) input%groundstate%ngridk
+    if (.not.hybridhf) filext = "_GW.OUT"
 
     ! read KS data
     do ik = 1, nkpt
@@ -43,10 +41,16 @@ subroutine task_dos()
 
     ! shift KS energies
     call readfermi
+    evalsv(:,:) = evalsv(:,:) - efermi
 
     ! read QP energies from file and perform Fourier interpolation (if required)
-    call getevalqp(nkpt,vkl,evalsv)
-    
+    if (associated(input%groundstate%spin)) then
+      fname = 'EVALQPSV.OUT'
+    else
+      fname = 'EVALQP.OUT'
+    end if
+    call getevalqp(fname, nkpt, vkl, evalsv)
+
     ! GW number of states
     nbgw = min(nstfv,nbgw)
     nstqp = nbgw-ibgw+1
@@ -57,7 +61,7 @@ subroutine task_dos()
     allocate(f(ibgw:nbgw,nkpt))
     f(:,:) = 1.d0
 
-    !-----------------------------      
+    !-----------------------------
     ! DOS parameters
     !-----------------------------
     if (.not.associated(input%properties)) &
@@ -68,18 +72,18 @@ subroutine task_dos()
     nsmdos = input%properties%dos%nsmdos
     nwdos = input%properties%dos%nwdos
     ngrdos = input%properties%dos%ngrdos
-    winddos(:) = input%properties%dos%winddos(:)    
-    
+    winddos(:) = input%properties%dos%winddos(:)
+
     ! generate energy grid
     allocate(w(nwdos))
     dw = (winddos(2)-winddos(1))/dble(nwdos)
     do iw = 1, nwdos
       w(iw) = dw*dble(iw-1)+winddos(1)
     end do
-      
+
     ! number of subdivisions used for interpolation
     nsk(:) = max(ngrdos/input%groundstate%ngridk(:),1)
-    
+
     ! BZ integration
     allocate(g(nwdos)) ! DOS
     call brzint(nsmdos, input%groundstate%ngridk, nsk, ikmap, &
@@ -125,9 +129,9 @@ subroutine task_dos()
       deallocate(bc)
 
     end if
-    
+
     deallocate(e,w,f,g)
- 
+
     return
 
 contains
@@ -177,17 +181,17 @@ contains
       call genapwfr
       ! generate the local-orbital radial functions
       call genlofr
-      
+
       ! generate unitary matrices which convert the (l,m) basis into the irreducible
       ! representation basis of the symmetry group at each atomic site
       call genlmirep(lmax,lmmax,elm,ulm)
-      
+
       ! loop over k-points
       do ik = 1, nkpt
 
         call getevecfv(vkl(1,ik), vgkl(:,:,:,ik), evecfv)
         call getevecsv(vkl(1,ik), evecsv)
-        
+
         ! find the matching coefficients
         do ispn = 1, nspnfv
           call match(ngk(ispn,ik), gkc(:,ispn,ik), &
@@ -229,7 +233,7 @@ contains
 
           end do ! ia
         end do ! is
-         
+
       end do ! ik
 
       deallocate(elm)

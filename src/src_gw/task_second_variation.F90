@@ -80,7 +80,7 @@ subroutine task_second_variation()
     deallocate(evecfv)
     deallocate(apwalm)
 
-    call fermi_exciting(input%groundstate%tevecsv, &
+    call fermi_exciting(.True., &
                         chgval, &
                         nstsv, kset%nkpt, evalsv, &
                         kset%ntet, kset%tnodes, kset%wtet, kset%tvol, &

@@ -34,13 +34,13 @@ subroutine calcpmatgw
     integer    :: k, isym, lspl
     real(8)    :: v(3), v1(3), v2(3), pm(9), sl(3,3), sc(3,3)
     complex(8) :: p(3), o(6)
-    
+
     integer :: ikstart, ikend
     integer, allocatable :: ikp2rank(:)
 
     call timesec(tstart)
-    
-#ifdef MPI    
+
+#ifdef MPI
     ikstart = firstofset(rank,kset%nkpt)
     ikend = lastofset(rank,kset%nkpt)
 #else
@@ -61,7 +61,7 @@ subroutine calcpmatgw
 
     allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
     allocate(evecfv(nmatmax,nstfv))
-    
+
     !=========================
     ! Loop over k-points
     !=========================
@@ -73,27 +73,28 @@ subroutine calcpmatgw
       allocate(pmc(1:ncg,numin:nstdf,3,ikstart:ikend))
       pmc(:,:,:,:) = zzero
     end if
-    
+
     do ik = ikstart, ikend
       !-------------------------------------------
       ! find the matching coefficients
       !-------------------------------------------
       call match(Gkset%ngk(1,ik), Gkset%gkc(:,1,ik), &
       &          Gkset%tpgkc(:,:,1,ik), Gkset%sfacgk(:,:,1,ik), &
-      &          apwalm)      
+      &          apwalm)
       !-------------------------------------------
       ! get the eigenvectors and values from file
       !-------------------------------------------
-      call getevecfv(kset%vkl(:,ik), Gkset%vgkl(:,:,:,ik), evecfv)
+      ! call getevecfv(kset%vkl(:,ik), Gkset%vgkl(:,:,:,ik), evecfv)
+      call get_evec_gw(kset%vkl(:,ik), Gkset%vgkl(:,:,:,ik), evecfv)
       call genevecalm(Gkset%ngk(1,ik), nstdf, evecfv(:,1:nstdf), apwalm)
-      !------------------------------------      
+      !------------------------------------
       ! valence-valence contribution
       !------------------------------------
       call genpmatvv_k(Gkset%ngk(1,ik), Gkset%igkig(:,1,ik), &
       &                Gkset%vgkc(:,:,1,ik), nstdf, evecfv(:,1:nstdf), &
       &                1, nomax, numin, nstdf, pmv_k)
       pmv(:,:,:,ik) = pmv(:,:,:,ik) + pmv_k(:,:,:)
-      !------------------------------------      
+      !------------------------------------
       ! core-valence contribution
       !------------------------------------
       if (input%gw%coreflag=='all') then
@@ -103,17 +104,17 @@ subroutine calcpmatgw
       endif
 
     end do
-    
+
     deallocate(pmv_k)
     if (input%gw%coreflag=='all') deallocate(pmc_k)
     deallocate(apwalm)
     deallocate(evecfv)
     call clear_pmat()
-    
+
     !==========================
     ! Write results to files
     !==========================
-    
+
     ! overwrite existing files
     if (rank==0) then
       call getunit(fid)
@@ -126,7 +127,7 @@ subroutine calcpmatgw
       end if
     endif
     call barrier
-    
+
     do ik = 1, kset%nkpt
       if (rank==ikp2rank(ik)) then
         call getunit(fid)
@@ -149,11 +150,11 @@ subroutine calcpmatgw
 
     deallocate(pmv)
     if (input%gw%coreflag=='all') deallocate(pmc)
-    
+
     ! timing
     call timesec(tend)
     time_pmat = time_pmat+tend-tstart
-    
+
     return
 end subroutine
 !EOC

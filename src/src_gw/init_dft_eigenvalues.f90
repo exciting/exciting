@@ -24,7 +24,11 @@ subroutine init_dft_eigenvalues()
     ! Read KS eigenvalues from file EVALFV_GW.OUT
     !---------------------------------------------
     do ik = 1, kset%nkpt
-      call getevalfv(kset%vkl(:,ik), evalfv(:,ik))
+      if (ldapu == 0) then
+        call getevalfv(kset%vkl(:,ik), evalfv(:,ik))
+      else
+        call getevalsv(kset%vkl(:,ik), evalfv(:,ik))
+      end if
       ! write(*,*) 'ik=', ik
       ! do ib = 1, nstfv
       !     write(*,*) ib, evalfv(ib,ik)
@@ -40,6 +44,7 @@ subroutine init_dft_eigenvalues()
                         nstfv, kset%nkpt, evalfv, &
                         kset%ntet, kset%tnodes, kset%wtet, kset%tvol, &
                         efermi, egap, fermidos)
+    ! print*, efermi, egap
 
     ! Calculate state occupation numbers
     call tetiw(kset%nkpt, kset%ntet, nstfv, evalfv, kset%tnodes, &
@@ -47,7 +52,7 @@ subroutine init_dft_eigenvalues()
     do ik = 1, kset%nkpt
       do ib = 1, nstfv
         occfv(ib,ik) = 2.d0/kset%wkpt(ik)*occfv(ib,ik) ! prefactor 2 due to spin degeneracy in FV
-        ! print*, ik, ib, occfv(ib,ik)
+        ! print*, ik, ib, evalfv(ib,ik), occfv(ib,ik)
       end do
     end do
 
