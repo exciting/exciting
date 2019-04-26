@@ -12,7 +12,7 @@ subroutine init_gw()
     use mod_hdf5
 
     implicit none
-    logical :: reducek_
+    logical :: reducek
     integer :: lmax, ik
     real(8) :: t0, t1, tstart, tend
 
@@ -31,7 +31,11 @@ subroutine init_gw()
 
     ! initialize global exciting variables with GW parameters (see parse_gwinput.f90)
     call init0()
+
+    reducek = input%groundstate%reducek
+    input%groundstate%reducek = .false.
     call init1()
+    input%groundstate%reducek = reducek
 
     call timesec(t0)
 
@@ -55,7 +59,6 @@ subroutine init_gw()
           call filedel('EIGVAL'//trim(filext))
           call filedel('LINENGY'//trim(filext))
           call filedel('EVALCORE'//trim(filext))
-          ! call filedel('OCCSV'//trim(filext))
           call filedel('BROYDEN.OUT')
           call writefermi
         end if

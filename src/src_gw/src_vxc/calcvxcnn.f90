@@ -15,7 +15,7 @@ subroutine calcvxcnn
     use modinput
     use modmain, only: apwordmax, lmmaxapw, lmmaxvr, natmtot, nlomax, &
                        nstfv, nmatmax, nspecies, zzero, &
-                       nmat, natoms, vxcmt, vxcir, zone, &
+                       nlotot, natoms, vxcmt, vxcir, zone, &
                        ldapu, llu
     use mod_vxc
     use modgw
@@ -27,7 +27,7 @@ subroutine calcvxcnn
 
 !!LOCAL VARIABLES:
     implicit none
-    integer(4) :: ik
+    integer(4) :: ikp, ik
     integer(4) :: ist, jst, i, j, k, l, ispn
     integer(4) :: ia, is
     integer(4) :: ngp, fid
@@ -97,16 +97,18 @@ subroutine calcvxcnn
     allocate(evecfv(nmatmax,nstfv))
     allocate(h(nmatmax))
 
-    do ik = firstofset(rank,kset%nkpt), lastofset(rank,kset%nkpt)
+    do ikp = firstofset(rank,kset%nkpt), lastofset(rank,kset%nkpt)
 
-      ngp = Gkset%ngk(1,ik)
+      ! ngp = Gkset%ngk(1,ikp)
+      ! call get_evec_gw(kset%vkl(:,ikp), Gkset%vgkl(:,:,:,ikp), evecfv)
+      ! call match(ngp, Gkset%gkc(:,1,ikp), Gkset%tpgkc(:,:,1,ikp), &
+      !            Gkset%sfacgk(:,:,1,ikp), apwalm)
 
-      ! call getevecfv(kset%vkl(:,ik), Gkset%vgkl(:,:,:,ik), evecfv)
-      call get_evec_gw(kset%vkl(:,ik), Gkset%vgkl(:,:,:,ik), evecfv)
-
-      ! find the matching coefficients
-      call match(ngp, Gkset%gkc(:,1,ik), Gkset%tpgkc(:,:,1,ik), &
-                 Gkset%sfacgk(:,:,1,ik), apwalm)
+      ik = kset%ikp2ik(ikp)
+      ngp = Gkqset%ngk(1,ik)
+      call get_evec_gw(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
+      call match(ngp, Gkqset%gkc(:,1,ik), Gkqset%tpgkc(:,:,1,ik), &
+                 Gkqset%sfacgk(:,:,1,ik), apwalm)
 
       do i = ibgw, nbgw
         h(:) = zzero
@@ -120,13 +122,14 @@ subroutine calcvxcnn
             ! LDA+U
             !----------
             if ((ldapu /= 0) .and. (llu(is) >= 0)) then
-              call vmat_ldapu(is, ia, ngp, apwalm, evecfv(:,i), vxcnn(i,ik))
+              call vmat_ldapu(is, ia, ngp, apwalm, evecfv(:,i), vxcnn(i,ikp))
             end if
           end do
         end do
         ! interstitial contribution
-        call vxcistl(ngp, Gkset%igkig(:,1,ik), evecfv(:,i), h)
-        vxcnn(i,ik) = vxcnn(i,ik) + zdotc(nmat(1,ik), evecfv(:,i), 1, h, 1)
+        ! call vxcistl(ngp, Gkset%igkig(:,1,ikp), evecfv(:,i), h)
+        call vxcistl(ngp, Gkqset%igkig(:,1,ik), evecfv(:,i), h)
+        vxcnn(i,ikp) = vxcnn(i,ikp) + zdotc(ngp+nlotot, evecfv(:,i), 1, h, 1)
       end do ! i
 
     enddo ! ik
@@ -149,10 +152,10 @@ subroutine calcvxcnn
       ! and text file VXCNN.DAT
       call getunit(fid)
       open(fid,file='VXCNN.DAT',form='FORMATTED',status='UNKNOWN')
-      do ik = 1, kset%nkpt
-        write(fid,'("ik=",i4,"    vkl=",3f8.4)') ik, kset%vkl(:,ik)
+      do ikp = 1, kset%nkpt
+        write(fid,'("ik=",i4,"    vkl=",3f8.4)') ikp, kset%vkl(:,ikp)
         do i = ibgw, nbgw
-          write(fid,'(i4,2f16.6)') i, vxcnn(i,ik)
+          write(fid,'(i4,2f16.6)') i, vxcnn(i,ikp)
         end do
         write(fid,*)
       end do

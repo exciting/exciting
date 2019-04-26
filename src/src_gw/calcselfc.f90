@@ -73,10 +73,8 @@ subroutine calcselfc(iq)
 
       ! get KS eigenvectors
       allocate(evecfv(nmatmax,nstfv))
-      ! call getevecfv(kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), evecfv)
       call get_evec_gw(kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), evecfv)
       eveckp = conjg(evecfv)
-      ! call getevecfv(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
       call get_evec_gw(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
       eveck = evecfv
       deallocate(evecfv)
