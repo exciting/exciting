@@ -75,6 +75,10 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
                Call seceqnfv(ispn, ik, nmat(ispn,ik), ngk(ispn,ik), &
               &  igkig(:,ispn,ik), vgkc(:,:,ispn,ik), apwalm(:,:,:,:,ispn), &
               &  evalfv(:,ispn), evecfv(:,:,ispn))
+              !if (xctype(1)==408) then 
+              !   write(*,*) "evalfv=", evalfv
+              !   stop
+              !endif
             End If
          Else If (.True.) Then
             Write (*,*) "error in solverselect secequn.F90"

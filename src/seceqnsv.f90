@@ -56,6 +56,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Real (8), Allocatable :: cf (:, :)
       Real (8), Allocatable :: sor (:)
       Real (8), Allocatable :: rwork (:)
+      Real (8), Allocatable :: veffmt_pbe(:,:,:)
       Complex (8), Allocatable :: wfmt1 (:, :, :)
       Complex (8), Allocatable :: wfmt2 (:, :, :)
       Complex (8), Allocatable :: zfft1 (:)
@@ -68,26 +69,31 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Complex (8) zdotc, zfmtinp
       External zdotc, zfmtinp
       
-      integer::xctype_(3)
-!Compute the effective potential with PBE for the soc
-     If (isspinorb()) then
-         If(associated(input%groundstate%Hybrid).and.task==7) then
-            ex_coef = 0.d0
-            ec_coef = 1.d0
-           ! for Libxc use PBE from Libxc
-            if (xctype(1)==100) then
-               xctype_ = xctype
-               xctype = (/100, 101, 130/)
-            end if
-            call poteff()
-!            task = 7 ! <-- hybrids switcher
-            if (xctype(1) == 100) then
-               xctype = xctype_
-            end if
-            ex_coef = input%groundstate%Hybrid%excoeff
-            ec_coef = input%groundstate%Hybrid%eccoeff
-          endif
+      if (allocated(veffmt_pbe)) deallocate(veffmt_pbe)
+      write(*,*) lmmaxvr, nrmtmax, natmtot
+      allocate(veffmt_pbe(lmmaxvr,nrmtmax,natmtot))     
+      write(*,*) "Ceci seceq"
+      If(associated(input%groundstate%Hybrid).and.task==7) then
+          call poteff_soc(veffmt_pbe)
       endif
+!Compute the effective potential with PBE for the soc
+!     If (isspinorb()) then
+!         If(associated(input%groundstate%Hybrid).and.task==7) then
+!            ex_coef = 0.d0
+!            ec_coef = 1.d0
+!           ! for Libxc use PBE from Libxc
+!            xctype_ = xctype
+!            xctype = (/100, 101, 130/)
+!            call poteff()
+!!            task = 7 ! <-- hybrids switcher
+!            if (xctype(1) == 100) then
+!               xctype = xctype_
+!            end if
+!            ex_coef = input%groundstate%Hybrid%excoeff
+!            ec_coef = input%groundstate%Hybrid%eccoeff
+!          endif
+!      endif
+write(*,*) "Ceci seceq"
 ! spin-unpolarised case
       If (( .Not. associated(input%groundstate%spin)) .And. (ldapu .Eq. &
      & 0)) Then
@@ -176,8 +182,11 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
 !               write(*,*) td-tc
 ! spin-orbit radial function
                If (isspinorb()) Then  !CECI: THIS IS THE IMPORTAT PART FOR SOC
-! radial derivative of the spherical part of the potential
-                  vr (1:nrmt(is)) = veffmt (1, 1:nrmt(is), ias) * y00
+                  If(associated(input%groundstate%Hybrid).and.task==7) then
+                    vr (1:nrmt(is)) = veffmt_pbe (1, 1:nrmt(is), ias) * y00
+                  else
+                    vr (1:nrmt(is)) = veffmt (1, 1:nrmt(is), ias) * y00
+                  endif
                   Call fderiv (1, nrmt(is), spr(:, is), vr, drv, cf)
 ! spin-orbit coupling prefactor
                   irc = 0

@@ -32,24 +32,16 @@
       do i=1,n
 !!      CALL XC(RHO,EX,EC,VX,VC)
         RS = RHO(i)**(1.0d0/3.0d0)
-        write(*,*) "rs", rs,i
         VX = (4.0d0/3.0d0)*f1*alpha*RS
-        write(*,*) "vx", vx,i
-
 !!      AA    = DMAX1(GRHO,SMAL2)
 !!        AA    = GRHO(i)
         AA    = GRHO(i)**2
-        write(*,*) "aa", aa,i
 !!      RR    = RHO**(-4.0_DP/3.0_DP)
         RR    = 1.0d0/(RHO(i)*RS)
-        write(*,*) "rr", rr,i
         EX    = AX/RR  !rho(i)*E_x^{LDA}
-        write(*,*) "ex", ex,i
         S2    = AA*RR*RR*US*US !US=1/(2*(3*pi**2)**(1/3))
-        write(*,*) "s2", s2,i
 
         S = SQRT(S2)
-        write(*,*) "s", s,i
         IF(S.GT.8.3d0) THEN
           S = 8.572844D0 - 18.796223D0/S2
         ENDIF
@@ -62,9 +54,7 @@
         DSDG = US*RR
         V2X(i) = EX*1.D0/SQRT(AA)*DSDG*D2X  
         !V2X(i) = EX*DSDG*D2X  
-        write(*,*) "Ceci222", i
       enddo
-        write(*,*) "Ceci2222"
 
 !     ==--------------------------------------------------------------==
       RETURN
