@@ -40,7 +40,6 @@ subroutine writevnlmat()
     end if
     call barrier
   end do ! ik
-  !CECI
   write(70, Rec=nkpt+1) exnl
   close(70)
 

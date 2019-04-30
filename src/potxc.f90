@@ -36,20 +36,13 @@ real(8), allocatable :: g3rho(:),g3up(:),g3dn(:)
 real(8), allocatable :: grho2(:),gup2(:),gdn2(:),gupdn(:)
 real(8), allocatable :: ex(:),ec(:),vxc(:)
 real(8), allocatable :: vx(:),vxup(:),vxdn(:)
-real(8), allocatable :: exsr(:),vxsr(:),vxsrup(:),vxsrdn(:),v2xsr(:),v2xsrup(:),v2xsrdn(:)!,gv2xsr(:)
+real(8), allocatable :: exsr(:),vxsr(:),vxsrup(:),vxsrdn(:),v2xsr(:),v2xsrup(:),v2xsrdn(:)
 real(8), allocatable :: vc(:),vcup(:),vcdn(:)
-!short-range energy and potential needed for hybrids (HSE)
-!real(8), allocatable :: vxsr(:), exsr(:)
 real(8), allocatable :: dxdg2(:),dxdgu2(:),dxdgd2(:),dxdgud(:)
 real(8), allocatable :: dcdg2(:),dcdgu2(:),dcdgd2(:),dcdgud(:)
 real(8), allocatable :: mag(:,:),bxc(:,:)
 
 n=lmmaxvr*nrmtmax
-!!CECI allocate in the following part also exsr(n) and vxsr(n), and add in the rest the case for HSE sr part
-!if (allocated(rho)) deallocate(rho)
-!if (allocated(ex)) deallocate(ex)
-!if (allocated(ec)) deallocate(ec)
-!if (allocated(vxc)) deallocate(vxc)
 allocate(rho(n),ex(n),ec(n),vxc(n))
 if (associated(input%groundstate%spin)) then
   allocate(mag(n,3),bxc(n,3))
@@ -58,23 +51,20 @@ n=max(n,ngrtot)
 if (associated(input%groundstate%spin)) then
   allocate(rhoup(n),rhodn(n))
   allocate(vxup(n),vxdn(n),vcup(n),vcdn(n))
-  !allocate(vxsrup(n),vxsrdn(n),v2xsrup(n),v2xsrdn(n))
   if (xcgrad.eq.1) then
     allocate(grho(n),gup(n),gdn(n))
-    allocate(g2rho(n)) !Ceci
+    allocate(g2rho(n)) 
     allocate(g2up(n),g2dn(n))
     allocate(g3rho(n),g3up(n),g3dn(n))
-    !!CECI for sure not correct but we need to add
     if (xctype(1)==23.or.xctype(1)==408) then
-       allocate(vx(n),vc(n))
        if (allocated(exsr)) deallocate(exsr)
-      if (allocated(vxsr)) deallocate(vxsr)
+       if (allocated(vxsr)) deallocate(vxsr)
        if (allocated(vxsrup)) deallocate(vxsrup)
        if (allocated(vxsrdn)) deallocate(vxsrdn)
        if (allocated(v2xsr)) deallocate(v2xsr)
        if (allocated(v2xsrup)) deallocate(v2xsrup)
        if (allocated(v2xsrdn)) deallocate(v2xsrdn)
-       allocate(exsr(n),vxsr(n),vxsrup(n),vxsrdn(n),v2xsr(n),v2xsrup(n),v2xsrdn(n))!,gv2xsr(n))
+       allocate(exsr(n),vxsr(n),vxsrup(n),vxsrdn(n),v2xsr(n),v2xsrup(n),v2xsrdn(n))
     endif
   else if (xcgrad.eq.2) then
     allocate(g2up(n),g2dn(n))
@@ -87,14 +77,11 @@ else
   allocate(vx(n),vc(n))
   if (xcgrad.eq.1) then
     allocate(grho(n),g2rho(n),g3rho(n))
-    !if (xctype(1)==08) then
-   !    allocate(vxsr(n),exsr(n))
-   ! endif
     if (xctype(1)==23.or.xctype(1)==408) then
        if (allocated(exsr)) deallocate(exsr)
        if (allocated(vxsr)) deallocate(vxsr)
        if (allocated(v2xsr)) deallocate(v2xsr)
-       allocate(exsr(n),vxsr(n),v2xsr(n))!,gv2xsr(n))
+       allocate(exsr(n),vxsr(n),v2xsr(n))
     endif
   else if (xcgrad.eq.2) then
     allocate(g2rho(n),gvrho(3*n),grho2(n))
@@ -106,7 +93,6 @@ end if
 !---------------------------------------!
 !     muffin-tin potential and field    !
 !---------------------------------------!
-write(*,*) "Hello21"
 do is=1,nspecies
   nr=nrmt(is)
   n=lmmaxvr*nr
@@ -115,12 +101,10 @@ do is=1,nspecies
 ! compute the density in spherical coordinates
     call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rbshtvr,lmmaxvr,rhomt(:,:,ias), &
      lmmaxvr,0.d0,rho,lmmaxvr)
-    !if (associated(input%groundstate%spin).and.(xctype(1).ne.408)) then
     if (associated(input%groundstate%spin)) then
 !------------------------!
 !     spin-polarised     !
 !------------------------!
-write(*,*) "Hello22"
 ! magnetisation in spherical coordinates
       do idm=1,ndmag
         call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rbshtvr,lmmaxvr, &
@@ -129,7 +113,6 @@ write(*,*) "Hello22"
       if (ncmag) then
         bext(:)=input%groundstate%spin%bfieldc(:)+&
          &input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(:)
-write(*,*) "Hello23"
 ! non-collinear (use Kubler's trick)
         do i=1,n
 ! compute rhoup=(rho+sgn(m.B_ext)|m|)/2 and rhodn=(rho-sgn(m.B_ext)|m|)/2
@@ -142,7 +125,6 @@ write(*,*) "Hello23"
           rhodn(i)=0.5d0*(rho(i)-t1)
         end do
       else
-write(*,*) "Hello24"
 ! collinear
         do i=1,n
 ! compute rhoup=(rho+m_z)/2 and rhodn=(rho-m_z)/2
@@ -150,15 +132,12 @@ write(*,*) "Hello24"
           rhodn(i)=0.5d0*(rho(i)-mag(i,1))
         end do
       end if
-write(*,*) "Hello25"
 ! call the exchange-correlation interface routine
       if (xcgrad.le.0) then
         call xcifc(xctype,n=n,rhoup=rhoup,rhodn=rhodn,ex=ex,ec=ec,vxup=vxup, &
          vxdn=vxdn,vcup=vcup,vcdn=vcdn)
       else if (xcgrad.eq.1) then
-      !CECI PROBABLY YOU HAVE TO ADD HERE
         call ggamt_sp_1(is,rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho,g3up,g3dn)
-        !if (xctype(1)==408) then
         if (xctype(1)==23) then
            call xcifc(xctype,n=n,rhoup=rhoup,rhodn=rhodn,grho=grho,gup=gup, &
              gdn=gdn,g2up=g2up,g2dn=g2dn,g3rho=g3rho,g3up=g3up,g3dn=g3dn,ex=ex, &
@@ -169,25 +148,15 @@ write(*,*) "Hello25"
            vxdn=vxsrdn
            ex=exsr
         elseif (xctype(1)==408) then
-        !elseif (xctype(1)==23) then
-write(*,*) "Hello26"
            call xcifc(xctype,n=n,rhoup=rhoup,rhodn=rhodn,grho=grho,gup=gup, &
              gdn=gdn,g2up=g2up,g2dn=g2dn,g3rho=g3rho,g3up=g3up,g3dn=g3dn,ex=ex, &
              ec=ec,exsr=exsr,vxsrup=vxsrup,vxsrdn=vxsrdn,v2xsrup=v2xsrup, v2xsrdn=v2xsrdn,vxup=vxup,vxdn=vxdn,vcup=vcup,vcdn=vcdn)
-write(*,*) "Hello27"
            call gv2xmt_spin(is,ia,gup,vxsrup,v2xsrup)
            call gv2xmt_spin(is,ia,gdn,vxsrdn,v2xsrdn)
-write(*,*) "Hello28"
-           !call gv2xmt_sp(is,ia,gup,,gdn,vxsrup,vxsrdn,v2xsrup,v2xsrdn)
-           !call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho,ex=ex, &
-           !        ec=ec,exsr=exsr,vx=vx,vc=vc,vxsr=vxsr,v2xsr=v2xsr)
-           !call gv2xmt(is,ia,grho,vxsr,v2xsr)
         else
            call xcifc(xctype,n=n,rhoup=rhoup,rhodn=rhodn,grho=grho,gup=gup, &
             gdn=gdn,g2up=g2up,g2dn=g2dn,g3rho=g3rho,g3up=g3up,g3dn=g3dn,ex=ex, &
             ec=ec,vxup=vxup,vxdn=vxdn,vcup=vcup,vcdn=vcdn)
-        !  call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho,ex=ex, &
-        !           ec=ec,vx=vx,vc=vc)
         endif
       else if (xcgrad.eq.2) then
         call ggamt_sp_2a(is,rhoup,rhodn,g2up,g2dn,gvup,gvdn,gup2,gdn2,gupdn)
@@ -198,10 +167,8 @@ write(*,*) "Hello28"
         call ggamt_sp_2b(is,g2up,g2dn,gvup,gvdn,vxup,vxdn,vcup,vcdn,dxdgu2, &
          dxdgd2,dxdgud,dcdgu2,dcdgd2,dcdgud)
       end if
-write(*,*) "Hello26"
       if (ncmag) then
 ! non-collinear: locally spin rotate the exchange-correlation potential
-        !!CECI ALSO HERE
         do i=1,n
           if (xctype(1).eq.100) then
             t1=vxup(i)+ec_coef*vcup(i)
@@ -209,7 +176,6 @@ write(*,*) "Hello26"
           elseif (xctype(1)==408) then !HSE
             t1=vcup(i)+vxup(i)-ex_coef*vxsrup(i)
             t2=vcdn(i)+vxdn(i)-ex_coef*vxsrdn(i)
-            !vxc(1:n)=vc(1:n)+vx(1:n)-ex_coef*vxsr(1:n)     
           else
             t1=(1-ex_coef)*vxup(i)+ec_coef*vcup(i)
             t2=(1-ex_coef)*vxdn(i)+ec_coef*vcdn(i)
@@ -222,7 +188,6 @@ write(*,*) "Hello26"
           bxc(i,1:3)=mag(i,1:3)*t4
         end do
       else
-write(*,*) "Hello27"
 ! collinear
         do i=1,n
           if (xctype(1).eq.100) then
@@ -239,23 +204,19 @@ write(*,*) "Hello27"
           bxc(i,1)=0.5d0*(t1-t2)
         end do
       end if
-write(*,*) "Hello27"
 ! convert field to spherical harmonics
       do idm=1,ndmag
         call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,bxc(:,idm), &
          lmmaxvr,0.d0,bxcmt(:,:,ias,idm),lmmaxvr)
       end do
-write(*,*) "Hello28"
     else
 !--------------------------!
 !     spin-unpolarised     !
 !-------------------------!
-write(*,*) "Hello29"
       if (xcgrad.le.0) then
         call xcifc(xctype,n=n,rho=rho,ex=ex,ec=ec,vx=vx,vc=vc)
       else if (xcgrad.eq.1) then
         call ggamt_1(is,ia,grho,g2rho,g3rho)
-write(*,*) "Hello30"
         if (xctype(1)==23) then
            call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho,ex=ex, &
                    ec=ec,exsr=exsr,vx=vx,vc=vc,vxsr=vxsr,v2xsr=v2xsr)
@@ -263,12 +224,9 @@ write(*,*) "Hello30"
            vx=vxsr
            ex=exsr 
         elseif (xctype(1)==408) then
-write(*,*) "I am her"
            call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho,ex=ex, &
                    ec=ec,exsr=exsr,vx=vx,vc=vc,vxsr=vxsr,v2xsr=v2xsr)
-write(*,*) "Hello30"
            call gv2xmt(is,ia,grho,vxsr,v2xsr)
-write(*,*) "Hello30"
         else
            call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho,ex=ex, &
                    ec=ec,vx=vx,vc=vc)
@@ -289,7 +247,6 @@ write(*,*) "Hello30"
     end if
 
 
-!CECIIII ebfi of the first part
     if ((xctype(1).ne.100).and.(xctype(1).ne.408)) then 
        ex(1:n) = (1.d0-ex_coef)*ex(1:n)
     elseif (xctype(1)==408) then !HSE
@@ -303,23 +260,13 @@ write(*,*) "Hello30"
                0.d0,ecmt(:,:,ias),lmmaxvr)
     call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,vxc,lmmaxvr, &
                 0.d0,vxcmt(:,:,ias),lmmaxvr)
-    !if (xctype(1)==408) then
-    !  write(*,*) "ex=", ex
-    !  write(*,*) "ec=", ec
-    !  write(*,*) "vxc=", vxc
-    !  stop
-    !endif
-
   end do
 end do
 !------------------------------------------!
 !     interstitial potential and field     !
 !------------------------------------------!
-write(*,*) "Hello30"
 
-!if (associated(input%groundstate%spin).and.(xctype(1).ne.408)) then
 if (associated(input%groundstate%spin)) then
-write(*,*) "Hello28"
   !------------------------!
   !     spin-polarised     !
   !------------------------!
@@ -350,7 +297,6 @@ write(*,*) "Hello28"
   else if (xcgrad.eq.1) then
     call ggair_sp_1(rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho,g3up,g3dn)
     if (xctype(1)==23)  then
-    !if (xctype(1)==408)  then
        call xcifc(xctype,n=ngrtot,rhoup=rhoup,rhodn=rhodn,grho=grho,gup=gup, &
     &          gdn=gdn,g2up=g2up,g2dn=g2dn,g3rho=g3rho,g3up=g3up,g3dn=g3dn,ex=exir, &
     &          ec=ecir,exsr=exsr,vxsrup=vxsrup,vxsrdn=vxsrdn,v2xsrup=v2xsrup,v2xsrdn=v2xsrdn,vxup=vxup,vxdn=vxdn,vcup=vcup,vcdn=vcdn)
@@ -360,8 +306,6 @@ write(*,*) "Hello28"
        vxdn=vxsrdn
        exir=exsr
     elseif (xctype(1)==408)  then
-    !elseif (xctype(1)==23)  then
-
        call xcifc(xctype,n=ngrtot,rhoup=rhoup,rhodn=rhodn,grho=grho,gup=gup, &
     &          gdn=gdn,g2up=g2up,g2dn=g2dn,g3rho=g3rho,g3up=g3up,g3dn=g3dn,ex=exir, &
     &          ec=ecir,exsr=exsr,vxsrup=vxsrup,vxsrdn=vxsrdn,v2xsrup=v2xsrup,v2xsrdn=v2xsrdn,vxup=vxup,vxdn=vxdn,vcup=vcup,vcdn=vcdn)
@@ -391,7 +335,6 @@ write(*,*) "Hello28"
       elseif (xctype(1)==408) then !HSE
         t1=vcup(ir)+vxup(ir)-ex_coef*vxsrup(ir)
         t2=vcdn(ir)+vxdn(ir)-ex_coef*vxsrdn(ir)
-        !vxc(1:n)=vc(1:n)+vx(1:n)-ex_coef*vxsr(1:n)     
       else
         t1 = (1.d0-ex_coef)*vxup(ir)+ec_coef*vcup(ir)
         t2 = (1.d0-ex_coef)*vxdn(ir)+ec_coef*vcdn(ir)
@@ -412,7 +355,6 @@ write(*,*) "Hello28"
       elseif (xctype(1)==408) then !HSE
         t1=vcup(ir)+vxup(ir)-ex_coef*vxsrup(ir)
         t2=vcdn(ir)+vxdn(ir)-ex_coef*vxsrdn(ir)
-        !vxc(1:n)=vc(1:n)+vx(1:n)-ex_coef*vxsr(1:n)     
       else
         t1 = (1.d0-ex_coef)*vxup(ir)+ec_coef*vcup(ir)
         t2 = (1.d0-ex_coef)*vxdn(ir)+ec_coef*vcdn(ir)
@@ -444,7 +386,6 @@ else
        vx=vxsr
        exir=exsr
     elseif (xctype(1)==408)  then
-write(*,*) "ceci her2"
 
        call xcifc(xctype,n=ngrtot,rho=rhoir,grho=grho,g2rho=g2rho,g3rho=g3rho, ex=exir,&
              ec=ecir,exsr=exsr,vx=vx,vc=vc,vxsr=vxsr,v2xsr=v2xsr)
@@ -493,6 +434,7 @@ if (associated(input%groundstate%spin)) then
   deallocate(rhoup,rhodn,vxup,vxdn,vcup,vcdn)
   if (xcgrad.eq.1) then
     deallocate(grho,gup,gdn,g2up,g2dn,g3rho,g3up,g3dn)
+    if (xctype(1).eq.23 .or. xctype(1).eq.408) deallocate(exsr,vxsrup,vxsrdn,v2xsrup,v2xsrdn)
   else if (xcgrad.eq.2) then
     deallocate(g2up,g2dn)
     deallocate(gvup,gvdn)
@@ -510,11 +452,6 @@ else
     deallocate(dxdg2,dcdg2)
   end if
 end if
-      !write(*,*) "ex=", exir
-      !write(*,*) "ec=", ecir
-      !write(*,*) "vxc=", vxcir
-      !stop
-
 return
 end subroutine
 !EOC

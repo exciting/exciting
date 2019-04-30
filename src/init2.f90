@@ -353,7 +353,6 @@ Subroutine init2
 ! read density and potentials from file (STATE.OUT) exclusively
       isreadstate0 = .True.
       If (hybridhf) Then
-!CECI look here
 ! in case of HF hybrids read PBE potential
             isreadstate0 = .false. 
             filex=filext

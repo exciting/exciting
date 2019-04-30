@@ -65,19 +65,12 @@ subroutine calc_vxnl()
     vxnl(:,:,:) = zzero
 
     ! VB / CB state index
-    !write(*,*) shape(evalsv), shape(evecsv) 
-     !evalsv=0.d0
     call find_vbm_cbm(1,nstfv,nkpt,evalfv,efermi,nomax,numin,ikvbm,ikcbm,ikvcm)
-    !write(*,*) "Ceci vxnl nstsv, nkpt, evalsv,efermi,nomax,numin,ikvbm,ikcbm,ikvcm",nstfv,nkpt,evalsv,efermi,nomax,numin,ikvbm,ikcbm,ikvcm 
     if (rank==0) then
       write(fgw,'(a,i4)') " Band index of VBM:", nomax
       write(fgw,'(a,i4)') " Band index of CBM:", numin
       write(fgw,*)
     end if
-    !if (isspinorb()) then
-    !   nomax=nomax/2
-    !   numin=(numin+1)/2
-    !endif
     ! BZ integration weights
     call kintw
 
@@ -92,7 +85,6 @@ subroutine calc_vxnl()
     end if
     nmdim = nstfv*mdim
 
-    !write(*,*) "Ceci vxnl nstfv, nmdim, mdim, nomax, ncg", nstfv, nmdim, mdim, nomax, ncg
     allocate(eveckalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveck(nmatmax,nstfv))
@@ -105,7 +97,6 @@ subroutine calc_vxnl()
       !---------------------------------------
       ! Integration over BZ
       !---------------------------------------
-      !CECI
       do iq = 1, kqset%nkpt
           
         Gamma = gammapoint(kqset%vqc(:,iq))
@@ -114,12 +105,10 @@ subroutine calc_vxnl()
         matsiz = locmatsiz+Gqset%ngk(1,iq)
         call diagsgi(iq)
         call calcmpwipw(iq)
-        write(*,*) "test1"
         !------------------------------------               
         ! Calculate the bare Coulomb matrix
         !------------------------------------
         call calcbarcmb(iq)
-        write(*,*) "test2"
         
         if (vccut .or. xctype(1)==408) then
            sxs2 = 0.d0
@@ -142,7 +131,6 @@ subroutine calc_vxnl()
            !----------------------------------------
            call setbarcev(0.d0)
         end if
-        write(*,*) "test3"
 
         !------------------------------------------------------------
         ! Calculate the M^i_{nm}(k,q) matrix elements for given k and q
@@ -151,23 +139,17 @@ subroutine calc_vxnl()
         ik  = kset%ikp2ik(ikp)
         jk  = kqset%kqid(ik,iq)
         ! k-q vector 
-        write(*,*) "test4"
         call getevecfv(kqset%vkl(:,jk),Gkset%vgkl(:,:,:,jk),eveck)
         eveckp = conjg(eveck)
         ! k vector
         call getevecfv(kqset%vkl(:,ik),Gkset%vgkl(:,:,:,ik),eveck)
-        write(*,*) "test5"
         
         call expand_evec(ik,'t')
-        write(*,*) "test6"
         call expand_evec(jk,'c')
-        write(*,*) "test6"
 
         ! M^i_{nm}+M^i_{cm}
         allocate(minmmat(mbsiz,nstfv,1:mdim))
         minmmat(:,:,:) = zzero
-        !CECI all the time
-        write(*,*) "test6"
         call expand_products(ik,iq,1,nstfv,-1,1,mdim,nomax,minmmat)
         call delete_coulomb_potential
         do ie1 = 1, nstfv

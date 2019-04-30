@@ -50,21 +50,17 @@ subroutine scf_cycle(verbosity)
 
 !_______________________________________________________________
 ! initialise or read the charge density and potentials from file
-   write(*,*) "Hello1"
 
 !! TIME - Begin of initialisation segment 
     Call timesec (ts0)
-!    maxscl_test=input%groundstate%maxscl 
     If (((task .Eq. 1) .Or. (task .Eq. 3)).and.(.not.associated(input%groundstate%Hybrid))) Then
         Call readstate
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Potential read in from STATE.OUT")')
     Else If ((task .Eq. 1) .and. associated(input%groundstate%Hybrid)) Then
-    !    ! restart from previous hybrids iteration
-!        inquire(File='VNLMAT.OUT', Exist=exist)  !do we need this??? I do not think so
-!        if (exist) maxscl_test=1
+       !restart from previous hybrids iteration
         continue    
     else if (task==7) then
- !       if (ihyb==0) maxscl_test=1
+       !hybrids iteration
         continue
     Else If (task .Eq. 200) Then
         Call phveff
@@ -75,11 +71,8 @@ subroutine scf_cycle(verbosity)
         Call timesec(tin1)
         time_density_init=tin1-tin0
         Call timesec(tin0)
-   write(*,*) "Hello2"
         Call poteff
-   write(*,*) "Hello3"
         Call genveffig
-   write(*,*) "Hello4"
         Call timesec(tin1)
         time_pot_init=tin1-tin0
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Density and potential initialised from atomic data")')
@@ -144,9 +137,6 @@ subroutine scf_cycle(verbosity)
     tstop = .False.
     engytot = 0.d0
     fm = 0.d0
- !Added from CECi
- Call energy
- call writeengy(60)
 ! delete any existing eigenvector files
     If ((rank .Eq. 0) .And. ((task .Eq. 0) .Or. (task .Eq. 2))) Call delevec
 
@@ -156,8 +146,6 @@ subroutine scf_cycle(verbosity)
 ! begin the self-consistent loop
 !----------------------------------------!
     Do iscl = 1, input%groundstate%maxscl
-!    Do iscl = 1, maxscl_test
-!    Do iscl = 1, input%groundstate%maxscl-1 !CECI
 !
 ! exit self-consistent loop if last iteration is complete
         if (tlast) then

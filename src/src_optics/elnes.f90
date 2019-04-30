@@ -37,7 +37,6 @@ Subroutine elnes
 ! read in the density and potentials from file
         If (associated(input%groundstate%Hybrid)) Then
            If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
-!CECI look here
 ! in case of HF hybrids use PBE potential
             string=filext
             filext='_PBE.OUT'

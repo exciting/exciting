@@ -35,16 +35,10 @@ Subroutine poteff_soc(veffmt_pbe)
 !---------------------------------------------
 ! compute the exchange-correlation potential
 !---------------------------------------------
-      write(*,*) "Hello11"
       ex_coef = 0.d0
       ec_coef = 1.d0
-      if (xctype(1)==408) then
-         xctype(1) = 20
-         flag=.true.
-      end if
       
       Call potxc
-      write(*,*) "Hello12"
       call potcoul
       shift=input%groundstate%energyref
 
@@ -53,9 +47,7 @@ Subroutine poteff_soc(veffmt_pbe)
 !----------------------------------------------------------
       
       ! muffin-tin part
-      write(*,*) "Hello13"
       vclmt(1,:,:) = vclmt(1,:,:)+shift/y00
-      write(*,*) "Hello14"
       Do is = 1, nspecies
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
@@ -63,7 +55,6 @@ Subroutine poteff_soc(veffmt_pbe)
             Do ir = 1, nrmt (is)
                If (ir .Gt. nrmtinr(is)) lmmax = lmmaxvr
                Do lm = 1, lmmax
-                  write(*,*) "Hello15"
                   veffmt_pbe(lm,ir,ias) = vclmt(lm,ir,ias) + vxcmt(lm,ir,ias)
                End Do
                Do lm = lmmax + 1, lmmaxvr
@@ -72,11 +63,8 @@ Subroutine poteff_soc(veffmt_pbe)
             End Do
          End Do
       End Do
-      write(*,*) "Hello14"
-      if (flag) xctype(1) = 408                    
       ex_coef = input%groundstate%Hybrid%excoeff  
       ec_coef = input%groundstate%Hybrid%eccoeff  
-!      Call potxc
       Return
 End Subroutine
 

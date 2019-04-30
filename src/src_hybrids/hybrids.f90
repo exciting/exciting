@@ -132,8 +132,7 @@ Subroutine hybrids
     !----------------------
     if (task==1) then
 
-      !inquire(File='STATE_PBE.OUT', Exist=exist)  !do we need this??? I do not think so
-      inquire(File='VNLMAT.OUT', Exist=exist)  !do we need this??? I do not think so
+      inquire(File='VNLMAT.OUT', Exist=exist)  
       
       if (exist) then
 
@@ -146,18 +145,6 @@ Subroutine hybrids
         filext = '_PBE.OUT'
         call readstate
         filext = string
-        ! generate radial functions
-        !call gencore
-        !call linengy
-        !call genapwfr
-        !call genlofr
-        !call olprad
-
-       !If (rank==0) Then
-       !     write(string,'("Start restart hybrids")')
-       !     call printbox(60,"+",string)
-       !     Call flushifc(60)
-       ! End If
         If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
             write(string,'("Restart SCF with PBE")')
             call printbox(60,"+",string)
@@ -212,10 +199,6 @@ Subroutine hybrids
         call getvnlmat
         call timesec(ts1)
 
-        !if (rank==0) then
-        !    call write_cputime(60,ts1-ts0, 'Restart')
-        !    write(60,*)
-        !end if    
         time_hyb = time_hyb+ts1-ts0
         call scf_cycle(-1)
         If (rank==0) Then
@@ -318,27 +301,19 @@ Subroutine hybrids
        if (rank==0) write(fgw,*) 'vxnl=', sum(vxnl)
        call timesec(ts1)
        If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
-       !if (rank==0) then
            write(60, '(" CPU time for vxnl (seconds)",T45 ": ", F12.2)') ts1-ts0
        end if
        !------------------------------------------
        call timesec(ts0)
-       !write(*,*) "before vnlmat"
        call calc_vnlmat
-       !write(*,*) "after vnlmat"
        if (rank==0) write(fgw,*) 'vnlmat=', sum(vnlmat)
        call timesec(ts1)
        If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
-       !if (rank==0) then
            write(60, '(" CPU time for vnlmat (seconds)",T45 ": ", F12.2)') ts1-ts0
            write(60,*)
        end if
        !------------------------------------------
        if (input%groundstate%Hybrid%savepotential) call writevnlmat
-       write(*,*) input%groundstate%Hybrid%savepotential
-        !do ik = 1, nkpt
-        !  write(*,*) "writevnlmat ik=", ik, sum(vnlmat(:,:,ik))
-        !end do
        time_hyb = time_hyb+ts1-ts0
        
         
@@ -483,9 +458,6 @@ Subroutine hybrids
     Inquire (IoLength=Recl) kset%nkpt, nstsv, kset%vkl(:,1), evalsv(:,1)
     Open(70, File='EVALHF.OUT', Action='WRITE', Form='UNFORMATTED', &
     &    Access='DIRECT', status='REPLACE', Recl=Recl)
-    ! do ik = 1, kset%nkpt
-    !    write(70, Rec=ik) kset%nkpt, nstsv, kset%vkl(:,ik), evalsv(:,ik)
-    ! end do ! ik
     do ik = 1, kqset%nkpt
        write(70, Rec=ik) kqset%nkpt, nstsv, kqset%vkl(:,ik), evalsv(:,kset%ik2ikp(ik))
     end do ! ik

@@ -56,7 +56,6 @@ subroutine getvnlmat()
       if ((ik >= ikfirst).and.(ik <= iklast)) then
         read(70, Rec=ik) nkpt_, nmatmax_, vnlmat(:,:,ik)
       end if
-      !CECI
       read(70, Rec=nkpt+1) exnl
       call barrier
     end do ! ik

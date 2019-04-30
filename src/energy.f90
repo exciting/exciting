@@ -236,8 +236,6 @@ endif
        End If 
 ! Hybrids
       if (associated(input%groundstate%Hybrid)) then
-        !if ((input%groundstate%Hybrid%exchangetypenumber==1).and.(ihyb>0)) then CECI
-        !if ((input%groundstate%Hybrid%exchangetypenumber==1).and.((ihyb==1 .and. hyb0==1).or.ihyb>1)) then
         if ((input%groundstate%Hybrid%exchangetypenumber==1).and. task==7) then
            engyx = engyx + ex_coef*exnl
         end if
@@ -251,8 +249,6 @@ endif
       If ((task .Eq. 5) .Or. (task .Eq. 6)) engyc = 0.d0
 ! Hybrids
       if (associated(input%groundstate%Hybrid)) then
-        !if ((input%groundstate%Hybrid%exchangetypenumber==1).and.(ihyb>0)) then CECI
-        !if ((input%groundstate%Hybrid%exchangetypenumber==1).and.((ihyb==1 .and. hyb0==1).or.ihyb>1)) then
         if ((input%groundstate%Hybrid%exchangetypenumber==1).and.task==7) then
            engyc = ec_coef*engyc
         end if
@@ -322,7 +318,7 @@ endif
         End Do
         Deallocate (evecsv, c)
         
-      else if (associated(input%groundstate%Hybrid)) then    !CECI I DO NOT REALLY LIKE THIS: if we do not insert the hybrid part, the code compute the kinetick eneergy without including the new kinetic energy
+      else if (associated(input%groundstate%Hybrid)) then   
         !------------------
         ! HF-based hybrids
         !------------------

@@ -64,7 +64,6 @@ subroutine calcbarcmb_pw(iq)
         
       else
         ! no cutoff
-        !CECI this is the 3d
         if (xctype(1)==408) then
            exp_omega=exp(-gpq2/(4.d0*omega2)) 
            vc = ((4.0d0*pi)/gpq2)*(1.d0-exp_omega)

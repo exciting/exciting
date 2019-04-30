@@ -90,8 +90,6 @@ real(8), optional, intent(out) :: ec(*)
 real(8), optional, intent(out) :: vx(*)
 real(8), optional, intent(out) :: vc(*)
 real(8), optional, intent(out) :: exsr(*)
-!real(8), optional, intent(out) :: exsrup(*)
-!real(8), optional, intent(out) :: exsrdn(*)
 real(8), optional, intent(out) :: vxsr(*)
 real(8), optional, intent(out) :: vxsrup(*)
 real(8), optional, intent(out) :: vxsrdn(*)
@@ -122,12 +120,12 @@ integer :: iflag, i
 !variable for HSE
 real(8), allocatable:: exsrup(:), exsrdn(:)
 real(8) :: t1
-!Ceci added for hse
+
 if (allocated(exsrup)) deallocate(exsrup)
 allocate(exsrup(n))
-exsrup(1:n)=0.d0
 if (allocated(exsrdn)) deallocate(exsrdn)
 allocate(exsrdn(n))
+exsrup(1:n)=0.d0
 exsrup(1:n)=0.d0
 if (n.le.0) then
   write(*,*)
@@ -138,7 +136,6 @@ end if
 #ifdef DEBUGLIBXC
 write(*,*)"(xcifc)xctype:", xctype
 #endif
-write(*,*) "Ceci1"
 select case(abs(xctype(1)))
 case(1)
 ! No density-derived exchange-correlation energy or potential
@@ -147,8 +144,6 @@ case(1)
   if (present(vx)) vx(1:n)=0.d0
   if (present(vc)) vc(1:n)=0.d0
   if (present(exsr)) exsr(1:n)=0.d0
- ! if (present(exsrup)) exsrup(1:n)=0.d0
- ! if (present(exsrdn)) exsrdn(1:n)=0.d0
   if (present(vxsr)) vxsr(1:n)=0.d0
   if (present(vxsrup)) vxup(1:n)=0.d0
   if (present(vxsrdn)) vxdn(1:n)=0.d0
@@ -218,9 +213,7 @@ case(5)
   else
     goto 10
   end if
-!CECI look here, do you need to add type 408?
 case(20,21,22,300,406,408,23)
-write(*,*) "Case1"
 ! original PBE kappa
   kappa=0.804d0
   if (xctype(1).eq.21) then
@@ -248,10 +241,7 @@ write(*,*) "Case1"
    .and.present(g3up).and.present(g3dn).and.present(ex).and.present(ec) &
    .and.present(vxup).and.present(vxdn).and.present(vcup) &
    .and.present(vcdn)) then
-   write(*,*) "case2"
-    !if (xctype(1)==408) then
     if (xctype(1)==23) then
-       !omega_hyb=0.106d0 !CECI test
        omega_hyb=0.000001d0 !CECI test
        call gga_x_wpbeh_spin(n,rhoup,gup,exsrup,vxsrup,v2xsrup,omega_hyb)
        call gga_x_wpbeh_spin(n,rhodn,gdn,exsrdn,vxsrdn,v2xsrdn,omega_hyb)
@@ -267,7 +257,6 @@ write(*,*) "Case1"
        ex(1:n)=0.d0
        vxup(1:n)=0.d0
        vxdn(1:n)=0.d0
-  !  else if (xctype(1)==23) then
     else if (xctype(1)==408) then
        omega_hyb=input%groundstate%Hybrid%omega
        call gga_x_wpbeh_spin(n,rhoup,gup,exsrup,vxsrup,v2xsrup,omega_hyb)
@@ -282,16 +271,11 @@ write(*,*) "Case1"
        call xc_pbe(n,kappa,mu,beta,rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho,g3up, &
        g3dn,ex,ec,vxup,vxdn,vcup,vcdn)
     endif
-   write(*,*) "case3"
 
   else if (present(rho).and.present(grho).and.present(g2rho) &
    .and.present(g3rho).and.present(ex).and.present(ec).and.present(vx) &
    .and.present(vc)) then
-   write(*,*) "case"
-! IF added by CECI for hybrid
-    !if (xctype(1)==408 .or. xctype(1)==23) then !CECI:test
     if (xctype(1)==23) then
-       !omega_hyb=0.106d0 !CECI test
        omega_hyb=0.00000001d0 !CECI test
        call gga_x_wpbeh(n,rho,grho,exsr,vxsr,v2xsr,omega_hyb)
        allocate(ra(n,6))
@@ -326,8 +310,7 @@ write(*,*) "Case1"
        deallocate(ra)
      endif
   else
-   write(*,*) "case333"
-    
+
     goto 10
   end if
 case(26)
@@ -478,7 +461,6 @@ case(300)
   xcgrad=1
 case(406)
   xcdescr='PBE0, M. Ernzerhof, G. E. Scuseria, J. Chem. Phys. 110 , 5029 (1999)'
-  !xcspin=0 !CECI
   xcspin=1
   xcgrad=1
 case(407)
@@ -487,7 +469,6 @@ case(407)
   xcgrad=0
 case(408)
   xcdescr='HSE, Jochen Heyd; Gustavo E. Scuseria; Matthias Ernzerhof, J. Chem. Phys. 118, 8207 (2003)'
-  !xcspin=0 !CECI
   xcspin=1
   xcgrad=1
 case(100)

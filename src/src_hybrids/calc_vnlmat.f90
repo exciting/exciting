@@ -42,29 +42,22 @@ subroutine calc_vnlmat
     if (allocated(vnlmat)) deallocate(vnlmat)
     allocate(vnlmat(nmatmax,nmatmax,ikfirst:iklast))
     vnlmat(:,:,:) = zzero
-    write(*,*) "check1"    
     allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv))
     allocate(evec(nmatmax,nstfv))
 
-    write(*,*) "check2"    
     do ik = ikfirst, iklast
 
         ! matching coefficients
         call match(ngk(1,ik),gkc(:,1,ik),tpgkc(:,:,1,ik), &
         &          sfacgk(:,:,1,ik),apwalm(:,:,:,:,1))
-        write(*,*) "check3"    
-        !write(*,*) 'apwalm=', ik, sum(apwalm)
             
         ! Hamiltonian and overlap setup 
         nmatp = nmat(1,ik)
         call newsystem(system,input%groundstate%solver%packedmatrixstorage,nmatp)
-        write(*,*) "check4"    
         call hamiltonandoverlapsetup(system,ngk(1,ik),apwalm, &
         &                            igkig(:,1,ik),vgkc(:,:,1,ik))
-        !write(*,*) 'overlap=', ik, sum(system%overlap%za)
 
         ! S
-        write(*,*) "check5"    
         if (input%gw%debug.and.(rank==0)) then
             call linmsg(fgw,'-',' Overlap ')
             do ie1 = 1, nmatp, 100
@@ -72,11 +65,9 @@ subroutine calc_vnlmat
             end do
             call linmsg(fgw,'-','')
         end if
-        write(*,*) "check6"    
         
         ! c
         call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evec)
-        !write(*,*) 'evec=', ik, sum(evec(1:nmatp,:))
         
         if (input%gw%debug.and.(rank==0)) then
             call linmsg(fgw,'-',' EvecFV ')
@@ -91,7 +82,6 @@ subroutine calc_vnlmat
         &          zone,evec(1:nmatp,:),nmatp, &
         &          system%overlap%za,nmatp, &
         &          zzero,temp,nstfv)
-        !write(*,*) 'temp=', ik, sum(temp)
 
         ! Vnl*conjg(c)*S    
         allocate(temp1(nstfv,nmatp))
@@ -99,14 +89,12 @@ subroutine calc_vnlmat
         &          zone,vxnl(:,:,ik),nstfv, &
         &          temp,nstfv,zzero, &
         &          temp1,nstfv)
-        !write(*,*) 'temp1=', ik, sum(temp1)
 
         ! V^{NL}_{GG'} = conjg[conjg(c)*S]*Vx*conjg(c)*S
         call zgemm('c','n',nmatp,nmatp,nstfv, &
         &          zone,temp,nstfv, &
         &          temp1,nstfv,zzero, &
         &          vnlmat(1:nmatp,1:nmatp,ik),nmatp)
-        !write(*,*) 'vnlmat=', ik, sum(vnlmat(:,:,ik))
             
         if (input%gw%debug.and.(rank==0)) then
             call linmsg(fgw,'-',' Vx_NL_GG ')

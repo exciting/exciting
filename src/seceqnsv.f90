@@ -22,7 +22,6 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Use mod_spin, only: ncmag, nspinor, ndmag
       Use mod_eigenvalue_occupancy, only: nstfv, nstsv, evalsv
       Use mod_APW_LO, only: apwordmax
-      Use mod_hybrids, only: ihyb,hyb0, bxnl
       Use mod_timing, only: timesv
       Use mod_misc, only: task
       Implicit None
@@ -70,30 +69,11 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       External zdotc, zfmtinp
       
       if (allocated(veffmt_pbe)) deallocate(veffmt_pbe)
-      write(*,*) lmmaxvr, nrmtmax, natmtot
       allocate(veffmt_pbe(lmmaxvr,nrmtmax,natmtot))     
-      write(*,*) "Ceci seceq"
       If(associated(input%groundstate%Hybrid).and.task==7) then
           call poteff_soc(veffmt_pbe)
       endif
-!Compute the effective potential with PBE for the soc
-!     If (isspinorb()) then
-!         If(associated(input%groundstate%Hybrid).and.task==7) then
-!            ex_coef = 0.d0
-!            ec_coef = 1.d0
-!           ! for Libxc use PBE from Libxc
-!            xctype_ = xctype
-!            xctype = (/100, 101, 130/)
-!            call poteff()
-!!            task = 7 ! <-- hybrids switcher
-!            if (xctype(1) == 100) then
-!               xctype = xctype_
-!            end if
-!            ex_coef = input%groundstate%Hybrid%excoeff
-!            ec_coef = input%groundstate%Hybrid%eccoeff
-!          endif
-!      endif
-write(*,*) "Ceci seceq"
+
 ! spin-unpolarised case
       If (( .Not. associated(input%groundstate%spin)) .And. (ldapu .Eq. &
      & 0)) Then
@@ -108,7 +88,7 @@ write(*,*) "Ceci seceq"
       End If
 ! number of spin combinations after application of Hamiltonian
       If (associated(input%groundstate%spin)) Then
-         If ((ncmag) .Or. (isspinorb())) Then   !CECI, I do not understand this condition because if isspinor()=true -> ncmag=true
+         If ((ncmag) .Or. (isspinorb())) Then 
             nsc = 3
          Else
             nsc = 2
@@ -153,7 +133,6 @@ write(*,*) "Ceci seceq"
                         Call dgemv ('N', lmmaxvr, lmmaxvr, 1.d0, &
                        & rbshtvr, lmmaxvr, bxcmt(:, ir, ias, i), 1, &
                        & 0.d0, bmt(:, irc, i), 1)
-                       !CECI: I think I go here but everythinh is zero, 3 direction, the next one is only one
                      End Do
                   End Do
                Else
@@ -175,13 +154,12 @@ write(*,*) "Ceci seceq"
                   Do i = 1, 3
                      bmt (:, irc, i) = bmt (:, irc, i) + ga4 * &
                     & (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(i)+input%groundstate%spin%bfieldc(i))
-                       !CECI: I think it will be still zero because no magnetic field
                   End Do
                End Do
                call timesec(td)
 !               write(*,*) td-tc
 ! spin-orbit radial function
-               If (isspinorb()) Then  !CECI: THIS IS THE IMPORTAT PART FOR SOC
+               If (isspinorb()) Then  
                   If(associated(input%groundstate%Hybrid).and.task==7) then
                     vr (1:nrmt(is)) = veffmt_pbe (1, 1:nrmt(is), ias) * y00
                   else

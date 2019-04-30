@@ -8,7 +8,6 @@
 ! !ROUTINE: ggamt_1
 ! !INTERFACE:
 
-!!CECI verify that you did not change anything by mistake
 subroutine ggamt_1(is, ia, grho, g2rho, g3rho)
 ! !USES:
 use modinput

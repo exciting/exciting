@@ -85,7 +85,6 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
             ! Update Hamiltonian
             if (task == 7) system%hamilton%za(:,:) = &
             &  system%hamilton%za(:,:) + ex_coef*vnlmat(1:nmatp,1:nmatp,ik)
-           write(*,*) "Ceci: vnlmat ik=", ik, sum(vnlmat(:,:,ik))
          end if
       end if
 

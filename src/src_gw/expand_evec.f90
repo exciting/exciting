@@ -77,7 +77,6 @@
           enddo ! l1       
         enddo  !ia
       enddo !is
-        write(*,*) "test6"
       
     case ('c','C')
       do is = 1, nspecies
@@ -98,7 +97,6 @@
           enddo ! l1       
         enddo  !ia
       enddo !is
-        write(*,*) "test6"
       
     case default
       write(*,*)'ERROR in expand_evec'

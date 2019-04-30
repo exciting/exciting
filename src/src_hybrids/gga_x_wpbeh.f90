@@ -24,8 +24,6 @@
       integer i    
       REAL*8 :: RS, VX, AA, RR, EX, S2, S, DSDN, DSDG, FX, D1X, D2X
 !     ==--------------------------------------------------------------==
-      write(*,*) "Ceci22", n, shape(rho), shape(grho),shape(v1x),&
-                   shape(v2x), shape(sx)
       sx(:) = 0.0d0
       v1x(:) = 0.0d0
       v2x(:) = 0.0d0
