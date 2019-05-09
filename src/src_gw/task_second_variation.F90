@@ -1,113 +1,92 @@
 
 subroutine task_second_variation()
+
     use modmain
-    use modgw, only: evalqp, evalks, evalfv, ibgw, nbgw, kset, Gkset, &
+    use modgw, only: evalqp, evalks, evalfv, ibgw, nbgw, kset, kqset, Gkqset, &
                      eferks, eferqp
-    use mod_kpointset
+    use modmpi, only: rank
 
     implicit none
-
-    integer(4) :: ik, ib
+    integer(4) :: ikp, ik, ib
     real(8) :: egap
     complex(8), allocatable :: evecfv(:,:)
     complex(8), allocatable :: evecsv(:,:)
     complex(8), allocatable :: apwalm(:,:,:,:)
 
-    ! readjust global variables to fit the number of computed fv-QP states
-    nstfv = nbgw
-    nstsv = nstfv * nspinor
+    print*, 'nstfv, nstsv=', nstfv, nstsv
+    print*, 'ibgw, nbgw=', ibgw, nbgw
 
-    !------------------------------------
-    ! Read first-variational hamiltonian
-    !------------------------------------
+    ! ! readjust global variables to fit the number of computed fv-QP states
+    ! nstfv = nbgw ! <-- this should be consistent with nstfv from GS
+    ! nstsv = nstfv*nspinor
+
+    !---------------------
+    ! Read GW FV results
+    !---------------------
     if (allocated(evalqp)) deallocate(evalqp)
     allocate(evalqp(nstfv,kset%nkpt))
     if (allocated(evalks)) deallocate(evalks)
     allocate(evalks(nstfv,kset%nkpt))
-    call readevalqp('EVALQP.OUT')
-    if (allocated(evalfv)) deallocate(evalfv)
-    allocate(evalfv(nstfv,kset%nkpt))
-    evalfv(:,:) = evalqp(:,:)
-    ! write(*,*) eferks, eferqp
-    ! do ik = 1, kset%nkpt
-    !     write(*,*) 'ik=', ik
-    !     do ib = ibgw, nbgw
-    !         write(*,*) ib, evalks(ib,ik), evalqp(ib,ik)
-    !     end do
-    !     write(*,*)
-    ! end do
-    deallocate(evalqp)
+    call readevalqp('EVALQP.OUT', kset, ibgw, nbgw, evalks, eferks, evalqp, eferqp)
     deallocate(evalks)
 
-    if (allocated(evalsv)) deallocate(evalsv)
-    allocate(evalsv(nstsv,kset%nkpt))
-    if (allocated(occsv)) deallocate(occsv)
-    allocate(occsv(nstsv,kset%nkpt))
-    filext = "_GW.OUT"
-    do ik = 1, kset%nkpt
-        call getevalsv(kset%vkl(:,ik), evalsv(:,ik))
-        call getoccsv(kset%vkl(:,ik), occsv(:,ik))
-    end do
-    call readfermi()
-    evalsv(:,:) = evalsv(:,:)-efermi
-    efermi = 0.d0
-
-    filext = "_KS.OUT"
-    call writeeval()
-    filext = "_GW.OUT"
+    !---------------------
+    ! Read KS SV energies
+    !---------------------
+    if (allocated(evalks)) deallocate(evalks)
     allocate(evalks(nstsv,kset%nkpt))
-    evalks(:,:) = evalsv(:,:)
-    eferks = 0.d0
+    filext = "_GW.OUT"
+    do ikp = 1, kset%nkpt
+        ik = kset%ikp2ik(ikp)
+        call getevalsv(kqset%vkl(:,ik), evalks(:,ikp))
+    end do
+    ! find Fermi energy
+    call fermi_exciting(.true., &
+                        chgval, &
+                        nstsv, kset%nkpt, evalks, &
+                        kset%ntet, kset%tnodes, kset%wtet, kset%tvol, &
+                        eferks, egap, fermidos)
+    call bandstructure_analysis('KS SV', 1, nstsv, kset%nkpt, evalks, eferks)
 
     !------------------------------------
     ! Solve second-variational problem
     !------------------------------------
+    if (allocated(evalsv)) deallocate(evalsv)
+    allocate(evalsv(nstsv,kset%nkpt))
     if (allocated(evecfv)) deallocate(evecfv)
     allocate(evecfv(nmatmax,nstfv))
     if (allocated(evecsv)) deallocate(evecsv)
     allocate(evecsv(nstsv,nstsv))
     if (allocated(apwalm)) deallocate(apwalm)
     allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
-    do ik = 1, kset%nkpt
-        call match(Gkset%ngk(1,ik), &
-                   Gkset%gkc(:,1,ik), &
-                   Gkset%tpgkc(:,:,1,ik), &
-                   Gkset%sfacgk(:,:,1,ik),&
+    do ikp = 1, kset%nkpt
+        ik = kset%ikp2ik(ikp)
+        call match(Gkqset%ngk(1,ik), &
+                   Gkqset%gkc(:,1,ik), &
+                   Gkqset%tpgkc(:,:,1,ik), &
+                   Gkqset%sfacgk(:,:,1,ik),&
                    apwalm)
-        call getevecfv(kset%vkl(:,ik), Gkset%vgkl(:,:,:,ik), evecfv)
-        call seceqnsv(ik, apwalm, evalfv(:,ik), evecfv, evecsv)
+        call get_evec_gw(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
+        call seceqnsv(ikp, apwalm, evalqp(1:nstfv,ikp), evecfv, evecsv)
     end do
     deallocate(evecfv)
+    deallocate(evecsv)
     deallocate(apwalm)
 
-    call fermi_exciting(.True., &
-                        chgval, &
-                        nstsv, kset%nkpt, evalsv, &
-                        kset%ntet, kset%tnodes, kset%wtet, kset%tvol, &
-                        efermi, egap, fermidos)
-    call tetiw(kset%nkpt, kset%ntet, nstsv, evalsv, kset%tnodes, &
-               kset%wtet, kset%tvol, efermi, occsv)
-    do ik = 1, kset%nkpt
-      do ib = 1, nstsv
-        occsv(ib,ik) = dble(occmax)/kset%wkpt(ik)*occsv(ib,ik)
-      end do
-    end do
-
-    ! write out the second-variational eigenvalues and occupation numbers
-    filext = "_QP.OUT"
-    call writeeval()
-    filext = "_GW.OUT"
-
-    nbgw = nstsv
+    ! QP energies
+    if (allocated(evalqp)) deallocate(evalqp)
     allocate(evalqp(nstsv,kset%nkpt))
     evalqp(:,:) = evalsv(:,:)
-    eferqp = efermi
+    deallocate(evalsv)
+    call fermi_exciting(.true., &
+                        chgval, &
+                        nstsv, kset%nkpt, evalqp, &
+                        kset%ntet, kset%tnodes, kset%wtet, kset%tvol, &
+                        eferqp, egap, fermidos)
+    call bandstructure_analysis('QP SV', 1, nstsv, kset%nkpt, evalqp, eferqp)
 
     ! store the eigenvalues to a file for bandstructure plot
-    call putevalqp('EVALQPSV.OUT')
-
-    call bandstructure_analysis('KS', 1, nstsv, kset%nkpt, evalks, eferks)
-    call bandstructure_analysis('QP', 1, nstsv, kset%nkpt, evalqp, eferqp)
+    call putevalqp('EVALQPSV.OUT', kset, 1, nstsv, evalks, eferks, evalqp, eferqp)
 
     deallocate(evalks)
     deallocate(evalqp)

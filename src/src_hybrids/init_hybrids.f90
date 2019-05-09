@@ -3,12 +3,13 @@ subroutine init_hybrids()
     use modinput
     use modgw
     use modmpi, only : rank
-    use mod_mpi_gw
+    ! use mod_mpi_gw, only: myrank
     implicit none
     integer :: lmax, ik
 
     ! initialize GW MPI environment
-    call init_mpi_gw
+    ! myrank = rank
+    ! call init_mpi_gw
 
 !---------------------------------------
 ! MB parameters are taken from GW
@@ -30,7 +31,7 @@ subroutine init_hybrids()
 
 !---------------------------------------
 ! print out information on MB to INFO.OUT
-!--------------------------------------- 
+!---------------------------------------
 
     ! Hartree-Fock related debugging info
     fgw = 600
@@ -54,7 +55,7 @@ subroutine init_hybrids()
     end if
 
 !---------------------------------------------------------
-! Intialize auxiliary arrays used further for convenience    
+! Intialize auxiliary arrays used further for convenience
 !---------------------------------------------------------
     call init_misc_gw
 
@@ -65,20 +66,19 @@ subroutine init_hybrids()
     input%gw%vqloff  = input%groundstate%vkloff
     input%gw%reduceq = input%groundstate%reducek
 
-    call init_kqpoint_set
-    ! write(*,*) nkpt, kset%nkpt
-    ! do ik = 1, nkpt
-    !   write(*,'(3f8.4,4x,3f8.4)') vkl(:,ik), kset%vkl(:,ik)
-    ! end do
+    call init_kqpoint_set()
+    !write(*,*) nkpt, kset%nkpt
+    !do ik = 1, nkpt
+    !  write(*,'(3f8.4,4x,3f8.4)') vkl(:,ik), kset%vkl(:,ik)
+    !end do
 
 !--------------------------------------------------------------
 ! Calculate the integrals to treat the singularities at G+q->0
 !--------------------------------------------------------------
-    call setsingc
+    call setsingc()
 
 ! Gaunt coefficients
-    lmax = max(input%groundstate%lmaxapw+1, &
-    &          2*(input%gw%mixbasis%lmaxmb+1))
+    lmax = max(input%groundstate%lmaxapw+1, 2*(input%gw%mixbasis%lmaxmb+1))
     call calcgauntcoef(lmax)
 
     return

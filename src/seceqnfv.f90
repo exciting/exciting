@@ -22,7 +22,8 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       Use mod_potential_and_density, only: ex_coef
       Use modfvsystem
       Use mod_hybrids, only: ihyb, vnlmat
-      use m_plotmat 
+      use mod_misc, only: task
+      use m_plotmat
 !
   ! !INPUT/OUTPUT PARAMETERS:
   !   nmatp  : order of overlap and Hamiltonian matrices (in,integer)
@@ -72,37 +73,34 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       Call hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
       allocate(zm(nmatp,nmatp))
       allocate(zm2(nmatp,nstfv))
-     
+
       zm=system%overlap%za
       !write( fname, '("olp/olpcal",3I3.3)') nint( vkl( :, ik)*1000)
       !call writematlab( zm( 1:nmatp, 1:nmatp), fname)
+
   !------------------------------------------------------------------------!
   !     If Hybrid potential is used apply the non-local exchange potential !
   !------------------------------------------------------------------------!
-      if (associated(input%groundstate%Hybrid)) then
-         if (input%groundstate%Hybrid%exchangetypenumber == 1) then
-            ! Update Hamiltonian
-            if (ihyb > 0) system%hamilton%za(:,:) = &
-            &  system%hamilton%za(:,:) + ex_coef*vnlmat(1:nmatp,1:nmatp,ik)
-         end if
-      end if
+     if (task == 7) then
+        system%hamilton%za(:,:) = system%hamilton%za(:,:) + ex_coef*vnlmat(1:nmatp,1:nmatp,ik)
+     end if
 
   !------------------------------------!
   !     solve the secular equation     !
   !------------------------------------!
       Call solvewithlapack(system,nstfv,evecfv,evalfv)
-      call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
-                 'N', &           ! TRANSB = 'N'  op( B ) = B.
-                  nmatp, &          ! M ... rows of op( A ) = rows of C
-                  nstfv, &           ! N ... cols of op( B ) = cols of C
-                  nmatp, &          ! K ... cols of op( A ) = rows of op( B )
-                  zone, &          ! alpha
-                  zm, &           ! A
-                  nmatp,&           ! LDA ... leading dimension of A
-                  evecfv, &           ! B
-                  nmatmax, &          ! LDB ... leading dimension of B
-                  zzero, &          ! beta
-                  zm2, &  ! C
+      call zgemm('N', &        ! TRANSA = 'C'  op( A ) = A**H.
+                 'N', &        ! TRANSB = 'N'  op( B ) = B.
+                  nmatp, &     ! M ... rows of op( A ) = rows of C
+                  nstfv, &     ! N ... cols of op( B ) = cols of C
+                  nmatp, &     ! K ... cols of op( A ) = rows of op( B )
+                  zone, &      ! alpha
+                  zm, &        ! A
+                  nmatp,&      ! LDA ... leading dimension of A
+                  evecfv, &    ! B
+                  nmatmax, &   ! LDB ... leading dimension of B
+                  zzero, &     ! beta
+                  zm2, &       ! C
                   nmatp &      ! LDC ... leading dimension of C
                   )
      !write(*,'(I3,3F13.6,I3)') ik, vkl( :, ik), nmatp
@@ -111,25 +109,22 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
      !write(*,*)
      deallocate(zm,zm2)
 
-      
-     if (associated(input%groundstate%Hybrid)) then
-        if ((input%groundstate%Hybrid%exchangetypenumber == 1).and.(ihyb>0)) &
-        &  call KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
-     end if
+     ! Kinetic energy in the case of HF-hybrid functionals
+     if (task == 7) call kinetic_energy(ik, evecfv, apwalm, ngp, vgpc, igpig)
 
 if (input%groundstate%ValenceRelativity.eq.'iora*') then
 ! normalise large components
-      Call newsystem (system, packed, nmatp) 
+      Call newsystem (system, packed, nmatp)
       h1aa=0d0
       h1loa=0d0
-      h1lolo=0d0 
+      h1lolo=0d0
       h1on=.false.
       Call hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
       call olprad
       allocate(zm(nmatp,nstfv))
       allocate(zm2(nstfv,nstfv))
-      
-   
+
+
       call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
                  'N', &           ! TRANSB = 'N'  op( B ) = B.
                   nmatp, &          ! M ... rows of op( A ) = rows of C
@@ -163,7 +158,7 @@ if (input%groundstate%ValenceRelativity.eq.'iora*') then
 !      do ist=1,nstfv
 !        write(*,*) zm2(ist,ist)
 !      enddo
-!      write(*,*) 
+!      write(*,*)
       do ist=1,nstfv
         evecfv(:,ist)=evecfv(:,ist)/sqrt(abs(zm2(ist,ist)))
       enddo

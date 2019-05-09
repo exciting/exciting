@@ -50,8 +50,8 @@ subroutine task_band_specfunc()
     deallocate(selfec)
     allocate(selfec(ibgw:nbgw,freq_selfc%nomeg,kset%nkpt))
 
-    ! read data from files     
-    call readevalqp('EVALQP.OUT')
+    ! read data from files
+    call readevalqp('EVALQP.OUT', kset, ibgw, nbgw, evalks, eferks, evalqp, eferqp)
     if (allocated(evalfv)) deallocate(evalfv)
     allocate(evalfv(ibgw:nbgw,kset%nkpt))
     evalfv(:,:) = evalks(:,:)
@@ -133,7 +133,7 @@ contains
         implicit none
         integer(4), intent(in) :: ik_in
         integer(4) :: ik_out
-        integer(4) :: ik, ik_min
+        integer(4) :: ikr, ik_min
         real(8) :: vl_in(3), vc_in(3)
         real(8) :: vl(3), vc(3)
         integer(4) :: iv(3)
@@ -142,18 +142,18 @@ contains
         vl_in = vkl(:,ik_in)
         call r3frac( 1.d-6, vl_in, iv) ! translate to the first BZ
         call r3mv(bvec, vl_in, vc_in)  ! convert to cartesian
-        
+
         dist_min = 100.d0
         ik_min = 0
-        do ik = 1, ksetnr%nkpt
-            vc = ksetnr%vkc(:,ik)
+        do ikr = 1, ksetnr%nkpt
+            vc = ksetnr%vkc(:,ikr)
             dist = (vc(1)-vc_in(1))**2 + (vc(2)-vc_in(2))**2 + (vc(3)-vc_in(3))**2
             if (dist < dist_min) then
-                ik_min = ik
+                ik_min = ikr
                 dist_min = dist
             end if
         end do
-        if (ik == 0) stop 'Error(task_band_specfunc::find_nearest_grid_point) Search algorithm failed!'
+        if (ikr == 0) stop 'Error(task_band_specfunc::find_nearest_grid_point) Search algorithm failed!'
         ik_out = kset%ik2ikp(ik_min)
         return
     end function

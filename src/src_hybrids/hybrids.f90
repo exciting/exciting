@@ -28,12 +28,15 @@ Subroutine hybrids
 ! time measurements
     Real(8) :: timetot, ts0, ts1, tsg0, tsg1, tin1, tin0, time_hyb
     character*(77) :: string
- 
+
     ! Charge distance
     Real (8), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
     Real (8), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
-    integer :: xctype_(3)    
+    integer :: xctype_(3)
     logical :: exist
+
+    ! if (associated(input%groundstate%Hybrid)) nullify(input%groundstate%Hybrid)
+    ! print*, 'Hybrid?', associated(input%groundstate%Hybrid)
 
 !! TIME - Initialisation segment
     call timesec(tsg0)
@@ -51,10 +54,10 @@ Subroutine hybrids
     Call init1
     Call timesec (tin1)
     time_init1=tin1-tin0
-     
+
 ! require forces for structural optimisation
-    If ((task==2).or.(task==3)) input%groundstate%tforce = .True.    
-    
+    If ((task==2).or.(task==3)) input%groundstate%tforce = .True.
+
 !-------------------
 ! print info
 !-------------------
@@ -99,12 +102,21 @@ Subroutine hybrids
 
     end if ! rank
 
+    ! task = 0
+    ! ex_coef = 0.d0
+    ! ec_coef = 1.d0
+    ! xctype(1) = 20
+    ! print*, 'xctype=', xctype
+    ! call scf_cycle(1)
+    ! stop 'scf'
+
+
     Call timesec (ts1)
     timeinit = timeinit+ts1-ts0
 !! TIME - End of initialisation segment
 
     if (rank==0) then
-        write(string,'("Hybrids module started")') 
+        write(string,'("Hybrids module started")')
         call printbox(60,"*",string)
         call flushifc(60)
     end if
@@ -114,10 +126,10 @@ Subroutine hybrids
 !---------------------------------------
     time_hyb = 0.d0
     call timesec(ts0)
-    call init_hybrids
+    call init_hybrids()
     call timesec(ts1)
     time_hyb = time_hyb+ts1-ts0
-    
+
 !------------------------------------------!
 ! begin the (external) self-consistent loop
 !------------------------------------------!
@@ -136,7 +148,7 @@ Subroutine hybrids
       inquire(File='VNLMAT.OUT', Exist=exist)
 
       if (exist) then
-      
+
         ! restart previous (unfinished) PBE0 run
 
         ihyb0 = 1
@@ -166,7 +178,7 @@ Subroutine hybrids
         if (rank==0) then
           call write_cputime(60,ts1-ts0, 'Restart')
           write(60,*)
-        end if    
+        end if
         time_hyb = time_hyb+ts1-ts0
 
       else
@@ -182,7 +194,7 @@ Subroutine hybrids
 ! Main loop
 !--------------------------------------------------
     do ihyb = ihyb0, input%groundstate%Hybrid%maxscl
-    
+
        If (rank==0) Then
             write(string,'("Hybrids iteration number : ", I4)') ihyb
             call printbox(60,"+",string)
@@ -212,13 +224,13 @@ Subroutine hybrids
           rhomtref(:,:,:) = rhomt(:,:,:)
           rhoirref(:) = rhoir(:)
         end if
-        
+
 !---------------------------
 ! KS self-consistent run
 !---------------------------
         call scf_cycle(-1)
-       
-        ! some output        
+
+        ! some output
         if (rank == 0) then
             call writeengy(60)
             write(60,*)
@@ -297,18 +309,18 @@ Subroutine hybrids
           if ((input%groundstate%Hybrid%updateRadial).and.(ihyb>0)) call updateradial
 
           time_hyb = time_hyb+ts1-ts0
-          
+
         end if
-        
+
 ! output the current total time
         timetot = timeinit + timemat + timefv + timesv + timerho  &
         &       + timepot + timefor + timeio + timemt + timemixer &
         &       + time_hyb
-            
+
         if (rank==0) then
             write(60, '(" Wall time (seconds)",T45 ": ", F12.2)') timetot
         end if
-        
+
 ! exit self-consistent loop if last iteration is complete
         If (ihyb == input%groundstate%Hybrid%maxscl) Then
             If (rank==0) Then
@@ -319,11 +331,11 @@ Subroutine hybrids
                 Call flushifc(60)
             End If
         End If
- 
+
     end do ! ihyb
 
     if (rank==0) then
-        write(string,'("Hybrids module stopped")') 
+        write(string,'("Hybrids module stopped")')
         call printbox(60,"+",string)
         call flushifc(60)
     end if
@@ -346,7 +358,7 @@ Subroutine hybrids
         if (associated(input%groundstate%spin)) close(63)
 
     end if
-    
+
 ! xml output
     if (rank==0) then
         call structure_xmlout
@@ -355,11 +367,11 @@ Subroutine hybrids
     end if
     call timesec(ts1)
     timeio=ts1-ts0+timeio
-    
+
 !! TIME - End of fifth IO segment
     Call timesec(tsg1)
     If ((rank .Eq. 0).and.(input%groundstate%outputlevelnumber>1)) then
-        write(string,'("Timings (seconds)")') 
+        write(string,'("Timings (seconds)")')
         call printbox(60,"-",string)
         Write (60, '(" initialisation", T40, ": ", F12.2)') timeinit
         Write (60, '("            - init0", T40,": ", F12.2)') time_init0
@@ -403,7 +415,7 @@ Subroutine hybrids
         call printbox(60,"=",string)
         close (60)
     endif
-   
+
 !----------------------------------------
 ! Save HF energies into binary file
 !----------------------------------------
@@ -428,8 +440,7 @@ Subroutine hybrids
     call exit_hybrids
     nullify(input%gw)
     call rereadinput
-      
+
     Return
 End Subroutine
 !EOC
-

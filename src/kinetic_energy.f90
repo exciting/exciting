@@ -6,11 +6,11 @@
 ! See the file COPYING for license details.
 !
 !BOP
-! !ROUTINE: kinetic
+! !ROUTINE: kinetic_energy
 ! !INTERFACE:
 !
 !
-Subroutine KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
+Subroutine kinetic_energy(ik,evecfv,apwalm,ngp,vgpc,igpig)
 ! !USES:
       Use modinput
       Use modmain
@@ -47,10 +47,10 @@ Subroutine KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
 
       integer :: ifg,ix,igk,l,m,lm,LOoffset
       real(8) :: Eiora
-      
+
       engyknst(:,ik) = 0.d0
 
-! Initialisation of some variables that exist just for the sake of convenience    
+! Initialisation of some variables that exist just for the sake of convenience
 
       if (input%groundstate%ValenceRelativity.ne.'none') then
         a=0.5d0*alpha**2
@@ -67,10 +67,10 @@ Subroutine KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
 ! MT part
 
 ! APW-APW storage initialisation
-      
+
       if (nlomax.ne.0) then
-        Allocate (t_lolo( nlomax,nlomax))     
-        Allocate (t_alo( apwordmax, nlomax))     
+        Allocate (t_lolo( nlomax,nlomax))
+        Allocate (t_alo( apwordmax, nlomax))
 !        write(*,*) 'allocated'
         t_lolo=0d0
         t_alo=0d0
@@ -82,11 +82,11 @@ Subroutine KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
 
       allocate(zm(apwordmax*lmmaxapw,nstfv))
       allocate(zvec(apwordmax*lmmaxapw))
-     
+
 ! begin loops over atoms and species
       LOoffset=ngp
       Do is = 1, nspecies
-         
+
          nr = nrmt (is)
          Do ir = 1, nr
             r2 (ir) = spr (ir, is) ** 2
@@ -113,7 +113,7 @@ Subroutine KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
                       fr (ir) = r2(ir)*(0.5d0*t2 + 0.5d0*angular*t1*r2inv(ir))
                     End Do
                     Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                    t_aa ( io2, io1, l1)= gr (nr)   !*4d0*pi 
+                    t_aa ( io2, io1, l1)= gr (nr)   !*4d0*pi
                   else
 ! zora
                     Do ir = 1, nr
@@ -153,7 +153,7 @@ Subroutine KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
                       apwordmax*lmmaxapw &      ! LDC ... leading dimension of C
                      )
 
-              
+
 !--------------------------------------!
 !     local-orbital-APW integrals      !
 !--------------------------------------!
@@ -209,7 +209,7 @@ Subroutine KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
                        End Do
                        Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                        t_lolo (ilo1, ilo2)= t_lolo (ilo1, ilo2)-0.25d0*a*gr (nr) !-0.5d0*alpha**2*gr (nr)
-                     endif 
+                     endif
                   End If
                End Do
             End Do
@@ -218,7 +218,7 @@ Subroutine KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
 !       if3=0
 
 
-        
+
 do ist=1,nstfv
               zvec=zzero
               if (haloijSize(is).ne.0) zveclo=zzero
@@ -263,7 +263,7 @@ endif
         enddo
 !        write(*,*) if3,haloijSize(is)
 !        write(*,*) LOoffset
-!        write(*,*) 
+!        write(*,*)
         engyknst(ist,ik)=engyknst(ist,ik)+zdotc(apwordmax*lmmaxapw,zm(1,ist),1,zvec,1)
         if (nlorb(is).ne.0) engyknst(ist,ik)=engyknst(ist,ik)+zdotc(haloijSize(is),evecfv(LOoffset+1,ist),1,zveclo,1)
 !        write(*,*) zdotc(apwordmax*lmmaxapw,zm(1,ist),1,zvec,1)+zdotc(haloijSize(is),evecfv(LOoffset+1,ist),1,zveclo,1)
@@ -275,7 +275,7 @@ enddo
          End Do
          if (haloijSize(is).ne.0) deallocate(zveclo)
       End Do
-! cleaning up 
+! cleaning up
       deallocate(t_aa)
       if (nlomax.ne.0) deallocate(t_alo,t_lolo)
       deallocate(zm)
@@ -301,7 +301,7 @@ else
           Do ir = 1, ngrtot
             zfft (ir)=zfft (ir)*cfunir(ir)/(1d0-0.5d0*alpha*alpha*veffir(ir))
           End Do
- 
+
 endif
           Call zfftifc (3, ngrid,-1, zfft)
           zvec=zzero
@@ -321,7 +321,7 @@ if (applyiora) then
             zvec(igk)=zfft(igfft(igpig(igk)))*vgpc(ix, igk)
           enddo
           engyknst(ist,ik)=engyknst(ist,ik)-0.25d0*a*zdotc(ngp,evecfv(1,ist),1,zvec,1) ! evalfv is missing
-endif 
+endif
 
         enddo
       enddo
@@ -332,4 +332,3 @@ endif
       Return
 End Subroutine
 !EOC
-

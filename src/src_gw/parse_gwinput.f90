@@ -372,8 +372,8 @@ subroutine parse_gwinput
         input%gw%nempty = input%groundstate%nempty
         input%gw%ngridq = input%groundstate%ngridk
         input%gw%vqloff = input%groundstate%vkloff
-        input%gw%ibgw = 1
-        input%gw%nbgw = 1000000
+        ! input%gw%ibgw = 1
+        ! input%gw%nbgw = 1000000
     end if
 
 !-------------------------------------------------------------------------------
@@ -452,7 +452,10 @@ subroutine parse_gwinput
     !-------------------------------------------------------------------------------
     ! Does the second-variational treatment require all states?
     ! It'd be nice to check it and reduce the number of the active states...
-    if (associated(input%groundstate%spin) .or. (ldapu /= 0)) input%gw%ibgw = 1
+    if (associated(input%groundstate%spin) .or. (ldapu /= 0)) then
+        input%gw%ibgw = 1
+        input%gw%nbgw = int(chgval/2.d0) + input%groundstate%nempty + 1 ! nstfv from GS
+    end if
     ibgw = input%gw%ibgw
     nbgw = input%gw%nbgw
     if (nbgw < 1) nbgw = input%gw%nempty

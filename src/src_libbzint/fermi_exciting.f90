@@ -26,10 +26,10 @@ subroutine fermi_exciting(lspin,nel,nb,nik,eband,ntet,tetc,wtet,vt,efer,eg,df)
     real(8) :: eb(nb,nik)
 
     logical :: debug=.false.
-    
+
     real(8), external :: idos_exciting
     real(8), external :: dostet_exciting
-    
+
     !------------------
     ! Initialization
     !------------------
@@ -38,46 +38,47 @@ subroutine fermi_exciting(lspin,nel,nb,nik,eband,ntet,tetc,wtet,vt,efer,eg,df)
     else
       sfact = 2.d0
     end if
-    
+
     ! Important to use sorted energies
     eb(:,:) = eband(:,:)
     do ik = 1, nik
       call sort(nb,eb(:,ik))
     end do
-    
-    ! nvm is the number of bands for an insulating system 
+
+    ! nvm is the number of bands for an insulating system
     ! since for a system with gap, the procedure to determine the
     ! band gap can be unstable, just try first whether it is an
     ! insulating system, but such a simplistic way to determine the Fermi energy
-    ! is valid only for spin un-polarized cases 
-    if (.not.lspin) then 
+    ! is valid only for spin un-polarized cases
+    if (.not.lspin) then
       nvm  = nint(nel/2.d0)
       ! print*, "nvm=", nvm
-      evbm = maxval(eb(nvm,:))
-      ecbm = minval(eb(nvm+1,:))
+      evbm = maxval(eb(nvm,:),   mask = eb(nvm,:)   > -2.d0)
+      ecbm = minval(eb(nvm+1,:), mask = eb(nvm+1,:) <  2.d0)
       eint = (evbm+ecbm)/2.d0
       ocint = sfact*idos_exciting(nb,nik,eb,ntet,tetc,wtet,vt,eint)
-      if ((ecbm>=evbm).and.(abs(ocint-nel)<eps)) then 
+      if ((ecbm>=evbm).and.(abs(ocint-nel)<eps)) then
         efer = eint
         eg = ecbm-evbm
-        return 
-      end if 
+        df = 0.d0
+        return
+      end if
     end if
-    
-    ! find the minimal and maximal band energy  
+
+    ! find the minimal and maximal band energy
     evbm = minval(eb, mask = eb > -2.d0)
     ecbm = maxval(eb, mask = eb <  2.d0)
     if (debug) write(6,*) 'evbm, ecbm = ', evbm, ecbm
-    
+
     ocmin = sfact*idos_exciting(nb,nik,eb,ntet,tetc,wtet,vt,evbm)
     ocmax = sfact*idos_exciting(nb,nik,eb,ntet,tetc,wtet,vt,ecbm)
     if (debug) write(6,*) 'ocmin, ocmax = ', ocmin, ocmax
-        
+
     if (ocmax<=nel) then
       write(6,'(a)')  'ERROR(libbzint::fermi_exciting): Not enough bands!'
-      write(6,'(a,f10.4,2f10.2)') '  emax, ocmax, nel = ', ecbm, ocmax, nel 
+      write(6,'(a,f10.4,2f10.2)') '  emax, ocmax, nel = ', ecbm, ocmax, nel
       stop
-    end if 
+    end if
 
     if (debug) write(6,1) '#it',"evbm","ecbm","eint","ocmin","ocmax","ocint"
 
@@ -105,7 +106,7 @@ subroutine fermi_exciting(lspin,nel,nb,nik,eband,ntet,tetc,wtet,vt,efer,eg,df)
     end if
 
     df = sfact*dostet_exciting(nb,nik,eb,ntet,tetc,wtet,vt,eint)
-    
+
     if (df<1.0d-4) then
       !-------------------------
       ! System with a band gap
@@ -135,8 +136,7 @@ subroutine fermi_exciting(lspin,nel,nb,nik,eband,ntet,tetc,wtet,vt,efer,eg,df)
       end if
       eg = 0.d0
     end if
-    
+
     1 format(A5,6A12)
     2 format(I5,6f12.6)
 end subroutine
-      

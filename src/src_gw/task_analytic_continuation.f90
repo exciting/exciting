@@ -14,10 +14,10 @@ subroutine task_analytic_continuation()
     integer :: ik, ik_, ie, ie_, fid, recl
     real(8) :: egap
     character(20) :: s1, s2, v(3)
-       
+
     call init0
     call init1
-    
+
     nvelgw = chgval-occmax*dble(ibgw-1)
     nbandsgw = nbgw-ibgw+1
     call init_kqpoint_set
@@ -29,9 +29,9 @@ subroutine task_analytic_continuation()
     &                      input%gw%freqgrid%freqmax)
 
     if (myrank==0) then
-    
+
       ! allocate the arrays
-      
+
       allocate(vxcnn(ibgw:nbgw,kset%nkpt))
       call init_selfenergy(ibgw,nbgw,kset%nkpt)
 
@@ -47,9 +47,9 @@ subroutine task_analytic_continuation()
                            input%gw%selfenergy%wgrid%wmax)
       deallocate(selfec)
       allocate(selfec(ibgw:nbgw,freq_selfc%nomeg,kset%nkpt))
-    
-      ! read data from files     
-      call readevalqp('EVALQP.OUT')
+
+      ! read data from files
+      call readevalqp('EVALQP.OUT', kset, ibgw, nbgw, evalks, eferks, evalqp, eferqp)
       if (allocated(evalfv)) deallocate(evalfv)
       allocate(evalfv(ibgw:nbgw,kset%nkpt))
       evalfv(:,:) = evalks(:,:)
@@ -71,25 +71,25 @@ subroutine task_analytic_continuation()
       !======================================
       call calcevalqp
       call plot_spectral_function()
-      
+
       !------------------------------------------------------
       ! Write quasi-particle energies to file
       !------------------------------------------------------
       call write_qp_energies('EVALQP.DAT')
       call bandstructure_analysis('G0W0',ibgw,nbgw,kset%nkpt,&
       &                            evalqp(ibgw:nbgw,:),eferqp)
- 
+
       !----------------------------------------
       ! Save QP energies into binary file
       !----------------------------------------
-      call putevalqp('EVALQP.OUT')
-      
+      call putevalqp('EVALQP.OUT', kset, ibgw, nbgw, evalks, eferks, evalqp, eferqp)
+
       ! clear memory
       deallocate(evalks, evalfv)
       deallocate(vxcnn)
       call delete_selfenergy
-      
+
     end if ! myrank
-      
+
     return
 end subroutine

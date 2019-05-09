@@ -235,11 +235,7 @@ endif
           If (tlast) Call exxengy
        End If 
 ! Hybrids
-      if (associated(input%groundstate%Hybrid)) then
-        if ((input%groundstate%Hybrid%exchangetypenumber==1).and.(ihyb>0)) then
-           engyx = engyx + ex_coef*exnl
-        end if
-      end if
+      if (task == 7) engyx = engyx + ex_coef*exnl
       
 !----------------------------!
 !     correlation energy     !
@@ -248,11 +244,7 @@ endif
 ! zero correlation energy for Hartree-Fock
       If ((task .Eq. 5) .Or. (task .Eq. 6)) engyc = 0.d0
 ! Hybrids
-      if (associated(input%groundstate%Hybrid)) then
-        if ((input%groundstate%Hybrid%exchangetypenumber==1).and.(ihyb>0)) then
-           engyc = ec_coef*engyc
-        end if
-      end if      
+      if (task == 7) engyc = ec_coef*engyc
       
 !----------------------!
 !     LDA+U energy     !
@@ -318,38 +310,29 @@ endif
         End Do
         Deallocate (evecsv, c)
         
-      else if (associated(input%groundstate%Hybrid)) then
+      else if (task == 7) then
         !------------------
         ! HF-based hybrids
         !------------------
-        if (input%groundstate%Hybrid%exchangetypenumber == 1) then
-          if (ihyb>0) then
-            engykn = engykncr
-            do ik = 1, nkpt
-              do ist = 1, nstfv
-                engykn = engykn + wkpt(ik)*occsv(ist,ik)*engyknst(ist,ik)
-              end do
-            end do
-          else
-            ! Default way
-            engykn =  evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
-            call energykncr
-          end if
-        Else
-          ! OEP-Hybrids: Default way
-           engykn =  evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
-        end if
+        engykn = engykncr
+        do ik = 1, nkpt
+          do ist = 1, nstfv
+            engykn = engykn + wkpt(ik)*occsv(ist,ik)*engyknst(ist,ik)
+          end do
+        end do
         
       else
         ! Default way
         engykn =  evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
       end if
+
 !------------------------------!
 !     DFT-1/2 contribution     !
 !------------------------------!
       if (associated(input%groundstate%dfthalf)) then
         engyhalf = rfinp (1, rhomt, vhalfmt, rhoir, vhalfir)
       endif      
+
 !----------------------!
 !     total energy     !
 !----------------------!
@@ -363,10 +346,13 @@ endif
          End If
          engytot = engytot + e_disp
       End If
+
 ! dipole correction      
       if ((iscl>0).and.(input%groundstate%dipolecorrection)) engytot = engytot+0.5*endipc      
+
 ! add the LDA+U correction if required
       If (ldapu .Ne. 0) engytot = engytot + engylu
+
 ! WRITE(*,*) "end energy"
       Return
 End Subroutine

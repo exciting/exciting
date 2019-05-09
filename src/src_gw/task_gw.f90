@@ -47,7 +47,7 @@ subroutine task_gw()
     !===========================================================================
 
     ! prepare GW global data
-    call init_gw()
+    call init_gw
 
     !=================================================
     ! Calculate the diagonal matrix elements of the
@@ -55,18 +55,18 @@ subroutine task_gw()
     !=================================================
     ! it is better to do it here to deallocate cfunir and vxcir arrays
     call timesec(t0)
-    call calcvxcnn()
+    call calcvxcnn
     call timesec(t1)
 
     ! clean not used anymore global exciting variables
-    ! call clean_gndstate ! disabled since it's used later in task_second_variation
+    call clean_gndstate
 
     if (input%gw%taskname.ne.'g0w0_x') then
       if (.not.input%gw%rpmat) then
         !========================================================
         ! calculate momentum matrix elements and store to a file
         !========================================================
-        call calcpmatgw()
+        call calcpmatgw
       end if
     end if
 
@@ -120,8 +120,6 @@ subroutine task_gw()
     &                  myrank_row, &
     &                  kqset%nkpt, 1, &
     &                  iqstart, iqend)
-    ! This type of parallelization ic currently disabled (see set_mpi_group)
-    ! because of the new (CD) frequency convolution implementation
     call mpi_set_range(nproc_col, &
     &                  myrank_col, &
     &                  freq%nomeg, 1, &
@@ -146,7 +144,7 @@ subroutine task_gw()
     ! each process does a subset
     do iq = iqstart, iqend
 
-      if (myrank==0) write(fgw,*) '(task_gw): q-point cycle, iq = ', iq
+      if (rank==0) write(fgw,*) '(task_gw): q-point cycle, iq = ', iq
 
       Gamma = gammapoint(kqset%vqc(:,iq))
 
@@ -216,14 +214,14 @@ subroutine task_gw()
     if (allocated(ciw)) deallocate(ciw)
 
 #ifdef MPI
-    if ((nproc_row > 1) .and. (myrank_col == 0)) then
-      call mpi_sum_array(0, selfex, nbandsgw, kset%nkpt, mycomm_row)
-      if (input%gw%taskname /= 'g0w0_x') then
+    if ((nproc_row>1).and.(myrank_col==0)) then
+      call mpi_sum_array(0,selfex,nbandsgw,kset%nkpt,mycomm_row)
+      if (input%gw%taskname.ne.'g0w0_x') then
         ! G0W0 and GW0 approximations
-        call mpi_sum_array(0, selfec, nbandsgw, freq_selfc%nomeg, kset%nkpt, mycomm_row)
-        if (input%gw%taskname == 'cohsex') then
-          call mpi_sum_array(0, sigsx, nbandsgw, kset%nkpt, mycomm_row)
-          call mpi_sum_array(0, sigch, nbandsgw, kset%nkpt, mycomm_row)
+        call mpi_sum_array(0,selfec,nbandsgw,freq_selfc%nomeg,kset%nkpt,mycomm_row)
+        if (input%gw%taskname=='cohsex') then
+          call mpi_sum_array(0,sigsx,nbandsgw,kset%nkpt,mycomm_row)
+          call mpi_sum_array(0,sigch,nbandsgw,kset%nkpt,mycomm_row)
         end if
       end if ! selfec
     endif
@@ -309,15 +307,17 @@ subroutine task_gw()
       !----------------------------------------
       ! Save QP energies into binary file
       !----------------------------------------
-      call putevalqp('EVALQP.OUT')
+      call timesec(t0)
+      call putevalqp('EVALQP.OUT', kset, ibgw, nbgw, evalks, eferks, evalqp, eferqp)
     end if ! myrank
 
     !-----------------------------------------
     ! Second-variational treatment if needed
     !-----------------------------------------
     if (associated(input%groundstate%spin)) then
-      ! not yet parallelized
-      if (myrank == 0) call task_second_variation()
+      input%gw%skipgnd = .True.
+      call init_gw()
+      call task_second_variation()
     end if
 
     if (allocated(evalfv)) deallocate(evalfv)

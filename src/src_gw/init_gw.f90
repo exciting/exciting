@@ -32,14 +32,16 @@ subroutine init_gw()
     ! initialize global exciting variables with GW parameters (see parse_gwinput.f90)
     call init0()
 
-    reducek = input%groundstate%reducek
-    input%groundstate%reducek = .false.
-    call init1()
-    input%groundstate%reducek = reducek
-
     call timesec(t0)
 
     if (hybridhf) then
+
+      ! In this case we are forced to use the same parameters as for the underlying
+      ! hybrid functional, i.e., nempty and ngridk.
+      ! Remark: the wavefunction for a general k-point will be obtained applying
+      ! a rotation algorithm implemented in getevecfv.f90.
+      ! Unfortunately, there are known some artifacts caused by the rotation.
+      call init1()
 
       isreadstate0 = .false.
       filext = '_PBE.OUT'
@@ -47,6 +49,12 @@ subroutine init_gw()
       filext = '.OUT'
 
     else
+
+      ! to preserve the WF phase one recompute the eigenfunctions for the entire BZ
+      reducek = input%groundstate%reducek
+      input%groundstate%reducek = .false.
+      call init1()
+      input%groundstate%reducek = reducek
 
       isreadstate0 = .true.
       filext = "_GW.OUT"
@@ -56,7 +64,7 @@ subroutine init_gw()
         call scf_cycle(-2)
         if (rank == 0) then
           ! safely remove unnecessary files
-          call filedel('EIGVAL'//trim(filext))
+          ! call filedel('EIGVAL'//trim(filext))
           call filedel('LINENGY'//trim(filext))
           call filedel('EVALCORE'//trim(filext))
           call filedel('BROYDEN.OUT')

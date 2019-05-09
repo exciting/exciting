@@ -99,11 +99,6 @@ subroutine calcvxcnn
 
     do ikp = firstofset(rank,kset%nkpt), lastofset(rank,kset%nkpt)
 
-      ! ngp = Gkset%ngk(1,ikp)
-      ! call get_evec_gw(kset%vkl(:,ikp), Gkset%vgkl(:,:,:,ikp), evecfv)
-      ! call match(ngp, Gkset%gkc(:,1,ikp), Gkset%tpgkc(:,:,1,ikp), &
-      !            Gkset%sfacgk(:,:,1,ikp), apwalm)
-
       ik = kset%ikp2ik(ikp)
       ngp = Gkqset%ngk(1,ik)
       call get_evec_gw(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
@@ -127,7 +122,6 @@ subroutine calcvxcnn
           end do
         end do
         ! interstitial contribution
-        ! call vxcistl(ngp, Gkset%igkig(:,1,ikp), evecfv(:,i), h)
         call vxcistl(ngp, Gkqset%igkig(:,1,ik), evecfv(:,i), h)
         vxcnn(i,ikp) = vxcnn(i,ikp) + zdotc(ngp+nlotot, evecfv(:,i), 1, h, 1)
       end do ! i

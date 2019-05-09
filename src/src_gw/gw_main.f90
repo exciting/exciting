@@ -45,6 +45,7 @@ subroutine gw_main()
     !-----------------------------------------------------------
     ! Parse and check the validity of some GW input parameters
     !-----------------------------------------------------------
+    call init0() ! to allow access to some global data such as charges, species, etc.
     call parse_gwinput
 
     !----------------
@@ -173,7 +174,7 @@ subroutine gw_main()
             call task_band_specfunc()
 
         case('sv')
-            ! input%gw%skipgnd = .True.
+            input%gw%skipgnd = .True.
             call init_gw()
             if (rank==0) call task_second_variation()
 
