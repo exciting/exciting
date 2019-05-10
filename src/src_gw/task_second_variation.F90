@@ -13,12 +13,8 @@ subroutine task_second_variation()
     complex(8), allocatable :: evecsv(:,:)
     complex(8), allocatable :: apwalm(:,:,:,:)
 
-    print*, 'nstfv, nstsv=', nstfv, nstsv
-    print*, 'ibgw, nbgw=', ibgw, nbgw
-
-    ! ! readjust global variables to fit the number of computed fv-QP states
-    ! nstfv = nbgw ! <-- this should be consistent with nstfv from GS
-    ! nstsv = nstfv*nspinor
+    write(*,*) 'nstfv, nstsv=', nstfv, nstsv
+    write(*,*) 'ibgw, nbgw=', ibgw, nbgw
 
     !---------------------
     ! Read GW FV results
@@ -27,15 +23,23 @@ subroutine task_second_variation()
     allocate(evalqp(nstfv,kset%nkpt))
     if (allocated(evalks)) deallocate(evalks)
     allocate(evalks(nstfv,kset%nkpt))
-    call readevalqp('EVALQP.OUT', kset, ibgw, nbgw, evalks, eferks, evalqp, eferqp)
+    call readevalqp('EVALQP.OUT', kset, 1, nstfv, evalks, eferks, evalqp, eferqp)
     deallocate(evalks)
+    call bandstructure_analysis('QP FV', 1, nstfv, kset%nkpt, evalqp, eferqp)
+    ! do ikp = 1, kset%nkpt
+    !     do ib = 1, nstfv
+    !         write(81,*) ikp, ib, evalqp(ib,ikp)
+    !     end do
+    !     write(81,*); write(81,*)
+    ! end do
 
     !---------------------
     ! Read KS SV energies
     !---------------------
+    filext = "_GW.OUT"
+
     if (allocated(evalks)) deallocate(evalks)
     allocate(evalks(nstsv,kset%nkpt))
-    filext = "_GW.OUT"
     do ikp = 1, kset%nkpt
         ik = kset%ikp2ik(ikp)
         call getevalsv(kqset%vkl(:,ik), evalks(:,ikp))
@@ -51,8 +55,11 @@ subroutine task_second_variation()
     !------------------------------------
     ! Solve second-variational problem
     !------------------------------------
-    if (allocated(evalsv)) deallocate(evalsv)
-    allocate(evalsv(nstsv,kset%nkpt))
+
+    if (allocated(evalsv)) deallocate(evalsv) ! init_gw is done for the full k-grid => vkl, etc. corresponds to vklnr
+    allocate(evalsv(nstsv,kqset%nkpt))
+    evalsv(:,:) = 0.d0
+
     if (allocated(evecfv)) deallocate(evecfv)
     allocate(evecfv(nmatmax,nstfv))
     if (allocated(evecsv)) deallocate(evecsv)
@@ -67,7 +74,12 @@ subroutine task_second_variation()
                    Gkqset%sfacgk(:,:,1,ik),&
                    apwalm)
         call get_evec_gw(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
-        call seceqnsv(ikp, apwalm, evalqp(1:nstfv,ikp), evecfv, evecsv)
+        call seceqnsv(ik, apwalm, evalqp(1:nstfv,ikp), evecfv, evecsv) ! a lot of problems with global GS variables!
+        ! write(*,*) 'ik, ngk=', ik, ngk(1,ik), vkl(:,ik)
+        ! do ib = 1, nstsv
+        !     write(82,*) ib, evalsv(ib,ik)
+        ! end do
+        ! write(82,*); write(82,*)
     end do
     deallocate(evecfv)
     deallocate(evecsv)
@@ -76,7 +88,10 @@ subroutine task_second_variation()
     ! QP energies
     if (allocated(evalqp)) deallocate(evalqp)
     allocate(evalqp(nstsv,kset%nkpt))
-    evalqp(:,:) = evalsv(:,:)
+    do ikp = 1, kset%nkpt
+        ik = kset%ikp2ik(ikp)
+        evalqp(:,ikp) = evalsv(:,ik)
+    end do
     deallocate(evalsv)
     call fermi_exciting(.true., &
                         chgval, &
