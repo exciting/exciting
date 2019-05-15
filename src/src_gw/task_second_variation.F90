@@ -2,19 +2,25 @@
 subroutine task_second_variation()
 
     use modmain
-    use modgw, only: evalqp, evalks, evalfv, ibgw, nbgw, kset, kqset, Gkqset, &
-                     eferks, eferqp
+    use modgw,  only: evalqp, evalks, evalfv, ibgw, nbgw, kset, kqset, Gkqset, &
+                      eferks, eferqp
     use modmpi, only: rank
+    use modxs,  only: isreadstate0
 
     implicit none
-    integer(4) :: ikp, ik, ib
+    integer(4) :: ikp, ik, ib, nst
     real(8) :: egap
     complex(8), allocatable :: evecfv(:,:)
     complex(8), allocatable :: evecsv(:,:)
     complex(8), allocatable :: apwalm(:,:,:,:)
+    real(8), allocatable :: occqp(:,:)
 
-    write(*,*) 'nstfv, nstsv=', nstfv, nstsv
-    write(*,*) 'ibgw, nbgw=', ibgw, nbgw
+    ! write(*,*) 'nstfv, nstsv=', nstfv, nstsv
+    ! write(*,*) 'ibgw, nbgw=', ibgw, nbgw
+
+    ! Readjust the range of the FV states
+    nstfv = nbgw
+    nstsv = nstfv*nspinor
 
     !---------------------
     ! Read GW FV results
@@ -25,19 +31,11 @@ subroutine task_second_variation()
     allocate(evalks(nstfv,kset%nkpt))
     call readevalqp('EVALQP.OUT', kset, 1, nstfv, evalks, eferks, evalqp, eferqp)
     deallocate(evalks)
-    call bandstructure_analysis('QP FV', 1, nstfv, kset%nkpt, evalqp, eferqp)
-    ! do ikp = 1, kset%nkpt
-    !     do ib = 1, nstfv
-    !         write(81,*) ikp, ib, evalqp(ib,ikp)
-    !     end do
-    !     write(81,*); write(81,*)
-    ! end do
+    ! call bandstructure_analysis('QP FV', 1, nstfv, kset%nkpt, evalqp, eferqp)
 
     !---------------------
     ! Read KS SV energies
     !---------------------
-    filext = "_GW.OUT"
-
     if (allocated(evalks)) deallocate(evalks)
     allocate(evalks(nstsv,kset%nkpt))
     do ikp = 1, kset%nkpt
@@ -55,7 +53,6 @@ subroutine task_second_variation()
     !------------------------------------
     ! Solve second-variational problem
     !------------------------------------
-
     if (allocated(evalsv)) deallocate(evalsv) ! init_gw is done for the full k-grid => vkl, etc. corresponds to vklnr
     allocate(evalsv(nstsv,kqset%nkpt))
     evalsv(:,:) = 0.d0
@@ -74,12 +71,8 @@ subroutine task_second_variation()
                    Gkqset%sfacgk(:,:,1,ik),&
                    apwalm)
         call get_evec_gw(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
+        ! Warning: global k-points data correspond to reducek=.false.
         call seceqnsv(ik, apwalm, evalqp(1:nstfv,ikp), evecfv, evecsv) ! a lot of problems with global GS variables!
-        ! write(*,*) 'ik, ngk=', ik, ngk(1,ik), vkl(:,ik)
-        ! do ib = 1, nstsv
-        !     write(82,*) ib, evalsv(ib,ik)
-        ! end do
-        ! write(82,*); write(82,*)
     end do
     deallocate(evecfv)
     deallocate(evecsv)
@@ -93,17 +86,39 @@ subroutine task_second_variation()
         evalqp(:,ikp) = evalsv(:,ik)
     end do
     deallocate(evalsv)
+
+    nst = min(int(chgval)+100, nstsv)
     call fermi_exciting(.true., &
                         chgval, &
-                        nstsv, kset%nkpt, evalqp, &
+                        nst, kset%nkpt, evalqp(1:nst,:), &
                         kset%ntet, kset%tnodes, kset%wtet, kset%tvol, &
                         eferqp, egap, fermidos)
-    call bandstructure_analysis('QP SV', 1, nstsv, kset%nkpt, evalqp, eferqp)
-
-    ! store the eigenvalues to a file for bandstructure plot
+    call bandstructure_analysis('QP SV', 1, nst, kset%nkpt, evalqp(1:nst,:), eferqp)
     call putevalqp('EVALQPSV.OUT', kset, 1, nstsv, evalks, eferks, evalqp, eferqp)
+
+    ! Calculate state occupation numbers
+    if (allocated(occqp)) deallocate(occqp)
+    allocate(occqp(nstsv,kset%nkpt))
+    call tetiw(kset%nkpt, kset%ntet, nstsv, evalqp, kset%tnodes, &
+               kset%wtet, kset%tvol, eferqp, occqp)
+    do ikp = 1, kset%nkpt
+      do ib = 1, nstsv
+        occqp(ib,ikp) = 1.d0/kset%wkpt(ikp)*occqp(ib,ikp)
+      end do
+    end do
+
+    open(82, file='EVALQPSV.DAT', status='unknown')
+    do ikp = 1, kset%nkpt
+        write(82,'(a,i4,3f12.4)') '# ikp, vkl=', ikp, kset%vkl(:,ikp)
+        do ib = 1, nstsv
+            write(82,'(i6,3f18.6)') ib, evalks(ib,ikp)-eferks, evalqp(ib,ikp), occqp(ib,ikp)
+        end do
+        write(82,*); write(82,*)
+    end do
+    close(82)
 
     deallocate(evalks)
     deallocate(evalqp)
+    deallocate(occqp)
 
 end subroutine

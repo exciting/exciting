@@ -286,10 +286,8 @@ subroutine task_gw()
     ! Calculate quasiparticle energies in GW0 approximation
     !--------------------------------------------------------
     if (input%gw%taskname=='gw0') then
-
       ! self-consistent cycle
       call calcscgw0
-
       ! print GW0 QP band structure
       if (myrank==0) then
         call timesec(t0)
@@ -315,9 +313,10 @@ subroutine task_gw()
     ! Second-variational treatment if needed
     !-----------------------------------------
     if (associated(input%groundstate%spin)) then
-      input%gw%skipgnd = .True.
-      call init_gw()
-      call task_second_variation()
+      call barrier() ! synchronize all threads
+      call init0()
+      call readstate()
+      if (myrank==0) call task_second_variation()
     end if
 
     if (allocated(evalfv)) deallocate(evalfv)

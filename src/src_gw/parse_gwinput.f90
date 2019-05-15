@@ -28,6 +28,15 @@ subroutine parse_gwinput
 
     if (rank==0) call boxmsg(fgw,'*',"GW input parameters")
 
+    if (associated(input%groundstate%spin) .and. ldapu /= 0) then
+        if (rank==0) then
+            write(*,*)
+            write(*,*) 'Spin-polarized GW@LDA+U is not yet supported!'
+            write(*,*)
+        end if
+        call terminate()
+    end if
+
 !-------------------------------------------------------------------------------
 ! Debugging mode
 !-------------------------------------------------------------------------------
@@ -171,13 +180,12 @@ subroutine parse_gwinput
           if (rank==0) write(fgw,*) '  eqdist - Equaly spaced mesh (for tests purposes only)'
         case('gaulag')
           if (rank==0) write(fgw,*) '  gaulag - Grid for Gauss-Laguerre quadrature'
-        case('gaule2')
-          if (rank==0) write(fgw,*) '  gaule2 - Grid for double Gauss-Legendre quadrature,'
-          if (rank==0) write(fgw,*) '           from 0 to freqmax and from freqmax to infinity'
         case('gauleg')
           if (rank==0) write(fgw,*) '  gauleg - Grid for Gauss-Legendre quadrature, from 0 to freqmax'
-        case('GL2')
-          if (rank==0) write(fgw,*) '  GL2    - Gauss-Legendre quadrature from 0 to infinity'
+        case('gauleg2')
+          if (rank==0) write(fgw,*) '  gauleg2 - Double Gauss-Legendre grid: [0, freqmax] + [freqmax, infty]'
+        case('clencurt2')
+          if (rank==0) write(fgw,*) '  clencurt2 - Semi-infinite Clenshaw-Curtis grid'
       end select
       if (rank==0) write(fgw,*) 'Convolution method:'
       select case (input%gw%freqgrid%fconv)
@@ -376,6 +384,24 @@ subroutine parse_gwinput
         ! input%gw%nbgw = 1000000
     end if
 
+    !-------------------------------------------------------------------------------
+    ! Band range where GW corrections are applied
+    !-------------------------------------------------------------------------------
+    if (associated(input%groundstate%spin) .or. (ldapu /= 0)) then
+        input%gw%ibgw = 1
+        input%gw%nbgw = int(chgval/2.d0) + input%groundstate%nempty + 1 ! nstfv from GS
+    end if
+    ibgw = input%gw%ibgw
+    nbgw = input%gw%nbgw
+    if (nbgw < 1) nbgw = input%gw%nempty
+    if (ibgw >= nbgw) then
+        if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal values for ibgw ot nbgw!'
+        if (rank==0) write(*,*) '    ibgw = ', ibgw, '   nbgw = ', nbgw
+        stop
+    end if
+    if (rank==0) write(fgw,'(a,2i7)') ' Interval of quasiparticle states (ibgw, nbgw): ', ibgw, nbgw
+    if (rank==0) write(fgw,*)
+
 !-------------------------------------------------------------------------------
 ! Number of the empty bands used in GW code
 !-------------------------------------------------------------------------------
@@ -387,8 +413,10 @@ subroutine parse_gwinput
         if (rank==0) write(fgw,*) '  Used default (small) value for input%gw%nempty'
         input%gw%nempty = 10
     end if
+    ! overwrite the GS value to be able to run scf_cycle()
     input%groundstate%nempty = max(input%gw%nempty,input%gw%selfenergy%nempty)
     if (rank==0) write(fgw,*)'Number of empty states (GW): ', input%gw%nempty
+    if (rank==0) write(fgw,*)
 
 !-------------------------------------------------------------------------------
 ! k/q point grids
@@ -434,38 +462,6 @@ subroutine parse_gwinput
     else
         mblksiz = 1000000 ! just a big number to account for all available states
     end if
-
-    !-------------------------------------------------------------------------------
-    ! Matrix block size
-    !-------------------------------------------------------------------------------
-    if (associated(input%groundstate%spin) .and. (ldapu /= 0)) then
-        if (rank==0) then
-            write(*,*)
-            write(*,*) 'Spin-polarized LDA+U is not yet supported!'
-            write(*,*)
-        end if
-        call terminate()
-    end if
-
-    !-------------------------------------------------------------------------------
-    ! Band range where GW corrections are applied
-    !-------------------------------------------------------------------------------
-    ! Does the second-variational treatment require all states?
-    ! It'd be nice to check it and reduce the number of the active states...
-    if (associated(input%groundstate%spin) .or. (ldapu /= 0)) then
-        input%gw%ibgw = 1
-        input%gw%nbgw = int(chgval/2.d0) + input%groundstate%nempty + 1 ! nstfv from GS
-    end if
-    ibgw = input%gw%ibgw
-    nbgw = input%gw%nbgw
-    if (nbgw < 1) nbgw = input%gw%nempty
-    if (ibgw >= nbgw) then
-        if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal values for ibgw ot nbgw!'
-        if (rank==0) write(*,*) '    ibgw = ', ibgw, '   nbgw = ', nbgw
-        stop
-    end if
-    if (rank==0) write(fgw,'(a,2i7)') ' Specified quasiparticle band range: ', ibgw, nbgw
-    if (rank==0) write(fgw,*)
 
     if (rank==0) call flushifc(fgw)
 
