@@ -194,10 +194,10 @@ subroutine calcepsilon(iq,iomstart,iomend)
     if (Gamma) then
         ! symmetrize \eps_{00} (head)
         do iom = iomstart, iomend
-            head(:,:) = epsh(iom,:,:)
+            head(:,:) = epsh(:,:,iom)
             do iop = 1, 3
             do jop = 1, 3
-                call symt2app(iop, jop, 1, symt2, head, epsh(iom,iop,jop))
+                call symt2app(iop, jop, 1, symt2, head, epsh(iop,jop,iom))
             end do
             end do
         end do ! iom
@@ -209,7 +209,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
     do iom = iomstart, iomend
         if (Gamma) then
             do iop = 1, 3
-                epsh(iom,iop,iop) = zone - epsh(iom,iop,iop)
+                epsh(iop,iop,iom) = zone - epsh(iop,iop,iom)
             end do
         end if
         epsilon(:,:,iom) = -epsilon(:,:,iom)
@@ -217,6 +217,20 @@ subroutine calcepsilon(iq,iomstart,iomend)
             epsilon(im,im,iom) = zone + epsilon(im,im,iom)
         end do ! im
     end do ! iom
+
+    ! Compute contributions due to polar phonons
+    if (Gamma) then
+        if (input%gw%eph == 'polar') then
+            write(*,*)
+            write(*,*) 'Add a contribution due to polar phonons'
+            call eph_polar(iomend-iomstart+1, freq%freqs(iomstart:iomend), epsh(:,:,iomstart:iomend))
+            ! call eph_polar(1, [0.d0], epsh(:,:,iomstart))
+        end if
+        if (myrank == 0) call writedielt('DIELTENS', iomend-iomstart+1, freq%freqs(iomstart:iomend), epsh(:,:,iomstart:iomend), 1)
+        ! if (myrank == 0) call writedielt('DIELTENS', 1, freq%freqs(iomstart), epsh(:,:,iomstart), 1)
+    end if
+
+    ! stop 'calcepsilon'
 
     ! timing
     call timesec(tend)

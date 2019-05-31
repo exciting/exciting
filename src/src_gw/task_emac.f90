@@ -7,7 +7,7 @@ subroutine task_emac()
     use mod_coulomb_potential
     use mod_mpi_gw
     use m_getunit
-      
+
     implicit none
     integer :: iq, iom, iop, fid, im
     real(8) :: r0, r1, v(3)
@@ -17,22 +17,22 @@ subroutine task_emac()
 #ifdef MPI
     integer :: ntype, ncnt, nsize
 #endif
-    
+
     if (rank==0) call boxmsg(fgw,'=','Calculate the macroscopic dielectric function')
 
     !==========================
     ! Perform initialization
     !==========================
-    
+
     ! initialize local GW MPI environment
     call init_mpi_gw
-    
+
     ! prepare GW global data
     call init_gw
-    
+
     ! clear not used anymore global exciting variables
     call clean_gndstate
-  
+
     if (.not.input%gw%rpmat) then
       !========================================================
       ! calculate momentum matrix elements and store to a file
@@ -43,38 +43,38 @@ subroutine task_emac()
       write(*,*) 'Info(task_emac): Momentum matrix elements read from files.'
       write(*,*)
     end if
-    
+
     ! occupancy dependent BZ integration weights
     call kintw()
-    
+
     !==========
     ! Set q=0
     !==========
     iq = 1
     Gamma = .true.
-    
+
     !========================================
     ! Calculate interstitial basis functions
     !========================================
     matsiz = locmatsiz+Gqset%ngk(1,iq)
     call diagsgi(iq)
     call calcmpwipw(iq)
-    
+
     !======================================
     ! Calculate the bare coulomb potential
     !======================================
     call calcbarcmb(iq)
-    
+
     !========================================
     ! Set v-diagonal MB and reduce its size
     !========================================
     call setbarcev(input%gw%barecoul%barcevtol)
     call delete_coulomb_potential
-    
+
     !===================================
     ! Calculate the dielectric function
     !===================================
-    
+
 #ifdef MPI
     call mpi_set_range(nproc_tot, &
     &                  myrank, &
@@ -88,7 +88,7 @@ subroutine task_emac()
     iomstart = 1
     iomend = freq%nomeg
 #endif
-    
+
     ! \epsilon_{00} without LFE
     allocate(emac0_(3,3,iomstart:iomend))
     emac0_ = 0.d0
@@ -98,27 +98,27 @@ subroutine task_emac()
     ! Averaged eps_{00}^{-1}-1
     allocate(emac2_(3,3,iomstart:iomend))
     emac2_ = 0.d0
-    
+
     call init_dielectric_function(mbsiz,iomstart,iomend,Gamma)
-    
+
     select case (trim(input%gw%scrcoul%scrtype))
-    
+
       case('ppm','PPM')
         call calcepsilon_ppm(iq,iomstart,iomend)
-        
+
       case default
         call calcepsilon(iq,iomstart,iomend)
         !---------------------------------
         ! Store \epsilon_{00} without LFE
         !---------------------------------
         do iom = iomstart, iomend
-          emac0_(:,:,iom) = epsh(iom,:,:)
+          emac0_(:,:,iom) = epsh(:,:,iom)
         end do ! iom
         !================================
         ! Invert the dielectric function
         !================================
         call calcinveps(iomstart,iomend)
-        
+
     end select
     !---------------------------------
     ! \epsilon_{00} including LFE
@@ -126,20 +126,20 @@ subroutine task_emac()
     do iom = iomstart, iomend
       emac1_(:,:,iom) = eps00(iom,:,:)
     end do ! iom
-    
+
     !---------------------------------
     ! Averaged \epsilon_{00}^{-1}
     !---------------------------------
     do iom = iomstart, iomend
-      emac2_(:,:,iom) = epsh(iom,1,1)
+      emac2_(:,:,iom) = epsh(1,1,iom)
     end do
-    
+
     ! clean unused data
     call delete_dielectric_function(Gamma)
     if (allocated(fnm)) deallocate(fnm)
     if (allocated(mpwipw)) deallocate(mpwipw)
     if (allocated(barc)) deallocate(barc)
-    
+
     !================================
     ! Collect the results
     !================================
@@ -161,7 +161,7 @@ subroutine task_emac()
     emac2 = emac2_
 #endif
     deallocate(emac0_,emac1_,emac2_)
-    
+
     if (myrank==0) then
       !---------------------------------
       ! Print \epsilon_{00} without LFE
@@ -221,6 +221,6 @@ subroutine task_emac()
       10 format(7G12.4)
     end if ! myrank
     deallocate(emac0,emac1,emac2)
-    
+
     return
 end subroutine
