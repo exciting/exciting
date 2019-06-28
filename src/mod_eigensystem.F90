@@ -58,5 +58,250 @@ Module mod_eigensystem
       Real (8) :: tauseq
 ! ARPACK seed vector
       complex(8),allocatable :: arpackseed(:,:)
+! Matrix-elements for muffin-tin functions
+      Type MTHamiltonianType
+        complex(8), pointer :: aa(:,:,:),alo(:,:,:),loa(:,:,:),lolo(:,:,:)
+      End Type MTHamiltonianType
+      Type MTHamiltonianList
+        Type (MTHamiltonianType) :: main
+        Type (MTHamiltonianType) :: alpha
+        Type (MTHamiltonianType) :: beta
+        Type (MTHamiltonianType) :: ab
+        Type (MTHamiltonianType) :: ba
+        integer :: maxnlo
+        integer :: maxaa
+        integer,allocatable :: losize(:)
+      End Type MTHamiltonianList
+
+Contains
+
+!
+!
+!
+!BOP
+! !ROUTINE: MTNullify
+! !INTERFACE:
+!
+!
+      subroutine MTNullify(mt_h)
+! !USES:
+!      Use modinput
+!      Use modmain
+! !DESCRIPTION:
+! Initialises all parts of the muffin-tin Hamiltonian or overlap. 
+!
+! !REVISION HISTORY:
+!   Created June 2019 (Andris)
+!EOP
+!BOC
+      Implicit None
+      Type (MTHamiltonianList), Intent (Inout) :: mt_h
+
+
+      nullify(mt_h%main%aa)
+      nullify(mt_h%main%alo)
+      nullify(mt_h%main%loa)
+      nullify(mt_h%main%lolo)
+
+      nullify(mt_h%alpha%aa)
+      nullify(mt_h%alpha%alo)
+      nullify(mt_h%alpha%loa)
+      nullify(mt_h%alpha%lolo)
+
+      nullify(mt_h%beta%aa)
+      nullify(mt_h%beta%alo)
+      nullify(mt_h%beta%loa)
+      nullify(mt_h%beta%lolo)
+
+      nullify(mt_h%ab%aa)
+      nullify(mt_h%ab%alo)
+      nullify(mt_h%ab%loa)
+      nullify(mt_h%ab%lolo)
+
+      nullify(mt_h%ba%aa)
+      nullify(mt_h%ba%alo)
+      nullify(mt_h%ba%loa)
+      nullify(mt_h%ba%lolo)
+
+      end subroutine MTNullify
+
+!
+!
+!
+!BOP
+! !ROUTINE: MTInitAll
+! !INTERFACE:
+!
+!
+      subroutine MTInitAll(mt_h)
+! !USES:
+      Use modinput
+      Use mod_APW_LO
+      Use mod_atoms
+      Use mod_muffin_tin
+! !DESCRIPTION:
+! Initialises all parts of the muffin-tin Hamiltonian or overlap. 
+!
+! !REVISION HISTORY:
+!   Created October 2015 (Andris)
+!EOP
+!BOC
+      Implicit None
+      Type (MTHamiltonianList) :: mt_h
+      integer ::  io, ilo, if1, l, m, lm, l1, m1, lm1, l3, m3, lm3, haaijsize, is, ias
+
+      haaijSize=0
+      Do is = 1, nspecies
+        if1=0
+        Do l = 0, input%groundstate%lmaxmat
+          Do m = - l, l
+            lm = idxlm (l, m)
+            Do io = 1, apword (l, is)
+              if1=if1+1
+            End Do
+          End Do
+        End Do
+        if (if1.gt.haaijSize) haaijSize=if1
+      Enddo
+      mt_h%maxaa=haaijSize
+
+
+      if (allocated(mt_h%losize)) deallocate(mt_h%losize)
+      allocate(mt_h%losize(nspecies))
+      mt_h%maxnlo=0
+      Do is = 1, nspecies
+        ias=idxas (1, is)
+        ilo=nlorb (is)
+        if (ilo.gt.0) then
+          l1 = lorbl (ilo, is)
+          lm1 = idxlm (l1, l1)
+          l3 = lorbl (1, is)
+          lm3 = idxlm (l3, -l3)
+          mt_h%losize(is)=idxlo (lm1, ilo, ias)- idxlo (lm3, 1, ias)+1
+          if (mt_h%maxnlo.lt.mt_h%losize(is)) mt_h%maxnlo=mt_h%losize(is)
+        else
+          mt_h%losize(is)=0
+        endif
+      Enddo
+
+      call MTInit(mt_h%alpha,mt_h%maxaa,mt_h%maxnlo)
+      call MTRedirect(mt_h%main,mt_h%alpha)
+
+      end subroutine MTInitAll
+
+
+!
+!
+!
+!BOP
+! !ROUTINE: MTInit
+! !INTERFACE:
+!
+!
+      subroutine MTInit(mt_block,maxaa,maxnlo)
+! !USES:
+      Use mod_atoms
+!      Use modmain
+! !DESCRIPTION:
+! Initialises a part of the muffin-tin Hamiltonian or overlap. 
+!
+! !REVISION HISTORY:
+!   Created October 2015 (Andris)
+!EOP
+!BOC
+     Implicit None
+     Type (MTHamiltonianType) :: mt_block
+     integer :: maxaa,maxnlo
+
+     if (.not.associated(mt_block%aa)) then
+       allocate(mt_block%aa(maxaa,maxaa,natmtot))
+       if (maxnlo.gt.0) then
+         allocate(mt_block%loa(maxnlo,maxaa,natmtot))
+         allocate(mt_block%alo(maxaa,maxnlo,natmtot))
+         allocate(mt_block%lolo(maxnlo,maxnlo,natmtot))
+       endif
+     endif
+
+     end subroutine MTinit
+
+!
+!
+!
+!BOP
+! !ROUTINE: MTRedirect
+! !INTERFACE:
+!
+!
+      subroutine MTRedirect(mt_blockA,mt_blockB)
+! !USES:
+      Use mod_atoms
+!      Use modmain
+! !DESCRIPTION:
+! Redirects pointers of mt_blockA to mt_blockB of muffin-tin Hamiltonians or overlaps. 
+!
+! !REVISION HISTORY:
+!   Created October 2015 (Andris)
+!EOP
+!BOC
+     Implicit None
+     Type (MTHamiltonianType) :: mt_blockA,mt_blockB
+     integer :: maxaa,maxnlo
+
+     if (associated(mt_blockB%aa)) mt_blockA%aa=>mt_blockB%aa
+     if (associated(mt_blockB%alo)) mt_blockA%alo=>mt_blockB%alo
+     if (associated(mt_blockB%loa)) mt_blockA%alo=>mt_blockB%loa
+     if (associated(mt_blockB%lolo)) mt_blockA%alo=>mt_blockB%lolo
+
+     end subroutine MTRedirect
+
+!
+!
+!
+!BOP
+! !ROUTINE: MTRelease
+! !INTERFACE:
+!
+!
+     subroutine MTRelease(mt_h)
+! !USES:
+! !DESCRIPTION:
+! Release all memory used by the muffin-tin Hamiltonian or overlap. 
+!
+! !REVISION HISTORY:
+!   Created June 2019 (Andris)
+!EOP
+!BOC
+     implicit none
+     type (MTHamiltonianList), Intent (Inout) :: mt_h
+
+     if (associated(mt_h%alpha%aa)) deallocate(mt_h%alpha%aa)
+     if (associated(mt_h%alpha%alo)) deallocate(mt_h%alpha%alo)
+     if (associated(mt_h%alpha%loa)) deallocate(mt_h%alpha%loa)
+     if (associated(mt_h%alpha%lolo)) deallocate(mt_h%alpha%lolo)
+
+     if (associated(mt_h%beta%aa)) deallocate(mt_h%beta%aa)
+     if (associated(mt_h%beta%alo)) deallocate(mt_h%beta%alo)
+     if (associated(mt_h%beta%loa)) deallocate(mt_h%beta%loa)
+     if (associated(mt_h%beta%lolo)) deallocate(mt_h%beta%lolo)
+
+     if (associated(mt_h%ab%aa)) deallocate(mt_h%ab%aa)
+     if (associated(mt_h%ab%alo)) deallocate(mt_h%ab%alo)
+     if (associated(mt_h%ab%loa)) deallocate(mt_h%ab%loa)
+     if (associated(mt_h%ab%lolo)) deallocate(mt_h%ab%lolo)
+
+     if (associated(mt_h%ba%aa)) deallocate(mt_h%ba%aa)
+     if (associated(mt_h%ba%alo)) deallocate(mt_h%ba%alo)
+     if (associated(mt_h%ba%loa)) deallocate(mt_h%ba%loa)
+     if (associated(mt_h%ba%lolo)) deallocate(mt_h%ba%lolo)
+
+     if (associated(mt_h%main%aa)) deallocate(mt_h%main%aa)
+     if (associated(mt_h%main%alo)) deallocate(mt_h%main%alo)
+     if (associated(mt_h%main%loa)) deallocate(mt_h%main%loa)
+     if (associated(mt_h%main%lolo)) deallocate(mt_h%main%lolo)
+
+     if (allocated(mt_h%losize)) deallocate(mt_h%losize)
+
+     end subroutine MTRelease
+
 End Module
 !

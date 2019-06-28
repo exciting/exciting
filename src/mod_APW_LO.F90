@@ -64,5 +64,71 @@ Module mod_APW_LO
 ! minimum of the default linearisation energy over all APW and local-orbitals
 ! functions
       real(8) :: mine0
+! Data structure for storing muffin-tin basis functions
+      Type apw_lo_basis_type
+        Real (8), pointer :: apwfr (:, :, :, :, :),lofr (:, :, :, :)
+      end type
+      type (apw_lo_basis_type) :: mt_basis !,mt_basis_alpha,mt_basis_beta
+
+Contains
+
+!
+!
+!
+!BOP
+! !ROUTINE: MTBasisInit
+! !INTERFACE:
+!
+!
+      subroutine MTBasisInit(mt_basis)
+! !USES:
+      Use modinput
+      Use mod_muffin_tin
+      Use mod_atoms
+! !DESCRIPTION:
+! Initialises storage for basis functions in the muffin-tin region. 
+!
+! !REVISION HISTORY:
+!   Created June 2019 (Andris)
+!EOP
+!BOC
+      implicit none 
+      type (apw_lo_basis_type) :: mt_basis
+
+      nullify(mt_basis%apwfr)
+      allocate (mt_basis%apwfr(nrmtmax, 2, apwordmax, 0:input%groundstate%lmaxapw, natmtot))
+      nullify(mt_basis%lofr)
+      allocate (mt_basis%lofr(nrmtmax, 2, nlomax, natmtot))
+      
+      end subroutine MTBasisInit
+
+!
+!
+!
+!BOP
+! !ROUTINE: MTBasisRelease
+! !INTERFACE:
+!
+!
+      subroutine MTBasisRelease(mt_basis)
+! !USES:
+! !DESCRIPTION:
+! Releases storage for basis functions in the muffin-tin region. 
+!
+! !REVISION HISTORY:
+!   Created June 2019 (Andris)
+!EOP
+!BOC
+      implicit none
+      type (apw_lo_basis_type) :: mt_basis
+
+      deallocate (mt_basis%apwfr)
+      deallocate (mt_basis%lofr)
+      nullify(mt_basis%apwfr)
+      nullify(mt_basis%lofr)
+
+      end subroutine MTBasisRelease
+
+
 End Module
 !
