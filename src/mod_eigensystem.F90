@@ -215,10 +215,14 @@ Contains
 
      if (.not.associated(mt_block%aa)) then
        allocate(mt_block%aa(maxaa,maxaa,natmtot))
+       mt_block%aa=0d0
        if (maxnlo.gt.0) then
          allocate(mt_block%loa(maxnlo,maxaa,natmtot))
          allocate(mt_block%alo(maxaa,maxnlo,natmtot))
          allocate(mt_block%lolo(maxnlo,maxnlo,natmtot))
+         mt_block%loa=0d0
+         mt_block%alo=0d0
+         mt_block%lolo=0d0
        endif
      endif
 
@@ -249,8 +253,8 @@ Contains
 
      if (associated(mt_blockB%aa)) mt_blockA%aa=>mt_blockB%aa
      if (associated(mt_blockB%alo)) mt_blockA%alo=>mt_blockB%alo
-     if (associated(mt_blockB%loa)) mt_blockA%alo=>mt_blockB%loa
-     if (associated(mt_blockB%lolo)) mt_blockA%alo=>mt_blockB%lolo
+     if (associated(mt_blockB%loa)) mt_blockA%loa=>mt_blockB%loa
+     if (associated(mt_blockB%lolo)) mt_blockA%lolo=>mt_blockB%lolo
 
      end subroutine MTRedirect
 
@@ -294,10 +298,10 @@ Contains
      if (associated(mt_h%ba%loa)) deallocate(mt_h%ba%loa)
      if (associated(mt_h%ba%lolo)) deallocate(mt_h%ba%lolo)
 
-     if (associated(mt_h%main%aa)) deallocate(mt_h%main%aa)
-     if (associated(mt_h%main%alo)) deallocate(mt_h%main%alo)
-     if (associated(mt_h%main%loa)) deallocate(mt_h%main%loa)
-     if (associated(mt_h%main%lolo)) deallocate(mt_h%main%lolo)
+!     if (associated(mt_h%main%aa)) deallocate(mt_h%main%aa)
+!     if (associated(mt_h%main%alo)) deallocate(mt_h%main%alo)
+!     if (associated(mt_h%main%loa)) deallocate(mt_h%main%loa)
+!     if (associated(mt_h%main%lolo)) deallocate(mt_h%main%lolo)
 
      if (allocated(mt_h%losize)) deallocate(mt_h%losize)
 

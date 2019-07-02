@@ -26,7 +26,7 @@ Module mod_APW_LO
 ! apwve is .true. if the linearisation energies are allowed to vary
       Logical :: apwve (maxapword, 0:_MAXLAPW_, _MAXSPECIES_)
 ! APW radial functions
-      Real (8), Allocatable :: apwfr (:, :, :, :, :)
+      Real (8), target, Allocatable :: apwfr (:, :, :, :, :)
 ! derivate of radial functions at the muffin-tin surface
       Real (8), Allocatable :: apwdfr (:, :, :)
 ! maximum number of local-orbitals
@@ -58,7 +58,7 @@ Module mod_APW_LO
 ! lorbwfproj is .true. if the local-orbital is used as a Wannier-projector for bandstructure interpolation
       Logical :: lorbwfproj (maxlorb, _MAXSPECIES_)
 ! local-orbital radial functions
-      Real (8), Allocatable :: lofr (:, :, :, :)
+      Real (8), target, Allocatable :: lofr (:, :, :, :)
 ! energy step size for locating the band energy
 !replaced by inputstructurereal(8)::deband
 ! minimum of the default linearisation energy over all APW and local-orbitals
@@ -68,7 +68,7 @@ Module mod_APW_LO
       Type apw_lo_basis_type
         Real (8), pointer :: apwfr (:, :, :, :, :),lofr (:, :, :, :)
       end type
-      type (apw_lo_basis_type) :: mt_basis !,mt_basis_alpha,mt_basis_beta
+!      type (apw_lo_basis_type) :: mt_basis !,mt_basis_alpha,mt_basis_beta
 
 Contains
 

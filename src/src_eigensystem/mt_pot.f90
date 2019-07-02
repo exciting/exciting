@@ -7,20 +7,24 @@
 ! See the file COPYING for license details.
 !
 !BOP
-! !ROUTINE: hmlint
+! !ROUTINE: mt_pot
 ! !INTERFACE:
 !
 !
-Subroutine hmlint
+Subroutine mt_pot(pot,basis,mt_h)
 ! !USES:
       Use modinput
       Use modmain
 ! !DESCRIPTION:
-!   Calculates the "muffin-tin" Hamiltonian.
+!   Calculates the potential energy contribution to the muffin-tin Hamiltonian.
 !
 !EOP
 !BOC
       Implicit None
+      Real(8), intent(in) :: pot(lmmaxvr,nrmtmax,natmtot)
+      type(apw_lo_basis_type) :: basis
+      Type (MTHamiltonianList) :: mt_h
+
 ! local variables
       Integer :: is, ia, ias, nr, ir, if1,if3,inonz,ireset1,ireset3
       Integer :: l1, l2, l3, m2, lm2, m1, m3, lm1, lm3
@@ -35,9 +39,6 @@ Subroutine hmlint
       parameter (alpha=1d0 / 137.03599911d0)
       logical :: Tsymmetric
       integer, allocatable :: lfromlm(:),mfromlm(:)
-      Type (MTHamiltonianList) :: mt_h
-      Type (apw_lo_basis_type) :: mt_basis
-
 
 ! Initialisation of some variables that exist just for the sake of convenience    
 
@@ -73,13 +74,13 @@ Subroutine hmlint
         End Do
         if (if1.gt.haaijSize) haaijSize=if1
       Enddo
-      if (allocated(haaij)) deallocate(haaij)
-      allocate(haaij(haaijSize,haaijSize,natmtot))
-      haaij=dcmplx(0d0,0d0)
+!      if (allocated(haaij)) deallocate(haaij)
+!      allocate(haaij(haaijSize,haaijSize,natmtot))
+!      haaij=dcmplx(0d0,0d0)
       Allocate (haaintegrals(lmmaxvr, apwordmax, 0:input%groundstate%lmaxapw, apwordmax, 0:input%groundstate%lmaxmat))
       haaintegrals (:, :, :, :, :)=1d100
 ! APW-LO storage initialisation
-      if (allocated(haloij)) deallocate(haloij)
+!      if (allocated(haloij)) deallocate(haloij)
       if (allocated(haloijSize)) deallocate(haloijSize)
       allocate(haloijSize(nspecies))
       haloijSize=0
@@ -97,19 +98,16 @@ Subroutine hmlint
         endif
       Enddo
       if (maxnlo.gt.0) then 
-        allocate(haloij(maxnlo,haaijSize,natmtot))
-        haloij=dcmplx(0d0,0d0)
+!        allocate(haloij(maxnlo,haaijSize,natmtot))
+!        haloij=dcmplx(0d0,0d0)
         Allocate (halointegrals(lmmaxvr, apwordmax, 0:input%groundstate%lmaxmat, nlomax))
 
 ! LO-LO storage initialisation
-        if (allocated(hloloij)) deallocate(hloloij)
+!        if (allocated(hloloij)) deallocate(hloloij)
         allocate(hlolointegrals(lmmaxvr,nlomax,nlomax))
-        allocate(hloloij(maxnlo,maxnlo,natmtot))
-        hloloij=dcmplx(0d0,0d0)
+!        allocate(hloloij(maxnlo,maxnlo,natmtot))
+!        hloloij=dcmplx(0d0,0d0)
       endif
-
-
-if (.false.) then
 
 ! begin loops over atoms and species
       Do is = 1, nspecies
@@ -135,33 +133,10 @@ if (.false.) then
                Do io1 = 1, apword (l1, is)
                   Do l3 = 0, input%groundstate%lmaxmat
                      Do io2 = 1, apword (l3, is)
-                        If (l1 .Eq. l3) Then
-                          if (Tsymmetric) then
-                            angular=dble(l1*(l1+1))
-                            Do ir = 1, nr
-!                              rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
-                              t1=apwfr(ir, 1, io1, l1, ias)*apwfr(ir, 1, io2, l3, ias)
-                              t2=apwfr(ir, 2, io1, l1, ias)*apwfr(ir, 2, io2, l3, ias)
-                              fr (ir) = (0.5d0*t2*rmtable(ir) + 0.5d0*angular*t1*rmtable(ir)*r2inv(ir) + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
-!                              fr (ir) = (0.5d0*t2*rmtable(ir) + 0.5d0*angular*t1*rmtable(ir)*r2inv(ir))*r2 (ir)
-!                              fr (ir) = (t1*veffmt(1, ir, ias)* y00)*r2 (ir)
-                            End Do
-                            Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                            haaintegrals (1, io2, l3, io1, l1)= gr (nr) / y00
-                          else
-                            Do ir = 1, nr
-                              fr (ir) = apwfr (ir, 1, io1, l1, ias) * apwfr (ir, 2, io2, l3, ias) * r2 (ir)
-                            End Do
-                            Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                            haaintegrals (1, io2, l3, io1, l1)= gr (nr) / y00
-                          endif
-                        Else
-                           haaintegrals (1, io2, l3, io1, l1) = 0.d0
-                        End If 
 #ifdef USEOMP
 !$OMP DO
 #endif
-                        Do lm2 = 2, lmmaxvr
+                        Do lm2 = 1, lmmaxvr
                           m2 = mfromlm(lm2)
                           l2 = lfromlm(lm2)
                           Do ir = 1, nr
@@ -193,31 +168,10 @@ if (.false.) then
                l1 = lorbl (ilo, is)
                Do l3 = 0, input%groundstate%lmaxmat
                   Do io = 1, apword (l3, is)
-                     If (l1 .Eq. l3) Then
-                       If (Tsymmetric) then
-                        angular=dble(l1*(l1+1))
-                        Do ir = 1, nr
-!                           rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
-                           t1=apwfr(ir, 1, io, l1, ias)*lofr(ir, 1, ilo, ias)!*0d0
-                           t2=apwfr(ir, 2, io, l1, ias)*lofr(ir, 2, ilo, ias)!*0d0
-                           fr (ir) = (0.5d0*t2*rmtable(ir) + 0.5d0*angular*t1*rmtable(ir)*r2inv(ir) + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
-                       End Do
-                        Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                        halointegrals (1, io, l3, ilo) = gr (nr) / y00
-                       else
-                        Do ir = 1, nr
-                           fr (ir) = lofr (ir, 1, ilo, ias) * apwfr(ir, 2, io, l3, ias) * r2 (ir)
-                        End Do
-                        Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                        halointegrals (1, io, l3, ilo) = gr (nr) / y00
-                       endif
-                     Else
-                        halointegrals (1, io, l3, ilo) = 0.d0
-                     End If
 #ifdef USEOMP
 !$OMP DO
 #endif
-                     Do lm2 = 2, lmmaxvr
+                     Do lm2 = 1, lmmaxvr
                        m2 = mfromlm(lm2)
                        l2 = lfromlm(lm2)
                        Do ir = 1, nr
@@ -244,32 +198,11 @@ if (.false.) then
                l1 = lorbl (ilo1, is)
                Do ilo2 = 1, nlorb (is)
                   l3 = lorbl (ilo2, is)
-                  If (l1 .Eq. l3) Then
-                    if (Tsymmetric) then
-                     angular=dble(l1*(l1+1))
-                     Do ir = 1, nr
-!                        rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
-                        t1=lofr(ir, 1, ilo1, ias)*lofr(ir, 1, ilo2, ias)!*0d0
-                        t2=lofr(ir, 2, ilo1, ias)*lofr(ir, 2, ilo2, ias)!*0d0
-                        fr (ir) = (0.5d0*t2*rmtable(ir) + 0.5d0*angular*t1*rmtable(ir)*r2inv(ir) + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
-                     End Do
-                     Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                     hlolointegrals (1, ilo1, ilo2) = gr (nr) / y00
-                    else
-                     Do ir = 1, nr
-                        fr (ir) = lofr (ir, 1, ilo1, ias) * lofr (ir, 2, ilo2, ias) * r2 (ir)
-                     End Do
-                     Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                     hlolointegrals (1, ilo1, ilo2) = gr (nr) / y00
-                    endif
-                  Else
-                     hlolointegrals (1, ilo1, ilo2) = 0.d0
-                  End If
 #ifdef USEOMP
 !xOMP PARALLEL DEFAULT(NONE) SHARED(lmmaxvr,mfromlm,lfromlm,lofr,r2,veffmt,spr,nr,hlolointegrals,ilo1,ilo2,is,ias) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf)
 !$OMP DO
 #endif
-                  Do lm2 = 2, lmmaxvr
+                  Do lm2 = 1, lmmaxvr
                     m2 = mfromlm(lm2)
                     l2 = lfromlm(lm2)
                     Do ir = 1, nr
@@ -313,12 +246,9 @@ if (.false.) then
                             zsum=zsum+gntnonz(inonz)*haaintegrals (gntnonzlm2(inonz), io2, l3, io1, l1)
                             inonz=inonz+1
                           enddo
-                          if ((lm1.eq.lm3).and.(.not.Tsymmetric)) then
-! include the surface contribution to the kinetic energy
-                            haaij(if1,if3,ias)=zsum+t1*apwfr(nrmt(is),1,io1,l1,ias)*apwdfr(io2,l1,ias)*1d0/(1d0-veffmt(1,nrmt(is),ias)*y00*a)
-                          else
-                            haaij(if1,if3,ias)=zsum
-                          endif
+
+                          mt_h%main%aa(if1,if3,ias)=mt_h%main%aa(if1,if3,ias)+zsum
+
                           if (io2.ne.apword (l3, is)) inonz=ireset3
                         End Do
                   End Do
@@ -348,7 +278,7 @@ if (.false.) then
                        zsum=zsum+gntnonz(inonz)*halointegrals(gntnonzlm2(inonz),io, l3, ilo)
                        inonz=inonz+1
                      enddo
-                     haloij(if1,if3,ias)=zsum
+                     mt_h%main%loa(if1,if3,ias)=mt_h%main%loa(if1,if3,ias)+zsum
                      if (io.ne.apword(l3,is)) inonz=ireset3
                   End Do
                End Do
@@ -374,18 +304,12 @@ if (.false.) then
                       zsum=zsum+gntnonz(inonz)*dcmplx(hlolointegrals(gntnonzlm2(inonz),ilo1,ilo2),0d0)
                       inonz=inonz+1
                     enddo
-                    hloloij(if1,if3,ias)=zsum
+                    mt_h%main%lolo(if1,if3,ias)=mt_h%main%lolo(if1,if3,ias)+zsum
                   End Do
                 End Do
               End Do
             End Do
 
-!  write(*,*) haaintegrals (:, :, :, :, :)
-
-!   do if1=1,haaijSize
-!     write(*,*) haaij(if1,if1,ias)
-!   enddo
-!   read(*,*)
 ! end loops over atoms and species
          End Do
       End Do
@@ -394,37 +318,6 @@ if (.false.) then
       deallocate(lfromlm,mfromlm)  
       if (allocated(halointegrals)) deallocate(halointegrals)
       if (allocated(hlolointegrals)) deallocate(hlolointegrals)
-
-else
-!      write(*,*) 'howdy'
-!      call MTBasisInit(mt_basis)
-      mt_basis%lofr=>lofr
-      mt_basis%apwfr=>apwfr
-      
-      call MTNullify(mt_h)
-      call MTInitAll(mt_h)
-
-      call mt_kin(veffmt,mt_basis,mt_h)
-      call mt_pot(veffmt,mt_basis,mt_h)
-!write(*,*) sum(haaij)
-!write(*,*) sum(mt_h%main%aa)
-!read(*,*)
-!      do if1=1,mt_h%maxaa
-!        write(*,*) if1,dble(haaij(if1,if1,1)),dble(mt_h%main%aa(if1,if1,1))
-!      enddo
-!      do if1=1,mt_h%maxaa
-!        write(*,*) if1,mt_h%main%aa(if1,if1,1)
-!      enddo
-!      read(*,*) 
-      haaij=mt_h%main%aa
-      
-!      haaij=haaij +mt_h%main%aa
-      haloij=0d0*haloij +mt_h%main%loa
-      hloloij=0d0*hloloij+mt_h%main%lolo
-
-      call MTRelease(mt_h)
-!      call MTBasisRelease(mt_basis)
-endif
 
       Return
 End Subroutine
