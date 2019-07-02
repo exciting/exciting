@@ -72,6 +72,10 @@ Module mod_eigensystem
         integer :: maxaa
         integer,allocatable :: losize(:)
       End Type MTHamiltonianList
+! Relativity settings
+      integer :: level_nr, level_zora, level_iora
+      parameter (level_nr=0, level_zora=1, level_iora=2)
+
 
 Contains
 
