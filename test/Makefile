@@ -6,7 +6,7 @@ else
 EXE = ../bin/excitingser
 endif
 
-TESTDIRS = test01 test02 test03 test05 test06 test07 test08 test09 test10 test11
+TESTDIRS = test01 test02 test03 test04 test05 test06 test07 test08 test09 test10 test11
 
 test: 
 	$(MAKE) cleantests
@@ -48,8 +48,7 @@ test03::
 	cd test03 && perl report.pl
 
 test04::
-	cd build; $(MAKE) test04
-	cd ./test04/run ; ../../build/testprogram4
+	cd test04/runso && ../../$(EXE)
 
 test05::  
 	cd test05/runlibxc && ../../$(EXE)
