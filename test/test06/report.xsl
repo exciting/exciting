@@ -58,7 +58,7 @@
     <directory>test01/runHe </directory>
   </test>
 
-     <test>
+     <!--test>
     <status>
     <xsl:choose>
     <xsl:when test="math:abs(document('runPbTiO3/info-nonsym.xml')/info/groundstate/scl/iter[last()]/energies/@totalEnergy - document('runPbTiO3/info-sym.xml')/info/groundstate/scl/iter[last()]/energies/@totalEnergy)&lt;1e-5">
@@ -71,8 +71,9 @@
 <xsl:value-of select="document('runPbTiO3/info-nonsym.xml')/info/groundstate/scl/iter[last()]/energies/@totalEnergy"/> vs. <xsl:value-of select="document('runPbTiO3/info-sym.xml')/info/groundstate/scl/iter[last()]/energies/@totalEnergy"/> 
     </description>
     <directory>test06/runPbTiO3 </directory>
-  </test>
-      <test>
+  </test-->
+
+      <!--test>
     <status>
     <xsl:choose>
     <xsl:when test="(document('runPbTiO3/info-nonsym.xml')/info/groundstate/scl/iter[last()]/energies/@totalEnergy - document('runPbTiO3/info-sym.xml')/info/groundstate/scl/iter[last()]/energies/@totalEnergy)&lt;1e-5">
@@ -85,8 +86,8 @@
 <xsl:value-of select="document('runPbTiO3/info-nonsym.xml')/info/groundstate/scl/iter[last()]/energies/@totalEnergy"/> vs. <xsl:value-of select="document('runPbTiO3/info-sym.xml')/info/groundstate/scl/iter[last()]/energies/@totalEnergy"/> 
     </description>
     <directory>test06/runPbTiO3 </directory>
-  </test>
-      <test>
+  </test-->
+      <!--test>
     <status>
     <xsl:choose>
     <xsl:when test="document('runPbTiO3/info-nonsym.xml')/info/groundstate/scl/iter[last()]/@iteration &lt; document('runPbTiO3/input-nonsym.xml')/input/groundstate/@maxscl">
@@ -99,7 +100,7 @@
 <xsl:value-of select="document('runPbTiO3/info-nonsym.xml')/info/groundstate/scl/iter[last()]/@iteration"/> vs. <xsl:value-of select="document('runPbTiO3/input-nonsym.xml')/input/groundstate/@maxscl"/>
     </description>
     <directory>test06/runPbTiO3 </directory>
-  </test> 
+  </test--> 
   <test>
     <status>
     <xsl:choose>
