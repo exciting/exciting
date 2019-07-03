@@ -13,7 +13,7 @@ def mse_eps(ftest_path,fref_path):
 
     err = 0
     n = 0
-    for lt, lr in zip (ftest.readlines()[18:],fref.readlines()):
+    for lt, lr in zip (ftest.readlines()[18:],fref.readlines()[18:]):
         tRE = float(lt.split()[1]) 
         rRE = float(lr.split()[1]) 
         tIM = float(lt.split()[2]) 
