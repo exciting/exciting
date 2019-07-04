@@ -321,6 +321,7 @@ if (InterstitialSO) then
 else
                     mt_list%alpha%loa(if3+m1+l1+1,if1+(m1+l1)*apword(l1,is)+io1,ias)= mt_list%alpha%loa(if3+m1+l1+1,if1+(m1+l1)*apword(l1,is)+io1,ias) + 0.5d0*dble(m1)*radint(1,io1,1)
                     mt_list%beta%loa(if3+m1+l1+1,if1+(m1+l1)*apword(l1,is)+io1,ias) = mt_list%beta%loa(if3+m1+l1+1,if1+(m1+l1)*apword(l1,is)+io1,ias)  - 0.5d0*dble(m1)*radint(1,io1,1)
+
 endif
 
 #endif
@@ -409,6 +410,12 @@ endif
 
 #endif
 
+            do if1=1,mt_list%maxaa
+              do if3=1,mt_list%maxnlo
+                mt_list%alpha%alo(if1,if3,ias)=conjg(mt_list%alpha%loa(if3,if1,ias))
+                mt_list%beta%alo(if1,if3,ias)=conjg(mt_list%beta%loa(if3,if1,ias))
+              enddo 
+            enddo
 
 
 ! end loops over atoms and species

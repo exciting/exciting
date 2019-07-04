@@ -261,6 +261,57 @@ Contains
      if (associated(mt_blockB%lolo)) mt_blockA%lolo=>mt_blockB%lolo
 
      end subroutine MTRedirect
+!
+!
+!
+!BOP
+! !ROUTINE: MTCopy
+! !INTERFACE:
+!
+!
+      subroutine MTCopy(mt_blockA,mt_blockB)
+! !USES:
+      Use mod_atoms
+!      Use modmain
+! !DESCRIPTION:
+! Copies the contents of mt_blockA to mt_blockB of muffin-tin Hamiltonians or overlaps. 
+!
+! !REVISION HISTORY:
+!   Created October 2015 (Andris)
+!EOP
+!BOC
+     Implicit None
+     Type (MTHamiltonianType) :: mt_blockA,mt_blockB
+     integer :: maxaa,maxnlo
+
+     if (associated(mt_blockA%aa).and.associated(mt_blockB%aa)) then
+       mt_blockB%aa=mt_blockA%aa
+     else
+       write(*,*) 'Error (MTCopy): mt_blockA%aa or mt_blockB%aa is not allocated'
+       stop
+     endif
+     if (associated(mt_blockA%lolo)) then
+       if (associated(mt_blockA%alo).and.associated(mt_blockB%alo)) then 
+         mt_blockB%alo=mt_blockA%alo
+       else
+         write(*,*) 'Error (MTCopy): mt_blockA%alo or mt_blockB%alo is not allocated'
+         stop
+       endif
+       if (associated(mt_blockB%loa).and.associated(mt_blockB%loa)) then 
+         mt_blockB%loa=mt_blockA%loa
+       else
+         write(*,*) 'Error (MTCopy): mt_blockA%loa or mt_blockB%loa is not allocated'
+         stop
+       endif
+       if (associated(mt_blockB%lolo).and.associated(mt_blockA%lolo)) then 
+         mt_blockB%lolo=mt_blockA%lolo
+       else
+         write(*,*) 'Error (MTCopy): mt_blockA%lolo or mt_blockB%lolo is not allocated'
+         stop
+       endif
+     endif
+     end subroutine MTCopy
+
 
 !
 !
