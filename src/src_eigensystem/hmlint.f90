@@ -30,10 +30,8 @@ Subroutine hmlint
       Real (8) :: rmtable(nrmtmax),r2inv(nrmtmax)
       complex(8) :: zsum
 ! automatic arrays
-      Real (8) :: r2 (nrmtmax), fr (nrmtmax), gr (nrmtmax), cf (3, &
-     & nrmtmax),a,rm,alpha
+      Real (8) :: r2 (nrmtmax), fr (nrmtmax), gr (nrmtmax), cf (3, nrmtmax),a,rm,alpha
       parameter (alpha=1d0 / 137.03599911d0)
-      logical :: Tsymmetric
       integer, allocatable :: lfromlm(:),mfromlm(:)
       Type (MTHamiltonianList) :: mt_h
       Type (apw_lo_basis_type) :: mt_basis
@@ -52,7 +50,6 @@ Subroutine hmlint
       End Do
 
 
-      Tsymmetric=input%groundstate%SymmetricKineticEnergy          ! True if kinetic energy is calculated as nabla*nabla
       if (input%groundstate%ValenceRelativity.ne.'none') then
         a=0.5d0*alpha**2
       else
@@ -128,33 +125,22 @@ if (.false.) then
 !---------------------------!
 ! Radial integrals first
 #ifdef USEOMP
-!xOMP PARALLEL DEFAULT(NONE) SHARED(Tsymmetric,input,apword,lmmaxvr,mfromlm,lfromlm,apwfr,r2,veffmt,spr,nr,haaintegrals,is,ias,rmtable,r2inv) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf,l1,l3,t2,angular,io1,io2)
-!$OMP PARALLEL DEFAULT(NONE) SHARED(lorbl,nlorb,Tsymmetric,input,apword,lmmaxvr,mfromlm,lfromlm,apwfr,lofr,r2,veffmt,spr,nr,haaintegrals,hlolointegrals,halointegrals,is,ias,rmtable,r2inv) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf,l1,l3,t2,angular,io1,io2,ilo1,ilo2,io,ilo)
+!xOMP PARALLEL DEFAULT(NONE) SHARED(input,apword,lmmaxvr,mfromlm,lfromlm,apwfr,r2,veffmt,spr,nr,haaintegrals,is,ias,rmtable,r2inv) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf,l1,l3,t2,angular,io1,io2)
+!$OMP PARALLEL DEFAULT(NONE) SHARED(lorbl,nlorb,input,apword,lmmaxvr,mfromlm,lfromlm,apwfr,lofr,r2,veffmt,spr,nr,haaintegrals,hlolointegrals,halointegrals,is,ias,rmtable,r2inv) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf,l1,l3,t2,angular,io1,io2,ilo1,ilo2,io,ilo)
 #endif
             Do l1 = 0, input%groundstate%lmaxmat
                Do io1 = 1, apword (l1, is)
                   Do l3 = 0, input%groundstate%lmaxmat
                      Do io2 = 1, apword (l3, is)
                         If (l1 .Eq. l3) Then
-                          if (Tsymmetric) then
-                            angular=dble(l1*(l1+1))
-                            Do ir = 1, nr
-!                              rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
-                              t1=apwfr(ir, 1, io1, l1, ias)*apwfr(ir, 1, io2, l3, ias)
-                              t2=apwfr(ir, 2, io1, l1, ias)*apwfr(ir, 2, io2, l3, ias)
-                              fr (ir) = (0.5d0*t2*rmtable(ir) + 0.5d0*angular*t1*rmtable(ir)*r2inv(ir) + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
-!                              fr (ir) = (0.5d0*t2*rmtable(ir) + 0.5d0*angular*t1*rmtable(ir)*r2inv(ir))*r2 (ir)
-!                              fr (ir) = (t1*veffmt(1, ir, ias)* y00)*r2 (ir)
-                            End Do
-                            Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                            haaintegrals (1, io2, l3, io1, l1)= gr (nr) / y00
-                          else
-                            Do ir = 1, nr
-                              fr (ir) = apwfr (ir, 1, io1, l1, ias) * apwfr (ir, 2, io2, l3, ias) * r2 (ir)
-                            End Do
-                            Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                            haaintegrals (1, io2, l3, io1, l1)= gr (nr) / y00
-                          endif
+                          angular=dble(l1*(l1+1))
+                          Do ir = 1, nr
+                            t1=apwfr(ir, 1, io1, l1, ias)*apwfr(ir, 1, io2, l3, ias)
+                            t2=apwfr(ir, 2, io1, l1, ias)*apwfr(ir, 2, io2, l3, ias)
+                            fr (ir) = (0.5d0*t2*rmtable(ir) + 0.5d0*angular*t1*rmtable(ir)*r2inv(ir) + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
+                          End Do
+                          Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
+                          haaintegrals (1, io2, l3, io1, l1)= gr (nr) / y00
                         Else
                            haaintegrals (1, io2, l3, io1, l1) = 0.d0
                         End If 
@@ -187,30 +173,21 @@ if (.false.) then
 !     local-orbital-APW integtrals     !
 !--------------------------------------!
 #ifdef USEOMP
-!xOMP PARALLEL DEFAULT(NONE) SHARED(apword,nlorb,lorbl,Tsymmetric,rmtable,lmmaxvr,mfromlm,lfromlm,apwfr,lofr,r2,veffmt,spr,nr,halointegrals,is,ias,input,r2inv) PRIVATE(lm2,m2,l2,ir,t1,t2,fr,gr,cf,ilo,io,l1,l3,angular)
+!xOMP PARALLEL DEFAULT(NONE) SHARED(apword,nlorb,lorbl,rmtable,lmmaxvr,mfromlm,lfromlm,apwfr,lofr,r2,veffmt,spr,nr,halointegrals,is,ias,input,r2inv) PRIVATE(lm2,m2,l2,ir,t1,t2,fr,gr,cf,ilo,io,l1,l3,angular)
 #endif
             Do ilo = 1, nlorb (is)
                l1 = lorbl (ilo, is)
                Do l3 = 0, input%groundstate%lmaxmat
                   Do io = 1, apword (l3, is)
                      If (l1 .Eq. l3) Then
-                       If (Tsymmetric) then
                         angular=dble(l1*(l1+1))
                         Do ir = 1, nr
-!                           rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
                            t1=apwfr(ir, 1, io, l1, ias)*lofr(ir, 1, ilo, ias)!*0d0
                            t2=apwfr(ir, 2, io, l1, ias)*lofr(ir, 2, ilo, ias)!*0d0
                            fr (ir) = (0.5d0*t2*rmtable(ir) + 0.5d0*angular*t1*rmtable(ir)*r2inv(ir) + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
-                       End Do
-                        Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                        halointegrals (1, io, l3, ilo) = gr (nr) / y00
-                       else
-                        Do ir = 1, nr
-                           fr (ir) = lofr (ir, 1, ilo, ias) * apwfr(ir, 2, io, l3, ias) * r2 (ir)
                         End Do
                         Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                         halointegrals (1, io, l3, ilo) = gr (nr) / y00
-                       endif
                      Else
                         halointegrals (1, io, l3, ilo) = 0.d0
                      End If
@@ -245,25 +222,16 @@ if (.false.) then
                Do ilo2 = 1, nlorb (is)
                   l3 = lorbl (ilo2, is)
                   If (l1 .Eq. l3) Then
-                    if (Tsymmetric) then
-                     angular=dble(l1*(l1+1))
-                     Do ir = 1, nr
-!                        rm=1d0/(1d0-a*veffmt (1, ir, ias)*y00)
-                        t1=lofr(ir, 1, ilo1, ias)*lofr(ir, 1, ilo2, ias)!*0d0
-                        t2=lofr(ir, 2, ilo1, ias)*lofr(ir, 2, ilo2, ias)!*0d0
-                        fr (ir) = (0.5d0*t2*rmtable(ir) + 0.5d0*angular*t1*rmtable(ir)*r2inv(ir) + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
-                     End Do
-                     Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                     hlolointegrals (1, ilo1, ilo2) = gr (nr) / y00
-                    else
-                     Do ir = 1, nr
-                        fr (ir) = lofr (ir, 1, ilo1, ias) * lofr (ir, 2, ilo2, ias) * r2 (ir)
-                     End Do
-                     Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                     hlolointegrals (1, ilo1, ilo2) = gr (nr) / y00
-                    endif
+                    angular=dble(l1*(l1+1))
+                    Do ir = 1, nr
+                      t1=lofr(ir, 1, ilo1, ias)*lofr(ir, 1, ilo2, ias)!*0d0
+                      t2=lofr(ir, 2, ilo1, ias)*lofr(ir, 2, ilo2, ias)!*0d0
+                      fr (ir) = (0.5d0*t2*rmtable(ir) + 0.5d0*angular*t1*rmtable(ir)*r2inv(ir) + t1*veffmt(1, ir, ias)* y00)*r2 (ir)
+                    End Do
+                    Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
+                    hlolointegrals (1, ilo1, ilo2) = gr (nr) / y00
                   Else
-                     hlolointegrals (1, ilo1, ilo2) = 0.d0
+                    hlolointegrals (1, ilo1, ilo2) = 0.d0
                   End If
 #ifdef USEOMP
 !xOMP PARALLEL DEFAULT(NONE) SHARED(lmmaxvr,mfromlm,lfromlm,lofr,r2,veffmt,spr,nr,hlolointegrals,ilo1,ilo2,is,ias) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf)
@@ -313,12 +281,7 @@ if (.false.) then
                             zsum=zsum+gntnonz(inonz)*haaintegrals (gntnonzlm2(inonz), io2, l3, io1, l1)
                             inonz=inonz+1
                           enddo
-                          if ((lm1.eq.lm3).and.(.not.Tsymmetric)) then
-! include the surface contribution to the kinetic energy
-                            haaij(if1,if3,ias)=zsum+t1*apwfr(nrmt(is),1,io1,l1,ias)*apwdfr(io2,l1,ias)*1d0/(1d0-veffmt(1,nrmt(is),ias)*y00*a)
-                          else
-                            haaij(if1,if3,ias)=zsum
-                          endif
+                          haaij(if1,if3,ias)=zsum
                           if (io2.ne.apword (l3, is)) inonz=ireset3
                         End Do
                   End Do

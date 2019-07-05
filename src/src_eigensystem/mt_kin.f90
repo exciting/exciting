@@ -36,7 +36,6 @@ Subroutine mt_kin(pot,basis,mt_h)
 ! automatic arrays
       Real (8) :: r2 (nrmtmax), fr (nrmtmax), gr (nrmtmax), cf (3, nrmtmax),a,rm,alpha
       parameter (alpha=1d0 / 137.03599911d0)
-      logical :: Tsymmetric
       integer, allocatable :: lfromlm(:),mfromlm(:)
 
 
@@ -53,7 +52,6 @@ Subroutine mt_kin(pot,basis,mt_h)
       End Do
 
 
-      Tsymmetric=input%groundstate%SymmetricKineticEnergy          ! True if kinetic energy is calculated as nabla*nabla
       if (input%groundstate%ValenceRelativity.ne.'none') then
         a=0.5d0*alpha**2
       else

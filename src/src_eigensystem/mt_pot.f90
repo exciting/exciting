@@ -37,7 +37,6 @@ Subroutine mt_pot(pot,basis,mt_h)
       Real (8) :: r2 (nrmtmax), fr (nrmtmax), gr (nrmtmax), cf (3, &
      & nrmtmax),a,rm,alpha
       parameter (alpha=1d0 / 137.03599911d0)
-      logical :: Tsymmetric
       integer, allocatable :: lfromlm(:),mfromlm(:)
 
 ! Initialisation of some variables that exist just for the sake of convenience    
@@ -53,7 +52,6 @@ Subroutine mt_pot(pot,basis,mt_h)
       End Do
 
 
-      Tsymmetric=input%groundstate%SymmetricKineticEnergy          ! True if kinetic energy is calculated as nabla*nabla
       if (input%groundstate%ValenceRelativity.ne.'none') then
         a=0.5d0*alpha**2
       else
@@ -126,8 +124,8 @@ Subroutine mt_pot(pot,basis,mt_h)
 !---------------------------!
 ! Radial integrals first
 #ifdef USEOMP
-!xOMP PARALLEL DEFAULT(NONE) SHARED(Tsymmetric,input,apword,lmmaxvr,mfromlm,lfromlm,apwfr,r2,veffmt,spr,nr,haaintegrals,is,ias,rmtable,r2inv) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf,l1,l3,t2,angular,io1,io2)
-!$OMP PARALLEL DEFAULT(NONE) SHARED(lorbl,nlorb,Tsymmetric,input,apword,lmmaxvr,mfromlm,lfromlm,apwfr,lofr,r2,veffmt,spr,nr,haaintegrals,hlolointegrals,halointegrals,is,ias,rmtable,r2inv) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf,l1,l3,t2,angular,io1,io2,ilo1,ilo2,io,ilo)
+!xOMP PARALLEL DEFAULT(NONE) SHARED(input,apword,lmmaxvr,mfromlm,lfromlm,apwfr,r2,veffmt,spr,nr,haaintegrals,is,ias,rmtable,r2inv) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf,l1,l3,t2,angular,io1,io2)
+!$OMP PARALLEL DEFAULT(NONE) SHARED(lorbl,nlorb,input,apword,lmmaxvr,mfromlm,lfromlm,apwfr,lofr,r2,veffmt,spr,nr,haaintegrals,hlolointegrals,halointegrals,is,ias,rmtable,r2inv) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf,l1,l3,t2,angular,io1,io2,ilo1,ilo2,io,ilo)
 #endif
             Do l1 = 0, input%groundstate%lmaxmat
                Do io1 = 1, apword (l1, is)
@@ -162,7 +160,7 @@ Subroutine mt_pot(pot,basis,mt_h)
 !     local-orbital-APW integtrals     !
 !--------------------------------------!
 #ifdef USEOMP
-!xOMP PARALLEL DEFAULT(NONE) SHARED(apword,nlorb,lorbl,Tsymmetric,rmtable,lmmaxvr,mfromlm,lfromlm,apwfr,lofr,r2,veffmt,spr,nr,halointegrals,is,ias,input,r2inv) PRIVATE(lm2,m2,l2,ir,t1,t2,fr,gr,cf,ilo,io,l1,l3,angular)
+!xOMP PARALLEL DEFAULT(NONE) SHARED(apword,nlorb,lorbl,rmtable,lmmaxvr,mfromlm,lfromlm,apwfr,lofr,r2,veffmt,spr,nr,halointegrals,is,ias,input,r2inv) PRIVATE(lm2,m2,l2,ir,t1,t2,fr,gr,cf,ilo,io,l1,l3,angular)
 #endif
             Do ilo = 1, nlorb (is)
                l1 = lorbl (ilo, is)

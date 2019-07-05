@@ -55,7 +55,7 @@ test05::
 	cd test05 && bash assert.sh
 
 test06::
-	cd test06/runPbTiO3; ../../$(EXE) input-sym.xml; cp info.xml info-sym.xml      
+	cd test06/runPbTiO3; ../../$(EXE) input.xml 
 	cd test06; bash assert.sh 
 
 test07::	 

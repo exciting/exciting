@@ -2932,13 +2932,6 @@
         </xs:annotation>
       </xs:attribute>
 
-      <xs:attribute ex:importance="expert" ex:unit="" name="SymmetricKineticEnergy" type="xs:boolean" default="true">
-        <xs:annotation>
-          <xs:documentation> If <pre>"true"</pre>, the kinetic-energy matrix elements of muffin-tin functions are calculated by applying gradient to both bra and ket.
-           Otherwise, the whole kinetic-energy operator is applied to ket only, and the surface-term correction is applied to make the hamiltonian hermitian.
-          </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="ExplicitKineticEnergy" type="xs:boolean" default="true">
         <xs:annotation>
           <xs:documentation> 
