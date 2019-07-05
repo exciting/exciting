@@ -116,7 +116,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
 ! True - transform FV wave functions to the real space
 ! False - work with the original basis and the transform to the LAPW basis
 
-      if (.true.) then
+      if (input%groundstate%spin%realspace) then
 !-------------------------!
 !     muffin-tin part     !
 !-------------------------!

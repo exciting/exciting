@@ -171,9 +171,17 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="spinorb" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation> 
-		If <attref>spinorb</attref> is <pre>"true"</pre>, then a
+		If <attref>spinorb</attref> is <pre>"true"</pre>, a
                 <inlinemath>\boldsymbol \sigma\cdot{ \bf L}</inlinemath> term is added to the
                 second-variational Hamiltonian. 
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="realspace" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation> 
+		If <attref>realspace</attref> is <pre>"true"</pre>, the second-variational approach involves a transformation 
+                of wave functions to the real space in the muffin-tin region. Otherwise, calculations involve the atomic-like basis. 
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>

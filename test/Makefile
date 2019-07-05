@@ -49,7 +49,6 @@ test03::
 
 test04::
 	cd test04/runso && ../../$(EXE)
-	cd test04/runlapwso && ../../$(EXE)
 
 test05::  
 	cd test05/runlibxc && ../../$(EXE)
