@@ -6,7 +6,7 @@ else
 EXE = ../bin/excitingser
 endif
 
-TESTDIRS = test01 test02 test03 test04 test05 test06 test07 test08 test09 test10 test11
+TESTDIRS = test01 test02 test03 test04 test05 test06 test07 test08 test09 test10 test11 test12
 
 test: 
 	$(MAKE) cleantests
@@ -79,6 +79,10 @@ test11::
 	cd test11/run-pbe0-hf  && ../../$(EXE)
 	cd test11/run-pbe0-oep && ../../$(EXE)
 	cd test11 && perl assert.pl 
+
+test12::
+	cd test12/runcollinear && ../../$(EXE)
+	cd test12/runnoncollinear && ../../$(EXE)
 
 cleantests::
 	-rm -f  test*/*.xml

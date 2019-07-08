@@ -67,7 +67,7 @@ $tol=1e-6;
 $refen=-578.073720387;
 $status="failed";
 $err=$toten-$refen;
-if (abs($totearp-$totelap)<=$tol){
+if (abs($err)<=$tol){
 $status="passed";
 }
  Test::writetestreport({
