@@ -7,7 +7,7 @@
       <basevect> -2.68  2.68  2.68 </basevect>
     </crystal>
     <species speciesfile="Fe.xml" rmt="2.2">
-      <atom coord="0.00 0.00 0.00" bfcmt="0.0 0.0 10.0"/>
+      <atom coord="0.00 0.00 0.00" bfcmt="10.0 0.0 0.0"/>
     </species>
   </structure>
   <groundstate
@@ -21,6 +21,6 @@
     lmaxmat="8"
     lmaxvr="8"
     >
-  <spin spinorb="true" realspace="true" reducebf="0.1"/> 
+  <spin spinorb="true" realspace="false" reducebf="0.1"/> 
   </groundstate>
 </input>

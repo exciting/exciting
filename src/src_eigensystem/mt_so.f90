@@ -179,9 +179,9 @@ endif
 #ifndef SOaa
                     if (m1.ne.l1) then
 if (InterstitialSO) then
-                       mt_list%ab%aa(if1+(m1+l1)*apword(l1,is)+io1,if1+(m1+l1+1)*apword(l1,is)+io2,ias)=prefsminus(l1,m1)*radint(1,io1,io2)-prefsplus(l1,m1)*radint(2,io1,io2)
+                       mt_list%ab%aa(if1+(m1+l1)*apword(l1,is)+io1,if1+(m1+l1+1)*apword(l1,is)+io2,ias)=mt_list%ab%aa(if1+(m1+l1)*apword(l1,is)+io1,if1+(m1+l1+1)*apword(l1,is)+io2,ias)+prefsminus(l1,m1)*radint(1,io1,io2)-prefsplus(l1,m1)*radint(2,io1,io2)
 else
-                       mt_list%ab%aa(if1+(m1+l1)*apword(l1,is)+io1,if1+(m1+l1+1)*apword(l1,is)+io2,ias)=0.5d0*sqrt(dble((l1*(l1+1)-m1*(m1+1))))*radint(1,io1,io2)
+                       mt_list%ab%aa(if1+(m1+l1)*apword(l1,is)+io1,if1+(m1+l1+1)*apword(l1,is)+io2,ias)=mt_list%ab%aa(if1+(m1+l1)*apword(l1,is)+io1,if1+(m1+l1+1)*apword(l1,is)+io2,ias)+0.5d0*sqrt(dble((l1*(l1+1)-m1*(m1+1))))*radint(1,io1,io2)
 endif
                     endif
 
@@ -250,9 +250,9 @@ endif
                   do io1 = 1, apword (l1, is)
                     if (m1.ne.l1) then
 if (InterstitialSO) then
-                      mt_list%ab%alo(if1+(m1+l1)*apword(l1,is)+io1,if3+m1+l1,ias)=prefsminus(l1,m1)*radint(1,io1,1)-prefsplus(l1,m1)*radint(2,io1,1)
+                      mt_list%ab%alo(if1+(m1+l1)*apword(l1,is)+io1,if3+m1+l1,ias)=mt_list%ab%alo(if1+(m1+l1)*apword(l1,is)+io1,if3+m1+l1,ias)+prefsminus(l1,m1)*radint(1,io1,1)-prefsplus(l1,m1)*radint(2,io1,1)
 else
-                      mt_list%ab%alo(if1+(m1+l1)*apword(l1,is)+io1,if3+m1+l1,ias)=0.5d0*sqrt(dble((l1*(l1+1)-m1*(m1+1))))*radint(1,io1,1)
+                      mt_list%ab%alo(if1+(m1+l1)*apword(l1,is)+io1,if3+m1+l1,ias)=mt_list%ab%alo(if1+(m1+l1)*apword(l1,is)+io1,if3+m1+l1,ias)+0.5d0*sqrt(dble((l1*(l1+1)-m1*(m1+1))))*radint(1,io1,1)
 endif
                     endif
 
@@ -304,9 +304,9 @@ endif
                   do io1 = 1, apword (l1, is)
                     if (m1.ne.l1) then
 if (InterstitialSO) then
-                      mt_list%ab%loa(if3+m1+l1+1,if1+(m1+l1+1)*apword(l1,is)+io1,ias)=prefsminus(l1,m1)*radint(1,io1,1)-prefsplus(l1,m1)*radint(2,io1,1)
+                      mt_list%ab%loa(if3+m1+l1+1,if1+(m1+l1+1)*apword(l1,is)+io1,ias)=mt_list%ab%loa(if3+m1+l1+1,if1+(m1+l1+1)*apword(l1,is)+io1,ias)+prefsminus(l1,m1)*radint(1,io1,1)-prefsplus(l1,m1)*radint(2,io1,1)
 else
-                      mt_list%ab%loa(if3+m1+l1+1,if1+(m1+l1+1)*apword(l1,is)+io1,ias)=0.5d0*sqrt(dble((l1*(l1+1)-m1*(m1+1))))*radint(1,io1,1)
+                      mt_list%ab%loa(if3+m1+l1+1,if1+(m1+l1+1)*apword(l1,is)+io1,ias)=mt_list%ab%loa(if3+m1+l1+1,if1+(m1+l1+1)*apword(l1,is)+io1,ias)+0.5d0*sqrt(dble((l1*(l1+1)-m1*(m1+1))))*radint(1,io1,1)
 endif
                     endif
 
@@ -374,18 +374,16 @@ endif
                   do m1=-l1,l1
 if (InterstitialSO) then
                     if (m1.ne.l1) then
-                      mt_list%ab%lolo(if1+m1+l1+1,if3+m1+l1+2,ias)=prefsminus(l1,m1)*radint(1,1,1)-prefsplus(l1,m1)*radint(2,1,1)
+                      mt_list%ab%lolo(if1+m1+l1+1,if3+m1+l1+2,ias)=mt_list%ab%lolo(if1+m1+l1+1,if3+m1+l1+2,ias)+prefsminus(l1,m1)*radint(1,1,1)-prefsplus(l1,m1)*radint(2,1,1)
                     endif
 else
                     if (m1.ne.l1) then
-                      mt_list%ab%lolo(if1+m1+l1+1,if3+m1+l1+2,ias)=0.5d0*sqrt(dble((l1*(l1+1)-m1*(m1+1))))*radint2 !(1,1,1)
+                      mt_list%ab%lolo(if1+m1+l1+1,if3+m1+l1+2,ias)=mt_list%ab%lolo(if1+m1+l1+1,if3+m1+l1+2,ias)+0.5d0*sqrt(dble((l1*(l1+1)-m1*(m1+1))))*radint2 !(1,1,1)
                     endif
 endif
 
 #ifndef SOlolo
 if (InterstitialSO) then
-                    t1=mt_list%alpha%lolo(if1+m1+l1+1,if3+m1+l1+1,ias)
-                    t2=mt_list%beta%lolo (if1+m1+l1+1,if3+m1+l1+1,ias)
                     mt_list%alpha%lolo(if1+m1+l1+1,if3+m1+l1+1,ias)=mt_list%alpha%lolo(if1+m1+l1+1,if3+m1+l1+1,ias)- &
                                 0.5d0*(radint(1,1,1)*(dble((l1-m1+1)*(l1-m1+2))/dble(2*(2*l1+1)*(2*l1+3))-dble((l1+m1+1)*(l1+m1+2))/dble(2*(2*l1+1)*(2*l1+3)))+ &
                                        radint(2,1,1)*(dble((l1+m1-1)*(l1+m1  ))/dble(2*(2*l1-1)*(2*l1+1))-dble((l1-m1-1)*(l1-m1  ))/dble(2*(2*l1-1)*(2*l1+1))))

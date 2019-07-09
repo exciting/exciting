@@ -21,6 +21,6 @@
     lmaxmat="8"
     lmaxvr="8"
     >
-  <spin spinorb="false" realspace="true" reducebf="0.1"/> 
+  <spin spinorb="false" realspace="false" reducebf="0.1"/> 
   </groundstate>
 </input>

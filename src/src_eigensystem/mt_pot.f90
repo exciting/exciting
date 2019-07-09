@@ -117,15 +117,15 @@ Subroutine mt_pot(pot,basis,mt_h)
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
             Do ir = 1, nr
-              rmtable (ir) = 1d0/(1d0-a*veffmt (1, ir, ias)*y00)
+              rmtable (ir) = 1d0/(1d0-a*pot (1, ir, ias)*y00)
             End Do
 !---------------------------!
 !     APW-APW integrals     !
 !---------------------------!
 ! Radial integrals first
 #ifdef USEOMP
-!xOMP PARALLEL DEFAULT(NONE) SHARED(input,apword,lmmaxvr,mfromlm,lfromlm,apwfr,r2,veffmt,spr,nr,haaintegrals,is,ias,rmtable,r2inv) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf,l1,l3,t2,angular,io1,io2)
-!$OMP PARALLEL DEFAULT(NONE) SHARED(lorbl,nlorb,input,apword,lmmaxvr,mfromlm,lfromlm,apwfr,lofr,r2,veffmt,spr,nr,haaintegrals,hlolointegrals,halointegrals,is,ias,rmtable,r2inv) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf,l1,l3,t2,angular,io1,io2,ilo1,ilo2,io,ilo)
+!xOMP PARALLEL DEFAULT(NONE) SHARED(input,apword,lmmaxvr,mfromlm,lfromlm,apwfr,r2,pot,spr,nr,haaintegrals,is,ias,rmtable,r2inv) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf,l1,l3,t2,angular,io1,io2)
+!$OMP PARALLEL DEFAULT(NONE) SHARED(lorbl,nlorb,input,apword,lmmaxvr,mfromlm,lfromlm,apwfr,lofr,r2,pot,spr,nr,haaintegrals,hlolointegrals,halointegrals,is,ias,rmtable,r2inv) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf,l1,l3,t2,angular,io1,io2,ilo1,ilo2,io,ilo)
 #endif
             Do l1 = 0, input%groundstate%lmaxmat
                Do io1 = 1, apword (l1, is)
@@ -139,7 +139,7 @@ Subroutine mt_pot(pot,basis,mt_h)
                           l2 = lfromlm(lm2)
                           Do ir = 1, nr
                             t1=apwfr(ir,1,io1,l1,ias)*apwfr(ir,1,io2,l3,ias)*r2(ir)
-                            fr (ir) = t1 * veffmt (lm2, ir, ias)
+                            fr (ir) = t1 * pot (lm2, ir, ias)
                           End Do
                             Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                             haaintegrals (lm2, io2, l3, io1, l1)=gr (nr)
@@ -160,7 +160,7 @@ Subroutine mt_pot(pot,basis,mt_h)
 !     local-orbital-APW integtrals     !
 !--------------------------------------!
 #ifdef USEOMP
-!xOMP PARALLEL DEFAULT(NONE) SHARED(apword,nlorb,lorbl,rmtable,lmmaxvr,mfromlm,lfromlm,apwfr,lofr,r2,veffmt,spr,nr,halointegrals,is,ias,input,r2inv) PRIVATE(lm2,m2,l2,ir,t1,t2,fr,gr,cf,ilo,io,l1,l3,angular)
+!xOMP PARALLEL DEFAULT(NONE) SHARED(apword,nlorb,lorbl,rmtable,lmmaxvr,mfromlm,lfromlm,apwfr,lofr,r2,pot,spr,nr,halointegrals,is,ias,input,r2inv) PRIVATE(lm2,m2,l2,ir,t1,t2,fr,gr,cf,ilo,io,l1,l3,angular)
 #endif
             Do ilo = 1, nlorb (is)
                l1 = lorbl (ilo, is)
@@ -174,7 +174,7 @@ Subroutine mt_pot(pot,basis,mt_h)
                        l2 = lfromlm(lm2)
                        Do ir = 1, nr
                          t1 = lofr (ir, 1, ilo, ias) * apwfr (ir, 1, io, l3, ias) * r2 (ir)
-                         fr (ir) = t1 * veffmt (lm2, ir, ias)
+                         fr (ir) = t1 * pot (lm2, ir, ias)
                        End Do
                        Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                        halointegrals (lm2, io, l3, ilo) = gr (nr)  
@@ -197,7 +197,7 @@ Subroutine mt_pot(pot,basis,mt_h)
                Do ilo2 = 1, nlorb (is)
                   l3 = lorbl (ilo2, is)
 #ifdef USEOMP
-!xOMP PARALLEL DEFAULT(NONE) SHARED(lmmaxvr,mfromlm,lfromlm,lofr,r2,veffmt,spr,nr,hlolointegrals,ilo1,ilo2,is,ias) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf)
+!xOMP PARALLEL DEFAULT(NONE) SHARED(lmmaxvr,mfromlm,lfromlm,lofr,r2,pot,spr,nr,hlolointegrals,ilo1,ilo2,is,ias) PRIVATE(lm2,m2,l2,ir,t1,fr,gr,cf)
 !$OMP DO
 #endif
                   Do lm2 = 1, lmmaxvr
@@ -205,7 +205,7 @@ Subroutine mt_pot(pot,basis,mt_h)
                     l2 = lfromlm(lm2)
                     Do ir = 1, nr
                       t1 = lofr (ir, 1, ilo1, ias) * lofr (ir, 1, ilo2, ias) * r2 (ir)
-                      fr (ir) = t1 * veffmt (lm2, ir, ias)
+                      fr (ir) = t1 * pot (lm2, ir, ias)
                     End Do
                     Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                     hlolointegrals (lm2, ilo1, ilo2) = gr (nr)
@@ -277,6 +277,8 @@ Subroutine mt_pot(pot,basis,mt_h)
                        inonz=inonz+1
                      enddo
                      mt_h%main%loa(if1,if3,ias)=mt_h%main%loa(if1,if3,ias)+zsum
+                     mt_h%main%alo(if3,if1,ias)=mt_h%main%loa(if1,if3,ias)
+
                      if (io.ne.apword(l3,is)) inonz=ireset3
                   End Do
                End Do

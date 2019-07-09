@@ -116,6 +116,11 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
 ! True - transform FV wave functions to the real space
 ! False - work with the original basis and the transform to the LAPW basis
 
+!evecfv(1:ngk(1,ik),:)=0d0
+!do ist=1,10
+!  evecfv(ngk(1,ik)+ist,ist)=1d0
+!enddo
+
       if (input%groundstate%spin%realspace) then
 !-------------------------!
 !     muffin-tin part     !
@@ -282,87 +287,6 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       End Do
       call timesec(tb)
 !      write(*,*) 'sv / MT part',tb-ta
-!---------------------------!
-!     interstitial part     !
-!---------------------------!
-      call timesec(ta)
-      If (associated(input%groundstate%spin)) Then
-         If (ncmag) Then
-! non-collinear
-            Do ir = 1, ngrtot
-               bir (ir, :) = &
-               &  (bxcir(ir,:)+ga4*input%groundstate%spin%bfieldc(:))*cfunir(ir)
-            End Do
-         Else
-! collinear
-            Do ir = 1, ngrtot
-               bir (ir, 1:2) = 0.d0
-               bir (ir, 3) = (bxcir(ir, &
-              & 1)+ga4*input%groundstate%spin%bfieldc(3)) * cfunir (ir)
-            End Do
-         End If
-#ifdef USEOMP
-!$OMP PARALLEL DEFAULT(NONE) SHARED(nstfv,ngk,igfft,igkig,ngrid,ik,evecfv,evecsv,nsc,bir,ngkmax,ngrtot) PRIVATE(zfft1,zfft2,jst,ist,igk,ifg,zv,k,i,j)
-#endif
-      Allocate (zfft1(ngrtot))
-      Allocate (zfft2(ngrtot))
-      Allocate (zv(ngkmax, nsc))
-#ifdef USEOMP
-!$OMP DO
-#endif 
-
-         Do jst = 1, nstfv
-            zfft1 (:) = 0.d0
-            Do igk = 1, ngk (1, ik)
-               ifg = igfft (igkig(igk, 1, ik))
-               zfft1 (ifg) = evecfv (igk, jst)
-            End Do
-! Fourier transform wavefunction to real-space
-            Call zfftifc (3, ngrid, 1, zfft1)
-! multiply with magnetic field and transform to G-space
-            zfft2 (:) = zfft1 (:) * bir (:, 3)
-            Call zfftifc (3, ngrid,-1, zfft2)
-            Do igk = 1, ngk (1, ik)
-               ifg = igfft (igkig(igk, 1, ik))
-               zv (igk, 1) = zfft2 (ifg)
-               zv (igk, 2) = - zfft2 (ifg)
-            End Do
-            If (nsc .Eq. 3) Then
-               zfft2 (:) = zfft1 (:) * cmplx (bir(:, 1),-bir(:, 2), 8)
-               Call zfftifc (3, ngrid,-1, zfft2)
-               Do igk = 1, ngk (1, ik)
-                  ifg = igfft (igkig(igk, 1, ik))
-                  zv (igk, 3) = zfft2 (ifg)
-               End Do
-            End If
-! add to Hamiltonian matrix
-            Do ist = 1, nstfv
-               Do k = 1, nsc
-                  If (k .Eq. 1) Then
-                     i = ist
-                     j = jst
-                  Else If (k .Eq. 2) Then
-                     i = ist + nstfv
-                     j = jst + nstfv
-                  Else
-                     i = ist
-                     j = jst + nstfv
-                  End If
-                  If (i .Le. j) Then
-                     evecsv (i, j) = evecsv (i, j) + zdotc (ngk(1, ik), &
-                    & evecfv(:, ist), 1, zv(:, k), 1)
-                  End If
-               End Do
-            End Do
-         End Do
-#ifdef USEOMP
-!$OMP END DO
-#endif
-      deallocate (zfft1,zfft2,zv)
-#ifdef USEOMP
-!$OMP END PARALLEL
-#endif 
-      End If
 
 
 ! New algorithm for the second variation follows
@@ -372,10 +296,129 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
 !        call MTInit(mt_h%alpha,mt_h%maxaa,mt_h%maxnlo)
         call MTInit(mt_h%ab,mt_h%maxaa,mt_h%maxnlo)
         call MTInit(mt_h%beta,mt_h%maxaa,mt_h%maxnlo)
-!        call MTCopy(mt_h%alpha,mt_h%beta)
+
         mt_basis%lofr=>lofr
         mt_basis%apwfr=>apwfr
-        call mt_so(veffmt,mt_basis,mt_basis,mt_h,level_zora)
+
+
+! now the magnetic field
+! is the problem noncollinear?
+        if (ncmag) then 
+          call MTRedirect(mt_h%main,mt_h%alpha)
+
+! adding the z component of the external magnetic field to bxcmt
+          do is=1,nspecies
+            do ia=1,natoms(is)
+              ias=idxas(ia,is)
+              bxcmt (1, :, ias, 3) = bxcmt (1, :, ias, 3) + ga4 * (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(3)+input%groundstate%spin%bfieldc(3))/y00
+            enddo
+          enddo
+
+          call mt_pot(bxcmt(:,:,:,3),mt_basis,mt_h)
+
+! removing the z component of the external magnetic field to bxcmt / restoring bxcmt to the initial state
+          do is=1,nspecies
+            do ia=1,natoms(is)
+              ias=idxas(ia,is)
+              bxcmt (1, :, ias, 3) = bxcmt (1, :, ias, 3) - ga4 * (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(3)+input%groundstate%spin%bfieldc(3))/y00
+            enddo
+          enddo
+
+          mt_h%beta%aa=-mt_h%alpha%aa
+! do we have local orbitals?
+          if (associated(mt_h%beta%lolo)) then
+            mt_h%beta%alo=-mt_h%alpha%alo
+            mt_h%beta%loa=-mt_h%alpha%loa
+            mt_h%beta%lolo=-mt_h%alpha%lolo
+          endif
+
+
+! adding the y component of the external magnetic field to bxcmt
+          call MTRedirect(mt_h%main,mt_h%ab)
+          do is=1,nspecies
+            do ia=1,natoms(is)
+              ias=idxas(ia,is)
+              bxcmt (1, :, ias, 2) = bxcmt (1, :, ias, 2) + ga4 * (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(2)+input%groundstate%spin%bfieldc(2))/y00
+            enddo
+          enddo
+
+          call mt_pot(bxcmt(:,:,:,2),mt_basis,mt_h)
+
+! removing the y component of the external magnetic field to bxcmt / restoring bxcmt to the initial state
+          do is=1,nspecies
+            do ia=1,natoms(is)
+              ias=idxas(ia,is)
+              bxcmt (1, :, ias, 2) = bxcmt (1, :, ias, 2) - ga4 * (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(2)+input%groundstate%spin%bfieldc(2))/y00
+            enddo
+          enddo
+
+! scale the alpha-beta block of the Hamiltonian by i, because we are handling the y component of the magnetic field now
+          mt_h%ab%aa=zi*mt_h%ab%aa
+! do we have local orbitals?
+          if (associated(mt_h%beta%lolo)) then
+            mt_h%ab%alo=zi*mt_h%ab%alo
+            mt_h%ab%loa=zi*mt_h%ab%loa
+            mt_h%ab%lolo=zi*mt_h%ab%lolo
+          endif
+
+
+! adding the x component of the external magnetic field to bxcmt
+          call MTRedirect(mt_h%main,mt_h%ab)
+          do is=1,nspecies
+            do ia=1,natoms(is)
+              ias=idxas(ia,is)
+              bxcmt (1, :, ias, 1) = bxcmt (1, :, ias, 1) + ga4 * (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(1)+input%groundstate%spin%bfieldc(1))/y00
+            enddo
+          enddo
+
+          call mt_pot(bxcmt(:,:,:,1),mt_basis,mt_h)
+
+! removing the x component of the external magnetic field to bxcmt / restoring bxcmt to the initial state
+          do is=1,nspecies
+            do ia=1,natoms(is)
+              ias=idxas(ia,is)
+              bxcmt (1, :, ias, 1) = bxcmt (1, :, ias, 1) - ga4 * (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(1)+input%groundstate%spin%bfieldc(1))/y00
+            enddo
+          enddo
+
+! the collinear case
+        else
+          call MTRedirect(mt_h%main,mt_h%alpha)
+          do is=1,nspecies
+            do ia=1,natoms(is)
+              ias=idxas(ia,is)
+              bxcmt (1, :, ias, 1) = bxcmt (1, :, ias, 1) + ga4 * (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(3)+input%groundstate%spin%bfieldc(3))/y00
+            enddo
+          enddo
+
+          call mt_pot(bxcmt(:,:,:,1),mt_basis,mt_h)
+
+          do is=1,nspecies
+            do ia=1,natoms(is)
+              ias=idxas(ia,is)
+              bxcmt (1, :, ias, 1) = bxcmt (1, :, ias, 1) - ga4 * (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(3)+input%groundstate%spin%bfieldc(3))/y00
+            enddo
+          enddo
+
+          mt_h%beta%aa=-mt_h%alpha%aa
+! do we have local orbitals?
+          if (associated(mt_h%beta%lolo)) then
+            mt_h%beta%alo=-mt_h%alpha%alo
+            mt_h%beta%loa=-mt_h%alpha%loa
+            mt_h%beta%lolo=-mt_h%alpha%lolo
+          endif
+        endif
+
+! add the spin orbit interaction if requested
+        if (isspinorb()) call mt_so(veffmt,mt_basis,mt_basis,mt_h,level_zora)
+
+
+! debugging info
+!do ist=1,50
+!  write(*,*) mt_h%main%aa(ist,ist,1)
+!enddo
+!stop 
+
 
 
         allocate(zwf(mt_h%maxaa,nstfv))           
@@ -603,6 +646,7 @@ endif
                       nstfv*2 &      ! LDC ... leading dimension of C
                       )
 ! alpha-beta block
+if (ncmag) then
           call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
                       mt_h%maxaa, &          ! M ... rows of op( A ) = rows of C
@@ -692,7 +736,7 @@ endif
                       evecsv(1,nstfv+1), &  ! C
                       nstfv*2 &      ! LDC ... leading dimension of C
                       )
-
+endif
 
         offset=offset+mt_h%losize(is)
       enddo
@@ -709,6 +753,95 @@ endif
         deallocate(zwf)
 
       endif
+
+! Debugging info
+!do ist=1,nstsv
+!  write(*,*) evecsv(2,ist)
+!enddo
+!stop
+
+!---------------------------!
+!     interstitial part     !
+!---------------------------!
+      call timesec(ta)
+      If (associated(input%groundstate%spin)) Then
+         If (ncmag) Then
+! non-collinear
+            Do ir = 1, ngrtot
+               bir (ir, :) = &
+               &  (bxcir(ir,:)+ga4*input%groundstate%spin%bfieldc(:))*cfunir(ir)
+            End Do
+         Else
+! collinear
+            Do ir = 1, ngrtot
+               bir (ir, 1:2) = 0.d0
+               bir (ir, 3) = (bxcir(ir, &
+              & 1)+ga4*input%groundstate%spin%bfieldc(3)) * cfunir (ir)
+            End Do
+         End If
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(NONE) SHARED(nstfv,ngk,igfft,igkig,ngrid,ik,evecfv,evecsv,nsc,bir,ngkmax,ngrtot) PRIVATE(zfft1,zfft2,jst,ist,igk,ifg,zv,k,i,j)
+#endif
+      Allocate (zfft1(ngrtot))
+      Allocate (zfft2(ngrtot))
+      Allocate (zv(ngkmax, nsc))
+#ifdef USEOMP
+!$OMP DO
+#endif 
+
+         Do jst = 1, nstfv
+            zfft1 (:) = 0.d0
+            Do igk = 1, ngk (1, ik)
+               ifg = igfft (igkig(igk, 1, ik))
+               zfft1 (ifg) = evecfv (igk, jst)
+            End Do
+! Fourier transform wavefunction to real-space
+            Call zfftifc (3, ngrid, 1, zfft1)
+! multiply with magnetic field and transform to G-space
+            zfft2 (:) = zfft1 (:) * bir (:, 3)
+            Call zfftifc (3, ngrid,-1, zfft2)
+            Do igk = 1, ngk (1, ik)
+               ifg = igfft (igkig(igk, 1, ik))
+               zv (igk, 1) = zfft2 (ifg)
+               zv (igk, 2) = - zfft2 (ifg)
+            End Do
+            If (nsc .Eq. 3) Then
+               zfft2 (:) = zfft1 (:) * cmplx (bir(:, 1),-bir(:, 2), 8)
+               Call zfftifc (3, ngrid,-1, zfft2)
+               Do igk = 1, ngk (1, ik)
+                  ifg = igfft (igkig(igk, 1, ik))
+                  zv (igk, 3) = zfft2 (ifg)
+               End Do
+            End If
+! add to Hamiltonian matrix
+            Do ist = 1, nstfv
+               Do k = 1, nsc
+                  If (k .Eq. 1) Then
+                     i = ist
+                     j = jst
+                  Else If (k .Eq. 2) Then
+                     i = ist + nstfv
+                     j = jst + nstfv
+                  Else
+                     i = ist
+                     j = jst + nstfv
+                  End If
+                  If (i .Le. j) Then
+                     evecsv (i, j) = evecsv (i, j) + zdotc (ngk(1, ik), &
+                    & evecfv(:, ist), 1, zv(:, k), 1)
+                  End If
+               End Do
+            End Do
+         End Do
+#ifdef USEOMP
+!$OMP END DO
+#endif
+      deallocate (zfft1,zfft2,zv)
+#ifdef USEOMP
+!$OMP END PARALLEL
+#endif 
+      End If
+
 
 !do i=1,nstsv
 !  write(*,*) dble(evecsv(i,nstfv+4))
