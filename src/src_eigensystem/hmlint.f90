@@ -382,8 +382,10 @@ else
       haaij=mt_h%main%aa
       
 !      haaij=haaij +mt_h%main%aa
-      haloij=0d0*haloij +mt_h%main%loa
-      hloloij=0d0*hloloij+mt_h%main%lolo
+      if (allocated(haloij)) then
+        haloij=0d0*haloij +mt_h%main%loa
+        hloloij=0d0*hloloij+mt_h%main%lolo
+      endif
 
       call MTRelease(mt_h)
 !      call MTBasisRelease(mt_basis)

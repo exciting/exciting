@@ -83,5 +83,187 @@ Module mod_potential_and_density
 !replaced by inputstructurereal(8)::beta0
 !replaced by inputstructurereal(8)::betainc
 !replaced by inputstructurereal(8)::betadec
+
+! type for the density matrix in the muffin-tin region
+! It is similar to the Hamiltonian type. Do we need a separate type here?
+      Type MTDensityMatrixType
+        complex(8), pointer :: ff(:,:,:)
+      End Type MTDensityMatrixType
+      Type MTDensityMatrixList
+        Type (MTDensityMatrixType) :: main
+        Type (MTDensityMatrixType) :: alpha
+        Type (MTDensityMatrixType) :: beta
+        Type (MTDensityMatrixType) :: ab
+        Type (MTDensityMatrixType) :: ba
+        integer :: maxnlo
+        integer :: maxaa
+        integer, pointer :: losize(:)
+      End Type MTDensityMatrixList
+
+      Type(MTDensityMatrixList) :: mt_dm
+
+Contains
+!
+!
+!
+!BOP
+! !ROUTINE: DMNullify
+! !INTERFACE:
+!
+!
+      subroutine DMNullify(mt_dm)
+! !USES:
+! !DESCRIPTION:
+! Nullifies all pointers of the muffin-tin density matrix. 
+!
+! !REVISION HISTORY:
+!   Created June 2019 (Andris)
+!EOP
+!BOC
+      Implicit None
+      Type (MTDensityMatrixList), Intent (Inout) :: mt_dm
+
+
+      nullify(mt_dm%main%ff)
+      nullify(mt_dm%alpha%ff)
+      nullify(mt_dm%beta%ff)
+      nullify(mt_dm%ab%ff)
+      nullify(mt_dm%ba%ff)
+
+      end subroutine DMNullify
+      
+
+!
+!
+!
+!BOP
+! !ROUTINE: DMInit
+! !INTERFACE:
+!
+!
+      subroutine DMInit(mt_block,maxaa,maxnlo)
+! !USES:
+      Use mod_atoms
+! !DESCRIPTION:
+! Initialises a part of the muffin-tin density matrix. 
+!
+! !REVISION HISTORY:
+!   Created July 2019 (Andris)
+!EOP
+!BOC
+     Implicit None
+     Type (MTDensityMatrixType) :: mt_block
+     integer :: maxaa,maxnlo
+
+     if (.not.associated(mt_block%ff)) allocate(mt_block%ff(maxaa+maxnlo,maxaa+maxnlo,natmtot))
+     mt_block%ff=0d0
+
+     end subroutine DMinit
+
+
+!
+!
+!
+!BOP
+! !ROUTINE: DMInitAll
+! !INTERFACE:
+!
+!
+      subroutine DMInitAll(mt_dm)
+! !USES:
+      Use modinput
+      Use mod_APW_LO
+      Use mod_atoms
+      Use mod_muffin_tin
+      Use mod_eigensystem
+      Use mod_spin, only: ncmag
+! !DESCRIPTION:
+! Initialises all parts of the muffin-tin density matrix. 
+!
+! !REVISION HISTORY:
+!   Created July 2019 (Andris)
+!EOP
+!BOC
+      Implicit None
+      Type (MTDensityMatrixList), Intent (Inout) :: mt_dm
+      integer ::  io, ilo, if1, l, m, lm, l1, m1, lm1, l3, m3, lm3, maxaa, is, ias
+
+      maxaa=0
+      Do is = 1, nspecies
+        if1=0
+        Do l = 0, input%groundstate%lmaxmat
+          Do m = - l, l
+            lm = idxlm (l, m)
+            Do io = 1, apword (l, is)
+              if1=if1+1
+            End Do
+          End Do
+        End Do
+        if (if1.gt.maxaa) maxaa=if1
+      Enddo
+      mt_dm%maxaa=maxaa
+
+
+      if (associated(mt_dm%losize)) deallocate(mt_dm%losize)
+      allocate(mt_dm%losize(nspecies))
+      mt_dm%maxnlo=0
+      Do is = 1, nspecies
+        ias=idxas (1, is)
+        ilo=nlorb (is)
+        if (ilo.gt.0) then
+          l1 = lorbl (ilo, is)
+          lm1 = idxlm (l1, l1)
+          l3 = lorbl (1, is)
+          lm3 = idxlm (l3, -l3)
+          mt_dm%losize(is)=idxlo (lm1, ilo, ias)- idxlo (lm3, 1, ias)+1
+          if (mt_dm%maxnlo.lt.mt_dm%losize(is)) mt_dm%maxnlo=mt_dm%losize(is)
+        else
+          mt_dm%losize(is)=0
+        endif
+      Enddo
+
+      call DMInit(mt_dm%alpha,mt_dm%maxaa,mt_dm%maxnlo)
+      if (associated(input%groundstate%spin)) then
+        call DMInit(mt_dm%beta,mt_dm%maxaa,mt_dm%maxnlo)
+        call DMInit(mt_dm%ba,mt_dm%maxaa,mt_dm%maxnlo)
+        if (ncmag) then
+          call DMInit(mt_dm%ab,mt_dm%maxaa,mt_dm%maxnlo)
+        endif
+      endif
+      
+      end subroutine DMInitAll
+
+
+!
+!
+!
+!BOP
+! !ROUTINE: DMRelease
+! !INTERFACE:
+!
+!
+     subroutine DMRelease(mt_dm)
+! !USES:
+! !DESCRIPTION:
+! Release all memory used by the density matrix. 
+!
+! !REVISION HISTORY:
+!   Created July 2019 (Andris)
+!EOP
+!BOC
+     implicit none
+     Type (MTDensityMatrixList), Intent (Inout) :: mt_dm
+
+!     write(*,*) "DM_Release " ,associated(mt_dm%alpha%ff)
+!     read(*,*)
+     if (associated(mt_dm%alpha%ff)) deallocate(mt_dm%alpha%ff)
+     if (associated(mt_dm%beta%ff)) deallocate(mt_dm%beta%ff)
+     if (associated(mt_dm%ab%ff)) deallocate(mt_dm%ab%ff)
+     if (associated(mt_dm%ba%ff)) deallocate(mt_dm%ba%ff)
+     if (associated(mt_dm%losize)) deallocate(mt_dm%losize)
+
+     end subroutine DMRelease
+      
+      
 End Module
 !

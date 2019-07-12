@@ -35,6 +35,7 @@ Subroutine init1
       Integer :: i1, i2, i3, ispn, iv (3)
       Integer :: l1, l2, l3, m1, m2, m3, lm1, lm2, lm3
       Integer :: n1, n2, n3, nonzcount
+      Integer :: i, maxi
       Real (8) :: vl (3), vc (3), boxl (3, 4), lambda
       Real (8) :: ts0, ts1
       real (8) :: vl1(3),vl2(3),vc1(3),vc2(3)
@@ -544,6 +545,31 @@ Subroutine init1
       End Do
       gntnonzlm3(nonzcount+1)=0
       gntnonzlm1(nonzcount+1)=0
+      
+      ! compact Gaunt coeffiecient array
+      if (allocated(indgnt)) deallocate(indgnt)
+      if (allocated(listgnt)) deallocate(listgnt)
+      allocate(indgnt(input%groundstate%lmaxapw+1,lmmaxapw,lmmaxapw))
+      allocate(listgnt(input%groundstate%lmaxapw+1,lmmaxapw,lmmaxapw))
+      indgnt(:,:,:)=0
+      listgnt(:,:,:)=zzero
+      maxi=0
+      do lm3=1,lmmaxapw
+        do lm1=1,lmmaxapw
+          i=0
+!write(*,*) lm1,lm3
+          do lm2=1,(input%groundstate%lmaxvr+1)**2 !lmmaxvr
+            if ((dble(gntryy(lm2,lm1,lm3)).ne.0d0).or.(dimag(gntryy(lm2,lm1,lm3)).ne.0d0)) then
+              i=i+1
+!write(*,*) lm2,gntryy(lm2,lm1,lm3)
+              listgnt(i,lm1,lm3)=gntryy(lm2,lm1,lm3)
+              indgnt(i,lm1,lm3)=lm2
+            endif
+          enddo
+          maxi=max(i,maxi)
+        enddo
+      enddo
+
 #ifdef XS
 20    Continue
 #endif
