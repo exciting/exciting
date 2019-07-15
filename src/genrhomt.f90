@@ -52,17 +52,13 @@ Subroutine genrhomt (basis1,basis2,densitymt)
 
 #ifdef MPI
 !write(*,*) 'all reduce'
-      allocate(buf(wfsize,wfsize,natmtot))
-      buf(:,:,:)= dcmplx(0d0,0d0)
-      call MPI_ALLREDUCE(mt_dm%main%ff, buf, 2*wfsize*wfsize*natmtot,MPI_DOUBLE_PRECISION,MPI_SUM, MPI_COMM_WORLD,ierr)
-      mt_dm%main%ff=buf
-      deallocate(buf)
+!      allocate(buf(wfsize,wfsize,natmtot))
+!      buf(:,:,:)= dcmplx(0d0,0d0)
+!      call MPI_ALLREDUCE(mt_dm%main%ff, buf, 2*wfsize*wfsize*natmtot,MPI_DOUBLE_PRECISION,MPI_SUM, MPI_COMM_WORLD,ierr)
+!      mt_dm%main%ff=buf
+!      deallocate(buf)
 
-!      Allocate (rho(ngrtot,1,1))
-!      rho = 0.d0
-!      Call MPI_allreduce (rhoir, rho, ngrtot, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
-!      rhoir = rho(:,1,1)
-!      Deallocate (rho)
+
 !write(*,*) 'all reduce done'
 #endif
 

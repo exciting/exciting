@@ -301,7 +301,7 @@ call timesec(ta)
 
 
 call timesec(tb)
-write(*,*) "diagonalisation",tb-ta
+
 
 ! Release memory used by the MT Hamiltonian
         call MTRelease(mt_hscf)
@@ -430,7 +430,6 @@ else
 #endif
 endif        
 call timesec(tb)
-write(*,*) 'density',tb-ta
 
 #ifdef MPI
         If ((input%groundstate%xctypenumber.Lt.0).Or. &
