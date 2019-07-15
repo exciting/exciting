@@ -67,6 +67,7 @@ Module mod_eigensystem
       End Type MTHamiltonianType
       Type MTHamiltonianList
         Type (MTHamiltonianType) :: main
+        Type (MTHamiltonianType) :: spinless
         Type (MTHamiltonianType) :: alpha
         Type (MTHamiltonianType) :: beta
         Type (MTHamiltonianType) :: ab
@@ -75,9 +76,12 @@ Module mod_eigensystem
         integer :: maxaa
         integer,allocatable :: losize(:)
       End Type MTHamiltonianList
+! Muffin-tin Hamlitonian for SCF
+      Type (MTHamiltonianList) :: mt_hscf
 ! Relativity settings
       integer :: level_nr, level_zora, level_iora
       parameter (level_nr=0, level_zora=1, level_iora=2)
+      
 
 
 Contains
@@ -109,6 +113,11 @@ Contains
       nullify(mt_h%main%alo)
       nullify(mt_h%main%loa)
       nullify(mt_h%main%lolo)
+
+      nullify(mt_h%spinless%aa)
+      nullify(mt_h%spinless%alo)
+      nullify(mt_h%spinless%loa)
+      nullify(mt_h%spinless%lolo)
 
       nullify(mt_h%alpha%aa)
       nullify(mt_h%alpha%alo)
@@ -191,8 +200,8 @@ Contains
         endif
       Enddo
 
-      call MTInit(mt_h%alpha,mt_h%maxaa,mt_h%maxnlo)
-      call MTRedirect(mt_h%main,mt_h%alpha)
+      call MTInit(mt_h%spinless,mt_h%maxaa,mt_h%maxnlo)
+!      call MTRedirect(mt_h%main,mt_h%alpha)
 
       end subroutine MTInitAll
 
@@ -335,6 +344,11 @@ Contains
 !BOC
      implicit none
      type (MTHamiltonianList), Intent (Inout) :: mt_h
+
+     if (associated(mt_h%spinless%aa)) deallocate(mt_h%spinless%aa)
+     if (associated(mt_h%spinless%alo)) deallocate(mt_h%spinless%alo)
+     if (associated(mt_h%spinless%loa)) deallocate(mt_h%spinless%loa)
+     if (associated(mt_h%spinless%lolo)) deallocate(mt_h%spinless%lolo)
 
      if (associated(mt_h%alpha%aa)) deallocate(mt_h%alpha%aa)
      if (associated(mt_h%alpha%alo)) deallocate(mt_h%alpha%alo)

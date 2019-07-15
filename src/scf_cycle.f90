@@ -27,14 +27,16 @@ subroutine scf_cycle(verbosity)
     Logical :: tibs, exist
     Integer :: ik, is, ia, idm, id
     Integer :: n, nwork
-    Integer :: i,j
+    Integer :: i,j, ias
     Real(8), Allocatable :: v(:),forcesum(:,:)
     Real(8) :: timetot, ts0, ts1, tin1, tin0, ta,tb
     character*(77) :: string, acoord
     
     Real (8), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
     Real (8), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
+
     Type (apw_lo_basis_type) :: mt_basis
+    
 
     acoord = "lattice"
     if (input%structure%cartesian) acoord = "cartesian"
@@ -201,11 +203,27 @@ subroutine scf_cycle(verbosity)
           call olprad           ! compute the overlap radial integrals
         end if
         
-        !------------------------------------------------------------
-        ! Effective Hamiltonian Setup: Radial and Angular integrals
-        !------------------------------------------------------------
-        call hmlint
-        !call hmlrad
+!------------------------------------------------------------
+! Effective Hamiltonian Setup: Radial and Angular integrals
+!------------------------------------------------------------
+
+        
+        call MTNullify(mt_hscf)
+        call MTInitAll(mt_hscf)
+        call hmlint(mt_hscf)
+                
+        
+
+
+!------------------------------------------------------------
+! Effective Hamiltonian Setup Done
+!------------------------------------------------------------
+
+
+
+
+
+
 
 !________________
 ! partial charges
@@ -227,7 +245,7 @@ subroutine scf_cycle(verbosity)
 !-----------------------------------------------
 ! Solve Secular Equation for each k-point
 !-----------------------------------------------
-
+call timesec(ta)
 ! start k-point loop
 #ifdef MPI
         Call MPI_barrier (MPI_COMM_WORLD, ierr)
@@ -280,6 +298,14 @@ subroutine scf_cycle(verbosity)
         Call mpi_allgatherv_ifc(nkpt,rlen=nstfv,rbuf=engyknst)
         Call MPI_barrier(MPI_COMM_WORLD, ierr)
 #endif
+
+
+call timesec(tb)
+write(*,*) "diagonalisation",tb-ta
+
+! Release memory used by the MT Hamiltonian
+        call MTRelease(mt_hscf)
+
 
 !-----------------------------------------------
 ! find the occupation numbers and Fermi energy
@@ -404,7 +430,7 @@ else
 #endif
 endif        
 call timesec(tb)
-!write(*,*) 'density',tb-ta
+write(*,*) 'density',tb-ta
 
 #ifdef MPI
         If ((input%groundstate%xctypenumber.Lt.0).Or. &
