@@ -45,7 +45,9 @@ Subroutine effmass
 ! compute the overlap radial integrals
       Call olprad
 ! compute the Hamiltonian radial integrals
-      Call hmlint
+    call MTNullify(mt_hscf)
+    call MTInitAll(mt_hscf)
+    call hmlint(mt_hscf)  
 ! compute "relativistic mass" on the G-grid
       Call genmeffig
       ik0 = 0
@@ -75,6 +77,8 @@ Subroutine effmass
       End Do
 !$OMP END DO
 !$OMP END PARALLEL
+      call MTRelease(mt_hscf)
+
       if (allocated(meffig)) deallocate(meffig)
       if (allocated(m2effig)) deallocate(m2effig)
 ! set up polynomial matrix

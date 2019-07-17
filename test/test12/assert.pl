@@ -69,10 +69,10 @@ $status="passed";
  
 #compare total energies
 $tol=1e-6;
-$refen=-1270.57692873;
+$refen=-1270.57692665;
 $status="failed";
 $err=$toten-$refen;
-if (abs($totearp-$totelap)<=$tol){
+if (abs($err)<=$tol){
 $status="passed";
 }
  Test::writetestreport({
@@ -85,8 +85,8 @@ $status="passed";
  		}, $writer);
 
 #compare magnetic moments
-$tol=1e-6;
-$refmom=-1.99998398;
+$tol=3e-5;
+$refmom=-2.00000003;
 $status="failed";
 $err=$totmom-$refmom;
 if (abs($err)<=$tol){
@@ -125,7 +125,7 @@ while(<INFO>)
         if (m/ total moment /) {
                 ($first, $totmom)=split /:/, $_, 2;
                 $totmom =~ s/^\s+//;
-                ($first, $second, $totmom)=split /   /, $totmom, 3;
+                ($totmom, $second, $third)=split /   /, $totmom, 3;
                 $totmom =~ s/^\s+//;
         }
 
@@ -164,11 +164,11 @@ $status="passed";
 
  
 #compare total energies
-$tol=1e-6;
-$refen=-1270.57748591;
+$tol=3e-5;
+$refen=-1270.57748365;
 $status="failed";
 $err=$toten-$refen;
-if (abs($totearp-$totelap)<=$tol){
+if (abs($err)<=$tol){
 $status="passed";
 }
  Test::writetestreport({
@@ -182,7 +182,7 @@ $status="passed";
 
 #compare magnetic moments
 $tol=1e-6;
-$refmom=-2.00177562;
+$refmom=-2.00181244;
 $status="failed";
 $err=$totmom-$refmom;
 if (abs($err)<=$tol){
@@ -190,7 +190,7 @@ $status="passed";
 }
  Test::writetestreport({
  		directory=>"test12/nonruncollinear",
- 		name=>"magnetic moments",
+ 		name=>"magnetic moment",
  		description=>"The test is passed if the total magnetic moment differs\
  		 from the reference by less than $tol. 
  		 Obtained difference is $err ($totmom vs. $refmom).",

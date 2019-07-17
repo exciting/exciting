@@ -481,15 +481,15 @@ Subroutine init1
 !      endif
 ! allocate and generate complex Gaunt coefficient array
       If (allocated(gntyry)) deallocate (gntyry)
-      Allocate (gntyry(lmmaxmat, lmmaxvr, lmmaxapw))
+      Allocate (gntyry(lmmaxapw, lmmaxapw, lmmaxapw))
       nonzcount=0
-      Do l1 = 0, input%groundstate%lmaxmat
+      Do l1 = 0, input%groundstate%lmaxapw
          Do m1 = - l1, l1
             lm1 = idxlm (l1, m1)
-            Do l2 = 0, input%groundstate%lmaxvr
+            Do l2 = 0, input%groundstate%lmaxapw
                Do m2 = - l2, l2
                   lm2 = idxlm (l2, m2)
-                  Do l3 = 0, input%groundstate%lmaxmat
+                  Do l3 = 0, input%groundstate%lmaxapw
                      Do m3 = - l3, l3
                         lm3 = idxlm (l3, m3)
                         gntyry (lm1, lm2, lm3) = gauntyry (l1, l2, l3, m1, m2, m3)
@@ -507,41 +507,52 @@ Subroutine init1
       If (allocated(gntnonzlm3)) deallocate (gntnonzlm3)
       If (allocated(gntnonzlindex)) deallocate (gntnonzlindex)
       If (allocated(gntnonzl2index)) deallocate (gntnonzl2index)
-      Allocate (gntryy(lmmaxvr, lmmaxmat, lmmaxmat))
+      Allocate (gntryy(lmmaxvr, lmmaxapw, lmmaxapw))
       allocate(gntnonz(nonzcount),gntnonzlm1(nonzcount+1),gntnonzlm2(nonzcount),gntnonzlm3(nonzcount+1))
       allocate(gntnonzlindex(0:input%groundstate%lmaxmat))
       allocate(gntnonzl2index(lmmaxmat,lmmaxmat))
+
+      Do l1 = 0, input%groundstate%lmaxapw
+        Do m1 = - l1, l1
+          lm1 = idxlm (l1, m1)
+          Do l3 = 0, input%groundstate%lmaxapw
+            Do m3 = - l3, l3
+              lm3 = idxlm (l3, m3)
+              Do l2 = 0, input%groundstate%lmaxvr
+                Do m2 = - l2, l2
+                  lm2 = idxlm (l2, m2)
+                  gntryy (lm2, lm3, lm1) = gauntyry (l1, l2, l3, m1, m2, m3)
+                End Do
+              End Do
+            End Do
+          End Do
+        End Do
+      End Do
+
       i1=0
       Do l1 = 0, input%groundstate%lmaxmat
-         gntnonzlindex(l1)=i1+1
-         Do m1 = - l1, l1
-            lm1 = idxlm (l1, m1)
-                  Do l3 = 0, input%groundstate%lmaxmat
-!                     if (lm1.eq.idxlm (l1,-l1)) gntnonzl2index(l1,l3)=i1+1
-                     Do m3 = - l3, l3
-                       lm3 = idxlm (l3, m3)
-                       gntnonzl2index(lm1,lm3)=i1+1
-
-            Do l2 = 0, input%groundstate%lmaxvr
-               Do m2 = - l2, l2
+        gntnonzlindex(l1)=i1+1
+        Do m1 = - l1, l1
+          lm1 = idxlm (l1, m1)
+          Do l3 = 0, input%groundstate%lmaxmat
+            Do m3 = - l3, l3
+              lm3 = idxlm (l3, m3)
+              gntnonzl2index(lm1,lm3)=i1+1
+              Do l2 = 0, input%groundstate%lmaxvr
+                Do m2 = - l2, l2
                   lm2 = idxlm (l2, m2)
-                        gntryy (lm2, lm3, lm1) = gauntyry (l1, l2, l3, m1, m2, m3)
-                        if ((abs(gntryy (lm2, lm3, lm1)).gt.1d-20)) then
-!.and.(lm1 .Ge. lm3)) then
-!                          write(*,*) lm1,lm2,lm3
-!                          read(*,*)
-
-                           i1=i1+1
-                           gntnonz(i1)=gntryy(lm2, lm3, lm1)
-                           gntnonzlm1(i1)=lm1
-                           gntnonzlm3(i1)=lm3
-                           gntnonzlm2(i1)=lm2
-                        endif
-                     End Do
-                  End Do
-               End Do
+                  if ((abs(gntryy (lm2, lm3, lm1)).gt.1d-20).and.(lm1.le.lmmaxmat).and.(lm3.le.lmmaxmat)) then
+                    i1=i1+1
+                    gntnonz(i1)=gntryy(lm2, lm3, lm1)
+                    gntnonzlm1(i1)=lm1
+                    gntnonzlm3(i1)=lm3
+                    gntnonzlm2(i1)=lm2
+                  endif
+                End Do
+              End Do
             End Do
-         End Do
+          End Do
+        End Do
       End Do
       gntnonzlm3(nonzcount+1)=0
       gntnonzlm1(nonzcount+1)=0
@@ -549,19 +560,17 @@ Subroutine init1
       ! compact Gaunt coeffiecient array
       if (allocated(indgnt)) deallocate(indgnt)
       if (allocated(listgnt)) deallocate(listgnt)
-      allocate(indgnt(input%groundstate%lmaxapw+1,lmmaxapw,lmmaxapw))
-      allocate(listgnt(input%groundstate%lmaxapw+1,lmmaxapw,lmmaxapw))
+      allocate(indgnt(input%groundstate%lmaxvr+1,lmmaxapw,lmmaxapw))
+      allocate(listgnt(input%groundstate%lmaxvr+1,lmmaxapw,lmmaxapw))
       indgnt(:,:,:)=0
       listgnt(:,:,:)=zzero
       maxi=0
       do lm3=1,lmmaxapw
         do lm1=1,lmmaxapw
           i=0
-!write(*,*) lm1,lm3
           do lm2=1,(input%groundstate%lmaxvr+1)**2 !lmmaxvr
             if ((dble(gntryy(lm2,lm1,lm3)).ne.0d0).or.(dimag(gntryy(lm2,lm1,lm3)).ne.0d0)) then
               i=i+1
-!write(*,*) lm2,gntryy(lm2,lm1,lm3)
               listgnt(i,lm1,lm3)=gntryy(lm2,lm1,lm3)
               indgnt(i,lm1,lm3)=lm2
             endif

@@ -88,12 +88,12 @@ call timesec(t1)
           allocate(factorsnew(lmmaxvr,2))
           rho=0d0
           if1=0
-          Do l1 = 0, input%groundstate%lmaxapw
+          Do l1 = 0, input%groundstate%lmaxmat
             Do io1 = 1, apword (l1, is)
               if3=0
               if1old=if1
 
-             Do l3 = 0, input%groundstate%lmaxapw
+             Do l3 = 0, input%groundstate%lmaxmat
                 Do io2 = 1, apword (l3, is)
                   frnew(:,1)=basis1%apwfr (:, 1, io1, l1, ias) * basis1%apwfr (:, 1, io2, l3, ias)
                   if1=if1old
@@ -109,7 +109,7 @@ call timesec(t1)
                       i=1
                       do while(indgnt(i,lm3,lm1).ne.0) 
                         lm2=indgnt(i,lm3,lm1)
-                        factorsnew(lm2,1)=factorsnew(lm2,1)+dble(mt_dm%main%ff(if1,if3,ias)*conjg(listgnt(i,lm3,lm1)))
+                        if (lm2.le.lmmaxvr) factorsnew(lm2,1)=factorsnew(lm2,1)+dble(mt_dm%main%ff(if1,if3,ias)*conjg(listgnt(i,lm3,lm1)))
 !                        write(*,*) "indgnt",lm2,conjg(listgnt(i,lm3,lm1))
                         i=i+1
                       enddo                      
@@ -140,7 +140,7 @@ if (losize(is).gt.0) then
 !APW-LO part
 
           if1=0
-          Do l1 = 0, input%groundstate%lmaxapw
+          Do l1 = 0, input%groundstate%lmaxmat
             Do io1 = 1, apword (l1, is)
               if3=0
               if1old=if1
@@ -166,7 +166,7 @@ if (losize(is).gt.0) then
 !                      enddo                      
                       do while(indgnt(i,lm3,lm1).ne.0)
                         lm2=indgnt(i,lm3,lm1)
-                        factorsnew(lm2,1)=factorsnew(lm2,1)+2d0*dble(mt_dm%main%ff(if1,maxaa+if3,ias)*conjg(listgnt(i,lm3,lm1)))
+                        if (lm2.le.lmmaxvr) factorsnew(lm2,1)=factorsnew(lm2,1)+2d0*dble(mt_dm%main%ff(if1,maxaa+if3,ias)*conjg(listgnt(i,lm3,lm1)))
                         i=i+1
                       enddo
 
@@ -214,14 +214,10 @@ if (losize(is).gt.0) then
                       i=1
                       do while(indgnt(i,lm3,lm1).ne.0)
                         lm2=indgnt(i,lm3,lm1)
-                        factorsnew(lm2,1)=factorsnew(lm2,1)+dble(mt_dm%main%ff(maxaa+if1,maxaa+if3,ias)*conjg(listgnt(i,lm3,lm1)))
+                        if (lm2.le.lmmaxvr) factorsnew(lm2,1)=factorsnew(lm2,1)+dble(mt_dm%main%ff(maxaa+if1,maxaa+if3,ias)*conjg(listgnt(i,lm3,lm1)))
                         i=i+1
                       enddo
-                      
-!                       do lm2=1,lmmaxvr
-!                        factorsnew(lm2,1)=factorsnew(lm2,1)+conjg(gntryy(lm2,lm1,lm3))*dble(mt_dm%main%ff(maxaa+if1,maxaa+if3,ias))   
-!                      enddo
-
+                   
                   enddo
                 enddo
 

@@ -83,6 +83,7 @@ test11::
 test12::
 	cd test12/runcollinear && ../../$(EXE)
 	cd test12/runnoncollinear && ../../$(EXE)
+	cd test12 && perl assert.pl   
 
 cleantests::
 	-rm -f  test*/*.xml

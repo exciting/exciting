@@ -343,8 +343,12 @@ if (.true.) then
         Call DMNullify(mt_dm)
         Call DMInitAll(mt_dm)
         mt_dm%alpha%ff=0d0
-        mt_dm%beta%ff=0d0
-        mt_dm%ab%ff=0d0
+        if (associated(input%groundstate%spin)) then        
+          mt_dm%beta%ff=0d0
+          if (ncmag) then
+            mt_dm%ab%ff=0d0
+          endif
+        endif
         mt_dm%main%ff=>mt_dm%alpha%ff
 #ifdef MPI
         Do ik = firstk(rank), lastk(rank)
@@ -361,7 +365,6 @@ if (.true.) then
             timeio=ts1-ts0+timeio
             ! add to the density and magnetisation
             Call gendmatmt(ik,evecfv, evecsv)
-!            Call gendmatmt2(ik,evecfv,occsv(:,ik))
             Call genrhoir (ik, evecfv, evecsv)
             Deallocate (evecfv, evecsv)
             Call timesec(ts0)

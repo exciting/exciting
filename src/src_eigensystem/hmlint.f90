@@ -167,7 +167,6 @@ Subroutine hmlint(mt_h)
   
 ! the collinear case
           else
-            write(*,*) 'collinear calculation'
             call MTRedirect(mt_h%main,mt_h%alpha)
             do is=1,nspecies
               do ia=1,natoms(is)

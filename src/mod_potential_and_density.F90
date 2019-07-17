@@ -191,7 +191,7 @@ Contains
       maxaa=0
       Do is = 1, nspecies
         if1=0
-        Do l = 0, input%groundstate%lmaxmat
+        Do l = 0, input%groundstate%lmaxapw
           Do m = - l, l
             lm = idxlm (l, m)
             Do io = 1, apword (l, is)

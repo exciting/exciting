@@ -111,21 +111,6 @@ subroutine checkinput
       stop
     end if
   end if
-  if (associated(input%xs))then
-    if (input%xs%lmaxapw.lt.0) then
-      write(*,*)
-      write(*,'("Error(checkinput): /input/xs/@lmaxapw < 0 : ",I8)') input%xs%lmaxapw
-      write(*,*)
-      stop
-    end if
-    if (input%xs%lmaxapw.ge.maxlapw) then
-      write(*,*)
-      write(*,'("Error(checkinput): /input/xs/@lmaxapw too large : ",I8)') input%xs%lmaxapw
-      write(*,'("Adjust maxlapw in modmain and recompile code")')
-      write(*,*)
-      stop
-    end if
-  end if
   if (associated(input%groundstate))then
     if (input%groundstate%lmaxvr.lt.3) then
       write(*,*)
@@ -138,14 +123,6 @@ subroutine checkinput
     if (input%groundstate%lmaxmat.lt.0) then
       write(*,*)
       write(*,'("Error(checkinput): /input/groundstate/@lmaxmat < 0 : ",I8)') input%groundstate%lmaxmat
-      write(*,*)
-      stop
-    end if
-  end if
-  if (associated(input%xs))then
-    if (input%xs%lmaxmat.lt.0) then
-      write(*,*)
-      write(*,'("Error(checkinput): /input/xs/@lmaxmat < 0 : ",I8)') input%xs%lmaxmat
       write(*,*)
       stop
     end if
