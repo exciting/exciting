@@ -352,7 +352,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
                       nstfv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
-                      mt_hscf%alpha%aa, &        ! A
+                      mt_hscf%alpha%aa(:,:,ias), &        ! A
                       mt_hscf%maxaa,&           ! LDA ... leading dimension of A
                       zwf, &           ! B
                       mt_hscf%maxaa, &          ! LDB ... leading dimension of B
@@ -367,7 +367,7 @@ if (mt_hscf%maxnlo.gt.0) then
                       nstfv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
-                      mt_hscf%alpha%loa, &        ! A
+                      mt_hscf%alpha%loa(:,:,ias), &        ! A
                       mt_hscf%maxnlo,&           ! LDA ... leading dimension of A
                       zwf, &           ! B
                       mt_hscf%maxaa, &          ! LDB ... leading dimension of B
@@ -381,7 +381,7 @@ if (mt_hscf%maxnlo.gt.0) then
                       nstfv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
-                      mt_hscf%alpha%lolo, &        ! A
+                      mt_hscf%alpha%lolo(:,:,ias), &        ! A
                       mt_hscf%maxnlo,&           ! LDA ... leading dimension of A
                       evecfv(offset+1,1), &           ! B
                       nmatmax, &          ! LDB ... leading dimension of B
@@ -395,7 +395,7 @@ if (mt_hscf%maxnlo.gt.0) then
                       nstfv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
-                      mt_hscf%alpha%alo, &        ! A
+                      mt_hscf%alpha%alo(:,:,ias), &        ! A
                       mt_hscf%maxaa,&           ! LDA ... leading dimension of A
                       evecfv(offset+1,1), &           ! B
                       nmatmax, &          ! LDB ... leading dimension of B
@@ -442,7 +442,7 @@ endif
                       nstfv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
-                      mt_hscf%beta%aa, &        ! A
+                      mt_hscf%beta%aa(:,:,ias), &        ! A
                       mt_hscf%maxaa,&           ! LDA ... leading dimension of A
                       zwf, &           ! B
                       mt_hscf%maxaa, &          ! LDB ... leading dimension of B
@@ -457,7 +457,7 @@ if (mt_hscf%maxnlo.gt.0) then
                       nstfv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
-                      mt_hscf%beta%loa, &        ! A
+                      mt_hscf%beta%loa(:,:,ias), &        ! A
                       mt_hscf%maxnlo,&           ! LDA ... leading dimension of A
                       zwf, &           ! B
                       mt_hscf%maxaa, &          ! LDB ... leading dimension of B
@@ -471,7 +471,7 @@ if (mt_hscf%maxnlo.gt.0) then
                       nstfv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
-                      mt_hscf%beta%lolo, &        ! A
+                      mt_hscf%beta%lolo(:,:,ias), &        ! A
                       mt_hscf%maxnlo,&           ! LDA ... leading dimension of A
                       evecfv(offset+1,1), &           ! B
                       nmatmax, &          ! LDB ... leading dimension of B
@@ -485,7 +485,7 @@ if (mt_hscf%maxnlo.gt.0) then
                       nstfv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
-                      mt_hscf%beta%alo, &        ! A
+                      mt_hscf%beta%alo(:,:,ias), &        ! A
                       mt_hscf%maxaa,&           ! LDA ... leading dimension of A
                       evecfv(offset+1,1), &           ! B
                       nmatmax, &          ! LDB ... leading dimension of B
@@ -533,7 +533,7 @@ if (ncmag) then
                       nstfv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
-                      mt_hscf%ab%aa, &        ! A
+                      mt_hscf%ab%aa(:,:,ias), &        ! A
                       mt_hscf%maxaa,&           ! LDA ... leading dimension of A
                       zwf, &           ! B
                       mt_hscf%maxaa, &          ! LDB ... leading dimension of B
@@ -548,7 +548,7 @@ if (mt_hscf%maxnlo.gt.0) then
                       nstfv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
-                      mt_hscf%ab%loa, &        ! A
+                      mt_hscf%ab%loa(:,:,ias), &        ! A
                       mt_hscf%maxnlo,&           ! LDA ... leading dimension of A
                       zwf, &           ! B
                       mt_hscf%maxaa, &          ! LDB ... leading dimension of B
@@ -562,7 +562,7 @@ if (mt_hscf%maxnlo.gt.0) then
                       nstfv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
-                      mt_hscf%ab%lolo, &        ! A
+                      mt_hscf%ab%lolo(:,:,ias), &        ! A
                       mt_hscf%maxnlo,&           ! LDA ... leading dimension of A
                       evecfv(offset+1,1), &           ! B
                       nmatmax, &          ! LDB ... leading dimension of B
@@ -576,7 +576,7 @@ if (mt_hscf%maxnlo.gt.0) then
                       nstfv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
-                      mt_hscf%ab%alo, &        ! A
+                      mt_hscf%ab%alo(:,:,ias), &        ! A
                       mt_hscf%maxaa,&           ! LDA ... leading dimension of A
                       evecfv(offset+1,1), &           ! B
                       nmatmax, &          ! LDB ... leading dimension of B
