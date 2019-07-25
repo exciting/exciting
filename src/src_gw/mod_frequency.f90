@@ -1,8 +1,8 @@
 MODULE mod_frequency
-    
+
     implicit none
 
-!-------------------------------------------------------------------------------    
+!-------------------------------------------------------------------------------
     type frequency
         character(40) :: fgrid           ! grid type
         character(40) :: fconv           ! real/imaginary frequency
@@ -15,7 +15,7 @@ MODULE mod_frequency
 
     external gaulag
     external gauleg
-    
+
 CONTAINS
 
 !-------------------------------------------------------------------------------
@@ -57,12 +57,12 @@ CONTAINS
         ! local variables
         integer :: i, ii, j, n, m
         real(8) :: t1, t2, step, sigma, delta, stretch, one
-        real(8) :: t, ell
+        real(8) :: t, ell, fmax
         real(8), allocatable :: u(:), x(:)
         real(8), allocatable :: wu(:), w1(:), w2(:)
         real(8), parameter   :: pi = 3.1415926535897932385d0
 
-        ! grid type        
+        ! grid type
         self%fgrid = trim(fgrid)
 
         ! frequency treatment
@@ -82,7 +82,7 @@ CONTAINS
         if (allocated(self%womeg)) deallocate(self%womeg)
 
         ! generate frequency integration grid
-        select case (self%fgrid) 
+        select case (self%fgrid)
 
         case('eqdist') ! Equaly spaced mesh (for tests purposes only)
             allocate(self%freqs(self%nomeg))
@@ -90,8 +90,8 @@ CONTAINS
             do i = 1, self%nomeg
                 self%freqs(i) = self%freqmin + dble(i-1)*(self%freqmax-self%freqmin)/dble(self%nomeg-1)
                 self%womeg(i) = 1.d0/dble(self%nomeg)
-            enddo  
-      
+            enddo
+
         case('gaulag') ! Grid for Gauss-Laguerre quadrature
             allocate(self%freqs(self%nomeg))
             allocate(self%womeg(self%nomeg))
@@ -99,7 +99,7 @@ CONTAINS
             call gaulag(self%freqs, wu, self%nomeg, -1.0d0)
             do i = 1, self%nomeg
                 self%womeg(i) = wu(i)*dexp(self%freqs(i))*self%freqs(i)
-            enddo  
+            enddo
             deallocate(wu)
 
         case('gauleg') ! Grid for Gauss-Legendre quadrature from 0 to infinity
@@ -114,10 +114,10 @@ CONTAINS
             end do
             deallocate(u, wu)
 
-        case('gauleg2') ! Grid for Gauss-Legendre quadrature from 0 to freqmax 
+        case('gauleg2') ! Grid for Gauss-Legendre quadrature from 0 to freqmax
                                 ! +
                                 ! Gauss-Legendre quadrature from freqmax to infinity
-            self%nomeg = nomeg - mod(nomeg,2)           
+            self%nomeg = nomeg - mod(nomeg,2)
             allocate(self%freqs(self%nomeg))
             allocate(self%womeg(self%nomeg))
 
@@ -129,7 +129,7 @@ CONTAINS
                 self%freqs(2*n-i+1) = 2.0d0*self%freqmax/(u(i)+1.0d0)
                 self%womeg(i) = self%freqmax*wu(i)/2.0d0
                 self%womeg(2*n-i+1) = 2.0d0*self%freqmax*wu(i)/((u(i)+1.0d0)*(u(i)+1.0d0))
-            enddo ! i  
+            enddo ! i
             deallocate(u, wu)
 
         case('exp')
@@ -156,22 +156,50 @@ CONTAINS
             end do
 
         case('mix')
-            self%nomeg = nomeg - mod(nomeg,2)
+            n = self%nomeg     ! number of points in the first sub-interval
+            m = 32             ! number of points in the second sub-interval
+            self%nomeg = n + m ! total number of points
             allocate(self%freqs(self%nomeg))
             allocate(self%womeg(self%nomeg))
-            n = self%nomeg/2
-            step = (self%freqmax-self%freqmin) / dble(n-1)
             ! uniform grid from 0 to w_max
+            step = self%freqmax / dble(n)
             do i = 1, n
-                self%freqs(i) = self%freqmin + dble(i-1)*step
-                self%womeg(i) = 1.d0/dble(self%nomeg)
+                self%freqs(i) = dble(i-1)*step
+                self%womeg(i) = 1.d0/dble(n)
             enddo
-            ! cubic grid from w_max to infinity
+            ! Gauss-Legendre grid from w_max to infinity
+            allocate(u(m), wu(m))
+            call gauleg(-1.0d0, 1.0d0, u, wu, m)
+            do i = 1, m
+                self%freqs(self%nomeg-i+1) = 2.0d0*self%freqmax/(u(i)+1.0d0)
+                self%womeg(self%nomeg-i+1) = 2.0d0*self%freqmax*wu(i)/((u(i)+1.0d0)*(u(i)+1.0d0))
+            end do ! i
+            deallocate(u, wu)
+
+        case('mix2')
+            n = self%nomeg     ! number of points in the first sub-interval
+            m = 32             ! number of points in the second sub-interval
+            self%nomeg = n + m ! total number of points
+            allocate(self%freqs(self%nomeg))
+            allocate(self%womeg(self%nomeg))
+            ! uniform grid from 0 to w_max
+            step = self%freqmax / dble(n)
             do i = 1, n
-                self%freqs(n+i) = self%freqmax + dble(i)*step + &
-                    (dble(i-1)/dble(n-1))**3 * (100.d0-self%freqmax-dble(n)*step)
-                self%womeg(n+i) = 1.d0/dble(self%nomeg)
-            end do
+                self%freqs(i) = dble(i-1)*step
+                self%womeg(i) = 1.d0/dble(n)
+            enddo
+            ! Double Gauss-Legendre grid from w_max to infinity
+            fmax = self%freqmax + 1.d0
+            allocate(u(m/2), wu(m/2))
+            call gauleg(-1.d0, 1.d0, u, wu, m/2)
+            do i = 1, m/2
+                self%freqs(n+i) = self%freqmax+fmax*(u(i)+1.d0)/2.d0
+                self%freqs(self%nomeg-i+1) = self%freqmax+2.0d0*fmax/(u(i)+1.d0)
+                self%womeg(n+i) = fmax*wu(i)/2.d0
+                self%womeg(self%nomeg-i+1) = 2.d0*fmax*wu(i)/((u(i)+1.d0)*(u(i)+1.d0))
+            enddo ! i
+            deallocate(u, wu)
+
 
         case('tanh')
             ! Hyperbolic tangent stretching
@@ -206,7 +234,7 @@ CONTAINS
             ! Clenshaw-Curtis grid [0,infinity]
             allocate(self%freqs(self%nomeg))
             allocate(self%womeg(self%nomeg))
-            n = self%nomeg          
+            n = self%nomeg
             ell = self%freqmax
             self%womeg(:) = 0.d0
             do i = 1, n
@@ -223,7 +251,7 @@ CONTAINS
             ! Clenshaw-Curtis grid [-infinity,infinity]
             allocate(self%freqs(self%nomeg))
             allocate(self%womeg(self%nomeg))
-            n = self%nomeg          
+            n = self%nomeg
             ell = self%freqmax
             self%womeg(:) = 0.d0
             do i = 1, n
@@ -235,9 +263,9 @@ CONTAINS
 
         case default
             stop 'Error(mod_frequency::generate_freqgrid) Unknown grid type!'
-        
+
         end select
-        
+
         return
     end subroutine
 
@@ -256,8 +284,8 @@ CONTAINS
         write(funit,*) 'frequency list: < #    freqs    weight > '
         do i = 1, self%nomeg
             write(funit,'(i4,1p,2g18.10)') i, self%freqs(i), self%womeg(i)
-        enddo    
-        call linmsg(funit,'-','')   
+        enddo
+        call linmsg(funit,'-','')
     end subroutine
 
 END MODULE

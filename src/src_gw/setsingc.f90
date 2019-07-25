@@ -6,6 +6,7 @@ subroutine setsingc
     use modgw,    only: fdebug, kqset, singc1, singc2
     use modmpi,   only: rank
 
+    implicit none
     real(8) :: beta
     real(8) :: f1
     real(8) :: f2
@@ -82,8 +83,7 @@ contains
 
         ! local variables
         integer :: ipw, ipwin
-        real(8) :: gpq(3), gpq2
-        real(8) :: expq
+        real(8) :: vgpq(3), gpq2, gpq
 
         if (gammapoint(kqset%vqc(1:3,iq))) then
           ipwin = 2
@@ -97,13 +97,12 @@ contains
         ! Loop over G-vectors
         do ipw = ipwin, Gqset%ngk(1,iq)
 
-          gpq(1:3) = Gset%vgc(1:3,Gqset%igkig(ipw,1,iq))+kqset%vqc(1:3,iq)
+          vgpq(1:3) = Gset%vgc(1:3,Gqset%igkig(ipw,1,iq))+kqset%vqc(1:3,iq)
+          gpq2 = vgpq(1)**2+vgpq(2)**2+vgpq(3)**2
+          gpq  = dsqrt(gpq2)
 
-          gpq2 = gpq(1)*gpq(1)+gpq(2)*gpq(2)+gpq(3)*gpq(3)
-          expq = dexp(-beta*gpq2)
-
-          f1 = f1 + expq/dsqrt(gpq2) ! Notice the error in definition of F_1(q) Eq.(FHIgap-B.3)
-          f2 = f2 + expq/gpq2
+          f1 = f1 + dexp(-beta*gpq)/gpq
+          f2 = f2 + dexp(-beta*gpq2)/gpq2
 
         enddo ! ipw
         return

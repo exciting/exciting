@@ -30,7 +30,7 @@ subroutine calchead(ik, iomstart, iomend,ndim)
     ikp = kset%ik2ikp(ik)
 
     ! constant prefactor
-    coefh = cmplx(4.d0*pi*vi*2.d0, 0.d0, 8)
+    coefh = cmplx(4.d0*pi*vi, 0.d0, 8)
 
     ! loop over tensor components
     do jop = 1, 3

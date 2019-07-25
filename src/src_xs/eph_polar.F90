@@ -4,8 +4,8 @@ subroutine eph_polar(nw, w, head)
                        spmass, zi
     use m_getunit
     implicit none
-    integer(4), intent(in) :: nw
-    real(8), intent(in) :: w(nw)
+    integer(4), intent(in)    :: nw
+    complex(8), intent(in)    :: w(nw)
     complex(8), intent(inout) :: head(3,3,nw)
     ! local
     integer(4) :: fid, nmode, imode, i, j, is, ia, ias, js, ja, iw
@@ -14,11 +14,8 @@ subroutine eph_polar(nw, w, head)
     real(8), allocatable :: zborn(:,:,:)
     complex(8), allocatable :: phevec(:,:,:)
     complex(8), allocatable :: zvec(:,:), v(:)
-    complex(8) :: elat(3,3,nw)
-    real(8) :: vnorm, eta
-
-    write(*,*) 'nw=', nw
-    write(*,*) 'w=', w
+    complex(8) :: elat(3,3,nw), om
+    real(8) :: vnorm
 
     !--------------------------------------
     ! read Born effective charge tensors
@@ -72,14 +69,6 @@ subroutine eph_polar(nw, w, head)
         read(fid,*) ! skip empty line
     end do
 
-    ! convert to eigendisplacements
-    ! allocate(v(nmode))
-    ! do imode = 1, nmode
-    !     v(:) = reshape(phevec(:,:,imode), (/nmode/))
-    !     vnorm = sqrt(dot_product(conjg(v),v))
-    !     phevec(:,:,imode) = reshape(v(:)/vnorm, (/3, natmtot/))
-    ! end do
-
     !-------------------------------------------------------------------------------
     ! Compute the e-ph contribution to the head of the dielectric function
     ! according to Eqs.(54-55) of X. Gonze and C. Lee, PRB 55, 10355 (1997)
@@ -98,16 +87,15 @@ subroutine eph_polar(nw, w, head)
         ! write(*,'(a,i4,3f12.4)') 'zvec=', imode, dble(zvec(:,imode))
     end do
 
-    eta = 1.d-8
-
     elat(:,:,:) = 0.d0
     do iw = 1, nw
         do i = 1, 3
             do j = 1, 3
                 ! sum over phonon modes
                 do imode = 1, nmode
-                    if (abs(phfreq(imode)) > 1.d-6) then ! skip acoustic modes
-                        elat(i,j,iw) = elat(i,j,iw) + conjg(zvec(i,imode))*zvec(j,imode) / abs(phfreq(imode)**2 - w(iw)**2)
+                    if (abs(phfreq(imode)) > 1.d-4) then ! skip acoustic modes
+                        ! elat(i,j,iw) = elat(i,j,iw) + conjg(zvec(i,imode))*zvec(j,imode) / (phfreq(imode)**2 - w(iw)**2)
+                        elat(i,j,iw) = elat(i,j,iw) + conjg(zvec(i,imode))*zvec(j,imode) / phfreq(imode)**2
                     end if
                 end do
             end do
@@ -120,13 +108,13 @@ subroutine eph_polar(nw, w, head)
     deallocate(phfreq)
     deallocate(phevec)
 
-    write(*,*)
-    do i = 1, 3
-        write(*,'(2f16.4,4x,2f16.4,4x,2f16.4)') (elat(i,j,1), j = 1, 3)
-    end do
-    write(*,*)
-
+    ! write(*,*)
+    ! do i = 1, 3
+    !     write(*,'(2f16.4,4x,2f16.4,4x,2f16.4)') (elat(i,j,1), j = 1, 3)
+    ! end do
+    ! write(*,*)
     ! stop 'eph_polar'
+
     head = head + elat
 
 end subroutine

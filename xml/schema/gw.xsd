@@ -440,6 +440,20 @@
               <xs:documentation>(experimental) Include the electron-phonon coupling.</xs:documentation>
             </xs:annotation>
           </xs:attribute>
+          <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="wlo" default="0.0">
+            <xs:annotation>
+              <xs:documentation>
+                (experimental) The LO phonon frequency for the polar electron-phonon coupling.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="wto" default="0.0">
+            <xs:annotation>
+              <xs:documentation>
+                (experimental) The TO phonon frequency for the polar electron-phonon coupling.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
 
         </xs:complexType>
     </xs:element>

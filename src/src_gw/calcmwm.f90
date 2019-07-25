@@ -1,6 +1,7 @@
 
 subroutine calcmwm(nstart, nend, mstart, mend, minm)
 
+    use modinput
     use modmain, only: pi, zone, zzero
     use modgw,   only: vi, kqset, Gamma, singc1, singc2, mbsiz, &
     &                  epsilon, epsh, epsw1, epsw2, freq, mwm
@@ -15,15 +16,18 @@ subroutine calcmwm(nstart, nend, mstart, mend, minm)
     integer(4) :: iom
     integer(4) :: ie1, ie2
     real(8)    :: wkq
-    real(8)    :: vi4pi, coefs1, coefs2
+    real(8)    :: vi4pi, coefs1, coefs2, coefs3
     complex(8), allocatable :: wm(:)
     complex(8), external    :: zdotu, zdotc
     external zhemm
 
-    vi4pi  = 4.d0*pi*vi
-    coefs1 = singc1*sqrt(vi4pi)
-    coefs2 = singc2*vi4pi
     wkq    = 1.d0/dble(kqset%nkpt)
+    
+    if (Gamma) then
+      vi4pi  = 4.d0*pi*vi
+      coefs1 = singc1*sqrt(vi4pi)
+      coefs2 = singc2*vi4pi
+    end if 
 
     !-------------------------------------------------
     ! calculate \sum_{ij} M^i_{nm}* W^c_{ij} M^j_{nm}

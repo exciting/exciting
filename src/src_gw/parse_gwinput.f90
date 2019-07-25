@@ -334,7 +334,7 @@ subroutine parse_gwinput
     if (trim(input%gw%scrcoul%scrtype)=='ppm') then
       if (rank==0) write(fgw,*) '  Plasmon frequency: ', input%gw%scrcoul%omegap
     end if
-    if (rank==0) write(fgw,*) '  Averaging direction: ', input%gw%scrcoul%q0eps
+    ! if (rank==0) write(fgw,*) '  Averaging direction: ', input%gw%scrcoul%q0eps
     if (rank==0) write(fgw,*) '  Smearing: ', input%gw%scrcoul%swidth
     if (rank==0) call linmsg(fgw,'-','')
 

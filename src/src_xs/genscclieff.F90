@@ -41,14 +41,10 @@ subroutine genscclieff(iqr, iqrnr, nmax, n, scieff)
   call geteps0(reduced=.true., iq=iqr, iw=1, w=0.0d0,&
     & eps0=scrn, eps0wg=scrnw, eps0hd=scrnh, fname=fneps0)
 
-
   ! Calculate effective screened interaction
   if(tq0) then
     ! Compute contributions due to polar phonons
-    if (input%xs%eph=='polar') then
-      write(*,*) 'Add a contribution due to polar phonons'
-      call eph_polar(1, [0.d0], scrnh)
-    end if
+    if (input%xs%eph=='polar') call eph_polar(1, [cmplx(0.d0,0.d0,8)], scrnh)
     ! Averaging using Lebedev-Laikov spherical grids
     call angavsc0(n, nmax, scrnh, scrnw, scrn, scieff)
   else

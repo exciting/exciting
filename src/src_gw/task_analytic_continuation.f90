@@ -11,12 +11,17 @@ subroutine task_analytic_continuation()
     use mod_vxc, only: vxcnn, read_vxcnn
     implicit none
     ! local variables
-    integer :: ik, ik_, ie, ie_, fid, recl
+    integer :: ikp, ik, ik_, ie, ie_, fid, recl
     real(8) :: egap
     character(20) :: s1, s2, v(3)
+    logical :: reducek
 
+    input%groundstate%stypenumber = -1
     call init0
-    call init1
+    reducek = input%groundstate%reducek
+    input%groundstate%reducek = .false.
+    call init1()
+    input%groundstate%reducek = reducek
 
     nvelgw = chgval-occmax*dble(ibgw-1)
     nbandsgw = nbgw-ibgw+1
@@ -49,10 +54,18 @@ subroutine task_analytic_continuation()
       allocate(selfec(ibgw:nbgw,freq_selfc%nomeg,kset%nkpt))
 
       ! read data from files
-      call readevalqp('EVALQP.OUT', kset, ibgw, nbgw, evalks, eferks, evalqp, eferqp)
+      ! call readevalqp('EVALQP.OUT', kset, ibgw, nbgw, evalks, eferks, evalqp, eferqp)
+      if (allocated(evalks)) deallocate(evalks)
+      allocate(evalks(nstfv,kset%nkpt))
+      filext = "_GW.OUT"
+      do ikp = 1, kset%nkpt
+        ik = kset%ikp2ik(ikp)
+        call getevalfv(kqset%vkl(:,ik), evalks(:,ikp))
+      end do
+
       if (allocated(evalfv)) deallocate(evalfv)
       allocate(evalfv(ibgw:nbgw,kset%nkpt))
-      evalfv(:,:) = evalks(:,:)
+      evalfv(ibgw:nbgw,:) = evalks(ibgw:nbgw,:)
       call read_vxcnn()
       call readselfx()
       call readselfc()

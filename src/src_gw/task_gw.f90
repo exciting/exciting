@@ -309,11 +309,12 @@ subroutine task_gw()
       call putevalqp('EVALQP.OUT', kset, ibgw, nbgw, evalks, eferks, evalqp, eferqp)
     end if ! myrank
 
+    call barrier() ! synchronize all threads
+
     !-----------------------------------------
     ! Second-variational treatment if needed
     !-----------------------------------------
     if (associated(input%groundstate%spin)) then
-      call barrier() ! synchronize all threads
       call init0()
       call readstate()
       if (myrank==0) call task_second_variation()

@@ -14,7 +14,7 @@ subroutine calcselfc_freqconv_cd(ikp,iq,mdim)
     integer(4), intent(in) :: ikp
     integer(4), intent(in) :: iq
     integer(4), intent(in) :: mdim
-    ! local variables            
+    ! local variables
     integer(4) :: ik, jk, jkp
     integer(4) :: ia, is, ias, ic, icg
     integer(4) :: ie1, ie2
@@ -23,7 +23,7 @@ subroutine calcselfc_freqconv_cd(ikp,iq,mdim)
     complex(8) :: xnm(1:freq%nomeg), xnm_intp
     complex(8) :: sc, dfz, w_ac
     type(aaa_approximant) :: aaa
-    
+
     ! k point
     ik = kset%ikp2ik(ikp)
     ! k-q point
@@ -33,18 +33,18 @@ subroutine calcselfc_freqconv_cd(ikp,iq,mdim)
     !------------------------
     ! loop over frequencies
     !------------------------
-      
+
     do ie1 = ibgw, nbgw
-      
+
       do ie2 = 1, mdim
-        
+
         if ( ie2 <= nstse ) then
-          !============================= 
+          !=============================
           ! Valence electron contribution
-          !============================= 
+          !=============================
           enk = evalfv(ie2,jkp)-efermi
         else
-          !============================= 
+          !=============================
           ! Core electron contribution
           !=============================
           icg = ie2-nstse
@@ -54,7 +54,7 @@ subroutine calcselfc_freqconv_cd(ikp,iq,mdim)
           ias = idxas(ia,is)
           enk = evalcr(ic,ias)-efermi
         end if ! val/cor
-        
+
         xnm(:) = mwm(ie1,ie2,:)
 
         if (input%gw%selfenergy%actype == 'aaa') then
@@ -63,12 +63,12 @@ subroutine calcselfc_freqconv_cd(ikp,iq,mdim)
                                    xnm, &
                                    input%gw%selfenergy%tol)
         end if
-        
+
         ! Self-energy frequency grid
         do iom = 1, freq_selfc%nomeg
 
           w = freq_selfc%freqs(iom)
-          
+
           !------------------------------------
           ! 1) frequency convolution integral
           !------------------------------------
@@ -85,9 +85,9 @@ subroutine calcselfc_freqconv_cd(ikp,iq,mdim)
 
           !------------------------------------
           ! 2) contribution from W poles
-          !------------------------------------         
+          !------------------------------------
           w_ac = cmplx(abs(w-enk), 0.d0, 8) ! |w-e_nk|-i*eta
-          
+
           ! Analytical continuation
           if (input%gw%selfenergy%actype == 'pade') then
             call pade_approximant(freq%nomeg, cmplx(0.d0,freq%freqs,8), xnm, &
@@ -98,7 +98,7 @@ subroutine calcselfc_freqconv_cd(ikp,iq,mdim)
           end if
           sc = sc + (theta(enk-w)*theta(-enk) - &
                      theta(w-enk)*theta(enk)) * xnm_intp
-          
+
           ! sum over states
           selfec(ie1,iom,ikp) = selfec(ie1,iom,ikp) - sc
 
@@ -110,7 +110,7 @@ subroutine calcselfc_freqconv_cd(ikp,iq,mdim)
       end do ! ie2
 
     end do ! ie1
-   
+
     return
 
 contains
@@ -124,4 +124,4 @@ contains
       end if
     end function
 
-end subroutine    
+end subroutine

@@ -8,7 +8,7 @@ subroutine setbarcev(evtol)
 !
 ! !DESCRIPTION:
 !
-! This subroutine reset the eigenvectors and eigenvalues of 
+! This subroutine reset the eigenvectors and eigenvalues of
 ! bare coulomb matrix in terms of evtol
 !
 !!USES:
@@ -17,9 +17,9 @@ subroutine setbarcev(evtol)
     use mod_coulomb_potential
     use mod_mpi_gw,            only: myrank
 
-!!INPUT PARAMETERS: 
+!!INPUT PARAMETERS:
     implicit none
-    real(8), intent(in) :: evtol 
+    real(8), intent(in) :: evtol
 
 !!LOCAL VARIABLES:
     integer(4) :: im, jm
@@ -39,30 +39,30 @@ subroutine setbarcev(evtol)
 !EOP
 !BOC
 
-    ! Reduce the basis size by choosing eigenvectors of barc with 
+    ! Reduce the basis size by choosing eigenvectors of barc with
     ! eigenvalues larger than evtol
     allocate(im_kept(matsiz))
     im_kept(:) = 1
     mbsiz = matsiz
     do im = 1, matsiz
-      if (barcev(im) < evtol) then 
+      if (barcev(im) < evtol) then
         im_kept(im) = 0
         mbsiz = mbsiz-1
-      end if 
-    end do 
+      end if
+    end do
 
     if (Gamma) then
-      
+
       allocate(wi0(matsiz))
       wi0(:) = 0.d0
       call calcwmix0(wi0)
-      
+
       allocate(wi0new(matsiz))
       wi0new(:) = 0.d0
       call zgemv('c',matsiz,matsiz,zone,vmat,matsiz,wi0,1,zzero,wi0new,1)
       deallocate(wi0)
-      
-      ! find the index of the diagonalized barc eigenvector that has maximal 
+
+      ! find the index of the diagonalized barc eigenvector that has maximal
       ! overlap with G=0 (constant) plane wave
       test2 = 0.d0
       do im = 1, matsiz
@@ -76,8 +76,8 @@ subroutine setbarcev(evtol)
         write(fdebug,*)'- Maximum singular eigenvector ###'
         write(fdebug,10) immax, test2, barcev(immax)
       end if
-      ! exclude this matrix element      
-      if (im_kept(immax) == 1) then 
+      ! exclude this matrix element
+      if (im_kept(immax) == 1) then
         im_kept(immax) = 0
         mbsiz = mbsiz-1
       end if
@@ -94,20 +94,20 @@ subroutine setbarcev(evtol)
         end if
       end if
     end if
-    
+
     ! Build the trasformation matrix
     if (allocated(barc)) deallocate(barc)
     allocate(barc(matsiz,mbsiz))
     barc(:,:) = zzero
-    
+
     im = 0
-    do jm = 1, matsiz 
-      if (im_kept(jm) == 1) then 
+    do jm = 1, matsiz
+      if (im_kept(jm) == 1) then
         im = im+1
         vc = cmplx(barcev(jm),0.d0,8)
         barc(:,im) = vmat(:,jm)*sqrt(vc)
-      end if 
-    end do   
+      end if
+    end do
     deallocate(im_kept)
 
     return
