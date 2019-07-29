@@ -185,6 +185,13 @@
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="nosv" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation> 
+                If <attref>skipsv</attref> = <pre>"true"</pre>, the second-variational procedure is not employed, and magnetic and/or spin-orbit calculations are performed in a single go.
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="spinsprl" type="xs:boolean"
               default="false">
               <xs:annotation>

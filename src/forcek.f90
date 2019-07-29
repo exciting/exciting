@@ -37,7 +37,7 @@ Subroutine forcek (ik, ffacg)
       Real (8) :: sum, t1, ta,tb
       Complex (8) zt1, zt2
       Complex (8) v (1),viens
-      integer if3,l3,m3,lm3,io1,io2,maxnlo,lm1,lm2,io,j1,j2,ilo
+      integer if3,l3,m3,lm3,io1,io2,maxnlo,lm1,lm2,io,j1,j2,ilo,maxaa
 ! allocatable arrays
       Type (evsystem) :: system
       Integer, Allocatable :: ijgij(:,:)
@@ -99,14 +99,17 @@ Subroutine forcek (ik, ffacg)
             End Do
          End Do
 
+         maxaa=mt_hscf%maxaa
+         maxnlo=mt_hscf%maxnlo      
 
          allocate(dlhij(nmat (ispn, ik),nmat (ispn, ik)))
          allocate(dloij(nmat (ispn, ik),nmat (ispn, ik)))
          call newsystem(system,.false.,nmat (ispn, ik))
-         allocate(apwi(haaijSize,ngk(ispn, ik)))
-         allocate(apwi2(ngk(ispn, ik),haaijSize))
+         allocate(apwi(maxaa,ngk(ispn, ik)))
+         allocate(apwi2(ngk(ispn, ik),maxaa))
 !       call timesec(tb)
 !       write(*,*) 'init',tb-ta
+
 ! loop over species and atoms
          Do is = 1, nspecies
             Do ia = 1, natoms (is)
@@ -129,34 +132,34 @@ Subroutine forcek (ik, ffacg)
               End Do
             End Do
           End Do
-          allocate(zm(haaijSize,ngk(ispn, ik)))
+          allocate(zm(maxaa,ngk(ispn, ik)))
           zm=zzero
           viens=dcmplx(1d0,0d0)
 !APW-APW
           call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
-                      haaijSize, &          ! M ... rows of op( A ) = rows of C
+                      maxaa, &          ! M ... rows of op( A ) = rows of C
                       ngk(ispn, ik), &           ! N ... cols of op( B ) = cols of C
-                      haaijSize, &          ! K ... cols of op( A ) = rows of op( B )
+                      maxaa, &          ! K ... cols of op( A ) = rows of op( B )
                       viens, &          ! alpha
-                      haaij(:,:,ias), &        ! A
-                      haaijSize,&           ! LDA ... leading dimension of A
+                      mt_hscf%main%aa(1,1,ias), &        ! A
+                      maxaa,&           ! LDA ... leading dimension of A
                       apwi, &           ! B
-                      haaijSize, &          ! LDB ... leading dimension of B
+                      maxaa, &          ! LDB ... leading dimension of B
                       viens, &          ! beta
                       zm, &  ! C
-                      haaijSize &      ! LDC ... leading dimension of C
+                      maxaa &      ! LDC ... leading dimension of C
                       )
           call zgemm('C', &           ! TRANSA = 'C'  op( A ) = A**H.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
                       ngk(ispn, ik), &          ! M ... rows of op( A ) = rows of C
                       ngk(ispn, ik), &           ! N ... cols of op( B ) = cols of C
-                      haaijSize, &          ! K ... cols of op( A ) = rows of op( B )
+                      maxaa, &          ! K ... cols of op( A ) = rows of op( B )
                       viens, &          ! alpha
                       apwi, &           ! A
-                      haaijSize,&           ! LDA ... leading dimension of A
+                      maxaa,&           ! LDA ... leading dimension of A
                       zm, &           ! B
-                      haaijSize, &          ! LDB ... leading dimension of B
+                      maxaa, &          ! LDB ... leading dimension of B
                       viens, &          ! beta
                       system%hamilton%za, &  ! C
                       system%hamilton%rank &      ! LDC ... leading dimension of C
@@ -165,24 +168,24 @@ Subroutine forcek (ik, ffacg)
 !APW-LO
         if (nlorb(is).ne.0) then
 ! APW-LO part
-          maxnlo=size(haloij,1)
+          maxnlo=mt_hscf%maxnlo
           l3 = lorbl (1, is)
           lm3 = idxlm (l3, -l3)
           call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
-                     haloijSize(is), &          ! M ... rows of op( A ) = rows of C
+                     mt_hscf%losize(is), &          ! M ... rows of op( A ) = rows of C
                      ngk (ispn, ik), &           ! N ... cols of op( B ) = cols of C
-                     haaijSize, &          ! K ... cols of op( A ) = rows of op( B )
+                     maxaa, &          ! K ... cols of op( A ) = rows of op( B )
                      viens, &          ! alpha
-                     haloij(:,:,ias), &           ! A
+                     mt_hscf%main%aa(1,1,ias), &           ! A
                      maxnlo,&           ! LDA ... leading dimension of A
                      apwi, &           ! B
-                     haaijSize, &          ! LDB ... leading dimension of B
+                     maxaa, &          ! LDB ... leading dimension of B
                      viens, &          ! beta
                      system%hamilton%za(ngk (ispn, ik)+idxlo (lm3, 1, ias),1), &  ! C
                      system%hamilton%rank &      ! LDC ... leading dimension of C
                      )
-          do i=idxlo (lm3,1,ias)+ngk (ispn, ik), haloijSize(is)+ngk (ispn, ik)+idxlo (lm3,1,ias)-1
+          do i=idxlo (lm3,1,ias)+ngk (ispn, ik), mt_hscf%losize(is)+ngk (ispn, ik)+idxlo (lm3,1,ias)-1
             system%hamilton%za(1:ngk (ispn, ik),i)=conjg(system%hamilton%za(i,1:ngk (ispn, ik)))
           enddo
         endif
@@ -194,18 +197,18 @@ Subroutine forcek (ik, ffacg)
                        'N', &           ! TRANSB = 'N'  op( B ) = B.
                        ngk (ispn, ik), &          ! M ... rows of op( A ) = rows of C
                        ngk (ispn, ik), &           ! N ... cols of op( B ) = cols of C
-                       haaijSize, &          ! K ... cols of op( A ) = rows of op( B )
+                       maxaa, &          ! K ... cols of op( A ) = rows of op( B )
                        viens, &          ! alpha
                        apwi, &           ! A
-                       haaijSize,&           ! LDA ... leading dimension of A
+                       maxaa,&           ! LDA ... leading dimension of A
                        apwi, &           ! B
-                       haaijSize, &          ! LDB ... leading dimension of B
+                       maxaa, &          ! LDB ... leading dimension of B
                        viens, &          ! beta
                        system%overlap%za, &  ! C
                        system%overlap%rank &      ! LDC ... leading dimension of C
                        )
           else
-            allocate(zm(ngk (ispn, ik),haaijSize))
+            allocate(zm(ngk (ispn, ik),maxaa))
             zm=zzero
             if3=0
             Do l3 = 0, input%groundstate%lmaxmat
@@ -225,10 +228,10 @@ Subroutine forcek (ik, ffacg)
                        'C', &           ! TRANSB = 'N'  op( B ) = B.
                         ngk (ispn, ik), &          ! M ... rows of op( A ) = rows of C
                         ngk (ispn, ik), &           ! N ... cols of op( B ) = cols of C
-                        haaijSize, &          ! K ... cols of op( A ) = rows of op( B )
+                        maxaa, &          ! K ... cols of op( A ) = rows of op( B )
                         viens, &          ! alpha
                         apwi, &           ! A
-                        haaijSize,&           ! LDA ... leading dimension of A
+                        maxaa,&           ! LDA ... leading dimension of A
                         zm, &           ! B
                         ngk (ispn, ik), &          ! LDB ... leading dimension of B
                         viens, &          ! beta

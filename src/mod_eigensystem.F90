@@ -240,6 +240,14 @@ Contains
          mt_block%alo=0d0
          mt_block%lolo=0d0
        endif
+     else
+       mt_block%aa=0d0
+       if (maxnlo.gt.0) then
+         mt_block%loa=0d0
+         mt_block%alo=0d0
+         mt_block%lolo=0d0
+       endif
+    
      endif
 
      end subroutine MTinit

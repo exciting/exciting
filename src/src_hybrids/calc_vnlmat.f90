@@ -56,8 +56,11 @@ subroutine calc_vnlmat
         ! Hamiltonian and overlap setup 
         nmatp = nmat(1,ik)
         call newsystem(system,input%groundstate%solver%packedmatrixstorage,nmatp)
-        call hamiltonandoverlapsetup(system,ngk(1,ik),apwalm, &
-        &                            igkig(:,1,ik),vgkc(:,:,1,ik))
+      call MTRedirect(mt_hscf%main,mt_hscf%spinless)
+!      Call hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
+      Call hamiltonsetup (system, ngk(1, ik), apwalm, igkig(:, 1, ik), vgkc(:,:,1,ik))
+      Call overlapsetup (system, ngk(1, ik), apwalm, igkig(:, 1, ik), vgkc(:,:,1,ik))        
+!        call hamiltonandoverlapsetup(system,ngk(1,ik),apwalm, igkig(:,1,ik),vgkc(:,:,1,ik))
         !write(*,*) 'overlap=', ik, sum(system%overlap%za)
 
         ! S

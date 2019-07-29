@@ -28,7 +28,7 @@ Subroutine mt_pot(pot,basis,mt_h)
 ! local variables
       Integer :: is, ia, ias, nr, ir, if1,if3,inonz,ireset1,ireset3
       Integer :: l1, l2, l3, m2, lm2, m1, m3, lm1, lm3
-      Integer :: ilo, ilo1, ilo2, io, io1, io2, nalo1, maxnlo
+      Integer :: ilo, ilo1, ilo2, io, io1, io2, maxnlo, maxaa
       Real (8) :: t1,t2,angular
       Real (8), allocatable :: haaintegrals(:,:,:,:,:),halointegrals(:,:,:,:),hlolointegrals(:,:,:)
       Real (8) :: rmtable(nrmtmax),r2inv(nrmtmax)
@@ -79,22 +79,23 @@ Subroutine mt_pot(pot,basis,mt_h)
       haaintegrals (:, :, :, :, :)=1d100
 ! APW-LO storage initialisation
 !      if (allocated(haloij)) deallocate(haloij)
-      if (allocated(haloijSize)) deallocate(haloijSize)
-      allocate(haloijSize(nspecies))
-      haloijSize=0
-      maxnlo=0
-      Do is = 1, nspecies
-        ias=idxas (1, is)
-        ilo=nlorb (is)
-        if (ilo.gt.0) then
-          l1 = lorbl (ilo, is)
-          lm1 = idxlm (l1, l1)
-          l3 = lorbl (1, is)
-          lm3 = idxlm (l3, -l3)
-          haloijSize(is)=idxlo (lm1, ilo, ias)- idxlo (lm3, 1, ias)+1
-          if (maxnlo.lt.haloijSize(is)) maxnlo=haloijSize(is)
-        endif
-      Enddo
+!      if (allocated(haloijSize)) deallocate(haloijSize)
+!      allocate(haloijSize(nspecies))
+!      haloijSize=0
+!      maxnlo=0
+!      Do is = 1, nspecies
+!        ias=idxas (1, is)
+!        ilo=nlorb (is)
+!        if (ilo.gt.0) then
+!          l1 = lorbl (ilo, is)
+!          lm1 = idxlm (l1, l1)
+!          l3 = lorbl (1, is)
+!          lm3 = idxlm (l3, -l3)
+!          haloijSize(is)=idxlo (lm1, ilo, ias)- idxlo (lm3, 1, ias)+1
+!          if (maxnlo.lt.haloijSize(is)) maxnlo=haloijSize(is)
+!        endif
+!      Enddo
+      maxnlo=mt_h%maxnlo
       if (maxnlo.gt.0) then 
 !        allocate(haloij(maxnlo,haaijSize,natmtot))
 !        haloij=dcmplx(0d0,0d0)
@@ -256,7 +257,6 @@ Subroutine mt_pot(pot,basis,mt_h)
          End Do
       End Do
 
-     nalo1=haloijSize(is)
      if1=0
       Do ilo = 1, nlorb (is)
          l1 = lorbl (ilo, is)

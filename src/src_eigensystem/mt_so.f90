@@ -67,41 +67,6 @@ if (.true.) then
 
       maxnlo=mt_list%maxnlo
 
-!ifdef removemesoon
-! APW-APW storage lminitialisation
-      haaijSize=0
-      Do is = 1, nspecies
-        if1=0
-        Do l1 = 0, input%groundstate%lmaxmat
-          Do m1 = - l1, l1
-            lm1 = idxlm (l1, m1)
-            Do io1 = 1, apword (l1, is)
-              if1=if1+1
-            End Do
-          End Do
-        End Do
-        if (if1.gt.haaijSize) haaijSize=if1
-      Enddo
-! APW-LO storage initialisation
-      if (allocated(haloijSize)) deallocate(haloijSize)
-      allocate(haloijSize(nspecies))
-      maxnlo=0
-      Do is = 1, nspecies
-        ias=idxas (1, is)
-        ilo=nlorb (is)
-        if (ilo.gt.0) then
-          l1 = lorbl (ilo, is)
-          lm1 = idxlm (l1, l1)
-          l3 = lorbl (1, is)
-          lm3 = idxlm (l3, -l3)
-          haloijSize(is)=idxlo (lm1, ilo, ias)- idxlo (lm3, 1, ias)+1
-          if (maxnlo.lt.haloijSize(is)) maxnlo=haloijSize(is)
-        endif
-      Enddo
-
-
-!endif
-
 ! begin loops over atoms and species
       Do is = 1, nspecies
          nr = nrmt (is)

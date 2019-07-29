@@ -22,6 +22,7 @@ Subroutine hmlint(mt_h)
 !BOC
       Implicit None
       Type (MTHamiltonianList), intent(InOut) :: mt_h
+!      Type (MTHamiltonianList) :: mt_h
 ! local variables
       Integer :: is, ia, ias, nr, ir, if1,if3,inonz,ireset1,ireset3
       Integer :: l1, l2, l3, m2, lm2, m1, m3, lm1, lm3
@@ -40,44 +41,15 @@ Subroutine hmlint(mt_h)
       Real (8), Parameter :: ga4 = ge * alpha / 4.d0      
       
       Type (apw_lo_basis_type) :: mt_basis
+ 
 
-
-! elements of the old infrastructure
-        haaijSize=mt_h%maxaa
-        maxnlo=mt_h%maxnlo
-        if (allocated(haaij)) deallocate(haaij)
-        allocate(haaij(haaijSize,haaijSize,natmtot))
-        haaij=dcmplx(0d0,0d0)
-        if (allocated(haloijSize)) deallocate(haloijSize)
-        allocate(haloijSize(nspecies))
-        haloijSize(:)=mt_h%losize(:)
-        if (maxnlo.gt.0) then 
-          if (allocated(haloij)) deallocate(haloij)
-          allocate(haloij(maxnlo,haaijSize,natmtot))
-          haloij=dcmplx(0d0,0d0)
-! LO-LO storage initialisation
-          if (allocated(hloloij)) deallocate(hloloij)
-          allocate(hloloij(maxnlo,maxnlo,natmtot))
-          hloloij=dcmplx(0d0,0d0)
-        endif
-
-        mt_basis%lofr=>lofr
-        mt_basis%apwfr=>apwfr
+      mt_basis%lofr=>lofr
+      mt_basis%apwfr=>apwfr
          
 
         call MTRedirect(mt_h%main,mt_h%spinless)        
         call mt_kin(veffmt,mt_basis,mt_h)
         call mt_pot(veffmt,mt_basis,mt_h)
-
-! Using old infrastructure for passing the MT Hamiltonian to hamiltonandoverlapsetup
-        haaij=mt_h%spinless%aa
-        if (allocated(haloij)) then
-          haloij=0d0*haloij +mt_h%spinless%loa
-          hloloij=0d0*hloloij+mt_h%spinless%lolo
-        endif
-
-
-
 
 ! now the magnetic field
         if (associated(input%groundstate%spin)) then
@@ -196,11 +168,8 @@ Subroutine hmlint(mt_h)
 ! add the spin orbit interaction if requested
           if (isspinorb()) call mt_so(veffmt,mt_basis,mt_basis,mt_h,level_zora)
         endif
-   
 
-
-
-
+!deallocate(mt_h%losize)
 
       Return
 End Subroutine

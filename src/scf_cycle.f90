@@ -49,6 +49,8 @@ subroutine scf_cycle(verbosity)
 ! reset density-dependent dispersion coefficients of Tkatchenko-Scheffler method
     If (Allocated(C6ab)) Deallocate(C6ab)
     If (Allocated(R0_eff_ab)) Deallocate(R0_eff_ab)
+!
+!    call MTNullify(mt_hscf)
 
 !_______________________________________________________________
 ! initialise or read the charge density and potentials from file
@@ -208,11 +210,9 @@ subroutine scf_cycle(verbosity)
 !------------------------------------------------------------
 
         
-        call MTNullify(mt_hscf)
+!        call MTNullify(mt_hscf)
         call MTInitAll(mt_hscf)
         call hmlint(mt_hscf)
-                
-        
 
 
 !------------------------------------------------------------
@@ -271,7 +271,6 @@ call timesec(ta)
 
 !__________________________________________________________
 ! solve the first- and second-variational secular equations
-
             Call seceqn (ik, evalfv, evecfv, evecsv)
 
             Call timesec(ts0)
@@ -304,7 +303,7 @@ call timesec(tb)
 
 
 ! Release memory used by the MT Hamiltonian
-        call MTRelease(mt_hscf)
+!        call MTRelease(mt_hscf)
 
 
 !-----------------------------------------------

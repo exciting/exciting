@@ -92,7 +92,7 @@ Subroutine KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
             r2 (ir) = spr (ir, is) ** 2
             r2inv(ir)=1d0/r2(ir)
          End Do
-         if (haloijSize(is).ne.0) allocate(zveclo(haloijSize(is)))
+         if (mt_hscf%losize(is).ne.0) allocate(zveclo(mt_hscf%losize(is)))
          Do ia = 1, natoms (is)
            ias = idxas (ia, is)
            Do ir = 1, nr
@@ -221,7 +221,7 @@ Subroutine KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
         
 do ist=1,nstfv
               zvec=zzero
-              if (haloijSize(is).ne.0) zveclo=zzero
+              if (mt_hscf%losize(is).ne.0) zveclo=zzero
               Do l3 = 0, input%groundstate%lmaxmat
                 Do m3 = - l3, l3
                   lm3 = idxlm (l3, m3)
@@ -265,15 +265,15 @@ endif
 !        write(*,*) LOoffset
 !        write(*,*) 
         engyknst(ist,ik)=engyknst(ist,ik)+zdotc(apwordmax*lmmaxapw,zm(1,ist),1,zvec,1)
-        if (nlorb(is).ne.0) engyknst(ist,ik)=engyknst(ist,ik)+zdotc(haloijSize(is),evecfv(LOoffset+1,ist),1,zveclo,1)
+        if (nlorb(is).ne.0) engyknst(ist,ik)=engyknst(ist,ik)+zdotc(mt_hscf%losize(is),evecfv(LOoffset+1,ist),1,zveclo,1)
 !        write(*,*) zdotc(apwordmax*lmmaxapw,zm(1,ist),1,zvec,1)+zdotc(haloijSize(is),evecfv(LOoffset+1,ist),1,zveclo,1)
 enddo
 
 
 ! end loops over atoms and species
-         LOoffset=LOoffset+haloijSize(is)
+         LOoffset=LOoffset+mt_hscf%losize(is)
          End Do
-         if (haloijSize(is).ne.0) deallocate(zveclo)
+         if (mt_hscf%losize(is).ne.0) deallocate(zveclo)
       End Do
 ! cleaning up 
       deallocate(t_aa)
