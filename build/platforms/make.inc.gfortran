@@ -1,10 +1,13 @@
-FCC = gcc-8
-CPP = cpp-8
-FCCPP = cpp-8
+FCC = gcc
+CPP = cpp
+FCCPP = cpp
 
-F90 = gfortran-8
+INCDIR = -I./finclude
+
+F90 = gfortran
 F77 = $(F90)
-F90_OPTS = -O3 -march=native -fopenmp -DUSEOMP -ffree-line-length-0
+
+F90_OPTS = -O3 -march=native -fopenmp -DUSEOMP -ffree-line-length-0 $(INCDIR)
 F77_OPTS = $(F90_OPTS)
 CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC
 LIB_ARP = libarpack.a
@@ -13,6 +16,7 @@ LIB_ARP = libarpack.a
 LIB_LPK = -L./ -llapack -lblas
 LIB_FFT = fftlib.a
 LIB_BZINT = libbzint.a
+
 
 LIBS = $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
 
@@ -30,4 +34,5 @@ SMP_LIBS = $(LIBS)
 SMPF90_OPTS = -fopenmp $(F90_OPTS) 
 SMPF77_OPTS = $(SMPF90_OPTS) 
 
+BUILDMPI = false
 BUILDMPI = false
