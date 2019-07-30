@@ -61,7 +61,7 @@ subroutine task_gw()
     ! clean not used anymore global exciting variables
     call clean_gndstate
 
-    if (input%gw%taskname.ne.'g0w0_x') then
+    if (input%gw%taskname.ne.'g0w0-x') then
       if (.not.input%gw%rpmat) then
         !========================================================
         ! calculate momentum matrix elements and store to a file
@@ -165,7 +165,7 @@ subroutine task_gw()
       !===============================
       call calcselfx(iq)
 
-      if (input%gw%taskname.ne.'g0w0_x') then
+      if (input%gw%taskname.ne.'g0w0-x') then
         !========================================
         ! Set v-diagonal MB and reduce its size
         !========================================
@@ -216,7 +216,7 @@ subroutine task_gw()
 #ifdef MPI
     if ((nproc_row>1).and.(myrank_col==0)) then
       call mpi_sum_array(0,selfex,nbandsgw,kset%nkpt,mycomm_row)
-      if (input%gw%taskname.ne.'g0w0_x') then
+      if (input%gw%taskname.ne.'g0w0-x') then
         ! G0W0 and GW0 approximations
         call mpi_sum_array(0,selfec,nbandsgw,freq_selfc%nomeg,kset%nkpt,mycomm_row)
         if (input%gw%taskname=='cohsex') then
@@ -233,7 +233,7 @@ subroutine task_gw()
 
     if (myrank == 0) then
 
-      if ((input%gw%taskname /= 'g0w0_x') .and. (input%gw%selfenergy%method == "ac")) then
+      if ((input%gw%taskname /= 'g0w0-x') .and. (input%gw%selfenergy%method == "ac")) then
         ! Analytical continuation of the correlation self-energy from the complex to the real frequency axis
         call plot_selfc_iw()
         call calcselfc_ac()
@@ -264,8 +264,8 @@ subroutine task_gw()
       ! G0W0 QP band structure
       select case (input%gw%taskname)
 
-        case('g0w0_x')
-          call bandstructure_analysis('G0W0_X', &
+        case('g0w0-x')
+          call bandstructure_analysis('G0W0-X', &
               ibgw,nbgw,kset%nkpt,evalqp(ibgw:nbgw,:),eferqp)
 
         case('cohsex')

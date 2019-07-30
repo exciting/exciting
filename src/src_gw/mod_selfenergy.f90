@@ -6,51 +6,51 @@ module mod_selfenergy
     type(frequency) :: freq_selfc
 
     !--------------!
-    ! self-energy  ! 
+    ! self-energy  !
     !--------------!
-    
+
     ! The exchange self-energy
     complex(8), allocatable :: selfex(:,:)
-    
+
     ! Sum_ij{M^i*W^c_{ij}*conjg(M^j)}
     complex(8), allocatable :: mwm(:,:,:)
     target mwm
-    
+
     ! The correlation self-energy
     complex(8), allocatable :: selfeph(:,:,:)
     complex(8), allocatable :: selfeph0(:,:)
     real(8),    allocatable :: speceph(:,:,:)
     complex(8), allocatable :: selfec(:,:,:)
-    
+
     ! Correction factors for (q^-1) and (q^-2) singularities
     real(8) :: singc1
     real(8) :: singc2
-      
+
     !-------------!
     ! QP Energy   !
     !-------------!
-    
+
     ! Original KS energies (evalfv will updated via self-consistent cycle)
     real(8) :: eferks
     real(8), allocatable :: evalks(:,:)
-    
+
     ! QP energies
     real(8) :: eferqp
     real(8), allocatable :: evalqp(:,:)
 
     ! Chemical potential alignment
     real(8) :: deltaE
-    
+
     ! Linearization (renormalization) factor
     real(8),    allocatable :: znorm(:,:)
-    
+
     ! AC to the real axis of the correlation self-energy (selfec)
     complex(8), allocatable :: sigc(:,:)
-    
+
     ! COHSEX approximation
     complex(8), allocatable :: sigsx(:,:) ! Screened exchange
     complex(8), allocatable :: sigch(:,:) ! Coulomb hole
-    
+
 contains
 
     !---------------------------------------------------------------------------
@@ -61,18 +61,18 @@ contains
         integer, intent(in) :: nkpt
         ! local
         integer(4) :: nw
-       
+
         ! KS eigenvalues
         if (allocated(evalks)) deallocate(evalks)
         allocate(evalks(ibgw:nbgw,nkpt))
         evalks(:,:) = 0.d0
-        
+
         ! Quasi-Particle energy
         if (allocated(evalqp)) deallocate(evalqp)
         allocate(evalqp(ibgw:nbgw,nkpt))
         evalqp(:,:) = 0.d0
 
-        ! Exchange self-energy        
+        ! Exchange self-energy
         if (allocated(selfex)) deallocate(selfex)
         allocate(selfex(ibgw:nbgw,nkpt))
         selfex(:,:) = 0.d0
@@ -96,10 +96,10 @@ contains
                                  input%gw%freqgrid%freqmax)
         end if
         ! call print_freqgrid(freq_selfc,6)
-        
+
         nw = freq_selfc%nomeg
-        
-        if (input%gw%taskname.ne.'g0w0_x') then
+
+        if (input%gw%taskname.ne.'g0w0-x') then
           if (allocated(selfec)) deallocate(selfec)
           allocate(selfec(ibgw:nbgw,nw,nkpt))
           selfec(:,:,:) = 0.d0
@@ -122,9 +122,9 @@ contains
             sigch(:,:) = 0.d0
           end if ! cohsex
         end if
-        
+
     end subroutine
-        
+
     !---------------------------------------------------------------------------
     subroutine delete_selfenergy
       if (allocated(evalks)) deallocate(evalks)
@@ -139,7 +139,7 @@ contains
       if (allocated(freq_selfc%freqs)) deallocate(freq_selfc%freqs)
       if (allocated(freq_selfc%womeg)) deallocate(freq_selfc%womeg)
     end subroutine
-        
+
     !---------------------------------------------------------------------------
     subroutine write_selfenergy(ibgw,nbgw,nkpt,nw)
       use modinput
@@ -155,7 +155,7 @@ contains
       write(fid) ibgw, nbgw, nkpt, selfex
       close(fid)
       ! correlation
-      if (input%gw%taskname.ne.'g0w0_x') then
+      if (input%gw%taskname.ne.'g0w0-x') then
         open(fid,file='SELFC.OUT',form='UNFORMATTED',status='UNKNOWN')
         write(fid) ibgw, nbgw, nw, nkpt, selfec
         close(fid)
@@ -164,7 +164,7 @@ contains
           write(fid) ibgw, nbgw, nkpt, selfec, sigsx, sigch
           close(fid)
         end if
-      end if     
+      end if
     end subroutine
 
     !---------------------------------------------------------------------------

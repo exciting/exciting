@@ -54,7 +54,7 @@ subroutine gw_main()
     select case(input%gw%taskname)
 
         ! GW calculations
-        case('g0w0','g0w0_x','gw0','cohsex')
+        case('g0w0','g0w0-x','gw0','cohsex')
             call task_gw
 
         ! Calculate the QP band structure
@@ -150,17 +150,6 @@ subroutine gw_main()
         ! (testing option) Test the bare coulomb matrix for various q-points
         ! case('coul')
         !    if (rank==0) call test_coulpot
-
-        case('wannier')
-            !call init_gw
-            if( associated( input%properties%wannier)) then
-              input%properties%wannier%input = "gw"
-              !input%properties%wannier%fst = ibgw
-              !input%properties%wannier%lst = nbgw
-              call wannierlauncher
-              !call task_eph ()
-              call task_band
-            end if
 
         ! (testing option) Check the rotational matrix for MB functions
         ! case('rotmat')

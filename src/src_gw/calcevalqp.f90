@@ -38,7 +38,7 @@ subroutine calcevalqp
       case('g0w0','gw0','acon')
         call solve_QP_equation()
 
-      case('g0w0_x')
+      case('g0w0-x')
 
         do ik = 1, kset%nkpt
           do ie = ibgw, nbgw

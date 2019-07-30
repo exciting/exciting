@@ -14,7 +14,7 @@ subroutine parse_gwinput
     use modinput
     use modmain
     use modgw
-    use mod_coulomb_potential, only: vccut, rcut
+    use mod_coulomb_potential, only: vccut
     use modmpi
     use mod_hybrids, only: hybridhf, hyb_beta
     implicit none
@@ -62,8 +62,8 @@ subroutine parse_gwinput
         case('skip')
         case('g0w0')
             if (rank==0) write(fgw,*) '  g0w0 - G0W0 run'
-        case('g0w0_x')
-            if (rank==0) write(fgw,*) '  g0w0_x - Exchange only G0W0 run'
+        case('g0w0-x')
+            if (rank==0) write(fgw,*) '  g0w0-x - Exchange only G0W0 run'
         case('cohsex')
             if (rank==0) write(fgw,*) '  cohsex - Coulomb hole plus screened exchange approximation (COHSEX)'
         case('gw0')
@@ -118,8 +118,6 @@ subroutine parse_gwinput
             if (rank==0) write(fgw,*) '  sepl - (testing option) Plot Selfenergy as a function of frequency'
         case('rotmat')
             if (rank==0) write(fgw,*) '  rotmat - (testing option) Calculate and check the MB rotation matrices (symmetry feature)'
-        case('wannier')
-            if (rank==0) write(fgw,*) '  wannier - (testing option) Wannier-interpolate QP-energies'
         case('test_aaa')
             if (rank==0) write(fgw,*) '  Test AAA interpolation'
         case('specfunc')
@@ -133,9 +131,9 @@ subroutine parse_gwinput
             if (rank==0) write(*,*)
             if (rank==0) write(*,*) 'Currently supported options are'
             if (rank==0) write(*,*) '  skip - Skip GW part execution'
-            if (rank==0) write(*,*) '  g0w0   - Perform G0W0 run'
-            if (rank==0) write(*,*) '  gw0   - Perform GW0 self-consistent run'
-            if (rank==0) write(*,*) '  g0w0_x - Exchange only G0W0 run'
+            if (rank==0) write(*,*) '  g0w0 - Perform G0W0 run'
+            if (rank==0) write(*,*) '  gw0 - Perform GW0 self-consistent run'
+            if (rank==0) write(*,*) '  g0w0-x - Exchange only G0W0 run'
             if (rank==0) write(*,*) '  cohsex - Coulomb hole plus screened exchange approximation (COHSEX)'
             if (rank==0) write(*,*) '  band - Calculate QP bandstructure'
             if (rank==0) write(*,*) '  emac - Calculate the DFT macroscopic dielectric function'
@@ -319,9 +317,11 @@ subroutine parse_gwinput
         if (rank==0) write(*,*) '  2d   - Slab geometry (vacuum along z-axis)'
         stop
     end select
-    rcut = input%gw%barecoul%rcut
-    ! Coulomb potential truncation techniques are implemented only for the PW basis
-    if (vccut) input%gw%barecoul%basis = "pw"
+    if (vccut) then
+        ! Coulomb potential truncation techniques are implemented only for the PW basis
+        input%gw%barecoul%basis = "pw"
+        input%gw%barecoul%pwm = 4.d0
+    end if
     if (rank==0) call linmsg(fgw,'-','')
 
 !-------------------------------------------------------------------------------
@@ -334,8 +334,6 @@ subroutine parse_gwinput
     if (trim(input%gw%scrcoul%scrtype)=='ppm') then
       if (rank==0) write(fgw,*) '  Plasmon frequency: ', input%gw%scrcoul%omegap
     end if
-    if (rank==0) write(fgw,*) '  Averaging direction: ', input%gw%scrcoul%q0eps
-    if (rank==0) write(fgw,*) '  Smearing: ', input%gw%scrcoul%swidth
     if (rank==0) call linmsg(fgw,'-','')
 
 !-------------------------------------------------------------------------------

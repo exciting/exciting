@@ -6,9 +6,9 @@ subroutine write_qp_energies(fname)
   use mod_selfenergy, only : evalks, evalqp, selfex, sigc, znorm, sigsx, sigch
   use mod_vxc,        only : vxcnn
   use m_getunit
-  implicit none 
+  implicit none
   character(len=*), intent(in) :: fname
-     
+
   integer(4) :: ie
   integer(4) :: ikp
   integer(4) :: fid
@@ -30,37 +30,37 @@ subroutine write_qp_energies(fname)
       eks = evalks(ie,ikp)
       egw = evalqp(ie,ikp)
       de = egw-eks
-      
+
       vxc = dble(vxcnn(ie,ikp))
-      
+
       select case(input%gw%taskname)
-      
+
         case('g0w0','gw0','acon')
           sx  = dble(selfex(ie,ikp))
           scr = dble(sigc(ie,ikp))
           sci = aimag(sigc(ie,ikp))
           z   = znorm(ie,ikp)
-        
-        case('g0w0_x')
+
+        case('g0w0-x')
           sx = dble(selfex(ie,ikp))
           scr = 0.d0
           sci = 0.d0
           z = 0.d0
-       
+
         case('cohsex')
           sx  = dble(sigsx(ie,ikp))
           scr = dble(sigch(ie,ikp))
           sci = aimag(sigch(ie,ikp))
           z   = 0.d0
-      
+
       end select
-        
+
       dx = sx-vxc
       ehf = eks+dx
 
       write(fid,3) ie, eks, ehf, egw, &
       &            sx, scr, sci, vxc, dx, de, z
-      
+
     enddo ! ie
     write(fid,*)
 
@@ -68,8 +68,8 @@ subroutine write_qp_energies(fname)
   close(fid)
 
   1 format('k-point #',i6,':',4f12.6)
-  2 format(' state   E_KS       E_HF       E_GW       Sx         Re(Sc)     Im(Sc)     Vxc        DE_HF      DE_GW      Znk')    
+  2 format(' state   E_KS       E_HF       E_GW       Sx         Re(Sc)     Im(Sc)     Vxc        DE_HF      DE_GW      Znk')
   3 format(i4,'  ',f10.5,' ',f10.5,' ',f10.5,' ',f10.5,' ',f10.5,' ',f10.5,' ',f10.5,' ',f10.5,' ',f10.5,' ',f10.5)
 
-  return 
+  return
 end subroutine
