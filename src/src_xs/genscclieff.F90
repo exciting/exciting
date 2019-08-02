@@ -31,8 +31,8 @@ subroutine genscclieff(iqr, iqrnr, nmax, n, scieff)
   ! Check whether q=0, that is it checks whether mod_qpoint::vqc(:,iqr) has
   ! a norm smaller than epslat (mod_qpoint should contain the non reduced q grid)
   tq0 = tqgamma(iqrnr)
-  
-  ! Read the Coulomb-symmetrized macroscopic dielectric function/tensor 
+
+  ! Read the Coulomb-symmetrized macroscopic dielectric function/tensor
   ! in RPA for requested q point and zero frequency. The Cartesian components
   ! of the head (G=G'=q=0) are also symmetrized w.r.t. the lattice symmetry.
   call genfilname(basename=trim(adjustl(eps0dirname))//'/'//'EPS0',&
@@ -43,6 +43,11 @@ subroutine genscclieff(iqr, iqrnr, nmax, n, scieff)
 
   ! Calculate effective screened interaction
   if(tq0) then
+    ! Compute contributions due to polar phonons
+    if (input%xs%eph=='polar') then
+      ! call eph_polar(1, [cmplx(0.d0,0.d0,8)], scrnh)
+      scrnh = scrnh * input%xs%wlo**2 / input%xs%wto**2
+    end if
     ! Averaging using Lebedev-Laikov spherical grids
     call angavsc0(n, nmax, scrnh, scrnw, scrn, scieff)
   else

@@ -1,4 +1,4 @@
-subroutine calchead(ik,iomstart,iomend,ndim)
+subroutine calchead(ik, iomstart, iomend,ndim)
     !
     ! This subroutine calculate the head of the dielectric matrix
     !
@@ -6,12 +6,12 @@ subroutine calchead(ik,iomstart,iomend,ndim)
     use modmain, only : zzero, zone, pi, evalcr, idxas
     use modgw
     implicit none
-    
+
     ! input/output
     integer(4), intent(in) :: ik
     integer(4), intent(in) :: iomstart, iomend
     integer(4), intent(in) :: ndim
-    
+
     ! local
     integer(4) :: ic, icg
     integer(4) :: ia, is, ias
@@ -22,16 +22,16 @@ subroutine calchead(ik,iomstart,iomend,ndim)
     real(8) :: tstart, tend
     complex(8) :: coefh
     complex(8) :: pnm, zsum
-    
+
     if (input%gw%debug) write(fdebug,*) ' ---- calchead started ----'
     call timesec(tstart)
-    
+
     ! position in the non-reducied grid
-    ikp = kset%ik2ikp(ik)     
-    
-    ! constant prefactor    
-    coefh = cmplx(4.d0*pi*vi*2.d0, 0.d0, 8)
-    
+    ikp = kset%ik2ikp(ik)
+
+    ! constant prefactor
+    coefh = cmplx(4.d0*pi*vi, 0.d0, 8)
+
     ! loop over tensor components
     do jop = 1, 3
     do iop = 1, 3
@@ -65,20 +65,20 @@ subroutine calchead(ik,iomstart,iomend,ndim)
                 end if
             end do ! ie2
             end do ! ie1
-            epsh(iom,iop,jop) = epsh(iom,iop,jop) + coefh*zsum
-            
+            epsh(iop,jop,iom) = epsh(iop,jop,iom) + coefh*zsum
+
             !-------------------------
             ! Intra-band contribution
             !-------------------------
-            if (metallic) then 
+            if (metallic) then
                 zsum = zzero
                 do ie1 = numin, nomax
                     pnm = pmatvv(ie1,ie1,iop)*conjg(pmatvv(ie1,ie1,jop))
                     zsum = zsum + kwfer(ie1,ik)*pnm
                 enddo
-                ! for imaginary frequency, a negative sign is needed 
+                ! for imaginary frequency, a negative sign is needed
                 if (freq%fconv == 'imfreq') zsum = -zsum
-                epsh(iom,iop,jop) = epsh(iom,iop,jop) + &
+                epsh(iop,jop,iom) = epsh(iop,jop,iom) + &
                                     coefh*zsum/(freq%freqs(iom)**2)
             end if ! metallic
 
@@ -94,8 +94,8 @@ subroutine calchead(ik,iomstart,iomend,ndim)
         write(fdebug,*) ' ---- calchead finished ----'
         write(fdebug,*) ' ik = ', ik
         do iom = iomstart, iomend
-            write(fdebug,*) iom, epsh(iom,1,1)
-        end do        
+            write(fdebug,*) iom, epsh(1,1,iom)
+        end do
     end if
 
     return

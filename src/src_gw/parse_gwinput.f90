@@ -66,16 +66,12 @@ subroutine parse_gwinput
             if (rank==0) write(fgw,*) '  g0w0-x - Exchange only G0W0 run'
         case('cohsex')
             if (rank==0) write(fgw,*) '  cohsex - Coulomb hole plus screened exchange approximation (COHSEX)'
-        case('gw0')
-            if (rank==0) write(fgw,*) '  gw0  - GW0 self-consistent run'
         case('band','band2')
             if (rank==0) write(fgw,*) '  band - Calculate QP bandstructure'
         case('dos')
             if (rank==0) write(fgw,*) '  dos - Calculate QP DOS'
         case('emac')
             if (rank==0) write(fgw,*) '  emac - Calculate the DFT frequency-dependent macroscopic dielectric function for q=0'
-        case('emac_q')
-            if (rank==0) write(fgw,*) '  emac_q - Calculate the DFT q-dependent macroscopic dielectric function for \omega=0'
         case('vxc')
             if (rank==0) write(fgw,*) '  vxc  - Calculate the matrix elements of the DFT exchange-correlation potential'
         case('pmat')
@@ -83,24 +79,14 @@ subroutine parse_gwinput
         case('acon')
             if (rank==0) write(fgw,*) '  acon - Perform only the analytic continuation of &
             &the correlation self energy and recalculate QP energies'
-        case('epsilon')
-            if (rank==0) write(fgw,*) '  epsilon - Calculate dielectric function matrix elements'
-        case('eps_r')
-            if (rank==0) write(fgw,*) '  eps_r - Test only option'
-        case('chi0_r')
-            if (rank==0) write(fgw,*) '  chi0_r - Calculate polarizability matrix elements for all q-points and convert to real-space'
-        case('chi0_q')
-            if (rank==0) write(fgw,*) '  chi0_q - Calculate polarizability matrix elements for a given q-point'
-!       case('epsev')
-!           if (rank==0) write(fgw,*) '  epsev - Calculate eigenvalues of the dielectric matrix'
-!       case('wev')
-!           if (rank==0) write(fgw,*) '  wev  - Calculate eigenvalues of the screened Coulomb potential'
-!       case('epsgw')
-!           if (rank==0) write(fgw,*) '  epsgw - Calculate the GW macroscopic dielectric function'
+        ! case('eps_r')
+        !     if (rank==0) write(fgw,*) '  eps_r - Test only option'
+        ! case('chi0_r')
+        !     if (rank==0) write(fgw,*) '  chi0_r - Calculate polarizability matrix elements for all q-points and convert them to real-space'
+        ! case('chi0_q')
+        !     if (rank==0) write(fgw,*) '  chi0_q - Calculate polarizability matrix elements for a given q-point'
         case('kqgen')
             if (rank==0) write(fgw,*) '  kqgen - (testing option) Test generation of k/q-point grids'
-        case('bzintw')
-            if (rank==0) write(fgw,*) '  bzintw - (testing option) Test generation of k- k/q-dependent BZ integration weights'
         case('lapw')
             if (rank==0) write(fgw,*) '  lapw - (testing option) Calculate LAPW basis functions for plotting'
         case('evec')
@@ -111,49 +97,17 @@ subroutine parse_gwinput
             if (rank==0) write(fgw,*) '  mixf - (testing option) Calculate products of eigenvectors and'
             if (rank==0) write(fgw,*) '         their expansion in the mixed basis for plotting'
         case('comp')
-            if (rank==0) write(fgw,*) '  comp - (testing option) Test completeness of the mixed basis'
-        case('coul')
-            if (rank==0) write(fgw,*) '  coul - (testing option) Test bare Coulomb potential'
-        case('sepl')
-            if (rank==0) write(fgw,*) '  sepl - (testing option) Plot Selfenergy as a function of frequency'
-        case('rotmat')
-            if (rank==0) write(fgw,*) '  rotmat - (testing option) Calculate and check the MB rotation matrices (symmetry feature)'
+            if (rank==0) write(*,*)   '  comp - (testing option) Test completeness of the mixed basis'
         case('test_aaa')
             if (rank==0) write(fgw,*) '  Test AAA interpolation'
-        case('specfunc')
-            if (rank==0) write(fgw,*) '  Compute spectral function'
+        case('band_specfunc')
+            if (rank==0) write(fgw,*) '  Compute spectral function along the k-path'
         case('sv')
             if (rank==0) write(fgw,*) '  Apply second variation procedure'
         case default
             if (rank==0) write(*,*) 'ERROR(parse_gwinput): Wrong task name!'
             if (rank==0) write(*,*)
-            if (rank==0) write(*,*) 'Specified value: taskname = ', trim(input%gw%taskname)
-            if (rank==0) write(*,*)
-            if (rank==0) write(*,*) 'Currently supported options are'
-            if (rank==0) write(*,*) '  skip - Skip GW part execution'
-            if (rank==0) write(*,*) '  g0w0 - Perform G0W0 run'
-            if (rank==0) write(*,*) '  gw0 - Perform GW0 self-consistent run'
-            if (rank==0) write(*,*) '  g0w0-x - Exchange only G0W0 run'
-            if (rank==0) write(*,*) '  cohsex - Coulomb hole plus screened exchange approximation (COHSEX)'
-            if (rank==0) write(*,*) '  band - Calculate QP bandstructure'
-            if (rank==0) write(*,*) '  emac - Calculate the DFT macroscopic dielectric function'
-            if (rank==0) write(*,*) '  vxc  - Calculate the matrix elements of the DFT exchange-correlation potential'
-            if (rank==0) write(*,*) '  pmat - Calculate the matrix elements of the momentum operator'
-            if (rank==0) write(*,*) '  acon - Perform only the analytic continuation of the correlation self energy and &
-            &  recalculate QP energies'
-            if (rank==0) write(*,*) '  epsev - Calculate eigenvalues of the dielectric matrix'
-            !if (rank==0) write(fgw,*) '  epgw - Calculate the GW macroscopic dielectric function'
-            !if (rank==0) write(fgw,*) '  wev  - Calculate eigenvalues of the screened Coulomb potential'
-            if (rank==0) write(*,*) '  lapw - (test option) Calculate LAPW basis functions for plotting'
-            if (rank==0) write(*,*) '  evec - (test option) Calculate DFT eigenvectors for plotting'
-            if (rank==0) write(*,*) '  prod - (test option) Calculate products of eigenvectors for plotting'
-            if (rank==0) write(*,*) '  mixf - (test option) Calculate products of eigenvectors and &
-            &  their expansion in the mixed basis for plotting'
-            if (rank==0) write(*,*) '  comp - (test option) Test completeness of the mixed basis'
-            if (rank==0) write(*,*) '  coul - (test option) Test bare Coulomb potential'
-            if (rank==0) write(*,*) '  sepl - (test option) Plot Selfenergy as a function of frequency'
-            if (rank==0) write(*,*) '  rotmat - (test option) Calculate and check the MB rotation matrices (symmetry feature)'
-            if (rank==0) write(*,*) '  kqgen - (test option) Test generation of k/q-point grids'
+            if (rank==0) write(*,*) '  Specified value: taskname = ', trim(input%gw%taskname)
             if (rank==0) write(*,*)
             stop
     end select
@@ -166,7 +120,6 @@ subroutine parse_gwinput
      &  input%gw%freqgrid => getstructfreqgrid(emptynode)
 
     if (input%gw%taskname=='g0w0' .or. &
-    &   input%gw%taskname=='gw0'  .or. &
     &   input%gw%taskname=='emac') then
       ! no frequencies is required
       if (rank==0) write(fgw,*) 'Frequency integration parameters:'
@@ -243,21 +196,21 @@ subroutine parse_gwinput
             if (rank==0) write(fgw,*) " pade - Thiele's reciprocal difference method &
             &(by H. J. Vidberg and J. W. Serence, J. Low Temp. Phys. 29, 179 (1977))"
         case('aaa','AAA')
-            if (rank==0) write(fgw,*) "aaa: Y. Nakatsukasa, O. Sete, L. N. Trefethen, The AAA algorithm for rational approximation, SIAM J. Sci. Comp. 40 (2018), A1494-A1522"
+            if (rank==0) write(fgw,*) " aaa: Y. Nakatsukasa, O. Sete, L. N. Trefethen, The AAA algorithm for rational approximation, SIAM J. Sci. Comp. 40 (2018), A1494-A1522"
         case default
             if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal value for input%gw%SelfEnergy%actype'
     end select
     if (rank==0) write(fgw,*) 'Scheme to treat singularities:'
     select case (trim(input%gw%selfenergy%singularity))
       case('none')
-        if (rank==0) write(fgw,*) 'No scheme is used (test purpose only)'
+        if (rank==0) write(fgw,*) ' No scheme is used (test purpose only)'
       case('avg')
-        if (rank==0) write(fgw,*) 'Replace the singular term by the corresponding spherical average over small volume arounf Gamma point.'
+        if (rank==0) write(fgw,*) ' Replace the singular term by the corresponding spherical average over small volume arounf Gamma point.'
       case('mpb')
-        if (rank==0) write(fgw,*) 'Auxiliary function method by &
+        if (rank==0) write(fgw,*) ' Auxiliary function method by &
         &S. Massidda, M. Posternak, and A. Baldereschi, PRB 48, 5058 (1993)'
       case('crg')
-        if (rank==0) write(fgw,*) 'Auxiliary function method by &
+        if (rank==0) write(fgw,*) ' Auxiliary function method by &
         &P. Carrier, S. Rohra, and A. Goerling, PRB 75, 205126 (2007)'
       case('rim')
         if (rank==0) write(fgw,*) '(experimantal) RIM by Yambo'

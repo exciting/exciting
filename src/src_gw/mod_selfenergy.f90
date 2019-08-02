@@ -155,11 +155,11 @@ contains
       write(fid) ibgw, nbgw, nkpt, selfex
       close(fid)
       ! correlation
-      if (input%gw%taskname.ne.'g0w0-x') then
+      if (input%gw%taskname /= 'g0w0-x') then
         open(fid,file='SELFC.OUT',form='UNFORMATTED',status='UNKNOWN')
         write(fid) ibgw, nbgw, nw, nkpt, selfec
         close(fid)
-        if (input%gw%taskname=='cohsex') then
+        if (input%gw%taskname == 'cohsex') then
           open(fid,file='COHSEX.OUT',form='UNFORMATTED',status='UNKNOWN')
           write(fid) ibgw, nbgw, nkpt, selfec, sigsx, sigch
           close(fid)

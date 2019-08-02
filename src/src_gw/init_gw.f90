@@ -105,7 +105,6 @@ subroutine init_gw()
     call timesec(t0)
 
     if (input%gw%taskname=='g0w0' .or. &
-        input%gw%taskname=='gw0'  .or. &
         input%gw%taskname=='emac') then
       call generate_freqgrid(freq, &
       &                      input%gw%freqgrid%fgrid, &

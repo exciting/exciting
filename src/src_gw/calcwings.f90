@@ -1,7 +1,7 @@
-subroutine calcwings(ik,iq,iomstart,iomend,ndim,mstart,mend)
+subroutine calcwings(ik, iq, iomstart, iomend, ndim, mstart, mend)
 
-    use modmain,   only : evalcr, pi, zzero, zone, idxas
-    use modgw    
+    use modmain,   only : evalcr, fourpi, zzero, zone, idxas
+    use modgw
     implicit none
 
     ! input variables
@@ -15,24 +15,22 @@ subroutine calcwings(ik,iq,iomstart,iomend,ndim,mstart,mend)
     integer :: nmdim
     integer :: ie1, ie2, ie12
     integer :: is, ia, ic, icg, ias
-    integer :: iop, iom, ikp, jk
+    integer :: iop, iom, ikp
     real(8) :: edif
     complex(8) :: coefw
     complex(8), allocatable :: pm(:), tvec(:), tmat(:,:)
-    
+
     ! wings prefactor
-    coefw = cmplx(-dsqrt(4.d0*pi*vi)*2.d0, 0.d0, 8)
-    
+    coefw = cmplx(-sqrt(fourpi*vi), 0.d0, 8)
+
     ! irreducible k-point index
     ikp = kset%ik2ikp(ik)
-    ! k-q point
-    jk = kqset%kqid(ik,iq)
-    
+
     nmdim = ndim*(mend-mstart+1)
     allocate(pm(nmdim))
     allocate(tmat(1:mbsiz,1:nmdim))
     allocate(tvec(1:mbsiz))
-    
+
     !=============================
     ! loop over vector components
     !=============================
@@ -43,10 +41,10 @@ subroutine calcwings(ik,iq,iomstart,iomend,ndim,mstart,mend)
         do ie2 = mstart, mend
         do ie1 = 1, ndim
             ie12 = ie12+1
-            if (ie1<=nomax) then            
+            if (ie1 <= nomax) then
                 ! valence-valence contribution
                 edif = evalfv(ie1,ikp)-evalfv(ie2,ikp)
-                if (dabs(edif)>1.d-6) then
+                if (dabs(edif) > 1.d-6) then
                     pm(ie12) = pmatvv(ie1,ie2,iop)/edif
                 else
                     pm(ie12) = zzero
@@ -59,7 +57,7 @@ subroutine calcwings(ik,iq,iomstart,iomend,ndim,mstart,mend)
                 ic = corind(icg,3)
                 ias = idxas(ia,is)
                 edif = evalcr(ic,ias)-evalfv(ie2,ikp)
-                if (dabs(edif)>1.d-6) then
+                if (dabs(edif) > 1.d-6) then
                     pm(ie12) = pmatcv(icg,ie2,iop)/edif
                 else
                     pm(ie12) = zzero
@@ -67,7 +65,7 @@ subroutine calcwings(ik,iq,iomstart,iomend,ndim,mstart,mend)
             end if ! core/valence
         end do ! ie1
         end do ! ie2
-      
+
         !==================
         ! Frequency loop
         !==================
@@ -83,8 +81,8 @@ subroutine calcwings(ik,iq,iomstart,iomend,ndim,mstart,mend)
                                      minmmat(1:mbsiz,ie1,ie2)
             end do ! ie1
             end do ! ie2
-            call zgemv('n',mbsiz,nmdim,coefw,tmat,mbsiz,pm,1,zzero,tvec,1)
-            epsw1(:,iom,iop) = epsw1(:,iom,iop)+tvec(:)
+            call zgemv('n', mbsiz, nmdim, coefw, tmat, mbsiz, pm, 1, zzero, tvec, 1)
+            epsw1(:,iop,iom) = epsw1(:,iop,iom)+tvec(:)
             !---------
             ! Wing 2
             !---------
@@ -97,14 +95,14 @@ subroutine calcwings(ik,iq,iomstart,iomend,ndim,mstart,mend)
                                          minmmat(1:mbsiz,ie1,ie2)
                 end do ! ie1
                 end do ! ie2
-                call zgemv('n',mbsiz,nmdim,coefw,tmat,mbsiz,pm,1,zzero,tvec,1)
+                call zgemv('n', mbsiz, nmdim, coefw, tmat, mbsiz, pm, 1, zzero, tvec, 1)
             end if
-            epsw2(:,iom,iop) = epsw2(:,iom,iop)+conjg(tvec(:))
+            epsw2(:,iop,iom) = epsw2(:,iop,iom)+conjg(tvec(:))
 
         end do ! iom
 
     end do ! iop
-    
+
     deallocate(tmat)
     deallocate(tvec)
     deallocate(pm)

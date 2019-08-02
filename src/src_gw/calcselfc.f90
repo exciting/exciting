@@ -12,10 +12,8 @@ subroutine calcselfc(iq)
     integer(4) :: ik, ikp, jk, ispn
     integer(4) :: mdim, iblk, nblk, mstart, mend
     integer(4) :: fid
-    character(120) :: fname_mwm
     real(8) :: tstart, tend, t0, t1
     complex(8), allocatable :: evecfv(:,:)
-    character(len=10), external :: int2str
 
     call timesec(tstart)
 
@@ -45,15 +43,6 @@ subroutine calcselfc(iq)
     ! msize = sizeof(mwm)*b2mb
     ! write(*,'(" calcselfc: size(mwm) (Mb):",f12.2)') msize
 
-    !----------------------------
-    ! q-dependent M*W*M products
-    !----------------------------
-    if (input%gw%taskname == 'gw0') then
-      fname_mwm = 'MWM'//'-q'//trim(int2str(iq))//'.OUT'
-      call getunit(fid)
-      open(fid,File=fname_mwm,Action='Write',Form='Unformatted')
-    end if
-
     allocate(eveckalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveck(nmatmax,nstfv))
@@ -62,9 +51,9 @@ subroutine calcselfc(iq)
     !================================
     ! loop over irreducible k-points
     !================================
-    write(*,*)
+    ! write(*,*)
     do ikp = 1, kset%nkpt
-      write(*,*) 'calcselfc: rank, (iq, ikp):', myrank, iq, ikp
+      ! write(*,*) 'calcselfc: rank, (iq, ikp):', myrank, iq, ikp
 
       ! k vector
       ik = kset%ikp2ik(ikp)
@@ -121,14 +110,6 @@ subroutine calcselfc(iq)
         end if
       end if
 
-      if (input%gw%taskname=='gw0') then
-        ! store M*W*M in files
-        call timesec(t0)
-        write(fid) mwm
-        call timesec(t1)
-        time_io = time_io+t1-t0
-      end if
-
     end do ! ikp
 
     deallocate(eveck)
@@ -138,8 +119,6 @@ subroutine calcselfc(iq)
 
     ! delete MWM
     deallocate(mwm)
-    ! and close the file
-    if (input%gw%taskname.eq.'gw0') close(fid)
 
     ! timing
     call timesec(tend)

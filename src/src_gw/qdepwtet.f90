@@ -5,7 +5,7 @@
 !!INTERFACE:
 !
 subroutine qdepwtet(iq,iomstart,iomend,ndim)
-!      
+!
 !!DESCRIPTION:
 !
 ! This subroutine calculates the weights for q dependent BZ integration
@@ -24,30 +24,30 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
     integer(4), intent(in) :: iq
     integer(4), intent(in) :: iomstart, iomend
     integer(4), intent(in) :: ndim
-      
+
 !!LOCAL VARIABLES:
     integer(4) :: ik, ikp, ib, ic, icg
     integer(4) :: ia, is, ias
     integer(4) :: iom, n, m
     integer(4) :: fflg, sgw
-     
+
     real(8) :: emaxb ! maximum energy of the second band
     real(8) :: edif, edsq, omsq
-      
+    real(8) :: sfact
+
     real(8), allocatable :: eval(:,:)
     real(8), allocatable :: cwpar(:,:,:)
     real(8), allocatable :: cwparsurf(:,:,:)
-    
+
     real(8) :: tstart, tend
 
 !EOP
 !BOC
     call timesec(tstart)
-    
+
     !---------------------------------------------------------------------
     ! Initialization
     !---------------------------------------------------------------------
-    
     if (allocated(fnm)) deallocate(fnm)
     allocate(fnm(1:ndim,numin:nstdf,iomstart:iomend,kqset%nkpt))
     fnm(:,:,:,:) = zzero
@@ -64,7 +64,7 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
     sgw = 5-2*fflg
 
     !====================
-    ! valence-valence     
+    ! valence-valence
     !====================
     allocate(eval(nstdf,kqset%nkpt))
     do ik = 1, kqset%nkpt
@@ -98,35 +98,36 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
           end if
         end do
       end do
-      if (fflg == 2) then 
+      ! the factor 2 comes from the spin degeneracy
+      if (fflg == 2) then
         fnm(1:nomax,numin:nstdf,iom,1:kqset%nkpt) = &
            cmplx(cwpar(1:nomax,numin:nstdf,1:kqset%nkpt), &
-                 cwparsurf(1:nomax,numin:nstdf,1:kqset%nkpt)) 
-      else 
+                       cwparsurf(1:nomax,numin:nstdf,1:kqset%nkpt))
+      else
         fnm(1:nomax,numin:nstdf,iom,1:kqset%nkpt) = &
             cmplx(cwpar(1:nomax,numin:nstdf,1:kqset%nkpt),0.0)
-      endif 
+      endif
     enddo ! iom
 
     deallocate(eval)
     deallocate(cwpar)
     if (fflg == 2) deallocate(cwparsurf)
-    
+
     !====================
-    ! core-valence     
+    ! core-valence
     !====================
     if (input%gw%coreflag=='all') then
-    
+
       allocate(eval(2,kqset%nkpt))
       allocate(cwpar(2,2,kqset%nkpt))
-      
+
       do icg = 1, ncg
         is = corind(icg,1)
         ia = corind(icg,2)
         ic = corind(icg,3)
         ias = idxas(ia,is)
         eval(1,1:kqset%nkpt) = evalcr(ic,ias)
-            
+
         do ib = numin, nstdf
           do ik = 1, kqset%nkpt
             ikp = kset%ik2ikp(ik)
@@ -146,8 +147,8 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
                 ikp = kset%ik2ikp(ik)
                 edif = evalfv(ib,ikp)-evalcr(ic,ias)
                 edsq = edif*edif
-                fnm(nomax+icg,ib,iom,ik) = 2.0d0*cwpar(1,2,ik)*edif/(omsq-edsq)
-              end do  
+                fnm(nomax+icg,ib,iom,ik) = 2.0d0*cwpar(1,2,ik)*edif/(omsq-edsq) ! <-- why 2?
+              end do
               if (fflg==2) then
                 call tetcw(kqset%nkpt, kqset%ntet, 2, kqset%wtet, &
                            eval, &
@@ -162,13 +163,17 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
             end do ! iom
           endif
         end do ! ib
-        
-      enddo ! icg  
-      
+
+      enddo ! icg
+
       deallocate(eval)
       deallocate(cwpar)
-      
+
     end if ! core
+
+    ! spin degeneracy: I'm not sure about this prefactor for core states
+    sfact = 2.d0
+    fnm(:,:,:,:) = sfact*fnm(:,:,:,:)
 
     !-------------------------
     ! Debugging info
@@ -188,12 +193,11 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
       end do
       1 format('  ic =',i4,' ib =',i4,' iom =',i4,' ik =',i4,' fnm =',2g16.8)
     end if ! debug
-    
-    ! timing info    
+
+    ! timing info
     call timesec(tend)
     time_bzinit =  time_bzinit+tend-tstart
-      
+
     return
 end subroutine
-!EOC          
-         
+!EOC

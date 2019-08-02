@@ -35,7 +35,7 @@ subroutine calcevalqp
 !BOC
     select case (input%gw%taskname)
 
-      case('g0w0','gw0','acon')
+      case('g0w0','acon')
         call solve_QP_equation()
 
       case('g0w0-x')

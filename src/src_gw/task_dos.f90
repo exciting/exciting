@@ -22,6 +22,7 @@ subroutine task_dos()
     integer :: lmax, lmmax, l, m, lm
     integer :: nstqp
     character(80) :: fname
+    logical :: reducek
 
     !-----------------
     ! Initialization
@@ -31,7 +32,10 @@ subroutine task_dos()
     input%groundstate%xctypenumber = 1
     xctype(1) = 1
     call init0()
+    reducek = input%groundstate%reducek
+    input%groundstate%reducek = .false.
     call init1()
+    input%groundstate%reducek = reducek
     if (.not.hybridhf) filext = "_GW.OUT"
 
     ! read KS data

@@ -16,6 +16,8 @@
         <xs:complexType>
           <xs:all>
 
+            <!-- ================ List of elements ===================== -->
+
             <xs:element ex:importance="experimental" ex:unit="" ref="plot1d"/>
 
             <xs:element ex:importance="expert" ex:unit="" name="freqgrid" maxOccurs="1" minOccurs="0">
@@ -44,7 +46,7 @@
                         <li><pre>gaulag</pre> - Grid for the Gauss-Laguerre quadrature rule from 0 to <inlinemath>\infty</inlinemath>.</li>
                         <li><pre>gauleg</pre> - Grid for the Gauss-Lagendre quadrature rule from 0 to <inlinemath>\infty</inlinemath>.</li>
                         <li><pre>gauleg2</pre> - Grid for the double Gauss-Lagendre quadrature rule from 0 to <attref>freqmax</attref> and <attref>freqmax</attref> to <inlinemath>\infty</inlinemath>.</li>
-                        <li><pre>clencurt2</pre> - Grid for the Clenshaw-Curtis quadrature rule from 0 to <inlinemath>\infty</inlinemath>. <attref>freqmax</attref> can be used to rescale the frequecies.</li>
+                        <li><pre>clencurt2</pre> - Grid for the Clenshaw-Curtis quadrature rule from 0 to <inlinemath>\infty</inlinemath>. <attref>freqmax</attref> can be used to rescale the frequencies.</li>
                       </list>
                   </xs:documentation></xs:annotation>
                 </xs:attribute>
@@ -293,7 +295,6 @@
                   <list>
                     <li><pre>g0w0</pre> - G0W0 calculations</li>
                     <li><pre>g0w0-x</pre> - Exchange only G0W0 calculations</li>
-                    <li><pre>gw0</pre> - Partially self-consistent GW0 calculations</li>
                     <li><pre>cohsex</pre> - Coulomb-hole and screened-exchange (COHSEX) approximation</li>
                     <li><pre>band</pre> - QP banstructure as obtained by Fourier interpolation</li>
                     <li><pre>dos</pre> - QP density of states</li>
@@ -460,6 +461,26 @@
                     <li><pre>sum</pre> - Direct summation employing a smearing parameter <attref>eta</attref> of <elementref>freqgrid</elementref></li>
                   </list>
             </xs:documentation></xs:annotation>
+          </xs:attribute>
+
+          <xs:attribute ex:importance="experimental" ex:unit="" name="eph" type="xs:string" default="none">
+            <xs:annotation>
+              <xs:documentation>(experimental) Include the electron-phonon coupling.</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          <xs:attribute ex:importance="experimental" type="fortrandouble" ex:unit="" name="wlo" default="0.0">
+            <xs:annotation>
+              <xs:documentation>
+                (experimental) The LO phonon frequency for the polar electron-phonon coupling.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          <xs:attribute ex:importance="experimental" type="fortrandouble" ex:unit="" name="wto" default="0.0">
+            <xs:annotation>
+              <xs:documentation>
+                (experimental) The TO phonon frequency for the polar electron-phonon coupling.
+              </xs:documentation>
+            </xs:annotation>
           </xs:attribute>
 
         </xs:complexType>

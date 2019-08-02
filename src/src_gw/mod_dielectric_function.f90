@@ -6,47 +6,47 @@ module mod_dielectric_function
 
     ! dielectric function \epsilon(q)
     complex(8), allocatable :: epsilon(:,:,:)
-    
+
     !-------------------------------------------------
-    ! Analytical treatment of q=0 singularity    
+    ! Analytical treatment of q=0 singularity
     !-------------------------------------------------
-    
+
     ! valence-valence momentum matrix elements
     complex(8), allocatable :: pmatvv(:,:,:)
-    
+
     ! core-valence momentum matrix elements
     complex(8), allocatable :: pmatcv(:,:,:)
-    
+
     ! head of the dielectric function (tensor)
     complex(8), allocatable :: epsh(:,:,:)
-    
+
     ! the vertical wing of the dielectric matrix (vector)
     complex(8), allocatable :: epsw1(:,:,:)
-    
+
     ! the horizontal wing of the dielectric matrix (vector)
     complex(8), allocatable :: epsw2(:,:,:)
-    
+
     !----------------------------------------------------------------------
     ! Used for calculating the macroscopic dielectric function (task_emac)
     !----------------------------------------------------------------------
 
     complex(8), allocatable :: eps00(:,:,:)
-    
+
     !--------------------------------------
     complex(8), allocatable :: vPv(:,:,:)
     complex(8), allocatable :: vPvh(:)
     complex(8), allocatable :: vPvw1(:,:)
     complex(8), allocatable :: vPvw2(:,:)
-                                        
+
     !----------------------------------------------------------------------
     ! files containing data on PMAT and PMATCOR
     !----------------------------------------------------------------------
     integer :: fid_pmatvv=300
-    character(24) :: fname_pmatvv='PMATVV.OUT' 
-    
+    character(24) :: fname_pmatvv='PMATVV.OUT'
+
     integer :: fid_pmatcv=310
     character(24) :: fname_pmatcv='PMATCV.OUT'
-    
+
     !----------------------------------------------------------------------
     ! file to store the dielectric function
     !----------------------------------------------------------------------
@@ -54,7 +54,7 @@ module mod_dielectric_function
     character(24) :: fname_eps='EPSILON'
     character(24) :: fname_head='HEAD.OUT'
     character(24) :: fname_wings='WINGS.OUT'
-    
+
 contains
 
     subroutine init_dielectric_function(mbsiz,iomstart,iomend,Gamma)
@@ -70,21 +70,21 @@ contains
         ! head and wings of the dielectric function when q->0
         if (Gamma) then
           if (allocated(epsh)) deallocate(epsh)
-          allocate(epsh(iomstart:iomend,3,3))
-          epsh(:,:,:) = 0.d0    
+          allocate(epsh(3,3,iomstart:iomend))
+          epsh(:,:,:) = 0.d0
           if (allocated(epsw1)) deallocate(epsw1)
-          allocate(epsw1(mbsiz,iomstart:iomend,3))
+          allocate(epsw1(mbsiz,3,iomstart:iomend))
           epsw1(:,:,:) = 0.d0
           if (allocated(epsw2)) deallocate(epsw2)
-          allocate(epsw2(mbsiz,iomstart:iomend,3))
+          allocate(epsw2(mbsiz,3,iomstart:iomend))
           epsw2(:,:,:) = 0.d0
           ! macroscopic dielectric tensor
           if (allocated(eps00)) deallocate(eps00)
-          allocate(eps00(iomstart:iomend,3,3))
+          allocate(eps00(3,3,iomstart:iomend))
           eps00(:,:,:) = 0.d0
-        end if ! Gamma   
+        end if ! Gamma
     end subroutine
-    
+
     subroutine delete_dielectric_function(Gamma)
         use modinput
         implicit none
@@ -97,5 +97,5 @@ contains
           if (allocated(eps00)) deallocate(eps00)
         end if
     end subroutine
-                                         
+
 end module

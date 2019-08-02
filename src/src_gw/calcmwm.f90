@@ -1,12 +1,13 @@
 
 subroutine calcmwm(nstart, nend, mstart, mend, minm)
 
+    use modinput
     use modmain, only: pi, zone, zzero
     use modgw,   only: vi, kqset, Gamma, singc1, singc2, mbsiz, &
     &                  epsilon, epsh, epsw1, epsw2, freq, mwm
     implicit none
 
-    ! input variables    
+    ! input variables
     integer(4), intent(in) :: nstart, nend
     integer(4), intent(in) :: mstart, mend
     complex(8), intent(in) :: minm(mbsiz, nstart:nend, mstart:mend)
@@ -15,15 +16,18 @@ subroutine calcmwm(nstart, nend, mstart, mend, minm)
     integer(4) :: iom
     integer(4) :: ie1, ie2
     real(8)    :: wkq
-    real(8)    :: vi4pi, coefs1, coefs2
+    real(8)    :: vi4pi, coefs1, coefs2, coefs3
     complex(8), allocatable :: wm(:)
     complex(8), external    :: zdotu, zdotc
     external zhemm
 
-    vi4pi  = 4.d0*pi*vi
-    coefs1 = singc1*sqrt(vi4pi)
-    coefs2 = singc2*vi4pi
     wkq    = 1.d0/dble(kqset%nkpt)
+    
+    if (Gamma) then
+      vi4pi  = 4.d0*pi*vi
+      coefs1 = singc1*sqrt(vi4pi)
+      coefs2 = singc2*vi4pi
+    end if 
 
     !-------------------------------------------------
     ! calculate \sum_{ij} M^i_{nm}* W^c_{ij} M^j_{nm}
@@ -43,13 +47,13 @@ subroutine calcmwm(nstart, nend, mstart, mend, minm)
           mwm(ie1,ie2,iom) = wkq*zdotc(mbsiz,minm(:,ie1,ie2),1,wm,1)
           if ((Gamma).and.(ie1==ie2)) then
             mwm(ie1,ie2,iom) = mwm(ie1,ie2,iom) + &
-            &                  coefs2*epsh(iom,1,1) + &
-            &                  coefs1*(zdotu(mbsiz, minm(:,ie1,ie2), 1, epsw2(:,iom,1), 1) + &
-            &                          zdotc(mbsiz, minm(:,ie1,ie2), 1, epsw1(:,iom,1), 1))
+            &                  coefs2*epsh(1,1,iom) + &
+            &                  coefs1*(zdotu(mbsiz, minm(:,ie1,ie2), 1, epsw2(:,1,iom), 1) + &
+            &                          zdotc(mbsiz, minm(:,ie1,ie2), 1, epsw1(:,1,iom), 1))
           end if ! singular term
         end do
 #ifdef USEOMP
-!$OMP END DO NOWAIT 
+!$OMP END DO NOWAIT
 #endif
       end do
     end do ! iom
@@ -57,6 +61,6 @@ subroutine calcmwm(nstart, nend, mstart, mend, minm)
 #ifdef USEOMP
 !$OMP END PARALLEL
 #endif
-     
+
     return
 end subroutine

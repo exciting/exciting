@@ -46,7 +46,7 @@ subroutine gw_main()
     ! Parse and check the validity of some GW input parameters
     !-----------------------------------------------------------
     call init0() ! to allow access to some global data such as charges, species, etc.
-    call parse_gwinput
+    call parse_gwinput()
 
     !----------------
     ! Task selector
@@ -54,118 +54,99 @@ subroutine gw_main()
     select case(input%gw%taskname)
 
         ! GW calculations
-        case('g0w0','g0w0-x','gw0','cohsex')
-            call task_gw
+        case('g0w0','g0w0-x','cohsex')
+            call task_gw()
 
         ! Calculate the QP band structure
         case('band')
-            if (rank==0) call task_band
+            if (rank==0) call task_band()
 
         ! Calculate QP DOS
         case('dos')
-            if (rank==0) call task_dos
+            if (rank==0) call task_dos()
 
         ! Calculate the macroscopic dielectric function
         case('emac')
-            call task_emac
-
-        ! test option: q-dependent \epsilon along a k-path
-        ! case('emac_q')
-        !     call task_emac_q
+            call task_emac()
 
         ! Calculate diagonal matrix elements of the exchange-correlation potential
         case('vxc')
-            call init_gw
-            call calcvxcnn
+            call init_gw()
+            call calcvxcnn()
 
         ! Calculate matrix elements of the momentum operator
         case('pmat')
-            call init_gw
-            call calcpmatgw
+            call init_gw()
+            call calcpmatgw()
 
-        ! Perform analytic continuation of the correlation self-energy and
-        ! calculate QP energies
+        ! Perform analytic continuation of the correlation self-energy and calculate QP energies
         case('acon')
-            if (rank==0) call task_analytic_continuation
+            if (rank==0) call task_analytic_continuation()
 
-        ! Calculate and store the (q,\omega)-dependent dielectric function
-        case('epsilon')
-            call task_epsilon
-
-        ! Calculate and store the (q,\omega)-dependent dielectric function
-        case('chi0_r')
-            call task_chi0_r
-
-        ! Calculate and store the (q,\omega)-dependent dielectric function
-        case('chi0_q')
-            call task_chi0_q
-
-        ! Calculate and store the (q,\omega)-dependent dielectric function
-        case('eps_r')
-            call task_eps_r
-
-        ! Calculate the eigenvalues the LDA dielectric function and its inverse
-        ! case('epsev')
-        !    call task_epsev
-
-        ! Calculate the eigenvalues the GW dielectric function and its inverse
-        ! case('epsgw')
-        !    call task_epsgw
-
-        ! Calculate the eigenvalues of the screened coulomb potential
-        ! case('wev')
-        !    call task_wev
-
-        ! (testing option) Check generation of k-, q-, k+G, q+G, etc. sets
-        case('kqgen')
-            if (rank==0) call test_kqpts
-
-        ! (testing option) Calculate LAPW basis functions for plotting
-        case('lapw')
-            call init_gw
-            if (rank==0) call plot_lapw
-
-        ! (testing option) Calculate LAPW eigenvectors for plotting (test option)
-        case('evec')
-            call init_gw
-            if (rank==0) call plot_evec
-
-        ! (testing option) Calculate LAPW eigenvectors products for plotting (test option)
-        case('prod')
-            call init_gw
-            if (rank==0) call test_prodfun
-
-        ! (testing option) Calculate eigenvectors products compared
-        ! with mix basis expansion for plotting
-        case('mixf')
-            call init_gw
-            if (rank==0) call test_mixfun
-
-        ! (testing option) Integrate eigenvector products directly and
-        ! as a sum of the Minm matrix elements
-        case('comp')
-            call init_gw
-            if (rank==0) call test_mixcomp
-
-        ! (testing option) Test the bare coulomb matrix for various q-points
-        ! case('coul')
-        !    if (rank==0) call test_coulpot
-
-        ! (testing option) Check the rotational matrix for MB functions
-        ! case('rotmat')
-            ! if (rank==0) call test_mbrotmat
-
-        case('test_aaa')
-            if (rank==0) call test_aaa_1()
-            if (rank==0) call test_aaa_2()
-
-        case('specfunc')
+        ! Visualize the spectral function along the bandstructure path
+        case('band_specfunc')
             call task_band_specfunc()
 
+        ! Apply second-variational procedure to GW results to include SOC
         case('sv')
             input%gw%skipgnd = .True.
             call init_gw()
             if (rank==0) call task_second_variation()
+
+        ! (for testing only) Check generation of k-, q-, k+G, q+G, etc. sets
+        case('kqgen')
+            if (rank==0) call test_kqpts()
+
+        ! (for testing only) Calculate LAPW basis functions for plotting
+        case('lapw')
+            call init_gw()
+            if (rank==0) call plot_lapw()
+
+        ! (for testing only) Calculate LAPW eigenvectors for plotting (test option)
+        case('evec')
+            call init_gw()
+            if (rank==0) call plot_evec()
+
+        ! (for testing only) Calculate LAPW eigenvectors products for plotting (test option)
+        case('prod')
+            call init_gw()
+            if (rank==0) call test_prodfun()
+
+        ! (for testing only) Calculate eigenvectors products and compare them with mixed-product basis expansion
+        case('mixf')
+            call init_gw()
+            if (rank==0) call test_mixfun()
+
+        ! (for testing only) Integrate eigenvector products directly and
+        ! as a sum of the Minm matrix elements
+        case('comp')
+            call init_gw()
+            if (rank==0) call test_mixcomp()
+
+        ! Calculate and store the (q,\omega)-dependent dielectric function
+            ! case('epsilon')
+        !     call task_epsilon()
+
+            ! Compute and output q-dependent \epsilon_00 along a k-path
+            ! case('emac_q')
+            !     call task_emac_q
+
+        ! Compute and output the polarizability in the real space
+        ! case('chi0_r')
+        !     call task_chi0_r
+
+        ! Compute and output the polarizability in the reciprocal space
+            ! case('chi0_q')
+        !     call task_chi0_q
+
+        ! Compute and output the dielectric function in the real space
+            ! case('eps_r')
+        !     call task_eps_r
+
+        ! (for testing only) Test the AAA analytical continuation technique
+        ! case('test_aaa')
+        !     if (rank==0) call test_aaa_1()
+        !     if (rank==0) call test_aaa_2()
 
     end select
 

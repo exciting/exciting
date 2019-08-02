@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <xs:schema xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
-  
+
   <!-- root element starts here -->
 
   <xs:include id="common" schemaLocation="common.xsd"/>
@@ -14,88 +14,88 @@
   <xs:include id="eph" schemaLocation="eph.xsd"/>
 
   <xs:annotation>
-     <xs:documentation> 
+     <xs:documentation>
 	In order to perform an <exciting/> calculation an <pre-bf>XML</pre-bf> input file called
-        <pre-bf>input.xml</pre-bf> must be provided. 
-	<p> 
-	   This web page lists all <blue>elements</blue> and 
+        <pre-bf>input.xml</pre-bf> must be provided.
+	<p>
+	   This web page lists all <blue>elements</blue> and
 	   <green>attributes</green> that can be used in the input file of
-	   an <exciting/> calculation: 
+	   an <exciting/> calculation:
 	</p>
         <list>
            <li>
-              <blue>elements</blue> are defined according to the 
+              <blue>elements</blue> are defined according to the
 	      <a href="http://en.wikipedia.org/wiki/XML#Key_terminology">general XML conventions</a>.
               <filename>Example:</filename> The element <elementref>groundstate</elementref> is used to set up a
-              self-consistent calculation of the ground-state energy. 
+              self-consistent calculation of the ground-state energy.
 	   </li>
            <li>
-	      <green>attributes</green> are also defined from the 
+	      <green>attributes</green> are also defined from the
 	      <a href="http://en.wikipedia.org/wiki/XML#Key_terminology">general XML conventions</a>.
 	      An attribute is always connected to an element. In <exciting/> an attribute
               generally specifies a parameter or a set of parameters which are connected to the
               corresponding element. <filename>Example:</filename> The attribute <attref>xctype</attref> of the
               element <elementref>groundstate</elementref> defines which exchange-correlation potential
-              is used in the self-consistent calculation. 
+              is used in the self-consistent calculation.
 	   </li>
         </list>
-        <p> 
-	   The input file of an <exciting>exciting</exciting> calculation has the default name
-           <pre-bf>input.xml</pre-bf>. Simple examples for input files can be found in the available
-	   <a href="http://exciting-code.org/tutorials-carbon">Tutorials</a>. 
-	   The input file <pre-bf>input.xml</pre-bf> must be a valid <pre-bf>XML</pre-bf> file 
-	   and it must contain the root element <elementref>input</elementref>. 
-	</p>
-        <p> 
-	   Unless explicitly stated otherwise, <exciting>exciting</exciting> uses atomic units, setting 
-	   <inlinemath>\hbar = m_{e} = e = 1</inlinemath>. Relevant units are: 
+      <p>
+	    The input file of an <exciting>exciting</exciting> calculation has the default name
+      <pre-bf>input.xml</pre-bf>. Simple examples for input files can be found in the available
+	    <a href="http://exciting-code.org/tutorials">Tutorials</a>.
+	    The input file <pre-bf>input.xml</pre-bf> must be a valid <pre-bf>XML</pre-bf> file
+	    and it must contain the root element <elementref>input</elementref>.
+	    </p>
+      <p>
+	   Unless explicitly stated otherwise, <exciting>exciting</exciting> uses atomic units, setting
+	   <inlinemath>\hbar = m_{e} = e = 1</inlinemath>. Relevant units are:
 	</p>
         <list>
-        <li> 
-	   Energies are given in Hartree: 
+        <li>
+	   Energies are given in Hartree:
 	   <p>
-              <inlinemath> 
-		 \phantom{mmm} 1\ {\rm Ha} = 2\ {\rm Ry} = 27.21138386(68)\ {\rm eV} = 4.35926\cdot 10^{-18}\ 
+              <inlinemath>
+		 \phantom{mmm} 1\ {\rm Ha} = 2\ {\rm Ry} = 27.21138386(68)\ {\rm eV} = 4.35926\cdot 10^{-18}\
 		 {\rm J}
               </inlinemath>
            </p>
         </li>
-        <li> 
-	   Lengths are given in Bohr: 
+        <li>
+	   Lengths are given in Bohr:
 	   <p>
-              <inlinemath> 
+              <inlinemath>
          	 \phantom{mmm} 1\ a_{\rm Bohr}\ = 0.52917720859(36)\ {\buildrel _{\circ} \over
                  {\mathrm{A}}} \ = 0.52917720859(36) \cdot 10^{-10} \ {\rm m}
 	      </inlinemath>
            </p>
         </li>
-        <li> 
-	    Magnetic fields are given in units of 
+        <li>
+	    Magnetic fields are given in units of
 	    <p>
-               <inlinemath> 
+               <inlinemath>
 		  \phantom{mmm} 1\ {\rm a.u.} = \displaystyle\frac{e}{a_{\rm Bohr}^2}\ = 1717.2445320376\
-                  {\rm Tesla}. 
+                  {\rm Tesla}.
 	       </inlinemath>
             </p>
         </li>
         </list>
-        <p> 
+        <p>
 	   <pre-bf>Note:</pre-bf> The electron charge is positive, so that the atomic numbers
-           <inlinemath>Z</inlinemath> are negative. 
+           <inlinemath>Z</inlinemath> are negative.
 	</p>
      </xs:documentation>
      <xs:appinfo>
         <title>
-           <exciting>exciting</exciting> input reference 
+           <exciting>exciting</exciting> input reference
 	</title>
         <root>input</root>
      </xs:appinfo>
   </xs:annotation>
-  
+
   <xs:element ex:importance="essential" ex:unit="" name="input">
     <xs:annotation>
       <xs:appinfo> </xs:appinfo>
-      <xs:documentation> The <pre-bf>XML</pre-bf> element <elementref>input</elementref> is 
+      <xs:documentation> The <pre-bf>XML</pre-bf> element <elementref>input</elementref> is
           the root element of the
           <exciting>exciting</exciting> input file. It must contain at least the elements
           <elementref>title</elementref>, <elementref>structure</elementref>, and
@@ -144,11 +144,11 @@
       <xs:attribute default="true" name="sharedfs" type="xs:boolean">
       <xs:annotation>
       <xs:documentation>
-      This attributes tells if a parallel job has a shared file system. 
+      This attributes tells if a parallel job has a shared file system.
       Set it to <pre>false</pre> if the processes of the job do not share a common file system.
       It gives <exciting/> a chance  to adapt the file IO accordingly
-      
-      
+
+
       </xs:documentation>
       </xs:annotation>
       </xs:attribute>

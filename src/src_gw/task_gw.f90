@@ -47,7 +47,7 @@ subroutine task_gw()
     !===========================================================================
 
     ! prepare GW global data
-    call init_gw
+    call init_gw()
 
     !=================================================
     ! Calculate the diagonal matrix elements of the
@@ -61,7 +61,7 @@ subroutine task_gw()
     ! clean not used anymore global exciting variables
     call clean_gndstate
 
-    if (input%gw%taskname.ne.'g0w0-x') then
+    if (input%gw%taskname /= 'g0w0-x') then
       if (.not.input%gw%rpmat) then
         !========================================================
         ! calculate momentum matrix elements and store to a file
@@ -165,7 +165,7 @@ subroutine task_gw()
       !===============================
       call calcselfx(iq)
 
-      if (input%gw%taskname.ne.'g0w0-x') then
+      if (input%gw%taskname /= 'g0w0-x') then
         !========================================
         ! Set v-diagonal MB and reduce its size
         !========================================
@@ -184,16 +184,16 @@ subroutine task_gw()
         !===================================
         ! Calculate the dielectric function
         !===================================
-        call init_dielectric_function(mbsiz,iomstart,iomend,Gamma)
+        call init_dielectric_function(mbsiz, iomstart, iomend, Gamma)
         select case (trim(input%gw%scrcoul%scrtype))
           case('ppm','PPM')
-            call calcepsilon_ppm(iq,iomstart,iomend)
+            call calcepsilon_ppm(iq, iomstart, iomend)
           case default
-            call calcepsilon(iq,iomstart,iomend)
+            call calcepsilon(iq, iomstart, iomend)
             !==========================================
             ! Calculate the screened Coulomb potential
             !==========================================
-            call calcinveps(iomstart,iomend)
+            call calcinveps(iomstart, iomend)
         end select
         !========================================
         ! Calculate the q-dependent self-energy
@@ -214,14 +214,14 @@ subroutine task_gw()
     if (allocated(ciw)) deallocate(ciw)
 
 #ifdef MPI
-    if ((nproc_row>1).and.(myrank_col==0)) then
-      call mpi_sum_array(0,selfex,nbandsgw,kset%nkpt,mycomm_row)
-      if (input%gw%taskname.ne.'g0w0-x') then
-        ! G0W0 and GW0 approximations
-        call mpi_sum_array(0,selfec,nbandsgw,freq_selfc%nomeg,kset%nkpt,mycomm_row)
-        if (input%gw%taskname=='cohsex') then
-          call mpi_sum_array(0,sigsx,nbandsgw,kset%nkpt,mycomm_row)
-          call mpi_sum_array(0,sigch,nbandsgw,kset%nkpt,mycomm_row)
+    if ((nproc_row>1) .and. (myrank_col==0)) then
+      call mpi_sum_array(0, selfex, nbandsgw, kset%nkpt, mycomm_row)
+      if (input%gw%taskname /= 'g0w0-x') then
+        ! G0W0
+        call mpi_sum_array(0, selfec, nbandsgw, freq_selfc%nomeg, kset%nkpt, mycomm_row)
+        if (input%gw%taskname == 'cohsex') then
+          call mpi_sum_array(0, sigsx, nbandsgw, kset%nkpt, mycomm_row)
+          call mpi_sum_array(0, sigch, nbandsgw, kset%nkpt, mycomm_row)
         end if
       end if ! selfec
     endif
@@ -244,8 +244,7 @@ subroutine task_gw()
       !===============================
       ! Write self-energies to files
       !===============================
-      call write_selfenergy(ibgw,nbgw,kset%nkpt,freq_selfc%nomeg)
-      call plot_selfc()
+      call write_selfenergy(ibgw, nbgw, kset%nkpt, freq_selfc%nomeg)
 
       !=======================================
       ! Calculate the quasiparticle energies
@@ -254,52 +253,37 @@ subroutine task_gw()
       ! KS band structure
       evalks(ibgw:nbgw,:) = evalfv(ibgw:nbgw,:)
       call bandstructure_analysis('KS', &
-          ibgw,nbgw,kset%nkpt,evalks(ibgw:nbgw,:),efermi)
+          ibgw, nbgw, kset%nkpt, evalks(ibgw:nbgw,:), efermi)
 
       ! solve QP equation
       call calcevalqp()
-      call plot_spectral_function()
       call write_qp_energies('EVALQP.DAT')
+
+      if (input%gw%taskname /= 'g0w0-x') then
+        call plot_selfc()
+        call plot_spectral_function()
+      end if
 
       ! G0W0 QP band structure
       select case (input%gw%taskname)
 
         case('g0w0-x')
           call bandstructure_analysis('G0W0-X', &
-              ibgw,nbgw,kset%nkpt,evalqp(ibgw:nbgw,:),eferqp)
+              ibgw, nbgw, kset%nkpt, evalqp(ibgw:nbgw,:), eferqp)
 
         case('cohsex')
           call bandstructure_analysis('COHSEX', &
-              ibgw,nbgw,kset%nkpt,evalqp(ibgw:nbgw,:),eferqp)
+              ibgw, nbgw, kset%nkpt, evalqp(ibgw:nbgw,:), eferqp)
 
-        case('g0w0','gw0')
+        case('g0w0')
           call bandstructure_analysis('G0W0', &
-              ibgw,nbgw,kset%nkpt,evalqp(ibgw:nbgw,:),eferqp)
+              ibgw, nbgw, kset%nkpt, evalqp(ibgw:nbgw,:), eferqp)
 
       end select
 
 !$OMP end critical
 
     end if ! myrank
-
-    !--------------------------------------------------------
-    ! Calculate quasiparticle energies in GW0 approximation
-    !--------------------------------------------------------
-    if (input%gw%taskname=='gw0') then
-      ! self-consistent cycle
-      call calcscgw0
-      ! print GW0 QP band structure
-      if (myrank==0) then
-        call timesec(t0)
-        !----------------------------------------
-        ! Write quasi-particle energies to file
-        !----------------------------------------
-        call write_qp_energies('EVALQP-GW0.DAT')
-        call bandstructure_analysis('GW0', ibgw, nbgw, kset%nkpt, evalqp(ibgw:nbgw,:), eferqp)
-        call timesec(t1)
-        time_io = time_io+t1-t0
-      end if
-    end if
 
     if (myrank==0) then
       !----------------------------------------
@@ -309,11 +293,12 @@ subroutine task_gw()
       call putevalqp('EVALQP.OUT', kset, ibgw, nbgw, evalks, eferks, evalqp, eferqp)
     end if ! myrank
 
+    call barrier() ! synchronize all threads
+
     !-----------------------------------------
     ! Second-variational treatment if needed
     !-----------------------------------------
     if (associated(input%groundstate%spin)) then
-      call barrier() ! synchronize all threads
       call init0()
       call readstate()
       if (myrank==0) call task_second_variation()

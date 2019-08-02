@@ -79,9 +79,9 @@ subroutine calcselfx(iq)
     !================================
     ! loop over irreducible k-points
     !================================
-    write(*,*)
+    ! write(*,*)
     do ikp = 1, kset%nkpt
-      write(*,*) 'calcselfx: rank, (iq, ikp):', myrank, iq, ikp
+      ! write(*,*) 'calcselfx: rank, (iq, ikp):', myrank, iq, ikp
 
       ! k vector
       ik = kset%ikp2ik(ikp)

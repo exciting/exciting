@@ -34,9 +34,8 @@ debugmpi:
 test::
 	cd test/; $(MAKE) summary
 
-
-# doc:  spacegroupdoc stateconvertdoc stateinfodoc inputdoc excitingfuncdoc Splitt_inputdoc speciesdoc
-doc:  inputdoc
+doc: inputdoc split_inputdoc speciesdoc
+# doc:  spacegroupdoc stateconvertdoc stateinfodoc inputdoc excitingfuncdoc split_inputdoc speciesdoc
 
 excitingfuncdoc::
 	$(MAKE) -f build/Make.common doc
@@ -66,7 +65,7 @@ inputdoc::expandedschema
 	pdflatex excitinginput.tex;\
 	pdflatex excitinginput.tex
 
-Splitt_inputdoc::
+split_inputdoc::
 	cd xml/schema && $(MAKE)
 
 inputdocwiki:xml/schema/*.xsd
