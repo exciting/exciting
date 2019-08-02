@@ -35,9 +35,6 @@ Subroutine hybrids
     integer :: xctype_(3)
     logical :: exist
 
-    ! if (associated(input%groundstate%Hybrid)) nullify(input%groundstate%Hybrid)
-    ! print*, 'Hybrid?', associated(input%groundstate%Hybrid)
-
 !! TIME - Initialisation segment
     call timesec(tsg0)
     call timesec(ts0)
@@ -109,7 +106,6 @@ Subroutine hybrids
     ! print*, 'xctype=', xctype
     ! call scf_cycle(1)
     ! stop 'scf'
-
 
     Call timesec (ts1)
     timeinit = timeinit+ts1-ts0

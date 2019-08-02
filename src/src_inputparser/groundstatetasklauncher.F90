@@ -5,33 +5,32 @@
 
 Subroutine groundstatetasklauncher
     Use modinput
-    Use modmain, Only: task,xctype
+    Use modmain,     only: task, xctype
     Use inputdom
     use modmpi
     Implicit None
-    
+
     call delete_warnings
     splittfile= .true.
     If ( .Not. (associated(input%groundstate%solver))) Then
         ! set the default values if tddft element not present
         input%groundstate%solver => getstructsolver (emptynode)
     End If
-    If (((xctype(2) .Ge. 400).Or. (xctype(1) .Ge. 400)).and. &
-    & (.not.associated(input%groundstate%Hybrid))) Then 
-           input%groundstate%Hybrid => getstructHybrid (emptynode)
-    End If  
+    If (((xctype(2).Ge.400).Or.(xctype(1).Ge.400)).and.(.not.associated(input%groundstate%Hybrid))) Then
+           input%groundstate%Hybrid => getstructHybrid(emptynode)
+    End If
     If  (associated(input%groundstate%Hybrid)) Then
         If (input%groundstate%Hybrid%exchangetypenumber .Eq. 2) Then
             If (.not.associated(input%groundstate%OEP)) Then
                input%groundstate%OEP => getstructOEP (emptynode)
-            End If 
-        End If                
+            End If
+        End If
     End If
     If (input%groundstate%xctypenumber .Lt. 0) Then
         If (.not.associated(input%groundstate%OEP)) Then
            input%groundstate%OEP => getstructOEP (emptynode)
-        End If 
-    End If            
+        End If
+    End If
     If (input%groundstate%do .Eq. "fromscratch") Then
         If (associated(input%relax)) Then
             task = 2
@@ -46,10 +45,10 @@ Subroutine groundstatetasklauncher
         End If
     End If
     If (associated(input%groundstate%OEP)) Then
-        input%groundstate%scfconv = 'potential'       
+        input%groundstate%scfconv = 'potential'
     End If
     If (input%groundstate%do .Ne. "skip") then
-        ! Hartree Fock 
+        ! Hartree Fock
         If  (associated(input%groundstate%HartreeFock)) Then
             task = 5
             Call hartfock
@@ -57,9 +56,9 @@ Subroutine groundstatetasklauncher
         Else If (associated(input%groundstate%Hybrid)) Then
                 If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
                     Call hybrids
-                Else 
+                Else
                     Call gndstate
-                End If    
+                End If
         Else
             Call gndstate
         End If

@@ -86,7 +86,7 @@ subroutine calc_vxnl()
     !---------------------------------------
     do ikp = ikfirst, iklast
 
-      write(*,*) 'vxnl: ', rank, ikfirst, iklast, ikp
+      write(fgw,*) 'vxnl: ', rank, ikfirst, iklast, ikp
 
       !---------------------------------------
       ! Integration over BZ

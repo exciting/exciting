@@ -320,19 +320,15 @@ subroutine parse_gwinput
 !-------------------------------------------------------------------------------
     hybridhf = .false.
     hyb_beta = 1.d0
-    if (associated(input%groundstate%Hybrid)) then
-        if (input%groundstate%Hybrid%exchangetypenumber == 1) then
-            hybridhf = .true.
-            hyb_beta = 1.d0 - input%groundstate%Hybrid%excoeff
-        end if
-    end if
-    if (hybridhf) then
-        ! use groundstate parameters from hybrids/groundstate for consistency
+    if (xctype(1) >= 400) then
+        hybridhf = .true.
+        if (.not. associated(input%groundstate%Hybrid)) &
+            input%groundstate%Hybrid => getstructHybrid(emptynode)
+        hyb_beta = 1.d0 - input%groundstate%Hybrid%excoeff
+        ! use parameters from groundstate/hybrids for consistency
         input%gw%nempty = input%groundstate%nempty
         input%gw%ngridq = input%groundstate%ngridk
         input%gw%vqloff = input%groundstate%vkloff
-        ! input%gw%ibgw = 1
-        ! input%gw%nbgw = 1000000
     end if
 
     !-------------------------------------------------------------------------------
