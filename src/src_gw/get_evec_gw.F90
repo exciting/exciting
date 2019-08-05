@@ -13,7 +13,8 @@ subroutine get_evec_gw(vkl, vgkl, evec)
     complex(8), allocatable :: evecfvt(:,:)
     complex(8), allocatable :: evecsvt(:,:)
 
-    evec = zzero
+    evec(:,:,:) = zzero
+
     if (ldapu /= 0) then
 
         allocate(evecfvt(nmatmax_ptr,nstfv))

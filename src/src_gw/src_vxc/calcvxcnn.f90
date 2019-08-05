@@ -53,7 +53,6 @@ subroutine calcvxcnn
     call timesec(tstart)
 
     if (hybridhf) then
-      ! read Vxc from a corresponding file
       filext_save = filext
       isreadstate0_save = isreadstate0
       filext = '.OUT'

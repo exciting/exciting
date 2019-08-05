@@ -34,6 +34,7 @@ Subroutine hybrids
     Real (8), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
     integer :: xctype_(3)
     logical :: exist
+    character(80) :: filext0
 
 !! TIME - Initialisation segment
     call timesec(tsg0)
@@ -197,7 +198,7 @@ Subroutine hybrids
             Call flushifc(60)
         End If
 
-        if (ihyb==0) then
+        if (ihyb == 0) then
           ! perform normal DFT self-consistent run
           ex_coef = 0.d0
           ec_coef = 1.d0
@@ -225,6 +226,14 @@ Subroutine hybrids
 ! KS self-consistent run
 !---------------------------
         call scf_cycle(-1)
+
+        ! Save PBE density and potential to a separate file (for restarting)
+        if (ihyb == 0) then
+            filext0 = filext
+            filext = '_PBE.OUT'
+            Call writestate()
+            filext = filext0
+        end if
 
         ! some output
         if (rank == 0) then

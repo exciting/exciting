@@ -10,7 +10,6 @@ subroutine scf_cycle(verbosity)
     Use modmpi
     Use scl_xml_out_Module
     Use TS_vdW_module, Only: C6ab, R0_eff_ab
-    Use mod_hybrids, only: ihyb
 !
 ! !DESCRIPTION:
 !
@@ -647,19 +646,9 @@ subroutine scf_cycle(verbosity)
         write(string,'("Self-consistent loop stopped")')
         call printbox(60,"+",string)
     end if
-! write density and potentials to file only if maxscl > 1
+    ! write density and potentials to file only if maxscl > 1
     If ((input%groundstate%maxscl > 1)) Then
-        if (task == 7) then
-             string=filext
-             filext='_PBE.OUT'
-             Call writestate
-             filext=string
-             if ((verbosity>-1).and.(rank==0)) then
-                 write(60,*) "writing STATE_PBE.OUT"
-             end if
-        else
-           Call writestate
-        end if
+        Call writestate
         If ((verbosity>-1).and.(rank==0)) Then
             Write (60, '(" STATE.OUT is written")')
         end if

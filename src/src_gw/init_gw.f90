@@ -91,13 +91,13 @@ subroutine init_gw()
 
     ! Mixed basis initialization
     call timesec(t0)
-    call init_product_basis
+    call init_product_basis()
     call timesec(t1)
     time_initmb = time_initmb+t1-t0
 
     ! Get Kohn-Sham eigenvalues
     call timesec(t0)
-    call init_dft_eigenvalues
+    call init_dft_eigenvalues()
     call timesec(t1)
     time_initeval = time_initeval+t1-t0
 
