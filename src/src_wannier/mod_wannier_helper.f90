@@ -1,16 +1,17 @@
 module mod_wannier_helper
   use mod_wannier_variables
 
-  use mod_spin,                 only: nspinor, nspnfv
-  use mod_eigensystem,          only: nmatmax_ptr, nmat_ptr, nmat, nmatmax, npmat 
-  use mod_APW_LO,               only: nlotot
-  use mod_lattice,              only: bvec
-  use mod_Gvector,              only: intgv
-  use mod_Gkvector!,             only: ngk_ptr, vgkl_ptr, vgkl, vgkc
-  use mod_eigenvalue_occupancy, only: nstfv, occmax
-  use mod_charge_and_moment,    only: chgval
-  use mod_misc,                 only: filext
-  use mod_atoms,                only: natmtot
+  use mod_spin,                  only: nspinor, nspnfv
+  use mod_eigensystem,           only: nmatmax_ptr, nmat_ptr, nmat, nmatmax, npmat
+  use mod_APW_LO,                only: nlotot
+  use mod_lattice,               only: bvec
+  use mod_Gvector,               only: intgv
+  use mod_Gkvector!,              only: ngk_ptr, vgkl_ptr, vgkl, vgkc
+  use mod_eigenvalue_occupancy,  only: nstfv, occmax
+  use mod_charge_and_moment,     only: chgval
+  use mod_potential_and_density, only: xctype
+  use mod_misc,                  only: filext
+  use mod_atoms,                 only: natmtot
   use modinput
   use mod_kpoint
   use m_getunit
@@ -22,6 +23,7 @@ module mod_wannier_helper
 
     subroutine wannier_setkpts
       integer :: ik, ispn
+      logical :: reducek
       !write(*,*) "k set"
       select case (input%properties%wannier%input)
         case( "gs")
@@ -36,16 +38,23 @@ module mod_wannier_helper
           call generate_k_vectors( wf_kset_red, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .true., .false.)
           nstfv = int( chgval/2.d0) + input%groundstate%nempty + 1
         case( "gw")
-          call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, input%gw%reduceq)
-          vkl = wf_kset%vkl
-          vkc = wf_kset%vkc
-          nkpt = wf_kset%nkpt
-          call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, .false.)
-          vklnr = wf_kset%vkl
-          vkcnr = wf_kset%vkc
-          nkptnr = wf_kset%nkpt
-          call generate_k_vectors( wf_kset_red, bvec, input%gw%ngridq, input%gw%vqloff, .true.)
-          nstfv = int( chgval/2.d0) + input%gw%nempty + 1
+          input%groundstate%stypenumber = -1 ! turn on LIBBZINT
+          if (xctype(1) >= 400) then
+            ! GW@hybrids
+            nstfv = int( chgval/2.d0) + input%groundstate%nempty + 1
+            call init1()
+            call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .false.)
+            call generate_k_vectors( wf_kset_red, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .true.)
+          else
+            ! GW@DFT
+            nstfv = int( chgval/2.d0) + input%gw%nempty + 1
+            reducek = input%groundstate%reducek
+            input%groundstate%reducek = .false.
+            call init1()
+            input%groundstate%reducek = reducek
+            call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, .false.)
+            call generate_k_vectors( wf_kset_red, bvec, input%gw%ngridq, input%gw%vqloff, .true.)
+          end if
         case( "qsgw")
           call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, input%gw%reduceq)
           if( allocated( vkl)) deallocate( vkl)
@@ -62,23 +71,11 @@ module mod_wannier_helper
           call generate_k_vectors( wf_kset_red, bvec, input%gw%ngridq, input%gw%vqloff, .true.)
           nstfv = int( chgval/2.d0) + input%gw%nempty + 1
         case( "hybrid")
-          call readkpts
-          !call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, input%groundstate%reducek)
-          !vkl = wf_kset%vkl
-          !vkc = wf_kset%vkc
-          !nkpt = wf_kset%nkpt
-          !! recalculate G+k-vectors
-          !do ik = 1, nkpt
-          !  do is = 1, nspnfv
-          !    vl (:) = vkl (:, ik)
-          !    vc (:) = vkc (:, ik)
-          !    call gengpvec( vl, vc, ngk( is, ik), igkig( :, is, ik), vgkl( :, :, is, ik), vgkc( :, :, is, ik), gkc( :, is, ik), tpgkc( :, :, is, ik))
-          !    call gensfacgp( ngk(is, ik), vgkc( :, :, is, ik), ngkmax, sfacgk( :, :, is, ik))
-          !  end do
-          !end do
-          call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .false.)
-          call generate_k_vectors( wf_kset_red, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .true., .true.)
           nstfv = int( chgval/2.d0) + input%groundstate%nempty + 1
+          input%groundstate%stypenumber = -1 ! turn on LIBBZINT
+          call init1()
+          call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .false.)
+          call generate_k_vectors( wf_kset_red, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .true.)
         case default
           write(*,*)
           write(*, '("Error (wannier_setkpt): ",a," is not a valid input.")') input%properties%wannier%input
@@ -137,12 +134,16 @@ module mod_wannier_helper
 
       fname = filext
 
+      filext = '.OUT'
       if( input%properties%wannier%input .eq. 'hybrid') then
         filext = '_PBE.OUT'
-      else
-        filext = '.OUT'
+      else if ( input%properties%wannier%input .eq. 'gw') then
+        if (xctype(1) >= 400) then
+          ! case of GW@hybrids
+          filext = '_PBE.OUT'
+        end if
       end if
-      
+
       call readstate
       call linengy
       call genapwfr     ! APW radial functions
@@ -157,16 +158,23 @@ module mod_wannier_helper
     subroutine wannier_getevec( ik, evec)
       integer, intent( in) :: ik
       complex(8), intent( out) :: evec( nmatmax_ptr, nstfv, nspinor)
-
       integer :: ist
       real(8) :: phase
+      character(22) :: filext0
 
       if( (input%properties%wannier%input .eq. "gs") .or. (input%properties%wannier%input .eq. "qsgw")) then
         call getevecfv( wf_kset%vkl(:, ik), wf_Gkset%vgkl( :, :, :, ik), evec)
       else if( input%properties%wannier%input .eq. "hybrid") then
-        call getevecfv( wf_kset%vkl(:, ik), wf_GKset%vgkl( :, :, :, ik), evec)
+        call getevecfv( wf_kset%vkl(:, ik), wf_Gkset%vgkl( :, :, :, ik), evec)
       else if( input%properties%wannier%input .eq. "gw") then
-        call getevecfv( wf_kset%vkl(:, ik), wf_GKset%vgkl( :, :, :, ik), evec)
+        if (xctype(1) >= 400) then
+          call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evec)
+        else
+          filext0 = filext
+          filext  = "_GW.OUT"
+          call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evec)
+          filext = filext0
+        end if
       else
         stop
       end if
@@ -243,7 +251,7 @@ module mod_wannier_helper
     subroutine wannier_occupy( kset, eval, fst, lst, efermi, occ, usetetra_)
       use mod_opt_tetra
 
-      type( k_set), intent( in) :: kset 
+      type( k_set), intent( in) :: kset
       integer, intent( in) :: fst, lst
       real(8), intent( in) :: eval( fst:lst, kset%nkpt)
       logical, optional, intent( in) :: usetetra_
@@ -251,13 +259,13 @@ module mod_wannier_helper
       real(8), optional, intent( out) :: occ( fst:lst, kset%nkpt)
 
       integer, parameter :: maxit = 1000
-      
+
       integer :: iq, ist, nvm, it
       logical :: usetetra
       real(8) :: e0, e1, chg, x, t1, df, occ_tmp( lst, kset%nkpt)
-      
+
       real(8) :: sdelta, stheta
-      
+
       usetetra = .true.
       occ_tmp = 0.d0
       df = 1.d-2
@@ -286,11 +294,11 @@ module mod_wannier_helper
       e0 = maxval( eval( nvm, :))
       e1 = minval( eval( nvm+1, :))
       efermi = 0.5*(e0 + e1)
-    
+
       chg = 0.d0
-#ifdef USEOMP                
+#ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iq, ist) reduction(+: chg)
-!$OMP DO  
+!$OMP DO
 #endif
       do iq = 1, kset%nkpt
         do ist = 1, fst-1
@@ -320,13 +328,13 @@ module mod_wannier_helper
             e0 = min( e0, minval( eval( ist, :)))
             e1 = max( e1, maxval( eval( ist, :)))
           end do
-    
+
           do while( it .lt. maxit)
             efermi = 0.5*(e0 + e1)
             chg = 0.d0
-#ifdef USEOMP                
+#ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iq, ist, x) reduction(+: chg)
-!$OMP DO  
+!$OMP DO
 #endif
             do iq = 1, kset%nkpt
               do ist = 1, fst-1

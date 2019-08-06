@@ -26,7 +26,7 @@ module mod_wannier
       ! !DESCRIPTION:
       !   Reads local-orbitals from species files which are indicated to be used
       !   as projection functions for the generation of Wannier functions to the
-      !   module {\tt mod\_wannier} and constructs necessary geometry (nearest 
+      !   module {\tt mod\_wannier} and constructs necessary geometry (nearest
       !   neighbors and geometric weights) as well as the overlap of the
       !   wavefunctions and the local-orbitals.
       !
@@ -66,7 +66,7 @@ module mod_wannier
       ! find geometry
       !********************************************************************
       call wannier_geometry
-      
+
       if( input%properties%wannier%do .ne. "fromfile") call wannier_writeinfo_geometry
 
       !********************************************************************
@@ -99,7 +99,7 @@ module mod_wannier
           write( wf_info, *)
           call wannier_emat
       end select
-        
+
       !********************************************************************
       ! build projection functions and overlap matrices
       !********************************************************************
@@ -157,7 +157,7 @@ module mod_wannier
 
       ! allocatable arrays
       complex(8), allocatable :: evecfv1(:,:,:), evecfv2(:,:,:)
-      
+
       write( wf_info, '(" calculate plane-wave matrix-elements...")')
       call timesec( t0)
 
@@ -176,7 +176,7 @@ module mod_wannier
         write(*, '( "Recalculate plane-wave matrix-elements.")')
       end if
 
-      if( .not. success) then          
+      if( .not. success) then
         if( allocated( wf_m0)) deallocate( wf_m0)
         allocate( wf_m0( wf_fst:wf_lst, wf_fst:wf_lst, wf_kset%nkpt, wf_n_ntot))
 
@@ -187,7 +187,7 @@ module mod_wannier
         !write(*,'("size of evec:    ",F13.6," GB")') nmatmax_ptr*nstfv*nspinor*16*1.d-9
         !write(*,'("shape of apwalm: ",4I6)') ngkmax_ptr, apwordmax, lmmaxapw, natmtot
         !write(*,'("size of apwalm:  ",F13.6," GB")') ngkmax_ptr*apwordmax*lmmaxapw*natmtot*16*1.d-9
-        
+
         call pwmat_init( input%groundstate%lmaxapw, 8)
 
         do idxn = 1, wf_n_ntot
@@ -271,7 +271,7 @@ module mod_wannier
       !               (in, integer(nproj))
       ! !DESCRIPTION:
       !   Generates unitary transformation matrices $U_{\vec{k}}$ via the
-      !   projection method from which a set of smooth Bloch-like states 
+      !   projection method from which a set of smooth Bloch-like states
       !   $$ \left|\Psi_{m,\vec{k}}^W\right\rangle = \sum\limits_{n=n_1}^{n_2}
       !   \left(U_{\vec{k}}\right)_{nm} \left|\Psi_{n,\vec{k}}^H\right\rangle $$
       !   out of the $N=n_2-n_1+1$ Hamiltonian eigenstates $\Psi_{n,\vec{k}}^H$
@@ -308,10 +308,10 @@ module mod_wannier
       allocate( sval( wf_groups( wf_group)%nwf), &
                 lsvec( wf_groups( wf_group)%nst, wf_groups( wf_group)%nst), &
                 rsvec( wf_groups( wf_group)%nwf, wf_groups( wf_group)%nwf))
-         
-#ifdef USEOMP                
+
+#ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, n2, iproj, projection, sval, lsvec, rsvec)
-!$OMP DO  
+!$OMP DO
 #endif
       do iknr = 1, wf_kset%nkpt
         n2 = 0
@@ -330,7 +330,7 @@ module mod_wannier
                lsvec, wf_groups( wf_group)%nwf, &
                rsvec, wf_groups( wf_group)%nwf, zzero, &
                wf_transform( wf_groups( wf_group)%fst:wf_groups( wf_group)%lst, wf_groups( wf_group)%fwf:wf_groups( wf_group)%lwf, iknr), wf_groups( wf_group)%nst)
-      end do 
+      end do
 #ifdef USEOMP
 !$OMP END DO
 !$OMP END PARALLEL
@@ -353,11 +353,11 @@ module mod_wannier
 !      ! correct wf_nst and wf_nwf here
 !      !!!!!
 !      use m_wsweight
-!      use mod_Gvector,              only: cfunig 
+!      use mod_Gvector,              only: cfunig
 !      use mod_eigensystem,          only: oalo, ololo
 !      integer :: ik, is, ia, ias, lmaxapw, l, l_, m, m_, lm, lm_, o, o_, lmo, lmo_, ir, ilo, ilo_, ngknr, ist, jst, ig, igk, ifg, nlmomax, nshell, nrpt
 !      real(8) :: x, fr( nrmtmax), gr( nrmtmax), cf( 3, nrmtmax)
-!      
+!
 !      integer, allocatable :: nlmo(:), lmo2l(:,:), lmo2m(:,:), lmo2o(:,:)
 !      real(8), allocatable :: rptl(:,:)
 !      complex(8), allocatable :: wanfmt(:,:,:,:), wanfir(:,:,:)
@@ -387,7 +387,7 @@ module mod_wannier
 !                lmo2o( nlmomax, nspecies))
 !      allocate( wanfmt( nlmomax+nlotot, wf_fst:wf_lst, natmtot, nrpt))
 !      allocate( wanfir( wf_Gset%ngrtot, wf_fst:wf_lst, nrpt))
-!      
+!
 !      call readstate
 !      call readfermi
 !      call linengy
@@ -432,8 +432,8 @@ module mod_wannier
 !
 !        ! get matching coefficients
 !        call match( ngknr, wf_Gkset%gkc( :, 1, ik), wf_Gkset%tpgkc( :, :, 1, ik), wf_Gkset%sfacgk( :, :, 1, ik), apwalm)
-!          
-!        ! read eigenvector      
+!
+!        ! read eigenvector
 !        if( input%properties%wannier%input .eq. "gs") then
 !          call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evecfv)
 !        else if( input%properties%wannier%input .eq. "hybrid") then
@@ -481,7 +481,7 @@ module mod_wannier
 !#ifdef USEOMP
 !!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ist, jst)
 !!$OMP DO
-!#endif    
+!#endif
 !                do ist = wf_fst, wf_lst
 !                  do jst = wf_fst, wf_lst
 !                    wf_projection( ist, jst-wf_fst+1, ik) = wf_projection( ist, jst-wf_fst+1, ik) + &
@@ -491,7 +491,7 @@ module mod_wannier
 !#ifdef USEOMP
 !!$OMP END DO
 !!$OMP END PARALLEL
-!#endif    
+!#endif
 !              end do
 !              do ilo_ = 1, nlorb( is)
 !                l_ = lorbl( ilo_, is)
@@ -502,7 +502,7 @@ module mod_wannier
 !#ifdef USEOMP
 !!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ist, jst)
 !!$OMP DO
-!#endif    
+!#endif
 !                      do ist = wf_fst, wf_lst
 !                        do jst = wf_fst, wf_lst
 !                          wf_projection( ist, jst-wf_fst+1, ik) = wf_projection( ist, jst-wf_fst+1, ik) + &
@@ -512,7 +512,7 @@ module mod_wannier
 !#ifdef USEOMP
 !!$OMP END DO
 !!$OMP END PARALLEL
-!#endif    
+!#endif
 !                    end do
 !                  end if
 !                end do
@@ -532,7 +532,7 @@ module mod_wannier
 !#ifdef USEOMP
 !!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ist, jst)
 !!$OMP DO
-!#endif    
+!#endif
 !                      do ist = wf_fst, wf_lst
 !                        do jst = wf_fst, wf_lst
 !                          wf_projection( ist, jst-wf_fst+1, ik) = wf_projection( ist, jst-wf_fst+1, ik) + &
@@ -542,7 +542,7 @@ module mod_wannier
 !#ifdef USEOMP
 !!$OMP END DO
 !!$OMP END PARALLEL
-!#endif    
+!#endif
 !                    end do
 !                  end if
 !                end do
@@ -555,7 +555,7 @@ module mod_wannier
 !#ifdef USEOMP
 !!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ist, jst)
 !!$OMP DO
-!#endif    
+!#endif
 !                        do ist = wf_fst, wf_lst
 !                          do jst = wf_fst, wf_lst
 !                            wf_projection( ist, jst-wf_fst+1, ik) = wf_projection( ist, jst-wf_fst+1, ik) + &
@@ -565,14 +565,14 @@ module mod_wannier
 !#ifdef USEOMP
 !!$OMP END DO
 !!$OMP END PARALLEL
-!#endif    
+!#endif
 !                      end do
 !                    end if
 !                  end do
 !                end do
 !              end do
-!            end do                      
-!              
+!            end do
+!
 !          end do
 !        end do
 !
@@ -581,21 +581,21 @@ module mod_wannier
 !          ifg = igfft( wf_Gkset%igkig( igk, 1, ik))
 !          wfir( ifg, :) = evecfv( igk, wf_fst:wf_lst, 1)
 !        end do
-!#ifdef USEOMP                
+!#ifdef USEOMP
 !!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ist)
-!!$OMP DO  
+!!$OMP DO
 !#endif
 !        do ist = wf_fst, wf_lst
 !          call zfftifc( 3, ngrid, 1, wfir( :, ist))
 !        end do
-!#ifdef USEOMP                
+!#ifdef USEOMP
 !!$OMP END DO
 !!$OMP END PARALLEL
 !#endif
 !
-!#ifdef USEOMP                
+!#ifdef USEOMP
 !!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ig, x, ifg)
-!!$OMP DO  
+!!$OMP DO
 !#endif
 !        do ig = 1, wf_Gset%ngrtot
 !          x = wf_kset%vkl( 1, ik)*wf_Gset%ivg( 1, ig)/ngrid(1) + &
@@ -603,16 +603,16 @@ module mod_wannier
 !              wf_kset%vkl( 3, ik)*wf_Gset%ivg( 3, ig)/ngrid(3)
 !          ifg = igfft( ig)
 !          wfir( ifg, :) = wfir( ifg, :)*cmplx( cos( twopi*x), sin( twopi*x), 8)
-!        end do      
-!#ifdef USEOMP                
+!        end do
+!#ifdef USEOMP
 !!$OMP END DO
 !!$OMP END PARALLEL
 !#endif
 !
 !        do ir = 1, nrpt
-!#ifdef USEOMP                
+!#ifdef USEOMP
 !!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ist, jst, ig, zfft)
-!!$OMP DO  
+!!$OMP DO
 !#endif
 !          do ist = wf_fst, wf_lst
 !            do jst = wf_fst, wf_lst
@@ -624,19 +624,19 @@ module mod_wannier
 !                  zfft( igfft( wf_Gset%ivgig( 0, 0, 0)))*wswgt( ir)
 !            end do
 !          end do
-!#ifdef USEOMP                
+!#ifdef USEOMP
 !!$OMP END DO
 !!$OMP END PARALLEL
 !#endif
 !        end do
 !
-!      end do   
-!    
+!      end do
+!
 !      deallocate( wanfmt, wanfir, wfmt, wfir, evecfv, apwalm, match_combined, cfun, zfft, nlmo, lmo2l, lmo2m, lmo2o)
 !
 !      return
 !    end subroutine wannier_projonwan
-    
+
     subroutine wannier_gen_fromfile
       logical :: success
 
@@ -661,7 +661,7 @@ module mod_wannier
 !#endif
       return
     end subroutine wannier_gen_fromfile
-    
+
     !BOP
     ! !ROUTINE: wannier_geometry
     ! !INTERFACE:
@@ -690,14 +690,14 @@ module mod_wannier
 
       real(8), allocatable :: work(:), dt(:)
       integer, allocatable :: iwork(:), mt(:), posvec(:,:)
-      
+
       integer, allocatable :: tmp_n_n(:)
       real(8), allocatable :: tmp_n_dist(:), tmp_n_vl(:,:,:), tmp_n_vc(:,:,:)
 
       nbzshell = input%properties%wannier%nbzshell
       minshell = input%properties%wannier%minshell
       cutshell = input%properties%wannier%cutshell
-      
+
       ! find possible distances (shells)
       nposvec = (nbzshell(3)*wf_kset%ngridk(3)-1)*(2*nbzshell(2)*wf_kset%ngridk(2)-1)*(2*nbzshell(1)*wf_kset%ngridk(1)-1) + &
                 (nbzshell(2)*wf_kset%ngridk(2)-1)*(2*nbzshell(1)*wf_kset%ngridk(1)-1) + &
@@ -771,11 +771,11 @@ module mod_wannier
         j = minloc( abs( dt( 1:iz) - dist), 1)
         tmp_n_dist( i) = dt( j)
         tmp_n_n( i) = mt( j)
-        dt( j) = 1.d100 
+        dt( j) = 1.d100
         dist = minval( dt)
       end do
       nkmax = maxval( tmp_n_n)
-      
+
       ! find all possible neighbors
       allocate( tmp_n_vl( 3, nkmax, nshell))
       allocate( tmp_n_vc( 3, nkmax, nshell))
@@ -818,7 +818,7 @@ module mod_wannier
       else
         d = 6
       end if
-      
+
       call r3minv( bvec, mat1)
       call r3minv( transpose( bvec), mat2)
       call r3mm( mat1, mat2, mat3)
@@ -876,7 +876,7 @@ module mod_wannier
         do while( (wf_n_nshells .lt. minshell) .or. (.not. stopshell))
           ! check if new shell is linear dependend
           wf_n_usedshells( j) = 1
-          !write(*,'(i,3f13.6)') j, tmp_n_vl( :, 1, j) 
+          !write(*,'(i,3f13.6)') j, tmp_n_vl( :, 1, j)
           !if( wf_n_ntot .gt. 0) then
           !  call rpinv( nvec( :, 1:wf_n_ntot), nveci( 1:wf_n_ntot, :))
           !  wf_n_usedshells( j) = 0
@@ -884,7 +884,7 @@ module mod_wannier
           !    if( norm2( tmp_n_vl( :, i, j) - matmul( matmul( nvec( :, 1:wf_n_ntot), nveci( 1:wf_n_ntot, :)), tmp_n_vl( :, i, j))) &
           !    .gt. input%structure%epslat) wf_n_usedshells( j) = 1
           !  end do
-          !end if              
+          !end if
 
           if( wf_n_usedshells( j) .ne. 0) then
             wf_n_nshells = wf_n_nshells + 1
@@ -948,7 +948,7 @@ module mod_wannier
               wf_n_dist( d) = tmp_n_dist( j)
 
               vl = wf_kset%vkl( :, iknr) + wf_n_vl( :, d)
-              call r3frac( input%structure%epslat, vl, vi) 
+              call r3frac( input%structure%epslat, vl, vi)
               call findkptinset( vl, wf_kset, ix, iy)
               if( ix .gt. 0) then
                 wf_n_ik( d, iknr) = iy
@@ -960,7 +960,7 @@ module mod_wannier
               end if
 
               vl = wf_kset%vkl( :, iknr) - wf_n_vl( :, d)
-              call r3frac( input%structure%epslat, vl, vi) 
+              call r3frac( input%structure%epslat, vl, vi)
               call findkptinset( vl, wf_kset, ix, iy)
               if( ix .gt. 0) then
                 wf_n_ik2( d, iknr) = iy
@@ -974,7 +974,7 @@ module mod_wannier
           end do
         end if
       end do
-      
+
       deallocate( dt, mt, work, iwork, posvec)
       deallocate( tmp_n_dist, tmp_n_n, tmp_n_vl, tmp_n_vc)
 
@@ -982,7 +982,7 @@ module mod_wannier
       !EOC
     end subroutine wannier_geometry
     !EOP
-    
+
     subroutine wannier_readinput
       use mod_eigenvalue_occupancy, only: efermi
       integer :: igroup, ik, fst, lst, ist, un
@@ -1067,10 +1067,10 @@ module mod_wannier
             end do
 
           else
-            wf_groups( igroup)%fst = min( input%properties%wannier%grouparray( igroup)%group%fst, input%properties%wannier%grouparray( igroup)%group%lst)       
-            wf_groups( igroup)%lst = max( input%properties%wannier%grouparray( igroup)%group%fst, input%properties%wannier%grouparray( igroup)%group%lst)       
+            wf_groups( igroup)%fst = min( input%properties%wannier%grouparray( igroup)%group%fst, input%properties%wannier%grouparray( igroup)%group%lst)
+            wf_groups( igroup)%lst = max( input%properties%wannier%grouparray( igroup)%group%fst, input%properties%wannier%grouparray( igroup)%group%lst)
             wf_groups( igroup)%nwf = wf_groups( igroup)%lst - wf_groups( igroup)%fst + 1
-          end if  
+          end if
 
           if( wf_groups( igroup)%fst .lt. 1) then
             write(*,*)
@@ -1120,7 +1120,7 @@ module mod_wannier
           end if
 
         end do !igroup
-      
+
         wf_fst = 10000000
         wf_lst = 0
         wf_nwf = 0

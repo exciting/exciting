@@ -325,6 +325,7 @@ subroutine parse_gwinput
         if (.not. associated(input%groundstate%Hybrid)) &
             input%groundstate%Hybrid => getstructHybrid(emptynode)
         hyb_beta = 1.d0 - input%groundstate%Hybrid%excoeff
+        ! write(*,*) 'hyb_beta=', hyb_beta
         ! use parameters from groundstate/hybrids for consistency
         input%gw%nempty = input%groundstate%nempty
         input%gw%ngridq = input%groundstate%ngridk
