@@ -16,14 +16,14 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Use mod_atoms, only: natmtot, nspecies, natoms, idxas, spr
       Use mod_muffin_tin, only: lmmaxvr, nrcmtmax, lmmaxapw, nrmtmax,&
                               & nrmt, nrcmt, idxlm, rcmt
-      Use mod_potential_and_density, only: bxcmt, veffmt, bxcir, ex_coef
+      Use mod_potential_and_density, only: bxcmt, veffmt, bxcir, ex_coef, ec_coef, xctype
       Use mod_SHT, only: rbshtvr, zbshtvr, zfshtvr
       Use mod_eigensystem, only: nmatmax
       Use mod_spin, only: ncmag, nspinor, ndmag
       Use mod_eigenvalue_occupancy, only: nstfv, nstsv, evalsv
       Use mod_APW_LO, only: apwordmax
-      Use mod_hybrids, only: ihyb, bxnl
       Use mod_timing, only: timesv
+      Use mod_misc, only: task
       Implicit None
 ! arguments
       Integer, Intent (In) :: ik
@@ -55,6 +55,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Real (8), Allocatable :: cf (:, :)
       Real (8), Allocatable :: sor (:)
       Real (8), Allocatable :: rwork (:)
+      Real (8), Allocatable :: veffmt_pbe(:,:,:)
       Complex (8), Allocatable :: wfmt1 (:, :, :)
       Complex (8), Allocatable :: wfmt2 (:, :, :)
       Complex (8), Allocatable :: zfft1 (:)
@@ -66,6 +67,13 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
 ! external functions
       Complex (8) zdotc, zfmtinp
       External zdotc, zfmtinp
+
+      if (allocated(veffmt_pbe)) deallocate(veffmt_pbe)
+      allocate(veffmt_pbe(lmmaxvr,nrmtmax,natmtot))
+      If(associated(input%groundstate%Hybrid).and.task==7) then
+          call poteff_soc(veffmt_pbe)
+      endif
+
 ! spin-unpolarised case
       If (( .Not. associated(input%groundstate%spin)) .And. (ldapu .Eq. &
      & 0)) Then
@@ -152,8 +160,11 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
 !               write(*,*) td-tc
 ! spin-orbit radial function
                If (isspinorb()) Then
-! radial derivative of the spherical part of the potential
-                  vr (1:nrmt(is)) = veffmt (1, 1:nrmt(is), ias) * y00
+                  If(associated(input%groundstate%Hybrid).and.task==7) then
+                    vr (1:nrmt(is)) = veffmt_pbe (1, 1:nrmt(is), ias) * y00
+                  else
+                    vr (1:nrmt(is)) = veffmt (1, 1:nrmt(is), ias) * y00
+                  endif
                   Call fderiv (1, nrmt(is), spr(:, is), vr, drv, cf)
 ! spin-orbit coupling prefactor
                   irc = 0
@@ -363,7 +374,6 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
             evecsv (i, i) = evecsv (i, i) + evalfv (ist)
          End Do
       End Do
-
 ! diagonalise second-variational Hamiltonian
       call timesec(ta)
       If (ndmag .Eq. 1) Then

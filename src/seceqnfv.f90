@@ -13,6 +13,7 @@
 Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   ! !USES:
       Use modinput
+      Use modmain
       Use mod_Gkvector, only: ngkmax
       Use mod_APW_LO, only: apwordmax
       Use mod_atoms, only: natmtot
@@ -21,7 +22,7 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       Use mod_eigenvalue_occupancy, only: nstfv
       Use mod_potential_and_density, only: ex_coef
       Use modfvsystem
-      Use mod_hybrids, only: ihyb, vnlmat
+      Use mod_hybrids, only: vnlmat
       use mod_misc, only: task
       use m_plotmat
 !

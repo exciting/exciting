@@ -57,7 +57,7 @@ subroutine init_hybrids()
 !---------------------------------------------------------
 ! Intialize auxiliary arrays used further for convenience
 !---------------------------------------------------------
-    call init_misc_gw
+    call init_misc_gw()
 
 !---------------------------------------
 !   Initialize k/q grids
@@ -67,10 +67,6 @@ subroutine init_hybrids()
     input%gw%reduceq = input%groundstate%reducek
 
     call init_kqpoint_set()
-    !write(*,*) nkpt, kset%nkpt
-    !do ik = 1, nkpt
-    !  write(*,'(3f8.4,4x,3f8.4)') vkl(:,ik), kset%vkl(:,ik)
-    !end do
 
 !--------------------------------------------------------------
 ! Calculate the integrals to treat the singularities at G+q->0

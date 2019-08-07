@@ -26,6 +26,7 @@ subroutine scf_cycle(verbosity)
     Logical :: tibs, exist
     Integer :: ik, is, ia, idm, id
     Integer :: n, nwork
+ !   Integer :: maxscl_test
     Real(8), Allocatable :: v(:),forcesum(:,:)
     Real(8) :: timetot, ts0, ts1, tin1, tin0
     character*(77) :: string, acoord
@@ -33,8 +34,8 @@ subroutine scf_cycle(verbosity)
     ! Charge distance
     Real (8), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
     Real (8), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
-
     acoord = "lattice"
+
     if (input%structure%cartesian) acoord = "cartesian"
 
     If ((verbosity>-1).and.(rank==0)) Then
@@ -72,6 +73,7 @@ subroutine scf_cycle(verbosity)
         time_pot_init=tin1-tin0
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Density and potential initialised from atomic data")')
     End If
+
     Call genmeffig
     If ((verbosity>-1).and.(rank==0)) then
         write (60, *)
@@ -132,7 +134,6 @@ subroutine scf_cycle(verbosity)
     tstop = .False.
     engytot = 0.d0
     fm = 0.d0
-
 ! delete any existing eigenvector files
     If ((rank .Eq. 0) .And. ((task .Eq. 0) .Or. (task .Eq. 2))) Call delevec()
 
@@ -190,7 +191,7 @@ subroutine scf_cycle(verbosity)
         Call timesec (ts0)
 
         if (task /= 7) then
-          ! No updates of core and valence radial functions during PBE0 run
+          ! No updates of core and valence radial functions during hybrids run
           call gencore          ! generate the core wavefunctions and densities
           call linengy          ! find the new linearization energies
           if (rank==0) call writelinen
@@ -331,6 +332,7 @@ subroutine scf_cycle(verbosity)
 #endif
 
 #ifdef MPI
+
         If ((input%groundstate%xctypenumber.Lt.0).Or. &
         &   (xctype(2).Ge.400).Or. &
         &   (xctype(1).Ge.400)) &

@@ -6,7 +6,7 @@ subroutine kintw()
     use modgw,   only: kiw, ciw, kwfer, metallic, fdebug, kset, kqset, evalfv
     use mod_core_states, only: ncmax, ncore
     use mod_kpointset
-    
+
     implicit none
 
     integer(4) :: ia
@@ -20,12 +20,10 @@ subroutine kintw()
     if (allocated(kiw)) deallocate(kiw)
     allocate(kiw(nstfv,kqset%nkpt))
     kiw = 0.0d0
-    
+
     if (allocated(kwfer)) deallocate(kwfer)
     allocate(kwfer(nstfv,kqset%nkpt))
     kwfer = 0.0d0
-    
-    metallic = .false.
 
     !-----------------
     ! Valence states
@@ -34,7 +32,7 @@ subroutine kintw()
     do ik = 1, kqset%nkpt
       ikp = kset%ik2ikp(ik)
       bandpar(1:nstfv,ik) = evalfv(1:nstfv,ikp)
-    enddo  
+    enddo
     call tetiw(kqset%nkpt, kqset%ntet, nstfv, bandpar, &
                kqset%tnodes, kqset%wtet, kqset%tvol, &
                efermi, kiw)
@@ -42,26 +40,27 @@ subroutine kintw()
                    kqset%tnodes, kqset%wtet, kqset%tvol, &
                    efermi, kwfer)
     deallocate(bandpar)
-    
+
+    metallic = .false.
     if (dabs(maxval(kwfer))>1.d-6) metallic = .true.
-    
+
     !-------------
     ! Core states
     !-------------
     if ((input%gw%coreflag=='all').or. &
     &   (input%gw%coreflag=='xal')) then
-    
+
       if (allocated(ciw)) deallocate(ciw)
       allocate(ciw(ncmax,natmtot))
       ciw = 0.0d0
-    
+
       allocate(bandpar(1,kqset%nkpt))
       allocate(cwpar(1,kqset%nkpt))
       do is = 1, nspecies
         do ia = 1, natoms(is)
           ias = idxas(ia,is)
           do ist = 1, ncore(is)
-            bandpar(1,:) = evalcr(ist,ias) 
+            bandpar(1,:) = evalcr(ist,ias)
             call tetiw(kqset%nkpt, kqset%ntet, 1, bandpar, &
                        kqset%tnodes, kqset%wtet, kqset%tvol, efermi, &
                        cwpar)
@@ -73,7 +72,7 @@ subroutine kintw()
       deallocate(cwpar)
 
     end if ! core
-    
+
     if (input%gw%debug) then
       call linmsg(fdebug,'-','Info(kintw): BZ integration weights')
       write(fdebug,*) 'VALENCE: kiw'
@@ -90,6 +89,6 @@ subroutine kintw()
         end do
       end if
     endif
-    
+
     return
 end subroutine

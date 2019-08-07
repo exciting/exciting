@@ -1,9 +1,9 @@
 !
 !BOP
-! !ROUTINE: putvnlmat
+! !ROUTINE: writevnlmat
 ! !INTERFACE:
 !
-subroutine putvnlmat()
+subroutine writevnlmat()
 ! !USES:
   use modmain
   use mod_hybrids
@@ -40,6 +40,7 @@ subroutine putvnlmat()
     end if
     call barrier
   end do ! ik
+  write(70, Rec=nkpt+1) exnl
   close(70)
 
 !$OMP END CRITICAL

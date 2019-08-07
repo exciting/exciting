@@ -15,8 +15,10 @@ subroutine calcbarcmb(iq)
     use modgw
     use mod_coulomb_potential
     use mod_mpi_gw, only: myrank
-    
-!!INPUT PARAMETERS: 
+    use modmain
+    use mod_hybrids, only: barc_lr
+
+!!INPUT PARAMETERS:
     implicit none
     integer, intent(in) :: iq ! index of the q-point
 
@@ -33,30 +35,30 @@ subroutine calcbarcmb(iq)
     real(8), external :: dlamch
 
     character(len=256) :: filename
-      
+
 !!REVISION HISTORY:
-! 
+!
 ! Created Jan 2014 by DIN
 !
 !EOP
-!BOC      
+!BOC
     call timesec(tstart)
-        
-!=============================================================================== 
-! Setup the bare Coulomb potential matrix in MB representation 
+
+!===============================================================================
+! Setup the bare Coulomb potential matrix in MB representation
 !===============================================================================
 
     if (allocated(barc)) deallocate(barc)
     allocate(barc(matsiz,matsiz))
     barc(:,:) = 0.d0
-    
+
     select case (trim(input%gw%barecoul%basis))
-    
+
     case('pw')
-    
+
       call calcmpwmix(iq)
       call calcbarcmb_pw(iq)
-      
+
     case('mb')
 
       if (Gamma) then
@@ -65,29 +67,39 @@ subroutine calcbarcmb(iq)
         !------------------------------------------------
         call barcq0
       end if
-        
+
       !-----------------------------------------------------------
       ! Matrix elements between MT and MT mixed product functions
       !-----------------------------------------------------------
       call calcbarcmb_mt_mt(iq)
-    
+
       !-----------------------------------------------------------
       ! Matrix elements between an atomic mixed function and an IPW
       !-----------------------------------------------------------
       call calcbarcmb_ipw_mt(iq)
-    
+
       !-----------------------------------------------------------
       ! Matrix elements between two IPW's
       !-----------------------------------------------------------
       call calcbarcmb_ipw_ipw(iq)
-      
+
+      if ((task == 7) .and. (xctype(1)==408)) then
+        if (allocated(barc_lr)) deallocate(barc_lr)
+        allocate(barc_lr(matsiz,matsiz))
+        barc_lr(:,:) = 0.d0
+        call calcmpwmix(iq)
+        call calcbarcmb_lr(iq)
+        barc(:,:) = barc(:,:) - barc_lr(:,:)
+      endif
+
     case default
-    
+
       write(*,*) 'ERROR(calcbarcmb): Unknown basis type!'
       stop
-      
+
     end select
-    
+
+
 !===============================================================================
 ! Diagonalize the bare coulomb matrix
 !===============================================================================
@@ -96,10 +108,10 @@ subroutine calcbarcmb(iq)
     allocate(vmat(matsiz,matsiz))
     vmat(:,:) = barc(:,:)
     deallocate(barc)
-    
+
     if (allocated(barcev)) deallocate(barcev)
     allocate(barcev(matsiz))
-    
+
     lrwork = -1
     liwork = -1
     lwork = -1
@@ -120,7 +132,7 @@ subroutine calcbarcmb(iq)
     call errmsg(info.ne.0, 'CALCBARCMB', "Fail to diag. barc by zheevd !!!")
     deallocate(work,rwork,iwork)
 
-!----------------------    
+!----------------------
 ! debug info
 !----------------------
 
@@ -129,7 +141,7 @@ subroutine calcbarcmb(iq)
       write(fdebug,'("calcbarcmb: rank, size(Coulomb potential) (Mb):",i4,f12.2)') myrank, msize
       write(fdebug,*) "### barcev ###"
       do imix = 1, matsiz
-        write(fdebug,'(i5,e16.6)') imix, barcev(imix) 
+        write(fdebug,'(i5,e16.6)') imix, barcev(imix)
       end do
       write(fdebug,*) "### vmat ###"
       do imix = 1, matsiz, matsiz/10
@@ -141,6 +153,6 @@ subroutine calcbarcmb(iq)
 
     call timesec(tend)
     time_barcmb = time_barcmb+tend-tstart
-    
+
 end subroutine ! calcbarcmb
 !EOC

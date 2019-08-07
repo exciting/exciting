@@ -6,10 +6,12 @@
 subroutine calc_vxnl()
 ! !USES:
     use modmain
-    use modgw
-    use mod_coulomb_potential, only: delete_coulomb_potential
+    use mod_hybrids,           only: kset, vxnl, eveckalm, eveckpalm, eveck, eveckp, &
+                                     vxnl, kqset, minmmat, exnl, fgw, Gamma, ikcbm, ikvbm, ikvcm, nomax, numin, &
+                                     matsiz, mbsiz, ncg, vi, kiw, ciw, corind, Gqset, Gkqset, singc2, gammapoint, &
+                                     locmatsiz, evalfv
+    use mod_coulomb_potential, only: barc, delete_coulomb_potential, vccut, vmat, barcev
     use modfvsystem
-    use mod_hybrids
     use modmpi
 !
 ! !DESCRIPTION:
@@ -22,12 +24,12 @@ subroutine calc_vxnl()
 
     integer(4) :: ikp, ik, jk, iq, ikp_
     integer(4) :: ie1, ie2, ie3, icg, icg1
-    integer(4) :: ist, l
+    integer(4) :: ist, l, im
     integer(4) :: i, j, k, jst, ispn
     integer(4) :: is, ia, ias, ic
-    integer(4) :: n, m, mdim
-    real(8)    :: tstart, tend
-    complex(8) :: mvm, zt1
+    integer(4) :: n, nmdim, m, mdim
+    real(8)    :: tstart, tend, sxs2
+    complex(8) :: mvm, zt1, vc
     integer    :: ikfirst, iklast
 
     complex(8), allocatable :: minm(:,:,:)
@@ -37,6 +39,17 @@ subroutine calc_vxnl()
 
     call cpu_time(tstart)
     if (rank == 0) call boxmsg(fgw,'-','Calculate Vx_NL')
+
+    if (allocated(evalfv)) deallocate(evalfv)
+    allocate(evalfv(nstfv,kset%nkpt))
+    evalfv(:,:) = 0.d0
+
+    !----------------------------------------
+    ! Read KS eigenvalues from file EVALSV.OUT
+    !----------------------------------------
+    do ik = 1, kset%nkpt
+      call getevalfv(kset%vkl(:,ik), evalfv(:,ik))
+    end do
 
 #ifdef MPI
     ikfirst = firstofset(rank,kset%nkpt)
@@ -54,13 +67,7 @@ subroutine calc_vxnl()
     vxnl(:,:,:) = zzero
 
     ! VB / CB state index
-    if (allocated(evalfv)) deallocate(evalfv)
-    allocate(evalfv(nstfv,kset%nkpt))
-    do ik = 1, kset%nkpt
-      call getevalfv(kset%vkl(:,ik), evalfv(:,ik))
-    end do
-    call find_vbm_cbm(1, nstfv, kset%nkpt, evalfv, efermi, &
-                      nomax, numin, ikvbm, ikcbm, ikvcm)
+    call find_vbm_cbm(1,nstfv,nkpt,evalfv,efermi,nomax,numin,ikvbm,ikcbm,ikvcm)
     if (rank==0) then
       write(fgw,'(a,i4)') " Band index of VBM:", nomax
       write(fgw,'(a,i4)') " Band index of CBM:", numin
@@ -69,6 +76,9 @@ subroutine calc_vxnl()
     ! BZ integration weights
     call kintw()
     deallocate(evalfv)
+
+    ! singular term prefactor
+    sxs2 = 4.d0*pi*vi*singc2*kqset%nkpt
 
     if ((input%gw%coreflag=='all').or. &
     &   (input%gw%coreflag=='xal')) then
@@ -80,7 +90,6 @@ subroutine calc_vxnl()
     allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveck(nmatmax,nstfv))
     allocate(eveckp(nmatmax,nstfv))
-
     !---------------------------------------
     ! Loop over k-points
     !---------------------------------------
@@ -109,7 +118,6 @@ subroutine calc_vxnl()
         !------------------------------------------------------------
         ! Calculate the M^i_{nm}(k,q) matrix elements for given k and q
         !------------------------------------------------------------
-
         ik  = kset%ikp2ik(ikp)
         jk  = kqset%kqid(ik,iq)
 
@@ -152,9 +160,8 @@ subroutine calc_vxnl()
           end do ! ie2
           !__________________________
           ! add singular term (q->0)
-          if (Gamma.and.(ie1<=nomax)) then
-            vxnl(ie1,ie1,ikp) = vxnl(ie1,ie1,ikp) &
-                               -4.d0*pi*vi*singc2*kiw(ie1,ik)*kqset%nkpt
+          if (Gamma.and.(ie1<=nomax) ) then
+            vxnl(ie1,ie1,ikp) = vxnl(ie1,ie1,ikp) - sxs2*kiw(ie1,ik)
           end if
         end do ! ie1
 

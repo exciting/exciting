@@ -344,6 +344,15 @@
                   </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="essential" ex:unit="" name="omega" type="fortrandouble"
+              default="0.106d0">
+              <xs:annotation>
+                <xs:documentation> Define the value for the screening parameter. 
+                  The default value (omega=0.106d0) corresponds to HSE06 that was optimized for solids.
+                  In HSE03 omega=0.15d0.
+                  </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="experimental" ex:unit="" name="eccoeff" type="fortrandouble"
               default="1.0d0">
               <xs:annotation>
@@ -2704,6 +2713,7 @@
               <li> EXX, Exact Exchange, <it>Phys. Rev. Lett.</it>
                 <bf>95</bf>, 136402 (2005) </li>
               <li> Hybrid, PBE0, <it>J. Chem. Phys.</it> <bf>110</bf>, 5029 (1999)</li>
+              <li> Hybrid, HSE, <it>J. Chem. Phys.</it> <bf>118</bf>, 8207 (2003)</li>
             </list>
           </xs:documentation>
         </xs:annotation>
@@ -2758,6 +2768,13 @@
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
+            <xs:enumeration value="GGA_PBE_SR">
+              <xs:annotation>
+                <xs:appinfo>
+                  <oldnr>23</oldnr>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:enumeration>
             <xs:enumeration value="GGA_WC">
               <xs:annotation>
                 <xs:appinfo>
@@ -2790,6 +2807,13 @@
                <xs:annotation>
                  <xs:appinfo>
                    <oldnr>407</oldnr>
+                 </xs:appinfo>
+               </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="HYB_HSE">
+               <xs:annotation>
+                 <xs:appinfo>
+                   <oldnr>408</oldnr>
                  </xs:appinfo>
                </xs:annotation>
             </xs:enumeration>

@@ -90,7 +90,6 @@ Subroutine bandstr
       &    Access='DIRECT', Recl=Recl)
       read(70, Rec=1) nkpt0, nstsv0
       close(70)
-      nstsv = min(nstsv,nstsv0)
       allocate(vkl0(3,nkpt0))
       allocate(ehf(nstsv0,nkpt0))
       allocate(e0(nkpt0,nstsv))

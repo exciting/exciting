@@ -20,6 +20,7 @@ module mod_hybrids
 
     ! number of HF cycles
     integer :: ihyb
+    integer :: hyb0
 
     ! non-local exchange energy
     real(8) :: exnl
@@ -36,6 +37,11 @@ module mod_hybrids
     ! complex(8), allocatable :: mincmat(:,:,:)
     ! complex(8), allocatable :: micmmat(:,:,:)
     complex(8), allocatable :: miccmat(:,:,:)
+    
+   ! The matrix representation of the long-range bare coulomb potential in the mixed basis            
+    complex(8), allocatable :: barc_lr(:,:) !CECI, maybe I do not need
+
+
 
 !*******************************************************************************
 contains

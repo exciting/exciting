@@ -25,7 +25,7 @@ use modxcifc
 implicit none
 ! local variables
 integer is,ia,ias
-integer n,nr,ir,idm,i
+integer n,nr,ir,idm,i,j
 real(8) bext(3),t1,t2,t3,t4,ta,tb
 ! allocatable arrays
 real(8), allocatable :: rho(:),rhoup(:),rhodn(:)
@@ -36,10 +36,12 @@ real(8), allocatable :: g3rho(:),g3up(:),g3dn(:)
 real(8), allocatable :: grho2(:),gup2(:),gdn2(:),gupdn(:)
 real(8), allocatable :: ex(:),ec(:),vxc(:)
 real(8), allocatable :: vx(:),vxup(:),vxdn(:)
+real(8), allocatable :: exsr(:),vxsr(:),vxsrup(:),vxsrdn(:),v2xsr(:),v2xsrup(:),v2xsrdn(:)
 real(8), allocatable :: vc(:),vcup(:),vcdn(:)
 real(8), allocatable :: dxdg2(:),dxdgu2(:),dxdgd2(:),dxdgud(:)
 real(8), allocatable :: dcdg2(:),dcdgu2(:),dcdgd2(:),dcdgud(:)
 real(8), allocatable :: mag(:,:),bxc(:,:)
+
 n=lmmaxvr*nrmtmax
 allocate(rho(n),ex(n),ec(n),vxc(n))
 if (associated(input%groundstate%spin)) then
@@ -51,8 +53,19 @@ if (associated(input%groundstate%spin)) then
   allocate(vxup(n),vxdn(n),vcup(n),vcdn(n))
   if (xcgrad.eq.1) then
     allocate(grho(n),gup(n),gdn(n))
+    allocate(g2rho(n)) 
     allocate(g2up(n),g2dn(n))
     allocate(g3rho(n),g3up(n),g3dn(n))
+    if (xctype(1)==23.or.xctype(1)==408) then
+       if (allocated(exsr)) deallocate(exsr)
+       if (allocated(vxsr)) deallocate(vxsr)
+       if (allocated(vxsrup)) deallocate(vxsrup)
+       if (allocated(vxsrdn)) deallocate(vxsrdn)
+       if (allocated(v2xsr)) deallocate(v2xsr)
+       if (allocated(v2xsrup)) deallocate(v2xsrup)
+       if (allocated(v2xsrdn)) deallocate(v2xsrdn)
+       allocate(exsr(n),vxsr(n),vxsrup(n),vxsrdn(n),v2xsr(n),v2xsrup(n),v2xsrdn(n))
+    endif
   else if (xcgrad.eq.2) then
     allocate(g2up(n),g2dn(n))
     allocate(gvup(3*n),gvdn(3*n))
@@ -64,11 +77,19 @@ else
   allocate(vx(n),vc(n))
   if (xcgrad.eq.1) then
     allocate(grho(n),g2rho(n),g3rho(n))
+    if (xctype(1)==23.or.xctype(1)==408) then
+       if (allocated(exsr)) deallocate(exsr)
+       if (allocated(vxsr)) deallocate(vxsr)
+       if (allocated(v2xsr)) deallocate(v2xsr)
+       allocate(exsr(n),vxsr(n),v2xsr(n))
+    endif
   else if (xcgrad.eq.2) then
     allocate(g2rho(n),gvrho(3*n),grho2(n))
     allocate(dxdg2(n),dcdg2(n))
   end if
 end if
+
+ 
 !---------------------------------------!
 !     muffin-tin potential and field    !
 !---------------------------------------!
@@ -117,9 +138,26 @@ do is=1,nspecies
          vxdn=vxdn,vcup=vcup,vcdn=vcdn)
       else if (xcgrad.eq.1) then
         call ggamt_sp_1(is,rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho,g3up,g3dn)
-        call xcifc(xctype,n=n,rhoup=rhoup,rhodn=rhodn,grho=grho,gup=gup, &
-         gdn=gdn,g2up=g2up,g2dn=g2dn,g3rho=g3rho,g3up=g3up,g3dn=g3dn,ex=ex, &
-         ec=ec,vxup=vxup,vxdn=vxdn,vcup=vcup,vcdn=vcdn)
+        if (xctype(1)==23) then
+           call xcifc(xctype,n=n,rhoup=rhoup,rhodn=rhodn,grho=grho,gup=gup, &
+             gdn=gdn,g2up=g2up,g2dn=g2dn,g3rho=g3rho,g3up=g3up,g3dn=g3dn,ex=ex, &
+             ec=ec,exsr=exsr,vxsrup=vxsrup,vxsrdn=vxsrdn,v2xsrup=v2xsrup, v2xsrdn=v2xsrdn,vxup=vxup,vxdn=vxdn,vcup=vcup,vcdn=vcdn)
+           call gv2xmt_spin(is,ia,gup,vxsrup,v2xsrup)
+           call gv2xmt_spin(is,ia,gdn,vxsrdn,v2xsrdn)
+           vxup=vxsrup
+           vxdn=vxsrdn
+           ex=exsr
+        elseif (xctype(1)==408) then
+           call xcifc(xctype,n=n,rhoup=rhoup,rhodn=rhodn,grho=grho,gup=gup, &
+             gdn=gdn,g2up=g2up,g2dn=g2dn,g3rho=g3rho,g3up=g3up,g3dn=g3dn,ex=ex, &
+             ec=ec,exsr=exsr,vxsrup=vxsrup,vxsrdn=vxsrdn,v2xsrup=v2xsrup, v2xsrdn=v2xsrdn,vxup=vxup,vxdn=vxdn,vcup=vcup,vcdn=vcdn)
+           call gv2xmt_spin(is,ia,gup,vxsrup,v2xsrup)
+           call gv2xmt_spin(is,ia,gdn,vxsrdn,v2xsrdn)
+        else
+           call xcifc(xctype,n=n,rhoup=rhoup,rhodn=rhodn,grho=grho,gup=gup, &
+            gdn=gdn,g2up=g2up,g2dn=g2dn,g3rho=g3rho,g3up=g3up,g3dn=g3dn,ex=ex, &
+            ec=ec,vxup=vxup,vxdn=vxdn,vcup=vcup,vcdn=vcdn)
+        endif
       else if (xcgrad.eq.2) then
         call ggamt_sp_2a(is,rhoup,rhodn,g2up,g2dn,gvup,gvdn,gup2,gdn2,gupdn)
         call xcifc(xctype,n=n,rhoup=rhoup,rhodn=rhodn,gup2=gup2,gdn2=gdn2, &
@@ -135,6 +173,9 @@ do is=1,nspecies
           if (xctype(1).eq.100) then
             t1=vxup(i)+ec_coef*vcup(i)
             t2=vxdn(i)+ec_coef*vcdn(i)
+          elseif (xctype(1)==408) then !HSE
+            t1=vcup(i)+vxup(i)-ex_coef*vxsrup(i)
+            t2=vcdn(i)+vxdn(i)-ex_coef*vxsrdn(i)
           else
             t1=(1-ex_coef)*vxup(i)+ec_coef*vcup(i)
             t2=(1-ex_coef)*vxdn(i)+ec_coef*vcdn(i)
@@ -152,6 +193,9 @@ do is=1,nspecies
           if (xctype(1).eq.100) then
             t1=vxup(i)+ec_coef*vcup(i)
             t2=vxdn(i)+ec_coef*vcdn(i)
+          elseif (xctype(1)==408) then !HSE
+            t1=vcup(i)+vxup(i)-ex_coef*vxsrup(i)
+            t2=vcdn(i)+vxdn(i)-ex_coef*vxsrdn(i)
           else
             t1=(1-ex_coef)*vxup(i)+ec_coef*vcup(i)
             t2=(1-ex_coef)*vxdn(i)+ec_coef*vcdn(i)
@@ -165,17 +209,28 @@ do is=1,nspecies
         call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,bxc(:,idm), &
          lmmaxvr,0.d0,bxcmt(:,:,ias,idm),lmmaxvr)
       end do
-      
     else
 !--------------------------!
 !     spin-unpolarised     !
-!--------------------------!
+!-------------------------!
       if (xcgrad.le.0) then
         call xcifc(xctype,n=n,rho=rho,ex=ex,ec=ec,vx=vx,vc=vc)
       else if (xcgrad.eq.1) then
         call ggamt_1(is,ia,grho,g2rho,g3rho)
-        call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho,ex=ex, &
+        if (xctype(1)==23) then
+           call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho,ex=ex, &
+                   ec=ec,exsr=exsr,vx=vx,vc=vc,vxsr=vxsr,v2xsr=v2xsr)
+           call gv2xmt(is,ia,grho,vxsr,v2xsr)
+           vx=vxsr
+           ex=exsr 
+        elseif (xctype(1)==408) then
+           call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho,ex=ex, &
+                   ec=ec,exsr=exsr,vx=vx,vc=vc,vxsr=vxsr,v2xsr=v2xsr)
+           call gv2xmt(is,ia,grho,vxsr,v2xsr)
+        else
+           call xcifc(xctype,n=n,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho,ex=ex, &
                    ec=ec,vx=vx,vc=vc)
+        endif
       else if (xcgrad.eq.2) then
         call ggamt_2a(is,ia,g2rho,gvrho,grho2)
         call xcifc(xctype,n=n,rho=rho,grho2=grho2,ex=ex,ec=ec,vx=vx,vc=vc, &
@@ -184,27 +239,29 @@ do is=1,nspecies
       end if
       if (xctype(1)==100) then
          vxc(1:n)=vx(1:n)+ec_coef*vc(1:n)
+      elseif (xctype(1)==408) then !HSE
+         vxc(1:n)=vc(1:n)+vx(1:n)-ex_coef*vxsr(1:n)     
       else
          vxc(1:n)=(1-ex_coef)*vx(1:n)+ec_coef*vc(1:n)
       end if
     end if
-    
+
+
+    if ((xctype(1).ne.100).and.(xctype(1).ne.408)) then 
+       ex(1:n) = (1.d0-ex_coef)*ex(1:n)
+    elseif (xctype(1)==408) then !HSE
+       ex(1:n) = ex(1:n)-ex_coef*exsr(1:n)
+    end if
+    ec(1:n) = ec_coef*ec(1:n)
 ! convert exchange and correlation energy densities to spherical harmonics
     call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,ex,lmmaxvr, &
                0.d0,exmt(:,:,ias),lmmaxvr)
     call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,ec,lmmaxvr, &
                0.d0,ecmt(:,:,ias),lmmaxvr)
-               
-    if (xctype(1).ne.100) exmt(:,:,ias) = (1.d0-ex_coef)*exmt(:,:,ias)
-    ecmt(:,:,ias) = ec_coef*ecmt(:,:,ias)
-    
-! convert exchange-correlation potential to spherical harmonics
     call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,vxc,lmmaxvr, &
                 0.d0,vxcmt(:,:,ias),lmmaxvr)
-      
   end do
 end do
-
 !------------------------------------------!
 !     interstitial potential and field     !
 !------------------------------------------!
@@ -239,9 +296,26 @@ if (associated(input%groundstate%spin)) then
     &          vxup=vxup,vxdn=vxdn,vcup=vcup,vcdn=vcdn)
   else if (xcgrad.eq.1) then
     call ggair_sp_1(rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho,g3up,g3dn)
+    if (xctype(1)==23)  then
+       call xcifc(xctype,n=ngrtot,rhoup=rhoup,rhodn=rhodn,grho=grho,gup=gup, &
+    &          gdn=gdn,g2up=g2up,g2dn=g2dn,g3rho=g3rho,g3up=g3up,g3dn=g3dn,ex=exir, &
+    &          ec=ecir,exsr=exsr,vxsrup=vxsrup,vxsrdn=vxsrdn,v2xsrup=v2xsrup,v2xsrdn=v2xsrdn,vxup=vxup,vxdn=vxdn,vcup=vcup,vcdn=vcdn)
+       call gv2xir_spin(gup,vxsrup,v2xsrup) 
+       call gv2xir_spin(gdn,vxsrdn,v2xsrdn) 
+       vxup=vxsrup
+       vxdn=vxsrdn
+       exir=exsr
+    elseif (xctype(1)==408)  then
+       call xcifc(xctype,n=ngrtot,rhoup=rhoup,rhodn=rhodn,grho=grho,gup=gup, &
+    &          gdn=gdn,g2up=g2up,g2dn=g2dn,g3rho=g3rho,g3up=g3up,g3dn=g3dn,ex=exir, &
+    &          ec=ecir,exsr=exsr,vxsrup=vxsrup,vxsrdn=vxsrdn,v2xsrup=v2xsrup,v2xsrdn=v2xsrdn,vxup=vxup,vxdn=vxdn,vcup=vcup,vcdn=vcdn)
+       call gv2xir_spin(gup,vxsrup,v2xsrup) 
+       call gv2xir_spin(gdn,vxsrdn,v2xsrdn) 
+    else
     call xcifc(xctype,n=ngrtot,rhoup=rhoup,rhodn=rhodn,grho=grho,gup=gup, &
     &          gdn=gdn,g2up=g2up,g2dn=g2dn,g3rho=g3rho,g3up=g3up,g3dn=g3dn,ex=exir, &
     &          ec=ecir,vxup=vxup,vxdn=vxdn,vcup=vcup,vcdn=vcdn)
+    endif
   else if (xcgrad.eq.2) then
     call ggair_sp_2a(rhoup,rhodn,g2up,g2dn,gvup,gvdn,gup2,gdn2,gupdn)
     call xcifc(xctype,n=ngrtot,rhoup=rhoup,rhodn=rhodn,gup2=gup2,gdn2=gdn2, &
@@ -258,6 +332,9 @@ if (associated(input%groundstate%spin)) then
       if (xctype(1).eq.100) then
         t1 = vxup(ir)+ec_coef*vcup(ir)
         t2 = vxdn(ir)+ec_coef*vcdn(ir)
+      elseif (xctype(1)==408) then !HSE
+        t1=vcup(ir)+vxup(ir)-ex_coef*vxsrup(ir)
+        t2=vcdn(ir)+vxdn(ir)-ex_coef*vxsrdn(ir)
       else
         t1 = (1.d0-ex_coef)*vxup(ir)+ec_coef*vcup(ir)
         t2 = (1.d0-ex_coef)*vxdn(ir)+ec_coef*vcdn(ir)
@@ -275,6 +352,9 @@ if (associated(input%groundstate%spin)) then
       if (xctype(1).eq.100) then
         t1 = vxup(ir)+ec_coef*vcup(ir)
         t2 = vxdn(ir)+ec_coef*vcdn(ir)
+      elseif (xctype(1)==408) then !HSE
+        t1=vcup(ir)+vxup(ir)-ex_coef*vxsrup(ir)
+        t2=vcdn(ir)+vxdn(ir)-ex_coef*vxsrdn(ir)
       else
         t1 = (1.d0-ex_coef)*vxup(ir)+ec_coef*vcup(ir)
         t2 = (1.d0-ex_coef)*vxdn(ir)+ec_coef*vcdn(ir)
@@ -283,7 +363,11 @@ if (associated(input%groundstate%spin)) then
       bxcir(ir,1) = 0.5d0*(t1-t2)
     end do
   end if
-  if (xctype(1).ne.100) exir(:) = (1.d0-ex_coef)*exir(:)
+  if ((xctype(1).ne.100) .and. (xctype(1) .ne. 408)) then
+     exir(:) = (1.d0-ex_coef)*exir(:)
+  elseif (xctype(1)==408) then !HSE
+     exir(:) = exir(:)-ex_coef*exsr(:)
+  endif
   ecir(:) = ec_coef*ecir(:)
   
 else
@@ -295,19 +379,35 @@ else
     call xcifc(xctype,n=ngrtot,rho=rhoir,ex=exir,ec=ecir,vx=vx,vc=vc)
   else if (xcgrad.eq.1) then
     call ggair_1(grho,g2rho,g3rho)
-  call xcifc(xctype,n=ngrtot,rho=rhoir,grho=grho,g2rho=g2rho,g3rho=g3rho, &
-  &          ex=exir,ec=ecir,vx=vx,vc=vc)
+    if (xctype(1)==23)  then
+       call xcifc(xctype,n=ngrtot,rho=rhoir,grho=grho,g2rho=g2rho,g3rho=g3rho, ex=exir,&
+             ec=ecir,exsr=exsr,vx=vx,vc=vc,vxsr=vxsr,v2xsr=v2xsr)
+       call gv2xir(grho,vxsr,v2xsr) 
+       vx=vxsr
+       exir=exsr
+    elseif (xctype(1)==408)  then
+
+       call xcifc(xctype,n=ngrtot,rho=rhoir,grho=grho,g2rho=g2rho,g3rho=g3rho, ex=exir,&
+             ec=ecir,exsr=exsr,vx=vx,vc=vc,vxsr=vxsr,v2xsr=v2xsr)
+       call gv2xir(grho,vxsr,v2xsr) 
+    else
+       call xcifc(xctype,n=ngrtot,rho=rhoir,grho=grho,g2rho=g2rho,g3rho=g3rho, &
+             ex=exir,ec=ecir,vx=vx,vc=vc)
+    endif
   else if (xcgrad.eq.2) then
     call ggair_2a(g2rho,gvrho,grho2)
     call xcifc(xctype,n=ngrtot,rho=rhoir,grho2=grho2,ex=exir,ec=ecir,vx=vx, &
     &          vc=vc,dxdg2=dxdg2,dcdg2=dcdg2)
     call ggair_2b(g2rho,gvrho,vx,vc,dxdg2,dcdg2)
   end if
-  if (xctype(1).ne.100) then
+  if ((xctype(1).ne.100) .and. (xctype(1).ne.408)) then
     vxcir(1:ngrtot) = (1.d0-ex_coef)*vx(1:ngrtot)+ec_coef*vc(1:ngrtot)
     exir(:) = (1.d0-ex_coef)*exir(:)
+  elseif (xctype(1)==408) then !HSE
+     vxcir(1:ngrtot)=vc(1:ngrtot)+vx(1:ngrtot)-ex_coef*vxsr(1:ngrtot)     
+     exir(:) = exir(:)-ex_coef*exsr(:)
   else
-    vxcir(1:ngrtot) = vx(1:ngrtot)+ec_coef*vc(1:ngrtot)
+     vxcir(1:ngrtot) = vx(1:ngrtot)+ec_coef*vc(1:ngrtot)
   end if
   ecir(:) = ec_coef*ecir(:)
 
@@ -334,6 +434,7 @@ if (associated(input%groundstate%spin)) then
   deallocate(rhoup,rhodn,vxup,vxdn,vcup,vcdn)
   if (xcgrad.eq.1) then
     deallocate(grho,gup,gdn,g2up,g2dn,g3rho,g3up,g3dn)
+    if (xctype(1).eq.23 .or. xctype(1).eq.408) deallocate(exsr,vxsrup,vxsrdn,v2xsrup,v2xsrdn)
   else if (xcgrad.eq.2) then
     deallocate(g2up,g2dn)
     deallocate(gvup,gvdn)
@@ -345,12 +446,12 @@ else
   deallocate(vx,vc)
   if (xcgrad.eq.1) then
     deallocate(grho,g2rho,g3rho)
+    if (xctype(1)==23 .or. xctype(1)==408) deallocate(exsr,vxsr,v2xsr)
   else if (xcgrad.eq.2) then
     deallocate(g2rho,gvrho,grho2)
     deallocate(dxdg2,dcdg2)
   end if
 end if
-
 return
 end subroutine
 !EOC
