@@ -3,10 +3,11 @@ subroutine read_vxnl()
 
     use modmain,     only: nkpt, nstfv
     use mod_hybrids, only: vxnl
+    use modmpi,      only: rank
     implicit none
 
     ! local variables
-    integer       :: ik, nkpt_, nstfv_
+    integer       :: ik, nkpt_, ib, nstfv_
     integer       :: ikfirst, iklast
     integer       :: Recl
     character(40) :: fname
@@ -50,6 +51,12 @@ subroutine read_vxnl()
     &    Access='DIRECT', Recl=Recl)
     do ik = 1, nkpt
       read(70, Rec=ik) nkpt_, nstfv_, vxnl(:,:,ik)
+      if (rank==0) then
+        write(*,*) ik, nkpt_, nstfv_
+        do ib = 1, nstfv_
+          write(*,*) ib, vxnl(ib,ib,ik)
+        end do
+      end if
     end do ! ik
     close(70)
 
