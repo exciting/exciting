@@ -22,7 +22,7 @@ subroutine calcvxcnn
     use modmpi
     use m_getunit
     use mod_hdf5
-    use mod_hybrids, only: hybridhf
+    use mod_hybrids, only: hybridhf, vxnl
     use modxs, only: isreadstate0
 
 !!LOCAL VARIABLES:
@@ -60,6 +60,8 @@ subroutine calcvxcnn
       call readstate()
       filext = filext_save
       isreadstate0 = isreadstate0_save
+      ! read the non-local potential used in hybrids
+      call read_vxnl()
     end if
 
     ! Global array to store <n|Vxc|n>
@@ -125,7 +127,14 @@ subroutine calcvxcnn
         vxcnn(i,ikp) = vxcnn(i,ikp) + zdotc(ngp+nlotot, evecfv(:,i), 1, h, 1)
       end do ! i
 
-    enddo ! ik
+      if (hybridhf) then
+        ! setup the hybrid Vxc
+        do i = 1, nstfv
+          vxcnn(i,ikp) = input%groundstate%Hybrid%excoeff*vxnl(i,i,ikp) + vxcnn(i,ikp)
+        end do
+      end if
+
+    enddo ! ikp
 
     deallocate(h)
     deallocate(apwalm)

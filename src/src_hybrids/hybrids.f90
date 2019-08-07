@@ -23,6 +23,7 @@ Subroutine hybrids
     Implicit None
 
     integer :: ik, Recl
+    integer :: ihyb
     real(8) :: et
 ! time measurements
     Real(8) :: timetot, ts0, ts1, tsg0, tsg1, tin1, tin0, time_hyb
@@ -46,11 +47,11 @@ Subroutine hybrids
     Call timesec (tin0)
     Call init0
     Call timesec (tin1)
-    time_init0=tin1-tin0
+    time_init0 = tin1-tin0
     Call timesec (tin0)
     Call init1
     Call timesec (tin1)
-    time_init1=tin1-tin0
+    time_init1 = tin1-tin0
 
 !-------------------
 ! print info
@@ -300,6 +301,7 @@ Subroutine hybrids
       call timesec(ts0)
       if (rank==0) write(60,*)
       call calc_vxnl()
+      call write_vxnl()
       if (rank==0) write(fgw,*) 'vxnl=', sum(vxnl)
       call timesec(ts1)
       If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
@@ -307,7 +309,7 @@ Subroutine hybrids
       end if
       !------------------------------------------
       call timesec(ts0)
-      call calc_vnlmat
+      call calc_vnlmat()
       if (rank==0) write(fgw,*) 'vnlmat=', sum(vnlmat)
       call timesec(ts1)
       If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then

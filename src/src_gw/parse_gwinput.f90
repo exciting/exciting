@@ -16,7 +16,7 @@ subroutine parse_gwinput
     use modgw
     use mod_coulomb_potential, only: vccut
     use modmpi
-    use mod_hybrids, only: hybridhf, hyb_beta
+    use mod_hybrids, only: hybridhf
     implicit none
 
 ! !LOCAL VARIABLES:
@@ -319,13 +319,10 @@ subroutine parse_gwinput
 ! Special treatment in case of hybrid functionals
 !-------------------------------------------------------------------------------
     hybridhf = .false.
-    hyb_beta = 1.d0
     if (xctype(1) >= 400) then
         hybridhf = .true.
         if (.not. associated(input%groundstate%Hybrid)) &
             input%groundstate%Hybrid => getstructHybrid(emptynode)
-        hyb_beta = 1.d0 - input%groundstate%Hybrid%excoeff
-        ! write(*,*) 'hyb_beta=', hyb_beta
         ! use parameters from groundstate/hybrids for consistency
         input%gw%nempty = input%groundstate%nempty
         input%gw%ngridq = input%groundstate%ngridk

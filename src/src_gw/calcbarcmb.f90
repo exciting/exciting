@@ -16,7 +16,6 @@ subroutine calcbarcmb(iq)
     use mod_coulomb_potential
     use mod_mpi_gw, only: myrank
     use modmain
-    use mod_hybrids, only: barc_lr
 
 !!INPUT PARAMETERS:
     implicit none
@@ -25,16 +24,15 @@ subroutine calcbarcmb(iq)
 !!LOCAL VARIABLES:
     integer :: imix, jmix, igq, jgq
     real(8) :: tstart, tend, t0, t1
+    character(len=256) :: filename
+    complex(8), allocatable :: barc_lr(:,:)
     ! for diagonalization subroutine
     real(8) :: vl, vu, abstol
     integer :: il, iu, neval, lwork, info, lrwork, liwork
     complex(8), allocatable :: work(:)
     real(8),    allocatable :: rwork(:)
     integer,    allocatable :: iwork(:), ifail(:), isuppz(:)
-
     real(8), external :: dlamch
-
-    character(len=256) :: filename
 
 !!REVISION HISTORY:
 !
@@ -83,13 +81,15 @@ subroutine calcbarcmb(iq)
       !-----------------------------------------------------------
       call calcbarcmb_ipw_ipw(iq)
 
+      !----------------------------------------
+      ! Only in case of HSE self-consitent run
+      !----------------------------------------
       if ((task == 7) .and. (xctype(1)==408)) then
-        if (allocated(barc_lr)) deallocate(barc_lr)
+        ! Compute the short-range Coulomb potential
         allocate(barc_lr(matsiz,matsiz))
-        barc_lr(:,:) = 0.d0
-        call calcmpwmix(iq)
-        call calcbarcmb_lr(iq)
+        call calcbarcmb_lr(iq, barc_lr)
         barc(:,:) = barc(:,:) - barc_lr(:,:)
+        deallocate(barc_lr)
       endif
 
     case default

@@ -6,7 +6,6 @@ subroutine solve_QP_equation()
     use mod_vxc,        only: vxcnn
     use mod_selfenergy, only: selfex, selfec, sigc, znorm, freq_selfc, deltaE
     use mod_bands,      only: nomax, ikvbm
-    use mod_hybrids,    only: hyb_beta
     use mod_pade
     use m_getunit
     implicit none
@@ -17,7 +16,7 @@ subroutine solve_QP_equation()
     complex(8) :: sx, sc, de
     complex(8) :: dsigma, znk
     logical    :: converged
-    
+
     !-----------------------------------------
     ! Alignment of the chemical potential:
     !   ef + de = ef + Sigma(kf, ef + de)
@@ -29,7 +28,7 @@ subroutine solve_QP_equation()
         case(1)
             ! following Lucia Reining's book
             enk = evalfv(nomax,ikvbm)-efermi
-            sx = enk + hyb_beta*selfex(nomax,ikvbm) - vxcnn(nomax,ikvbm)
+            sx = enk + selfex(nomax,ikvbm) - vxcnn(nomax,ikvbm)
             eqp = enk
             eqp_prev = eqp
             converged = .false.
@@ -53,20 +52,20 @@ subroutine solve_QP_equation()
             enk = evalfv(nomax,ikvbm)-efermi
             call get_selfc(freq_selfc%nomeg, freq_selfc%freqs, selfec(nomax,:,ikvbm), &
                         enk, sc, dsigma)
-            de = hyb_beta*selfex(nomax,ikvbm) + sc - vxcnn(nomax,ikvbm)
+            de = selfex(nomax,ikvbm) + sc - vxcnn(nomax,ikvbm)
         case default
             write(*,*) 'Non supported values of eshift=', input%gw%selfenergy%eshift
             stop
     end select
     deltaE = dble(de)
     ! print*, 'QP energy shift delta_e = ', deltaE
-    
+
     !--------------------------------------------
     ! Solve QP equation
     !--------------------------------------------
     do ik = 1, kset%nkpt
         do ib = ibgw, nbgw
-            
+
             enk = evalfv(ib,ik)-efermi
             eqp = enk
             eqp_prev = eqp
@@ -81,7 +80,7 @@ subroutine solve_QP_equation()
                                         enk, sigc(ib,ik), dsigma )
                         znk = zone / (zone-dsigma)
                         znorm(ib,ik)  = dble(znk)
-                        eqp = enk + znorm(ib,ik)*dble(hyb_beta*selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik)) + &
+                        eqp = enk + znorm(ib,ik)*dble(selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik)) + &
                               (1.d0-znorm(ib,ik))*deltaE
                         converged = .true.
                         exit
@@ -89,7 +88,7 @@ subroutine solve_QP_equation()
                         ! Perturbative solution without renormalization
                         call get_selfc( freq_selfc%nomeg, freq_selfc%freqs, selfec(ib,:,ik), &
                                         enk, sigc(ib,ik), dsigma )
-                        eqp = enk + dble(hyb_beta*selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik))
+                        eqp = enk + dble(selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik))
                         znorm(ib,ik)  = 1.d0
                         converged = .true.
                         exit
@@ -97,7 +96,7 @@ subroutine solve_QP_equation()
                         ! Iterative solution
                         call get_selfc( freq_selfc%nomeg, freq_selfc%freqs, selfec(ib,:,ik), &
                                         eqp-deltaE, sigc(ib,ik), dsigma )
-                        eqp = enk + hyb_beta*selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik)
+                        eqp = enk + selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik)
                         znorm(ib,ik)  = 1.d0
                     case default
                         write(*,*) 'Error(solve_QP_equation) Non supported value: eqpsolver =', input%gw%selfenergy%eqpsolver
@@ -117,7 +116,7 @@ subroutine solve_QP_equation()
                 end if
 
             end do ! iter
-            
+
             if (.not.converged) then
                 write(*,*)
                 write(*,'(a,i0,a)') 'Warning(solve_QP_equation) Solution of the quasiparticle equation is not converged after ', nitermax, ' iterations!'

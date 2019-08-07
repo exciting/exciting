@@ -41,7 +41,7 @@ subroutine calcbarcmb_pw(iq)
         if ((task == 7) .and. (xctype(1)==408)) then
           ! hybrid SCF
           exp_omega = exp(-gpq2/(4.d0*omega2))
-          vc = ((4.0d0*pi)/gpq2)*(1.d0-exp_omega)
+          vc = (4.0d0*pi/gpq2)*(1.d0-exp_omega)
         else
           ! GW
           if (trim(input%gw%selfenergy%singularity) == 'rim') then

@@ -14,14 +14,6 @@ module mod_hybrids
     Logical :: hybridhf
     data hybridhf / .false. /
 
-    ! 1 - alpha 
-    real(8) :: hyb_beta
-    data hyb_beta / 1.d0 /
-
-    ! number of HF cycles
-    integer :: ihyb
-    integer :: hyb0
-
     ! non-local exchange energy
     real(8) :: exnl
 
@@ -36,12 +28,7 @@ module mod_hybrids
     ! complex(8), allocatable :: minmmat(:,:,:)
     ! complex(8), allocatable :: mincmat(:,:,:)
     ! complex(8), allocatable :: micmmat(:,:,:)
-    complex(8), allocatable :: miccmat(:,:,:)
-    
-   ! The matrix representation of the long-range bare coulomb potential in the mixed basis            
-    complex(8), allocatable :: barc_lr(:,:) !CECI, maybe I do not need
-
-
+    ! complex(8), allocatable :: miccmat(:,:,:)
 
 !*******************************************************************************
 contains
@@ -57,10 +44,10 @@ contains
         call delete_product_basis
         call delete_core_states
 
-        if (allocated(minmmat)) deallocate(minmmat)
-        if (allocated(mincmat)) deallocate(mincmat)
-        if (allocated(micmmat)) deallocate(micmmat)
-        if (allocated(miccmat)) deallocate(miccmat)
+        ! if (allocated(minmmat)) deallocate(minmmat)
+        ! if (allocated(mincmat)) deallocate(mincmat)
+        ! if (allocated(micmmat)) deallocate(micmmat)
+        ! if (allocated(miccmat)) deallocate(miccmat)
 
         nullify(input%gw%MixBasis)
         nullify(input%gw%BareCoul)

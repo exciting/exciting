@@ -201,7 +201,7 @@ subroutine calc_vxnl()
     exnl = 0.d0
     do ikp = ikfirst, iklast
       do ie1 = 1, nomax
-        exnl = exnl+kset%wkpt(ikp)*vxnl(ie1,ie1,ikp)
+        exnl = exnl + kset%wkpt(ikp)*vxnl(ie1,ie1,ikp)
       end do
     end do
 #ifdef MPI

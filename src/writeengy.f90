@@ -9,7 +9,7 @@
 Subroutine writeengy (fnum)
       Use modmain
       Use modinput
-      Use mod_hybrids, only: ihyb, hyb0,exnl
+      Use mod_hybrids, only: exnl
       Implicit None
       ! arguments
       Integer, Intent (In) :: fnum
