@@ -44,6 +44,7 @@ subroutine writevnlmat()
   do ik = 1, nkpt
     if ((ik >= ikfirst).and.(ik <= iklast)) then ! should be the right rank ?
       inquire(iolength=Recl) nkpt, nmatmax ,vnlmat(:,:,ik)
+      call getunit(fid)
       open(fid, File=fname, Action='WRITE', Form='UNFORMATTED', &
            Access='DIRECT', Status='OLD', Recl=Recl)
       write(fid, Rec=ik) nkpt, nmatmax, vnlmat(:,:,ik)
@@ -53,6 +54,7 @@ subroutine writevnlmat()
   end do
 
   inquire(iolength=Recl) exnl
+  call getunit(fid)
   open(fid, File=fname, Action='WRITE', Form='UNFORMATTED', &
         Access='DIRECT', Status='OLD', Recl=Recl)
   write(fid, Rec=nkpt+1) exnl

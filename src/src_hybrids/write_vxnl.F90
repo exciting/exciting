@@ -34,6 +34,7 @@ subroutine write_vxnl()
   do ik = 1, nkpt
     if ((ik >= ikfirst).and.(ik <= iklast)) then ! should be the right rank ?
       inquire(iolength=Recl) nkpt, nstfv, vxnl(:,:,ik)
+      call getunit(fid)
       open(fid, File=fname, Action='WRITE', Form='UNFORMATTED', &
            Access='DIRECT', Status='OLD', Recl=Recl)
       write(fid,rec=ik) nkpt, nstfv, vxnl(:,:,ik)
