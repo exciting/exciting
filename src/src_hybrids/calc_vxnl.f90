@@ -38,7 +38,6 @@ subroutine calc_vxnl()
     complex(8), external :: zdotc
 
     call cpu_time(tstart)
-    if (rank == 0) call boxmsg(fgw,'-','Calculate Vx_NL')
 
     if (allocated(evalfv)) deallocate(evalfv)
     allocate(evalfv(nstfv,kset%nkpt))
@@ -68,11 +67,6 @@ subroutine calc_vxnl()
 
     ! VB / CB state index
     call find_vbm_cbm(1,nstfv,nkpt,evalfv,efermi,nomax,numin,ikvbm,ikcbm,ikvcm)
-    if (rank==0) then
-      write(fgw,'(a,i4)') " Band index of VBM:", nomax
-      write(fgw,'(a,i4)') " Band index of CBM:", numin
-      write(fgw,*)
-    end if
     ! BZ integration weights
     call kintw()
     deallocate(evalfv)
@@ -94,8 +88,6 @@ subroutine calc_vxnl()
     ! Loop over k-points
     !---------------------------------------
     do ikp = ikfirst, iklast
-
-      write(fgw,*) 'vxnl: ', rank, ikfirst, iklast, ikp
 
       !---------------------------------------
       ! Integration over BZ
@@ -175,18 +167,6 @@ subroutine calc_vxnl()
         end do
       end do
 
-      !------------------------------------------------------------
-      ! Debugging Info
-      !------------------------------------------------------------
-      if (input%gw%debug) then
-        call linmsg(fgw,'-','')
-        call linmsg(fgw,'-',' Diagonal elements of Vx_NL_nn ')
-        write(fgw,*) 'for k-point ', ikp
-        do ie1 = 1, nstfv
-          write(fgw,'(i4,2f12.4)') ie1, vxnl(ie1,ie1,ikp)
-        end do
-      end if
-
     end do ! ikp
 
     ! clear memory
@@ -212,7 +192,6 @@ subroutine calc_vxnl()
 #endif
 
     call cpu_time(tend)
-    if (rank==0) call write_cputime(fgw,tend-tstart, 'CALC_VXNL')
 
     return
 end subroutine

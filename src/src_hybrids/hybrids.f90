@@ -302,7 +302,6 @@ Subroutine hybrids
       if (rank==0) write(60,*)
       call calc_vxnl()
       call write_vxnl()
-      if (rank==0) write(fgw,*) 'vxnl=', sum(vxnl)
       call timesec(ts1)
       If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
         write(60, '(" CPU time for vxnl (seconds)",T45 ": ", F12.2)') ts1-ts0
@@ -310,14 +309,13 @@ Subroutine hybrids
       !------------------------------------------
       call timesec(ts0)
       call calc_vnlmat()
-      if (rank==0) write(fgw,*) 'vnlmat=', sum(vnlmat)
       call timesec(ts1)
       If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
         write(60, '(" CPU time for vnlmat (seconds)",T45 ": ", F12.2)') ts1-ts0
         write(60,*)
       end if
       !------------------------------------------
-      if (input%groundstate%Hybrid%savepotential) call writevnlmat
+      if (input%groundstate%Hybrid%savepotential) call writevnlmat()
       time_hyb = time_hyb+ts1-ts0
 
       call scf_cycle(-1)

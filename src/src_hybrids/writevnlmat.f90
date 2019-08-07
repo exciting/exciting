@@ -36,7 +36,7 @@ subroutine writevnlmat()
   do ik = 1, nkpt
     ! check which rank should print
     if ((ik >= ikfirst).and.(ik <= iklast)) then
-      write(70, Rec=ik) nkpt, nmatmax ,vnlmat(:,:,ik)
+      write(70, Rec=ik) nkpt, nmatmax, vnlmat(:,:,ik)
     end if
     call barrier
   end do ! ik

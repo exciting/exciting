@@ -29,31 +29,6 @@ subroutine init_hybrids()
     if (.not.associated(input%gw%BareCoul)) &
     &  input%gw%BareCoul => getstructbarecoul(emptynode)
 
-!---------------------------------------
-! print out information on MB to INFO.OUT
-!---------------------------------------
-
-    ! Hartree-Fock related debugging info
-    fgw = 600
-    open(fgw, File='HYBRIDS.OUT', Action='WRITE', Form='FORMATTED')
-    if (rank == 0) then
-        write(fgw,*)
-        write(fgw,*) 'Mixed basis parameters:'
-        write(fgw,*) '- Interstitial:'
-        write(fgw,*) '  -- maximum |G| of IPW in gmaxvr units (gmb):', input%gw%MixBasis%gmb
-        write(fgw,*) '- MT-Spheres:'
-        write(fgw,*) '  -- l_max (lmaxmb): ', input%gw%MixBasis%lmaxmb
-        write(fgw,*) '  -- linear dependence tolerance (epsmb): ', input%gw%MixBasis%epsmb
-        write(fgw,*)
-        write(fgw,*) 'Bare Coulomb parameters:'
-        write(fgw,*) 'Maximum |G| in gmaxvr*gmb units:', input%gw%BareCoul%pwm
-        write(fgw,*) 'Error tolerance for struct. const.:', input%gw%BareCoul%stctol
-        write(fgw,*) 'Tolerance to choose basis functions from bare Coulomb &
-        &  matrix eigenvectors: ', input%gw%BareCoul%barcevtol
-        call linmsg(fgw,'=','')
-        call flushifc(fgw)
-    end if
-
 !---------------------------------------------------------
 ! Intialize auxiliary arrays used further for convenience
 !---------------------------------------------------------

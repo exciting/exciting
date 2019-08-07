@@ -3,6 +3,7 @@ subroutine write_vxnl()
   use modmain
   use mod_hybrids
   use modmpi
+  use m_getunit
 !
 !   Writes the diagonal matrix elements of the non-local potential
 !   into the file VXNL.OUT
@@ -11,44 +12,37 @@ subroutine write_vxnl()
   integer :: Recl
   integer :: ik, ikfirst, iklast
   integer :: ist
+  integer :: fid
+  character(80) :: fname
 
   ! Save < nk | \Sigma_x | nk >
 
 !$OMP CRITICAL
 
+  fname = 'VXNL.OUT'
+
+  ! overwrite existing files
+  if (rank==0) then
+    call getunit(fid)
+    open(fid, File=fname, form='UNFORMATTED', status='REPLACE')
+    close(fid)
+  endif
+  call barrier
+
   ikfirst = firstk(rank)
   iklast = lastk(rank)
-
-  inquire(IoLength=Recl) nkpt, nstfv ,vxnl(:,:,ikfirst)
-  open(70, File='VXNL.OUT', Action='WRITE', Form='UNFORMATTED', &
-  &    Access='DIRECT', status='REPLACE', Recl=Recl)
   do ik = 1, nkpt
-    ! check which rank should print
-    if ((ik >= ikfirst).and.(ik <= iklast)) then
-      write(70, Rec=ik) nkpt, nstfv ,vxnl(:,:,ik)
-    end if
+    if ((ik >= ikfirst).and.(ik <= iklast)) then ! should be the right rank ?
+      inquire(iolength=Recl) nkpt, nstfv, vxnl(:,:,ik)
+      open(fid, File=fname, Action='WRITE', Form='UNFORMATTED', &
+           Access='DIRECT', Status='OLD', Recl=Recl)
+      write(fid,rec=ik) nkpt, nstfv, vxnl(:,:,ik)
+      close(fid)
+    end if ! rank
     call barrier
-  end do ! ik
-  close(70)
-
-  ! open(70, File='VXNL.DAT', Action='WRITE', status='REPLACE')
-  ! write(70, '(I6, " : nkpt")') nkpt
-  ! write(70, '(I6, " : nstsv")') nstfv
-  ! do ik = 1, nkpt
-  !   ! check which rank should print
-  !   if ((ik >= ikfirst).and.(ik <= iklast)) then
-  !     write(70,*)
-  !     write(70, '(I6, 3G18.10, " : k-point, vkl")') ik, vkl(:,ik)
-  !     write(70, '(" (state, eigenvalue and occupancy below)")')
-  !     do ist = 1, nstfv
-  !       write(70, '(I6, 2G18.10)') ist, vxnl(ist,ist,ik)
-  !     end do
-  !     write(70,*)
-  !   end if
-  !   call barrier
-  ! end do ! ik
-  ! close(70)
+  end do
 
 !$OMP END CRITICAL
+
   return
 end subroutine
