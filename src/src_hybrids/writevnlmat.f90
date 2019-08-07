@@ -8,6 +8,7 @@ subroutine writevnlmat()
   use modmain
   use mod_hybrids
   use modmpi
+  use m_getunit
 !
 ! !DESCRIPTION:
 !   Writes the APW matrix elements of the non-local potential
@@ -23,25 +24,39 @@ subroutine writevnlmat()
   implicit none
   integer(8) :: recl
   integer :: ik, ikfirst, iklast
+  integer :: fid
+  character(80) :: fname
 
 !$OMP CRITICAL
 
+  fname = 'VNLMAT.OUT'
+
+  ! overwrite existing files
+  if (rank==0) then
+    call getunit(fid)
+    open(fid, File=fname, form='UNFORMATTED', status='REPLACE')
+    close(fid)
+  endif
+  call barrier
+
   ikfirst = firstk(rank)
   iklast = lastk(rank)
-
-  ! Save < APW' | \Sigma_x | APW >
-  inquire(IoLength=Recl) nkpt, nmatmax ,vnlmat(:,:,ikfirst)
-  open(70, File='VNLMAT.OUT', Action='WRITE', Form='UNFORMATTED', &
-  &    Access='DIRECT', status='REPLACE', Recl=Recl)
   do ik = 1, nkpt
-    ! check which rank should print
-    if ((ik >= ikfirst).and.(ik <= iklast)) then
-      write(70, Rec=ik) nkpt, nmatmax, vnlmat(:,:,ik)
-    end if
+    if ((ik >= ikfirst).and.(ik <= iklast)) then ! should be the right rank ?
+      inquire(iolength=Recl) nkpt, nmatmax ,vnlmat(:,:,ik)
+      open(fid, File=fname, Action='WRITE', Form='UNFORMATTED', &
+           Access='DIRECT', Status='OLD', Recl=Recl)
+      write(fid, Rec=ik) nkpt, nmatmax, vnlmat(:,:,ik)
+      close(fid)
+    end if ! rank
     call barrier
-  end do ! ik
-  write(70, Rec=nkpt+1) exnl
-  close(70)
+  end do
+
+  inquire(iolength=Recl) exnl
+  open(fid, File=fname, Action='WRITE', Form='UNFORMATTED', &
+        Access='DIRECT', Status='OLD', Recl=Recl)
+  write(fid, Rec=nkpt+1) exnl
+  close(fid)
 
 !$OMP END CRITICAL
   return

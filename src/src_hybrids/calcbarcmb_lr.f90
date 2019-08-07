@@ -14,6 +14,9 @@ subroutine calcbarcmb_lr(iq, barc_lr)
     real(8) :: gpq(3), gpq2
     complex(8), allocatable :: tmat(:,:)
 
+    omega_hyb = input%groundstate%Hybrid%omega
+    omega2 = omega_hyb*omega_hyb
+
     !-------------------------
     ! Compute 'mpwmix' - transformation matrix from PW to MB
     !-------------------------
@@ -25,11 +28,8 @@ subroutine calcbarcmb_lr(iq, barc_lr)
     ipw0 = 1
     if (Gamma) then
       ipw0 = 2
-      ! tmat(:,1) = -(pi/omega2)*mpwmix(:,1) !!(?)
+      singc2 = pi/omega2 / (4.d0*pi*dble(kqset%nkpt))
     end if
-
-    omega_hyb = input%groundstate%Hybrid%omega
-    omega2 = omega_hyb*omega_hyb
 
     npw = Gqbarc%ngk(1,iq)
     allocate(tmat(matsiz,npw))
@@ -38,7 +38,6 @@ subroutine calcbarcmb_lr(iq, barc_lr)
     do ipw = ipw0, npw
       gpq(1:3) = Gset%vgc(1:3,Gqbarc%igkig(ipw,1,iq))+kqset%vqc(1:3,iq)
       gpq2 = gpq(1)*gpq(1)+gpq(2)*gpq(2)+gpq(3)*gpq(3)
-      ! is missing 1/2, NO LOOK at zgemm
       exp_omega = exp(-gpq2/(4.0d0*omega2))
       vc = (4.0d0*pi/gpq2)*exp_omega
       tmat(:,ipw) = vc*mpwmix(:,ipw)

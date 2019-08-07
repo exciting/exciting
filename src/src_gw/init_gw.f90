@@ -92,6 +92,15 @@ subroutine init_gw()
     ! Mixed basis initialization
     call timesec(t0)
     call init_product_basis()
+    ! Print the product-basis info
+    if (rank==0) then
+      call boxmsg(fgw,'-',"Mixed product WF info")
+      write(fgw,*) ' Maximal number of MT wavefunctions per atom: ', lmixmax
+      write(fgw,*) ' Total number of MT wavefunctions:            ', locmatsiz
+      write(fgw,*) ' Maximal number of PW wavefunctions:          ', Gqset%ngkmax
+      write(fgw,*) ' Total number of mixed-product wavefunctions: ', matsizmax
+      write(fgw,*)
+    end if
     call timesec(t1)
     time_initmb = time_initmb+t1-t0
 

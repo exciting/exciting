@@ -7,10 +7,6 @@ subroutine init_hybrids()
     implicit none
     integer :: lmax, ik
 
-    ! initialize GW MPI environment
-    ! myrank = rank
-    ! call init_mpi_gw
-
 !---------------------------------------
 ! MB parameters are taken from GW
 !---------------------------------------

@@ -51,12 +51,12 @@ subroutine read_vxnl()
     &    Access='DIRECT', Recl=Recl)
     do ik = 1, nkpt
       read(70, Rec=ik) nkpt_, nstfv_, vxnl(:,:,ik)
-      if (rank==0) then
-        write(*,*) ik, nkpt_, nstfv_
-        do ib = 1, nstfv_
-          write(*,*) ib, vxnl(ib,ib,ik)
-        end do
-      end if
+      ! if (rank==0) then
+      !   write(*,*) ik, nkpt_, nstfv_
+      !   do ib = 1, nstfv_
+      !     write(*,*) ib, vxnl(ib,ib,ik)
+      !   end do
+      ! end if
     end do ! ik
     close(70)
 
