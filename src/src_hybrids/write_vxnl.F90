@@ -13,18 +13,15 @@ subroutine write_vxnl()
   integer :: ik, ikfirst, iklast
   integer :: ist
   integer :: fid
-  character(80) :: fname
 
   ! Save < nk | \Sigma_x | nk >
 
 !$OMP CRITICAL
 
-  fname = 'VXNL.OUT'
-
   ! overwrite existing files
   if (rank==0) then
     call getunit(fid)
-    open(fid, File=fname, form='UNFORMATTED', status='REPLACE')
+    open(fid, File=fname_vxnl, form='UNFORMATTED', status='REPLACE')
     close(fid)
   endif
   call barrier
@@ -35,7 +32,7 @@ subroutine write_vxnl()
     if ((ik >= ikfirst).and.(ik <= iklast)) then ! should be the right rank ?
       inquire(iolength=Recl) nkpt, nstfv, vxnl(:,:,ik)
       call getunit(fid)
-      open(fid, File=fname, Action='WRITE', Form='UNFORMATTED', &
+      open(fid, File=fname_vxnl, Action='WRITE', Form='UNFORMATTED', &
            Access='DIRECT', Status='OLD', Recl=Recl)
       write(fid,rec=ik) nkpt, nstfv, vxnl(:,:,ik)
       close(fid)

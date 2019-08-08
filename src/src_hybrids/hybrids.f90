@@ -103,18 +103,15 @@ Subroutine hybrids
         call flushifc(60)
     end if
 
-!---------------------------------------
-! initialise HF related input parameters
-!---------------------------------------
+    !---------------------------------------
+    ! initialise HF related input parameters
+    !---------------------------------------
     time_hyb = 0.d0
     call timesec(ts0)
     call init_hybrids()
     call timesec(ts1)
     time_hyb = time_hyb+ts1-ts0
 
-    !------------------------------------------!
-! begin the (external) self-consistent loop
-!------------------------------------------!
     ! reference density
     If (allocated(rhomtref)) deallocate(rhomtref)
     Allocate(rhomtref(lmmaxvr,nrmtmax,natmtot))
@@ -124,171 +121,122 @@ Subroutine hybrids
     !----------------------
     ! restart is requested
     !----------------------
-    if (task == 1) then
+    select case (task)
 
-      inquire(File='VNLMAT.OUT', Exist=exist)
-      if (exist) then
+      case(0)
+        !_____________________________________________________________
+        ! Initialization: PBE-DFT self-consistent run
         !
-        ! restart previous (unfinished) hybrid run
-        !
-        call timesec(ts0)
-        !______________________________
-        ! step 1: read local potential
-        string = filext
-        filext = '_PBE.OUT'
-        call readstate
-        filext = string
-        If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
-            write(string,'("Restart SCF with PBE")')
-            call printbox(60,"+",string)
-            Call flushifc(60)
-        End If
+        if (rank==0) then
+          write(60,*)
+          write(60,*) 'Performing PBE self-consistent run'
+        end if
 
-        ! perform normal DFT self-consistent run
+        ! in case of LibXC:  set PBE
+        if (xctype(1)==100) then
+          xctype_ = xctype
+          xctype = (/100, 101, 130/)
+        end if
+
         ex_coef = 0.d0
         ec_coef = 1.d0
-       ! for Libxc use PBE from Libxc
-        if (xctype(1)==100) then
-           xctype_ = xctype
-           xctype = (/100, 101, 130/)
-        end if
         call scf_cycle(-1)
-        If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
-        !if (rank == 0) then
-           call writeengy(60)
-           write(60,*)
-           write(60,'(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F18.8)') fermidos
-           call writechg(60,input%groundstate%outputlevelnumber)
-           if (fermidos<1.0d-4) call printbandgap(60)
-           call flushifc(60)
-        end if
-        !update radial functions
-        if (input%groundstate%Hybrid%updateRadial) call updateradial
 
-        !--------------------------------------------------
-        ! Inizialize mixed product basis
-        !--------------------------------------------------
-        call timesec(ts0)
-        call init_product_basis()
-        call timesec(ts1)
-        if ((input%groundstate%outputlevelnumber>1) .and. rank==0) then
-           write(60,*)
-           write(60, '(" CPU time for init_product_basis (seconds)",T45 ": ", F12.2)') ts1-ts0
-        end if
-
-        !--------------------------------------------------
-        ! Hybrid functionals settings
-        !--------------------------------------------------
-        task = 7
-        if (xctype(1) == 100) then
-           xctype = xctype_
-        end if
+        !___________________________-
+        ! Revert HYBRID settings
+        !
         ex_coef = input%groundstate%Hybrid%excoeff
         ec_coef = input%groundstate%Hybrid%eccoeff
-
-        !______________________________
-        ! Read local potential
-        call readstate
-        !______________________________
-        ! step 3: read nonlocal potential matrix
-        call getvnlmat
-        call timesec(ts1)
-        time_hyb = time_hyb+ts1-ts0
-        call scf_cycle(-1)
-        If (rank==0) Then
-            write(string,'("Hybrids restart")')
-            call printbox(60,"+",string)
-            Call flushifc(60)
-            call writeengy(60)
-            write(60,*)
-            write(60,'(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F18.8)') fermidos
-            call writechg(60,input%groundstate%outputlevelnumber)
-            if (fermidos<1.0d-4) call printbandgap(60)
-            call flushifc(60)
+        ! LibXC definitions
+        if (xctype(1) == 100) then
+          xctype = xctype_
         end if
-        If (rank==0) Then
-            write(string,'("End hybrids restart")')
-            call printbox(60,"+",string)
-            Call flushifc(60)
-        End If
 
-      endif
+        ! save PBE potential and density
+        string = filext
+        filext='_PBE.OUT'
+        call writestate()
+        filext = string
+        if (rank == 0) Then
+          write(60,*) "Storing STATE_PBE.OUT"
+          call flushifc(60)
+        end if
 
-    else
-      !_____________________________________________________________
-      ! perform normal DFT self-consistent run
-      !
-      If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
-        write(string,'("Preliminar PBE SCF")')
-        call printbox(60,"+",string)
-        Call flushifc(60)
-      End If
+        ! Inizialize mixed product basis
+        call init_product_basis()
 
-      ex_coef = 0.d0
-      ec_coef = 1.d0
-      ! for Libxc use PBE from Libxc
-      if (xctype(1)==100) then
-        xctype_ = xctype
-        xctype = (/100, 101, 130/)
-      end if
+      case(1)
+        if (rank==0) then
+          write(60,*)
+          write(60,*) 'Restarting from previous hybrid calculations'
+        end if
+        !_______________________________________________________________________________________________
+        ! step 1: read PBE potential to initialize radial parts of the LAPW basis and the product-basis
+        !
+        inquire(File='STATE_PBE.OUT', Exist=exist)
+        if (exist) then
+          string = filext
+          filext = '_PBE.OUT'
+          call readstate()
+          filext = string
+        else
+          stop 'ERROR(hybrids): Restart is not possible, STATE_PBE.OUT is missing!'
+        end if
 
-      task = 0
-      call scf_cycle(-1)
+        ! Inizialize mixed product basis
+        call init_product_basis()
 
-      ! save PBE potential and density
-      string = filext
-      filext='_PBE.OUT'
-      call writestate()
-      filext = string
-      if (rank == 0) Then
-        write(60,*) "Writing STATE_PBE.OUT"
-      end if
+        !______________________________________________
+        ! step 2: restart from a previous HYBRID cycle
+        !
+        inquire(File='VXNLMAT.OUT', Exist=exist)
+        if (exist) then
+          ! continue previous cycle
+          call readstate()
+          call read_vxnl()
+          call read_vxnlmat()
+          ex_coef = input%groundstate%Hybrid%excoeff
+          ec_coef = input%groundstate%Hybrid%eccoeff
+          task = 7
+          call olprad  ! compute the overlap radial integrals (skipped by task=7 in scf_cycle)
+          call scf_cycle(-1)
+        else
+          ! restart from PBE
+          ex_coef = 0.d0
+          ec_coef = 1.d0
+          if (xctype(1)==100) then
+            xctype_ = xctype
+            xctype = (/100, 101, 130/)
+          end if
+          call scf_cycle(-1)
+          ex_coef = input%groundstate%Hybrid%excoeff
+          ec_coef = input%groundstate%Hybrid%eccoeff
+          ! LibXC definitions
+          if (xctype(1) == 100) xctype = xctype_
+        end if
 
-      If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
-        call writeengy(60)
-        write(60,*)
-        write(60,'(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F18.8)') fermidos
-        call writechg(60,input%groundstate%outputlevelnumber)
-        if (fermidos<1.0d-4) call printbandgap(60)
-        call flushifc(60)
-      end if
-      ! update radial functions
-      if (input%groundstate%Hybrid%updateRadial) call updateradial
+      case default
+        stop 'ERROR(hybrids): Not supported task!'
 
-      !--------------------------------------------------
-      ! Inizialize mixed product basis
-      !--------------------------------------------------
-      call timesec(ts0)
-      call init_product_basis()
-      call timesec(ts1)
-      if ((input%groundstate%outputlevelnumber>1) .and. rank==0) then
-        write(60,*)
-        write(60, '(" CPU time for init_product_basis (seconds)",T45 ": ", F12.2)') ts1-ts0
-      end if
+    end select
 
-      !--------------------------------------------------
-      ! Hybrid functionals settings
-      !--------------------------------------------------
-      task = 7 ! <-- hybrids switcher
-      if (xctype(1) == 100) then
-        xctype = xctype_
-      end if
-      ex_coef = input%groundstate%Hybrid%excoeff
-      ec_coef = input%groundstate%Hybrid%eccoeff
+    !--------------------------------------------------
+    ! External SCF loop
+    !--------------------------------------------------
 
-    end if ! task selector
+    ! hybrid-functional switch
+    task = 7
 
-    ! settings for convergence and mixing
+    ! Reference density
+    rhomtref(:,:,:) = rhomt(:,:,:)
+    rhoirref(:) = rhoir(:)
+
+    ! settings for convergence and mixer
     input%groundstate%mixerswitch = 1
     input%groundstate%scfconv = 'charge'
 
-!--------------------------------------------------
-! Main loop
-!--------------------------------------------------
     do ihyb = 1, input%groundstate%Hybrid%maxscl
 
-      rhomtref(:,:,:) = rhomt(:,:,:)
-      rhoirref(:) = rhoir(:)
       If (rank==0) Then
         write(string,'("Hybrids iteration number : ", I4)') ihyb
         call printbox(60,"+",string)
@@ -301,7 +249,6 @@ Subroutine hybrids
       call timesec(ts0)
       if (rank==0) write(60,*)
       call calc_vxnl()
-      call write_vxnl()
       call timesec(ts1)
       If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
         write(60, '(" CPU time for vxnl (seconds)",T45 ": ", F12.2)') ts1-ts0
@@ -314,10 +261,11 @@ Subroutine hybrids
         write(60, '(" CPU time for vnlmat (seconds)",T45 ": ", F12.2)') ts1-ts0
         write(60,*)
       end if
-      !------------------------------------------
-      if (input%groundstate%Hybrid%savepotential) call writevnlmat()
       time_hyb = time_hyb+ts1-ts0
 
+      !--------------------------------------------------
+      ! Internal SCF loop
+      !--------------------------------------------------
       call scf_cycle(-1)
       if (rank == 0) then
           call writeengy(60)
@@ -331,25 +279,29 @@ Subroutine hybrids
       !---------------------------
       ! Convergence check
       !---------------------------
-      call chgdist(rhomtref,rhoirref)
+      call chgdist(rhomtref, rhoirref)
       if (rank==0) Then
         write(60,*)
         write(60,'(" Charge distance                   (target) : ",G13.6," (",G13.6,")")') &
-          &     chgdst, input%groundstate%epschg
+        &     chgdst, input%groundstate%epschg
       end if
-      if (chgdst .lt. input%groundstate%epschg) then
-          if (rank==0) Then
-              write(string,'("Convergence target is reached")')
-              call printbox(60,"+",string)
-              Call flushifc(60)
-          end If
-          exit ! exit ihyb-loop
+      if (chgdst < input%groundstate%epschg) then
+        if (rank==0) Then
+            write(string,'("Convergence target is reached")')
+            call printbox(60,"+",string)
+            call flushifc(60)
+        end if
+        exit ! exit ihyb-loop
+      else
+        ! update the reference
+        rhomtref(:,:,:) = rhomt(:,:,:)
+        rhoirref(:) = rhoir(:)
+        call write_vxnl()
+        if (input%groundstate%Hybrid%savepotential) call write_vxnlmat()
       end if
       et = engytot
 
-      !---------------------------
-      ! Output information: loop stoped becuase reached maximum scf step
-      !---------------------------
+      ! maximum iterations is reached
       If (ihyb == input%groundstate%Hybrid%maxscl) Then
           If (rank==0) Then
               write(string,'("Reached hybrids self-consistent loops maximum : ", I4)') &

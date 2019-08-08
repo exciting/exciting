@@ -25,10 +25,11 @@ module mod_hybrids
     ! APW matrix elements of the non-local potential
     complex(8), allocatable :: vnlmat(:,:,:)
 
-    ! complex(8), allocatable :: minmmat(:,:,:)
-    ! complex(8), allocatable :: mincmat(:,:,:)
-    ! complex(8), allocatable :: micmmat(:,:,:)
-    ! complex(8), allocatable :: miccmat(:,:,:)
+    ! File names
+    character(80) :: fname_vxnl
+    data fname_vxnl / 'VXNL.OUT' /
+    character(80) :: fname_vxnlmat
+    data fname_vxnlmat / 'VXNLMAT.OUT' /
 
 !*******************************************************************************
 contains

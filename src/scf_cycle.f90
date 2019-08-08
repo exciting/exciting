@@ -56,7 +56,7 @@ subroutine scf_cycle(verbosity)
         Call readstate
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Potential read in from STATE.OUT")')
     Else If (task == 7) Then
-        ! restart from previous PBE0 iteration
+        ! restart from previous HYBRID iteration
         continue
     Else If (task == 200) Then
         Call phveff

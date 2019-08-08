@@ -25,11 +25,7 @@ subroutine calcbarcmb_lr(iq, barc_lr)
     !-------------------------
     ! Coulomb potential in PW
     !-------------------------
-    ipw0 = 1
-    if (Gamma) then
-      ipw0 = 2
-      singc2 = pi/omega2 / (4.d0*pi*dble(kqset%nkpt))
-    end if
+    ipw0 = 1; if (Gamma) ipw0 = 2
 
     npw = Gqbarc%ngk(1,iq)
     allocate(tmat(matsiz,npw))

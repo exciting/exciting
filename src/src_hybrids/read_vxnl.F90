@@ -2,32 +2,32 @@
 subroutine read_vxnl()
 
     use modmain,     only: nkpt, nstfv
-    use mod_hybrids, only: vxnl
+    use mod_hybrids, only: vxnl, fname_vxnl
     use modmpi,      only: rank
+    use m_getunit
     implicit none
 
     ! local variables
     integer       :: ik, nkpt_, ib, nstfv_
     integer       :: ikfirst, iklast
+    integer       :: fid
     integer       :: Recl
-    character(40) :: fname
     logical       :: exist
 
 !$OMP CRITICAL
 
-    fname = 'VXNL.OUT'
-
-    inquire(File=trim(fname), Exist=exist)
+    inquire(File=fname_vxnl, Exist=exist)
     if (.not.exist) then
       write(*,*)'ERROR(read_vxnl): File VXNL.OUT does not exist!'
       stop
     end if
 
     inquire(IoLength=recl) nkpt_, nstfv_
-    open(70, File=fname, Action='READ', Form='UNFORMATTED', &
+    call getunit(fid)
+    open(fid, File=fname_vxnl, Action='READ', Form='UNFORMATTED', &
     &    Access='DIRECT', Recl=recl)
-    read(70, Rec=1) nkpt_, nstfv_
-    close(70)
+    read(fid, Rec=1) nkpt_, nstfv_
+    close(fid)
 
     ! consistency check
     if (nkpt_ /= nkpt) then
@@ -47,18 +47,13 @@ subroutine read_vxnl()
     allocate(vxnl(nstfv,nstfv,nkpt))
 
     inquire(IoLength=recl) nkpt_, nstfv_, vxnl(:,:,1)
-    open(70, File=trim(fname), Action='READ', Form='UNFORMATTED', &
+    call getunit(fid)
+    open(fid, File=fname_vxnl, Action='READ', Form='UNFORMATTED', &
     &    Access='DIRECT', Recl=Recl)
     do ik = 1, nkpt
-      read(70, Rec=ik) nkpt_, nstfv_, vxnl(:,:,ik)
-      ! if (rank==0) then
-      !   write(*,*) ik, nkpt_, nstfv_
-      !   do ib = 1, nstfv_
-      !     write(*,*) ib, vxnl(ib,ib,ik)
-      !   end do
-      ! end if
+      read(fid, Rec=ik) nkpt_, nstfv_, vxnl(:,:,ik)
     end do ! ik
-    close(70)
+    close(fid)
 
 !$OMP END CRITICAL
 

@@ -90,6 +90,8 @@ subroutine calcbarcmb(iq)
         call calcbarcmb_lr(iq, barc_lr)
         barc(:,:) = barc(:,:) - barc_lr(:,:)
         deallocate(barc_lr)
+        ! singular term in HSE
+        singc2 = pi/input%groundstate%Hybrid%omega**2 / (4.d0*pi*dble(kqset%nkpt))
       endif
 
     case default
