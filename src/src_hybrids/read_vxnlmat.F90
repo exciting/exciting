@@ -58,11 +58,6 @@ subroutine read_vxnlmat()
     end do ! ik
     close(fid)
 
-    ! Read the non-local potential  energy
-    open(fid, File='EXNL.OUT', Action='READ', Status='OLD')
-    read(fid,*) exnl
-    close(fid)
-
 !$OMP END CRITICAL
 
     return

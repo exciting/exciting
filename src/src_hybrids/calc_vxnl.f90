@@ -39,20 +39,26 @@ subroutine calc_vxnl()
 
     call cpu_time(tstart)
 
-    if (allocated(evalfv)) deallocate(evalfv)
-    allocate(evalfv(nstfv,kset%nkpt))
-    evalfv(:,:) = 0.d0
-
     !----------------------------------------
     ! Read KS eigenvalues from file EVALSV.OUT
     !----------------------------------------
-    do ik = 1, kset%nkpt
+    if (allocated(evalfv)) deallocate(evalfv)
+    allocate(evalfv(nstfv,kset%nkpt))
+    evalfv(:,:) = 0.d0
+    do ik = 1, nkpt
       call getevalfv(kset%vkl(:,ik), evalfv(:,ik))
     end do
 
+    ! VB / CB state index
+    call find_vbm_cbm(1, nstfv, kset%nkpt, evalfv, efermi, nomax, numin, ikvbm, ikcbm, ikvcm)
+
+    ! BZ integration weights
+    call kintw()
+    deallocate(evalfv)
+
 #ifdef MPI
-    ikfirst = firstofset(rank,kset%nkpt)
-    iklast  = lastofset(rank,kset%nkpt)
+    ikfirst = firstofset(rank, kset%nkpt)
+    iklast  = lastofset(rank, kset%nkpt)
 #else
     ikfirst = 1
     iklast  = kset%nkpt
@@ -65,12 +71,6 @@ subroutine calc_vxnl()
     allocate(vxnl(nstfv,nstfv,ikfirst:iklast))
     vxnl(:,:,:) = zzero
 
-    ! VB / CB state index
-    call find_vbm_cbm(1,nstfv,nkpt,evalfv,efermi,nomax,numin,ikvbm,ikcbm,ikvcm)
-    ! BZ integration weights
-    call kintw()
-    deallocate(evalfv)
-
     ! singular term prefactor
     sxs2 = 4.d0*pi*vi*singc2*kqset%nkpt
 
@@ -80,10 +80,12 @@ subroutine calc_vxnl()
     else
       mdim = nomax
     end if
+
     allocate(eveckalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveck(nmatmax,nstfv))
     allocate(eveckp(nmatmax,nstfv))
+
     !---------------------------------------
     ! Loop over k-points
     !---------------------------------------
@@ -126,7 +128,7 @@ subroutine calc_vxnl()
         allocate(minmmat(mbsiz,nstfv,1:mdim))
         minmmat(:,:,:) = zzero
         call expand_products(ik, iq, 1, nstfv, -1, 1, mdim, nomax, minmmat)
-        call delete_coulomb_potential
+        call delete_coulomb_potential()
 
         do ie1 = 1, nstfv
           do ie2 = ie1, nstfv
@@ -184,6 +186,7 @@ subroutine calc_vxnl()
         exnl = exnl + kset%wkpt(ikp)*vxnl(ie1,ie1,ikp)
       end do
     end do
+
 #ifdef MPI
     call MPI_AllReduce(MPI_IN_PLACE, exnl, 1, &
     &                  MPI_DOUBLE_PRECISION, MPI_SUM, &

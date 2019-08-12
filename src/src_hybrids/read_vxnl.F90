@@ -1,18 +1,18 @@
 
 subroutine read_vxnl()
 
-    use modmain,     only: nkpt, nstfv
-    use mod_hybrids, only: vxnl, fname_vxnl
+    use modmain,     only: nkpt, nstfv, wkpt
+    use mod_hybrids, only: vxnl, fname_vxnl, nomax
     use modmpi,      only: rank
     use m_getunit
     implicit none
 
     ! local variables
-    integer       :: ik, nkpt_, ib, nstfv_
-    integer       :: ikfirst, iklast
-    integer       :: fid
-    integer       :: Recl
-    logical       :: exist
+    integer  :: ik, nkpt_, ib, nstfv_
+    integer  :: ikfirst, iklast
+    integer  :: fid
+    integer  :: Recl
+    logical  :: exist
 
 !$OMP CRITICAL
 

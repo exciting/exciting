@@ -375,7 +375,7 @@
             </xs:annotation>
           </xs:attribute>
 
-          <xs:attribute ex:importance="essential" ex:unit="" name="nempty" type="xs:integer" use="required" default="100">
+          <xs:attribute ex:importance="essential" ex:unit="" name="nempty" type="xs:integer" use="optional" default="0">
             <xs:annotation><xs:documentation>
               Number of empty states to compute both the screened Coulomb potential and the self-energy.
             </xs:documentation></xs:annotation>
@@ -417,7 +417,7 @@
 	          </xs:documentation></xs:annotation>
           </xs:attribute>
 
-          <xs:attribute ex:importance="essential" ex:unit="" name="ngridq" type="integertriple" default="0 0 0" use="required">
+          <xs:attribute ex:importance="essential" ex:unit="" name="ngridq" type="integertriple" default="0 0 0" use="optional">
             <xs:annotation><xs:documentation>
                 Size of the <inlinemath>\mathbf{k/q}</inlinemath>-point grids.
             </xs:documentation></xs:annotation>

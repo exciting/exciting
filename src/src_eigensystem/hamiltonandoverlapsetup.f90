@@ -1,7 +1,7 @@
 !
 !
 !
-! Copyright (C) 2002-2014 exciting team 
+! Copyright (C) 2002-2014 exciting team
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -49,7 +49,7 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
       Do is = 1, nspecies
         Do ia = 1, natoms (is)
 !--Hamiltonian--
-! APW-APW part 
+! APW-APW part
           Call timesec (ts0)
           ias = idxas (ia, is)
           apwi=dcmplx(0d0,0d0)
@@ -118,7 +118,7 @@ endif
 
 !What if it is, say, LAPW calculation without any local orbitals?
 !No problem! Andris gives the permission. :-)
-        if (nlorb(is).ne.0) then 
+        if (nlorb(is).ne.0) then
 ! APW-LO part
           Call timesec (ts0)
           maxnlo=size(haloij,1)
@@ -176,7 +176,7 @@ if (.false.) then
                        system%overlap%za, &  ! C
                        system%overlap%rank &      ! LDC ... leading dimension of C
                        )
-          else 
+          else
             deallocate(zm)
             allocate(zm(ngp,haaijSize))
             zm=zzero
@@ -184,7 +184,7 @@ if (.false.) then
             Do l3 = 0, input%groundstate%lmaxmat
               Do m3 = - l3, l3
               lm3 = idxlm (l3, m3)
-               
+
                 Do io2 = 1, apword (l3, is)
                   Do io1 = 1, apword (l3, is)
 !                    zm(if3+io2,:)=zm(if3+io2,:)+h1aa(io1,io2,l3,ias)*conjg(apwi2(:,if3+io1))

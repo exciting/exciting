@@ -23,18 +23,16 @@ Subroutine hybrids
     Implicit None
 
     integer :: ik, Recl
-    integer :: ihyb
+    integer :: ihyb, maxscl
     real(8) :: et
 ! time measurements
-    Real(8) :: timetot, ts0, ts1, tsg0, tsg1, tin1, tin0, time_hyb
-    character*(77) :: string
+    real(8) :: timetot, ts0, ts1, tsg0, tsg1, tin1, tin0, time_hyb
+    character(80) :: string
 
     ! Charge distance
     Real (8), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
     Real (8), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
-    integer :: xctype_(3)
     logical :: exist
-    character(80) :: filext0
 
 !! TIME - Initialisation segment
     call timesec(tsg0)
@@ -98,7 +96,7 @@ Subroutine hybrids
 !! TIME - End of initialisation segment
 
     if (rank==0) then
-        write(string,'("Hybrids module started")')
+        write(string,'("* Hybrids module started")')
         call printbox(60,"*",string)
         call flushifc(60)
     end if
@@ -131,26 +129,14 @@ Subroutine hybrids
           write(60,*)
           write(60,*) 'Performing PBE self-consistent run'
         end if
-
-        ! in case of LibXC:  set PBE
-        if (xctype(1)==100) then
-          xctype_ = xctype
-          xctype = (/100, 101, 130/)
-        end if
-
         ex_coef = 0.d0
         ec_coef = 1.d0
         call scf_cycle(-1)
-
-        !___________________________-
-        ! Revert HYBRID settings
-        !
         ex_coef = input%groundstate%Hybrid%excoeff
         ec_coef = input%groundstate%Hybrid%eccoeff
-        ! LibXC definitions
-        if (xctype(1) == 100) then
-          xctype = xctype_
-        end if
+
+        ! Kinetic energy of core states (is not going to be updated)
+        call energykncr()
 
         ! save PBE potential and density
         string = filext
@@ -161,18 +147,21 @@ Subroutine hybrids
           write(60,*) "Storing STATE_PBE.OUT"
           call flushifc(60)
         end if
-
+        !________________________________
         ! Inizialize mixed product basis
         call init_product_basis()
 
       case(1)
-        if (rank==0) then
+        !----------------------------------------------
+        ! Initialization from previous hybrid SCF run
+        !----------------------------------------------
+        if (rank == 0) then
           write(60,*)
-          write(60,*) 'Restarting from previous hybrid calculations'
+          write(60,*) 'Restart from previous hybrid calculations'
+          call flushifc(60)
         end if
         !_______________________________________________________________________________________________
         ! step 1: read PBE potential to initialize radial parts of the LAPW basis and the product-basis
-        !
         inquire(File='STATE_PBE.OUT', Exist=exist)
         if (exist) then
           string = filext
@@ -182,38 +171,25 @@ Subroutine hybrids
         else
           stop 'ERROR(hybrids): Restart is not possible, STATE_PBE.OUT is missing!'
         end if
-
-        ! Inizialize mixed product basis
-        call init_product_basis()
-
-        !______________________________________________
-        ! step 2: restart from a previous HYBRID cycle
         !
-        inquire(File='VXNLMAT.OUT', Exist=exist)
-        if (exist) then
-          ! continue previous cycle
-          call readstate()
-          call read_vxnl()
-          call read_vxnlmat()
-          ex_coef = input%groundstate%Hybrid%excoeff
-          ec_coef = input%groundstate%Hybrid%eccoeff
-          task = 7
-          call olprad  ! compute the overlap radial integrals (skipped by task=7 in scf_cycle)
-          call scf_cycle(-1)
-        else
-          ! restart from PBE
-          ex_coef = 0.d0
-          ec_coef = 1.d0
-          if (xctype(1)==100) then
-            xctype_ = xctype
-            xctype = (/100, 101, 130/)
-          end if
-          call scf_cycle(-1)
-          ex_coef = input%groundstate%Hybrid%excoeff
-          ec_coef = input%groundstate%Hybrid%eccoeff
-          ! LibXC definitions
-          if (xctype(1) == 100) xctype = xctype_
-        end if
+        ! Core/Valence radial functions and integrals required for scf_cycle() + task=7
+        ! (initialzed from PBE)
+        call gencore()          ! generate the core wavefunctions and densities
+        call linengy()          ! find the new linearization energies
+        call genapwfr()         ! generate the APW radial functions
+        call genlofr(.false.)   ! generate the local-orbital radial functions
+        call olprad()           ! compute the overlap radial integrals
+        call energykncr()       ! core kinetic energy
+        !
+        ! Inizialize mixed-product basis
+        call init_product_basis()
+        !_____________________________________________________________________________________
+        ! step 2: Read hybrid density and potential and get prepared for scf_cycle() + task=7
+        call read_vxnlmat()
+        call readstate()
+        call readfermi()
+        call hmlint()
+        call genmeffig()
 
       case default
         stop 'ERROR(hybrids): Not supported task!'
@@ -227,6 +203,9 @@ Subroutine hybrids
     ! hybrid-functional switch
     task = 7
 
+    ex_coef = input%groundstate%Hybrid%excoeff
+    ec_coef = input%groundstate%Hybrid%eccoeff
+
     ! Reference density
     rhomtref(:,:,:) = rhomt(:,:,:)
     rhoirref(:) = rhoir(:)
@@ -238,8 +217,9 @@ Subroutine hybrids
     do ihyb = 1, input%groundstate%Hybrid%maxscl
 
       If (rank==0) Then
-        write(string,'("Hybrids iteration number : ", I4)') ihyb
+        write(string,'("+ Hybrids iteration number : ", I4)') ihyb
         call printbox(60,"+",string)
+        if (rank==0) write(60,*)
         Call flushifc(60)
       End If
 
@@ -247,10 +227,9 @@ Subroutine hybrids
       ! Calculate the non-local potential
       !-----------------------------------
       call timesec(ts0)
-      if (rank==0) write(60,*)
       call calc_vxnl()
       call timesec(ts1)
-      If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
+      if ((input%groundstate%outputlevelnumber>1) .and.rank==0) then
         write(60, '(" CPU time for vxnl (seconds)",T45 ": ", F12.2)') ts1-ts0
       end if
       !------------------------------------------
@@ -296,8 +275,10 @@ Subroutine hybrids
         ! update the reference
         rhomtref(:,:,:) = rhomt(:,:,:)
         rhoirref(:) = rhoir(:)
-        call write_vxnl()
-        if (input%groundstate%Hybrid%savepotential) call write_vxnlmat()
+        if (input%groundstate%Hybrid%savepotential) then
+          call write_vxnl()
+          call write_vxnlmat()
+        end if
       end if
       et = engytot
 
@@ -315,7 +296,7 @@ Subroutine hybrids
     end do ! ihyb
 
     if (rank==0) then
-        write(string,'("Hybrids module stopped")')
+        write(string,'("+ Hybrids module stopped")')
         call printbox(60,"+",string)
         call flushifc(60)
     end if
@@ -323,11 +304,12 @@ Subroutine hybrids
 !-------------------------------------!
 !   output timing information
 !-------------------------------------!
-!! TIME - Fifth IO segment
+! TIME - Fifth IO segment
     call timesec(ts0)
     if (rank==0) then
 !____________________
 ! Close support files
+!
 ! close the TOTENERGY.OUT file
         close(61)
 ! close the RMSDVEFF.OUT file
@@ -345,7 +327,7 @@ Subroutine hybrids
     call timesec(ts1)
     timeio=ts1-ts0+timeio
 
-!! TIME - End of fifth IO segment
+! TIME - End of fifth IO segment
     Call timesec(tsg1)
     If ((rank .Eq. 0).and.(input%groundstate%outputlevelnumber>1)) then
       write(string,'("Timings (seconds)")')
@@ -392,18 +374,6 @@ Subroutine hybrids
       call printbox(60,"=",string)
       close (60)
     endif
-
-!----------------------------------------
-! Save HF energies into binary file
-!----------------------------------------
-
-    Inquire (IoLength=Recl) kset%nkpt, nstsv, kset%vkl(:,1), evalsv(:,1)
-    Open(70, File='EVALHF.OUT', Action='WRITE', Form='UNFORMATTED', &
-    &    Access='DIRECT', status='REPLACE', Recl=Recl)
-    do ik = 1, kqset%nkpt
-       write(70, Rec=ik) kqset%nkpt, nstsv, kqset%vkl(:,ik), evalsv(:,kset%ik2ikp(ik))
-    end do ! ik
-    Close(70)
 
 !----------------------------------------
 ! Clean data

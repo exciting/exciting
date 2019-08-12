@@ -78,8 +78,8 @@ test10::
 	cd test10 && perl assert.pl
 
 test11::
-	cd test11/run-pbe0-hf  && ../../$(EXE)
-	cd test11/run-pbe0-oep && ../../$(EXE)
+	cd test11/run-pbe0 && ../../$(EXE)
+	cd test11/run-hse && ../../$(EXE)
 	cd test11 && perl assert.pl 
 
 cleantests::

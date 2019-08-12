@@ -350,12 +350,11 @@ subroutine parse_gwinput
 !-------------------------------------------------------------------------------
 ! Number of the empty bands used in GW code
 !-------------------------------------------------------------------------------
-    if (input%gw%nempty<1) then
+    if (input%gw%nempty < 1) then
         if (rank==0) write(fgw,*) 'WARNING(parse_gwinput): Number of empty states is not specified!'
         if (rank==0) write(fgw,*) '  This parameter must be carefully chosen based on the convergence tests'
-        if (rank==0) write(fgw,*) '  Too large values make GW calculations very time consuming'
         if (rank==0) write(fgw,*)
-        if (rank==0) write(fgw,*) '  Used default (small) value for input%gw%nempty'
+        if (rank==0) write(fgw,*) '  Use the default (too small) value for input%gw%nempty'
         input%gw%nempty = 10
     end if
     ! overwrite the GS value to be able to run scf_cycle()

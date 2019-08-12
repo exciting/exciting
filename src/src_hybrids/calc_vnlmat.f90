@@ -41,44 +41,46 @@ subroutine calc_vnlmat
     !------------------------------------------!
     if (allocated(vnlmat)) deallocate(vnlmat)
     allocate(vnlmat(nmatmax,nmatmax,ikfirst:iklast))
-    vnlmat(:,:,:) = zzero
+    vnlmat = zzero
     allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv))
+    apwalm = zzero
     allocate(evec(nmatmax,nstfv))
+    evec = zzero
 
     do ik = ikfirst, iklast
 
         ! matching coefficients
-        call match(ngk(1,ik),gkc(:,1,ik),tpgkc(:,:,1,ik), &
-        &          sfacgk(:,:,1,ik),apwalm(:,:,:,:,1))
+        call match(ngk(1,ik), gkc(:,1,ik), tpgkc(:,:,1,ik), &
+        &          sfacgk(:,:,1,ik), apwalm(:,:,:,:,1))
 
         ! Hamiltonian and overlap setup
         nmatp = nmat(1,ik)
-        call newsystem(system,input%groundstate%solver%packedmatrixstorage,nmatp)
-        call hamiltonandoverlapsetup(system,ngk(1,ik),apwalm, &
-        &                            igkig(:,1,ik),vgkc(:,:,1,ik))
+        call newsystem(system, input%groundstate%solver%packedmatrixstorage, nmatp)
+        call hamiltonandoverlapsetup(system, ngk(1,ik), apwalm, &
+        &                            igkig(:,1,ik), vgkc(:,:,1,ik))
 
         ! c
-        call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evec)
+        call getevecfv(vkl(:,ik), vgkl(:,:,:,ik), evec)
 
         ! conjg(c)*S
         allocate(temp(nstfv,nmatp))
-        call zgemm('c','n',nstfv,nmatp,nmatp, &
-        &          zone,evec(1:nmatp,:),nmatp, &
-        &          system%overlap%za,nmatp, &
-        &          zzero,temp,nstfv)
+        call zgemm('c', 'n', nstfv, nmatp, nmatp, &
+        &          zone, evec(1:nmatp,:), nmatp, &
+        &          system%overlap%za, nmatp, &
+        &          zzero, temp, nstfv)
 
         ! Vnl*conjg(c)*S
         allocate(temp1(nstfv,nmatp))
-        call zgemm('n','n',nstfv,nmatp,nstfv, &
-        &          zone,vxnl(:,:,ik),nstfv, &
-        &          temp,nstfv,zzero, &
-        &          temp1,nstfv)
+        call zgemm('n', 'n', nstfv, nmatp, nstfv, &
+        &          zone, vxnl(:,:,ik), nstfv, &
+        &          temp, nstfv, zzero, &
+        &          temp1, nstfv)
 
         ! V^{NL}_{GG'} = conjg[conjg(c)*S]*Vx*conjg(c)*S
-        call zgemm('c','n',nmatp,nmatp,nstfv, &
-        &          zone,temp,nstfv, &
-        &          temp1,nstfv,zzero, &
-        &          vnlmat(1:nmatp,1:nmatp,ik),nmatp)
+        call zgemm('c', 'n', nmatp, nmatp, nstfv, &
+        &          zone, temp, nstfv, &
+        &          temp1, nstfv, zzero, &
+        &          vnlmat(1:nmatp,1:nmatp,ik), nmatp)
 
         call deletesystem(system)
         deallocate(temp)

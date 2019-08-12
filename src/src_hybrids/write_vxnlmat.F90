@@ -35,14 +35,6 @@ subroutine write_vxnlmat()
     call barrier
   end do
 
-  ! Non-local potential energy
-  if (rank == 0) then
-    call getunit(fid)
-    open(fid, File='EXNL.OUT', Action='WRITE')
-    write(fid,*) exnl
-    close(fid)
-  end if
-
 !$OMP END CRITICAL
   return
 end subroutine

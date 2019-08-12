@@ -309,32 +309,22 @@ endif
         End Do
         Deallocate (evecsv, c)
 
-      else if (associated(input%groundstate%Hybrid)) then
+      else if (task == 7) then
         !------------------
         ! HF-based hybrids
         !------------------
-        if (input%groundstate%Hybrid%exchangetypenumber == 1) then
-          if (task == 7) then
-            engykn = 0.d0
-            do ik = 1, nkpt
-              do ist = 1, nstfv
-                engykn = engykn + wkpt(ik)*occsv(ist,ik)*engyknst(ist,ik)
-              end do
-            end do
-            engykn = engykn + engykncr
-          else
-            ! Default way
-            engykn =  evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
-            call energykncr
-          end if
-        Else
-          ! OEP-Hybrids: Default way
-           engykn =  evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
-        end if
+        engykn = engykncr ! Importantly, engykncr should be computed first with PBE!
+        do ik = 1, nkpt
+          do ist = 1, nstfv
+            engykn = engykn + wkpt(ik)*occsv(ist,ik)*engyknst(ist,ik)
+          end do
+        end do
 
       else
-        !Default way
+
+        ! Default way
         engykn =  evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
+
       end if
 
 !------------------------------!

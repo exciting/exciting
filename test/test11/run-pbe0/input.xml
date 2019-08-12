@@ -16,8 +16,6 @@
     rgkmax="6.0"
     ngridk="2 2 2"
     xctype="HYB_PBE0"
-    epschg="1.d-4"
     >
-    <Hybrid exchangetype="HF" excoeff="0.25"/>
   </groundstate>
 </input>

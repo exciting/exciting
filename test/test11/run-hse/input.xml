@@ -14,11 +14,8 @@
   <groundstate
     do="fromscratch"
     rgkmax="6.0"
-    ngridk="2 2 2" vkloff="0.25 0.50 0.625"
-    xctype="HYB_PBE0"
-    maxscl="1"
+    ngridk="2 2 2"
+    xctype="HYB_HSE"
     >
-    <Hybrid exchangetype="OEP" excoeff="0.25"/>
-    <OEP maxitoep="100" convoep="1d-6"/>
   </groundstate>
 </input>

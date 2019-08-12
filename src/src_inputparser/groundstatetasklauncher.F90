@@ -16,10 +16,12 @@ Subroutine groundstatetasklauncher
         ! set the default values if tddft element not present
         input%groundstate%solver => getstructsolver (emptynode)
     End If
-    If (((xctype(2).Ge.400).Or.(xctype(1).Ge.400)).and.(.not.associated(input%groundstate%Hybrid))) Then
-           input%groundstate%Hybrid => getstructHybrid(emptynode)
+    ! default (HF-based) hybrid functionals
+    If ((xctype(1) >= 400).and.(.not.associated(input%groundstate%Hybrid))) Then
+        input%groundstate%Hybrid => getstructHybrid(emptynode)
     End If
-    If  (associated(input%groundstate%Hybrid)) Then
+    ! EXX-OEP-based hybrid functionals
+    If (associated(input%groundstate%Hybrid)) Then
         If (input%groundstate%Hybrid%exchangetypenumber .Eq. 2) Then
             If (.not.associated(input%groundstate%OEP)) Then
                input%groundstate%OEP => getstructOEP (emptynode)
@@ -28,7 +30,7 @@ Subroutine groundstatetasklauncher
     End If
     If (input%groundstate%xctypenumber .Lt. 0) Then
         If (.not.associated(input%groundstate%OEP)) Then
-           input%groundstate%OEP => getstructOEP (emptynode)
+           input%groundstate%OEP => getstructOEP(emptynode)
         End If
     End If
     If (input%groundstate%do .Eq. "fromscratch") Then
