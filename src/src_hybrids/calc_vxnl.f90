@@ -6,11 +6,8 @@
 subroutine calc_vxnl()
 ! !USES:
     use modmain
-    use mod_hybrids,           only: kset, vxnl, eveckalm, eveckpalm, eveck, eveckp, &
-                                     vxnl, kqset, minmmat, exnl, fgw, Gamma, ikcbm, ikvbm, ikvcm, nomax, numin, &
-                                     matsiz, mbsiz, ncg, vi, kiw, ciw, corind, Gqset, Gkqset, singc2, gammapoint, &
-                                     locmatsiz, evalfv
-    use mod_coulomb_potential, only: barc, delete_coulomb_potential, vccut, vmat, barcev
+    use mod_hybrids, only: vxnl, exnl, evalfv, kset, nomax, numin, ikvbm, ikcbm, ikvcm
+
     use modfvsystem
     use modmpi
 !
@@ -22,20 +19,9 @@ subroutine calc_vxnl()
 !BOC
     implicit none
 
-    integer(4) :: ikp, ik, jk, iq, ikp_
-    integer(4) :: ie1, ie2, ie3, icg, icg1
-    integer(4) :: ist, l, im
-    integer(4) :: i, j, k, jst, ispn
-    integer(4) :: is, ia, ias, ic
-    integer(4) :: n, nmdim, m, mdim
-    real(8)    :: tstart, tend, sxs2
-    complex(8) :: mvm, zt1, vc
-    integer    :: ikfirst, iklast
-
-    complex(8), allocatable :: minm(:,:,:)
-    complex(8), allocatable :: evecsv(:,:)
-
-    complex(8), external :: zdotc
+    integer(4) :: ik, ib
+    integer(4) :: ikfirst, iklast, COMM_LEVEL_2
+    real(8)    :: tstart, tend
 
     call cpu_time(tstart)
 
@@ -57,141 +43,42 @@ subroutine calc_vxnl()
     deallocate(evalfv)
 
 #ifdef MPI
-    ikfirst = firstofset(rank, kset%nkpt)
-    iklast  = lastofset(rank, kset%nkpt)
+    if (rank == 0) write(*,*) "Computing non-local potential"
+    ikfirst = firstofset(mod(rank, nkpt), nkpt)
+    iklast = lastofset(mod(rank, nkpt), nkpt)
+    write(*,*) "On proc", rank, "do ik", ikfirst," to ", iklast
+    ! create communicator object for each k-point
+    call MPI_COMM_SPLIT(MPI_COMM_WORLD, ikfirst,  rank/nkpt, COMM_LEVEL_2, ierr)
+    write(*,*) "proc ", rank, " does color ", ikfirst, " with key(rank)", rank/nkpt
 #else
     ikfirst = 1
-    iklast  = kset%nkpt
+    iklast = nkpt
 #endif
 
-    !------------------------------------------!
     ! Matrix elements of non-local potential   !
-    !------------------------------------------!
     if (allocated(vxnl)) deallocate(vxnl)
     allocate(vxnl(nstfv,nstfv,ikfirst:iklast))
     vxnl(:,:,:) = zzero
 
-    ! singular term prefactor
-    sxs2 = 4.d0*pi*vi*singc2*kqset%nkpt
-
-    if ((input%gw%coreflag=='all').or. &
-    &   (input%gw%coreflag=='xal')) then
-      mdim = nomax+ncg
-    else
-      mdim = nomax
-    end if
-
-    allocate(eveckalm(nstfv,apwordmax,lmmaxapw,natmtot))
-    allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
-    allocate(eveck(nmatmax,nstfv))
-    allocate(eveckp(nmatmax,nstfv))
-
     !---------------------------------------
     ! Loop over k-points
     !---------------------------------------
-    do ikp = ikfirst, iklast
-
-      !---------------------------------------
-      ! Integration over BZ
-      !---------------------------------------
-      do iq = 1, kqset%nkpt
-
-        Gamma = gammapoint(kqset%vqc(:,iq))
-
-        ! Set the size of the basis for the corresponding q-point
-        matsiz = locmatsiz+Gqset%ngk(1,iq)
-        call diagsgi(iq)
-        call calcmpwipw(iq)
-
-        !------------------------------------
-        ! Calculate the bare Coulomb matrix
-        !------------------------------------
-        call calcbarcmb(iq)
-        call setbarcev(0.d0)
-
-        !------------------------------------------------------------
-        ! Calculate the M^i_{nm}(k,q) matrix elements for given k and q
-        !------------------------------------------------------------
-        ik  = kset%ikp2ik(ikp)
-        jk  = kqset%kqid(ik,iq)
-
-        ! k-q vector
-        call getevecfv(kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), eveck)
-        eveckp = conjg(eveck)
-        ! k vector
-        call getevecfv(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), eveck)
-
-        call expand_evec(ik,'t')
-        call expand_evec(jk,'c')
-
-        ! M^i_{nm}+M^i_{cm}
-        allocate(minmmat(mbsiz,nstfv,1:mdim))
-        minmmat(:,:,:) = zzero
-        call expand_products(ik, iq, 1, nstfv, -1, 1, mdim, nomax, minmmat)
-        call delete_coulomb_potential()
-
-        do ie1 = 1, nstfv
-          do ie2 = ie1, nstfv
-            zt1 = zzero
-            do ie3 = 1, mdim
-              if (ie3 <= nomax) then
-                mvm = zdotc(mbsiz, minmmat(:,ie1,ie3), 1, minmmat(:,ie2,ie3), 1)
-                zt1 = zt1 - kiw(ie3,jk)*mvm
-              else
-                !=============================
-                ! Core electron contribution
-                !=============================
-                icg = ie3 - nomax
-                is  = corind(icg,1)
-                ia  = corind(icg,2)
-                ic  = corind(icg,3)
-                mvm = zdotc(mbsiz, minmmat(:,ie1,ie3), 1, minmmat(:,ie2,ie3), 1)
-                ias = idxas(ia,is)
-                zt1 = zt1 - ciw(ic,ias)*mvm
-              end if
-            end do ! ie3
-            vxnl(ie1,ie2,ikp) = vxnl(ie1,ie2,ikp) + zt1
-          end do ! ie2
-          !__________________________
-          ! add singular term (q->0)
-          if (Gamma.and.(ie1<=nomax) ) then
-            vxnl(ie1,ie1,ikp) = vxnl(ie1,ie1,ikp) - sxs2*kiw(ie1,ik)
-          end if
-        end do ! ie1
-
-        deallocate(minmmat)
-
-      end do ! iq
-
-      do ie1 = 1, nstfv
-        do ie2 = ie1+1, nstfv
-          vxnl(ie2,ie1,ikp) = conjg(vxnl(ie1,ie2,ikp))
-        end do
-      end do
-
-    end do ! ikp
-
-    ! clear memory
-    deallocate(eveck)
-    deallocate(eveckp)
-    deallocate(eveckalm)
-    deallocate(eveckpalm)
-
-    !---------------------------------------------------------------
-    ! Calculate the non-local exchange energy
-    !---------------------------------------------------------------
+    ! each process does a subset
     exnl = 0.d0
-    do ikp = ikfirst, iklast
-      do ie1 = 1, nomax
-        exnl = exnl + kset%wkpt(ikp)*vxnl(ie1,ie1,ikp)
+    do ik = ikfirst, iklast
+      ! Calculate the non-local potential
+      call calc_vxnl_k(ik, COMM_LEVEL_2)
+      ! Calculate the non-local exchange energy
+      do ib = 1, nomax
+        exnl = exnl + kset%wkpt(ik)*vxnl(ib,ib,ik)
       end do
-    end do
+    end do ! ikp
 
 #ifdef MPI
     call MPI_AllReduce(MPI_IN_PLACE, exnl, 1, &
     &                  MPI_DOUBLE_PRECISION, MPI_SUM, &
     &                  MPI_COMM_WORLD, ierr)
-    call barrier
+    call barrier()
 #endif
 
     call cpu_time(tend)

@@ -13,21 +13,21 @@ module mod_misc_gw
 ! shortcut for atomic position array
     real(8) :: atposl(3,_MAXATOMS_,_MAXSPECIES_)
 ! lengths of the basis vectors
-    real(8) :: alat(3)      
+    real(8) :: alat(3)
 ! 2*pi/a, 2*pi/b, 2*pi/c
     real(8) :: pia(3)
 ! 1/omega - reciprocal unitcell volume
-    real(8) :: vi 
+    real(8) :: vi
 ! spin-polarized flag
     logical :: spinpol
 ! Ha --> eV
     real(8), parameter :: hev=27.21138505d0
-! Check if the point is \Gamma    
+! Check if the point is \Gamma
     logical :: Gamma
-    
+
     ! Characteristic function in real space
     complex(8), allocatable :: zfunir(:)
-    
+
 contains
 
 !-------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ contains
         implicit none
         integer :: i, is, ia, ias
         integer :: ig, ifg
-    
+
 ! reciprocal cell volume
         vi = 1.0d0/omega
 
@@ -54,11 +54,11 @@ contains
             do ia = 1, natoms(is)
                 ias = idxas(ia,is)
 ! shortcut for atomic positions
-                atposl(:,ia,is) = & 
+                atposl(:,ia,is) = &
                &  input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
             end do
         end do
-        
+
         ! FFT of the characteristic function
         if (allocated(zfunir)) deallocate(zfunir)
         allocate(zfunir(ngrtot))
@@ -68,11 +68,11 @@ contains
           zfunir(ifg) = conjg(cfunig(ig))
         end do
         call zfftifc(3,ngrid,1,zfunir)
-        
+
         return
      end subroutine
 
-!-------------------------------------------------------------------------------     
+!-------------------------------------------------------------------------------
 
      logical function gammapoint(vec)
         implicit none
