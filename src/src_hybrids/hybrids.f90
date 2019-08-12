@@ -223,6 +223,9 @@ Subroutine hybrids
         Call flushifc(60)
       End If
 
+      ! to insure correct reading from GS files
+      splittfile = .False.
+
       !-----------------------------------
       ! Calculate the non-local potential
       !-----------------------------------
