@@ -154,5 +154,5 @@ subroutine calcbarcmb(iq)
     call timesec(tend)
     time_barcmb = time_barcmb+tend-tstart
 
-end subroutine ! calcbarcmb
+end subroutine
 !EOC

@@ -14,16 +14,16 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   ! !USES:
       Use modinput
       Use modmain
-      Use mod_Gkvector, only: ngkmax
-      Use mod_APW_LO, only: apwordmax
-      Use mod_atoms, only: natmtot
-      Use mod_muffin_tin, only: lmmaxapw
-      Use mod_eigensystem, only: nmatmax, h1on, h1aa, h1loa, h1lolo
-      Use mod_eigenvalue_occupancy, only: nstfv
+      Use mod_Gkvector,              only: ngkmax
+      Use mod_APW_LO,                only: apwordmax
+      Use mod_atoms,                 only: natmtot
+      Use mod_muffin_tin,            only: lmmaxapw
+      Use mod_eigensystem,           only: nmatmax, h1on, h1aa, h1loa, h1lolo
+      Use mod_eigenvalue_occupancy,  only: nstfv
       Use mod_potential_and_density, only: ex_coef
       Use modfvsystem
-      Use mod_hybrids, only: vnlmat
-      use mod_misc, only: task
+      Use mod_hybrids,               only: vnlmat
+      use mod_misc,                  only: task
       use m_plotmat
 !
   ! !INPUT/OUTPUT PARAMETERS:
@@ -79,12 +79,12 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       !write( fname, '("olp/olpcal",3I3.3)') nint( vkl( :, ik)*1000)
       !call writematlab( zm( 1:nmatp, 1:nmatp), fname)
 
-  !------------------------------------------------------------------------!
-  !     If Hybrid potential is used apply the non-local exchange potential !
-  !------------------------------------------------------------------------!
-     if (task == 7) then
+    !-------------------------------------------------!
+    !  Generalized KS scheme: add non-local potential !
+    !-------------------------------------------------!
+    if (task == 7) then
         system%hamilton%za(:,:) = system%hamilton%za(:,:) + ex_coef*vnlmat(1:nmatp,1:nmatp,ik)
-     end if
+    end if
 
   !------------------------------------!
   !     solve the secular equation     !
@@ -110,8 +110,12 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
      !write(*,*)
      deallocate(zm,zm2)
 
-     ! Kinetic energy in the case of HF-hybrid functionals
-     if (task == 7) call kinetic_energy(ik, evecfv, apwalm, ngp, vgpc, igpig)
+     !--------------------------------------------------------!
+     ! Kinetic energy in the case of the generalized KS scheme
+     !--------------------------------------------------------!
+     if (task == 7) then
+        call kinetic_energy(ik, evecfv, apwalm, ngp, vgpc, igpig)
+     end if
 
 if (input%groundstate%ValenceRelativity.eq.'iora*') then
 ! normalise large components
