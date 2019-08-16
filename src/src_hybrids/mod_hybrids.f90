@@ -3,9 +3,10 @@
 !
 module mod_hybrids
 
-    use modinput
     use modmain
     use modgw
+    use mod_coulomb_potential, only: delete_coulomb_potential
+    use mod_misc_gw, only : gammapoint
     use modmpi, only: rank
 
     implicit none
