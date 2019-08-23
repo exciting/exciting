@@ -185,7 +185,6 @@ Subroutine hybrids
         call init_product_basis()
         !_____________________________________________________________________________________
         ! step 2: Read hybrid density and potential and get prepared for scf_cycle() + task=7
-        call read_vxnlmat()
         call readstate()
         call readfermi()
         call hmlint()
@@ -241,14 +240,19 @@ Subroutine hybrids
       call timesec(ts1)
       If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
         write(60, '(" CPU time for vnlmat (seconds)",T45 ": ", F12.2)') ts1-ts0
-        write(60,*)
       end if
       time_hyb = time_hyb+ts1-ts0
 
       !--------------------------------------------------
       ! Internal SCF loop
       !--------------------------------------------------
+      call timesec(ts0)
       call scf_cycle(-1)
+      call timesec(ts1)
+      If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
+        write(60, '(" CPU time for scf_cycle (seconds)",T45 ": ", F12.2)') ts1-ts0
+        write(60,*)
+      end if
       if (rank == 0) then
           call writeengy(60)
           write(60,*)
@@ -272,16 +276,13 @@ Subroutine hybrids
             write(string,'("Convergence target is reached")')
             call printbox(60,"+",string)
             call flushifc(60)
+            if (ihyb > 1) call write_vxnl()
         end if
         exit ! exit ihyb-loop
       else
         ! update the reference
         rhomtref(:,:,:) = rhomt(:,:,:)
         rhoirref(:) = rhoir(:)
-        if (input%groundstate%Hybrid%savepotential) then
-          call write_vxnl()
-          call write_vxnlmat()
-        end if
       end if
       et = engytot
 

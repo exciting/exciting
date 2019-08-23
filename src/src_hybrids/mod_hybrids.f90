@@ -20,8 +20,6 @@ module mod_hybrids
 
     ! non-local exchange potential
     complex(8), allocatable :: vxnl(:,:,:)
-    complex(8), allocatable :: vxnlcc(:,:)
-    complex(8), allocatable :: bxnl(:,:,:)
 
     ! APW matrix elements of the non-local potential
     complex(8), allocatable :: vnlmat(:,:,:)
@@ -45,11 +43,6 @@ contains
         ! deallocate mixed-basis stuff
         call delete_product_basis
         call delete_core_states
-
-        ! if (allocated(minmmat)) deallocate(minmmat)
-        ! if (allocated(mincmat)) deallocate(mincmat)
-        ! if (allocated(micmmat)) deallocate(micmmat)
-        ! if (allocated(miccmat)) deallocate(miccmat)
 
         nullify(input%gw%MixBasis)
         nullify(input%gw%BareCoul)

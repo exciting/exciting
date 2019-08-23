@@ -2,7 +2,6 @@
 subroutine write_vxnl()
   use modmain
   use mod_hybrids
-  use modmpi
   use m_getunit
 !
 !   Writes the diagonal matrix elements of the non-local potential
@@ -14,31 +13,21 @@ subroutine write_vxnl()
   integer :: ist
   integer :: fid
 
-  ! Save < nk | \Sigma_x | nk >
-
 !$OMP CRITICAL
 
   ! overwrite existing files
-  if (rank==0) then
-    call getunit(fid)
-    open(fid, File=fname_vxnl, form='UNFORMATTED', status='REPLACE')
-    close(fid)
-  endif
-  call barrier
+  call getunit(fid)
+  open(fid, File=fname_vxnl, form='UNFORMATTED', status='REPLACE')
+  close(fid)
 
-  ikfirst = firstk(rank)
-  iklast = lastk(rank)
+  inquire(iolength=Recl) nkpt, nstfv, vxnl(:,:,ik)
+  call getunit(fid)
+  open(fid, File=fname_vxnl, Action='WRITE', Form='UNFORMATTED', &
+       Access='DIRECT', Status='OLD', Recl=Recl)
   do ik = 1, nkpt
-    if ((ik >= ikfirst).and.(ik <= iklast)) then ! should be the right rank ?
-      inquire(iolength=Recl) nkpt, nstfv, vxnl(:,:,ik)
-      call getunit(fid)
-      open(fid, File=fname_vxnl, Action='WRITE', Form='UNFORMATTED', &
-           Access='DIRECT', Status='OLD', Recl=Recl)
       write(fid,rec=ik) nkpt, nstfv, vxnl(:,:,ik)
-      close(fid)
-    end if ! rank
-    call barrier
   end do
+  close(fid)
 
 !$OMP END CRITICAL
 
