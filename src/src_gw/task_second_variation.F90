@@ -2,10 +2,11 @@
 subroutine task_second_variation()
 
     use modmain
-    use modgw,  only: evalqp, evalks, evalfv, ibgw, nbgw, kset, kqset, Gkqset, &
-                      eferks, eferqp
-    use modmpi, only: rank
-    use modxs,  only: isreadstate0
+    use modgw,       only: evalqp, evalks, evalfv, ibgw, nbgw, kset, kqset, Gkset, Gkqset, &
+                           eferks, eferqp
+    use mod_hybrids, only: hybridhf
+    use modmpi,      only: rank
+    use modxs,       only: isreadstate0
 
     implicit none
     integer(4) :: ikp, ik, ib, nst
@@ -64,15 +65,26 @@ subroutine task_second_variation()
     if (allocated(apwalm)) deallocate(apwalm)
     allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
     do ikp = 1, kset%nkpt
-        ik = kset%ikp2ik(ikp)
-        call match(Gkqset%ngk(1,ik), &
-                   Gkqset%gkc(:,1,ik), &
-                   Gkqset%tpgkc(:,:,1,ik), &
-                   Gkqset%sfacgk(:,:,1,ik),&
-                   apwalm)
-        call get_evec_gw(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
-        ! Warning: global k-points data correspond to reducek=.false.
-        call seceqnsv(ik, apwalm, evalqp(1:nstfv,ikp), evecfv, evecsv) ! a lot of problems with global GS variables!
+        if (hybridhf) then
+            ! reduced k-grid is assumed by default
+            call match(Gkset%ngk(1,ikp), &
+                       Gkset%gkc(:,1,ikp), &
+                       Gkset%tpgkc(:,:,1,ikp), &
+                       Gkset%sfacgk(:,:,1,ikp),&
+                       apwalm)
+            call get_evec_gw(kset%vkl(:,ikp), Gkset%vgkl(:,:,:,ikp), evecfv)
+            call seceqnsv(ikp, apwalm, evalqp(1:nstfv,ikp), evecfv, evecsv)
+        else
+            ! default GW definition correspond to reducek=.false.
+            ik = kset%ikp2ik(ikp)
+            call match(Gkqset%ngk(1,ik), &
+                       Gkqset%gkc(:,1,ik), &
+                       Gkqset%tpgkc(:,:,1,ik), &
+                       Gkqset%sfacgk(:,:,1,ik),&
+                       apwalm)
+            call get_evec_gw(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
+            call seceqnsv(ik, apwalm, evalqp(1:nstfv,ikp), evecfv, evecsv)
+        end if
     end do
     deallocate(evecfv)
     deallocate(evecsv)
@@ -82,8 +94,12 @@ subroutine task_second_variation()
     if (allocated(evalqp)) deallocate(evalqp)
     allocate(evalqp(nstsv,kset%nkpt))
     do ikp = 1, kset%nkpt
-        ik = kset%ikp2ik(ikp)
-        evalqp(:,ikp) = evalsv(:,ik)
+        if (hybridhf) then
+            evalqp(:,ikp) = evalsv(:,ikp)
+        else
+            ik = kset%ikp2ik(ikp)
+            evalqp(:,ikp) = evalsv(:,ik)
+        end if
     end do
     deallocate(evalsv)
 
