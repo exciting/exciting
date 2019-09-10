@@ -143,6 +143,7 @@ Subroutine occupy
                              nstsv, nkpt, evalsv, &
                              ntet, tnodes, wtet, tvol, &
                              efermi, egap, fermidos)
+         ! write(*,*) 'occupy: ', efermi, egap, fermidos
          ! Calculate state occupation numbers
          call tetiw(nkpt, ntet, nstsv, evalsv, tnodes, wtet, tvol, efermi, occsv)
          do ik = 1, nkpt

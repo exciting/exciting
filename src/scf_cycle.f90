@@ -275,9 +275,8 @@ subroutine scf_cycle(verbosity)
 ! end k-point loop -------------------------------------------------------------
 
 #ifdef MPI
-        call mpi_allgatherv_ifc(nkpt, inplace=.True., rlen=nstsv, rbuf=evalsv)
-        if (task==7) call mpi_allgatherv_ifc(nkpt, inplace=.True., rlen=nstfv, rbuf=engyknst)
-        call barrier()
+        call mpi_allgatherv_ifc(nkpt, inplace=.False., rlen=nstsv, rbuf=evalsv)
+        if (task==7) call mpi_allgatherv_ifc(nkpt, inplace=.False., rlen=nstfv, rbuf=engyknst)
 #endif
 
 !-----------------------------------------------

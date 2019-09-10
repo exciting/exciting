@@ -47,6 +47,7 @@ subroutine calc_vxnl()
 
     ! VB / CB state index
     call find_vbm_cbm(1, nstfv, kset%nkpt, evalfv, efermi, nomax, numin, ikvbm, ikcbm, ikvcm)
+    ! write(*,*) 'calc_vxnl: ', nomax, numin, efermi
 
     ! BZ integration weights
     call kintw()

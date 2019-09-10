@@ -41,7 +41,7 @@ Subroutine init1
       real (8) :: d1,d2,d12,t1,t2
       Real (8) :: blen(3), lambdab
       logical :: wannierband
-      
+
 ! external functions
       Complex (8) gauntyry
       External gauntyry
@@ -65,7 +65,7 @@ Subroutine init1
           vclp3d(:,1) = input%properties%fermisurfaceplot%plot3d%box%origin%coord(:)
           vclp3d(:,2) = input%properties%fermisurfaceplot%plot3d%box%pointarray(1)%point%coord(:)
           vclp3d(:,3) = input%properties%fermisurfaceplot%plot3d%box%pointarray(2)%point%coord(:)
-          vclp3d(:,4) = input%properties%fermisurfaceplot%plot3d%box%pointarray(3)%point%coord(:)         
+          vclp3d(:,4) = input%properties%fermisurfaceplot%plot3d%box%pointarray(3)%point%coord(:)
         else
           np3d(:)=(/20,20,20/)
           vclp3d(:,1)=(/0.d0,0.d0,0.d0/)
@@ -148,7 +148,7 @@ Subroutine init1
            vclp2d(:,3) = input%properties%fermisurfaceplot%plot2d%parallelogram%pointarray(2)%point%coord(:)
            ! generate 2D grid of k-points
            vl1(:) = vclp2d(:,2)-vclp2d(:,1)
-           vl2(:) = vclp2d(:,3)-vclp2d(:,1)    
+           vl2(:) = vclp2d(:,3)-vclp2d(:,1)
            vc1(:) = bvec(:,1)*vl1(1)+bvec(:,2)*vl1(2)+bvec(:,3)*vl1(3)
            vc2(:) = bvec(:,1)*vl2(1)+bvec(:,2)*vl2(2)+bvec(:,3)*vl2(3)
            d1 = sqrt(vc1(1)**2+vc1(2)**2+vc1(3)**2)
@@ -193,10 +193,10 @@ Subroutine init1
            & input%structure%crystal%basevect(2, :)**2+&
            & input%structure%crystal%basevect(3, :)**2)) + 1
          End If
-! if nktot is set (gt 0), determine the k-point grid automatically from nktot, 
+! if nktot is set (gt 0), determine the k-point grid automatically from nktot,
 ! the total number of k-points
          If (input%groundstate%nktot.gt.0) Then
-            blen(:)=sqrt(bvec(1,:)**2+bvec(2,:)**2+bvec(3,:)**2)           
+            blen(:)=sqrt(bvec(1,:)**2+bvec(2,:)**2+bvec(3,:)**2)
             lambdab=Dble((input%groundstate%nktot/(blen(1)*blen(2)*blen(3)))**(1.d0/3.d0))
             input%groundstate%ngridk (:) = Max0(1,Int &
            & (lambdab*blen(:)+input%structure%epslat))
@@ -214,7 +214,7 @@ Subroutine init1
          boxl(1, 2) = boxl(1, 2) + 1.d0
          boxl(2, 3) = boxl(2, 3) + 1.d0
          boxl(3, 4) = boxl(3, 4) + 1.d0
-         
+
 ! allocate the reduced k-point set arrays
          nkptnr = input%groundstate%ngridk(1) * &
          &        input%groundstate%ngridk(2) * &
@@ -232,7 +232,7 @@ Subroutine init1
          Allocate (ikmap(0:input%groundstate%ngridk(1)-1, &
          &               0:input%groundstate%ngridk(2)-1, &
          &               0:input%groundstate%ngridk(3)-1))
-         
+
 ! allocate the non-reduced k-point set arrays
          If (allocated(ivknr)) deallocate (ivknr)
          Allocate (ivknr(3,nkptnr))
@@ -246,7 +246,7 @@ Subroutine init1
          Allocate (ikmapnr(0:input%groundstate%ngridk(1)-1, &
          &                 0:input%groundstate%ngridk(2)-1, &
          &                 0:input%groundstate%ngridk(3)-1))
-        
+
 !------------------------------
 ! generate the k-point set
 !------------------------------
@@ -259,7 +259,7 @@ Subroutine init1
          &            input%groundstate%ngridk, boxl, nkpt, &
          &            ikmap, ivk, vkl, vkc, wkpt)
          nkpt_ptr => nkpt
-        
+
 #ifdef TETRA
   ! call to module routine
          If (associated(input%xs)) Then
@@ -440,11 +440,12 @@ Subroutine init1
       If (init1norealloc) Go To 20
 #endif
 ! allocate second-variational arrays
-      If (allocated(evalsv)) deallocate (evalsv)
-      Allocate (evalsv(nstsv,nkpt))
-      If (allocated(occsv)) deallocate (occsv)
-      Allocate (occsv(nstsv,nkpt))
-      occsv (:, :) = 0.d0
+      if (allocated(evalsv)) deallocate(evalsv)
+      allocate(evalsv(nstsv,nkpt))
+      evalsv(:,:) = 0.d0
+      if (allocated(occsv)) deallocate(occsv)
+      allocate(occsv(nstsv,nkpt))
+      occsv(:, :) = 0.d0
       if (allocated(engyknst)) deallocate(engyknst)
       allocate(engyknst(nstfv,nkpt))
       engyknst(:,:) = 0d0
@@ -501,7 +502,7 @@ Subroutine init1
       End Do
       If (allocated(gntryy)) deallocate (gntryy)
       If (allocated(gntnonz)) deallocate (gntnonz)
-      If (allocated(gntnonzlm1)) deallocate (gntnonzlm1) 
+      If (allocated(gntnonzlm1)) deallocate (gntnonzlm1)
       If (allocated(gntnonzlm2)) deallocate (gntnonzlm2)
       If (allocated(gntnonzlm3)) deallocate (gntnonzlm3)
       If (allocated(gntnonzlindex)) deallocate (gntnonzlindex)
