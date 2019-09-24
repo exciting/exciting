@@ -331,10 +331,8 @@ subroutine scf_cycle(verbosity)
 #endif
 
 #ifdef MPI
-        If ((input%groundstate%xctypenumber.Lt.0).Or. &
-        &   (xctype(2).Ge.400).Or. &
-        &   (xctype(1).Ge.400)) &
-        &    Call mpiresumeevecfiles()
+        ! EXX case
+        If (input%groundstate%xctypenumber.Lt.0) Call mpiresumeevecfiles()
 #endif
 
         if ((input%groundstate%tpartcharges).and.(rank==0)) then
