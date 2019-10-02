@@ -9,15 +9,15 @@ subroutine calcbarcmb_pw(iq)
     integer(4), intent(in) :: iq ! index of the q-point
 
     integer(4) :: i, ipw, ipw0, npw
-    real(8) :: omega_hyb, omega2, exp_omega
-    real(8) :: gpq(3), gpq2
+    real(8) :: omega2, exp_omega
+    real(8) :: gpq2
     real(8),    allocatable :: vc(:)
     complex(8), allocatable :: tmat(:,:)
 
-    if ((task == 7) .and. (xctype(1)==408)) then
-      ! hybrid SCF
-      omega_hyb = input%groundstate%Hybrid%omega
-      omega2 = omega_hyb*omega_hyb
+    if (Gamma) then
+      ipw0 = 2
+    else
+      ipw0 = 1
     end if
 
     npw = Gqbarc%ngk(1,iq)
@@ -38,11 +38,27 @@ subroutine calcbarcmb_pw(iq)
 
       case('none')
 
-        if ((task == 7) .and. (xctype(1)==408)) then
-          ! hybrid SCF
-          exp_omega = exp(-gpq2/(4.d0*omega2))
-          vc = (4.0d0*pi/gpq2)*(1.d0-exp_omega)
+        if (task == 7) then
+
+          ! Hybrid functionals
+          select case (xctype(1))
+            case(406, 407)
+              ! PBE0
+              call vcoul_3d(Gamma, iq, Gqbarc, vc)
+            case(408)
+              ! HSE
+              omega2 = input%groundstate%Hybrid%omega**2
+              do ipw = ipw0, npw
+                gpq2 = Gqbarc%gkc(ipw,1,iq)**2
+                exp_omega = exp(-gpq2/(4.d0*omega2))
+                vc(ipw) = (4.0d0*pi/gpq2)*(1.d0-exp_omega)
+              end do
+            case default
+              stop 'Error(calcbarcmb_pw): Not supported xstype!'
+            end select
+
         else
+
           ! GW
           if (trim(input%gw%selfenergy%singularity) == 'rim') then
               call vcoul_3d_RIM(Gamma, input%gw%ngridq, iq, Gqbarc, vc)
@@ -50,15 +66,10 @@ subroutine calcbarcmb_pw(iq)
           else
               call vcoul_3d(Gamma, iq, Gqbarc, vc)
           end if
-       end if
+
+       end if ! task
 
     end select
-
-    if (Gamma) then
-        ipw0 = 2
-    else
-        ipw0 = 1
-    end if
 
     allocate(tmat(matsiz,npw))
     do ipw = ipw0, npw
