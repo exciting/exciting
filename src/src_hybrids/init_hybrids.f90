@@ -52,5 +52,13 @@ subroutine init_hybrids()
     lmax = max(input%groundstate%lmaxapw+1, 2*(input%gw%mixbasis%lmaxmb+1))
     call calcgauntcoef(lmax)
 
+    !-------------------------------------------------------------------------------
+    ! Matrix block size
+    !-------------------------------------------------------------------------------
+    mblksiz = input%gw%mblksiz
+    if (mblksiz <= 0) then
+        mblksiz = 1000000 ! just a big number to account for all available states
+    end if
+
     return
 end subroutine

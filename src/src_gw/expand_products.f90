@@ -166,6 +166,7 @@ contains
             case(1)
               ! calculate v^{1/2}*M^i_{nm}
               allocate(minm_(matsiz,nstart:nend,mstart:mend))
+              ! call calcminm(ik,iq,nstart,nend,mstart,mend,minm_)
               call calcminm2(ik,iq,nstart,nend,mstart,mend,minm_)
               call zgemm('c','n', &
               &          mbsiz,nmdim,matsiz, &
