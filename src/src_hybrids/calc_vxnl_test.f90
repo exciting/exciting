@@ -97,7 +97,9 @@ subroutine calc_vxnl_test()
       nblk = mdim / mblksiz
       if (mod(mdim, mblksiz) /= 0) nblk = nblk+1
     end if
-    if (rank==0) write(60,*) 'mdim, nblk, mblksiz: ', mdim, nblk, mblksiz
+    if ((input%groundstate%outputlevelnumber>1) .and.rank==0) then
+      write(60,*) 'mdim, nblk, mblksiz: ', mdim, nblk, mblksiz
+    end if
 
     !---------------------------------------
     ! Integration over BZ
@@ -108,7 +110,7 @@ subroutine calc_vxnl_test()
 
       ! Set the size of the basis for the corresponding q-point
       matsiz = locmatsiz+Gqset%ngk(1,iq)
-      
+
       call diagsgi(iq)
       call calcmpwipw(iq)
 
@@ -118,13 +120,13 @@ subroutine calc_vxnl_test()
       call calcbarcmb(iq)
       call setbarcev(input%gw%barecoul%barcevtol)
 
-      if (rank==0) then
+      if ((input%groundstate%outputlevelnumber>1) .and.rank==0) then
         write(60,*) '------ iq = ', iq
         write(60,*) 'locmatsiz = ', locmatsiz
         write(60,*) '      ngk = ', Gqset%ngk(1,iq)
         write(60,*) '   matsiz = ', matsiz
         write(60,*) '    mbsiz = ', mbsiz
-      end if 
+      end if
 
       !---------------------------------------
       ! Loop over k-points
@@ -159,17 +161,19 @@ subroutine calc_vxnl_test()
 
               mstart = 1 + (iblk-1)*mblksiz
               mend = min(mdim, mstart+mblksiz-1)
-              
+
               ! m-block M^i_{nm}
               allocate(minmmat(mbsiz,1:nstfv,mstart:mend))
-              msize = sizeof(minmmat)*b2mb
-              if (rank==0) write(60,*) '(calc_vxnl_test): iblk, mstart, mend, size(minmmat) = ', iblk, mstart, mend, msize
+              if ((input%groundstate%outputlevelnumber>1) .and.rank==0) then
+                msize = sizeof(minmmat)*b2mb
+                write(60,*) '(calc_vxnl_test): iblk, mstart, mend, size(minmmat) = ', iblk, mstart, mend, msize
+              end if
 
               call expand_products(ik, iq, 1, nstfv, -1, mstart, mend, nomax, minmmat)
 
               ! sum over occupied states
               do ie3 = mstart, mend
-                if (ie3 <= nomax) then               
+                if (ie3 <= nomax) then
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ie12, ie1, ie2, mvm)
 !$OMP DO SCHEDULE(DYNAMIC)
@@ -183,9 +187,9 @@ subroutine calc_vxnl_test()
 #ifdef USEOMP
 !$OMP END DO
 !$OMP END PARALLEL
-#endif            
+#endif
                 else
-                    ! Core electron contribution              
+                    ! Core electron contribution
                     icg = ie3 - nomax
                     is  = corind(icg,1)
                     ia  = corind(icg,2)
@@ -204,7 +208,7 @@ subroutine calc_vxnl_test()
 #ifdef USEOMP
 !$OMP END DO
 !$OMP END PARALLEL
-#endif                   
+#endif
                 end if ! core
               end do ! ie3
 
