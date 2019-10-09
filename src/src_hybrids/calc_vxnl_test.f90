@@ -99,7 +99,7 @@ subroutine calc_vxnl_test()
     end if
     if ((input%groundstate%outputlevelnumber>1) .and.rank==0) then
       write(60,*) 'Info(calc_vxnl_test):'
-      write(60,'(a,3i8)') '  mdim, nblk, mblksiz: ', mdim, nblk, mblksiz
+      write(60,'(a,3i8)') '    mdim, nblk, mblksiz: ', mdim, nblk, mblksiz
     end if
 
     !---------------------------------------
@@ -132,7 +132,7 @@ subroutine calc_vxnl_test()
           call setbarcev(input%gw%barecoul%barcevtol)
 
           if ((input%groundstate%outputlevelnumber>1) .and.rank==0) then
-            write(60,*) '---> iq = ', iq
+            write(60,'(a,3i8)')  '    ---> rank, ikp, iq = ', rank, ikp, iq
             write(60,'(a,4i8)') '    locmatsiz, ngk, matsiz, mbsiz:', &
                                 locmatsiz, Gqset%ngk(1,iq), matsiz, mbsiz
           end if
