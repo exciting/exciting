@@ -43,7 +43,7 @@ subroutine parse_gwinput
     if (input%gw%debug) then
         if (rank==0) write(fgw,*) 'The code run in debugging mode'
         if (rank>0) then
-            if (rank==0) write(fgw,*) 'WARNING(parse_gwinput): Debug option is not supposed to &
+            if (rank==0) write(fgw,*) 'WARNING(parse_gwinput): Debug option is not designed to &
            & be used in parallel ...'
         end if
         input%gw%debug = input%gw%debug.and.(rank==0)
@@ -199,6 +199,7 @@ subroutine parse_gwinput
             if (rank==0) write(fgw,*) " aaa: Y. Nakatsukasa, O. Sete, L. N. Trefethen, The AAA algorithm for rational approximation, SIAM J. Sci. Comp. 40 (2018), A1494-A1522"
         case default
             if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal value for input%gw%SelfEnergy%actype'
+            stop
     end select
     if (rank==0) write(fgw,*) 'Scheme to treat singularities:'
     select case (trim(input%gw%selfenergy%singularity))
@@ -332,9 +333,9 @@ subroutine parse_gwinput
     !-------------------------------------------------------------------------------
     ! Band range where GW corrections are applied
     !-------------------------------------------------------------------------------
-    if (associated(input%groundstate%spin) .or. (ldapu /= 0)) then
+    if (isspinorb()) then
         input%gw%ibgw = 1
-        input%gw%nbgw = int(chgval/2.d0) + input%groundstate%nempty + 1 ! nstfv from GS
+        input%gw%nbgw = int(chgval/2.d0) + input%gw%nempty + 1
     end if
     ibgw = input%gw%ibgw
     nbgw = input%gw%nbgw

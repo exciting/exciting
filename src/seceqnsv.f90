@@ -263,12 +263,10 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
                         i = ist
                         j = jst + nstfv
                      End If
-!                     If (i .Le. j) Then
                         evecsv (i, j) = evecsv (i, j) + zfmtinp &
                        & (.True., input%groundstate%lmaxmat, nrcmt(is), &
                        & rcmt(:, is), lmmaxvr, wfmt1(:, :, ist), &
                        & wfmt2(:, :, k))
-!                     End If
                   End Do
                End Do
             End Do

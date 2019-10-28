@@ -18,25 +18,23 @@ subroutine vmat_ldapu(is, ia, ngk, apwalm, evecfv, vnn)
     ! external functions
     complex(8), external :: zfmtinp
 
+    ! compute the first-variational wavefunctions
     allocate(wfmt1(lmmaxvr,nrcmtmax))
     wfmt1 = zzero
-    allocate(wfmt2(lmmaxvr,nrcmtmax))
-    wfmt2 = zzero
-
-    ! compute the first-variational wavefunctions
     call wavefmt(input%groundstate%lradstep, &
                  input%groundstate%lmaxvr, is, ia, ngk, apwalm, &
                  evecfv, lmmaxvr, wfmt1)
 
-    l = llu(is)
-    nm = 2*l + 1
-    lm = idxlm(l,-l)
     ias = idxas(ia,is)
+    l = llu(is)
+    lm = idxlm(l,-l)
+    nm = 2*l+1
 
+    allocate(wfmt2(lmmaxvr,nrcmtmax))
+    wfmt2 = zzero
     call zgemm('N', 'N', nm, nrcmt(is), nm, zone, &
                vmatlu(lm,lm,1,1,ias), lmmaxlu, &
-               wfmt1(lm,1), lmmaxvr, &
-               zzero, wfmt2(lm,1), lmmaxvr)
+               wfmt1(lm,1), lmmaxvr, zone, wfmt2(lm,1), lmmaxvr)
 
     vnn = vnn + zfmtinp(.True., input%groundstate%lmaxmat, nrcmt(is), &
                         rcmt(:,is), lmmaxvr, wfmt1, wfmt2)

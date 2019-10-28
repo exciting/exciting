@@ -50,9 +50,9 @@ contains
         call MPI_Comm_size(mycomm, nproc_tot, ierr)
         call MPI_Comm_rank(mycomm, myrank, ierr)
         call MPI_get_processor_name(processor_name, namelen, ierr)
-        write(*,*)
-        write(*,*) "Process ", myrank, " of ", nproc_tot, " running on ", trim(processor_name)
-        write(*,*)
+        ! write(*,*)
+        ! write(*,*) "Process ", myrank, " of ", nproc_tot, " running on ", trim(processor_name)
+        ! write(*,*)
 #else
         nproc_tot = 1
         nproc_col = 1

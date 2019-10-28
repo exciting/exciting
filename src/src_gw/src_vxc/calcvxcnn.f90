@@ -142,6 +142,7 @@ subroutine calcvxcnn
     deallocate(vxcraa)
     deallocate(vxcrloa)
     deallocate(vxcrlolo)
+    if (hybridhf) deallocate(vxnl)
 
 #ifdef MPI
     call mpi_allgatherv_ifc(kset%nkpt, nstfv, zbuf=vxcnn)

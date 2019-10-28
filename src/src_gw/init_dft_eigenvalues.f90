@@ -25,12 +25,11 @@ subroutine init_dft_eigenvalues()
     !---------------------------------------------
     do ikp = 1, kset%nkpt
       ik = kset%ikp2ik(ikp)
-      call getevalfv(kqset%vkl(:,ik), evalfv(:,ikp))
-      ! write(*,*) 'ik=', ik
-      ! do ib = 1, nstfv
-      !     write(*,*) ib, evalfv(ib,ik)
-      ! end do
-      ! write(*,*)
+      if (ldapu == 0) then
+        call getevalfv(kqset%vkl(:,ik), evalfv(:,ikp))
+      else
+        call getevalsv(kqset%vkl(:,ik), evalfv(:,ikp))
+      end if
     end do
 
     !----------------------------------------

@@ -13,7 +13,6 @@ subroutine calcselfc(iq)
     integer(4) :: mdim, iblk, nblk, mstart, mend
     integer(4) :: fid
     real(8) :: tstart, tend, t0, t1
-    complex(8), allocatable :: evecfv(:,:)
 
     call timesec(tstart)
 
@@ -61,12 +60,9 @@ subroutine calcselfc(iq)
       jk = kqset%kqid(ik,iq)
 
       ! get KS eigenvectors
-      allocate(evecfv(nmatmax,nstfv))
-      call get_evec_gw(kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), evecfv)
-      eveckp = conjg(evecfv)
-      call get_evec_gw(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
-      eveck = evecfv
-      deallocate(evecfv)
+      call get_evec_gw(kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), eveck)
+      eveckp = conjg(eveck)
+      call get_evec_gw(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), eveck)
 
       call expand_evec(ik, 't')
       call expand_evec(jk, 'c')
