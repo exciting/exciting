@@ -54,6 +54,13 @@ subroutine task_second_variation()
     !------------------------------------
     ! Solve second-variational problem
     !------------------------------------
+    if (.not. input%groundstate%spin%realspace) then
+        ! Effective Hamiltonian Setup: Radial and Angular integrals (new)
+        call MTNullify(mt_hscf)
+        call MTInitAll(mt_hscf)
+        call hmlint(mt_hscf)
+    end if
+
     if (allocated(evalsv)) deallocate(evalsv) ! init_gw is done for the full k-grid => vkl, etc. corresponds to vklnr
     allocate(evalsv(nstsv,kqset%nkpt))
     evalsv(:,:) = 0.d0
@@ -75,7 +82,7 @@ subroutine task_second_variation()
             call get_evec_gw(kset%vkl(:,ikp), Gkset%vgkl(:,:,:,ikp), evecfv)
             call seceqnsv(ikp, apwalm, evalqp(1:nstfv,ikp), evecfv, evecsv)
         else
-            ! default GW definition correspond to reducek=.false.
+            ! default GW definition corresponds to reducek=.false.
             ik = kset%ikp2ik(ikp)
             call match(Gkqset%ngk(1,ik), &
                        Gkqset%gkc(:,1,ik), &
@@ -89,6 +96,7 @@ subroutine task_second_variation()
     deallocate(evecfv)
     deallocate(evecsv)
     deallocate(apwalm)
+    call MTRelease(mt_hscf)
 
     ! QP energies
     if (allocated(evalqp)) deallocate(evalqp)
