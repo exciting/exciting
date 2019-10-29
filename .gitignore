@@ -33,7 +33,6 @@ version.inc
 *.arg
 
 # Ignore executables
-bin/*
 exciting_debug
 exciting_gfortran
 exciting_interfaces
