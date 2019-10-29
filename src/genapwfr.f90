@@ -100,25 +100,11 @@ Subroutine genapwfr
                   p1 (1:nr, io1) = t1 * p1 (1:nr, io1)
                   q0 (1:nr, io1) = t1 * q0 (1:nr, io1)
                   q1 (1:nr, io1) = t1 * q1 (1:nr, io1)
-                  if (input%groundstate%SymmetricKineticEnergy) then
-                    Do ir = 1, nr
-                       t1 = 1.d0 / spr (ir, is)
-                       apwfr (ir, 1, io1, l, ias) = t1 * p0 (ir, io1)
-                       apwfr (ir, 2, io1, l, ias) = (p1(ir,io1)-p0(ir, io1)*t1) * t1
-                    End Do
-                  else
-! apply the Hamiltonian
-                    Call rschrodapp (l, nr, spr(:, is), vr, p0(:, io1), &
-                   & q0(:, io1), q1(:, io1), hp0)
-! divide by r and store in global array
-                    Do ir = 1, nr
-                       t1 = 1.d0 / spr (ir, is)
-                       apwfr (ir, 1, io1, l, ias) = t1 * p0 (ir, io1)
-                       apwfr (ir, 2, io1, l, ias) = t1 * hp0 (ir)
-                    End Do
-! derivative at the muffin-tin surface
-                    apwdfr (io1, l, ias) = (p1s(io1)-p0(nr, io1)*t1) * t1
-                  endif
+                  Do ir = 1, nr
+                     t1 = 1.d0 / spr (ir, is)
+                     apwfr (ir, 1, io1, l, ias) = t1 * p0 (ir, io1)
+                     apwfr (ir, 2, io1, l, ias) = (p1(ir,io1)-p0(ir, io1)*t1) * t1
+                  End Do
                End Do
             End Do
          End Do

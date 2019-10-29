@@ -62,7 +62,6 @@ Subroutine hmlrad
 !---------------------------!
 !     APW-APW integrals     !
 !---------------------------!
-           if (input%groundstate%SymmetricKineticEnergy) then
             if (input%groundstate%ValenceRelativity.ne.'none') then
               a=0.5d0*alpha**2
             else
@@ -204,105 +203,6 @@ Subroutine hmlrad
                End Do
             End Do
 
-!           write(*,*) haa (1, 0, 1, 0, 1, 1)
-           else
-            Do l1 = 0, input%groundstate%lmaxmat
-               Do io1 = 1, apword (l1, is)
-                  Do l3 = 0, input%groundstate%lmaxapw
-                     Do io2 = 1, apword (l3, is)
-                        If (l1 .Eq. l3) Then
-                           Do ir = 1, nr
-                              fr (ir) = apwfr (ir, 1, io1, l1, ias) * apwfr (ir, 2, io2, l3, ias) * r2 (ir)
-                           End Do
-                           Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                           haa (io1, l1, io2, l3, 1, ias) = gr (nr) / y00
-                        Else
-                           haa (io1, l1, io2, l3, 1, ias) = 0.d0
-                        End If
-                        If (l1 .Ge. l3) Then
-                           Do l2 = 1, input%groundstate%lmaxvr
-                              Do m2 = - l2, l2
-                                 lm2 = idxlm (l2, m2)
-                                 Do ir = 1, nr
-                                    t1=apwfr(ir,1,io1,l1,ias)*apwfr(ir,1,io2,l3,ias)*r2(ir)
-                                    fr (ir) = t1 * veffmt (lm2, ir, ias)
-                                 End Do
-                                 Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                                 haa (io1, l1, io2, l3, lm2, ias) = gr (nr)
-                              End Do
-                           End Do
-                        End If
-                     End Do
-                  End Do
-               End Do
-            End Do
-!            write(*,*) haa (1, 0, 1, 0, 1, 1), 0.25d0 * rmt (is) ** 2 * apwfr (nrmt(1), 1, 1, 0, 1) * apwdfr (1, 0, 1)
-!--------------------------------------!
-!     local-orbital-APW integtrals     !
-!--------------------------------------!
-            Do ilo = 1, nlorb (is)
-               l1 = lorbl (ilo, is)
-               Do l3 = 0, input%groundstate%lmaxmat
-                  Do io = 1, apword (l3, is)
-                     If (l1 .Eq. l3) Then
-                        Do ir = 1, nr
-                           fr (ir) = lofr (ir, 1, ilo, ias) * apwfr &
-                          & (ir, 2, io, l3, ias) * r2 (ir)
-                        End Do
-                        Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                        hloa (ilo, io, l3, 1, ias) = gr (nr) / y00
-                     Else
-                        hloa (ilo, io, l3, 1, ias) = 0.d0
-                     End If
-                     Do l2 = 1, input%groundstate%lmaxvr
-                        Do m2 = - l2, l2
-                           lm2 = idxlm (l2, m2)
-                           Do ir = 1, nr
-                              t1 = lofr (ir, 1, ilo, ias) * apwfr (ir, &
-                             & 1, io, l3, ias) * r2 (ir)
-                              fr (ir) = t1 * veffmt (lm2, ir, ias)
-                           End Do
-                           Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                           hloa (ilo, io, l3, lm2, ias) = gr (nr)
-                        End Do
-                     End Do
-                  End Do
-               End Do
-            End Do
-!-----------------------------------------------!
-!     local-orbital-local-orbital integrals     !
-!-----------------------------------------------!
-            Do ilo1 = 1, nlorb (is)
-               l1 = lorbl (ilo1, is)
-               Do ilo2 = 1, nlorb (is)
-                  l3 = lorbl (ilo2, is)
-                  If (l1 .Eq. l3) Then
-                     Do ir = 1, nr
-                        fr (ir) = lofr (ir, 1, ilo1, ias) * lofr (ir, &
-                       & 2, ilo2, ias) * r2 (ir)
-                     End Do
-                     Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                     hlolo (ilo1, ilo2, 1, ias) = gr (nr) / y00
-                  Else
-                     hlolo (ilo1, ilo2, 1, ias) = 0.d0
-                  End If
-                  Do l2 = 1, input%groundstate%lmaxvr
-                     Do m2 = - l2, l2
-                        lm2 = idxlm (l2, m2)
-                        Do ir = 1, nr
-                           t1 = lofr (ir, 1, ilo1, ias) * lofr (ir, 1, &
-                          & ilo2, ias) * r2 (ir)
-                           fr (ir) = t1 * veffmt (lm2, ir, ias)
-                        End Do
-                        Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
-                        hlolo (ilo1, ilo2, lm2, ias) = gr (nr)
-                     End Do
-                  End Do
-               End Do
-            End Do
-
-
-           endif
 ! end loops over atoms and species
          End Do
       End Do

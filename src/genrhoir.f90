@@ -89,8 +89,7 @@ Subroutine genrhoir (ik, evecfv, evecsv)
                     & input%groundstate%epsocc) Then
                         Do igk = 1, ngk (jspn, ik)
                            ifg = igfft (igkig(igk, jspn, ik))
-                           zfft (ifg, ispn) = zfft (ifg, ispn) + zt1 * &
-                          & evecfv (igk, ist, jspn)
+                           zfft (ifg, ispn) = zfft (ifg, ispn) + zt1 * evecfv (igk, ist, jspn)
                         End Do
                      End If
                   End Do
@@ -118,10 +117,8 @@ Subroutine genrhoir (ik, evecfv, evecsv)
                   t4 = dble (zt2) ** 2 + aimag (zt2) ** 2
                   rhoir_k (ir) = rhoir_k (ir) + t2 * (t3+t4)
                   If (ncmag) Then
-                     magir_k (ir, 1) = magir_k (ir, 1) + 2.d0 * t2 * &
-                    & dble (zt3)
-                     magir_k (ir, 2) = magir_k (ir, 2) - 2.d0 * t2 * &
-                    & aimag (zt3)
+                     magir_k (ir, 1) = magir_k (ir, 1) + 2.d0 * t2 * dble (zt3)
+                     magir_k (ir, 2) = magir_k (ir, 2) - 2.d0 * t2 * aimag (zt3)
                      magir_k (ir, 3) = magir_k (ir, 3) + t2 * (t3-t4)
                   Else
                      magir_k (ir, 1) = magir_k (ir, 1) + t2 * (t3-t4)
@@ -131,27 +128,19 @@ Subroutine genrhoir (ik, evecfv, evecsv)
 ! spin-unpolarised
                Do ir = 1, ngrtot
                   zt1 = zfft (ir, 1)
-                  rhoir_k (ir) = rhoir_k (ir) + t2 * &
-                 & (dble(zt1)**2+aimag(zt1)**2)
+                  rhoir_k (ir) = rhoir_k (ir) + t2 * (dble(zt1)**2+aimag(zt1)**2)
                End Do
             End If
          End If
       End Do
-      !write(*,*) ik
-      !write(*,*) ik, ik
-      !write(*,'(3F13.6)') vkl( :, ik)
-      !write(*,'(SP,5F13.6)') rhoir_k( 1:100)
-      !write(*,*)
+
       Deallocate (zfft)
-!      Call timesec (ts1)
-!$OMP CRITICAL
+
       rhoir (:) = rhoir (:) + rhoir_k (:)
-!
+
       If (associated(input%groundstate%spin)) Then
          magir (:, :) = magir (:, :) + magir_k (:, :)
       End If
-!      timerho = timerho + ts1 - ts0
-!$OMP END CRITICAL
       Call timesec (ts1)
       timerho = timerho + ts1 - ts0
       Return

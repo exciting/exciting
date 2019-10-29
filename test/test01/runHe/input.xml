@@ -18,7 +18,7 @@
     ngridk="1 1 1"
     rgkmax="10"
     gmaxvr="7.5" 
-    maxscl="100"
+    maxscl="20"
     epsengy="1d-7"
     lmaxmat="4"
     lmaxapw="8"

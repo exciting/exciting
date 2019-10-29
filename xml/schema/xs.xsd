@@ -1883,24 +1883,6 @@
             0).</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="lmaxapw" type="xs:integer" default="10">
-        <xs:annotation>
-          <xs:appinfo>
-            <oldname>lmaxapwxs</oldname>
-            <olddefault default="8"/>
-          </xs:appinfo>
-          <xs:documentation>Angular momentum cut-off for the APW functions.</xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="lmaxmat" type="xs:integer" default="5">
-        <xs:annotation>
-          <xs:appinfo>
-            <oldname>lmaxmatxs</oldname>
-          </xs:appinfo>
-          <xs:documentation>Angular momentum cut-off for the outer-most loop in the hamiltonian and
-            overlap matrix setup.</xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="nempty" type="xs:integer" default="5">
         <xs:annotation>
           <xs:appinfo>

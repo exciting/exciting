@@ -38,7 +38,7 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
   ! local variables
       Integer :: ispn,ib
   ! time
-      Real (8) :: ts0,ts1
+      Real (8) :: ts0,ts1, ta,tb
 !
 !
   ! allocatable arrays

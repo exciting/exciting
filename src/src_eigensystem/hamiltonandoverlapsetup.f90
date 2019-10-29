@@ -34,6 +34,8 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
       Real (8) :: threshold
       Complex (8), allocatable :: apwi(:,:),zm(:,:),apwi2(:,:)
       integer if1,if3,l3,m3,lm3,io1,io2,ias,maxnlo,ilo,j1,j2,j3,lm1,lm2,j,io,l,ilo1,ilo2,l1
+
+
 !----------------------------------------!
 !     Hamiltonian and overlap set up     !
 !----------------------------------------!
@@ -112,7 +114,6 @@ endif
                       system%hamilton%za, &  ! C
                       system%hamilton%rank &      ! LDC ... leading dimension of C
                      )
-
           Call timesec (ts1)
           time_hmlaan=ts1-ts0+time_hmlaan
 

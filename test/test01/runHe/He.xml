@@ -6,6 +6,10 @@
     <basis>
       <default type="apw" trialEnergy="0.1500" searchE="false"/>
       <custom l="0" type="apw+lo" trialEnergy="-0.57" searchE="false"/>
+      <!--lo l="0">
+        <wf matchingOrder="0" trialEnergy="-0.57" searchE="false"/>
+        <wf matchingOrder="1" trialEnergy="-0.57" searchE="false"/>
+      </lo-->
       <lo l="0">
         <wf matchingOrder="0" trialEnergy="-0.57" searchE="false"/>
         <wf matchingOrder="2" trialEnergy="-0.57" searchE="false"/>

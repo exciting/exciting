@@ -1798,7 +1798,7 @@ module m_ematqk
                 &  evecfvo(:,n2+bcs%il1-1),lmmaxapw,wfmt(:,:,1,n2+bcs%il1-1))
              
                 Do l2=0, lmax2
-                  Do l3=0,input%xs%lmaxapw
+                  Do l3=0,input%groundstate%lmaxapw
                     Do m3=-l3,l3
                       lm3=idxlm(l3,m3)
                       Do irc=1,nrcmt(input%xs%bse%xasspecies)
@@ -1834,7 +1834,7 @@ module m_ematqk
                 &  evecfvo,evecsvt, wfmt(:,:,:,n2+bcs%il1-1))
                 Do nsp=1,2
                   Do l2=0, lmax2
-                    Do l3=0,input%xs%lmaxapw
+                    Do l3=0,input%groundstate%lmaxapw
                       Do m3=-l3,l3
                         lm3=idxlm(l3,m3)
                         Do irc=1,nrcmt(input%xs%bse%xasspecies)
@@ -1964,7 +1964,7 @@ module m_ematqk
                 &  evecfvo(:,n2+bcs%il1-1),lmmaxapw,wfmt(:,:,1,n2+bcs%il1-1))
              
                 Do l2=0, lmax2
-                  Do l3=0,input%xs%lmaxapw
+                  Do l3=0,input%groundstate%lmaxapw
                     Do m3=-l3,l3
                       lm3=idxlm(l3,m3)
                       Do irc=1,nrcmt(input%xs%bse%xasspecies)
@@ -1996,7 +1996,7 @@ module m_ematqk
                 &  evecfvo,evecsvt, wfmt(:,:,:,n2+bcs%il1-1))
                 Do nsp=1,2  
                   Do l2=0, lmax2
-                    Do l3=0,input%xs%lmaxapw
+                    Do l3=0,input%groundstate%lmaxapw
                       Do m3=-l3,l3
                         lm3=idxlm(l3,m3)
                         Do irc=1,nrcmt(input%xs%bse%xasspecies)
@@ -2138,7 +2138,7 @@ module m_ematqk
               Do l2=0,lmax2
                 Do m2=-l2,l2
                   lm2=idxlm(l2,m2)
-                  Do l3=0, input%xs%lmaxapw
+                  Do l3=0, input%groundstate%lmaxapw
                     Do m3=-l3,l3
                       lm3=idxlm(l3,m3)
                       xi(n1,n2)=xi(n1,n2)+conjg (zil(l2))*integral(l2+1,lm3,n1,n2,1)*conjg &
@@ -2160,7 +2160,7 @@ module m_ematqk
                 Do l2=0,lmax2
                   Do m2=-l2,l2
                     lm2=idxlm(l2,m2)
-                    Do l3=0, input%xs%lmaxapw
+                    Do l3=0, input%groundstate%lmaxapw
                       Do m3=-l3,l3
                         lm3=idxlm(l3,m3)
                           xi(n1,n2)=xi(n1,n2)+conjg (zil(l2))*integral(l2+1,lm3,n1,n2,nsp)*conjg &

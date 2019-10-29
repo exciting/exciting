@@ -233,7 +233,12 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
 !    
       Call newsystem (system, packed, n)
       h1on=(input%groundstate%ValenceRelativity.eq.'iora*')
-      Call hamiltonandoverlapsetup (system, ngk(ispn, ik), apwalm, igkig(1, ispn, ik), vgpc)
+      
+      call MTRedirect(mt_hscf%main,mt_hscf%spinless)
+!      Call hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
+      Call hamiltonsetup (system, ngk(ispn, ik), apwalm, igkig(1, ispn, ik), vgpc)
+      Call overlapsetup (system, ngk(ispn, ik), apwalm, igkig(1, ispn, ik), vgpc)
+!      Call hamiltonandoverlapsetup (system, ngk(ispn, ik), apwalm, igkig(1, ispn, ik), vgpc)
 !      write(*,*) '************ARPACK**************'
 !      read(*,*)
 

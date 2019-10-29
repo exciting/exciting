@@ -171,9 +171,24 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="spinorb" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation>
-		If <attref>spinorb</attref> is <pre>"true"</pre>, then a
-                <inlinemath>\boldsymbol \sigma\cdot{ \bf L}</inlinemath> term is added to the
-                second-variational Hamiltonian.
+		               If <attref>spinorb</attref> is <pre>"true"</pre>, a
+                   <inlinemath>\boldsymbol \sigma\cdot{ \bf L}</inlinemath> term is added to the
+                   second-variational Hamiltonian.
+		            </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="realspace" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>
+		If <attref>realspace</attref> is <pre>"true"</pre>, the second-variational approach involves a transformation
+                of wave functions to the real space in the muffin-tin region. Otherwise, calculations involve the atomic-like basis.
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="nosv" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>
+                If <attref>skipsv</attref> = <pre>"true"</pre>, the second-variational procedure is not employed, and magnetic and/or spin-orbit calculations are performed in a single go.
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -347,7 +362,7 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="omega" type="fortrandouble"
               default="0.106d0">
               <xs:annotation>
-                <xs:documentation> Define the value for the screening parameter. 
+                <xs:documentation> Define the value for the screening parameter.
                   The default value (omega=0.106d0) corresponds to HSE06 that was optimized for solids.
                   In HSE03 omega=0.15d0.
                   </xs:documentation>
@@ -2948,13 +2963,6 @@
         </xs:annotation>
       </xs:attribute>
 
-      <xs:attribute ex:importance="expert" ex:unit="" name="SymmetricKineticEnergy" type="xs:boolean" default="true">
-        <xs:annotation>
-          <xs:documentation> If <pre>"true"</pre>, the kinetic-energy matrix elements of muffin-tin functions are calculated by applying gradient to both bra and ket.
-           Otherwise, the whole kinetic-energy operator is applied to ket only, and the surface-term correction is applied to make the hamiltonian hermitian.
-          </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="ExplicitKineticEnergy" type="xs:boolean" default="true">
         <xs:annotation>
           <xs:documentation>

@@ -65,7 +65,7 @@ Subroutine bandstr
   end if
 
   ! maximum angular momentum for band character
-  lmax = min(3, input%groundstate%lmaxapw)
+  lmax = Min (3, input%groundstate%lmaxapw)
   lmmax = (lmax+1) ** 2
   If (input%properties%bandstructure%character) Then
       Allocate (bc(0:lmax, natmtot, nstsv, nkpt))
@@ -83,7 +83,10 @@ Subroutine bandstr
   ! compute the overlap radial integrals
   Call olprad
   ! compute the Hamiltonian radial integrals
-  Call hmlint
+  call MTNullify(mt_hscf)
+  call MTInitAll(mt_hscf)
+  call hmlint(mt_hscf)
+
   ! compute "relativistic mass"
   Call genmeffig
   emin = 1.d5
@@ -153,7 +156,7 @@ Subroutine bandstr
     Deallocate (evalfv, evecfv, evecsv)
     ! end loop over k-points
   End Do
-
+  call MTRelease(mt_hscf)
 #ifdef MPI
   If (input%properties%bandstructure%character) Then
     Call mpi_allgatherv_ifc(nkpt, (lmax+1)*natmtot*nstsv, rlpbuf=bc)

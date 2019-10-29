@@ -70,7 +70,7 @@ Subroutine hartfock
       Call genlofr
 ! compute the overlap radial integrals
       Call olprad
-      Call hmlint
+!      Call hmlint
 ! compute the Hamiltonian radial integrals
       Call hmlrad
 ! generate the kinetic matrix elements

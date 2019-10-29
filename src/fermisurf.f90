@@ -32,7 +32,9 @@ subroutine fermisurf
 ! compute the overlap radial integrals
   call olprad
 ! compute the Hamiltonian radial integrals
-  call hmlint
+  call MTNullify(mt_hscf)
+  call MTInitAll(mt_hscf)
+  call hmlint(mt_hscf)  
 ! compute "relativistic mass" on the G-grid
   Call genmeffig
 ! begin parallel loop over k-points
@@ -51,6 +53,7 @@ subroutine fermisurf
 #ifdef MPI  
   call mpi_allgatherv_ifc(nkpt,rlen=nstsv,rbuf=evalsv)
 #endif
+  call MTRelease(mt_hscf)
   if (allocated(meffig)) deallocate(meffig)
   if (allocated(m2effig)) deallocate(m2effig)
 
