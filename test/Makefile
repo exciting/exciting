@@ -8,7 +8,7 @@ endif
 
 TESTDIRS = test01 test02 test03 test05 test06 test07 test08 test09 test10 test11
 
-test: 
+test:
 	$(MAKE) cleantests
 	$(MAKE) $(TESTDIRS)
 
@@ -33,15 +33,14 @@ test01::
 	cd ./test01/runAr; ../../$(EXE) input-nr.xml; cp info.xml info-nr.xml 2>/dev/null || :; cp atoms.xml atoms-nr.xml 2>/dev/null || :
 	cd ./test01/runAr; ../../$(EXE) input-zora.xml; cp info.xml info-zora.xml 2>/dev/null || :; cp atoms.xml atoms-zora.xml 2>/dev/null || :
 	cd ./test01/runAr; ../../$(EXE) input-iora.xml; cp info.xml info-iora.xml 2>/dev/null || :; cp atoms.xml atoms-iora.xml 2>/dev/null || :
-	cd ./test01 ; bash assert.sh 
+	cd ./test01 ; bash assert.sh
 
 test02::
 	cd ./test02/runlapack; ../../$(EXE)
 	cd ./test02/runarp; ../../$(EXE)
-	cd ./test02/runarpnpacked; ../../$(EXE)
 	cd ./test02; perl assert.pl
 
-test03::  
+test03::
 	cd test03/run && ../../$(EXE)
 	cd test03/runmixer2 && ../../$(EXE)
 	cd test03/runmixer3 && ../../$(EXE)
@@ -51,27 +50,27 @@ test04::
 	cd build; $(MAKE) test04
 	cd ./test04/run ; ../../build/testprogram4
 
-test05::  
+test05::
 	cd test05/runlibxc && ../../$(EXE)
 	cd test05 && bash assert.sh
 
 test06::
 	cd test06/runPbTiO3; ../../$(EXE) input-nonsym.xml; cp info.xml info-nonsym.xml
-	cd test06/runPbTiO3; ../../$(EXE) input-sym.xml; cp info.xml info-sym.xml      
-	cd test06; bash assert.sh 
+	cd test06/runPbTiO3; ../../$(EXE) input-sym.xml; cp info.xml info-sym.xml
+	cd test06; bash assert.sh
 
-test07::	 
+test07::
 	cd test07/runBSE && ../../$(EXE)
 	cd test07/runtddftBSE && ../../$(EXE)
 	cd test07 && python assert.py
 
 test08::
 	cd test08/rungw && ../../$(EXE)
-	cd test08 && perl assert.pl 
+	cd test08 && perl assert.pl
 
 test09::
 	cd test09 && bash validate.sh
-	cd test09 && perl assert.pl  
+	cd test09 && perl assert.pl
 
 test10::
 	cd test10/run_properties && ../../$(EXE)
@@ -80,7 +79,7 @@ test10::
 test11::
 	cd test11/run-pbe0 && ../../$(EXE)
 	cd test11/run-hse && ../../$(EXE)
-	cd test11 && perl assert.pl 
+	cd test11 && perl assert.pl
 
 cleantests::
 	-rm -f  test*/*.xml

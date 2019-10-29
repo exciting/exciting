@@ -25,8 +25,8 @@
   <gw
     taskname="g0w0" 
     ibgw="1" nbgw="15"
-    nempty="50"
-    ngridq="2 2 2"
+    nempty="100"
+    ngridq="1 1 1"
     >
     <mixbasis
       lmaxmb="3"

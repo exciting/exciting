@@ -73,13 +73,11 @@ Subroutine hmlistln (hamilton, ngp, igpig, vgpc)
  else
       Do j = 1, ngp
          Do i = 1, j
-            write(*,*) "check2.4"
             iv (:) = ivg (:, igpig(i)) - ivg (:, igpig(j))
             ig = ivgig (iv(1), iv(2), iv(3))
             If ((ig .Gt. 0) .And. (ig .Le. ngvec)) Then
                t1 = 0.5d0 * dot_product (vgpc(:, i), vgpc(:, j))
                zt = veffig (ig) + t1 * cfunig (ig)
-               write(*,*) "check2.5"
                Call Hermitianmatrix_indexedupdate (hamilton, j, i, zt)
             End If
          End Do
