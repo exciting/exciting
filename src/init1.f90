@@ -449,7 +449,7 @@ Subroutine init1
       occsv(:, :) = 0.d0
       if (allocated(engyknst)) deallocate(engyknst)
       allocate(engyknst(nstfv,nkpt))
-      engyknst(:,:) = 0d0
+      engyknst(:,:) = 0.d0
 #ifdef XS
       If (allocated(occsv0)) deallocate (occsv0)
       Allocate (occsv0(nstsv, nkpt))
@@ -557,7 +557,7 @@ Subroutine init1
       End Do
       gntnonzlm3(nonzcount+1)=0
       gntnonzlm1(nonzcount+1)=0
-      
+
       ! compact Gaunt coeffiecient array
       if (allocated(indgnt)) deallocate(indgnt)
       if (allocated(listgnt)) deallocate(listgnt)

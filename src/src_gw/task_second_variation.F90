@@ -56,13 +56,17 @@ subroutine task_second_variation()
     !------------------------------------
     if (.not. input%groundstate%spin%realspace) then
         ! Effective Hamiltonian Setup: Radial and Angular integrals (new)
-        call MTNullify(mt_hscf)
+        ! call MTNullify(mt_hscf)
         call MTInitAll(mt_hscf)
         call hmlint(mt_hscf)
     end if
 
-    if (allocated(evalsv)) deallocate(evalsv) ! init_gw is done for the full k-grid => vkl, etc. corresponds to vklnr
-    allocate(evalsv(nstsv,kqset%nkpt))
+    if (allocated(evalsv)) deallocate(evalsv)
+    if (hybridhf) then
+        allocate(evalsv(nstsv,kset%nkpt))
+    else
+        allocate(evalsv(nstsv,kqset%nkpt))
+    end if
     evalsv(:,:) = 0.d0
 
     if (allocated(evecfv)) deallocate(evecfv)
@@ -111,7 +115,7 @@ subroutine task_second_variation()
     end do
     deallocate(evalsv)
 
-    nst = min(int(chgval)+100, nstsv)
+    nst = min(int(chgval)+20, nstsv)
     call fermi_exciting(.true., &
                         chgval, &
                         nst, kset%nkpt, evalqp(1:nst,:), &

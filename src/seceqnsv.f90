@@ -72,10 +72,10 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       ! Type (MTHamiltonianList) :: mt_h
       ! Type (apw_lo_basis_type) :: mt_basis
 
-      if (allocated(veffmt_pbe)) deallocate(veffmt_pbe)
-      allocate(veffmt_pbe(lmmaxvr,nrmtmax,natmtot))
-      If(associated(input%groundstate%Hybrid).and.task==7) then
-          call poteff_soc(veffmt_pbe)
+      If (task==7) then
+         if (allocated(veffmt_pbe)) deallocate(veffmt_pbe)
+         allocate(veffmt_pbe(lmmaxvr,nrmtmax,natmtot))
+         call poteff_soc(veffmt_pbe)
       endif
 
 ! spin-unpolarised case
@@ -89,6 +89,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
          End Do
          Return
       End If
+
 ! number of spin combinations after application of Hamiltonian
       If (associated(input%groundstate%spin)) Then
          If ((ncmag) .Or. (isspinorb())) Then
@@ -99,8 +100,10 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Else
          nsc = 1
       End If
+
       Call timesec (ts0)
       call timesec(ta)
+
       Allocate (bmt(lmmaxvr, nrcmtmax, 3))
       Allocate (bir(ngrtot, 3))
       Allocate (vr(nrmtmax))
@@ -110,9 +113,6 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Allocate (rwork(3*nstsv))
       Allocate (wfmt1(lmmaxvr, nrcmtmax, nstfv))
       Allocate (wfmt2(lmmaxvr, nrcmtmax, nsc))
-!      Allocate (zfft1(ngrtot))
-!      Allocate (zfft2(ngrtot))
-!      Allocate (zv(ngkmax, nsc))
       lwork = 2 * nstsv
       Allocate (work(lwork))
 ! zero the second-variational Hamiltonian (stored in the eigenvector array)
@@ -121,11 +121,6 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
 ! Which algorithm are we using?
 ! True - transform FV wave functions to the real space
 ! False - work with the original basis and the transform to the LAPW basis
-
-!evecfv(1:ngk(1,ik),:)=0d0
-!do ist=1,10
-!  evecfv(ngk(1,ik)+ist,ist)=1d0
-!enddo
 
       if (input%groundstate%spin%realspace) then
 !-------------------------!
@@ -174,10 +169,10 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
 !               write(*,*) td-tc
 ! spin-orbit radial function
                If (isspinorb()) Then
-                  If(associated(input%groundstate%Hybrid).and.task==7) then
-                    vr (1:nrmt(is)) = veffmt_pbe (1, 1:nrmt(is), ias) * y00
+                  If (task==7) then
+                    vr(1:nrmt(is)) = veffmt_pbe(1, 1:nrmt(is), ias) * y00
                   else
-                    vr (1:nrmt(is)) = veffmt (1, 1:nrmt(is), ias) * y00
+                    vr(1:nrmt(is)) = veffmt(1, 1:nrmt(is), ias) * y00
                   endif
                   Call fderiv (1, nrmt(is), spr(:, is), vr, drv, cf)
 ! spin-orbit coupling prefactor

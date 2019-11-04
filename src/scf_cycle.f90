@@ -269,7 +269,7 @@ call timesec(ta)
 !__________________________
 ! calculate partial charges
             if (input%groundstate%tpartcharges) call genpchgs(ik,evecfv,evecsv)
-            Deallocate (evalfv, evecfv, evecsv)
+            deallocate (evalfv, evecfv, evecsv)
 
         End Do ! ik
 
