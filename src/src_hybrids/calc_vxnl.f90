@@ -19,15 +19,17 @@ subroutine calc_vxnl()
     implicit none
 
     integer(4) :: ikp, ik, jk, iq, ikq
-    integer(4) :: ie1, ie2, ie3, icg, icg1
+    integer(4) :: ie12, ie12tot, ie1, ie2, ie3, icg
     integer(4) :: ist, l, im
     integer(4) :: i, j, k, jst, ispn
     integer(4) :: is, ia, ias, ic
     integer(4) :: n, nmdim, m, mdim
+    integer(4) :: iblk, nblk, mstart, mend
     real(8)    :: tstart, tend, sxs2
     complex(8) :: mvm, zt1, vc
     integer    :: ikfirst, iklast
 
+    integer(4), allocatable :: idxpair(:,:)
     complex(8), allocatable :: minm(:,:,:)
     complex(8), allocatable :: evecsv(:,:)
 
@@ -75,24 +77,50 @@ subroutine calc_vxnl()
     allocate(vxnl(nstfv,nstfv,kset%nkpt))
     vxnl(:,:,:) = zzero
 
+    ie12tot = 0.5d0*nstfv*(nstfv+1)
+    allocate(idxpair(2,ie12tot))
+    ie12 = 0
+    do ie1 = 1, nstfv
+      do ie2 = ie1, nstfv
+        ie12 = ie12+1
+        idxpair(1,ie12) = ie1
+        idxpair(2,ie12) = ie2
+      end do
+    end do
+
+    !-------------------------------------------------------
+    ! determine the number of blocks used in minm operation
+    !-------------------------------------------------------
+    if (mblksiz >= mdim) then
+      nblk = 1
+    else
+      nblk = mdim / mblksiz
+      if (mod(mdim, mblksiz) /= 0) nblk = nblk+1
+    end if
+    if ((input%groundstate%outputlevelnumber>1) .and.rank==0) then
+      write(60,*) 'Info(calc_vxnl):'
+      write(60,'(a,3i8)') '    mdim, nblk, mblksiz: ', mdim, nblk, mblksiz
+    end if
+
     !---------------------------------------
     ! Loop over k-points
     !---------------------------------------
     ikq = 0
-
     do ikp = 1, kset%nkpt
       !---------------------------------------
       ! Integration over BZ
       !---------------------------------------
       do iq = 1, kqset%nkpt
+        Gamma = gammapoint(kqset%vqc(:,iq))
+        ik  = kset%ikp2ik(ikp)
+        jk  = kqset%kqid(ik,iq)
 
+        !=======================================
+        ! distribute (k,q)-pair over processors
+        !=======================================
         ikq = ikq + 1
-
         if (mod(ikq, procs) == rank) then
 
-          Gamma = gammapoint(kqset%vqc(:,iq))
-
-          ! Set the size of the basis for the corresponding q-point
           matsiz = locmatsiz+Gqset%ngk(1,iq)
           call diagsgi(iq)
           call calcmpwipw(iq)
@@ -103,59 +131,99 @@ subroutine calc_vxnl()
           call calcbarcmb(iq)
           call setbarcev(0.d0)
 
-          !------------------------------------------------------------
-          ! Calculate the M^i_{nm}(k,q) matrix elements for given k and q
-          !------------------------------------------------------------
-          ik  = kset%ikp2ik(ikp)
-          jk  = kqset%kqid(ik,iq)
+          if ((input%groundstate%outputlevelnumber>1) .and.rank==0) then
+            write(60,'(a,3i8)')  '    ---> rank, ikp, iq = ', rank, ikp, iq
+            write(60,'(a,4i8)') '    locmatsiz, ngk, matsiz, mbsiz:', &
+                                locmatsiz, Gqset%ngk(1,iq), matsiz, mbsiz
+          end if
 
+          !------------------------------------------------------------
           ! k-q vector
           call getevecfv(kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), eveck)
           eveckp = conjg(eveck)
           ! k vector
           call getevecfv(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), eveck)
-
           call expand_evec(ik,'t')
           call expand_evec(jk,'c')
 
-          ! M^i_{nm}+M^i_{cm}
-          allocate(minmmat(mbsiz,nstfv,1:mdim))
-          minmmat(:,:,:) = zzero
-          call expand_products(ik, iq, 1, nstfv, -1, 1, mdim, nomax, minmmat)
-          call delete_coulomb_potential()
+          !=================================
+          ! Loop over m-blocks in M^i_{nm}
+          !=================================
+          do iblk = 1, nblk
 
-          do ie1 = 1, nstfv
-            do ie2 = ie1, nstfv
-              zt1 = zzero
-              do ie3 = 1, mdim
-                if (ie3 <= nomax) then
-                  mvm = zdotc(mbsiz, minmmat(:,ie1,ie3), 1, minmmat(:,ie2,ie3), 1)
-                  zt1 = zt1 - kiw(ie3,jk)*mvm
-                else
-                  !=============================
-                  ! Core electron contribution
-                  !=============================
-                  icg = ie3 - nomax
-                  is  = corind(icg,1)
-                  ia  = corind(icg,2)
-                  ic  = corind(icg,3)
-                  mvm = zdotc(mbsiz, minmmat(:,ie1,ie3), 1, minmmat(:,ie2,ie3), 1)
-                  ias = idxas(ia,is)
-                  zt1 = zt1 - ciw(ic,ias)*mvm
-                end if
-              end do ! ie3
-              vxnl(ie1,ie2,ikp) = vxnl(ie1,ie2,ikp) + zt1
-            end do ! ie2
-            !__________________________
-            ! add singular term (q->0)
-            if (Gamma.and.(ie1<=nomax) ) then
-              vxnl(ie1,ie1,ikp) = vxnl(ie1,ie1,ikp) - sxs2*kiw(ie1,ik)
+            mstart = 1 + (iblk-1)*mblksiz
+            mend = min(mdim, mstart+mblksiz-1)
+
+            ! m-block M^i_{nm}
+            allocate(minmmat(mbsiz,1:nstfv,mstart:mend))
+            if ((input%groundstate%outputlevelnumber>1) .and.rank==0) then
+              msize = sizeof(minmmat)*b2mb
+              write(60,'(a,3i8,f14.2)') '    iblk, mstart, mend, size(minm) (Mb):', &
+                                        iblk, mstart, mend, msize
             end if
-          end do ! ie1
 
-          deallocate(minmmat)
+            !---------------------
+            ! Calculate M^i_{nm}
+            !---------------------
+            call expand_products(ik, iq, 1, nstfv, -1, mstart, mend, nomax, minmmat)
 
-        end if
+            ! sum over occupied states
+            do ie3 = mstart, mend
+              if (ie3 <= nomax) then
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ie12, ie1, ie2, mvm)
+!$OMP DO SCHEDULE(DYNAMIC)
+#endif
+                do ie12 = 1, ie12tot
+                  ie1 = idxpair(1,ie12)
+                  ie2 = idxpair(2,ie12)
+                  mvm = zdotc(mbsiz, minmmat(:,ie1,ie3), 1, minmmat(:,ie2,ie3), 1)
+                  vxnl(ie1,ie2,ikp) = vxnl(ie1,ie2,ikp) - kiw(ie3,jk)*mvm
+                end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
+              else
+                ! Core electron contribution
+                icg = ie3 - nomax
+                is  = corind(icg,1)
+                ia  = corind(icg,2)
+                ias = idxas(ia,is)
+                ic  = corind(icg,3)
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ie12, ie1, ie2, mvm)
+!$OMP DO SCHEDULE(DYNAMIC)
+#endif
+                do ie12 = 1, ie12tot
+                  ie1 = idxpair(1,ie12)
+                  ie2 = idxpair(2,ie12)
+                  mvm = zdotc(mbsiz, minmmat(:,ie1,ie3), 1, minmmat(:,ie2,ie3), 1)
+                  vxnl(ie1,ie2,ikp) = vxnl(ie1,ie2,ikp) - ciw(ic,ias)*mvm
+                end do
+#ifdef USEOMP
+!$OMP END DO
+!$OMP END PARALLEL
+#endif
+              end if ! core
+            end do ! ie3
+
+            deallocate(minmmat)
+
+          end do ! iblk
+
+          !--------------------------
+          ! add singular term (q->0)
+          !--------------------------
+          if (Gamma) then
+            do ie1 = 1, nomax
+              vxnl(ie1,ie1,ikp) = vxnl(ie1,ie1,ikp) - sxs2*kiw(ie1,ik)
+            end do
+          end if
+
+        end if ! rank
+
+        call delete_coulomb_potential()
 
       end do ! iq
 
@@ -166,6 +234,7 @@ subroutine calc_vxnl()
     deallocate(eveckp)
     deallocate(eveckalm)
     deallocate(eveckpalm)
+    deallocate(idxpair)
 
 #ifdef MPI
     call MPI_ALLREDUCE(MPI_IN_PLACE, vxnl, nstfv*nstfv*kset%nkpt,  &

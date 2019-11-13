@@ -229,8 +229,7 @@ Subroutine hybrids
       ! Calculate the non-local potential
       !-----------------------------------
       call timesec(ts0)
-      ! call calc_vxnl()
-      call calc_vxnl_test()
+      call calc_vxnl()
       call timesec(ts1)
       if ((input%groundstate%outputlevelnumber>1) .and.rank==0) then
         write(60,*)

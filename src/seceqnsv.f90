@@ -38,6 +38,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Integer :: ir, irc, igk, ifg
       Integer :: nsc, lwork, info
       Integer :: if3, offset
+      logical :: realspace
 ! fine structure constant
       Real (8), Parameter :: alpha = 1.d0 / 137.03599911d0
 ! electron g factor
@@ -121,8 +122,13 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
 ! Which algorithm are we using?
 ! True - transform FV wave functions to the real space
 ! False - work with the original basis and the transform to the LAPW basis
+      if (.not.associated(input%groundstate%spin)) then
+         realspace = .True.
+      else
+         realspace = input%groundstate%spin%realspace
+      end if
 
-      if (input%groundstate%spin%realspace) then
+      if (realspace) then
 !-------------------------!
 !     muffin-tin part     !
 !-------------------------!

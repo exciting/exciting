@@ -17,6 +17,9 @@ subroutine init_hybrids()
     !---------------------------------------
     if (.not.associated(input%gw%MixBasis)) &
     &  input%gw%MixBasis => getstructmixbasis(emptynode)
+    input%gw%mixbasis%lmaxmb = input%groundstate%Hybrid%lmaxmb
+    input%gw%mixbasis%epsmb  = input%groundstate%Hybrid%epsmb
+    input%gw%mixbasis%gmb    = input%groundstate%Hybrid%gmb
 
     !---------------------------------------
     ! Parameters for the bare coulomb potential
@@ -55,7 +58,7 @@ subroutine init_hybrids()
     !-------------------------------------------------------------------------------
     ! Matrix block size
     !-------------------------------------------------------------------------------
-    mblksiz = input%gw%mblksiz
+    mblksiz = input%groundstate%Hybrid%mblksiz
     if (mblksiz <= 0) then
         mblksiz = 1000000 ! just a big number to account for all available states
     end if
