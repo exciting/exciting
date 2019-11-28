@@ -75,9 +75,7 @@ subroutine task_emac()
 
       case default
         call calcepsilon(iq, 1, freq%nomeg)
-        write(*,*) 'eps'
         call calcinveps(1, freq%nomeg)
-        write(*,*) 'inveps'
 
     end select
 
@@ -86,12 +84,10 @@ subroutine task_emac()
     if (allocated(mpwipw)) deallocate(mpwipw)
     if (allocated(barc)) deallocate(barc)
 
-    write(*,*) 'deallocate'
-
     if (myrank==0) then
       call getunit(fid)
       open(fid, File='EPSMACRO.OUT', Form='Formatted', Action='Write', Status='Replace')
-      write(fid,*)'# frequency       eps_{00} (diag)            eps_{00}+LFE (diag)            <eps_{00}^{-1}>'
+      write(fid,'(a)')'# frequency       eps_{00} (diag)            eps_{00}+LFE (diag)            <eps_{00}^{-1}>'
       do iom = 1, freq%nomeg
         e0 = eps00(1,1,iom)     ! isotropic average without LFE
         e1 = epsh(1,1,iom)+zone ! eps_00^-1

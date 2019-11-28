@@ -1,15 +1,5 @@
-!BOP
-!
-! !ROUTINE: readingw
-!
-! !INTERFACE:
-subroutine parse_gwinput
-!
-! !DESCRIPTION:
-!
-! This subroutine check important GW input parameters
 
-! !USES:
+subroutine parse_gwinput()
 
     use modinput
     use modmain
@@ -18,33 +8,31 @@ subroutine parse_gwinput
     use modmpi
     use mod_hybrids, only: hybridhf
     implicit none
-
-! !LOCAL VARIABLES:
     integer :: idum
     real(8) :: rdum
 
-!EOP
-!BOC
-
-    if (rank==0) call boxmsg(fgw,'*',"GW input parameters")
-
-    if (associated(input%groundstate%spin) .and. ldapu /= 0) then
-        if (rank==0) then
-            write(*,*)
-            write(*,*) 'Spin-polarized GW@LDA+U is not yet supported!'
-            write(*,*)
+    if (associated(input%groundstate%spin)) then
+        if (rank==0) call boxmsg(fgw,'!',"WARNING! GW for magnetic materials is not yet implemented!")
+        if (ldapu /= 0) then
+            if (rank==0) call boxmsg(fgw,'!','Spin-polarized GW@LDA+U version is not implemented!')
+            call barrier()
+            stop
         end if
-        call terminate()
     end if
+
+    if (rank==0) call boxmsg(fgw,'=',"GW input parameters")
 
 !-------------------------------------------------------------------------------
 ! Debugging mode
 !-------------------------------------------------------------------------------
     if (input%gw%debug) then
-        if (rank==0) write(fgw,*) 'The code run in debugging mode'
+        if (rank==0) call boxmsg(fgw,'-',"Debug mode is activated!")
         if (rank>0) then
-            if (rank==0) write(fgw,*) 'WARNING(parse_gwinput): Debug option is not designed to &
-           & be used in parallel ...'
+            if (rank==0) then
+                write(fgw,*) 'WARNING(parse_gwinput):'
+                write(fgw,*) '    Debug option is not designed to be used in parallel ...'
+                write(fgw,*)
+            end if
         end if
         input%gw%debug = input%gw%debug.and.(rank==0)
     end if
@@ -76,9 +64,8 @@ subroutine parse_gwinput
             if (rank==0) write(fgw,*) '  vxc  - Calculate the matrix elements of the DFT exchange-correlation potential'
         case('pmat')
             if (rank==0) write(fgw,*) '  pmat  - Calculate the matrix elements of the momentum operator'
-        case('acon')
-            if (rank==0) write(fgw,*) '  acon - Perform only the analytic continuation of &
-            &the correlation self energy and recalculate QP energies'
+        case('evalqp')
+            if (rank==0) write(fgw,*) '  evalqp - Solve the quasiparticle equation'
         ! case('eps_r')
         !     if (rank==0) write(fgw,*) '  eps_r - Test only option'
         ! case('chi0_r')
@@ -109,6 +96,7 @@ subroutine parse_gwinput
             if (rank==0) write(*,*)
             if (rank==0) write(*,*) '  Specified value: taskname = ', trim(input%gw%taskname)
             if (rank==0) write(*,*)
+            call barrier()
             stop
     end select
     if (rank==0) call linmsg(fgw,'-','')
@@ -193,10 +181,10 @@ subroutine parse_gwinput
     if (rank==0) write(fgw,*) 'Analytic continuation method:'
     select case (trim(input%gw%selfenergy%actype))
         case('pade','Pade','PADE')
-            if (rank==0) write(fgw,*) " pade - Thiele's reciprocal difference method &
+            if (rank==0) write(fgw,*) " PADE - Thiele's reciprocal difference method &
             &(by H. J. Vidberg and J. W. Serence, J. Low Temp. Phys. 29, 179 (1977))"
         case('aaa','AAA')
-            if (rank==0) write(fgw,*) " aaa: Y. Nakatsukasa, O. Sete, L. N. Trefethen, The AAA algorithm for rational approximation, SIAM J. Sci. Comp. 40 (2018), A1494-A1522"
+            if (rank==0) write(fgw,*) " AAA: Y. Nakatsukasa, O. Sete, L. N. Trefethen, The AAA algorithm for rational approximation, SIAM J. Sci. Comp. 40 (2018), A1494-A1522"
         case default
             if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal value for input%gw%SelfEnergy%actype'
             stop
@@ -214,9 +202,10 @@ subroutine parse_gwinput
         if (rank==0) write(fgw,*) ' Auxiliary function method by &
         &P. Carrier, S. Rohra, and A. Goerling, PRB 75, 205126 (2007)'
       case('rim')
-        if (rank==0) write(fgw,*) '(experimantal) RIM by Yambo'
+        if (rank==0) write(fgw,*) '(experimental) RIM by Yambo'
       case default
         write(*,*) 'ERROR(parse_gwinput): Unknown singularity treatment scheme!'
+        call barrier()
         stop
     end select
     if (rank==0) call linmsg(fgw,'-','')
@@ -229,6 +218,7 @@ subroutine parse_gwinput
     if (rank==0) write(fgw,*) 'Mixed product basis parameters:'
     if (input%gw%MixBasis%lmaxmb<0) then
         if (rank==0) write(*,*) 'ERROR(parser_gwinput): Illegal value of input%gw%MixBasis%lmaxmb'
+        call barrier()
         stop
     end if
     if (rank==0) write(fgw,*) '  MT part:'
@@ -269,6 +259,7 @@ subroutine parse_gwinput
         if (rank==0) write(*,*) '  0d   - Spherical (0d) cutoff'
         if (rank==0) write(*,*) '  1d   - Wired (1d) cutoff (periodicity along z-axis)'
         if (rank==0) write(*,*) '  2d   - Slab geometry (vacuum along z-axis)'
+        call barrier()
         stop
     end select
     if (vccut) then
@@ -283,11 +274,21 @@ subroutine parse_gwinput
 !-------------------------------------------------------------------------------
     if (.not.associated(input%gw%scrcoul)) &
     &  input%gw%scrcoul => getstructscrcoul(emptynode)
-    if (rank==0) write(fgw,*) 'Screened Coulomb potential parameters:'
-    if (rank==0) write(fgw,*) '  Type: ', trim(input%gw%scrcoul%scrtype)
-    if (trim(input%gw%scrcoul%scrtype)=='ppm') then
-      if (rank==0) write(fgw,*) '  Plasmon frequency: ', input%gw%scrcoul%omegap
-    end if
+    if (rank==0) write(fgw,*) 'Screened Coulomb potential:'
+    select case(trim(input%gw%scrcoul%scrtype))
+      case('rpa','RPA')
+        if (rank==0) write(fgw,*) '  Full-frequency Random-Phase Approximation'
+      case('ppm','PPM')
+        if (rank==0) write(fgw,*) '  Godby-Needs plasmon-pole model'
+        if (rank==0) write(fgw,*) '  Plasmon frequency: ', input%gw%scrcoul%omegap
+      case default
+        if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal value for input%gw%scrcoul%scrtype'
+        if (rank==0) write(*,*) '  The supported options are:'
+        if (rank==0) write(*,*) '  rpa - Full-frequency Random-Phase Approximation (default)'
+        if (rank==0) write(*,*) '  ppm - Godby-Needs plasmon-pole model'
+        call barrier()
+        stop
+    end select
     if (rank==0) call linmsg(fgw,'-','')
 
 !-------------------------------------------------------------------------------
@@ -312,6 +313,7 @@ subroutine parse_gwinput
             if (rank==0) write(*,*) '    val - Core states are excluded in all calculations, but kept in &
            & the construction of mixed basis'
             if (rank==0) write(*,*) '    vab - Core states are excluded completely'
+            call barrier()
             stop
     end select
     if (rank==0) call linmsg(fgw,'-','')
@@ -343,6 +345,7 @@ subroutine parse_gwinput
     if (ibgw >= nbgw) then
         if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal values for ibgw ot nbgw!'
         if (rank==0) write(*,*) '    ibgw = ', ibgw, '   nbgw = ', nbgw
+        call barrier()
         stop
     end if
     if (rank==0) write(fgw,'(a,2i7)') ' Interval of quasiparticle states (ibgw, nbgw): ', ibgw, nbgw
@@ -355,8 +358,7 @@ subroutine parse_gwinput
         if (rank==0) write(fgw,*) 'WARNING(parse_gwinput): Number of empty states is not specified!'
         if (rank==0) write(fgw,*) '  This parameter must be carefully chosen based on the convergence tests'
         if (rank==0) write(fgw,*)
-        if (rank==0) write(fgw,*) '  Use the default (too small) value for input%gw%nempty'
-        input%gw%nempty = 10
+        input%gw%nempty = input%groundstate%nempty
     end if
     ! overwrite the GS value to be able to run scf_cycle()
     input%groundstate%nempty = max(input%gw%nempty,input%gw%selfenergy%nempty)
@@ -373,15 +375,15 @@ subroutine parse_gwinput
         if (rank==0) write(fgw,*) 'WARNING(parse_gwinput): Number of k/q-points is not specified!'
         if (rank==0) write(fgw,*) '  This parameter has a crucial influence on the results and'
         if (rank==0) write(fgw,*) '  must be carefully chosen based on the convergence tests.'
-        if (rank==0) write(fgw,*) '  Too large values make GW calculations very time consuming.'
+        if (rank==0) write(fgw,*) '  Too large values could make GW calculations very time consuming.'
         if (rank==0) write(fgw,*)
-        if (rank==0) write(fgw,*) '  Set the default value for input%gw%ngridq:'
-        input%gw%ngridq = (/2, 2, 2/)
+        input%gw%ngridq = input%groundstate%ngridk
     else
         if ((input%gw%ngridq(1)<=0).or. &
         &   (input%gw%ngridq(2)<=0).or. &
         &   (input%gw%ngridq(3)<=0)) then
             if (rank==0) write(fgw,*) 'ERROR(parse_gwinput): Illegal value for k/q-points grid!'
+            call barrier()
             stop
         end if
     end if
@@ -392,7 +394,6 @@ subroutine parse_gwinput
            input%gw%vqloff(2)**2 + &
            input%gw%vqloff(3)**2
     if (rdum > 1.d-8) then
-        if (rank==0) write(fgw,*)'Attention! k/q-point shift is specified!'
         if (rank==0) write(fgw,*)'k/q-shift: ', input%gw%vqloff
         input%groundstate%vkloff = input%gw%vqloff
     end if
@@ -412,4 +413,3 @@ subroutine parse_gwinput
 
     return
 end subroutine
-!EOC

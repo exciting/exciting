@@ -483,6 +483,18 @@
             </xs:annotation>
           </xs:attribute>
 
+          <xs:attribute ex:importance="expert" ex:unit="" name="printSpectralFunction" type="xs:boolean" default="false" use="optional">
+            <xs:annotation><xs:documentation>
+	            Compute and output the spectral function.
+	          </xs:documentation></xs:annotation>
+          </xs:attribute>
+
+          <xs:attribute ex:importance="expert" ex:unit="" name="printSelfC" type="xs:boolean" default="false" use="optional">
+            <xs:annotation><xs:documentation>
+	            Output the correlation self-energy.
+	          </xs:documentation></xs:annotation>
+          </xs:attribute>
+
         </xs:complexType>
     </xs:element>
 </xs:schema>

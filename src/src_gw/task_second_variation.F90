@@ -49,7 +49,7 @@ subroutine task_second_variation()
                         nstsv, kset%nkpt, evalks, &
                         kset%ntet, kset%tnodes, kset%wtet, kset%tvol, &
                         eferks, egap, fermidos)
-    call bandstructure_analysis('KS SV', 1, nstsv, kset%nkpt, evalks, eferks)
+    ! call bandstructure_analysis('KS SV', 1, nstsv, kset%nkpt, evalks, eferks)
 
     !------------------------------------
     ! Solve second-variational problem
@@ -121,7 +121,7 @@ subroutine task_second_variation()
                         nst, kset%nkpt, evalqp(1:nst,:), &
                         kset%ntet, kset%tnodes, kset%wtet, kset%tvol, &
                         eferqp, egap, fermidos)
-    call bandstructure_analysis('QP SV', 1, nst, kset%nkpt, evalqp(1:nst,:), eferqp)
+    call bandstructure_analysis('G0W0+SO band structure summary', 1, nst, kset%nkpt, evalqp(1:nst,:), eferqp)
     call putevalqp('EVALQPSV.OUT', kset, 1, nstsv, evalks, eferks, evalqp, eferqp)
 
     ! Calculate state occupation numbers

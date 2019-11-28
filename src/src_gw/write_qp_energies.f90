@@ -35,7 +35,7 @@ subroutine write_qp_energies(fname)
 
       select case(input%gw%taskname)
 
-        case('g0w0','gw0','acon')
+        case('g0w0','gw0','evalqp')
           sx  = dble(selfex(ie,ikp))
           scr = dble(sigc(ie,ikp))
           sci = aimag(sigc(ie,ikp))

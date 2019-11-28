@@ -1,5 +1,5 @@
 
-subroutine task_analytic_continuation()
+subroutine task_evalqp()
 
     use modinput
     use modmain
@@ -82,7 +82,8 @@ subroutine task_analytic_continuation()
       ! Calculate the quasiparticle energies
       !======================================
       call calcevalqp
-      call plot_spectral_function()
+      if (input%gw%printSelfC)            call plot_selfc()
+      if (input%gw%printSpectralFunction) call plot_spectral_function()
 
       !------------------------------------------------------
       ! Write quasi-particle energies to file

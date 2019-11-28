@@ -277,7 +277,7 @@ Subroutine hybrids
             write(string,'("Convergence target is reached")')
             call printbox(60,"+",string)
             call flushifc(60)
-            if (ihyb > 1) call write_vxnl()
+            call write_vxnl()
         end if
         exit ! exit ihyb-loop
       else

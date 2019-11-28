@@ -55,42 +55,8 @@ subroutine init_dft_eigenvalues()
     evalcr(:,:) = evalcr(:,:)-efermi
     efermi = 0.d0
 
-    !---------------------------------------------------------
-    ! Search for the indices of VBM and CBM (nomax and numin)
-    !---------------------------------------------------------
-    call bandstructure_analysis('Kohn-Sham bandstructure analysis', &
-                                1, nstfv, kset%nkpt, evalfv, efermi)
-
-    !-----------------------------------------------------------------
-    ! Check for consistency with specified QP bands range [ibgw,nbgw]
-    !-----------------------------------------------------------------
-
-    ! lower QP band index
-    if ( (ibgw<1) .or. (ibgw>nstfv) ) ibgw = 1
-    if (ibgw >= numin) then
-        if (myrank==0) then
-          write(*,*) "ERROR(init_dft_eigenvalues): Wrong QP bands interval!"
-          write(*,*) "  ibgw = ", ibgw, " >= CBM = ", numin
-        end if
-        stop
-    end if
-
-    ! upper QP band index
-    if ((nbgw < 1) .or. (nbgw > nstfv)) then
-        ! use just a limited range of states where QP corrections are applied
-        nbgw = nstfv
-    end if
-    if (nbgw <= nomax) then
-        if (myrank==0) then
-          write(*,*) "ERROR(init_dft_eigenvalues): Wrong QP bands interval!"
-          write(*,*) "  nbgw = ", nbgw, " <= VBM = ", nomax
-        end if
-        stop
-    endif
-
     !------------------------------------------------------------------
 
-    nbandsgw = nbgw-ibgw+1
     nvelgw = chgval-2.d0*dble(ibgw-1)
 
     ! initialize the number of states to calculate the dielectric function
@@ -119,6 +85,7 @@ subroutine init_dft_eigenvalues()
     ! Output band structure summary
     !----------------------------------------
     if (myrank==0) then
+      call boxmsg(fgw,'-',"Kohn-Sham eigenstates summary")
       write(fgw,*)'Maximum number of LAPW states:             ', nmatmax
       write(fgw,*)'Minimal number of LAPW states:             ', minval(nmat(1,:))
       write(fgw,*)'Number of states used in GW:'
@@ -138,6 +105,37 @@ subroutine init_dft_eigenvalues()
       end if
       call flushifc(fgw)
     end if
+
+    !---------------------------------------------------------
+    ! Search for the indices of VBM and CBM (nomax and numin)
+    !---------------------------------------------------------
+    call bandstructure_analysis('Kohn-Sham band structure summary', 1, nstfv, kset%nkpt, evalfv, efermi)
+
+    !-----------------------------------------------------------------
+    ! Check for consistency with specified QP bands range [ibgw,nbgw]
+    !-----------------------------------------------------------------
+    ! lower QP band index
+    if ( (ibgw<1) .or. (ibgw>nstfv) ) ibgw = 1
+    if (ibgw >= numin) then
+        if (myrank==0) then
+          write(*,*) "ERROR(init_dft_eigenvalues): Wrong QP bands interval!"
+          write(*,*) "  ibgw = ", ibgw, " >= CBM = ", numin
+        end if
+        stop
+    end if
+    ! upper QP band index
+    if ((nbgw < 1) .or. (nbgw > nstfv)) then
+        ! use just a limited range of states where QP corrections are applied
+        nbgw = nstfv
+    end if
+    if (nbgw <= nomax) then
+        if (myrank==0) then
+          write(*,*) "ERROR(init_dft_eigenvalues): Wrong QP bands interval!"
+          write(*,*) "  nbgw = ", nbgw, " <= VBM = ", nomax
+        end if
+        stop
+    endif
+    nbandsgw = nbgw-ibgw+1
 
     !------------------------
     ! If symmetry is used

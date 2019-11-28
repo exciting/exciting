@@ -208,7 +208,7 @@ Subroutine init1
          End If
 
 ! setup the default k-point box
-         boxl(:, 1) = input%groundstate%vkloff(:) / dble(input%groundstate%ngridk(:))
+         boxl(:, 1) = input%groundstate%vkloff(:) / input%groundstate%ngridk(:)
          boxl(:, 2) = boxl(:, 1)
          boxl(:, 3) = boxl(:, 1)
          boxl(:, 4) = boxl(:, 1)

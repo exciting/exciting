@@ -67,7 +67,7 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
     end if
 
     nppt = ngridp(1)*ngridp(2)*ngridp(3)
-    
+
     nsym = 1
     if (reducep) nsym = nsymcrys
 
@@ -88,7 +88,13 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
       ! Tetrahedron method
       !--------------------
       ! k-offset treatment
-      call factorize(3,boxl(:,1)*ngridp(:),ikloff,dkloff)
+      ! write(*,*) '(genppts) factorize the offset:'
+      ! write(*,*) 'boxl=', boxl(:,1)
+      ! write(*,*) 'ngridp=', ngridp
+      v1(1:3) = boxl(1:3,1)*dble(ngridp(1:3))
+      call factorize(3,v1,ikloff,dkloff)
+      ! write(*,*) 'ikloff=', ikloff
+      ! write(*,*) 'dkloff=', dkloff
 
       if (allocated(ik2ikp)) deallocate(ik2ikp)
       allocate(ik2ikp(nppt))
@@ -99,20 +105,18 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
       allocate(iwkp(nppt))
       if (allocated(ivk)) deallocate(ivk)
       allocate(ivk(3,nppt))
-        
+
       ntet = 6*nppt
       if (allocated(wtet)) deallocate(wtet)
       allocate(wtet(ntet))
       if (allocated(tnodes)) deallocate(tnodes)
       allocate(tnodes(4,ntet))
 
-
       ! LibBZInt library call
       call kgen_exciting(bvec,nsym,symmat, &
       &                  ngridp,ikloff,dkloff, &
       &                  nppt,ivk,dvk,ik2ikp,ikp2ik,iwkp, &
       &                  ntet,tnodes,wtet,tvol,mnd)
-      !nkpt = nppt
 
       ip = 0
       do i1 = 0, ngridp(1)-1
@@ -128,7 +132,7 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
       do ip = 1, nppt
         vpl(:,ip) = dble(ivp(:,ip))/dble(dvk)
         call r3mv(bvec,vpl(:,ip),vpc(:,ip))
-        ! to match the exciting definition (integer devision)
+        ! to match the exciting definition (integer division)
         ivp(:,ip) = ivp(:,ip)*ngridp(:)/dvk
         wppt(ip) = dble(iwkp(ip))/dble(ngridp(1)*ngridp(2)*ngridp(3))
       end do ! ik
@@ -186,7 +190,7 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
               ivp( :, ip) = (/i1, i2, i3/)
               vpl( :, ip) = v2
             endif
-              
+
 !            if (reducep) Then
 !              call r3frac(input%structure%epslat, v2, iv)
 !              ! determine if this point is equivalent to one already in the set

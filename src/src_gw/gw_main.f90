@@ -20,7 +20,7 @@ subroutine gw_main()
 
     ! Initialize timing and memory usage variables
     call timesec(tstart)
-    call init_timing
+    call init_timing()
 
     !---------------------
     ! Main GW output file
@@ -33,8 +33,6 @@ subroutine gw_main()
             call getunit(fdebug)
             open(fdebug, File='debug.info', Action='Write')
         end if
-        call boxmsg(fgw,'=','Main GW output file')
-        call flushifc(fgw)
     end if
 
     !----------------------------------------------
@@ -80,8 +78,8 @@ subroutine gw_main()
             call calcpmatgw()
 
         ! Perform analytic continuation of the correlation self-energy and calculate QP energies
-        case('acon')
-            if (rank==0) call task_analytic_continuation()
+        case('evalqp')
+            if (rank==0) call task_evalqp()
 
         ! Visualize the spectral function along the bandstructure path
         case('band_specfunc')
@@ -153,7 +151,9 @@ subroutine gw_main()
     ! output timing info
     call timesec(tend)
     time_total = time_total+tend-tstart
-    call print_timing
+
+    ! output some timing info
+    call print_timing()
 
     ! close GW output file
     if (rank==0) then

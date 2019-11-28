@@ -64,9 +64,11 @@ subroutine init_gw()
         call scf_cycle(-2)
         if (rank == 0) then
           ! safely remove unnecessary files
-          ! call filedel('EIGVAL'//trim(filext))
+          call filedel('EIGVAL'//trim(filext))
           call filedel('LINENGY'//trim(filext))
           call filedel('EVALCORE'//trim(filext))
+          call filedel('OCCSV'//trim(filext))
+          call filedel('EFERMI'//trim(filext))
           call filedel('BROYDEN.OUT')
           call writefermi
         end if
@@ -104,12 +106,6 @@ subroutine init_gw()
     call timesec(t1)
     time_initmb = time_initmb+t1-t0
 
-    ! Get Kohn-Sham eigenvalues
-    call timesec(t0)
-    call init_dft_eigenvalues()
-    call timesec(t1)
-    time_initeval = time_initeval+t1-t0
-
     ! Frequency grid initialization
     call timesec(t0)
 
@@ -141,6 +137,12 @@ subroutine init_gw()
     lmax = max(input%groundstate%lmaxapw+1, &
     &          2*(input%gw%mixbasis%lmaxmb+1))
     call calcgauntcoef(lmax)
+
+    ! Get Kohn-Sham eigenvalues
+    call timesec(t0)
+    call init_dft_eigenvalues()
+    call timesec(t1)
+    time_initeval = time_initeval+t1-t0
 
     ! timing
     call timesec(tend)

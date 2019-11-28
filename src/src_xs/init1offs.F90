@@ -18,7 +18,7 @@ subroutine init1offs(vploff)
 
   lt = init1norealloc
   init1norealloc = .true.
-  
+
   vt(:) = input%groundstate%vkloff(:)
   input%groundstate%vkloff(:) = vploff(:)
 

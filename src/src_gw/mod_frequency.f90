@@ -285,7 +285,6 @@ CONTAINS
         do i = 1, self%nomeg
             write(funit,'(i4,1p,2g18.10)') i, self%freqs(i), self%womeg(i)
         enddo
-        call linmsg(funit,'-','')
     end subroutine
 
 END MODULE

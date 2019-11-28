@@ -189,8 +189,7 @@ Subroutine init0
 
       If ((associated(input%groundstate%spin)) .And. (xcspin .Eq. 0)) Then
          Write (*,*)
-         Write (*, '("Error(init0): requested spin-polarised run with s&
-        &pin-unpolarised")')
+         Write (*, '("Error(init0): requested spin-polarised run with spin-unpolarised")')
          Write (*, '(" exchange-correlation functional")')
          Write (*,*)
          Stop

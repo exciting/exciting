@@ -136,15 +136,15 @@ subroutine task_gw()
     iomend = freq%nomeg
 #endif
 
-    if (myrank==0) then
-      call boxmsg(fgw,'=','GW cycle')
-      call flushifc(fgw)
-    end if
+    if (myrank==0) call boxmsg(fgw,'=','GW cycle')
 
     ! each process does a subset
     do iq = iqstart, iqend
 
-      if (rank==0) write(fgw,*) '(task_gw): q-point cycle, iq = ', iq
+      if (myrank==0) then
+        write(fgw,*) '(task_gw): q-point cycle, iq = ', iq
+        call flushifc(fgw)
+      end if
 
       Gamma = gammapoint(kqset%vqc(:,iq))
 
@@ -235,7 +235,7 @@ subroutine task_gw()
 
       if ((input%gw%taskname /= 'g0w0-x') .and. (input%gw%selfenergy%method == "ac")) then
         ! Analytical continuation of the correlation self-energy from the complex to the real frequency axis
-        call plot_selfc_iw()
+        if (input%gw%printSelfC) call plot_selfc_iw()
         call calcselfc_ac()
       end if
 
@@ -252,53 +252,59 @@ subroutine task_gw()
 
       ! KS band structure
       evalks(ibgw:nbgw,:) = evalfv(ibgw:nbgw,:)
-      call bandstructure_analysis('KS', &
-          ibgw, nbgw, kset%nkpt, evalks(ibgw:nbgw,:), efermi)
+      ! call bandstructure_analysis('KS', &
+      !     ibgw, nbgw, kset%nkpt, evalks(ibgw:nbgw,:), efermi)
 
       ! solve QP equation
       call calcevalqp()
-      call write_qp_energies('EVALQP.DAT')
 
-      if (input%gw%taskname /= 'g0w0-x') then
-        call plot_selfc()
-        call plot_spectral_function()
+      if (isspinorb()) then
+
+        call write_qp_energies('EVALQPFV.DAT')
+
+      else
+
+        call write_qp_energies('EVALQP.DAT')
+
+        if (input%gw%taskname /= 'g0w0-x') then
+          if (input%gw%printSelfC)            call plot_selfc()
+          if (input%gw%printSpectralFunction) call plot_spectral_function()
+        end if
+
+        ! G0W0 QP band structure
+        select case (input%gw%taskname)
+
+          case('g0w0-x')
+            call bandstructure_analysis('G0W0-X band structure summary', &
+                ibgw, nbgw, kset%nkpt, evalqp(ibgw:nbgw,:), eferqp)
+
+          case('cohsex')
+            call bandstructure_analysis('COHSEX band structure summary', &
+                ibgw, nbgw, kset%nkpt, evalqp(ibgw:nbgw,:), eferqp)
+
+          case('g0w0')
+            call bandstructure_analysis('G0W0 band structure summary', &
+                ibgw, nbgw, kset%nkpt, evalqp(ibgw:nbgw,:), eferqp)
+
+        end select
+
+        !----------------------------------------
+        ! Save QP energies into binary file
+        !----------------------------------------
+        call timesec(t0)
+        call putevalqp('EVALQP.OUT', kset, ibgw, nbgw, evalks, eferks, evalqp, eferqp)
+
       end if
-
-      ! G0W0 QP band structure
-      select case (input%gw%taskname)
-
-        case('g0w0-x')
-          call bandstructure_analysis('G0W0-X', &
-              ibgw, nbgw, kset%nkpt, evalqp(ibgw:nbgw,:), eferqp)
-
-        case('cohsex')
-          call bandstructure_analysis('COHSEX', &
-              ibgw, nbgw, kset%nkpt, evalqp(ibgw:nbgw,:), eferqp)
-
-        case('g0w0')
-          call bandstructure_analysis('G0W0', &
-              ibgw, nbgw, kset%nkpt, evalqp(ibgw:nbgw,:), eferqp)
-
-      end select
 
 !$OMP end critical
 
     end if ! myrank
-
-    if (myrank==0) then
-      !----------------------------------------
-      ! Save QP energies into binary file
-      !----------------------------------------
-      call timesec(t0)
-      call putevalqp('EVALQP.OUT', kset, ibgw, nbgw, evalks, eferks, evalqp, eferqp)
-    end if ! myrank
-
     call barrier() ! synchronize all threads
 
     !-----------------------------------------
-    ! Second-variational treatment if needed
+    ! Second-variational treatment of SO
     !-----------------------------------------
-    if (associated(input%groundstate%spin)) then
+    if (isspinorb()) then
       call init0()
       call readstate()
       if (myrank==0) call task_second_variation()
