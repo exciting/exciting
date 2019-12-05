@@ -109,7 +109,7 @@ subroutine init_dft_eigenvalues()
     !---------------------------------------------------------
     ! Search for the indices of VBM and CBM (nomax and numin)
     !---------------------------------------------------------
-    call bandstructure_analysis('Kohn-Sham band structure summary', 1, nstfv, kset%nkpt, evalfv, efermi)
+    call bandstructure_analysis('Kohn-Sham band structure', 1, nstfv, kset%nkpt, evalfv, efermi)
 
     !-----------------------------------------------------------------
     ! Check for consistency with specified QP bands range [ibgw,nbgw]

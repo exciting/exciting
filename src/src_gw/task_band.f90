@@ -52,7 +52,7 @@ subroutine task_band()
   !--------------------------------------------------------------
   ! read QP energies from file and perform Fourier interpolation
   !--------------------------------------------------------------
-  if (associated(input%groundstate%spin)) then
+  if (isspinorb()) then
     fname = 'EVALQPSV.OUT'
   else
     fname = 'EVALQP.OUT'

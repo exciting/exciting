@@ -48,8 +48,12 @@ subroutine task_dos()
     evalsv(:,:) = evalsv(:,:) - efermi
 
     ! read QP energies from file and perform Fourier interpolation (if required)
-    if (associated(input%groundstate%spin)) then
+    if (isspinorb()) then
       fname = 'EVALQPSV.OUT'
+      write(*,*)
+      write(*,*) 'ERROR(task_dos) TDOS + spin-orbit coupling is not yet implemented!'
+      write(*,*)
+      stop
     else
       fname = 'EVALQP.OUT'
     end if

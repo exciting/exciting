@@ -40,7 +40,7 @@ subroutine init_gw()
       ! hybrid functional, i.e., nempty and ngridk.
       ! Remark: the wavefunction for a general k-point will be obtained applying
       ! a rotation algorithm implemented in getevecfv.f90.
-      ! Unfortunately, there are known some artifacts caused by the rotation.
+      ! Unfortunately, there are known some small artifacts caused by the rotation.
       call init1()
 
       isreadstate0 = .false.

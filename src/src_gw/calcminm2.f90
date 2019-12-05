@@ -17,12 +17,12 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     integer(4), intent(in) :: nstart, nend
     integer(4), intent(in) :: mstart, mend
     complex(8), intent(out):: minm(matsiz,nstart:nend,mstart:mend)
-      
+
     integer(4) :: jk
     integer(4) :: bl, bm
-    integer(4) :: i, ia, is, ias 
-    integer(4) :: igk1, igk2 
-    integer(4) :: io1, io2, ilo1, ilo2 
+    integer(4) :: i, ia, is, ias
+    integer(4) :: igk1, igk2
+    integer(4) :: io1, io2, ilo1, ilo2
     integer(4) :: imix, irm
     integer(4) :: ie1, ie2
     integer(4) :: l1, m1, l2, m2, l1m1, l2m2
@@ -32,13 +32,13 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     integer(4), dimension(3):: ikv, ig0 ! Indexes of G_1+G'-G
     integer(4) :: ngk1, ngk2
     integer(4) :: ndim, mdim, nmdim
-      
+
     real(8) :: sqvi, x, arg, angint
     real(8) :: qvec(3)
     real(8) :: tstart, tend, tmt
-    
+
     real(8) :: t1, t2
-    
+
     complex(8) :: phs, bk
     complex(8), allocatable :: tmat(:,:), tmat2(:,:), mnn(:,:)
     complex(8), allocatable :: lok(:,:), lokp(:,:) ,veck(:), veckp(:)
@@ -62,7 +62,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     mdim = mend-mstart+1
     nmdim = ndim*mdim
     ! write(*,*) 'nstart, mstart', nstart, nend, mstart, mend
-      
+
     jk = kqset%kqid(ik,iq)
     do i = 1, 3
       qvec(i) = kqset%vql(i,iq)
@@ -79,7 +79,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     do ie1=mstart,mend
       lokp(ie1,1:)=eveckp(Gkqset%ngk(1,jk)+1:,ie1)
     enddo
-    
+
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(tmat,imix,is,ia,ias,irm,bl,bm,arg,phs,l1,m1,l1m1,l2min,l2max,l2,m2,l2m2,angint,ie2,io1,io2,ilo2,igk2,ilo1,ie1,igk1,veckp)
 #endif
@@ -91,13 +91,13 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
 #endif
     ! loop over MT product basis functions
     do imix = 1, locmatsiz
-    
+
       is  = mbindex(imix,1)
       ia  = mbindex(imix,2)
       irm = mbindex(imix,3)
       bl  = mbindex(imix,4)
       bm  = mbindex(imix,5)
-      
+
       ias = idxas(ia,is)
       arg = atposl(1,ia,is)*qvec(1)+ &
       &     atposl(2,ia,is)*qvec(2)+ &
@@ -109,7 +109,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
       do l1 = 0, input%groundstate%lmaxapw
         do m1 = -l1, l1
           l1m1 = idxlm(l1,m1)
-                
+
           l2min = abs(bl-l1)
           l2max = min(bl+l1,input%groundstate%lmaxapw)
           do l2 = l2min, l2max
@@ -121,7 +121,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
               !angint = gaunt(l1,bl,l2,m1,bm,m2)
               angint = getgauntcoef(l2,bl,l1,m2,bm)
               if (abs(angint)<1.d-8) cycle
-              
+
               do io1 = 1, apword(l1,is)
                 !======
                 ! A-A
@@ -149,7 +149,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
                   end do ! ie2
               end do ! io1
 
-             
+
               do ilo1 = 1, nlorb(is)
                 if (lorbl(ilo1,is)==l1) then
                   igk1 = idxlo(l1m1,ilo1,ias)
@@ -171,7 +171,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
                       veckp(mstart:mend)=veckp(mstart:mend)+bk*lokp(mstart:mend,igk2)
                     end if
                   end do ! ilo2
-                  
+
                   do ie2 = mstart, mend
                     do ie1 = nstart, nend
                       tmat(ie1,ie2) = tmat(ie1,ie2)+lok(ie1,igk1)*veckp(ie2)
@@ -179,19 +179,19 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
                   end do ! ie2
                 end if
               end do ! ilo1
-              
+
             end if ! m2
           end do ! l2
-                  
+
         end do ! m1
       end do ! l1
-      
+
       minm(imix,:,:) = phs*tmat(:,:)
-            
+
     end do ! imix
 #ifdef USEOMP
 !$OMP END DO
-#endif    
+#endif
     deallocate(tmat,veckp)
 #ifdef USEOMP
 !$OMP END PARALLEL
@@ -204,15 +204,15 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     !======================
     ! Interstitial region
     !======================
-    
+
     ! Loop over the mixed basis functions:
     sqvi = sqrt(vi)
     ngk1 = Gkqset%ngk(1,ik)
     ngk2 = Gkqset%ngk(1,jk)
-    
+
     allocate(igqk12(ngk1,ngk2))
     igqk12(:,:) = 0
-    
+
     do igk1 = 1, ngk1 ! loop over G
       do igk2 = 1, ngk2 ! loop over G'
         ikv(1:3) = Gset%ivg(1:3,Gkqset%igkig(igk1,1,ik)) - &
@@ -236,19 +236,19 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
 
 ! !#ifdef USEOMP
 ! !$OMP DO
-! !#endif    
+! !#endif
     do igq = 1, Gqset%ngk(1,iq)
-        
+
       do igk1 = 1, ngk1 ! loop over G+k
         do igk2 = 1, ngk2 ! loop over G'+k'
           if (igqk12(igk1,igk2) > 0) then
             tmat(igk2,igk1) = mpwipw(igq,igqk12(igk1,igk2))
-          else 
+          else
             tmat(igk2,igk1) = zzero
-          end if    
+          end if
         end do ! igk2
-      end do ! igk1    
-      
+      end do ! igk1
+
       call zgemm( 'n', 'n', &
       &           ngk2, ndim, ngk1, &
       &           zone, &
@@ -263,27 +263,27 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
       &           tmat2, ngk2, &
       &           zzero, mnn, mdim)
 
-      do ie2 = mstart, mend  
+      do ie2 = mstart, mend
         do ie1 = nstart, nend
           minm(locmatsiz+igq,ie1,ie2) = sqvi*mnn(ie2-mstart+1,ie1-nstart+1)
         end do ! ie2
       end do ! ie1
-      
+
     end do ! igq
-! !#ifdef USEOMP    
+! !#ifdef USEOMP
 ! !$OMP END DO
 ! !#endif
 
     deallocate(tmat)
     deallocate(tmat2)
     deallocate(mnn)
-    
+
 ! !#ifdef USEOMP
 ! !$OMP END PARALLEL
-! !#endif    
+! !#endif
 
     deallocate(igqk12)
-    
+
     !------------------------------------------------------------------
     ! timing
     ! call timesec(tend)
@@ -298,7 +298,6 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     !    enddo ! ist2
     !  enddo ! ist1
     !end do
-  
+
     return
 end subroutine
-

@@ -257,14 +257,10 @@ subroutine task_gw()
 
       ! solve QP equation
       call calcevalqp()
+      call write_qp_energies('EVALQP.DAT')
+      call putevalqp('EVALQP.OUT', kset, ibgw, nbgw, evalks, eferks, evalqp, eferqp)
 
-      if (isspinorb()) then
-
-        call write_qp_energies('EVALQPFV.DAT')
-
-      else
-
-        call write_qp_energies('EVALQP.DAT')
+      if (.not.isspinorb()) then
 
         if (input%gw%taskname /= 'g0w0-x') then
           if (input%gw%printSelfC)            call plot_selfc()
@@ -275,24 +271,18 @@ subroutine task_gw()
         select case (input%gw%taskname)
 
           case('g0w0-x')
-            call bandstructure_analysis('G0W0-X band structure summary', &
+            call bandstructure_analysis('G0W0-X band structure', &
                 ibgw, nbgw, kset%nkpt, evalqp(ibgw:nbgw,:), eferqp)
 
           case('cohsex')
-            call bandstructure_analysis('COHSEX band structure summary', &
+            call bandstructure_analysis('COHSEX band structure', &
                 ibgw, nbgw, kset%nkpt, evalqp(ibgw:nbgw,:), eferqp)
 
           case('g0w0')
-            call bandstructure_analysis('G0W0 band structure summary', &
+            call bandstructure_analysis('G0W0 band structure', &
                 ibgw, nbgw, kset%nkpt, evalqp(ibgw:nbgw,:), eferqp)
 
         end select
-
-        !----------------------------------------
-        ! Save QP energies into binary file
-        !----------------------------------------
-        call timesec(t0)
-        call putevalqp('EVALQP.OUT', kset, ibgw, nbgw, evalks, eferks, evalqp, eferqp)
 
       end if
 

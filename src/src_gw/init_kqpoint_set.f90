@@ -90,7 +90,7 @@ subroutine init_kqpoint_set()
     &                        ksetnr, &
     &                        Gset, &
     &                        gqmax)
-    !if ((input%gw%debug).and.(rank==0)) call print_Gk_vectors(Gqset,fid)
+    ! if ((input%gw%debug).and.(rank==0)) call print_Gk_vectors(Gqset,1,fid)
 
     !=============================================================
     ! PW basis set used for calculating the bare Coulomb potential
@@ -103,11 +103,12 @@ subroutine init_kqpoint_set()
       &<gqmaxbarc>: ', gqmaxbarc
     end if
 
+
     call generate_Gk_vectors(Gqbarc, &
     &                        ksetnr, &
     &                        Gset, &
     &                        gqmaxbarc)
-    !if ((input%gw%debug).and.(rank==0)) call print_Gk_vectors(Gqbarc,fid)
+    ! if ((input%gw%debug).and.(rank==0)) call print_Gk_vectors(Gqbarc,1,fid)
 
     !============================
     ! delete the dummy k-set

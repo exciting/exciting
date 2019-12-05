@@ -49,14 +49,13 @@ subroutine task_second_variation()
                         nstsv, kset%nkpt, evalks, &
                         kset%ntet, kset%tnodes, kset%wtet, kset%tvol, &
                         eferks, egap, fermidos)
-    ! call bandstructure_analysis('KS SV', 1, nstsv, kset%nkpt, evalks, eferks)
+    call bandstructure_analysis('KS+SO band structure', 1, nstsv, kset%nkpt, evalks, eferks)
 
     !------------------------------------
     ! Solve second-variational problem
     !------------------------------------
     if (.not. input%groundstate%spin%realspace) then
         ! Effective Hamiltonian Setup: Radial and Angular integrals (new)
-        ! call MTNullify(mt_hscf)
         call MTInitAll(mt_hscf)
         call hmlint(mt_hscf)
     end if
@@ -121,7 +120,7 @@ subroutine task_second_variation()
                         nst, kset%nkpt, evalqp(1:nst,:), &
                         kset%ntet, kset%tnodes, kset%wtet, kset%tvol, &
                         eferqp, egap, fermidos)
-    call bandstructure_analysis('G0W0+SO band structure summary', 1, nst, kset%nkpt, evalqp(1:nst,:), eferqp)
+    call bandstructure_analysis('G0W0+SO band structure', 1, nst, kset%nkpt, evalqp(1:nst,:), eferqp)
     call putevalqp('EVALQPSV.OUT', kset, 1, nstsv, evalks, eferks, evalqp, eferqp)
 
     ! Calculate state occupation numbers
