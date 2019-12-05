@@ -1290,6 +1290,38 @@
           </xs:complexType>
         </xs:element>
 
+        <xs:element ex:importance="expert" ex:unit="" name="ldos" maxOccurs="1" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>Compute and visualize the local density of states (LDOS): the density of states projected to the element of the unit cell volume.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:attribute
+              ex:importance="essential" ex:unit="" name="delta" default="1.0d0" type="fortrandouble">
+            </xs:attribute>
+            <xs:attribute
+              ex:importance="essential" ex:unit="" name="tol" default="1.0d-2" type="fortrandouble">
+            </xs:attribute>
+            <xs:attribute
+              ex:importance="essential" ex:unit="" name="grid" default="10 10 10" type="integertriple">
+            </xs:attribute>
+            <xs:attribute 
+              ex:importance="essential" ex:unit="" ref="nwdos" default="100">
+            </xs:attribute>
+            <xs:attribute 
+              ex:importance="essential" ex:unit="" ref="ngrdos" default="100"> 
+            </xs:attribute>
+            <xs:attribute 
+              ex:importance="expert" ex:unit="" ref="nsmdos" default="0"> 
+            </xs:attribute>
+            <xs:attribute 
+              ex:importance="expert" ex:unit="Hartree" name="winddos" default="-0.5d0 0.5d0" type="vect2d">
+            </xs:attribute>
+            <xs:attribute 
+              ex:importance="essential" ex:unit="Hartree" ref="scissor" default="0.0d0">
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+
       </xs:all>
     </xs:complexType>
   </xs:element>

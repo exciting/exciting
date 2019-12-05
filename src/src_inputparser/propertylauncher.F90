@@ -267,4 +267,9 @@ Subroutine propertylauncher
          Call effmass
       End If
 
+      if (associated(input%properties%ldos)) then
+         call rereadinput
+         call ldos()
+      end if
+
 End Subroutine propertylauncher
