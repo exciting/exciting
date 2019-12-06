@@ -20,7 +20,6 @@
     >
   </groundstate>
   <properties>
-    <!--dos  nwdos="1000"/-->
     <ldos grid="20 20 20" nwdos="1000" winddos="-0.2 0.2" tol="1.0d-4" delta="1.0d0"/>
   </properties>
 </input>
