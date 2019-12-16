@@ -88,7 +88,7 @@ subroutine ldos()
     np = min(nint(abc(i_dim)/delta), nptot)
     allocate(weight(np, nstsv, nkpt))
     weight(:,:,:) = 0.d0
-    npstep = max(nptot/np, 1)
+    npstep = max(nptot/np+1, 1)
 
     ! integration volume
     v0 = omega / dble(grid%npt)
@@ -145,7 +145,9 @@ subroutine ldos()
             ip = 1
             do i3 = 1, nptot
                 weight(ip,ib,ik) = weight(ip,ib,ik) + v0*sum(rho(:,:,i3))
-                if (mod(i3,npstep)==0) ip = ip+1
+                if (mod(i3,npstep)==0) then
+                    ip = ip+1
+                end if
             end do
 
         end do ! ib
