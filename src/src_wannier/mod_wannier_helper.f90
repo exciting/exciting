@@ -24,6 +24,8 @@ module mod_wannier_helper
     subroutine wannier_setkpts
       integer :: ik, ispn
       logical :: reducek
+      integer :: ngridk(3)
+      real(8) :: vkloff(3)
       !write(*,*) "k set"
       select case (input%properties%wannier%input)
         case( "gs")
@@ -50,8 +52,14 @@ module mod_wannier_helper
             nstfv = int( chgval/2.d0) + input%gw%nempty + 1
             reducek = input%groundstate%reducek
             input%groundstate%reducek = .false.
+            ngridk = input%groundstate%ngridk
+            input%groundstate%ngridk = input%gw%ngridq
+            vkloff = input%groundstate%vkloff
+            input%groundstate%vkloff = input%gw%vqloff
             call init1()
             input%groundstate%reducek = reducek
+            input%groundstate%ngridk = ngridk
+            input%groundstate%vkloff = vkloff
             call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, .false.)
             call generate_k_vectors( wf_kset_red, bvec, input%gw%ngridq, input%gw%vqloff, .true.)
           end if
