@@ -343,12 +343,12 @@ contains
           if (r_h%npt == 1) then
             ! fixed electron
             do ip = 1, npt
-              zwfeh(ip) = zwfeh(ip) + bevec(ivck,lambda)*conjg(zwfrh(1))*zwfre(ip)
+              zwfeh(ip) = zwfeh(ip) + bevec(ivck,lambda)*zwfrh(1)*conjg(zwfre(ip))
             end do
           else
             ! fixed electron
             do ip = 1, npt
-              zwfeh(ip) = zwfeh(ip) + bevec(ivck,lambda)*conjg(zwfrh(ip))*zwfre(1)
+              zwfeh(ip) = zwfeh(ip) + bevec(ivck,lambda)*zwfrh(ip)*conjg(zwfre(1))
             end do
           end if
         end do ! ic
@@ -455,7 +455,7 @@ contains
           ivck = ic + nrnst3*(iv-1) + nrnst1*nrnst3*(ik-1)
           ! fixed hole
           do ip = 1, npt
-              zwfeh(ip) = zwfeh(ip) + bevec(ivck,lambda)*zwfre(ip)*conjg(zwfrh(1))
+              zwfeh(ip) = zwfeh(ip) + bevec(ivck,lambda)*zwfrh(1)*conjg(zwfre(ip))
           end do
         end do ! ic
       end do ! iv

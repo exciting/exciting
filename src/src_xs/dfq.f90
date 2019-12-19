@@ -910,11 +910,11 @@ subroutine dfq(iq)
 
   ! Symmetrize head, with respect to the crystal symmetry.
   head: if(tq0) then
-    allocate(chi0hs(3, 3, nwdfp), eps0(3, 3, nwdf))
+    allocate(chi0hs(3, 3, nwdfp), eps0(3, 3, nwdfp))
 
     ! Write coulomb-symmetrized dielectric tensor to file (lattice-unsymmetrized)
     !   \epsilon_{i,j}(\omega) = 1 - \tilde{\chi}_{i,j}(\omega)
-    forall(iw=1:nwdf)
+    forall(iw=1:nwdfp)
       eps0(:, :, iw) = dble(krondelta) - chi0h(:, :, iw)
     end forall
 
@@ -931,7 +931,7 @@ subroutine dfq(iq)
     chi0h(:, :, :) = chi0hs(:, :, :)
 
     ! Write symmetrized dielectric tensor to file
-    forall(iw=1:nwdf)
+    forall(iw=1:nwdfp)
       eps0(:, :, iw) = dble(krondelta) - chi0hs(:, :, iw)
     end forall
     if(rank .eq. 0)&
