@@ -59,12 +59,6 @@ Subroutine dfgather
                call mpi_bcast(chi0hd,3*3,MPI_DOUBLE_COMPLEX,iproc,mpi_comm_world,ierr)
 #endif
                if(rank.eq.0.or.(firstinnode.and. .not.input%sharedfs))then
-                 if (iw == wpari) then
-                   print *, 'procs=', procs
-                   print *, 'rank=', rank
-                   print *, 'iq=', iq, '/', nqpt
-                   print *, 'fnchi0=',trim(fnchi0)
-                 end if
                Call putx0 (tq0, iq, iw, trim(fnchi0), '', chi0, chi0wg, &
               & chi0hd)
               endif
