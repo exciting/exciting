@@ -2,7 +2,7 @@ include ../make.inc
 include ../libraries.inc
 
 FC = $(F90)
-FFLAGS = $(F90_OPTS) $(CPP_ON_OPTS)
+FFLAGS = $(F90_OPTS) $(CPP_ON_OPTS) -I./finclude
 LD = $(FC)
 LDFLAGS = $(F90_OPTS) $(LIBS) $(INTERNALLIBS)
 AR = ar
