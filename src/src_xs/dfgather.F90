@@ -27,6 +27,11 @@ Subroutine dfgather
   ! loop over q-points
       Do iq = 1, nqpt
          tq0 = tqgamma (iq)
+
+        call genfilname(basename='X0', bzsampl=bzsampl,&
+         & acont=input%xs%tddft%acont, nar= .not. input%xs%tddft%aresdf,&
+         & tord=input%xs%tddft%torddf, markfxcbse=tfxcbse, iqmt=iq, filnam=fnchi0)
+     
      ! calculate k+q and G+k+q related variables
          Call init1offs (qvkloff(1, iq))
      ! size of local field effects
