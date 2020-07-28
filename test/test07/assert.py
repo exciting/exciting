@@ -1,7 +1,7 @@
 from lxml import etree
 import math
 
-eps_tol = 3.e-8
+eps_tol = 1.e-7
 
 root = etree.Element("report")
 
@@ -55,7 +55,7 @@ def add_test_xml(root, tpassed, name_txt, description_txt, directory_txt):
 ########################################
 tdir = "runBSE"
 ftest_path = tdir+"/EPSILON/EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT"
-fref_path = "reference/"+tdir+"/EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC11.REF"
+fref_path = "reference/"+tdir+"/EPSILON_NAR_BSEsinglet_SCRfull_OC11.REF"
 
 mse = mse_eps(ftest_path,fref_path)
 tpassed = mse < eps_tol

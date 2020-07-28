@@ -48,6 +48,7 @@ test03::
 
 test04::
 	cd test04/runso && ../../$(EXE)
+	cd test04 && perl assert.pl
 
 test05::
 	cd test05/runlibxc && ../../$(EXE)
