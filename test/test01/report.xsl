@@ -29,14 +29,14 @@
   <test>
     <status>
     <xsl:choose>
-    <xsl:when test="math:abs(document('runHe/atoms.xml')/atomlist/atom/NumericalSetup/@rmax - 10.05929533894)&lt;1e-6">
+    <xsl:when test="math:abs(document('runHe/atoms.xml')/atomlist/atom/NumericalSetup/@rmax - 10.05910039576)&lt;1e-6">
      <xsl:text>passed</xsl:text></xsl:when>
      <xsl:otherwise> <xsl:text>failed</xsl:text></xsl:otherwise>
     </xsl:choose>
     </status>
     <name>  correct He species is used </name>
     <description>passes if rmax is the same as in reference:
-     <xsl:value-of select="number(document('runHe/atoms.xml')/atomlist/atom/NumericalSetup/@rmax)"/> vs. 10.05929533894
+     <xsl:value-of select="number(document('runHe/atoms.xml')/atomlist/atom/NumericalSetup/@rmax)"/> vs. 10.05910039576
     </description>
     <directory>test01/runHe </directory>
   </test>
@@ -123,18 +123,18 @@
     <description>passes if atoms-iora.xml exists</description>
     <directory>test01/runAr </directory>
   </test>
-rmax="1.745072029189e1"
+rmax="17.45057233740"
    <test>
     <status>
     <xsl:choose>
-    <xsl:when test="math:abs(document('runAr/atoms-default.xml')/atomlist/atom/NumericalSetup/@rmax - 17.45072029189)&lt;1e-6">
+    <xsl:when test="math:abs(document('runAr/atoms-default.xml')/atomlist/atom/NumericalSetup/@rmax - 17.45057233740)&lt;1e-6">
      <xsl:text>passed</xsl:text></xsl:when>
      <xsl:otherwise> <xsl:text>failed</xsl:text></xsl:otherwise>
     </xsl:choose>
     </status>
     <name>  correct Ar species is used </name>
     <description>passes if rmax is the same as in reference:
-       <xsl:value-of select="document('runAr/atoms-default.xml')/atomlist/atom/NumericalSetup/@rmax"/> vs. 17.45072029189
+       <xsl:value-of select="document('runAr/atoms-default.xml')/atomlist/atom/NumericalSetup/@rmax"/> vs. 17.45057233740
     </description>
     <directory>test01/runAr </directory>
   </test>

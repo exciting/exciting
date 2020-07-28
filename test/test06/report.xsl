@@ -46,14 +46,14 @@
   <test>
     <status>
     <xsl:choose>
-    <xsl:when test="math:abs(document('runPbTiO3/atoms.xml')/atomlist/atom[1]/NumericalSetup/@rmax - 2.755859979645e1)&lt;1e-6">
+    <xsl:when test="math:abs(document('runPbTiO3/atoms.xml')/atomlist/atom[1]/NumericalSetup/@rmax - 27.557574900760)&lt;1e-6">
      <xsl:text>passed</xsl:text></xsl:when>
      <xsl:otherwise> <xsl:text>failed</xsl:text></xsl:otherwise>
     </xsl:choose>
     </status>
     <name>  correct He species is used </name>
     <description>passes if rmax is the same as in reference:
-     <xsl:value-of select="document('runPbTiO3/atoms.xml')/atomlist/atom[1]/NumericalSetup/@rmax"/> vs. 27.55859979645
+     <xsl:value-of select="document('runPbTiO3/atoms.xml')/atomlist/atom[1]/NumericalSetup/@rmax"/> vs. 27.557574900760
     </description>
     <directory>test01/runHe </directory>
   </test>
