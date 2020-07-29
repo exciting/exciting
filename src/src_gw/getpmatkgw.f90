@@ -33,7 +33,7 @@ subroutine getpmatkgw(ik)
     !-----------------------------------
     ! check if the k-point is reducible
     !-----------------------------------
-    if (ik .ne. kset%ikp2ik(ikp)) then
+    if (ik /= kset%ikp2ik(ikp)) then
     
       !=====================================================
       ! Find symmetry operation connecting ik and ikp points
@@ -56,7 +56,7 @@ subroutine getpmatkgw(ik)
       end do ! isym
       if (.not.lfound) then
         write(*,*)
-        write(*,'("Error(getpmatkgw): No symmetry operation connecting &
+        write(*,'("Error(getpmatkgw): No symmetry operation that connects &
         &kset and kqset points is found!")')
         write(*,*)
         stop

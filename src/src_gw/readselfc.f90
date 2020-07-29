@@ -11,7 +11,7 @@ subroutine readselfc
 ! This subroutine reads the correlation self-energy from file
 !
 !!USES:
-    use modgw, only : kset, freq, ibgw, nbgw, selfec
+    use modgw, only : kset, freq_selfc, ibgw, nbgw, selfec
     use m_getunit
 
 !!LOCAL VARIABLES:
@@ -44,9 +44,9 @@ subroutine readselfc
       stop
     end if
 
-    if (no.ne.freq%nomeg) then
+    if (no.ne.freq_selfc%nomeg) then
       write(*,*)'ERROR(readselfc): Wrong number of frequencies'
-      write(*,*)'    no=', no, '    freq%nomeg=', freq%nomeg
+      write(*,*)'    no=', no, '    freq_selfc%nomeg=', freq_selfc%nomeg
       stop
     end if
     

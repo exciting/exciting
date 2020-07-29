@@ -206,15 +206,15 @@ Subroutine genlofr
                q0s (:) = 0.d0
                q1s (:) = 0.d0
                Do io1 = 1, lorbord (ilo, is)
-                  t1 = b (io1)
-                  p0s (1:nr) = p0s (1:nr) + t1 * p0 (1:nr, io1)
-                  p1s (1:nr) = p1s (1:nr) + t1 * p1 (1:nr, io1)
-                  q0s (1:nr) = q0s (1:nr) + t1 * q0 (1:nr, io1)
-                  q1s (1:nr) = q1s (1:nr) + t1 * q1 (1:nr, io1)
+                 t1 = b (io1)
+                 p0s (1:nr) = p0s (1:nr) + t1 * p0 (1:nr, io1)
+                 p1s (1:nr) = p1s (1:nr) + t1 * p1 (1:nr, io1)
+                 q0s (1:nr) = q0s (1:nr) + t1 * q0 (1:nr, io1)
+                 q1s (1:nr) = q1s (1:nr) + t1 * q1 (1:nr, io1)
                End Do
 ! normalise radial functions
                Do ir = 1, nr
-                  fr (ir) = p0s (ir) ** 2
+                 fr (ir) = p0s (ir) ** 2
                End Do
                Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                t1 = 1.d0 / Sqrt (Abs(gr(nr)))
@@ -222,25 +222,11 @@ Subroutine genlofr
                p1s (1:nr) = t1 * p1s (1:nr)
                q0s (1:nr) = t1 * q0s (1:nr)
                q1s (1:nr) = t1 * q1s (1:nr)
-               if (input%groundstate%SymmetricKineticEnergy) then
-                 Do ir = 1, nr
-                    t1 = 1.d0 / spr (ir, is)
-                    lofr (ir, 1, ilo, ias) = t1 * p0s (ir)
-                    lofr (ir, 2, ilo, ias) = (p1s(ir)-p0s(ir)*t1) * t1
-!!                    if (is.eq.2) write(*,*) spr (ir, is),lofr (ir, 1, ilo, ias)
-                 End Do
-!!                 if (is.eq.2) read(*,*)
-               else
-! apply the scalar relativistic Hamiltonian
-                 Call rschrodapp (l, nr, spr(:, is), vr, p0s, q0s, q1s, hp0)
-! divide by r and store in global array
-                 Do ir = 1, nr
-                    t1 = 1.d0 / spr (ir, is)
-                    lofr (ir, 1, ilo, ias) = t1 * p0s (ir)
-                    lofr (ir, 2, ilo, ias) = t1 * hp0 (ir)
-                 End Do
-            
-               endif
+               Do ir = 1, nr
+                 t1 = 1.d0 / spr (ir, is)
+                 lofr (ir, 1, ilo, ias) = t1 * p0s (ir)
+                 lofr (ir, 2, ilo, ias) = (p1s(ir)-p0s(ir)*t1) * t1
+               End Do
             End Do
          End Do
       End Do

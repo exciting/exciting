@@ -4,9 +4,10 @@ subroutine task_dos()
     use modinput
     use modmain
     use modgw
+    use mod_hybrids, only: hybridhf
     implicit none
 
-    integer(4) :: ik, ist, nstsv0
+    integer(4) :: ik, ist, nstfv0
     integer(4) :: iw, n, nsk(3)
     integer(4) :: nsmdos, nwdos, ngrdos
     real(8) :: winddos(2)
@@ -21,20 +22,21 @@ subroutine task_dos()
     integer :: lmax, lmmax, l, m, lm
     integer :: nstqp
     character(80) :: fname
+    logical :: reducek
 
     !-----------------
     ! Initialization
     !-----------------
-
-    ! Note: DOS calculations are performed employing Groundstate Options
-    ! - ngridk
-    ! - smearing etc.
-
-    call rereadinput() ! overwrite some GW parameters
+    input%groundstate%stypenumber = -1
+    task = 1
+    input%groundstate%xctypenumber = 1
+    xctype(1) = 1
     call init0()
+    reducek = input%groundstate%reducek
+    input%groundstate%reducek = .false.
     call init1()
-    ! write(*,*) 'nkpt=', nkpt
-    ! write(*,*) input%groundstate%ngridk
+    input%groundstate%reducek = reducek
+    if (.not.hybridhf) filext = "_GW.OUT"
 
     ! read KS data
     do ik = 1, nkpt
@@ -43,12 +45,22 @@ subroutine task_dos()
 
     ! shift KS energies
     call readfermi
+    evalsv(:,:) = evalsv(:,:) - efermi
 
     ! read QP energies from file and perform Fourier interpolation (if required)
-    call getevalqp(nkpt,vkl,evalsv)
-    
+    if (isspinorb()) then
+      fname = 'EVALQPSV.OUT'
+      write(*,*)
+      write(*,*) 'ERROR(task_dos) TDOS + spin-orbit coupling is not yet implemented!'
+      write(*,*)
+      stop
+    else
+      fname = 'EVALQP.OUT'
+    end if
+    call getevalqp(fname, nkpt, vkl, evalsv)
+
     ! GW number of states
-    nbgw = min(nstsv,nbgw)
+    nbgw = min(nstfv,nbgw)
     nstqp = nbgw-ibgw+1
     allocate(e(ibgw:nbgw,nkpt))
     e(ibgw:nbgw,:) = evalsv(ibgw:nbgw,:)
@@ -57,7 +69,7 @@ subroutine task_dos()
     allocate(f(ibgw:nbgw,nkpt))
     f(:,:) = 1.d0
 
-    !-----------------------------      
+    !-----------------------------
     ! DOS parameters
     !-----------------------------
     if (.not.associated(input%properties)) &
@@ -68,18 +80,18 @@ subroutine task_dos()
     nsmdos = input%properties%dos%nsmdos
     nwdos = input%properties%dos%nwdos
     ngrdos = input%properties%dos%ngrdos
-    winddos(:) = input%properties%dos%winddos(:)    
-    
+    winddos(:) = input%properties%dos%winddos(:)
+
     ! generate energy grid
     allocate(w(nwdos))
     dw = (winddos(2)-winddos(1))/dble(nwdos)
     do iw = 1, nwdos
       w(iw) = dw*dble(iw-1)+winddos(1)
     end do
-      
+
     ! number of subdivisions used for interpolation
     nsk(:) = max(ngrdos/input%groundstate%ngridk(:),1)
-    
+
     ! BZ integration
     allocate(g(nwdos)) ! DOS
     call brzint(nsmdos, input%groundstate%ngridk, nsk, ikmap, &
@@ -96,7 +108,7 @@ subroutine task_dos()
     if (input%properties%dos%lmirep) then
       lmax = 4
       lmmax = (lmax+1)**2
-      allocate(bc(lmmax,nspinor,natmtot,nstsv,nkpt))
+      allocate(bc(lmmax,nspinor,natmtot,nstfv,nkpt))
       call calc_band_character(lmax,lmmax,bc)
       do is = 1, nspecies
       do ia = 1, natoms(is)
@@ -125,9 +137,9 @@ subroutine task_dos()
       deallocate(bc)
 
     end if
-    
+
     deallocate(e,w,f,g)
- 
+
     return
 
 contains
@@ -135,10 +147,12 @@ contains
     !-----------------------------------------------------------------
     subroutine calc_band_character(lmax,lmmax,bc)
       use modmain
+      use modxs, only: isreadstate0
+      use mod_hybrids, only: hybridhf
       implicit none
       integer, intent(in)  :: lmax
       integer, intent(in)  :: lmmax
-      real(8), intent(out) :: bc(lmmax,nspinor,natmtot,nstsv,nkpt)
+      real(8), intent(out) :: bc(lmmax,nspinor,natmtot,nstfv,nkpt)
       ! local
       integer :: ik, ispn, jspn, is, ia, ist, ias, lm
       real(8),    allocatable :: elm(:,:)
@@ -153,13 +167,20 @@ contains
       allocate(ulm(lmmax,lmmax,natmtot))
       allocate(a(lmmax,lmmax))
 
-      allocate(dmat(lmmax,lmmax,nspinor,nspinor,nstsv))
+      allocate(dmat(lmmax,lmmax,nspinor,nspinor,nstfv))
       allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv))
       allocate(evecfv(nmatmax,nstfv,nspnfv))
-      allocate(evecsv(nstsv,nstsv))
+      allocate(evecsv(nstfv,nstfv))
 
       ! read density and potentials from file
-      call readstate
+      if (hybridhf) then
+        isreadstate0 = .false.
+        filext = '_PBE.OUT'
+        call readstate()
+        filext = '.OUT'
+      else
+        call readstate()
+      end if
       ! read Fermi energy from file
       call readfermi
       ! find the new linearisation energies
@@ -168,17 +189,17 @@ contains
       call genapwfr
       ! generate the local-orbital radial functions
       call genlofr
-      
+
       ! generate unitary matrices which convert the (l,m) basis into the irreducible
       ! representation basis of the symmetry group at each atomic site
       call genlmirep(lmax,lmmax,elm,ulm)
-      
+
       ! loop over k-points
       do ik = 1, nkpt
 
         call getevecfv(vkl(1,ik), vgkl(:,:,:,ik), evecfv)
         call getevecsv(vkl(1,ik), evecsv)
-        
+
         ! find the matching coefficients
         do ispn = 1, nspnfv
           call match(ngk(ispn,ik), gkc(:,ispn,ik), &
@@ -195,7 +216,7 @@ contains
             &            ngk(:,ik), apwalm, evecfv, evecsv, lmmax, dmat)
 
             ! convert (l,m) part to an irreducible representation if required
-            do ist = 1, nstsv
+            do ist = 1, nstfv
               do ispn = 1, nspinor
                 do jspn = 1, nspinor
                   call zgemm('N', 'N', lmmax, lmmax, lmmax, &
@@ -210,7 +231,7 @@ contains
             end do
 
             ! determine the band characters from the density matrix
-            do ist = 1, nstsv
+            do ist = 1, nstfv
               do ispn = 1, nspinor
                 do lm = 1, lmmax
                   bc(lm,ispn,ias,ist,ik) = dble(dmat(lm,lm,ispn,ispn,ist))
@@ -220,7 +241,7 @@ contains
 
           end do ! ia
         end do ! is
-         
+
       end do ! ik
 
       deallocate(elm)

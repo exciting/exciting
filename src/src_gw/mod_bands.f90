@@ -5,10 +5,13 @@
 
 module mod_bands
     implicit none
-    
-! (spin-collinear case) Spin index of states
-    integer, allocatable :: spindex(:,:)
-    
+
+! First-variational eigenvalues
+    real(8), allocatable :: evalfv(:,:)
+
+! First-variational occupations
+    real(8), allocatable :: occfv(:,:)
+
 ! Eigenvectors at k
     complex(8), allocatable :: eveck(:,:)
       

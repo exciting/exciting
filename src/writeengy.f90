@@ -9,7 +9,7 @@
 Subroutine writeengy (fnum)
       Use modmain
       Use modinput
-      Use mod_hybrids, only: ihyb, exnl
+      Use mod_hybrids, only: exnl
       Implicit None
       ! arguments
       Integer, Intent (In) :: fnum
@@ -22,7 +22,7 @@ Subroutine writeengy (fnum)
          write (fnum, '(" Kinetic energy"    , T45, ": ", F18.8)') engykn
          write (fnum, '(" Coulomb energy"    , T45, ": ", F18.8)') engycl
          if (associated(input%groundstate%Hybrid)) then
-           if ((input%groundstate%Hybrid%exchangetypenumber==1).and.(ihyb>0)) then
+           if ((input%groundstate%Hybrid%exchangetypenumber==1).and. task==7) then
              write (fnum, '(" Non-local exchange energy"   , T45, ": ", F18.8)') exnl
            end if
          end if

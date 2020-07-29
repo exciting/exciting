@@ -10,7 +10,7 @@ Subroutine propertylauncher
       Use modmpi, Only: rank
       Implicit None
       integer :: l, a, b, c, i
-      
+
       call delete_warnings
 
 ! properties which depend on the ground state only
@@ -22,7 +22,7 @@ Subroutine propertylauncher
           call wannierlauncher
         end if
       end if
- 
+
       !--------------------------------------------------------
       If (associated(input%properties%chargedensityplot)) Then
          call rereadinput
@@ -76,8 +76,8 @@ Subroutine propertylauncher
          task=15
          if (associated(input%properties%LSJ%kstlist)) task=16
          Call writelsj
-      End If      
-      
+      End If
+
       !--------------------------------------------------------
       If (associated(input%properties%TSvdW)) Then
          If ( input%groundstate%do .Eq. "skip" ) Then
@@ -128,7 +128,7 @@ Subroutine propertylauncher
       End If
 
       If (associated(input%properties%electricfield)) Then
-         
+
          If (associated(input%properties%electricfield%plot2d)) Then
             call rereadinput
             task = 142
@@ -167,26 +167,26 @@ Subroutine propertylauncher
          Call writepmat
       End If
 
-! IP-RPA dielectric tensor      
+! IP-RPA dielectric tensor
       If (associated(input%properties%dielmat)) Then
          call rereadinput
          call dielmat
-      End If    
+      End If
 
-! BoltzEqu       
+! BoltzEqu
       If (associated(input%properties%boltzequ)) Then
          call rereadinput
          Call boltzequ
-      End If    
+      End If
 
-      
-! MOKE effect      
+
+! MOKE effect
       If (associated(input%properties%moke)) Then
          call rereadinput
          call moke
       End If
 
-! Nonlinear optics: Second Harmonic Generation 
+! Nonlinear optics: Second Harmonic Generation
       If (associated(input%properties%shg)) Then
          call rereadinput
          do l = 1, size(input%properties%shg%chicomp,2)
@@ -226,7 +226,7 @@ Subroutine propertylauncher
          Call alpha2f
       End If
 
-      ! Raman scattering      
+      ! Raman scattering
       ! the subroutine raman triggers a phonon calculation, if requested there, and
       ! requires the input of element xs
       If (associated(input%properties%raman)) Then
@@ -263,8 +263,14 @@ Subroutine propertylauncher
 
       If (associated(input%properties%masstensor).and.(rank==0)) Then
          call rereadinput
-         task=25
+         task = 25
          Call effmass
       End If
+
+      if (associated(input%properties%ldos)) then
+         call rereadinput
+         task = 1
+         call ldos()
+      end if
 
 End Subroutine propertylauncher

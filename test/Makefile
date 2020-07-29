@@ -6,9 +6,9 @@ else
 EXE = ../bin/excitingser
 endif
 
-TESTDIRS = test01 test02 test03 test05 test06 test07 test08 test09 test10 test11
+TESTDIRS = test01 test02 test03 test04 test05 test06 test07 test08 test09 test10 test11 test12 test13
 
-test: 
+test:
 	$(MAKE) cleantests
 	$(MAKE) $(TESTDIRS)
 
@@ -29,58 +29,65 @@ exciting::
 
 test01::
 	cd ./test01/runHe; ../../$(EXE)
-	cd ./test01/runAr; ../../$(EXE) input.xml; cp info.xml info-default.xml; cp atoms.xml atoms-default.xml
-	cd ./test01/runAr; ../../$(EXE) input-nr.xml; cp info.xml info-nr.xml; cp atoms.xml atoms-nr.xml
-	cd ./test01/runAr; ../../$(EXE) input-zora.xml; cp info.xml info-zora.xml; cp atoms.xml atoms-zora.xml
-	cd ./test01/runAr; ../../$(EXE) input-iora.xml; cp info.xml info-iora.xml; cp atoms.xml atoms-iora.xml
-	cd ./test01 ; bash assert.sh 
+	cd ./test01/runAr; ../../$(EXE) input.xml; cp info.xml info-default.xml 2>/dev/null || :; cp atoms.xml atoms-default.xml 2>/dev/null || :
+	cd ./test01/runAr; ../../$(EXE) input-nr.xml; cp info.xml info-nr.xml 2>/dev/null || :; cp atoms.xml atoms-nr.xml 2>/dev/null || :
+	cd ./test01/runAr; ../../$(EXE) input-zora.xml; cp info.xml info-zora.xml 2>/dev/null || :; cp atoms.xml atoms-zora.xml 2>/dev/null || :
+	cd ./test01/runAr; ../../$(EXE) input-iora.xml; cp info.xml info-iora.xml 2>/dev/null || :; cp atoms.xml atoms-iora.xml 2>/dev/null || :
+	cd ./test01 ; bash assert.sh
 
 test02::
 	cd ./test02/runlapack; ../../$(EXE)
 	cd ./test02/runarp; ../../$(EXE)
-	cd ./test02/runarpnpacked; ../../$(EXE)
 	cd ./test02; perl assert.pl
 
-test03::  
+test03::
 	cd test03/run && ../../$(EXE)
 	cd test03/runmixer2 && ../../$(EXE)
 	cd test03/runmixer3 && ../../$(EXE)
 	cd test03 && perl report.pl
 
 test04::
-	cd build; $(MAKE) test04
-	cd ./test04/run ; ../../build/testprogram4
+	cd test04/runso && ../../$(EXE)
+	cd test04 && perl assert.pl
 
-test05::  
+test05::
 	cd test05/runlibxc && ../../$(EXE)
 	cd test05 && bash assert.sh
 
 test06::
-	cd test06/runPbTiO3; ../../$(EXE) input-nonsym.xml; cp info.xml info-nonsym.xml
-	cd test06/runPbTiO3; ../../$(EXE) input-sym.xml; cp info.xml info-sym.xml      
-	cd test06; bash assert.sh 
+	cd test06/runPbTiO3; ../../$(EXE) input.xml
+	cd test06; bash assert.sh
 
-test07::	 
+test07::
 	cd test07/runBSE && ../../$(EXE)
 	cd test07/runtddftBSE && ../../$(EXE)
 	cd test07 && python assert.py
 
 test08::
 	cd test08/rungw && ../../$(EXE)
-	cd test08 && perl assert.pl 
+	cd test08 && perl assert.pl
 
 test09::
 	cd test09 && bash validate.sh
-	cd test09 && perl assert.pl  
+	cd test09 && perl assert.pl
 
 test10::
 	cd test10/run_properties && ../../$(EXE)
 	cd test10 && perl assert.pl
 
 test11::
-	cd test11/run-pbe0-hf  && ../../$(EXE)
-	cd test11/run-pbe0-oep && ../../$(EXE)
-	cd test11 && perl assert.pl 
+	cd test11/run-pbe0 && ../../$(EXE)
+	cd test11/run-hse && ../../$(EXE)
+	cd test11 && perl assert.pl
+
+test12::
+	cd test12/runcollinear && ../../$(EXE)
+	cd test12/runnoncollinear && ../../$(EXE)
+	cd test12 && perl assert.pl
+
+test13::
+	cd test13/runldos && ../../$(EXE)
+	cd test13 && perl assert.pl
 
 cleantests::
 	-rm -f  test*/*.xml
@@ -108,3 +115,4 @@ cleantests::
 	-rm -f  test*/run*/*.xsf
 	-rm -f  test*/run*/*.cube
 	-rm -f  directories.xml
+	-rm -f  test*/run*/*.out

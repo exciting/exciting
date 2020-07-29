@@ -5,7 +5,7 @@
 !
 ! !REVISION HISTORY:
 !   Created 2016 (Aurich)
-!EOP   
+!EOP
 !BOC
 module modbse
   use modmpi
@@ -29,7 +29,7 @@ module modbse
   real(8), pointer :: p_eval_plus(:), p_eval(:), p_eval_minus(:)
   complex(8), pointer :: p_evec_plus(:,:), p_evec(:,:), p_evec_minus(:,:)
   ! Reference states for occupied and unoccupied state indices
-  integer(4) :: ioref, iuref 
+  integer(4) :: ioref, iuref
   ! Size of the resonant-resonant block of the Hamiltonian
   integer(4) :: hamsize
   ! Number of all k-points and k-points/k-k'-combinations
@@ -93,7 +93,7 @@ module modbse
   contains
 
     !+++++++++++++++++++++++++++++++++++++++++++!
-    ! Routines to setup the combinded index of  ! 
+    ! Routines to setup the combinded index of  !
     ! the BSE hamiltonian.                      !
     !+++++++++++++++++++++++++++++++++++++++++++!
 
@@ -114,8 +114,8 @@ module modbse
     !
     ! !DESCRIPTION:
     !   A small wrapper for the routine {\tt findocclims}. Used to initialize
-    !   modxs module variables for occupation limits for $\vec{k}$ and $\vec{k}+\vec{q}$ 
-    !   in some BSE related routines. 
+    !   modxs module variables for occupation limits for $\vec{k}$ and $\vec{k}+\vec{q}$
+    !   in some BSE related routines.
     !
     ! !REVISION HISTORY:
     !   Created 2016 (Aurich)
@@ -132,7 +132,7 @@ module modbse
 
       integer(4), dimension(:), allocatable :: io_k, iu_k
       integer(4), dimension(:), allocatable :: io_kqmtp, iu_kqmtp
-      integer(4), dimension(:), allocatable :: io_kqmtm, iu_kqmtm 
+      integer(4), dimension(:), allocatable :: io_kqmtm, iu_kqmtm
 
       real(8), parameter :: epslat = 1.0d-8
 
@@ -179,15 +179,15 @@ module modbse
       ! (apart from xs%vkloff)
       call init1offs(vkloff)
 
-      ! Save the k-grid to modxs vkl0 etc 
+      ! Save the k-grid to modxs vkl0 etc
       call xssave0
 
-      ! Set k and G+k variables in the standard locations mod_kpoint and mod_Gkvector 
+      ! Set k and G+k variables in the standard locations mod_kpoint and mod_Gkvector
       ! to those of the k' grid.
       call init1offs(vkqmtploff)
-      
-      write(unitout, '("Info(setranges_modxs): Determining k+qmt/2 grid")') 
-      if(all(abs(vkloff-vkqmtploff) < epslat)) then 
+
+      write(unitout, '("Info(setranges_modxs): Determining k+qmt/2 grid")')
+      if(all(abs(vkloff-vkqmtploff) < epslat)) then
         if (iqmt .ne. 1) then
           write(unitout, '("Info(setranges_modxs): (+) Same k-grids for iqmt=1 and iqmt=",i3)') iqmt
         end if
@@ -198,7 +198,7 @@ module modbse
       end if
       fxas=input%xs%BSE%xas
       ! Allocate k eigenvalues
-      ! Note: If evalsv0 is allocated before findocclims is called it gets read in 
+      ! Note: If evalsv0 is allocated before findocclims is called it gets read in
       ! and stays allocated.
       if(.not. allocated(evalsv0)) allocate(evalsv0(nstsv, nkpt))
 
@@ -208,7 +208,7 @@ module modbse
       call genfilname(iqmt=iqmtgamma, fileext=filext0)
 
       ! Set k' file extension
-      if(fsamek) then 
+      if(fsamek) then
         ! Set EVALSV_QMT001.OUT as second reference for the occupation search
         call genfilname(iqmt=iqmtgamma, setfilext=.true.)
       else
@@ -242,16 +242,16 @@ module modbse
       ! (apart from xs%vkloff)
       call init1offs(vkloff)
 
-      ! Save the k-grid to modxs vkl0 etc 
+      ! Save the k-grid to modxs vkl0 etc
       call xssave0
 
-      ! Set k and G+k variables in the standard locations mod_kpoint and mod_Gkvector 
+      ! Set k and G+k variables in the standard locations mod_kpoint and mod_Gkvector
       ! to those of the k' grid.
       call init1offs(vkqmtmloff)
 
-      write(unitout, '("Info(setranges_modxs): Determining k-qmt/2 grid")') 
-      
-      if(all(abs(vkloff-vkqmtmloff) < epslat)) then 
+      write(unitout, '("Info(setranges_modxs): Determining k-qmt/2 grid")')
+
+      if(all(abs(vkloff-vkqmtmloff) < epslat)) then
         if (iqmt .ne. 1) then
           write(unitout, '("Info(setranges_modxs): (-) Same k-grids for iqmt=1 and iqmt=",i3)') iqmt
         end if
@@ -267,7 +267,7 @@ module modbse
       call genfilname(iqmt=iqmtgamma, fileext=filext0)
 
       ! Set k' file extension
-      if(fsamek) then 
+      if(fsamek) then
         ! Set EVALSV_QMT001.OUT as second reference for the occupation limits search
         call genfilname(iqmt=iqmtgamma, setfilext=.true.)
       else
@@ -310,7 +310,7 @@ module modbse
       istunocc = iumin
 
       ! Set additional modbse variables
-      iuref = iumin 
+      iuref = iumin
       ioref = 1
       nk_max = nkptnr
       if (fxas) then
@@ -339,12 +339,12 @@ module modbse
 
       if(ksgapval == 0.0d0) then
         write(unitout, '("Warning(setranges_modxs): The system has no gap")')
-        if(sci /= 0.0d0) then 
+        if(sci /= 0.0d0) then
           write(unitout, '("Warning(setranges_modxs):&
             &   Scissor > 0 but no gap. Setting scissor to 0.")')
           sci = 0.0d0
         end if
-      end if  
+      end if
 
       call timesec(t1)
       if (input%xs%BSE%outputlevelnumber == 1) then
@@ -363,20 +363,21 @@ module modbse
       use modxas, only: xasstart, xasstop, ecore, ncg
       use m_genfilname
       use mod_symmetry, only: nsymcrys
+      use mod_misc, only: filext
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     ! integer(4) :: iqmt  ! q-point index (on unshifted k-mesh)
     ! Module out:
     ! integer(4) :: hamsize            ! Dimension of the BSE Hamiltonian matrix
-    ! real(8)    :: ofac(hamsize)      ! Occupation factors need for 
+    ! real(8)    :: ofac(hamsize)      ! Occupation factors need for
     !                                  ! the construction of the BSE matrix
     ! integer(4) :: smap(hamsize, 3)   ! Map between BSE matrix index and u,o,k indices
     ! integer(4) :: kousize(nk)        ! How many u o combinations allowed for each k
     !
     ! !DESCRIPTION:
-    !   Given a selected energy range for the spectrum, this routine will 
+    !   Given a selected energy range for the spectrum, this routine will
     !   select relevant transitions for each k point. Appart from the KS transition
-    !   energies the routine checks whether the transition contain problematic 
+    !   energies the routine checks whether the transition contain problematic
     !   occupancy differences and sorts them out if need be.
     !   The simple treatment of fractional occupancy does not allow for transitions
     !   between states of the same partial occupancy. Also cases of occupancy inversion
@@ -392,7 +393,7 @@ module modbse
     !EOP
     !BOC
 
-      implicit none 
+      implicit none
 
       integer(4), intent(in) :: iqmt
       logical, intent(in), optional :: serial
@@ -425,7 +426,7 @@ module modbse
       call timesec(t0)
 
       ! Check whether mpi is used for the selection
-      if(present(serial)) then 
+      if(present(serial)) then
         fserial = serial
       else
         fserial = .false.
@@ -462,20 +463,20 @@ module modbse
         call terminate
       end if
 
-      ! Excitons are build from KS states and the KS transition energies 
-      ! dominatly determine exciton energies. 
-      ! Select KS transitions withing the energy energy window for the 
+      ! Excitons are build from KS states and the KS transition energies
+      ! dominatly determine exciton energies.
+      ! Select KS transitions withing the energy energy window for the
       ! spectrum plus extra convergence energy. (referenced only if fensel)
       econv = input%xs%bse%econv
 
-      if((wu+econv(2)-max(wl+econv(1),0.0d0)) < 0.0d0) then 
+      if((wu+econv(2)-max(wl+econv(1),0.0d0)) < 0.0d0) then
         write(*,*) "Error(select_transitions): Conflicting econv", econv(1), econv(2)
         call terminate
       end if
 
       ! What is considered to be occupied
       cutoffocc = input%groundstate%epsocc
-      
+
       ! Bands to inspect
       if(fensel) then
 
@@ -485,7 +486,7 @@ module modbse
           io2=xasstop
           iu1=istunocc0
           iu2=nstsv
-        else 
+        else
           io1 = 1
           io2 = istocc0 ! highest partially occupied "band" over k_+, k_- and k
           iu1 = istunocc0 ! lowest partially unoccupied band over k_+, k_- and k
@@ -557,13 +558,13 @@ module modbse
 
       ! Set mod_kpoint / mod_Gkvector variables to the k-qmt/2-grid
       call init1offs(vkqmtmloff)
-      ! Save the k-qmt/2-grid to modxs::vkl0 etc 
+      ! Save the k-qmt/2-grid to modxs::vkl0 etc
       call xssave0
-      ! Set k and G+k variables in the standard locations mod_kpoint and mod_Gkvector 
+      ! Set k and G+k variables in the standard locations mod_kpoint and mod_Gkvector
       ! to those of the k'=k+qmt/2 grid.
       call init1offs(vkqmtploff)
 
-      ! Check for coinciding k-grids 
+      ! Check for coinciding k-grids
       if(all(abs(vkqmtmloff-vkloff) < epslat)) then
         if (iqmt .ne. 1) then
           write(unitout, '("Info(select_transitions): Same k-grids for - and ref. grids at iqmt=",i3)') iqmt
@@ -593,11 +594,11 @@ module modbse
       end if
 
       ! Normal case: based on KS energies
-      if(.not. associated(input%gw)) then 
+      if(.not. associated(input%gw)) then
 
         !! Get energies and occupancies for the k+qmt/2 grid
         ! Set EVALSV_QMTXYZ.OUT as read file
-        if(fsamek1) then 
+        if(fsamek1) then
           call genfilname(iqmt=iqmtgamma, setfilext=.true.)
         else
           call genfilname(iqmt=iqmt, setfilext=.true.)
@@ -616,10 +617,10 @@ module modbse
           call genfilname(iqmt=iqmtgamma, fileext=filext0)
         else
           ! If + - grids are the same use the + one
-          if(fsamek) then 
+          if(fsamek) then
             ! Set EVALSV_QMTXYZ.OUT as read file
             call genfilname(iqmt=iqmt, fileext=filext0)
-          ! Normal case: use the - grid 
+          ! Normal case: use the - grid
           else
             ! Set EVALSV_QMTXYZ_m.OUT as read file
             call genfilname(iqmt=iqmt, auxtype="m", fileext=filext0)
@@ -634,7 +635,7 @@ module modbse
         gwiumax = nstsv
 
       ! On top of GW
-      else if(associated(input%gw) .and. iqmt==1) then 
+      else if(associated(input%gw) .and. iqmt==1) then
 
         ! Get KS occupations/eigenvalues
         do ik = 1, nkpt
@@ -647,13 +648,13 @@ module modbse
         ! NOTE: getevalqp sets mod_symmetry::nsymcrys to 1
         ! NOTE: getevalqp needs the KS eigenvalues as input
         nsymcrys_save = nsymcrys
-        call getevalqp(nkptnr,vkl0,evalsv)
+        call getevalqp('EVALQP.OUT', nkptnr, vkl0, evalsv)
         nsymcrys = nsymcrys_save
         ! Set k and k'=k grid eigenvalues to QP energies
-        evalsv0=evalsv
-        occsv0=occsv
+        evalsv0 = evalsv
+        occsv0 = occsv
 
-      else if(associated(input%gw) .and. iqmt /= 1) then 
+      else if(associated(input%gw) .and. iqmt /= 1) then
 
         write(*,'("Error(b_bse): BSE+GW only supported for 0 momentum transfer.")')
         call terminate
@@ -661,14 +662,14 @@ module modbse
       end if
 
       ! Sizes local/maximal
-      if(fserial) then 
+      if(fserial) then
         nk_loc = nk_max
       else
         nk_loc = ceiling(real(nk_max,8)/real(mpiglobal%procs,8))
       end if
       hamsize_loc = nk_loc*nou_max
 
-      ! The index mapping we want to build 
+      ! The index mapping we want to build
       ! s(1) = iuabs, s(2) = ioabs, s(3) = iknr
       allocate(smap_loc(3, hamsize_loc))
 
@@ -682,18 +683,18 @@ module modbse
       ! Occupation factor
       allocate(ofac_loc(hamsize_loc))
 
-      ! How many o-u combinations at ik 
+      ! How many o-u combinations at ik
       if(allocated(kousize)) deallocate(kousize)
       allocate(kousize(nk_max))
       ! and limits of band ranges
       if(allocated(koulims)) deallocate(koulims)
       allocate(koulims(4,nk_max))
-           
+
       ! Loop over kpoints (non-reduced)
       !   Distribute k-loop over global MPI communicator.
       !   Each participating rank gets a continuous ik interval.
       !   Not participating ranks have k1=0 and k2=-1.
-      if(fserial) then 
+      if(fserial) then
         k1 = 1
         k2 = nk_max
       else
@@ -722,7 +723,7 @@ module modbse
         end if
         iumin = nstsv+1
 
-        ! Loop over KS transition energies 
+        ! Loop over KS transition energies
         !$OMP PARALLEL DO &
         !$OMP& COLLAPSE(2),&
         !$OMP& DEFAULT(SHARED), PRIVATE(io,iu,s,detmp,doctmp,posdiff),&
@@ -732,7 +733,7 @@ module modbse
         !$OMP& REDUCTION(max:iumax),&
         !$OMP& REDUCTION(min:iumin)
         do io = io1, io2
-          do iu = iu1, iu2 
+          do iu = iu1, iu2
 
             if(fensel) then
 
@@ -741,16 +742,16 @@ module modbse
                 detmp= evalsv0(iu, ikqm) - ecore(io) + sci
               else
                 detmp = evalsv0(iu, ikqm) - evalsv(io, ikqp) + sci
-              end if 
+              end if
 
               ! Only consider transitions which are in the energy window
               if(detmp <= wu+econv(2) .and. detmp >= max(wl+econv(1),0.0d0)) then
 
-                ! Only consider transitions which have a positve non-zero 
+                ! Only consider transitions which have a positve non-zero
                 ! occupancy difference f_{o ki+qmt/2} - f_{u ki-qmt/2}
                 !
                 ! If it is a XAS comutation:
-                if(fxas) then 
+                if(fxas) then
                   doctmp = 1.0d0 - occsv0(iu, ikqm)
                 ! If it is a optics comutation:
                 else
@@ -759,11 +760,11 @@ module modbse
                 ! Check if positive
                 if(doctmp > cutoffocc) then
                   posdiff=.true.
-                else 
+                else
                   posdiff=.false.
                 end if
 
-                if(posdiff) then 
+                if(posdiff) then
 
                   ! Combine u, o and k index
                   ! u is counted from lumo=1 upwards
@@ -773,14 +774,14 @@ module modbse
 
                   ! Use that u-o-k combination
                   sflag(s) = .true.
-                  
+
                   ! Write to combinded index map
                   smap_loc(1,s) = iu
                   smap_loc(2,s) = io
                   smap_loc(3,s) = ik
 
                   ! Save energy difference
-                  de_loc(s) = detmp 
+                  de_loc(s) = detmp
 
                   ! Save occupation factor
                   ofac_loc(s) = sqrt((occsv(io, ikqp) - occsv0(iu, ikqm))/maxocc)
@@ -803,11 +804,11 @@ module modbse
             ! with non-positive occupation difference.
             else
 
-              ! Only consider transitions which have a positve non-zero 
+              ! Only consider transitions which have a positve non-zero
               ! occupancy difference f_{o ki+qmt/2} - f_{u ki-qmt/2}
               !
               ! If it is a XAS comutation:
-              if(fxas) then 
+              if(fxas) then
                 doctmp = 1.0d0 - occsv0(iu, ikqm)
               ! If it is a optics comutation:
               else
@@ -816,11 +817,11 @@ module modbse
               ! Check if positive
               if(doctmp > cutoffocc) then
                 posdiff=.true.
-              else 
+              else
                 posdiff=.false.
               end if
 
-              if(posdiff) then 
+              if(posdiff) then
 
                 ! Combine u, o and k index
                 ! u is counted from lumo=1 upwards
@@ -830,7 +831,7 @@ module modbse
 
                 ! Use that u-o-k combination
                 sflag(s) = .true.
-                
+
                 ! Write to combinded index map
                 smap_loc(1,s) = iu
                 smap_loc(2,s) = io
@@ -870,24 +871,24 @@ module modbse
         end do
         !$OMP END PARALLEL DO
 
-        ! u limits refer to the corresponding k_- 
-        ! o limits refer to the corresponding k_+ 
+        ! u limits refer to the corresponding k_-
+        ! o limits refer to the corresponding k_+
         koulims(1,ik) = iumin
         koulims(2,ik) = iumax
         koulims(3,ik) = iomin
         koulims(4,ik) = iomax
 
         kousize(ik) = kous
-        
+
       end do ikloop
 
 #ifdef MPI
       if( .not. fserial) then
-        ! Collect kousize on all processes 
+        ! Collect kousize on all processes
         call mpi_allgatherv_ifc(set=nk_max, rlen=1, ibuf=kousize,&
           & inplace=.true., comm=mpiglobal)
 
-        ! Collect koulims on all processes 
+        ! Collect koulims on all processes
         call mpi_allgatherv_ifc(set=nk_max, rlen=4, ibuf=koulims,&
           & inplace=.true., comm=mpiglobal)
       end if
@@ -916,7 +917,7 @@ module modbse
         ! If there is a valid transition from ik_- to ik_+,
         ! add the k-point to the bse-index. Keep maps
         ! between relative indexing (i.e. bse-k-point) and
-        ! the global index of the full k-grid. 
+        ! the global index of the full k-grid.
         if(kousize(iknr) /= 0) then
           ik = ik + 1
           kmap_bse_rg(ik) = iknr
@@ -940,7 +941,7 @@ module modbse
       allocate(de(hamsize))
 
       ! If rank was participating in k-loop.
-      if(k2 > 0) then 
+      if(k2 > 0) then
         ! Apply selection flag to local arrays
         ! and store result in global counterparts.
         i1 = sum(kousize(1:k1-1))+1
@@ -959,23 +960,23 @@ module modbse
       deallocate(sflag)
 
 #ifdef MPI
-      if( .not. fserial) then 
-        ! Collect ofac on all processes 
+      if( .not. fserial) then
+        ! Collect ofac on all processes
         call mpi_allgatherv_ifc(set=nk_max, rlenv=kousize, rbuf=ofac,&
           & inplace=.true., comm=mpiglobal)
-        ! Collect de on all processes 
+        ! Collect de on all processes
         call mpi_allgatherv_ifc(set=nk_max, rlenv=kousize, rbuf=de,&
           & inplace=.true., comm=mpiglobal)
-        ! Collect smap on all processes 
+        ! Collect smap on all processes
         call mpi_allgatherv_ifc(set=nk_max, rlenv=kousize*3, ibuf=smap,&
           & inplace=.true., comm=mpiglobal)
       end if
 #endif
-      ! Energy sorting 
+      ! Energy sorting
       if(allocated(ensortidx)) deallocate(ensortidx)
       allocate(ensortidx(hamsize))
       call sortidx(hamsize, de, ensortidx)
-      
+
       ! Make relative combinded index map
       if(allocated(smap_rel)) deallocate(smap_rel)
       allocate(smap_rel(3,hamsize))
@@ -987,18 +988,18 @@ module modbse
       end do
 
       write(unitout, '("Info(select_transitions):&
-        & Number of participating transitions:", I8)') sum(kousize) 
+        & Number of participating transitions:", I8)') sum(kousize)
 
       ! Print mappings to human readable file
-      if(fserial) then 
-        if(present(dirname)) then 
+      if(fserial) then
+        if(present(dirname)) then
           call printso(iqmt, dirname)
-        endif 
+        endif
       else
-        if(mpiglobal%rank == 0) then 
-          if(present(dirname)) then 
+        if(mpiglobal%rank == 0) then
+          if(present(dirname)) then
             call printso(iqmt, dirname)
-          end if 
+          end if
         end if
       end if
 
@@ -1007,7 +1008,7 @@ module modbse
         write(unitout, '("Info(select_transitions):&
           & Time needed/s:", f12.7)') t1-t0
       end if
-      if( .not. fserial) then 
+      if( .not. fserial) then
         call barrier(callername=trim(thisname))
       end if
 
@@ -1015,18 +1016,18 @@ module modbse
     !EOC
 
     subroutine printso(iqmt, dirname)
-      implicit none 
+      implicit none
 
       integer(4) :: i, un, iqmt
       character(256) :: fdir, syscommand, fext, fname, fiqmt
       character(*), intent(in), optional :: dirname
 
-      ! Make a folder 
+      ! Make a folder
       fdir = 'TRANSINFO'
-      if(present(dirname)) then 
+      if(present(dirname)) then
         fdir = trim(dirname)//'/'//trim(fdir)
       end if
-      if(mpiglobal%rank == 0) then 
+      if(mpiglobal%rank == 0) then
         syscommand = 'test ! -d '//trim(adjustl(fdir))&
          &//' && mkdir -p '//trim(adjustl(fdir))
         call system(trim(adjustl(syscommand)))
@@ -1092,7 +1093,7 @@ module modbse
     ! Write out the coupling measures for each calculated exciton
     subroutine writemeasures(iqmt, nexc, evals, fcoup, dirname)
       use m_genfilname
-      implicit none 
+      implicit none
 
       integer(4), intent(in) :: iqmt, nexc
       logical, intent(in) :: fcoup
@@ -1107,12 +1108,12 @@ module modbse
       integer(4), allocatable :: sorti(:)
       character(256) :: tdastring, bsetypestring, scrtypestring
 
-      ! Make a folder 
+      ! Make a folder
       fdir = 'MEASURES'
-      if(present(dirname)) then 
+      if(present(dirname)) then
         fdir = trim(dirname)//'/'//trim(fdir)
       end if
-      if(mpiglobal%rank == 0) then 
+      if(mpiglobal%rank == 0) then
         syscommand = 'test ! -d '//trim(adjustl(fdir))//' && mkdir -p '//trim(adjustl(fdir))
         call system(trim(adjustl(syscommand)))
       end if
@@ -1121,7 +1122,7 @@ module modbse
       if(input%xs%bse%coupling) then
         tdastring=''
       else
-        if(input%xs%bse%chibarq) then 
+        if(input%xs%bse%chibarq) then
           tdastring="-TDA-BAR"
         else
           tdastring="-TDA"
@@ -1201,7 +1202,7 @@ module modbse
       do i = 1, hamsize
 
         j = sorti(i)
-        if(fcoup) then 
+        if(fcoup) then
           write(un, '(I8,1x,E13.4,1x,2(E13.4,1x))')&
             & j, de(j)*h2ev,&
             & vwdiffrr(j), vwdiffar(j)
@@ -1227,7 +1228,7 @@ module modbse
     integer(4) function hamidx(i1, i2, ik, n1, n2)
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
-    ! integer(4) :: i1, i2, ik ! Indices counting from 1 continuously 
+    ! integer(4) :: i1, i2, ik ! Indices counting from 1 continuously
     ! integer(4) :: n1, n2     ! Maximum values of i1, i2 respectively
     ! Out:
     ! integer(4) :: hamidx     ! Combined index
@@ -1241,7 +1242,7 @@ module modbse
     !   Notes:\\
     !     $i_1$ is the fastest varying index, followed in order by $i_2$ and $i_k$.\\
     !     All indices are assumed to be counted from 1 onwards continuously.
-    ! 
+    !
     ! !REVISION HISTORY:
     !   Added to documentation scheme. (Aurich)
     !   Changed fastes index to i1. (Aurich)
@@ -1262,11 +1263,11 @@ module modbse
     ! integer(4) :: s          ! Combined index created with {\tt hamidx}
     ! integer(4) :: n1, n2     ! Maximum values of i1, i2 respectively
     ! Out:
-    ! integer(4) :: i1, i2, ik ! Individual indices 
+    ! integer(4) :: i1, i2, ik ! Individual indices
     !
     ! !DESCRIPTION:
     !   The subroutine does the inverse operation of the function {\tt hamidx}.
-    ! 
+    !
     ! !REVISION HISTORY:
     !   Created 2016 (Aurich)
     !EOP
@@ -1289,8 +1290,8 @@ module modbse
     integer(4) function subhamidx(i1, i2, n1)
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
-    ! integer(4) :: i1, i2     ! Indices counting from 1 continuously 
-    ! integer(4) :: n1         ! Maximum value of i1 
+    ! integer(4) :: i1, i2     ! Indices counting from 1 continuously
+    ! integer(4) :: n1         ! Maximum value of i1
     ! Out:
     ! integer(4) :: subhamidx  ! Combined index
     !
@@ -1302,7 +1303,7 @@ module modbse
     !   Notes:\\
     !     $i_1$ is the fastest varying index, followed by $i_2$.\\
     !     All indices are assumed to be counted from 1 onwards continuously.
-    ! 
+    !
     ! !REVISION HISTORY:
     !   Created 2016 (Aurich)
     !   Changed fastest index to i1. (Aurich)
@@ -1321,14 +1322,14 @@ module modbse
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     ! integer(4) :: s    ! Combined index
-    ! integer(4) :: n1   ! Maximum value of i1 
+    ! integer(4) :: n1   ! Maximum value of i1
     ! Out:
     ! integer(4) :: i1, i2   ! Individual indices
     !
     ! !DESCRIPTION:
-    !   The routine performs the inverse operation to 
+    !   The routine performs the inverse operation to
     !   {\tt subhamidx}.
-    ! 
+    !
     ! !REVISION HISTORY:
     !   Created 2016 (Aurich)
     !   Changed fastest index to i1. (Aurich)

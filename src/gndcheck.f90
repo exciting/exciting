@@ -23,10 +23,6 @@ Subroutine gndcheck
         stop
       else
         if (input%groundstate%ValenceRelativity.eq.'iora*') then
-          if (.not.(input%groundstate%SymmetricKineticEnergy)) then
-            write(*,*) 'ValenceRelativity=', input%groundstate%ValenceRelativity,' is not supported in the non-symmetric kinetic energy mode'
-            stop
-          endif 
           If (( associated(input%groundstate%spin)) .And. (input%groundstate%ldapu.ne.'none')) Then
             write(*,*) 'ValenceRelativity=',input%groundstate%ValenceRelativity, 'is not supported for spin-resolved and DFT+U calculations'
             stop

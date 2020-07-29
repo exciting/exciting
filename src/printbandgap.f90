@@ -15,6 +15,7 @@ subroutine printbandgap(fid)
     call bandgap(nkpt,evalsv,efermi,egf,ego,ikgf,ikgo,istho)
     
     write(fid,*)
+    
     if (egf > 0.d0) then
       write(fid,'(a, T45,": ", F18.8)') ' Estimated fundamental gap', egf
       write(fid,'(a, i5, 4x, 3f8.4)') &

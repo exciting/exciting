@@ -15,7 +15,7 @@
     use modinput
     use modmain,           only : pi, idxas, idxlm, idxlo, nlorb, apword, &
     &                             lorbl, zzero
-    use modgw,             only : kqset, Gkset, fdebug, time_minc
+    use modgw,             only : kqset, Gkqset, fdebug, time_minc
     use mod_bands,         only : eveck, eveckp, eveckalm, eveckpalm
     use mod_product_basis, only : locmatsiz, nmix, bigl, locmixind, bradketc
     use mod_core_states,   only : corind, ncg
@@ -127,7 +127,7 @@
                   !------------------
                   do ilo2 = 1, nlorb(is)
                     if (lorbl(ilo2,is)==l2) then
-                      igk2 = Gkset%ngk(1,ik)+idxlo(l2m2,ilo2,ias)
+                      igk2 = Gkqset%ngk(1,ik)+idxlo(l2m2,ilo2,ias)
                       sum = sum + &
                       &     eveck(igk2,ie2)* &
                       &     bradketc(3,irm,ic,ilo2,1,ias)
@@ -168,5 +168,4 @@
 
     return
 end subroutine calcminc
-!EOC      
-
+!EOC

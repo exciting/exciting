@@ -4,9 +4,8 @@
 !==================================================================
 subroutine calcselfc_freqconv(ikp,iq,mdim)
     use modinput
-    use modmain, only : pi, zzero, evalsv, idxas, evalcr, efermi
-    use modgw,   only : ibgw, nbgw, nstse, kset, kqset, freq, selfec, mwm, &
-    &                   ncg, corind, fdebug
+    use modmain, only : pi, zzero, idxas, evalcr, efermi
+    use modgw
     ! input variables
     implicit none
     integer(4), intent(in) :: ikp
@@ -24,7 +23,7 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
     ! k point
     ik = kset%ikp2ik(ikp)
     ! k-q point
-    jk = kqset%kqid(ik,iq)
+    jk  = kqset%kqid(ik,iq)
     jkp = kset%ik2ikp(jk)
 
     !------------------------
@@ -45,7 +44,7 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
             !============================= 
             ! Valence electron contribution
             !============================= 
-            enk = evalsv(ie2,jkp)-efermi
+            enk = evalfv(ie2,jkp)-efermi
             xnm(1:freq%nomeg) = mwm(ie1,ie2,1:freq%nomeg)
           else
             !============================= 
@@ -59,7 +58,7 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
             enk = evalcr(ic,ias)-efermi
             xnm(1:freq%nomeg) = mwm(ie1,ie2,1:freq%nomeg)
           end if ! val/cor
-          
+
           !------------------------
           ! Frequency convolution
           !------------------------

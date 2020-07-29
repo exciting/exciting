@@ -327,6 +327,9 @@ Subroutine writeinfo (fnum)
          write(fnum,  '("     Hybrid functional ")')
          write(fnum,  '("     Exchange type                         ", T45, ": ", A8)') trim (input%groundstate%Hybrid%exchangetype)
          write(fnum,  '("     Mixing coefficient for exact exchange ", T45, ": ", F16.8)') input%groundstate%Hybrid%excoeff
+         if (input%groundstate%xctypenumber==408)  then
+             write(fnum,  '("     Screening parameter (omega) ", T45, ": ", F16.8)') input%groundstate%Hybrid%omega 
+         endif
       Else If (xcgrad .Eq. 1)  Then 
          write (fnum, '("     Generalised gradient approximation (GGA)")')
       End If

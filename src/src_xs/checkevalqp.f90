@@ -1,4 +1,4 @@
-subroutine checkevalqp(nkp2,kvecs2,eqp2)
+subroutine checkevalqp(fname, nkp2, kvecs2, eqp2)
 
   use modmpi
   use modinput
@@ -9,7 +9,7 @@ subroutine checkevalqp(nkp2,kvecs2,eqp2)
   use modbse, only: koulims
 
   implicit none
-      
+  character(*), intent(in) :: fname
   integer, intent(in) :: nkp2
   real(8), intent(in) :: kvecs2(3,nkp2)
   real(8), intent(inout):: eqp2(nstsv,nkp2)
@@ -17,25 +17,24 @@ subroutine checkevalqp(nkp2,kvecs2,eqp2)
   logical       :: exist
   integer(4)    :: recl
   integer(4)    :: ioglobalmin, iuglobalmax
-  character(30) :: fname
+
   !-----------------------------------------------------------------------------
   ! Get global band index limits
   !-----------------------------------------------------------------------------      
   iuglobalmax=maxval(koulims(2,:))
   ioglobalmin=minval(koulims(3,:))
+
   !-----------------------------------------------------------------------------
   ! Read the file
   !-----------------------------------------------------------------------------      
-
-  fname='EVALQP.OUT'
-  inquire(File=fname, Exist=exist)
+  inquire(File=trim(fname), Exist=exist)
   if (.not.exist) then
     write(*,*)'ERROR(getevalqp): File EVALQP.OUT does not exist!'
     stop
   end if
       
   inquire(IoLength=recl) nkp1, ibgw, nbgw
-  open(70, File=fname, Action='READ', Form='UNFORMATTED', &
+  open(70, File=trim(fname), Action='READ', Form='UNFORMATTED', &
   &    Access='DIRECT', Recl=recl)
   read(70, Rec=1) nkp1, ibgw, nbgw
   close(70)

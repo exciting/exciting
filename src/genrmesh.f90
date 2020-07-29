@@ -93,7 +93,11 @@ Subroutine genrmesh
 
          Do ir = 1, spnr (is)
            if (input%groundstate%radialgridtype.eq."cubic") then
-            spr (ir, is) = sprmin (is)+(dble(ir-1)/dble(nrmt(is)-1))**3*(rmt(is)-sprmin (is))
+           !New MT grid construction
+            spr (ir, is) = (dble(ir-1)/dble(nrmt(is)-1))**3*(rmt(is)-sprmin (is)*nrmt(is))+sprmin(is)*ir 
+           !MT grid construction until exciting-Nitrogen-14 
+!            spr (ir, is) = sprmin (is)+(dble(ir-1)/dble(nrmt(is)-1))**3*(rmt(is)-sprmin (is))
+           !Others MT grid construction
 !            spr (ir, is) = sprmin (is)*dble(ir)+(dble(ir-1)/dble(nrmt(is)-1))**3*(rmt(is)-sprmin (is)*dble(nrmt(is)))
 !             spr (ir, is) = sprmin (is)*dble(2*ir-1)+(dble(ir-1)/dble(nrmt(is)-1))**3*(rmt(is)-sprmin (is)*dble(2*nrmt(is)-1))
            elseif (input%groundstate%radialgridtype.eq."exponential") then

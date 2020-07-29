@@ -29,21 +29,21 @@
   <test>
     <status>
     <xsl:choose>
-    <xsl:when test="math:abs(document('runHe/atoms.xml')/atomlist/atom/NumericalSetup/@rmax - 10.05929533894)&lt;1e-8">
+    <xsl:when test="math:abs(document('runHe/atoms.xml')/atomlist/atom/NumericalSetup/@rmax - 10.05910039576)&lt;1e-6">
      <xsl:text>passed</xsl:text></xsl:when>
      <xsl:otherwise> <xsl:text>failed</xsl:text></xsl:otherwise>
     </xsl:choose>
     </status>
     <name>  correct He species is used </name>
     <description>passes if rmax is the same as in reference:
-     <xsl:value-of select="document('runHe/atoms.xml')/atomlist/atom/NumericalSetup/@rmax"/> vs. 10.05929533894
+     <xsl:value-of select="number(document('runHe/atoms.xml')/atomlist/atom/NumericalSetup/@rmax)"/> vs. 10.05910039576
     </description>
     <directory>test01/runHe </directory>
   </test>
   <test>
     <status>
     <xsl:choose>
-    <xsl:when test="math:abs(document('runHe/atoms.xml')/atomlist/atom/spectrum/state[1]/@energy+ 0.570255918361270)&lt;1e-8">
+    <xsl:when test="math:abs(document('runHe/atoms.xml')/atomlist/atom/spectrum/state[1]/@energy+ 0.570255918361270)&lt;1e-6">
      <xsl:text>passed</xsl:text></xsl:when>
      <xsl:otherwise> <xsl:text>failed</xsl:text></xsl:otherwise>
     </xsl:choose>
@@ -123,25 +123,25 @@
     <description>passes if atoms-iora.xml exists</description>
     <directory>test01/runAr </directory>
   </test>
-rmax="1.745072029189e1"
+rmax="17.45057233740"
    <test>
     <status>
     <xsl:choose>
-    <xsl:when test="math:abs(document('runAr/atoms-default.xml')/atomlist/atom/NumericalSetup/@rmax - 17.45072029189)&lt;1e-6">
+    <xsl:when test="math:abs(document('runAr/atoms-default.xml')/atomlist/atom/NumericalSetup/@rmax - 17.45057233740)&lt;1e-6">
      <xsl:text>passed</xsl:text></xsl:when>
      <xsl:otherwise> <xsl:text>failed</xsl:text></xsl:otherwise>
     </xsl:choose>
     </status>
     <name>  correct Ar species is used </name>
     <description>passes if rmax is the same as in reference:
-       <xsl:value-of select="document('runAr/atoms-default.xml')/atomlist/atom/NumericalSetup/@rmax"/> vs. 17.45072029189
+       <xsl:value-of select="document('runAr/atoms-default.xml')/atomlist/atom/NumericalSetup/@rmax"/> vs. 17.45057233740
     </description>
     <directory>test01/runAr </directory>
   </test>
    <test>
     <status>
     <xsl:choose>
-    <xsl:when test="math:abs(sum(document('runAr/atoms-default.xml')/atomlist/atom/spectrum//state/@energy)+143.741067299331)&lt;1e-8">
+    <xsl:when test="math:abs(sum(document('runAr/atoms-default.xml')/atomlist/atom/spectrum//state/@energy)+143.741067299331)&lt;1e-6">
      <xsl:text>passed</xsl:text></xsl:when>
      <xsl:otherwise> <xsl:text>failed</xsl:text></xsl:otherwise>
     </xsl:choose>
@@ -155,7 +155,7 @@ rmax="1.745072029189e1"
     <test>
     <status>
     <xsl:choose>
-    <xsl:when test="math:abs(sum(document('runAr/atoms-nr.xml')/atomlist/atom/spectrum//state/@energy)+ 143.128392441857)&lt;1e-8">
+    <xsl:when test="math:abs(sum(document('runAr/atoms-nr.xml')/atomlist/atom/spectrum//state/@energy)+ 143.128392441857)&lt;1e-6">
      <xsl:text>passed</xsl:text></xsl:when>
      <xsl:otherwise> <xsl:text>failed</xsl:text></xsl:otherwise>
     </xsl:choose>
@@ -169,7 +169,7 @@ rmax="1.745072029189e1"
     <test>
     <status>
     <xsl:choose>
-    <xsl:when test="math:abs(sum(document('runAr/atoms-zora.xml')/atomlist/atom/spectrum//state/@energy)+144.17745033111)&lt;1e-8">
+    <xsl:when test="math:abs(sum(document('runAr/atoms-zora.xml')/atomlist/atom/spectrum//state/@energy)+144.17745033111)&lt;1e-6">
      <xsl:text>passed</xsl:text></xsl:when>
      <xsl:otherwise> <xsl:text>failed</xsl:text></xsl:otherwise>
     </xsl:choose>
@@ -183,7 +183,7 @@ rmax="1.745072029189e1"
    <test>
     <status>
      <xsl:choose>
-     <xsl:when test="math:abs(sum(document('runAr/atoms-iora.xml')/atomlist/atom/spectrum//state/@energy)+143.73151277489)&lt;1e-8">
+     <xsl:when test="math:abs(sum(document('runAr/atoms-iora.xml')/atomlist/atom/spectrum//state/@energy)+143.73151277489)&lt;1e-6">
      <xsl:text>passed</xsl:text></xsl:when>
      <xsl:otherwise> <xsl:text>failed</xsl:text></xsl:otherwise>
     </xsl:choose>
@@ -197,7 +197,7 @@ rmax="1.745072029189e1"
     <test>
     <status>
     <xsl:choose>
-    <xsl:when test="math:abs(document('runAr/info-default.xml')/info/groundstate/scl/iter[last()]/energies/@totalEnergy+527.817961012)&lt;1e-7">
+    <xsl:when test="math:abs(document('runAr/info-default.xml')/info/groundstate/scl/iter[last()]/energies/@totalEnergy+527.817961012)&lt;1e-6">
      <xsl:text>passed</xsl:text></xsl:when>
      <xsl:otherwise> <xsl:text>failed</xsl:text></xsl:otherwise>
     </xsl:choose>

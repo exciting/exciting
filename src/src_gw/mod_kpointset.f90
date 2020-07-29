@@ -1,9 +1,9 @@
 
 MODULE mod_kpointset
-    
+
     implicit none
 
-!-------------------------------------------------------------------------------    
+!-------------------------------------------------------------------------------
     type k_set
         ! k-points
         integer(4) :: nkptnr                ! total (non-reduced) number of k-points (in case symmetry is used)
@@ -24,7 +24,7 @@ MODULE mod_kpointset
         integer(4), allocatable :: ivknr(:,:)
         real(8), allocatable :: vklnr(:,:)
         real(8), allocatable :: vkcnr(:,:)
-        real(8), allocatable :: wkptnr(:) 
+        real(8), allocatable :: wkptnr(:)
 
         ! 3D index maps
         integer(4), allocatable ::  ikmap(:,:,:)   ! non-reduced 3d index -> 1d reduced index
@@ -61,7 +61,7 @@ MODULE mod_kpointset
     type Gk_set
 
         ! Cutoff for G+k length
-        real(8) :: gkmax   
+        real(8) :: gkmax
 
         ! Reduced (potentially) quantities
         integer :: ngkmax
@@ -86,8 +86,8 @@ MODULE mod_kpointset
         complex(8), allocatable :: sfacgknr(:,:,:,:) ! structure factor for the G+k-vectors
 
     end type Gk_set
-    
-!-------------------------------------------------------------------------------    
+
+!-------------------------------------------------------------------------------
     type kq_set
         ! k-points
         integer :: nkpt                     ! number of k/q-points
@@ -113,13 +113,13 @@ MODULE mod_kpointset
         integer, allocatable :: isymkstar(:,:,:) ! index of the symmetry operations
     end type kq_set
 
-!-------------------------------------------------------------------------------    
+!-------------------------------------------------------------------------------
     type kkqmt_set
         ! Momentum transfer Q-vector Q = q_Q + G_Q
         real(8), allocatable :: vqmtl(:)      ! Lattice coordinates
         real(8), allocatable :: vqmtc(:)      ! Cartesian coordinates
         !   Unit cell part
-        real(8), allocatable :: vqmtl_q(:)    ! Lattice coordinates 
+        real(8), allocatable :: vqmtl_q(:)    ! Lattice coordinates
         real(8), allocatable :: vqmtc_q(:)    ! Cartesian coordinates
         !   Lattice vector part
         integer(4), allocatable :: vqmtl_g(:) ! Lattice coordinates
@@ -151,7 +151,7 @@ MODULE mod_kpointset
 
     end type kkqmt_set
 
-!-------------------------------------------------------------------------------    
+!-------------------------------------------------------------------------------
     type km_set
 
       ! The k-grid build by inverting the input k-grid
@@ -167,7 +167,7 @@ MODULE mod_kpointset
 
     end type km_set
 
-!-------------------------------------------------------------------------------    
+!-------------------------------------------------------------------------------
     type q_set
         ! q-grid, i.e. the differece vectors k'-k
         type(k_set) :: qset
@@ -192,7 +192,7 @@ MODULE mod_kpointset
     end type q_set
 
     type p_set
-        ! q-grid, i.e. the negative sum vectors -(k'+k) mapped back to 
+        ! q-grid, i.e. the negative sum vectors -(k'+k) mapped back to
         ! the unit cell
         type(k_set) :: pset
 
@@ -209,7 +209,7 @@ MODULE mod_kpointset
 
     ! internal routine, should not be visible outside
     private  rtorat
-    
+
 CONTAINS
 
 !-------------------------------------------------------------------------------
@@ -219,9 +219,9 @@ CONTAINS
         ! The output is an integer vector {\bf k}, such that
         ! $$ |x(i)-k(i)/{\rm div}| < {\rm eps} $$
         ! for all $i=1,\ldots,n$.
-        !   
+        !
         ! Created July 2008 by Sagmeister
-        !-------------------------------------------------------    
+        !-------------------------------------------------------
         implicit none
         real(8),    intent(In)  :: x(3)
         integer(4), intent(Out) :: k(3)
@@ -254,7 +254,7 @@ CONTAINS
         real(8), intent(IN) :: bvec(3,3)
         integer, intent(IN) :: ngridk(3)
         real(8), intent(IN) :: vkloff(3)
-        logical, intent(IN) :: reduce ! apply symmetry to reduce k-set     
+        logical, intent(IN) :: reduce ! apply symmetry to reduce k-set
         logical, intent(IN), optional :: uselibzint
         ! local variables
         integer(4) :: dvk
@@ -277,14 +277,14 @@ CONTAINS
         else
           uselz = .true.
         end if
-        
+
         ! initialize k-set
         self%usedlibzint = uselz
         self%isreduced = reduce
 
         self%bvec = bvec
 
-        if(any(abs(vkloff) > 1.0d0) .or. any(vkloff < 0.0d0)) then 
+        if(any(abs(vkloff) > 1.0d0) .or. any(vkloff < 0.0d0)) then
           write(*,*) "Warning(generate_k_vectors): vkloff mapped back to first k-parallelepiped"
           write(*,*) "vkloff",vkloff
           call r3frac(epslat, vkloff, iv)
@@ -294,7 +294,7 @@ CONTAINS
 
         self%ngridk = ngridk
 
-        ! non reduced 
+        ! non reduced
         self%nkptnr = ngridk(1)*ngridk(2)*ngridk(3)
         if (allocated(self%ivknr)) deallocate(self%ivknr)
         allocate(self%ivknr(3,self%nkptnr))
@@ -336,7 +336,7 @@ CONTAINS
         allocate(self%wtet(self%ntet))
         self%tvol = 0.d0
 
-        if(uselz) then 
+        if(uselz) then
 
           ! explore symmetry
           nsym = 1
@@ -351,7 +351,7 @@ CONTAINS
               end do
             end do
           end do
-          
+
           ! k-mesh shift
           !call factorize(3,self%vkloff,ikloff,dkloff) !<-- Libbzint routine
           call rtorat(self%vkloff,ikloff,dkloff)
@@ -359,9 +359,9 @@ CONTAINS
           ! call LibBZint library
           allocate(ivk(3,self%nkpt))
           allocate(iwkp(self%nkpt))
-          
+
           ! modified (by DIN) version of libbzint routine kgen
-          ! I have added an additional output parameter mapping ikp -> ik 
+          ! I have added an additional output parameter mapping ikp -> ik
           ! Note (Aurich): In kgen_exciting the index labeling is different than in genppts.
           !                In genppts the 1st dimension counts up the fastest, followed by 2 and 3
           !                In kgen_exciting the opposite is the case 3,2,1.
@@ -369,7 +369,7 @@ CONTAINS
           call kgen_exciting(bvec,nsym,symmat,ngridk,ikloff,dkloff, &
           &         self%nkpt,ivk,dvk,self%ik2ikp,self%ikp2ik,iwkp, &
           &         self%ntet,self%tnodes,self%wtet,self%tvol,mnd)
-          
+
           ! fractional and cartesian coordinates, and k-point weight
           do ik = 1, self%nkpt
               self%vkl(:,ik) = dble(ivk(:,ik))/dble(dvk)
@@ -388,10 +388,10 @@ CONTAINS
               end do
             end do
           end do
-          
+
           deallocate(symmat,ivk,iwkp)
 
-        ! No libzint 
+        ! No libzint
         else
 
           ! Set up k grid box
@@ -425,7 +425,7 @@ CONTAINS
 
         return
     end subroutine generate_k_vectors
-    
+
 !-------------------------------------------------------------------------------
     subroutine delete_k_vectors(self)
         type(k_set), intent(INOUT) :: self
@@ -454,7 +454,7 @@ CONTAINS
         type(k_set), intent(IN) :: self
         integer,     intent(IN) :: funit
         integer :: ik, i, j
-        
+
         call boxmsg(funit,'-','k-space basis vectors')
         write(funit,*) '< b1 b2 b3 >'
         write(funit,99) transpose(self%bvec)
@@ -513,7 +513,7 @@ CONTAINS
           write(funit,*) 'Nodal points of tetrahedron: < itet    tnodes    wtet >'
           do i = 1, self%ntet
             write(funit,*) i, (self%tnodes(j,i),j=1,4), self%wtet(i)
-          enddo 
+          enddo
         end if
         101 format(i6,e16.8)
         return
@@ -542,12 +542,12 @@ CONTAINS
         ! G grid dimensions
         self%intgv(:,:) = intgv(:,:)
 
-        ! Number of G points on grid 
+        ! Number of G points on grid
         self%ngrtot = (self%intgv(1,2)-self%intgv(1,1)+1)* &
         &             (self%intgv(2,2)-self%intgv(2,1)+1)* &
         &             (self%intgv(3,2)-self%intgv(3,1)+1)
 
-        ! Cutoff G vector length 
+        ! Cutoff G vector length
         self%gmaxvr = gmaxvr
 
         ! Number of G vectors shorter than gmaxvr
@@ -637,7 +637,7 @@ CONTAINS
         deallocate(idx,iar,rar)
         return
     end subroutine generate_G_vectors
-    
+
 !-------------------------------------------------------------------------------
     subroutine delete_G_vectors(self)
         type(G_set), intent(INOUT) :: self
@@ -703,14 +703,12 @@ CONTAINS
         !!  Reduced (potentially) k-set
 
         ! Map (igk,ik,ispin) --> ig
+        if (allocated(igk2ig)) deallocate(igk2ig)
         allocate(igk2ig(gset%ngrtot,kset%nkpt,nspnfv))
-        igk2ig(:,:,:) = 0
-        allocate(ig2igk(gset%ngrtot,kset%nkpt,nspnfv))
-        ig2igk(:,:,:) = 0
-        
+        igk2ig(:,:,:) = -1
+
         ! Determine the number of G+k combinations which satisfy |G+k|<gkmax
         allocate(self%ngk(nspnfv,kset%nkpt))
-        igmax = 0
         do ispn = 1, nspnfv
           do ik = 1, kset%nkpt
             igp = 0
@@ -720,27 +718,31 @@ CONTAINS
               if (t1 < gkmax .or. fg0 .and. ig == 1) then
                 igp = igp+1
                 igk2ig(igp,ik,ispn) = ig
-                ig2igk(ig,ik,ispn) = igp
-                igmax = max(igmax,ig)
               end if
             end do ! ig
             self%ngk(ispn,ik) = igp
           end do ! ik
         end do ! ispn
-        
+
         ! Maximum number of G+k vectors over all k's
         self%ngkmax = maxval(self%ngk)
         if (self%ngkmax > Gset%ngrtot) then
           write(*,*) 'ERROR(mod_kpoints::generate_Gk_vectors) ngkmax > ngrtot'
           stop
         end if
-        
+
+        igp = minval(self%ngk)
+        if (igp < 1) then
+          write(*,*) 'ERROR(mod_kpoints::generate_Gk_vectors) Algorithm failure!'
+          stop
+        end if
+
         ! generate G+k data set
 
         ! Map (ig, ispin, ik) --> igk
-        allocate(self%igigk(igmax,kset%nkpt,nspnfv))
-        self%igigk(:,:,:) = ig2igk(1:igmax,:,:)
-        deallocate(ig2igk)
+        if (allocated(self%igigk)) deallocate(self%igigk)
+        allocate(self%igigk(Gset%ngrtot,nspnfv,kset%nkpt))
+        self%igigk(:,:,:) = -1
 
         ! Map (igk, ispin, ik) --> ig
         allocate(self%igkig(self%ngkmax,nspnfv,kset%nkpt))
@@ -762,12 +764,14 @@ CONTAINS
 
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ispn, ik, igp, ig)
-!$OMP DO COLLAPSE(2)
-#endif    
+!$OMP DO
+#endif
         do ispn = 1, nspnfv
           do ik = 1, kset%nkpt
             do igp = 1, self%ngk(ispn,ik)
               ig = igk2ig(igp,ik,ispn)
+              ! index from G and k to G+k vector
+              self%igigk(ig,ispn,ik) = igp
               ! index to G-vector
               self%igkig(igp,ispn,ik) = ig
               ! G+k-vector in lattice coordinates
@@ -786,7 +790,7 @@ CONTAINS
 #ifdef USEOMP
 !$OMP END DO
 !$OMP END PARALLEL
-#endif    
+#endif
         deallocate(igk2ig)
 
         !! Also make non-reduced quantities
@@ -818,14 +822,14 @@ CONTAINS
               self%ngknr(ispn,ik) = igp
             end do ! ik
           end do ! ispn
-          
+
           ! Maximum number of G+k vectors over all k's
           self%ngknrmax = maxval(self%ngknr)
           if (self%ngknrmax > gset%ngrtot) then
             write(*,*) 'ERROR(mod_kpoints::generate_Gk_vectors) ngknrmax > ngrtot'
             stop
           end if
-          
+
           ! generate G+k data set
 
           ! Map (ig, ispin, iknr) --> igknr
@@ -854,7 +858,7 @@ CONTAINS
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ispn, ik, igp, ig)
 !$OMP DO COLLAPSE(2)
-#endif    
+#endif
           do ispn = 1, nspnfv
             do ik = 1, kset%nkptnr
               do igp = 1, self%ngknr(ispn,ik)
@@ -877,7 +881,7 @@ CONTAINS
 #ifdef USEOMP
 !$OMP END DO
 !$OMP END PARALLEL
-#endif    
+#endif
           deallocate(igk2ig)
 
         ! No libzint
@@ -885,14 +889,14 @@ CONTAINS
 
         return
     end subroutine generate_Gk_vectors
-    
+
 !-------------------------------------------------------------------------------
     subroutine delete_Gk_vectors(self)
         type(Gk_set), intent(INOUT) :: self
 
         if (allocated(self%ngk)) deallocate(self%ngk)
+        if (allocated(self%igigk)) deallocate(self%igkig)
         if (allocated(self%igkig)) deallocate(self%igkig)
-        if (allocated(self%igigk)) deallocate(self%igigk)
         if (allocated(self%vgkl)) deallocate(self%vgkl)
         if (allocated(self%vgkc)) deallocate(self%vgkc)
         if (allocated(self%gkc)) deallocate(self%gkc)
@@ -970,7 +974,7 @@ CONTAINS
         logical, intent(IN) :: reduce
         logical, intent(IN), optional :: uselibzint
 
-        ! local variables        
+        ! local variables
         integer(4) :: ikloff(3)
         integer(4) :: dkloff
         integer(4) :: ik
@@ -987,14 +991,14 @@ CONTAINS
 
         ! Reset self
         call delete_kq_vectors(self)
-        
+
         ! initialize k/q-sets
         self%nkpt = ngridk(1)*ngridk(2)*ngridk(3)
         allocate(self%vkl(3,self%nkpt))
         allocate(self%vkc(3,self%nkpt))
         allocate(self%vql(3,self%nkpt))
         allocate(self%vqc(3,self%nkpt))
-        
+
         ! tetrahedron integration method related data
         self%ntet = 6*self%nkpt
         allocate(self%tnodes(4,self%ntet))
@@ -1002,27 +1006,27 @@ CONTAINS
         allocate(self%kqid(self%nkpt,self%nkpt))
         allocate(self%linkq(self%ntet,self%nkpt))
         self%tvol = 0.d0
-        
+
         ! k-mesh shift
         !call factorize(3,vkloff,ikloff,dkloff) !<-- Libbzint routine
         call rtorat(vkloff,ikloff,dkloff)
-        
+
         ! call LibBZint library
         allocate(ivk(3,self%nkpt))
         allocate(ivq(3,self%nkpt))
-        
+
         ! suppress debug output in tetrahedron integration library (0)
         !call tetrasetdbglv(0)
         ! Generate the k- and q-points meshes
         !call kqgen(bvec,ngridk,ikloff,dkloff, &
         !&          self%nkpt,ivk,ivq,dvk,dvq,self%kqid,self%ntet, &
         !&          self%tnodes,self%wtet,self%linkq,self%tvol)
-        
+
         call kqgen(bvec,ngridk,ikloff,dkloff, &
         &          self%nkpt,ivk,ivq,dvk,dvq,self%kqid,self%ntet, &
         &          self%tnodes,self%wtet,self%linkq,self%tvol)
 
-        !      
+        !
         ! fractional and cartesian coordinates
         do ik = 1, self%nkpt
           self%vkl(:,ik) = dble(ivk(:,ik))/dble(dvk)
@@ -1044,16 +1048,16 @@ CONTAINS
         type(kq_set), intent(InOut) :: self
         real(8), intent(IN) :: bvec(3,3)
         integer, intent(IN) :: ngridk(3)
-        real(8), intent(IN) :: vkloff(3)        
+        real(8), intent(IN) :: vkloff(3)
         logical,      intent(In)    :: reduce
-        ! local variables    
+        ! local variables
         integer :: iqp, ikp  ! q-, k-point indexes for IBZ
         integer :: ik, nqpt, nkptnr
         integer :: ip, jp, iv(3)
         integer :: isym, lspl, nsym
         real(8) :: s(3,3), v1(3), v2(3), t1
         real(8), allocatable :: vklq(:,:)
-        integer, allocatable :: scmapq(:)    
+        integer, allocatable :: scmapq(:)
         integer, allocatable :: ivwrapq(:,:)
         integer, allocatable :: iwkpq(:)
         type(k_set) :: qpt
@@ -1062,8 +1066,8 @@ CONTAINS
         ! total non-reduced number of k-points (shortcut)
         nkptnr = self%nkpt
         ! generate q-point set
-        call generate_k_vectors(qpt,bvec,ngridk,vkloff,reduce)        
-        ! if symmetry is used        
+        call generate_k_vectors(qpt,bvec,ngridk,vkloff,reduce)
+        ! if symmetry is used
         if (reduce) then
           nsym = nsymcrys
         else
@@ -1106,7 +1110,7 @@ CONTAINS
         ! for each q-point
         do iqp = 1, nqpt
           !---------------------------!
-          ! find the small group of q ! 
+          ! find the small group of q !
           !---------------------------!
           v1(:) = qpt%vkl(:,iqp)
           !
@@ -1117,7 +1121,7 @@ CONTAINS
           !--------------------------------------------------------------------------------
           ! determine the q-dependent BZ(q) and symmetry operations which regenerate
           ! the full (non-reduced) k-grid
-          !--------------------------------------------------------------------------------      
+          !--------------------------------------------------------------------------------
           ip = 0
           do ik = 1, nkptnr
             v1(:) = self%vkl(:,ik)
@@ -1131,7 +1135,7 @@ CONTAINS
                 t1 = r3taxi(vklq(:,jp),v2)
                 if (t1 < epslat) then
                   ! equivalent k-point found so add to current weight
-                  self%ik2ikpq(ik,iqp) = jp 
+                  self%ik2ikpq(ik,iqp) = jp
                   iwkpq(jp) = iwkpq(jp) + 1
                   self%iksymq(ik,iqp) = scmapq(isym)
                   goto 10
@@ -1141,16 +1145,16 @@ CONTAINS
             ! add new point to set
             ip = ip + 1
             vklq(:,ip) = v1(:)
-            self%ik2ikpq(ik,iqp) = ip 
+            self%ik2ikpq(ik,iqp) = ip
             iwkpq(ip) = 1
             self%iksymq(ik,iqp) = 1
             10 continue
           end do ! ik
           !
-          ! save the number N(q) of k-points            
-          self%nkptq(iqp) = ip 
+          ! save the number N(q) of k-points
+          self%nkptq(iqp) = ip
           !
-          ! q-dependent k-point weight      
+          ! q-dependent k-point weight
           do ik = 1, self%nkptq(iqp)
             self%wkptq(ik,iqp)=dble(iwkpq(ik))/dble(nkptnr)
           end do
@@ -1182,7 +1186,7 @@ CONTAINS
         !
         return
     end subroutine generate_small_group_q
-    
+
 !-------------------------------------------------------------------------------
     subroutine delete_kq_vectors(self)
         type(kq_set), intent(INOUT) :: self
@@ -1219,7 +1223,7 @@ CONTAINS
         write(funit,*) 'q-vectors list:  < iq    vql    vqc    weight >'
         do ik = 1, self%nkpt
           write(funit,104) ik, self%vql(1:3,ik), self%vqc(1:3,ik), 1.d0/dble(self%nkpt)
-        enddo        
+        enddo
         104 format(i4,4x,3f8.4,4x,3f8.4,4x,f8.4)
         write(funit,*)
         write(funit,*) 'Tetrahedron method info: < ntet    tvol >'
@@ -1227,13 +1231,13 @@ CONTAINS
         write(funit,*) 'Nodal points of tetrahedron: < ik    tnodes    wtet >'
         do i = 1, self%ntet
           write(funit,*) i, (self%tnodes(j,i),j=1,4), self%wtet(i)
-        enddo 
+        enddo
         105 format(i6,e16.8)
         write(funit,*)
         write(funit,*) 'Id of tetrahedra linked by the corresponding q vector: < iq    linkq >'
         do i = 1, self%ntet
           write(funit,*) i, (self%linkq(i,j), j=1,self%nkpt)
-        enddo 
+        enddo
         write(funit,*)
         write(funit,*) 'Link between k and k-q points: < kqid >'
         do i = 1, self%nkpt, 8
@@ -1244,8 +1248,8 @@ CONTAINS
             write(funit,107) j,(self%kqid(j,i+k), k=0,kmax)
           enddo
         enddo
-        106 format(' ik/iq |',8i4)      
-        107 format(i4,'   |',8i4)      
+        106 format(' ik/iq |',8i4)
+        107 format(i4,'   |',8i4)
         !
         ! Print small group of q-vectors (when symmetry is used)
         if (allocated(self%nkptq)) then
@@ -1260,11 +1264,11 @@ CONTAINS
             do ik = 1, self%nkptq(iq)
               write(funit,'(i4,4f12.4)') ik, self%vkl(:,self%ikp2ikq(ik,iq)), self%wkptq(ik,iq)
             end do
-            write(funit,*)  
+            write(funit,*)
             write(funit,*) '  Mapping arrays:'
             write(funit,*) '    ik2ikpq: ', self%ik2ikpq(:,iq)
-            write(funit,*) '    ikp2ikq: ', self%ikp2ikq(1:self%nkptq(iq),iq)      
-            write(funit,*) 
+            write(funit,*) '    ikp2ikq: ', self%ikp2ikq(1:self%nkptq(iq),iq)
+            write(funit,*)
             write(funit,*) '  Star operations:'
             write(funit,*) '    iksymq: ', self%iksymq(:,iq)
             do ik = 1, self%nkptq(iq)
@@ -1285,7 +1289,7 @@ CONTAINS
         real(8), intent(IN) :: bvec(3,3)
         integer, intent(IN) :: ngridk(3)
         real(8), intent(IN) :: vkloff(3)
-        logical, intent(IN) :: reduce ! apply symmetry to reduce k-set     
+        logical, intent(IN) :: reduce ! apply symmetry to reduce k-set
         real(8), intent(IN) :: veclqmt(3)
         logical, intent(IN), optional :: uselibzint
 
@@ -1294,7 +1298,7 @@ CONTAINS
         integer :: iv(3), idxnr, ik
         logical :: uselz
 
-        if(present(uselibzint)) then 
+        if(present(uselibzint)) then
           uselz = uselibzint
           if(uselz .eqv. .true.) then
             write(*,*) "Error(generate_kkqmt_vectors): libzint not supported. Using genppts"
@@ -1333,7 +1337,7 @@ CONTAINS
         ! Derive k+qmt-grid offset from qmt
         ! vkloff: Offset vector in coordinates "k-grid coordinates {b_i/N_i}"
         !   --> vkloff/ngridk: Offset vector in b_i lattice coordinates
-        ! ngridk: The N_i's 
+        ! ngridk: The N_i's
         ! Check origin of shifted k-grid
         !   Shifted k-grid origin vector is outside [0,1) unit cell
         v1 = vkloff/ngridk + self%vqmtl_q
@@ -1353,7 +1357,7 @@ CONTAINS
         else if(any(v1*ngridk .ge. 1.d0)) then
           vkloff_kqmt = v1*ngridk
           call r3frac(epslat, vkloff_kqmt, iv)
-        !   Shifted k-grid origin vector is inside first k-parallelepiped 
+        !   Shifted k-grid origin vector is inside first k-parallelepiped
         else
           vkloff_kqmt = v1*ngridk
         end if
@@ -1371,13 +1375,13 @@ CONTAINS
           v1 = self%kset%vklnr(:, ik) + self%vqmtl_q
           ! Map back to [0,1) if needed
           call r3frac(epslat, v1, iv)
-          ! Save index of G shift 
+          ! Save index of G shift
           self%ik2ig_nr(ik) = gset%ivgig(iv(1),iv(2),iv(3))
           ! Get corresponding non-reduced 3d index of k+qmt grid
           iv = nint(v1*self%kqmtset%ngridk-self%kqmtset%vkloff)
           ! Get non-reduced 1d index form 3d index
           idxnr = self%kqmtset%ikmapnr(iv(1), iv(2), iv(3))
-          ! Write map 
+          ! Write map
           self%ik2ikqmt_nr(ik) = idxnr
         end do
 
@@ -1391,10 +1395,10 @@ CONTAINS
         do ik = 1, self%kset%nkpt
           self%ik2ikqmt(ik) = &
             & self%kqmtset%ik2ikp( self%ik2ikqmt_nr( self%kset%ikp2ik(ik) ) )
-          self%ik2ig(ik) = self%ik2ig_nr( self%kset%ikp2ik(ik) ) 
+          self%ik2ig(ik) = self%ik2ig_nr( self%kset%ikp2ik(ik) )
         end do
 
-        ! Build map ikq --> ik 
+        ! Build map ikq --> ik
         allocate(self%ikqmt2ik(self%kqmtset%nkpt))
         do ik = 1, self%kqmtset%nkpt
           self%ikqmt2ik(ik) = &
@@ -1494,10 +1498,10 @@ CONTAINS
         ! Derive -k-grid offset form k-grid offset
         ! vkloff: Offset vector in coordinates "k-grid coordinates {b_i/N_i}"
         !   --> vkloff/ngridk: Offset vector in b_i coordinates
-        ! ngridk: The N_i's 
+        ! ngridk: The N_i's
 
         ! Map -vkloff in lattice coordinates back to [0,1]
-        v1 = -kset%vkloff/kset%ngridk 
+        v1 = -kset%vkloff/kset%ngridk
         call r3frac(epslat, v1, iv)
 
         ! Check origin of shifted k-grid
@@ -1518,7 +1522,7 @@ CONTAINS
         else if(any(v1*kset%ngridk .ge. 1.d0)) then
           vkloff_km = v1*kset%ngridk
           call r3frac(epslat, vkloff_km, iv)
-        !   Shifted k-grid origin vector is inside first k-parallelepiped 
+        !   Shifted k-grid origin vector is inside first k-parallelepiped
         else
           vkloff_km = v1*kset%ngridk
         end if
@@ -1540,7 +1544,7 @@ CONTAINS
            iv = nint(v1*self%kset%ngridk-self%kset%vkloff)
            ! Get non-reduced 1d index form 3d index
            idxnr = self%kset%ikmapnr(iv(1), iv(2), iv(3))
-           ! Write map 
+           ! Write map
            self%ik2ikm_nr(ik) = idxnr
         end do
 
@@ -1555,7 +1559,7 @@ CONTAINS
             & self%kset%ik2ikp( self%ik2ikm_nr( kset%ikp2ik(ik) ) )
         end do
 
-        ! Build map ikq --> ik 
+        ! Build map ikq --> ik
         allocate(self%ikm2ik(self%kset%nkpt))
         do ik = 1, self%kset%nkpt
           self%ikm2ik(ik) = &
@@ -1631,7 +1635,7 @@ CONTAINS
             & libzint not supported'
           stop
         end if
-        
+
         ! Check if k'-grid and k-grid are compatible
         if(any(kpset%bvec /= kset%bvec)) then
           write(*,*) 'ERROR(mod_kpoints::generate_kkq_vectors):&
@@ -1658,7 +1662,7 @@ CONTAINS
         ! Make index map ik,ik' --> iq + ig for non-reduced points
         allocate(self%ikikp2iq_nr(kset%nkptnr, kpset%nkptnr))
         allocate(self%ikikp2ig_nr(kset%nkptnr, kpset%nkptnr))
-        
+
         do ik = 1, kset%nkptnr
           do ikp = 1, kpset%nkptnr
 
@@ -1667,7 +1671,7 @@ CONTAINS
             ! Reduce it to [0,1) and shift vector
             call r3frac(epslat, vql, ivg)
 
-            ! Save index of G shift 
+            ! Save index of G shift
             self%ikikp2ig_nr(ik,ikp) = gset%ivgig(ivg(1),ivg(2),ivg(3))
 
             ! Get corresponding non-reduced 3d index of q-grid
@@ -1694,7 +1698,7 @@ CONTAINS
             ! Reduce it to [0,1) and shift vector
             call r3frac(epslat, vkpl, ivg)
 
-            ! Save index of G shift 
+            ! Save index of G shift
             self%ikiq2ig_nr(ik,iq) = gset%ivgig(ivg(1),ivg(2),ivg(3))
 
             ! Get corresponding non-reduced 3d index of kp-grid
@@ -1777,7 +1781,7 @@ CONTAINS
            & differing ngridk."
           return
         end if
-          
+
         call boxmsg(funit,'-','k point set')
         call print_k_vectors(kset, funit)
 
@@ -1793,7 +1797,7 @@ CONTAINS
         do ik = 1, kset%nkptnr
           do ikp = 1, kpset%nkptnr
             write(funit,'(7i11)') ik, ikp, self%ikikp2iq_nr(ik,ikp),&
-              & self%ikikp2ig_nr(ik,ikp),& 
+              & self%ikikp2ig_nr(ik,ikp),&
               & gset%ivg(:,self%ikikp2ig_nr(ik,ikp))
           end do
         end do
@@ -1838,7 +1842,7 @@ CONTAINS
         do ikkp = 1, nkkp
           call kkpmap(ikkp, kset%nkptnr, ik, ikp)
           write(funit,'(8i11)') ikkp, ik, ikp, self%ikkp2iq_nr(ikkp),&
-              & self%ikkp2ig_nr(ikkp),& 
+              & self%ikkp2ig_nr(ikkp),&
               & gset%ivg(:,self%ikkp2ig_nr(ikkp))
         end do
         write(funit,*)
@@ -1872,7 +1876,7 @@ CONTAINS
             & libzint not supported'
           stop
         end if
-        
+
         ! Check if k'-grid and k-grid are compatible
         if(any(kpset%bvec /= kset%bvec)) then
           write(*,*) 'ERROR(mod_kpoints::generate_kkq_vectors):&
@@ -1899,7 +1903,7 @@ CONTAINS
         ! Make index map ik,ik' --> ip + ig for non-reduced points
         allocate(self%ikikp2ip_nr(kset%nkptnr, kpset%nkptnr))
         allocate(self%ikikp2ig_nr(kset%nkptnr, kpset%nkptnr))
-        
+
         do ik = 1, kset%nkptnr
           do ikp = 1, kpset%nkptnr
 
@@ -1908,7 +1912,7 @@ CONTAINS
             ! Reduce it to [0,1) and shift vector
             call r3frac(epslat, vpl, ivg)
 
-            ! Save index of G shift 
+            ! Save index of G shift
             self%ikikp2ig_nr(ik,ikp) = gset%ivgig(ivg(1),ivg(2),ivg(3))
 
             ! Get corresponding non-reduced 3d index of p-grid
@@ -1935,7 +1939,7 @@ CONTAINS
             ! Reduce it to [0,1) and shift vector
             call r3frac(epslat, vkpl, ivg)
 
-            ! Save index of G shift 
+            ! Save index of G shift
             self%ikip2ig_nr(ik,ip) = gset%ivgig(ivg(1),ivg(2),ivg(3))
 
             ! Get corresponding non-reduced 3d index of kp-grid
@@ -1996,7 +2000,7 @@ CONTAINS
            & differing ngridk."
           return
         end if
-          
+
         call boxmsg(funit,'-','k point set')
         call print_k_vectors(kset, funit)
 
@@ -2012,7 +2016,7 @@ CONTAINS
         do ik = 1, kset%nkptnr
           do ikp = 1, kpset%nkptnr
             write(funit,'(7i11)') ik, ikp, self%ikikp2ip_nr(ik,ikp),&
-              & self%ikikp2ig_nr(ik,ikp),& 
+              & self%ikikp2ig_nr(ik,ikp),&
               & gset%ivg(:,self%ikikp2ig_nr(ik,ikp))
           end do
         end do
@@ -2041,7 +2045,7 @@ CONTAINS
       integer(4) :: ivgshift(3), igk, igkp, ig, igp, ivg(3), ivgp(3)
       integer(4) :: igmax, nkmax, igigkmax
       integer(4), parameter :: ispin = 1
-      
+
       igmax = size(gset%ivg,2)
       igigkmax = size(gkset%igigk,1)
       nkmax = size(gkset%igigk,2)
@@ -2051,7 +2055,7 @@ CONTAINS
         write(*,*) "ik=", ik, " ikmax=", nkmax
         stop
       end if
-      if(igshift > igmax) then 
+      if(igshift > igmax) then
         write(*,*) "igkshift: igshift too large for passed g set"
         write(*,*) "igshift=", igshift, " igmax=", igmax
         stop
@@ -2068,7 +2072,7 @@ CONTAINS
         ! Get G vector from G+k index
         ig = gkset%igkig(igk, ispin, ik)
 
-        if(ig <= igmax) then 
+        if(ig <= igmax) then
           ivg = gset%ivg(1:3,ig)
         else
           write(*,*) "igkshift: ig > igmax"
@@ -2080,7 +2084,7 @@ CONTAINS
         ivgp = ivg + ivgshift
 
         if(ivgp(1) > gset%intgv(1,2) .or. ivgp(1) < gset%intgv(1,1) &
-          & .or. ivgp(2) > gset%intgv(2,2) .or. ivgp(2) < gset%intgv(2,1) & 
+          & .or. ivgp(2) > gset%intgv(2,2) .or. ivgp(2) < gset%intgv(2,1) &
           & .or. ivgp(3) > gset%intgv(3,2) .or. ivgp(3) < gset%intgv(3,1)) then
           write(*,*) "shifted G vector to large for passed g set"
           write(*,*) "ivg=",ivgp
@@ -2092,7 +2096,7 @@ CONTAINS
         igp = gset%ivgig(ivgp(1),ivgp(2),ivgp(3))
 
         ! Get G+k index of shifted G vector
-        if(igp > igigkmax) then 
+        if(igp > igigkmax) then
           write(*,*) "Shifted G vector not in original G+k set"
           write(*,*) "igk=",igk
           write(*,*) "ig=", ig
@@ -2190,10 +2194,9 @@ CONTAINS
           integer(4), intent(in) :: n(3)
           i1dnr = iv(1) + iv(2)*n(1) + iv(3)*n(2)*n(3) + 1
         end function i1dnr
-      
+
     end subroutine ikpik2iqivgnr
 
 
 
 END MODULE
-

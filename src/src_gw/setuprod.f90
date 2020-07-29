@@ -199,7 +199,13 @@ subroutine setuprod(ia,is)
     allocate(umat(maxnup,maxnup))
     umat = 0.0d0
     
+#ifdef USEOMP
+!$OMP PARALLEL PRIVATE(ipr1,ipr2,ir,fr,cf,gr) SHARED(nup,uprod,nrmt,is,spr,umat)
+#endif
     do ipr1 = 1, nup
+#ifdef USEOMP
+!$OMP DO
+#endif
       do ipr2 = ipr1, nup
         do ir = 1, nrmt(is)
           fr(ir) = uprod(ir,ipr1)*uprod(ir,ipr2)
@@ -207,8 +213,14 @@ subroutine setuprod(ia,is)
         call fderiv(-1,nrmt(is),spr(:,is),fr,gr,cf)
         umat(ipr1,ipr2) = gr(nrmt(is))
       end do ! ipr2
+#ifdef USEOMP
+!$OMP END DO NOWAIT
+#endif
     end do ! nup
-     
+#ifdef USEOMP
+!$OMP END PARALLEL
+#endif     
+
     if (input%gw%debug) then
       write(fdebug,*) 
       write(fdebug,*) "###umat for atom ", ias

@@ -61,20 +61,16 @@ Subroutine dos
       Complex (8), Allocatable :: apwalm (:, :, :, :, :)
       Complex (8), Allocatable :: evecfv (:, :, :)
       Complex (8), Allocatable :: evecsv (:, :)
-      
-      if (associated(input%groundstate%Hybrid)) then
-        if (input%groundstate%Hybrid%exchangetypenumber == 1) then
-          input%groundstate%stypenumber = -1
-        end if
-      end if
 
 ! initialise universal variables
       splittfile=.false.
       Call init0
+      if (xctype(1) >= 400) input%groundstate%stypenumber = -1
       Call init1
-      lmax = Min (4, input%groundstate%lmaxapw)
-      lmmax = (lmax+1) ** 2
+
 ! allocate local arrays
+      lmax = min(4, input%groundstate%lmaxapw)
+      lmmax = (lmax+1)**2
       Allocate (e(nstsv, nkpt, nspinor))
       Allocate (f(nstsv, nkpt))
       Allocate (w(input%properties%dos%nwdos))
@@ -92,19 +88,15 @@ Subroutine dos
       Allocate (evecfv(nmatmax, nstfv, nspnfv))
       Allocate (evecsv(nstsv, nstsv))
 ! read density and potentials from file
-        If (associated(input%groundstate%Hybrid)) Then
-           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
-! in case of HF hybrids use PBE potential
-            string=filext
-            filext='_PBE.OUT'
-            Call readstate
-            filext=string
-           Else
-               Call readstate
-           End If
-        Else         
-           Call readstate
-        End If 
+      If (xctype(1) >= 400) Then
+         ! in case of HF hybrids use PBE potential
+         string = filext
+         filext = '_PBE.OUT'
+         Call readstate()
+         filext = string
+      Else
+         Call readstate()
+      End If
 ! read Fermi energy from file
       Call readfermi
 ! find the new linearisation energies
@@ -114,16 +106,10 @@ Subroutine dos
 ! generate the local-orbital radial functions
       Call genlofr
 ! update potential in case if HF Hybrids
-        If (associated(input%groundstate%Hybrid)) Then
-           If (input%groundstate%Hybrid%exchangetypenumber == 1) Then
-               Call readstate
-           End If
-        End If 
+      If (xctype(1) >= 400) Call readstate
 ! generate unitary matrices which convert the (l,m) basis into the irreducible
 ! representation basis of the symmetry group at each atomic site
-      If (input%properties%dos%lmirep) Then
-         Call genlmirep (lmax, lmmax, elm, ulm)
-      End If
+      If (input%properties%dos%lmirep) Call genlmirep(lmax, lmmax, elm, ulm)
 ! compute the SU(2) operator used for rotating the density matrix to the
 ! desired spin-quantisation axis
       v1 (:) = input%properties%dos%sqados
@@ -150,26 +136,26 @@ Subroutine dos
          Call axangsu2 (v3, th, su2)
       End If
 
+!-------------------------------------
 ! loop over k-points
+!-------------------------------------
       Do ik = 1, nkpt
+
 ! get the eigenvalues/vectors from file
          Call getevalsv (vkl(1, ik), evalsv(1, ik))
-         
-         
-         
          Call getevecfv (vkl(1, ik), vgkl(:, :, :, ik), evecfv)
          Call getevecsv (vkl(1, ik), evecsv)
 ! find the matching coefficients
          Do ispn = 1, nspnfv
-            Call match(ngk(ispn,ik), gkc(:,ispn,ik), &
-           & tpgkc(:,:,ispn,ik), sfacgk(:,:,ispn,ik), apwalm(:,:,:,:,ispn))
+            Call match(ngk(ispn,ik), gkc(:,ispn,ik), tpgkc(:,:,ispn,ik), &
+                       sfacgk(:,:,ispn,ik), apwalm(:,:,:,:,ispn))
          End Do
          Do is = 1, nspecies
             Do ia = 1, natoms (is)
                ias = idxas (ia, is)
 ! generate the density matrix
                Call gendmat (.False., .False., 0, lmax, is, ia, &
-              & ngk(:, ik), apwalm, evecfv, evecsv, lmmax, dmat)
+                              ngk(:, ik), apwalm, evecfv, evecsv, lmmax, dmat)
 ! convert (l,m) part to an irreducible representation if required
                If (input%properties%dos%lmirep) Then
                    Do ist = 1, nstsv
@@ -210,18 +196,17 @@ Subroutine dos
 ! compute the spin density matrices of the second-variational states
          Call gensdmat (evecsv, sdmat(:, :, :, ik))
 ! spin rotate the density matrices to desired spin-quantisation axis
-         If (associated(input%groundstate%spin) .And. ( .Not. tsqaz)) &
-        & Then
+         If (associated(input%groundstate%spin) .And. ( .Not. tsqaz)) Then
             Do ist = 1, nstsv
                Call z2mm (su2, sdmat(:, :, ist, ik), dm1)
                Call z2mmct (dm1, su2, sdmat(:, :, ist, ik))
             End Do
          End If
 
-      End Do
+      End Do ! ik
 
 ! generate energy grid
-      dw = (input%properties%dos%winddos(2)-input%properties%dos%winddos(1)) / dble (input%properties%dos%nwdos - 1)
+      dw = (input%properties%dos%winddos(2)-input%properties%dos%winddos(1)) / dble(input%properties%dos%nwdos - 1)
       Do iw = 1, input%properties%dos%nwdos
          w (iw) = dw * dble (iw-1) + input%properties%dos%winddos (1)
       End Do
@@ -264,23 +249,23 @@ if (rank==0) then
 ! subtract the Fermi energy
                e (ist, ik, ispn) = evalsv (ist, ik) - efermi
 ! correction for scissors operator
-               If (e(ist, ik, ispn) .Gt. 0.d0) e (ist, ik, ispn) = &
-              & e (ist, ik, ispn) + input%properties%dos%scissor
+               If (e(ist, ik, ispn) .Gt. 0.d0) &
+                  e(ist, ik, ispn) = e(ist, ik, ispn) + input%properties%dos%scissor
 ! use diagonal of spin density matrix for weight
-               f (ist, ik) = dble (sdmat(ispn, ispn, ist, ik))
+               f(ist, ik) = dble(sdmat(ispn, ispn, ist, ik))
             End Do
          End Do
 ! BZ integration
-         if( input%properties%dos%newint) then
+         if (input%properties%dos%newint) then
            Call brzint_new (input%properties%dos%nsmdos, &
-          & input%groundstate%ngridk, nsk, ikmap, &
-          & input%properties%dos%nwdos, input%properties%dos%winddos, nstsv, nstsv, &
-          & e(:,:,ispn), f, g(:,ispn))
+           & input%groundstate%ngridk, nsk, ikmap, &
+           & input%properties%dos%nwdos, input%properties%dos%winddos, nstsv, nstsv, &
+           & e(:,:,ispn), f, g(:,ispn))
          else
            Call brzint (input%properties%dos%nsmdos, &
-          & input%groundstate%ngridk, nsk, ikmap, &
-          & input%properties%dos%nwdos, input%properties%dos%winddos, nstsv, nstsv, &
-          & e(:,:,ispn), f, g(:,ispn))
+           & input%groundstate%ngridk, nsk, ikmap, &
+           & input%properties%dos%nwdos, input%properties%dos%winddos, nstsv, nstsv, &
+           & e(:,:,ispn), f, g(:,ispn))
          end if
 ! multiply by the maximum occupancy (spin-polarised: 1, unpolarised: 2)
          g (:, ispn) = occmax * g (:, ispn)
@@ -298,7 +283,7 @@ if (rank==0) then
       End Do
       Close (50)
       Call xml_endElement (xf, "totaldos")
-      
+
 !-------------------!
 !     Joint DOS     !
 !-------------------!
@@ -326,9 +311,9 @@ if (rank==0) then
               end if
               end do
             end if
-            end do 
+            end do
           end do ! ik
-          ! State dependent JDOS 
+          ! State dependent JDOS
           allocate(ej(m,nkpt))
           allocate(fj(m,nkpt))
           fj(:,:) = 1.d0
@@ -351,12 +336,12 @@ if (rank==0) then
                 write(51,'(3G18.10)') w(iw), t1*gp(iw)/(w(iw)*w(iw))/dble(n*m), t1*gp(iw)
               else
                 write(51,'(3G18.10)') w(iw), 0.d0, t1*gp(iw)
-              end if  
+              end if
             end do
             write(51,'("     ")')
           end do ! ist
           deallocate(ej,fj)
-          
+
 ! total JDOS (sum over all transitions)
           allocate(ej(n*m,nkpt))
           allocate(fj(n*m,nkpt))
@@ -386,11 +371,11 @@ if (rank==0) then
               write(50,'(3G18.10)') w(iw), t1*gp(iw)/(w(iw)*w(iw))/dble(n*m), t1*gp(iw)
             else
               write(50,'(3G18.10)') w(iw), 0.d0, t1*gp(iw)
-            end if  
+            end if
           end do
           write(50, '("     ")')
           deallocate(ej,fj)
-          
+
         end do ! ispn
         deallocate(edif)
         close(50)
@@ -539,7 +524,7 @@ if (rank==0) then
       Close (50)
       Call xml_endElement (xf, "dos")
       Call xml_close (xf)
-      
+
       Deallocate (e, f, w, g, gp, bc)
       If (input%properties%dos%lmirep) deallocate (elm, ulm, a)
       Deallocate (dmat, sdmat, apwalm, evecfv, evecsv)

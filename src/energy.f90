@@ -14,9 +14,9 @@ Subroutine energy
 ! !USES:
       Use modinput
       Use modmain
-      Use mod_hybrids, only: ihyb, exnl
+      Use mod_hybrids, only: exnl
 ! !DESCRIPTION:
-!   The {\tt energy} subroutine computes the total energy and its individual contributions. 
+!   The {\tt energy} subroutine computes the total energy and its individual contributions.
 !   The total energy is composed of kinetic, Coulomb, and exchange-correlation energy,
 !   %
 !   \begin{equation}
@@ -30,7 +30,7 @@ Subroutine energy
 !   \label{kinetic}
 !   \end{equation}
 !   %
-!   where $n_i$ are the occupancies and $\epsilon_i$ are the eigenvalues of both the core and 
+!   where $n_i$ are the occupancies and $\epsilon_i$ are the eigenvalues of both the core and
 !   valence states. The effective potential energy, $V_{\rm eff}$, can be expressed as
 !   %
 !   \begin{eqnarray}
@@ -39,9 +39,9 @@ Subroutine energy
 !   \label{Eeff}
 !   \end{eqnarray}
 !   %
-!   The first and second term of Eq.~(\ref{Eeff}) are the Coulomb potential energy, $V_{C}$, and 
-!   exchange-correlation potential energy, $V_{\rm xc}$, respectively. ${\bf m}({\bf r})$ is the 
-!   magnetization density, and ${\bf B}_{\rm xc}$ and ${\bf B}_{\rm ext}$ are the 
+!   The first and second term of Eq.~(\ref{Eeff}) are the Coulomb potential energy, $V_{C}$, and
+!   exchange-correlation potential energy, $V_{\rm xc}$, respectively. ${\bf m}({\bf r})$ is the
+!   magnetization density, and ${\bf B}_{\rm xc}$ and ${\bf B}_{\rm ext}$ are the
 !   exchange-correlation effective magnetic and the external magnetic fields, respectively.
 !
 !   The Coulomb energy consists of the Hartree energy, $E_{\rm H}$, the electron-nuclear energy, $
@@ -54,10 +54,10 @@ Subroutine energy
 !   \label{Eq4}
 !   \end{eqnarray}
 !   %
-!   The Madelung energy is given by 
+!   The Madelung energy is given by
 !   %
 !   \begin{eqnarray}
-!   E_{\rm Madelung}=\frac{1}{2}\sum_{\alpha}z_{\alpha}R_{\alpha}, 
+!   E_{\rm Madelung}=\frac{1}{2}\sum_{\alpha}z_{\alpha}R_{\alpha},
 !   \end{eqnarray}
 !   where for each atom $\alpha$ with nuclear charge $z_{\alpha}$
 !   %
@@ -65,15 +65,15 @@ Subroutine energy
 !    R_{\alpha}=\lim_{r\rightarrow 0}\left(v^{\rm C}_{\alpha,00}(r)Y_{00} +\frac{z_{\alpha}}{r}\right)
 !   \end{eqnarray}
 !   %
-!   with $v^{\rm C}_{\alpha,00}$ being the $l=0$ component of the spherical harmonic expansion of 
-!   $v_{\rm C}$ in the muffin-tin region. Using Eq.~(\ref{Eq4}), the electron-nuclear and Hartree 
+!   with $v^{\rm C}_{\alpha,00}$ being the $l=0$ component of the spherical harmonic expansion of
+!   $v_{\rm C}$ in the muffin-tin region. Using Eq.~(\ref{Eq4}), the electron-nuclear and Hartree
 !   energies can be expressed as
 !   %
 !   \begin{eqnarray}
 !    E_{\rm en}=2\left(E_{\rm Madelung}-E_{\rm nn}\right)
 !   \end{eqnarray}
 !   %
-!   and 
+!   and
 !   %
 !   \begin{eqnarray}
 !    E_{\rm H}=\frac{1}{2}(V_{\rm C}-E_{\rm en}).
@@ -87,11 +87,11 @@ Subroutine energy
 !   %
 !   or in the case of exact exchange, the explicit calculation of the Fock exchange integral.
 !
-!   The energy from the external magnetic fields in the muffin-tins, {\tt bfcmt}, is always 
-!   removed from the total since these fields are non-physical: their field lines do not close. 
-!   The energy of the physical external field, {\tt bfieldc}, is also not included in the total 
-!   because this field, like those in the muffin-tins, is used for breaking spin symmetry and 
-!   taken to be infinitesimal. If this field is intended to be finite, then the associated energy, 
+!   The energy from the external magnetic fields in the muffin-tins, {\tt bfcmt}, is always
+!   removed from the total since these fields are non-physical: their field lines do not close.
+!   The energy of the physical external field, {\tt bfieldc}, is also not included in the total
+!   because this field, like those in the muffin-tins, is used for breaking spin symmetry and
+!   taken to be infinitesimal. If this field is intended to be finite, then the associated energy,
 !   {\tt engybext}, should be added to the total by hand.
 !   See {\tt potxc}, {\tt exxengy} and related subroutines.
 !
@@ -113,9 +113,8 @@ Subroutine energy
 ! allocatable arrays
       Complex (8), Allocatable :: evecsv (:, :), c (:, :)
 ! external functions
-      Real (8) :: rfmtinp, rfinp, rfint
-      Complex (8) zdotc
-      External rfmtinp, rfinp, rfint, zdotc
+      Real(8),    external :: rfmtinp, rfinp, rfint
+      Complex(8), external :: zdotc
 !-----------------------------------------------!
 !     exchange-correlation potential energy     !
 !-----------------------------------------------!
@@ -169,7 +168,7 @@ Subroutine energy
 !-----------------------!
 !     Madelung term     !
 !-----------------------!
-if (.false.) then 
+if (.false.) then
       engymad = 0.d0
       Do is = 1, nspecies
 ! compute the bare nucleus potential at the origin
@@ -204,17 +203,17 @@ endif
 !     electron-nuclear interaction energy     !
 !---------------------------------------------!
       engyen = 2.d0 * (engymad-engynn)
-      
+
 !------------------------!
 !     Hartree energy     !
 !------------------------!
       engyhar = 0.5d0 * (engyvcl-engyen)
-      
+
 !------------------------!
 !     Coulomb energy     !
 !------------------------!
       engycl = engynn + engyen + engyhar
-!write(*,*) 
+!write(*,*)
 !write(*,*) 'engymad',engymad
 !write(*,*) 'engynn',engynn
 !write(*,*) 'engyvcl',engyvcl
@@ -233,14 +232,10 @@ endif
        If (associated(input%groundstate%OEP)) Then
           If (input%groundstate%xctypenumber .Lt. 0) engyx = 0.d0
           If (tlast) Call exxengy
-       End If 
+       End If
 ! Hybrids
-      if (associated(input%groundstate%Hybrid)) then
-        if ((input%groundstate%Hybrid%exchangetypenumber==1).and.(ihyb>0)) then
-           engyx = engyx + ex_coef*exnl
-        end if
-      end if
-      
+      if (task == 7) engyx = engyx + ex_coef*exnl
+
 !----------------------------!
 !     correlation energy     !
 !----------------------------!
@@ -248,12 +243,8 @@ endif
 ! zero correlation energy for Hartree-Fock
       If ((task .Eq. 5) .Or. (task .Eq. 6)) engyc = 0.d0
 ! Hybrids
-      if (associated(input%groundstate%Hybrid)) then
-        if ((input%groundstate%Hybrid%exchangetypenumber==1).and.(ihyb>0)) then
-           engyc = ec_coef*engyc
-        end if
-      end if      
-      
+      if (task == 7) engyc = ec_coef*engyc
+
 !----------------------!
 !     LDA+U energy     !
 !----------------------!
@@ -317,39 +308,32 @@ endif
           End Do
         End Do
         Deallocate (evecsv, c)
-        
-      else if (associated(input%groundstate%Hybrid)) then
+
+      else if (task == 7) then
         !------------------
         ! HF-based hybrids
         !------------------
-        if (input%groundstate%Hybrid%exchangetypenumber == 1) then
-          if (ihyb>0) then
-            engykn = engykncr
-            do ik = 1, nkpt
-              do ist = 1, nstfv
-                engykn = engykn + wkpt(ik)*occsv(ist,ik)*engyknst(ist,ik)
-              end do
-            end do
-          else
-            ! Default way
-            engykn =  evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
-            call energykncr
-          end if
-        Else
-          ! OEP-Hybrids: Default way
-           engykn =  evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
-        end if
-        
+        engykn = engykncr ! Importantly, engykncr should be computed first with PBE!
+        do ik = 1, nkpt
+          do ist = 1, nstfv
+            engykn = engykn + wkpt(ik)*occsv(ist,ik)*engyknst(ist,ik)
+          end do
+        end do
+
       else
+
         ! Default way
         engykn =  evalsum - engyvcl - engyvxc - engybxc - engybext - engybmt
+
       end if
+
 !------------------------------!
 !     DFT-1/2 contribution     !
 !------------------------------!
       if (associated(input%groundstate%dfthalf)) then
         engyhalf = rfinp (1, rhomt, vhalfmt, rhoir, vhalfir)
-      endif      
+      endif
+
 !----------------------!
 !     total energy     !
 !----------------------!
@@ -358,15 +342,18 @@ endif
       If ( tlast .And. input%groundstate%vdWcorrection .Ne. "none" ) Then
          If ( input%groundstate%vdWcorrection .Eq. "DFTD2" ) Then
             Call DFT_D2_energy
-         Else If ( input%groundstate%vdWcorrection .Eq. "TSvdW" ) Then 
+         Else If ( input%groundstate%vdWcorrection .Eq. "TSvdW" ) Then
             Call TS_vdW_energy
          End If
          engytot = engytot + e_disp
       End If
-! dipole correction      
-      if ((iscl>0).and.(input%groundstate%dipolecorrection)) engytot = engytot+0.5*endipc      
+
+! dipole correction
+      if ((iscl>0).and.(input%groundstate%dipolecorrection)) engytot = engytot+0.5*endipc
+
 ! add the LDA+U correction if required
       If (ldapu .Ne. 0) engytot = engytot + engylu
+
 ! WRITE(*,*) "end energy"
       Return
 End Subroutine

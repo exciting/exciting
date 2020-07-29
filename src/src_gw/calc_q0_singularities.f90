@@ -40,7 +40,7 @@ subroutine calc_q0_singularities
     singc1 = intf1-sumf1
     singc2 = intf2-sumf2
     
-    if (myrank==0) then
+    if (.false.) then
       write(*,*) 'Info(calc_q0_singularities): Integrals of the auxiliary function'
       write(*,1) 
       write(*,2) intf1, intf2
@@ -59,8 +59,7 @@ contains
     !---------------------------------------------------------
     real(8) function faux(vql)
         use modinput
-        use modmain,     only: pi, twopi, bvec
-        use mod_misc_gw, only: avec
+        use modmain,     only: pi, twopi, avec, bvec
         ! input parameters
         real(8), intent(in) :: vql(3)
         ! local variables

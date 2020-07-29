@@ -2,8 +2,9 @@
 subroutine task_chi0_q
 
     use modinput
-    use modmain,               only : zzero, evalsv, efermi
+    use modmain,               only: zzero, efermi
     use modgw
+    use mod_coulomb_potential
     use mod_mpi_gw
     use m_getunit
     use mod_hdf5
@@ -29,7 +30,7 @@ subroutine task_chi0_q
     call clean_gndstate
     
     ! occupancy dependent BZ integration weights
-    call kintw
+    call kintw()
     
     !===========================================================================
     ! Main loop: BZ integration
@@ -73,8 +74,8 @@ subroutine task_chi0_q
     if (rank==0) then
       ! Set the name of the output file
       5 format('chi0-q_',i4,'-nempty_',i8,'.out')
-      nempty = nstsv
-      if (nstsv>input%gw%nempty) nempty = nempty-int(chgval/2+1)
+      nempty = nstfv
+      if (nstfv>input%gw%nempty) nempty = nempty-int(chgval/2+1)
       write(filename,5) iq, nempty
       call str_strip(filename)
       open(unit=77,file=filename,status='unknown')
@@ -101,7 +102,7 @@ subroutine task_chi0_q
     if (allocated(kiw)) deallocate(kiw)
     if (allocated(ciw)) deallocate(ciw)
     
-    if (allocated(evalsv)) deallocate(evalsv)
+    if (allocated(evalfv)) deallocate(evalfv)
     call delete_freqgrid(freq)
     call delete_k_vectors(kset)
     call delete_G_vectors(Gset)

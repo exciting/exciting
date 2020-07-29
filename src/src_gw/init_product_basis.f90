@@ -21,8 +21,8 @@ subroutine init_product_basis()
     integer(4) :: irm, im, imix
     integer(4) :: l, m, lm
     integer(4) :: ndim, nrwf
-    
-!_______________________________________________________________________________    
+
+!_______________________________________________________________________________
 ! Generate Kohn-Sham radial functions
 
     ! generate the core wavefunctions and densities
@@ -33,7 +33,7 @@ subroutine init_product_basis()
     call genapwfr
     ! generate local-orbital radial functions
     call genlofr
-    
+
     ! initialize core states
     if (dabs(chgcr)>1.d-6) then
       call init_core_states
@@ -41,29 +41,29 @@ subroutine init_product_basis()
       input%gw%coreflag = "vab"
     end if
 
-!_______________________________________________________________________________    
+!_______________________________________________________________________________
 ! Generate mixed product basis functions
 
     ! Estimate the maximum possible number of product functions
     maxnup = 2*(ncmax+input%gw%MixBasis%lmaxmb+nlomax+1)* &
     &          (input%gw%MixBasis%lmaxmb+nlomax+1)
-    
+
     if (allocated(nmix)) deallocate(nmix)
     allocate(nmix(natmtot))
     nmix(:) = 0
-    
+
     if (associated(umix)) deallocate(umix)
     allocate(umix(nrmtmax,maxnup,natmtot))
     umix(:,:,:) = 0.d0
-    
+
     if (associated(bigl)) deallocate(bigl)
     allocate(bigl(maxnup,natmtot))
     bigl(:,:) = 0
-    
+
     if (allocated(mbl)) deallocate(mbl)
     allocate(mbl(natmtot))
     mbl(:) = 0
-    
+
     ! loop over atoms
     do is = 1, nspecies
       do ia = 1, natoms(is)
@@ -74,7 +74,7 @@ subroutine init_product_basis()
         call setumix(ia,is)
       end do ! ia
     end do ! is
-    
+
     ! Reallocate the arrays to their actual size
     maxnmix = maxval(nmix)
     maxbigl = maxval(mbl)
@@ -91,33 +91,33 @@ subroutine init_product_basis()
         end do
       end do
     end if
-    
+
     !--------------------------------
     ! pre-calculate radial integrals
     !--------------------------------
     if (allocated(rtl)) deallocate(rtl)
     allocate(rtl(maxnmix,natmtot))
     rtl(:,:) = 0.0d0
-    
+
     if (allocated(rrint)) deallocate(rrint)
     allocate(rrint(maxnmix*(maxnmix+1)/2,natmtot))
     rrint(:,:) = 0.0d0
 
     nrwf = max(spnstmax,input%groundstate%lmaxapw,nlomax)
-    
+
     if (allocated(bradketc)) deallocate(bradketc)
     allocate(bradketc(3,maxnmix,spnstmax,0:nrwf,apwordmax,natmtot))
     bradketc = 0.d0
-    
+
     if (allocated(bradketa)) deallocate(bradketa)
     allocate(bradketa(3,maxnmix,0:input%groundstate%lmaxapw, &
     &                 apwordmax,0:nrwf,apwordmax,natmtot))
     bradketa = 0.d0
-    
+
     if (allocated(bradketlo)) deallocate(bradketlo)
     allocate(bradketlo(3,maxnmix,nlomax,0:nrwf,apwordmax,natmtot))
     bradketlo = 0.d0
-    
+
     ! loop over atoms
     do is = 1, nspecies
       do ia = 1, natoms(is)
@@ -126,11 +126,11 @@ subroutine init_product_basis()
         call calcrlamint(ia,is)
         ! Calculate the matrix elements <NL,lambda|lambda'>:
         call calcbradket(ia,is)
-      end do ! ia 
+      end do ! ia
     end do ! is
-    
+
     !------------------------------------------------------------------
-    ! Calculate the total number of mixed wave functions (including M)    
+    ! Calculate the total number of mixed wave functions (including M)
     ! = size of the MT product basis functions
     !------------------------------------------------------------------
     lmixmax = 0
@@ -142,20 +142,20 @@ subroutine init_product_basis()
         do irm = 1, nmix(ias)
           l = bigl(irm,ias)
           imix = imix+(2*bigl(irm,ias)+1)
-        end do  
+        end do
         if (imix>lmixmax) lmixmax = imix
         locmatsiz = locmatsiz+imix
       end do ! ia
     end do ! ias
-    
+
     !-------------------------------------------------------------------
-    ! Set an array that stores the general index of the mixed function 
+    ! Set an array that stores the general index of the mixed function
     ! for a given mixed function of a given atom
     !-------------------------------------------------------------------
     if (allocated(locmixind)) deallocate(locmixind)
     allocate(locmixind(natmtot,lmixmax))
     locmixind(:,:) = 0
-    
+
     im = 0
     do is = 1, nspecies
       do ia = 1, natoms(is)
@@ -168,13 +168,13 @@ subroutine init_product_basis()
             im = im+1
             locmixind(ias,imix) = im
           end do ! m
-        end do  
+        end do
       end do ! ia
     end do ! ias
-    
+
     ! The maximum size of MB basis
     matsizmax = locmatsiz+Gqset%ngkmax
-    
+
     !-------------------------------------------------------------------
     ! mapping: MB function index -> (aNLM)
     !-------------------------------------------------------------------
@@ -198,21 +198,11 @@ subroutine init_product_basis()
         end do ! irm
       end do ! ia
     end do ! is
-    
+
     !----------------------------------------------------------------------
     ! Calculate the coefficients tildeg needed for the structure constants
     !----------------------------------------------------------------------
     call calctildeg(2*(input%gw%MixBasis%lmaxmb+1))
 
-    ! Print info
-    if (myrank==0) then
-      call boxmsg(fgw,'-',"Mixed product WF info")
-      write(fgw,*) ' Maximal number of MT wavefunctions per atom: ', lmixmax 
-      write(fgw,*) ' Total number of MT wavefunctions:            ', locmatsiz
-      write(fgw,*) ' Maximal number of PW wavefunctions:          ', Gqset%ngkmax 
-      write(fgw,*) ' Total number of mixed-product wavefunctions: ', matsizmax
-      write(fgw,*)
-    end if
-    
     return
 end subroutine

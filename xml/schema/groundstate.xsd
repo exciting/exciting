@@ -11,17 +11,17 @@
   </xs:annotation>
   <xs:element ex:importance="essential" ex:unit="" name="groundstate">
     <xs:annotation>
-      <xs:documentation> 
-      The <elementref>groundstate</elementref> element is required for any calculation. 
+      <xs:documentation>
+      The <elementref>groundstate</elementref> element is required for any calculation.
       Its attributes are parameters and methods which are used to calculate the ground-state density.
       </xs:documentation>
     </xs:annotation>
     <xs:complexType>
       <xs:all>
-        
-	<xs:element ex:importance="expert" ex:unit="" name="DFTD2parameters" minOccurs="0" maxOccurs="1">
+
+	<xs:element ex:importance="essential" ex:unit="" name="DFTD2parameters" minOccurs="0" maxOccurs="1">
           <xs:annotation>
-            <xs:documentation> 
+            <xs:documentation>
 	      This element allows to customize parameters when either the option <pre>"DFTD2"</pre> of the attribute <attref>vdWcorrection</attref> is chosen, or the subelement <elementref>DFTD2</elementref> of the element <elementref>properties</elementref> is specified.
 	    </xs:documentation>
             <xs:appinfo></xs:appinfo>
@@ -31,7 +31,7 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="s6" type="fortrandouble" default="0.75d0">
               <xs:annotation>
                 <xs:documentation>
-			Global scaling factor for all <inlinemath>C_6</inlinemath>-dispersion coefficients for the method <pre>"DFTD2"</pre>. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.  
+			Global scaling factor for all <inlinemath>C_6</inlinemath>-dispersion coefficients for the method <pre>"DFTD2"</pre>. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -39,7 +39,7 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="sr6" type="fortrandouble" default="1.1d0">
               <xs:annotation>
                 <xs:documentation>
-			Scaling factor for van-der-Waals radii for the method <pre>"DFTD2"</pre>. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.  
+			Scaling factor for van-der-Waals radii for the method <pre>"DFTD2"</pre>. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -64,9 +64,9 @@
 
 
 
-	<xs:element ex:importance="expert" ex:unit="" name="TSvdWparameters" minOccurs="0" maxOccurs="1">
+	<xs:element ex:importance="essential" ex:unit="" name="TSvdWparameters" minOccurs="0" maxOccurs="1">
           <xs:annotation>
-            <xs:documentation> 
+            <xs:documentation>
 	      This element allows to customize parameters when either the option <pre>"TSvdW"</pre> of the attribute <attref>vdWcorrection</attref> is chosen, or the subelement <elementref>TSvdW</elementref> of the element <elementref>properties</elementref> is specified.
 	    </xs:documentation>
             <xs:appinfo></xs:appinfo>
@@ -84,7 +84,7 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="sr6" type="fortrandouble" default="0.94d0">
               <xs:annotation>
                 <xs:documentation>
-			Scaling factor for van-der-Waals radii for the method <pre>"TSvdW"</pre>. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.  
+			Scaling factor for van-der-Waals radii for the method <pre>"TSvdW"</pre>. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -125,12 +125,12 @@
 	</xs:element>
 
 
-	
+
 	<xs:element ex:importance="essential" ex:unit="" name="spin" minOccurs="0" maxOccurs="1">
           <xs:annotation>
-            <xs:documentation> 
+            <xs:documentation>
 	    If the <elementref>spin</elementref> element is present, calculation is done with
-            spin polarization. 
+            spin polarization.
 	    </xs:documentation>
             <xs:appinfo>
               <oldname>spinpol</oldname>
@@ -148,10 +148,10 @@
             <xs:attribute ex:importance="essential" ex:unit="" name="bfieldc" type="vect3d"
               default="0.0d0 0.0d0 0.0d0 ">
               <xs:annotation>
-                <xs:documentation> 
-		Allows to apply a constant <inlinemath>{ \bf B}_{\tt ext}</inlinemath> field. 
-		This is an external constant magnetic field applied throughout the entire unit cell 
-		and enters the second-variational Hamiltonian as 
+                <xs:documentation>
+		Allows to apply a constant <inlinemath>{ \bf B}_{\tt ext}</inlinemath> field.
+		This is an external constant magnetic field applied throughout the entire unit cell
+		and enters the second-variational Hamiltonian as
 		<displaymath>\frac{g_e\,\alpha}{4}\;\vec{\sigma}\cdot{\bf B}_{\tt ext}\,,</displaymath>
 		where <inlinemath>g_e</inlinemath> is the electron <inlinemath>g</inlinemath>-factor
                 (<inlinemath>g_e</inlinemath>=2.0023193043718). The external magnetic field is normally used
@@ -159,83 +159,98 @@
                 infinitesimal with no direct contribution to the total energy. In cases where the
                 magnetic field is finite (for example when computing magnetic response) the
                 external <inlinemath>{ \bf B}</inlinemath>-field energy reported in
-                <filename>INFO.OUT</filename> (when the attribute <attref>outputlevel</attref> is set to 
-		<pre>"high"</pre>) should be added to the total energy by hand. This external magnetic field 
-		is applied hroughout the entire unit cell. To apply magnetic fields in particular muffin-tins 
+                <filename>INFO.OUT</filename> (when the attribute <attref>outputlevel</attref> is set to
+		<pre>"high"</pre>) should be added to the total energy by hand. This external magnetic field
+		is applied hroughout the entire unit cell. To apply magnetic fields in particular muffin-tins
 		use the <attref>bfcmt</attref> vectors in the <elementref>atom</elementref> elements.
                 Collinear calculations are more efficient if the field is applied in the
-                <inlinemath>z</inlinemath>-direction. 
+                <inlinemath>z</inlinemath>-direction.
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="essential" ex:unit="" name="spinorb" type="xs:boolean" default="false">
               <xs:annotation>
-                <xs:documentation> 
-		If <attref>spinorb</attref> is <pre>"true"</pre>, then a
-                <inlinemath>\boldsymbol \sigma\cdot{ \bf L}</inlinemath> term is added to the
-                second-variational Hamiltonian. 
+                <xs:documentation>
+		               If <attref>spinorb</attref> is <pre>"true"</pre>, a
+                   <inlinemath>\boldsymbol \sigma\cdot{ \bf L}</inlinemath> term is added to the
+                   second-variational Hamiltonian.
+		            </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="realspace" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>
+		If <attref>realspace</attref> is <pre>"true"</pre>, the second-variational approach involves a transformation
+                of wave functions to the real space in the muffin-tin region. Otherwise, calculations involve the atomic-like basis.
+		</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="nosv" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>
+                If <attref>skipsv</attref> = <pre>"true"</pre>, the second-variational procedure is not employed, and magnetic and/or spin-orbit calculations are performed in a single go.
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="spinsprl" type="xs:boolean"
               default="false">
               <xs:annotation>
-                <xs:documentation> 
-		Set to <pre>"true"</pre> if a spin-spiral calculation is required. 
+                <xs:documentation>
+		Set to <pre>"true"</pre> if a spin-spiral calculation is required.
                 Experimental feature for the calculation of spin-spiral states.
-                See <attref>vqlss</attref> for details. 
+                See <attref>vqlss</attref> for details.
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="vqlss" type="vect3d"
               default="0.0d0 0.0d0 0.0d0">
               <xs:annotation>
-                <xs:documentation> 
+                <xs:documentation>
 		This attribute allows to specify the <inlinemath>{ \bf q}</inlinemath>-vector of the
                 spin-spiral state in lattice coordinates. Spin-spirals arise from spinor states
-                assumed to be of the form 
-		<displaymath> 
-		  \Psi^{ \bf q}_{ \bf k}({ \bf r})= 
-		  \left(\begin{array}{c} 
+                assumed to be of the form
+		<displaymath>
+		  \Psi^{ \bf q}_{ \bf k}({ \bf r})=
+		  \left(\begin{array}{c}
 		  U^{{ \bf q}\uparrow}_{ \bf k}({ \bf r})\;e^{i({ \bf k+q/2})\cdot{ \bf r}} \\
 		  \phantom{o} \\
-                  U^{{ \bf q}\downarrow}_{ \bf k}({ \bf r})\;e^{i({ \bf k-q/2})\cdot{ \bf r}} \\ 
-                  \end{array} \right)\,. 
-		</displaymath> 
-		These spin-spirals are determined using a second-variational approach, 
+                  U^{{ \bf q}\downarrow}_{ \bf k}({ \bf r})\;e^{i({ \bf k-q/2})\cdot{ \bf r}} \\
+                  \end{array} \right)\,.
+		</displaymath>
+		These spin-spirals are determined using a second-variational approach,
 		and give rise to a magnetization density of the form
-                <displaymath> 
+                <displaymath>
 		  {\bf m}^{ \bf q}({ \bf r})=\left[m_x({\bf r})\,\cos({ \bf q \cdot r}),\;
-                  m_y({\bf r})\,\sin({ \bf q \cdot r}),\; m_z({\bf r})\right]\,, 
+                  m_y({\bf r})\,\sin({ \bf q \cdot r}),\; m_z({\bf r})\right]\,,
 		</displaymath> where
                 <inlinemath>m_x</inlinemath>, <inlinemath>m_y</inlinemath>, and <inlinemath>m_z</inlinemath>
-                have the periodicity of the lattice. See also <attref>spinsprl</attref>. 
+                have the periodicity of the lattice. See also <attref>spinsprl</attref>.
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="taufsm" type="fortrandouble"
               default="0.01d0">
               <xs:annotation>
-                <xs:documentation> 
+                <xs:documentation>
 		The effective magnetic field required for fixing the spin moment
-                to a given value, is updated according to 
-                <displaymath> 
+                to a given value, is updated according to
+                <displaymath>
 		  {\bf B}_{\tt FSM}^{i+1}={\bf B}_{\tt FSM}^i+\tau_{\tt FSM}\left(
-                  \boldsymbol{\mu}^i-\boldsymbol{\mu}_{\tt FSM}\right)\,, 
+                  \boldsymbol{\mu}^i-\boldsymbol{\mu}_{\tt FSM}\right)\,,
 		</displaymath>
-                for iteration <inlinemath>i</inlinemath>. It must be positive. 
+                for iteration <inlinemath>i</inlinemath>. It must be positive.
 		</xs:documentation>
               </xs:annotation>
               </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="reducebf" type="fortrandouble"
               default="1.0d0">
               <xs:annotation>
-                <xs:documentation> 
+                <xs:documentation>
 		After each iteration the external magnetic fields are multiplied
                 with reducebf. This allows for a large external magnetic field at the start of
                 the self-consistent loop to break spin symmetry, while at the end of the loop the
                 field will be effectively zero, i.e. infinitesimal. See <attref>bfieldc</attref>
-                and atom element. 
+                and atom element.
 		</xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -274,45 +289,45 @@
               </xs:simpleType>
             </xs:attribute>
           </xs:complexType>
-        </xs:element>      
+        </xs:element>
         <xs:element ex:importance="experimental" ex:unit="" name="HartreeFock" minOccurs="0"
           maxOccurs="1">
           <xs:annotation>
             <xs:documentation>If preset Hartree-Fock calculation is triggered.</xs:documentation>
-          </xs:annotation>                 
+          </xs:annotation>
           <xs:complexType>
           </xs:complexType>
-          
+
           </xs:element>
                 <xs:element ex:importance="expert" ex:unit="" name="dfthalf" minOccurs="0" maxOccurs="1">
 			<xs:annotation>
-			  <xs:documentation>The presence of this element triggers <bf>DFT-1/2</bf> calculations.</xs:documentation>				
+			  <xs:documentation>The presence of this element triggers <bf>DFT-1/2</bf> calculations.</xs:documentation>
 			</xs:annotation>
 			<xs:complexType>
 				<xs:attribute ex:importance="expert" ex:unit="" name="printVSfile" type="xs:boolean"
 							default="false">
 					<xs:annotation>
-						<xs:documentation> When set to <pre>"true"</pre>, the self-energy 
+						<xs:documentation> When set to <pre>"true"</pre>, the self-energy
 						correction potential <inlinemath>V_S({\bf r})</inlinemath>
-						(as defined in the <bf>DFT-1/2</bf> method) is calculated for each constituent 
-						atomic species and written into the files <pre>VS_S*.OUT</pre>, 
-						where <pre>*</pre> ranges from <bf>1</bf> to the number of atomic species. 
-						The exciting run quits after the printing. In this case, a serial calculation 
-						is suggested. It is useful to visualize the self-energy potential, or for 
+						(as defined in the <bf>DFT-1/2</bf> method) is calculated for each constituent
+						atomic species and written into the files <pre>VS_S*.OUT</pre>,
+						where <pre>*</pre> ranges from <bf>1</bf> to the number of atomic species.
+						The exciting run quits after the printing. In this case, a serial calculation
+						is suggested. It is useful to visualize the self-energy potential, or for
 						debugging purposes.
 						</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
-			</xs:complexType>			
+			</xs:complexType>
           </xs:element>
         <xs:element ex:importance="essential" ex:unit="" name="Hybrid" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>Options for hybrid functionals.</xs:documentation>
-          </xs:annotation>                 
+          </xs:annotation>
           <xs:complexType>
             <xs:attribute ex:importance="essential" ex:unit="" name="exchangetype" default="HF">
               <xs:annotation>
-                  <xs:documentation> Type of exchange (Hartree Fock or OEP) 
+                  <xs:documentation> Type of exchange (Hartree Fock or OEP)
                   to be used for the exact exchange.
                   </xs:documentation>
               </xs:annotation>
@@ -339,8 +354,17 @@
               default="0.25d0">
               <xs:annotation>
                 <xs:documentation> Define value of the mixing parameter for exact exchange.
-                  ATTENTION: If you are using libxc, the libxc settings will be employed 
-                  and your choice of this parameter will be ignored. 
+                  ATTENTION: If you are using libxc, the libxc settings will be employed
+                  and your choice of this parameter will be ignored.
+                  </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="essential" ex:unit="" name="omega" type="fortrandouble"
+              default="0.106d0">
+              <xs:annotation>
+                <xs:documentation> Define the value for the screening parameter.
+                  The default value (omega=0.106d0) corresponds to HSE06 that was optimized for solids.
+                  In HSE03 omega=0.15d0.
                   </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -356,13 +380,28 @@
                 <xs:documentation>Upper limit for the Hybrids self-consistency loop.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="experimental" ex:unit="" name="savepotential" type="xs:boolean" default="true">
+            <xs:attribute ex:importance="experimental" ex:unit="" name="mblksiz" type="xs:integer" default="0">
               <xs:annotation>
                 <xs:documentation>
-                  If set to true, the non-local potential will be stored in the file VNLMAT.OUT 
-                  ATTENTION: this file can become extremely large (size: Hamiltoniansize * Hamiltoniansize * k-point number * 16).
+                This parameter (matrix block size) determines a subset of occupied states that are processed while computing the Hartree-Fock potential and kept in memory.
+                The parameter should be employed when running systems with many atoms to reduce memory consumption.
                 </xs:documentation>
               </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="lmaxmb" default="3">
+              <xs:annotation><xs:documentation>
+                Maximal angular momentum: controls construction of the radial part of the mixed-product basis.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="epsmb" default="1.0d-4">
+              <xs:annotation><xs:documentation>
+                Linear dependence tolerance factor: controls construction of the radial part of the mixed-product basis.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="gmb" default="1.0">
+              <xs:annotation><xs:documentation>
+                Plane-wave energy cutoff (in units of <inlinemath>G_{max}^{LAPW}</inlinemath>): controls construction of the plane-wave part of the mixed-product basis.
+              </xs:documentation></xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="experimental" ex:unit="" name="updateRadial" type="xs:boolean" default="false">
               <xs:annotation>
@@ -373,7 +412,7 @@
             </xs:attribute>
           </xs:complexType>
         </xs:element>
-        
+
         <xs:element ex:importance="expert" ex:unit="" name="solver" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>Optional configuration options for eigenvector
@@ -431,7 +470,7 @@
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="ArpackLinSolve" default="LDL">
               <xs:annotation>
-                <xs:documentation> 
+                <xs:documentation>
                     Linear solve method during shift-and-invert process in ARPACK.
                     Pick either LDL, LU, LL, Diag and InvertOnce.
                 </xs:documentation>
@@ -493,7 +532,7 @@
               type="fortrandouble" default="-1.0d0">
               <xs:annotation>
                 <xs:documentation>
-                  Energy shift in the shift-and-invert procedure in the ARPACK solver. 
+                  Energy shift in the shift-and-invert procedure in the ARPACK solver.
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -536,7 +575,7 @@
         </xs:element>
         <xs:element ex:importance="experimental" ex:unit="" name="RDMFT" minOccurs="0" maxOccurs="1">
           <xs:annotation>
-            <xs:documentation>If present Reduced Density Matrix Funcional Theory calculation is
+            <xs:documentation>If present Reduced Density Matrix Functional Theory calculation is
               triggered</xs:documentation>
           </xs:annotation>
           <xs:complexType>
@@ -2146,7 +2185,7 @@
         <xs:element ex:importance="experimental" ex:unit="" name="xsLO" minOccurs="0" maxOccurs="1">
           <xs:annotation><xs:documentation>
             Generate extra local orbitals for accurate description of the unoccupied states.
-          </xs:documentation></xs:annotation>                 
+          </xs:documentation></xs:annotation>
           <xs:complexType>
             <xs:attribute ex:importance="expert" ex:unit="Hartree" name="emax" type="fortrandouble" default="30">
               <xs:annotation><xs:documentation>
@@ -2163,14 +2202,14 @@
                 Maximum number of local orbitals per l-channel.
               </xs:documentation></xs:annotation>
             </xs:attribute>
-            
+
           </xs:complexType>
         </xs:element>
 
       </xs:all>
 
       <xs:attribute ex:importance="expert" ex:unit="" name="vdWcorrection"  default="none">
-	<xs:annotation>		
+	<xs:annotation>
 	  <xs:documentation>
 	    Adds dispersion (van-der-Waals) correction to total energy after the last SCF iteration. If forces are calculated, an appropriate dispersion correction is applied. Available methods are
 	    <list>
@@ -2189,7 +2228,7 @@
 	  </xs:restriction>
 	</xs:simpleType>
       </xs:attribute>
-      
+
       <xs:attribute ex:importance="expert" ex:unit="" name="do" default="fromscratch">
         <xs:annotation>
           <xs:appinfo>
@@ -2231,7 +2270,7 @@
             calculation. It represents the product of two quantities: <inlinemath>R_{MT,\,
               Min}</inlinemath>, the smallest of all muffin-tin radii, and <inlinemath>|{ \bf G}+{
               \bf k}|_{max}</inlinemath>, the maximum length for the <inlinemath>{ \bf G}+{ \bf
-              k}</inlinemath>  vectors. Because each <inlinemath>{ \bf G}+{ \bf k}</inlinemath> 
+              k}</inlinemath>  vectors. Because each <inlinemath>{ \bf G}+{ \bf k}</inlinemath>
             vector represents one basis function, <attref>rgkmax</attref> gives the number of basis
             functions used for solving the Kohn-Sham equations. Typical values of <attref>rgkmax</attref>
             are between 6 and 9. However, for systems with very short bond-lengths, significantly
@@ -2257,14 +2296,14 @@
           <xs:documentation>Energy convergence tolerance.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="epsforcescf" type="fortrandouble" 
+      <xs:attribute ex:importance="expert" ex:unit="" name="epsforcescf" type="fortrandouble"
                     use="optional" default="5.0d-5">
         <xs:annotation>
-          <xs:documentation>Convergence tolerance for forces (not including IBS contribution) 
+          <xs:documentation>Convergence tolerance for forces (not including IBS contribution)
 	    during the SCF run.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      
+
 
       <xs:attribute ex:importance="essential" ex:unit="Hartree" name="swidth" type="fortrandouble"
         default="0.001d0">
@@ -2325,7 +2364,7 @@
                 <oldnr>-1</oldnr>
               </xs:appinfo>
               <xs:documentation>
-              Extended linear tetrahedron method (LIBBZINT library) 
+              Extended linear tetrahedron method (LIBBZINT library)
               is used for k-point generation and integration (experimental option).
               </xs:documentation>
               </xs:annotation>
@@ -2361,9 +2400,9 @@
       <xs:attribute ex:importance="expert" ex:unit="" name="modifiedsv" type="xs:boolean"
         default="false">
         <xs:annotation>
-          <xs:documentation> If <pre>"true"</pre>, the construction of the second-variational 
+          <xs:documentation> If <pre>"true"</pre>, the construction of the second-variational
             hamiltonian involves wavefunctions in the basis representation and wavefunctions
-            are not evaluated explicitly. Otherwise, the usual second-variational procedure 
+            are not evaluated explicitly. Otherwise, the usual second-variational procedure
             is used. The first of the two approaches is generally recommended, but it is not
             implemented for non-collinear and LDA+U calculations.
           </xs:documentation>
@@ -2480,10 +2519,10 @@
       <xs:attribute ex:importance="essential" ex:unit="" name="niterconvcheck" type="xs:integer"
         default="2">
 	<xs:annotation>
-	  <xs:documentation>Number of self-consistency iterations over which to test convergence. 
+	  <xs:documentation>Number of self-consistency iterations over which to test convergence.
 	  For example, if <attref>niterconvcheck</attref>=2, then both the second and third to last
 	  iterations are compared to the last one to check convergence. The convergence criteria
-	  used are those set up by <attref>scfconv</attref>. 
+	  used are those set up by <attref>scfconv</attref>.
 	  </xs:documentation>
         </xs:annotation>
       </xs:attribute>
@@ -2532,7 +2571,7 @@
       <xs:attribute ex:importance="expert" ex:unit="" name="epschg" type="fortrandouble"
         default="1.0d-5">
         <xs:annotation>
-          <xs:documentation>Convergence criterion for the maximum allowed error 
+          <xs:documentation>Convergence criterion for the maximum allowed error
            in the calculated total charge beyond which a warning message will be issued.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
@@ -2550,7 +2589,7 @@
          <p/>
         <bf>Linear mixer</bf> (<pre>"lin"</pre>):
         <p/>
-   Given the input  <inlinemath>\mu^i</inlinemath> and output   <inlinemath>\nu^i</inlinemath> 
+   Given the input  <inlinemath>\mu^i</inlinemath> and output   <inlinemath>\nu^i</inlinemath>
    vectors of the <inlinemath>i</inlinemath>th
   iteration,  the next input vector to the
     (<inlinemath>i+1</inlinemath>)th iteration is generated using an adaptive mixing scheme.
@@ -2561,7 +2600,7 @@
    scaling with <inlinemath>\beta_{\rm inc}</inlinemath> (<inlinemath>>1</inlinemath>) if <inlinemath>f^i_j\equiv\nu^i_j-\mu^i_j</inlinemath> does
    not change sign between loops. If <inlinemath>f^i_j</inlinemath> does change sign, then <inlinemath>\beta^i_j</inlinemath>
    is scaled by <inlinemath>\beta_{\rm dec}</inlinemath> (<inlinemath>>1</inlinemath>).
-          <p/> 
+          <p/>
           <bf>Multisecant Broyden potential mixing</bf> (<pre>"msec"</pre>)
           <p/>
           <bf>Pulay mixing</bf> (<pre>"pulay"</pre>):
@@ -2607,7 +2646,7 @@
       <xs:attribute ex:importance="expert" ex:unit="" name="msecStoredSteps" type="xs:integer"
         default="8">
         <xs:annotation>
-          <xs:documentation> How many potentials from previous steps to store. 
+          <xs:documentation> How many potentials from previous steps to store.
            Used in msec mixing as choosen with <attref>mixer</attref>.
           </xs:documentation>
         </xs:annotation>
@@ -2653,10 +2692,10 @@
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="lorecommendation" type="xs:boolean" default="false">
         <xs:annotation>
-          <xs:documentation> Local orbitals may be used for improving unoccupied states. But what 
+          <xs:documentation> Local orbitals may be used for improving unoccupied states. But what
                              energy parameters to use? Set this parameter to true, and you will get
-                             a list of energies at which the radial wavefunction turns to zero on the 
-                             muffin-tin sphere. These energies are calculated using atomic potential, 
+                             a list of energies at which the radial wavefunction turns to zero on the
+                             muffin-tin sphere. These energies are calculated using atomic potential,
                              and to make them transferable to a general system, use the average of two
                              consecutive atomic energies.
           </xs:documentation>
@@ -2669,7 +2708,7 @@
         <xs:annotation>
           <xs:documentation> The parameter defines a functional form how radial-grid points are distributed.
                              Choose from "cubic", "exponential" and "expocubic". "cubic" is the most suitable
-                             one for a majority of calculations, but switch to "expocubic" if you set the 
+                             one for a majority of calculations, but switch to "expocubic" if you set the
                              innermost grid point very close to a nucleus.
           </xs:documentation>
         </xs:annotation>
@@ -2696,7 +2735,7 @@
               <li> GGA, Revised PBE, Zhang-Yang, <it>Phys. Rev. Lett.</it>
                 <bf>80</bf>, 890 (1998) </li>
               <li> GGA, PBEsol, arXiv:0707.2088v1 (2007) </li>
-              <li> GGA, asymptotically corrected PBE  (acPBE), arXiv:1409.4834 (2014) </li> 
+              <li> GGA, asymptotically corrected PBE  (acPBE), arXiv:1409.4834 (2014) </li>
               <li> GGA, Wu-Cohen exchange (WC06) with PBE correlation, <it>Phys. Rev. B</it>
                 <bf>73</bf>, 235116 (2006) </li>
               <li> GGA, Armiento-Mattsson (AM05) spin-unpolarised functional, <it>Phys. Rev. B</it>
@@ -2704,6 +2743,7 @@
               <li> EXX, Exact Exchange, <it>Phys. Rev. Lett.</it>
                 <bf>95</bf>, 136402 (2005) </li>
               <li> Hybrid, PBE0, <it>J. Chem. Phys.</it> <bf>110</bf>, 5029 (1999)</li>
+              <li> Hybrid, HSE, <it>J. Chem. Phys.</it> <bf>118</bf>, 8207 (2003)</li>
             </list>
           </xs:documentation>
         </xs:annotation>
@@ -2758,6 +2798,13 @@
                 </xs:appinfo>
               </xs:annotation>
             </xs:enumeration>
+            <xs:enumeration value="GGA_PBE_SR">
+              <xs:annotation>
+                <xs:appinfo>
+                  <oldnr>23</oldnr>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:enumeration>
             <xs:enumeration value="GGA_WC">
               <xs:annotation>
                 <xs:appinfo>
@@ -2790,6 +2837,13 @@
                <xs:annotation>
                  <xs:appinfo>
                    <oldnr>407</oldnr>
+                 </xs:appinfo>
+               </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="HYB_HSE">
+               <xs:annotation>
+                 <xs:appinfo>
+                   <oldnr>408</oldnr>
                  </xs:appinfo>
                </xs:annotation>
             </xs:enumeration>
@@ -2879,13 +2933,13 @@
 
             <xs:attribute ex:importance="expert" ex:unit="" name="ValenceRelativity" default="zora">
               <xs:annotation>
-                <xs:documentation>Relativistic Hamiltonian to use in groundstate calculations. 
+                <xs:documentation>Relativistic Hamiltonian to use in groundstate calculations.
                 <list>
                     <li>none   - solves non-relativistic Schoedinger equation (SE) </li>
                     <li>zora   - solves scalar-relativistic SE within zero-order regular approximation (ZORA) </li>
                     <li>iora*  - solves scalar-relativistic SE within infinite-order regular approximation (IORA), the small component is neglected </li>
                     <li>iora   - solves scalar-relativistic SE within infinite-order regular approximation (IORA), the small component is included  </li>
-                    <li>kh*    - solves scalar-relativistic SE for the large component, the small component is neglected  </li> 
+                    <li>kh*    - solves scalar-relativistic SE for the large component, the small component is neglected  </li>
                     <li>kh     - solves scalar-relativistic SE for the large component, the small component is included  </li>
                 </list>
                        iora, kh* and kh are implemented only for atoms.
@@ -2917,23 +2971,16 @@
       <xs:attribute ex:importance="expert" ex:unit="" name="energyref" type="fortrandouble"
         default="0.0d0">
         <xs:annotation>
-          <xs:documentation> Energy reference <inlinemath>\varepsilon_\textrm{ref}</inlinemath> 
-                             for the scalar-relativistic ZORA. It enters the kinetic energy expression 
+          <xs:documentation> Energy reference <inlinemath>\varepsilon_\textrm{ref}</inlinemath>
+                             for the scalar-relativistic ZORA. It enters the kinetic energy expression
                              <inlinemath>T=\mathbf{p}\frac{c^2}{2c^2+\varepsilon-v(\mathbf{r})}\mathbf{p}</inlinemath>.
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
 
-      <xs:attribute ex:importance="expert" ex:unit="" name="SymmetricKineticEnergy" type="xs:boolean" default="true">
-        <xs:annotation>
-          <xs:documentation> If <pre>"true"</pre>, the kinetic-energy matrix elements of muffin-tin functions are calculated by applying gradient to both bra and ket.
-           Otherwise, the whole kinetic-energy operator is applied to ket only, and the surface-term correction is applied to make the hamiltonian hermitian.
-          </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="ExplicitKineticEnergy" type="xs:boolean" default="true">
         <xs:annotation>
-          <xs:documentation> 
+          <xs:documentation>
             If true, the kinetic energy expectation values are calculated explicitly and, then, they are used for calculating the total energy.
           </xs:documentation>
         </xs:annotation>
@@ -2975,10 +3022,10 @@
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="tpartcharges" type="xs:boolean" default="false">
         <xs:annotation>
-          <xs:documentation> The attribute tpartcharges is <pre>"true"</pre> if partial charges 
+          <xs:documentation> The attribute tpartcharges is <pre>"true"</pre> if partial charges
           for each state j, atom alpha and for each lm combination are calculated. </xs:documentation>
         </xs:annotation>
-      </xs:attribute>   
+      </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="nwrite" type="xs:integer" default="0">
         <xs:annotation>
           <xs:documentation> Normally, the density and potentials are written to the file STATE.OUT
@@ -2999,81 +3046,81 @@
               <xs:documentation>
               Specify the SCF convergence criteria
               <list>
-                <li>"energy"    - only the total energy of the system is used as a convergence criterion. 
-		     If the calculation of the atomic forces is required 
-		     (e.g., in the optimization of the atomic positions) the non-IBS contribution 
+                <li>"energy"    - only the total energy of the system is used as a convergence criterion.
+		     If the calculation of the atomic forces is required
+		     (e.g., in the optimization of the atomic positions) the non-IBS contribution
 		     to the atomic forces is added as a further convergence criterion.</li>
-                <li>"potential" - only the Kohn-Sham potential is used as a convergence criterion. 
-		     If atomic forces are required the convergence criterion is extended 
+                <li>"potential" - only the Kohn-Sham potential is used as a convergence criterion.
+		     If atomic forces are required the convergence criterion is extended
 		     to include non-IBS forces. </li>
-                <li>"multiple"  - total energy, Kohn-Sham potential, and total electronic charge of the system 
-		     are used as convergence criteria. 
-		     If atomic forces are required the convergence criterion 
-		     is extended to include non-IBS forces.</li> 
+                <li>"multiple"  - total energy, Kohn-Sham potential, and total electronic charge of the system
+		     are used as convergence criteria.
+		     If atomic forces are required the convergence criterion
+		     is extended to include non-IBS forces.</li>
               </list>
               </xs:documentation>
           </xs:annotation>
        </xs:attribute>
-       
+
       <xs:attribute ex:importance="expert" ex:unit="" name="dipolecorrection" type="xs:boolean" default="false">
         <xs:annotation>
-          <xs:documentation> 
-            If <pre>"true"</pre>, the dipole correction is applied for slabs oriented 
+          <xs:documentation>
+            If <pre>"true"</pre>, the dipole correction is applied for slabs oriented
 	    along the <inlinemath>z</inlinemath>-direction.
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      
+
       <xs:attribute ex:importance="expert" ex:unit="" name="dipoleposition" type="fortrandouble" default="1.0d0">
         <xs:annotation>
-          <xs:documentation> 
-	    The value of this attribute indicates the position of the jump in electrostatic potential, 
-	    after the compensating potential (<it>i.e.</it>, the dipole correction) is applied. 
-	    The position is given as a fractional coordinate in the vertical direction. 
-	    Please note that this jump position should be located within the vacuum region enough 
-	    far away from the atomic layers, otherwise the compensating potential cannot be 
-	    correctly applied. It is recommended to put the jump position at the middle of 
+          <xs:documentation>
+	    The value of this attribute indicates the position of the jump in electrostatic potential,
+	    after the compensating potential (<it>i.e.</it>, the dipole correction) is applied.
+	    The position is given as a fractional coordinate in the vertical direction.
+	    Please note that this jump position should be located within the vacuum region enough
+	    far away from the atomic layers, otherwise the compensating potential cannot be
+	    correctly applied. It is recommended to put the jump position at the middle of
 	    the vacuum layer.
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
- 
+
           <!--xs:attribute ex:importance="expert" ex:unit="" name="tconvcritenergy" type="xs:boolean" default="true">
             <xs:annotation>
-              <xs:documentation> The attribute tconvcritenergy is <pre>"true"</pre> if the value  
-              of the total energy of the system is used as a convergence criterion for the 
+              <xs:documentation> The attribute tconvcritenergy is <pre>"true"</pre> if the value
+              of the total energy of the system is used as a convergence criterion for the
               self-consistent procedure used to solve the Kohn-Sham equations. By default,
               this is the only used convergence criterion (exception: in LDA+U and OEP calculations,
               the Kohn-Sham potential is automatically chosen instead). </xs:documentation>
             </xs:annotation>
-          </xs:attribute>    
+          </xs:attribute>
           <xs:attribute ex:importance="expert" ex:unit="" name="tconvcritvks" type="xs:boolean" default="false">
             <xs:annotation>
-              <xs:documentation> The attribute tconvcritvks is <pre>"true"</pre> if the value  
-              of the Kohn-Sham potential ($V_{KS}$) of the system is used as a convergence criterion for the 
+              <xs:documentation> The attribute tconvcritvks is <pre>"true"</pre> if the value
+              of the Kohn-Sham potential ($V_{KS}$) of the system is used as a convergence criterion for the
               self-consistent procedure used to solve the Kohn-Sham equations. For LDA+U and OEP calculations, this is
               the (automatically chosen) convergence criterion. </xs:documentation>
             </xs:annotation>
-          </xs:attribute>  
+          </xs:attribute>
           <xs:attribute ex:importance="expert" ex:unit="" name="tconvcritcharge" type="xs:boolean" default="false">
             <xs:annotation>
-              <xs:documentation> The attribute tconvcritcharge is <pre>"true"</pre> if the value  
-              of the total charge of the system is used as a convergence criterion for the 
+              <xs:documentation> The attribute tconvcritcharge is <pre>"true"</pre> if the value
+              of the total charge of the system is used as a convergence criterion for the
               self-consistent procedure used to solve the Kohn-Sham equations. (This amount should be
               constant, but it is subject to numerical errors) </xs:documentation>
             </xs:annotation>
-          </xs:attribute>  
+          </xs:attribute>
           <xs:attribute ex:importance="expert" ex:unit="" name="tconvcritforces" type="xs:boolean" default="false">
             <xs:annotation>
-              <xs:documentation> The attribute tconvcritforces is <pre>"true"</pre> if the value  
-              of the an average of forces on nuclei of the system is used as a convergence criterion for the 
+              <xs:documentation> The attribute tconvcritforces is <pre>"true"</pre> if the value
+              of the an average of forces on nuclei of the system is used as a convergence criterion for the
               self-consistent procedure used to solve the Kohn-Sham equations. </xs:documentation>
             </xs:annotation>
           </xs:attribute-->
-          
+
           <xs:attribute ex:importance="expert" ex:unit="" name="outputlevel" default="normal">
             <xs:annotation>
-              <xs:documentation> 
+              <xs:documentation>
                 Specify amount of information which is printed to files:
                 <list>
                     <li>none   - no output is produced</li>
@@ -3116,7 +3163,7 @@
               </xs:restriction>
             </xs:simpleType>
           </xs:attribute>
-                   
+
     </xs:complexType>
   </xs:element>
 </xs:schema>

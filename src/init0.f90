@@ -35,7 +35,7 @@ Subroutine init0
 ! zero self-consistent loop number
       iscl = 0
       tlast = .False.
-      
+
 !-------------------------------!
 !     zero timing variables     !
 !-------------------------------!
@@ -128,7 +128,7 @@ Subroutine init0
 !------------------------!
       If (isspinspiral()) Then
          Select Case (task)
-         Case (2, 3, 15, 51, 52, 53, 61, 62, 63, 120, 121)
+         Case (2, 3, 7, 15, 51, 52, 53, 61, 62, 63, 120, 121)
             Write (*,*)
             Write (*, '("Error(init0): spin-spirals do not work with ta&
            &sk ", I4)') task
@@ -167,7 +167,7 @@ Subroutine init0
      & input%groundstate%tevecsv = .True.
 ! get exchange-correlation functional data
       If  (associated(input%groundstate%HartreeFock) .And. &
-     & associated(input%groundstate%OEP)) Then
+      &    associated(input%groundstate%OEP)) Then
          Write (*,*)
          Write (*, '("Error(init0): illegal choice for exact exchange")')
          Write (*, '("You cannot use HF and OEP simultaneously")')
@@ -176,28 +176,25 @@ Subroutine init0
       End If
       If  (associated(input%groundstate%Hybrid)) Then
           ex_coef = input%groundstate%Hybrid%excoeff
-          ec_coef = input%groundstate%Hybrid%eccoeff      
+          ec_coef = input%groundstate%Hybrid%eccoeff
       Else
-          ex_coef=0.0          
-          ec_coef=1.0
-          If (input%groundstate%xctypenumber .Lt. 0) ex_coef=1.0
+          ex_coef = 0.0
+          ec_coef = 1.0
       End If
       Call getxcdata (xctype, xcdescr, xcspin, xcgrad, ex_coef)
+
 ! reset input%groundstate%Hybrid%excoeff to ex_coef
 ! in case of libxc: overwritten by ex_coef as defined by libxc
-      If (associated(input%groundstate%Hybrid)) Then
-        input%groundstate%Hybrid%excoeff=ex_coef 
-      End If
-      If ((associated(input%groundstate%spin)) .And. (xcspin .Eq. 0)) &
-     & Then
+      If (associated(input%groundstate%Hybrid)) input%groundstate%Hybrid%excoeff = ex_coef
+
+      If ((associated(input%groundstate%spin)) .And. (xcspin .Eq. 0)) Then
          Write (*,*)
-         Write (*, '("Error(init0): requested spin-polarised run with s&
-        &pin-unpolarised")')
+         Write (*, '("Error(init0): requested spin-polarised run with spin-unpolarised")')
          Write (*, '(" exchange-correlation functional")')
          Write (*,*)
          Stop
       End If
-      
+
 ! check for collinearity in the z-direction and set the dimension of the
 ! magnetisation and exchange-correlation vector fields
       If (associated(input%groundstate%spin)) Then
@@ -220,7 +217,7 @@ Subroutine init0
       Else
          ndmag = 0
       End If
-      
+
 ! set the non-collinear flag
       If (ndmag .Eq. 3) Then
          ncmag = .True.
@@ -239,6 +236,10 @@ Subroutine init0
 !-------------------------------------!
 !     lattice and symmetry set up     !
 !-------------------------------------!
+! for convenience - create a copy
+      avec(:,1) = input%structure%crystal%basevect(:,1)
+      avec(:,2) = input%structure%crystal%basevect(:,2)
+      avec(:,3) = input%structure%crystal%basevect(:,3)
 ! generate the reciprocal lattice vectors and unit cell volume
       Call reciplat
 ! compute the inverse of the lattice vector matrix

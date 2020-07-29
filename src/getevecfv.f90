@@ -95,7 +95,7 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
 
   ! find the equivalent k-point number and crystal symmetry element
       Call findkpt(vpl, isym, ik)
-      
+
   ! find the record length
 #ifdef XS
       Inquire (IoLength=Recl) vkl_, nmatmax_, nstfv_, nspnfv_
@@ -150,9 +150,10 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
 #endif
       Close (70)
   !$OMP END CRITICAL
-      t1 = Abs (vkl_ptr(1, ik)-vkl_(1)) + Abs (vkl_ptr(2, ik)-vkl_(2)) + Abs &
-     & (vkl_ptr(3, ik)-vkl_(3))
-      If (t1 .Gt. input%structure%epslat) Then
+      t1 = Abs (vkl_ptr(1, ik)-vkl_(1)) + &
+           Abs (vkl_ptr(2, ik)-vkl_(2)) + &
+           Abs (vkl_ptr(3, ik)-vkl_(3))
+      If (t1 > 1.d-6) Then
          Write (*,*)
          Write (*, '("Error(getevecfv): differing vectors for k-point "&
         &, I8)') ik
@@ -194,27 +195,27 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
          Write (*,*)
          Stop
       End If
-            
+
       ! if p = k then return
       t1 = Abs (vpl(1)-vkl_ptr(1, ik)) + &
       &    Abs (vpl(2)-vkl_ptr(2, ik)) + &
       &    Abs (vpl(3)-vkl_ptr(3, ik))
-      If (t1 .Lt. input%structure%epslat) Return
-      
+      If (t1 < 1.d-6) Return
+
       ! index to spatial rotation in lattice point group
       lspl = lsplsymc(isym)
-      
+
       ! the inverse of the spatial symmetry rotates k into p
       ilspl = isymlat(lspl)
       sl(:,:) = dble(symlat(:,:,ilspl))
       sc(:,:) = symlatc(:,:,ilspl)
-            
+
 !-----------------------------------------------!
 !     translate and rotate APW coefficients     !
 !-----------------------------------------------!
       allocate(evecfvt(nmatmax_ptr,nstfv))
       evecfvt(:,:) = 0.d0
-      
+
       do ispn = 1, nspnfv
         do igk = 1, ngk_ptr(ispn,ik)
           v(:) = dble(vgkl_ptr(:,igk,ispn,ik))
@@ -228,48 +229,48 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
             t1 = abs(v(1)-vgpl(1,igp,ispn)) &
                + abs(v(2)-vgpl(2,igp,ispn)) &
                + abs(v(3)-vgpl(3,igp,ispn))
-            if (t1<input%structure%epslat) then
+            if (t1 < 1.d-6) then
               evecfv(igp,:,ispn) = evecfvt(igk,:)
               exit ! continue with new igp
             end if
           end do
         end do
       end do
-      
+
 !---------------------------------------------------------!
 !     translate and rotate local-orbital coefficients     !
 !---------------------------------------------------------!
 
       if (nlotot>0) then
-      
+
         call r3mtv(sl,vkl_ptr(:,ik),v)
 
 ! loop over the first-variational spins
         do ispn = 1, nspnfv
-        
+
 ! make a copy of the local-orbital coefficients
           do i = ngk_ptr(ispn,ik)+1, nmat_ptr(ispn,ik)
             evecfvt(i,:) = evecfv(i,:,ispn)
           end do
-          
+
           do is = 1, nspecies
           do ia = 1, natoms(is)
             ias = idxas(ia,is)
-            
+
             ! equivalent atom for this symmetry
             ja = ieqatom(ia,is,isym)
             jas = idxas(ja,is)
-            
+
             !---------------
             ! phase factor
             !---------------
-            
+
             v1(:) = input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
             t1 = -twopi*dot_product(vkl_ptr(:,ik),v1(:)+vtlsymc(:,isym))
             zt1 = cmplx(cos(t1),sin(t1),8)
             t1 = twopi*dot_product(v(:),input%structure%speciesarray(is)%species%atomarray(ja)%atom%coord(:))
             zt1 = zt1*cmplx(cos(t1),sin(t1),8)
-            
+
             do ilo = 1, nlorb(is)
               l = lorbl(ilo,is)
               do m1 = -l, l
@@ -284,14 +285,14 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
                 end do
               end do
             end do ! ilo
-            
+
           end do
           end do
         end do
       end if
-      
+
       Deallocate (evecfvt)
-      
+
       Return
 End Subroutine getevecfv
 !EOC

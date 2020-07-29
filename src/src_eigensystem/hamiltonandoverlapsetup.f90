@@ -1,7 +1,7 @@
 !
 !
 !
-! Copyright (C) 2002-2014 exciting team 
+! Copyright (C) 2002-2014 exciting team
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -34,6 +34,8 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
       Real (8) :: threshold
       Complex (8), allocatable :: apwi(:,:),zm(:,:),apwi2(:,:)
       integer if1,if3,l3,m3,lm3,io1,io2,ias,maxnlo,ilo,j1,j2,j3,lm1,lm2,j,io,l,ilo1,ilo2,l1
+
+
 !----------------------------------------!
 !     Hamiltonian and overlap set up     !
 !----------------------------------------!
@@ -49,7 +51,7 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
       Do is = 1, nspecies
         Do ia = 1, natoms (is)
 !--Hamiltonian--
-! APW-APW part 
+! APW-APW part
           Call timesec (ts0)
           ias = idxas (ia, is)
           apwi=dcmplx(0d0,0d0)
@@ -112,13 +114,12 @@ endif
                       system%hamilton%za, &  ! C
                       system%hamilton%rank &      ! LDC ... leading dimension of C
                      )
-
           Call timesec (ts1)
           time_hmlaan=ts1-ts0+time_hmlaan
 
 !What if it is, say, LAPW calculation without any local orbitals?
 !No problem! Andris gives the permission. :-)
-        if (nlorb(is).ne.0) then 
+        if (nlorb(is).ne.0) then
 ! APW-LO part
           Call timesec (ts0)
           maxnlo=size(haloij,1)
@@ -176,7 +177,7 @@ if (.false.) then
                        system%overlap%za, &  ! C
                        system%overlap%rank &      ! LDC ... leading dimension of C
                        )
-          else 
+          else
             deallocate(zm)
             allocate(zm(ngp,haaijSize))
             zm=zzero
@@ -184,7 +185,7 @@ if (.false.) then
             Do l3 = 0, input%groundstate%lmaxmat
               Do m3 = - l3, l3
               lm3 = idxlm (l3, m3)
-               
+
                 Do io2 = 1, apword (l3, is)
                   Do io1 = 1, apword (l3, is)
 !                    zm(if3+io2,:)=zm(if3+io2,:)+h1aa(io1,io2,l3,ias)*conjg(apwi2(:,if3+io1))
@@ -260,14 +261,14 @@ if (.false.) then
 
 ! interstitial contributions
        Call timesec (ts0)
-      Call hmlistln (system%hamilton, ngp, igpig, vgpc)
+       Call hmlistln (system%hamilton, ngp, igpig, vgpc)
        Call timesec (ts1)
        time_hmlistln=ts1-ts0+time_hmlistln
        Call timesec (ts0)
-      Call olpistln (system%overlap, ngp, igpig, vgpc)
+       Call olpistln (system%overlap, ngp, igpig, vgpc)
        Call timesec (ts1)
        time_olpistln=ts1-ts0+time_olpistln
-      threshold = 1e-16
+       threshold = 1e-16
 !call HermitianMatrixTruncate(system%hamilton,threshold)
 !call HermitianMatrixTruncate(system%overlap,threshold)
 !

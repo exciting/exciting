@@ -29,9 +29,9 @@ subroutine dfq(iq)
                 & bsed, ikmapikq, tordf, symt2,&
                 & bcbs, filexteps,&
                 & eps0dirname, scrdirname, timingdirname
-#ifdef TETRA      
+#ifdef TETRA
   use modxs, only: fnwtet
-  use mod_eigenvalue_occupancy, only: nstsv, evalsv, efermi 
+  use mod_eigenvalue_occupancy, only: nstsv, evalsv, efermi
   use modtetra
 #endif
   use m_genwgrid
@@ -128,7 +128,7 @@ subroutine dfq(iq)
   complex(8), allocatable :: scis12c(:, :), scis21c(:, :), zm(:,:,:)
   real(8), parameter :: epstetra = 1.d-8
   real(8) :: ta,tb,tc,td
-  real(8), allocatable :: wreal(:) 
+  real(8), allocatable :: wreal(:)
   real(8), allocatable :: scis12(:, :), scis21(:, :)
   real(8) :: brd, cpu0, cpu1, cpuread, cpuosc, cpuupd, cputot, wintv(2), wplas, wrel
   integer(4) :: n, j, i1, i2, ik, ikq, igq, iw, wi, wf, ist1, ist2, nwdfp
@@ -141,7 +141,7 @@ subroutine dfq(iq)
   ! External functions
   logical, external :: tqgamma, transik, transijst
 
-  call timesec(ta)     
+  call timesec(ta)
 
   ! Analytic continuation not allowed with screen
   if(input%xs%tddft%acont .and. tscreen) then
@@ -180,7 +180,7 @@ subroutine dfq(iq)
 !! DISCUSS
   doares = .true.
   ! Task 430 is 'screen'
-  if(task .eq. 430) then 
+  if(task .eq. 430) then
     ! Zero broadening for dielectric matrix (w=0) for band-gap systems
     brd = 0.d0
     ! Calculate anti-resonant part of chi explicitly ?
@@ -194,9 +194,9 @@ subroutine dfq(iq)
 
   ! Filenames for output
   if(tscreen) then
-#ifdef TETRA               
+#ifdef TETRA
     call genfilname(basename='TETW', iq=iq, appfilext=.true., filnam=fnwtet)
-#endif               
+#endif
     call genfilname(basename='PMAT', appfilext=.true., filnam=fnpmat)
     filex=filext
     filext=filexteps
@@ -215,9 +215,9 @@ subroutine dfq(iq)
     filext=filex
 
   else
-#ifdef TETRA               
+#ifdef TETRA
     call genfilname(basename='TETW', iqmt=iq, filnam=fnwtet)
-#endif               
+#endif
     call genfilname(basename='PMAT_XS', filnam=fnpmat)
     call genfilname(basename='EMAT', iqmt=iq, filnam=fnemat)
     call genfilname(nodotpar=.true., basename='X0_TIMING', bzsampl=bzsampl,&
@@ -237,28 +237,27 @@ subroutine dfq(iq)
   ! Calculate k+q and G+k+q related variables
   ! by setting the offset generated from vkloff and the q point
   ! and then calling init1
-  call init1offs(qvkloff(1:3, iq))
-
-  !write(*,*) "df: qvkloff=", qvkloff(1:3,iq)
+  ! write(*,*) "df: qvkloff=", iq, qvkloff(1:3,iq)
+  call init1offs(qvkloff(1:3,iq))
 
   ! TETRA: Generate link array for tetrahedra
   if(input%xs%tetra%tetradf) then
-#ifdef TETRA      
+#ifdef TETRA
     call gentetlinkp(vql(1, iq),input%xs%tetra%qweights)
 #else
     ! Added by DIN
     write(*,*) 'Tetrahedron method for XS is disabled!'
-    write(*,*) 'Check -DTETRA option in make.inc' 
+    write(*,*) 'Check -DTETRA option in make.inc'
     stop
-#endif            
+#endif
   end if
 
   !write(*,*) "dfq: iq=", iq, " filext=", trim(filext)
 
   ! Find highest (partially) occupied and lowest (partially) unoccupied states
-  ! for k and k+q points 
+  ! for k and k+q points
   !write(*,*) "dfq: ikmapikq(:,iq)", ikmapikq(:,iq)
-  
+
   call findocclims(iq, ikmapikq(:,iq), istocc0, istunocc0, isto0, isto, istu0, istu)
   istunocc = istunocc0
   istocc = istocc0
@@ -272,7 +271,7 @@ subroutine dfq(iq)
   if (input%xs%BSE%outputlevelnumber == 1) then
     write(unitout, *)
     write(unitout, '(a,i4)') 'Info(' // trim(thisname) // '):&
-    & Calculating screening for q-point: ', iq 
+    & Calculating screening for q-point: ', iq
     if(tq0) then
       write(unitout, '(a)') 'Info(' // trim(thisname) // '):&
        & Gamma q-point: using momentum matrix elements for dielectric function'
@@ -285,7 +284,7 @@ subroutine dfq(iq)
     write(unitout, '(a, 4i6)') 'Info(' // thisname // '):&
       & highest (partially) occupied state  : ', istocc0
     write(unitout, '(a, 4i5)') 'Info(' // thisname // '):&
-      & band-combination limits  nst1,  nst2,  nst3,  nst4:',  nst1,  nst2,  nst3,  nst4 
+      & band-combination limits  nst1,  nst2,  nst3,  nst4:',  nst1,  nst2,  nst3,  nst4
     write(unitout, '(a, 4i5)') 'Info(' // thisname // '):&
       & band-combination limits istl1, istu1, istl2, istu2:', istl1, istu1, istl2, istu2
     write(unitout, '(a, 4i5)') 'Info(' // thisname // '):&
@@ -318,8 +317,8 @@ subroutine dfq(iq)
   allocate(wreal(nwdfp))
 
   ! Symmetrized KS response function arrays
-  !   Head for each combination of Cartesian directions 
-  allocate(chi0h(3, 3, nwdfp)) 
+  !   Head for each combination of Cartesian directions
+  allocate(chi0h(3, 3, nwdfp))
   allocate(chi0hahc(3, 3))
   !   The 2 wings for 3 Cartesian directions
   allocate(chi0w(n, 2, 3, nwdfp))
@@ -332,15 +331,15 @@ subroutine dfq(iq)
   allocate(zvou(n), zvuo(n))
 
   allocate(bsedg(nst1, nst2))
-  
-  ! Zeroing 
+
+  ! Zeroing
   scis12(:, :) = 0.d0
   scis21(:, :) = 0.d0
   bsedg(:,:)=zzero
 
   ! TETRA
   if(input%xs%tetra%tetradf) then
-#ifdef TETRA      
+#ifdef TETRA
     allocate(cw(nwdf), cwa(nwdf), cwsurf(nwdf))
 
     if(input%xs%tetra%cw1k) allocate(cwt(nstsv, nstsv),&
@@ -349,9 +348,9 @@ subroutine dfq(iq)
 #else
     ! Added by DIN
     write(*,*) 'Tetrahedron method for XS is disabled!'
-    write(*,*) 'Check -DTETRA option in make.inc' 
+    write(*,*) 'Check -DTETRA option in make.inc'
     stop
-#endif            
+#endif
   end if
 
   !! Generate complex energy grid
@@ -413,7 +412,7 @@ subroutine dfq(iq)
     if( .not. transik(ik)) cycle
     call chkpt(3, (/ task, iq, ik /), 'dfq: task, q-point index, k-point index')
 
-    ! Timing 
+    ! Timing
     cpuosc = 0.d0
     cpuupd = 0.d0
     call timesec(cpu0)
@@ -421,8 +420,8 @@ subroutine dfq(iq)
     ikq = ikmapikq(ik, iq)
     !write(*,*) "dfq: ik, iq, ikq", ik, iq, ikq
 
-    ! Get second variational KS transition energies, scissor shifts 
-    ! and occupancy differences for current k+q/k point combination 
+    ! Get second variational KS transition energies, scissor shifts
+    ! and occupancy differences for current k+q/k point combination
     ! and the specified band ranges.
     ! ou
     !   deou = e_{ok} - e_{uk+q}
@@ -453,7 +452,7 @@ subroutine dfq(iq)
 !*********** Plane wave calculation *****************************!
       ! For screening calculate matrix elements of plane wave on the fly.
 
-      ! The plane wave elements for ou and uo transitions are 
+      ! The plane wave elements for ou and uo transitions are
       ! calculated and stored in xiou and xiuo
       ! Set 12=ou 34=uo
       call ematbdcmbs(1)
@@ -479,8 +478,8 @@ subroutine dfq(iq)
 
       ! Note:
       ! The uo plane wave matrix elements are not needed
-      ! if the time reversal symmetry is applied to the 
-      ! anti-resonant part of Chi0. 
+      ! if the time reversal symmetry is applied to the
+      ! anti-resonant part of Chi0.
 
       ! t.r. sym not used
       if( doares ) then
@@ -507,13 +506,13 @@ subroutine dfq(iq)
     scis12c(:, :) = scis12c(:, :) + bsedg(:, :)
     scis21c(:, :) = scis21c(:, :) + transpose(bsedg(:, :))
 
-    ! Get plane wave and momentum matrix elements 
+    ! Get plane wave and momentum matrix elements
     ! multiplied by the square root of the Coulomb potential.
-    ! Get m12=v^{1/2}*M_12, m34=v^{1/2}*M_34 
-    !     p12=-Sqrt{4pi}P12/dE12, 
+    ! Get m12=v^{1/2}*M_12, m34=v^{1/2}*M_34
+    !     p12=-Sqrt{4pi}P12/dE12,
     !     p34=-Sqrt{4pi}P34/dE34
     ! Momentum matrix elements are always read from file.
-    ! NOTE: If tscreen, then xiou and xiou need to be already present 
+    ! NOTE: If tscreen, then xiou and xiou need to be already present
     ! in modxs. And they are used implicitly as intent inout.
 
     if(doares) then
@@ -541,7 +540,7 @@ subroutine dfq(iq)
 
     ! TETRA
     if(input%xs%tetra%cw1k) then
-#ifdef TETRA          
+#ifdef TETRA
       do iw = 1, nwdfp
         call tetcwifc_1k(ik, nkpt, nstsv, evalsv, efermi,&
           & wreal(iw), 2, cwt)
@@ -556,9 +555,9 @@ subroutine dfq(iq)
 #else
       ! Added by DIN
       write(*,*) 'Tetrahedron method for XS is disabled!'
-      write(*,*) 'Check -DTETRA option in make.inc' 
+      write(*,*) 'Check -DTETRA option in make.inc'
       stop
-#endif            
+#endif
     end if
     ! Not screen: Turn off anti-resonant terms (type 2-1 band combinations) for Kohn-Sham
     ! response function (default skip if)
@@ -574,7 +573,7 @@ subroutine dfq(iq)
     !   istunocc0: Lowest at least partially occupied band
     numpo = istocc0 - istunocc0 + 1
     ! In the presence of partially occupied bands the plane wave matrix
-    ! M_ou/M_uo has the following block form 
+    ! M_ou/M_uo has the following block form
     ! where: (o)ccupied, (u)noccupied,
     !        (p)artially(o)ccupied, (p)artially(u)noccupied
     !          ______________            ______________
@@ -582,19 +581,19 @@ subroutine dfq(iq)
     ! M_ou =  |--------------|  M_uo =  |--------------|
     !         | po/pu | po/u |          | u/po |  u/po |
     !         |______________|          |______________|
-    ! 
+    !
     !  The following loops are concerned with the po/pu (pu/po) part.
     !  Since we split M_{nm}M^*_{nm} into M_{ou}M^*_{ou}+M_{uo}M^*_{uo}
     !  we have to take care about double counting transitions if m AND n
     !  are referring to partially filled bands.
-    !  
+    !
     do ist1 = 1, numpo
       do ist2 = 1, numpo
         ! Get band index of occupied state (counted from lowest energy state)
         j = ist1 + istunocc0 - 1
         ! Set lower triangle of po/pu block to zero, i.e. allow only
         ! transitions from energetically higher to lower bands.
-        ! Exclude diagonal for momentum matrix, since weights should be 
+        ! Exclude diagonal for momentum matrix, since weights should be
         ! zero due to f_nk-f_nk (q is always 0 for momentum matrix).
 
         ! >= (p is used for q=0, and no intraband is possible)
@@ -604,7 +603,7 @@ subroutine dfq(iq)
         if(ist1 .gt. ist2) then
           xiou(j, ist2, :) = zzero
         end if
-        if(.not. doares) then 
+        if(.not. doares) then
           ! Account for double counting of interband contributions
           ! when Chi0 = 2*Chi0^Res is used.
           if(ist1 .eq. ist2) then
@@ -613,7 +612,7 @@ subroutine dfq(iq)
         end if
         ! Set diagonal to zero (project out intra-band contributions)?
         ! Intraband default changed to true
-        if( ist1 .eq. ist2) then 
+        if( ist1 .eq. ist2) then
           if(.not. fintraband) then
             xiou(j, ist2, :) = zzero
           end if
@@ -639,7 +638,7 @@ subroutine dfq(iq)
     allocate(wou(nwdf,nst1,nst2))
     allocate(wuo(nwdf,nst1,nst2))
 
-    ! Occupied 
+    ! Occupied
     ist1loop: do ist1 = 1, nst1
       ! Unoccupied
       ist2loop: do ist2 = 1, nst2
@@ -657,7 +656,7 @@ subroutine dfq(iq)
 
         ! TETRA
         if(input%xs%tetra%tetradf) then
-#ifdef TETRA               
+#ifdef TETRA
           ! Mirror index pair on diagonal if necessary
           if(i1 .gt. i2) then
             j1 = ist2
@@ -702,15 +701,15 @@ subroutine dfq(iq)
 #else
           ! Added by DIN
           write(*,*) 'Tetrahedron method for XS is disabled!'
-          write(*,*) 'Check -DTETRA option in make.inc' 
+          write(*,*) 'Check -DTETRA option in make.inc'
           stop
-#endif            
+#endif
         else
 
           ! Build weights for all frequencies including occupation number differences
           do iw=wi,wf
             ! Get resonant weight
-            !   Get energy denominator 
+            !   Get energy denominator
             ! Note: For 'screen' scis12c=0, brd=0 and w only contains w(1) = 0
             !       --> zt1 = e_{ok} - e_{uk+q}
             zt1=w(iw)+deou(ist1, ist2)+scis12c(ist1,ist2)+zi*brd
@@ -720,8 +719,8 @@ subroutine dfq(iq)
             ! Note: For 'screen' : wou = (f_{ok} - f_{uk+q})/(e_{ok} - e_{uk+q})
             wou(iw,ist1,ist2) = docc12(ist1, ist2) * wkpt(ik) / omega / zt1
             if(doares) then
-              ! Get anti-resonant weight 
-              ! Note: tordf defaults to 1, yielding the retarded response. 
+              ! Get anti-resonant weight
+              ! Note: tordf defaults to 1, yielding the retarded response.
               !       For the time orderded resoponse set input%xs%tddft%torddf=true (tordf = -1)
               ! Note: For 'screen': zt1 = e_{uk} - e_{ok+q}
               !       or for t.r. sym. : zt1 = e_{ok} - e_{uk+q}
@@ -747,10 +746,10 @@ subroutine dfq(iq)
         !----------------------------------!
         !     Update response function     !
         !----------------------------------!
-        ! zv_ou = v^{1/2} M_ou 
+        ! zv_ou = v^{1/2} M_ou
         zvou(:) = xiou(ist1, ist2, :)
         if(doares) then
-          ! zv_uo = v^{1/2} M_uo 
+          ! zv_uo = v^{1/2} M_uo
           ! Note: For 'screen' and t.r. sym xiou(1,2,:) = xiuo(2,1,:)
           !       i.e. zvou(:) = zvuo(:)
           zvuo(:) = xiuo(ist2, ist1, :)
@@ -795,7 +794,7 @@ subroutine dfq(iq)
                       &+ wouh(iw) * pmou(oct1, ist1, ist2) * conjg(pmou(oct2, ist1, ist2))&
                       &* deou(ist1, ist2) * winv&
                       &+ wuoh(iw) * pmuo(oct1, ist2, ist1) * conjg(pmuo(oct2, ist2, ist1))&
-                      &* deuo(ist2, ist1) * winv 
+                      &* deuo(ist2, ist1) * winv
                   end if
                 else
                   ! Head G=0,G'=0,q=0
@@ -818,7 +817,7 @@ subroutine dfq(iq)
     end do ist1loop
 
     ! Calculate resonant contributions to chi (actually chi^*)
-    ! Allocate helper array for matrix matrix multiplication 
+    ! Allocate helper array for matrix matrix multiplication
     allocate(zm(n,nst1,nst2))
     do iw=wi,wf
       ! zm_ou(G) = ( w_ou(omega) * \tilde{M}_{ou}(G) )^*
@@ -830,7 +829,7 @@ subroutine dfq(iq)
       end do
       ! Chi0(omega)_{GG'} = Sum_{ou} zmou_{G ou} * xiou{ou G'} + Chi0(omega)_{GG'}
       !   The lapack routine considers zm to be of the shape zm(n,*)
-      !   and xiou to be in the form xiou(*,n). 
+      !   and xiou to be in the form xiou(*,n).
       !   That means: zm(:,ist1,ist2) -> zm(:, ist1+(ist2-1)*nst1)
       !               xiou(ist1,ist2,:) -> xiou(ist1+(ist2-1)*nst1,:)
       !   So the sum over states is taken care of.
@@ -846,7 +845,7 @@ subroutine dfq(iq)
       allocate(zm(n,nst2,nst1))
       do iw=wi,wf
         ! Note: For 'screen' only wuo(0) is used and it is real-valued since no broadening is used
-        !       if t.r. sym. is used wuo = wou and xiuo = xiou. So the matrix multiplication 
+        !       if t.r. sym. is used wuo = wou and xiuo = xiou. So the matrix multiplication
         !       just adds the same as the resonant part.
         do ist2 = 1, nst2
           do ist1 = 1, nst1
@@ -882,7 +881,7 @@ subroutine dfq(iq)
   ! the complex conjugated of chi was computed. Now fix that:
   ! Also multiply by 2 to include antires contributions, if
   ! they were omitted
-  if(.not. doares) then 
+  if(.not. doares) then
     chi0=2.0d0*conjg(chi0)
     chi0w = 2.0d0 * chi0w
     chi0h = 2.0d0 * chi0h
@@ -939,11 +938,11 @@ subroutine dfq(iq)
 
     deallocate(chi0hs, eps0)
 
-  end if head 
+  end if head
 
   ! Write response function to file
   if(tscreen) then
-    ! Write out symmetrized dielectric function/tensor 
+    ! Write out symmetrized dielectric function/tensor
 
     ! Write out static (\omega = 0) screening for current q to text file
     ! eps = 1 - chi0
@@ -954,7 +953,7 @@ subroutine dfq(iq)
 
     ! Parallel output of q- and w-dependent \epsilon=1-\chi to direct access file
     ! Make microscopic epsilon matrix
-    ! Head 
+    ! Head
     forall(iw=1:nwdf)
       chi0h(:, :, iw) = dble(krondelta) - chi0h(:, :, iw)
     end forall
@@ -967,8 +966,8 @@ subroutine dfq(iq)
     end forall
     ! Write to direct access file
     do iw = wi, wf
-      ! It uses the reduced set, but the grid parameters are saved in 
-      ! mod_qpoint, where in the case of task >430 the non-reduces parameters 
+      ! It uses the reduced set, but the grid parameters are saved in
+      ! mod_qpoint, where in the case of task >430 the non-reduces parameters
       ! are saved...
       call puteps0(reduced=.false.,&
         & iq=iq, iw=iw, w=wreal(iw-wi+1),&
@@ -1001,10 +1000,10 @@ subroutine dfq(iq)
 
   ! TETRA
   if(input%xs%tetra%tetradf) then
-#ifdef TETRA      
+#ifdef TETRA
     deallocate(cw, cwa, cwsurf)
     if(input%xs%tetra%cw1k) deallocate(cwt, cw1k, cwa1k, cwsurf1k)
-#endif        
+#endif
   end if
 
 end subroutine dfq

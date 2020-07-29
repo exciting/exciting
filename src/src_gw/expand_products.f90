@@ -1,9 +1,9 @@
-
 subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
+
     use modmain, only : zzero
     use modgw,   only : mbsiz
     implicit none
-    
+
     ! input variables
     integer, intent(in) :: ik
     integer, intent(in) :: iq
@@ -21,50 +21,50 @@ subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
     
     if ((nsplit>0).and.(msplit<=0)) then
 
-      !======================================================================
-      ! When calculating the dielectric function:
-      !
-      ! n -> {1:nomax}{1:ncg}, so nsplit=nomax, when core states are treated
-      ! m -> {numin:nstsv},       msplit is ignored
-      !
-      ! Important to specify msplit<=0 
-      ! to ignore the self energy related part (below)
-      ! 
-      !======================================================================    
-      if (nend<=nsplit) then
-    
-      ! calculate M^i_{nm}
-      iflag = 1
-      call expand_products_block(ik,iq,nstart,nend,mstart,mend, &
-      &                          minm(:,nstart:nend,mstart:mend), &
-      &                          iflag)
-      
-      else if (nstart>nsplit) then
-    
-        ! calculate M^i_{cm}
-        iflag = 2
-        cstart = nstart-nsplit
-        cend = nend-nsplit
-        call expand_products_block(ik,iq,cstart,cend,mstart,mend, &
-        &                          minm(:,nstart:nend,mstart:mend), &
-        &                          iflag)
-    
-      else
-    
-        ! calculate M^i_{nm}
-        iflag = 1
-        call expand_products_block(ik,iq,nstart,nsplit,mstart,mend, &
-        &                          minm(:,nstart:nsplit,mstart:mend), &
-        &                          iflag)
-        ! calculate M^i_{cm}
-        iflag = 2
-        cstart = 1
-        cend = nend-nsplit
-        call expand_products_block(ik,iq,cstart,cend,mstart,mend, &
-        &                          minm(:,nsplit+cstart:nend,mstart:mend), &
-        &                          iflag)
-      
-      end if ! dielectric function part     
+        !======================================================================
+        ! When calculating the dielectric function:
+        !
+        ! n -> {1:nomax}{1:ncg}, so nsplit=nomax, when core states are treated
+        ! m -> {numin:nstfv},       msplit is ignored
+        !
+        ! Important to specify msplit<=0 
+        ! to ignore the self energy related part (below)
+        ! 
+        !======================================================================    
+        if (nend<=nsplit) then
+        
+            ! calculate M^i_{nm}
+            iflag = 1
+            call expand_products_block(ik,iq,nstart,nend,mstart,mend, &
+            &                          minm(:,nstart:nend,mstart:mend), &
+            &                          iflag)
+        
+        else if (nstart>nsplit) then
+        
+            ! calculate M^i_{cm}
+            iflag = 2
+            cstart = nstart-nsplit
+            cend = nend-nsplit
+            call expand_products_block(ik,iq,cstart,cend,mstart,mend, &
+            &                          minm(:,nstart:nend,mstart:mend), &
+            &                          iflag)
+        
+        else
+        
+            ! calculate M^i_{nm}
+            iflag = 1
+            call expand_products_block(ik,iq,nstart,nsplit,mstart,mend, &
+            &                          minm(:,nstart:nsplit,mstart:mend), &
+            &                          iflag)
+            ! calculate M^i_{cm}
+            iflag = 2
+            cstart = 1
+            cend = nend-nsplit
+            call expand_products_block(ik,iq,cstart,cend,mstart,mend, &
+            &                          minm(:,nsplit+cstart:nend,mstart:mend), &
+            &                          iflag)
+        
+        end if ! dielectric function part     
     
     else if ((nsplit<=0).and.(msplit>0)) then
       
@@ -72,7 +72,7 @@ subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
       ! When calculating the self energy:
       !
       ! n -> {ibgw:nbgw},      nsplit is ignored
-      ! m -> {1:nstsv}{1:ncg}, so msplit=nstsv, when core states are treated
+      ! m -> {1:nstfv}{1:ncg}, so msplit=nstfv, when core states are treated
       !
       ! Important to specify nsplit<=0 
       ! to ignore the dielectric function part (above)
@@ -127,12 +127,13 @@ subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
     
 contains
 
-  !=============================================================================
-  !
-  !=============================================================================
+    !=============================================================================
+    !
+    !=============================================================================
     subroutine expand_products_block(ik,iq,nstart,nend,mstart,mend,minm,iflag)
-        use modmain,    only : zone, zzero
-        use modgw,      only : locmatsiz, matsiz, mbsiz, barc, fgw
+        use modmain,               only: zone, zzero
+        use modgw,                 only: locmatsiz, matsiz, mbsiz, fgw
+        use mod_coulomb_potential, only: barc
         use mod_mpi_gw
         implicit none
         ! input variables
@@ -165,6 +166,7 @@ contains
             case(1)
               ! calculate v^{1/2}*M^i_{nm}
               allocate(minm_(matsiz,nstart:nend,mstart:mend))
+              ! call calcminm(ik,iq,nstart,nend,mstart,mend,minm_)
               call calcminm2(ik,iq,nstart,nend,mstart,mend,minm_)
               call zgemm('c','n', &
               &          mbsiz,nmdim,matsiz, &

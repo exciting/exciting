@@ -16,27 +16,29 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Use mod_atoms, only: natmtot, nspecies, natoms, idxas, spr
       Use mod_muffin_tin, only: lmmaxvr, nrcmtmax, lmmaxapw, nrmtmax,&
                               & nrmt, nrcmt, idxlm, rcmt
-      Use mod_potential_and_density, only: bxcmt, veffmt, bxcir, ex_coef
+      Use mod_potential_and_density, only: bxcmt, veffmt, bxcir, ex_coef, ec_coef, xctype
       Use mod_SHT, only: rbshtvr, zbshtvr, zfshtvr
-      Use mod_eigensystem, only: nmatmax
+      Use mod_eigensystem !, only: nmatmax
       Use mod_spin, only: ncmag, nspinor, ndmag
       Use mod_eigenvalue_occupancy, only: nstfv, nstsv, evalsv
-      Use mod_APW_LO, only: apwordmax
-      Use mod_hybrids, only: ihyb, bxnl
+      Use mod_APW_LO
+      Use mod_misc, only: task
       Use mod_timing, only: timesv
+
       Implicit None
 ! arguments
       Integer, Intent (In) :: ik
-      Complex (8), Intent (In) :: apwalm (ngkmax, apwordmax, lmmaxapw, &
-     & natmtot)
+      Complex (8), Intent (In) :: apwalm (ngkmax, apwordmax, lmmaxapw, natmtot)
       Real (8), Intent (In) :: evalfv (nstfv)
-      Complex (8), Intent (In) :: evecfv (nmatmax, nstfv)
+      Complex (8), Intent (InOut) :: evecfv (nmatmax, nstfv)
       Complex (8), Intent (Out) :: evecsv (nstsv, nstsv)
 ! local variables
       Integer :: ispn, jspn, ia, is, ias
-      Integer :: ist, jst, i, j, k, l, lm, nm
+      Integer :: ist, jst, i, j, k, l, lm, nm, m, io
       Integer :: ir, irc, igk, ifg
       Integer :: nsc, lwork, info
+      Integer :: if3, offset
+      logical :: realspace
 ! fine structure constant
       Real (8), Parameter :: alpha = 1.d0 / 137.03599911d0
 ! electron g factor
@@ -55,6 +57,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Real (8), Allocatable :: cf (:, :)
       Real (8), Allocatable :: sor (:)
       Real (8), Allocatable :: rwork (:)
+      Real (8), Allocatable :: veffmt_pbe(:,:,:)
       Complex (8), Allocatable :: wfmt1 (:, :, :)
       Complex (8), Allocatable :: wfmt2 (:, :, :)
       Complex (8), Allocatable :: zfft1 (:)
@@ -63,12 +66,21 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Complex (8), Allocatable :: work (:)
 !     Complex (8), Allocatable :: wfmt3 (:, :)
       Complex (8) :: wfmt3 (lmmaxvr, nrcmtmax),wfmt4 (lmmaxvr, nrcmtmax)
+      Complex (8) , Allocatable :: zwf (:,:),apwi(:,:),zhwf(:,:),zhlo(:,:)
 ! external functions
       Complex (8) zdotc, zfmtinp
       External zdotc, zfmtinp
+      ! Type (MTHamiltonianList) :: mt_h
+      ! Type (apw_lo_basis_type) :: mt_basis
+
+      If (task==7) then
+         if (allocated(veffmt_pbe)) deallocate(veffmt_pbe)
+         allocate(veffmt_pbe(lmmaxvr,nrmtmax,natmtot))
+         call poteff_soc(veffmt_pbe)
+      endif
+
 ! spin-unpolarised case
-      If (( .Not. associated(input%groundstate%spin)) .And. (ldapu .Eq. &
-     & 0)) Then
+      If (( .Not. associated(input%groundstate%spin)) .And. (ldapu .Eq. 0)) Then
          Do i = 1, nstsv
             evalsv (i, ik) = evalfv (i)
          End Do
@@ -78,6 +90,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
          End Do
          Return
       End If
+
 ! number of spin combinations after application of Hamiltonian
       If (associated(input%groundstate%spin)) Then
          If ((ncmag) .Or. (isspinorb())) Then
@@ -88,8 +101,10 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Else
          nsc = 1
       End If
+
       Call timesec (ts0)
       call timesec(ta)
+
       Allocate (bmt(lmmaxvr, nrcmtmax, 3))
       Allocate (bir(ngrtot, 3))
       Allocate (vr(nrmtmax))
@@ -99,13 +114,21 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Allocate (rwork(3*nstsv))
       Allocate (wfmt1(lmmaxvr, nrcmtmax, nstfv))
       Allocate (wfmt2(lmmaxvr, nrcmtmax, nsc))
-!      Allocate (zfft1(ngrtot))
-!      Allocate (zfft2(ngrtot))
-!      Allocate (zv(ngkmax, nsc))
       lwork = 2 * nstsv
       Allocate (work(lwork))
 ! zero the second-variational Hamiltonian (stored in the eigenvector array)
       evecsv (:, :) = 0.d0
+
+! Which algorithm are we using?
+! True - transform FV wave functions to the real space
+! False - work with the original basis and the transform to the LAPW basis
+      if (.not.associated(input%groundstate%spin)) then
+         realspace = .True.
+      else
+         realspace = input%groundstate%spin%realspace
+      end if
+
+      if (realspace) then
 !-------------------------!
 !     muffin-tin part     !
 !-------------------------!
@@ -152,8 +175,11 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
 !               write(*,*) td-tc
 ! spin-orbit radial function
                If (isspinorb()) Then
-! radial derivative of the spherical part of the potential
-                  vr (1:nrmt(is)) = veffmt (1, 1:nrmt(is), ias) * y00
+                  If (task==7) then
+                    vr(1:nrmt(is)) = veffmt_pbe(1, 1:nrmt(is), ias) * y00
+                  else
+                    vr(1:nrmt(is)) = veffmt(1, 1:nrmt(is), ias) * y00
+                  endif
                   Call fderiv (1, nrmt(is), spr(:, is), vr, drv, cf)
 ! spin-orbit coupling prefactor
                   irc = 0
@@ -164,7 +190,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
                   End Do
                End If
             End If
-! compute the first-variational wavefunctions
+  ! compute the first-variational wavefunctions
             call timesec(tc)
             Do ist = 1, nstfv
                Call wavefmt (input%groundstate%lradstep, &
@@ -252,12 +278,10 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
                         i = ist
                         j = jst + nstfv
                      End If
-!                     If (i .Le. j) Then
                         evecsv (i, j) = evecsv (i, j) + zfmtinp &
                        & (.True., input%groundstate%lmaxmat, nrcmt(is), &
                        & rcmt(:, is), lmmaxvr, wfmt1(:, :, ist), &
                        & wfmt2(:, :, k))
-!                     End If
                   End Do
                End Do
             End Do
@@ -271,6 +295,358 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       End Do
       call timesec(tb)
 !      write(*,*) 'sv / MT part',tb-ta
+
+
+! New algorithm for the second variation follows
+      else
+
+
+! debugging info
+!do ist=1,50
+!  write(*,*) mt_h%main%aa(ist,ist,1)
+!enddo
+!stop
+
+
+
+        allocate(zwf(mt_hscf%maxaa,nstfv))
+        allocate(apwi(mt_hscf%maxaa,ngk(1, ik)))
+        allocate(zhwf(mt_hscf%maxaa,nstfv))
+        allocate(zhlo(mt_hscf%maxnlo,nstfv))
+
+        offset=ngk(1,ik)
+        Do is = 1, nspecies
+          Do ia = 1, natoms (is)
+!--Hamiltonian--
+! APW-APW part
+          Call timesec (ts0)
+          ias = idxas (ia, is)
+          zhlo=zzero
+          zhwf=zzero
+          zwf=zzero
+          apwi=zzero
+          if3=0
+          Do l = 0, input%groundstate%lmaxmat
+            Do m = - l, l
+            lm = idxlm (l, m)
+              Do io = 1, apword (l, is)
+                if3=if3+1
+                apwi(if3,:)=apwalm(1:ngk(1, ik), io, lm, ias)
+              End Do
+            End Do
+          End Do
+          zwf=zzero
+
+! express the wave functions in terms of the muffin-tin basis
+          call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      mt_hscf%maxaa, &          ! M ... rows of op( A ) = rows of C
+                      nstfv, &           ! N ... cols of op( B ) = cols of C
+                      ngk(1, ik), &          ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      apwi, &        ! A
+                      mt_hscf%maxaa,&           ! LDA ... leading dimension of A
+                      evecfv, &           ! B
+                      nmatmax, &          ! LDB ... leading dimension of B
+                      zzero, &          ! beta
+                      zwf, &  ! C
+                      mt_hscf%maxaa &      ! LDC ... leading dimension of C
+                      )
+! calculate parts of T_SO
+! alpha-alpha block
+          call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      mt_hscf%maxaa, &          ! M ... rows of op( A ) = rows of C
+                      nstfv, &           ! N ... cols of op( B ) = cols of C
+                      mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      mt_hscf%alpha%aa(:,:,ias), &        ! A
+                      mt_hscf%maxaa,&           ! LDA ... leading dimension of A
+                      zwf, &           ! B
+                      mt_hscf%maxaa, &          ! LDB ... leading dimension of B
+                      zzero, &          ! beta
+                      zhwf, &  ! C
+                      mt_hscf%maxaa &      ! LDC ... leading dimension of C
+                      )
+if (mt_hscf%maxnlo.gt.0) then
+          call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      mt_hscf%losize(is), &          ! M ... rows of op( A ) = rows of C
+                      nstfv, &           ! N ... cols of op( B ) = cols of C
+                      mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      mt_hscf%alpha%loa(:,:,ias), &        ! A
+                      mt_hscf%maxnlo,&           ! LDA ... leading dimension of A
+                      zwf, &           ! B
+                      mt_hscf%maxaa, &          ! LDB ... leading dimension of B
+                      zzero, &          ! beta
+                      zhlo, &  ! C
+                      mt_hscf%maxnlo &      ! LDC ... leading dimension of C
+                      )
+          call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      mt_hscf%losize(is), &          ! M ... rows of op( A ) = rows of C
+                      nstfv, &           ! N ... cols of op( B ) = cols of C
+                      mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      mt_hscf%alpha%lolo(:,:,ias), &        ! A
+                      mt_hscf%maxnlo,&           ! LDA ... leading dimension of A
+                      evecfv(offset+1,1), &           ! B
+                      nmatmax, &          ! LDB ... leading dimension of B
+                      zone, &          ! beta
+                      zhlo, &  ! C
+                      mt_hscf%maxnlo &      ! LDC ... leading dimension of C
+                      )
+          call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      mt_hscf%maxaa, &          ! M ... rows of op( A ) = rows of C
+                      nstfv, &           ! N ... cols of op( B ) = cols of C
+                      mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      mt_hscf%alpha%alo(:,:,ias), &        ! A
+                      mt_hscf%maxaa,&           ! LDA ... leading dimension of A
+                      evecfv(offset+1,1), &           ! B
+                      nmatmax, &          ! LDB ... leading dimension of B
+                      zone, &          ! beta
+                      zhwf, &  ! C
+                      mt_hscf%maxaa &      ! LDC ... leading dimension of C
+                      )
+
+          call zgemm('C', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      nstfv, &          ! M ... rows of op( A ) = rows of C
+                      nstfv, &           ! N ... cols of op( B ) = cols of C
+                      mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      evecfv(offset+1,1), &        ! A
+                      nmatmax,&           ! LDA ... leading dimension of A
+                      zhlo, &           ! B
+                      mt_hscf%maxnlo, &          ! LDB ... leading dimension of B
+                      zone, &          ! beta
+                      evecsv(1,1), &  ! C
+                      nstfv*2 &      ! LDC ... leading dimension of C
+                      )
+
+endif
+          call zgemm('C', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      nstfv, &          ! M ... rows of op( A ) = rows of C
+                      nstfv, &           ! N ... cols of op( B ) = cols of C
+                      mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      zwf, &        ! A
+                      mt_hscf%maxaa,&           ! LDA ... leading dimension of A
+                      zhwf, &           ! B
+                      mt_hscf%maxaa, &          ! LDB ... leading dimension of B
+                      zone, &          ! beta
+                      evecsv(1,1), &  ! C
+                      nstfv*2 &      ! LDC ... leading dimension of C
+                      )
+
+! beta-beta block
+          call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      mt_hscf%maxaa, &          ! M ... rows of op( A ) = rows of C
+                      nstfv, &           ! N ... cols of op( B ) = cols of C
+                      mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      mt_hscf%beta%aa(:,:,ias), &        ! A
+                      mt_hscf%maxaa,&           ! LDA ... leading dimension of A
+                      zwf, &           ! B
+                      mt_hscf%maxaa, &          ! LDB ... leading dimension of B
+                      zzero, &          ! beta
+                      zhwf, &  ! C
+                      mt_hscf%maxaa &      ! LDC ... leading dimension of C
+                      )
+if (mt_hscf%maxnlo.gt.0) then
+          call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      mt_hscf%losize(is), &          ! M ... rows of op( A ) = rows of C
+                      nstfv, &           ! N ... cols of op( B ) = cols of C
+                      mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      mt_hscf%beta%loa(:,:,ias), &        ! A
+                      mt_hscf%maxnlo,&           ! LDA ... leading dimension of A
+                      zwf, &           ! B
+                      mt_hscf%maxaa, &          ! LDB ... leading dimension of B
+                      zzero, &          ! beta
+                      zhlo, &  ! C
+                      mt_hscf%maxnlo &      ! LDC ... leading dimension of C
+                      )
+          call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      mt_hscf%losize(is), &          ! M ... rows of op( A ) = rows of C
+                      nstfv, &           ! N ... cols of op( B ) = cols of C
+                      mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      mt_hscf%beta%lolo(:,:,ias), &        ! A
+                      mt_hscf%maxnlo,&           ! LDA ... leading dimension of A
+                      evecfv(offset+1,1), &           ! B
+                      nmatmax, &          ! LDB ... leading dimension of B
+                      zone, &          ! beta
+                      zhlo, &  ! C
+                      mt_hscf%maxnlo &      ! LDC ... leading dimension of C
+                      )
+          call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      mt_hscf%maxaa, &          ! M ... rows of op( A ) = rows of C
+                      nstfv, &           ! N ... cols of op( B ) = cols of C
+                      mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      mt_hscf%beta%alo(:,:,ias), &        ! A
+                      mt_hscf%maxaa,&           ! LDA ... leading dimension of A
+                      evecfv(offset+1,1), &           ! B
+                      nmatmax, &          ! LDB ... leading dimension of B
+                      zone, &          ! beta
+                      zhwf, &  ! C
+                      mt_hscf%maxaa &      ! LDC ... leading dimension of C
+                      )
+
+          call zgemm('C', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      nstfv, &          ! M ... rows of op( A ) = rows of C
+                      nstfv, &           ! N ... cols of op( B ) = cols of C
+                      mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      evecfv(offset+1,1), &        ! A
+                      nmatmax,&           ! LDA ... leading dimension of A
+                      zhlo, &           ! B
+                      mt_hscf%maxnlo, &          ! LDB ... leading dimension of B
+                      zone, &          ! beta
+                      evecsv(nstfv+1,nstfv+1), &  ! C
+                      nstfv*2 &      ! LDC ... leading dimension of C
+                      )
+
+endif
+
+          call zgemm('C', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      nstfv, &          ! M ... rows of op( A ) = rows of C
+                      nstfv, &           ! N ... cols of op( B ) = cols of C
+                      mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      zwf, &        ! A
+                      mt_hscf%maxaa,&           ! LDA ... leading dimension of A
+                      zhwf, &           ! B
+                      mt_hscf%maxaa, &          ! LDB ... leading dimension of B
+                      zone, &          ! beta
+                      evecsv(nstfv+1,nstfv+1), &  ! C
+                      nstfv*2 &      ! LDC ... leading dimension of C
+                      )
+! alpha-beta block
+if (ncmag) then
+          call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      mt_hscf%maxaa, &          ! M ... rows of op( A ) = rows of C
+                      nstfv, &           ! N ... cols of op( B ) = cols of C
+                      mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      mt_hscf%ab%aa(:,:,ias), &        ! A
+                      mt_hscf%maxaa,&           ! LDA ... leading dimension of A
+                      zwf, &           ! B
+                      mt_hscf%maxaa, &          ! LDB ... leading dimension of B
+                      zzero, &          ! beta
+                      zhwf, &  ! C
+                      mt_hscf%maxaa &      ! LDC ... leading dimension of C
+                      )
+if (mt_hscf%maxnlo.gt.0) then
+          call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      mt_hscf%losize(is), &          ! M ... rows of op( A ) = rows of C
+                      nstfv, &           ! N ... cols of op( B ) = cols of C
+                      mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      mt_hscf%ab%loa(:,:,ias), &        ! A
+                      mt_hscf%maxnlo,&           ! LDA ... leading dimension of A
+                      zwf, &           ! B
+                      mt_hscf%maxaa, &          ! LDB ... leading dimension of B
+                      zzero, &          ! beta
+                      zhlo, &  ! C
+                      mt_hscf%maxnlo &      ! LDC ... leading dimension of C
+                      )
+          call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      mt_hscf%losize(is), &          ! M ... rows of op( A ) = rows of C
+                      nstfv, &           ! N ... cols of op( B ) = cols of C
+                      mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      mt_hscf%ab%lolo(:,:,ias), &        ! A
+                      mt_hscf%maxnlo,&           ! LDA ... leading dimension of A
+                      evecfv(offset+1,1), &           ! B
+                      nmatmax, &          ! LDB ... leading dimension of B
+                      zone, &          ! beta
+                      zhlo, &  ! C
+                      mt_hscf%maxnlo &      ! LDC ... leading dimension of C
+                      )
+          call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      mt_hscf%maxaa, &          ! M ... rows of op( A ) = rows of C
+                      nstfv, &           ! N ... cols of op( B ) = cols of C
+                      mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      mt_hscf%ab%alo(:,:,ias), &        ! A
+                      mt_hscf%maxaa,&           ! LDA ... leading dimension of A
+                      evecfv(offset+1,1), &           ! B
+                      nmatmax, &          ! LDB ... leading dimension of B
+                      zone, &          ! beta
+                      zhwf, &  ! C
+                      mt_hscf%maxaa &      ! LDC ... leading dimension of C
+                      )
+
+          call zgemm('C', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      nstfv, &          ! M ... rows of op( A ) = rows of C
+                      nstfv, &           ! N ... cols of op( B ) = cols of C
+                      mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      evecfv(offset+1,1), &        ! A
+                      nmatmax,&           ! LDA ... leading dimension of A
+                      zhlo, &           ! B
+                      mt_hscf%maxnlo, &          ! LDB ... leading dimension of B
+                      zone, &          ! beta
+                      evecsv(1,nstfv+1), &  ! C
+                      nstfv*2 &      ! LDC ... leading dimension of C
+                      )
+
+endif
+
+          call zgemm('C', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      nstfv, &          ! M ... rows of op( A ) = rows of C
+                      nstfv, &           ! N ... cols of op( B ) = cols of C
+                      mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      zwf, &        ! A
+                      mt_hscf%maxaa,&           ! LDA ... leading dimension of A
+                      zhwf, &           ! B
+                      mt_hscf%maxaa, &          ! LDB ... leading dimension of B
+                      zone, &          ! beta
+                      evecsv(1,nstfv+1), &  ! C
+                      nstfv*2 &      ! LDC ... leading dimension of C
+                      )
+endif
+
+        offset=offset+mt_hscf%losize(is)
+      enddo
+      enddo
+!do i=1,mt_h%maxnlo
+!  write(*,*) dble(mt_h%alpha%lolo(i,2,1))
+!enddo
+
+!write(*,*)
+
+        deallocate(zhwf,zhlo)
+        deallocate(apwi)
+        deallocate(zwf)
+
+      endif
+
+! Debugging info
+!do ist=1,nstsv
+!  write(*,*) evecsv(2,ist)
+!enddo
+!stop
+
 !---------------------------!
 !     interstitial part     !
 !---------------------------!
@@ -298,7 +674,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Allocate (zv(ngkmax, nsc))
 #ifdef USEOMP
 !$OMP DO
-#endif 
+#endif
 
          Do jst = 1, nstfv
             zfft1 (:) = 0.d0
@@ -350,9 +726,14 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       deallocate (zfft1,zfft2,zv)
 #ifdef USEOMP
 !$OMP END PARALLEL
-#endif 
+#endif
       End If
 
+
+!do i=1,nstsv
+!  write(*,*) dble(evecsv(i,nstfv+4))
+!enddo
+!stop
 !-----------------------------------------
 ! add the diagonal first-variational part
 !-----------------------------------------
@@ -363,35 +744,10 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
             evecsv (i, i) = evecsv (i, i) + evalfv (ist)
          End Do
       End Do
-      
-!---------------------------------------------------------      
-! add the second-variational \Sigma_x matrix elements
-!---------------------------------------------------------
-      if (associated(input%groundstate%Hybrid)) then
-         if (input%groundstate%Hybrid%exchangetypenumber == 1) then
-            ! Update Hamiltonian
-            if (ihyb>0) evecsv(:,:) = &
-            &  evecsv(:,:) + ex_coef*bxnl(:,:,ik)
-         end if
-      end if      
-      
 ! diagonalise second-variational Hamiltonian
       call timesec(ta)
       If (ndmag .Eq. 1) Then
 ! collinear: block diagonalise H
-!         do i=1,nstfv
-!           write(*,*) dble(evecsv(i,i)),dimag(evecsv(i,i))
-!         enddo
-!       do i=1,nstfv
-!        do j=1,nstfv
-!          write(*,*) dble(evecsv(j,i)),dimag(evecsv(j,i))
-!        enddo
-!       enddo
-!stop
-!         write(*,*) dble(sum(evecsv(1:nstfv,1:nstfv))),dimag(sum(evecsv(1:nstfv,1:nstfv)))
-!         write(*,*) dble(sum(evecsv(nstfv+1:2*nstfv,nstfv+1:2*nstfv))),dimag(sum(evecsv(nstfv+1:2*nstfv,nstfv+1:2*nstfv)))
-!         write(*,*) 'sv'
-!         stop
          Call zheev ('V', 'U', nstfv, evecsv, nstsv, evalsv(:, ik), &
         & work, lwork, rwork, info)
          If (info .Ne. 0) Go To 20
@@ -417,14 +773,14 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       call timesec(tb)
 !      write(*,*) 'sv / diagonalization', tb-ta
 
-      timesv = timesv + ts1 - ts0       
+      timesv = timesv + ts1 - ts0
 !$OMP CRITICAL
 !!      timesv = timesv + ts1 - ts0
 !$OMP END CRITICAL
       Return
 20    Continue
       Write (*,*)
-      Write (*, '("Error(seceqnsv):& 
+      Write (*, '("Error(seceqnsv):&
      & diagonalisation of the second-variational Hamiltonian failed")')
       Write (*, '(" for k-point ", I8)') ik
       Write (*, '(" ZHEEV returned INFO = ", I8)') info

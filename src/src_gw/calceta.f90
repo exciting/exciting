@@ -12,8 +12,7 @@ function calceta() result(neta)
 !
 ! !USES:
 
-    use modmain,     only: bvec, pi
-    use mod_misc_gw, only: avec
+    use modmain,     only: avec, bvec, pi
 
 ! !LOCAL VARIABLES:
 

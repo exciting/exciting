@@ -3,7 +3,8 @@
 	
 SOURCEDIRS=	\
 	../../src/ \
-	../../src/src_xs/ ../../src/src_xs/modtetra \
+	../../src/src_xs/ \
+	../../src/src_xs/modtetra \
 	../../src/src_fermisurfdx/ \
 	../../src/src_iterative_solver/ \
 	../../src/src_iterative_solver/src_diis/ \
@@ -12,7 +13,7 @@ SOURCEDIRS=	\
 	../../src/src_optics/ \
 	../../src/src_LDAU/ \
 	../../src/src_rdmft/ \
-	../../src/src_lib/ \
+	../../src/src_lib/ ../../src/src_lib/bessel \
 	../../src/src_advanced/ \
 	../../src/src_eigensystem/ \
 	../../src/src_mpi/ \
@@ -21,7 +22,7 @@ SOURCEDIRS=	\
 	../../src/src_inputparser/ \
 	../../src/src_sym/ \
 	../../src/src_hybrids/ \
-        ../../src/src_raman/ \
+    ../../src/src_raman/ \
 	../../src/src_stm/ \
 	../../src/src_vdW/ \
 	../../src/src_gw/ \
@@ -30,8 +31,8 @@ SOURCEDIRS=	\
 	../../src/src_gw/src_tests \
 	../../src/src_wannier
 	
-GeneratedFiles=  ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90	
-LIBXCMOD= ../../src/libXC/src/libxc.f90  ../../src/libXC/src/libxc_funcs.f90
+GeneratedFiles = ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90
+LIBXCMOD = ../../src/libXC/src/libxc.f90 ../../src/libXC/src/libxc_funcs.f90
 
 #all:bin
 
@@ -39,13 +40,12 @@ LIBXCMOD= ../../src/libXC/src/libxc.f90  ../../src/libXC/src/libxc_funcs.f90
 # Make makefile using template from all source dirs and files
 # Make exciting unsing the generated make files
 # Copy executable and append suffix
-bin::../make.inc libs $(GeneratedFiles)  $(LIBXCMOD)
+bin::../make.inc libs $(GeneratedFiles) $(LIBXCMOD)
 	perl ../../build/utilities/versionstamp.pl 
 	../../build/utilities/mkmf -t ./template -f -m Makefile.mkmf\
-         -p exciting $(SOURCEDIRS)  $(LIBXCMOD) ../../src/mainxml/\
-        && $(MAKE) -f Makefile.mkmf exciting
+         -p exciting $(SOURCEDIRS) $(LIBXCMOD) ../../src/mainxml/\
+         && $(MAKE) -f Makefile.mkmf exciting
 	cp exciting ../../bin/exciting$(SUFFIX)
-	
 	
 doc::
 	cd ./docs/exciting; \
@@ -56,12 +56,12 @@ tidy::
 	perl ../../build/utilities/scripts/prettyprint.pl $(SOURCEDIRS)
 
 ifeq ($(USE_SYS_LAPACK),true)
-libs::  libbzint.a fftlib.a libarpack.a libmsec.a libfox leblaiklib.a libxc.a liblbfgs.a
+libs:: libfox libbzint.a fftlib.a libarpack.a libmsec.a leblaiklib.a libxc.a liblbfgs.a
 endif
 
 ifeq ($(USE_SYS_LAPACK),)
-libs::  libbzint.a libblas.a liblapack.a fftlib.a libarpack.a libmsec.a \
-	libfox leblaiklib.a libxc.a liblbfgs.a
+libs:: libfox libbzint.a libblas.a liblapack.a fftlib.a libarpack.a libmsec.a \
+	leblaiklib.a libxc.a liblbfgs.a
 endif
 
 # Blas and lapack (usually system libs)

@@ -32,7 +32,7 @@
 \hypersetup{colorlinks=true}
 \begin{document}
 \setlength{\LTleft}{0pt}
-\newcommand{\vect}[1]{\mathbf{ #1}} 
+\newcommand{\vect}[1]{\mathbf{ #1}}
 \newcommand{\op}[1]{\mathbf {#1}}
 \newcommand{\bra}[1]{\ensuremath{\left\langle #1\right|}}
 \newcommand{\ket}[1]{\ensuremath{\left|#1\right\rangle}}
@@ -56,11 +56,10 @@
 \ \\
 \Huge \textbf{</xsl:text><xsl:apply-templates select="/xs:schema/xs:annotation/xs:appinfo/title"/><xsl:text>} \\
 \ \\
-\huge \textbf{\exciting \texttt{carbon}} \\
 \Large
 \vfill
 \ \\
-December 2015
+\today
 \end{center}
 \end{titlepage}
 
@@ -77,7 +76,7 @@ December 2015
   <xsl:text>\part{Reused Elements}
   The following elements can occur more than once in the input file. Therefore they are listed separately.
   </xsl:text>
-  <xsl:for-each  
+  <xsl:for-each
    select="/*/xs:element[@name!=/xs:schema/xs:annotation/xs:appinfo/root and contains($importancelevels,@ex:importance)]">
    <xsl:variable name="name" select="@name"/>
    <xsl:if test="count(//xs:element[@ref=$name])>1">
@@ -88,7 +87,7 @@ December 2015
    </xsl:if>
   </xsl:for-each>
   <xsl:text>\section{Data Types}
- 
+
  The Input definition uses derived data types. These are described here.
   </xsl:text>
   <xsl:for-each select="/*/xs:simpleType">
@@ -101,13 +100,13 @@ December 2015
     </xsl:text>
  </xsl:template>
  <xsl:template match="displaymath">
-  <xsl:text> 
+  <xsl:text>
 \begin{equation}
 </xsl:text>
   <xsl:call-template name="normalizespace">
    <xsl:with-param name="a" select="."/>
   </xsl:call-template>
- 
+
   <xsl:text>
 \end{equation}
 </xsl:text>
@@ -172,7 +171,7 @@ December 2015
  </xsl:template>
  <xsl:template match="p">
   <xsl:text>
-  
+
   </xsl:text>
   <xsl:apply-templates select="./*|text()"/>
  </xsl:template>
@@ -186,7 +185,7 @@ December 2015
   <xsl:value-of select="."/>
   <xsl:text>}</xsl:text>
  </xsl:template>
- 
+
 
  <xsl:template match="filename">
   <xsl:text>{\usefont{T1}{lmtt}{b}{n}  </xsl:text>
@@ -200,11 +199,11 @@ December 2015
   <xsl:value-of select="$att"/>
 
   <xsl:text>}</xsl:text>
- 
+
   <xsl:text>{</xsl:text>
   <xsl:value-of select="$parent"/>
   <xsl:text>:}</xsl:text>
-  
+
  </xsl:template>
 
 
@@ -229,7 +228,7 @@ December 2015
   <xsl:text>
 </xsl:text>
  </xsl:template>
- 
+
  <xsl:template match="a">
   <xsl:text>{\usefont{T1}{lmtt}{b}{n} \color{black} </xsl:text>
   <xsl:value-of select="."/>
@@ -267,11 +266,11 @@ December 2015
     select="$myelement/*/xs:attribute[contains($importancelevels,@ex:importance)]">
     <xsl:sort select="@use='required'" order="descending"/>
     <xsl:sort select="@name|@ref"/>
-    
+
     <xsl:call-template name="attref">
      <xsl:with-param name="att" select="@name|@ref"/>
       <xsl:with-param name="parent" select="../../@name"/>
-     
+
     </xsl:call-template>
     <xsl:if test="@use='required'">
      <xsl:text> \nolinebreak {\color{red}(required)}</xsl:text>
@@ -342,7 +341,7 @@ December 2015
     <xsl:if test="not(contains($contentnode/@type,'xs:'))">
      <xsl:text> (\ref{</xsl:text>
      <xsl:value-of select="$contentnode/@type"/>
-     <xsl:text>}) 
+     <xsl:text>})
 </xsl:text>
     </xsl:if>
     <xsl:text>\\</xsl:text>
@@ -390,8 +389,8 @@ December 2015
       <xsl:text>) </xsl:text>
      </xsl:if>
 
-   
-      
+
+
      <xsl:text>  \\
 </xsl:text>
     </xsl:for-each>
@@ -449,9 +448,9 @@ December 2015
     <xsl:text> } \\
 </xsl:text>
    </xsl:for-each>
-   
+
   </xsl:if>
-  
+
   <xsl:text>
 
 \end{longtable}
@@ -466,7 +465,7 @@ December 2015
     <xsl:if test="name($node)='xs:attribute'">
      <xsl:value-of select="../../@name"/>
      <xsl:text>:att</xsl:text>
-      
+
     </xsl:if>
     <xsl:value-of select="$node/@name|$node/@ref"/>
  <xsl:text>]{</xsl:text>
@@ -503,7 +502,7 @@ December 2015
     <xsl:when test="contains($xpath,$rootel)">
      <xsl:value-of select="$xpath"/>
     </xsl:when>
-     
+
     <xsl:otherwise>
      <xsl:text>.</xsl:text>
      <xsl:value-of select="$xpath"/>
@@ -517,7 +516,7 @@ December 2015
   \subsection{Type   </xsl:text>
   <xsl:value-of select="$typenode/@name"/>
   <xsl:text>
-  } 
+  }
   \label{</xsl:text>
   <xsl:value-of select="$typenode/@name"/>
   <xsl:text>}

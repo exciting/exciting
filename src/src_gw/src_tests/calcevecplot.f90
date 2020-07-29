@@ -33,7 +33,7 @@
     complex(8), allocatable :: apwalm(:,:,:,:)
     complex(8), allocatable :: evecmtlm(:,:)
     complex(8), allocatable :: evecmt(:)
-    complex(8), allocatable :: evecsv(:,:,:)
+    complex(8), allocatable :: evecfv(:,:)
     complex(8), allocatable :: zylm(:)
     
 !EOP
@@ -50,8 +50,8 @@
     allocate(evecmtlm(lmmaxapw,nrmtmax))
     allocate(evecmt(nrmtmax))
     
-    allocate(evecsv(nmatmax,nstfv,nspinor))
-    call getevecsvgw_new('GW_EVECSV.OUT',ik,kqset%vkl(:,ik),nmatmax,nstsv,nspinor,evecsv)
+    allocate(evecfv(nmatmax,nstfv))
+    call getevecfv(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
     
     call match(Gkset%ngk(1,ik), &
     &          Gkset%gkc(:,1,ik), &
@@ -63,7 +63,7 @@
 
     ! calculate the radial wavefunctions of atom 1
     call wavefmt(1,input%groundstate%lmaxapw,is1,ia1,Gkset%ngk(1,ik), &
-    &            apwalm,evecsv(:,ib,1),lmmaxapw,evecmtlm)
+    &            apwalm,evecfv(:,ib),lmmaxapw,evecmtlm)
     call zgemv('T',lmmaxapw,nrmt(is1),zone,evecmtlm,lmmaxapw,zylm,1, &
     &          zzero,evecmt,1)
       
@@ -83,7 +83,7 @@
         &            Gkset%vgkc(2,igp,1,ik)*ri(2)+ &
         &            Gkset%vgkc(3,igp,1,ik)*ri(3))
         evec(i) = evec(i)+ &
-        &         evecsv(igp,ib,1)/sqrt(omega)*cmplx(dcos(phs),dsin(phs),8)
+        &         evecfv(igp,ib)/sqrt(omega)*cmplx(dcos(phs),dsin(phs),8)
       end do
     end do
      
@@ -97,7 +97,7 @@
     else
       call ylm(-rpath%rvec,input%groundstate%lmaxapw,zylm)
       call wavefmt(input%groundstate%lradstep,input%groundstate%lmaxapw,&
-      &    is2,ia2,Gkset%ngk(1,ik),apwalm,evecsv(:,ib,1),lmmaxapw,evecmtlm)
+      &    is2,ia2,Gkset%ngk(1,ik),apwalm,evecfv(:,ib),lmmaxapw,evecmtlm)
       call zgemv('T',lmmaxapw,nrmt(is2),zone,evecmtlm,lmmaxapw,zylm,1, &
       &    zzero,evecmt,1)
       do ir = 1, nrmt(is2)
@@ -111,7 +111,7 @@
     deallocate(zylm)
     deallocate(evecmtlm)
     deallocate(evecmt)
-    deallocate(evecsv)
+    deallocate(evecfv)
       
     return
 end subroutine

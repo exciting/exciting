@@ -3,50 +3,52 @@ use lib "./lib/XML";
 use XML::Simple;
 use XML::Writer;
 use IO::File;
-use List::Util qw[min max];
+use List::Util qw(max);
 
 sub assert_file_same_within {
 	$file1=$_[0];
 	$file2=$_[1];
 	$tol=$_[2];
-	@numbers1=[];
-	@numbers2=[];
-	$error=[];
-	open FILE1,$file1 or die "cannot open :$file1 $!";
-	open FILE2, $file2 or die "cannot open :$file2 $!";
+	@numbers1=();
+	@numbers2=();
+	@error=();
+	
+    open FILE1, $file1 or die "Cannot open $file1 $!";
+	open FILE2, $file2 or die "Cannot open $file2 $!";
 
 	while(<FILE1>)
 	{
 		$linefile1=$_;
 		$linefile2=<FILE2>;
-			while ($linefile1=~s/([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)//){
-			$n1=$1;
-			push(@numbers1,$n1)	;
-			$linefile2=~s/([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)//;
-			$n2=$1;
-			push(@numbers2,$n2);
-			push(@error,abs($n1-$n2));
-			
+		while ($linefile1=~s/([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)//){
+		    $n1=$1;
+            push(@numbers1,$n1);
+            $linefile2=~s/([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)//;
+            $n2=$1;
+            push(@numbers2,$n2);
+            push(@error,abs($n1-$n2));
  		}
 		
 	}
-        $maxerror=max(@error);
-	print "Maximal deviation = $maxerror\n";
-	$status='failed';
-        
-        if (max(@error) < $tol){
-            $status='passed';
- 	}
+    
  	close FILE1;
  	close FILE2;
+    
+    $maxerror = max(@error);
+	$status='failed';
+    if ($maxerror <= $tol){
+        $status='passed';
+ 	}
 
-%test=(status => $status,
-	line => $linenr,
-	column => $collumn, 
-	maxerror=> $maxerror,
-	averageerror=> $averageerr
+    %test=(
+        status => $status,
+        line => $linenr,
+        column => $collumn, 
+        maxerror=> $maxerror,
+        averageerror=> $averageerr
 	);
-return %test;
+    
+    return %test;
 }
 
 sub initreport{ #call with filename

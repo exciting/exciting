@@ -17,12 +17,13 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       Use mod_APW_LO, only: apwordmax
       Use mod_atoms, only: natmtot
       Use mod_muffin_tin, only: lmmaxapw
-      Use mod_eigensystem, only: nmatmax, h1on, h1aa, h1loa, h1lolo
+      Use mod_eigensystem, only: nmatmax, h1on, h1aa, h1loa, h1lolo, mt_hscf, MTRedirect
       Use mod_eigenvalue_occupancy, only: nstfv
       Use mod_potential_and_density, only: ex_coef
       Use modfvsystem
-      Use mod_hybrids, only: ihyb, vnlmat
-      use m_plotmat 
+      Use mod_hybrids,               only: vnlmat
+      use mod_misc,                  only: task
+      use m_plotmat
 !
   ! !INPUT/OUTPUT PARAMETERS:
   !   nmatp  : order of overlap and Hamiltonian matrices (in,integer)
@@ -55,7 +56,7 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       Real (8), Intent (Out) :: evalfv (nstfv)
       Complex (8), Intent (Out) :: evecfv (nmatmax, nstfv)
   ! local variables
-      Type (evsystem) :: system
+      Type (evsystem) :: system,sys2
       Logical :: packed
       Integer :: ist
       Complex (8), allocatable :: zm(:,:),zm2(:,:)
@@ -68,68 +69,41 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       packed = input%groundstate%solver%packedmatrixstorage
 
       Call newsystem (system, packed, nmatp)
+      Call newsystem (sys2, packed, nmatp)
       h1on=(input%groundstate%ValenceRelativity.eq.'iora*')
-      Call hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
-      allocate(zm(nmatp,nmatp))
-      allocate(zm2(nmatp,nstfv))
-     
-      zm=system%overlap%za
-      !write( fname, '("olp/olpcal",3I3.3)') nint( vkl( :, ik)*1000)
-      !call writematlab( zm( 1:nmatp, 1:nmatp), fname)
+      call MTRedirect(mt_hscf%main,mt_hscf%spinless)
+      Call hamiltonsetup (system, ngp, apwalm, igpig, vgpc)
+      Call overlapsetup (system, ngp, apwalm, igpig, vgpc)
+
   !------------------------------------------------------------------------!
-  !     If Hybrid potential is used apply the non-local exchange potential !
+  !   If Hybrid potential is used apply the non-local exchange potential !
   !------------------------------------------------------------------------!
-      if (associated(input%groundstate%Hybrid)) then
-         if (input%groundstate%Hybrid%exchangetypenumber == 1) then
-            ! Update Hamiltonian
-            if (ihyb > 0) system%hamilton%za(:,:) = &
-            &  system%hamilton%za(:,:) + ex_coef*vnlmat(1:nmatp,1:nmatp,ik)
-         end if
+      if (task == 7) then
+          system%hamilton%za(:,:) = system%hamilton%za(:,:) + &
+                                    ex_coef*vnlmat(1:nmatp,1:nmatp,ik)
       end if
 
   !------------------------------------!
   !     solve the secular equation     !
   !------------------------------------!
       Call solvewithlapack(system,nstfv,evecfv,evalfv)
-      call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
-                 'N', &           ! TRANSB = 'N'  op( B ) = B.
-                  nmatp, &          ! M ... rows of op( A ) = rows of C
-                  nstfv, &           ! N ... cols of op( B ) = cols of C
-                  nmatp, &          ! K ... cols of op( A ) = rows of op( B )
-                  zone, &          ! alpha
-                  zm, &           ! A
-                  nmatp,&           ! LDA ... leading dimension of A
-                  evecfv, &           ! B
-                  nmatmax, &          ! LDB ... leading dimension of B
-                  zzero, &          ! beta
-                  zm2, &  ! C
-                  nmatp &      ! LDC ... leading dimension of C
-                  )
-     !write(*,'(I3,3F13.6,I3)') ik, vkl( :, ik), nmatp
-     !write( fname, '(A7,I2)') "OLPEVEC", ik
-     !call writemat( zm2, nmatp, nstfv, fname)
-     !write(*,*)
-     deallocate(zm,zm2)
 
-      
-     if (associated(input%groundstate%Hybrid)) then
-        if ((input%groundstate%Hybrid%exchangetypenumber == 1).and.(ihyb>0)) &
-        &  call KineticEnergy(ik,evecfv,apwalm,ngp,vgpc,igpig)
-     end if
+      if (task == 7) call kinetic_energy(ik,evecfv,apwalm,ngp,vgpc,igpig)
 
 if (input%groundstate%ValenceRelativity.eq.'iora*') then
 ! normalise large components
-      Call newsystem (system, packed, nmatp) 
+      Call newsystem (system, packed, nmatp)
       h1aa=0d0
       h1loa=0d0
-      h1lolo=0d0 
+      h1lolo=0d0
       h1on=.false.
-      Call hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
+!      Call hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
+      Call overlapsetup (system, ngp, apwalm, igpig, vgpc)
       call olprad
       allocate(zm(nmatp,nstfv))
       allocate(zm2(nstfv,nstfv))
-      
-   
+
+
       call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
                  'N', &           ! TRANSB = 'N'  op( B ) = B.
                   nmatp, &          ! M ... rows of op( A ) = rows of C
@@ -163,7 +137,7 @@ if (input%groundstate%ValenceRelativity.eq.'iora*') then
 !      do ist=1,nstfv
 !        write(*,*) zm2(ist,ist)
 !      enddo
-!      write(*,*) 
+!      write(*,*)
       do ist=1,nstfv
         evecfv(:,ist)=evecfv(:,ist)/sqrt(abs(zm2(ist,ist)))
       enddo

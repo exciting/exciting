@@ -3,31 +3,32 @@
 !
 module mod_hybrids
 
-    use modinput
     use modmain
     use modgw
+    use mod_coulomb_potential, only: delete_coulomb_potential
+    use mod_misc_gw, only : gammapoint
     use modmpi, only: rank
 
     implicit none
 
-    ! number of HF cycles
-    integer :: ihyb
+    ! set true if HF-Hybrids are used as starting point
+    Logical :: hybridhf
+    data hybridhf / .false. /
 
     ! non-local exchange energy
     real(8) :: exnl
 
     ! non-local exchange potential
     complex(8), allocatable :: vxnl(:,:,:)
-    complex(8), allocatable :: vxnlcc(:,:)
-    complex(8), allocatable :: bxnl(:,:,:)
 
     ! APW matrix elements of the non-local potential
     complex(8), allocatable :: vnlmat(:,:,:)
 
-    ! complex(8), allocatable :: minmmat(:,:,:)
-    ! complex(8), allocatable :: mincmat(:,:,:)
-    ! complex(8), allocatable :: micmmat(:,:,:)
-    complex(8), allocatable :: miccmat(:,:,:)
+    ! File names
+    character(80) :: fname_vxnl
+    data fname_vxnl / 'VXNL.OUT' /
+    character(80) :: fname_vxnlmat
+    data fname_vxnlmat / 'VXNLMAT.OUT' /
 
 !*******************************************************************************
 contains
@@ -43,10 +44,10 @@ contains
         call delete_product_basis
         call delete_core_states
 
-        if (allocated(minmmat)) deallocate(minmmat)
-        if (allocated(mincmat)) deallocate(mincmat)
-        if (allocated(micmmat)) deallocate(micmmat)
-        if (allocated(miccmat)) deallocate(miccmat)
+        nullify(input%gw%MixBasis)
+        nullify(input%gw%BareCoul)
+        nullify(input%gw)
+        call rereadinput()
 
         return
     end subroutine

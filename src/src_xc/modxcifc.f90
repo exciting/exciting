@@ -4,17 +4,21 @@
 ! See the file COPYING for license details.
 
 module modxcifc
-
 use libxcifc
+!Use scl_xml_out_Module
 
 contains
 
 !BOP
 ! !ROUTINE: xcifc
 ! !INTERFACE:
+
+!subroutine xcifc(xctype,n,rho,rhoup,rhodn,grho,gup,gdn,g2rho,g2up,g2dn,g3rho, &
+! g3up,g3dn,grho2,gup2,gdn2,gupdn,ex,ec,vx,vc,vxup,vxdn,vcup,vcdn,dxdg2,dxdgu2, &
+! dxdgd2,dxdgud,dcdg2,dcdgu2,dcdgd2,dcdgud)
 subroutine xcifc(xctype,n,rho,rhoup,rhodn,grho,gup,gdn,g2rho,g2up,g2dn,g3rho, &
- g3up,g3dn,grho2,gup2,gdn2,gupdn,ex,ec,vx,vc,vxup,vxdn,vcup,vcdn,dxdg2,dxdgu2, &
- dxdgd2,dxdgud,dcdg2,dcdgu2,dcdgd2,dcdgud)
+ g3up,g3dn,grho2,gup2,gdn2,gupdn,ex,ec,exsr,vx,vc,vxsr,vxsrup,vxsrdn,v2xsr,v2xsrup,v2xsrdn,vxup,vxdn,vcup,vcdn,dxdg2,&
+ dxdgu2,dxdgd2,dxdgud,dcdg2,dcdgu2,dcdgd2,dcdgud)
 ! !INPUT/OUTPUT PARAMETERS:
 !   xctype : type of exchange-correlation functional (in,integer(3))
 !   n      : number of density points (in,integer)
@@ -38,6 +42,7 @@ subroutine xcifc(xctype,n,rho,rhoup,rhodn,grho,gup,gdn,g2rho,g2up,g2dn,g3rho, &
 !   ec     : correlation energy density (out,real(n),optional)
 !   vx     : spin-unpolarised exchange potential (out,real(n),optional)
 !   vc     : spin-unpolarised correlation potential (out,real(n),optional)
+!   v2xsr  : spin-unpolarised short-range exchange potential second term(out,real(n),optional)
 !   vxup   : spin-up exchange potential (out,real(n),optional)
 !   vxdn   : spin-down exchange potential (out,real(n),optional)
 !   vcup   : spin-up correlation potential (out,real(n),optional)
@@ -58,6 +63,7 @@ subroutine xcifc(xctype,n,rho,rhoup,rhodn,grho,gup,gdn,g2rho,g2up,g2dn,g3rho, &
 !   Modiefied Januar 2013 (UW)
 !EOP
 !BOC
+Use modinput, only: input
 implicit none
 ! mandatory arguments
 integer, intent(in) :: xctype(3)
@@ -83,6 +89,13 @@ real(8), optional, intent(out) :: ex(*)
 real(8), optional, intent(out) :: ec(*)
 real(8), optional, intent(out) :: vx(*)
 real(8), optional, intent(out) :: vc(*)
+real(8), optional, intent(out) :: exsr(*)
+real(8), optional, intent(out) :: vxsr(*)
+real(8), optional, intent(out) :: vxsrup(*)
+real(8), optional, intent(out) :: vxsrdn(*)
+real(8), optional, intent(out) :: v2xsr(*)
+real(8), optional, intent(out) :: v2xsrup(*)
+real(8), optional, intent(out) :: v2xsrdn(*)
 real(8), optional, intent(out) :: vxup(*)
 real(8), optional, intent(out) :: vxdn(*)
 real(8), optional, intent(out) :: vcup(*)
@@ -97,8 +110,23 @@ real(8), optional, intent(out) :: dcdgd2(*)
 real(8), optional, intent(out) :: dcdgud(*)
 ! local variables
 real(8) kappa,mu,beta
+! local variable for PBE short-range (hybrid HSE)
+real(8) omega_hyb
 ! automatic arrays
 real(8), allocatable :: ra(:,:)
+! test variables
+real(8) :: rho1, grho1, ex1, vx1, v2xsr1
+integer :: iflag, i
+!variable for HSE
+real(8), allocatable:: exsrup(:), exsrdn(:)
+real(8) :: t1
+
+if (allocated(exsrup)) deallocate(exsrup)
+allocate(exsrup(n))
+if (allocated(exsrdn)) deallocate(exsrdn)
+allocate(exsrdn(n))
+exsrup(1:n)=0.d0
+exsrup(1:n)=0.d0
 if (n.le.0) then
   write(*,*)
   write(*,'("Error(xcifc): n <= 0 : ",I8)') n
@@ -115,6 +143,13 @@ case(1)
   if (present(ec)) ec(1:n)=0.d0
   if (present(vx)) vx(1:n)=0.d0
   if (present(vc)) vc(1:n)=0.d0
+  if (present(exsr)) exsr(1:n)=0.d0
+  if (present(vxsr)) vxsr(1:n)=0.d0
+  if (present(vxsrup)) vxup(1:n)=0.d0
+  if (present(vxsrdn)) vxdn(1:n)=0.d0
+  if (present(v2xsr)) v2xsr(1:n)=0.d0
+  if (present(v2xsrup)) v2xsrup(1:n)=0.d0
+  if (present(v2xsrdn)) v2xsrdn(1:n)=0.d0
   if (present(vxup)) vxup(1:n)=0.d0
   if (present(vxdn)) vxdn(1:n)=0.d0
   if (present(vcup)) vcup(1:n)=0.d0
@@ -129,7 +164,7 @@ case(2)
   else
     goto 10
   end if
-case(3,407,408)
+case(3,407)
 ! Perdew-Wang parameterisation of the spin-polarised Ceperley-Alder electron gas
 ! J. Perdew and Y. Wang, Phys. Rev. B 45, 13244 (1992)
 ! D.M. Ceperly and B.J. Alder, Phys. Rev. Lett. 45, 566 (1980)
@@ -178,7 +213,7 @@ case(5)
   else
     goto 10
   end if
-case(20,21,22,300,406)
+case(20,21,22,300,406,408,23)
 ! original PBE kappa
   kappa=0.804d0
   if (xctype(1).eq.21) then
@@ -200,25 +235,82 @@ case(20,21,22,300,406)
 ! Perdew-Burke-Ernzerhof generalised gradient approximation
 ! Phys. Rev. Lett. 77, 3865 (1996); 78, 1396(E) (1997)
 ! Revised PBE, Zhang-Yang, Phys. Rev. Lett. 80, 890 (1998)
+! CECI add reference for PBE short-range
   if (present(rhoup).and.present(rhodn).and.present(grho).and.present(gup) &
    .and.present(gdn).and.present(g2up).and.present(g2dn).and.present(g3rho) &
    .and.present(g3up).and.present(g3dn).and.present(ex).and.present(ec) &
    .and.present(vxup).and.present(vxdn).and.present(vcup) &
    .and.present(vcdn)) then
-    call xc_pbe(n,kappa,mu,beta,rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho,g3up, &
-     g3dn,ex,ec,vxup,vxdn,vcup,vcdn)
+    if (xctype(1)==23) then
+       omega_hyb=0.000001d0 !CECI test
+       call gga_x_wpbeh_spin(n,rhoup,gup,exsrup,vxsrup,v2xsrup,omega_hyb)
+       call gga_x_wpbeh_spin(n,rhodn,gdn,exsrdn,vxsrdn,v2xsrdn,omega_hyb)
+       call xc_pbe(n,kappa,mu,beta,rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho,g3up, &
+       g3dn,ex,ec,vxup,vxdn,vcup,vcdn)
+       do i=1,n
+         t1=rhoup(i)+rhodn(i)
+         exsr(i)=(exsrup(i)*rhoup(i)+exsrdn(i)*rhodn(i))/t1 
+         !exsr(i)=0.5d0*(exsrup(i)+exsrdn(i))
+       enddo
+       !v2xsrup(1:n)=2.d0*v2xsrup(1:n)
+       !v2xsrdn(1:n)=2.d0*v2xsrdn(1:n)
+       ex(1:n)=0.d0
+       vxup(1:n)=0.d0
+       vxdn(1:n)=0.d0
+    else if (xctype(1)==408) then
+       omega_hyb=input%groundstate%Hybrid%omega
+       call gga_x_wpbeh_spin(n,rhoup,gup,exsrup,vxsrup,v2xsrup,omega_hyb)
+       call gga_x_wpbeh_spin(n,rhodn,gdn,exsrdn,vxsrdn,v2xsrdn,omega_hyb)
+       do i=1,n
+         t1=rhoup(i)+rhodn(i)
+         exsr(i)=(exsrup(i)*rhoup(i)+exsrdn(i)*rhodn(i))/t1
+       enddo
+       call xc_pbe(n,kappa,mu,beta,rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho,g3up, &
+       g3dn,ex,ec,vxup,vxdn,vcup,vcdn)
+    else
+       call xc_pbe(n,kappa,mu,beta,rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho,g3up, &
+       g3dn,ex,ec,vxup,vxdn,vcup,vcdn)
+    endif
+
   else if (present(rho).and.present(grho).and.present(g2rho) &
    .and.present(g3rho).and.present(ex).and.present(ec).and.present(vx) &
    .and.present(vc)) then
-    allocate(ra(n,6))
-    ra(1:n,1)=0.5d0*rho(1:n)
-    ra(1:n,2)=0.5d0*grho(1:n)
-    ra(1:n,3)=0.5d0*g2rho(1:n)
-    ra(1:n,4)=0.25d0*g3rho(1:n)
-    call xc_pbe(n,kappa,mu,beta,ra(:,1),ra(:,1),grho,ra(:,2),ra(:,2),ra(:,3), &
-     ra(:,3),g3rho,ra(:,4),ra(:,4),ex,ec,vx,ra(:,5),vc,ra(:,6))
-    deallocate(ra)
+    if (xctype(1)==23) then
+       omega_hyb=0.00000001d0 !CECI test
+       call gga_x_wpbeh(n,rho,grho,exsr,vxsr,v2xsr,omega_hyb)
+       allocate(ra(n,6))
+       ra(1:n,1)=0.5d0*rho(1:n)
+       ra(1:n,2)=0.5d0*grho(1:n)
+       ra(1:n,3)=0.5d0*g2rho(1:n)
+       ra(1:n,4)=0.25d0*g3rho(1:n)
+       call xc_pbe(n,kappa,mu,beta,ra(:,1),ra(:,1),grho,ra(:,2),ra(:,2),ra(:,3), &
+       ra(:,3),g3rho,ra(:,4),ra(:,4),ex,ec,vx,ra(:,5),vc,ra(:,6))
+       ex(1:n)=0.d0
+       vx(1:n)=0.d0
+       deallocate(ra)
+    else if (xctype(1)==408) then
+       omega_hyb=input%groundstate%Hybrid%omega
+       call gga_x_wpbeh(n,rho,grho,exsr,vxsr,v2xsr,omega_hyb)
+       allocate(ra(n,6))
+       ra(1:n,1)=0.5d0*rho(1:n)
+       ra(1:n,2)=0.5d0*grho(1:n)
+       ra(1:n,3)=0.5d0*g2rho(1:n)
+       ra(1:n,4)=0.25d0*g3rho(1:n)
+       call xc_pbe(n,kappa,mu,beta,ra(:,1),ra(:,1),grho,ra(:,2),ra(:,2),ra(:,3), &
+       ra(:,3),g3rho,ra(:,4),ra(:,4),ex,ec,vx,ra(:,5),vc,ra(:,6))
+       deallocate(ra)
+    else
+       allocate(ra(n,6))
+       ra(1:n,1)=0.5d0*rho(1:n)
+       ra(1:n,2)=0.5d0*grho(1:n)
+       ra(1:n,3)=0.5d0*g2rho(1:n)
+       ra(1:n,4)=0.25d0*g3rho(1:n)
+       call xc_pbe(n,kappa,mu,beta,ra(:,1),ra(:,1),grho,ra(:,2),ra(:,2),ra(:,3), &
+       ra(:,3),g3rho,ra(:,4),ra(:,4),ex,ec,vx,ra(:,5),vc,ra(:,6))
+       deallocate(ra)
+     endif
   else
+
     goto 10
   end if
 case(26)
@@ -351,6 +443,10 @@ case(22)
   xcdescr='PBEsol, Phys. Rev. Lett. 100, 136406 (2008)'
   xcspin=1
   xcgrad=1
+case(23)
+  xcdescr='PBE short range:testonly'
+  xcspin=1
+  xcgrad=1
 case(26)
   xcdescr='Wu-Cohen exchange + PBE correlation, Phys. Rev. B 73, 235116 (2006)'
   xcspin=0
@@ -365,12 +461,16 @@ case(300)
   xcgrad=1
 case(406)
   xcdescr='PBE0, M. Ernzerhof, G. E. Scuseria, J. Chem. Phys. 110 , 5029 (1999)'
-  xcspin=0
+  xcspin=1
   xcgrad=1
 case(407)
   xcdescr='LDA0 (test only)'
   xcspin=1
   xcgrad=0
+case(408)
+  xcdescr='HSE, Jochen Heyd; Gustavo E. Scuseria; Matthias Ernzerhof, J. Chem. Phys. 118, 8207 (2003)'
+  xcspin=1
+  xcgrad=1
 case(100)
 ! libxc library functionals
   call xcdata_libxc(xctype,xcdescr,xcspin,xcgrad,ex_coef)

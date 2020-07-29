@@ -19,8 +19,6 @@ Subroutine mapxsparameters
      & input%xs%reduceq
       input%groundstate%rgkmax = input%xs%rgkmax
       input%groundstate%swidth = input%xs%swidth
-      input%groundstate%lmaxapw = input%xs%lmaxapw
-      input%groundstate%lmaxmat = input%xs%lmaxmat
       input%groundstate%nempty = input%xs%nempty
       If (associated(input%groundstate%spin)) Then
          input%groundstate%spin%bfieldc (:) = input%xs%bfieldc(:)

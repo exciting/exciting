@@ -20,7 +20,7 @@ info:
 all: info serial mpi
 
 serial:
-	cd build/serial; $(MAKE) 
+	cd build/serial; $(MAKE)
 
 mpi:
 	cd build/mpi; $(MAKE)
@@ -34,8 +34,8 @@ debugmpi:
 test::
 	cd test/; $(MAKE) summary
 
-
-doc:  spacegroupdoc stateconvertdoc stateinfodoc inputdoc excitingfuncdoc Splitt_inputdoc speciesdoc 
+doc: inputdoc split_inputdoc speciesdoc
+# doc:  spacegroupdoc stateconvertdoc stateinfodoc inputdoc excitingfuncdoc split_inputdoc speciesdoc
 
 excitingfuncdoc::
 	$(MAKE) -f build/Make.common doc
@@ -65,11 +65,11 @@ inputdoc::expandedschema
 	pdflatex excitinginput.tex;\
 	pdflatex excitinginput.tex
 
-Splitt_inputdoc::
+split_inputdoc::
 	cd xml/schema && $(MAKE)
 
-inputdocwiki:xml/schema/*.xsd 
-	cd xml/schema; $(MAKE) 
+inputdocwiki:xml/schema/*.xsd
+	cd xml/schema; $(MAKE)
 
 stateconvertdoc::
 	cd src/stateconvert; $(MAKE) doc;\
@@ -89,7 +89,7 @@ stateinfo::
 	cd src/stateinfo; $(MAKE)
 
 stateconvert::
-	cd src/stateconvert; $(MAKE)  
+	cd src/stateconvert; $(MAKE)
 
 species::
 	cd src/species; $(MAKE)
@@ -118,15 +118,15 @@ clean:
 	cd test; $(MAKE) cleantests
 
 libxcclean:
-	cd src/libXC && make clean 
+	cd src/libXC && make clean
 
 tgz::doc #libxcclean
 	tar --exclude-from=".gitignore"  --transform 's,^,exciting/,' -c -v -f ./exciting.tar *
-	gzip  -f --best ./exciting.tar 
-	du -h ./exciting.tar.gz 
+	gzip  -f --best ./exciting.tar
+	du -h ./exciting.tar.gz
 
 tidy:
-	perl setup.pl tidy $(MAKE) 
+	perl setup.pl tidy $(MAKE)
 
 vdwdf:
 	cd src/src_vdwdf

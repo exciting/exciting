@@ -1,18 +1,10 @@
 
 subroutine gwtasklauncher()
-   
-  use modinput
-  use modmain, only: task
-  use inputdom
+    use modinput
+    use inputdom
 
-  if (associated(input%gw)) then
-     call rereadinput
-     task = 1
-     call gw_main
-  else
-     write (*,*) "error gwtasklauncher"
-     stop
-  end if
+    call rereadinput()
+    call gw_main()
 
-  return
+    return
 end subroutine gwtasklauncher

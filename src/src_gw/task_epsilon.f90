@@ -2,8 +2,9 @@
 subroutine task_epsilon
 
     use modinput
-    use modmain,               only : zzero, evalsv, efermi
+    use modmain,               only: zzero, efermi
     use modgw
+    use mod_coulomb_potential
     use mod_mpi_gw
     use m_getunit
     use mod_hdf5
@@ -50,7 +51,7 @@ subroutine task_epsilon
     end if
     
     ! occupancy dependent BZ integration weights
-    call kintw
+    call kintw()
     
     !===========================================================================
     ! Main loop: BZ integration
@@ -172,7 +173,7 @@ subroutine task_epsilon
     end do ! iq      
     
     deallocate(epsilon_)    
-    if (allocated(evalsv)) deallocate(evalsv)
+    if (allocated(evalfv)) deallocate(evalfv)
     call delete_freqgrid(freq)
     call delete_k_vectors(kset)
     call delete_G_vectors(Gset)

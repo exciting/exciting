@@ -19,9 +19,10 @@ subroutine writepmatxs
   use mod_eigenvalue_occupancy, only: nstfv, nstsv
   use modxas, only: ncg
   use modxs, only: tscreen, fnpmat, fnpmat_t, kpari,&
-                  & kparf, hybridhf, ripaa, ripalo,&
+                  & kparf, ripaa, ripalo,&
                   & riploa, riplolo, apwcmt, locmt,&
                   & unitout, iqmtgamma
+  use mod_hybrids, only: hybridhf
   use m_putpmat
   use m_genfilname
 

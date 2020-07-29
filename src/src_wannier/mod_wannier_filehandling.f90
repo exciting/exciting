@@ -1,17 +1,18 @@
 module mod_wannier_filehandling
   use mod_wannier_variables
-  
-  use mod_APW_LO,               only: apwordmax, apword, nlorb, lorbl, nlotot, lolmax, lolmmax, nlomax
-  use mod_eigensystem,          only: idxlo
-  use mod_atoms,                only: natmtot, nspecies, natoms, idxas, spsymb 
-  use mod_constants,            only: twopi, zzero, zone
-  use mod_muffin_tin,           only: idxlm, lmmaxapw, nrmtmax
-  use mod_Gvector,              only: igfft, ngrid
-  use mod_Gkvector,             only: ngkmax_ptr
-  use mod_eigensystem,          only: nmatmax_ptr
-  use mod_spin,                 only: nspnfv
-  use mod_eigenvalue_occupancy, only: nstfv
-  use mod_misc,                 only: filext
+
+  use mod_APW_LO,                only: apwordmax, apword, nlorb, lorbl, nlotot, lolmax, lolmmax, nlomax
+  use mod_eigensystem,           only: idxlo
+  use mod_atoms,                 only: natmtot, nspecies, natoms, idxas, spsymb
+  use mod_constants,             only: twopi, zzero, zone
+  use mod_muffin_tin,            only: idxlm, lmmaxapw, nrmtmax
+  use mod_Gvector,               only: igfft, ngrid
+  use mod_Gkvector,              only: ngkmax_ptr
+  use mod_eigensystem,           only: nmatmax_ptr
+  use mod_spin,                  only: nspnfv
+  use mod_eigenvalue_occupancy,  only: nstfv
+  use mod_potential_and_density, only: xctype
+  use mod_misc,                  only: filext
   use modinput
   use m_getunit
   use m_plotmat
@@ -27,7 +28,7 @@ module mod_wannier_filehandling
     subroutine wannier_readsetup
       integer :: ik, ix, un, fst_, lst_, nst_, nwf_, nkpt_, nprojtot_
       logical :: success, disentangle_
-      
+
       call getunit( un)
 
       inquire( file=trim( wf_filename)//"_SETUP"//trim( filext), exist=success)
@@ -72,7 +73,7 @@ module mod_wannier_filehandling
 
     subroutine wannier_writesetup
       integer :: ik, ix, iy, un
-      
+
       call getunit( un)
 
       open( un, file=trim( wf_filename)//"_SETUP"//trim( filext), action='WRITE', form='UNFORMATTED')
@@ -165,8 +166,8 @@ module mod_wannier_filehandling
       ! groups
       do igroup = 1, wf_ngroups
         read( un) wf_groups( igroup)%method
-        read( un) wf_groups( igroup)%fst, wf_groups( igroup)%lst, wf_groups( igroup)%nst 
-        read( un) wf_groups( igroup)%fwf, wf_groups( igroup)%lwf, wf_groups( igroup)%nwf 
+        read( un) wf_groups( igroup)%fst, wf_groups( igroup)%lst, wf_groups( igroup)%nst
+        read( un) wf_groups( igroup)%fwf, wf_groups( igroup)%lwf, wf_groups( igroup)%nwf
         read( un) wf_groups( igroup)%nprojused
         read( un) wf_groups( igroup)%win_i
         read( un) wf_groups( igroup)%win_o
@@ -226,7 +227,7 @@ module mod_wannier_filehandling
       do ix = 1, wf_nwf
         read( un) wf_omega_od( ix)
       end do
-      
+
       ! centers
       do iy = 1, wf_nwf
         do ix = 1, 3
@@ -245,18 +246,18 @@ module mod_wannier_filehandling
       end if
       return
     end subroutine wannier_readtransform
-    
+
     ! writes transformation matrices to file
     subroutine wannier_writetransform
       ! local variables
       integer :: ik, ix, iy, un, igroup
-      
+
       call getunit( un)
 
       open( un, file=trim( wf_filename)//"_TRANSFORM"//trim( filext), action='WRITE', form='UNFORMATTED')
       ! global parameters
       write( un) wf_fst, wf_lst, wf_nst, wf_nwf, wf_kset%nkpt, wf_ngroups, wf_nprojtot
-      
+
       !projectors
       do ix = 1, wf_nprojtot
         write( un) wf_projst( :, ix)
@@ -265,8 +266,8 @@ module mod_wannier_filehandling
       ! groups
       do igroup = 1, wf_ngroups
         write( un) wf_groups( igroup)%method
-        write( un) wf_groups( igroup)%fst, wf_groups( igroup)%lst, wf_groups( igroup)%nst 
-        write( un) wf_groups( igroup)%fwf, wf_groups( igroup)%lwf, wf_groups( igroup)%nwf 
+        write( un) wf_groups( igroup)%fst, wf_groups( igroup)%lst, wf_groups( igroup)%nst
+        write( un) wf_groups( igroup)%fwf, wf_groups( igroup)%lwf, wf_groups( igroup)%nwf
         write( un) wf_groups( igroup)%nprojused
         write( un) wf_groups( igroup)%win_i
         write( un) wf_groups( igroup)%win_o
@@ -320,7 +321,7 @@ module mod_wannier_filehandling
       !end do
       close( un)
       return
-    end subroutine wannier_writetransform  
+    end subroutine wannier_writetransform
 
     subroutine wannier_writefun( nshell)
       !!!!!
@@ -333,6 +334,7 @@ module mod_wannier_filehandling
       integer :: lmaxapw, nlmomax, ngknr, nrpt
       integer :: un, recl, offset
       real(8) :: x
+      character(22) :: filext0
 
       integer, allocatable :: nlmo(:), lmo2l(:,:), lmo2m(:,:), lmo2o(:,:)
       complex(8), allocatable :: wanfmt(:,:,:,:), wanfir(:,:,:)
@@ -379,6 +381,17 @@ module mod_wannier_filehandling
         write(*, '("Error (wannier_writefun): wrong nlmomax")')
       end if
 
+      filext0 = filext
+      filext = '.OUT'
+      if( input%properties%wannier%input .eq. 'hybrid') then
+        filext = '_PBE.OUT'
+      else if ( input%properties%wannier%input .eq. 'gw') then
+        if (xctype(1) > 400) then
+          ! case of GW@hybrids
+          filext = '_PBE.OUT'
+        end if
+      end if
+
       call readstate
       call readfermi
       call linengy
@@ -386,6 +399,8 @@ module mod_wannier_filehandling
       call genlofr
       call olprad
       call genidxlo
+
+      filext = filext0
 
       allocate( wanfmt( nlmomax+nlotot, wf_fst:wf_lst, natmtot, nrpt))
       allocate( wanfir( wf_Gset%ngrtot, wf_fst:wf_lst, nrpt))
@@ -411,14 +426,21 @@ module mod_wannier_filehandling
 
         ! get matching coefficients
         call match( ngknr, wf_Gkset%gkc( :, 1, ik), wf_Gkset%tpgkc( :, :, 1, ik), wf_Gkset%sfacgk( :, :, 1, ik), apwalm( :, :, :, :, 1))
-          
-        ! read eigenvector      
+
+        ! read eigenvector
         if( input%properties%wannier%input .eq. "gs") then
           call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evecfv)
         else if( input%properties%wannier%input .eq. "hybrid") then
           call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evecfv)
         else if( input%properties%wannier%input .eq. "gw") then
-          call getevecsvgw_new( "GW_EVECSV.OUT", ik, wf_kset%vkl( :, ik), nmatmax_ptr, nstfv, nspnfv, evecfv)
+          if (xctype(1) >= 400) then
+            call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evecfv)
+          else
+            filext0 = filext
+            filext  = "_GW.OUT"
+            call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evecfv)
+            filext = filext0
+          end if
         else
           stop
         end if
@@ -464,7 +486,7 @@ module mod_wannier_filehandling
 
           end do
         end do
-      
+
         wfir = zzero
         do igk = 1, wf_Gkset%ngk( 1, ik)
           ifg = igfft( wf_Gkset%igkig( igk, 1, ik))
@@ -509,10 +531,10 @@ module mod_wannier_filehandling
       ! Wannier functions
       write( un) wanfmt
       write( un) wanfir
-          
+
       close( un)
       write(*,*) "WANNIER FUNCTIONS WRITTEN"
-      
+
       deallocate( wanfmt, wanfir, nlmo, lmo2l, lmo2m, lmo2o)
 
       return
@@ -529,11 +551,11 @@ module mod_wannier_filehandling
 
       integer :: i, is, ia, ias, l, o, ilo, un, wf_fst_, wf_lst_, lmaxapw_, apwordmax_, nlmomax_, nlotot_, lolmmax_, nlomax_, natmtot_, nrmtmax_, ngrtot_, ngrid_(3), idxlo_( lolmmax, nlomax, natmtot), nrpt
       logical :: exist
-    
+
       nrpt = (1 + 2*nshell)**3
 
       call getunit( un)
-    
+
       do i = 1, 100
         inquire( file=trim( wf_filename)//"_FUN"//trim( filext), exist=exist)
         if( exist) then
@@ -545,7 +567,7 @@ module mod_wannier_filehandling
           call sleep( 1)
         end if
       end do
-    
+
       read( un) wf_fst_, wf_lst_, lmaxapw_, apwordmax_, nlmomax_, nlotot_, lolmmax_, nlomax_, natmtot_, nrmtmax_, ngrtot_, ngrid_
       if( (wf_fst_ .ne. wf_fst) .or. (wf_lst_ .ne. wf_lst)) then
         write(*,*)
@@ -594,15 +616,15 @@ module mod_wannier_filehandling
 
       close( un)
       write(*,*) "WANNIER FUNCTIONS READ"
-    
+
       return
     end subroutine wannier_readfun
-    
+
     subroutine wannier_delfun
-    
+
       integer :: un
       logical :: exist
-    
+
       inquire( file=trim( wf_filename)//"_FUN"//trim( filext), exist=exist)
       if( exist) then
         call getunit( un)
@@ -610,7 +632,7 @@ module mod_wannier_filehandling
         close( un, status='delete')
         write(*,*) "WANNIER FUNCTIONS DELETED"
       end if
-    
+
       return
     end subroutine wannier_delfun
 
@@ -701,12 +723,12 @@ module mod_wannier_filehandling
       close( un)
       return
     end subroutine wannier_reademat
-    
+
     ! writes transformation matrices to file
     subroutine wannier_writeemat
       ! local variables
       integer :: i, ik, is, n, idxn, ix, iy, un
-      
+
       call getunit( un)
 
       open( un, file=trim( wf_filename)//"_EMAT"//trim( filext), action='WRITE', form='UNFORMATTED')
@@ -730,7 +752,7 @@ module mod_wannier_filehandling
       close( un)
       !write( *, '(a,a)') ' Plane-wave matrix-elements written to file ', trim( wf_filename)//"_EMAT"//trim( filext)
       return
-    end subroutine wannier_writeemat  
+    end subroutine wannier_writeemat
 
     subroutine wannier_delemat
       integer :: un
@@ -754,7 +776,7 @@ module mod_wannier_filehandling
 !#endif
       call printbox( wf_info, '*', "Local-orbitals for projection")
       write( wf_info, *)
-      
+
       write( wf_info, '(12x,"#",6x,"species",9x,"atom",12x,"l",12x,"m",7x,"groups")')
       write( wf_info, '(80("-"))')
       do i = 1, wf_nprojtot
@@ -785,7 +807,7 @@ module mod_wannier_filehandling
 !      end if
 !#endif
     end subroutine wannier_writeinfo_lo
-    
+
     subroutine wannier_writeinfo_geometry
       integer :: i, j
       real(8) :: d, v(3,1), m(3,3), tmp(3,3)
@@ -795,10 +817,10 @@ module mod_wannier_filehandling
 !#endif
       call printbox( wf_info, '*', "Brillouin zone neighbors for k-gradient")
       write( wf_info, *)
-      
+
       write( wf_info, '(" vectors to neighboring k-points (cartesian)")')
       write( wf_info, *)
-      
+
       m = 0.d0
       d = 0.d0
       do i = 1, wf_n_ntot
@@ -808,7 +830,7 @@ module mod_wannier_filehandling
         end if
         write( wf_info, '(8x,I2,4x,3(F22.10))') i, wf_n_vc( :, i)
         v(:,1) = wf_n_vc( :, i)
-        m = m + 2.0d0*wf_n_wgt( i)*matmul( v, transpose( v)) 
+        m = m + 2.0d0*wf_n_wgt( i)*matmul( v, transpose( v))
       end do
       call r3mm( m, transpose( wf_n_rot), tmp)
       call r3mm( wf_n_rot, tmp, m)
@@ -816,7 +838,7 @@ module mod_wannier_filehandling
       write( wf_info, *)
       write( wf_info, '(" vectors to neighboring k-points (lattice)")')
       write( wf_info, *)
-      
+
       d = 0.d0
       do i = 1, wf_n_ntot
         if( abs( wf_n_dist( i) - d) .gt. input%structure%epslat) then
@@ -832,7 +854,7 @@ module mod_wannier_filehandling
       write( wf_info, '(14x,3(F22.10))') m(1,:)
       write( wf_info, '(14x,3(F22.10))') m(2,:)
       write( wf_info, '(14x,3(F22.10))') m(3,:)
-      
+
 
       write( wf_info, *)
       call flushifc( wf_info)
@@ -843,7 +865,7 @@ module mod_wannier_filehandling
 !      end if
 !#endif
     end subroutine wannier_writeinfo_geometry
-    
+
     subroutine wannier_writeinfo_overall
 !#ifdef MPI
 !      if( rank .eq. 0) then
@@ -864,10 +886,10 @@ module mod_wannier_filehandling
 !      end if
 !#endif
     end subroutine wannier_writeinfo_overall
-    
+
     subroutine wannier_writeinfo_task
       character(32) :: string
-     
+
 !#ifdef MPI
 !      if( rank .eq. 0) then
 !#endif
@@ -895,11 +917,11 @@ module mod_wannier_filehandling
 !      end if
 !#endif
     end subroutine wannier_writeinfo_task
-    
+
     subroutine wannier_writeinfo_finish
       real(8) :: t
       character(64) :: string
-      
+
 !#ifdef MPI
 !      if( rank .eq. 0) then
 !#endif
@@ -915,9 +937,9 @@ module mod_wannier_filehandling
 !      end if
 !#endif
     end subroutine wannier_writeinfo_finish
-    
+
     subroutine wannier_writeinfo_results
-      use mod_lattice, only: ainv 
+      use mod_lattice, only: ainv
       integer :: i, igroup
       real(8) :: vl(3)
 

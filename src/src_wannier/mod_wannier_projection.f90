@@ -277,18 +277,10 @@ module mod_wannier_projection
               p1s( 1:nr) = t1*p1s( 1:nr)
               q0s( 1:nr) = t1*q0s( 1:nr)
               q1s( 1:nr) = t1*q1s( 1:nr)
-              if (input%groundstate%SymmetricKineticEnergy) then
-                do ir = 1, nr
-                  t1 = 1.d0/spr( ir, is)
-                  wfpro_radfun( ir, iradfun) = t1*p0s( ir)
-                end do
-              else
-                call rschrodapp( l, nr, spr( :, is), vr, p0s, q0s, q1s, hp0)
-                do ir = 1, nr
-                  t1 = 1.d0/spr( ir, is)
-                  wfpro_radfun( ir, iradfun) = t1*p0s( ir)
-                end do
-              end if
+              do ir = 1, nr
+                t1 = 1.d0/spr( ir, is)
+                wfpro_radfun( ir, iradfun) = t1*p0s( ir)
+              end do
             end do
           end do
 
