@@ -6,6 +6,9 @@ subroutine init_hybrids()
     implicit none
     integer :: lmax, ik
 
+
+    ! Time for the self-energy calculations
+    call init_timing()
     !---------------------------------------
     ! MB parameters are taken from GW
     !---------------------------------------

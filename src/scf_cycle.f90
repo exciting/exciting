@@ -26,7 +26,7 @@ subroutine scf_cycle(verbosity)
     Logical :: tibs, exist
     Integer :: ik, is, ia, idm, id
     Integer :: n, nwork
-    Integer :: i,j, ias
+    !Integer :: i,j, ias
     Real(8), Allocatable :: v(:),forcesum(:,:)
     Real(8) :: timetot, ts0, ts1, tin1, tin0, ta,tb
     character*(77) :: string, acoord
@@ -316,9 +316,10 @@ call timesec(tb)
             magir (:, :) = 0.d0
         End If
 
-! Construct the density using density matrices if .true.
+! Construct the density using density matrices if
+! input%groundstate%useDensityMatrix is .true.
 ! Otherwise use the transformation to the real space
-if (.true.) then
+if (input%groundstate%useDensityMatrix) then
         Call DMNullify(mt_dm)
         Call DMInitAll(mt_dm)
         mt_dm%alpha%ff=0d0

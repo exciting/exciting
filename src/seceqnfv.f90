@@ -41,6 +41,7 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   !
   ! !REVISION HISTORY:
   !   Created March 2004 (JKD)
+  !   Revised Aug 2020 (Ronaldo)
   !EOP
   !BOC
       Implicit None
@@ -56,11 +57,11 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       Real (8), Intent (Out) :: evalfv (nstfv)
       Complex (8), Intent (Out) :: evecfv (nmatmax, nstfv)
   ! local variables
-      Type (evsystem) :: system,sys2
+      Type (evsystem) :: system
       Logical :: packed
       Integer :: ist
       Complex (8), allocatable :: zm(:,:),zm2(:,:)
-      character( len=64) :: fname
+      !character( len=64) :: fname
 
   !----------------------------------------!
   !     Hamiltonian and overlap set up     !
@@ -69,7 +70,6 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       packed = input%groundstate%solver%packedmatrixstorage
 
       Call newsystem (system, packed, nmatp)
-      Call newsystem (sys2, packed, nmatp)
       h1on=(input%groundstate%ValenceRelativity.eq.'iora*')
       call MTRedirect(mt_hscf%main,mt_hscf%spinless)
       Call hamiltonsetup (system, ngp, apwalm, igpig, vgpc)

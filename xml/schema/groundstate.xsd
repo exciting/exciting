@@ -2454,6 +2454,15 @@
             i.e., the core states are fixed to the atomic states. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="useDensityMatrix" type="xs:boolean"
+        default="true">
+        <xs:annotation>
+          <xs:documentation> Construct the density using density matrices if
+            set to <pre>"true"</pre>. Otherwise use the transformation to the
+            real space.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="autokpt" type="xs:boolean"
         default="false">
         <xs:annotation>
