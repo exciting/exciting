@@ -40,6 +40,7 @@ Subroutine phononstasklauncher
             Call phonon
             ! restore input parameters manipulated by supercell setup
             call rereadinput
+            call writeborncharges
         end if
         if (associated(input%phonons%reformatdynmat)) then
             call reformatdynamicalmatrices

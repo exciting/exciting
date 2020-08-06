@@ -11,16 +11,16 @@
 ! !INTERFACE:
 !
 !
-Subroutine connect (cvec, plotdef, nv, np, vpl, dv, dp)
+Subroutine connect (cvec, nv, np, verts, vpl, dv, dp)
 ! !INPUT/OUTPUT PARAMETERS:
-!   cvec : matrix of (reciprocal) lattice vectors stored column-wise
-!         (in,real(3,3))
-!   nv   : number of vertices (in,integer)
-!   np   : number of connecting points (in,integer)
-!   vvl  : vertex vectors in lattice coordinates (in,real(3,nv))
-!   vpl  : connecting point vectors in lattice coordinates (out,real(3,np))
-!   dv   : cummulative distance to each vertex (out,real(nv))
-!   dp   : cummulative distance to each connecting point (out,real(np))
+!   cvec  : matrix of (reciprocal) lattice vectors stored column-wise
+!          (in,real(3,3))
+!   nv    : number of vertices (in,integer)
+!   np    : number of connecting points (in,integer)
+!   verts : vertices (in,point_type(nv))
+!   vpl   : connecting point vectors in lattice coordinates (out,real(3,np))
+!   dv    : cummulative distance to each vertex (out,real(nv))
+!   dp    : cummulative distance to each connecting point (out,real(np))
 ! !DESCRIPTION:
 !   Generates a set of points which interpolate between a given set of vertices.
 !   Vertex points are supplied in lattice coordinates in the array {\tt vvl} and
@@ -32,23 +32,24 @@ Subroutine connect (cvec, plotdef, nv, np, vpl, dv, dp)
 ! !REVISION HISTORY:
 !   Created June 2003 (JKD)
 !   Improved September 2007 (JKD)
+!   Edited July 2019 (SeTi)
 !EOP
 !BOC
       Use modinput
       Implicit None
 ! arguments
-      Real (8), Intent (In) :: cvec (3, 3)
-      Type (plot1d_type), Intent (In) :: plotdef
-      Integer, Intent (In) :: nv
-      Integer, Intent (In) :: np
-      Real (8), Intent (Out) :: vpl (3, np)
-      Real (8), Intent (Out) :: dv (nv)
-      Real (8), Intent (Out) :: dp (np)
+      Real (8), Intent (In)                :: cvec (3, 3)
+      Integer, Intent (In)                 :: nv
+      Integer, Intent (In)                 :: np
+      type( point_type_array), intent( in) :: verts( nv)
+      Real (8), Intent (Out)               :: vpl (3, np)
+      Real (8), Intent (Out)               :: dv (nv)
+      Real (8), Intent (Out)               :: dp (np)
 !
 !
 ! local variables
 !
-      Real (8) :: vvl (3, size(plotdef%path%pointarray))
+      Real (8) :: vvl (3, nv)
 !
       Integer :: iv, ip, ip0, ip1, n
       Real (8) :: vl (3), vc (3)
@@ -57,7 +58,7 @@ Subroutine connect (cvec, plotdef, nv, np, vpl, dv, dp)
       Real (8), Allocatable :: seg (:)
 !
       Do iv = 1, nv
-         vvl (:, iv) = plotdef%path%pointarray(iv)%point%coord
+         vvl (:, iv) = verts(iv)%point%coord
       End Do
 !
       If (nv .Lt. 1) Then
@@ -79,14 +80,18 @@ Subroutine connect (cvec, plotdef, nv, np, vpl, dv, dp)
          Return
       End If
       Allocate (seg(nv))
-! find the total distance and the length of each segment
+
+      ! find the total distance and the length of each segment
       dt = 0.d0
+      seg = 0.d0
       Do iv = 1, nv - 1
          dv (iv) = dt
-         vl (:) = vvl (:, iv+1) - vvl (:, iv)
-         Call r3mv (cvec, vl, vc)
-         seg (iv) = Sqrt (vc(1)**2+vc(2)**2+vc(3)**2)
-         dt = dt + seg (iv)
+         if( .not. verts(iv)%point%breakafter) then
+           vl (:) = vvl (:, iv+1) - vvl (:, iv)
+           Call r3mv (cvec, vl, vc)
+           seg (iv) = Sqrt (vc(1)**2+vc(2)**2+vc(3)**2)
+           dt = dt + seg (iv)
+         end if
       End Do
       dv (nv) = dt
       If (dt .Lt. 1.d-8) Then
@@ -95,9 +100,8 @@ Subroutine connect (cvec, plotdef, nv, np, vpl, dv, dp)
             dp (ip) = 0.d0
          End Do
       Else
-         dp( 1) = 0.d0
-         vpl( :, 1) = vvl( :, 1)
-         n = 1
+         dp = 0.d0
+         n = 0
          Do iv = 1, nv - 1
             t1 = (np-nv)*seg( iv)/dt 
             !t1 = dble (np) * dv (iv) / dt
@@ -109,15 +113,17 @@ Subroutine connect (cvec, plotdef, nv, np, vpl, dv, dp)
             !n = ip1 - ip0
             !If (n .Le. 0) n = 1
             ip1 = 1+nint( t1)
-            if( iv .eq. nv-1) ip1 = np - n
+            if( iv .eq. nv-1) ip1 = np-1-n
 
             Do ip = 1, ip1
-               f = dble( ip)/ip1
+               f = dble( ip-1)/ip1
                n = n + 1
                dp( n) = f*seg( iv) + dv( iv)
                vpl( :, n) = vvl( :, iv)*(1.d0 - f) + vvl( :, iv+1)*f
             End Do
          End Do
+         dp( np) = dv( nv)
+         vpl( :, np) = vvl( :, nv)
       End If
       Deallocate (seg)
       Return

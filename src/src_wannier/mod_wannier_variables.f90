@@ -1,5 +1,8 @@
 module mod_wannier_variables
   use mod_kpointset
+  use modmpi
+  use modinput
+  use mod_constants
 
   implicit none
 

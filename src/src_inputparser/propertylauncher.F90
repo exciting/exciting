@@ -16,7 +16,7 @@ Subroutine propertylauncher
 ! properties which depend on the ground state only
 
        !--------------------------------------------------------
-      if( associated( input%properties%wannier) .and. (rank .eq. 0)) then
+      if( associated( input%properties%wannier)) then
         if( input%properties%wannier%do .ne. "skip") then
           call rereadinput
           call wannierlauncher
@@ -265,6 +265,11 @@ Subroutine propertylauncher
          call rereadinput
          task = 25
          Call effmass
+      End If
+
+      if( associated( input%properties%polarization)) then
+         call rereadinput
+         call polarization
       End If
 
       if (associated(input%properties%ldos)) then

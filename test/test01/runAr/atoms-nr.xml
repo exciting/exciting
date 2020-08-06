@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<atomlist>
+  <Hamiltonian RelativityModel="none" xctype="3"/>
+  <atom chemicalSymbol="Ar" species="Ar.xml">
+    <NumericalSetup TotalNumberOfGridPoints="1427" NumberOfMTGridPoints="1000" GridType="cubic" rmin="1.000000000000e-7" rmt="6.000000000000e0" rmax="1.745057233740e1"/>
+    <spectrum>
+      <state n="1" l="0" kappa="1" energy="-113.800126867"/>
+      <state n="2" l="0" kappa="1" energy="-10.7940099207"/>
+      <state n="2" l="1" kappa="1" energy="-8.44328312316"/>
+      <state n="2" l="1" kappa="2" energy="-8.44328312316"/>
+      <state n="3" l="0" kappa="1" energy="-0.883247985375"/>
+      <state n="3" l="1" kappa="1" energy="-0.382220711296"/>
+      <state n="3" l="1" kappa="2" energy="-0.382220711296"/>
+    </spectrum>
+  </atom>
+</atomlist>

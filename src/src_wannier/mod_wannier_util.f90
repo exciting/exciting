@@ -38,7 +38,8 @@ module mod_wfutil
       allocate( wf_dvp1d( wf_nvp1d))
       allocate( wf_vplp1d( 3, wf_npp1d))
       allocate( wf_dpp1d( wf_npp1d))
-      call connect( wf_kset%bvec, input%properties%bandstructure%plot1d, wf_nvp1d, wf_npp1d, wf_vplp1d, wf_dvp1d, wf_dpp1d)
+      call connect( wf_kset%bvec, wf_nvp1d, wf_npp1d, input%properties%bandstructure%plot1d%path%pointarray, &
+        wf_vplp1d, wf_dvp1d, wf_dpp1d)
       call generate_k_vectors( tmp_kset, wf_kset%bvec, (/1, 1, wf_npp1d/), (/0.d0, 0.d0, 0.d0/), .false.)
       !write(*,*) wf_npp1d, tmp_kset%nkpt
       do iq = 1, tmp_kset%nkpt
@@ -863,7 +864,7 @@ module mod_wfutil
         ! find the matching coefficients
         call match( wf_Gkset%ngk( 1, ik), wf_Gkset%gkc( :, 1, ik), wf_Gkset%tpgkc( :, :, 1, ik), wf_Gkset%sfacgk( :, :, 1, ik), apwalm)
         
-        call ws_weight( dble( cell), dble( cell), wf_kset%vkl( :, ik), phase, .true.)
+        call ws_weight( dble( cell), dble( cell), wf_kset%vkl( :, ik), wf_kset%ngridk, phase)
   
         do ist = fst, lst
           call zgemv( 'n', nmatmax, wf_nst, zone, &

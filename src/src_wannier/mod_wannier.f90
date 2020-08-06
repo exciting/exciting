@@ -187,56 +187,47 @@ module mod_wannier
         !write(*,'("size of evec:    ",F13.6," GB")') nmatmax_ptr*nstfv*nspinor*16*1.d-9
         !write(*,'("shape of apwalm: ",4I6)') ngkmax_ptr, apwordmax, lmmaxapw, natmtot
         !write(*,'("size of apwalm:  ",F13.6," GB")') ngkmax_ptr*apwordmax*lmmaxapw*natmtot*16*1.d-9
+        
+        call pwmat_init( input%groundstate%lmaxapw, 8, wf_kset, wf_fst, wf_lst, wf_fst, wf_lst, &
+               fft=.false.)
 
-        call pwmat_init( input%groundstate%lmaxapw, 8)
+        allocate( evecfv1( nmatmax_ptr, nstfv, nspinor))
+        allocate( evecfv2( nmatmax_ptr, nstfv, nspinor))
 
-        do idxn = 1, wf_n_ntot
-          call pwmat_init_qg( wf_n_vl( :, idxn), (/0, 0, 0/))
-          cntk = 0
-          !write(*,'(1a1,"  neighbor ",i2," of ",i2,": ",i3,"%",$)') char(13), idxn, wf_n_ntot, nint( 100.d0*cntk/wf_kset%nkpt)
-#ifdef USEOMP
-!!$omp parallel default( shared) private( iknr, evecfv1, evecfv2)
-#endif
-          allocate( evecfv1( nmatmax_ptr, nstfv, nspinor))
-          allocate( evecfv2( nmatmax_ptr, nstfv, nspinor))
-#ifdef USEOMP
-!!$omp do
-#endif
-          do iknr = 1, wf_kset%nkpt
-            k1 = iknr
-            k2 = wf_n_ik( idxn, k1)
-#ifdef USEOMP
-!!$omp critical( readevec)
-#endif
-            ! read eigenvectors
-            call wannier_getevec( k1, evecfv1)
-            call wannier_getevec( k2, evecfv2)
-#ifdef USEOMP
-!!$omp end critical( readevec)
-#endif
-            ! generate plane-wave matrix elements
-            call pwmat_genpwmat( wf_kset%vkl( :, k1), wf_kset%vkc( :, k1), wf_fst, wf_lst, wf_fst, wf_lst, &
-                 evecfv1( :, wf_fst:wf_lst, 1), &
-                 evecfv2( :, wf_fst:wf_lst, 1), &
-                 wf_m0( :, :, iknr, idxn))
-!#ifdef USEOMP
-!!$omp atomic update
-!#endif
-!            cntk = cntk + 1
-!#ifdef USEOMP
-!!$omp end atomic
-!#endif
-            !write(*,'(1a1,"o neighbor ",i2," of ",i2,": ",i3,"%",$)') char(13), idxn, wf_n_ntot, nint( 100.d0*cntk/wf_kset%nkpt)
-          end do
-#ifdef USEOMP
-!!$omp end do
-#endif
-          deallocate( evecfv1, evecfv2)
-#ifdef USEOMP
-!!$omp end parallel
-#endif
-          !write(*,*)
+        k1 = firstofset( mpiglobal%rank, wf_kset%nkpt)
+        k2 = lastofset( mpiglobal%rank, wf_kset%nkpt)
+
+        do iknr = k1, k2
+          call wannier_getevec( iknr, evecfv1)
+          call pwmat_prepare( iknr, evecfv1( :, :, 1))
         end do
+        call barrier
+          
+        do idxn = 1, wf_n_ntot
+          call pwmat_init_qg( wf_n_vl( :, idxn), (/0, 0, 0/), 1)
+          cntk = 0
+          do iknr = k1, k2
+            ! read eigenvectors
+            call wannier_getevec( iknr, evecfv1)
+            call wannier_getevec( wf_n_ik( idxn, iknr), evecfv2)
+            ! generate plane-wave matrix elements
+            call pwmat_genpwmat( iknr, &
+                   evecfv1( :, wf_fst:wf_lst, 1), &
+                   evecfv2( :, wf_fst:wf_lst, 1), &
+                   wf_m0( :, :, iknr, idxn))
+            cntk = cntk + 1
+            if( mpiglobal%rank .eq. 0) then
+              write(*,'(1a1,"Calculating plane-wave matrix elements (neighbor ",i2.2," of ",i2.2,"): ",f10.3,"%",$)') achar(13), idxn, wf_n_ntot, &
+                  100.d0*(dble( idxn - 1)/wf_n_ntot + dble( cntk)/(k2 - k1 + 1)/wf_n_ntot)
+            end if
+          end do
+          call mpi_allgatherv_ifc( set=wf_kset%nkpt, rlen=wf_nst*wf_nst, zbuf=wf_m0( :, :, :, idxn))
+          call barrier
+        end do
+        if( mpiglobal%rank .eq. 0) then
+          write(*,*)
+        end if
+        deallocate( evecfv1, evecfv2)
 
         !write(*,*) "destroy"
         call pwmat_destroy

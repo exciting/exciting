@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<atomlist>
+  <Hamiltonian RelativityModel="none" xctype="3"/>
+  <atom chemicalSymbol="He" species="He.xml">
+    <NumericalSetup TotalNumberOfGridPoints="475" NumberOfMTGridPoints="400" GridType="cubic" rmin="1.000000000000e-6" rmt="6.000000000000e0" rmax="1.005910039576e1"/>
+    <spectrum>
+      <state n="1" l="0" kappa="1" energy="-0.570255918315"/>
+    </spectrum>
+  </atom>
+</atomlist>

@@ -197,11 +197,12 @@
     <xs:complexType>
       <xs:attribute ex:importance="essential" ex:unit="" name="coord" type="vect3d" use="required"/>
       <xs:attribute ex:importance="essential" ex:unit="" name="label" type="xs:string" default=""/>
+      <xs:attribute ex:importance="expert" ex:unit="" name="breakafter" type="xs:boolean" default="false"/>
     </xs:complexType>
   </xs:element>
   <xs:element ex:importance="essential" ex:unit="" name="plot1d">
     <xs:annotation>
-      <xs:documentation> The element plot1d specifies sample points along a path. The coordinate space (lattice or cartesian)is chosen in the context of the parent.</xs:documentation>
+      <xs:documentation> The element plot1d specifies sample points along a path. The coordinate space (lattice or cartesian) is chosen in the context of the parent.</xs:documentation>
     </xs:annotation>
     <xs:complexType>
       <xs:all>

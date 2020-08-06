@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<atomlist>
+  <Hamiltonian RelativityModel="dirac" xctype="3"/>
+  <atom chemicalSymbol="Li" species="Li.xml">
+    <NumericalSetup TotalNumberOfGridPoints="650" NumberOfMTGridPoints="250" GridType="cubic" rmin="1.000000000000e-5" rmt="1.700000000000e0" rmax="3.006351389306e1"/>
+    <spectrum>
+      <state n="1" l="0" kappa="1" energy="-1.87836663182"/>
+      <state n="2" l="0" kappa="1" energy="-0.105607346049"/>
+    </spectrum>
+  </atom>
+  <atom chemicalSymbol="F" species="F.xml">
+    <NumericalSetup TotalNumberOfGridPoints="554" NumberOfMTGridPoints="250" GridType="cubic" rmin="1.000000000000e-5" rmt="1.450000000000e0" rmax="1.586162353042e1"/>
+    <spectrum>
+      <state n="1" l="0" kappa="1" energy="-24.2145548568"/>
+      <state n="2" l="0" kappa="1" energy="-1.08942051948"/>
+      <state n="2" l="1" kappa="1" energy="-0.416501735260"/>
+      <state n="2" l="1" kappa="2" energy="-0.414151213071"/>
+    </spectrum>
+  </atom>
+</atomlist>

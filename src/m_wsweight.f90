@@ -7,13 +7,14 @@ module m_wsweight
 ! !INTERFACE:
 !
 !
-Subroutine ws_weight (vrl, vrsl, vpl, zwght, kgrid)
+Subroutine ws_weight (vrl, vrsl, vpl, ngridp, zwght)
 ! !INPUT/OUTPUT PARAMETERS:
-!   vrl   : R vector in lattice coordinates (in,real(3))
-!   vrsl  : R+s vector (vector from atom 1 in cell at origin to atom 2 in
-!           unit cell at R) in lattice coordinates (in,real(3))
-!   vpl   : q vector in reciprocal lattice coordinates (in,real(3))
-!   zwght : combined complex weight to be used in the Fourier 
+!   vrl    : R vector in lattice coordinates (in,real(3))
+!   vrsl   : R+s vector (vector from atom 1 in cell at origin to atom 2 in
+!            unit cell at R) in lattice coordinates (in,real(3))
+!   vpl    : q vector in reciprocal lattice coordinates (in,real(3))
+!   ngridp : division of k/q-grid
+!   zwght  : combined complex weight to be used in the Fourier 
 !           transformation (out,complex)
 ! !DESCRIPTION:
 !   Folds the ${\bf R}+{\bf s}$ vector back into the Wigner-Seitz cell of the supercell, 
@@ -32,20 +33,16 @@ Subroutine ws_weight (vrl, vrsl, vpl, zwght, kgrid)
       Real(8), Intent(In) :: vrl(3)
       Real(8), Intent(In) :: vrsl(3)
       Real(8), Intent(In) :: vpl(3)
+      Integer, Intent(In) :: ngridp(3)
       Complex(8), Intent(Out) :: zwght
-      logical, intent( in), optional :: kgrid
 ! local variables
-      Integer :: i1, i2, i3, j1, j2, j3, n, ngrid_(3)
+      Integer :: i1, i2, i3, j1, j2, j3, n
       Real(8) :: v0(3), v1(3), v2(3), v3(3), t1, t2, t3
       Real(8) :: vrssl(3), vsl(3), vr2l(3), vrs2l(3)
       Integer :: ivrl(3)
-      ngrid_ = ngridq
-      if( present( kgrid)) then
-        if( kgrid) ngrid_ = input%groundstate%ngridk
-      end if
       vsl(:) = vrsl(:) - vrl(:)
 ! vrssl is vector to atom s in cell R; referring to supercell
-      vrssl(:) = vrsl(:) / dble(ngrid_(:))
+      vrssl(:) = vrsl(:) / dble(ngridp(:))
 ! map vector to [0,1) interval
       Call r3frac (input%structure%epslat, vrssl, ivrl)
 ! convert to cartesian and shift by lattice vectors to obtain shortest possible vector
@@ -82,7 +79,7 @@ Subroutine ws_weight (vrl, vrsl, vpl, zwght, kgrid)
                   n = n + 1
 ! convert to lattice coords of original unit cell and consider R part only
                   Call r3mv (ainv, v3, vrssl)
-                  vrs2l(:) = vrssl(:)*dble(ngrid_(:))
+                  vrs2l(:) = vrssl(:)*dble(ngridp(:))
                   vr2l(:) = vrs2l(:) - vsl(:)
                   t3 = -twopi*(vpl(1)*vr2l(1) + vpl(2)*vr2l(2) &
                            & + vpl(3)*vr2l(3))
