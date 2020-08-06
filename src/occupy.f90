@@ -15,6 +15,7 @@ Subroutine occupy
       Use modinput
       Use modmain
       use mod_opt_tetra
+      use mod_kpointset
 
 ! !DESCRIPTION:
 !   Finds the Fermi energy and sets the occupation numbers for the
@@ -46,6 +47,9 @@ Subroutine occupy
       external sdelta, stheta
       real(8), external :: dostet_exciting
 
+      type( k_set) :: kset
+      type( t_set) :: tetra
+      
       if ( input%groundstate%stypenumber .ge. 0 ) then
          t1 = 1.d0 / input%groundstate%swidth
 
@@ -153,17 +157,23 @@ Subroutine occupy
          end do
 
       else  if (input%groundstate%stypenumber==-2) then
+         call generate_k_vectors( kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, input%groundstate%reducek, uselibzint=.false.)
+         call opt_tetra_init( tetra, kset, 2, reduce=.true.)
          !--------------------------------------
          ! Use the improved tetrahedron method
          !--------------------------------------
-         call opt_tetra_efermi(chgval/dble(occmax),nkpt,nstsv,evalsv,efermi,occsv)
+	 nvm  = nint(chgval/occmax)
+         efermi = 0.5d0*(maxval( evalsv( nvm, :)) + minval( evalsv( nvm+1, :)))
+         call opt_tetra_efermi( tetra, chgval/dble(occmax), nkpt, nstsv, evalsv, efermi, occsv, ef0=efermi, df0=efermi)
          do ik = 1, nkpt
            occsv(:,ik) = dble(occmax)/wkpt(ik)*occsv(:,ik)
          end do
          !write(*,*) 'occsv=', occsv(:,1)
 
-         call opt_tetra_dos(nkpt,nstsv,evalsv,efermi,dfde)
+         call opt_tetra_wgt_delta( tetra, nkpt, nstsv, evalsv, efermi, dfde)
          fermidos = sum(dfde)
+         call opt_tetra_destroy( tetra)
+         call delete_k_vectors( kset)
          !write(*,*) 'dos at Ef=', fermidos
 
       End If ! modified tetrahedron integration method

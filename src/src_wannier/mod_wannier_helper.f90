@@ -270,13 +270,14 @@ module mod_wannier_helper
 
       integer :: iq, ist, nvm, it
       logical :: usetetra
+      type( t_set) :: tetra
       real(8) :: e0, e1, chg, x, t1, df, occ_tmp( lst, kset%nkpt)
 
       real(8) :: sdelta, stheta
 
       usetetra = .true.
       occ_tmp = 0.d0
-      df = 1.d-2
+      df = 1.d-1
 
       nvm = nint( chgval/occmax)
       if( (fst .ne. 1) .and. (fst .le. nvm)) then
@@ -389,10 +390,16 @@ module mod_wannier_helper
       end if
 
       if( usetetra) then
-        write(*,*)
-        write( *, '("Info (wannier_occupy): Use tetrahedron method in determining efermi and occupation")')
-        call opt_tetra_init( 2, kset%bvec, kset%ngridk, kset%nkpt, kset%ikmap)
-        call opt_tetra_efermi( chgval/dble( occmax)-fst+1, kset%nkpt, lst-fst+1, eval( fst:lst, :), efermi, occ_tmp( fst:lst, :), ef0=efermi, df0=df)
+        if( mpiglobal%rank .eq. 0) then
+          write(*,*)
+          write( *, '("Info (wfhelp_occupy): Use tetrahedron method in determining efermi and occupation")')
+        end if
+        call opt_tetra_init( tetra, kset, 2, reduce=.true.)
+        call opt_tetra_efermi( tetra, chgval/dble( occmax)-fst+1, kset%nkpt, lst-fst+1, eval( fst:lst, :), efermi, occ_tmp( fst:lst, :), ef0=efermi, df0=df)
+        do iq = 1, kset%nkpt
+          occ_tmp( :, iq) = occmax*occ_tmp( :, iq)/kset%wkpt( iq)
+        end do
+        call opt_tetra_destroy( tetra)
       end if
 
       if( present( occ)) occ(:,:) = occ_tmp( fst:lst, :)
