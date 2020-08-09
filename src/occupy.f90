@@ -170,7 +170,7 @@ Subroutine occupy
          end do
          !write(*,*) 'occsv=', occsv(:,1)
 
-         call opt_tetra_wgt_delta( tetra, nkpt, nstsv, evalsv, efermi, dfde)
+         call opt_tetra_wgt_delta( tetra, nkpt, nstsv, evalsv, 1, (/efermi/), dfde)
          fermidos = sum(dfde)
          call opt_tetra_destroy( tetra)
          call delete_k_vectors( kset)

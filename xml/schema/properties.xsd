@@ -222,11 +222,25 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="newint" type="xs:boolean" default="false">
+            <xs:attribute ex:importance="expert" ex:unit="" name="inttype" default="trilin">
               <xs:annotation>
-                  <xs:documentation>If true, a new (partially analytical) routine for the BZ integration is used. It is more efficient for high values of <pre>ngrdos</pre> and give less noisy results.
+                <xs:documentation>
+                  Defines the method that is used for evaluating BZ integrals.
+                  The default option is a trilinear interpolation (<pre>trilin</pre>) with <pre>ngrdos</pre> defining the number of interpolation points.
+                  An alternative is a partially analytic version of the trilinear interpolation (<pre>trilin+</pre>) which is more efficient for high values of <pre>ngrdos</pre> and give less noisy results.
+                  The third option is the (optimized) tetrahedron integration (<pre>tetra</pre>) which usually converges faster w.r.t. the k-point density is a about as efficient as <pre>trilin+</pre>.
                 </xs:documentation>
               </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="trilin">
+                  </xs:enumeration>
+                  <xs:enumeration value="trilin+">
+                  </xs:enumeration>
+                  <xs:enumeration value="tetra">
+                  </xs:enumeration>
+                </xs:restriction>
+              </xs:simpleType>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="lonly" type="xs:boolean" default="false">
               <xs:annotation>

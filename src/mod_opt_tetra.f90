@@ -203,22 +203,23 @@ module mod_opt_tetra
 !**************************************************************
 !* Dirac delta integral
 !**************************************************************
-  subroutine opt_tetra_wgt_delta( self, nk, nb, eb, e, wgt)
-    type( t_set), intent( in)     :: self          ! tetrahedron set
-    integer, intent( in)          :: nk            ! number of k-points
-    integer, intent( in)          :: nb            ! number of bands
-    real(8), intent( in)          :: eb( nb, nk)   ! band energies
-    real(8), intent( in)          :: e             ! energy/frequency to evaluate at
-    real(8), intent( out)         :: wgt( nb, nk)  ! integration weights
+  subroutine opt_tetra_wgt_delta( self, nk, nb, eb, ne, e, wgt)
+    type( t_set), intent( in)     :: self             ! tetrahedron set
+    integer, intent( in)          :: nk               ! number of k-points
+    integer, intent( in)          :: nb               ! number of bands
+    real(8), intent( in)          :: eb( nb, nk)      ! band energies
+    integer, intent( in)          :: ne               ! number of energies/frequencies
+    real(8), intent( in)          :: e(*)             ! energy/frequency to evaluate at
+    real(8), intent( out)         :: wgt( nb, nk, *)  ! integration weights
 
-    integer :: nn, i, it, ib, idx(4)
+    integer :: nn, i, it, ib, iw, idx(4)
     real(8) :: et(4), wt(4), add(20)
 
     nn = 20
     if( self%ttype .eq. 1) nn = 4
-    wgt = 0.d0
+    wgt(:,:,1:ne) = 0.d0
 #ifdef USEOMP
-!$omp parallel default( shared) private( i, ib, it, et, idx, wt, add)
+!$omp parallel default( shared) private( i, ib, it, iw, et, idx, wt, add)
 !$omp do
 #endif
     do ib = 1, nb
@@ -230,18 +231,20 @@ module mod_opt_tetra
         end if
         call opt_tetra_sort4( et, idx)
         et = et( idx)
-        call opt_tetra_getwgt_delta( et-e, wt)
-        wt( idx) = self%tetwgt( it)*wt
-        if( maxval( abs( wt)) .gt. eps) then
-          if( self%ttype .eq. 1) then
-            add(1:4) = wt
-          else
-            add = matmul( wt, self%wlsm)
+        do iw = 1, ne
+          call opt_tetra_getwgt_delta( et-e(iw), wt)
+          wt( idx) = self%tetwgt( it)*wt
+          if( maxval( abs( wt)) .gt. eps) then
+            if( self%ttype .eq. 1) then
+              add(1:4) = wt
+            else
+              add = matmul( wt, self%wlsm)
+            end if
+            do i = 1, nn
+              wgt( ib, self%tetra( i, it), iw) = wgt( ib, self%tetra( i, it), iw) + add(i)
+            end do
           end if
-          do i = 1, nn
-            wgt( ib, self%tetra( i, it)) = wgt( ib, self%tetra( i, it)) + add(i)
-          end do
-        end if
+        end do
       end do
     end do
 #ifdef USEOMP
@@ -912,7 +915,7 @@ module mod_opt_tetra
     real(8) :: l(4), bvec2(3,3), bvec3(3,4)
     logical :: reduce_, exitloop
   
-    integer, allocatable :: tetra(:,:), tetwgt(:), srt(:)
+    integer, allocatable :: tetra(:,:), tetwgt(:), srt(:,:)
   
     reduce_ = .false.
     if( present( reduce)) reduce_ = reduce
@@ -1043,9 +1046,19 @@ module mod_opt_tetra
     end do
   
     if( reduce_) then
-      allocate( srt( self%ntetra))
-      call sortidxColumn( 4, self%ntetra, tetra( 1:4, :), srt)
-      tetra = tetra( :, srt)
+      allocate( srt( self%ntetra, 2))
+      call sortidxColumn( 4, self%ntetra, tetra(1,1), 20, srt(:,1))
+      call sortidxi( self%ntetra, srt(:,1), srt(:,2))
+      ! Note: tetra = tetra(:,srt) sometimes does not work for dense grids
+      do i = 1, self%ntetra
+        j = srt(i,1)
+        tet = tetra(:,j)
+        tetra(:,j) = tetra(:,i)
+        tetra(:,i) = tet
+        srt(i,1) = srt(srt(i,2),1)
+        srt(srt(i,2),1) = j
+        srt(j,2) = srt(i,2)
+      end do
       k = self%ntetra
       self%ntetra = 1
       outer: do i = 2, k

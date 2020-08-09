@@ -107,7 +107,7 @@ module m_linalg
       m = size( mat, 1)
 
       if( m .le. 0) then
-        write(*,'("Error (zhediag): Invalid matrix dimension (",i6,")")'), m
+        write(*,'("Error (zhediag): Invalid matrix dimension (",i6,")")') m
         stop
       end if
       if( size( mat, 2) .ne. m) then
@@ -641,7 +641,7 @@ module m_linalg
       m = size( mat, 1)
 
       if( m .le. 0) then
-        write(*,'("Error (zdet): Invalid matrix dimension (",i6,")")'), m
+        write(*,'("Error (zdet): Invalid matrix dimension (",i6,")")') m
         stop
       end if
       if( size( mat, 2) .ne. m) then
@@ -682,7 +682,7 @@ module m_linalg
       m = size( mat, 1)
 
       if( m .le. 0) then
-        write(*,'("Error (rdet): Invalid matrix dimension (",i6,")")'), m
+        write(*,'("Error (rdet): Invalid matrix dimension (",i6,")")') m
         stop
       end if
       if( size( mat, 2) .ne. m) then
@@ -729,15 +729,15 @@ module m_linalg
       k = size( rhs, 2)
 
       if( m .le. 0) then
-        write(*,'("Error (rlsp): Invalid matrix dimension (m=",i6,")")'), m
+        write(*,'("Error (rlsp): Invalid matrix dimension (m=",i6,")")') m
         stop
       end if
       if( n .le. 0) then
-        write(*,'("Error (rlsp): Invalid matrix dimension (n=",i6,")")'), n
+        write(*,'("Error (rlsp): Invalid matrix dimension (n=",i6,")")') n
         stop
       end if
       if( k .le. 0) then
-        write(*,'("Error (rlsp): Invalid matrix dimension (k=",i6,")")'), k
+        write(*,'("Error (rlsp): Invalid matrix dimension (k=",i6,")")') k
         stop
       end if
       if( size( rhs, 1) .ne. m) then
@@ -786,15 +786,15 @@ module m_linalg
       k = size( rhs, 2)
 
       if( m .le. 0) then
-        write(*,'("Error (rlsp): Invalid matrix dimension (m=",i6,")")'), m
+        write(*,'("Error (rlsp): Invalid matrix dimension (m=",i6,")")') m
         stop
       end if
       if( n .le. 0) then
-        write(*,'("Error (rlsp): Invalid matrix dimension (n=",i6,")")'), n
+        write(*,'("Error (rlsp): Invalid matrix dimension (n=",i6,")")') n
         stop
       end if
       if( k .le. 0) then
-        write(*,'("Error (rlsp): Invalid matrix dimension (k=",i6,")")'), k
+        write(*,'("Error (rlsp): Invalid matrix dimension (k=",i6,")")') k
         stop
       end if
       if( size( rhs, 1) .ne. m) then
@@ -854,30 +854,30 @@ module m_linalg
       k = min( m, n)
 
       if( m .le. 0) then
-        write(*,'("Error (zqr): Invalid matrix dimension (m=",i6,")")'), m
+        write(*,'("Error (zqr): Invalid matrix dimension (m=",i6,")")') m
         stop
       end if
       if( n .le. 0) then
-        write(*,'("Error (zqr): Invalid matrix dimension (n=",i6,")")'), n
+        write(*,'("Error (zqr): Invalid matrix dimension (n=",i6,")")') n
         stop
       end if
       if( doq) then
         if( size( q, 1) .ne. m) then
-          write(*,'("Error (zqr): The matrix Q must have as many rows as the input matrix has.")'), n
+          write(*,'("Error (zqr): The matrix Q must have as many rows as the input matrix has.")') n
           stop
         end if
         if( size( q, 2) .ne. n) then
-          write(*,'("Error (zqr): The matrix Q must have as many columns as the input matrix has.")'), n
+          write(*,'("Error (zqr): The matrix Q must have as many columns as the input matrix has.")') n
           stop
         end if
       end if
       if( dor) then
         if( size( r, 1) .ne. m) then
-          write(*,'("Error (zqr): The matrix R must have as many rows as the input matrix has.")'), n
+          write(*,'("Error (zqr): The matrix R must have as many rows as the input matrix has.")') n
           stop
         end if
         if( size( r, 2) .ne. n) then
-          write(*,'("Error (zqr): The matrix R must have as many columns as the input matrix has.")'), n
+          write(*,'("Error (zqr): The matrix R must have as many columns as the input matrix has.")') n
           stop
         end if
       end if
@@ -941,30 +941,30 @@ module m_linalg
       k = min( m, n)
 
       if( m .le. 0) then
-        write(*,'("Error (rqr): Invalid matrix dimension (m=",i6,")")'), m
+        write(*,'("Error (rqr): Invalid matrix dimension (m=",i6,")")') m
         stop
       end if
       if( n .le. 0) then
-        write(*,'("Error (rqr): Invalid matrix dimension (n=",i6,")")'), n
+        write(*,'("Error (rqr): Invalid matrix dimension (n=",i6,")")') n
         stop
       end if
       if( doq) then
         if( size( q, 1) .ne. m) then
-          write(*,'("Error (rqr): The matrix Q must have as many rows as the input matrix has.")'), n
+          write(*,'("Error (rqr): The matrix Q must have as many rows as the input matrix has.")') n
           stop
         end if
         if( size( q, 2) .ne. n) then
-          write(*,'("Error (rqr): The matrix Q must have as many columns as the input matrix has.")'), n
+          write(*,'("Error (rqr): The matrix Q must have as many columns as the input matrix has.")') n
           stop
         end if
       end if
       if( dor) then
         if( size( r, 1) .ne. m) then
-          write(*,'("Error (rqr): The matrix R must have as many rows as the input matrix has.")'), n
+          write(*,'("Error (rqr): The matrix R must have as many rows as the input matrix has.")') n
           stop
         end if
         if( size( r, 2) .ne. n) then
-          write(*,'("Error (rqr): The matrix R must have as many columns as the input matrix has.")'), n
+          write(*,'("Error (rqr): The matrix R must have as many columns as the input matrix has.")') n
           stop
         end if
       end if

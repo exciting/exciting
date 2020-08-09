@@ -1199,7 +1199,7 @@ subroutine wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, td
         end do
       end do
 
-      if( input%properties%dos%newint) then
+      if( input%properties%dos%inttype == 'trilin+') then
         call brzint_new( nsmooth, wfint_kset%ngridk, nk, wfint_kset%ikmap, nsube, ewin, wf_nwf, wf_nwf, &
              energies, &
              ftdos, &
@@ -1282,7 +1282,7 @@ subroutine wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, td
         do ias = 1, natmtot
           do l = 0, lmax
             if( input%properties%dos%lonly) then
-              if( input%properties%dos%newint) then
+              if( input%properties%dos%inttype == 'trilin+') then
                 call brzint_new( nsmooth, wfint_kset%ngridk, nk, wfint_kset%ikmap, nsube, ewin, wf_nwf, wf_nwf, &
                        energies, &
                        fpdos( :, :, l+1, ias), &
@@ -1296,7 +1296,7 @@ subroutine wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, td
             else
               do m = -l, l
                 lm = idxlm( l, m)
-                if( input%properties%dos%newint) then
+                if( input%properties%dos%inttype == 'trilin+') then
                   call brzint_new( nsmooth, wfint_kset%ngridk, nk, wfint_kset%ikmap, nsube, ewin, wf_nwf, wf_nwf, &
                          energies, &
                          fpdos( :, :, lm, ias), &

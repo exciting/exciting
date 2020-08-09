@@ -377,11 +377,11 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
                           b = a0*ce(4)*ce(4)*cf1(3) - ce(2)*ce(3)*ce(4)*cf1(3) - a0*ce(3)*ce(4)*cf1(4) + ce(2)*ce(3)*ce(3)*cf1(4)
                           a = a + b*(1.d0/(ce(3) + ce(4)*intbound(2,i)) - 1.d0/(ce(3) + ce(4)*intbound(1,i)))
                           if( abs( a) .gt. eps) then
-#ifdef USE  OMP
+#ifdef USEOMP
 !$omp atomic update
 #endif
                             g( iw, ist) = g( iw, ist) + t1*sign( t1*t1, ce(3)+ce(4)*intbound(j,i))*a
-#ifdef USE  OMP
+#ifdef USEOMP
 !$omp end atomic
 #endif
                           end if
@@ -390,11 +390,11 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
                     
                       ! point contributions
                       do i = 1, ipt
-#ifdef USE  OMP
+#ifdef USEOMP
 !$omp atomic update
 #endif
                         g( iw, ist) = g( iw, ist) + (cf1(1) + cf1(2)*pts(1,i) + cf1(3)*pts(2,i) + cf1(4)*pts(1,i)*pts(2,i))/abs(ce(3) + ce(4)*pts(1,i))
-#ifdef USE  OMP
+#ifdef USEOMP
 !$omp end atomic
 #endif
                         !write(*,'(i,2f13.6,3x,4f13.6,3x,f23.16)') ipt, pts(:,i), cf1, (cf1(1) + cf1(2)*pts(1,i) + cf1(3)*pts(2,i) + cf1(4)*pts(1,i)*pts(2,i))/abs(ce(3) + ce(4)*pts(1,i))
@@ -467,11 +467,11 @@ subroutine brzint_jdos( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, fmax, g)
                           b = ce(2)*cf1(4)
                           a = a + b/3.d0*(intbound(2,i)**3 - intbound(1,i)**3)
                           if( abs( a) .gt. eps) then
-#ifdef USE  OMP
+#ifdef USEOMP
 !$omp atomic update
 #endif
                             g( iw, ist) = g( iw, ist) + t1*abs( t1)*a
-#ifdef USE  OMP
+#ifdef USEOMP
 !$omp end atomic
 #endif
                           end if

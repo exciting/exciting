@@ -379,7 +379,7 @@ subroutine writekpathweights
       write(un,'("#",1x,"Considered (partially) occupied states:",i8," to",i8)') ivmin, ivmax
       write(un,'("#",1x,"Considered (partially) unoccupied states:",i8," to",i8)') icmin, icmax
       write(un,'("#")')
-      write(un,'("# Eigenvector number:",i6," with energy/eV: ", f12.7)'), lambda, evals_(lambda)*h2ev
+      write(un,'("# Eigenvector number:",i6," with energy/eV: ", f12.7)') lambda, evals_(lambda)*h2ev
       write(un,'("#")')
       write(un,'("# Resonant weights")')
 

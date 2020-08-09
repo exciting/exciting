@@ -187,7 +187,7 @@ subroutine writeexcevec()
         write(un,'("#",2x,"Asolute value cutoff for resonant coefficients:",2E10.3)') abscutoffres
         write(un,'("#",2x,"Asolute value cutoff for anti-resonant coefficients:",2E10.3)') abscutoffares
         write(un,'("#")')
-        write(un,'("# Eigenvector number:",i6," with energy/eV: ", f12.7)'), lambda, evals_(lambda)*h2ev
+        write(un,'("# Eigenvector number:",i6," with energy/eV: ", f12.7)') lambda, evals_(lambda)*h2ev
         
         ! Get sorting index for sorting by absolute value
         absvec = abs(rvec_(1:hamsize_,lambda))
@@ -234,7 +234,7 @@ subroutine writeexcevec()
             rcount = rcount + 1
           end if
         end do
-        write(un,'("# rcount=",i8)'), rcount
+        write(un,'("# rcount=",i8)') rcount
 
         if(fcoup_) then 
 
@@ -294,7 +294,7 @@ subroutine writeexcevec()
               acount=acount+1
             end if
           end do
-          write(un,'("# acount=",i8)'), acount
+          write(un,'("# acount=",i8)') acount
 
         end if
 
