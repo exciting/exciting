@@ -316,101 +316,102 @@ call timesec(tb)
             magir (:, :) = 0.d0
         End If
 
-! Construct the density using density matrices if
-! input%groundstate%useDensityMatrix is .true.
-! Otherwise use the transformation to the real space
-if (input%groundstate%useDensityMatrix) then
-        Call DMNullify(mt_dm)
-        Call DMInitAll(mt_dm)
-        mt_dm%alpha%ff=0d0
-        if (associated(input%groundstate%spin)) then
-          mt_dm%beta%ff=0d0
-          if (ncmag) then
-            mt_dm%ab%ff=0d0
-          endif
-        endif
-        mt_dm%main%ff=>mt_dm%alpha%ff
+  ! Construct the density using density matrices if
+  ! input%groundstate%useDensityMatrix is .true.
+  ! Otherwise use the transformation to the real space
+  if (input%groundstate%useDensityMatrix) then
+    Call DMNullify(mt_dm)
+    Call DMInitAll(mt_dm)
+    mt_dm%alpha%ff=0d0
+    if (associated(input%groundstate%spin)) then
+      mt_dm%beta%ff=0d0
+      if (ncmag) then
+        mt_dm%ab%ff=0d0
+      endif
+    endif
+    mt_dm%main%ff=>mt_dm%alpha%ff
 #ifdef MPI
-        Do ik = firstk(rank), lastk(rank)
+    Do ik = firstk(rank), lastk(rank)
 #else
-        Do ik = 1, nkpt
+    Do ik = 1, nkpt
 #endif
-            Allocate (evecfv(nmatmax, nstfv, nspnfv))
-            Allocate (evecsv(nstsv, nstsv))
-            ! get the eigenvectors from file
-            Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
-            Call getevecsv (vkl(:, ik), evecsv)
+      Allocate (evecfv(nmatmax, nstfv, nspnfv))
+      Allocate (evecsv(nstsv, nstsv))
+      ! get the eigenvectors from file
+      Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
+      Call getevecsv (vkl(:, ik), evecsv)
 !! TIME - rhovalk does not belong to IO
-            Call timesec(ts1)
-            timeio=ts1-ts0+timeio
-            ! add to the density and magnetisation
-            Call gendmatmt(ik,evecfv, evecsv)
-            Call genrhoir (ik, evecfv, evecsv)
-            Deallocate (evecfv, evecsv)
-            Call timesec(ts0)
-        End Do
+      Call timesec(ts1)
+      timeio=ts1-ts0+timeio
+      ! add to the density and magnetisation
+      Call gendmatmt(ik,evecfv, evecsv)
+      Call genrhoir (ik, evecfv, evecsv)
+      Deallocate (evecfv, evecsv)
+      Call timesec(ts0)
+    End Do
 
-         if (associated(input%groundstate%spin)) then
-           mt_dm%ba%ff=mt_dm%alpha%ff+mt_dm%beta%ff
-           mt_dm%beta%ff=mt_dm%alpha%ff-mt_dm%beta%ff
-           mt_dm%alpha%ff=mt_dm%ba%ff
-         endif
+    if (associated(input%groundstate%spin)) then
+      mt_dm%ba%ff=mt_dm%alpha%ff+mt_dm%beta%ff
+      mt_dm%beta%ff=mt_dm%alpha%ff-mt_dm%beta%ff
+      mt_dm%alpha%ff=mt_dm%ba%ff
+    endif
 
-         mt_basis%lofr=>lofr
-         mt_basis%apwfr=>apwfr
+    mt_basis%lofr=>lofr
+    mt_basis%apwfr=>apwfr
 
-         mt_dm%main%ff => mt_dm%alpha%ff
-         Call genrhomt(mt_basis,mt_basis,rhomt)
-         if (associated(input%groundstate%spin)) then
-           mt_dm%main%ff => mt_dm%beta%ff
-           if (ncmag) then
-! noncollinear case
-             Call genrhomt(mt_basis,mt_basis,magmt(:,:,:,3))
-! x and y components of the magnetisation are currently missing
-             mt_dm%ab%ff=2d0*mt_dm%ab%ff
-             mt_dm%main%ff => mt_dm%ab%ff
-             Call genrhomt(mt_basis,mt_basis,magmt(:,:,:,1))
-             mt_dm%ba%ff=zi*mt_dm%ab%ff
-             mt_dm%main%ff => mt_dm%ba%ff
-             Call genrhomt(mt_basis,mt_basis,magmt(:,:,:,2))
-           else
-! collinear case
-             Call genrhomt(mt_basis,mt_basis,magmt(:,:,:,1))
-           endif
-         endif
+    mt_dm%main%ff => mt_dm%alpha%ff
+    Call genrhomt(mt_basis,mt_basis,rhomt)
+    if (associated(input%groundstate%spin)) then
+      mt_dm%main%ff => mt_dm%beta%ff
+      if (ncmag) then
+        ! noncollinear case
+        Call genrhomt(mt_basis,mt_basis,magmt(:,:,:,3))
+        ! x and y components of the magnetisation are currently missing
+        mt_dm%ab%ff=2d0*mt_dm%ab%ff
+        mt_dm%main%ff => mt_dm%ab%ff
+        Call genrhomt(mt_basis,mt_basis,magmt(:,:,:,1))
+        mt_dm%ba%ff=zi*mt_dm%ab%ff
+        mt_dm%main%ff => mt_dm%ba%ff
+        Call genrhomt(mt_basis,mt_basis,magmt(:,:,:,2))
+      else
+        ! collinear case
+        Call genrhomt(mt_basis,mt_basis,magmt(:,:,:,1))
+      endif
+    endif
 #ifdef MPI
-        Call mpisumrhoandmag
+    call mpisumrhoandmag
 #endif
-        Call DMRelease(mt_dm)
+    call DMRelease(mt_dm)
 
-        call timesec(ts1)
-        timerho=timerho+ts1-ts0
-        ts0=ts1
-else
+    call timesec(ts1)
+    timerho=timerho+ts1-ts0
+    ts0=ts1
+
+  else ! if (input%groundstate%useDensityMatrix) then
 
 #ifdef MPI
-        Do ik = firstofset(rank,nkpt), lastofset(rank,nkpt)
+    Do ik = firstofset(rank,nkpt), lastofset(rank,nkpt)
 #else
-        Do ik = 1, nkpt
+    Do ik = 1, nkpt
 #endif
-            Allocate (evecfv(nmatmax, nstfv, nspnfv))
-            Allocate (evecsv(nstsv, nstsv))
-            ! get the eigenvectors from file
-            Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
-            Call getevecsv (vkl(:, ik), evecsv)
+      Allocate (evecfv(nmatmax, nstfv, nspnfv))
+      Allocate (evecsv(nstsv, nstsv))
+      ! get the eigenvectors from file
+      Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
+      Call getevecsv (vkl(:, ik), evecsv)
 !! TIME - rhovalk does not belong to IO
-            Call timesec(ts1)
-            timeio=ts1-ts0+timeio
-            ! add to the density and magnetisation
-            Call rhovalk (ik, evecfv, evecsv)
-            Call genrhoir (ik, evecfv, evecsv)
-            Deallocate (evecfv, evecsv)
-            Call timesec(ts0)
-        End Do
+      Call timesec(ts1)
+      timeio=ts1-ts0+timeio
+      ! add to the density and magnetisation
+      Call rhovalk (ik, evecfv, evecsv)
+      Call genrhoir (ik, evecfv, evecsv)
+      Deallocate (evecfv, evecsv)
+      Call timesec(ts0)
+    End Do
 #ifdef MPI
-        Call mpisumrhoandmag
+    Call mpisumrhoandmag
 #endif
-endif
+  endif ! if (input%groundstate%useDensityMatrix) then
 call timesec(tb)
 
 #ifdef MPI
