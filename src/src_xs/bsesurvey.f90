@@ -65,7 +65,7 @@ subroutine bsesurvey
     ! NOTE: getevalqp sets mod_symmetry::nsymcrys to 1
     ! NOTE: getevalqp needs the KS eigenvalues as input
     nsymcrys_save = nsymcrys
-    call getevalqp(nkptnr,vkl0,evalsv)
+    call getevalqp('EVALQP.OUT',nkptnr,vkl0,evalsv)
     nsymcrys = nsymcrys_save
     ! Set k and k'=k grid eigenvalues to QP energies
     evalsv0=evalsv

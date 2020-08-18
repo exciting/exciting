@@ -36,6 +36,8 @@ subroutine bse(iqmt)
   use m_makeoscistr
   use m_makespectrum
   use m_invertzmat
+  ! Wannier functions
+  use mod_wannier_bse
 ! !DESCRIPTION:
 !   Solves the Bethe-Salpeter equation(BSE). The BSE is treated as equivalent
 !   effective eigenvalue problem(thanks to the spectral theorem that can
@@ -206,16 +208,26 @@ subroutine bse(iqmt)
     ! NOTE: QP evals are shifted by -efermi-eferqp with respect to KS evals
     ! NOTE: getevalqp sets mod_symmetry::nsymcrys to 1
     ! NOTE: getevalqp needs the KS eigenvalues as input
-    nsymcrys_save = nsymcrys
-    call checkevalqp('EVALQP.OUT', nkptnr, vkl0, evalsv)
-    call getevalqp('EVALQP.OUT', nkptnr, vkl0, evalsv)
-    nsymcrys = nsymcrys_save
+    if( wfbse_usegwwannier()) then
+      call wfbse_init
+      call wfbse_ordereval
+      evalsv = wfbse_eval
+    else
+      nsymcrys_save = nsymcrys
+      !call checkevalqp('EVALQP.OUT', nkptnr, vkl0, evalsv)
+      call getevalqp('EVALQP.OUT', nkptnr, vkl0, evalsv)
+      nsymcrys = nsymcrys_save
+    end if
 
     ! Set k and k'=k grid eigenvalues to QP energies
     evalsv0=evalsv
 
     write(unitout,'("Info(",a,"):&
       & Quasi particle energies are read from EVALQP.OUT")') trim(thisname)
+    if( wfbse_usegwwannier()) then
+      write(unitout,'("Info(",a,"):&
+        & Wannier interpolation was employed.")') trim(thisname)
+    end if
 
   else if(associated(input%gw) .and. iqmt /= 1) then 
 
@@ -261,6 +273,14 @@ subroutine bse(iqmt)
   write(unitout,*)
   write(unitout, '("Info(",a,"):&
     &bsegap (eV):", F23.16)') trim(thisname), bsegap*h2ev
+
+  ! free memory from Wannier stuff
+  if( wfbse_usegwwannier()) then
+    call wfint_destroy
+    call wfbse_destroy
+    write(unitout,*)
+    write(unitout, '("Info(",a,"): Unneeded Wannier related quantities deleted. Memory freed.")') trim(thisname)
+  end if
   !---------------------------------------------------------------------------!
 
   ! Independent particle approximation needs no solution of any EVP

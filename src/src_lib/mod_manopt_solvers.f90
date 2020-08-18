@@ -441,7 +441,7 @@ module mod_manopt_solvers
         snorm = M%norm( S%cSX)
         ! get directional derivative
         df0 = M%inner( S%cGX, S%cSX)!/snorm
-        if( S%stdout > 0) write( S%stdout, '(x,g20.10,i)') df0, pos
+        if( S%stdout > 0) write( S%stdout, '(x,g20.10)') df0
         ! perform line search
         stepSize = snorm
         call linesearch( M, S, X, df0, stepSize)
@@ -630,7 +630,7 @@ module mod_manopt_solvers
         call S%costgrad( M, S%nX, S%nCost, S%cGX, funonly=.true.)
       end if
       decr = min( 0.5d0*S%cCost, -SUFFDECR*alpha*df0)
-      if( present( verbose) .and. S%stdout > 0) write(S%stdout,'(i,2g16.6,3g20.10)') it, alpha, df0, S%cCost, S%nCost
+      if( present( verbose) .and. S%stdout > 0) write(S%stdout,'(i5,2g16.6,3g20.10)') it, alpha, df0, S%cCost, S%nCost
 
       do while( BACKTRACK .and. ( S%nCost > S%cCost - decr))
         alpha = max( S%minstep, alpha*FCONTR)
@@ -642,7 +642,7 @@ module mod_manopt_solvers
         end if
         it = it + 1
         decr = min( 0.5d0*S%cCost, -SUFFDECR*alpha*df0)
-        if( present( verbose) .and. S%stdout > 0) write(S%stdout,'(i,2g16.6,3g20.10)') it, alpha, df0, S%cCost, S%nCost
+        if( present( verbose) .and. S%stdout > 0) write(S%stdout,'(i5,2g16.6,3g20.10)') it, alpha, df0, S%cCost, S%nCost
         if( (it > MAXSTEPS) .or. (alpha < S%minstep+S%eps0)) exit
       end do
 
@@ -652,7 +652,7 @@ module mod_manopt_solvers
         S%nCost = S%cCost
       end if
 
-      if( present( verbose) .and. S%stdout > 0) write(S%stdout,'(i,2g16.6,3g20.10)') 0, 0.d0, df0, S%cCost, S%cCost
+      if( present( verbose) .and. S%stdout > 0) write(S%stdout,'(i5,2g16.6,3g20.10)') 0, 0.d0, df0, S%cCost, S%cCost
 
       step = alpha*pnorm
       return

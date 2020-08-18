@@ -279,7 +279,7 @@ module mod_wannier_helper
         end if
         inquire( iolength=recl) nkpqp, fstqp, lstqp
         open( un, file=trim( fname), action='read', form='unformatted', access='direct', recl=recl)
-        read( un, rec=1), nkpqp, fstqp, lstqp
+        read( un, rec=1) nkpqp, fstqp, lstqp
         close( un)
         allocate( evalqp( fstqp:lstqp))
         allocate( evalks( fstqp:lstqp))

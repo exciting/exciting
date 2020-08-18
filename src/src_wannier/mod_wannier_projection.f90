@@ -749,7 +749,10 @@ module mod_wannier_projection
             end if
             wf_groups( igroup)%projused( input%properties%wannier%grouparray( igroup)%group%projectorarray( iproj1)%projector%nr) = 1
           end do
-        else if( any( wf_groups( igroup)%method .eq. (/'opf','opfmax','disSMV','disFull'/))) then
+        else if( wf_groups( igroup)%method .eq. 'opf' .or. &
+                 wf_groups( igroup)%method .eq. 'opfmax' .or. &
+                 wf_groups( igroup)%method .eq. 'disSMV' .or. &
+                 wf_groups( igroup)%method .eq. 'disFull') then
           if( wf_groups( igroup)%nproj .lt. wf_groups( igroup)%nwf) then
             if( mpiglobal%rank .eq. 0) then
               write(*,*)

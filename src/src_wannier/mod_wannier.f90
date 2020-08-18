@@ -36,15 +36,6 @@ module mod_wannier
 
       ! local variables
       integer :: ist, ik, igroup
-      integer :: vmtot, vmuse, vmproc
-
-      vmtot = VMTotal()
-      vmuse = VMinUseTotal()
-      vmproc = VMinUseByProcess()
-
-      write(*,*) vmtot
-      write(*,*) vmuse
-      write(*,*) vmproc
 
       if( wf_initialized) call wannier_destroy
       call init0
@@ -156,7 +147,7 @@ module mod_wannier
       end if
 
       do igroup = 1, wf_ngroups
-        if( any( wf_groups( igroup)%method .eq. (/'disSMV','disFull'/))) then
+        if( wf_groups( igroup)%method .eq. 'disSMV' .or. wf_groups( igroup)%method .eq. 'disFull') then
           allocate( idxo( wf_groups( igroup)%nwf))
           allocate( scoresum( wf_groups( igroup)%fst:wf_groups( igroup)%lst))
           allocate( score( wf_groups( igroup)%fst:wf_groups( igroup)%lst, wf_kset%nkpt))
@@ -1051,7 +1042,7 @@ module mod_wannier
             if( (wf_groups( igroup)%fst .lt. input%gw%ibgw) .or. (wf_groups( igroup)%fst .gt. input%gw%nbgw)) then
               if( mpiglobal%rank .eq. 0) then
                 write(*,*)
-                write( *, '("Error (wannier_readinput): lower band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")'), &
+                write( *, '("Error (wannier_readinput): lower band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")') &
                     wf_groups( igroup)%fst, input%gw%ibgw, input%gw%nbgw-1, igroup
               end if
               stop
@@ -1060,7 +1051,7 @@ module mod_wannier
             if( (wf_groups( igroup)%fst .lt. 1) .or. (wf_groups( igroup)%fst .gt. nstfv)) then
               if( mpiglobal%rank .eq. 0) then
                 write(*,*)
-                write( *, '("Error (wannier_readinput): lower band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")'), &
+                write( *, '("Error (wannier_readinput): lower band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")') &
                     wf_groups( igroup)%fst, 1, nstfv-1, igroup
               end if
               stop
@@ -1070,7 +1061,7 @@ module mod_wannier
             if( wf_groups( igroup)%lst .gt. input%gw%nbgw) then
               if( mpiglobal%rank .eq. 0) then
                 write(*,*)
-                write( *, '("Error (wannier_readinput): upper band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")'), &
+                write( *, '("Error (wannier_readinput): upper band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")') &
                     wf_groups( igroup)%lst, wf_groups( igroup)%fst+1, input%gw%nbgw, igroup
               end if
               stop
@@ -1079,14 +1070,17 @@ module mod_wannier
             if( wf_groups( igroup)%lst .gt. nstfv) then
               if( mpiglobal%rank .eq. 0) then
                 write(*,*)
-                write( *, '("Error (wannier_readinput): upper band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")'), &
+                write( *, '("Error (wannier_readinput): upper band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")') &
                     wf_groups( igroup)%lst, wf_groups( igroup)%fst+1, nstfv, igroup
               end if
               stop
             end if
           end if
           ! set the appropriate method
-          if( any( wf_groups( igroup)%method .eq. (/'pro','promax','opf','opfmax'/))) then
+          if( wf_groups( igroup)%method .eq. 'pro' .or. &
+              wf_groups( igroup)%method .eq. 'promax' .or. &
+              wf_groups( igroup)%method .eq. 'opf' .or. &
+              wf_groups( igroup)%method .eq. 'opfmax') then
             ! input is not compatible with selected method, change to suitable method
             if( wf_groups( igroup)%nst .ne. wf_groups( igroup)%nwf) then
               wf_groups( igroup)%method = 'auto'
@@ -1097,7 +1091,9 @@ module mod_wannier
               end if
             end if
           end if
-          if( any( wf_groups( igroup)%method .eq. (/'auto','disSMV','disFull'/))) then
+          if( wf_groups( igroup)%method .eq. 'auto' .or. &
+              wf_groups( igroup)%method .eq. 'disSMV' .or. &
+              wf_groups( igroup)%method .eq. 'disFull') then
             ! in this case there is nothing to disentangle and the effort can be reduced
             if( sum( wf_groups( igroup)%win_ni) .eq. wf_kset%nkpt*wf_groups( igroup)%nwf) then
               wf_groups( igroup)%method = 'opfmax'
@@ -1142,7 +1138,7 @@ module mod_wannier
         if( (fst_ .ne. wf_fst) .or. (lst_ .ne. wf_lst)) then
           if( mpiglobal%rank .eq. 0) then
             write(*,*)
-            write( *, '("Warning (wannier_readinput): different band-ranges in input (",I4,":",I4,") and file (",I4,":",I4,").")'), wf_fst, wf_lst, fst_, lst_
+            write( *, '("Warning (wannier_readinput): different band-ranges in input (",I4,":",I4,") and file (",I4,":",I4,").")') wf_fst, wf_lst, fst_, lst_
             write( *, '(" Use data from file.")')
           end if
           wf_fst = fst_

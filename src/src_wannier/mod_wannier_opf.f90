@@ -80,9 +80,9 @@ module mod_wannier_opf
       if( input%properties%wannier%grouparray( wf_group)%group%writeconv) then
         call getunit( convun)
         if( sub) then
-          write( convfname, '("opf_sub_conv_",i3.3,".dat")'), wf_group
+          write( convfname, '("opf_sub_conv_",i3.3,".dat")') wf_group
         else
-          write( convfname, '("opf_conv_",i3.3,".dat")'), wf_group
+          write( convfname, '("opf_conv_",i3.3,".dat")') wf_group
         end if
         open( convun, file=trim( convfname), action='write', form='formatted')
       end if
@@ -570,7 +570,7 @@ module mod_wannier_opf
         end do
         write( un, *)
       end do
-      if( (wf_group .eq. wf_ngroups) .and. (sub .or. any( wf_groups( wf_group)%method == (/'opf','opfmax'/)))) then
+      if( (wf_group .eq. wf_ngroups) .and. (sub .or. (wf_groups( wf_group)%method == 'opf' .or. wf_groups( wf_group)%method == 'opfmax'))) then
         write( un, '(80("-"))')
         write( un, *)
       end if

@@ -215,7 +215,7 @@ module mod_wannier_maxloc
         ! get the gradient w.r.t. U
         call wfomega_gradu( ikx, gu, wf_groups( wf_group)%nst)
         ! apply chain rule to get gradient w.r.t. X and Y
-        if( .not. any( wf_groups( wf_group)%method .eq. (/'disSMV','disFull'/))) then
+        if( wf_groups( wf_group)%method .ne. 'disSMV' .and. wf_groups( wf_group)%method .ne. 'disFull') then
           gxy(:,:,ikx) = zzero
           gxy( 1:dxy(1,ikx), 1:dxy(2,ikx), ikx) = gu( 1:dxy(1,ikx), 1:dxy(2,ikx))
         else
@@ -272,7 +272,7 @@ module mod_wannier_maxloc
       real(8), allocatable :: val(:)
       complex(8), allocatable :: auxmat(:,:), vec(:,:)
 
-      if( .not. any( wf_groups( wf_group)%method .eq. (/'disSMV','disFull'/))) then
+      if( wf_groups( wf_group)%method .ne. 'disSMV' .and. wf_groups( wf_group)%method .ne. 'disFull') then
         do ikx = 1, wf_kset%nkpt
           xy(:,:,ikx) = zzero
           xy(1:dxy(1,ikx),1:dxy(2,ikx),ikx) = u(1:dxy(1,ikx),1:dxy(2,ikx),ikx)
@@ -334,7 +334,7 @@ module mod_wannier_maxloc
 
       integer :: ikx, iky, nik, nok
 
-      if( .not. any( wf_groups( wf_group)%method .eq. (/'disSMV','disFull'/))) then
+      if( wf_groups( wf_group)%method .ne. 'disSMV' .and. wf_groups( wf_group)%method .ne. 'disFull') then
         do ikx = 1, wf_kset%nkpt
           u( 1:dxy(1,ikx), 1:dxy(2,ikx), ikx) = xy( 1:dxy(1,ikx), 1:dxy(2,ikx), ikx)
         end do

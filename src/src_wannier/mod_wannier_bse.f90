@@ -17,7 +17,7 @@ module mod_wannier_bse
 ! methods
   contains
 
-    function wfbse_usegwwannier result( b)
+    function wfbse_usegwwannier() result( b)
       logical :: b
 
       b = .false.

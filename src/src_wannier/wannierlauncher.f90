@@ -26,7 +26,7 @@ subroutine wannierlauncher
           else if( wf_groups( wf_group)%method .eq. "opfmax") then
             if( mpiglobal%rank .eq. 0) call wfopf_gen
             if( mpiglobal%rank .eq. 0) call wfmax_gen
-          else if( any( wf_groups( wf_group)%method .eq. (/"disSMV","disFull"/))) then
+          else if( wf_groups( wf_group)%method .eq. "disSMV" .or. wf_groups( wf_group)%method .eq. "disFull") then
             if( mpiglobal%rank .eq. 0) call wfopf_gen
             if( mpiglobal%rank .eq. 0) call wfdis_gen
             if( mpiglobal%rank .eq. 0) call wfopf_gen( subspace=.true.)

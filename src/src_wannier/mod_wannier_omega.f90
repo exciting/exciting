@@ -353,7 +353,7 @@ module mod_wannier_omega
              p, wf_kset%nkpt, ist)
       if( ist .ne. 0) then
         write(*,*)
-        write(*,'("Error (wfomega_fixphases): DGESV returned non-zero info:",i)') ist
+        write(*,'("Error (wfomega_fixphases): DGESV returned non-zero info:",i4)') ist
         stop
       end if
             
@@ -378,7 +378,7 @@ module mod_wannier_omega
       integer :: ik, idxn, ist
       integer, allocatable :: map(:)
 
-      if( .not. any( wf_groups( wf_group)%method .eq. (/'disSMV','disFull'/)) .or. (dir .eq. 0)) return
+      if( (wf_groups( wf_group)%method .eq. 'disSMV' .or. wf_groups( wf_group)%method .eq. 'disFull') .or. (dir .eq. 0)) return
 
       allocate( map( wf_groups( wf_group)%nst))
       do ik = 1, wf_kset%nkpt

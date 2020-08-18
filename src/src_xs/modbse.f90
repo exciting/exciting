@@ -21,6 +21,8 @@ module modbse
   use mod_eigenvalue_occupancy, only: evalsv, occsv, nstsv
   use mod_kpoint, only: nkptnr, nkpt
   use m_getunit
+  use mod_wannier_bse, only: wfbse_usegwwannier, wfbse_eval, wfbse_init, wfbse_ordereval
+  use mod_wannier_interpolate, only: wfint_eval
 
   implicit none
 
@@ -647,9 +649,15 @@ module modbse
         ! NOTE: QP evals are shifted by -efermi-eferqp with respect to KS evals
         ! NOTE: getevalqp sets mod_symmetry::nsymcrys to 1
         ! NOTE: getevalqp needs the KS eigenvalues as input
-        nsymcrys_save = nsymcrys
-        call getevalqp('EVALQP.OUT', nkptnr, vkl0, evalsv)
-        nsymcrys = nsymcrys_save
+        if( wfbse_usegwwannier()) then
+          call wfbse_init
+          call wfbse_ordereval
+          evalsv = wfbse_eval
+        else
+          nsymcrys_save = nsymcrys
+          call getevalqp('EVALQP.OUT', nkptnr, vkl0, evalsv)
+          nsymcrys = nsymcrys_save
+        end if
         ! Set k and k'=k grid eigenvalues to QP energies
         evalsv0 = evalsv
         occsv0 = occsv

@@ -1045,7 +1045,7 @@ module mod_wannier_interpolate
           ntrans = max( ntrans, n)
         end do
         ! state dependent JDOS
-        if( any( integraltype == (/'trilin','trilin+'/))) then
+        if( integraltype == 'trilin' .or. integraltype == 'trilin+') then
           allocate( fjdos( mtrans*ntrans, wfint_kset%nkpt))
           allocate( ejdos( mtrans*ntrans, wfint_kset%nkpt))
           fjdos(:,:) = 1.d0
@@ -1214,14 +1214,14 @@ module mod_wannier_interpolate
       allocate( U( wf_nwf, wf_nwf))
       U = wfint_transform(:,:,iq)
 #ifdef USEOMP
-!$omp do collapse( 3)
+!$omp do
 #endif
-      do is = 1, nspecies
-        do ia = 1, natoms( is)
+      do lm1 = 1, lmmax
+        l1 = lm2l( lm1)
 
-          do lm1 = 1, lmmax
+        do is = 1, nspecies
+          do ia = 1, natoms( is)
 
-            l1 = lm2l( lm1)
             ias = idxas( ia, is)
             radcoeffq1 = zzero
             do ir = 1, wf_nrpt
@@ -1262,8 +1262,8 @@ module mod_wannier_interpolate
             end if
 
           end do
-
         end do
+
       end do
 #ifdef USEOMP
 !$omp end do

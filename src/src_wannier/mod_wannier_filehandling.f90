@@ -54,7 +54,7 @@ module mod_wannier_filehandling
       if( (fst_ .ne. wf_fst) .or. (lst_ .ne. wf_lst)) then
         if( mpiglobal%rank .eq. 0) then
           write(*,*)
-          write( *, '("Warning (wffile_readtransform): different band-ranges in input (",I4,":",I4,") and file (",I4,":",I4,").")'), wf_fst, wf_lst, fst_, lst_
+          write( *, '("Warning (wffile_readtransform): different band-ranges in input (",I4,":",I4,") and file (",I4,":",I4,").")') wf_fst, wf_lst, fst_, lst_
           write( *, '(" Use data from file.")')
         end if
         wf_fst = fst_
@@ -72,7 +72,7 @@ module mod_wannier_filehandling
       if( nkpt_ .ne. wf_kset%nkpt) then
         if( mpiglobal%rank .eq. 0) then
           write(*,*)
-          write( *, '("Error (wffile_readtransform): different number of k-points in input (",I4,") and file (",I4,").")'), wf_kset%nkpt, nkpt_
+          write( *, '("Error (wffile_readtransform): different number of k-points in input (",I4,") and file (",I4,").")') wf_kset%nkpt, nkpt_
         end if
         call terminate
       end if
@@ -136,7 +136,7 @@ module mod_wannier_filehandling
         if( allocated( wf_groups( igroup)%win_io)) deallocate( wf_groups( igroup)%win_io)
         if( allocated( wf_groups( igroup)%win_ni)) deallocate( wf_groups( igroup)%win_ni)
         if( allocated( wf_groups( igroup)%win_no)) deallocate( wf_groups( igroup)%win_no)
-        if( any( wf_groups( igroup)%method .eq. (/'disSMV','disFull'/))) then
+        if( wf_groups( igroup)%method .eq. 'disSMV' .or. wf_groups( igroup)%method .eq. 'disFull') then
           read( un) fst_, lst_
           allocate( wf_groups( igroup)%win_ii( fst_, lst_))
           allocate( wf_groups( igroup)%win_io( fst_, lst_))
@@ -246,7 +246,7 @@ module mod_wannier_filehandling
 
         write( un) wf_groups( igroup)%projused
 
-        if( any( wf_groups( igroup)%method .eq. (/'disSMV','disFull'/))) then
+        if( wf_groups( igroup)%method .eq. 'disSMV' .or. wf_groups( igroup)%method .eq. 'disFull') then
           write( un) shape( wf_groups( igroup)%win_ii)
           write( un) wf_groups( igroup)%win_ii
           write( un) wf_groups( igroup)%win_io
@@ -320,7 +320,7 @@ module mod_wannier_filehandling
       if( (fst_ .gt. wf_fst) .or. (lst_ .lt. wf_lst)) then
         if( mpiglobal%rank .eq. 0) then
           write(*,*)
-          write( *, '("Error (wffile_reademat): bands in input (",I4,":",I4,") out of file band range (",I4,":",I4,").")'), wf_fst, wf_lst, fst_, lst_
+          write( *, '("Error (wffile_reademat): bands in input (",I4,":",I4,") out of file band range (",I4,":",I4,").")') wf_fst, wf_lst, fst_, lst_
         end if
         success = .false.
         return
@@ -328,7 +328,7 @@ module mod_wannier_filehandling
       if( ntot_ .ne. wf_n_ntot) then
         if( mpiglobal%rank .eq. 0) then
           write(*,*)
-          write( *, '("Error (wffile_reademat): different number of BZ-neighbors in input (",I4,") and file (",I4,").")'), wf_n_ntot, ntot_
+          write( *, '("Error (wffile_reademat): different number of BZ-neighbors in input (",I4,") and file (",I4,").")') wf_n_ntot, ntot_
         end if
         success = .false.
         return
@@ -336,7 +336,7 @@ module mod_wannier_filehandling
       if( nkpt_ .ne. wf_kset%nkpt) then
         if( mpiglobal%rank .eq. 0) then
           write(*,*)
-          write( *, '("Error (wffile_reademat): different number of k-points in input (",I4,") and file (",I4,").")'), wf_kset%nkpt, nkpt_
+          write( *, '("Error (wffile_reademat): different number of k-points in input (",I4,") and file (",I4,").")') wf_kset%nkpt, nkpt_
         end if
         success = .false.
         return
@@ -558,7 +558,7 @@ module mod_wannier_filehandling
         write( wf_info, '(" #projection functions:",T30,11x,I5)') wf_groups( wf_group)%nproj
       end if
       write( wf_info, '(" method:",T30,A16)') adjustr( string)
-      if( any( wf_groups( wf_group)%method .eq. (/'disSMV','disFull'/))) then
+      if( wf_groups( wf_group)%method .eq. 'disSMV' .or. wf_groups( wf_group)%method .eq. 'disFull') then
         write( wf_info, '(" outer window:",T30,f7.4,2x,f7.4)') wf_groups( wf_group)%win_o
         write( wf_info, '(" inner window:",T30,f7.4,2x,f7.4)') wf_groups( wf_group)%win_i
         write( wf_info, '(" min/max bands inner window: ",T30,7x,I4,"/",I4)') minval( wf_groups( wf_group)%win_ni), maxval( wf_groups( wf_group)%win_ni)
