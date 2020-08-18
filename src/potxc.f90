@@ -266,6 +266,13 @@ end do
 !     interstitial potential and field     !
 !------------------------------------------!
 
+if (xctype(1)==23.or.xctype(1)==408) then
+   if (allocated(exsr)) deallocate(exsr)
+   if (allocated(vxsr)) deallocate(vxsr)
+   if (allocated(v2xsr)) deallocate(v2xsr)
+   allocate(exsr(ngrtot),vxsr(ngrtot),v2xsr(ngrtot))
+endif
+
 if (associated(input%groundstate%spin)) then
   !------------------------!
   !     spin-polarised     !

@@ -1,3 +1,5 @@
+! Collection of helper functions and wrappers commonly used 
+! at various occasions
 module mod_wannier_helper
   use mod_wannier_variables
 
@@ -12,7 +14,6 @@ module mod_wannier_helper
   use mod_potential_and_density, only: xctype
   use mod_misc,                  only: filext
   use mod_atoms,                 only: natmtot
-  use modinput
   use mod_kpoint
   use m_getunit
 
@@ -21,10 +22,12 @@ module mod_wannier_helper
 ! methods
   contains
 
-    subroutine wannier_setkpts
-      integer :: ik, ispn
+    !=====================================================================================
+    ! set the k-point set compatible with the global k-points
+    ! in the respective context
+    subroutine wfhelp_setkpts
+      integer :: ik, ispn, nempty, ngridk(3)
       logical :: reducek
-      integer :: ngridk(3)
       real(8) :: vkloff(3)
       !write(*,*) "k set"
       select case (input%properties%wannier%input)
@@ -38,28 +41,30 @@ module mod_wannier_helper
             wf_kset%vkc = vkc
           end if
           call generate_k_vectors( wf_kset_red, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .true., .false.)
-          nstfv = int( chgval/2.d0) + input%groundstate%nempty + 1
+          nstfv = min( minval( nmat_ptr), int( chgval/2.d0) + input%groundstate%nempty + 1)
         case( "gw")
           input%groundstate%stypenumber = -1 ! turn on LIBBZINT
           if (xctype(1) >= 400) then
             ! GW@hybrids
-            nstfv = int( chgval/2.d0) + input%groundstate%nempty + 1
+            nstfv = min( minval( nmat_ptr), int( chgval/2.d0) + input%groundstate%nempty + 1)
             call init1()
             call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .false.)
             call generate_k_vectors( wf_kset_red, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .true.)
           else
             ! GW@DFT
-            nstfv = int( chgval/2.d0) + input%gw%nempty + 1
             reducek = input%groundstate%reducek
             input%groundstate%reducek = .false.
             ngridk = input%groundstate%ngridk
             input%groundstate%ngridk = input%gw%ngridq
             vkloff = input%groundstate%vkloff
             input%groundstate%vkloff = input%gw%vqloff
+            nempty = input%groundstate%nempty
+            input%groundstate%nempty = input%gw%nempty
             call init1()
             input%groundstate%reducek = reducek
             input%groundstate%ngridk = ngridk
             input%groundstate%vkloff = vkloff
+            input%groundstate%nempty = nempty
             call generate_k_vectors( wf_kset, bvec, input%gw%ngridq, input%gw%vqloff, .false.)
             call generate_k_vectors( wf_kset_red, bvec, input%gw%ngridq, input%gw%vqloff, .true.)
           end if
@@ -77,16 +82,18 @@ module mod_wannier_helper
           vklnr = wf_kset%vkl
           vkcnr = wf_kset%vkc
           call generate_k_vectors( wf_kset_red, bvec, input%gw%ngridq, input%gw%vqloff, .true.)
-          nstfv = int( chgval/2.d0) + input%gw%nempty + 1
+          nstfv = min( minval( nmat_ptr), int( chgval/2.d0) + input%groundstate%nempty + 1)
         case( "hybrid")
-          nstfv = int( chgval/2.d0) + input%groundstate%nempty + 1
+          nstfv = min( minval( nmat_ptr), int( chgval/2.d0) + input%groundstate%nempty + 1)
           input%groundstate%stypenumber = -1 ! turn on LIBBZINT
           call init1()
           call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .false.)
           call generate_k_vectors( wf_kset_red, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .true.)
         case default
-          write(*,*)
-          write(*, '("Error (wannier_setkpt): ",a," is not a valid input.")') input%properties%wannier%input
+          if( mpiglobal%rank .eq. 0) then
+            write(*,*)
+            write(*, '("Error (wfhelp_setkpt): ",a," is not a valid input.")') input%properties%wannier%input
+          end if
           stop
       end select
       call generate_G_vectors( wf_Gset, bvec, intgv, input%groundstate%gmaxvr)
@@ -116,6 +123,7 @@ module mod_wannier_helper
       allocate( npmat(nspnfv, nkpt))
       nmatmax = 0
       nmatmax_ptr => nmatmax
+      call getngkmax
       do ik = 1, nkpt
         do ispn = 1, nspnfv
           call gengpvec( vkl( :, ik), vkc( :, ik), &
@@ -125,7 +133,6 @@ module mod_wannier_helper
                   vgkc( :, :, ispn, ik), &
                   gkc( :, ispn, ik), &
                   tpgkc( :, :, ispn, ik))
-          call getngkmax
           call gensfacgp( ngk( ispn, ik), vgkc( :, :, ispn, ik), ngkmax, &
                   sfacgk( :, :, ispn, ik))
           nmat( ispn, ik) = ngk( ispn, ik) + nlotot
@@ -135,14 +142,15 @@ module mod_wannier_helper
       end do
 
       return
-    end subroutine wannier_setkpts
+    end subroutine wfhelp_setkpts
 
-    subroutine wannier_genradfun
-      character(256) :: fname
+    !=====================================================================================
+    ! generate radial functions and related quantities
+    subroutine wfhelp_genradfun
+      character(256) :: fxt
 
-      fname = filext
+      fxt = filext
 
-      filext = '.OUT'
       if( input%properties%wannier%input .eq. 'hybrid') then
         filext = '_PBE.OUT'
       else if ( input%properties%wannier%input .eq. 'gw') then
@@ -158,16 +166,21 @@ module mod_wannier_helper
       call genlofr      ! LO radial functions
       call olprad
 
-      filext = fname
+      filext = trim( fxt)
 
       return
-    end subroutine wannier_genradfun
+    end subroutine wfhelp_genradfun
 
-    subroutine wannier_getevec( ik, evec)
-      integer, intent( in) :: ik
-      complex(8), intent( out) :: evec( nmatmax_ptr, nstfv, nspinor)
-      integer :: ist
-      real(8) :: phase
+    !=====================================================================================
+    ! wrapper to fetch eigenenvectors in the respective context
+    subroutine wfhelp_getevec( ik, evec)
+      use mod_constants, only: zone, zzero
+
+      integer, intent( in)           :: ik
+      complex(8), intent( out)       :: evec( nmatmax_ptr, nstfv, nspinor)
+
+      integer :: ik2, isym
+      complex(8), allocatable :: auxmat(:,:)
       character(22) :: filext0
 
       if( (input%properties%wannier%input .eq. "gs") .or. (input%properties%wannier%input .eq. "qsgw")) then
@@ -187,38 +200,81 @@ module mod_wannier_helper
         stop
       end if
 
-      !call plotmat( evec( :, :, 1))
-      !write(*,*)
-
       ! phase correction
-      !if( allocated( wf_evecphase)) then
-      !  do ist = wf_fst, wf_lst
-      !    phase = atan2( dble( aimag( evec( wf_evecphase( ist, ik), ist, 1))), dble( evec( wf_evecphase( ist, ik), ist, 1)))
-      !    evec( :, ist, 1) = evec( :, ist, 1)*cmplx( cos( phase), sin( -phase), 8)
-      !  end do
-      !end if
+      if( wf_fixphases) then
+        !write(*,*) 'phase correction'
+        allocate( auxmat( nmatmax_ptr, nstfv))
+        auxmat = evec( :, :, 1)
+        call zgemm( 'n', 'n', nmatmax_ptr, nstfv, nstfv, zone, &
+               auxmat, nmatmax_ptr, &
+               wf_evecphases( :, :, ik), nstfv, zzero, &
+               evec( :, :, 1), nmatmax_ptr)
+        deallocate( auxmat)
+      end if
 
       return
-    end subroutine wannier_getevec
+    end subroutine wfhelp_getevec
 
-    subroutine wannier_geteval( eval, fst, lst)
-      real(8), allocatable, intent( out) :: eval(:,:)
-      integer, intent( out)              :: fst, lst
+    !=====================================================================================
+    ! wrapper to fetch eigenenergies in the respective context
+    subroutine wfhelp_geteval( eval, fst, lst, mode, reduce)
+      real(8), allocatable, intent( out)  :: eval(:,:)
+      integer, intent( out)               :: fst, lst
+      character(*), optional, intent( in) :: mode
+      logical, optional, intent( in)      :: reduce
 
-      integer :: ik, ist, un, recl, nkpqp, fstqp, lstqp, nk, isym, iq, nkequi, isymequi( wf_kset%nkpt), ikequi( wf_kset%nkpt)
+      integer :: ik, ikk, ist, un, recl, nkpqp, fstqp, lstqp, nk, isym, iq, nkequi, isymequi( wf_kset%nkpt), ikequi( wf_kset%nkpt)
       real(8) :: vl(3), efermiqp, efermiks
-      character(256) :: fname
-      logical :: exist
+      character(256) :: mode_, fname, fxt
+      logical :: reduce_, exist
+      type( k_set) :: kset
 
       real(8), allocatable :: evalqp(:), evalks(:), evalfv(:,:)
 
-      if( input%properties%wannier%input .eq. "gw") then
+      mode_ = input%properties%wannier%input
+      if( present( mode)) mode_ = trim( mode)
+      reduce_ = .false.
+      if( present( reduce)) reduce_ = reduce
+      if( allocated( eval)) deallocate( eval)
+      
+      ! KS energies on GS grid ('gs')
+      ! generalized KS energies on GS grid ('hybrid')
+      ! KS energies on BSE grid ('bse')
+      if( (mode_ .eq. 'gs') .or. (mode_ .eq. 'hybrid') .or. (mode_ .eq. 'bse')) then
+        fxt = filext
+        nk = nstfv
+        if( mode_ .eq. 'bse') then
+          call generate_k_vectors( kset, wf_kset%bvec, input%xs%ngridk, input%xs%vkloff, reduce_)
+          nstfv = int( chgval/2.d0) + input%xs%nempty + 1
+        else
+          filext = '.OUT'
+          call generate_k_vectors( kset, wf_kset%bvec, input%groundstate%ngridk, input%groundstate%vkloff, reduce_)
+        end if
+        fst = 1
+        lst = nstfv
+        allocate( eval( fst:lst, kset%nkpt))
+        allocate( evalfv( nstfv, nspnfv))
+        do ik = 1, kset%nkpt
+          call getevalsv( kset%vkl( :, ik), evalfv)
+          ikk = ik
+          if( mode_ .ne. 'bse') call findkptinset( kset%vkl( :, ik), wf_kset, ist, ikk)
+          eval( :, ikk) = evalfv( :, 1)
+        end do
+        deallocate( evalfv)
+        filext = trim( fxt)
+        nstfv = nk
+      ! QP energies on GW grid ('gw')
+      ! KS energies on GW grid ('gwks')
+      else if( (mode_ .eq. 'gw') .or. (mode_ .eq. 'gwks')) then
+        call generate_k_vectors( kset, wf_kset%bvec, input%gw%ngridq, input%gw%vqloff, reduce_)
         call getunit( un)
         write( fname, '("EVALQP.OUT")')
         inquire( file=trim( fname), exist=exist)
         if( .not. exist) then
-          write(*,*)
-          write( *, '("Error (wfint_init): File EVALQP.OUT does not exist!")')
+          if( mpiglobal%rank .eq. 0) then
+            write(*,*)
+            write( *, '("Error (wfhelp_geteval): File EVALQP.OUT does not exist!")')
+          end if
           stop
         end if
         inquire( iolength=recl) nkpqp, fstqp, lstqp
@@ -229,72 +285,81 @@ module mod_wannier_helper
         allocate( evalks( fstqp:lstqp))
         fst = fstqp
         lst = lstqp
-        allocate( eval( fst:lst, wf_kset%nkpt))
+        allocate( eval( fst:lst, kset%nkpt))
         inquire( iolength=recl) nkpqp, fstqp, lstqp, vl, evalqp, evalks, efermiqp, efermiks
         open( un, file=trim( fname), action='read', form='unformatted', access='direct', recl=recl)
         do ik = 1, nkpqp
           read( un, rec=ik) nkpqp, fstqp, lstqp, vl, evalqp, evalks, efermiqp, efermiks
-          call findequivkpt( vl, wf_kset, nkequi, isymequi, ikequi)
+          call findequivkpt( vl, kset, nkequi, isymequi, ikequi)
           do iq = 1, nkequi
-            eval( :, ikequi( iq)) = evalqp(:)
+            if( mode_ .eq. 'gwks') then
+              eval( :, ikequi( iq)) = evalks(:)
+            else
+              eval( :, ikequi( iq)) = evalqp(:)
+            end if
           end do
         end do
         close( un)
         deallocate( evalqp, evalks)
       else
-        allocate( evalfv( nstfv, nspnfv))
-        fst = 1
-        lst = nstfv
-        allocate( eval( fst:lst, wf_kset%nkpt))
-        do ik = 1, wf_kset%nkpt
-          call getevalfv( wf_kset%vkl( :, ik), evalfv)
-          eval( :, ik) = evalfv( :, 1)
-        end do
-        deallocate( evalfv)
+        if( mpiglobal%rank .eq. 0) then
+          write(*,*)
+          write( *, '("Error (wfhelp_geteval): Given mode not supported.")')
+        end if
+        stop
       end if
 
       return
-    end subroutine wannier_geteval
+    end subroutine wfhelp_geteval
 
-    subroutine wannier_occupy( kset, eval, fst, lst, efermi, occ, usetetra_)
+    !=====================================================================================
+    ! generic routine to calculate occupations and Fermi energy
+    ! for a given set of eigenenergies
+    subroutine wfhelp_occupy( kset, eval, fst, lst, efermi, occ, tetra)
       use mod_opt_tetra
 
-      type( k_set), intent( in) :: kset
-      integer, intent( in) :: fst, lst
-      real(8), intent( in) :: eval( fst:lst, kset%nkpt)
-      logical, optional, intent( in) :: usetetra_
-      real(8), intent( out) :: efermi
-      real(8), optional, intent( out) :: occ( fst:lst, kset%nkpt)
+      type( k_set), intent( in)           :: kset
+      integer, intent( in)                :: fst, lst
+      real(8), intent( in)                :: eval( fst:lst, kset%nkpt)
+      real(8), intent( out)               :: efermi
+      real(8), optional, intent( out)     :: occ( fst:lst, kset%nkpt)
+      type( t_set), optional, intent( in) :: tetra
 
       integer, parameter :: maxit = 1000
 
       integer :: iq, ist, nvm, it
       logical :: usetetra
-      type( t_set) :: tetra
       real(8) :: e0, e1, chg, x, t1, df, occ_tmp( lst, kset%nkpt)
 
       real(8) :: sdelta, stheta
 
-      usetetra = .true.
+      usetetra = .false.
+      if( present( tetra)) usetetra = .true.
       occ_tmp = 0.d0
       df = 1.d-1
 
       nvm = nint( chgval/occmax)
       if( (fst .ne. 1) .and. (fst .le. nvm)) then
-        write(*,*)
-        write( *, '("Warning (wannier_occupy): The lowest band given is ",I3,". All bands below are considered to be fully occupied.")') fst
+        if( mpiglobal%rank .eq. 0) then
+          write(*,*)
+          write( *, '("Warning (wfhelp_occupy): The lowest band given is ",I3,". All bands below are considered to be fully occupied.")') fst
+        end if
         occ_tmp( 1:(fst-1), :) = occmax
       end if
       if( fst .gt. nvm) then
-        write(*,*)
-        write( *, '("Warning (wannier_occupy): No valence bands given. All are considered to be unoccupied. Fermi energy set to lowest energy given.")')
+        if( mpiglobal%rank .eq. 0) then
+          write(*,*)
+          write( *, '("Warning (wfhelp_occupy): No valence bands given. All bands are considered to be unoccupied. Fermi energy set to lowest energy given.")')
+        end if
         if( present( occ)) occ = 0.d0
         efermi = minval( eval( fst, :))
         return
       end if
       if( (lst .le. nvm)) then
-        write(*,*)
-        write( *, '("Warning (wannier_occupy): At least one conduction band has to be given in order to determine occupancies. All bands given are considered to be fully occupied. Fermi energy set to highest energy given.")')
+        if( mpiglobal%rank .eq. 0) then
+          write(*,*)
+          write( *, '("Warning (wfhelp_occupy): At least one conduction band has to be given in order to determine occupancies. All bands given are considered to be fully occupied. Fermi energy set to highest energy given.")')
+        end if
         if( present( occ)) occ = occmax
         efermi = maxval( eval( lst, :))
         return
@@ -323,8 +388,6 @@ module mod_wannier_helper
 !$OMP END PARALLEL
 #endif
       if( (e1 .ge. e0) .and. (abs( chg - chgval) .lt. input%groundstate%epsocc)) then
-        write(*,*)
-        write( *, '("Info (wannier_occupy): System has gap. Fermi level set to the middle of the gap.")')
         usetetra = .false.
       else
         ! metal found
@@ -370,20 +433,20 @@ module mod_wannier_helper
               it = it + 1
             end if
           end do
-          usetetra = .true.
-          if( present( usetetra_)) usetetra = usetetra_
+
           if( it .eq. maxit) then
-            write(*,*)
-            write( *, '("Error (wannier_occupy): Fermi energy could not be found.")')
+            if( mpiglobal%rank .eq. 0) then
+              write(*,*)
+              write( *, '("Error (wfhelp_occupy): Fermi energy could not be found.")')
+            end if
             stop
           end if
         else
-          usetetra = .true.
-          df = 1.d0
-          if( present( usetetra_)) usetetra = usetetra_
           if( .not. usetetra) then
-            write(*,*)
-            write( *, '("Error (wannier_occupy): Not implemented for this stype.")')
+            if( mpiglobal%rank .eq. 0) then
+              write(*,*)
+              write( *, '("Error (wfhelp_occupy): Not implemented for this stype.")')
+            end if
             stop
           end if
         end if
@@ -394,28 +457,170 @@ module mod_wannier_helper
           write(*,*)
           write( *, '("Info (wfhelp_occupy): Use tetrahedron method in determining efermi and occupation")')
         end if
-        call opt_tetra_init( tetra, kset, 2, reduce=.true.)
         call opt_tetra_efermi( tetra, chgval/dble( occmax)-fst+1, kset%nkpt, lst-fst+1, eval( fst:lst, :), efermi, occ_tmp( fst:lst, :), ef0=efermi, df0=df)
         do iq = 1, kset%nkpt
           occ_tmp( :, iq) = occmax*occ_tmp( :, iq)/kset%wkpt( iq)
         end do
-        call opt_tetra_destroy( tetra)
       end if
 
       if( present( occ)) occ(:,:) = occ_tmp( fst:lst, :)
       return
-    end subroutine wannier_occupy
+    end subroutine wfhelp_occupy
 
-    subroutine wannier_getefermi( efermi)
+    !=====================================================================================
+    ! calculate the Fermi energy
+    ! (dependent on context)
+    subroutine wfhelp_getefermi( efermi, tetra)
+      use mod_opt_tetra
+
       real(8), intent( out) :: efermi
+      type( t_set), optional, intent( in) :: tetra
 
       integer :: fst, lst
       real(8), allocatable :: evalfv(:,:)
 
-      call wannier_geteval( evalfv, fst, lst)
-      call wannier_occupy( wf_kset, evalfv, fst, lst, efermi)
+      call wfhelp_geteval( evalfv, fst, lst)
+      if( present( tetra)) then
+        call wfhelp_occupy( wf_kset, evalfv, fst, lst, efermi, tetra=tetra)
+      else
+        call wfhelp_occupy( wf_kset, evalfv, fst, lst, efermi)
+      end if
 
       return
-    end subroutine wannier_getefermi
+    end subroutine wfhelp_getefermi
+
+    !=====================================================================================
+    ! initialize set of tetrahedra for tetrahedron integration
+    subroutine wfhelp_init_tetra( tetra, kset, ttype, reduce)
+      use mod_opt_tetra
+
+      type( t_set), intent( inout) :: tetra
+      type( k_set), intent( in)        :: kset
+      integer, optional, intent( in)   :: ttype
+      logical, optional, intent( in)   :: reduce
+
+      integer :: ttype_ = 1
+      logical :: reduce_ = .false.
+
+      if( present( ttype)) ttype_ = ttype
+      if( present( reduce)) reduce_ = reduce
+
+      if( .true. .or. .not. tetra%initialized) call opt_tetra_init( tetra, kset, ttype_, reduce_)
+      return
+    end subroutine wfhelp_init_tetra
+
+    !=====================================================================================
+    ! this routine aims to fix the phases of the eigenvectors
+    ! such that the transformation matrices U also work for
+    ! eigenvectors from another (but sufficiently close) DFT run
+    subroutine wfhelp_fixphases
+      use mod_constants, only: zone, zzero
+
+      integer :: ik, ist, jst, nmatp
+      real(8), allocatable :: eval(:,:)
+      complex(8), allocatable :: evec(:,:,:), phase(:,:)
+
+      if( wf_fixphases) then
+        wf_fixphases = .false.
+        if( allocated( wf_evecphases)) deallocate( wf_evecphases)
+        call wfhelp_geteval( eval, ist, jst)
+        allocate( wf_evecphases( nstfv, nstfv, wf_kset%nkpt))
+        allocate( phase( ist:jst, ist:jst))
+        wf_evecphases = zzero
+        do ik = 1, nstfv
+          wf_evecphases( ik, ik, :) = zone
+        end do
+        allocate( evec( nmatmax_ptr, nstfv, nspinor))
+        do ik = 1, wf_kset%nkpt
+          nmatp = wf_Gkset%ngk( 1, ik) + nlotot
+          call wfhelp_getevec( ik, evec)
+          call wfhelp_getphases( evec( 1:nmatp, ist:jst, 1), eval( ist:jst, ik), nmatp, jst-ist+1, phase)
+          wf_evecphases( ist:jst, ist:jst, ik) = phase
+        end do
+        deallocate( evec, eval, phase)
+        wf_fixphases = .true.
+      end if
+      return
+    end subroutine wfhelp_fixphases
+
+    subroutine wfhelp_getphases( evec, eval, ngp, nst, phases)
+      use mod_constants, only: zone, zzero
+      use m_linalg,      only: zhediag
+
+      complex(8), intent( in)    :: evec( ngp, nst)
+      real(8), intent( in)       :: eval( nst)
+      integer, intent( in)       :: ngp, nst
+      complex(8), intent( out)   :: phases( nst, nst)
+
+      integer :: ist, jst, kst, ndeg, igp
+      real(8) :: epse, epsp, t
+      complex(8) :: phase
+      complex(8), allocatable :: pert(:,:), auxmat(:,:), p(:,:)
+      real(8), allocatable :: pval(:)
+      
+      epse = 1.d-4
+      epsp = 1.d-1
+
+      phases = zzero
+      do ist = 1, nst
+        phases( ist, ist) = zone
+      end do
+
+      allocate( pert( ngp, ngp), auxmat( ngp, ngp), p( nst, nst), pval( nst))
+      ! fix degeneracies
+      ndeg = 1
+      do jst = 1, nst-1
+        if( (eval( jst+1) - eval( jst) .ge. epse) .and. (ndeg .gt. 1)) then
+          ist = jst - ndeg + 1
+          ! construct ficticious hermitian perturbation
+          auxmat = zzero
+          do kst = ist, jst
+            auxmat( :, kst) = auxmat( :, kst) + evec( :, kst)
+          end do
+          call zgemm( 'c', 'n', ngp, ngp, ngp, zone, &
+                 auxmat, ngp, &
+                 auxmat, ngp, zzero, &
+                 pert, ngp)
+          call zgemm( 'c', 'n', ndeg, ngp, ngp, zone, &
+                 evec( :, ist:jst), ngp, &
+                 pert, ngp, zzero, &
+                 auxmat( 1:ndeg, :), ndeg)
+          call zgemm( 'n', 'n', ndeg, ndeg, ngp, zone, &
+                 auxmat( 1:ndeg, :), ndeg, &
+                 evec( :, ist:jst), ngp, zzero, &
+                 p, nst)
+          ! find unitary mixing of degenerate states
+          pval = 0.d0
+          call zhediag( p( 1:ndeg, 1:ndeg), pval( 1:ndeg), evec=phases( ist:jst, ist:jst))
+        end if
+        if( eval( jst+1) - eval( jst) .lt. epse) then
+          ndeg = ndeg + 1
+        else
+          ndeg = 1
+        end if
+      end do
+      ! fix global phase
+      call zgemm( 'n', 'n', ngp, nst, nst, zone, &
+             evec, ngp, &
+             phases, nst, zzero, &
+             auxmat( :, 1:nst), ngp)
+      do ist = 1, nst
+        phase = zzero
+        do igp = 1, ngp
+          phase = phase + auxmat( igp, ist)
+          if( abs( phase) .gt. epsp) exit
+        end do
+        if( abs( phase) .gt. epsp) then
+          phases( :, ist) = phases( :, ist)*conjg( phase)/abs( phase)
+        else
+          if( mpiglobal%rank .eq. 0) then
+            write(*,*) 'global phase not found for state ', ist
+          end if
+        end if
+      end do
+
+      deallocate( pert, auxmat, p, pval)
+      return
+    end subroutine wfhelp_getphases
 
 end module mod_wannier_helper

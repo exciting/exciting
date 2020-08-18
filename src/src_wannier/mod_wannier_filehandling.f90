@@ -16,6 +16,7 @@ module mod_wannier_filehandling
   use modinput
   use m_getunit
   use m_plotmat
+  use modmpi
 
   implicit none
 
@@ -25,85 +26,25 @@ module mod_wannier_filehandling
 !*********************************!
 !          FILE HANDLING          !
 !*********************************!
-    subroutine wannier_readsetup
-      integer :: ik, ix, un, fst_, lst_, nst_, nwf_, nkpt_, nprojtot_
-      logical :: success, disentangle_
-
-      call getunit( un)
-
-      inquire( file=trim( wf_filename)//"_SETUP"//trim( filext), exist=success)
-      if( .not. success) then
-        write(*,*)
-        write(*, '("Error (wannier_readsetup): File '//trim( wf_filename)//"_SETUP"//trim( filext)//' does not exist.")')
-        return
-      end if
-      open( un, file=trim( wf_filename)//"_SETUP"//trim( filext), action='READ', form='UNFORMATTED', status='OLD')
-      read( un) fst_, lst_, nst_, nwf_, nkpt_, nprojtot_, disentangle_
-      !wf_disentangle = disentangle_
-      if( (fst_ .ne. wf_fst) .or. (lst_ .ne. wf_lst)) then
-        write(*,*)
-        write( *, '("Warning (wannier_readsetup): different band-ranges in input (",I4,":",I4,") and file (",I4,":",I4,").")'), wf_fst, wf_lst, fst_, lst_
-        write( *, '(" Use data from file.")')
-        wf_fst = fst_
-        wf_lst = lst_
-      end if
-      if( nwf_ .ne. wf_nwf) then
-        write(*,*)
-        write( *, '("Warning (wannier_readsetup): different number of Wannier functions in input (",I4,") and file (",I4,").")') wf_nwf, nwf_
-        write( *, '(" Use data from file.")')
-        wf_nwf = nwf_
-      end if
-      if( nkpt_ .ne. wf_kset%nkpt) then
-        write(*,*)
-        write( *, '("Error (wannier_readsetup): different number of k-points in input (",I4,") and file (",I4,").")'), wf_kset%nkpt, nkpt_
-        stop
-      end if
-
-      if( allocated( wf_evecphase)) deallocate( wf_evecphase)
-      allocate( wf_evecphase( wf_fst:wf_lst, wf_kset%nkpt))
-      do ik = 1, wf_kset%nkpt
-        do ix = wf_fst, wf_lst
-          read( un) wf_evecphase( ix, ik)
-        end do
-      end do
-      close( un)
-      write( *, '(a,a)') ' Setup read from file ', trim( wf_filename)//"_SETUP"//trim( filext)
-      return
-    end subroutine wannier_readsetup
-
-    subroutine wannier_writesetup
-      integer :: ik, ix, iy, un
-
-      call getunit( un)
-
-      open( un, file=trim( wf_filename)//"_SETUP"//trim( filext), action='WRITE', form='UNFORMATTED')
-      write( un) wf_fst, wf_lst, wf_nst, wf_nwf, wf_kset%nkpt, wf_nprojtot, wf_disentangle
-      do ik = 1, wf_kset%nkpt
-        do ix = wf_fst, wf_lst
-          write( un) wf_evecphase( ix, ik)
-        end do
-      end do
-      close( un)
-      write( *, '(a,a)') ' Setup written to file ', trim( wf_filename)//"_SETUP"//trim( filext)
-      return
-    end subroutine wannier_writesetup
-
     ! reads transformation matrices from file
-    subroutine wannier_readtransform( success)
+    subroutine wffile_readtransform( success)
       logical, intent( out) :: success
 
       ! local variables
       integer :: ik, ix, iy, iz, un, igroup
       integer :: fst_, lst_, nst_, nwf_, nkpt_, ngroups_
       real(8) :: vkl_( 3), vkl_tmp( 3, wf_kset%nkpt)
+      character(32) :: method
 
       call getunit( un)
 
       success = .true.
       inquire( file=trim( wf_filename)//"_TRANSFORM"//trim( filext), exist=success)
       if( .not. success) then
-        write(*,*)
-        write(*, '("Error (wannier_readtransform): File '//trim( wf_filename)//"_TRANSFORM"//trim( filext)//' does not exist.")')
+        if( mpiglobal%rank .eq. 0) then
+          write(*,*)
+          write(*, '("Error (wffile_readtransform): File '//trim( wf_filename)//"_TRANSFORM"//trim( filext)//' does not exist.")')
+        end if
         return
       end if
       open( un, file=trim( wf_filename)//"_TRANSFORM"//trim( filext), action='READ', form='UNFORMATTED', status='OLD')
@@ -111,34 +52,44 @@ module mod_wannier_filehandling
       ! global parameters
       read( un) fst_, lst_, nst_, nwf_, nkpt_, ngroups_, wf_nprojtot
       if( (fst_ .ne. wf_fst) .or. (lst_ .ne. wf_lst)) then
-        write(*,*)
-        write( *, '("Warning (wannier_readtransform): different band-ranges in input (",I4,":",I4,") and file (",I4,":",I4,").")'), wf_fst, wf_lst, fst_, lst_
-        write( *, '(" Use data from file.")')
+        if( mpiglobal%rank .eq. 0) then
+          write(*,*)
+          write( *, '("Warning (wffile_readtransform): different band-ranges in input (",I4,":",I4,") and file (",I4,":",I4,").")'), wf_fst, wf_lst, fst_, lst_
+          write( *, '(" Use data from file.")')
+        end if
         wf_fst = fst_
         wf_lst = lst_
       end if
       wf_nst = wf_lst - wf_fst + 1
       if( nwf_ .ne. wf_nwf) then
-        write(*,*)
-        write( *, '("Warning (wannier_readtransform): different number of Wannier functions in input (",I4,") and file (",I4,").")') wf_nwf, nwf_
-        write( *, '(" Use data from file.")')
+        if( mpiglobal%rank .eq. 0) then
+          write(*,*)
+          write( *, '("Warning (wffile_readtransform): different number of Wannier functions in input (",I4,") and file (",I4,").")') wf_nwf, nwf_
+          write( *, '(" Use data from file.")')
+        end if
         wf_nwf = nwf_
       end if
       if( nkpt_ .ne. wf_kset%nkpt) then
-        write(*,*)
-        write( *, '("Error (wannier_readtransform): different number of k-points in input (",I4,") and file (",I4,").")'), wf_kset%nkpt, nkpt_
-        stop
+        if( mpiglobal%rank .eq. 0) then
+          write(*,*)
+          write( *, '("Error (wffile_readtransform): different number of k-points in input (",I4,") and file (",I4,").")'), wf_kset%nkpt, nkpt_
+        end if
+        call terminate
       end if
       if( ngroups_ .ne. wf_ngroups) then
-        write(*,*)
-        write( *, '("Warning (wannier_readtransform): different groups of bands in input (",I4,") and file (",I4,").")') wf_ngroups, ngroups_
-        write( *, '(" Use data from file.")')
+        if( mpiglobal%rank .eq. 0) then
+          write(*,*)
+          write( *, '("Warning (wffile_readtransform): different groups of bands in input (",I4,") and file (",I4,").")') wf_ngroups, ngroups_
+          write( *, '(" Use data from file.")')
+          if( allocated( wf_groups)) deallocate( wf_groups)
+          allocate( wf_groups( ngroups_))
+        end if
         wf_ngroups = ngroups_
       end if
 
       ! allocate global arrays
       if( allocated( wf_projst)) deallocate( wf_projst)
-      allocate( wf_projst( 5, wf_nprojtot))
+      allocate( wf_projst( 7, wf_nprojtot))
       if( allocated( wf_omega)) deallocate( wf_omega)
       allocate( wf_omega( wf_nwf))
       if( allocated( wf_omega_i)) deallocate( wf_omega_i)
@@ -153,8 +104,6 @@ module mod_wannier_filehandling
       allocate( wf_centers( 3, wf_nwf))
       if( allocated( wf_transform)) deallocate( wf_transform)
       allocate( wf_transform( wf_fst:wf_lst, wf_nwf, wf_kset%nkpt))
-      if( allocated( wf_groups)) deallocate( wf_groups)
-      allocate( wf_groups( wf_ngroups))
       !if( allocated( wf_evecphase)) deallocate( wf_evecphase)
       !allocate( wf_evecphase( wf_fst:wf_lst, wf_kset%nkpt))
 
@@ -165,10 +114,17 @@ module mod_wannier_filehandling
 
       ! groups
       do igroup = 1, wf_ngroups
-        read( un) wf_groups( igroup)%method
-        read( un) wf_groups( igroup)%fst, wf_groups( igroup)%lst, wf_groups( igroup)%nst
-        read( un) wf_groups( igroup)%fwf, wf_groups( igroup)%lwf, wf_groups( igroup)%nwf
-        read( un) wf_groups( igroup)%nprojused
+        read( un) method
+        if( (trim( method) .ne. trim( wf_groups( igroup)%method)) .and. (trim( wf_groups( igroup)%method) .ne. '')) then
+          write(*,*)
+          write(*,'("Warning (wffile_readtransform): Different method found in file and input for group ",i2,".")') igroup
+          write(*,'(t10,"file:  ",a)') trim( method)
+          write(*,'(t10,"input: ",a)') trim( wf_groups( igroup)%method)
+          write(*,'("Input file setting is used.")')
+        end if
+        read( un) wf_groups( igroup)%fst, wf_groups( igroup)%lst, wf_groups( igroup)%nst 
+        read( un) wf_groups( igroup)%fwf, wf_groups( igroup)%lwf, wf_groups( igroup)%nwf 
+        read( un) wf_groups( igroup)%nproj
         read( un) wf_groups( igroup)%win_i
         read( un) wf_groups( igroup)%win_o
 
@@ -176,21 +132,31 @@ module mod_wannier_filehandling
         allocate( wf_groups( igroup)%projused( wf_nprojtot))
         read( un) wf_groups( igroup)%projused
 
-        if( wf_groups( igroup)%method .eq. 'disentangle') then
+        if( allocated( wf_groups( igroup)%win_ii)) deallocate( wf_groups( igroup)%win_ii)
+        if( allocated( wf_groups( igroup)%win_io)) deallocate( wf_groups( igroup)%win_io)
+        if( allocated( wf_groups( igroup)%win_ni)) deallocate( wf_groups( igroup)%win_ni)
+        if( allocated( wf_groups( igroup)%win_no)) deallocate( wf_groups( igroup)%win_no)
+        if( any( wf_groups( igroup)%method .eq. (/'disSMV','disFull'/))) then
           read( un) fst_, lst_
-          if( allocated( wf_groups( igroup)%win_ii)) deallocate( wf_groups( igroup)%win_ii)
           allocate( wf_groups( igroup)%win_ii( fst_, lst_))
-          if( allocated( wf_groups( igroup)%win_io)) deallocate( wf_groups( igroup)%win_io)
           allocate( wf_groups( igroup)%win_io( fst_, lst_))
           read( un) wf_groups( igroup)%win_ii
           read( un) wf_groups( igroup)%win_io
 
-          if( allocated( wf_groups( igroup)%win_ni)) deallocate( wf_groups( igroup)%win_ni)
           allocate( wf_groups( igroup)%win_ni( wf_kset%nkpt))
-          if( allocated( wf_groups( igroup)%win_no)) deallocate( wf_groups( igroup)%win_no)
           allocate( wf_groups( igroup)%win_no( wf_kset%nkpt))
           read( un) wf_groups( igroup)%win_ni
           read( un) wf_groups( igroup)%win_no
+        else
+          allocate( wf_groups( igroup)%win_ii( wf_groups( igroup)%nwf, wf_kset%nkpt), &
+                    wf_groups( igroup)%win_io( wf_groups( igroup)%nwf, wf_kset%nkpt))
+          allocate( wf_groups( igroup)%win_ni( wf_kset%nkpt), wf_groups( igroup)%win_no( wf_kset%nkpt))
+          wf_groups( igroup)%win_ni = wf_groups( igroup)%nwf
+          wf_groups( igroup)%win_no = 0
+          wf_groups( igroup)%win_io = 0
+          do ix = 1, wf_groups( igroup)%nst
+            wf_groups( igroup)%win_ii(ix,:) = ix + wf_groups( igroup)%fst - 1
+          end do
         end if
       end do
 
@@ -202,10 +168,12 @@ module mod_wannier_filehandling
         vkl_tmp( 3, :) = wf_kset%vkl( 3, :) - vkl_( 3)
         iz = minloc( norm2( vkl_tmp( :, :), 1), 1)
         if( norm2( vkl_tmp( :, iz)) .gt. input%structure%epslat) then
-          write(*,*)
-          write( *, '("Error (wannier_readtransform): k-point in file not in k-point-set.")')
-          write( *, '(x,3F23.6)') vkl_
-          stop
+          if( mpiglobal%rank .eq. 0) then
+            write(*,*)
+            write( *, '("Error (wffile_readtransform): k-point in file not in k-point-set.")')
+            write( *, '(x,3F23.6)') vkl_
+          end if
+          call terminate
         end if
         do iy = 1, wf_nwf
           do ix = wf_fst, wf_lst
@@ -241,16 +209,20 @@ module mod_wannier_filehandling
       !end do
       close( un)
       if( success) then
-        write(*,*)
-        write(*, '("Info (wannier_readtransform): Transformation matrices successfully read.")')
+        !if( mpiglobal%rank .eq. 0) then
+        !  write(*,*)
+        !  write(*, '("Info (wffile_readtransform): Transformation matrices successfully read.")')
+        !end if
       end if
       return
-    end subroutine wannier_readtransform
+    end subroutine wffile_readtransform
 
     ! writes transformation matrices to file
-    subroutine wannier_writetransform
+    subroutine wffile_writetransform
       ! local variables
       integer :: ik, ix, iy, un, igroup
+      
+      if( mpiglobal%rank .gt. 0) return
 
       call getunit( un)
 
@@ -268,13 +240,13 @@ module mod_wannier_filehandling
         write( un) wf_groups( igroup)%method
         write( un) wf_groups( igroup)%fst, wf_groups( igroup)%lst, wf_groups( igroup)%nst
         write( un) wf_groups( igroup)%fwf, wf_groups( igroup)%lwf, wf_groups( igroup)%nwf
-        write( un) wf_groups( igroup)%nprojused
+        write( un) wf_groups( igroup)%nproj
         write( un) wf_groups( igroup)%win_i
         write( un) wf_groups( igroup)%win_o
 
         write( un) wf_groups( igroup)%projused
 
-        if( wf_groups( igroup)%method .eq. 'disentangle') then
+        if( any( wf_groups( igroup)%method .eq. (/'disSMV','disFull'/))) then
           write( un) shape( wf_groups( igroup)%win_ii)
           write( un) wf_groups( igroup)%win_ii
           write( un) wf_groups( igroup)%win_io
@@ -321,13 +293,13 @@ module mod_wannier_filehandling
       !end do
       close( un)
       return
-    end subroutine wannier_writetransform
+    end subroutine wffile_writetransform
 
-    subroutine wannier_reademat( success)
+    subroutine wffile_reademat( success)
       logical, intent( out) :: success
 
       ! local variables
-      integer :: i, j, is, n, idxn, ik, ix, iy, iz, un
+      integer :: i, j, idxn, ik, ix, iy, iz, un
       integer :: fst_, lst_, nst_, ntot_, nkpt_
       real(8) :: vln(3), vkl_( 3), vkl_tmp( 3, wf_kset%nkpt)
       complex(8) :: ztmp
@@ -337,27 +309,35 @@ module mod_wannier_filehandling
       success = .true.
       inquire( file=trim( wf_filename)//"_EMAT"//trim( filext), exist=success)
       if( .not. success) then
-        write(*,*)
-        write(*, '("Error (wannier_reademat): File '//trim( wf_filename)//"_EMAT"//trim( filext)//' does not exist.")')
+        if( mpiglobal%rank .eq. 0) then
+          write(*,*)
+          write(*, '("Error (wffile_reademat): File '//trim( wf_filename)//"_EMAT"//trim( filext)//' does not exist.")')
+        end if
         return
       end if
       open( un, file=trim( wf_filename)//"_EMAT"//trim( filext), action='READ', form='UNFORMATTED', status='OLD')
       read( un) fst_, lst_, nst_, ntot_, nkpt_
       if( (fst_ .gt. wf_fst) .or. (lst_ .lt. wf_lst)) then
-        write(*,*)
-        write( *, '("Error (wannier_reademat): bands in input (",I4,":",I4,") out of file band range (",I4,":",I4,").")'), wf_fst, wf_lst, fst_, lst_
+        if( mpiglobal%rank .eq. 0) then
+          write(*,*)
+          write( *, '("Error (wffile_reademat): bands in input (",I4,":",I4,") out of file band range (",I4,":",I4,").")'), wf_fst, wf_lst, fst_, lst_
+        end if
         success = .false.
         return
       end if
       if( ntot_ .ne. wf_n_ntot) then
-        write(*,*)
-        write( *, '("Error (wannier_reademat): different number of BZ-neighbors in input (",I4,") and file (",I4,").")'), wf_n_ntot, ntot_
+        if( mpiglobal%rank .eq. 0) then
+          write(*,*)
+          write( *, '("Error (wffile_reademat): different number of BZ-neighbors in input (",I4,") and file (",I4,").")'), wf_n_ntot, ntot_
+        end if
         success = .false.
         return
       end if
       if( nkpt_ .ne. wf_kset%nkpt) then
-        write(*,*)
-        write( *, '("Error (wannier_reademat): different number of k-points in input (",I4,") and file (",I4,").")'), wf_kset%nkpt, nkpt_
+        if( mpiglobal%rank .eq. 0) then
+          write(*,*)
+          write( *, '("Error (wffile_reademat): different number of k-points in input (",I4,") and file (",I4,").")'), wf_kset%nkpt, nkpt_
+        end if
         success = .false.
         return
       end if
@@ -383,11 +363,13 @@ module mod_wannier_filehandling
             vkl_tmp( 3, :) = wf_kset%vkl( 3, :) - vkl_( 3)
             iz = minloc( norm2( vkl_tmp( :, :), 1), 1)
             if( norm2( wf_kset%vkl( :, iz) - vkl_(:)) .gt. input%structure%epslat) then
-              write(*,*)
-              write( *, '("Error (wannier_reademat): k-point in file not in k-point-set.")')
-              write( *, '(x,3F23.6)') vkl_
+              if( mpiglobal%rank .eq. 0) then
+                write(*,*)
+                write( *, '("Error (wffile_reademat): k-point in file not in k-point-set.")')
+                write( *, '(x,3F23.6)') vkl_
+              end if
               success = .false.
-              stop
+              return
             end if
             do iy = fst_, lst_
               do ix = fst_, lst_
@@ -397,9 +379,13 @@ module mod_wannier_filehandling
             end do
           end do
         else
-          write(*,*)
-          write( *, '("Error (wannier_reademat): neighboring vector in file not consistent with input.")')
-          write( *, '(x,3F23.6)') vln
+          if( mpiglobal%rank .eq. 0) then
+            write(*,*)
+            write( *, '("Error (wffile_reademat): neighboring vector in file not consistent with input.")')
+            write( *, '(x,3F23.6)') vln
+          end if
+          success = .false.
+          return
         end if
       end do
       !do ik = 1, wf_kset%nkpt
@@ -409,12 +395,14 @@ module mod_wannier_filehandling
       !end do
       close( un)
       return
-    end subroutine wannier_reademat
+    end subroutine wffile_reademat
 
     ! writes transformation matrices to file
-    subroutine wannier_writeemat
+    subroutine wffile_writeemat
       ! local variables
-      integer :: i, ik, is, n, idxn, ix, iy, un
+      integer :: ik, idxn, ix, iy, un
+
+      if( mpiglobal%rank .gt. 0) return
 
       call getunit( un)
 
@@ -439,9 +427,9 @@ module mod_wannier_filehandling
       close( un)
       !write( *, '(a,a)') ' Plane-wave matrix-elements written to file ', trim( wf_filename)//"_EMAT"//trim( filext)
       return
-    end subroutine wannier_writeemat
+    end subroutine wffile_writeemat
 
-    subroutine wannier_delemat
+    subroutine wffile_delemat
       integer :: un
       logical :: exist
 
@@ -453,31 +441,30 @@ module mod_wannier_filehandling
       end if
 
       return
-    end subroutine wannier_delemat
+    end subroutine wffile_delemat
 
-    subroutine wannier_writeinfo_lo
+    subroutine wffile_writeinfo_lo
       integer :: i, j
 
-!#ifdef MPI
-!      if( rank .eq. 0) then
-!#endif
+      if( mpiglobal%rank .gt. 0) return
+
       call printbox( wf_info, '*', "Local-orbitals for projection")
       write( wf_info, *)
 
-      write( wf_info, '(12x,"#",6x,"species",9x,"atom",12x,"l",12x,"m",7x,"groups")')
+      write( wf_info, '(7x,"#",5x,"species",1x,"atom",9x,"cell",5x,"  n /  l /  m ",3x,"dord",6x,"groups")')
       write( wf_info, '(80("-"))')
       do i = 1, wf_nprojtot
-        write( wf_info, '(9x,I4,11x,a2,10x,I3,11x,I2,11x,I2,11x)', advance='no') &
+        write( wf_info, '(4x,i4,10x,a2,2x,i3,4x,3(i3),5x,2(i3," /"),i3,4x,i4,4x)', advance='no') &
             i, &
             spsymb( wf_projst( 1, i)), &
             wf_projst( 2, i), &
-            wf_projst( 4, i), &
-            wf_projst( 5, i)
+            wf_projst( 8:10, i), &
+            wf_projst( 4:7, i)
         do j = 1, wf_ngroups
           if( wf_groups( j)%projused( i) .eq. 1) then
-            write( wf_info, '(i3,x)', advance='no') j
+            write( wf_info, '(i2,x)', advance='no') j
           else
-            write( wf_info, '(4x)', advance='no')
+            write( wf_info, '(3x)', advance='no')
           end if
         end do
         write( wf_info, *)
@@ -487,21 +474,14 @@ module mod_wannier_filehandling
       write( wf_info, '(36x,"local-orbitals used in total:",4x,I4)') wf_nprojtot
       write( wf_info, *)
       call flushifc( wf_info)
-!#ifdef MPI
-!        call barrier
-!      else
-!        call barrier
-!      end if
-!#endif
-    end subroutine wannier_writeinfo_lo
+    end subroutine wffile_writeinfo_lo
+    
+    subroutine wffile_writeinfo_geometry
+      integer :: i
+      real(8) :: d, v(3,1), m(3,3)
 
-    subroutine wannier_writeinfo_geometry
-      integer :: i, j
-      real(8) :: d, v(3,1), m(3,3), tmp(3,3)
+      if( mpiglobal%rank .gt. 0) return
 
-!#ifdef MPI
-!      if( rank .eq. 0) then
-!#endif
       call printbox( wf_info, '*', "Brillouin zone neighbors for k-gradient")
       write( wf_info, *)
 
@@ -519,8 +499,6 @@ module mod_wannier_filehandling
         v(:,1) = wf_n_vc( :, i)
         m = m + 2.0d0*wf_n_wgt( i)*matmul( v, transpose( v))
       end do
-      call r3mm( m, transpose( wf_n_rot), tmp)
-      call r3mm( wf_n_rot, tmp, m)
 
       write( wf_info, *)
       write( wf_info, '(" vectors to neighboring k-points (lattice)")')
@@ -545,18 +523,11 @@ module mod_wannier_filehandling
 
       write( wf_info, *)
       call flushifc( wf_info)
-!#ifdef MPI
-!        call barrier
-!      else
-!        call barrier
-!      end if
-!#endif
-    end subroutine wannier_writeinfo_geometry
+    end subroutine wffile_writeinfo_geometry
+    
+    subroutine wffile_writeinfo_overall
+      if( mpiglobal%rank .gt. 0) return
 
-    subroutine wannier_writeinfo_overall
-!#ifdef MPI
-!      if( rank .eq. 0) then
-!#endif
       call printbox( wf_info, '*', "Overall set-up")
       write( wf_info, *)
       write( wf_info, '(" lowest band:",T30,13x,I3)') wf_fst
@@ -566,30 +537,28 @@ module mod_wannier_filehandling
       write( wf_info, '(" #groups:",T30,13x,I3)') wf_ngroups
       write( wf_info, '(" #k-points:",T30,11x,I5)') wf_kset%nkpt
       call flushifc( wf_info)
-!#ifdef MPI
-!        call barrier
-!      else
-!        call barrier
-!      end if
-!#endif
-    end subroutine wannier_writeinfo_overall
+    end subroutine wffile_writeinfo_overall
+    
+    subroutine wffile_writeinfo_task
+      character(16) :: string
+     
+      if( mpiglobal%rank .gt. 0) return
 
-    subroutine wannier_writeinfo_task
-      character(32) :: string
-
-!#ifdef MPI
-!      if( rank .eq. 0) then
-!#endif
       write( string, '("Group: ",I2)') wf_group
       call printbox( wf_info, '-', string)
+      string = wf_groups( wf_group)%method(1:16)
       write( wf_info, *)
       write( wf_info, '(" lowest band:",T30,13x,I3)') wf_groups( wf_group)%fst
       write( wf_info, '(" highest band:",T30,13x,I3)') wf_groups( wf_group)%lst
       write( wf_info, '(" #bands involved:",T30,13x,I3)') wf_groups( wf_group)%nst
       write( wf_info, '(" #Wannier functions:",T30,13x,I3)') wf_groups( wf_group)%nwf
-      write( wf_info, '(" #projection functions:",T30,13x,I3)') wf_groups( wf_group)%nprojused
-      write( wf_info, '(" method:",T30,A16)') wf_groups( wf_group)%method
-      if( wf_groups( wf_group)%method .eq. "disentangle") then
+      if( wf_groups( wf_group)%neighcells) then
+        write( wf_info, '(" #projection functions (nc):",T30,11x,I5)') wf_groups( wf_group)%nproj
+      else
+        write( wf_info, '(" #projection functions:",T30,11x,I5)') wf_groups( wf_group)%nproj
+      end if
+      write( wf_info, '(" method:",T30,A16)') adjustr( string)
+      if( any( wf_groups( wf_group)%method .eq. (/'disSMV','disFull'/))) then
         write( wf_info, '(" outer window:",T30,f7.4,2x,f7.4)') wf_groups( wf_group)%win_o
         write( wf_info, '(" inner window:",T30,f7.4,2x,f7.4)') wf_groups( wf_group)%win_i
         write( wf_info, '(" min/max bands inner window: ",T30,7x,I4,"/",I4)') minval( wf_groups( wf_group)%win_ni), maxval( wf_groups( wf_group)%win_ni)
@@ -597,38 +566,27 @@ module mod_wannier_filehandling
       end if
       write( wf_info, *)
       call flushifc( wf_info)
-!#ifdef MPI
-!        call barrier
-!      else
-!        call barrier
-!      end if
-!#endif
-    end subroutine wannier_writeinfo_task
+    end subroutine wffile_writeinfo_task
 
-    subroutine wannier_writeinfo_finish
+    subroutine wffile_writeinfo_finish
       real(8) :: t
       character(64) :: string
+      
+      if( mpiglobal%rank .gt. 0) return
 
-!#ifdef MPI
-!      if( rank .eq. 0) then
-!#endif
       call timesec( t)
       write( string, '("total duration (seconds):",T30,F16.1)') t-wf_t0
       call printbox( wf_info, '-', string)
       call flushifc( wf_info)
-      call wannier_writeinfo_results
-!#ifdef MPI
-!        call barrier
-!      else
-!        call barrier
-!      end if
-!#endif
-    end subroutine wannier_writeinfo_finish
+      call wffile_writeinfo_results
+    end subroutine wffile_writeinfo_finish
 
-    subroutine wannier_writeinfo_results
+    subroutine wffile_writeinfo_results
       use mod_lattice, only: ainv
       integer :: i, igroup
       real(8) :: vl(3)
+
+      if( mpiglobal%rank .gt. 0) return
 
       call printbox( wf_info, '*', "Wannier functions")
       write( wf_info, *)
@@ -640,6 +598,13 @@ module mod_wannier_filehandling
           call r3mv( ainv, wf_centers( :, i), vl)
           write( wf_info, '(I4,3x,3F13.6,3x,4F13.6)') i, vl, wf_omega( i), wf_omega_i( i), wf_omega_d( i), wf_omega_od( i)
         end do
+        if( wf_ngroups .gt. 1) then
+          if( igroup .le. wf_ngroups) write( wf_info, '(80("-"))')
+          write( wf_info, '(43x,"total:",4F13.6)') sum( wf_omega( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf)), &
+                                                   sum( wf_omega_i( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf)), &
+                                                   sum( wf_omega_d( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf)), &
+                                                   sum( wf_omega_od( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf))
+        end if
         if( igroup .lt. wf_ngroups) write( wf_info, '(80("-"))')
       end do
 
@@ -649,7 +614,7 @@ module mod_wannier_filehandling
 
       write( wf_info, *)
       call flushifc( wf_info)
-      !close( wf_info)
-    end subroutine wannier_writeinfo_results
+      close( wf_info)
+    end subroutine wffile_writeinfo_results
 
 end module mod_wannier_filehandling

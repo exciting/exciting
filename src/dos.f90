@@ -42,6 +42,7 @@ Subroutine dos
       Integer :: lmax, lmmax, l, m, lm
       Integer :: ispn, jspn, is, ia, ias
       Integer :: ik, nsk (3), ist, iw, jst, n, i
+      Integer :: ntrans, mtrans
       Real (8) :: dw, th, t1
       Real (8) :: v1 (3), v2 (3), v3 (3)
       Character (512) :: buffer
@@ -319,7 +320,7 @@ if (rank==0) then
             t1 = -1.d0
           end if
           edif(:,:,:) = 0.d0
-          is = 0
+          ntrans = 0; mtrans = 0
           do ik = 1, nkpt
             call getoccsv( vkl(:,ik), occsv(:,ik))
             n = 0
@@ -333,9 +334,10 @@ if (rank==0) then
                 edif(n,m,ik) = evalsv(jst,ik)-evalsv(ist,ik)+input%properties%dos%scissor
               end if
               end do
+              mtrans = max( mtrans, m)
             end if
             end do
-            is = max( is, n)
+            ntrans = max( ntrans, n)
           end do ! ik
           if( input%properties%dos%inttype == 'tetra') then
             do l = 1, nstsv      ! lowest (partially) unoccupied band
@@ -363,7 +365,7 @@ if (rank==0) then
                 call fsmooth( input%properties%dos%nsmdos, input%properties%dos%nwdos, 1, fj(:,ist))
               do iw = 1, input%properties%dos%nwdos
                 if (dabs(w(iw))>1.d-4) then
-                  write(51,'(3G18.10)') w(iw), t1*fj(iw,ist)/(w(iw)*w(iw))/dble(l*m), t1*fj(iw,ist)
+                  write(51,'(3G18.10)') w(iw), t1*fj(iw,ist)/(w(iw)*w(iw))/dble(ntrans*mtrans), t1*fj(iw,ist)
                 else
                   write(51,'(3G18.10)') w(iw), 0.d0, t1*fj(iw,ist)
                 end if
@@ -373,7 +375,7 @@ if (rank==0) then
             fj(:,0) = sum( fj(:,1:m), 2)
             do iw = 1, input%properties%dos%nwdos
               if (dabs(w(iw))>1.d-4) then
-                write(50,'(3G18.10)') w(iw), t1*fj(iw,0)/(w(iw)*w(iw))/dble(l*m), t1*fj(iw,0)
+                write(50,'(3G18.10)') w(iw), t1*fj(iw,0)/(w(iw)*w(iw))/dble(ntrans*mtrans), t1*fj(iw,0)
               else
                 write(50,'(3G18.10)') w(iw), 0.d0, t1*fj(iw,0)
               end if
@@ -382,26 +384,26 @@ if (rank==0) then
             deallocate( jdos, jdosocc, fj)
           else
           ! State dependent JDOS
-            allocate(ej(m,nkpt))
-            allocate(fj(m,nkpt))
+            allocate(ej(mtrans,nkpt))
+            allocate(fj(mtrans,nkpt))
             fj(:,:) = 1.d0
-            do ist = 1, n
-              ej(:,:) = edif(ist,1:m,:)
+            do ist = 1, ntrans
+              ej(:,:) = edif(ist,1:mtrans,:)
               if( input%properties%dos%inttype == 'trilin+') then
                 call brzint_new(input%properties%dos%nsmdos, &
                 &           input%groundstate%ngridk, nsk, ikmap, &
                 &           input%properties%dos%nwdos, input%properties%dos%winddos, &
-                &           m, m, ej, fj, gp)
+                &           mtrans, mtrans, ej, fj, gp)
               else
                 call brzint(input%properties%dos%nsmdos, &
                 &           input%groundstate%ngridk, nsk, ikmap, &
                 &           input%properties%dos%nwdos, input%properties%dos%winddos, &
-                &           m, m, ej, fj, gp)
+                &           mtrans, mtrans, ej, fj, gp)
               end if
               gp(:) = occmax*gp(:)
               do iw = 1, input%properties%dos%nwdos
                 if (dabs(w(iw))>1.d-4) then
-                  write(51,'(3G18.10)') w(iw), t1*gp(iw)/(w(iw)*w(iw))/dble(n*m), t1*gp(iw)
+                  write(51,'(3G18.10)') w(iw), t1*gp(iw)/(w(iw)*w(iw))/dble(ntrans*mtrans), t1*gp(iw)
                 else
                   write(51,'(3G18.10)') w(iw), 0.d0, t1*gp(iw)
                 end if
@@ -411,12 +413,12 @@ if (rank==0) then
             deallocate(ej,fj)
   
 ! total JDOS (sum over all transitions)
-            allocate(ej(n*m,nkpt))
-            allocate(fj(n*m,nkpt))
+            allocate(ej(ntrans*mtrans,nkpt))
+            allocate(fj(ntrans*mtrans,nkpt))
             fj(:,:) = 1.d0
             i = 0
-            do ist = 1, n
-            do jst = 1, m
+            do ist = 1, ntrans
+            do jst = 1, mtrans
               i = i+1
               ej(i,:) = edif(ist,jst,:)
             end do
@@ -425,17 +427,17 @@ if (rank==0) then
               call brzint_new(input%properties%dos%nsmdos, &
               &           input%groundstate%ngridk, nsk, ikmap, &
               &           input%properties%dos%nwdos, input%properties%dos%winddos, &
-              &           n*m, n*m, ej, fj, gp)
+              &           ntrans*mtrans, ntrans*mtrans, ej, fj, gp)
             else
               call brzint(input%properties%dos%nsmdos, &
               &           input%groundstate%ngridk, nsk, ikmap, &
               &           input%properties%dos%nwdos, input%properties%dos%winddos, &
-              &           n*m, n*m, ej, fj, gp)
+              &           ntrans*mtrans, ntrans*mtrans, ej, fj, gp)
             end if
             gp(:) = occmax*gp(:)
             do iw = 1, input%properties%dos%nwdos
               if (dabs(w(iw))>1.d-4) then
-                write(50,'(3G18.10)') w(iw), t1*gp(iw)/(w(iw)*w(iw))/dble(n*m), t1*gp(iw)
+                write(50,'(3G18.10)') w(iw), t1*gp(iw)/(w(iw)*w(iw))/dble(ntrans*mtrans), t1*gp(iw)
               else
                 write(50,'(3G18.10)') w(iw), 0.d0, t1*gp(iw)
               end if

@@ -22,7 +22,7 @@ SOURCEDIRS=	\
 	../../src/src_inputparser/ \
 	../../src/src_sym/ \
 	../../src/src_hybrids/ \
-    ../../src/src_raman/ \
+        ../../src/src_raman/ \
 	../../src/src_stm/ \
 	../../src/src_vdW/ \
 	../../src/src_gw/ \
