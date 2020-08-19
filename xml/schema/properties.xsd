@@ -254,7 +254,7 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="linkpt" type="fortrandouble" default="0.d0">
+            <xs:attribute ex:importance="expert" ex:unit="" name="linkpt" type="fortrandouble" default="0.0d0">
               <xs:annotation>
                   <xs:documentation>An alternative way to define the dense integration grid on which the energies are interpolated when <pre>wannier</pre> is set to <pre>true</pre>. It gives the linear k-point density in pts per 1/Bohr and automatically determines the interpolation grid.
                 </xs:documentation>
@@ -1323,22 +1323,10 @@
           </xs:annotation>
           <xs:complexType>
 
-            <xs:attribute ex:importance="expert" ex:unit="" name="auto" type="xs:boolean" default="true">
-              <xs:annotation>
-                  <xs:documentation>If true the VBM and CBM are determined automatically.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
-            <xs:attribute ex:importance="expert" ex:unit="" name="ngridkint" type="integertriple" default="0 0 0">
-              <xs:annotation>
-                  <xs:documentation>Interpolation grid used for determination of initial point for extremal search.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
             <xs:sequence>
               <xs:element ex:importance="expert" ex:unit="" name="pointband" minOccurs="0" maxOccurs="unbounded">
                 <xs:annotation>
-                  <xs:documentation>Defines a k-point and band pair for which velocity and mass is calculated.</xs:documentation>
+                  <xs:documentation>Defines a k-point and band pair for which velocity and effective mass is calculated.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
 
@@ -1363,6 +1351,18 @@
                 </xs:complexType>
               </xs:element>
             </xs:sequence>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="auto" type="xs:boolean" default="true">
+              <xs:annotation>
+                  <xs:documentation>If true the VBM and CBM are determined automatically.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="ngridkint" type="integertriple" default="0 0 0">
+              <xs:annotation>
+                  <xs:documentation>Interpolation grid used for determination of initial point for extremal search.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
 
           </xs:complexType>
         </xs:element>
