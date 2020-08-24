@@ -36,9 +36,9 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
       Complex (8), Intent (Out) :: evecfv (nmatmax, nstfv, nspnfv)
       Complex (8), Intent (Out) :: evecsv (nstsv, nstsv)
   ! local variables
-      Integer :: ispn,ib
+      Integer :: ispn!,ib
   ! time
-      Real (8) :: ts0,ts1, ta,tb
+      Real (8) :: ts0,ts1
 !
 !
   ! allocatable arrays

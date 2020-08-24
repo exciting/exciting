@@ -16,9 +16,10 @@ Subroutine gendmatmt (ik, evecfv, evecsv)
 !   evecsv : second-variational eigenvectors (in,complex(nstsv,nstsv))
 ! !DESCRIPTION:
 !   Constructs a contribution to the density matrix  due to the $\mathbf{k}$-point ik.
-!   
+!
 ! !REVISION HISTORY:
 !   Created May 2014 (Andris)
+!   Revised Aug 2020 (Ronaldo)
 !EOP
 !BOC
       Implicit None
@@ -27,19 +28,19 @@ Subroutine gendmatmt (ik, evecfv, evecsv)
       Complex (8), Intent (In) :: evecfv (nmatmax, nstfv, nspnfv)
       Complex (8), Intent (In) :: evecsv (nstsv, nstsv)
 ! local variables
-      Integer :: nsd, ispn, jspn, is, ia, ias, ist,jst,kst
-      Integer :: ir, irc, itp, igk, ifg, i, j, n, maxaa, maxnlo, wfsize,nst, wf2size
+      Integer :: ispn, is, ia, ias
+      Integer :: i, n, maxaa, maxnlo, wfsize
       Integer :: l, m, lm, io
       integer , pointer :: losize(:)
-      Real (8) :: t1, t2, t3, t4
+      Real (8) :: t1, t2
       Real (8) :: ts0, ts1
       Complex (8) weight
 ! allocatable arrays
-      Complex (8), Allocatable :: apwalm (:, :, :, :, :),buf(:,:),apwi(:,:)
-      Complex (8), pointer :: apwi1prime(:,:),apwi1(:, :,:),apwi2prime(:,:),apwi2(:, :,:),wf1(:,:),wf1prime(:,:),wf2(:,:),wf2prime(:,:), wfalpha(:,:),wfbeta(:,:)
+      Complex (8), Allocatable :: apwalm (:, :, :, :, :),apwi(:,:)
+      Complex (8), pointer :: wf1(:,:), wf2prime(:,:), wfalpha(:,:),wfbeta(:,:)
       Complex (8), Allocatable :: dm2(:,:)
-      integer l3,lm3,m3,io2,if3,ngp,l1,lm1,m1,ilo,j1,j3,if1,io1,igp
-     
+      integer :: l3,lm3,if3,ngp,l1,lm1,j1,j3
+
       Call timesec (ts0)
 
 !      ist=1
@@ -53,7 +54,7 @@ Subroutine gendmatmt (ik, evecfv, evecsv)
 !        endif
 !      enddo
 !      nst=ist ! last properly occupied level
-!      nst=nstsv 
+!      nst=nstsv
 
       weight=dcmplx(wkpt(ik),0d0)
       ngp=ngk(1, ik)
@@ -64,22 +65,14 @@ Subroutine gendmatmt (ik, evecfv, evecsv)
 
       wfsize=maxaa+maxnlo
       allocate(dm2(wfsize,wfsize))
-      
+
       Allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
-      
+
       Do ispn = 1, nspnfv
          Call match (ngk(ispn, ik), gkc(:, ispn, ik), tpgkc(:, :, ispn, ik), sfacgk(:, :, ispn, ik), apwalm(:, :, :, :, ispn))
       End Do
 
-     if (associated(input%groundstate%spin)) then
-       wf2size=wfsize*2
-     else
-       wf2size=wfsize
-     endif
-     
      allocate(wf1(wfsize,nstfv))
-     allocate(wf1prime(wfsize,nstfv))
-     allocate(wf2(wf2size,nstsv))
      allocate(wf2prime(wfsize,nstsv))
      allocate(wfalpha(wfsize,nstsv))
      allocate(wfbeta(wfsize,nstsv))
@@ -100,7 +93,7 @@ call timesec(t1)
           Do l = 0, input%groundstate%lmaxmat
             Do io = 1, apword (l, is)
               Do m = - l, l
-                lm = idxlm (l, m)              
+                lm = idxlm (l, m)
                 if3=if3+1
                 apwi(if3,:)=apwalm(1:ngk(1, ik), io, lm, ias,1)
               End Do
@@ -125,7 +118,7 @@ call timesec(t1)
                       zzero, &          ! beta
                       wf1, &  ! C
                       wfsize &      ! LDC ... leading dimension of C
-                      ) 
+                      )
 !    LO coefficients
        if (losize(is).gt.0) then
          l1 = lorbl (1, is)
@@ -137,7 +130,7 @@ call timesec(t1)
          wf1(maxaa+1:maxaa+losize(is),1:nstfv)=evecfv(j1:j3,1:nstfv,1)
        endif
 
-       
+
           call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
                       wfsize, &          ! M ... rows of op( A ) = rows of C
@@ -151,18 +144,18 @@ call timesec(t1)
                       zzero, &          ! beta
                       wfalpha, &  ! C
                       wfsize &      ! LDC ... leading dimension of C
-                      ) 
+                      )
 
 call timesec(t2)
 
           do i=1,nstsv
-             wf2prime(:,i)=wfalpha(:,i)*occsv(i,ik) 
+             wf2prime(:,i)=wfalpha(:,i)*occsv(i,ik)
           enddo
 
 
 call timesec(t1)
 
-! Density matrix 
+! Density matrix
           call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
                      'C', &           ! TRANSB = 'N'  op( B ) = B.
                       wfsize, &          ! M ... rows of op( A ) = rows of C
@@ -192,10 +185,10 @@ call timesec(t1)
                       zzero, &          ! beta
                       wfbeta, &  ! C
                       wfsize &      ! LDC ... leading dimension of C
-                      )          
-          
+                      )
+
           do i=1,nstsv
-             wf2prime(:,i)=wfbeta(:,i)*occsv(i,ik) 
+             wf2prime(:,i)=wfbeta(:,i)*occsv(i,ik)
           enddo
 
 
@@ -213,7 +206,7 @@ call timesec(t1)
                       mt_dm%beta%ff(1,1,ias), &  ! C
                       wfsize &      ! LDC ... leading dimension of C
                       )
-          
+
 ! What we really need are not the densities for spin up and down individually,
 ! but rather the total density rho=rho_up+rho_down and the magnetisation m=rho_up-rho_down.
 ! This is the place where we do the transformation.
@@ -222,7 +215,7 @@ call timesec(t1)
 !          mt_dm%beta%ff(:,:,ias)=dm2(:,:)
 !          mt_dm%alpha%ff(:,:,ias)=mt_dm%beta%ff(:,:,ias)
 !          mt_dm%beta%ff(:,:,ias)=0d0
-                   
+
           if (ncmag) then
            call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
                       'C', &           ! TRANSB = 'N'  op( B ) = B.
@@ -237,7 +230,7 @@ call timesec(t1)
                        zone, &          ! beta
                        mt_dm%ab%ff(1,1,ias), &  ! C
                        wfsize &      ! LDC ... leading dimension of C
-                       )                 
+                       )
           endif
          endif
 call timesec(t2)
@@ -248,7 +241,7 @@ call timesec(t2)
       End Do
 
 
-      deallocate(wf1,wf2prime,wf2)
+      deallocate(wf1,wf2prime,wfalpha,wfbeta)
       deallocate(apwi,apwalm)
       deallocate(dm2)
       Call timesec (ts1)
@@ -257,4 +250,3 @@ call timesec(t2)
       Return
 End Subroutine
 !EOC
-

@@ -42,8 +42,8 @@ Subroutine rhovalk (ik, evecfv, evecsv)
       Complex (8), Intent (In) :: evecsv (nstsv, nstsv)
 ! local variables
       Integer :: nsd, ispn, jspn, is, ia, ias, ist
-      Integer :: ir, irc, itp, igk, ifg, i, j, n
-      Real (8) :: t1, t2, t3, t4
+      Integer :: ir, irc, itp, i, j, n
+      Real (8) :: t1
       Real (8) :: ts0, ts1
       Complex (8) zt1, zt2, zt3
 ! allocatable arrays
@@ -54,7 +54,6 @@ Subroutine rhovalk (ik, evecfv, evecsv)
       Complex (8), Allocatable :: wfmt1 (:, :)
       Complex (8), Allocatable :: wfmt2 (:, :, :, :)
       Complex (8), Allocatable :: wfmt3 (:, :, :)
-      Complex (8), Allocatable :: zfft (:, :)
 !addidional arrays to make truncationerrors predictable
       Real (8) :: rhoir_k (ngrtot)
       Real (8) :: magir_k (ngrtot, ndmag)
@@ -83,7 +82,7 @@ Subroutine rhovalk (ik, evecfv, evecsv)
       If (input%groundstate%tevecsv) allocate (wfmt2(lmmaxvr, nrcmtmax, &
      & nstfv, nspnfv))
       Allocate (wfmt3(lmmaxvr, nrcmtmax, nspinor))
-      Allocate (zfft(ngrtot, nspinor))
+
 ! find the matching coefficients
       Do ispn = 1, nspnfv
          Call match (ngk(ispn, ik), gkc(:, ispn, ik), tpgkc(:, :, ispn, &
@@ -211,99 +210,14 @@ Subroutine rhovalk (ik, evecfv, evecsv)
 !
          End Do
       End Do
-!------------------------------!
-!     interstitial density     !
-!------------------------------!
-if (.false.) then
-      Do j = 1, nstsv
-         t1 = wkpt (ik) * occsv (j, ik)
-         If (Abs(t1) .Gt. input%groundstate%epsocc) Then
-            t2 = t1 / omega
-            zfft (:, :) = 0.d0
-            If (input%groundstate%tevecsv) Then
-! generate spinor wavefunction from second-variational eigenvectors
-               i = 0
-               Do ispn = 1, nspinor
-                  If (isspinspiral()) Then
-                     jspn = ispn
-                  Else
-                     jspn = 1
-                  End If
-                  Do ist = 1, nstfv
-                     i = i + 1
-                     zt1 = evecsv (i, j)
-                     If (Abs(dble(zt1))+Abs(aimag(zt1)) .Gt. &
-                    & input%groundstate%epsocc) Then
-                        Do igk = 1, ngk (jspn, ik)
-                           ifg = igfft (igkig(igk, jspn, ik))
-                           zfft (ifg, ispn) = zfft (ifg, ispn) + zt1 * &
-                          & evecfv (igk, ist, jspn)
-                        End Do
-                     End If
-                  End Do
-               End Do
-            Else
-! spin-unpolarised wavefunction
-               Do igk = 1, ngk (1, ik)
-                  ifg = igfft (igkig(igk, 1, ik))
-                  zfft (ifg, 1) = evecfv (igk, j, 1)
-               End Do
-            End If
-            
-! Fourier transform wavefunction to real-space
-            Do ispn = 1, nspinor
-               Call zfftifc (3, ngrid, 1, zfft(:, ispn))
-            End Do
-if (.false.) then
-            do ir=1,50
-              write(*,*) ir,real(zfft(ir,1)),imag(zfft(ir,1))
-            enddo
-            stop
-endif
-!
-            If (associated(input%groundstate%spin)) Then
-! spin-polarised
-               Do ir = 1, ngrtot
-                  zt1 = zfft (ir, 1)
-                  zt2 = zfft (ir, 2)
-                  zt3 = zt1 * conjg (zt2)
-                  t3 = dble (zt1) ** 2 + aimag (zt1) ** 2
-                  t4 = dble (zt2) ** 2 + aimag (zt2) ** 2
-                  rhoir_k (ir) = rhoir_k (ir) + t2 * (t3+t4)
-                  If (ncmag) Then
-                     magir_k (ir, 1) = magir_k (ir, 1) + 2.d0 * t2 * &
-                    & dble (zt3)
-                     magir_k (ir, 2) = magir_k (ir, 2) - 2.d0 * t2 * &
-                    & aimag (zt3)
-                     magir_k (ir, 3) = magir_k (ir, 3) + t2 * (t3-t4)
-                  Else
-                     magir_k (ir, 1) = magir_k (ir, 1) + t2 * (t3-t4)
-                  End If
-               End Do
-            Else
-! spin-unpolarised
-               Do ir = 1, ngrtot
-                  zt1 = zfft (ir, 1)
-                  rhoir_k (ir) = rhoir_k (ir) + t2 * &
-                 & (dble(zt1)**2+aimag(zt1)**2)
-               End Do
-            End If
-!
-         End If
-      End Do
-endif
-      Deallocate (done, rflm, rfmt, apwalm, wfmt1, wfmt3, zfft)
-      If (input%groundstate%tevecsv) deallocate (wfmt2)
-!      Call timesec (ts1)
-!$OMP CRITICAL
-!      rhoir (:) = rhoir (:) + rhoir_k (:)
 
+      Deallocate (done, rflm, rfmt, apwalm, wfmt1, wfmt3)
+      If (input%groundstate%tevecsv) deallocate (wfmt2)
+!$OMP CRITICAL
       rhomt (:, :, :) = rhomt (:, :, :) + rhomt_k (:, :, :)
       If (associated(input%groundstate%spin)) Then
          magmt (:, :, :, :) = magmt (:, :, :, :) + magmt_k (:, :, :, :)
-!        magir (:, :) = magir (:, :) + magir_k (:, :)
       End If
-!      timerho = timerho + ts1 - ts0
 !$OMP END CRITICAL
       Call timesec (ts1)
       timerho = timerho + ts1 - ts0
