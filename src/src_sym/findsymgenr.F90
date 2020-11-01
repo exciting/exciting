@@ -59,8 +59,9 @@ Subroutine findsymgenr (nc, mt, ngen, nsgen, gen, orbgen)
       done (:) = 0
       done (1) = ngen
       Do i = 1, ngen
-         idx(1:nsgen(i)) = orbgen(i,1:nsgen(i))
-         done ( idx(1:nsgen(i))) = done ( idx(1:nsgen(i))) + 1
+        do j = 1, nsgen(i)
+          done(orbgen(i,j)) = done(orbgen(i,j)) + 1
+        end do
       End Do
       If (any(done .Eq. 0)) Then
          Write (*,*)
