@@ -161,7 +161,7 @@ module mod_wannier_interpolate
       use m_plotmat
       real(8), intent( in) :: evalin( wf_fst:wf_lst, wf_kset%nkpt)
 
-      integer :: ik, ir, ist, jst, igroup
+      integer :: ik, ist, jst, igroup
       complex(8), allocatable :: hwk(:,:,:), auxmat(:,:)
 
       if( allocated( wfint_hwr)) deallocate( wfint_hwr)
@@ -541,7 +541,7 @@ module mod_wannier_interpolate
       real(8), intent( out) :: mass_( 3, 3, wf_nwf, wfint_kset%nkpt)
       !BOC
 
-      integer :: ik, iq, ir, ist, jst, im, igroup, d1, d2, ndeg, sdeg, ddeg
+      integer :: iq, ir, ist, jst, im, d1, d2, ndeg, sdeg, ddeg
       real(8) :: dotp, eps1, eps2, vr(3)
       complex(8) :: ftweight, hamwk( wf_nwf, wf_nwf)
       complex(8) :: velo( wf_nwf, wf_nwf, 3, wfint_kset%nkpt)
@@ -826,9 +826,8 @@ module mod_wannier_interpolate
       integer, optional, intent( out)      :: ntrans, mtrans
       !BOC
 
-      logical :: genpdos, genjdos, usetetra, pdoslonly
+      logical :: genpdos, genjdos, pdoslonly
       integer :: lmmax, ias, l, m, lm, ist, jst, iq, q1, q2, ie, nk(3), lammax, n
-      integer :: ie1, ie2, ne, ite, stat
       real(8) :: dosscissor, tmpfermi
       character(64) :: integraltype
       type( k_set) :: tmp_kset
@@ -1148,7 +1147,7 @@ module mod_wannier_interpolate
       complex(8), intent( out)       :: dmat( (lmax+1)**2, (lmax+1)**2, wf_nwf, natmtot)
       logical, optional, intent( in) :: diagonly
 
-      integer :: ir, is, ia, ias, o, l1, m1, lm1, m2, lm2, lmmax, ilo1, maxdim, ist, jst
+      integer :: ir, is, ia, ias, o, l1, m1, lm1, m2, lm2, lmmax, ilo1, maxdim, ist
       integer :: lamcnt( 0:lmax, nspecies), o2idx( apwordmax, 0:lmax, nspecies), lo2idx( nlomax, 0:lmax, nspecies), lm2l( (lmax+1)**2)
 
       complex(8), allocatable :: radcoeffq1(:,:), radcoeffq2(:,:), U(:,:), auxmat(:,:), wgts(:,:,:)
@@ -1206,7 +1205,7 @@ module mod_wannier_interpolate
       dmat = zzero
 
 #ifdef USEOMP
-!$omp parallel default( shared) private( is, ia, ias, l1, lm1, m2, lm2, radcoeffq1, radcoeffq2, ir, ist, jst, U, auxmat)
+!$omp parallel default( shared) private( is, ia, ias, l1, lm1, m2, lm2, radcoeffq1, radcoeffq2, ir, ist, U, auxmat)
 #endif
       allocate( radcoeffq1( maxdim, wf_nwf))
       allocate( radcoeffq2( maxdim, wf_nwf))
@@ -1477,8 +1476,7 @@ module mod_wannier_interpolate
 !--------------------------------------------------------------------------------------
 
     subroutine wfint_findbandmap
-      integer :: ik, iq, ist, jst, fst, lst, nr
-      character(32) :: inpt
+      integer :: ik, ist, jst, fst, lst
       
       integer, allocatable :: map(:,:)
       real(8), allocatable :: eval(:,:)

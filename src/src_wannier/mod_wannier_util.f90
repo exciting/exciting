@@ -579,9 +579,9 @@ module mod_wannier_util
       use mod_optkgrid, only: getoptkgrid
       use m_getunit
 
-      integer :: nvm, iqvbm, iqcbm, ndiv(3), degvbm, degcbm, ist, n1, n2, un, iv(3), nkpt
+      integer :: nvm, iqvbm, iqcbm, ndiv(3), degvbm, degcbm, ist, n1, n2, un, nkpt
       real(8) :: vvbm(3), vcbm(3)
-      real(8) :: v(3), vt(3), m(3,3), eps_deg, rad, opt, ropt, s
+      real(8) :: v(3), m(3,3), eps_deg, rad, opt, ropt
       type( k_set) :: tmp_kset
       logical :: findvbm, findcbm
 
@@ -839,9 +839,9 @@ module mod_wannier_util
       ! input/output
       integer, intent(in) :: fst, lst, cell(3)
       ! local variables
-      integer :: ip, np, nv, ik, iknr, ist, jst, is, ia, ias, maxdim, l, o, ilo1, maxnpt, un
+      integer :: ip, np, nv, ik, iknr, ist, is, ia, ias, maxnpt
       character(80) :: fname
-      real(8) :: cellc(3), s, phi, v0(3), v1(3), v2(3), v3(3), rrange( 2, fst:lst), irange( 2, fst:lst), irint(3), mtint(3,natmtot), vol
+      real(8) :: cellc(3), s, phi, v0(3), v1(3), v2(3), v3(3), rrange( 2, fst:lst), irange( 2, fst:lst) 
       complex(8) :: phase
       ! allocatable arrays
       real(8), allocatable :: dist(:)

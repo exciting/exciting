@@ -27,7 +27,6 @@ module mod_wannier_maxloc
 
       integer :: ik, kxy
       real(8) :: t0, t1, omega, omegastart
-      complex(8) :: m( wf_groups( wf_group)%nwf, wf_groups( wf_group)%nwf)
       character(256) :: convfname
 
       write( wf_info, '(" minimize localization functional Omega...")')
@@ -94,18 +93,11 @@ module mod_wannier_maxloc
                update=wfmax_update, &
                epsgrad=gradnorm, minit=minit, maxit=maxit, stdout=convun, minstep=minstep)
       else
-        gradnorm = 1.d-3
         call manopt_stiefel_lbfgs( XY, DXYO, kxy, DXY, &
                cost=wfmax_omega, &
                grad=wfmax_gradient, &
                update=wfmax_update, &
                epsgrad=gradnorm, minit=minit, maxit=maxit, stdout=convun, minstep=minstep, memlen=memlen)
-        gradnorm = input%properties%wannier%grouparray( wf_group)%group%epsmax
-        call manopt_stiefel_cg( XY, DXYO, kxy, DXY, &
-               cost=wfmax_omega, &
-               grad=wfmax_gradient, &
-               update=wfmax_update, &
-               epsgrad=gradnorm, minit=minit, maxit=maxit, stdout=convun, minstep=minstep)
       end if
       if( input%properties%wannier%grouparray( wf_group)%group%writeconv) close( convun)
       call wfomega_diagphases( wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, 1), wf_nst, wf_nwf, wf_groups( wf_group)%nst)

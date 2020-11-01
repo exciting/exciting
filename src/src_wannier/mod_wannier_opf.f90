@@ -32,7 +32,7 @@ module mod_wannier_opf
       logical, optional, intent( in) :: subspace
       
       ! local variables
-      integer :: convun, minit, maxit, memlen, projun
+      integer :: convun, minit, maxit, memlen
       real(8) :: gradnorm, minstep
 
       integer :: ik, i
@@ -314,20 +314,6 @@ module mod_wannier_opf
           call zgemm( 'c', 'n', P, J, N, zone, A(1,1,ik), N, CNJ2, N, zone, G, P)
         end if
 
-        !if( J .lt. J) then
-        !  CNJ1 = zzero
-        !  do i = 1, K
-        !    CNJ1(:,i) = V(:,i)/cmplx( s(i), 0.d0, 8)
-        !  end do
-        !  call zgemm( 'n', 'c', N, N, J, zone, CNJ1, N, V, N, zzero, CNN, N)
-        !  call zgemm( 'n', 'n', N, J, J, zone, CNN, N, GU, N, zzero, CNJ1, N)
-        !  call zgemm( 'n', 'c', J, J, J, -zone, W, J, W, J, zzero, CJJ1, J)
-        !  do i = 1, J
-        !    CJJ1(i,i) = CJJ1(i,i) + zone
-        !  end do
-        !  call zgemm( 'n', 'n', N, J, J, zone, CNJ1, N, CJJ1, J, zzero, CNJ2, N)
-        !  call zgemm( 'c', 'n', P, J, N, zone, A(1,1,ik), N, CNJ2, N, zone, G, P)
-        !end if
       end do
 #ifdef USEOMP
 !$omp end do
@@ -446,20 +432,6 @@ module mod_wannier_opf
             call zgemm( 'c', 'n', P, J, N, zone, A(1,1,ik), N, CNJ2, N, zone, G, P)
           end if
 
-          !if( J .lt. J) then
-          !  CNJ1 = zzero
-          !  do i = 1, K
-          !    CNJ1(:,i) = V(:,i)/cmplx( s(i), 0.d0, 8)
-          !  end do
-          !  call zgemm( 'n', 'c', N, N, J, zone, CNJ1, N, V, N, zzero, CNN, N)
-          !  call zgemm( 'n', 'n', N, J, J, zone, CNN, N, GU, N, zzero, CNJ1, N)
-          !  call zgemm( 'n', 'c', J, J, J, -zone, W, J, W, J, zzero, CJJ1, J)
-          !  do i = 1, J
-          !    CJJ1(i,i) = CJJ1(i,i) + zone
-          !  end do
-          !  call zgemm( 'n', 'n', N, J, J, zone, CNJ1, N, CJJ1, J, zzero, CNJ2, N)
-          !  call zgemm( 'c', 'n', P, J, N, zone, A(1,1,ik), N, CNJ2, N, zone, G, P)
-          !end if
         end do
 #ifdef USEOMP
 !$omp end do
@@ -486,7 +458,6 @@ module mod_wannier_opf
       complex(8), intent( out) :: V(du(1),du(2)), W(du(2),du(2))
       integer, intent( out)    :: K
 
-      integer :: i
       real(8) :: maxs
       complex(8), allocatable :: AX(:,:), tmp(:,:)
 

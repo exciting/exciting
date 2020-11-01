@@ -266,6 +266,7 @@ end do
 !     interstitial potential and field     !
 !------------------------------------------!
 
+! in chase of short ranged PBE or HSE
 if (xctype(1)==23.or.xctype(1)==408) then
    if (allocated(exsr)) deallocate(exsr)
    if (allocated(vxsr)) deallocate(vxsr)

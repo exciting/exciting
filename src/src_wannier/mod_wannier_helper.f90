@@ -179,7 +179,6 @@ module mod_wannier_helper
       integer, intent( in)           :: ik
       complex(8), intent( out)       :: evec( nmatmax_ptr, nstfv, nspinor)
 
-      integer :: ik2, isym
       complex(8), allocatable :: auxmat(:,:)
       character(22) :: filext0
 
@@ -223,7 +222,7 @@ module mod_wannier_helper
       character(*), optional, intent( in) :: mode
       logical, optional, intent( in)      :: reduce
 
-      integer :: ik, ikk, ist, un, recl, nkpqp, fstqp, lstqp, nk, isym, iq, nkequi, isymequi( wf_kset%nkpt), ikequi( wf_kset%nkpt)
+      integer :: ik, ikk, ist, un, recl, nkpqp, fstqp, lstqp, nk, iq, nkequi, isymequi( wf_kset%nkpt), ikequi( wf_kset%nkpt)
       real(8) :: vl(3), efermiqp, efermiks
       character(256) :: mode_, fname, fxt
       logical :: reduce_, exist
@@ -331,7 +330,7 @@ module mod_wannier_helper
       logical :: usetetra
       real(8) :: e0, e1, chg, x, t1, df, occ_tmp( lst, kset%nkpt)
 
-      real(8) :: sdelta, stheta
+      real(8) :: stheta
 
       usetetra = .false.
       if( present( tetra)) usetetra = .true.
@@ -553,7 +552,7 @@ module mod_wannier_helper
       complex(8), intent( out)   :: phases( nst, nst)
 
       integer :: ist, jst, kst, ndeg, igp
-      real(8) :: epse, epsp, t
+      real(8) :: epse, epsp
       complex(8) :: phase
       complex(8), allocatable :: pert(:,:), auxmat(:,:), p(:,:)
       real(8), allocatable :: pval(:)

@@ -35,7 +35,6 @@ module mod_wannier
       !BOC
 
       ! local variables
-      integer :: ist, ik, igroup
 
       if( wf_initialized) call wannier_destroy
       call init0
@@ -242,12 +241,6 @@ module mod_wannier
 
         wf_m0(:,:,:,:) = zzero
 
-        !write(*,'("shape of M0:     ",4I6)') shape( wf_pwmat)
-        !write(*,'("shape of evec:   ",3I6)') nmatmax_ptr, nstfv, nspinor
-        !write(*,'("size of evec:    ",F13.6," GB")') nmatmax_ptr*nstfv*nspinor*16*1.d-9
-        !write(*,'("shape of apwalm: ",4I6)') ngkmax_ptr, apwordmax, lmmaxapw, natmtot
-        !write(*,'("size of apwalm:  ",F13.6," GB")') ngkmax_ptr*apwordmax*lmmaxapw*natmtot*16*1.d-9
-        
         call pwmat_init( input%groundstate%lmaxapw, 8, wf_kset, wf_fst, wf_lst, wf_fst, wf_lst, &
                fft=.false.)
 
@@ -289,9 +282,7 @@ module mod_wannier
         end if
         deallocate( evecfv1, evecfv2)
 
-        !write(*,*) "destroy"
         call pwmat_destroy
-        !write(*,*) "write"
         call wffile_writeemat
         call timesec( t1)
         if( mpiglobal%rank .eq. 0) then
@@ -443,9 +434,9 @@ module mod_wannier
 
       integer :: ix, iy, iz, i, j, nposvec, iknr, d, nbzs(3), norder, o
       integer :: vi(3)
-      real(8) :: vl(3), vc(3), dist, wgord(3,3)
+      real(8) :: vl(3), vc(3), wgord(3,3)
       real(8) :: rot(3,3), coeff(6,12), right(6), sval(6), coeffinv(12,6)
-      real(8) :: mat1(3,3), mat2(3,3), mat3(3,3), umat(3,3), u(3), n(3), nvec(3,120), nveci(120,3), c, s
+      real(8) :: mat1(3,3), mat2(3,3), mat3(3,3), umat(3,3), u(3), n(3), nvec(3,120), c, s
       logical :: stopshell, nomults
 
       real(8), allocatable :: dt(:)
@@ -628,12 +619,8 @@ module mod_wannier
               coeff( 6, nn) = tmp_n_vl( 2, j)*tmp_n_vl( 3, j)
               nvec( :, nn) = tmp_n_vl( :, j)
             end if
-            !write(*,*) 'ntot', nn
             call rpinv( coeff( 1:d, 1:nn), coeffinv( 1:nn, 1:d))
             sval( 1:d) = matmul( matmul( coeff( 1:d, 1:nn), coeffinv( 1:nn, 1:d)), right( 1:d))
-            !write(*,'(100f13.6)') sval( 1:d)
-            !write(*,'(100f13.6)') right( 1:d)
-            !write(*,'(100f13.6)') matmul( coeffinv( 1:nn, 1:d), right( 1:d))
             tmp_n_wgt( 1:nn) = matmul( coeffinv( 1:nn, 1:d), right( 1:d))
             if( tmp_n_wgt( nn) .le. 1.d-6) then
               idx( j) = 0
@@ -656,7 +643,6 @@ module mod_wannier
           nn = nn - 1
           idx( j) = -1
         end if
-        !write(*,*) j, tmp_n_wgt( j), idx( j), nn
       end do
 
       tmp_n_wgt = 0.5d0*tmp_n_wgt

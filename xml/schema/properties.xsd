@@ -1026,7 +1026,13 @@
 
                   <xs:attribute ex:importance="expert" ex:unit="" name="method" default="auto">
                     <xs:annotation>
-                      <xs:documentation>Defines the method that is used for computing Wannier functions. The options are simple projection (<pre>pro</pre>), optimized projection functions (OPFs) (<pre>opf</pre>), maximal localization starting from simple projection (<pre>promax</pre>), maximal localization starting from OPFs (<pre>opfmax</pre>) and band-disentanglement with fixed subspace (<pre>disSMV</pre> - approach according to Souza, Marzari and Vanderbilt) or with flexible subspace (<pre>disFull</pre> - minimization of full spread functional). The default is <pre>auto</pre> which automatically selects the best option for the specified energy/band range.</xs:documentation>
+                      <xs:documentation>Defines the method that is used for computing Wannier functions. 
+                        The options are simple projection (<pre>pro</pre>), 
+                        optimized projection functions (OPFs) (<pre>opf</pre>, Phys. Rev. B 92, 165134), 
+                        maximal localization starting from simple projection (<pre>promax</pre>, Phys. Rev. B 56, 12847), 
+                        maximal localization starting from OPFs (<pre>opfmax</pre>) and band-disentanglement with fixed subspace (<pre>disSMV</pre>, Phys. Rev. B 65, 035109) 
+                        or with flexible subspace (<pre>disFull</pre>, Multiscale Model. Simul., 17(1), 167–191). 
+                        The default is <pre>auto</pre> which automatically selects the best option for the specified energy/band range.</xs:documentation>
                     </xs:annotation>
                     <xs:simpleType>
                       <xs:restriction base="xs:string">
@@ -1110,17 +1116,17 @@
                     </xs:simpleType>
                   </xs:attribute>
 
-                  <xs:attribute ex:importance="expert" ex:unit="" name="memlenmax" type="xs:integer" default="6">
+                  <xs:attribute ex:importance="expert" ex:unit="" name="memlenmax" type="xs:integer" default="12">
                     <xs:annotation>
                       <xs:documentation>L-BFGS memory depth for optimization of the spread.</xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
-                  <xs:attribute ex:importance="expert" ex:unit="" name="memlenopf" type="xs:integer" default="6">
+                  <xs:attribute ex:importance="expert" ex:unit="" name="memlenopf" type="xs:integer" default="12">
                     <xs:annotation>
                       <xs:documentation>L-BFGS memory depth for calculation of OPFs.</xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
-                  <xs:attribute ex:importance="expert" ex:unit="" name="memlendis" type="xs:integer" default="6">
+                  <xs:attribute ex:importance="expert" ex:unit="" name="memlendis" type="xs:integer" default="12">
                     <xs:annotation>
                       <xs:documentation>L-BFGS memory depth for optimization of the subspace.</xs:documentation>
                     </xs:annotation>

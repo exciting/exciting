@@ -319,7 +319,7 @@ module mod_wannier_omega
       integer, intent( in)       :: ldu1, ldu2, nst
       complex(8), intent( inout) :: u(ldu1,ldu2,*)
       integer :: ik, ist, jst, idxn
-      real(8) :: swgt, s
+      real(8) :: swgt
       complex(8) :: z
       integer, allocatable :: ipiv(:)
       real(8), allocatable :: m(:,:), p(:,:)
@@ -378,7 +378,7 @@ module mod_wannier_omega
       integer :: ik, idxn, ist
       integer, allocatable :: map(:)
 
-      if( (wf_groups( wf_group)%method .eq. 'disSMV' .or. wf_groups( wf_group)%method .eq. 'disFull') .or. (dir .eq. 0)) return
+      if( .not.(wf_groups( wf_group)%method .eq. 'disSMV' .or. wf_groups( wf_group)%method .eq. 'disFull') .or. (dir .eq. 0)) return
 
       allocate( map( wf_groups( wf_group)%nst))
       do ik = 1, wf_kset%nkpt

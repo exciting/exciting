@@ -1,3 +1,9 @@
+! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+!
+! !REVISION HISTORY:
+!   Created July 2020 (SeTi)
 module m_linalg
   use mod_constants
   implicit none
@@ -15,7 +21,7 @@ module m_linalg
       complex(8), optional, intent( out) :: levec(:,:), revec(:,:)
 
       integer :: m, info, lwork
-      logical :: lv, rv
+      character :: lv, rv
       complex(8), allocatable :: cpy(:,:), work(:)
       real(8), allocatable :: rwork(:)
 
@@ -33,17 +39,17 @@ module m_linalg
         write(*,'("Error (zgediag): The eigenvalue array must have the same dimension as the matrix.")')
         stop
       end if
-      lv = .false.
+      lv = 'n'
       if( present( levec)) then
-        lv = .true.
+        lv = 'v'
         if( (size( levec, 1) .ne. m) .or. (size( levec, 2) .ne. m)) then
           write(*,'("Error (zgediag): The eigenvector array must have the same dimension as the matrix.")')
           stop
         end if
       end if
-      rv = .false.
+      rv = 'n'
       if( present( revec)) then
-        rv = .true.
+        rv = 'v'
         if( (size( revec, 1) .ne. m) .or. (size( revec, 2) .ne. m)) then
           write(*,'("Error (zgediag): The eigenvector array must have the same dimension as the matrix.")')
           stop
@@ -55,31 +61,11 @@ module m_linalg
 
       cpy = mat
 
-      if( lv .and. rv) then
-        call zgeev( 'v', 'v', m, cpy, m, eval, levec, m, revec, m, work, -1, rwork, info)
-        lwork = nint( dble( work( 1)))
-        deallocate( work)
-        allocate( work( lwork))
-        call zgeev( 'v', 'v', m, cpy, m, eval, levec, m, revec, m, work, lwork, rwork, info)
-      else if( lv .and. .not. rv) then
-        call zgeev( 'v', 'n', m, cpy, m, eval, levec, m, cpy, m, work, -1, rwork, info)
-        lwork = nint( dble( work( 1)))
-        deallocate( work)
-        allocate( work( lwork))
-        call zgeev( 'v', 'n', m, cpy, m, eval, levec, m, cpy, m, work, lwork, rwork, info)
-      else if( .not. lv .and. rv) then
-        call zgeev( 'n', 'v', m, cpy, m, eval, cpy, m, revec, m, work, -1, rwork, info)
-        lwork = nint( dble( work( 1)))
-        deallocate( work)
-        allocate( work( lwork))
-        call zgeev( 'n', 'v', m, cpy, m, eval, cpy, m, revec, m, work, lwork, rwork, info)
-      else
-        call zgeev( 'n', 'n', m, cpy, m, eval, cpy, m, cpy, m, work, -1, rwork, info)
-        lwork = nint( dble( work( 1)))
-        deallocate( work)
-        allocate( work( lwork))
-        call zgeev( 'n', 'n', m, cpy, m, eval, cpy, m, cpy, m, work, lwork, rwork, info)
-      end if
+      call zgeev( lv, rv, m, cpy, m, eval, levec, m, revec, m, work, -1, rwork, info)
+      lwork = nint( dble( work( 1)))
+      deallocate( work)
+      allocate( work( lwork))
+      call zgeev( lv, rv, m, cpy, m, eval, levec, m, revec, m, work, lwork, rwork, info)
 
       if( info .ne. 0) then
         write(*,'("Error (zgediag): Diagonalization failed. ZGEEV returned info ",i4)') info
@@ -97,7 +83,7 @@ module m_linalg
       complex(8), optional, intent( out) :: evec(:,:)
 
       integer :: m, n, info, lrwork, liwork, lwork
-      logical :: rv
+      character :: rv
       real(8) :: vl, vu, eps
       integer, allocatable :: iwork(:), isuppz(:)
       complex(8), allocatable :: cpy(:,:), work(:)
@@ -118,9 +104,9 @@ module m_linalg
         write(*,'("Error (zhediag): The eigenvalue array must have the same dimension as the matrix.")')
         stop
       end if
-      rv = .false.
+      rv = 'n'
       if( present( evec)) then
-        rv = .true.
+        rv = 'v'
         if( (size( evec, 1) .ne. m) .or. (size( evec, 2) .ne. m)) then
           write(*,'("Error (zhediag): The eigenvector array must have the same dimension as the matrix.")')
           stop
@@ -132,23 +118,13 @@ module m_linalg
 
       cpy = mat
 
-      if( rv) then
-        call zheevr( 'v', 'a', 'u', m, cpy, m, vl, vu, 1, m, eps, n, eval, evec, m, isuppz, work, -1, rwork, -1, iwork, -1, info)
-        lrwork = nint( rwork( 1))
-        liwork = iwork( 1)
-        lwork = nint( dble( work( 1)))
-        deallocate( work, rwork, iwork)
-        allocate( work( lwork), rwork( lrwork), iwork( liwork))
-        call zheevr( 'v', 'a', 'u', m, cpy, m, vl, vu, 1, m, eps, n, eval, evec, m, isuppz, work, lwork, rwork, lrwork, iwork, liwork, info)
-      else
-        call zheevr( 'n', 'a', 'u', m, cpy, m, vl, vu, 1, m, eps, n, eval, cpy, m, isuppz, work, -1, rwork, -1, iwork, -1, info)
-        lrwork = nint( rwork( 1))
-        liwork = iwork( 1)
-        lwork = nint( dble( work( 1)))
-        deallocate( work, rwork, iwork)
-        allocate( work( lwork), rwork( lrwork), iwork( liwork))
-        call zheevr( 'n', 'a', 'u', m, cpy, m, vl, vu, 1, m, eps, n, eval, cpy, m, isuppz, work, lwork, rwork, lrwork, iwork, liwork, info)
-      end if
+      call zheevr( rv, 'a', 'u', m, cpy, m, vl, vu, 1, m, eps, n, eval, evec, m, isuppz, work, -1, rwork, -1, iwork, -1, info)
+      lrwork = nint( rwork( 1))
+      liwork = iwork( 1)
+      lwork = nint( dble( work( 1)))
+      deallocate( work, rwork, iwork)
+      allocate( work( lwork), rwork( lrwork), iwork( liwork))
+      call zheevr( rv, 'a', 'u', m, cpy, m, vl, vu, 1, m, eps, n, eval, evec, m, isuppz, work, lwork, rwork, lrwork, iwork, liwork, info)
 
       if( info .ne. 0) then
         write(*,'("Error (zhediag): Diagonalization failed. ZHEEVR returned info ",i4)') info
@@ -252,7 +228,7 @@ module m_linalg
       complex(8), optional, intent( out) :: levec(:,:), revec(:,:)
 
       integer :: m, info, lwork
-      logical :: lv, rv
+      character :: lv, rv
       complex(8), allocatable :: cpy1(:,:), cpy2(:,:), work(:)
       real(8), allocatable :: rwork(:)
 
@@ -274,17 +250,17 @@ module m_linalg
         write(*,'("Error (zgegdiag): The eigenvalue arrays must have the same dimension as the matrices.")')
         stop
       end if
-      lv = .false.
+      lv = 'n'
       if( present( levec)) then
-        lv = .true.
+        lv = 'v'
         if( (size( levec, 1) .ne. m) .or. (size( levec, 2) .ne. m)) then
           write(*,'("Error (zgegdiag): The eigenvector array must have the same dimension as the matrices.")')
           stop
         end if
       end if
-      rv = .false.
+      rv = 'n'
       if( present( revec)) then
-        rv = .true.
+        rv = 'v'
         if( (size( revec, 1) .ne. m) .or. (size( revec, 2) .ne. m)) then
           write(*,'("Error (zgegdiag): The eigenvector array must have the same dimension as the matrices.")')
           stop
@@ -297,31 +273,12 @@ module m_linalg
       cpy1 = mat1
       cpy2 = mat2
 
-      if( lv .and. rv) then
-        call zggev( 'v', 'v', m, cpy1, m, cpy2, m, alpha, beta, levec, m, revec, m, work, -1, rwork, info)
-        lwork = work(1)
-        deallocate( work)
-        allocate( work( lwork))
-        call zggev( 'v', 'v', m, cpy1, m, cpy2, m, alpha, beta, levec, m, revec, m, work, lwork, rwork, info)
-      else if( lv .and. .not. rv) then
-        call zggev( 'v', 'n', m, cpy1, m, cpy2, m, alpha, beta, levec, m, cpy2, m, work, -1, rwork, info)
-        lwork = work(1)
-        deallocate( work)
-        allocate( work( lwork))
-        call zggev( 'v', 'n', m, cpy1, m, cpy2, m, alpha, beta, levec, m, cpy2, m, work, lwork, rwork, info)
-      else if( .not. lv .and. rv) then
-        call zggev( 'n', 'v', m, cpy1, m, cpy2, m, alpha, beta, cpy1, m, revec, m, work, -1, rwork, info)
-        lwork = work(1)
-        deallocate( work)
-        allocate( work( lwork))
-        call zggev( 'n', 'v', m, cpy1, m, cpy2, m, alpha, beta, cpy1, m, revec, m, work, lwork, rwork, info)
-      else
-        call zggev( 'n', 'n', m, cpy1, m, cpy2, m, alpha, beta, cpy1, m, cpy2, m, work, -1, rwork, info)
-        lwork = work(1)
-        deallocate( work)
-        allocate( work( lwork))
-        call zggev( 'n', 'n', m, cpy1, m, cpy2, m, alpha, beta, cpy1, m, cpy2, m, work, lwork, rwork, info)
-      end if
+      call zggev( lv, rv, m, cpy1, m, cpy2, m, alpha, beta, levec, m, revec, m, work, -1, rwork, info)
+      lwork = work(1)
+      deallocate( work)
+      allocate( work( lwork))
+      call zggev( lv, rv, m, cpy1, m, cpy2, m, alpha, beta, levec, m, revec, m, work, lwork, rwork, info)
+        
       if( info .ne. 0) then
         write(*, '("Error( zgegdiag): Diagonalisation failed. ZGGEV returned info", i4)') info
         stop
@@ -339,7 +296,7 @@ module m_linalg
       complex(8), optional, intent( out) :: evec(:,:)
 
       integer :: m, i, j, info, lwork
-      logical :: rv
+      character :: rv
       real(8) :: phase
       complex(8), allocatable :: cpy1(:,:), cpy2(:,:), work(:)
       real(8), allocatable :: rwork(:)
@@ -362,9 +319,9 @@ module m_linalg
         write(*,'("Error (zhegdiag): The eigenvalue array must have the same dimension as the matrices.")')
         stop
       end if
-      rv = .false.
+      rv = 'n'
       if( present( evec)) then
-        rv = .true.
+        rv = 'v'
         if( (size( evec, 1) .ne. m) .or. (size( evec, 2) .ne. m)) then
           write(*,'("Error (zhegdiag): The eigenvector array must have the same dimension as the matrices.")')
           stop
@@ -375,23 +332,18 @@ module m_linalg
       allocate( cpy2, source=mat2)
       allocate( work(1), rwork( max( 1, 3*m-2)))
 
-      if( rv) then
-        call zhegv( 1, 'v', 'u', m, cpy1, m, cpy2, m, eval, work, -1, rwork, info)
-        lwork = nint( dble( work(1)))
-        deallocate( work)
-        allocate( work( lwork))
-        call zhegv( 1, 'v', 'u', m, cpy1, m, cpy2, m, eval, work, lwork, rwork, info)
+      call zhegv( 1, rv, 'u', m, cpy1, m, cpy2, m, eval, work, -1, rwork, info)
+      lwork = nint( dble( work(1)))
+      deallocate( work)
+      allocate( work( lwork))
+      call zhegv( 1, rv, 'u', m, cpy1, m, cpy2, m, eval, work, lwork, rwork, info)
+
+      if( rv == 'v') then
         do i = 1, m
           j = maxloc( abs( cpy1(:,i)), 1)
           phase = atan2( aimag( cpy1(j,i)), dble( cpy1(j,i)))
           evec(:,i) = cmplx( cos( phase), -sin( phase), 8)*cpy1(:,i)
         end do
-      else
-        call zhegv( 1, 'n', 'u', m, cpy1, m, cpy2, m, eval, work, -1, rwork, info)
-        lwork = nint( dble( work(1)))
-        deallocate( work)
-        allocate( work( lwork))
-        call zhegv( 1, 'n', 'u', m, cpy1, m, cpy2, m, eval, work, lwork, rwork, info)
       end if
 
       if( info .ne. 0) then
@@ -729,27 +681,27 @@ module m_linalg
       k = size( rhs, 2)
 
       if( m .le. 0) then
-        write(*,'("Error (rlsp): Invalid matrix dimension (m=",i6,")")') m
+        write(*,'("Error (zlsp): Invalid matrix dimension (m=",i6,")")') m
         stop
       end if
       if( n .le. 0) then
-        write(*,'("Error (rlsp): Invalid matrix dimension (n=",i6,")")') n
+        write(*,'("Error (zlsp): Invalid matrix dimension (n=",i6,")")') n
         stop
       end if
       if( k .le. 0) then
-        write(*,'("Error (rlsp): Invalid matrix dimension (k=",i6,")")') k
+        write(*,'("Error (zlsp): Invalid matrix dimension (k=",i6,")")') k
         stop
       end if
       if( size( rhs, 1) .ne. m) then
-        write(*,'("Error (rlsp): The right hand side matrix must have as many rows as the coefficient matrix.")')
+        write(*,'("Error (zlsp): The right hand side matrix must have as many rows as the coefficient matrix.")')
         stop
       end if
       if( size( sol, 1) .ne. n) then
-        write(*,'("Error (rlsp): The solution matrix must have as many rows as the coefficient matrix has columns.")')
+        write(*,'("Error (zlsp): The solution matrix must have as many rows as the coefficient matrix has columns.")')
         stop
       end if
       if( size( sol, 2) .ne. k) then
-        write(*,'("Error (rlsp): The solution matrix must have as many columns as the right hand side matrix.")')
+        write(*,'("Error (zlsp): The solution matrix must have as many columns as the right hand side matrix.")')
         stop
       end if
 
@@ -1020,7 +972,7 @@ module m_linalg
       logical :: swap
 
       integer, allocatable :: ipiv(:)
-      complex(8), allocatable :: d(:,:), cpy(:,:), tmp(:,:)
+      complex(8), allocatable :: d(:,:), cpy(:,:), tmp(:,:), tmp2(:,:)
 
       m = size( mat, 1)
 
@@ -1037,7 +989,7 @@ module m_linalg
         stop
       end if
 
-      allocate( cpy(m,m), d(m,m), tmp(m,m), ipiv(m))
+      allocate( cpy(m,m), d(m,m), tmp(m,m), tmp2(m,m), ipiv(m))
       norm = sum( abs( mat))
       if( norm .lt. 1.d-16) then
         expm = zzero
@@ -1060,7 +1012,8 @@ module m_linalg
       end do
       do i = 2, q
         c = c*dble(q-i+1)/dble(i*(2*q-i+1))
-        tmp = matmul( cpy, tmp)
+        call zgemm( 'n', 'n', m, m, m, zone, cpy, m, tmp, m, zzero, tmp2, m)
+        tmp = tmp2
         expm = expm + c*tmp
         if( swap) then
           d = d + c*tmp
@@ -1071,9 +1024,10 @@ module m_linalg
       end do
       call zgesv( m, m, d, m, ipiv, expm, m, i)
       do i = 1, s
-        expm = matmul( expm, expm)
+        call zgemm( 'n', 'n', m, m, m, zone, expm, m, expm, m, zzero, tmp, m)
+        expm = tmp
       end do
-      deallocate( d, cpy, tmp, ipiv)
+      deallocate( d, cpy, tmp, tmp2, ipiv)
       return
     end subroutine zexpm
 
@@ -1087,7 +1041,7 @@ module m_linalg
       logical :: swap
 
       integer, allocatable :: ipiv(:)
-      real(8), allocatable :: d(:,:), cpy(:,:), tmp(:,:)
+      real(8), allocatable :: d(:,:), cpy(:,:), tmp(:,:), tmp2(:,:)
 
       m = size( mat, 1)
 
@@ -1104,7 +1058,7 @@ module m_linalg
         stop
       end if
 
-      allocate( cpy(m,m), d(m,m), tmp(m,m), ipiv(m))
+      allocate( cpy(m,m), d(m,m), tmp(m,m), tmp2(m,m), ipiv(m))
       norm = sum( abs( mat))
       if( norm .lt. 1.d-16) then
         expm = 0.d0
@@ -1127,7 +1081,8 @@ module m_linalg
       end do
       do i = 2, q
         c = c*dble(q-i+1)/dble(i*(2*q-i+1))
-        tmp = matmul( cpy, tmp)
+        call dgemm( 'n', 'n', m, m, m, 1.d0, cpy, m, tmp, m, 0.d0, tmp2, m)
+        tmp = tmp2
         expm = expm + c*tmp
         if( swap) then
           d = d + c*tmp
@@ -1138,9 +1093,10 @@ module m_linalg
       end do
       call dgesv( m, m, d, m, ipiv, expm, m, i)
       do i = 1, s
-        expm = matmul( expm, expm)
+        call dgemm( 'n', 'n', m, m, m, 1.d0, expm, m, expm, 0.d0, tmp, m)
+        expm = tmp
       end do
-      deallocate( d, cpy, tmp, ipiv)
+      deallocate( d, cpy, tmp, tmp2, ipiv)
       return
     end subroutine rexpm
 

@@ -55,7 +55,12 @@ subroutine wannierlauncher
       ! share results over all processes
 #ifdef MPI
       call barrier
-      call mpi_bcast( wf_transform, wf_nst*wf_nwf*wf_kset%nkpt, mpi_double_complex, 0, mpiglobal%comm, ierr)
+      if( input%properties%wannier%do .ne. "fromfile") then
+        call mpi_bcast( wf_transform, wf_nst*wf_nwf*wf_kset%nkpt, mpi_double_complex, 0, mpiglobal%comm, ierr)
+        do wf_group = 1, wf_ngroups
+          call wfomega_gen
+        end do
+      end if
 #endif
 
       ! further tasks if requested

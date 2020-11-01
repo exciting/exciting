@@ -202,18 +202,7 @@ module mod_wannier_filehandling
           read( un) wf_centers( ix, iy)
         end do
       end do
-      !do ik = 1, wf_kset%nkpt
-      !  do iy = wf_fst, wf_lst
-      !    read( un) wf_evecphase( iy, ik)
-      !  end do
-      !end do
       close( un)
-      if( success) then
-        !if( mpiglobal%rank .eq. 0) then
-        !  write(*,*)
-        !  write(*, '("Info (wffile_readtransform): Transformation matrices successfully read.")')
-        !end if
-      end if
       return
     end subroutine wffile_readtransform
 

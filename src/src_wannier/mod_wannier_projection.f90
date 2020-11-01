@@ -35,8 +35,7 @@ module mod_wannier_projection
     ! finds atoms in neighboring unit cells such that
     ! all bonds are included in the set of atoms
     subroutine wfpro_neighcells
-      use mod_symmetry, only: eqatoms
-      integer :: i, j, k, l, is, ia, ias, js, ja, jas, igroup, vi(3)
+      integer :: i, j, k, is, ia, ias, jas, igroup, vi(3)
       real(8) :: a(3,3), b(3,3), d, vac1(3), val1(3), vac2(3), val2(3), vd(3), vr1(3), vr2(3), vr(3), aposc( 3, natmtot)
       integer(4) :: natom, nbond, nlbond, atoms( 27*natmtot), acell( 3, 27*natmtot), bonds( 2, 27*natmtot), lbonds( 27*natmtot)
       real(8) :: btol, d0, dist( natmtot, natmtot), bondv( 3, 27*natmtot), lbondv( 3, 27*natmtot)
@@ -214,7 +213,7 @@ module mod_wannier_projection
               elo = ehi
             else
               if( n .eq. 0) then 
-                elo = 2*ens(0) - ens(1) ! assuming lowest eigenenergy is  negative
+                elo = 2*ens(0) - ens(1) ! assuming lowest eigenenergy is negative
               else
                 elo = ens( n-1)
               endif
@@ -418,7 +417,8 @@ module mod_wannier_projection
               b( pord) = 1.d0
               call dgesv( pord, 1, a, np, ipiv, b, np, info)
               if( info .ne. 0) then
-                write(*,*) 'Ooops!'
+                write(*,*)
+                write(*,'("Error (wfpro_genradfun): DGESV returned non zero error code:",i4)') info
                 stop
               end if
               p0s = 0.d0
@@ -457,8 +457,8 @@ module mod_wannier_projection
 
     subroutine wfpro_projection
       use m_getunit
-      integer :: ik, iproj, ia, is, ias, io, ilo, l, m, lm, ig, i, ir, nr
-      real(8) :: t0, t1, rdotk
+      integer :: ik, iproj, is, ias, io, ilo, l, m, lm, ig, ir, nr
+      real(8) :: t0, t1
       real(8) :: fr( nrmtmax), gr( nrmtmax), cf( 3, nrmtmax)
 
       real(8), allocatable :: rolpi(:,:)
@@ -529,10 +529,6 @@ module mod_wannier_projection
 
         ! projection matrices 
         auxmat(:,:) = zzero
-!#ifdef USEOMP
-!!$omp parallel default( shared) private( iproj, is, ias, lm, io, ilo, l, m, ig)
-!!$omp do
-!#endif
         do iproj = 1, wf_nprojtot
           is = wf_projst( 1, iproj)
           ias = idxas( wf_projst( 2, iproj), is)
@@ -553,10 +549,6 @@ module mod_wannier_projection
             end if
           end do
         end do
-!#ifdef USEOMP
-!!$omp end do
-!!$omp end parallel
-!#endif
 
         call zgemm( 'c', 'n', wf_nst, wf_nprojtot, wf_Gkset%ngk( 1, ik)+nlotot, zone, &
                evecfv( 1, wf_fst, 1), nmatmax_ptr, &
@@ -604,7 +596,7 @@ module mod_wannier_projection
       use m_linalg
       real(8), intent( in), optional :: eps
 
-      integer :: igroup, i, is, ias, lm, j, ias2, lm2, iproj, iproj2, ir, nr, lapack_info, lapack_lwork
+      integer :: igroup, i, is, ias, lm, j, ias2, lm2, iproj, iproj2, ir, nr
       real(8) :: tmp, eps_
       real(8) :: fr( nrmtmax), gr( nrmtmax), cf( 3, nrmtmax)
 

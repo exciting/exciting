@@ -34,6 +34,7 @@ Subroutine dos
 !
 ! !REVISION HISTORY:
 !   Created January 2004 (JKD)
+!   Added more efficient trilinear integration and tetrahedron integration, August 2020 (SeTi)
 !EOP
 !BOC
       Implicit None
