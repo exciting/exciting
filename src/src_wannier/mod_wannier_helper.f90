@@ -319,23 +319,24 @@ module mod_wannier_helper
 
       type( k_set), intent( in)           :: kset
       integer, intent( in)                :: fst, lst
-      real(8), intent( in)                :: eval( fst:lst, kset%nkpt)
+      real(8), intent( in)                :: eval( lst-fst+1, kset%nkpt)
       real(8), intent( out)               :: efermi
-      real(8), optional, intent( out)     :: occ( fst:lst, kset%nkpt)
+      real(8), intent( out)               :: occ( lst-fst+1, kset%nkpt)
       type( t_set), optional, intent( in) :: tetra
 
       integer, parameter :: maxit = 1000
 
-      integer :: iq, ist, nvm, it
+      integer :: iq, ist, nvm, it, nst
       logical :: usetetra
-      real(8) :: e0, e1, chg, x, t1, df, occ_tmp( lst, kset%nkpt)
+      real(8) :: e0, e1, chg, chg0, x, t1, df
+      
+      real(8), external :: stheta
 
-      real(8) :: stheta
-
+      nst = lst - fst + 1
       usetetra = .false.
       if( present( tetra)) usetetra = .true.
-      occ_tmp = 0.d0
       df = 1.d-1
+      chg0 = 0.d0; occ = 0.d0
 
       nvm = nint( chgval/occmax)
       if( (fst .ne. 1) .and. (fst .le. nvm)) then
@@ -343,15 +344,15 @@ module mod_wannier_helper
           write(*,*)
           write( *, '("Warning (wfhelp_occupy): The lowest band given is ",I3,". All bands below are considered to be fully occupied.")') fst
         end if
-        occ_tmp( 1:(fst-1), :) = occmax
+        chg0 = (fst-1)*occmax
       end if
       if( fst .gt. nvm) then
         if( mpiglobal%rank .eq. 0) then
           write(*,*)
           write( *, '("Warning (wfhelp_occupy): No valence bands given. All bands are considered to be unoccupied. Fermi energy set to lowest energy given.")')
         end if
-        if( present( occ)) occ = 0.d0
-        efermi = minval( eval( fst, :))
+        occ = 0.d0
+        efermi = minval( eval(1,:))
         return
       end if
       if( (lst .le. nvm)) then
@@ -359,27 +360,24 @@ module mod_wannier_helper
           write(*,*)
           write( *, '("Warning (wfhelp_occupy): At least one conduction band has to be given in order to determine occupancies. All bands given are considered to be fully occupied. Fermi energy set to highest energy given.")')
         end if
-        if( present( occ)) occ = occmax
-        efermi = maxval( eval( lst, :))
+        occ = occmax
+        efermi = maxval( eval(nst,:))
         return
       end if
       ! check for insulator or semiconductor
-      e0 = maxval( eval( nvm, :))
-      e1 = minval( eval( nvm+1, :))
+      e0 = maxval( eval( nvm-fst+1, :))
+      e1 = minval( eval( nvm-fst+2, :))
       efermi = 0.5*(e0 + e1)
 
-      chg = 0.d0
+      chg = chg0
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iq, ist) reduction(+: chg)
 !$OMP DO
 #endif
       do iq = 1, kset%nkpt
-        do ist = 1, fst-1
-          chg = chg + kset%wkpt( iq)*occ_tmp( ist, iq)
-        end do
-        do ist = fst, lst
-          if( eval( ist, iq) .le. efermi) occ_tmp( ist, iq) = occmax
-          chg = chg + kset%wkpt( iq)*occ_tmp( ist, iq)
+        do ist = 1, nst
+          if( eval( ist, iq) .le. efermi) occ( ist, iq) = occmax
+          chg = chg + kset%wkpt( iq)*occ( ist, iq)
         end do
       end do
 #ifdef USEOMP
@@ -393,28 +391,25 @@ module mod_wannier_helper
         if( input%groundstate%stypenumber .ge. 0 ) then
           t1 = 1.d0/input%groundstate%swidth
           it = 0
-          e0 = eval( fst, 1)
+          e0 = eval(1,1)
           e1 = e0
-          do ist = fst, lst
-            e0 = min( e0, minval( eval( ist, :)))
-            e1 = max( e1, maxval( eval( ist, :)))
+          do ist = 1, nst
+            e0 = min( e0, minval( eval(ist,:)))
+            e1 = max( e1, maxval( eval(ist,:)))
           end do
 
           do while( it .lt. maxit)
             efermi = 0.5*(e0 + e1)
-            chg = 0.d0
+            chg = chg0
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iq, ist, x) reduction(+: chg)
 !$OMP DO
 #endif
             do iq = 1, kset%nkpt
-              do ist = 1, fst-1
-                chg = chg + kset%wkpt( iq)*occ_tmp( ist, iq)
-              end do
-              do ist = fst, lst
+              do ist = 1, nst
                 x = (efermi - eval( ist, iq))*t1
-                occ_tmp( ist, iq) = occmax*stheta( input%groundstate%stypenumber, x)
-                chg = chg + kset%wkpt( iq)*occ_tmp( ist, iq)
+                occ( ist, iq) = occmax*stheta( input%groundstate%stypenumber, x)
+                chg = chg + kset%wkpt( iq)*occ( ist, iq)
               end do
             end do
 #ifdef USEOMP
@@ -456,13 +451,12 @@ module mod_wannier_helper
           write(*,*)
           write( *, '("Info (wfhelp_occupy): Use tetrahedron method in determining efermi and occupation")')
         end if
-        call opt_tetra_efermi( tetra, chgval/dble( occmax)-fst+1, kset%nkpt, lst-fst+1, eval( fst:lst, :), efermi, occ_tmp( fst:lst, :), ef0=efermi, df0=df)
+        call opt_tetra_efermi( tetra, chgval/dble( occmax)-fst+1, kset%nkpt, nst, eval, efermi, occ, ef0=efermi, df0=df)
         do iq = 1, kset%nkpt
-          occ_tmp( :, iq) = occmax*occ_tmp( :, iq)/kset%wkpt( iq)
+          occ(:,iq) = occmax*occ(:,iq)/kset%wkpt(iq)
         end do
       end if
 
-      if( present( occ)) occ(:,:) = occ_tmp( fst:lst, :)
       return
     end subroutine wfhelp_occupy
 
@@ -476,14 +470,16 @@ module mod_wannier_helper
       type( t_set), optional, intent( in) :: tetra
 
       integer :: fst, lst
-      real(8), allocatable :: evalfv(:,:)
+      real(8), allocatable :: evalfv(:,:), occ(:,:)
 
       call wfhelp_geteval( evalfv, fst, lst)
+      allocate( occ( fst:lst, wf_kset%nkpt))
       if( present( tetra)) then
-        call wfhelp_occupy( wf_kset, evalfv, fst, lst, efermi, tetra=tetra)
+        call wfhelp_occupy( wf_kset, evalfv, fst, lst, efermi, occ, tetra=tetra)
       else
-        call wfhelp_occupy( wf_kset, evalfv, fst, lst, efermi)
+        call wfhelp_occupy( wf_kset, evalfv, fst, lst, efermi, occ)
       end if
+      deallocate( occ)
 
       return
     end subroutine wfhelp_getefermi

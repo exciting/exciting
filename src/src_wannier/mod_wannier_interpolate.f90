@@ -492,10 +492,6 @@ module mod_wannier_interpolate
       !BOC
       integer :: fst, lst
       logical :: usetetra_ = .false.
-      real(8) :: eval( wf_fst:(wf_fst+wf_nwf-1), wfint_kset%nkpt)
-      real(8) :: occ( wf_fst:(wf_fst+wf_nwf-1), wfint_kset%nkpt)
-
-      eval = wfint_eval
 
       if( present( usetetra)) usetetra_ = usetetra
       if( allocated( wfint_occ)) deallocate( wfint_occ)
@@ -510,12 +506,11 @@ module mod_wannier_interpolate
 
       if( usetetra_) then
         call wfhelp_init_tetra( wfint_tetra, wfint_kset, ttype=2, reduce=.true.)
-        call wfhelp_occupy( wfint_kset, eval, fst, lst, wfint_efermi, occ, wfint_tetra)
+        call wfhelp_occupy( wfint_kset, wfint_eval, fst, lst, wfint_efermi, wfint_occ, tetra=wfint_tetra)
       else
-        call wfhelp_occupy( wfint_kset, eval, fst, lst, wfint_efermi, occ)
+        call wfhelp_occupy( wfint_kset, wfint_eval, fst, lst, wfint_efermi, wfint_occ)
       end if
 
-      wfint_occ = occ
       return
     end subroutine wfint_interpolate_occupancy
     !EOC

@@ -8,22 +8,27 @@ recursive subroutine sortidxColumn( nr, nc, a, lda, idx)
   integer, intent( in)  :: a(lda,*)
   integer, intent( out) :: idx(nc)
 
-  integer :: i, j, k, l, srt( nc)
+  integer :: i, j, k, l, srt(nc)
   integer :: tmp( nr-1, nc)
 
-  call sortidxi( nc, a(1,1:nc), idx)
+  call sortidxi( nc, a(1,1), lda, idx)
   if( nr .eq. 1) return
-  j = 1
-  do i = 1, nc-1
-    if( (a( 1, idx( i)) .ne. a( 1, idx( i+1))) .or. (i+1 .eq. nc)) then
-      k = i
-      if( (a( 1, idx( i)) .eq. a( 1, idx( i+1))) .and. (i+1 .eq. nc)) k = nc
-      do l = j, k
-        tmp(:,l) = a( 2:nr, idx(j))
+  l = 1
+  do j = 1, nc
+    if( j < nc) then
+      if( a(1,idx(j)) == a(1,idx(j+1))) then
+        l = l + 1
+        cycle
+      end if
+    end if
+    if( l > 1) then
+      i = j - l + 1
+      do k = 1, l
+        tmp(:,k) = a(2:nr,idx(i+k-1))
       end do
-      call sortidxColumn( nr-1, k-j+1, tmp, nr-1, srt( j:k))
-      idx( j:k) = idx( j-1+srt( j:k))
-      j = i+1
+      call sortidxColumn( nr-1, l, tmp, nr-1, srt(1:l))
+      idx(i:j) = idx(i+srt(1:l)-1)
+      l = 1
     end if
   end do    
   return

@@ -68,7 +68,7 @@ _current
 
 # Ignore text editor files
 *.save
-*.swp
+.*.sw*
 *.un~
 *~
 

@@ -284,6 +284,7 @@ end subroutine macro_polarization
 !EOC
 
 subroutine polarization
+  implicit none
   real(8) :: pol(3,3)
 
   call macro_polarization( pol, 'calc')

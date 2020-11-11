@@ -459,7 +459,7 @@ module mod_pwmat
       
       subroutine pwmat_genpwmat( ik, evec1, evec2, pwmat)
           integer, intent( in)     :: ik
-          complex(8), intent( in)  :: evec1( nmatmax_ptr, pwmat_fst1:pwmat_lst1), evec2( nmatmax_ptr, pwmat_fst2:pwmat_lst2)
+          complex(8), intent( in)  :: evec1( nmatmax_ptr, *), evec2( nmatmax_ptr, *)
           complex(8), intent( out) :: pwmat( pwmat_fst1:pwmat_lst1, pwmat_fst2:pwmat_lst2, ng)
 
           integer :: ngp, ngpq, i, is, ia, ias, l, m, lm, o, ilo, lam

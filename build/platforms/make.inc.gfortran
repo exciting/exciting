@@ -18,7 +18,7 @@ LIB_BZINT = libbzint.a
 
 LIBS = $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
 
-F90_DEBUGOPTS = -g -fbounds-check -fbacktrace -Wall -ffree-line-length-0
+F90_DEBUGOPTS = -g -fbounds-check -fbacktrace -Wall -ffree-line-length-0 -I./finclude
 F77_DEBUGOPTS = $(F90_DEBUGOPTS)
 
 #Ignore if you don't have MPI or smplibs

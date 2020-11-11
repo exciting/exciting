@@ -269,6 +269,7 @@ Subroutine propertylauncher
 
       if( associated( input%properties%polarization)) then
          call rereadinput
+         task = 1
          call polarization
       End If
 

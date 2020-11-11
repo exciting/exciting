@@ -245,7 +245,7 @@ module mod_wannier_maxloc
         end if
       end do
 #ifdef USEOMP
-!$omd end do
+!$omp end do
 #endif
       deallocate( gu)
 #ifdef USEOMP

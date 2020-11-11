@@ -80,11 +80,12 @@ Subroutine sortidx (n, a, idx)
 End Subroutine
 !EOC
 
-Subroutine sortidxi (n, a, idx)
+subroutine sortidxi (n, a, inc, idx)
 ! !INPUT/OUTPUT PARAMETERS:
-!   n   : number of elements in array (in,integer)
+!   n   : number of elements to sort (in,integer)
 !   idx : permutation index (out,integer(n))
-!   a   : integer array (in,integer(n))
+!   a   : integer array (in,integer(*))
+!   inc : increment (in,integer)
 ! !DESCRIPTION:
 !   Integer version of sortidx.
 !
@@ -92,55 +93,55 @@ Subroutine sortidxi (n, a, idx)
 !   Created August 2020 (SeTi)
 !EOP
 !BOC
-      Implicit None
+  implicit none
 ! arguments
-      Integer, Intent (In) :: n
-      Integer, Intent (In) :: a (n)
-      Integer, Intent (Out) :: idx (n)
+  integer, intent( in)  :: n, inc
+  integer, intent( in)  :: a(*)
+  integer, intent( out) :: idx(n)
 ! local variables
-      Integer :: i, j, k, l, m
-      If (n .Le. 0) Then
-         Write (*,*)
-         Write (*, '("Error(sortidx): n <= 0 : ", I8)') n
-         Write (*,*)
-         Stop
-      End If
-      Do i = 1, n
-         idx (i) = i
-      End Do
-      If (n .Eq. 1) Return
-      l = n / 2 + 1
-      k = n
-10    Continue
-      If (l .Gt. 1) Then
-         l = l - 1
-         m = idx (l)
-      Else
-         m = idx (k)
-         idx (k) = idx (1)
-         k = k - 1
-         If (k .Eq. 1) Then
-            idx (1) = m
-            Return
-         End If
-      End If
-      i = l
-      j = l + l
-20    Continue
-      If (j .Le. k) Then
-         If (j .Lt. k) Then
-            If (a(idx(j)) .Lt. a(idx(j+1))) j = j + 1
-         End If
-         If (a(m) .Lt. a(idx(j))) Then
-            idx (i) = idx (j)
-            i = j
-            j = j + j
-         Else
-            j = k + 1
-         End If
-         Go To 20
-      End If
-      idx (i) = m
-      Go To 10
-End Subroutine
+  Integer :: i, j, k, l, m
+  if( n <= 0) then
+    write(*,*)
+    write(*, '("Error (sortidxi): n <= 0 : ", i8)') n
+    write(*,*)
+    stop
+  end if
+  do i = 1, n
+    idx(i) = i
+  end do
+  if( n == 1) return
+  l = n/2 + 1
+  k = n
+10    continue
+  if( l > 1) then
+    l = l - 1
+    m = idx(l)
+  else
+    m = idx(k)
+    idx(k) = idx(1)
+    k = k - 1
+    if( k == 1) then
+      idx(1) = m
+      return
+    end if
+  end if
+  i = l
+  j = l + l
+20    continue
+  if( j <= k) then
+    if( j < k) then
+      if( a( inc*(idx(j)-1)+1) < a( inc*(idx(j+1)-1)+1)) j = j + 1
+    end if
+    if( a( inc*(m-1)+1) < a( inc*(idx(j)-1)+1)) then
+      idx(i) = idx(j)
+      i = j
+      j = j + j
+    else
+      j = k + 1
+    end if
+    go to 20
+  end if
+  idx(i) = m
+  go to 10
+end subroutine
 !EOC

@@ -325,7 +325,8 @@ module mod_manopt_manifolds
       class( matrix), intent( in) :: y    ! matrix Y
       real(8)                     :: r
 
-      integer :: ik
+      integer :: ik, i
+      real(8) :: rk
 
       real(8), external :: ddot
       complex(8), external :: zdotc
@@ -339,11 +340,15 @@ module mod_manopt_manifolds
           select type( y)
             type is( real_matrix)
 #ifdef USEOMP
-!$omp parallel default( shared) private( ik) reduction(+:r)
+!$omp parallel default( shared) private( ik, i, rk) reduction(+:r)
 !$omp do
 #endif
               do ik = 1, M%KX
-                r = r + ddot( M%DX(1,ik)*M%DX(2,ik), x%m(1:M%DX(1,ik),1:M%DX(2,ik),ik), 1, y%m(1:M%DX(1,ik),1:M%DX(2,ik),ik), 1)
+                rk = 0.d0
+                do i = 1, M%DX(2,ik)
+                  rk = rk + ddot( M%DX(1,ik), x%m(1,i,ik), 1, y%m(1,i,ik), 1)
+                end do
+                r = r + rk
               end do
 #ifdef USEOMP
 !$omp end do
@@ -354,11 +359,15 @@ module mod_manopt_manifolds
           select type( y)
             type is( complex_matrix)
 #ifdef USEOMP
-!$omp parallel default( shared) private( ik) reduction(+:r)
+!$omp parallel default( shared) private( ik, i, rk) reduction(+:r)
 !$omp do
 #endif
               do ik = 1, M%KX
-                r = r + dble( zdotc( M%DX(1,ik)*M%DX(2,ik), x%m(1:M%DX(1,ik),1:M%DX(2,ik),ik), 1, y%m(1:M%DX(1,ik),1:M%DX(2,ik),ik), 1))
+                rk = 0.d0
+                do i = 1, M%DX(2,ik)
+                  rk = rk + dble( zdotc( M%DX(1,ik), x%m(1,i,ik), 1, y%m(1,i,ik), 1))
+                end do
+                r = r + rk
               end do
 #ifdef USEOMP
 !$omp end do

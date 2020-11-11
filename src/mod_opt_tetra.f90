@@ -1122,8 +1122,8 @@ module mod_opt_tetra
   
     if( reduce_) then
       allocate( srt( self%ntetra, 2))
-      call sortidxColumn( 4, self%ntetra, tetra(1,1), 20, srt(:,1))
-      call sortidxi( self%ntetra, srt(:,1), srt(:,2))
+      call sortidxColumn( 4, self%ntetra, tetra(1,1), nn, srt(:,1))
+      call sortidxi( self%ntetra, srt(:,1), 1, srt(:,2))
       ! Note: tetra = tetra(:,srt) sometimes does not work for dense grids
       do i = 1, self%ntetra
         j = srt(i,1)

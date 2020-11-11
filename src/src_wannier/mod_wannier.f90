@@ -265,8 +265,8 @@ module mod_wannier
             call wfhelp_getevec( wf_n_ik( idxn, iknr), evecfv2)
             ! generate plane-wave matrix elements
             call pwmat_genpwmat( iknr, &
-                   evecfv1( :, wf_fst:wf_lst, 1), &
-                   evecfv2( :, wf_fst:wf_lst, 1), &
+                   evecfv1( :, wf_fst, 1), &
+                   evecfv2( :, wf_fst, 1), &
                    wf_m0( :, :, iknr, idxn))
             cntk = cntk + 1
             if( mpiglobal%rank .eq. 0) then
@@ -894,15 +894,18 @@ module mod_wannier
       integer :: fst_, lst_, nst_, nwf_, nkpt_
       logical :: disentangle_, success
       real(8) :: e
-      real(8), allocatable :: eval(:,:)
+      real(8), allocatable :: eval(:,:), occ(:,:)
 
       wf_fermizero = input%properties%wannier%fermizero
       wf_ngroups = size( input%properties%wannier%grouparray, 1)
       allocate( wf_groups( wf_ngroups))
 
       ! initialize Fermi energy
+      call wfhelp_getefermi( wf_efermi)
       call wfhelp_geteval( eval, fst, lst)
-      call wfhelp_occupy( wf_kset, eval, fst, lst, wf_efermi)
+      allocate( occ( fst:lst, wf_kset%nkpt))
+      call wfhelp_occupy( wf_kset, eval, fst, lst, wf_efermi, occ)
+      deallocate( occ)
 
       ! read input from input.xml
       if( input%properties%wannier%do .ne. "skip") then
