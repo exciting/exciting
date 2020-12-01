@@ -10,6 +10,10 @@ Subroutine dos
       Use modinput
       Use modmain
       Use FoX_wxml
+      use mod_opt_tetra
+      use mod_kpointset
+      use mod_lattice, only: bvec
+      use mod_eigenvalue_occupancy, only: occmax, occsv
       Use modmpi, Only: rank, splittfile
 ! !DESCRIPTION:
 !   Produces a total and partial density of states (DOS) for plotting. The total
@@ -30,6 +34,7 @@ Subroutine dos
 !
 ! !REVISION HISTORY:
 !   Created January 2004 (JKD)
+!   Added more efficient trilinear integration and tetrahedron integration, August 2020 (SeTi)
 !EOP
 !BOC
       Implicit None
@@ -38,6 +43,7 @@ Subroutine dos
       Integer :: lmax, lmmax, l, m, lm
       Integer :: ispn, jspn, is, ia, ias
       Integer :: ik, nsk (3), ist, iw, jst, n, i
+      Integer :: ntrans, mtrans
       Real (8) :: dw, th, t1
       Real (8) :: v1 (3), v2 (3), v3 (3)
       Character (512) :: buffer
@@ -45,6 +51,8 @@ Subroutine dos
       Type (xmlf_t), Save :: xf
       Complex (8) su2 (2, 2), dm1 (2, 2), dm2 (2, 2)
       Character (256) :: fname
+      type( t_set) :: tset
+      type( k_set) :: kset
 ! allocatable arrays
       Real (8), Allocatable :: e (:, :, :)
       Real (8), Allocatable :: f (:, :)
@@ -54,6 +62,8 @@ Subroutine dos
 ! low precision for band character array saves memory
       Real (4), Allocatable :: bc (:, :, :, :, :)
       Real (8), Allocatable :: elm (:, :)
+      Real (8), Allocatable :: wgt (:, :, :)
+      Real (8), Allocatable :: jdos (:, :, :), jdosocc (:, :, :)
       Complex (8), Allocatable :: ulm (:, :, :)
       Complex (8), Allocatable :: a (:, :)
       Complex (8), Allocatable :: dmat (:, :, :, :, :)
@@ -219,6 +229,11 @@ Subroutine dos
 
 if (rank==0) then
 
+      if( input%properties%dos%inttype == 'tetra') then
+        call generate_k_vectors( kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, input%groundstate%reducek, uselibzint=.false.)
+        call opt_tetra_init( tset, kset, 2, reduce=.true.)
+      end if
+
       Open (50, File='TDOS.OUT', Action='WRITE', Form='FORMATTED')
       Call xml_OpenFile ("dos.xml", xf, replace=.True., pretty_print=.True.)
       Call xml_NewElement (xf, "dos")
@@ -256,11 +271,19 @@ if (rank==0) then
             End Do
          End Do
 ! BZ integration
-         if (input%properties%dos%newint) then
+         if (input%properties%dos%inttype == 'trilin+') then
            Call brzint_new (input%properties%dos%nsmdos, &
            & input%groundstate%ngridk, nsk, ikmap, &
            & input%properties%dos%nwdos, input%properties%dos%winddos, nstsv, nstsv, &
            & e(:,:,ispn), f, g(:,ispn))
+         else if( input%properties%dos%inttype == 'tetra') then
+           allocate( wgt( nstsv, kset%nkpt, input%properties%dos%nwdos))
+           call opt_tetra_wgt_delta( tset, kset%nkpt, nstsv, e(:,:,ispn), input%properties%dos%nwdos, w, wgt)
+           do iw = 1, input%properties%dos%nwdos
+             g( iw, ispn) = sum( wgt(:,:,iw))
+           end do
+           if( input%properties%dos%nsmdos > 0) &
+             call fsmooth( input%properties%dos%nsmdos, input%properties%dos%nwdos, 1, g(:,ispn))
          else
            Call brzint (input%properties%dos%nsmdos, &
            & input%groundstate%ngridk, nsk, ikmap, &
@@ -298,7 +321,9 @@ if (rank==0) then
             t1 = -1.d0
           end if
           edif(:,:,:) = 0.d0
+          ntrans = 0; mtrans = 0
           do ik = 1, nkpt
+            call getoccsv( vkl(:,ik), occsv(:,ik))
             n = 0
             do ist = nstsv, 1, -1
             if (evalsv(ist,ik)<=efermi) then
@@ -310,71 +335,117 @@ if (rank==0) then
                 edif(n,m,ik) = evalsv(jst,ik)-evalsv(ist,ik)+input%properties%dos%scissor
               end if
               end do
+              mtrans = max( mtrans, m)
             end if
             end do
+            ntrans = max( ntrans, n)
           end do ! ik
+          if( input%properties%dos%inttype == 'tetra') then
+            do l = 1, nstsv      ! lowest (partially) unoccupied band
+              if( occmax-minval( occsv(l,:)) > 1.d-10) exit
+            end do
+            do m = nstsv, 1, -1  ! highest (partially) occupied band
+              if( maxval( occsv(m,:)) > 1.d-10) exit
+            end do
+            allocate( jdosocc( l:nstsv, m, kset%nkpt))
+            allocate( jdos( input%properties%dos%nwdos, l:nstsv, m))
+            allocate( fj( input%properties%dos%nwdos, 0:m))
+            do ik = 1, kset%nkpt
+              do jst = 1, m
+                do ist = l, nstsv
+                  jdosocc( ist, jst, ik) = min( occsv( jst, ik), occmax-occsv( ist, ik))
+                end do
+              end do
+            end do
+            call opt_tetra_int_deltadiff( tset, kset%nkpt, nstsv-l+1, e( l:nstsv, :, ispn), m, e( 1:m, :, ispn), &
+                   input%properties%dos%nwdos, w, 1, resr=jdos, matr=jdosocc)
+            fj = 0.d0
+            do ist = 1, m
+              fj(:,ist) = sum( jdos(:,:,ist), 2)
+              if( input%properties%dos%nsmdos > 0) &
+                call fsmooth( input%properties%dos%nsmdos, input%properties%dos%nwdos, 1, fj(:,ist))
+              do iw = 1, input%properties%dos%nwdos
+                if (dabs(w(iw))>1.d-4) then
+                  write(51,'(3G18.10)') w(iw), t1*fj(iw,ist)/(w(iw)*w(iw))/dble(ntrans*mtrans), t1*fj(iw,ist)
+                else
+                  write(51,'(3G18.10)') w(iw), 0.d0, t1*fj(iw,ist)
+                end if
+              end do
+              write(51,'("     ")')
+            end do
+            fj(:,0) = sum( fj(:,1:m), 2)
+            do iw = 1, input%properties%dos%nwdos
+              if (dabs(w(iw))>1.d-4) then
+                write(50,'(3G18.10)') w(iw), t1*fj(iw,0)/(w(iw)*w(iw))/dble(ntrans*mtrans), t1*fj(iw,0)
+              else
+                write(50,'(3G18.10)') w(iw), 0.d0, t1*fj(iw,0)
+              end if
+            end do
+            write(50, '("     ")')
+            deallocate( jdos, jdosocc, fj)
+          else
           ! State dependent JDOS
-          allocate(ej(m,nkpt))
-          allocate(fj(m,nkpt))
-          fj(:,:) = 1.d0
-          do ist = 1, n
-            ej(:,:) = edif(ist,1:m,:)
-            if( input%properties%dos%newint) then
+            allocate(ej(mtrans,nkpt))
+            allocate(fj(mtrans,nkpt))
+            fj(:,:) = 1.d0
+            do ist = 1, ntrans
+              ej(:,:) = edif(ist,1:mtrans,:)
+              if( input%properties%dos%inttype == 'trilin+') then
+                call brzint_new(input%properties%dos%nsmdos, &
+                &           input%groundstate%ngridk, nsk, ikmap, &
+                &           input%properties%dos%nwdos, input%properties%dos%winddos, &
+                &           mtrans, mtrans, ej, fj, gp)
+              else
+                call brzint(input%properties%dos%nsmdos, &
+                &           input%groundstate%ngridk, nsk, ikmap, &
+                &           input%properties%dos%nwdos, input%properties%dos%winddos, &
+                &           mtrans, mtrans, ej, fj, gp)
+              end if
+              gp(:) = occmax*gp(:)
+              do iw = 1, input%properties%dos%nwdos
+                if (dabs(w(iw))>1.d-4) then
+                  write(51,'(3G18.10)') w(iw), t1*gp(iw)/(w(iw)*w(iw))/dble(ntrans*mtrans), t1*gp(iw)
+                else
+                  write(51,'(3G18.10)') w(iw), 0.d0, t1*gp(iw)
+                end if
+              end do
+              write(51,'("     ")')
+            end do ! ist
+            deallocate(ej,fj)
+  
+! total JDOS (sum over all transitions)
+            allocate(ej(ntrans*mtrans,nkpt))
+            allocate(fj(ntrans*mtrans,nkpt))
+            fj(:,:) = 1.d0
+            i = 0
+            do ist = 1, ntrans
+            do jst = 1, mtrans
+              i = i+1
+              ej(i,:) = edif(ist,jst,:)
+            end do
+            end do
+            if( input%properties%dos%inttype == 'trilin+') then
               call brzint_new(input%properties%dos%nsmdos, &
               &           input%groundstate%ngridk, nsk, ikmap, &
               &           input%properties%dos%nwdos, input%properties%dos%winddos, &
-              &           m, m, ej, fj, gp)
+              &           ntrans*mtrans, ntrans*mtrans, ej, fj, gp)
             else
               call brzint(input%properties%dos%nsmdos, &
               &           input%groundstate%ngridk, nsk, ikmap, &
               &           input%properties%dos%nwdos, input%properties%dos%winddos, &
-              &           m, m, ej, fj, gp)
+              &           ntrans*mtrans, ntrans*mtrans, ej, fj, gp)
             end if
             gp(:) = occmax*gp(:)
             do iw = 1, input%properties%dos%nwdos
               if (dabs(w(iw))>1.d-4) then
-                write(51,'(3G18.10)') w(iw), t1*gp(iw)/(w(iw)*w(iw))/dble(n*m), t1*gp(iw)
+                write(50,'(3G18.10)') w(iw), t1*gp(iw)/(w(iw)*w(iw))/dble(ntrans*mtrans), t1*gp(iw)
               else
-                write(51,'(3G18.10)') w(iw), 0.d0, t1*gp(iw)
+                write(50,'(3G18.10)') w(iw), 0.d0, t1*gp(iw)
               end if
             end do
-            write(51,'("     ")')
-          end do ! ist
-          deallocate(ej,fj)
-
-! total JDOS (sum over all transitions)
-          allocate(ej(n*m,nkpt))
-          allocate(fj(n*m,nkpt))
-          fj(:,:) = 1.d0
-          i = 0
-          do ist = 1, n
-          do jst = 1, m
-            i = i+1
-            ej(i,:) = edif(ist,jst,:)
-          end do
-          end do
-          write(*,*) input%properties%dos%nsmdos, nsk, input%properties%dos%nwdos, input%properties%dos%winddos
-          if( input%properties%dos%newint) then
-            call brzint_new(input%properties%dos%nsmdos, &
-            &           input%groundstate%ngridk, nsk, ikmap, &
-            &           input%properties%dos%nwdos, input%properties%dos%winddos, &
-            &           n*m, n*m, ej, fj, gp)
-          else
-            call brzint(input%properties%dos%nsmdos, &
-            &           input%groundstate%ngridk, nsk, ikmap, &
-            &           input%properties%dos%nwdos, input%properties%dos%winddos, &
-            &           n*m, n*m, ej, fj, gp)
+            write(50, '("     ")')
+            deallocate(ej,fj)
           end if
-          gp(:) = occmax*gp(:)
-          do iw = 1, input%properties%dos%nwdos
-            if (dabs(w(iw))>1.d-4) then
-              write(50,'(3G18.10)') w(iw), t1*gp(iw)/(w(iw)*w(iw))/dble(n*m), t1*gp(iw)
-            else
-              write(50,'(3G18.10)') w(iw), 0.d0, t1*gp(iw)
-            end if
-          end do
-          write(50, '("     ")')
-          deallocate(ej,fj)
 
         end do ! ispn
         deallocate(edif)
@@ -408,19 +479,28 @@ if (rank==0) then
                   t1 = - 1.d0
                End If
                Do l = 0, lmax
-                  Do m = - l, l
-                     lm = idxlm (l, m)
-                     Do ik = 1, nkpt
-                        Do ist = 1, nstsv
-                           f (ist, ik) = bc (lm, ispn, ias, ist, ik)
+                  if( input%properties%dos%lonly) then
+                     f = 0.d0
+                     Do m = - l, l
+                        lm = idxlm (l, m)
+                        Do ik = 1, nkpt
+                           Do ist = 1, nstsv
+                              f (ist, ik) = f( ist, ik) + bc (lm, ispn, ias, ist, ik)
+                           End Do
                         End Do
                      End Do
-                     if( input%properties%dos%newint) then
+                     if( input%properties%dos%inttype == 'trilin+') then
                        Call brzint_new (input%properties%dos%nsmdos, &
                       &  input%groundstate%ngridk, nsk, ikmap, &
                       &  input%properties%dos%nwdos, input%properties%dos%winddos, &
                       &  nstsv, nstsv, e(:, :, ispn), f, gp)
-                     else
+                     else if( input%properties%dos%inttype == 'tetra') then
+                       do iw = 1, input%properties%dos%nwdos
+                         gp( iw) = sum( f*wgt(:,:,iw))
+                       end do   
+                       if( input%properties%dos%nsmdos > 0) &
+                         call fsmooth( input%properties%dos%nsmdos, input%properties%dos%nwdos, 1, gp)
+                     else       
                        Call brzint (input%properties%dos%nsmdos, &
                       &  input%groundstate%ngridk, nsk, ikmap, &
                       &  input%properties%dos%nwdos, input%properties%dos%winddos, &
@@ -432,8 +512,6 @@ if (rank==0) then
                      Call xml_AddAttribute (xf, "nspin", trim(adjustl(buffer)))
                      Write (buffer,*) l
             	     Call xml_AddAttribute (xf, "l", trim(adjustl(buffer)))
-                     Write (buffer,*) m
-            	     Call xml_AddAttribute (xf, "m", trim(adjustl(buffer)))
                      Do iw = 1, input%properties%dos%nwdos
                         Call xml_NewElement (xf, "point")
                         Write (buffer, '(G18.10)') w (iw)
@@ -445,8 +523,54 @@ if (rank==0) then
                         g (iw, ispn) = g (iw, ispn) - gp (iw)
                      End Do
                      Write (50, '("     ")')
-                   Call xml_endElement (xf, "diagram")
-                  End Do
+                     Call xml_endElement (xf, "diagram")
+                  else
+                     Do m = - l, l
+                        lm = idxlm (l, m)
+                        Do ik = 1, nkpt
+                           Do ist = 1, nstsv
+                              f (ist, ik) = bc (lm, ispn, ias, ist, ik)
+                           End Do
+                        End Do
+                        if( input%properties%dos%inttype == 'trilin+') then
+                          Call brzint_new (input%properties%dos%nsmdos, &
+                         &  input%groundstate%ngridk, nsk, ikmap, &
+                         &  input%properties%dos%nwdos, input%properties%dos%winddos, &
+                         &  nstsv, nstsv, e(:, :, ispn), f, gp)
+                        else if( input%properties%dos%inttype == 'tetra') then
+                          do iw = 1, input%properties%dos%nwdos
+                            gp( iw) = sum( f*wgt(:,:,iw))
+                          end do
+                          if( input%properties%dos%nsmdos > 0) &
+                            call fsmooth( input%properties%dos%nsmdos, input%properties%dos%nwdos, 1, gp)
+                        else
+                          Call brzint (input%properties%dos%nsmdos, &
+                         &  input%groundstate%ngridk, nsk, ikmap, &
+                         &  input%properties%dos%nwdos, input%properties%dos%winddos, &
+                         &  nstsv, nstsv, e(:, :, ispn), f, gp)
+                        end if
+                        gp (:) = occmax * gp (:)
+                        Call xml_NewElement (xf, "diagram")
+                        Write (buffer,*) ispn
+                        Call xml_AddAttribute (xf, "nspin", trim(adjustl(buffer)))
+                        Write (buffer,*) l
+            	        Call xml_AddAttribute (xf, "l", trim(adjustl(buffer)))
+                        Write (buffer,*) m
+            	        Call xml_AddAttribute (xf, "m", trim(adjustl(buffer)))
+                        Do iw = 1, input%properties%dos%nwdos
+                           Call xml_NewElement (xf, "point")
+                           Write (buffer, '(G18.10)') w (iw)
+                           Call xml_AddAttribute (xf, "e", trim(adjustl(buffer)))
+                           Write (buffer, '(G18.10)') gp (iw)
+                           Call xml_AddAttribute (xf, "dos", trim(adjustl(buffer)))
+                           Call xml_endElement (xf, "point")
+                           Write (50, '(2G18.10)') w (iw), t1 * gp (iw)
+                           g (iw, ispn) = g (iw, ispn) - gp (iw)
+                        End Do
+                        Write (50, '("     ")')
+                        Call xml_endElement (xf, "diagram")
+                     End Do
+                  end if
                End Do
             End Do
             Close (50)
@@ -528,6 +652,12 @@ if (rank==0) then
       Deallocate (e, f, w, g, gp, bc)
       If (input%properties%dos%lmirep) deallocate (elm, ulm, a)
       Deallocate (dmat, sdmat, apwalm, evecfv, evecsv)
+
+      if( input%properties%dos%inttype == 'tetra') then
+        call opt_tetra_destroy( tset)
+        call delete_k_vectors( kset)
+        deallocate( wgt)
+      end if
 
 !-----------------------------------
 ! Screen info

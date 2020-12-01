@@ -45,7 +45,7 @@ Subroutine phdisp
       Allocate (vplp1d(3, npp1d))
       If (allocated(dpp1d)) deallocate (dpp1d)
       Allocate (dpp1d(npp1d))
-      Call connect (bvec, input%phonons%phonondispplot%plot1d,nvp1d, npp1d, &
+      Call connect (bvec, nvp1d, npp1d, input%phonons%phonondispplot%plot1d%path%pointarray, &
         vplp1d, dvp1d, dpp1d)
 !      Call connect (bvec, nvp1d, npp1d, vvlp1d, vplp1d, dvp1d, dpp1d)
       wmin = 0.d0

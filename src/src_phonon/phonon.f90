@@ -24,6 +24,7 @@ Subroutine phonon
       logical :: finished
       logical :: gammap
       Real (8) :: genrad (3)
+      real(8) :: pol_tmp(3,3)
 ! allocatable arrays
       Real (8), Allocatable :: veffmtp (:, :, :)
       Real (8), Allocatable :: veffirp (:)
@@ -108,6 +109,9 @@ Subroutine phonon
         task0 = task
         task = 1
         Call gndstate
+        ! calculate macroscopic polarization for Born effective charges
+        call macro_polarization( pol_tmp, 'calc')
+        call macro_polarization( pol_tmp, 'write')
         ! store the total force for the equlibrium geometry
         Do js = 1, nspecies
            Do ja = 1, natoms (js)
@@ -193,6 +197,11 @@ Subroutine phonon
 ! run the ground-state calculation
          if ( (rank .eq. 0) .and. (task .eq. 1) ) call writestate
          Call gndstate
+! calculate macroscopic polarization for Born effective charges
+         if( gammap) then
+           call macro_polarization( pol_tmp, 'calc')
+           call macro_polarization( pol_tmp, 'write')
+         end if
 ! read STATE.OUT file with current extension
          call readstate
          if (rank.eq.0)  Call phdelete
@@ -238,6 +247,11 @@ Subroutine phonon
 ! run the ground-state calculation again starting from the previous density
          task = 1
          Call gndstate
+! calculate macroscopic polarization for Born effective charges
+         if( gammap) then
+           call macro_polarization( pol_tmp, 'calc')
+           call macro_polarization( pol_tmp, 'write')
+         end if
 ! read STATE.OUT file with current extension
          call readstate
          if (rank.eq.0)  Call phdelete

@@ -79,3 +79,69 @@ Subroutine sortidx (n, a, idx)
       Go To 10
 End Subroutine
 !EOC
+
+subroutine sortidxi (n, a, inc, idx)
+! !INPUT/OUTPUT PARAMETERS:
+!   n   : number of elements to sort (in,integer)
+!   idx : permutation index (out,integer(n))
+!   a   : integer array (in,integer(*))
+!   inc : increment (in,integer)
+! !DESCRIPTION:
+!   Integer version of sortidx.
+!
+! !REVISION HISTORY:
+!   Created August 2020 (SeTi)
+!EOP
+!BOC
+  implicit none
+! arguments
+  integer, intent( in)  :: n, inc
+  integer, intent( in)  :: a(*)
+  integer, intent( out) :: idx(n)
+! local variables
+  Integer :: i, j, k, l, m
+  if( n <= 0) then
+    write(*,*)
+    write(*, '("Error (sortidxi): n <= 0 : ", i8)') n
+    write(*,*)
+    stop
+  end if
+  do i = 1, n
+    idx(i) = i
+  end do
+  if( n == 1) return
+  l = n/2 + 1
+  k = n
+10    continue
+  if( l > 1) then
+    l = l - 1
+    m = idx(l)
+  else
+    m = idx(k)
+    idx(k) = idx(1)
+    k = k - 1
+    if( k == 1) then
+      idx(1) = m
+      return
+    end if
+  end if
+  i = l
+  j = l + l
+20    continue
+  if( j <= k) then
+    if( j < k) then
+      if( a( inc*(idx(j)-1)+1) < a( inc*(idx(j+1)-1)+1)) j = j + 1
+    end if
+    if( a( inc*(m-1)+1) < a( inc*(idx(j)-1)+1)) then
+      idx(i) = idx(j)
+      i = j
+      j = j + j
+    else
+      j = k + 1
+    end if
+    go to 20
+  end if
+  idx(i) = m
+  go to 10
+end subroutine
+!EOC

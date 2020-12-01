@@ -367,11 +367,11 @@ subroutine brzint_new( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, g)
                           b = a0*ce(4)*ce(4)*cf(3) - ce(2)*ce(3)*ce(4)*cf(3) - a0*ce(3)*ce(4)*cf(4) + ce(2)*ce(3)*ce(3)*cf(4)
                           a = a + b*(1.d0/(ce(3) + ce(4)*intbound(2,i)) - 1.d0/(ce(3) + ce(4)*intbound(1,i)))
                           if( abs( a) .gt. eps) then
-#ifdef USE  OMP
+#ifdef USEOMP
 !$omp atomic update
 #endif
                             g( iw) = g( iw) + t1*sign( t1*t1, ce(3)+ce(4)*intbound(j,i))*a
-#ifdef USE  OMP
+#ifdef USEOMP
 !$omp end atomic
 #endif
                           end if
@@ -380,11 +380,11 @@ subroutine brzint_new( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, g)
 
                       ! point contributions
                       do i = 1, ipt
-#ifdef USE  OMP
+#ifdef USEOMP
 !$omp atomic update
 #endif
                         g( iw) = g( iw) + (cf(1) + cf(2)*pts(1,i) + cf(3)*pts(2,i) + cf(4)*pts(1,i)*pts(2,i))/abs(ce(3) + ce(4)*pts(1,i))
-#ifdef USE  OMP
+#ifdef USEOMP
 !$omp end atomic
 #endif
                         !write(*,*) "add point "
@@ -457,11 +457,11 @@ subroutine brzint_new( nsm, ngridk, nsk, ikmap, nw, wint, n, ld, e, f, g)
                           b = ce(2)*cf(4)
                           a = a + b/3.d0*(intbound(2,i)**3 - intbound(1,i)**3)
                           if( abs( a) .gt. eps) then
-#ifdef USE  OMP
+#ifdef USEOMP
 !$omp atomic update
 #endif
                             g( iw) = g( iw) + t1*abs( t1)*a
-#ifdef USE  OMP
+#ifdef USEOMP
 !$omp end atomic
 #endif
                           end if

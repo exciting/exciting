@@ -73,8 +73,9 @@ Subroutine plot1d (labels, nf, lmax, ld, rfmt, rfir, plotdef)
   Allocate (vplp1d(3, npp1d))
   If (allocated(dpp1d)) deallocate (dpp1d)
   Allocate (dpp1d(npp1d))
-  Call connect(input%structure%crystal%basevect, plotdef, &
+  Call connect(input%structure%crystal%basevect, &
   &            size(plotdef%path%pointarray), plotdef%path%steps, &
+  &            plotdef%path%pointarray, &
   &            vplp1d, dvp1d, dpp1d)
   
   ! evaluate function at each point 

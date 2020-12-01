@@ -1,7 +1,10 @@
 subroutine wannierlauncher
     use modinput
     use mod_wannier
-    use mod_wfutil
+    use mod_wannier_util
+    use mod_wannier_maxloc
+    use mod_wannier_interpolate
+    use mod_manopt
 
     implicit none
 
@@ -9,65 +12,56 @@ subroutine wannierlauncher
       ! generate Wannier functions
       call wannier_init
       if( input%properties%wannier%do .eq. "fromscratch") then
-        if( input%properties%wannier%printproj) call wannier_writeinfo_lo
-        call wannier_writeinfo_overall
-        call printbox( wf_info, '*', "Wannierization")
+        call wffile_writeinfo_overall
+        if( mpiglobal%rank .eq. 0) call printbox( wf_info, '*', "Wannierization")
         do wf_group = 1, wf_ngroups
-          call wannier_writeinfo_task
+          call wffile_writeinfo_task
           if( wf_groups( wf_group)%method .eq. "pro") then
-            call wannier_gen_pro
-          !else if( input%properties%wannier%method .eq. "prowan") then
-          !  call wannier_projonwan
-          !  call wannier_gen_pro
-          !  call wannier_writetransform
+            if( mpiglobal%rank .eq. 0) call wannier_gen_pro
           else if( wf_groups( wf_group)%method .eq. "opf") then
-            call wannier_gen_opf
-          !else if( input%properties%wannier%method .eq. "opfwan") then
-          !  call wannier_projonwan
-          !  call wannier_gen_opf
-          !  call wannier_writetransform
+            if( mpiglobal%rank .eq. 0) call wfopf_gen
           else if( wf_groups( wf_group)%method .eq. "promax") then
-            call wannier_gen_pro
-            call wannier_maxloc
-          !else if( input%properties%wannier%method .eq. "prowanmax") then
-          !  call wannier_projonwan
-          !  call wannier_gen_pro
-          !  call wannier_maxloc
-          !  call wannier_writetransform
+            if( mpiglobal%rank .eq. 0) call wannier_gen_pro
+            if( mpiglobal%rank .eq. 0) call wfmax_gen
           else if( wf_groups( wf_group)%method .eq. "opfmax") then
-            call wannier_gen_opf
-            call wannier_maxloc
-          else if( wf_groups( wf_group)%method .eq. "scdm") then
-            call wannier_scdm
-          else if( wf_groups( wf_group)%method .eq. "scdmmax") then
-            call wannier_scdm
-            call wannier_maxloc
-          else if( wf_groups( wf_group)%method .eq. "disentangle") then
-            call wannier_subspace
-            call wannier_gen_opf
-            call wannier_maxloc
+            if( mpiglobal%rank .eq. 0) call wfopf_gen
+            if( mpiglobal%rank .eq. 0) call wfmax_gen
+          else if( wf_groups( wf_group)%method .eq. "disSMV" .or. wf_groups( wf_group)%method .eq. "disFull") then
+            if( mpiglobal%rank .eq. 0) call wfopf_gen
+            if( mpiglobal%rank .eq. 0) call wfdis_gen
+            if( mpiglobal%rank .eq. 0) call wfopf_gen( subspace=.true.)
+            if( mpiglobal%rank .eq. 0) call wfmax_gen
           else
             write(*,*) " Error (propertylauncher): invalid value for attribute method"
           end if
         end do
-        call wannier_writetransform
+        call wffile_writetransform
       
       else if( input%properties%wannier%do .eq. "fromfile") then
         call wannier_gen_fromfile
-        if( input%properties%wannier%printproj) call wannier_writeinfo_lo
 
       else
         call wannier_gen_fromfile
-        if( input%properties%wannier%printproj) call wannier_writeinfo_lo
-        call wannier_writeinfo_overall
+        call wffile_writeinfo_overall
         do wf_group = 1, wf_ngroups
-          call wannier_writeinfo_task
-          call wannier_maxloc
+          call wffile_writeinfo_task
+          if( mpiglobal%rank .eq. 0) call wfmax_fromfile
         end do
-        call wannier_writetransform
+        call wffile_writetransform
       end if
 
-      if( input%properties%wannier%do .ne. "fromfile") call wannier_writeinfo_finish
+      if( input%properties%wannier%do .ne. "fromfile") call wffile_writeinfo_finish
+
+      ! share results over all processes
+#ifdef MPI
+      call barrier
+      if( input%properties%wannier%do .ne. "fromfile") then
+        call mpi_bcast( wf_transform, wf_nst*wf_nwf*wf_kset%nkpt, mpi_double_complex, 0, mpiglobal%comm, ierr)
+        do wf_group = 1, wf_ngroups
+          call wfomega_gen
+        end do
+      end if
+#endif
 
       ! further tasks if requested
       ! bandstructure
@@ -84,10 +78,11 @@ subroutine wannierlauncher
       end if
       ! visualization
       if( associated( input%properties%wannierplot)) then
-        call wfutil_plot( input%properties%wannierplot%fst, input%properties%wannierplot%lst, input%properties%wannierplot%cell)
+        if( mpiglobal%rank .eq. 0) call wfutil_plot( input%properties%wannierplot%fst, input%properties%wannierplot%lst, input%properties%wannierplot%cell)
       end if
     else
       write(*,*) " Error (wannierlauncher): Wannier element in input not found."
       stop
     end if
+
 end subroutine wannierlauncher

@@ -42,7 +42,7 @@ Subroutine dynrtoq (vpl, dynr, dynp)
                            vrl(3) = dble(i3)
                            vrsl(:) = vrl(:) + input%structure%speciesarray(js)%species%atomarray(ja)%atom%coord(:) &
                                            & - input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
-                           call ws_weight(vrl, vrsl, vpl, zwght)
+                           call ws_weight(vrl, vrsl, vpl, ngridq, zwght)
                            dynp_ij(:,:) = dynp_ij(:,:) + zwght*dynr_ij(:,:)
                         End Do
                      End Do

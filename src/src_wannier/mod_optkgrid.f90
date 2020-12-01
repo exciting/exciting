@@ -19,7 +19,7 @@ module mod_optkgrid
       real(8), intent( out) :: opt, ropt
 
       integer :: i, j, k
-      real(8) :: rot(3,3), m1(3,3), v1(3), v2(3), km(3,3), c, s, p, t, phi(3), reg(3,2), optmax
+      real(8) :: rot(3,3), m1(3,3), v1(3), v2(3), km(3,3), c, s, p, t, reg(3,2), optmax
 
       eye = 0.d0
       eye(1,1) = 1.d0

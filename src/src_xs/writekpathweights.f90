@@ -5,6 +5,9 @@ subroutine writekpathweights
   use m_putgetexcitons
   use mod_constants, only: h2ev
   use bspline_module
+  use mod_kpointset
+  use mod_wannier, only: wf_nwf, wf_kset
+  use mod_wannier_interpolate, only: wfint_init, wfint_eval, wfint_bandmap, wfint_matchksgw_linreal
   use, intrinsic :: iso_fortran_env, only: wp => real64
 
   implicit none
@@ -33,6 +36,10 @@ subroutine writekpathweights
 
   ! Interpolated data
   real(8), allocatable :: rvw(:,:), rcw(:,:), arvw(:,:), arcw(:,:)
+
+  ! for Wannier interpolation
+  type( k_set) :: tmp_kset
+  real(8), allocatable :: rin(:,:), rout(:,:)
 
   if(mpiglobal%rank == 0) then 
     ! determine whether core excitons are visualized
@@ -72,6 +79,25 @@ subroutine writekpathweights
     nqmt = iqmtf-iqmti+1
     iq1 = 1
     iq2 = nqmt
+
+    ! initialize Wannier quantities if needed
+    if( wfbse_usegwwannier()) then
+      call wfbse_init
+
+      call generate_k_vectors( tmp_kset, wf_kset%bvec, (/1, 1, brange_(3)/), (/0.d0, 0.d0, 0.d0/), .false.)
+      do i1 = 1, tmp_kset%nkpt
+        tmp_kset%vkl( :, i1) = vklpath_( :, i1, 1)
+        call r3mv( tmp_kset%bvec, tmp_kset%vkl( :, i1), tmp_kset%vkc( :, i1))
+      end do
+
+      brange_(1) = wfint_bandmap( 1)
+      brange_(2) = wfint_bandmap( wf_nwf)
+
+      call wfint_init( tmp_kset)
+      do i1 = 1, wf_nwf
+        energyval_( :, wfint_bandmap( i1)) = wfint_eval( i1, :)
+      end do
+    end if
 
     do iqmt = iqmti+iq1-1, iqmti+iq2-1
 
@@ -157,6 +183,11 @@ subroutine writekpathweights
         allocate(arcw(nsteps,ic1:ic2))
       end if
 
+      ! for Wannier interpolatio
+      if( wfbse_usegwwannier()) then
+        allocate( rin( iv1:ic2, tmp_kset%nkpt), rout( wf_nwf, tmp_kset%nkpt)) 
+      end if
+
       ! Looping over all selected excitons
       do lambda = iex1_, iex2_
 
@@ -231,6 +262,45 @@ subroutine writekpathweights
             & arcwgrid(:,ic1:ic2), arcw(:,ic1:ic2))
         end if
 
+        !====================================================!
+        ! Map weights onto GW Wannier bands.                 !
+        !====================================================!
+
+        if( wfbse_usegwwannier()) then
+          rin = 0.d0
+          if( .not. fxas) then
+	    do i1 = iv1, iv2
+              rin( i1, :) = rvw( :, i1)
+            end do
+          end if
+          do i1 = ic1, ic2
+            rin( i1, :) = rcw( :, i1)
+          end do
+          call wfint_matchksgw_linreal( tmp_kset, iv1, ic2, rin, rout)
+          do i1 = 1, wf_nwf
+            i2 = wfint_bandmap( i1)
+            if( (i2 .ge. iv1) .and. (i2 .le. iv2)) rvw( :, i2) = rout( i1, :)
+            if( (i2 .ge. ic1) .and. (i2 .le. ic2)) rcw( :, i2) = rout( i1, :)
+          end do
+          if( fcoup_) then
+            rin = 0.d0
+            if( .not. fxas) then
+	      do i1 = iv1, iv2
+                rin( i1, :) = arvw( :, i1)
+              end do
+            end if
+            do i1 = ic1, ic2
+              rin( i1, :) = arcw( :, i1)
+            end do
+            call wfint_matchksgw_linreal( tmp_kset, iv1, ic2, rin, rout)
+            do i1 = 1, wf_nwf
+              i2 = wfint_bandmap( i1)
+              if( (i2 .ge. iv1) .and. (i2 .le. iv2)) arvw( :, i2) = rout( i1, :)
+              if( (i2 .ge. ic1) .and. (i2 .le. ic2)) arcw( :, i2) = rout( i1, :)
+            end do
+          end if
+        end if
+
         ! Writeout
         call writekpathplot()
 
@@ -253,6 +323,9 @@ subroutine writekpathweights
       deallocate(x0,y0,z0)
       deallocate(inputdata)
 
+      if( wfbse_usegwwannier()) then
+        deallocate( rin, rout) 
+      end if
     ! iqmt
     end do
 
@@ -379,7 +452,7 @@ subroutine writekpathweights
       write(un,'("#",1x,"Considered (partially) occupied states:",i8," to",i8)') ivmin, ivmax
       write(un,'("#",1x,"Considered (partially) unoccupied states:",i8," to",i8)') icmin, icmax
       write(un,'("#")')
-      write(un,'("# Eigenvector number:",i6," with energy/eV: ", f12.7)'), lambda, evals_(lambda)*h2ev
+      write(un,'("# Eigenvector number:",i6," with energy/eV: ", f12.7)') lambda, evals_(lambda)*h2ev
       write(un,'("#")')
       write(un,'("# Resonant weights")')
 

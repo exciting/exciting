@@ -88,8 +88,8 @@ Subroutine init1
          Allocate (vplp1d(3, npp1d))
          If (allocated(dpp1d)) deallocate (dpp1d)
          Allocate (dpp1d(npp1d))
-         Call connect (bvec, input%properties%bandstructure%plot1d, &
-        & nvp1d, npp1d, vplp1d, dvp1d, dpp1d)
+         Call connect (bvec, nvp1d, npp1d, input%properties%bandstructure%plot1d%path%pointarray, &
+           vplp1d, dvp1d, dpp1d)
 !
          nkpt = input%properties%bandstructure%plot1d%path%steps
          nkpt_ptr => nkpt
