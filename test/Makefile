@@ -6,7 +6,7 @@ else
 EXE = ../bin/excitingser
 endif
 
-TESTDIRS = test01 test02 test03 test04 test05 test06 test07 test08 test09 test10 test11 test12 test13 test14
+TESTDIRS = test01 test02 test03 test04 test05 test06 test07 test08 test09 test10 test11 test12 test13 test14 test15
 
 test:
 	$(MAKE) cleantests
@@ -92,6 +92,11 @@ test13::
 test14::
 	cd test14/runwannier && export MKL_NUM_THREADS=1 && ../../$(EXE)
 	cd test14 && python assert.py
+	
+test15::
+	cd test15/run && ../../$(EXE)
+	cd test15 && perl assert.pl
+
 
 cleantests::
 	-rm -f  test*/*.xml
@@ -118,5 +123,6 @@ cleantests::
 	-rm -f  test*/run*/*.DAT
 	-rm -f  test*/run*/*.xsf
 	-rm -f  test*/run*/*.cube
+	-rm -f  test*/run*/spintext.xml
 	-rm -f  directories.xml
 	-rm -f  test*/run*/*.out

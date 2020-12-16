@@ -162,13 +162,13 @@ Test::writetestreport({
      less than $tol from the reference one ". $statusse{maxerror},
     "status"=> $statusse{status}}, $writer);
 
- %statusse=Test::assert_file_same_within( "./reference/FERMISURF.bxsf",
-  "run_properties/FERMISURF.bxsf",$tol);
- Test::writetestreport({
-    "directory"=>"test10/ ",
-    "name"=>"Properties: fermisurfaceplot",
-    "description"=>"The test is passed if the output file differs
-     less than $tol from the reference one ". $statusse{maxerror},
-    "status"=> $statusse{status}}, $writer);
+%statusse=Test::assert_file_same_within( "./reference/FERMISURF.bxsf",
+ "run_properties/FERMISURF.bxsf",$tol);
+Test::writetestreport({
+   "directory"=>"test10/ ",
+   "name"=>"Properties: fermisurfaceplot",
+   "description"=>"The test is passed if the output file differs
+    less than $tol from the reference one ". $statusse{maxerror},
+   "status"=> $statusse{status}}, $writer);                          
 
- Test::closereport($writer);
+Test::closereport($writer);

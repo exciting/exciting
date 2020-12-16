@@ -1,0 +1,1386 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script language="javascript"> 
+function toggle(showHideDiv, switchTextDiv) {
+	var ele = document.getElementById(showHideDiv);
+	var text = document.getElementById(switchTextDiv);
+	if(ele.style.display == "block") {
+    		ele.style.display = "none";
+		text.innerHTML = "show";
+  	}
+	else {
+		ele.style.display = "block";
+		text.innerHTML = "hide";
+	}
+} 
+            </script><style type="text/css">
+                    .testlist {
+                        display : none;
+                    }
+                    h2 {
+                        border-top-style : solid;
+                    }
+                    .test {
+                        width : 600px;
+                    }</style>
+</head>
+<body>
+<p><div class="testsrun">
+<h2> Testrun: 2</h2>
+<div>
+<span> date:2020-12-15T14:23:09+01:00</span><span> githash:<a href="https://github.com/exciting/exciting/commit/6198fec9ffa3d321182e">6198fec9ffa3d321182e</a></span>
+</div>
+<img src="http://chart.apis.google.com/chart?cht=bhs&amp;chd=t:100%7C0%7C0&amp;chs=840x80&amp;chdl=passed%7Cunspecified%7Cfailed&amp;chdlp=t&amp;chl=passed:84%7Cunspecified:0%7Cfailed:0&amp;chco=006600,f0f000,cc0033"><div>
+<a href="javascript:toggle('1passed','')"> passed: 84</a> <a href="javascript:toggle('1unspecified','')">unspecified: 0</a> <a href="javascript:toggle('1failed','')">failed: 0</a>
+</div>
+</div><div class="testlist" id="1failed"></div><div class="testlist" id="1unspecified"></div><div class="testlist" id="1passed">
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">1: Local Density of States (ldos)</h3></span> <span>
+                   dir: test13/ </span>
+</div>
+<div>The test is passed if the computed data differs
+ 		 less than 1.0000 from the reference one:
+ 		 difference=0.0184</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">2: Local Density of States (band_edges)</h3></span> <span>
+                   dir: test13/ </span>
+</div>
+<div>The test is passed if the computed data differs
+ 		 less than 0.1000 from the reference one:
+ 		 difference=0.0000</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">3: is_it_linadapt</h3></span> <span>
+                   dir: test03/run</span>
+</div>
+<div>linadapt mixer was invoked</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">4: debug binary run</h3></span> <span>
+                   dir: test03/run</span>
+</div>
+<div>The test run standard mixing finished without errors</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">5: check iteration number of Al</h3></span> <span>
+                   dir: test03/run</span>
+</div>
+<div>iterations is 41 reference is 38</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">6: is_it_msec</h3></span> <span>
+                   dir: test03/runmixer2</span>
+</div>
+<div>used msec</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">7: debug binary run mixer2</h3></span> <span>
+                   dir: test03/runmixer2</span>
+</div>
+<div>The test run  using multicecant broyden finished without errors</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">8: check iteration number of Al for mixer2</h3></span> <span>
+                   dir: test03/runmixer2</span>
+</div>
+<div>iterations is 0 reference is 12</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">9: is_it_Pulay</h3></span> <span>
+                   dir: test03/runmixer3</span>
+</div>
+<div>Pulay Mixing is used</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">10: Pulay mixing works</h3></span> <span>
+                   dir: test03/runmixer3</span>
+</div>
+<div>The test run  using pulay (3) finished without errors</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">11: check iteration number of Al for Pulay mixing (3) </h3></span> <span>
+                   dir: test03/runmixer2</span>
+</div>
+<div>iterations is 0 reference is 12</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">12: SO run</h3></span> <span>
+                   dir: test04/runso</span>
+</div>
+<div>The test run with the spin-orbit interaction finished without errors</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">13: second variation</h3></span> <span>
+                   dir: test04/runso</span>
+</div>
+<div>The second variation was used</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">14: SCF iterations</h3></span> <span>
+                   dir: test04/runso</span>
+</div>
+<div>The number of SCF is 11 (should be below 15)</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">15: totalenergy</h3></span> <span>
+                   dir: test04/runso</span>
+</div>
+<div>The test is passed if the total energy differs
+ 		 from the reference by less than 1e-06. 
+ 		 Obtained difference is 1.07000005300506e-07 Ha (-578.07372028
+ Ha vs. -578.073720387 Ha).</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">16: SO splitting is right</h3></span> <span>
+                   dir: test04/runso</span>
+</div>
+<div>The test is passed if the SO splitting of VBM (49.7875892463602 meV) differs 
+ 		 from the reference (49.7874 meV) by less than 0.001 meV.</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">17: Test degeneracy of VBM</h3></span> <span>
+                   dir: test04/runso</span>
+</div>
+<div>The test is passed if VBM is degenerate. 
+                 The difference in energies of bands 5 and 8 at Gamma is 2.00000016548074e-10 Ha 
+                 compared to the allowed difference of 1e-08 Ha.</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">18: Gamma-Gamma gap</h3></span> <span>
+                   dir: test04/runso</span>
+</div>
+<div>The test is passed if the Gamma-Gamma gap (2.46927456779062 eV) 
+                agrees with the reference (2.469291 eV) within 1e-06 eV.</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">19:   atom solver works for He </h3></span> <span>
+                   dir: test01/runHe </span>
+</div>
+<div>passes if atoms.xml exists</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">20:   atom solver works for He </h3></span> <span>
+                   dir: test01/runHe </span>
+</div>
+<div>passes if atoms.xml exists</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">21:   correct He species is used </h3></span> <span>
+                   dir: test01/runHe </span>
+</div>
+<div>passes if rmax is the same as in reference:
+     10.05910039576 vs. 10.05910039576
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">22:   He 1s energy from the atom solver </h3></span> <span>
+                   dir: test01/runHe </span>
+</div>
+<div>passes if He 1s energy is correct:
+     -0.570255918315 vs. -0.570255918361270
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">23:   He groundstate </h3></span> <span>
+                   dir: test01/runHe </span>
+</div>
+<div>passes if groundstate works</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">24:   SCF energy  </h3></span> <span>
+                   dir: test01/runHe </span>
+</div>
+<div>passes if the total energy is correct within 1d-6:
+    -2.83483618033 vs. -2.834836
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">25:   atom solver works for Ar with the Dirac Hamiltonian</h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if atoms.xml exists</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">26:   atom solver works for Ar with the non-relativistic Hamiltonian</h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if atoms-nr.xml exists</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">27:   atom solver works for Ar with ZORA </h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if atoms-zora.xml exists</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">28:   atom solver works for Ar with IORA</h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if atoms-iora.xml exists</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">29:   correct Ar species is used </h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if rmax is the same as in reference:
+       1.745057233740e1 vs. 17.45057233740
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">30:   Ar spectrum with the Dirac Hamiltonian </h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if the simple sum of eigenenergies is correct:
+       -143.741067299141 vs. -143.741067299331
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">31:   Ar spectrum with the non-relativistic Hamiltonian </h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if the simple sum of eigenenergies is correct:
+       -143.128392441987 vs. -143.128392441857
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">32:   Ar spectrum with ZORA </h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if the simple sum of eigenenergies is correct:
+       -144.177450331139 vs. -144.177450331111
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">33:   Ar spectrum with IORA </h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if the simple sum of eigenenergies is correct:
+       -143.731512774673 vs. -143.73151277489
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">34:   Total energy of Ar with the default (Dirac+ZORA) Hamiltonian </h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if the total energy is correct:
+-527.817961012 vs. -527.817961012
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">35:   Total energy of Ar with the non-relativistic Hamiltonian </h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if the total energy is correct:
+-525.946157347 vs. -525.946157347
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">36:   Total energy of Ar with ZORA </h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if the total energy is correct:
+-528.802397729 vs. -528.802397729
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">37:   Total energy of Ar with the IORA </h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if the total energy is correct:
+-527.818391513 vs. -527.818391513
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">38: Properties: chargedensityplot</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+ 		 less than 1 from the reference one 2.3225289999998e-05</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">39: Properties: exccplot, VCL3D</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 2.06029999999802e-05</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">40: Properties: exccplot, VXC3D</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 4.96044999999667e-05</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">41: Properties: wfplot</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 1.63499999997208e-08</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">42: Properties: LSJ</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 5.9186149254e-17</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">43: Properties: elfplot</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 0.000148897699999928</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">44: Properties: electricfield</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 4.68794999999855e-05</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">45: Properties: EFG</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 6.88613331e-17</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">46: Properties: mossbauer</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 0</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">47: Properties: expiqr</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 0</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">48: Properties: dielmat</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 0.129099938</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">49: Properties: moke</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 2.2317986627e-08</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">50: Properties: shg</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 0.00803396999999961</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">51: Properties: masstensor</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 0.00134243900000008</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">52: Properties: elnes</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 0</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">53: Properties: bandstructure</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 2.41540000001095e-06</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">54: Properties: dos</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 0.0360000000000014</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">55: Properties: fermisurfaceplot</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+    less than 1 from the reference one 3.39200000004647e-07</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">56: Wannier functions in SiC</h3></span> <span>
+                   dir: test14/runwannier/</span>
+</div>
+<div>Passes if total Wannier spread per group differs less than 0.000010 from the reference. Difference: 0.000000</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">57: Wannier interpolated DOS in SiC</h3></span> <span>
+                   dir: test14/runwannier/</span>
+</div>
+<div>Passes if mean square error of Wannier interpolated DOS obtained via tetrahedron integration is smaller than 0.001000. MSE: 0.000000</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">58: Macroscopic polarization in SiC</h3></span> <span>
+                   dir: test14/runwannier/</span>
+</div>
+<div>Passes if mean square error of polarization is smaller than 0.000010. MSE: 0.000000</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">59: SO run</h3></span> <span>
+                   dir: test12/runcollinear</span>
+</div>
+<div>The test run with collinear magnetism finished without errors</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">60: second variation</h3></span> <span>
+                   dir: test12/runcollinear</span>
+</div>
+<div>The second variation was used</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">61: SCF iterations</h3></span> <span>
+                   dir: test12/runcollinear</span>
+</div>
+<div>The number of SCF is 22 (should be below 25)</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">62: totalenergy</h3></span> <span>
+                   dir: test12/runcollinear</span>
+</div>
+<div>The test is passed if the total energy differs
+ 		 from the reference by less than 1e-06. 
+ 		 Obtained difference is -1.60000126925297e-07 Ha (-1270.57692681
+ Ha vs. -1270.57692665 Ha).</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">63: magnetic moments</h3></span> <span>
+                   dir: test12/runcollinear</span>
+</div>
+<div>The test is passed if the total magnetic moment differs
+ 		 from the reference by less than 3e-05. 
+ 		 Obtained difference is 3.39999999710017e-07 (-1.99999969
+ vs. -2.00000003).</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">64: SO run</h3></span> <span>
+                   dir: test12/runnoncollinear</span>
+</div>
+<div>The test run with magnetism and the spin-orbit interaction finished without errors</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">65: second variation</h3></span> <span>
+                   dir: test12/nonruncollinear</span>
+</div>
+<div>The second variation was used</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">66: SCF iterations</h3></span> <span>
+                   dir: test12/nonruncollinear</span>
+</div>
+<div>The number of SCF is 19 (should be below 25)</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">67: totalenergy</h3></span> <span>
+                   dir: test12/nonruncollinear</span>
+</div>
+<div>The test is passed if the total energy differs
+ 		 from the reference by less than 3e-05. 
+ 		 Obtained difference is -5.39999973625527e-07 Ha (-1270.57748419
+ Ha vs. -1270.57748365 Ha).</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">68: magnetic moment</h3></span> <span>
+                   dir: test12/nonruncollinear</span>
+</div>
+<div>The test is passed if the total magnetic moment differs
+ 		 from the reference by less than 1e-06. 
+ 		 Obtained difference is -9.99999998363421e-08 (-2.00181254 vs. -2.00181244).</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">69: Schema validation</h3></span> <span>
+                   dir: test09/ </span>
+</div>
+<div>The test is passed if input.xsd and all linked schemas are valid schema and validate ../test02/runlapack/input.xml</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">70:   libxc  </h3></span> <span>
+                   dir: test05/ </span>
+</div>
+<div>passes if groundstate using libxc works</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">71:   libxc energy  </h3></span> <span>
+                   dir: test05/ </span>
+</div>
+<div>passes if groundstate using libxc yields total energy within range +-0.0001
+    -242.346344372</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">72:   atom solver works for Pb </h3></span> <span>
+                   dir: test06/runPbTiO3 </span>
+</div>
+<div>passes if the first atom in atoms.xml is Pb</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">73:   Pb 1s energy from the atom solver </h3></span> <span>
+                   dir: test06/runPbTiO3 </span>
+</div>
+<div>passes if Pb 1s energy is correct:
+     -3230.71394987 vs. -3.230713949860e3 
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">74:   Pb spectrum with the Dirac Hamiltonian </h3></span> <span>
+                   dir: test06/runPbTiO3 </span>
+</div>
+<div>passes if the simple sum of eigenenergies is correct:
+       -5531.1995810609 vs. -5531.19958104999 
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">75:   correct He species is used </h3></span> <span>
+                   dir: test01/runHe </span>
+</div>
+<div>passes if rmax is the same as in reference:
+     2.755757490076e1 vs. 27.557574900760
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">76:   Convergence </h3></span> <span>
+                   dir: test06/runPbTiO3 </span>
+</div>
+<div>Passes if scf converges before the threshold given in the input:
+17 vs. 40</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">77: Dielectric function of LiF with BSE</h3></span> <span>
+                   dir: test07/runBSE</span>
+</div>
+<div>Passes if mean square error of real and imaginary parts of dielectric function lower than 0.000000</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">78: Dielectric function of LiF with TDDFT using BSE derived kernel</h3></span> <span>
+                   dir: test07/runtddftBSE</span>
+</div>
+<div>Passes if mean square error of real and imaginary parts of dielectric function lower than 1e-07</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">79: Hybrid functional: PBE0</h3></span> <span>
+                   dir: test11/</span>
+</div>
+<div>The test is passed if the eigenvalues differ
+     less than 1.00 between run-pbe0/EIGVAL.OUT and reference file
+     reference/EIGVAL-pbe0.REF difference = 0.0000</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">80: Hybrid functional: HSE</h3></span> <span>
+                   dir: test11/</span>
+</div>
+<div>The test is passed if the eigenvalues differ
+     less than 1.00 between run-hse/EIGVAL.OUT and reference file 
+     reference/EIGVAL-hse.REF difference = 0.0000</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">81: lapack_run</h3></span> <span>
+                   dir: test02/runlapack</span>
+</div>
+<div>The test run  using lapack finished without errors</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">82: arpack run</h3></span> <span>
+                   dir: test02/runarp</span>
+</div>
+<div>The test ARPACK finished without errors</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">83: Eigenvalues are the same as in the reference_file</h3></span> <span>
+                   dir: test02/ </span>
+</div>
+<div>The test is passed if the eigenvalues differ
+ 		 less than 0.000100 between EIGVAL.OUT and reference file.
+ 		 maxerror=0.000007</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">84: GW quasiparticle banstructure</h3></span> <span>
+                   dir: test08/ </span>
+</div>
+<div>The test is passed if the quasiparticle banstructure differs
+ 		 less than 0.1000 between rungw/EVALQP.OUT and reference file 
+ 		 reference/EVALQP.REF difference=0.0381</div>
+</div>
+</div></p>
+<p><div class="testsrun">
+<h2> Testrun: 1</h2>
+<div>
+<span> date:2020-12-15T14:22:21+01:00</span><span> githash:<a href="https://github.com/exciting/exciting/commit/6198fec9ffa3d321182e">6198fec9ffa3d321182e</a></span>
+</div>
+<img src="http://chart.apis.google.com/chart?cht=bhs&amp;chd=t:100%7C0%7C0&amp;chs=840x80&amp;chdl=passed%7Cunspecified%7Cfailed&amp;chdlp=t&amp;chl=passed:84%7Cunspecified:0%7Cfailed:0&amp;chco=006600,f0f000,cc0033"><div>
+<a href="javascript:toggle('2passed','')"> passed: 84</a> <a href="javascript:toggle('2unspecified','')">unspecified: 0</a> <a href="javascript:toggle('2failed','')">failed: 0</a>
+</div>
+</div><div class="testlist" id="2failed"></div><div class="testlist" id="2unspecified"></div><div class="testlist" id="2passed">
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">1: Local Density of States (ldos)</h3></span> <span>
+                   dir: test13/ </span>
+</div>
+<div>The test is passed if the computed data differs
+ 		 less than 1.0000 from the reference one:
+ 		 difference=0.0184</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">2: Local Density of States (band_edges)</h3></span> <span>
+                   dir: test13/ </span>
+</div>
+<div>The test is passed if the computed data differs
+ 		 less than 0.1000 from the reference one:
+ 		 difference=0.0000</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">3: is_it_linadapt</h3></span> <span>
+                   dir: test03/run</span>
+</div>
+<div>linadapt mixer was invoked</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">4: debug binary run</h3></span> <span>
+                   dir: test03/run</span>
+</div>
+<div>The test run standard mixing finished without errors</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">5: check iteration number of Al</h3></span> <span>
+                   dir: test03/run</span>
+</div>
+<div>iterations is 41 reference is 38</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">6: is_it_msec</h3></span> <span>
+                   dir: test03/runmixer2</span>
+</div>
+<div>used msec</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">7: debug binary run mixer2</h3></span> <span>
+                   dir: test03/runmixer2</span>
+</div>
+<div>The test run  using multicecant broyden finished without errors</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">8: check iteration number of Al for mixer2</h3></span> <span>
+                   dir: test03/runmixer2</span>
+</div>
+<div>iterations is 0 reference is 12</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">9: is_it_Pulay</h3></span> <span>
+                   dir: test03/runmixer3</span>
+</div>
+<div>Pulay Mixing is used</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">10: Pulay mixing works</h3></span> <span>
+                   dir: test03/runmixer3</span>
+</div>
+<div>The test run  using pulay (3) finished without errors</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">11: check iteration number of Al for Pulay mixing (3) </h3></span> <span>
+                   dir: test03/runmixer2</span>
+</div>
+<div>iterations is 0 reference is 12</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">12: SO run</h3></span> <span>
+                   dir: test04/runso</span>
+</div>
+<div>The test run with the spin-orbit interaction finished without errors</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">13: second variation</h3></span> <span>
+                   dir: test04/runso</span>
+</div>
+<div>The second variation was used</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">14: SCF iterations</h3></span> <span>
+                   dir: test04/runso</span>
+</div>
+<div>The number of SCF is 11 (should be below 15)</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">15: totalenergy</h3></span> <span>
+                   dir: test04/runso</span>
+</div>
+<div>The test is passed if the total energy differs
+ 		 from the reference by less than 1e-06. 
+ 		 Obtained difference is 1.07000005300506e-07 Ha (-578.07372028
+ Ha vs. -578.073720387 Ha).</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">16: SO splitting is right</h3></span> <span>
+                   dir: test04/runso</span>
+</div>
+<div>The test is passed if the SO splitting of VBM (49.7875892463602 meV) differs 
+ 		 from the reference (49.7874 meV) by less than 0.001 meV.</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">17: Test degeneracy of VBM</h3></span> <span>
+                   dir: test04/runso</span>
+</div>
+<div>The test is passed if VBM is degenerate. 
+                 The difference in energies of bands 5 and 8 at Gamma is 2.00000016548074e-10 Ha 
+                 compared to the allowed difference of 1e-08 Ha.</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">18: Gamma-Gamma gap</h3></span> <span>
+                   dir: test04/runso</span>
+</div>
+<div>The test is passed if the Gamma-Gamma gap (2.46927456779062 eV) 
+                agrees with the reference (2.469291 eV) within 1e-06 eV.</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">19:   atom solver works for He </h3></span> <span>
+                   dir: test01/runHe </span>
+</div>
+<div>passes if atoms.xml exists</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">20:   atom solver works for He </h3></span> <span>
+                   dir: test01/runHe </span>
+</div>
+<div>passes if atoms.xml exists</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">21:   correct He species is used </h3></span> <span>
+                   dir: test01/runHe </span>
+</div>
+<div>passes if rmax is the same as in reference:
+     10.05910039576 vs. 10.05910039576
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">22:   He 1s energy from the atom solver </h3></span> <span>
+                   dir: test01/runHe </span>
+</div>
+<div>passes if He 1s energy is correct:
+     -0.570255918315 vs. -0.570255918361270
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">23:   He groundstate </h3></span> <span>
+                   dir: test01/runHe </span>
+</div>
+<div>passes if groundstate works</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">24:   SCF energy  </h3></span> <span>
+                   dir: test01/runHe </span>
+</div>
+<div>passes if the total energy is correct within 1d-6:
+    -2.83483618033 vs. -2.834836
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">25:   atom solver works for Ar with the Dirac Hamiltonian</h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if atoms.xml exists</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">26:   atom solver works for Ar with the non-relativistic Hamiltonian</h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if atoms-nr.xml exists</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">27:   atom solver works for Ar with ZORA </h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if atoms-zora.xml exists</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">28:   atom solver works for Ar with IORA</h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if atoms-iora.xml exists</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">29:   correct Ar species is used </h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if rmax is the same as in reference:
+       1.745057233740e1 vs. 17.45057233740
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">30:   Ar spectrum with the Dirac Hamiltonian </h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if the simple sum of eigenenergies is correct:
+       -143.741067299141 vs. -143.741067299331
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">31:   Ar spectrum with the non-relativistic Hamiltonian </h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if the simple sum of eigenenergies is correct:
+       -143.128392441987 vs. -143.128392441857
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">32:   Ar spectrum with ZORA </h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if the simple sum of eigenenergies is correct:
+       -144.177450331139 vs. -144.177450331111
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">33:   Ar spectrum with IORA </h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if the simple sum of eigenenergies is correct:
+       -143.731512774673 vs. -143.73151277489
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">34:   Total energy of Ar with the default (Dirac+ZORA) Hamiltonian </h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if the total energy is correct:
+-527.817961012 vs. -527.817961012
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">35:   Total energy of Ar with the non-relativistic Hamiltonian </h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if the total energy is correct:
+-525.946157347 vs. -525.946157347
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">36:   Total energy of Ar with ZORA </h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if the total energy is correct:
+-528.802397729 vs. -528.802397729
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">37:   Total energy of Ar with the IORA </h3></span> <span>
+                   dir: test01/runAr </span>
+</div>
+<div>passes if the total energy is correct:
+-527.818391513 vs. -527.818391513
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">38: Properties: chargedensityplot</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+ 		 less than 1 from the reference one 2.3225289999998e-05</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">39: Properties: exccplot, VCL3D</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 2.06029999999802e-05</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">40: Properties: exccplot, VXC3D</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 4.96044999999667e-05</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">41: Properties: wfplot</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 1.63499999997208e-08</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">42: Properties: LSJ</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 5.9186149254e-17</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">43: Properties: elfplot</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 0.000148897699999928</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">44: Properties: electricfield</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 4.68794999999855e-05</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">45: Properties: EFG</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 6.88613331e-17</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">46: Properties: mossbauer</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 0</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">47: Properties: expiqr</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 0</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">48: Properties: dielmat</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 0.129099938</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">49: Properties: moke</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 2.2317986627e-08</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">50: Properties: shg</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 0.00803396999999961</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">51: Properties: masstensor</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 0.00134243900000008</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">52: Properties: elnes</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 0</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">53: Properties: bandstructure</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 2.41540000001095e-06</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">54: Properties: dos</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+     less than 1 from the reference one 0.0360000000000014</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">55: Properties: fermisurfaceplot</h3></span> <span>
+                   dir: test10/ </span>
+</div>
+<div>The test is passed if the output file differs
+    less than 1 from the reference one 3.39200000004647e-07</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">56: Wannier functions in SiC</h3></span> <span>
+                   dir: test14/runwannier/</span>
+</div>
+<div>Passes if total Wannier spread per group differs less than 0.000010 from the reference. Difference: 0.000000</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">57: Wannier interpolated DOS in SiC</h3></span> <span>
+                   dir: test14/runwannier/</span>
+</div>
+<div>Passes if mean square error of Wannier interpolated DOS obtained via tetrahedron integration is smaller than 0.001000. MSE: 0.000000</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">58: Macroscopic polarization in SiC</h3></span> <span>
+                   dir: test14/runwannier/</span>
+</div>
+<div>Passes if mean square error of polarization is smaller than 0.000010. MSE: 0.000000</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">59: SO run</h3></span> <span>
+                   dir: test12/runcollinear</span>
+</div>
+<div>The test run with collinear magnetism finished without errors</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">60: second variation</h3></span> <span>
+                   dir: test12/runcollinear</span>
+</div>
+<div>The second variation was used</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">61: SCF iterations</h3></span> <span>
+                   dir: test12/runcollinear</span>
+</div>
+<div>The number of SCF is 22 (should be below 25)</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">62: totalenergy</h3></span> <span>
+                   dir: test12/runcollinear</span>
+</div>
+<div>The test is passed if the total energy differs
+ 		 from the reference by less than 1e-06. 
+ 		 Obtained difference is -1.60000126925297e-07 Ha (-1270.57692681
+ Ha vs. -1270.57692665 Ha).</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">63: magnetic moments</h3></span> <span>
+                   dir: test12/runcollinear</span>
+</div>
+<div>The test is passed if the total magnetic moment differs
+ 		 from the reference by less than 3e-05. 
+ 		 Obtained difference is 3.39999999710017e-07 (-1.99999969
+ vs. -2.00000003).</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">64: SO run</h3></span> <span>
+                   dir: test12/runnoncollinear</span>
+</div>
+<div>The test run with magnetism and the spin-orbit interaction finished without errors</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">65: second variation</h3></span> <span>
+                   dir: test12/nonruncollinear</span>
+</div>
+<div>The second variation was used</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">66: SCF iterations</h3></span> <span>
+                   dir: test12/nonruncollinear</span>
+</div>
+<div>The number of SCF is 19 (should be below 25)</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">67: totalenergy</h3></span> <span>
+                   dir: test12/nonruncollinear</span>
+</div>
+<div>The test is passed if the total energy differs
+ 		 from the reference by less than 3e-05. 
+ 		 Obtained difference is -5.39999973625527e-07 Ha (-1270.57748419
+ Ha vs. -1270.57748365 Ha).</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">68: magnetic moment</h3></span> <span>
+                   dir: test12/nonruncollinear</span>
+</div>
+<div>The test is passed if the total magnetic moment differs
+ 		 from the reference by less than 1e-06. 
+ 		 Obtained difference is -9.99999998363421e-08 (-2.00181254 vs. -2.00181244).</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">69: Schema validation</h3></span> <span>
+                   dir: test09/ </span>
+</div>
+<div>The test is passed if input.xsd and all linked schemas are valid schema and validate ../test02/runlapack/input.xml</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">70:   libxc  </h3></span> <span>
+                   dir: test05/ </span>
+</div>
+<div>passes if groundstate using libxc works</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">71:   libxc energy  </h3></span> <span>
+                   dir: test05/ </span>
+</div>
+<div>passes if groundstate using libxc yields total energy within range +-0.0001
+    -242.346344372</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">72:   atom solver works for Pb </h3></span> <span>
+                   dir: test06/runPbTiO3 </span>
+</div>
+<div>passes if the first atom in atoms.xml is Pb</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">73:   Pb 1s energy from the atom solver </h3></span> <span>
+                   dir: test06/runPbTiO3 </span>
+</div>
+<div>passes if Pb 1s energy is correct:
+     -3230.71394987 vs. -3.230713949860e3 
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">74:   Pb spectrum with the Dirac Hamiltonian </h3></span> <span>
+                   dir: test06/runPbTiO3 </span>
+</div>
+<div>passes if the simple sum of eigenenergies is correct:
+       -5531.1995810609 vs. -5531.19958104999 
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">75:   correct He species is used </h3></span> <span>
+                   dir: test01/runHe </span>
+</div>
+<div>passes if rmax is the same as in reference:
+     2.755757490076e1 vs. 27.557574900760
+    </div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">76:   Convergence </h3></span> <span>
+                   dir: test06/runPbTiO3 </span>
+</div>
+<div>Passes if scf converges before the threshold given in the input:
+17 vs. 40</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">77: Dielectric function of LiF with BSE</h3></span> <span>
+                   dir: test07/runBSE</span>
+</div>
+<div>Passes if mean square error of real and imaginary parts of dielectric function lower than 0.000000</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">78: Dielectric function of LiF with TDDFT using BSE derived kernel</h3></span> <span>
+                   dir: test07/runtddftBSE</span>
+</div>
+<div>Passes if mean square error of real and imaginary parts of dielectric function lower than 1e-07</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">79: Hybrid functional: PBE0</h3></span> <span>
+                   dir: test11/</span>
+</div>
+<div>The test is passed if the eigenvalues differ
+     less than 1.00 between run-pbe0/EIGVAL.OUT and reference file
+     reference/EIGVAL-pbe0.REF difference = 0.0000</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">80: Hybrid functional: HSE</h3></span> <span>
+                   dir: test11/</span>
+</div>
+<div>The test is passed if the eigenvalues differ
+     less than 1.00 between run-hse/EIGVAL.OUT and reference file 
+     reference/EIGVAL-hse.REF difference = 0.0000</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">81: lapack_run</h3></span> <span>
+                   dir: test02/runlapack</span>
+</div>
+<div>The test run  using lapack finished without errors</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">82: arpack run</h3></span> <span>
+                   dir: test02/runarp</span>
+</div>
+<div>The test ARPACK finished without errors</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">83: Eigenvalues are the same as in the reference_file</h3></span> <span>
+                   dir: test02/ </span>
+</div>
+<div>The test is passed if the eigenvalues differ
+ 		 less than 0.000100 between EIGVAL.OUT and reference file.
+ 		 maxerror=0.000007</div>
+</div>
+<div class="test">
+<div>
+<span><h3 style="background-color:LightGreen">84: GW quasiparticle banstructure</h3></span> <span>
+                   dir: test08/ </span>
+</div>
+<div>The test is passed if the quasiparticle banstructure differs
+ 		 less than 0.1000 between rungw/EVALQP.OUT and reference file 
+ 		 reference/EVALQP.REF difference=0.0381</div>
+</div>
+</div></p>
+</body>
+</html>

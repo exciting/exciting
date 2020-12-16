@@ -15,6 +15,22 @@
     </xs:annotation>
     <xs:complexType>
       <xs:all>
+        <xs:element ex:importance="experimental" ex:unit="" name="spintext" maxOccurs="1" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>Calculates the total spin expectation values for specified k vectors. The k-vectors are specified in the plot2d element</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:all>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
+              <!--xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0"/-->
+            </xs:all>
+            <xs:attribute ex:importance="essential" ex:unit="" name="bands" type="integerpair" default="0 1">
+              <xs:annotation>
+                  <xs:documentation>start, number of bands</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
         <xs:element ex:importance="essential" ex:unit="" name="bandstructure" maxOccurs="1"
           minOccurs="0">
           <xs:annotation>
