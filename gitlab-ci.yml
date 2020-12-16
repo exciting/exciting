@@ -1,0 +1,46 @@
+image: gitdocker.physik.hu-berlin.de/irz-admin/packages/debian:latest
+
+before_script:
+  - mkdir -p /mnt && mount global.physik.hu-berlin.de:/globaldisk/AMD64 /mnt
+#  - apt-get update -qq && apt-get install -y -qq gfortran libopenmpi3
+
+stages:
+  - build
+#  - test
+#  - manual 
+
+build-intel2019-mpi
+  stage: build
+  tags: 
+    - intel2019
+  script:
+    - module load intel/2019
+    - cp build/platforms/make.inc.ifort build/make.inc 
+    - make mpi 
+
+
+# TODO(Alex) Issue #16 Implement Continuous Integration
+# Would prefer to use Docker but need this ASAP 
+
+# Add other builds once the above works 
+
+# build-gcc8-openmpi3
+#   stage: build
+#   tags: 
+#     - gcc8
+#   script:
+#     - sh ci/build-gcc8-openmpi3.sh  
+
+# build-gcc8-serial 
+#   stage: build
+#   tags: 
+#     - gcc8
+#   script:
+#     - sh ci/build-gcc8-serial.sh  
+
+# build-intel2019-serial
+#   stage: build
+#   tags: 
+#     - intel2019
+#   script:
+#     - sh ci/build-intel2019-serial.sh 
