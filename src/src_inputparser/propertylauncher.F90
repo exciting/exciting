@@ -8,6 +8,7 @@ Subroutine propertylauncher
       Use inputdom
       Use modmain, Only: task
       Use modmpi, Only: rank
+      Use spintexture, Only: calculate_spintexture
       Implicit None
       integer :: l, a, b, c, i
 
@@ -277,6 +278,12 @@ Subroutine propertylauncher
          call rereadinput
          task = 1
          call ldos()
+      end if
+      !-------------------
+      if (associated(input%properties%spintext)) then
+         call rereadinput
+         task = 42
+         call calculate_spintexture
       end if
 
 End Subroutine propertylauncher

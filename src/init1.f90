@@ -14,6 +14,7 @@ Subroutine init1
 ! !USES:
       Use modinput
       Use modmain
+      Use modmpi, only: terminate
 #ifdef TETRA
       Use modtetra
 #endif
@@ -138,7 +139,50 @@ Subroutine init1
                End Do
             End Do
          End Do
-
+!      
+      Else If (task .Eq. 42) Then
+         !         
+         !          2D spin texture plot
+         !
+           np2d        = input%properties%spintext%plot2d%parallelogram%grid
+           vclp2d(:,1) = input%properties%spintext%plot2d%parallelogram%origin%coord(:)
+           vclp2d(:,2) = input%properties%spintext%plot2d%parallelogram%pointarray(1)%point%coord(:)
+           vclp2d(:,3) = input%properties%spintext%plot2d%parallelogram%pointarray(2)%point%coord(:)
+            ! generate 2D grid of k-points
+           vl1(:) = vclp2d(:,2)-vclp2d(:,1)
+           vl2(:) = vclp2d(:,3)-vclp2d(:,1)
+           vc1(:) = matmul(bvec,vl1)
+           vc2(:) = matmul(bvec,vl2)
+           d1  = sqrt(dot_product(vc1,vc1))
+           d2  = sqrt(dot_product(vc2,vc2))
+           d12 = dot_product(vc1,vc2)/(d1*d2)
+           if ( (d1.lt.input%structure%epslat) .or. (d2.lt.input%structure%epslat) ) then
+             write (*,*)
+             write (*, '("Error(fermisurf): zero length plotting vectors")')
+             write (*,*)
+             call terminate
+           end if
+           if ((1.d0-d12 <= input%structure%epslat) .or. (1.d0+d12 <= input%structure%epslat)) then
+              write (*,*)
+              write (*, '("Error(fermisurf): zero angle between vectors defining the parallelogram")')
+              write (*,*)
+              call terminate
+           end if
+           nkpt = product(np2d)
+           If (allocated(vkl)) deallocate (vkl)
+           Allocate (vkl(3, nkpt))
+           If (allocated(vkc)) deallocate (vkc)
+           Allocate (vkc(3, nkpt))
+           ik = 0
+           Do i1 = 0, np2d(1)-1
+              Do i2 = 0, np2d(2)-1
+                 ik = ik+1
+                 t1 = dble(i1)/dble(np2d(1))
+                 t2 = dble(i2)/dble(np2d(2))
+                 vkl(:,ik) = t1*vl1(:)+t2*vl2(:)+vclp2d(:,1)
+                 Call r3mv(bvec,vkl(:, ik),vkc(:, ik))
+              End Do
+           End Do
       Else If (task .Eq. 101) Then
 !
 !          2D fermisurface plot
