@@ -9,7 +9,7 @@ stages:
 #  - test
 #  - manual 
 
-build-intel2019-mpi
+build-intel2019-mpi:
   stage: build
   tags: 
     - intel2019
