@@ -165,14 +165,8 @@ module mod_manopt_solvers
       if( S%stdout .gt. 0) write( S%stdout, '("# iteration",13x,"time",17x,"cost",11x,"|gradient|",17x,"step",17x,"beta",4x,"directional slope")')
 
       ! initialization
-      select type( X)
-        type is( real_matrix)
-          allocate( real_matrix :: nGX, nSX)
-          nGX = X; nSX = X
-        type is( complex_matrix)
-          allocate( complex_matrix :: nGX, nSX)
-          nGX = X; nSX = X
-      end select
+      allocate( nGX, source=X)
+      allocate( nSX, source=X)
       itReset = maxval( M%DX(1,:))*maxval( M%DX(2,:))
       stepSize = 1.d0; alpha = 1.d0; beta = 0.d0
       it = 0
@@ -301,14 +295,8 @@ module mod_manopt_solvers
           real(8) :: n, d
           class( matrix), allocatable :: oldGrad, diff
 
-          select type( X)
-            type is( real_matrix)
-              allocate( real_matrix :: oldGrad, diff)
-              oldGrad = X; diff = X
-            type is( complex_matrix)
-              allocate( complex_matrix :: oldGrad, diff)
-              oldGrad = X; diff = X
-          end select
+          allocate( oldGrad, source=X)
+          allocate( diff, source=X)
           ! transport old search direction to new X
           call M%transp( X, S%nX, S%cSX, oldGrad)
           S%cSX = oldGrad
@@ -378,14 +366,8 @@ module mod_manopt_solvers
       if( S%stdout .gt. 0) write( S%stdout, '("# iteration",13x,"time",17x,"cost",11x,"|gradient|",17x,"step",4x,"directional slope")')
 
       ! initialization
-      select type( X)
-        type is( real_matrix)
-          allocate( real_matrix :: gx, sx)
-          gx = X; sx = X
-        type is( complex_matrix)
-          allocate( complex_matrix :: gx, sx)
-          gx = X; sx = X
-      end select
+      allocate( gx, source=X)
+      allocate( sx, source=X)
       stepSize = 1.d0; alpha = 1.d0; scaleFactor = 1.d0
       accepted = .true.; ultimatum = .false.
       it = 0; pos = 0
