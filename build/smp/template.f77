@@ -1,6 +1,6 @@
 include ../make.inc
 
-FC = $(F77MT)
+FC = $(F77)
 FFLAGS = $(F77_OPTS) 
 LD = $(FC)
 LDFLAGS = $(F77_OPTS) $(LIBS)

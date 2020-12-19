@@ -1,0 +1,56 @@
+==================
+Compiling Exciting
+==================
+
+Requirements
+------------------
+
+Exciting comes with all the dependencies required to compile the code in serial.
+These include:
+
+        FoX XML library for parsing the input
+	http://www.uszla.me.uk/FoX/DoX/Licensing.html
+	
+	BLAS & LAPACK for linear algebra operations 
+	http://www.netlib.org/lapack/LICENSE
+	
+	ARPACK for solving large scale eigenvalue problems
+	http://www.caam.rice.edu/software/ARPACK/RiceBSD.txt#LICENSE
+	
+	LIBXC library of DFT exchange and correlation functionals 
+	http://www.tddft.org/programs/octopus/wiki/index.php/Libxc
+
+        BSPLINE-FORTRAN: Multidimensional B-Spline Interpolation of Data on a Regular Grid
+        https://github.com/jacobwilliams/bspline-fortran
+
+Compilation in parallel requires an MPI library, such as open-mpi, MPICH or Intel MPI library
+and optionally, a version of Scalapack.
+
+
+Compiling
+------------------
+
+In order to compile the code, one is required to copy a make.inc file from the examples:
+
+  cp build/platforms/make.inc.ifort build/make.inc
+   
+which copies the make.inc for Intel. Examples are provided for the Intel and GCC compilers.
+The code can then be built by typing:
+
+  make 
+
+in the EXCITING root directory. By default, the serial and mpiandsmp versions of EXCITING
+are built, where mpiandsmp refers to a binary with both MPI and openMP parallelism enabled.
+
+Note that if compiling with GCC 10, one should append the F90_OPTS with -fallow-argument-mismatch
+See build/make.inc.gfortran and https://gcc.gnu.org/gcc-10/porting_to.html for more details. 
+
+The auxiliary programs include "spacegroup" for producing crystal geometries
+from spacegroup data, "species" for generating species files, and "eos" for
+fitting equations of state to energy-volume data.
+
+For a full list of build options, one may consult the Makefile in the root directory. 
+
+EXCITING is updated regularly with new features and bug fixes. This release may
+be used for limited production but please check the consistency of the results
+carefully.

@@ -2,11 +2,8 @@ include ../make.inc
 include ../libraries.inc
 
 FC = $(F90)
-FFLAGS = $(F90_OPTS) $(CPP_ON_OPTS) -I./finclude
+FFLAGS = $(F90_OPTS) $(CPP_ON_OPTS) -I./finclude $(INCL)
 LD = $(FC)
-LDFLAGS = $(F90_OPTS) $(LIBS) $(INTERNALLIBS)
-AR = ar
-ARFLAGS = -rc
-F77=$(F90) $(F77_OPTS)
+LDFLAGS = $(INCL) $(LIBS) $(INTERNALLIBS)
 TMPFILES = *.mod
 SUFFIX=ser

@@ -1,13 +1,11 @@
 include ../make.inc
 include ../libraries.inc
 
-FC = $(MPIF90)  
-FFLAGS = $(F90_OPTS) $(CPP_ON_OPTS) $(SMPF90_OPTS) $(MPIF90_OPTS) -Ifinclude $(INCL)
+FC = $(MPIF90) 
+FFLAGS = $(F90_DEBUGOPTS) $(CPP_ON_OPTS) $(SMPF90_OPTS) $(MPIF90_OPTS) -Ifinclude $(INCL)
 LD = $(FC)
-
 # For linking, should only require SMP options, as this contains the openMP
 # flag -fopenmp (-qopenmp) which links -lgomp (-liomp5 -lpthread) for gfortran (Intel)
-LDFLAGS = $(INCL) $(SMPF90_OPTS) $(LIBS) $(MPI_LIBS) $(SMP_LIBS) $(INTERNALLIBS)
-
+LDFLAGS =$(INCL) $(SMPF90_OPTS) $(LIBS) $(MPI_LIBS) $(SMP_LIBS) $(INTERNALLIBS)
 TMPFILES = *.mod
-SUFFIX=mpismp
+SUFFIX=debugmpismp

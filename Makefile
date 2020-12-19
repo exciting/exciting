@@ -3,11 +3,6 @@
 
 default: build/make.inc all
 
-# Scipt that copies a platform specific template make.inc files to build/make.inc
-build/make.inc:
-	@echo ""
-	perl ./setup.pl
-
 # Include platform specific variable settings (will be passed on to other make calls)
 -include build/make.inc
 
@@ -17,25 +12,32 @@ info:
 	@echo ""
 	@sleep 3
 
-all: info serial mpi
+all: info serial mpiandsmp 
 
 serial:
 	cd build/serial; $(MAKE)
 
+smp:
+	cd build/smp; $(MAKE)
+
 mpi:
 	cd build/mpi; $(MAKE)
+
+mpiandsmp:
+	cd build/mpiandsmp; $(MAKE)
 
 debug:
 	cd build/debug; $(MAKE)
 
-debugmpi:
-	cd build/debugmpi; $(MAKE)
+debugmpiandsmp:
+	cd build/debugmpiandsmp; $(MAKE)
 
 test::
 	cd test/; $(MAKE) summary
 
 doc: inputdoc split_inputdoc speciesdoc
-# doc:  spacegroupdoc stateconvertdoc stateinfodoc inputdoc excitingfuncdoc split_inputdoc speciesdoc
+#TODO(Sebastian) Issue #15. Fix documentation compilation for subroutines 
+#doc:  spacegroupdoc stateconvertdoc stateinfodoc inputdoc excitingfuncdoc split_inputdoc speciesdoc
 
 excitingfuncdoc::
 	$(MAKE) -f build/Make.common doc
@@ -102,7 +104,7 @@ clean:
 	cd build/mpi; $(MAKE) clean cleanlibs
 	cd build/smp; $(MAKE) clean cleanlibs
 	cd build/debug; $(MAKE) clean cleanlibs
-	cd build/debugmpi; $(MAKE) clean cleanlibs
+	cd build/debugmpiandsmp; $(MAKE) clean cleanlibs
 	cd build/mpiandsmp; $(MAKE) clean cleanlibs
 	cd src/eos; $(MAKE) clean
 	cd src/spacegroup; $(MAKE) clean
@@ -124,9 +126,6 @@ tgz::doc #libxcclean
 	tar --exclude-from=".gitignore"  --transform 's,^,exciting/,' -c -v -f ./exciting.tar *
 	gzip  -f --best ./exciting.tar
 	du -h ./exciting.tar.gz
-
-tidy:
-	perl setup.pl tidy $(MAKE)
 
 vdwdf:
 	cd src/src_vdwdf

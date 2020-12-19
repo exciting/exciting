@@ -1,4 +1,4 @@
-export SUFFIX=debugmpi
+export SUFFIX=debugmpiandsmp
 all:
 	$(MAKE)  -f ../Make.common
 
@@ -11,9 +11,3 @@ clean:
 
 cleanlibs:
 	$(MAKE) cleanlibs  -f ../Make.common
-
-
-
-
-
-	
