@@ -4,7 +4,7 @@ module mod_pwmat
   use mod_atoms
   use mod_APW_LO
   use mod_muffin_tin
-  use mod_constants
+  use constants, only: zzero, zone, zi, zil, fourpi
   use mod_eigensystem, only : idxlo, nmatmax_ptr
   use mod_lattice, only : bvec
   use mod_Gvector, only : ngvec, gc, cfunig, ivg, ivgig, ngrtot, ngrid, intgv

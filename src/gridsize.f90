@@ -11,9 +11,10 @@
 !
 !
 Subroutine gridsize
-! !USES:
+  ! !USES:
+      Use modmain, only: NGRID, NGRTOT, INTGV
       Use modinput
-      Use modmain
+      use constants, only: pi
 ! !DESCRIPTION:
 !   Finds the ${\bf G}$-vector grid which completely contains the vectors with
 !   $G<G_{\rm max}$ and is compatible with the FFT routine. The optimal sizes

@@ -7,8 +7,9 @@
 !
 !
 Subroutine rdmentropy
-      Use modmain
-      Use modinput
+  Use modinput
+  Use modmain
+  Use physical_constants, only: kboltz
       Implicit None
 ! local variables
       Integer :: ik, ist

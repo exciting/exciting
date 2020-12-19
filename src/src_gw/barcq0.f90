@@ -13,8 +13,9 @@ subroutine barcq0()
 !
 !!USES:
     use modinput
-    use modmain,               only : nspecies, natoms, idxas, zzero, pi, &
+    use modmain,               only : nspecies, natoms, idxas, &
     &                                 gkmax, natmtot, nrmt, spr, bvec
+    use constants,             only : zzero, pi 
     use mod_product_basis,     only : nmix, bigl, maxnmix, umix, mbindex, &
                                       locmatsiz
     use mod_coulomb_potential, only : barc

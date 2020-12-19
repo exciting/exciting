@@ -13,7 +13,7 @@
 Subroutine match (ngp, gpc, tpgpc, sfacgp, apwalm)
 ! !USES:
       use modinput
-      use mod_constants, only: fourpi, zil
+      use constants, only: zil, fourpi
       use mod_lattice, only: omega
       use mod_APW_LO, only: apwordmax, apword, apwfr
       use mod_atoms, only: nspecies, natoms, idxas, spr, natmtot

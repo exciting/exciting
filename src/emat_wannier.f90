@@ -6,6 +6,7 @@
 Subroutine emat_wannier (ik, vecql, fst1, nst1, fst2, nst2, emat)
       Use modmain
       Use modinput
+      use constants, only: fourpi
       Implicit None
 ! arguments
       Integer, Intent (In) :: ik, fst1, nst1, fst2, nst2

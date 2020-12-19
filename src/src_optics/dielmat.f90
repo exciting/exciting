@@ -4,6 +4,8 @@ subroutine dielmat
     use modinput
     use modmpi
     use modxs, only: symt2
+    use unit_conversion, only: hartree_to_ev
+    use constants, only: fourpi
     implicit none
 ! local variables
     integer :: l, a, b, ncomp, epscomp(2,9)
@@ -273,7 +275,7 @@ subroutine dielmat
         if (rank==0) then
 ! output energy units
             t1 = 1.0d0
-            if (input%properties%dielmat%tevout) t1 = h2ev
+            if (input%properties%dielmat%tevout) t1 = hartree_to_ev
 ! write the optical conductivity
             write(fname, '("SIGMA_", 2I1, ".OUT")') a, b
             write(*, '("  Optical conductivity tensor written to ", a)') trim(adjustl(fname))

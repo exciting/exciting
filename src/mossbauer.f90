@@ -14,6 +14,7 @@ Subroutine mossbauer
 ! !USES:
       Use modinput
       Use modmain
+      use constants, only: fourpi, pi
 ! !DESCRIPTION:
 !   Computes the contact charge density and contact magnetic hyperfine field for
 !   each atom and outputs the data to the file {\tt MOSSBAUER.OUT}. The nuclear

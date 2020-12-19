@@ -4,9 +4,9 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-!
-#include "maxdefinitions.inc"
 Module modmain
+      !TODO(Alex) Issue #21. Restrict the use of globals from modmain
+      use constants, only: pi, twopi, fourpi
       Use mod_atoms
       Use mod_lattice
       Use mod_muffin_tin
@@ -31,14 +31,11 @@ Module modmain
       Use mod_RDMFT
       Use mod_misc
       Use mod_timing
-      Use mod_constants
+      Use constants
       Use mod_phonon
       Use mod_OEP_HF
       Use mod_convergence
       Use mod_names
-      Integer, Parameter :: maxspecies = _MAXSPECIES_
-      Integer, Parameter :: maxatoms = _MAXATOMS_
-      Integer, Parameter :: maxlapw = _MAXLAPW_
       Logical :: lwarning = .False.
 End Module
 !

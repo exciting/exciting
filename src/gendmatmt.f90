@@ -8,7 +8,7 @@ Subroutine gendmatmt (ik, evecfv, evecsv)
 ! !USES:
       Use modinput
       Use modmain
-      Use mod_constants
+      use constants, only: zzero
       use modmpi
 ! !INPUT/OUTPUT PARAMETERS:
 !   ik     : k-point number (in,integer)

@@ -8,7 +8,7 @@
 subroutine angavsc0(n, nmax, scrnh, scrnw, scrn, scieff)
 ! !USES:
   use modmpi
-  use mod_constants, only: zzero, pi, twopi, fourpi
+  use constants, only: pi, twopi, fourpi, zzero
   use mod_qpoint, only: ngridq
   use mod_lattice, only: omega, binv
   use modinput, only: input

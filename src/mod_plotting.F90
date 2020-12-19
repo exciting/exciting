@@ -6,11 +6,9 @@
 
 !
 !
-#include "maxdefinitions.inc"
+!> 1D/2D/3D plotting variables 
 Module mod_plotting
-!-------------------------------------!
-!     1D/2D/3D plotting variables     !
-!-------------------------------------!
+      implicit none 
 ! number of vertices in 1D plot
       Integer :: nvp1d
 ! total number of points in 1D plot

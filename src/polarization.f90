@@ -15,7 +15,7 @@ subroutine macro_polarization( pol, mode)
   use mod_kpointset
   use mod_lattice
   use mod_atoms
-  use mod_constants
+  use constants, only: zzero, zone, twopi 
   use m_linalg, only: zdet
   use mod_charge_and_moment, only: chgval
   use mod_eigenvalue_occupancy, only: occmax, nstfv

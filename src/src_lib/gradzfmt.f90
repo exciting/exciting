@@ -46,6 +46,7 @@ Subroutine gradzfmt (lmax, nr, r, ld1, ld2, zfmt, gzfmt)
 !   Created August 2003 (JKD)
 !EOP
 !BOC
+      use constants, only: sqrt_two, zi
       Implicit None
 ! arguments
       Integer, Intent (In) :: lmax
@@ -57,10 +58,7 @@ Subroutine gradzfmt (lmax, nr, r, ld1, ld2, zfmt, gzfmt)
       Complex (8), Intent (Out) :: gzfmt (ld1, ld2, 3)
 ! local variables
       Integer :: ir, l1, l2, m1, m2, lm1, lm2
-! square root of two
-      Real (8), Parameter :: sqtwo = 1.4142135623730950488d0
       Real (8) :: t1, t2, t3, t4, t5
-      Complex (8), Parameter :: zi = (0.d0, 1.d0)
       Complex (8) zt1, zt2
 ! automatic arrays
       Real (8) :: f (nr), g1 (nr), g2 (nr), cf (3, nr)
@@ -99,9 +97,9 @@ Subroutine gradzfmt (lmax, nr, r, ld1, ld2, zfmt, gzfmt)
                      zt1 = cmplx (g1(ir), g2(ir), 8)
                      zt2 = t1 * (zfmt(lm1, ir)*dble(l1)/r(ir)-zt1)
                      gzfmt (lm2, ir, 1) = gzfmt (lm2, ir, 1) + &
-                    & ((t3-t5)/sqtwo) * zt2
+                    & ((t3-t5)/sqrt_two) * zt2
                      gzfmt (lm2, ir, 2) = gzfmt (lm2, ir, 2) + &
-                    & ((-t3-t5)/sqtwo) * zi * zt2
+                    & ((-t3-t5)/sqrt_two) * zi * zt2
                      gzfmt (lm2, ir, 3) = gzfmt (lm2, ir, 3) + t4 * zt2
                   End Do
                End Do
@@ -118,9 +116,9 @@ Subroutine gradzfmt (lmax, nr, r, ld1, ld2, zfmt, gzfmt)
                      zt1 = cmplx (g1(ir), g2(ir), 8)
                      zt2 = t2 * (zfmt(lm1, ir)*dble(l1+1)/r(ir)+zt1)
                      gzfmt (lm2, ir, 1) = gzfmt (lm2, ir, 1) + &
-                    & ((t3-t5)/sqtwo) * zt2
+                    & ((t3-t5)/sqrt_two) * zt2
                      gzfmt (lm2, ir, 2) = gzfmt (lm2, ir, 2) + &
-                    & ((-t3-t5)/sqtwo) * zi * zt2
+                    & ((-t3-t5)/sqrt_two) * zi * zt2
                      gzfmt (lm2, ir, 3) = gzfmt (lm2, ir, 3) + t4 * zt2
                   End Do
                End Do

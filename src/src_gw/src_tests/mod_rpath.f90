@@ -2,6 +2,7 @@
 module mod_rpath
 
     use modinput
+    use constants, only: pi, twopi
     implicit none
 
     type r_path

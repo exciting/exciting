@@ -1,6 +1,8 @@
 subroutine calcwings(ik, iq, iomstart, iomend, ndim, mstart, mend)
 
-    use modmain,   only : evalcr, fourpi, zzero, zone, idxas
+    use modmain,   only : evalcr, idxas
+    use constants, only: fourpi
+    use constants, only: zzero, zone
     use modgw
     implicit none
 

@@ -6,15 +6,15 @@
 
 !
 !
-#include "maxdefinitions.inc"
+!> phonon variables 
 Module mod_phonon
-!--------------------------!
-!     phonon variables     !
-!--------------------------!
+      use constants, only: maxatoms, maxspecies
+      implicit none
+
 ! number of primitive unit cells in phonon supercell
       Integer :: nphcell
 ! Cartesian offset vectors for each primitive cell in the supercell
-      Real (8) :: vphcell (3, _MAXATOMS_)
+      Real (8) :: vphcell (3, maxatoms)
 ! phonon displacement distance
 !replaced by inputstructurereal(8)::deltaph
 ! original lattice vectors
@@ -22,10 +22,10 @@ Module mod_phonon
 ! original inverse of lattice vector matrix
       Real (8) :: ainv0 (3, 3)
 ! original number of atoms
-      Integer :: natoms0 (_MAXSPECIES_)
+      Integer :: natoms0 (maxspecies)
       Integer :: natmtot0
 ! original atomic positions in Cartesian coordinates
-      Real (8) :: atposc0 (3, _MAXATOMS_, _MAXSPECIES_)
+      Real (8) :: atposc0 (3, maxatoms, maxspecies)
 ! original G-vector grid sizes
       Integer :: ngrid0 (3)
       Integer :: ngrtot0

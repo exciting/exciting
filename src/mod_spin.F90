@@ -6,11 +6,10 @@
 
 !
 !
-#include "maxdefinitions.inc"
+!> spin related variables 
 Module mod_spin
-!--------------------------------!
-!     spin related variables     !
-!--------------------------------!
+      use constants, only: maxatoms, maxspecies
+      implicit none 
 ! spinpol is .true. for spin-polarised calculations
 !replaced by inputstructurelogical::spinpol
 ! spinorb is .true. for spin-orbit coupling
@@ -26,17 +25,17 @@ Module mod_spin
 ! fixed spin moment global effective field in Cartesian coordinates
       Real (8) :: bfsmc (3)
 ! muffin-tin fixed spin moments
-!replaced by inputstructurereal(8)::mommtfix(3, _MAXATOMS_, _MAXSPECIES_)
+!replaced by inputstructurereal(8)::mommtfix(3, maxatoms, maxspecies)
 ! muffin-tin fixed spin moment effective fields in Cartesian coordinates
-      Real (8) :: bfsmcmt (3, _MAXATOMS_, _MAXSPECIES_)
+      Real (8) :: bfsmcmt (3, maxatoms, maxspecies)
 ! fixed spin moment field mixing parameter
 !replaced by inputstructurereal(8)::taufsm
 ! second-variational spinor dimension (1 or 2)
       Integer :: nspinor
 ! external magnetic field in each muffin-tin in lattice coordinates
-      Real (8) :: bflmt (3, _MAXATOMS_, _MAXSPECIES_)
+      Real (8) :: bflmt (3, maxatoms, maxspecies)
 ! external magnetic field in each muffin-tin in Cartesian coordinates
-!replaced by inputstructurereal(8)::bfcmt(3, _MAXATOMS_, _MAXSPECIES_)
+!replaced by inputstructurereal(8)::bfcmt(3, maxatoms, maxspecies)
 ! global external magnetic field in lattice coordinates
       Real (8) :: bfieldl (3)
 ! global external magnetic field in Cartesian coordinates

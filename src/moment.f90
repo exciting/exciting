@@ -14,6 +14,8 @@ Subroutine moment
 ! !USES:
       Use modinput
       Use modmain
+      use constants, only: pi, fourpi
+      Use constants, only: y00
 ! !DESCRIPTION:
 !   Computes the muffin-tin, interstitial and total moments by integrating the
 !   magnetisation.

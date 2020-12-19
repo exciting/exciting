@@ -68,7 +68,7 @@ Contains
 
       Subroutine structure_xmlout
          Use mod_lattice
-         Use mod_constants
+         use constants, only: twopi
          Implicit None
          Integer :: is, ia, ias, i
          Type (Node), Pointer :: structure, crystal, nbasevect, &

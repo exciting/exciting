@@ -8,7 +8,7 @@
 subroutine exccoulint(iqmt)
 ! !USES:
   use mod_misc, only: filext
-  use mod_constants, only: zone, zzero
+  use constants, only: zone, zzero
   use mod_APW_LO, only: lolmax
   use mod_lattice, only: omega
   use modinput, only: input

@@ -6,7 +6,6 @@
 
 !
 !
-#include "maxdefinitions.inc"
 Module mod_OEP_HF
 !----------------------------------------!
 !     OEP and Hartree-Fock variables     !

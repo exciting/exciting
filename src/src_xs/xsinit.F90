@@ -7,7 +7,7 @@ subroutine xsinit(j, plan)
   use modinput, only: input, isspinspiral, plan_type
   use mod_names,only: revert_names
   use mod_qpoint,only: ngridq
-  use mod_constants,only: h2ev
+  use unit_conversion, only: hartree_to_ev
   use mod_spin,only: ncmag
   use mod_misc,only: versionname, githash, notelns, notes
   use modmpi
@@ -265,7 +265,7 @@ subroutine xsinit(j, plan)
   !-----------------------!
   ! scaling factor for output of energies
   escale = 1.d0
-  if(input%xs%tevout) escale = h2ev
+  if(input%xs%tevout) escale = hartree_to_ev
   tleblaik = .true.
   if(input%xs%bse%nleblaik .eq. 0) tleblaik = .false.
 

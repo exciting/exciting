@@ -9,7 +9,7 @@
 subroutine genpmatcorxs(ik,ngp,apwalm,evecfv,evecsv,pmatc)
 ! !USES:
     use modinput
-    use mod_constants, only: zzero, zi
+    use constants, only: zzero, zi
     use mod_kpoint, only: vkl
     use mod_atoms, only: idxas, natmtot
     use mod_muffin_tin, only: nrcmtmax, nrcmt, rcmt, nrmtmax, nrmt, &

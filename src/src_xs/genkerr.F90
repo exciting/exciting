@@ -8,7 +8,7 @@ Contains
   !
   !
   Subroutine genkerr (w, eps, kerr)
-    Use mod_constants, Only: pi, zi
+    use constants, Only: zi, pi
     Use modxs
     Implicit None
     ! arguments

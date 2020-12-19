@@ -15,7 +15,7 @@ module m_writeoscillator
 
     subroutine writeoscillator(hamsize, nexc, nk, eshift, evalre, oscstrr, iqmt)
       use modxs, only: symt2, ivgigq, sptclg
-      use mod_constants, only: zzero, pi
+      use constants, only: zzero, pi
       use mod_lattice, only: omega
 
       ! I/O

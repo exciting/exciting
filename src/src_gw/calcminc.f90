@@ -13,8 +13,8 @@
 !
 !!USES:
     use modinput
-    use modmain,           only : pi, idxas, idxlm, idxlo, nlorb, apword, &
-    &                             lorbl, zzero
+    use modmain,           only : idxas, idxlm, idxlo, nlorb, apword, lorbl
+    use constants,         only : zzero, pi
     use modgw,             only : kqset, Gkqset, fdebug, time_minc
     use mod_bands,         only : eveck, eveckp, eveckalm, eveckpalm
     use mod_product_basis, only : locmatsiz, nmix, bigl, locmixind, bradketc

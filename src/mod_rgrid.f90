@@ -2,6 +2,7 @@
 module mod_rgrid
   
   use modinput
+  use constants, only: pi, twopi
   implicit none
 
   type rgrid

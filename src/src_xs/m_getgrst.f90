@@ -17,7 +17,7 @@ module m_getgrst
       use mod_spin, only: nspnfv
       use mod_eigenvalue_occupancy, only: nstfv
       use mod_ematptr
-      use mod_constants, only: zzero
+      use constants, only: zzero
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
     !   real(8) :: vpl(3)          ! k-point vector in lattice coordinates
@@ -100,7 +100,7 @@ module m_getgrst
       use mod_spin, only: nspnfv
       use mod_eigenvalue_occupancy, only: nstfv
       use mod_ematptr
-      use mod_constants, only: zzero
+      use constants, only: zzero
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
     !   real(8) :: vpl(3)          ! k-point vector in lattice coordinates

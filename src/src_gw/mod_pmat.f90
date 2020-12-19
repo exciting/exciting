@@ -1,6 +1,6 @@
 
 module mod_pmat
-
+  use constants, only: pi
   implicit none
     
   !---------------------------------
@@ -711,9 +711,10 @@ contains
 !--------------------------------------------------------------------------------
   subroutine genpmatcv_k(vpl,cstart,cend,mstart,mend,pmat)
     use modinput
-    use modmain, only : nspecies, natoms, idxas, pi, spl, idxlm, lorbl, &
-    &                   zi, nlorb, apword, nlotot, lmmaxapw
+    use modmain, only : nspecies, natoms, idxas, spl, idxlm, lorbl, &
+    &                   nlorb, apword, nlotot, lmmaxapw
     use mod_core_states, only : corind
+    use constants, only: zi
     implicit none
     ! arguments
     real(8), intent(in) :: vpl(3)

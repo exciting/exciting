@@ -6,6 +6,7 @@
 Subroutine genexpiqr (ik, emat)
       Use modmain
       Use modinput
+      use constants, only: fourpi
       Implicit None
 ! arguments
       Integer, Intent (In) :: ik

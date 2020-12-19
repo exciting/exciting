@@ -5,7 +5,7 @@ module m_setup_dmat
   use m_getunit
   use m_getpmat
   use mod_xsgrids
-  use mod_constants
+  use constants, only: zzero, zone, zi 
   use modbse
   use mod_eigenvalue_occupancy, only: evalsv
   use modxs, only: unitout, vkl0

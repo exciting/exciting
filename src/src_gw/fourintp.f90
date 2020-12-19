@@ -14,7 +14,8 @@ subroutine fourintp(f1,nk1,kvecs1,f2,nk2,kvecs2,nb)
 !
 !!USES:
     use modinput
-    use modmain, only: nsymcrys, pi, zzero, zone
+    use modmain, only: nsymcrys
+    use constants, only: zzero, zone, pi
     use fouri
 
 !!LOCAL VARIABLES:

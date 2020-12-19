@@ -2,7 +2,7 @@ subroutine checkevalqp(fname, nkp2, kvecs2, eqp2)
 
   use modmpi
   use modinput
-  use mod_constants, only: zzero
+  use constants, only: zzero
   use mod_kpoint, only: nkpt, vkl
   use mod_eigenvalue_occupancy, only: nstsv
   use modgw, only: ibgw, nbgw, nkp1

@@ -6,11 +6,9 @@
 
 !
 !
-#include "maxdefinitions.inc"
+!> Overlap and Hamiltonian variables 
 Module mod_eigensystem
-!-------------------------------------------!
-!     overlap and Hamiltonian variables     !
-!-------------------------------------------!
+      implicit none 
 ! order of overlap and Hamiltonian matrices for each k-point
       Integer, pointer :: nmat_ptr(:, :)
       Integer, Allocatable, target :: nmat (:, :)

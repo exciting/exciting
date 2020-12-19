@@ -10,7 +10,8 @@ Subroutine phdos
       Use modmain
       Use modinput
       Use FoX_wxml
-      use modmpi
+      Use modmpi
+      Use physical_constants, only: kboltz
       Implicit None
 ! local variables
       Integer :: n, iq, i, iw

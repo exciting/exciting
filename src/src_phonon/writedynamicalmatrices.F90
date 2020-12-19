@@ -11,7 +11,6 @@ subroutine writedynamicalmatrices(fname,dynmq)
 use modinput
 Use mod_atoms
 use mod_qpoint
-use mod_constants
 ! !DESCRIPTION:
 !   Write out the dynamical matrices to file {\tt DYNMAT.OUT}.
 !

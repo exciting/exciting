@@ -46,9 +46,9 @@ subroutine lbfgs_driver
 
       implicit none
       
-      integer,  parameter    :: dp = kind(1.0d0)
+      integer,  parameter    :: wp = kind(1.0d0)
 
-      real(dp)               :: factr, pgtol
+      real(wp)               :: factr, pgtol
       integer                :: n
       integer                :: m, iprint
       integer                :: is, ia, ias, ik, ispn
@@ -57,13 +57,13 @@ subroutine lbfgs_driver
       character(len=60)      :: ctask, csave
       logical                :: lsave(4)
       integer                :: isave(44)
-      real(dp)               :: f
-      real(dp)               :: dsave(29)
+      real(wp)               :: f
+      real(wp)               :: dsave(29)
       integer,  allocatable  :: nbd(:), iwa(:)
-      real(dp), allocatable  :: x(:), g(:)
-      real(dp), allocatable  :: l(:), u(:), wa(:)
+      real(wp), allocatable  :: x(:), g(:)
+      real(wp), allocatable  :: l(:), u(:), wa(:)
 !
-      real(dp)               :: v(3), forcesave
+      real(wp)               :: v(3), forcesave
       integer                :: i, j
       character(1024)        :: message
       integer, allocatable   :: amap(:,:)

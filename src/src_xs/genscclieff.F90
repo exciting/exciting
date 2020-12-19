@@ -4,7 +4,7 @@
 
 subroutine genscclieff(iqr, iqrnr, nmax, n, scieff)
   use modinput, only: input
-  use mod_constants, only: zzero
+  use constants, only: zzero
   use m_putgeteps0
   use modxs, only: eps0dirname
   use m_genfilname

@@ -24,6 +24,7 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       Use mod_hybrids,               only: vnlmat
       use mod_misc,                  only: task
       use m_plotmat
+      Use constants, only: zzero, zone
 !
   ! !INPUT/OUTPUT PARAMETERS:
   !   nmatp  : order of overlap and Hamiltonian matrices (in,integer)

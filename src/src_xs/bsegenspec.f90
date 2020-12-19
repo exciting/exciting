@@ -8,7 +8,8 @@ subroutine bsegenspec()
   use m_readoscillator
   use modbse, only: nk_bse
   use m_makespectrum
-  use mod_constants, only: zzero, h2ev
+  use constants, only: zzero
+  use unit_conversion, only: hartree_to_ev
   use mod_kpoint, only: nkptnr
   use mod_lattice, only: omega
   use m_genwgrid
@@ -115,7 +116,7 @@ subroutine bsegenspec()
       write(*,*) "omega", omega
 
       if(input%xs%tevout) then 
-        evals = evals/h2ev
+        evals = evals/hartree_to_ev
       end if
 
       ! Calculate lattice symmetrized spectrum.

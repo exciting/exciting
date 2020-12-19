@@ -6,7 +6,6 @@
 
 !
 !
-#include "maxdefinitions.inc"
 Module mod_Gvector
 !--------------------------------!
 !     G-vector set variables     !

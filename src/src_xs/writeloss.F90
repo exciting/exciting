@@ -13,7 +13,7 @@ module m_writeloss
       Use FoX_wxml
       Use modmain, Only: version
       Use mod_lattice
-      Use mod_constants
+      use constants, only: pi
       Use mod_charge_and_moment
       Use modxs
       Use m_getunit

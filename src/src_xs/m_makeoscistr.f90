@@ -8,7 +8,6 @@ module m_makeoscistr
       use modinput
       use modxs, only: unitout, totalqlmt, ivgigq, ivgmt
       use modbse, only: hamsize, ensortidx
-      use mod_constants
       use m_setup_dmat
       use m_setup_pwmat
       use m_dzmatmult

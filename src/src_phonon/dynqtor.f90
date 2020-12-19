@@ -9,6 +9,7 @@
 Subroutine dynqtor (dynq, dynr)
       Use modmain
       Use modinput
+      use constants, only: twopi
       Implicit None
 ! arguments
       Complex (8), Intent (In) :: dynq (3*natmtot, 3*natmtot, nqpt)

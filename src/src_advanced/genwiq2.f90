@@ -14,6 +14,7 @@ Subroutine genwiq2
 ! !USES:
       Use modinput
       Use modmain
+      use constants, only: twopi 
 ! !DESCRIPTION:
 !   The Fock matrix elements
 !   $$ V^{\rm NL}_{ij{\bf k}}\equiv\sum_{l{\bf k'}}\int

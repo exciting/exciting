@@ -12,6 +12,7 @@ Contains
 !
       Subroutine ftfun (ng, lmax, tir, tmt, gir, gmt, ftg)
          Use modmain
+         use constants, only: fourpi
          Use modxs
          Implicit None
     ! arguments

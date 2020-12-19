@@ -15,7 +15,7 @@ contains
   subroutine getpemat(iq, ik, pfilnam, efilnam, m12, m34, p12, p34)
   ! !USES:
     use modinput, only: input
-    use mod_constants, only: fourpi, zzero
+    use constants, only: zzero, fourpi
     use modxs, only: ngq, vkl0,&
                    & istl1, istl2, istl3, istl4,&
                    & istu1, istu2, istu3, istu4,&

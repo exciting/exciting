@@ -10,6 +10,7 @@ Subroutine rdmvnln (ikp)
 ! calculate non-local Coulomb matrix elements for minimising occupancies
       Use modinput
       Use modmain
+      use constants, only: pi
       Implicit None
 ! arguments
       Integer, Intent (In) :: ikp

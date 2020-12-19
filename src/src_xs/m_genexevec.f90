@@ -4,7 +4,7 @@ module m_genexevec
   use modbse
   use modscl
   use m_dzmatmult
-  use mod_constants
+  use constants, only: zzero, zone
   use m_writecmplxparts
 
   implicit none

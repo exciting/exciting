@@ -9,6 +9,7 @@
 Subroutine genffacg (is, ffacg)
       Use modmain
       Use modinput
+      use constants, only: fourpi 
       Implicit None
 ! arguments
       Integer, Intent (In) :: is

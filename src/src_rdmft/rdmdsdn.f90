@@ -7,8 +7,9 @@
 !
 !
 Subroutine rdmdsdn (dedn)
-      Use modmain
+      Use physical_constants, only: kboltz
       Use modinput
+      Use modmain
       Implicit None
 ! arguments
       Real (8), Intent (Inout) :: dedn (nstsv, nkpt)

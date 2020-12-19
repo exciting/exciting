@@ -6,11 +6,9 @@
 
 !
 !
-#include "maxdefinitions.inc"
+!> Force variables   
 Module mod_force
-!-------------------------!
-!     force variables     !
-!-------------------------!
+      implicit none 
 ! tforce is .true. if force should be calculated
 !replaced by inputstructurelogical::tforce
 ! tfibs is .true. if the IBS contribution to the force is to be calculated

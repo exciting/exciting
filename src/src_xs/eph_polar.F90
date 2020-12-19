@@ -1,7 +1,8 @@
 
 subroutine eph_polar(nw, w, head)
-    use modmain, only: natmtot, natoms, nspecies, idxas, fourpi, omega, &
-                       spmass, zi
+    use modmain, only: natmtot, natoms, nspecies, idxas, omega, spmass
+    use constants, only: zi
+    use constants, only: fourpi
     use m_getunit
     implicit none
     integer(4), intent(in)    :: nw

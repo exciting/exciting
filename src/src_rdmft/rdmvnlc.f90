@@ -10,6 +10,7 @@ Subroutine rdmvnlc (ikp, vnl)
 ! calculate non-local matrix elements for minimisation w.r.t. evecsv
       Use modinput
       Use modmain
+      use constants, only: pi
       Implicit None
 ! arguments
       Integer, Intent (In) :: ikp

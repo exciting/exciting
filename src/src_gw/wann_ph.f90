@@ -2,7 +2,7 @@
 subroutine wann_ph (nqcored,qvlcored,nqfi,qvlfi,nqred,wphdense)
   use mod_wannier
   use m_wsweight
-  use mod_constants, only: twopi, zzero, zi
+  use constants, only: zzero, zi, twopi
   use mod_dynmat,    only: AMU_RY, amass, nat, ityp, ndynmat, dynmat, dynmatD, ntyp
 
   implicit none
@@ -10,7 +10,7 @@ subroutine wann_ph (nqcored,qvlcored,nqfi,qvlfi,nqred,wphdense)
   INTEGER, intent( in) :: nqred (3)                            ! Nr of Q-points on the COarse mesh along x,y,z
   INTEGER, intent( in) :: nqcored                              ! Nr of Q-points on the COarse mesh (red) 
   INTEGER, intent( in) :: nqfi                                 ! Nr of Q-points on the FIne meth (red)
-  COMPLEX(8), ALLOCATABLE  :: dynmatW (:,:,:)  ! DYNamical MATrix in Wannier representation
+  COMPLEX(8), ALLOCATABLE  :: dynmatW (:,:,:)                  ! DYNamical MATrix in Wannier representation
   REAL(8), intent( in) :: qvlcored ( 3, nqcored)               ! Q-Vectors (in Lattice coord) on the COarse mesh (red)
   REAL(8), intent( in) :: qvlfi    ( 3, nqfi)                  ! Q-Vectors (in Lattice coord) on the FIne mesh (red)
   

@@ -2,7 +2,7 @@ module m_setup_pwmat
   use modmpi
   use modscl
   use modinput
-  use mod_constants
+  use constants, only: zzero
   use modbse
   use mod_kpoint, only: vkl
   use mod_misc, only: filext

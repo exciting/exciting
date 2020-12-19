@@ -8,6 +8,7 @@
 ! Modified March 2014  (UW)
 Subroutine exxengyk ( evv, ecv, ikp)
       Use modmain
+      use constants, only: pi
       Use modinput
       Implicit None
 ! arguments

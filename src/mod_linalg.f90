@@ -5,7 +5,7 @@
 ! !REVISION HISTORY:
 !   Created July 2020 (SeTi)
 module m_linalg
-  use mod_constants
+  use constants, only: zzero, zone
   implicit none
   real(8), external :: dlamch
 

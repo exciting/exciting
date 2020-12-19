@@ -9,7 +9,7 @@ module m_gensigma
   contains
 
     subroutine gensigma(w, eps, oc, sigma)
-      use mod_constants, only: pi, zi
+      use constants, only: zi, pi
       use modmpi
       use modxs
       implicit none

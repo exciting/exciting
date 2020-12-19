@@ -10,7 +10,7 @@ subroutine scrcoulint(iqmt, fra)
   use mod_misc, only: filext
   use modinput, only: input
   use modmpi
-  use mod_constants, only: zzero, zone, fourpi
+  use constants, only: zzero, zone, fourpi
   use mod_APW_LO, only: lolmax
   use mod_qpoint, only: iqmap, vql, vqc, nqpt, ivq, wqpt
   use mod_lattice, only: omega

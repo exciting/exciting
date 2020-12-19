@@ -6,7 +6,8 @@ subroutine ldos()
     use modinput
     use modmain,        only: ngrid, ngrtot, ngkmax, apwordmax, lmmaxapw, nmatmax, nrmtmax, nspinor, &
                               nstfv, nstsv, vkl, vgkl, evalsv, ngk, gkc, tpgkc, sfacgk, omega, nkpt, &
-                              ikmap, efermi, twopi, avec, task
+                              ikmap, efermi, avec, task
+    use constants, only: twopi
     use mod_rgrid
     use mod_xsf_format
     use mod_cube_format

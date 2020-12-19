@@ -34,6 +34,7 @@ Subroutine genrlm (lmax, tp, rlm)
 !   Created March 2004 (JKD)
 !EOP
 !BOC
+      use constants, only: sqrt_two
       Implicit None
 ! arguments
       Integer, Intent (In) :: lmax
@@ -41,7 +42,6 @@ Subroutine genrlm (lmax, tp, rlm)
       Real (8), Intent (Out) :: rlm (*)
 ! local variables
       Integer :: lmmax, l, m, lm
-      Real (8), Parameter :: sqtwo = 1.4142135623730950488d0
 ! allocatable arrays
       Complex (8), Allocatable :: ylm (:)
       If ((lmax .Lt. 0) .Or. (lmax .Gt. 50)) Then
@@ -59,13 +59,13 @@ Subroutine genrlm (lmax, tp, rlm)
       Do l = 0, lmax
          Do m = - l, - 1
             lm = lm + 1
-            rlm (lm) = sqtwo * aimag (ylm(lm))
+            rlm (lm) = sqrt_two * aimag (ylm(lm))
          End Do
          lm = lm + 1
          rlm (lm) = dble (ylm(lm))
          Do m = 1, l
             lm = lm + 1
-            rlm (lm) = sqtwo * dble (ylm(lm))
+            rlm (lm) = sqrt_two * dble (ylm(lm))
          End Do
       End Do
       Deallocate (ylm)

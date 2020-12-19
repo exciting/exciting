@@ -28,6 +28,7 @@ Subroutine ws_weight (vrl, vrsl, vpl, ngridp, zwght)
 !EOP
 !BOC
       Use modmain
+      use constants, only: twopi
       Implicit None
 ! arguments
       Real(8), Intent(In) :: vrl(3)

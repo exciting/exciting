@@ -14,6 +14,7 @@ Subroutine getngkmax
 ! !USES:
       Use modinput
       Use modmain
+      use constants, only: fourpi
 ! !DESCRIPTION:
 !   Determines the largest number of ${\bf G+k}$-vectors with length less than
 !   {\tt gkmax} over all the $k$-points and stores it in the global variable

@@ -9,6 +9,8 @@
 Subroutine alpha2f
       Use modmain
       Use modinput
+      Use constants, only: twopi
+      Use physical_constants, only: kboltz
       Implicit None
 ! local variables
       Integer :: n, ik, iq, i, j

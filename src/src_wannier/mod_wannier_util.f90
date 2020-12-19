@@ -2,6 +2,7 @@ module mod_wannier_util
   use modmain
   use mod_wannier
   use mod_wannier_interpolate
+  use unit_conversion, only : hartree_to_ev
   implicit none
 
 ! module variables
@@ -717,7 +718,7 @@ module mod_wannier_util
         write( un, '(" position (lattice):      ",3f16.6)') wfint_kset%vkl( :, nvm)
         write( un, '("          (cartesian):    ",3f16.6)') wfint_kset%vkc( :, nvm)
         write( un, '(" energy (Hartree):        ",f16.6)') wfint_evbm
-        write( un, '("        (eV):             ",f16.6)') wfint_evbm*h2ev
+        write( un, '("        (eV):             ",f16.6)') wfint_evbm*hartree_to_ev
         write( un, '(" degeneracy:                 ",i6)') degvbm
         do n1 = 1, degvbm
           call r3minv( mass( :, :, bndlist( nvm)-n1+1, nvm), m)
@@ -741,7 +742,7 @@ module mod_wannier_util
         write( un, '(" position (lattice):      ",3f16.6)') wfint_kset%vkl( :, nvm)
         write( un, '("          (cartesian):    ",3f16.6)') wfint_kset%vkc( :, nvm)
         write( un, '(" energy (Hartree):        ",f16.6)') wfint_ecbm
-        write( un, '("        (eV):             ",f16.6)') wfint_ecbm*h2ev
+        write( un, '("        (eV):             ",f16.6)') wfint_ecbm*hartree_to_ev
         write( un, '(" degeneracy:                 ",i6)') degcbm
         do n1 = 1, degcbm
           call r3minv( mass( :, :, bndlist( nvm)-n1+1, nvm), m)
@@ -755,7 +756,7 @@ module mod_wannier_util
 
       if( findvbm .and. findcbm) then
         write( un, '(" gap (Hartree):           ",f16.6)') wfint_ecbm - wfint_evbm
-        write( un, '("     (eV):                ",f16.6)') (wfint_ecbm - wfint_evbm)*h2ev
+        write( un, '("     (eV):                ",f16.6)') (wfint_ecbm - wfint_evbm)*hartree_to_ev
         write( un, *)
       end if
 
@@ -771,7 +772,7 @@ module mod_wannier_util
         write( un, '(" position (lattice):      ",3f16.6)') wfint_kset%vkl( :, nvm)
         write( un, '("          (cartesian):    ",3f16.6)') wfint_kset%vkc( :, nvm)
         write( un, '(" energy (Hartree):        ",f16.6)') wfint_eval( bndlist( nvm), nvm)
-        write( un, '("        (eV):             ",f16.6)') wfint_eval( bndlist( nvm), nvm)*h2ev
+        write( un, '("        (eV):             ",f16.6)') wfint_eval( bndlist( nvm), nvm)*hartree_to_ev
         write( un, '(" degeneracy:                 ",i6)') degcbm
         do n1 = 1, degcbm
           call r3minv( mass( :, :, bndlist( nvm)-n1+1, nvm), m)

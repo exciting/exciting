@@ -4,7 +4,8 @@
 
 module mod_coulomb_potential
 
-    use modmain, only: pi, twopi, fourpi, avec
+    use constants, only: pi, twopi, fourpi
+    use modmain, only: avec
     implicit none
     
     ! The lattice summations matrix      
@@ -378,7 +379,7 @@ contains
 
 
     subroutine vcoul_3d_RIM(Gamma, ngridk, ik, Gkset, vc)
-        use modmain, only: bvec, omega, pi
+        use modmain, only: bvec, omega
         use mod_kpointset
         implicit none
         ! input/output

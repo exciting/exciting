@@ -3,6 +3,7 @@ subroutine dipole_correction(vdplmt,vdplir)
     use modinput
     use modmain
     use modmpi
+    use constants, only: fourpi
     
     implicit none
     real(8), intent(out) :: vdplmt(lmmaxvr,nrmtmax,natmtot)

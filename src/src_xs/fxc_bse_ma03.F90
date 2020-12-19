@@ -19,7 +19,7 @@ Contains
       Subroutine fxc_bse_ma03 (msiz, oct, sw, iw, fxc)
 ! !USES:
          Use modinput
-         Use mod_constants, Only: zzero
+         use constants, Only: zzero
          Use modmpi, Only:
          Use modxs, Only: unitout, bzsampl
          Use invert

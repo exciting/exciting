@@ -14,8 +14,9 @@ Contains
 !
       Subroutine fxc_spk (fxctype,msiz,ngtot,nw, chim, chim_w, fxc, fxc_w)
 ! !USES:
-         use modmpi
-         Use mod_constants, Only: fourpi, zzero, zone
+         Use modmpi
+         Use constants, Only: zzero, zone
+         use constants, Only: fourpi
          Use modxs, Only: unitout
          Use invert
          Use m_dyson

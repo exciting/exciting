@@ -6,11 +6,9 @@
 
 !
 !
-#include "maxdefinitions.inc"
+!> G+k-vector set variables   
 Module mod_Gkvector
-!----------------------------------!
-!     G+k-vector set variables     !
-!----------------------------------!
+      implicit none 
 ! smallest muffin-tin radius times gkmax
 !replaced by inputstructurereal(8)::rgkmax
 ! maximum |G+k| cut-off for APW functions

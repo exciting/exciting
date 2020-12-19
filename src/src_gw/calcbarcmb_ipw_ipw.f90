@@ -2,7 +2,7 @@
 subroutine calcbarcmb_ipw_ipw(iq)
 !
     use modinput
-    use modmain,               only : zzero, zone, pi
+    use constants,             only : zzero, zone, pi
     use modgw,                 only : Gset, Gamma, kqset, Gqset, Gqbarc
     use mod_product_basis,     only : locmatsiz, mpwipw
     use mod_coulomb_potential, only : barc

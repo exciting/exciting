@@ -1,5 +1,5 @@
 module m_makespectrum
-
+  use constants, only: zzero, zone, zi, pi
   implicit none
 
   contains
@@ -8,7 +8,6 @@ module m_makespectrum
 
     subroutine makespectrum(iqmt, nexc, nk, bevalre, oscsr, spectrum)
       use modinput
-      use mod_constants
       use modxs, only: unitout
       use modmpi
       use m_genwgrid
@@ -186,7 +185,6 @@ module m_makespectrum
 
     subroutine redospectrum(iqmt, nexc, nk, bevalre, oscsr, spectrum)
       use modinput
-      use mod_constants
       use modxs, only: unitout
       use modmpi
       use m_genwgrid
@@ -410,7 +408,6 @@ module m_makespectrum
     ! Distributed versions
 
     subroutine makespectrum_dist(iqmt, nexc, nk, bevalre, oscsr, symsp, binfo)
-      use mod_constants, only: zone, zi, pi
       use modxs, only: unitout
       use modinput, only: input
       use modmpi
@@ -628,7 +625,6 @@ module m_makespectrum
       use modxs, only: sptclg, ivgigq, ivgmt, unitout
       use mod_lattice, only: omega
       use modxs, only: symt2
-      use mod_constants
       use modinput, only: input
 
       integer(4), intent(in) :: iqmt, nk

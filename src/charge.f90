@@ -14,6 +14,7 @@ Subroutine charge
 ! !USES:
       Use modinput
       Use modmain
+      use constants, only: fourpi
 ! !DESCRIPTION:
 !   Computes the muffin-tin, interstitial and total charges by integrating the
 !   density.

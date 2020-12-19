@@ -6,7 +6,6 @@
 
 !
 !
-#include "maxdefinitions.inc"
 Module mod_DOS_optics_response
 !----------------------------------------------------------!
 !     density of states, optics and response variables     !
@@ -43,4 +42,3 @@ Module mod_DOS_optics_response
 ! < i,k+q | exp(iq.r) | j,k >
 !replaced by inputstructurereal(8)::vecql(3)
 End Module
-!

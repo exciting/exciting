@@ -144,7 +144,7 @@ END SUBROUTINE load_qmesh
 SUBROUTINE load_dynmat_red (fname, iqirr, iqred)
   ! 
   USE mod_dynmat, ONLY : ndynmat, dynmat, ev, nqirr, nqredtot, tpiba, nat, ityp, amass, ntyp
-  USE mod_constants, ONLY : twopi 
+  use constants, ONLY : twopi 
   !
   IMPLICIT NONE
   !
