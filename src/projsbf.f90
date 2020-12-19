@@ -7,8 +7,10 @@
 !
 !
 Subroutine projsbf
-      Use modmain
+  !Use modmain
+      use constants, only: fourpi
       Use modinput
+      Use modmain
       Implicit None
 ! local variables
       Integer :: is, ia, ias, ir

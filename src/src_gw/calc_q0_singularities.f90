@@ -8,7 +8,7 @@ subroutine calc_q0_singularities
     use modmain
     use modgw
     use mod_mpi_gw, only : myrank
-    
+
     ! local variables
     integer :: iq, nz
     real(8) :: f, sum1, sumf2, intf1, intf2
@@ -59,7 +59,8 @@ contains
     !---------------------------------------------------------
     real(8) function faux(vql)
         use modinput
-        use modmain,     only: pi, twopi, avec, bvec
+        use modmain, only: avec, bvec
+        use constants, only: pi, twopi
         ! input parameters
         real(8), intent(in) :: vql(3)
         ! local variables

@@ -12,7 +12,8 @@
 !
 Subroutine addrhocr
 ! !USES:
-      Use modmain
+  Use modmain
+  use constants, only: pi, fourpi
 ! !DESCRIPTION:
 !   Adds the core density to the muffin-tin and interstitial densities. A
 !   uniform background density is added in the interstitial region to take into

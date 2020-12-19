@@ -3,6 +3,8 @@ subroutine moke
     use modmain
     use modinput
     use modmpi
+    use unit_conversion, only: hartree_to_ev
+    use constants, only: pi
     implicit none
 
 ! local variables
@@ -90,7 +92,7 @@ subroutine moke
 
 ! output energy units
         t1 = 1.0d0
-        if (input%properties%moke%tevout) t1 = h2ev
+        if (input%properties%moke%tevout) t1 = hartree_to_ev
 
 ! output results
         open(50, File='KERR.OUT', Action='WRITE', Form='FORMATTED')

@@ -6,7 +6,7 @@ subroutine writeexcevec()
   use modxs, only: unitout
   use modinput
   use modmpi
-  use mod_constants, only: h2ev
+  use unit_conversion, only: hartree_to_ev
   use m_getunit
   use m_genfilname
   use m_putgetexcitons
@@ -96,8 +96,8 @@ subroutine writeexcevec()
         en1=input%xs%writeexcitons%minenergyexcitons
         en2=input%xs%writeexcitons%maxenergyexcitons
         if(input%xs%storeexcitons%useev) then 
-          en1=en1/h2ev
-          en2=en2/h2ev
+          en1=en1/hartree_to_ev
+          en2=en2/hartree_to_ev
         end if
         write(unitout,'("Info(",a,"): Getting excitons in energy range:",2f12.6)')&
           & trim(thisname), en1, en2
@@ -187,7 +187,7 @@ subroutine writeexcevec()
         write(un,'("#",2x,"Asolute value cutoff for resonant coefficients:",2E10.3)') abscutoffres
         write(un,'("#",2x,"Asolute value cutoff for anti-resonant coefficients:",2E10.3)') abscutoffares
         write(un,'("#")')
-        write(un,'("# Eigenvector number:",i6," with energy/eV: ", f12.7)') lambda, evals_(lambda)*h2ev
+        write(un,'("# Eigenvector number:",i6," with energy/eV: ", f12.7)') lambda, evals_(lambda)*hartree_to_ev
         
         ! Get sorting index for sorting by absolute value
         absvec = abs(rvec_(1:hamsize_,lambda))

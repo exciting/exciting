@@ -6,12 +6,11 @@
 
 !
 !
-#include "maxdefinitions.inc"
+!> miscellaneous variables 
 Module mod_misc
       Use modinput
-!---------------------------------!
-!     miscellaneous variables     !
-!---------------------------------!
+      implicit none
+
 ! code version
       character(40) :: versionname = 'NITROGEN-14'
       integer :: version(3)

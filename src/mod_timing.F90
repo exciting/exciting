@@ -6,11 +6,9 @@
 
 !
 !
-#include "maxdefinitions.inc"
+!> Timing variables 
 Module mod_timing
-!--------------------------!
-!     timing variables     !
-!--------------------------!
+      implicit none 
 ! initialisation
       Real (8) :: timeinit
 ! Hamiltonian and overlap matrix set up

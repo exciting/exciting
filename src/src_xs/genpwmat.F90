@@ -17,6 +17,7 @@ Subroutine genpwmat (vpl, ngpmax, ngp, vgpc, gpc, igpig, ylmgp, sfacgp, &
       Use modmain
       Use modxs
       Use modinput
+      use constants, only: fourpi
 ! !INPUT/OUTPUT PARAMETERS:
 ! !DESCRIPTION:
 !   Calculates the matrix elements of the plane wave

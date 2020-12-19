@@ -6,7 +6,6 @@
 
 !
 !
-#include "maxdefinitions.inc"
 Module mod_RDMFT
 !-------------------------------------------------------------!
 !     reduced density matrix functional (RDMFT) variables     !

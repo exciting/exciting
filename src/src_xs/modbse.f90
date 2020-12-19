@@ -13,7 +13,7 @@ module modbse
   use omp_lib
 #endif
   use modinput, only: input
-  use mod_constants, only: h2ev
+  use unit_conversion, only: hartree_to_ev
   use modxs, only: unitout, totalqlmt
   use modxs, only: evalsv0, occsv0
   use modxs, only: istocc0, istocc, istunocc0, istunocc,&
@@ -546,15 +546,15 @@ module modbse
           & the energy interval:")')
         write(unitout, '("  [",E10.3,",",E10.3,"]/H")') max(wl+econv(1),0.0d0), wu+econv(2)
         write(unitout, '("  [",E10.3,",",E10.3,"]/eV")')&
-          & max(wl+econv(1),0.0d0)*h2ev, (wu+econv(2))*h2ev
+          & max(wl+econv(1),0.0d0)*hartree_to_ev, (wu+econv(2))*hartree_to_ev
         write(unitout, '("  Using convergence energy of:")')
         write(unitout, '("    ",2E10.3," /H")')&
           & max(econv(1), -wl), econv(2)
         write(unitout, '("    ",2E10.3," /eV")')&
-          & max(econv(1), -wl)*h2ev, econv(2)*h2ev
+          & max(econv(1), -wl)*hartree_to_ev, econv(2)*hartree_to_ev
       end if
       write(unitout, '("  Opening gap with a scissor of: ",&
-        & F10.3,"/H ", F10.3,"/eV")') sci, sci*h2ev
+        & F10.3,"/H ", F10.3,"/eV")') sci, sci*hartree_to_ev
 
       !! Read in eigenvalues and occupancies for k-qmt/2 and k+qmt/2
 
@@ -1092,7 +1092,7 @@ module modbse
       write(un,'("# s de de+sci")')
       do i = 1, hamsize
         write(un, '(I8,1x,E23.16,1x,E23.16)')&
-          & ensortidx(i), (de(ensortidx(i))-sci)*h2ev, de(ensortidx(i))*h2ev
+          & ensortidx(i), (de(ensortidx(i))-sci)*hartree_to_ev, de(ensortidx(i))*hartree_to_ev
       end do
       close(un)
 
@@ -1169,10 +1169,10 @@ module modbse
       write(un,'("# Measures for excitions @ Q =", 3(E10.3,1x))')  input%xs%qpointset%qpoint(:, iqmt)
       write(un,'("#")')
       write(un,'("# RR: Max_{a,b} |V_ab - W^rr_ab|/dE^ip_a")')
-      write(un,'("# a=",i8," dE=",E13.4)') alphamaxrr, de(alphamaxrr)*h2ev
+      write(un,'("# a=",i8," dE=",E13.4)') alphamaxrr, de(alphamaxrr)*hartree_to_ev
       if(fcoup) then
         write(un,'("# AR: Max_{a,b} |V_ab - W^ar_ab|/dE^ip_a")')
-        write(un,'("# a=",i8," dE=",E13.4)') alphamaxar, de(alphamaxar)*h2ev
+        write(un,'("# a=",i8," dE=",E13.4)') alphamaxar, de(alphamaxar)*hartree_to_ev
       end if
       write(un,'("# lambda, exenrgy, MaxMeasure_rr, MaxMeasure_ar")')
 
@@ -1187,7 +1187,7 @@ module modbse
         end if
 
         write(un, '(I8,1x,E13.4,1x,2(E13.4,1x))')&
-          & i, evals(i)*h2ev,&
+          & i, evals(i)*hartree_to_ev,&
           & measuresrr(alphamaxrr),&
           & measuresar(alphamaxar)
 
@@ -1212,11 +1212,11 @@ module modbse
         j = sorti(i)
         if(fcoup) then
           write(un, '(I8,1x,E13.4,1x,2(E13.4,1x))')&
-            & j, de(j)*h2ev,&
+            & j, de(j)*hartree_to_ev,&
             & vwdiffrr(j), vwdiffar(j)
         else
           write(un, '(I8,1x,E13.4,1x,2(E13.4,1x))')&
-            & j, de(j)*h2ev,&
+            & j, de(j)*hartree_to_ev,&
             & vwdiffrr(j), 0.0d0
         end if
 

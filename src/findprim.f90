@@ -34,14 +34,14 @@ Subroutine findprim
       Real (8) :: t1, t2
       Real (8) :: apl (3, maxatoms)
 ! allocatable arrays
-      Real (8), Allocatable :: dp (:)
+      Real (8), Allocatable :: distance (:)
       Real (8), Allocatable :: vp (:, :)
 ! external functions
       Real (8) :: r3taxi
       External r3taxi
       Do is = 1, nspecies
          Do ia = 1, natoms (is)
-! make sure all atomic coordinates are in [0,1)
+! make sure all atomic coordinates are fractional, in the range [0,1)
             Call r3frac (input%structure%epslat, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), iv)
 ! determine atomic Cartesian coordinates
             Call r3mv (input%structure%crystal%basevect, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), &
@@ -56,7 +56,7 @@ Subroutine findprim
          If (natoms(js) .Lt. natoms(is)) is = js
       End Do
       n = 27 * natoms (is)
-      Allocate (dp(n), vp(3, n))
+      Allocate (distance(n), vp(3, n))
 ! generate set of possible lattice vectors
       n = 0
       Do ia = 1, natoms (is)
@@ -92,7 +92,7 @@ Subroutine findprim
                   n = n + 1
                   Call r3mv (input%structure%crystal%basevect, v2, &
                  & vp(:, n))
-                  dp (n) = Sqrt (vp(1, n)**2+vp(2, n)**2+vp(3, n)**2)
+                  distance (n) = Sqrt (vp(1, n)**2+vp(2, n)**2+vp(3, n)**2)
 20                Continue
                End Do
             End Do
@@ -102,9 +102,9 @@ Subroutine findprim
       j = 1
       t1 = 1.d8
       Do i = 1, n
-         If (dp(i) .Lt. t1+input%structure%epslat) Then
+         If (distance(i) .Lt. t1+input%structure%epslat) Then
             j = i
-            t1 = dp (i)
+            t1 = distance (i)
          End If
       End Do
       input%structure%crystal%basevect(:, 1) = vp (:, j)
@@ -116,9 +116,9 @@ Subroutine findprim
         & i), v1)
          t2 = Sqrt (v1(1)**2+v1(2)**2+v1(3)**2)
          If (t2 .Gt. input%structure%epslat) Then
-            If (dp(i) .Lt. t1+input%structure%epslat) Then
+            If (distance(i) .Lt. t1+input%structure%epslat) Then
                j = i
-               t1 = dp (i)
+               t1 = distance (i)
             End If
          End If
       End Do
@@ -131,9 +131,9 @@ Subroutine findprim
       Do i = 1, n
          t2 = dot_product (vp(:, i), v1(:))
          If (Abs(t2) .Gt. input%structure%epslat) Then
-            If (dp(i) .Lt. t1+input%structure%epslat) Then
+            If (distance(i) .Lt. t1+input%structure%epslat) Then
                j = i
-               t1 = dp (i)
+               t1 = distance (i)
             End If
          End If
       End Do
@@ -160,7 +160,7 @@ Subroutine findprim
          End Do
          natoms (is) = na
       End Do
-      Deallocate (dp, vp)
+      Deallocate (distance, vp)
       Return
 End Subroutine
 !EOC

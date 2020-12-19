@@ -12,7 +12,8 @@ subroutine calcwmix0(wi0)
 !      
 !!USES:
     use modinput
-    use modmain,               only : pi, zzero, idxas
+    use modmain,               only : idxas
+    use constants,             only : zzero, pi
     use modgw,                 only : Gqset, fdebug
     use mod_product_basis,     only : locmatsiz, matsiz, mpwipw, mbindex, rtl
     use mod_misc_gw,           only : vi

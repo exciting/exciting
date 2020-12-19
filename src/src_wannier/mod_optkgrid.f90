@@ -1,6 +1,6 @@
 module mod_optkgrid
   use modinput
-  use mod_constants, only: pi
+  use constants, only: pi
   implicit none
 
   real(8) :: brot(3,3), eye(3,3), vert(3,3), y0, z0

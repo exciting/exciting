@@ -9,7 +9,7 @@
 !
 Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Use modinput, only: input, isspinorb
-      Use mod_constants, only: y00, zone, zzero, zi
+      use constants, only: y00, zone, zzero, zi
       Use mod_LDA_LU, only: ldapu, llu, vmatlu, lmmaxlu
       Use mod_Gvector, only: ngrtot, cfunir, igfft, ngrid
       Use mod_Gkvector, only: ngkmax, ngk, igkig

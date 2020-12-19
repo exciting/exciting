@@ -7,8 +7,9 @@
 ! !ROUTINE: chgdist
 ! !INTERFACE:
 Subroutine chgdist(rhomtref,rhoirref)
-! !USES:
-use modmain
+  ! !USES:
+  use modmain
+  use constants, only: y00, fourpi
 ! !DESCRIPTION:
 !   Calculated the charge distance between two charge densities of the current
 !   and of the last iteration according to

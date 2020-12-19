@@ -11,7 +11,6 @@ subroutine reformatdynamicalmatrices
 use modinput
 Use mod_atoms
 use mod_qpoint
-use mod_constants
 ! !DESCRIPTION:
 !   Collecting pieces of the dynamical matrices and assembling them in a nicer
 !   way, such that $3\times 3$ matrices are displayed for each combination of

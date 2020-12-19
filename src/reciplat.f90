@@ -13,7 +13,8 @@
 Subroutine reciplat
 ! !USES:
       Use modinput
-      Use modmain
+      Use modmain, only: bvec, omega
+      use constants, only: twopi
 ! !DESCRIPTION:
 !   Generates the reciprocal lattice vectors from the real-space lattice vectors
 !   \begin{align*}

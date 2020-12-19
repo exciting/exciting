@@ -17,6 +17,7 @@ Subroutine elfplot
       Use modmain
       use modplotlabels
       use modmpi, only : rank
+      use constants, only: pi
 ! !DESCRIPTION:
 !   Outputs the electron localisation function (ELF) for 1D, 2D or 3D plotting.
 !   The spin-averaged ELF is given by

@@ -4,7 +4,7 @@ module mod_wannier_filehandling
   use mod_APW_LO,                only: apwordmax, apword, nlorb, lorbl, nlotot, lolmax, lolmmax, nlomax
   use mod_eigensystem,           only: idxlo
   use mod_atoms,                 only: natmtot, nspecies, natoms, idxas, spsymb
-  use mod_constants,             only: twopi, zzero, zone
+  use constants,                 only: zzero, zone, twopi
   use mod_muffin_tin,            only: idxlm, lmmaxapw, nrmtmax
   use mod_Gvector,               only: igfft, ngrid
   use mod_Gkvector,              only: ngkmax_ptr

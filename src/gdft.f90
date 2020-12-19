@@ -8,6 +8,8 @@
 !
 Subroutine gdft (ik, delta)
       Use modmain
+      Use constants, only: y00
+      use constants, only: pi
       Use modinput
       Implicit None
 ! arguments

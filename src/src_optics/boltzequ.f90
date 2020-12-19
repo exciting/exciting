@@ -4,6 +4,7 @@ subroutine boltzequ
     use modinput
     use modmpi
     use modxs, only: symt2
+    use unit_conversion, only: hartree_to_ev
     implicit none
 ! local variables
     integer :: l, a, b, ncomp, condcomp(2,9)
@@ -306,7 +307,7 @@ subroutine boltzequ
         if (rank==0) then
 ! output energy units
             t1 = 1.0d0
-            if (input%properties%boltzequ%tevout) t1 = h2ev
+            if (input%properties%boltzequ%tevout) t1 = hartree_to_ev
 
 ! write the transport distribution function from Boltzmann
             zt1 = 1/(omega*dble(nkptnr))
@@ -342,7 +343,7 @@ subroutine boltzequ
             write(*, '("  Seebeck coefficient (S) of component ", 2I1, " written to ", a)') a, b, trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
             t3 = 1.0d0
-            if (input%properties%boltzequ%tsiout) t3 = h2ev !/e!hartree/(ech)
+            if (input%properties%boltzequ%tsiout) t3 = hartree_to_ev !/e!hartree/(ech)
 
             n=0
             do mu = mui, muf, mus

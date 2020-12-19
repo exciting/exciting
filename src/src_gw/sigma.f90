@@ -20,12 +20,12 @@ subroutine sigma(iq,lambdamax)
 !!USES:
     use modinput
     use modmain, only : nspecies, natoms, idxas, atposc, &
-    &                   zzero, avec, bvec, pi, natmtot, zi
+                        avec, bvec, natmtot
+    use constants, only : zzero, zi, pi
     use modgw,   only : kqset, fdebug
     use mod_coulomb_potential, only : sgm
     use mod_misc_gw, only : vi    
-    use strconst
-      
+    use strconst, only: rstr
 !!INPUT PARAMETERS:
     implicit none
     integer(4), intent(in) :: iq        ! index of the q-point for which 

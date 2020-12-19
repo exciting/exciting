@@ -14,6 +14,7 @@ Subroutine vhalfinit
 ! !USES:
       Use modinput
       Use modmain
+      use constants, only: fourpi, pi
 #ifdef USEOMP
       use omp_lib
 #endif

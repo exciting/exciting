@@ -6,11 +6,8 @@
 
 !
 !
-#include "maxdefinitions.inc"
+!> Charge and moment variables
 Module mod_charge_and_moment
-!-------------------------------------!
-!     charge and moment variables     !
-!-------------------------------------!
 ! tolerance for error in total charge
 !replaced by inputstructurereal(8)::epschg
 ! total nuclear charge

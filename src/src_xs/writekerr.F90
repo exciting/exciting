@@ -15,7 +15,7 @@ Contains
          Use modxs
          Use m_getunit
          Use m_writevars
-         Use mod_constants, Only: pi
+         use constants, Only: pi
          Implicit None
     ! arguments
          Integer, Intent (In) :: iq

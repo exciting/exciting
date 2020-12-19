@@ -11,7 +11,7 @@ Subroutine genphasedm(iq, jsym, nmax, n, phfdm, tphf)
   use modxs, only: igqig
   use mod_Gvector, only: ivg
   use mod_symmetry, only: vtlsymc
-  use mod_constants, only: twopi
+  use constants, only: twopi
 ! !INPUT/OUTPUT PARAMETERS:
 ! IN:
 !   integer(4), iq : Index of non-reduced q-point

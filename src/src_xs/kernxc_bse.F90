@@ -15,7 +15,7 @@ subroutine kernxc_bse
   use mod_kpoint, only: nkptnr
   use mod_misc, only: task
   use mod_lattice, only: omega
-  use mod_constants, only: zi, zone, zzero
+  use constants, only: zi, zone, zzero
 #ifdef TETRA      
   use modtetra
 #endif

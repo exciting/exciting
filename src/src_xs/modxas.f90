@@ -12,8 +12,9 @@
 !   Created JUNE 2015 by Christian Vorwerk
 !EOP   
 !BOC
-#include "maxdefinitions.inc"
 module modxas
+  use constants, only: maxatoms, maxspecies
+  implicit none 
 !----------------------------!
 !     Core states            !
 !----------------------------!
@@ -48,9 +49,9 @@ module modxas
 !     general                !
 !----------------------------!
 ! shortcut for atomic position array
-      real(8) :: atposl(3,_MAXATOMS_,_MAXSPECIES_)
+      real(8) :: atposl(3, maxatoms, maxspecies)
 ! muffin-tin volume, relative to cell volume
-      real(8) :: vmt(_MAXSPECIES_)
+      real(8) :: vmt(maxspecies)
 !! plane wave matrix elements array (o-o part)
 !      Complex (8), Allocatable :: xioo (:, :, :)
 !! plane wave matrix elements array (u-u part)

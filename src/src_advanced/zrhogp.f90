@@ -9,6 +9,7 @@
 Subroutine zrhogp (gpc, jlgpr, ylmgp, sfacgp, zrhomt, zrhoir, zrho0)
       Use modmain
       Use modinput
+      use constants, only: fourpi
       Implicit None
 ! arguments
       Real (8), Intent (In) :: gpc

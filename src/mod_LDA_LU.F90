@@ -6,20 +6,19 @@
 
 !
 !
-#include "maxdefinitions.inc"
+!>  LDA+U variables    
 Module mod_LDA_LU
-!-------------------------!
-!     LDA+U variables     !
-!-------------------------!
+      use constants, only: maxspecies 
+      implicit none
 ! type of LDA+U to use (0: none)
       Integer :: ldapu
 ! maximum angular momentum
       Integer, Parameter :: lmaxlu = 3
       Integer, Parameter :: lmmaxlu = (lmaxlu+1) ** 2
 ! angular momentum for each species
-      Integer :: llu (_MAXSPECIES_)
+      Integer :: llu (maxspecies)
 ! U and J values for each species
-      Real (8) :: ujlu (2, _MAXSPECIES_)
+      Real (8) :: ujlu (2, maxspecies)
 ! LDA+U density matrix
       Complex (8), Allocatable :: dmatlu (:, :, :, :, :)
 ! LDA+U potential matrix in (l,m) basis

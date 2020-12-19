@@ -7,7 +7,7 @@ module mod_wannier_projection
   use mod_APW_LO
   use mod_muffin_tin
   use mod_eigenvalue_occupancy
-  use mod_constants
+  use constants,                 only: zzero, zone, y00, twopi
   use mod_Gkvector,              only: ngkmax_ptr
   use mod_spin,                  only: nspinor
   use mod_potential_and_density, only: veffmt
@@ -199,7 +199,7 @@ module mod_wannier_projection
       do is = 1, nspecies
         nr = nrmt( is)
         ias = idxas( 1, is)
-        vr( 1:nr) = veffmt( 1, 1:nr, ias)*y00
+        vr(1:nr) = veffmt(1, 1:nr, ias) * y00
         do l = 0, lmax
           do n = 0, nmax
             ens( n) = 0.d0

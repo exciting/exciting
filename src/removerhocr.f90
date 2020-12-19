@@ -1,5 +1,6 @@
 
 Subroutine removerhocr
+      use constants, only: pi, fourpi
       Use modmain
       Implicit None
 ! local variables

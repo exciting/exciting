@@ -2,11 +2,12 @@
 subroutine setsingc
 
     use modinput
-    use modmain,  only: omega, pi
+    use modmain,  only: omega
     use modgw,    only: fdebug, kqset, singc1, singc2
     use modmpi,   only: rank
-
+    use constants, only: pi
     implicit none
+    
     real(8) :: beta
     real(8) :: f1
     real(8) :: f2

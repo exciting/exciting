@@ -3,6 +3,7 @@
 !
 !
 Subroutine writelambda (wq, gq)
+      use constants, only: pi
       Use modmain
       Implicit None
 ! arguments

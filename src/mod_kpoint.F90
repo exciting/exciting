@@ -6,11 +6,9 @@
 
 !
 !
-#include "maxdefinitions.inc"
+!>  k-point set variables  
 Module mod_kpoint
-!-------------------------------!
-!     k-point set variables     !
-!-------------------------------!
+      implicit none 
 ! autokpt is .true. if the k-point set is determined automatically
 !replaced by inputstructurelogical::autokpt
 ! radius of sphere used to determine k-point density when autokpt is .true.

@@ -6,7 +6,6 @@
 
 !
 !
-#include "maxdefinitions.inc"
 Module mod_eigenvalue_occupancy
       Use modinput
 !--------------------------------------------!

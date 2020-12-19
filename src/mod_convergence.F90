@@ -6,11 +6,8 @@
 
 !
 !
-#include "maxdefinitions.inc"
+!> convergence variables  
 Module mod_convergence
-!-------------------------------!
-!     convergence variables     !
-!-------------------------------!
 ! maximum number of self-consistent loops
 !replaced by inputstructureinteger::maxscl
 ! current self-consistent loop number

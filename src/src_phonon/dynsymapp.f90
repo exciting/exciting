@@ -7,8 +7,9 @@
 !
 !
 Subroutine dynsymapp (isym, vpl, dyn, dyns)
-      Use modmain
+      Use modmain !, only: RDMENTRPY, NKPT, NSTSV, OCCSV, OCCMAX, WKPT, LSPLSYMC, SYMLAT
       Use modinput
+      use constants, only: twopi
       Implicit None
 ! arguments
       Integer, Intent (In) :: isym

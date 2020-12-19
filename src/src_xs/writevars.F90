@@ -15,6 +15,7 @@ Contains
          Use modmain
          Use modinput
          Use modxs
+         Use unit_conversion, only: hartree_to_ev 
          Implicit None
     ! arguments
          Integer, Intent (In) :: iq, iqmt, un
@@ -34,7 +35,7 @@ Contains
         & tim (1:2), tim (3:4), tim (5:6)
          Write (un, '("# version	    : ", i2.2, ".", i2.2, ".", i2.2)') version
          Write (un, '(a, 2f12.6)') '# efermi (H, eV)	   :', efermi, &
-        & h2ev * efermi
+        & hartree_to_ev * efermi
          Write (un, '(a, 3f12.6)') '# vgqlmt		  :', &
         & input%xs%qpointset%qpoint(:, iqmtt)
          Write (un, '(a, 3i8)') '# ivgmt	       :', ivgmt (:, iqmtt)
@@ -64,9 +65,9 @@ Contains
          Write (un, '(a, i8)') '# input%xs%tddft%nwacont	     :', &
         & input%xs%tddft%nwacont
          Write (un, '(a, 2f12.6)') '# input%xs%broad (H, eV)	    :', &
-        & input%xs%broad, h2ev * input%xs%broad
+        & input%xs%broad, hartree_to_ev * input%xs%broad
          Write (un, '(a, 2f12.6)') '# scissor (H, eV)	  :', &
-        & input%xs%scissor, h2ev * input%xs%scissor
+        & input%xs%scissor, hartree_to_ev * input%xs%scissor
          Write (un, '(a, i8)') '# input%xs%energywindow%points		   :', &
         & input%xs%energywindow%points
          Write (un, '(a, i8)') '# ngq 	      :', ngq (iqmtt)
@@ -92,17 +93,17 @@ Contains
          Write (un, '(a, 4i8)') '# nstlbse         :', input%xs%BSE%nstlbse
          Write (un, '(a, i8)') '# nstsv	      :', nstsv
          Write (un, '(a, 2f12.6)') '# evlmincut (H, eV)  :', evlmincut, &
-        & h2ev * evlmincut
+        & hartree_to_ev * evlmincut
          Write (un, '(a, 2f12.6)') '# evlmaxcut (H, eV)  :', evlmaxcut, &
-        & h2ev * evlmaxcut
+        & hartree_to_ev * evlmaxcut
          Write (un, '(a, 2f12.6)') '# evlmin (H, eV)	   :', evlmin, &
-        & h2ev * evlmin
+        & hartree_to_ev * evlmin
          Write (un, '(a, 2f12.6)') '# evlmax (H, eV)	   :', evlmax, &
-        & h2ev * evlmax
+        & hartree_to_ev * evlmax
          Write (un, '(a, i5, 2f12.6)') '# evlhpo (H, eV)     :', &
-        & istocc0, evlhpo, h2ev * evlhpo
+        & istocc0, evlhpo, hartree_to_ev * evlhpo
          Write (un, '(a, i5, 2f12.6)') '# evllpu (H, eV)     :', &
-        & istunocc0, evllpu, h2ev * evllpu
+        & istunocc0, evllpu, hartree_to_ev * evllpu
          Write (un, '(a, l8)') '# ksgap	      :', ksgap
          Write (un, '(a, i8)') '# input%groundstate%lmaxapw		:', &
         & input%groundstate%lmaxapw

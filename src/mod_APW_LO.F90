@@ -6,25 +6,27 @@
 
 !
 !
-#include "maxdefinitions.inc"
 Module mod_APW_LO
+      use constants, only: maxspecies, maxlapw
+      implicit none
+
 !-----------------------------------------!
 !     APW and local-orbital variables     !
 !-----------------------------------------!
 ! maximum allowable APW order
       Integer, Parameter :: maxapword = 4
 ! APW order
-      Integer :: apword (0:_MAXLAPW_, _MAXSPECIES_)
+      Integer :: apword (0:maxlapw, maxspecies)
 ! maximum of apword over all angular momenta and species
       Integer :: apwordmax
 ! APW initial linearisation energies
-      Real (8) :: apwe0 (maxapword, 0:_MAXLAPW_, _MAXSPECIES_)
+      Real (8) :: apwe0 (maxapword, 0:maxlapw, maxspecies)
 ! APW linearisation energies
       Real (8), Allocatable :: apwe (:, :, :)
 ! APW derivative order
-      Integer :: apwdm (maxapword, 0:_MAXLAPW_, _MAXSPECIES_)
+      Integer :: apwdm (maxapword, 0:maxlapw, maxspecies)
 ! apwve is .true. if the linearisation energies are allowed to vary
-      Logical :: apwve (maxapword, 0:_MAXLAPW_, _MAXSPECIES_)
+      Logical :: apwve (maxapword, 0:maxlapw, maxspecies)
 ! APW radial functions
       Real (8), target, Allocatable :: apwfr (:, :, :, :, :)
 ! derivate of radial functions at the muffin-tin surface
@@ -34,29 +36,29 @@ Module mod_APW_LO
 ! maximum allowable local-orbital order
       Integer, Parameter :: maxlorbord = 4
 ! number of local-orbitals
-      Integer :: nlorb (_MAXSPECIES_)
+      Integer :: nlorb (maxspecies)
 ! maximum nlorb over all species
       Integer :: nlomax
 ! total number of local-orbitals
       Integer :: nlotot
 ! local-orbital order
-      Integer :: lorbord (maxlorb, _MAXSPECIES_)
+      Integer :: lorbord (maxlorb, maxspecies)
 ! local-orbital angular momentum
-      Integer :: lorbl (maxlorb, _MAXSPECIES_)
+      Integer :: lorbl (maxlorb, maxspecies)
 ! maximum lorbl over all species
       Integer :: lolmax
 ! (lolmax+1)^2
       Integer :: lolmmax
 ! local-orbital initial energies
-      Real (8) :: lorbe0 (maxlorbord, maxlorb, _MAXSPECIES_)
+      Real (8) :: lorbe0 (maxlorbord, maxlorb, maxspecies)
 ! local-orbital energies
       Real (8), Allocatable :: lorbe (:, :, :)
 ! local-orbital derivative order
-      Integer :: lorbdm (maxlorbord, maxlorb, _MAXSPECIES_)
+      Integer :: lorbdm (maxlorbord, maxlorb, maxspecies)
 ! lorbve is .true. if the linearisation energies are allowed to vary
-      Logical :: lorbve (maxlorbord, maxlorb, _MAXSPECIES_)
+      Logical :: lorbve (maxlorbord, maxlorb, maxspecies)
 ! lorbwfproj is .true. if the local-orbital is used as a Wannier-projector for bandstructure interpolation
-      Logical :: lorbwfproj (maxlorb, _MAXSPECIES_)
+      Logical :: lorbwfproj (maxlorb, maxspecies)
 ! local-orbital radial functions
       Real (8), target, Allocatable :: lofr (:, :, :, :)
 ! energy step size for locating the band energy

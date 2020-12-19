@@ -7,7 +7,7 @@
 ! !INTERFACE:
 subroutine putscreen(un, tq0, n, chi0, chi0h, chi0w)
 ! !USES:
-  use mod_constants, only: krondelta
+  use constants, only: krondelta
 ! !INPUT/OUTPUT PARAMETERS:
 ! In:
 ! integer :: un  ! Unit to wirte to 

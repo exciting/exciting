@@ -14,6 +14,7 @@ subroutine genmbrotmat(iq,isym)
     use modinput
     use modmain
     use modgw
+    use constants, only: twopi
 
 !!INPUT PARAMETERS:
     implicit none

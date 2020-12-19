@@ -8,6 +8,7 @@ subroutine shg(a,b,c)
     use modinput
     use modmain
     use modmpi
+    use unit_conversion, only: hartree_to_ev
     
 !!DESCRIPTION:
 !   Calculates susceptibility tensor for non-linear optical second-harmonic
@@ -285,7 +286,7 @@ subroutine shg(a,b,c)
     if (rank==0) then
 ! output energy units
         t1 = 1.0d0
-        if (input%properties%shg%tevout) t1 = h2ev    
+        if (input%properties%shg%tevout) t1 = hartree_to_ev    
 ! write to files
         write(fname,'("CHI_INTER2w_",3I1,".OUT")') a,b,c
         open(51,file=trim(fname),action='WRITE',form='FORMATTED')

@@ -9,6 +9,7 @@ Subroutine genfftmap(fftmap,gmaxcustom)
       Use modinput
       Use modmain
       use modxs, only : fftmap_type
+      use constants, only: pi
 ! !DESCRIPTION:
 ! Prepares a new FFT grid with given $G_\mathrm{max}$.
 !  

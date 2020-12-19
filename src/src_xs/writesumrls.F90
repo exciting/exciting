@@ -10,8 +10,9 @@ Module m_writesumrls
 Contains
 !
 !
-      Subroutine writesumrls (iq, s, fn)
-         Use modmain
+     Subroutine writesumrls (iq, s, fn)
+         Use modmain, only: chgval
+         use constants, only: pi
          Use modxs
          Use m_getunit
          Use m_writevars

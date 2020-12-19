@@ -16,7 +16,7 @@ Subroutine forcek (ik, ffacg)
       Use modmain
       Use mod_eigensystem
       Use modfvsystem
-!      use mod_constants
+      use constants, only: zzero 
 ! !DESCRIPTION:
 !   Computes the {\bf k}-dependent contribution to the incomplete basis set
 !   (IBS) force. See the calling routine {\tt force} for a full description.

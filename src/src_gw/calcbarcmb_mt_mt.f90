@@ -7,6 +7,7 @@ subroutine calcbarcmb_mt_mt(iq)
     use mod_product_basis,     only : locmatsiz, mbindex, rtl, rrint
     use mod_coulomb_potential, only : barc, sgm
     use mod_misc_gw,           only : vi
+    use constants,    only : pi 
     implicit none
     ! input variable
     integer, intent(in) :: iq

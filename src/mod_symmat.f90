@@ -3,7 +3,7 @@ module mod_symmat
   use mod_atoms
   use mod_APW_LO
   use mod_muffin_tin
-  use mod_constants
+  use constants, only: zzero, zone, twopi
   use mod_eigensystem
   use mod_symmetry
   use mod_lattice, only : bvec

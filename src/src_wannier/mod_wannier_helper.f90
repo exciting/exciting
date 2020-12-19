@@ -174,7 +174,7 @@ module mod_wannier_helper
     !=====================================================================================
     ! wrapper to fetch eigenenvectors in the respective context
     subroutine wfhelp_getevec( ik, evec)
-      use mod_constants, only: zone, zzero
+      use constants, only: zone, zzero
 
       integer, intent( in)           :: ik
       complex(8), intent( out)       :: evec( nmatmax_ptr, nstfv, nspinor)
@@ -509,7 +509,7 @@ module mod_wannier_helper
     ! such that the transformation matrices U also work for
     ! eigenvectors from another (but sufficiently close) DFT run
     subroutine wfhelp_fixphases
-      use mod_constants, only: zone, zzero
+      use constants, only: zone, zzero
 
       integer :: ik, ist, jst, nmatp
       real(8), allocatable :: eval(:,:)
@@ -539,7 +539,7 @@ module mod_wannier_helper
     end subroutine wfhelp_fixphases
 
     subroutine wfhelp_getphases( evec, eval, ngp, nst, phases)
-      use mod_constants, only: zone, zzero
+      use constants, only: zone, zzero
       use m_linalg,      only: zhediag
 
       complex(8), intent( in)    :: evec( ngp, nst)

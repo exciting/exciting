@@ -13,8 +13,9 @@ subroutine calcminm(ik,iq,nstart,nend,mstart,mend,minm)
 !!USES:
     use modinput
     use modmain,               only : nspecies, natoms, idxas, idxlm, idxlo, &
-    &                                 zzero, zone, intgv, apword, nlorb, lorbl, &
-    &                                 nlomax, pi, apwordmax, nmatmax
+    &                                 intgv, apword, nlorb, lorbl, &
+    &                                 nlomax, apwordmax, nmatmax
+    use constants,             only : zzero, zone, pi
     use modgw,                 only : kqset, Gkqset, Gqbarc, Gqset, Gset, fdebug, time_minm
     use mod_bands,             only : eveck, eveckp, eveckalm, eveckpalm
     use mod_product_basis,     only : nmix, bigl, bradketa, bradketlo, mpwipw, &

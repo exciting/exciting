@@ -7,7 +7,8 @@
 
 
 subroutine oepvnlk_deltax(ikp,vnlvv)
-use modmain
+  use modmain
+  use constants, only: pi 
 implicit none
 ! arguments
 integer, intent(in) :: ikp

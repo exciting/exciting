@@ -9,7 +9,7 @@
 ! data transparently allowing to choose from different datatypes
 ! more easily
 Module modfvsystem
-   use mod_constants
+   use constants, only: zzero
     Implicit None
     !
     Type HermitianMatrix

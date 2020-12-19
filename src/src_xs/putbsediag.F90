@@ -9,7 +9,7 @@
 Subroutine putbsediag (fname)
       Use modxs
       Use m_getunit
-      use mod_constants, only: h2ev
+      use unit_conversion, only: hartree_to_ev
       Implicit None
   ! arguments
       Character (*), Intent (In) :: fname
@@ -27,10 +27,10 @@ Subroutine putbsediag (fname)
      & bsedd
       Write (un,*)
       Write (un, '(2g18.10, " : BSE kernel diagonal mean value (eV)")') &
-     & bsed * h2ev
-      Write (un, '(2g18.10, " : BSE kernel diagonal lower limit (eV)")') bsedl * h2ev
-      Write (un, '(2g18.10, " : BSE kernel diagonal upper limit (eV)")') bsedu * h2ev
-      Write (un, '(2g18.10, " : BSE kernel diagonal window size (eV)")') bsedd * h2ev
+     & bsed * hartree_to_ev
+      Write (un, '(2g18.10, " : BSE kernel diagonal lower limit (eV)")') bsedl * hartree_to_ev
+      Write (un, '(2g18.10, " : BSE kernel diagonal upper limit (eV)")') bsedu * hartree_to_ev
+      Write (un, '(2g18.10, " : BSE kernel diagonal window size (eV)")') bsedd * hartree_to_ev
       Write (un,*)
       Write (un, '(g18.10, " : BSE kernel diagonal deviation (%)")') &
      & dble (bsedd) / dble (bsed) * 100.d0

@@ -9,6 +9,7 @@
 Subroutine writelat
       Use modmain
       Use modinput
+      use constants, only: twopi
       Implicit None
       Open (50, File='LATTICE'//trim(filext), Action='WRITE', Form='FOR&
      &MATTED')

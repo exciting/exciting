@@ -4,7 +4,7 @@
 !
 !
 subroutine writeevec(vq, voff, filxt)
-  use mod_constants, only: zzero
+  use constants, only: zzero
   use mod_eigensystem, only: nmatmax
   use mod_eigenvalue_occupancy, only: nstfv
   use mod_spin, only: nspnfv 

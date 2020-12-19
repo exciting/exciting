@@ -7,6 +7,8 @@
 !
 Complex (8) Function zfint (zfmt, zfir)
       Use modmain
+      use constants, only: pi, fourpi
+      Use constants, only: y00
       Implicit None
 ! arguments
       Complex (8), Intent (In) :: zfmt (lmmaxvr, nrcmtmax, natmtot)

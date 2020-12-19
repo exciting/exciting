@@ -3,7 +3,7 @@ subroutine writekpathweights
   use modinput
   use m_read_bandstructure
   use m_putgetexcitons
-  use mod_constants, only: h2ev
+  use unit_conversion, only: hartree_to_ev
   use bspline_module
   use mod_kpointset
   use mod_wannier, only: wf_nwf, wf_kset
@@ -109,8 +109,8 @@ subroutine writekpathweights
         en1=input%xs%writekpathweights%minenergyexcitons
         en2=input%xs%writekpathweights%maxenergyexcitons
         if(input%xs%storeexcitons%useev) then 
-          en1=en1/h2ev
-          en2=en2/h2ev
+          en1=en1/hartree_to_ev
+          en2=en2/hartree_to_ev
         end if
         call get_excitons(iqmt=iqmt, e1=en1, e2=en2)
       else
@@ -452,7 +452,7 @@ subroutine writekpathweights
       write(un,'("#",1x,"Considered (partially) occupied states:",i8," to",i8)') ivmin, ivmax
       write(un,'("#",1x,"Considered (partially) unoccupied states:",i8," to",i8)') icmin, icmax
       write(un,'("#")')
-      write(un,'("# Eigenvector number:",i6," with energy/eV: ", f12.7)') lambda, evals_(lambda)*h2ev
+      write(un,'("# Eigenvector number:",i6," with energy/eV: ", f12.7)') lambda, evals_(lambda)*hartree_to_ev
       write(un,'("#")')
       write(un,'("# Resonant weights")')
 

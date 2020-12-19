@@ -228,6 +228,7 @@ module mod_wannier_omega
     !=====================================================================================
     ! calculates the gradient of the spread w.r.t. the matrices U
     subroutine wfomega_gradu( ik, g, ldg)
+      use constants, only: zi 
       integer, intent( in)     :: ik, ldg
       complex(8), intent( out) :: g(ldg,*)
 

@@ -13,6 +13,7 @@ Subroutine writeinfo (fnum)
       Use modinput
       Use modmain
       use modmpi, only: procs
+      use constants, only: twopi
 #ifdef TETRA
       Use modtetra
 #endif

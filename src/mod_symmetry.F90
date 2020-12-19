@@ -6,11 +6,11 @@
 
 !
 !
-#include "maxdefinitions.inc"
+
+!> symmetry variables  
 Module mod_symmetry
-!----------------------------!
-!     symmetry variables     !
-!----------------------------!
+      implicit none 
+
 ! nosym is .true. if no symmetry information should be used
 !replaced by inputstructurelogical::nosym
 ! number of Bravais lattice point group symmetries

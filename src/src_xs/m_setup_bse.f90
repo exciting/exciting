@@ -18,7 +18,7 @@ module m_setup_bse
     ! !USES:
       use modmpi
       use modinput, only: input
-      use mod_constants, only: zzero, zone
+      use constants, only: zzero, zone
       use modbse, only: hamsize
       use modxs, only: unitout
       use m_hesolver
@@ -242,7 +242,7 @@ module m_setup_bse
     ! !USES:
       use modmpi
       use modinput, only: input
-      use mod_constants, only: zzero, zone
+      use constants, only: zzero, zone
       use modxs, only: unitout
       use modbse, only: de, nou_bse_max, hamsize, kmap_bse_rg,&
                       & kousize, nkkp_bse, nk_bse, ofac,&
@@ -576,7 +576,7 @@ module m_setup_bse
       use modmpi
       use modscl
       use modinput, only: input
-      use mod_constants, only: zzero, zone
+      use constants, only: zzero, zone
       use modxs, only: unitout
       use modbse, only: hamsize
       use m_dhesolver
@@ -807,7 +807,7 @@ module m_setup_bse
       use modmpi
       use modscl
       use modinput, only: input
-      use mod_constants, only: zzero, zone
+      use constants, only: zzero, zone
       use modxs, only: unitout
       use modbse, only: nou_bse_max, kmap_bse_rg,&
                       & kousize, nkkp_bse, nk_bse, ofac,&

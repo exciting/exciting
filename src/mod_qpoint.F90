@@ -6,11 +6,9 @@
 
 !
 !
-#include "maxdefinitions.inc"
+!> q-point set variables 
 Module mod_qpoint
-!-------------------------------!
-!     q-point set variables     !
-!-------------------------------!
+      implicit none 
 ! q-point grid sizes
       Integer(4) :: ngridq (3)
 ! total number of q-points

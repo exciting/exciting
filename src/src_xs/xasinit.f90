@@ -19,6 +19,7 @@ subroutine xasinit
   Use modinput
   Use modxs
   Use modxas
+  use constants, only: pi
   Implicit none
   Integer :: is, ist, m, ic, ias, l, ir, ia, k
 ! !REVISION HISTORY:

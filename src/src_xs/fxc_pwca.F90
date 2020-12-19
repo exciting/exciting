@@ -11,8 +11,9 @@ Contains
 !
 !
       Subroutine fxc_alda (iq, msiz, fxcg)
-         Use modmain, Only: ivg, gc, fourpi, lmmaxvr, nrmtmax, natmtot, &
-        & ngrtot, ngvec, ivgig
+         Use modmain, Only: ivg, gc, lmmaxvr, nrmtmax, natmtot, &
+              ngrtot, ngvec, ivgig
+         use constants, only: fourpi
          Use modinput
          Use modxs, Only: unitout, fxcmt, gqc, fxcir, igqig
          Use m_ftfun, Only: ftfun

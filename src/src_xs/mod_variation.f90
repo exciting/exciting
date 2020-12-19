@@ -12,7 +12,6 @@
 !   Created JUNE 2015 by Christian Vorwerk
 !EOP   
 !BOC
-#include "maxdefinitions.inc"
 module mod_variation
   implicit none
     
@@ -22,7 +21,7 @@ contains
   ! performs multiplication 
   !$$ X_{ij}=\sum_{k=1}^{nstfv}\sum_{l=1}^{nstfv} A_{ki}^{\circ}B_{kl}C_{l,j}+\sum_{k=nstfv+1}^{nstsv}\sum_{l=nstfv+1}^{nstsv} A_{ki}^{\circ}B_{k-nstfv,l-nstfv}C_{l,j}$$
   use m_ematqk, only: emat_ccket
-  use mod_constants, only: zi, zone, zzero
+  use constants, only: zi, zone, zzero
   use mod_eigenvalue_occupancy, only: nstfv, nstsv 
   implicit none
   integer, intent (in):: dimA, dimB, startA, startB

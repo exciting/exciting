@@ -4,6 +4,8 @@ subroutine shg_new(a,b,c)
     use modinput
     use modmain
     use modmpi
+    use unit_conversion, only: hartree_to_ev
+    use constants, only: pi
     implicit none
     
     integer, intent(IN) :: a, b, c
@@ -296,7 +298,7 @@ subroutine shg_new(a,b,c)
     if (rank==0) then
         ! output energy units
         t1 = 1.0d0
-        if (input%properties%shg%tevout) t1 = h2ev    
+        if (input%properties%shg%tevout) t1 = hartree_to_ev    
          
         ! Epsilon
         write(fname,'("EPSILON_",3I1,".OUT")') a,b,c

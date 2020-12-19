@@ -2,13 +2,14 @@
 subroutine calcbarcmb_ipw_mt(iq)
 
     use modinput
-    use modmain,               only : pi, nspecies, nrmt, spr, natoms, &
-    &                                 idxas, idxlm, zi, zzero, zone,nrmtmax
+    use modmain,               only : nspecies, nrmt, spr, natoms, &
+    &                                 idxas, idxlm, nrmtmax
     use modgw,                 only : Gset, Gamma, kqset, Gqset, Gqbarc
     use mod_product_basis,     only : locmatsiz, maxbigl, nmix, bigl, umix, &
     &                                 mpwipw, mpwmix
     use mod_coulomb_potential, only : barc
     use mod_misc_gw,           only : vi, atposl
+    use constants,             only : zi, zzero, zone, pi
     implicit none
     ! input variables
     integer, intent(in) :: iq

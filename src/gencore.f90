@@ -19,7 +19,7 @@ Subroutine gencore
       use mod_symmetry, only: eqatoms
       use mod_muffin_tin, only: nrmt
       use mod_potential_and_density, only: veffmt
-      use mod_constants, only: y00, fourpi
+      use constants, only: y00, fourpi
       use mod_corestate, only: rhocr, rwfcr, evalcr
       !Use modmain
 ! !DESCRIPTION:

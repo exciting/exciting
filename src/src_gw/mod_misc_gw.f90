@@ -1,17 +1,12 @@
-!-------------------------------------------------------------------!
-!     miscellaneous variables used in GW part just for convenience  !
-!-------------------------------------------------------------------!
-
-#include "maxdefinitions.inc"
-
+!> miscellaneous variables used in GW part just for convenience  
 module mod_misc_gw
-
     use modinput
     use modmain
+    use constants, only: maxatoms, maxspecies, pi
     implicit none
 
 ! shortcut for atomic position array
-    real(8) :: atposl(3,_MAXATOMS_,_MAXSPECIES_)
+    real(8) :: atposl(3, maxatoms, maxspecies)
 ! lengths of the basis vectors
     real(8) :: alat(3)
 ! 2*pi/a, 2*pi/b, 2*pi/c
@@ -74,6 +69,7 @@ contains
 
 !-------------------------------------------------------------------------------
 
+    ! TODO(Alex) This function isn't needed (see use case) Replace
      logical function gammapoint(vec)
         implicit none
         real(8), intent(in) :: vec(3)

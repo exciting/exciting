@@ -11,7 +11,7 @@ subroutine dfq(iq)
   use modinput, only: input
   use modmpi, only: procs, rank, barrier
   use mod_misc, only: task
-  use mod_constants, only: zzero, zone, zi, krondelta
+  use constants, only: zzero, zone, zi, krondelta
   use mod_kpoint, only: nkpt, wkpt
   use mod_qpoint, only: nqpt, vql
   use mod_lattice, only: omega

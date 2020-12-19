@@ -5,7 +5,8 @@
 subroutine calcspeceph(eval2, evalpath, ik)
     use modinput
     use m_getunit
-    use modmain, only : pi, zzero, evalsv, idxas, evalcr, efermi, nstfv 
+    use modmain, only : evalsv, idxas, evalcr, efermi, nstfv
+    use constants, only : zzero, pi
     use modgw 
 
     ! input variables

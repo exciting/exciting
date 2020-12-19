@@ -6,11 +6,9 @@
 
 !
 !
-#include "maxdefinitions.inc"
+!> Energy variables
 Module mod_energy
-!--------------------------!
-!     energy variables     !
-!--------------------------!
+      implicit none 
 ! eigenvalue sum
       Real (8) :: evalsum
 ! electron kinetic energy

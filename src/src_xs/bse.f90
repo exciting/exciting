@@ -9,7 +9,8 @@ subroutine bse(iqmt)
 ! !USES:
   ! Basics
   use modinput, only: input
-  use mod_constants, only: zone, zi, zzero, pi, h2ev
+  use constants, only: zone, zi, zzero, pi
+  use unit_conversion, only: hartree_to_ev
   use mod_eigenvalue_occupancy, only: evalsv, nstsv
   use mod_kpoint, only: nkptnr
   ! MPI and BLACS/ScaLAPACK
@@ -272,7 +273,7 @@ subroutine bse(iqmt)
   call printline(unitout, '-')
   write(unitout,*)
   write(unitout, '("Info(",a,"):&
-    &bsegap (eV):", F23.16)') trim(thisname), bsegap*h2ev
+    &bsegap (eV):", F23.16)') trim(thisname), bsegap*hartree_to_ev
 
   ! free memory from Wannier stuff
   if( wfbse_usegwwannier()) then
@@ -462,11 +463,11 @@ subroutine bse(iqmt)
         if(fcoup) then 
           write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
           write(unitout, '("  [",E10.3,",",E10.3,"]/H^2")') sqrt(v1), sqrt(v2)
-          write(unitout, '("  [",E10.3,",",E10.3,"]/eV")') sqrt(v1)*h2ev, sqrt(v2)*h2ev
+          write(unitout, '("  [",E10.3,",",E10.3,"]/eV")') sqrt(v1)*hartree_to_ev, sqrt(v2)*hartree_to_ev
         else
           write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
           write(unitout, '("  [",E10.3,",",E10.3,"]/H")') v1, v2
-          write(unitout, '("  [",E10.3,",",E10.3,"]/eV")') v1*h2ev, v2*h2ev
+          write(unitout, '("  [",E10.3,",",E10.3,"]/eV")') v1*hartree_to_ev, v2*hartree_to_ev
         end if
       else
         write(unitout, '("  ",i8," eigen solutions found in the interval:")') nexc
@@ -503,8 +504,8 @@ subroutine bse(iqmt)
           en1=input%xs%storeexcitons%minenergyexcitons
           en2=input%xs%storeexcitons%maxenergyexcitons
           if(input%xs%storeexcitons%useev) then 
-            en1=en1/h2ev
-            en2=en2/h2ev
+            en1=en1/hartree_to_ev
+            en2=en2/hartree_to_ev
           end if
           call energy2index(hamsize, nexc, exeval, en1, en2, iex1, iex2)
         !   Select by number

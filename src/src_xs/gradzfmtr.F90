@@ -30,6 +30,7 @@ Subroutine gradzfmtr (lmax, nr, r, l1, m1, ld1, ld2, fmt, gfmt)
 !   Created April 2008 (Sagmeister)
 !EOP
 !BOC
+      use constants, only: sqrt_two
       Implicit None
   ! arguments
       Integer, Intent (In) :: lmax
@@ -42,8 +43,6 @@ Subroutine gradzfmtr (lmax, nr, r, l1, m1, ld1, ld2, fmt, gfmt)
       Real (8), Intent (Out) :: gfmt (ld1, ld2, 3)
   ! local variables
       Integer :: ir, l2, m2, lm2
-  ! square root of two
-      Real (8), Parameter :: sqtwo = 1.4142135623730950488d0
       Real (8) :: t1, t2, t3, t4, t5
       Real (8) :: tt1, tt2
   ! automatic arrays
@@ -76,9 +75,9 @@ Subroutine gradzfmtr (lmax, nr, r, l1, m1, ld1, ld2, fmt, gfmt)
             Do ir = 1, nr
                tt1 = g1 (ir)
                tt2 = t1 * (fmt(ir)*dble(l1)/r(ir)-tt1)
-               gfmt (lm2, ir, 1) = gfmt (lm2, ir, 1) + ((t3-t5)/sqtwo) &
+               gfmt (lm2, ir, 1) = gfmt (lm2, ir, 1) + ((t3-t5)/sqrt_two) &
               & * tt2
-               gfmt (lm2, ir, 2) = gfmt (lm2, ir, 2) + ((-t3-t5)/sqtwo) &
+               gfmt (lm2, ir, 2) = gfmt (lm2, ir, 2) + ((-t3-t5)/sqrt_two) &
               & * tt2
                gfmt (lm2, ir, 3) = gfmt (lm2, ir, 3) + t4 * tt2
             End Do
@@ -95,9 +94,9 @@ Subroutine gradzfmtr (lmax, nr, r, l1, m1, ld1, ld2, fmt, gfmt)
             Do ir = 1, nr
                tt1 = g1 (ir)
                tt2 = t2 * (fmt(ir)*dble(l1+1)/r(ir)+tt1)
-               gfmt (lm2, ir, 1) = gfmt (lm2, ir, 1) + ((t3-t5)/sqtwo) &
+               gfmt (lm2, ir, 1) = gfmt (lm2, ir, 1) + ((t3-t5)/sqrt_two) &
               & * tt2
-               gfmt (lm2, ir, 2) = gfmt (lm2, ir, 2) + ((-t3-t5)/sqtwo) &
+               gfmt (lm2, ir, 2) = gfmt (lm2, ir, 2) + ((-t3-t5)/sqrt_two) &
               & * tt2
                gfmt (lm2, ir, 3) = gfmt (lm2, ir, 3) + t4 * tt2
             End Do

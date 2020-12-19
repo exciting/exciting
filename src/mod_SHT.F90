@@ -6,11 +6,9 @@
 
 !
 !
-#include "maxdefinitions.inc"
+!> spherical harmonic transform (SHT) matrices 
 Module mod_SHT
-!-----------------------------------------------------!
-!     spherical harmonic transform (SHT) matrices     !
-!-----------------------------------------------------!
+      implicit none 
 ! real backward SHT matrix for lmaxapw
       Real (8), Allocatable :: rbshtapw (:, :)
 ! real forward SHT matrix for lmmaxapw

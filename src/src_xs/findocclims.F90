@@ -7,7 +7,7 @@
 ! !INTERFACE:
 subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, iu)
 ! !USES:
-  use mod_constants, only: h2ev
+  use unit_conversion, only: hartree_to_ev
   use mod_kpoint, only: nkpt, vkl
   use mod_eigenvalue_occupancy, only: nstsv, occsv, evalsv, occmax,&
                                     & efermi
@@ -243,11 +243,11 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
     if (input%xs%BSE%outputlevelnumber == 1) then
       write(unitout, '(a)') 'Info(findocclims): System has Kohn-Sham gap'
       write(unitout, '(a,F23.16)') '  Gap/H: ', ksgapval
-      write(unitout, '(a,F23.16)') '  Gap/eV: ', ksgapval*h2ev
+      write(unitout, '(a,F23.16)') '  Gap/eV: ', ksgapval*hartree_to_ev
       write(unitout, '(a)') 'Info(findocclims): Minimal gap for momentum tranfer:'
       write(unitout, '(a,I8)') '  iq: ', iq
       write(unitout, '(a,F23.16)') '  Gap(q)/H: ', qgap
-      write(unitout, '(a,F23.16)') '  Gap(q)/eV: ', qgap*h2ev
+      write(unitout, '(a,F23.16)') '  Gap(q)/eV: ', qgap*hartree_to_ev
     end if
   else
     if (input%xs%BSE%outputlevelnumber == 1) &

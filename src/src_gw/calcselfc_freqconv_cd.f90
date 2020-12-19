@@ -4,7 +4,8 @@
 !==================================================================
 subroutine calcselfc_freqconv_cd(ikp,iq,mdim)
     use modinput
-    use modmain, only : pi, zzero, idxas, evalcr, efermi
+    use constants, only : zzero, pi
+    use modmain, only : idxas, evalcr, efermi
     use modgw,   only : ibgw, nbgw, nstse, kset, kqset, freq, selfec, mwm, &
     &                   corind, freq_selfc, evalfv
     use mod_pade

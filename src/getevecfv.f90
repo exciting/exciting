@@ -24,7 +24,7 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
   use mod_spin, only: nspnfv
   use mod_names, only: filetag_evecfv
   use mod_symmetry, only: lsplsymc, isymlat, symlat, symlatc, vtlsymc, ieqatom
-  use mod_constants, only: twopi
+  use constants, only: twopi
   use mod_APW_LO, only: nlotot, nlorb, lorbl
   use mod_muffin_tin, only: idxlm
   use mod_atoms, only: natoms, nspecies, idxas
@@ -99,8 +99,7 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
   ! find the record length
 #ifdef XS
       Inquire (IoLength=Recl) vkl_, nmatmax_, nstfv_, nspnfv_
-#endif
-#ifndef XS
+#else 
       Inquire (IoLength=Recl) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv
 #endif
   !$OMP CRITICAL
@@ -144,8 +143,7 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
   ! retreive subset
       evecfv (:, :, :) = evecfv_ (:, :nstfv, :)
       Deallocate (evecfv_)
-#endif
-#ifndef XS
+#else
       Read (70, Rec=koffset) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv
 #endif
       Close (70)

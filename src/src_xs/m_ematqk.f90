@@ -3,7 +3,7 @@
 ! See the file COPYING for license details.
 module m_ematqk
   use mod_ematptr
-
+  use constants, only: pi, fourpi, zzero, zone, zil, zi
   implicit none
 
   logical :: emat_ccket
@@ -17,7 +17,6 @@ module m_ematqk
     ! !USES:
       use modinput, only: input
       use mod_misc, only: task, filext
-      use mod_constants, only: zzero, zone
       use mod_eigenvalue_occupancy, only: nstfv
       use mod_muffin_tin, only: idxlm
       use mod_Gkvector, only: gkmax
@@ -623,7 +622,6 @@ module m_ematqk
       use modinput, only: input
       use modxas, only: nxas
       use mod_misc, only: task
-      use mod_constants, only: zzero, zone
       use mod_muffin_tin, only: lmmaxapw
       use mod_APW_LO, only: nlotot, apwordmax
       use mod_atoms, only:  natmtot
@@ -846,7 +844,6 @@ module m_ematqk
 
     subroutine ematqkgmt(iq, ik, igq, integrals, emat, bc)
       use modinput, only: input
-      use mod_constants, only: zzero, zone, fourpi
       use mod_atoms, only: natmtot, nspecies, natoms, idxas
       use modxs, only: bcbs, apwmaxsize, lomaxsize, &
                      & sfacgq,&
@@ -920,7 +917,6 @@ module m_ematqk
     subroutine ematgntsum(iq, igq, integrals)
       use modinput, only: input
       use mod_misc, only: filext
-      use mod_constants, only: zzero, zil
       use mod_muffin_tin, only: idxlm
       use mod_atoms, only: natmtot, nspecies, natoms, idxas
       use mod_APW_LO, only: lolmax, apwordmax, nlomax, apword,&
@@ -1637,7 +1633,6 @@ module m_ematqk
     ! !INTERFACE:
     Subroutine ematradoo (iq,ik, igq, integral)
     ! !USES:
-    !Use modmain
       use modinput, only: input
       use mod_muffin_tin, only: nrmt, nrmtmax
       use mod_atoms, only: spr
@@ -1713,7 +1708,6 @@ module m_ematqk
         use mod_Gkvector, only: ngkmax
         use mod_APW_LO, only: apwordmax
         use m_getgrst, only: wavefmt1, getevecsv1, wavefmtsv1
-        use mod_constants, only: zzero, zi
         use mod_misc, only: filext
         !Use m_getunit 
         !Use modxas
@@ -1884,7 +1878,6 @@ module m_ematqk
         use mod_eigenvalue_occupancy, only: nstfv, nstsv
         use mod_Gkvector, only: ngkmax
         use mod_APW_LO, only: apwordmax 
-        use mod_constants, only: zzero, zi
         use m_getgrst, only: wavefmt0, getevecsv0, wavefmtsv0
 
         ! !INPUT/OUTPUT PARAMETERS:
@@ -2029,11 +2022,10 @@ module m_ematqk
       End Subroutine ematraduo
       ! EOC
       Subroutine ematsumoo (iq,ik, igq, integral, xi)
-        ! !USES:  Use modmain
+        ! !USES:  
         Use modinput
         Use modxs, only: ylmgq, xsgntoo, sfacgq, ngq
         Use modxas, only: nxas
-        Use mod_constants, only: zzero, zil, fourpi
         Use mod_atoms, only: idxas
         Use mod_muffin_tin, only: idxlm
         Use mod_qpoint, only: vql
@@ -2089,9 +2081,7 @@ module m_ematqk
       ! !INTERFACE:
       Subroutine ematsumou (iq, igq, bcs, integral, xi)
         !   !USES:
-        !Use modmain
         Use mod_muffin_tin, only: idxlm, lmmaxapw
-        Use mod_constants, only: zzero, zil, fourpi
         Use mod_atoms, only: idxas
         Use mod_kpoint, only: vkl
         Use modinput, only: input
@@ -2181,7 +2171,7 @@ module m_ematqk
       !EOC
 
       Subroutine ematsumuo (iq,ik, igq, bcs, integral, xi)
-        Use modmain 
+        Use modmain
         Use modinput
         Use modxs
         Use m_getunit 

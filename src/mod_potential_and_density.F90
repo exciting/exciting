@@ -6,12 +6,10 @@
 
 !
 !
-#include "maxdefinitions.inc"
+!> Potential and density variables 
 Module mod_potential_and_density
       Use modinput
-!-----------------------------------------!
-!     potential and density variables     !
-!-----------------------------------------!
+      implicit none 
 ! exchange-correlation functional type
  	integer::xctype(3)
 ! exchange-correlation functional description

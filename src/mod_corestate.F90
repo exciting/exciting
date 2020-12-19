@@ -6,12 +6,8 @@
 
 !
 !
-#include "maxdefinitions.inc"
+!> Core state variables  
 Module mod_corestate
-!
-!------------------------------!
-!     core state variables     !
-!------------------------------!
 ! eigenvalues for core states
       Real (8), Allocatable :: evalcr (:, :)
 ! radial wavefunctions for core states

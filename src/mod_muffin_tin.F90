@@ -6,15 +6,15 @@
 
 !
 !
-#include "maxdefinitions.inc"
+!> muffin-tin radial mesh and angular momentum variables  
 Module mod_muffin_tin
-!---------------------------------------------------------------!
-!     muffin-tin radial mesh and angular momentum variables     !
-!---------------------------------------------------------------!
+      use constants, only: maxspecies
+      implicit none
+
 ! radial function integration and differentiation polynomial order
 !replaced by inputstructureinteger::nprad
 ! number of muffin-tin radial points for each species
-      Integer :: nrmt (_MAXSPECIES_)
+      Integer :: nrmt (maxspecies)
 ! maximum nrmt over all the species
       Integer :: nrmtmax
 ! autormt is .true. for automatic determination of muffin-tin radii
@@ -22,13 +22,13 @@ Module mod_muffin_tin
 ! parameters for determining muffin-tin radii automatically
 !replaced by inputstructurereal(8)::rmtapm(2)
 ! muffin-tin radii
-      Real (8) :: rmt (_MAXSPECIES_)
+      Real (8) :: rmt (maxspecies)
 ! species for which the muffin-tin radius will be used for calculating gkmax
 !replaced by inputstructureinteger::isgkmax
 ! radial step length for coarse mesh
 !replaced by inputstructureinteger::lradstp
 ! number of coarse radial mesh points
-      Integer :: nrcmt (_MAXSPECIES_)
+      Integer :: nrcmt (maxspecies)
 ! maximum nrcmt over all the species
       Integer :: nrcmtmax
 ! coarse muffin-tin radial mesh
@@ -54,7 +54,7 @@ Module mod_muffin_tin
 ! (lmaxinr+1)^2
       Integer :: lmmaxinr
 ! number of radial points to the inner part of the muffin-tin
-      Integer :: nrmtinr (_MAXSPECIES_)
+      Integer :: nrmtinr (maxspecies)
 ! index to (l,m) pairs
       Integer, Allocatable :: idxlm (:, :)
 !------------------------------!

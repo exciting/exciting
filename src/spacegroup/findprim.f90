@@ -5,7 +5,7 @@
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: findprim
+! !ROUTINE: findistancerim
 ! !INTERFACE:
 
 
@@ -33,7 +33,7 @@ real(8)::v1(3), v2(3), v3(3)
 real(8)::t1, t2
 real(8)::apl(3, maxatoms)
 ! allocatable arrays
-real(8), allocatable :: dp(:)
+real(8), allocatable :: distance(:)
 real(8), allocatable :: vp(:, :)
 ! external functions
 real(8)::r3taxi
@@ -54,7 +54,7 @@ do js=1, nspecies
   if (natoms(js).lt.natoms(is)) is=js
 end do
 n=27*natoms(is)
-allocate(dp(n), vp(3, n))
+allocate(distance(n), vp(3, n))
 ! generate set of possible lattice vectors
 n=0
 do ia=1, natoms(is)
@@ -87,7 +87,7 @@ do ia=1, natoms(is)
 ! cell invariant under translation by v2, so add to list
 	n=n+1
 	call r3mv(avecnew, v2, vp(:, n))
-	dp(n)=sqrt(vp(1, n)**2+vp(2, n)**2+vp(3, n)**2)
+	distance(n)=sqrt(vp(1, n)**2+vp(2, n)**2+vp(3, n)**2)
 20 continue
       end do
     end do
@@ -97,9 +97,9 @@ end do
 j=1
 t1=1.d8
 do i=1, n
-  if (dp(i).lt.t1+symmetries%lattice%epslat) then
+  if (distance(i).lt.t1+symmetries%lattice%epslat) then
     j=i
-    t1=dp(i)
+    t1=distance(i)
   end if
 end do
 avecnew(:, 1)=vp(:, j)
@@ -110,9 +110,9 @@ do i=1, n
   call r3cross(avecnew(:, 1), vp(:, i), v1)
   t2=sqrt(v1(1)**2+v1(2)**2+v1(3)**2)
   if (t2.gt.symmetries%lattice%epslat) then
-    if (dp(i).lt.t1+symmetries%lattice%epslat) then
+    if (distance(i).lt.t1+symmetries%lattice%epslat) then
       j=i
-      t1=dp(i)
+      t1=distance(i)
     end if
   end if
 end do
@@ -124,9 +124,9 @@ t1=1.d8
 do i=1, n
   t2=dot_product(vp(:, i), v1(:))
   if (abs(t2).gt.symmetries%lattice%epslat) then
-    if (dp(i).lt.t1+symmetries%lattice%epslat) then
+    if (distance(i).lt.t1+symmetries%lattice%epslat) then
       j=i
-      t1=dp(i)
+      t1=distance(i)
     end if
   end if
 end do
@@ -152,7 +152,7 @@ do is=1, nspecies
   end do
   natoms(is)=na
 end do
-deallocate(dp, vp)
+deallocate(distance, vp)
 return
 end subroutine
 !EOC
