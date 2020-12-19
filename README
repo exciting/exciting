@@ -39,26 +39,6 @@ Other Licenses
 
         BSPLINE-FORTRAN: Multidimensional B-Spline Interpolation of Data on a Regular Grid
         https://github.com/jacobwilliams/bspline-fortran
-
-
-Compile
-	The code can be compiled  by running 
-	
-	make
-	
-	in this directory. The first time this will start a setup script. After choosing the
- 	platform you will be asked wether you want to build a k-point parallel version using
-	MPI and a version that uses multithreaded BLAS/LAPACK. Choose yes or no dependent on
-	if you have the required libraries installed on your system. You can manually edit
-	the make.inc in the build directory.
-	
-	The auxiliary programs include "spacegroup" for producing crystal geometries
-	from spacegroup data, "species" for generating species files, and "eos" for
-	fitting equations of state to energy-volume data.
-	
-	EXCITING is updated regularly with new features and bug fixes. This release may
-	be used for limited production but please check the consistency of the results
-	carefully.
 	
 	--------------------------------------------------------------------------------
 	

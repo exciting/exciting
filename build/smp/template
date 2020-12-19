@@ -1,13 +1,10 @@
 include ../make.inc
 include ../libraries.inc
 
-FC = $(F90MT) $(CPP_ON_OPTS) -Ifinclude
-
-F77=$(F77MT)
-### default
-FFLAGS = $(SMPF90_OPTS) 
+FC = $(F90)  
+FFLAGS = $(F90_OPTS) $(CPP_ON_OPTS) $(SMPF90_OPTS) -Ifinclude $(INCL)
 LD = $(FC)
-LDFLAGS = $(SMPF90_OPTS) $(SMP_LIBS) $(INTERNALLIBS)
+LDFLAGS = $(INCL) $(SMPF90_OPTS) $(LIBS) $(SMP_LIBS) $(INTERNALLIBS)
 TMPFILES = *.mod
 SUFFIX=smp
 
