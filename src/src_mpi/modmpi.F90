@@ -17,6 +17,11 @@
 !   Adapted partitioning functions to handle cases with more processes than elements. 2016 (Aurich)
 !   Added proc groups functionality. 2016 (Aurich)
 !
+! TODO(Alex) Issue #23. MPI wrappers are a mix of types and global variables, the latter of which isn't
+! required as one can always query MPI variables with MPI calls, there is no overload set for compilation 
+! in serial, and the routines don't follow single responsibility. 
+! This needs refactoring if we hope to use more complex MPI distribution schemes.  
+
 module modmpi
 #ifdef MPI
   use mpi
@@ -49,6 +54,10 @@ module modmpi
     type(mpiinfo) :: mpiintercom
   end type procgroup
 
+  ! TODO(Alex) Issue #23. This is a bad idea. Defeats the point of encapsulating an instantiation of the 
+  ! MPI environment. All MPI variables can be querried with MPI subroutines. Benjamin probably did it
+  ! because it was the only way he could get the object passed to BSE without a big refactor of 
+  ! subroutine APIs 
   ! mpiinfo for global scope
   type(mpiinfo) :: mpiglobal
 
@@ -159,6 +168,34 @@ module modmpi
     end subroutine finitmpi
     !EOC
 
+
+!> @brief Terminate an MPI environment 
+subroutine terminate_mpi_env(mpi_env, message)
+  use iso_fortran_env, only: error_unit
+  implicit none
+
+  !> MPI environment object
+  type(mpiinfo), intent(inout) :: mpi_env
+  !> Error message
+  character(len=*), optional, intent(in) :: message
+  !> Error code for Exciting to return to the invoking environment
+  integer, parameter :: error_code = 101
+  
+#ifdef MPI
+  if(mpi_env%rank == 0) then 
+    if(present(message)) write(error_unit, *) trim(adjustl(message))
+  end if
+  call mpi_abort(mpi_env%comm, error_code, mpi_env%ierr)
+
+#else
+  if(present(message)) write(error_unit, *) trim(adjustl(message))
+  stop
+
+#endif
+
+end subroutine terminate_mpi_env
+
+
     !BOP
     ! !ROUTINE: terminate
     ! !INTERFACE: 
@@ -185,11 +222,9 @@ module modmpi
       else
          write (*, '(a)') 'MPI abort with errors - zombie processes might remain!'
       end if
-#endif
-#ifndef MPI
+#else
       write (*, '(a)') 'Abort'
 #endif
-      ! stop program
       stop
     end subroutine terminate
     !EOC
