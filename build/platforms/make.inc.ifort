@@ -9,7 +9,7 @@ F77_OPTS = -O3
 # Required for libXC compilation 
 FCCPP = cpp
 
-F90_DEBUGOPTS = -g -O0 -debug all -implicitnone -warn unused \
+F90_DEBUGOPTS = -g -O0 -DUSE_ASSERT -debug all -implicitnone -warn unused \
    -fp-stack-check -heap-arrays -ftrapuv -check pointers \
    -check bounds -check all -check noarg_temp_created -traceback -I"${MKLROOT}/include"
 
