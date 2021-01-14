@@ -48,7 +48,7 @@ subroutine scf_cycle(verbosity)
     If (Allocated(C6ab)) Deallocate(C6ab)
     If (Allocated(R0_eff_ab)) Deallocate(R0_eff_ab)
 !
-!    call MTNullify(mt_hscf)
+    call MTNullify(mt_hscf)
 
 !_______________________________________________________________
 ! initialise or read the charge density and potentials from file
@@ -60,7 +60,9 @@ subroutine scf_cycle(verbosity)
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Potential read in from STATE.OUT")')
     Else If (task == 7) Then
         ! restart from previous HYBRID iteration
-        continue
+        call genmeffig()
+
+       continue
     Else If (task == 200) Then
         Call phveff
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Supercell potential constructed from STATE.OUT")')
@@ -82,6 +84,8 @@ subroutine scf_cycle(verbosity)
         write (60, *)
         Call flushifc (60)
     end if
+
+    call MTNullify(mt_hscf)
 
 !_____________________________
 ! convergence vectors
@@ -821,5 +825,6 @@ call timesec(tb)
       call genxsLOs()
     end if
 
+    call MTRelease(mt_hscf)
     Return
 end subroutine

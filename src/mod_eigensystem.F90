@@ -143,6 +143,49 @@ Contains
 !
 !
 !BOP
+! !FUNCTION: MaxAPWs
+! !INTERFACE:
+!
+!
+      integer Function MaxAPWs() 
+! !USES:
+      Use modinput
+      Use mod_APW_LO
+      Use mod_atoms
+      Use mod_muffin_tin
+! !DESCRIPTION:
+! Finds the maximum number of APWs across all muffin-tins.
+!
+! !REVISION HISTORY:
+!   Created January 2021 (Andris)
+!EOP
+!BOC
+      Implicit None
+      Type (MTHamiltonianList) :: mt_h
+      integer ::  io, if1, l, m, lm, maxsize, is, ias
+
+      maxsize = 0
+      Do is = 1, nspecies
+        if1 = 0
+        Do l = 0, input%groundstate%lmaxmat
+          Do m = - l, l
+            lm = idxlm (l, m)
+            Do io = 1, apword (l, is)
+              if1=if1+1
+            End Do
+          End Do
+        End Do
+        maxsize=max(if1,maxsize)
+      Enddo
+
+      MaxAPWs = maxsize
+
+      end function MaxAPWs
+
+!
+!
+!
+!BOP
 ! !ROUTINE: MTInitAll
 ! !INTERFACE:
 !
@@ -162,23 +205,10 @@ Contains
 !BOC
       Implicit None
       Type (MTHamiltonianList) :: mt_h
-      integer ::  io, ilo, if1, l, m, lm, l1, m1, lm1, l3, m3, lm3, haaijsize, is, ias
+      integer ::  io, ilo, if1, l, m, lm, l1, m1, lm1, l3, m3, lm3, is, ias
+!      integer, external :: MaxAPWs
 
-      haaijSize=0
-      Do is = 1, nspecies
-        if1=0
-        Do l = 0, input%groundstate%lmaxmat
-          Do m = - l, l
-            lm = idxlm (l, m)
-            Do io = 1, apword (l, is)
-              if1=if1+1
-            End Do
-          End Do
-        End Do
-        if (if1.gt.haaijSize) haaijSize=if1
-      Enddo
-      mt_h%maxaa=haaijSize
-
+      mt_h%maxaa=MaxAPWs() 
 
       if (allocated(mt_h%losize)) deallocate(mt_h%losize)
       allocate(mt_h%losize(nspecies))

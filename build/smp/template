@@ -4,7 +4,7 @@ include ../libraries.inc
 FC = $(F90)  
 FFLAGS = $(F90_OPTS) $(CPP_ON_OPTS) $(SMPF90_OPTS) -Ifinclude $(INCL)
 LD = $(FC)
-LDFLAGS = $(INCL) $(SMPF90_OPTS) $(LIBS) $(SMP_LIBS) $(INTERNALLIBS)
+LDFLAGS = $(INCL) $(SMPF90_OPTS) $(INTERNALLIBS) $(LIBS) $(SMP_LIBS) 
 TMPFILES = *.mod
 SUFFIX=smp
 
