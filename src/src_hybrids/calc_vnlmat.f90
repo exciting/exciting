@@ -46,6 +46,7 @@ subroutine calc_vnlmat
     apwalm = zzero
     allocate(evec(nmatmax,nstfv))
     evec = zzero
+    haaijSize = MaxAPWs()
 
     do ik = ikfirst, iklast
 
@@ -56,10 +57,7 @@ subroutine calc_vnlmat
         ! Hamiltonian and overlap setup
         nmatp = nmat(1,ik)
         call newsystem(system,input%groundstate%solver%packedmatrixstorage,nmatp)
-        call MTRedirect(mt_hscf%main,mt_hscf%spinless)
-        call hamiltonsetup(system, ngk(1, ik), apwalm, igkig(:, 1, ik), vgkc(:,:,1,ik))
         call overlapsetup(system, ngk(1, ik), apwalm, igkig(:, 1, ik), vgkc(:,:,1,ik))
-        !write(*,*) 'overlap=', ik, sum(system%overlap%za)
 
         ! c
         call getevecfv(vkl(:,ik), vgkl(:,:,:,ik), evec)

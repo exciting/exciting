@@ -13,7 +13,7 @@ include ../../build/make.inc
 #-------------------------------------------------------------------------------
 # File dependencies
 #-------------------------------------------------------------------------------
-SRC = lbfgsb.f blas.f linpack.f timer.f
+SRC = lbfgsb.f linpack.f timer.f
 
 OBJ = $(SRC:.f=.o)
 

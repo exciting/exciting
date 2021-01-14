@@ -177,7 +177,7 @@ Subroutine forcek (ik, ffacg)
                      ngk (ispn, ik), &           ! N ... cols of op( B ) = cols of C
                      maxaa, &          ! K ... cols of op( A ) = rows of op( B )
                      viens, &          ! alpha
-                     mt_hscf%main%aa(1,1,ias), &           ! A
+                     mt_hscf%main%loa(1,1,ias), &           ! A
                      maxnlo,&           ! LDA ... leading dimension of A
                      apwi, &           ! B
                      maxaa, &          ! LDB ... leading dimension of B

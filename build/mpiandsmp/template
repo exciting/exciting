@@ -7,7 +7,7 @@ LD = $(FC)
 
 # For linking, should only require SMP options, as this contains the openMP
 # flag -fopenmp (-qopenmp) which links -lgomp (-liomp5 -lpthread) for gfortran (Intel)
-LDFLAGS = $(INCL) $(SMPF90_OPTS) $(LIBS) $(MPI_LIBS) $(SMP_LIBS) $(INTERNALLIBS)
+LDFLAGS = $(INCL) $(SMPF90_OPTS) $(INTERNALLIBS) $(LIBS) $(MPI_LIBS) $(SMP_LIBS) 
 
 TMPFILES = *.mod
 SUFFIX=mpismp

@@ -33,6 +33,8 @@ Subroutine hybrids
     Real (8), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
     Real (8), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
     logical :: exist
+    Type (apw_lo_basis_type) :: mt_basis
+
 
 !! TIME - Initialisation segment
     call timesec(tsg0)
@@ -187,8 +189,6 @@ Subroutine hybrids
         ! step 2: Read hybrid density and potential and get prepared for scf_cycle() + task=7
         call readstate()
         call readfermi()
-        call hmlint()
-        call genmeffig()
 
       case default
         stop 'ERROR(hybrids): Not supported task!'

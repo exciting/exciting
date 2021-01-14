@@ -4,6 +4,6 @@ include ../libraries.inc
 FC = $(F90)
 FFLAGS = $(F90_OPTS) $(CPP_ON_OPTS) -I./finclude $(INCL)
 LD = $(FC)
-LDFLAGS = $(INCL) $(LIBS) $(INTERNALLIBS)
+LDFLAGS = $(INCL) $(INTERNALLIBS) $(LIBS) 
 TMPFILES = *.mod
 SUFFIX=ser
