@@ -1,46 +1,25 @@
-image: gitdocker.physik.hu-berlin.de/irz-admin/packages/debian:latest
-
-before_script:
-  - mkdir -p /mnt && mount global.physik.hu-berlin.de:/globaldisk/AMD64 /mnt
-#  - apt-get update -qq && apt-get install -y -qq gfortran libopenmpi3
-
 stages:
   - build
 #  - test
-#  - manual 
 
-build-intel2019-mpi:
+build-debian-buster-GCC8-mpiandsmp:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8
   stage: build
+  # Tags assign the gitlab runners. 
   tags: 
-    - intel2019
+    - docker
   script:
-    - module load intel/2019
-    - cp build/platforms/make.inc.ifort build/make.inc 
-    - make mpi 
+    - cp build/platforms/make.inc.gfortran build/make.inc 
+    - make mpiandsmp
+  allow_failure: false
 
-
-# TODO(Alex) Issue #16 Implement Continuous Integration
-# Would prefer to use Docker but need this ASAP 
-
-# Add other builds once the above works 
-
-# build-gcc8-openmpi3
-#   stage: build
-#   tags: 
-#     - gcc8
-#   script:
-#     - sh ci/build-gcc8-openmpi3.sh  
-
-# build-gcc8-serial 
-#   stage: build
-#   tags: 
-#     - gcc8
-#   script:
-#     - sh ci/build-gcc8-serial.sh  
-
-# build-intel2019-serial
-#   stage: build
-#   tags: 
-#     - intel2019
-#   script:
-#     - sh ci/build-intel2019-serial.sh 
+#build-debian-buster-Intel2021-mpiandsmp:
+#image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-intel2021
+#stage: build
+#tags: 
+#  - docker
+#script:
+#  - cp build/platforms/make.inc.ifort build/make.inc
+#  - source /opt/intel/oneapi/setvars.sh
+#  - make mpiandsmp
+#allow_failure: true
