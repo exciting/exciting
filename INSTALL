@@ -1,11 +1,11 @@
 ==================
-Compiling Exciting
+Compiling exciting
 ==================
 
 Requirements
 ------------------
 
-Exciting comes with all the dependencies required to compile the code in serial.
+exciting comes with all the dependencies required to compile the code in serial.
 These include:
 
         FoX XML library for parsing the input
@@ -39,18 +39,66 @@ The code can then be built by typing:
 
   make 
 
-in the EXCITING root directory. By default, the serial and mpiandsmp versions of EXCITING
+in the exciting root directory. By default, the serial and mpiandsmp versions of exciting
 are built, where mpiandsmp refers to a binary with both MPI and openMP parallelism enabled.
+Pure MPI and SMP builds are also possible by typing:
 
-Note that if compiling with GCC 10, one should append the F90_OPTS with -fallow-argument-mismatch
-See build/make.inc.gfortran and https://gcc.gnu.org/gcc-10/porting_to.html for more details. 
+  make mpi
 
-The auxiliary programs include "spacegroup" for producing crystal geometries
+and
+
+  make smp
+
+respectively. Debug builds are available for the serial and mpiandsmp builds, by typing:
+
+  make debug
+
+or
+
+  make debugmpiandsmp
+
+respectively. The test suite can be run by typing:
+
+  make test
+
+For a full list of build options, one may consult the Makefile in the root directory. 
+Auxiliary programs include "spacegroup" for producing crystal geometries
 from spacegroup data, "species" for generating species files, and "eos" for
 fitting equations of state to energy-volume data.
 
-For a full list of build options, one may consult the Makefile in the root directory. 
+Please note that in order to use: 
 
-EXCITING is updated regularly with new features and bug fixes. This release may
-be used for limited production but please check the consistency of the results
-carefully.
+  make clean
+
+a make.inc file must be present in the build directory. 
+
+
+Compiler Support
+------------------
+
+exciting requires an F2008-compliant compiler. exciting is known to compile with:
+
+  Intel ifort: 2015, 2016, 2017, 2019, 2021
+  GCC gfortran: 7, 8, 9, 10
+  
+
+Known Issues
+------------------
+
+Intel 2018
+Compilation is known to fail at src_lib/mod_manopt.f90 with the error:
+
+   catastrophic error: **Internal compiler error: segmentation violation signal raised** 
+
+This is likely caused by a bug in the 2018 version of the ifort compiler.
+
+GCC 10
+If compiling with GCC 10, one should append the F90_OPTS and F90_DEBUGOPTS variables in
+make.inc with `-fallow-argument-mismatch`. See:
+
+  https://gcc.gnu.org/gcc-10/porting_to.html
+
+for more details.
+
+
+

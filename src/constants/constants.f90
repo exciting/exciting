@@ -57,17 +57,19 @@ module constants
 
   !> Pauli spin matrix, $\sigma_y$
   !> \f[ sigma_y = ( 0 -i )  
-  !>               ( i  0 )  \f]  
-  complex(dp), public, parameter, dimension(2, 2) :: sigma_y = transpose(reshape(&
-     [(0._dp, 0._dp), (0._dp,-1._dp),   &
-      (0._dp, 1._dp), (0._dp, 0._dp) ], [2, 2]))        
+  !>               ( i  0 )  \f]
+  !> Note, fortran stores data columnwise hence the declaration.
+  !> Use of transpose would avoid this but breaks compatibility with Intel 2015 
+  complex(dp), public, parameter, dimension(2, 2) :: sigma_y = reshape(&
+     [(0._dp,  0._dp), (0._dp, 1._dp),   &
+      (0._dp, -1._dp), (0._dp, 0._dp) ], [2, 2])
 
   !> Pauli spin matrix, $\sigma_z$
   !> \f[ sigma_z = ( 1  0 )  
   !>               ( 0 -1 )  \f]    
-  complex(dp), public, parameter, dimension(2, 2) :: sigma_z = transpose(reshape(&
+  complex(dp), public, parameter, dimension(2, 2) :: sigma_z = reshape(&
     [(1._dp, 0._dp), ( 0._dp, 0._dp), &
-     (0._dp, 0._dp), (-1._dp, 0._dp)  ], [2, 2]))      
+     (0._dp, 0._dp), (-1._dp, 0._dp)  ], [2, 2])
     
   !> Pauli spin matrices
   ! Note, no nice constructor for 3D arrays 
