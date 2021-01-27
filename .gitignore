@@ -114,6 +114,8 @@ Makefile.libmsec
 Makefile.mkmf
 make.out
 
+build/make.inc
+
 # Ignore output/input files 
 info.xml
 *.OUT
