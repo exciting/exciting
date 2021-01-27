@@ -160,7 +160,7 @@ def timing_summary(timing:dict, verbose=False):
 
     times = [time for time in timing.values()]
     total_time = sum(times)
-    print('Total test suite time (mins) : %.1f' % total_time / 60.)
+    print('Total test suite time (mins) : %.1f' % (total_time / 60.))
 
     if verbose:
         avg_time = total_time / len(times)
