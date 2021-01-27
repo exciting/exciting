@@ -1,0 +1,8 @@
+# macroscopic polarization in cartesian directions
+# the results are the shortest possible vectors obtained by subtracting multiple polarization quanta
+# total polarization
+   0.2177054503940681E-003   0.2177013320093647E-003   0.2176969971143310E-003
+# electronic polarization
+   0.2177054503940704E-003   0.2177013320093669E-003   0.2176969971143333E-003
+# ionic polarization
+    0.000000000000000         0.000000000000000         0.000000000000000     

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mossbauer>
+  <species n="1" chemicalSymbol="">
+    <atom n="1" approxNucRad="6.980606750263e-5" numOfMeshPtsToNucRad="6" contactChargeDensity="1.886478356136e3"/>
+    <atom n="2" approxNucRad="6.980606750263e-5" numOfMeshPtsToNucRad="6" contactChargeDensity="1.886478356136e3"/>
+  </species>
+</mossbauer>

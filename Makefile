@@ -32,8 +32,22 @@ debug:
 debugmpiandsmp:
 	cd build/debugmpiandsmp; $(MAKE)
 
-test::
-	cd test/; $(MAKE) summary
+# Run application test suite:
+# TODO(Bene): make test should run executables of the build. 
+test ::
+	cd test/; $(MAKE)
+
+test_mpi ::
+	cd test/; $(MAKE) mpi
+
+test_mpiandsmp ::
+	cd test/; $(MAKE) mpiandsmp
+
+test_reference ::
+	cd test/; $(MAKE) refernce
+
+cleantests ::
+	cd test/; $(MAKE) cleantests
 
 doc: inputdoc split_inputdoc speciesdoc
 #TODO(Sebastian) Issue #15. Fix documentation compilation for subroutines 
@@ -118,6 +132,7 @@ clean:
 	rm -f docs/exciting/*
 	rm -f docs/spacegroup/*
 	cd test; $(MAKE) cleantests
+
 
 libxcclean:
 	cd src/libXC && make clean

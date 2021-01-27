@@ -1,0 +1,104 @@
+ 
+Number of elements in symmetry group    :     48
+Number of generators for symmetry group :     25
+ 
+generating element:  31 , number of elemnts in orbit:   6
+ (orbit of generator below)
+  31  13  48  18  36   1
+ 
+generating element:  14 , number of elemnts in orbit:   6
+ (orbit of generator below)
+  14  23  48  35  26   1
+ 
+generating element:  24 , number of elemnts in orbit:   6
+ (orbit of generator below)
+  24  12  48  25  37   1
+ 
+generating element:  11 , number of elemnts in orbit:   6
+ (orbit of generator below)
+  11  32  48  38  17   1
+ 
+generating element:  15 , number of elemnts in orbit:   4
+ (orbit of generator below)
+  15   2  33   1
+ 
+generating element:  29 , number of elemnts in orbit:   4
+ (orbit of generator below)
+  29   7  22   1
+ 
+generating element:  27 , number of elemnts in orbit:   4
+ (orbit of generator below)
+  27   7  20   1
+ 
+generating element:  45 , number of elemnts in orbit:   4
+ (orbit of generator below)
+  45  41  44   1
+ 
+generating element:   5 , number of elemnts in orbit:   4
+ (orbit of generator below)
+   5  41   4   1
+ 
+generating element:  34 , number of elemnts in orbit:   4
+ (orbit of generator below)
+  34   2  16   1
+ 
+generating element:  28 , number of elemnts in orbit:   2
+ (orbit of generator below)
+  28   1
+ 
+generating element:  30 , number of elemnts in orbit:   2
+ (orbit of generator below)
+  30   1
+ 
+generating element:  10 , number of elemnts in orbit:   2
+ (orbit of generator below)
+  10   1
+ 
+generating element:  21 , number of elemnts in orbit:   2
+ (orbit of generator below)
+  21   1
+ 
+generating element:   3 , number of elemnts in orbit:   2
+ (orbit of generator below)
+   3   1
+ 
+generating element:  46 , number of elemnts in orbit:   2
+ (orbit of generator below)
+  46   1
+ 
+generating element:  40 , number of elemnts in orbit:   2
+ (orbit of generator below)
+  40   1
+ 
+generating element:  42 , number of elemnts in orbit:   2
+ (orbit of generator below)
+  42   1
+ 
+generating element:  43 , number of elemnts in orbit:   2
+ (orbit of generator below)
+  43   1
+ 
+generating element:  47 , number of elemnts in orbit:   2
+ (orbit of generator below)
+  47   1
+ 
+generating element:   6 , number of elemnts in orbit:   2
+ (orbit of generator below)
+   6   1
+ 
+generating element:   8 , number of elemnts in orbit:   2
+ (orbit of generator below)
+   8   1
+ 
+generating element:   9 , number of elemnts in orbit:   2
+ (orbit of generator below)
+   9   1
+ 
+generating element:  19 , number of elemnts in orbit:   2
+ (orbit of generator below)
+  19   1
+ 
+generating element:  39 , number of elemnts in orbit:   2
+ (orbit of generator below)
+  39   1
+ 

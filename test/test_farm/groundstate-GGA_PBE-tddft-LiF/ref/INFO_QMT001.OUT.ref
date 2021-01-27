@@ -1,0 +1,190 @@
+================================================================================
+| EXCITING NITROGEN-14 started                                                 =
+| version hash id: 1775bff4453c84689fb848894a9224f155377cfc                    =
+|                                                                              =
+|                                                                              =
+| Date (DD-MM-YYYY) : 10-12-2020                                               =
+| Time (hh:mm:ss)   : 20:00:10                                                 =
+|                                                                              =
+| All units are atomic (Hartree, Bohr, etc.)                                   =
+================================================================================
+ 
+********************************************************************************
+* Ground-state run resuming from STATE.OUT                                     *
+********************************************************************************
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Starting initialization                                                      +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 
+ Lattice vectors (cartesian) :
+      3.8040200000      3.8040200000      0.0000000000
+      3.8040200000      0.0000000000      3.8040200000
+      0.0000000000      3.8040200000      3.8040200000
+ 
+ Reciprocal lattice vectors (cartesian) :
+      0.8258612346      0.8258612346     -0.8258612346
+      0.8258612346     -0.8258612346      0.8258612346
+     -0.8258612346      0.8258612346      0.8258612346
+ 
+ Unit cell volume                           :     110.0926613870
+ Brillouin zone volume                      :       2.2531039791
+ 
+ Species :    1 (Li)
+     parameters loaded from                 :    Li.xml
+     name                                   :    lithium
+     nuclear charge                         :      -3.00000000
+     electronic charge                      :       3.00000000
+     atomic mass                            :   12652.66897000
+     muffin-tin radius                      :       1.70000000
+     # of radial points in muffin-tin       :     250
+ 
+     atomic positions (lattice) :
+       1 :   0.00000000  0.00000000  0.00000000
+ 
+ Species :    2 (F)
+     parameters loaded from                 :    F.xml
+     name                                   :    fluorine
+     nuclear charge                         :      -9.00000000
+     electronic charge                      :       9.00000000
+     atomic mass                            :   34631.97043000
+     muffin-tin radius                      :       1.45000000
+     # of radial points in muffin-tin       :     250
+ 
+     atomic positions (lattice) :
+       1 :   0.50000000  0.50000000  0.50000000
+ 
+ Total number of atoms per unit cell        :       2
+ 
+ Spin treatment                             :    spin-unpolarised
+ 
+ Number of Bravais lattice symmetries       :       1
+ Number of crystal symmetries               :       1
+ 
+ k-point grid                               :       3    3    3
+ k-point offset :       0.050000  0.150000  0.250000
+ Total number of k-points                   :      27
+ k-point set is not reduced
+ 
+ R^MT_min * |G+k|_max (rgkmax)              :       7.00000000
+ Species with R^MT_min                      :       2 (F)
+ Maximum |G+k| for APW functions            :       4.82758621
+ Maximum |G| for potential and density      :      12.00000000
+ Polynomial order for pseudochg. density    :       9
+ 
+ G-vector grid sizes                        :      24    24    24
+ Total number of G-vectors                  :    3215
+ 
+ Maximum angular momentum used for
+     APW functions                          :       8
+     computing H and O matrix elements      :       8
+     potential and density                  :       8
+     inner part of muffin-tin               :       2
+ 
+ Total nuclear charge                       :     -12.00000000
+ Total electronic charge                    :      12.00000000
+ Total core charge                          :       2.00000000
+ Total valence charge                       :      10.00000000
+ 
+ Effective Wigner radius, r_s               :       1.29866212
+ 
+ Number of empty states                     :       1
+ Total number of valence states             :       7
+ 
+ Maximum Hamiltonian size                   :     221
+ Maximum number of plane-waves              :     215
+ Total number of local-orbitals             :       6
+ 
+ Exchange-correlation type                  :      20
+     Perdew-Burke-Ernzerhof, Phys. Rev. Lett. 77, 3865 (1996)
+     Generalised gradient approximation (GGA)
+ 
+ Smearing scheme                            :    Gaussian
+ Smearing width                             :       0.00100000
+ 
+ Using multisecant Broyden potential mixing
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Ending initialization                                                        +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 
+********************************************************************************
+* Groundstate module started                                                   *
+********************************************************************************
+ Output level for this task is set to high
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Self-consistent loop started                                                 +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Potential read in from STATE.OUT
+ 
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Reached self-consistent loops maximum :    1                                 +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :      -107.55740973
+ _______________________________________________________________
+ Fermi energy                               :         0.13309592
+ Kinetic energy                             :       107.36087207
+ Coulomb energy                             :      -202.55711016
+ Exchange energy                            :       -11.97109315
+ Correlation energy                         :        -0.39007848
+ Sum of eigenvalues                         :       -52.98435947
+ Effective potential energy                 :      -160.34523153
+ Coulomb potential energy                   :      -144.43838173
+ xc potential energy                        :       -15.90684980
+ Hartree energy                             :        30.69293618
+ Electron-nuclear energy                    :      -205.82425408
+ Nuclear-nuclear energy                     :       -27.42579226
+ Madelung energy                            :      -130.33791930
+ Core-electron kinetic energy               :         0.00000000
+ 
+ DOS at Fermi energy (states/Ha/cell)       :         0.00000000
+ 
+ Electron charges :
+     core                                   :         2.00000000
+     core leakage                           :         0.00000006
+     valence                                :        10.00000000
+     interstitial                           :         1.99916177
+     charge in muffin-tin spheres :
+                  atom     1    Li          :         2.14518781
+                  atom     2     F          :         7.85565043
+     total charge in muffin-tins            :        10.00083823
+     total charge                           :        12.00000000
+ 
+ Estimated fundamental gap                  :         0.34298398
+        valence-band maximum at    1      0.0167  0.0500  0.0833
+     conduction-band minimum at    1      0.0167  0.0500  0.0833
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Self-consistent loop stopped                                                 +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 
+********************************************************************************
+* Groundstate module stopped                                                   *
+********************************************************************************
+ 
+--------------------------------------------------------------------------------
+- Timings (seconds)                                                            -
+--------------------------------------------------------------------------------
+ Initialisation                             :         0.34
+ Hamiltonian and overlap matrix set up      :         0.18
+ First-variational secular equation         :         0.37
+ Calculation of charge-density              :         0.10
+ Calculation of potential                   :         0.19
+ Muffin-tin manipulations                   :         0.21
+ APW matching                               :         0.17
+ Disk reads/writes                          :         0.16
+ Mixing efforts                             :         0.00
+ Solver of Dirac eqn.                       :         0.11
+ Solver of rel. Schroedinger eqn.           :         0.17
+ Total time spent in radial solvers         :         0.28
+ 
+ Total time spent (seconds)                 :         1.63
+ 
+--------------------------------------------------------------------------------
+- CAUTION! Warnings have been written in file WARNING.OUT !                    -
+--------------------------------------------------------------------------------
+================================================================================
+| EXCITING NITROGEN-14 stopped                                                 =
+================================================================================

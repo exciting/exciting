@@ -15,7 +15,7 @@ module spintexture
 
   character(256), parameter :: fname = "spintext.xml"
   contains
-  subroutine calculate_spintexture
+  subroutine calculate_spintexture(band_min, band_max)
     ! !DESCRIPTION:
     !   Calculates the spintexture in a grid in the reciprocal space {\tt vclp2d}.
     !   The spintexture is obtained from the second-variational eigenvalues with SOC
@@ -39,11 +39,16 @@ module spintexture
     !EOP
     !BOC
     Implicit None
+  ! input/output
+    !> minimum and maximum band indices. Calculates spintextures in range band_min to band_max
+    Integer, intent(in) :: band_min, band_max 
   ! local variables
-    Integer :: ik, j, ist 
+    Integer :: ik, j, ist, nst 
     Complex (8)               :: sc1, sc2, sc3, zdotc
-  ! allocatable arrays
     Real    (8), Allocatable  :: stext (: ,: )
+    character(256) :: nstsv_str
+  ! allocatable arrays
+    
     Real    (8), Allocatable  :: evalfv (:, :)
     Complex (8), Allocatable  :: evecsv (:, :), evecfv (:, :, :)
     !
@@ -62,8 +67,27 @@ module spintexture
       end if
       call terminate
     end if
+    ! check band_min and band_max
+    if (band_min<1) then
+      if (rank==0) then
+        write(*,*)
+        write(*,*)'ERROR(spintexture): The lower bound of bands must be at least 1.'
+        write(*,*)
+      end if
+      call terminate
+    end if
+    if (band_max>nstsv) then
+      if (rank==0) then
+        write(*,*)
+        write (nstsv_str,*) nstsv
+        write(*,*)'ERROR(spintexture): The upper bound of bands cannot be greater than nstsv ('//trim(nstsv_str)//').'
+        write(*,*)
+      end if
+      call terminate
+    end if
 
-    Allocate (stext (3*nstsv, nkpt))
+    nst = (band_max-band_min+1)
+    Allocate (stext (3*nst, nkpt))
     if (allocated(evalsv)) deallocate(evalsv)
     allocate(evalsv(nstsv,nkpt))
     
@@ -130,33 +154,32 @@ module spintexture
         ! solve the first- and second-variational secular equations
       Call seceqn (ik, evalfv, evecfv, evecsv)
           ! calculate spin expectation values
-      Do ist = 1, nstsv
+      Do ist = band_min, band_max
         sc1 = zdotc(nstfv, evecsv(1:nstfv,ist), 1, evecsv(nstfv+1:nstsv,ist), 1)
         sc2 = zdotc(nstfv, evecsv(1:nstfv,ist), 1, evecsv(1:nstfv,ist), 1)
         sc3 = zdotc(nstfv, evecsv(nstfv+1:nstsv,ist), 1, evecsv(nstfv+1:nstsv,ist), 1)
         
-        stext((ist-1)*3+1, ik) =  2*dble(sc1)
-        stext((ist-1)*3+2, ik) = -2*imag(sc1)
-        stext((ist-1)*3+3, ik) =  dble(sc2-sc3)
+        stext((ist-band_min)*3+1, ik) =  2*dble(sc1)
+        stext((ist-band_min)*3+2, ik) = -2*imag(sc1)
+        stext((ist-band_min)*3+3, ik) =  dble(sc2-sc3)
       End Do !ist
       deallocate(evalfv, evecfv, evecsv)
     End Do !iki
     call MTRelease(mt_hscf)
     
 #ifdef MPI
-    Call mpi_allgatherv_ifc(nkpt, 3*nstsv, rbuf=stext)
+    Call mpi_allgatherv_ifc(nkpt, 3*nst, rbuf=stext)
     Call mpi_allgatherv_ifc(nkpt, nstsv, rbuf=evalsv)
 #endif
-
   If (rank==0) then
   !xml  
-    call write_spintexture_xml(fname, stext, evalsv)
+    call write_spintexture_xml(fname, stext, evalsv, band_min, band_max)
   End If
       
 
   End Subroutine calculate_spintexture
 
-  Subroutine write_spintexture_xml(fname, stext, eval)
+  Subroutine write_spintexture_xml(fname, stext, eval, band_min, band_max)
   ! ! DESCRIPTION:
     ! Writes spin texture to an xml file. 
     implicit none
@@ -164,26 +187,27 @@ module spintexture
     character(256), intent(in) :: fname
     Real(8), intent(in) :: stext (:,:)
     Real(8), intent(in) :: eval(:,:) 
+    integer, intent(in) :: band_min, band_max
     ! local variables:
-    Integer :: ist, ik, nstsv, nkpt, shape_stext(2)
+    Integer :: ist, ik, nst, nkpt, shape_stext(2)
     Real :: spinl(3)
     Type (xmlf_t), Save :: xf
 
     shape_stext = shape(stext)
-    nstsv = shape_stext(1)
+    nst = shape_stext(1)/3
     nkpt = shape_stext(2)
 
     Call xml_OpenFile (fname, xf, replace=.True., pretty_print=.True.)
         Call xml_NewElement(xf, "spintext")
-        Do ist = 1, nstsv
+        Do ist = 1, nst
           Call xml_NewElement(xf, "band")
-            Call xml_AddAttribute(xf, "ist", ist)
+            Call xml_AddAttribute(xf, "ist", ist+band_min-1)
           Do ik = 1, nkpt
               spinl(1) = stext((ist-1)*3+1, ik)
               spinl(2) = stext((ist-1)*3+2, ik)
               spinl(3) = stext((ist-1)*3+3, ik)
             Call xml_NewElement(xf, "k-point")
-              Call xml_AddAttribute(xf, "energy", (eval(ist, ik)-efermi)*27.2113966413079)
+              Call xml_AddAttribute(xf, "energy", (eval(ist+band_min-1, ik)-efermi)*27.2113966413079)
               Call xml_AddAttribute(xf, "vec", vkc (:, ik))
               Call xml_AddAttribute(xf, "spin", spinl (:))
             Call xml_EndElement(xf, "k-point")

@@ -1,0 +1,351 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="http://xml.exciting-code.org/info.xsl" type="text/xsl"?>
+<info date="2020-12-10" time="19:58:42" versionhash="1775bff4453c84689fb848894a9224f155377cfc" title="Si crystal">
+  <groundstate status="finished">
+    <scl>
+      <iter iteration="1" rms="6.081088578608783E-002" rmslog10="-1.21601867050" deltae="1266.29000161803" deltaelog10="3.10253317778" chgdst="1.633266952080871E-002" chgdstlog10="-1.78694282547" fermidos="62.8845875582">
+        <energies totalEnergy="-1266.29000162" fermiEnergy="0.357204875289" sum-of-eigenvalues="-733.406038929" electronic-kinetic="1289.24692991" core-electron-kinetic="0.00000000000" Coulomb="-2502.05734293" Coulomb-potential="-1951.91248829" nuclear-nuclear="-179.185065326" electron-nuclear="-2693.83206693" Hartree="370.959789321" Madelung="-1526.10109879" xc-potential="-70.7155299430" xc-effective-B-field="-0.177494767942E-01" external-B-field="0.00000000000" exchange="-51.2587037290" correlation="-2.22088486102"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1134203842E-10" valence="16.00000000" interstitial="1.417287398" muffin-tin-total="24.58271260">
+          <atom species="Fe" muffin-tin="24.58271260"/>
+        </charges>
+        <timing timetot="1.60501194000" timeinit="0.723331928253" timemat="0.214049816132E-01" timefv="0.382838249207E-01" timesv="0.575752258301E-01" timerho="0.166322946548" timepot="0.598093032837" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-2.00000021822"/>
+          <interstitial x="-0.286584981966E-01"/>
+          <mommttot x="-1.97134172002"/>
+          <atom species="Fe">
+            <mommt x="-1.97134172002"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="2" rms="2.880538283356332E-002" rmslog10="-1.54052634847" deltae="3.17153838225613" deltaelog10="0.501269971638" chgdst="9.327204395200754E-003" chgdstlog10="-2.03024850606" fermidos="89.7938974194">
+        <energies totalEnergy="-1269.46154000" fermiEnergy="0.335825072222" sum-of-eigenvalues="-734.406170797" electronic-kinetic="1287.78042853" core-electron-kinetic="0.00000000000" Coulomb="-2503.64398092" Coulomb-potential="-1951.25152562" nuclear-nuclear="-179.185065326" electron-nuclear="-2697.66630557" Hartree="373.207389974" Madelung="-1528.01821811" xc-potential="-70.9207671372" xc-effective-B-field="-0.139118781396E-01" external-B-field="0.00000000000" exchange="-51.3690644154" correlation="-2.22892319236"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1110045389E-10" valence="16.00000000" interstitial="1.349329524" muffin-tin-total="24.65067048">
+          <atom species="Fe" muffin-tin="24.65067048"/>
+        </charges>
+        <timing itertime="1.94189786911" timetot="2.39218974113" timeinit="0.723331928253" timemat="0.796535015106E-01" timefv="0.763912200928E-01" timesv="0.157364845276" timerho="0.502134084702" timepot="0.853314161301" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-1.08944123406"/>
+          <interstitial x="-0.896131374977E-02"/>
+          <mommttot x="-1.08047992031"/>
+          <atom species="Fe">
+            <mommt x="-1.08047992031"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="3" rms="2.072840351260790E-002" rmslog10="-1.68343414568" deltae="0.684365628158503" deltaelog10="-0.164711810756" chgdst="1.760356362897567E-003" chgdstlog10="-2.75439940561" fermidos="97.1189533438">
+        <energies totalEnergy="-1270.14590563" fermiEnergy="0.326507029020" sum-of-eigenvalues="-734.698835126" electronic-kinetic="1287.41188568" core-electron-kinetic="0.00000000000" Coulomb="-2503.93295716" Coulomb-potential="-1951.11761786" nuclear-nuclear="-179.185065326" electron-nuclear="-2698.37816581" Hartree="373.630273974" Madelung="-1528.37414823" xc-potential="-70.9564827261" xc-effective-B-field="-0.365812927185E-01" external-B-field="0.00000000000" exchange="-51.3951253817" correlation="-2.22970876886"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1105959768E-10" valence="16.00000000" interstitial="1.336914138" muffin-tin-total="24.66308586">
+          <atom species="Fe" muffin-tin="24.66308586"/>
+        </charges>
+        <timing itertime="1.95465993881" timetot="3.06682562828" timeinit="0.723331928253" timemat="0.114621400833" timefv="0.155063629150" timesv="0.245403289795" timerho="0.713012456894" timepot="1.11539292336" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-1.07079893007"/>
+          <interstitial x="-0.509036527077E-02"/>
+          <mommttot x="-1.06570856480"/>
+          <atom species="Fe">
+            <mommt x="-1.06570856480"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="4" rms="1.187916869152863E-003" rmslog10="-2.92521395037" deltae="0.371823087698431" deltaelog10="-0.429663646977" chgdst="1.754634705812235E-003" chgdstlog10="-2.75581328476" fermidos="137.268418017">
+        <energies totalEnergy="-1270.51772872" fermiEnergy="0.312829727061" sum-of-eigenvalues="-735.056091115" electronic-kinetic="1287.05379888" core-electron-kinetic="0.00000000000" Coulomb="-2503.92278164" Coulomb-potential="-1951.09629369" nuclear-nuclear="-179.185065326" electron-nuclear="-2698.37913894" Hartree="373.641422625" Madelung="-1528.37463480" xc-potential="-70.9421981731" xc-effective-B-field="-0.713912026965E-01" external-B-field="0.00000000000" exchange="-51.4226929893" correlation="-2.22605296676"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1109334846E-10" valence="16.00000000" interstitial="1.339083777" muffin-tin-total="24.66091622">
+          <atom species="Fe" muffin-tin="24.66091622"/>
+        </charges>
+        <timing itertime="1.86680197716" timetot="3.78635358810" timeinit="0.723331928253" timemat="0.204074621201" timefv="0.193163871765" timesv="0.364503383636" timerho="0.898620843887" timepot="1.40265893936" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-1.89021041278"/>
+          <interstitial x="0.719518041428E-02"/>
+          <mommttot x="-1.89740559320"/>
+          <atom species="Fe">
+            <mommt x="-1.89740559320"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="5" rms="1.577611500408724E-003" rmslog10="-2.80199993649" deltae="0.163892872691349" deltaelog10="-0.785439932446" chgdst="1.188506824640185E-003" chgdstlog10="-2.92499832012" fermidos="46.7669411339">
+        <energies totalEnergy="-1270.68162159" fermiEnergy="0.308290640370" sum-of-eigenvalues="-735.074700752" electronic-kinetic="1286.99832405" core-electron-kinetic="0.00000000000" Coulomb="-2504.01662354" Coulomb-potential="-1951.03109007" nuclear-nuclear="-179.185065326" electron-nuclear="-2698.63202635" Hartree="373.800468136" Madelung="-1528.50107850" xc-potential="-70.9526521521" xc-effective-B-field="-0.892818459078E-01" external-B-field="0.00000000000" exchange="-51.4376655367" correlation="-2.22565657175"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1108269032E-10" valence="16.00000000" interstitial="1.334437682" muffin-tin-total="24.66556232">
+          <atom species="Fe" muffin-tin="24.66556232"/>
+        </charges>
+        <timing itertime="1.91425609589" timetot="4.62408733368" timeinit="0.723331928253" timemat="0.238892078400" timefv="0.263704776764" timesv="0.448647499084" timerho="1.28236007690" timepot="1.66715097427" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-1.99999970435"/>
+          <interstitial x="0.164056616140E-01"/>
+          <mommttot x="-2.01640536597"/>
+          <atom species="Fe">
+            <mommt x="-2.01640536597"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="6" rms="5.250966579701833E-004" rmslog10="-3.27976074581" deltae="0.138088481916157" deltaelog10="-0.859842544802" chgdst="4.028101869470836E-004" chgdstlog10="-3.39489955480" fermidos="82.0371178156">
+        <energies totalEnergy="-1270.54353311" fermiEnergy="0.306860007764" sum-of-eigenvalues="-735.005758368" electronic-kinetic="1287.07544143" core-electron-kinetic="0.00000000000" Coulomb="-2503.95429213" Coulomb-potential="-1951.04639830" nuclear-nuclear="-179.185065326" electron-nuclear="-2698.49205530" Hartree="373.722828501" Madelung="-1528.43109298" xc-potential="-70.9422182295" xc-effective-B-field="-0.925831926506E-01" external-B-field="0.00000000000" exchange="-51.4401223196" correlation="-2.22456009359"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1109512482E-10" valence="16.00000000" interstitial="1.336990964" muffin-tin-total="24.66300904">
+          <atom species="Fe" muffin-tin="24.66300904"/>
+        </charges>
+        <timing itertime="1.64362001419" timetot="5.20084619522" timeinit="0.723331928253" timemat="0.266791820526" timefv="0.302559852600" timesv="0.526632308960" timerho="1.44789433479" timepot="1.93363595009" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-2.15034476116"/>
+          <interstitial x="0.267692405764E-01"/>
+          <mommttot x="-2.17711400173"/>
+          <atom species="Fe">
+            <mommt x="-2.17711400173"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="7" rms="1.096807518077974E-003" rmslog10="-2.95986958133" deltae="4.527764492559072E-002" deltaelog10="-1.34411617065" chgdst="3.125094614326432E-004" chgdstlog10="-3.50513682957" fermidos="74.0721518911">
+        <energies totalEnergy="-1270.49825546" fermiEnergy="0.306194969750" sum-of-eigenvalues="-735.017424195" electronic-kinetic="1287.08223444" core-electron-kinetic="0.00000000000" Coulomb="-2503.92297177" Coulomb-potential="-1951.07466121" nuclear-nuclear="-179.185065326" electron-nuclear="-2698.40115169" Hartree="373.663245240" Madelung="-1528.38564117" xc-potential="-70.9393486929" xc-effective-B-field="-0.856487242684E-01" external-B-field="0.00000000000" exchange="-51.4325424250" correlation="-2.22497570017"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1109157211E-10" valence="16.00000000" interstitial="1.338718961" muffin-tin-total="24.66128104">
+          <atom species="Fe" muffin-tin="24.66128104"/>
+        </charges>
+        <timing itertime="1.84143495560" timetot="5.95960664749" timeinit="0.723331928253" timemat="0.298908948898" timefv="0.340640306473" timesv="0.631781816483" timerho="1.71952676773" timepot="2.24541687965" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-2.05882979539"/>
+          <interstitial x="0.282444567589E-01"/>
+          <mommttot x="-2.08707425215"/>
+          <atom species="Fe">
+            <mommt x="-2.08707425215"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="8" rms="8.282703319952310E-004" rmslog10="-3.08182789446" deltae="2.093146081938357E-002" deltaelog10="-1.67920046093" chgdst="1.156191997559285E-004" chgdstlog10="-3.93697004087" fermidos="47.1831493911">
+        <energies totalEnergy="-1270.51918692" fermiEnergy="0.306284786526" sum-of-eigenvalues="-735.036590873" electronic-kinetic="1287.06358244" core-electron-kinetic="0.00000000000" Coulomb="-2503.92749907" Coulomb-potential="-1951.08057751" nuclear-nuclear="-179.185065326" electron-nuclear="-2698.40428998" Hartree="373.661856236" Madelung="-1528.38721032" xc-potential="-70.9406553677" xc-effective-B-field="-0.789404289265E-01" external-B-field="0.00000000000" exchange="-51.4299586718" correlation="-2.22531161319"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1108269032E-10" valence="16.00000000" interstitial="1.338585948" muffin-tin-total="24.66141405">
+          <atom species="Fe" muffin-tin="24.66141405"/>
+        </charges>
+        <timing itertime="1.67643404007" timetot="6.58682155609" timeinit="0.723331928253" timemat="0.320018768311" timefv="0.378768205643" timesv="0.689838886261" timerho="1.89851570129" timepot="2.57634806633" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-2.00003062001"/>
+          <interstitial x="0.273263948170E-01"/>
+          <mommttot x="-2.02735701483"/>
+          <atom species="Fe">
+            <mommt x="-2.02735701483"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="9" rms="1.338731994336932E-003" rmslog10="-2.87330635729" deltae="0.155213764728614" deltaelog10="-0.809069767095" chgdst="5.164407427140408E-004" chgdstlog10="-3.28697950297" fermidos="46.5952412408">
+        <energies totalEnergy="-1270.67440069" fermiEnergy="0.307616446979" sum-of-eigenvalues="-735.072745456" electronic-kinetic="1286.99856808" core-electron-kinetic="0.00000000000" Coulomb="-2504.01011001" Coulomb-potential="-1951.03774063" nuclear-nuclear="-179.185065326" electron-nuclear="-2698.61234873" Hartree="373.787304049" Madelung="-1528.49123969" xc-potential="-70.9513123488" xc-effective-B-field="-0.822605569398E-01" external-B-field="0.00000000000" exchange="-51.4372789242" correlation="-2.22557983787"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1105604497E-10" valence="16.00000000" interstitial="1.335010621" muffin-tin-total="24.66498938">
+          <atom species="Fe" muffin-tin="24.66498938"/>
+        </charges>
+        <timing itertime="1.91333603859" timetot="7.36870574951" timeinit="0.723331928253" timemat="0.388180732727" timefv="0.416651487350" timesv="0.781406164169" timerho="2.08686304092" timepot="2.97227239609" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-2.00000006603"/>
+          <interstitial x="0.219211615635E-01"/>
+          <mommttot x="-2.02192122759"/>
+          <atom species="Fe">
+            <mommt x="-2.02192122759"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="10" rms="3.783400192290291E-004" rmslog10="-3.42211771842" deltae="0.124756520821393" deltaelog10="-0.903936745242" chgdst="4.066735842355367E-004" chgdstlog10="-3.39075403658" fermidos="46.9966025123">
+        <energies totalEnergy="-1270.54964417" fermiEnergy="0.306548251974" sum-of-eigenvalues="-735.044127308" electronic-kinetic="1287.05146327" core-electron-kinetic="0.00000000000" Coulomb="-2503.94424757" Coulomb-potential="-1951.07141386" nuclear-nuclear="-179.185065326" electron-nuclear="-2698.44695063" Hartree="373.687768387" Madelung="-1528.40854064" xc-potential="-70.9428670961" xc-effective-B-field="-0.813096250493E-01" external-B-field="0.00000000000" exchange="-51.4314930176" correlation="-2.22536684868"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1108269032E-10" valence="16.00000000" interstitial="1.337756771" muffin-tin-total="24.66224323">
+          <atom species="Fe" muffin-tin="24.66224323"/>
+        </charges>
+        <timing itertime="1.82425308228" timetot="8.11094927788" timeinit="0.723331928253" timemat="0.423562049866" timefv="0.478872776031" timesv="0.867666244507" timerho="2.37762594223" timepot="3.23989033699" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-2.00000024717"/>
+          <interstitial x="0.263309422876E-01"/>
+          <mommttot x="-2.02633118946"/>
+          <atom species="Fe">
+            <mommt x="-2.02633118946"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="11" rms="8.888578586944187E-005" rmslog10="-4.05116768348" deltae="3.327105948892495E-002" deltaelog10="-1.47793336917" chgdst="1.074746233362847E-004" chgdstlog10="-3.96869406827" fermidos="46.8870222768">
+        <energies totalEnergy="-1270.58291523" fermiEnergy="0.306914266712" sum-of-eigenvalues="-735.052416092" electronic-kinetic="1287.03709362" core-electron-kinetic="0.00000000000" Coulomb="-2503.96158954" Coulomb-potential="-1951.06281442" nuclear-nuclear="-179.185065326" electron-nuclear="-2698.49023400" Hartree="373.713709790" Madelung="-1528.43018233" xc-potential="-70.9451050909" xc-effective-B-field="-0.815902013018E-01" external-B-field="0.00000000000" exchange="-51.4329930343" correlation="-2.22542627600"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1107380854E-10" valence="16.00000000" interstitial="1.336951676" muffin-tin-total="24.66304832">
+          <atom species="Fe" muffin-tin="24.66304832"/>
+        </charges>
+        <timing itertime="2.03613996506" timetot="9.28957629204" timeinit="0.723331928253" timemat="0.463130235672" timefv="0.532662630081" timesv="0.957056522369" timerho="2.58275532722" timepot="4.03063964844" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-1.99999993711"/>
+          <interstitial x="0.248391721788E-01"/>
+          <mommttot x="-2.02483910929"/>
+          <atom species="Fe">
+            <mommt x="-2.02483910929"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="12" rms="3.069458049053943E-005" rmslog10="-4.51293829784" deltae="8.175327831850154E-003" deltaelog10="-2.08749482305" chgdst="2.765409055641012E-005" chgdstlog10="-4.55824061934" fermidos="46.9258664485">
+        <energies totalEnergy="-1270.57473990" fermiEnergy="0.306779723489" sum-of-eigenvalues="-735.050548616" electronic-kinetic="1287.04055242" core-electron-kinetic="0.00000000000" Coulomb="-2503.95726369" Coulomb-potential="-1951.06505749" nuclear-nuclear="-179.185065326" electron-nuclear="-2698.47933925" Hartree="373.707140881" Madelung="-1528.42473495" xc-potential="-70.9445359852" xc-effective-B-field="-0.815075662126E-01" external-B-field="0.00000000000" exchange="-51.4326179903" correlation="-2.22541063531"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1109157211E-10" valence="16.00000000" interstitial="1.337161744" muffin-tin-total="24.66283826">
+          <atom species="Fe" muffin-tin="24.66283826"/>
+        </charges>
+        <timing itertime="1.67617201805" timetot="9.87698626518" timeinit="0.723331928253" timemat="0.485850095749" timefv="0.570713281631" timesv="1.01586151123" timerho="2.77441287041" timepot="4.30681657791" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-1.99999959289"/>
+          <interstitial x="0.252937021474E-01"/>
+          <mommttot x="-2.02529329504"/>
+          <atom species="Fe">
+            <mommt x="-2.02529329504"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="13" rms="1.201584736826192E-005" rmslog10="-4.92024559695" deltae="3.065216066488574E-003" deltaelog10="-2.51353890673" chgdst="1.035071280503134E-005" chgdstlog10="-4.98502974135" fermidos="46.9172858792">
+        <energies totalEnergy="-1270.57780511" fermiEnergy="0.306811465177" sum-of-eigenvalues="-735.051261436" electronic-kinetic="1287.03920228" core-electron-kinetic="0.00000000000" Coulomb="-2503.95883226" Coulomb-potential="-1951.06419523" nuclear-nuclear="-179.185065326" electron-nuclear="-2698.48333863" Hartree="373.709571701" Madelung="-1528.42673464" xc-potential="-70.9447453390" xc-effective-B-field="-0.815231512167E-01" external-B-field="0.00000000000" exchange="-51.4327589405" correlation="-2.22541620099"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1108624303E-10" valence="16.00000000" interstitial="1.337083170" muffin-tin-total="24.66291683">
+          <atom species="Fe" muffin-tin="24.66291683"/>
+        </charges>
+        <timing itertime="1.67015290260" timetot="10.4461257458" timeinit="0.723331928253" timemat="0.513809442520" timefv="0.610098600388" timesv="1.08046412468" timerho="2.94645214081" timepot="4.57196950912" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-1.99999986445"/>
+          <interstitial x="0.251620182463E-01"/>
+          <mommttot x="-2.02516188270"/>
+          <atom species="Fe">
+            <mommt x="-2.02516188270"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="14" rms="7.418887217815477E-007" rmslog10="-6.12966123103" deltae="8.293927651266131E-004" deltaelog10="-3.08123975735" chgdst="2.789463289253992E-006" chgdstlog10="-5.55447934975" fermidos="46.9194166802">
+        <energies totalEnergy="-1270.57697572" fermiEnergy="0.306804889751" sum-of-eigenvalues="-735.051073562" electronic-kinetic="1287.03957322" core-electron-kinetic="0.00000000000" Coulomb="-2503.95841365" Coulomb-potential="-1951.06443040" nuclear-nuclear="-179.185065326" electron-nuclear="-2698.48226624" Hartree="373.708917917" Madelung="-1528.42619844" xc-potential="-70.9446893896" xc-effective-B-field="-0.815269922577E-01" external-B-field="0.00000000000" exchange="-51.4327205291" correlation="-2.22541476916"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1106847947E-10" valence="16.00000000" interstitial="1.337104200" muffin-tin-total="24.66289580">
+          <atom species="Fe" muffin-tin="24.66289580"/>
+        </charges>
+        <timing itertime="1.83890104294" timetot="11.0047774315" timeinit="0.723331928253" timemat="0.534633874893" timefv="0.648052692413" timesv="1.14241409302" timerho="3.12748026848" timepot="4.82886457443" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-2.00000034147"/>
+          <interstitial x="0.251904807840E-01"/>
+          <mommttot x="-2.02519082226"/>
+          <atom species="Fe">
+            <mommt x="-2.02519082226"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="15" rms="2.534171892963108E-007" rmslog10="-6.59616393024" deltae="3.067791226385452E-005" deltaelog10="-4.51317419893" chgdst="1.017446369783291E-007" chgdstlog10="-6.99248847343" fermidos="46.9198060434">
+        <energies totalEnergy="-1270.57694504" fermiEnergy="0.306803864136" sum-of-eigenvalues="-735.051065626" electronic-kinetic="1287.03958611" core-electron-kinetic="0.00000000000" Coulomb="-2503.95839717" Coulomb-potential="-1951.06443676" nuclear-nuclear="-179.185065326" electron-nuclear="-2698.48222691" Hartree="373.708895074" Madelung="-1528.42617878" xc-potential="-70.9446873653" xc-effective-B-field="-0.815276102293E-01" external-B-field="0.00000000000" exchange="-51.4327192847" correlation="-2.22541470829"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1108624303E-10" valence="16.00000000" interstitial="1.337104923" muffin-tin-total="24.66289508">
+          <atom species="Fe" muffin-tin="24.66289508"/>
+        </charges>
+        <timing itertime="1.79789996147" timetot="11.7193720341" timeinit="0.723331928253" timemat="0.560316562653" timefv="0.686027050018" timesv="1.21794247627" timerho="3.44019770622" timepot="5.09155631065" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-2.00000025723"/>
+          <interstitial x="0.251932601725E-01"/>
+          <mommttot x="-2.02519351740"/>
+          <atom species="Fe">
+            <mommt x="-2.02519351740"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="16" rms="4.866190562183325E-008" rmslog10="-7.31281088791" deltae="1.473326005907438E-005" deltaelog10="-4.83170114528" chgdst="4.573568400128548E-008" chgdstlog10="-7.33974482143" fermidos="46.9197150685">
+        <energies totalEnergy="-1270.57693031" fermiEnergy="0.306803714325" sum-of-eigenvalues="-735.051061863" electronic-kinetic="1287.03959260" core-electron-kinetic="0.00000000000" Coulomb="-2503.95838959" Coulomb-potential="-1951.06444037" nuclear-nuclear="-179.185065326" electron-nuclear="-2698.48220815" Hartree="373.708883892" Madelung="-1528.42616940" xc-potential="-70.9446864017" xc-effective-B-field="-0.815276903388E-01" external-B-field="0.00000000000" exchange="-51.4327186382" correlation="-2.22541468281"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1110578296E-10" valence="16.00000000" interstitial="1.337105260" muffin-tin-total="24.66289474">
+          <atom species="Fe" muffin-tin="24.66289474"/>
+        </charges>
+        <timing itertime="1.92893910408" timetot="12.6005094051" timeinit="0.723331928253" timemat="0.581840276718" timefv="0.736529588699" timesv="1.30956196785" timerho="3.69266152382" timepot="5.55658411980" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-2.00000038185"/>
+          <interstitial x="0.251938501866E-01"/>
+          <mommttot x="-2.02519423203"/>
+          <atom species="Fe">
+            <mommt x="-2.02519423203"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="17" rms="8.226401509136697E-008" rmslog10="-7.08479009753" deltae="9.680401262812666E-006" deltaelog10="-5.01410664036" chgdst="4.273775794354375E-008" chgdstlog10="-7.36918826501" fermidos="46.9204813997">
+        <energies totalEnergy="-1270.57692063" fermiEnergy="0.306803704343" sum-of-eigenvalues="-735.051061216" electronic-kinetic="1287.03959622" core-electron-kinetic="0.00000000000" Coulomb="-2503.95838414" Coulomb-potential="-1951.06444414" nuclear-nuclear="-179.185065326" electron-nuclear="-2698.48219348" Hartree="373.708874671" Madelung="-1528.42616207" xc-potential="-70.9446856349" xc-effective-B-field="-0.815276628721E-01" external-B-field="0.00000000000" exchange="-51.4327180475" correlation="-2.22541466800"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1108091396E-10" valence="16.00000000" interstitial="1.337105586" muffin-tin-total="24.66289441">
+          <atom species="Fe" muffin-tin="24.66289441"/>
+        </charges>
+        <timing itertime="1.81059098244" timetot="13.2928159237" timeinit="0.723331928253" timemat="0.601905345917" timefv="0.774562120438" timesv="1.37009453773" timerho="3.95277595520" timepot="5.87014603615" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-1.99999977035"/>
+          <interstitial x="0.251939163683E-01"/>
+          <mommttot x="-2.02519368671"/>
+          <atom species="Fe">
+            <mommt x="-2.02519368671"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="18" rms="2.151987981295128E-008" rmslog10="-7.66716015850" deltae="4.459543106349884E-006" deltaelog10="-5.35070963379" chgdst="1.912624053970564E-008" chgdstlog10="-7.71837038665" fermidos="46.9201821231">
+        <energies totalEnergy="-1270.57692509" fermiEnergy="0.306803699634" sum-of-eigenvalues="-735.051061600" electronic-kinetic="1287.03959452" core-electron-kinetic="0.00000000000" Coulomb="-2503.95838662" Coulomb-potential="-1951.06444247" nuclear-nuclear="-179.185065326" electron-nuclear="-2698.48220012" Hartree="373.708878825" Madelung="-1528.42616539" xc-potential="-70.9446859808" xc-effective-B-field="-0.815276692060E-01" external-B-field="0.00000000000" exchange="-51.4327183133" correlation="-2.22541467474"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1108091396E-10" valence="16.00000000" interstitial="1.337105441" muffin-tin-total="24.66289456">
+          <atom species="Fe" muffin-tin="24.66289456"/>
+        </charges>
+        <timing itertime="1.91671586037" timetot="14.0437870026" timeinit="0.723331928253" timemat="0.633756399155" timefv="0.820121288300" timesv="1.45511794090" timerho="4.23935055733" timepot="6.17210888863" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-2.00000001105"/>
+          <interstitial x="0.251939009356E-01"/>
+          <mommttot x="-2.02519391198"/>
+          <atom species="Fe">
+            <mommt x="-2.02519391198"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="19" rms="5.129369997921008E-011" rmslog10="-10.2899359727" deltae="1.598245489731198E-006" deltaelog10="-5.79635651248" chgdst="6.958854204717358E-009" chgdstlog10="-8.15746226233" fermidos="46.9200712877">
+        <energies totalEnergy="-1270.57692669" fermiEnergy="0.306803697731" sum-of-eigenvalues="-735.051061721" electronic-kinetic="1287.03959391" core-electron-kinetic="0.00000000000" Coulomb="-2503.95838751" Coulomb-potential="-1951.06444185" nuclear-nuclear="-179.185065326" electron-nuclear="-2698.48220252" Hartree="373.708880332" Madelung="-1528.42616658" xc-potential="-70.9446861060" xc-effective-B-field="-0.815276723876E-01" external-B-field="0.00000000000" exchange="-51.4327184098" correlation="-2.22541467716"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1108269032E-10" valence="16.00000000" interstitial="1.337105388" muffin-tin-total="24.66289461">
+          <atom species="Fe" muffin-tin="24.66289461"/>
+        </charges>
+        <timing itertime="1.84058713913" timetot="14.7483148575" timeinit="0.723331928253" timemat="0.668886899948" timefv="0.876665353775" timesv="1.54794788361" timerho="4.44600391388" timepot="6.48547887802" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-2.00000010005"/>
+          <interstitial x="0.251938979859E-01"/>
+          <mommttot x="-2.02519399804"/>
+          <atom species="Fe">
+            <mommt x="-2.02519399804"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="20" rms="9.476486750837480E-011" rmslog10="-10.0233526402" deltae="9.358700481243432E-009" deltaelog10="-8.02878445180" chgdst="5.040567512727872E-011" chgdstlog10="-10.2975205640" fermidos="46.9200729815">
+        <energies totalEnergy="-1270.57692668" fermiEnergy="0.306803697652" sum-of-eigenvalues="-735.051061722" electronic-kinetic="1287.03959391" core-electron-kinetic="0.00000000000" Coulomb="-2503.95838751" Coulomb-potential="-1951.06444186" nuclear-nuclear="-179.185065326" electron-nuclear="-2698.48220250" Hartree="373.708880321" Madelung="-1528.42616658" xc-potential="-70.9446861051" xc-effective-B-field="-0.815276723603E-01" external-B-field="0.00000000000" exchange="-51.4327184091" correlation="-2.22541467714"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1108979575E-10" valence="16.00000000" interstitial="1.337105388" muffin-tin-total="24.66289461">
+          <atom species="Fe" muffin-tin="24.66289461"/>
+        </charges>
+        <timing itertime="1.97503781319" timetot="15.3715622425" timeinit="0.723331928253" timemat="0.706809997559" timefv="0.935803890228" timesv="1.64165520668" timerho="4.61357831955" timepot="6.75038290024" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-2.00000009870"/>
+          <interstitial x="0.251938982879E-01"/>
+          <mommttot x="-2.02519399698"/>
+          <atom species="Fe">
+            <mommt x="-2.02519399698"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="21" rms="1.461598479110820E-010" rmslog10="-9.83517191757" deltae="3.967443262808956E-009" deltaelog10="-8.40148927524" chgdst="2.189722667842957E-011" chgdstlog10="-10.6596108858" fermidos="46.9200734762">
+        <energies totalEnergy="-1270.57692667" fermiEnergy="0.306803697648" sum-of-eigenvalues="-735.051061723" electronic-kinetic="1287.03959391" core-electron-kinetic="0.00000000000" Coulomb="-2503.95838750" Coulomb-potential="-1951.06444186" nuclear-nuclear="-179.185065326" electron-nuclear="-2698.48220249" Hartree="373.708880317" Madelung="-1528.42616657" xc-potential="-70.9446861047" xc-effective-B-field="-0.815276723440E-01" external-B-field="0.00000000000" exchange="-51.4327184088" correlation="-2.22541467713"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1108801939E-10" valence="16.00000000" interstitial="1.337105389" muffin-tin-total="24.66289461">
+          <atom species="Fe" muffin-tin="24.66289461"/>
+        </charges>
+        <timing itertime="2.06704306602" timetot="16.3732805252" timeinit="0.723331928253" timemat="0.786605119705" timefv="0.981296062469" timesv="1.77440118790" timerho="4.87615132332" timepot="7.23149490356" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-2.00000009830"/>
+          <interstitial x="0.251938983304E-01"/>
+          <mommttot x="-2.02519399663"/>
+          <atom species="Fe">
+            <mommt x="-2.02519399663"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="22" rms="8.985097888827713E-011" rmslog10="-10.0464771871" deltae="4.146386345382780E-009" deltaelog10="-8.38233023436" chgdst="1.831929624374893E-011" chgdstlog10="-10.7370912143" fermidos="46.9200731815">
+        <energies totalEnergy="-1270.57692668" fermiEnergy="0.306803697642" sum-of-eigenvalues="-735.051061723" electronic-kinetic="1287.03959391" core-electron-kinetic="0.00000000000" Coulomb="-2503.95838751" Coulomb-potential="-1951.06444186" nuclear-nuclear="-179.185065326" electron-nuclear="-2698.48220250" Hartree="373.708880321" Madelung="-1528.42616658" xc-potential="-70.9446861051" xc-effective-B-field="-0.815276723471E-01" external-B-field="0.00000000000" exchange="-51.4327184091" correlation="-2.22541467714"/>
+        <charges totalcharge="26.00000000" core="10.00000000" core_leakage="0.1108269032E-10" valence="16.00000000" interstitial="1.337105389" muffin-tin-total="24.66289461">
+          <atom species="Fe" muffin-tin="24.66289461"/>
+        </charges>
+        <timing itertime="1.82905006409" timetot="17.0993978977" timeinit="0.723331928253" timemat="0.808201074600" timefv="1.01919865608" timesv="1.83392167091" timerho="5.22067666054" timepot="7.49406790733" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-2.00000009854"/>
+          <interstitial x="0.251938983222E-01"/>
+          <mommttot x="-2.02519399686"/>
+          <atom species="Fe">
+            <mommt x="-2.02519399686"/>
+          </atom>
+        </moments>
+      </iter>
+      <structure>
+        <crystal unitCellVolume="76.99532800" BrillouinZoneVolume="3.221626817" nktot="0" ngridk="8    8    8">
+          <basevect>2.680000000       2.680000000      -2.680000000</basevect>
+          <basevect>2.680000000      -2.680000000       2.680000000</basevect>
+          <basevect>-2.680000000       2.680000000       2.680000000</basevect>
+          <reciprvect>1.172236065       1.172236065       0.000000000</reciprvect>
+          <reciprvect>1.172236065       0.000000000       1.172236065</reciprvect>
+          <reciprvect>0.000000000       1.172236065       1.172236065</reciprvect>
+        </crystal>
+        <species chemicalSymbol="Fe">
+          <atom x="0.00000000000" y="0.00000000000" z="0.00000000000"/>
+        </species>
+      </structure>
+    </scl>
+  </groundstate>
+</info>

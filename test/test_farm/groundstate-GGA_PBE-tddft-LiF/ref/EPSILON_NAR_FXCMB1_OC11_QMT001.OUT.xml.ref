@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dielectric xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <mapdef>
+    <variable1 name="energy"/>
+    <function1 name="macroscopic dielectric function, real part"/>
+    <function2 name="macroscopic dielectric function, imaginary part"/>
+    <function3 name="macroscopic dielectric function, real part(Kramers Kronig Transform of imaginary part)"/>
+  </mapdef>
+  <map variable1="0.000000000" function1="1.263987046" function2="0.3307119030E-02" function3="1.538315630"/>
+  <map variable1="0.5442276772" function1="1.273312890" function2="0.3554352450E-02" function3="1.536922500"/>
+  <map variable1="1.088455354" function1="1.283350396" function2="0.3831372266E-02" function3="1.537554430"/>
+  <map variable1="1.632683032" function1="1.294187235" function2="0.4143310576E-02" function3="1.540218948"/>
+  <map variable1="2.176910709" function1="1.305926550" function2="0.4496484051E-02" function3="1.544351909"/>
+  <map variable1="2.721138386" function1="1.318690622" function2="0.4898745563E-02" function3="1.550100774"/>
+  <map variable1="3.265366063" function1="1.332625646" function2="0.5359966427E-02" function3="1.557495833"/>
+  <map variable1="3.809593740" function1="1.347908064" function2="0.5892708837E-02" function3="1.566663640"/>
+  <map variable1="4.353821418" function1="1.364753065" function2="0.6513181015E-02" function3="1.577771063"/>
+  <map variable1="4.898049095" function1="1.383426203" function2="0.7242622409E-02" function3="1.591046527"/>
+  <map variable1="5.442276772" function1="1.404259599" function2="0.8109360318E-02" function3="1.606788727"/>
+  <map variable1="5.986504449" function1="1.427675012" function2="0.9151946421E-02" function3="1.625388757"/>
+  <map variable1="6.530732126" function1="1.454217569" function2="0.1042409038E-01" function3="1.647361183"/>
+  <map variable1="7.074959804" function1="1.484606531" function2="0.1200270499E-01" function3="1.673391964"/>
+  <map variable1="7.619187481" function1="1.519814411" function2="0.1400159635E-01" function3="1.704412835"/>
+  <map variable1="8.163415158" function1="1.561195507" function2="0.1659598284E-01" function3="1.741721378"/>
+  <map variable1="8.707642835" function1="1.610705553" function2="0.2006924832E-01" function3="1.787183790"/>
+  <map variable1="9.251870512" function1="1.671301494" function2="0.2490937514E-01" function3="1.843597786"/>
+  <map variable1="9.796098190" function1="1.747730176" function2="0.3202906229E-01" function3="1.915391393"/>
+  <map variable1="10.34032587" function1="1.848259522" function2="0.4334123424E-01" function3="2.010100700"/>
+  <map variable1="10.88455354" function1="1.989081164" function2="0.6358103839E-01" function3="2.141890397"/>
+  <map variable1="11.42878122" function1="2.208171541" function2="0.1080196475" function3="2.341119887"/>
+  <map variable1="11.97300890" function1="2.625062970" function2="0.2563646137" function3="2.675769182"/>
+  <map variable1="12.51723658" function1="3.494919554" function2="1.664078751" function3="2.390554438"/>
+  <map variable1="13.06146425" function1="1.398217158" function2="0.5235526236" function3="2.202194318"/>
+  <map variable1="13.60569193" function1="2.800946854" function2="0.6921286236" function3="2.932967742"/>
+  <map variable1="14.14991961" function1="2.487490746" function2="3.405932807" function3="2.590933835"/>
+  <map variable1="14.69414728" function1="0.8415984963" function2="4.490403646" function3="0.4183544744"/>
+  <map variable1="15.23837496" function1="-0.4846200806" function2="0.4198501666" function3="-0.3208898810"/>
+  <map variable1="15.78260264" function1="0.6039636822" function2="0.4871775321" function3="0.5131056603"/>
+  <map variable1="16.32683032" function1="0.9007062479" function2="0.2794217735" function3="0.9836974023"/>
+  <map variable1="16.87105799" function1="1.592242146" function2="0.7696902983" function3="1.344305576"/>
+  <map variable1="17.41528567" function1="0.1906499396" function2="1.864597286" function3="0.9267935085"/>
+  <map variable1="17.95951335" function1="0.4870917870" function2="0.6303044642" function3="0.6669091786"/>
+  <map variable1="18.50374102" function1="0.4225010302" function2="1.291314468" function3="0.6258474417"/>
+  <map variable1="19.04796870" function1="0.4120684805" function2="0.3778690344" function3="0.5649742594"/>
+  <map variable1="19.59219638" function1="0.5183430192" function2="0.5051387128" function3="0.8384401570"/>
+  <map variable1="20.13642406" function1="0.9330195982" function2="0.4379010659" function3="1.061618515"/>
+  <map variable1="20.68065173" function1="1.557161760" function2="0.8321964911" function3="1.292135239"/>
+  <map variable1="21.22487941" function1="1.028524742" function2="1.986896633" function3="0.8847349049"/>
+  <map variable1="21.76910709" function1="-1.013608851" function2="1.610854934" function3="0.1186905879"/>
+  <map variable1="22.31333477" function1="0.3564582368" function2="0.5585837559" function3="0.2784962351E-01"/>
+  <map variable1="22.85756244" function1="-0.3384216524" function2="0.9601774993" function3="0.1932205506E-01"/>
+  <map variable1="23.40179012" function1="-0.1533894961" function2="0.2200306447" function3="-0.5516105011E-01"/>
+  <map variable1="23.94601780" function1="0.1027285765" function2="0.8039117774E-01" function3="0.1607939365"/>
+  <map variable1="24.49024547" function1="0.2615431875" function2="0.4869209264E-01" function3="0.3125108456"/>
+  <map variable1="25.03447315" function1="0.3725643907" function2="0.3664781213E-01" function3="0.4172711583"/>
+  <map variable1="25.57870083" function1="0.4689294194" function2="0.3461721660E-01" function3="0.5029048569"/>
+  <map variable1="26.12292851" function1="0.6036302005" function2="0.8715954114E-01" function3="0.5422290139"/>
+  <map variable1="26.66715618" function1="0.3341891753" function2="0.2720646270" function3="0.5316486864"/>
+  <!-- Exciting code version : 20.12.008-->
+</dielectric>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<evalcore>
+  <species is="1" chemicalSymbol="Fe">
+    <atom ia="1">
+      <state ist="1" n="1" l="0" k="0" eigenvalue="-2.560069013602e2"/>
+      <state ist="2" n="2" l="0" k="0" eigenvalue="-2.947605645464e1"/>
+      <state ist="3" n="2" l="1" k="1" eigenvalue="-2.537676107793e1"/>
+      <state ist="4" n="2" l="1" k="1" eigenvalue="-2.491917541396e1"/>
+    </atom>
+  </species>
+</evalcore>

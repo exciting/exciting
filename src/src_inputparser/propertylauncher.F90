@@ -283,7 +283,7 @@ Subroutine propertylauncher
       if (associated(input%properties%spintext)) then
          call rereadinput
          task = 42
-         call calculate_spintexture
+         call calculate_spintexture(input%properties%spintext%bands(1), input%properties%spintext%bands(2))
       end if
 
 End Subroutine propertylauncher

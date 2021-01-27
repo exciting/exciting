@@ -1,0 +1,39 @@
+<init name        = 'groundstate-GGA_PBE-mixer_msec-Al'
+      description = 'All groundstate files are tested.'>
+  <test file      = 'info.xml'
+          tolFloat  = '1e-7'
+          tolMSE    = '1e-7'
+          condition = '0 0'
+	  ignore    = 'timing;rmslog10'
+	  tolIter   = '3'/>
+  <test   file      = 'INFO.OUT'
+          tolFloat  = '1e-7'
+          tolMSE    = '1e-7'
+          condition = '0 0'
+          ignore    = 'Wall time (seconds);CPU time for scf_cycle (seconds);CPU time for vxnl (seconds)'
+          tolIter   = '3'/>
+  <test   file      = 'atoms.xml'          
+          tolFloat  = '1e-8'              
+          tolMSE    = '1e-8'              
+          condition = '0 0'               
+          ignore    = ''/>
+  <test   file      = 'eigval.xml'
+          tolFloat  = '1e-3'
+          tolMSE    = '1e-3'
+          condition = '0 0'
+          ignore    = ''>
+          <eigval
+              eigvalPair = '1,2 5,8 8,9 9,10'
+              tolEigval   = '1e-8'/>
+        </test>
+  <test   file      = 'evalcore.xml'
+          tolFloat  = '1e-8'
+          tolMSE    = '1e-8'
+          condition = '0 0'
+          ignore    = ''/>
+  <test   file      = 'geometry.xml'
+          tolFloat  = '1e-8'
+          tolMSE    = '1e-8'
+          condition = '0 0'
+          ignore    = ''/>
+</init>

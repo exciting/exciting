@@ -9,11 +9,14 @@
 Subroutine writelsj
       Use modmain
       Use modinput
+      Use Fox_wxml
       Implicit None
+! !DESCRIPTION
 ! local variables
       Integer :: kst, ik, ist, lm
       Integer :: ispn, is, ia, ias
       Real (8) :: xl (3), xs (3), t1
+      Type (xmlf_t), Save :: xf
 ! allocatable arrays
       Complex (8), Allocatable :: apwalm (:, :, :, :, :)
       Complex (8), Allocatable :: evecfv (:, :, :)
@@ -94,11 +97,17 @@ Subroutine writelsj
          Write (50,*)
          Write (50, '("Expectation values are computed only over the mu&
         &ffin-tin")')
+        Call xml_OpenFile ("LSJ.xml", xf, replace=.True., pretty_print=.True.)
+        Call xml_NewElement (xf, "LSJ")
 ! loop over species and atoms
          Do is = 1, nspecies
             Write (50,*)
             Write (50, '("Species : ", I4, " (", A, ")")') is, trim &
            & (input%structure%speciesarray(is)%species%chemicalSymbol)
+            Call xml_NewElement (xf,"species")
+            Call xml_AddAttribute (xf, "n", is)
+            Call xml_AddAttribute (xf, "chemicalSymbol", trim(input%structure &
+                                & %speciesarray(is)%species%chemicalSymbol))
             Do ia = 1, natoms (is)
                ias = idxas (ia, is)
 ! compute tr(LD)
@@ -128,9 +137,25 @@ Subroutine writelsj
                Write (50, '("  L : ", 3G18.10)') xl (:)
                Write (50, '("  S : ", 3G18.10)') xs (:)
                Write (50, '("  J : ", 3G18.10)') xl (:) + xs (:)
+               Call xml_NewElement (xf, "atom")
+               Call xml_AddAttribute (xf, "n", ia)
+               Call xml_NewElement (xf, "L")
+               Call xml_AddCharacters (xf, xl(:))
+               Call xml_EndElement (xf, "L")
+               Call xml_NewElement (xf, "S")
+               Call xml_AddCharacters (xf, xs(:))
+               Call xml_EndElement (xf, "S")
+               Call xml_NewElement (xf, "J")
+               Call xml_AddCharacters (xf, xl(:) + xs(:))
+               Call xml_EndElement (xf, "J")
+               Call xml_EndElement (xf, "atom")
 ! end loop over atoms and species
             End Do
+            Call xml_EndElement (xf, "species")
          End Do
+         Call xml_EndElement (xf, "LSJ")
+         Call xml_Close (xf)
+
          Close (50)
          Write (*,*)
          Write (*, '("Info(writelsj):")')
@@ -142,6 +167,8 @@ Subroutine writelsj
          Write (50,*)
          Write (50, '("Expectation values are computed only over the mu&
         &ffin-tin")')
+        Call xml_OpenFile ("LSJ.xml", xf, replace=.True., pretty_print=.True.)
+        Call xml_NewElement (xf, "LSJ")
          Do kst = 1, size(input%properties%LSJ%kstlist%pointstatepair,2)
             ik = input%properties%LSJ%kstlist%pointstatepair(1,kst)
             ist = input%properties%LSJ%kstlist%pointstatepair(2,kst)
@@ -159,6 +186,9 @@ Subroutine writelsj
                Write (*,*)
                Stop
             End If
+            Call xml_NewElement (xf, "kst")
+            Call xml_AddAttribute (xf, "n", ik)
+            Call xml_AddAttribute (xf, "k", vkl (:,ik))
 ! get the eigenvectors and occupancies from file
             Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
             Call getevecsv (vkl(:, ik), evecsv)
@@ -171,6 +201,10 @@ Subroutine writelsj
             End Do
 ! loop over species and atoms
             Do is = 1, nspecies
+               Call xml_NewElement (xf,"species")
+               Call xml_AddAttribute (xf, "n", is)
+               Call xml_AddAttribute (xf, "chemicalSymbol", trim(input%structure &
+                                & %speciesarray(is)%species%chemicalSymbol))
                Do ia = 1, natoms (is)
                   ias = idxas (ia, is)
 ! generate the density matrix
@@ -212,9 +246,25 @@ Subroutine writelsj
                   Write (50, '(" L : ", 3G18.10)') xl (:)
                   Write (50, '(" S : ", 3G18.10)') xs (:)
                   Write (50, '(" J : ", 3G18.10)') xl (:) + xs (:)
+                  Call xml_NewElement (xf, "atom")
+                  Call xml_AddAttribute (xf, "n", ia)
+                  Call xml_NewElement (xf, "L")
+                  Call xml_AddCharacters (xf, xl(:))
+                  Call xml_EndElement (xf, "L")
+                  Call xml_NewElement (xf, "S")
+                  Call xml_AddCharacters (xf, xs(:))
+                  Call xml_EndElement (xf, "S")
+                  Call xml_NewElement (xf, "J")
+                  Call xml_AddCharacters (xf, xl(:) + xs(:))
+                  Call xml_EndElement (xf, "J")
+                  Call xml_EndElement (xf, "atom")
                End Do
+               Call xml_EndElement (xf, "species")
             End Do
+            Call xml_EndElement (xf, "kst")
          End Do
+         Call xml_EndElement (xf, "LSJ")
+         Call xml_Close (xf)
          Close (50)
          Write (*,*)
          Write (*, '("Info(writelsj):")')

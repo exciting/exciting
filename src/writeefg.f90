@@ -14,6 +14,7 @@ Subroutine writeefg
 ! !USES:
       Use modinput
       Use modmain
+      Use Fox_wxml
 ! !DESCRIPTION:
 !   Computes the electric field gradient (EFG) tensor for each atom, $\alpha$,
 !   and writes it to the file {\tt EFG.OUT} along with its eigenvalues. The EFG
@@ -35,6 +36,7 @@ Subroutine writeefg
       Integer :: is, ia, ias, ir, i, j, info
       Real (8) :: efg (3, 3), a (3, 3)
       Real (8) :: w (3), work (lwork)
+      Type (xmlf_t), Save :: xf
 ! allocatable arrays
       Real (8), Allocatable :: rfmt (:, :)
       Real (8), Allocatable :: grfmt1 (:, :, :)
@@ -51,8 +53,17 @@ Subroutine writeefg
       Write (50,*)
       Write (50, '("(electric field gradient tensor is in Cartesian coo&
      &rdinates)")')
+      Call xml_OpenFile ("EFG.xml", xf, replace=.True., pretty_print=.True.)
+      Call xml_newElement (xf, "EFG")
       Do is = 1, nspecies
+         Call xml_newElement (xf, "species")
+         Call xml_AddAttribute (xf, "n", is)
+         Call xml_AddAttribute (xf, "chemicalSymbol", trim(input%structure &
+                             & %speciesarray(is)%species%chemicalSymbol))
          Do ia = 1, natoms (is)
+            Call xml_newElement (xf, "atom")
+            Call xml_AddAttribute (xf, "n",ia)
+            Call xml_newElement (xf, "EFG-tensor")
             ias = idxas (ia, is)
             Write (50,*)
             Write (50,*)
@@ -90,13 +101,28 @@ Subroutine writeefg
             End Do
             Write (50, '(" trace : ", G18.10)') efg (1, 1) + efg (2, 2) &
            & + efg (3, 3)
+           Call xml_AddAttribute (xf, "trace", efg (1, 1) + efg (2, 2) &
+           & + efg (3, 3))
+            Do i=1, 3
+               Call xml_newElement (xf, "line")
+               Call xml_AddCharacters (xf, efg(i, :))
+               Call xml_EndElement (xf, "line")
+            End do
 ! diagonalise the EFG
             a (:, :) = efg (:, :)
             Call dsyev ('N', 'U', 3, a, 3, w, work, lwork, info)
             Write (50, '(" eigenvalues :")')
             Write (50, '(3G18.10)') w
+            Call xml_newElement (xf, "eigenvalues")
+            Call xml_AddCharacters (xf, w)
+            Call xml_EndElement (xf, "eigenvalues")!
+            Call xml_EndElement (xf, "EFG-tensor")
+            Call xml_EndElement (xf, "atom")
          End Do
+         Call xml_EndElement (xf, "species")
       End Do
+      Call xml_EndElement (xf, "EFG")
+      Call xml_Close (xf)
       Close (50)
       Write (*,*)
       Write (*, '("Info(writeefg): electric field gradient written to EFG.OUT")')

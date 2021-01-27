@@ -1,0 +1,5 @@
+# Momentum transfer vectors from qpointlist element.
+# Momentum transfer Qmt = Gmt + qmt, where qmt is in the unit cell.
+#
+#   iqmt ivgmt_1 ivgmt_2 ivgmt_3           vqlmt_1           vqlmt_2           vqlmt_3           vgcmt_1           vgcmt_2           vgcmt_3           vqcmt_1           vqcmt_2           vqcmt_3               |Q|
+       1       0       0       0  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00

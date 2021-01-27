@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<evalcore>
+  <species is="1" chemicalSymbol="He">
+    <atom ia="1"/>
+  </species>
+</evalcore>

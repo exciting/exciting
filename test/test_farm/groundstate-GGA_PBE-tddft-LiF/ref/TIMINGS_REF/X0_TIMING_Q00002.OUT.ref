@@ -1,0 +1,162 @@
+ 
+Timings (CPU seconds) for q-point/k-point:      2     1
+  reading matrix elements	    :         0.0463
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0466
+ 
+Timings (CPU seconds) for q-point/k-point:      2     2
+  reading matrix elements	    :         0.0415
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0036
+  total			    :         0.0451
+ 
+Timings (CPU seconds) for q-point/k-point:      2     3
+  reading matrix elements	    :         0.0601
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0604
+ 
+Timings (CPU seconds) for q-point/k-point:      2     4
+  reading matrix elements	    :         0.0501
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0503
+ 
+Timings (CPU seconds) for q-point/k-point:      2     5
+  reading matrix elements	    :         0.0388
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0391
+ 
+Timings (CPU seconds) for q-point/k-point:      2     6
+  reading matrix elements	    :         0.0383
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0019
+  total			    :         0.0402
+ 
+Timings (CPU seconds) for q-point/k-point:      2     7
+  reading matrix elements	    :         0.0391
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0393
+ 
+Timings (CPU seconds) for q-point/k-point:      2     8
+  reading matrix elements	    :         0.0415
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0417
+ 
+Timings (CPU seconds) for q-point/k-point:      2     9
+  reading matrix elements	    :         0.0512
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0515
+ 
+Timings (CPU seconds) for q-point/k-point:      2    10
+  reading matrix elements	    :         0.0380
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0383
+ 
+Timings (CPU seconds) for q-point/k-point:      2    11
+  reading matrix elements	    :         0.0371
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0374
+ 
+Timings (CPU seconds) for q-point/k-point:      2    12
+  reading matrix elements	    :         0.0510
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0513
+ 
+Timings (CPU seconds) for q-point/k-point:      2    13
+  reading matrix elements	    :         0.0252
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0145
+  total			    :         0.0398
+ 
+Timings (CPU seconds) for q-point/k-point:      2    14
+  reading matrix elements	    :         0.0419
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0015
+  total			    :         0.0435
+ 
+Timings (CPU seconds) for q-point/k-point:      2    15
+  reading matrix elements	    :         0.0404
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0010
+  total			    :         0.0414
+ 
+Timings (CPU seconds) for q-point/k-point:      2    16
+  reading matrix elements	    :         0.0403
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0010
+  total			    :         0.0414
+ 
+Timings (CPU seconds) for q-point/k-point:      2    17
+  reading matrix elements	    :         0.0448
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0450
+ 
+Timings (CPU seconds) for q-point/k-point:      2    18
+  reading matrix elements	    :         0.0524
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0527
+ 
+Timings (CPU seconds) for q-point/k-point:      2    19
+  reading matrix elements	    :         0.0365
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0368
+ 
+Timings (CPU seconds) for q-point/k-point:      2    20
+  reading matrix elements	    :         0.0522
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0525
+ 
+Timings (CPU seconds) for q-point/k-point:      2    21
+  reading matrix elements	    :         0.0373
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0375
+ 
+Timings (CPU seconds) for q-point/k-point:      2    22
+  reading matrix elements	    :         0.0432
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0434
+ 
+Timings (CPU seconds) for q-point/k-point:      2    23
+  reading matrix elements	    :         0.0450
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0453
+ 
+Timings (CPU seconds) for q-point/k-point:      2    24
+  reading matrix elements	    :         0.0437
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0439
+ 
+Timings (CPU seconds) for q-point/k-point:      2    25
+  reading matrix elements	    :         0.0378
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0380
+ 
+Timings (CPU seconds) for q-point/k-point:      2    26
+  reading matrix elements	    :         0.0344
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0346
+ 
+Timings (CPU seconds) for q-point/k-point:      2    27
+  reading matrix elements	    :         0.0499
+  generating oscillators	    :         0.0001
+  updating response function	    :         0.0002
+  total			    :         0.0501

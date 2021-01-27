@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+  <title>Lithium Fluoride, BSE and TDDFT/MBPT spectrum</title>
+  <structure speciespath=".">
+    <crystal>
+      <basevect>   3.804020000       3.804020000       0.000000000</basevect>
+      <basevect>   3.804020000       0.000000000       3.804020000</basevect>
+      <basevect>   0.000000000       3.804020000       3.804020000</basevect>
+    </crystal>
+    <species speciesfile="Li.xml" rmt="1.7000">
+      <atom coord="0.0000000000      0.0000000000      0.0000000000"/>
+    </species>
+    <species speciesfile="F.xml" rmt="1.4500">
+      <atom coord="0.5000000000      0.5000000000      0.5000000000"/>
+    </species>
+  </structure>
+</input>

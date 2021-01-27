@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<atomlist>
+  <Hamiltonian RelativityModel="dirac" xctype="3"/>
+  <atom chemicalSymbol="Fe" species="Fe.xml">
+    <NumericalSetup TotalNumberOfGridPoints="881" NumberOfMTGridPoints="400" GridType="cubic" rmin="1.000000000000e-5" rmt="2.200000000000e0" rmax="2.356807109014e1"/>
+    <spectrum>
+      <state n="1" l="0" kappa="1" energy="-256.571249598"/>
+      <state n="2" l="0" kappa="1" energy="-30.0450231759"/>
+      <state n="2" l="1" kappa="1" energy="-25.9452336068"/>
+      <state n="2" l="1" kappa="2" energy="-25.4877176279"/>
+      <state n="3" l="0" kappa="1" energy="-3.43437059404"/>
+      <state n="3" l="1" kappa="1" energy="-2.23875074473"/>
+      <state n="3" l="1" kappa="2" energy="-2.18168049778"/>
+      <state n="3" l="2" kappa="2" energy="-0.287182206647"/>
+      <state n="3" l="2" kappa="3" energy="-0.281564919960"/>
+      <state n="4" l="0" kappa="1" energy="-0.201340626205"/>
+    </spectrum>
+  </atom>
+</atomlist>
