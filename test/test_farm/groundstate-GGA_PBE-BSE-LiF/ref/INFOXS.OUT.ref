@@ -1,0 +1,387 @@
+================================================================================
+| EXCITING NITROGEN-14 started for task xsgeneigvec (301)                      =
+| version hash id: 1775bff4453c84689fb848894a9224f155377cfc                    =
+|                                                                              =
+| Date (DD-MM-YYYY) : 10-12-2020                                               =
+================================================================================
+================================================================================
+One-shot GS runs for BSE calculations
+================================================================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+One-shot GS runs for k+qmt/2 grids
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(xsgeneigvec): Generating eigenvectors for Q-point      1
+--------------------------------------------------------------------------------
+Info(xsgeneigvec): Generation of eigenvectors finished
+ 
+Info(xsfinit): task Nr.     301 stopped gracefully
+ 
+ Timings: 
+     Date (DD-MM-YYYY)      : 10-12-2020
+     Time (hh:mm:ss)        : 20:05:23
+     CPU time               : 14.57 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 15 s )
+     wall time              : 2.13 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load               : 684.78 %
+     CPU time  (cumulative) : 111.58 sec; 0.03 hrs; ( 0 d, 00 h, 01 m, 52 s )
+     wall time (cumulative) : 2.13 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load  (cumulative) : 684.78 %
+ 
+================================================================================
+= EXCITING NITROGEN-14 stopped for task    301                                 =
+================================================================================
+ 
+ 
+================================================================================
+| EXCITING NITROGEN-14 started for task writepmatxs (320)                      =
+| Date (DD-MM-YYYY) : 10-12-2020                                               =
+================================================================================
+Info(writepmatxs): Momentum matrix elements finished
+Info(xsfinit): task Nr.     320 stopped gracefully
+ 
+ Timings: 
+     Date (DD-MM-YYYY)      : 10-12-2020
+     Time (hh:mm:ss)        : 20:05:24
+     CPU time               : 4.46 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 04 s )
+     wall time              : 0.84 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
+     CPU load               : 533.19 %
+     CPU time  (cumulative) : 116.04 sec; 0.03 hrs; ( 0 d, 00 h, 01 m, 56 s )
+     wall time (cumulative) : 2.96 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 03 s )
+     CPU load  (cumulative) : 533.19 %
+ 
+================================================================================
+= EXCITING NITROGEN-14 stopped for task    320                                 =
+================================================================================
+ 
+ 
+================================================================================
+| EXCITING NITROGEN-14 started for task scrgeneigvec (401)                     =
+| Date (DD-MM-YYYY) : 10-12-2020                                               =
+================================================================================
+ 
+Info(xsinit): mapping screening-specific parameters
+ 
+================================================================================
+One-shot GS runs for BSE calculations
+================================================================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+One-shot GS runs for k+qmt/2 grids
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(xsgeneigvec): Generating eigenvectors for Q-point      1
+Using screening GS parameters.
+--------------------------------------------------------------------------------
+Info(xsgeneigvec): Generation of eigenvectors finished
+ 
+Info(xsfinit): task Nr.     401 stopped gracefully
+ 
+ Timings: 
+     Date (DD-MM-YYYY)      : 10-12-2020
+     Time (hh:mm:ss)        : 20:05:27
+     CPU time               : 20.53 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 21 s )
+     wall time              : 3.03 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 03 s )
+     CPU load               : 677.89 %
+     CPU time  (cumulative) : 136.57 sec; 0.04 hrs; ( 0 d, 00 h, 02 m, 17 s )
+     wall time (cumulative) : 5.99 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 06 s )
+     CPU load  (cumulative) : 677.89 %
+ 
+================================================================================
+= EXCITING NITROGEN-14 stopped for task    401                                 =
+================================================================================
+ 
+ 
+================================================================================
+| EXCITING NITROGEN-14 started for task scrwritepmat (420)                     =
+| Date (DD-MM-YYYY) : 10-12-2020                                               =
+================================================================================
+ 
+Info(xsinit): mapping screening-specific parameters
+ 
+Info(writepmatxs): Momentum matrix elements finished
+Info(scrwritepmat): Momentum matrix elements for screening finished
+Info(xsfinit): task Nr.     420 stopped gracefully
+ 
+ Timings: 
+     Date (DD-MM-YYYY)      : 10-12-2020
+     Time (hh:mm:ss)        : 20:05:29
+     CPU time               : 10.90 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 11 s )
+     wall time              : 1.79 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load               : 608.49 %
+     CPU time  (cumulative) : 147.46 sec; 0.04 hrs; ( 0 d, 00 h, 02 m, 27 s )
+     wall time (cumulative) : 7.78 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 08 s )
+     CPU load  (cumulative) : 608.49 %
+ 
+================================================================================
+= EXCITING NITROGEN-14 stopped for task    420                                 =
+================================================================================
+ 
+ 
+================================================================================
+| EXCITING NITROGEN-14 started for task screen (430)                           =
+| Date (DD-MM-YYYY) : 10-12-2020                                               =
+================================================================================
+ 
+Info(xsinit): mapping screening-specific parameters
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(screenlauncher): Calculating screening for unshifted q-grid.
+Info(screenlauncher): Number of q points:       4
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 
+Info(screenlauncher): lowest (partially)  unoccupied state:      6
+Info(screenlauncher): highest (partially) occupied state  :      5
+Info(screenlauncher): number of occupied states considered:    5
+Info(screenlauncher): number of unoccupied states considered:  116
+--------------------------------------------------------------------------------
+ 
+Info(screenlauncher): Starting loop over q-points
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(screenlauncher): Screening for unshifted q-grid finished
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 
+Info(screenlauncher): Screening finished
+Info(xsfinit): task Nr.     430 stopped gracefully
+ 
+ Timings: 
+     Date (DD-MM-YYYY)      : 10-12-2020
+     Time (hh:mm:ss)        : 20:05:34
+     CPU time               : 38.18 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 38 s )
+     wall time              : 5.52 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 06 s )
+     CPU load               : 691.21 %
+     CPU time  (cumulative) : 185.64 sec; 0.05 hrs; ( 0 d, 00 h, 03 m, 06 s )
+     wall time (cumulative) : 13.31 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 13 s )
+     CPU load  (cumulative) : 691.21 %
+ 
+================================================================================
+= EXCITING NITROGEN-14 stopped for task    430                                 =
+================================================================================
+ 
+ 
+================================================================================
+| EXCITING NITROGEN-14 started for task scrcoulint (440)                       =
+| Date (DD-MM-YYYY) : 10-12-2020                                               =
+================================================================================
+ 
+Info(xsinit): mapping BSE-specific parameters
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(scrcoulintlauncher): Setting up screened Coulomb interaction matrix W.
+Info(scrcoulintlauncher): Using momentum transfer vectors from list :   1 to  1
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(scrcoulintlauncher): Calculating screened Coulomb interaction matrix W
+Info(scrcoulintlauncher): Momentum transfer list index: iqmt=  1
+Info(scrcoulintlauncher): Momentum transfer: vqmtl=   0.000   0.000   0.000
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 
+Info(scrcoulintlauncher): Calculating RR block of W
+ 
+--------------------------------------------------------------------------------
+Info(scrcoulint): Inspecting occupations...
+Info(setranges_modxs): Determining k+qmt/2 grid
+Info(setranges_modxs): Determining k-qmt/2 grid
+Info(setranges_modxs): Number of non-reduced k-points:       27
+Info(setranges_modxs): Number of states considered:        7
+Info(setranges_modxs): Number of (partially) occupied states:        5
+Info(setranges_modxs): Highest (partially) occupied states:        5
+Info(setranges_modxs): Number of (partially) unoccupied states:        2
+Info(setranges_modxs): Lowest (partially) unoccupied states:        6
+--------------------------------------------------------------------------------
+Info(scrcoulint): Selecting transitions...
+Info(select_transitions): Inspecting transitions in the  band interval:
+  lowest occupied state:   1
+  highest occupied state:   5
+  lowest unoccupied state:   6
+  highest unoccupied state:   7
+  Opening gap with a scissor of:      0.209/H      5.700/eV
+Info(select_transitions): Number of participating transitions:     270
+--------------------------------------------------------------------------------
+Info(scrcoulint): Size of file SCCLI will be about     0.000563 GB
+Info(scrcoulint): Using q-grid
+Info(scrcoulint): Number of reduced q-points:      4
+Info(scrcoulint): Number of non-reduced q-points:     27
+ 
+Info(scrcoulint): Calculating W(G1,G2,qr) fourier coefficients
+Info(scrcoulint): Calculating W matrix elements
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(scrcoulintlauncher): Screened coulomb interaction finished for iqmt=   1
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(xsfinit): task Nr.     440 stopped gracefully
+ 
+ Timings: 
+     Date (DD-MM-YYYY)      : 10-12-2020
+     Time (hh:mm:ss)        : 20:05:39
+     CPU time               : 30.99 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 31 s )
+     wall time              : 4.69 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 05 s )
+     CPU load               : 660.66 %
+     CPU time  (cumulative) : 216.63 sec; 0.06 hrs; ( 0 d, 00 h, 03 m, 37 s )
+     wall time (cumulative) : 18.00 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 18 s )
+     CPU load  (cumulative) : 660.66 %
+ 
+================================================================================
+= EXCITING NITROGEN-14 stopped for task    440                                 =
+================================================================================
+ 
+ 
+================================================================================
+| EXCITING NITROGEN-14 started for task exccoulint (441)                       =
+| Date (DD-MM-YYYY) : 10-12-2020                                               =
+================================================================================
+ 
+Info(xsinit): mapping BSE-specific parameters
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(exccoulintlauncher): Setting up exchange interaction matrix V.
+Info(exccoulintlauncher): Using momentum transfer vectors from list :   1 to  1
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(exccoulintlauncher):Calculating exchange interaction matrix V
+Info(exccoulintlauncher): Momentum transfer list index: iqmt=  1
+Info(exccoulintlauncher): Momentum transfer: vqmtl=   0.000   0.000   0.000
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 
+Info(exccoulintlauncher): Calculating RR block of V
+ 
+--------------------------------------------------------------------------------
+Info(exccoulint): Inspecting occupations...
+Info(setranges_modxs): Determining k+qmt/2 grid
+Info(setranges_modxs): Determining k-qmt/2 grid
+Info(setranges_modxs): Number of non-reduced k-points:       27
+Info(setranges_modxs): Number of states considered:        7
+Info(setranges_modxs): Number of (partially) occupied states:        5
+Info(setranges_modxs): Highest (partially) occupied states:        5
+Info(setranges_modxs): Number of (partially) unoccupied states:        2
+Info(setranges_modxs): Lowest (partially) unoccupied states:        6
+--------------------------------------------------------------------------------
+Info(exccoulint): Selecting transitions...
+Info(select_transitions): Inspecting transitions in the  band interval:
+  lowest occupied state:   1
+  highest occupied state:   5
+  lowest unoccupied state:   6
+  highest unoccupied state:   7
+  Opening gap with a scissor of:      0.209/H      5.700/eV
+Info(select_transitions): Number of participating transitions:     270
+--------------------------------------------------------------------------------
+Info(exccoulint): Size of file EXCLI will be about     0.000563 GB
+ 
+Info(exccoulint): Generating plane wave matrix elements for momentum transfer iqmt=   1
+  Timing (in seconds)	   :       0.073
+ 
+Info(exccoulint): Generating V matrix elements
+Info(exccoulint): Zeroing Coulomb potential at G+qmt index:  1
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(exccoulintlauncher): Exchange interaction finished for iqmt=   1
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(xsfinit): task Nr.     441 stopped gracefully
+ 
+ Timings: 
+     Date (DD-MM-YYYY)      : 10-12-2020
+     Time (hh:mm:ss)        : 20:05:39
+     CPU time               : 4.24 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 04 s )
+     wall time              : 0.61 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
+     CPU load               : 695.00 %
+     CPU time  (cumulative) : 220.87 sec; 0.06 hrs; ( 0 d, 00 h, 03 m, 41 s )
+     wall time (cumulative) : 18.61 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 19 s )
+     CPU load  (cumulative) : 695.00 %
+ 
+================================================================================
+= EXCITING NITROGEN-14 stopped for task    441                                 =
+================================================================================
+ 
+ 
+================================================================================
+| EXCITING NITROGEN-14 started for task bse (445)                              =
+| Date (DD-MM-YYYY) : 10-12-2020                                               =
+================================================================================
+ 
+Info(xsinit): mapping BSE-specific parameters
+ 
+Info(bselauncher): Init time:    0.282741
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(bselauncher): Setting up and diagonalizing BSE Hamiltonian.
+Info(bselauncher): Using momentum transfer vectors from list :   1 to  1
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(bselauncher): Serial execution
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+--------------------------------------------------------------------------------
+Info(bselauncher): Momentum transfer list index: iqmt=  1
+Info(bselauncher): Momentum transfer: vqmtl=   0.000   0.000   0.000
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+Info(bse): Inspecting occupations...
+Info(setranges_modxs): Determining k+qmt/2 grid
+Info(setranges_modxs): Determining k-qmt/2 grid
+Info(setranges_modxs): Number of non-reduced k-points:       27
+Info(setranges_modxs): Number of states considered:        7
+Info(setranges_modxs): Number of (partially) occupied states:        5
+Info(setranges_modxs): Highest (partially) occupied states:        5
+Info(setranges_modxs): Number of (partially) unoccupied states:        2
+Info(setranges_modxs): Lowest (partially) unoccupied states:        6
+--------------------------------------------------------------------------------
+Info(bse): Selecting transitions...
+Info(select_transitions): Inspecting transitions in the  band interval:
+  lowest occupied state:   1
+  highest occupied state:   5
+  lowest unoccupied state:   6
+  highest unoccupied state:   7
+  Opening gap with a scissor of:      0.209/H      5.700/eV
+Info(select_transitions): Number of participating transitions:     270
+--------------------------------------------------------------------------------
+ 
+Info(bse):bsegap (eV):    15.0330371806971232
+Info(bse): Assembling BSE matrix
+  RR/RA blocks of global BSE-Hamiltonian:
+  Size of the Hamiltonian:     270
+  Number of k-points:      27
+  Distributing matrix to   1 processes
+  Local matrix shape    270 x   270
+Info(bse): max local RAM needed for BSE matrices ~     0.001086 GB
+ 
+--------------------------------------------------------------------------------
+Info(setup_bse_block): Setting up RR part of hamiltonian
+Info(setup_bse_block): Singlet spin state
+ Hamiltonian constructed.
+All processes build their local matrix
+Info(bse): Diagonalizing RR Hamiltonian (TDA)
+Info(bse): Invoking Lapack routine ZHEEVR
+       270 eigen solutions found in the interval:
+         i1=       1 i2=     270
+ 
+--------------------------------------------------------------------------------
+Info(makeoscistr_dist): Making oscillator strengths (distributed).
+Info(makeoscistr_dist): iqmt=   1
+Info(makeoscistr_dist): Qmt=       0.000000       0.000000       0.000000
+Info(makeoscistr_dist): Using zero momentum transfer formalismus.
+Info(makeoscistr_dist): Making oscillator strengths using dipole operator matrix elements.
+  Building Dipole matrix.
+  Building distributed resonant oscillator strengths.
+ 
+--------------------------------------------------------------------------------
+Info(bse): Writing excition energies and oscillator strengths to text file.
+Info(makespectrum_dist): Making spectrum using formula for coupling with time reversed AR basis.
+Info(makespectrum_dist): Using formalism for vanishing momentum transfer.
+Info(finalizespectrum): Finalizing spectrum.
+Info(finalizespectrum): Using modified density-response function to build spectrum.
+Info(writederived): Writing quantities derived from the macroscopic dielectric function.
+  Derived quantities written.
+--------------------------------------------------------------------------------
+Info(bselauncher): Spectrum finished for iqmt=  1
+--------------------------------------------------------------------------------
+Info(xsfinit): task Nr.     445 stopped gracefully
+ 
+ Timings: 
+     Date (DD-MM-YYYY)      : 10-12-2020
+     Time (hh:mm:ss)        : 20:05:40
+     CPU time               : 3.30 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 03 s )
+     wall time              : 0.50 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     CPU load               : 663.65 %
+     CPU time  (cumulative) : 224.17 sec; 0.06 hrs; ( 0 d, 00 h, 03 m, 44 s )
+     wall time (cumulative) : 19.10 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 19 s )
+     CPU load  (cumulative) : 663.65 %
+ 
+================================================================================
+= EXCITING NITROGEN-14 stopped for task    445                                 =
+================================================================================
+ 
+ 

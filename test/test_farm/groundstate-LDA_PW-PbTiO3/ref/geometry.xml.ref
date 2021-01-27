@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+  <title>PbTiO3</title>
+  <structure speciespath="./">
+    <crystal>
+      <basevect>   7.500000000       0.000000000       0.000000000</basevect>
+      <basevect>   0.000000000       7.500000000       0.000000000</basevect>
+      <basevect>   0.000000000       0.000000000       7.500000000</basevect>
+    </crystal>
+    <species speciesfile="Pb.xml" rmt="1.8000">
+      <atom coord="0.0000000000      0.0000000000      0.0000000000"/>
+    </species>
+    <species speciesfile="Ti.xml" rmt="1.8000">
+      <atom coord="0.5000000000      0.5000000000      0.5000000000"/>
+    </species>
+    <species speciesfile="O.xml" rmt="1.8000">
+      <atom coord="0.5000000000      0.5000000000      0.0000000000"/>
+      <atom coord="0.5000000000      0.0000000000      0.5000000000"/>
+      <atom coord="0.0000000000      0.5000000000      0.5000000000"/>
+    </species>
+  </structure>
+</input>

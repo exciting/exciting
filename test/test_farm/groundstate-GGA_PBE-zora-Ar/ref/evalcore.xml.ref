@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<evalcore>
+  <species is="1" chemicalSymbol="Ar">
+    <atom ia="1">
+      <state ist="1" n="1" l="0" k="0" eigenvalue="-1.147398835188e2"/>
+      <state ist="2" n="2" l="0" k="0" eigenvalue="-1.088032551864e1"/>
+      <state ist="3" n="2" l="1" k="1" eigenvalue="-8.449791067402e0"/>
+      <state ist="4" n="2" l="1" k="1" eigenvalue="-8.449791067402e0"/>
+    </atom>
+  </species>
+</evalcore>

@@ -1,0 +1,27 @@
+<input>
+  <title>Si crystal</title>
+  <structure speciespath=".">
+    <crystal>
+      <basevect>  2.68  2.68 -2.68 </basevect>
+      <basevect>  2.68 -2.68  2.68 </basevect>
+      <basevect> -2.68  2.68  2.68 </basevect>
+    </crystal>
+    <species speciesfile="Fe.xml" rmt="2.2">
+      <atom coord="0.00 0.00 0.00" bfcmt="0.0 0.0 10.0"/>
+    </species>
+  </structure>
+  <groundstate
+    do="fromscratch"
+    rgkmax="7.0"
+    gmaxvr="12"
+    ngridk="8 8 8"
+    xctype="LDA_PW"
+    nempty="10"
+    lmaxapw="8"
+    lmaxmat="8"
+    lmaxvr="8"
+    outputlevel="high"
+    >
+  <spin spinorb="false" realspace="false" reducebf="0.1"/> 
+  </groundstate>
+</input>

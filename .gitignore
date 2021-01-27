@@ -12,11 +12,8 @@ debian/debian/usr
 # No species ?
 src/species/species
 
-# Ignore some tests ?
-test02/runlapackmpi/startmpirun
 
 *.err
-testprogram?
 
 # ?
 mpiconf.inc
@@ -55,7 +52,6 @@ fort.*
 outerr.*
 
 # WTF?
-testsummary.*
 .DS*
 ._.DS*
 gitlog.txt
@@ -64,7 +60,6 @@ startmpirun
 results
 _current
 *.lo
-
 
 # Ignore text editor files
 *.save
@@ -117,12 +112,36 @@ make.out
 build/make.inc
 
 # Ignore output/input files 
-info.xml
 *.OUT
+*.OUT.xml
+*EVECFV*
+*EVECSV*
+*OCCSV*
 *.TXT
-*.OUT.*
-.out.xml
+*.out.xml
+*_ini.xml
+*_scf.xml
 *.out
+*.dat
+*.DAT
+*.bxfs
+info.xml
+atoms.xml
+geometry.xml
+spintext.xml
+eigval.xml
+evalcore.xml
+report.xml
+reports.xml
+report.html
+bandstructure.xml
+dos.xml
+*3D.xml
+effmass.xml
+EFG.xml
+expiqr.xml
+LSJ.xml
+mossbauer.xml
 
 # Ignore executables 
 /build/serial/exciting
@@ -134,3 +153,7 @@ info.xml
 
 # Ignore tag files
 tags
+
+# Ignore compiled python scripts
+*.pyc
+

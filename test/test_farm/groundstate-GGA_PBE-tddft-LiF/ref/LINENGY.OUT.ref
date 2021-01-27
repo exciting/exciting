@@ -1,0 +1,35 @@
+ 
+Species :    1 (Li), atom :    1
+ APW functions :
+  l =  0, order =  1 :    1.042500000    
+  l =  1, order =  1 :   0.1500000000    
+  l =  2, order =  1 :   0.1500000000    
+  l =  3, order =  1 :   0.1500000000    
+  l =  4, order =  1 :   0.1500000000    
+  l =  5, order =  1 :   0.1500000000    
+  l =  6, order =  1 :   0.1500000000    
+  l =  7, order =  1 :   0.1500000000    
+  l =  8, order =  1 :   0.1500000000    
+ local-orbital functions :
+  l.o. =  1, l =  0, order =  1 :    1.042500000    
+  l.o. =  1, l =  0, order =  2 :    1.042500000    
+  l.o. =  2, l =  0, order =  1 :    1.042500000    
+  l.o. =  2, l =  0, order =  2 :    1.042500000    
+  l.o. =  2, l =  0, order =  3 :   -1.527200000    
+ 
+Species :    2 (F), atom :    1
+ APW functions :
+  l =  0, order =  1 :  -0.5150000000    
+  l =  1, order =  1 :   0.1500000000    
+  l =  2, order =  1 :   0.1500000000    
+  l =  3, order =  1 :   0.1500000000    
+  l =  4, order =  1 :   0.1500000000    
+  l =  5, order =  1 :   0.1500000000    
+  l =  6, order =  1 :   0.1500000000    
+  l =  7, order =  1 :   0.1500000000    
+  l =  8, order =  1 :   0.1500000000    
+ local-orbital functions :
+  l.o. =  1, l =  0, order =  1 :  -0.5150000000    
+  l.o. =  1, l =  0, order =  2 :  -0.5150000000    
+  l.o. =  2, l =  1, order =  1 :   0.1500000000    
+  l.o. =  2, l =  1, order =  2 :   0.1500000000    

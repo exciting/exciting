@@ -1,0 +1,661 @@
+================================================================================
+| EXCITING NITROGEN-14 started                                                 =
+| version hash id: 1775bff4453c84689fb848894a9224f155377cfc                    =
+|                                                                              =
+|                                                                              =
+| Date (DD-MM-YYYY) : 10-12-2020                                               =
+| Time (hh:mm:ss)   : 20:04:50                                                 =
+|                                                                              =
+| All units are atomic (Hartree, Bohr, etc.)                                   =
+================================================================================
+ 
+********************************************************************************
+* Ground-state run starting from atomic densities                              *
+********************************************************************************
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Starting initialization                                                      +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 
+ Lattice vectors (cartesian) :
+      3.7500000000      3.7500000000      0.0000000000
+      3.7500000000      0.0000000000      3.7500000000
+      0.0000000000      3.7500000000      3.7500000000
+ 
+ Reciprocal lattice vectors (cartesian) :
+      0.8377580410      0.8377580410     -0.8377580410
+      0.8377580410     -0.8377580410      0.8377580410
+     -0.8377580410      0.8377580410      0.8377580410
+ 
+ Unit cell volume                           :     105.4687500000
+ Brillouin zone volume                      :       2.3518835052
+ 
+ Species :    1 (Al)
+     parameters loaded from                 :    Al.xml
+     name                                   :    aluminium
+     nuclear charge                         :     -13.00000000
+     electronic charge                      :      13.00000000
+     atomic mass                            :   49184.33493000
+     muffin-tin radius                      :       2.00000000
+     # of radial points in muffin-tin       :     300
+ 
+     atomic positions (lattice) :
+       1 :   0.00000000  0.00000000  0.00000000
+ 
+ Total number of atoms per unit cell        :       1
+ 
+ Spin treatment                             :    spin-unpolarised
+ 
+ Number of Bravais lattice symmetries       :      48
+ Number of crystal symmetries               :      48
+ 
+ k-point grid                               :       4    4    4
+ k-point offset :       0.500000  0.500000  0.500000
+ Total number of k-points                   :      10
+ k-point set is reduced with crystal symmetries
+ 
+ R^MT_min * |G+k|_max (rgkmax)              :       7.00000000
+ Species with R^MT_min                      :       1 (Al)
+ Maximum |G+k| for APW functions            :       3.50000000
+ Maximum |G| for potential and density      :      12.00000000
+ Polynomial order for pseudochg. density    :       9
+ 
+ G-vector grid sizes                        :      24    24    24
+ Total number of G-vectors                  :    3119
+ 
+ Maximum angular momentum used for
+     APW functions                          :       8
+     computing H and O matrix elements      :       8
+     potential and density                  :       8
+     inner part of muffin-tin               :       2
+ 
+ Total nuclear charge                       :     -13.00000000
+ Total electronic charge                    :      13.00000000
+ Total core charge                          :       4.00000000
+ Total valence charge                       :       9.00000000
+ 
+ Effective Wigner radius, r_s               :       1.24651434
+ 
+ Number of empty states                     :       5
+ Total number of valence states             :      10
+ 
+ Maximum Hamiltonian size                   :      86
+ Maximum number of plane-waves              :      79
+ Total number of local-orbitals             :       7
+ 
+ Exchange-correlation type                  :      20
+     Perdew-Burke-Ernzerhof, Phys. Rev. Lett. 77, 3865 (1996)
+     Generalised gradient approximation (GGA)
+ 
+ Smearing scheme                            :    Gaussian
+ Smearing width                             :       0.00100000
+ 
+ Using multisecant Broyden potential mixing
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Ending initialization                                                        +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 
+********************************************************************************
+* Groundstate module started                                                   *
+********************************************************************************
+ Output level for this task is set to high
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Self-consistent loop started                                                 +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Density and potential initialised from atomic data
+ 
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :    1                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :      -242.56879230
+ _______________________________________________________________
+ Fermi energy                               :         0.29585570
+ Kinetic energy                             :       243.64987821
+ Coulomb energy                             :      -467.56480699
+ Exchange energy                            :       -18.13760839
+ Correlation energy                         :        -0.51625514
+ Sum of eigenvalues                         :      -129.11582960
+ Effective potential energy                 :      -372.76570781
+ Coulomb potential energy                   :      -348.68728963
+ xc potential energy                        :       -24.07841818
+ Hartree energy                             :        74.80886945
+ Electron-nuclear energy                    :      -498.30502853
+ Nuclear-nuclear energy                     :       -44.06864791
+ Madelung energy                            :      -293.22116217
+ Core-electron kinetic energy               :         0.00000000
+ 
+ DOS at Fermi energy (states/Ha/cell)       :       211.57109383
+ 
+ Electron charges :
+     core                                   :         4.00000000
+     core leakage                           :         0.00136771
+     valence                                :         9.00000000
+     interstitial                           :         2.10655289
+     charge in muffin-tin spheres :
+                  atom     1    Al          :        10.89344711
+     total charge in muffin-tins            :        10.89344711
+     total charge                           :        13.00000000
+ 
+ Wall time (seconds)                        :         1.34
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :    2                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :      -242.63486648
+ _______________________________________________________________
+ Fermi energy                               :         0.29502796
+ Kinetic energy                             :       243.56864306
+ Coulomb energy                             :      -467.54954722
+ Exchange energy                            :       -18.13772527
+ Correlation energy                         :        -0.51623705
+ Sum of eigenvalues                         :      -129.17654621
+ Effective potential energy                 :      -372.74518928
+ Coulomb potential energy                   :      -348.66662411
+ xc potential energy                        :       -24.07856517
+ Hartree energy                             :        74.81427521
+ Electron-nuclear energy                    :      -498.29517453
+ Nuclear-nuclear energy                     :       -44.06864791
+ Madelung energy                            :      -293.21623517
+ Core-electron kinetic energy               :         0.00000000
+ 
+ DOS at Fermi energy (states/Ha/cell)       :       211.57109383
+ 
+ Electron charges :
+     core                                   :         4.00000000
+     core leakage                           :         0.00136032
+     valence                                :         9.00000000
+     interstitial                           :         2.10462952
+     charge in muffin-tin spheres :
+                  atom     1    Al          :        10.89537048
+     total charge in muffin-tins            :        10.89537048
+     total charge                           :        13.00000000
+ 
+ Wall time (seconds)                        :         1.95
+ 
+ RMS change in effective potential (target) :  0.115924      ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.660742E-01  ( 0.100000E-05)
+ Charge distance                   (target) :  0.368410E-03  ( 0.100000E-04)
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :    3                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :      -242.69561007
+ _______________________________________________________________
+ Fermi energy                               :         0.29434690
+ Kinetic energy                             :       243.51018735
+ Coulomb energy                             :      -467.55080149
+ Exchange energy                            :       -18.13876435
+ Correlation energy                         :        -0.51623158
+ Sum of eigenvalues                         :      -129.22588922
+ Effective potential energy                 :      -372.73607657
+ Coulomb potential energy                   :      -348.65613049
+ xc potential energy                        :       -24.07994608
+ Hartree energy                             :        74.82602308
+ Electron-nuclear energy                    :      -498.30817666
+ Nuclear-nuclear energy                     :       -44.06864791
+ Madelung energy                            :      -293.22273624
+ Core-electron kinetic energy               :         0.00000000
+ 
+ DOS at Fermi energy (states/Ha/cell)       :       211.57109383
+ 
+ Electron charges :
+     core                                   :         4.00000000
+     core leakage                           :         0.00135437
+     valence                                :         9.00000000
+     interstitial                           :         2.10306449
+     charge in muffin-tin spheres :
+                  atom     1    Al          :        10.89693551
+     total charge in muffin-tins            :        10.89693551
+     total charge                           :        13.00000000
+ 
+ Wall time (seconds)                        :         2.54
+ 
+ RMS change in effective potential (target) :  0.855982E-01  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.607436E-01  ( 0.100000E-05)
+ Charge distance                   (target) :  0.268951E-03  ( 0.100000E-04)
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :    4                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :      -242.78275512
+ _______________________________________________________________
+ Fermi energy                               :         0.29262075
+ Kinetic energy                             :       243.35841511
+ Coulomb energy                             :      -467.48833278
+ Exchange energy                            :       -18.13665090
+ Correlation energy                         :        -0.51618656
+ Sum of eigenvalues                         :      -129.32095502
+ Effective potential energy                 :      -372.67937013
+ Coulomb potential energy                   :      -348.60221862
+ xc potential energy                        :       -24.07715152
+ Hartree energy                             :        74.81746625
+ Electron-nuclear energy                    :      -498.23715112
+ Nuclear-nuclear energy                     :       -44.06864791
+ Madelung energy                            :      -293.18722347
+ Core-electron kinetic energy               :         0.00000000
+ 
+ DOS at Fermi energy (states/Ha/cell)       :       211.57109383
+ 
+ Electron charges :
+     core                                   :         4.00000000
+     core leakage                           :         0.00134311
+     valence                                :         9.00000000
+     interstitial                           :         2.09977492
+     charge in muffin-tin spheres :
+                  atom     1    Al          :        10.90022508
+     total charge in muffin-tins            :        10.90022508
+     total charge                           :        13.00000000
+ 
+ Wall time (seconds)                        :         3.13
+ 
+ RMS change in effective potential (target) :  0.168627E-02  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.871451E-01  ( 0.100000E-05)
+ Charge distance                   (target) :  0.833277E-03  ( 0.100000E-04)
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :    5                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :      -242.84712383
+ _______________________________________________________________
+ Fermi energy                               :         0.29249831
+ Kinetic energy                             :       243.33773663
+ Coulomb energy                             :      -467.52905413
+ Exchange energy                            :       -18.13960909
+ Correlation energy                         :        -0.51619724
+ Sum of eigenvalues                         :      -129.36209207
+ Effective potential energy                 :      -372.69982870
+ Coulomb potential energy                   :      -348.61878783
+ xc potential energy                        :       -24.08104087
+ Hartree energy                             :        74.84161839
+ Electron-nuclear energy                    :      -498.30202461
+ Nuclear-nuclear energy                     :       -44.06864791
+ Madelung energy                            :      -293.21966021
+ Core-electron kinetic energy               :         0.00000000
+ 
+ DOS at Fermi energy (states/Ha/cell)       :       211.57109383
+ 
+ Electron charges :
+     core                                   :         4.00000000
+     core leakage                           :         0.00133850
+     valence                                :         9.00000000
+     interstitial                           :         2.09919070
+     charge in muffin-tin spheres :
+                  atom     1    Al          :        10.90080930
+     total charge in muffin-tins            :        10.90080930
+     total charge                           :        13.00000000
+ 
+ Wall time (seconds)                        :         3.82
+ 
+ RMS change in effective potential (target) :  0.132211E-02  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.643687E-01  ( 0.100000E-05)
+ Charge distance                   (target) :  0.273164E-03  ( 0.100000E-04)
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :    6                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :      -242.82236315
+ _______________________________________________________________
+ Fermi energy                               :         0.29255712
+ Kinetic energy                             :       243.34426349
+ Coulomb energy                             :      -467.51203827
+ Exchange energy                            :       -18.13839620
+ Correlation energy                         :        -0.51619218
+ Sum of eigenvalues                         :      -129.34679618
+ Effective potential energy                 :      -372.69105967
+ Coulomb potential energy                   :      -348.61161555
+ xc potential energy                        :       -24.07944412
+ Hartree energy                             :        74.83177481
+ Electron-nuclear energy                    :      -498.27516517
+ Nuclear-nuclear energy                     :       -44.06864791
+ Madelung energy                            :      -293.20623049
+ Core-electron kinetic energy               :         0.00000000
+ 
+ DOS at Fermi energy (states/Ha/cell)       :       211.57109382
+ 
+ Electron charges :
+     core                                   :         4.00000000
+     core leakage                           :         0.00134015
+     valence                                :         9.00000000
+     interstitial                           :         2.09941784
+     charge in muffin-tin spheres :
+                  atom     1    Al          :        10.90058216
+     total charge in muffin-tins            :        10.90058216
+     total charge                           :        13.00000000
+ 
+ Wall time (seconds)                        :         4.43
+ 
+ RMS change in effective potential (target) :  0.316297E-04  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.247607E-01  ( 0.100000E-05)
+ Charge distance                   (target) :  0.114222E-03  ( 0.100000E-04)
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :    7                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :      -242.82143525
+ _______________________________________________________________
+ Fermi energy                               :         0.29256023
+ Kinetic energy                             :       243.34429325
+ Coulomb energy                             :      -467.51120365
+ Exchange energy                            :       -18.13833307
+ Correlation energy                         :        -0.51619178
+ Sum of eigenvalues                         :      -129.34636900
+ Effective potential energy                 :      -372.69066225
+ Coulomb potential energy                   :      -348.61130197
+ xc potential energy                        :       -24.07936028
+ Hartree energy                             :        74.83125377
+ Electron-nuclear energy                    :      -498.27380951
+ Nuclear-nuclear energy                     :       -44.06864791
+ Madelung energy                            :      -293.20555266
+ Core-electron kinetic energy               :         0.00000000
+ 
+ DOS at Fermi energy (states/Ha/cell)       :       211.57109383
+ 
+ Electron charges :
+     core                                   :         4.00000000
+     core leakage                           :         0.00134020
+     valence                                :         9.00000000
+     interstitial                           :         2.09943180
+     charge in muffin-tin spheres :
+                  atom     1    Al          :        10.90056820
+     total charge in muffin-tins            :        10.90056820
+     total charge                           :        13.00000000
+ 
+ Wall time (seconds)                        :         5.01
+ 
+ RMS change in effective potential (target) :  0.191208E-04  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.927903E-03  ( 0.100000E-05)
+ Charge distance                   (target) :  0.845078E-05  ( 0.100000E-04)
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :    8                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :      -242.82200151
+ _______________________________________________________________
+ Fermi energy                               :         0.29256009
+ Kinetic energy                             :       243.34435150
+ Coulomb energy                             :      -467.51178701
+ Exchange energy                            :       -18.13837393
+ Correlation energy                         :        -0.51619206
+ Sum of eigenvalues                         :      -129.34662511
+ Effective potential energy                 :      -372.69097661
+ Coulomb potential energy                   :      -348.61156221
+ xc potential energy                        :       -24.07941440
+ Hartree energy                             :        74.83157689
+ Electron-nuclear energy                    :      -498.27471600
+ Nuclear-nuclear energy                     :       -44.06864791
+ Madelung energy                            :      -293.20600591
+ Core-electron kinetic energy               :         0.00000000
+ 
+ DOS at Fermi energy (states/Ha/cell)       :       211.57109383
+ 
+ Electron charges :
+     core                                   :         4.00000000
+     core leakage                           :         0.00134017
+     valence                                :         9.00000000
+     interstitial                           :         2.09942975
+     charge in muffin-tin spheres :
+                  atom     1    Al          :        10.90057025
+     total charge in muffin-tins            :        10.90057025
+     total charge                           :        13.00000000
+ 
+ Wall time (seconds)                        :         5.60
+ 
+ RMS change in effective potential (target) :  0.882801E-05  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.566256E-03  ( 0.100000E-05)
+ Charge distance                   (target) :  0.448592E-05  ( 0.100000E-04)
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :    9                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :      -242.82185846
+ _______________________________________________________________
+ Fermi energy                               :         0.29255996
+ Kinetic energy                             :       243.34432915
+ Coulomb energy                             :      -467.51163228
+ Exchange energy                            :       -18.13836334
+ Correlation energy                         :        -0.51619199
+ Sum of eigenvalues                         :      -129.34656143
+ Effective potential energy                 :      -372.69089057
+ Coulomb potential energy                   :      -348.61149020
+ xc potential energy                        :       -24.07940038
+ Hartree energy                             :        74.83149418
+ Electron-nuclear energy                    :      -498.27447855
+ Nuclear-nuclear energy                     :       -44.06864791
+ Madelung energy                            :      -293.20588718
+ Core-electron kinetic energy               :         0.00000000
+ 
+ DOS at Fermi energy (states/Ha/cell)       :       211.57109382
+ 
+ Electron charges :
+     core                                   :         4.00000000
+     core leakage                           :         0.00134018
+     valence                                :         9.00000000
+     interstitial                           :         2.09942972
+     charge in muffin-tin spheres :
+                  atom     1    Al          :        10.90057028
+     total charge in muffin-tins            :        10.90057028
+     total charge                           :        13.00000000
+ 
+ Wall time (seconds)                        :         6.35
+ 
+ RMS change in effective potential (target) :  0.115117E-05  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.143048E-03  ( 0.100000E-05)
+ Charge distance                   (target) :  0.113279E-05  ( 0.100000E-04)
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :   10                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :      -242.82183282
+ _______________________________________________________________
+ Fermi energy                               :         0.29255996
+ Kinetic energy                             :       243.34432584
+ Coulomb energy                             :      -467.51160524
+ Exchange energy                            :       -18.13836145
+ Correlation energy                         :        -0.51619197
+ Sum of eigenvalues                         :      -129.34655007
+ Effective potential energy                 :      -372.69087591
+ Coulomb potential energy                   :      -348.61147803
+ xc potential energy                        :       -24.07939788
+ Hartree energy                             :        74.83147930
+ Electron-nuclear energy                    :      -498.27443663
+ Nuclear-nuclear energy                     :       -44.06864791
+ Madelung energy                            :      -293.20586622
+ Core-electron kinetic energy               :         0.00000000
+ 
+ DOS at Fermi energy (states/Ha/cell)       :       211.57109383
+ 
+ Electron charges :
+     core                                   :         4.00000000
+     core leakage                           :         0.00134018
+     valence                                :         9.00000000
+     interstitial                           :         2.09942980
+     charge in muffin-tin spheres :
+                  atom     1    Al          :        10.90057020
+     total charge in muffin-tins            :        10.90057020
+     total charge                           :        13.00000000
+ 
+ Wall time (seconds)                        :         6.95
+ 
+ RMS change in effective potential (target) :  0.136454E-06  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.256387E-04  ( 0.100000E-05)
+ Charge distance                   (target) :  0.215627E-06  ( 0.100000E-04)
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :   11                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :      -242.82183553
+ _______________________________________________________________
+ Fermi energy                               :         0.29255996
+ Kinetic energy                             :       243.34432669
+ Coulomb energy                             :      -467.51160857
+ Exchange energy                            :       -18.13836167
+ Correlation energy                         :        -0.51619198
+ Sum of eigenvalues                         :      -129.34655112
+ Effective potential energy                 :      -372.69087781
+ Coulomb potential energy                   :      -348.61147964
+ xc potential energy                        :       -24.07939818
+ Hartree energy                             :        74.83148103
+ Electron-nuclear energy                    :      -498.27444170
+ Nuclear-nuclear energy                     :       -44.06864791
+ Madelung energy                            :      -293.20586876
+ Core-electron kinetic energy               :         0.00000000
+ 
+ DOS at Fermi energy (states/Ha/cell)       :       211.57109383
+ 
+ Electron charges :
+     core                                   :         4.00000000
+     core leakage                           :         0.00134018
+     valence                                :         9.00000000
+     interstitial                           :         2.09942980
+     charge in muffin-tin spheres :
+                  atom     1    Al          :        10.90057020
+     total charge in muffin-tins            :        10.90057020
+     total charge                           :        13.00000000
+ 
+ Wall time (seconds)                        :         7.68
+ 
+ RMS change in effective potential (target) :  0.201532E-07  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.271374E-05  ( 0.100000E-05)
+ Charge distance                   (target) :  0.343467E-07  ( 0.100000E-04)
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :   12                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :      -242.82183516
+ _______________________________________________________________
+ Fermi energy                               :         0.29255996
+ Kinetic energy                             :       243.34432680
+ Coulomb energy                             :      -467.51160833
+ Exchange energy                            :       -18.13836166
+ Correlation energy                         :        -0.51619198
+ Sum of eigenvalues                         :      -129.34655089
+ Effective potential energy                 :      -372.69087769
+ Coulomb potential energy                   :      -348.61147954
+ xc potential energy                        :       -24.07939815
+ Hartree energy                             :        74.83148088
+ Electron-nuclear energy                    :      -498.27444130
+ Nuclear-nuclear energy                     :       -44.06864791
+ Madelung energy                            :      -293.20586856
+ Core-electron kinetic energy               :         0.00000000
+ 
+ DOS at Fermi energy (states/Ha/cell)       :       211.57109382
+ 
+ Electron charges :
+     core                                   :         4.00000000
+     core leakage                           :         0.00134018
+     valence                                :         9.00000000
+     interstitial                           :         2.09942980
+     charge in muffin-tin spheres :
+                  atom     1    Al          :        10.90057020
+     total charge in muffin-tins            :        10.90057020
+     total charge                           :        13.00000000
+ 
+ Wall time (seconds)                        :         8.39
+ 
+ RMS change in effective potential (target) :  0.701169E-08  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.375319E-06  ( 0.100000E-05)
+ Charge distance                   (target) :  0.414208E-08  ( 0.100000E-04)
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :   13                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :      -242.82183503
+ _______________________________________________________________
+ Fermi energy                               :         0.29255996
+ Kinetic energy                             :       243.34432679
+ Coulomb energy                             :      -467.51160820
+ Exchange energy                            :       -18.13836165
+ Correlation energy                         :        -0.51619198
+ Sum of eigenvalues                         :      -129.34655082
+ Effective potential energy                 :      -372.69087762
+ Coulomb potential energy                   :      -348.61147948
+ xc potential energy                        :       -24.07939814
+ Hartree energy                             :        74.83148082
+ Electron-nuclear energy                    :      -498.27444111
+ Nuclear-nuclear energy                     :       -44.06864791
+ Madelung energy                            :      -293.20586846
+ Core-electron kinetic energy               :         0.00000000
+ 
+ DOS at Fermi energy (states/Ha/cell)       :       211.57109382
+ 
+ Electron charges :
+     core                                   :         4.00000000
+     core leakage                           :         0.00134018
+     valence                                :         9.00000000
+     interstitial                           :         2.09942980
+     charge in muffin-tin spheres :
+                  atom     1    Al          :        10.90057020
+     total charge in muffin-tins            :        10.90057020
+     total charge                           :        13.00000000
+ 
+ Wall time (seconds)                        :         9.04
+ 
+ RMS change in effective potential (target) :  0.487859E-08  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.125777E-06  ( 0.100000E-05)
+ Charge distance                   (target) :  0.119217E-08  ( 0.100000E-04)
+                                                                                
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+| Convergency criteria checked for the last 2 iterations                       +
+| Convergence targets achieved. Performing final SCF iteration                 +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :      -242.82183514
+ _______________________________________________________________
+ Fermi energy                               :         0.29255996
+ Kinetic energy                             :       243.34432675
+ Coulomb energy                             :      -467.51160826
+ Exchange energy                            :       -18.13836165
+ Correlation energy                         :        -0.51619198
+ Sum of eigenvalues                         :      -129.34655089
+ Effective potential energy                 :      -372.69087764
+ Coulomb potential energy                   :      -348.61147950
+ xc potential energy                        :       -24.07939815
+ Hartree energy                             :        74.83148086
+ Electron-nuclear energy                    :      -498.27444121
+ Nuclear-nuclear energy                     :       -44.06864791
+ Madelung energy                            :      -293.20586851
+ Core-electron kinetic energy               :         0.00000000
+ 
+ DOS at Fermi energy (states/Ha/cell)       :       211.57109382
+ 
+ Electron charges :
+     core                                   :         4.00000000
+     core leakage                           :         0.00134018
+     valence                                :         9.00000000
+     interstitial                           :         2.09942980
+     charge in muffin-tin spheres :
+                  atom     1    Al          :        10.90057020
+     total charge in muffin-tins            :        10.90057020
+     total charge                           :        13.00000000
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Self-consistent loop stopped                                                 +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ STATE.OUT is written
+ 
+********************************************************************************
+* Groundstate module stopped                                                   *
+********************************************************************************
+ 
+--------------------------------------------------------------------------------
+- Timings (seconds)                                                            -
+--------------------------------------------------------------------------------
+ Initialisation                             :         0.51
+ Hamiltonian and overlap matrix set up      :         0.25
+ First-variational secular equation         :         0.29
+ Calculation of charge-density              :         0.42
+ Calculation of potential                   :         3.68
+ Muffin-tin manipulations                   :         4.08
+ APW matching                               :         0.61
+ Disk reads/writes                          :         0.52
+ Mixing efforts                             :         0.00
+ Solver of Dirac eqn.                       :         0.23
+ Solver of rel. Schroedinger eqn.           :         3.03
+ Total time spent in radial solvers         :         3.26
+ 
+ Total time spent (seconds)                 :         8.73
+================================================================================
+| EXCITING NITROGEN-14 stopped                                                 =
+================================================================================

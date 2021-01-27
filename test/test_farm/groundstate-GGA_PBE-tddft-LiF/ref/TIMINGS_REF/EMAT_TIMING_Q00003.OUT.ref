@@ -1,0 +1,567 @@
+ 
+Timings (CPU seconds) for q-point/k-point :      3     1
+  initialisation			   :     0.6914E-05
+  reading APW coefficients		   :     0.7441E-03
+  loop over G(+q) vectors		   :     0.2848E-01
+    summation wrt Gaunt coefficients	   :     0.1631E-03
+    muffin-tin contribution		   :     0.3710E-03
+      APW-APW				   :     0.3619E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.2783E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.2923E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3     2
+  initialisation			   :     0.7868E-05
+  reading APW coefficients		   :     0.7610E-03
+  loop over G(+q) vectors		   :     0.4211E-01
+    summation wrt Gaunt coefficients	   :     0.1621E-03
+    muffin-tin contribution		   :     0.3479E-03
+      APW-APW				   :     0.3419E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.2808E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.4288E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3     3
+  initialisation			   :     0.5960E-05
+  reading APW coefficients		   :     0.7591E-03
+  loop over G(+q) vectors		   :     0.4131E-01
+    summation wrt Gaunt coefficients	   :     0.1609E-03
+    muffin-tin contribution		   :     0.3490E-03
+      APW-APW				   :     0.3433E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.4055E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.4207E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3     4
+  initialisation			   :     0.5960E-05
+  reading APW coefficients		   :     0.7551E-03
+  loop over G(+q) vectors		   :     0.3946E-01
+    summation wrt Gaunt coefficients	   :     0.1640E-03
+    muffin-tin contribution		   :     0.3569E-03
+      APW-APW				   :     0.3502E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.3872E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.4022E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3     5
+  initialisation			   :     0.7153E-05
+  reading APW coefficients		   :     0.7470E-03
+  loop over G(+q) vectors		   :     0.3890E-01
+    summation wrt Gaunt coefficients	   :     0.1628E-03
+    muffin-tin contribution		   :     0.3572E-03
+      APW-APW				   :     0.3481E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.3815E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.3965E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3     6
+  initialisation			   :     0.5960E-05
+  reading APW coefficients		   :     0.7560E-03
+  loop over G(+q) vectors		   :     0.3942E-01
+    summation wrt Gaunt coefficients	   :     0.1621E-03
+    muffin-tin contribution		   :     0.3469E-03
+      APW-APW				   :     0.3390E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.3866E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.4018E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3     7
+  initialisation			   :     0.6914E-05
+  reading APW coefficients		   :     0.7410E-03
+  loop over G(+q) vectors		   :     0.3895E-01
+    summation wrt Gaunt coefficients	   :     0.1643E-03
+    muffin-tin contribution		   :     0.3488E-03
+      APW-APW				   :     0.3431E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.3823E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.3970E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3     8
+  initialisation			   :     0.6914E-05
+  reading APW coefficients		   :     0.7482E-03
+  loop over G(+q) vectors		   :     0.3822E-01
+    summation wrt Gaunt coefficients	   :     0.1628E-03
+    muffin-tin contribution		   :     0.3541E-03
+      APW-APW				   :     0.3471E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.3748E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.3898E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3     9
+  initialisation			   :     0.7153E-05
+  reading APW coefficients		   :     0.7420E-03
+  loop over G(+q) vectors		   :     0.4003E-01
+    summation wrt Gaunt coefficients	   :     0.1647E-03
+    muffin-tin contribution		   :     0.3672E-03
+      APW-APW				   :     0.3603E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.3925E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.4078E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3    10
+  initialisation			   :     0.6914E-05
+  reading APW coefficients		   :     0.7532E-03
+  loop over G(+q) vectors		   :     0.4056E-01
+    summation wrt Gaunt coefficients	   :     0.1619E-03
+    muffin-tin contribution		   :     0.3512E-03
+      APW-APW				   :     0.3440E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.3963E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.4132E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3    11
+  initialisation			   :     0.7153E-05
+  reading APW coefficients		   :     0.7489E-03
+  loop over G(+q) vectors		   :     0.3883E-01
+    summation wrt Gaunt coefficients	   :     0.1650E-03
+    muffin-tin contribution		   :     0.3622E-03
+      APW-APW				   :     0.3550E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.3789E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.3959E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3    12
+  initialisation			   :     0.6914E-05
+  reading APW coefficients		   :     0.7601E-03
+  loop over G(+q) vectors		   :     0.3890E-01
+    summation wrt Gaunt coefficients	   :     0.1659E-03
+    muffin-tin contribution		   :     0.3641E-03
+      APW-APW				   :     0.3562E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.3812E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.3967E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3    13
+  initialisation			   :     0.6914E-05
+  reading APW coefficients		   :     0.7501E-03
+  loop over G(+q) vectors		   :     0.3906E-01
+    summation wrt Gaunt coefficients	   :     0.1659E-03
+    muffin-tin contribution		   :     0.3641E-03
+      APW-APW				   :     0.3560E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.3829E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.3982E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3    14
+  initialisation			   :     0.7153E-05
+  reading APW coefficients		   :     0.7868E-03
+  loop over G(+q) vectors		   :     0.3892E-01
+    summation wrt Gaunt coefficients	   :     0.1650E-03
+    muffin-tin contribution		   :     0.3612E-03
+      APW-APW				   :     0.3574E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.3815E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.3972E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3    15
+  initialisation			   :     0.7153E-05
+  reading APW coefficients		   :     0.7579E-03
+  loop over G(+q) vectors		   :     0.4053E-01
+    summation wrt Gaunt coefficients	   :     0.1678E-03
+    muffin-tin contribution		   :     0.3641E-03
+      APW-APW				   :     0.3569E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.3975E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.4130E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3    16
+  initialisation			   :     0.7153E-05
+  reading APW coefficients		   :     0.7679E-03
+  loop over G(+q) vectors		   :     0.4071E-01
+    summation wrt Gaunt coefficients	   :     0.1681E-03
+    muffin-tin contribution		   :     0.3541E-03
+      APW-APW				   :     0.3469E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.3858E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.9537E-06
+  total				   :     0.4149E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3    17
+  initialisation			   :     0.7153E-05
+  reading APW coefficients		   :     0.7539E-03
+  loop over G(+q) vectors		   :     0.3894E-01
+    summation wrt Gaunt coefficients	   :     0.1659E-03
+    muffin-tin contribution		   :     0.3531E-03
+      APW-APW				   :     0.3471E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.3820E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.3971E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3    18
+  initialisation			   :     0.6914E-05
+  reading APW coefficients		   :     0.7660E-03
+  loop over G(+q) vectors		   :     0.3936E-01
+    summation wrt Gaunt coefficients	   :     0.1619E-03
+    muffin-tin contribution		   :     0.3531E-03
+      APW-APW				   :     0.3438E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.3862E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.4013E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3    19
+  initialisation			   :     0.6914E-05
+  reading APW coefficients		   :     0.7520E-03
+  loop over G(+q) vectors		   :     0.3695E-01
+    summation wrt Gaunt coefficients	   :     0.1647E-03
+    muffin-tin contribution		   :     0.3502E-03
+      APW-APW				   :     0.3431E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.3622E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.3771E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3    20
+  initialisation			   :     0.7153E-05
+  reading APW coefficients		   :     0.7648E-03
+  loop over G(+q) vectors		   :     0.3779E-01
+    summation wrt Gaunt coefficients	   :     0.1647E-03
+    muffin-tin contribution		   :     0.3531E-03
+      APW-APW				   :     0.3474E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.3719E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.3857E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3    21
+  initialisation			   :     0.7153E-05
+  reading APW coefficients		   :     0.7648E-03
+  loop over G(+q) vectors		   :     0.4166E-01
+    summation wrt Gaunt coefficients	   :     0.1621E-03
+    muffin-tin contribution		   :     0.3479E-03
+      APW-APW				   :     0.3409E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.4090E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.4243E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3    22
+  initialisation			   :     0.7153E-05
+  reading APW coefficients		   :     0.7608E-03
+  loop over G(+q) vectors		   :     0.4063E-01
+    summation wrt Gaunt coefficients	   :     0.1709E-03
+    muffin-tin contribution		   :     0.3469E-03
+      APW-APW				   :     0.3412E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.3986E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.4139E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3    23
+  initialisation			   :     0.5960E-05
+  reading APW coefficients		   :     0.7520E-03
+  loop over G(+q) vectors		   :     0.4194E-01
+    summation wrt Gaunt coefficients	   :     0.1619E-03
+    muffin-tin contribution		   :     0.3521E-03
+      APW-APW				   :     0.3431E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.4118E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.4270E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3    24
+  initialisation			   :     0.6914E-05
+  reading APW coefficients		   :     0.7620E-03
+  loop over G(+q) vectors		   :     0.4208E-01
+    summation wrt Gaunt coefficients	   :     0.1600E-03
+    muffin-tin contribution		   :     0.3440E-03
+      APW-APW				   :     0.3390E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.4132E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.4284E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3    25
+  initialisation			   :     0.6914E-05
+  reading APW coefficients		   :     0.7651E-03
+  loop over G(+q) vectors		   :     0.4185E-01
+    summation wrt Gaunt coefficients	   :     0.1628E-03
+    muffin-tin contribution		   :     0.3440E-03
+      APW-APW				   :     0.3374E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.4109E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.4262E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3    26
+  initialisation			   :     0.5960E-05
+  reading APW coefficients		   :     0.7639E-03
+  loop over G(+q) vectors		   :     0.3567E-01
+    summation wrt Gaunt coefficients	   :     0.1609E-03
+    muffin-tin contribution		   :     0.3529E-03
+      APW-APW				   :     0.3428E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.3482E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.3644E-01
+ 
+Timings (CPU seconds) for q-point/k-point :      3    27
+  initialisation			   :     0.7153E-05
+  reading APW coefficients		   :     0.7479E-03
+  loop over G(+q) vectors		   :     0.4229E-01
+    summation wrt Gaunt coefficients	   :     0.1619E-03
+    muffin-tin contribution		   :     0.3462E-03
+      APW-APW				   :     0.3390E-03
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+    interstitial contribution		   :     0.0000E+00
+    matrix multiplications		   :     0.0000E+00
+      APW-lo				   :     0.0000E+00
+      lo -APW				   :     0.0000E+00
+      lo -lo				   :     0.0000E+00
+      interstitial			   :     0.0000E+00
+    FFT   				   :     0.4140E-01
+    debugging				   :     0.0000E+00
+  writing matrix elements to file	   :     0.0000E+00
+  total				   :     0.4305E-01

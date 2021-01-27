@@ -5,14 +5,17 @@
 Subroutine writeexpiqr
       Use modmain
       Use modinput
+      Use FoX_wxml
       Implicit None
 ! local variables
       Integer :: nk, ik, jk, i, j
       Real (8) :: vecqc (3), a, b
+      Type (xmlf_t), Save :: xf
 ! allocatable arrays
       Complex (8), Allocatable :: emat (:, :)
       Character(256) :: string
 ! initialise universal variables
+
       Call init0
       Call init1
 ! allocate the matrix elements array for < i,k+G+q | exp(iq.r) | j,k >
@@ -47,6 +50,7 @@ Subroutine writeexpiqr
       nk = nkpt
       if (associated(input%properties%expiqr%kstlist)) &
          nk = size(input%properties%expiqr%kstlist%pointstatepair,2)
+
       Open (50, File='EXPIQR.OUT', Action='WRITE', Form='FORMATTED')
       Write (50,*)
       Write (50, '("q-vector (lattice coordinates) :")')
@@ -57,6 +61,14 @@ Subroutine writeexpiqr
       Write (50,*)
       Write (50, '(I8," : number of k-points")') nk
       Write (50, '(I6," : number of states per k-point")') nstsv
+      Call xml_OpenFile("expiqr.xml", xf, replace=.True., &
+            &pretty_print=.True.)
+      Call xml_NewElement(xf, "expiqr")
+      Call xml_NewElement(xf, "q-vector")
+      Call xml_AddAttribute(xf, "vecql", input%properties%elnes%vecql)
+      Call xml_AddAttribute(xf, "vecqc", vecqc)
+      Call xml_EndElement(xf, "q-vector")
+      Call xml_NewElement(xf, "k-grid")
       Do jk = 1, nk
          If (associated(input%properties%expiqr%kstlist)) Then
             ik = input%properties%expiqr%kstlist%pointstatepair(1, jk)
@@ -76,19 +88,35 @@ Subroutine writeexpiqr
          Write (50,*)
          Write (50, '(" k-point (Cartesian coordinates) :")')
          Write (50, '(3G18.10)') vkc (:, ik)
+         Call xml_NewElement(xf, "k-vector")
+         Call xml_AddAttribute(xf, "vkl", vkl (:, ik))
+         Call xml_AddAttribute(xf, "vkc", vkc (:, ik))
          Call genexpiqr (ik, emat)
          Do i = 1, nstsv
             Write (50,*)
             Write (50, '(I6," : state i; state j, <...>, |<...>|^2 belo&
            &w")') i
+           Call xml_NewElement(xf, "state")
+           Call xml_AddAttribute(xf, "i", i)
             Do j = 1, nstsv
                a = dble (emat(i, j))
                b = aimag (emat(i, j))
                Write (50, '(I6,3G18.10)') j, a, b, a ** 2 + b ** 2
+               Call xml_NewElement(xf, "state")
+               Call xml_AddAttribute(xf, "j", j)
+               Call xml_AddAttribute(xf, "Re", a)
+               Call xml_AddAttribute(xf, "Im", b)
+               Call xml_AddAttribute(xf, "norm", a ** 2 + b ** 2)
+               Call xml_EndElement(xf, "state")
             End Do
-         End Do
+            Call xml_EndElement(xf, "state")
+         End Do 
+         Call xml_EndElement(xf, "k-vector")
 ! end loop over k-points
       End Do
+      Call xml_EndElement(xf, "k-grid")
+      Call xml_EndElement(xf, "expiqr")
+      Call xml_Close(xf)
       Close (50)
       Write (*,*)
       Write (*, '("Info(writeexpiqr)")')

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<evalcore>
+  <species is="1" chemicalSymbol="Pb">
+    <atom ia="1">
+      <state ist="1" n="1" l="0" k="0" eigenvalue="-3.230425236453e3"/>
+      <state ist="2" n="2" l="0" k="0" eigenvalue="-5.770472182406e2"/>
+      <state ist="3" n="2" l="1" k="1" eigenvalue="-5.542522151617e2"/>
+      <state ist="4" n="2" l="1" k="1" eigenvalue="-4.738523470318e2"/>
+      <state ist="5" n="3" l="0" k="0" eigenvalue="-1.381929128617e2"/>
+      <state ist="6" n="3" l="1" k="1" eigenvalue="-1.278941524876e2"/>
+      <state ist="7" n="3" l="1" k="1" eigenvalue="-1.099571030571e2"/>
+      <state ist="8" n="3" l="2" k="2" eigenvalue="-9.299088767919e1"/>
+      <state ist="9" n="3" l="2" k="2" eigenvalue="-8.917128174044e1"/>
+      <state ist="10" n="4" l="0" k="0" eigenvalue="-3.094558538761e1"/>
+      <state ist="11" n="4" l="1" k="1" eigenvalue="-2.649069467322e1"/>
+      <state ist="12" n="4" l="1" k="1" eigenvalue="-2.209012976229e1"/>
+      <state ist="13" n="4" l="2" k="2" eigenvalue="-1.482412925412e1"/>
+      <state ist="14" n="4" l="2" k="2" eigenvalue="-1.400275101828e1"/>
+    </atom>
+  </species>
+  <species is="2" chemicalSymbol="Ti">
+    <atom ia="1">
+      <state ist="1" n="1" l="0" k="0" eigenvalue="-1.779845030979e2"/>
+      <state ist="2" n="2" l="0" k="0" eigenvalue="-1.925596238997e1"/>
+      <state ist="3" n="2" l="1" k="1" eigenvalue="-1.603212566513e1"/>
+      <state ist="4" n="2" l="1" k="1" eigenvalue="-1.582071685933e1"/>
+    </atom>
+  </species>
+  <species is="3" chemicalSymbol="O">
+    <atom ia="1">
+      <state ist="1" n="1" l="0" k="0" eigenvalue="-1.815593417550e1"/>
+    </atom>
+    <atom ia="2">
+      <state ist="1" n="1" l="0" k="0" eigenvalue="-1.815593417550e1"/>
+    </atom>
+    <atom ia="3">
+      <state ist="1" n="1" l="0" k="0" eigenvalue="-1.815593417550e1"/>
+    </atom>
+  </species>
+</evalcore>

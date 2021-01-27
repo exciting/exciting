@@ -1,0 +1,2 @@
+class ErrornousFileError(Exception):
+    pass

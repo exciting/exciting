@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<loss xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <mapdef>
+    <variable1 name="energy"/>
+    <function1 name="loss function"/>
+    <function2 name="dynamical structure factor"/>
+  </mapdef>
+  <map variable1="0.000000000" function1="0.1968474629E-02" function2="0.000000000"/>
+  <map variable1="0.5442276772" function1="0.2080815727E-02" function2="0.000000000"/>
+  <map variable1="1.088455354" function1="0.2203501962E-02" function2="0.000000000"/>
+  <map variable1="1.632683032" function1="0.2337906596E-02" function2="0.000000000"/>
+  <map variable1="2.176910709" function1="0.2485650273E-02" function2="0.000000000"/>
+  <map variable1="2.721138386" function1="0.2648659226E-02" function2="0.000000000"/>
+  <map variable1="3.265366063" function1="0.2829240919E-02" function2="0.000000000"/>
+  <map variable1="3.809593740" function1="0.3030183605E-02" function2="0.000000000"/>
+  <map variable1="4.353821418" function1="0.3254889328E-02" function2="0.000000000"/>
+  <map variable1="4.898049095" function1="0.3507554499E-02" function2="0.000000000"/>
+  <map variable1="5.442276772" function1="0.3793419740E-02" function2="0.000000000"/>
+  <map variable1="5.986504449" function1="0.4119123000E-02" function2="0.000000000"/>
+  <map variable1="6.530732126" function1="0.4493211310E-02" function2="0.000000000"/>
+  <map variable1="7.074959804" function1="0.4926904607E-02" function2="0.000000000"/>
+  <map variable1="7.619187481" function1="0.5435277086E-02" function2="0.000000000"/>
+  <map variable1="8.163415158" function1="0.6039166094E-02" function2="0.000000000"/>
+  <map variable1="8.707642835" function1="0.6768432407E-02" function2="0.000000000"/>
+  <map variable1="9.251870512" function1="0.7667946022E-02" function2="0.000000000"/>
+  <map variable1="9.796098190" function1="0.8809701908E-02" function2="0.000000000"/>
+  <map variable1="10.34032587" function1="0.1032092509E-01" function2="0.000000000"/>
+  <map variable1="10.88455354" function1="0.1246350331E-01" function2="0.000000000"/>
+  <map variable1="11.42878122" function1="0.1593664297E-01" function2="0.000000000"/>
+  <map variable1="11.97300890" function1="0.2375695162E-01" function2="0.000000000"/>
+  <map variable1="12.51723658" function1="0.7095626617E-01" function2="0.000000000"/>
+  <map variable1="13.06146425" function1="0.3605603821E-01" function2="0.000000000"/>
+  <map variable1="13.60569193" function1="0.4118903425E-01" function2="0.000000000"/>
+  <map variable1="14.14991961" function1="0.1286536223" function2="0.000000000"/>
+  <map variable1="14.69414728" function1="0.2216511446" function2="0.000000000"/>
+  <map variable1="15.23837496" function1="1.039670250" function2="0.000000000"/>
+  <map variable1="15.78260264" function1="0.9177957866" function2="0.000000000"/>
+  <map variable1="16.32683032" function1="0.1748744721" function2="0.000000000"/>
+  <map variable1="16.87105799" function1="0.2615031877" function2="0.000000000"/>
+  <map variable1="17.41528567" function1="0.4458787494" function2="0.000000000"/>
+  <map variable1="17.95951335" function1="0.8164648974" function2="0.000000000"/>
+  <map variable1="18.50374102" function1="1.023405350" function2="0.000000000"/>
+  <map variable1="19.04796870" function1="1.024572713" function2="0.000000000"/>
+  <map variable1="19.59219638" function1="0.9773763205" function2="0.000000000"/>
+  <map variable1="20.13642406" function1="0.3122153399" function2="0.000000000"/>
+  <map variable1="20.68065173" function1="0.2052338105" function2="0.000000000"/>
+  <map variable1="21.22487941" function1="0.2583117337" function2="0.000000000"/>
+  <map variable1="21.76910709" function1="0.9226227718" function2="0.000000000"/>
+  <map variable1="22.31333477" function1="1.047778526" function2="0.000000000"/>
+  <map variable1="22.85756244" function1="1.467337245" function2="0.000000000"/>
+  <map variable1="23.40179012" function1="6.812140102" function2="0.000000000"/>
+  <map variable1="23.94601780" function1="2.321280808" function2="0.000000000"/>
+  <map variable1="24.49024547" function1="0.6006390533" function2="0.000000000"/>
+  <map variable1="25.03447315" function1="0.2412765482" function2="0.000000000"/>
+  <map variable1="25.57870083" function1="0.1621656828" function2="0.000000000"/>
+  <map variable1="26.12292851" function1="0.2402958457" function2="0.000000000"/>
+  <map variable1="26.66715618" function1="1.094941658" function2="0.000000000"/>
+  <!-- Exciting code version : 20.12.008-->
+</loss>

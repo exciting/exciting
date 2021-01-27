@@ -1,0 +1,26 @@
+<input>
+  <title>Si crystal</title>
+  <structure speciespath=".">
+    <crystal>
+      <basevect>5.13 5.13 0.00</basevect>
+      <basevect>5.13 0.00 5.13</basevect>
+      <basevect>0.00 5.13 5.13</basevect>
+    </crystal>
+    <species speciesfile="Si.xml" rmt="2.1">
+      <atom coord="0.00 0.00 0.00"></atom>
+      <atom coord="0.25 0.25 0.25"></atom>
+    </species>
+  </structure>
+  <groundstate
+    do="fromscratch"
+    rgkmax="7.0"
+    gmaxvr="12"
+    ngridk="6 6 6"
+    xctype="LDA_PW"
+    outputlevel="high"
+    >
+  </groundstate>
+  <properties>
+    <ldos grid="20 20 20" nwdos="1000" winddos="-0.2 0.2" tol="1.0d-4" delta="1.0d0"/>
+  </properties>
+</input>

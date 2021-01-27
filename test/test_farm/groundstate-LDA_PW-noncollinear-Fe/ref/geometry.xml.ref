@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+  <title>Si crystal</title>
+  <structure speciespath=".">
+    <crystal>
+      <basevect>   2.680000000       2.680000000      -2.680000000</basevect>
+      <basevect>   2.680000000      -2.680000000       2.680000000</basevect>
+      <basevect>  -2.680000000       2.680000000       2.680000000</basevect>
+    </crystal>
+    <species speciesfile="Fe.xml" rmt="2.2000">
+      <atom coord="0.0000000000      0.0000000000      0.0000000000" bfcmt="10.0000000000000       0.000000000000000E+000  0.000000000000000E+000"/>
+    </species>
+  </structure>
+</input>

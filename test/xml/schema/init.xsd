@@ -1,0 +1,19 @@
+<xs:schema xmlns:xs = "http://www.w3.org/2001/XMLSchema">
+  <xs:element name = 'init'>
+    <xs:attribute name='name' type='xs:string' use='required'/>
+    <xs:attribute name='description' type='xs:string' use='required'/>
+    <xs:attribute name='executable' type='xs:string' use='required'/>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name='test' minOccurs=1 maxOccurs='unbounded'>
+          <xs:attribute name='file' type='xs:string' use='required'/>
+          <xs:attribute name='tolFloat' type='xs:string' use='required'/>
+          <xs:attribute name='tolMSE' type='xs:string' use='required'/>
+          <xs:attribute name='condition' type='xs:string' use='required'/>
+          <xs:attribute name='ignore' type='xs:string' use='required'/>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>    
+       

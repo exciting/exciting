@@ -9,6 +9,7 @@
 Subroutine effmass
       Use modmain
       Use modinput
+      Use Fox_wxml
       Implicit None
 ! local variables
       Integer, Parameter :: lwork = 10
@@ -18,6 +19,7 @@ Subroutine effmass
       Real (8) :: d (3, 3), em (3, 3)
       Real (8) :: v1 (3), v2 (3)
       Real (8) :: w (3), work (lwork)
+      Type (xmlf_t), Save :: xf
 ! allocatable arrays
       Integer, Allocatable :: ipiv (:)
       Real (8), Allocatable :: a (:, :)
@@ -133,6 +135,12 @@ Subroutine effmass
       Write (50, '("k-point (Cartesian coordinates) :")')
       Call r3mv (bvec, input%properties%masstensor%vklem, v1)
       Write (50, '(3G18.10)') v1
+      Call xml_OpenFile ("effmass.xml", xf, replace=.True., pretty_print=.True.)
+      Call xml_NewElement (xf, "effmass")
+      Call xml_NewElement (xf, "k-point")
+      Call xml_AddAttribute (xf, "lattice", input%properties%masstensor%vklem)
+      Call xml_AddAttribute (xf, "cartesian", v1)
+      Call xml_EndElement (xf, "k-point")
 ! begin loop over states
       Do ist = 1, nstsv
 ! compute matrix of derivatives with respect to k-vector
@@ -191,9 +199,37 @@ Subroutine effmass
          Call dsyev ('N', 'U', 3, em, 3, w, work, lwork, info)
          Write (50, '(" eigenvalues :")')
          Write (50, '(3G18.10)') w
+         Call xml_NewElement(xf, "state")
+         Call xml_AddAttribute (xf, "n", ist)
+         Call xml_AddAttribute (xf, "eigenvalue", evalsv(ist, ik0))
+         Call xml_NewElement (xf, "evdk")
+         Call xml_AddAttribute (xf, "trace", d (1, 1) + d (2, 2) + d &
+                                     & (3, 3))
+         Call xml_AddAttribute (xf, "description", " matrix of eigenvalue derivatives &
+                                     & with respect to k")
+         Do i = 1, 3
+             Call xml_NewElement (xf, "line")
+             Call xml_AddCharacters (xf, d(i,:))
+             Call xml_EndElement (xf, "line")
+         End Do
+         Call xml_EndElement (xf, "evdk")
+         Call xml_NewElement (xf, "emt")
+         Call xml_AddAttribute (xf, "trace", em (1, 1) + em (2, 2) + em &
+                                     & (3, 3))
+         Call xml_AddAttribute (xf, "description", " effective mass tensor &
+                                     & (inverse of derivative matrix)")
+         Do i = 1, 3
+             Call xml_NewElement (xf, "line")
+             Call xml_AddCharacters (xf, em(i,:))
+             Call xml_EndElement (xf, "line")
+         End Do
+         Call xml_EndElement (xf, "emt")
+         Call xml_EndElement (xf, "state")                      
 ! end loop over states
       End Do
       Close (50)
+      Call xml_EndElement (xf, "effmass")
+      Call xml_Close (xf)
       Write (*,*)
       Write (*, '("Info(effmass):")')
       Write (*, '(" effective mass tensor for each state written to EFF&

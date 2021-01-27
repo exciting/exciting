@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+  <title>Al</title>
+  <structure speciespath="./">
+    <crystal>
+      <basevect>   3.750000000       3.750000000       0.000000000</basevect>
+      <basevect>   3.750000000       0.000000000       3.750000000</basevect>
+      <basevect>   0.000000000       3.750000000       3.750000000</basevect>
+    </crystal>
+    <species speciesfile="Al.xml" rmt="2.0000">
+      <atom coord="0.0000000000      0.0000000000      0.0000000000"/>
+    </species>
+  </structure>
+</input>

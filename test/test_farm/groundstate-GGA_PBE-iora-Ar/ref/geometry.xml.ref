@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+  <title>helium</title>
+  <structure speciespath=".">
+    <crystal>
+      <basevect>   15.00000000       0.000000000       0.000000000</basevect>
+      <basevect>   0.000000000       15.00000000       0.000000000</basevect>
+      <basevect>   0.000000000       0.000000000       15.00000000</basevect>
+    </crystal>
+    <species speciesfile="Ar.xml" rmt="6.0000">
+      <atom coord="0.0000000000      0.0000000000      0.0000000000"/>
+    </species>
+  </structure>
+</input>
