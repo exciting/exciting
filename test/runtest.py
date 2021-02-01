@@ -20,7 +20,7 @@ from termcolor_wrapper import print_color
 from procedures import *
 from constants import settings
 import runselftests
-from failing_tests import skipped_tests  
+from failing_tests import set_skipped_tests  
 
 
 def optionParser(testFarm:str, exedir:str):
@@ -39,7 +39,8 @@ def optionParser(testFarm:str, exedir:str):
     :return input_options: Dictionary of parsed command line arguments 
     """
  
-    p = ap.ArgumentParser(description="Usage: python3 runtest.py -a <action> -t <tests> -e <execuatble> -np <NP> -omp <omp>")
+    p = ap.ArgumentParser(description=\
+        "Usage: python3 runtest.py -a <action> -t <tests> -e <execuatble> -np <NP> -omp <omp> -handle-errors -run-failing-tests")
 
     help_action = "Defines what action is done. " \
         + "'run' for running tests; " \
@@ -86,13 +87,34 @@ def optionParser(testFarm:str, exedir:str):
                    "Default is 2 for MPI and MPI+OMP calculations, and 1 for serial or pure OMP", 
                    type = int)
     
-    p.add_argument('-omp', metavar='--ompthreads', help='Number of OMP threads. ' + \
+    p.add_argument('-omp', 
+                   metavar='--ompthreads', 
+                   help='Number of OMP threads. ' + \
                    'Default is 2 for OMP and MPI+OMP calculations, and 1 for serial or pure MPI',
-                   type=int)
+                   type = int)
+
+    p.add_argument('-handle-errors',
+                    help = 'Allow assertion failures and passes to propagate to the end ' + \
+                   'of the test suite. If the option is excluded, the default is to not allow ' + \
+                   'error propagation',
+                    dest='handle_errors', 
+                    default = False, 
+                    action='store_true')
+
+    p.add_argument('-run-failing-tests',\
+                    help = 'Run tests tagged as failing.' + \
+                   'If the option is excluded, the default is not to run failing tests',
+                    dest='run_failing_tests', 
+                    default = False, 
+                    action='store_true')                
 
     args = p.parse_args()
 
-    input_options = {'action': args.a, 'tests':args.t}
+    input_options = {'action': args.a, 
+                     'tests':args.t, 
+                     'handle_errors':args.handle_errors, 
+                     'run_failing_tests':args.run_failing_tests
+                     }
     input_options['np']  = args.np if args.np is not None else settings.default_np[args.e] 
     input_options['omp'] = args.omp if args.omp is not None else settings.default_threads[args.e]
 
@@ -144,6 +166,7 @@ def main(settings:namedtuple, input_options:dict):
     action = input_options['action']
     executable_command = input_options['executable']
     executable = executable_command.split('/')[-1]
+    skipped_tests = set_skipped_tests(executable, input_options['run_failing_tests']) 
 
     if action == "run":
         runTests(settings.test_farm, 
@@ -156,7 +179,8 @@ def main(settings:namedtuple, input_options:dict):
                  input_options['np'],
                  input_options['omp'],
                  settings.max_time,
-                 skipped_tests[executable])
+                 skipped_tests,
+                 input_options['handle_errors'])
      
     elif action == "ref":    
         while(True):

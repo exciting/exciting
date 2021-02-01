@@ -1,0 +1,149 @@
+stages:
+  - build 
+  - test
+
+build:debian-buster-GCC8-serial:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8
+  stage: build
+  # Tags assign the gitlab runners. 
+  tags: 
+    - docker
+  script:
+    - cp build/platforms/make.inc.gfortran build/make.inc 
+    - make serial -j 2
+  # Upload exciting binary and make.inc (so test can determine compiler)
+  # Alternative is to use an env variable
+  artifacts:
+    paths:
+      - bin/excitingser
+      - build/make.inc 
+    # Uploads expire after 5 hours
+    expire_in: 5 hrs
+
+test-debian-buster-GCC8-serial:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8
+  stage: test
+  # Depends on completion of the build stage 
+  # Downloads artifacts of the build stage 
+  dependencies: 
+    - build:debian-buster-GCC8-serial
+  tags: 
+    - docker
+  before_script: 
+    - apt-get install -y libpython3.7 libpython3.7-dev python3-pip
+    - pip3 install numpy termcolor lxml
+  script:
+    - cd test && python3 runtest.py -a run -e excitingser
+
+
+build:debian-buster-GCC8-mpiandsmp:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8
+  stage: build
+  tags: 
+    - docker
+  script:
+    - cp build/platforms/make.inc.gfortran build/make.inc 
+    - make mpiandsmp -j 2
+  artifacts:
+    paths:
+      - bin/excitingmpismp
+      - build/make.inc 
+    expire_in: 5 hrs
+
+test-debian-buster-GCC8-mpiandsmp:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8
+  stage: test
+  dependencies: 
+    - build:debian-buster-GCC8-mpiandsmp
+  tags: 
+    - docker
+  before_script:
+    - apt-get install -y libpython3.7 libpython3.7-dev python3-pip
+    - pip3 install numpy termcolor lxml
+  script:
+    # Allow mpirun to run as root (mpirun typically shouldn't be run as root)
+    # See this ref: https://github.com/open-mpi/ompi/issues/4451
+    - sed -i '/input_options/s/mpirun -np/mpirun --allow-run-as-root -np /g' test/runtest.py
+    - cd test && python3 runtest.py -a run -e excitingmpismp 
+
+
+build:debian-buster-Intel2019-serial:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
+  stage: build
+  tags: 
+    - docker
+  before_script:
+    # Module file, with paths consistent with the nfs drive 
+    - cp -r build/utilities/modules/intel /etc/environment-modules/modules
+    - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`" 
+    - module load intel/2019
+    # Load physics' nfs server, containing Intel. Note, the -nolock option is required 
+    - mkdir -p /usr/global && mount -o nolock -t nfs global.physik.hu-berlin.de:/globaldisk/AMD64 /usr/global
+    - apt-get install -y libfabric1 libfabric-dev
+  script:
+    - cp build/platforms/make.inc.ifort build/make.inc
+    - make serial -j 2
+  artifacts:
+    paths:
+      - bin/excitingser
+      - build/make.inc 
+    expire_in: 5 hrs
+
+test-debian-buster-Intel2019-serial:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
+  stage: test
+  dependencies: 
+    - build:debian-buster-Intel2019-serial
+  tags: 
+    - docker
+  before_script:
+      # TODO(Alex) Check if this is inherited from the dependency   
+    - cp -r build/utilities/modules/intel /etc/environment-modules/modules
+    - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
+    - module load intel/2019
+    - mkdir -p /usr/global && mount -o nolock -t nfs global.physik.hu-berlin.de:/globaldisk/AMD64 /usr/global
+    # Looks like this Intel distribution only comes with python2, so get GNU python3.7
+    - apt-get install -y libpython3.7 libpython3.7-dev python3-pip 
+    - pip3 install numpy termcolor lxml  
+  script:
+    - cd test && python3 runtest.py -a run -e excitingser 
+
+
+build:debian-buster-Intel2019-mpiandsmp:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
+  stage: build
+  tags: 
+    - docker
+  before_script:
+    # Needed by Intel MPI
+    - apt-get install -y libfabric1 libfabric-dev
+    - cp -r build/utilities/modules/intel /etc/environment-modules/modules
+    - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
+    - module load intel/2019
+    - mkdir -p /usr/global && mount -o nolock -t nfs global.physik.hu-berlin.de:/globaldisk/AMD64 /usr/global
+  script:
+    - cp build/platforms/make.inc.ifort build/make.inc
+    - make mpiandsmp -j 2
+  artifacts:
+    paths:
+      - bin/excitingmpismp
+      - build/make.inc 
+    expire_in: 5 hrs
+
+test-debian-buster-Intel2019-mpiandsmp:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
+  stage: test
+  dependencies: 
+    - build:debian-buster-Intel2019-mpiandsmp
+  tags: 
+    - docker
+  before_script:  
+    - cp -r build/utilities/modules/intel /etc/environment-modules/modules
+    - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
+    - module load intel/2019
+    - mkdir -p /usr/global && mount -o nolock -t nfs global.physik.hu-berlin.de:/globaldisk/AMD64 /usr/global
+    # Last two needed by Intel MPI 
+    - apt-get install -y libpython3.7 libpython3.7-dev python3-pip libfabric1 libfabric-dev
+    - pip3 install numpy termcolor lxml
+  script:
+    - cd test && python3 runtest.py -a run -e excitingmpismp

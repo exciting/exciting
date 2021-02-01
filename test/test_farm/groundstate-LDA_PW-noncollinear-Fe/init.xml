@@ -24,10 +24,10 @@
           ignore    = ''>
      <eigval
               eigvalPair = '2,3 11,12 21,22 33,34 36,37 1,33'
-              tolEigval   = '1e-8'/>
+              tolEigval   = '1e-7'/>
       </test>
   <test   file      = 'evalcore.xml'
-          tolFloat  = '1e-8'
+          tolFloat  = '5e-8'
           tolMSE    = '1e-8'
           condition = '0 0'
           ignore    = ''/>
