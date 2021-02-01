@@ -2,7 +2,7 @@
       description = 'All groundstate files are tested.'
       executable  = 'excitingser'>
   <test file      = 'info.xml'
-          tolFloat  = '1e-7'
+          tolFloat  = '5e-7'
           tolMSE    = '1e-7'
           condition = '0 0'
           ignore    = 'timing;rmslog10'
@@ -13,7 +13,7 @@
           condition = '0 0'
           ignore    = ''/>
   <test   file      = 'INFO.OUT'
-          tolFloat  = '1e-7'
+          tolFloat  = '5e-7'
           tolMSE    = '1e-7'
           condition = '0 0'
           ignore    = 'Wall time (seconds);CPU time for vxnl (seconds);CPU time for scf_cycle (seconds)'

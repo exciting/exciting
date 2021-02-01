@@ -55,6 +55,7 @@ class Report(dict):
         '''
         self[Test.name]=Test
         self.updateNumberOfFails(Test.countFailures())
+        # TODO(Alex) This should be assertions, for a given test case 
         self.numberOfTests = self.numberOfTests+1
         if Test.succeeded:
             self.succeededTests = self.succeededTests+1
@@ -99,6 +100,19 @@ class Report(dict):
         tree = ET.ElementTree(root)
         tree.write(FileName)
         
+    def assert_errors(self, handle_errors:bool):
+        """
+        Throws if the any assertions for a test got passed over or failed
+        (where passed over means some reference data was missing)
+
+        :param handle_errors  If true, allow any errors to propagate 
+                              to the end of the test suite 
+        """
+        if not handle_errors:
+            assert self.failedTests == 0, "Test suite assertion(s) failed"
+            assert self.passedTests == 0, "Test suite reference data requires regenerating"
+        return 
+
 
 def skipped_test_summary(skipped_tests:list):
     """
@@ -114,15 +128,17 @@ def skipped_test_summary(skipped_tests:list):
     else: 
         print('Summary of SKIPPED tests:')
         for test in skipped_tests:
-            print(test['name'], '. ', test['comment'])
+            print(' ', test['name'], '. ', test['comment'])
 
 
 def test_suite_summary(test_suite_report:list):
     """
-    Summarises the test suite assertions
+    Summarises the test suite assertions.
+    Writes summary to stdout
+    Skipped test cases are not included in the report
 
     :param test_suite_report: list of test reports, each of class Report
-    :return None: Writes summary to stdout 
+    :return bool indicating if all assertions in all test cases succeeded  
     """
 
     succeeded_asserts = 0
@@ -138,9 +154,7 @@ def test_suite_summary(test_suite_report:list):
         if report.failedTests > 0:
             failed_tests += 1 
 
-    # Note, this doesn't count skipped test cases 
     total_asserts = succeeded_asserts +  passed_asserts + failed_asserts
-
     total_tests = len(test_suite_report)
     succeeded_tests = total_tests - failed_tests
 
@@ -148,6 +162,8 @@ def test_suite_summary(test_suite_report:list):
     print('Summary:')
     print('Tests succeeded: %i/%i' % (succeeded_tests, total_tests))
     print('Assertions succeeded: %i/%i' % (succeeded_asserts, total_asserts))
+
+    return failed_asserts == 0 
 
 
 def timing_summary(timing:dict, verbose=False):

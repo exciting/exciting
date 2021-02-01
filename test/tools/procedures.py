@@ -85,7 +85,8 @@ def exciting_run(executable, mainOut, maxTime):
 
 
 def runSingleTest(testFarm:str, mainOut:str, testDir:str, runDir:str,
-                  refDir:str, init_default:str, executable:str, maxTime:str, timing:dict):
+                  refDir:str, init_default:str, executable:str, maxTime:str, 
+                  timing:dict, handle_errors:bool):
     '''
     Runs a singel test.
     Input:
@@ -97,6 +98,7 @@ def runSingleTest(testFarm:str, mainOut:str, testDir:str, runDir:str,
         init_default    string      location of the default init.xml
         execuatable     string      executable for the exciting run
         timing          dict        test run times in seconds
+        handle_errors   bool        Whether or not failures and passes are allowed to propagate
 
     Output:
         report          object      report instance of the test     
@@ -187,13 +189,14 @@ def runSingleTest(testFarm:str, mainOut:str, testDir:str, runDir:str,
     print('Time (s): %.1f' % timing[name])
     report.writeToTerminal()
     report.writeToXML(testDir)
+    report.assert_errors(handle_errors)
 
     os.chdir('../../')
     return report 
 
 def runTests(testFarm:str, mainOut:str, testList:list, runDir:str, refDir:str,
              init_default:str, executable:str, np:int, omp:int, maxTime:int,
-             skipped_tests:list):
+             skipped_tests:list, handle_errors:bool):
     '''
     Runs tests in testList (see runSingleTest).
     Input:
@@ -208,6 +211,7 @@ def runTests(testFarm:str, mainOut:str, testList:list, runDir:str, refDir:str,
         omp             int                 number of OMP threads
         maxTime         int                 max time before a job is killed
         skipped_tests   list                list of tests to skip
+        handle_errors   bool                Whether or not failures and passes are allowed to propagate
     '''
     if 'excitingser' in executable:
         print('Run tests with excitingser.')
@@ -230,12 +234,16 @@ def runTests(testFarm:str, mainOut:str, testList:list, runDir:str, refDir:str,
                           init_default, 
                           executable, 
                           maxTime, 
-                          timing)
+                          timing,
+                          handle_errors)
                                 )
 
-    test_suite_summary(test_suite_report)
+    all_asserts_succeeded = test_suite_summary(test_suite_report)
     skipped_test_summary(skipped_tests)
     timing_summary(timing, verbose=True)
+    assert all_asserts_succeeded, "Some test suite assertions failed or were passed over"
+
+    return 
         
 
 def isNotForbiddenFile(f, forbiddenFiles):

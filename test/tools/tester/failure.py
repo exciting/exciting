@@ -30,9 +30,9 @@ class Failure():
         if failure_code == Failure_code.FORMAT:
             self.message = "FORMAT FAILURE: File from calculation has not the same format as the reference file."
         elif failure_code == Failure_code.FLOAT:
-            self.message = "FLOAT FAILURE: Error (%f) is bigger than tolerance (%f)."%(kwargs["error"], kwargs["tolerance"])
+            self.message = "FLOAT FAILURE: Error (%.3e) is bigger than tolerance (%.3e)."%(kwargs["error"], kwargs["tolerance"])
         elif failure_code == Failure_code.ARRAY:
-            self.message =  "ARRAY FAILURE: Error (%f) is bigger than tolerance (%f)."%(kwargs["error"], kwargs["tolerance"])
+            self.message =  "ARRAY FAILURE: Error (%.3e) is bigger than tolerance (%.3e)."%(kwargs["error"], kwargs["tolerance"])
         elif failure_code == Failure_code.STRING:
             self.message = "STRING FAILURE: Strings are not the same."
         elif failure_code == Failure_code.RUN:

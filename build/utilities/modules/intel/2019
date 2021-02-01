@@ -1,0 +1,23 @@
+#%Module
+module-whatis    "Setup intel compiler suite version 2019 for SOL machines using physics NFS server"
+conflict intel
+setenv NLSPATH {/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/compiler/lib/intel64/locale/%l_%t/%N:/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/mkl/lib/intel64_lin/locale/%l_%t/%N:/usr/global/intel-2019/debugger_2019/gdb/intel64/share/locale/%l_%t/%N};
+setenv MANPATH {/usr/global/intel-2019/man/common:/usr/global/intel-2019//compilers_and_libraries_2019.0.117/linux/mpi/man:/usr/global/intel-2019/documentation_2019/en/debugger/gdb-ia/man/:/usr/local/man:/usr/local/share/man:/usr/share/man:};
+setenv INTEL_PYTHONHOME {/usr/global/intel-2019/debugger_2019/python/intel64/};
+setenv TBBROOT {/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/tbb};
+prepend-path PATH {/usr/global/intel-2019/debugger_2019/gdb/intel64/bin};
+prepend-path PATH {/usr/global/intel-2019//compilers_and_libraries_2019.0.117/linux/mpi/intel64/bin};
+prepend-path PATH {/usr/global/intel-2019//compilers_and_libraries_2019.0.117/linux/mpi/intel64/libfabric/bin};
+prepend-path PATH {/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/bin/intel64};
+setenv LIBRARY_PATH {/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/ipp/lib/intel64:/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/compiler/lib/intel64_lin:/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/mkl/lib/intel64_lin:/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/tbb/lib/intel64/gcc4.7:/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/tbb/lib/intel64/gcc4.7:/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/daal/lib/intel64_lin:/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/daal/../tbb/lib/intel64_lin/gcc4.4};
+setenv I_MPI_ROOT {/usr/global/intel-2019//compilers_and_libraries_2019.0.117/linux/mpi};
+setenv INTEL_LICENSE_FILE {2500@liz.cms.hu-berlin.de};
+setenv CPATH {/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/ipp/include:/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/mkl/include:/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/pstl/include:/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/tbb/include:/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/tbb/include:/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/daal/include};
+setenv LD_LIBRARY_PATH {/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/compiler/lib/intel64_lin:/usr/global/intel-2019//compilers_and_libraries_2019.0.117/linux/mpi/intel64/lib/release:/usr/global/intel-2019//compilers_and_libraries_2019.0.117/linux/mpi/intel64/lib:/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/ipp/lib/intel64:/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/compiler/lib/intel64_lin:/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/mkl/lib/intel64_lin:/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/tbb/lib/intel64/gcc4.7:/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/tbb/lib/intel64/gcc4.7:/usr/global/intel-2019/debugger_2019/libipt/intel64/lib:/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/daal/lib/intel64_lin:/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/daal/../tbb/lib/intel64_lin/gcc4.4};
+setenv DAALROOT {/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/daal};
+setenv PKG_CONFIG_PATH {/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/mkl/bin/pkgconfig};
+setenv CLASSPATH {/usr/global/intel-2019//compilers_and_libraries_2019.0.117/linux/mpi/intel64/lib/mpi.jar:/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/daal/lib/daal.jar};
+setenv IPPROOT {/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/ipp};
+setenv INFOPATH {/usr/global/intel-2019/documentation_2019/en/debugger/gdb-ia/info/};
+setenv MKLROOT {/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/mkl};
+setenv PSTLROOT {/usr/global/intel-2019/compilers_and_libraries_2019.0.117/linux/pstl};
