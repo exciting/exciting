@@ -108,7 +108,6 @@ test-debian-buster-Intel2019-serial:
   script:
     - cd test && python3 runtest.py -a run -e excitingser 
 
-
 build:debian-buster-Intel2019-mpiandsmp:
   image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
   stage: build
@@ -122,14 +121,17 @@ build:debian-buster-Intel2019-mpiandsmp:
     - module load intel/2019
     - mkdir -p /usr/global && mount -o nolock -t nfs global.physik.hu-berlin.de:/globaldisk/AMD64 /usr/global
   script:
-    - cp build/platforms/make.inc.ifort build/make.inc
+    - cp build/platforms/make.inc.ifort.profiler build/make.inc
+    - mkdir docs/profiling 
     - make mpiandsmp -j 2
   artifacts:
     paths:
       - bin/excitingmpismp
-      - build/make.inc 
-    expire_in: 5 hrs
+      - build/make.inc
+      # This dir includes pgopti.spi and pgopti.spl for use in profiling
+      - docs/profiling
 
+# Run tests and profile test coverage 
 test-debian-buster-Intel2019-mpiandsmp:
   image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
   stage: test
@@ -147,3 +149,10 @@ test-debian-buster-Intel2019-mpiandsmp:
     - pip3 install numpy termcolor lxml
   script:
     - cd test && python3 runtest.py -a run -e excitingmpismp
+    - cd ../docs/profiling && profmerge
+    - codecov -prj test_suite
+  artifacts:
+    paths:
+      - docs/profiling/CodeCoverage
+      - docs/profiling/CODE_COVERAGE.HTML
+    
