@@ -4,93 +4,153 @@ This script creates a new test case for the test suite.
 import sys
 import os
 import argparse as ap
+from collections import namedtuple
+import warnings
 
 sys.path.insert(1, 'tools')
 from procedures import newTest_dir, copyInputFiles, runSingleReference, create_init
+from constants import settings
 
-def optionParser():
+def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
+    return '%s: %s \n' % (category.__name__, message)
+warnings.formatwarning = warning_on_one_line
+
+def optionParser(exedir:str):
     p = ap.ArgumentParser(description="Usage: python3 newtestcase.py -n <name> -i <reference calc> -e <executable> -np <NP>")
-    p.add_argument ('-n', metavar='--name', help="Name of the new test case.",\
-                type=str, default=None)
-    p.add_argument ('-d', metavar='--description', help="Description of the new test case.",\
-                type=str, default=None)
-    p.add_argument ('-r', metavar='--reference', help="Path to the reference caclculation.",\
-                type=str, default=None)
-    p.add_argument ('-i', metavar='--init_file', help="Init file for the new test case. The available init files can be found at '/xml/init_templates'. Default is init_groundstate.xml.",\
-                type=str, default=None)
-    p.add_argument('-e', metavar='--executable', help="Executable for test run or rerunning references.", \
-                type=str, default=None, choices=['excitingser', 'excitingmpi'])
-    p.add_argument('-np', metavar='--NP', help='Number of cores for MPI run. Can only be used in combination with excitingmpi as executable.', \
-                type=int, default=None)
-    
+    p.add_argument ('-n',
+                   metavar = '--name',
+                   help = "Name of the new test case.",
+                   type = str,
+                   default=None)
+    p.add_argument ('-d', 
+                   metavar='--description', 
+                   help="Description of the new test case.",
+                   type=str, 
+                   default=None)
+    p.add_argument ('-r', 
+                    metavar='--reference-input', 
+                    help="Path to an existing caclculation, that will be the reference.",
+                    type=str, 
+                    default=None)
+    p.add_argument ('-i', 
+                    metavar='--init_file', 
+                    help="Init file for the new test case. The available init files can be found at '/xml/init_templates/'. Default is init_groundstate.xml.",\
+                    type=str, 
+                    default='init_groundstate.xml')
+
     args = p.parse_args()
-    name = args.n
-    description = args.d
-    inputLoc = args.r
-    init = args.i
-    executable = args.e
-    np = args.np
 
-    if init == None:
-        init = 'init_groundstate.xml'
+    input_options = {'name': args.n, 
+                     'description': args.d, 
+                     'reference_location': args.r, 
+                     'init_file': args.i
+                     }
     
-    if np != None:
-        if executable=='excitingmpi':
-            executable = 'mpirun -np %i %s'%(np,executable)
-        else:
-            raise ValueError('np can not be set in combination with excitingser as executable')
-    return name, description, inputLoc, init, executable
+    return input_options
 
-    
-        
+def interactiveUserInterface(args:dict):
+    """
+    Interactive user interface for creating a new test case. 
+    Interaction is only triggered if the elements for 
+    input_options "name", "reference_input", "description"
+    are not specified or not compatible.
 
-
-
-def main():
-    ## some global definitions ####################################
-    testFarm = 'test_farm' 
-    species = '../species'
-    mainOut  = 'INFO.OUT'                                                                                      #directory of the testfarm
-    runDir = 'run'                                                                                                
-    refDir = 'ref'
-    inputDef = 'input.xml'
-    notRef = ['input.xml', 'STATE.OUT', 'OCCSV.OUT', 'EVECSV.OUT', 'EVECFV.OUT', 'EVALSV.OUT', 'EVALFV.OUT']     #Files that will not be saved as reference
-    notClean = ['input.xml']                                                                                     #Files that will not be removed while cleaning
-    ###############################################################
-    speciesFiles = next(os.walk(species))[2]
-    notClean = notClean+speciesFiles
-
-    name, description, inputLoc, init, executable = optionParser()
-    if description==None:
-        raise ValueError("Please specify a description for the new test case.")
-        return
-    if name==None:
-        raise ValueError("Please specify a name for the new test case.")
-        return
-    path = os.path.join(testFarm, name)
-    if (os.path.exists(path)):
-        raise OSError('This directory is already existing. Please choose an other name.')
-        return
-    
-    if inputLoc==None:
-        print('A new test case will be created without input files.')
-        newTest_dir(testFarm, name, runDir, refDir)
-        create_init(testFarm, name, description, init)
+    :param args: parsed command line arguments.
+    """
+    input_options = args
+    if args['name']==None:
+        name = input("Please enter a name for the new test case: \n")
     else:
-        if not os.path.exists(os.path.join(inputLoc, inputDef)):
-            raise OSError('%s does not exist.'%os.path.join(inputLoc, inputDef))
-            return
-        newTest_dir(testFarm, name, runDir, refDir)
-        create_init(testFarm, name, description, init)
-        copyInputFiles(inputLoc, testFarm, name, runDir, refDir, inputDef, speciesFiles)
-        
-        while(True):
-            answer = input("Do you want to run the reference calculation? (This is only possible if speciespath is set correct) (y/n)")
-            if answer=='y':
-                break
-            elif answer=='n':
-                sys.exit()
-        runSingleReference(testFarm, mainOut, name, refDir, executable, notRef)
+        name = args['name']
+    while os.path.exists(os.path.join(settings.test_farm, name)):
+        name_old = name
+        name = input("A test case with the same name exists already. " + \
+                     "Please choose a different name, replace the existing test case (enter 'replace', this will remove the existing test case!!)" + \
+                     " or quit (enter 'exit').\n")
+        if name=='replace':
+            os.system('rm -r %s/%s'%(settings.test_farm,name_old))
+            name = name_old
+            break
+        elif name.lower() =='exit':
+            sys.exit()
+    input_options['name'] = name
 
+    if args['description']==None:
+        input_options['description'] = input("Please enter a description for the new test case:\n")
+    else:
+        input_options['description'] = args['description']
+
+    reenter = True
+    if args['reference_location']==None:
+        reference_location = input("If you want to set up a test case with an existing calculation as reference, " + \
+                                   "please enter the path to the corresponding directory. \n" +\
+                                   "Make sure that a valid %s and all necessary species files are contained.\n"%settings.input_file + \
+                                   "If you want to set up an empty test case, please enter 'no'.\n")
+        if reference_location.lower() in ["no","n"]:
+            reference_location = None
+            reenter = False
+    else:
+        reference_location = args['reference_location']
+    if reenter:
+        while not os.path.exists(os.path.join(reference_location, settings.input_file)):
+            reference_location = input("The reference path you entered does not exists. Please reenter, create a blank test case (type 'no') " + \
+                                    "or exit (type 'exit').\n")
+            if reference_location.lower() in ["no","n"]:
+                reference_location = None
+                break
+            elif reference_location.lower() == "exit":
+                sys.exit()
+    input_options['reference_location'] = reference_location
+
+    return input_options
+    
+
+def main(settings:namedtuple, input_options:dict):
+    """
+    Create a new test case from an input file and run the reference.
+
+    :stettings:        default settings
+    :input_options:    definitions of user input or parsed command line arguments
+    """
+    speciesFiles = next(os.walk(settings.species))[2]
+    notClean = settings.not_clean + speciesFiles
+
+    newTest_dir(settings.test_farm, 
+                input_options['name'], 
+                settings.run_dir, 
+                settings.ref_dir)
+    create_init(settings.test_farm, 
+                input_options['name'], 
+                input_options['description'], 
+                input_options['init_file'])
+    if input_options['reference_location']==None:
+        print("Create blank test case %s. Please put the input files for your test case in the directories "%input_options["name"] + \
+              "%s/ and %s/ in the test directory %s/%s. \n"%(settings.run_dir, settings.ref_dir, settings.test_farm, input_options['name']))
+        warnings.warn("Before you can run the test case, you must generate the reference data.")
+        print("Run the reference: \n\n" + \
+              "    python3 runtest.py -a ref -t %s\n"%input_options['name'])
+    else:
+        print('Create new test case %s.'%(input_options['name']))        
+        print("Take reference input from %s."%input_options['reference_location'])
+        copyInputFiles(input_options['reference_location'], 
+                       settings.test_farm, 
+                       input_options['name'], 
+                       settings.run_dir, 
+                       settings.ref_dir, 
+                       settings.input_file, 
+                       speciesFiles)
+            
+        runSingleReference(settings.test_farm, 
+                           settings.main_output, 
+                           input_options['name'], 
+                           settings.ref_dir,
+                           os.path.join(settings.exe_dir, settings.exe_ref),
+                           settings.ignored_output, 
+                           settings.max_time)
+    
+    print("Run the test case: \n\n" + \
+          "    python3 runtest.py -t %s\n"%input_options['name'])
 if __name__ == "__main__":
-    main()  
+    args = optionParser(settings.exe_dir)
+    input_options = interactiveUserInterface(args)
+    main(settings, input_options)  

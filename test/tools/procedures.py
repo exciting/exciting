@@ -9,6 +9,7 @@ import xml.etree.ElementTree as ET
 from subprocess import PIPE, CalledProcessError, check_call, Popen, TimeoutExpired
 import glob
 import time
+import warnings
 
 sys.path.insert(1, 'tools/parser')
 from ErrornousFileError import ErrornousFileError
@@ -39,12 +40,12 @@ def collectSingleReport(testFarm, testDir, root):
     except FileNotFoundError:
         return
 
-def collectReports(testFarm, testList):
+def collectReports(testFarm:str, testList:list):
     '''
     Collects content from report.xml for test cases in test list (see collectSingleReport)
     Input:
-        testFarm        string              location of the test farm
-        testList        list of string      test cases for that report.xml will be collected
+    :testFarm:    location of the test farm
+    :testList:    test cases for that report.xml will be collected
     '''
     root = ET.Element("reports")
     for testDir in testList:
@@ -55,11 +56,12 @@ def collectReports(testFarm, testList):
 
     os.system('xsltproc report/reports2html.xsl report/reports.xml > report/report.html')
 
-def exciting_run(executable, mainOut, maxTime):
+def exciting_run(executable:str, mainOut:str, maxTime:int):
     '''
     Executes a exciting run, checks if it was successfull.
     Input:
-        executable  string    program that will be executed (excitingser, excitingmpi, mpirun -np NP excitingmpi)
+        executable  string    program that will be executed 
+                              (excitingser, excitingmpi, mpirun -np NP excitingmpi)
         mainOut     string    main output file (INFO.OUT)
         maxTime     int       maximum time for an exciting run in seconds
     Output:
@@ -89,16 +91,15 @@ def runSingleTest(testFarm:str, mainOut:str, testDir:str, runDir:str,
                   timing:dict, handle_errors:bool):
     '''
     Runs a singel test.
-    Input:
-        testFarm        string      location of the test farm
-        mainOut         string      main output file of the exciting calculation
-        testDir         string      test case that will be ran
-        runDir          string      name of the run directory of the test case
-        refDir          string      name of the ref directory of the test case
-        init_default    string      location of the default init.xml
-        execuatable     string      executable for the exciting run
-        timing          dict        test run times in seconds
-        handle_errors   bool        Whether or not failures and passes are allowed to propagate
+    :testFarm:        location of the test farm
+    :mainOut:         main output file of the exciting calculation
+    :testDir:         test case that will be ran
+    :runDir:          name of the run directory of the test case
+    :refDir:          name of the ref directory of the test case
+    :init_default:    location of the default init.xml
+    :execuatable:     executable for the exciting run
+    :timing:          test run times in seconds
+    :handle_errors:   Whether or not failures and passes are allowed to propagate
 
     Output:
         report          object      report instance of the test     
@@ -199,19 +200,18 @@ def runTests(testFarm:str, mainOut:str, testList:list, runDir:str, refDir:str,
              skipped_tests:list, handle_errors:bool):
     '''
     Runs tests in testList (see runSingleTest).
-    Input:
-        testFarm        string              location of the test farm
-        mainOut         string              main output file of the exciting calculation
-        testList        list of string      test cases that will be ran
-        runDir          string              name of the run directory of the test case
-        refDir          string              name of the ref directory of the test case
-        init_default    string              location of the default init.xml
-        executable      string              executable command for the exciting run
-        np              int                 number of MPI processes
-        omp             int                 number of OMP threads
-        maxTime         int                 max time before a job is killed
-        skipped_tests   list                list of tests to skip
-        handle_errors   bool                Whether or not failures and passes are allowed to propagate
+    :testFarm:          location of the test farm
+    :mainOut:           main output file of the exciting calculation
+    :testList:          list of string      test cases that will be ran
+    :runDir:            name of the run directory of the test case
+    :refDir:            name of the ref directory of the test case
+    :init_default:      location of the default init.xml
+    :executable:        executable command for the exciting run
+    :np:                number of MPI processes
+    :omp:               number of OMP threads
+    :maxTime:           max time before a job is killed
+    :skipped_tests:     list of tests to skip
+    :handle_errors:     Whether or not failures and passes are allowed to propagate
     '''
     if 'excitingser' in executable:
         print('Run tests with excitingser.')
@@ -246,7 +246,7 @@ def runTests(testFarm:str, mainOut:str, testList:list, runDir:str, refDir:str,
     return 
         
 
-def isNotForbiddenFile(f, forbiddenFiles):
+def isNotForbiddenFile(f:str, forbiddenFiles:list):
     '''
     Returns True if a file is not in forbidden files.
     Input:
@@ -260,18 +260,16 @@ def isNotForbiddenFile(f, forbiddenFiles):
         out = out and (fF not in f)
     return out
 
-def runSingleReference(testFarm, mainOut, testDir, refDir, executable, forbiddenFiles, maxTime):
+def runSingleReference(testFarm:list, mainOut:str, testDir:str, refDir:str, executable:str, forbiddenFiles:list, maxTime:int):
     '''
     Reference run for single test case.
-    Input:
-        testFarm        string              location of the test farm
-        mainOut         string              main output file of the exciting calculation
-        testDir         string              test case for that the reference will be calculated
-        refDir          string              name of the ref directory of the test case
-        execuatable     string              executable for the exciting run
-        forbiddenFiles  list of strings     files that will not be saved as reference
+    :testFarm:          location of the test farm
+    :mainOut:           main output file of the exciting calculation
+    :testDir:           test case for that the reference will be calculated
+    :refDir:            name of the ref directory of the test case
+    :execuatable:       executable for the exciting run
+    :forbiddenFiles:    files that will not be saved as reference
     '''
-
     os.chdir(os.path.join(testFarm,testDir,refDir))
 
     dirs, files = next(os.walk('.'))[1:]
@@ -281,7 +279,7 @@ def runSingleReference(testFarm, mainOut, testDir, refDir, executable, forbidden
     for d in dirs:
         if '_REF' in d:
             shutil.rmtree(d)
-    runSuc, errMess = exciting_run(executable, mainOut, maxTime)
+    runSuc, errMess, timing = exciting_run(executable, mainOut, maxTime)
     dirs, files = next(os.walk('.'))[1:]
     if runSuc:
         for f in files:
@@ -297,46 +295,36 @@ def runSingleReference(testFarm, mainOut, testDir, refDir, executable, forbidden
                 os.chdir('..')
                 os.rename(d, '%s_REF'%d)
                 
-        print('  %s: Run succeeded'%testDir)
+        print('%s: Run succeeded'%testDir)
     else:
-        print('  %s: Run failed'%testDir)
+        print('%s: Run failed'%testDir)
         for err in errMess:
             print(err)
+    print('Time (s): %.1f' % timing)
     os.chdir('../../..')
 
-def runReferences(testFarm, mainOut, testList, refDir, executable, forbiddenFiles, np, omp, maxTime):
+def runReferences(testFarm:str, mainOut:str, testList:list, refDir:str, executable:str, forbiddenFiles:list, maxTime:int):
     '''
     Reference run for all tests (see runSingleReference).
-    Input:
-        testFarm        string              location of the test farm
-        mainOut         string              main output file of the exciting calculation
-        testList        string              list of test cases for that the reference will be calculated
-        runDir          string              name of the run directory of the test case
-        refDir          string              name of the ref directory of the test case
-        execuatable     string              executable for the exciting run
-        forbiddenFiles  list of strings     files that will not be saved as reference
+    :testFarm:          location of the test farm
+    :mainOut:           main output file of the exciting calculation
+    :testList:          list of test cases for that the reference will be calculated
+    :testDir:           test case for that the reference will be calculated
+    :refDir:            name of the ref directory of the test case
+    :execuatable:       executable for the exciting run
+    :forbiddenFiles:    files that will not be saved as reference
     '''
-    if 'excitingser' in executable:
-        print('Run references with excitingser.')
-    elif 'excitingmpi' in executable:
-        print('Run references with excitingmpi with %i open MP threads and %i MPI processes.'%(omp, np))
-    
-    if testList == next(os.walk(testFarm))[1]:
-        print('Rerun references for all tests in %s.'%testFarm)
-    else:
-        print('Rerun references for tests {} in {}.'.format(testList, testFarm))
     for testDir in testList:
         runSingleReference(testFarm, mainOut, testDir, refDir, executable, forbiddenFiles, maxTime)
 
-def cleanSingleTest(testFarm, testDir, runDir, refDir, forbiddenFiles):
+def cleanSingleTest(testFarm:str, testDir:str, runDir:str, refDir:str, forbiddenFiles:str):
     '''
     Removes all files from exciting calculation in a single test case except files stored as reference and files defined in forbiddenFiles.
-    Input:
-        testFarm        string              location of the test farm
-        testDir         string              test case that will be cleaned
-        runDir          string              name of the run directory of the test case
-        refDir          string              name of the ref directory of the test case
-        forbiddenFiles  list of strings     files that will not be removed
+    :testFarm:          location of the test farm
+    :testDir:           test case that will be cleaned
+    :runDir:            name of the run directory of the test case
+    :refDir:            name of the ref directory of the test case
+    :forbiddenFiles:    files that will not be removed
     '''
     os.chdir(os.path.join(testFarm, testDir, runDir))
     dirs, files = next(os.walk('.'))[1:]
@@ -356,45 +344,44 @@ def cleanSingleTest(testFarm, testDir, runDir, refDir, forbiddenFiles):
             shutil.rmtree(d)
     os.chdir('../../..')
 
-def cleanTests(testFarm, testList, runDir, refDir, forbiddenFiles):
+def cleanTests(testFarm:str, testList:list, runDir:str, refDir:str, forbiddenFiles:str):
     '''
     Cleans the tests in testList (see cleanSingleTest).
-    Input:
-        testFarm        string              location of the test farm
-        testList        list of strings     test cases that will be cleaned
-        runDir          string              name of the run directory of the test case
-        refDir          string              name of the ref directory of the test case
-        forbiddenFiles  list of strings     files that will not be removed
+    :testFarm:          location of the test farm
+    :testList:          test cases that will be cleaned
+    :testDir:           test case that will be cleaned
+    :runDir:            name of the run directory of the test case
+    :refDir:            name of the ref directory of the test case
+    :forbiddenFiles:    files that will not be removed
     '''
     print('Clean test directories.')
     
     for testDir in testList:
         cleanSingleTest(testFarm, testDir, runDir, refDir, forbiddenFiles)
 
-def newTest_dir(testFarm, name, runDir, refDir):
+def newTest_dir(testFarm:str, name:str, runDir:str, refDir:str):
     '''
     Creates new test case at location path.
     Input:
-        testFarm    string      location of the test farm
-        name        string      name of the new test case
-        runDir      string      name of the run directory of the test case
-        refDir      string      name of the ref directory of the test case
+    :testFarm:    location of the test farm
+    :name:        name of the new test case
+    :runDir:      name of the run directory of the test case
+    :refDir:      name of the ref directory of the test case
     '''
     path = os.path.join(testFarm, name)
     os.makedirs(path)
     os.makedirs(os.path.join(path, runDir))
     os.makedirs(os.path.join(path, refDir))
 
-def copyInputFiles(src, testFarm, name, runDir, refDir, inputInd, species):
+def copyInputFiles(src:str, testFarm:str, name:str, runDir:str, refDir:str, inputInd:str, species:list):
     '''
     Copies input.xml and species files from a reference exciting calculation to a test case, located at path.
-    Input:
-        src         string          source of the reference calculation
-        testFarm    string      location of the test farm
-        name        string      name of the new test case
-        refDir      string          name of the ref directory of the test case
-        inputInd    string          indicator of the input file. In case of input.xml, "input" will work.
-        species     list od strings list of possible species files
+    :src:         source of the reference calculation
+    :testFarm:    location of the test farm
+    :name:        name of the new test case
+    :refDir:      name of the ref directory of the test case
+    :inputInd:    indicator of the input file. In case of input.xml, "input" will work.
+    :species:     list od strings list of possible species files
     '''
     files_src = next(os.walk(src))[2]
     files_copy = []
@@ -410,12 +397,13 @@ def copyInputFiles(src, testFarm, name, runDir, refDir, inputInd, species):
         shutil.copy(os.path.join(src,f), os.path.join(path,runDir,f))
         shutil.copy(os.path.join(src,f), os.path.join(path,refDir,f))
 
-def create_init(testFarm, name, description, init):
+def create_init(testFarm:str, name:str, description:str, init:str):
     '''
     Copies init_default.xml from xml/init_templates to the directory of the new test case.
-    Input:
-        testFarm    string      location of the test farm   
-        name        string      name of the new test case
+    :testFarm:     location of the test farm   
+    :name:         name of the new test case
+    :description:  description in the init file
+    :init:         init file template
     '''
     shutil.copy(os.path.join("xml/init_templates", init), os.path.join(testFarm, name, "init.xml"))
     with open(os.path.join(testFarm, name, "init.xml"), 'r') as file :
