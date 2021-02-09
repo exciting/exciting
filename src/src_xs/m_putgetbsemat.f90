@@ -399,6 +399,7 @@ module m_putgetbsemat
       integer(4) :: ik, jk, iknr, jknr
       integer(4) :: inou, jnou
       integer(4) :: buffer(5)
+      complex(8) :: zmat_buffer(nou_bse_max,nou_bse_max)
 
 
 #ifdef MPI
@@ -425,7 +426,6 @@ module m_putgetbsemat
       inquire(iolength=reclen) iqmt, buffer, zmat
 
 #ifdef MPI
-
       ! Send result to rank 0
       if(mpiglobal%rank .ne. 0) then
         call mpi_send(buffer, size(buffer), mpi_integer, 0,&
@@ -444,15 +444,19 @@ module m_putgetbsemat
             ! Receive data from slaves
             call mpi_recv(buffer, size(buffer), mpi_integer, iproc, tag*2,&
               & mpiglobal%comm, stat, mpiglobal%ierr)
-            call mpi_recv(zmat, size(zmat), mpi_double_complex, iproc, tag,&
+            call mpi_recv(zmat_buffer, size(zmat_buffer), mpi_double_complex, iproc, tag,&
               & mpiglobal%comm, stat, mpiglobal%ierr)
+          else
+            zmat_buffer = zmat
           end if
+#else
+            zmat_buffer = zmat
 #endif
           ! Only the master is performing file i/o
           open(unit=un, file=trim(fname), form='unformatted', action='write',&
             & access='direct', recl=reclen)
           ! Use ikkp as record index
-          write(un, rec=buffer(1)) iqmt, buffer, zmat(1:buffer(4),1:buffer(5))
+          write(un, rec=buffer(1)) iqmt, buffer, zmat_buffer(1:buffer(4),1:buffer(5))
           close(un)
 #ifdef MPI
         end do

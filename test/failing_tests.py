@@ -26,12 +26,6 @@ failing_tests = [
      'tags': [CompilerBuild(Compiler.gcc, Build_type.all)]
     }, 
 
-    # TODO(Ronaldo) Issue #34. 
-    # MPI calculations result in numerous files containing numbers that differ from serial calculations
-    {'name': 'groundstate-GGA_PBE-tddft-LiF',
-     'comment': 'Serial and MPI numbers differ',
-     'tags': [CompilerBuild(Compiler.all, Build_type.mpiandsmp)]
-    },
 
     # TODO(Sven) Issue #39 
     # Andris comment: I have tried several runs with a different number of threads and MPI ranks, 
