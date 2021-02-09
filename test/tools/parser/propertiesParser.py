@@ -316,7 +316,10 @@ def parse_band_edges(name):
 
 #parser for spintext.xml
 def parse_spintext(name):
-    treespin = ET.parse(name)
+    try:
+        treespin = ET.parse(name)
+    except:
+        raise ParseError
     root = treespin.getroot()
     spintext = {}
     bands = []

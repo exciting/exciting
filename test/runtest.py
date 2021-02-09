@@ -22,6 +22,9 @@ from constants import settings
 import runselftests
 from failing_tests import set_skipped_tests  
 
+def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
+    return '%s: %s \n' % (category.__name__, message)
+warnings.formatwarning = warning_on_one_line
 
 def optionParser(testFarm:str, exedir:str):
     """
@@ -187,19 +190,18 @@ def main(settings:namedtuple, input_options:dict):
             answer = input("Are you sure that you want to rerun reference(s)? " + \
                            "This will replace the old reference(s) with reference(s) " + \
                            "created by the current state of the code and should only " + \
-                           "be done if all tests pass with the current version of the code.(y/n)")
+                           "be done if all tests pass with the current version of the code.(y/n)\n")
             if answer=='y':
                 break
             elif answer=='n':
                 sys.exit()
+        warnings.warn("Reference will always be run with %s!"%settings.exe_ref)
         runReferences(settings.test_farm,
                       settings.main_output,
                       input_options['tests'],
                       settings.ref_dir,
-                      executable_command,
+                      os.path.join(settings.exe_dir, settings.exe_ref),
                       settings.ignored_output + species_files,
-                      input_options['np'],
-                      input_options['omp'],
                       settings.max_time)
         collectReports(settings.test_farm, input_options['tests'])
        
