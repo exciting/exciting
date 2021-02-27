@@ -3,7 +3,7 @@
 
 default: build/make.inc all
 
-# Include platform specific variable settings (will be passed on to other make calls)
+# Include platform specific variable settings
 -include build/make.inc
 
 info:
@@ -11,6 +11,8 @@ info:
 	@echo "___ Starting compilation _________________________________________________"
 	@echo ""
 	@sleep 3
+
+# exciting binary  
 
 all: info serial mpiandsmp 
 
@@ -32,8 +34,8 @@ debug:
 debugmpiandsmp:
 	cd build/debugmpiandsmp; $(MAKE)
 
-# Run application test suite:
-# TODO(Bene): make test should run executables of the build. 
+# Test suite 
+
 test ::
 	cd test/; $(MAKE)
 
@@ -44,32 +46,18 @@ test_mpiandsmp ::
 	cd test/; $(MAKE) mpiandsmp
 
 test_reference ::
-	cd test/; $(MAKE) refernce
+	cd test/; $(MAKE) reference 
 
 cleantests ::
 	cd test/; $(MAKE) cleantests
 
-doc: inputdoc split_inputdoc speciesdoc
+# Documentation 
+
 #TODO(Sebastian) Issue #15. Fix documentation compilation for subroutines 
 #doc:  spacegroupdoc stateconvertdoc stateinfodoc inputdoc excitingfuncdoc split_inputdoc speciesdoc
 
 excitingfuncdoc::
 	$(MAKE) -f build/Make.common doc
-
-spacegroupdoc::
-	cd src/spacegroup; $(MAKE) doc;\
-	mv spacegroup.pdf ../../docs/spacegroup
-	xsltproc xml/schema/schemaexpand.xsl xml/schema/symmetries.xsd>  xml/sgroupinput.xsd
-	cd docs/spacegroup; \
-	xsltproc --stringparam importancelevels "spacegroup" ../../xml/schematolatex.xsl ../../xml/sgroupinput.xsd > spacegroupinput.tex; \
-	xsltproc --stringparam importancelevels "spacegroup" ../../xml/schematowikidot.xsl ../../xml/sgroupinput.xsd > ../../xml/schema/wiki/spacegroup ;\
-	pdflatex spacegroupinput.tex; \
-	pdflatex spacegroupinput.tex; \
-
-speciesdoc::
-	cd docs/species;\
-	xsltproc --stringparam importancelevels "spacegroup" ../../xml/schematolatex.xsl ../../xml/species.xsd > species.tex;\
-	pdflatex species.tex;pdflatex species.tex;
 
 expandedschema::
 	xsltproc xml/schema/schemaexpand.xsl xml/schema/input.xsd >xml/excitinginput.xsd ;\
@@ -86,6 +74,29 @@ split_inputdoc::
 
 inputdocwiki:xml/schema/*.xsd
 	cd xml/schema; $(MAKE)
+
+# ----------------------------------
+
+# Utility Programs and their docs
+# TODO(Alex) Issue 45. Decouple standalone programs from exciting's src and build system 
+# Consider replacing with a single command, `make auxilliary` 
+
+doc: inputdoc split_inputdoc speciesdoc
+
+spacegroupdoc::
+	cd src/spacegroup; $(MAKE) doc;\
+	mv spacegroup.pdf ../../docs/spacegroup
+	xsltproc xml/schema/schemaexpand.xsl xml/schema/symmetries.xsd>  xml/sgroupinput.xsd
+	cd docs/spacegroup; \
+	xsltproc --stringparam importancelevels "spacegroup" ../../xml/schematolatex.xsl ../../xml/sgroupinput.xsd > spacegroupinput.tex; \
+	xsltproc --stringparam importancelevels "spacegroup" ../../xml/schematowikidot.xsl ../../xml/sgroupinput.xsd > ../../xml/schema/wiki/spacegroup ;\
+	pdflatex spacegroupinput.tex; \
+	pdflatex spacegroupinput.tex; \
+
+speciesdoc::
+	cd docs/species;\
+	xsltproc --stringparam importancelevels "spacegroup" ../../xml/schematolatex.xsl ../../xml/species.xsd > species.tex;\
+	pdflatex species.tex;pdflatex species.tex;
 
 stateconvertdoc::
 	cd src/stateconvert; $(MAKE) doc;\
@@ -110,9 +121,16 @@ stateconvert::
 species::
 	cd src/species; $(MAKE)
 
+vdwdf:
+	cd src/src_vdwdf
+	$(MAKE)
+
+# ---------------------------
+
 libs:
 	cd build/serial; $(MAKE) libs
 
+# TODO(Alex) Issue 45. Decouple standalone programs from exciting's src and build system 
 clean:
 	cd build/serial; $(MAKE) clean cleanlibs
 	cd build/mpi; $(MAKE) clean cleanlibs
@@ -126,22 +144,15 @@ clean:
 	cd src/src_vdwdf; $(MAKE) clean
 	cd src/stateinfo; $(MAKE) clean
 	cd src/stateconvert; $(MAKE) clean
-	cd src/leblaiklib; $(MAKE) clean
 	rm -f *.o *.mod *~ fort.* ifc* *.gcno *.exe exdg.*
-	rm -f interfaces/*
 	rm -f docs/exciting/*
 	rm -f docs/spacegroup/*
 	cd test; $(MAKE) cleantests
 
-
 libxcclean:
 	cd src/libXC && make clean
 
-tgz::doc #libxcclean
+tgz::doc
 	tar --exclude-from=".gitignore"  --transform 's,^,exciting/,' -c -v -f ./exciting.tar *
 	gzip  -f --best ./exciting.tar
 	du -h ./exciting.tar.gz
-
-vdwdf:
-	cd src/src_vdwdf
-	$(MAKE)

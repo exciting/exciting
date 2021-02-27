@@ -34,14 +34,21 @@ SOURCEDIRS=	\
 	../../src/errors_warnings 
 	
 GeneratedFiles = ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90
+
 LIBXCMOD = ../../src/libXC/src/libxc.f90 ../../src/libXC/src/libxc_funcs.f90
 
-#all:bin
-
-# Version number to file
-# Make makefile using template from all source dirs and files
-# Make exciting unsing the generated make files
+# ---------------------------------------------------------
+# Main Build Command
+# 
+# Use versionstamp.pl to generate src/version.inc (date and git hash)
+# Use mkmf perl script to generate makefiles
+#  - Analyses source dependencies
+#  - Uses template in respective build directory
+#  - Generates makefiles for all source, in respective build directory
+# Build exciting 
 # Copy executable and append suffix
+# ---------------------------------------------------------
+
 bin::../make.inc libs $(GeneratedFiles) $(LIBXCMOD)
 	perl ../../build/utilities/versionstamp.pl 
 	../../build/utilities/mkmf -t ./template -f -m Makefile.mkmf\
@@ -57,72 +64,58 @@ doc::
 tidy::
 	perl ../../build/utilities/scripts/prettyprint.pl $(SOURCEDIRS)
 
-ifeq ($(USE_SYS_LAPACK),true)
+# --------------------------------
+# All libraries
+# --------------------------------
+
+ifeq ($(USE_SYS_LAPACK), true)
 libs:: libfox libbzint.a fftlib.a libarpack.a libmsec.a leblaiklib.a libxc.a liblbfgs.a
 endif
 
-ifeq ($(USE_SYS_LAPACK),)
+ifeq ($(USE_SYS_LAPACK), false)
 libs:: libfox libbzint.a libblas.a liblapack.a fftlib.a libarpack.a libmsec.a \
 	leblaiklib.a libxc.a liblbfgs.a
 endif
 
-# Blas and lapack (usually system libs)
+# --------------------------------
+# External libraries
+# --------------------------------
+
+# Use native BLAS and LAPACK versions where possible
 libblas.a:: 
 	../../build/utilities/mkmf -t ./template.f77 -f -m Makefile.blas -p libblas.a \
-	../../src/BLAS\
+	../../external/BLAS\
 	&& $(MAKE) -f Makefile.blas libblas.a 
 liblapack.a:: 
 	../../build/utilities/mkmf -t ./template.f77 -f -m Makefile.lapack -p liblapack.a \
-	../../src/LAPACK\
+	../../external/LAPACK\
 	&& $(MAKE) -f Makefile.lapack liblapack.a 
 	
-fftlib.a::
-	../../build/utilities/mkmf -t ./template -f -m Makefile.fft -p fftlib.a \
-	../../src/fftlib\
-	&& $(MAKE) -f Makefile.fft fftlib.a 
-
-libbzint.a:: 
-	../../build/utilities/mkmf -t ./template -f -m Makefile.libbzint -p libbzint.a \
-	../../src/src_libbzint \
-	&& $(MAKE) -f Makefile.libbzint libbzint.a 
-
-libmsec.a:: 
-	../../build/utilities/mkmf -t ./template.f77 -f -m Makefile.libmsec -p libmsec.a \
-	../../src/src_mixing/lib/ \
-	&& $(MAKE) -f Makefile.libmsec libmsec.a 
-
 libarpack.a::
 	../../build/utilities/mkmf -t ./template.f77 -f -m Makefile.libarpack -p libarpack.a \
-	../../src/ARPACK/SRC/ \
-	../../src/ARPACK/UTIL/ \
+	../../external/ARPACK/SRC/ \
+	../../external/ARPACK/UTIL/ \
 	&& $(MAKE) -f Makefile.libarpack libarpack.a
 
 libfox:lib/libFoX_common.a
 
 ifeq ($(HLRN),true)
 lib/libFoX_common.a:
-	cd ../../src/FoX/ && \
+	cd ../../external/FoX/ && \
 	module swap craype-$(CNODE_ARCH) craype-$(LNODE_ARCH) && \
 	./configure FC=$(F90) && \
 	module swap craype-$(LNODE_ARCH) craype-$(CNODE_ARCH) && \
 	make 
-	cp -r ../../src/FoX/objs/* ./
+	cp -r ../../external/FoX/objs/* ./
 else
 lib/libFoX_common.a:
-	cd ../../src/FoX/ && \
+	cd ../../external/FoX/ && \
 	./configure FC=$(F90) &&\
 	make 
-	cp -r ../../src/FoX/objs/* ./
+	cp -r ../../external/FoX/objs/* ./
 endif
-	
-leblaiklib.a::
-	cd ../../src/leblaiklib && make
-	cp ../../src/leblaiklib/leblaiklib.a ./
 
-liblbfgs.a::
-	cd ../../src/Lbfgsb.3.0 && make
-	cp ../../src/Lbfgsb.3.0/liblbfgs.a ./
-	
+#TODO(ALEX) Issue 47. Move LibXC 2.0.0 from src to external
 libxc.a:lib/libxc.a
 
 ifeq ($(HLRN),true)
@@ -141,10 +134,40 @@ lib/libxc.a:
 	cp -r ../../src/libXC/src/.libs/libxc.a ./lib/libxc.a
 endif
 
-#cp -f ../make.inc ../..
-#cd ../../src/ARPACK && $(MAKE) clean 
-#cp ../../src/ARPACK/libarpack.a .
-#cd ../../src/ARPACK && $(MAKE) clean
+
+leblaiklib.a::
+	cd ../../external/leblaiklib && make
+	cp ../../external/leblaiklib/leblaiklib.a ./
+
+# TODO(ALEX) Issue 47 Move Lbfgsb.3.0 from src to external
+liblbfgs.a::
+	cd ../../src/Lbfgsb.3.0 && make
+	cp ../../src/Lbfgsb.3.0/liblbfgs.a ./
+
+# --------------------------------
+# Internal libraries
+# --------------------------------
+
+# Modified version of the FFTPACK5 library	
+fftlib.a::
+	../../build/utilities/mkmf -t ./template -f -m Makefile.fft -p fftlib.a \
+	../../src/fftlib\
+	&& $(MAKE) -f Makefile.fft fftlib.a 
+
+libbzint.a:: 
+	../../build/utilities/mkmf -t ./template -f -m Makefile.libbzint -p libbzint.a \
+	../../src/src_libbzint \
+	&& $(MAKE) -f Makefile.libbzint libbzint.a 
+
+libmsec.a:: 
+	../../build/utilities/mkmf -t ./template.f77 -f -m Makefile.libmsec -p libmsec.a \
+	../../src/src_mixing/lib/ \
+	&& $(MAKE) -f Makefile.libmsec libmsec.a 
+
+
+# --------------------------------
+# Process XML Schema
+# --------------------------------
 
 ../../xml/excitinginput.xsd: ../../xml/schema/*.xsd  ../../xml/schema/schemaexpand.xsl
 	xsltproc ../../xml/schema/schemaexpand.xsl ../../xml/schema/input.xsd > ../../xml/excitinginput.xsd
@@ -156,14 +179,18 @@ endif
 ../../src/src_inputparser/speciesmodules.f90:   ../../xml/species.xsd ../../xml/schematofortran.xsl
 	xsltproc  ../../xml/schematofortran.xsl  ../../xml/species.xsd > ../../src/src_inputparser/speciesmodules.f90
 
+# --------------------------------
+# Clean 
+# --------------------------------
 
 clean:
 	rm -f *.o *.mod *.f90 *.F90 exciting
 
+# TODO(Alex) Issue 47
 cleanlibs:
 	rm -f *.a
 	rm -rf lib finclude
 	-cd ../../src/libXC/ && make clean
-	-cd ../../src/FoX && make clean
-	-cd ../../src/leblaiklib && make clean
+	-cd ../../external/FoX && make clean
+	-cd ../../external/leblaiklib && make clean
 	-cd ../../src/Lbfgsb.3.0 && make clean

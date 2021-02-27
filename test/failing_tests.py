@@ -11,6 +11,26 @@ sys.path.insert(1, 'tools')
 from utils import Compiler, Build_type, CompilerBuild, get_compiler_type, build_type_enum_map
 
 
+# Flakey tests
+#
+# Tests that don't always pass the CI for any discernable reason
+# are considered flakey rather than failing.
+#
+# This currently corresponds to the hybrids:
+#  - groundstate-HYB_HSE-Si
+#  - groundstate-HYB_PBE0-Si
+#
+# The current solution is to loosen the tolerances if this is experienced,
+# and document the change. Looser tols are still likely to be lower than were set
+# in the old test suite.
+#
+# When ctest is introduced, this can addressed with the -repeat until-pass:2 option.
+# Additionly, explicit assertions and tolerances will make the hybrid tests more robust.
+# See MR !38 Testing/pytest.
+#
+# Also see Issue 51. Review tolerances for all tests migrated from the old test suite.
+
+
 failing_tests = [
     # TODO(Alex) Issue #35. MPI GW calculations do not produce EPS00_GW.OUT
     # Also appear to get a failure for Intel 2019 serial (only occurs on the CI)
@@ -31,9 +51,10 @@ failing_tests = [
     # Andris comment: I have tried several runs with a different number of threads and MPI ranks, 
     # but the calculations always converged in 19-20 iterations and always to the same energy with the threshold.
     # - Looks like issue with comparing integers in the test suite, rather than a test failure
+    # - One just needs to set a tolerance for integers
     {'name':'groundstate-LDA_PW-noncollinear-Fe',
      'comment': 'Number of SCF iterations differs to reference',
-     'tags': [CompilerBuild(Compiler.gcc, Build_type.mpiandsmp)]
+     'tags': [CompilerBuild(Compiler.all, Build_type.mpiandsmp)]
      }, 
 
     # TODO ADD ISSUE
