@@ -18,7 +18,7 @@
           ignore    = ''>
     <eigval
               eigvalPair = '4,5 5,8 8,9 2,3 6,7 1,8'
-              tolEigval   = '1e-4'/>
+              tolEigval   = '1.5e-4'/>
         </test>
   <test   file      = 'evalcore.xml'
           tolFloat  = '1e-8'

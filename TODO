@@ -1,0 +1,37 @@
+TODOs
+-------------
+
+Specific TODOs can be added directly to the source. For multi-step TODOs, one can log them here.
+All TODOs must have an associated issue and be logged on exciting’s GitLab Issue Tracker.
+
+
+Infrastructure
+---------------
+Issue 47 (Alex). Move Lbfgsb.3.0 and LibXC 2.0.0 from src to external. 
+ - Observing test breakages on CI with Intel mpismp, but not locally or
+   with GCC. Need to improve feedback of the test suite.  
+
+Issue 45 (Alex). Move standalone programs out of src.
+ - spacegroup, stateconvert, species, stateinfo, src_vdwdf, eos.
+
+Issue 14 (Alex). Migrate the build system to CMake.
+ - Retain existing external libraries in our repository but move (issue 47).
+ - Move standalone programs and decouple from exciting's build system (issue 45).
+ - Implement full sub-directory structure in src.
+ 
+Issue 46 (Alex). Incorporate a unit testing framework into exciting.
+ - Depends on the completion of issue 14. 
+
+
+Test Suite
+---------------
+
+Issue 48 (Alex/Bene/Hannah). Improve Tolerance of Assertions for INFO.OUT
+ - A single tolerance for all floats in a file is restrictive. One should be
+   able to specifiy specific tolerances, in addition to a default.
+ 
+Issue 51 (Alex/Bene/Hannah) Review the tolerances of all tests that were migated
+from the old test suite.
+ - Specifically w.r.t. the hybrid calculations, however all should be reviewed.
+ 
+
