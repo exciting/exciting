@@ -1,4 +1,8 @@
-include ../../build/make.inc
+#-------------------------------------------------------------------------------
+# Compiler and flags
+#-------------------------------------------------------------------------------
+F90 = gfortran
+F90_OPTS = -O3 -march=native -ffree-line-length-0
 
 #-------------------------------------------------------------------------------
 # Suffix rules
@@ -10,8 +14,10 @@ include ../../build/make.inc
 #-------------------------------------------------------------------------------
 # Source files
 #-------------------------------------------------------------------------------
+vpath %.f90 src
+
 SRC = modmain.f90 eos.f90 eveos.f90 pveos.f90 readinput.f90 getedata.f90 \
-      fitdata.f90 output.f90 minf_nm.f90 fmin_nm.f90
+	  fitdata.f90 output.f90 minf_nm.f90 fmin_nm.f90
 
 OBJ = $(SRC:.f90=.o)
 EXE = eos
