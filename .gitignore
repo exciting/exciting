@@ -24,7 +24,8 @@ build/mpiandsmp/exciting
 build/debug/exciting
 build/debugmpi/exciting
 build/debugmpiandsmp/exciting
-# Copied to bin
+# Executables and the bin directory
+/bin
 excitingdebug  
 excitingdebugmpi  
 excitingser  
@@ -34,7 +35,7 @@ excitingmpismp
 
 # Binaries from standalone builds 
 # Kept paths as 'species' and 'spacegroup' are very general names 
-src/eos/eos
+# TODO(Alex) Issue #45 Move standalone programs out of src - each should have its own .gitignore 
 src/spacegroup/spacegroup
 src/stateconvert/stateconvert
 src/stateinfo/stateinfo

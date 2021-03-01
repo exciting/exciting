@@ -2,6 +2,9 @@
                          |     EOS Version 1.4.0     |
                          +---------------------------+
 
+Description 
+------------------
+
 Equation of state (EOS) program for fitting energy-volume data. The following
 variables are set in the file eos.in:
 
@@ -24,6 +27,44 @@ The equations of state currently implemented are:
     Planet Int. 109, p1 (1998))
  6. Natural strain 4th-order EOS
  7. Cubic polynomial in (V-V0)
+
+
+Compilation
+------------------
+
+eos can be built with either make or CMake (resulting in entirely equivalent binaries). 
+Both sets of commands are issued from the root directory. 
+
+To build with make, type:
+   make 
+
+The resulting executable, eos, can be found in eos's root directory. 
+
+To build with CMake, type:
+   mkdir build && cd build
+   cmake ../
+   make 
+
+The resulting executable, eos.exe, can be found in build/bin.  
+
+
+Example input file, eos.in 
+-----------------------------
+
+ "Silicon"                    : cname
+ 2                            : natoms
+ 1                            : etype
+ 140.0 450.0 1000             : vplt1, vplt2, nvplt
+ 7                            : nevpt
+ 165.8207473 -578.0660968
+ 196.8383062 -578.1728409
+ 231.5010189 -578.2305598
+ 270.0113940 -578.2548962
+ 312.5719400 -578.2566194
+ 359.3851654 -578.2453281
+ 410.6535788 -578.2253154
+ 466.5796888 -578.2028836
+
 
 --------------------------------------------------------------------------------
 J. K. Dewhurst

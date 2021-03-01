@@ -106,9 +106,6 @@ stateinfodoc::
 	cd src/stateinfo; $(MAKE) doc;\
 	mv stateinfo.pdf ../../docs/stateinfo
 
-eos::
-	cd src/eos; $(MAKE)
-
 spacegroup::
 	cd src/spacegroup; $(MAKE)
 
@@ -138,7 +135,6 @@ clean:
 	cd build/debug; $(MAKE) clean cleanlibs
 	cd build/debugmpiandsmp; $(MAKE) clean cleanlibs
 	cd build/mpiandsmp; $(MAKE) clean cleanlibs
-	cd src/eos; $(MAKE) clean
 	cd src/spacegroup; $(MAKE) clean
 	cd src/species; $(MAKE) clean
 	cd src/src_vdwdf; $(MAKE) clean
