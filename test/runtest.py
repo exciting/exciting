@@ -20,7 +20,7 @@ from termcolor_wrapper import print_color
 from procedures import *
 from constants import settings
 import runselftests
-from failing_tests import set_skipped_tests  
+from failing_tests import set_skipped_tests
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
     return '%s: %s \n' % (category.__name__, message)

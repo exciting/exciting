@@ -155,4 +155,3 @@ test-debian-buster-Intel2019-mpiandsmp:
     paths:
       - docs/profiling/CodeCoverage
       - docs/profiling/CODE_COVERAGE.HTML
-    
