@@ -93,34 +93,6 @@ For each exciting output file that is tested, there is a <test> element which ha
 The default init.xml files can be found in test/xml/init_templates. In the following they are listed, with the files they test:
     groundstate         info.xml, atoms.xml, INFO.OUT, eigval.xml, evalcore.xml, geometry.xml
 
-Requirements:
-
-This package requires python3, eight standard libraries and one non-standard library.
-For receiving python3 on a Unix system prompt:
-    $ sudo apt-get update
-    $ sudo apt-get install python3.x
-x depends on the exact version of python3 you want to use.
-All standard packages should be shipped within python3 already. 
-To install needed python packages, the easiest way is to use python3 package installer pip3:
-    $ pip3 update
-    $ pip3 install <package>
-Of course you can use any source package management system like conda as well.
-
-It follows a full list of all python libraries needed:
--required standard python libraries:
-    -sys
-    -os
-    -shutil
-    -subprocess
-    -glob
-    -operator
-    -xml
-    -unittest
--required nonstandard python libraries:
-    -numpy
--optional nonstandard python libraries:
-    -termcolor (for colorful terminal output)
-
 init files:
      The output files included in init_groundstate.xml are included in all the other init files too.
 

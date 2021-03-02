@@ -22,11 +22,7 @@
           tolFloat  = '1e-3'
           tolMSE    = '1e-3'
           condition = '0 0'
-          ignore    = ''>
-          <eigval
-              eigvalPair = '4,5 5,8 8,9 33,34 49,50 3,120'
-              tolEigval   = '1e-8'/>
-        </test>
+          ignore    = ''/>
   <test   file      = 'evalcore.xml'
           tolFloat  = '1e-8'
           tolMSE    = '1e-8'
