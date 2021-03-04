@@ -18,9 +18,9 @@
 !   Added proc groups functionality. 2016 (Aurich)
 !
 ! TODO(Alex) Issue #23. MPI wrappers are a mix of types and global variables, the latter of which isn't
-! required as one can always query MPI variables with MPI calls, there is no overload set for compilation 
-! in serial, and the routines don't follow single responsibility. 
-! This needs refactoring if we hope to use more complex MPI distribution schemes.  
+! required as one can always query MPI variables with MPI calls, there is no overload set for compilation
+! in serial, and the routines don't follow single responsibility.
+! This needs refactoring if we hope to use more complex MPI distribution schemes.
 
 module modmpi
 #ifdef MPI
@@ -30,8 +30,8 @@ module modmpi
   implicit none
 
   ! MPI info type
-  ! Contains basic information regarding 
-  ! a mpi communicator 
+  ! Contains basic information regarding
+  ! a mpi communicator
   type mpiinfo
     integer(4) :: rank
     integer(4) :: procs
@@ -44,7 +44,7 @@ module modmpi
   type procgroup
     ! Total number of process groups
     ! this group belongs to
-    integer(4) :: ngroups  
+    integer(4) :: ngroups
     ! Group id
     integer(4) :: id
     ! MPI information for current
@@ -54,10 +54,10 @@ module modmpi
     type(mpiinfo) :: mpiintercom
   end type procgroup
 
-  ! TODO(Alex) Issue #23. This is a bad idea. Defeats the point of encapsulating an instantiation of the 
+  ! TODO(Alex) Issue #23. This is a bad idea. Defeats the point of encapsulating an instantiation of the
   ! MPI environment. All MPI variables can be querried with MPI subroutines. Benjamin probably did it
-  ! because it was the only way he could get the object passed to BSE without a big refactor of 
-  ! subroutine APIs 
+  ! because it was the only way he could get the object passed to BSE without a big refactor of
+  ! subroutine APIs
   ! mpiinfo for global scope
   type(mpiinfo) :: mpiglobal
 
@@ -72,7 +72,7 @@ module modmpi
   ! Variables (contained in mpinodes)
   integer(4) :: firstinnode_comm
 
-  ! Some parts use these 
+  ! Some parts use these
   logical :: splittfile, firstinnode
 
   contains
@@ -97,7 +97,7 @@ module modmpi
     !BOC
       integer(4) :: ierr
 #ifdef MPI
-      ! Initialize MPI and get number of processes 
+      ! Initialize MPI and get number of processes
       ! and current rank
       call mpi_init(ierr)
       call mpi_comm_size(mpi_comm_world, procs, ierr)
@@ -109,13 +109,13 @@ module modmpi
       mpiglobal%rank = rank
       mpiglobal%ierr = ierr
 
-      ! Make communicators for 
+      ! Make communicators for
       ! intra- and inter-processor (node) communication.
       call setup_node_groups
 
       ! Each rank writes its own file (use in pars of GS and XS)
       splittfile = .true.
-       
+
 #endif
 #ifndef MPI
       procs = 1
@@ -133,7 +133,7 @@ module modmpi
 
     !BOP
     ! !ROUTINE: finitmpi
-    ! !INTERFACE: 
+    ! !INTERFACE:
     subroutine finitmpi
     ! !DESCRIPTION:
     !   If -DMPI calls {\tt mpi\_finalize}, after wainting
@@ -161,7 +161,7 @@ module modmpi
 #endif
 #ifdef MPI
       call mpi_finalize(ierr)
-      if(ierr /= 0) then 
+      if(ierr /= 0) then
         write(*,*) "Error (finitmpi): ierr =",ierr
       end if
 #endif
@@ -169,7 +169,7 @@ module modmpi
     !EOC
 
 
-!> @brief Terminate an MPI environment 
+!> @brief Terminate an MPI environment
 subroutine terminate_mpi_env(mpi_env, message)
   use iso_fortran_env, only: error_unit
   implicit none
@@ -180,9 +180,9 @@ subroutine terminate_mpi_env(mpi_env, message)
   character(len=*), optional, intent(in) :: message
   !> Error code for Exciting to return to the invoking environment
   integer, parameter :: error_code = 101
-  
+
 #ifdef MPI
-  if(mpi_env%rank == 0) then 
+  if(mpi_env%rank == 0) then
     if(present(message)) write(error_unit, *) trim(adjustl(message))
   end if
   call mpi_abort(mpi_env%comm, error_code, mpi_env%ierr)
@@ -198,14 +198,14 @@ end subroutine terminate_mpi_env
 
     !BOP
     ! !ROUTINE: terminate
-    ! !INTERFACE: 
+    ! !INTERFACE:
     subroutine terminate
     ! !DESCRIPTION:
     !   Kills the program in {\tt MPI} or
     !   single execution.
-    ! 
+    !
     ! !REVISION HISTORY:
-    !   Added to documentation scheme and moved to 
+    !   Added to documentation scheme and moved to
     !   modmpi. 2016 (Aurich)
     !EOP
     !BOC
@@ -213,7 +213,7 @@ end subroutine terminate_mpi_env
       integer(4) :: ierr
       ! Abort mpi if necessary
 #ifdef MPI
-      if(mpiglobal%rank == 0) then 
+      if(mpiglobal%rank == 0) then
         write(*,*) "Goodbye, cruel world. (terminate)"
       end if
       call mpi_abort(mpi_comm_world, 1, ierr)
@@ -248,7 +248,7 @@ end subroutine terminate_mpi_env
     ! integer(4) :: nofset  ! Number of elements for that rank
     !
     ! !DESCRIPTION:
-    !   This functions helps with distributing a set of $N_\text{el}$ elements 
+    !   This functions helps with distributing a set of $N_\text{el}$ elements
     !   to $N_\text{p}$ {\tt MPI} processes in continuous blocks. The function calculates
     !   the number of elements $N_\text{el}(p)$ a given process is responsible for. \\
     !   Example:\\
@@ -267,11 +267,11 @@ end subroutine terminate_mpi_env
       integer(4) :: np
 
       ! Sanity checks
-      if( myrank < 0 ) then 
+      if( myrank < 0 ) then
         write(*,*) "nofset (Error): myrank < 0"
         call terminate
       end if
-      if( set < 1 ) then 
+      if( set < 1 ) then
         write(*,*) "nofset (Error): set < 1"
         call terminate
       end if
@@ -310,11 +310,11 @@ end subroutine terminate_mpi_env
     ! integer(4) :: set     ! Total number of elements to distribute
     ! integer(4), optional :: nprocs  ! Number of processes in commuincator
     ! OUT:
-    ! integer(4) :: firstofset ! Index of the total set for the first index 
+    ! integer(4) :: firstofset ! Index of the total set for the first index
     !                          ! of the current subset
     !
     ! !DESCRIPTION:
-    !   This functions helps with distributing a set of $N_\text{el}$ elements 
+    !   This functions helps with distributing a set of $N_\text{el}$ elements
     !   to $N_\text{p}$ {\tt MPI} processes in continuous blocks. The function calculates
     !   the index of the fist element $i_\text{el}(p)$ a given process is responsible for.
     !   If there are more processes than elements a process responsible for no element
@@ -336,11 +336,11 @@ end subroutine terminate_mpi_env
       integer(4) :: i, np
 
       ! Sanity checks
-      if( myrank < 0 ) then 
+      if( myrank < 0 ) then
         write(*,*) "firstofset (Error): myrank < 0"
         call terminate
       end if
-      if( set < 1 ) then 
+      if( set < 1 ) then
         write(*,*) "firstofset (Error): set < 1"
         call terminate
       end if
@@ -382,11 +382,11 @@ end subroutine terminate_mpi_env
     ! integer(4) :: set     ! Total number of elements to distribute
     ! integer(4) :: nprocs  ! Number of processes in commuincator
     ! OUT:
-    ! integer(4) :: lastofset  ! Index of the total set for the first index 
+    ! integer(4) :: lastofset  ! Index of the total set for the first index
     !                          ! of the current subset
     !
     ! !DESCRIPTION:
-    !   This functions helps with distributing a set of $N_\text{el}$ elements 
+    !   This functions helps with distributing a set of $N_\text{el}$ elements
     !   to $N_\text{p}$ {\tt MPI} processes in continuous blocks. The function calculates
     !   the index of the last element $j_\text{el}(p)$ a given process is responsible for.
     !   If there are more processes than elements, a process responsible for no element
@@ -408,11 +408,11 @@ end subroutine terminate_mpi_env
       integer(4) :: i, np
 
       ! Sanity checks
-      if( myrank < 0 ) then 
+      if( myrank < 0 ) then
         write(*,*) "lastofset (Error): myrank < 0"
         call terminate
       end if
-      if( set < 1 ) then 
+      if( set < 1 ) then
         write(*,*) "lastofset (Error): set < 1"
         call terminate
       end if
@@ -451,13 +451,13 @@ end subroutine terminate_mpi_env
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
     ! integer(4) :: k    ! Element number k
-    ! integer(4) :: set  ! Total number of distributed elements 
+    ! integer(4) :: set  ! Total number of distributed elements
     ! integer(4), optional :: nprocs ! Number of processes in communicator
     ! OUT:
     ! integer(4) :: procofindex  ! Rank that holds the element
     !
     ! !DESCRIPTION:
-    !   This functions helps with distributing a set of $N_\text{el}$ elements 
+    !   This functions helps with distributing a set of $N_\text{el}$ elements
     !   to $N_\text{p}$ {\tt MPI} processes in continuous blocks. The function calculates
     !   the index of the process $i_\text{p}(k)$ that is responsible for the element with index $k$.
     !   If $k$ is larger than $N_\text{el}$ or smaller than $1$ the routine returns terminates the execution.
@@ -477,15 +477,15 @@ end subroutine terminate_mpi_env
       integer(4) :: iproc, np
 
       ! Sanity checks
-      if( k < 1 ) then 
+      if( k < 1 ) then
         write(*,*) "procofindex (Error): k < 1"
         call terminate
       end if
-      if( k > set ) then 
+      if( k > set ) then
         write(*,*) "procofindex (Error): set < k"
         call terminate
       end if
-      if( set < 1 ) then 
+      if( set < 1 ) then
         write(*,*) "procofindex (Error): set < 1"
         call terminate
       end if
@@ -520,7 +520,7 @@ end subroutine terminate_mpi_env
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
     ! integer(4) :: col ! ``Column" of process grid (i.e. an element index of rank 0)
-    ! integer(4) :: set ! Total number of distributed elements. 
+    ! integer(4) :: set ! Total number of distributed elements.
     ! integer(4), optional :: nprocs  ! Number of processes in communicator
     ! OUT:
     ! integer(4) :: lastproc ! Number of processes active in process column
@@ -528,7 +528,7 @@ end subroutine terminate_mpi_env
     ! !DESCRIPTION:
     !   This functions helps with collecting a set of $N_\text{el}$ elements which were
     !   distributed to $N_\text{p}$ {\tt MPI} processes in continuous blocks and is used for example for
-    !   the writing of {\tt PMATXS.OUT}, {\tt EMAT.OUT}, {\tt SCCLI.OUT} 
+    !   the writing of {\tt PMATXS.OUT}, {\tt EMAT.OUT}, {\tt SCCLI.OUT}
     !   and {\tt EXCLI.OUT}.
     !   For further describing the functionality of this routine, let us consider an example
     !   distribution: \\
@@ -540,7 +540,7 @@ end subroutine terminate_mpi_env
     !     1 & 4 & 5 & 6 & 3 \\
     !     2 & 7 & 6 & 9 & 3 \\
     !     3 & 10 & 11 & - & 2 \\
-    !     4 & 12 & 13 & - & 2 \\ 
+    !     4 & 12 & 13 & - & 2 \\
     !   \end{tabular}
     !
     ! For inputs of $\text{col}=\{1,2,3\}, \text{set}=13$ the routine returns $\{4,4,2\}$, i.e. the process index
@@ -555,7 +555,7 @@ end subroutine terminate_mpi_env
     !     1 & 2 & 2 & - & 1 \\
     !     2 & 3 & 3 & - & 1 \\
     !     3 & 0 & -1 & - & 0 \\
-    !     4 & 0 & -1 & - & 0 \\ 
+    !     4 & 0 & -1 & - & 0 \\
     !   \end{tabular}
     ! For inputs of $\text{col}=1, \text{set}=3$ the routine returns $2$.
     ! For all other input for col execution is halted.
@@ -572,7 +572,7 @@ end subroutine terminate_mpi_env
     ! !REVISION HISTORY:
     !   Added to documentation scheme. (Aurich)
     !   Added sanity checks. (Aurich)
-    !   
+    !
     !EOP
     !BOC
       implicit none
@@ -582,7 +582,7 @@ end subroutine terminate_mpi_env
       integer(4) :: np
 
       ! Sanity checks
-      if( set < 1 ) then 
+      if( set < 1 ) then
         write(*,*) "lastproc (Error): set < 1"
         call terminate
       end if
@@ -604,7 +604,7 @@ end subroutine terminate_mpi_env
         call terminate
       end if
 
-      ! Only in the last (or only) column less then all 
+      ! Only in the last (or only) column less then all
       ! processes can be active.
       ! nofset(0,set,np) gives the number of columns.
       if(col /= nofset(0, set, nprocs=np)) then
@@ -617,7 +617,7 @@ end subroutine terminate_mpi_env
         ! Rest elements not filling last column
         lastproc = modulo(set, np) - 1
       end if
-      
+
     end function lastproc
     !EOC
 
@@ -639,19 +639,19 @@ end subroutine terminate_mpi_env
       implicit none
       type(mpiinfo), intent(in), optional :: mpicom
       character(*), intent(in), optional :: callername
-      
+
       character(*), parameter :: thisname = "barrier"
 
       type(mpiinfo) :: mpinf
 
-      if(present(mpicom)) then 
+      if(present(mpicom)) then
         mpinf = mpicom
       else
         mpinf = mpiglobal
       end if
 
-      if(present(callername)) then 
-        if(.false.) then 
+      if(present(callername)) then
+        if(.false.) then
           write(*, '("Info(",a,"): Rank ",i3," of mpicom", i16," called barrier from ", a)')&
             & trim(thisname), mpinf%rank, mpinf%comm, trim(callername)
         end if
@@ -664,7 +664,7 @@ end subroutine terminate_mpi_env
       ! call the mpi barrier
 #ifdef MPI
       call mpi_barrier(mpinf%comm, mpinf%ierr)
-      if(mpinf%ierr /= 0) then 
+      if(mpinf%ierr /= 0) then
         write(*,*) "Error (barrier): ierr =", mpinf%ierr
       end if
 #endif
@@ -678,7 +678,7 @@ end subroutine terminate_mpi_env
       & inplace, comm)
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
-    ! integer(4) :: set              ! Number of elements in distributed set 
+    ! integer(4) :: set              ! Number of elements in distributed set
     ! integer(4), optional :: rlen   ! Number of data elements per element (constant)
     ! integer(4), optional :: rlenv(set) ! Number of data elements per element
     ! logical, optional :: inplace   ! Use mpi_in_place
@@ -690,22 +690,22 @@ end subroutine terminate_mpi_env
     ! complex(8), optional :: zbuf(*) !
     !
     ! !DESCRIPTION:
-    !   Wrapper routine for {\tt MPI\_ALLGATHERV} for different 
-    !   data types which is adapted for the k-point set 
+    !   Wrapper routine for {\tt MPI\_ALLGATHERV} for different
+    !   data types which is adapted for the k-point set
     !   distribution scheme. That is this works, if {\it set} number
-    !   of elements (e.g. k-points) is distributed over all 
+    !   of elements (e.g. k-points) is distributed over all
     !   processes in the {\tt MPI} communicator {\it comm} using
     !   a continuous distribution as created by the functions
     !   {\tt nofset, firstofset, lastofset}.
-    !   The routine can handle a constant number of data elements per 
-    !   set element by specifying {\tt rlen} or a set element dependent 
-    !   number of data elements by passing {\tt rlenv(set)}. 
+    !   The routine can handle a constant number of data elements per
+    !   set element by specifying {\tt rlen} or a set element dependent
+    !   number of data elements by passing {\tt rlenv(set)}.
     !
     ! !REVISION HISTORY:
     !   Added to documentation scheme. (Aurich)
     !   Added input parameter for communicator and
     !   a switch for inplace allgather. (Aurich)
-    !   Added support for set element dependent number 
+    !   Added support for set element dependent number
     !   of data elements. (Aurich)
     !EOP
     !BOC
@@ -734,7 +734,7 @@ end subroutine terminate_mpi_env
       integer(4) :: myrank, myprocs, mycomm
 
       ! Sanity checks
-      if( set < 1 ) then 
+      if( set < 1 ) then
         write(*,*) "Error (mpi_allgatherv_ifc): set < 1"
         call terminate
       end if
@@ -954,7 +954,7 @@ end subroutine terminate_mpi_env
 
     !BOP
     ! !ROUTINE: setup_proc_groups
-    ! !INTERFACE: 
+    ! !INTERFACE:
     subroutine setup_proc_groups(ngroups, mygroup)
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
@@ -965,11 +965,11 @@ end subroutine terminate_mpi_env
     !
     ! !DESCRIPTION:
     !   Given a total of $N_\text{p}$ {\tt MPI} processes
-    !   this routine generates $N_\text{g}$ process groups 
+    !   this routine generates $N_\text{g}$ process groups
     !   of size $N_\text{p}/N_\text{g}$ (no accutal {\tt MPI}
     !   groups, but rather full {\tt MPI} communicators).
-    !   $N_\text{p} \geq N_\text{g}$ is required. 
-    !   If $\text{mod}(N_\text{p}, N_\text{g}) \neq 0$ then 
+    !   $N_\text{p} \geq N_\text{g}$ is required.
+    !   If $\text{mod}(N_\text{p}, N_\text{g}) \neq 0$ then
     !   one more group is created with the rest of the processes.
     !   Also a commuicator between the first processes in each such
     !   group is created.
@@ -998,7 +998,7 @@ end subroutine terminate_mpi_env
         call terminate
       end if
 
-      ! Integer part of Np/Ng 
+      ! Integer part of Np/Ng
       ! Ex: Np = 10, Ng =3 --> Ngp = 3
       ngprocs = mpiglobal%procs/ngroups
       ! Rest part of Np/Ng
@@ -1010,7 +1010,7 @@ end subroutine terminate_mpi_env
       else
         mygroup%ngroups = ngroups
       end if
-        
+
       ! Group number
       ! Ex: Np = 10, Ng = 3 --> 3+1 groups
       ! world rank p = 0,1,2,3,4,5,6,7,8,9
@@ -1039,7 +1039,7 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
           & mpiglobal%rank, mygroup%mpi%ierr, "com split failed."
         call terminate
       end if
-      ! Get number of procs in group comm 
+      ! Get number of procs in group comm
       call mpi_comm_size(mygroup%mpi%comm, mygroup%mpi%procs, mygroup%mpi%ierr)
       !   Error checking
       if(mygroup%mpi%ierr .ne. 0) then
@@ -1119,9 +1119,9 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
 
       ! Cleanup
       deallocate(proclist)
-      ! Free group handles, the communicators are all we need form here on 
-      call mpi_group_free(global_group, mpiglobal%ierr)      
-      call mpi_group_free(interprocs_group, mpiglobal%ierr) 
+      ! Free group handles, the communicators are all we need form here on
+      call mpi_group_free(global_group, mpiglobal%ierr)
+      call mpi_group_free(interprocs_group, mpiglobal%ierr)
 
 #endif
 
@@ -1136,21 +1136,21 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
 
     !BOP
     ! !ROUTINE: setup_node_groups
-    ! !INTERFACE: 
+    ! !INTERFACE:
     subroutine setup_node_groups
     ! !INPUT/OUTPUT PARAMETERS:
     ! Module OUT:
     ! type(procgroup) :: mpinodes ! Partitioning according to processor name
     !
     ! !DESCRIPTION:
-    !   WARNING: This can only ever work if you pin the {\tt MPI} threads 
+    !   WARNING: This can only ever work if you pin the {\tt MPI} threads
     !   to the processors during program execution.\\
     !   Given a total of $N_\text{p}$ {\tt MPI} processes
     !   this routine generates $N_\text{nodes}$ process groups.
     !   The size of each process group depends on the respective node size
     !   and node utilization.
     !   Also a communicator between the first processes in each node is created.
-    !   A node in the context of this routine is a processor 
+    !   A node in the context of this routine is a processor
     !   (return value of {\tt mpi\_get\_processor\_name}).
     !
     ! !REVISION HISTORY:
@@ -1179,7 +1179,7 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
       integer(4) :: mynodesize, mynode, nnodes
       integer(4), allocatable :: mynoderanks(:)
       integer(4), allocatable :: nodechefs(:)
-      integer(4), parameter :: tag = 25 
+      integer(4), parameter :: tag = 25
 
 #ifdef MPI
 
@@ -1204,9 +1204,9 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
         call terminate
       end if
 
-      ! The following code is illustrated by the example 
+      ! The following code is illustrated by the example
       ! with 4 threads and 2 physical processors A and B.
-      !   rank 0 has an empty neighbors string (ns) "" and a procname (pn) of "A", 
+      !   rank 0 has an empty neighbors string (ns) "" and a procname (pn) of "A",
       !   it sends ",A" to rank 1
       !   rank 1 now has ns=",A" and pn="A", it sends ",A,A" to rank 2
       !   rank 2 now has ns=",A,A" and pn="B", it sends ",A,A,B" to rank 3
@@ -1228,7 +1228,7 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
       endif
 
       ! Send the full list of processors to all
-      if(mpiglobal%rank == mpiglobal%procs-1) then 
+      if(mpiglobal%rank == mpiglobal%procs-1) then
         write(neighborssend,*) trim(adjustl(neighbors))//","//trim(adjustl(myprocname))
         ! Cut leading comma
         neighborssend = trim(adjustl(neighborssend))
@@ -1264,7 +1264,7 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
         pos1=pos1+pos2
       end do
 
-      ! The following collects all the rank numbers that are nodechefs 
+      ! The following collects all the rank numbers that are nodechefs
       ! in the first 1:nnodes elements of nodechefs and creates
       ! a mpi group and communicator for inter-node communication.
       allocate(nodechefs(mpiglobal%procs))
@@ -1313,7 +1313,7 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
         call terminate
       end if
 
-      ! Get number of procs in group comm 
+      ! Get number of procs in group comm
       call mpi_comm_size(mpinodes%mpi%comm, mpinodes%mpi%procs, mpinodes%mpi%ierr)
 
       !   Error checking
@@ -1349,11 +1349,11 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
         call terminate
       end if
 
-      ! From that global group make a new sub group only containing 
+      ! From that global group make a new sub group only containing
       ! the ranks in nodechefs
       call mpi_group_incl(global_group, nnodes, nodechefs(1:nnodes),&
         & interprocs_group, mpiglobal%ierr)
-      
+
       !   Error checking
       if(mpiglobal%ierr .ne. 0) then
         write (*, '("setup_node_groups@rank",i3," (ERROR ",i3,"):",a)')&
@@ -1374,7 +1374,7 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
       end if
 
       ! Collect information for intercommunication communicator
-      !   Note: Not only the ranks 0 in the nodes have a valid (non null) 
+      !   Note: Not only the ranks 0 in the nodes have a valid (non null)
       !         intercommunicator
       if(mpinodes%mpiintercom%comm /= mpi_comm_null) then
 
@@ -1400,9 +1400,9 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
 
       end if
 
-      ! Free group handles, the communicators are all we need form here on 
-      call mpi_group_free(global_group, mpiglobal%ierr)      
-      call mpi_group_free(interprocs_group, mpiglobal%ierr) 
+      ! Free group handles, the communicators are all we need form here on
+      call mpi_group_free(global_group, mpiglobal%ierr)
+      call mpi_group_free(interprocs_group, mpiglobal%ierr)
 
       ! Set to global variables
       firstinnode_comm = mpinodes%mpiintercom%comm
@@ -1413,11 +1413,11 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
         function countsubstring(s1, s2) result(c)
           character(*), intent(in) :: s1, s2
           integer :: c, p, posn
-         
+
           c = 0
           if(len(s2) == 0) return
           p = 1
-          do 
+          do
             posn = index(s1(p:), s2)
             if(posn == 0) return
             c = c + 1
@@ -1467,7 +1467,7 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
 !      integer(4) :: nnodes
 !      integer(4) :: world_group, firstinnode_group
 !      integer(4), allocatable :: nodechefs(:)
-!      integer(4), parameter :: tag = 25 
+!      integer(4), parameter :: tag = 25
 !
 !      allocate(nodechefs(procs))
 !
@@ -1477,9 +1477,9 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
 !
 !      call mpi_get_processor_name(procname, procnamelen, ierr)
 !
-!      ! The following code is illustrated by the example 
+!      ! The following code is illustrated by the example
 !      ! with 4 threads and 2 physical processors A and B.
-!      !   rank 0 has an empty neighbors string (ns) "" and a procname (pn) of "A", 
+!      !   rank 0 has an empty neighbors string (ns) "" and a procname (pn) of "A",
 !      !   it sends ",A" to rank 1
 !      !   rank 1 now has ns=",A" and pn="A", it sends ",A,A" to rank 2
 !      !   rank 2 now has ns=",A,A" and pn="B", it sends ",A,A,B" to rank 3
@@ -1500,7 +1500,7 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
 !        firstinnode = .true.
 !      endif
 !
-!      ! The following collects all the rank numbes that are nodechefs 
+!      ! The following collects all the rank numbes that are nodechefs
 !      ! in the first 1:nnodes elements of nodechefs and chreates
 !      ! a mpi group and communicator for internode communication.
 !      nnodes = 0
@@ -1533,7 +1533,7 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
     ! firstofset nofset lastofset ....
 
     function nofk(process)
-      use modmain, only: nkpt
+      use mod_kpoint, only: nkpt
       integer(4) :: nofk
       integer(4), intent(in) :: process
       nofk = nkpt / procs

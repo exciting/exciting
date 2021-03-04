@@ -14,11 +14,11 @@
 ! Available at http://physics.nist.gov/constants,
 ! National Institute of Standards and Technology, Gaithersburg, MD 20899.
 
-!> Physical constants 
+!> Physical constants
 module physical_constants
-  use precision, only: dp 
+  use precision, only: dp
   implicit none
-  private 
+  private
 
   ! TODO(Alex) Issue #20. Update to CODATA 2018 physical units if required
   !> Boltzmann constant in Hartree/kelvin (CODATA 2006)
@@ -26,5 +26,23 @@ module physical_constants
 
   !> Electron mass in kg (CODATA 2018)
   Real(dp), Public, Parameter :: elec_mass   = 9.10938370e-31_dp;
+
+  !> Speed of light in m/s (CODATA 2018) - exact
+  real(dp), private, parameter:: c0 = 299792458
+
+  !> Bohr radius in m (CODATA 2018)
+  real(dp), private, parameter:: a0 = 0.52917721067e-10_dp
+
+  !> 1 a.u. of time in s (CODATA 2018)
+  real(dp), private, parameter:: t0 = 2.418884326509e-17_dp
+
+  !> Speed of light (atomic units)
+  real(dp), public, parameter :: c = c0*t0/a0
+
+  !> Fine-structure constant (CODATA 2018)
+  real(dp), public, parameter :: alpha = 1_dp/137.035999084_dp
+
+  !> Electron g factor (CODATA 2018)
+  real(dp), public, parameter :: ge = 2.00231930436256_dp
 
 end module physical_constants

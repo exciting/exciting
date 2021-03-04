@@ -2,17 +2,33 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+! Modified May 2019 (Ronaldo) - to include RT-TDDFT
+! Modified Dec 2020 (Ronaldo) - to improve the interface with RT-TDDFT
+
 subroutine xstasklauncher
-  use modinput
+  use modinput, only: input, getstructtetra, getstructbse, getstructtddft, &
+    & getstructscreening, stringtonumberdoonlytask
   use modxs, only: temat, skipgnd
   use mod_hybrids, only: hybridhf
   use inputdom
   use mod_hdf5
+  use rttddft_main, only: run_rttddft => coordinate_rttddft_calculation
+  use errors_warnings, only: terminate_if_false
+  use modmpi, only: mpiglobal
 
   implicit none
 
   integer(4) :: nxstasks, nxstasksmax, i
   real(8), parameter :: eps=1.d-7
+  character(100) :: message
+
+  ! Check if RT-TDDFT is desired
+  if( trim( input%xs%xstype ) /= "RT-TDDFT") then
+    call terminate_if_false( mpiglobal, associated(input%xs%energywindow), &
+      & 'ERROR in xs: an energywindow is required!' )
+    call terminate_if_false( mpiglobal, associated(input%xs%qpointset), &
+      & 'ERROR in xs: a qpointset is required!' )
+  end if
 
   ! SET DEFAULTS
   ! Set the default values if "TDDFT" element is not present
@@ -43,7 +59,7 @@ subroutine xstasklauncher
       hybridhf = .true.
       skipgnd = .true.
     end if
-  end if    
+  end if
 
   ! Use specified plan or construct default plans
 
@@ -51,6 +67,12 @@ subroutine xstasklauncher
 
     nxstasks = size(input%xs%plan%doonlyarray)
     call xsmain(input%xs%plan, nxstasks)
+  else if ( trim( input%xs%xstype ) == "RT-TDDFT" ) then
+    ! We know that xstype is RT-TDDFT
+    ! But we need to check if the element input%xs%rt_tddft has been defined
+    call terminate_if_false( mpiglobal, associated( input%xs%rt_tddft ), &
+      & 'ERROR in RT-TDDFT: you need to add the element rt_tddft inside xs in input.xml!')
+    call run_rttddft
 
   else if(trim(input%xs%xstype) .eq. "TDDFT") then
 
@@ -81,7 +103,7 @@ subroutine xstasklauncher
       ! gqmax = 0 and only gamma point is considered
       temat=.true.
       if( (size(input%xs%qpointset%qpoint, 2) .eq. 1) .and. (input%xs%gqmax .lt. eps)) then
-        if(sum(abs(input%xs%qpointset%qpoint(:, 1))) .lt. eps) then 
+        if(sum(abs(input%xs%qpointset%qpoint(:, 1))) .lt. eps) then
           temat = .false.
         end if
       end if
@@ -96,7 +118,7 @@ subroutine xstasklauncher
          & input%xs%tddft%fxctypenumber .eq. 8) then
 
         ! Task 401 corresponds to "scrgeneigvec" plan
-        ! One shot GS calculation with more empty states xs%screening%nempty 
+        ! One shot GS calculation with more empty states xs%screening%nempty
         ! but otherwise identical parameters as "xsgeneigvec".
         nxstasks = nxstasks+1
         input%xs%plan%doonlyarray(nxstasks)%doonly%task="scrgeneigvec"
@@ -172,7 +194,7 @@ subroutine xstasklauncher
     input%xs%plan%doonlyarray(nxstasks)%doonly%task="writepmatxs"
 
     ! Task 401 corresponds to "scrgeneigvec" plan
-    ! One shot GS calculation with more empty states xs%screening%nempty 
+    ! One shot GS calculation with more empty states xs%screening%nempty
     ! but otherwise identical parameters as "xsgeneigvec".
     nxstasks = nxstasks+1
     input%xs%plan%doonlyarray(nxstasks)%doonly%task="scrgeneigvec"
@@ -211,10 +233,10 @@ subroutine xstasklauncher
     call xsmain(input%xs%plan, nxstasks)
 
   else
-
-     write (*,*) "error xstasklauncher"
-     write (*,*) trim (input%xs%xstype), "no valid xstype"
-     stop
+    ! Stop the code: xstype not recognized
+    write(message,*) 'error xstasklauncher:', trim (input%xs%xstype), &
+      & 'no valid xstype'
+    call terminate_if_false( mpiglobal, .false., message )
 
   end if
 

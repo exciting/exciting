@@ -99,7 +99,7 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
   ! find the record length
 #ifdef XS
       Inquire (IoLength=Recl) vkl_, nmatmax_, nstfv_, nspnfv_
-#else 
+#else
       Inquire (IoLength=Recl) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv
 #endif
   !$OMP CRITICAL
@@ -238,7 +238,6 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
 !---------------------------------------------------------!
 !     translate and rotate local-orbital coefficients     !
 !---------------------------------------------------------!
-
       if (nlotot>0) then
 
         call r3mtv(sl,vkl_ptr(:,ik),v)

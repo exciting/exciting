@@ -6,9 +6,9 @@
 
 !
 !
-!> Overlap and Hamiltonian variables 
+!> Overlap and Hamiltonian variables
 Module mod_eigensystem
-      implicit none 
+      implicit none
 ! order of overlap and Hamiltonian matrices for each k-point
       Integer, pointer :: nmat_ptr(:, :)
       Integer, Allocatable, target :: nmat (:, :)
@@ -79,7 +79,7 @@ Module mod_eigensystem
 ! Relativity settings
       integer :: level_nr, level_zora, level_iora
       parameter (level_nr=0, level_zora=1, level_iora=2)
-      
+
 
 
 Contains
@@ -97,10 +97,11 @@ Contains
 !      Use modinput
 !      Use modmain
 ! !DESCRIPTION:
-! Initialises all parts of the muffin-tin Hamiltonian or overlap. 
+! Initialises all parts of the muffin-tin Hamiltonian or overlap.
 !
 ! !REVISION HISTORY:
 !   Created June 2019 (Andris)
+!   Modified Dezember 2020 (Ronaldo)
 !EOP
 !BOC
       Implicit None
@@ -147,7 +148,7 @@ Contains
 ! !INTERFACE:
 !
 !
-      integer Function MaxAPWs() 
+      integer Function MaxAPWs()
 ! !USES:
       Use modinput
       Use mod_APW_LO
@@ -197,7 +198,7 @@ Contains
       Use mod_atoms
       Use mod_muffin_tin
 ! !DESCRIPTION:
-! Initialises all parts of the muffin-tin Hamiltonian or overlap. 
+! Initialises all parts of the muffin-tin Hamiltonian or overlap.
 !
 ! !REVISION HISTORY:
 !   Created October 2015 (Andris)
@@ -208,7 +209,7 @@ Contains
       integer ::  io, ilo, if1, l, m, lm, l1, m1, lm1, l3, m3, lm3, is, ias
 !      integer, external :: MaxAPWs
 
-      mt_h%maxaa=MaxAPWs() 
+      mt_h%maxaa=MaxAPWs()
 
       if (allocated(mt_h%losize)) deallocate(mt_h%losize)
       allocate(mt_h%losize(nspecies))
@@ -247,7 +248,7 @@ Contains
       Use mod_atoms
 !      Use modmain
 ! !DESCRIPTION:
-! Initialises a part of the muffin-tin Hamiltonian or overlap. 
+! Initialises a part of the muffin-tin Hamiltonian or overlap.
 !
 ! !REVISION HISTORY:
 !   Created October 2015 (Andris)
@@ -255,7 +256,7 @@ Contains
 !BOC
      Implicit None
      Type (MTHamiltonianType) :: mt_block
-     integer :: maxaa,maxnlo
+     integer, intent(in) :: maxaa,maxnlo
 
      if (.not.associated(mt_block%aa)) then
        allocate(mt_block%aa(maxaa,maxaa,natmtot))
@@ -275,7 +276,7 @@ Contains
          mt_block%alo=0d0
          mt_block%lolo=0d0
        endif
-    
+
      endif
 
      end subroutine MTinit
@@ -293,15 +294,15 @@ Contains
       Use mod_atoms
 !      Use modmain
 ! !DESCRIPTION:
-! Redirects pointers of mt_blockA to mt_blockB of muffin-tin Hamiltonians or overlaps. 
+! Redirects pointers of mt_blockA to mt_blockB of muffin-tin Hamiltonians or overlaps.
 !
 ! !REVISION HISTORY:
 !   Created October 2015 (Andris)
 !EOP
 !BOC
      Implicit None
-     Type (MTHamiltonianType) :: mt_blockA,mt_blockB
-     integer :: maxaa,maxnlo
+     Type (MTHamiltonianType), intent(in)  :: mt_blockB
+     Type (MTHamiltonianType), intent(out) :: mt_blockA
 
      if (associated(mt_blockB%aa)) mt_blockA%aa=>mt_blockB%aa
      if (associated(mt_blockB%alo)) mt_blockA%alo=>mt_blockB%alo
@@ -319,10 +320,12 @@ Contains
 !
       subroutine MTCopy(mt_blockA,mt_blockB)
 ! !USES:
-      Use mod_atoms
+      use mod_atoms
+      use modmpi, only: terminate_mpi_env, mpiglobal
+
 !      Use modmain
 ! !DESCRIPTION:
-! Copies the contents of mt_blockA to mt_blockB of muffin-tin Hamiltonians or overlaps. 
+! Copies the contents of mt_blockA to mt_blockB of muffin-tin Hamiltonians or overlaps.
 !
 ! !REVISION HISTORY:
 !   Created October 2015 (Andris)
@@ -332,31 +335,48 @@ Contains
      Type (MTHamiltonianType) :: mt_blockA,mt_blockB
      integer :: maxaa,maxnlo
 
-     if (associated(mt_blockA%aa).and.associated(mt_blockB%aa)) then
-       mt_blockB%aa=mt_blockA%aa
-     else
-       write(*,*) 'Error (MTCopy): mt_blockA%aa or mt_blockB%aa is not allocated'
-       stop
-     endif
-     if (associated(mt_blockA%lolo)) then
-       if (associated(mt_blockA%alo).and.associated(mt_blockB%alo)) then 
-         mt_blockB%alo=mt_blockA%alo
-       else
-         write(*,*) 'Error (MTCopy): mt_blockA%alo or mt_blockB%alo is not allocated'
-         stop
-       endif
-       if (associated(mt_blockB%loa).and.associated(mt_blockB%loa)) then 
-         mt_blockB%loa=mt_blockA%loa
-       else
-         write(*,*) 'Error (MTCopy): mt_blockA%loa or mt_blockB%loa is not allocated'
-         stop
-       endif
-       if (associated(mt_blockB%lolo).and.associated(mt_blockA%lolo)) then 
-         mt_blockB%lolo=mt_blockA%lolo
-       else
-         write(*,*) 'Error (MTCopy): mt_blockA%lolo or mt_blockB%lolo is not allocated'
-         stop
-       endif
+     ! Check if mt_blockA%aa is associated to some target
+     if ( .not. associated(mt_blockA%aa) ) then
+       call terminate_mpi_env( mpiglobal, &
+         & 'Error (MTCopy): mt_blockA%aa is not allocated' )
+     end if
+     ! Check if mt_blockB%aa is associated to some target
+     if ( .not. associated(mt_blockB%aa) ) then
+       call terminate_mpi_env( mpiglobal, &
+         & 'Error (MTCopy): mt_blockB%aa is not allocated' )
+     end if
+
+     ! Now we can safely make mt_blockB%aa points to the same target as mt_blockA%aa
+     mt_blockB%aa = mt_blockA%aa
+
+     ! We will repeat this procedure below
+
+     ! This first check is to verify if there are any local orbitals
+     if ( associated(mt_blockA%lolo) ) then
+       if ( .not. associated(mt_blockA%alo) ) then
+         call terminate_mpi_env( mpiglobal, &
+           & 'Error (MTCopy): mt_blockA%alo is not allocated' )
+       end if
+       if ( .not. associated(mt_blockB%alo) ) then
+         call terminate_mpi_env( mpiglobal, &
+           & 'Error (MTCopy): mt_blockB%alo is not allocated' )
+       end if
+       mt_blockB%alo = mt_blockA%alo
+
+       if ( .not. associated(mt_blockA%loa) ) then
+         call terminate_mpi_env( mpiglobal, &
+           & 'Error (MTCopy): mt_blockA%loa is not allocated' )
+       end if
+       if ( .not. associated(mt_blockB%loa) ) then
+         call terminate_mpi_env( mpiglobal, &
+           & 'Error (MTCopy): mt_blockB%loa is not allocated' )
+       end if
+       mt_blockB%loa = mt_blockA%loa
+       if ( .not. associated(mt_blockB%lolo) ) then
+         call terminate_mpi_env( mpiglobal, &
+           & 'Error (MTCopy): mt_blockB%lolo is not allocated' )
+       end if
+       mt_blockB%lolo=mt_blockA%lolo
      endif
      end subroutine MTCopy
 
@@ -372,7 +392,7 @@ Contains
      subroutine MTRelease(mt_h)
 ! !USES:
 ! !DESCRIPTION:
-! Release all memory used by the muffin-tin Hamiltonian or overlap. 
+! Release all memory used by the muffin-tin Hamiltonian or overlap.
 !
 ! !REVISION HISTORY:
 !   Created June 2019 (Andris)
