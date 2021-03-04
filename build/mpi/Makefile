@@ -17,8 +17,3 @@ clean:
 cleanlibs:
 	$(MAKE) cleanlibs  -f ../Make.common
 
-
-
-
-
-	

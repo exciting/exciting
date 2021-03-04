@@ -2,14 +2,14 @@ EXESER = excitingser
 EXEMPI = excitingmpi
 EXEMPISMP = excitingmpismp
 
-all :: 
+all ::
 	make serial
 
-serial :: 
+serial ::
 	python3 runtest.py -a run -e $(EXESER)
 	python3 runtest.py -a clean
 
-mpi :: 
+mpi ::
 	python3 runtest.py -a run -e $(EXEMPI)
 	python3 runtest.py -a clean
 
@@ -17,10 +17,9 @@ mpiandsmp ::
 	python3 runtest.py -a run -e $(EXEMPISMP)
 	python3 runtest.py -a clean
 
-refernce :: 
+refernce ::
 	python3 runtest.py -a ref -e $(EXESER)
 	python3 runtest.py -a clean
 
-cleantests :: 
+cleantests ::
 	python3 runtest.py -a clean
-

@@ -61,10 +61,10 @@ Subroutine rhovalk (ik, evecfv, evecsv)
       Real (8) :: magmt_k (lmmaxvr, nrmtmax, natmtot, ndmag)
 
       Call timesec (ts0)
-      rhoir_k (:) = 0
-      magir_k (:, :) = 0
-      rhomt_k (:, :, :) = 0
-      magmt_k (:, :, :, :) = 0
+      rhoir_k (:) = 0.d0
+      magir_k (:, :) = 0.d0
+      rhomt_k (:, :, :) = 0.d0
+      magmt_k (:, :, :, :) = 0.d0
       If (associated(input%groundstate%spin)) Then
          If (ncmag) Then
             nsd = 4

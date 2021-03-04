@@ -1,0 +1,18 @@
+<init name        = 'groundstate-LDA_PW-rttddft-C'
+      description = 'Testing RT-TDDFT for diamond under a delta pulse along the z direction.'>
+  <test   file      = 'JIND.OUT'
+          tolFloat  = '1e-8'
+          tolMSE    = '1e-7'
+          ignore    = ''
+          condition = '0 0' />
+  <test   file      = 'NEXC.OUT'
+          tolFloat  = '1e-6'
+          tolMSE    = '1e-5'
+          ignore    = ''
+          condition = '0 0' />
+  <test   file      = 'ETOT_RTTDDFT.OUT'
+          tolFloat  = '1e-6'
+          tolMSE    = '1e-5'
+          ignore    = ''
+          condition = '0 0' />
+</init>

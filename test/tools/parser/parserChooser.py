@@ -4,6 +4,7 @@ import groundStateParser
 import propertiesParser
 import BSEParser
 import GWParser
+import RT_TDDFTParser
 
 def parserChooser(path):
     fileName = os.path.split(path)[1]
@@ -113,6 +114,16 @@ def parserChooser(path):
         return GWParser.excitingVXCNN(path)
     elif fileName == 'EPS00_GW.OUT':
         return GWParser.excitingEPS00_GW(path)
+    elif fileName == 'JIND.OUT':
+        return RT_TDDFTParser.excitingJIND(path)
+    elif fileName == 'NEXC.OUT':
+        return RT_TDDFTParser.excitingNEXC(path,skiprows=1)
+    elif fileName == 'ETOT_RTTDDFT.OUT':
+        return RT_TDDFTParser.excitingETOT(path)
+    elif 'EIGVAL_' in fileName:
+        return RT_TDDFTParser.excitingScreenshots(path)
+    elif 'PROJ_' in fileName:
+        return RT_TDDFTParser.excitingScreenshots(path,convertTo1D=True)
     else:
         raise NameError("%s does not exist."%fileName)
 

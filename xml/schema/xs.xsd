@@ -258,6 +258,431 @@
           </xs:complexType>
         </xs:element>
 
+        <xs:element ex:importance="expert" ex:unit="" name="rt_tddft"
+          minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation> When present, this element triggers a real-time
+              TDDFT calculation.
+            </xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:all>
+
+          <xs:element ex:importance="expert" ex:unit="" name="predictor_corrector" minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation> When present, this element triggers the
+                predictor-corrector scheme (self-consistency in the propagation
+                of the wavefunctions)
+              </xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+              <xs:attribute ex:importance="expert" ex:unit="" name=" max_iterations" type="xs:integer"
+                default="10">
+                <xs:annotation>
+                  <xs:documentation> The maximum number of iteractions
+                    spent in the predictor-corrector scheme.
+                  </xs:documentation>
+                </xs:annotation>
+              </xs:attribute>
+              <xs:attribute ex:importance="expert" ex:unit="" name="tol" type="fortrandouble"
+                default="1d-5">
+                <xs:annotation>
+                  <xs:documentation> The required precision.
+                  </xs:documentation>
+                </xs:annotation>
+              </xs:attribute>
+            </xs:complexType>
+          </xs:element>
+
+          <xs:element ex:importance="expert" ex:unit="" name="screenshots" minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation> Screenshots of the evolution.
+              </xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+              <xs:attribute ex:importance="expert" ex:unit="" name="niter" type="xs:integer"
+                default="100">
+                <xs:annotation>
+                  <xs:documentation> At each 'niter' steps, outputs a 'screenshot'.
+                  </xs:documentation>
+                </xs:annotation>
+              </xs:attribute>
+              <xs:attribute ex:importance="expert" ex:unit="" name="print_abs_proj_coeffs" type="xs:boolean"
+                default="true">
+                <xs:annotation>
+                  <xs:documentation> When set to true, calculates the projection
+                    of the current Kohn-Sham wavefunctions onto the groundstate ones
+                    and prints the absolute value of the projection coefficients.
+                    When set to false, the full complex number is printed.
+                  </xs:documentation>
+                </xs:annotation>
+              </xs:attribute>
+            </xs:complexType>
+          </xs:element>
+
+
+          <xs:element ex:importance="expert" ex:unit="" name="laser" minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation> This element sets up the properties of the
+                external field to applied to the sample.
+              </xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element ex:importance="expert" ex:unit="" name="kick" minOccurs="0" maxOccurs="unbounded">
+                  <xs:annotation>
+                    <xs:documentation> Specifies a delta kick.
+                    </xs:documentation>
+                  </xs:annotation>
+                  <xs:complexType>
+                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="t0" type="fortrandouble"
+                      default="4d0">
+                      <xs:annotation>
+                        <xs:documentation> Sets the time when an impulsive laser pulse is applied.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="width" type="fortrandouble"
+                      default="4d0">
+                      <xs:annotation>
+                        <xs:documentation> Sets the width of the impulsive excitation. When not set to zero,
+                          this allows to broaden the delta function.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="amplitude" type="fortrandouble"
+                      default="0.04d0">
+                      <xs:annotation>
+                        <xs:documentation> Sets the amplitude <inlinemath>E_0</inlinemath> of the impulsive excitation
+                        <inlinemath>E_0\delta(t-t_0)</inlinemath>.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ex:importance="expert" ex:unit="" name="direction" default="z">
+                      <xs:annotation>
+                        <xs:documentation>The direction of the electric field of the laser pulse.</xs:documentation>
+                      </xs:annotation>
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:enumeration value="x"/>
+                          <xs:enumeration value="y"/>
+                          <xs:enumeration value="z"/>
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:attribute>
+                  </xs:complexType>
+                </xs:element>
+
+                <xs:element ex:importance="expert" ex:unit="" name="trap_cos" minOccurs="0" maxOccurs="unbounded">
+                  <xs:annotation>
+                    <xs:documentation> Specifies a pulse given by
+                      <inlinemath>E=E_0\cos(\omega t + \phi)f(t)</inlinemath>, where
+                      <inlinemath>E_0</inlinemath> is the amplitude,
+                      <inlinemath>\omega</inlinemath> is the angular frequency,
+                      <inlinemath>\phi</inlinemath> is the phase, and
+                      <inlinemath>f(t)</inlinemath> is an envelope function of a trapezoidal kind. This function
+                      is zero up to the time <inlinemath>t_0</inlinemath>, then it rises linearly
+                      to one during a time equal to "rise time",
+                      it remains equal to one during a time equal to "width",
+                      after that, it takes the same "rise time" to fall to zero again.
+                    </xs:documentation>
+                  </xs:annotation>
+                  <xs:complexType>
+                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="amplitude" type="fortrandouble"
+                      default="0.04d0">
+                      <xs:annotation>
+                        <xs:documentation> Sets the amplitude <inlinemath>E_0</inlinemath>.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="omega" type="fortrandouble"
+                      default="1d0">
+                      <xs:annotation>
+                        <xs:documentation> Sets the angular frequency <inlinemath>\omega</inlinemath>.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ex:importance="expert" ex:unit="rad" name="phase" type="fortrandouble"
+                      default="0d0">
+                      <xs:annotation>
+                        <xs:documentation> Phase <inlinemath>\phi</inlinemath> of the laser.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="t0" type="fortrandouble"
+                      default="4d0">
+                      <xs:annotation>
+                        <xs:documentation> Time <inlinemath>t_0</inlinemath> when
+                        the envelope starts to rise to one.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="rise_time" type="fortrandouble"
+                      default="1d0">
+                      <xs:annotation>
+                        <xs:documentation> Rise time of the trapezoidal envelope.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="width" type="fortrandouble"
+                      default="4d0">
+                      <xs:annotation>
+                        <xs:documentation> Sets the width of the trapezoid. During this time duration,
+                           envelope trapezoidal function remains equal to 1.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ex:importance="expert" ex:unit="" name="direction" default="z">
+                      <xs:annotation>
+                        <xs:documentation>The direction of the electric field of the laser pulse.</xs:documentation>
+                      </xs:annotation>
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:enumeration value="x"/>
+                          <xs:enumeration value="y"/>
+                          <xs:enumeration value="z"/>
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:attribute>
+                  </xs:complexType>
+                </xs:element>
+
+                <xs:element ex:importance="expert" ex:unit="" name="sin_sq" minOccurs="0" maxOccurs="unbounded">
+                  <xs:annotation>
+                    <xs:documentation> Specifies a pulse which vector potential is given by
+                      <inlinemath>A=A_0\cos(\omega t + \phi)f(t)</inlinemath>, where
+                      <inlinemath>A_0</inlinemath> is the amplitude,
+                      <inlinemath>\omega</inlinemath> is the angular frequency,
+                      <inlinemath>\phi</inlinemath> is the phase, and
+                      <inlinemath>f(t)</inlinemath> is an envelope function of a sin squared type.
+                      This function is zero up to the time <inlinemath>t_0</inlinemath>,
+                      then it assumes the shape of <inlinemath>sin^2(\pi (t-t_0)/T_{pulse})</inlinemath>
+                      up to a time equal to <inlinemath>t_0+T_{pulse}</inlinemath>,
+                      after which, it becomes zero again.
+                    </xs:documentation>
+                  </xs:annotation>
+                  <xs:complexType>
+                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="amplitude" type="fortrandouble"
+                      default="1.37d0">
+                      <xs:annotation>
+                        <xs:documentation> Sets the amplitude <inlinemath>A_0</inlinemath>.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="omega" type="fortrandouble"
+                      default="1d0">
+                      <xs:annotation>
+                        <xs:documentation> Sets the angular frequency <inlinemath>\omega</inlinemath>.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ex:importance="expert" ex:unit="rad" name="phase" type="fortrandouble"
+                      default="0d0">
+                      <xs:annotation>
+                        <xs:documentation> Phase <inlinemath>\phi</inlinemath> of the laser.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="t0" type="fortrandouble"
+                      default="4d0">
+                      <xs:annotation>
+                        <xs:documentation> Time <inlinemath>t_0</inlinemath> when
+                        the envelope starts to assume the sin squared shape.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="pulse_length" type="fortrandouble"
+                      default="250d0">
+                      <xs:annotation>
+                        <xs:documentation> The length of the pulse <inlinemath>T_{pulse}</inlinemath>.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ex:importance="expert" ex:unit="" name="direction" default="z">
+                      <xs:annotation>
+                        <xs:documentation>The direction of the electric field of the laser pulse.</xs:documentation>
+                      </xs:annotation>
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:enumeration value="x"/>
+                          <xs:enumeration value="y"/>
+                          <xs:enumeration value="z"/>
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:attribute>
+                  </xs:complexType>
+                </xs:element>
+
+              </xs:sequence>
+              <xs:attribute ex:importance="expert" ex:unit="" name="field_type" default="total">
+                <xs:annotation>
+                  <xs:documentation>This string forces to consider the laser field as
+                    the "total" or as the "external" field. The geometry of the sample
+                    with respect to the incident field is determinant in this case: for
+                    longitudinal geometry, use "external", for transversal, "total".
+                    If you do not know which one to use, we recommend to employ the default one.
+                  </xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:enumeration value="total"/>
+                    <xs:enumeration value="external"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:attribute>
+
+            </xs:complexType>
+          </xs:element>
+
+
+        </xs:all>
+
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="read_pmatbasis"
+              type="xs:boolean"  default="false">
+              <xs:annotation>
+                <xs:documentation> By setting it to <pre>"true"</pre>,
+                the momentum matrix elements are read from PMATBASIS.OUT
+                (a previous calculation must have been done with the same
+                relevant parameter for the basis, like rgkmax, k-grid, LOs,
+                etc.).
+		            </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit=""
+              name="calculate_total_energy" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation> The total energy is calculated at each
+                  time-step and outputed in the file ETOT_RTTDDFT.OUT
+		            </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="calculate_n_excited_electrons"
+              type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation> Calculates the number of
+                  excited electrons (per unit cell) at each time-step.
+                  Output: NEXC.OUT
+		            </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit=""
+              name="print_timing_general" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation> Prints general information about times
+                  required to evaluate some quantities.
+		            </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit=""
+              name="print_timing_detailed" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation> Prints detailed information about times
+                  required to evaluate some quantities.
+                  Only makes sense if printTimesGeneral="true"
+		            </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="normalize_WF"
+              type="xs:boolean" default="true">
+              <xs:annotation>
+                <xs:documentation> Normalizes the WFs after applying the
+                  time-evolution operator.
+		            </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="subtract_J0"
+              type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation> Subtracts a residual current. This term
+                  ideally should be zero, actually
+                  it tends to zero when the number of k-points is increased.
+                  Subtracting J0 might help to eliminate
+                  numerical inaccuracies for not-so-dense k-grids.
+		            </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="propagator" default="SE">
+              <xs:annotation>
+                <xs:documentation>The method employed to propagate the WFs. Possible
+                  choices are: SE (simple exponential),
+                  EMR (exponential at midpoint rule),
+                  AETRS (approximate enforced time-reversal symmetry),
+                  CFM4 (Commutator-Free Magnus expansion of 4th order),
+                  EH (exponential using a basis of the hamiltonian-eigenvectors),
+                  EHM (same as before, but uses the hamiltonian at the midpoint),
+                  RK4 (Runge-Kutta of 4th order).</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="SE"/>
+                  <xs:enumeration value="EMR"/>
+                  <xs:enumeration value="AETRS"/>
+                  <xs:enumeration value="CFM4"/>
+                  <xs:enumeration value="EH"/>
+                  <xs:enumeration value="EHM"/>
+                  <xs:enumeration value="RK4"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="order_taylor" type="xs:integer"
+              default="4">
+              <xs:annotation>
+                <xs:documentation> The order employed in the Taylor expansion (when it is used).
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="atomic units" name="time_step" type="fortrandouble"
+              default="0d1">
+              <xs:annotation>
+                <xs:documentation> Sets the time step of the time evolution.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="atomic units" name="end_time" type="fortrandouble"
+              default="100d0">
+              <xs:annotation>
+                <xs:documentation> Sets the end time, when the evolution stops.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="atomic units" name="print_after_iterations"
+              type="xs:integer" default="50">
+              <xs:annotation>
+                <xs:documentation> Sets a number which determines how frequently data
+                  are printed to file. It means that the relevant data (JIND, AVEC, etc.)
+                  are accumulated and then printed at once.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="vector_potential_solver" default="euler">
+              <xs:annotation>
+                <xs:documentation>The method employed to solve the differential equation
+                  of the vector potential. Possible choices are: euler, improvedeuler
+                  (using the Leapfrog integration method), midpoint (implicit midpoint method), rk4
+                  (Runge-Kutta of 4th order). </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="euler"/>
+                  <xs:enumeration value="improvedeuler"/>
+                  <xs:enumeration value="midpoint"/>
+                  <xs:enumeration value="rk4"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
+          </xs:complexType>
+        </xs:element>
+
         <xs:element ex:importance="expert" ex:unit="" name="tddft" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:attribute ex:importance="expert" ex:unit="" name="ahc" type="xs:boolean"
@@ -1192,7 +1617,7 @@
             </xs:all>
           </xs:complexType>
         </xs:element>
-        <xs:element ex:importance="expert" ex:unit="" ref="qpointset" minOccurs="1" maxOccurs="1">
+        <xs:element ex:importance="expert" ex:unit="" ref="qpointset" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation> Finite momentum transfer <inlinemath>{ \bf G}+{ \bf q}</inlinemath>\
               vector. </xs:documentation>
@@ -1241,7 +1666,7 @@
             </xs:attribute>
           </xs:complexType>
         </xs:element>
-        <xs:element ex:importance="expert" ex:unit="" ref="energywindow" maxOccurs="1" minOccurs="1"> </xs:element>
+        <xs:element ex:importance="expert" ex:unit="" ref="energywindow" maxOccurs="1" minOccurs="0"> </xs:element>
 	<xs:element ex:importance="expert" ex:unit="" name="plan" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:sequence>
@@ -1716,12 +2141,13 @@
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="xstype" use="required">
         <xs:annotation>
-          <xs:documentation>Should TDDFT be used or BSE.</xs:documentation>
+          <xs:documentation>Choice of excited state method: TDDFT, real-time TDDFT (RT-TDDFT) or BSE.</xs:documentation>
         </xs:annotation>
         <xs:simpleType>
           <xs:restriction base="xs:string">
             <xs:enumeration value="TDDFT"/>
             <xs:enumeration value="BSE"/>
+            <xs:enumeration value="RT-TDDFT"/>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>

@@ -101,10 +101,10 @@ Contains
             End Do
             Write (buffer,'(I5)')  input%groundstate%nktot
             Call setAttribute (crystal, "nktot", &
-            & trim(adjustl(buffer)))            
+            & trim(adjustl(buffer)))
             Write (buffer, '(3I5)')  input%groundstate%ngridk(:)
             Call setAttribute (crystal, "ngridk", &
-            & trim(adjustl(buffer)))            
+            & trim(adjustl(buffer)))
             Do is = 1, nspecies
                species => createElementNS (sclDoc, "", "species")
                dummy => appendChild (structure, species)

@@ -86,7 +86,7 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, nr, &
       Real (8), Allocatable :: dwf1(:),dwf2(:),dwf3(:),dwf4(:)
       logical sloppy
 
-      
+
       If (nst .Le. 0) Then
          Write (*,*)
          Write (*, '("Error(atom): invalid nst : ", I8)') nst
@@ -123,15 +123,12 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, nr, &
          t1 = 1.d0 + ((zn*alpha)**2) / t1
          eval (ist) = (1.d0/alpha**2) / Sqrt (t1) - 1.d0 / alpha ** 2
       End Do
-!      write(*,*) ist,eval
-!      read(*,*)
 ! start of self-consistent loop
       sloppy=.true.
       Do iscl = 1, maxscl
-!!        write(*,*) iscl,sloppy,eval(1)
-!!        write(*,*) iscl
 ! solve the Dirac equation for each state
-!$OMP PARALLEL DEFAULT(SHARED)
+!$OMP PARALLEL DEFAULT(NONE) PRIVATE(ist), &
+!$OMP& SHARED(nst,n,l,k,nr,r,vr,eval,rwf,dirac_eq,sloppy)
 !$OMP DO
          Do ist = 1, nst
             Call rdirac (0, n(ist), l(ist), k(ist), nr, r, vr, &
@@ -212,18 +209,17 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, nr, &
 ! add nuclear potential
             vr (ir) = vr (ir) + vn (ir)
          End Do
-!         write(*,*) iscl,eval(1), dv
 ! check for convergence
          sloppy=sloppy.and.(dv.gt.1d3*eps)
-         
+
          If ((iscl .Gt. 2) .And. (dv .Lt. eps)) Go To 10
-         
+
 ! end self-consistent loop
       End Do
       call warning('Warning(atom): Maximum iterations exceeded')
 10    Continue
 
-! The following segment is useful if you want to come up 
+! The following segment is useful if you want to come up
 ! with energies for local orbitals with several nodes.
 ! Cheers,
 ! Andris.
@@ -246,17 +242,7 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, nr, &
       If (xcgrad .Eq. 1) Then
          Deallocate (grho, g2rho, g3rho)
       End If
-!      write(*,*) 
-      Do ist = 1, nst
-       !write(*,*) eval(ist)
-!       write(*,*) 
-!       do ir=1,nr
-!         write(*,*) r(ir),rwf(ir, 1, ist),rwf(ir, 2, ist)
-!       enddo
-!       read(*,*)
-      enddo
-      !write(*,*) 
-!      stop
+
       Return
 End Subroutine
 !EOC

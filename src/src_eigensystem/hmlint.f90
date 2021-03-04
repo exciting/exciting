@@ -13,8 +13,16 @@
 !
 Subroutine hmlint(mt_h)
 ! !USES:
-      Use modinput
-      Use modmain
+      use modinput
+      use mod_eigensystem, only: MTHamiltonianList, level_zora, MTInit, MTRedirect
+      use mod_APW_LO, only: apw_lo_basis_type, lofr, apwfr
+      use mod_potential_and_density, only: bxcmt, veffmt
+      use mod_spin, only: ncmag
+      use mod_atoms, only: nspecies, natoms, idxas
+      use constants, only: zi, y00
+      use physical_constants, only: alpha, ge
+      use mod_muffin_tin, only: nrmtmax
+      !Use modmain
 ! !DESCRIPTION:
 !   Calculates the "muffin-tin" Hamiltonian.
 !
@@ -34,34 +42,29 @@ Subroutine hmlint(mt_h)
 ! automatic arrays
       Real (8) :: r2 (nrmtmax), fr (nrmtmax), gr (nrmtmax), cf (3, nrmtmax),a,rm
       integer, allocatable :: lfromlm(:),mfromlm(:)
-! fine structure constant
-      Real (8), Parameter :: alpha = 1.d0 / 137.03599911d0
-! electron g factor
-      Real (8), Parameter :: ge = 2.0023193043718d0  
-      Real (8), Parameter :: ga4 = ge * alpha / 4.d0      
-      
+      Real (8), Parameter :: ga4 = ge * alpha / 4.d0
+
       Type (apw_lo_basis_type) :: mt_basis
- 
+
 
       mt_basis%lofr=>lofr
       mt_basis%apwfr=>apwfr
-         
 
-        call MTRedirect(mt_h%main,mt_h%spinless)        
+        call MTRedirect(mt_h%main,mt_h%spinless)
         call mt_kin(veffmt,mt_basis,mt_h)
         call mt_pot(veffmt,mt_basis,mt_h)
 
 ! now the magnetic field
         if (associated(input%groundstate%spin)) then
 
-          call MTInit(mt_h%alpha,mt_h%maxaa,mt_h%maxnlo)        
+          call MTInit(mt_h%alpha,mt_h%maxaa,mt_h%maxnlo)
           call MTInit(mt_h%beta,mt_h%maxaa,mt_h%maxnlo)
 
 ! is the problem noncollinear?
-          if (ncmag) then 
-            call MTInit(mt_h%ab,mt_h%maxaa,mt_h%maxnlo)            
+          if (ncmag) then
+            call MTInit(mt_h%ab,mt_h%maxaa,mt_h%maxnlo)
             call MTRedirect(mt_h%main,mt_h%alpha)
-  
+
 ! adding the z component of the external magnetic field to bxcmt
             do is=1,nspecies
               do ia=1,natoms(is)
@@ -69,9 +72,9 @@ Subroutine hmlint(mt_h)
                 bxcmt (1, :, ias, 3) = bxcmt (1, :, ias, 3) + ga4 * (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(3)+input%groundstate%spin%bfieldc(3))/y00
               enddo
             enddo
-  
+
             call mt_pot(bxcmt(:,:,:,3),mt_basis,mt_h)
-  
+
 ! removing the z component of the external magnetic field to bxcmt / restoring bxcmt to the initial state
             do is=1,nspecies
               do ia=1,natoms(is)
@@ -79,7 +82,7 @@ Subroutine hmlint(mt_h)
                 bxcmt (1, :, ias, 3) = bxcmt (1, :, ias, 3) - ga4 * (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(3)+input%groundstate%spin%bfieldc(3))/y00
               enddo
             enddo
-  
+
             mt_h%beta%aa=-mt_h%alpha%aa
 ! do we have local orbitals?
             if (associated(mt_h%beta%lolo)) then
@@ -87,8 +90,8 @@ Subroutine hmlint(mt_h)
               mt_h%beta%loa=-mt_h%alpha%loa
               mt_h%beta%lolo=-mt_h%alpha%lolo
             endif
-  
-  
+
+
 ! adding the y component of the external magnetic field to bxcmt
             call MTRedirect(mt_h%main,mt_h%ab)
             do is=1,nspecies
@@ -97,9 +100,9 @@ Subroutine hmlint(mt_h)
                 bxcmt (1, :, ias, 2) = bxcmt (1, :, ias, 2) + ga4 * (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(2)+input%groundstate%spin%bfieldc(2))/y00
               enddo
             enddo
-  
+
             call mt_pot(bxcmt(:,:,:,2),mt_basis,mt_h)
-  
+
 ! removing the y component of the external magnetic field to bxcmt / restoring bxcmt to the initial state
             do is=1,nspecies
               do ia=1,natoms(is)
@@ -107,7 +110,7 @@ Subroutine hmlint(mt_h)
                 bxcmt (1, :, ias, 2) = bxcmt (1, :, ias, 2) - ga4 * (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(2)+input%groundstate%spin%bfieldc(2))/y00
               enddo
             enddo
-  
+
 ! scale the alpha-beta block of the Hamiltonian by i, because we are handling the y component of the magnetic field now
             mt_h%ab%aa=-zi*mt_h%ab%aa
 ! do we have local orbitals?
@@ -116,8 +119,8 @@ Subroutine hmlint(mt_h)
               mt_h%ab%loa=-zi*mt_h%ab%loa
               mt_h%ab%lolo=-zi*mt_h%ab%lolo
             endif
-  
-  
+
+
 ! adding the x component of the external magnetic field to bxcmt
             call MTRedirect(mt_h%main,mt_h%ab)
             do is=1,nspecies
@@ -126,9 +129,9 @@ Subroutine hmlint(mt_h)
                 bxcmt (1, :, ias, 1) = bxcmt (1, :, ias, 1) + ga4 * (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(1)+input%groundstate%spin%bfieldc(1))/y00
               enddo
             enddo
-  
+
             call mt_pot(bxcmt(:,:,:,1),mt_basis,mt_h)
-  
+
 ! removing the x component of the external magnetic field to bxcmt / restoring bxcmt to the initial state
             do is=1,nspecies
               do ia=1,natoms(is)
@@ -136,7 +139,7 @@ Subroutine hmlint(mt_h)
                 bxcmt (1, :, ias, 1) = bxcmt (1, :, ias, 1) - ga4 * (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(1)+input%groundstate%spin%bfieldc(1))/y00
               enddo
             enddo
-  
+
 ! the collinear case
           else
             call MTRedirect(mt_h%main,mt_h%alpha)
@@ -146,16 +149,16 @@ Subroutine hmlint(mt_h)
                 bxcmt (1, :, ias, 1) = bxcmt (1, :, ias, 1) + ga4 * (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(3)+input%groundstate%spin%bfieldc(3))/y00
               enddo
             enddo
-  
+
             call mt_pot(bxcmt(:,:,:,1),mt_basis,mt_h)
-  
+
             do is=1,nspecies
               do ia=1,natoms(is)
                 ias=idxas(ia,is)
                 bxcmt (1, :, ias, 1) = bxcmt (1, :, ias, 1) - ga4 * (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(3)+input%groundstate%spin%bfieldc(3))/y00
               enddo
             enddo
-  
+
             mt_h%beta%aa=-mt_h%alpha%aa
 ! do we have local orbitals?
             if (associated(mt_h%beta%lolo)) then
@@ -164,7 +167,7 @@ Subroutine hmlint(mt_h)
               mt_h%beta%lolo=-mt_h%alpha%lolo
             endif
           endif
-  
+
 ! add the spin orbit interaction if requested
           if (isspinorb()) call mt_so(veffmt,mt_basis,mt_basis,mt_h,level_zora)
         endif

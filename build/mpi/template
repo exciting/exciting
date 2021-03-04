@@ -6,3 +6,4 @@ LD = $(FC)
 LDFLAGS = $(INCL) $(LIBS) $(MPI_LIBS) $(INTERNALLIBS)
 TMPFILES = *.mod
 SUFFIX=mpi
+
