@@ -208,11 +208,19 @@ subroutine ldos()
         open(31, file="band_edges.out", action="write")
         allocate(g(nw))
         do ip = 1, np
-            call brzint_new(input%properties%ldos%nsmdos, &
+            if (input%properties%ldos%newint) then
+              call brzint_new(input%properties%ldos%nsmdos, &
                             input%groundstate%ngridk, nsk, ikmap, &
                             nw, input%properties%ldos%winddos, &
                             nstsv, nstsv, &
                             e, weight(ip,:,:), g)
+            else
+              call brzint(input%properties%ldos%nsmdos, &
+                            input%groundstate%ngridk, nsk, ikmap, &
+                            nw, input%properties%ldos%winddos, &
+                            nstsv, nstsv, &
+                            e, weight(ip,:,:), g)
+            endif
             do iw = 1, nw
                 write(30,'(2f16.6)') w(iw), g(iw)
             end do

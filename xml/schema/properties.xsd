@@ -1393,6 +1393,12 @@
             <xs:documentation>Compute and visualize the local density of states (LDOS): the density of states projected to the element of the unit cell volume.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
+            <xs:attribute ex:importance="expert" ex:unit="" name="newint" type="xs:boolean" default="false">
+              <xs:annotation>
+                  <xs:documentation>If true, a new (partially analytical) routine for the BZ integration is used. It is more efficient for high values of <pre>ngrdos</pre> and give less noisy results.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute
               ex:importance="essential" ex:unit="" name="delta" default="1.0d0" type="fortrandouble">
             </xs:attribute>
