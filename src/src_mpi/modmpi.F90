@@ -198,8 +198,8 @@ end subroutine terminate_mpi_env
 
     !BOP
     ! !ROUTINE: terminate
-    ! !INTERFACE:
-    subroutine terminate
+    ! !INTERFACE: 
+    subroutine terminate(user_msg)
     ! !DESCRIPTION:
     !   Kills the program in {\tt MPI} or
     !   single execution.
@@ -210,20 +210,30 @@ end subroutine terminate_mpi_env
     !EOP
     !BOC
       implicit none
+      !> optional error message
+      character(len=*), optional :: user_msg
       integer(4) :: ierr
+      character(256) :: err_msg
+      
+      if (present(user_msg)) then
+        err_msg = user_msg
+      else 
+        err_msg = "Goodbye, cruel world. (terminate)"
+      end if
+
       ! Abort mpi if necessary
 #ifdef MPI
       if(mpiglobal%rank == 0) then
-        write(*,*) "Goodbye, cruel world. (terminate)"
+        write(*,'(a)') trim(adjustl(err_msg))
       end if
       call mpi_abort(mpi_comm_world, 1, ierr)
       if(ierr .eq. 0) then
-         write (*, '(a)') 'MPI abort'
+         write (*, '(a)') trim(adjustl(err_msg))
       else
-         write (*, '(a)') 'MPI abort with errors - zombie processes might remain!'
+         write (*, '(a)') trim(adjustl(err_msg))//' - zombie processes might remain!'
       end if
 #else
-      write (*, '(a)') 'Abort'
+      write (*, '(a)') err_msg
 #endif
       stop
     end subroutine terminate
