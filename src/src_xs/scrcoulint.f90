@@ -34,6 +34,7 @@ subroutine scrcoulint(iqmt, fra)
   use modbse
   use mod_xsgrids
   use mod_Gkvector, only: gkmax
+  use mod_hdf5, only: fhdf5, hdf5_exist_group, hdf5_create_group, hdf5_write 
 ! !DESCRIPTION:
 !   Calculates the resonant-resonant or resonant-anit-resonant block of the
 !   direct term of the Bethe-Salpeter Hamiltonian for a momentum transfer 
@@ -112,7 +113,8 @@ subroutine scrcoulint(iqmt, fra)
 
   ! Auxilliary strings
   character(256) :: syscommand, fileext_scr_read, fileext_ematrad_write
-
+  ! HDF5 variables
+  character(256) :: ciq, gname, group
   ! External functions
   logical, external :: tqgamma
 
@@ -148,6 +150,9 @@ subroutine scrcoulint(iqmt, fra)
   !   * Generates radial functions (mod_APW_LO)
   call init2
 
+  ! xas and xes specific init (has to come after init0 and init1)
+!  if(input%xs%bse%xas .or. input%xs%BSE%xes) call xasinit
+  
   ! Making folder for the radial integals pertaining to the plane wave matrix elements
   ematraddir = 'EMATRAD'
 
@@ -411,7 +416,26 @@ subroutine scrcoulint(iqmt, fra)
   ! Communicate array-parts wrt. q-points
   call mpi_allgatherv_ifc(set=nqptr, rlen=ngqmax*ngqmax,&
     & zbuf=scieffg, inplace=.true., comm=mpiglobal)
-
+  ! write W(G,G,q) to file if necessary
+#ifdef _HDF5_
+  if (input%xs%BSE%writepotential) then
+    if (mpiglobal%rank == 0) then
+      if (.not. hdf5_exist_group(fhdf5,'/','screenedpotential')) then
+        call hdf5_create_group(fhdf5,'/','screenedpotential')
+      end if
+      gname="/screenedpotential"
+      ! loop over all reduced q-vectors
+      do iqr=1, nqptr
+        write(ciq,'(I4.4)') iqr
+        if (.not. hdf5_exist_group(fhdf5,trim(adjustl(gname)),ciq)) then
+          call hdf5_create_group(fhdf5,trim(adjustl(gname)),ciq)
+        end if
+        group="/screenedpotential/"//ciq//'/'
+        call hdf5_write(fhdf5, group, "wqq",scieffg(1,1,iqr), shape(scieffg(:,:,iqr)))
+      end do
+    end if
+  end if
+#endif
   if(mpiglobal%rank == 0) then
     call timesec(tscc1)
     if (input%xs%BSE%outputlevelnumber == 1) &
@@ -561,7 +585,6 @@ subroutine scrcoulint(iqmt, fra)
       !-------------------------------!
 
       allocate(cmoo(noo, numgq), cmuu(nuu, numgq))
-
       ! Calculate M_{io jo ikp}(G, q) = <io ikp|e^{-i(q+G)r}|jo jkp>
       ! and       M_{iu ju ikm}(G, q) = <iu ikm|e^{-i(q+G)r}|ju jkm>
       ! where it is as above:
@@ -668,7 +691,6 @@ subroutine scrcoulint(iqmt, fra)
           bsedt(3, mpiglobal%rank) = bsedt(3, mpiglobal%rank) + zt1 / inou
         end do
       end if
-
     ! W^{RA}
     else
       !-------------------------------!
@@ -878,7 +900,7 @@ subroutine scrcoulint(iqmt, fra)
       ! Set vkl0_ptr, vkl1_ptr, ...  to k+qmt/2-grid stored in default locations 
       call setptr11()
       ! Calculate M_{o1o2,G} at fixed (k, q)
-      if (input%xs%bse%xas) then
+      if (input%xs%bse%xas .or. input%xs%bse%xes) then
         call xasgauntgen (input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax)) 
         call ematqk_core(iq, ikpnr, moo, ematbc, 'oo')
       else
@@ -999,7 +1021,7 @@ subroutine scrcoulint(iqmt, fra)
       call setptr10()
 
       ! Calculate N_{ou,G} at fixed (k, q)
-      if (.not. (input%xs%bse%xas)) then
+      if (.not. (input%xs%bse%xas .or. input%xs%bse%xes)) then
         if (.not. (input%groundstate%tevecsv)) then
           call ematqk(iq, ikpnr, mou, ematbc)
         else
@@ -1055,7 +1077,7 @@ subroutine scrcoulint(iqmt, fra)
       call setptr01()
 
       ! Calculate N_{uo,G} at fixed (k, q)
-      if (.not. (input%xs%bse%xas)) then
+      if (.not. (input%xs%bse%xas .or. input%xs%bse%xes)) then
         if (.not. (input%groundstate%tevecsv)) then
           call ematqk(iq, ikmnr, muo, ematbc)
         else

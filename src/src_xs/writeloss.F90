@@ -78,40 +78,6 @@ module m_writeloss
       ! write relevant parameters to file
       !Call writevars(un, iq, iq)
       Close(un)
-#ifndef _HDF5_
-      ! write to XML file
-      Call xml_OpenFile(trim(fn)//'.xml', xf, replace=.True., pretty_print=.True.)
-      Call xml_NewElement(xf, "loss")
-      Call xml_DeclareNamespace(xf, "http://www.w3.org/2001/XMLSchema-instance", "xsi")
-      Call xml_AddAttribute(xf, "xsi:noNamespaceSchemaLocation", "../../xml/species.xsd")
-      Call xml_NewElement(xf, "mapdef")
-      Call xml_NewElement(xf, "variable1")
-      Call xml_AddAttribute(xf, "name", "energy")
-      Call xml_endElement(xf, "variable1")
-      Call xml_NewElement(xf, "function1")
-      Call xml_AddAttribute(xf, "name", "loss function")
-      Call xml_endElement(xf, "function1")
-      Call xml_NewElement(xf, "function2")
-      Call xml_AddAttribute(xf, "name", "dynamical structure factor")
-      Call xml_endElement(xf, "function2")
-      Call xml_endElement(xf, "mapdef")
-
-      Do iw = 1, n
-        Call xml_NewElement(xf, "map")
-        Write(buffer, '(4g18.10)') w(iw) * escale
-        Call xml_AddAttribute(xf, "variable1", trim(adjustl(buffer)))
-        Write(buffer, '(4g18.10)') loss(iw)
-        Call xml_AddAttribute(xf, "function1", trim(adjustl(buffer)))
-        Write(buffer, '(4g18.10)') loss(iw) *(gqc(igqmt, iq)**2/(4.d0*pi**2*chgval/omega))
-        Call xml_AddAttribute(xf, "function2", trim(adjustl(buffer)))
-        Call xml_endElement(xf, "map")
-      End Do
-
-      Write(buffer, '(I2.1, ".", I2.2, ".", I3.3)') version
-      Call xml_AddComment(xf, " Exciting code version : "//trim(adjustl(buffer)))
-      Call xml_endElement(xf, "loss")
-      Call xml_Close(xf)
-#endif
     End Subroutine writeloss
 
 End Module m_writeloss

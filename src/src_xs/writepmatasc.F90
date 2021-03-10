@@ -9,7 +9,8 @@
 subroutine writepmatasc
 ! !USES:
   use modinput, only: input
-  use modmpi, only: procs, rank, firstofset, lastofset, barrier
+  use modmpi, only: procs, rank, firstofset, lastofset, barrier, ierr
+  use constants, only: zzero
   use mod_misc, only: task, filext
   use mod_kpoint, only: nkpt, vkl
   use mod_Gkvector, only: ngkmax, vgkl, ngk, gkc, tpgkc, sfacgk, igkig, vgkc
@@ -22,12 +23,14 @@ subroutine writepmatasc
   use modxs, only: tscreen, fnpmat, fnpmat_t, kpari,&
                   & kparf, ripaa, ripalo,&
                   & riploa, riplolo, apwcmt, locmt,&
-                  & unitout, iqmtgamma, fhdf5
-  use mod_hybrids, only: hybridhf
+                  & unitout, iqmtgamma
   use m_putpmat
   use m_genfilname
   use mod_hdf5
   use m_getunit, only: getunit
+#ifdef MPI
+  use mpi
+#endif
 
 ! !DESCRIPTION:
 !   Calculates the momentum matrix elements using routine {\tt genpmat} and
@@ -58,6 +61,7 @@ subroutine writepmatasc
   logical, external :: tqgamma
 
   integer :: ist, ist1, ist2, oct, un
+  integer :: ranks_
 
   !write(*,*) "writepmatxs here at rank", rank
 
@@ -102,8 +106,10 @@ subroutine writepmatasc
   ! Allocate the momentum matrix elements array
   if (input%xs%bse%xas) then ! Allocation for xas calculation
     allocate(pmat(3, ncg, nstsv,nkpt))
+    pmat(:,:,:,:)=zzero
   else
     allocate(pmat(3, nstsv, nstsv,nkpt))
+    pmat(:,:,:,:)=zzero
   end if  
 
   ! Get eigenvectors for qmt=0, i.e. set file extension to _QMT001
@@ -186,9 +192,18 @@ subroutine writepmatasc
 #endif
   end do kloop
 #ifdef _HDF5_
+#ifdef MPI
+  if (rank .eq. 0) then
+    call mpi_reduce(MPI_IN_PLACE,pmat,size(pmat),MPI_DOUBLE_COMPLEX, MPI_SUM, 0, &
+      & MPI_COMM_WORLD, ierr)
+  else
+    call mpi_reduce(pmat,0,size(pmat),MPI_DOUBLE_COMPLEX, MPI_SUM, 0, &
+      & MPI_COMM_WORLD, ierr)
+  endif
+#endif 
   if (rank == 0) then
     do ik=1,nkpt 
-      write(cik, '(I4.4)') ik
+      write(cik, '(I8.8)') ik
       if (.not. hdf5_exist_group(fhdf5, "/pmat/", trim(adjustl(cik)))) then
         call hdf5_create_group(fhdf5,"/pmat/", trim(adjustl(cik)))
       end if
@@ -196,7 +211,7 @@ subroutine writepmatasc
       ! Write hdf5
       !write(*,*) 'shape(pmat)=', shape(pmat)
       !write(*,*) "pmat(1,1,1)=", pmat(1,1,1)
-      call hdf5_write(fhdf5,gname,'pmat', pmat(1,1,1,1), shape(pmat(:,:,:,ik)))
+      call hdf5_write(fhdf5,gname,'pmat', pmat(1,1,1,ik), shape(pmat(:,:,:,ik)))
     end do
   end if
 #endif

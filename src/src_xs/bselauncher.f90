@@ -21,10 +21,15 @@ subroutine bselauncher
 
   ! Local vars
   character(*), parameter :: thisname = "bselauncher"
-  integer(4) :: iqmt, iqmti, iqmtf, nqmt, nqmtselected, iq1, iq2
+  integer, parameter :: num_bse_dirs = 3
+  integer, parameter :: max_dir_len = 12
+  !
+  logical :: fdist, fcoup, fchibarq
+  character(len=max_dir_len) :: bse_dir_list(num_bse_dirs)
+  character(256) :: syscommand, epsilondir, lossdir, sigmadir
+  integer(4) :: idir, iqmt, iqmti, iqmtf, nqmt, nqmtselected, iq1, iq2
   real(8) :: ts0, ts1
   real(8) :: vqmt(3)
-  logical :: fdist, fcoup, fchibarq
 
   !---------------------------------------------------------------------------!
   ! Init0,1,2 General inits
@@ -49,12 +54,35 @@ subroutine bselauncher
   !   * Reads STATE.OUT
   !   * Generates radial functions (mod_APW_LO)
   call init2
+  
+  ! xas and xes specific init (has to come after init0 and init1)
+!  if(input%xs%bse%xas .or. input%xs%BSE%xes) call xasinit
+  
   ! End timer for init calls
   call timesec(ts1)
   write(unitout, '("Info(",a,"):&
     & Init time:", f12.6)') trim(thisname), ts1 - ts0
   !---------------------------------------------------------------------------!
-
+  ! Create Output directories                                                 !
+  !---------------------------------------------------------------------------!
+!  epsilondir='EPSILON'
+!  lossdir='LOSS'
+!  sigmadir='SIGMA'
+  bse_dir_list= (/ 'EPSILON','LOSS   ','SIGMA  ' /)
+  if (rank == 0) then
+    do idir = 1, num_bse_dirs
+       syscommand = 'test ! -e '//trim(adjustl(bse_dir_list(idir)))//' && mkdir '//trim(adjustl(bse_dir_list(idir)))
+       call system(trim(adjustl(syscommand)))
+    end do
+  end if
+!  if (rank == 0) then
+!    syscommand = 'test ! -e '//trim(adjustl(epsilondir))//' && mkdir '//trim(adjustl(epsilondir))
+!    call system(trim(adjustl(syscommand)))
+!    syscommand = 'test ! -e '//trim(adjustl(lossdir))//' && mkdir '//trim(adjustl(lossdir))
+!    call system(trim(adjustl(syscommand)))
+!    syscommand = 'test ! -e '//trim(adjustl(sigmadir))//' && mkdir '//trim(adjustl(sigmadir))
+!    call system(trim(adjustl(syscommand)))
+!  end if
   !---------------------------------------------------------------------------!
   ! Check Q-point sublist range
   !---------------------------------------------------------------------------!

@@ -421,6 +421,34 @@ def parse_wannier_info(name):
         j += 1
 
     return(wannier)
+    
+    # parser for coreoverlap.xml
+    def parse_core_overlap(name):
+        try:
+            tree= ET.parse(name)
+        except:
+            raise ParseError
+        
+        root=tree.getroot()
+        core_overlap = {}
+        core_overlap['nkpt'] = root.attrib['nkpt']
+        core_overlap['nstfv'] = root.attrib['nstfv']
+        core_overlap['ncg'] = root.attrib['ncg']
+
+        kpoints = []
+        for kpoint in root:
+            kpt = {}
+            kpt["index"] = kpoint.attrib['index']
+            pairs = []
+            for pair_xml in kpoint:
+                pair = pair_xml.attrib
+                pair["overlap"] = pair["overlap"].split()
+                pairs.append(pair)
+            kpt["pairs"] = pairs
+            kpoints.append
+        core_overlap["kpoints"] = kpoints
+
+        return core_overlap
 
 class excitingPlot3D():
 
@@ -938,3 +966,13 @@ class excitingTdosWannier():
                 print (keys[i])
                 sys.exit()
         return data
+        
+class coreOverlap():
+    def __init__(self, filePath):
+        self.path  = filePath                      #path of the RHO3D.xml, VCL3D.xml, VXC3D.xml, WF3D.xml, ELF3D.xml, EF3D.xml                                   
+        if not os.path.exists(self.path):          #check if the path exists                                      
+            raise OSError('Path not valid.')
+        try:
+            self.data  = parse_core_overlap(self.path)     #data in form of a python dictionary                   
+        except ParseError:                                 #checks if the parser works                                     
+            raise ErrornousFileError

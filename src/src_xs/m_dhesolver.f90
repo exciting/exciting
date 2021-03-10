@@ -2,7 +2,7 @@ module m_dhesolver
   use modmpi 
   use modscl
   use m_hesolver
-
+  use mod_hdf5
   implicit none
 
   contains
@@ -292,7 +292,7 @@ module m_dhesolver
 
       end if
 #else
-      ! Use hesolver, if no ScaLapack 
+      ! only for non-distributed case, it is possible to write the whole BSE Hamiltonian to file
       if(evalsonly) then 
         if(present(i1) .and. present(i2)) then 
           if(present(found)) then 

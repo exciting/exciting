@@ -9,10 +9,13 @@
 !
 Subroutine bandstr
   ! !USES:
-  Use modinput
-  Use modmain
-  Use modmpi
-  Use FoX_wxml
+  use modinput
+  use modmain
+  use modmpi
+  use FoX_wxml
+#ifdef _HDF5_
+  use m_write_hdf5, only: write_bandstr_hdf5
+#endif
 
   ! !DESCRIPTION:
   !   Produces a band structure along the path in reciprocal-space which connects
@@ -175,7 +178,13 @@ Subroutine bandstr
   ! output the band structure
   !------------------------------
   if (rank==0) then
-
+#ifdef _HDF5_
+     If ( .Not. input%properties%bandstructure%character) Then
+       call write_bandstr_hdf5(nkpt,nstsv,dpp1d,dvp1d,evalsv)
+     else
+       call write_bandstr_hdf5(nkpt,nstsv,dpp1d,dvp1d,evalsv,bc=bc)
+     end if
+#else
     Call xml_OpenFile ("bandstructure.xml", xf, replace=.True., pretty_print=.True.)
     Call xml_AddXMLPI(xf,"xml-stylesheet", 'href="'//trim(input%xsltpath)//&
                       &'/visualizationtemplates/bandstructure2html.xsl" type="text/xsl"')
@@ -296,7 +305,7 @@ Subroutine bandstr
     Write (*, '(" Vertex location lines written to BANDLINES.OUT")')
     Write (*,*)
     Call xml_close (xf)
-
+#endif
   end if ! rank
 
   If (input%properties%bandstructure%character) deallocate(bc)
@@ -304,6 +313,7 @@ Subroutine bandstr
   !---------------------------------------------------------------------------------------------------------
   ! Sorry! One more (1000+1, :-) output file for the band structure to be able to apply interpolation on it
   !---------------------------------------------------------------------------------------------------------
+#ifndef _HDF5_
   if (rank==0) then
     open(50, File="bandstructure.dat", Action='Write', Form='Formatted')
     write(50,*) "# ", 1, nstsv, nkpt
@@ -315,7 +325,7 @@ Subroutine bandstr
     end do
     close(50)
   end if
-
+#endif
   Return
 End Subroutine bandstr
 !EOC

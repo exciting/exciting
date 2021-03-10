@@ -54,6 +54,11 @@ subroutine bsesurvey
   ! NOT DONE ON EVALQP.OUT !?!
   ! If on top of GW
   if(associated(input%gw) .and. iqmt==1) then
+    if ( mpiglobal%rank==0 ) then
+      call warning('Warning(bseurvey):')
+      write (message, '(" BSE calculation with GW is experimental ")')
+      call warning(message)
+    end if
     ! Save KS eigenvalues to use them later for renormalizing PMAT
     if(allocated(eval0)) deallocate(eval0)
     allocate(eval0(nstsv, nkptnr))

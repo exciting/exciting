@@ -17,7 +17,7 @@ subroutine dfq(iq)
   use mod_lattice, only: omega
   use modxs, only: tfxcbse, tscreen, bzsampl, wpari,&
                 & wparf, ngq, fnpmat,&
-                & fnetim, fnxtim, fnemat, fnchi0,&
+                & fnemat, fnchi0,&
                 & fnchi0_t, qvkloff, istocc0, istocc,&
                 & istunocc0, istunocc, isto0, isto,&
                 & istu0, istu, unitout, nst1,&
@@ -28,7 +28,7 @@ subroutine dfq(iq)
                 & xiuo, pmou, pmuo, nwdf,&
                 & bsed, ikmapikq, tordf, symt2,&
                 & bcbs, filexteps,&
-                & eps0dirname, scrdirname, timingdirname
+                & eps0dirname, scrdirname
 #ifdef TETRA
   use modxs, only: fnwtet
   use mod_eigenvalue_occupancy, only: nstsv, evalsv, efermi
@@ -206,12 +206,6 @@ subroutine dfq(iq)
 
     filex=filext
     filext=filexteps
-    call genfilname(nodotpar=.true., basename='EMAT_TIMING', iq=iq,&
-     & etype=input%xs%emattype, procs=procs, rank=rank, appfilext=.true., filnam=fnetim)
-    fnetim=trim(adjustl(timingdirname))//'/'//trim(adjustl(fnetim))
-    call genfilname(nodotpar=.true., basename='X0_TIMING', iq=iq,&
-     & procs=procs, rank=rank, appfilext=.true., filnam=fnxtim)
-    fnxtim=trim(adjustl(timingdirname))//'/'//trim(adjustl(fnxtim))
     filext=filex
 
   else
@@ -220,8 +214,6 @@ subroutine dfq(iq)
 #endif
     call genfilname(basename='PMAT_XS', filnam=fnpmat)
     call genfilname(basename='EMAT', iqmt=iq, filnam=fnemat)
-    call genfilname(nodotpar=.true., basename='X0_TIMING', bzsampl=bzsampl,&
-     & iqmt=iq, procs=procs, rank=rank, filnam=fnxtim)
     call genfilname(basename='X0', bzsampl=bzsampl,&
      & acont=input%xs%tddft%acont, nar= .not. input%xs%tddft%aresdf,&
      & tord=input%xs%tddft%torddf, markfxcbse=tfxcbse, iqmt=iq, filnam=fnchi0)
@@ -231,14 +223,12 @@ subroutine dfq(iq)
      & procs=procs, rank=rank, filnam=fnchi0_t)
   end if
 
-  ! Remove timing files from previous runs
-  call filedel(trim(fnxtim))
 
   ! Calculate k+q and G+k+q related variables
   ! by setting the offset generated from vkloff and the q point
   ! and then calling init1
-  ! write(*,*) "df: qvkloff=", iq, qvkloff(1:3,iq)
-  call init1offs(qvkloff(1:3,iq))
+  call init1offs(qvkloff(1:3, iq))
+
 
   ! TETRA: Generate link array for tetrahedra
   if(input%xs%tetra%tetradf) then
@@ -384,8 +374,6 @@ subroutine dfq(iq)
     call ematrad(iq)
     call timesec(td)
 
-    ! Delete timing information of previous runs
-    call filedel(trim(fnetim))
 
     ! Write information
     if (input%xs%BSE%outputlevelnumber == 1) &
@@ -866,9 +854,6 @@ subroutine dfq(iq)
 
 !*****************************************************************************************************
 
-    ! Timing information
-    cputot = cpuread + cpuosc + cpuupd
-    call dftim(iq, ik, trim(fnxtim), cpuread, cpuosc, cpuupd, cputot)
 
     ! Why is taht nescessary?
     ! Synchronize

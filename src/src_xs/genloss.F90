@@ -22,8 +22,11 @@ module m_genloss
       ! Local variables
       integer :: iw
       complex(8) :: t3(3, 3)
+      integer :: comp
       character(*), parameter :: thisnam = 'genloss'
-
+      
+      ! For q=0, the loss function is a 3x3 matrix, i.e. it has 3 components.
+      ! For q != 0, the loss function is a scalar.
       if(nc /= 1 .and. nc /= 3) then 
         write(unitout, '(a,i2)') 'Error(' // thisnam // '): nc invalid, nc=', nc
         call terminate
@@ -44,8 +47,13 @@ module m_genloss
       else if(nc .eq. 3) then
 
         do iw = 1, input%xs%energywindow%points
-          call z3minv(eps(:, :, iw), t3(:, :))
-          loss(:, :, iw) = -aimag(t3)
+          if (.NOT. input%xs%BSE%chibar0) then
+            comp=input%xs%BSE%chibar0comp
+            loss(comp,comp,iw)=-aimag(1.0d0/eps(comp,comp,iw))
+          else
+            call z3minv(eps(:, :, iw), t3(:, :))
+            loss(:, :, iw) = -aimag(t3)
+          end if
         end do
 
       end if

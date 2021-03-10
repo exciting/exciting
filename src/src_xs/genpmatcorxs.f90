@@ -22,7 +22,8 @@ subroutine genpmatcorxs(ik,ngp,apwalm,evecfv,evecsv,pmatc)
     use mod_eigenvalue_occupancy, only: nstfv, nstsv
     use m_getgrst, only: wavefmtsv
     !use modmain
-    use modxas
+    use modxas, only: ncg, xasstart, xasstop, ucore, preml, mj2ml, lxas, &
+     & spj, mj
 ! !INPUT/OUTPUT PARAMETERS:
 !   ik     : k-point position (in,integer)
 !   ngp    : number of G+p-vectors (in,integer)

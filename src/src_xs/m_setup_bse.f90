@@ -509,7 +509,7 @@ module m_setup_bse
           integer(4) :: i, j
 
           ! Set prefactor for exchange term in Hamiltonian
-          if (input%xs%bse%xas) then
+          if (input%xs%bse%xas .or. input%xs%bse%xes) then
             if ((.not. input%groundstate%tevecsv) .and. (input%xs%bse%xasedge == 'K')) then
               excfac=2.0d0
             else

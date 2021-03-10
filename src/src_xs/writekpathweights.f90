@@ -5,9 +5,12 @@ subroutine writekpathweights
   use m_putgetexcitons
   use unit_conversion, only: hartree_to_ev
   use bspline_module
-  use mod_kpointset
+  use m_write_hdf5, only: write_weights_hdf5, &
+    & write_kpathplot_hdf5
+use mod_kpointset
   use mod_wannier, only: wf_nwf, wf_kset
-  use mod_wannier_interpolate, only: wfint_init, wfint_eval, wfint_bandmap, wfint_matchksgw_linreal
+  use mod_wannier_interpolate, only: wfint_init, wfint_eval, wfint_bandmap, &
+   & wfint_matchksgw_linreal
   use, intrinsic :: iso_fortran_env, only: wp => real64
 
   implicit none
@@ -15,7 +18,7 @@ subroutine writekpathweights
   character(*), parameter :: thisname = 'writekpathweights'
   character(256) :: exckpathdir, syscommand
 
-  logical :: fwritegridweights, fxas
+  logical :: fwritegridweights, fxas, fxes
   integer(4) :: iqmt, iqmti, iqmtf, nqmt, iq1, iq2
   real(8) :: en1, en2
   integer(4) :: i1, i2
@@ -44,6 +47,7 @@ subroutine writekpathweights
   if(mpiglobal%rank == 0) then 
     ! determine whether core excitons are visualized
     fxas=input%xs%BSE%xas
+    fxes=input%xs%BSE%xes
     ! Set defaults if writeexcitons is not specified
     if( .not. associated(input%xs%writekpathweights)) then
       write(unitout,'("Error(",a,"):&
@@ -55,15 +59,20 @@ subroutine writekpathweights
     ! Read in band structure data to read_bandstrucute   !
     ! module                                             !
     !====================================================!
+#ifdef _HDF5_
+    call read_bandstructure('property.h5')
+#else
     call read_bandstructure('bandstructure.dat')
+#endif
     !====================================================!
 
     ! Make output directory
     exckpathdir='KPATHEXC'
+#ifndef _HDF5_
     syscommand = 'test ! -e '//trim(adjustl(exckpathdir))&
       & //' && mkdir -p '//trim(adjustl(exckpathdir))
     call system(trim(adjustl(syscommand)))
-
+#endif
     ! Write out excitonic weights on grid?
     fwritegridweights = input%xs%writekpathweights%printgridweights
 
@@ -210,7 +219,7 @@ subroutine writekpathweights
         !! Make resonant weights
         abs2 = abs(rvec_(1:hamsize_,lambda))**2
         !   Valence 
-        if (.not. fxas) then
+        if (.not. (fxas .or. fxes)) then
           call genweights(ivmin, ivmax, hamsize_, nk_max_,&
             & smap_(2,:), smap_(3,:), abs2, rvwgrid, ik2ikqmtp_)
         end if
@@ -222,7 +231,7 @@ subroutine writekpathweights
         if(fcoup_) then 
           abs2 = abs(avec_(1:hamsize_, lambda))**2
           !   Valence
-          if (.not. fxas) then
+          if (.not. (fxas .or. fxes)) then
             call genweights(ivmin, ivmax, hamsize_, nk_max_,&
               & smap_(2,:), smap_(3,:), abs2, arvwgrid, ik2ikqmtp_)
           end if
@@ -302,8 +311,15 @@ subroutine writekpathweights
         end if
 
         ! Writeout
+#ifndef _HDF5_
         call writekpathplot()
-
+#else
+        if (fcoup_) then
+          call write_kpathplot_hdf5(lambda,iv1,iv2,ic1,ic2,rvw,rcw,arvw=arvw,arcw=arcw)
+        else
+          call write_kpathplot_hdf5(lambda,iv1,iv2,ic1,ic2,rvw,rcw)
+        end if
+#endif
         !====================================================!
 
       ! Exciton loop
@@ -413,6 +429,7 @@ subroutine writekpathweights
     subroutine writeweights()
       use m_getunit
       use m_genfilname
+      use m_write_hdf5
 
       integer(4) :: un, iv, ic, iknr
       character(256) :: fname
@@ -433,7 +450,7 @@ subroutine writekpathweights
       end if
       bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
-
+#ifndef _HDF5_
       ! Make filename
       call genfilname(dirname=trim(exckpathdir), basename="WEIGHTS",&
         & lambda=lambda, iqmt=iq_,&
@@ -496,6 +513,13 @@ subroutine writekpathweights
       end if
 
       close(un)
+#else
+      if (.not. fcoup_) then
+        call write_weights_hdf5(lambda,vkl_, vkl0_, ivmin, ivmax, icmin, icmax, rvwgrid, rcwgrid)
+      else
+        call write_weights_hdf5(lambda,vkl_, vkl0_, ivmin, ivmax, icmin, icmax, rvwgrid, rcwgrid, arv=arvwgrid, arc=arcwgrid)
+      end if
+#endif
     end subroutine writeweights
 
     subroutine interpolate_kpathweights(i1, i2, x, y, z, wsource, winterp)
@@ -656,7 +680,7 @@ subroutine writekpathweights
           write(un, '(2E24.16)', advance="no")&
             & kpathlength_(istep, ib), energyval_(istep, ib)*escale
 
-          if(iv1 <= ib .and. ib <= iv2 .and. .not. fxas) then
+          if(iv1 <= ib .and. ib <= iv2 .and. .not. (fxas .or. fxes)) then
             if(fcoup_) then 
               write(un, '(2E24.16)') rvw(istep, ib), arvw(istep, ib) 
             else

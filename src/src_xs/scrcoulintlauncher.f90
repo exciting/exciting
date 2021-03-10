@@ -84,6 +84,7 @@ subroutine scrcoulintlauncher
       write(unitout,*)
     end if
 
+    !
     select case(trim(casestring))
 
       case("RR","rr")
@@ -141,7 +142,7 @@ subroutine scrcoulintlauncher
         call terminate
 
     end select
-
+    !
     ! Info out
     if(mpiglobal%rank == 0) then
       call printline(unitout, "+")

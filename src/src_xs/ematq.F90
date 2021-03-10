@@ -7,7 +7,7 @@ subroutine ematq(iq)
   use modinput
   use modmpi
   use mod_misc, only: filext
-  use modxs, only: fnemat, fnemat_t, fnetim, unitout,&
+  use modxs, only: fnemat, fnemat_t, unitout,&
     & ikmapikq, iqmtgamma, filext0,&
     & istocc0, istunocc0, isto0, istu0,&
     & istocc, istunocc, isto, istu,&
@@ -37,9 +37,6 @@ subroutine ematq(iq)
   call genfilname(basename='EMAT', iqmt=iq, &
      & etype=input%xs%emattype, procs=procs, rank=rank, &
      & filnam=fnemat_t)
-  call genfilname(nodotpar=.true., basename='EMAT_TIMING', &
-     & iqmt=iq, etype=input%xs%emattype, procs=procs, rank=rank, &
-     & filnam=fnetim)
 
   ! file extension for gamma-point and q-point
   call genfilname(iqmt=iqmtgamma, fileext=filext0)
@@ -66,8 +63,6 @@ subroutine ematq(iq)
   ! generate radial integrals wrt. sph. bessel functions
   call ematrad(iq)
 
-  ! delete timing information of previous runs
-  call filedel(trim(fnetim))
 
   ! write information
   write(unitout, '(a, i6)') 'info(' // thisnam // '):&

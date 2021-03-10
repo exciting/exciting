@@ -12,8 +12,8 @@ subroutine xsinit(j, plan)
   use mod_misc,only: versionname, githash, notelns, notes
   use modmpi
   use modxs,only: calledxs, init0symonly, cputim0i, cntrate, &
-                & systim0i, systimcum, xsfileout, fnetim, &
-                & fnchi0_t, fnxtim, unitout, maxproc, &
+                & systim0i, systimcum, xsfileout, &
+                & fnchi0_t, unitout, maxproc, &
                 & lmmaxemat, lmmaxapwwf, lmmaxdielt, tordf, &
                 & tscreen, nwdf, fxcdescr, fxcspin, &
                 & torfxc, escale, tleblaik, tgqmaxg, &
@@ -64,9 +64,7 @@ subroutine xsinit(j, plan)
   ! name of output file
   call genfilname(nodotpar=.true., basename='INFOXS', procs=procs,&
     & rank=rank, filnam=xsfileout)
-  call genfilname(basename='EMAT_TIMING', procs=procs, rank=rank, filnam=fnetim)
   call genfilname(basename='X0', procs=procs, rank=rank, filnam=fnchi0_t)
-  call genfilname(basename='X0_TIMING', procs=procs, rank=rank, filnam=fnxtim)
 
   ! reset or append to output file
   call getunit(unitout)
@@ -155,7 +153,7 @@ subroutine xsinit(j, plan)
   !-----------------------------!
   !     Core Non-TDA calc.s     !
   !-----------------------------!
-  if((input%xs%BSE%xas) .and. (input%xs%BSE%coupling)) then
+  if((input%xs%BSE%xas .or. input%xs%BSE%xes) .and. (input%xs%BSE%coupling)) then
     write(unitout,*)
     write(unitout, '("Error(xsinit): Calculations of Core BSE&
       & spectra beyond the Tamm-Dancoff approximation not implemented yet. &
@@ -360,7 +358,7 @@ subroutine xsinit(j, plan)
   ! define checkpoint
   call chkpt(1, (/ task /), 'passed xsinit')
 
-  ! Some xas specific init
-  if(input%xs%bse%xas) call xasinit
+  ! some XAS / XES specific initialization
+  if(input%xs%bse%xas .or. input%xs%bse%xes) call xasinit
 
 end subroutine xsinit

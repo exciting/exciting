@@ -20,9 +20,8 @@ subroutine exccoulint(iqmt)
                  & ppari, pparf,& 
                  & bcbs, iqmtgamma,&
                  & filext0, usefilext0, iqmt0, iqmt1, ivgigq
-  use m_xsgauntgen
-  use m_findgntn0
-  use m_writegqpts
+  use m_xsgauntgen, only: xsgauntgen, xasgauntgen
+  use m_findgntn0, only: findgntn0, findgntn0_clear
   use m_genfilname
   use m_getunit
   use modbse
@@ -30,6 +29,7 @@ subroutine exccoulint(iqmt)
   use m_putgetbsemat
   use mod_xsgrids
   use mod_Gkvector, only: gkmax
+  use m_getpmat, only: getpmat, getpmatxas
 ! !DESCRIPTION:
 !   Calculates the exchange term of the Bethe-Salpeter Hamiltonian.
 !
@@ -79,15 +79,23 @@ subroutine exccoulint(iqmt)
   ! Timinig vars
   real(8) :: tpw1, tpw0
   integer(4) :: flg_analytic
+  ! momentum matrix variables
+  complex(8), allocatable :: pmuo1(:,:,:), pmuo2(:,:,:), pmou1_(:,:,:), &
+                          & pmou2_(:,:,:)
+  integer(4) :: iuabs1, iuabs2, iuabs3, iuabs4
+  integer(4) :: ioabs1, ioabs2, ioabs3, ioabs4
+  integer(4) :: inu1, inu2, ino1, ino2
+  integer(4) :: comp_
 
   integer(4) :: igqmt
   logical :: fcoup
   real(8), parameter :: epslat = 1.0d-8
   logical :: fsamekp, fsamekm
-  logical :: fchibarq
+  logical :: fchibarq, chibar0
 
   fcoup = input%xs%bse%coupling
   fchibarq = input%xs%bse%chibarq
+  chibar0 = input%xs%BSE%chibar0
 
   !---------------!
   !   main part   !
@@ -113,6 +121,9 @@ subroutine exccoulint(iqmt)
   !   * Generates radial functions (mod_APW_LO)
   call init2
 
+  ! xas and xes specific init (has to come after init0 and init1)
+!  if(input%xs%bse%xas .or. input%xs%BSE%xes) call xasinit
+  
   ! Generate gaunt coefficients used in the construction of 
   ! the plane wave matrix elements in ematqk.
 
@@ -411,7 +422,52 @@ subroutine exccoulint(iqmt)
     ! Get total k point indices
     iknr = kmap_bse_rg(ik)
     jknr = kmap_bse_rg(jk) 
+    ! momentum matrix only needed for q=0 and for the full chi
+    if (iqmt ==1 .and. .NOT. chibar0) then
+      ! allocate momentum matrix element arrays
+      if (allocated(pmuo1)) deallocate(pmuo1)
+      if (allocated(pmuo2)) deallocate(pmuo2)
+      allocate(pmuo1(3,nu_bse_max, no_bse_max))
+      allocate(pmuo2(3,nu_bse_max, no_bse_max))
+      ! get transition ranges and number of bands
+      iuabs1=koulims(1,iknr)
+      iuabs2=koulims(2,iknr)
+      ioabs1=koulims(3,iknr)
+      ioabs2=koulims(4,iknr)
 
+      iuabs3=koulims(1,jknr)
+      iuabs4=koulims(2,jknr)
+      ioabs3=koulims(3,jknr)
+      ioabs4=koulims(4,jknr)
+
+      inu1= iuabs2-iuabs1+1
+      ino1= ioabs2-ioabs1+1
+      inu2= iuabs4-iuabs3+1
+      ino2= ioabs4-ioabs3+1
+      ! get momentum matrix elements from file
+      if (input%xs%bse%xas .or.input%xs%bse%xes ) then
+        ! Only pmou is written to file, but pmuo is needed
+        allocate(pmou1_(3,ino1,inu1))
+        allocate(pmou2_(3,ino2,inu2))
+        call getpmatxas(iknr, vkl0,&
+          &  ioabs1, ioabs2, iuabs1, iuabs2,&
+          & .true., 'PMAT_XS.OUT', pmou1_(:,1:ino,1:inu))
+        call getpmatxas(jknr, vkl0,&
+          &  ioabs3, ioabs4, iuabs3, iuabs4,&
+          & .true., 'PMAT_XS.OUT', pmou2_(:,1:ino,1:inu))
+        do comp_=1,3
+          pmuo1(comp_,:,:)=transpose(conjg(pmou1_(comp_,:,:)))
+          pmuo2(comp_,:,:)=transpose(conjg(pmou2_(comp_,:,:)))
+        end do
+        deallocate(pmou1_)
+        deallocate(pmou2_)
+      else
+        call getpmat(iknr, vkl0, iuabs1, iuabs2, ioabs1, ioabs2, &
+          & .true., 'PMAT_XS.OUT', pmuo1(:,1:inu1,1:ino1))
+        call getpmat(jknr, vkl0, iuabs3, iuabs4, ioabs3, ioabs4, &
+          & .true., 'PMAT_XS.OUT', pmuo2(:,1:inu2,1:ino2))
+      end if
+    end if
     ! Get index of ik+qmt/2 and ik-qmt/2
     ikpnr = k_kqmtp%ik2ikqmt(iknr)
     ikmnr = k_kqmtm%ik2ikqmt(iknr)
@@ -425,7 +481,7 @@ subroutine exccoulint(iqmt)
     inou = kousize(iknr)
     jnou = kousize(jknr)
 
-    call makeexcli(excli(1:inou,1:jnou))
+    call makeexcli(pmuo1,pmuo2,excli(1:inou,1:jnou))
 
     ! Parallel write
     call putbsemat(exclifname, 77, ikkp, iqmt, excli)
@@ -513,7 +569,7 @@ subroutine exccoulint(iqmt)
       call setptr01()
 
       ! Calculate M_{iu io,G}(ikm, qmt)
-      if (input%xs%bse%xas) then
+      if (input%xs%bse%xas .or. input%xs%bse%xes) then
         call xasgauntgen (input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax))
         call ematqk_core(iqmt, ikmnr, muo, ematbc, 'uo')
 
@@ -532,14 +588,24 @@ subroutine exccoulint(iqmt)
 
     end subroutine getmuo
 
-    subroutine makeexcli(excli)
-
+    subroutine makeexcli(pmuo1,pmuo2,excli)
+      ! momentum matrix elements needed for corrections of the head of the 
+      !exchange matrix elements
+      complex(8), intent(in)  :: pmuo1(:,:,:), pmuo2(:,:,:)
+      ! exchange matrix elements of the BSE
       complex(8), intent(out) :: excli(inou, jnou) 
 
       ! Work arrays
       complex(8) :: emat12(inou, numgq), emat34(jnou, numgq)
-      integer(4) :: iaoff, jaoff, ia, ja
+      complex(8) :: pmat12(inou), pmat34(jnou)
+      integer(4) :: iaoff, jaoff, ia, ja, comp
+      logical    :: chibar0
 
+      chibar0=input%xs%BSE%chibar0
+
+      ! direction for calculation of G->0 contribution to V
+      if (.NOT. chibar0) comp=input%xs%BSE%chibar0comp
+      
       ! Offset in combined index for ik and jk
       iaoff = sum(kousize(1:iknr-1))
       jaoff = sum(kousize(1:jknr-1))
@@ -552,10 +618,13 @@ subroutine exccoulint(iqmt)
         io = smap_rel(2, ia+iaoff) ! io (ik+qmt/2)
         ! emat12_ia = M_u1o1ki, M_u2o1ki, ..., M_uMo1ki, M_uMo2ki, ..., M_uMoNki
         emat12(ia, :) = ematuok(iu, io, :, ik)
+        if (iqmt ==1 .and. .NOT. chibar0) then
+          pmat12(ia)=(pmuo1(comp,iu,io))/(de(ia+iaoff)-sci)
+        end if
       end do
       ! M_uo -> M^*_uo
       emat12 = conjg(emat12)
-
+      if (iqmt ==1 .and. .NOT. chibar0) pmat12 = conjg(pmat12)
       do ja = 1, jnou
         ! Get ju index relative to iu range of jk
         ju = smap_rel(1, ja+jaoff) ! ju (jk-qmt/2)
@@ -563,6 +632,9 @@ subroutine exccoulint(iqmt)
         jo = smap_rel(2, ja+jaoff) ! jo (jk+qmt/2)
         ! emat34_ja = (M_u1o1kj,M_u2o1kj,...,M_uMo1kj,M_u1o2kj,...,M_uMoMkj)*v
         emat34(ja, :) = ematuok(ju, jo, :, jk) * potcl(:)
+        if (iqmt == 1 .and. .NOT. chibar0) then
+          pmat34(ja)=(pmuo2(comp,ju,jo))/(de(ja+jaoff)-sci)
+        end if
       end do
 
       ! Calculate exchange matrix elements: 
@@ -571,6 +643,11 @@ subroutine exccoulint(iqmt)
       !          \Sum_{G} M^*_{iu io ikm}(G,qmt) M_{ju jo jkm}(G,qmt) v(G,qmt)
       call zgemm('n', 't', inou, jnou, numgq, zone/omega/nk_bse,&
         & emat12, inou, emat34, jnou, zzero, excli, inou)
+      ! add G=0 element to V in case that chi is calculated at q=0
+      if (iqmt == 1 .and. .NOT. chibar0) then
+        call zgemm('n', 't', inou, jnou, 1, zone*fourpi/omega/nk_bse,&
+          & pmat12, inou, pmat34, jnou, zone, excli, inou)
+      end if
 
     end subroutine makeexcli
 
