@@ -202,7 +202,7 @@ module m_setup_pwmat
         ematbc%iu2=ioabs2
 
         ! Calculate M_{uo,G} at fixed (k, q)
-        if(input%xs%bse%xas) then
+        if(input%xs%bse%xas .or. input%xs%bse%xes) then
           call xasgauntgen (input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax))
           call ematqk_core(iqmt, ikmnr, muo(1:inu,1:ino,:),ematbc,'uo')
         else

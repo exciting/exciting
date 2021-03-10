@@ -1,5 +1,5 @@
 module m_makespectrum
-  use constants, only: zzero, zone, zi, pi
+
   implicit none
 
   contains
@@ -8,6 +8,7 @@ module m_makespectrum
 
     subroutine makespectrum(iqmt, nexc, nk, bevalre, oscsr, spectrum)
       use modinput
+      use constants, only: zone, zzero, zi
       use modxs, only: unitout
       use modmpi
       use m_genwgrid
@@ -185,6 +186,7 @@ module m_makespectrum
 
     subroutine redospectrum(iqmt, nexc, nk, bevalre, oscsr, spectrum)
       use modinput
+      use constants
       use modxs, only: unitout
       use modmpi
       use m_genwgrid
@@ -408,6 +410,7 @@ module m_makespectrum
     ! Distributed versions
 
     subroutine makespectrum_dist(iqmt, nexc, nk, bevalre, oscsr, symsp, binfo)
+      use constants, only: zone, zi, pi
       use modxs, only: unitout
       use modinput, only: input
       use modmpi
@@ -492,15 +495,23 @@ module m_makespectrum
           ig = denw%r2g(i)
           jg = denw%c2g(j)
           if (input%xs%BSE%aresbse) then
-            denw%za(i,j) = zone/(freq(ig)-bevalre(jg)+zbrd)&
-                         &+ zone/(-freq(ig)-bevalre(jg)-zbrd)
+            if ((.not. input%xs%BSE%coupling) .and. input%xs%BSE%chibar0) then
+              denw%za(i,j) = zone/(freq(ig)-bevalre(jg)+zbrd)
+            else
+              denw%za(i,j) = zone/(freq(ig)-bevalre(jg)+zbrd)&
+                          &+ zone/(-freq(ig)-bevalre(jg)-zbrd)
+            end if
           else
             denw%za(i,j) = zone/(freq(ig)-bevalre(jg)+zbrd)
           end if
 #else
           if (input%xs%BSE%aresbse) then
-            denw%za(i,j) = zone/(freq(i)-bevalre(j)+zbrd)&
-                         &+ zone/(-freq(i)-bevalre(j)-zbrd)
+           if ((.not. input%xs%BSE%coupling) .and. input%xs%BSE%chibar0) then
+              denw%za(i,j) = zone/(freq(i)-bevalre(j)+zbrd)
+            else
+              denw%za(i,j) = zone/(freq(i)-bevalre(j)+zbrd)&
+                          &+ zone/(-freq(i)-bevalre(j)-zbrd)
+            end if
           else
             denw%za(i,j) = zone/(freq(i)-bevalre(j)+zbrd)
           end if
@@ -625,14 +636,16 @@ module m_makespectrum
       use modxs, only: sptclg, ivgigq, ivgmt, unitout
       use mod_lattice, only: omega
       use modxs, only: symt2
+      use constants
       use modinput, only: input
 
       integer(4), intent(in) :: iqmt, nk
       complex(8), intent(inout) :: nsp(:,:)
       complex(8), intent(out) :: sp(:,:,:)
 
-      complex(8), allocatable :: buf(:,:,:)
+      complex(8), allocatable :: buf(:,:,:), buf2(:,:,:)
       integer(4) :: nfreq, nopt, i, j, o1, o2, igqmt
+      integer(4) :: iw, comp
       real(8) :: pref, t0, t1
       logical :: foff, usechibar, fcoup
       character(*), parameter :: thisname = "finalizespectrum"
@@ -713,9 +726,12 @@ module m_makespectrum
         if (.not. input%groundstate%tevecsv) then 
           ! -1 * 2 * 4 pi * 1/V * 1/nk
           pref = -2.d0*4.d0*pi/omega/nk
+          if (.NOT. input%xs%BSE%chibar0) pref=-pref
+
         else
           ! -1 * 4 pi * 1/V * 1/nk
           pref = -4.d0*pi/omega/nk
+          if (.NOT. input%xs%BSE%chibar0) pref=-pref
         end if
       else
         if (.not. input%groundstate%tevecsv) then
@@ -781,12 +797,23 @@ module m_makespectrum
       
         ! Symmetrize spectrum with respect to the crystal symmetry
         sp = zzero
-        do o1=1,3
-          do o2=1,3
-            ! Symmetrize the macroscopic dielectric tensor
-            call symt2app(o1, o2, nfreq, symt2, buf, sp(o1,o2,:))
-          end do 
-        end do
+        if (.NOT. input%xs%BSE%chibar0) then
+          comp=input%xs%BSE%chibar0comp
+          do iw=1, input%xs%energywindow%points
+            sp(comp,comp,iw)=1.0d0/(buf(comp,comp,iw))
+          end do
+        else
+          do o1=1,3
+            do o2=1,3
+             ! Symmetrize the macroscopic dielectric tensor
+              if (input%xs%BSE%chibar0) then
+                call symt2app(o1, o2, nfreq, symt2, buf, sp(o1,o2,:))
+              else
+                sp(o1,o2,:)=buf(o1,o2,:)
+              end if
+            end do
+          end do
+        end if
 
       ! Finite momentum transfer --> scalar function
       else

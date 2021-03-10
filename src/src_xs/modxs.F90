@@ -34,7 +34,7 @@ Module modxs
       end type bcbs 
 
       ! Some directory names
-      character(256) :: gqdirname, eps0dirname, scrdirname, timingdirname
+      character(256) :: gqdirname, eps0dirname, scrdirname
       character(256) :: ematraddir
 
   ! What is the q point list index for the gamma point
@@ -408,10 +408,6 @@ Module modxs
       Character (256) :: fnpmat, fnpmat_t
   ! exponential factor matrix elements
       Character (256) :: fnemat, fnemat_t
-  ! exponential factor matrix elements timing
-      Character (256) :: fnetim
-  ! Kohn-Sham response function timing
-      Character (256) :: fnxtim
   ! Kohn-Sham response function
       Character (256) :: fnchi0, fnchi0_t
   ! macroscopic dielectric function
@@ -553,9 +549,4 @@ Module modxs
       Real (8) :: vkloff_xs_b(3)
 
 
-  !---------------------------------------!
-  !               HDF5 Variable           !
-  !---------------------------------------!
-  ! hdf5 filename
-  character(128) :: fhdf5
 End Module modxs

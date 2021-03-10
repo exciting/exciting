@@ -66,7 +66,7 @@ module m_setup_dmat
         ioabs2 = koulims(4,iknr)
         inu = iuabs2 - iuabs1 + 1
         ino = ioabs2 - ioabs1 + 1
-        if (input%xs%bse%xas) then
+        if (input%xs%bse%xas .or. input%xs%bse%xes) then
           allocate(pmou_(3,ino,inu))
           call getpmatxas(iknr, vkl0,&
             & ioabs1, ioabs2, iuabs1, iuabs2,&
@@ -129,7 +129,6 @@ module m_setup_dmat
         ! Note: The scissor does not enter here, so subtract it again.
         dmat(a1, :) = zi * ofac(a1)&
           &*pmuok(:, iu, io, ik)/(de(a1)-sci)
-
       end do
       !$OMP END PARALLEL DO
 
@@ -259,7 +258,7 @@ module m_setup_dmat
             ! Get momentum P_ou matrix for ik
             ! and those occupied and unoccupied states that 
             ! are participate at that k point. 
-            if (input%xs%bse%xas) then
+            if (input%xs%bse%xas .or.input%xs%bse%xes ) then
               ! Only pmou is written to file, but pmuo is needed
               allocate(pmou_(3,ino,inu))
               call getpmatxas(iknr, vkl0,&

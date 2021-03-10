@@ -33,17 +33,7 @@ subroutine writederived(iqmt, eps, nw, w)
   character(*), parameter :: thisname = "writederived"
 
   write(unitout, '("Info(",a,"): Writing quantities derived from the macroscopic dielectric function.")') trim(thisname)
-
-  epsilondir='EPSILON'
-  lossdir='LOSS'
-  sigmadir='SIGMA'
-  syscommand = 'test ! -e '//trim(adjustl(epsilondir))//' && mkdir '//trim(adjustl(epsilondir))
-  call system(trim(adjustl(syscommand)))
-  syscommand = 'test ! -e '//trim(adjustl(lossdir))//' && mkdir '//trim(adjustl(lossdir))
-  call system(trim(adjustl(syscommand)))
-  syscommand = 'test ! -e '//trim(adjustl(sigmadir))//' && mkdir '//trim(adjustl(sigmadir))
-  call system(trim(adjustl(syscommand)))
-
+  
   if(input%xs%bse%coupling) then
     tdastring=''
   else
@@ -82,8 +72,6 @@ subroutine writederived(iqmt, eps, nw, w)
   ! Generate filename for hdf5 datablock
   gname="spectra"//trim(bsetypestring)//trim(scrtypestring)
 
-  !Write optical functions to hdf5
-  call write_spectra_hdf5(iqmt, foff, w, eps, loss, sigma, gname)
   do o1 = io1, io2
 
     if(foff) then
@@ -132,6 +120,10 @@ subroutine writederived(iqmt, eps, nw, w)
        !   & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
        !   & nar= .not. input%xs%bse%aresbse, filnam=fnsumrules)
       end if
+      epsilondir='EPSILON'
+      lossdir='LOSS'
+      sigmadir='SIGMA'
+      
       fneps=trim(epsilondir)//'/'//trim(fneps)
       fnloss=trim(lossdir)//'/'//trim(fnloss)
       fnsigma=trim(sigmadir)//'/'//trim(fnsigma)
@@ -150,6 +142,8 @@ subroutine writederived(iqmt, eps, nw, w)
     ! End loop over optical components
     end do
   end do
+  !Write optical functions to hdf5
+  call write_spectra_hdf5(iqmt, foff, w, eps, loss, sigma, gname)
 
   write(unitout, '("  Derived quantities written.")')
 end subroutine writederived

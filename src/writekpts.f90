@@ -9,7 +9,7 @@
 subroutine writekpts
 ! !USES:
   use mod_misc, only: filext
-  use mod_kpoint, only: nkpt, vkl, wkpt
+  use mod_kpoint, only: nkpt, vkl, vkc, wkpt
   use mod_eigensystem, only: nmat
 ! !DESCRIPTION:
 !   Writes the $k$-points in lattice coordinates, weights and number of
@@ -26,9 +26,9 @@ subroutine writekpts
   integer :: ik
 
   open(50, file='KPOINTS'//trim(filext), action='WRITE', form='FORMATTED')
-  write(50, '(I6, " : nkpt; k-point, vkl, wkpt, nmat below")') nkpt
+  write(50, '(I6, " : nkpt; k-point, vkl, vkc, wkpt, nmat below")') nkpt
   do ik = 1, nkpt
-     write(50, '(i6, 4g18.10, 2i8)') ik, vkl(:, ik), wkpt(ik), nmat(:, ik)
+     write(50, '(i6, 7g18.10, 2i8)') ik, vkl(:, ik), vkc(:, ik), wkpt(ik), nmat(:, ik)
   end do
   close(50)
   return

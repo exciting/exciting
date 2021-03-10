@@ -21,15 +21,15 @@ subroutine xsmain(plan, nxstasks)
   use modinput
   use modmpi
   use mod_misc, only: task
-  use modxs, only: fhdf5
   use mod_exciton_wf
   use mod_hdf5
+  use m_write_hdf5, only: fhdf5_inter
 
   implicit none
 
   type(plan_type), intent(in) :: plan
   integer(4), intent(in) :: nxstasks
-
+  logical :: fex
   integer(4) :: i
 
   ! initialization of hdf5 output
@@ -37,9 +37,20 @@ subroutine xsmain(plan, nxstasks)
   if(mpiglobal%rank == 0) then
     call hdf5_initialize()
     fhdf5="bse_output.h5"
-    call hdf5_create_file(fhdf5)
+    ! find out whether file already exists
+    inquire(file=trim(fhdf5), exist=fex)
+    if (.not. fex) then
+      call hdf5_create_file(fhdf5)
+    end if
+    fhdf5_inter='bse_matrix.h5'
+    call hdf5_create_file(fhdf5_inter)
   end if
 #endif
+
+  do i = 1, nxstasks
+     task = plan%doonlyarray(i)%doonly%tasknumber
+  end do
+
   
   ! task selection, loop over first nxstasks specified in passed plan
   do i = 1, nxstasks
@@ -138,7 +149,7 @@ subroutine xsmain(plan, nxstasks)
       case(430)
         ! RPA screening
         call screenlauncher
-
+ 
       ! Taskname 'scrcoulint'
       case(440)
         ! screened Coulomb interaction
@@ -179,15 +190,21 @@ subroutine xsmain(plan, nxstasks)
         ! BSE-kernel
         call kernxc_bse
 
+      ! Taskname 'screen'
+      case(451)
+        ! write real-space XS wfcts to file
+        call write_wfplot
+
+      ! Taskname 'write_screen'
+      case(452)
+        ! write screened Coulomb potential to file
+        call write_screen
+
       ! Taskname 'xsestimate'
       case(700)
         ! estimate disk-space, cpu-time and memory
         call xsestimate
 
-      ! Taskname 'xstiming'
-      case(701)
-        ! test timing
-        call xstiming
 
       ! Taskname 'excitonWavefunction'
       case(710)
@@ -211,6 +228,7 @@ subroutine xsmain(plan, nxstasks)
 
    end do
 
+   
   ! Finalization of hdf5 output
 #ifdef _HDF5_
   if (mpiglobal%rank == 0) then

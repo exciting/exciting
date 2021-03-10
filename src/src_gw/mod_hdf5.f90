@@ -14,6 +14,7 @@ module mod_hdf5
     interface hdf5_write
         module procedure hdf5_write_i4, &
         &                hdf5_write_d,  &
+        &                hdf5_write_f,  &
         &                hdf5_write_z,  &
         &                hdf5_write_c,  &
         &                hdf5_write_l
@@ -32,6 +33,7 @@ module mod_hdf5
     public hdf5_create_file
     public hdf5_create_group
 
+    character(256) :: fhdf5
 contains
 
 !-------------------------------------------------------------------------------
@@ -80,7 +82,7 @@ contains
         stop
 #endif
     end subroutine
-    
+
 !-------------------------------------------------------------------------------
     logical function hdf5_exist_group(fname,path,gname)
         ! Check if group with the given name exists
@@ -232,6 +234,33 @@ contains
 #endif
     end subroutine
 
+!-------------------------------------------------------------------------------    
+    subroutine hdf5_write_f(fname,path,dname,val,dims)
+#ifdef _HDF5_
+        use hdf5
+#endif
+        implicit none
+        character(*), intent(in) :: fname
+        character(*), intent(in) :: path
+        character(*), intent(in) :: dname
+        real(4), intent(in) :: val
+        integer, optional, dimension(:), intent(in) :: dims
+#ifdef _HDF5_
+        integer ndims
+        integer, allocatable :: dims_(:)
+        if (present(dims)) then
+          ndims=size(dims)
+          allocate(dims_(ndims))
+          dims_(1:ndims)=dims(:)
+        else
+          ndims=1
+          allocate(dims_(ndims))
+          dims_(1)=1
+        endif
+        call hdf5_write_array_f(val,ndims,dims_,fname,path,dname)
+        deallocate(dims_)
+#endif
+    end subroutine
 !-------------------------------------------------------------------------------    
     subroutine hdf5_write_z(fname,path,dname,val,dims)
 #ifdef _HDF5_
@@ -597,6 +626,81 @@ subroutine hdf5_write_array_d(a,ndims,dims,fname,path,nm)
 end subroutine
 
 !-------------------------------------------------------------------------------
+subroutine hdf5_write_array_f(a,ndims,dims,fname,path,nm)
+    use hdf5
+    implicit none
+    real(4), intent(in) :: a(*)
+    integer, intent(in) :: ndims
+    integer, intent(in) :: dims(ndims)
+    character(*), intent(in) :: fname
+    character(*), intent(in) :: path
+    character(*), intent(in) :: nm
+
+    integer(hid_t) h5_root_id,dataspace_id,dataset_id,group_id
+    integer ierr,i
+    integer(hsize_t), dimension(ndims) :: h_dims
+    character*100 errmsg
+
+    do i=1,ndims
+      h_dims(i)=dims(i)
+    enddo
+    call h5fopen_f(trim(fname),H5F_ACC_RDWR_F,h5_root_id,ierr)
+    if (ierr.ne.0) then
+      write(errmsg,'("Error(hdf5_write_array_f): h5fopen_f returned ",I6)')ierr
+      goto 10
+    endif
+    call h5screate_simple_f(ndims,h_dims,dataspace_id,ierr)
+    if (ierr.ne.0) then
+      write(errmsg,'("Error(hdf5_write_array_f): h5screate_simple_f returned ",I6)')ierr
+      goto 10
+    endif
+    call h5gopen_f(h5_root_id,trim(path),group_id,ierr)
+    if (ierr.ne.0) then
+      write(errmsg,'("Error(hdf5_write_array_f): h5gopen_f returned ",I6)')ierr
+      goto 10
+    endif
+    call h5dcreate_f(group_id,trim(nm),H5T_NATIVE_REAL,dataspace_id,dataset_id,ierr)
+    if (ierr.ne.0) then
+      write(errmsg,'("Error(hdf5_write_array_f): h5dcreate_f returned ",I6)')ierr
+      goto 10
+    endif 
+    call h5dwrite_f(dataset_id,H5T_NATIVE_REAL,a,h_dims,ierr)
+    if (ierr.ne.0) then
+      write(errmsg,'("Error(hdf5_write_array_f): h5dwrite_f returned ",I6)')ierr
+      goto 10
+    endif 
+    call h5dclose_f(dataset_id,ierr)
+    if (ierr.ne.0) then
+      write(errmsg,'("Error(hdf5_write_array_f): h5dclose_f returned ",I6)')ierr
+      goto 10
+    endif
+    call h5gclose_f(group_id,ierr)
+    if (ierr.ne.0) then
+      write(errmsg,'("Error(hdf5_write_array_f): h5gclose_f returned ",I6)')ierr
+      goto 10
+    endif
+    call h5sclose_f(dataspace_id,ierr)
+    if (ierr.ne.0) then
+      write(errmsg,'("Error(hdf5_write_array_f): h5sclose_f returned ",I6)')ierr
+      goto 10
+    endif
+    call h5fclose_f(h5_root_id,ierr)
+    if (ierr.ne.0) then
+      write(errmsg,'("Error(hdf5_write_array_f): h5fclose_f returned ",I6)')ierr
+      goto 10
+    endif
+    return
+    10 continue
+    write(*,'(A)')trim(errmsg)
+    write(*,'("  ndims : ",I4)')ndims
+    write(*,'("  dims  : ",10I4)')dims
+    write(*,'("  fname : ",A)')trim(fname)
+    write(*,'("  path  : ",A)')trim(path)
+    write(*,'("  nm    : ",A)')trim(nm)
+    stop
+end subroutine
+!-------------------------------------------------------------------------------
+
 subroutine hdf5_read_array_i4(a,ndims,dims,fname,path,nm)
     use hdf5
     implicit none
@@ -742,16 +846,18 @@ subroutine hdf5_write_array_c(a,ndims,dims,fname,path,nm)
     integer(HID_T) :: h5_root_id,dataspace_id,dataset_id,group_id
     integer(HID_T) :: filetype
     integer(SIZE_T) :: sdim
-    integer :: ierr, i
+    integer :: ierr, i, size_
     integer(HSIZE_T), dimension(ndims) :: h_dims
     integer(HSIZE_T), dimension(ndims+1) :: data_dims
-    integer(SIZE_T), dimension(ndims) :: s_len
+    integer(SIZE_T), allocatable :: s_len(:)
     character*100 :: errmsg
 
     do i = 1, ndims
       h_dims(i) = dims(i)
     enddo
-    do i = 1, product(h_dims)
+    size_=product(h_dims)
+    allocate(s_len(size_))
+    do i = 1, size_
       s_len(i) = len_trim(a(i))
     end do
     data_dims(1) = len(a(1))
@@ -820,6 +926,7 @@ subroutine hdf5_write_array_c(a,ndims,dims,fname,path,nm)
       write(errmsg,'("Error(hdf5_write_array_c): h5fclose_f returned ",I6)')ierr
       goto 10
     endif
+    deallocate(s_len)
     return
     10 continue
     write(*,'(A)')trim(errmsg)

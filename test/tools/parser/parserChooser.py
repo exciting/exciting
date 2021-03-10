@@ -70,6 +70,8 @@ def parserChooser(path):
         return propertiesParser.excitingTdosWannier(path)
     elif fileName == 'WANNIER_INFO.OUT':
         return propertiesParser.excitingWannierInfo(path)
+    elif fileName == 'coreoverlap.xml':
+        return propertiesParser.coreOverlap(path)
     elif fileName == 'EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT':
         return BSEParser.excitingEPSILON_NAR(path)
     elif fileName == 'EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT':
@@ -88,6 +90,12 @@ def parserChooser(path):
         return BSEParser.excitingEPSILON_NAR(path)
     elif fileName == 'EPSILON_NAR_NLF_FXCMB1_OC33_QMT001.OUT':
         return BSEParser.excitingEPSILON_NAR(path)
+    elif fileName == 'EPSILON_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT':
+        return BSEParser.excitingEPSILON_NAR(path)
+    elif fileName == 'EPSILON_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT':
+        return BSEParser.excitingEPSILON_NAR(path)
+    elif fileName == 'EPSILON_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT':
+        return BSEParser.excitingEPSILON_NAR(path)
     elif fileName == 'LOSS_NAR_FXCMB1_OC11_QMT001.OUT':
         return BSEParser.excitingLOSS_NAR(path)
     elif fileName == 'LOSS_NAR_FXCMB1_OC22_QMT001.OUT':
@@ -100,11 +108,23 @@ def parserChooser(path):
         return BSEParser.excitingLOSS_NAR(path)
     elif fileName == 'LOSS_NAR_NLF_FXCMB1_OC33_QMT001.OUT':
         return BSEParser.excitingLOSS_NAR(path)
+    elif fileName == 'LOSS_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT':
+        return BSEParser.excitingLOSS_NAR(path)
+    elif fileName == 'LOSS_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT':
+        return BSEParser.excitingLOSS_NAR(path)
+    elif fileName == 'LOSS_BSE-singlet-TDA-BAR_SCR-full_OC33.out':
+        return BSEParser.excitingLOSS_NAR(path)
     elif fileName == 'EXCITON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT':
         return BSEParser.excitingEXCITON_NAR_BSE(path)
     elif fileName == 'EXCITON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT':
         return BSEParser.excitingEXCITON_NAR_BSE(path)
     elif fileName == 'EXCITON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT':
+        return BSEParser.excitingEXCITON_NAR_BSE(path)
+    elif fileName == 'EXCITON_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT':
+        return BSEParser.excitingEXCITON_NAR_BSE(path)
+    elif fileName == 'EXCITON_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT':
+        return BSEParser.excitingEXCITON_NAR_BSE(path)
+    elif fileName == 'EXCITON_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT':
         return BSEParser.excitingEXCITON_NAR_BSE(path)
     elif fileName == 'EFERMI_GW.OUT':
         return GWParser.excitingEFERMI_GW(path)

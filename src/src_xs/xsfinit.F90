@@ -8,8 +8,8 @@ subroutine xsfinit
   use mod_misc, only: task, versionname
   use modxs, only: cputim0f, systim0f, cputim0i, systim0i,&
                   & cntrate, systimcum, unitout,&
-                  & fnresume, xsfileout, fnetim, fnchi0_t,&
-                  & fnchi0, fnxtim
+                  & fnresume, xsfileout, fnchi0_t,&
+                  & fnchi0
   use modmpi
   use m_filedel, only: filedel
 
@@ -28,7 +28,7 @@ subroutine xsfinit
   character(256), external :: stringtim, r2str
 
   ! Some xas specific finalizations
-  if(input%xs%bse%xas) call xasfinit
+  if(input%xs%bse%xas .or. input%xs%bse%xes) call xasfinit
 
   ! Finalize global counters
   call date_and_time(date=dat, time=tim)
@@ -94,9 +94,7 @@ subroutine xsfinit
   call filedel(trim(fnresume))
 
   if(rank .ne. 0) call filedel(trim(xsfileout))
-  if(rank .ne. 0) call filedel(trim(fnetim))
   if(trim(fnchi0_t) .ne. trim(fnchi0)) call filedel(trim(fnchi0_t))
-  if(rank .ne. 0) call filedel(trim(fnxtim))
 
   call barrier(callername=trim(thisname))
       

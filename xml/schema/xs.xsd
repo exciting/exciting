@@ -65,6 +65,30 @@
           </xs:complexType>
         </xs:element>
 
+        <xs:element ex:importance="expert" ex:unit="" name="scrwfplot" maxOccurs="1" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>Wavefunction plot.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:annotation>
+              <xs:documentation>Plot the wave function at a set of kpoints</xs:documentation>
+            </xs:annotation>
+            <xs:all>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="1" maxOccurs="1"/>
+            </xs:all>
+            <xs:attribute ex:importance="expert" ex:unit="" name="kptrange" type="integerpair">
+              <xs:annotation>
+                <xs:documentation>Range of k-points to be visualized.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="bandrange" type="integerpair">
+              <xs:annotation>
+                <xs:documentation>Range of bands to be visualized.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+        
         <xs:element ex:importance="expert" ex:unit="" name="writeexcitons" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>When present this element allows to write the stored exciton components (BSE eigenvectors)
@@ -1185,6 +1209,12 @@
                 <xs:documentation> Set to <pre>"true"</pre> to perform BSE X-rasy absorption spectroscopy (XAS) calculation </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="xes" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation> Set to <pre>"true"</pre> to perform BSE X-rasy emission spectroscopy (XES) calculation </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="xasspecies" type="xs:integer"
               default="0">
               <xs:annotation>
@@ -1225,7 +1255,33 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
-
+            <xs:attribute ex:importance="expert" ex:unit="" name="writehamhdf5_" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:appinfo>
+                  <oldname>_writehamhdf5_</oldname>
+                </xs:appinfo>
+                <xs:documentation>
+                  <attref>_writehamhdf5_</attref> is <pre>"true"</pre> when BSE matrix elements are
+               written to HDF5 file. </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="chibar0" type="xs:boolean"
+              default="true">
+              <xs:annotation>
+                <xs:appinfo>
+                  <oldname>chibar0</oldname>
+                </xs:appinfo>
+                <xs:documentation>
+                  When <attref>chibar0</attref> is <pre>"false"</pre>, the full polarizability is calculated at q=0, otherwise the reduced polarizability is determined.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="chibar0comp" type="xs:integer"
+              default="1">
+              <xs:annotation>
+                <xs:documentation>Direction for calculation of dielectric function at q=0.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="reducek" type="xs:boolean"
               default="false">
               <xs:annotation>
@@ -1235,6 +1291,14 @@
                 <xs:documentation>
                   <attref>reducek</attref> is <pre>"true"</pre> if <inlinemath>{\mathbf k}</inlinemath>-points are to be reduced with crystal
                   symmetries for BSE. </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="writepotential" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation>
+                  If <attref>writepotential</attref> is <pre>"true"</pre>, the screened Coulomb potential <inlinemath>W_{\mathbf{G},}\mathbf{G'}(\mathbf{q})</inlinemath>
+                  is written to file.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="vkloff" type="vect3d"
@@ -1817,7 +1881,7 @@
                             <xs:documentation>Read BSE eigenvalues and regenerate dielectric and loss functions.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
-                        <xs:enumeration value="writeexcitons">
+                        <xs:enumeration value="writebevec">
                           <xs:annotation>
                             <xs:appinfo>
                               <oldnr>447</oldnr>
@@ -1863,6 +1927,23 @@
                             <xs:documentation>Estimate bandgap from regular grid.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+                        <xs:enumeration value="write_wfplot">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>451</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>Real-space plot of wavefunctions
+                            used in screening calc.</xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="write_screen">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>452</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>Writes screened Coulomb interaction to HDF5 file</xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
                         <xs:enumeration value="writepmat">
                           <xs:annotation>
                             <xs:appinfo>
@@ -1896,6 +1977,15 @@
                             </xs:appinfo>
                             <xs:documentation>Convert momentum matrix elements file to old
                               format.</xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="writeoverlapxs">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>323</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>Calculate overlap matrix elements between core and conduction
+                              states.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="writeematasc">
@@ -1975,14 +2065,6 @@
                             </xs:appinfo>
                             <xs:documentation>Estimate disk-space, cpu-time and memory
                               requirements.</xs:documentation>
-                          </xs:annotation>
-                        </xs:enumeration>
-                        <xs:enumeration value="xstiming">
-                          <xs:annotation>
-                            <xs:appinfo>
-                              <oldnr>701</oldnr>
-                            </xs:appinfo>
-                            <xs:documentation>Test timing.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <!-- debugging main part -->

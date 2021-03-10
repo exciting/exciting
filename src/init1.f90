@@ -21,7 +21,7 @@ Subroutine init1
 #ifdef XS
       Use modxs
 #endif
-      use modfvsystem
+      Use modfvsystem
 ! !DESCRIPTION:
 !   Generates the $k$-point set and then allocates and initialises global
 !   variables which depend on the $k$-point set.

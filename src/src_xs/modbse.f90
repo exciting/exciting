@@ -18,6 +18,7 @@ module modbse
   use modxs, only: evalsv0, occsv0
   use modxs, only: istocc0, istocc, istunocc0, istunocc,&
                  & isto0, isto, istu0, istu, ksgapval, qgap, iqmtgamma
+  use modxas, only: ncg
   use mod_eigenvalue_occupancy, only: evalsv, occsv, nstsv
   use mod_kpoint, only: nkptnr, nkpt
   use m_getunit
@@ -138,7 +139,7 @@ module modbse
 
       real(8), parameter :: epslat = 1.0d-8
 
-      logical :: fgap, fsamek, fxas
+      logical :: fgap, fsamek, fxas, fxes
       real(8) :: gap
       real(8) :: t0,t1
 
@@ -199,6 +200,7 @@ module modbse
         fsamek=.false.
       end if
       fxas=input%xs%BSE%xas
+      fxes=input%xs%BSE%xes
       ! Allocate k eigenvalues
       ! Note: If evalsv0 is allocated before findocclims is called it gets read in
       ! and stays allocated.
@@ -315,12 +317,16 @@ module modbse
       iuref = iumin
       ioref = 1
       nk_max = nkptnr
-      if (fxas) then
+      if (fxas .or. fxes) then
         no_max=ncg
       else
         no_max = iomax
        end if
-      nu_max = nstsv-iumin+1
+      if (fxes) then
+        nu_max=iumin-1
+      else
+        nu_max = nstsv-iumin+1
+      endif
       nou_max = no_max*nu_max
 
       ! Scissor
@@ -341,6 +347,9 @@ module modbse
 
       if(ksgapval == 0.0d0) then
         write(unitout, '("Warning(setranges_modxs): The system has no gap")')
+        if ( rank==0 ) then
+          call warning('Warning(modbse): BSE calculation of metals is experimental')
+        end if
         if(sci /= 0.0d0) then
           write(unitout, '("Warning(setranges_modxs):&
             &   Scissor > 0 but no gap. Setting scissor to 0.")')
@@ -362,10 +371,9 @@ module modbse
     subroutine select_transitions(iqmt, serial, dirname)
       use mod_kpoint, only: vkl
       use modxs, only: usefilext0, filext0, vkl0
-      use modxas, only: xasstart, xasstop, ecore, ncg
+      use modxas, only: xasstart, xasstop, ecore
       use m_genfilname
       use mod_symmetry, only: nsymcrys
-      use mod_misc, only: filext
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     ! integer(4) :: iqmt  ! q-point index (on unshifted k-mesh)
@@ -422,7 +430,7 @@ module modbse
       logical, allocatable :: sflag(:)
       integer(4) :: k1, k2
       integer(4) :: i1, i2
-      logical :: fxas, posdiff
+      logical :: fxas, fxes, posdiff
       character(*), parameter :: thisname = "select_transitions"
 
       call timesec(t0)
@@ -433,18 +441,15 @@ module modbse
       else
         fserial = .false.
       end if
-
-      ! Check is XAS is used
-      if(input%xs%bse%xas) then
-        fxas = .true.
-      else
-        fxas = .false.
-      end if
+      ! Check whether XAS or XES calculations are performed
+      fxas=input%xs%bse%xas
+      fxes=input%xs%bse%xes
 
       ! Search for needed IP/QP transitions automatically
       ! depending on the chosen energy window.
-      if((any(input%xs%bse%nstlbse == 0) .and. .not. fxas) &
-       & .or. (any(input%xs%bse%nstlxas ==0) .and. fxas)) then
+      ! Not implemented for XES so far
+      if((any(input%xs%bse%nstlbse == 0) .and. .not. (fxas .or. fxes)) &
+       & .or. (any(input%xs%bse%nstlxas ==0) .and. (fxas))) then
         fensel = .true.
       else
         fensel = .false.
@@ -452,6 +457,9 @@ module modbse
       ! Set maxocc factor: 2.0d0 for spin-unpolarized, 1.0d0 for spin-polarized
       if (input%groundstate%tevecsv) then
         maxocc=1.0d0
+        if ( rank==0 ) then
+          call warning('Warning(modbse): BSE calculation of spin-unpolarized systems is experimental')
+        end if
       else
         maxocc=2.0d0
       end if
@@ -518,6 +526,11 @@ module modbse
           io2 = xasstop
           iu1 = input%xs%bse%nstlxas(1)+istunocc0-1
           iu2 = input%xs%bse%nstlxas(2)+istunocc0-1
+        elseif (fxes) then
+          io1 = xasstart
+          io2 = xasstop
+          iu1 = input%xs%bse%nstlxas(1)
+          iu2 = input%xs%bse%nstlxas(2)
         else
           io1= input%xs%bse%nstlbse(1)
           io2= input%xs%bse%nstlbse(2)
@@ -527,7 +540,7 @@ module modbse
 
       end if
 
-      if((istunocc0 < io1) .and. (.not. fxas)) then
+      if((istunocc0 < io1) .and. (.not. (fxas .or. fxes))) then
         write(*, '("Waring(select_transitions):", a, 2i4)') &
           & "Lowest (partially) unoccupied band is below the first &
            considered (partially) occupied band.", istunocc0, io1
@@ -724,7 +737,7 @@ module modbse
         iomax = 0
         iumax = 0
         ! Set maximal value for occupied states
-        if (fxas) then
+        if (fxas .or. fxes) then
           iomin=ncg+1
         else
           iomin = istocc0+1
@@ -760,7 +773,7 @@ module modbse
                 !
                 ! If it is a XAS comutation:
                 if(fxas) then
-                  doctmp = 1.0d0 - occsv0(iu, ikqm)
+                  doctmp = 1.0d0 - occsv0(iu, ikqm)/maxocc
                 ! If it is a optics comutation:
                 else
                   doctmp = occsv(io, ikqp) - occsv0(iu, ikqm)
@@ -792,8 +805,11 @@ module modbse
                   de_loc(s) = detmp
 
                   ! Save occupation factor
-                  ofac_loc(s) = sqrt((occsv(io, ikqp) - occsv0(iu, ikqm))/maxocc)
-
+                  if (fxas) then
+                    ofac_loc(s)=sqrt(1.0d0 - occsv0(iu,ikqm)/maxocc)
+                  else
+                    ofac_loc(s) = sqrt((occsv(io, ikqp) - occsv0(iu, ikqm))/maxocc)
+                  end if
                   ! Keep track of how many valid transitions
                   ! are considered at current k point.
                   kous = kous + 1
@@ -815,10 +831,13 @@ module modbse
               ! Only consider transitions which have a positve non-zero
               ! occupancy difference f_{o ki+qmt/2} - f_{u ki-qmt/2}
               !
-              ! If it is a XAS comutation:
-              if(fxas) then
-                doctmp = 1.0d0 - occsv0(iu, ikqm)
-              ! If it is a optics comutation:
+              ! For XAS: core state has occupation 1
+              if(fxas) then 
+                doctmp = 1.0d0 - occsv0(iu, ikqm)/maxocc
+              ! For XES: ignore occupation difference
+              elseif (fxes) then
+                doctmp=1.0d0
+              ! For Optics:
               else
                 doctmp = occsv(io, ikqp) - occsv0(iu, ikqm)
               end if
@@ -835,7 +854,11 @@ module modbse
                 ! u is counted from lumo=1 upwards
                 ! o is counted from lowest state upwards
                 ! ik index is shifted, due to MPI parallelization
-                s = hamidx(iu-istunocc0+1, io, ik-k1+1, nu_max, no_max)
+                if (fxes) then
+                  s=hamidx(iu, io, ik-k1+1, nu_max, no_max)
+                else
+                  s = hamidx(iu-istunocc0+1, io, ik-k1+1, nu_max, no_max)
+                endif
 
                 ! Use that u-o-k combination
                 sflag(s) = .true.
@@ -847,7 +870,7 @@ module modbse
 
                 ! Save energy difference
                 ! \Delta E = E_{u,k-qmt/2} - E_{o,k+qmt/2} + shift
-                if (fxas) then
+                if (fxas .or. fxes) then
                   de_loc(s)=evalsv0(iu,ikqm)-ecore(io)+sci
                 else
                   de_loc(s) = evalsv0(iu,ikqm)-evalsv(io,ikqp)+sci
@@ -856,6 +879,8 @@ module modbse
                 ! Save occupation factor
                 if (fxas) then
                   ofac_loc(s) = sqrt(1.0d0 - occsv0(iu, ikqm)/maxocc)
+                elseif (fxes) then
+                  ofac_loc(s)=1.0d0
                 else
                   ofac_loc(s) = sqrt((occsv(io, ikqp) - occsv0(iu, ikqm))/maxocc)
                 end if

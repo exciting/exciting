@@ -189,6 +189,14 @@ subroutine bse(iqmt)
   
   call setranges_modxs(iqmt)
   !---------------------------------------------------------------------------!
+  
+  if(fdist) then 
+    ! Use all ranks on mpiglobal
+    call select_transitions(iqmt, serial=.false.)
+  else
+    ! Use all current rank only
+    call select_transitions(iqmt, serial=.true.)
+  end if
 
   !---------------------------------------------------------------------------!
   ! On top of GW
@@ -257,13 +265,6 @@ subroutine bse(iqmt)
     & Selecting transitions...'
   call flushifc(unitout)
 
-  if(fdist) then 
-    ! Use all ranks on mpiglobal
-    call select_transitions(iqmt, serial=.false.)
-  else
-    ! Use all current rank only
-    call select_transitions(iqmt, serial=.true.)
-  end if
 
   ! Determine "BSE"-gap, i.e. the lowest energy 
   ! KS transition with momentum transfer qmt which is considered.

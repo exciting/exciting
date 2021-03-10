@@ -2,9 +2,6 @@ module m_writeoscillator
   use modmpi
   use modinput, only: input
   use modxs, only: bsed, escale, ivgmt, vqlmt, vgcmt, vqcmt
-#ifdef DGRID
-  use modxs, only: dgrid, iksubpt
-#endif
   use m_genfilname
   use m_getunit
   use m_write_hdf5
@@ -108,7 +105,11 @@ module m_writeoscillator
         ! symmetrize the oscillator strength
         do o1=io1,io2
           do o2=io1,io2
-            call symt2app(o1, o2, nexc, symt2, buf, oscstrr_(o1,o2,:))
+            if (.NOT. input%xs%BSE%chibar0) then 
+              oscstrr_(o1,o2,:)=buf(o1,o2,:)
+            else
+              call symt2app(o1, o2, nexc, symt2, buf, oscstrr_(o1,o2,:))
+            end if
           end do !o2
         end do !o1
       else ! qmt != 0

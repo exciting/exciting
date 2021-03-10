@@ -30,14 +30,13 @@ module m_ematqk
                      & apwmaxsize, apwsize, losize,&
                      & lomaxsize, cmtfun0, cmtfun,&
                      & ngq, igqig,&
-                     & fnetim, fftmap_type,&
+                     & fftmap_type,&
                      & cpumtaa, cpumtalo, cpumtloa, cpumtlolo,&
                      & filext0, iqmt0, iqmt1
       use summations, only: doublesummation_simple_cz
       use m_getapwcmt
       use m_getlocmt
       use m_putemat
-      use m_emattim
       use m_getunit
       use m_genfilname
       use m_getgrst, only: getevecfv1, getevecfv0
@@ -601,15 +600,6 @@ module m_ematqk
       cpuwrite = cpu0 - cpu1
       cpuall = cpuini + cpuread + cpumain + cpuwrite
 
-      ! Write timing information
-      ! Tasks: 440=scrcoulint, 441=exccoulint, 450=kernxc_bse, 451=kernxc_bse3
-      if( (task.ne.440) .and. (task .ne. 441) .and. (task .ne. 450)&
-        & .and. (task .ne. 451)) then
-        call emattim(iq, ik, trim(fnetim), cpuini, cpuread, cpumain,&
-          & cpuwrite, cpuall, cpugnt, cpumt, cpuir, cpumalores,&
-          & cpumloares, cpumlolores, cpumirres, cpudbg, cpumtaa,&
-          & cpumtalo, cpumtloa, cpumtlolo, cpufft)
-      end if
 
     end subroutine ematqk
     !EOC
@@ -626,13 +616,12 @@ module m_ematqk
       use mod_APW_LO, only: nlotot, apwordmax
       use mod_atoms, only:  natmtot
       use modxs, only: bcbs, msg, ngq,&
-                     & fnetim, fftmap_type,&
+                     & fftmap_type,&
                      & cpumtaa, cpumtalo, cpumtloa, cpumtlolo
       use summations, only: doublesummation_simple_cz
       use m_getapwcmt
       use m_getlocmt
       use m_putemat
-      use m_emattim
       use m_getunit
       use m_genfilname
       use mod_spin, only: nspnfv
@@ -767,12 +756,8 @@ module m_ematqk
       ! Loop over G+q vectors
       cpugntlocal=0.0d0
       cpumtlocal=0.0d0
-       
-#ifdef USEOMP
-    !$omp parallel default(shared) private(igq, cpu00, cpu01, whichthread,integral)
-#endif
-#ifdef USEOMP
-      whichthread=omp_get_thread_num()
+
+!      whichthread=omp_get_thread_num()
       ! Allocation of radial integrals
       if (flag == 'oo') then
         allocate(integral(input%xs%lmaxemat+1,nxas,nxas,1,1))
@@ -781,6 +766,12 @@ module m_ematqk
       else if (flag == 'uo') then
         allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n1,2))
       end if
+
+#ifdef USEOMP
+    !$omp parallel default(shared) private(igq, cpu00, cpu01, whichthread,integral)
+#endif
+#ifdef USEOMP
+      whichthread=omp_get_thread_num()
     !$omp do
 #endif
       do igq = 1, ngq(iq)
@@ -821,6 +812,7 @@ module m_ematqk
     deallocate(integral)
     !$omp end parallel
 #endif
+
       deallocate(apwalmt, apwalmt0)        
       call timesec(cpu1)
       cpumain = cpu1 - cpu0
@@ -828,16 +820,6 @@ module m_ematqk
       call timesec(cpu0)
       cpuwrite = cpu0 - cpu1
       cpuall = cpuini + cpuread + cpumain + cpuwrite
-
-      ! Write timing information
-      ! Tasks: 440=scrcoulint, 441=exccoulint, 450=kernxc_bse, 451=kernxc_bse3
-      if( (task.ne.440) .and. (task .ne. 441) .and. (task .ne. 450)&
-        & .and. (task .ne. 451)) then
-        call emattim(iq, ik, trim(fnetim), cpuini, cpuread, cpumain,&
-          & cpuwrite, cpuall, cpugnt, cpumt, cpuir, cpumalores,&
-          & cpumloares, cpumlolores, cpumirres, cpudbg, cpumtaa,&
-          & cpumtalo, cpumtloa, cpumtlolo, cpufft)
-      end if
 
     end subroutine ematqk_core
     !EOC
@@ -1664,7 +1646,7 @@ module m_ematqk
 	    Real(8) :: t1
 	    Real (8), Allocatable :: jl (:, :), jhelp (:)
 	    Real (8) :: r2 (nrmtmax), fr (nrmtmax), gr (nrmtmax), cf (3,nrmtmax)
-  
+
       is=input%xs%bse%xasspecies
       ia=input%xs%bse%xasatom
       lmax2 = input%xs%lmaxemat
@@ -1909,7 +1891,7 @@ module m_ematqk
           Type(bcbs), intent (in) :: bcs 
           Complex(8), intent (out) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n1,2)
           ! local variables
-          Integer :: is, ia, ir, nr, lmax2, n1, n2, l2,l3,m3,lm3, irc, nsp
+          Integer :: is, ia, ir, nr, lmax2, n1, n2, l2,l3,m3,lm3, irc, nsp, l
 	        Real(8) :: t1, t2
 	        Real (8), Allocatable :: jl (:, :), jhelp (:)
 	        Real (8) :: r2 (nrmtmax), fr2 (nrcmtmax), fr3(nrcmtmax), gr (nrcmtmax), cf (3,nrcmtmax)
@@ -1937,7 +1919,12 @@ module m_ematqk
             r2 (ir) = spr (ir, is) ** 2
             ! calculate spherical Bessel functions of first kind j_l(|G+q|r_a)
             Call sbessel (lmax2, gqc(igq, iq)*spr(ir, is), jhelp)
-            jl (ir,:) = jhelp (:)
+            ! Remove the overlap from the j in the l=0-channel
+            ! overlap should be zero, but isn't
+            jl (ir,0) = jhelp (0)-1.0d0
+            do l=1,lmax2
+              jl(ir,l)=jhelp(l)
+            enddo
             do n1=1,nxas
               fr1(:,n1,irc)=r2(ir)*jl(ir,:)*ucore(ir,n1+xasstart-1)
             end do

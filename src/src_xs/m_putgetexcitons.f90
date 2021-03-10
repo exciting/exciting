@@ -53,7 +53,6 @@ module m_putgetexcitons
     end subroutine clear_excitons
 
     subroutine put_excitons(evals, rvec, avec, iqmt, a1, a2)
-      use modxs, only: fhdf5
       use mod_kpoint, only: ikmap
       use modinput
       use mod_hdf5
@@ -247,7 +246,6 @@ module m_putgetexcitons
     end subroutine put_excitons
 
     subroutine get_excitons(iqmt, a1, a2, e1, e2)
-      use modxs, only: fhdf5
       use mod_hdf5
       
       integer(4), intent(in), optional :: iqmt, a1, a2
@@ -258,14 +256,15 @@ module m_putgetexcitons
       real(8), allocatable :: evalstmp(:)
       real(8), parameter :: epslat = 1.0d-6
       integer(4) :: stat, unexc, cmplxlen
-      integer(8) :: mypos, pos1, pos2
+      integer(8) :: mypos, pos1, pos2, lambda, i
       logical :: fcoup, fesel, fex, useindex, useenergy, fchibarq
       complex(8) :: zdummy
+      complex(8), allocatable :: rvec2_(:)
 
       character(256) :: fname
 
       character(256) :: tdastring, bsetypestring, scrtypestring
-      character(128) :: group, ciq, gname, gname_
+      character(128) :: group, ciq, gname, gname_, pos
 
       if(present(iqmt)) then 
         iq = iqmt
@@ -276,7 +275,7 @@ module m_putgetexcitons
         write(*,'("Error(get_excitons): Q point index invalid")')
         call terminate
       end if
-
+      
       ! If neither index nor energy range is specified, get all saved excitions.
       ! If energy range is passed [e1,e2), the corresponding exciton indices
       ! will be computed. If a index interval is passed [i1,i2] those excitons
@@ -381,34 +380,53 @@ module m_putgetexcitons
       allocate(ngridk_(3))
 
 #ifdef _HDF5_
-      ! Create hdf5 File
-      write(ciq, '(I4.4)') iq ! Generate string out of momentum transfer index
-      gname="eigvec"//trim(bsetypestring)//trim(scrtypestring)
-      if (.not. hdf5_exist_group(fhdf5,"/",gname)) then
-        call hdf5_create_group(fhdf5,"/",gname)
+#ifdef MPI
+      if(mpiglobal%rank == 0) then
+#endif
+        ! Create hdf5 File
+        write(ciq, '(I4.4)') iq ! Generate string out of momentum transfer index
+        gname="eigvec"//trim(bsetypestring)//trim(scrtypestring)
+        if (.not. hdf5_exist_group(fhdf5,"/",gname)) then
+          call hdf5_create_group(fhdf5,"/",gname)
+        end if
+        gname_=trim(adjustl(gname))//"/"
+        ! Generate subgroup for each iqmt
+        if (.not. hdf5_exist_group(fhdf5,gname_,ciq)) then
+          call hdf5_create_group(fhdf5,gname,ciq)
+        end if
+        gname_=trim(adjustl(gname_))//trim(adjustl(ciq))//"/"
+        ! Read Meta data
+        group=trim(adjustl(gname_))//"parameters"
+        call hdf5_initialize()
+        call hdf5_read(fhdf5,group,"fcoup",fcoup_)      
+        call hdf5_read(fhdf5,group,"fesel",fesel_)      
+        call hdf5_read(fhdf5,group,"nk_max",nk_max_)
+        call hdf5_read(fhdf5,group,"nk_bse",nk_bse_)
+        call hdf5_read(fhdf5,group,"hamsize",hamsize_)
+        call hdf5_read(fhdf5,group,"iq", iq_)
+        call hdf5_read(fhdf5,group,"vqlmt(iq)", vqlmt_(1), (/3/))
+        call hdf5_read(fhdf5,group,"ngridk", ngridk_(1), shape(ngridk_))
+        call hdf5_read(fhdf5,group,"nexcstored",nexcstored_)
+        call hdf5_read(fhdf5,group,"i1",iex1_)
+        call hdf5_read(fhdf5,group,"i2",iex2_)
+        call hdf5_read(fhdf5,group,"ioref",ioref_)
+        call hdf5_read(fhdf5,group,"iuref",iuref_)
+#ifdef MPI
       end if
-      gname_=trim(adjustl(gname))//"/"
-      ! Generate subgroup for each iqmt
-      if (.not. hdf5_exist_group(fhdf5,gname_,ciq)) then
-        call hdf5_create_group(fhdf5,gname,ciq)
-      end if
-      gname_=trim(adjustl(gname_))//trim(adjustl(ciq))//"/"
-      ! Read Meta data
-      group=trim(adjustl(gname_))//"parameters"
-      call hdf5_initialize()
-      call hdf5_read(fhdf5,group,"fcoup",fcoup_)      
-      call hdf5_read(fhdf5,group,"fesel",fesel_)      
-      call hdf5_read(fhdf5,group,"nk_max",nk_max_)
-      call hdf5_read(fhdf5,group,"nk_bse",nk_bse_)
-      call hdf5_read(fhdf5,group,"hamsize",hamsize_)
-      call hdf5_read(fhdf5,group,"iq", iq_)
-      call hdf5_read(fhdf5,group,"vqlmt(iq)", vqlmt_(1), (/3/))
-      call hdf5_read(fhdf5,group,"ngridk", ngridk_(1), shape(ngridk_))
-      call hdf5_read(fhdf5,group,"nexcstored",nexcstored_)
-      call hdf5_read(fhdf5,group,"i1",iex1_)
-      call hdf5_read(fhdf5,group,"i2",iex2_)
-      call hdf5_read(fhdf5,group,"ioref",ioref_)
-      call hdf5_read(fhdf5,group,"iuref",iuref_)
+      call mpi_bcast(fcoup_,1, MPI_LOGICAL,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(fesel_,1, MPI_LOGICAL,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(nk_max_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(nk_bse_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(hamsize_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(nexcstored_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(iex1_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(iex2_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(ioref_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(iuref_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(iq_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(vqlmt_,shape(vqlmt_), MPI_DOUBLE_PRECISION,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(ngridk_,shape(ngridk_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+#endif
 #else
       ! Read Meta data
       read(unexc, pos=1)&
@@ -465,17 +483,33 @@ module m_putgetexcitons
 
       allocate(evalstmp(iex1_:iex2_))
 #ifdef _HDF5_
-      call hdf5_read(fhdf5,group,"ikmap", ikmap_(1,1,1), shape(ikmap_))
-      call hdf5_read(fhdf5,group,"vkl0", vkl0_(1,1), shape(vkl0_))
-      call hdf5_read(fhdf5,group,"vkl", vkl_(1,1), shape(vkl_))
-      call hdf5_read(fhdf5,group,"ik2ikqmtm",ik2ikqmtm_(1), (/nk_max_/))
-      call hdf5_read(fhdf5,group,"ik2ikqmtp",ik2ikqmtp_(1), (/nk_max_/))
-      call hdf5_read(fhdf5,group,"ikqmtm2ikqmtp",ikqmtm2ikqmtp_(1), (/nk_max_/))
-      call hdf5_read(fhdf5,group,"kousize", kousize_(1), shape(kousize_))
-      call hdf5_read(fhdf5,group,"koulims",koulims_(1,1), shape(koulims_))
-      call hdf5_read(fhdf5,group,"smap",smap_(1,1), shape(smap_))
-      call hdf5_read(fhdf5,group,"smap_rel",smap_rel_(1,1), shape(smap_rel_))
-      call hdf5_read(fhdf5,gname_,"evals",evalstmp(1), shape(evalstmp))
+#ifdef MPI
+      if(mpiglobal%rank == 0) then
+#endif
+        call hdf5_read(fhdf5,group,"ikmap", ikmap_(0,0,0), shape(ikmap_))
+        call hdf5_read(fhdf5,group,"vkl0", vkl0_(1,1), shape(vkl0_))
+        call hdf5_read(fhdf5,group,"vkl", vkl_(1,1), shape(vkl_))
+        call hdf5_read(fhdf5,group,"ik2ikqmtm",ik2ikqmtm_(1), (/nk_max_/))
+        call hdf5_read(fhdf5,group,"ik2ikqmtp",ik2ikqmtp_(1), (/nk_max_/))
+        call hdf5_read(fhdf5,group,"ikqmtm2ikqmtp",ikqmtm2ikqmtp_(1), (/nk_max_/))
+        call hdf5_read(fhdf5,group,"kousize", kousize_(1), shape(kousize_))
+        call hdf5_read(fhdf5,group,"koulims",koulims_(1,1), shape(koulims_))
+        call hdf5_read(fhdf5,group,"smap",smap_(1,1), shape(smap_))
+        call hdf5_read(fhdf5,group,"smap_rel",smap_rel_(1,1), shape(smap_rel_))
+        call hdf5_read(fhdf5,gname_,"evals",evalstmp(1), shape(evalstmp))
+#ifdef MPI
+      end if
+      call mpi_bcast(ikmap_,shape(ikmap_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(ik2ikqmtm_,shape(ik2ikqmtm_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(ik2ikqmtp_,shape(ik2ikqmtm_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(kousize_,shape(kousize_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(koulims_,shape(koulims_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(smap_,shape(smap_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(smap_rel_,shape(smap_rel_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(vkl0_,shape(vkl0_), MPI_REAL,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(vkl_,shape(vkl_), MPI_REAL,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(evalstmp,shape(evalstmp), MPI_REAL,0,mpiglobal%comm,mpiglobal%ierr)
+#endif
 #else
       read(unexc, pos=mypos)&
         & ikmap_,&      ! Non reduced k-grid index map 3d -> 1d 
@@ -521,12 +555,28 @@ module m_putgetexcitons
 #ifdef _HDF5_
       ! Resonant part of the eigenvectors
       allocate(rvec_(hamsize_, i1:i2))
-      call hdf5_read(fhdf5,gname_,"rvec", rvec_(1,1), shape(rvec_))
-      if(fcoup_) then  
-        ! Anti-resonant part of the eigenvectors
-        allocate(avec_(hamsize_, i1:i2))
-        call hdf5_write(fhdf5,gname_,"avec", avec_(1,1), shape(avec_))
+      allocate(rvec2_(hamsize_))
+#ifdef MPI
+      if(mpiglobal%rank == 0) then
+#endif
+        gname_=trim(adjustl(gname_))//'rvec'
+        do lambda=i1,i2
+          write(pos,'(I8.8)') lambda
+          call hdf5_read(fhdf5,gname_,pos, rvec2_(1), shape(rvec2_))
+          rvec_(:,lambda)=rvec2_(:)
+        end do
+        if(fcoup_) then  
+          ! Anti-resonant part of the eigenvectors
+          allocate(avec_(hamsize_, i1:i2))
+          gname_=trim(adjustl(gname_))//'rvec'
+        do lambda=i1,i2
+          write(pos,'(I8.8)') lambda
+          call hdf5_read(fhdf5,gname_,pos, avec_(1,lambda), (/hamsize_/))
+        end do
+        end if
+#ifdef MPI
       end if
+#endif
 #else
       ! Resonant part of the eigenvectors
       allocate(rvec_(hamsize_, i1:i2))
@@ -542,6 +592,17 @@ module m_putgetexcitons
       end if
       close(unexc)
 #endif
+
+#ifdef _HDF5_
+#ifdef MPI
+    call mpi_bcast(evals_, shape(evals_), MPI_DOUBLE_COMPLEX,0, mpiglobal%comm,mpiglobal%ierr)
+    call mpi_bcast(rvec_, shape(rvec_), MPI_DOUBLE_COMPLEX,0, mpiglobal%comm,mpiglobal%ierr)
+    call mpi_bcast(nk_bse_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+    call mpi_bcast(iuref_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+    call mpi_bcast(koulims_,shape(koulims_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+#endif
+#endif
+
       ! Set stored index range
       iex1_ = i1
       iex2_ = i2
@@ -551,7 +612,6 @@ module m_putgetexcitons
     end subroutine get_excitons
 
     subroutine putd_excitons(evals, drvec, davec, iqmt, a1, a2)
-      use modxs, only: fhdf5
       use mod_hdf5
       use mod_kpoint, only: ikmap
       use modinput
@@ -570,6 +630,7 @@ module m_putgetexcitons
       logical :: fcoup, fesel, fchibarq
       integer(4) :: i1, i2, nexcstored, iq, m, n, m2, n2, i, ngridk(3)
       logical :: sane, distributed
+      real(8) :: de_(hamsize)
 
 
       character(256) :: fname, ciq, ci
@@ -701,6 +762,8 @@ module m_putgetexcitons
         end if
 #endif
 #ifdef _HDF5_
+        ! sort IP energy differences for write-out
+        de_(:)=de(ensortidx)
         ! Create hdf5 File
         write(ciq, '(I4.4)') iq ! Generate string out of momentum transfer index
         gname="eigvec"//trim(bsetypestring)//trim(scrtypestring)
@@ -724,7 +787,7 @@ module m_putgetexcitons
         call hdf5_write(fhdf5,group,"iq", iq)
         call hdf5_write(fhdf5,group,"vqlmt(iq)", vqlmt(1,iq), shape(vqlmt(1:3,iq)))
         call hdf5_write(fhdf5,group,"ngridk", ngridk(1), shape(ngridk))
-        call hdf5_write(fhdf5,group,"ikmap", ikmap(1,1,1), shape(ikmap))
+        call hdf5_write(fhdf5,group,"ikmap", ikmap(0,0,0), shape(ikmap))
         call hdf5_write(fhdf5,group,"vkl0", vkl0(1,1), shape(vkl0))
         call hdf5_write(fhdf5,group,"vkl", vkl(1,1), shape(vkl))
         call hdf5_write(fhdf5,group,"ik2ikqmtp",ik2ikqmtp(1), shape(ik2ikqmtp(:)))
@@ -739,8 +802,10 @@ module m_putgetexcitons
         call hdf5_write(fhdf5,group,"i2",i2)
         call hdf5_write(fhdf5,group,"ioref",ioref)
         call hdf5_write(fhdf5,group,"iuref",iuref)
+        call hdf5_write(fhdf5,group,"ensortidx",ensortidx(1),shape(ensortidx))
         ! Write actual data
         call hdf5_write(fhdf5,gname_,"evals",evals(1), shape(evals))
+        call hdf5_write(fhdf5,gname_,"evalsIP",de_(1), shape(de_))
         ! Create groups for distributed eigenvectors
         if (.not. hdf5_exist_group(fhdf5,gname_,"rvec")) then
           call hdf5_create_group(fhdf5,gname_,"rvec")
@@ -790,7 +855,6 @@ module m_putgetexcitons
           ! Write eigenvector
 #ifdef _HDF5_
           write(ci, '(I8.8)') i
-          print *, 'ci=', trim(ci)
           call hdf5_write(fhdf5, group, ci, dauxmat%za(1,1),  shape(dauxmat%za(1:m,1)))
 #else          
           write(unexc) dauxmat%za(1:m,1)

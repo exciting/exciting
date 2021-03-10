@@ -70,7 +70,7 @@ contains
     !----------------------------
     ! sanity checks for core excitations
     !----------------------------    
-    if (input%xs%BSE%xas) then
+    if (input%xs%BSE%xas .or. input%xs%bse%xes) then
       do ipair = 1, size(input%xs%excitonplot%excitonarray)
         fix = trim(input%xs%excitonplot%excitonarray(ipair)%exciton%fix)
         if (fix .eq. 'electron') then

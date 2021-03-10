@@ -14,7 +14,7 @@ subroutine screenlauncher
   use mod_qpoint, only: nqpt
   use modxs, only: xsgnt, nwdf, qpari,&
                    & qparf, unitout, totalqlmt, qvkloff,&
-                   & gqdirname, eps0dirname, scrdirname, timingdirname,&
+                   & gqdirname, eps0dirname, scrdirname, &
                    & ikmapikq, nkpt0, vkl0, usefilext0, filext0, filexteps,&
                    & iqmt0, iqmt1, evalsv0, istocc0, istunocc0, isto0, isto,&
                    & istu0, istu, nst1, nst2, ngq
@@ -112,12 +112,6 @@ subroutine screenlauncher
   scrdirname = 'SCREEN'
   if(rank == 0) then
     syscommand = 'test ! -e '//trim(adjustl(scrdirname))//' && mkdir '//trim(adjustl(scrdirname))
-    call system(trim(adjustl(syscommand)))
-  end if
-  ! Making folder for timing related info output
-  timingdirname = 'TIMINGS'
-  if(rank == 0) then
-    syscommand = 'test ! -e '//trim(adjustl(timingdirname))//' && mkdir '//trim(adjustl(timingdirname))
     call system(trim(adjustl(syscommand)))
   end if
   call barrier(callername=trim(thisname))
