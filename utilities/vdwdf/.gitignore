@@ -1,0 +1,31 @@
+# .gitignore for vdwf
+
+# Binary
+noloco
+noloco.exe
+
+# CMake build directory
+/build
+
+# External library and its config files
+Cuba-3.2/libcuba.a
+Cuba-3.2/partview
+Cuba-3.2/demo-c
+Cuba-3.2/demo-fortran
+Cuba-3.2/config.status
+Cuba-3.2/makefile
+Cuba-3.2/config.log
+Cuba-3.2/config.h
+
+# CMake external project files/dirs that arise in
+# Cuba's directory from performing in-source build
+Cuba-3.2/lib
+Cuba-3.2/include
+Cuba-3.2/bin
+Cuba-3.2/share
+Cuba-3.2/tmp
+Cuba-3.2/CMakeCache.txt
+Cuba-3.2/modules
+Cuba-3.2/CMakeFiles
+Cuba-3.2/Makefile
+Cuba-3.2/cmake_install.cmake

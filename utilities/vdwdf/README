@@ -54,17 +54,55 @@ VV09    : O.A.Vydrov, T.V.Voorhis, Phys. Rev. Lett. 103, 063004 (2009)
 
 --------------------------------------------------------------------------------
 
-Compilation
+Compilation with GNU make
 
-1. Compiling the CUBA library:
-   Enter to Cuba-* directory and:
+1. Compiling the CUBA library
+   Enter to Cuba-* directory and type:
+   
    ./configure
    make lib
+
    
 2. Compiling noloco
-   In the program directory one should edit make.inc file
-   (choose a fortran compiler and optimization options) and then
+   Compiler settings can be set in the root `Makefile`. The default is GCC. 
+   Running the Makefile will automatically run the configure command for CUBA,
+   therefore it should be sufficent to simply type:
+   
    make
+
+   to build Cuba and noloco.
+
+
+Compilation with CMake
+
+1. Compiling CUBA can be done manually, as specified above.
+
+2. Compiling noloco
+   In the root directory, type:
+   
+   mkdir build && cd build
+   cmake ../
+   make
+
+   If CUBA has not been built, CMake will run the configure and make commands
+   for CUBA, prior to building noloco. 
+
+--------------------------------------------------------------------------------
+
+Execution:
+
+If built with GNU make:
+
+               ./noloco < input.in > EcNL.out
+
+else if built with CMake:
+
+               ./build/bin/noloco.exe <input.in > EcNL.out
+
+For test purposes, one can find an example of the input file (input.in)
+and the xsf files (test_density.xsf, test_gradients.xsf) in the <root> and
+<root>/tests folders, respectively. Additionally, the expected output (EcNL.out)
+is also present in <root>/tests.
 
 --------------------------------------------------------------------------------
 
@@ -173,12 +211,18 @@ HOWTO generate the xsf file with
 Execution:
 
 
+If built with GNU make:
+
                ./noloco < input.in > EcNL.out
-     
 
-For test purposes, in the source code directory one can find an example of
-xsf file (test.xsf) and an example of the input file (input.in).
+else if built with CMake:
 
+               ./build/bin/noloco.exe <input.in > EcNL.out
+
+For test purposes, one can find an example of the input file (input.in)
+and the xsf files (test_density.xsf, test_gradients.xsf) in the <root> and
+<root>/tests folders, respectively. Additionally, the expected output (EcNL.out)
+is also present in <root>/tests.
 
 --------------------------------------------------------------------------------     
 
