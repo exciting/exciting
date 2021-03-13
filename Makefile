@@ -118,10 +118,6 @@ stateconvert::
 species::
 	cd src/species; $(MAKE)
 
-vdwdf:
-	cd src/src_vdwdf
-	$(MAKE)
-
 # ---------------------------
 
 libs:
@@ -137,7 +133,6 @@ clean:
 	cd build/mpiandsmp; $(MAKE) clean cleanlibs
 	cd src/spacegroup; $(MAKE) clean
 	cd src/species; $(MAKE) clean
-	cd src/src_vdwdf; $(MAKE) clean
 	cd src/stateinfo; $(MAKE) clean
 	cd src/stateconvert; $(MAKE) clean
 	rm -f *.o *.mod *~ fort.* ifc* *.gcno *.exe exdg.*

@@ -1,5 +1,5 @@
 # Integration parameters
-  ./                     ! path to vdW-DF kernel 
+  params                 ! path to vdW-DF kernel 
   vdW-DF                 ! vdW-DF type (vdW-DF, vdW-DF2, VV09)
   0 0 0                  ! number of unit cells in x/y/z-direction
   1.d-16                 ! relative integration accuracy
@@ -9,5 +9,5 @@
 
 # Density data file      
   bohr                   ! bohr/angs: charge density units [e/(bohr^3) or e/(angs^3)]
-  test_density.xsf       ! density
-  test_gradients.xsf     ! density gradients (optional)
+  tests/test_density.xsf       ! density
+  tests/test_gradients.xsf     ! density gradients (optional)

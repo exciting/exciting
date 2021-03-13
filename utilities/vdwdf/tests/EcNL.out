@@ -1,0 +1,60 @@
+
+ **********************  noloco  **********************
+   vdW-DF kernel file            : params/kernel.dat
+   vdW-DF type                   : vdW-DF    
+   supercell size                :  0   0   0
+   relative integration accuracy :    0.100D-15
+   absolute integration accuracy :    0.100D-03
+
+   Density file                  : tests/test_density.xsf
+   Density gradients file        : tests/test_gradients.xsf
+
+ **********************  noloco  **********************
+   vdW-DF kernel file            : params/kernel.dat
+   vdW-DF type                   : vdW-DF    
+   supercell size                :  0   0   0
+   relative integration accuracy :    0.100D-15
+   absolute integration accuracy :    0.100D-03
+
+   Density file                  : tests/test_density.xsf
+   Density gradients file        : tests/test_gradients.xsf
+
+ **********************  noloco  **********************
+   vdW-DF kernel file            : params/kernel.dat
+   vdW-DF type                   : vdW-DF    
+   supercell size                :  0   0   0
+   relative integration accuracy :    0.100D-15
+   absolute integration accuracy :    0.100D-03
+
+   Density file                  : tests/test_density.xsf
+   Density gradients file        : tests/test_gradients.xsf
+
+ **********************  noloco  **********************
+   vdW-DF kernel file            : params/kernel.dat
+   vdW-DF type                   : vdW-DF    
+   supercell size                :  0   0   0
+   relative integration accuracy :    0.100D-15
+   absolute integration accuracy :    0.100D-03
+
+   Density file                  : tests/test_density.xsf
+   Density gradients file        : tests/test_gradients.xsf
+
+ **********************  noloco  **********************
+   vdW-DF kernel file            : params/kernel.dat
+   vdW-DF type                   : vdW-DF    
+   supercell size                :  0   0   0
+   relative integration accuracy :    0.100D-15
+   absolute integration accuracy :    0.100D-03
+
+   Density file                  : tests/test_density.xsf
+   Density gradients file        : tests/test_gradients.xsf
+
+    ====== RESULTS OF INTEGRATION ======
+    nregions =                 10840
+    neval    =                      121603292
+    fail     =                     0
+
+   Ec_NL=       0.14876720   error=    0.00006958   p=     0.000
+
+   Execution time:            0  min          27 sec
+
