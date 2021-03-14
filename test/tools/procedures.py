@@ -60,8 +60,8 @@ def exciting_run(executable:str, mainOut:str, maxTime:int):
     '''
     Executes a exciting run, checks if it was successfull.
     Input:
-        executable  string    program that will be executed 
-                              (excitingser, excitingmpi, mpirun -np NP excitingmpi)
+        executable  string    executable command (poorly-named). For example:
+                              exciting_serial or mpirun -np NP exciting_mpismp
         mainOut     string    main output file (INFO.OUT)
         maxTime     int       maximum time for an exciting run in seconds
     Output:
@@ -97,7 +97,7 @@ def runSingleTest(testFarm:str, mainOut:str, testDir:str, runDir:str,
     :runDir:          name of the run directory of the test case
     :refDir:          name of the ref directory of the test case
     :init_default:    location of the default init.xml
-    :execuatable:     executable for the exciting run
+    :execuatable:     executable command 
     :timing:          test run times in seconds
     :handle_errors:   Whether or not failures and passes are allowed to propagate
 
@@ -213,12 +213,12 @@ def runTests(testFarm:str, mainOut:str, testList:list, runDir:str, refDir:str,
     :skipped_tests:     list of tests to skip
     :handle_errors:     Whether or not failures and passes are allowed to propagate
     '''
-    if 'excitingser' in executable:
-        print('Run tests with excitingser.')
-    elif 'excitingmpismp' in executable:
-        print('Run tests with excitingmpismp with %i open MP threads and %i MPI processes.'%(omp, np))
-    elif 'excitingmpi' in executable:
-        print('Run tests with excitingmpi %i MPI processes.'%np)
+    if 'exciting_serial' in executable:
+        print('Run tests with exciting_serial.')
+    elif 'exciting_mpismp' in executable:
+        print('Run tests with exciting_mpismp with %i open MP threads and %i MPI processes.'%(omp, np))
+    elif 'exciting_purempi' in executable:
+        print('Run tests with exciting_purempi %i MPI processes.'%np)
 
     testList = remove_tests_to_skip(testList, skipped_tests)
     timing = {}

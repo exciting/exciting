@@ -14,7 +14,7 @@ info:
 
 # exciting binary  
 
-all: info serial mpiandsmp 
+all: info mpiandsmp smp
 
 serial:
 	cd build/serial; $(MAKE)

@@ -1,4 +1,4 @@
-export SUFFIX=ser
+export SUFFIX=_serial
 all:
 	$(MAKE)  -f ../Make.common
 
@@ -11,9 +11,3 @@ clean:
 
 cleanlibs:
 	$(MAKE) cleanlibs  -f ../Make.common
-
-
-
-
-
-	

@@ -15,7 +15,7 @@ build:debian-buster-GCC8-serial:
   # Alternative is to use an env variable
   artifacts:
     paths:
-      - bin/excitingser
+      - bin/exciting_serial
       - build/make.inc 
     # Uploads expire after 5 hours
     expire_in: 5 hrs
@@ -33,7 +33,7 @@ test-debian-buster-GCC8-serial:
     - apt-get install -y libpython3.7 libpython3.7-dev python3-pip
     - pip3 install numpy termcolor lxml
   script:
-    - cd test && python3 runtest.py -a run -e excitingser
+    - cd test && python3 runtest.py -a run -e exciting_serial
 
 
 build:debian-buster-GCC8-mpiandsmp:
@@ -46,7 +46,7 @@ build:debian-buster-GCC8-mpiandsmp:
     - make mpiandsmp -j 2
   artifacts:
     paths:
-      - bin/excitingmpismp
+      - bin/exciting_mpismp
       - build/make.inc 
     expire_in: 5 hrs
 
@@ -64,7 +64,7 @@ test-debian-buster-GCC8-mpiandsmp:
     # Allow mpirun to run as root (mpirun typically shouldn't be run as root)
     # See this ref: https://github.com/open-mpi/ompi/issues/4451
     - sed -i '/input_options/s/mpirun -np/mpirun --allow-run-as-root -np /g' test/runtest.py
-    - cd test && python3 runtest.py -a run -e excitingmpismp 
+    - cd test && python3 runtest.py -a run -e exciting_mpismp 
 
 
 build:debian-buster-Intel2019-serial:
@@ -85,7 +85,7 @@ build:debian-buster-Intel2019-serial:
     - make serial -j 2
   artifacts:
     paths:
-      - bin/excitingser
+      - bin/exciting_serial
       - build/make.inc 
     expire_in: 5 hrs
 
@@ -106,7 +106,7 @@ test-debian-buster-Intel2019-serial:
     - apt-get install -y libpython3.7 libpython3.7-dev python3-pip 
     - pip3 install numpy termcolor lxml  
   script:
-    - cd test && python3 runtest.py -a run -e excitingser 
+    - cd test && python3 runtest.py -a run -e exciting_serial 
 
 build:debian-buster-Intel2019-mpiandsmp:
   image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
@@ -126,7 +126,7 @@ build:debian-buster-Intel2019-mpiandsmp:
     - make mpiandsmp -j 2
   artifacts:
     paths:
-      - bin/excitingmpismp
+      - bin/exciting_mpismp
       - build/make.inc
       # This dir includes pgopti.spi and pgopti.spl for use in profiling
       - docs/profiling
@@ -148,7 +148,7 @@ test-debian-buster-Intel2019-mpiandsmp:
     - apt-get install -y libpython3.7 libpython3.7-dev python3-pip libfabric1 libfabric-dev
     - pip3 install numpy termcolor lxml
   script:
-    - cd test && python3 runtest.py -a run -e excitingmpismp
+    - cd test && python3 runtest.py -a run -e exciting_mpismp
     - cd ../docs/profiling && profmerge
     - codecov -prj test_suite
   artifacts:

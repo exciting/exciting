@@ -7,7 +7,7 @@ From the exciting root directory, the whole test suite can be run by typing:
 ```
 $ make test
 ```
-In this case the test suite is run with `excitingser` as executable. If you want to run the test suite instead with `excitingmpi` or `excitingmpismp` you have to use the following command:
+In this case the test suite is run with `exciting_serial` as executable. If you want to run the test suite instead with `exciting_purempi` or `exciting_mpismp` you have to use the following command:
 ```
 $ make test_mpi
 ```
@@ -21,9 +21,9 @@ If you don't want to run the whole test suite, you can explicitly call the scrip
 ```
 $ cd exciting/test
 ```
-You have to first specify the action you want to execute by using the `-a (--action)` option. In this case you have to type `run` to run parts of the test suite (`clean` to clean the run/ directories). Than you have to specify the executable with the `-e (--executable)` option (e.g. excitingser). For an MPI calculation you can set the number of cores used for the MPI run by using `-np (--NP)`. The number of omp threads can be chosen with `-omp (--ompthreads)`. To choose which test cases will be run, you have to use `-t (--tests)` and give the names of test cases divided by spaces. Leaving out `-t` will run all test cases. If you want to propagate assertion failures to the end, you have to add the `-handle-errors` option. That is needed if you want to run all the test cases even if a failure in one of them occurs.
+You have to first specify the action you want to execute by using the `-a (--action)` option. In this case you have to type `run` to run parts of the test suite (`clean` to clean the run/ directories). Than you have to specify the executable with the `-e (--executable)` option (e.g. exciting_serial). For an MPI calculation you can set the number of cores used for the MPI run by using `-np (--NP)`. The number of omp threads can be chosen with `-omp (--ompthreads)`. To choose which test cases will be run, you have to use `-t (--tests)` and give the names of test cases divided by spaces. Leaving out `-t` will run all test cases. If you want to propagate assertion failures to the end, you have to add the `-handle-errors` option. That is needed if you want to run all the test cases even if a failure in one of them occurs.
 ```
-$ python3 runtest.py -a run  -e excitingmpi -np 3 -t groundstate-GGA_PBE-Ar groundstate-GGA_PBE-properties-Si --handle-errors
+$ python3 runtest.py -a run  -e exciting_mpiandsmp -np 3 -t groundstate-GGA_PBE-Ar groundstate-GGA_PBE-properties-Si --handle-errors
 ```
 In this case make sure to clean the `run/` directories after you have run the test suite. Do so by typing:
 ```
@@ -53,7 +53,7 @@ Self tests SUCCESS
 Below you can see the results from the actual test suite run. 
 ```
 Run test suite:
-Run tests with excitingser.
+Run tests with exciting_serial.
 ```
 First of all you can see whether the run of the test case was successful and how much time the run took. Below that the information on the comparison of the output files are stored. In the first test case all 6 output files are consistent with the references (in the tolerance limits). 
 ```
@@ -190,7 +190,7 @@ $ python3 newtestcase.py -n name -d description -i init_file.xml
 
 If you want to add or remove single output files from the init file or adjust the tolerances, you have to do this manually. Therefore you need to understand the basic structure of an init file.
 
-At the top of the init file the name and description you chose for the test case is defined. Followed by the executable for the reference calculation (is always excitingser). 
+At the top of the init file the name and description you chose for the test case is defined. Followed by the executable for the reference calculation (is always exciting_serial). 
 Below you find several `test` elements. In each of those elements one output file is defined. Therefore five attributes are used:
 
 - `file`: name of the output file.
@@ -203,7 +203,7 @@ or system dependent values (e.g. timing).
 ```xml
 <init name        = 'test_name'
       description = 'test_description'
-      executable  = 'excitingser'>
+      executable  = 'exciting_serial'>
   <test   file      = 'atoms.xml'
           tolFloat  = '1e-6'
           tolMSE    = '1e-6'
