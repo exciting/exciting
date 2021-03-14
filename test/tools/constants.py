@@ -4,10 +4,10 @@
 
 from collections import namedtuple
 
-_binary_names    = ['excitingser', 'excitingmpi', 'excitingmpismp']
-_exe_ref         = 'excitingser'
-_default_np      = {'excitingser':1, 'excitingmpi':2, 'excitingmpismp':2}
-_default_threads = {'excitingser':1, 'excitingmpi':1, 'excitingmpismp':2}
+_binary_names    = ['exciting_serial', 'exciting_purempi', 'exciting_mpismp']
+_exe_ref         = 'exciting_serial'
+_default_np      = {'exciting_serial':1, 'exciting_purempi':2, 'exciting_mpismp':2}
+_default_threads = {'exciting_serial':1, 'exciting_purempi':1, 'exciting_mpismp':2}
 _action_choices  = ['run', 'ref', 'clean', 'report']
 
 Defaults = namedtuple('Defaults', ['max_time',       # Time after which a test is killed (in seconds)

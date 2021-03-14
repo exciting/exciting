@@ -1,4 +1,4 @@
-export SUFFIX=mpi
+export SUFFIX=_purempi
 include ../make.inc
 
 all:

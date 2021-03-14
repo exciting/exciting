@@ -1,11 +1,12 @@
 include ../make.inc
-export SUFFIX=mpismp
+export SUFFIX=_mpismp
+
 ifeq  ($(BUILDSMP),true)
-ifeq ($(BUILDMPI),true)
-BUILDMPISMP=true
-F90=$(F90MT)
-F77=$(F77MT)
-endif
+  ifeq ($(BUILDMPI),true)
+    BUILDMPISMP=true
+    F90=$(F90MT)
+    F77=$(F77MT)
+  endif
 endif
 
 
@@ -25,8 +26,3 @@ clean:
 cleanlibs:
 	$(MAKE) cleanlibs  -f ../Make.common
 
-
-
-
-
-	

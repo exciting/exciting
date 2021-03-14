@@ -1,7 +1,9 @@
 include ../make.inc
-export SUFFIX=smp
+
+export SUFFIX=_smp
+
 ifeq ($(BUILDSMP),true)
-MTCOMPILE=true
+  MTCOMPILE=true
 endif
 
 all:
@@ -9,7 +11,6 @@ ifeq ($(BUILDSMP),true)
 	$(MAKE)  -f ../Make.common
 
 endif
-	
 
 libs:
 ifeq ($(BUILDSMP),true)
@@ -22,7 +23,3 @@ clean:
 cleanlibs:
 	$(MAKE) cleanlibs  -f ../Make.common
 
-
-
-
-	

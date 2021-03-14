@@ -39,15 +39,15 @@ The code can then be built by typing:
 
   make 
 
-in the exciting root directory. By default, the serial and mpiandsmp versions of exciting
+in the exciting root directory. By default, the mpiandsmp and smp versions of exciting
 are built, where mpiandsmp refers to a binary with both MPI and openMP parallelism enabled.
-Pure MPI and SMP builds are also possible by typing:
+Serial and pure MPI builds are also possible by typing:
 
-  make mpi
+  make serial
 
 and
 
-  make smp
+  make mpi
 
 respectively. Debug builds are available for the serial and mpiandsmp builds, by typing:
 

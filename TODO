@@ -12,7 +12,7 @@ Issue 47 (Alex). Move Lbfgsb.3.0 and LibXC 2.0.0 from src to external.
    with GCC. Need to improve feedback of the test suite.  
 
 Issue 45 (Alex). Move standalone programs out of src.
- - spacegroup, stateconvert, species, stateinfo, src_vdwdf, eos.
+ - spacegroup, stateconvert, species, stateinfo.
 
 Issue 14 (Alex). Migrate the build system to CMake.
  - Retain existing external libraries in our repository but move (issue 47).

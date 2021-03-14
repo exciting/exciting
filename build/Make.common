@@ -56,7 +56,8 @@ bin::../make.inc libs $(GeneratedFiles) $(LIBXCMOD)
          -p exciting $(SOURCEDIRS) $(LIBXCMOD) ../../src/mainxml/\
          && $(MAKE) -f Makefile.mkmf exciting
 	cp exciting ../../bin/exciting$(SUFFIX)
-	
+	cd ../../bin && ../build/utilities/create_sym_link.sh exciting$(SUFFIX)
+
 doc::
 	cd ./docs/exciting; \
 	perl ../../build/utilities/scripts/genprotexdoc.pl ../../src/mainxml/  $(SOURCEDIRS)  ;\

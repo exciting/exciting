@@ -2,7 +2,7 @@
 Parser command-line arguments and run the test suite.
 
 To run all tests in serial, type `python3 runtest.py -a run`
-To run all tests in parallel, type `python3 runtest.py -a run -e excitingmpismp`
+To run all tests in parallel, type `python3 runtest.py -a run -e exciting_mpismp`
 For more details, type `python3 runtest.py --help`
 """
 
@@ -71,22 +71,22 @@ def optionParser(testFarm:str, exedir:str):
                    nargs = '+')
 
     help_executable = "exciting executables. "\
-        + "'excitingser' for serial version of the code; "\
-        + "'excitingmpi' for version with MPI parallisation; "\
-        + "'excitingmpismp for version with MPI amd SMP parallisation;" \
-        + "Default is excitingser"
+        + "'exciting_serial' for the serial binary; "\
+        + "'exciting_purempi' for the binary with MPI parallisation, only; "\
+        + "'exciting_mpismp for the binary with MPI amd SMP parallisation;" \
+        + "Default is exciting_serial"
     
     p.add_argument('-e',
                    metavar = '--executable',
                    help = help_executable,
                    type = str,
-                   default = 'excitingser',
+                   default = 'exciting_serial',
                    choices = settings.binary_names)
     
     p.add_argument('-np',
                    metavar = '--NP',
                    help = "Number of cores for MPI run. Can only be used in " + \
-                   "combination with excitingmpi or excitingmpismp as executable. " + \
+                   "combination with exciting_purempi or exciting_mpismp as executable. " + \
                    "Default is 2 for MPI and MPI+OMP calculations, and 1 for serial or pure OMP", 
                    type = int)
     
@@ -121,12 +121,12 @@ def optionParser(testFarm:str, exedir:str):
     input_options['np']  = args.np if args.np is not None else settings.default_np[args.e] 
     input_options['omp'] = args.omp if args.omp is not None else settings.default_threads[args.e]
 
-    if args.e == 'excitingser':
+    if args.e == 'exciting_serial':
         if args.np is not None:
             warnings.warn('Using serial exciting, -np will be ignored.')
         if args.omp is not None:
             warnings.warn('Using serial exciting, -omp will be ignored.')
-    if args.e == 'excitingmpi':
+    if args.e == 'exciting_purempi':
          if args.omp is not None:
             warnings.warn('Using pure mpi exciting, -omp will be ignored.')
             
@@ -141,7 +141,7 @@ def optionParser(testFarm:str, exedir:str):
             raise ValueError('Could not find %s/ in %s/'%(t, testFarm))
 
     input_options['executable'] = os.path.join(exedir, args.e)            
-    if args.e in ['excitingmpi', 'excitingmpismp']:
+    if args.e in ['exciting_purempi', 'exciting_mpismp']:
         input_options['executable'] = \
             'mpirun -np %i %s' % (input_options['np'], input_options['executable'])
 

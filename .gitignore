@@ -24,14 +24,8 @@ build/mpiandsmp/exciting
 build/debug/exciting
 build/debugmpi/exciting
 build/debugmpiandsmp/exciting
-# Executables and the bin directory
-/bin
-excitingdebug  
-excitingdebugmpi  
-excitingser  
-excitingsmp
-excitingmpi  
-excitingmpismp  
+# Bin directory, covering all executables
+/bin/
 
 # Binaries from standalone builds 
 # Kept paths as 'species' and 'spacegroup' are very general names 

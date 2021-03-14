@@ -23,10 +23,10 @@ class Build_type(enum.Enum):
     purempi = enum.auto()
     all = enum.auto()
 
-build_type_enum_map = {'excitingser':Build_type.serial,  
-                       'excitingmpismp':Build_type.mpiandsmp,
-                       'excitingsmp':Build_type.puresmp,
-                       'excitingmpi':Build_type.purempi
+build_type_enum_map = {'exciting_serial':Build_type.serial,  
+                       'exciting_mpismp':Build_type.mpiandsmp,
+                       'exciting_smp':Build_type.puresmp,
+                       'exciting_purempi':Build_type.purempi
                        }
 
 

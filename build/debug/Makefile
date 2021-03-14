@@ -1,4 +1,4 @@
-export SUFFIX=debug
+export SUFFIX=_debug_serial
 all:
 	$(MAKE)  -f ../Make.common
 
@@ -13,7 +13,3 @@ cleanlibs:
 	$(MAKE) cleanlibs  -f ../Make.common
 
 
-
-
-
-	
