@@ -1,7 +1,7 @@
 #!/bin/bash    
 #_______________________________________________________________________________
 #
-EXECUTABLE=$EXCITINGROOT/bin/excitingser
+EXECUTABLE=$EXCITINGROOT/bin/exciting_smp
 #
 CURRENT=$PWD
 #-------------------------------------------------------------------------------

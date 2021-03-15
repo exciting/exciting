@@ -15,7 +15,7 @@ model="input_graphite.xml"
 sed -e 's=\$EXCITINGROOT='"$EXCITINGROOT"'=g' $model > draft.xml
 
 # aliases for commands
-exciting="$EXCITINGROOT/bin/excitingser"
+exciting="$EXCITINGROOT/bin/exciting_smp"
 xml2xsf="xsltproc $EXCITINGROOT/xml/visualizationtemplates/plot3d2xsf.xsl"
 
 #====================================================
