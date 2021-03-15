@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-EXECUTABLE=$EXCITINGROOT/bin/excitingser
+EXECUTABLE=$EXCITINGROOT/bin/exciting_smp
 
 label=`ls -d Dst??`
 for Dstn in $label ; do

@@ -39,7 +39,7 @@ eabs="0.001"
 #   Input files and commands
 #====================================================
 
-exciting="$EXCITINGROOT/bin/excitingser"
+exciting="$EXCITINGROOT/bin/exciting_smp"
 xml2xsf="xsltproc $EXCITINGROOT/xml/visualizationtemplates/plot3d2xsf.xsl"
 noloco="$EXCITINGROOT/src/vdwdf/noloco"
 

@@ -22,7 +22,7 @@ def run_exciting(run_label):
     #cline = "cd workdir ; qsub runscript.sh ; cd ../"
     
     # LOCAL workstation
-    cline = "cd workdir; $EXCITINGROOT/bin/excitingser ; cd ../"
+    cline = "cd workdir; $EXCITINGROOT/bin/exciting_smp ; cd ../"
 
     os.system(cline)
     
