@@ -289,6 +289,20 @@ def parse_elnes(name):
 
     return out
 
+#parser for SEEBECK_11.OUT
+def parse_seebeck(name): 
+    try:
+        data = np.genfromtxt(name)
+    except:
+        raise ParseError
+    out = {}
+    out['t']  = list(data[:,0])
+    out['mu'] = list(data[:,1])
+    out['realpart'] = list(data[:,2])
+    out['imaginarypart'] = list(data[:,2])
+
+    return out
+
 #parser for ldos.out
 def parse_ldos(name):
     try:
@@ -798,6 +812,35 @@ class excitingElnes():
                 sys.exit()
         return data
 
+class excitingSeebeck():
+
+    def __init__(self, filePath):
+        self.path  = filePath 
+        if not os.path.exists(self.path):  
+            raise OSError('Path not valid.')
+        try:
+            self.data  = parse_seebeck(self.path)     
+        except ParseError:                                              
+            raise ErrornousFileError
+
+    def returnData(self, dataPath):
+        '''                                                                                             
+        returns the data, saved at the dataPath.                                                        
+        In:                                                                                             
+        dataPath     string     path of the data                                                     
+        '''
+        keys = dataPath.split('/') #datapath splitted in to single keys                                  
+        l = len(keys)
+        data = parse_seebeck(self.path)
+        for i in range (0,l):
+            try:
+                data = data[keys[i]] #value of the given datapath                                        
+            except KeyError:      #checks if the datapath exists                                         
+                print ("invalid key: ")
+                print (keys[i])
+                sys.exit()
+        return data
+    
 class excitingLdos():
 
     def __init__(self, filePath):

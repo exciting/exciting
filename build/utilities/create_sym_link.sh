@@ -13,11 +13,17 @@ exciting_binary=${input_array[0]}
 build_type=${input_array[${#input_array[@]}-1]}
 
 if [ "$build_type" = "mpismp" ] && [ $input_array_length -lt 3 ]; then
+    if test -f "exciting"; then
+	rm exciting 
+    fi
     ln -s exciting_mpismp exciting
     echo "Creating symbolic link: exciting -> exciting_mpismp"
 fi
 
 if [ "$build_type" = "mpismp" ] && [ $input_array_length == 3 ]; then
+    if test -f "exciting_debug"; then
+        rm exciting_debug
+    fi
     ln -s exciting_debug_mpismp exciting_debug
     echo "Creating symbolic link exciting_debug -> exciting_debug_mpismp"
 fi
