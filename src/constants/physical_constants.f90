@@ -17,18 +17,28 @@
 !> Physical constants
 module physical_constants
   use precision, only: dp
+  use constants, only: pi
   implicit none
   private
 
+  !> Planck constant in J.s (CODATA 2018)   
+  real(dp), public, parameter :: hplanck_si = 6.62607015e-34_dp
+
+  !> Reduced Planck constant in J.s (CODATA 2018)
+  real(dp), public, parameter :: hbar_si = hplanck_si / (2._dp * pi)
+
+  !> Elementary charge of an electron in C (CODATA 2018) 
+  real(dp), public, parameter :: elec_charge = 1.602176634e-19_dp
+  
   ! TODO(Alex) Issue #20. Update to CODATA 2018 physical units if required
   !> Boltzmann constant in Hartree/kelvin (CODATA 2006)
   Real(8), Public, Parameter :: kboltz = 3.166815343d-6
 
   !> Electron mass in kg (CODATA 2018)
-  Real(dp), Public, Parameter :: elec_mass   = 9.10938370e-31_dp;
+  Real(dp), Public, Parameter :: elec_mass = 9.10938370e-31_dp;
 
-  !> Speed of light in m/s (CODATA 2018) - exact
-  real(dp), private, parameter:: c0 = 299792458
+  !> Speed of light in m/s (CODATA 2018)
+  real(dp), private, parameter:: c0 = 299792458._dp
 
   !> Bohr radius in m (CODATA 2018)
   real(dp), private, parameter:: a0 = 0.52917721067e-10_dp
@@ -44,5 +54,8 @@ module physical_constants
 
   !> Electron g factor (CODATA 2018)
   real(dp), public, parameter :: ge = 2.00231930436256_dp
+
+  !> Bohr radius in metres (CODATA 2018) 
+  real(dp), public, parameter :: bohr_radius_si = 5.29177210903e-11_dp
 
 end module physical_constants

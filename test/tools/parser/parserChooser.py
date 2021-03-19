@@ -58,6 +58,14 @@ def parserChooser(path):
         return propertiesParser.excitingChi(path)
     elif fileName == 'ELNES.OUT':
         return propertiesParser.excitingElnes(path)
+    elif fileName == 'SEEBECK_11.OUT':
+        return propertiesParser.excitingSeebeck(path)
+    elif fileName == 'ELECTCOND_11.OUT':
+        return propertiesParser.excitingSeebeck(path)
+    elif fileName == 'THERMALCOND_11.OUT':
+        return propertiesParser.excitingSeebeck(path)
+    elif fileName == 'Z_11.OUT':
+        return propertiesParser.excitingSeebeck(path)
     elif fileName == 'ldos.out':
         return propertiesParser.excitingLdos(path)
     elif fileName == 'band_edges.out':
