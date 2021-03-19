@@ -11,7 +11,9 @@ sys.path.insert(1, 'tools')
 from utils import Compiler, Build_type, CompilerBuild, get_compiler_type, build_type_enum_map
 
 
-# Flakey tests
+# Flakey tests Issue #54
+# Update 16th March 2020. Remove the hybrid tests from the suite until more
+# robust testing is introduced and someone investigates them 
 #
 # Tests that don't always pass the CI for any discernable reason
 # are considered flakey rather than failing.
@@ -20,28 +22,12 @@ from utils import Compiler, Build_type, CompilerBuild, get_compiler_type, build_
 #  - groundstate-HYB_HSE-Si
 #  - groundstate-HYB_PBE0-Si
 #
-# The current solution is to loosen the tolerances if this is experienced,
-# and document the change. Looser tols are still likely to be lower than were set
-# in the old test suite.
-#
 # When ctest is introduced, this can addressed with the -repeat until-pass:2 option.
 # Additionly, explicit assertions and tolerances will make the hybrid tests more robust.
 # See MR !38 Testing/pytest.
 #
 # Also see Issue 51. Review tolerances for all tests migrated from the old test suite.
 
-
-# TODO(Bene) Issue #50 coreoverlap failes
-#   Core overlap calculation fails with: Error(rdirac): zero wavefunction
-
-skipped_tests_mpismp = [
-    # TODO(Alex) Issue #36 chargedensityplot hangs when running with np > 1 cores
-    {'name':'groundstate-GGA_PBE-electronic_structure-Al',   
-     'comment':'Hanging at an allgatherv call'},
-    # TODO(Bene) Issue #50 coreoverlap failes
-    {'name':'groundstate-GGA_PBE_SOL-core_overlap-BN',
-     'comment':'Returns: Error(rdirac): zero wavefunction'}
-]
 
 failing_tests = [
     # TODO(Alex) Issue #35. MPI GW calculations do not produce EPS00_GW.OUT
@@ -73,6 +59,24 @@ failing_tests = [
     {'name':'groundstate-GGA_PBE-properties-Si',
      'comment':'Epislon 11 and 33 do not agree with serial reference values',
      'tags': [CompilerBuild(Compiler.all, Build_type.mpiandsmp)]
+    },
+
+    # TODO(Cecilia) Issue 54 
+    {'name':'groundstate-HYB_HSE-Si',
+     'comment':'Test is flakey when run in the CI with Intel parallel build',
+     'tags': [CompilerBuild(Compiler.intel, Build_type.mpiandsmp)]
+    },
+
+    # TODO(Cecilia) Issue 54 
+    {'name':'groundstate-HYB_PBE0-Si',
+     'comment':'Test is flakey when run in the CI with Intel parallel build',
+     'tags': [CompilerBuild(Compiler.intel, Build_type.mpiandsmp)]
+    },
+
+    # TODO(Maria) Issue 55
+    {'name':'groundstate-LDA_PW-properties-transport-Si',
+     'comment':'Test is flakey when run in the CI with GCC builds: Test outputs are not written',
+     'tags': [CompilerBuild(Compiler.gcc, Build_type.all)]
     }
 ]
 

@@ -35,4 +35,7 @@ module unit_conversion
     ! 1 Hartree / h = 6.579 683 920 722(44) * 10^{15} Hz
     real(dp), public, parameter :: hartree_to_thz = 6.579683920722e-3_dp
 
+    ! Conversion from Hartree to Joules (CODATA 2018)
+    real(dp), public, parameter :: hartree_to_j = 4.3597447222071e-18_dp
+    
 end module unit_conversion
