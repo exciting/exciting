@@ -61,7 +61,7 @@ def exciting_run(executable:str, mainOut:str, maxTime:int):
     Executes a exciting run, checks if it was successfull.
     Input:
         executable  string    executable command (poorly-named). For example:
-                              exciting_serial or mpirun -np NP exciting_mpismp
+                              exciting_serial exciting_smp or mpirun -np NP exciting_mpismp
         mainOut     string    main output file (INFO.OUT)
         maxTime     int       maximum time for an exciting run in seconds
     Output:
@@ -215,6 +215,8 @@ def runTests(testFarm:str, mainOut:str, testList:list, runDir:str, refDir:str,
     '''
     if 'exciting_serial' in executable:
         print('Run tests with exciting_serial.')
+    elif 'exciting_smp' in executable:
+        print('Run tests with exciting_smp with %i open MP threads.'%(omp))
     elif 'exciting_mpismp' in executable:
         print('Run tests with exciting_mpismp with %i open MP threads and %i MPI processes.'%(omp, np))
     elif 'exciting_purempi' in executable:
