@@ -72,15 +72,16 @@ def optionParser(testFarm:str, exedir:str):
 
     help_executable = "exciting executables. "\
         + "'exciting_serial' for the serial binary; "\
+        + "'exciting_smp' for the shared-memory version; "\
         + "'exciting_purempi' for the binary with MPI parallisation, only; "\
         + "'exciting_mpismp for the binary with MPI amd SMP parallisation;" \
-        + "Default is exciting_serial"
+        + "Default is exciting_smp"
     
     p.add_argument('-e',
                    metavar = '--executable',
                    help = help_executable,
                    type = str,
-                   default = 'exciting_serial',
+                   default = 'exciting_smp',
                    choices = settings.binary_names)
     
     p.add_argument('-np',
@@ -126,6 +127,9 @@ def optionParser(testFarm:str, exedir:str):
             warnings.warn('Using serial exciting, -np will be ignored.')
         if args.omp is not None:
             warnings.warn('Using serial exciting, -omp will be ignored.')
+    if args.e == 'exciting_smp':
+         if args.np is not None:
+            warnings.warn('Using smp exciting, -np will be ignored.')
     if args.e == 'exciting_purempi':
          if args.omp is not None:
             warnings.warn('Using pure mpi exciting, -omp will be ignored.')

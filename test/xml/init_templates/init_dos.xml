@@ -1,6 +1,6 @@
 <init name        = 'test_name'
       description = 'test_description'
-      executable  = 'excitingser'>
+      executable  = 'exciting_smp'>
   <test file      = 'info.xml'
           tolFloat  = '1e-6'
           tolMSE    = '1e-6'
