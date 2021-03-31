@@ -8,12 +8,13 @@
 ! Modified March 2014 (UW)
 Subroutine exxengy
       Use modmain
-      Use modinput
+      Use modinput, only: input
       Use modmpi
       Implicit None
 ! local variables
       Integer :: is, ia, nrc, m1, m2
       Integer :: ik, ist, jst
+      Integer :: verbosity
       Real (8) :: evv, ecv, ecc
       Complex (8) zt1
 ! allocatable arrays
@@ -33,16 +34,22 @@ Subroutine exxengy
       evv = 0.d0
       ecv = 0.d0
       ecc = 0.d0
+      verbosity=input%groundstate%outputlevelnumber
+
 #ifdef MPI
          Do ik = firstk (rank), lastk (rank)
-            Write (*, '("Info(exxengy): ", I6, " of ", I6, " k-points on pr&
-        &oc:", I6)') ik, nkpt, rank
+            If (verbosity>1) then
+               Write (*, '("Info(exxengy): ", I6, " of ", I6, " k-points on pr&
+           &oc:", I6)') ik, nkpt, rank
+            End If
 
 #else
          Do ik = 1, nkpt
-             Write (*, '("Info(exxengy): ", I6, " of ", I6, " k-points")') ik, nkpt
+            If (verbosity>1) then
+                Write (*, '("Info(exxengy): ", I6, " of ", I6, " k-points")') ik, nkpt
+            End if 
 #endif       
-             call exxengyk (evv, ecv, ik) 
+            call exxengyk (evv, ecv, ik) 
          End Do
 #ifdef MPI
        call MPI_ALLREDUCE(MPI_IN_PLACE, evv, 1,  MPI_DOUBLE_PRECISION,  MPI_SUM, MPI_COMM_WORLD, ierr)

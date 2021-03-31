@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="http://xml.exciting-code.org/info.xsl" type="text/xsl"?>
+<info date="2021-03-30" time="10:41:32" versionhash="46286a5fdd47d54d2bec8c08072468a5fc675901" title="Diamond LDA">
+  <groundstate status="finished">
+    <scl>
+      <iter iteration="1" rms="3.03417724544103" rmslog10="0.482040947073" deltae="57.3961516180745" deltaelog10="1.75888277416" chgdst="9.472931212713538E-002" chgdstlog10="-1.02351561629" fermidos="0.00000000000">
+        <energies totalEnergy="-57.3961516181" fermiEnergy="0.995459242784" sum-of-eigenvalues="-23.8288247421" electronic-kinetic="75.2729067391" core-electron-kinetic="0.00000000000" Coulomb="-132.669058357" Coulomb-potential="-92.0648973482" nuclear-nuclear="-24.0847838488" electron-nuclear="-125.103651669" Hartree="16.5193771602" Madelung="-86.6366096831" xc-potential="-7.03683413306" exchange="0.00000000000" correlation="0.00000000000"/>
+        <charges totalcharge="12.00000000" core="4.000000000" core_leakage="0.4316613702E-03" valence="8.000000000" interstitial="3.576498619" muffin-tin-total="8.423501381">
+          <atom species="C" muffin-tin="4.211750690"/>
+          <atom species="C" muffin-tin="4.211750690"/>
+        </charges>
+        <timing timetot="3.51328134537" timeinit="0.547246217728" timemat="0.109410285950E-02" timefv="0.228641033173E-01" timesv="0.00000000000" timerho="0.387978553772E-02" timepot="2.93819713593" timefor="0.00000000000"/>
+      </iter>
+      <iter iteration="2" rms="2.31347621048413" rmslog10="0.364265038001" deltae="2.25694794820120" deltaelog10="0.353521543097" chgdst="2.883883944513285E-002" chgdstlog10="-1.54002222082" fermidos="0.00000000000">
+        <energies totalEnergy="-59.6530995663" fermiEnergy="0.978726526118" sum-of-eigenvalues="-25.8688573022" electronic-kinetic="76.4548502703" core-electron-kinetic="0.00000000000" Coulomb="-136.107949837" Coulomb-potential="-94.8537398792" nuclear-nuclear="-24.0847838488" electron-nuclear="-129.192592096" Hartree="17.1694261086" Madelung="-88.6810798970" xc-potential="-7.46996769330" exchange="0.00000000000" correlation="0.00000000000"/>
+        <charges totalcharge="12.00000000" core="4.000000000" core_leakage="0.3186086150E-03" valence="8.000000000" interstitial="3.441023244" muffin-tin-total="8.558976756">
+          <atom species="C" muffin-tin="4.279488378"/>
+          <atom species="C" muffin-tin="4.279488378"/>
+        </charges>
+        <timing itertime="1.66673183441" timetot="6.41987824440" timeinit="0.547246217728" timemat="0.197315216064E-02" timefv="0.234363079071E-01" timesv="0.00000000000" timerho="0.784063339233E-02" timepot="5.83938193321" timefor="0.00000000000"/>
+      </iter>
+      <iter iteration="3" rms="1.66646049466069" rmslog10="0.221795022674" deltae="12.1078466396304" deltaelog10="1.08306691146" chgdst="2.099843097491215E-002" chgdstlog10="-1.67781315500" fermidos="0.00000000000">
+        <energies totalEnergy="-71.7609462059" fermiEnergy="0.965684774583" sum-of-eigenvalues="-27.4932388034" electronic-kinetic="77.3311537655" core-electron-kinetic="0.00000000000" Coulomb="-138.836207668" Coulomb-potential="-97.0822656032" nuclear-nuclear="-24.0847838488" electron-nuclear="-132.420582036" Hartree="17.6691582163" Madelung="-90.2950748667" xc-potential="-7.74212696573" exchange="-10.2558923031" correlation="0.00000000000"/>
+        <charges totalcharge="12.00000000" core="4.000000000" core_leakage="0.2506528209E-03" valence="8.000000000" interstitial="3.345311163" muffin-tin-total="8.654688837">
+          <atom species="C" muffin-tin="4.327344419"/>
+          <atom species="C" muffin-tin="4.327344419"/>
+        </charges>
+        <timing itertime="2.51485109329" timetot="10.8494031429" timeinit="0.547246217728" timemat="0.304412841797E-02" timefv="0.240542888641E-01" timesv="0.00000000000" timerho="0.128316879272E-01" timepot="10.2622268200" timefor="0.00000000000"/>
+      </iter>
+      <structure>
+        <crystal unitCellVolume="76.63071435" BrillouinZoneVolume="3.236955515" nktot="0" ngridk="2    1    1">
+          <basevect>0.000000000       3.371250000       3.371250000</basevect>
+          <basevect>3.371250000       0.000000000       3.371250000</basevect>
+          <basevect>3.371250000       3.371250000       0.000000000</basevect>
+          <reciprvect>-0.9318776874      0.9318776874      0.9318776874</reciprvect>
+          <reciprvect>0.9318776874     -0.9318776874      0.9318776874</reciprvect>
+          <reciprvect>0.9318776874      0.9318776874     -0.9318776874</reciprvect>
+        </crystal>
+        <species chemicalSymbol="C">
+          <atom x="0.00000000000" y="0.00000000000" z="0.00000000000"/>
+          <atom x="0.250000000000" y="0.250000000000" z="0.250000000000"/>
+        </species>
+      </structure>
+    </scl>
+  </groundstate>
+</info>

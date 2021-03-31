@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eigval>
+  <kpt ik="1" vkl="2.500000000000e-1 5.000000000000e-1 5.000000000000e-1">
+    <state ist="1" eigenvalue="3.776529254775e-1" occupancy="2.000000000000e0"/>
+    <state ist="2" eigenvalue="5.480598606104e-1" occupancy="2.000000000000e0"/>
+    <state ist="3" eigenvalue="6.983380093768e-1" occupancy="2.000000000000e0"/>
+    <state ist="4" eigenvalue="7.705541748880e-1" occupancy="2.000000000000e0"/>
+    <state ist="5" eigenvalue="1.160815374278e0" occupancy="0.000000000000e0"/>
+    <state ist="6" eigenvalue="1.363460980228e0" occupancy="0.000000000000e0"/>
+    <state ist="7" eigenvalue="1.440122028856e0" occupancy="0.000000000000e0"/>
+    <state ist="8" eigenvalue="1.461374670192e0" occupancy="0.000000000000e0"/>
+    <state ist="9" eigenvalue="1.700159301724e0" occupancy="0.000000000000e0"/>
+    <state ist="10" eigenvalue="1.840251059076e0" occupancy="0.000000000000e0"/>
+    <state ist="11" eigenvalue="1.947826120002e0" occupancy="0.000000000000e0"/>
+    <state ist="12" eigenvalue="2.054251558257e0" occupancy="0.000000000000e0"/>
+    <state ist="13" eigenvalue="2.258226153164e0" occupancy="0.000000000000e0"/>
+    <state ist="14" eigenvalue="2.460341363279e0" occupancy="0.000000000000e0"/>
+    <state ist="15" eigenvalue="2.575359278077e0" occupancy="0.000000000000e0"/>
+  </kpt>
+</eigval>
