@@ -3,15 +3,15 @@
   <species is="1" chemicalSymbol="Si">
     <atom ia="1">
       <state ist="1" n="1" l="0" k="0" eigenvalue="-6.519297548004e1"/>
-      <state ist="2" n="2" l="0" k="0" eigenvalue="-4.702988436588e0"/>
-      <state ist="3" n="2" l="1" k="1" eigenvalue="-3.102923507429e0"/>
-      <state ist="4" n="2" l="1" k="1" eigenvalue="-3.079192814085e0"/>
+      <state ist="2" n="2" l="0" k="0" eigenvalue="-4.702988436591e0"/>
+      <state ist="3" n="2" l="1" k="1" eigenvalue="-3.102923507431e0"/>
+      <state ist="4" n="2" l="1" k="1" eigenvalue="-3.079192814088e0"/>
     </atom>
     <atom ia="2">
       <state ist="1" n="1" l="0" k="0" eigenvalue="-6.519297548004e1"/>
-      <state ist="2" n="2" l="0" k="0" eigenvalue="-4.702988436588e0"/>
-      <state ist="3" n="2" l="1" k="1" eigenvalue="-3.102923507429e0"/>
-      <state ist="4" n="2" l="1" k="1" eigenvalue="-3.079192814085e0"/>
+      <state ist="2" n="2" l="0" k="0" eigenvalue="-4.702988436591e0"/>
+      <state ist="3" n="2" l="1" k="1" eigenvalue="-3.102923507431e0"/>
+      <state ist="4" n="2" l="1" k="1" eigenvalue="-3.079192814088e0"/>
     </atom>
   </species>
 </evalcore>

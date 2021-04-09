@@ -15,6 +15,9 @@ Subroutine init0
       Use modinput
       Use modmain
       Use modxcifc
+      Use modmpi, only: mpiglobal
+      Use errors_warnings, only: terminate_if_false
+      Use vx_enums, only: HYB_PBE0, HYB_HSE
 #ifdef XS
       Use modxs
 #endif
@@ -31,7 +34,6 @@ Subroutine init0
       Integer :: is, js, ia, ias
       Integer :: ist, l, m, lm, iv (3)
       Real (8) :: ts0, ts1, tv3 (3)
-
 ! zero self-consistent loop number
       iscl = 0
       tlast = .False.
@@ -174,7 +176,10 @@ Subroutine init0
          Write (*,*)
          Stop
       End If
-      If  (associated(input%groundstate%Hybrid)) Then
+
+      Call getxcdata (xctype, xcdescr, xcspin, xcgrad, ex_coef)
+
+      If  (xctype(1)==HYB_PBE0 .or. xctype(1)==HYB_HSE) Then
           ex_coef = input%groundstate%Hybrid%excoeff
           ec_coef = input%groundstate%Hybrid%eccoeff
       Else
@@ -182,7 +187,14 @@ Subroutine init0
           ec_coef = 1.0
           If (input%groundstate%xctypenumber .Lt. 0) ex_coef=1.0
       End If
-      Call getxcdata (xctype, xcdescr, xcspin, xcgrad, ex_coef)
+      
+      If (isspinorb()) Then
+        If (xctype(1)==HYB_PBE0 .or. xctype(1)==HYB_HSE) Then
+           call terminate_if_false(mpiglobal, input%groundstate%spin%realspace,'("Error(init0): &
+           &The parameter realspace, inside the element spin, needs to be set to true, for &
+           &calculations with hybrids functionals which account for spin-orbit coupling effects.")')
+        End If
+      End If
 
 ! reset input%groundstate%Hybrid%excoeff to ex_coef
 ! in case of libxc: overwritten by ex_coef as defined by libxc
