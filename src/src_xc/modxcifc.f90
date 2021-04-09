@@ -235,14 +235,14 @@ case(20,21,22,300,406,408,23)
 ! Perdew-Burke-Ernzerhof generalised gradient approximation
 ! Phys. Rev. Lett. 77, 3865 (1996); 78, 1396(E) (1997)
 ! Revised PBE, Zhang-Yang, Phys. Rev. Lett. 80, 890 (1998)
-! CECI add reference for PBE short-range
+! PBE_SR, J. Chem. Phys. 118, 8207 (2003)
   if (present(rhoup).and.present(rhodn).and.present(grho).and.present(gup) &
    .and.present(gdn).and.present(g2up).and.present(g2dn).and.present(g3rho) &
    .and.present(g3up).and.present(g3dn).and.present(ex).and.present(ec) &
    .and.present(vxup).and.present(vxdn).and.present(vcup) &
    .and.present(vcdn)) then
     if (xctype(1)==23) then
-       omega_hyb=0.000001d0 !CECI test
+       omega_hyb=0.000001d0 !Test to verify that PBE_SR for small value of omega is equal to PBE
        call gga_x_wpbeh_spin(n,rhoup,gup,exsrup,vxsrup,v2xsrup,omega_hyb)
        call gga_x_wpbeh_spin(n,rhodn,gdn,exsrdn,vxsrdn,v2xsrdn,omega_hyb)
        call xc_pbe(n,kappa,mu,beta,rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho,g3up, &
@@ -276,7 +276,7 @@ case(20,21,22,300,406,408,23)
    .and.present(g3rho).and.present(ex).and.present(ec).and.present(vx) &
    .and.present(vc)) then
     if (xctype(1)==23) then
-       omega_hyb=0.00000001d0 !CECI test
+       omega_hyb=0.000001d0 !Test to verify that PBE_SR for small value of omega is equal to PBE
        call gga_x_wpbeh(n,rho,grho,exsr,vxsr,v2xsr,omega_hyb)
        allocate(ra(n,6))
        ra(1:n,1)=0.5d0*rho(1:n)
@@ -460,7 +460,7 @@ case(300)
   xcspin=1
   xcgrad=1
 case(406)
-  xcdescr='PBE0, M. Ernzerhof, G. E. Scuseria, J. Chem. Phys. 110 , 5029 (1999)'
+  xcdescr='PBE0, C. Adamo and V. Barone J. Chem. Phys. 110, 6158, (1999) and M. Ernzerhof and G. E. Scuseria, J. Chem. Phys. 110, 5029 (1999)'
   xcspin=1
   xcgrad=1
 case(407)
@@ -468,7 +468,7 @@ case(407)
   xcspin=1
   xcgrad=0
 case(408)
-  xcdescr='HSE, Jochen Heyd; Gustavo E. Scuseria; Matthias Ernzerhof, J. Chem. Phys. 118, 8207 (2003)'
+  xcdescr='HSE06, A. V. Krukau et al., J. Chem. Phys. 125, 224106 (2006)'
   xcspin=1
   xcgrad=1
 case(100)
