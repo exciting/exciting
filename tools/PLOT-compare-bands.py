@@ -89,11 +89,9 @@ if (not lgw):
 if lgw:
     infile=root+"/BAND.OUT"
     label1 = "KS"
-elif lwa:
-    infile=root+"/"+dirone+"/BAND.OUT"
-    label1 = dirone
-    if( wandir == 1):
-        label1 += " F"
+elif( lwa and wandir == 1):
+    infile=root+"/"+dirone+"/BAND_WANNIER.OUT"
+    label1 = dirone+" (Wan)"
 else:
     infile=root+"/"+dirone+"/BAND.OUT"
     label1 = dirone
@@ -106,11 +104,9 @@ band1[:,1,:] *= factor
 if lgw:
     infile=root+"/BAND-QP.OUT"
     label2 = "$\mathregular{G_0W_0}$"
-elif lwa:
-    infile=root+"/"+dirtwo+"/BAND.OUT"
-    label2 = dirtwo
-    if( wandir == 2):
-        label2 += " F"
+elif( lwa and wandir == 2):
+    infile=root+"/"+dirtwo+"/BAND_WANNIER.OUT"
+    label2 = dirtwo+" (Wan)"
 else:
     infile = root+"/"+dirtwo+"/BAND.OUT"
     label2 = dirtwo
@@ -118,25 +114,15 @@ band2, dim2 = readrawdata( infile)
 band2[:,1,:] *= factor
 
 #-------------------------------------------------------------------------------
-# Read Wannier bands if needed
-
-if lwa:
-    if( wandir == 1):
-        infile=root+"/"+dirone+"/BAND_WANNIER.OUT"
-        label3 = dirone+" W"
-    else:
-        infile=root+"/"+dirtwo+"/BAND_WANNIER.OUT"
-        label3 = dirtwo+" W"
-    band3, dim3 = readrawdata( infile)
-    band3[:,1,:] *= factor
-
-#-------------------------------------------------------------------------------
 # Read info about x-ticks position
 
 if lgw:
     infile=root+"/BANDLINES.OUT"
 else:
-    infile=root+"/"+dirtwo+"/BANDLINES.OUT"
+    if( wandir == 2):
+        infile=root+"/"+dirtwo+"/BANDLINES_WANNIER.OUT"
+    else:
+        infile=root+"/"+dirtwo+"/BANDLINES.OUT"
 bandlin, bandlindim = readrawdata( infile)
 bandlines = bandlin[:,0,0]
     
@@ -176,18 +162,12 @@ if (not lgw):
     band1[:,1,:] -= bnd0
     bnd0 = np.amax( band2[ivbm-1,1,:])
     band2[:,1,:] -= bnd0
-    if lwa: 
-        bnd0 = np.amax( band3[ivbm-1,1,:])
-        band3[:,1,:] -= bnd0
 #-------------------------------------------------------------------------------
 # Settings for the plot 
     
 figcolor = 'white'
 dpi = 300
-if lwa:
-    fig = plt.figure(figsize=(25,10),dpi=dpi)
-else:
-    fig = plt.figure(figsize=(15,10),dpi=dpi)
+fig = plt.figure(figsize=(15,10),dpi=dpi)
 fig.patch.set_edgecolor(figcolor)
 fig.patch.set_facecolor(figcolor)
 
@@ -208,35 +188,21 @@ plt.rcParams['ytick.major.pad'] = 10
 # Band structure plot 
 
 #ax1 = fig.add_axes([0.14,0.1,0.8,0.8])
-if lwa:
-    ax1 = fig.add_subplot( 121)
-    ax2 = fig.add_subplot( 122, sharex=ax1, sharey=ax1)
-    ax1.xaxis.grid(True,which='major',color='k',linestyle='-',linewidth=3)
-    ax2.xaxis.grid(True,which='major',color='k',linestyle='-',linewidth=3)
-    ax1.axhline(y=0,linestyle="dashed",linewidth=3,color="black")
-    ax2.axhline(y=0,linestyle="dashed",linewidth=3,color="black")
-    plt.setp( ax2.get_yticklabels(), visible=False)
-else:
-    ax1 = fig.add_subplot( 111)
-    ax1.xaxis.grid(True,which='major',color='k',linestyle='-',linewidth=3)
-    ax1.axhline(y=0,linestyle="dashed",linewidth=3,color="black")
+ax1 = fig.add_subplot( 111)
+ax1.xaxis.grid(True,which='major',color='k',linestyle='-',linewidth=3)
+ax1.axhline(y=0,linestyle="dashed",linewidth=3,color="black")
 
 ax1.xaxis.set_label_position('bottom')
 ax1.set_xticks(bandlines)
 ax1.set_xticklabels(llist)
 ax1.set_ylabel('Energy [eV]', labelpad=20)
+ax1.set( xlim=(bandlines[0], bandlines[-1]))
 
 for line in ax1.get_xticklines() + ax1.get_yticklines():
     line.set_markersize(10)
     line.set_markeredgewidth(2)
-if lwa:
-    for line in ax2.get_xticklines() + ax2.get_yticklines():
-        line.set_markersize(10)
-        line.set_markeredgewidth(2)
 
 bandlen = min( dim1[2], dim2[2])
-if lwa:
-    bandlen = min( bandlen, dim3[2])
                         
 for i in range(bandlen-1):
     ax1.plot( band1[i,0,:], band1[i,1,:], color='mediumblue', lw=3.0)
@@ -250,20 +216,6 @@ leg=ax1.legend(loc=4,borderaxespad=0.5)
 leg.get_frame().set_linewidth(4.0)
 leg.get_frame().set_edgecolor("grey")
 leg.draw_frame(True)
-
-if lwa:
-    for i in range(bandlen-1):
-        ax2.plot( band1[i,0,:], band1[i,1,:], color='mediumblue', lw=3.0)
-        ax2.plot( band3[i,0,:], band3[i,1,:], color='firebrick', lw=3.0)
-    i=bandlen-1
-    
-    ax2.plot( band1[i,0,:], band1[i,1,:], color='mediumblue', lw=3.0, label=label1)
-    ax2.plot( band3[i,0,:], band3[i,1,:], color='firebrick', lw=3.0, label=label3)
-
-    leg=ax2.legend(loc=4,borderaxespad=0.5)
-    leg.get_frame().set_linewidth(4.0)
-    leg.get_frame().set_edgecolor("grey")
-    leg.draw_frame(True)
 
 if ( narg > 1): plt.ylim( ymin=yymin, ymax=yymax)
 

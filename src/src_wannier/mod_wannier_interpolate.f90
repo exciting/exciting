@@ -850,7 +850,13 @@ module mod_wannier_interpolate
 
       call wfint_findbandmap
 
+      ! we don't want to use the libzint routine in case of Hybrids (too slow for dense grids)
+      ! in case of Hybrids, stypenumber < 0 --> libzint k-point generation is invoked inside generate_k_vectors
+      ! temporarilly set stypenumber = 1 to invoke exciting internal k-point generation
+      l = input%groundstate%stypenumber
+      input%groundstate%stypenumber = 1
       call generate_k_vectors( tmp_kset, bvec, intgrid, wf_kset%vkloff, .true., uselibzint=.false.)
+      input%groundstate%stypenumber = l
       nk(:) = max( neffk/tmp_kset%ngridk, 1)
 
       allocate( e( nsube))

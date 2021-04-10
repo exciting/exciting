@@ -203,8 +203,8 @@ Subroutine plot3d (plotlabels3d, nf, lmax, ld, rfmt, rfir, plotdef)
                     write(buffer20,'(I14)') ip2
                     call xml_AddAttribute(xf, "index", trim(adjustl(buffer20)))
                     do ip1 = 0, plotdef%box%grid(1)
-                        write(buffer20,'(6G18.10)') fp(ipmap(ip1,ip2,ip3),i)
-                        call xml_AddCharacters(xf, buffer20)
+                        write(buffer20,'(G18.10)') fp(ipmap(ip1,ip2,ip3),i)
+                        call xml_AddCharacters(xf, buffer20, ws_significant=.false.)
                     end do
                     call xml_endElement(xf, "row")
                 end do

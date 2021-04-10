@@ -154,6 +154,7 @@ if ( narg < 2):
     xxmin = max( np.amin( dos1[0,0,:]), np.amin( dos2[0,0,:]))
     xxmax = min( np.amax( dos1[0,0,:]), np.amax( dos2[0,0,:]))
 plt.xlim( xmin=xxmin, xmax=xxmax)
+plt.ylim( bottom=0)
 
 fig.tight_layout()
 fig.savefig('PLOT.png',format='png',bbox_inches=0,dpi=300)

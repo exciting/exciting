@@ -174,8 +174,8 @@ Subroutine plot2d (labels, nf, lmax, ld, rfmt, rfir, plotdef)
             call xml_AddAttribute (xf, "index", trim(adjustl(buffer20)))
             Do ip1 = 0, plotdef%parallelogram%grid(1) - 1
                ip = ip+1
-               write(buffer20, '(6G18.10)')  fp(ip, i)
-               call xml_AddCharacters(xf,buffer20)
+               write(buffer20, '(G18.10)') fp(ip, i)
+               call xml_AddCharacters(xf,buffer20,ws_significant=.false.)
             end do
             Call xml_endElement (xf, "row")
          end do
