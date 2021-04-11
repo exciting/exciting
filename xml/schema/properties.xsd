@@ -15,19 +15,20 @@
     </xs:annotation>
     <xs:complexType>
       <xs:all>
-        <xs:element ex:importance="experimental" ex:unit="" name="spintext" maxOccurs="1" minOccurs="0">
+        <xs:element ex:importance="essential" ex:unit="" name="spintext" maxOccurs="1" minOccurs="0">
           <xs:annotation>
-            <xs:documentation>Calculates the total spin expectation values for specified k vectors. The k-vectors are specified in the plot2d element</xs:documentation>
+            <xs:documentation>Calculate the spin texture on a k-grid defined by the plot2d element.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
-            <xs:attribute ex:importance="essential" ex:unit="" name="bands" maxOccurs="1" minOccurs="1" type="integerpair">
+            <xs:all>
+              <xs:element ex:importance="essential" ex:unit="" ref="plot2d"/>
+            </xs:all>
+            <xs:attribute ex:importance="essential" ex:unit="" name="bands" type="integerpair">
               <xs:annotation>
-                  <xs:documentation>band min, band max</xs:documentation>
+                  <xs:documentation>Band range considered for the spin texture calculation.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:all>
-              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
-            </xs:all>
+            
           </xs:complexType>
         </xs:element>
 
@@ -41,6 +42,7 @@
             </xs:attribute>
           </xs:complexType>
         </xs:element>
+
         <xs:element ex:importance="essential" ex:unit="" name="bandstructure" maxOccurs="1"
           minOccurs="0">
           <xs:annotation>
@@ -77,6 +79,7 @@
             </xs:attribute>
           </xs:complexType>
         </xs:element>
+
         <xs:element ex:importance="expert" ex:unit="" name="stm" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:all>
@@ -626,16 +629,16 @@
             </xs:sequence>
 
 	    <xs:attribute ex:importance="expert" ex:unit="" name="energy_reference" default="false">
-              <xs:annotation>
-                <xs:documentation>If <pre>"efermi"</pre>, the input values for energies are given with respect to the Fermi energy.</xs:documentation>
-              </xs:annotation>
+        <xs:annotation>
+          <xs:documentation>If <pre>"efermi"</pre>, the input values for energies are given with respect to the Fermi energy.</xs:documentation>
+        </xs:annotation>
 	      <xs:simpleType>
 	        <xs:restriction base="xs:string">
 		  <xs:enumeration value="none"/>
 	          <xs:enumeration value="efermi"/>
 		</xs:restriction>
 	      </xs:simpleType>												   
-            </xs:attribute>
+      </xs:attribute>
 
 	    <xs:attribute ex:importance="expert" ex:unit="" name="use_transport_df" type="xs:boolean" default="true">
               <xs:annotation>

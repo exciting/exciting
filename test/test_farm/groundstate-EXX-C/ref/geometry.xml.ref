@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+  <title>Diamond LDA</title>
+  <structure speciespath=".">
+    <crystal>
+      <basevect>   0.000000000       3.371250000       3.371250000</basevect>
+      <basevect>   3.371250000       0.000000000       3.371250000</basevect>
+      <basevect>   3.371250000       3.371250000       0.000000000</basevect>
+    </crystal>
+    <species speciesfile="C.xml" rmt="1.4500">
+      <atom coord="0.0000000000      0.0000000000      0.0000000000"/>
+      <atom coord="0.2500000000      0.2500000000      0.2500000000"/>
+    </species>
+  </structure>
+</input>

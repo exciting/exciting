@@ -13,7 +13,7 @@
 Subroutine oepmain
 ! !USES:
       Use modmain
-      Use modinput
+      Use modinput, only: input
       use modmpi
 ! !DESCRIPTION:
 !   Main routine for the calculation of the optimized effective potential.
@@ -30,6 +30,7 @@ Subroutine oepmain
       Integer :: is, ia, ias, ik
       Integer :: ir, irc, it, idm
       integer :: msize
+      Integer :: verbosity
       Real (8) :: tau, resp, t1 
 ! allocatable arrays
       Real (8), Allocatable :: rflm (:)
@@ -80,12 +81,16 @@ Subroutine oepmain
       resp = 0.d0
 ! initial step size
       tau = input%groundstate%OEP%tauoep(1)
+! set verbosity
+      verbosity=input%groundstate%outputlevelnumber
 ! start iteration loop
       Call timesec(t_0)
       Do it = 1, input%groundstate%OEP%maxitoep
-         If ((Mod(it, 50) .Eq. 0).and.(rank==0)) Then
-            Write (*, '("Info(oepmain): done ", I4, " iterations of ", I4)') &
-           &  it, input%groundstate%OEP%maxitoep
+         If (verbosity > 1) Then
+            If ((Mod(it, 50) .Eq. 0).and.(rank==0)) Then
+               Write (*, '("Info(oepmain): done ", I4, " iterations of ", I4)') &
+              &  it, input%groundstate%OEP%maxitoep
+            End If
          End If
 ! zero the residual
          dvxmt(:,:,:) = 0.d0
