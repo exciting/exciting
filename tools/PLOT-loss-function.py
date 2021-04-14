@@ -2,12 +2,15 @@
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from   lxml import etree
 import os
 import sys
 
 import matplotlib.style
 if matplotlib.__version__.split(".")[0]=="2": matplotlib.style.use('classic')
+
+
+sys.path.append(os.path.dirname(__file__)+'/exciting_utils/exciting_utils/parsers/')
+from parse_lossfunction import parse_lossfunction
 
 #-------------------------------------------------------------------------------
 
@@ -17,7 +20,7 @@ def shell_value(variable,vlist,default):
     for i in range(len(vlist)):
         if ( vlist[i] == variable ): v = os.environ[variable] ; e = True ; break
     return v, e
-    
+
 #-------------------------------------------------------------------------------
 
 current = os.environ['PWD']
@@ -46,40 +49,37 @@ for i in sys.argv[1:]:
         print ' file: '+i
     else:
         handler=i[2:]
-        
+
 if ( nfiles>1 and handler==""):
     print "\n Error: The legend handler must be given if more than one file is plotted!"
-    print "\n **Usage type 1**:    PLOT-loss-function.py --legend-handler lossfile-1.xml lossfile-2.xml"
-    print   " **Usage type 2**:    PLOT-loss-function.py lossfile.xml\n"
+    print "\n **Usage type 1**:    PLOT-loss-function.py --legend-handler lossfile-1.OUT lossfile-2.OUT"
+    print   " **Usage type 2**:    PLOT-loss-function.py lossfile.OUT\n"
     sys.exit()
 
 if nfiles==1: handler="kernel"
 
 if not handler in ["qmt","kernel"]:
     print "\n Error: _\""+handler+"\"_ The legend handler has to be either 'kernel' or 'qmt'!"
-    print "\n **Usage type 1**:    PLOT-loss-function.py --legend-handler lossfile-1.xml lossfile-2.xml"
-    print   " **Usage type 2**:    PLOT-loss-function.py lossfile.xml\n"
+    print "\n **Usage type 1**:    PLOT-loss-function.py --legend-handler lossfile-1.OUT lossfile-2.OUT"
+    print   " **Usage type 2**:    PLOT-loss-function.py lossfile.OUT\n"
     sys.exit()
 
 if nfiles<1:
     print "\n Error: At least one input file should be given!"
-    print "\n** Usage type 1**:    PLOT-loss-function.py --legend-handler lossfile-1.xml lossfile-2.xml"
-    print   "** Usage type 2**:    PLOT-loss-function.py lossfile.xml\n"
+    print "\n** Usage type 1**:    PLOT-loss-function.py --legend-handler lossfile-1.OUT lossfile-2.OUT"
+    print   "** Usage type 2**:    PLOT-loss-function.py lossfile.OUT\n"
     sys.exit()
 
-print 
+print
 
 #-------------------------------------------------------------------------------
 #Parse LOSS function data files
 
 xdata=[] ; ydata=[] ; labels=[]; legends=[]
-
-function=1
-
 for i,fname in enumerate(fnames):
-    xdata.append([]) ; ydata.append([]) ; labels.append({})
+    labels.append({})
     sfname = fname.split("/")[-1].split("_")
-    
+
     #legends for BSE calculations
 
     if "BSE" in sfname[1].split("-"):
@@ -91,7 +91,6 @@ for i,fname in enumerate(fnames):
             sys.exit()
 
     #legends for TDDFT calculations
-
     else:
         if handler=="kernel":
             if "FXCRPA" in sfname: legend="RPA "
@@ -102,22 +101,18 @@ for i,fname in enumerate(fnames):
         if handler=="qmt":
             if sfname[-2][0:2]=="OC": legend="Optical(%s)"%(sfname[-2][2:])
             else:
-                legend=fname.split('.')[-3].split('_')[-1]
+                legend=fname.split('.')[-2].split('_')[-1]
 
     legends.append(legend)
-    
-    tree=etree.parse(fname)
-    if "LOSS" in sfname: rootelement="loss"
-    if "EPSILON" in sfname: rootelement="dielectric"
-    labels[i]["xlabel"] = tree.xpath('/%s/mapdef/variable1'%(rootelement))[0].attrib["name"]
-    labels[i]["ylabel"] = tree.xpath('/%s/mapdef/function%d'%(rootelement,function))[0].attrib["name"]
+    labels[i]["xlabel"] = "Energy"
+    labels[i]["ylabel"] = "Loss Function"
+    x, y = parse_lossfunction( fname )
+    xdata.append(x)
+    ydata.append(y)
 
-    for elem in tree.xpath('/%s/map'%(rootelement)):
-        xdata[i].append(float(elem.attrib["variable1"]))
-        ydata[i].append(float(elem.attrib["function%d"%(function)]))
 
 #-------------------------------------------------------------------------------
-#Plot LOSS function/s 
+#Plot LOSS function/s
 
 colors=['k','r','g','b','y','c','m']
 fig=plt.figure(1,figsize=(8,5.5))
@@ -157,4 +152,3 @@ plt.savefig('PLOT.png', orientation='portrait',format='png',dpi=dpipng)
 
 if (showpyplot): plt.show()
 #-------------------------------------------------------------------------------
-
