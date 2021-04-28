@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #_______________________________________________________________________________
-# Please, check http://exciting-code.org/script-plot-rt-tddft
+# Please, check http://exciting-code.org/oxygen-the-python-script-plot-rt-tddft-py
 # to better understand how to use this script
 
 import matplotlib
@@ -256,7 +256,7 @@ def parse_input():
     parser.add_argument('--add', required=False, action='store_true')
     # sub: same as add, but subtracts, first y minus second y
     parser.add_argument('--sub', required=False, action='store_true')
-    
+
 
     # Options for plotting
     # jind: plot the current density (this triggers the x- and y-labels)
@@ -360,8 +360,6 @@ def set_implicit_options( options ):
                 options['columns'] = [[0,4],[0,3]]
             if( options['zz'] ):
                 options['columns'] = [[0,6],[0,3]]
-    else:
-        options['columns'] = arrange_as_stack( options['columns'] )
 
     # Default options for options['skip_lines']
     if ( options['skip_lines'] == [] ):
@@ -384,7 +382,7 @@ def set_implicit_options( options ):
             options['ylabel'] = ['Current Density [a.u.]']
         elif ( options['nexc'] ):
             options['ylabel'] = ['$N_{exc}(t)$']
-    
+
     # In case we have the dielectric function
     if ( options['imag_eps'] or options['real_eps'] ):
         options['xlabel'] = ['Energy [eV]']
@@ -393,7 +391,7 @@ def set_implicit_options( options ):
             else ['Re($\\varepsilon$)']
         options['handle_complex'] = Handle_complex['imag'] if \
             options['imag_eps'] else Handle_complex['real']
-    
+
 #-------------------------------------------------------------------------------
 def preprocess( x, y, output, option_preproc=Option_preprocess.nothing, \
         wcut=0.0, diagonal_component=True):
@@ -460,7 +458,7 @@ def sanity_checks( options ):
     Function to make some sanity checks of the command line arguments
     :param options: dictionary with the command line arguments
     """
-    # positive numbers given for number of columns, scaling factor, skip_lines 
+    # positive numbers given for number of columns, scaling factor, skip_lines
     # and wcut?
     # columns
     problem = False
@@ -487,9 +485,9 @@ def sanity_checks( options ):
     # wcut
     if ( options['wcut'] < 0 ):
         raise RuntimeError('Cutoff frequency for the smoothing must be >= 0.')
-    
 
-    # number of columns and files are compatible? 
+
+    # number of columns and files are compatible?
     error_message = 'There must be 2 columns for each file. You need to\
         specify them using -k or --x, ..., --z, --xx, ..., --zz depending \
         on the case.'
@@ -507,7 +505,7 @@ def sanity_checks( options ):
     if len( options['skip_lines'] ) != len( options['files'] ):
         raise RuntimeError('Number of files is not equal \
             times of lines-to-skip')
-    
+
     # only one preprocess option?
     is_efield = options['get_efield']
     is_eps = options['get_eps']
