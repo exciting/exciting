@@ -288,7 +288,7 @@ call timesec(ta)
 call timesec(tb)
 
 ! Release memory used by the MT Hamiltonian
-!        call MTRelease(mt_hscf)
+!        call mt_hscf%release()
 
 !-----------------------------------------------
 ! find the occupation numbers and Fermi energy
@@ -825,6 +825,5 @@ call timesec(tb)
       call genxsLOs()
     end if
 
-    call MTRelease(mt_hscf)
-    Return
+    call mt_hscf%release()
 end subroutine

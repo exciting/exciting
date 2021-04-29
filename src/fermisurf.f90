@@ -53,7 +53,7 @@ subroutine fermisurf
 #ifdef MPI  
   call mpi_allgatherv_ifc(nkpt,rlen=nstsv,rbuf=evalsv)
 #endif
-  call MTRelease(mt_hscf)
+  call mt_hscf%release()
   if (allocated(meffig)) deallocate(meffig)
   if (allocated(m2effig)) deallocate(m2effig)
 

@@ -99,7 +99,7 @@ subroutine task_second_variation()
     deallocate(evecfv)
     deallocate(evecsv)
     deallocate(apwalm)
-    call MTRelease(mt_hscf)
+    call mt_hscf%release()
 
     ! QP energies
     if (allocated(evalqp)) deallocate(evalqp)

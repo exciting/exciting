@@ -79,7 +79,7 @@ Subroutine effmass
       End Do
 !$OMP END DO
 !$OMP END PARALLEL
-      call MTRelease(mt_hscf)
+      call mt_hscf%release() 
 
       if (allocated(meffig)) deallocate(meffig)
       if (allocated(m2effig)) deallocate(m2effig)

@@ -165,7 +165,7 @@ module spintexture
       End Do !ist
       deallocate(evalfv, evecfv, evecsv)
     End Do !iki
-    call MTRelease(mt_hscf)
+    call mt_hscf%release()
     
 #ifdef MPI
     Call mpi_allgatherv_ifc(nkpt, 3*nst, rbuf=stext)
