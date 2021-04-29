@@ -10,7 +10,7 @@
 Subroutine core_overlap
   ! !USES:
   Use modinput, only: input
-  Use mod_eigensystem, only: mt_hscf, nmatmax, MTNullify, MTInitall, MTRelease 
+  Use mod_eigensystem, only: mt_hscf, nmatmax, MTNullify, MTInitall 
   Use mod_kpoint, only: nkpt
   Use mod_Gkvector, only: ngkmax, ngk, gkc, tpgkc, sfacgk
   Use mod_APW_LO, only: apwordmax
@@ -239,7 +239,7 @@ Subroutine core_overlap
     Call xml_close (xf)
    endif
 #endif
-  call MTRelease(mt_hscf)
+  call mt_hscf%release()
   Deallocate (apwalmt)
   Deallocate (wfmt,overlap)
   Deallocate (fr0, fr1, fr2, gr, cf)
