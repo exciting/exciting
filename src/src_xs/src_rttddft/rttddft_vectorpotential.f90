@@ -287,7 +287,7 @@ contains
 
     beta = chgval/c/omega
     ! Method of integrating the differential equation
-    select case(input%xs%rt_tddft%vector_potential_solver)
+    select case(input%xs%realTimeTDDFT%vectorPotentialSolver)
       case('euler') ! Euler
         aind = aind + fourpi*c*tstep*pvec
         pvec = pvec + tstep*jind

@@ -40,22 +40,22 @@
 	  reducek="false" >
 
 
-          <rt_tddft
+          <realTimeTDDFT
             propagator="AETRS"
-            time_step="0.1d0"
-            end_time="10.d0"
-            read_pmatbasis="false"
-            print_timing_general="false"
-            print_timing_detailed="false"
-            calculate_total_energy="true"
-            calculate_n_excited_electrons="true"
-            print_after_iterations="1"
-            vector_potential_solver="improvedeuler">
-	    <laser field_type="total">
-		<trap_cos amplitude='1.d0' omega='4.d0' phase='0.d0' t0='0.1d0' rise_time='1.d0'
+            timeStep="0.1d0"
+            endTime="10.d0"
+            readPmatBasis="false"
+            printTimingGeneral="false"
+            printTimingDetailed="false"
+            calculateTotalEnergy="true"
+            calculateNExcitedElectrons="true"
+            printAfterIterations="1"
+            vectorPotentialSolver="improvedeuler">
+	    <laser fieldType="total">
+		<trapCos amplitude='1.d0' omega='4.d0' phase='0.d0' t0='0.1d0' riseTime='1.d0'
                       width='7.d0' direction='x'/>
             </laser>
-          </rt_tddft>
+          </realTimeTDDFT>
 
         </xs>
 </input>

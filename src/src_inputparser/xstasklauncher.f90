@@ -70,7 +70,7 @@ subroutine xstasklauncher
   else if ( trim( input%xs%xstype ) == "RT-TDDFT" ) then
     ! We know that xstype is RT-TDDFT
     ! But we need to check if the element input%xs%rt_tddft has been defined
-    call terminate_if_false( mpiglobal, associated( input%xs%rt_tddft ), &
+    call terminate_if_false( mpiglobal, associated( input%xs%realTimeTDDFT ), &
       & 'ERROR in RT-TDDFT: you need to add the element rt_tddft inside xs in input.xml!')
     call run_rttddft
 

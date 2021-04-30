@@ -79,7 +79,7 @@ contains
     complex(dp), allocatable  :: overlcopy(:,:)
 
     ! Print format
-    print_abs = input%xs%rt_tddft%screenshots%print_abs_proj_coeffs
+    print_abs = input%xs%realTimeTDDFT%screenshots%printAbsProjCoeffs
     if( print_abs ) then
       write(frmt,*)nstfv
     else

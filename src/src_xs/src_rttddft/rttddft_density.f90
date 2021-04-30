@@ -119,14 +119,14 @@ contains
       timei = timef
     end if
     ! normalise the density
-    if ( input%xs%rt_tddft%normalize_WF ) then
+    if ( input%xs%realTimeTDDFT%normalizeWF ) then
       call rhonorm
     end if
     if(present(timefinal)) then
       call timesec(timef)
       timefinal = timef
     end if
-    if(input%xs%rt_tddft%normalize_WF .and. present(timerhonorm)) then
+    if(input%xs%realTimeTDDFT%normalizeWF .and. present(timerhonorm)) then
       timerhonorm = timef-timei
     end if
   end subroutine updatedensity

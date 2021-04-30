@@ -73,7 +73,7 @@ failing_tests = [
      'tags': [CompilerBuild(Compiler.intel, Build_type.mpiandsmp)]
     },
 
-    # TODO(Maria) Issue 55
+    # TODO(Maria) Issue 55 Issue 55
     {'name':'groundstate-LDA_PW-properties-transport-Si',
      'comment':'Test is flakey when run in the CI with GCC builds: Test outputs are not written',
      'tags': [CompilerBuild(Compiler.gcc, Build_type.all)]
