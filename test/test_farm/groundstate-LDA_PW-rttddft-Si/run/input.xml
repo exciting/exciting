@@ -39,22 +39,22 @@
           nempty="20">
 
 
-          <rt_tddft
+          <realTimeTDDFT
             propagator="AETRS"
-            time_step="0.25d0"
-            end_time="10.0d0"
-            read_pmatbasis="false"
-            print_timing_general="true"
-            print_timing_detailed="true"
-            calculate_total_energy="false"
-            calculate_n_excited_electrons="false"
-            print_after_iterations="1"
-            vector_potential_solver="improvedeuler">
-            <laser field_type="total">
-		    <sin_sq t0="0.5d0" omega="1.d0" phase="0.d0" amplitude="1.0d0" pulse_length="5.d0"
+            timeStep="0.25d0"
+            endTime="10.0d0"
+            readPmatBasis="false"
+            printTimingGeneral="true"
+            printTimingDetailed="true"
+            calculateTotalEnergy="false"
+            calculateNExcitedElectrons="false"
+            printAfterIterations="1"
+            vectorPotentialSolver="improvedeuler">
+            <laser fieldType="total">
+		    <sinSq t0="0.5d0" omega="1.d0" phase="0.d0" amplitude="1.0d0" pulseLength="5.d0"
 			    direction="y"/>
             </laser>
-          </rt_tddft>
+          </realTimeTDDFT>
 
 
 

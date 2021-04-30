@@ -465,7 +465,7 @@ module m_putgetbsemat
         end do
 #endif
 #ifdef _HDF5_
-          if (input%xs%BSE%writehamhdf5_) then
+          if (input%xs%BSE%writehamhdf5) then
             ! create group for iqmt if necessary
             write(ciq, '(I4.4)') iqmt
             if (.not. hdf5_exist_group(fhdf5_inter,'/', ciq )) then

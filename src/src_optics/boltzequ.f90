@@ -8,15 +8,15 @@
 !>  * the electronic part of the thermal conductivity.
 !>
 !> They are obtained by solving the linearized Boltzmann transport equation in the relaxation time approximation. 
-!> TODO(maria) Document equations 
+!> TODO(Maria) Issue 55 Document equations 
 !> 
 !> For more information, see:
 !>  - B.R. Nag, "Electron Transport in Compound Semiconductors" (Springer Verlag, Berlin, 1980), Chap. 7
 !>  - G.D. Mahan and J.O Sofo, "The best thermoelectric", PNAS 93, 7436 (1996)
 
-!TODO(Maria) Pass inputs and outputs
+!TODO(Maria) Issue 55 Pass inputs and outputs
 subroutine boltzequ()
-    ! TODO(Maria) Remove use of modmain
+    ! TODO(Maria) Issue 55 Remove use of modmain
     use modmain
     use modinput
     use modmpi
@@ -26,7 +26,7 @@ subroutine boltzequ()
     use physical_constants, only: kboltz, hbar_si, elec_charge, bohr_radius_si
     implicit none
 
-    integer :: l, a, b, ncomp, condcomp(2,9)
+    integer :: l, a, b, ncomp, etCoeffComponents(2,9)
     integer :: ik, jk, isym
     integer :: ist, jst, iw, itemp, imu
     integer :: recl, iostat
@@ -77,31 +77,30 @@ subroutine boltzequ()
     
     ! booleans from the input
     tefermi = .False.
-    if (input%properties%boltzequ%energy_reference == "efermi") then
+    if (input%properties%boltzequ%energyReference == "efermi") then
        tefermi = .True.
     end if
-    tdoping = input%properties%boltzequ%use_doping_concentration
-    ttdf = input%properties%boltzequ%use_transport_df
+    tdoping = input%properties%boltzequ%useDopingConcentration
+    ttdf = input%properties%boltzequ%useTransportDf
 
     e_fermi_shift = 0
     if (tefermi) then
        e_fermi_shift = efermi
     end if
 
-    ! TODO(Maria) Replace with calls to linear grid routine
+    ! TODO(Maria) Issue 55 Replace with calls to linear grid routine
     ! Mu and temperature grids 
     if (tdoping) then
        allocate(muarray(1))
-       muarray(1) = input%properties%boltzequ%chemical_potential_range(1)
+       muarray(1) = input%properties%boltzequ%chemicalPotentialRange(1)
        
     else
-       mu_spacing = input%properties%boltzequ%chemical_potential_spacing
-       mu_init=input%properties%boltzequ%chemical_potential_range(1)
-       write(*,*) input%properties%boltzequ%chemical_potential_range(2)-mu_init
-       if (mu_init == input%properties%boltzequ%chemical_potential_range(2) ) then
+       mu_spacing = input%properties%boltzequ%chemicalPotentialSpacing
+       mu_init=input%properties%boltzequ%chemicalPotentialRange(1)
+       if (mu_init == input%properties%boltzequ%chemicalPotentialRange(2) ) then
           n_mu_points = 1
        else
-          n_mu_points = ceiling((input%properties%boltzequ%chemical_potential_range(2)-mu_init)/(1.0*mu_spacing))+1
+          n_mu_points = ceiling((input%properties%boltzequ%chemicalPotentialRange(2)-mu_init)/(1.0*mu_spacing))+1
        end if
        
        allocate(muarray(n_mu_points))
@@ -122,42 +121,30 @@ subroutine boltzequ()
        !      muarray(imu) = mui + mus*(imu-1)
        !   End Do
        !end if
-       write(*,*) "musteps", mu_spacing
-       write(*,*) "mu_init", mu_init
-       write(*,*) "chemical_potential_range", input%properties%boltzequ%chemical_potential_range
-       write(*,*) "n_mu_points", n_mu_points
-       write(*,*) "muarry", muarray
     end if
 
-    temp_spacing = input%properties%boltzequ%temperature_spacing
-    temp_init=input%properties%boltzequ%temperature_range(1)
-    if (temp_init == input%properties%boltzequ%temperature_range(2) ) then
+    temp_spacing = input%properties%boltzequ%temperatureSpacing
+    temp_init=input%properties%boltzequ%temperatureRange(1)
+    if (temp_init == input%properties%boltzequ%temperatureRange(2) ) then
        n_temp_points = 1
     else
-       n_temp_points = ceiling((input%properties%boltzequ%temperature_range(2)-temp_init)/(1.0*temp_spacing))+1
+       n_temp_points = ceiling((input%properties%boltzequ%temperatureRange(2)-temp_init)/(1.0*temp_spacing))+1
     end if
     
     allocate(temparray(n_temp_points))
     Do itemp = 1, size(temparray)
        temparray(itemp) = temp_init + temp_spacing*(itemp-1)
     End Do
-   !end if
-    write(*,*) "temp_spacing", temp_spacing
-    write(*,*) "temp_init", temp_init
-    write(*,*) "temperature_range", input%properties%boltzequ%temperature_range
-    write(*,*) "n_mu_points", n_mu_points
-    write(*,*) "temparray", temparray
 
     ncol = size(muarray)*size(temparray)
-    write(*,*) "Number of columns size(temparray) * size(muarray)", ncol
   
     if (ttdf) then 
-       tdf_spacing = input%properties%boltzequ%transport_df_spacing
-       tdf_init=input%properties%boltzequ%transport_df_range(1)
-       if (tdf_init == input%properties%boltzequ%transport_df_range(2) ) then
+       tdf_spacing = input%properties%boltzequ%transportDfSpacing
+       tdf_init=input%properties%boltzequ%transportDfRange(1)
+       if (tdf_init == input%properties%boltzequ%transportDfRange(2) ) then
           n_tdf_points = 1
        else
-          n_tdf_points = ceiling((input%properties%boltzequ%transport_df_range(2)-tdf_init)/(1.0*tdf_spacing))+1
+          n_tdf_points = ceiling((input%properties%boltzequ%transportDfRange(2)-tdf_init)/(1.0*tdf_spacing))+1
        end if
        allocate(wtdf(n_tdf_points))       
        !wtdfi = input%properties%boltzequ%windtdf(1)
@@ -166,12 +153,6 @@ subroutine boltzequ()
        Do iw = 1, size(wtdf)
           wtdf(iw) = tdf_init + tdf_spacing*(iw-1)
        End Do
-
-       write(*,*) "tdf_spacing", tdf_spacing
-       write(*,*) "tdf_init", tdf_init
-       write(*,*) "tdf_range", input%properties%boltzequ%transport_df_range
-       write(*,*) "n_tdf_points", n_tdf_points
-       write(*,*) "wtdf", wtdf
 
     end if
 
@@ -193,7 +174,7 @@ subroutine boltzequ()
 
        allocate(chelevel(size(temparray)))
        chelevel(:) = zzero
-       charge=(chgval+((input%properties%boltzequ%doping_concentration)*omega*(bohr_radius_si*100)**3))
+       charge=(chgval+((input%properties%boltzequ%dopingConcentration)*omega*(bohr_radius_si*100)**3))
     
        Do itemp = 1, size(temparray)
           temp = temparray(itemp)
@@ -233,7 +214,7 @@ subroutine boltzequ()
     end if
 
     ! smearing factor
-    swidth = input%properties%boltzequ%transport_df_broadening
+    swidth = input%properties%boltzequ%transportDfBroadening
 
     ! the momentum matrix elements
     allocate(pmat(3,nstsv,nstsv))
@@ -252,22 +233,22 @@ subroutine boltzequ()
     !-------------------------------------------------------------------------------
     !   Loop over optical components
     !-------------------------------------------------------------------------------
-    ncomp = size(input%properties%boltzequ%condcomp,2)
+    ncomp = size(input%properties%boltzequ%etCoeffComponents,2)
     if (ncomp>0) then
         do l = 1, ncomp
-            condcomp(1,l) = input%properties%boltzequ%condcomp(1,l)
-            condcomp(2,l) = input%properties%boltzequ%condcomp(2,l)
+            etCoeffComponents(1,l) = input%properties%boltzequ%etCoeffComponents(1,l)
+            etCoeffComponents(2,l) = input%properties%boltzequ%etCoeffComponents(2,l)
         end do
     else
 
         ncomp = 0
         do a = 1, 3
            do b = 1, 3
-              !TODO(maria) Remove magic number 
+              !TODO(Maria) Issue 55 Remove magic number 
                 if (sum(abs(symt2(a,b,:,:)))>1.0d-8) then
                     ncomp = ncomp+1
-                    condcomp(1,ncomp) = a
-                    condcomp(2,ncomp) = b
+                    etCoeffComponents(1,ncomp) = a
+                    etCoeffComponents(2,ncomp) = b
                 end if
             end do
         end do
@@ -314,8 +295,8 @@ subroutine boltzequ()
              ! Transport distribution
              !--------------------------
             nsum=nsum+wkptnr(jk)
-            a = condcomp(1,l)
-            b = condcomp(2,l)
+            a = etCoeffComponents(1,l)
+            b = etCoeffComponents(2,l)
 
             If (ttdf) then
                do ist = 1, nstsv
@@ -446,10 +427,9 @@ subroutine boltzequ()
 ! Print the output spectra
 !-----------------------------------------------
       if (rank==0) then
-           write(*,*) nsum
 ! output energy units
             t1 = 1.0d0
-            if (input%properties%boltzequ%output_energies_in_ev) t1 = hartree_to_ev
+            if (input%properties%boltzequ%evOutputEnergies) t1 = hartree_to_ev
 
             if (ttdf) then 
 ! write the transport distribution function from Boltzmann
@@ -459,7 +439,7 @@ subroutine boltzequ()
                write(*, '("  Transport distribution of component ", 2I1, " written to ", a)') a, b, trim(adjustl(fname))
                open(60, file=trim(fname), action='WRITE', form='FORMATTED')
                t3 = 1.0d0
-               if (input%properties%boltzequ%output_in_si_units) t3 = hartree_to_j/(hbar_si**2*bohr_radius_si)
+               if (input%properties%boltzequ%siOutputUnits) t3 = hartree_to_j/(hbar_si**2*bohr_radius_si)
                do iw = 1, size(wtdf)
                   write(60, '(3G18.10)') t1*wtdf(iw), td(iw)*zt1*t3
                end do
@@ -471,7 +451,7 @@ subroutine boltzequ()
             write(*, '("  Electrical conductivity over tau (sigma/tau) of component ", 2I1, " written to ", a)') a, b, trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
             t3 = 1.0d0
-            if (input%properties%boltzequ%output_in_si_units) t3 = hartree_to_j*(elec_charge)**2/((hbar_si)**2*bohr_radius_si)
+            if (input%properties%boltzequ%siOutputUnits) t3 = hartree_to_j*(elec_charge)**2/((hbar_si)**2*bohr_radius_si)
 
             do imu = 1, size(muarray)
                do itemp = 1, size(temparray)
@@ -489,7 +469,7 @@ subroutine boltzequ()
             write(*, '("  Seebeck coefficient (S) of component ", 2I1, " written to ", a)') a, b, trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
             t3 = 1.0d0
-            if (input%properties%boltzequ%output_in_si_units) t3 = hartree_to_ev !/e!hartree/(elec_charge)
+            if (input%properties%boltzequ%siOutputUnits) t3 = hartree_to_ev !/e!hartree/(elec_charge)
 
             do imu = 1, size(muarray)
                do itemp = 1, size(temparray)
@@ -506,7 +486,7 @@ subroutine boltzequ()
             write(*, '("  Thermal conductivity over tau (kappa/tau) of component ", 2I1, " written to ", a)') a, b, trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
             t3 = 1.0d0
-            if (input%properties%boltzequ%output_in_si_units) t3 = (hartree_to_j)**3/(bohr_radius_si*(hbar_si)**2)
+            if (input%properties%boltzequ%siOutputUnits) t3 = (hartree_to_j)**3/(bohr_radius_si*(hbar_si)**2)
 
             do imu = 1, size(muarray)
                do itemp = 1, size(temparray)
@@ -542,8 +522,11 @@ subroutine boltzequ()
 #endif
      end do ! l, optical components
      
-     if (input%properties%boltzequ%output_in_si_units) write(*, '("  Output of energy in eV")')
-     if (input%properties%boltzequ%output_in_si_units) write(*, '("  Output of transport coefficients in SI untis: S in V/K , sigma/tau in S/(m s) , kappa/tau in W/(mK s) ")')
+     if (input%properties%boltzequ%siOutputUnits) then 
+        write(*, '("  Output of energy in eV")')
+        write(*, '("  Output of transport coefficients in SI units: &
+              & S in V/K , sigma/tau in S/(m s) , kappa/tau in W/(mK s) ")')
+     endif     
      write(*,*)
         
 end subroutine

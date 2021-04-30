@@ -150,7 +150,7 @@ contains
       ! The propagator operator should be unitary, so this step would be unnecessary
       ! However, numerically this is almost never possible
       ! This normalization may help to avoid numerical issues
-      if ( input%xs%rt_tddft%normalize_WF ) call normalize( ik, nmatp, overl )
+      if ( input%xs%realTimeTDDFT%normalizeWF ) call normalize( ik, nmatp, overl )
 
       deallocate(overl)
       deallocate(ham)
@@ -210,7 +210,7 @@ contains
     store(1:nmatp, 1:nstfv) = evecfv_time(1:nmatp, 1:nstfv, ik)
 
     ! Taylor expansion
-    do it = 1, input%xs%rt_tddft%order_taylor
+    do it = 1, input%xs%realTimeTDDFT%TaylorOrder
       ! Matrix multiplication C := alpha*AB+beta*C
       call ZHEMM( 'L', 'U', nmatp, nstfv, zone, ham, nmatp, store, &
         & nmatp, zzero, scratch, nmatp )

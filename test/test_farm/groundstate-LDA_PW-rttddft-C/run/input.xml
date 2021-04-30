@@ -37,22 +37,22 @@
 	  reducek="false"
           nempty="20">
 
-          <rt_tddft
-            propagator="AETRS"
-            time_step="0.25d0"
-            end_time="10.0d0"
-            read_pmatbasis="false"
-            print_timing_general="true"
-            print_timing_detailed="true"
-            calculate_total_energy="true"
-            calculate_n_excited_electrons="true"
-            print_after_iterations="1"
-            vector_potential_solver="improvedeuler">
-            <laser field_type="total">
+          <realTimeTDDFT
+            propagator="AETRS"                                                                                                                                               
+            timeStep="0.25d0"                                                                                                                                                
+            endTime="10.0d0"                                                                                                                                                 
+            readPmatBasis="false"                                                                                                                                            
+            printTimingGeneral="true"
+            printTimingDetailed="true"
+            calculateTotalEnergy="true"
+            calculateNExcitedElectrons="true"
+            printAfterIterations="1"
+            vectorPotentialSolver="improvedeuler">
+            <laser fieldType="total">
               <kick t0="1.d0" width="0d0" amplitude="0.01d0" direction="z"/>
             </laser>
-            <screenshots niter="20" print_abs_proj_coeffs="true" />
-          </rt_tddft>
+            <screenshots niter="20" printAbsProjCoeffs="true" />
+          </realTimeTDDFT>
 
         </xs>
 </input>

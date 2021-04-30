@@ -95,7 +95,7 @@ subroutine coordinate_rttddft_calculation()
   call timesec(timesave)
 
   ! Variable that tells after how many iterations the output should be printed
-  nprint = input%xs%rt_tddft%print_after_iterations
+  nprint = input%xs%realTimeTDDFT%printAfterIterations
   ! Consistency check: check if nprint > 0. If not, stop the execution.
   call terminate_if_false( mpiglobal, nprint > 0, &
     & 'Invalid non-positive number as printAfterIterations' )
@@ -113,7 +113,7 @@ subroutine coordinate_rttddft_calculation()
   ! Outputs general info to RTTDDFT_INFO.OUT and
   ! opens TIMING_RTTDDFT.OUT (if this is the case)
   if( rank == 0 ) then
-    if(input%xs%rt_tddft%print_timing_general) then
+    if(input%xs%realTimeTDDFT%printTimingGeneral) then
       call timesec (timei)
       call getunit(filetime)
       open(filetime,file='TIMING_RTTDDFT'//trim(filext),status='replace')
@@ -146,9 +146,9 @@ subroutine coordinate_rttddft_calculation()
   allocate(atotstore(3,nprint))
   allocate(jindstore(3,nprint))
   allocate(pvecstore(3,nprint))
-  if( input%xs%rt_tddft%print_timing_general )  allocate(timingstore(nprint))
-  if( input%xs%rt_tddft%calculate_total_energy ) allocate(etotstore(nprint))
-  if( input%xs%rt_tddft%calculate_n_excited_electrons ) allocate(nex(nprint),ngs(nprint),nt(nprint))
+  if( input%xs%realTimeTDDFT%printTimingGeneral )  allocate(timingstore(nprint))
+  if( input%xs%realTimeTDDFT%calculateTotalEnergy ) allocate(etotstore(nprint))
+  if( input%xs%realTimeTDDFT%calculateNExcitedElectrons ) allocate(nex(nprint),ngs(nprint),nt(nprint))
 
   call initialize_rttddft
 
@@ -194,7 +194,7 @@ subroutine coordinate_rttddft_calculation()
   end if
 
   ! Screenshot
-  if ( associated(input%xs%rt_tddft%screenshots) ) then
+  if ( associated(input%xs%realTimeTDDFT%screenshots) ) then
     call screenshot( 0, first_kpt, last_kpt, overlap, evecfv_gnd, &
       & evecfv_time, ham_time )
   end if
@@ -222,7 +222,7 @@ subroutine coordinate_rttddft_calculation()
 
     ! Update the paramagnetic component of the induced current density
     call UpdateCurrentDensity( first_kpt, last_kpt, evecfv_time(:,:,:),jparanext(:) )
-    if ( input%xs%rt_tddft%subtract_J0 ) jparanext(:) = jparanext(:)-jparaspurious(:)
+    if ( input%xs%realTimeTDDFT%subtractJ0 ) jparanext(:) = jparanext(:)-jparaspurious(:)
     if ( printTimesGeneral ) call timesecRTTDDFT(timei,timef,timingstore(iprint)%t_curr)
 
     ! DENSITY
@@ -233,9 +233,9 @@ subroutine coordinate_rttddft_calculation()
 
     ! VECTOR POTENTIAL
     ! Update the induced part of the vector potential
-    if( input%xs%rt_tddft%laser%field_type == 'external' ) then
+    if( input%xs%realTimeTDDFT%laser%fieldType == 'external' ) then
       ! Check if we need to save aind, pvec, atot and aext
-      if( predictorCorrector .and. (input%xs%rt_tddft%vector_potential_solver /= 'euler') ) then
+      if( predictorCorrector .and. (input%xs%realTimeTDDFT%vectorPotentialSolver /= 'euler') ) then
         aindsave(:) = aind(:)
         pvecsave(:) = pvec(:)
         atotsave(:) = atot(:)
@@ -260,7 +260,7 @@ subroutine coordinate_rttddft_calculation()
     jparaold(:) = jpara(:)
     jpara(:) = jparanext(:)
     ! Update the total induced current
-    if ( predictorCorrector .and. (input%xs%rt_tddft%vector_potential_solver /= 'euler') ) then
+    if ( predictorCorrector .and. (input%xs%realTimeTDDFT%vectorPotentialSolver /= 'euler') ) then
       jindsave(:) = jind(:)
     end if
     jind(:) = jpara(:) + jdia(:)
@@ -289,7 +289,7 @@ subroutine coordinate_rttddft_calculation()
 
         ! Update the paramagnetic component of the induced current density
         call UpdateCurrentDensity( first_kpt, last_kpt, evecfv_time(:,:,:),jparanext(:))
-        if ( input%xs%rt_tddft%subtract_J0 ) jparanext(:) = jparanext(:)-jparaspurious(:)
+        if ( input%xs%realTimeTDDFT%subtractJ0 ) jparanext(:) = jparanext(:)-jparaspurious(:)
 
         ! DENSITY
         call uprho( it, .False. )
@@ -299,7 +299,7 @@ subroutine coordinate_rttddft_calculation()
 
         ! VECTOR POTENTIAL
         ! Update the induced part of the vector potential
-        if( (input%xs%rt_tddft%laser%field_type .eq. 'external') .and. (input%xs%rt_tddft%vector_potential_solver .ne. 'euler') ) then
+        if( (input%xs%realTimeTDDFT%laser%fieldType .eq. 'external') .and. (input%xs%realTimeTDDFT%vectorPotentialSolver .ne. 'euler') ) then
           jpara(:) = jparaold(:) !attention: jparaold saves the value of jpara(t-deltat)
           aindbackup(:) = aind(:)
           aind(:) = aindsave(:)
@@ -349,8 +349,8 @@ subroutine coordinate_rttddft_calculation()
     end if
 
     ! Check if a screenshot has been requested
-    if ( associated(input%xs%rt_tddft%screenshots) ) then
-      if ( mod( it, input%xs%rt_tddft%screenshots%niter ) == 0 ) then
+    if ( associated(input%xs%realTimeTDDFT%screenshots) ) then
+      if ( mod( it, input%xs%realTimeTDDFT%screenshots%niter ) == 0 ) then
         call screenshot( it, first_kpt, last_kpt, overlap, evecfv_gnd, &
           & evecfv_time, ham_time )
       end if
@@ -443,7 +443,7 @@ subroutine coordinate_rttddft_calculation()
   if ( predictorCorrector ) then
     deallocate( ham_predcorr, evecfv_save )
   end if
-  if ( associated(input%xs%rt_tddft%laser) ) then
+  if ( associated(input%xs%realTimeTDDFT%laser) ) then
     if ( nkicks >= 1 ) then
       deallocate( wkick, dirkick, amplkick, t0kick )
     end if
@@ -724,7 +724,7 @@ subroutine printTiming( itNumber, n, timing )
       ! Total Energy
       if ( calculateTotalEnergy .and. printTimesDetailed ) write(filetime,formatTime) 'Total Energy:',timing(ip)%t_toten
       if ( calculateNexc .and. printTimesDetailed ) write(filetime,formatTime)'nexc:',timing(ip)%t_nexc
-      if ( associated(input%xs%rt_tddft%screenshots) ) write(filetime,formatTime) 'Screenshots:',timing(ip)%t_screenshot
+      if ( associated(input%xs%realTimeTDDFT%screenshots) ) write(filetime,formatTime) 'Screenshots:',timing(ip)%t_screenshot
       write(filetime,formatTime) 'time per iteration:',timing(ip)%t_iteration
     end do
   end if

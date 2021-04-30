@@ -621,14 +621,14 @@
           </xs:annotation>          
           <xs:complexType>
             <xs:sequence>
-              <xs:element ex:importance="expert" ex:unit="" name="condcomp" type="integerpair" minOccurs="0" maxOccurs="9">
+              <xs:element ex:importance="expert" ex:unit="" name="etCoeffComponents" type="integerpair" minOccurs="0" maxOccurs="9">
                 <xs:annotation>
                   <xs:documentation>Components of the tensors for the electronic transport coefficients to be calculated.</xs:documentation>
                 </xs:annotation>
               </xs:element>
             </xs:sequence>
 
-	    <xs:attribute ex:importance="expert" ex:unit="" name="energy_reference" default="none">
+	    <xs:attribute ex:importance="expert" ex:unit="" name="energyReference" default="none">
         <xs:annotation>
           <xs:documentation>If <pre>"efermi"</pre>, the input values for energies are given with respect to the Fermi energy.</xs:documentation>
         </xs:annotation>
@@ -640,74 +640,74 @@
 	      </xs:simpleType>												   
       </xs:attribute>
 
-	    <xs:attribute ex:importance="expert" ex:unit="" name="use_transport_df" type="xs:boolean" default="true">
+	    <xs:attribute ex:importance="expert" ex:unit="" name="useTransportDf" type="xs:boolean" default="true">
               <xs:annotation>
                 <xs:documentation>If <pre>"true"</pre>, the transport coefficients are calculated with the kernal function, the transport distribution function.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
 
-	    <xs:attribute ex:importance="expert" ex:unit="" name="transport_df_range" type="vect2d" default="-0.5d0 0.5d0">
+	    <xs:attribute ex:importance="expert" ex:unit="" name="transportDfRange" type="vect2d" default="-0.5d0 0.5d0">
               <xs:annotation>
                 <xs:documentation>Frequency (or energy) range for the evaluation of the transport distribution function.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="essential" ex:unit="" name="transport_df_spacing" type="fortrandouble" default="100">
+            <xs:attribute ex:importance="essential" ex:unit="" name="transportDfSpacing" type="fortrandouble" default="100">
               <xs:annotation>
                 <xs:documentation>Spacing between the frequency (or energy) points used for the evaluation of the transport distribution function.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="expert" ex:unit="" name="transport_df_broadening" type="fortrandouble" default="0.001d0">
+            <xs:attribute ex:importance="expert" ex:unit="" name="transportDfBroadening" type="fortrandouble" default="0.001d0">
               <xs:annotation>
                 <xs:documentation>Broadening factor used in the calculation of the transport distribution function.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="expert" ex:unit="" name="temperature_range" type="vect2d" default="300.0d0 300.0d0">
+            <xs:attribute ex:importance="expert" ex:unit="" name="temperatureRange" type="vect2d" default="300.0d0 300.0d0">
               <xs:annotation>
                 <xs:documentation>Temperature range for the evaluation of the transport coefficients in Kelvin.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
-	    <xs:attribute ex:importance="expert" ex:unit="" name="temperature_spacing" type="fortrandouble" default="1">
+	    <xs:attribute ex:importance="expert" ex:unit="" name="temperatureSpacing" type="fortrandouble" default="1">
               <xs:annotation>
                 <xs:documentation>Spacing between temperature points in Kelvin.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="expert" ex:unit="" name="chemical_potential_range" type="vect2d" default="0.0d0 0.0d0">
+            <xs:attribute ex:importance="expert" ex:unit="" name="chemicalPotentialRange" type="vect2d" default="0.0d0 0.0d0">
               <xs:annotation>
                 <xs:documentation>Chemical potential range for the evaluation of the transport coefficients.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
-	    <xs:attribute ex:importance="essential" ex:unit="" name="chemical_potential_spacing" type="fortrandouble" default="1">
+	    <xs:attribute ex:importance="essential" ex:unit="" name="chemicalPotentialSpacing" type="fortrandouble" default="1">
               <xs:annotation>
                 <xs:documentation>Spacing between the chemical potential points.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
-	    <xs:attribute ex:importance="expert" ex:unit="" name="doping_concentration" type="fortrandouble" default="1.0d16">
+	    <xs:attribute ex:importance="expert" ex:unit="" name="dopingConcentration" type="fortrandouble" default="1.0d16">
 	      <xs:annotation>
 	        <xs:documentation>Doping concentration in 1/cm3.</xs:documentation>
 	      </xs:annotation>
 	    </xs:attribute>							    
 
-	    <xs:attribute ex:importance="expert" ex:unit="" name="use_doping_concentration" type="xs:boolean" default="false">
+	    <xs:attribute ex:importance="expert" ex:unit="" name="useDopingConcentration" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation>If <pre>"true"</pre>, the chemical potential is adjusted to the the doping concentration. Input parameters for the chemical potential are discarded.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
-	    <xs:attribute ex:importance="expert" ex:unit="" name="output_energies_in_ev" type="xs:boolean" default="false">
+	    <xs:attribute ex:importance="expert" ex:unit="" name="evOutputEnergies" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation>If <pre>"true"</pre>, output energies are in eV.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="expert" ex:unit="" name="output_in_si_units" type="xs:boolean" default="false">
+            <xs:attribute ex:importance="expert" ex:unit="" name="siOutputUnits" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation>If <pre>"true"</pre>, output transport coefficients are given in SI units: Seebeck coefficient in V/K , electrical conductivity over relaxation time in S/(m s) , thermal conductivity over relaxation time in W/(mK s). </xs:documentation>
               </xs:annotation>
