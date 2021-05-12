@@ -1,0 +1,12 @@
+# SOL (developer machine) OS 
+FROM debian:buster 
+
+# Dependencies required to build exciting's documentation 
+# python depends on GCC, so one might as well install everything once
+RUN apt-get update && \
+  apt-get install -y build-essential libpython3.7 libpython3.7-dev python3-pip \
+  xsltproc texlive-base texlive-fonts-recommended texlive-latex-extra graphviz
+
+# Ford requires graphviz, but doesn't necessarily find it on Debian unless
+# installed via apt-get (instead of pip)
+RUN pip3 install lxml ford

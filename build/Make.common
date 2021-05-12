@@ -27,7 +27,6 @@ SOURCEDIRS=	\
 	../../src/src_stm/ \
 	../../src/src_vdW/ \
 	../../src/src_gw/ \
-	../../src/src_gw/src_acfreq/ \
 	../../src/src_gw/src_vxc \
 	../../src/src_gw/src_tests \
 	../../src/src_wannier \

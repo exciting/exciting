@@ -293,7 +293,7 @@ Contains
       Use mod_atoms
 !      Use modmain
 ! !DESCRIPTION:
-! Redirects pointers of mt_blockA to mt_blockB of muffin-tin Hamiltonians or overlaps.
+! Redirects pointers of mt\_blockA to mt\_blockB of muffin-tin Hamiltonians or overlaps.
 !
 ! !REVISION HISTORY:
 !   Created October 2015 (Andris)
@@ -324,7 +324,7 @@ Contains
 
 !      Use modmain
 ! !DESCRIPTION:
-! Copies the contents of mt_blockA to mt_blockB of muffin-tin Hamiltonians or overlaps.
+! Copies the contents of mt\_blockA to mt\_blockB of muffin-tin Hamiltonians or overlaps.
 !
 ! !REVISION HISTORY:
 !   Created October 2015 (Andris)
