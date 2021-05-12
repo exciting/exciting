@@ -105,7 +105,7 @@ test-debian-buster-Intel2019-serial:
     - module load intel/2019
     - mkdir -p /usr/global && mount -o nolock -t nfs global.physik.hu-berlin.de:/globaldisk/AMD64 /usr/global
     # Looks like this Intel distribution only comes with python2, so get GNU python3.7
-    - apt-get update && apt-get install -y libpython3.7 libpython3.7-dev python3-pip 
+    - apt-get update && apt-get install -y libpython3.7 libpython3.7-dev python3-pip
     - pip3 install numpy termcolor lxml pytest
   script:
     - cd test && python3 runtest.py -a run -e exciting_serial 
@@ -147,7 +147,7 @@ test-debian-buster-Intel2019-mpiandsmp:
     - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
     - module load intel/2019
     - mkdir -p /usr/global && mount -o nolock -t nfs global.physik.hu-berlin.de:/globaldisk/AMD64 /usr/global
-    # Last two needed by Intel MPI 
+    # libfabric needed by Intel MPI 
     - apt-get update && apt-get install -y libpython3.7 libpython3.7-dev python3-pip libfabric1 libfabric-dev
     - pip3 install numpy termcolor lxml pytest
   script:
@@ -159,3 +159,20 @@ test-debian-buster-Intel2019-mpiandsmp:
     paths:
       - docs/profiling/CodeCoverage
       - docs/profiling/CODE_COVERAGE.HTML
+
+# Build documentation 
+build:debian-buster-documentation:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-docs
+  stage: build
+  tags:
+    - docker
+  script:
+    - cp build/platforms/make.inc.gfortran build/make.inc
+    # exciting input documentation
+    - make doc
+    # Ford documentation with graphical dependencies 
+    - make ford
+  artifacts:
+    paths:
+      - docs/exciting/excitinginput.pdf
+      - docs/exciting_ford

@@ -8,7 +8,7 @@ Requirements
 exciting comes with all the external libraries required to compile the code in serial.
 These include:
 
-  FoX XML library for parsing the input
+        FoX XML library for parsing the input
 	http://www.uszla.me.uk/FoX/DoX/Licensing.html
 	
 	BLAS & LAPACK for linear algebra operations 
@@ -20,13 +20,15 @@ These include:
 	LIBXC library of DFT exchange and correlation functionals 
 	http://www.tddft.org/programs/octopus/wiki/index.php/Libxc
 
-  BSPLINE-FORTRAN: Multidimensional B-Spline Interpolation of Data on a Regular Grid
-  https://github.com/jacobwilliams/bspline-fortran
+        BSPLINE-FORTRAN: Multidimensional B-Spline Interpolation of Data on a Regular Grid
+        https://github.com/jacobwilliams/bspline-fortran
 
 Compilation in parallel requires an MPI library, such as open-mpi, MPICH or Intel MPI library
 and optionally, a version of Scalapack. These can be installed with a package manager such as 
-Conda, Spack or EasyBuild, or built manually from source. Some limited spack recipes for 
+APT, Conda, Spack or EasyBuild, or built manually from source. Some limited spack recipes for 
 installing external libraries, compiled with GCC and Intel, are provided in build/utilities/spack. 
+
+Test suite dependencies are specified in test/README. 
 
 
 Compiling
@@ -75,6 +77,35 @@ Please note that in order to use:
 a make.inc file must be present in the build directory. 
 
 
+Documentation
+------------------
+
+exciting's input documentation and the majority of its source documentation can be built with:
+
+  make doc 
+
+PDF documents are built in their respective doc/ subfolders. All documentation is parsed
+through LaTex and requires the user to have a Tex distribution installed. 
+
+exciting's source code documentation is in the process of migrating to FORD. At present,
+only select excited-state modules are documented. These are specified in docs/ford_settings.md
+under the `src_dir` tag. 
+
+FORD is a python package with minimal dependencies, and can be installed with pip. To install 
+FORD, type:
+
+  pip3 install ford
+
+To build exciting's documentation using FORD, type:
+
+  make ford
+
+FORD generates html-based documentation, including graphical dependency analysis, which can be 
+viewed by opening docs/exciting_ford/index.html in a web browser. More details of FORD can be found 
+on its Github page: https://github.com/Fortran-FOSS-Programmers/ford and additonal details regarding
+installation of dependencies can be found under 'Known Issues', below. 
+
+
 Compiler Support
 ------------------
 
@@ -101,6 +132,14 @@ make.inc with `-fallow-argument-mismatch`. See:
   https://gcc.gnu.org/gcc-10/porting_to.html
 
 for more details.
+
+FORD Fails to Find Graphviz
+On Debian Buster, we have noticed that FORD fails to find graphviz, despite pip installing
+it as part of FORD's dependencies. This can be fixed by installing graphviz with APT. Optionally
+one can also install python-dev and LXML, which facilitate faster generation of the search database:
+
+  sudo apt install python3-all-dev graphviz
+  pip3 install lxml
 
 
 

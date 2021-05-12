@@ -51,16 +51,27 @@ test_reference ::
 cleantests ::
 	cd test/; $(MAKE) cleantests
 
-# Documentation 
+# HTML Documentation, limited to a subsection of the source 
 
-#TODO(Sebastian) Issue #15. Fix documentation compilation for subroutines 
-#doc:  spacegroupdoc stateconvertdoc stateinfodoc inputdoc excitingfuncdoc split_inputdoc speciesdoc
+# Ford documentation. Note, the document build directory (1st argument) is relative
+# to the location of ford_settings.md. Documentation is therefore built in docs/exciting_ford. 
+ford :: 
+	ford -o exciting_ford/ docs/ford_settings.md
+
+cleanford ::
+	cd docs/exciting_ford/;\
+	rm -r blockdata css fonts interface js lists module proc program sourcefile src type;\
+	rm favicon.png index.html search.html
+
+# Source !BOP documentation and all XML inputs, parsed into latex
+
+doc:  spacegroupdoc stateconvertdoc stateinfodoc inputdoc excitingfuncdoc split_inputdoc speciesdoc
 
 excitingfuncdoc::
 	$(MAKE) -f build/Make.common doc
 
 expandedschema::
-	xsltproc xml/schema/schemaexpand.xsl xml/schema/input.xsd >xml/excitinginput.xsd ;\
+	xsltproc xml/schema/schemaexpand.xsl xml/schema/input.xsd >xml/excitinginput.xsd
 
 inputdoc::expandedschema
 	cd docs/exciting/;\
@@ -80,8 +91,6 @@ inputdocwiki:xml/schema/*.xsd
 # Utility Programs and their docs
 # TODO(Alex) Issue 45. Decouple standalone programs from exciting's src and build system 
 # Consider replacing with a single command, `make auxilliary` 
-
-doc: inputdoc split_inputdoc speciesdoc
 
 spacegroupdoc::
 	cd src/spacegroup; $(MAKE) doc;\
@@ -143,9 +152,7 @@ clean:
 libxcclean:
 	cd src/libXC && make clean
 
-# Issue #15. Fix documentation compilation for subroutines
-#tgz::doc
-tgz:
+tgz::doc
 	tar --exclude-from=".gitignore"  --transform 's,^,exciting/,' -c -v -f ./exciting.tar *
 	gzip  -f --best ./exciting.tar
 	du -h ./exciting.tar.gz
