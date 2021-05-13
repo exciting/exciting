@@ -17,6 +17,12 @@ The test suite requires python3 and the following packages:
  * numpy
  * xml
  * unittest
+ * excitingtools (packaged with exciting)
+
+To install excitingtools, from exciting's root directory type:
+
+    pip3 install -e tools/exciting_tools
+
 
 Using the test suite:
 

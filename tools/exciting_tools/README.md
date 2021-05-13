@@ -63,8 +63,8 @@ acceptable to follow.
 Every function should have a test where possible, unless the function is correct by inspection. The naming convention 
 for a module called `module.py` is to prepend the it with `test_`:
 ```angular2html
-exciting_tools/module.py       # Collection of functions
-tests/test_module.py           # Collection of tests for functions in module.py
+excitingtools/module.py       # Collection of functions
+tests/test_module.py          # Collection of tests for functions in module.py
 ```
 Tests are intended to be run using *pytest*, for which the documentation can be found [here](https://docs.pytest.org/en/stable/index.html). 
 One is able to run `pytest` from the `exciting_tools` root with no arguments. By default, all test files, classes and functions defined in the specification,

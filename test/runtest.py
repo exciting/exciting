@@ -6,25 +6,21 @@ To run all tests in parallel, type `python3 runtest.py -a run -e exciting_mpismp
 For more details, type `python3 runtest.py --help`
 """
 
-import sys
-import os
 import argparse as ap
 import unittest
-import warnings
 from collections import namedtuple
 
-sys.path.insert(1, 'tools')
-sys.path.insert(1, 'tools/selftests/')
-
-from termcolor_wrapper import print_color
-from procedures import *
-from constants import settings
-import runselftests
+from tools.termcolor_wrapper import print_color
+from tools.procedures import *
+from tools.constants import settings
+from tools.selftests import runselftests
 from failing_tests import set_skipped_tests
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
     return '%s: %s \n' % (category.__name__, message)
+
 warnings.formatwarning = warning_on_one_line
+
 
 def optionParser(testFarm:str, exedir:str):
     """
@@ -255,5 +251,5 @@ if __name__ == "__main__":
         exit()
         
     self_test_results = run_self_tests()
-    
+
     main(settings, input_options)

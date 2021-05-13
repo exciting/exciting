@@ -3,8 +3,8 @@ Tests for functions in lattice.py
 """
 import numpy as np
 
-from ..exciting_tools.lattice import reciprocal_lattice_vectors, parallelpiped_volume
-from ..exciting_tools.math_utils import triple_product
+from excitingtools.lattice import reciprocal_lattice_vectors, parallelpiped_volume
+from excitingtools.math_utils import triple_product
 
 
 def test_parallelpiped_volume():
