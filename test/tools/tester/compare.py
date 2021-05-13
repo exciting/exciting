@@ -1,9 +1,12 @@
+"""
+Functions that check the type of an object
+"""
 import numpy as np
 
-from failure import *
-from path import *
+from .failure import *
+from .path import *
 
- #Functions that check the type of an object.   
+# TODO(A/B/H) Issue 67 This function should use isinstance
 def isfloat(value):
   try:
     float(value)
@@ -18,8 +21,8 @@ def checkFloatFail(test, test_data, ref_data, tolF, path, tolValuePair):
     else:
         tol = tolF
     err = abs(float(test_data)-float(ref_data))
-    if err>tol:
-        test.append(Failure(Failure_code.FLOAT, error = err, tolerance = tol, path = path))
+    if err > tol:
+        test.append(Failure(Failure_code.FLOAT, error=err, tolerance=tol, path=path))
 
 def checkArrayFail(test, test_data, ref_data, tolL, path, tolValuePair):
     if path.lastElement() in tolValuePair['value']:
@@ -127,7 +130,7 @@ def compare_INFO(test_data, ref_data, test, tolFloat, tolList, path, tolIter, ma
     else:
       checkFloatFail(test, max(list1), max(list2), int(tolIter), Path("INFO.OUT/Iterations"), tolValuePair)
 
-    # TODO integer fail
+    # TODO(A/B/H)issue 67. Add integer failure
 
     # compares the last iteration
     compare_data(test_data['scl'][str(max(list1))], ref_data['scl'][str(max(list2))], test, tolFloat, tolList, path, ignore, tolValuePair)
@@ -145,14 +148,14 @@ def compare_info(test_data, ref_data, test, tolFloat, tolList, path, tolIter, ma
     for key in ref_data['scl'].keys():
         list2.append(int(key))
         
-    # checks wether the number of itereations is in the tolerance
+    # checks whether the number of iterations is in the tolerance
     if maxIter != 0:
       if max(list1) > int(maxIter):
         test.append(Failure(Failure_code.FLOAT, error = max(list1)-int(maxIter), tolerance = 0, path = "info.xml/Iterations"))
     else:
       checkFloatFail(test, max(list1), max(list2), int(tolIter), Path("info.xml/Iterations"), tolValuePair)
 
-    # TODO integer fail
+    # TODO(A/B/H)issue 67. Add integer failure
     
     # compares the energies calculated in the last iteration
     compare_data(test_data['scl'][str(max(list1))]['energies'], ref_data['scl'][str(max(list2))]['energies'], test, tolFloat, tolList, path, ignore, tolValuePair)

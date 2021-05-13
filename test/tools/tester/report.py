@@ -1,9 +1,7 @@
-from operator import add
 import xml.etree.ElementTree as ET
 
-from termcolor_wrapper import print_color
-from test import Test
-from failure import *
+from .test import Test
+from .failure import *
 
 def indent(elem, level=0):
     i = "\n" + level*"  "
@@ -23,12 +21,12 @@ def indent(elem, level=0):
     return elem        
 
 class Report(dict):
-    '''
+    """
     Collects the fail lists of a test run and writes a report.
     In:
         name            string      Gives the thing a name. Important writing a report.
         description     string      Description of the tests that are performed.
-    '''
+    """
     def __init__(self, name, description):
         self.name = name
         self.description = description
@@ -40,9 +38,9 @@ class Report(dict):
         super(Report, self).__init__()
 
     def updateNumberOfFails(self, newFailNumbers):
-        '''
-        Updates the number of fails.
-        '''
+        """
+        Updates the number of failures.
+        """
         if self.numberOfFails==None:
             self.numberOfFails = newFailNumbers
         else:
@@ -50,9 +48,9 @@ class Report(dict):
                 self.numberOfFails[key] += newFailNumbers[key]
 
     def collectTest(self, Test):
-        '''
+        """
         Adds a new Test to the report. Automatically updates the attributes.
-        '''
+        """
         self[Test.name]=Test
         self.updateNumberOfFails(Test.countFailures())
         # TODO(Alex) This should be assertions, for a given test case 
@@ -70,9 +68,9 @@ class Report(dict):
         self.collectTest(test)
 
     def writeToTerminal(self):
-        '''
+        """
         Write a report to stdout
-        '''
+        """
         print('Report:', end = ' ')
         print_color('SUCCESS %i/%i'%(self.succeededTests, self.numberOfTests), 'green', end = '')
         print(',', end=' ') 

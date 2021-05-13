@@ -1,38 +1,28 @@
-'''
+"""
 Procedures for testing
-'''
+"""
 
-import sys
 import os
 import shutil
 import xml.etree.ElementTree as ET 
-from subprocess import PIPE, CalledProcessError, check_call, Popen, TimeoutExpired
-import glob
+from subprocess import PIPE, Popen, TimeoutExpired
 import time
 import warnings
 
-sys.path.insert(1, 'tools/parser')
-from ErrornousFileError import ErrornousFileError
-from initParser import parseInit, getInitFile
-from parserChooser import parserChooser
-
-sys.path.insert(1, 'tools/tester')
-from test import Test, fromInit
-from report import Report, indent, test_suite_summary, skipped_test_summary, timing_summary
-from failure import *
-
-#sys.path.insert(1, 'xml/schema')        If we want to validat init.xml, the stuff is there.
-#from validate import validate
+from .parsers import ErroneousFileError, parseInit, getInitFile, parser_chooser
+from .tester.test import fromInit
+from .tester.report import Report, indent, test_suite_summary, skipped_test_summary, timing_summary
+from .tester.failure import *
 
 
-def collectSingleReport(testFarm, testDir, root):
-    '''
+def collectSingleReport(testFarm: str, testDir: str, root):
+    """
     Collects content from report.xml for a single test case.
     Input:
         testFarm        string              location of the test farm
         testDir         string              test case for that report.xml will be collected
         root            ET root element     root element for reports.xml in report/
-    '''
+    """
     try:
         rootT = ET.parse(os.path.join(testFarm, testDir, 'report.xml')).getroot()
         root.insert(1, rootT)
@@ -40,13 +30,14 @@ def collectSingleReport(testFarm, testDir, root):
     except FileNotFoundError:
         return
 
+
 def collectReports(testFarm:str, testList:list):
-    '''
+    """
     Collects content from report.xml for test cases in test list (see collectSingleReport)
     Input:
     :testFarm:    location of the test farm
     :testList:    test cases for that report.xml will be collected
-    '''
+    """
     root = ET.Element("reports")
     for testDir in testList:
         collectSingleReport(testFarm, testDir, root)
@@ -56,8 +47,9 @@ def collectReports(testFarm:str, testList:list):
 
     os.system('xsltproc report/reports2html.xsl report/reports.xml > report/report.html')
 
+
 def exciting_run(executable:str, mainOut:str, maxTime:int):
-    '''
+    """
     Executes a exciting run, checks if it was successfull.
     Input:
         executable  string    executable command (poorly-named). For example:
@@ -68,7 +60,7 @@ def exciting_run(executable:str, mainOut:str, maxTime:int):
         success     bool                true if run was successfull, false else
         errMess     list of strings     terminal output of exciting
         run_time    float     Run time of job 
-    '''
+    """
     t_start = time.time()
     exciting_run = Popen(executable.split(), stdout = PIPE)
     
@@ -89,7 +81,7 @@ def exciting_run(executable:str, mainOut:str, maxTime:int):
 def runSingleTest(testFarm:str, mainOut:str, testDir:str, runDir:str,
                   refDir:str, init_default:str, executable:str, maxTime:str, 
                   timing:dict, handle_errors:bool):
-    '''
+    """
     Runs a singel test.
     :testFarm:        location of the test farm
     :mainOut:         main output file of the exciting calculation
@@ -103,7 +95,7 @@ def runSingleTest(testFarm:str, mainOut:str, testDir:str, runDir:str,
 
     Output:
         report          object      report instance of the test     
-    '''
+    """
     print('Run test %s:'%testDir)
     os.chdir(os.path.join(testFarm,testDir))
     try:
@@ -113,7 +105,7 @@ def runSingleTest(testFarm:str, mainOut:str, testDir:str, runDir:str,
     except OSError:
         os.chdir('../../')
         return
-        
+
     name = init['name']
     description = init['description']
     tests = init['tests']
@@ -141,7 +133,8 @@ def runSingleTest(testFarm:str, mainOut:str, testDir:str, runDir:str,
         os.chdir('../')
 
         # test all the files specified in init.xml:
-            
+
+        #TODO(Alex/Bene/Hannah) Issue 67 This needs simplifying
         for testInit in tests:
             testFile = testInit['file']
             runPath = os.path.join(runDir, testFile)
@@ -162,12 +155,12 @@ def runSingleTest(testFarm:str, mainOut:str, testDir:str, runDir:str,
                 continue
             # Checks if the file exists and is not broken
             try:
-                runData = parserChooser(runPath)
+                runData = parser_chooser(runPath)
             except OSError:
                 test.append(Failure(Failure_code.FILENOTEXIST, err_msg=testInit['file']))
                 report.collectTest(test)
                 continue
-            except ErrornousFileError:
+            except ErroneousFileError:
                 test.append(Failure(Failure_code.ERRORFILE, err_msg=testInit['file']))
                 report.collectTest(test)
                 continue
@@ -175,22 +168,22 @@ def runSingleTest(testFarm:str, mainOut:str, testDir:str, runDir:str,
             if '_REF' in refPath:
                 os.rename(refPath, os.path.join(refDirSub, testFile))
                 refPath = os.path.join(refDirSub, testFile)
-                refData = parserChooser(refPath)
+                refData = parser_chooser(refPath)
                 os.rename(refPath, os.path.join(refDirSub, '%s.ref'%testFile))
             else:
                 os.rename(refPath, os.path.join(refDir, testFile))
                 refPath = os.path.join(refDir, testFile)
-                refData = parserChooser(refPath)
+                refData = parser_chooser(refPath)
                 os.rename(refPath, os.path.join(refDir, '%s.ref'%testFile))
 
             if 'info.xml' in testFile:
-                test.evaluate_info(runData.data, refData.data)
+                test.evaluate_info(runData, refData)
             elif 'INFO.OUT' in testFile and 'WANNIER' not in testFile:
-                test.evaluate_INFO(runData.data, refData.data)
+                test.evaluate_INFO(runData, refData)
             elif 'eigval.xml' in testFile:
-                test.evaluate_eigval(runData.data, refData.data)
+                test.evaluate_eigval(runData, refData)
             else:                                                                               
-                test.evaluate(runData.data, refData.data)
+                test.evaluate(runData, refData)
 
             report.collectTest(test)
 
@@ -202,10 +195,11 @@ def runSingleTest(testFarm:str, mainOut:str, testDir:str, runDir:str,
     os.chdir('../../')
     return report 
 
+
 def runTests(testFarm:str, mainOut:str, testList:list, runDir:str, refDir:str,
              init_default:str, executable:str, np:int, omp:int, maxTime:int,
              skipped_tests:list, handle_errors:bool):
-    '''
+    """
     Runs tests in testList (see runSingleTest).
     :testFarm:          location of the test farm
     :mainOut:           main output file of the exciting calculation
@@ -219,7 +213,7 @@ def runTests(testFarm:str, mainOut:str, testList:list, runDir:str, refDir:str,
     :maxTime:           max time before a job is killed
     :skipped_tests:     list of tests to skip
     :handle_errors:     Whether or not failures and passes are allowed to propagate
-    '''
+    """
     if 'exciting_serial' in executable:
         print('Run tests with exciting_serial.')
     elif 'exciting_smp' in executable:
@@ -256,21 +250,22 @@ def runTests(testFarm:str, mainOut:str, testList:list, runDir:str, refDir:str,
         
 
 def isNotForbiddenFile(f:str, forbiddenFiles:list):
-    '''
+    """
     Returns True if a file is not in forbidden files.
     Input:
         f               string          file name
         forbiddenFiles  list of string  list of forbidden files
     Output:
         out             bool
-    '''
+    """
     out = True
     for fF in forbiddenFiles:
         out = out and (fF not in f)
     return out
 
+
 def runSingleReference(testFarm:list, mainOut:str, testDir:str, refDir:str, executable:str, forbiddenFiles:list, maxTime:int):
-    '''
+    """
     Reference run for single test case.
     :testFarm:          location of the test farm
     :mainOut:           main output file of the exciting calculation
@@ -278,7 +273,7 @@ def runSingleReference(testFarm:list, mainOut:str, testDir:str, refDir:str, exec
     :refDir:            name of the ref directory of the test case
     :execuatable:       executable for the exciting run
     :forbiddenFiles:    files that will not be saved as reference
-    '''
+    """
     os.chdir(os.path.join(testFarm,testDir,refDir))
 
     dirs, files = next(os.walk('.'))[1:]
@@ -312,8 +307,9 @@ def runSingleReference(testFarm:list, mainOut:str, testDir:str, refDir:str, exec
     print('Time (s): %.1f' % timing)
     os.chdir('../../..')
 
+
 def runReferences(testFarm:str, mainOut:str, testList:list, refDir:str, executable:str, forbiddenFiles:list, maxTime:int):
-    '''
+    """
     Reference run for all tests (see runSingleReference).
     :testFarm:          location of the test farm
     :mainOut:           main output file of the exciting calculation
@@ -322,19 +318,20 @@ def runReferences(testFarm:str, mainOut:str, testList:list, refDir:str, executab
     :refDir:            name of the ref directory of the test case
     :execuatable:       executable for the exciting run
     :forbiddenFiles:    files that will not be saved as reference
-    '''
+    """
     for testDir in testList:
         runSingleReference(testFarm, mainOut, testDir, refDir, executable, forbiddenFiles, maxTime)
 
+
 def cleanSingleTest(testFarm:str, testDir:str, runDir:str, refDir:str, forbiddenFiles:str):
-    '''
+    """
     Removes all files from exciting calculation in a single test case except files stored as reference and files defined in forbiddenFiles.
     :testFarm:          location of the test farm
     :testDir:           test case that will be cleaned
     :runDir:            name of the run directory of the test case
     :refDir:            name of the ref directory of the test case
     :forbiddenFiles:    files that will not be removed
-    '''
+    """
     os.chdir(os.path.join(testFarm, testDir, runDir))
     dirs, files = next(os.walk('.'))[1:]
     for f in files:
@@ -353,8 +350,9 @@ def cleanSingleTest(testFarm:str, testDir:str, runDir:str, refDir:str, forbidden
             shutil.rmtree(d)
     os.chdir('../../..')
 
+
 def cleanTests(testFarm:str, testList:list, runDir:str, refDir:str, forbiddenFiles:str):
-    '''
+    """
     Cleans the tests in testList (see cleanSingleTest).
     :testFarm:          location of the test farm
     :testList:          test cases that will be cleaned
@@ -362,28 +360,30 @@ def cleanTests(testFarm:str, testList:list, runDir:str, refDir:str, forbiddenFil
     :runDir:            name of the run directory of the test case
     :refDir:            name of the ref directory of the test case
     :forbiddenFiles:    files that will not be removed
-    '''
+    """
     print('Clean test directories.')
     
     for testDir in testList:
         cleanSingleTest(testFarm, testDir, runDir, refDir, forbiddenFiles)
 
+
 def newTest_dir(testFarm:str, name:str, runDir:str, refDir:str):
-    '''
+    """
     Creates new test case at location path.
     Input:
     :testFarm:    location of the test farm
     :name:        name of the new test case
     :runDir:      name of the run directory of the test case
     :refDir:      name of the ref directory of the test case
-    '''
+    """
     path = os.path.join(testFarm, name)
     os.makedirs(path)
     os.makedirs(os.path.join(path, runDir))
     os.makedirs(os.path.join(path, refDir))
 
+
 def copyInputFiles(src:str, testFarm:str, name:str, runDir:str, refDir:str, inputInd:str, species:list):
-    '''
+    """
     Copies input.xml and species files from a reference exciting calculation to a test case, located at path.
     :src:         source of the reference calculation
     :testFarm:    location of the test farm
@@ -391,7 +391,7 @@ def copyInputFiles(src:str, testFarm:str, name:str, runDir:str, refDir:str, inpu
     :refDir:      name of the ref directory of the test case
     :inputInd:    indicator of the input file. In case of input.xml, "input" will work.
     :species:     list od strings list of possible species files
-    '''
+    """
     files_src = next(os.walk(src))[2]
     files_copy = []
     for f in files_src:
@@ -406,14 +406,15 @@ def copyInputFiles(src:str, testFarm:str, name:str, runDir:str, refDir:str, inpu
         shutil.copy(os.path.join(src,f), os.path.join(path,runDir,f))
         shutil.copy(os.path.join(src,f), os.path.join(path,refDir,f))
 
+
 def create_init(testFarm:str, name:str, description:str, init:str):
-    '''
+    """
     Copies init_default.xml from xml/init_templates to the directory of the new test case.
     :testFarm:     location of the test farm   
     :name:         name of the new test case
     :description:  description in the init file
     :init:         init file template
-    '''
+    """
     shutil.copy(os.path.join("xml/init_templates", init), os.path.join(testFarm, name, "init.xml"))
     with open(os.path.join(testFarm, name, "init.xml"), 'r') as file :
         lines = file.read()
@@ -431,7 +432,7 @@ def remove_tests_to_skip(all_tests:list, skipped_tests:list) -> list:
     for a specific executable choice. 
 
     This is useful if a particular test crashes or hangs, and needs to be
-    debugged BUT shoudn't cause the test suite to report a failure.
+    debugged BUT shouldn't cause the test suite to report a failure.
 
     :param all_tests:     list of all test names
     :param skipped_tests: list of tests to skip. Each entry is a dict
@@ -440,8 +441,8 @@ def remove_tests_to_skip(all_tests:list, skipped_tests:list) -> list:
     """
 
     tests_to_skip = [test['name'] for test in skipped_tests]    
-    # Using sets is probably faster but they won't preserve ordering 
-    tests_to_run =  []
+    # Using sets is probably faster but they won't preserve ordering. Could use ordered sets
+    tests_to_run = []
     for test in all_tests:
         if test not in tests_to_skip:
             tests_to_run.append(test)

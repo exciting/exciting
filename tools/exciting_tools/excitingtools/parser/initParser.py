@@ -1,6 +1,5 @@
 import os
 import xml.etree.ElementTree as ET
-from xml.etree.ElementTree import ParseError
 
 def parseInit(fileName):
     root = ET.parse(fileName).getroot()

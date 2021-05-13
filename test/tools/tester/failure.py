@@ -1,7 +1,7 @@
-from path import Path
 from enum import Enum
 
-from termcolor_wrapper import print_color
+from ..termcolor_wrapper import print_color
+
 
 class Failure_code(Enum):
     FORMAT = 1
@@ -13,17 +13,18 @@ class Failure_code(Enum):
     FILENOTEXIST = 7
     ERRORFILE = 8
 
-class Failure():
-    '''
-    Class for reporting a Fail that occure when comparing test data to reference dat.
+
+class Failure:
+    """
+    Class for reporting a failure that occurs when comparing test data to reference data.
     In:
-        code        int         code for differentiating different fails. 0 to 4 is occupied
-        message     string      message that discribes why the fail occured
-        path        Path      tells where the fail occured
-    '''
+        code        int       code for differentiating different fails. 0 to 4 is occupied
+        message     string    message that describes why the fail occurred
+        path        Path      tells where the fail occurred
+    """
     def __init__(self, failure_code, **kwargs):
         self.code = failure_code
-        kwargsDefault = dict({'error':None, 'tolerance':None, 'err_msg':None, 'path':None})
+        kwargsDefault = dict({'error': None, 'tolerance': None, 'err_msg': None, 'path': None})
         kwargs = {**kwargsDefault, **kwargs}
         self.path = kwargs["path"]
 
@@ -32,11 +33,12 @@ class Failure():
         elif failure_code == Failure_code.FLOAT:
             self.message = "FLOAT FAILURE: Error (%.3e) is bigger than tolerance (%.3e)."%(kwargs["error"], kwargs["tolerance"])
         elif failure_code == Failure_code.ARRAY:
-            self.message =  "ARRAY FAILURE: Error (%.3e) is bigger than tolerance (%.3e)."%(kwargs["error"], kwargs["tolerance"])
+            self.message = "ARRAY FAILURE: Error (%.3e) is bigger than tolerance (%.3e)."%(kwargs["error"], kwargs["tolerance"])
         elif failure_code == Failure_code.STRING:
             self.message = "STRING FAILURE: Strings are not the same."
         elif failure_code == Failure_code.RUN:
-            self.message = "RUN FAILURE: Exciting run failed. All tests in this directory are aborted. Error message: %s"%kwargs["err_msg"]
+            self.message = "RUN FAILURE: Exciting run failed. All tests in this directory are aborted. " \
+                           "Error message: %s"%kwargs["err_msg"]
         elif failure_code == Failure_code.REFERENCE:
             self.message = "REFERENCE FAILURE: Reference for %s does not exist."%kwargs["err_msg"]
         elif failure_code == Failure_code.FILENOTEXIST:
