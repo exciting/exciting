@@ -77,6 +77,21 @@ Please note that in order to use:
 a make.inc file must be present in the build directory. 
 
 
+OS Support 
+------------------
+
+Mac OS
+
+exciting can be compiled on mac OS, but it is complicated by nonstandard installation
+locations for libraries, which can vary between OS versions and package managers.
+
+Because production calculations typically require HPC resources, compilation on mac is
+primarily intended for developers, and as such, we only provide schematic instructions
+for modifying the make.inc. Details are provided in build/platforms/os_mac 
+
+exciting has been tested on OS Catalina using GCC 9 and 10, openBLAS 0.3.12_0 and openmpi 4.1.0_1. 
+
+
 Documentation
 ------------------
 
@@ -87,12 +102,11 @@ exciting's input documentation and the majority of its source documentation can 
 PDF documents are built in their respective doc/ subfolders. All documentation is parsed
 through LaTex and requires the user to have a Tex distribution installed. 
 
-exciting's source code documentation is in the process of migrating to FORD. At present,
-only select excited-state modules are documented. These are specified in docs/ford_settings.md
-under the `src_dir` tag. 
+exciting's source code documentation is in the process of migrating to FORD. At present, only
+select excited-state modules are documented. These are specified in docs/ford_settings.md under
+the `src_dir` tag. 
 
-FORD is a python package with minimal dependencies, and can be installed with pip. To install 
-FORD, type:
+FORD is available as a python package and can be installed with pip. To install FORD, type:
 
   pip3 install ford
 
@@ -140,6 +154,4 @@ one can also install python-dev and LXML, which facilitate faster generation of 
 
   sudo apt install python3-all-dev graphviz
   pip3 install lxml
-
-
 
