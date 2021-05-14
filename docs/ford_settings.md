@@ -13,6 +13,8 @@ warn: false
 search: false  
 proc_internals: false  
 src_dir: ../src/src_gw  
+         ../src/input
+         ../src/testframework
 
 [//]: # "Note, ford commands can not be separated by whitelines."  
 [//]: # "More information on ford's project file options can be found at:"  
