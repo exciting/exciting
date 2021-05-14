@@ -3,8 +3,9 @@
 	
 SOURCEDIRS=	\
 	../../src/ \
-	../../src/src_xs/ \
-  ../../src/src_xs/src_rttddft \
+        ../../src/testframework \
+        ../../src/src_xs/ \
+        ../../src/src_xs/src_rttddft \
 	../../src/src_xs/modtetra \
 	../../src/src_fermisurfdx/ \
 	../../src/src_iterative_solver/ \
@@ -31,7 +32,9 @@ SOURCEDIRS=	\
 	../../src/src_gw/src_tests \
 	../../src/src_wannier \
 	../../src/constants \
-	../../src/errors_warnings 
+	../../src/errors_warnings \
+	../../src/input \
+	../../src/testframework
 	
 GeneratedFiles = ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90
 

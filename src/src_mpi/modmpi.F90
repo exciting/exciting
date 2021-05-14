@@ -169,65 +169,67 @@ module modmpi
     !EOC
 
 
-!> @brief Terminate an MPI environment
-subroutine terminate_mpi_env(mpi_env, message)
-  use iso_fortran_env, only: error_unit
-  implicit none
-
-  !> MPI environment object
-  type(mpiinfo), intent(inout) :: mpi_env
-  !> Error message
-  character(len=*), optional, intent(in) :: message
-  !> Error code for Exciting to return to the invoking environment
-  integer, parameter :: error_code = 101
-
+    !> Terminate an MPI environment
+    subroutine terminate_mpi_env(mpi_env, message)
+      use iso_fortran_env, only: error_unit
+      
+      !> MPI environment object
+      type(mpiinfo), intent(inout) :: mpi_env
+      !> Error message
+      character(len=*), optional, intent(in) :: message
+      !> Error code for Exciting to return to the invoking environment
+      integer, parameter :: error_code = 101
+      
 #ifdef MPI
-  if(mpi_env%rank == 0) then
-    if(present(message)) write(error_unit, *) trim(adjustl(message))
-  end if
-  call mpi_abort(mpi_env%comm, error_code, mpi_env%ierr)
-
+      if(mpi_env%rank == 0) then
+         if(present(message)) write(error_unit, *) trim(adjustl(message))
+      end if
+      call mpi_abort(mpi_env%comm, error_code, mpi_env%ierr)
 #else
-  if(present(message)) write(error_unit, *) trim(adjustl(message))
-  stop
-
+      if(present(message)) write(error_unit, *) trim(adjustl(message))
+      stop
 #endif
+    end subroutine terminate_mpi_env
 
-end subroutine terminate_mpi_env
+    
+    !> Terminate global MPI environment   
+    !>
+    !> Developers should not use this, in favour of terminate_mpi_env
+    subroutine terminate(user_msg)
+      !> Optional error message
+      character(len=*), intent(in), optional :: user_msg
 
+      !> Error code for exciting to return to the invoking environment
+      integer, parameter :: error_code = 101
+      !> Error integer 
+      integer :: ierr
+      !> Local error message
+      character(256) :: err_msg
 
-    !BOP
-    ! !ROUTINE: terminate
-    ! !INTERFACE:
-    subroutine terminate
-    ! !DESCRIPTION:
-    !   Kills the program in {\tt MPI} or
-    !   single execution.
-    !
-    ! !REVISION HISTORY:
-    !   Added to documentation scheme and moved to
-    !   modmpi. 2016 (Aurich)
-    !EOP
-    !BOC
-      implicit none
-      integer(4) :: ierr
-      ! Abort mpi if necessary
+      if (present(user_msg)) then
+        err_msg = user_msg
+      else 
+        err_msg = "exciting has terminated"
+      end if
+
 #ifdef MPI
       if(mpiglobal%rank == 0) then
-        write(*,*) "Goodbye, cruel world. (terminate)"
+         write(*,'(a)') trim(adjustl(err_msg))
       end if
-      call mpi_abort(mpi_comm_world, 1, ierr)
-      if(ierr .eq. 0) then
-         write (*, '(a)') 'MPI abort'
+      
+      call mpi_abort(mpi_comm_world, error_code, ierr)
+      
+      if(ierr == 0) then
+         write(*, '(a)') trim(adjustl(err_msg))
       else
-         write (*, '(a)') 'MPI abort with errors - zombie processes might remain!'
+         write(*, '(a)') trim(adjustl(err_msg))//' - zombie processes might remain!'
       end if
 #else
-      write (*, '(a)') 'Abort'
-#endif
+      write(*, '(a)') err_msg
       stop
+#endif
     end subroutine terminate
-    !EOC
+ 
 
     !+++++++++++++++++++++++++++++++++++++++++++!
     ! Partitioning of N elements to P processes !
