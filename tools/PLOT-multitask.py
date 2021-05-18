@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #_______________________________________________________________________________
-# Please, check http://exciting-code.org/oxygen-the-python-script-plot-rt-tddft-py
+# Please, check http://exciting-code.org/oxygen-the-python-script-plot-multitask-py
 # to better understand how to use this script
 
 import matplotlib
