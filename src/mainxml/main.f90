@@ -28,7 +28,6 @@ program main
       call unit_test_driver(args%kill_on_failure)
    else
       call initmpi()
-      call versionfromdate()
       call loadinputDOM("input.xml")
       !initialize default values that are not definet in the input schema
       call setdefault()

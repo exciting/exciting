@@ -3,34 +3,26 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-!BOP
-! !ROUTINE: writeinfo
-! !INTERFACE:
-!
-!
+!> Write info to INFO.OUT.
+!>
+!> Outputs basic information about the run to the file INFO.OUT. 
+!> Does not close the file afterwards.
+!> Created January 2003 (JKD).
 Subroutine writeinfo (fnum)
-! !USES:
       Use modinput
       Use modmain
       use modmpi, only: procs
       use constants, only: twopi
+      use mod_misc, only: filext, versionname, version, compiler_version, githash, &
+                          notelns, notes
 #ifdef TETRA
       Use modtetra
 #endif
-! !INPUT/OUTPUT PARAMETERS:
-!   fnum : unit specifier for INFO.OUT file (in,integer)
-! !DESCRIPTION:
-!   Outputs basic information about the run to the file {\tt INFO.OUT}. Does not
-!   close the file afterwards.
-!
-! !REVISION HISTORY:
-!   Created January 2003 (JKD)
-!EOP
-!BOC
+
       Implicit None
-! arguments
-      Integer :: fnum
-! local variables
+      !>  Unit specifier for INFO.OUT file
+      Integer, intent(in) :: fnum
+
       Integer :: i, is, ia
 #ifdef TETRA
       logical :: tetocc
@@ -42,17 +34,27 @@ Subroutine writeinfo (fnum)
       acoord = "lattice"
       if (input%structure%cartesian) acoord = "cartesian"
 
+      ! Header
       call printline(fnum,"=")
       write (string,'("EXCITING ", a, " started")') trim(versionname)
       call printtext(fnum,"=",string)
+
       if (len(trim(githash)) > 0) then
           write(string,'("version hash id: ",a)') githash
           call printtext(fnum,"=",string)
       end if
       call printtext(fnum,"=","")
+
+      if (len(trim(compiler_version)) > 0) then
+         write(string,'("compiler: ",a)') trim(compiler_version)
+         call printtext(fnum,"=",string)
+      end if
+      call printtext(fnum,"=","")
+
 #ifdef MPI
       Write (string,'("MPI version using ",i6," processor(s)")') procs
       call printtext(fnum,"=",string)
+      !TODO(Alex) Issue 23. MPI1 is depreciated and should be removed.
 #ifndef MPI1   
       Write (string,'("|  using MPI-2 features")') 
       call printtext(fnum,"=",string)
@@ -73,6 +75,7 @@ Subroutine writeinfo (fnum)
       call printtext(fnum,"=",string)
       call printline(fnum,"=")
 
+      ! Notes
       If (notelns .Gt. 0) Then
          Write (fnum,*)
          Write (fnum, '("Notes :")')
