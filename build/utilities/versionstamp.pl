@@ -1,8 +1,9 @@
 #!/usr/bin/env perl
 
-# Script generates src/version.inc from git commit hash and
-# current date. In version.inc GITHASH, GITHASH2 and VERSIONFROMDATE 
-# are defined.
+# Script generates src/version.inc from git commit hash, compiler version
+# and the current date.
+# In version.inc GITHASH, GITHASH2, COMPILERVERSION and VERSIONFROMDATE
+# get defined.
 
 use strict;
 use warnings;
@@ -16,7 +17,6 @@ while (<$HEADREF>) {
   }
 }
 close $HEADREF;
-
 
 my $hash1 = '';
 my $hash2 = '';
@@ -48,12 +48,64 @@ if ( -e  "../../.git/" . $ref ) {
   close $REFS;
 }
 
-# Write version number to file
+# For a given string containing the name of the compiler:
+# call the shell to get the compiler version.
+#
+# Recognised compiler strings: 'ifort' or 'gcc'
+#
+# Returns string $compiler_version
+sub GetCompiler {
+    # Input argument
+    my($string) = @_;
 
+    # Initialised return value
+    my $compiler_version = "";
+
+    if (index($string, "ifort") != -1) {
+        # This isn't declaring a string,
+        # it's a call to the shell, which returns to $stdout
+        my $stdout = `ifort --version`;
+        my @arr = split("\n", $stdout);
+        $compiler_version = $arr[0];
+       }
+    elsif (index($string, "gfortran") != -1) {
+        my $stdout = `gfortran --version`;
+        my @arr = split("\n", $stdout);
+        $compiler_version = $arr[0];
+       }
+    else {
+        # Do nothing
+       }
+    return $compiler_version
+}
+
+# Match 'F90' in make.inc and use that to establish the compiler type
+open ( my $make_inc, '<', '../make.inc' ) or die $!;
+
+my $compiler = "";
+while (my $line = <$make_inc> ) {
+   if($line =~ /^F90/) {
+    $compiler = GetCompiler($line);
+   }
+    # Stop checking file if compiler has been matched
+    last if ($compiler ne "");
+}
+
+close ( $make_inc );
+
+# Compiler choice is not recognised
+if ($compiler eq "") {
+    print "Compiler type could not be established from build/make.inc \n",
+        "Please ensure FC = 'ifort' or 'gfortran', or update ",
+        "build/utilities/versionstamp.pl \n";
+    exit
+}
+
+
+# Write version number to file
 open my $VERISIONINC, ">", "../../src/version.inc";
 print $VERISIONINC "\#define GITHASH \"$hash1\"\n";
 print $VERISIONINC "\#define GITHASH2 \"$hash2\"\n";
-
+print $VERISIONINC "\#define COMPILERVERSION \"$compiler\"\n";
 print $VERISIONINC "\#define VERSIONFROMDATE ", `date "+/%y,%m,%d/"`;
-
 close $VERISIONINC;

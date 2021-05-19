@@ -1,6 +1,8 @@
 !> Module implementing assertions, emulating the C library macro `void assert`
 module asserts
     use iso_fortran_env, only: error_unit
+
+    use trace, only: trace_back
     implicit none
     private
 
@@ -17,7 +19,7 @@ module asserts
 
 contains
 
-    !> @brief Terminate following a failed assertion 
+    !> Terminate following a failed assertion. 
     !>
     !> Cannot use the terminate subroutine in the \p modmpi 
     !> because we (eventually) want the MPI routines to use asserts,
@@ -36,21 +38,32 @@ contains
 #endif        
     end subroutine terminate
 
-    !> @brief Assert if a logical condition is true
+    
+    !> Assert if a logical condition is true. 
     !>
-    !> If not compiled in DEBUG mode, the compiler is smart enough
-    !> to remove the routine, which will be empty (i.e. no overhead)
+    !> If an assertion, passed as `logical_condition`, is false,
+    !> assert_true first provides a starck trace of exciting's call 
+    !> stack, then terminates.  
     !>
-    !> @param[in]   logical_condition    Condition to test
-    !> @param[in]   message              Optional message
+    !> One notes that due to a lack of a intrinsic backtrace function
+    !> this behaviour will differ between GCC and Intel. Indeed, Intel
+    !> will kill execution following the stack trace, whereas GCC 
+    !> allows it to continue. 
+    !>
+    !> If not compiled in USE_ASSERT (debug) mode, the compiler should
+    !> optimise by removing the routine, which will be empty.
+    !>
     subroutine assert_true(logical_condition, message)
+        !> Condition to test
         logical, intent(in) :: logical_condition
+        !> Optional message 
         character(len=*), intent(in), optional :: message
 #ifdef USE_ASSERT
         if (.not. logical_condition) then
             if (present(message)) then
                 write (error_unit, '(/,1x,a)') trim(adjustl(message))
             endif
+            call trace_back()
             call terminate()
         end if
 #endif

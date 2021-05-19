@@ -13,6 +13,7 @@ Contains
 !
       Subroutine writevars (un, iq, iqmt)
          Use modmain
+         Use mod_misc, only: version
          Use modinput
          Use modxs
          Use unit_conversion, only: hartree_to_ev 
