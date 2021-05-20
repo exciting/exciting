@@ -33,6 +33,9 @@ test-debian-buster-GCC8-serial:
     - apt-get update && apt-get install -y libpython3.7 libpython3.7-dev python3-pip
     - pip3 install numpy termcolor lxml pytest
   script:
+    # run unit tests
+    - bin/exciting_serial -run_unit_tests -kill_on_failure
+    # run application tests
     # Provide test suite parsers
     - pip3 install -e tools/exciting_tools
     - cd test && python3 runtest.py -a run -e exciting_serial
@@ -65,6 +68,9 @@ test-debian-buster-GCC8-mpiandsmp:
     - apt-get update && apt-get install -y libpython3.7 libpython3.7-dev python3-pip
     - pip3 install numpy termcolor lxml pytest
   script:
+    # run unit tests
+    - export OMP_NUM_THREADS=2 && mpirun --allow-run-as-root -np 2 bin/exciting_mpismp -run_unit_tests -kill_on_failure
+    # run application tests
     - pip3 install -e tools/exciting_tools
     # Allow mpirun to run as root (mpirun typically shouldn't be run as root)
     # See this ref: https://github.com/open-mpi/ompi/issues/4451
@@ -111,6 +117,9 @@ test-debian-buster-Intel2019-serial:
     - apt-get update && apt-get install -y libpython3.7 libpython3.7-dev python3-pip
     - pip3 install numpy termcolor lxml pytest
   script:
+    # run unit tests
+    - bin/exciting_serial -run_unit_tests -kill_on_failure
+    # run application tests
     - pip3 install -e tools/exciting_tools
     - cd test && python3 runtest.py -a run -e exciting_serial 
     - cd ../tools/exciting_tools && pytest
@@ -155,6 +164,9 @@ test-debian-buster-Intel2019-mpiandsmp:
     - apt-get update && apt-get install -y libpython3.7 libpython3.7-dev python3-pip libfabric1 libfabric-dev
     - pip3 install numpy termcolor lxml pytest
   script:
+    # run unit tests
+    - export OMP_NUM_THREADS=2 && mpirun -np 2 bin/exciting_mpismp -run_unit_tests -kill_on_failure
+    # run application tests
     - pip3 install -e tools/exciting_tools
     - cd test && python3 runtest.py -a run -e exciting_mpismp
     - cd ../tools/exciting_tools && pytest
