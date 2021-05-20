@@ -27,9 +27,9 @@ module cmd_line_args
    !>
    !> All unit tests initialised to .false.
    type unit_tests_type
-      logical :: all = .false.          !! All unit tests
-      logical :: math_utils = .false.   !! math_utils
-      logical :: gw = .false.           !! GW
+      logical :: all = .false.    !! All unit tests
+      logical :: math = .false.   !! tests in the math directory
+      logical :: gw = .false.     !! GW
    contains
       procedure :: init => set_unit_tests
    end type unit_tests_type
@@ -78,7 +78,7 @@ contains
    !>
    !> Given a unit_tests_str of the form:
    !>
-   !>    "gw,math_utils,dft,tddft"
+   !>    "gw,math,dft,tddft"
    !> or
    !>    "all"
    !>
@@ -131,8 +131,8 @@ contains
          run%all = .true.
       case ('gw')
          run%gw = .true.
-      case ('math_utils')
-         run%math_utils = .true.
+      case ('math')
+         run%math = .true.
       case default
          call terminate_mpi_env(mpi_env, 'Unrecognised unit test name: '&
             & //trim(test_name)//'. Please add to set_unit_test and unit_test_names_type')

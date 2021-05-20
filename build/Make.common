@@ -2,6 +2,8 @@
 .NOTPARALLEL:
 	
 SOURCEDIRS=	\
+    ../../src/math \
+	../../src/testframework \
 	../../src/ \
         ../../src/testframework \
         ../../src/src_xs/ \

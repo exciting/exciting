@@ -15,6 +15,7 @@ proc_internals: false
 src_dir: ../src/src_gw  
          ../src/input
          ../src/testframework
+         ../src/math 
          ../src/constants
          ../src/errors_warnings
 

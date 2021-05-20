@@ -4,6 +4,7 @@ module unit_test_drivers
    use cmd_line_args, only: unit_tests_type, get_unit_tests_string
 
    ! Load unit test driver modules here
+   use math_test_drivers, only: math_test_driver
 
    implicit none
    private
@@ -60,10 +61,11 @@ contains
 
       call run%init(unit_test_list, mpiglobal)
 
-      if (run%math_utils .or. run%all) then
-         ! Placeholder
-         !call math_utils_test_driver(mpiglobal, kill_on_failure)
+      if (run%math .or. run%all) then
+         
+         call math_test_driver(mpiglobal, kill_on_failure) 
       end if
+      
       if (run%gw .or. run%all) then
          ! Placeholder
          !call gw_test_driver(mpiglobal, kill_on_failure)

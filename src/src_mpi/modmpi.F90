@@ -23,6 +23,7 @@
 ! This needs refactoring if we hope to use more complex MPI distribution schemes.
 
 module modmpi
+  use trace, only: trace_back
 #ifdef MPI
   use mpi
 #endif
@@ -77,10 +78,33 @@ module modmpi
 
   contains
 
+    !> Terminate exciting if condition is false
+    subroutine terminate_if_false(condition, message)
+      use iso_fortran_env, only: error_unit
+      !> Error condition, need to be false to terminate the program and print the message
+      logical, intent(in) :: condition
+      !> Error message that is printed to the terminal if present and condition is false.
+      character(*), optional, intent(in) :: message
+
+      character(256) :: error_message
+      
+      error_message = 'Error'
+      if (present(message)) then
+        error_message = error_message//': '//trim(adjustl(message))
+      end if 
+
+      if(.not. condition) then
+        write(error_unit, *)
+        write(error_unit, *) trim(error_message)
+        write(error_unit, *)
+        call trace_back()   !I've added this in too
+        call terminate()
+      end if
+    end subroutine terminate_if_false
+
     !+++++++++++++++++++++++++++++++++++++++++!
     ! Initialization and finalization  of MPI !
     !+++++++++++++++++++++++++++++++++++++++++!
-
     !BOP
     ! !ROUTINE: initmpi
     ! !INTERFACE:
