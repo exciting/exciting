@@ -31,8 +31,11 @@ contains
     !> References given by the [fortran wiki](http://fortranwiki.org/fortran/show/Predefined+preprocessor+macros)
     !> 
     !> If exciting has not been compiled with GCC or Intel, do nothing.
+    !> If exciting has been compiled in production mode, do nothing as
+    !> the debug symbols have not been used. 
     subroutine trace_back(error_message)
         character(len=*), optional, intent(in) :: error_message
+#ifdef USE_ASSERT
         character(len=256) :: message 
 
         if (present(error_message)) then
@@ -49,6 +52,7 @@ contains
 #else 
         write(*,*) 'trace_back not overloaded for this compiler' 
         continue
+#endif
 #endif 
 
     end subroutine trace_back
