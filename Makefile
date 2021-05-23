@@ -152,7 +152,6 @@ clean:
 libxcclean:
 	cd src/libXC && make clean
 
-#tgz::doc
 tgz:
 	tar --exclude-from=".gitignore"  --transform 's,^,exciting/,' -c -v -f ./exciting.tar *
 	gzip  -f --best ./exciting.tar

@@ -97,7 +97,7 @@ module modmpi
         write(error_unit, *)
         write(error_unit, *) trim(error_message)
         write(error_unit, *)
-        call trace_back()   !I've added this in too
+        call trace_back()
         call terminate()
       end if
     end subroutine terminate_if_false
