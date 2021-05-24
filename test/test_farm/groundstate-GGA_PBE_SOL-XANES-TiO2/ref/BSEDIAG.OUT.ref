@@ -1,0 +1,11 @@
+  0.1707632724E-01  0.1999897204E-19 : BSE kernel diagonal mean value
+  0.1417040922E-01   0.000000000     : BSE kernel diagonal lower limit
+  0.1991918140E-01   0.000000000     : BSE kernel diagonal upper limit
+  0.5748772177E-02   0.000000000     : BSE kernel diagonal window size
+ 
+  0.4646704956      0.5441997050E-18 : BSE kernel diagonal mean value (eV)
+  0.3855964448       0.000000000     : BSE kernel diagonal lower limit (eV)
+  0.5420284912       0.000000000     : BSE kernel diagonal upper limit (eV)
+  0.1564320464       0.000000000     : BSE kernel diagonal window size (eV)
+ 
+   33.66515583     : BSE kernel diagonal deviation (%)

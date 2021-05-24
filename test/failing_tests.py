@@ -29,6 +29,13 @@ from utils import Compiler, Build_type, CompilerBuild, get_compiler_type, build_
 # Also see Issue 51. Review tolerances for all tests migrated from the old test suite.
 
 
+skipped_tests_mpismp = [
+    # TODO(Alex) Issue #36 chargedensityplot hangs when running with np > 1 cores
+    {'name':'groundstate-GGA_PBE-electronic_structure-Al',   
+     'comment':'Hanging at an allgatherv call'},
+]
+
+
 failing_tests = [
     # TODO(Alex) Issue #35. MPI GW calculations do not produce EPS00_GW.OUT
     # Also appear to get a failure for Intel 2019 serial (only occurs on the CI)

@@ -1,0 +1,170 @@
+================================================================================
+| EXCITING OXYGEN started                                                      =
+| version hash id: 0d894daf6f57c6c3e407830d9cc13511187898f6                    =
+|                                                                              =
+|                                                                              =
+| Date (DD-MM-YYYY) : 30-04-2021                                               =
+| Time (hh:mm:ss)   : 17:26:19                                                 =
+|                                                                              =
+| All units are atomic (Hartree, Bohr, etc.)                                   =
+================================================================================
+ 
+********************************************************************************
+* Ground-state run resuming from STATE.OUT                                     *
+********************************************************************************
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Starting initialization                                                      +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 
+ Lattice vectors (cartesian) :
+      8.7635553970      0.0000000000      0.0000000000
+      0.0000000000      8.7635553970      0.0000000000
+      0.0000000000      0.0000000000      5.6100154650
+ 
+ Reciprocal lattice vectors (cartesian) :
+      0.7169676030      0.0000000000      0.0000000000
+      0.0000000000      0.7169676030      0.0000000000
+      0.0000000000      0.0000000000      1.1199942935
+ 
+ Unit cell volume                           :     430.8486446417
+ Brillouin zone volume                      :       0.5757247157
+ 
+ Species :    1 (Ti)
+     parameters loaded from                 :    Ti.xml
+     name                                   :    titanium
+     nuclear charge                         :     -22.00000000
+     electronic charge                      :      22.00000000
+     atomic mass                            :   87256.20311000
+     muffin-tin radius                      :       1.80000000
+     # of radial points in muffin-tin       :     350
+ 
+     atomic positions (lattice) :
+       1 :   0.00000000  0.00000000  0.00000000
+       2 :   0.50000000  0.50000000  0.50000000
+ 
+ Species :    2 (O)
+     parameters loaded from                 :    O.xml
+     name                                   :    oxygen
+     nuclear charge                         :      -8.00000000
+     electronic charge                      :       8.00000000
+     atomic mass                            :   29165.12203000
+     muffin-tin radius                      :       1.80000000
+     # of radial points in muffin-tin       :     250
+ 
+     atomic positions (lattice) :
+       1 :   0.30508536  0.30508536  0.00000000
+       2 :   0.69491464  0.69491464  0.00000000
+       3 :   0.19491464  0.80508536  0.50000000
+       4 :   0.80508536  0.19491464  0.50000000
+ 
+ Total number of atoms per unit cell        :       6
+ 
+ Spin treatment                             :    spin-unpolarised
+ 
+ Number of Bravais lattice symmetries       :      16
+ Number of crystal symmetries               :      16
+ 
+ k-point grid                               :       2    2    3
+ k-point offset :       0.050000  0.150000  0.250000
+ Total number of k-points                   :      12
+ k-point set is not reduced
+ 
+ R^MT_min * |G+k|_max (rgkmax)              :       7.00000000
+ Species with R^MT_min                      :       1 (Ti)
+ Maximum |G+k| for APW functions            :       3.88888889
+ Maximum |G| for potential and density      :      12.00000000
+ 
+ G-vector grid sizes                        :      36    36    24
+ Total number of G-vectors                  :   12537
+ 
+ Maximum angular momentum used for
+     APW functions                          :       8
+     computing H and O matrix elements      :       8
+     potential and density                  :       8
+     inner part of muffin-tin               :       2
+ 
+ Total nuclear charge                       :     -76.00000000
+ Total electronic charge                    :      76.00000000
+ Total core charge                          :      28.00000000
+ Total valence charge                       :      48.00000000
+ 
+ Number of empty states                     :      75
+ Total number of valence states             :     100
+ 
+ Maximum Hamiltonian size                   :     486
+ Maximum number of plane-waves              :     444
+ Total number of local-orbitals             :      42
+ 
+ Exchange-correlation type                  :      22
+     PBEsol, Phys. Rev. Lett. 100, 136406 (2008)
+     Generalised gradient approximation (GGA)
+ 
+ Smearing scheme                            :    Gaussian
+ Smearing width                             :       0.00100000
+ 
+ Using multisecant Broyden potential mixing
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Ending initialization                                                        +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 
+********************************************************************************
+* Groundstate module started                                                   *
+********************************************************************************
+ Output level for this task is set to normal
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Self-consistent loop started                                                 +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Potential read in from STATE.OUT
+ 
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Reached self-consistent loops maximum :    1                                 +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :     -2006.11551573
+ _______________________________________________________________
+ Fermi energy                               :         0.21572473
+ Kinetic energy                             :      2021.19776130
+ Coulomb energy                             :     -3911.78826157
+ Exchange energy                            :      -112.03993436
+ Correlation energy                         :        -3.48508110
+ 
+ DOS at Fermi energy (states/Ha/cell)       :         0.00000000
+ 
+ Electron charges :
+     core                                   :        28.00000000
+     core leakage                           :         0.00000111
+     valence                                :        48.00000000
+     interstitial                           :         7.27978918
+     charge in muffin-tin spheres :
+                  atom     1    Ti          :        18.84890873
+                  atom     2    Ti          :        18.84890873
+                  atom     3     O          :         7.75559834
+                  atom     4     O          :         7.75559834
+                  atom     5     O          :         7.75559834
+                  atom     6     O          :         7.75559834
+     total charge in muffin-tins            :        68.72021082
+     total charge                           :        76.00000000
+ 
+ Estimated fundamental gap                  :         0.07270164
+        valence-band maximum at    1      0.0250  0.0750  0.0833
+     conduction-band minimum at    7      0.0250  0.5750  0.4167
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Self-consistent loop stopped                                                 +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 
+********************************************************************************
+* Groundstate module stopped                                                   *
+********************************************************************************
+ 
+ Total time spent (seconds)                 :         3.83
+ 
+--------------------------------------------------------------------------------
+- CAUTION! Warnings have been written in file WARNING.OUT !                    -
+--------------------------------------------------------------------------------
+================================================================================
+| EXCITING OXYGEN stopped                                                      =
+================================================================================

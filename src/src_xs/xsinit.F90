@@ -358,7 +358,4 @@ subroutine xsinit(j, plan)
   ! define checkpoint
   call chkpt(1, (/ task /), 'passed xsinit')
 
-  ! some XAS / XES specific initialization
-  if(input%xs%bse%xas .or. input%xs%bse%xes) call xasinit
-
 end subroutine xsinit

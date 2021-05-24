@@ -491,10 +491,11 @@ def parse_core_overlap(name):
         pairs = []
         for pair_xml in kpoint:
             pair = pair_xml.attrib
-            pair["overlap"] = pair["overlap"].split()
+            pair["de"] = float(pair["de"])
+            pair["overlap"] = float(pair["overlap"].split()[0])**2+float(pair["overlap"].split()[0])**2
             pairs.append(pair)
         kpt["pairs"] = pairs
-        kpoints.append
+        kpoints.append(kpt)
     core_overlap["kpoints"] = kpoints
 
     return core_overlap
