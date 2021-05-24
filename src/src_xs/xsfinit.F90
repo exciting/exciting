@@ -27,8 +27,6 @@ subroutine xsfinit
   ! External functions
   character(256), external :: stringtim, r2str
 
-  ! Some xas specific finalizations
-  if(input%xs%bse%xas .or. input%xs%bse%xes) call xasfinit
 
   ! Finalize global counters
   call date_and_time(date=dat, time=tim)

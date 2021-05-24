@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+  <title>Cubic boron nitride</title>
+  <structure speciespath=".">
+    <crystal>
+      <basevect>   3.415680000       0.000000000       3.415680000</basevect>
+      <basevect>   0.000000000       3.415680000       3.415680000</basevect>
+      <basevect>   3.415680000       3.415680000       0.000000000</basevect>
+    </crystal>
+    <species speciesfile="B.xml" rmt="1.3805">
+      <atom coord="0.0000000000      0.0000000000      0.0000000000"/>
+    </species>
+    <species speciesfile="N.xml" rmt="1.4296">
+      <atom coord="0.2500000000      0.2500000000      0.2500000000"/>
+    </species>
+  </structure>
+</input>

@@ -76,6 +76,9 @@ subroutine writepmatxs
     !   * Generates radial functions (mod_APW_LO)
     call init2
   end if
+  
+  ! xas and xes specific init (has to come after init0 and init1)
+  if(input%xs%bse%xas .or. input%xs%BSE%xes) call xasinit
 
   ! Check if fast (default) version of matrix elements is used
   fast=.false.
@@ -275,6 +278,9 @@ subroutine writepmatxs
 
   ! Reset global file extension to default
   call genfilname(setfilext=.true.)
+  
+  ! Some xas specific finalizations
+  if(input%xs%bse%xas .or. input%xs%bse%xes) call xasfinit
 
 end subroutine writepmatxs
 !EOC

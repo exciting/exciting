@@ -756,22 +756,20 @@ module m_ematqk
       ! Loop over G+q vectors
       cpugntlocal=0.0d0
       cpumtlocal=0.0d0
-
-!      whichthread=omp_get_thread_num()
-      ! Allocation of radial integrals
-      if (flag == 'oo') then
-        allocate(integral(input%xs%lmaxemat+1,nxas,nxas,1,1))
-      else if (flag == 'ou') then
-        allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n1,2))
-      else if (flag == 'uo') then
-        allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n1,2))
-      end if
-
+       
 #ifdef USEOMP
     !$omp parallel default(shared) private(igq, cpu00, cpu01, whichthread,integral)
+    whichthread=omp_get_thread_num()
 #endif
+      ! Allocation of radial integrals
+      if (flag .eq. 'oo') then
+        allocate(integral(input%xs%lmaxemat+1,nxas,nxas,1,1))
+      else if (flag .eq. 'ou') then
+        allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n1,2))
+      else if (flag .eq. 'uo') then
+        allocate(integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bc%n1,2))
+      end if
 #ifdef USEOMP
-      whichthread=omp_get_thread_num()
     !$omp do
 #endif
       do igq = 1, ngq(iq)

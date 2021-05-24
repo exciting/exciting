@@ -39,9 +39,6 @@ subroutine coreinit (is, ia)
 !
 !EOP
 !BOC
-  call init0
-  call init1
-  call init2
   call gencore
   ncmax=0
   nclm=0

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+  <title>TiO2_rutile</title>
+  <structure speciespath=".">
+    <crystal>
+      <basevect>   8.763555397       0.000000000       0.000000000</basevect>
+      <basevect>   0.000000000       8.763555397       0.000000000</basevect>
+      <basevect>   0.000000000       0.000000000       5.610015465</basevect>
+    </crystal>
+    <species speciesfile="Ti.xml" rmt="1.8000">
+      <atom coord="0.0000000000      0.0000000000      0.0000000000"/>
+      <atom coord="0.5000000000      0.5000000000      0.5000000000"/>
+    </species>
+    <species speciesfile="O.xml" rmt="1.8000">
+      <atom coord="0.3050853616      0.3050853616      0.0000000000"/>
+      <atom coord="0.6949146384      0.6949146384      0.0000000000"/>
+      <atom coord="0.1949146384      0.8050853616      0.5000000000"/>
+      <atom coord="0.8050853616      0.1949146384      0.5000000000"/>
+    </species>
+  </structure>
+</input>
