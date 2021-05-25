@@ -38,6 +38,8 @@ module modmpi
     integer(4) :: procs
     integer :: comm
     integer(4) :: ierr
+    integer(4) :: root = 0   !! Rank of root process 
+    logical :: is_root       !! Indicates of the process is root 
   end type mpiinfo
 
   ! Groups of MPI communicators
@@ -132,6 +134,7 @@ module modmpi
       mpiglobal%comm = mpi_comm_world
       mpiglobal%rank = rank
       mpiglobal%ierr = ierr
+      mpiglobal%is_root = mpiglobal%rank == mpiglobal%root
 
       ! Make communicators for
       ! intra- and inter-processor (node) communication.
@@ -148,6 +151,7 @@ module modmpi
       mpiglobal%procs = procs
       mpiglobal%rank = rank
       mpiglobal%comm = 0
+      mpiglobal%is_root = .true.
 
       splittfile = .false.
       firstinnode = .true.

@@ -87,30 +87,45 @@ contains
    end subroutine assert
 
    !> Report results
+   !>
+   !> @todo Note, the failure reporting is going to get messy for multiple processes. 
+   !> This should be addressed as soon as parallel tests are written. 
    subroutine report(this, name, kill_on_failure)
 
       !> Unit test object
       class(unit_test_type), intent(in) :: this
       !> Name of the test
       character(len=*), intent(in) :: name
-      !> Kill the program before the test driver finishes,
-      !> if an assertion fails
+      !> Kill the program before the test driver finishes, if an assertion fails
       logical, intent(in), optional :: kill_on_failure
-      !> Copy of the mpi environment, only used if killing on failure
+
+      !> Copy of the mpi environment
       type(mpiinfo) :: mpi_env
-      !> Local assignments
       integer :: i, n_assertions, n_failures
+      character(len=3) :: process_id 
 
       n_assertions = size(this%messages)
       n_failures = this%n_failures
 
-      write (*, *) 'Report test: '//trim(adjustl(name))
+      ! allocate(failures_per_mpi_process(this%mpi_env%procs))
+      ! call mpi_allreduce(MPI_IN_PLACE, failures_per_mpi_process,       &
+      !                                  size(failures_per_mpi_process), &
+      !                                  MPI_INTEGER,                    & 
+      !                                  MPI_SUM,                        &
+      !                                  mpi_env%comm
+      !                  )
+
+      write(process_id, '(I3)') this%mpi_env%rank
+      if (this%mpi_env%is_root) then
+         write (*, *) 'Report test: '//trim(adjustl(name))
+      endif
+
       ! I3 assumes less than 1000 assertions
-      write (*, '(X, A, I3, A, I3)') 'Assertions passed: ', &
+      write (*, '(X, A, I3, A, I3)') 'Assertions passed on process '//trim(process_id)//':', &
          n_assertions - n_failures, ' out of ', n_assertions
 
       if (n_failures > 0) then
-         write (*, *) 'Failing tests:'
+         write (*, *) 'Failing tests on process '//trim(process_id)//':'
          do i = 1, n_failures
             write (*, *) 'Error message: ', trim(adjustl(this%messages(this%failures(i))))
          end do

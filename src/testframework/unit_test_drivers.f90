@@ -3,7 +3,7 @@ module unit_test_drivers
    use modmpi, only: mpiinfo, terminate_mpi_env
    use cmd_line_args, only: unit_tests_type, get_unit_tests_string
 
-   ! Load unit test driver modules here
+   ! Load unit test driver modules here. One per src/ subdirectory 
    use math_test_drivers, only: math_test_driver
 
    implicit none
@@ -11,18 +11,6 @@ module unit_test_drivers
    public :: unit_test_driver
 
 contains
-
-   !> Setup for unit tests.
-   subroutine setup()
-      use modmpi, only: initmpi
-      call initmpi
-   end subroutine
-
-   !> Tear down for unit tests.
-   subroutine teardown()
-      use modmpi, only: finitmpi
-      call finitmpi
-   end subroutine
 
    !> Run unit tests.
    !>
@@ -32,26 +20,18 @@ contains
    !>
    !> If run%all = .true., all tests get run regardless of what the other
    !> logicals in run are set to.
-   !>
-   !> If one is writing tests using MPI, and they need to initialise/finalise
-   !> mpi_comm_world, this routine can be modified such that setup and teardown
-   !> are not called in those instances. In which case, one may need to make
-   !> mpiglobal an optional arg for run%init, and if it is not passed,
-   !> get mpi_comm_world from the mpi module.
-   subroutine unit_test_driver(kill_on_failure)
-      use modmpi, only: mpiglobal
-      !> Immediately kill the program upon a failed assertion
+   subroutine unit_test_driver(mpiglobal, kill_on_failure)
+      !> Global MPI environment 
+      type(mpiinfo), intent(inout) :: mpiglobal
+      !> Immediately kill the program if an assertion fails
       logical, intent(in) :: kill_on_failure
 
       !> List of unit tests to run
       character(len=500) :: unit_test_list
-      !> Unit tests to run
+      !> Object containing logicals, indicating which unit tests to run
       type(unit_tests_type) :: run
 
-      ! Initialise mpiglobal
-      call setup()
-
-      unit_test_list = get_unit_tests_string()
+      unit_test_list = get_unit_tests_string(mpiglobal)
 
       if (len(trim(unit_test_list)) == 0) then
          call terminate_mpi_env(mpiglobal, &
@@ -61,8 +41,7 @@ contains
 
       call run%init(unit_test_list, mpiglobal)
 
-      if (run%math .or. run%all) then
-         
+      if (run%math .or. run%all) then         
          call math_test_driver(mpiglobal, kill_on_failure) 
       end if
       
@@ -70,9 +49,6 @@ contains
          ! Placeholder
          !call gw_test_driver(mpiglobal, kill_on_failure)
       end if
-
-      ! Finalise mpiglobal
-      call teardown()
 
    end subroutine unit_test_driver
 

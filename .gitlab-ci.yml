@@ -34,7 +34,7 @@ test-debian-buster-GCC8-serial:
     - pip3 install numpy termcolor lxml pytest
   script:
     # run unit tests
-    - bin/exciting_serial -run_unit_tests -kill_on_failure
+    - bin/exciting_serial -run-unit-tests -kill-on-failure
     # run application tests
     # Provide test suite parsers
     - pip3 install -e tools/exciting_tools
@@ -69,7 +69,7 @@ test-debian-buster-GCC8-mpiandsmp:
     - pip3 install numpy termcolor lxml pytest
   script:
     # run unit tests
-    - export OMP_NUM_THREADS=2 && mpirun --allow-run-as-root -np 2 bin/exciting_mpismp -run_unit_tests -kill_on_failure
+    - export OMP_NUM_THREADS=2 && mpirun --allow-run-as-root -np 2 bin/exciting_mpismp -run-unit-tests -kill-on-failure
     # run application tests
     - pip3 install -e tools/exciting_tools
     # Allow mpirun to run as root (mpirun typically shouldn't be run as root)
@@ -118,7 +118,7 @@ test-debian-buster-Intel2019-serial:
     - pip3 install numpy termcolor lxml pytest
   script:
     # run unit tests
-    - bin/exciting_serial -run_unit_tests -kill_on_failure
+    - bin/exciting_serial -run-unit-tests -kill-on-failure
     # run application tests
     - pip3 install -e tools/exciting_tools
     - cd test && python3 runtest.py -a run -e exciting_serial 
@@ -165,7 +165,7 @@ test-debian-buster-Intel2019-mpiandsmp:
     - pip3 install numpy termcolor lxml pytest
   script:
     # run unit tests
-    - export OMP_NUM_THREADS=2 && mpirun -np 2 bin/exciting_mpismp -run_unit_tests -kill_on_failure
+    - export OMP_NUM_THREADS=2 && mpirun -np 2 bin/exciting_mpismp -run-unit-tests -kill-on-failure
     # run application tests
     - pip3 install -e tools/exciting_tools
     - cd test && python3 runtest.py -a run -e exciting_mpismp

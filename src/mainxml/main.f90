@@ -23,11 +23,11 @@ program main
    !> Command line arguments
    type(cmd_line_args_type) :: args
 
-   call args%parse()
+   call initmpi()
+   call args%parse(mpiglobal)
    if (args%run_unit_tests) then
-      call unit_test_driver(args%kill_on_failure)
+      call unit_test_driver(mpiglobal, args%kill_on_failure)
    else
-      call initmpi()
       call loadinputDOM("input.xml")
       !initialize default values that are not definet in the input schema
       call setdefault()
@@ -49,7 +49,7 @@ program main
       !call testingfun
       call tasklauncher()
       call scl_xml_out_close()
-      call finitmpi()
    end if
+   call finitmpi()
 
 end program
