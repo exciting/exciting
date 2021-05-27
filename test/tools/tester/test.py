@@ -96,48 +96,22 @@ class Test(list):
             self.passed = True
         return self
 
-
-    def evaluate(self, data1, data2):
+    def evaluate(self, ref_data, test_data):
         """
         Evaluates the test for two data sets with the given condition.
         In:
-            data1       dict or list        test data
-            data2       dict or list        reference data
+            ref_data       dict or list        test data
+            test_data       dict or list        reference data
         """
-        compare_data(data1, data2, self, self.tolFloat, self.tolMSE, self.path, self.ignore, self.tolValuePair)
-        self = self.evaluateFailureCount()
-        return self
+        if 'info.xml' in self.name:
+            compare_info(ref_data, test_data, self, self.tolFloat, self.tolMSE, self.path, self.tolIter, self.maxIter, self.ignore, self.tolValuePair)
+        elif 'INFO.OUT' in self.name and 'WANNIER' not in self.name:
+            compare_INFO(ref_data, test_data, self, self.tolFloat, self.tolMSE, self.path, self.tolIter, self.maxIter, self.ignore, self.tolValuePair)
+        elif 'eigval.xml' in self.name:
+            compare_eigval(ref_data, test_data, self, self.tolFloat, self.tolMSE, self.path, self.ignore, self.tolValuePair, self.eigval)
+        else:                                                                               
+            compare_data(ref_data, test_data, self, self.tolFloat, self.tolMSE, self.path, self.ignore, self.tolValuePair)
 
-    def evaluate_INFO(self, data1, data2):
-        """  
-        Evaluates the info.xml test for two data sets with the given condition.  
-        In:       
-            data1      dict     test data  
-            data2      dict     reference data  
-        """
-        compare_INFO(data1, data2, self, self.tolFloat, self.tolMSE, self.path, self.tolIter, self.maxIter, self.ignore, self.tolValuePair)
-        self = self.evaluateFailureCount()
-        return self
-
-    def evaluate_info(self, data1, data2):
-        """
-        Evaluates the info.xml test for two data sets with the given condition.
-        In:
-            data1      dict     test data
-            data2      dict     reference data
-        """
-        compare_info(data1, data2, self, self.tolFloat, self.tolMSE, self.path, self.tolIter, self.maxIter, self.ignore, self.tolValuePair)
-        self = self.evaluateFailureCount()
-        return self
-
-    def evaluate_eigval(self, data1, data2):
-        """
-        Evaluates the info.xml test for two data sets with the given condition.
-        In:
-            data1      dict     test data
-            data2      dict     reference data
-        """
-        compare_eigval(data1, data2, self, self.tolFloat, self.tolMSE, self.path, self.ignore, self.tolValuePair, self.eigval)
         self = self.evaluateFailureCount()
         return self
 
