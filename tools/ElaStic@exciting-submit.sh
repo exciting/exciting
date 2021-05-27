@@ -14,7 +14,6 @@ for Dstn in $label ; do
         echo '        | SCF calculation of "'${Dstn_num}'" starts |'
         echo '        +--------------------------------------+'
         time $EXECUTABLE | tee output.screen
-        date
         cd ../
     done
     cd ../
