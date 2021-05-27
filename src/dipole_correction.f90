@@ -43,11 +43,11 @@ subroutine dipole_correction(vdplmt,vdplir)
     end select
 
     A = dsqrt(dot_product(norm(:),norm(:)))
-    if (rank==0) write(*,*) 'Surface area A=', A
+    if (rank==0 .and. input%groundstate%outputlevelnumber > 1) write(*,*) 'Surface area A=', A
     
     zm = dsqrt(dot_product(input%structure%crystal%basevect(:,ivac), &
     &                      input%structure%crystal%basevect(:,ivac)))
-    if (rank==0) write(*,*) 'zm=', zm
+    if (rank==0 .and. input%groundstate%outputlevelnumber > 1) write(*,*) 'zm=', zm
     
     ! position of the dipole potential discontinuity
     z0 = input%groundstate%dipoleposition*zm
@@ -68,7 +68,7 @@ subroutine dipole_correction(vdplmt,vdplir)
     end do
     end do
     end do
-    if (rank==0) then
+    if (rank==0 .and. input%groundstate%outputlevelnumber > 1) then
       write(*,*) 'Starting position: z0=', z0
       write(*,*) 'Nearest FFT grid point', t2
     end if
@@ -123,7 +123,7 @@ end if
       dplmt = dplmt+t1
     end do ! ia
     end do ! is
-    if (rank==0)  write(*,*) 'dplmt = ', dplmt/A
+    if (rank==0 .and. input%groundstate%outputlevelnumber > 1)  write(*,*) 'dplmt = ', dplmt/A
    
     ! IR part
     dplir = 0.d0
@@ -146,15 +146,15 @@ end if
     end do
     end do
     dplir = dplir*omega/dble(ngrtot)
-    if (rank==0) write(*,*) 'dplir = ', dplir/A
+    if (rank==0 .and. input%groundstate%outputlevelnumber > 1) write(*,*) 'dplir = ', dplir/A
     
     dpl = (dplmt+dplir)/A
     if (rank==0) then
       write(60,*)
       write(60,'(" Slab surface-dipole density", T45, ": ", F18.8)') dpl
-      write(*,'(" Slab surface-dipole density", T45, ": ", F18.8)') dpl
       write(60,*)
     end if
+    if (rank==0 .and. input%groundstate%outputlevelnumber > 1)  write(*,'(" Slab surface-dipole density", T45, ": ", F18.8)') dpl
 
     !===============================================
     ! Dipole correction for the Coulomb potential
@@ -214,14 +214,14 @@ end if
       endipc = endipc+0.5d0*spzn(is)*fourpi*dpl*(z/zm-0.5d0)
     end do ! ia
     end do ! is
-    if (rank==0) write(*,*) 'Ionic: = ', endipc
+    if (rank==0 .and. input%groundstate%outputlevelnumber > 1) write(*,*) 'Ionic: = ', endipc
     
     ! electronic contribution
     t1 = 0.5d0*rfinp(1,rhomt,vdplmt,rhoir,vdplir)
-    if (rank==0) write(*,*) 'Electronic: = ', t1
+    if (rank==0 .and. input%groundstate%outputlevelnumber > 1) write(*,*) 'Electronic: = ', t1
     
     endipc = endipc-t1
-    if (rank==0) write(*,*) 'Dipole correction energy = ', endipc    
+    if (rank==0 .and. input%groundstate%outputlevelnumber > 1) write(*,*) 'Dipole correction energy = ', endipc    
     
     return
 end subroutine
