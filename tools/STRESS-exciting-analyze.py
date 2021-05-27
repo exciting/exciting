@@ -333,7 +333,7 @@ for i in range(1, SCs+1):
         Dstn = 'Dst0'+str(i)
     else:
         Dstn = 'Dst' +str(i)
-    print >>fri, Dstn+'    eta_max    Fit_order'
+    print >>fri, Dstn+'    eps_max    Fit_order'
 
 fri.close()
 #--------------------------------------------------------------------------------------------------
