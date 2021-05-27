@@ -147,7 +147,7 @@ def test_parse_info_out():
         }
     }
 
-    info_out = parse_info_out("../../test/test_farm/groundstate-GGA_PBE-Ar/ref/INFO.OUT.ref")
+    info_out = parse_info_out("../../test/test_farm/groundstate-GGA_PBE-Ar/ref/INFO.OUT")
 
     assert info_out['initialization'] == info_ref['initialization'], "Initialization data consistent"
     assert info_out['scl']['1'] == info_ref['scl']['1'], "SCF first iteration data consistent"
