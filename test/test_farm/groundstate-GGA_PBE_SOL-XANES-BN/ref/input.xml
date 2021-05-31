@@ -33,7 +33,7 @@
  
       <energywindow 
          intv="13.4 16.5" 
-         points="1500" />
+         points="100" />
  
       <screening 
          screentype="full" 

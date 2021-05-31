@@ -21,10 +21,9 @@ def copy_exciting_input(source:str, destination:str, species_files:List[str], in
     except Exception:
         raise FileNotFoundError('No %s in %s.'%(input_file, source))
     
-    try:
-        os.path.isdir(destination)
-    except Exception:
+    if not os.path.isdir(destination):
         raise NotADirectoryError('%s does not exist.'%source)
+
 
     try:
         has_species_files(source, species_files)
@@ -43,13 +42,14 @@ def has_species_files(directory:str, species_files:list):
     :param directory:       path to directory to check
     :param species_fiels:   list of possible species files
     """
-
     files_in_directory = next(os.walk(directory))[2]
 
     num_of_species_in_directory = len(list(set(files_in_directory) & set(species_files)))
-
+    
     if num_of_species_in_directory == 0:
         raise FileNotFoundError
+    else:
+        return True
 
 
 def create_run_dir(path_to_test_case:str, run_dir:str):
@@ -104,7 +104,11 @@ def flatten_directory(path:str):
     for dir in dirs:
         files = next(os.walk(os.path.join(path, dir)))[2]
         for file in files:
-            shutil.move(os.path.join(path, dir, file), path)
+            try:
+                shutil.move(os.path.join(path, dir, file), path)
+            except shutil.Error:
+                os.remove(os.path.join(path, file))
+                shutil.move(os.path.join(path, dir, file), path)
         
         shutil.rmtree(os.path.join(path, dir))
 
@@ -119,9 +123,23 @@ def remove_ignored_files(path:str, ignored_output:list):
     except Exception:
         return NotADirectoryError('%s is not a directory.'%path)
 
-    files_for_deleting = set(files) & set(ignored_output)
-    for file in files_for_deleting:
+    for file in files_to_remove(files, ignored_output):
         os.remove(os.path.join(path, file))
+
+def files_to_remove(files:List[str], remove_list:List[str]) -> List[str]:
+    """
+    Return the intersection between a list of files and a list of files that shall be removed.
+    :param files:           List of files
+    :param remove_list:     List of files to be removed
+    """
+
+    files_to_remove = []
+    for remove in remove_list:
+        for file in files:
+            if remove in file:
+                files_to_remove.append(file)
+
+    return files_to_remove
 
 def create_test_directory(test_farm:str, name:str, ref_dir:str):
     """
