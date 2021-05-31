@@ -1,6 +1,8 @@
 import shutil
 import os
 
+from ..infrastructure import remove_ignored_files
+
 def clean_tests(test_farm:str, test_list:list, run_dir:str, ref_dir:str, ignored_output:list):
     """
     Cleans the tests in test_list (see clean_single_test).
@@ -13,7 +15,12 @@ def clean_tests(test_farm:str, test_list:list, run_dir:str, ref_dir:str, ignored
     print('Clean test directories.')
     
     for test_dir in test_list:
+        # remove run directory
         try:
             shutil.rmtree(os.path.join(test_farm, test_dir, run_dir))
         except Exception:
             pass
+
+        # clean up ref directory
+        remove_ignored_files(os.path.join(test_farm, test_dir, ref_dir), ignored_output)
+

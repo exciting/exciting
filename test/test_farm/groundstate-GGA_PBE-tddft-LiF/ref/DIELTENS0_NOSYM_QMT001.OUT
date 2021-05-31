@@ -1,9 +1,0 @@
- 
- (dielectric tensor, independent particle approximation)
- 
- frequency index and value:      1    0.00000000
- real part, imaginary part below
-    1.25705322    0.00071414    0.00165094         0.00311731    0.00001351    0.00002814
-    0.00071414    1.25567868   -0.00493319         0.00001351    0.00310311   -0.00008264
-    0.00165094   -0.00493319    1.24874369         0.00002814   -0.00008264    0.00300608
- 
