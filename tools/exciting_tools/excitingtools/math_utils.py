@@ -15,3 +15,13 @@ def triple_product(a, b, c) -> float:
     :return triple product
     """
     return np.dot(a, np.cross(b, c))
+
+def unit_vector(x:np.ndarray) -> np.ndarray:
+    """ 
+    Unit vector of a vector 'x' 
+      \mathbf{\hat{x}} =  \frac{\mathbf{x}}{|\mathbf{x}|}
+
+    :param x: Vector x
+    :result: Unit vector of x
+    """
+    return x / np.linalg.norm(x)
