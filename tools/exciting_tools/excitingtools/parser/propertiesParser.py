@@ -353,35 +353,27 @@ def parse_band_edges(name):
 
     return out
 
-
 def parse_spintext(name):
     """
-    parser for spintext.xml
+    Parse spintext.xml
+    :param name:    path to the spintext.xml that will be parsed
+    :return spintext:      dictionary that holds the parsed spintexture.xml
     """
-    try:
-        treespin = ET.parse(name)
-    except:
-        raise ParseError
-    root = treespin.getroot()
-    spintext = {}
-    bands = []
-    for node in root.findall('band'):
-        band = node.attrib
-        bands.append(band)
-        kpoints = []
-        for subnode in node.findall('k-point'):
-            kpoint = subnode.attrib
-            kpoints.append(kpoint)
-        band['kpoint'] = {}
-        i = 1
-        for item in kpoints:
-            band['kpoint'][str(i)] = item
-            band['kpoint'][str(i)]['vec'] = item['vec'].split()
-            band['kpoint'][str(i)]['spin'] = item['spin'].split()
-            i += 1
-    spintext['band'] = {}
-    for item in bands:
-        spintext['band'][item['ist']] = item
+    #parse file
+    file_name = 'spintext.xml'
+    if name.split('/')[-1] != file_name:
+        name = os.path.join(name, file_name)
+    
+    tree_spin = ET.parse(name)
+    root_spin = tree_spin.getroot()
+    spintext = []
+    for band in root_spin.findall("band"):
+        b = {}
+        b["ist"] = int(band.attrib["ist"])
+        b["k-point"] = [val.attrib["vec"].split() for val in band.findall("k-point")]
+        b["spin"] = [val.attrib["spin"].split() for val in band.findall("k-point")]
+        b["energy"] = [float(val.attrib["energy"]) for val in band.findall("k-point")]
+        spintext.append(b)
     return spintext
 
 
@@ -408,7 +400,7 @@ def parse_tdos_wannier(name):
     except:
         raise ParseError
     out = {'0': list(data[:, 0]), '1': list(data[:, 1])}
-
+    
     return out
 
 
