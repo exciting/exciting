@@ -10,7 +10,7 @@
 Subroutine core_overlap
   ! !USES:
   Use modinput, only: input
-  Use mod_eigensystem, only: mt_hscf, nmatmax, MTNullify, MTInitall, MTRelease 
+  Use mod_eigensystem, only: mt_hscf, nmatmax, MTNullify, MTInitall 
   Use mod_kpoint, only: nkpt
   Use mod_Gkvector, only: ngkmax, ngk, gkc, tpgkc, sfacgk
   Use mod_APW_LO, only: apwordmax
@@ -32,7 +32,7 @@ Subroutine core_overlap
   ! valence and conduction states. While we assume that the overlap between 
   ! these states vanishes, there is finite overlap since the two groups of 
   ! states are obtained from different Hamiltonians. The overlap 
-  ! $\int d^r^3 \psi^*_{\mu}(\mathbf{r})\psi_{i\mathbf{k}}(\mathbf{r})$ between 
+  ! $\int dr^3 \psi^*_{\mu}(\mathbf{r})\psi_{i\mathbf{k}}(\mathbf{r})$ between 
   ! a core state $\psi_{\mu \mathbf{k}}$ and valence/conduction state 
   ! $\psi_{i\mathbf{k}}$ and energy differences $\Delta \epsilon=\epsilon_{i
   ! \mathbf{k}}-\epsilon_{\mu}$ are stored either in xml or hdf5 file.
@@ -239,7 +239,7 @@ Subroutine core_overlap
     Call xml_close (xf)
    endif
 #endif
-  call MTRelease(mt_hscf)
+  call mt_hscf%release()
   Deallocate (apwalmt)
   Deallocate (wfmt,overlap)
   Deallocate (fr0, fr1, fr2, gr, cf)

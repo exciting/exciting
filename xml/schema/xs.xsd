@@ -282,7 +282,7 @@
           </xs:complexType>
         </xs:element>
 
-        <xs:element ex:importance="expert" ex:unit="" name="rt_tddft"
+        <xs:element ex:importance="expert" ex:unit="" name="realTimeTDDFT"
           minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation> When present, this element triggers a real-time
@@ -292,7 +292,7 @@
           <xs:complexType>
             <xs:all>
 
-          <xs:element ex:importance="expert" ex:unit="" name="predictor_corrector" minOccurs="0" maxOccurs="1">
+          <xs:element ex:importance="expert" ex:unit="" name="predictorCorrector" minOccurs="0" maxOccurs="1">
             <xs:annotation>
               <xs:documentation> When present, this element triggers the
                 predictor-corrector scheme (self-consistency in the propagation
@@ -300,7 +300,7 @@
               </xs:documentation>
             </xs:annotation>
             <xs:complexType>
-              <xs:attribute ex:importance="expert" ex:unit="" name=" max_iterations" type="xs:integer"
+              <xs:attribute ex:importance="expert" ex:unit="" name=" maxIterations" type="xs:integer"
                 default="10">
                 <xs:annotation>
                   <xs:documentation> The maximum number of iteractions
@@ -331,7 +331,7 @@
                   </xs:documentation>
                 </xs:annotation>
               </xs:attribute>
-              <xs:attribute ex:importance="expert" ex:unit="" name="print_abs_proj_coeffs" type="xs:boolean"
+              <xs:attribute ex:importance="expert" ex:unit="" name="printAbsProjCoeffs" type="xs:boolean"
                 default="true">
                 <xs:annotation>
                   <xs:documentation> When set to true, calculates the projection
@@ -397,7 +397,7 @@
                   </xs:complexType>
                 </xs:element>
 
-                <xs:element ex:importance="expert" ex:unit="" name="trap_cos" minOccurs="0" maxOccurs="unbounded">
+                <xs:element ex:importance="expert" ex:unit="" name="trapCos" minOccurs="0" maxOccurs="unbounded">
                   <xs:annotation>
                     <xs:documentation> Specifies a pulse given by
                       <inlinemath>E=E_0\cos(\omega t + \phi)f(t)</inlinemath>, where
@@ -441,7 +441,7 @@
                         </xs:documentation>
                       </xs:annotation>
                     </xs:attribute>
-                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="rise_time" type="fortrandouble"
+                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="riseTime" type="fortrandouble"
                       default="1d0">
                       <xs:annotation>
                         <xs:documentation> Rise time of the trapezoidal envelope.
@@ -471,7 +471,7 @@
                   </xs:complexType>
                 </xs:element>
 
-                <xs:element ex:importance="expert" ex:unit="" name="sin_sq" minOccurs="0" maxOccurs="unbounded">
+                <xs:element ex:importance="expert" ex:unit="" name="sinSq" minOccurs="0" maxOccurs="unbounded">
                   <xs:annotation>
                     <xs:documentation> Specifies a pulse which vector potential is given by
                       <inlinemath>A=A_0\cos(\omega t + \phi)f(t)</inlinemath>, where
@@ -515,7 +515,7 @@
                         </xs:documentation>
                       </xs:annotation>
                     </xs:attribute>
-                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="pulse_length" type="fortrandouble"
+                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="pulseLength" type="fortrandouble"
                       default="250d0">
                       <xs:annotation>
                         <xs:documentation> The length of the pulse <inlinemath>T_{pulse}</inlinemath>.
@@ -538,7 +538,7 @@
                 </xs:element>
 
               </xs:sequence>
-              <xs:attribute ex:importance="expert" ex:unit="" name="field_type" default="total">
+              <xs:attribute ex:importance="expert" ex:unit="" name="fieldType" default="total">
                 <xs:annotation>
                   <xs:documentation>This string forces to consider the laser field as
                     the "total" or as the "external" field. The geometry of the sample
@@ -562,7 +562,7 @@
         </xs:all>
 
 
-            <xs:attribute ex:importance="expert" ex:unit="" name="read_pmatbasis"
+            <xs:attribute ex:importance="expert" ex:unit="" name="readPmatBasis"
               type="xs:boolean"  default="false">
               <xs:annotation>
                 <xs:documentation> By setting it to <pre>"true"</pre>,
@@ -574,7 +574,7 @@
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit=""
-              name="calculate_total_energy" type="xs:boolean"
+              name="calculateTotalEnergy" type="xs:boolean"
               default="false">
               <xs:annotation>
                 <xs:documentation> The total energy is calculated at each
@@ -583,7 +583,7 @@
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="expert" ex:unit="" name="calculate_n_excited_electrons"
+            <xs:attribute ex:importance="expert" ex:unit="" name="calculateNExcitedElectrons"
               type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation> Calculates the number of
@@ -594,7 +594,7 @@
             </xs:attribute>
 
             <xs:attribute ex:importance="expert" ex:unit=""
-              name="print_timing_general" type="xs:boolean" default="false">
+              name="printTimingGeneral" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation> Prints general information about times
                   required to evaluate some quantities.
@@ -603,7 +603,7 @@
             </xs:attribute>
 
             <xs:attribute ex:importance="expert" ex:unit=""
-              name="print_timing_detailed" type="xs:boolean" default="false">
+              name="printTimingDetailed" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation> Prints detailed information about times
                   required to evaluate some quantities.
@@ -612,7 +612,7 @@
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="expert" ex:unit="" name="normalize_WF"
+            <xs:attribute ex:importance="expert" ex:unit="" name="normalizeWF"
               type="xs:boolean" default="true">
               <xs:annotation>
                 <xs:documentation> Normalizes the WFs after applying the
@@ -621,7 +621,7 @@
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="expert" ex:unit="" name="subtract_J0"
+            <xs:attribute ex:importance="expert" ex:unit="" name="subtractJ0"
               type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation> Subtracts a residual current. This term
@@ -657,28 +657,28 @@
               </xs:simpleType>
             </xs:attribute>
 
-            <xs:attribute ex:importance="expert" ex:unit="" name="order_taylor" type="xs:integer"
+            <xs:attribute ex:importance="expert" ex:unit="" name="TaylorOrder" type="xs:integer"
               default="4">
               <xs:annotation>
                 <xs:documentation> The order employed in the Taylor expansion (when it is used).
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="atomic units" name="time_step" type="fortrandouble"
+            <xs:attribute ex:importance="expert" ex:unit="atomic units" name="timeStep" type="fortrandouble"
               default="0d1">
               <xs:annotation>
                 <xs:documentation> Sets the time step of the time evolution.
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="atomic units" name="end_time" type="fortrandouble"
+            <xs:attribute ex:importance="expert" ex:unit="atomic units" name="endTime" type="fortrandouble"
               default="100d0">
               <xs:annotation>
                 <xs:documentation> Sets the end time, when the evolution stops.
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="atomic units" name="print_after_iterations"
+            <xs:attribute ex:importance="expert" ex:unit="atomic units" name="printAfterIterations"
               type="xs:integer" default="50">
               <xs:annotation>
                 <xs:documentation> Sets a number which determines how frequently data
@@ -687,7 +687,7 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="vector_potential_solver" default="euler">
+            <xs:attribute ex:importance="expert" ex:unit="" name="vectorPotentialSolver" default="euler">
               <xs:annotation>
                 <xs:documentation>The method employed to solve the differential equation
                   of the vector potential. Possible choices are: euler, improvedeuler
@@ -1255,15 +1255,12 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="writehamhdf5_" type="xs:boolean"
+            <xs:attribute ex:importance="expert" ex:unit="" name="writehamhdf5" type="xs:boolean"
               default="false">
               <xs:annotation>
-                <xs:appinfo>
-                  <oldname>_writehamhdf5_</oldname>
-                </xs:appinfo>
                 <xs:documentation>
-                  <attref>_writehamhdf5_</attref> is <pre>"true"</pre> when BSE matrix elements are
-               written to HDF5 file. </xs:documentation>
+                  <attref>writehamhdf5</attref> is <pre>"true"</pre> when BSE matrix elements are
+                   written to HDF5 file. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="chibar0" type="xs:boolean"

@@ -27,20 +27,20 @@
     <momentummatrix/>
     
     <boltzequ
-      output_energies_in_ev="true"
-      output_in_si_units="true"
-      energy_reference="efermi"
-      transport_df_range="-1.0 0.5"
-      transport_df_spacing="0.15"
-      temperature_range="300 1200"
-      temperature_spacing="100"
-      chemical_potential_range="0.01 0.01"
-      chemical_potential_spacing="1"
-      transport_df_broadening="0.001"
-      use_transport_df="false"
-      use_doping_concentration="true"
-      doping_concentration = "1e-19">
-      <condcomp>1 1</condcomp>
+      evOutputEnergies="true"
+      siOutputUnits="true"
+      energyReference="efermi"
+      transportDfRange="-1.0 0.5"
+      transportDfSpacing="0.15"
+      temperatureRange="300 1200"
+      temperatureSpacing="100"
+      chemicalPotentialRange="0.01 0.01"
+      chemicalPotentialSpacing="1"
+      transportDfBroadening="0.001"
+      useTransportDf="false"
+      useDopingConcentration="true"
+      dopingConcentration = "1e-19">
+      <etCoeffComponents>1 1</etCoeffComponents>
     </boltzequ>
     
   </properties>

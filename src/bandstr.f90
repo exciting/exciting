@@ -159,7 +159,7 @@ Subroutine bandstr
     Deallocate (evalfv, evecfv, evecsv)
     ! end loop over k-points
   End Do
-  call MTRelease(mt_hscf)
+  call mt_hscf%release()
 #ifdef MPI
   If (input%properties%bandstructure%character) Then
     Call mpi_allgatherv_ifc(nkpt, (lmax+1)*natmtot*nstsv, rlpbuf=bc)

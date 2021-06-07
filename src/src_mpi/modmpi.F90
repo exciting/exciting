@@ -23,6 +23,7 @@
 ! This needs refactoring if we hope to use more complex MPI distribution schemes.
 
 module modmpi
+  use trace, only: trace_back
 #ifdef MPI
   use mpi
 #endif
@@ -37,6 +38,8 @@ module modmpi
     integer(4) :: procs
     integer :: comm
     integer(4) :: ierr
+    integer(4) :: root = 0   !! Rank of root process
+    logical :: is_root       !! Indicates of the process is root
   end type mpiinfo
 
   ! Groups of MPI communicators
@@ -77,10 +80,33 @@ module modmpi
 
   contains
 
+    !> Terminate exciting if condition is false
+    subroutine terminate_if_false(condition, message)
+      use iso_fortran_env, only: error_unit
+      !> Error condition, need to be false to terminate the program and print the message
+      logical, intent(in) :: condition
+      !> Error message that is printed to the terminal if present and condition is false.
+      character(*), optional, intent(in) :: message
+
+      character(256) :: error_message
+
+      error_message = 'Error'
+      if (present(message)) then
+        error_message = error_message//': '//trim(adjustl(message))
+      end if
+
+      if(.not. condition) then
+        write(error_unit, *)
+        write(error_unit, *) trim(error_message)
+        write(error_unit, *)
+        call trace_back()
+        call terminate()
+      end if
+    end subroutine terminate_if_false
+
     !+++++++++++++++++++++++++++++++++++++++++!
     ! Initialization and finalization  of MPI !
     !+++++++++++++++++++++++++++++++++++++++++!
-
     !BOP
     ! !ROUTINE: initmpi
     ! !INTERFACE:
@@ -108,6 +134,7 @@ module modmpi
       mpiglobal%comm = mpi_comm_world
       mpiglobal%rank = rank
       mpiglobal%ierr = ierr
+      mpiglobal%is_root = mpiglobal%rank == mpiglobal%root
 
       ! Make communicators for
       ! intra- and inter-processor (node) communication.
@@ -124,6 +151,7 @@ module modmpi
       mpiglobal%procs = procs
       mpiglobal%rank = rank
       mpiglobal%comm = 0
+      mpiglobal%is_root = .true.
 
       splittfile = .false.
       firstinnode = .true.
@@ -169,75 +197,67 @@ module modmpi
     !EOC
 
 
-!> @brief Terminate an MPI environment
-subroutine terminate_mpi_env(mpi_env, message)
-  use iso_fortran_env, only: error_unit
-  implicit none
+    !> Terminate an MPI environment
+    subroutine terminate_mpi_env(mpi_env, message)
+      use iso_fortran_env, only: error_unit
 
-  !> MPI environment object
-  type(mpiinfo), intent(inout) :: mpi_env
-  !> Error message
-  character(len=*), optional, intent(in) :: message
-  !> Error code for Exciting to return to the invoking environment
-  integer, parameter :: error_code = 101
+      !> MPI environment object
+      type(mpiinfo), intent(inout) :: mpi_env
+      !> Error message
+      character(len=*), optional, intent(in) :: message
+      !> Error code for Exciting to return to the invoking environment
+      integer, parameter :: error_code = 101
 
 #ifdef MPI
-  if(mpi_env%rank == 0) then
-    if(present(message)) write(error_unit, *) trim(adjustl(message))
-  end if
-  call mpi_abort(mpi_env%comm, error_code, mpi_env%ierr)
-
+      if(mpi_env%rank == 0) then
+         if(present(message)) write(error_unit, *) trim(adjustl(message))
+      end if
+      call mpi_abort(mpi_env%comm, error_code, mpi_env%ierr)
 #else
-  if(present(message)) write(error_unit, *) trim(adjustl(message))
-  stop
-
+      if(present(message)) write(error_unit, *) trim(adjustl(message))
+      stop
 #endif
+    end subroutine terminate_mpi_env
 
-end subroutine terminate_mpi_env
 
-
-    !BOP
-    ! !ROUTINE: terminate
-    ! !INTERFACE: 
+    !> Terminate global MPI environment
+    !>
+    !> Developers should not use this, in favour of terminate_mpi_env
     subroutine terminate(user_msg)
-    ! !DESCRIPTION:
-    !   Kills the program in {\tt MPI} or
-    !   single execution.
-    !
-    ! !REVISION HISTORY:
-    !   Added to documentation scheme and moved to
-    !   modmpi. 2016 (Aurich)
-    !EOP
-    !BOC
-      implicit none
-      !> optional error message
-      character(len=*), optional :: user_msg
-      integer(4) :: ierr
+      !> Optional error message
+      character(len=*), intent(in), optional :: user_msg
+
+      !> Error code for exciting to return to the invoking environment
+      integer, parameter :: error_code = 101
+      !> Error integer
+      integer :: ierr
+      !> Local error message
       character(256) :: err_msg
-      
+
       if (present(user_msg)) then
         err_msg = user_msg
-      else 
-        err_msg = "Goodbye, cruel world. (terminate)"
+      else
+        err_msg = "exciting has terminated"
       end if
 
-      ! Abort mpi if necessary
 #ifdef MPI
       if(mpiglobal%rank == 0) then
-        write(*,'(a)') trim(adjustl(err_msg))
+         write(*,'(a)') trim(adjustl(err_msg))
       end if
-      call mpi_abort(mpi_comm_world, 1, ierr)
-      if(ierr .eq. 0) then
-         write (*, '(a)') trim(adjustl(err_msg))
+
+      call mpi_abort(mpi_comm_world, error_code, ierr)
+
+      if(ierr == 0) then
+         write(*, '(a)') trim(adjustl(err_msg))
       else
-         write (*, '(a)') trim(adjustl(err_msg))//' - zombie processes might remain!'
+         write(*, '(a)') trim(adjustl(err_msg))//' - zombie processes might remain!'
       end if
 #else
-      write (*, '(a)') err_msg
-#endif
+      write(*, '(a)') err_msg
       stop
+#endif
     end subroutine terminate
-    !EOC
+
 
     !+++++++++++++++++++++++++++++++++++++++++++!
     ! Partitioning of N elements to P processes !

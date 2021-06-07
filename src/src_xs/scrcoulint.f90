@@ -151,7 +151,7 @@ subroutine scrcoulint(iqmt, fra)
   call init2
 
   ! xas and xes specific init (has to come after init0 and init1)
-!  if(input%xs%bse%xas .or. input%xs%BSE%xes) call xasinit
+  if(input%xs%bse%xas .or. input%xs%BSE%xes) call xasinit
   
   ! Making folder for the radial integals pertaining to the plane wave matrix elements
   ematraddir = 'EMATRAD'
@@ -853,6 +853,9 @@ subroutine scrcoulint(iqmt, fra)
   call ematqdealloc
   call findgntn0_clear
 
+  ! Some xas specific finalizations
+  if(input%xs%bse%xas .or. input%xs%bse%xes) call xasfinit
+ 
   call barrier(callername=trim(thisname))
 
   contains

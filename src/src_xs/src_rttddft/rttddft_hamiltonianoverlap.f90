@@ -134,6 +134,8 @@ contains
 !$OMP END DO NOWAIT
 !$OMP END PARALLEL
 
+  call mt_h%release()
+
   if(tGen) then
     call timesec(timefinal)
     if(tDetail) tham = timefinal-timei
@@ -242,6 +244,7 @@ end subroutine updateham
     endif
 
     ham_time(1:nmatp,1:nmatp,ik) = hamcopy(1:nmatp,1:nmatp)
+    
   end subroutine hamsetup
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Subroutine to calculate the overlap matrix for a given k-point

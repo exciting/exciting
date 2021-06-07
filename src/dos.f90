@@ -40,10 +40,18 @@ Subroutine dos
       Implicit None
 ! local variables
       Logical :: tsqaz
+! Determines if pdos is only l or lm-resolved 
+      Logical :: lonly
       Integer :: lmax, lmmax, l, m, lm
       Integer :: ispn, jspn, is, ia, ias
       Integer :: ik, nsk (3), ist, iw, jst, n, i
       Integer :: ntrans, mtrans
+! Number of spin resolved dos and factor that determines the number of spin-resolved dos
+      Integer :: Ndosspn, spinor_factor
+! index for spin-resolved dos
+      Integer :: idosspn
+! Sign options for spin type
+      Integer, dimension(2) :: sign_factor = (/1.d0, -1.d0/)
       Real (8) :: dw, th, t1
       Real (8) :: v1 (3), v2 (3), v3 (3)
       Character (512) :: buffer
@@ -58,6 +66,8 @@ Subroutine dos
       Real (8), Allocatable :: f (:, :)
       Real (8), Allocatable :: w (:)
       Real (8), Allocatable :: g(:,:), gp(:)
+! total dos and l-resolved dos 
+      Real (8), Allocatable :: dosg(:,:), dosgl(:,:,:)
       Real (8), Allocatable :: edif(:,:,:), ej(:,:), fj(:,:)
 ! low precision for band character array saves memory
       Real (4), Allocatable :: bc (:, :, :, :, :)
@@ -81,11 +91,18 @@ Subroutine dos
 ! allocate local arrays
       lmax = min(4, input%groundstate%lmaxapw)
       lmmax = (lmax+1)**2
+      If (isspinorb() .eqv. .false.) then
+         Ndosspn = nspinor
+      Else
+         Ndosspn = 1
+      End if
       Allocate (e(nstsv, nkpt, nspinor))
       Allocate (f(nstsv, nkpt))
       Allocate (w(input%properties%dos%nwdos))
       Allocate (g(input%properties%dos%nwdos, nspinor))
       Allocate (gp(input%properties%dos%nwdos))
+      Allocate (dosg(input%properties%dos%nwdos, ndosspn))
+      Allocate (dosgl(input%properties%dos%nwdos, 0:lmax,ndosspn))
       Allocate (bc(lmmax, nspinor, natmtot, nstsv, nkpt))
       If (input%properties%dos%lmirep) Then
          Allocate (elm(lmmax, natmtot))
@@ -229,6 +246,12 @@ Subroutine dos
 
 if (rank==0) then
 
+      ! Not spin-resolved dos if spin-orbit is included      
+      spinor_factor = 0
+      If (isspinorb() .eqv. .false.) Then
+         spinor_factor = 1
+      End If
+
       if( input%properties%dos%inttype == 'tetra') then
         call generate_k_vectors( kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, input%groundstate%reducek, uselibzint=.false.)
         call opt_tetra_init( tset, kset, 2, reduce=.true.)
@@ -249,16 +272,9 @@ if (rank==0) then
       Call xml_AddAttribute (xf, "unit", 'states/Hartree/unit cell')
       Call xml_endElement (xf, "axis")
       Call xml_NewElement (xf, "totaldos")
+      dosg(:,:) = 0.d0
       Do ispn = 1, nspinor
-         Call xml_NewElement (xf, "diagram")
-         Call xml_AddAttribute (xf, "type", "totaldos")
-         Write (buffer,*) ispn
-         Call xml_AddAttribute (xf, "nspin", trim(adjustl(buffer)))
-         If (ispn .Eq. 1) Then
-            t1 = 1.d0
-         Else
-            t1 = - 1.d0
-         End If
+         idosspn= 1+ (ispn-spinor_factor)*spinor_factor
          Do ik = 1, nkpt
             Do ist = 1, nstsv
 ! subtract the Fermi energy
@@ -291,19 +307,27 @@ if (rank==0) then
            & e(:,:,ispn), f, g(:,ispn))
          end if
 ! multiply by the maximum occupancy (spin-polarised: 1, unpolarised: 2)
-         g (:, ispn) = occmax * g (:, ispn)
+         dosg (:, idosspn) = occmax * g (:, ispn) + dosg (:, idosspn)
+      Enddo
+      Do idosspn= 1, Ndosspn
+         Call xml_NewElement (xf, "diagram")
+         Call xml_AddAttribute (xf, "type", "totaldos")
+         Write (buffer,*) idosspn
+         Call xml_AddAttribute (xf, "nspin", trim(adjustl(buffer)))
+         t1=sign_factor(idosspn)
          Do iw = 1, input%properties%dos%nwdos
-            Write (50, '(2G18.10)') w (iw), t1 * g (iw, ispn)
+            Write (50, '(2G18.10)') w (iw), t1 * dosg (iw, idosspn)
             Call xml_NewElement (xf, "point")
             Write (buffer, '(G18.10)') w (iw)
             Call xml_AddAttribute (xf, "e", trim(adjustl(buffer)))
-            Write (buffer, '(G18.10)') g (iw, ispn)
+            Write (buffer, '(G18.10)') dosg (iw, idosspn)
             Call xml_AddAttribute (xf, "dos", trim(adjustl(buffer)))
             Call xml_endElement (xf, "point")
          End Do
          Write (50, '("     ")')
          Call xml_endElement (xf, "diagram")
       End Do
+  
       Close (50)
       Call xml_endElement (xf, "totaldos")
 
@@ -459,8 +483,15 @@ if (rank==0) then
 
       If (input%properties%dos%lmirep) Then
 !
+        If (isspinorb() .eqv. .true.) then
+           lonly = .true.
+        else
+           lonly = input%properties%dos%lonly
+        End if
+
         Do is = 1, nspecies
           Do ia = 1, natoms (is)
+            dosgl(:,:,:) = 0.d0
             Call xml_NewElement (xf, "partialdos")
             Call xml_AddAttribute (xf, "type", "partial")
             Call xml_AddAttribute (xf, "speciessym", &
@@ -473,13 +504,10 @@ if (rank==0) then
             Write (fname, '("PDOS_S", I2.2, "_A", I4.4, ".OUT")') is, ia
             Open (50, File=trim(fname), Action='WRITE', Form='FORMATTED')
             Do ispn = 1, nspinor
-               If (ispn .Eq. 1) Then
-                  t1 = 1.d0
-               Else
-                  t1 = - 1.d0
-               End If
+               idosspn= 1+ (ispn-spinor_factor)*spinor_factor
+               t1=sign_factor(ispn)
                Do l = 0, lmax
-                  if( input%properties%dos%lonly) then
+                  if(lonly) then
                      f = 0.d0
                      Do m = - l, l
                         lm = idxlm (l, m)
@@ -507,23 +535,7 @@ if (rank==0) then
                       &  nstsv, nstsv, e(:, :, ispn), f, gp)
                      end if
                      gp (:) = occmax * gp (:)
-                     Call xml_NewElement (xf, "diagram")
-                     Write (buffer,*) ispn
-                     Call xml_AddAttribute (xf, "nspin", trim(adjustl(buffer)))
-                     Write (buffer,*) l
-            	     Call xml_AddAttribute (xf, "l", trim(adjustl(buffer)))
-                     Do iw = 1, input%properties%dos%nwdos
-                        Call xml_NewElement (xf, "point")
-                        Write (buffer, '(G18.10)') w (iw)
-                        Call xml_AddAttribute (xf, "e", trim(adjustl(buffer)))
-                        Write (buffer, '(G18.10)') gp (iw)
-                        Call xml_AddAttribute (xf, "dos", trim(adjustl(buffer)))
-                        Call xml_endElement (xf, "point")
-                        Write (50, '(2G18.10)') w (iw), t1 * gp (iw)
-                        g (iw, ispn) = g (iw, ispn) - gp (iw)
-                     End Do
-                     Write (50, '("     ")')
-                     Call xml_endElement (xf, "diagram")
+                     dosgl(:,l,idosspn) =  dosgl(:,l, idosspn) + gp(:)
                   else
                      Do m = - l, l
                         lm = idxlm (l, m)
@@ -554,9 +566,9 @@ if (rank==0) then
                         Write (buffer,*) ispn
                         Call xml_AddAttribute (xf, "nspin", trim(adjustl(buffer)))
                         Write (buffer,*) l
-            	        Call xml_AddAttribute (xf, "l", trim(adjustl(buffer)))
+                        Call xml_AddAttribute (xf, "l", trim(adjustl(buffer)))
                         Write (buffer,*) m
-            	        Call xml_AddAttribute (xf, "m", trim(adjustl(buffer)))
+                        Call xml_AddAttribute (xf, "m", trim(adjustl(buffer)))
                         Do iw = 1, input%properties%dos%nwdos
                            Call xml_NewElement (xf, "point")
                            Write (buffer, '(G18.10)') w (iw)
@@ -565,17 +577,42 @@ if (rank==0) then
                            Call xml_AddAttribute (xf, "dos", trim(adjustl(buffer)))
                            Call xml_endElement (xf, "point")
                            Write (50, '(2G18.10)') w (iw), t1 * gp (iw)
-                           g (iw, ispn) = g (iw, ispn) - gp (iw)
+                           dosg(iw,idosspn) = dosg(iw,idosspn) - gp(iw)
                         End Do
                         Write (50, '("     ")')
                         Call xml_endElement (xf, "diagram")
+                       ! write(*,*) "l,m",l,m,m+l+1,(lmax*2)+1
                      End Do
                   end if
                End Do
             End Do
-            Close (50)
-            Call xml_endElement (xf, "partialdos")
-          End Do
+             If(lonly) then
+             Do idosspn = 1, Ndosspn
+               t1=sign_factor(idosspn)
+               Do l = 0, lmax
+                     Call xml_NewElement (xf, "diagram")
+                     Write (buffer,*) idosspn
+                     Call xml_AddAttribute (xf, "nspin", trim(adjustl(buffer)))
+                     Write (buffer,*) l
+              	     Call xml_AddAttribute (xf, "l", trim(adjustl(buffer)))
+                     Do iw = 1, input%properties%dos%nwdos
+                       Call xml_NewElement (xf, "point")
+                       Write (buffer, '(G18.10)') w (iw)
+                       Call xml_AddAttribute (xf, "e", trim(adjustl(buffer)))
+                       Write (buffer, '(G18.10)') dosgl (iw,l,idosspn)
+                       Call xml_AddAttribute (xf, "dos", trim(adjustl(buffer)))
+                       Call xml_endElement (xf, "point")
+                       Write (50, '(2G18.10)') w (iw), t1 * dosgl (iw,l,idosspn)
+                       dosg (iw, idosspn) = dosg (iw, idosspn) - dosgl (iw,l,idosspn)
+                     End Do
+                     Write (50, '("     ")')
+                     Call xml_endElement (xf, "diagram")
+                End Do
+             End Do 
+             End if
+             Close (50)
+             Call xml_endElement (xf, "partialdos")
+           End Do
         End Do
 !
         Open (50, File='ELMIREP.OUT', Action='WRITE', Form='FORMATTED')
@@ -616,15 +653,14 @@ if (rank==0) then
 !---------------------------------!
 !     output interstitial DOS     !
 !---------------------------------!
-
         Call xml_NewElement (xf, "interstitialdos")
         Open (50, File='IDOS.OUT', Action='WRITE', Form='FORMATTED')
-        Do ispn = 1, nspinor
+        Do idosspn = 1, ndosspn
           Call xml_NewElement (xf, "diagram")
           Call xml_AddAttribute (xf, "type", "interstitial")
-          Write (buffer,*) ispn
+          Write (buffer,*) idosspn
           Call xml_AddAttribute (xf, "nspin", trim(adjustl(buffer)))
-          If (ispn .Eq. 1) Then
+          If (idosspn .Eq. 1) Then
             t1 = 1.d0
           Else
             t1 = - 1.d0
@@ -633,10 +669,10 @@ if (rank==0) then
             Call xml_NewElement (xf, "point")
             Write (buffer, '(G18.10)') w (iw)
             Call xml_AddAttribute (xf, "e", trim(adjustl(buffer)))
-            Write (buffer, '(G18.10)') g (iw, ispn)
+            Write (buffer, '(G18.10)') dosg (iw, idosspn)
             Call xml_AddAttribute (xf, "dos", trim(adjustl(buffer)))
             Call xml_endElement (xf, "point")
-            Write (50, '(2G18.10)') w (iw), t1 * g (iw, ispn)
+            Write (50, '(2G18.10)') w (iw), t1 * dosg (iw, idosspn)
           End Do
           Call xml_endElement (xf, "diagram")
         End Do
@@ -649,7 +685,7 @@ if (rank==0) then
       Call xml_endElement (xf, "dos")
       Call xml_close (xf)
 
-      Deallocate (e, f, w, g, gp, bc)
+      Deallocate (e, f, w, g, gp, bc, dosg, dosgl)
       If (input%properties%dos%lmirep) deallocate (elm, ulm, a)
       Deallocate (dmat, sdmat, apwalm, evecfv, evecsv)
 
@@ -670,6 +706,10 @@ if (rank==0) then
       If (input%properties%dos%lmirep) Then
          Write(*, '("   Partial density of states written to PDOS_Sss_Aaaaa.OUT")')
          Write(*, '("   for all species and atoms")')
+         If ((isspinorb() .eqv. .true.) .and. (input%properties%dos%lmirep .eqv. .true.)) then
+            Write(*,'("   If lmirep=.true. and spin-orbit coupling is employed, only")')
+            Write(*,'("   the l-resolved PDOS is printed in PDOS_Sss_Aaaaa.OUT ")')
+         End If
          Write(*,*)
          Write(*, '("   Eigenvalues of a random matrix in the (l, m) basis symmetrised")')
          Write(*, '("   with the site symmetries written to ELMIREP.OUT for all")')

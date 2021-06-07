@@ -3,24 +3,26 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-Subroutine tasklauncher
-    Use modinput
-    Implicit None
-    
-! Note that the order of the calls below may be important!
-    If (associated(input%groundstate)) &
+!> Select exciting features to run
+subroutine tasklauncher()
+    use modinput
+    implicit none
+
+    ! Note that the order of the calls below may be important!
+    if (associated(input%groundstate)) &
         call groundstatetasklauncher()
 
-    If (associated(input%properties)) &
-        Call propertylauncher()
+    if (associated(input%properties)) &
+        call propertylauncher()
 
-    If (associated(input%phonons)) &
+    if (associated(input%phonons)) &
         call phononstasklauncher()
 
-    If (associated(input%gw)) &
-        Call gwtasklauncher()
+    if (associated(input%gw)) &
+        call gwtasklauncher()
 
-    If (associated(input%xs)) &
-        Call xstasklauncher()
+    if (associated(input%xs)) then
+        call xstasklauncher()
+    endif 
 
-End Subroutine
+end subroutine

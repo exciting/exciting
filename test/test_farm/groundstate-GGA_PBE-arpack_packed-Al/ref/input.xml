@@ -12,6 +12,7 @@
     </species>
   </structure>
   <groundstate vkloff="0.5  0.5  0.5" ngridk="2 2 2 " mixer="msec" epsengy="5.0d-07" outputlevel="high">
+      <solver type="Arpack" />
   </groundstate>
   <properties></properties>
 </input>

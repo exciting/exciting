@@ -5,11 +5,10 @@ $python3 runselftest.py
 import unittest
 import sys
 
-sys.path.insert(1, '../tester')
-from compare import *
-from report import *
-from path import *
-from test import*
+from tools.tester.compare import *
+from tools.tester.report import *
+from tools.tester.path import *
+
 tolValuePair = {}
 tolValuePair['tol'] = '0'
 tolValuePair['value'] = ''

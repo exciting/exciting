@@ -14,7 +14,7 @@
 ! Available at http://physics.nist.gov/constants,
 ! National Institute of Standards and Technology, Gaithersburg, MD 20899.
 
-!> Physical constants
+!> Physical constants, defined according to [CODATA 2018])(http://physics.nist.gov/constants) 
 module physical_constants
   use precision, only: dp
   use constants, only: pi

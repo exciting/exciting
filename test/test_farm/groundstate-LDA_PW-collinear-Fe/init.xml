@@ -5,13 +5,13 @@
           tolMSE    = '1e-3'
           condition = '0 0'
 	  ignore    = 'timing;rmslog10'
-	  tolIter   = '3'/>
+	  tolIter   = '10'/>
   <test   file      = 'INFO.OUT'
           tolFloat  = '1e-3'
           tolMSE    = '1e-3'
           condition = '0 0'
           ignore    = 'Wall time (seconds);CPU time for vxnl (seconds);CPU time for scf_cycle (seconds)'
-          tolIter   = '3'/>
+          tolIter   = '10'/>
   <test   file      = 'atoms.xml'          
           tolFloat  = '1e-6'              
           tolMSE    = '1e-6'              

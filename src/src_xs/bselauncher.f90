@@ -56,7 +56,7 @@ subroutine bselauncher
   call init2
   
   ! xas and xes specific init (has to come after init0 and init1)
-!  if(input%xs%bse%xas .or. input%xs%BSE%xes) call xasinit
+  if(input%xs%bse%xas .or. input%xs%BSE%xes) call xasinit
   
   ! End timer for init calls
   call timesec(ts1)
@@ -236,6 +236,9 @@ subroutine bselauncher
       & trim(thisname), mpiglobal%rank
   end if
 
+  ! Some xas specific finalizations
+  if(input%xs%bse%xas .or. input%xs%bse%xes) call xasfinit
+  
   call barrier(callername=thisname)
 
   ! Exit BLACS 

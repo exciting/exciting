@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <sp chemicalSymbol="Ti" name="titanium" z="-22.0000" mass="87256.20311">
+    <muffinTin rmin="0.100000E-04" radius="1.8000" rinf="25.7965" radialmeshPoints="350"/>
+    <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
+    <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
+    <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
+    <atomicState n="2" l="1" kappa="2" occ="4.00000" core="true"/>
+    <atomicState n="3" l="0" kappa="1" occ="2.00000" core="false"/>
+    <atomicState n="3" l="1" kappa="1" occ="2.00000" core="false"/>
+    <atomicState n="3" l="1" kappa="2" occ="4.00000" core="false"/>
+    <atomicState n="3" l="2" kappa="2" occ="2.00000" core="false"/>
+    <atomicState n="4" l="0" kappa="1" occ="2.00000" core="false"/>
+    <basis>
+      <default>
+        <wf matchingOrder="0" trialEnergy="0.1500" searchE="false"/>
+      </default>
+      <custom l="0">
+        <wf matchingOrder="0" trialEnergy="1.0000" searchE="true"/>
+      </custom>
+      <custom l="1">
+        <wf matchingOrder="0" trialEnergy="-0.9675" searchE="true"/>
+      </custom>
+      <custom l="2">
+        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
+      </custom>
+      <lo l="0">
+        <wf matchingOrder="0" trialEnergy="1.0000" searchE="true"/>
+        <wf matchingOrder="1" trialEnergy="1.0000" searchE="true"/>
+      </lo>
+      <lo l="1">
+        <wf matchingOrder="0" trialEnergy="-0.9675" searchE="true"/>
+        <wf matchingOrder="1" trialEnergy="-0.9675" searchE="true"/>
+      </lo>
+      <lo l="2">
+        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
+        <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
+      </lo>
+      <lo l="0">
+        <wf matchingOrder="0" trialEnergy="1.0000" searchE="true"/>
+        <wf matchingOrder="1" trialEnergy="1.0000" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-1.8735" searchE="true"/>
+      </lo>
+      <lo l="1">
+        <wf matchingOrder="0" trialEnergy="-0.9675" searchE="true"/>
+        <wf matchingOrder="1" trialEnergy="-0.9675" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-0.9659" searchE="true"/>
+      </lo>
+    </basis>
+    <!-- This file was automatically generated-->
+    <!-- Default linearization energies have been replaced by that -->
+    <!-- found using findlinentype='Wigner_Seitz' method -->
+  </sp>
+</spdb>

@@ -27,8 +27,8 @@
               tolEigval   = '1e-7'/>
       </test>
   <test   file      = 'evalcore.xml'
-          tolFloat  = '5e-8'
-          tolMSE    = '1e-8'
+          tolFloat  = '1e-7'
+          tolMSE    = '1e-7'
           condition = '0 0'
           ignore    = ''/>
   <test   file      = 'geometry.xml'

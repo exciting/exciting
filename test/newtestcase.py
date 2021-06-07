@@ -7,15 +7,17 @@ import argparse as ap
 from collections import namedtuple
 import warnings
 
-sys.path.insert(1, 'tools')
-from procedures import newTest_dir, copyInputFiles, runSingleReference, create_init
-from constants import settings
+
+from tools.constants import settings
+
+from tools.infrastructure import copy_exciting_input, create_test_directory, create_init
+from tools.runner.reference import run_single_reference
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
     return '%s: %s \n' % (category.__name__, message)
 warnings.formatwarning = warning_on_one_line
 
-def optionParser(exedir:str):
+def optionParser():
     p = ap.ArgumentParser(description="Usage: python3 newtestcase.py -n <name> -i <reference calc> -e <executable> -np <NP>")
     p.add_argument ('-n',
                    metavar = '--name',
@@ -48,7 +50,7 @@ def optionParser(exedir:str):
     
     return input_options
 
-def interactiveUserInterface(args:dict):
+def interactive_user_interface(args:dict):
     """
     Interactive user interface for creating a new test case. 
     Interaction is only triggered if the elements for 
@@ -65,7 +67,7 @@ def interactiveUserInterface(args:dict):
     while os.path.exists(os.path.join(settings.test_farm, name)):
         name_old = name
         name = input("A test case with the same name exists already. " + \
-                     "Please choose a different name, replace the existing test case (enter 'replace', this will remove the existing test case!!)" + \
+                     "Please choose a different name, replace the existing test case (enter 'replace', this will remove the existing test case!!)\n" + \
                      " or quit (enter 'exit').\n")
         if name=='replace':
             os.system('rm -r %s/%s'%(settings.test_farm,name_old))
@@ -76,9 +78,10 @@ def interactiveUserInterface(args:dict):
     input_options['name'] = name
 
     if args['description']==None:
-        input_options['description'] = input("Please enter a description for the new test case:\n")
+        description = input("Please enter a description for the new test case:\n")
     else:
-        input_options['description'] = args['description']
+        description = args['description']
+    input_options['description'] = description
 
     reenter = True
     if args['reference_location']==None:
@@ -112,45 +115,52 @@ def main(settings:namedtuple, input_options:dict):
     :stettings:        default settings
     :input_options:    definitions of user input or parsed command line arguments
     """
-    speciesFiles = next(os.walk(settings.species))[2]
-    notClean = settings.not_clean + speciesFiles
+    species_files = next(os.walk(settings.species))[2]
+    name = input_options['name']
+    description = input_options['description']
+    init_file = input_options['init_file']
+    reference_location = input_options['reference_location']
 
-    newTest_dir(settings.test_farm, 
-                input_options['name'], 
-                settings.run_dir, 
-                settings.ref_dir)
+    try:
+        create_test_directory(settings.test_farm, 
+                              name, 
+                              settings.ref_dir)
+    except FileExistsError:
+        raise FileExistsError('A test case with the name %s already exists in %s.'%(name, settings.test_farm))
+
     create_init(settings.test_farm, 
-                input_options['name'], 
-                input_options['description'], 
-                input_options['init_file'])
-    if input_options['reference_location']==None:
-        print("Create blank test case %s. Please put the input files for your test case in the directories "%input_options["name"] + \
-              "%s/ and %s/ in the test directory %s/%s. \n"%(settings.run_dir, settings.ref_dir, settings.test_farm, input_options['name']))
+                name, 
+                description, 
+                init_file)
+
+    if reference_location==None:
+        print("Create blank test case %s. Please put the input files for your test case in the directories "%name + \
+              "%s/ and %s/ in the test directory %s/%s. \n"%(settings.run_dir, settings.ref_dir, settings.test_farm, name))
         warnings.warn("Before you can run the test case, you must generate the reference data.")
         print("Run the reference: \n\n" + \
-              "    python3 runtest.py -a ref -t %s\n"%input_options['name'])
+              "    python3 runtest.py -a ref -t %s\n"%name)
     else:
-        print('Create new test case %s.'%(input_options['name']))        
-        print("Take reference input from %s."%input_options['reference_location'])
-        copyInputFiles(input_options['reference_location'], 
-                       settings.test_farm, 
-                       input_options['name'], 
-                       settings.run_dir, 
-                       settings.ref_dir, 
-                       settings.input_file, 
-                       speciesFiles)
+        print('Create new test case %s.'%(name))        
+        print("Take reference input from %s."%reference_location)
+
+        copy_exciting_input(reference_location,
+                            os.path.join(settings.test_farm, name, settings.ref_dir),
+                            species_files,
+                            settings.input_file)
+                            
             
-        runSingleReference(settings.test_farm, 
-                           settings.main_output, 
-                           input_options['name'], 
-                           settings.ref_dir,
-                           os.path.join(settings.exe_dir, settings.exe_ref),
-                           settings.ignored_output, 
-                           settings.max_time)
+        run_single_reference(settings.test_farm, 
+                             settings.main_output, 
+                             name, 
+                             settings.ref_dir,
+                             os.path.join(settings.exe_dir, settings.exe_ref),
+                             settings.ignored_output, 
+                             settings.max_time)
     
     print("Run the test case: \n\n" + \
-          "    python3 runtest.py -t %s\n"%input_options['name'])
+          "    python3 runtest.py -t %s\n"%name)
+
 if __name__ == "__main__":
-    args = optionParser(settings.exe_dir)
-    input_options = interactiveUserInterface(args)
+    args = optionParser()
+    input_options = interactive_user_interface(args)
     main(settings, input_options)  

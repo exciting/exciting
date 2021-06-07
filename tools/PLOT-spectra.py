@@ -2,7 +2,6 @@
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from lxml import etree
 import os
 import sys
 import re
@@ -24,12 +23,12 @@ if narg<1:
     print "**Usage**:    PLOT-spectra.py [--imag/--real] file1.xml [ file2.xml [ file3.xml [...]]]\n"
     sys.exit()
 
-if ( str(sys.argv[1]).lower() == "--real" ): 
+if ( str(sys.argv[1]).lower() == "--real" ):
     function = 1
     nfiles = narg - 1
     n0 = 1
     yylabel = r"Re $\mathregular{\epsilon_M}$"
-if ( str(sys.argv[1]).lower() == "--imag" ): 
+if ( str(sys.argv[1]).lower() == "--imag" ):
     function = 2
     nfiles = narg - 1
     n0 = 1
@@ -46,7 +45,7 @@ for i in range(n0,narg):
 # Parse EPSILON/LOSS function data files
 
 xdata=[] ; ydata=[] ; labels=[] ; legends=[]
-print 
+print
 
 for i,fname in enumerate(fnames):
     xdata.append([])
@@ -55,8 +54,8 @@ for i,fname in enumerate(fnames):
     print " Parsing "+fname
     sfname = fname.split("/")[-1]
     sfname = re.split('_|-',sfname)
-   
-    if "BSE"          in sfname: legend="BSE "    
+
+    if "BSE"          in sfname: legend="BSE "
     if "TDA"          in sfname: legend=legend+"TDA "
     if  not "TDA"     in sfname and "BSE" in sfname: legend=legend+"full "
     if "singlet"      in sfname: legend=legend+"singlet"
@@ -74,20 +73,24 @@ for i,fname in enumerate(fnames):
     if sfname[-2][0:2]=="OC" and "LOSS" in sfname: legend=legend+"Optical(%s)"%(sfname[-2][2:])
 
     legends.append(legend)
-    tree=etree.parse(fname)
 
-    if "LOSS" in sfname: 
-        rootelement = "loss"
-        labels[i]["ylabel"] = tree.xpath('/%s/mapdef/function%d'%(rootelement,function))[0].attrib["name"]
-    if "EPSILON" in sfname: 
-        rootelement="dielectric"
+    if "LOSS" in sfname:
+        labels[i]["ylabel"] = "Loss function"
+    if "EPSILON" in sfname:
         labels[i]["ylabel"] = "Im $\epsilon_M$"
 
-    labels[i]["xlabel"] = tree.xpath('/%s/mapdef/variable1'%(rootelement))[0].attrib["name"]
+    labels[i]["xlabel"] = "Energy"
 
-    for elem in tree.xpath('/%s/map'%(rootelement)):
-        xdata[i].append(float(elem.attrib["variable1"]))
-        ydata[i].append(float(elem.attrib["function%d"%(function)]))
+    file = open(fname,'r')
+    for lines in file:
+        if 'Frequency' in lines:
+            break
+
+    for lines in file:
+        data = lines.split()
+        xdata[i].append(float(data[0]))
+        ydata[i].append(float(data[function]))
+    file.close()
 
 print
 
@@ -148,7 +151,7 @@ ax1.set_xlim( 0.0, xmax)
 if "EPSILON" in sfname: ax1.set_ylim( ymin-0.05*(ymax-ymin), ymax+0.05*(ymax-ymin) )
 if "LOSS"    in sfname: ax1.set_ylim( ymin, ymax+0.2*(ymax-ymin) )
 ax1.set_xlabel(str.capitalize(labels[0]["xlabel"])+" [eV]")
-if "EPSILON" in sfname: 
+if "EPSILON" in sfname:
     ax1.set_ylabel(yylabel, labelpad=20)
 else:
     ax1.set_ylabel(str.capitalize(labels[0]["ylabel"]).encode('string-escape'), labelpad=20)

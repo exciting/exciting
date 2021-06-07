@@ -130,13 +130,13 @@ subroutine initialize_rttddft
   ham_past(:,:,:) = zzero
 
   ! If we are required to follow the predictorCorrector scheme
-  if ( associated(input%xs%rt_tddft%predictor_corrector) ) then
+  if ( associated(input%xs%realTimeTDDFT%predictorCorrector) ) then
     allocate(ham_predcorr(nmatmax,nmatmax,nkpt))
     allocate(evecfv_save(nmatmax,nstfv,nkpt))
     ham_predcorr(:,:,:) = zzero
     predictorCorrector = .True.
-    tolPredCorr = input%xs%rt_tddft%predictor_corrector%tol
-    maxstepsPredictorCorrector = input%xs%rt_tddft%predictor_corrector%max_iterations
+    tolPredCorr = input%xs%realTimeTDDFT%predictorCorrector%tol
+    maxstepsPredictorCorrector = input%xs%realTimeTDDFT%predictorCorrector%maxIterations
     if ( rank == 0 ) then
       write(fileinfortddft,formatMemory) 'Extra storage (predictor-corrector):', &
       & dble((sizeof(ham_predcorr)+sizeof(evecfv_save))/MB)
@@ -165,11 +165,11 @@ subroutine initialize_rttddft
   end if
 
   ! Initiliazing global variables
-  method = input%xs%rt_tddft%propagator
-  printTimesGeneral = input%xs%rt_tddft%print_timing_general
-  printTimesDetailed = (printTimesGeneral .and. input%xs%rt_tddft%print_timing_detailed)
-  calculateTotalEnergy = input%xs%rt_tddft%calculate_total_energy
-  calculateNexc = input%xs%rt_tddft%calculate_n_excited_electrons
+  method = input%xs%realTimeTDDFT%propagator
+  printTimesGeneral = input%xs%realTimeTDDFT%printTimingGeneral
+  printTimesDetailed = (printTimesGeneral .and. input%xs%realTimeTDDFT%printTimingDetailed)
+  calculateTotalEnergy = input%xs%realTimeTDDFT%calculateTotalEnergy
+  calculateNexc = input%xs%realTimeTDDFT%calculateNExcitedElectrons
 
 
   string = filext
@@ -206,7 +206,7 @@ subroutine initialize_rttddft
   ! Check if the momentum matrix elements have already been calculated
   inquire(file='PMATBASIS.OUT', exist=filepmatexists)
   ! Calculate or read the momentum matrix elements
-  if ( filepmatexists .and. input%xs%rt_tddft%read_pmatbasis ) then
+  if ( filepmatexists .and. input%xs%realTimeTDDFT%readPmatbasis ) then
 #ifdef MPI
     call getunit(filepmat)
     do count = 1, procs
@@ -260,28 +260,28 @@ subroutine initialize_rttddft
   end if !if ( filepmatexists .and. input%xs%rt_tddft%readpmatbasis ) then
 
   ! Setup time variables
-  tstep = input%xs%rt_tddft%time_step
-  tend = input%xs%rt_tddft%end_time
+  tstep = input%xs%realTimeTDDFT%timeStep
+  tend = input%xs%realTimeTDDFT%endTime
   nsteps = int(tend/tstep)
   time = 0._dp
 
   ! Here, we initialize the most important variables about the vector potential
   ! applied by an external laser
-  if ( associated(input%xs%rt_tddft%laser) ) then
-    nkicks = size( input%xs%rt_tddft%laser%kickarray )
+  if ( associated(input%xs%realTimeTDDFT%laser) ) then
+    nkicks = size( input%xs%realTimeTDDFT%laser%kickarray )
     if ( nkicks .ge. 1 ) then
       allocate(wkick(nkicks))
       allocate(dirkick(nkicks))
       allocate(amplkick(nkicks))
       allocate(t0kick(nkicks))
       do ik = 1, nkicks
-        wkick(ik) = input%xs%rt_tddft%laser%kickarray(ik)%kick%width
-        dirkick(ik) = input%xs%rt_tddft%laser%kickarray(ik)%kick%direction
-        amplkick(ik) = -c*(input%xs%rt_tddft%laser%kickarray(ik)%kick%amplitude)
-        t0kick(ik) = input%xs%rt_tddft%laser%kickarray(ik)%kick%t0
+        wkick(ik) = input%xs%realTimeTDDFT%laser%kickarray(ik)%kick%width
+        dirkick(ik) = input%xs%realTimeTDDFT%laser%kickarray(ik)%kick%direction
+        amplkick(ik) = -c*(input%xs%realTimeTDDFT%laser%kickarray(ik)%kick%amplitude)
+        t0kick(ik) = input%xs%realTimeTDDFT%laser%kickarray(ik)%kick%t0
       end do
     end if
-    ntrapcos = size( input%xs%rt_tddft%laser%trap_cosarray )
+    ntrapcos = size( input%xs%realTimeTDDFT%laser%trapCosarray )
     if ( ntrapcos .ge. 1 ) then
       allocate(dirtrapcos(ntrapcos))
       allocate(ampltrapcos(ntrapcos))
@@ -291,16 +291,16 @@ subroutine initialize_rttddft
       allocate(trtrapcos(ntrapcos))
       allocate(wtrapcos(ntrapcos))
       do ik = 1, ntrapcos
-        dirtrapcos(ik) = input%xs%rt_tddft%laser%trap_cosarray(ik)%trap_cos%direction
-        ampltrapcos(ik) = input%xs%rt_tddft%laser%trap_cosarray(ik)%trap_cos%amplitude
-        omegatrapcos(ik) = input%xs%rt_tddft%laser%trap_cosarray(ik)%trap_cos%omega
-        phasetrapcos(ik) = input%xs%rt_tddft%laser%trap_cosarray(ik)%trap_cos%phase
-        t0trapcos(ik) = input%xs%rt_tddft%laser%trap_cosarray(ik)%trap_cos%t0
-        trtrapcos(ik) = input%xs%rt_tddft%laser%trap_cosarray(ik)%trap_cos%rise_time
-        wtrapcos(ik) = input%xs%rt_tddft%laser%trap_cosarray(ik)%trap_cos%width
+        dirtrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%direction
+        ampltrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%amplitude
+        omegatrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%omega
+        phasetrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%phase
+        t0trapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%t0
+        trtrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%riseTime
+        wtrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%width
       end do
     end if
-    nsinsq = size( input%xs%rt_tddft%laser%sin_sqarray )
+    nsinsq = size( input%xs%realTimeTDDFT%laser%sinSqarray )
     if ( nsinsq .ge. 1 ) then
       allocate(dirsinsq(nsinsq))
       allocate(amplsinsq(nsinsq))
@@ -309,12 +309,12 @@ subroutine initialize_rttddft
       allocate(t0sinsq(nsinsq))
       allocate(tpulsesinsq(nsinsq))
       do ik = 1, nsinsq
-        dirsinsq(ik) = input%xs%rt_tddft%laser%sin_sqarray(ik)%sin_sq%direction
-        amplsinsq(ik) = input%xs%rt_tddft%laser%sin_sqarray(ik)%sin_sq%amplitude
-        omegasinsq(ik) = input%xs%rt_tddft%laser%sin_sqarray(ik)%sin_sq%omega
-        phasesinsq(ik) = input%xs%rt_tddft%laser%sin_sqarray(ik)%sin_sq%phase
-        t0sinsq(ik) = input%xs%rt_tddft%laser%sin_sqarray(ik)%sin_sq%t0
-        tpulsesinsq(ik) = input%xs%rt_tddft%laser%sin_sqarray(ik)%sin_sq%pulse_length
+        dirsinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%direction
+        amplsinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%amplitude
+        omegasinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%omega
+        phasesinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%phase
+        t0sinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%t0
+        tpulsesinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%pulseLength
       end do
     end if
   end if
@@ -354,7 +354,7 @@ subroutine initialize_rttddft
   ham_past(:,:,:) = ham_time(:,:,:)
 
   ! Spurious current
-  if ( input%xs%rt_tddft%subtract_J0 ) then
+  if ( input%xs%realTimeTDDFT%subtractJ0 ) then
     call UpdateCurrentDensity(first_kpt,last_kpt,evecfv_gnd(:,:,:),jparaspurious(:))
   else
     jparaspurious(:) = 0.d0

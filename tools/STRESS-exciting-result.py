@@ -222,24 +222,23 @@ P = (S[0,0]+S[1,1]+S[2,2])/-3.
 #%!%!%--- Writing the output file ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!
 fo = open('STRESS.OUT', 'w')
 
-print >>fo, ' '+ time.asctime() + '\n'\
-          '\n The hydrostatic pressure and stress tensor in kilobar (kbar) \n'\
-            ' P = ', round(P*Tokbar, 6), '[kbar]'
-
+print >>fo, ' _______________________________________________\n'
+print >>fo, ' Hydrostatic pressure:  P =', round(P*Tokbar, 1), '[kbar]'
+print >>fo, ' _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n'
+print >>fo, ' Stress tensor [kbar]:\n'
 for i in range(0,3):
-    print >>fo, '',
-    for j in range(0,3):
-        print >>fo, '%18.6f'%(S[i,j]*Tokbar),
-    print >>fo
-
-print >>fo, '\n The hydrostatic pressure and stress tensor in gigapascal (GPa) \n'\
-            ' P = ', round(P*ToGPa, 6), '[GPa]'
-
+    print >>fo, "   [",
+    for j in range(0,3): print >>fo, '%13.1f'%(S[i,j]*Tokbar),
+    print >>fo, "]"    
+print >>fo, ' _______________________________________________\n'
+print >>fo, ' Hydrostatic pressure:  P =', round(P*ToGPa, 2), '[Gpa]'
+print >>fo, ' _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n'
+print >>fo, ' Stress tensor [GPa]:\n'
 for i in range(0,3):
-    print >>fo, '',
-    for j in range(0,3):
-        print >>fo, '%18.6f'%(S[i,j]*ToGPa),
-    print >>fo
+    print >>fo, "   [",
+    for j in range(0,3): print >>fo, '%13.2f'%(S[i,j]*ToGPa),
+    print >>fo, "]"
+print >>fo, ' _______________________________________________\n'
 
 fo.close()
 #--------------------------------------------------------------------------------------------------

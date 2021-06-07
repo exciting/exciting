@@ -1,12 +1,10 @@
 import xml.etree.ElementTree as ET
 
-from termcolor_wrapper import print_color
-from compare import compare_data
-from compare import compare_info
-from compare import compare_eigval
-from compare import compare_INFO
-from path import Path
-from failure import Failure_code
+from ..termcolor_wrapper import print_color
+from .compare import compare_data, compare_info, compare_eigval, compare_INFO
+from .path import Path
+from .failure import Failure_code
+
 
 def addTestXML(root, tstatus, tname, tdescription, tdirectory):
     test = ET.SubElement(root, 'test')
@@ -25,14 +23,16 @@ def addTestXML(root, tstatus, tname, tdescription, tdirectory):
     directory = ET.SubElement(test, 'directory')
     directory.text = tdirectory
 
+
 class Test(list):
-    '''
+    """
     Sub class of list. Stores Fails of a test.
     In:
         name            string          name of the test
         conditions      dict            Specifies how many tests may fail to pass the test.
-    '''
+    """
     def __init__(self, **kwargs):
+        # TODO(A/B/H) Issue 67 Remove Defaults in favour of explicit tolerances files
         kwargsDefault = dict({'tolFloat' : 0.0,
                               'tolMSE' : 0.0,
                               'conditions' : dict({'float':0, 'array':0}),
@@ -57,9 +57,9 @@ class Test(list):
         super(Test, self).__init__()
 
     def countFailures(self):
-        '''
-        Counts the number of occured fails.
-        '''
+        """
+        Counts the number of occurred failures.
+        """
         failureCount = {'total' : len(self),
                          'format':0,
                          'float':0,
@@ -96,55 +96,29 @@ class Test(list):
             self.passed = True
         return self
 
-
-    def evaluate(self, data1, data2):
-        '''
+    def evaluate(self, ref_data, test_data):
+        """
         Evaluates the test for two data sets with the given condition.
         In:
-            data1       dict or list        test data
-            data2       dict or list        reference data
-        '''
-        compare_data(data1, data2, self, self.tolFloat, self.tolMSE, self.path, self.ignore, self.tolValuePair)
-        self = self.evaluateFailureCount()
-        return self
+            ref_data       dict or list        test data
+            test_data       dict or list        reference data
+        """
+        if 'info.xml' in self.name:
+            compare_info(ref_data, test_data, self, self.tolFloat, self.tolMSE, self.path, self.tolIter, self.maxIter, self.ignore, self.tolValuePair)
+        elif 'INFO.OUT' in self.name and 'WANNIER' not in self.name:
+            compare_INFO(ref_data, test_data, self, self.tolFloat, self.tolMSE, self.path, self.tolIter, self.maxIter, self.ignore, self.tolValuePair)
+        elif 'eigval.xml' in self.name:
+            compare_eigval(ref_data, test_data, self, self.tolFloat, self.tolMSE, self.path, self.ignore, self.tolValuePair, self.eigval)
+        else:                                                                               
+            compare_data(ref_data, test_data, self, self.tolFloat, self.tolMSE, self.path, self.ignore, self.tolValuePair)
 
-    def evaluate_INFO(self, data1, data2):
-        '''  
-        Evaluates the info.xml test for two data sets with the given condition.  
-        In:       
-            data1      dict     test data  
-            data2      dict     reference data  
-        '''
-        compare_INFO(data1, data2, self, self.tolFloat, self.tolMSE, self.path, self.tolIter, self.maxIter, self.ignore, self.tolValuePair)
-        self = self.evaluateFailureCount()
-        return self
-
-    def evaluate_info(self, data1, data2):
-        '''
-        Evaluates the info.xml test for two data sets with the given condition.
-        In:
-            data1      dict     test data
-            data2      dict     reference data
-        '''
-        compare_info(data1, data2, self, self.tolFloat, self.tolMSE, self.path, self.tolIter, self.maxIter, self.ignore, self.tolValuePair)
-        self = self.evaluateFailureCount()
-        return self
-
-    def evaluate_eigval(self, data1, data2):
-        '''
-        Evaluates the info.xml test for two data sets with the given condition.
-        In:
-            data1      dict     test data
-            data2      dict     reference data
-        '''
-        compare_eigval(data1, data2, self, self.tolFloat, self.tolMSE, self.path, self.ignore, self.tolValuePair, self.eigval)
         self = self.evaluateFailureCount()
         return self
 
     def printFailList(self):
-        '''
+        """
         Prints out if the test has succeeded and if not, outputs the specific failures to stdout.
-        '''
+        """
         if len(self)>0:
             failureCount = self.countFailures()
             decription_tuple = (failureCount['total'],

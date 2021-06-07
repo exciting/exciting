@@ -122,7 +122,7 @@ subroutine exccoulint(iqmt)
   call init2
 
   ! xas and xes specific init (has to come after init0 and init1)
-!  if(input%xs%bse%xas .or. input%xs%BSE%xes) call xasinit
+  if(input%xs%bse%xas .or. input%xs%BSE%xes) call xasinit
   
   ! Generate gaunt coefficients used in the construction of 
   ! the plane wave matrix elements in ematqk.
@@ -514,6 +514,9 @@ subroutine exccoulint(iqmt)
   deallocate(ikm2ikp_dummy)
   if(allocated(ematuok)) deallocate(ematuok)
   deallocate(excli)
+  
+  ! Some xas specific finalizations
+  if(input%xs%bse%xas .or. input%xs%bse%xes) call xasfinit
 
   contains 
 

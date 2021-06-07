@@ -196,7 +196,7 @@ if (LC == 'M'):
 
 #%!%!%--- Reading the maximum Physical strain ---%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!%!
 mdr = input('\n>>>> Please enter the maximum amount of strain '\
-            '\n     The suggested value is between 0.0010 and 0.0100 : ')
+            '\n     The suggested value is between 0.01 and 0.05 : ')
 
 if (1 < mdr or mdr < 0):
     sys.exit('\n ... Oops ERROR: The maximum physical strain is out of range !!!!!!\n')

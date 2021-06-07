@@ -8,7 +8,7 @@ _binary_names    = ['exciting_serial', 'exciting_smp', 'exciting_purempi', 'exci
 _exe_ref         = 'exciting_smp'
 _default_np      = {'exciting_serial':1, 'exciting_smp':1, 'exciting_purempi':2, 'exciting_mpismp':2}
 _default_threads = {'exciting_serial':1, 'exciting_smp':2, 'exciting_purempi':1, 'exciting_mpismp':2}
-_action_choices  = ['run', 'ref', 'clean', 'report']
+_action_choices  = ['run', 'ref', 'clean']
 
 Defaults = namedtuple('Defaults', ['max_time',       # Time after which a test is killed (in seconds)
                                    'test_farm',      # Test farm directory
@@ -39,7 +39,8 @@ settings = Defaults(max_time      = 1800,
                     ref_dir       = 'ref',        
                     exe_dir       = '../../../../bin/',        
                     init_default  = 'xml/init_templates/init_default.xml' ,   
-                    ignored_output = ['input.xml', 'STATE.OUT', 'OCC', 'EVEC', 'EVALSV', 'EVALFV', 'APWCMT', 'PMAT', 'FERMISURF'], 
+                    ignored_output = ['STATE.OUT', 'OCC', 'EVEC', 'EVALSV', 'EVALFV', 'APWCMT', 'SYM', 
+                                      'PMAT', 'FERMISURF', 'RMSDVEFF', 'LOCMT', 'EXCLI', 'SCCLI'], 
                     not_clean     = ['input.xml'],
                     binary_names  = _binary_names,
                     exe_ref       = _exe_ref,

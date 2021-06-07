@@ -90,6 +90,9 @@ contains
     call xssave0
     call readfermi
 
+    ! xas and xes specific init (has to come after init0 and init1)
+    if(input%xs%bse%xas .or. input%xs%BSE%xes) call xasinit
+    
     !----------------------------
     ! HOLE
     !----------------------------
@@ -475,6 +478,9 @@ contains
     deallocate(apwalm,evecfvt,evecsvt)
     deallocate(wfmt,wfir)
 
+    ! Some xas specific finalizations
+    if(input%xs%bse%xas .or. input%xs%bse%xes) call xasfinit
+    
     call clean_transitions
 
     return
