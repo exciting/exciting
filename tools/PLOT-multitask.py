@@ -342,6 +342,7 @@ def set_implicit_options( options ):
             # xx, xy, ..., zz: first component tells which column
             # of JIND.OUT is to be read; the second component,
             # the one of AVEC.OUT
+            options['columns'] = [[0,2],[0,1]]
             if( options['xx'] ):
                 options['columns'] = [[0,2],[0,1]]
             if( options['xy'] ):
@@ -458,6 +459,10 @@ def sanity_checks( options ):
     Function to make some sanity checks of the command line arguments
     :param options: dictionary with the command line arguments
     """
+    # ylabel has been provided?
+    if not options['ylabel']:
+        raise RuntimeError( 'Label for the y-axis not provided' )
+
     # positive numbers given for number of columns, scaling factor, skip_lines
     # and wcut?
     # columns
