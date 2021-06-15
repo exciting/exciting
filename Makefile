@@ -80,6 +80,9 @@ inputdoc::expandedschema
 	pdflatex excitinginput.tex;\
 	pdflatex excitinginput.tex
 
+# Wikidot Documentation
+# Generates wikidot-compatible documentation from the schema
+
 split_inputdoc::
 	cd xml/schema && $(MAKE)
 
