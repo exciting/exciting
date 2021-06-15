@@ -29,13 +29,6 @@ from utils import Compiler, Build_type, CompilerBuild, get_compiler_type, build_
 # Also see Issue 51. Review tolerances for all tests migrated from the old test suite.
 
 
-skipped_tests_mpismp = [
-    # TODO(Alex) Issue #36 chargedensityplot hangs when running with np > 1 cores
-    {'name':'groundstate-GGA_PBE-electronic_structure-Al',   
-     'comment':'Hanging at an allgatherv call'},
-]
-
-
 failing_tests = [
     # TODO(Alex) Issue #35. MPI GW calculations do not produce EPS00_GW.OUT
     # Also appear to get a failure for Intel 2019 serial (only occurs on the CI)
@@ -60,6 +53,14 @@ failing_tests = [
     {'name':'groundstate-LDA_PW-noncollinear-Fe',
      'comment': 'Number of SCF iterations differs to reference',
      'tags': [CompilerBuild(Compiler.all, Build_type.mpiandsmp)]
+     },
+
+    # TODO(Bene) Issue #75 Number of SCF iterations can vary w.r.t. reference (but eigenvalues consistent)
+    # This behaviour only occurs for 2 omp threads with the intel pure smp build.
+    {'name':'groundstate-LDA_PW-collinear-Fe',
+     'comment': 'Number of SCF iterations differs to reference for 2 omp threads. \n'
+              + 'Eigen energies are consistant. The code is save to use.',
+     'tags': [CompilerBuild(Compiler.intel, Build_type.puresmp)]
      }, 
 
     # TODO ADD ISSUE

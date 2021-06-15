@@ -177,7 +177,10 @@ def timing_summary(timing:dict, verbose=False):
     print('Total test suite time (mins) : %.1f' % (total_time / 60.))
 
     if verbose:
-        avg_time = total_time / len(times)
+        if len(times) > 0:
+            avg_time = total_time / len(times)
+        else:
+            avg_time = 0.
         longest_time = 0. 
         longest_time_name = ''
         for name, time in timing.items():

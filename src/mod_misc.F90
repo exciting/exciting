@@ -5,7 +5,6 @@
 
 !> Miscellaneous variables 
 Module mod_misc
-#include "version.inc"
   Use modinput
   implicit none
   
@@ -13,13 +12,13 @@ Module mod_misc
   character(40) :: versionname = 'OXYGEN'
 
   !> Build date of current version
-  integer :: version(3) = (VERSIONFROMDATE)
+  integer :: version(3)
 
   !> git hash value of current build at HEAD
-  character(40) :: githash = GITHASH//GITHASH2
+  character(40) :: githash
 
   !> Compiler used to build current version
-  character(256) :: compiler_version = COMPILERVERSION
+  character(256) :: compiler_version
 
   !> Default file extension
   Data filext / '.OUT' /
