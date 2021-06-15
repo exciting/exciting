@@ -46,8 +46,8 @@ diel, dieldim = readrawdata( inname)
 
 figcolor = 'white'
 fig = plt.figure( figsize=(12,8))
-fig.figurePatch.set_edgecolor(figcolor)
-fig.figurePatch.set_facecolor(figcolor)
+fig.patch.set_edgecolor(figcolor)
+fig.patch.set_facecolor(figcolor)
 
 mpl.rcParams['axes.linewidth'] = 3.0 # set the value globally
 mpl.rcParams['grid.linewidth'] = 1.5
@@ -70,17 +70,16 @@ ax1.set_xlabel( 'Energy [eV]')
 tmp = inname.split( '.')
 if( opt == 'r'):
     ax1.set_ylabel( 'Re $\\mathregular{\\epsilon_{M}}$', labelpad=20)
-    tmp[-2] += '_real'
+    tmp[0] += '_real'
 elif( opt == 'i'):
     ax1.set_ylabel( 'Im $\\mathregular{\\epsilon_{M}}$', labelpad=20)
-    tmp[-2] += '_imag'
+    tmp[0] += '_imag'
 elif( opt == 'b'):
-    tmp[-2] += '_full'
+    tmp[0] += '_full'
     ax1.set_ylabel( '$\\mathregular{\\epsilon_{M}}$', labelpad=20)
-tmp[-1] = 'png'
-outname1 = '.'.join( tmp)
-tmp[-1] = 'pdf'
-outname2 = '.'.join( tmp)
+outname1 = tmp[0]+'.png'
+outname2 = tmp[0]+'.pdf'
+ax1.ticklabel_format(useOffset=False)
 
 # Tick size
 for line in ax1.get_xticklines() + ax1.get_yticklines():

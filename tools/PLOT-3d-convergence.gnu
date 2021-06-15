@@ -89,5 +89,9 @@ cat>>gnu-input<<***
 gnuplot < gnu-input
 rm -f gnu-input idum rdum edum gdum
 #-------------------------------------------------------------------------------
-convert -density $dpisize -rotate 90 PLOT.ps PLOT.png
+#convert -density $dpisize -rotate 90 PLOT.ps PLOT.png
+gs -dSAFER -dBATCH -dNOPAUSE -sDEVICE=eps2write \
+   -sOutputFile=PLOT.eps -c "<</Orientation 3>> setpagedevice" -f PLOT.ps
+gs -dSAFER -dBATCH -dNOPAUSE -dEPSCrop -r600 -sDEVICE=pngalpha \
+   -sOutputFile=PLOT.png PLOT.eps
 #-------------------------------------------------------------------------------

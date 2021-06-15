@@ -39,9 +39,9 @@ else:
 scale *= 2e2
 tmp = inname.split( '.')
 tmp[-1] = 'png'
-outname1 = '.'.join( tmp)
+outname1 = inname+'.png'
 tmp[-1] = 'pdf'
-outname2 = '.'.join( tmp)
+outname2 = inname+'.pdf'
 
 ###################
 # Read input data #
@@ -71,6 +71,8 @@ mpl.rcParams['axes.axisbelow'] = 'True'   # whether axis gridlines and ticks are
 mpl.rcParams['legend.fontsize'] = '25'
 plt.rcParams['xtick.major.pad'] = '10'
 plt.rcParams['ytick.major.pad'] = '10'
+
+plt.rcParams.update({'mathtext.default':'regular'})
 
 ######################
 # Bandstructure plot #
@@ -109,8 +111,8 @@ ax2.set_yticklabels( ('$\\mathregular{E_{F}}$', ''))
 ax1.grid( True)
 plt.title( "BN excitonic weights", fontsize=mpl.rcParams['ytick.labelsize'], y=1.03)
 
-fig.savefig( outname1, format='png', bbox_inches=0, dpi=300)
-fig.savefig( outname2, format='pdf', bbox_inches=0)
+fig.savefig( outname1, format='png', bbox_inches='tight', dpi=300)
+fig.savefig( outname2, format='pdf', bbox_inches='tight')
 
-plt.show()
+#plt.show()
 sys.exit()    
