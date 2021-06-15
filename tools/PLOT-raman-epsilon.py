@@ -85,7 +85,7 @@ figcolor = 'white'
 
 dpi = 300
 
-fig = plt.figure(figsize=(18,10),dpi=dpi)
+fig = plt.figure(figsize=(20,10),dpi=dpi)
 
 fig.patch.set_edgecolor(figcolor)
 fig.patch.set_facecolor(figcolor)
@@ -109,13 +109,21 @@ plt.rcParams['ytick.major.pad'] = 10
 ax1 = fig.add_subplot( 121)
 ax2 = fig.add_subplot( 122, sharex=ax1)
  
-#fig.subplots_adjust(hspace=-0.3)
+#fig.subplots_adjust(hspace=21.3)
+
+ax1.ticklabel_format(useOffset=False)
+ax2.ticklabel_format(useOffset=False)
 
 ax1.set_xlabel('Phonon amplitude [Bohr]', labelpad=20)
 ax2.set_xlabel('Phonon amplitude [Bohr]', labelpad=20)
 
 ax1.set_ylabel(u'Re $\mathregular{\\varepsilon^{\\alpha\\beta}(\omega_L)}$', labelpad=20)
 ax2.set_ylabel(u'Im $\mathregular{\\varepsilon^{\\alpha\\beta}(\omega_L)}$', labelpad=20)
+
+ax1.xaxis.set_major_locator(plt.MaxNLocator(5))
+ax2.xaxis.set_major_locator(plt.MaxNLocator(5))
+ax1.yaxis.set_major_locator(plt.MaxNLocator(6))
+ax2.yaxis.set_major_locator(plt.MaxNLocator(6))
 
 for line in ax1.get_xticklines() + ax1.get_yticklines():
     line.set_markersize(10)
@@ -131,7 +139,7 @@ ax2.plot( upho, epsi, color='red', lw=4.0)
 ax1.plot( uphop, epsrp, marker='o', color='blue', markersize=15.0, linewidth=0, label="data")
 ax2.plot( uphop, epsip, marker='o', color='blue', markersize=15.0, linewidth=0)
 
-leg=ax1.legend(loc=2,borderaxespad=0.7,numpoints=1)
+leg=ax1.legend(loc=0,borderaxespad=0.7,numpoints=1)
 leg.get_frame().set_linewidth(4.0)
 leg.get_frame().set_edgecolor("grey")
 leg.draw_frame(True)

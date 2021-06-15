@@ -42,10 +42,13 @@ def option_parser():
         eunit
         funit
         title
+        no_title
         legend_position
         scale_box
         invert_colors
         invert_plots
+        max_ticks_y
+        legend_label
 
     :return input_options: Dictionary of parsed command line arguments 
     """
@@ -72,6 +75,8 @@ def option_parser():
     
     help_title = "Used as --title 'String as a title' assign a title to the plot."
     
+    help_no_title = 'If present, it disables the writing of the title.'
+    
     help_scale_box = "One or two floats corresponding to the scaling factor in the horizontal and vertical size of the plot appearence, respectively."
     
     help_kboundary = "One or two floats in the interval [0,1] corresponding to the minimum and maximum relative coordinate along the path in reciprocal space, respectively. The value 0 correspond to the initial point in the path, the value 1 to the last one."
@@ -81,7 +86,11 @@ def option_parser():
     help_reverse_colors = "If present, the order of the sequence of colors of the plots is reversed."
     
     help_reverse_plots = "If present, the order of appearance of the plots is reversed."
+
+    help_max_ticks_y = "Specifies the maximum number of ticks along the y-axis in the plot."
     
+    help_legend_label = "Specifies the labels to appear in the legend for each plot."
+
     #---------------------------------------------------------------------------
     
     p.add_argument('-d','--directory',
@@ -131,7 +140,16 @@ def option_parser():
                    
     p.add_argument('-t','--title',
                    type = str, default = None, help = help_title)
-   
+    
+    p.add_argument('-nt','--no_title', action='store_true', help = help_no_title)
+    
+    p.add_argument('-mty','--max_ticks_y',
+                   type = int, default = None, help = help_max_ticks_y)
+    
+    p.add_argument('-ll','--legend_label',
+                   nargs = '*', default = [],
+                   type = str, help = help_legend_label)    
+
     p.add_argument('-l','--legend_position',
                    type = str, help = help_legend_position,
                    choices = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
@@ -173,6 +191,8 @@ def option_parser():
     input_options['phonon'] = args.phonon
     
     input_options['title'] = args.title
+    input_options['no_title'] = args.no_title
+    
     input_options['ezero'] = args.ezero
     input_options['eunit'] = args.eunit
     input_options['funit'] = args.funit
@@ -184,7 +204,11 @@ def option_parser():
         
     input_options['reverse_plots'] = args.reverse_plots
     input_options['reverse_colors'] = args.reverse_colors
-           
+
+    input_options['maxticksy'] = args.max_ticks_y
+    
+    input_options['legend'] = args.legend_label       
+
     return input_options
 #_______________________________________________________________________________
 
@@ -410,10 +434,13 @@ def main(input_options):
     kmax = input_options['kmax']
     kp = input_options['kp']
     title = input_options['title']
+    no_title = input_options['no_title']
     leg_pos = input_options['leg_pos']
     no_leg = input_options['no_legend']
     reverse_colors = input_options['reverse_colors']
     reverse_plots = input_options['reverse_plots']
+    maxticksy = input_options['maxticksy']
+    legend = input_options['legend']
     
     #---------------------------------------------------------------------------
     # Initialize cases
@@ -449,6 +476,7 @@ def main(input_options):
     
     bandfileroot = "BAND"
     bandlinesfile = "BANDLINES.OUT"
+    if ( atype[0]=="WA" ): bandlinesfile = "BANDLINES_WANNIER.OUT"
     if ( phonon ): 
         bandfileroot = "PHDISP"
         bandlinesfile = "PHDLINES.OUT"
@@ -468,8 +496,9 @@ def main(input_options):
                 leg_label[i] = leg_label[i]+bar+'WA'
                 filename = filename+"_WANNIER"
             if ( atype[i]=="KS" and gw ): leg_label[i] = leg_label[i]+bar+'KS'
-            if ( atype[i]=="KS" and wannier ): leg_label[i] = leg_label[i]+bar+'OG'
+            if ( atype[i]=="KS" and wannier ): leg_label[i] = leg_label[i]+bar+'KS'
         infile.append(filename+".OUT")
+        if ( i<len(legend) ): leg_label[i] = legend[i] 
         
     #-------------------------------------------------------------------------------
     # Plot defaults
@@ -590,6 +619,9 @@ def main(input_options):
     for line in ax1.get_xticklines() + ax1.get_yticklines():
         line.set_markersize(10)
         line.set_markeredgewidth(line_thickness)
+        
+    if ( maxticksy is not None ): 
+        ax1.yaxis.set_major_locator(ticker.MaxNLocator(maxticksy))    
 
     plot_range = range(number_of_plots)
     if ( reverse_plots ): plot_range = reversed(range(number_of_plots))
@@ -611,8 +643,9 @@ def main(input_options):
                          color=sc, lw=sline_thickness, label=llab)
  
     if title is not None:  
-        ax1.text(xpos_title, ypos_title, title, size=size_title, 
-                 transform=ax1.transAxes, ha='right', va='center', rotation=0)
+        if (not no_title): 
+            ax1.text(xpos_title, ypos_title, title, size=size_title, 
+                     transform=ax1.transAxes, ha='right', va='center', rotation=0)
     
     if ( (not local_single or (local_single and global_spin)) and not no_leg ):       
         leg=ax1.legend(loc=leg_pos,borderaxespad=0.5,

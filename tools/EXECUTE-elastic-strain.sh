@@ -85,7 +85,7 @@ for input in $input_list ; do
     cd $CURRENT/$WORKDIR
 #
     if [ -f $CURRENT/$WORKDIR/dft-0.5 ] ; then
-        PLOT-plot.py bandgap-vs-rcut "o-" "rcut [Bohr]" "Bandgap [eV]" 
+        PLOT-files.py -f bandgap-vs-rcut -lx '$r_{cut}$ [Bohr]' -ly 'Bandgap [eV]' -g -pm
     else    
         if [ $aloop = 1 ]; then PLOT-energy.py ; fi
     fi
