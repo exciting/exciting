@@ -12,6 +12,8 @@ from . import GWParser
 from . import RT_TDDFTParser
 from .ErroneousFileError import ErroneousFileError
 
+from excitingtools.dict_utils import container_converter
+
 # Map file name to parser function
 _file_to_parser = {
     'INFO.OUT': groundStateParser.parse_info_out,
@@ -113,4 +115,5 @@ def parser_chooser(full_file_name: str):
         raise OSError('File path not valid:' + full_file_name)
 
     parser = _file_to_parser[file_name]
-    return parser(full_file_name)
+    data = parser(full_file_name)
+    return container_converter(data)
