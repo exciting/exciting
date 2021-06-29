@@ -32,9 +32,9 @@ def parse_info_out(name: str) -> dict:
             nscl.append(i)
         # stores the number of the first and last line of the initialization into a list
         if 'Starting initialization' in line:
-            nini.append(i)
+            nini.append(i+2)
         if 'Ending initialization' in line:
-            nini.append(i)
+            nini.append(i-2)
 
     calculation_failed = True
     for line in reversed(lines):
@@ -54,7 +54,7 @@ def parse_info_out(name: str) -> dict:
     # loops through all lines of the initialization
     for i in range(nini[0], nini[1]):
         # stores the lines, which have the format "variable : value" into a list
-        if (':' in lines[i]) and ('+' not in lines[i]):
+        if (':' in lines[i]):
             lines[i] = lines[i].split(':')
             ini.append(lines[i])
             ini[k][0] = ini[k][0].strip()

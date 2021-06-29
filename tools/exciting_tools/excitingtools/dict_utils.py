@@ -125,3 +125,4 @@ def get_hashable_entries(nested: dict) -> Iterator[tuple]:
             yield from get_hashable_entries(value)
         else:
             yield key, value
+
