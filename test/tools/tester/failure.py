@@ -1,6 +1,12 @@
+import os
+import re
 from enum import Enum
+from typing import List
+import numpy as np 
+import warnings
+import numpy as np
 
-from ..termcolor_wrapper import print_color
+
 
 
 class Failure_code(Enum):
@@ -12,48 +18,111 @@ class Failure_code(Enum):
     REFERENCE = 6
     FILENOTEXIST = 7
     ERRORFILE = 8
+    INT = 9
+
+
+set_failure_code = {str: Failure_code.STRING,
+                    int: Failure_code.INT, 
+                    float: Failure_code.FLOAT, 
+                    list: Failure_code.ARRAY,
+                    np.ndarray: Failure_code.ARRAY
+                    }
 
 
 class Failure:
     """
     Class for reporting a failure that occurs when comparing test data to reference data.
-    In:
-        code        int       code for differentiating different fails. 0 to 4 is occupied
-        message     string    message that describes why the fail occurred
-        path        Path      tells where the fail occurred
     """
-    def __init__(self, failure_code, **kwargs):
+    def __init__(self, 
+                 error = None,
+                 tolerance = None,
+                 err_msg = None,
+                 path = None,
+                 test_data = None,
+                 ref_data = None,
+                 test_dir = None,
+                 test_name = None,
+                 failure_code = None):
+
+        if failure_code == None:
+            failure_code = set_failure_code[type(ref_data)]
+
+        self.path = path
+        self.test_dir = test_dir
+        self.test_name = test_name
+        self.ref_data = ref_data
+        self.test_data = test_data
+        self.error = error
+        self.tolerance = tolerance
         self.code = failure_code
-        kwargsDefault = dict({'error': None, 'tolerance': None, 'err_msg': None, 'path': None})
-        kwargs = {**kwargsDefault, **kwargs}
-        self.path = kwargs["path"]
+        self.err_msg = err_msg
+        self.message = self.set_failure_message()
 
-        if failure_code == Failure_code.FORMAT:
-            self.message = "FORMAT FAILURE: File from calculation has not the same format as the reference file."
-        elif failure_code == Failure_code.FLOAT:
-            self.message = "FLOAT FAILURE: Error (%.3e) is bigger than tolerance (%.3e)."%(kwargs["error"], kwargs["tolerance"])
-        elif failure_code == Failure_code.ARRAY:
-            self.message = "ARRAY FAILURE: Error (%.3e) is bigger than tolerance (%.3e)."%(kwargs["error"], kwargs["tolerance"])
-        elif failure_code == Failure_code.STRING:
-            self.message = "STRING FAILURE: Strings are not the same."
-        elif failure_code == Failure_code.RUN:
-            self.message = "RUN FAILURE: Exciting run failed. All tests in this directory are aborted. " \
-                           "Error message: %s"%kwargs["err_msg"]
-        elif failure_code == Failure_code.REFERENCE:
-            self.message = "REFERENCE FAILURE: Reference for %s does not exist."%kwargs["err_msg"]
-        elif failure_code == Failure_code.FILENOTEXIST:
-            self.message = "FILENOTEXIST FAILURE: File %s does not exist."%kwargs["err_msg"]
-        elif failure_code == Failure_code.ERRORFILE:
-            self.message = "ERRORFILE: File %s is errornous."%kwargs["err_msg"]
+
+    def set_failure_message(self):
+        if self.code == Failure_code.FORMAT:
+            message = "         FORMAT FAILURE: File from calculation has not the same format as the reference file."
+        elif self.code == Failure_code.FLOAT:
+            message = self.generate_float_message()
+        elif self.code == Failure_code.INT:
+            message = self.generate_int_message()
+        elif self.code == Failure_code.ARRAY:
+            message =  f"         {self.error :3.0e}   {self.tolerance}       {self.path}"
+        elif self.code == Failure_code.STRING:
+            message = f"         STRING FAILURE: Strings in line {self.find_line() :d} are not the same."
+        elif self.code == Failure_code.RUN:
+            message = f"         RUN FAILURE: Exciting run failed. All tests in this directory are aborted. Error message: {self.err_msg}"
+        elif self.code == Failure_code.REFERENCE:
+            message = f"         REFERENCE FAILURE: Reference for {self.err_msg} does not exist."
+        elif self.code == Failure_code.FILENOTEXIST:
+            message = f"         FILENOTEXIST FAILURE: File {self.err_msg} does not exist."
+        elif self.code == Failure_code.ERRORFILE:
+            message = f"         ERRORFILE: File {self.err_msg} is errornous."
+        return message
+       
+
+
+    def find_line(self)-> List[int]:
+        """
+        Returns line of the reference file in which the failure occurs. 
+        """
+        file_path = os.path.join(self.test_dir, "ref", self.test_name)
+        line_nr = []
+        try:
+            file = open(file_path, "r").readlines()
+            for i, line in enumerate(file):
+                if re.search(str(self.ref_data), line):
+                    line_nr.append(i+1)
+            if len(line_nr) > 1:
+                warnings.warn('Value appears in more than one line.')
+            elif len(line_nr)==0:
+                line_nr.append(0)
+        except:
+            line_nr.append(0)
+        return line_nr[0]
+
     
-    def __str__(self):
-        if self.path:
-            return self.message+'\n'+str(self.path)
+    def generate_float_message(self):
+        """
+        Generates the failure message for float failures.
+        """
+        if "eigval.xml" in str(self.path):
+                                  # kpt state)                         Result                               Reference                           Error                             Tolerance
+            message = f"         ( {str(self.path).split('/')[2] :2s},{str(self.path).split('/')[4]:>5s})   {float(self.test_data) : 011.8f}   {float(self.ref_data) : 011.8f}   {self.error :3.0e}   {self.tolerance :3.0e}"
         else:
-            return self.message
+                                # Line                       Result                             Reference                         Error                Tolerance                
+            message = f"         {self.find_line() :d}   {float(self.test_data) : 011.8f}   {float(self.ref_data) : 011.8f}   {self.error :3.0e}   {self.tolerance :3.0e}"
+            if ".xml" in str(self.path):
+                message = message+'   '+str(self.path)
 
-    def printFailure(self, passed):
-        text_color = 'yellow' if passed else 'red' 
-        print_color('        %s'%self.message, text_color)
-        if self.path:
-            print_color('        %s'%self.path, text_color)
+        return message
+
+
+    def generate_int_message(self):
+        """
+        Generates the failure message for integer failures.
+        """  
+                           # Result                      Reference                     Error              Tolerance                  Key
+        message = f"         {int(self.test_data) }      {int(self.ref_data) }         {self.error }      {self.tolerance }          {str(self.path) :s}"
+
+        return message
