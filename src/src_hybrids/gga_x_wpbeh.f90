@@ -15,8 +15,11 @@
 ! NOTE, here sx is the total energy density,
 ! not just the gradient correction energy density as e.g. in pbex()
 ! And the same goes for the potentials V1X, V2X
-
-      real*8, PARAMETER :: SMALL=1.D-20,SMAL2=1.D-08
+      real*8, parameter :: tolerance = 1.D-14
+!> Tolerance below which the charge density (rho) is considered zero 
+!> This choice of cutoff was determined empirically and avoids divergence
+!of the quantities that are divided by the density for 1D and 2D materials 
+      !real*8, parameter :: SMAL2 = 1.D-08
       real*8, PARAMETER :: US=0.161620459673995492D0,AX=-0.738558766382022406D0, &
                 UM=0.2195149727645171D0,UK=0.8040D0,UL=UM/UK
       REAL*8, PARAMETER :: f1 = -1.10783814957303361d0, alpha = 2.0d0/3.0d0
@@ -29,6 +32,7 @@
       v2x(:) = 0.0d0
       do i=1,n
 !!      CALL XC(RHO,EX,EC,VX,VC)
+        if (rho(i)<tolerance) cycle
         RS = RHO(i)**(1.0d0/3.0d0)
         VX = (4.0d0/3.0d0)*f1*alpha*RS
 !!      AA    = DMAX1(GRHO,SMAL2)
