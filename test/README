@@ -11,7 +11,7 @@ License:
 see README of exciting
 
 Requirements:
-The test suite requires python3 and the following packages:
+The test suite requires python 3.5 and the following packages:
  * argparse
  * collections
  * numpy
@@ -73,11 +73,11 @@ Use the script newtestcase.py to add a new test case.
 	
   	    -n --name         Name of the new test case.
 
-	    -d --description  Description of the new test case.
+	      -d --description  Description of the new test case.
 
-	    -r --reference    Path to an existing caclculation, that will be the reference.
+	      -r --reference    Path to an existing caclculation, that will be the reference.
 
-	    -i --init_file    Init file for the new test case. The available init files can be found at '/xml/init_templates'. Default is init_groundstate.xml.
+	      -i --init_file    Init file for the new test case. The available init files can be found at '/xml/init_templates'. Default is init_groundstate.xml.
 	
 For naming a new test case directories, following convention is used: groundstate-xctype-postprocessing/MBPT-material. postprocessing/MBPT stands for everything that comes on top of the ground state calculation, e.g. bandstructure, BSE or GW. Each section is divided by a "-" and if more words are used to describe a section, they are divided by a "_" (e.g. GGA_PBE for xctype). In general the name should give a brief overview on what is calculated. A more detailed description on the calculation and the test can be given in the description element in the init.xml (see below). 
 

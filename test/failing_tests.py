@@ -8,7 +8,7 @@
 """
 import sys 
 sys.path.insert(1, 'tools')
-from utils import Compiler, Build_type, CompilerBuild, get_compiler_type, build_type_enum_map
+from utils import Compiler, Build_type, CompilerBuild, get_compiler_type, build_type_str_to_enum
 
 
 # Flakey tests Issue #54
@@ -108,7 +108,7 @@ def set_skipped_tests(executable:str, incl_failing_tests:bool) -> list:
     """
 
     compiler = get_compiler_type()
-    build_type = build_type_enum_map[executable]
+    build_type = build_type_str_to_enum[executable]
     tests_to_skip = []
 
     if not incl_failing_tests:
