@@ -647,7 +647,8 @@ def main(input_options):
             ax1.text(xpos_title, ypos_title, title, size=size_title, 
                      transform=ax1.transAxes, ha='right', va='center', rotation=0)
     
-    if ( (not local_single or (local_single and global_spin)) and not no_leg ):       
+    if ( ((not local_single or (local_single and global_spin)) and not no_leg) or
+         (len(legend)>0) ):       
         leg=ax1.legend(loc=leg_pos,borderaxespad=0.5,
                        framealpha=0.9,fancybox=True)
         leg.get_frame().set_linewidth(axes_thickness)

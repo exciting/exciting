@@ -117,7 +117,7 @@
         <xs:element ex:importance="expert" ex:unit="" maxOccurs="1" minOccurs="0" ref="phonons"/>
         <xs:element ex:importance="expert" ex:unit="" maxOccurs="1" minOccurs="0" ref="xs"/>
         <xs:element ex:importance="expert" ex:unit="" maxOccurs="1" minOccurs="0" ref="gw"/>
-        <xs:element ex:importance="expert" ex:unit="" maxOccurs="1" minOccurs="0" ref="eph"/>
+        <xs:element ex:importance="experimental" ex:unit="" maxOccurs="1" minOccurs="0" ref="eph"/>
         <xs:element maxOccurs="1" minOccurs="0" name="keywords" type="xs:string">
           <xs:annotation>
             <xs:documentation> The keywords tag can contain a space separated list of keywords
