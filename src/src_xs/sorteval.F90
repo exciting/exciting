@@ -3,17 +3,20 @@
 ! !INTERFACE:
 !
 Module m_sorteval
-      Implicit None
+    
+    Implicit None
+      
 Contains
 Subroutine sorteval (vpl, ra, ca)
 ! !USES:
       Use modmain
+      Use sorting, Only: sort_index_1d
 ! !DESCRIPTION:
 !   Rearrange real array {\tt ra} or complex array {\tt ca} through
 !   the same permutations that would sort
 !   the energy eigenvalues into ascending order for a given k point {\tt vpl}.
 !   No sorting of the eigenvalues itself is performed.
-!   Uses the sortidx subroutine which in turn uses the Heapsort algorithm.
+!   Uses the sort\_index\_1d subroutine which in turn uses the Heapsort algorithm.
 ! !REVISION HISTORY:
 !   Created Jul 2013 SR
 !EOP
@@ -36,7 +39,7 @@ Subroutine sorteval (vpl, ra, ca)
 
     Call getevalsv (vpl, evalsv_t)
 
-    Call sortidx (nstsv, evalsv_t, idx)
+    idx = sort_index_1d( nstsv, evalsv_t)
 
     If (present(ra)) Then
         ra_t = ra

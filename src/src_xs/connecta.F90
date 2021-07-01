@@ -11,6 +11,8 @@
 !
 !
 Subroutine connecta (cvec, nv, np, vvl, vpl, dv, dp)
+! !USES:
+      use sorting, only: sort_index_1d
 ! !INPUT/OUTPUT PARAMETERS:
 !   cvec : matrix of (reciprocal) lattice vectors stored column-wise
 !         (in,real(3,3))
@@ -79,7 +81,7 @@ Subroutine connecta (cvec, nv, np, vvl, vpl, dv, dp)
       End Do
       dv (nv) = st
 ! sort segments according to their length in descending order
-      Call sortidx (nv-1, seg, idx)
+      idx = sort_index_1d( nv-1, seg)
       npi = np - nv
       segpts (:) = 0
       Do ip = 1, npi
