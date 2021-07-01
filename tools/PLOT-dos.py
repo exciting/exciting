@@ -42,6 +42,7 @@ def option_parser():
         eunit
         funit
         title
+        no_title
         legend_position
         scale_box
         reverse_colors
@@ -79,6 +80,8 @@ def option_parser():
     help_no_fill = 'If present, plots are not filled.'
      
     help_title = "Used as --title 'String as a title' assign a title to the plot."
+   
+    help_no_title = 'If present, it disables the writing of the title.'
     
     help_scale_box = "One or two floats corresponding to the scaling factor in the horizontal and vertical size of the plot appearence, respectively."
     
@@ -142,6 +145,8 @@ def option_parser():
     p.add_argument('-t','--title',
                    type = str, default = None, help = help_title)
     
+    p.add_argument('-nt','--no_title', action='store_true', help = help_no_title)
+    
     p.add_argument('-mtx','--max_ticks_x',
                    type = int, default = None, help = help_max_ticks_x)
     
@@ -186,6 +191,8 @@ def option_parser():
     input_options['phonon'] = args.phonon
     
     input_options['title'] = args.title
+    input_options['no_title'] = args.no_title
+    
     input_options['eunit'] = args.eunit
     input_options['funit'] = args.funit
     
@@ -300,6 +307,7 @@ def main(input_options):
     sx = input_options['sx']
     sy = input_options['sy']
     title = input_options['title']
+    no_title = input_options['no_title']
     leg_pos = input_options['leg_pos']
     no_leg = input_options['no_legend']
     no_fill = input_options['no_fill']
@@ -550,16 +558,19 @@ def main(input_options):
     plt.axhline(y=0, lw=3.0, color="black", linestyle='-') 
                 
     if title is not None:  
-        ax1.text(xpos_title, ypos_title, title, size=size_title, 
-                 transform=ax1.transAxes, ha='right', va='center', rotation=0)
+        if (not no_title): 
+            ax1.text(xpos_title, ypos_title, title, size=size_title, 
+                     transform=ax1.transAxes, ha='right', va='center', rotation=0)
 
     xpos_spin = 0.03/sx
     ha_spin = 'left'
     if ( local_single or no_leg ): 
         xpos_spin = 1-0.03/sx  
         ha_spin = 'right'
-        
-    if ( (not local_single and not no_leg) or (no_reverse_spin and not phonon) ):       
+    
+    if ( (not local_single and not no_leg) or 
+         (no_reverse_spin and not phonon) or 
+         (len(legend)>0) ):       
         leg=ax1.legend(handles=my_legend,loc=leg_pos,borderaxespad=0.7,
                       framealpha=0.9,fancybox=True)
         leg.get_frame().set_linewidth(axes_thickness)

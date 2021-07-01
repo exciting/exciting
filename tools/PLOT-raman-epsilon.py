@@ -156,7 +156,7 @@ ax2.vlines(0.0,ymin2,ymax2,linewidth=3.0,linestyles="dashed")
 fig.suptitle(infile,x=0.5,y=0.97,fontsize=40,color="darkblue")
 
 fig.tight_layout(rect=[0, 0.01, 1, 0.92])
-fig.savefig('PLOT.png',format='png',bbox_inches=0,dpi=300)
+fig.savefig('PLOT.png',format='png',bbox_inches='tight',dpi=300)
 fig.savefig('PLOT.eps',format='eps',bbox_inches=0)
 
 sys.exit()    

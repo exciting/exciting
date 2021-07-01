@@ -52,6 +52,9 @@ def option_parser():
         scale_box
         reverse_colors
         reverse_plots
+        no_scientific
+        log_x
+        log_y
 
     :return input_options: Dictionary of parsed command line arguments 
     """
@@ -100,7 +103,13 @@ def option_parser():
     help_reverse_plots = "If present, the order of appearance of the plots is reversed."
 
     help_print_markers = "If present, solid circle markers are additionally printed for indicating data points."
-
+    
+    help_no_scientific = "If present, disables the scientific notation and the offset for labels on the axes."
+    
+    help_log_x = "If present, plots data on the x-axis using a standard logarithmic scale."
+    
+    help_log_y = "If present, plots data on the y-axis using a standard logarithmic scale."
+    
     #---------------------------------------------------------------------------
 
     p.add_argument('-d','--directory',
@@ -157,6 +166,8 @@ def option_parser():
                    type = str, default = None, help = help_title)
     
     p.add_argument('-nt','--no_title', action='store_true', help = help_no_title)
+    
+    p.add_argument('-ns','--no_scientific', action='store_true', help = help_no_scientific)
    
     p.add_argument('-lp','--legend_position',
                    type = str, help = help_legend_position,
@@ -173,7 +184,11 @@ def option_parser():
     p.add_argument('-rp','--reverse_plots', action='store_true', help = help_reverse_plots)
     
     p.add_argument('-pm','--print_markers', action='store_true', help = help_print_markers)
-    
+
+    p.add_argument('-logx','--log_x', action='store_true', help = help_log_x)
+
+    p.add_argument('-logy','--log_y', action='store_true', help = help_log_y)
+   
     #---------------------------------------------------------------------------
 
     args = p.parse_args()
@@ -216,6 +231,7 @@ def option_parser():
     
     input_options['title'] = args.title
     input_options['no_title'] = args.no_title
+    input_options['no_scientific'] = args.no_scientific
 
     input_options['no_legend'] = args.no_legend
     input_options['grid'] = args.grid
@@ -226,6 +242,9 @@ def option_parser():
     input_options['reverse_plots'] = args.reverse_plots
     input_options['reverse_colors'] = args.reverse_colors
     input_options['print_markers'] = args.print_markers
+    
+    input_options['log_x'] = args.log_x
+    input_options['log_y'] = args.log_y
   
     return input_options
 #_______________________________________________________________________________
@@ -308,6 +327,8 @@ def main(input_options):
     
     title = input_options['title']
     no_title = input_options['no_title']
+    no_scientific = input_options['no_scientific']
+     
     leg_pos = input_options['leg_pos']
     no_leg = input_options['no_legend']
     grid = input_options['grid']
@@ -316,6 +337,9 @@ def main(input_options):
     reverse_plots = input_options['reverse_plots']
     print_markers = input_options['print_markers']
     
+    log_x = input_options['log_x']
+    log_y = input_options['log_y']
+
     #---------------------------------------------------------------------------
     # Initialize cases
     
@@ -459,10 +483,33 @@ def main(input_options):
         
     if ( maxticksy is not None ): 
         ax1.yaxis.set_major_locator(plt.MaxNLocator(maxticksy))
+        
+    if ( no_scientific ):
+        ax1.ticklabel_format(useOffset=False, style='plain')
+        
+    if ( log_y ): 
+        ax1.minorticks_on()
+        ax1.yaxis.set_minor_locator(ticker.AutoMinorLocator(10))
+        for minortick in ax1.yaxis.get_minorticklines():
+            minortick.set_color('darkslategrey')
+            minortick.set_markersize(10)
+            minortick.set_markeredgewidth(int(float(line_thickness)*0.7))
+        ax1.yaxis.get_ticklocs(minor=True)  
+        plt.yscale("log")
 
-    for line in ax1.get_xticklines() + ax1.get_yticklines():
-        line.set_markersize(10)
-        line.set_markeredgewidth(line_thickness)
+    if ( log_x ): 
+        ax1.minorticks_on()
+        ax1.xaxis.set_minor_locator(ticker.AutoMinorLocator(10))
+        for minortick in ax1.xaxis.get_minorticklines():
+            minortick.set_color('darkslategrey')
+            minortick.set_markersize(10)
+            minortick.set_markeredgewidth(int(float(line_thickness)*0.7))
+        ax1.xaxis.get_ticklocs(minor=True)  
+        plt.xscale("log")
+    
+    for majortick in ax1.get_xticklines() + ax1.get_yticklines():
+        majortick.set_markersize(10)
+        majortick.set_markeredgewidth(line_thickness)
 
     plot_range = range(number_of_plots)
     if ( reverse_plots ): plot_range = reversed(range(number_of_plots))
