@@ -924,13 +924,13 @@ module m_linalg
       allocate( cpy, source=mat)
 
       allocate( tau(k), work(1))
-      call dgeqrf( m, n, cpy, m, tau, work, -1, info)
+      call dgeqrfp( m, n, cpy, m, tau, work, -1, info)
       lwork = work(1)
       deallocate( work)
       allocate( work( lwork))
-      call dgeqrf( m, n, cpy, m, tau, work, lwork, info)
+      call dgeqrfp( m, n, cpy, m, tau, work, lwork, info)
       if( info .ne. 0) then
-        write(*,'("Error (rqr): QR factorization failed. DGEQRF returned info ",i4)') info
+        write(*,'("Error (rqr): QR factorization failed. DGEQRFP returned info ",i4)') info
         stop
       end if
 

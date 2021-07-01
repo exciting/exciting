@@ -414,6 +414,7 @@ module mod_wannier_omega
 
       contains
         subroutine getmap( k)
+          use sorting, only: sort_index_1d
           integer, intent( in) :: k
           integer :: nik, nok, i, j
           integer, allocatable :: idx(:)
@@ -435,7 +436,7 @@ module mod_wannier_omega
           ! invert map if necessary
           if( dir .lt. 0) then
             allocate( idx( wf_groups( wf_group)%nst))
-            call sortidx( wf_groups( wf_group)%nst, dble( map), idx)
+            idx = sort_index_1d( wf_groups( wf_group)%nst, map)
             map = idx + wf_groups( wf_group)%fst - 1
             deallocate( idx)
           end if

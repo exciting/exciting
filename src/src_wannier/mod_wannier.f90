@@ -414,6 +414,7 @@ module mod_wannier
 
     subroutine wannier_geometry( kset, nn, nvl, nvc, nik, nik2, nwgt, ndist, nbzshell, nomult)
       ! !USES:
+      use sorting, only: sort_index_1d
       use m_linalg
       ! !INPUT/OUTPUT PARAMETERS:
       ! !DESCRIPTION:
@@ -498,7 +499,7 @@ module mod_wannier
 
       ! sort neighbors by distance
       allocate( idx( nposvec))
-      call sortidx( nposvec, dt( 1:nposvec), idx( 1:nposvec))
+      idx( 1:nposvec) =  sort_index_1d( nposvec, dt( 1:nposvec))
       posvec( :, 1:nposvec) = posvec( :, idx( 1:nposvec))
 
       ! find all possible neighbors
@@ -726,6 +727,7 @@ module mod_wannier
     end subroutine wannier_geometry
 
     subroutine wannier_rvectors( latvec, kset, nrpt, rvec, rmul, pkr)
+      use sorting, only: sort_index_1d
       real(8), intent( in)                         :: latvec(3,3)
       type( k_set), intent( in)                    :: kset
 
@@ -777,7 +779,7 @@ module mod_wannier
         end do
       end do
       ! sort R-vectors with increasing length
-      call sortidx( nrpt, length( 1:nrpt), idx( 1:nrpt))
+      idx( 1:nrpt) = sort_index_1d( nrpt, length( 1:nrpt))
 
       if( allocated( rvec)) deallocate( rvec)
       allocate( rvec( 3, nrpt))

@@ -14,6 +14,7 @@ Subroutine gengvec
 ! !USES:
       Use modinput
       Use modmain
+      use sorting, only: sort_index_1d
 ! !DESCRIPTION:
 !   Generates a set of ${\bf G}$-vectors used for the Fourier transform of the
 !   charge density and potential and sorts them according to length. Integers
@@ -70,7 +71,7 @@ Subroutine gengvec
          End Do
       End Do
 ! sort by vector length
-      Call sortidx (ngrtot, gc, idx)
+      idx = sort_index_1d( ngrtot, gc)
 ! re-order arrays
       Do ig = 1, ngrtot
          rar (ig) = gc (ig)

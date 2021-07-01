@@ -972,6 +972,7 @@ module mod_opt_tetra
 !* Initialization
 !**************************************************************
   subroutine opt_tetra_init( self, kset, tetra_type, reduce)
+    use sorting
     !
     ! This routine set the corners and additional points for each tetrahedra
     !
@@ -1122,8 +1123,8 @@ module mod_opt_tetra
   
     if( reduce_) then
       allocate( srt( self%ntetra, 2))
-      call sortidxColumn( 4, self%ntetra, tetra(1,1), nn, srt(:,1))
-      call sortidxi( self%ntetra, srt(:,1), 1, srt(:,2))
+      srt(:,1) = sort_index_2d( 4, self%ntetra, tetra, nn)
+      srt(:,2) = sort_index_1d( self%ntetra, srt(:,1))
       ! Note: tetra = tetra(:,srt) sometimes does not work for dense grids
       do i = 1, self%ntetra
         j = srt(i,1)
