@@ -261,7 +261,121 @@ Contains
      if (associated(mt_dm%losize)) deallocate(mt_dm%losize)
 
      end subroutine DMRelease
-      
-      
+
+
+     !> Generate density and magnetization from the wave-functions
+     !
+     !> Construct the muffin-tin density using density matrices if
+     !> input%groundstate%useDensityMatrix is set to .true.,
+     !> otherwise use the transformation to the real space.
+     !> Construct the interstitial density with FFTs
+     subroutine generate_density_and_magnetization
+     use modinput, only: input
+     use mod_kpoint, only: vkl, nkpt
+     use mod_Gkvector, only: vgkl
+     use mod_APW_LO, only: apw_lo_basis_type, apwfr, lofr
+     use mod_spin, only: ncmag, nspnfv
+     use mod_eigensystem, only: nmatmax
+     use mod_eigenvalue_occupancy, only: nstfv, nstsv
+     use modmpi, only : rank, firstk, lastk
+     use mod_timing, only: timerho, timeio
+     use precision, only: dp
+     use constants, only: zi
+     implicit none
+       !> Muffin-tin basis 
+       type (apw_lo_basis_type) :: mt_basis
+       integer :: ik
+       complex(dp), allocatable :: evecfv(:, :, :), evecsv(:, :)
+       real(dp) :: ts0, ts1
+
+       rhomt = 0._dp
+       rhoir = 0._dp
+       if ( associated(input%groundstate%spin) ) then
+         magmt = 0._dp
+         magir = 0._dp
+       end if
+
+       allocate( evecfv(nmatmax, nstfv, nspnfv) )
+       allocate( evecsv(nstsv, nstsv) )
+
+       if ( input%groundstate%useDensityMatrix ) then
+         call DMNullify( mt_dm )
+         call DMInitAll( mt_dm )
+         mt_dm%alpha%ff = 0._dp
+         if ( associated(input%groundstate%spin) ) then
+           mt_dm%beta%ff = 0._dp
+           if ( ncmag ) then
+             mt_dm%ab%ff = 0._dp
+           end if
+         end if
+         mt_dm%main%ff => mt_dm%alpha%ff
+       end if
+#ifdef MPI
+       do ik = firstk( rank ), lastk( rank )
+#else
+       do ik = 1, nkpt
+#endif
+         call timesec( ts0 )
+         ! get the eigenvectors from file
+         call Getevecfv( vkl(:, ik), vgkl(:, :, :, ik), evecfv )
+         call Getevecsv( vkl(:, ik), evecsv )
+         call timesec( ts1 )
+         timeio = timeio + ts1 - ts0
+         ts0 = ts1
+         if ( input%groundstate%useDensityMatrix ) then
+           ! add to the density and magnetisation
+           call Gendmatmt( ik, evecfv, evecsv )
+         else
+           call Rhovalk (ik, evecfv, evecsv )
+         end if
+         call Genrhoir (ik, evecfv, evecsv )
+         call timesec( ts1 )
+         timerho = timerho + ts1 - ts0
+       end do ! ik
+
+       call timesec( ts0 )
+
+       ! compute muffin-tin density from density matrix
+       if ( input%groundstate%useDensityMatrix ) then
+         if ( associated(input%groundstate%spin) ) then
+           mt_dm%ba%ff = mt_dm%alpha%ff + mt_dm%beta%ff
+           mt_dm%beta%ff = mt_dm%alpha%ff - mt_dm%beta%ff
+           mt_dm%alpha%ff = mt_dm%ba%ff
+         end if
+
+         mt_basis%lofr => lofr
+         mt_basis%apwfr => apwfr
+
+         mt_dm%main%ff => mt_dm%alpha%ff
+         call Genrhomt( mt_basis, mt_basis, rhomt )
+         if ( associated(input%groundstate%spin) ) then
+           mt_dm%main%ff => mt_dm%beta%ff
+           if ( ncmag ) then
+             ! noncollinear case
+             call Genrhomt( mt_basis, mt_basis, magmt(:, :, :, 3) )
+             ! x and y components of the magnetisation are currently missing
+             mt_dm%ab%ff = 2d0 * mt_dm%ab%ff
+             mt_dm%main%ff => mt_dm%ab%ff
+             call Genrhomt( mt_basis, mt_basis, magmt(:, :, :, 1) )
+             mt_dm%ba%ff = zi * mt_dm%ab%ff
+             mt_dm%main%ff => mt_dm%ba%ff
+             call Genrhomt( mt_basis, mt_basis, magmt(:, :, :, 2) )
+           else
+             ! collinear case
+             call Genrhomt( mt_basis, mt_basis, magmt(:, :, :, 1) )
+           end if
+         end if
+         call DMRelease( mt_dm )
+
+         call timesec( ts1 )
+         timerho = timerho + ts1 - ts0
+       end if ! if (input%groundstate%useDensityMatrix) then
+
+#ifdef MPI
+       call Mpisumrhoandmag()
+#endif
+
+     end subroutine generate_density_and_magnetization
+
 End Module
 !
