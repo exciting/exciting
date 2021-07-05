@@ -75,7 +75,7 @@ def optionParser(test_farm:str, exedir:str):
     help_executable = "exciting executables. "\
         + "'exciting_serial' for the serial binary; "\
         + "'exciting_smp' for the shared-memory version; "\
-        + "'exciting_purempi' for the binary with MPI parallisation, only; "\
+        + "'exciting_mpi' for the binary with MPI parallisation, only; "\
         + "'exciting_mpismp for the binary with MPI amd SMP parallisation;" \
         + "Default is exciting_smp"
     
@@ -89,7 +89,7 @@ def optionParser(test_farm:str, exedir:str):
     p.add_argument('-np',
                    metavar = '--NP',
                    help = "Number of cores for MPI run. Can only be used in " + \
-                   "combination with exciting_purempi or exciting_mpismp as executable. " + \
+                   "combination with exciting_mpi or exciting_mpismp as executable. " + \
                    "Default is 2 for MPI and MPI+OMP calculations, and 1 for serial or pure OMP", 
                    type = int)
     
@@ -115,14 +115,13 @@ def optionParser(test_farm:str, exedir:str):
                     action='store_true')        
 
     p.add_argument('-make-test', \
-                    help='Run tests from Makfile. ' + \
+                    help='Run tests from Makefile. ' + \
                          'If this option is set, all other options will be ignored ' + \
                          'and the test suite will run all tests with default settings. ' + \
                          'The executable will be chosen from the compiled binaries with the following ' + \
-                         'hirachy: ' + \
-                         '%s  ->  %s  ->  %s  ->  %s '%(settings.binary_mpismp, settings.binary_purempi,
-                                                                    settings.binary_smp, settings.binary_serial) + \
-                         'If not installed, excitingtools will be installed as required for the test suite.',
+                         'hierarchy: ' + \
+                         'exciting_mpismp  >  exciting_smp  >  exciting_mpi  >  exciting_serial .' + \
+                         'If excitingtools is not installed, the test suite will provide instructions on how to install the package.',
                     dest='make_test',
                     default=False,
                     action='store_true')
