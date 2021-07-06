@@ -47,8 +47,8 @@ print "\n################################################\n"
 figcolor = 'white'
 dpi = 300
 fig = plt.figure(figsize=(14.5,10),dpi=dpi)
-fig.figurePatch.set_edgecolor(figcolor)
-fig.figurePatch.set_facecolor(figcolor)
+fig.patch.set_edgecolor(figcolor)
+fig.patch.set_facecolor(figcolor)
 
 mpl.rcParams['axes.linewidth' ] = 4.0 
 mpl.rcParams['grid.linewidth' ] = 1.5

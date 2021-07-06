@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 
 from .test import Test
 from .failure import *
+from ..termcolor_wrapper import print_color
 
 def indent(elem, level=0):
     i = "\n" + level*"  "
@@ -30,31 +31,34 @@ class Report(dict):
     def __init__(self, name, description):
         self.name = name
         self.description = description
-        self.numberOfFails = None
+        self.failure_log = {'total' : len(self),
+                            'format':0,
+                            'float':0,
+                            'array':0,
+                            'string':0,
+                            'integer':0,
+                            'reference':0}
         self.failedTests = 0
         self.passedTests = 0
         self.succeededTests = 0
-        self.numberOfTests = 0
+        self.number_of_assertions = 0
         super(Report, self).__init__()
 
-    def updateNumberOfFails(self, newFailNumbers):
+    def update_failure_log(self, log_entry:dict):
         """
-        Updates the number of failures.
+        Updates the values in the failure log.
+        :param dict log_entry:  failures to be added to the failure log
         """
-        if self.numberOfFails==None:
-            self.numberOfFails = newFailNumbers
-        else:
-            for key in self.numberOfFails.keys():
-                self.numberOfFails[key] += newFailNumbers[key]
+        for key in self.failure_log.keys():
+            self.failure_log[key] += log_entry[key]
 
     def collectTest(self, Test):
         """
         Adds a new Test to the report. Automatically updates the attributes.
         """
         self[Test.name]=Test
-        self.updateNumberOfFails(Test.countFailures())
-        # TODO(Alex) This should be assertions, for a given test case 
-        self.numberOfTests = self.numberOfTests+1
+        self.update_failure_log(Test.count_failures())
+        self.number_of_assertions = self.number_of_assertions+1
         if Test.succeeded:
             self.succeededTests = self.succeededTests+1
         elif Test.passed:
@@ -72,15 +76,16 @@ class Report(dict):
         Write a report to stdout
         """
         print('Report:', end = ' ')
-        print_color('SUCCESS %i/%i'%(self.succeededTests, self.numberOfTests), 'green', end = '')
+        print_color('SUCCESS %i/%i'%(self.succeededTests, self.number_of_assertions), 'green', end = '')
         print(',', end=' ') 
-        print_color('PASS %i/%i'%(self.passedTests, self.numberOfTests), 'yellow', end = '')
+        print_color('PASS %i/%i'%(self.passedTests, self.number_of_assertions), 'yellow', end = '')
         print(',', end=' ')
-        print_color('FAIL %i/%i' %(self.failedTests, self.numberOfTests), 'red', end = '')
+        print_color('FAIL %i/%i' %(self.failedTests, self.number_of_assertions), 'red', end = '')
         print('.')
         
         for key in self.keys():
-            self[key].printFailList()
+            self[key].print_test_result()
+            print("")
     
     def writeToXML(self, directory, FileName='report.xml'):
         root = ET.Element('report')
@@ -92,7 +97,7 @@ class Report(dict):
         description.text = self.description
         
         for key in self.keys():
-            self[key].XMLoutput(root, directory)
+            self[key].xml_output(root, directory)
         
         indent(root)
         tree = ET.ElementTree(root)
@@ -177,7 +182,10 @@ def timing_summary(timing:dict, verbose=False):
     print('Total test suite time (mins) : %.1f' % (total_time / 60.))
 
     if verbose:
-        avg_time = total_time / len(times)
+        if len(times) > 0:
+            avg_time = total_time / len(times)
+        else:
+            avg_time = 0.
         longest_time = 0. 
         longest_time_name = ''
         for name, time in timing.items():

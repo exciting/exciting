@@ -24,20 +24,21 @@ program main
    type(cmd_line_args_type) :: args
 
    call initmpi()
+   call versionfromdate()
    call args%parse(mpiglobal)
    if (args%run_unit_tests) then
       call unit_test_driver(mpiglobal, args%kill_on_failure)
    else
       call loadinputDOM("input.xml")
-      !initialize default values that are not definet in the input schema
+      ! Initialize default values that are not definet in the input schema
       call setdefault()
-      !construct the input datastructure
+      ! Construct the input datastructure
       input = getstructinput(inputnp)
       call ifparseerrorstop()
       call destroyDOM()
-      !some consistency checks of the input params
+      ! Some consistency checks of the input params
       call checkinput()
-      !some initializations
+      ! Some initializations
       call initatomcounters()
       call initlattice()
       call initlibxc()

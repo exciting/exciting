@@ -28,8 +28,8 @@ def shell_value(variable,vlist,default):
 
 #-------------------------------------------------------------------------------
 
-xlabel  = u'Optimization steps'
-ylabel  = r'|Total torque| [Ha]'
+xlabel  = u'Iteration number $k$'
+ylabel  = r'|E(k)-E(k$_{last}$)| [Ha]'
 
 #-------------------------------------------------------------------------------
 
@@ -47,28 +47,25 @@ narg  = len(sys.argv)-1
 
 if (narg < 1): 
     print "\nIncorrect number of arguments. **Usage**:\n\n",
-    print "PLOT-torque.py DIRECTORYNAME\n"
+    print "PLOT-energyConvergence.py DIRECTORYNAME\n"
     sys.exit()
 
 label = str(sys.argv[1])
 
 #-------------------------------------------------------------------------------
 
-inpf = current+"/"+rlabel+label+'/INFO.OUT'
-if (label == 'r'): inpf=rundir+'/xc-rundir/INFO.OUT'
-     
-if (str(os.path.exists(inpf))=='False'): 
-    sys.exit("\nERROR: file "+inpf+" not found!\n")
+rsmd_file = label+'/TOTENERGY.OUT'
+info_file = label+'/INFO.OUT'
+lrsmd = os.path.exists(rsmd_file)
+linfo = os.path.exists(info_file)
+lonlyinfo=False
+
+if (lrsmd):
+    icol = 0
+    input_file = open(rsmd_file,"r")
+else:
+    sys.exit("\nWARNING: file "+info_file+" not (yet) found!\n")
     
-#-------------------------------------------------------------------------------
-
-os.system("grep \"Total torque\" "+str(inpf)+" > tempfile")
-input_file = open("tempfile","r")
-
-if ( os.path.getsize('./tempfile') == 0 ):
-    print "\nData file not (yet) ready for visualization.\n"
-    sys.exit() 
-
 #-------------------------------------------------------------------------------
 # set defauls parameters for the plot
 
@@ -85,6 +82,8 @@ params = {'ytick.minor.size': 6,
           'axes.formatter.limits': (-5, 6)}
 
 plt.rcParams.update(params)
+
+plt.rcParams.update({'mathtext.default':'regular'})
 
 plt.subplots_adjust(left=0.20, right=0.93,
                     bottom=0.18, top=0.88,
@@ -104,70 +103,49 @@ ax.text(-0.16,0.5,ylabel,size=fontlabel,
 for line in ax.get_xticklines() + ax.get_yticklines():
     line.set_markersize(6)
     line.set_markeredgewidth(2)
-
+       
 plt.xticks(size=fonttick)
 plt.yticks(size=fonttick)
 pyl.grid(True)
 
 #-------------------------------------------------------------------------------
 
-x = [] ; y1 = [] ; y2 = [] ; y3 = []
-
-iter=0
+ene = []
 
 while True:
-    line = input_file.readline().strip().replace(")", "")
-    if len(line) == 0: break
-    iter+=1
-    y1.append(abs(float(line.split()[3])))
-    y2.append(abs(float(line.split()[4])))
-    y3.append(abs(float(line.split()[5])))
-    x.append(float(iter-1))
+    line = input_file.readline().strip().replace(")", "") 
+    if len(line) != 0:
+       ene.append(float(line.split()[0]))
+    else: 
+       break
 
-eps = 1.e-6
+x = []
+y = []
 
-for i in range(len(x)):    
-    if ((y1[i]) < eps ): y1[i] = eps
-    if ((y2[i]) < eps ): y2[i] = eps
-    if ((y3[i]) < eps ): y3[i] = eps
-    
-os.system("rm -f tempfile")
+for i in range(len(ene)-1):
+    x.append(float(i+1))
+    y.append(abs(float(ene[i]-ene[-1])))
+       
+plt.plot(x,y,'b-')
+plt.plot(x,y,'go',label='calculated')
+plt.legend(borderaxespad=.8,numpoints=1,framealpha=0.9,fancybox=True)
 
-xmin = 0-(iter-1)/20. ; xmax = (iter-1)+(iter-1)/20.
-
-if (iter == 1): 
-    xmin = -1 ; xmax = 1
-    
-#-------------------------------------------------------------------------------
-
-plt.plot(x,y3,'go-',label=u'T$_z$')
-plt.plot(x,y2,'bo-',label=u'T$_y$')
-plt.plot(x,y1,'ro-',label=u'T$_x$')
+dx = x[-1]- x[0]
+xmin = 1-dx/20. ; xmax = x[-1]+dx/20.
 
 #-------------------------------------------------------------------------------
-
-plt.legend(borderaxespad=.8)
-
+   
 ax.yaxis.set_major_formatter(yfmt)
-
+ax.set_yscale('log')
 ax.set_xlim(xmin,xmax)
-
-ymin = min(min(y1),min(y2),min(y3))
-ymax = max(max(y1),max(y2),max(y3))
-
-#ax.set_ylim(-0.004,0.001)
-
-if (abs(ymax-ymin) < 1.e-9):
-    ymin = ymin-1
-    ymax = ymax+1
-    ax.set_ylim(ymin,ymax)
-else:
-    ax.set_yscale('log')
 
 ax.set_axisbelow(True) 
 
-plt.savefig('PLOT.ps',  orientation='portrait',format='eps')
-plt.savefig('PLOT.png', orientation='portrait',format='png',dpi=dpipng)
+plt.savefig('PLOT.png',format='png',dpi=300, bbox_inches='tight')
+plt.savefig('PLOT.eps',format='eps',bbox_inches='tight')
+
+#plt.savefig('PLOT.ps',  orientation='portrait',format='eps')
+#plt.savefig('PLOT.png', orientation='portrait',format='png',dpi=dpipng)
 
 if (showpyplot): plt.show()
 #-------------------------------------------------------------------------------

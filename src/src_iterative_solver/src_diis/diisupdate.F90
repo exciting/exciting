@@ -13,6 +13,7 @@ Subroutine diisupdate (idiis, icurrent, iunconverged, n, h, s, &
       Use diisinterfaces
       Use sclcontroll, Only: recalculate_preconditioner
       Use sclcontroll, Only: diismax, maxdiisspace
+      use sorting, only: sort_index_1d
       Implicit None
       Integer, Intent (In) :: idiis, icurrent, iunconverged, n
       Complex (8), Intent (In) :: h (n, nstfv, diismax)
@@ -80,7 +81,7 @@ Subroutine diisupdate (idiis, icurrent, iunconverged, n, h, s, &
     ! if(i==1 )write(*,*)"Pmatrix",Pmatrix
          If (lin) Then
             Call solvediislin (isubspace, Pmatrix, Qmatrix, c)
-            Call sortidx (isubspace,-Abs(c), idx)
+            idx = sort_index_1d( isubspace, -Abs(c))
          Else
             Call solvediis (isubspace, Pmatrix, Qmatrix, c)
          End If

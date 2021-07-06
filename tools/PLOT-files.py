@@ -44,12 +44,17 @@ def option_parser():
         y_scale
         legend_position
         title
+        no_title
         max_ticks_x
+        max_ticks_y
         no_legend
         grid
         scale_box
         reverse_colors
         reverse_plots
+        no_scientific
+        log_x
+        log_y
 
     :return input_options: Dictionary of parsed command line arguments 
     """
@@ -58,7 +63,7 @@ def option_parser():
     
     help_directory = 'List of the directories in which the data to be plotted have to be found. If only one or no directory is specified, the data for the plots are taken from the same directory. Default value is the current directory.'
     
-    help_files = 'List of the names of the files in which the data to be plotted have to be found. At least a file must be specified.'
+    help_files = 'List of file names containing data to plot. At least one file must be specified.'
    
     help_legend_label = "Specifies the labels to appear in the legend for each plot."
     
@@ -81,9 +86,12 @@ def option_parser():
     help_legend_position = "The location of the legend. The strings 'upper left', 'upper right', 'lower left', 'lower right' place the legend at the corresponding corner of the axes/figure. The strings 'upper center', 'lower center', 'center left', 'center right' place the legend at the center of the corresponding edge of the axes/figure. The string 'center' places the legend at the center of the axes/figure. The string 'best' places the legend at the location, among the nine locations defined so far, with the minimum overlap with other drawn artists. This option can be quite slow for plots with large amounts of data; your plotting speed may benefit from providing a specific location. For back-compatibility, 'center right' (but no other location) can also be spelled 'right', and each string locations can also be given as the corresponding numeric value."             
 
     help_title = "Used as --title 'String as a title' assign a title to the plot."
+    help_no_title = 'If present, it disables the writing of the title.'
     
     help_max_ticks_x = "Specifies the maximum number of ticks along the x-axis in the plot."
 
+    help_max_ticks_y = "Specifies the maximum number of ticks along the y-axis in the plot."
+    
     help_no_legend = 'If present, it disables the plotting of the legend.'
     
     help_grid = 'If present, a grid is plotted in correspondence to the position of the major ticks.'
@@ -94,6 +102,14 @@ def option_parser():
     
     help_reverse_plots = "If present, the order of appearance of the plots is reversed."
 
+    help_print_markers = "If present, solid circle markers are additionally printed for indicating data points."
+    
+    help_no_scientific = "If present, disables the scientific notation and the offset for labels on the axes."
+    
+    help_log_x = "If present, plots data on the x-axis using a standard logarithmic scale."
+    
+    help_log_y = "If present, plots data on the y-axis using a standard logarithmic scale."
+    
     #---------------------------------------------------------------------------
 
     p.add_argument('-d','--directory',
@@ -138,6 +154,9 @@ def option_parser():
     
     p.add_argument('-mtx','--max_ticks_x',
                    type = int, default = None, help = help_max_ticks_x)
+    
+    p.add_argument('-mty','--max_ticks_y',
+                   type = int, default = None, help = help_max_ticks_y)
 
     p.add_argument('-s','--scale_box',
                    nargs = '*', default = [1.0, 1,0],
@@ -145,6 +164,10 @@ def option_parser():
                    
     p.add_argument('-t','--title',
                    type = str, default = None, help = help_title)
+    
+    p.add_argument('-nt','--no_title', action='store_true', help = help_no_title)
+    
+    p.add_argument('-ns','--no_scientific', action='store_true', help = help_no_scientific)
    
     p.add_argument('-lp','--legend_position',
                    type = str, help = help_legend_position,
@@ -160,6 +183,12 @@ def option_parser():
 
     p.add_argument('-rp','--reverse_plots', action='store_true', help = help_reverse_plots)
     
+    p.add_argument('-pm','--print_markers', action='store_true', help = help_print_markers)
+
+    p.add_argument('-logx','--log_x', action='store_true', help = help_log_x)
+
+    p.add_argument('-logy','--log_y', action='store_true', help = help_log_y)
+   
     #---------------------------------------------------------------------------
 
     args = p.parse_args()
@@ -190,7 +219,10 @@ def option_parser():
     if ( len(args.yboundary) >= 1 ): input_options['ymin'] = args.yboundary[0]
     input_options['ymax'] = None
     if ( len(args.yboundary) >= 2 ): input_options['ymax'] = args.yboundary[1]
-
+    
+    input_options['maxticksx'] = args.max_ticks_x
+    input_options['maxticksy'] = args.max_ticks_y
+    
     input_options['labelx'] = args.label_x
     input_options['labely'] = args.label_y
     
@@ -198,7 +230,9 @@ def option_parser():
     input_options['yscale'] = args.y_scale
     
     input_options['title'] = args.title
-    input_options['maxticksx'] = args.max_ticks_x
+    input_options['no_title'] = args.no_title
+    input_options['no_scientific'] = args.no_scientific
+
     input_options['no_legend'] = args.no_legend
     input_options['grid'] = args.grid
     input_options['leg_pos'] = args.legend_position
@@ -207,6 +241,10 @@ def option_parser():
       
     input_options['reverse_plots'] = args.reverse_plots
     input_options['reverse_colors'] = args.reverse_colors
+    input_options['print_markers'] = args.print_markers
+    
+    input_options['log_x'] = args.log_x
+    input_options['log_y'] = args.log_y
   
     return input_options
 #_______________________________________________________________________________
@@ -220,10 +258,12 @@ def read_data(x,y,cx,cy,nop,sx,sy,infile):
         ix = cx[i]-1  ;  iy = cy[i]-1
         listx = []  ;  listy = []
         for line in open(infile[i]).readlines():
-            noline = ( line.strip()[0][:1] != "#" and
-                       line.strip()[0][:1] != "&" and
-                       line.strip()[0][:1] != "@" )
-            if (len(line.strip()) != 0 and noline):
+            trueline = True
+            if (len(line.strip()) != 0):
+                trueline = ( line.strip()[0][:1] != "#" and
+                             line.strip()[0][:1] != "&" and
+                             line.strip()[0][:1] != "@" )
+            if (len(line.strip()) != 0 and trueline):
                 i_line = line.strip().split()
                 listy.append(float(i_line[iy])*sy)
                 if ( cx[i]!=0 ): 
@@ -283,14 +323,23 @@ def main(input_options):
     sy = input_options['sy']
     
     maxticksx = input_options['maxticksx']
+    maxticksy = input_options['maxticksy']
+    
     title = input_options['title']
+    no_title = input_options['no_title']
+    no_scientific = input_options['no_scientific']
+     
     leg_pos = input_options['leg_pos']
     no_leg = input_options['no_legend']
     grid = input_options['grid']
 
     reverse_colors = input_options['reverse_colors']
     reverse_plots = input_options['reverse_plots']
+    print_markers = input_options['print_markers']
     
+    log_x = input_options['log_x']
+    log_y = input_options['log_y']
+
     #---------------------------------------------------------------------------
     # Initialize cases
     
@@ -315,16 +364,22 @@ def main(input_options):
 
     same_columnx = ( len(columnx)==1 )
     same_columny = ( len(columny)==1 )
-
-    if ( not same_columnx and (len(columnx)!=number_of_plots) ):
-        sys.exit("\n ERROR: The value of the x-column number"
-                 +" must be specified in this case for each plot ("
-                 +str(number_of_plots)+"!\n")
     
-    if ( not same_columny and (len(columny)!=number_of_plots) ):
-        sys.exit("\n ERROR: The value of the y-column number"
-                 +" must be specified in this case for each plot ("
-                 +str(number_of_plots)+"!\n")
+    check_cx = same_columnx and (len(columny)!=1 and len(columny)!=number_of_plots)
+ 
+    if ( check_cx ):
+        sys.exit("\n ERROR: In this case, one file/directory "
+                 +"must be specified for each plot:\n"
+                 +"\n        number_of_plots    = "+str(number_of_plots)
+                 +"\n        number_of_column_y = "+str(len(columny))+"\n")
+   
+    check_cy = same_columny and (len(columnx)!=1 and len(columnx)!=number_of_plots)
+ 
+    if ( check_cy ):
+        sys.exit("\n ERROR: In this case, one file/directory "
+                 +"must be specified for each plot:\n"
+                 +"\n        number_of_plots    = "+str(number_of_plots)
+                 +"\n        number_of_column_x = "+str(len(columnx))+"\n")
 
     if ( same_columnx and not only_one_plot ):
             for i in range(1,len(files)): columnx.append(columnx[0])
@@ -353,7 +408,7 @@ def main(input_options):
             leg_label.append("")
             title = directory[0]+bar+files[0]
             if ( local_only ): title = files[0]
-            no_leg = True
+            if ( len(legend)<1 ): no_leg = True
         elif ( only_one_file and not only_one_plot):
             leg_label.append(directory[i])
             if ( title is None ): title = files[i]
@@ -425,10 +480,36 @@ def main(input_options):
 
     if ( maxticksx is not None ): 
         ax1.xaxis.set_major_locator(plt.MaxNLocator(maxticksx))
+        
+    if ( maxticksy is not None ): 
+        ax1.yaxis.set_major_locator(plt.MaxNLocator(maxticksy))
+        
+    if ( no_scientific ):
+        ax1.ticklabel_format(useOffset=False, style='plain')
+        
+    if ( log_y ): 
+        ax1.minorticks_on()
+        ax1.yaxis.set_minor_locator(ticker.AutoMinorLocator(10))
+        for minortick in ax1.yaxis.get_minorticklines():
+            minortick.set_color('darkslategrey')
+            minortick.set_markersize(10)
+            minortick.set_markeredgewidth(int(float(line_thickness)*0.7))
+        ax1.yaxis.get_ticklocs(minor=True)  
+        plt.yscale("log")
 
-    for line in ax1.get_xticklines() + ax1.get_yticklines():
-        line.set_markersize(10)
-        line.set_markeredgewidth(line_thickness)
+    if ( log_x ): 
+        ax1.minorticks_on()
+        ax1.xaxis.set_minor_locator(ticker.AutoMinorLocator(10))
+        for minortick in ax1.xaxis.get_minorticklines():
+            minortick.set_color('darkslategrey')
+            minortick.set_markersize(10)
+            minortick.set_markeredgewidth(int(float(line_thickness)*0.7))
+        ax1.xaxis.get_ticklocs(minor=True)  
+        plt.xscale("log")
+    
+    for majortick in ax1.get_xticklines() + ax1.get_yticklines():
+        majortick.set_markersize(10)
+        majortick.set_markeredgewidth(line_thickness)
 
     plot_range = range(number_of_plots)
     if ( reverse_plots ): plot_range = reversed(range(number_of_plots))
@@ -438,10 +519,13 @@ def main(input_options):
         if ( reverse_colors ): 
             lc = line_color[number_of_plots-1-i]
         ax1.plot(xx[i], yy[i], color=lc, lw=line_thickness, label=leg_label[i])
+        if ( print_markers ): 
+            ax1.plot(xx[i], yy[i], color=lc, marker='o', markersize=15)
                 
     if title is not None:  
-        ax1.text(1,1.05,title,size="40",
-                 transform=ax1.transAxes,ha='right',va='center',rotation=0)
+        if (not no_title): 
+            ax1.text(1,1.05,title,size="40",
+                     transform=ax1.transAxes,ha='right',va='center',rotation=0)
 
     if ( not no_leg ):       
         leg=ax1.legend(loc=leg_pos,borderaxespad=0.7,

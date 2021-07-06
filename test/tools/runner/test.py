@@ -4,7 +4,7 @@ from typing import List
 from ..parsers import ErroneousFileError, parser_chooser
 from ..infrastructure import create_run_dir, copy_exciting_input, get_test_from_init, flatten_directory
 
-from ..tester.test import fromInit
+from ..tester.test import from_init
 from ..tester.report import Report, test_suite_summary, skipped_test_summary, timing_summary
 from ..tester.failure import Failure, Failure_code
 
@@ -71,7 +71,7 @@ def run_single_test(test_farm:str, main_out:str, test_name:str, run_dir:str,
     # Loop over all files to test and compare them to their reference
     for test in tests:
         file_name = test['file']
-        test_results = fromInit(test)
+        test_results = from_init(test)
 
         # read reference data
         ref_path = os.path.join(test_dir, ref_dir, file_name)
@@ -96,7 +96,7 @@ def run_single_test(test_farm:str, main_out:str, test_name:str, run_dir:str,
             continue
         
         # compare reference data to run data
-        test_results.evaluate(ref_data, run_data)
+        test_results.evaluate(ref_data, run_data, test_dir)
 
         report.collectTest(test_results)
 

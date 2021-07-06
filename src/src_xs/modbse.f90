@@ -24,6 +24,7 @@ module modbse
   use m_getunit
   use mod_wannier_bse, only: wfbse_usegwwannier, wfbse_eval, wfbse_init, wfbse_ordereval
   use mod_wannier_interpolate, only: wfint_eval
+  use sorting, only: sort_index_1d
 
   implicit none
 
@@ -1008,7 +1009,7 @@ module modbse
       ! Energy sorting
       if(allocated(ensortidx)) deallocate(ensortidx)
       allocate(ensortidx(hamsize))
-      call sortidx(hamsize, de, ensortidx)
+      ensortidx = sort_index_1d( hamsize, de)
 
       ! Make relative combinded index map
       if(allocated(smap_rel)) deallocate(smap_rel)
@@ -1230,7 +1231,7 @@ module modbse
       write(un,'("# max per row of |V-W| @ Q =", 3(E10.3,1x))')  input%xs%qpointset%qpoint(:, iqmt)
       write(un,'("# alpha, ipen, VWdiff_rr, VWdiff_ra")')
 
-      call sortidx(hamsize, de, sorti)
+      sorti = sort_index_1d( hamsize, de)
 
       do i = 1, hamsize
 

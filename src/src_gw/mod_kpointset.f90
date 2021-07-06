@@ -521,6 +521,7 @@ CONTAINS
 
 !-------------------------------------------------------------------------------
     subroutine generate_G_vectors(self,bvec,intgv,gmaxvr)
+        use sorting, only: sort_index_1d
         implicit none
         type(G_set), intent(OUT) :: self
         real(8), intent(IN) :: bvec(3,3)
@@ -595,7 +596,7 @@ CONTAINS
         end do
 
         ! Sort by vector length
-        call sortidx(self%ngrtot,self%gc,idx)
+        idx = sort_index_1d( self%ngrtot, self%gc)
         ! re-order arrays
         do ig = 1, self%ngrtot
           rar(ig) = self%gc(ig)
@@ -1284,6 +1285,7 @@ CONTAINS
 
 !-------------------------------------------------------------------------------
     subroutine generate_kkqmt_vectors(self,gset,bvec,ngridk,vkloff,reduce,veclqmt,uselibzint)
+        use sorting, only: sort_index_1d
         type(kkqmt_set), intent(OUT) :: self
         type(g_set), intent(in) :: gset
         real(8), intent(IN) :: bvec(3,3)
@@ -1387,7 +1389,7 @@ CONTAINS
 
         ! Build map ikqnr --> iknr
         allocate(self%ikqmt2ik_nr(self%kqmtset%nkptnr))
-        call sortidx(self%kqmtset%nkptnr, dble(self%ik2ikqmt_nr),self%ikqmt2ik_nr)
+        self%ikqmt2ik_nr = sort_index_1d( self%kqmtset%nkptnr, self%ik2ikqmt_nr)
 
         ! Build map ik --> ikq
         allocate(self%ik2ikqmt(self%kset%nkpt))
@@ -1485,6 +1487,7 @@ CONTAINS
 !-------------------------------------------------------------------------------
 
     subroutine generate_km_vectors(self,kset)
+        use sorting, only: sort_index_1d
         type(km_set), intent(OUT) :: self
         type(k_set), intent(IN) :: kset
 
@@ -1550,7 +1553,7 @@ CONTAINS
 
         ! Build map ikmnr --> iknr
         allocate(self%ikm2ik_nr(self%kset%nkptnr))
-        call sortidx(self%kset%nkptnr, dble(self%ik2ikm_nr),self%ikm2ik_nr)
+        self%ikm2ik_nr = sort_index_1d( self%kset%nkptnr, self%ik2ikm_nr)
 
         ! Build map ik --> ikm
         allocate(self%ik2ikm(kset%nkpt))
@@ -1619,6 +1622,7 @@ CONTAINS
 
 !-------------------------------------------------------------------------------
     subroutine generate_q_vectors(self, kset, kpset, gset, reduceq)
+        use sorting, only: sort_index_1d
         type(q_set), intent(OUT) :: self
         type(k_set), intent(IN) :: kset
         type(k_set), intent(IN) :: kpset
@@ -1726,7 +1730,7 @@ CONTAINS
 
         ! Make q-ordered ikkp list
         allocate(self%ikkp_qordered(nkkp))
-        call sortidx(nkkp, dble(self%ikkp2iq_nr), self%ikkp_qordered)
+        self%ikkp_qordered = sort_index_1d( nkkp, self%ikkp2iq_nr)
 
     end subroutine generate_q_vectors
 

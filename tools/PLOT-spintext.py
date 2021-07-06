@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
 """
 Plot square spin texture. This script is designed to work with SETUP-spintexture-plane.py together.
@@ -13,10 +13,112 @@ import argparse as ap
 import sys
 import xml.etree.cElementTree as ET
 
-from excitingtools.parser.propertiesParser import parse_spintext
-from excitingtools.lattice import parse_lattice_vectors, reciprocal_lattice_vectors, plane_transformation
+# TODO(Bene) Issue #3: Remove all the function available in excitingtools from this script and import them from there
 
-def parse_spintext_grid(file_path:str) -> np.array:
+
+def triple_product(a, b, c):
+    """
+    Vector triple product, defined as 
+      \mathbf{a} \cdot (\mathbf{b} \wedge \mathbf{c})
+
+    :param a: Vector a 
+    :param b: Vector b
+    :param c: Vector c
+    :return triple product
+    """
+    return np.dot(a, np.cross(b, c))
+
+def plane_transformation(rec_lat_vec, plot_vec):
+    """
+    Take reciprocal lattice vectors and ONS of a plane in rec. lat. coordinates where the first two vectors span the plane and the third is normal to them 
+    and calculate a matrix that transforms points in the plane to the xy plane in cartesian coordinates.
+    input:
+    :param rec_lat_vec:            reciprocal lattice vectors
+    :param plot_vec:               ONS of the plotting plane 
+    :return transformation_matrix: matrix that transforms k and spin vectors to the plot plane
+    """
+    norm = np.linalg.norm
+    # transform plot vec in cartesian coordinates
+    plot_vec = (rec_lat_vec.dot(plot_vec)).transpose()
+    # extend plot vec to an orthogonal system
+    plot_vec = np.array([(plot_vec[1] - plot_vec[0]) / norm(plot_vec[1] - plot_vec[0]), 
+                         (plot_vec[2] - plot_vec[0]) / norm(plot_vec[2] - plot_vec[0]), 
+                         np.cross(plot_vec[1] - plot_vec[0], plot_vec[2] - plot_vec[0]) \
+                           / norm(np.cross(plot_vec[1] - plot_vec[0], plot_vec[2] - plot_vec[0])) ])
+    transformation_matrix = np.linalg.inv(plot_vec)
+    for v in transformation_matrix:
+        v = v / norm(v)
+    transformation_matrix = np.transpose(transformation_matrix)
+
+    return transformation_matrix
+
+
+def reciprocal_lattice_vectors(a):
+    """
+    Get the reciprocal lattice vectors of real-space lattice vectors \{\mathbf{a}\}:
+
+      \mathbf{b}_0 = 2 \pi \frac{\mathbf{a}_1 \wedge \mathbf{a}_2} {\mathbf{a}_0 \cdot (\mathbf{a}_1 \wedge \mathbf{a}_2)}
+      \mathbf{b}_1 = 2 \pi \frac{\mathbf{a}_2 \wedge \mathbf{a}_3} {\mathbf{a}_0 \cdot (\mathbf{a}_1 \wedge \mathbf{a}_2)}
+      \mathbf{b}_2 = 2 \pi \frac{\mathbf{a}_0 \wedge \mathbf{a}_1} {\mathbf{a}_0 \cdot (\mathbf{a}_1 \wedge \mathbf{a}_2)}
+
+    :param np.ndarray a: Lattice vectors, stored column-wise
+    :return: np.ndarray b: Reciprocal lattice vectors, stored column-wise
+    """
+    volume = triple_product(a[:, 0], a[:, 1], a[:, 2])
+    b = np.empty(shape=(3, 3))
+    b[:, 0] = 2 * np.pi * np.cross(a[:, 1], a[:, 2]) / volume
+    b[:, 1] = 2 * np.pi * np.cross(a[:, 2], a[:, 0]) / volume
+    b[:, 2] = 2 * np.pi * np.cross(a[:, 0], a[:, 1]) / volume
+    return b
+
+
+def parse_lattice_vectors(file_path):
+    """
+    Parse the lattice coordinate from the input.xml. Units are in bohr.
+    :param file_path:    relative path to the input.xml
+    :return lattvec:    matrix that holds the lattice vectors.
+    """
+    file_name = 'input.xml'
+    treeinput = ET.parse(file_path)
+    if file_path.split('/')[-1] != file_name:
+        file_path = os.path.join(file_path, fileName)
+
+    treeinput = ET.parse(file_path)
+    root_input = treeinput.getroot()
+
+    try:
+        scale = float(root_input.find("structure").find("crystal").attrib["scale"])
+    except Exception:
+        scale = 1.0
+    lat_vec = [np.array(val.text.split(), dtype=float)*scale for val in root_input.find("structure").find("crystal").findall("basevect")]
+    lat_vec = np.array(lat_vec).transpose()
+    
+    return lat_vec
+
+
+def parse_spintext(name):
+    """
+    Parse spintext.xml
+    :param name:    path to the spintext.xml that will be parsed
+    :return spintext:      dictionary that holds the parsed spintexture.xml
+    """
+    file_name = 'spintext.xml'
+    if name.split('/')[-1] != file_name:
+        name = os.path.join(name, file_name)
+    
+    tree_spin = ET.parse(name)
+    root_spin = tree_spin.getroot()
+    spintext = []
+    for band in root_spin.findall("band"):
+        b = {}
+        b["ist"] = int(band.attrib["ist"])
+        b["k-point"] = [val.attrib["vec"].split() for val in band.findall("k-point")]
+        b["spin"] = [val.attrib["spin"].split() for val in band.findall("k-point")]
+        b["energy"] = [float(val.attrib["energy"]) for val in band.findall("k-point")]
+        spintext.append(b)
+    return spintext
+
+def parse_spintext_grid(file_path):
     """
     Parse the grid from the spintext element in input.xml
     :param file_path:    relative path to the input.xml that is parsed for spin texture grid
@@ -33,7 +135,7 @@ def parse_spintext_grid(file_path:str) -> np.array:
     
     return grid
 
-def parse_spintext_plane(file_path:str) -> np.array:
+def parse_spintext_plane(file_path):
     """
     Parse the vectors that span the k-plane for the spin texture calculation and extend it to an ortho normal system.
     :param file_path:    relative path to the input.xml
@@ -157,11 +259,7 @@ def main(directory, band, contour, contour_threshhold):
     s_y = np.array([s[1] for s in spin]).reshape(grid)
     s_z = np.array([s[2] for s in spin])
 
-
-
-    fig = plt.figure(figsize=(12,10),dpi=300)
     mpl.rcParams['grid.linewidth']  = 3
-    
     mpl.rcParams['xtick.labelsize'] = 25
     mpl.rcParams['ytick.labelsize'] = 25
     mpl.rcParams['xtick.major.width'] = 2
@@ -175,32 +273,46 @@ def main(directory, band, contour, contour_threshhold):
     plt.rcParams['xtick.major.pad'] = 10
     plt.rcParams['ytick.major.pad'] = 10
     plt.rcParams.update({'mathtext.default':'regular'})
-    gs = gridspec.GridSpec(1, 1, figure=fig)
     
-
-    # plot the colour map
+    fig = plt.figure(figsize=(12,10),dpi=300)
+    gs = gridspec.GridSpec(1, 1, figure=fig)
     ax = fig.add_subplot(gs[0])
+    
+    # plot colour map
     if (contour == "spin_z"):
         if (contour_threshhold == "max"):
-            thr = max(np.abs(s_z))
+            thr = round(max(np.abs(s_z)), 2)
         else:
             thr = float(contour_threshhold)
+            
+        if thr==0.0:
+            raise ValueError('Threshhold of contour plot for s_z is zero. You can set it manually with the -cthr option.')
+        
+        ticks = np.linspace(-1, 1, 5) * thr
         s_z = s_z.reshape(grid)
+        
         cp = ax.contourf(k_x, k_y, s_z, 100, cmap="bwr", vmin= -thr, vmax = thr)
-        cbar=fig.colorbar(cp, orientation="vertical", ticks=[-thr, -thr/2,0, thr/2, thr])
-        cbar.set_label('$s_z$ [b$^{-1}$]')
+        
+        cbar=fig.colorbar(cp, orientation="vertical", ticks=ticks)
+        cbar.set_label('$s_z$')
+        
     elif (contour == "energy"):
-        thr_min, thr_max = min(energy), max(energy)
+        thr_min, thr_max = round(min(energy), 1), round(max(energy),1)
+        ticks = thr_min + np.linspace(0.0, 1.0, 8) * (thr_max - thr_min)
         energy = np.array(energy).reshape(grid)
         cp = ax.contourf(k_x, k_y, energy, 100, cmap="autumn", vmin= thr_min, vmax = thr_max)
-        cbar=fig.colorbar(cp, orientation="vertical", ticks=[thr_min, thr_min+(thr_max-thr_min)/2, thr_max])
-        cbar.set_label('E [eV]')
+        cbar=fig.colorbar(cp, orientation="vertical", ticks=ticks)
+        cbar.set_label('E [eV]', labelpad=50, rotation=-90)   
+             
+    # plot spin texture
     ax.quiver(k_x, k_y, s_x, s_y)
-    ax.set_xlabel("$k_1$ [Å $^{-1}$]")
-    ax.set_ylabel("$k_2$ [Å $^{-1}$]")
+    ax.set_xlabel("$k_1$ [a. u.]")
+    ax.locator_params(nbins=3, axis='x')
+    ax.set_ylabel("$k_2$ [a. u.]")
+    ax.locator_params(nbins=3, axis='y')
+    
 
     plt.savefig("PLOT-spintext.png",  bbox_inches='tight')
-    plt.show()
 
 if __name__ == "__main__":
     input_options = option_parser()

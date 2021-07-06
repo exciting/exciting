@@ -13,6 +13,8 @@ module m_diagfull
     ! !ROUTINE: diagfull
     ! !INTERFACE:
     subroutine diagfull(n, ham, evalre, evalim, evecr, evecl, fbalance, frcond, fsort)
+    ! !USES:
+      use sorting, only: sort_index_1d
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
     !   integer(4) :: n
@@ -189,7 +191,7 @@ module m_diagfull
       ! Sort according to real part
       if(fso) then 
         allocate(idxsort(n))
-        call sortidx(n, evalre, idxsort)
+        idxsort = sort_index_1d( n, evalre)
         evalre = evalre(idxsort)
         if(present(evalim)) then
           evalim = evalim(idxsort)

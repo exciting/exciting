@@ -11,7 +11,7 @@ License:
 see README of exciting
 
 Requirements:
-The test suite requires python3 and the following packages:
+The test suite requires python 3.5 and the following packages:
  * argparse
  * collections
  * numpy
@@ -48,15 +48,36 @@ Using the test suite:
         -e   --execuatble    optional    exciting execuatbles.
 	     		     		             'exciting_serial'  - for the serial binary;
 					                     'exciting_smp'     - for the binary with SMP (default);
-                        	             'exciting_purempi' - for the binary with MPI parallisation, only
+                        	             'exciting_mpi' - for the binary with MPI parallisation, only
 					                     'exciting_mpismp'  - for the binary with MPI and SMP parallisation
 					                     Default is 'exciting_smp'
 
-        -np  --NP            optional    Number of cores for MPI parallelisation. Can only be used in combination with excitingmpi as executable.
+        -np  --NP            optional    Number of cores for MPI parallelisation. Can only be used
+                                         in combination with excitingmpi as executable.
 
-        -omp --ompthreads    optional    Number of threads for open MP parallelisation. Check envarOMP in runtest.py to make sure that the script sets the right 
-                                         environment variable.
-            				 Default is 2
+        -omp --ompthreads    optional    Number of threads for open MP parallelisation. 
+                                         Check envarOMP in runtest.py to make sure that the script 
+                                         sets the right environment variable.
+            				             Default is 2
+
+        -handle-errors       optional    Allow assertion failures and skips to propagate to the
+                                         end of the test suite. If the option is excluded, the
+                                         default is to not allow error propagation
+
+        -run-failing-tests   optional    Run tests tagged as failing.If the option is excluded,
+                                         the default is not to run failing tests
+        -make-test           optional    Run tests from Makefile. If this option is set, all
+                                         other options will be ignored and the test suite will
+                                         run all tests with default settings. 
+                                         The executable will be chosen from the compiled binaries
+                                         with the following hierarchy: 
+                                         1. exciting_mpismp 
+                                         2. exciting_smp
+                                         3. exciting_mpi
+                                         4. exciting_serial
+                                         If excitingtools is not installed, the test suite will provide 
+                                         instructions on how to install the package.
+
 
 Adding new test cases:
 

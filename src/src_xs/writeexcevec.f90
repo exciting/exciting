@@ -10,6 +10,7 @@ subroutine writeexcevec()
   use m_getunit
   use m_genfilname
   use m_putgetexcitons
+  use sorting, only: sort_index_1d
 ! !DESCRIPTION:
 !   Reads the binary file \texttt{EXCCOEFF} containing the eigenvector coefficients
 !   of the BSE calculation and prints selected coefficients to human readable files.
@@ -191,7 +192,7 @@ subroutine writeexcevec()
         
         ! Get sorting index for sorting by absolute value
         absvec = abs(rvec_(1:hamsize_,lambda))
-        call sortidx(hamsize_, absvec, idxsort)
+        idxsort = sort_index_1d( hamsize_, absvec)
         do i = 1, hamsize_ 
           idxsort_desc(i) = idxsort(hamsize_-i+1)
         end do
@@ -256,7 +257,7 @@ subroutine writeexcevec()
 
           ! Get sorting index for sorting by absolute value
           absvec = abs(avec_(1:hamsize_, lambda))
-          call sortidx(hamsize_, absvec, idxsort)
+          idxsort = sort_index_1d( hamsize_, absvec)
           do i = 1, hamsize_ 
             idxsort_desc(i) = idxsort(hamsize_-i+1)
           end do

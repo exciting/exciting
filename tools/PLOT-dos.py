@@ -17,6 +17,7 @@ import sys
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import matplotlib.patches as mpatches
+import pylab as pyl
 import os
 import numpy as np
 import argparse as ap
@@ -41,6 +42,7 @@ def option_parser():
         eunit
         funit
         title
+        no_title
         legend_position
         scale_box
         reverse_colors
@@ -48,7 +50,10 @@ def option_parser():
         no_fill
         no_reverse_spin
         max_ticks_x
-
+        max_ticks_y
+        legend_label
+        grid
+         
     :return input_options: Dictionary of parsed command line arguments 
     """
     p = ap.ArgumentParser(description=\
@@ -75,6 +80,8 @@ def option_parser():
     help_no_fill = 'If present, plots are not filled.'
      
     help_title = "Used as --title 'String as a title' assign a title to the plot."
+   
+    help_no_title = 'If present, it disables the writing of the title.'
     
     help_scale_box = "One or two floats corresponding to the scaling factor in the horizontal and vertical size of the plot appearence, respectively."
     
@@ -85,6 +92,12 @@ def option_parser():
     help_no_reverse_spin = "If present and a spin-polarized density of state is plotted, the spin-down DOS is represented by positive values instead of negative ones."
     
     help_max_ticks_x = "Specifies the maximum number of ticks along the x-axis in the plot."
+
+    help_max_ticks_y = "Specifies the maximum number of ticks along the y-axis in the plot."
+    
+    help_legend_label = "Specifies the labels to appear in the legend for each plot."
+
+    help_grid = 'If present, a grid is plotted in correspondence to the position of the major ticks.'  
     
     #---------------------------------------------------------------------------
     
@@ -132,14 +145,25 @@ def option_parser():
     p.add_argument('-t','--title',
                    type = str, default = None, help = help_title)
     
+    p.add_argument('-nt','--no_title', action='store_true', help = help_no_title)
+    
     p.add_argument('-mtx','--max_ticks_x',
                    type = int, default = None, help = help_max_ticks_x)
-   
+    
+    p.add_argument('-mty','--max_ticks_y',
+                   type = int, default = None, help = help_max_ticks_y)
+    
+    p.add_argument('-ll','--legend_label',
+                   nargs = '*', default = [],
+                   type = str, help = help_legend_label)   
+    
     p.add_argument('-l','--legend_position',
                    type = str, help = help_legend_position,
                    choices = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
                               'best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center'],
                    default = 'best')
+                   
+    p.add_argument('-g','--grid', action='store_true', help = help_grid)
     
     #---------------------------------------------------------------------------
     
@@ -167,11 +191,16 @@ def option_parser():
     input_options['phonon'] = args.phonon
     
     input_options['title'] = args.title
+    input_options['no_title'] = args.no_title
+    
     input_options['eunit'] = args.eunit
     input_options['funit'] = args.funit
     
     input_options['maxticksx'] = args.max_ticks_x
+    input_options['maxticksy'] = args.max_ticks_y
     
+    input_options['legend'] = args.legend_label
+
     input_options['no_legend'] = args.no_legend
     input_options['leg_pos'] = args.legend_position
     if ( len(args.legend_position)<=2 ):
@@ -181,6 +210,7 @@ def option_parser():
     input_options['reverse_plots'] = args.reverse_plots
     input_options['reverse_colors'] = args.reverse_colors
     input_options['no_fill'] = args.no_fill
+    input_options['grid'] = args.grid
     
     return input_options
 #_______________________________________________________________________________
@@ -277,6 +307,7 @@ def main(input_options):
     sx = input_options['sx']
     sy = input_options['sy']
     title = input_options['title']
+    no_title = input_options['no_title']
     leg_pos = input_options['leg_pos']
     no_leg = input_options['no_legend']
     no_fill = input_options['no_fill']
@@ -284,6 +315,9 @@ def main(input_options):
     reverse_plots = input_options['reverse_plots']
     no_reverse_spin = input_options['no_reverse_spin']
     maxticksx = input_options['maxticksx']
+    maxticksy = input_options['maxticksy']
+    legend = input_options['legend']
+    grid = input_options['grid']
     
     #---------------------------------------------------------------------------
     # Initialize cases
@@ -336,9 +370,10 @@ def main(input_options):
                 leg_label[i] = leg_label[i]+bar+'WA'
                 filename = filename+"_WANNIER"
             if ( atype[i]=="KS" and gw ): leg_label[i] = leg_label[i]+bar+'KS'
-            if ( atype[i]=="KS" and wannier ): leg_label[i] = leg_label[i]+bar+'OG'
+            if ( atype[i]=="KS" and wannier ): leg_label[i] = leg_label[i]+bar+'KS'
         infile.append(filename+".OUT")
-        
+        if ( i<len(legend) ): leg_label[i] = legend[i] 
+
     #-------------------------------------------------------------------------------
     # Plot defaults
     
@@ -433,16 +468,16 @@ def main(input_options):
             elist = [elist[j] for j in range(ndos)] 
             dlist = [dlist[j] for j in range(ndos)]
         len_e = len(elist)
-        elist = [elist[j] for j in range(len_e) if dlist[j]>=1e-6]
-        dlist = [dlist[j] for j in range(len_e) if dlist[j]>=1e-6]
+        #elist = [elist[j] for j in range(len_e) if dlist[j]>=1e-6]
+        #dlist = [dlist[j] for j in range(len_e) if dlist[j]>=1e-6]
         ene.append(elist)   
         dos.append(dlist)
         if ( spin[i] ):
             sfactor = 1.0
             if ( no_reverse_spin ): sfactor = -1.0
             len_e = len(edown)
-            edown = [edown[j] for j in range(len_e) if ddown[j]<=sfactor*1e-6]
-            ddown = [sfactor*ddown[j] for j in range(len_e) if ddown[j]<=sfactor*1e-6]
+            edown = [edown[j] for j in range(len_e)]# if ddown[j]<=sfactor*1e-6]
+            ddown = [sfactor*ddown[j] for j in range(len_e)]# if ddown[j]<=sfactor*1e-6]
             ene_spin.append(edown)
             dos_spin.append(ddown)
  
@@ -478,7 +513,10 @@ def main(input_options):
     ax1.set_ylabel(dlab, labelpad=20)
 
     if ( maxticksx is not None ): 
-        ax1.yaxis.set_major_locator(ticker.MaxNLocator(maxticksx))
+        ax1.xaxis.set_major_locator(ticker.MaxNLocator(maxticksx))
+        
+    if ( maxticksy is not None ): 
+        ax1.yaxis.set_major_locator(ticker.MaxNLocator(maxticksy))
        
     transparency = 1.0
     my_legend = []
@@ -520,16 +558,19 @@ def main(input_options):
     plt.axhline(y=0, lw=3.0, color="black", linestyle='-') 
                 
     if title is not None:  
-        ax1.text(xpos_title, ypos_title, title, size=size_title, 
-                 transform=ax1.transAxes, ha='right', va='center', rotation=0)
+        if (not no_title): 
+            ax1.text(xpos_title, ypos_title, title, size=size_title, 
+                     transform=ax1.transAxes, ha='right', va='center', rotation=0)
 
     xpos_spin = 0.03/sx
     ha_spin = 'left'
     if ( local_single or no_leg ): 
         xpos_spin = 1-0.03/sx  
         ha_spin = 'right'
-        
-    if ( (not local_single and not no_leg) or (no_reverse_spin and not phonon) ):       
+    
+    if ( (not local_single and not no_leg) or 
+         (no_reverse_spin and not phonon) or 
+         (len(legend)>0) ):       
         leg=ax1.legend(handles=my_legend,loc=leg_pos,borderaxespad=0.7,
                       framealpha=0.9,fancybox=True)
         leg.get_frame().set_linewidth(axes_thickness)
@@ -557,8 +598,10 @@ def main(input_options):
         if ( ymax>0.0 ):  
             ax1.text(xpos_spin, 1-0.08/sy, "spin$\uparrow$", size="30", #color="darkblue",
                      transform=ax1.transAxes, ha=ha_spin, va='center', 
-                     rotation=0, bbox = props)  
+                     rotation=0, bbox = props) 
             
+    if (grid): pyl.grid(True)           
+
     fig.savefig('PLOT.png',format='png',dpi=300, bbox_inches='tight')
     fig.savefig('PLOT.eps',format='eps',bbox_inches='tight')
 

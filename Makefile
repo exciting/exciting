@@ -34,23 +34,6 @@ debug:
 debugmpiandsmp:
 	cd build/debugmpiandsmp; $(MAKE)
 
-# Test suite 
-
-test ::
-	cd test/; $(MAKE)
-
-test_mpi ::
-	cd test/; $(MAKE) mpi
-
-test_mpiandsmp ::
-	cd test/; $(MAKE) mpiandsmp
-
-test_reference ::
-	cd test/; $(MAKE) reference 
-
-cleantests ::
-	cd test/; $(MAKE) cleantests
-
 # HTML Documentation, limited to a subsection of the source 
 
 # Ford documentation. Note, the document build directory (1st argument) is relative
@@ -79,6 +62,9 @@ inputdoc::expandedschema
 	xsltproc --stringparam importancelevels "essential expert" ../../xml/schematowikidot.xsl ../../xml/excitinginput.xsd >inputref.wikidot;\
 	pdflatex excitinginput.tex;\
 	pdflatex excitinginput.tex
+
+# Wikidot Documentation
+# Generates wikidot-compatible documentation from the schema
 
 split_inputdoc::
 	cd xml/schema && $(MAKE)
@@ -127,6 +113,13 @@ stateconvert::
 species::
 	cd src/species; $(MAKE)
 
+test::
+	python3 test/tools/check_python_version.py
+	cd test && python3 runtest.py -make-test
+
+cleantest::
+	cd test && python clean_tests.py
+
 # ---------------------------
 
 libs:
@@ -147,7 +140,7 @@ clean:
 	rm -f *.o *.mod *~ fort.* ifc* *.gcno *.exe exdg.*
 	rm -f docs/exciting/*
 	rm -f docs/spacegroup/*
-	cd test; $(MAKE) cleantests
+	cd test; python clean_tests.py
 
 libxcclean:
 	cd src/libXC && make clean

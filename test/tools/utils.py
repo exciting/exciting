@@ -23,11 +23,13 @@ class Build_type(enum.Enum):
     purempi = enum.auto()
     all = enum.auto()
 
-build_type_enum_map = {'exciting_serial':Build_type.serial,  
+build_type_str_to_enum = {'exciting_serial':Build_type.serial,  
                        'exciting_mpismp':Build_type.mpiandsmp,
                        'exciting_smp':Build_type.puresmp,
                        'exciting_purempi':Build_type.purempi
                        }
+
+build_type_enum_to_str = {value:key for key, value in build_type_str_to_enum.items()}
 
 
 class CompilerBuild:
