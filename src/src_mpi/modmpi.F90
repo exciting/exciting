@@ -57,6 +57,7 @@ module modmpi
     type(mpiinfo) :: mpiintercom
   end type procgroup
 
+
   ! TODO(Alex) Issue #23. This is a bad idea. Defeats the point of encapsulating an instantiation of the
   ! MPI environment. All MPI variables can be querried with MPI subroutines. Benjamin probably did it
   ! because it was the only way he could get the object passed to BSE without a big refactor of
@@ -131,7 +132,7 @@ module modmpi
 
       ! Set global mpiinfo type
       mpiglobal%procs = procs
-      mpiglobal%comm = mpi_comm_world
+      mpiglobal%comm = mpi_comm_world    
       mpiglobal%rank = rank
       mpiglobal%ierr = ierr
       mpiglobal%is_root = mpiglobal%rank == mpiglobal%root
@@ -311,10 +312,6 @@ module modmpi
           write(*,*) "nofset (Error): np < 1"
           call terminate
         end if
-        if(np > mpiglobal%procs) then
-          write(*,*) "nofset (Error): np > np_max"
-          call terminate
-        end if
       else
         np = mpiglobal%procs
       end if
@@ -378,10 +375,6 @@ module modmpi
         np = nprocs
         if(np < 1) then
           write(*,*) "firstofset (Error): np < 1"
-          call terminate
-        end if
-        if(np > mpiglobal%procs) then
-          write(*,*) "firstofset (Error): np > np_max"
           call terminate
         end if
       else
@@ -450,10 +443,6 @@ module modmpi
         np = nprocs
         if(np < 1) then
           write(*,*) "lastofset (Error): np < 1"
-          call terminate
-        end if
-        if(np > mpiglobal%procs) then
-          write(*,*) "lastofset (Error): np > np_max"
           call terminate
         end if
       else
@@ -1598,5 +1587,109 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
           if(k .gt. lastk(iproc)) procofk = procofk + 1
        end do
     end function procofk
+
+
+!TODO(Alex/Peter) Issue 79. SIRUS Integration.
+! Review routine usage following sirius integration.
+!
+!> Find a 2D grid distribution, given n_processes and n_groups.
+!>
+!> The number of processes must be equally divisible by the number of groups,
+!> else a 2D grid cannot be constructed.
+!>
+!>         
+subroutine find_2d_grid(n_processes, n_groups, rows_per_group, cols_per_group, group_label)
+  use precision, only: dp
+
+  !> Number of processes
+  integer, intent(in) :: n_processes                     
+  !> Number of groups
+  integer, intent(in) :: n_groups                        
+  !> Number of rows per group
+  integer, intent(out) :: rows_per_group                 
+  !> Number of columns per group 
+  integer, intent(out) :: cols_per_group                 
+  !> Group label for error message 
+  character(len=*), intent(in), optional :: group_label  
+
+  !> Small, positive tolerance 
+  real(dp), parameter :: tol = 1.e-8_dp
+  !> Processes per group
+  integer :: processes_per_group
+  !> Error message 
+  character(len=100) :: error_message
+
+  !TODO(Alex/Peter) Issue 79. SIRUS Integration. 
+  ! Is this the correct behaviour, or should the routine throw an error?
+  if (n_groups < 1) then
+    ! One process per group 
+    cols_per_group = 1
+    rows_per_group = 1
+    return
+  endif 
+
+  if (mod(n_processes, n_groups) /= 0) then
+    error_message =  "Error(find_2d_grid): Number of processes not divisible by number of groups."
+    if (present(group_label)) then
+      error_message = error_message//" "//trim(adjustl(group_label))
+    endif 
+    call terminate_mpi_env(mpiglobal, error_message//" groups")
+  endif
+
+  processes_per_group = n_processes / n_groups
+  cols_per_group = sqrt(real(processes_per_group, dp) + tol)
+
+  do while (mod(processes_per_group, cols_per_group) /= 0)
+    cols_per_group = cols_per_group - 1
+  end do
+  rows_per_group = processes_per_group / cols_per_group
+
+end subroutine find_2d_grid
+
+ 
+!> Distribute n_elements between the total number of processes assigned to the communicator of mpi_env.
+!>
+!> The routine returns the index of the first and last element of a continguous sub-vector, found by 
+!> dividing up a contiguous vector of n_elements amongst N mpi processes. Indexing begins at 1 for 
+!> rank = 0, and ends at n_elements for rank = (n_processes - 1).   
+!>  
+!> If n_elements is divisible by the number of processes (mpi_env%procs), each process gets the same 
+!> number of elements. If n_elements is not evenly divisible by the number of processes, remaining elements 
+!> are distributed amongst the lowest ranks. The total number of elements for a given rank is always 
+!> defined as (last - first + 1).
+!>
+!> If n_elements is less than mpi_env%procsm or n_elements == 0, the surplus processes will be assigned 
+!> (first = 0 ; last = -1) such that the body of a do loop using these limits will not be evaluated, and
+!> the total number of elements (last - first + 1) = 0. 
+!>    
+!> The routine will terminate in firstofset if: 
+!>   rank < 0            ! MPI rank is negative. Should be impossible with this API.
+!>   n_procs < 1         ! 0 or negative MPI ranks. Should be impossible with this API.
+!>   n_procs < rank + 1  ! Rank exceeds total number of MPI processes assigned to this comm. 
+!>                       ! Should be impossible  with this API.
+!
+  subroutine distribute_loop(mpi_env, n_elements, first, last)
+    !> MPI environment
+    type(mpiinfo), intent(in) :: mpi_env
+    !> Total number of elements to distribute. 
+    integer, intent(in) :: n_elements
+    !> First index of the current subset.
+    integer, intent(out) :: first
+    !> Last index of the current subset.
+    integer, intent(out) :: last
+
+    if (n_elements == 0) then
+      first = 0
+      last = -1
+      return 
+    endif
+
+    first = firstofset(mpi_env%rank, n_elements, mpi_env%procs)
+    last = lastofset(mpi_env%rank, n_elements, mpi_env%procs)
+  
+  end subroutine distribute_loop
+
+
+
 
 end module modmpi
