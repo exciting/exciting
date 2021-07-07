@@ -18,6 +18,7 @@ src_dir: ../src/src_gw
          ../src/math 
          ../src/constants
          ../src/errors_warnings
+         ../src/src_mpi
 
 [//]: # "Note, ford commands can not be separated by whitelines."  
 [//]: # "More information on ford's project file options can be found at:"  

@@ -24,7 +24,7 @@ contains
       !> test object
       type(unit_test_type) :: test_report
       !> Number of assertions
-      integer, parameter :: n_assertions = 19
+      integer, parameter :: n_assertions = 18
 
       call test_report%init(n_assertions, mpiglobal)
 

@@ -34,6 +34,7 @@ module cmd_line_args
       logical :: all = .false.    !! All unit tests
       logical :: math = .false.   !! tests in the math directory
       logical :: gw = .false.     !! GW
+      logical :: mpi = .false.    !! tests mpi
    contains
       procedure :: init => set_unit_tests
    end type unit_tests_type
@@ -153,6 +154,8 @@ contains
          run%gw = .true.
       case ('math')
          run%math = .true.
+      case ('mpi')
+         run%mpi = .true.
       case default
          call terminate_mpi_env(mpi_env, 'Unrecognised unit test name: '&
             & //trim(test_name)//'. Please add to set_unit_test and unit_test_names_type')
