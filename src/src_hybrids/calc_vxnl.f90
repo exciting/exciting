@@ -32,11 +32,14 @@ subroutine calc_vxnl()
     integer(4), allocatable :: idxpair(:,:)
     complex(8), allocatable :: minm(:,:,:)
     complex(8), allocatable :: evecsv(:,:)
+    complex(8), allocatable :: vnlcv(:,:,:,:)
 
     complex(8), external :: zdotc
 
     call cpu_time(tstart)
 
+
+if (.false.) then
     !----------------------------------------
     ! Read KS eigenvalues from file EVALSV.OUT
     !----------------------------------------
@@ -56,7 +59,7 @@ subroutine calc_vxnl()
     deallocate(evalfv)
 
     ! singular term prefactor
-    sxs2 = 4.d0*pi*vi*singc2*kqset%nkpt
+    sxs2 =  4.d0*pi*vi*singc2*kqset%nkpt
 
     if ((input%gw%coreflag=='all').or. &
         (input%gw%coreflag=='xal')) then
@@ -217,7 +220,7 @@ subroutine calc_vxnl()
           !--------------------------
           if (Gamma) then
             do ie1 = 1, nomax
-              vxnl(ie1,ie1,ikp) = vxnl(ie1,ie1,ikp) - sxs2*kiw(ie1,ik)
+              vxnl(ie1,ie1,ikp) = vxnl(ie1,ie1,ikp) ! - sxs2*kiw(ie1,ik)
             end do
           end if
 
@@ -254,6 +257,45 @@ subroutine calc_vxnl()
       end do
     end do ! ikp
 
+
+
+else
+
+
+
+
+      if (allocated(vxnl)) deallocate(vxnl)
+      allocate(vxnl(nstfv,nstfv,kset%nkpt))
+      vxnl(:,:,:) = zzero
+
+  
+      Allocate (vnlcv(ncrmax, natmtot, nstsv, kset%nkpt))
+!      Allocate (vxnl(nstsv, nstsv, nkpt))
+      Call oepvnl (vnlcv, vxnl)
+      deallocate(vnlcv)
+endif
+    write(*,*) 'real'
+    do ikp = 1, kset%nkpt
+      write(*,*) 'ikp=',ikp
+      do ie1 = 1, nstfv
+!        do ie2 = 1, nstfv
+          write(*,'(10F18.10)') dble(vxnl(ie1,1:10,ikp))
+!        end do
+      end do
+    end do ! ikp
+!    write(*,*) 
+
+    write(*,*) 'imag'
+    do ikp = 1, kset%nkpt
+      write(*,*) 'ikp=',ikp
+      do ie1 = 1, nstfv
+          write(*,'(10F18.10)') dimag(vxnl(ie1,1:10,ikp))
+      end do
+    end do ! ikp
+
+
+stop
+    
     call cpu_time(tend)
 
     return

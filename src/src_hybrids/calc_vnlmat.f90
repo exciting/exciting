@@ -19,7 +19,7 @@ subroutine calc_vnlmat
     implicit none
     type(evsystem) :: system
     integer :: ik
-    integer :: ie1, ie2
+    integer :: ie1, ie2, nst
     integer :: nmatp
     complex(8), allocatable :: evec(:,:)
     complex(8), allocatable :: temp(:,:), temp1(:,:)
@@ -46,7 +46,6 @@ subroutine calc_vnlmat
     apwalm = zzero
     allocate(evec(nmatmax,nstfv))
     evec = zzero
-    haaijSize = MaxAPWs()
 
     do ik = ikfirst, iklast
 
@@ -57,29 +56,36 @@ subroutine calc_vnlmat
         ! Hamiltonian and overlap setup
         nmatp = nmat(1,ik)
         call newsystem(system,input%groundstate%solver%packedmatrixstorage,nmatp)
+        call MTRedirect(mt_hscf%main,mt_hscf%spinless)
+        call hamiltonsetup(system, ngk(1, ik), apwalm, igkig(:, 1, ik), vgkc(:,:,1,ik))
         call overlapsetup(system, ngk(1, ik), apwalm, igkig(:, 1, ik), vgkc(:,:,1,ik))
+        !write(*,*) 'overlap=', ik, sum(system%overlap%za)
 
         ! c
         call getevecfv(vkl(:,ik), vgkl(:,:,:,ik), evec)
 
+
+        nst=min(nmatp, nstfv)
         ! conjg(c)*S
-        allocate(temp(nstfv,nmatp))
-        call zgemm('c', 'n', nstfv, nmatp, nmatp, &
+        allocate(temp(nst,nmatp))
+ 
+
+        call zgemm('c', 'n', nst, nmatp, nmatp, &
         &          zone, evec(1:nmatp,:), nmatp, &
         &          system%overlap%za, nmatp, &
-        &          zzero, temp, nstfv)
+        &          zzero, temp, nst)
 
         ! Vnl*conjg(c)*S
-        allocate(temp1(nstfv,nmatp))
-        call zgemm('n', 'n', nstfv, nmatp, nstfv, &
+        allocate(temp1(nst,nmatp))
+        call zgemm('n', 'n', nst, nmatp, nst, &
         &          zone, vxnl(:,:,ik), nstfv, &
-        &          temp, nstfv, zzero, &
-        &          temp1, nstfv)
+        &          temp, nst, zzero, &
+        &          temp1, nst)
 
         ! V^{NL}_{GG'} = conjg[conjg(c)*S]*Vx*conjg(c)*S
-        call zgemm('c', 'n', nmatp, nmatp, nstfv, &
-        &          zone, temp, nstfv, &
-        &          temp1, nstfv, zzero, &
+        call zgemm('c', 'n', nmatp, nmatp, nst, &
+        &          zone, temp, nst, &
+        &          temp1, nst, zzero, &
         &          vnlmat(1:nmatp,1:nmatp,ik), nmatp)
 
         call deletesystem(system)

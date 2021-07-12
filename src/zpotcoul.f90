@@ -259,6 +259,7 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 #endif
          End Do
       End Do
+!write(*,*) abs(qi)
 !      stop
 ! find the smooth pseudocharge within the muffin-tin whose multipoles are the
 ! difference between the real muffin-tin and interstitial multipoles

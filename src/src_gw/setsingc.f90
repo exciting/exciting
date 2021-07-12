@@ -23,7 +23,7 @@ subroutine setsingc
       write(fdebug,*)
     end if
 
-    beta = (omega/(6.0d0*pi*pi))**(1.0d0/3.0d0)
+    beta = (omega/(6.0d0*pi*pi))**(1.0d0/3.0d0)*0.15d0
     intf1 = omega/(4.0d0*pi*pi*beta)
     intf2 = omega/(4.0d0*pi*pi)*sqrt(pi/beta)
 
@@ -41,6 +41,7 @@ subroutine setsingc
     singc2 = intf2-sumf2
 
     if ((input%gw%debug).and.(rank==0)) then
+!    if (.true.) then
       write(fdebug,*) 'Info(setsingc): Integrals of the auxiliary function'
       write(fdebug,1) beta
       write(fdebug,2) intf1, intf2
@@ -95,10 +96,25 @@ contains
         f1 = 0.0d0
         f2 = 0.0d0
 
-        ! Loop over G-vectors
-        do ipw = ipwin, Gqset%ngk(1,iq)
 
-          vgpq(1:3) = Gset%vgc(1:3,Gqset%igkig(ipw,1,iq))+kqset%vqc(1:3,iq)
+!    type G_set
+        ! grid parameters
+!        real(8) :: gmaxvr     ! Maximum G vector length
+!        real(8) :: bvec(3,3)  ! Lattice basis vectors
+!        integer :: ngrtot     ! total number of grid points
+!        integer :: intgv(3,2) ! integer grid size
+        ! G-points
+!        integer :: ngvec                  ! number of G-points
+!        real(8), allocatable :: vgc(:,:)  ! Cartesian coodinates of lattice
+!        real(8), allocatable :: gc(:)     ! Length of G vector
+!        integer, allocatable :: ivg(:,:)  ! integer coordinates
+!        integer, allocatable :: ivgig(:,:,:) ! integer coordinates -> 1d index
+!    end type G_set
+
+        ! Loop over G-vectors
+        do ipw = ipwin, Gset%ngvec
+
+          vgpq(1:3) = Gset%vgc(1:3,ipw)+kqset%vqc(1:3,iq)
           gpq2 = vgpq(1)**2+vgpq(2)**2+vgpq(3)**2
           gpq  = dsqrt(gpq2)
 
@@ -106,6 +122,18 @@ contains
           f2 = f2 + dexp(-beta*gpq2)/gpq2
 
         enddo ! ipw
+        write(*,*) dexp(-beta*gpq2)/gpq2
+        ! Loop over G-vectors
+!        do ipw = ipwin, Gqset%ngk(1,iq)
+
+!          vgpq(1:3) = Gset%vgc(1:3,Gqset%igkig(ipw,1,iq))+kqset%vqc(1:3,iq)
+!          gpq2 = vgpq(1)**2+vgpq(2)**2+vgpq(3)**2
+!          gpq  = dsqrt(gpq2)
+
+!          f1 = f1 + dexp(-beta*gpq)/gpq
+!          f2 = f2 + dexp(-beta*gpq2)/gpq2
+
+!        enddo ! ipw
         return
     end subroutine genauxf
 

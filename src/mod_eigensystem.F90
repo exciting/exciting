@@ -41,6 +41,7 @@ Module mod_eigensystem
    logical :: h1on
    !> complex Gaunt coefficient array
    Complex(8), Allocatable :: gntyry(:, :, :), gntryy(:, :, :), gntnonz(:)
+   real(8), allocatable :: gntyyy(:,:,:)
    !> list of non-zero Gaunt coefficients
    Integer, Allocatable :: gntnonzlm1(:), gntnonzlm2(:), gntnonzlm3(:), gntnonzlindex(:), gntnonzl2index(:, :)
    !> another compact list of Gaunt coefficients
@@ -78,6 +79,19 @@ Module mod_eigensystem
 
    !> Muffin-tin Hamlitonian for SCF
    Type(MTHamiltonianList) :: mt_hscf
+
+! Wave functions in different representations 
+      Type WFType
+        complex(8), allocatable :: mt(:,:,:)      ! coefficients of MT functions 
+        complex(8), allocatable :: mtrlm(:,:,:,:) ! expansion in spherical harmonics  
+        complex(8), allocatable :: mtmesh(:,:,:,:)! values on a real-space mesh
+        complex(8), allocatable :: gk(:,:)        ! coefficients of PWs
+        complex(8), allocatable :: ir(:,:)        ! WFs on an FFT grid
+        integer :: maxnlo                     ! maximum number of LOs over all species
+        integer :: maxaa                      ! maximum number of augmenting functions for (L)APW
+        integer,allocatable :: losize(:)      ! number of LOs for each species
+      End Type WFType
+
 
    !> Relativity settings
    integer :: level_nr, level_zora, level_iora
@@ -413,5 +427,743 @@ Contains
       if (allocated(this%losize)) deallocate (this%losize)
 
    end subroutine MTRelease
+
+!
+!
+!
+!BOP
+! !ROUTINE: WFInit
+! !INTERFACE:
+!
+!
+     subroutine WFInit(wf)
+! !USES:
+! !DESCRIPTION:
+! Initialised an WFType datastructure 
+!
+! !REVISION HISTORY:
+!   Created 2021 (Andris)
+!EOP
+!BOC
+     Use modinput
+     Use mod_APW_LO
+     Use mod_atoms
+     Use mod_muffin_tin
+
+     implicit none
+     type(WFType) :: wf
+
+     integer :: haaijsize
+     integer :: if1,l,m,lm,is,ias,io,ilo,l1,l3,lm1,lm3
+
+
+     haaijSize=0
+     Do is = 1, nspecies
+       if1=0
+       Do l = 0, input%groundstate%lmaxmat
+         Do m = - l, l
+           lm = idxlm (l, m)
+           Do io = 1, apword (l, is)
+             if1=if1+1
+           End Do
+         End Do
+       End Do
+       if (if1.gt.haaijSize) haaijSize=if1
+     Enddo
+     wf%maxaa=haaijSize
+
+
+     if (allocated(wf%losize)) deallocate(wf%losize)
+     allocate(wf%losize(nspecies))
+     wf%maxnlo=0
+     Do is = 1, nspecies
+       ias=idxas (1, is)
+       ilo=nlorb (is)
+       if (ilo.gt.0) then
+         l1 = lorbl (ilo, is)
+         lm1 = idxlm (l1, l1)
+         l3 = lorbl (1, is)
+         lm3 = idxlm (l3, -l3)
+         wf%losize(is)=idxlo (lm1, ilo, ias)- idxlo (lm3, 1, ias)+1
+         if (wf%maxnlo.lt.wf%losize(is)) wf%maxnlo=wf%losize(is)
+       else
+         wf%losize(is)=0
+       endif
+     Enddo
+
+!     nullify(wf%mt)
+!     nullify(wf%gk)
+!     nullify(wf%ir)
+!     nullify(wf%mtrlm)
+!     nullify(wf%mtmesh)
+
+     end subroutine WFInit
+
+
+!
+!
+!
+!BOP
+! !ROUTINE: WFRelease
+! !INTERFACE:
+!
+!
+     subroutine WFRelease(wf)
+! !USES:
+! !DESCRIPTION:
+! Release all memory used by wave functions in the WFType representation
+!
+! !REVISION HISTORY:
+!   Created June 2019 (Andris)
+!EOP
+!BOC
+     implicit none
+     type(WFType) :: wf
+
+     if (allocated(wf%mt)) then
+       deallocate(wf%mt)
+     endif
+!     nullify(wf%mt)
+     if (allocated(wf%gk)) then
+       deallocate(wf%gk)
+     endif
+!     nullify(wf%gk)
+     if (allocated(wf%ir)) then
+       deallocate(wf%ir)
+     endif
+!     nullify(wf%ir)
+     if (allocated(wf%mtrlm)) then
+       deallocate(wf%mtrlm)
+     endif
+!     nullify(wf%mtrlm)
+     if (allocated(wf%mtrlm)) then
+       deallocate(wf%mtmesh)
+     endif
+!     nullify(wf%mtmesh)
+
+     end subroutine WFRelease
+
+
+!
+!
+!
+!BOP
+! !ROUTINE: WFRelease
+! !INTERFACE:
+!
+!
+     subroutine genWF(ik,wf)
+! !USES:
+! !DESCRIPTION:
+! Generates wave functions in the WFType representation from first- and second-variational eigenvectors.
+!
+! !REVISION HISTORY:
+!   Created 2021 (Andris)
+!EOP
+!BOC
+!     use mod_kpoint, only : vkl
+!     use mod_eigenvalue_occupancy, only : nstfv,nstsv
+!     use mod_gkvector, only : ngk,vgkl,gkc,tpgkc,sfacgk,ngkmax
+!     use mod_APW_LO, only : apwordmax
+!     use mod_atoms, only : natmtot
+!     use mod_muffin_tin, only : lmmaxapw
+!     use modinput, only : input
+      Use modinput
+      use mod_kpoint
+      use mod_eigenvalue_occupancy
+      use mod_gkvector
+      use mod_APW_LO
+      use mod_atoms
+      use mod_muffin_tin
+
+      use mod_Gvector, only : ngrid, ngrtot, igfft
+      Use mod_lattice, only : omega
+      use constants, only : zzero, zone
+!      use modmpi
+
+
+     implicit none
+     integer, intent (in) :: ik
+     type (WFType) :: wf
+
+     Complex (8), Allocatable :: apwalm (:, :, :, :)
+     Complex (8), Allocatable :: evecfv (:, :)
+     Complex (8), Allocatable :: evecsv (:, :)
+     integer :: ia,is,ias,if3,io,l,m,lm,wfsize,l1,l3,m1,m3,lm1,lm3,j1,j3
+     Complex (8), Allocatable :: apwi(:,:),wf1(:,:)
+!     Complex (8), Allocatable :: zfft
+     real (8) :: t1
+     integer :: ifg,igk,j
+     
+
+     Allocate(evecfv(nmatmax, nstfv))
+     Allocate(evecsv(nstsv, nstsv))
+     wfsize=wf%maxaa+wf%maxnlo
+     Allocate(wf1(wfsize,nstfv))
+     Allocate(wf%mt(wfsize,nstsv,natmtot))
+
+! get the eigenvalues/vectors from file for input k-point
+!     Call getevalsv (vkl(:, ik), evalsv)
+     Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
+     Call getevecsv (vkl(:, ik), evecsv)
+
+! find the matching coefficients
+     Allocate(apwalm(ngkmax, apwordmax, lmmaxapw, natmtot))
+     Allocate(apwi(wf%maxaa,ngkmax))
+
+     Call match (ngk(1, ik), gkc(:, 1, ik), tpgkc(:, :, 1, ik), sfacgk(:, :, 1, ik), apwalm)
+
+     Do is = 1, nspecies
+!       n = lmmaxvr * nrcmt (is)
+       Do ia = 1, natoms (is)
+         ias = idxas (ia, is)
+         wf1=zzero
+
+         if3=0
+         Do l = 0, input%groundstate%lmaxmat
+           Do io = 1, apword (l, is)
+             Do m = - l, l
+               lm = idxlm (l, m)
+               if3=if3+1
+               apwi(if3,:)=apwalm(1:ngk(1, ik), io, lm, ias)
+             End Do
+           End Do
+         End Do
+
+! APW coefficients
+          call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      wf%maxaa, &          ! M ... rows of op( A ) = rows of C
+                      nstfv, &           ! N ... cols of op( B ) = cols of C
+                      ngk(1,ik), &        ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      apwi, &        ! A
+                      wf%maxaa,&           ! LDA ... leading dimension of A
+                      evecfv, &           ! B
+                      nmatmax, &          ! LDB ... leading dimension of B
+                      zzero, &          ! beta
+                      wf1, &  ! C
+                      wfsize &      ! LDC ... leading dimension of C
+                      )
+! LO coefficients
+       if (wf%losize(is).gt.0) then
+         l1 = lorbl (1, is)
+         l3 = lorbl (nlorb(is), is)
+         lm1=idxlm (l1,-l1)
+         lm3=idxlm (l3,l3)
+         j1= ngk(1, ik) + idxlo (lm1, 1, ias)
+         j3= ngk(1, ik) + idxlo (lm3, nlorb(is), ias)
+         wf1(wf%maxaa+1:wf%maxaa+wf%losize(is),1:nstfv)=evecfv(j1:j3,1:nstfv)
+       endif
+
+
+! Apply the second variation
+          call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
+                     'N', &           ! TRANSB = 'N'  op( B ) = B.
+                      wfsize, &          ! M ... rows of op( A ) = rows of C
+                      nstsv, &           ! N ... cols of op( B ) = cols of C
+                      nstfv, &        ! K ... cols of op( A ) = rows of op( B )
+                      zone, &          ! alpha
+                      wf1, &        ! A
+                      wfsize,&           ! LDA ... leading dimension of A
+                      evecsv(1,1), &           ! B
+                      nstsv, &          ! LDB ... leading dimension of B
+                      zzero, &          ! beta
+                      wf%mt(1,1,ias), &  ! C
+                      wfsize &      ! LDC ... leading dimension of C
+                      )
+
+     
+       End Do
+     End Do
+
+     Deallocate(apwi)
+     Deallocate(apwalm)
+
+!     wf%mt(1:wf%maxaa,:,:)=0d0
+
+
+     Allocate(wf%ir(ngrtot,nstsv))
+
+!     interstitial part 
+      t1 = 1 / sqrt(omega)
+      Do j = 1, nstsv
+        wf%ir(:,j) = 0.d0
+! spin-unpolarised wavefunction
+        Do igk = 1, ngk (1, ik)
+          ifg = igfft (igkig(igk, 1, ik))
+          wf%ir(ifg, j) = t1*evecfv(igk, j)
+        End Do
+! Fourier transform wavefunction to real-space
+        Call zfftifc (3, ngrid, 1, wf%ir(:, j))
+      End Do
+
+     Deallocate(evecfv)
+     Deallocate(evecsv)
+
+     end subroutine genWF
+
+!
+!
+!
+!BOP
+! !ROUTINE: genWFinMT
+! !INTERFACE:
+!
+!
+     subroutine genWFinMT(wf)
+     use modinput
+     use mod_APW_LO
+     use mod_atoms
+     use mod_muffin_tin
+     use mod_eigenvalue_occupancy
+! !USES:
+! !DESCRIPTION:
+! Evaluates WF in terms of spherical harmonics  
+!
+! !REVISION HISTORY:
+!   Created 2021 (Andris)
+!EOP
+!BOC
+    implicit none
+    type (WFType) :: wf
+    integer :: j,is,ia,ias,ir,l,m,lm,if1,ilo,io
+
+    if (.not.allocated(wf%mtrlm)) allocate(wf%mtrlm(lmmaxvr,nrmtmax,natmtot,nstsv))
+    wf%mtrlm=0d0
+    do j=1,nstsv
+      do is=1,nspecies
+        do ia=1,natoms(is)
+          ias=idxas(ia,is)
+          if1=0
+! APW part
+          do l=0,input%groundstate%lmaxvr
+            do io = 1, apword (l, is)
+              do m=-l,l
+                lm=idxlm(l,m)
+                if1=if1+1
+                wf%mtrlm(lm,1:nrmt(is),ias,j)=wf%mtrlm(lm,1:nrmt(is),ias,j)+wf%mt(if1,j,ias)*apwfr(1:nrmt(is),1,io,l,ias)
+              enddo
+            enddo
+          enddo
+
+! local-orbital functions
+          Do ilo = 1, nlorb (is)
+            l = lorbl (ilo, is)
+            Do m = - l, l
+              if1=if1+1
+              lm = idxlm (l, m)
+              wf%mtrlm(lm,1:nrmt(is),ias,j)=wf%mtrlm(lm,1:nrmt(is),ias,j)+wf%mt(if1,j,ias)*lofr(1:nrmt(is),1,ilo,ias)
+            End Do
+          End Do
+
+        enddo
+      enddo
+    enddo    
+
+
+
+
+    end subroutine genWFinMT
+
+
+
+!
+!
+!
+!BOP
+! !ROUTINE: genWFonMesh
+! !INTERFACE:
+!
+!
+     subroutine genWFonMesh(wf)
+     use modinput
+     use mod_APW_LO
+     use mod_atoms
+     use mod_muffin_tin
+     use mod_eigenvalue_occupancy
+     use constants, only : zzero, zone
+     use mod_SHT
+! !USES:
+! !DESCRIPTION:
+! Evaluates WF on a real-space mesh 
+!
+! !REVISION HISTORY:
+!   Created 2021 (Andris)
+!EOP
+!BOC
+     implicit none
+     type (WFType) :: wf
+     integer :: j,is,ia,ias
+     
+     if (.not.allocated(wf%mtmesh)) allocate(wf%mtmesh(lmmaxvr,nrmtmax,natmtot,nstsv))
+
+     do j=1,nstsv
+       do is=1,nspecies
+         do ia=1,natoms(is)
+           ias=idxas(ia,is)
+                     Call zgemm ('N', 'N', lmmaxvr, nrmt(is), lmmaxvr, &
+                    & zone, zbshtvr, lmmaxvr, wf%mtrlm(1,1,ias,j), lmmaxvr, zzero, &
+                    & wf%mtmesh(1,1,ias,j), lmmaxvr)
+         enddo
+       enddo
+     enddo
+     end subroutine genWFonMesh
+
+!
+!
+!
+!BOP
+! !ROUTINE: genWFonMeshOne
+! !INTERFACE:
+!
+!
+     subroutine genWFonMeshOne(wf)
+     use modinput
+     use mod_APW_LO
+     use mod_atoms
+     use mod_muffin_tin
+     use mod_eigenvalue_occupancy
+     use constants, only : zzero, zone
+     use mod_SHT
+! !USES:
+! !DESCRIPTION:
+! Evaluates WF on a real-space mesh 
+!
+! !REVISION HISTORY:
+!   Created 2021 (Andris)
+!EOP
+!BOC
+     implicit none
+     type (WFType) :: wf
+     integer :: is,ia,ias
+     
+     if (.not.allocated(wf%mtmesh)) allocate(wf%mtmesh(lmmaxvr,nrmtmax,natmtot,1))
+
+     do is=1,nspecies
+       do ia=1,natoms(is)
+         ias=idxas(ia,is)
+                   Call zgemm ('N', 'N', lmmaxvr, nrmt(is), lmmaxvr, &
+                  & zone, zbshtvr, lmmaxvr, wf%mtrlm(1,1,ias,1), lmmaxvr, zzero, &
+                  & wf%mtmesh(1,1,ias,1), lmmaxvr)
+       enddo
+     enddo
+     end subroutine genWFonMeshOne
+
+!
+!
+!
+!BOP
+! !ROUTINE: WFprod
+! !INTERFACE:
+!
+!
+     subroutine WFprod(ist1,wf1,ist2,wf2,prod)
+     use modinput
+     use mod_APW_LO
+     use mod_atoms
+     use mod_muffin_tin
+     use mod_eigenvalue_occupancy
+     use constants, only : zzero, zone
+     use mod_SHT
+     use mod_Gvector, only : ngrtot
+! !USES:
+! !DESCRIPTION:
+! Evaluates a product of two WFs in the real space
+!
+! !REVISION HISTORY:
+!   Created 2021 (Andris)
+!EOP
+!BOC
+     implicit none
+     integer, intent(in) :: ist1,ist2
+     type (WFType) :: wf1,wf2,prod
+     integer :: is,ia,ias
+     integer :: l1,l3,m1,m3,lm1,lm3,lm2,io1,io2,if1,if3,if1old,if3old,ilo1,ilo2,lmmaxprod
+     complex(8), allocatable :: factors(:), rho(:,:), fr(:)
+     complex(8) :: zt
+     real(8) :: ta,tb
+
+
+
+
+     if (.not.allocated(prod%ir)) allocate(prod%ir(ngrtot,1))
+     if (.not.allocated(prod%mtrlm)) allocate(prod%mtrlm(lmmaxvr,nrmtmax,natmtot,1))
+
+
+call timesec(ta)
+
+      lmmaxprod= lmmaxvr
+      prod%mtrlm=0d0
+      allocate(factors(lmmaxvr))
+      allocate(rho(nrmtmax,lmmaxvr))
+      allocate(fr(nrmtmax))
+
+!do if1=1,wf1%maxaa
+!
+! write(*,*) 
+!
+!enddo
+
+
+      Do is = 1, nspecies
+!        n = lmmaxvr * nrmt (is)
+        Do ia = 1, natoms (is)
+          ias = idxas (ia, is)
+          rho=0d0
+
+! APW-APW part
+!if (.true.) then
+          if1=0
+          Do l1 = 0, input%groundstate%lmaxapw
+            Do io1 = 1, apword (l1, is)
+              if3=0
+              if1old=if1
+
+             Do l3 = 0, input%groundstate%lmaxapw
+                Do io2 = 1, apword (l3, is)
+                  fr(:)=apwfr (:, 1, io1, l1, ias) * apwfr (:, 1, io2, l3, ias)
+                  if1=if1old
+                  if3old=if3
+                  factors=0d0
+                  Do m1 = - l1, l1
+                    lm1 = idxlm (l1, m1)
+                    if1=if1+1
+                    if3=if3old
+                    Do m3 = - l3, l3
+                      lm3 = idxlm (l3, m3)
+                      if3=if3+1
+!                      i=1
+!                      do while(indgnt(i,lm3,lm1).ne.0)
+!                        lm2=indgnt(i,lm3,lm1)
+                      zt=conjg(wf1%mt(if1,ist1,ias))*wf2%mt(if3,ist2,ias)
+                      do lm2=1,lmmaxprod
+ !                       if (dble(gntyyy(lm1,lm2,lm3)*conjg(gntyyy(lm1,lm2,lm3))).gt.1d-10) then
+                          factors(lm2) = factors(lm2) + zt*gntyyy(lm2,lm1,lm3)
+!                        endif
+                      enddo
+!                        if (lm2.le.lmmaxvr) factorsnew(lm2,1)=factorsnew(lm2,1)+dble(mt_dm%main%ff(if1,if3,ias)*conjg(listgnt(i,lm3,lm1)))
+!                        i=i+1
+!                      enddo
+                    enddo
+                  enddo
+
+                    do lm2=1,lmmaxprod
+                      if (factors(lm2).ne.0d0) then
+!                        rho(1,lm2) = rho(1,lm2) + fr(1)*factors(lm2)
+                        rho(1:nrmt(is),lm2) = rho(1:nrmt(is),lm2) + fr(1:nrmt(is))*factors(lm2)
+                      endif
+
+                    enddo
+
+                End Do
+              End Do
+
+
+            End Do
+          End Do
+
+if (wf1%losize(is).gt.0) then
+!APW-LO part
+
+          if1=0
+          Do l1 = 0, input%groundstate%lmaxapw
+            Do io1 = 1, apword (l1, is)
+              if3=0
+              if1old=if1
+              Do ilo2 = 1, nlorb (is)
+                l3 = lorbl (ilo2, is)
+                fr(:)=apwfr (:, 1, io1, l1, ias) * lofr (:, 1, ilo2, ias)
+                  if1=if1old
+                  if3old=if3
+                  factors=0d0
+                  Do m1 = - l1, l1
+                    lm1 = idxlm (l1, m1)
+                    if1=if1+1
+                    if3=if3old
+                    Do m3 = - l3, l3
+                      lm3 = idxlm (l3, m3)
+                      if3=if3+1
+
+!                      i=1
+!                      do lm2=1,lmmaxvr
+!                        factorsnew(lm2,1)=factorsnew(lm2,1)+2d0*conjg(gntryy(lm2,lm1,lm3))*dble(mt_dm%main%ff(if1,maxaa+if3,ias))
+!                      enddo
+                      zt=conjg(wf1%mt(if1,ist1,ias))*wf2%mt(wf2%maxaa+if3,ist2,ias)
+                      do lm2=1,lmmaxprod
+!                        if (dble(gntyyy(lm1,lm2,lm3)*conjg(gntyyy(lm1,lm2,lm3))).gt.1d-10) then
+                          factors(lm2) = factors(lm2) + zt*gntyyy(lm2,lm1,lm3)
+!                        endif
+                      enddo
+                      zt=conjg(wf1%mt(wf1%maxaa+if3,ist1,ias))*wf2%mt(if1,ist2,ias)
+                      do lm2=1,lmmaxprod
+!                        if (dble(gntyyy(lm1,lm2,lm3)*conjg(gntyyy(lm1,lm2,lm3))).gt.1d-10) then
+                          factors(lm2) = factors(lm2) + zt*gntyyy(lm2,lm3,lm1)
+!                        endif
+                      enddo
+
+!                      do while(indgnt(i,lm3,lm1).ne.0)
+!                        lm2=indgnt(i,lm3,lm1)
+!                        if (lm2.le.lmmaxvr) factorsnew(lm2,1)=factorsnew(lm2,1)+2d0*dble(mt_dm%main%ff(if1,maxaa+if3,ias)*conjg(listgnt(i,lm3,lm1)))
+!                        i=i+1
+!                      enddo
+
+
+                    enddo
+                  enddo
+
+                    do lm2=1,lmmaxprod
+                      if (factors(lm2).ne.0d0) then
+                        rho(1:nrmt(is),lm2) = rho(1:nrmt(is),lm2) + fr(1:nrmt(is))*factors(lm2)
+!                        rho(1:nrmt(is),lm2,1)=rho(1:nrmt(is),lm2,1)+frnew(1:nrmt(is),1)*factorsnew(lm2,1)
+                      endif
+
+                    enddo
+!                  do lm2=1,lmmaxvr
+!                    if (factorsnew(lm2,1).ne.0d0) then
+!                      rho(1:nrmt(is),lm2,1)=rho(1:nrmt(is),lm2,1)+fr(1:nrmt(is),1)*factorsnew(lm2,1)
+!                    endif
+!                  enddo
+
+              End Do
+            End Do
+          End Do
+
+
+!LO-LO part
+            if1=0
+            Do ilo1 = 1, nlorb (is)
+              l1 = lorbl (ilo1, is)
+              if3=0
+              if1old=if1
+              Do ilo2 = 1, nlorb (is)
+                l3 = lorbl (ilo2, is)
+                fr(:)=lofr (:, 1, ilo1, ias) * lofr (:, 1, ilo2, ias)
+                if1=if1old
+                if3old=if3
+                factors=0d0
+                Do m1 = - l1, l1
+                  lm1 = idxlm (l1, m1)
+                  if1=if1+1
+                  if3=if3old
+                  Do m3 = - l3, l3
+                    lm3 = idxlm (l3, m3)
+                    if3=if3+1
+!                      i=1
+                      zt=conjg(wf1%mt(wf1%maxaa+if1,ist1,ias))*wf2%mt(wf2%maxaa+if3,ist2,ias)
+                      do lm2=1,lmmaxprod
+!                        if (dble(gntyyy(lm1,lm2,lm3)*conjg(gntyyy(lm1,lm2,lm3))).gt.1d-10) then
+                          factors(lm2) = factors(lm2) + zt*gntyyy(lm2,lm1,lm3)
+!                        endif
+                      enddo
+!                      do while(indgnt(i,lm3,lm1).ne.0)
+!                        lm2=indgnt(i,lm3,lm1)
+!                        if (lm2.le.lmmaxvr) factorsnew(lm2,1)=factorsnew(lm2,1)+dble(mt_dm%main%ff(maxaa+if1,maxaa+if3,ias)*conjg(listgnt(i,lm3,lm1)))
+!                        i=i+1
+!                      enddo
+
+                  enddo
+                enddo
+
+                    do lm2=1,lmmaxprod
+                      if (factors(lm2).ne.0d0) then
+                        rho(1:nrmt(is),lm2) = rho(1:nrmt(is),lm2) + fr(1:nrmt(is))*factors(lm2)
+!                        rho(1:nrmt(is),lm2,1)=rho(1:nrmt(is),lm2,1)+frnew(1:nrmt(is),1)*factorsnew(lm2,1)
+                      endif
+                    enddo
+!                do lm2=1,lmmaxvr
+!                  if (factorsnew(lm2,1).ne.0d0) then
+!                    rho(1:nrmt(is),lm2,1)=rho(1:nrmt(is),lm2,1)+frnew(1:nrmt(is),1)*factorsnew(lm2,1)
+!                  endif
+!                enddo
+
+              End Do
+            End Do
+
+endif
+
+
+
+
+          do lm2=1,lmmaxvr
+            prod%mtrlm(lm2,1:nrmt(is),ias,1)=rho(1:nrmt(is),lm2)
+          enddo
+
+        End Do
+      End Do
+
+
+      deallocate(fr,factors)
+      deallocate(rho)
+
+
+call timesec(tb)
+!write(*,*) tb-ta
+
+     prod%ir(:,1)=conjg(wf1%ir(:,ist1))*wf2%ir(:,ist2)
+     end subroutine WFprod
+
+
+!
+!
+!
+!BOP
+! !ROUTINE: WFprodrs
+! !INTERFACE:
+!
+!
+     subroutine WFprodrs(ist1,wf1,ist2,wf2,prod)
+     use modinput
+     use mod_APW_LO
+     use mod_atoms
+     use mod_muffin_tin
+     use mod_eigenvalue_occupancy
+     use constants, only : zzero, zone
+     use mod_SHT
+     use mod_Gvector, only : ngrtot
+! !USES:
+! !DESCRIPTION:
+! Evaluates a product of two WFs in the real space
+!
+! !REVISION HISTORY:
+!   Created 2021 (Andris)
+!EOP
+!BOC
+     implicit none
+     integer, intent(in) :: ist1,ist2
+     type (WFType) :: wf1,wf2,prod
+     integer :: is,ia,ias
+     integer :: l1,l3,m1,m3,lm1,lm3,lm2,io1,io2,if1,if3,if1old,if3old,ilo1,ilo2,lmmaxprod
+     complex(8), allocatable :: factors(:), rho(:,:), fr(:)
+     complex(8) :: zt
+     real(8) :: ta,tb
+
+
+
+
+     if (.not.allocated(prod%ir)) allocate(prod%ir(ngrtot,1))
+     if (.not.allocated(prod%mtrlm)) allocate(prod%mtrlm(lmmaxvr,nrmtmax,natmtot,1))
+
+
+call timesec(ta)
+
+     if (.not.allocated(prod%mtmesh)) allocate(prod%mtmesh(lmmaxvr,nrmtmax,natmtot,1))
+     prod%mtmesh(:,:,:,1)=conjg(wf1%mtmesh(:,:,:,ist1))*wf2%mtmesh(:,:,:,ist2)
+
+     do is=1,nspecies
+       do ia=1,natoms(is)
+         ias=idxas(ia,is)
+         Call zgemm ('N', 'N', lmmaxvr, nrmt(is), lmmaxvr, zone, zfshtvr, lmmaxvr, prod%mtmesh(1,1,ias,1), lmmaxvr, zzero, prod%mtrlm(1,1,ias,1) , lmmaxvr)
+       enddo
+     enddo
+
+     deallocate(prod%mtmesh)
+
+
+call timesec(tb)
+!write(*,*) tb-ta
+
+     prod%ir(:,1)=conjg(wf1%ir(:,ist1))*wf2%ir(:,ist2)
+     end subroutine WFprodrs
 
 End Module
