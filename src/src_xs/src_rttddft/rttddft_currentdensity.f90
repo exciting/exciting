@@ -3,8 +3,9 @@
 ! Copyright (C) Exciting Code, SOL group. 2020
 
 ! HISTORY
-! Created May 2019 (Ronaldo)
-! Reference: https://arxiv.org/abs/2102.02630
+! Created: May 2019 (Ronaldo)
+! Improved documentation: July 2021 (Ronaldo)
+! Reference: https://doi.org/10.1088/2516-1075/ac0c26
 
 !> Module that deals with the Current Density in RT-TDDFT calculations
 module rttddft_CurrentDensity
@@ -16,9 +17,8 @@ module rttddft_CurrentDensity
 
 contains
 
-  !> subroutine UpdateCurrentDensity: Here, we calculate the paramagnetic part
-  !> of the current density at time \( t \).
-  !> It is calculated as:
+  !> Here, we calculate the paramagnetic part of the current density at time 
+  !> \( t \). It is calculated as:
   !> \[
   !>    \mathbf{J}(t) = \frac{\mathrm{i}}{\Omega} \sum_{j\mathbf{k}}
   !>      w_{\mathbf{k}}f_{j\mathbf{k}} \left\langle \psi_{j\mathbf{k}}(t) \big|
@@ -28,11 +28,6 @@ contains
   !>  volume \( \Omega \), \( w_{\mathbf{k}} \) is the weight of the considered
   !>  k-point, and \( f_{j\mathbf{k}} \) is the occupation number of the
   !>  corresponding KS state.
-  !> @param[in]   first_kpt   first k-point to be considered in the average
-  !> @param[in]   last_kpt    last k-point
-  !> @param[in]   evec        coefficients of the KS-wavefunctions at time \( t \)
-  !>                          Dimensions: nmatmax, nstfv, first_kpt:last_kpt
-  !> @param[out]   jpara(3)   x, y and z components of the parametic current density
   subroutine UpdateCurrentDensity( first_kpt, last_kpt, evec, jpara )
     use precision, only: dp
     use constants, only: zzero, zone
@@ -45,13 +40,14 @@ contains
 
     implicit none
 
-    !> first k-point to be considered in the average
-    !> last k-point
-    integer,intent(in)        :: first_kpt, last_kpt
-    !> Coefficients of the KS-wavefunctions at time \( t \)
-    !> Dimensions: nmatmax, nstfv, first_kpt:last_kpt
+    !> index of the first `k-point` to be considered in the sum
+    integer,intent(in)        :: first_kpt
+    !> index of the last `k-point` considered
+    integer,intent(in)        :: last_kpt
+    !> Basis-expansion coefficients of the KS-wavefunctions at time \( t \).
+    !> Dimensions: `nmatmax`, `nstfv`, `first_kpt:last_kpt`
     complex(dp), intent(in)   :: evec(:, :, first_kpt:)
-    !> x, y and z components of the parametic current density
+    !> `x`, `y` and `z` components of the parametic current density
     real(8), intent(out)      :: jpara(3)
 
     integer                   :: ik, ist, j

@@ -4,7 +4,8 @@
 
 ! HISTORY
 ! Created by Ronaldo Rodrigues Pela, May 2019
-! Reference: https://arxiv.org/abs/2102.02630
+! Improved documentation: July 2021 (Ronaldo)
+! Reference: https://doi.org/10.1088/2516-1075/ac0c26
 
 !> Module that manages what concerns charge density in RT-TDDFT calculations
 module rttddft_Density
@@ -19,19 +20,6 @@ contains
   !> It is calculated from the WFs, using the same scheme as in the GS
   !> calcultations (refer to scf_cycle.f90 for the case
   !> input%groundstate%useDensityMatrix .false.)
-  !> @param[in]   it            number of the current iteration
-  !>                            (employed to give possible warnings)
-  !> @param[in]   timeini       time (in seconds) elapsed since exciting was started
-  !>                            (employed for timing)
-  !> @param[out]   timefinal    time (in seconds) after executing this subroutine
-  !> @param[out]   timerho      time (in seconds) taken to execute rhovalk,
-  !>                            genrhoir, and eventually mpisumrhoandmag
-  !> @param[out]   timesymrf    time (in seconds) taken to execute symrf
-  !> @param[out]   timerfmtctof time (in seconds) taken to execute rfmtctof
-  !> @param[out]   timerhocr    time (in seconds) taken to obtain and add the
-  !>                            density of core electrons
-  !> @param[out]   timecharge   time (in seconds) taken to execute charge
-  !> @param[out]   timerhonorm  time (in seconds) taken to execute rhonorm
   subroutine UpdateDensity( it, timeini, timefinal, timerho, &
       & timesymrf, timerfmtctof, timerhocr, timecharge, timerhonorm )
     use modmpi
@@ -44,20 +32,28 @@ contains
 
     implicit none
 
-    !> it:  number of the current iteration (employed to give possible warnings)
+    !> number of the current iteration (employed to give possible warnings)
     integer, intent(in)             :: it
-    !> timeini: time (in seconds) elapsed since exciting was started (employed for timing)
+    !> time (in seconds) elapsed since exciting was started (employed for timing)
     real(dp),intent(in), optional   :: timeini
-    !> timefinal: time (in seconds) after executing this subroutine
+    !> time (in seconds) after executing this subroutine
     real(dp),intent(out), optional  :: timefinal
-    !> timerho: time (in seconds) taken to execute rhovalk, genrhoir, and eventually mpisumrhoandmag
-    !> timesymrf: time (in seconds) taken to execute symrf
-    !> timerfmtctof: time (in seconds) taken to execute rfmtctof
-    !> timerhocr:  time (in seconds) taken to obtain and add the density of core electrons
-    real(dp),intent(out), optional  :: timerho, timesymrf, timerfmtctof, timerhocr
-    !> timecharge:   time (in seconds) taken to execute charge
-    !> timerhonorm:  time (in seconds) taken to execute rhonorm
-    real(dp),intent(out), optional  :: timecharge, timerhonorm
+    !> time (in seconds) taken to execute `rhovalk` (which generates the 
+    !> valence charge density from the eigenvectors for a certain `k-point` 
+    !> inside the Muffin-Tins),`genrhoir` (which does the same as `rhovalk`, but
+    !> for the interstitial region), and eventually `mpisumrhoandmag` (which 
+    !> sums the charge density of all MPI processes)
+    real(dp),intent(out), optional  :: timerho
+    !> time (in seconds) taken to execute `symrf`
+    real(dp),intent(out), optional  :: timesymrf
+    !> time (in seconds) taken to execute `rfmtctof`
+    real(dp),intent(out), optional  :: timerfmtctof
+    !> time (in seconds) taken to obtain and add the density of core electrons
+    real(dp),intent(out), optional  :: timerhocr
+    !> time (in seconds) taken to execute `charge` 
+    real(dp),intent(out), optional  :: timecharge
+    !> time (in seconds) taken to execute `rhonorm`
+    real(dp),intent(out), optional  :: timerhonorm
 
     integer                         :: ik, first_kpt, last_kpt
     real(dp)                        :: timei,timef

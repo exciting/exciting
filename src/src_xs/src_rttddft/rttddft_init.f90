@@ -3,9 +3,10 @@
 ! Copyright (C) Exciting Code, SOL group. 2020
 
 ! Created Jan 2021 (Ronaldo)
-! Reference: https://arxiv.org/abs/2102.02630
+! Improved documentation: July 2021 (Ronaldo)
+! Reference: https://doi.org/10.1088/2516-1075/ac0c26
 
-!> Module implementing general initializations for RTTDDFT
+!> Module implementing general initializations for RT-TDDFT
 module rttddft_init
   implicit none
 
@@ -14,6 +15,8 @@ module rttddft_init
   public :: initialize_rttddft
 
 contains
+!> This subroutine initializes many global variables in a RT-TDDFT calculation.  
+!> TODO (Ronaldo, issue #82): split `initialize_rttddft` into subroutines.
 subroutine initialize_rttddft
   use modmpi
   use modinput
@@ -30,7 +33,7 @@ subroutine initialize_rttddft
   use rttddft_pmat, only: Obtain_Pmat_LAPWLOBasis
   use m_getunit, only: getunit
   use rttddft_Density, only: updatedensity
-  use rtddft_HamiltonianOverlap, only: UpdateHam
+  use rttddft_HamiltonianOverlap, only: UpdateHam
   use rttddft_CurrentDensity, only: UpdateCurrentDensity
   use modxs, only: isreadstate0
   use m_gndstateq, only: gndstateq
@@ -56,7 +59,7 @@ subroutine initialize_rttddft
   !--------------------------------------------!
   !     map xs parameters associated to gs     !
   !--------------------------------------------!
-  if(input%xs%rgkmax .eq. 0.d0) input%xs%rgkmax = input%groundstate%rgkmax
+  if( input%xs%rgkmax == 0.d0 ) input%xs%rgkmax = input%groundstate%rgkmax
   call mapxsparameters
 
   ! Initialize universal variables

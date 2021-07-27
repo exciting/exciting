@@ -4,8 +4,10 @@
 
 ! HISTORY
 ! Created May 2019 (Ronaldo)
-! Reference: https://arxiv.org/abs/2102.02630
+! Improved documentation: July 2021 (Ronaldo)
+! Reference: https://doi.org/10.1088/2516-1075/ac0c26
 
+!> Module that contains the subroutines envolved in the update of KS WFs
 module rttddft_Wavefunction
   use rttddft_GlobalVariables, only: ham_time, ham_past, overlap, &
     & evecfv_time, tstep, method
@@ -27,21 +29,21 @@ module rttddft_Wavefunction
   public :: UpdateWavefunction
 
 contains
-  !> subroutine UpdateWavefunction: update wavefunction
-  !> Here, we employ a propagator to evolve the Kohn-Sham wavefunctions
+  !> This subroutine updates KS wavefunctions.  
+  !> Here, we employ a propagator to evolve the Kohn-Sham wavefunctions.  
   !> Extrapolation scheme for the hamiltonian (predcorr .False.)
   !> \[ \hat{H}(t+f\Delta t) = (1+f)\hat{H}(t) - f\hat{H}(t-\Delta t). \]
-  !> \(\hat{H}(t)\) is stored in "ham_time", whereas \(\hat{H}(t -\Delta t)\),
-  !> in "ham_past"
+  !> \(\hat{H}(t)\) is stored in `ham_time`, whereas \(\hat{H}(t -\Delta t)\),
+  !> in `ham_past`
   !> Extrapolation scheme for the hamiltonian (predcorr .True.)
   !> \[ \hat{H}(t+f\Delta t) = f\hat{H}(t + \Delta t) + (1-f)\hat{H}(t). \]
-  !> \(\hat{H}(t)\) is stored in "ham_past", whereas \(\hat{H}(t +\Delta t)\),
-  !> in "ham_time" (which comes from a previous iteration in the predictor corrector
+  !> \(\hat{H}(t)\) is stored in `ham_past`, whereas \(\hat{H}(t +\Delta t)\),
+  !> in `ham_time` (which comes from a previous iteration in the predictor corrector
   !> loop
   subroutine UpdateWavefunction( predcorr )
 
     implicit none
-    !> @param[in]   predcorr  tells if we are in the loop of the predictor-Corrector scheme
+    !> tells if we are in the loop of the predictor-Corrector scheme
     logical, intent(in)       :: predcorr
     !> Counter for loops with k-points
     integer                   :: ik
@@ -161,27 +163,25 @@ contains
 #endif
 
   end subroutine UpdateWavefunction
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> subroutine exponential: obtain the exponential of H and applies to the
+
+  !> This subroutine obtains the exponential of H and applies to the
   !> coefficients that characterize KS wavefunctions in terms of the basis
   !> Because the basis is not orthonormal, we have
   !> \[
   !>    C_{j\mathbf{k}}(t+\Delta t) = \mathrm{exp}[-\mathrm{i}\Delta t
   !>    S_{\mathbf{k}}^{-1}H_{\mathbf{k}}(t)] \; C_{j\mathbf{k}}(t)
 	!> \]
-  !> \( \C_{j\mathbf{k}}(t) \) is stored in "evecfv_time" (global variable)
-  !> \( H_{\mathbf{k}}(t) \) is stored in "ham"
-  !> \( S_{\mathbf{k}} \) is stored in "overl"
+  !> \( C_{j\mathbf{k}}(t) \) is stored in `evecfv_time` (global variable)
+  !> \( H_{\mathbf{k}}(t) \) is stored in `ham`
+  !> \( S_{\mathbf{k}} \) is stored in `overl`
   !> The exponential here is approximated by a Taylor expansion
-  !> up to the order defined by input%xs%rt_tddft%order_taylor
+  !> up to the order defined by `input%xs%rt_tddft%order_taylor`
   subroutine exponential( ik, nmatp, ham, overl )
     implicit none
 
-    !> index of the k-point considered
+    !> index of the `k-point` considered
     integer, intent(in)       :: ik
-    !> Dimension of the Hamiltonian and Overlap matrices (given a k-point)
+    !> Dimension of the Hamiltonian and Overlap matrices (given a `k-point`)
     integer, intent(in)       :: nmatp
     !> Hamiltonian matrix
     complex(dp),intent(in)    :: ham(nmatp,nmatp)
@@ -240,10 +240,8 @@ contains
 
   end subroutine exponential
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> subroutine exphouston: exponential using the so-called Houston expansion
+  !> Exponential using the so-called Houston expansion, 
+  !> see this [paper](https://doi.org/10.1103/PhysRevB.89.224305).  
   !> Here, we evaluate the exponential operator exactly rather than
   !> Taylor-expanding it. This can be done by taking into account an adiabatic
   !> basis formed by the eigenvectors of \( \hat{H}(t) \),
@@ -276,9 +274,9 @@ contains
   subroutine exphouston( ik, nmatp, ham, overl )
     implicit none
 
-    !> index of the k-point considered
+    !> index of the `k-point` considered
     integer, intent(in)       :: ik
-    !> Dimension of the Hamiltonian and Overlap matrices (given a k-point)
+    !> Dimension of the Hamiltonian and Overlap matrices (given a `k-point`)
     integer, intent(in)       :: nmatp
     !> Hamiltonian matrix
     complex(dp),intent(in)    :: ham(nmatp,nmatp)
@@ -416,10 +414,8 @@ contains
     deallocate(alpha)
     deallocate(work)
   end subroutine exphouston
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> subroutine rk4: Runge-Kutta of 4th order
+
+  !> Runge-Kutta of 4th order.  
   !> The basic formulas employed here are
   !> \[
   !>	   | \psi_{j\mathbf{k}}(t+\Delta t)\rangle = | \psi_{j\mathbf{k}}(t) \rangle
@@ -443,9 +439,9 @@ contains
   !>  \]
   subroutine rk4( ik, nmatp, ham, hamold, overl, predcorr )
     implicit none
-    !> index of the k-point considered
+    !> index of the `k-point` considered
     integer, intent(in)     :: ik
-    !> Dimension of the Hamiltonian and Overlap matrices (given a k-point)
+    !> Dimension of the Hamiltonian and Overlap matrices (given a `k-point`)
     integer, intent(in)     :: nmatp
     !> Hamiltonian matrix at time \( t \)
     complex(dp),intent(in)  :: ham(nmatp,nmatp)
@@ -453,8 +449,8 @@ contains
     complex(dp),intent(in)  :: hamold(nmatp,nmatp)
     !> Overlap matrix
     complex(dp),intent(in)  :: overl(nmatp,nmatp)
-    !> Predictor Corrector scheme is used (True) or not (False)
-    !> If True, then "ham" and "hamold" mean the hamiltonian matrices at times
+    !> Tells if the predictor-corrector scheme is used.
+    !> If `True`, then `ham` and `hamold` mean the hamiltonian matrices at times
     !> \( t + \Delta t \) and ( t \), respectively
     logical,intent(in)      :: predcorr
 
@@ -526,22 +522,20 @@ contains
       & 2._dp*k(1:nmatp,1:nstfv,3) + k(1:nmatp,1:nstfv,4) )
 
   end subroutine rk4
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> subroutine normalize: imposes that the norm of the KS wavefunctions are 1
-!> The norm is calculated as
-!> \[
-!>  C_{j\mathbf{k}}^\dagger S_{\mathbf{k}} C_{j\mathbf{k}}
-!>  \]
-!> where \( C_{j\mathbf{k}} \) is the array of coefficients of the wavefunction
-!> in terms of the basis, and (\ S_{\mathbf{k}} \) is the overlap matrix.
+
+  !> This subroutine imposes that the norm of the KS wavefunctions are 1. 
+  !> The norm is calculated as
+  !> \[
+  !>  C_{j\mathbf{k}}^\dagger S_{\mathbf{k}} C_{j\mathbf{k}}
+  !>  \]
+  !> where \( C_{j\mathbf{k}} \) is the array of coefficients of the wavefunction
+  !> in terms of the basis, and \( S_{\mathbf{k}} \) is the overlap matrix.
   subroutine normalize( ik, nmatp, overl )
     implicit none
 
-    !> index of the k-point considered
+    !> index of the `k-point` considered
     integer, intent(in)       :: ik
-    !> Dimension of the Hamiltonian and Overlap matrices (given a k-point)
+    !> Dimension of the Hamiltonian and Overlap matrices (given a `k-point`)
     integer, intent(in)       :: nmatp
     !> Overlap matrix
     complex(dp),intent(inout) :: overl(nmatp,nmatp)

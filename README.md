@@ -66,8 +66,8 @@ equation: an all-electron study. ***Phys. Chem. Chem. Phys.***, 2009,
 **11**, 4451-4457.](https://doi.org/10.1039/%20B903676H)
 
 \[4\]: [All-electron full-potential implementation of real-time TDDFT in
-exciting. arXiv:2102.02630 **[cond-mat.mtrl-sci]**.]
-(https://arxiv.org/abs/2102.02630)
+exciting. Electron. Struct. **3**, 
+037001 (2021).](https://doi.org/10.1088/2516-1075/ac0c26)
 
 \[5\]: [Accurate all-electron G0W0 quasiparticle energies employing the
 full-potential augmented plane-wave method. Phys. Rev. B **94**, 035118

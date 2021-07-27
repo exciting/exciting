@@ -4,7 +4,8 @@
 
 ! History
 ! Created by Ronaldo Rodrigues Pela, July 2019
-! Reference: https://arxiv.org/abs/2102.02630
+! Improved documentation: July 2021 (Ronaldo)
+! Reference: https://doi.org/10.1088/2516-1075/ac0c26
 
 !> Module to manage "screenshots" of desired properties during a RT-TDDFT
 !> propagation
@@ -44,21 +45,22 @@ contains
 
     implicit none
 
-    !> it          number of the current iteration (to name output files)
+    !> number of the current iteration (to name output files)
     integer, intent(in)       :: it
-    !> first_kpt   first k-point to be considered in the average
-    !> last_kpt    last k-point
-    integer, intent(in)       :: first_kpt, last_kpt
-    !> overlap     overlap matrix. Dimensions: nmatmax, nmatmax, first_kpt:last_kpt
+    !> index of the first `k-point` to be considered in the sum
+    integer,intent(in)        :: first_kpt
+    !> index of the last `k-point` considered
+    integer,intent(in)        :: last_kpt
+    !> overlap matrix, Dimensions: `nmatmax`, `nmatmax`, `first_kpt:last_kpt`
     complex(dp), intent(in)   :: overlap(:, :, first_kpt:)
-    !> evec_gnd    coefficients of the KS-wavefunctions at t=0
-    !>             Dimensions: nmatmax, nstfv, first_kpt:last_kpt
-    complex(dp), intent(in)   :: evecfv_gnd(:, :, first_kpt:)
-    !> evec_time   coefficients of the KS-wavefunctions at current time
-    !>             Dimensions: nmatmax, nstfv, first_kpt:last_kpt
+    !> Basis-expansion coefficients of the KS-wavefunctions at \( t=0 \).
+    !> Dimensions: `nmatmax`, `nstfv`, `first_kpt:last_kpt`
+    complex(dp), intent(in)   :: evecfv_gnd(:, :,first_kpt:)
+    !> Basis-expansion coefficients of the KS-wavefunctions at current time.
+    !> Dimensions: `nmatmax`, `nstfv`, `first_kpt:last_kpt`
     complex(dp), intent(in)   :: evecfv_time(:, :, first_kpt:)
-    !> ham_time    Hamiltonian matrix at time \( t \). Dimensions
-    !>             assumed for it: nmatmax, nmatmax, first_kpt:last_kpt
+    !> Hamiltonian matrix at time \( t \). 
+    !> Dimensions: `nmatmax`, `nmatmax`, `first_kpt:last_kpt`
     complex(dp), intent(in)   :: ham_time(:, :, first_kpt:)
 
 
