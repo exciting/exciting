@@ -7,7 +7,8 @@ project_github: https://github.com/exciting/exciting
 predocmark: >  
 docmark: !  
 display: public  
-         protected  
+         protected
+         private
 graph: false  
 warn: false  
 search: false  
@@ -19,6 +20,7 @@ src_dir: ../src/src_gw
          ../src/constants
          ../src/errors_warnings
          ../src/src_mpi
+         ../src/src_xs/src_rttddft/
 
 [//]: # "Note, ford commands can not be separated by whitelines."  
 [//]: # "More information on ford's project file options can be found at:"  

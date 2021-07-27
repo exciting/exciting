@@ -4,7 +4,8 @@
 
 ! HISTORY
 ! Created July 2019 (Ronaldo)
-! Reference: https://arxiv.org/abs/2102.02630
+! Improved documentation: July 2021 (Ronaldo)
+! Reference: https://doi.org/10.1088/2516-1075/ac0c26
 
 !> Module to manage the vector potential \( \mathbf{A} \)
 module rttddft_VectorPotential
@@ -45,26 +46,19 @@ contains
   !> \]
   !> for \( t \) between \( t_0 - w \) and \( t_0 + w \),
   !> zero for \( t < t_0 - w \) and \( -c\mathbf{E}_0 \) for \( t > t_0 + w \).
-  !> @param[in]   t           time \( t \)
-  !> @param[in]   t0          time \( t_0 \) when the kick is applied, or
-  !>                          in the case of nonzero width, it is the center of
-  !>                          broadened delta kick
-  !> @param[in]   width       broadening of the delta kick
-  !> @param[in]   amplitude   amplitude \( -cE_0 \)
-  !> @param[out]  a           the calculated vector potential at time t
   subroutine Delta_Kick( t, t0, width, amplitude, a )
     implicit none
 
-    !> t           time \( t \)
+    !> time \( t \)
     real(dp), intent(in)  :: t
-    !> t0          time \( t_0 \) when the kick is applied, or in the case of
-    !>             nonzero width, it is the center of broadened delta kick
+    !> time \( t_0 \) when the kick is applied, or in the case of
+    !> nonzero width, it is the center of broadened delta kick
     real(dp), intent(in)  :: t0
-    !> width       broadening of the delta kick
+    !> broadening of the delta kick
     real(dp), intent(in)  :: width
-    !> amplitude   amplitude \( -cE_0 \)
+    !> amplitude \( -cE_0 \)
     real(dp), intent(in)  :: amplitude
-    !> a           the calculated vector potential at time t
+    !> the calculated vector potential at time t
     real(dp), intent(out) :: a
 
     real(dp)              :: tsh
@@ -93,39 +87,32 @@ contains
   !>    \mathbf{A}(t) = \mathbf{A}_0  f(t) \cos ( \omega t + \phi )
   !> \]
   !> where \( f(t) \) is the trapezoidal function:
-  !> \( f(t) = 0 \), if \( t \le t_0 \) or \( t \ge t_0 + w + 2 t_r\)
-  !> \( f(t) = 1 \), if \( t_0 + t_r \le t \le t_0 + t_r + w \)
-  !> \( f(t) = (t-t_0)/t_r \), if \( t_0 < t < t_0 + t_r \)
-  !> \( f(t) = (t_0 + w + 2 t_r - t )/t_r \), if \( t_0 + t_r + w < t < t_0 + w + 2 t_r \)
-  !> @param[in]   t           time \( t \)
-  !> @param[in]   t0          time \( t_0 \) as defined above
-  !> @param[in]   tr          rise time \( t_r \) as defined above
-  !> @param[in]   width       witdh of the trapezoid
-  !>                          (width of the interval where \( f(t) = 1 \) ).
-  !> @param[in]   omega       angular frequency of the cossine function
-  !> @param[in]   phase       phase of the cossine function
-  !> @param[in]   amplitude   amplitude \( A_0 \)
-  !> @param[out]  a           the calculated vector potential at time t
+  !> <ul>
+  !> <li> \( f(t) = 0 \), if \( t \le t_0 \) or \( t \ge t_0 + w + 2 t_r\) </li>
+  !> <li> \( f(t) = 1 \), if \( t_0 + t_r \le t \le t_0 + t_r + w \) </li>
+  !> <li> \( f(t) = (t-t_0)/t_r \), if \( t_0 < t < t_0 + t_r \) </li>
+  !> <li> \( f(t) = (t_0 + w + 2 t_r - t )/t_r \), if \( t_0 + t_r + w < t < t_0 + w + 2 t_r \) </li>
+  !> </ul>
   subroutine Cossine_with_Trapezoidal_Envelope( t, t0, tr, width, omega, phase, &
     & amplitude, a )
     implicit none
 
-    !> t           time \( t \)
+    !> time \( t \)
     real(dp), intent(in)  :: t
-    !> t0          time \( t_0 \) as defined above
+    !> time \( t_0 \) as defined above
     real(dp), intent(in)  :: t0
-    !> tr          rise time \( t_r \) as defined above
+    !> rise time \( t_r \) as defined above
     real(dp), intent(in)  :: tr
-    !> width       witdh of the trapezoid
-    !>             (width of the interval where \( f(t) = 1 \) ).
+    !> witdh of the trapezoid
+    !> (width of the interval where \( f(t) = 1 \) ).
     real(dp), intent(in)  :: width
-    !> omega       angular frequency of the cossine function
+    !> angular frequency of the cossine function
     real(dp), intent(in)  :: omega
-    !> phase       phase of the cossine function
+    !> phase of the cossine function
     real(dp), intent(in)  :: phase
-    !> amplitude   amplitude \( A_0 \)
+    !> amplitude \( A_0 \)
     real(dp), intent(in)  :: amplitude
-    !> a           the calculated vector potential at time t
+    !> the calculated vector potential at time t
     real(dp), intent(out) :: a
 
     real(dp)              :: tsh
@@ -145,38 +132,33 @@ contains
     end if
   end subroutine Cossine_with_Trapezoidal_Envelope
 
-  !> Cossine function modulated by a sine squared
+  !> Cossine function modulated by a sine squared  
   !> \[
   !>    \mathbf{A}(t) = \mathbf{A}_0  f(t) \cos ( \omega t + \phi )
   !> \]
-  !> where \( f(t) \) is the following sine squared function:
-  !> \( f(t) = 0 \), if \( t \le t_0 \) or \( t \ge t_0 + w\)
-  !> \( f(t) = \sin^2( \pi(t-t_0)/w) \), if \( t_0 \le t \le t_0 + w \)
-  !> @param[in]   t           time \( t \)
-  !> @param[in]   t0          time \( t_0 \) as defined above
-  !> @param[in]   width       witdh of the sine squared
-  !> @param[in]   omega       angular frequency of the cossine function
-  !> @param[in]   phase       phase of the cossine function
-  !> @param[in]   amplitude   amplitude \( A_0 \)
-  !> @param[out]  a           the calculated vector potential at time t
+  !> where \( f(t) \) is the following sine squared function:  
+  !> <ul>
+  !> <li> \( f(t) = 0 \), if \( t \le t_0 \) or \( t \ge t_0 + w\) </li>
+  !> <li> \( f(t) = \sin^2( \pi(t-t_0)/w) \), if \( t_0 \le t \le t_0 + w \) </li>
+  !> </ul>
   subroutine Cossine_with_Sinsquared_Envelope( t, t0, width, omega, phase, &
     & amplitude, a )
     use constants, only: pi
     implicit none
 
-    !> t           time \( t \)
+    !> time \( t \)
     real(dp), intent(in)  :: t
-    !> t0          time \( t_0 \) as defined above
+    !> time \( t_0 \) as defined above
     real(dp), intent(in)  :: t0
-    !> width       witdh of the sine squared
+    !> witdh of the sine squared
     real(dp), intent(in)  :: width
-    !> omega       angular frequency of the cossine function
+    !> angular frequency \( \omega \) of the cossine function
     real(dp), intent(in)  :: omega
-    !> phase       phase of the cossine function
+    !> phase of the cossine function
     real(dp), intent(in)  :: phase
-    !> amplitude   amplitude \( A_0 \)
+    !> amplitude \( A_0 \)
     real(dp), intent(in)  :: amplitude
-    !> a           the calculated vector potential at time t
+    !> the calculated vector potential at time \( t \)
     real(dp), intent(out) :: a
 
     real(dp)              :: tsh
@@ -190,8 +172,6 @@ contains
   end subroutine Cossine_with_Sinsquared_Envelope
 
   !> Obtain the vector potential \( A(t) \) due to a laser pulse
-  !> @param[in]   t           time \( t \)
-  !> @param[out]  aapplied    the vector potential (components x, y, and z)
   subroutine Calculate_Vector_Potential( t, aapplied )
     use rttddft_GlobalVariables, only: nkicks, t0kick, wkick, amplkick, dirkick, &
       & ntrapcos, dirtrapcos, ampltrapcos, omegatrapcos, phasetrapcos, &
@@ -201,13 +181,13 @@ contains
 
     implicit none
 
-    !> t           time \( t \)
+    !> time \( t \)
     real(dp),intent(in)         :: t
-    !> aapplied    the vector potential (components x, y, and z)
+    !> the vector potential (components `x`, `y`, and `z`)
     real(dp),intent(out)        :: aapplied(3)
 
     integer                     :: i
-    real(dp)                    :: amod, tsh
+    real(dp)                    :: amod
 
     aapplied(:) = 0._dp
 
@@ -257,11 +237,8 @@ contains
   !> using the current density \( \mathbf{J}(t) \)
   !> We need to solve the differential equation
   !> \[
-  !>  \frac{d^2\mathbf{A}_{ind}}{dt^2} = 4 \pi c \mathbf{J}(t),
+  !>  \frac{d^2\mathbf{A}_{ind}}{dt^2} = 4 \pi c \mathbf{J}(t).
   !>  \]
-  !> @param[in]   TotalFieldIsGiven   tells if the total field (TotalFieldIsGiven = true)
-  !>    or if the external field (TotalFieldIsGiven = false) is given by the laser
-  !>    Reminder: \( \mathbf{A} = \mathbf{A}_{ext} + \mathbf{A}_{ind} \)
   subroutine Solve_ODE_Vector_Potential( TotalFieldIsGiven )
     use rttddft_GlobalVariables, only: tstep, time, jpara, jparanext, &
       & aind, pvec, jind, aext, atot
@@ -274,9 +251,9 @@ contains
     use modinput, only: input
 
     implicit none
-    !> TotalFieldIsGiven   tells if the total field (TotalFieldIsGiven = true)
-    !>    or if the external field (TotalFieldIsGiven = false) is given by the laser
-    !>    Reminder: \( \mathbf{A} = \mathbf{A}_{ext} + \mathbf{A}_{ind} \)
+    !> Tells if the total field (`TotalFieldIsGiven` = true) or if the 
+    !> external field (`TotalFieldIsGiven` = false) is given by the laser.  
+    !> Reminder: \( \mathbf{A} = \mathbf{A}_{ext} + \mathbf{A}_{ind} \)
     logical, intent(in)   :: TotalFieldIsGiven
 
     real(dp)              :: beta, fac, den

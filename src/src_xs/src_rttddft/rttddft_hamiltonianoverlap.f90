@@ -4,11 +4,12 @@
 
 ! HISTORY
 ! Created Apr 2019 (Ronaldo)
-! Reference: https://arxiv.org/abs/2102.02630
+! Improved documentation: July 2021 (Ronaldo)
+! Reference: https://doi.org/10.1088/2516-1075/ac0c26
 
 !> Module that manages the hamiltonian and overlap in RT-TDDFT
 !> TODO(Ronaldo): Refactor to reduce the number of global variables
-module rtddft_HamiltonianOverlap
+module rttddft_HamiltonianOverlap
 
   use modmpi
   use modinput, only: input
@@ -36,79 +37,65 @@ module rtddft_HamiltonianOverlap
 
 contains
 
-  !> In UpdateHam, we obtain the hamiltonian (and if requested, the overlap) at time \( t \).
-  !> The subroutines here are based on src\src_eigensystem\hamiltonsetup.f90
-  !> and src\src_eigensystem\overlapsetup.f90
-  !> We decided not to use them because we would need to initialize
-  !> the variable "Type (evsystem) :: system" at all steps, which, repeated so
-  !> many times over the propagation of the wavefunctions, would include
-  !> undesirable delays.
-  !> @param[in]   predcorr            tells if we are in the loop of the
-  !>                                  predictor-Corrector scheme
-  !> @param[in]   calculateOverlap    tells if we need to calculate the overlap
-  !> @param[in]   timeGen             tells if we want a general timing
-  !> @param[in]   timeDetail          tells if we want a detailed timing
-  !>                                  (only works if timeGen is true)
-  !> @param[in]   timeini             time (in seconds) elapsed since exciting
-  !>                                  was started (employed for timing)
-  !> @param[out]   timefinal          time (in seconds) after executing this subroutine
-  !> @param[out]   thmlint            time spent to execute hmlint
-  !> @param[out]   tham               time spent after executing hmlint until
-  !>                                  the end of this subroutine
+  !> In UpdateHam, we obtain the hamiltonian (and if requested, the overlap) at 
+  !> time \( t \).
   subroutine UpdateHam( predcorr, calculateOverlap, &
     & timeGen, timeDetail, timeini, timefinal, thmlint, tham )
 
     implicit none
 
-    !> predcorr: tells if we are in the loop of the predictor-Corrector scheme
-    !> calculateOverlap:  tells if we need to calculate the overlap
-    logical, intent(in)               :: predcorr, calculateOverlap
-    !> timeGen: tells if we want a general timing
-    !> timeDetail: tells if we want a detailed timing (only works if timeGen is true)
-    logical, intent(in), optional     :: timeGen, timeDetail
-    !> timeini: time (in seconds) elapsed since exciting was started (employed for timing)
+    !> tells if we are in the loop of the predictor-Corrector scheme    
+    logical, intent(in)               :: predcorr
+    !> tells if we need to calculate the overlap
+    logical, intent(in)               :: calculateOverlap
+    !> tells if we want a general timing
+    logical, intent(in), optional     :: timeGen
+    !> tells if we want a detailed timing (only works if `timeGen` is true)
+    logical, intent(in), optional     :: timeDetail
+    !> time (in seconds) elapsed since exciting was started (employed for timing)
     real(dp), intent(in), optional    :: timeini
-    !> timefinal: time (in seconds) after executing this subroutine
-    !> thmlint  : time spent to execute hmlint
-    !> tham     : time spent after executing hmlint until the end of this subroutine
-    real(dp), intent(out), optional   :: timefinal, thmlint, tham
+    !> time (in seconds) after executing this subroutine
+    real(dp), intent(out), optional   :: timefinal
+    !> time spent to execute hmlint
+    real(dp), intent(out), optional   :: thmlint
+    !> time spent after executing hmlint until the end of this subroutine
+    real(dp), intent(out), optional   :: tham
 
     integer               :: ik, nmatp, first_kpt, last_kpt
     real(dp)              :: timei, timef, fact
     logical               :: tGen,tDetail
 
-  ! factor that multiplies the overlap matrix (when we compute the hamiltonian)
-  fact = dot_product(atot, atot) / (2._dp * c**2)
+    ! factor that multiplies the overlap matrix (when we compute the hamiltonian)
+    fact = dot_product( atot, atot )/(2._dp * c**2)
 
-  ! Check optional arguments
-  if ( present(timeGen) ) then
-    tGen = timeGen
-    if ( present(timeDetail) ) then
-      tDetail = timeDetail
+    ! Check optional arguments
+    if ( present(timeGen) ) then
+      tGen = timeGen
+      if ( present(timeDetail) ) then
+        tDetail = timeDetail
+      else
+        tDetail = .false.
+      end if
     else
-      tDetail = .false.
+      tGen = .False.
+      tDetail = .False.
     end if
-  else
-    tGen = .False.
-    tDetail = .False.
-  end if
-  if( tGen ) timei = timeini
+    if( tGen ) timei = timeini
 
-  !if( tDetail ) call timesecRTTDDFT(timei,timef,tgenpmatbasis)
-  call MTNullify(mt_h)
-  call MTInitAll(mt_h)
-  call hmlint(mt_h)
+    call MTNullify(mt_h)
+    call MTInitAll(mt_h)
+    call hmlint(mt_h)
 
-  if ( tDetail ) call timesecRTTDDFT( timei, timef, thmlint )
+    if ( tDetail ) call timesecRTTDDFT( timei, timef, thmlint )
 
-  if ( .not. predcorr ) ham_past(:,:,:) = ham_time(:,:,:)
+    if ( .not. predcorr ) ham_past(:,:,:) = ham_time(:,:,:)
 
 #ifdef MPI
-  first_kpt = firstk(rank)
-  last_kpt = lastk(rank)
+    first_kpt = firstk(rank)
+    last_kpt = lastk(rank)
 #else
-  first_kpt = 1
-  last_kpt = nkpt
+    first_kpt = 1
+    last_kpt = nkpt
 #endif
 
 #ifdef USEOMP
@@ -119,39 +106,47 @@ contains
 !$OMP& SHARED(nmatmax)
 !$OMP DO
 #endif
-  do ik = first_kpt, last_kpt
-    nmatp = nmat(1,ik)
-    call hamsetup(ik,nmatp)
-    if ( calculateOverlap ) call overlapsetup(ik,nmatp)
+    do ik = first_kpt, last_kpt
+      nmatp = nmat(1,ik)
+      call hamsetup(ik,nmatp)
+      if ( calculateOverlap ) call overlapsetup(ik,nmatp)
 
-    ! Include the part of the vector potential in the hamiltonian
-    ham_time(1:nmatp,1:nmatp,ik) = ham_time(1:nmatp,1:nmatp,ik) + &
-                                fact*overlap(1:nmatp,1:nmatp,ik) + &
-                                (atot(1)/c)*pmat(1:nmatp,1:nmatp,1,ik) + &
-                                (atot(2)/c)*pmat(1:nmatp,1:nmatp,2,ik) + &
-                                (atot(3)/c)*pmat(1:nmatp,1:nmatp,3,ik)
-  end do
+      ! Include the part of the vector potential in the hamiltonian
+      ham_time(1:nmatp,1:nmatp,ik) = ham_time(1:nmatp,1:nmatp,ik) + &
+                                  fact*overlap(1:nmatp,1:nmatp,ik) + &
+                                  (atot(1)/c)*pmat(1:nmatp,1:nmatp,1,ik) + &
+                                  (atot(2)/c)*pmat(1:nmatp,1:nmatp,2,ik) + &
+                                  (atot(3)/c)*pmat(1:nmatp,1:nmatp,3,ik)
+    end do
 !$OMP END DO NOWAIT
 !$OMP END PARALLEL
 
-  call mt_h%release()
+    call mt_h%release()
 
-  if(tGen) then
-    call timesec(timefinal)
-    if(tDetail) tham = timefinal-timei
-  end if
+    if(tGen) then
+      call timesec(timefinal)
+      if(tDetail) tham = timefinal-timei
+    end if
 
-end subroutine updateham
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Subroutine to calculate the hamiltonian matrix for a given k-point
-!> @param[in]   ik      the index of the k-point considered
-!> @param[in]   nmatp   the dimension of the matrix for this k-point (nmatp x nmatp)
+  end subroutine UpdateHam
+
+  !> Subroutine to calculate the hamiltonian matrix for a given k-point.
+  !> It is based on `src/src_eigensystem/hamiltonsetup.f90`.
+  !> We decided to code a new subroutine instead of calling `hamiltonsetup`, 
+  !> because by calling it, we would need to initialize
+  !> the variable `Type (evsystem) :: system` at all steps, which, repeated so
+  !> many times over the propagation of the wavefunctions, would cause
+  !> undesirable delays.
   subroutine hamsetup(ik,nmatp)
     use constants, only: zzero, zone
+
     implicit none
+
     !> ik: the index of the k-point considered
-    !> nmatp:  the dimension of the matrix for this k-point (nmatp x nmatp)
-    integer, intent(in)       :: ik, nmatp
+    integer, intent(in)       :: ik
+    !> `nmatp` is the dimension of the matrix for this `k-point` 
+    !> (`nmatp` \( \times \) `nmatp`)
+    integer, intent(in)       :: nmatp
 
     integer                   :: i, j, is, ia, ias, if3, ig, io2
     integer                   :: j1, l3, m3, lm3, j3, maxnlo, maxaa
@@ -246,18 +241,20 @@ end subroutine updateham
     ham_time(1:nmatp,1:nmatp,ik) = hamcopy(1:nmatp,1:nmatp)
     
   end subroutine hamsetup
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Subroutine to calculate the overlap matrix for a given k-point
-  !> @param[in]   ik      the index of the k-point considered
-  !> @param[in]   nmatp   the dimension of the matrix for this k-point (nmatp x nmatp)
+
+  !> Subroutine to calculate the overlap matrix for a given k-point.
+  !> Based on `src/src_eigensystem/overlapsetup.f90`. 
   subroutine overlapsetup( ik, nmatp )
     use constants, only: zzero, zone
     use physical_constants, only: alpha
 
     implicit none
+
     !> ik: the index of the k-point considered
-    !> nmatp:  the dimension of the matrix for this k-point (nmatp x nmatp)
-    integer, intent(in)       :: ik, nmatp
+    integer, intent(in)       :: ik
+    !> `nmatp` is the dimension of the matrix for this `k-point` 
+    !> (`nmatp` \( \times \) `nmatp`)
+    integer, intent(in)       :: nmatp
 
     integer                   :: i, is, ia, ias, if3, ig, j, j1, j2
     integer                   :: l, lm1, lm2, l3, m3, lm3
@@ -392,4 +389,4 @@ end subroutine updateham
   end subroutine overlapsetup
 
 
-end module rtddft_HamiltonianOverlap
+end module rttddft_HamiltonianOverlap
