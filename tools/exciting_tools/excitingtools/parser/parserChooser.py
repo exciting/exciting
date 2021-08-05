@@ -1,14 +1,20 @@
 """
 API for selecting a parser, given a file name and parsing the data
+
+When adding a new file, it should be added to the dictionary ` _file_to_parser`
+
+If the parser takes the read-in file string rather than the file name,
+it should be added to the function `parser_expects_file_str`.
 """
 import os
 import sys
 from xml.etree.ElementTree import ParseError
+from typing import Callable
 
 from . import groundStateParser
 from . import propertiesParser
 from . import BSEParser
-from . import GWParser
+from . import gw_parser
 from . import RT_TDDFTParser
 from .ErroneousFileError import ErroneousFileError
 
@@ -79,16 +85,56 @@ _file_to_parser = {
     'EXCITON_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT': BSEParser.parse_EXCITON_NAR_BSE,
     'EXCITON_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT': BSEParser.parse_EXCITON_NAR_BSE,
     'EXCITON_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT': BSEParser.parse_EXCITON_NAR_BSE,
-    'EFERMI_GW.OUT': GWParser.parse_efermi_gw,
-    'EVALQP.DAT': GWParser.parse_evalqp,
-    'VXCNN.DAT': GWParser.parse_vxcnn,
-    'EPS00_GW.OUT': GWParser.parse_eps00_gw,
+    'GW_INFO.OUT': gw_parser.parse_gw_info,
+    'EFERMI_GW.OUT': gw_parser.parse_efermi_gw,
+    'EVALQP.DAT': gw_parser.parse_evalqp,
+    'VXCNN.DAT': gw_parser.parse_vxcnn,
+    'EPS00_GW.OUT': gw_parser.parse_eps00_gw,
     'JIND.OUT': RT_TDDFTParser.parse_jind,
     'NEXC.OUT': RT_TDDFTParser.parse_nexc,
     'ETOT_RTTDDFT.OUT': RT_TDDFTParser.parse_etot,
     'EIGVAL_': RT_TDDFTParser.parse_eigval_screenshots,
     'PROJ_': RT_TDDFTParser.parse_proj_screenshots
 }
+
+
+def parser_expects_file_str(file_name: str) -> bool:
+    """
+    Distinguish between parsers that expect the filename and those which expect
+    the read-in file as a string.
+
+    Could be implemented as a dictionary {file_name: bool} but whilst the
+    number of functions that accept file strings instead of file names is small,
+    this results in less code.
+
+    :param str file_name: Name of exciting file.
+    :return bool: If the parser function expects parsed file string as the argument.
+    """
+    # Files with parsers expecting the read-in file string as input
+    parsers = ['GW_INFO.OUT']
+    if file_name in parsers:
+        return True
+    else:
+        return False
+
+
+def generic_parser(file_name: str, parser_func: Callable[[str], dict]) -> dict:
+    """
+    Generic parser provides a wrapper for file IO.
+
+    :param str file_name: Name of file to open and parse.
+    :param Callable[[str], dict] parser_func: Parser function, which expects a parsed
+     string as its only input and returns a dictionary.
+
+    :return: dict data: Dictionary of parsed data, with values converted from strings.
+    """
+    if not os.path.exists(file_name):
+        raise OSError('File path not valid:', file_name)
+
+    with open(file_name) as f:
+        file_string = f.readlines()
+
+    return parser_func(file_string)
 
 
 def parser_chooser(full_file_name: str):
@@ -107,13 +153,16 @@ def parser_chooser(full_file_name: str):
         file_name = file_name.split('_')[0] + '_'
 
     files_with_parsers = [name for name in _file_to_parser.keys()]
-
     if not (file_name in files_with_parsers):
         sys.exit("File does not have a parser:" + file_name)
 
-    if not os.path.exists(full_file_name):
-        raise OSError('File path not valid:' + full_file_name)
-
     parser = _file_to_parser[file_name]
-    data = parser(full_file_name)
-    return container_converter(data)
+
+    if parser_expects_file_str(file_name):
+        return generic_parser(full_file_name, parser)
+
+    else:
+        if not os.path.exists(full_file_name):
+            raise OSError('File path not valid:' + full_file_name)
+        data = parser(full_file_name)
+        return container_converter(data)
