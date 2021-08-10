@@ -2,11 +2,8 @@ import os
 import re
 from enum import Enum
 from typing import List
-import numpy as np 
 import warnings
 import numpy as np
-
-
 
 
 class Failure_code(Enum):

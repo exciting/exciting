@@ -1,5 +1,10 @@
 """
-Module containing parsers for GW output files
+Module containing parsers for GW output files:
+  * GW_INFO.OUT
+  * EVALQP.DAT
+  * EFERMI_GW.OUT
+  * VXCNN.DAT
+  * EPS00_GW.OUT
 """
 from xml.etree.ElementTree import ParseError
 import numpy as np
@@ -7,10 +12,15 @@ from typing import List, Callable
 import sys
 import copy
 import re
+from pathlib import Path
+
+from excitingtools.utils import get_new_line_indices
 
 from .regex_parser import parse_value_regex, parse_values_regex
 from .simple_parser import match_current_return_line_n, match_current_extract_from_line_n
-from ..utils import can_be_float
+from .grep_parser import grep
+from .parser_utils import generic_parser
+from ..utils import can_be_float, convert_to_literal
 
 
 def parse_correlation_self_energy_params(file_string: str) -> dict:
@@ -78,6 +88,9 @@ def parse_bare_coulomb_potential_params(file_string: str) -> dict:
      'Error tolerance for structure constants': 1e-16,
       'MB tolerance factor': 0.1
     }
+
+    :param str file_string: Input string
+    :return dict data: Matched data
     """
 
     pw_cutoff = match_current_return_line_n(file_string, 'Plane wave cutoff (in units of Gkmax*').strip()
@@ -149,11 +162,13 @@ def parse_frequency_grid(file_string: str, n_points: int) -> np.ndarray:
 def parse_ks_eigenstates(file_string: str) -> dict:
     """
     Parse information on the KS eigenstates used.
+    Note, final keys will have the trailing whitespace stripped.
 
     :param str file_string: Input string
     :return dict data: Matched data
     """
 
+    # Trailing whitespace in some instances required for match
     ks_eigenstates_keys = ['Maximum number of LAPW states:',
                            'Minimal number of LAPW states:',
                            '- total KS',
@@ -174,9 +189,9 @@ def parse_ks_eigenstates(file_string: str) -> dict:
 
     for key, value in data.items():
         if key[0] == '-':
-            new_key = prepend_str + " " + key
+            new_key = prepend_str + " " + key.rstrip().rstrip(':')
         else:
-            new_key = key
+            new_key = key.rstrip().rstrip(':')
         modified_data[new_key] = value
 
     return modified_data
@@ -287,8 +302,8 @@ def parse_gw_info(file_string: str) -> dict:
     data['correlation_self_energy_parameters'] = parse_correlation_self_energy_params(file_string)
     data['mixed_product_basis_parameters'] = parse_mixed_product_params(file_string)
     data['bare_coulomb_potential_parameters'] = parse_bare_coulomb_potential_params(file_string)
-    data['screened_coulomb_potential'] =  match_current_return_line_n(file_string, 'Screened Coulomb potential:')
-    data['core_electrons_treatment'] = match_current_return_line_n(file_string, 'Core electrons treatment:')
+    data['screened_coulomb_potential'] =  match_current_return_line_n(file_string, 'Screened Coulomb potential:').strip()
+    data['core_electrons_treatment'] = match_current_return_line_n(file_string, 'Core electrons treatment:').strip()
     data['qp_interval'] = parse_value_regex(file_string, 'Interval of quasiparticle states \\(ibgw, nbgw\\):')\
         ['Interval of quasiparticle states (ibgw, nbgw)']
     data['n_empty'] = parse_value_regex(file_string, 'Number of empty states \\(GW\\):')['Number of empty states (GW)']
@@ -393,43 +408,325 @@ def parse_efermi_gw(name: str) -> dict:
     return data
 
 
-def parse_evalqp(name: str) -> dict:
+def k_points_from_evalqp(full_file_name: str) -> dict:
     """
-    Parser for EVALQP.DAT
+    Get the irreducible k/q-points and weights from 'EVALQP.DAT'
+
+    These *can*  differ from those reported in 'KPOINTS', depending
+    on the choice of ngridq in GW
+
+    TODO(Alex) Issue 85. Refactor to accept a string and use regex
+
+    :param str full_file_name: Path + file name
+    :return dict k_points: k-points and their weights.
     """
-    try:
-        data = np.genfromtxt(name, skip_header=2)
-    except:
-        raise ParseError
-    out = {"0": list(data[:, 0]), "1": list(data[:, 1]), "2": list(data[:, 2]), "3": list(data[:, 3]),
-           "4": list(data[:, 4]), "5": list(data[:, 5]), "6": list(data[:, 6]), "7": list(data[:, 7]),
-           "8": list(data[:, 8]), "9": list(data[:, 9]), "10": list(data[:, 10])}
+    raw_kpoints = grep("k-point", full_file_name).splitlines()
 
-    return out
+    k_points = {}
+    for ik, line in enumerate(raw_kpoints):
+        kx, ky, kz, w = line.split()[-4:]
+        k_points[ik + 1] = {'k_point': [float(k) for k in [kx, ky, kz]], 'weight': float(w)}
+
+    return k_points
 
 
-def parse_vxcnn(name: str) -> dict:
+def n_states_from_evalqp(file_string: str) -> int:
+    """
+    Get the total number of states used per k-point, from EVALQP.DAT.
+    Expect n_states to be fixed per k-point, so simply extract the final
+    state index associated with the last k-point. State indexing begins at 1.
+
+    :param str file_string: Input string
+    :return int n_states: Number of states per k-point (occupied plus empty)
+    """
+    lines = file_string.splitlines()
+
+    for line in reversed(lines):
+        if len(line.strip()) > 0:
+            return int(line.split()[0])
+
+    return None
+
+
+def parse_evalqp_blocks(full_file_name: str, k_points: dict, n_states: int) -> dict:
+    """
+    Parse energy information from EVALQP.dat
+
+    The function expects k-points of the form:
+
+      k_points[ik] = {'k_point': k_point, 'weight': weight}
+
+    where the k-index (ik) follows fortran indexing convention, and is expected to be
+    contiguous. The function returns parsed data, with each element of shape (n_states, 10).
+
+    The routine exploits the repeating structure EVALQP.dat:
+       kpoint k1 k2 k3 weight
+       header line
+       1
+       .
+       .
+       n_states
+
+       kpoint k1 k2 k3 weight
+       header line
+       1
+       .
+       .
+       n_states
+
+    to parse all energies per k-point.
+
+    :param str full_file_name: Path + file name
+    :param dict k_points: Dictionary of k-points
+    :param int n_states: Total number of occupied plus empty states
+     Note, this is constant per q-point.
+
+    :return dict data: Parsed energies from EVALQP.dat
+    """
+    # File formatting
+    header_size = 2
+    blank_line = 1
+
+    data = {}
+    skip_lines = header_size
+
+    # Must iterate lowest to highest, else data won't match k-points
+    for ik in range(1, len(k_points) + 1):
+        block_data = np.loadtxt(full_file_name,
+                                skiprows=skip_lines,
+                                max_rows=n_states
+                                )
+        # Ignore first column (state index)
+        data[ik] = block_data[:, 1:]
+        skip_lines += n_states + (header_size + blank_line)
+
+    return data
+
+
+def parse_evalqp(full_file_name: str) -> dict:
+    """
+    Parse GW output file EVALQP.DAT
+
+    Parse  and return data of the form:
+      data[ik] = {'k_point': k_point, 'weight': weight, 'energies': energies}
+
+    energies have the shape (n_states, 10), where the 10 elements are defined as:
+    ('E_KS', 'E_HF', 'E_GW', 'sigma_x', 'Re_sigma_c', 'Im_sigma_c', 'V_xc', 'delta_HF', 'delta_GW', 'Znk')
+
+    :param str full_file_name: Path + file name
+    :return dict data: Parsed k-points and energies from EVALQP.DAT
+    """
+    if not Path(full_file_name).is_file():
+        sys.exit("File does not exist:", full_file_name)
+
+    n_states = generic_parser(full_file_name, n_states_from_evalqp)
+    k_points = k_points_from_evalqp(full_file_name)
+    energies = parse_evalqp_blocks(full_file_name, k_points, n_states)
+    assert len(k_points) == len(energies), "Should be a set of energies for each k-point"
+
+    # Repackage energies with their respective k-points
+    data = {}
+    for ik in range(1, len(k_points) + 1):
+        data[ik] = {'k_point': k_points[ik]['k_point'],
+                    'weight': k_points[ik]['weight'],
+                    'energies': energies[ik]
+                    }
+    return data
+
+
+def vkl_from_vxc(full_file_name: str) -> dict:
+    """
+    Extract vkl (k-points?) from VXCNN.DAT
+
+    Each k-point header is defined like:
+     ik=   1    vkl=  0.0000  0.0000  0.0000
+
+    K indices are not extracted as they are always contiguous,
+    with indexing starting at 1.
+
+    TODO(Alex) Issue 85. Refactor to take a string and use regex
+
+    :param str full_file_name: Path + file name
+    :return dict vkl: vkl/k-points
+    """
+    raw_data = grep("ik", full_file_name).splitlines()
+
+    vkl = {}
+    for ik, line in enumerate(raw_data):
+        vkl[ik + 1] = [float(k) for k in line.split()[-3:]]
+
+    return vkl
+
+
+def parse_vxnn_vectors(full_file_name: str, vkl: dict, n_states: int) -> dict:
+    """
+    Parsed VXC diagonal matrix elements from VXCNN.DAT
+
+    The routine exploits the repeating file structure:
+
+     ik=   1    vkl=  0.0000  0.0000  0.0000
+        1       -2.908349       -0.000000
+        2       -2.864103        0.000000
+        3       -2.864103       -0.000000
+        .
+        n_states
+
+     ik=   2    vkl=  0.0000  0.0000  0.5000
+        1       -2.908349        0.000000
+        2       -2.864100       -0.000000
+        3       -2.864100        0.000000
+        .
+        n_states
+
+    :param str full_file_name: Path + file name
+    :param dict vkl: Dictionary of vkl (k-points?)
+    :param int n_states: Total number of occupied plus empty states
+     Note, this is constant per q-point.
+
+    :return dict data: Parsed VXC diagonal matrix elements, per k-point.
+    """
+    # File formatting
+    header_size = 1
+    blank_line = 1
+
+    data = {}
+    skip_lines = header_size
+
+    # Must iterate lowest to highest, else data won't match k-points
+    for ik in range(1, len(vkl) + 1):
+        vxc_vector = np.loadtxt(full_file_name,
+                                skiprows=skip_lines,
+                                max_rows=n_states
+                                )
+        # Ignore first column (state index)
+        data[ik] = vxc_vector[:, 1:]
+        skip_lines += n_states + (header_size + blank_line)
+
+    return data
+
+
+def parse_vxcnn(full_file_name: str) -> dict:
     """
     Parser for VXCNN.DAT
+
+    :param str full_file_name: Path + file name
+    :return dict data: Parsed k-points (labelled as vkl) and the diagonal elements of
+     Vxc, per k-point.
     """
-    try:
-        data = np.genfromtxt(name, skip_header=1)
-    except:
-        raise ParseError
-    out = {"0": list(data[:, 0]), "1": list(data[:, 1]), "2": list(data[:, 2])}
+    if not Path(full_file_name).is_file():
+        sys.exit("File does not exist:", full_file_name)
 
-    return out
+    # Can use same parser for n_states
+    n_states = generic_parser(full_file_name, n_states_from_evalqp)
+    vkl = vkl_from_vxc(full_file_name)
+    v_xc = parse_vxnn_vectors(full_file_name, vkl, n_states)
+    assert len(vkl) == len(v_xc), "Should be a vector of Vxc_NN for each k-point"
+
+    # Repackage Vxc vectors with their respective k-points
+    data = {}
+    for ik in range(1, len(vkl) + 1):
+        data[ik] = {'vkl': vkl[ik], 'v_xc_nn': v_xc[ik]}
+
+    return data
 
 
-def parse_eps00_gw(name: str) -> dict:
+def parse_eps00_frequencies(file_string: str) -> dict:
     """
-    Parser for EPS00_GW.OUT
-    """
-    try:
-        data = np.loadtxt(name, skiprows=3, comments=["r", "f"])
-    except:
-        raise ParseError
-    out = {"0": list(data[:, 0]), "1": list(data[:, 1]), "2": list(data[:, 2]), "3": list(data[:, 3]),
-           "4": list(data[:, 4]), "5": list(data[:, 5])}
+    Parse frequencies from EPS00_GW.OUT
 
-    return out
+    :param str file_string: Input string
+    :return dict frequencies: Dictionary of frequencues {index: frequency}
+    """
+    initial_header_size = 3
+    block_size = 6
+
+    # Start file_lines on first block header
+    file_lines = file_string.splitlines()
+    file = file_lines[initial_header_size:]
+    n_freq = int(len(file) / block_size)
+
+    frequencies = {}
+    j = 0
+    for i in range(0, n_freq):
+        j = i * block_size
+        frequencies[i + 1] = float(file[j].split()[-1])
+
+    assert len(frequencies) == n_freq
+
+    return frequencies
+
+
+def parse_eps00_blocks(file_string: str, n_freq: int) -> dict:
+    """
+    Parser for epsilon blocks in EPS00_GW.OUT
+
+    File of the form:
+
+    (dielectric tensor, random phase approximation)
+
+    frequency index and value:      1    0.01985507
+    real part, imaginary part below
+     152.69882148    0.00000000    0.00000000         0.00000000    0.00000000    0.00000000
+       0.00000000  152.69882148    0.00000000         0.00000000    0.00000000    0.00000000
+       0.00000000    0.00000000  152.69882148         0.00000000    0.00000000    0.00000000
+
+    frequency index and value:      2    0.02771249
+     real part, imaginary part below
+        8.22189228    0.00000000    0.00000000        -0.00000000    0.00000000    0.00000000
+        0.00000000    8.22189228    0.00000000         0.00000000   -0.00000000    0.00000000
+        0.00000000    0.00000000    8.22189228         0.00000000    0.00000000   -0.00000000
+
+    :param str file_string: Input string
+    :param int n_freq: Number of frequency points
+    :return dict data: Dict containing real and imaginary parts of the dielectric function,
+     eps00, for each frequency point. Frequency indexing (keys) start at 1.
+    """
+    line = get_new_line_indices(file_string)
+    assert file_string[line[0]: line[1]].isspace(), "First line of EPS00_GW.OUT must be a whiteline"
+
+    initial_header = 3
+    offset = initial_header - 1
+    # Header lines + eps00
+    repeat_block_size = 6
+
+    data = {}
+    file_string = file_string.splitlines()[initial_header:]
+
+    def extract_eps_i(line: str) -> tuple:
+        eps_i_re = np.array(line.split()[0:3], dtype=np.float)
+        eps_i_img = np.array(line.split()[3:6], dtype=np.float)
+        return eps_i_re, eps_i_img
+
+    for i_freq in range(0, n_freq):
+        i = offset + i_freq * repeat_block_size
+
+        eps_x_re, eps_x_img = extract_eps_i(file_string[i])
+        eps_y_re, eps_y_img = extract_eps_i(file_string[i + 1])
+        eps_z_re, eps_z_img = extract_eps_i(file_string[i + 2])
+
+        data[i_freq + 1] = {'re': np.array([eps_x_re, eps_y_re, eps_z_re]),
+                            'img': np.array([eps_x_img, eps_y_img, eps_z_img])
+                            }
+
+    return data
+
+
+def parse_eps00_gw(file_string: str) -> dict:
+    """
+    Parser frequency grid and epsilon00 from EPS00_GW.OUT
+
+    :param str file_string: Input string
+    :return dict data: Dict containing the frequency, and real and imaginary parts
+     of the dielectric function, eps00, for each frequency point.
+    """
+    frequencies = parse_eps00_frequencies(file_string)
+    eps00 = parse_eps00_blocks(file_string, len(frequencies))
+    assert len(frequencies) == len(eps00), \
+        "Expect eps00 to have n frequencies consistent with the frequency grid"
+
+    # Repackage frequency points and eps00 together
+    data = {}
+    for i_freq in range(1, len(frequencies) + 1):
+        data[i_freq] = {'frequency': frequencies[i_freq], 'eps00': eps00[i_freq]}
+
+    return data

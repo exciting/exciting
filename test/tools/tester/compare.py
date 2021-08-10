@@ -126,8 +126,10 @@ def compare_data(test_data: Union[dict, list],
             if key not in test_data.keys():
                  test_failures.ignore.append(key)
         for key in ref_data.keys():
-            if key in test_failures.ignore: break
-            test_failures.path = test_failures.path.update(key)
+            if key in test_failures.ignore:
+                break
+            assert isinstance(key, (str, int, float)), "Result key not suitable for convertion to string"
+            test_failures.path = test_failures.path.update(str(key))
             if isinstance(test_data[key], dict) and isinstance(ref_data[key], dict):
                 compare_data(test_data[key], ref_data[key], test_dir, test_failures)
 

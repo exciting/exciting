@@ -11,14 +11,16 @@ import sys
 from xml.etree.ElementTree import ParseError
 from typing import Callable
 
+from excitingtools.dict_utils import container_converter
+
 from . import groundStateParser
 from . import propertiesParser
 from . import BSEParser
 from . import gw_parser
 from . import RT_TDDFTParser
 from .ErroneousFileError import ErroneousFileError
+from .parser_utils import generic_parser
 
-from excitingtools.dict_utils import container_converter
 
 # Map file name to parser function
 _file_to_parser = {
@@ -111,30 +113,11 @@ def parser_expects_file_str(file_name: str) -> bool:
     :return bool: If the parser function expects parsed file string as the argument.
     """
     # Files with parsers expecting the read-in file string as input
-    parsers = ['GW_INFO.OUT']
+    parsers = ['GW_INFO.OUT', 'EPS00_GW.OUT']
     if file_name in parsers:
         return True
     else:
         return False
-
-
-def generic_parser(file_name: str, parser_func: Callable[[str], dict]) -> dict:
-    """
-    Generic parser provides a wrapper for file IO.
-
-    :param str file_name: Name of file to open and parse.
-    :param Callable[[str], dict] parser_func: Parser function, which expects a parsed
-     string as its only input and returns a dictionary.
-
-    :return: dict data: Dictionary of parsed data, with values converted from strings.
-    """
-    if not os.path.exists(file_name):
-        raise OSError('File path not valid:', file_name)
-
-    with open(file_name) as f:
-        file_string = f.readlines()
-
-    return parser_func(file_string)
 
 
 def parser_chooser(full_file_name: str):
@@ -147,6 +130,7 @@ def parser_chooser(full_file_name: str):
     param: str, full_file_name: file name prepended by full path
     return: parsed data
     """
+    full_file_name = full_file_name.rstrip()
     file_name = os.path.split(full_file_name)[1]
 
     if ('EIGVAL_' in file_name) or ('PROJ_' in file_name):
