@@ -17,6 +17,7 @@ subroutine dielmat
     real(8) :: v1 (3), v2 (3), sc(3,3)
     complex(8) :: zt1, zt2
     character(256) :: fname
+    character(len=2) :: energy_str
 ! allocatable arrays
     real(8), allocatable :: w(:)
     real(8), allocatable :: evalsvt(:), occsvt(:)
@@ -269,46 +270,67 @@ subroutine dielmat
             end if
         end if        
 
-!-----------------------------------------------
-! Print the output spectra
-!-----------------------------------------------
+        !-----------------------------------------------
+        ! Output the spectra
+        !-----------------------------------------------
         if (rank==0) then
-! output energy units
+
+            !  Energy units for output
             t1 = 1.0d0
-            if (input%properties%dielmat%tevout) t1 = hartree_to_ev
-! write the optical conductivity
+            energy_str = 'Ha'
+            if (input%properties%dielmat%tevout) then
+                t1 = hartree_to_ev
+                energy_str = 'eV'
+            end if
+
+            ! Optical conductivity
             write(fname, '("SIGMA_", 2I1, ".OUT")') a, b
             write(*, '("  Optical conductivity tensor written to ", a)') trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
+            write(60, '(A, A, A)') "# energy (", energy_str, ") Re{sigma}, Im{sigma}"
             do iw = 1, wgrid
-                write(60, '(3G18.10)') t1*w(iw), sigma(iw)
+                write(60, '(3G18.10)') t1 * w(iw), sigma(iw)
             end do
            close(60)
-! write the dielectric function to file
+
+            ! Dielectric function
             write(fname, '("EPSILON_", 2I1, ".OUT")') a, b
             write(*, '("  Dielectric tensor written to ", a)') trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
-            zt1 = zi*fourpi
-            t2 = 0.0d0; if (a==b) t2 = 1.0d0
+
+            zt1 = zi * fourpi
+            t2 = 0.0d0
+            if (a == b) t2 = 1.0d0
+
+            write(60, '(A, A, A)') "# energy (", energy_str, ") Re{eps}, Im{eps}"
             do iw = 1, wgrid
-                zt2 = t2+zt1*sigma(iw)/(w(iw)+eta(iw))
-                write(60, '(3G18.10)') t1*w(iw), zt2
+                zt2 = t2 + zt1*sigma(iw) / (w(iw) + eta(iw))
+                write(60, '(3G18.10)') t1 * w(iw), zt2
             end do
             close(60)
-! write the EELS spectra
+
+            ! EELS spectra
             write(fname, '("LOSS_", 2I1, ".OUT")') a, b
             write(*, '("  Electron energy loss spectrum written to ", a)') trim(adjustl(fname))
             open(60, file=trim(fname), action='WRITE', form='FORMATTED')
-            zt1 = zi*fourpi
-            t2 = 0.0d0; if (a==b) t2 = 1.0d0
+
+            zt1 = zi * fourpi
+            t2 = 0.0d0
+            if (a == b) t2 = 1.0d0
+
+            write(60, '(A, A, A)') "# energy (", energy_str, ") EELS"
             do iw = 1, wgrid
-                zt2 = t2+zt1*sigma(iw)/(w(iw)+eta(iw))
-                write(60, '(2G18.10)') t1*w(iw), -aimag(1.0d0/zt2)
+                zt2 = t2 + zt1 * sigma(iw) / (w(iw)+eta(iw))
+                write(60, '(2G18.10)') t1 * w(iw), -aimag(1.0d0/zt2)
             end do
             close(60)
-            if (input%properties%dielmat%tevout) write(*, '("  Output energy is in eV")')
+
+            if (input%properties%dielmat%tevout) then
+                write(*, '("  Output energy is in eV")')
+            endif
             write(*,*)
         end if
+
 #ifdef MPI        
         call MPI_Barrier(MPI_COMM_WORLD,ierr)
 #endif

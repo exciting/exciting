@@ -61,6 +61,7 @@ def reciprocal_lattice_vectors(a: np.ndarray) -> np.ndarray:
     return b
 
 
+#TODO(Bene) This needs cleaning up. Missing any documenting maths. Not at all clear what's happening
 def plane_transformation(rec_lat_vec:np.array, plot_vec:np.array) -> np.array:
     """
     Take reciprocal lattice vectors and ONS of a plane in rec. lat. coordinates where the first two vectors span the plane and the third is normal to them 

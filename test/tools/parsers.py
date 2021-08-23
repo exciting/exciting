@@ -36,6 +36,6 @@ excitingtools can be uninstalled by typing:
     """
     warnings.warn(message)
 finally:
-    from excitingtools.parser.ErroneousFileError import ErroneousFileError
-    from excitingtools.parser.initParser import parseInit, getInitFile
+    from excitingtools.parser.erroneous_file_error import ErroneousFileError
+    from excitingtools.parser.init_parser import parseInit, getInitFile
     from excitingtools.parser.parserChooser import parser_chooser

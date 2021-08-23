@@ -1,10 +1,12 @@
 ================================================================================
-| EXCITING NITROGEN-14 started                                                 =
-| version hash id: 1775bff4453c84689fb848894a9224f155377cfc                    =
+| EXCITING OXYGEN started                                                      =
+| version hash id: 6bf2ac0d748a00301ef9c05c175fc909c80415cb                    =
+|                                                                              =
+| compiler: ifort (IFORT) 19.0.0.117 20180804                                  =
 |                                                                              =
 |                                                                              =
-| Date (DD-MM-YYYY) : 10-12-2020                                               =
-| Time (hh:mm:ss)   : 20:01:59                                                 =
+| Date (DD-MM-YYYY) : 13-08-2021                                               =
+| Time (hh:mm:ss)   : 15:20:23                                                 =
 |                                                                              =
 | All units are atomic (Hartree, Bohr, etc.)                                   =
 ================================================================================
@@ -143,7 +145,7 @@
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    7      0.5000  0.5000  0.0000
  
- Wall time (seconds)                        :         1.37
+ Wall time (seconds)                        :         0.56
  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 + SCF iteration number :    2                                                  +
@@ -182,7 +184,7 @@
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    7      0.5000  0.5000  0.0000
  
- Wall time (seconds)                        :         2.10
+ Wall time (seconds)                        :         0.86
  
  RMS change in effective potential (target) :  0.166098E-01  ( 0.100000E-05)
  Absolute change in total energy   (target) :  0.419658      ( 0.100000E-05)
@@ -225,7 +227,7 @@
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    7      0.5000  0.5000  0.0000
  
- Wall time (seconds)                        :         2.75
+ Wall time (seconds)                        :         1.17
  
  RMS change in effective potential (target) :  0.108280E-01  ( 0.100000E-05)
  Absolute change in total energy   (target) :  0.277112      ( 0.100000E-05)
@@ -268,7 +270,7 @@
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    7      0.5000  0.5000  0.0000
  
- Wall time (seconds)                        :         3.48
+ Wall time (seconds)                        :         1.49
  
  RMS change in effective potential (target) :  0.575648E-03  ( 0.100000E-05)
  Absolute change in total energy   (target) :  0.267676      ( 0.100000E-05)
@@ -311,7 +313,7 @@
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    7      0.5000  0.5000  0.0000
  
- Wall time (seconds)                        :         4.11
+ Wall time (seconds)                        :         1.80
  
  RMS change in effective potential (target) :  0.469160E-04  ( 0.100000E-05)
  Absolute change in total energy   (target) :  0.353569E-01  ( 0.100000E-05)
@@ -354,7 +356,7 @@
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    7      0.5000  0.5000  0.0000
  
- Wall time (seconds)                        :         4.68
+ Wall time (seconds)                        :         2.11
  
  RMS change in effective potential (target) :  0.623952E-05  ( 0.100000E-05)
  Absolute change in total energy   (target) :  0.999884E-03  ( 0.100000E-05)
@@ -397,7 +399,7 @@
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    7      0.5000  0.5000  0.0000
  
- Wall time (seconds)                        :         5.79
+ Wall time (seconds)                        :         2.42
  
  RMS change in effective potential (target) :  0.510408E-06  ( 0.100000E-05)
  Absolute change in total energy   (target) :  0.226289E-03  ( 0.100000E-05)
@@ -440,7 +442,7 @@
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    7      0.5000  0.5000  0.0000
  
- Wall time (seconds)                        :         6.38
+ Wall time (seconds)                        :         2.74
  
  RMS change in effective potential (target) :  0.325596E-07  ( 0.100000E-05)
  Absolute change in total energy   (target) :  0.300065E-04  ( 0.100000E-05)
@@ -483,9 +485,9 @@
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    7      0.5000  0.5000  0.0000
  
- Wall time (seconds)                        :         7.05
+ Wall time (seconds)                        :         3.05
  
- RMS change in effective potential (target) :  0.168579E-08  ( 0.100000E-05)
+ RMS change in effective potential (target) :  0.168578E-08  ( 0.100000E-05)
  Absolute change in total energy   (target) :  0.142869E-05  ( 0.100000E-05)
  Charge distance                   (target) :  0.111800E-07  ( 0.100000E-04)
  
@@ -526,10 +528,10 @@
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    7      0.5000  0.5000  0.0000
  
- Wall time (seconds)                        :         7.65
+ Wall time (seconds)                        :         3.37
  
- RMS change in effective potential (target) :  0.145604E-09  ( 0.100000E-05)
- Absolute change in total energy   (target) :  0.841724E-07  ( 0.100000E-05)
+ RMS change in effective potential (target) :  0.145581E-09  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.841701E-07  ( 0.100000E-05)
  Charge distance                   (target) :  0.230755E-09  ( 0.100000E-04)
  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -569,11 +571,11 @@
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    7      0.5000  0.5000  0.0000
  
- Wall time (seconds)                        :         8.41
+ Wall time (seconds)                        :         3.68
  
- RMS change in effective potential (target) :  0.337278E-11  ( 0.100000E-05)
- Absolute change in total energy   (target) :  0.641830E-08  ( 0.100000E-05)
- Charge distance                   (target) :  0.231206E-10  ( 0.100000E-04)
+ RMS change in effective potential (target) :  0.336584E-11  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.641637E-08  ( 0.100000E-05)
+ Charge distance                   (target) :  0.231199E-10  ( 0.100000E-04)
                                                                                 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 | Convergency criteria checked for the last 2 iterations                       +
@@ -625,20 +627,20 @@
 --------------------------------------------------------------------------------
 - Timings (seconds)                                                            -
 --------------------------------------------------------------------------------
- Initialisation                             :         0.45
- Hamiltonian and overlap matrix set up      :         0.97
- First-variational secular equation         :         0.96
- Calculation of charge-density              :         0.62
- Calculation of potential                   :         2.65
- Muffin-tin manipulations                   :         3.06
- APW matching                               :         0.63
- Disk reads/writes                          :         0.52
+ Initialisation                             :         0.22
+ Hamiltonian and overlap matrix set up      :         0.28
+ First-variational secular equation         :         0.23
+ Calculation of charge-density              :         0.33
+ Calculation of potential                   :         1.00
+ Muffin-tin manipulations                   :         1.63
+ APW matching                               :         0.05
+ Disk reads/writes                          :         0.32
  Mixing efforts                             :         0.00
- Solver of Dirac eqn.                       :         0.29
- Solver of rel. Schroedinger eqn.           :         1.60
- Total time spent in radial solvers         :         1.89
+ Solver of Dirac eqn.                       :         0.10
+ Solver of rel. Schroedinger eqn.           :         0.49
+ Total time spent in radial solvers         :         0.59
  
- Total time spent (seconds)                 :         8.88
+ Total time spent (seconds)                 :         3.39
 ================================================================================
-| EXCITING NITROGEN-14 stopped                                                 =
+| EXCITING OXYGEN stopped                                                      =
 ================================================================================

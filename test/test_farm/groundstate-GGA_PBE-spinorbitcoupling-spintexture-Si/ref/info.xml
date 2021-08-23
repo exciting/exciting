@@ -1,233 +1,233 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="http://xml.exciting-code.org/info.xsl" type="text/xsl"?>
-<info date="2021-01-19" time="21:09:10" versionhash="5146bf7576ed433b0c4ddb9e91c1ebe342f5ea24" title="Si crystal">
+<info date="2021-08-13" time="15:21:33" versionhash="6bf2ac0d748a00301ef9c05c175fc909c80415cb" title="Si crystal">
   <groundstate status="finished">
     <scl>
-      <iter iteration="1" rms="1.241152054742783E-002" rmslog10="-1.90617500940" deltae="579.079445319299" deltaelog10="2.76273814973" chgdst="5.376497161661319E-002" chgdstlog10="-1.26950057913" fermidos="0.647457261723E-11">
-        <energies totalEnergy="-579.079445319" fermiEnergy="0.174858212488" sum-of-eigenvalues="-316.277894607" electronic-kinetic="578.367030275" core-electron-kinetic="0.00000000000" Coulomb="-1117.71704960" Coulomb-potential="-842.156486531" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.78255218" Hartree="187.813032824" Madelung="-696.638806335" xc-potential="-52.4884383506" xc-effective-B-field="-0.295745153865E-13" external-B-field="0.00000000000" exchange="-37.5817488881" correlation="-2.14767710500"/>
+      <iter iteration="1" rms="1.241152054743346E-002" rmslog10="-1.90617500940" deltae="579.079445319307" deltaelog10="2.76273814973" chgdst="5.376497161667056E-002" chgdstlog10="-1.26950057913" fermidos="0.647457261702E-11">
+        <energies totalEnergy="-579.079445319" fermiEnergy="0.174858212488" sum-of-eigenvalues="-316.277894607" electronic-kinetic="578.367030275" core-electron-kinetic="0.00000000000" Coulomb="-1117.71704960" Coulomb-potential="-842.156486531" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.78255218" Hartree="187.813032824" Madelung="-696.638806335" xc-potential="-52.4884383506" xc-effective-B-field="-0.295745153157E-13" external-B-field="0.00000000000" exchange="-37.5817488881" correlation="-2.14767710500"/>
         <charges totalcharge="28.00000000" core="20.00000000" core_leakage="0.4636574784E-02" valence="8.000000000" interstitial="3.792203985" muffin-tin-total="24.20779601">
           <atom species="Si" muffin-tin="12.10389801"/>
           <atom species="Si" muffin-tin="12.10389801"/>
         </charges>
-        <timing timetot="16.8781132698" timeinit="3.52386999130" timemat="0.241827249527" timefv="1.63968205452" timesv="1.14546465874" timerho="1.09947991371" timepot="9.22778940201" timefor="0.00000000000"/>
+        <timing timetot="0.766570568085" timeinit="0.271400928497" timemat="0.243930816650E-01" timefv="0.214529037476E-01" timesv="0.398561954498E-01" timerho="0.845923423767E-01" timepot="0.324875116348" timefor="0.00000000000"/>
         <moments>
-          <momtot x="0.102694647550E-20" y="-0.472885000220E-21" z="0.293542944852E-21"/>
-          <interstitial x="0.105613911577E-20" y="-0.451120621527E-21" z="0.159135321393E-21"/>
-          <mommttot x="-0.291926402667E-22" y="-0.217643786935E-22" z="0.134407623459E-21"/>
+          <momtot x="-0.388398957655E-21" y="0.651962027712E-21" z="-0.200547864120E-20"/>
+          <interstitial x="-0.426884023214E-21" y="0.775545938061E-21" z="-0.202235667223E-20"/>
+          <mommttot x="0.384850655591E-22" y="-0.123583910349E-21" z="0.168780310362E-22"/>
           <atom species="Si">
-            <mommt x="-0.145963201333E-22" y="-0.108821893467E-22" z="0.672038117295E-22"/>
+            <mommt x="0.192425327796E-22" y="-0.617919551745E-22" z="0.843901551811E-23"/>
           </atom>
           <atom species="Si">
-            <mommt x="-0.145963201333E-22" y="-0.108821893467E-22" z="0.672038117295E-22"/>
+            <mommt x="0.192425327796E-22" y="-0.617919551745E-22" z="0.843901551811E-23"/>
           </atom>
         </moments>
       </iter>
-      <iter iteration="2" rms="8.320022585182916E-003" rmslog10="-2.07987549479" deltae="0.421183794211061" deltaelog10="-0.375528347411" chgdst="3.109671451691173E-003" chgdstlog10="-2.50728549337" fermidos="0.647467824739E-11">
-        <energies totalEnergy="-578.658261525" fermiEnergy="0.182190646027" sum-of-eigenvalues="-316.035948380" electronic-kinetic="578.655193915" core-electron-kinetic="0.00000000000" Coulomb="-1117.59894999" Coulomb-potential="-842.222407359" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.48043214" Hartree="187.629012388" Madelung="-696.487746313" xc-potential="-52.4687349352" xc-effective-B-field="-0.518436744881E-13" external-B-field="0.00000000000" exchange="-37.5675224479" correlation="-2.14698299892"/>
+      <iter iteration="2" rms="8.320022585179294E-003" rmslog10="-2.07987549479" deltae="0.421183794222770" deltaelog10="-0.375528347399" chgdst="3.109671451764098E-003" chgdstlog10="-2.50728549336" fermidos="0.647467824748E-11">
+        <energies totalEnergy="-578.658261525" fermiEnergy="0.182190646027" sum-of-eigenvalues="-316.035948380" electronic-kinetic="578.655193915" core-electron-kinetic="0.00000000000" Coulomb="-1117.59894999" Coulomb-potential="-842.222407359" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.48043214" Hartree="187.629012388" Madelung="-696.487746313" xc-potential="-52.4687349352" xc-effective-B-field="-0.518436735592E-13" external-B-field="0.00000000000" exchange="-37.5675224479" correlation="-2.14698299892"/>
         <charges totalcharge="28.00000000" core="20.00000000" core_leakage="0.4644858070E-02" valence="8.000000000" interstitial="3.826230854" muffin-tin-total="24.17376915">
           <atom species="Si" muffin-tin="12.08688457"/>
           <atom species="Si" muffin-tin="12.08688457"/>
         </charges>
-        <timing itertime="12.3588309288" timetot="26.8510866165" timeinit="3.52386999130" timemat="0.497215270996" timefv="2.13508415222" timesv="2.74261069298" timerho="2.31295919418" timepot="15.6393473148" timefor="0.00000000000"/>
+        <timing itertime="0.672240018845" timetot="1.17849016190" timeinit="0.271400928497" timemat="0.476167201996E-01" timefv="0.426013469696E-01" timesv="0.800111293793E-01" timerho="0.169886827469" timepot="0.566973209381" timefor="0.00000000000"/>
         <moments>
-          <momtot x="-0.671941820303E-21" y="0.174713514938E-20" z="0.493064019728E-22"/>
-          <interstitial x="-0.619419045684E-21" y="0.179645657647E-20" z="0.396542238992E-22"/>
-          <mommttot x="-0.525227746190E-22" y="-0.493214270903E-22" z="0.965217807358E-23"/>
+          <momtot x="-0.738749124165E-22" y="-0.590794688490E-21" z="-0.125494154859E-20"/>
+          <interstitial x="-0.128197208136E-21" y="-0.512167257634E-21" z="-0.120285861085E-20"/>
+          <mommttot x="0.543222957199E-22" y="-0.786274308554E-22" z="-0.520829377459E-22"/>
           <atom species="Si">
-            <mommt x="-0.262613873095E-22" y="-0.246607135451E-22" z="0.482608903679E-23"/>
+            <mommt x="0.271611478600E-22" y="-0.393137154277E-22" z="-0.260414688730E-22"/>
           </atom>
           <atom species="Si">
-            <mommt x="-0.262613873095E-22" y="-0.246607135451E-22" z="0.482608903679E-23"/>
+            <mommt x="0.271611478600E-22" y="-0.393137154277E-22" z="-0.260414688730E-22"/>
           </atom>
         </moments>
       </iter>
-      <iter iteration="3" rms="5.419065860504383E-003" rmslog10="-2.26607557077" deltae="0.278951738688647" deltaelog10="-0.554470927315" chgdst="2.301513220573206E-003" chgdstlog10="-2.63798652605" fermidos="0.647400248250E-11">
-        <energies totalEnergy="-578.379309786" fermiEnergy="0.187523481987" sum-of-eigenvalues="-315.881354529" electronic-kinetic="578.851843264" core-electron-kinetic="0.00000000000" Coulomb="-1117.52662373" Coulomb-potential="-842.277630421" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.28055654" Hartree="187.501463060" Madelung="-696.387808516" xc-potential="-52.4555673715" xc-effective-B-field="-0.130572416787E-12" external-B-field="0.00000000000" exchange="-37.5580355011" correlation="-2.14649382272"/>
+      <iter iteration="3" rms="5.419065860501606E-003" rmslog10="-2.26607557077" deltae="0.278951738688079" deltaelog10="-0.554470927316" chgdst="2.301513220562253E-003" chgdstlog10="-2.63798652605" fermidos="0.647400248227E-11">
+        <energies totalEnergy="-578.379309786" fermiEnergy="0.187523481987" sum-of-eigenvalues="-315.881354529" electronic-kinetic="578.851843264" core-electron-kinetic="0.00000000000" Coulomb="-1117.52662373" Coulomb-potential="-842.277630421" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.28055654" Hartree="187.501463060" Madelung="-696.387808516" xc-potential="-52.4555673715" xc-effective-B-field="-0.130572415273E-12" external-B-field="0.00000000000" exchange="-37.5580355011" correlation="-2.14649382272"/>
         <charges totalcharge="28.00000000" core="20.00000000" core_leakage="0.4644949688E-02" valence="8.000000000" interstitial="3.851304983" muffin-tin-total="24.14869502">
           <atom species="Si" muffin-tin="12.07434751"/>
           <atom species="Si" muffin-tin="12.07434751"/>
         </charges>
-        <timing itertime="10.1293830872" timetot="35.7362461090" timeinit="3.52386999130" timemat="0.756628990173" timefv="2.73898839951" timesv="3.97526693344" timerho="2.64881944656" timepot="22.0926723480" timefor="0.00000000000"/>
+        <timing itertime="0.694705009460" timetot="1.61345958710" timeinit="0.271400928497" timemat="0.704319477081E-01" timefv="0.637516975403E-01" timesv="0.119904041290" timerho="0.258570671082" timepot="0.829400300980" timefor="0.00000000000"/>
         <moments>
-          <momtot x="-0.382148899833E-21" y="0.150457112654E-20" z="-0.149152797180E-20"/>
-          <interstitial x="-0.381448205435E-21" y="0.136529452785E-20" z="-0.148775422084E-20"/>
-          <mommttot x="-0.700694398412E-24" y="0.139276598692E-21" z="-0.377375096608E-23"/>
+          <momtot x="-0.710876725938E-21" y="-0.133226776180E-20" z="0.404564692482E-21"/>
+          <interstitial x="-0.679144975590E-21" y="-0.146585071715E-20" z="0.361151632521E-21"/>
+          <mommttot x="-0.317317503480E-22" y="0.133582955351E-21" z="0.434130599609E-22"/>
           <atom species="Si">
-            <mommt x="-0.350347199206E-24" y="0.696382993462E-22" z="-0.188687548304E-23"/>
+            <mommt x="-0.158658751740E-22" y="0.667914776753E-22" z="0.217065299804E-22"/>
           </atom>
           <atom species="Si">
-            <mommt x="-0.350347199206E-24" y="0.696382993462E-22" z="-0.188687548304E-23"/>
+            <mommt x="-0.158658751740E-22" y="0.667914776753E-22" z="0.217065299804E-22"/>
           </atom>
         </moments>
       </iter>
-      <iter iteration="4" rms="3.089154624046826E-004" rmslog10="-3.51016035305" deltae="0.269507206451181" deltaelog10="-0.569429617564" chgdst="4.010369581697926E-003" chgdstlog10="-2.39681560247" fermidos="0.647433539168E-11">
-        <energies totalEnergy="-578.109802580" fermiEnergy="0.196399571959" sum-of-eigenvalues="-315.777062136" electronic-kinetic="579.066949479" core-electron-kinetic="0.00000000000" Coulomb="-1117.48360622" Coulomb-potential="-842.403429797" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.06872215" Hartree="187.332646178" Madelung="-696.281891322" xc-potential="-52.4405818186" xc-effective-B-field="-0.118385731566E-12" external-B-field="0.00000000000" exchange="-37.5473643870" correlation="-2.14578145208"/>
+      <iter iteration="4" rms="3.089154622936574E-004" rmslog10="-3.51016035320" deltae="0.269507206484718" deltaelog10="-0.569429617510" chgdst="4.010369581867950E-003" chgdstlog10="-2.39681560245" fermidos="0.647433539575E-11">
+        <energies totalEnergy="-578.109802580" fermiEnergy="0.196399571960" sum-of-eigenvalues="-315.777062136" electronic-kinetic="579.066949479" core-electron-kinetic="0.00000000000" Coulomb="-1117.48360622" Coulomb-potential="-842.403429797" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.06872215" Hartree="187.332646178" Madelung="-696.281891322" xc-potential="-52.4405818186" xc-effective-B-field="-0.118385731539E-12" external-B-field="0.00000000000" exchange="-37.5473643870" correlation="-2.14578145208"/>
         <charges totalcharge="28.00000000" core="20.00000000" core_leakage="0.4603073562E-02" valence="8.000000000" interstitial="3.893154025" muffin-tin-total="24.10684597">
           <atom species="Si" muffin-tin="12.05342299"/>
           <atom species="Si" muffin-tin="12.05342299"/>
         </charges>
-        <timing itertime="11.1279499531" timetot="45.1915686131" timeinit="3.52386999130" timemat="1.03252482414" timefv="3.47371578217" timesv="5.21968221664" timerho="3.43599438667" timepot="28.5057814121" timefor="0.00000000000"/>
+        <timing itertime="0.698534011841" timetot="2.04692244530" timeinit="0.271400928497" timemat="0.940122604370E-01" timefv="0.849967002869E-01" timesv="0.159838914871" timerho="0.343765258789" timepot="1.09290838242" timefor="0.00000000000"/>
         <moments>
-          <momtot x="0.692585108412E-21" y="-0.175005021770E-20" z="-0.720710779815E-21"/>
-          <interstitial x="0.731720467471E-21" y="-0.167022284192E-20" z="-0.711392680097E-21"/>
-          <mommttot x="-0.391353590593E-22" y="-0.798273757766E-22" z="-0.931809971812E-23"/>
+          <momtot x="-0.333173273957E-21" y="0.337765909185E-21" z="0.168387000081E-20"/>
+          <interstitial x="-0.309624959443E-21" y="0.295867331333E-21" z="0.166216395323E-20"/>
+          <mommttot x="-0.235483145145E-22" y="0.418985778518E-22" z="0.217060475820E-22"/>
           <atom species="Si">
-            <mommt x="-0.195676795297E-22" y="-0.399136878883E-22" z="-0.465904985906E-23"/>
+            <mommt x="-0.117741572573E-22" y="0.209492889259E-22" z="0.108530237910E-22"/>
           </atom>
           <atom species="Si">
-            <mommt x="-0.195676795297E-22" y="-0.399136878883E-22" z="-0.465904985906E-23"/>
+            <mommt x="-0.117741572573E-22" y="0.209492889259E-22" z="0.108530237910E-22"/>
           </atom>
         </moments>
       </iter>
-      <iter iteration="5" rms="2.832277705138602E-005" rmslog10="-4.54786416627" deltae="3.739781533010955E-002" deltaelog10="-1.42715376726" chgdst="8.215668346321504E-005" chgdstlog10="-4.08535710085" fermidos="0.647414082436E-11">
-        <energies totalEnergy="-578.072404765" fermiEnergy="0.196508927232" sum-of-eigenvalues="-315.752213587" electronic-kinetic="579.084784729" core-electron-kinetic="0.00000000000" Coulomb="-1117.46539233" Coulomb-potential="-842.398204459" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.03751972" Hartree="187.319657629" Madelung="-696.266290105" xc-potential="-52.4387938574" xc-effective-B-field="-0.119674019063E-12" external-B-field="0.00000000000" exchange="-37.5460514166" correlation="-2.14574574325"/>
+      <iter iteration="5" rms="2.832277704060082E-005" rmslog10="-4.54786416644" deltae="3.739781528270214E-002" deltaelog10="-1.42715376781" chgdst="8.215668325114481E-005" chgdstlog10="-4.08535710197" fermidos="0.647414082212E-11">
+        <energies totalEnergy="-578.072404765" fermiEnergy="0.196508927232" sum-of-eigenvalues="-315.752213587" electronic-kinetic="579.084784729" core-electron-kinetic="0.00000000000" Coulomb="-1117.46539233" Coulomb-potential="-842.398204459" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.03751972" Hartree="187.319657629" Madelung="-696.266290105" xc-potential="-52.4387938574" xc-effective-B-field="-0.119674008312E-12" external-B-field="0.00000000000" exchange="-37.5460514166" correlation="-2.14574574325"/>
         <charges totalcharge="28.00000000" core="20.00000000" core_leakage="0.4608939834E-02" valence="8.000000000" interstitial="3.894079135" muffin-tin-total="24.10592086">
           <atom species="Si" muffin-tin="12.05296043"/>
           <atom species="Si" muffin-tin="12.05296043"/>
         </charges>
-        <timing itertime="12.5597350597" timetot="55.7656393051" timeinit="3.52386999130" timemat="1.26180315018" timefv="4.15559172630" timesv="6.27393674850" timerho="5.25211834908" timepot="35.2983193398" timefor="0.00000000000"/>
+        <timing itertime="0.700620889664" timetot="2.48173761368" timeinit="0.271400928497" timemat="0.116892099380" timefv="0.106051206589" timesv="0.199649572372" timerho="0.429009199142" timepot="1.35873460770" timefor="0.00000000000"/>
         <moments>
-          <momtot x="-0.374720538097E-20" y="-0.943755682927E-21" z="0.771073752220E-21"/>
-          <interstitial x="-0.372063161010E-20" y="-0.926546525146E-21" z="0.745058671462E-21"/>
-          <mommttot x="-0.265737708704E-22" y="-0.172091577805E-22" z="0.260150807584E-22"/>
+          <momtot x="0.218479101548E-20" y="0.786318091689E-23" z="0.258560638082E-20"/>
+          <interstitial x="0.213461982508E-20" y="0.111050064435E-21" z="0.256857139954E-20"/>
+          <mommttot x="0.501711904047E-22" y="-0.103186883518E-21" z="0.170349812742E-22"/>
           <atom species="Si">
-            <mommt x="-0.132868854352E-22" y="-0.860457889024E-23" z="0.130075403792E-22"/>
+            <mommt x="0.250855952024E-22" y="-0.515934417591E-22" z="0.851749063712E-23"/>
           </atom>
           <atom species="Si">
-            <mommt x="-0.132868854352E-22" y="-0.860457889024E-23" z="0.130075403792E-22"/>
+            <mommt x="0.250855952024E-22" y="-0.515934417591E-22" z="0.851749063712E-23"/>
           </atom>
         </moments>
       </iter>
-      <iter iteration="6" rms="3.142644510867284E-006" rmslog10="-5.50270474265" deltae="1.054480840934957E-003" deltaelog10="-2.97696130663" chgdst="1.898273145550468E-005" chgdstlog10="-4.72164129609" fermidos="0.647452404822E-11">
-        <energies totalEnergy="-578.073459245" fermiEnergy="0.196547170752" sum-of-eigenvalues="-315.752705911" electronic-kinetic="579.086133561" core-electron-kinetic="0.00000000000" Coulomb="-1117.46769021" Coulomb-potential="-842.399905192" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.04041473" Hartree="187.320254771" Madelung="-696.267737613" xc-potential="-52.4389342811" xc-effective-B-field="-0.120522637637E-12" external-B-field="0.00000000000" exchange="-37.5461565368" correlation="-2.14574606128"/>
+      <iter iteration="6" rms="3.142644517655447E-006" rmslog10="-5.50270474172" deltae="1.054480867992424E-003" deltaelog10="-2.97696129549" chgdst="1.898273089517757E-005" chgdstlog10="-4.72164130891" fermidos="0.647452404838E-11">
+        <energies totalEnergy="-578.073459245" fermiEnergy="0.196547170752" sum-of-eigenvalues="-315.752705911" electronic-kinetic="579.086133561" core-electron-kinetic="0.00000000000" Coulomb="-1117.46769021" Coulomb-potential="-842.399905192" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.04041473" Hartree="187.320254772" Madelung="-696.267737613" xc-potential="-52.4389342811" xc-effective-B-field="-0.120522632635E-12" external-B-field="0.00000000000" exchange="-37.5461565368" correlation="-2.14574606128"/>
         <charges totalcharge="28.00000000" core="20.00000000" core_leakage="0.4608534184E-02" valence="8.000000000" interstitial="3.894213231" muffin-tin-total="24.10578677">
           <atom species="Si" muffin-tin="12.05289338"/>
           <atom species="Si" muffin-tin="12.05289338"/>
         </charges>
-        <timing itertime="14.0449409485" timetot="67.2960975170" timeinit="3.52386999130" timemat="1.50799202919" timefv="6.70757484436" timesv="7.55410790443" timerho="6.30355024338" timepot="41.6990025043" timefor="0.00000000000"/>
+        <timing itertime="0.703668117523" timetot="2.91985058784" timeinit="0.271400928497" timemat="0.139725685120" timefv="0.127106428146" timesv="0.240392923355" timerho="0.514490127563" timepot="1.62673449516" timefor="0.00000000000"/>
         <moments>
-          <momtot x="-0.214474835262E-21" y="-0.383365974539E-21" z="0.860551508406E-21"/>
-          <interstitial x="-0.185588903875E-21" y="-0.236021907560E-21" z="0.828456730612E-21"/>
-          <mommttot x="-0.288859313871E-22" y="-0.147344066980E-21" z="0.320947777948E-22"/>
+          <momtot x="0.183694287838E-20" y="0.153570706616E-20" z="0.112504432409E-20"/>
+          <interstitial x="0.187631195591E-20" y="0.152720089766E-20" z="0.117382528490E-20"/>
+          <mommttot x="-0.393690775231E-22" y="0.850616850102E-23" z="-0.487809608118E-22"/>
           <atom species="Si">
-            <mommt x="-0.144429656936E-22" y="-0.736720334898E-22" z="0.160473888974E-22"/>
+            <mommt x="-0.196845387616E-22" y="0.425308425051E-23" z="-0.243904804059E-22"/>
           </atom>
           <atom species="Si">
-            <mommt x="-0.144429656936E-22" y="-0.736720334898E-22" z="0.160473888974E-22"/>
+            <mommt x="-0.196845387616E-22" y="0.425308425051E-23" z="-0.243904804059E-22"/>
           </atom>
         </moments>
       </iter>
-      <iter iteration="7" rms="2.985410044394412E-007" rmslog10="-6.52499601033" deltae="2.941792215551686E-004" deltaelog10="-3.53138800558" chgdst="3.095588954841991E-006" chgdstlog10="-5.50925671159" fermidos="0.647467142530E-11">
-        <energies totalEnergy="-578.073753425" fermiEnergy="0.196541810017" sum-of-eigenvalues="-315.752920341" electronic-kinetic="579.085703171" core-electron-kinetic="0.00000000000" Coulomb="-1117.46755283" Coulomb-potential="-842.399687784" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.04035738" Hartree="187.320334799" Madelung="-696.267708937" xc-potential="-52.4389357273" xc-effective-B-field="-0.120855909404E-12" external-B-field="0.00000000000" exchange="-37.5461572800" correlation="-2.14574648646"/>
+      <iter iteration="7" rms="2.985408167480583E-007" rmslog10="-6.52499628337" deltae="2.941791452713005E-004" deltaelog10="-3.53138811820" chgdst="3.095588122004157E-006" chgdstlog10="-5.50925682843" fermidos="0.647467143500E-11">
+        <energies totalEnergy="-578.073753425" fermiEnergy="0.196541810018" sum-of-eigenvalues="-315.752920341" electronic-kinetic="579.085703171" core-electron-kinetic="0.00000000000" Coulomb="-1117.46755283" Coulomb-potential="-842.399687784" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.04035738" Hartree="187.320334799" Madelung="-696.267708937" xc-potential="-52.4389357273" xc-effective-B-field="-0.120855922283E-12" external-B-field="0.00000000000" exchange="-37.5461572800" correlation="-2.14574648646"/>
         <charges totalcharge="28.00000000" core="20.00000000" core_leakage="0.4608511337E-02" valence="8.000000000" interstitial="3.894179741" muffin-tin-total="24.10582026">
           <atom species="Si" muffin-tin="12.05291013"/>
           <atom species="Si" muffin-tin="12.05291013"/>
         </charges>
-        <timing itertime="8.75267910957" timetot="73.1000502110" timeinit="3.52386999130" timemat="1.76993989944" timefv="7.82654762268" timesv="9.02727746964" timerho="6.70830893517" timepot="44.2441062927" timefor="0.00000000000"/>
+        <timing itertime="0.710829973221" timetot="3.36221337318" timeinit="0.271400928497" timemat="0.162851333618" timefv="0.148220539093" timesv="0.280718088150" timerho="0.599937915802" timepot="1.89908456802" timefor="0.00000000000"/>
         <moments>
-          <momtot x="-0.217990834093E-21" y="-0.280723992969E-21" z="0.963406794471E-21"/>
-          <interstitial x="-0.179923511585E-21" y="-0.196787333971E-21" z="0.998710351278E-21"/>
-          <mommttot x="-0.380673225075E-22" y="-0.839366589981E-22" z="-0.353035568066E-22"/>
+          <momtot x="0.209622010126E-20" y="0.107239890634E-20" z="-0.201637576371E-21"/>
+          <interstitial x="0.208739124751E-20" y="0.941088198466E-21" z="-0.192999074649E-21"/>
+          <mommttot x="0.882885375078E-23" y="0.131310707874E-21" z="-0.863850172193E-23"/>
           <atom species="Si">
-            <mommt x="-0.190336612537E-22" y="-0.419683294991E-22" z="-0.176517784033E-22"/>
+            <mommt x="0.441442687539E-23" y="0.656553539371E-22" z="-0.431925086097E-23"/>
           </atom>
           <atom species="Si">
-            <mommt x="-0.190336612537E-22" y="-0.419683294991E-22" z="-0.176517784033E-22"/>
+            <mommt x="0.441442687539E-23" y="0.656553539371E-22" z="-0.431925086097E-23"/>
           </atom>
         </moments>
       </iter>
-      <iter iteration="8" rms="1.719502653747981E-008" rmslog10="-7.76459714958" deltae="3.454559180227079E-005" deltaelog10="-4.46160736300" chgdst="1.196008268487367E-007" chgdstlog10="-6.92226581788" fermidos="0.647478725263E-11">
-        <energies totalEnergy="-578.073718879" fermiEnergy="0.196541577678" sum-of-eigenvalues="-315.752898188" electronic-kinetic="579.085713270" core-electron-kinetic="0.00000000000" Coulomb="-1117.46752991" Coulomb-potential="-842.399677761" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.04032157" Hartree="187.320321905" Madelung="-696.267691031" xc-potential="-52.4389336973" xc-effective-B-field="-0.120851852212E-12" external-B-field="0.00000000000" exchange="-37.5461557787" correlation="-2.14574645893"/>
+      <iter iteration="8" rms="1.719497674907362E-008" rmslog10="-7.76459840709" deltae="3.454554723703041E-005" deltaelog10="-4.46160792325" chgdst="1.196010135249649E-007" chgdstlog10="-6.92226514003" fermidos="0.647478725059E-11">
+        <energies totalEnergy="-578.073718879" fermiEnergy="0.196541577678" sum-of-eigenvalues="-315.752898188" electronic-kinetic="579.085713270" core-electron-kinetic="0.00000000000" Coulomb="-1117.46752991" Coulomb-potential="-842.399677761" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.04032157" Hartree="187.320321905" Madelung="-696.267691031" xc-potential="-52.4389336973" xc-effective-B-field="-0.120851830592E-12" external-B-field="0.00000000000" exchange="-37.5461557787" correlation="-2.14574645893"/>
         <charges totalcharge="28.00000000" core="20.00000000" core_leakage="0.4608519615E-02" valence="8.000000000" interstitial="3.894179693" muffin-tin-total="24.10582031">
           <atom species="Si" muffin-tin="12.05291015"/>
           <atom species="Si" muffin-tin="12.05291015"/>
         </charges>
-        <timing itertime="13.6135339737" timetot="84.9167590141" timeinit="3.52386999130" timemat="1.95076775551" timefv="10.2082552910" timesv="10.2160763741" timerho="7.62298321724" timepot="51.3948063850" timefor="0.00000000000"/>
+        <timing itertime="0.711954832077" timetot="3.80627751350" timeinit="0.271400928497" timemat="0.185819149017" timefv="0.169159412384" timesv="0.320645093918" timerho="0.685175180435" timepot="2.17407774925" timefor="0.00000000000"/>
         <moments>
-          <momtot x="0.158037146325E-20" y="0.159151110812E-20" z="-0.148917205255E-20"/>
-          <interstitial x="0.157465489145E-20" y="0.149074111513E-20" z="-0.142402553721E-20"/>
-          <mommttot x="0.571657179640E-23" y="0.100769992991E-21" z="-0.651465153348E-22"/>
+          <momtot x="0.994712417464E-21" y="0.695102614167E-21" z="-0.589630314817E-22"/>
+          <interstitial x="0.101038817862E-20" y="0.669029422310E-21" z="-0.260022273336E-22"/>
+          <mommttot x="-0.156757611544E-22" y="0.260731918570E-22" z="-0.329608041481E-22"/>
           <atom species="Si">
-            <mommt x="0.285828589820E-23" y="0.503849964955E-22" z="-0.325732576674E-22"/>
+            <mommt x="-0.783788057719E-23" y="0.130365959285E-22" z="-0.164804020740E-22"/>
           </atom>
           <atom species="Si">
-            <mommt x="0.285828589820E-23" y="0.503849964955E-22" z="-0.325732576674E-22"/>
+            <mommt x="-0.783788057719E-23" y="0.130365959285E-22" z="-0.164804020740E-22"/>
           </atom>
         </moments>
       </iter>
-      <iter iteration="9" rms="7.161522514734262E-010" rmslog10="-9.14499463838" deltae="1.457633629797783E-006" deltaelog10="-5.83635162043" chgdst="1.149135146561590E-008" chgdstlog10="-7.93962889215" fermidos="0.647403624405E-11">
-        <energies totalEnergy="-578.073720337" fermiEnergy="0.196541601292" sum-of-eigenvalues="-315.752899143" electronic-kinetic="579.085713336" core-electron-kinetic="0.00000000000" Coulomb="-1117.46753136" Coulomb-potential="-842.399678677" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.04032354" Hartree="187.320322433" Madelung="-696.267692018" xc-potential="-52.4389338026" xc-effective-B-field="-0.120850416054E-12" external-B-field="0.00000000000" exchange="-37.5461558573" correlation="-2.14574645957"/>
+      <iter iteration="9" rms="7.161532838035330E-010" rmslog10="-9.14499401235" deltae="1.457627377021709E-006" deltaelog10="-5.83635348342" chgdst="1.149137316611714E-008" chgdstlog10="-7.93962807202" fermidos="0.647403624390E-11">
+        <energies totalEnergy="-578.073720337" fermiEnergy="0.196541601292" sum-of-eigenvalues="-315.752899143" electronic-kinetic="579.085713336" core-electron-kinetic="0.00000000000" Coulomb="-1117.46753136" Coulomb-potential="-842.399678677" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.04032354" Hartree="187.320322433" Madelung="-696.267692018" xc-potential="-52.4389338026" xc-effective-B-field="-0.120850397728E-12" external-B-field="0.00000000000" exchange="-37.5461558573" correlation="-2.14574645957"/>
         <charges totalcharge="28.00000000" core="20.00000000" core_leakage="0.4608519213E-02" valence="8.000000000" interstitial="3.894179764" muffin-tin-total="24.10582024">
           <atom species="Si" muffin-tin="12.05291012"/>
           <atom species="Si" muffin-tin="12.05291012"/>
         </charges>
-        <timing itertime="10.1008479595" timetot="93.6550703049" timeinit="3.52386999130" timemat="2.16162991524" timefv="10.5265951157" timesv="11.0684962273" timerho="8.70362973213" timepot="57.6708493233" timefor="0.00000000000"/>
+        <timing itertime="0.713237047195" timetot="4.25024914742" timeinit="0.271400928497" timemat="0.208646535873" timefv="0.190122842789" timesv="0.360895156860" timerho="0.770607948303" timepot="2.44857573509" timefor="0.00000000000"/>
         <moments>
-          <momtot x="0.855165284789E-21" y="-0.143116694577E-20" z="-0.446951443352E-21"/>
-          <interstitial x="0.859588340429E-21" y="-0.132789339990E-20" z="-0.405716899245E-21"/>
-          <mommttot x="-0.442305563976E-23" y="-0.103273545864E-21" z="-0.412345441069E-22"/>
+          <momtot x="-0.198335841549E-20" y="0.153166507183E-20" z="-0.156225843226E-21"/>
+          <interstitial x="-0.204285060338E-20" y="0.146904790514E-20" z="-0.990348882656E-22"/>
+          <mommttot x="0.594921878839E-22" y="0.626171666943E-22" z="-0.571909549605E-22"/>
           <atom species="Si">
-            <mommt x="-0.221152781988E-23" y="-0.516367729318E-22" z="-0.206172720534E-22"/>
+            <mommt x="0.297460939419E-22" y="0.313085833471E-22" z="-0.285954774802E-22"/>
           </atom>
           <atom species="Si">
-            <mommt x="-0.221152781988E-23" y="-0.516367729318E-22" z="-0.206172720534E-22"/>
+            <mommt x="0.297460939419E-22" y="0.313085833471E-22" z="-0.285954774802E-22"/>
           </atom>
         </moments>
       </iter>
-      <iter iteration="10" rms="6.712689175899586E-011" rmslog10="-10.1731034619" deltae="6.453001333284192E-008" deltaelog10="-7.19023824516" chgdst="2.057266952514557E-010" chgdstlog10="-9.68670935027" fermidos="0.647404178668E-11">
-        <energies totalEnergy="-578.073720272" fermiEnergy="0.196541601317" sum-of-eigenvalues="-315.752899107" electronic-kinetic="579.085713335" core-electron-kinetic="0.00000000000" Coulomb="-1117.46753129" Coulomb-potential="-842.399678644" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.04032345" Hartree="187.320322404" Madelung="-696.267691972" xc-potential="-52.4389337976" xc-effective-B-field="-0.120850455709E-12" external-B-field="0.00000000000" exchange="-37.5461558536" correlation="-2.14574645950"/>
+      <iter iteration="10" rms="6.712288503483439E-011" rmslog10="-10.1731293852" deltae="6.452989964600420E-008" deltaelog10="-7.19023901029" chgdst="2.057273465255844E-010" chgdstlog10="-9.68670797541" fermidos="0.647404178674E-11">
+        <energies totalEnergy="-578.073720272" fermiEnergy="0.196541601317" sum-of-eigenvalues="-315.752899107" electronic-kinetic="579.085713335" core-electron-kinetic="0.00000000000" Coulomb="-1117.46753129" Coulomb-potential="-842.399678644" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.04032345" Hartree="187.320322404" Madelung="-696.267691972" xc-potential="-52.4389337976" xc-effective-B-field="-0.120850464362E-12" external-B-field="0.00000000000" exchange="-37.5461558536" correlation="-2.14574645950"/>
         <charges totalcharge="28.00000000" core="20.00000000" core_leakage="0.4608519223E-02" valence="8.000000000" interstitial="3.894179763" muffin-tin-total="24.10582024">
           <atom species="Si" muffin-tin="12.05291012"/>
           <atom species="Si" muffin-tin="12.05291012"/>
         </charges>
-        <timing itertime="12.1282150745" timetot="104.320839405" timeinit="3.52386999130" timemat="2.40527105331" timefv="11.7248919010" timesv="12.2752754688" timerho="9.63567972183" timepot="64.7558512688" timefor="0.00000000000"/>
+        <timing itertime="0.711539983749" timetot="4.69340133667" timeinit="0.271400928497" timemat="0.231334209442" timefv="0.211078643799" timesv="0.400840282440" timerho="0.855825662613" timepot="2.72292160988" timefor="0.00000000000"/>
         <moments>
-          <momtot x="-0.127752280750E-20" y="-0.419997890426E-21" z="-0.270230346590E-21"/>
-          <interstitial x="-0.129337602282E-20" y="-0.366143167294E-21" z="-0.286483217526E-21"/>
-          <mommttot x="0.158532153155E-22" y="-0.538547231321E-22" z="0.162528709354E-22"/>
+          <momtot x="0.985720151649E-21" y="-0.947660395813E-21" z="-0.300579765897E-20"/>
+          <interstitial x="0.996335079465E-21" y="-0.951926531306E-21" z="-0.303921049931E-20"/>
+          <mommttot x="-0.106149278152E-22" y="0.426613549280E-23" z="0.334128403336E-22"/>
           <atom species="Si">
-            <mommt x="0.792660765773E-23" y="-0.269273615660E-22" z="0.812643546768E-23"/>
+            <mommt x="-0.530746390759E-23" y="0.213306774640E-23" z="0.167064201668E-22"/>
           </atom>
           <atom species="Si">
-            <mommt x="0.792660765773E-23" y="-0.269273615660E-22" z="0.812643546768E-23"/>
+            <mommt x="-0.530746390759E-23" y="0.213306774640E-23" z="0.167064201668E-22"/>
           </atom>
         </moments>
       </iter>
-      <iter iteration="11" rms="6.611955157168387E-013" rmslog10="-12.1796701005" deltae="5.416609383246396E-009" deltaelog10="-8.26627248227" chgdst="1.863808686706185E-011" chgdstlog10="-10.7295986685" fermidos="0.647404087547E-11">
-        <energies totalEnergy="-578.073720278" fermiEnergy="0.196541601312" sum-of-eigenvalues="-315.752899110" electronic-kinetic="579.085713335" core-electron-kinetic="0.00000000000" Coulomb="-1117.46753130" Coulomb-potential="-842.399678647" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.04032346" Hartree="187.320322406" Madelung="-696.267691975" xc-potential="-52.4389337980" xc-effective-B-field="-0.120850458515E-12" external-B-field="0.00000000000" exchange="-37.5461558539" correlation="-2.14574645951"/>
+      <iter iteration="11" rms="6.557970132755236E-013" rmslog10="-12.1832305656" deltae="5.415813575382344E-009" deltaelog10="-8.26633629347" chgdst="1.863834301256676E-011" chgdstlog10="-10.7295926999" fermidos="0.647404087606E-11">
+        <energies totalEnergy="-578.073720278" fermiEnergy="0.196541601312" sum-of-eigenvalues="-315.752899110" electronic-kinetic="579.085713335" core-electron-kinetic="0.00000000000" Coulomb="-1117.46753130" Coulomb-potential="-842.399678647" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.04032346" Hartree="187.320322406" Madelung="-696.267691975" xc-potential="-52.4389337980" xc-effective-B-field="-0.120850474765E-12" external-B-field="0.00000000000" exchange="-37.5461558539" correlation="-2.14574645951"/>
         <charges totalcharge="28.00000000" core="20.00000000" core_leakage="0.4608519222E-02" valence="8.000000000" interstitial="3.894179763" muffin-tin-total="24.10582024">
           <atom species="Si" muffin-tin="12.05291012"/>
           <atom species="Si" muffin-tin="12.05291012"/>
         </charges>
-        <timing itertime="9.24429798126" timetot="112.397353411" timeinit="3.52386999130" timemat="2.61684107780" timefv="11.9699087143" timesv="13.2067520618" timerho="10.1866602898" timepot="70.8933212757" timefor="0.00000000000"/>
+        <timing itertime="0.710937023163" timetot="5.13601469994" timeinit="0.271400928497" timemat="0.254070758820" timefv="0.232073783875" timesv="0.440762519836" timerho="0.941449165344" timepot="2.99625754356" timefor="0.00000000000"/>
         <moments>
-          <momtot x="0.221961073846E-20" y="-0.131639758550E-20" z="-0.207263307851E-20"/>
-          <interstitial x="0.226544680305E-20" y="-0.130470396384E-20" z="-0.209526310795E-20"/>
-          <mommttot x="-0.458360645951E-22" y="-0.116936216612E-22" z="0.226300294361E-22"/>
+          <momtot x="0.122303854132E-20" y="-0.580485545555E-21" z="-0.128047662329E-20"/>
+          <interstitial x="0.127173063622E-20" y="-0.538951332886E-21" z="-0.124215406233E-20"/>
+          <mommttot x="-0.486920949004E-22" y="-0.415342126690E-22" z="-0.383225609632E-22"/>
           <atom species="Si">
-            <mommt x="-0.229180322975E-22" y="-0.584681083059E-23" z="0.113150147181E-22"/>
+            <mommt x="-0.243460474502E-22" y="-0.207671063345E-22" z="-0.191612804816E-22"/>
           </atom>
           <atom species="Si">
-            <mommt x="-0.229180322975E-22" y="-0.584681083059E-23" z="0.113150147181E-22"/>
+            <mommt x="-0.243460474502E-22" y="-0.207671063345E-22" z="-0.191612804816E-22"/>
           </atom>
         </moments>
       </iter>
-      <iter iteration="12" rms="1.725236858240997E-013" rmslog10="-12.7631512721" deltae="5.911715561524034E-011" deltaelog10="-10.2282864699" chgdst="2.941941479662309E-013" chgdstlog10="-12.5313659704" fermidos="0.647404088291E-11">
-        <energies totalEnergy="-578.073720278" fermiEnergy="0.196541601312" sum-of-eigenvalues="-315.752899110" electronic-kinetic="579.085713335" core-electron-kinetic="0.00000000000" Coulomb="-1117.46753130" Coulomb-potential="-842.399678647" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.04032346" Hartree="187.320322406" Madelung="-696.267691975" xc-potential="-52.4389337980" xc-effective-B-field="-0.120850478777E-12" external-B-field="0.00000000000" exchange="-37.5461558539" correlation="-2.14574645951"/>
+      <iter iteration="12" rms="1.689155591127387E-013" rmslog10="-12.7723303449" deltae="5.786660040030256E-011" deltaelog10="-10.2375720312" chgdst="2.909969362133668E-013" chgdstlog10="-12.5361115835" fermidos="0.647404088332E-11">
+        <energies totalEnergy="-578.073720278" fermiEnergy="0.196541601312" sum-of-eigenvalues="-315.752899110" electronic-kinetic="579.085713335" core-electron-kinetic="0.00000000000" Coulomb="-1117.46753130" Coulomb-potential="-842.399678647" nuclear-nuclear="-87.7475302457" electron-nuclear="-1217.04032346" Hartree="187.320322406" Madelung="-696.267691975" xc-potential="-52.4389337980" xc-effective-B-field="-0.120850462502E-12" external-B-field="0.00000000000" exchange="-37.5461558539" correlation="-2.14574645951"/>
         <charges totalcharge="28.00000000" core="20.00000000" core_leakage="0.4608519222E-02" valence="8.000000000" interstitial="3.894179763" muffin-tin-total="24.10582024">
           <atom species="Si" muffin-tin="12.05291012"/>
           <atom species="Si" muffin-tin="12.05291012"/>
         </charges>
-        <timing itertime="8.60454297066" timetot="119.584004402" timeinit="3.52386999130" timemat="2.82838964462" timefv="12.2269270420" timesv="14.3345046043" timerho="10.5432667732" timepot="76.1270463467" timefor="0.00000000000"/>
+        <timing itertime="0.713096141815" timetot="5.57753944397" timeinit="0.271400928497" timemat="0.276840925217" timefv="0.253050565720" timesv="0.480740785599" timerho="1.02658987045" timepot="3.26891636848" timefor="0.00000000000"/>
         <moments>
-          <momtot x="-0.307669100074E-20" y="-0.205804722018E-20" z="-0.684023423495E-21"/>
-          <interstitial x="-0.305203440790E-20" y="-0.203300622168E-20" z="-0.706669537985E-21"/>
-          <mommttot x="-0.246565928410E-22" y="-0.250409985002E-22" z="0.226461144899E-22"/>
+          <momtot x="-0.692101404041E-21" y="-0.139593334532E-20" z="0.306232071559E-21"/>
+          <interstitial x="-0.722895370401E-21" y="-0.149184441383E-20" z="0.329616432007E-21"/>
+          <mommttot x="0.307939663600E-22" y="0.959110685069E-22" z="-0.233843604481E-22"/>
           <atom species="Si">
-            <mommt x="-0.123282964205E-22" y="-0.125204992501E-22" z="0.113230572450E-22"/>
+            <mommt x="0.153969831800E-22" y="0.479555342534E-22" z="-0.116921802241E-22"/>
           </atom>
           <atom species="Si">
-            <mommt x="-0.123282964205E-22" y="-0.125204992501E-22" z="0.113230572450E-22"/>
+            <mommt x="0.153969831800E-22" y="0.479555342534E-22" z="-0.116921802241E-22"/>
           </atom>
         </moments>
       </iter>

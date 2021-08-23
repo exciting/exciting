@@ -4,7 +4,7 @@ Execute tests from exciting_tools directory:
 pytest --capture=tee-sys
 """
 
-from excitingtools.parser.groundStateParser import parse_info_out
+from excitingtools.parser.groundstate_parser import parse_info_out
 
 
 def test_parse_info_out():

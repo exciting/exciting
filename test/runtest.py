@@ -137,8 +137,9 @@ def optionParser(test_farm:str, exedir:str):
                      'handle_errors': args.handle_errors, 
                      'run_failing_tests': args.run_failing_tests
                      }
-    build_type = build_type_str_to_enum[args.e]
-    input_options['np']  = args.np if args.np is not None else settings.default_np[build_type] 
+
+    build_type = args.e if isinstance(args.e, Build_type) else build_type_str_to_enum[args.e]
+    input_options['np'] = args.np if args.np is not None else settings.default_np[build_type]
     input_options['omp'] = args.omp if args.omp is not None else settings.default_threads[build_type]
 
     if args.e == settings.binary_serial:
@@ -298,7 +299,7 @@ def main(settings:namedtuple, input_options:dict):
                       settings.main_output,
                       input_options['tests'],
                       settings.ref_dir,
-                      os.path.join(settings.exe_dir, settings.exe_ref),
+                      os.path.join(settings.exe_dir, build_type_enum_to_str[settings.exe_ref]),
                       settings.ignored_output,
                       settings.max_time)
     
