@@ -27,7 +27,9 @@ subroutine ldos()
     integer(4) :: i1, i2, i3, ip, np, nptot, npstep, i_dim
     integer(4) :: nw , iw, nsk(3), iw_f, iw_vb, iw_cb
     real(8) :: v0, dw, vbz
-    real(8) :: abc(3), z, delta
+    !> Lengths of the unit cell basis vectors, |a|, |b|, |c|
+    real(8) :: abc(3)
+    real(8) :: z, delta
     real(8), allocatable :: rho(:,:,:)
     real(8), allocatable :: weight(:,:,:)
     real(8), allocatable :: w(:)

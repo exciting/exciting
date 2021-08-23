@@ -36,6 +36,7 @@ subroutine shg(a,b,c)
     real(8) :: sc(3,3), v1(3), v2(3), v3(3)
     integer :: kfirst, klast
     integer :: wgrid
+    character(len=2) :: energy_str
     
 ! smallest eigenvalue difference allowed in denominator
     real(8)    :: eji,eki,ekj,t1,t2
@@ -84,7 +85,7 @@ subroutine shg(a,b,c)
     deallocate(pmat)
     open(50,File='PMAT.OUT',Action='READ',Form='UNFORMATTED',Access='DIRECT', &
     &    Recl=recl,IOstat=iostat)
-    if (iostat.ne.0) then
+    if (iostat /= 0) then
       write(*,*)
       write(*,'("Error(shg): error opening PMAT.OUT")')
       write(*,*)
@@ -284,32 +285,51 @@ subroutine shg(a,b,c)
 
     call barrier
     if (rank==0) then
-! output energy units
+
         t1 = 1.0d0
-        if (input%properties%shg%tevout) t1 = hartree_to_ev    
-! write to files
+        energy_str = 'Ha'
+
+        if (input%properties%shg%tevout) then
+            t1 = hartree_to_ev
+            energy_str = 'eV'
+        endif
+
         write(fname,'("CHI_INTER2w_",3I1,".OUT")') a,b,c
         open(51,file=trim(fname),action='WRITE',form='FORMATTED')
+        !write(51, '(A, A, A)') '# energy (', energy_str, '), Re{X2}, Im{X2}'
+
         write(fname,'("CHI_INTRA2w_",3I1,".OUT")') a,b,c
         open(52,file=trim(fname),action='WRITE',form='FORMATTED')
+        !write(51, '(A, A, A)') '# energy (', energy_str, '), Re{X2}, Im{X2}'
+
         write(fname,'("CHI_INTERw_",3I1,".OUT")') a,b,c
         open(53,file=trim(fname),action='WRITE',form='FORMATTED')
+        !write(51, '(A, A, A)') '# energy (', energy_str, '), Re{X}, Im{X}'
+
         write(fname,'("CHI_INTRAw_",3I1,".OUT")') a,b,c
         open(54,file=trim(fname),action='WRITE',form='FORMATTED')
+        !write(51, '(A, A, A)') '# energy (', energy_str, '), Re{X}, Im{X}'
+
         write(fname,'("CHI_MOD_",3I1,".OUT")') a,b,c
         open(55,file=trim(fname),action='WRITE',form='FORMATTED')
+        !write(51, '(A, A, A)') '# energy (', energy_str, '), Re{X}, Im{X}'
+
         write(fname,'("CHI_",3I1,".OUT")') a,b,c
         open(56,file=trim(fname),action='WRITE',form='FORMATTED')
+        write(51, '(A, A, A)') '# energy (', energy_str, '), Re{X}, Im{X}, |X|'
+
         do iw = 1, wgrid
             write(51,'(3G18.10)') t1*w(iw), chi2w(iw,1)
             write(52,'(3G18.10)') t1*w(iw), chi2w(iw,2)
             write(53,'(3G18.10)') t1*w(iw), chiw(iw,1)
             write(54,'(3G18.10)') t1*w(iw), chiw(iw,2)
             write(55,'(3G18.10)') t1*w(iw), chiw(iw,3)
-            zt1 = chi2w(iw,1)+chi2w(iw,2)+chiw(iw,1)+chiw(iw,2)+chiw(iw,3)
+            zt1 = chi2w(iw,1) + chi2w(iw,2) + chiw(iw,1) + chiw(iw,2) + chiw(iw,3)
             write(56,'(4G18.10)') t1*w(iw), zt1, abs(zt1) 
         end do
+
         close(51); close(52); close(53); close(54); close(55); close(56)
+
         write(*,*)
         write(*,'("  Susceptibility (complex+module) tensor written to CHI_abc.OUT")')
         write(*,'("  Interband contributions written to CHI_INTERx_abc.OUT")')

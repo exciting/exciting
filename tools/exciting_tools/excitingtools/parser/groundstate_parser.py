@@ -3,7 +3,7 @@ Ground state file parsers and classes providing light API
 """
 import xml.etree.ElementTree as ET
 
-from .ErroneousFileError import ErroneousFileError
+from .erroneous_file_error import ErroneousFileError
 
 
 def parse_info_out(name: str) -> dict:

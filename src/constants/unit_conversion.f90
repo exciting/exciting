@@ -15,7 +15,8 @@
 
 !> Unit conversion 
 module unit_conversion
-    use precision, only: dp 
+    use precision, only: dp
+    use constants, only: pi
     implicit none
     private
 
@@ -37,5 +38,8 @@ module unit_conversion
 
     ! Conversion from Hartree to Joules (CODATA 2018)
     real(dp), public, parameter :: hartree_to_j = 4.3597447222071e-18_dp
+
+    !> Radians to degrees
+    real(dp), public, parameter :: radians_to_degrees = 180._dp / pi
     
 end module unit_conversion

@@ -1,3 +1,3 @@
 from .parserChooser import parser_chooser
-from .ErroneousFileError import ErroneousFileError
-from .initParser import parseInit, getInitFile
+from .erroneous_file_error import ErroneousFileError
+from .init_parser import parseInit, getInitFile
