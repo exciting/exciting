@@ -1,166 +1,179 @@
-'''
-This script creates a new test case for the test suite.
-'''
+"""
+Create a new test case for the test suite.
+
+To run, for example:
+  cd <EXCITINGROOT>/test
+  python3 newtestcase.py -r path/2/test_reference -t test_farm/groundstate/new_test -i init_groundstate.xml
+
+Exclude -t and the new test will be placed in the current directory:
+  python3 newtestcase.py -r test_reference -i init_groundstate.xml
+"""
 import sys
 import os
 import argparse as ap
-from collections import namedtuple
 import warnings
 
-
+from runtest import get_test_directories
 from tools.constants import settings
-
-from tools.infrastructure import copy_exciting_input, create_test_directory, create_init
+from tools.infrastructure import copy_exciting_input, create_init
 from tools.runner.reference import run_single_reference
+from tools.utils import build_type_enum_to_str
+
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
     return '%s: %s \n' % (category.__name__, message)
+
+
 warnings.formatwarning = warning_on_one_line
 
-def optionParser():
-    p = ap.ArgumentParser(description="Usage: python3 newtestcase.py -n <name> -i <reference calc> -e <executable> -np <NP>")
-    p.add_argument ('-n',
-                   metavar = '--name',
-                   help = "Name of the new test case.",
-                   type = str,
-                   default=None)
-    p.add_argument ('-d', 
-                   metavar='--description', 
+
+def option_parser() -> dict:
+    p = ap.ArgumentParser(
+        description="Usage: python3 newtestcase.py -d <test description> -r <reference dir> -t <target dir> "
+                    "-i <init_template.xml>")
+
+    p.add_argument('-d',
+                   metavar='--description',
                    help="Description of the new test case.",
-                   type=str, 
+                   type=str,
+                   default='')
+
+    p.add_argument('-r',
+                   metavar='--reference',
+                   help="Path to an existing calculation that will be the reference.",
+                   type=str,
                    default=None)
-    p.add_argument ('-r', 
-                    metavar='--reference-input', 
-                    help="Path to an existing caclculation, that will be the reference.",
-                    type=str, 
-                    default=None)
-    p.add_argument ('-i', 
-                    metavar='--init_file', 
-                    help="Init file for the new test case. The available init files can be found at '/xml/init_templates/'. Default is init_groundstate.xml.",\
-                    type=str, 
-                    default='init_groundstate.xml')
+
+    p.add_argument('-t',
+                   metavar='--target',
+                   help="Target location to copy the reference to",
+                   type=str,
+                   default=None)
+
+    p.add_argument('-i',
+                   metavar='--init_file',
+                   help="Init file for the new test case. "
+                        "The available init files can be found at 'xml/init_templates/'. "
+                        "Default is init_groundstate.xml.",
+                   type=str,
+                   default='init_groundstate.xml')
 
     args = p.parse_args()
 
-    input_options = {'name': args.n, 
-                     'description': args.d, 
-                     'reference_location': args.r, 
-                     'init_file': args.i
-                     }
-    
-    return input_options
+    return args.__dict__
 
-def interactive_user_interface(args:dict):
-    """
-    Interactive user interface for creating a new test case. 
-    Interaction is only triggered if the elements for 
-    input_options "name", "reference_input", "description"
-    are not specified or not compatible.
 
-    :param args: parsed command line arguments.
+def set_reference_location(input_ref_location: str) -> str:
     """
-    input_options = args
-    if args['name']==None:
-        name = input("Please enter a name for the new test case: \n")
-    else:
-        name = args['name']
-    while os.path.exists(os.path.join(settings.test_farm, name)):
-        name_old = name
-        name = input("A test case with the same name exists already. " + \
-                     "Please choose a different name, replace the existing test case (enter 'replace', this will remove the existing test case!!)\n" + \
-                     " or quit (enter 'exit').\n")
-        if name=='replace':
-            os.system('rm -r %s/%s'%(settings.test_farm,name_old))
-            name = name_old
-            break
-        elif name.lower() =='exit':
+    Set location of reference data that will form a new test case
+
+    :param str input_ref_location: Input reference directory
+    :return str description: Test reference directory
+    """
+    if input_ref_location is None:
+        sys.exit("An existing calculation reference is required. "
+                 "Please enter the path to the corresponding directory. \n"
+                 "Make sure that a valid %s and all necessary species files are contained.\n"
+                 % settings.input_file + "\n")
+
+    reference_location = input_ref_location
+
+    while not os.path.exists(reference_location):
+        reference_location = input(
+            "The reference path you entered does not exist. "
+            "Please reenter or exit (type 'exit').\n")
+
+        if reference_location.lower() == "exit":
             sys.exit()
-    input_options['name'] = name
 
-    if args['description']==None:
-        description = input("Please enter a description for the new test case:\n")
+    return reference_location
+
+
+def set_target_directory(input_target_dir: str) -> str:
+    """
+    Set target location to copy test reference folder to
+
+
+    """
+    default_name = 'ref_data'
+
+    if input_target_dir is None:
+        print("No target has been specified to copy the reference to.")
+        target_dir = os.path.join(os.getcwd(), default_name)
+        print("The current directory will be used:", target_dir)
     else:
-        description = args['description']
-    input_options['description'] = description
+        return input_target_dir
 
-    reenter = True
-    if args['reference_location']==None:
-        reference_location = input("If you want to set up a test case with an existing calculation as reference, " + \
-                                   "please enter the path to the corresponding directory. \n" +\
-                                   "Make sure that a valid %s and all necessary species files are contained.\n"%settings.input_file + \
-                                   "If you want to set up an empty test case, please enter 'no'.\n")
-        if reference_location.lower() in ["no","n"]:
-            reference_location = None
-            reenter = False
-    else:
-        reference_location = args['reference_location']
-    if reenter:
-        while not os.path.exists(os.path.join(reference_location, settings.input_file)):
-            reference_location = input("The reference path you entered does not exists. Please reenter, create a blank test case (type 'no') " + \
-                                    "or exit (type 'exit').\n")
-            if reference_location.lower() in ["no","n"]:
-                reference_location = None
-                break
-            elif reference_location.lower() == "exit":
-                sys.exit()
-    input_options['reference_location'] = reference_location
+    return target_dir
 
-    return input_options
-    
 
-def main(settings:namedtuple, input_options:dict):
+def check_clear_test_name(target_test: str):
+    """
+    Check if an existing test already exists with the target test name.
+
+    target_test is some relative path, for example:
+      new_test
+      ./new_test
+      test_farm/groundstate/new_test
+
+    If target_test is already present in current_tests, the user will be
+    given the choice to a) enter a new name, b) replace the existing test or
+    c) exit.
+
+    Note, because of test farm's subdirectory structure, it is possible to
+    have two test directories with the same base name, as long as they are
+    in different sub-folders of test_farm.
+    """
+
+    # Tests in test farm
+    current_tests = get_test_directories(settings.test_farm, basename=False)
+
+    # Test already exists in current operating directory
+    if os.path.isdir(target_test):
+        current_tests.append(target_test)
+
+    while target_test in current_tests:
+        old_target_test = target_test
+        target_test = input("A test case with the same name already exists: " + old_target_test + "\n" +
+                            "Please choose a different name, replace the existing test case "
+                            "(enter 'replace')\n or quit (enter 'exit').\n")
+
+        if target_test == 'replace':
+            os.system('rm -r %s' % old_target_test)
+            return old_target_test
+
+        elif target_test.lower() == 'exit':
+            sys.exit()
+
+    return target_test
+
+
+def main(args: dict):
     """
     Create a new test case from an input file and run the reference.
 
-    :stettings:        default settings
-    :input_options:    definitions of user input or parsed command line arguments
+    :param args: Parsed command line arguments
     """
+
+    description = args['d']
+    reference_location = set_reference_location(args['r'])
+    target_location = set_target_directory(args['t'])
+    init_file = args['i']
     species_files = next(os.walk(settings.species))[2]
-    name = input_options['name']
-    description = input_options['description']
-    init_file = input_options['init_file']
-    reference_location = input_options['reference_location']
 
-    try:
-        create_test_directory(settings.test_farm, 
-                              name, 
-                              settings.ref_dir)
-    except FileExistsError:
-        raise FileExistsError('A test case with the name %s already exists in %s.'%(name, settings.test_farm))
+    check_clear_test_name(target_location)
+    os.makedirs(os.path.join(target_location, settings.ref_dir))
+    create_init(target_location, description, init_file)
 
-    create_init(settings.test_farm, 
-                name, 
-                description, 
-                init_file)
+    print('Create new test case %s.' % target_location)
+    print("Take reference input from %s." % reference_location)
 
-    if reference_location==None:
-        print("Create blank test case %s. Please put the input files for your test case in the directories "%name + \
-              "%s/ and %s/ in the test directory %s/%s. \n"%(settings.run_dir, settings.ref_dir, settings.test_farm, name))
-        warnings.warn("Before you can run the test case, you must generate the reference data.")
-        print("Run the reference: \n\n" + \
-              "    python3 runtest.py -a ref -t %s\n"%name)
-    else:
-        print('Create new test case %s.'%(name))        
-        print("Take reference input from %s."%reference_location)
+    test_directory = os.path.join(target_location, settings.ref_dir)
+    copy_exciting_input(reference_location, test_directory, species_files, settings.input_file)
+    binary = os.path.join(settings.exe_dir, build_type_enum_to_str[settings.exe_ref])
+    run_single_reference(test_directory, binary, settings)
 
-        copy_exciting_input(reference_location,
-                            os.path.join(settings.test_farm, name, settings.ref_dir),
-                            species_files,
-                            settings.input_file)
-                            
-            
-        run_single_reference(settings.test_farm, 
-                             settings.main_output, 
-                             name, 
-                             settings.ref_dir,
-                             os.path.join(settings.exe_dir, settings.exe_ref),
-                             settings.ignored_output, 
-                             settings.max_time)
-    
-    print("Run the test case: \n\n" + \
-          "    python3 runtest.py -t %s\n"%name)
 
 if __name__ == "__main__":
-    args = optionParser()
-    input_options = interactive_user_interface(args)
-    main(settings, input_options)  
+    args = option_parser()
+    main(args)

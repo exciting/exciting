@@ -1,63 +1,59 @@
-import os 
+import os
 import shutil
 from xml.etree.ElementTree import ParseError
 from typing import List, Optional
 
 from .parsers import parseInit
 
-def copy_exciting_input(source:str, destination:str, species_files:List[str], input_file:Optional[str]='input.xml'):
+
+def copy_exciting_input(source: str, destination: str, species_files: List[str],
+                        input_file: Optional[str] = 'input.xml'):
     """
-    Copy input files for an exciting calculation from source to destination. 
-    The input files are the input.xml and the species files. 
-    :param source:          path to the exciting calculation where to copy the input files from
-    :param destination:     path to the directory where the input files shall copied to.
-    :param species_files:   exciting species files
-    :param input_file:      exciting input file
+    Copy input files for an exciting calculation from source to destination.
+
+    The input files are the input.xml and the species files.
+
+    :param str source: Path to the exciting calculation where to copy the input files from
+    :param str destination: Path to the directory where the input files shall copied to.
+    :param List[str] species_files: Exciting species files
+    :param Optional[str] input_file: Exciting input file
     """
-    
-    # check if input.xml exists in source
-    try:
-        os.path.isfile(os.path.join(source, input_file))
-    except Exception:
-        raise FileNotFoundError('No %s in %s.'%(input_file, source))
-    
     if not os.path.isdir(destination):
-        raise NotADirectoryError('%s does not exist.'%source)
+        raise NotADirectoryError('Target directory does not exist:', destination)
+
+    species_required = has_species_files(source, species_files)
+
+    files_to_copy = [input_file] + species_required
+
+    for file in files_to_copy:
+        shutil.copyfile(os.path.join(source, file), os.path.join(destination, file))
 
 
-    try:
-        has_species_files(source, species_files)
-    except Exception:
-        raise FileNotFoundError('%s has no species files.'%source)
-
-    files = [input_file] + species_files
-    files_in_reference = next(os.walk(source))[2]
-    for file in files:
-        if file in files_in_reference:
-            shutil.copyfile(os.path.join(source, file), os.path.join(destination, file))
-
-def has_species_files(directory:str, species_files:list):
+def has_species_files(directory: str, species_files: List[str]) -> List[str]:
     """
     Raise exception if no species file is in directory.
-    :param directory:       path to directory to check
-    :param species_fiels:   list of possible species files
+
+    :param str directory: Path to directory to check
+    :param List[str] species_files: List of possible species files
+    :return List[str]: Species files present in directory
     """
     files_in_directory = next(os.walk(directory))[2]
 
-    num_of_species_in_directory = len(list(set(files_in_directory) & set(species_files)))
-    
-    if num_of_species_in_directory == 0:
+    species_present = list(set(files_in_directory) & set(species_files))
+
+    if len(species_present) == 0:
         raise FileNotFoundError
     else:
-        return True
+        return species_present
 
 
-def create_run_dir(path_to_test_case:str, run_dir:str):
+def create_run_dir(path_to_test_case: str, run_dir: str):
     """
-    Create run directory for a test case with the name test_name in test_farm. If a run directory already exists, it will be deleted.
-    :param test_farm:  path to the test case
-    :param test_name:  name of the test
-    :param run_dir:    name of the run directory
+    Create run directory for a test case with the name test_name in test_farm.
+    If a run directory already exists, it will be deleted.
+
+    :param str path_to_test_case:  path to the test case
+    :param str run_dir:    name of the run directory
     """
 
     # check if the test case exists
@@ -65,18 +61,20 @@ def create_run_dir(path_to_test_case:str, run_dir:str):
         os.path.isdir(path_to_test_case)
     except Exception:
         raise NotADirectoryError('%s does not exist.', path_to_test_case)
-    
+
     if os.path.isdir(os.path.join(path_to_test_case, run_dir)):
         try:
             shutil.rmtree(os.path.join(path_to_test_case, run_dir))
         except Exception:
-            raise OSError('%s could not be removed.'%os.path.join(path_to_test_case, run_dir))
-    
+            raise OSError('%s could not be removed.' % os.path.join(path_to_test_case, run_dir))
+
     os.mkdir(os.path.join(path_to_test_case, run_dir))
 
-def get_test_from_init(path_to_test_case:str, init_file:str)->dict:
+
+def get_test_from_init(path_to_test_case: str, init_file: str) -> dict:
     """
     Read files for testing, and corresponding tolerances, from init.xml.
+
     :param path_to_test_case: path to the test case
     :param init_file:  Name of the init file. By default init.xml.
     """
@@ -86,10 +84,11 @@ def get_test_from_init(path_to_test_case:str, init_file:str)->dict:
         init = parseInit(init_file)
     except Exception:
         raise ParseError('Could not parse init file.')
-    
+
     return init
 
-def flatten_directory(path:str):
+
+def flatten_directory(path: str):
     """
     Flatten the file structure by factor 1 for the directory at path.
     :param path: path to directory which gets flattened
@@ -97,9 +96,9 @@ def flatten_directory(path:str):
     try:
         os.path.isdir(path)
     except Exception:
-        raise NotADirectoryError('%s does not exist.'%path)
+        raise NotADirectoryError('%s does not exist.' % path)
 
-    dirs = next(os.walk(path))[1] 
+    dirs = next(os.walk(path))[1]
 
     for dir in dirs:
         files = next(os.walk(os.path.join(path, dir)))[2]
@@ -109,10 +108,11 @@ def flatten_directory(path:str):
             except shutil.Error:
                 os.remove(os.path.join(path, file))
                 shutil.move(os.path.join(path, dir, file), path)
-        
+
         shutil.rmtree(os.path.join(path, dir))
 
-def remove_ignored_files(path:str, ignored_output:list):
+
+def remove_ignored_files(path: str, ignored_output: list):
     """
     Remove files that are ignored for the tests in a directory.
     :param path:              Path to the directpry 
@@ -121,58 +121,47 @@ def remove_ignored_files(path:str, ignored_output:list):
     try:
         files = next(os.walk(path))[2]
     except Exception:
-        return NotADirectoryError('%s is not a directory.'%path)
+        return NotADirectoryError('%s is not a directory.' % path)
 
     for file in files_to_remove(files, ignored_output):
         os.remove(os.path.join(path, file))
 
-def files_to_remove(files:List[str], remove_list:List[str]) -> List[str]:
+
+def files_to_remove(files: List[str], remove_list: List[str]) -> List[str]:
     """
     Return the intersection between a list of files and a list of files that shall be removed.
-    :param files:           List of files
-    :param remove_list:     List of files to be removed
-    """
 
-    files_to_remove = []
+    :param List[str] files: List of files
+    :param List[str] remove_list: List of files to be removed
+    :return List[str] to_remove: List of files to be removed
+    """
+    to_remove = []
     for remove in remove_list:
         for file in files:
             if remove in file:
-                files_to_remove.append(file)
+                to_remove.append(file)
 
-    return files_to_remove
+    return to_remove
 
-def create_test_directory(test_farm:str, name:str, ref_dir:str):
+
+def create_init(test_location: str, description: str, init_name: str):
     """
-    Create a directory for a new test case.
-    :param testFarm:    location of the test farm
-    :param name:        name of the new test case
-    :param runDir:      name of the run directory of the test case
-    :param refDir:      name of the ref directory of the test case
-    """
-    try:
-        not os.path.isdir(os.path.join(test_farm, name))
-    except Exception:
-        raise FileExistsError
+    Copy init_default.xml from xml/init_templates to the directory
+    of the new test case.
 
-    path = os.path.join(test_farm, name)
-
-    os.makedirs(path)
-    os.makedirs(os.path.join(path, ref_dir))
-
-def create_init(testFarm:str, name:str, description:str, init:str):
+    :param str test_location: Test name
+    :param str description: Test description
+    :param str init_name: Name of init template file
     """
-    Copy init_default.xml from xml/init_templates to the directory of the new test case.
-    :param testFarm:     location of the test farm   
-    :param name:         name of the new test case
-    :param description:  description in the init file
-    :param init:         init file template
-    """
-    shutil.copy(os.path.join("xml/init_templates", init), os.path.join(testFarm, name, "init.xml"))
-    with open(os.path.join(testFarm, name, "init.xml"), 'r') as file :
+    init_template = os.path.join("xml/init_templates", init_name)
+    init_file = os.path.join(test_location, "init.xml")
+
+    shutil.copy(init_template, init_file)
+
+    with open(init_file, 'r') as file:
         lines = file.read()
-    lines = lines.replace('test_name', name)
+    lines = lines.replace('test_name', os.path.basename(test_location))
     lines = lines.replace('test_description', description)
-    file.close
-    with open(os.path.join(testFarm, name, "init.xml"), 'w') as file :
+
+    with open(init_file, 'w') as file:
         file.write(lines)
-    file.close

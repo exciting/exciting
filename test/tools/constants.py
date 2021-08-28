@@ -3,6 +3,7 @@
 """
 
 from collections import namedtuple
+import os
 
 from tools.utils import Build_type, build_type_enum_to_str
 
@@ -12,25 +13,25 @@ _default_np      = {Build_type.serial: 1, Build_type.puresmp: 1, Build_type.pure
 _default_threads = {Build_type.serial: 1, Build_type.puresmp: 2, Build_type.purempi: 1, Build_type.mpiandsmp: 2}
 _action_choices  = ['run', 'ref', 'clean']
 
-Defaults = namedtuple('Defaults', ['max_time',       # Time after which a test is killed (in seconds)
-                                   'test_farm',      # Test farm directory
-                                   'species',        # Species file directory
-                                   'input_file',     # Input file for exciting
-                                   'main_output',    # Main output from exciting
-                                   'run_dir',        # Run directory for tests
-                                   'ref_dir',        # Directory for test reference data
-                                   'exe_dir',        # Location of exciting executable
-                                   'init_default',   # Template for init xml
-                                   'ignored_output', # Output files to not reference
-                                   'action_choices', # Action choices for test script 
-                                   'binary_names',   # List of exciting executables
-                                   'binary_mpismp',  # Exciting execuatable with smp and mpi parallelisation
-                                   'binary_purempi', # Exciting execuatable with mpi parallelisation
-                                   'binary_smp',     # Exciting execuatable with smp parallelisation
-                                   'binary_serial',  # Serial exciting execuatable
-                                   'default_np',     # Dict of default MPI processes per executable
-                                   'default_threads',# Dict of default threads per executable 
-                                   'exe_ref'         # Executable for running the reference calculations
+Defaults = namedtuple('Defaults', ['max_time',        # Time after which a test is killed (in seconds)
+                                   'test_farm',       # Test farm directory
+                                   'species',         # Species file directory
+                                   'input_file',      # Input file for exciting
+                                   'main_output',     # Main output from exciting
+                                   'run_dir',         # Run directory for tests
+                                   'ref_dir',         # Directory for test reference data
+                                   'exe_dir',         # Location of exciting executable
+                                   'init_default',    # Template for init xml
+                                   'ignored_output',  # Output files to not reference
+                                   'action_choices',  # Action choices for test script
+                                   'binary_names',    # List of exciting executables
+                                   'binary_mpismp',   # Exciting executable with smp and mpi parallelisation
+                                   'binary_purempi',  # Exciting executable with mpi parallelisation
+                                   'binary_smp',      # Exciting executable with smp parallelisation
+                                   'binary_serial',   # Serial exciting execuatable
+                                   'default_np',      # Dict of default MPI processes per executable
+                                   'default_threads', # Dict of default threads per executable
+                                   'exe_ref'          # Executable for running the reference calculations
                                    ])
 
 # Define an immutable instance of the default settings
@@ -42,7 +43,7 @@ settings = Defaults(max_time       = 1800,
                     main_output    = 'INFO.OUT',    
                     run_dir        = 'run',       
                     ref_dir        = 'ref',        
-                    exe_dir        = '../../../../bin/',        
+                    exe_dir        =  os.path.normpath(os.path.join(os.getcwd(), '../bin')),
                     init_default   = 'xml/init_templates/init_default.xml' ,   
                     ignored_output = ['STATE.OUT', 'OCC', 'EVEC', 'EVALSV', 'EVALFV', 'APWCMT', 'SYM', 
                                       'PMAT', 'FERMISURF', 'RMSDVEFF', 'LOCMT', 'EXCLI', 'SCCLI'], 

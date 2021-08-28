@@ -9,16 +9,19 @@ import matplotlib.style
 if matplotlib.__version__.split(".")[0]=="2": matplotlib.style.use('classic')
 
 
-sys.path.append(os.path.dirname(__file__)+'/exciting_utils/exciting_utils/parsers/')
-from parse_lossfunction import parse_lossfunction
+sys.path.append(os.path.dirname(__file__)+'/exciting_tools/excitingtools/parser/')
+from properties_parser import parse_lossfunction
 
 #-------------------------------------------------------------------------------
 
-def shell_value(variable,vlist,default):
+def shell_value(variable, vlist, default):
     v = default
     e = False
     for i in range(len(vlist)):
-        if ( vlist[i] == variable ): v = os.environ[variable] ; e = True ; break
+        if vlist[i] == variable:
+            v = os.environ[variable]
+            e = True
+            break
     return v, e
 
 #-------------------------------------------------------------------------------
@@ -50,7 +53,7 @@ for i in sys.argv[1:]:
     else:
         handler=i[2:]
 
-if ( nfiles>1 and handler==""):
+if nfiles > 1 and handler == "":
     print "\n Error: The legend handler must be given if more than one file is plotted!"
     print "\n **Usage type 1**:    PLOT-loss-function.py --legend-handler lossfile-1.OUT lossfile-2.OUT"
     print   " **Usage type 2**:    PLOT-loss-function.py lossfile.OUT\n"
