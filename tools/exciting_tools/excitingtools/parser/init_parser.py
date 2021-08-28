@@ -1,8 +1,8 @@
 import os
 import xml.etree.ElementTree as ET
 
-def parseInit(fileName):
-    root = ET.parse(fileName).getroot()
+def parseInit(file_name):
+    root = ET.parse(file_name).getroot()
 
     init =  root.attrib
     init['tests'] = []

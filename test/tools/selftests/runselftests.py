@@ -1,7 +1,7 @@
-'''
+"""
 Unit tests for the test suite. Run the tests:
-$python3 runselftest.py
-'''
+python3 runselftest.py
+"""
 import unittest
 import json
 import os
