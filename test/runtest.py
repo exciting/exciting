@@ -47,7 +47,8 @@ def option_parser(test_farm: str, exe_dir: str):
     :return input_options: Dictionary of parsed command line arguments 
     """
 
-    p = ap.ArgumentParser(description="Usage: python3 runtest.py -a <action> -t <tests> -e <execuatble> -np <NP> -omp <omp> -handle-errors -run-failing-tests")
+    p = ap.ArgumentParser(
+        description="Usage: python3 runtest.py -a <action> -t <tests> -e <executable> -np <NP> -omp <omp> -handle-errors -run-failing-tests")
 
     # TODO(Alex) ref functionality should be moved
     help_action = "Defines what action is done. " \
@@ -167,7 +168,7 @@ def option_parser(test_farm: str, exe_dir: str):
     executable_string = os.path.join(exe_dir, build_type_enum_to_str[build_type])
 
     if not os.path.isfile(executable_string):
-        quit('exciting binary not found in', exe_dir)
+        quit('exciting binary not found in' + exe_dir)
 
     if build_type in [settings.binary_purempi, settings.binary_mpismp]:
         executable_string = 'mpirun -np %i %s' % (input_options['np'], executable_string)
@@ -278,8 +279,8 @@ def set_up_make_test(test_farm: str, exe_dir: str) -> dict:
         build_type = settings.binary_serial
 
     else:
-        raise Exception('Could not find any exciting binary. Running the test suite requires compiling ' + \
-                        'one of the following exciting binaries:\n\n' + \
+        raise Exception('Could not find any exciting binary. Running the test suite requires compiling ' 
+                        'one of the following exciting binaries:\n\n'
                         '    %s  %s  %s  %s. \n\n' % (settings.binary_mpismp, settings.binary_smp,
                                                       settings.binary_purempi, settings.binary_serial))
 
@@ -288,8 +289,7 @@ def set_up_make_test(test_farm: str, exe_dir: str) -> dict:
 
     executable_string = os.path.join(exe_dir, build_type_enum_to_str[build_type])
     if build_type in [settings.binary_purempi, settings.binary_mpismp]:
-        executable_string = \
-            'mpirun -np %i %s' % (input_options['np'], executable_string)
+        executable_string = 'mpirun -np %i %s' % (input_options['np'], executable_string)
     input_options['executable'] = executable_string
 
     return input_options
