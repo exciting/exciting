@@ -121,7 +121,7 @@ def get_hashable_entries(nested: dict) -> Iterator[tuple]:
     :return: Iterator[tuple] (key, value): Generator for tuples, containing keys and values.
     """
     for key, value in nested.items():
-        if isinstance(value, abc.Mapping):
+        if isinstance(value, Mapping):
             yield from get_hashable_entries(value)
         else:
             yield key, value

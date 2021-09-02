@@ -7,7 +7,7 @@ import json
 import os
 
 from tools.tester.report import Test
-from tools.tolerance.tol_files import extend_tolerance_file_keys, remove_tolerance_file_keys
+from tools.tolerance.modify_tolerance import extend_tolerance_file_keys, remove_tolerance_file_keys
 
 
 class TestCompare(unittest.TestCase):

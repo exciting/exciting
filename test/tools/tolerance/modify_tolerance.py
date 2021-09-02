@@ -2,7 +2,7 @@
 Functions for operating on the test suite's JSON-formatted tolerance files
 """
 import os
-from typing import List, Callable, NoReturn
+from typing import List, Callable, NoReturn, Union
 import json
 import pathlib
 
@@ -16,8 +16,7 @@ def extend_keys(tolerances: dict, new_entries: dict) -> dict:
 
     :return: dict tolerances: Input tolerances, with new entries added
     """
-    for key, value in new_entries.items():
-        tolerances[key] = value
+    tolerances.update(new_entries)
     return tolerances
 
 
@@ -38,7 +37,7 @@ def remove_keys(tolerances: dict, entries_to_remove: List[str]) -> dict:
 
 def modify_tolerance_file_keys(files: List[str],
                                modified_entries: dict,
-                               key_modifier: Callable[[dict, list], dict],
+                               key_modifier: Callable[[dict, Union[list, dict]], dict],
                                treat_original: Callable[[str], NoReturn],
                                ) -> list:
     """
