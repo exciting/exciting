@@ -169,7 +169,7 @@ Subroutine oepvnlk (ikp, vnlcv, vnlvv)
 
 !-------------------------------------------------------------------
 call timesec(ta)
-                     call WFprod(ist3,wf2,ist2,wf1,prod)
+                     call WFprodrs(ist3,wf2,ist2,wf1,prod)
 call timesec(tb)
 !write(*,*) 'WFprod',tb-ta
 call timesec(ta)
@@ -199,7 +199,7 @@ call timesec(tb)
 !                        If (evalsvp(ist1) .Lt. efermi) Then
 ! calculate the complex overlap density
 call timesec(ta)
-                            call WFprod(ist3,wf2,ist1,wf1,prod)
+                            call WFprodrs(ist3,wf2,ist1,wf1,prod)
 call timesec(tb)
 !write(*,*) 'WFprod',tb-ta
 call timesec(ta)

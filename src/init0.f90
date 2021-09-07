@@ -69,6 +69,8 @@ Subroutine init0
 !------------------------------------!
 !     angular momentum variables     !
 !------------------------------------!
+      ntpll = 770
+      lmmaxhf = (2*input%groundstate%lmaxvr+1) ** 2
       lmmaxvr = (input%groundstate%lmaxvr+1) ** 2
       lmmaxapw = (input%groundstate%lmaxapw+1) ** 2
       lmmaxmat = (input%groundstate%lmaxmat+1) ** 2
@@ -538,6 +540,8 @@ Subroutine init0
       Call getsdata (input%groundstate%stypenumber, sdescr)
 ! generate the spherical harmonic transform (SHT) matrices
       Call genshtmat
+      Call genshtmat3
+      ! Call genshtmat2
 !
 ! allocate 1D plotting arrays
       If (allocated(dvp1d)) deallocate (dvp1d)

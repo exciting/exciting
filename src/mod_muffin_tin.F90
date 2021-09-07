@@ -36,6 +36,11 @@ Module mod_muffin_tin
 ! maximum allowable angular momentum for augmented plane waves
 !
 ! maximum angular momentum for augmented plane waves
+! (2*lmaxapw+1)^2
+      Integer :: lmmaxhf
+! maximum number for grid points in Lebedev Laikov
+      Integer :: ntpll
+! maximum angular momentum for augmented plane waves
 !replaced by inputstructureinteger::lmaxapw
 ! (lmaxapw+1)^2
       Integer :: lmmaxapw

@@ -175,7 +175,7 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
 
 !-------------------------------------------------------------------
 call timesec(ta)
-                     call WFprod(ist3,wf2,ist2,wf1,prod)
+                     call WFprodrs(ist3,wf2,ist2,wf1,prod)
 call timesec(tb)
 write(*,*) 'WFprod',tb-ta
 call timesec(ta)
@@ -204,10 +204,9 @@ call timesec(tb)
 
 !write(*,*) 'zpotcoul',tb-ta
 !-------------------------------------------------------------------
-
                         call genWFonMeshOne(pot)
-!                        pot%ir=conjg(pot%ir)
-!                        pot%mtmesh=conjg(pot%mtmesh)
+                       pot%ir=conjg(pot%ir)
+                       pot%mtmesh=conjg(pot%mtmesh)
                         call WFprodrs(1,pot,ist3,wf2,prod)
 
 ! ------------------------------------------------------------------

@@ -796,15 +796,15 @@ Contains
      type (WFType) :: wf
      integer :: j,is,ia,ias
      
-     if (.not.allocated(wf%mtmesh)) allocate(wf%mtmesh(lmmaxvr,nrmtmax,natmtot,nstsv))
+     if (.not.allocated(wf%mtmesh)) allocate(wf%mtmesh(ntpll,nrmtmax,natmtot,nstsv))
 
      do j=1,nstsv
        do is=1,nspecies
          do ia=1,natoms(is)
            ias=idxas(ia,is)
-                     Call zgemm ('N', 'N', lmmaxvr, nrmt(is), lmmaxvr, &
-                    & zone, zbshtvr, lmmaxvr, wf%mtrlm(1,1,ias,j), lmmaxvr, zzero, &
-                    & wf%mtmesh(1,1,ias,j), lmmaxvr)
+                     Call zgemm ('N', 'N', ntpll, nrmt(is), lmmaxvr, &
+                    & zone, zbshthf, ntpll, wf%mtrlm(1,1,ias,j), lmmaxvr, zzero, &
+                    & wf%mtmesh(1,1,ias,j), ntpll)
          enddo
        enddo
      enddo
@@ -838,14 +838,22 @@ Contains
      type (WFType) :: wf
      integer :: is,ia,ias
      
-     if (.not.allocated(wf%mtmesh)) allocate(wf%mtmesh(lmmaxvr,nrmtmax,natmtot,1))
+     if (.not.allocated(wf%mtmesh)) allocate(wf%mtmesh(ntpll,nrmtmax,natmtot,1)) ! was lmmaxvr instead of lmmaxhf/ntpll
 
      do is=1,nspecies
        do ia=1,natoms(is)
          ias=idxas(ia,is)
-                   Call zgemm ('N', 'N', lmmaxvr, nrmt(is), lmmaxvr, &
-                  & zone, zbshtvr, lmmaxvr, wf%mtrlm(1,1,ias,1), lmmaxvr, zzero, &
-                  & wf%mtmesh(1,1,ias,1), lmmaxvr)
+                  Call zgemm ('N', 'N', ntpll, nrmt(is), lmmaxvr, &
+                  & zone, zbshthf, ntpll, wf%mtrlm(1,1,ias,1), lmmaxvr, zzero, &
+                  & wf%mtmesh(1,1,ias,1), ntpll) ! Genshtmat3
+
+                  !  Call zgemm ('N', 'N', lmmaxhf, nrmt(is), lmmaxvr, &
+                  ! & zone, zbshthf, lmmaxhf, wf%mtrlm(1,1,ias,1), lmmaxvr, zzero, &
+                  ! & wf%mtmesh(1,1,ias,1), lmmaxhf) ! Genshtmat2
+
+                  ! Call zgemm ('N', 'N', lmmaxvr, nrmt(is), lmmaxvr, &
+                  ! & zone, zbshtvr, lmmaxvr, wf%mtrlm(1,1,ias,1), lmmaxvr, zzero, &
+                  ! & wf%mtmesh(1,1,ias,1), lmmaxvr) ! Genshtmat
        enddo
      enddo
      end subroutine genWFonMeshOne
@@ -1147,13 +1155,15 @@ call timesec(tb)
 
 call timesec(ta)
 
-     if (.not.allocated(prod%mtmesh)) allocate(prod%mtmesh(lmmaxvr,nrmtmax,natmtot,1))
+     if (.not.allocated(prod%mtmesh)) allocate(prod%mtmesh(ntpll,nrmtmax,natmtot,1))
      prod%mtmesh(:,:,:,1)=conjg(wf1%mtmesh(:,:,:,ist1))*wf2%mtmesh(:,:,:,ist2)
 
      do is=1,nspecies
        do ia=1,natoms(is)
          ias=idxas(ia,is)
-         Call zgemm ('N', 'N', lmmaxvr, nrmt(is), lmmaxvr, zone, zfshtvr, lmmaxvr, prod%mtmesh(1,1,ias,1), lmmaxvr, zzero, prod%mtrlm(1,1,ias,1) , lmmaxvr)
+        !  Call zgemm ('N', 'N', lmmaxvr, nrmt(is), lmmaxvr, zone, zfshtvr, lmmaxvr, prod%mtmesh(1,1,ias,1), lmmaxvr, zzero, prod%mtrlm(1,1,ias,1) , lmmaxvr) ! Genshtmat
+        !  Call zgemm ('N', 'N', lmmaxvr, nrmt(is), lmmaxhf, zone, zfshthf, lmmaxhf, prod%mtmesh(1,1,ias,1), lmmaxhf, zzero, prod%mtrlm(1,1,ias,1) , lmmaxvr) ! Genshtmat2
+         Call zgemm ('N', 'N', lmmaxvr, nrmt(is), ntpll, zone, zfshthf, lmmaxvr, prod%mtmesh(1,1,ias,1), ntpll, zzero, prod%mtrlm(1,1,ias,1) , lmmaxvr) ! Genshtmat3
        enddo
      enddo
 
