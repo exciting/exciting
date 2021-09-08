@@ -226,6 +226,11 @@ Subroutine hybrids
       ! to insure correct reading from GS files
       splittfile = .False.
 
+
+      call MTInitAll(mt_hscf)
+      call hmlint(mt_hscf)
+
+
       !-----------------------------------
       ! Calculate the non-local potential
       !-----------------------------------
@@ -244,6 +249,7 @@ Subroutine hybrids
         write(60,'(" CPU time for vnlmat (seconds)",T45 ": ", F12.2)') ts1-ts0
       end if
       time_hyb = time_hyb+ts1-ts0
+      call mt_hscf%release
 
       !--------------------------------------------------
       ! Internal SCF loop

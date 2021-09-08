@@ -273,7 +273,41 @@ else
 !      Allocate (vxnl(nstsv, nstsv, nkpt))
       Call oepvnl (vnlcv, vxnl)
       deallocate(vnlcv)
+
+
+    allocate(evalfv(nstfv,kset%nkpt))
+    evalfv(:,:) = 0.d0
+    do ik = 1, nkpt
+      call getevalfv(kset%vkl(:,ik), evalfv(:,ik))
+    end do
+
+    ! VB / CB state index
+    call find_vbm_cbm(1, nstfv, kset%nkpt, evalfv, efermi, nomax, numin, ikvbm, ikcbm, ikvcm)
+    ! write(*,*) 'calc_vxnl: ', nomax, numin, efermi
+
+    ! BZ integration weights
+    call kintw()
+    deallocate(evalfv)
+
+    exnl = 0.d0
+    do ikp = 1, kset%nkpt
+!      write(*,*) 'ikp=',ikp
+      do ie1 = 1, nstfv
+        do ie2 = ie1+1, nstfv
+          vxnl(ie2,ie1,ikp) = conjg(vxnl(ie1,ie2,ikp))
+        end do
+      end do
+      do ie1 = 1, nomax
+!        write(*,*) exnl,vxnl(ie1,ie1,ikp)
+        exnl = exnl + kset%wkpt(ikp)*vxnl(ie1,ie1,ikp)
+      end do
+    end do ! ikp
+
+
 endif
+
+if (.false.) then
+    write(*,*) 'exnl=', exnl
     write(*,*) 'real'
     do ikp = 1, kset%nkpt
       write(*,*) 'ikp=',ikp
@@ -295,6 +329,7 @@ endif
 
 
 stop
+endif
     
     call cpu_time(tend)
 
