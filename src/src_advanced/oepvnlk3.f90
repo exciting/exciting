@@ -165,9 +165,9 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
          call genWFonMesh(wf2)
 
 
-         Do ist3 = 1, nstsv
-            If (evalsvnr(ist3) .Lt. efermi) Then
-               Do ist2 = 1, nstsv
+         Do ist2 = 1, nstsv
+            If (evalsvnr(ist2) .Lt. efermi) Then
+               Do ist3 = 1, nstsv
 !                  If (evalsvp(ist2) .Gt. efermi) Then
 ! calculate the complex overlap density
 
@@ -175,7 +175,7 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
 
 !-------------------------------------------------------------------
 call timesec(ta)
-                     call WFprodrs(ist3,wf2,ist2,wf1,prod)
+                     call WFprodrs(ist2,wf2,ist3,wf1,prod)
 call timesec(tb)
 write(*,*) 'WFprod',tb-ta
 call timesec(ta)
@@ -207,13 +207,13 @@ call timesec(tb)
                         call genWFonMeshOne(pot)
                        pot%ir=conjg(pot%ir)
                        pot%mtmesh=conjg(pot%mtmesh)
-                        call WFprodrs(1,pot,ist3,wf2,prod)
+                        call WFprodrs(1,pot,ist2,wf2,prod)
 
 ! ------------------------------------------------------------------
 ! ------------------------------------------------------------------
 ! ------------------------------------------------------------------
-                        zvclir(:,ist2)=zvclir(:,ist2)+wkptnr(ik)*prod%ir(:,1)
-                        zvclmt(:,:,:,ist2)=zvclmt(:,:,:,ist2)+wkptnr(ik)*prod%mtrlm(:,:,:,1)
+                        zvclir(:,ist3)=zvclir(:,ist3)+wkptnr(ik)*prod%ir(:,1)
+                        zvclmt(:,:,:,ist3)=zvclmt(:,:,:,ist3)+wkptnr(ik)*prod%mtrlm(:,:,:,1)
 ! ------------------------------------------------------------------
 ! ------------------------------------------------------------------
 ! ------------------------------------------------------------------
