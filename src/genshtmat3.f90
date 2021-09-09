@@ -98,13 +98,13 @@ Subroutine genshtmat3
       ! sphcov (3, :) = Cos (tp(1, :))
 #endif
 
-! output data into a file 
-open(1, file = 'sphcov.dat')  
-do i=1,ntpll  
-      ! write(1,*) sphcov (1, i),sphcov (2, i),sphcov (3, i)
-      write(1,*) Sin (tp(1, i)) * Cos (tp(2, i)),Sin (tp(1, i)) * Sin (tp(2, i)),Cos (tp(1, i))
-end do 
-close(1)
+! output data into a file
+! open(1, file = 'sphcov.dat')
+! do i=1,ntpll
+!       ! write(1,*) sphcov (1, i),sphcov (2, i),sphcov (3, i)
+!       write(1,*) Sin (tp(1, i)) * Cos (tp(2, i)),Sin (tp(1, i)) * Sin (tp(2, i)),Cos (tp(1, i))
+! end do
+! close(1)
 
 ! generate real and complex spherical harmonics and set the backward SHT arrays
       Do itp = 1, ntpll
@@ -118,44 +118,5 @@ close(1)
       !    Write(*,*) "w", sphcov(4, itp)
          zfshthf (1:lmmaxvr, itp) = fourpi * sphcov(4, itp) * conjg(ylm (1:lmmaxvr))
       End Do
-
-! complex lmmaxvr
-      ! If (allocated(zbshthf)) deallocate (zbshthf)
-      ! Allocate (zbshthf(ntpll, lmmaxvr))
-      ! If (allocated(zfshthf)) deallocate (zfshthf)
-      ! Allocate (zfshthf(lmmaxvr, ntpll))
-
-      Allocate (testm(ntpll, ntpll))
-      testm(:,:) = 0.d0
-      Call zgemm ('N', 'N', ntpll, ntpll, lmmaxvr, zone, zbshthf, ntpll, zfshthf, lmmaxvr, 0, testm, ntpll)
-      Write (*,*) "After zgemm: sum(testm) = ", sum(testm)
-      Write(*,*) "Sum of weights = ", sum(sphcov(4,:))
-      ss=0.d0
-      Do itp = 1, ntpll
-            ss = ss + testm(itp,itp)
-      End Do
-      Write (*,*) "B*F: testm sum, diag: ", sum(testm), ss
-      Deallocate (testm)
-
-      ! Allocate (testm(lmmaxvr, lmmaxvr))
-      ! testm(:,:) = 0.d0
-      ! Call zgemm ('N', 'N', ntpll, ntpll, ntpll, zone, zbshthf, ntpll, zfshthf, ntpll, 0, testm, ntpll)
-      ! ss=0.d0
-      ! Do itp = 1, ntpll
-      !       ss = ss + testm(itp,itp)
-      ! End Do
-      ! Write (*,*) "F*B testm diag: ", sum(testm), ss
-      ! Deallocate (testm)
-
-      If (info .Ne. 0) Go To 10
-      Deallocate (tp, rlm, ylm, ipiv, work, zwork)
-      Return
-10    Continue
-      Write (*,*)
-      Write (*, '("Error(genshtmat): unable to find inverse spherical h&
-     &armonic transform")')
-      Write (*, '(" => improper spherical covering")')
-      Write (*,*)
-      Stop
 End Subroutine
 !EOC
