@@ -3,12 +3,180 @@ Functions that check the type of an object
 """
 from os import path
 import numpy as np
-from typing import Union
-from typing import List
+from typing import Union, List
+from collections import Hashable
+import sys
 
 from .failure import *
 from .path import *
 
+
+#########################
+# Code to retain
+#########################
+
+def strings_equal(x: str, y: str, error_mgs='strings differ', ignore_lr_whitespace=True) -> str:
+    """
+    Return error message if two strings differ
+
+    :param str x: Target string
+    :param str y: Reference string
+    :param str error_mgs: Error message if x and y differ
+    :param bool ignore_lr_whitespace: Ignore left and right whitespace when comparing strings x and y.
+    """
+    if ignore_lr_whitespace:
+        diff = x.strip() != y.strip()
+    else:
+        diff = x != y
+
+    if diff:
+        return error_mgs
+    return ''
+
+# Definition of the difference in two values, for a given data type
+diff_condition = {int: lambda x, y: abs(x - y),
+                  float: lambda x, y: abs(x - y),
+                  str: strings_equal,
+                  list: lambda x, y: np.abs(np.array(x) - np.array(y)),
+                  np.ndarray: lambda x, y: np.abs(x - y)
+                  }
+
+
+# Comparison logic for each data type
+# Each defined such that difference <= tolerance gives true
+comparison_function = {int: lambda diff, tol: diff <= tol,
+                       float: lambda diff, tol: diff <= tol,
+                       str: lambda diff, unused_tol: diff == '',
+                       list: np.allclose,
+                       np.ndarray: np.allclose
+                       }
+
+
+def all_hashable(data) -> bool:
+    """
+    Checks if all elements of data are hashable
+    :param data: Container
+    """
+    return all(isinstance(x, Hashable) for x in data)
+
+
+def hashable_list(my_list: list) -> bool:
+    """
+    Checks if all elements of data are hashable
+    :param list my_list: List to check
+    """
+    return isinstance(my_list, list) and all_hashable(my_list)
+
+
+def all_hashable_or_dict(my_list: list) -> bool:
+    """
+    Checks if all elements in a list are hashable or a dictionary.
+    :param list my_list: List to check
+    """
+    return all(isinstance(x, (Hashable, dict)) for x in my_list)
+
+
+def compare_reference_with_target(test_data: dict, ref_data: dict, tolerance: dict) -> Union[dict, List[str]]:
+    """
+    Wrapper function for recursive comparison of a dictionary of test data with a dictionary of reference data.
+
+    Valid test_data and ref_data dictionary values are:
+    int, float, str, List[int], List[float], List[dict] and dict.
+
+    For a full list of hashable data types, and containers, see:
+    https://stackoverflow.com/questions/14535730/what-does-hashable-mean-in-python
+
+    :param dict test_data: Test data.
+    :param dict ref_data: Reference data, with same keys and nesting as test_data.
+    :param dict tolerance: Tolerances for keys with hashable values.
+
+    :return dict errors: Key:values of test values that exceeded reference + tolerance values.
+                         If no errors are found, the routine returns {}.
+                         For comparison of lists and arrays, if any errors are found, all the diffs are returned.
+    :return List[str] unused_tol_keys: Keys of any tolerances that are not evaluated.
+    """
+
+    # Implies an error in the caller
+    assert type(test_data) == type(ref_data), "test_data and ref_data are different types"
+
+    # Implies a change in the output data
+    assert len(test_data) == len(ref_data), "Length of test_data differs from length of ref_data"
+
+    errors = {}
+    used_tol_keys = set()
+    errors, used_tolerances = _compare_reference_with_target_implementation(test_data,
+                                                                            ref_data,
+                                                                            tolerance,
+                                                                            errors,
+                                                                            used_tol_keys)
+    all_tol_keys = set(tolerance.keys())
+
+    return errors, list(all_tol_keys - used_tol_keys)
+
+
+# Private function. Should only be called via compare_reference_with_target (unless one knows that they've doing)
+def _compare_reference_with_target_implementation(test_data,
+                                                  ref_data,
+                                                  tolerance: dict,
+                                                  errors: dict,
+                                                  used_tol_keys: set) -> Union[dict, set]:
+    """
+    Recursively compare a dictionary of test data with a dictionary of reference data.
+    This routine should is not intended to be called outside of this module.
+
+    Passes test_data and ref_data recursively, but the whole tolerance dict is always
+    passed as it should only contain keys for hashable values.
+
+    Valid test_data and ref_data dictionary values are:
+    int, float, str, List[int], List[float], List[dict] and dict.
+
+    For a full list of hashable data types, and containers, see:
+    https://stackoverflow.com/questions/14535730/what-does-hashable-mean-in-python
+
+    Note: Poorly-considered data structures should not be facilitated by this function,
+    implying exciting's parsers should be sensible. For example one could add:
+
+      {..., 'd':[1, 2, {'e':3, 'f': 4}]}
+
+    to this function's logic, but there shouldn't be a reason for a parser to store data
+    in this manner.
+
+    :param test_data: Test data.
+    :param ref_data: Reference data.
+    :param dict tolerance: Tolerances for keys with hashable values.
+    :param dict errors: Errors
+    :param set used_tol_keys:
+
+    :return dict errors: Key:values of test values that exceeded reference + tolerance values.
+                         If no errors are found, the routine returns {}.
+                         For comparison of lists and arrays, if any errors are found, all the diffs are returned.
+    :return set used_tol_keys: Keys of any tolerances that are not evaluated.
+    """
+
+    for key, value in test_data.items():
+        if isinstance(value, dict):
+            _compare_reference_with_target_implementation(value, ref_data[key], tolerance, errors, used_tol_keys)
+
+        if isinstance(value, list) and (not all_hashable_or_dict(value)):
+            raise ValueError('All elements of a parsed list should be hashable or dict')
+
+        if isinstance(value, (int, float, str, np.ndarray)) or hashable_list(value):
+            difference_function = diff_condition[type(value)]
+            diff = difference_function(value, ref_data[key])
+            all_close = comparison_function[type(value)]
+
+            if not all_close(diff, tolerance[key]):
+                errors[key] = diff
+
+            # Log all evaluated tolerance keys
+            used_tol_keys.add(key)
+
+    return errors, used_tol_keys
+
+
+#################################################################
+# Code to scrap once JSON tols are fully implemented
+#################################################################
 
 
 error_condition = {int: lambda x, y: abs(int(x) - int(y)),

@@ -23,7 +23,7 @@ def run_single_test(main_out: str, test_dir: str, run_dir: str, ref_dir: str, in
     :param input_file:      exciting input file
     :param species_files:   list of species files
     :param init_default:    location of the default init.xml
-    :param execuatable:     executable command 
+    :param executable:     executable command
     :param timing:          test run times in seconds
     :param handle_errors:   Whether or not failures and skips are allowed to propagate
 
