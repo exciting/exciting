@@ -18,7 +18,7 @@ from tools.termcolor_wrapper import print_color
 from tools.runner.test import run_tests
 from tools.runner.reference import run_single_reference
 from tools.constants import settings
-from tools.selftests import runselftests
+from tools.selftests import runselftests, test_compare
 from tools.parsers import install_excitingtools
 from tools.utils import Build_type, build_type_str_to_enum, build_type_enum_to_str
 from failing_tests import set_skipped_tests
@@ -368,6 +368,7 @@ def run_self_tests(verbosity=3):
     suite = unittest.TestSuite()
 
     suite.addTests(loader.loadTestsFromModule(runselftests))
+    suite.addTests(loader.loadTestsFromModule(test_compare))
 
     runner = unittest.TextTestRunner(verbosity=verbosity)
     result = runner.run(suite)
