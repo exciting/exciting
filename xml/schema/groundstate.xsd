@@ -177,6 +177,14 @@
 		            </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="svlo" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>
+                  If <attref>svlo</attref> is <pre>"true"</pre>, then local orbitals are separately used as basis functions when constructing the
+                  second-variational Hamiltonian.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="realspace" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation>

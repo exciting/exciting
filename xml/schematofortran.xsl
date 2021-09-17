@@ -673,6 +673,16 @@ isspinspiral=.true.
 endif
 endif
 end function
+function issvlo()
+logical::issvlo
+issvlo=.false.
+if(associated(input%groundstate%spin))then
+if (input%groundstate%spin%svlo) then
+issvlo=.true.
+endif
+endif
+end function
+
 
 function getfixspinnumber()
 implicit none

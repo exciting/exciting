@@ -479,8 +479,16 @@ Subroutine init1
             nstfv = Min (nstfv, nmat(ispn, ik))
          End Do
       End Do
+! In the standard second-variation implementation the number of basis functions 
+! is equal to the first variation state. 
+      nbasisfsv = nstfv
+! If second variation with local orbitals is used (issvlo=true) the number of &
+! second varaition basis is the sum of first variational states and local orbitals. 
+      if (issvlo()) then
+         nbasisfsv = nstfv + nlotot
+      endif
 ! number of second-variational states
-      nstsv = nstfv * nspinor
+      nstsv = nbasisfsv * nspinor
 #ifdef XS
       If (init1norealloc) Go To 20
 #endif
