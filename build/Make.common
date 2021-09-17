@@ -35,7 +35,8 @@ SOURCEDIRS=	\
     ../../src/src_xml/ \
     ../../src/src_xs/ \
     ../../src/src_xs/modtetra \
-    ../../src/src_xs/src_rttddft
+    ../../src/src_xs/src_rttddft \
+    ../../src/wavefunctions 
 
 GeneratedFiles = ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90
 

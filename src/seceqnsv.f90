@@ -24,7 +24,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Use mod_APW_LO
       Use mod_misc, only: task
       Use mod_timing, only: timesv
-
+      Use generation_wavefunction, only: generate_basisfunction_secondvariation_MT
       Implicit None
 ! arguments
       Integer, Intent (In) :: ik
@@ -192,12 +192,8 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
             End If
   ! compute the first-variational wavefunctions
             call timesec(tc)
-            Do ist = 1, nstfv
-               Call wavefmt (input%groundstate%lradstep, &
-              & input%groundstate%lmaxvr, is, ia, ngk(1, ik), apwalm, &
-              & evecfv(:, ist), lmmaxvr, wfmt1(:, :, ist))
-            End Do
-            call timesec(td)
+            call generate_basisfunction_secondvariation_MT(input%groundstate%lmaxvr,lmmaxvr, ia, is, ngk(1,ik), apwalm, evecfv, wfmt1)
+             call timesec(td)
 !            write(*,*) td-tc
             call timesec(tc)
 ! begin loop over states

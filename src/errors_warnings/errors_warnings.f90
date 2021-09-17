@@ -12,6 +12,7 @@ module errors_warnings
    implicit none
    private
    public :: terminate_if_false
+   public :: terminate_if_true
 
 ! Note this isn't overloaded as the MPI environment should get initialised and
 ! passed around even for serial calculations
@@ -32,4 +33,18 @@ subroutine terminate_if_false( mpiglobal, consistent, error_message )
    endif
 end subroutine
 
+!> Terminate exciting if consistent is true
+subroutine terminate_if_true( mpiglobal, consistent, error_message )
+   use modmpi, only: mpiinfo
+   !> mpi environment
+   type(mpiinfo), intent(inout) :: mpiglobal
+   !> logical condition to be tested
+   logical, intent(in) :: consistent
+   !> Error message to be printed out
+   character(len=*), intent(in) :: error_message
+
+   if ( consistent ) then
+      call terminate_mpi_env( mpiglobal, error_message )
+   endif
+end subroutine
 end module errors_warnings
