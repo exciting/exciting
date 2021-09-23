@@ -16,8 +16,9 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
       Complex (8), Intent (Out) :: vnlvv (nstsv, nstsv)
 ! local variables
       Integer :: ngknr, ik, ist1, ist2, ist3
-      Integer :: is, ia, ias, ic, m1, m2, lmax, lm
+      Integer :: is, ia, ias, ic, m1, m2, lmax, ilm, irc
       Integer :: nrc, iq, ig, iv (3), igq0
+      Integer :: info
       Real (8) :: v (3), cfq, ta,tb
       Complex (8) zrho01, zrho02, zt1, zt2
 ! automatic arrays
@@ -54,6 +55,11 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
       Complex (8), Allocatable :: zvclir (:, :)
       Complex (8), Allocatable :: zvcltp (:, :)
       Complex (8), Allocatable :: zfmt (:, :)
+      Complex (8), Allocatable :: matrixl(:, :)
+      Complex (8), Allocatable :: matrixm(:, :)
+      Complex (8), Allocatable :: matrixm1(:, :)
+      Complex (8), Allocatable :: hfxiir(:, :)
+      Complex (8), Allocatable :: hfximt(:, :, :, :)
       type (WFType) :: wf1,wf2,prod,pot
 ! external functions
       Complex (8) zfinp, zfmtinp
@@ -90,6 +96,11 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
       Allocate (zvclir(ngrtot, nstsv))
       Allocate (zvcltp(lmmaxvr, nrcmtmax))
       Allocate (zfmt(lmmaxvr, nrcmtmax))
+      Allocate (matrixl(nstsv,nstsv))
+      Allocate (matrixm(nstsv,nstsv))
+      Allocate (matrixm1(nstsv,nstsv))
+      Allocate (hfxiir(ngrtot,nstsv))
+      Allocate (hfximt(lmmaxvr, nrcmtmax, natmtot, nstsv))
 
       call WFInit(wf1)
       call WFInit(wf2)
@@ -102,7 +113,6 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
 
       allocate(pot%mtrlm(lmmaxvr,nrmtmax,natmtot,1))
       allocate(pot%ir(ngrtot,1))
-
 
 ! factor for long-range term
       cfq = 0.5d0 * (omega/pi) ** 2
@@ -279,6 +289,67 @@ Do ist1 = 1, nstsv
       End Do
 End Do
 
+! -- Adaptively Compressed Exchange Operator starts --
+
+matrixl = -vnlvv ! create copy
+
+! Remove upper triangular part
+Do ist1 = 2, nstsv
+    matrixl(ist1-1,ist1:)=0
+End Do
+
+Call zpotrf('L',nstsv,matrixl,nstsv,info) ! Computes the Cholesky factorization
+If (info==0) Then
+    Call ztrtri('L','N',nstsv,matrixl,nstsv,info) ! Invert L
+    If (.not.(info==0)) Then
+        Write (*, *) 'matrixl is not invertable! Info=',info
+        stop
+    End If
+Else
+    Write (*, *) 'vnlvv is not negative definite! Info=',info
+    stop
+End If
+
+Call zgemm('N','C',ngrtot,nstsv,nstsv,(1.0D0,0.0),zvclir,ngrtot,matrixl,nstsv,(0.0D0,0.0),hfxiir,ngrtot)
+
+Do ilm = 1, lmmaxvr
+    Do irc = 1, nrcmtmax
+        Call zgemm('N','C', natmtot, nstsv, nstsv, (1.0D0,0.0), zvclmt(ilm,irc,:,:), natmtot, matrixl, nstsv, (0.0D0,0.0), hfximt(ilm,irc,:,:), natmtot)
+    End Do
+End Do
+
+!! -- Adaptively Compressed Exchange Operator test
+if (.false.) then
+    Do ist1 = 1, nstsv
+        Do ist2 = 1, nstsv
+            matrixm1(ist1,ist2) = zfinp(.True., wf1%mtrlm(:,:,:,ist1), hfximt(:,:,:,ist2), wf1%ir(:,ist1), hfxiir(:,ist2))
+        End Do
+    End Do
+    Call zgemm('N','C', nstsv, nstsv, nstsv, (-1.0D0,0.0), matrixm1, nstsv, matrixm1, nstsv, (0.0D0,0.0), matrixm, nstsv)
+
+    write(*,*) 'vnlvv real'
+      do ist1 = 1, nstsv
+        write(*,'(12E13.5)') dble(vnlvv(ist1,:))
+      end do
+
+    write(*,*) 'matrixm real'
+      do ist1 = 1, nstsv
+        write(*,'(12E13.5)') dble(matrixm(ist1,:))
+      end do
+
+    write(*,*) 'vnlvv imag'
+      do ist1 = 1, nstsv
+        write(*,'(12E13.5)') dimag(vnlvv(ist1,:))
+      end do
+
+    write(*,*) 'matrixm imag'
+      do ist1 = 1, nstsv
+        write(*,'(12E13.5)') dimag(matrixm(ist1,:))
+      end do
+endif
+
+
+!-- Adaptively Compressed Exchange Operator ends --
 
 
       Deallocate (igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr)
@@ -290,11 +361,13 @@ End Do
       Deallocate (sfacgknr, ylmgq, sfacgq)
       Deallocate (wfmt1, wfmt2, wfir1, wfir2, wfcr1, wfcr2)
       Deallocate (zrhomt, zrhoir, zvclmt, zvclir, zvcltp, zfmt)
+      Deallocate (matrixl, matrixm, matrixm1)
       call WFRelease(wf1)
       call WFRelease(wf2)
       call WFRelease(prod)
 write(*,*) 'WFRelease done'
       deallocate(gntyyy)
+      stop
       Return
 End Subroutine
 !EOC
