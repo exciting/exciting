@@ -3,9 +3,10 @@ Functions that check the type of an object
 """
 from os import path
 import numpy as np
-from typing import Union, List
-from collections import Hashable
+from typing import Union, Tuple, List
+from collections.abc import Hashable
 import sys
+from copy import deepcopy
 
 from .failure import *
 from .path import *
@@ -33,6 +34,17 @@ def strings_equal(x: str, y: str, error_mgs='strings differ', ignore_lr_whitespa
         return error_mgs
     return ''
 
+
+def all_close_to_zero(a: np.ndarray, a_tol):
+    """
+    Check if an array is close to zero
+
+    :param np.ndarray a: Numpy array
+    :param a_tol: Absolute tolerance
+    """
+    return np.allclose(a, np.zeros(shape=a.shape), atol=a_tol)
+
+
 # Definition of the difference in two values, for a given data type
 diff_condition = {int: lambda x, y: abs(x - y),
                   float: lambda x, y: abs(x - y),
@@ -47,8 +59,8 @@ diff_condition = {int: lambda x, y: abs(x - y),
 comparison_function = {int: lambda diff, tol: diff <= tol,
                        float: lambda diff, tol: diff <= tol,
                        str: lambda diff, unused_tol: diff == '',
-                       list: np.allclose,
-                       np.ndarray: np.allclose
+                       list: all_close_to_zero,
+                       np.ndarray: all_close_to_zero
                        }
 
 
@@ -76,102 +88,296 @@ def all_hashable_or_dict(my_list: list) -> bool:
     return all(isinstance(x, (Hashable, dict)) for x in my_list)
 
 
-def compare_reference_with_target(test_data: dict, ref_data: dict, tolerance: dict) -> Union[dict, List[str]]:
+class ErrorContainer:
+    def __init__(self,
+                 key: str,
+                 test_value: Union[int, float, str, list, np.ndarray],
+                 ref_value: Union[int, float, str, list, np.ndarray],
+                 diff: Union[int, float, str, list, np.ndarray],
+                 tol: Union[int, float, str]
+                 ):
+        """
+        Initialise an instance of ErrorContainer class.
+
+        For arrays, this routine only retains the errors in the array and the corresponding indices.
+        np.where returns:
+           indices = ((i1, i2, ...), (j1, j2, ...), ..., (n1, n2, ...))
+
+        where (i1, j1, ..., n1) corresponds to the indices for error 1 in the test array,
+        len(indices) = rank of the array, and len(indices[0]) = number of errors.
+        A numpy array can take array[indices], which returns a vector with containng the elements
+        in indices.
+
+        :param str key : Concatenated key of form %key%next_key%deepest_key.
+        :param Union[int, float, str, list, np.ndarray] test_value: Erroneous test data.
+        :param Union[int, float, str, list, np.ndarray] ref_value: Reference data.
+        :param Union[int, float, str, list, np.ndarray] diff: Difference in test and ref data.
+        :param Union[int, float, str] tol: Tolerance for a difference to be considered an error.
+        """
+        self.key = key
+        self.tol = tol
+
+        if type(test_value) in [int, float, str]:
+            self.init_with_scalars(test_value, ref_value, diff)
+
+        elif isinstance(test_value, list):
+            self.init_with_arrays(np.asarray(test_value), np.asarray(ref_value), np.asarray(diff))
+
+        elif isinstance(test_value, np.ndarray):
+            self.init_with_arrays(test_value, ref_value, diff)
+
+        else:
+            sys.exit("Unsupported data type for test_value in class ErrorContainer")
+
+    def init_with_scalars(self,
+                          test_value: Union[int, float, str],
+                          ref_value: Union[int, float, str],
+                          diff: Union[int, float, str]):
+        self.test_value = test_value
+        self.ref_value = ref_value
+        self.diff = diff
+        self.indices = None
+        self.n_errors = 1
+
+    def init_with_arrays(self,
+                         test_value: np.ndarray,
+                         ref_value: np.ndarray,
+                         diff: np.ndarray):
+        self.indices = np.where(diff > self.tol)
+        self.test_value = test_value[self.indices]
+        self.ref_value = ref_value[self.indices]
+        self.diff = diff[self.indices]
+        # Number of erroneous elements in an array
+        self.n_errors = len(self.indices[0])
+
+
+class ErrorFinder:
     """
-    Wrapper function for recursive comparison of a dictionary of test data with a dictionary of reference data.
-
-    Valid test_data and ref_data dictionary values are:
-    int, float, str, List[int], List[float], List[dict] and dict.
-
-    For a full list of hashable data types, and containers, see:
-    https://stackoverflow.com/questions/14535730/what-does-hashable-mean-in-python
-
-    :param dict test_data: Test data.
-    :param dict ref_data: Reference data, with same keys and nesting as test_data.
-    :param dict tolerance: Tolerances for keys with hashable values.
-
-    :return dict errors: Key:values of test values that exceeded reference + tolerance values.
-                         If no errors are found, the routine returns {}.
-                         For comparison of lists and arrays, if any errors are found, all the diffs are returned.
-    :return List[str] unused_tol_keys: Keys of any tolerances that are not evaluated.
+    Given test data, reference data and tolerances, find any errors in the test data w.r.t. the reference data.
     """
+    def __init__(self, test_data: dict, ref_data: dict, tolerance: dict):
+        # Symbol used to indicate key concatenation for nested keys
+        self.cc_symbol = '%'
+        assert isinstance(test_data, dict), 'test_data must be type dict'
+        assert isinstance(ref_data, dict), 'test_data must be type dict'
+        assert isinstance(tolerance, dict), 'test_data must be type dict'
+        self.errors, self.unused_tol_keys, self.keys_not_in_tol = self.compare(test_data, ref_data, tolerance)
 
-    # Implies an error in the caller
-    assert type(test_data) == type(ref_data), "test_data and ref_data are different types"
+    def get_dict(self) -> dict:
+        """
+        Convert List[ErrorContainer] into a dictionary.
 
-    # Implies a change in the output data
-    assert len(test_data) == len(ref_data), "Length of test_data differs from length of ref_data"
+        Return a dictionary of the form:
+        {key1: {'test_value': test_value, 'ref_value': ref_value, 'diff': diff, 'tol': tol}, ...}
 
-    errors = {}
-    used_tol_keys = set()
-    errors, used_tolerances = _compare_reference_with_target_implementation(test_data,
-                                                                            ref_data,
-                                                                            tolerance,
-                                                                            errors,
-                                                                            used_tol_keys)
-    all_tol_keys = set(tolerance.keys())
+        :return dict errors_as_dict: Errors in dictionary values
+        """
+        errors_as_dict = {}
+        for error in self.errors:
+            error_dict = deepcopy(error.__dict__)
+            key = error_dict.pop('key')
+            errors_as_dict[key] = error_dict
+        return errors_as_dict
 
-    return errors, list(all_tol_keys - used_tol_keys)
+    def get_error_keys(self, last=False) -> List[str]:
+        """
+        Get the keys associated with the errors.
+        If no errors are present, None is returned.
+
+        :param bool last: If False, return the whole key with self.cc_symbol:  '%some%nest%keys'
+                          If True, return the deepest key: 'keys'
+        """
+        if len(self.errors) == 0:
+            return None
+
+        if last:
+            get_key = lambda key: key.split(self.cc_symbol)[-1]
+        else:
+            get_key = lambda key: key
+
+        return [get_key(error.key) for error in self.errors]
+
+    def get_entry(self, key: str) -> ErrorContainer:
+        """
+        Given a key, get the error: ErrorContainer entry associated with it.
+
+        :param str key: Key associated with the error.
+        """
+        if len(self.errors) == 0:
+            return None
+
+        error_keys = self.get_error_keys()
+        try:
+            index = error_keys.index(key)
+            return self.errors[index]
+        except KeyError:
+            raise KeyError('Key not found in errors: ' + key)
+
+    def get_error_value(self, key: str) -> Union[int, float, str, np.ndarray]:
+        """
+        Given a key, get the error value entry associated with it.
+
+        :param str key: Key associated with the error.
+        """
+        if len(self.errors) == 0:
+            return None
+        error_obj = self.get_entry(key)
+        return error_obj.diff
+
+    def compare(self, test_data: dict, ref_data: dict, tolerance: dict) -> Tuple[List[ErrorContainer], List[str], List[str]]:
+        """
+        Wrapper function for recursive comparison of a dictionary of test data with a dictionary of reference data.
+
+        Valid test_data and ref_data dictionary values are:
+        int, float, str, List[int], List[float], List[dict], np.ndarray and dict.
+
+        For a full list of hashable data types, and containers, see:
+        https://stackoverflow.com/questions/14535730/what-does-hashable-mean-in-python
+
+        :param dict test_data: Test data.
+        :param dict ref_data: Reference data, with same keys and nesting as test_data.
+        :param dict tolerance: Tolerances for keys with hashable values.
+
+        :return List[ErrorContainer] errors: Key:values of test values that exceeded reference + tolerance values.
+                             If no errors are found, the routine returns {}.
+                             For comparison of lists and arrays, if any errors are found, all the diffs are returned.
+        :return List[str] unused_tol_keys: Keys of any tolerances that are not evaluated.
+        :return List[str] keys_not_in_tolerance: Keys of any test data not evaluated.
+        """
+        errors: List[ErrorContainer] = []
+        used_tol_keys: set = set()
+        keys_not_in_tolerance: set = set()
+
+        errors, used_tolerances, keys_not_in_tolerance = \
+            self._recursive_compare_reference_with_target(test_data,
+                                                          ref_data,
+                                                          tolerance,
+                                                          errors,
+                                                          used_tol_keys,
+                                                          keys_not_in_tolerance,
+                                                          full_key='')
+        all_tol_keys = set(tolerance.keys())
+
+        return errors, list(all_tol_keys - used_tol_keys), list(keys_not_in_tolerance)
+
+    def _recursive_compare_reference_with_target(self,
+                                                 test_data,
+                                                 ref_data,
+                                                 tolerance: dict,
+                                                 errors: list,
+                                                 used_tol_keys: set,
+                                                 keys_not_in_tolerance: set,
+                                                 full_key='') -> Tuple[list, set, set]:
+        """
+        Recursively compare a dictionary of test data with a dictionary of reference data.
+        This method is private.
+
+        Description
+        --------------
+        Passes test_data and ref_data recursively, but the whole tolerance dict is always
+        passed as it should only contain keys for hashable values.
+
+        Valid test_data and ref_data dictionary values are:
+        int, float, str, List[int], List[float], List[dict] and dict.
+
+        For a full list of hashable data types, and containers, see:
+        https://stackoverflow.com/questions/14535730/what-does-hashable-mean-in-python
+
+        Notes
+        --------------
+        Convoluted Data Structures
+        Poorly-considered data structures should not be facilitated by this function,
+        implying exciting's parsers should be sensible. For example one could add:
+
+          {..., 'd':[1, 2, {'e':3, 'f': 4}]}
+
+        to this function's logic, but there shouldn't be a reason for a parser to store data in this manner.
+
+        TODO(A/B/H) Issue 97. Unevaluated Test Data Keys
+        Deliberately Ignored Test Data Keys vs Erroneously Ignored
+        Some parsed data are deliberately not evaluated. For examples, 'Species', 'parameters loaded from' and
+        'Wall time (seconds)' (amongst others) in INFO.OUT.
+        raise KeyError only wants to raise an error if a key has accidentally been missed out of the tolerance file.
+
+        A nicer approach is to preprocess the keys and remove ones that should not be evaluated from the
+        test (and reference) data prior to passing the to this routine. Then keyError can be raised and
+        remove `keys_not_in_tolerance`
+
+        Arguments
+        --------------
+        :param test_data: Test data.
+        :param ref_data: Reference data.
+        :param dict tolerance: Tolerances for keys with hashable values.
+        :param dict errors: Errors: Keys of any tolerances that are not evaluated.
+        :param set used_tol_keys: Keys of any test data not evaluated.
+        :param str full_key: Concatenated str of nested keys, for a given error.
+
+        :return list errors: List of ErrorContainer objects.
+                             If no errors are found, the routine returns [].
+        :return set used_tol_keys: Keys of any tolerances that are not evaluated.
+        :return set keys_not_in_tolerance: Keys of any test data not evaluated.
+        """
+        assert type(test_data) == type(ref_data), "test_data and ref_data are different types"
+        assert len(test_data) == len(ref_data), "Length of test_data differs from length of ref_data"
+
+        for key, test_value in test_data.items():
+            full_key += self.cc_symbol + str(key)
+
+            if isinstance(test_value, dict):
+                self._recursive_compare_reference_with_target(test_value, ref_data[key], tolerance, errors,
+                                                              used_tol_keys, keys_not_in_tolerance, full_key)
+
+            if isinstance(test_value, list) and (not all_hashable_or_dict(test_value)):
+                # (Alex) I added this because for the GW parser, data parsed as np.ndarray was
+                # ending up as a list. This circumvents the problem but doesn't fix the cause (and I don't have
+                # the time or insight to debug)
+                try:
+                    test_value = np.asarray(test_value)
+                except ValueError:
+                    raise ValueError('All elements of a parsed list should be hashable or dict')
+
+            if isinstance(test_value, (int, float, str, np.ndarray)) or hashable_list(test_value):
+                difference_function = diff_condition[type(test_value)]
+                diff = difference_function(test_value, ref_data[key])
+                all_close = comparison_function[type(test_value)]
+
+                try:
+                    tol = tolerance[key]
+                    # Log all evaluated tolerance keys
+                    used_tol_keys.add(key)
+
+                    if not all_close(diff, tol):
+                        errors.append(ErrorContainer(full_key.lstrip(self.cc_symbol), test_value, ref_data[key], diff, tol))
+
+                except KeyError:
+                    # Key not present in tolerance file. This implies either:
+                    #   a) Data deliberately not checked.
+                    #   b) New data has been added to an exciting output and parsed but its key has
+                    #      not been added to the tolerance file.
+                    keys_not_in_tolerance.add(key)
+
+            full_key = self.remove_last_key_string(full_key)
+
+        return errors, used_tol_keys, keys_not_in_tolerance
+
+    def remove_last_key_string(self, full_key: str):
+        """
+        For a key %a%b%c%, roll back to %a%b.
+
+        Used when full_key has been summed to, but the last concatenation was
+        of a key that is on the same level of nesting.
+
+        Implementation Explanation:
+          full_key = "%a%b%c%"
+          full_key.split(self.cc_symbol)[1:-1] = [a, b, c]
+           "".join(self.cc_symbol + s for s in [a, b, c]]) = "%a%b"
+          return  "%a%b"
+        """
+        each_key = full_key.split(self.cc_symbol)[1:-1]
+        return "".join(self.cc_symbol + s for s in each_key)
 
 
-# Private function. Should only be called via compare_reference_with_target (unless one knows that they've doing)
-def _compare_reference_with_target_implementation(test_data,
-                                                  ref_data,
-                                                  tolerance: dict,
-                                                  errors: dict,
-                                                  used_tol_keys: set) -> Union[dict, set]:
-    """
-    Recursively compare a dictionary of test data with a dictionary of reference data.
-    This routine should is not intended to be called outside of this module.
 
-    Passes test_data and ref_data recursively, but the whole tolerance dict is always
-    passed as it should only contain keys for hashable values.
-
-    Valid test_data and ref_data dictionary values are:
-    int, float, str, List[int], List[float], List[dict] and dict.
-
-    For a full list of hashable data types, and containers, see:
-    https://stackoverflow.com/questions/14535730/what-does-hashable-mean-in-python
-
-    Note: Poorly-considered data structures should not be facilitated by this function,
-    implying exciting's parsers should be sensible. For example one could add:
-
-      {..., 'd':[1, 2, {'e':3, 'f': 4}]}
-
-    to this function's logic, but there shouldn't be a reason for a parser to store data
-    in this manner.
-
-    :param test_data: Test data.
-    :param ref_data: Reference data.
-    :param dict tolerance: Tolerances for keys with hashable values.
-    :param dict errors: Errors
-    :param set used_tol_keys:
-
-    :return dict errors: Key:values of test values that exceeded reference + tolerance values.
-                         If no errors are found, the routine returns {}.
-                         For comparison of lists and arrays, if any errors are found, all the diffs are returned.
-    :return set used_tol_keys: Keys of any tolerances that are not evaluated.
-    """
-
-    for key, value in test_data.items():
-        if isinstance(value, dict):
-            _compare_reference_with_target_implementation(value, ref_data[key], tolerance, errors, used_tol_keys)
-
-        if isinstance(value, list) and (not all_hashable_or_dict(value)):
-            raise ValueError('All elements of a parsed list should be hashable or dict')
-
-        if isinstance(value, (int, float, str, np.ndarray)) or hashable_list(value):
-            difference_function = diff_condition[type(value)]
-            diff = difference_function(value, ref_data[key])
-            all_close = comparison_function[type(value)]
-
-            if not all_close(diff, tolerance[key]):
-                errors[key] = diff
-
-            # Log all evaluated tolerance keys
-            used_tol_keys.add(key)
-
-    return errors, used_tol_keys
 
 
 #################################################################
