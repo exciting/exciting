@@ -38,7 +38,9 @@ test-debian-buster-GCC8-serial:
     # run application tests
     # Provide test suite parsers
     - pip3 install -e tools/exciting_tools
-    - cd test && python3 runtest.py -a run -e exciting_serial
+    # Run pytest unit tests for test suite functions
+    - cd test && pytest test_functions
+    - python3 runtest.py -a run -e exciting_serial
     # As currently in root/test
     - cd ../tools/exciting_tools && pytest
 
@@ -75,7 +77,8 @@ test-debian-buster-GCC8-mpiandsmp:
     # Allow mpirun to run as root (mpirun typically shouldn't be run as root)
     # See this ref: https://github.com/open-mpi/ompi/issues/4451
     - sed -i '/input_options/s/mpirun -np/mpirun --allow-run-as-root -np /g' test/runtest.py
-    - cd test && python3 runtest.py -a run -e exciting_mpismp 
+    - cd test && pytest test_functions
+    - python3 runtest.py -a run -e exciting_mpismp
     - cd ../tools/exciting_tools && pytest
 
 build:debian-buster-Intel2019-serial:
@@ -121,7 +124,8 @@ test-debian-buster-Intel2019-serial:
     - bin/exciting_serial -run-unit-tests -kill-on-failure
     # run application tests
     - pip3 install -e tools/exciting_tools
-    - cd test && python3 runtest.py -a run -e exciting_serial 
+    - cd test && pytest test_functions
+    - python3 runtest.py -a run -e exciting_serial
     - cd ../tools/exciting_tools && pytest
 
 build:debian-buster-Intel2019-mpiandsmp:
@@ -168,7 +172,8 @@ test-debian-buster-Intel2019-mpiandsmp:
     - export OMP_NUM_THREADS=2 && mpirun -np 2 bin/exciting_mpismp -run-unit-tests -kill-on-failure
     # run application tests
     - pip3 install -e tools/exciting_tools
-    - cd test && python3 runtest.py -a run -e exciting_mpismp
+    - cd test && pytest test_functions
+    - python3 runtest.py -a run -e exciting_mpismp
     - cd ../tools/exciting_tools && pytest
     - cd ../../docs/profiling && profmerge
     - codecov -prj test_suite
