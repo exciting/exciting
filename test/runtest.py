@@ -14,14 +14,14 @@ import os
 from typing import List
 import re
 
-from tools.termcolor_wrapper import print_color
-from tools.runner.test import run_tests
-from tools.runner.reference import run_single_reference
-from tools.constants import settings
-from tools.selftests import runselftests, test_class_errorfinder
-from tools.parsers import install_excitingtools
-from tools.utils import Build_type, build_type_str_to_enum, build_type_enum_to_str
-from failing_tests import set_skipped_tests
+from modules.termcolor_wrapper import print_color
+from modules.runner.test import run_tests
+from modules.runner.reference import run_single_reference
+from modules.constants import settings
+from selftests import runselftests, test_class_errorfinder
+from modules.parsers import install_excitingtools
+from modules.utils import Build_type, build_type_str_to_enum, build_type_enum_to_str
+from modules.failing_tests import set_skipped_tests
 
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
@@ -76,7 +76,7 @@ def option_parser(test_farm: str, exe_dir: str):
     help_executable = "exciting executables. " \
                       + "'exciting_serial' for the serial binary; " \
                       + "'exciting_smp' for the shared-memory version; " \
-                      + "'exciting_mpi' for the binary with MPI parallisation, only; " \
+                      + "'exciting_purempi' for the binary with MPI parallisation, only; " \
                       + "'exciting_mpismp for the binary with MPI amd SMP parallisation;" \
                       + "Default is exciting_smp"
 

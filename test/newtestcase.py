@@ -14,10 +14,10 @@ import argparse as ap
 import warnings
 
 from runtest import get_test_directories
-from tools.constants import settings
-from tools.infrastructure import copy_exciting_input, create_init
-from tools.runner.reference import run_single_reference
-from tools.utils import build_type_enum_to_str
+from modules.constants import settings
+from modules.infrastructure import copy_exciting_input, create_init
+from modules.runner.reference import run_single_reference
+from modules.utils import build_type_enum_to_str
 
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
