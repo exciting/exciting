@@ -576,9 +576,11 @@ Contains
       use mod_atoms
       use mod_muffin_tin
 
+      use modgw, only : kqset, Gkqset
       use mod_Gvector, only : ngrid, ngrtot, igfft
       Use mod_lattice, only : omega
       use constants, only : zzero, zone
+      
 !      use modmpi
 
 
@@ -600,18 +602,25 @@ Contains
      Allocate(evecsv(nstsv, nstsv))
      wfsize=wf%maxaa+wf%maxnlo
      Allocate(wf1(wfsize,nstfv))
-     Allocate(wf%mt(wfsize,nstsv,natmtot))
+     if (.not.allocated(wf%mt)) Allocate(wf%mt(wfsize,nstsv,natmtot))
 
 ! get the eigenvalues/vectors from file for input k-point
 !     Call getevalsv (vkl(:, ik), evalsv)
-     Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
-     Call getevecsv (vkl(:, ik), evecsv)
+     Call getevecfv (kqset%vkl(:, ik), Gkqset%vgkl(:, :, :, ik), evecfv)
+!     Call getevecsv (vkl(:, ik), evecsv)
 
 ! find the matching coefficients
      Allocate(apwalm(ngkmax, apwordmax, lmmaxapw, natmtot))
      Allocate(apwi(wf%maxaa,ngkmax))
 
-     Call match (ngk(1, ik), gkc(:, 1, ik), tpgkc(:, :, 1, ik), sfacgk(:, :, 1, ik), apwalm)
+     write(*,*) 'Gkqset%ngk',ik,Gkqset%ngk(1, ik),'/',ngkmax
+!     Call match (ngk(1, ik), gkc(:, 1, ik), tpgkc(:, :, 1, ik), sfacgk(:, :, 1, ik), apwalm)
+    call match(Gkqset%ngk(1,ik), &
+    &          Gkqset%gkc(:,1,ik), &
+    &          Gkqset%tpgkc(:,:,1,ik), &
+    &          Gkqset%sfacgk(:,:,1,ik),&
+    &          apwalm)
+
 
      Do is = 1, nspecies
 !       n = lmmaxvr * nrcmt (is)
@@ -625,7 +634,7 @@ Contains
              Do m = - l, l
                lm = idxlm (l, m)
                if3=if3+1
-               apwi(if3,:)=apwalm(1:ngk(1, ik), io, lm, ias)
+               apwi(if3,1:Gkqset%ngk(1, ik))=apwalm(1:Gkqset%ngk(1, ik), io, lm, ias)
              End Do
            End Do
          End Do
@@ -635,7 +644,7 @@ Contains
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
                       wf%maxaa, &          ! M ... rows of op( A ) = rows of C
                       nstfv, &           ! N ... cols of op( B ) = cols of C
-                      ngk(1,ik), &        ! K ... cols of op( A ) = rows of op( B )
+                      Gkqset%ngk(1,ik), &        ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
                       apwi, &        ! A
                       wf%maxaa,&           ! LDA ... leading dimension of A
@@ -651,13 +660,15 @@ Contains
          l3 = lorbl (nlorb(is), is)
          lm1=idxlm (l1,-l1)
          lm3=idxlm (l3,l3)
-         j1= ngk(1, ik) + idxlo (lm1, 1, ias)
-         j3= ngk(1, ik) + idxlo (lm3, nlorb(is), ias)
+         j1= Gkqset%ngk(1, ik) + idxlo (lm1, 1, ias)
+         j3= Gkqset%ngk(1, ik) + idxlo (lm3, nlorb(is), ias)
          wf1(wf%maxaa+1:wf%maxaa+wf%losize(is),1:nstfv)=evecfv(j1:j3,1:nstfv)
        endif
+       wf%mt(:,:,ias)=wf1(:,:)
 
 
 ! Apply the second variation
+if (.false.) then
           call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
                       wfsize, &          ! M ... rows of op( A ) = rows of C
@@ -672,26 +683,26 @@ Contains
                       wf%mt(1,1,ias), &  ! C
                       wfsize &      ! LDC ... leading dimension of C
                       )
-
+endif
      
        End Do
      End Do
 
      Deallocate(apwi)
      Deallocate(apwalm)
-
+     Deallocate(wf1)
 !     wf%mt(1:wf%maxaa,:,:)=0d0
 
 
-     Allocate(wf%ir(ngrtot,nstsv))
+     if (.not.allocated(wf%ir)) Allocate(wf%ir(ngrtot,nstsv))
 
 !     interstitial part 
       t1 = 1 / sqrt(omega)
       Do j = 1, nstsv
         wf%ir(:,j) = 0.d0
 ! spin-unpolarised wavefunction
-        Do igk = 1, ngk (1, ik)
-          ifg = igfft (igkig(igk, 1, ik))
+        Do igk = 1, Gkqset%ngk (1, ik)
+          ifg = igfft (Gkqset%igkig(igk, 1, ik))
           wf%ir(ifg, j) = t1*evecfv(igk, j)
         End Do
 ! Fourier transform wavefunction to real-space

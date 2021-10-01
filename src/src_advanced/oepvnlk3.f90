@@ -9,13 +9,14 @@
 Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
       Use modmain
       Use modinput
+      Use modgw, only : kqset,Gkqset, kset, nomax, numin, ikvbm, ikcbm, ikvcm
       Implicit None
 ! arguments
       Integer, Intent (In) :: ikp
       Complex (8), Intent (Out) :: vnlcv (ncrmax, natmtot, nstsv)
       Complex (8), Intent (Out) :: vnlvv (nstsv, nstsv)
 ! local variables
-      Integer :: ngknr, ik, ist1, ist2, ist3
+      Integer :: ngknr, ik, jk, ist1, ist2, ist3
       Integer :: is, ia, ias, ic, m1, m2, lmax, lm
       Integer :: nrc, iq, ig, iv (3), igq0
       Real (8) :: v (3), cfq, ta,tb
@@ -36,6 +37,7 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
       Real (8), Allocatable :: jlgq0r (:, :, :)
       Real (8), Allocatable :: evalsvp (:)
       Real (8), Allocatable :: evalsvnr (:)
+      Real (8), Allocatable :: evalfv (:,:)
       Complex (8), Allocatable :: apwalm (:, :, :, :)
       Complex (8), Allocatable :: evecfv (:, :)
       Complex (8), Allocatable :: evecsv (:, :)
@@ -54,6 +56,7 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
       Complex (8), Allocatable :: zvclir (:, :)
       Complex (8), Allocatable :: zvcltp (:, :)
       Complex (8), Allocatable :: zfmt (:, :)
+       
       type (WFType) :: wf1,wf2,prod,pot
 ! external functions
       Complex (8) zfinp, zfmtinp
@@ -91,14 +94,23 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
       Allocate (zvcltp(lmmaxvr, nrcmtmax))
       Allocate (zfmt(lmmaxvr, nrcmtmax))
 
+    if (allocated(evalfv)) deallocate(evalfv)
+    allocate(evalfv(nstfv,kset%nkpt))
+    evalfv(:,:) = 0.d0
+    do ik = 1, nkpt
+      call getevalfv(kset%vkl(:,ik), evalfv(:,ik))
+    end do
+    call find_vbm_cbm(1, nstfv, kset%nkpt, evalfv, efermi, nomax, numin, ikvbm, ikcbm, ikvcm)
+   
+
       call WFInit(wf1)
       call WFInit(wf2)
       call WFInit(prod)
       call WFInit(pot)
 
-      call genWF(ikp,wf1)
-      call genWFinMT(wf1)
-      call genWFonMesh(wf1)
+!      call genWF(ikp,wf1)
+!      call genWFinMT(wf1)
+!      call genWFonMesh(wf1)
 
       allocate(pot%mtrlm(lmmaxvr,nrmtmax,natmtot,1))
       allocate(pot%ir(ngrtot,1))
@@ -123,23 +135,29 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
 
 
 ! start loop over non-reduced k-point set
-      Do ik = 1, nkptnr
+!      Do ik = 1, nkptnr
+       do iq = 2, 2! kqset%nkpt
+
+         ik  = kset%ikp2ik(ikp)
+         jk  = kqset%kqid(ik,iq)
 
 ! generate G+k-vectors
-         Call gengpvec (vklnr(:, ik), vkcnr(:, ik), ngknr, igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr)
+!        Call gengpvec (vklnr(:, ik), vkcnr(:, ik), ngknr, igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr)
+!         Gkqset%
 ! get the eigenvalues/vectors from file for non-reduced k-points
-         Call getevalsv (vklnr(:, ik), evalsvnr)
+!         Call getevalsv (vklnr(:, ik), evalsvnr)
 !         Call getevecfv (vklnr(:, ik), vgklnr, evecfv)
 !         Call getevecsv (vklnr(:, ik), evecsv)
 ! generate the structure factors
-         Call gensfacgp (ngknr, vgkcnr, ngkmax, sfacgknr)
+!         Call gensfacgp (ngknr, vgkcnr, ngkmax, sfacgknr)
 ! find the matching coefficients
 !         Call match (ngknr, gkcnr, tpgkcnr, sfacgknr, apwalm)
 ! determine q-vector
-         iv (:) = ivk (:, ikp) - ivknr (:, ik)
-         iv (:) = modulo (iv(:), input%groundstate%ngridk(:))
-         iq = iqmap (iv(1), iv(2), iv(3))
-         v (:) = vkc (:, ikp) - vkcnr (:, ik)
+!         iv (:) = ivk (:, ikp) - ivknr (:, ik)
+!         iv (:) = modulo (iv(:), input%groundstate%ngridk(:))
+!         iq = iqmap (iv(1), iv(2), iv(3))
+         v (:) =  kqset%vkc (:, iq) !- Gkqset%vkc (:, jk)
+         
          Do ig = 1, ngvec
 ! determine G+q vectors
             vgqc (:, ig) = vgc (:, ig) + v (:)
@@ -155,19 +173,26 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
          sfacgq0 (:) = sfacgq (igq0, :)
 ! compute the required spherical Bessel functions
          lmax = input%groundstate%lmaxvr + input%groundstate%npsden + 1
-!         Call genjlgpr (lmax, gqc, jlgqr)
-         Call genjlgpr (lmax, gc, jlgqr)
+         Call genjlgpr (lmax, gqc, jlgqr)
+!         Call genjlgpr (lmax, gc, jlgqr)
          Call genjlgq0r (gqc(igq0), jlgq0r)
 ! calculate the wavefunctions for occupied states
 
-         call genWF(ik,wf2)
+write(*,*) sum(Gkqset%gkc(1:Gkqset%ngk(1,ik),1,ik))
+!write(*,*) sum(Gkqset%gkc(:,1,ik))
+         call genWF(ik,wf1)
+         call genWFinMT(wf1)
+         call genWFonMesh(wf1)
+
+
+         call genWF(jk,wf2)
          call genWFinMT(wf2)
          call genWFonMesh(wf2)
 
 
-         Do ist2 = 1, nstsv
-            If (evalsvnr(ist2) .Lt. efermi) Then
-               Do ist3 = 1, nstsv
+         Do ist2 = 1, nomax !nstsv
+!            If (evalfv(ist2,jk) .Lt. efermi) Then
+               Do ist3 = 1, nstfv
 !                  If (evalsvp(ist2) .Gt. efermi) Then
 ! calculate the complex overlap density
 
@@ -177,6 +202,7 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
 call timesec(ta)
                      call WFprodrs(ist2,wf2,ist3,wf1,prod)
 call timesec(tb)
+if (ik.eq.jk) then
 write(*,*) 'WFprod',tb-ta
 call timesec(ta)
                      Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, &
@@ -188,6 +214,7 @@ call timesec(ta)
                      prod%mtrlm(1,:,:,1)=prod%mtrlm(1,:,:,1)-zrho01/y00
 
 call timesec(tb)
+endif
 !write(*,*) 'remove average',tb-ta
 call timesec(ta)
 ! calculate the Coulomb potential
@@ -196,12 +223,13 @@ call timesec(ta)
                     & prod%ir(:,1), pot%mtrlm(:,:,:,1), pot%ir(:,1), zrho02)
 call timesec(tb)
 
+if (ik.eq.jk) then
                   Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, &
                   & igq0), sfacgq0, pot%mtrlm(:,:,:,1), pot%ir(:,1), zrho01)
 
                   pot%ir(:,1)=pot%ir(:,1)-zrho01
                   pot%mtrlm(1,:,:,1)=pot%mtrlm(1,:,:,1)-zrho01/y00
-
+endif
 !write(*,*) 'zpotcoul',tb-ta
 !-------------------------------------------------------------------
                         call genWFonMeshOne(pot)
@@ -212,8 +240,8 @@ call timesec(tb)
 ! ------------------------------------------------------------------
 ! ------------------------------------------------------------------
 ! ------------------------------------------------------------------
-                        zvclir(:,ist3)=zvclir(:,ist3)+wkptnr(ik)*prod%ir(:,1)
-                        zvclmt(:,:,:,ist3)=zvclmt(:,:,:,ist3)+wkptnr(ik)*prod%mtrlm(:,:,:,1)
+                        zvclir(:,ist3)=zvclir(:,ist3)+prod%ir(:,1)
+                        zvclmt(:,:,:,ist3)=zvclmt(:,:,:,ist3)+prod%mtrlm(:,:,:,1)
 ! ------------------------------------------------------------------
 ! ------------------------------------------------------------------
 ! ------------------------------------------------------------------
@@ -266,7 +294,7 @@ end if
 !                  End If
                End Do
 ! end loop over ist3
-            End If
+!            End If
          End Do
 ! end loop over non-reduced k-point set
       End Do

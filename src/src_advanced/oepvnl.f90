@@ -21,7 +21,7 @@ Subroutine oepvnl (vnlcv, vnlvv)
         &oc:", I6)') ik, nkpt, rank
 #endif
 #ifndef MPI
-         Do ik = 1, nkpt
+         Do ik = 1, 1 !nkpt
             Write (*, '("Info(oepvnl): ", I6, " of ", I6, " k-points")') ik, nkpt
 #endif
             Call oepvnlk3 (ik, vnlcv(:, :, :, ik), vnlvv(:, :, ik))

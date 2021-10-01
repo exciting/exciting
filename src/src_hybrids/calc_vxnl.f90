@@ -109,11 +109,12 @@ if (.false.) then
     ! Loop over k-points
     !---------------------------------------
     ikq = 0
-    do ikp = 1, kset%nkpt
+    do ikp = 1, 1 !kset%nkpt
+    
       !---------------------------------------
       ! Integration over BZ
       !---------------------------------------
-      do iq = 1, kqset%nkpt
+      do iq = 2, 2 !kqset%nkpt
         Gamma = gammapoint(kqset%vqc(:,iq))
         ik  = kset%ikp2ik(ikp)
         jk  = kqset%kqid(ik,iq)
@@ -306,7 +307,7 @@ else
 
 endif
 
-if (.false.) then
+if (.true.) then
     write(*,*) 'exnl=', exnl
     write(*,*) 'real'
     do ikp = 1, kset%nkpt
