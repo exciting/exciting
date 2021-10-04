@@ -20,9 +20,6 @@ pytest will output exactly what is compared in the assert, so one can copy the s
 Note, commenting out and subsequently uncommenting the expected buffer strings *can* modify the formatting
 w.r.t. whitespaces. Maybe this method of testing is not robust.
 
-TODO
-Test timings
-Test unevaluated_files
 """
 import pytest
 import sys

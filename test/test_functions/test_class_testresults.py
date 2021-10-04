@@ -19,11 +19,7 @@ pytest will output exactly what is compared in the assert, so one can copy the s
 Note, commenting out and subsequently uncommenting the expected buffer strings *can* modify the formatting
 w.r.t. whitespaces. Maybe this method of testing is not robust.
 
-TODO
------------
-(A/B/H) Issue 96. Test Error Logging with 3D Array
-NOTE (A/B/H) Combine this with selftests as they all unit tests. Would need to change import statements
-and make sure unittest runs with pytest. Would be nice, but not essential. Hence added as a NOTE.
+TODO(A/B/H) Issue 96. Test Error Logging with 3D Array
 """
 import pytest
 import sys
