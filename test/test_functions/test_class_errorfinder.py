@@ -11,7 +11,7 @@ pytest -s selftests/test_class_errorfinder.py
 import unittest
 import numpy as np
 
-from modules.tester.compare import hashable_list, ErrorFinder
+from ..modules.tester.compare import hashable_list, ErrorFinder
 
 
 def round_values(input_data: dict, dp=14) -> dict:

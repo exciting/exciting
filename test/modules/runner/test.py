@@ -1,15 +1,18 @@
 import os
-from typing import List, Union
+from typing import List, Union, Tuple
 import sys
 import json
 from copy import deepcopy
 
+from ..constants import files_under_test, settings
 from ..parsers import ErroneousFileError, parser_chooser
 from ..infrastructure import create_run_dir, copy_exciting_input, get_test_from_init, flatten_directory
 
+from ..termcolor_wrapper import print_color
 from ..tester.compare import ErrorFinder
 from ..tester.test import from_init
-from ..tester.report import Report, test_suite_summary, skipped_test_summary, timing_summary
+from ..tester.report import Report, test_suite_summary, skipped_test_summary, timing_summary, TestResults, \
+    SummariseTests
 from ..tester.failure import Failure, Failure_code
 
 from .execute import execute
@@ -123,66 +126,19 @@ def compare_outputs_json(run_dir: str, ref_dir: str, output_files: List[str], to
     return test_results
 
 
-############################################
-
-def run_single_test(main_out: str, test_dir: str, run_dir: str, ref_dir: str, input_file: str,
-                    species_files: List[str], init_default: str, executable: str, max_time: str, timing: dict,
-                    handle_errors: bool):
+# TODO(Alex) Issue 99.  Function to remove once test suite migrates to JSON
+def compare_outputs_xml(output_files: dict, test_dir: str, ref_dir: str, run_dir: str, report: Report):
     """
-    Runs a single test.
-    :param main_out:        main output file of the exciting calculation
-    :param test_dir:       test case that will be run
-    :param run_dir:         name of the run directory of the test case
-    :param ref_dir:         name of the ref directory of the test case
-    :param input_file:      exciting input file
-    :param species_files:   list of species files
-    :param init_default:    location of the default init.xml
-    :param executable:     executable command
-    :param timing:          test run times in seconds
-    :param handle_errors:   Whether or not failures and skips are allowed to propagate
+    Compare calculation outputs (output_files) to reference data, with tolerances defined in init.xml
 
-    Output:
-        report          object      report instance of the test
+    :param dict output_files: File names and associated tolerances to validate for a given method, specified in init.xml
+    :param str test_dir: Test directory
+    :param str ref_dir: Reference directory (relative to test_dir)
+    :param str run_dir: Run directory (relative to test_dir)
+    :param Report report: Report object, summarising test failures
     """
-    test_name = os.path.basename(test_dir)
-    print('Run test %s:' % test_name)
-
-    # parse init file --> parse tolerances and tests
-    init = get_test_from_init(test_dir, init_default)
-    name = init['name']
-    description = init['description']
-    tests = init['tests']
-
-    report = Report(name, description)
-
-    create_run_dir(test_dir, run_dir)
-
-    copy_exciting_input(os.path.join(test_dir, ref_dir),
-                        os.path.join(test_dir, run_dir),
-                        species_files,
-                        input_file)
-
-    # Run exciting.
-    # If the run fails, then an error message is added
-    # and all other init['tests'] are skipped.
-    run_success, err_mess, timing[init['name']] = execute(os.path.join(test_dir, run_dir),
-                                                          executable,
-                                                          main_out,
-                                                          max_time)
-    if not run_success:
-        report.runFailed(test_name, err_mess)
-        print('Time (s): %.1f' % timing[name])
-        report.writeToTerminal()
-        report.assert_errors(handle_errors)
-        return report
-    print('Run succeeded')
-    print(os.path.join(test_dir, run_dir))
-
-    # Flatten run directory
-    flatten_directory(os.path.join(test_dir, run_dir))
-
-    # Loop over all files to test and compare them to their reference
-    for test in tests:
+    # Loop over all files to test and compare them to their references
+    for test in output_files:
         file_name = test['file']
         test_results = from_init(test)
 
@@ -212,12 +168,152 @@ def run_single_test(main_out: str, test_dir: str, run_dir: str, ref_dir: str, in
         test_results.evaluate(ref_data, run_data, test_dir)
 
         report.collectTest(test_results)
+    return report
 
+
+def run_single_test_json(main_out: str, test_dir: str, run_dir: str, ref_dir: str, input_file: str,
+                         species_files: List[str], executable: str, max_time: int, handle_errors: bool) -> TestResults:
+    """
+    Runs a test case and compares output files under test against references.
+
+    :param main_out:        main output file of the exciting calculation
+    :param test_dir:        test case that will be run
+    :param run_dir:         name of the run directory of the test case
+    :param ref_dir:         name of the ref directory of the test case
+    :param input_file:      exciting input file
+    :param species_files:   list of species files
+    :param executable:      executable command
+    :param max_time:        max time a job is allowed to run for before being killed
+    :param handle_errors:   Whether or not failures and skips are allowed to propagate
+
+    :return TestResults test_results: Test case results object.
+    """
+    test_name = os.path.basename(test_dir)
+    print('Run test %s:' % test_name)
+
+    head_tail = os.path.split(test_dir)
+    method = head_tail[0].split('/')[-1]
+    full_ref_dir = os.path.join(test_dir, ref_dir)
+    full_run_dir = os.path.join(test_dir, run_dir)
+
+    json_tolerances = load_tolerances(full_ref_dir)
+    # TODO(A/B/H) Issue 100. Update ErrorFinder class to use tol AND units in data comparison
+    #  As an alternative to stripping the units (could pass the comparison function as an argument)
+    # See function documentation for a description of the issue
+    just_tolerances = strip_tolerance_units(json_tolerances)
+
+    output_files = files_under_test[method]
+    create_run_dir(test_dir, run_dir)
+    copy_exciting_input(full_ref_dir, full_run_dir, species_files, input_file)
+
+    run_success, err_mess, timing = execute(full_run_dir, executable, main_out, max_time)
+    test_results = TestResults(test_dir, run_success, timing)
+
+    flatten_directory(full_run_dir)
+
+    if run_success:
+        test_results_dict = compare_outputs_json(full_run_dir, full_ref_dir, output_files, just_tolerances)
+        test_results.set_results(test_results_dict)
+
+    test_results.print_results()
+    test_results.assert_errors(handle_errors)
+
+    return test_results
+
+
+# TODO(Alex) Issue 99.  Function to remove once test suite migrates to JSON
+def run_single_test_xml(main_out: str, test_dir: str, run_dir: str, ref_dir: str, input_file: str,
+                        species_files: List[str], init_default: str, executable: str, max_time: str, timing: dict,
+                        handle_errors: bool) -> Report:
+    """
+    Runs a single test.
+
+    :param main_out:        main output file of the exciting calculation
+    :param test_dir:        test case that will be run
+    :param run_dir:         name of the run directory of the test case
+    :param ref_dir:         name of the ref directory of the test case
+    :param input_file:      exciting input file
+    :param species_files:   list of species files
+    :param init_default:    location of the default init.xml
+    :param executable:      executable command
+    :param timing:          test run times in seconds
+    :param handle_errors:   Whether or not failures and skips are allowed to propagate
+
+    :return Report report:  Report instance of the test
+    """
+    test_name = os.path.basename(test_dir)
+    print('Run test %s:' % test_name)
+
+    full_ref_dir = os.path.join(test_dir, ref_dir)
+    full_run_dir = os.path.join(test_dir, run_dir)
+
+    # Parse tolerances and output_files
+    init = get_test_from_init(test_dir, init_default)
+    name = init['name']
+    description = init['description']
+    output_files = init['tests']
+
+    report = Report(name, description)
+
+    create_run_dir(test_dir, run_dir)
+
+    copy_exciting_input(full_ref_dir, full_run_dir, species_files, input_file)
+
+    # Run exciting.
+    # If the run fails, then an error message is added and all other init['tests'] are skipped.
+    run_success, err_mess, timing[init['name']] = execute(full_run_dir, executable, main_out, max_time)
+
+    if not run_success:
+        report.runFailed(test_name, err_mess)
+        print('Time (s): %.1f' % timing[name])
+        report.writeToTerminal()
+        report.assert_errors(handle_errors)
+        return report
+    print('Run succeeded')
+    print(full_run_dir)
+
+    flatten_directory(full_run_dir)
+
+    report = compare_outputs_xml(output_files, test_dir, ref_dir, run_dir, report)
     print('Time (s): %.1f' % timing[name])
     report.writeToTerminal()
     report.assert_errors(handle_errors)
 
     return report
+
+
+def split_test_list_according_to_tol_format(test_list: List[str]) -> tuple:
+    """
+    Split the test list according to which methods use XML tolerances and which
+    use JSON tolerances.
+
+    Expect test_list to contain elements of the form: test_farm/groundstate/LDA_PW-PbTiO3
+    however, it does not affect the routine. i.e.
+
+    `if 'groundstate' in "test_farm/groundstate"`
+
+    will give the same result as
+
+    `if 'groundstate' in "groundstate"`
+
+    TODO(Alex) Issue 99.  Function to remove once test suite migrates to JSON
+         Gradually extend HARDCODED definition of which test methods are run with JSON
+         Once all methods are performed with JSON, remove the XML calls and delete this routine.
+
+    :param List[str] test_list: List test cases that will be run.
+    :return tuple test_list_json, test_list_xml: List of test cases for JSON and XML, respectively.
+    """
+    test_list_xml = []
+    test_list_json = []
+
+    for test_name in test_list:
+        head = os.path.split(test_name)[0]
+        if 'dummy' in head:
+            test_list_json.append(test_name)
+        else:
+            test_list_xml.append(test_name)
+
+    return test_list_json, test_list_xml
 
 
 def run_tests(main_out: str, test_list: List[str], run_dir: str, ref_dir: str,
@@ -249,53 +345,85 @@ def run_tests(main_out: str, test_list: List[str], run_dir: str, ref_dir: str,
     elif 'exciting_purempi' in executable:
         print('Run tests with exciting_purempi %i MPI processes.' % np)
 
-    test_list = remove_tests_to_skip(test_list, skipped_tests)
+    test_list, removed_tests = remove_tests_to_skip(test_list, skipped_tests)
+    # TODO(Alex) Issue 99. Remove once all method tolerances are moved to JSON
+    test_list_json, test_list_xml = split_test_list_according_to_tol_format(test_list)
+
+    # JSON
+    print_color('\n\nTests using JSON-based tolerances', 'blue')
+    report = SummariseTests()
+    for test_name in test_list_json:
+        test_results = run_single_test_json(main_out, test_name, run_dir, ref_dir, input_file, species_files,
+                                            executable, max_time, handle_errors)
+        report.add(test_results)
+
+    report.print()
+    skipped_test_summary(removed_tests)
+    report.print_timing()
+    assert report.n_failed_test_cases == 0, "Some test suite cases failed."
+
+    # XML-based test suite
+    print_color('\n\nTests using XML-based tolerances', 'blue')
     timing = {}
     test_suite_report = []
-
-    for test_name in test_list:
+    for test_name in test_list_xml:
         test_suite_report.append(
-            run_single_test(main_out,
-                            test_name,
-                            run_dir,
-                            ref_dir,
-                            input_file,
-                            species_files,
-                            init_default,
-                            executable,
-                            max_time,
-                            timing,
-                            handle_errors)
+            run_single_test_xml(main_out,
+                                test_name,
+                                run_dir,
+                                ref_dir,
+                                input_file,
+                                species_files,
+                                init_default,
+                                executable,
+                                max_time,
+                                timing,
+                                handle_errors)
         )
 
     all_asserts_succeeded = test_suite_summary(test_suite_report)
     # TODO(Alex). Issue 98. Move Printing of Skipped Test Cases to SummariseTests class
-    skipped_test_summary(skipped_tests)
+    skipped_test_summary(removed_tests)
     timing_summary(timing, verbose=True)
     assert all_asserts_succeeded, "Some test suite assertions failed or were skipped over"
 
     return
 
 
-def remove_tests_to_skip(all_tests: List[str], skipped_tests: List[str]) -> List[str]:
+def remove_tests_to_skip(test_list: List[str], skipped_tests: List[dict]) -> Tuple[List[str], List[dict]]:
     """
-    Remove tests given in 'skipped_tests' from the test suite,
-    for a specific executable choice.
+    Remove tests given in 'skipped_tests' from the test suite, for a specific executable choice.
 
     This is useful if a particular test crashes or hangs, and needs to be
     debugged BUT shouldn't cause the test suite to report a failure.
 
-    :param all_tests:     list of all test names
-    :param skipped_tests: list of tests to skip. Each entry is a dict
+    Notes
+    ------------
+    Using sets is probably faster but they won't preserve ordering. Could use ordered sets
+    but would need to support that package
 
-    :return tests_to_run: list of tests to run (with skipped_tests removed)
+    Arguments
+    -------------
+    :param List[str] test_list: List of test names to run.
+    :param List[dict] skipped_tests: List of tests from the test suite that are marked as "to skip",
+    in failing_tests.py
+
+    :return List[str] tests_to_run: Some list of tests to run
+    :return List[dict] removed_tests: List of tests removed from test_list, where each entry is a dict
+    (like with skipped_tests).
     """
+    test_farm_root = settings.test_farm
 
-    tests_to_skip = [test['name'] for test in skipped_tests]
-    # Using sets is probably faster but they won't preserve ordering. Could use ordered sets
+    tests_to_skip = [os.path.join(test_farm_root, test['name']) for test in skipped_tests]
+    comment = {os.path.join(test_farm_root, test['name']): test['comment'] for test in skipped_tests}
+
     tests_to_run = []
-    for test in all_tests:
-        if os.path.basename(test) not in tests_to_skip:
-            tests_to_run.append(test)
+    removed_tests = []
 
-    return tests_to_run
+    for test in test_list:
+        if test not in tests_to_skip:
+            tests_to_run.append(test)
+        else:
+            removed_tests.append({'name': test, 'comment': comment[test]})
+
+    return tests_to_run, removed_tests

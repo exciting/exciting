@@ -57,3 +57,7 @@ settings = Defaults(max_time       = 1800,
                     default_threads = _default_threads,
                     exe_ref         = _exe_ref
                     )
+
+# TODO(A/B/H) Extend this dictionary as each new method is added to JSON tolerance testing
+# Files regression-tested by the test suite
+files_under_test = {'groundstate': ['INFO.OUT', 'evalcore.xml', 'geometry.xml', 'eigval.xml', 'atoms.xml']}

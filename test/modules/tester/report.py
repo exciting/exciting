@@ -123,7 +123,15 @@ def timing_statistics(timing_dict: dict) -> dict:
     total_time = sum(times)
     avg_time = (total_time / len(times)) if len(times) > 0 else 0
 
-    timing_results = {'total': total_time, 'average': avg_time}
+    timing_results = {'total': total_time,
+                      'average': avg_time,
+                      'shortest': {'name': 'null', 'time': 0},
+                      'longest': {'name': 'null', 'time': 0}
+                      }
+
+    # Null run
+    if len(times) == 0:
+        return timing_results
 
     # Shortest time
     i_min = np.argmin(times)

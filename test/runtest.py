@@ -18,7 +18,6 @@ from modules.termcolor_wrapper import print_color
 from modules.runner.test import run_tests
 from modules.runner.reference import run_single_reference
 from modules.constants import settings
-from selftests import runselftests, test_class_errorfinder
 from modules.parsers import install_excitingtools
 from modules.utils import Build_type, build_type_str_to_enum, build_type_enum_to_str
 from modules.failing_tests import set_skipped_tests
@@ -356,33 +355,6 @@ def main(settings: namedtuple, input_options: dict):
             run_single_reference(reference_dir, executable, settings)
 
 
-def run_self_tests(verbosity=3):
-    """
-    Test the application test suite functions 
-    Execute self tests before the test suite
-   
-    :return: result  
-    """
-    print('Run self tests:')
-    loader = unittest.TestLoader()
-    suite = unittest.TestSuite()
-
-    suite.addTests(loader.loadTestsFromModule(runselftests))
-    suite.addTests(loader.loadTestsFromModule(test_class_errorfinder))
-
-    runner = unittest.TextTestRunner(verbosity=verbosity)
-    result = runner.run(suite)
-
-    if len(result.errors) == 0:
-        print_color('Self tests SUCCESS', 'green')
-    else:
-        print_color('Self tests FAIL', 'red')
-        quit('Test suite has quit')
-
-    return result
-
-
 if __name__ == "__main__":
     input_options = option_parser(settings.test_farm, settings.exe_dir)
-    self_test_results = run_self_tests()
     main(settings, input_options)
