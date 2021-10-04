@@ -1,5 +1,5 @@
 """
-Test the classes TestResults and SummariseTests
+Test the classes TestResults
 
 Running
 -----------

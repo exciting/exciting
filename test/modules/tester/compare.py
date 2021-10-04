@@ -16,6 +16,7 @@ from ..termcolor_wrapper import print_color
 # Code to retain
 #########################
 
+
 def strings_equal(x: str, y: str, error_mgs='strings differ', ignore_lr_whitespace=True) -> str:
     """
     Return error message if two strings differ

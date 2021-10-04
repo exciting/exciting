@@ -15,23 +15,24 @@ from ..tester.failure import Failure, Failure_code
 from .execute import execute
 
 
-def read_output_file(file_name: str, calc_type: str) -> Union[dict, Failure]:
+def read_output_file(file_name: str) -> Union[dict, Failure]:
     """
     Read an exciting output file
 
+    If the subdirectory in file_name is not ref
+
     :param str file_name: File name
-    :param str calc_type: Calculation type (such that error handling is correct)
-     Only valid strings are 'ref' and 'run' (this could be implemented better)
     :return dict ref_data: Reference data
     """
-    assert calc_type in ['ref', 'run'], 'Specify "ref" or "run" when calling "read_output_file"'
+    sub_dir = file_name.split('/')[-2]
+    assert sub_dir in ['ref', 'run'], "read_output_file: Subdirectory in which file exists is not 'ref' or 'run' "
 
     try:
-        ref_data = parser_chooser(file_name)
-        return ref_data
+        data = parser_chooser(file_name)
+        return data
     except OSError:
         failure_code = {'ref': Failure_code.REFERENCE, 'run': Failure_code.RUN}
-        return Failure(test_name=file_name, failure_code=failure_code[calc_type])
+        return Failure(test_name=file_name, failure_code=failure_code[sub_dir])
     except ErroneousFileError:
         return Failure(test_name=file_name, failure_code=Failure_code.ERRORFILE)
 
@@ -98,8 +99,8 @@ def compare_outputs_json(run_dir: str, ref_dir: str, output_files: List[str], to
         reference_file = os.path.join(ref_dir, file)
         test_file = os.path.join(run_dir, file)
 
-        ref_data = read_output_file(reference_file, 'ref')
-        test_data = read_output_file(test_file, 'run')
+        ref_data = read_output_file(reference_file)
+        test_data = read_output_file(test_file)
 
         # Handle IO errors
         if isinstance(ref_data, Failure):
@@ -268,6 +269,7 @@ def run_tests(main_out: str, test_list: List[str], run_dir: str, ref_dir: str,
         )
 
     all_asserts_succeeded = test_suite_summary(test_suite_report)
+    # TODO(Alex). Issue 98. Move Printing of Skipped Test Cases to SummariseTests class
     skipped_test_summary(skipped_tests)
     timing_summary(timing, verbose=True)
     assert all_asserts_succeeded, "Some test suite assertions failed or were skipped over"
