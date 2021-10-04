@@ -40,21 +40,21 @@ class TestResults:
         if self.completed:
             # All results
             self.results = [file_result for file_result in test_results.values()]
-            self.n_files = len(self.results )
+            self.n_files = len(self.results)
             # Unevaluated files
             self.unevaluated_files = [name for name, file_result in test_results.items()
                                       if isinstance(file_result, Failure)]
             # Evaluated files
             evaluated_results = [file_result for name, file_result in test_results.items()
                                  if not isinstance(file_result, Failure)]
-      
+
             self.file_names = np.asarray([file_result.file_name for file_result in evaluated_results])
             n_errors_per_file = np.asarray([file_result.n_errors for file_result in evaluated_results])
             # List of files names for which all comparisons succeeded
             self.succeeded_files = self.file_names[np.where(n_errors_per_file == 0)]
             # List of files for which any comparison failed
             self.files_with_errors = self.file_names[np.where(n_errors_per_file != 0)]
-            
+
     def print_results(self):
         """
         Wrapper function that prints a header for the test case, then iterates over
@@ -105,26 +105,139 @@ class TestResults:
                 assert len(self.files_with_errors) == 0, "Test case failed"
 
 
+def timing_statistics(timing_dict: dict) -> dict:
+    """
+    Test suite timings
+
+    :param dict timing_dict: Timing dictionary of the form {'name': time}
+    :return dict timing_results: Results for timings
+    """
+
+    # Create a list of timings and a list of names, with same ordering
+    names = []
+    times = []
+    for name, time in timing_dict.items():
+        names.append(name)
+        times.append(time)
+
+    total_time = sum(times)
+    avg_time = (total_time / len(times)) if len(times) > 0 else 0
+
+    timing_results = {'total': total_time, 'average': avg_time}
+
+    # Shortest time
+    i_min = np.argmin(times)
+    timing_results['shortest'] = {'name': names[i_min], 'time': times[i_min]}
+
+    # Longest time
+    i_max = np.argmax(times)
+    timing_results['longest'] = {'name': names[i_max], 'time': times[i_max]}
+
+    return timing_results
+
+
+class SummariseTests:
+    def __init__(self):
+        """
+        Summarise the test suite results.
+        Individual reporting is done by class TestResults
+        """
+        # Test cases
+        self.n_test_cases = 0
+        self.n_succeeded_test_cases = 0
+        self.n_failed_test_cases = 0
+        self.n_unevaluated_files = 0
+
+        # Files (over all test cases)
+        self.n_files = 0
+        self.n_succeeded_files = 0
+        self.n_failed_files = 0
+
+        # Timing
+        self.times = {}
+
+    def add(self, test: TestResults):
+        """
+        Add results from a test case (comprised of regression-testing on multiple output files)
+        """
+        # Test Case
+        errors_per_file = np.asarray([file_result.n_errors for file_result in test.results])
+        successful_files = np.where(errors_per_file == 0)[0]
+        failed_files = np.where(errors_per_file != 0)[0]
+
+        self.n_files += len(test.results)
+        self.n_succeeded_files += len(successful_files)
+        self.n_failed_files += len(failed_files)
+        self.n_unevaluated_files += len(test.unevaluated_files)
+        assert (self.n_succeeded_files + self.n_failed_files + self.n_unevaluated_files) == self.n_files
+
+        # Test Suite
+        succeeded_test = len(successful_files) == len(test.results)
+        self.n_test_cases += 1
+        self.n_succeeded_test_cases += int(succeeded_test)
+        self.n_failed_test_cases += int(not succeeded_test)
+
+        self.times.update({test.test_name: test.timing})
+
+    def print(self):
+        """
+        Print summary of multiple test cases.
+        """
+        summary_msg = f"Test Suite Summary\n\n"
+
+        summary_msg += f"Total number of files: {self.n_files}\n"
+        summary_msg += f"Succeeded file comparisons: {self.n_succeeded_files}\n"
+        summary_msg += f"Failed file comparisons: {self.n_failed_files}\n"
+        summary_msg += f"Unevaluated files: {self.n_unevaluated_files}\n\n"
+
+        summary_msg += f"Total number of test cases: {self.n_test_cases}\n"
+        summary_msg += f"Succeeded test cases: {self.n_succeeded_test_cases}\n"
+        summary_msg += f"Failed test cases: {self.n_failed_test_cases}\n"
+        # TODO(Alex). Issue 98. Move Printing of Skipped Test Cases
+        # Currently handled by a free function, using the failing_tests.py file.
+        # summary_msg += f"Skipped test cases: ADD ME \n\n "
+        print(summary_msg)
+
+    def print_timing(self):
+        """
+        Print timing summary for the test suite
+        """
+        timing_results = timing_statistics(self.times)
+        total_time = timing_results['total']
+
+        unit_str = 's'
+        if total_time >= 60:
+            total_time = total_time / 60.
+            unit_str = 'mins'
+
+        print('Total test suite time (' + unit_str + ') : %.1f' % total_time)
+        print('Average test time (s): %.1f' % timing_results['average'])
+        print('Shortest test time (s): %.1f, taken by %s' %
+              (timing_results['shortest']['time'], timing_results['shortest']['name']))
+        print('Longest test time (s): %.1f, taken by %s' %
+              (timing_results['longest']['time'], timing_results['longest']['name']))
+
 
 ########################################################################################################
 
 
 def indent(elem, level=0):
-    i = "\n" + level*"  "
-    j = "\n" + (level-1)*"  "
+    i = "\n" + level * "  "
+    j = "\n" + (level - 1) * "  "
     if len(elem):
         if not elem.text or not elem.text.strip():
             elem.text = i + "  "
         if not elem.tail or not elem.tail.strip():
             elem.tail = i
         for subelem in elem:
-            indent(subelem, level+1)
+            indent(subelem, level + 1)
         if not elem.tail or not elem.tail.strip():
             elem.tail = j
     else:
         if level and (not elem.tail or not elem.tail.strip()):
             elem.tail = j
-    return elem        
+    return elem
+
 
 class Report(dict):
     """
@@ -133,23 +246,24 @@ class Report(dict):
         name            string      Gives the thing a name. Important writing a report.
         description     string      Description of the tests that are performed.
     """
+
     def __init__(self, name, description):
         self.name = name
         self.description = description
-        self.failure_log = {'total' : len(self),
-                            'format':0,
-                            'float':0,
-                            'array':0,
-                            'string':0,
-                            'integer':0,
-                            'reference':0}
+        self.failure_log = {'total': len(self),
+                            'format': 0,
+                            'float': 0,
+                            'array': 0,
+                            'string': 0,
+                            'integer': 0,
+                            'reference': 0}
         self.failedTests = 0
         self.passedTests = 0
         self.succeededTests = 0
         self.number_of_assertions = 0
         super(Report, self).__init__()
 
-    def update_failure_log(self, log_entry:dict):
+    def update_failure_log(self, log_entry: dict):
         """
         Updates the values in the failure log.
         :param dict log_entry:  failures to be added to the failure log
@@ -161,15 +275,15 @@ class Report(dict):
         """
         Adds a new Test to the report. Automatically updates the attributes.
         """
-        self[Test.name]=Test
+        self[Test.name] = Test
         self.update_failure_log(Test.count_failures())
-        self.number_of_assertions = self.number_of_assertions+1
+        self.number_of_assertions = self.number_of_assertions + 1
         if Test.succeeded:
-            self.succeededTests = self.succeededTests+1
+            self.succeededTests = self.succeededTests + 1
         elif Test.passed:
-            self.passedTests = self.passedTests+1
+            self.passedTests = self.passedTests + 1
         else:
-            self.failedTests = self.failedTests+1
+            self.failedTests = self.failedTests + 1
 
     def runFailed(self, name, err_msg):
         test = Test(name=name)
@@ -180,78 +294,80 @@ class Report(dict):
         """
         Write a report to stdout
         """
-        print('Report:', end = ' ')
-        print_color('SUCCESS %i/%i'%(self.succeededTests, self.number_of_assertions), 'green', end = '')
-        print(',', end=' ') 
-        print_color('PASS %i/%i'%(self.passedTests, self.number_of_assertions), 'yellow', end = '')
+        print('Report:', end=' ')
+        print_color('SUCCESS %i/%i' % (self.succeededTests, self.number_of_assertions), 'green', end='')
         print(',', end=' ')
-        print_color('FAIL %i/%i' %(self.failedTests, self.number_of_assertions), 'red', end = '')
+        print_color('PASS %i/%i' % (self.passedTests, self.number_of_assertions), 'yellow', end='')
+        print(',', end=' ')
+        print_color('FAIL %i/%i' % (self.failedTests, self.number_of_assertions), 'red', end='')
         print('.')
-        
+
         for key in self.keys():
             self[key].print_test_result()
             print("")
-    
+
     def writeToXML(self, directory, FileName='report.xml'):
         root = ET.Element('report')
-        
+
         name = ET.SubElement(root, 'name')
         name.text = self.name
 
         description = ET.SubElement(root, 'description')
         description.text = self.description
-        
+
         for key in self.keys():
             self[key].xml_output(root, directory)
-        
+
         indent(root)
         tree = ET.ElementTree(root)
         tree.write(FileName)
-        
-    def assert_errors(self, handle_errors:bool):
+
+    def assert_errors(self, handle_errors: bool):
         """
         Throws if the any assertions for a test got passed over or failed
         (where passed over means some reference data was missing)
 
-        :param handle_errors  If true, allow any errors to propagate 
-                              to the end of the test suite 
+        :param handle_errors  If true, allow any errors to propagate
+                              to the end of the test suite
         """
         if not handle_errors:
             assert self.failedTests == 0, "Test suite assertion(s) failed"
             assert self.passedTests == 0, "Test suite reference data requires regenerating"
-        return 
+        return
+
+    # TODO(Alex). Issue 98. Move Printing of Skipped Test Cases to SummariseTests class
 
 
-def skipped_test_summary(skipped_tests:list):
+def skipped_test_summary(skipped_tests: list):
     """
-    Summarises skipped tests 
+    Summarises skipped tests
 
-    :param skipped_tests: list of skipped tests. 
-           Each element is a dictionary of the skipped test properties 
-    :return None  
+    :param skipped_tests: list of skipped tests.
+           Each element is a dictionary of the skipped test properties
+    :return None
     """
 
     if len(skipped_tests) == 0:
         return
-    else: 
+    else:
         print('Summary of SKIPPED tests:')
         for test in skipped_tests:
             print(' ', test['name'], '. ', test['comment'])
 
 
-def test_suite_summary(test_suite_report:list):
+def test_suite_summary(test_suite_report: list):
     """
     Summarises the test suite assertions.
     Writes summary to stdout
     Skipped test cases are not included in the report
 
     :param test_suite_report: list of test reports, each of class Report
-    :return bool indicating if all assertions in all test cases succeeded  
+    :return bool indicating if all assertions in all test cases succeeded
     """
 
     succeeded_asserts = 0
     passed_asserts = 0
-    failed_asserts = 0 
+    failed_asserts = 0
     failed_tests = 0
 
     for report in test_suite_report:
@@ -260,9 +376,9 @@ def test_suite_summary(test_suite_report:list):
         passed_asserts += report.passedTests
         failed_asserts += report.failedTests
         if report.failedTests > 0:
-            failed_tests += 1 
+            failed_tests += 1
 
-    total_asserts = succeeded_asserts +  passed_asserts + failed_asserts
+    total_asserts = succeeded_asserts + passed_asserts + failed_asserts
     total_tests = len(test_suite_report)
     succeeded_tests = total_tests - failed_tests
 
@@ -271,14 +387,14 @@ def test_suite_summary(test_suite_report:list):
     print('Tests succeeded: %i/%i' % (succeeded_tests, total_tests))
     print('Assertions succeeded: %i/%i' % (succeeded_asserts, total_asserts))
 
-    return failed_asserts == 0 
+    return failed_asserts == 0
 
 
-def timing_summary(timing:dict, verbose=False):
+def timing_summary(timing: dict, verbose=False):
     """
     Timings summary for the test suite
 
-    :param timing: Dict of timings for each test case 
+    :param timing: Dict of timings for each test case
     :param verbose: Give additional timings, useful for developers
     """
 
@@ -291,12 +407,12 @@ def timing_summary(timing:dict, verbose=False):
             avg_time = total_time / len(times)
         else:
             avg_time = 0.
-        longest_time = 0. 
+        longest_time = 0.
         longest_time_name = ''
         for name, time in timing.items():
             if time > longest_time:
-                longest_time = time 
-                longest_time_name = name 
+                longest_time = time
+                longest_time_name = name
 
         print('Average test time (s): %.1f' % avg_time)
         print('Longest test time (s): %.1f, taken by %s' % (longest_time, longest_time_name))

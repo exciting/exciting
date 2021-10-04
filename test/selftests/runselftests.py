@@ -1,7 +1,7 @@
 """
 Unit tests for the test suite. Run the tests:
 cd test/
-python3 tools/selftests/runselftests.py
+python3 selftests/runselftests.py
 """
 import unittest
 import json
