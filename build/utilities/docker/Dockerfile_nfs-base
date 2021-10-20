@@ -1,0 +1,48 @@
+# Base Image for Compiling exciting Using Programs from an NFS Server
+# -------------------------------------------------------------------
+# A docker image with Intel 2021 oneAPI and hpcAPI is too large, hence create
+# an image with Debian, nfs server and environment modules set up, in order
+# to use HU Physics' installed software (Intel 2019 module).
+# This is available via mounting their nfs server
+#
+# Package Uses
+# ------------
+# git:                                               Pull from Gitlab
+# xsltproc:                                          Preprocess XML into fortran
+# nfs-common nfs-kernel-server:                      Mount the NFS server
+# libfabric1 & libfabric-dev:                        MPI communication
+# wget cmake:                                        Not required
+# man tcllib environment-modules:                    TCL module functionality (i.e. module load)
+# python2 libpython3.7 libpython3.7-dev python3-pip: Run test suite
+#
+# Notes
+# ---------
+# Debian Buster represents development environment of SOL machines in 2021.
+#
+# Must run apt-get update and apt-get install in the same line, else update
+# will get cached by the build.
+#
+# On Buster, pillow 7.0.0 must be installed prior to excitingtools installing
+# it as a dependency. See https://github.com/matrix-org/synapse/issues/7208
+
+# exciting and test framework requirements
+RUN \
+apt-get update && \
+apt-get install -y build-essential git xsltproc wget cmake nfs-common nfs-kernel-server \
+python2 libpython3.7 libpython3.7-dev python3-pip man tcllib environment-modules libfabric1 libfabric-dev
+
+# Test suite python package dependencies
+
+RUN pip3 install --upgrade --force pillow==7.0.0
+RUN pip3 install numpy termcolor lxml pytest
+
+# This assumes exciting is present in the same directory as this Dockerfile
+COPY exciting /exciting
+SHELL ["/bin/bash", "-c"]
+
+# This assumes an Intel build
+RUN cd exciting && \
+cp build/platforms/make.inc.intel build/make.inc && \
+make
+
+RUN cd exciting && make test
