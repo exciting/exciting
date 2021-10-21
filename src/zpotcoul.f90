@@ -128,12 +128,12 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
       Complex (8) qilocal (lmmaxvr)
       Complex (8) zrp (lmmaxvr)
       real(8) :: vn(nrmax)
-      real(8) :: third 
+      real(8) :: third
       parameter (third=0.3333333333333333333333d0)
 #ifdef USEOMP
       integer ithr,nthreads,whichthread
 #endif
-      real(8), allocatable :: vdplmt(:,:,:), vdplir(:) 
+      real(8), allocatable :: vdplmt(:,:,:), vdplir(:)
 
 ! external functions
       Real (8) :: factnm
@@ -204,8 +204,6 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
                   qmt (lm, ias) = t1 * zvclmt (lm, nr(is), ias)
                End Do
             End Do
-!            write(*,*) qmt (:, ias)
-!            write(*,*)
          End Do
       End Do
 
@@ -220,7 +218,7 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(NONE) PRIVATE(qilocal,ig,ifg,zt1,t1,lm,t2,zt2,m,l,nthreads,whichthread,ithr) SHARED(input,gpc,sfacgp,zvclir,rmt,qi,ias,ngvec,is,ylmgp,jlgpr,zil,rmtl,igfft)
             qilocal=0d0
-!$OMP DO    
+!$OMP DO
 #else
             qilocal=0d0
 #endif
@@ -249,7 +247,7 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
             whichthread=omp_get_thread_num()
             do ithr=0,nthreads-1
               if (ithr.eq.whichthread) then
-                qi(:,ias)=qi(:,ias)+qilocal(:) 
+                qi(:,ias)=qi(:,ias)+qilocal(:)
               endif
 !$OMP BARRIER
             enddo
@@ -282,7 +280,7 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 ! add the pseudocharge and real interstitial densities in G-space
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(NONE) PRIVATE(ig,ifg,zt1,t1,t2,zsum,m,l,lm,t3) SHARED(input,gpc,zvclir,rmt,qi,ias,ngvec,is,ylmgp,jlgpr,zil,rmtl,igfft,zrp,fpo,sfacgp)
-!$OMP DO    
+!$OMP DO
 #endif
             Do ig = 1, ngvec
                ifg = igfft (ig)
@@ -308,7 +306,7 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
             End Do
 #ifdef USEOMP
 !$OMP END DO
-!$OMP END PARALLEL 
+!$OMP END PARALLEL
 #endif
 
          End Do
@@ -317,7 +315,7 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 ! set zrho0 (pseudocharge density coefficient of the smallest G+p vector)
       ifg = igfft (igp0)
       zrho0 = zvclir (ifg)
-      zvclir (ifg) = 0.d0
+      ! zvclir (ifg) = 0.d0
 ! solve Poissons's equation in G-space for the pseudocharge
       Do ig = 1, ngvec
          ifg = igfft (ig)
@@ -346,9 +344,9 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(NONE) PRIVATE(ig,ifg,zt1,zt2,zsum,m,l,lm,t3,qilocal,nthreads,whichthread,ithr) SHARED(input,zvclir,ias,ngvec,is,ylmgp,jlgpr,zil,rmtl,igfft,sfacgp,vilm)
             qilocal=0d0
-!$OMP DO  
+!$OMP DO
 #else
-            qilocal=0d0  
+            qilocal=0d0
 #endif
             Do ig = 1, ngvec
                ifg = igfft (ig)
@@ -373,9 +371,9 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
               endif
 !$OMP BARRIER
             enddo
-!$OMP END PARALLEL 
+!$OMP END PARALLEL
 #else
-            vilm  = vilm +qilocal 
+            vilm  = vilm +qilocal
 #endif
 
 ! add homogenous solution
@@ -415,7 +413,7 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
         zvclir(:) =  zvclir(:)+vdplir(:)
         deallocate(vdplmt,vdplir)
       end if
-      
+
       Return
 End Subroutine
 !EOC

@@ -109,12 +109,14 @@ if (.false.) then
     ! Loop over k-points
     !---------------------------------------
     ikq = 0
-    do ikp = 1, 1 !kset%nkpt
-    
+    do ikp = 1, kset%nkpt
+      ! Write(*,*) kset%nkpt
+      ! stop
+
       !---------------------------------------
       ! Integration over BZ
       !---------------------------------------
-      do iq = 2, 2 !kqset%nkpt
+      do iq = 1, kqset%nkpt
         Gamma = gammapoint(kqset%vqc(:,iq))
         ik  = kset%ikp2ik(ikp)
         jk  = kqset%kqid(ik,iq)
@@ -170,7 +172,6 @@ if (.false.) then
             ! Calculate M^i_{nm}
             !---------------------
             call expand_products(ik, iq, 1, nstfv, -1, mstart, mend, nomax, minmmat)
-
             ! sum over occupied states
             do ie3 = mstart, mend
               if (ie3 <= nomax) then
@@ -183,6 +184,7 @@ if (.false.) then
                   ie2 = idxpair(2,ie12)
                   mvm = zdotc(mbsiz, minmmat(:,ie1,ie3), 1, minmmat(:,ie2,ie3), 1)
                   vxnl(ie1,ie2,ikp) = vxnl(ie1,ie2,ikp) - kiw(ie3,jk)*mvm
+                  ! Write(*,*) "ie1,ie2,ikp,jk,vxnl: ", ie1,ie2,ikp,jk,vxnl(ie1,ie2,ikp)
                 end do
 #ifdef USEOMP
 !$OMP END DO
@@ -260,7 +262,7 @@ if (.false.) then
 
 
 
-else
+else ! Use of oepvnl
 
 
 
@@ -269,7 +271,7 @@ else
       allocate(vxnl(nstfv,nstfv,kset%nkpt))
       vxnl(:,:,:) = zzero
 
-  
+
       Allocate (vnlcv(ncrmax, natmtot, nstsv, kset%nkpt))
 !      Allocate (vxnl(nstsv, nstsv, nkpt))
       Call oepvnl (vnlcv, vxnl)
@@ -307,23 +309,23 @@ else
 
 endif
 
-if (.true.) then
+if (.false.) then
     write(*,*) 'exnl=', exnl
     write(*,*) 'real'
     do ikp = 1, kset%nkpt
       write(*,*) 'ikp=',ikp
-      do ie1 = 1, nstfv
+      do ie1 = 1, 10!nstfv
 !        do ie2 = 1, nstfv
           write(*,'(10F18.10)') dble(vxnl(ie1,1:10,ikp))
 !        end do
       end do
     end do ! ikp
-!    write(*,*) 
+!    write(*,*)
 
     write(*,*) 'imag'
     do ikp = 1, kset%nkpt
       write(*,*) 'ikp=',ikp
-      do ie1 = 1, nstfv
+      do ie1 = 1, 10!nstfv
           write(*,'(10F18.10)') dimag(vxnl(ie1,1:10,ikp))
       end do
     end do ! ikp
@@ -331,7 +333,7 @@ if (.true.) then
 
 stop
 endif
-    
+
     call cpu_time(tend)
 
     return

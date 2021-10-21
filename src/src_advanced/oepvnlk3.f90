@@ -9,14 +9,14 @@
 Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
       Use modmain
       Use modinput
-      Use modgw, only : kqset,Gkqset, kset, nomax, numin, ikvbm, ikcbm, ikvcm
+      Use modgw, only : kqset,Gkqset, kset, nomax, numin, ikvbm, ikcbm, ikvcm, Gset
       Implicit None
 ! arguments
       Integer, Intent (In) :: ikp
       Complex (8), Intent (Out) :: vnlcv (ncrmax, natmtot, nstsv)
       Complex (8), Intent (Out) :: vnlvv (nstsv, nstsv)
 ! local variables
-      Integer :: ngknr, ik, jk, ist1, ist2, ist3
+      Integer :: ngknr, ik, jk, ist1, ist2, ist3, is4
       Integer :: is, ia, ias, ic, m1, m2, lmax, lm
       Integer :: nrc, iq, ig, iv (3), igq0
       Real (8) :: v (3), cfq, ta,tb
@@ -56,7 +56,7 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
       Complex (8), Allocatable :: zvclir (:, :)
       Complex (8), Allocatable :: zvcltp (:, :)
       Complex (8), Allocatable :: zfmt (:, :)
-       
+
       type (WFType) :: wf1,wf2,prod,pot
 ! external functions
       Complex (8) zfinp, zfmtinp
@@ -101,7 +101,7 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
       call getevalfv(kset%vkl(:,ik), evalfv(:,ik))
     end do
     call find_vbm_cbm(1, nstfv, kset%nkpt, evalfv, efermi, nomax, numin, ikvbm, ikcbm, ikvcm)
-   
+
 
       call WFInit(wf1)
       call WFInit(wf2)
@@ -133,13 +133,11 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
 ! calculate the wavefunctions for all states for the input k-point
 !      Call genwfsv (.False., ngk(1, ikp), igkig(:, 1, ikp), evalsvp, apwalm, evecfv, evecsv, wfmt1, wfir1)
 
-
 ! start loop over non-reduced k-point set
 !      Do ik = 1, nkptnr
-       do iq = 2, 2! kqset%nkpt
-
-         ik  = kset%ikp2ik(ikp)
-         jk  = kqset%kqid(ik,iq)
+       do iq = 1, kqset%nkpt
+         ik  = kset%ikp2ik(ikp) ! 1d reduced index -> 1d non-reduced k-point index
+         jk  = kqset%kqid(ik,iq) ! k-dependent weight of each q-point???
 
 ! generate G+k-vectors
 !        Call gengpvec (vklnr(:, ik), vkcnr(:, ik), ngknr, igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr)
@@ -156,11 +154,12 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
 !         iv (:) = ivk (:, ikp) - ivknr (:, ik)
 !         iv (:) = modulo (iv(:), input%groundstate%ngridk(:))
 !         iq = iqmap (iv(1), iv(2), iv(3))
-         v (:) =  kqset%vkc (:, iq) !- Gkqset%vkc (:, jk)
-         
+         v (:) = kqset%vkc (:, ik) - kqset%vkc (:, jk)
+
          Do ig = 1, ngvec
 ! determine G+q vectors
-            vgqc (:, ig) = vgc (:, ig) + v (:)
+            vgqc (:, ig) = vgc (:, ig) + v (:) ! Checked: vgc == Gset%vgc
+
 ! G+q-vector length and (theta, phi) coordinates
             Call sphcrd (vgqc(:, ig), gqc(ig), tpgqc(:, ig))
 ! spherical harmonics for G+q-vector
@@ -177,9 +176,6 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
 !         Call genjlgpr (lmax, gc, jlgqr)
          Call genjlgq0r (gqc(igq0), jlgq0r)
 ! calculate the wavefunctions for occupied states
-
-write(*,*) sum(Gkqset%gkc(1:Gkqset%ngk(1,ik),1,ik))
-!write(*,*) sum(Gkqset%gkc(:,1,ik))
          call genWF(ik,wf1)
          call genWFinMT(wf1)
          call genWFonMesh(wf1)
@@ -188,8 +184,6 @@ write(*,*) sum(Gkqset%gkc(1:Gkqset%ngk(1,ik),1,ik))
          call genWF(jk,wf2)
          call genWFinMT(wf2)
          call genWFonMesh(wf2)
-
-
          Do ist2 = 1, nomax !nstsv
 !            If (evalfv(ist2,jk) .Lt. efermi) Then
                Do ist3 = 1, nstfv
@@ -203,7 +197,7 @@ call timesec(ta)
                      call WFprodrs(ist2,wf2,ist3,wf1,prod)
 call timesec(tb)
 if (ik.eq.jk) then
-write(*,*) 'WFprod',tb-ta
+! write(*,*) 'WFprod',tb-ta
 call timesec(ta)
                      Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, &
                     & igq0), sfacgq0, prod%mtrlm(:,:,:,1), prod%ir(:,1), zrho01)
@@ -215,7 +209,7 @@ call timesec(ta)
 
 call timesec(tb)
 endif
-!write(*,*) 'remove average',tb-ta
+
 call timesec(ta)
 ! calculate the Coulomb potential
                      Call zpotcoul (nrcmt, nrcmtmax, nrcmtmax, rcmt, &
@@ -230,7 +224,6 @@ if (ik.eq.jk) then
                   pot%ir(:,1)=pot%ir(:,1)-zrho01
                   pot%mtrlm(1,:,:,1)=pot%mtrlm(1,:,:,1)-zrho01/y00
 endif
-!write(*,*) 'zpotcoul',tb-ta
 !-------------------------------------------------------------------
                         call genWFonMeshOne(pot)
                        pot%ir=conjg(pot%ir)
@@ -240,8 +233,8 @@ endif
 ! ------------------------------------------------------------------
 ! ------------------------------------------------------------------
 ! ------------------------------------------------------------------
-                        zvclir(:,ist3)=zvclir(:,ist3)+prod%ir(:,1)
-                        zvclmt(:,:,:,ist3)=zvclmt(:,:,:,ist3)+prod%mtrlm(:,:,:,1)
+                        zvclir(:,ist3)=zvclir(:,ist3)+prod%ir(:,1)*wkptnr(jk)
+                        zvclmt(:,:,:,ist3)=zvclmt(:,:,:,ist3)+prod%mtrlm(:,:,:,1)*wkptnr(jk)
 ! ------------------------------------------------------------------
 ! ------------------------------------------------------------------
 ! ------------------------------------------------------------------
@@ -306,8 +299,6 @@ Do ist1 = 1, nstsv
             vnlvv (ist1, ist3) = vnlvv (ist1, ist3) - zt1
       End Do
 End Do
-
-
 
       Deallocate (igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr)
       Deallocate (vgqc, tpgqc, gqc, jlgqr, jlgq0r)

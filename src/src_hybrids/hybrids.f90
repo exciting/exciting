@@ -50,7 +50,7 @@ Subroutine hybrids
     Call init1
     Call timesec (tin1)
     time_init1 = tin1-tin0
-!    Call init2
+   ! Call init2
 
 !-------------------
 ! print info
