@@ -437,11 +437,15 @@ class ErrorFinder:
         data_format = {int: '{:<40} {:>13} {:>13} {:>13} {:>13}', float: '{:<40} {:13.8f} {:13.8f} {:13.2e} {:13.2e}', str: '{:<40} {:>34} {:>34}'}
 
         for data_type in [int, float,str]:
+            errors = self.errors_by_type[data_type]
+            if len(errors) == 0:
+                continue
+
             print(indent + failure_msg[data_type])
             print(indent + header_format[data_type].format('Key', 'Test Data', 'Ref Data', 'Diff', 'Tolerance'))
             print(indent + '-' * 110)
 
-            for error in self.errors_by_type[data_type]:
+            for error in errors:
                 format_specifier = data_format[data_type]
                 print(indent + format_specifier.format(error.key, error.test_value, error.ref_value, error.diff, error.tol))
             print()

@@ -23,6 +23,7 @@ class Unit(enum.Enum):
     degrees = enum.auto()
     GK_max = enum.auto()
     null = enum.auto()
+    bohr_velocity_over_bohr_radius = enum.auto()
 
 
 # Map Unit enums to strings.
@@ -38,5 +39,6 @@ enum_to_string = {
     Unit.au: 'a.u.',
     Unit.degrees: 'degrees',
     Unit.GK_max: 'GK_max',
-    Unit.null: 'null'
+    Unit.null: 'null',
+    Unit.bohr_velocity_over_bohr_radius: 'v_Bohr/r_Bohr'
 }

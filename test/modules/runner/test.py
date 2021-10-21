@@ -4,7 +4,9 @@ import sys
 import json
 from copy import deepcopy
 
-from ..constants import files_under_test, settings
+from excitingtools.dict_utils import delete_nested_key
+
+from ..constants import files_under_test, settings, methods_moved_to_json, keys_to_remove
 from ..parsers import ErroneousFileError, parser_chooser
 from ..infrastructure import create_run_dir, copy_exciting_input, get_test_from_init, flatten_directory
 
@@ -32,6 +34,7 @@ def read_output_file(file_name: str) -> Union[dict, Failure]:
 
     try:
         data = parser_chooser(file_name)
+        remove_untested_keys(data, file_name, keys_to_remove)
         return data
     except OSError:
         failure_code = {'ref': Failure_code.REFERENCE, 'run': Failure_code.RUN}
@@ -40,6 +43,27 @@ def read_output_file(file_name: str) -> Union[dict, Failure]:
         return Failure(test_name=file_name, failure_code=Failure_code.ERRORFILE)
 
 
+def remove_untested_keys(data: dict, file_name: str, keys_to_remove: dict) -> dict:
+    """
+    Remove keys not to be tested from data dictionary
+
+    :param dict data: Test or reference data
+    :param str file_name: File name
+    :param dict keys_to_remove: dictionary of keys not to be tested
+
+    """
+    
+    # Remove all scf loops except for the last one
+    if 'INFO.OUT' in file_name:
+        scl_indices = [int(item) for item in list(data['scl'].keys())]
+        last_scl = max(scl_indices)
+        data['scl'] = data['scl'][str(last_scl)]
+
+    #remove untested keys
+    for key_chain in keys_to_remove[file_name.split('/')[-1]]:
+        delete_nested_key(data, key_chain)
+
+        
 def load_tolerances(directory: str) -> dict:
     """
     Get the tolerances from any files in 'directory' of the form `*tol*.json`
@@ -188,13 +212,13 @@ def run_single_test_json(main_out: str, test_dir: str, run_dir: str, ref_dir: st
 
     :return TestResults test_results: Test case results object.
     """
-    test_name = os.path.basename(test_dir)
-    print('Run test %s:' % test_name)
-
     head_tail = os.path.split(test_dir)
+    test_name = head_tail[1]
     method = head_tail[0].split('/')[-1]
     full_ref_dir = os.path.join(test_dir, ref_dir)
     full_run_dir = os.path.join(test_dir, run_dir)
+
+    print('Run test %s:' % test_name)
 
     json_tolerances = load_tolerances(full_ref_dir)
     # TODO(A/B/H) Issue 100. Update ErrorFinder class to use tol AND units in data comparison
@@ -306,12 +330,21 @@ def split_test_list_according_to_tol_format(test_list: List[str]) -> tuple:
     test_list_xml = []
     test_list_json = []
 
-    for test_name in test_list:
-        head = os.path.split(test_name)[0]
-        if 'dummy' in head:
-            test_list_json.append(test_name)
+    def test_matches_method(test_method: str, methods: List[str]) -> bool:
+        for m in methods:
+            if test_method == m:
+                return True
+        return False
+
+    for full_test_name in test_list:
+        head_tail = os.path.split(full_test_name)
+        test_name = head_tail[1]
+        test_method = head_tail[0].split('/')[-1]
+
+        if test_matches_method(test_method, methods_moved_to_json):
+            test_list_json.append(full_test_name)
         else:
-            test_list_xml.append(test_name)
+            test_list_xml.append(full_test_name)
 
     return test_list_json, test_list_xml
 

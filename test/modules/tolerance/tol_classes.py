@@ -62,7 +62,7 @@ DefaultTolerances = namedtuple('DefaultTolerances',
                                 ])
 
 # File names.
-tol_file_name = {'ground_state': 'tolerance_ground_state.json',
+tol_file_name = {'groundstate': 'tolerance_ground_state.json',
                  'gw': 'tolerance_gw.json',
                  'bse': 'tolerance_bse.json',
                  'tddft': 'tolerance_tddft.json',

@@ -1,0 +1,69 @@
+Log File for Tolerances
+-----------------------
+
+Default Tolerances
+-------------------
+Ground state tests present when determining default tolerances:
+ PBE-msec-Al, PBE-lin-Al, LDA_VWN-msec-iora—Ar, LDA_VWN-He, LDA_PW-PbTiO3, LDA_PW-collinear-Fe, LDA_PW-noncollinear-Fe,
+ LDA_VWN-Ar, LDA_VWN-nonrelativistic-Ar, LDA_VWN-zora-Ar, PBE-Al, PBE-arpack_npacked-Al, PBE-arpack_packed-Al,
+ PBE-pulay-Al
+
+Total energy tolerance is set to 1.e-8 Ha.
+
+Individual energy terms are more sensitive changes in the density than the total energy. As such, all other energy
+floats in INFO.OUT are specified to default.energy = 1.e-7. This is because we have observed some variation ~ 1.e-7 for
+GCC serial calculations vs Intel serial reference data. At the time of generating reference data, Intel serial meant
+exciting serial + threaded MKL. We speculate the differences are therefore due to the accumulation of numerical errors
+in the linear algebra.
+
+If 1.e-7 is still too tight in specific energy terms (excluding the total energy), try ~ 5.e-7.
+Energy tolerances >= 1.e-6 Ha should be questioned.
+
+All other floats are written to 1.e-8 precision in INFO.OUT, with the exception of the real/recip lattice vectors,
+which have higher precision.
+
+
+TODO(Alex) Issue #102. App Tests: DOS at the Fermi energy unreliable
+Values of Concern
+-----------------
+ PBE-Al| INFO.OUT |DOS at Fermi energy (states/Ha/cell) reset to 1.e-05 Ha
+ PBE-arpack_npacked-Al| INFO.OUT |DOS at Fermi energy (states/Ha/cell) reset to 1.e-05 Ha
+ PBE-arpack_packed-Al| INFO.OUT |DOS at Fermi energy (states/Ha/cell) reset to 1.e-05 Ha
+
+ LDA_PW-PbTiO3| INFO.OUT |DOS at Fermi energy (states/Ha/cell) reset to 1.e-06 Ha
+ LDA_PW-collinear-Fe| INFO.OUT |DOS at Fermi energy (states/Ha/cell) reset to 1.e-06 Ha
+ LDA_PW-noncollinear-Fe| INFO.OUT |DOS at Fermi energy (states/Ha/cell) reset to 1.e-06 Ha
+
+
+Loosening w.r.t. to Defaults
+-----------------------------
+ LDA_PW-collinear-Fe
+     INFO.OUT | DOS at Fermi energy (states/Ha/cell) 1.e-06
+ LDA_PW-noncollinear-Fe
+     INFO.OUT | DOS at Fermi energy (states/Ha/cell) 1.e-06
+ LDA_PW-PbTiO3
+     INFO.OUT | Hartree energy             5e-07
+     INFO.OUT | Electron-nuclear energy    5e-07
+     INFO.OUT | Nuclear-nuclear energy     5e-07
+ LDA_VWN-Ar
+     INFO.OUT | Hartree energy             5e-07
+     INFO.OUT | Electron-nuclear energy    5e-07
+     INFO.OUT | Nuclear-nuclear energy     5e-07
+ LDA_VWN-nonrelativistic-Ar
+     INFO.OUT | Hartree energy             5e-07
+     INFO.OUT | Electron-nuclear energy    5e-07
+     INFO.OUT | Nuclear-nuclear energy     5e-07
+ LDA_VWN-zora-Ar
+     INFO.OUT | Hartree energy             5e-07
+     INFO.OUT | Electron-nuclear energy    5e-07
+     INFO.OUT | Nuclear-nuclear energy     5e-07
+ PBE-Al
+     INFO.OUT |DOS at Fermi energy (states/Ha/cell) 1.e-05
+ PBE-arpack_npacked-Al
+     INFO.OUT |DOS at Fermi energy (states/Ha/cell) 1.e-05
+ PBE-arpack_packed-Al
+     INFO.OUT |DOS at Fermi energy (states/Ha/cell) 1.e-05
+
+Additional Test Notes
+--------------------------
+The Pulay mixer was never debugged for production calculations. It should be considered experimental.
