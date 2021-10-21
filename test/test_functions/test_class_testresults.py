@@ -196,7 +196,7 @@ def test_print_erroneous_scalars(failing_scalars_test_dir):
 
     output_print_buffer = print_results()
     colourless_output_buffer = strip_ansi(output_print_buffer)
-
+    
     expected_print = """Test Case: test_functions/dummy_app_tests/LDA_VWN-He_failing_scalars
 Time (s): 0.0
 Test execution completed
@@ -211,7 +211,7 @@ Output Files: SUCCESS 4/5, NOT EVALUATED 0/5, FAIL 1/5.
       FLOAT FAILURES
       Key                                          Test Data      Ref Data          Diff     Tolerance
       --------------------------------------------------------------------------------------------------------------
-      scl%8%Total energy                         -2.83483618  -20.83483618      1.80e+01      1.00e-06
+      scl%Total energy                           -2.83483618  -20.83483618      1.80e+01      1.00e-06
 
       STRING FAILURES
       Key                                                               Test Data                           Ref Data

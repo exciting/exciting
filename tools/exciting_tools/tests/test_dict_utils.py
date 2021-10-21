@@ -5,7 +5,7 @@ import pytest
 import numpy as np
 from collections import Counter
 
-from excitingtools.dict_utils import container_converter, serialise_dict_values
+from excitingtools.dict_utils import container_converter, serialise_dict_values, delete_nested_key
 
 
 def test_convert_container():
@@ -125,3 +125,17 @@ def test_serialise_dict_values_null_behaviour():
     input = {'mock_key': np.array([1., 2., 3.])}
     output = serialise_dict_values(input)
     assert output == input, "Pass over np.array values"
+
+def test_delete_nested_key():
+
+    input = {'a': {'b': 1, 'c': {'d': 1, 'e': 2}}}
+    key_to_remove = ['a']
+    delete_nested_key(input, key_to_remove)
+    output = {}
+    assert output == input
+
+    input = {'a': {'b': 1, 'c': {'d': 1, 'e': 2}}}
+    key_to_remove = ['a', 'c', 'd']
+    delete_nested_key(input, key_to_remove)
+    output = {'a': {'b': 1, 'c': {'e': 2}}}
+    assert output == input

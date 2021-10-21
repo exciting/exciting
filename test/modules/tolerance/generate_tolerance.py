@@ -27,7 +27,8 @@ import os
 import sys
 
 from tol_classes import tol_file_name
-
+from templates.groundstate import ground_state_tolerances
+from utils import ExcitingCalculation, get_calculation_types
 
 def parse_input_args() -> dict:
     """
@@ -96,83 +97,80 @@ def write_tolerance_with_json(tolerances: dict, file_name: str):
         json.dump(serialise_tolerance_values(tolerances), fid, indent=2)
 
 
-def generate_tolerance_file(calculation: str, file_path: str):
+def generate_tolerance_file(calculation: ExcitingCalculation, file_path: str):
     """
     Generate default tolerance files for exciting outputs.
 
     Write a tolerance file associated with a calculation of type
-    'calculation' to file_path/'calculation'_tols.json
+    'calculation' to file_path/tol_file_name[calculation]
 
-    For example for ground_state, it writes: test_farm/test/ref/gs_tols.json
+    For example for ground_state, it writes:
+      test_farm/groundstate/test/ref/tolerance_ground_state.json
 
     """
-    calculation = calculation.lower()
-    assert calculation in tol_file_name, 'calculation key not defined in tol_file_name'
+    full_file_name = os.path.join(file_path, tol_file_name[calculation.name])
 
-    full_file_name = os.path.join(file_path, tol_file_name[calculation])
+    # TODO(A/H/B/E) Issue 94. Fill in templates in subsequent merge requests
+    if calculation == ExcitingCalculation.groundstate:
+        write_tolerance_with_json(ground_state_tolerances, full_file_name)
 
-    sys.exit('generate_tolerance_file is not ready to be used yet - tolerance templates need to be defined')
-
-    # TODO(A/H/B/E) Fill in templates in subsequent merge requests
-    if calculation == 'ground_state':
-        pass
-        # write_tolerance_with_json(ground_state_tolerances, full_file_name)
-
-    if calculation == 'gw':
-        pass
+    if calculation == ExcitingCalculation.gw:
+        sys.exit('tolerance template needs to be defined:' + calculation.name)
         # write_tolerance_with_json(gw_tolerances, full_file_name)
 
-    if calculation == 'tddft':
-        pass
+    if calculation == ExcitingCalculation.tddft:
+        sys.exit('tolerance template needs to be defined:'+ calculation.name)
         # write_tolerance_with_json(rt_tddft_tolerances, full_file_name)
 
-    if calculation == 'bse':
-        pass
+    if calculation == ExcitingCalculation.bse:
+        sys.exit('tolerance template needs to be defined:'+ calculation.name)
         # write_tolerance_with_json(bse_tolerances, full_file_name)
 
-    if calculation == 'phonon' or calculation == 'phonons':
+    if calculation == ExcitingCalculation.phonon:
         # TODO(Ignacio) Add phonon tolerances
         sys.exit('TODO(Ignacio). Add phonon tolerances')
         # write_tolerance_with_json(phonon_tolerances, full_file_name)
 
     # Properties
-    if calculation in ['band_structure', 'dos']:
-        pass
+    if calculation in [ExcitingCalculation.band_structure, ExcitingCalculation.dos]:
+        sys.exit('tolerance template needs to be defined:' + calculation.name)
         # write_tolerance_with_json(bandstructure_dos_tolerances, full_file_name)
 
-    if calculation == 'plotting':
-        pass
+    if calculation == ExcitingCalculation.plot:
+        sys.exit('tolerance template needs to be defined:' + calculation.name)
         # write_tolerance_with_json(plotting_tolerances, full_file_name)
 
-    if calculation == 'wannier':
-        pass
+    if calculation == ExcitingCalculation.wannier:
+        sys.exit('tolerance template needs to be defined:' + calculation.name)
         # write_tolerance_with_json(wannier_tolerances, full_file_name)
 
-    if calculation == 'transport':
-        pass
+    if calculation == ExcitingCalculation.transport:
+        sys.exit('tolerance template needs to be defined:' + calculation.name)
         # write_tolerance_with_json(transport_tolerances, full_file_name)
 
-    if calculation == 'optical_properties':
-        pass
+    if calculation == ExcitingCalculation.optical_properties:
+        sys.exit('tolerance template needs to be defined:' + calculation.name)
         # write_tolerance_with_json(optical_properties_tolerances, full_file_name)
 
-    if calculation == 'electric_properties':
-        pass
+    if calculation == ExcitingCalculation.electric_properties:
+        sys.exit('tolerance template needs to be defined:' + calculation.name)
         # write_tolerance_with_json(electric_field_properties_tolerances, full_file_name)
 
-    if calculation == 'core_properties':
-        pass
+    if calculation == ExcitingCalculation.core_properties:
+        sys.exit('tolerance template needs to be defined:' + calculation.name)
         # write_tolerance_with_json(core_properties_tolerances, full_file_name)
 
-    if calculation == 'spin_properties':
-        pass
+    if calculation == ExcitingCalculation.spin_properties:
+        sys.exit('tolerance template needs to be defined:' + calculation.name)
         # write_tolerance_with_json(spin_properties_tolerances, full_file_name)
 
 
 if __name__ == "__main__":
     inputs = parse_input_args()
+    calculation_types = get_calculation_types(inputs['calculation_type'])
 
-    for name in inputs['calculation_type']:
-        print('Generating ', name)
-        generate_tolerance_file(name, inputs['destination'])
+    for calculation in calculation_types:
+        print('Generating ', calculation)
+        generate_tolerance_file(calculation, inputs['destination'])
         print("\n\n")
+

@@ -1,6 +1,46 @@
 import enum
 import subprocess
 import os
+import re
+from typing import List
+
+
+class ExcitingCalculation(enum.Enum):
+    """
+    Broad categories of calculations performed by exciting
+    """
+    groundstate = enum.auto()
+    gw = enum.auto()
+    tddft = enum.auto()
+    bse = enum.auto()
+    phonon = enum.auto()
+    band_structure = enum.auto()
+    dos = enum.auto()
+    plot = enum.auto()
+    wannier = enum.auto()
+    transport = enum.auto()
+    optical_properties = enum.auto()
+    electric_properties = enum.auto()
+    core_properties = enum.auto()
+    spin_properties = enum.auto()
+
+
+def get_calculation_types(input_calcs: List[str]) -> List[ExcitingCalculation]:
+    """
+    Given a list of strings, determine which calculation types are
+    a match.
+
+    :param List[str] input_calcs: Input strings for calculation names
+    :return  List[Calculation] List of Calculation enums
+    """
+    all_calculations_str = "\n".join(calc for calc in ExcitingCalculation._member_names_)
+
+    matched_calculations = []
+    for calc in input_calcs:
+        matched_calculations += re.findall("^.*" + calc + ".*$", all_calculations_str, re.MULTILINE)
+
+    names_to_enums = {calc.name: calc for calc in ExcitingCalculation}
+    return [names_to_enums[name] for name in matched_calculations]
 
 
 class Compiler(enum.Enum):

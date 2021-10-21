@@ -43,23 +43,15 @@ failing_tests = [
      'tags': [CompilerBuild(Compiler.gcc, Build_type.all)]
      },
 
-    # TODO(Sven) Issue #39 
-    # Andris comment: I have tried several runs with a different number of threads and MPI ranks, 
+    # TODO(Sven) Issue #39
+    # Andris comment: I have tried several runs with a different number of threads and MPI ranks,
     # but the calculations always converged in 19-20 iterations and always to the same energy with the threshold.
     # - Looks like issue with comparing integers in the test suite, rather than a test failure
     # - One just needs to set a tolerance for integers
-    {'name': 'groundstate/LDA_PW-noncollinear-Fe',
-     'comment': 'Number of SCF iterations differs to reference',
-     'tags': [CompilerBuild(Compiler.all, Build_type.mpiandsmp)]
-     },
-
-    # TODO(Bene) Issue #75 Number of SCF iterations can vary w.r.t. reference (but eigenvalues consistent)
-    # This behaviour only occurs for 2 omp threads with the intel pure smp build.
-    {'name': 'groundstate/LDA_PW-collinear-Fe',
-     'comment': 'Number of SCF iterations differs to reference for 2 omp threads. \n'
-                + 'Eigen energies are consistant. The code is save to use.',
-     'tags': [CompilerBuild(Compiler.intel, Build_type.puresmp)]
-     },
+    # {'name': 'groundstate/LDA_PW-noncollinear-Fe',
+    #  'comment': 'Number of SCF iterations differs to reference',
+    #  'tags': [CompilerBuild(Compiler.all, Build_type.mpiandsmp)]
+    #  },
 
     # TODO ADD ISSUE
     {'name': 'properties/PBE-properties-Si',
@@ -79,10 +71,24 @@ failing_tests = [
      'tags': [CompilerBuild(Compiler.intel, Build_type.mpiandsmp)]
      },
 
-    # TODO(Maria) Issue 55 Issue 55
+    # TODO(Maria) Issue 55
     {'name': 'properties/LDA_PW-transport-Si',
      'comment': 'Test is flakey when run in the CI with GCC builds: Test outputs are not written',
      'tags': [CompilerBuild(Compiler.gcc, Build_type.all)]
+     },
+
+    # TODO(Alex) Issue 101. Test still passes with Intel MPIandSMP. Also see Issue #75
+    {'name': 'groundstate/LDA_PW-collinear-Fe',
+     'comment': 'Most energies differ to reference by ~1.e-7. '
+                'scl%Sum of eigenvalues by ~ 1.e-6. '
+                'DOS at Fermi differs by 5.7e-04. ',
+     'tags': [CompilerBuild(Compiler.gcc, Build_type.all)]
+     },
+    {'name': 'groundstate/LDA_PW-collinear-Fe',
+     'comment': 'Most energies differ to reference by ~1.e-7. '
+                'scl%Sum of eigenvalues by ~ 1.e-6. '
+                'DOS at Fermi differs by 5.7e-04. ',
+     'tags': [CompilerBuild(Compiler.intel, Build_type.all)]
      }
 ]
 
@@ -117,16 +123,18 @@ def set_skipped_tests(executable: str, incl_failing_tests: bool) -> list:
     build_type = build_type_str_to_enum[executable]
     tests_to_skip = []
 
-    if not incl_failing_tests:
-        for test in failing_tests:
-            for tag in test['tags']:
-                if (tag.compiler == compiler or tag.compiler == Compiler.all) \
-                        and (tag.build == build_type or tag.build == Build_type.all):
-                    tests_to_skip.append(test)
-
     # Always include hanging tests in tests to skip, else the test suite
     # will hang
     for test in hanging_tests:
+        for tag in test['tags']:
+            if (tag.compiler == compiler or tag.compiler == Compiler.all) \
+                    and (tag.build == build_type or tag.build == Build_type.all):
+                tests_to_skip.append(test)
+
+    if incl_failing_tests:
+        return tests_to_skip
+
+    for test in failing_tests:
         for tag in test['tags']:
             if (tag.compiler == compiler or tag.compiler == Compiler.all) \
                     and (tag.build == build_type or tag.build == Build_type.all):

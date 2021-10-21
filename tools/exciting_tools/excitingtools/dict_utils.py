@@ -126,3 +126,16 @@ def get_hashable_entries(nested: dict) -> Iterator[tuple]:
         else:
             yield key, value
 
+
+def delete_nested_key(dictionary, key_chain):
+    """
+    Delete keys from nested dictionaries.
+
+    :param dict dictionary
+    :param list key_chain: List of keys leading to the item to be deleted.
+    """
+    if len(key_chain) == 1:
+        del dictionary[key_chain[0]]
+        return
+    else:
+        delete_nested_key(dictionary[key_chain[0]], key_chain[1:])
