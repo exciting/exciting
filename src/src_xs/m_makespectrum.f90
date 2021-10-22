@@ -495,7 +495,7 @@ module m_makespectrum
           ig = denw%r2g(i)
           jg = denw%c2g(j)
           if (input%xs%BSE%aresbse) then
-            if ((.not. input%xs%BSE%coupling) .and. input%xs%BSE%chibar0) then
+            if ((.not. input%xs%BSE%coupling) .and. (.not. input%xs%BSE%chibar0)) then
               denw%za(i,j) = zone/(freq(ig)-bevalre(jg)+zbrd)
             else
               denw%za(i,j) = zone/(freq(ig)-bevalre(jg)+zbrd)&
@@ -506,7 +506,7 @@ module m_makespectrum
           end if
 #else
           if (input%xs%BSE%aresbse) then
-           if ((.not. input%xs%BSE%coupling) .and. input%xs%BSE%chibar0) then
+           if ((.not. input%xs%BSE%coupling) .and. (.not. input%xs%BSE%chibar0)) then
               denw%za(i,j) = zone/(freq(i)-bevalre(j)+zbrd)
             else
               denw%za(i,j) = zone/(freq(i)-bevalre(j)+zbrd)&
