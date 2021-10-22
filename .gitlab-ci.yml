@@ -30,7 +30,7 @@ test-debian-buster-GCC8-serial:
   tags: 
     - docker
   before_script: 
-    - apt-get update && apt-get install -y libpython3.7 libpython3.7-dev python3-pip
+    - apt-get --allow-releaseinfo-change update && apt-get install -y libpython3.7 libpython3.7-dev python3-pip
     - pip3 install numpy termcolor lxml pytest
   script:
     # run unit tests
@@ -65,7 +65,7 @@ test-debian-buster-GCC8-mpiandsmp:
   tags: 
     - docker
   before_script:
-    - apt-get update && apt-get install -y libpython3.7 libpython3.7-dev python3-pip
+    - apt-get --allow-releaseinfo-change update && apt-get install -y libpython3.7 libpython3.7-dev python3-pip
     - pip3 install numpy termcolor lxml pytest
   script:
     # run unit tests
@@ -114,7 +114,7 @@ test-debian-buster-Intel2019-serial:
     - module load intel/2019
     - mkdir -p /usr/global && mount -o nolock -t nfs global.physik.hu-berlin.de:/globaldisk/AMD64 /usr/global
     # Looks like this Intel distribution only comes with python2, so get GNU python3.7
-    - apt-get update && apt-get install -y libpython3.7 libpython3.7-dev python3-pip
+    - apt-get --allow-releaseinfo-change update && apt-get install -y libpython3.7 libpython3.7-dev python3-pip
     - pip3 install numpy termcolor lxml pytest
   script:
     # run unit tests
@@ -161,7 +161,7 @@ test-debian-buster-Intel2019-mpiandsmp:
     - module load intel/2019
     - mkdir -p /usr/global && mount -o nolock -t nfs global.physik.hu-berlin.de:/globaldisk/AMD64 /usr/global
     # libfabric needed by Intel MPI 
-    - apt-get update && apt-get install -y libpython3.7 libpython3.7-dev python3-pip libfabric1 libfabric-dev
+    - apt-get --allow-releaseinfo-change update && apt-get install -y libpython3.7 libpython3.7-dev python3-pip libfabric1 libfabric-dev
     - pip3 install numpy termcolor lxml pytest
   script:
     # run unit tests
