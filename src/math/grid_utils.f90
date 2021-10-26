@@ -214,12 +214,12 @@ contains
   end function
 
   !> Generate the Bloch phase for a point in the unit cell and a k-point:
-  !> [\ 
+  !> \[ 
   !>     \text{phase}(\mathbf r, \mathbf k) = 
   !>        e^{-2 \pi i \mathbf k \cdot \mathbf r}, 
   !> \]
   !> where
-  !> [\
+  !> \[ 
   !>       \mathbf r_i \in \text{unit cell},  \mathbf k \in \text{BZ}. 
   !> \]
   complex(dp) function phase_single_point(r, k)
@@ -232,12 +232,12 @@ contains
   end function phase_single_point
 
   !> Generate the complex phase on a grid for a k-point and store it to an array in the correct order:
-  !> [\ 
+  !> \[ 
   !>     \text{phase}(\mathbf r_i, \mathbf k) = 
   !>        e^{-2 \pi i \mathbf k \cdot \mathbf r_i}, 
   !> \]
   !> where
-  !> [\
+  !> \[ 
   !>       \mathbf r_i \in \text{grid},  \mathbf k \in \text{BZ}. 
   !> \]
   function phase_array(r_array, k) result(phase)
