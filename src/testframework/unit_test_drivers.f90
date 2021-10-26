@@ -5,6 +5,7 @@ module unit_test_drivers
 
    ! Load unit test driver modules here. One per src/ subdirectory 
    use math_test_drivers, only: math_test_driver
+   use lapack_wrappers_test_drivers, only: lapack_wrappers_test_driver
    use mpi_test_drivers, only: mpi_test_driver
 
    implicit none
@@ -46,6 +47,10 @@ contains
          call math_test_driver(mpiglobal, kill_on_failure) 
       end if
 
+      if (run%lapack .or. run%all) then
+         call lapack_wrappers_test_driver(mpiglobal, kill_on_failure)
+      end if
+      
       if (run%mpi .or. run%all) then         
          call mpi_test_driver(mpiglobal, kill_on_failure)
       end if

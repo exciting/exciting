@@ -31,10 +31,11 @@ module cmd_line_args
    !>
    !> All unit tests initialised to .false.
    type unit_tests_type
-      logical :: all = .false.    !! All unit tests
-      logical :: math = .false.   !! tests in the math directory
-      logical :: gw = .false.     !! GW
-      logical :: mpi = .false.    !! tests mpi
+      logical :: all = .false.       !! All unit tests
+      logical :: math = .false.      !! math
+      logical :: lapack = .false.    !! lapack_wrapperss
+      logical :: gw = .false.        !! GW
+      logical :: mpi = .false.       !! modmpi
    contains
       procedure :: init => set_unit_tests
    end type unit_tests_type
@@ -150,10 +151,12 @@ contains
       select case (test_name)
       case ('all')
          run%all = .true.
-      case ('gw')
-         run%gw = .true.
       case ('math')
          run%math = .true.
+      case ('lapack')
+         run%lapack = .true.
+      case ('gw')
+         run%gw = .true.
       case ('mpi')
          run%mpi = .true.
       case default

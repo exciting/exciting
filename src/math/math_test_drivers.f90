@@ -1,5 +1,4 @@
 !> Module for collecting unit test drivers for modules in the math directory.
-
 module math_test_drivers
   use modmpi, only: mpiinfo
   ! Load test drivers here
@@ -22,6 +21,7 @@ contains
     call math_utils_test_driver(mpiglobal, kill_on_failure)
     
     call grid_utils_test_driver(mpiglobal, kill_on_failure)
+
   end subroutine math_test_driver
 
 end module math_test_drivers
