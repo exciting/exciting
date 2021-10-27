@@ -58,8 +58,13 @@ DefaultTolerances = namedtuple('DefaultTolerances',
                                 'inv_volume',
                                 'frequency',
                                 'angle',
-                                'temperature'
+                                'temperature',
+                                'total_energy'
                                 ])
+
+# Set all defaults to None, such that tolerance templates are not required to define
+# all namedtuple values.
+DefaultTolerances.__new__.__defaults__ = (None, ) * len(DefaultTolerances._fields)
 
 # File names.
 tol_file_name = {'groundstate': 'tolerance_ground_state.json',

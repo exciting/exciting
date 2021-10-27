@@ -25,7 +25,7 @@ currentdir = os.path.dirname(os.path.realpath(__file__))
 parentdir = os.path.dirname(currentdir)
 sys.path.append(os.path.dirname(parentdir))
 
-from ..tol_classes import DefaultTolerances, Tol, TolWithMessage
+from tolerance.tol_classes import DefaultTolerances, Tol, TolWithMessage
 
 
 # Default ground state tolerances
@@ -180,7 +180,8 @@ geometry = {'1': default.length,
             }
 
 # Single dictionary for all tested ground state outputs, for dumping to JSON
-ground_state_tolerances = {'INFO.OUT': info_out,
+ground_state_tolerances = {'files_under_test': ['INFO.OUT', 'eigval.xml', 'evalcore.xml', 'atoms.xml', 'geometry.xml'],
+                           'INFO.OUT': info_out,
                            'eigval.xml': eigval,
                            'evalcore.xml': evalcore,
                            'atoms.xml': atoms,

@@ -1,4 +1,6 @@
 {
+  "files_under_test":
+  ["INFO.OUT", "evalcore.xml", "geometry.xml", "eigval.xml", "atoms.xml"],
   "INFO.OUT": {
     "Lattice vectors (cartesian)": {
       "tol": 1e-08,

@@ -61,14 +61,6 @@ settings = Defaults(max_time       = 1800,
 # TODO(A/H/B) Remove this once test suite has fully moved over to JSON
 methods_moved_to_json = ['groundstate']
 
-# TODO(A/B/H) Extend this dictionary as each new method is added to JSON tolerance testing
-# Files regression-tested by the test suite
-files_under_test = {'groundstate': ['INFO.OUT', 'evalcore.xml', 'geometry.xml', 'eigval.xml', 'atoms.xml']}
-
+# TODO(A/H) Only specify for files where keys will be removed
 # Keys to be removed from test and reference dictionary
-keys_to_remove = {'INFO.OUT': [['scl', 'Wall time (seconds)']],
-                  'evalcore.xml': [],
-                  'geometry.xml': [],
-                  'eigval.xml': [],
-                  'atoms.xml': [],
-                  'EVALQP.DAT': []}
+keys_to_remove = {'INFO.OUT': [['scl', 'Wall time (seconds)']]}

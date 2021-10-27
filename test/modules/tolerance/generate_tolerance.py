@@ -75,13 +75,15 @@ def serialise_tolerance_values(tol_dict: dict) -> dict:
     """
     output_dict = {}
     for file_name, output_file in tol_dict.items():
+        if file_name != "files_under_test":
+            serialised_tol_dict = {}
+            for key, value in output_file.items():
+                serialised_tol_dict[key] = value.to_dict()
 
-        serialised_tol_dict = {}
-        for key, value in output_file.items():
-            serialised_tol_dict[key] = value.to_dict()
-
-        output_dict[file_name] = copy.deepcopy(serialised_tol_dict)
-        serialised_tol_dict.clear()
+            output_dict[file_name] = copy.deepcopy(serialised_tol_dict)
+            serialised_tol_dict.clear()
+        else:
+            output_dict[file_name] = tol_dict[file_name]
 
     return output_dict
 
