@@ -6,7 +6,7 @@ from copy import deepcopy
 
 from excitingtools.dict_utils import delete_nested_key
 
-from ..constants import files_under_test, settings, methods_moved_to_json, keys_to_remove
+from ..constants import settings, methods_moved_to_json, keys_to_remove
 from ..parsers import ErroneousFileError, parser_chooser
 from ..infrastructure import create_run_dir, copy_exciting_input, get_test_from_init, flatten_directory
 
@@ -34,7 +34,6 @@ def read_output_file(file_name: str) -> Union[dict, Failure]:
 
     try:
         data = parser_chooser(file_name)
-        remove_untested_keys(data, file_name, keys_to_remove)
         return data
     except OSError:
         failure_code = {'ref': Failure_code.REFERENCE, 'run': Failure_code.RUN}
@@ -43,25 +42,34 @@ def read_output_file(file_name: str) -> Union[dict, Failure]:
         return Failure(test_name=file_name, failure_code=Failure_code.ERRORFILE)
 
 
-def remove_untested_keys(data: dict, file_name: str, keys_to_remove: dict) -> dict:
+def remove_untested_keys(data: Union[dict, Failure], full_file_name: str, keys_to_remove: dict) -> dict:
     """
-    Remove keys not to be tested from data dictionary
+    Remove keys not to be tested from data dictionary.
 
-    :param dict data: Test or reference data
-    :param str file_name: File name
+    :param Union[dict, Failure] data: Test or reference data, or Failure object
+    :param str full_file_name: File name prepended by full path (relative to test/)
     :param dict keys_to_remove: dictionary of keys not to be tested
-
+    :return dict data: Dictionary, with keys not meant for testing removed.
     """
-    
+    if not isinstance(data, dict):
+        return data
+
+    file_name = os.path.basename(full_file_name)
+
     # Remove all scf loops except for the last one
-    if 'INFO.OUT' in file_name:
+    if file_name == 'INFO.OUT':
         scl_indices = [int(item) for item in list(data['scl'].keys())]
         last_scl = max(scl_indices)
         data['scl'] = data['scl'][str(last_scl)]
 
-    #remove untested keys
-    for key_chain in keys_to_remove[file_name.split('/')[-1]]:
-        delete_nested_key(data, key_chain)
+    # Remove untested keys
+    try:
+        for key_chain in keys_to_remove[file_name]:
+            delete_nested_key(data, key_chain)
+    except KeyError:
+        return data
+
+    return data
 
         
 def load_tolerances(directory: str) -> dict:
@@ -105,6 +113,73 @@ def strip_tolerance_units(json_tolerance: dict) -> dict:
     return just_tolerances
 
 
+def entry_copy(tolerances: dict, ref_file_names: List[str], ref_file_prefixes: List[str], joining_str='_') -> dict:
+    """
+    Create copies of tolerance entries for every file with a common name prefix.
+
+    For files for which there can be multiple extensions (FILE_0.OUT, FILE_1.OUT, etc), it is expected that
+    a single tolerance will be defined with the key 'FILE_' in the tolerances dictionary.
+
+    This routine will copy this key:value for every reference file that matches the prefix.
+
+    For example:
+      On input, tolerances = {'FILE_': tol_dict}
+      Reference files = [FILE_0.OUT, FILE_1.OUT]
+      On output, tolerances = {'FILE_0': tol_dict, 'FILE_1': tol_dict,}
+
+    If a key is already present, the initial tolerances will be retained.
+
+    :param dict tolerances: JSON tolerances
+    :param List[str] ref_file_names: Reference files with prefixes,
+                                    for example ['EIGVAL_0.DAT', 'EIGVAL_1.DAT', 'PROJ_00.DAT']
+    :param List[str] ref_file_prefixes: File prefixes, for example ['EIGVAL_', 'PROJ_']
+    :param optional str joining_str: Str joining prefix and the rest of the file name
+    :return dict tolerances: Mutated tolerances
+    """
+
+    for file in ref_file_names:
+        file_prefix = file.split(joining_str)[0]
+        file_prefix += joining_str
+
+        if file_prefix in ref_file_prefixes:
+            # Create new entry if key not present (which is expected)
+            if file in tolerances:
+                continue
+            tolerances[file] = tolerances[file_prefix]
+
+    # Remove initial key:values
+    for file_prefix in ref_file_prefixes:
+        del tolerances[file_prefix]
+
+    return tolerances
+
+
+def add_tols_for_files_with_shared_prefixes(full_ref_dir: str, tolerances: dict) -> dict:
+    """
+    Add tolerances for files with shared prefixes.
+
+    For files for which there can be multiple extensions (FILE_0.OUT, FILE_1.OUT, etc), it is expected that
+    a single tolerance will be defined with the key 'FILE_' in the tolerances dictionary.
+
+    This routine copies the tolerances associated with 'FILE_', for any files in the reference directory
+    that match this prefix. Multiple prefixes can be specified.
+
+    :param str full_ref_dir: Reference directory preprended by full path (relative to the test directory).
+                             For example: 'test_farm/RT-TDDFT/LDA_PW-C/ref/'
+    :param dict tolerances: Tolerances parsed from JSON file
+    :return dict modified_tolerances: Tolerances with any prefix keys replaced with those matched in the full_ref_dir
+    """
+    method = full_ref_dir.split('/')[1]
+    ref_file_names = next(os.walk(full_ref_dir))[2]
+
+    if method == 'RT-TDDFT':
+        modified_tolerances = entry_copy(tolerances, ref_file_names, ['EIGVAL_', 'PROJ_'])
+    else:
+        modified_tolerances = tolerances
+
+    return modified_tolerances
+
+
 def compare_outputs_json(run_dir: str, ref_dir: str, output_files: List[str], tolerance: dict) -> dict:
     """
     For a given test case, compare each file specified `output_files` to reference data.
@@ -136,6 +211,9 @@ def compare_outputs_json(run_dir: str, ref_dir: str, output_files: List[str], to
         if isinstance(test_data, Failure):
             test_results[file] = test_data
             continue
+
+        ref_data = remove_untested_keys(ref_data, file, keys_to_remove)
+        test_data = remove_untested_keys(test_data, file, keys_to_remove)
 
         try:
             file_tolerances = tolerance[file]
@@ -195,6 +273,36 @@ def compare_outputs_xml(output_files: dict, test_dir: str, ref_dir: str, run_dir
     return report
 
 
+def set_files_under_test(files_under_test: List[str], full_ref_dir: str) -> List[str]:
+    """
+    Process list of files under test for wild card '*'
+
+    For example. files_under_test = ['FILE_*'] means test every reference file that
+    has the prefix 'FILE_'.
+    """
+    output_files = []
+    file_prefixes_with_wildcards = []
+    ref_file_names = next(os.walk(full_ref_dir))[2]
+
+    # Find file prefixes with wild cards, and remove the strings from files_under_test
+    for file in files_under_test:
+        if file[-1] == '*':
+            file_prefixes_with_wildcards.append(file[:-1])
+        output_files.append(file)
+
+    if len(file_prefixes_with_wildcards) == 0:
+        return output_files
+
+    # For specified prefixes, add any matching reference file to list of
+    # files for testing
+    for file in ref_file_names:
+        file_prefix = file.split('*')[0]
+        if file_prefix in file_prefixes_with_wildcards:
+            output_files.append(file)
+
+    return output_files
+
+
 def run_single_test_json(main_out: str, test_dir: str, run_dir: str, ref_dir: str, input_file: str,
                          species_files: List[str], executable: str, max_time: int, handle_errors: bool) -> TestResults:
     """
@@ -221,12 +329,13 @@ def run_single_test_json(main_out: str, test_dir: str, run_dir: str, ref_dir: st
     print('Run test %s:' % test_name)
 
     json_tolerances = load_tolerances(full_ref_dir)
+    output_files = set_files_under_test(json_tolerances.pop('files_under_test'), full_ref_dir)
+    json_tolerances = add_tols_for_files_with_shared_prefixes(full_ref_dir, json_tolerances)
     # TODO(A/B/H) Issue 100. Update ErrorFinder class to use tol AND units in data comparison
     #  As an alternative to stripping the units (could pass the comparison function as an argument)
     # See function documentation for a description of the issue
     just_tolerances = strip_tolerance_units(json_tolerances)
 
-    output_files = files_under_test[method]
     create_run_dir(test_dir, run_dir)
     copy_exciting_input(full_ref_dir, full_run_dir, species_files, input_file)
 
