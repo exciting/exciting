@@ -48,9 +48,9 @@ contains
 
     call test_complex_matrix_real_vector_multiplication(test_report)
 
-    call test_real_matrix_matrix_multiply(test_report)
+    call test_real_matrix_matrix_multiplication(test_report)
 
-    call test_complex_matrix_matrix_multiply(test_report)
+    call test_complex_matrix_matrix_multiplication(test_report)
 
     call test_real_matrix_complex_matrix_multiply(test_report)
 
@@ -188,7 +188,7 @@ contains
   end subroutine test_complex_matrix_real_vector_multiplication
 
 
-  subroutine test_real_matrix_matrix_multiply(test_report)
+  subroutine test_real_matrix_matrix_multiplication(test_report)
     !> Test object
     type(unit_test_type), intent(inout) :: test_report
                             
@@ -227,11 +227,11 @@ contains
     call test_report%assert(all_close(C, C_ref), &
                            'Test general matrix-matrix product for real matrices. &
                            Expected: transpose(A) * transpose(B)')
-  end subroutine test_real_matrix_matrix_multiply
+  end subroutine test_real_matrix_matrix_multiplication
 
 
   !> Test general matrix-matrix product for complex matrices.
-  subroutine test_complex_matrix_matrix_multiply(test_report)
+  subroutine test_complex_matrix_matrix_multiplication(test_report)
     !> Test object
     type(unit_test_type), intent(inout) :: test_report
                             
@@ -308,7 +308,7 @@ contains
                            'Test general matrix-matrix product for complex matrices. &
                            Expected: ajungate(A) * ajungate(B)')
                            
-  end subroutine test_complex_matrix_matrix_multiply
+  end subroutine test_complex_matrix_matrix_multiplication
 
 
   !> Test genreal matrix-matrix product for a real matrix times a complex matrix.

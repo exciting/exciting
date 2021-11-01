@@ -37,7 +37,7 @@ contains
   !> \[
   !>     \mathbf{c} = \text{op}(\mathbf{A}) \cdot \mathbf{b},
   !> \]
-  !> where op takes into account that the matrix can be used as transposed (see trans_A). 
+  !> where op takes into account that the matrix can be used also as transposed (see **trans_A**). 
   subroutine matrix_vector_multiplication_real_dp(A, b, c, trans_A) 
     !> Input matrix     
     real(dp), intent(in), contiguous :: A(:,:)
@@ -65,7 +65,7 @@ contains
   !> \[
   !>     \mathbf{c} = \text{op}(\mathbf{A}) \cdot \mathbf{b},
   !> \]
-  !> where op takes into account that the matrix can be used as transposed or conjugate-transposed (see trans_A). 
+  !> where op takes into account that the matrix can be used also as transposed or conjugate-transposed (see **trans_A**). 
   subroutine matrix_vector_multiplication_complex_dp(A, b, c, trans_A)
     !> Input matrix 
     complex(dp), intent(in), contiguous :: A(:, :)
@@ -94,7 +94,7 @@ contains
   !> \[
   !>     \mathbf{c} = \text{op}(\mathbf{A}) \cdot \mathbf{b},
   !> \]
-  !> where op takes into account that the matrix can be used as transposed or conjugate-transposed (see trans_A). 
+  !> where op takes into account that the matrix can be used also as transposed or conjugate-transposed (see **trans_A**). 
   subroutine matrix_vector_multiplication_real_complex_dp(A, b, c, trans_A)
     !> Input matrix 
     real(dp), intent(in), contiguous :: A(:, :)
@@ -123,7 +123,7 @@ contains
   !> \[
   !>     \mathbf{c} = \text{op}(\mathbf{A}) \cdot \mathbf{b},
   !> \]
-  !> where op takes into account that the matrix can be used as transposed or conjugate-transposed (see trans_A). 
+  !> where op takes into account that the matrix can be used also as transposed or conjugate-transposed (see **trans_A**). 
   subroutine matrix_vector_multiplication_complex_real_dp(A, b, c, trans_A)
     !> Input matrix 
     complex(dp), intent(in), contiguous :: A(:, :)
@@ -154,7 +154,7 @@ contains
   !> \[
   !>    \mathbf{C} = \text{op}(\mathbf{A}) \cdot \text{op}(\mathbf{B}),
   !> \]
-  !> where op takes into account that the matrices can be used as transposed (see trans_A and trans_B).
+  !> where op takes into account that the matrices can be used also as transposed (see **trans_A** and **trans_B**).
   subroutine matrix_matrix_multiplication_real_dp(A, B, C, trans_A, trans_B)
     !> Input matrices 
     real(dp), intent(in), contiguous :: A(:, :), B(:, :)
@@ -186,8 +186,8 @@ contains
   !> \[
   !>    \mathbf{C} = \text{op}(\mathbf{A}) \cdot \text{op}(\mathbf{B}),
   !> \]
-  !> where op takes into account that the matrices can be used as transposed or 
-  !> conjugate-transposed (see trans_A and trans_B). 
+  !> where op takes into account that the matrices can be also used as transposed or 
+  !> conjugate-transposed (see **trans_A** and **trans_B**). 
   subroutine matrix_matrix_multiplication_complex_dp(A, B, C, trans_A, trans_B)
     !> Input matrices 
     complex(dp), intent(in), contiguous  :: A(:, :), B(:, :)
@@ -219,8 +219,8 @@ contains
   !> \[
   !>    \mathbf{C} = \text{op}(\mathbf{A}) \cdot \text{op}(\mathbf{B}),
   !> \]
-  !> where op takes into account that the matrices can be used as transposed or 
-  !> conjugate-transposed (see trans_A and trans_B). 
+  !> where op takes into account that the matrices can be also used as transposed or 
+  !> conjugate-transposed (see **trans_A** and **trans_B**). 
   subroutine matrix_matrix_multiplication_real_complex_dp(A, B, C, trans_A, trans_B)
     !> Input matrices 
     real(dp), intent(in), contiguous :: A(:, :)
@@ -253,8 +253,8 @@ contains
   !> \[
   !>    \mathbf{C} = \text{op}(\mathbf{A}) \cdot \text{op}(\mathbf{B}),
   !> \]
-  !> where op takes into account that the matrices can be used as transposed or 
-  !> conjugate-transposed (see trans_A and trans_B). 
+  !> where op takes into account that the matrices can be also used as transposed or 
+  !> conjugate-transposed (see **trans_A** and **trans_B**). 
   subroutine matrix_matrix_multiplication_complex_real_dp(A, B, C, trans_A, trans_B)
     !> Input matrices 
     complex(dp), intent(in), contiguous :: A(:, :)
