@@ -51,6 +51,7 @@ DefaultTolerances = namedtuple('DefaultTolerances',
                                ['integer',
                                 'float',
                                 'str',
+                                'total_energy',
                                 'energy',
                                 'length',
                                 'volume',
@@ -59,7 +60,6 @@ DefaultTolerances = namedtuple('DefaultTolerances',
                                 'frequency',
                                 'angle',
                                 'temperature',
-                                'total_energy'
                                 ])
 
 # Set all defaults to None, such that tolerance templates are not required to define

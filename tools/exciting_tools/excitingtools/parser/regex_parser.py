@@ -8,14 +8,15 @@ from math import floor
 from excitingtools.utils import convert_to_literal
 
 
-def parse_value_regex(file_string: str, key: str, no_colon=True) -> dict:
+def parse_value_regex(file_string: str, key: str, no_colon=True, silent_key_error=False) -> dict:
     """
     Match the first instance of a string (key) if present in file_string,
     and return the result in a dictionary.
 
     :param str file_string: Input string
     :param str key: String to match, also used as a key in the returned dictionary
-    :param bool no_colon: Remove trailing colons from parsed data keys
+    :param optional bool no_colon: Remove trailing colons from parsed data keys
+    :param optional bool silent_key_error: Print key error
 
     :return dict data: Matched data
     """
@@ -37,7 +38,9 @@ def parse_value_regex(file_string: str, key: str, no_colon=True) -> dict:
         data[parser_key] = processed_values[0] if len(processed_values) == 1 else processed_values
 
     except AttributeError:
-        print("Did not find the key:", key)
+        if not silent_key_error:
+            print("parse_value_regex. Did not find the key:", key)
+        return {}
 
     if no_colon:
         return {key.rstrip(':'): value for key, value in data.items()}

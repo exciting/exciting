@@ -5,6 +5,7 @@ from typing import Callable
 import os
 
 
+# TODO(Alex) This should be a decorator that takes an argument
 def generic_parser(file_name: str, parser_func: Callable[[str], dict]) -> dict:
     """
     Generic parser provides a wrapper for file IO.

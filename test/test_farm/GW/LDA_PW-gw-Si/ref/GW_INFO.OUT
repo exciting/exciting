@@ -26,11 +26,9 @@
  Energy alignment:
    0 - no alignment
  Analytic continuation method:
-  PADE - Thiele's reciprocal difference method (by H. J. Vidberg and J. W. Seren
- ce, J. Low Temp. Phys. 29, 179 (1977))
+  PADE - Thiele's reciprocal difference method (by H. J. Vidberg and J. W. Serence, J. Low Temp. Phys. 29, 179 (1977))
  Scheme to treat singularities:
-  Auxiliary function method by S. Massidda, M. Posternak, and A. Baldereschi, PR
- B 48, 5058 (1993)
+  Auxiliary function method by S. Massidda, M. Posternak, and A. Baldereschi, PRB 48, 5058 (1993)
  
 --------------------------------------------------------------------------------
  
@@ -44,8 +42,7 @@
 --------------------------------------------------------------------------------
  
  Bare Coulomb potential parameters:
-   Plane wave cutoff (in units of Gkmax*input%gw%MixBasis%gmb): 
-   2.00000000000000     
+   Plane wave cutoff (in units of Gkmax*input%gw%MixBasis%gmb): 2.00000000000000     
    Error tolerance for structure constants:   1.000000000000000E-015
    Tolerance factor to reduce the MB size based on
    the eigenvectors of the bare Coulomb potential:   0.100000000000000     

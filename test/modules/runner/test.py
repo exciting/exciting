@@ -42,11 +42,11 @@ def read_output_file(file_name: str) -> Union[dict, Failure]:
         return Failure(test_name=file_name, failure_code=Failure_code.ERRORFILE)
 
 
-def remove_untested_keys(data: Union[dict, Failure], full_file_name: str, keys_to_remove: dict) -> dict:
+def remove_untested_keys(data: dict, full_file_name: str, keys_to_remove: dict) -> dict:
     """
     Remove keys not to be tested from data dictionary.
 
-    :param Union[dict, Failure] data: Test or reference data, or Failure object
+    :param dict data: Test or reference data, or Failure object
     :param str full_file_name: File name prepended by full path (relative to test/)
     :param dict keys_to_remove: dictionary of keys not to be tested
     :return dict data: Dictionary, with keys not meant for testing removed.
@@ -58,9 +58,14 @@ def remove_untested_keys(data: Union[dict, Failure], full_file_name: str, keys_t
 
     # Remove all scf loops except for the last one
     if file_name == 'INFO.OUT':
-        scl_indices = [int(item) for item in list(data['scl'].keys())]
-        last_scl = max(scl_indices)
-        data['scl'] = data['scl'][str(last_scl)]
+        try:
+            scl_indices = [int(item) for item in list(data['scl'].keys())]
+            last_scl = max(scl_indices)
+            data['scl'] = data['scl'][str(last_scl)]
+        except KeyError:
+            raise KeyError("Expected tolerances for INFO.OUT but no key 'scl' can be found.\n"
+                           "Either tolerances are not for INFO.OUT, INFO.OUT's parser has changed, or "
+                           "the 'scl' key has already been removed")
 
     # Remove untested keys
     try:
@@ -71,7 +76,7 @@ def remove_untested_keys(data: Union[dict, Failure], full_file_name: str, keys_t
 
     return data
 
-        
+
 def load_tolerances(directory: str) -> dict:
     """
     Get the tolerances from any files in 'directory' of the form `*tol*.json`
@@ -228,7 +233,7 @@ def compare_outputs_json(run_dir: str, ref_dir: str, output_files: List[str], to
     return test_results
 
 
-# TODO(Alex) Issue 99.  Function to remove once test suite migrates to JSON
+# TODO(Alex) Issue 99. Function to remove once test suite migrates to JSON
 def compare_outputs_xml(output_files: dict, test_dir: str, ref_dir: str, run_dir: str, report: Report):
     """
     Compare calculation outputs (output_files) to reference data, with tolerances defined in init.xml
@@ -330,6 +335,8 @@ def run_single_test_json(main_out: str, test_dir: str, run_dir: str, ref_dir: st
 
     json_tolerances = load_tolerances(full_ref_dir)
     output_files = set_files_under_test(json_tolerances.pop('files_under_test'), full_ref_dir)
+    assert output_files, "No 'files_under_test' are specified in the JSON tolerance file"
+
     json_tolerances = add_tols_for_files_with_shared_prefixes(full_ref_dir, json_tolerances)
     # TODO(A/B/H) Issue 100. Update ErrorFinder class to use tol AND units in data comparison
     #  As an alternative to stripping the units (could pass the comparison function as an argument)

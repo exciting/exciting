@@ -28,6 +28,7 @@ import sys
 
 from tol_classes import tol_file_name
 from templates.groundstate import ground_state_tolerances
+from templates.gw import gw_tolerances
 from utils import ExcitingCalculation, get_calculation_types
 
 def parse_input_args() -> dict:
@@ -73,17 +74,15 @@ def serialise_tolerance_values(tol_dict: dict) -> dict:
 
     {'key': {'tol': numerical_tolerance, 'unit': 'unit_string'}
     """
-    output_dict = {}
-    for file_name, output_file in tol_dict.items():
-        if file_name != "files_under_test":
-            serialised_tol_dict = {}
-            for key, value in output_file.items():
-                serialised_tol_dict[key] = value.to_dict()
+    output_dict = {"files_under_test": tol_dict.pop("files_under_test")}
 
-            output_dict[file_name] = copy.deepcopy(serialised_tol_dict)
-            serialised_tol_dict.clear()
-        else:
-            output_dict[file_name] = tol_dict[file_name]
+    for file_name, file_tols in tol_dict.items():
+        serialised_tol_dict = {}
+        for key, value in file_tols.items():
+            serialised_tol_dict[key] = value.to_dict()
+
+        output_dict[file_name] = copy.deepcopy(serialised_tol_dict)
+        serialised_tol_dict.clear()
 
     return output_dict
 
@@ -117,8 +116,7 @@ def generate_tolerance_file(calculation: ExcitingCalculation, file_path: str):
         write_tolerance_with_json(ground_state_tolerances, full_file_name)
 
     if calculation == ExcitingCalculation.gw:
-        sys.exit('tolerance template needs to be defined:' + calculation.name)
-        # write_tolerance_with_json(gw_tolerances, full_file_name)
+        write_tolerance_with_json(gw_tolerances, full_file_name)
 
     if calculation == ExcitingCalculation.tddft:
         sys.exit('tolerance template needs to be defined:'+ calculation.name)
