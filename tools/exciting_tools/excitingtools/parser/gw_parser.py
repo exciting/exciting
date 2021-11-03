@@ -76,8 +76,7 @@ def parse_bare_coulomb_potential_params(file_string: str) -> dict:
     Extract bare Coulomb parameter data of the form:
 
     Bare Coulomb potential parameters:
-        Plane wave cutoff (in units of Gkmax*input%gw%MixBasis%gmb):
-        2.00000000000000
+        Plane wave cutoff (in units of Gkmax*input%gw%MixBasis%gmb): 2.00000000000000
         Error tolerance for structure constants:   1.000000000000000E-016
         Tolerance factor to reduce the MB size based on
         the eigenvectors of the bare Coulomb potential:   0.100000000000000
@@ -93,9 +92,10 @@ def parse_bare_coulomb_potential_params(file_string: str) -> dict:
     :return dict data: Matched data
     """
 
-    pw_cutoff = match_current_return_line_n(file_string, 'Plane wave cutoff (in units of Gkmax*').strip()
+    pw_cutoff = list(parse_value_regex(file_string, 'Plane wave cutoff \\(in units of Gkmax\\*input%gw%MixBasis%gmb\\):').values())
+    assert len(pw_cutoff) == 1, "Matched plane wave cutoff is ambiguous - more than one match"
     # Defined with less-verbose key
-    data = {'Plane wave cutoff (in units of Gkmax*gmb)': float(pw_cutoff)}
+    data = {'Plane wave cutoff (in units of Gkmax*gmb)': float(pw_cutoff[0])}
 
     data2 = parse_value_regex(file_string, 'Error tolerance for structure constants:')
 
@@ -213,6 +213,40 @@ def extract_kpoint(file_string: str) -> dict:
     """
     Parse the substring of the form:
 
+     at k =    0.000   0.500   0.500 ik =     3
+
+    returning a dictionary of the form:
+
+     {'VBM': {'k_point': [0.0, 0.5, 0.5], 'ik': 3},
+      'CBm': {'k_point': [0.0, 0.5, 0.5], 'ik': 3}
+      }
+
+    :param str file_string: Input string
+    :return dict k_data: Matched data, of the form documented
+    """
+    def parse_k_match(file_string: str, key: str) -> dict:
+        data = {}
+
+        try:
+            match = re.search(key + '(.+?)\n', file_string)
+            k_point_and_index = match.group(1).split()
+            data = {'k_point': [float(k) for k in k_point_and_index[:3]],
+                    'ik': int(k_point_and_index[-1])}
+
+        except AttributeError:
+            print("extract_kpoint. Did not find the key", match)
+
+        return data
+
+    k_data = parse_k_match(file_string, 'at k      =    ')
+
+    return {'VBM': k_data, 'CBm': k_data}
+
+
+def extract_kpoints(file_string: str) -> dict:
+    """
+    Parse the substring of the form:
+
      at k(VBM) =    0.000   0.500   0.500 ik =     3
         k(CBm) =    0.000   0.000   0.000 ik =     1
 
@@ -239,7 +273,7 @@ def extract_kpoint(file_string: str) -> dict:
                                 'ik': int(k_point_and_index[-1])}
 
         except AttributeError:
-            print("Did not find the key", match)
+            print("extract_kpoints. Did not find the key", match)
 
         return data
 
@@ -255,6 +289,21 @@ def parse_band_structure_info(file_string: str, bs_type: str, ) -> dict:
 
     This routine assumes that the KS band structure info will ALWAYS appear
     before the GW band structure info.
+
+    Two situations can occur.
+
+    * 1. Indirect bandgap:
+
+     Indirect BandGap (eV):                    3.3206
+     at k(VBM) =    0.000   0.500   0.500 ik =     3
+        k(CBm) =    0.000   0.000   0.000 ik =     1
+     Direct Bandgap at k(VBM) (eV):            3.7482
+     Direct Bandgap at k(CBm) (eV):            3.8653
+
+    * 2. Direct bandgap:
+
+      Direct BandGap (eV):                      2.3903
+      at k      =    0.000   0.000   0.000 ik =     1
 
     :param str bs_type: Band structure type to parse. Either 'ks' or 'gw'
     :param str file_string: Input string
@@ -274,17 +323,27 @@ def parse_band_structure_info(file_string: str, bs_type: str, ) -> dict:
     else:
         sys.exit("bs_type must be 'ks' or 'gw'")
 
+    # Indirect BandGap may not be present
     band_structure_keys = ['Fermi energy:',
                            'Energy range:',
                            'Band index of VBM:',
-                           'Band index of CBm:',
-                           'Indirect BandGap \\(eV\\):',
-                           'Direct Bandgap at k\\(VBM\\) \\(eV\\):',
-                           'Direct Bandgap at k\\(CBm\\) \\(eV\\):'
-                           ]
+                           'Band index of CBm:']
 
     data = parse_values_regex(file_string, band_structure_keys)
-    k_point_data = extract_kpoint(file_string)
+
+    # Only present if there's an indirect gap
+    indirect_gap = parse_value_regex(file_string, 'Indirect BandGap \\(eV\\):', silent_key_error=True)
+
+    if indirect_gap:
+        direct_gap_keys = ['Direct Bandgap at k\\(VBM\\) \\(eV\\):',
+                           'Direct Bandgap at k\\(CBm\\) \\(eV\\):']
+        data.update(indirect_gap)
+        data.update(parse_values_regex(file_string, direct_gap_keys))
+        k_point_data = extract_kpoints(file_string)
+
+    else:
+        data.update(parse_value_regex(file_string, 'Direct BandGap \\(eV\\):'))
+        k_point_data = extract_kpoint(file_string)
 
     return {**data, **k_point_data}
 
@@ -693,8 +752,8 @@ def parse_eps00_blocks(file_string: str, n_freq: int) -> dict:
     file_string = file_string.splitlines()[initial_header:]
 
     def extract_eps_i(line: str) -> tuple:
-        eps_i_re = np.array(line.split()[0:3], dtype=np.float)
-        eps_i_img = np.array(line.split()[3:6], dtype=np.float)
+        eps_i_re = np.array(line.split()[0:3], dtype=float)
+        eps_i_img = np.array(line.split()[3:6], dtype=float)
         return eps_i_re, eps_i_img
 
     for i_freq in range(0, n_freq):

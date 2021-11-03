@@ -44,7 +44,7 @@ settings = Defaults(max_time       = 1800,
                     run_dir        = 'run',       
                     ref_dir        = 'ref',        
                     exe_dir        =  os.path.normpath(os.path.join(os.getcwd(), '../bin')),
-                    init_default   = 'xml/init_templates/init_default.xml' ,   
+                    init_default   = 'xml/init_templates/init_default.xml',
                     ignored_output = ['STATE.OUT', 'OCC', 'EVEC', 'EVALSV', 'EVALFV', 'APWCMT', 'SYM', 
                                       'PMAT', 'FERMISURF', 'RMSDVEFF', 'LOCMT', 'EXCLI', 'SCCLI'], 
                     action_choices  = _action_choices,
@@ -59,7 +59,7 @@ settings = Defaults(max_time       = 1800,
                     )
 
 # TODO(A/H/B) Remove this once test suite has fully moved over to JSON
-methods_moved_to_json = ['groundstate']
+methods_moved_to_json = ['groundstate', 'GW']
 
 # TODO(A/H) Only specify for files where keys will be removed
 # Keys to be removed from test and reference dictionary

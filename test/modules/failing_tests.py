@@ -14,7 +14,7 @@ from .utils import Compiler, Build_type, CompilerBuild, get_compiler_type, build
 # Update 16th March 2020. Remove the hybrid tests from the suite until more
 # robust testing is introduced and someone investigates them 
 #
-# Tests that don't always pass the CI for any discernable reason
+# Tests that don't always pass the CI for any discernible reason
 # are considered flakey rather than failing.
 #
 # This currently corresponds to the hybrids:
@@ -22,18 +22,20 @@ from .utils import Compiler, Build_type, CompilerBuild, get_compiler_type, build
 #  - groundstate-HYB_PBE0-Si
 #
 # When ctest is introduced, this can addressed with the -repeat until-pass:2 option.
-# Additionly, explicit assertions and tolerances will make the hybrid tests more robust.
-# See MR !38 Testing/pytest.
 #
 # Also see Issue 51. Review tolerances for all tests migrated from the old test suite.
 
 
 failing_tests = [
+    # TODO(Alex) Issue #103. App Tests: GW QP Energies Inconsistent with Reference
     # TODO(Alex) Issue #35. MPI GW calculations do not produce EPS00_GW.OUT
+    # I suspect this occurs due to how the GW code distributes MPI processes.
+    # If more ranks than q-points, ranks can lie idle starting from rank 0 (opposite from what one usually expects).
     # Also appear to get a failure for Intel 2019 serial (only occurs on the CI)
     {'name': 'GW/LDA_PW-gw-Si',
-     'comment': 'MPI GW calculations do not produce EPS00_GW.OUT',
-     'tags': [CompilerBuild(Compiler.intel, Build_type.serial),
+     'comment': 'Serial calcs give erroneous QP energies w.r.t. reference.'
+                'MPI GW calculations do not produce EPS00_GW.OUT',
+     'tags': [CompilerBuild(Compiler.all, Build_type.serial),
               CompilerBuild(Compiler.all, Build_type.mpiandsmp)]
      },
 
@@ -77,18 +79,13 @@ failing_tests = [
      'tags': [CompilerBuild(Compiler.gcc, Build_type.all)]
      },
 
-    # TODO(Alex) Issue 101. Test still passes with Intel MPIandSMP. Also see Issue #75
+    # TODO(Alex) Issue 101. Also see Issue #75
     {'name': 'groundstate/LDA_PW-collinear-Fe',
      'comment': 'Most energies differ to reference by ~1.e-7. '
                 'scl%Sum of eigenvalues by ~ 1.e-6. '
                 'DOS at Fermi differs by 5.7e-04. ',
-     'tags': [CompilerBuild(Compiler.gcc, Build_type.all)]
-     },
-    {'name': 'groundstate/LDA_PW-collinear-Fe',
-     'comment': 'Most energies differ to reference by ~1.e-7. '
-                'scl%Sum of eigenvalues by ~ 1.e-6. '
-                'DOS at Fermi differs by 5.7e-04. ',
-     'tags': [CompilerBuild(Compiler.intel, Build_type.all)]
+     'tags': [CompilerBuild(Compiler.gcc, Build_type.all),
+              CompilerBuild(Compiler.intel, Build_type.all)]
      }
 ]
 

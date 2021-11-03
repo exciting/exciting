@@ -9,7 +9,7 @@ import re
 from excitingtools.utils import get_new_line_indices
 
 from excitingtools.parser.gw_parser import parse_gw_info, parse_frequency_grid, \
-    parse_correlation_self_energy_params, extract_kpoint, parse_ks_eigenstates, \
+    parse_correlation_self_energy_params, extract_kpoints, parse_ks_eigenstates, \
     parse_n_q_point_cycles, parse_band_structure_info, parse_mixed_product_params, \
     parse_bare_coulomb_potential_params, parse_gw_timings, k_points_from_evalqp, \
     n_states_from_evalqp, parse_evalqp, parse_vxcnn, vkl_from_vxc, parse_eps00_frequencies, \
@@ -44,11 +44,9 @@ gw_info_out = """
  Energy alignment:
    0 - no alignment
  Analytic continuation method:
-  PADE - Thiele's reciprocal difference method (by H. J. Vidberg and J. W. Seren
- ce, J. Low Temp. Phys. 29, 179 (1977))
+  PADE - Thiele's reciprocal difference method (by H. J. Vidberg and J. W. Serence, J. Low Temp. Phys. 29, 179 (1977))
  Scheme to treat singularities:
-  Auxiliary function method by S. Massidda, M. Posternak, and A. Baldereschi, PR
- B 48, 5058 (1993)
+  Auxiliary function method by S. Massidda, M. Posternak, and A. Baldereschi, PRB 48, 5058 (1993)
  
 --------------------------------------------------------------------------------
  
@@ -62,8 +60,7 @@ gw_info_out = """
 --------------------------------------------------------------------------------
  
  Bare Coulomb potential parameters:
-   Plane wave cutoff (in units of Gkmax*input%gw%MixBasis%gmb): 
-   2.00000000000000     
+   Plane wave cutoff (in units of Gkmax*input%gw%MixBasis%gmb): 2.00000000000000     
    Error tolerance for structure constants:   1.000000000000000E-016
    Tolerance factor to reduce the MB size based on
    the eigenvectors of the bare Coulomb potential:   0.100000000000000     
@@ -236,8 +233,8 @@ def test_parse_correlation_self_energy_params():
 
     reference = {'Solution of the QP equation': 0,
                  'Energy alignment': 0,
-                 'Analytic continuation method': "PADE - Thiele's reciprocal difference method (by H. J. Vidberg and J. W. Seren",
-                 'Scheme to treat singularities': 'Auxiliary function method by S. Massidda, M. Posternak, and A. Baldereschi, PR'}
+                 'Analytic continuation method': "PADE - Thiele's reciprocal difference method (by H. J. Vidberg and J. W. Serence, J. Low Temp. Phys. 29, 179 (1977))",
+                 'Scheme to treat singularities': 'Auxiliary function method by S. Massidda, M. Posternak, and A. Baldereschi, PRB 48, 5058 (1993)'}
 
     output = parse_correlation_self_energy_params(gw_info_out)
 
@@ -326,7 +323,7 @@ def test_extract_kpoint():
            'CBm': {'k_point': [0.0, 0.0, 0.0], 'ik': 1}
           }
 
-    output = extract_kpoint(gw_info_out)
+    output = extract_kpoints(gw_info_out)
 
     assert output == ref, "Expect extracted VBM and CBm k-points to match reference"
 
@@ -371,8 +368,8 @@ def test_parse_gw_info():
     # Reference, without frequencies_weights
     ref = {'correlation_self_energy_parameters': {'Solution of the QP equation': 0,
                                                   'Energy alignment': 0,
-                                                  'Analytic continuation method': "PADE - Thiele's reciprocal difference method (by H. J. Vidberg and J. W. Seren",
-                                                  'Scheme to treat singularities': 'Auxiliary function method by S. Massidda, M. Posternak, and A. Baldereschi, PR'},
+                                                  'Analytic continuation method': "PADE - Thiele's reciprocal difference method (by H. J. Vidberg and J. W. Serence, J. Low Temp. Phys. 29, 179 (1977))",
+                                                  'Scheme to treat singularities': 'Auxiliary function method by S. Massidda, M. Posternak, and A. Baldereschi, PRB 48, 5058 (1993)'},
            'mixed_product_basis_parameters': {'MT Angular momentum cutoff': 4,
                                               'MT Linear dependence tolerance factor': 0.001,
                                               'Plane wave cutoff (in units of Gkmax)': 1.0},
@@ -648,7 +645,7 @@ vxc_string = """ik=   1    vkl=  0.0000  0.0000  0.0000
    9       -2.764809       -0.000000
   10       -1.034312       -0.000000
   11       -0.929773       -0.000000
-  
+
 ik=   2    vkl=  0.0000  0.0000  0.5000
  1       -2.908349        0.000000
  2       -2.864100       -0.000000
@@ -754,7 +751,7 @@ def test_parse_vxcnn():
 
 # Example output from EPS00_GW.OUT
 # File bizarrely begins with a blank line
-eps_string = """ 
+eps_string = """
  (dielectric tensor, random phase approximation)
 
  frequency index and value:      1    0.00529953
@@ -768,28 +765,28 @@ eps_string = """
     8.22189228    0.00000000    0.00000000        -0.00000000    0.00000000    0.00000000
     0.00000000    8.22189228    0.00000000         0.00000000   -0.00000000    0.00000000
     0.00000000    0.00000000    8.22189228         0.00000000    0.00000000   -0.00000000
-    
+
 
     """
 
 
 def test_parse_eps00_frequencies():
 
-    eps_string2 = """    
+    eps_string2 = """
  (dielectric tensor, random phase approximation)
- 
+
  frequency index and value:      1    0.00529953
  real part, imaginary part below
     8.31881773    0.00000000    0.00000000         0.00000000    0.00000000    0.00000000
     0.00000000    8.31881773    0.00000000         0.00000000    0.00000000    0.00000000
     0.00000000    0.00000000    8.31881773         0.00000000    0.00000000    0.00000000
- 
+
  frequency index and value:      2    0.02771249
  real part, imaginary part below
     8.22189228    0.00000000    0.00000000        -0.00000000    0.00000000    0.00000000
     0.00000000    8.22189228    0.00000000         0.00000000   -0.00000000    0.00000000
     0.00000000    0.00000000    8.22189228         0.00000000    0.00000000   -0.00000000
- 
+
  frequency index and value:      3    0.06718440
  real part, imaginary part below
     7.78004308    0.00000000    0.00000000         0.00000000    0.00000000    0.00000000
