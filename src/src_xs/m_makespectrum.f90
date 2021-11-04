@@ -630,7 +630,7 @@ module m_makespectrum
 
     end subroutine makespectrum_dist
 
-    subroutine finalizespectrum(iqmt, nk, nsp, sp)
+    subroutine finalizespectrum(iqmt, nk, nsp, spc)
       use modinput, only: input
       use modmpi
       use modxs, only: sptclg, ivgigq, ivgmt, unitout
@@ -641,7 +641,7 @@ module m_makespectrum
 
       integer(4), intent(in) :: iqmt, nk
       complex(8), intent(inout) :: nsp(:,:)
-      complex(8), intent(out) :: sp(:,:,:)
+      complex(8), intent(out) :: spc(:,:,:)
 
       complex(8), allocatable :: buf(:,:,:), buf2(:,:,:)
       integer(4) :: nfreq, nopt, i, j, o1, o2, igqmt
@@ -796,20 +796,20 @@ module m_makespectrum
         end do
       
         ! Symmetrize spectrum with respect to the crystal symmetry
-        sp = zzero
+        spc = zzero
         if (.NOT. input%xs%BSE%chibar0) then
           comp=input%xs%BSE%chibar0comp
           do iw=1, input%xs%energywindow%points
-            sp(comp,comp,iw)=1.0d0/(buf(comp,comp,iw))
+            spc(comp,comp,iw)=1.0d0/(buf(comp,comp,iw))
           end do
         else
           do o1=1,3
             do o2=1,3
              ! Symmetrize the macroscopic dielectric tensor
               if (input%xs%BSE%chibar0) then
-                call symt2app(o1, o2, nfreq, symt2, buf, sp(o1,o2,:))
+                call symt2app(o1, o2, nfreq, symt2, buf, spc(o1,o2,:))
               else
-                sp(o1,o2,:)=buf(o1,o2,:)
+                spc(o1,o2,:)=buf(o1,o2,:)
               end if
             end do
           end do
@@ -818,15 +818,15 @@ module m_makespectrum
       ! Finite momentum transfer --> scalar function
       else
 
-        sp = zzero
+        spc = zzero
 
         if(usechibar) then 
           ! Use chibar also for finte q, needs zeroing of G+q in the coulomb
           ! interaction
-          sp(1,1,:) = nsp(:,1)
+          spc(1,1,:) = nsp(:,1)
         else
           ! As noted above nsp contains 1/epsm(Q,w), save epsm
-          sp(1,1,:) = 1.0d0/nsp(:,1)
+          spc(1,1,:) = 1.0d0/nsp(:,1)
         end if
 
       end if
