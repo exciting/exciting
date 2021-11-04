@@ -168,7 +168,7 @@ contains
     complex(dp), intent(in), contiguous :: a(:), b(:)
     !> Output matrix
     complex(dp), intent(inout), contiguous :: C(:, :)
-    !> Take the conjugate or transpose of \(mathbf{b}\) (default os .false.).
+    !> Take the conjugate or transpose of \(mathbf{b}\) (default is .false.).
     logical, intent(in), optional :: conjg_b
 
     logical :: conjg_b_
@@ -206,6 +206,7 @@ contains
 
     conjg_b_ = .false.
     if (present(conjg_b)) conjg_b_ = conjg_b
+    
     call assert(size(C, dim=1) == size(a), 'The number of rows of C must be the same as the number of elements of a.')
     call assert(size(C, dim=2) == size(b), 'The number of rows of B must be the same as the number of elements of b.')
 

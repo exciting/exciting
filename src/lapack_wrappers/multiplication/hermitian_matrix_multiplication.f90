@@ -132,7 +132,7 @@ contains
     call assert(size(A, dim=2) == size(b), 'Number of columns of A needs to be the same as number of elements of b.')
     call assert(size(A, dim=1) == size(c), 'Number of rows of A neecomplexds to be the same as number of elements of c.')
     
-    call zhemv(uplo_, size(A, dim=1), zone, zone * A, size(A, dim=1), b, storage_spacing, zzero, C, storage_spacing)
+    call zhemv(uplo_, size(A, dim=1), zone, cmplx(A, 0.0_dp, kind=dp), size(A, dim=1), b, storage_spacing, zzero, C, storage_spacing)
   end subroutine matrix_vector_multiplication_real_complex_dp
 
 
@@ -164,7 +164,7 @@ contains
     call assert(size(A, dim=2) == size(b), 'Number of columns of A needs to be the same as number of elements of b.')
     call assert(size(A, dim=1) == size(c), 'Number of rows of A needs to be the same as number of elements of c.')
     
-    call zhemv(uplo_, size(A, dim=1), zone, A, size(A, dim=1), zone * b, storage_spacing, zzero, C, storage_spacing)
+    call zhemv(uplo_, size(A, dim=1), zone, A, size(A, dim=1), cmplx(b, 0.0_dp, kind=dp), storage_spacing, zzero, C, storage_spacing)
   end subroutine matrix_vector_multiplication_complex_real_dp
 
 
@@ -308,10 +308,10 @@ contains
 
     if (is_side_L) then
       call assert(is_hermitian(A), 'A needs to be a symmetric matrix.')
-      call zhemm(side_, uplo_, size(A, dim=1), size(B, dim=2), zone, zone * A, size(A, dim=1), B, size(B, dim=1), zzero, C, size(A, dim=1))
+      call zhemm(side_, uplo_, size(A, dim=1), size(B, dim=2), zone, cmplx(A, 0.0_dp, kind=dp), size(A, dim=1), B, size(B, dim=1), zzero, C, size(A, dim=1))
     else 
       call assert(is_hermitian(B), 'B needs to be a hermitian matrix.')
-      call zhemm(side_, uplo_, size(A, dim=1), size(B, dim=2), zone, B, size(B, dim=2), zone * A, size(A, dim=1), zzero, C, size(A, dim=1))
+      call zhemm(side_, uplo_, size(A, dim=1), size(B, dim=2), zone, B, size(B, dim=2), cmplx(A, 0.0_dp, kind=dp), size(A, dim=1), zzero, C, size(A, dim=1))
     end if
   end subroutine matrix_matrix_multiplication_real_complex_dp
 
@@ -357,10 +357,10 @@ contains
 
     if (is_side_L) then
       call assert(is_hermitian(A), 'A needs to be a symmetric matrix.')
-      call zhemm(side_, uplo_, size(A, dim=1), size(B, dim=2), zone, A, size(A, dim=1), zone * B, size(B, dim=1), zzero, C, size(A, dim=1))
+      call zhemm(side_, uplo_, size(A, dim=1), size(B, dim=2), zone, A, size(A, dim=1), cmplx(B, 0.0_dp, kind=dp), size(B, dim=1), zzero, C, size(A, dim=1))
     else 
       call assert(is_hermitian(B), 'B needs to be a symmetric matrix.')
-      call zhemm(side_, uplo_, size(A, dim=1), size(B, dim=2), zone, zone * B, size(B, dim=2), A, size(A, dim=1), zzero, C, size(A, dim=1))
+      call zhemm(side_, uplo_, size(A, dim=1), size(B, dim=2), zone, cmplx(B, 0.0_dp, kind=dp), size(B, dim=2), A, size(A, dim=1), zzero, C, size(A, dim=1))
     end if
   end subroutine matrix_matrix_multiplication_complex_real_dp
 

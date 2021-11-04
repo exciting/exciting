@@ -8,6 +8,7 @@ module mod_wannier
   use mod_wannier_helper
   use mod_optkgrid
   use mod_kpointset
+  use xlapack, only: svd_divide_conquer
 
   use mod_pwmat
 
@@ -356,7 +357,7 @@ module mod_wannier
 !$OMP DO
 #endif
       do iknr = 1, wf_kset%nkpt
-        call zsvd( wf_groups( wf_group)%projection(:,:,iknr), sval, lsvec, rsvec)
+        call svd_divide_conquer( wf_groups( wf_group)%projection(:,:,iknr), sval, lsvec, rsvec)
         ! for numerical stability
         !do i = 1, wf_nwf
         !  if( sval( i) .lt. 1.d-12) lsvec( :, i) = zzero
@@ -415,7 +416,6 @@ module mod_wannier
     subroutine wannier_geometry( kset, nn, nvl, nvc, nik, nik2, nwgt, ndist, nbzshell, nomult)
       ! !USES:
       use sorting, only: sort_index_1d
-      use m_linalg
       ! !INPUT/OUTPUT PARAMETERS:
       ! !DESCRIPTION:
       !   Sets geometry environment for Wannier functions. Finds near neighbors

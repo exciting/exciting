@@ -3,7 +3,8 @@ module mod_wannier_disentangle
   use mod_wannier_opf
   use mod_wannier_helper
   use mod_wannier_omega
-  use m_linalg
+  !use m_linalg
+  use xlapack, only: svd_divide_conquer
 
   implicit none
 
@@ -86,7 +87,7 @@ contains
                wf_opf, wf_groups( wf_group)%nproj, zzero, & 
                auxmat, wf_groups( wf_group)%nst)
         if( nik .eq. 0) then
-          call zsvd( auxmat( 1:nok, :), &
+          call svd_divide_conquer( auxmat( 1:nok, :), &
                  sval( 1:wf_groups( wf_group)%nwf), &
                  lsvec( 1:nok, 1:nok), &
                  rsvec)

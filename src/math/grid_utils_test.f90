@@ -176,7 +176,7 @@ contains
 
     !> Test phase_3d at the Gamma point and an arbitrary k-point.
   subroutine test_phase_3d(test_report)
-    !> Our test object
+    !> Unit test report
     type(unit_test_type), intent(inout) :: test_report
     !> test phases
     complex(dp) :: phase_single_point
@@ -234,7 +234,7 @@ contains
 
    !> Test fftfreq for a 3D grid defined by [ 4, 2, 3 ].
    subroutine test_fft_frequencies(test_report)
-      !> Our test object
+      !> Unit test report
       type(unit_test_type), intent(inout) :: test_report
       !> reference
       real(dp) :: ref(3, 24) = reshape([0.0_dp, 0.0_dp, 0.0_dp, &

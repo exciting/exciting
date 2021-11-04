@@ -6,6 +6,7 @@ SOURCEDIRS=	\
   ../../src/lapack_wrappers \
   ../../src/lapack_wrappers/f95_interfaces \
   ../../src/lapack_wrappers/multiplication \
+  ../../src/lapack_wrappers/decomposition \
 	../../src/src_advanced/ \
 	../../src/constants \
 	../../src/src_eigensystem/ \

@@ -115,7 +115,7 @@ contains
     call assert(size(c) == integer_gemv(shape(A), size(b), trans_A_), &
                'The number of elements of c must be equal the number of rows of op(A).')
 
-    call zgemv(trans_A_, size(A, dim=1), size(A, dim=2), zone, zone * A, size(A, dim=1), b, 1, zzero, c, 1)
+    call zgemv(trans_A_, size(A, dim=1), size(A, dim=2), zone, cmplx(A, 0.0_dp, kind=dp), size(A, dim=1), b, 1, zzero, c, 1)
   end subroutine matrix_vector_multiplication_real_complex_dp
 
 
@@ -144,7 +144,7 @@ contains
     call assert(size(c) == integer_gemv(shape(A), size(b), trans_A_), &
                'The number of elements of c must be equal the number of rows of op(A).')
 
-    call zgemv(trans_A_, size(A, dim=1), size(A, dim=2), zone, A, size(A, dim=1), zone * b, 1, zzero, c, 1)
+    call zgemv(trans_A_, size(A, dim=1), size(A, dim=2), zone, A, size(A, dim=1), cmplx(b, 0.0_dp, kind=dp), 1, zzero, c, 1)
   end subroutine matrix_vector_multiplication_complex_real_dp
 
 
@@ -245,7 +245,7 @@ contains
     call assert(all(shape(C) == [M, N]), 'The number of rows of C must be equal to the number of rows of op(A) &
                and the number of culomns must be equal to the number of columns of op(B).')
 
-    call zgemm(trans_A_, trans_B_, M, N, K, zone, zone * A, LDA, B, LDB, zzero, C, LDC)
+    call zgemm(trans_A_, trans_B_, M, N, K, zone, cmplx(A, 0.0_dp, kind=dp), LDA, B, LDB, zzero, C, LDC)
   end subroutine matrix_matrix_multiplication_real_complex_dp
 
 
@@ -279,7 +279,7 @@ contains
     call assert(all(shape(C) == [M, N]), 'The number of rows of C must be equal to the number of rows of op(A) &
                and the number of culomns must be equal to the number of columns of op(B).')
 
-    call zgemm(trans_A_, trans_B_, M, N, K, zone, A, LDA, zone * B, LDB, zzero, C, LDC)
+    call zgemm(trans_A_, trans_B_, M, N, K, zone, A, LDA, cmplx(B, 0.0_dp, kind=dp), LDB, zzero, C, LDC)
   end subroutine matrix_matrix_multiplication_complex_real_dp
   
   

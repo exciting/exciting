@@ -51,9 +51,9 @@ contains
     call test_complex_hermitian_matrix_real_matrix_multiplication(test_report)
 
     if (present(kill_on_failure)) then
-      call test_report%report('hermitian_matrix_multiply', kill_on_failure)
+      call test_report%report('hermitian_matrix_multiplication', kill_on_failure)
     else
-      call test_report%report('hermitian_matrix_multiply')
+      call test_report%report('hermitian_matrix_multiplication')
     end if
 
     call test_report%finalise()

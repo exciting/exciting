@@ -5,6 +5,7 @@ module lapack_wrappers_test_drivers
   use vector_multiplication_test, only: vector_multiplication_test_driver
   use general_matrix_multiplication_test, only: general_matrix_multiplication_test_driver
   use hermitian_matrix_multiplication_test, only: hermitian_matrix_multiplication_test_driver
+  use singular_value_decomposition_test, only: singular_value_decomposition_test_driver
 
   implicit none
   
@@ -23,6 +24,7 @@ contains
     call vector_multiplication_test_driver(mpiglobal, kill_on_failure)
     call general_matrix_multiplication_test_driver(mpiglobal, kill_on_failure)
     call hermitian_matrix_multiplication_test_driver(mpiglobal, kill_on_failure)
+    call singular_value_decomposition_test_driver(mpiglobal, kill_on_failure)
   end subroutine lapack_wrappers_test_driver
 
 end module lapack_wrappers_test_drivers
