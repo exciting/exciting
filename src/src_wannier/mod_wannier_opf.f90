@@ -2,7 +2,8 @@ module mod_wannier_opf
   use mod_wannier_variables
   use mod_wannier_helper
   use mod_wannier_omega
-  use m_linalg
+  !use m_linalg
+  use xlapack, only: svd_divide_conquer
 
   implicit none
 
@@ -118,7 +119,7 @@ module mod_wannier_opf
 #endif
       do ik = 1, wf_kset%nkpt
         call zgemm( 'n', 'n', N, J, P, zone, A(1,1,ik), N, wf_opf, P, zzero, auxmat, N)
-        call zsvd( auxmat, sval, lvec, rvec)
+        call svd_divide_conquer( auxmat, sval, lvec, rvec)
         call zgemm( 'n', 'n', N, J, J, zone, lvec, N, rvec, J, zzero, auxmat, N)
         if( sub) then
           call zgemm( 'n', 'n', N0, J, N, zone, U0(1,1,ik), N0, auxmat, N, zzero, &
@@ -464,7 +465,7 @@ module mod_wannier_opf
       allocate( AX( da(1), du(2)))
       allocate( tmp( da(1), da(1)))
       call zgemm( 'n', 'n', da(1), du(2), dx(1), zone, A, da(1), X, dxo(1), zzero, AX, da(1))
-      call zsvd( AX, s, tmp, W)
+      call svd_divide_conquer( AX, s, tmp, W)
       maxs = maxval( s)
       V = tmp( 1:N, 1:J)
       W = conjg( transpose( W))

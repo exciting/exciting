@@ -10,16 +10,21 @@ module math_utils_test
                         diag, &
                         is_square, &
                         is_hermitian, &
+                        is_unitary, &
                         kronecker_product, &
                         determinant, &
                         permanent, &
                         mod1, &
                         shuffle_vector, &
                         mask_vector
-  use mock_arrays, only: real_matrix_5x7, &
-                         real_symmetric_matrix_5x5, &
+  use mock_arrays, only: real_symmetric_matrix_5x5, &
+                         real_orthogonal_matrix_5x5, &
+                         real_matrix_5x7, &
+                         real_rank_4_matrix_5x7, &
                          complex_hermitian_matrix_5x5, &
+                         complex_unitary_matrix_5x5, &
                          complex_matrix_5x7
+                         
 
   implicit none
 
@@ -42,7 +47,7 @@ contains
     !> test object
     type(unit_test_type) :: test_report
     !> Number of assertions
-    integer, parameter :: n_assertions = 56
+    integer, parameter :: n_assertions = 53
 
     ! Initialize test object
     call test_report%init(n_assertions, mpiglobal)
@@ -57,12 +62,14 @@ contains
 
     call test_is_hermitian(test_report)
 
-    call test_diagonal(test_report)
+    call test_is_unitary(test_report)
+
+    call test_diag(test_report)
     
     call test_kronecker_product(test_report)
     
     call test_determinant(test_report)
-    
+
     call test_mod1(test_report)
 
     call test_mask_vector(test_report)
@@ -77,17 +84,18 @@ contains
     ! Finalise test object
     call test_report%finalise()
   end subroutine math_utils_test_driver
+
   
   !> Test all_close for real and complex arrays
   subroutine test_all_close(test_report)
 
-    !> Our test object
+    !> Unit test report
     type(unit_test_type), intent(inout) :: test_report
 
     !> tolerance
     real(dp), parameter :: tol = 1.e-10_dp
     !> Real test input
-    real(dp) :: a(3,4) 
+    real(dp) :: a(3, 4) 
     !> Complex test input
     complex(dp) :: b(3,4)
 
@@ -110,7 +118,7 @@ contains
   !> Test all_zero for real and complex arrays
   subroutine test_all_zero(test_report)
 
-    !> Our test object
+    !> Unit test report
     type(unit_test_type), intent(inout) :: test_report
 
     !> tolerance
@@ -136,7 +144,7 @@ contains
 
   !> Test is_square
   subroutine test_is_square(test_report)
-    !> Our test object
+    !> Unit test report
     type(unit_test_type), intent(inout) :: test_report
 
     call test_report%assert(is_square(real_symmetric_matrix_5x5), &
@@ -159,7 +167,7 @@ contains
 
   !> Test is_hermitian
   subroutine test_is_hermitian(test_report)
-    !> Our test object
+    !> Unit test report
     type(unit_test_type), intent(inout) :: test_report
 
     call test_report%assert(is_hermitian(real_symmetric_matrix_5x5), &
@@ -188,10 +196,48 @@ contains
   end subroutine test_is_hermitian
 
 
-  !> Test diagonal for complex matrix
-  subroutine test_diagonal(test_report)
+  !> Test is_unitary
+  subroutine test_is_unitary(test_report)
+    !> Unit test report
+    type(unit_test_type), intent(inout) :: test_report
 
-    !> Our test object
+    call test_report%assert(.not. is_unitary(real_symmetric_matrix_5x5, tol=10e-8_dp), &
+                           'Test is_unitary for non orthogonal matrix. &
+                           Expected: False')
+
+    call test_report%assert(is_unitary(real_orthogonal_matrix_5x5, tol=10e-8_dp), &
+                           'Test is_unitary for square orthogonal matrix. &
+                           Expected: True')
+
+    call test_report%assert(is_unitary(real_orthogonal_matrix_5x5(:, :3), tol=10e-8_dp), &
+                           'Test is_unitary for matrix with orthogonal culumn vectors. &
+                           Expected: True')
+
+    call test_report%assert(is_unitary(real_orthogonal_matrix_5x5(2:, :), tol=10e-8_dp), &
+                           'Test is_unitary for matrix with orthogonal row vectors. &
+                           Expected: True')
+
+
+    call test_report%assert(.not. is_unitary(complex_hermitian_matrix_5x5, tol=10e-8_dp), &
+                           'Test is_unitary for non unitary matrix. &
+                           Expected: False')
+
+    call test_report%assert(is_unitary(complex_unitary_matrix_5x5, tol=10e-8_dp), &
+                           'Test is_unitary for square unitary matrix. &
+                           Expected: True')
+
+    call test_report%assert(is_unitary(complex_unitary_matrix_5x5(:, :3), tol=10e-8_dp), &
+                           'Test is_unitary for matrix with unitary culumn vectors. &
+                           Expected: True')
+
+    call test_report%assert(is_unitary(complex_unitary_matrix_5x5(2:, :), tol=10e-8_dp), &
+                           'Test is_unitary for matrix with unitary row vectors. &
+                           Expected: True')
+  end subroutine test_is_unitary
+
+  !> Test diag for complex matrix
+  subroutine test_diag(test_report)
+    !> Unit test report
     type(unit_test_type), intent(inout) :: test_report
       
     !> tolerance
@@ -203,20 +249,20 @@ contains
 
     a = 1._dp
     call test_report%assert(all_close(diag(a), [1.0_dp, 1.0_dp, 1.0_dp]), &
-                      'Test diagonal of real matrix. &
+                      'Test diag of real matrix. &
                       & Expected: [1._dp,1._dp,1._dp] ')
 
     b = zone
     call test_report%assert(all_close(diag(b), [zone, zone, zone]), &
-                    'Test diagonal of complex matrix. &
+                    'Test diag of complex matrix. &
                     & Expected: [zone,zone,zone] ' )
-  end subroutine test_diagonal
+  end subroutine test_diag
 
   
   !> Test kronecker_product for real input
   subroutine test_kronecker_product(test_report)
 
-    !> Our test object
+    !> Unit test report
     type(unit_test_type), intent(inout) :: test_report
     !> test input
     real(dp) :: triv(2) = [1.0_dp, 1.0_dp], &
@@ -282,9 +328,10 @@ contains
     
   end subroutine test_kronecker_product
 
+
   !> Test determinant
   subroutine test_determinant(test_report)
-    !> Our test object
+    !> Unit test report
     type(unit_test_type), intent(inout) :: test_report
     !> test input
     real(dp) :: test_matrix(3, 3) = reshape([ 1.0_dp, 0.0_dp, 6.0_dp, &
@@ -316,8 +363,10 @@ contains
 
   end subroutine test_determinant
 
+
+  !> Test mod1
   subroutine test_mod1(test_report)
-    !> Our test object
+    !> Unit test report
     type(unit_test_type), intent(inout) :: test_report
     
     call test_report%assert(mod1(4, 8) ==  4, &
@@ -370,9 +419,10 @@ contains
   
   end subroutine test_mod1
 
+
   !> Test mask for a four element array.
   subroutine test_mask_vector(test_report)
-    !> Our test object
+    !> Unit test report
     type(unit_test_type), intent(inout) :: test_report
 
     call test_report%assert(all_close(mask_vector([ 1.0_dp, 4.5_dp, 3.45623_dp, -5.0_dp ]*zone, [ .true., .false., .false., .true. ]), [ 1.0_dp, -5.0_dp ]*zone), &
@@ -382,7 +432,7 @@ contains
 
   !> Test mask for a four element array.
   subroutine test_mask(test_report)
-      !> Our test object
+      !> Unit test report
     type(unit_test_type), intent(inout) :: test_report
 
     call test_report%assert(all_close(mask_vector([ 1.0_dp, 4.5_dp, 3.45623_dp, -5.0_dp ]*zone, [ .true., .false., .false., .true. ]), [ 1.0_dp, -5.0_dp ]*zone), &

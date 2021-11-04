@@ -9,6 +9,7 @@ module multiplication_interfaces
 !---------------
 ! BLAS Level 1 | 
 !---------------
+
     ! dot product
     real(dp) function ddot(n, dx, incx, dy, incy)
       import :: dp 
@@ -82,10 +83,13 @@ module multiplication_interfaces
       integer,     intent(in)  :: lda
       complex(dp), intent(out) :: A(lda, *)
     end subroutine zgeru
+
+
 !---------------
 ! BLAS Level 2 | 
 !---------------
-    ! general matrix vector multiplication
+
+    ! general matrix-vector multiplication
     subroutine dgemv(trans, m, n, alpha, A, lda, X, incx, beta, Y, incy)
       import :: dp 
       implicit none
@@ -118,7 +122,7 @@ module multiplication_interfaces
       integer,     intent(in)    :: incy
     end subroutine zgemv
 
-    ! hermitian matrix vector multiplication
+    ! symmetric/hermitian matrix-vector multiplication
     subroutine dsymv(uplo, n, alpha, A, lda, x, incx, beta, y, incy)
       import :: dp 
       implicit none 
@@ -149,10 +153,12 @@ module multiplication_interfaces
       integer,     intent(in)    :: incy
     end subroutine zhemv
 
+    
 !---------------
 ! BLAS Level 3 | 
 !---------------
-    ! general matrix matrix multiplication
+
+    ! general matrix-matrix multiplication
     subroutine dgemm(transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc)
       import :: dp 
       implicit none
@@ -189,7 +195,7 @@ module multiplication_interfaces
       complex(dp), intent(inout) :: C(ldc, *)
     end subroutine zgemm
 
-    ! hermitian matrix matrix multiplication
+    ! symmetric/hermitian matrix-matrix multiplication
     subroutine dsymm(side, uplo, m, n, alpha, A, lda, B, ldb, beta, C, ldc)
       import :: dp 
       implicit none

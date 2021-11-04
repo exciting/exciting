@@ -6,6 +6,8 @@
 !   Created July 2020 (SeTi)
 module m_linalg
   use constants, only: zzero, zone
+  use xlapack, only: svd_divide_conquer
+
   implicit none
   real(8), external :: dlamch
 
@@ -356,123 +358,6 @@ module m_linalg
     end subroutine zhegdiag
 
     !***********************************
-    !    SINGULAR VALUE DECOMPOSITION
-    !***********************************
-    ! SVD of complex matrix
-    subroutine zsvd( mat, sval, lsvec, rsvec)
-      complex(8), intent( in) :: mat(:,:)
-      real(8), intent( out) :: sval(:)
-      complex(8), intent( out) :: lsvec(:,:), rsvec(:,:)
-
-      integer :: m, n, l, k, info, lwork
-      real(8) :: p
-      integer, allocatable :: iwork(:)
-      real(8), allocatable :: rwork(:)
-      complex(8), allocatable :: cpy(:,:), work(:)
-    
-      m = size( mat, 1)
-      n = size( mat, 2)
-      l = min( m, n)
-      k = max( m, n)
-    
-      if( (m .le. 0) .or. (n .le. 0)) then
-        write(*,'("Error (zsvd): Invalid matrix dimension.")')
-        stop
-      end if
-      if( size( sval, 1) .ne. l) then
-        write(*,'("Error (zsvd): The singular value array must have the dimension of the smaller side of the matrix.")')
-        write(*,*) size( sval, 1), k, m, n
-        stop
-      end if
-      if( (size( lsvec, 1) .ne. m) .or. (size( lsvec, 2) .ne. m)) then
-        write(*,'("Error (zsvd): The left singular vector array must have the dimension of the first side of the matrix.")')
-        stop
-      end if
-      if( (size( rsvec, 1) .ne. n) .or. (size( rsvec, 2) .ne. n)) then
-        write(*,'("Error (zsvd): The right singular vector array must have the dimension of the second side of the matrix.")')
-        stop
-      end if
-
-      allocate( cpy( m, n))
-      allocate( iwork( 8*l))
-      allocate( work(1))
-      allocate( rwork( max( 5*l*(l+1), 2*l*(l+k) + l)))
-
-      cpy = mat
-      call zgesdd( 'a', m, n, cpy, m, sval, lsvec, m, rsvec, n, work, -1, rwork, iwork, info)
-      lwork = nint( dble( work(1)))
-      deallocate( work)
-      allocate( work( lwork))
-      call zgesdd( 'a', m, n, cpy, m, sval, lsvec, m, rsvec, n, work, lwork, rwork, iwork, info)
-      if( info .ne. 0) then
-        write(*,'("Error (zsvd): SVD failed. ZGESDD returned info ",i4)') info
-        stop
-      end if
-
-      ! We fix the phases such that the first column of rsvec is real and non-negative.
-      ! Note that the routine returns the conjugate transpose of the right singular vectors.
-      do k = 1, l
-        p = atan2( aimag( rsvec(k,1)), dble( rsvec(k,1)))
-        lsvec(:,k) = cmplx( cos( p),  sin( p), 8)*lsvec(:,k)
-        rsvec(k,:) = cmplx( cos( p), -sin( p), 8)*rsvec(k,:)
-      end do
-
-      deallocate( cpy, iwork, rwork, work)
-      return
-    end subroutine zsvd
-
-    ! SVD of real matrix
-    subroutine rsvd( mat, sval, lsvec, rsvec)
-      real(8), intent( in) :: mat(:,:)
-      real(8), intent( out) :: sval(:)
-      real(8), intent( out) :: lsvec(:,:), rsvec(:,:)
-
-      integer :: m, n, l, k, info, lwork
-      integer, allocatable :: iwork(:)
-      real(8), allocatable :: cpy(:,:), work(:)
-    
-      m = size( mat, 1)
-      n = size( mat, 2)
-      l = min( m, n)
-      k = max( m, n)
-    
-      if( (m .le. 0) .or. (n .le. 0)) then
-        write(*,'("Error (rsvd): Invalid matrix dimension.")')
-        stop
-      end if
-      if( size( sval, 1) .ne. l) then
-        write(*,'("Error (rsvd): The singular value array must have the dimension of the smaller side of the matrix.")')
-        stop
-      end if
-      if( (size( lsvec, 1) .ne. m) .or. (size( lsvec, 2) .ne. m)) then
-        write(*,'("Error (rsvd): The left singular vector array must have the dimension of the first side of the matrix.")')
-        stop
-      end if
-      if( (size( rsvec, 1) .ne. n) .or. (size( rsvec, 2) .ne. n)) then
-        write(*,'("Error (rsvd): The right singular vector array must have the dimension of the second side of the matrix.")')
-        stop
-      end if
-
-      allocate( cpy, source=mat)
-      allocate( iwork( 8*l))
-      allocate( work(1))
-
-      cpy = mat
-      call dgesdd( 'a', m, n, cpy, m, sval, lsvec, m, rsvec, n, work, -1, iwork, info)
-      lwork = nint( work(1))
-      deallocate( work)
-      allocate( work( lwork))
-      call dgesdd( 'a', m, n, cpy, m, sval, lsvec, m, rsvec, n, work, lwork, iwork, info)
-      if( info .ne. 0) then
-        write(*,'("Error (rsvd): SVD failed. DGESDD returned info ",i4)') info
-        stop
-      end if
-
-      deallocate( cpy, iwork, work)
-      return
-    end subroutine rsvd
-
-    !***********************************
     !           PSEUDO INVERSE
     !***********************************
     ! compute pseudo inverse of complex matrix
@@ -501,7 +386,7 @@ module m_linalg
       allocate( sval( l))
       allocate( lsvec( m, m), rsvec( n, n))
     
-      call zsvd( mat, sval, lsvec, rsvec)
+      call svd_divide_conquer( mat, sval, lsvec, rsvec)
       eps = dlamch( 'e')*dble( max( m, n))*maxval( sval)
     
       if( m .ge. n) then
@@ -552,7 +437,7 @@ module m_linalg
       allocate( sval( l))
       allocate( lsvec( m, m), rsvec( n, n))
     
-      call rsvd( mat, sval, lsvec, rsvec)
+      call svd_divide_conquer( mat, sval, lsvec, rsvec)
       eps = dlamch( 'e')*dble( max( m, n))*maxval( sval)
     
       if( m .ge. n) then

@@ -4,23 +4,30 @@ module math_utils
   use, intrinsic :: ISO_C_BINDING
 
   use precision, only: sp, dp
-  use constants, only: pi, zi
+  use constants, only: pi, zzero, zone, zi
   use asserts, only: assert
 
   implicit none
 
   private
-  public :: all_close, &
+  public :: identity_real_dp, &
+            identity_complex_dp, &
+            all_close, &
             all_zero, &
             diag, &
             is_square, &
             is_hermitian, &
+            is_unitary, &
             kronecker_product, &
             determinant, &
             permanent, &
             mod1, &
             shuffle_vector, &
             mask_vector
+
+
+  !> default tolerance
+  real(dp), parameter :: default_tol = 1e-10
 
 
   !>  Return the diagonal of a 2D array 
@@ -41,6 +48,13 @@ module math_utils
   end interface is_hermitian
 
 
+  !> Check if a matrix is unitary (orthogonal), such that
+  !> \[ 
+  !>    \mathbf{A}^{-1} = \mathbf{A}^\dagger.
+  !> \]
+  interface is_unitary 
+    module procedure is_orthogonal_real_dp, is_unitary_complex_dp
+  end interface is_unitary
 
   !>  Check if two arrays are close, within an absolute tolerance 
   interface all_close
@@ -50,14 +64,12 @@ module math_utils
   end interface all_close
 
 
-
   !>  Check if an array is zero, to within an absolute tolerance 
   interface all_zero
-  module procedure all_zero_rank0_real_dp, all_zero_rank1_real_dp, &
-                 & all_zero_rank2_real_dp, all_zero_rank0_complex_dp,&
-                 & all_zero_rank1_complex_dp, all_zero_rank2_complex_dp
+    module procedure all_zero_rank0_real_dp, all_zero_rank1_real_dp, &
+                   & all_zero_rank2_real_dp, all_zero_rank0_complex_dp,&
+                   & all_zero_rank1_complex_dp, all_zero_rank2_complex_dp
   end interface all_zero
-
 
 
   !> Calculate the Kronecker product for three vectors
@@ -99,6 +111,45 @@ module math_utils
 
 
 contains
+
+
+! identity_real_dp, identity_complex_dp
+! 
+! Setup identity matrix
+  
+  !> Setup real identity matrix.
+  function identity_real_dp(N) result(identity)
+    !> Dimension of the identity
+    integer, intent(in) :: N 
+
+    real(dp), allocatable :: identity(:, :)
+
+    integer :: i
+
+    allocate(identity(N, N), source=0.0_dp)
+
+    do i=1, N 
+      identity(i, i) = 1.0_dp 
+    end do 
+  end function identity_real_dp
+
+
+  !> Setup complex identity matrix.
+  function identity_complex_dp(N) result(identity)
+    !> Dimension of the identity
+    integer, intent(in) :: N 
+
+    complex(dp), allocatable :: identity(:, :)
+
+    integer :: i
+
+    allocate(identity(N, N), source=zzero)
+
+    do i=1, N 
+      identity(i, i) = zone
+    end do 
+  end function identity_complex_dp
+
 
 ! diag
 !
@@ -163,15 +214,13 @@ contains
   end function diag_complex_dp
   
 
-
 ! is_square
 !
 ! Check if a matrix is suqare
 
   !> Check if a real matrix is square
   function is_square_real_dp(a) result(square)
-    
-    !> 2D matrix
+    !> Input matrix
     real(dp), intent(in) :: a(:, :) 
     !> Is the matrix square 
     logical :: square 
@@ -181,8 +230,7 @@ contains
 
   !> Check if a complex matrix is square
   function is_square_complex_dp(a) result(square)
-    
-    !> 2D matrix
+    !> Input matrix
     complex(dp), intent(in) :: a(:, :) 
     !> Is the matrix square 
     logical :: square 
@@ -192,8 +240,7 @@ contains
 
   !> Check if a integer matrix is square
   function is_square_integer(a) result(square)
-
-    !> 2D matrix
+    !> Input matrix
     integer, intent(in) :: a(:, :) 
     !> Is the matrix square 
     logical :: square 
@@ -201,36 +248,97 @@ contains
   end function
 
 
-
 ! is_hermitian
 !
 ! Check if a matrix is hermitian or symmetric respectively.
 
   !> Check if a real matrix is symmetric.
-  logical function is_symmetric_real_dp(A)
+  logical function is_symmetric_real_dp(A, tol)
     !> Matrix to check for
-    real(dp) :: A(:, :)
+    real(dp), intent(in) :: A(:, :)
+    !> Tolerance for defining equiv
+    real(dp), intent(in), optional :: tol
 
+    real(dp) tol_ 
+
+    tol_ = default_tol
+    if(present(tol)) tol_ = tol
+ 
     if (.not. is_square(A)) then
       is_symmetric_real_dp = .false.
     else
-      is_symmetric_real_dp = all_close(A, transpose(A))
+      is_symmetric_real_dp = all_close(A, transpose(A), tol_)
     end if
   end function is_symmetric_real_dp
 
 
   !> Check if a complex matrix is hermitian.
-  logical function is_hermitian_complex_dp(A)
+  logical function is_hermitian_complex_dp(A, tol)
     !> Matrix to check for
-    complex(dp) :: A(:, :)
+    complex(dp), intent(in) :: A(:, :)
+    !> Tolerance for defining equiv
+    real(dp), intent(in), optional :: tol
+
+    real(dp) tol_ 
+
+    tol_ = default_tol
+    if(present(tol)) tol_ = tol
 
     if (.not. is_square(A)) then
       is_hermitian_complex_dp = .false.
     else
-      is_hermitian_complex_dp = all_close(A, transpose(conjg(A)))
+      is_hermitian_complex_dp = all_close(A, transpose(conjg(A)), tol_)
     end if
   end function is_hermitian_complex_dp
 
+! is_unitary
+!
+! Check if a matrix is unitary or orthogonal respectively.
+
+  !> Check if a real matrix is orthognal
+  logical function is_orthogonal_real_dp(A, tol)
+    !> Matrix to check for
+    real(dp), intent(in) :: A(:, :)
+    !> Tolerance for defining equiv
+    real(dp), intent(in), optional :: tol
+
+    real(dp) tol_
+    real(dp), allocatable :: A_A_T(:, :)
+
+    tol_ = default_tol
+    if(present(tol)) tol_ = tol
+
+    if(size(A, dim=1) <= size(A, dim=2)) then
+      A_A_T = matmul(A, transpose(A))
+    else
+      A_A_T = matmul(transpose(A), A)
+    end if
+
+    is_orthogonal_real_dp = all_close(A_A_T, identity_real_dp(size(A_A_T, dim=1)), tol_)
+  end function is_orthogonal_real_dp
+
+
+  !> Check if a complex matrix is unitary
+  logical function is_unitary_complex_dp(A, tol)
+    !> Matrix to check for
+    complex(dp), intent(in) :: A(:, :)
+    !> Tolerance for defining equiv
+    real(dp), intent(in), optional :: tol
+
+    real(dp) tol_
+    real(dp), allocatable :: A_A_T(:, :)
+
+    tol_ = default_tol
+    if(present(tol)) tol_ = tol
+
+    if(size(A, dim=1) <= size(A, dim=2)) then
+      A_A_T = matmul(A, transpose(conjg(A)))
+    else
+      A_A_T = matmul(transpose(conjg(A)), A)
+    end if
+
+    is_unitary_complex_dp = all_close(A_A_T, identity_real_dp(size(A_A_T, dim=1)), tol_)
+  end function is_unitary_complex_dp
 
 
 ! all_close
@@ -240,25 +348,21 @@ contains
 
   !> Check if two real scalars \( a \) and \( b \) are equal,
   !> where equal is defined as \( |a - b| \leq abs\_tol \).
-  logical function all_close_rank0_real_dp(a, b, abs_tolerance)
-
+  logical function all_close_rank0_real_dp(a, b, tol)
     !> Input array 
     real(dp), intent(in) :: a
     !> Reference array
     real(dp), intent(in) :: b
     !> Absolute tolerance for input and reference to be considered equal 
-    real(dp), intent(in), optional :: abs_tolerance
+    real(dp), intent(in), optional :: tol
 
     !> Local absolute tolerance 
-    real(dp) :: abs_tol
+    real(dp) :: tol_
 
-    if (present(abs_tolerance)) then
-      abs_tol = abs_tolerance
-    else
-      abs_tol = 1.e-10_dp
-    end if
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
 
-    all_close_rank0_real_dp = abs(a - b) <= abs_tol
+    all_close_rank0_real_dp = abs(a - b) <= tol_
 
   end function all_close_rank0_real_dp
 
@@ -267,29 +371,25 @@ contains
   !> are equal, where equal is defined as
   !> \( |a_i - b_i| \leq abs\_tol,  \forall i \).
   !> As such, the tolerance is checked elementwise.
-  logical function all_close_rank1_real_dp(a, b, abs_tolerance)
+  logical function all_close_rank1_real_dp(a, b, tol)
 
     !> Input array 
     real(dp), intent(in) :: a(:)
     !> Reference array
     real(dp), intent(in) :: b(:)
     !> Absolute tolerance for input and reference to be considered equal 
-    real(dp), intent(in), optional :: abs_tolerance
+    real(dp), intent(in), optional :: tol
 
     !> Local absolute tolerance 
-    real(dp) :: abs_tol
+    real(dp) :: tol_
 
     call assert(size(a) == size(b), &
       & 'all_close_rank1_real_dp: size of input arrays differs.')
+    
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
 
-    if (present(abs_tolerance)) then
-      abs_tol = abs_tolerance
-    else
-      abs_tol = 1.e-10_dp
-    end if
-
-
-    all_close_rank1_real_dp = all(abs(a - b) <= abs_tol)
+    all_close_rank1_real_dp = all(abs(a - b) <= tol_)
 
   end function all_close_rank1_real_dp
 
@@ -298,17 +398,17 @@ contains
   !> are equal, where equal is defined as
   !> \( |a_{ij} - b_{ij}| \leq abs\_tol,  \forall i,j \).
   !> As such, the tolerance is checked elementwise.
-  logical function all_close_rank2_real_dp(a, b, abs_tolerance)
+  logical function all_close_rank2_real_dp(a, b, tol)
 
     !> Input array 
     real(dp), intent(in) :: a(:,:)
     !> Reference array
     real(dp), intent(in) :: b(:,:)
     !> Absolute tolerance for input and reference to be considered equal 
-    real(dp), intent(in), optional :: abs_tolerance
+    real(dp), intent(in), optional :: tol
 
     !> Local absolute tolerance 
-    real(dp) :: abs_tol
+    real(dp) :: tol_
 
     call assert(size(a) == size(b), &
       & 'all_close_rank2_real_dp: size of input arrays differs.')
@@ -316,13 +416,10 @@ contains
     call assert(all(shape(a) == shape(b)), &
       & 'all_close_rank2_real_dp: shape of input arrays differs.')
 
-    if (present(abs_tolerance)) then
-      abs_tol = abs_tolerance
-    else
-      abs_tol = 1.e-10_dp
-    end if
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
 
-    all_close_rank2_real_dp = all(abs(a - b) <= abs_tol)
+    all_close_rank2_real_dp = all(abs(a - b) <= tol_)
 
   end function all_close_rank2_real_dp
 
@@ -334,25 +431,22 @@ contains
   !>    |a_i| = \sqrt{ a_i \cdot {a_i}^*}.
   !> \]
   !> As such, the tolerance is a real value.
-  logical function all_close_rank0_complex_dp(a, b, abs_tolerance)
+  logical function all_close_rank0_complex_dp(a, b, tol)
 
     !> Input array 
     complex(dp), intent(in) :: a
     !> Reference array
     complex(dp), intent(in) :: b
     !> Absolute tolerance for input and reference to be considered equal 
-    real(dp), intent(in), optional :: abs_tolerance
+    real(dp), intent(in), optional :: tol
 
     !> Local absolute tolerance 
-    real(dp) :: abs_tol
+    real(dp) :: tol_
 
-    if (present(abs_tolerance)) then
-      abs_tol = abs_tolerance
-    else
-      abs_tol = 1.e-10_dp
-    end if
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
 
-    all_close_rank0_complex_dp = abs(a - b) <= abs_tol
+    all_close_rank0_complex_dp = abs(a - b) <= tol_
 
   end function all_close_rank0_complex_dp
 
@@ -366,28 +460,25 @@ contains
   !> \]
   !> As such, the tolerance is a real value and is 
   !> checked elementwise.
-  logical function all_close_rank1_complex_dp(a, b, abs_tolerance)
+  logical function all_close_rank1_complex_dp(a, b, tol)
 
     !> Input array 
     complex(dp), intent(in) :: a(:)
     !> Reference array
     complex(dp), intent(in) :: b(:)
     !> Absolute tolerance for input and reference to be considered equal 
-    real(dp), intent(in), optional :: abs_tolerance
+    real(dp), intent(in), optional :: tol
 
     !> Local absolute tolerance 
-    real(dp) :: abs_tol
+    real(dp) :: tol_
 
     call assert(size(a) == size(b), &
       & 'all_close_rank1_complex_dp: size of input arrays differs.')
 
-    if (present(abs_tolerance)) then
-      abs_tol = abs_tolerance
-    else
-      abs_tol = 1.e-10_dp
-    end if
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
 
-    all_close_rank1_complex_dp = all(abs(a - b) <= abs_tol)
+    all_close_rank1_complex_dp = all(abs(a - b) <= tol_)
 
   end function all_close_rank1_complex_dp
 
@@ -401,17 +492,17 @@ contains
   !> \]
   !> As such, the tolerance is a real value and is 
   !> checked elementwise.
-  logical function all_close_rank2_complex_dp(a, b, abs_tolerance)
+  logical function all_close_rank2_complex_dp(a, b, tol)
 
     !> Input array 
     complex(dp), intent(in) :: a(:,:)
     !> Reference array
     complex(dp), intent(in) :: b(:,:)
     !> Absolute tolerance for input and reference to be considered equal 
-    real(dp), intent(in), optional :: abs_tolerance
+    real(dp), intent(in), optional :: tol
 
     !> Local absolute tolerance 
-    real(dp) :: abs_tol
+    real(dp) :: tol_
 
     call assert(size(a) == size(b), &
       & 'all_close_rank2_complex_dp: size of input arrays differs.')
@@ -419,16 +510,12 @@ contains
     call assert(all(shape(a) == shape(b)), &
       & 'all_close_rank2_complex_dp: shape of input arrays differs.')
 
-    if (present(abs_tolerance)) then
-      abs_tol = abs_tolerance
-    else
-      abs_tol = 1.e-10_dp
-    end if
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
 
-    all_close_rank2_complex_dp = all(abs(a - b) <= abs_tol)
+    all_close_rank2_complex_dp = all(abs(a - b) <= tol_)
 
   end function all_close_rank2_complex_dp
-
 
 
 ! all_zero
@@ -442,23 +529,20 @@ contains
   !>    |a| = \sqrt{ a \cdot {a}^*}.
   !> \]
   !> As such, the tolerance is a real value.
-  logical function all_zero_rank0_complex_dp(a, abs_tolerance)
+  logical function all_zero_rank0_complex_dp(a, tol)
 
     !> Input array 
     complex(dp), intent(in) :: a
     !> Absolute tolerance for input and reference to be considered equal 
-    real(dp), intent(in), optional :: abs_tolerance
+    real(dp), intent(in), optional :: tol
 
     !> Local absolute tolerance 
-    real(dp) :: abs_tol
+    real(dp) :: tol_
 
-    if (present(abs_tolerance)) then
-      abs_tol = abs_tolerance
-    else
-      abs_tol = 1.e-10_dp
-    end if
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
 
-    all_zero_rank0_complex_dp = abs(a ) <= abs_tol
+    all_zero_rank0_complex_dp = abs(a ) <= tol_
 
   end function all_zero_rank0_complex_dp
 
@@ -471,23 +555,20 @@ contains
   !> \]
   !> As such, the tolerance is a real value and is 
   !> checked elementwise.
-  logical function all_zero_rank1_complex_dp(a, abs_tolerance)
+  logical function all_zero_rank1_complex_dp(a, tol)
 
     !> Input array 
     complex(dp), intent(in) :: a(:)
     !> Absolute tolerance for input and reference to be considered equal 
-    real(dp), intent(in), optional :: abs_tolerance
+    real(dp), intent(in), optional :: tol
 
     !> Local absolute tolerance 
-    real(dp) :: abs_tol
+    real(dp) :: tol_
 
-    if (present(abs_tolerance)) then
-      abs_tol = abs_tolerance
-    else
-      abs_tol = 1.e-10_dp
-    end if
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
 
-    all_zero_rank1_complex_dp = all(abs(a) <= abs_tol)
+    all_zero_rank1_complex_dp = all(abs(a) <= tol_)
 
   end function all_zero_rank1_complex_dp
 
@@ -500,24 +581,21 @@ contains
   !> \]
   !> As such, the tolerance is a real value and is 
   !> checked elementwise.
-  logical function all_zero_rank2_complex_dp(a, abs_tolerance)
+  logical function all_zero_rank2_complex_dp(a, tol)
 
     !> Input array 
     complex(dp), intent(in) :: a(:,:)
     !> Absolute tolerance for input and reference to be considered equal 
 
-    real(dp), intent(in), optional :: abs_tolerance
+    real(dp), intent(in), optional :: tol
 
     !> Local absolute tolerance 
-    real(dp) :: abs_tol
+    real(dp) :: tol_
 
-    if (present(abs_tolerance)) then
-      abs_tol = abs_tolerance
-    else
-      abs_tol = 1.e-10_dp
-    end if
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
 
-    all_zero_rank2_complex_dp = all(abs(a) <= abs_tol)
+    all_zero_rank2_complex_dp = all(abs(a) <= tol_)
 
   end function all_zero_rank2_complex_dp
 
@@ -525,23 +603,20 @@ contains
    
   !> Check if a real scalar \(a \) is zero, where zero 
   !> is defined as \( |a| \leq abs\_tol \).
-  logical function all_zero_rank0_real_dp(a, abs_tolerance)
+  logical function all_zero_rank0_real_dp(a, tol)
 
     !> Input array 
     real(dp), intent(in) :: a
     !> Absolute tolerance for input to be considered equal 
-    real(dp), intent(in), optional :: abs_tolerance
+    real(dp), intent(in), optional :: tol
 
     !> Local absolute tolerance 
-    real(dp) :: abs_tol
+    real(dp) :: tol_
 
-    if (present(abs_tolerance)) then
-      abs_tol = abs_tolerance
-    else
-      abs_tol = 1.e-10_dp
-    end if
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
 
-    all_zero_rank0_real_dp = abs(a) <= abs_tol
+    all_zero_rank0_real_dp = abs(a) <= tol_
 
   end function all_zero_rank0_real_dp
 
@@ -549,23 +624,20 @@ contains
   !> Check if a real rank-1 array \( \mathbf{a} \) is zero, 
   !> where zero  is defined as \( |a_i| \leq abs\_tol,  \forall i \).
   !> As such, the tolerance is checked elementwise.
-  logical function all_zero_rank1_real_dp(a, abs_tolerance)
+  logical function all_zero_rank1_real_dp(a, tol)
 
     !> Input array 
     real(dp), intent(in) :: a(:)
     !> Absolute tolerance for input to be considered equal 
-    real(dp), intent(in), optional :: abs_tolerance
+    real(dp), intent(in), optional :: tol
 
     !> Local absolute tolerance 
-    real(dp) :: abs_tol
+    real(dp) :: tol_
 
-    if (present(abs_tolerance)) then
-      abs_tol = abs_tolerance
-    else
-      abs_tol = 1.e-10_dp
-    end if
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
 
-    all_zero_rank1_real_dp = all(abs(a) <= abs_tol)
+    all_zero_rank1_real_dp = all(abs(a) <= tol_)
 
   end function all_zero_rank1_real_dp
 
@@ -573,26 +645,22 @@ contains
   !> Check if a real rank-2 array \( \mathbf{a} \) is zero, 
   !> where zero  is defined as \( |a_{ij}| \leq abs\_tol,  \forall i,j \).
   !> As such, the tolerance and is checked elementwise.
-  logical function all_zero_rank2_real_dp(a, abs_tolerance)
+  logical function all_zero_rank2_real_dp(a, tol)
 
     !> Input array 
     real(dp), intent(in) :: a(:,:)
     !> Absolute tolerance for input to be considered equal 
-    real(dp), intent(in), optional :: abs_tolerance
+    real(dp), intent(in), optional :: tol
 
     !> Local absolute tolerance 
-    real(dp) :: abs_tol
+    real(dp) :: tol_
 
-    if (present(abs_tolerance)) then
-      abs_tol = abs_tolerance
-    else
-      abs_tol = 1.e-10_dp
-    end if
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
 
-    all_zero_rank2_real_dp = all(abs(a) <= abs_tol)
+    all_zero_rank2_real_dp = all(abs(a) <= tol_)
 
   end function all_zero_rank2_real_dp
-
 
 
 ! kronecker_product
@@ -610,7 +678,6 @@ contains
   !>           \end{pmatrix}
   !> \]
   function kronecker_product_real_dp(A, B, C) result(output_vector)
-
     !> first input vector A
     real(dp), intent(in) :: A(:), &
                             !> second input vector B
@@ -646,7 +713,6 @@ contains
   !>     \end{pmatrix}
   !> \]
   function kronecker_product_complex_dp(A, B, C) result(output_vector)
-
     !> first input vector A
     complex(dp), intent(in) :: A(:), &
                                !> second input vector B
@@ -672,22 +738,18 @@ contains
   end function kronecker_product_complex_dp
 
 
-
-
 ! determinant
 !
 ! Calculate the determinant of a matrix. See determinent_laplace for more information.
 
   !> Calculates the determinant of a real matrix using Laplace extension.
   real(dp) function real_determinant_dp(A)
-
     !> Matrix for which the determinant is calculated
     real(dp), dimension(:, :), intent(in) :: A
 
     call assert(is_square(A), &
       & message='real_determinant_dp: Input needs to be a square matrix.')
-    real_determinant_dp = real_determinant_laplace_dp(A, -1)
-      
+    real_determinant_dp = real_determinant_laplace_dp(A, -1)      
   end function real_determinant_dp
 
 
@@ -699,8 +761,7 @@ contains
 
     call assert(is_square(A), &
       & message='complex_determinant_dp: Input needs to be a square matrix.')
-    complex_determinant_dp = complex_determinant_laplace_dp(A, -1)
-      
+    complex_determinant_dp = complex_determinant_laplace_dp(A, -1)  
   end function complex_determinant_dp
 
 
@@ -712,10 +773,8 @@ contains
 
     call assert(is_square(A), &
       & message='integer_determinant: Input needs to be a square matrix.')
-    integer_determinant = integer_determinant_laplace(A, -1)
-      
+    integer_determinant = integer_determinant_laplace(A, -1)     
   end function integer_determinant
-
 
 
 ! permanent
@@ -724,43 +783,36 @@ contains
 
   !> Calculates the permanent of a real matrix using Laplace extension.
   real(dp) function real_permanent_dp(A)
-
     !> Matrix for which the permanent is calculated
     real(dp), dimension(:, :), intent(in) :: A
 
     call assert(is_square(A), &
       &  message='real_permanent_dp: Input needs to be a square matrix.')
-    real_permanent_dp = real_determinant_laplace_dp(A, 1)
-      
+    real_permanent_dp = real_determinant_laplace_dp(A, 1)    
   end function real_permanent_dp
 
 
 
   !> Calculates the permanent of a complex matrix using Laplace extension.
   complex(dp) function complex_permanent_dp(A)
-
     !> Matrix for which the permanent is calculated
     complex(dp), dimension(:, :), intent(in) :: A
 
     call assert(is_square(A), &
       &  message='complex_permanent_dp: Input needs to be a square matrix.')
-    complex_permanent_dp = complex_determinant_laplace_dp(A, 1)
-      
+    complex_permanent_dp = complex_determinant_laplace_dp(A, 1)    
   end function complex_permanent_dp
 
 
   !> Calculates the permanent of a integer matrix using Laplace extension.
   integer function integer_permanent(A)
-
     !> Matrix for which the permanent is calculated
     integer, dimension(:, :), intent(in) :: A
 
     call assert(is_square(A), &
       &  message='integer_permanent: Input needs to be a square matrix.')
-    integer_permanent = integer_determinant_laplace(A, 1)
-      
+    integer_permanent = integer_determinant_laplace(A, 1)     
   end function integer_permanent
-
 
 
 ! determinant_laplace
@@ -776,7 +828,6 @@ contains
   !> This implementation is based on the reference found at 
   !> [rossetta code](http://rosettacode.org/wiki/Determinant_and_permanent#Fortran)
   recursive function real_determinant_laplace_dp(a, permanent) result(accumulation)
-
     !> Matrix for which the determinant is calculated
     real(dp), dimension(:, :), intent(in) :: a
 
@@ -784,7 +835,7 @@ contains
     !> Setting permanent to -1 computes the determinant.
     integer, intent(in), optional :: permanent
       
-    ! local variables:
+    
     real(dp), allocatable :: b(:,:)
     integer :: permanent_, i, sgn
     real(dp) :: accumulation
@@ -816,22 +867,18 @@ contains
         sgn = sgn * permanent_
       end do
     end if
-
   end function real_determinant_laplace_dp
 
 
   !> Calculate complex determinant or permanent respectively.
   !> See [[real_determinant_laplace_dp(subroutine)]] for details.
   recursive function complex_determinant_laplace_dp(a, permanent) result(accumulation)
-
     !> Matrix for which the determinant is calculated
     complex(dp), dimension(:, :), intent(in) :: a
-
     !> Setting permanent to 1 computes the permanent.
     !> Setting permanent to -1 computes the determinant.
     integer, intent(in), optional :: permanent
       
-    ! local variables:
     complex(dp), allocatable :: b(:,:)
     integer :: permanent_, i, sgn
     complex(dp) :: accumulation
@@ -863,22 +910,18 @@ contains
         sgn = sgn * permanent_
       end do
     end if
-
   end function complex_determinant_laplace_dp
 
 
   !> Calculate integer determinant or permanent respectively.
   !> See [[real_determinant_laplace_dp(subroutine)]] for details.
   recursive function integer_determinant_laplace(a, permanent) result(accumulation)
-
     !> Matrix for which the determinant is calculated
     integer, dimension(:, :), intent(in) :: a
-
     !> Setting permanent to 1 computes the permanent.
     !> Setting permanent to -1 computes the determinant.
     integer, intent(in), optional :: permanent
-      
-    ! local variables:
+       
     integer, allocatable :: b(:,:)
     integer :: permanent_, i, sgn
     integer :: accumulation
@@ -910,9 +953,7 @@ contains
         sgn = sgn * permanent_
       end do
     end if
-
   end function integer_determinant_laplace
-
 
 
 ! mod1
@@ -922,7 +963,6 @@ contains
   !>   mod1(3,2) = 1
   !>   mod1(4,2) = 2
   integer function mod1(M, N)
-
     !> integer to translate
     integer, intent(in) :: M
     !> length of the cycle
@@ -945,13 +985,11 @@ contains
   end function
 
 
-
 ! shuffle_vector
 
   !> Return an integer vector of length N with all numbers between 1 and N randomly ordered. 
   !> The result can be used to shuffle a vector.
   function shuffle_vector(N) result (p)
-
     ! input/output
     !> length of the permutation
     integer, intent(in) :: N
@@ -982,8 +1020,6 @@ contains
   !> For example:
   !>   [1, 3] = mask_vector([1, 2, 3, 4], [.true., .false., .true., .false.])
   function mask_vector(vector_in, mask) result(vector_out)
-
-    implicit none
     !> Input vector
     complex(dp), intent(in) :: vector_in(:)
     !> Mask vector
@@ -1006,7 +1042,6 @@ contains
         j = j + 1
       end if
     end do
-
   end function mask_vector
 
 end module math_utils
