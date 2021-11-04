@@ -2,11 +2,13 @@
 .NOTPARALLEL:
 	
 SOURCEDIRS=	\
+    ../../src/math \
+	../../src/testframework \
 	../../src/ \
-  ../../src/lapack_wrappers \
-  ../../src/lapack_wrappers/f95_interfaces \
-  ../../src/lapack_wrappers/multiplication \
-  ../../src/lapack_wrappers/decomposition \
+    ../../src/lapack_wrappers \
+    ../../src/lapack_wrappers/f95_interfaces \
+    ../../src/lapack_wrappers/multiplication \
+    ../../src/lapack_wrappers/decomposition \
 	../../src/src_advanced/ \
 	../../src/constants \
 	../../src/src_eigensystem/ \
@@ -26,6 +28,8 @@ SOURCEDIRS=	\
 	../../src/math \
 	../../src/src_mixing/ \
 	../../src/src_mpi/ \
+	../../src/src_mpi/routines/ \
+	../../src/src_mpi/serial/ \
 	../../src/src_optics/ \
 	../../src/src_phonon/ \
 	../../src/src_raman/ \
@@ -40,7 +44,7 @@ SOURCEDIRS=	\
     ../../src/src_xs/ \
     ../../src/src_xs/modtetra \
     ../../src/src_xs/src_rttddft \
-    ../../src/wavefunctions 
+    ../../src/wavefunctions
 
 GeneratedFiles = ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90
 

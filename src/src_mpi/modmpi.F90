@@ -16,187 +16,110 @@
 !   Added subroutines/functions to documentation scheme. 2016 (Aurich)
 !   Adapted partitioning functions to handle cases with more processes than elements. 2016 (Aurich)
 !   Added proc groups functionality. 2016 (Aurich)
-!
-! TODO(Alex) Issue #23. MPI wrappers are a mix of types and global variables, the latter of which isn't
-! required as one can always query MPI variables with MPI calls, there is no overload set for compilation
-! in serial, and the routines don't follow single responsibility.
-! This needs refactoring if we hope to use more complex MPI distribution schemes.
 
+! TODO(Alex) Issue #23.
+! * MPI wrappers are a mix of types and global variables, the latter of which isn't
+!   required as one can always query MPI variables with MPI calls.
+! * There is no overload set for compilation in serial.
+! * Routines don't follow single responsibility.
+! * Many routines use if statements to determine type: This should be done at compile-time with overloads
+!   and a generic interface.
+! * Preprocessor variables are not obfuscated.
+
+! This needs refactoring if we hope to use more complex MPI distribution schemes.
+! The approach should be to gradually migrate the routines out of this module and into routines/
+! with serial overloads in serial/
+
+!> Main exciting MPI module, in the process of being depreciated
 module modmpi
   use trace, only: trace_back
 #ifdef MPI
   use mpi
 #endif
 
+  use exciting_mpi, only: mpiinfo
   implicit none
 
-  ! MPI info type
-  ! Contains basic information regarding
-  ! a mpi communicator
-  type mpiinfo
-    integer(4) :: rank
-    integer(4) :: procs
-    integer :: comm
-    integer(4) :: ierr
-    integer(4) :: root = 0   !! Rank of root process
-    logical :: is_root       !! Indicates of the process is root
-  end type mpiinfo
-
-  ! Groups of MPI communicators
-  ! connected via inter-communicator
+  ! TODO(Alex) Issue #23. Type for refactoring
+  !> Groups of MPI communicators connected via inter-communicator
   type procgroup
-    ! Total number of process groups
-    ! this group belongs to
+    !> Total number of process groups this group belongs to
     integer(4) :: ngroups
-    ! Group id
+    !> Group id
     integer(4) :: id
-    ! MPI information for current
-    ! process group
+    !> MPI information for current process group
     type(mpiinfo) :: mpi
-    ! Inter-groups communicator
+    !> Inter-groups communicator
     type(mpiinfo) :: mpiintercom
   end type procgroup
 
 
-  ! TODO(Alex) Issue #23. This is a bad idea. Defeats the point of encapsulating an instantiation of the
-  ! MPI environment. All MPI variables can be querried with MPI subroutines. Benjamin probably did it
-  ! because it was the only way he could get the object passed to BSE without a big refactor of
-  ! subroutine APIs
-  ! mpiinfo for global scope
+  ! TODO(Alex) Issue #23. Legacy data for refactoring
+  !> mpiinfo with global scope. Instantiating a global instance of the MPI env is pointless
   type(mpiinfo) :: mpiglobal
 
-  ! Nodes as procgroup
+  !> Nodes as procgroup
   type(procgroup) :: mpinodes
-
-  !! Legacy code:
-  ! Variables (contained in mpiglobal type)
+  !> Variables (contained equivalently contained in mpiglobal)
   integer(4) :: rank
   integer(4) :: procs
   integer(4) :: ierr
-  ! Variables (contained in mpinodes)
-  integer(4) :: firstinnode_comm
 
-  ! Some parts use these
+  !> Variables (contained in mpinodes)
+  integer(4) :: firstinnode_comm
+  !> Some parts use these
   logical :: splittfile, firstinnode
 
-  contains
 
-    !> Terminate exciting if condition is false
-    subroutine terminate_if_false(condition, message)
-      use iso_fortran_env, only: error_unit
-      !> Error condition, need to be false to terminate the program and print the message
-      logical, intent(in) :: condition
-      !> Error message that is printed to the terminal if present and condition is false.
-      character(*), optional, intent(in) :: message
+contains
 
-      character(256) :: error_message
+   !> Initialise a global instance of the MPI environment, mpiglobal
+   !>
+   !> Also initialises global legacy variables: procs, rank. These should be scrapped.
+  subroutine initmpi()
+    ! Modern exciting wrapper for mpi_init()
+    call mpiglobal%init()
 
-      error_message = 'Error'
-      if (present(message)) then
-        error_message = error_message//': '//trim(adjustl(message))
-      end if
+   ! Set legacy globals, because who knows where they're used
+    procs = mpiglobal%procs
+    rank = mpiglobal%rank
+    ierr = mpiglobal%ierr
 
-      if(.not. condition) then
-        write(error_unit, *)
-        write(error_unit, *) trim(error_message)
-        write(error_unit, *)
-        call trace_back()
-        call terminate()
-      end if
-    end subroutine terminate_if_false
+    ! Make communicators for intra-and inter-processor (node) communication.
+    call setup_node_groups()
+    ! Each rank writes its own file (use in parts of GS and XS)
+    splittfile = .true.
 
-    !+++++++++++++++++++++++++++++++++++++++++!
-    ! Initialization and finalization  of MPI !
-    !+++++++++++++++++++++++++++++++++++++++++!
-    !BOP
-    ! !ROUTINE: initmpi
-    ! !INTERFACE:
-    subroutine initmpi
-    ! !DESCRIPTION:
-    !   Initializes MPI and sets procs and rank numbers.
-    !   Sets splittfile and initializes the first in node
-    !   list. Or if -DMPI is not used sets procs=1 and rank=1
-    !   and splittfile=.false.
-    !
-    ! !REVISION HISTORY:
-    !   Added to documentation scheme (Aurich)
-    !EOP
-    !BOC
-      integer(4) :: ierr
-#ifdef MPI
-      ! Initialize MPI and get number of processes
-      ! and current rank
-      call mpi_init(ierr)
-      call mpi_comm_size(mpi_comm_world, procs, ierr)
-      call mpi_comm_rank(mpi_comm_world, rank, ierr)
-
-      ! Set global mpiinfo type
-      mpiglobal%procs = procs
-      mpiglobal%comm = mpi_comm_world    
-      mpiglobal%rank = rank
-      mpiglobal%ierr = ierr
-      mpiglobal%is_root = mpiglobal%rank == mpiglobal%root
-
-      ! Make communicators for
-      ! intra- and inter-processor (node) communication.
-      call setup_node_groups
-
-      ! Each rank writes its own file (use in pars of GS and XS)
-      splittfile = .true.
-
-#endif
+    ! TODO(Alex) Issue 26. How should this behave for processes = 1?
 #ifndef MPI
-      procs = 1
-      rank = 0
-
-      mpiglobal%procs = procs
-      mpiglobal%rank = rank
-      mpiglobal%comm = 0
-      mpiglobal%is_root = .true.
-
-      splittfile = .false.
-      firstinnode = .true.
+    splittfile = .false.
+    firstinnode = .true.
 #endif
-    end subroutine initmpi
-    !EOC
+ end subroutine initmpi
 
-    !BOP
-    ! !ROUTINE: finitmpi
-    ! !INTERFACE:
-    subroutine finitmpi
-    ! !DESCRIPTION:
-    !   If -DMPI calls {\tt mpi\_finalize}, after wainting
-    !   for the processes of mpiglobal, mpinodes%mpi and mpinodes%mpiintercom
-    !   to finish communicating.
-    !
-    !   Note: For other communicators you need to make shure that they finished
-    !         communication.
-    !
-    ! !REVISION HISTORY:
-    !   Added to documentation scheme. (Aurich)
-    !   Modified to use new mpi types. (Aurich)
-    !EOP
-    !BOC
-      integer(4) :: ierr
-      logical :: flag
 
-      ! Wait for everyone to reach this point
-      call barrier(mpiglobal)
+  !> Finalize the MPI environment
+  !> Routine waits for all communicators: mpiglobal, mpinodes%mpi and mpinodes%mpiintercom,
+  !> before finalizing.
+  !>
+  !> Note: For other communicators you need to make sure they have finished communication.
+  subroutine finitmpi()
+    integer(4) :: ierr
+    logical :: flag
+
+    ! Wait for everyone to reach this point
+    call barrier(mpiglobal)
 #ifdef MPI
-      call barrier(mpinodes%mpi)
-      if(mpinodes%mpiintercom%rank >= 0) then
-        call barrier(mpinodes%mpiintercom)
-      end if
+    call barrier(mpinodes%mpi)
+    if (mpinodes%mpiintercom%rank >= 0) then
+       call barrier(mpinodes%mpiintercom)
+    end if
+    call mpi_finalize(ierr)
+    if (ierr /= 0) then
+       write (*, *) "Error (finitmpi): ierr =", ierr
+    end if
 #endif
-#ifdef MPI
-      call mpi_finalize(ierr)
-      if(ierr /= 0) then
-        write(*,*) "Error (finitmpi): ierr =",ierr
-      end if
-#endif
-    end subroutine finitmpi
-    !EOC
-
+ end subroutine finitmpi
 
     !> Terminate an MPI environment
     subroutine terminate_mpi_env(mpi_env, message)
@@ -220,6 +143,29 @@ module modmpi
 #endif
     end subroutine terminate_mpi_env
 
+  !> Terminate exciting if condition is false
+  subroutine terminate_if_false(condition, message)
+    use iso_fortran_env, only: error_unit
+    !> Error condition, need to be false to terminate the program and print the message
+    logical, intent(in) :: condition
+    !> Error message that is printed to the terminal if present and condition is false.
+    character(*), optional, intent(in) :: message
+
+    character(256) :: error_message
+
+    error_message = 'Error'
+    if (present(message)) then
+      error_message = error_message//': '//trim(adjustl(message))
+    end if
+
+    if(.not. condition) then
+      write(error_unit, *)
+      write(error_unit, *) trim(error_message)
+      write(error_unit, *)
+      call trace_back()
+      call terminate()
+    end if
+  end subroutine terminate_if_false
 
     !> Terminate global MPI environment
     !>
@@ -1597,42 +1543,42 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
 !> The number of processes must be equally divisible by the number of groups,
 !> else a 2D grid cannot be constructed.
 !>
-!>         
+!>
 subroutine find_2d_grid(n_processes, n_groups, rows_per_group, cols_per_group, group_label)
   use precision, only: dp
 
   !> Number of processes
-  integer, intent(in) :: n_processes                     
+  integer, intent(in) :: n_processes
   !> Number of groups
-  integer, intent(in) :: n_groups                        
+  integer, intent(in) :: n_groups
   !> Number of rows per group
-  integer, intent(out) :: rows_per_group                 
-  !> Number of columns per group 
-  integer, intent(out) :: cols_per_group                 
-  !> Group label for error message 
-  character(len=*), intent(in), optional :: group_label  
+  integer, intent(out) :: rows_per_group
+  !> Number of columns per group
+  integer, intent(out) :: cols_per_group
+  !> Group label for error message
+  character(len=*), intent(in), optional :: group_label
 
-  !> Small, positive tolerance 
+  !> Small, positive tolerance
   real(dp), parameter :: tol = 1.e-8_dp
   !> Processes per group
   integer :: processes_per_group
-  !> Error message 
+  !> Error message
   character(len=100) :: error_message
 
-  !TODO(Alex/Peter) Issue 79. SIRUS Integration. 
+  !TODO(Alex/Peter) Issue 79. SIRUS Integration.
   ! Is this the correct behaviour, or should the routine throw an error?
   if (n_groups < 1) then
-    ! One process per group 
+    ! One process per group
     cols_per_group = 1
     rows_per_group = 1
     return
-  endif 
+  endif
 
   if (mod(n_processes, n_groups) /= 0) then
     error_message =  "Error(find_2d_grid): Number of processes not divisible by number of groups."
     if (present(group_label)) then
       error_message = error_message//" "//trim(adjustl(group_label))
-    endif 
+    endif
     call terminate_mpi_env(mpiglobal, error_message//" groups")
   endif
 
@@ -1646,32 +1592,32 @@ subroutine find_2d_grid(n_processes, n_groups, rows_per_group, cols_per_group, g
 
 end subroutine find_2d_grid
 
- 
+
 !> Distribute n_elements between the total number of processes assigned to the communicator of mpi_env.
 !>
-!> The routine returns the index of the first and last element of a continguous sub-vector, found by 
-!> dividing up a contiguous vector of n_elements amongst N mpi processes. Indexing begins at 1 for 
-!> rank = 0, and ends at n_elements for rank = (n_processes - 1).   
-!>  
-!> If n_elements is divisible by the number of processes (mpi_env%procs), each process gets the same 
-!> number of elements. If n_elements is not evenly divisible by the number of processes, remaining elements 
-!> are distributed amongst the lowest ranks. The total number of elements for a given rank is always 
+!> The routine returns the index of the first and last element of a continguous sub-vector, found by
+!> dividing up a contiguous vector of n_elements amongst N mpi processes. Indexing begins at 1 for
+!> rank = 0, and ends at n_elements for rank = (n_processes - 1).
+!>
+!> If n_elements is divisible by the number of processes (mpi_env%procs), each process gets the same
+!> number of elements. If n_elements is not evenly divisible by the number of processes, remaining elements
+!> are distributed amongst the lowest ranks. The total number of elements for a given rank is always
 !> defined as (last - first + 1).
 !>
-!> If n_elements is less than mpi_env%procsm or n_elements == 0, the surplus processes will be assigned 
+!> If n_elements is less than mpi_env%procsm or n_elements == 0, the surplus processes will be assigned
 !> (first = 0 ; last = -1) such that the body of a do loop using these limits will not be evaluated, and
-!> the total number of elements (last - first + 1) = 0. 
-!>    
-!> The routine will terminate in firstofset if: 
+!> the total number of elements (last - first + 1) = 0.
+!>
+!> The routine will terminate in firstofset if:
 !>   rank < 0            ! MPI rank is negative. Should be impossible with this API.
 !>   n_procs < 1         ! 0 or negative MPI ranks. Should be impossible with this API.
-!>   n_procs < rank + 1  ! Rank exceeds total number of MPI processes assigned to this comm. 
+!>   n_procs < rank + 1  ! Rank exceeds total number of MPI processes assigned to this comm.
 !>                       ! Should be impossible  with this API.
 !
   subroutine distribute_loop(mpi_env, n_elements, first, last)
     !> MPI environment
     type(mpiinfo), intent(in) :: mpi_env
-    !> Total number of elements to distribute. 
+    !> Total number of elements to distribute.
     integer, intent(in) :: n_elements
     !> First index of the current subset.
     integer, intent(out) :: first
@@ -1681,12 +1627,12 @@ end subroutine find_2d_grid
     if (n_elements == 0) then
       first = 0
       last = -1
-      return 
+      return
     endif
 
     first = firstofset(mpi_env%rank, n_elements, mpi_env%procs)
     last = lastofset(mpi_env%rank, n_elements, mpi_env%procs)
-  
+
   end subroutine distribute_loop
 
 
