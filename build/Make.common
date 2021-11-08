@@ -35,6 +35,7 @@ SOURCEDIRS=	\
 	../../src/src_raman/ \
     ../../src/src_rdmft/ \
 	../../src/src_stm/ \
+	../../src/structure \
     ../../src/src_sym/ \
 	../../src/testframework \
     ../../src/src_vdW/ \

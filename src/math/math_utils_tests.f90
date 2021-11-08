@@ -16,7 +16,8 @@ module math_utils_test
                         permanent, &
                         mod1, &
                         shuffle_vector, &
-                        mask_vector
+                        mask_vector, &
+                        round_down
   use mock_arrays, only: real_symmetric_matrix_5x5, &
                          real_orthogonal_matrix_5x5, &
                          real_matrix_5x7, &
@@ -47,7 +48,7 @@ contains
     !> test object
     type(unit_test_type) :: test_report
     !> Number of assertions
-    integer, parameter :: n_assertions = 53
+    integer, parameter :: n_assertions = 62
 
     ! Initialize test object
     call test_report%init(n_assertions, mpiglobal)
@@ -73,6 +74,8 @@ contains
     call test_mod1(test_report)
 
     call test_mask_vector(test_report)
+
+    call test_round_down(test_report)
 
     ! report results
     if (present(kill_on_failure)) then
@@ -441,4 +444,55 @@ contains
   &                    [1.0, -5.0]')
   end subroutine test_mask
 
+    subroutine test_round_down(test_report)
+      !> Our test object
+      type(unit_test_type), intent(inout) :: test_report
+   
+      !scalar positive x; scalar positive n
+      call test_report%assert(all_close(round_down(2123.77963_dp, 3), 2123.779_dp), &
+                              'Test function round_down for scalar with scalar n = 3. &
+                              Expected result: 2123.779')
+   
+      !scalar negative x; scalar positive n
+      call test_report%assert(all_close(round_down(-2123.77963_dp, 3), -2123.779_dp), &
+                              'Test function round_down for negative scalar with positive &
+                              scalar n = 3. Expected result: -2123.779')
+   
+      !scalar positive x; scalar negative n
+      call test_report%assert(all_close(round_down(2123.77963_dp, -2), 2100.0_dp), &
+                              'Test function round_down for positive scalar with negative &
+                              scalar n = -2. Expected result: 2100')
+   
+      !scalar negative x; scalar negative n
+      call test_report%assert(all_close(round_down(-2123.77963_dp, -2), -2100.0_dp), &
+                              'Test function round_down for negative scalar with negative &
+                              scalar n = -2. Expected result: -2100')
+      !scalar positive x; n=0
+      call test_report%assert(all_close(round_down(2123.77963_dp, 0), 2123.0_dp), &
+                              'Test function round_down for positive scalar with &
+                              scalar n = 0. Expected result: 2123.0')
+   
+      !scalar negative x; n=0
+      call test_report%assert(all_close(round_down(-2123.77963_dp, 0), -2123.0_dp), &
+                              'Test function round_down for negative scalar with &
+                              scalar n = 0. Expected result: -2123.0')
+   
+      !mixed array x; scalar positive n
+      call test_report%assert(all_close(round_down([2123.77963_dp, -212.377963_dp, 2.12377963_dp], 3), &
+                              [2123.779_dp, -212.377_dp, 2.123_dp]), 'Test function round_down for three &
+                              element array with scalar n = 3. Expected result: [2123.779, -212.377, 2.123]')
+   
+      !positive scalar x; array positive n
+      call test_report%assert(all_close(round_down(2123.77963_dp, [1, 2, 4]), [2123.7_dp, 2123.77_dp, 2123.7796_dp]), &
+                              'Test function round_down for scalar with array n = [1, 2, 4]. &
+                              Expected result: [2123.7, 2123.77, 2123.7796]')
+   
+      !array x; array n
+      call test_report%assert(all_close(round_down([2123.77963_dp, 212.377963_dp, 2.12377963_dp], &
+                              [2, 3, 5]), [2123.77_dp, 212.377_dp, 2.12377_dp]), &
+                              'Test function round_down for array with array n = [2, 3, 5]. &
+                              Expected result: [2123.77_dp, 212.377_dp, 2.12377_dp]')
+   
+   end subroutine test_round_down
+   
 end module math_utils_test

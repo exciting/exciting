@@ -35,6 +35,7 @@ module cmd_line_args
       logical :: math = .false.      !! math
       logical :: lapack = .false.    !! lapack_wrapperss
       logical :: gw = .false.        !! GW
+      logical :: structure = .false. !! structure 
       logical :: mpi = .false.       !! modmpi
    contains
       procedure :: init => set_unit_tests
@@ -158,6 +159,8 @@ contains
       case ('gw')
          run%gw = .true.
       case ('mpi')
+         run%mpi = .true.
+      case('structure')
          run%mpi = .true.
       case default
          call terminate_mpi_env(mpi_env, 'Unrecognised unit test name: '&

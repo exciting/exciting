@@ -24,6 +24,7 @@ src_dir: ../src/src_gw
          ../src/errors_warnings
          ../src/src_mpi
          ../src/src_xs/src_rttddft/
+         ../src/structure
          ../src/wavefunctions
 
 [//]: # "Note, ford commands can not be separated by whitelines."  
