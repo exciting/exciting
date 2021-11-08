@@ -23,7 +23,8 @@ module math_utils
             permanent, &
             mod1, &
             shuffle_vector, &
-            mask_vector
+            mask_vector, &
+            round_down
 
 
   !> default tolerance
@@ -1043,5 +1044,26 @@ contains
       end if
     end do
   end function mask_vector
+
+  !> !> Rounds a real number down to the nth decimal place, e.g.
+  !>
+  !> If n is greater than 0, then number is rounded down to the specified number of decimal places.
+  !> 1123.234523 -> 1123.234 for n = 3.
+  !>
+  !> If n is 0, then number is rounded down to the nearest integer.
+  !> -2123.77963 -> -2123 for n = 0
+  !>
+  !> If n is less than 0, then number is rounded down to the left of the decimal point.
+  !> 2123.77963 -> 2100 for n = -2.
+  elemental function round_down(x, n) result(x_rounded)
+  !> Real number to round down
+  real(dp), intent(in) :: x
+  !> Number of decimal digits to round down to
+  integer, intent(in) :: n
+
+  real(dp) :: x_rounded
+  x_rounded = dble(int(x*(10.0_dp**n)))/(10.0_dp**n)
+
+end function round_down
 
 end module math_utils

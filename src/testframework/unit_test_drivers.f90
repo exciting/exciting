@@ -7,6 +7,7 @@ module unit_test_drivers
    use math_test_drivers, only: math_test_driver
    use lapack_wrappers_test_drivers, only: lapack_wrappers_test_driver
    use mpi_test_drivers, only: mpi_test_driver
+   use structure_test_drivers, only : structure_test_driver
 
    implicit none
    private
@@ -58,6 +59,10 @@ contains
       if (run%gw .or. run%all) then
          ! Placeholder
          !call gw_test_driver(mpiglobal, kill_on_failure)
+      end if
+
+      if (run%structure .or. run%all) then         
+         call structure_test_driver(mpiglobal, kill_on_failure)
       end if
 
    end subroutine unit_test_driver
