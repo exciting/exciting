@@ -300,6 +300,7 @@ Do ist1 = 1, nstsv
       End Do
 End Do
 
+
       Deallocate (igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr)
       Deallocate (vgqc, tpgqc, gqc, jlgqr, jlgq0r)
 !      Deallocate (evalsvp)
