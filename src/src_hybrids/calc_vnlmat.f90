@@ -27,7 +27,6 @@ subroutine calc_vnlmat
     complex(8), external :: zdotc
 
     integer :: ikfirst, iklast
-
 #ifdef MPI
     ikfirst = firstofset(rank,kset%nkpt)
     iklast  = lastofset(rank,kset%nkpt)
@@ -48,7 +47,7 @@ subroutine calc_vnlmat
     evec = zzero
 
     do ik = ikfirst, iklast
-
+        if (.false.) then
         ! matching coefficients
         call match(ngk(1,ik), gkc(:,1,ik), tpgkc(:,:,1,ik), &
         &          sfacgk(:,:,1,ik), apwalm(:,:,:,:,1))
@@ -91,6 +90,16 @@ subroutine calc_vnlmat
         call deletesystem(system)
         deallocate(temp)
         deallocate(temp1)
+        else
+        !
+        ! aprēķina vnlmat=P+*P 
+        !
+        nmatp = nmat(1,ik)
+        call zgemm('c', 'n', nmatp, nmatp, nstsv, &
+        &          dcmplx(-1d0,0d0), pace, nstsv, &
+        &          pace, nstsv, zzero, &
+        &          vnlmat(1:nmatp,1:nmatp,ik), nmatmax)
+        endif
 
     end do ! ik
 
