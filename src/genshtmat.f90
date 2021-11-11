@@ -121,6 +121,7 @@ Subroutine genshtmat
       Call zgetri (lmmaxvr, zfshtvr, lmmaxvr, ipiv, zwork, lwork, info)
       If (info .Ne. 0) Go To 10
       Deallocate (tp, rlm, ylm, ipiv, work, zwork)
+      write(*,*) 'genshtmat done'
       Return
 10    Continue
       Write (*,*)
