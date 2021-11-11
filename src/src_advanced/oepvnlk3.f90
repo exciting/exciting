@@ -329,7 +329,7 @@ Else
     stop
 End If
 
-Call zgemm('N','C',ngrtot,nstsv,nstsv,(1.0D0,0.0),zvclir,ngrtot,matrixl,nstsv,(0.0D0,0.0),hfxiir,ngrtot) ! compute IR part of ACEO
+Call zgemm('N','C',ngrtot,nstsv,nstsv,(1.0D0,0.0),zvclir,ngrtot,matrixl,nstsv,(0.0D0,0.0),hfxiir,ngrtot) ! compute IR part of ACEO   hfxiir=zvclir*matrixl+
 
 Do ilm = 1, lmmaxvr
     Do irc = 1, nrcmtmax
