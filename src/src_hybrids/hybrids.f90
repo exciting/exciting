@@ -132,9 +132,7 @@ Subroutine hybrids
         end if
         ex_coef = 0.d0
         ec_coef = 1.d0
-        write(*,*) 'before scf'
         call scf_cycle(-1)
-        write(*,*) 'scf'
         ex_coef = input%groundstate%Hybrid%excoeff
         ec_coef = input%groundstate%Hybrid%eccoeff
 

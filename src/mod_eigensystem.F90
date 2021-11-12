@@ -57,7 +57,7 @@ Module mod_eigensystem
    !> ARPACK seed vector
    complex(8), allocatable :: arpackseed(:, :)
    !> pace
-   complex(8), allocatable :: pace(:, :)
+   complex(8), allocatable :: pace(:, :, :)
 
    !> Matrix-elements for muffin-tin functions
    Type MTHamiltonianType

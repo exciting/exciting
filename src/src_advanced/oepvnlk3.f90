@@ -68,7 +68,7 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
       Complex (8), Allocatable :: hfxiir(:, :)
       Complex (8), Allocatable :: hfximt(:, :, :, :)
       Complex (8), Allocatable :: zfft(:)
-!      Complex (8), Allocatable :: pace(:, :)
+!      Complex (8), Allocatable :: pace(:, :, :)
       Complex (8), Allocatable :: fr
       Real (8), Allocatable :: cf(:,:), frre (:), frim(:), gr(:)
       Real (8), Allocatable :: xiintegralre, xiintegralim
@@ -118,8 +118,7 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
       Allocate (hfxiir(ngrtot,nstsv))
       Allocate (hfximt(lmmaxvr, nrcmtmax, natmtot, nstsv))
       Allocate (zfft(ngrtot))
-      if (allocated(pace)) deallocate(pace)
-      Allocate (pace(nstsv,nmatmax))
+      if (.not.(allocated(pace))) Allocate (pace(nstsv, nmatmax, nkpt))
       Allocate (cf (3, nrmtmax), fr, frre(nrmtmax), frim(nrmtmax), gr(nrmtmax))
       Allocate (xiintegral(nstsv,haaijSize), xiintegralre, xiintegralim)
       Allocate (apwi(haaijSize,ngkmax))
@@ -361,18 +360,19 @@ End Do
 
 ! -- calculating IR part of <xi|phi>=FT(xi_ir*theta)
 
-pace=0
+pace(:,:,ikp)=0
 Do ist1 =1, nstsv
     zfft=conjg(hfxiir(:,ist1))*cfunir
     Call zfftifc (3, ngrid,-1,zfft)
     Do igk=1,ngk(1,ikp)
-        pace(ist1,igk)=zfft(igfft(igkig(igk,1,ikp)))*sqrt(Omega)
+        pace(ist1,igk, ikp)=zfft(igfft(igkig(igk,1,ikp)))*sqrt(Omega)
     End Do
 End Do
 
 ! -- calculating MT part of <xi|phi>
 if3=0 ! jāparliek uz 356 aiz ias
 loindex=0
+apwi=0
 Do is = 1, nspecies
     nr = nrmt (is)
     Do ia = 1, natoms (is)
@@ -385,7 +385,8 @@ Do is = 1, nspecies
                     ! m2 = mfromlm(lm2)
                     ! l2 = lfromlm(lm2)
                     if3=if3+1
-                    apwi(if3,:)=apwalm(1:ngk(1,ikp), io1, lm2, ias)
+                    apwi(if3,1:ngk(1,ikp))=apwalm(1:ngk(1,ikp), io1, lm2, ias)
+!izmainu                    apwi(if3,:)=apwalm(1:ngk(1,ikp), io1, lm2, ias)
                     Do ist2 = 1, nstsv
                         Do ir = 1, nr   ! pārbaudīt nr
                             fr=apwfr(ir,1,io1,l,ias)*conjg(hfximt(lm2,ir,ias,ist2)) *spr(ir, is) ** 2 ! r2(ir)=spr(ir, is) ** 2
@@ -417,7 +418,7 @@ Do is = 1, nspecies
                         xiintegralre=gr (nr) ! real part
                         Call fderiv (-1, nr, spr(:, is), frim, gr, cf)  ! cf ir darba mainīgais
                         xiintegralim=gr (nr) ! imag part
-                        pace (ist2,loindex+ngk(1,ikp))= dcmplx(xiintegralre,xiintegralim) ! citu mainīgo un jāsasummē
+                        pace (ist2,loindex+ngk(1,ikp),ikp)= dcmplx(xiintegralre,xiintegralim) ! citu mainīgo un jāsasummē
                         !write(*,*) gr(1), gr(nr), gr(150), gr(151)
                     End Do
             End Do
@@ -434,7 +435,8 @@ End Do
 !        write(*,'(12E13.5)') dble(hxiaintegrals(ist1,:))
 !      end do
 
-Call zgemm('N', 'N', nstsv, ngkmax, haaijSize, dcmplx(1.0D0,0.0), xiintegral, nstsv, apwi, haaijSize, dcmplx(1.0D0,0.0), pace, nstsv) ! pace= paceMT+paceIR = xiintegral*apwi+ pace
+Call zgemm('N', 'N', nstsv, ngk(1,ikp), haaijSize, dcmplx(1.0D0,0.0), xiintegral, nstsv, apwi, haaijSize, dcmplx(1.0D0,0.0), pace(:,:,ikp), nstsv) ! pace= paceMT+paceIR = xiintegral*apwi+ pace
+!izmainu  Call zgemm('N', 'N', nstsv, ngkmax, haaijSize, dcmplx(1.0D0,0.0), xiintegral, nstsv, apwi, haaijSize, dcmplx(1.0D0,0.0), pace, nstsv) ! pace= paceMT+paceIR = xiintegral*apwi+ pace
 
 ! haaintegrals(apwordmax, 0:input%groundstate%lmaxmat,lmmaxvr,natmtot,nstsv)
 ! hfximt(lmmaxvr, nrcmtmax, natmtot, nstsv)=hfximt(lm2,ir,ias,ist)
@@ -444,7 +446,7 @@ Call zgemm('N', 'N', nstsv, ngkmax, haaijSize, dcmplx(1.0D0,0.0), xiintegral, ns
 ! evecfv(nmatmax, nstfv)
 ! hxiaintegrals(nstsv,haaijSize)
 ! apwi(haaijSize,ngkmax)
-! pace(nstsv,ngkmax) ! nmatmax
+! pace(nstsv,nmatmax) ! ngkmax=old
 ! matrixPC(nstsv,nstfv)
 
 ! -- calculating LO part of <xi|phi>
@@ -452,8 +454,8 @@ Call zgemm('N', 'N', nstsv, ngkmax, haaijSize, dcmplx(1.0D0,0.0), xiintegral, ns
 !! -- Adaptively Compressed Exchange Operator test
 ! test pace
 if (.false.) then
-    Call zgemm('N', 'N', nstsv, nstfv, nmatmax, dcmplx(1.0D0,0.0), pace, nstsv, evecfv, nmatmax, dcmplx(0.0D0,0.0), matrixPC, nstsv) ! matrixPC=pace*evecfv
-    Call zgemm('C', 'N', nstfv, nstfv, nstsv, dcmplx(1.0D0,0.0), matrixPC, nstfv, matrixPC, nstsv, dcmplx(0.0D0,0.0), matrixm2, nstfv) ! matrixM2=matrixPC^+ *matrixPC
+    Call zgemm('N', 'N', nstsv, nstfv, nmatmax, dcmplx(1.0D0,0.0), pace(:,:,ikp), nstsv, evecfv, nmatmax, dcmplx(0.0D0,0.0), matrixPC, nstsv) ! matrixPC=pace*evecfv
+    Call zgemm('C', 'N', nstfv, nstfv, nstsv, dcmplx(-1.0D0,0.0), matrixPC, nstfv, matrixPC, nstsv, dcmplx(0.0D0,0.0), matrixm2, nstfv) ! matrixM2=matrixPC^+ *matrixPC
 endif
 
 ! test hfxi
@@ -473,9 +475,9 @@ if (.false.) then
         write(*,'(12E13.5)') dble(matrixm2(ist1,:))
       end do
 
-    write(*,*) 'matrixm real (hfxi)'
+    write(*,*) 'matrixm real (vnlvv)'
       do ist1 = 1, nstsv
-        write(*,'(12E13.5)') dble(matrixm(ist1,:))
+        write(*,'(12E13.5)') dble(vnlvv(ist1,:))
       end do
 
     write(*,*) 'matrixm2 imag (pace)'
@@ -483,11 +485,11 @@ if (.false.) then
         write(*,'(12E13.5)') dimag(matrixm2(ist1,:))
       end do
 
-    write(*,*) 'matrixm imag (hfxi)'
+    write(*,*) 'matrixm imag (vnlvv)'
       do ist1 = 1, nstsv
-        write(*,'(12E13.5)') dimag(matrixm(ist1,:))
+        write(*,'(12E13.5)') dimag(vnlvv(ist1,:))
       end do
-      stop
+!      stop
 endif
 endif
 
