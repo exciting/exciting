@@ -69,6 +69,7 @@ DefaultTolerances.__new__.__defaults__ = (None, ) * len(DefaultTolerances._field
 # File names.
 tol_file_name = {'groundstate': 'tolerance_ground_state.json',
                  'gw': 'tolerance_gw.json',
+                 'hybrid': 'tolerance_hybrid.json',
                  'bse': 'tolerance_bse.json',
                  'tddft': 'tolerance_tddft.json',
                  'phonon': 'tolerance_phonon.json',

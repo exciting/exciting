@@ -3,6 +3,7 @@ import subprocess
 import os
 import re
 from typing import List
+import sys
 
 
 class ExcitingCalculation(enum.Enum):
@@ -13,6 +14,7 @@ class ExcitingCalculation(enum.Enum):
     gw = enum.auto()
     tddft = enum.auto()
     bse = enum.auto()
+    hybrid = enum.auto()
     phonon = enum.auto()
     band_structure = enum.auto()
     dos = enum.auto()
@@ -38,6 +40,14 @@ def get_calculation_types(input_calcs: List[str]) -> List[ExcitingCalculation]:
     matched_calculations = []
     for calc in input_calcs:
         matched_calculations += re.findall("^.*" + calc + ".*$", all_calculations_str, re.MULTILINE)
+
+    if len(matched_calculations) != len(input_calcs):
+        unmatched_calcs = set(input_calcs) - set(matched_calculations)
+        print("Some calculation inputs did not match any valid method choices: ", unmatched_calcs)
+        print("Here is a complete list of valid method strings (substring matches are also valid):")
+        all_calculations_pretty_str = "\n".join(" * " + calc for calc in ExcitingCalculation._member_names_)
+        print(all_calculations_pretty_str)
+        sys.exit()
 
     names_to_enums = {calc.name: calc for calc in ExcitingCalculation}
     return [names_to_enums[name] for name in matched_calculations]

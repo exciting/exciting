@@ -28,7 +28,7 @@ Defaults = namedtuple('Defaults', ['max_time',        # Time after which a test 
                                    'binary_mpismp',   # Exciting executable with smp and mpi parallelisation
                                    'binary_purempi',  # Exciting executable with mpi parallelisation
                                    'binary_smp',      # Exciting executable with smp parallelisation
-                                   'binary_serial',   # Serial exciting execuatable
+                                   'binary_serial',   # Serial exciting executable
                                    'default_np',      # Dict of default MPI processes per executable
                                    'default_threads', # Dict of default threads per executable
                                    'exe_ref'          # Executable for running the reference calculations
@@ -59,7 +59,7 @@ settings = Defaults(max_time       = 1800,
                     )
 
 # TODO(A/H/B) Remove this once test suite has fully moved over to JSON
-methods_moved_to_json = ['groundstate', 'GW']
+methods_moved_to_json = ['groundstate', 'GW', 'hybrid']
 
 # TODO(A/H) Only specify for files where keys will be removed
 # Keys to be removed from test and reference dictionary

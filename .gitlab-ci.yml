@@ -40,7 +40,7 @@ test-debian-buster-GCC8-serial:
     - pip3 install -e tools/exciting_tools
     # Run pytest unit tests for test suite functions
     - cd test && pytest test_functions
-    - python3 runtest.py -a run -e exciting_serial
+    - python3 runtest.py -a run -e exciting_serial -repeat-tests 2
     # As currently in root/test
     - cd ../tools/exciting_tools && pytest
 
@@ -78,7 +78,7 @@ test-debian-buster-GCC8-mpiandsmp:
     # See this ref: https://github.com/open-mpi/ompi/issues/4451
     - sed -i '/input_options/s/mpirun -np/mpirun --allow-run-as-root -np /g' test/runtest.py
     - cd test && pytest test_functions
-    - python3 runtest.py -a run -e exciting_mpismp
+    - python3 runtest.py -a run -e exciting_mpismp -repeat-tests 2
     - cd ../tools/exciting_tools && pytest
 
 build:debian-buster-Intel2019-serial:
@@ -122,7 +122,7 @@ test-debian-buster-Intel2019-serial:
     # run application tests
     - pip3 install -e tools/exciting_tools
     - cd test && pytest test_functions
-    - python3 runtest.py -a run -e exciting_serial
+    - python3 runtest.py -a run -e exciting_serial -repeat-tests 2
     - cd ../tools/exciting_tools && pytest
 
 build:debian-buster-Intel2019-mpiandsmp:
@@ -168,7 +168,7 @@ test-debian-buster-Intel2019-mpiandsmp:
     # run application tests
     - pip3 install -e tools/exciting_tools
     - cd test && pytest test_functions
-    - python3 runtest.py -a run -e exciting_mpismp
+    - python3 runtest.py -a run -e exciting_mpismp -repeat-tests 2
     - cd ../tools/exciting_tools && pytest
     - cd ../../docs/profiling && profmerge
     - codecov -prj test_suite

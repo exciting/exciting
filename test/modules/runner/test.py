@@ -309,7 +309,8 @@ def set_files_under_test(files_under_test: List[str], full_ref_dir: str) -> List
 
 
 def run_single_test_json(main_out: str, test_dir: str, run_dir: str, ref_dir: str, input_file: str,
-                         species_files: List[str], executable: str, max_time: int, handle_errors: bool) -> TestResults:
+                         species_files: List[str], executable: str, max_time: int, handle_errors: bool,
+                         repeated_tests: dict) -> TestResults:
     """
     Runs a test case and compares output files under test against references.
 
@@ -322,6 +323,7 @@ def run_single_test_json(main_out: str, test_dir: str, run_dir: str, ref_dir: st
     :param executable:      executable command
     :param max_time:        max time a job is allowed to run for before being killed
     :param handle_errors:   Whether or not failures and skips are allowed to propagate
+    :param dict repeated_tests: (key:value) = (Test Name: N times to repeat)
 
     :return TestResults test_results: Test case results object.
     """
@@ -346,7 +348,67 @@ def run_single_test_json(main_out: str, test_dir: str, run_dir: str, ref_dir: st
     create_run_dir(test_dir, run_dir)
     copy_exciting_input(full_ref_dir, full_run_dir, species_files, input_file)
 
-    run_success, err_mess, timing = execute(full_run_dir, executable, main_out, max_time)
+    test_results = execute_and_compare_single_test_json(test_dir,
+                                                        full_run_dir,
+                                                        full_ref_dir,
+                                                        executable,
+                                                        main_out,
+                                                        max_time,
+                                                        output_files,
+                                                        just_tolerances)
+    test_results.print_results()
+
+    # Rerun the test if it fails and is assigned as flakey in failing_tests.py
+    if len(test_results.files_with_errors) > 0:
+        try:
+            n_repeats = repeated_tests[os.path.join(method, test_name)]
+        except KeyError:
+            n_repeats = 0
+
+        for ith_repeat in range(1, n_repeats + 1):
+            print(f'Repeating: {test_dir}: {ith_repeat} / {n_repeats}')
+            test_results = execute_and_compare_single_test_json(test_dir,
+                                                                full_run_dir,
+                                                                full_ref_dir,
+                                                                executable,
+                                                                main_out,
+                                                                max_time,
+                                                                output_files,
+                                                                just_tolerances)
+            test_results.print_results()
+
+            if len(test_results.files_with_errors) == 0:
+                continue
+
+    test_results.assert_errors(handle_errors)
+
+    return test_results
+
+
+def execute_and_compare_single_test_json(test_dir: str,
+                                         full_run_dir: str,
+                                         full_ref_dir: str,
+                                         execute_cmd: str,
+                                         main_out: str,
+                                         max_time: int,
+                                         output_files: List[str],
+                                         just_tolerances: dict) -> TestResults:
+    """
+    Execute a test case and compare the output files to reference files.
+
+    :param str test_dir: Path to test case (relative to test_farm).
+    :param str full_run_dir: test_dir + reference_dir.
+    :param str full_ref_dir: test_dir + run_dir.
+    :param str execute_cmd: executable command.
+    :param str main_out: File always output by program.
+    :param int max_time: Time before program is terminated.
+    :param List[str] output_files: List of files under test.
+    :param dict just_tolerances: Tolerances without units.
+
+    :return TestResults test_results: Test case results.
+    """
+    run_success, err_mess, timing = execute(full_run_dir, execute_cmd, main_out, max_time)
+
     test_results = TestResults(test_dir, run_success, timing)
 
     flatten_directory(full_run_dir)
@@ -354,9 +416,6 @@ def run_single_test_json(main_out: str, test_dir: str, run_dir: str, ref_dir: st
     if run_success:
         test_results_dict = compare_outputs_json(full_run_dir, full_ref_dir, output_files, just_tolerances)
         test_results.set_results(test_results_dict)
-
-    test_results.print_results()
-    test_results.assert_errors(handle_errors)
 
     return test_results
 
@@ -465,10 +524,20 @@ def split_test_list_according_to_tol_format(test_list: List[str]) -> tuple:
     return test_list_json, test_list_xml
 
 
-def run_tests(main_out: str, test_list: List[str], run_dir: str, ref_dir: str,
-              input_file: str, species_files: List[str], init_default: str,
-              executable: str, np: int, omp: int, max_time: int,
-              skipped_tests: List[str], handle_errors: bool):
+def run_tests(main_out: str,
+              test_list: List[str],
+              run_dir: str,
+              ref_dir: str,
+              input_file: str,
+              species_files: List[str],
+              init_default: str,
+              executable: str,
+              np: int, omp: int,
+              max_time: int,
+              skipped_tests: List[str],
+              handle_errors: bool,
+              repeated_tests: dict
+              ):
     """
     Runs tests in test_list (see run_single_test).
     :param main_out:          main output file of the exciting calculation
@@ -484,6 +553,7 @@ def run_tests(main_out: str, test_list: List[str], run_dir: str, ref_dir: str,
     :param max_time:          max time before a job is killed
     :param skipped_tests:     list of tests to skip
     :param handle_errors:     Whether or not failures and skips are allowed to propagate
+    :param dict repeated_tests: (key:value) = (Test Name: N times to repeat)
     """
     if 'exciting_serial' in executable:
         print('Run tests with exciting_serial.')
@@ -503,7 +573,7 @@ def run_tests(main_out: str, test_list: List[str], run_dir: str, ref_dir: str,
     report = SummariseTests()
     for test_name in test_list_json:
         test_results = run_single_test_json(main_out, test_name, run_dir, ref_dir, input_file, species_files,
-                                            executable, max_time, handle_errors)
+                                            executable, max_time, handle_errors, repeated_tests)
         report.add(test_results)
 
     report.print()

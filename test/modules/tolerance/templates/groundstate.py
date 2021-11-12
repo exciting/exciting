@@ -45,7 +45,7 @@ from tolerance.tol_classes import DefaultTolerances, Tol, TolWithMessage
 # which have higher precision.
 default = DefaultTolerances(integer=Tol(0),
                             float=Tol(1.e-8),
-                            str=Tol(0),
+                            str=Tol(''),
                             total_energy=Tol(1.e-8, Unit.hartree),
                             energy=Tol(1.e-7, Unit.hartree),
                             length=Tol(1.e-8, Unit.bohr),
