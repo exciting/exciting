@@ -1,0 +1,7 @@
+Log File for Tolerances
+-----------------------
+
+TODO(Alex) Issue 104. App Tests: Two EXX-C Tolerances Set Loose
+EXX-CC | INFO.OUT | 'Total energy' reset to 5.e-6
+EXX-CC | INFO.OUT | 'Kinetic energy' reset to 5.e-6
+EXX-CC | INFO.OUT | 'Coulomb energy' reset to 1.e-6

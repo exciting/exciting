@@ -1,5 +1,5 @@
 """
-Ground state file parsers and classes providing light API
+Ground state file parsers
 """
 import xml.etree.ElementTree as ET
 

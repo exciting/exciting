@@ -29,6 +29,7 @@ import sys
 from tol_classes import tol_file_name
 from templates.groundstate import ground_state_tolerances
 from templates.gw import gw_tolerances
+from templates.hybrid import hybrid_tolerances, hybrid_message
 from utils import ExcitingCalculation, get_calculation_types
 
 def parse_input_args() -> dict:
@@ -117,6 +118,10 @@ def generate_tolerance_file(calculation: ExcitingCalculation, file_path: str):
 
     if calculation == ExcitingCalculation.gw:
         write_tolerance_with_json(gw_tolerances, full_file_name)
+
+    if calculation == ExcitingCalculation.hybrid:
+        print(hybrid_message)
+        write_tolerance_with_json(hybrid_tolerances, full_file_name)
 
     if calculation == ExcitingCalculation.tddft:
         sys.exit('tolerance template needs to be defined:'+ calculation.name)

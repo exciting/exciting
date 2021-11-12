@@ -5,25 +5,16 @@
  is also logged on the gitlab issue tracker.
 
  Each list entry should be a dictionary.
-"""
-import sys
 
+TODO(A/B/H) Issue 51. Review tolerances for all tests migrated from the old test suite (prior to Jan 2021)
+"""
 from .utils import Compiler, Build_type, CompilerBuild, get_compiler_type, build_type_str_to_enum
 
-# Flakey tests Issue #54
-# Update 16th March 2020. Remove the hybrid tests from the suite until more
-# robust testing is introduced and someone investigates them 
+
+# Tests that SOMETIMES fail the CI for no discernible reason are considered flakey rather than failing.
 #
-# Tests that don't always pass the CI for any discernible reason
-# are considered flakey rather than failing.
-#
-# This currently corresponds to the hybrids:
-#  - groundstate-HYB_HSE-Si
-#  - groundstate-HYB_PBE0-Si
-#
-# When ctest is introduced, this can addressed with the -repeat until-pass:2 option.
-#
-# Also see Issue 51. Review tolerances for all tests migrated from the old test suite.
+# Mimics the ctest behaviour: -repeat until-pass:2.
+repeat_tests = []
 
 
 failing_tests = [
@@ -45,32 +36,24 @@ failing_tests = [
      'tags': [CompilerBuild(Compiler.gcc, Build_type.all)]
      },
 
-    # TODO(Sven) Issue #39
-    # Andris comment: I have tried several runs with a different number of threads and MPI ranks,
-    # but the calculations always converged in 19-20 iterations and always to the same energy with the threshold.
-    # - Looks like issue with comparing integers in the test suite, rather than a test failure
-    # - One just needs to set a tolerance for integers
-    # {'name': 'groundstate/LDA_PW-noncollinear-Fe',
-    #  'comment': 'Number of SCF iterations differs to reference',
-    #  'tags': [CompilerBuild(Compiler.all, Build_type.mpiandsmp)]
-    #  },
+    # TODO(Cecilia) Issue 54. HSE and PBE0 sometimes fail in our CI pipeline within Intel MPIANDSMP build
+    # Repeating them changes the results each time but the diff is never < tolerances.
+    # Only occurs in the CI pipeline.
+    {'name': 'hybrid/HSE-Si',
+     'comment': 'Test is flakey when run in the CI with Intel parallel build',
+     'tags': [CompilerBuild(Compiler.intel, Build_type.mpiandsmp)]
+     },
+
+    # TODO(Cecilia) Issue 54
+    {'name': 'hybrid/PBE0-Si',
+     'comment': 'Test is flakey when run in the CI with Intel parallel build',
+     'tags': [CompilerBuild(Compiler.intel, Build_type.mpiandsmp)]
+     },
 
     # TODO ADD ISSUE
     {'name': 'properties/PBE-properties-Si',
      'comment': 'Epsilon 11 and 33 do not agree with serial reference values',
      'tags': [CompilerBuild(Compiler.all, Build_type.mpiandsmp)]
-     },
-
-    # TODO(Cecilia) Issue 54 
-    {'name': 'hybrids/HSE-Si',
-     'comment': 'Test is flakey when run in the CI with Intel parallel build',
-     'tags': [CompilerBuild(Compiler.intel, Build_type.mpiandsmp)]
-     },
-
-    # TODO(Cecilia) Issue 54 
-    {'name': 'hybrids/PBE0-Si',
-     'comment': 'Test is flakey when run in the CI with Intel parallel build',
-     'tags': [CompilerBuild(Compiler.intel, Build_type.mpiandsmp)]
      },
 
     # TODO(Maria) Issue 55
@@ -138,3 +121,34 @@ def set_skipped_tests(executable: str, incl_failing_tests: bool) -> list:
                 tests_to_skip.append(test)
 
     return tests_to_skip
+
+
+def set_tests_to_repeat(executable: str, n_repeats: int) -> dict:
+    """
+    Generate a dict of tests to repeat, for a given build type.
+
+    :param str executable: executable
+    :param int n_repeats: Number of times a failed job should repeat.
+    :return dict tests_to_repeat: Tests to repeat, of form {name: n_repeats}.
+    """
+    tests_to_repeat = {}
+
+    if n_repeats == 0:
+        return tests_to_repeat
+
+    compiler = get_compiler_type()
+
+    if compiler is None:
+        print('Compiler could not be determined from build/make.inc\n'
+              'Excluding all failing tests from the test suite')
+        compiler = Compiler.all
+
+    build_type = build_type_str_to_enum[executable]
+
+    for test in repeat_tests:
+        for tag in test['tags']:
+            if (tag.compiler == compiler or tag.compiler == Compiler.all) \
+                    and (tag.build == build_type or tag.build == Build_type.all):
+                tests_to_repeat[test['name']] = n_repeats
+
+    return tests_to_repeat

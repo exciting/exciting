@@ -7,20 +7,18 @@ For more details, type `python3 runtest.py --help`
 """
 import sys
 import argparse as ap
-import unittest
 import warnings
 from collections import namedtuple
 import os
 from typing import List
 import re
 
-from modules.termcolor_wrapper import print_color
 from modules.runner.test import run_tests
 from modules.runner.reference import run_single_reference
 from modules.constants import settings
 from modules.parsers import install_excitingtools
 from modules.utils import Build_type, build_type_str_to_enum, build_type_enum_to_str
-from modules.failing_tests import set_skipped_tests
+from modules.failing_tests import set_skipped_tests, set_tests_to_repeat
 
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
@@ -75,8 +73,8 @@ def option_parser(test_farm: str, exe_dir: str):
     help_executable = "exciting executables. " \
                       + "'exciting_serial' for the serial binary; " \
                       + "'exciting_smp' for the shared-memory version; " \
-                      + "'exciting_purempi' for the binary with MPI parallisation, only; " \
-                      + "'exciting_mpismp for the binary with MPI amd SMP parallisation;" \
+                      + "'exciting_purempi' for the binary with MPI parallelisation, only; " \
+                      + "'exciting_mpismp for the binary with MPI amd SMP parallelisation;" \
                       + "Default is exciting_smp"
 
     p.add_argument('-e',
@@ -114,6 +112,13 @@ def option_parser(test_farm: str, exe_dir: str):
                    default=False,
                    action='store_true')
 
+    p.add_argument('-repeat-tests',
+                   dest='repeat_tests',
+                   help='Number of times to repeat any test specified in failing_tests.py/repeat_tests list.'
+                        'Primarily intended for flakey tests running in the CI',
+                   type=int,
+                   default=0)
+
     p.add_argument('-make-test',
                    help='Run tests from Makefile. ' +
                         'If this option is set, all other options will be ignored ' +
@@ -134,7 +139,8 @@ def option_parser(test_farm: str, exe_dir: str):
     input_options = {'action': args.a,
                      'tests': args.t,
                      'handle_errors': args.handle_errors,
-                     'run_failing_tests': args.run_failing_tests
+                     'run_failing_tests': args.run_failing_tests,
+                     'repeat_tests': args.repeat_tests
                      }
 
     build_type = args.e if isinstance(args.e, Build_type) else build_type_str_to_enum[args.e]
@@ -318,6 +324,7 @@ def main(settings: namedtuple, input_options: dict):
     executable = executable_command.split('/')[-1]
 
     skipped_tests = set_skipped_tests(executable, input_options['run_failing_tests'])
+    repeated_tests: dict = set_tests_to_repeat(executable, input_options['repeat_tests'])
 
     if action == "run":
         run_tests(settings.main_output,
@@ -332,7 +339,8 @@ def main(settings: namedtuple, input_options: dict):
                   input_options['omp'],
                   settings.max_time,
                   skipped_tests,
-                  input_options['handle_errors'])
+                  input_options['handle_errors'],
+                  repeated_tests)
 
     # TODO(Alex) This functionality should be moved 
     elif action == "ref":
