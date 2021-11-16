@@ -61,23 +61,22 @@ contains
     end if 
 
     call assert(spacing > 0._dp, & 
-         message='linspace: Spacing must be larger than zero.')
+        message='linspace: Spacing must be larger than zero.')
 
     call assert(abs(start - end) >= spacing, &
-         message = "linspace: Requires spacing <= |start - end|")
+        message = "linspace: Requires spacing <= |start - end|")
 
     N = floor(abs(end - start) / spacing) + 1
     allocate(grid(N)) 
- 
+
     sign = 1 
     if (end < start) then
       sign = -1
     endif
- 
+
     do i = 1, N
       grid(i) = start + sign * (i - 1) * abs(spacing)
     end do
-
   end function linspace_spacing
 
 
@@ -114,7 +113,8 @@ contains
     else
       if (include_endpoint) then
         spacing = abs(end - start) / real(N - 1, kind=dp)
-        grid(1: N-1) = linspace_spacing(start, end, spacing)  
+        grid_ = linspace_spacing(start, end, spacing)
+        grid(1: N-1) = grid_(1: N-1)
         grid(N) = end
 
       else   
