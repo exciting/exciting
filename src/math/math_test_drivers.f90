@@ -3,8 +3,8 @@ module math_test_drivers
   use modmpi, only: mpiinfo
   ! Load test drivers here
   use math_utils_test, only: math_utils_test_driver
-
   use grid_utils_test, only: grid_utils_test_driver
+  use linear_algebra_3d_test, only: linear_algebra_3d_test_driver
 
   private
   public :: math_test_driver
@@ -19,8 +19,8 @@ contains
 
     ! Call test drivers here
     call math_utils_test_driver(mpiglobal, kill_on_failure)
-    
     call grid_utils_test_driver(mpiglobal, kill_on_failure)
+    call linear_algebra_3d_test_driver(mpiglobal, kill_on_failure)
 
   end subroutine math_test_driver
 
