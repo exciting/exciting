@@ -350,6 +350,19 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
+            <xs:attribute ex:importance="essential" ex:unit="" name="method" default="MB">
+              <xs:annotation>
+                <xs:documentation>
+                    Method for calculations with non-local exchange. Pick either ACE or MB.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="ACE"/>
+                  <xs:enumeration value="MB"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
             <xs:attribute ex:importance="essential" ex:unit="" name="excoeff" type="fortrandouble"
               default="0.25d0">
               <xs:annotation>

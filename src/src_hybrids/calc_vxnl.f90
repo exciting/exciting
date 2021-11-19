@@ -38,8 +38,8 @@ subroutine calc_vxnl()
 
     call cpu_time(tstart)
 
-
-if (.false.) then
+write(*,*) input.groundstate.hybrid.method
+if (input.groundstate.hybrid.method.eq."MB") then
     !----------------------------------------
     ! Read KS eigenvalues from file EVALSV.OUT
     !----------------------------------------
