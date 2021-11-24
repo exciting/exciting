@@ -47,7 +47,7 @@ subroutine calc_vnlmat
     evec = zzero
 
     do ik = ikfirst, iklast
-        if (input.groundstate.hybrid.method.eq."MB") then
+        if (input%groundstate%hybrid%method.eq."MB") then
             ! matching coefficients
             call match(ngk(1,ik), gkc(:,1,ik), tpgkc(:,:,1,ik), &
             &          sfacgk(:,:,1,ik), apwalm(:,:,:,:,1))

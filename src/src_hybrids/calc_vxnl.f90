@@ -38,8 +38,8 @@ subroutine calc_vxnl()
 
     call cpu_time(tstart)
 
-write(*,*) input.groundstate.hybrid.method
-if (input.groundstate.hybrid.method.eq."MB") then
+write(*,*) input%groundstate%hybrid%method
+if (input%groundstate%hybrid%method.eq."MB") then
     !----------------------------------------
     ! Read KS eigenvalues from file EVALSV.OUT
     !----------------------------------------
@@ -309,6 +309,7 @@ else ! Use of oepvnl
 
 endif
 
+! --- sheit ---
 if (.false.) then
     write(*,*) 'exnl=', exnl
     write(*,*) 'real'

@@ -362,7 +362,7 @@ End Do
 
 pace(:,:,ikp)=0
 Do ist1 =1, nstsv
-    zfft=conjg(hfxiir(:,ist1))*cfunir
+    zfft=hfxiir(:,ist1)*cfunir
     Call zfftifc (3, ngrid,-1,zfft)
     Do igk=1,ngk(1,ikp)
         pace(ist1,igk, ikp)=zfft(igfft(igkig(igk,1,ikp)))*sqrt(Omega)
@@ -435,44 +435,37 @@ End Do
 !        write(*,'(12E13.5)') dble(hxiaintegrals(ist1,:))
 !      end do
 
-Call zgemm('N', 'N', nstsv, ngk(1,ikp), haaijSize, dcmplx(1.0D0,0.0), xiintegral, nstsv, apwi, haaijSize, dcmplx(1.0D0,0.0), pace(:,:,ikp), nstsv) ! pace= paceMT+paceIR = xiintegral*apwi+ pace
+Call zgemm('N', 'N', nstsv, ngk(1,ikp), haaijSize, dcmplx(1.0D0,0.0), xiintegral, nstsv, apwi, haaijSize, dcmplx(1.0D0,0.0), pace(:,:,ikp), nstsv) ! pace= paceMT+pace(IR+LO) = xiintegral*apwi+ pace
 !izmainu  Call zgemm('N', 'N', nstsv, ngkmax, haaijSize, dcmplx(1.0D0,0.0), xiintegral, nstsv, apwi, haaijSize, dcmplx(1.0D0,0.0), pace, nstsv) ! pace= paceMT+paceIR = xiintegral*apwi+ pace
-
-! haaintegrals(apwordmax, 0:input%groundstate%lmaxmat,lmmaxvr,natmtot,nstsv)
-! hfximt(lmmaxvr, nrcmtmax, natmtot, nstsv)=hfximt(lm2,ir,ias,ist)
-! zvclmt(lmmaxvr, nrcmtmax, natmtot, nstsv)
-! apwalm(ngkmax, apwordmax, lmmaxapw, natmtot)
-! hxiaintegrals(lmmaxvr,natmtot,nstsv,apwordmax, 0:input%groundstate%lmaxmat)
-! evecfv(nmatmax, nstfv)
-! hxiaintegrals(nstsv,haaijSize)
-! apwi(haaijSize,ngkmax)
-! pace(nstsv,nmatmax) ! ngkmax=old
-! matrixPC(nstsv,nstfv)
-
-! -- calculating LO part of <xi|phi>
 
 !! -- Adaptively Compressed Exchange Operator test
 ! test pace
 if (.false.) then
-    Call zgemm('N', 'N', nstsv, nstfv, nmatmax, dcmplx(1.0D0,0.0), pace(:,:,ikp), nstsv, evecfv, nmatmax, dcmplx(0.0D0,0.0), matrixPC, nstsv) ! matrixPC=pace*evecfv
-    Call zgemm('C', 'N', nstfv, nstfv, nstsv, dcmplx(-1.0D0,0.0), matrixPC, nstfv, matrixPC, nstsv, dcmplx(0.0D0,0.0), matrixm2, nstfv) ! matrixM2=matrixPC^+ *matrixPC
+    Call zgemm('N', 'N', nstsv, nstfv, nmat(1,ikp), dcmplx(1.0D0,0.0), pace(:,:,ikp), nstsv, evecfv, nmatmax, dcmplx(0.0D0,0.0), matrixPC, nstsv) ! matrixPC=pace*evecfv
+    Call zgemm('C', 'N', nstfv, nstfv, nstsv, dcmplx(-1.0D0,0.0), matrixPC, nstfv, matrixPC, nstsv, dcmplx(0.0D0,0.0), matrixm2, nstfv) ! matrixM2=-matrixPC^+ * matrixPC
 endif
 
 ! test hfxi
 if (.false.) then
     Do ist1 = 1, nstsv
         Do ist2 = 1, nstsv
-            matrixm1(ist1,ist2) = zfinp(.True., wf1%mtrlm(:,:,:,ist1), hfximt(:,:,:,ist2), wf1%ir(:,ist1), hfxiir(:,ist2))
+            matrixm1(ist1,ist2) = zfinp(.True., wf1%mtrlm(:,:,:,ist1), hfximt(:,:,:,ist2), wf1%ir(:,ist1), hfxiir(:,ist2)) ! matrixM1=<phi|hfxi>
         End Do
     End Do
-    Call zgemm('N','C', nstsv, nstsv, nstsv, (-1.0D0,0.0), matrixm1, nstsv, matrixm1, nstsv, (0.0D0,0.0), matrixm, nstsv)
+    Call zgemm('N','C', nstsv, nstsv, nstsv, (-1.0D0,0.0), matrixm1, nstsv, matrixm1, nstsv, (0.0D0,0.0), matrixm, nstsv) ! matrixM=-matrixM1 * matrixM1^+
 endif
 
 ! matrix print compare
 if (.false.) then
+!    write(*,*) 'ikp=', ikp
     write(*,*) 'matrixm2 real (pace)'
       do ist1 = 1, nstsv
         write(*,'(12E13.5)') dble(matrixm2(ist1,:))
+      end do
+
+    write(*,*) 'matrixm1 real (hfxi)'
+      do ist1 = 1, nstsv
+        write(*,'(12E13.5)') dble(matrixm(ist1,:))
       end do
 
     write(*,*) 'matrixm real (vnlvv)'
@@ -485,11 +478,16 @@ if (.false.) then
         write(*,'(12E13.5)') dimag(matrixm2(ist1,:))
       end do
 
+    write(*,*) 'matrixm2 imag (hfxi)'
+      do ist1 = 1, nstsv
+        write(*,'(12E13.5)') dimag(matrixm(ist1,:))
+      end do
+
     write(*,*) 'matrixm imag (vnlvv)'
       do ist1 = 1, nstsv
         write(*,'(12E13.5)') dimag(vnlvv(ist1,:))
       end do
-!      stop
+      if(ikp==4) stop
 endif
 endif
 
