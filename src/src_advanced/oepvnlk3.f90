@@ -358,26 +358,24 @@ Do ilm = 1, lmmaxvr
     End Do
 End Do
 
-! -- calculating IR part of <xi|phi>=FT(xi_ir*theta)
+! -- calculating IR part of <xi|phi>
 
 pace(:,:,ikp)=0
 Do ist1 =1, nstsv
     zfft=hfxiir(:,ist1)*cfunir
-    Call zfftifc (3, ngrid,-1,zfft)
+    Call zfftifc (3, ngrid,-1,zfft) ! FT(xi_ir*theta)
     Do igk=1,ngk(1,ikp)
-        pace(ist1,igk, ikp)=zfft(igfft(igkig(igk,1,ikp)))*sqrt(Omega)
+        pace(ist1,igk, ikp)=conjg(zfft(igfft(igkig(igk,1,ikp))))*sqrt(Omega) ! pace IR
     End Do
 End Do
 
-! -- calculating MT part of <xi|phi>
-if3=0 ! jāparliek uz 356 aiz ias
-loindex=0
-apwi=0
+! -- calculating MT and LO part of <xi|phi>
+! apwi=0
 Do is = 1, nspecies
     nr = nrmt (is)
     Do ia = 1, natoms (is)
         ias = idxas (ia, is)
-
+        if3=0
         Do l = 0, input%groundstate%lmaxmat
             Do m = -l, l
                 Do io1 = 1, apword (l, is)
@@ -386,30 +384,30 @@ Do is = 1, nspecies
                     ! l2 = lfromlm(lm2)
                     if3=if3+1
                     apwi(if3,1:ngk(1,ikp))=apwalm(1:ngk(1,ikp), io1, lm2, ias)
-!izmainu                    apwi(if3,:)=apwalm(1:ngk(1,ikp), io1, lm2, ias)
                     Do ist2 = 1, nstsv
-                        Do ir = 1, nr   ! pārbaudīt nr
+                        Do ir = 1, nr
                             fr=apwfr(ir,1,io1,l,ias)*conjg(hfximt(lm2,ir,ias,ist2)) *spr(ir, is) ** 2 ! r2(ir)=spr(ir, is) ** 2
                             frre (ir)=dble(fr)
                             frim (ir)=aimag(fr)
                         End Do
-                        Call fderiv (-1, nr, spr(:, is), frre, gr, cf)  ! cf ir darba mainīgais
+                        Call fderiv (-1, nr, spr(:, is), frre, gr, cf)
                         xiintegralre=gr (nr) ! real part
-                        Call fderiv (-1, nr, spr(:, is), frim, gr, cf)  ! cf ir darba mainīgais
+                        Call fderiv (-1, nr, spr(:, is), frim, gr, cf)
                         xiintegralim=gr (nr) ! imag part
                         xiintegral (ist2,if3)=dcmplx(xiintegralre,xiintegralim) ! nāk klāt is un ia
-                        !write(*,*) gr(1), gr(nr), gr(150), gr(151)
                     End Do
                 End Do
             End Do
         End Do
+! calculate LO part
+        loindex=0
         Do ilo= 1, nlorb(is)
             l = lorbl (ilo, is)
             Do m = -l, l
                     lm2 = idxlm (l, m)
                     loindex=loindex+1
                     Do ist2 = 1, nstsv
-                        Do ir = 1, nr   ! pārbaudīt nr
+                        Do ir = 1, nr
                             fr=lofr(ir,1,ilo,ias)*conjg(hfximt(lm2,ir,ias,ist2)) *spr(ir, is) ** 2 ! r2(ir)=spr(ir, is) ** 2
                             frre (ir)=dble(fr)
                             frim (ir)=aimag(fr)
@@ -418,25 +416,15 @@ Do is = 1, nspecies
                         xiintegralre=gr (nr) ! real part
                         Call fderiv (-1, nr, spr(:, is), frim, gr, cf)  ! cf ir darba mainīgais
                         xiintegralim=gr (nr) ! imag part
-                        pace (ist2,loindex+ngk(1,ikp),ikp)= dcmplx(xiintegralre,xiintegralim) ! citu mainīgo un jāsasummē
+                        pace (ist2,loindex+ngk(1,ikp),ikp)= dcmplx(xiintegralre,xiintegralim) ! paceLO
                         !write(*,*) gr(1), gr(nr), gr(150), gr(151)
                     End Do
             End Do
         End Do ! LO
     End Do
 End Do
-!write(*,*) if3, haaijSize
-!write(*,*) nr, nrmtmax
-!write(*,*) ngkmax, ngrtot, nmatmax, natmtot
-!write(*,*) nstsv, nstfv
-!write(*,*) gr(:)
-!write(*,*) fr(:)
-!      do ist1 = 1, nstsv
-!        write(*,'(12E13.5)') dble(hxiaintegrals(ist1,:))
-!      end do
 
 Call zgemm('N', 'N', nstsv, ngk(1,ikp), haaijSize, dcmplx(1.0D0,0.0), xiintegral, nstsv, apwi, haaijSize, dcmplx(1.0D0,0.0), pace(:,:,ikp), nstsv) ! pace= paceMT+pace(IR+LO) = xiintegral*apwi+ pace
-!izmainu  Call zgemm('N', 'N', nstsv, ngkmax, haaijSize, dcmplx(1.0D0,0.0), xiintegral, nstsv, apwi, haaijSize, dcmplx(1.0D0,0.0), pace, nstsv) ! pace= paceMT+paceIR = xiintegral*apwi+ pace
 
 !! -- Adaptively Compressed Exchange Operator test
 ! test pace
@@ -452,7 +440,7 @@ if (.false.) then
             matrixm1(ist1,ist2) = zfinp(.True., wf1%mtrlm(:,:,:,ist1), hfximt(:,:,:,ist2), wf1%ir(:,ist1), hfxiir(:,ist2)) ! matrixM1=<phi|hfxi>
         End Do
     End Do
-    Call zgemm('N','C', nstsv, nstsv, nstsv, (-1.0D0,0.0), matrixm1, nstsv, matrixm1, nstsv, (0.0D0,0.0), matrixm, nstsv) ! matrixM=-matrixM1 * matrixM1^+
+    Call zgemm('N','C', nstsv, nstsv, nstsv, dcmplx(-1.0D0,0.0), matrixm1, nstsv, matrixm1, nstsv, dcmplx(0.0D0,0.0), matrixm, nstsv) ! matrixM=-matrixM1 * matrixM1^+
 endif
 
 ! matrix print compare
