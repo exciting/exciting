@@ -359,6 +359,7 @@ Do ilm = 1, lmmaxvr
 End Do
 
 ! -- calculating IR part of <xi|phi>
+! hfxiir=0
 
 pace(:,:,ikp)=0
 Do ist1 =1, nstsv
@@ -371,6 +372,7 @@ End Do
 
 ! -- calculating MT and LO part of <xi|phi>
 ! apwi=0
+loindex=0
 Do is = 1, nspecies
     nr = nrmt (is)
     Do ia = 1, natoms (is)
@@ -400,7 +402,6 @@ Do is = 1, nspecies
             End Do
         End Do
 ! calculate LO part
-        loindex=0
         Do ilo= 1, nlorb(is)
             l = lorbl (ilo, is)
             Do m = -l, l
@@ -412,74 +413,70 @@ Do is = 1, nspecies
                             frre (ir)=dble(fr)
                             frim (ir)=aimag(fr)
                         End Do
-                        Call fderiv (-1, nr, spr(:, is), frre, gr, cf)  ! cf ir darba mainīgais
+                        Call fderiv (-1, nr, spr(:, is), frre, gr, cf)
                         xiintegralre=gr (nr) ! real part
-                        Call fderiv (-1, nr, spr(:, is), frim, gr, cf)  ! cf ir darba mainīgais
+                        Call fderiv (-1, nr, spr(:, is), frim, gr, cf)
                         xiintegralim=gr (nr) ! imag part
-                        pace (ist2,loindex+ngk(1,ikp),ikp)= dcmplx(xiintegralre,xiintegralim) ! paceLO
+!                        if(pace (ist2,loindex+ngk(1,ikp),ikp) .ne. 0.0) write(*,*) 'paceLO not zero'
+                        pace (ist2,loindex+ngk(1,ikp),ikp)= pace (ist2,loindex+ngk(1,ikp),ikp)+dcmplx(xiintegralre,xiintegralim) ! paceLO
                         !write(*,*) gr(1), gr(nr), gr(150), gr(151)
                     End Do
             End Do
         End Do ! LO
+!        write(*,*) haaijSize, if3, loindex
+        Call zgemm('N', 'N', nstsv, ngk(1,ikp), haaijSize, dcmplx(1.0D0,0.0), xiintegral, nstsv, apwi, haaijSize, dcmplx(1.0D0,0.0), pace(:,:,ikp), nstsv) ! pace= paceMT+pace(IR+LO) = xiintegral*apwi+ pace
     End Do
 End Do
 
-Call zgemm('N', 'N', nstsv, ngk(1,ikp), haaijSize, dcmplx(1.0D0,0.0), xiintegral, nstsv, apwi, haaijSize, dcmplx(1.0D0,0.0), pace(:,:,ikp), nstsv) ! pace= paceMT+pace(IR+LO) = xiintegral*apwi+ pace
 
 !! -- Adaptively Compressed Exchange Operator test
-! test pace
 if (.false.) then
+! test pace
     Call zgemm('N', 'N', nstsv, nstfv, nmat(1,ikp), dcmplx(1.0D0,0.0), pace(:,:,ikp), nstsv, evecfv, nmatmax, dcmplx(0.0D0,0.0), matrixPC, nstsv) ! matrixPC=pace*evecfv
     Call zgemm('C', 'N', nstfv, nstfv, nstsv, dcmplx(-1.0D0,0.0), matrixPC, nstfv, matrixPC, nstsv, dcmplx(0.0D0,0.0), matrixm2, nstfv) ! matrixM2=-matrixPC^+ * matrixPC
-endif
 
 ! test hfxi
-if (.false.) then
     Do ist1 = 1, nstsv
         Do ist2 = 1, nstsv
             matrixm1(ist1,ist2) = zfinp(.True., wf1%mtrlm(:,:,:,ist1), hfximt(:,:,:,ist2), wf1%ir(:,ist1), hfxiir(:,ist2)) ! matrixM1=<phi|hfxi>
         End Do
     End Do
     Call zgemm('N','C', nstsv, nstsv, nstsv, dcmplx(-1.0D0,0.0), matrixm1, nstsv, matrixm1, nstsv, dcmplx(0.0D0,0.0), matrixm, nstsv) ! matrixM=-matrixM1 * matrixM1^+
-endif
 
 ! matrix print compare
-if (.false.) then
-!    write(*,*) 'ikp=', ikp
     write(*,*) 'matrixm2 real (pace)'
-      do ist1 = 1, nstsv
-        write(*,'(12E13.5)') dble(matrixm2(ist1,:))
+      do ist1 = 1, 12
+        write(*,'(12F13.9)') dble(matrixm2(ist1,1:12))
       end do
 
     write(*,*) 'matrixm1 real (hfxi)'
-      do ist1 = 1, nstsv
-        write(*,'(12E13.5)') dble(matrixm(ist1,:))
+      do ist1 = 1, 12
+        write(*,'(12F13.9)') dble(matrixm(ist1,1:12))
       end do
 
     write(*,*) 'matrixm real (vnlvv)'
-      do ist1 = 1, nstsv
-        write(*,'(12E13.5)') dble(vnlvv(ist1,:))
+      do ist1 = 1, 12
+        write(*,'(12F13.9)') dble(vnlvv(ist1,1:12))
       end do
 
     write(*,*) 'matrixm2 imag (pace)'
-      do ist1 = 1, nstsv
-        write(*,'(12E13.5)') dimag(matrixm2(ist1,:))
+      do ist1 = 1, 12
+        write(*,'(12F13.9)') dimag(matrixm2(ist1,1:12))
       end do
 
     write(*,*) 'matrixm2 imag (hfxi)'
-      do ist1 = 1, nstsv
-        write(*,'(12E13.5)') dimag(matrixm(ist1,:))
+      do ist1 = 1, 12
+        write(*,'(12F13.9)') dimag(matrixm(ist1,1:12))
       end do
 
     write(*,*) 'matrixm imag (vnlvv)'
-      do ist1 = 1, nstsv
-        write(*,'(12E13.5)') dimag(vnlvv(ist1,:))
+      do ist1 = 1, 12
+        write(*,'(12F13.9)') dimag(vnlvv(ist1,1:12))
       end do
-      if(ikp==4) stop
-endif
+!      if(ikp==4) stop
 endif
 
-
+endif
 !-- Adaptively Compressed Exchange Operator ends --
 
       Deallocate (igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr)
