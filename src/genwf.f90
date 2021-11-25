@@ -116,7 +116,7 @@ Do is = 1, nspecies
     lm3=idxlm (l3,l3)
     j1= Gkqset%ngk(1, ik) + idxlo (lm1, 1, ias)
     j3= Gkqset%ngk(1, ik) + idxlo (lm3, nlorb(is), ias)
-    wf1(wf%maxaa+1:wf%maxaa+wf%losize(is),1:nstfv)=evecfv(j1:j3,1:nstfv)
+    wf1(if3+1:if3+wf%losize(is),1:nstfv)=evecfv(j1:j3,1:nstfv)
   endif
   ! wf%mt(wfsize,nstsv,natmtot)
   wf%mt(:,:,ias)=wf1(:,:)
