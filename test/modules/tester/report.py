@@ -169,7 +169,7 @@ class SummariseTests:
         Add results from a test case (comprised of regression-testing on multiple output files)
         """
         # Test Case
-        errors_per_file = np.asarray([file_result.n_errors for file_result in test.results])
+        errors_per_file = np.asarray([file_result.n_errors for file_result in test.results if not isinstance(file_result, Failure)])
         successful_files = np.where(errors_per_file == 0)[0]
         failed_files = np.where(errors_per_file != 0)[0]
 
