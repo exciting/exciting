@@ -31,7 +31,8 @@ import re
 from ..modules.tester.compare import ErrorFinder
 # Rename TestResults else pytest will try to collect from it
 from ..modules.tester.report import TestResults as ExTestResults
-from ..modules.runner.test import load_tolerances, strip_tolerance_units, compare_outputs_json
+from ..modules.runner.test import load_tolerances, strip_tolerance_units, compare_outputs_json, \
+    list_tolerance_files_in_directory
 
 
 def strip_ansi(text: str) -> str:
@@ -95,7 +96,10 @@ def get_test_results(test_dir: str, output_files_to_check: List[str]) -> dict:
     full_run_dir = os.path.join(test_dir, "run")
     full_ref_dir = os.path.join(test_dir, "ref")
 
-    json_tolerances = strip_tolerance_units(load_tolerances(full_ref_dir))
+    tolerance_files = list_tolerance_files_in_directory(full_ref_dir)
+    json_tolerances = load_tolerances(full_ref_dir, tolerance_files)
+    json_tolerances = strip_tolerance_units(json_tolerances)
+
     test_results_dict = compare_outputs_json(full_run_dir, full_ref_dir, output_files_to_check, json_tolerances)
     return test_results_dict
 

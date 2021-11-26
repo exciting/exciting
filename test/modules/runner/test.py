@@ -1,23 +1,24 @@
 import os
 from typing import List, Union, Tuple
-import sys
 import json
 from copy import deepcopy
+import re
 
 from excitingtools.dict_utils import delete_nested_key
 
 from ..constants import settings, methods_moved_to_json, keys_to_remove
 from ..parsers import ErroneousFileError, parser_chooser
 from ..infrastructure import create_run_dir, copy_exciting_input, get_test_from_init, flatten_directory
+from ..wildcard_processor import wildcard_processor
 
 from ..termcolor_wrapper import print_color
 from ..tester.compare import ErrorFinder
 from ..tester.test import from_init
-from ..tester.report import Report, test_suite_summary, skipped_test_summary, timing_summary, TestResults, \
-    SummariseTests
+from ..tester.report import Report, test_suite_summary, skipped_test_summary, timing_summary, TestResults, SummariseTests
 from ..tester.failure import Failure, Failure_code
 
 from .execute import execute
+from ..wildcard_processor import wildcard
 
 
 def read_output_file(file_name: str) -> Union[dict, Failure]:
@@ -77,19 +78,100 @@ def remove_untested_keys(data: dict, full_file_name: str, keys_to_remove: dict) 
     return data
 
 
-def load_tolerances(directory: str) -> dict:
+# TODO(Alex) Ultimately we can remove this and have the config file deal with it (in a few merges)
+def update_wildcard_files_under_test(files_under_test: List[str], file_names: List[str]) -> List[str]:
     """
-    Get the tolerances from any files in 'directory' of the form `*tol*.json`
+    Create copies of 'files_under_test' entries for every file name with a common name prefix.
+
+    For files for which there can be multiple extensions (FILE_0.OUT, FILE_1.OUT, etc), it is expected that
+    a single tolerance will be defined with the key 'FILE_<WILDCARD>' in the tolerances dictionary and therefore
+    only a single entry 'FILE_<WILDCARD>' in the 'files_under_test' list
+
+    This routine will copy this element for every reference file that matches the prefix.
+
+    For example:
+      On input, files_under_test = ['FILE_<WILDCARD>', 'OTHER_XY.OUT']
+      Reference files = ['FILE_ABC_0.OUT', 'FILE_DEF_1.OUT', 'OTHER_XY.OUT']
+      On output, files_under_test_updated = ['FILE_ABC_0.OUT', 'FILE_DEF_1.OUT', 'OTHER_XY.OUT']
+
+    :param List[str] files_under_test: File names under regression testing, which may or may not contain wildcards in their
+     names.
+    :param List[str] file_names: List of file names containing (but not exclusively containing) all reference output
+    files to test i.e. ['INFO.OUT', 'GW_INFO.OUT', 'random_file.out'].
+    :return List[str] files_under_test_updated: File names under regression testing, with wildcards replaced according
+    to reference files listed in file_names.
+    """
+    assert files_under_test, "No 'files_under_test' are specified"
+    files_under_test_updated = []
+    for file_under_test in files_under_test:
+        regex = re.compile(wildcard_processor(file_under_test))
+
+        for file_name in file_names:
+            if regex.match(file_name):
+                files_under_test_updated.append(file_name)
+
+    return files_under_test_updated
+
+
+def update_wildcard_tolerances(tolerances: dict, files_under_test: List[str]) -> dict:
+    """
+    Create copies of tolerance entries for every file with a common name prefix.
+
+    For files for which there can be multiple extensions (FILE_0.OUT, FILE_1.OUT, etc), it is expected that
+    a single tolerance will be defined with the key 'FILE_<WILDCARD>' in the tolerances dictionary.
+
+    This routine will copy this key:value for every reference file that matches the prefix.
+
+    For example:
+      On input, tolerances = {'FILE_<WILDCARD>': tol_dict}
+      Reference file_names = [FILE_0.OUT, FILE_1.OUT]
+      On output, tolerances = {'FILE_0.OUT': tol_dict, 'FILE_1.OUT': tol_dict,}
+
+    If a key is already present, the initial tolerances will be retained.
+
+    :param dict tolerances: Tolerances for all files under regression testing.
+    :param List[str] files_under_test: List of all file names under testing (should not contain wildcards)
+    :return dict tolerances_updated: Tolerances with for all files under regression testing.
+    """
+    for file in files_under_test:
+        if any([True for w in wildcard if w in file]):
+            raise ValueError('Wild card string present in file name: ' + file)
+
+    tolerances_updated = {}
+
+    for file_name, file_tolerances in tolerances.items():
+        regex = re.compile(wildcard_processor(file_name))
+
+        for reference_file in files_under_test:
+            if regex.match(reference_file):
+                tolerances_updated[reference_file] = file_tolerances
+
+    return tolerances_updated
+
+
+def list_tolerance_files_in_directory(directory: str) -> List[str]:
+    """
+    List the tolerances from any files in 'directory' of the form `*tol*.json`
+
+    :param str directory: Directory containing files
+    :return List[str] tolerance_files: List of tolerance files
+    """
+    files_in_directory = next(os.walk(directory))[2]
+    r = re.compile("tolerance*.*json")
+    tolerance_files = list(filter(r.match, files_in_directory))
+    return tolerance_files
+
+
+def load_tolerances(directory: str, tolerance_files: List[str]) -> dict:
+    """
+    Load JSON tolerance files
 
     :param str directory: Directory containing `*tol*.json` file
+    :param List[str] tolerance_files:
     :return dict tolerances: Dictionary of tolerances
     """
-
-    file_names = next(os.walk(directory))[2]
-    tolerance_files = [f for f in file_names if ('tol' in f) and ('.json' in f)]
-
     if not tolerance_files:
-        sys.exit('No tolerance files in ' + directory)
+        raise FileNotFoundError('No tolerance files listed in `tolerance_files` argument')
 
     tolerances = {}
     for file in tolerance_files:
@@ -107,7 +189,6 @@ def strip_tolerance_units(json_tolerance: dict) -> dict:
     to
     just_tolerance[file_name][key] =  1e-08
     """
-
     just_tolerances = {}
     for file_name, tolerances in json_tolerance.items():
         tmp = {}
@@ -118,71 +199,28 @@ def strip_tolerance_units(json_tolerance: dict) -> dict:
     return just_tolerances
 
 
-def entry_copy(tolerances: dict, ref_file_names: List[str], ref_file_prefixes: List[str], joining_str='_') -> dict:
+def get_json_tolerances(full_ref_dir: str) -> Tuple[dict, List[str]]:
     """
-    Create copies of tolerance entries for every file with a common name prefix.
+    Load and preprocess JSON tolerance files.
 
-    For files for which there can be multiple extensions (FILE_0.OUT, FILE_1.OUT, etc), it is expected that
-    a single tolerance will be defined with the key 'FILE_' in the tolerances dictionary.
+    TODO(A/B/H) Issue 100. Update ErrorFinder class to use tol AND units in data comparison
+       This would be better than to stripping the units (could pass the comparison function as an argument)
+       See function documentation for a description of the issue
 
-    This routine will copy this key:value for every reference file that matches the prefix.
-
-    For example:
-      On input, tolerances = {'FILE_': tol_dict}
-      Reference files = [FILE_0.OUT, FILE_1.OUT]
-      On output, tolerances = {'FILE_0': tol_dict, 'FILE_1': tol_dict,}
-
-    If a key is already present, the initial tolerances will be retained.
-
-    :param dict tolerances: JSON tolerances
-    :param List[str] ref_file_names: Reference files with prefixes,
-                                    for example ['EIGVAL_0.DAT', 'EIGVAL_1.DAT', 'PROJ_00.DAT']
-    :param List[str] ref_file_prefixes: File prefixes, for example ['EIGVAL_', 'PROJ_']
-    :param optional str joining_str: Str joining prefix and the rest of the file name
-    :return dict tolerances: Mutated tolerances
+    :param str full_ref_dir: Full path to reference directory
+    :return Tuple[dict, List[str]]: tolerances_without_units, reference_outputs: Tolerances dictionary
+     of the form {'method': tols}, and output files to compare.
     """
+    tolerance_files: List[str] = list_tolerance_files_in_directory(full_ref_dir)
+    tolerances: dict = load_tolerances(full_ref_dir, tolerance_files)
 
-    for file in ref_file_names:
-        file_prefix = file.split(joining_str)[0]
-        file_prefix += joining_str
+    files_in_directory = next(os.walk(full_ref_dir))[2]
+    reference_outputs = update_wildcard_files_under_test(tolerances.pop('files_under_test'), files_in_directory)
 
-        if file_prefix in ref_file_prefixes:
-            # Create new entry if key not present (which is expected)
-            if file in tolerances:
-                continue
-            tolerances[file] = tolerances[file_prefix]
+    tolerances = update_wildcard_tolerances(tolerances, reference_outputs)
+    tolerances_without_units = strip_tolerance_units(tolerances)
 
-    # Remove initial key:values
-    for file_prefix in ref_file_prefixes:
-        del tolerances[file_prefix]
-
-    return tolerances
-
-
-def add_tols_for_files_with_shared_prefixes(full_ref_dir: str, tolerances: dict) -> dict:
-    """
-    Add tolerances for files with shared prefixes.
-
-    For files for which there can be multiple extensions (FILE_0.OUT, FILE_1.OUT, etc), it is expected that
-    a single tolerance will be defined with the key 'FILE_' in the tolerances dictionary.
-
-    This routine copies the tolerances associated with 'FILE_', for any files in the reference directory
-    that match this prefix. Multiple prefixes can be specified.
-
-    :param str full_ref_dir: Reference directory preprended by full path (relative to the test directory).
-                             For example: 'test_farm/RT-TDDFT/LDA_PW-C/ref/'
-    :param dict tolerances: Tolerances parsed from JSON file
-    :return dict modified_tolerances: Tolerances with any prefix keys replaced with those matched in the full_ref_dir
-    """
-    method = full_ref_dir.split('/')[1]
-    ref_file_names = next(os.walk(full_ref_dir))[2]
-
-    if method == 'RT-TDDFT':
-        modified_tolerances = entry_copy(tolerances, ref_file_names, ['EIGVAL_', 'PROJ_'])
-    else:
-        modified_tolerances = tolerances
-
-    return modified_tolerances
+    return tolerances_without_units, reference_outputs
 
 
 def compare_outputs_json(run_dir: str, ref_dir: str, output_files: List[str], tolerance: dict) -> dict:
@@ -278,36 +316,6 @@ def compare_outputs_xml(output_files: dict, test_dir: str, ref_dir: str, run_dir
     return report
 
 
-def set_files_under_test(files_under_test: List[str], full_ref_dir: str) -> List[str]:
-    """
-    Process list of files under test for wild card '*'
-
-    For example. files_under_test = ['FILE_*'] means test every reference file that
-    has the prefix 'FILE_'.
-    """
-    output_files = []
-    file_prefixes_with_wildcards = []
-    ref_file_names = next(os.walk(full_ref_dir))[2]
-
-    # Find file prefixes with wild cards, and remove the strings from files_under_test
-    for file in files_under_test:
-        if file[-1] == '*':
-            file_prefixes_with_wildcards.append(file[:-1])
-        output_files.append(file)
-
-    if len(file_prefixes_with_wildcards) == 0:
-        return output_files
-
-    # For specified prefixes, add any matching reference file to list of
-    # files for testing
-    for file in ref_file_names:
-        file_prefix = file.split('*')[0]
-        if file_prefix in file_prefixes_with_wildcards:
-            output_files.append(file)
-
-    return output_files
-
-
 def run_single_test_json(main_out: str, test_dir: str, run_dir: str, ref_dir: str, input_file: str,
                          species_files: List[str], executable: str, max_time: int, handle_errors: bool,
                          repeated_tests: dict) -> TestResults:
@@ -335,16 +343,7 @@ def run_single_test_json(main_out: str, test_dir: str, run_dir: str, ref_dir: st
 
     print('Run test %s:' % test_name)
 
-    json_tolerances = load_tolerances(full_ref_dir)
-    output_files = set_files_under_test(json_tolerances.pop('files_under_test'), full_ref_dir)
-    assert output_files, "No 'files_under_test' are specified in the JSON tolerance file"
-
-    json_tolerances = add_tols_for_files_with_shared_prefixes(full_ref_dir, json_tolerances)
-    # TODO(A/B/H) Issue 100. Update ErrorFinder class to use tol AND units in data comparison
-    #  As an alternative to stripping the units (could pass the comparison function as an argument)
-    # See function documentation for a description of the issue
-    just_tolerances = strip_tolerance_units(json_tolerances)
-
+    tolerances_without_units, output_files = get_json_tolerances(full_ref_dir)
     create_run_dir(test_dir, run_dir)
     copy_exciting_input(full_ref_dir, full_run_dir, species_files, input_file)
 
@@ -355,7 +354,7 @@ def run_single_test_json(main_out: str, test_dir: str, run_dir: str, ref_dir: st
                                                         main_out,
                                                         max_time,
                                                         output_files,
-                                                        just_tolerances)
+                                                        tolerances_without_units)
     test_results.print_results()
 
     # Rerun the test if it fails and is assigned as flakey in failing_tests.py
