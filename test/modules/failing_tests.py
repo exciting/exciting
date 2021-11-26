@@ -10,12 +10,10 @@ TODO(A/B/H) Issue 51. Review tolerances for all tests migrated from the old test
 """
 from .utils import Compiler, Build_type, CompilerBuild, get_compiler_type, build_type_str_to_enum
 
-
 # Tests that SOMETIMES fail the CI for no discernible reason are considered flakey rather than failing.
 #
 # Mimics the ctest behaviour: -repeat until-pass:2.
 repeat_tests = []
-
 
 failing_tests = [
     # TODO(Alex) Issue #103. App Tests: GW QP Energies Inconsistent with Reference
@@ -50,7 +48,7 @@ failing_tests = [
      'tags': [CompilerBuild(Compiler.intel, Build_type.mpiandsmp)]
      },
 
-    # TODO ADD ISSUE
+    # TODO ADD ISSUE once we arrive at split properties from Hannah's merge
     {'name': 'properties/PBE-properties-Si',
      'comment': 'Epsilon 11 and 33 do not agree with serial reference values',
      'tags': [CompilerBuild(Compiler.all, Build_type.mpiandsmp)]
@@ -60,6 +58,16 @@ failing_tests = [
     {'name': 'properties/LDA_PW-transport-Si',
      'comment': 'Test is flakey when run in the CI with GCC builds: Test outputs are not written',
      'tags': [CompilerBuild(Compiler.gcc, Build_type.all)]
+     },
+
+    # TODO(Sven) Issue #39
+    # Andris comment: I have tried several runs with a different number of threads and MPI ranks,
+    # but the calculations always converged in 19-20 iterations and always to the same energy with the threshold.
+    # Alex: Update. Test gives different accuracy each time it runs in the CI
+    # For example, total energy difference 1.34e-06 Ha, seems too high. See MR !173 for details.
+    {'name': 'groundstate/LDA_PW-noncollinear-Fe',
+     'comment': 'Variation in total energy w.r.t. reference is too large.',
+     'tags': [CompilerBuild(Compiler.all, Build_type.all)]
      },
 
     # TODO(Alex) Issue 101. Also see Issue #75
