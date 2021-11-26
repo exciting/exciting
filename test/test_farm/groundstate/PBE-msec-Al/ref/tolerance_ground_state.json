@@ -184,7 +184,7 @@
       "unit": "Hartree"
     },
     "Electron-nuclear energy": {
-      "tol": 1e-08,
+      "tol": 2e-08,
       "unit": "Hartree"
     },
     "Nuclear-nuclear energy": {

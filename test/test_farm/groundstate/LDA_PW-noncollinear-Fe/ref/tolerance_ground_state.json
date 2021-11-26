@@ -140,7 +140,7 @@
       "unit": "Hartree"
     },
     "Total energy": {
-      "tol": 1e-08,
+      "tol": 5e-07,
       "unit": "Hartree"
     },
     "Fermi energy": {
@@ -152,11 +152,11 @@
       "unit": "Hartree"
     },
     "Coulomb energy": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "Hartree"
     },
     "Exchange energy": {
-      "tol": 1e-08,
+      "tol": 5e-08,
       "unit": "Hartree"
     },
     "Correlation energy": {
@@ -164,15 +164,15 @@
       "unit": "Hartree"
     },
     "Sum of eigenvalues": {
-      "tol": 1e-08,
+      "tol": 5e-08,
       "unit": "Hartree"
     },
     "Effective potential energy": {
-      "tol": 1e-08,
+      "tol": 5e-08,
       "unit": "Hartree"
     },
     "Coulomb potential energy": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "Hartree"
     },
     "xc potential energy": {
@@ -180,11 +180,11 @@
       "unit": "Hartree"
     },
     "Hartree energy": {
-      "tol": 1e-08,
+      "tol": 5e-07,
       "unit": "Hartree"
     },
     "Electron-nuclear energy": {
-      "tol": 1e-07,
+      "tol": 5e-07,
       "unit": "Hartree"
     },
     "Nuclear-nuclear energy": {
@@ -192,7 +192,7 @@
       "unit": "Hartree"
     },
     "Madelung energy": {
-      "tol": 1e-08,
+      "tol": 5e-07,
       "unit": "Hartree"
     },
     "Core-electron kinetic energy": {
@@ -200,7 +200,7 @@
       "unit": "Hartree"
     },
     "DOS at Fermi energy (states/Ha/cell)": {
-      "tol": 1e-06,
+      "tol": 1e-05,
       "unit": "Hartree"
     },
     "core": {
@@ -224,7 +224,7 @@
       "message": "Key prefix 'Electron charges'"
     },
     "total charge in muffin-tins": {
-      "tol": 1e-08,
+      "tol": 5e-08,
       "unit": "Hartree"
     },
     "total charge": {
@@ -242,7 +242,7 @@
       "unit": "Hartree"
     },
     "occupancy": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "null"
     }
   },

@@ -32,7 +32,7 @@ Values of Concern
 
  LDA_PW-PbTiO3| INFO.OUT |DOS at Fermi energy (states/Ha/cell) reset to 1.e-06 Ha
  LDA_PW-collinear-Fe| INFO.OUT |DOS at Fermi energy (states/Ha/cell) reset to 1.e-06 Ha
- LDA_PW-noncollinear-Fe| INFO.OUT |DOS at Fermi energy (states/Ha/cell) reset to 1.e-06 Ha
+ LDA_PW-noncollinear-Fe| INFO.OUT |DOS at Fermi energy (states/Ha/cell) reset to 5.e-06 Ha
 
 
 Loosening w.r.t. to Defaults
@@ -40,7 +40,18 @@ Loosening w.r.t. to Defaults
  LDA_PW-collinear-Fe
      INFO.OUT | DOS at Fermi energy (states/Ha/cell) 1.e-06
  LDA_PW-noncollinear-Fe
-     INFO.OUT | DOS at Fermi energy (states/Ha/cell) 1.e-06
+     INFO.OUT | DOS at Fermi energy (states/Ha/cell) 1.e-05
+     INFO.OUT | Total energy  5.e-7
+     INFO.OUT | Coulomb energy 1.e-7
+     INFO.OUT | Coulomb potential energy  1.e-7
+     INFO.OUT | Hartree energy 5.e-7
+     INFO.OUT | Madelung energy 5.e-7
+     INFO.OUT | Electron-nuclear energy 5.e-7
+     INFO.OUT | Exchange energy 5.e-8
+     INFO.OUT | Sum of eigenvalues 5.e-8
+     INFO.OUT | Effective potential energy 5.e-8
+     INFO.OUT | total charge in muffin-tins 5e-8
+     eigval.xml | occupancy 1.e-7
  LDA_PW-PbTiO3
      INFO.OUT | Hartree energy             5e-07
      INFO.OUT | Electron-nuclear energy    5e-07
