@@ -83,6 +83,7 @@ module sorting
 
       integer :: incr
       integer :: i, j, k, l, m
+      real(dp), parameter :: oneps = 1d0+1d-12 
 
       incr = 1
       if( present( inc)) incr = inc
@@ -110,9 +111,9 @@ module sorting
         j = l + l
         do while( j <= k)
           if( j < k) then
-            if( a( incr*(idx(j)-1)+1) < a( incr*(idx(j+1)-1)+1)) j = j + 1
+            if( a( incr*(idx(j)-1)+1) < oneps*a( incr*(idx(j+1)-1)+1)) j = j + 1
           end if
-          if( a( incr*(m-1)+1) < a( incr*(idx(j)-1)+1)) then
+          if( a( incr*(m-1)+1) < oneps*a( incr*(idx(j)-1)+1)) then
             idx(i) = idx(j)
             i = j
             j = j + j

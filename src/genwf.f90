@@ -96,7 +96,7 @@ Do is = 1, nspecies
 ! APW coefficients
      call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
                 'N', &           ! TRANSB = 'N'  op( B ) = B.
-                 wf%maxaa, &          ! M ... rows of op( A ) = rows of C
+                 if3, &          ! M ... rows of op( A ) = rows of C
                  nstfv, &           ! N ... cols of op( B ) = cols of C
                  Gkqset%ngk(1,ik), &        ! K ... cols of op( A ) = rows of op( B )
                  zone, &          ! alpha
