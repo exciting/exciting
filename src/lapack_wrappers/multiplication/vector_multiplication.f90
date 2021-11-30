@@ -35,7 +35,7 @@ module vector_multiplication
   !>    \mathbf{C}_\text{out} = \mathbf{a} \cdot \text{op}(\mathbf{b}) + \mathbf{C}_\text{in}
   !> \]
   !> op means that \( \mathbf \) is either transposed or transpose-conjugated. 
-  !> The result is a matrix \( \mathbf{C}_\text{out} \in \mathcal{K}^{n \times m} \),
+  !> The result is a matrix \( \mathbf{C}_\text{out} \in \mathbb{K}^{n \times m} \),
   !> given elementwise as
   !> \[
   !>    C_{\text{out}; i, j} = a_i \cdot \text{op}(b_j) + C_{\text{in}; i, j}.
