@@ -17,8 +17,6 @@ src_dir: ../src/src_gw
          ../src/input
          ../src/testframework
          ../src/lapack_wrappers
-         ../src/lapack_wrappers/f95_interfaces
-         ../src/lapack_wrappers/multiplication
          ../src/math 
          ../src/constants
          ../src/errors_warnings
