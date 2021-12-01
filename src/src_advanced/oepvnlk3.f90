@@ -109,7 +109,7 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
       Allocate (zrhoir(ngrtot))
       Allocate (zvclmt(lmmaxvr, nrcmtmax, natmtot, nstsv))
       Allocate (zvclir(ngrtot, nstsv))
-      Allocate (zvcltp(lmmaxvr, nrcmtmax))
+      Allocate (zvcltp(ntpll, nrcmtmax))
       Allocate (zfmt(lmmaxvr, nrcmtmax))
       Allocate (matrixl(nstsv,nstsv))
       Allocate (matrixm(nstsv,nstsv))
@@ -322,12 +322,73 @@ end if
       End Do
 
 
+!----------------------------------------------!
+!     valence-core-valence contribution     !
+!----------------------------------------------!
+! begin loops over atoms and species
+
+Do is = 1, nspecies
+  nrc = nrcmt(is)
+  Do ia = 1, natoms (is)
+    ias = idxas (ia, is)
+    Do ist2 = 1, spnst (is)
+      If (spcore(ist2, is)) Then
+         Do m1 = - spk (ist2, is), spk (ist2, is) - 1
+
+! pass m-1/2 to wavefcr
+            Call wavefcr2 (input%groundstate%lradstep, is, ia, &
+           & ist2, m1, nrcmtmax, wfcr1) !Psi*_{a}; Returns in SC (I think)
+
+! Begin loop over occupied and empty states
+            Do ist3 = 1, nstsv
+               ! If (evalfv(ist3,ik) .Gt. efermi) Then
+
+! calculate the complex overlap density
+
+                Call vnlrhomt2 (.true., is, wfcr1(:, :, 1), &
+                & wf1%mtmesh(:, :, ias, ist3), zrhomt(:, :, &
+                & ias)) ! Psi*_{a}.Psi_{nk} = rho_{a;nk}; Returns in SH)
+
+! calculate the Coulomb potential
+
+                Call zpotclmt (input%groundstate%ptnucl, &
+                & input%groundstate%lmaxvr, nrc, rcmt(:, is), &
+                & 0.d0, lmmaxvr, zrhomt(:, :, ias), zfmt) ! Returns SH
+
+                Call zgemm ('N', 'N', ntpll, nrc, lmmaxvr, &
+                & zone, zbshthf, ntpll, zfmt, lmmaxvr, &
+                & zzero, zvcltp, ntpll) ! Returns zvcltp in SC
+
+! calculate the complex overlap density
+                Call vnlrhomt2 (.true., is, wfcr1(:, :, 1), zvcltp, &
+                & zrhomt(:, :, ias)) ! Returns in SH
+
+                zvclmt(:,:,:,ist3)=zvclmt(:,:,:,ist3)+zrhomt(:, :, :)
+! end loop over ist3
+                 ! End If
+            End Do
+! end loops over ist2 and m1
+         End Do
+      End If
+    End do
+  End Do
+End Do
+
+
 Do ist1 = 1, nstsv
       Do ist3 = 1, nstsv
             zt1 = zfinp (.True., wf1%mtrlm(:,:,:,ist1),zvclmt(:,:,:,ist3), wf1%ir(:,ist1), zvclir(:,ist3))
             vnlvv (ist1, ist3) = vnlvv (ist1, ist3) - zt1
       End Do
 End Do
+
+
+! Do ist1 = 1, nstsv
+!       Do ist3 = 1, nstsv
+!             zt1 = zfinp (.True., wf1%mtrlm(:,:,:,ist1),zvclmt(:,:,:,ist3), wf1%ir(:,ist1), zvclir(:,ist3))
+!             vnlvv (ist1, ist3) = vnlvv (ist1, ist3) - zt1
+!       End Do
+! End Do
 
 ! -- Adaptively Compressed Exchange Operator starts --
 if(.true.) then
