@@ -41,9 +41,9 @@ contains
       class(TranslationIntegers_type), intent(inout) :: this
       logical :: integers_valid
 
-      integers_valid = this%i(2) > this%i(1) .and. &
-                       this%j(2) > this%j(1) .and. &
-                       this%k(2) > this%k(1)
+      integers_valid = this%i(2) >= this%i(1) .and. &
+                       this%j(2) >= this%j(1) .and. &
+                       this%k(2) >= this%k(1)
 
    end function
 
@@ -66,8 +66,8 @@ contains
       real(dp), allocatable:: translation(:, :)
       allocate(translation(3, n%total()))
 
-      call assert(n%integers_valid(), message='For each dimension the first integer &
-                & the first integer value has to be larger than the second integer value.')
+      call assert(n%integers_valid(), message='For each dimension the second integer &
+                  value has to be larger than or equal to the first integer value.')
 
       itrans = 0
       do i1 = n%i(1), n%i(2)
@@ -81,11 +81,12 @@ contains
 
    end function get_translation_vectors
 
-   !> Given a set of translation vectors \(\mathbf{T}\), containing the vectors pointing 
+   !> Given a set of translation vectors \( \mathbf{T} \), containing the vectors pointing 
    !> to all cells, and the basis \(\mathbf{atpos}\), will generate all atomic positions 
-   !> \(\mathbf{r}\) for each unit cell.
-   !> 
-   !> \[ \mathbf{r} = \mathbf{T} + \mathbf{atposc} \]
+   !> \( \mathbf{r} \) for each unit cell.
+   !> \[ 
+   !>    \mathbf{r} = \mathbf{T} + \mathbf{atposc}
+   !> \]
    function supercell_atomic_positions(translation, atomic_postion, natoms) result(positions)
 
       !> Translation vectors
