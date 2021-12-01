@@ -269,49 +269,6 @@ endif
 ! ------------------------------------------------------------------
 
 
-
-if (.false.) then
-
-!----------------------------------------------!
-!     valence-valence-valence contribution     !
-!----------------------------------------------!
-                     Do ist1 = 1, nstsv
-
-!                        If (evalsvp(ist1) .Lt. efermi) Then
-! calculate the complex overlap density
-call timesec(ta)
-                            call WFprod(ist3,wf2,ist1,wf1,prod)
-call timesec(tb)
-!write(*,*) 'WFprod',tb-ta
-call timesec(ta)
-                            Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, &
-                           & igq0), sfacgq0, prod%mtrlm(:,:,:,1), prod%ir(:,1), zrho01)
-call timesec(tb)
-!write(*,*) 'zrhogp',tb-ta
-call timesec(ta)
-                            prod%ir(:,1)=prod%ir(:,1)-zrho01
-                            prod%mtrlm(1,:,:,1)=prod%mtrlm(1,:,:,1)-zrho01/y00
-call timesec(tb)
-!write(*,*) 'remove average',tb-ta
-call timesec(ta)
-                           zt1 = zfinp (.True., prod%mtrlm(:,:,:,1), zvclmt, prod%ir(:,1), zvclir)
-call timesec(tb)
-!write(*,*) 'zfinp',tb-ta
-
-!stop
-!-------------------------------------------------------------------
-! compute the density coefficient of the smallest G+q-vector
-                           zt2 = cfq * wiq2 (iq) * &
-                          & (conjg(zrho01)*zrho02)
-                           zt2 =0d0
-                           vnlvv (ist1, ist2) = vnlvv (ist1, ist2) - &
-                          & (wkptnr(ik)*zt1+zt2)
-!                        End If
-                     End Do
-end if
-
-
-
 ! end loop over ist2
 !                  End If
                End Do
@@ -382,13 +339,6 @@ Do ist1 = 1, nstsv
       End Do
 End Do
 
-
-! Do ist1 = 1, nstsv
-!       Do ist3 = 1, nstsv
-!             zt1 = zfinp (.True., wf1%mtrlm(:,:,:,ist1),zvclmt(:,:,:,ist3), wf1%ir(:,ist1), zvclir(:,ist3))
-!             vnlvv (ist1, ist3) = vnlvv (ist1, ist3) - zt1
-!       End Do
-! End Do
 
 ! -- Adaptively Compressed Exchange Operator starts --
 if(.true.) then
