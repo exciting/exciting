@@ -32,6 +32,7 @@ from templates.gw import gw_tolerances
 from templates.hybrid import hybrid_tolerances, hybrid_message
 from templates.bse import bse_tolerances
 from templates.tddft import tddft_tolerances
+from templates.rt_tddft import rt_tddf_tolerances
 from utils import ExcitingCalculation, get_calculation_types
 
 def parse_input_args() -> dict:
@@ -127,6 +128,10 @@ def generate_tolerance_file(calculation: ExcitingCalculation, file_path: str):
 
     if calculation == ExcitingCalculation.tddft:
         write_tolerance_with_json(tddft_tolerances, full_file_name)
+        write_tolerance_with_json(tddft_tolerances, full_file_name)
+
+    if calculation == ExcitingCalculation.rt_tddft:
+        write_tolerance_with_json(rt_tddf_tolerances, full_file_name)
 
     if calculation == ExcitingCalculation.bse:
         write_tolerance_with_json(bse_tolerances, full_file_name)
@@ -178,4 +183,3 @@ if __name__ == "__main__":
         print('Generating ', calculation)
         generate_tolerance_file(calculation, inputs['destination'])
         print("\n\n")
-

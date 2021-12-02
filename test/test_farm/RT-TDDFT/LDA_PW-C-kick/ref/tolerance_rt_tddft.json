@@ -1,0 +1,107 @@
+{
+  "files_under_test": [
+    "JIND.OUT",
+    "NEXC.OUT",
+    "ETOT_RTTDDFT.OUT",
+    "EIGVAL_0.OUT",
+    "EIGVAL_20.OUT",
+    "EIGVAL_40.OUT",
+    "PROJ_0.OUT",
+    "PROJ_20.OUT",
+    "PROJ_40.OUT"
+  ],
+  "JIND.OUT": {
+    "Time": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "Jx": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "Jy": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "Jz": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  },
+  "NEXC.OUT": {
+    "Time": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "number_electrons_GroundState": {
+      "tol": 5e-07,
+      "unit": "null"
+    },
+    "number_electrons_ExcitedState": {
+      "tol": 5e-07,
+      "unit": "null"
+    },
+    "sum": {
+      "tol": 1e-06,
+      "unit": "null"
+    }
+  },
+  "ETOT_RTTDDFT.OUT": {
+    "Time": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "ETOT": {
+      "tol": 1e-08,
+      "unit": "eV"
+    },
+    "Madelung": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "Eigenvalues-Core": {
+      "tol": 1e-08,
+      "unit": "eV"
+    },
+    "Eigenvalues-Valence": {
+      "tol": 1e-08,
+      "unit": "eV"
+    },
+    "Exchange": {
+      "tol": 1e-08,
+      "unit": "eV"
+    },
+    "Correlation": {
+      "tol": 1e-08,
+      "unit": "eV"
+    },
+    "XC-potential": {
+      "tol": 1e-08,
+      "unit": "eV"
+    },
+    "Coulomb pot. energy": {
+      "tol": 1e-08,
+      "unit": "eV"
+    }
+  },
+  "EIGVAL_??.OUT": {
+    "ik": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "eigenvalues": {
+      "tol": 1e-08,
+      "unit": "eV"
+    }
+  },
+  "PROJ_??.OUT": {
+    "ik": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "projection": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  }
+}

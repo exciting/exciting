@@ -33,7 +33,7 @@ def parse_jind(name, skiprows=0):
         data = np.genfromtxt(name, skip_header=skiprows)
     except:
         raise ParseError
-    out = {"time": data[:, 0], "Jx": data[:, 1], "Jy": data[:, 2], "Jz": data[:, 3]}
+    out = {"Time": data[:, 0], "Jx": data[:, 1], "Jy": data[:, 2], "Jz": data[:, 3]}
 
     return out
 
@@ -121,10 +121,16 @@ def parse_eigval_screenshots(name: str) -> dict:
         file = f.readlines()
 
     data = {}
+    kpoints = []
     for indices in k_blocks:
-        key = 'ik' + file[indices['start']].split()[-1]
+        kpoint = {}
+        ik = int(file[indices['start']].split()[-1])
         eigenvalues = [float(file[i].split()[-1]) for i in range(indices['start']+1, indices['end']+1)]
-        data[key] = {'eigenvalues': eigenvalues}
+        kpoint['ik'] = ik 
+        kpoint['eigenvalues'] = eigenvalues
+        kpoints.append(kpoint)
+        
+    data['kpoints'] = kpoints
 
     return data
 
@@ -154,13 +160,18 @@ def parse_proj_screenshots(name: str) -> dict:
         file = f.readlines()
 
     data = {}
+    kpoints = []
     for i in k_blocks:
+        kpoint = {}
         start = i[0]
         end = i[1]
-        key = 'ik' + file[start].split()[-1]
+        ik = int(file[start].split()[-1])
         projection = []
         for j in range(start + 1, end):
             projection.append([float(x) for x in file[j].split()])
-        data[key] = {'projection': np.asarray(projection)}
+        kpoint['ik'] = ik
+        kpoint['projection'] = np.asarray(projection)
+    
+    data['kpoints'] = kpoints
 
     return data
