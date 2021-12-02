@@ -138,13 +138,24 @@ def update_wildcard_tolerances(tolerances: dict, files_under_test: List[str]) ->
             raise ValueError('Wild card string present in file name: ' + file)
 
     tolerances_updated = {}
+    unmatched_file_names = []
 
     for file_name, file_tolerances in tolerances.items():
         regex = re.compile(wildcard_processor(file_name))
+        matched = False
 
         for reference_file in files_under_test:
             if regex.match(reference_file):
                 tolerances_updated[reference_file] = file_tolerances
+                matched = True
+
+        if not matched:
+            unmatched_file_names.append(file_name)
+
+    if unmatched_file_names:
+        raise KeyError(f"One or more keys in the tolerances JSON does not correspond to reference file names or "
+                       f"cannot be matched with the wildcard symbols defined in wildcards.py: "
+                       f"{unmatched_file_names}")
 
     return tolerances_updated
 
@@ -262,8 +273,8 @@ def compare_outputs_json(run_dir: str, ref_dir: str, output_files: List[str], to
         try:
             file_tolerances = tolerance[file]
         except KeyError:
-            raise KeyError("File name does not match the file_name_key in tolerance file."
-                           "Most likely the key defined in tolerance templates is not equal"
+            raise KeyError("File name does not match the file_name_key in tolerance file. "
+                           "Most likely the key defined in tolerance templates is not equal "
                            "to the output file name")
 
         file_results = ErrorFinder(test_data, ref_data, file_tolerances, file_name=file)

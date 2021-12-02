@@ -13,6 +13,7 @@ class ExcitingCalculation(enum.Enum):
     groundstate = enum.auto()
     gw = enum.auto()
     tddft = enum.auto()
+    rt_tddft = enum.auto()
     bse = enum.auto()
     hybrid = enum.auto()
     phonon = enum.auto()

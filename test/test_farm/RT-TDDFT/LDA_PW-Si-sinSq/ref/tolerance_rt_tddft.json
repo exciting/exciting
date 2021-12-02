@@ -1,0 +1,23 @@
+{
+  "files_under_test": [
+    "JIND.OUT"
+  ],
+  "JIND.OUT": {
+    "Time": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "Jx": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "Jy": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "Jz": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  }
+}
