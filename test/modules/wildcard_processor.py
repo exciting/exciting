@@ -32,7 +32,7 @@ def wildcard_processor(string: str) -> str:
       'abc_*'  --> '^abc_[a-zA-Z\d]$'
       'abc_#'  --> '^abc_[\d]$'
       'abc_&'  --> '^abc_[a-zA-Z]$'
-      '*abc_??_sdf*_##_qwe.oiu_&.out' 
+      '*abc_??_sdf*_##_qwe.oiu_&.out'
                --> '^[a-zA-Z\d]$abc_[\w-]_sdf[a-zA-Z\d]_[\d][\d]_qwe[.]oiu_[a-zA-Z][.]out$'
 
     :param string: string with wildcards

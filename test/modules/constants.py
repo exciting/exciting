@@ -59,7 +59,7 @@ settings = Defaults(max_time       = 1800,
                     )
 
 # TODO(A/H/B) Remove this once test suite has fully moved over to JSON
-methods_moved_to_json = ['groundstate', 'GW', 'hybrid']
+methods_moved_to_json = ['groundstate', 'GW', 'hybrid', 'BSE', 'XANES', 'TDDFT']
 
 # TODO(A/H) Only specify for files where keys will be removed
 # Keys to be removed from test and reference dictionary

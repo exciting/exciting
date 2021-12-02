@@ -1,0 +1,7 @@
+Log File for Tolerances
+-----------------------
+
+Loosening w.r.t. to Defaults
+-----------------------------
+PBE_SOL-TiO2
+    EXCITON_??.OUT |  energy 1.e-6 eV
