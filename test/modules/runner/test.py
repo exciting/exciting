@@ -189,6 +189,7 @@ def strip_tolerance_units(json_tolerance: dict) -> dict:
     to
     just_tolerance[file_name][key] =  1e-08
     """
+
     just_tolerances = {}
     for file_name, tolerances in json_tolerance.items():
         tmp = {}
@@ -415,6 +416,9 @@ def execute_and_compare_single_test_json(test_dir: str,
     if run_success:
         test_results_dict = compare_outputs_json(full_run_dir, full_ref_dir, output_files, just_tolerances)
         test_results.set_results(test_results_dict)
+
+    #test_results.print_results()
+    #test_results.assert_errors(handle_errors)
 
     return test_results
 

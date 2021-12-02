@@ -60,6 +60,9 @@ DefaultTolerances = namedtuple('DefaultTolerances',
                                 'frequency',
                                 'angle',
                                 'temperature',
+                                'oscillator_strength',
+                                'loss_function',
+                                'structure_factor'
                                 ])
 
 # Set all defaults to None, such that tolerance templates are not required to define
@@ -71,6 +74,7 @@ tol_file_name = {'groundstate': 'tolerance_ground_state.json',
                  'gw': 'tolerance_gw.json',
                  'hybrid': 'tolerance_hybrid.json',
                  'bse': 'tolerance_bse.json',
+                 'xanes': 'tolerance_xanes.json',
                  'tddft': 'tolerance_tddft.json',
                  'phonon': 'tolerance_phonon.json',
                  'dos': 'tolerance_bands_dos.json',

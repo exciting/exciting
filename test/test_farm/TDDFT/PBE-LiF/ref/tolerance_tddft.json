@@ -1,0 +1,38 @@
+{
+  "files_under_test": [
+    "EPSILON_??.OUT",
+    "LOSS_??.OUT"
+  ],
+  "EPSILON_??.OUT": {
+    "frequency": {
+      "tol": 1e-08,
+      "unit": "eV"
+    },
+    "real_oscillator_strength": {
+      "tol": 2e-08,
+      "unit": "null"
+    },
+    "imag_oscillator_strength": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "real_oscillator_strength_kkt": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  },
+  "LOSS_??.OUT": {
+    "frequency": {
+      "tol": 1e-08,
+      "unit": "eV"
+    },
+    "loss_function": {
+      "tol": 1e-08,
+      "unit": "eV^-1"
+    },
+    "structure_factor": {
+      "tol": 0.1,
+      "unit": "null"
+    }
+  }
+}
