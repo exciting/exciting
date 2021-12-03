@@ -1,0 +1,39 @@
+{
+  "files_under_test": [
+    "ELNES.OUT",
+    "mossbauer.xml"
+  ],
+  "ELNES.OUT": {
+    "energy": {
+      "tol": 1e-08,
+      "unit": "Hartree",
+      "message": "Ha assumed for unit"
+    },
+    "elnes": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  },
+  "mossbauer.xml": {
+    "numOfMeshPtsToNucRad": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "n": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "approxNucRad": {
+      "tol": 1e-08,
+      "unit": "Bohr"
+    },
+    "contactChargeDensity": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "chemicalSymbol": {
+      "tol": "",
+      "unit": "null"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "files_under_test": [
+    "bandstructure.xml",
+    "dos.xml",
+    "effmass.xml"
+  ],
+  "bandstructure.xml": {
+    "eval": {
+      "tol": 1e-06,
+      "unit": "Hartree"
+    },
+    "distance": {
+      "tol": 1e-08,
+      "unit": "Bohr^-1"
+    }
+  },
+  "dos.xml": {
+    "e": {
+      "tol": 1e-06,
+      "unit": "Hartree"
+    },
+    "dos": {
+      "tol": 1e-08,
+      "unit": "1/Hartree"
+    }
+  },
+  "effmass.xml": {
+    "eigenvalue": {
+      "tol": 1e-06,
+      "unit": "Hartree"
+    },
+    "cartesian": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "lattice": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "evdk_matrix": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "emt_matrix": {
+      "tol": 1e-1,
+      "unit": "m_electron"
+    },
+    "trace": {
+      "tol": 1e-08,
+      "unit": "null",
+      "message": "Trace applies to dE/dk and m*"
+    },
+    "n": {
+      "tol": 0,
+      "unit": "null",
+      "message": "key 'state number' "
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "files_under_test": [
+    "TDOS_WANNIER.OUT",
+    "WANNIER_INFO.OUT"
+  ],
+  "TDOS_WANNIER.OUT": {
+    "energy": {
+      "tol": 1e-06,
+      "unit": "Hartree"
+    },
+    "dos": {
+      "tol": 1e-08,
+      "unit": "1/Ha/Bohr^3"
+    }
+  },
+  "WANNIER_INFO.OUT": {
+    "n_wannier": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "localisation_center": {
+      "tol": 1e-08,
+      "unit": "Bohr"
+    },
+    "Omega": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "Omega_I": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "Omega_D": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "Omega_OD": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "files_under_test": [
+    "ldos.out",
+    "band_edges.out"
+  ],
+  "ldos.out": {
+    "energy": {
+      "tol": 1e-06,
+      "unit": "Hartree"
+    },
+    "ldos": {
+      "tol": 1e-06,
+      "unit": "null"
+    }
+  },
+  "band_edges.out": {
+    "c_axis": {
+      "tol": 1e-08,
+      "unit": "Bohr^-1"
+    },
+    "VBM": {
+      "tol": 1e-06,
+      "unit": "Hartree"
+    },
+    "CBm": {
+      "tol": 1e-06,
+      "unit": "Hartree"
+    }
+  }
+}

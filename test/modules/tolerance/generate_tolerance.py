@@ -33,6 +33,11 @@ from templates.hybrid import hybrid_tolerances, hybrid_message
 from templates.bse import bse_tolerances
 from templates.tddft import tddft_tolerances
 from templates.rt_tddft import rt_tddf_tolerances
+from templates.properties import optical_properties_tolerances, core_properties_tolerances, electric_field_properties_tolerances, spin_properties_tolerances
+from templates.transport import transport_tolerances
+from templates.plotting import plotting_tolerances
+from templates.bandstructure_dos import bandstructure_dos_tolerances
+from templates.wannier import wannier_tolerances
 from utils import ExcitingCalculation, get_calculation_types
 
 def parse_input_args() -> dict:
@@ -115,7 +120,6 @@ def generate_tolerance_file(calculation: ExcitingCalculation, file_path: str):
     """
     full_file_name = os.path.join(file_path, tol_file_name[calculation.name])
 
-    # TODO(A/H/B/E) Issue 94. Fill in templates in subsequent merge requests
     if calculation == ExcitingCalculation.groundstate:
         write_tolerance_with_json(ground_state_tolerances, full_file_name)
 
@@ -127,7 +131,6 @@ def generate_tolerance_file(calculation: ExcitingCalculation, file_path: str):
         write_tolerance_with_json(hybrid_tolerances, full_file_name)
 
     if calculation == ExcitingCalculation.tddft:
-        write_tolerance_with_json(tddft_tolerances, full_file_name)
         write_tolerance_with_json(tddft_tolerances, full_file_name)
 
     if calculation == ExcitingCalculation.rt_tddft:
@@ -143,36 +146,28 @@ def generate_tolerance_file(calculation: ExcitingCalculation, file_path: str):
 
     # Properties
     if calculation in [ExcitingCalculation.band_structure, ExcitingCalculation.dos]:
-        sys.exit('tolerance template needs to be defined:' + calculation.name)
-        # write_tolerance_with_json(bandstructure_dos_tolerances, full_file_name)
+        write_tolerance_with_json(bandstructure_dos_tolerances, full_file_name)
 
     if calculation == ExcitingCalculation.plot:
-        sys.exit('tolerance template needs to be defined:' + calculation.name)
-        # write_tolerance_with_json(plotting_tolerances, full_file_name)
+        write_tolerance_with_json(plotting_tolerances, full_file_name)
 
     if calculation == ExcitingCalculation.wannier:
-        sys.exit('tolerance template needs to be defined:' + calculation.name)
-        # write_tolerance_with_json(wannier_tolerances, full_file_name)
+        write_tolerance_with_json(wannier_tolerances, full_file_name)
 
     if calculation == ExcitingCalculation.transport:
-        sys.exit('tolerance template needs to be defined:' + calculation.name)
-        # write_tolerance_with_json(transport_tolerances, full_file_name)
+        write_tolerance_with_json(transport_tolerances, full_file_name)
 
     if calculation == ExcitingCalculation.optical_properties:
-        sys.exit('tolerance template needs to be defined:' + calculation.name)
-        # write_tolerance_with_json(optical_properties_tolerances, full_file_name)
+        write_tolerance_with_json(optical_properties_tolerances, full_file_name)
 
     if calculation == ExcitingCalculation.electric_properties:
-        sys.exit('tolerance template needs to be defined:' + calculation.name)
-        # write_tolerance_with_json(electric_field_properties_tolerances, full_file_name)
+        write_tolerance_with_json(electric_field_properties_tolerances, full_file_name)
 
     if calculation == ExcitingCalculation.core_properties:
-        sys.exit('tolerance template needs to be defined:' + calculation.name)
-        # write_tolerance_with_json(core_properties_tolerances, full_file_name)
+        write_tolerance_with_json(core_properties_tolerances, full_file_name)
 
     if calculation == ExcitingCalculation.spin_properties:
-        sys.exit('tolerance template needs to be defined:' + calculation.name)
-        # write_tolerance_with_json(spin_properties_tolerances, full_file_name)
+        write_tolerance_with_json(spin_properties_tolerances, full_file_name)
 
 
 if __name__ == "__main__":

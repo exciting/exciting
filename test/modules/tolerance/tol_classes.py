@@ -46,6 +46,7 @@ class TolWithMessage(Tol):
 
 
 # Named tuple for default tolerances.
+# Tolerances should be quantities (not units)
 # Should be instantiated once per output file.
 DefaultTolerances = namedtuple('DefaultTolerances',
                                ['integer',
@@ -65,6 +66,9 @@ DefaultTolerances = namedtuple('DefaultTolerances',
                                 'structure_factor',
                                 'time',
                                 'current_density'
+                                'au',
+                                'dos',
+                                'effective_mass'
                                 ])
 
 # Set all defaults to None, such that tolerance templates are not required to define
@@ -82,7 +86,7 @@ tol_file_name = {'groundstate': 'tolerance_ground_state.json',
                  'phonon': 'tolerance_phonon.json',
                  'dos': 'tolerance_bands_dos.json',
                  'band_structure': 'tolerance_bands_dos.json',
-                 'plotting': 'tolerance_plotting.json',
+                 'plot': 'tolerance_plotting.json',
                  'wannier': 'tolerance_wannier.json',
                  'transport': 'tolerance_transport.json',
                  'optical_properties': 'tolerance_optical.json',

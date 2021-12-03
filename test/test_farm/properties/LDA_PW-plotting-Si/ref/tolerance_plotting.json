@@ -1,0 +1,382 @@
+{
+  "files_under_test": [
+    "RHO3D.xml",
+    "VCL3D.xml",
+    "VXC3D.xml",
+    "WF3D.xml",
+    "ELF3D.xml",
+    "EF3D.xml"
+  ],
+  "RHO3D.xml": {
+    "originrs": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "latexunit": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "gridticks": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "label": {
+      "tol": "",
+      "unit": "null"
+    },
+    "endpoint": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "graceunit": {
+      "tol": "",
+      "unit": "null"
+    },
+    "origin": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "title": {
+      "tol": "",
+      "unit": "null"
+    },
+    "endpointrs": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "data": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "index": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "n": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "const": {
+      "tol": "",
+      "unit": "null"
+    },
+    "name": {
+      "tol": "",
+      "unit": "null"
+    },
+    "delta": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  },
+  "VCL3D.xml": {
+    "originrs": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "latexunit": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "gridticks": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "label": {
+      "tol": "",
+      "unit": "null"
+    },
+    "endpoint": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "graceunit": {
+      "tol": "",
+      "unit": "null"
+    },
+    "origin": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "title": {
+      "tol": "",
+      "unit": "null"
+    },
+    "endpointrs": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "data": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "index": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "n": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "const": {
+      "tol": "",
+      "unit": "null"
+    },
+    "name": {
+      "tol": "",
+      "unit": "null"
+    },
+    "delta": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  },
+  "VXC3D.xml": {
+    "originrs": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "latexunit": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "gridticks": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "label": {
+      "tol": "",
+      "unit": "null"
+    },
+    "endpoint": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "graceunit": {
+      "tol": "",
+      "unit": "null"
+    },
+    "origin": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "title": {
+      "tol": "",
+      "unit": "null"
+    },
+    "endpointrs": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "data": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "index": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "n": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "const": {
+      "tol": "",
+      "unit": "null"
+    },
+    "name": {
+      "tol": "",
+      "unit": "null"
+    },
+    "delta": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  },
+  "WF3D.xml": {
+    "originrs": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "latexunit": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "gridticks": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "label": {
+      "tol": "",
+      "unit": "null"
+    },
+    "endpoint": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "graceunit": {
+      "tol": "",
+      "unit": "null"
+    },
+    "origin": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "title": {
+      "tol": "",
+      "unit": "null"
+    },
+    "endpointrs": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "data": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "index": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "n": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "const": {
+      "tol": "",
+      "unit": "null"
+    },
+    "name": {
+      "tol": "",
+      "unit": "null"
+    },
+    "delta": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  },
+  "ELF3D.xml": {
+    "originrs": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "latexunit": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "gridticks": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "label": {
+      "tol": "",
+      "unit": "null"
+    },
+    "endpoint": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "graceunit": {
+      "tol": "",
+      "unit": "null"
+    },
+    "origin": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "title": {
+      "tol": "",
+      "unit": "null"
+    },
+    "endpointrs": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "data": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "index": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "n": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "const": {
+      "tol": "",
+      "unit": "null"
+    },
+    "name": {
+      "tol": "",
+      "unit": "null"
+    },
+    "delta": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  },
+  "EF3D.xml": {
+    "originrs": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "latexunit": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "gridticks": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "label": {
+      "tol": "",
+      "unit": "null"
+    },
+    "endpoint": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "graceunit": {
+      "tol": "",
+      "unit": "null"
+    },
+    "origin": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "title": {
+      "tol": "",
+      "unit": "null"
+    },
+    "endpointrs": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "data": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "index": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "n": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "const": {
+      "tol": "",
+      "unit": "null"
+    },
+    "name": {
+      "tol": "",
+      "unit": "null"
+    },
+    "delta": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  }
+}

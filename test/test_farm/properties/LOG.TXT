@@ -1,0 +1,13 @@
+Log File for Tolerances
+-----------------------
+
+TODO(Alex) Off-diagonal effective masses differ to reference values.
+Values of Concern
+-----------------
+emt_matrix off-diagonal matrix elements are really erroneous w.r.t. the reference data.
+Interestingly the first-order derivatives are fine.
+
+
+Loosening w.r.t. to Defaults
+-----------------------------
+LDA-PW-bandstructure-dos-Si  | effmass.xml  | emt_matrix  -> 1.e-1
