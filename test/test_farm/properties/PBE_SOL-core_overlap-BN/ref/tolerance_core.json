@@ -1,0 +1,39 @@
+{
+  "files_under_test": [
+    "coreoverlap.xml"
+  ],
+  "coreoverlap.xml": {
+    "nkpt": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "index": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "ist1": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "ist2": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "de": {
+      "tol": 1e-08,
+      "unit": "Hartree"
+    },
+    "overlap": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "ncg": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "nstfv": {
+      "tol": 0,
+      "unit": "null"
+    }
+  }
+}

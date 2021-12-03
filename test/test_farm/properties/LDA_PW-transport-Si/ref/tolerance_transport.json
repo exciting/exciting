@@ -1,0 +1,80 @@
+{
+  "files_under_test": [
+    "SEEBECK_11.OUT",
+    "ELECTCOND_11.OUT",
+    "THERMALCOND_11.OUT",
+    "Z_11.OUT"
+  ],
+  "SEEBECK_11.OUT": {
+    "temperature": {
+      "tol": 1e-08,
+      "unit": "K"
+    },
+    "mu": {
+      "tol": 1e-08,
+      "unit": "Hartree"
+    },
+    "re": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "im": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    }
+  },
+  "ELECTCOND_11.OUT": {
+    "temperature": {
+      "tol": 1e-08,
+      "unit": "K"
+    },
+    "mu": {
+      "tol": 1e-08,
+      "unit": "Hartree"
+    },
+    "re": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "im": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    }
+  },
+  "THERMALCOND_11.OUT": {
+    "temperature": {
+      "tol": 1e-08,
+      "unit": "K"
+    },
+    "mu": {
+      "tol": 1e-08,
+      "unit": "Hartree"
+    },
+    "re": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "im": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    }
+  },
+  "Z_11.OUT": {
+    "temperature": {
+      "tol": 1e-08,
+      "unit": "K"
+    },
+    "mu": {
+      "tol": 1e-08,
+      "unit": "Hartree"
+    },
+    "re": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "im": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    }
+  }
+}

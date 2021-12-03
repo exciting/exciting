@@ -1,0 +1,126 @@
+{
+  "files_under_test": [
+    "EPSILON_11.OUT",
+    "EPSILON_12.OUT",
+    "EPSILON_33.OUT",
+    "expiqr.xml",
+    "KERR.OUT",
+    "CHI_111.OUT"
+  ],
+  "EPSILON_11.OUT": {
+    "energy": {
+      "tol": 1e-08,
+      "unit": "Hartree"
+    },
+    "re": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "im": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  },
+  "EPSILON_12.OUT": {
+    "energy": {
+      "tol": 1e-08,
+      "unit": "Hartree"
+    },
+    "re": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "im": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  },
+  "EPSILON_33.OUT": {
+    "energy": {
+      "tol": 1e-08,
+      "unit": "Hartree"
+    },
+    "re": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "im": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  },
+  "expiqr.xml": {
+    "vecql": {
+      "tol": 1e-08,
+      "unit": "null",
+      "message": "q-vector (lattice coordinates)"
+    },
+    "vecqc": {
+      "tol": 1e-08,
+      "unit": "Bohr^-1",
+      "message": "q-vector (Cartesian coordinates)"
+    },
+    "j": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "i": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "Im": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "Re": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "norm": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "vkc": {
+      "tol": 1e-08,
+      "unit": "null",
+      "message": "k-point (lattice coordinates)"
+    },
+    "vkl": {
+      "tol": 1e-08,
+      "unit": "Bohr^-1",
+      "message": "k-point (Cartesian coordinates)"
+    }
+  },
+  "KERR.OUT": {
+    "energy": {
+      "tol": 1e-08,
+      "unit": "Hartree"
+    },
+    "re": {
+      "tol": 1e-06,
+      "unit": "degrees"
+    },
+    "im": {
+      "tol": 1e-06,
+      "unit": "degrees"
+    }
+  },
+  "CHI_111.OUT": {
+    "energy": {
+      "tol": 1e-08,
+      "unit": "Hartree"
+    },
+    "re": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "im": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "modulus": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  }
+}

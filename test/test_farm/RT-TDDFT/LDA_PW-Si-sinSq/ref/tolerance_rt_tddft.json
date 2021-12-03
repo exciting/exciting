@@ -5,19 +5,19 @@
   "JIND.OUT": {
     "Time": {
       "tol": 1e-08,
-      "unit": "null"
+      "unit": "a.u."
     },
     "Jx": {
       "tol": 1e-08,
-      "unit": "null"
+      "unit": "a.u."
     },
     "Jy": {
       "tol": 1e-08,
-      "unit": "null"
+      "unit": "a.u."
     },
     "Jz": {
       "tol": 1e-08,
-      "unit": "null"
+      "unit": "a.u."
     }
   }
 }

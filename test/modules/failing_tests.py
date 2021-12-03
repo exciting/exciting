@@ -31,33 +31,47 @@ failing_tests = [
     # TODO(Sebastian) Issue 40
     {'name': 'properties/LDA_PZ-wannier-SiC',
      'comment': '',
-     'tags': [CompilerBuild(Compiler.gcc, Build_type.all)]
+     'tags': [CompilerBuild(Compiler.all, Build_type.all)]
      },
 
     # TODO(Cecilia) Issue 54. HSE and PBE0 sometimes fail in our CI pipeline within Intel MPIANDSMP build
     # Repeating them changes the results each time but the diff is never < tolerances.
     # Only occurs in the CI pipeline.
     {'name': 'hybrid/HSE-Si',
-     'comment': 'Test is flakey when run in the CI with Intel parallel build',
+     'comment': 'Test is flakey when run in the CI with Intel parallel build.',
      'tags': [CompilerBuild(Compiler.intel, Build_type.mpiandsmp)]
      },
 
     # TODO(Cecilia) Issue 54
     {'name': 'hybrid/PBE0-Si',
-     'comment': 'Test is flakey when run in the CI with Intel parallel build',
+     'comment': 'Test is flakey when run in the CI with Intel parallel build.',
      'tags': [CompilerBuild(Compiler.intel, Build_type.mpiandsmp)]
      },
 
-    # TODO ADD ISSUE once we arrive at split properties from Hannah's merge
-    {'name': 'properties/PBE-properties-Si',
-     'comment': 'Epsilon 11 and 33 do not agree with serial reference values',
-     'tags': [CompilerBuild(Compiler.all, Build_type.mpiandsmp)]
+    # TODO(Alex) Issue 111.
+    {'name': 'properties/LDA_PW-optical_properties-Si',
+     'comment': 'Epsilon 11 and 33 do not agree with serial reference values. \n'
+                '  - CHI_111.OUT also reviews reviewing.',
+     'tags': [CompilerBuild(Compiler.all, Build_type.all)]
+     },
+
+    # TODO(Alex) Issue 112
+    {'name': 'properties/LDA_PW-ldos-Si',
+     'comment': 'Numbers are completely different - reference data needs reviewing.',
+     'tags': [CompilerBuild(Compiler.all, Build_type.all)]
      },
 
     # TODO(Maria) Issue 55
     {'name': 'properties/LDA_PW-transport-Si',
-     'comment': 'Test is flakey when run in the CI with GCC builds: Test outputs are not written',
-     'tags': [CompilerBuild(Compiler.gcc, Build_type.all)]
+     'comment': 'Test is flakey when run in the CI with GCC builds: Test outputs are not written.'
+                'Results with Intel for THERMALCOND_11 and ELECTCOND_11 have large absolute errors.',
+     'tags': [CompilerBuild(Compiler.all, Build_type.all)]
+     },
+
+    # TODO(Bene) Issue 113
+    {'name': 'properties/LDA_PW-SO-spintexture-Si',
+     'comment': 'GCC calculations disagree with reference.',
+     'tags': [CompilerBuild(Compiler.all, Build_type.all)]
      },
 
     # TODO(Sven) Issue #39
@@ -85,7 +99,7 @@ hanging_tests = [
     # TODO(Alex) Issue #36 chargedensityplot hangs when running with np > 1 cores
     # Should remove chargedensityplot from this and add it as a property
     {'name': 'groundstate/PBE-Al',
-     'comment': 'chargedensityplot hangs at an allgatherv call',
+     'comment': 'chargedensityplot hangs at an allgatherv call.',
      'tags': [CompilerBuild(Compiler.all, Build_type.mpiandsmp)]}
 ]
 

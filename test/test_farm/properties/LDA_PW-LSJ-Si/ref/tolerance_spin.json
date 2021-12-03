@@ -1,0 +1,27 @@
+{
+  "files_under_test": [
+    "LSJ.xml"
+  ],
+  "LSJ.xml": {
+    "J": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "S": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "n": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "chemicalSymbol": {
+      "tol": "",
+      "unit": "null"
+    },
+    "L": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  }
+}

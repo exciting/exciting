@@ -205,19 +205,23 @@ def parse_effmass(name: str) -> dict:
     state = []
     for node in root.findall("state"):
         st = node.attrib
+
         evdk = node.find("evdk").attrib
         matrix1 = []
         for line in node.find("evdk").findall("line"):
             matrix1.append(line.text.split())
-        evdk["matrix"] = matrix1
+        evdk["evdk_matrix"] = matrix1
+
         emt = node.find("emt").attrib
         matrix2 = []
         for line in node.find("emt").findall("line"):
             matrix2.append(line.text.split())
-        emt["matrix"] = matrix2
+        emt["emt_matrix"] = matrix2
+
         st["evdk"] = evdk
         st["emt"] = emt
         state.append(st)
+
     effmass["state"] = {}
     for item in state:
         name = item["n"]
@@ -410,7 +414,7 @@ def parse_band_edges(name: str) -> dict:
     return out
 
 
-def parse_spintext(name: str) -> list:
+def parse_spintext(name: str) -> dict:
     """
     Parse spintext.xml
 
@@ -430,7 +434,8 @@ def parse_spintext(name: str) -> list:
     tree_spin = ET.parse(name)
     root_spin = tree_spin.getroot()
 
-    spintext = []
+    spintext = {}
+    i = 0
     for band in root_spin.findall("band"):
         k_point = []
         spin = []
@@ -441,11 +446,12 @@ def parse_spintext(name: str) -> list:
             spin.append([float(s) for s in val.attrib["spin"].split()])
             energy.append(float(val.attrib["energy"]))
 
-        spintext.append({"ist": int(band.attrib["ist"]),
+        spintext[str(i)] = {"ist": int(band.attrib["ist"]),
                          "k-point":k_point,
                          "spin": spin,
                          "energy": energy}
-                        )
+        i +=1
+
     return spintext
 
 

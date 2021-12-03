@@ -1,0 +1,23 @@
+{
+  "files_under_test": [
+    "spintext.xml"
+  ],
+  "spintext.xml": {
+    "ist": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "k-point": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "spin": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "energy": {
+      "tol": 1e-08,
+      "unit": "Hartree"
+    }
+  }
+}

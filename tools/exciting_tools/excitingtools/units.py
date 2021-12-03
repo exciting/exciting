@@ -13,7 +13,9 @@ class Unit(enum.Enum):
     currently not required. If/when we wish to do unit manipulation, it should be reconsidered.
     """
     hartree = enum.auto()
+    inv_hartree = enum.auto()
     ev = enum.auto()
+    inv_ev = enum.auto()
     kelvin = enum.auto()
     bohr = enum.auto()
     bohr_pow_3 = enum.auto()
@@ -22,17 +24,17 @@ class Unit(enum.Enum):
     au = enum.auto()
     degrees = enum.auto()
     GK_max = enum.auto()
-    null = enum.auto()
+    electron_rest_mass = enum.auto()
     bohr_velocity_over_bohr_radius = enum.auto()
-    inv_ev = enum.auto()
-    msec = enum.auto()
-
+    null = enum.auto()
 
 # Map Unit enums to strings.
 # Required because JSON cannot dump objects to file.
 enum_to_string = {
     Unit.hartree: 'Hartree',
+    Unit.inv_hartree: '1/Hartree',
     Unit.ev: 'eV',
+    Unit.inv_ev: 'eV^-1',
     Unit.kelvin: 'K',
     Unit.bohr: 'Bohr',
     Unit.bohr_pow_3: 'Bohr^3',
@@ -41,8 +43,7 @@ enum_to_string = {
     Unit.au: 'a.u.',
     Unit.degrees: 'degrees',
     Unit.GK_max: 'GK_max',
-    Unit.null: 'null',
+    Unit.electron_rest_mass: 'm_electron',
     Unit.bohr_velocity_over_bohr_radius: 'v_Bohr/r_Bohr',
-    Unit.inv_ev: 'eV^-1',
-    Unit.msec: 'msec' 
+    Unit.null: 'null'
 }

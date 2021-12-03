@@ -22,10 +22,10 @@ from tol_classes import DefaultTolerances, Tol
 
 default = DefaultTolerances(integer=Tol(0),
                             float=Tol(1.e-8),
-                            energy=Tol(1.e-8, Unit.ev),                # TODO Might need Ha and eV
+                            energy=Tol(1.e-8, Unit.hartree),
                             oscillator_strength=Tol(1.e-8, Unit.null),
-                            time=Tol(1e-8, Unit.null),                 # TODO Set unit. This is likely fs
-                            current_density=Tol(1e-8, Unit.null)       # TODO Set Unit. This is likely ampere/m
+                            time=Tol(1e-8, Unit.au),               # Which would be hbar / E_H
+                            current_density=Tol(1e-8, Unit.au)     # Which would be  (e * E_H) / (hbar * a0)
                             )
 
 rt_tddft_jind = {
@@ -42,7 +42,6 @@ rt_tddft_nexc = {
     'sum': default.float
 }
 
-# TODO Units of Ha or eV?
 rt_tddft_etot = {
     'Time': default.time,
     'ETOT': default.energy,
@@ -55,7 +54,6 @@ rt_tddft_etot = {
     'Coulomb pot. energy': default.energy
 }
 
-# TODO Different unit to rt_tddft_etot? Looks like eV
 rt_tddft_eigval = {
     'ik': default.integer,
     'eigenvalues': default.energy,
