@@ -59,40 +59,15 @@ Subroutine mt_kin(pot,basis,mt_h)
       endif
 
 ! APW-APW storage initialisation
-!      if (allocated(haaij)) deallocate(haaij)
-!      allocate(haaij(haaijSize,haaijSize,natmtot))
-!      haaij=dcmplx(0d0,0d0)
       Allocate (haaintegrals(lmmaxvr, apwordmax, 0:input%groundstate%lmaxapw, apwordmax, 0:input%groundstate%lmaxmat))
       haaintegrals (:, :, :, :, :)=1d100
 ! APW-LO storage initialisation
-!      if (allocated(haloij)) deallocate(haloij)
-!      if (allocated(haloijSize)) deallocate(haloijSize)
-!      allocate(haloijSize(nspecies))
-!      haloijSize=0
-!      maxnlo=0
-!      Do is = 1, nspecies
-!        ias=idxas (1, is)
-!        ilo=nlorb (is)
-!        if (ilo.gt.0) then
-!          l1 = lorbl (ilo, is)
-!          lm1 = idxlm (l1, l1)
-!          l3 = lorbl (1, is)
-!          lm3 = idxlm (l3, -l3)
-!          haloijSize(is)=idxlo (lm1, ilo, ias)- idxlo (lm3, 1, ias)+1
-!          if (maxnlo.lt.haloijSize(is)) maxnlo=haloijSize(is)
-!        endif
-!      Enddo
       maxnlo=mt_h%maxnlo
       if (maxnlo.gt.0) then 
-!        allocate(haloij(maxnlo,haaijSize,natmtot))
-!        haloij=dcmplx(0d0,0d0)
         Allocate (halointegrals(lmmaxvr, apwordmax, 0:input%groundstate%lmaxmat, nlomax))
 
 ! LO-LO storage initialisation
-!        if (allocated(hloloij)) deallocate(hloloij)
         allocate(hlolointegrals(lmmaxvr,nlomax,nlomax))
-!        allocate(hloloij(maxnlo,maxnlo,natmtot))
-!        hloloij=dcmplx(0d0,0d0)
       endif
 
 ! begin loops over atoms and species
@@ -162,9 +137,7 @@ Subroutine mt_kin(pot,basis,mt_h)
                      t1=basis%lofr(ir, 1, ilo1, ias)*basis%lofr(ir, 1, ilo2, ias)
                      t2=basis%lofr(ir, 2, ilo1, ias)*basis%lofr(ir, 2, ilo2, ias)
                      fr (ir) = (0.5d0*t2*rmtable(ir) + 0.5d0*angular*t1*rmtable(ir)*r2inv(ir))*r2 (ir)
-!                     write(*,*) rmtable(ir),r2(ir)
                    End Do
-!write(*,*) '-----------lolo'
                    Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                    hlolointegrals (1, ilo1, ilo2) = gr (nr) / y00
                  End If
