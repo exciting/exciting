@@ -69,9 +69,9 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
       Complex (8), Allocatable :: hfximt(:, :, :, :)
       Complex (8), Allocatable :: zfft(:)
 !      Complex (8), Allocatable :: pace(:, :, :)
-      Complex (8), Allocatable :: fr
+      Complex (8) :: fr
       Real (8), Allocatable :: cf(:,:), frre (:), frim(:), gr(:)
-      Real (8), Allocatable :: xiintegralre, xiintegralim
+      Real (8) :: xiintegralre, xiintegralim
       Complex (8), Allocatable :: xiintegral (:, :)
       Complex (8), Allocatable :: apwi(:, :)
       Complex (8), Allocatable :: matrixPC(:, :)
@@ -79,6 +79,8 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
 ! external functions
       Complex (8) zfinp, zfmtinp
       External zfinp, zfmtinp
+
+write(*,*) 'hello from ACE'
 ! allocate local arrays
       if (.not.allocated(gntyyy)) call gengntyyy
       Allocate (igkignr(ngkmax))
@@ -111,21 +113,14 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
       Allocate (zvclir(ngrtot, nstsv))
       Allocate (zvcltp(lmmaxvr, nrcmtmax))
       Allocate (zfmt(lmmaxvr, nrcmtmax))
-      Allocate (matrixl(nstsv,nstsv))
-      Allocate (matrixm(nstsv,nstsv))
-      Allocate (matrixm1(nstsv,nstsv))
-      Allocate (matrixm2(nstsv,nstsv))
-      Allocate (hfxiir(ngrtot,nstsv))
-      Allocate (hfximt(lmmaxvr, nrcmtmax, natmtot, nstsv))
+
       Allocate (zfft(ngrtot))
-      if (.not.(allocated(pace))) Allocate (pace(nstsv, nmatmax, nkpt))
-      Allocate (cf (3, nrmtmax), fr, frre(nrmtmax), frim(nrmtmax), gr(nrmtmax))
-      Allocate (xiintegral(nstsv,haaijSize), xiintegralre, xiintegralim)
-      Allocate (apwi(haaijSize,ngkmax))
-      Allocate (matrixPC(nstsv,nstfv))
+
 
     if (allocated(evalfv)) deallocate(evalfv)
     allocate(evalfv(nstfv,kset%nkpt))
+write(*,*) 'allocations done'
+
     evalfv(:,:) = 0.d0
     do ik = 1, nkpt
       call getevalfv(kset%vkl(:,ik), evalfv(:,ik))
@@ -208,8 +203,10 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
          call genWF(ik,wf1)
          call genWFinMT(wf1)
          call genWFonMesh(wf1)
-
-
+!do ir=1,200
+!  write(*,*) wf1%mtrlm(1,ir,1,1)
+!enddo
+!stop
          call genWF(jk,wf2)
          call genWFinMT(wf2)
          call genWFonMesh(wf2)
@@ -329,8 +326,40 @@ Do ist1 = 1, nstsv
       End Do
 End Do
 
+
+if (.false.) then
+
+    write(*,*) 'real'
+      do ist1 = 1, 10!nstfv
+!        do ie2 = 1, nstfv
+          write(*,'(10F18.10)') dble(vnlvv(ist1,1:10))
+!        end do
+      end do
+!    write(*,*)
+
+    write(*,*) 'imag'
+      do ist1 = 1, 10!nstfv
+          write(*,'(10F18.10)') dimag(vnlvv(ist1,1:10))
+      end do
+
+
+endif
+
 ! -- Adaptively Compressed Exchange Operator starts --
 if(.true.) then
+      Allocate (matrixl(nstsv,nstsv))
+      Allocate (matrixm(nstsv,nstsv))
+      Allocate (matrixm1(nstsv,nstsv))
+      Allocate (matrixm2(nstsv,nstsv))
+      Allocate (hfxiir(ngrtot,nstsv))
+      Allocate (hfximt(lmmaxvr, nrcmtmax, natmtot, nstsv))
+
+      if (.not.(allocated(pace))) Allocate (pace(nstsv, nmatmax, nkpt))
+      Allocate (cf (3, nrmtmax), frre(nrmtmax), frim(nrmtmax), gr(nrmtmax))
+      Allocate (xiintegral(nstsv,haaijSize))
+      Allocate (apwi(haaijSize,ngkmax))
+      Allocate (matrixPC(nstsv,nstfv))
+
 matrixl = -vnlvv ! create copy
 
 ! Remove upper triangular part
@@ -379,8 +408,9 @@ Do is = 1, nspecies
         ias = idxas (ia, is)
         if3=0
         Do l = 0, input%groundstate%lmaxmat
-            Do m = -l, l
-                Do io1 = 1, apword (l, is)
+
+                Do m = -l, l
+            Do io1 = 1, apword (l, is)                
                     lm2 = idxlm (l, m)
                     ! m2 = mfromlm(lm2)
                     ! l2 = lfromlm(lm2)
@@ -424,7 +454,7 @@ Do is = 1, nspecies
             End Do
         End Do ! LO
 !        write(*,*) haaijSize, if3, loindex
-        Call zgemm('N', 'N', nstsv, ngk(1,ikp), haaijSize, dcmplx(1.0D0,0.0), xiintegral, nstsv, apwi, haaijSize, dcmplx(1.0D0,0.0), pace(:,:,ikp), nstsv) ! pace= paceMT+pace(IR+LO) = xiintegral*apwi+ pace
+        Call zgemm('N', 'N', nstsv, ngk(1,ikp), if3, dcmplx(1.0D0,0.0), xiintegral, nstsv, apwi, haaijSize, dcmplx(1.0D0,0.0), pace(:,:,ikp), nstsv) ! pace= paceMT+pace(IR+LO) = xiintegral*apwi+ pace
     End Do
 End Do
 
@@ -476,6 +506,13 @@ if (.false.) then
 !      if(ikp==4) stop
 endif
 
+  Deallocate (matrixl, matrixm, matrixm1, matrixm2)
+  Deallocate (hfxiir,hfximt)
+  Deallocate(cf,frre,frim,gr)
+  Deallocate(xiintegral)
+  Deallocate (apwi)
+  Deallocate (matrixPC)
+
 endif
 !-- Adaptively Compressed Exchange Operator ends --
 
@@ -488,11 +525,12 @@ endif
       Deallocate (sfacgknr, ylmgq, sfacgq)
       Deallocate (wfmt1, wfmt2, wfir1, wfir2, wfcr1, wfcr2)
       Deallocate (zrhomt, zrhoir, zvclmt, zvclir, zvcltp, zfmt)
-      Deallocate (matrixl, matrixm, matrixm1, zfft)
+      Deallocate(zfft)
       call WFRelease(wf1)
       call WFRelease(wf2)
       call WFRelease(prod)
 write(*,*) 'WFRelease done'
+!stop
       deallocate(gntyyy)
       Return
 End Subroutine
