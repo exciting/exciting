@@ -162,7 +162,9 @@ Subroutine mt_kin(pot,basis,mt_h)
                      t1=basis%lofr(ir, 1, ilo1, ias)*basis%lofr(ir, 1, ilo2, ias)
                      t2=basis%lofr(ir, 2, ilo1, ias)*basis%lofr(ir, 2, ilo2, ias)
                      fr (ir) = (0.5d0*t2*rmtable(ir) + 0.5d0*angular*t1*rmtable(ir)*r2inv(ir))*r2 (ir)
+!                     write(*,*) rmtable(ir),r2(ir)
                    End Do
+!write(*,*) '-----------lolo'
                    Call fderiv (-1, nr, spr(:, is), fr, gr, cf)
                    hlolointegrals (1, ilo1, ilo2) = gr (nr) / y00
                  End If

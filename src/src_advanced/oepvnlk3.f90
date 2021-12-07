@@ -80,7 +80,6 @@ Subroutine oepvnlk3 (ikp, vnlcv, vnlvv)
       Complex (8) zfinp, zfmtinp
       External zfinp, zfmtinp
 
-write(*,*) 'hello from ACE'
 ! allocate local arrays
       if (.not.allocated(gntyyy)) call gengntyyy
       Allocate (igkignr(ngkmax))
@@ -105,13 +104,13 @@ write(*,*) 'hello from ACE'
       Allocate (wfmt2(lmmaxvr, nrcmtmax, natmtot, nspinor, nstsv))
       Allocate (wfir1(ngrtot, nspinor, nstsv))
       Allocate (wfir2(ngrtot, nspinor, nstsv))
-      Allocate (wfcr1(lmmaxvr, nrcmtmax, 2))
-      Allocate (wfcr2(lmmaxvr, nrcmtmax, 2))
+      Allocate (wfcr1(ntpll, nrcmtmax, 2))
+      Allocate (wfcr2(ntpll, nrcmtmax, 2))
       Allocate (zrhomt(lmmaxvr, nrcmtmax, natmtot))
       Allocate (zrhoir(ngrtot))
       Allocate (zvclmt(lmmaxvr, nrcmtmax, natmtot, nstsv))
       Allocate (zvclir(ngrtot, nstsv))
-      Allocate (zvcltp(lmmaxvr, nrcmtmax))
+      Allocate (zvcltp(ntpll, nrcmtmax))
       Allocate (zfmt(lmmaxvr, nrcmtmax))
 
       Allocate (zfft(ngrtot))
@@ -119,14 +118,12 @@ write(*,*) 'hello from ACE'
 
     if (allocated(evalfv)) deallocate(evalfv)
     allocate(evalfv(nstfv,kset%nkpt))
-write(*,*) 'allocations done'
 
     evalfv(:,:) = 0.d0
     do ik = 1, nkpt
       call getevalfv(kset%vkl(:,ik), evalfv(:,ik))
     end do
     call find_vbm_cbm(1, nstfv, kset%nkpt, evalfv, efermi, nomax, numin, ikvbm, ikcbm, ikvcm)
-
 
       call WFInit(wf1)
       call WFInit(wf2)
@@ -203,10 +200,7 @@ write(*,*) 'allocations done'
          call genWF(ik,wf1)
          call genWFinMT(wf1)
          call genWFonMesh(wf1)
-!do ir=1,200
-!  write(*,*) wf1%mtrlm(1,ir,1,1)
-!enddo
-!stop
+
          call genWF(jk,wf2)
          call genWFinMT(wf2)
          call genWFonMesh(wf2)
@@ -266,49 +260,6 @@ endif
 ! ------------------------------------------------------------------
 
 
-
-if (.false.) then
-
-!----------------------------------------------!
-!     valence-valence-valence contribution     !
-!----------------------------------------------!
-                     Do ist1 = 1, nstsv
-
-!                        If (evalsvp(ist1) .Lt. efermi) Then
-! calculate the complex overlap density
-call timesec(ta)
-                            call WFprod(ist3,wf2,ist1,wf1,prod)
-call timesec(tb)
-!write(*,*) 'WFprod',tb-ta
-call timesec(ta)
-                            Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, &
-                           & igq0), sfacgq0, prod%mtrlm(:,:,:,1), prod%ir(:,1), zrho01)
-call timesec(tb)
-!write(*,*) 'zrhogp',tb-ta
-call timesec(ta)
-                            prod%ir(:,1)=prod%ir(:,1)-zrho01
-                            prod%mtrlm(1,:,:,1)=prod%mtrlm(1,:,:,1)-zrho01/y00
-call timesec(tb)
-!write(*,*) 'remove average',tb-ta
-call timesec(ta)
-                           zt1 = zfinp (.True., prod%mtrlm(:,:,:,1), zvclmt, prod%ir(:,1), zvclir)
-call timesec(tb)
-!write(*,*) 'zfinp',tb-ta
-
-!stop
-!-------------------------------------------------------------------
-! compute the density coefficient of the smallest G+q-vector
-                           zt2 = cfq * wiq2 (iq) * &
-                          & (conjg(zrho01)*zrho02)
-                           zt2 =0d0
-                           vnlvv (ist1, ist2) = vnlvv (ist1, ist2) - &
-                          & (wkptnr(ik)*zt1+zt2)
-!                        End If
-                     End Do
-end if
-
-
-
 ! end loop over ist2
 !                  End If
                End Do
@@ -318,6 +269,58 @@ end if
 ! end loop over non-reduced k-point set
       End Do
 
+!----------------------------------------------!
+!     valence-core-valence contribution     !
+!----------------------------------------------!
+! begin loops over atoms and species
+
+If (.true.) Then
+Do is = 1, nspecies
+  nrc = nrcmt(is)
+  Do ia = 1, natoms (is)
+    ias = idxas (ia, is)
+    Do ist2 = 1, spnst (is)
+      If (spcore(ist2, is)) Then
+         Do m1 = - spk (ist2, is), spk (ist2, is) - 1
+! pass m-1/2 to wavefcr
+            Call wavefcr2 (input%groundstate%lradstep, is, ia, &
+           & ist2, m1, nrcmtmax, wfcr1) !Psi*_{a}; Returns in SC (I think)
+
+! Begin loop over occupied and empty states
+            Do ist3 = 1, nstsv
+               ! If (evalfv(ist3,ik) .Gt. efermi) Then
+
+! calculate the complex overlap density
+
+                Call vnlrhomt2 (.true., is, wfcr1(:, :, 1), &
+                & wf1%mtmesh(:, :, ias, ist3), zrhomt(:, :, &
+                & ias)) ! Psi*_{a}.Psi_{nk} = rho_{a;nk}; Returns in SH)
+
+! calculate the Coulomb potential
+
+                Call zpotclmt (input%groundstate%ptnucl, &
+                & input%groundstate%lmaxvr, nrc, rcmt(:, is), &
+                & 0.d0, lmmaxvr, zrhomt(:, :, ias), zfmt) ! Returns SH
+
+                Call zgemm ('N', 'N', ntpll, nrc, lmmaxvr, &
+                & zone, zbshthf, ntpll, zfmt, lmmaxvr, &
+                & zzero, zvcltp, ntpll) ! Returns zvcltp in SC
+
+! calculate the complex overlap density
+                Call vnlrhomt2 (.true., is, wfcr1(:, :, 1), zvcltp, &
+                & zrhomt(:, :, ias)) ! Returns in SH
+
+                zvclmt(:,:,ias,ist3)=zvclmt(:,:,ias,ist3)+zrhomt(:, :, ias)
+! end loop over ist3
+                 ! End If
+            End Do
+! end loops over ist2 and m1
+         End Do
+      End If
+    End do
+  End Do
+End Do
+End If
 
 Do ist1 = 1, nstsv
       Do ist3 = 1, nstsv
@@ -325,25 +328,6 @@ Do ist1 = 1, nstsv
             vnlvv (ist1, ist3) = vnlvv (ist1, ist3) - zt1
       End Do
 End Do
-
-
-if (.false.) then
-
-    write(*,*) 'real'
-      do ist1 = 1, 10!nstfv
-!        do ie2 = 1, nstfv
-          write(*,'(10F18.10)') dble(vnlvv(ist1,1:10))
-!        end do
-      end do
-!    write(*,*)
-
-    write(*,*) 'imag'
-      do ist1 = 1, 10!nstfv
-          write(*,'(10F18.10)') dimag(vnlvv(ist1,1:10))
-      end do
-
-
-endif
 
 ! -- Adaptively Compressed Exchange Operator starts --
 if(.true.) then
@@ -457,7 +441,6 @@ Do is = 1, nspecies
         Call zgemm('N', 'N', nstsv, ngk(1,ikp), if3, dcmplx(1.0D0,0.0), xiintegral, nstsv, apwi, haaijSize, dcmplx(1.0D0,0.0), pace(:,:,ikp), nstsv) ! pace= paceMT+pace(IR+LO) = xiintegral*apwi+ pace
     End Do
 End Do
-
 
 !! -- Adaptively Compressed Exchange Operator test
 if (.false.) then
