@@ -6,12 +6,14 @@ To run with pytest:
 cd test
 pytest -s selftests/test_class_errorfinder.py
 ```
+
+Note, import statements means this can only be run from the `test` directory
 """
 
 import unittest
 import numpy as np
 
-from ..modules.tester.compare import hashable_list, ErrorFinder
+from ..src.tester.compare import hashable_list, ErrorFinder
 
 
 def round_values(input_data: dict, dp=14) -> dict:

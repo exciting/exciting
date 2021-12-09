@@ -72,6 +72,33 @@ One is able to run `pytest` from the `exciting_tools` root with no arguments. By
 
 
 ## Parsers 
-The intention is to a) utilise NOMAD parser for exciting and b) move to structured output in exciting. In the meantime, 
-it is reasonable to add parsers for exciting outputs as required, as long as these routines **only** perform parsing
-and return dictionaries. This is to make the eventual switch to NOMAD parser much easier.
+
+The parsers are used in the test suite. Therefore, they should only return dictionaries with a specific structure.
+ 
+The tolerance comparison will only evaluate the values of lowest-nested keys. As such, one should consider how they structure the parsed data. 
+For example, it makes more sense to structure data like:
+```python3
+{‘wannier1’: {‘localisation_vector’: np.array(shape=(3)),
+              ‘Omega’: float
+             }
+}
+```
+such that the tolerances will be w.r.t. `localisation_vector`, and `Omega`, rather than using the structure:
+```python3
+{‘localisation_vector’: {‘wannier1’:  np.array(shape=(3))
+                         ‘wannier2’:  np.array(shape=(3))
+                        },
+ ‘Omega’: {‘wannier1’:  float
+           ‘wannier2’:  float
+          }
+}
+```
+which will results in tolerances defined w.r.t. `wannier1` and `wannier2`. One can see in the latter case, there is no distinction between `localisation_vector` and `Omega`. In general, we’re more likely to want to set different tolerances for different properties, rather than for different functions with the same set of properties.
+One could also structure the data like:
+```python3
+{‘localisation_vector’: np.array(shape=(n_wannier, 3)),
+ ‘Omega’: : np.array(shape=(n_wannier)
+}
+```
+where the less serialised data removes the key nesting.
+

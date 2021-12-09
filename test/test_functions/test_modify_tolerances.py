@@ -7,7 +7,7 @@ import unittest
 import json
 import os
 
-from ..modules.tolerance.modify_tolerance import extend_tolerance_file_keys, remove_tolerance_file_keys
+from ..src.tolerance.modify_tolerance import extend_tolerance_file_keys, remove_tolerance_file_keys
 
 
 class TestModifyTolerances(unittest.TestCase):

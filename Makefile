@@ -114,7 +114,7 @@ species::
 	cd src/species; $(MAKE)
 
 test::
-	python3 test/tools/check_python_version.py
+	python3 test/src/utilities/check_python_version.py
 	cd test && python3 runtest.py -make-test
 
 cleantest::
@@ -140,7 +140,7 @@ clean:
 	rm -f *.o *.mod *~ fort.* ifc* *.gcno *.exe exdg.*
 	rm -f docs/exciting/*
 	rm -f docs/spacegroup/*
-	cd test; python clean_tests.py
+	cd test/src/utilities; python clean_tests.py
 
 libxcclean:
 	cd src/libXC && make clean
