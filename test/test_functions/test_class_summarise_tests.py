@@ -10,6 +10,8 @@ pytest -s test_functions/test_class_summarise_tests.py
 ```
 else the relative imports will cause test failures
 
+Note, import statements means this can only be run from the `test` directory
+
 Debugging Notes
 -----------
 Debugging differences in string buffers can be difficult due to inconsistent whitespaces. If one runs with:
@@ -28,9 +30,9 @@ import os
 from typing import List
 
 # Rename TestResults else pytest will try to collect from it
-from ..modules.tester.report import TestResults as ExTestResults, SummariseTests
-from ..modules.runner.test import load_tolerances, strip_tolerance_units, compare_outputs_json, \
-                                  list_tolerance_files_in_directory
+from ..src.tester.report import TestResults as ExTestResults, SummariseTests
+from ..src.io.tolerances import load_tolerances, strip_tolerance_units, list_tolerance_files_in_directory
+from ..src.runner.test import compare_outputs
 
 
 def redirect_stdout(func):
@@ -71,7 +73,7 @@ def get_test_results(test_dir: str, output_files_to_check: List[str]) -> dict:
     json_tolerances = load_tolerances(full_ref_dir, tolerance_files)
     json_tolerances = strip_tolerance_units(json_tolerances)
 
-    test_results_dict = compare_outputs_json(full_run_dir, full_ref_dir, output_files_to_check, json_tolerances)
+    test_results_dict = compare_outputs(full_run_dir, full_ref_dir, output_files_to_check, json_tolerances)
     return test_results_dict
 
 

@@ -1,8 +1,8 @@
 """
 Parser command-line arguments and run the test suite.
 
-To run all tests in serial, type `python3 runtest.py -a run`
-To run all tests in parallel, type `python3 runtest.py -a run -e exciting_mpismp`
+To run all tests in serial, type `python3 runtest.py`
+To run all tests in parallel, type `python3 runtest.py -e exciting_mpismp`
 For more details, type `python3 runtest.py --help`
 """
 import sys
@@ -10,15 +10,16 @@ import argparse as ap
 import warnings
 from collections import namedtuple
 import os
-from typing import List
-import re
 
-from modules.runner.test import run_tests
-from modules.runner.reference import run_single_reference
-from modules.constants import settings
-from modules.parsers import install_excitingtools
-from modules.utils import Build_type, build_type_str_to_enum, build_type_enum_to_str
-from modules.failing_tests import set_skipped_tests, set_tests_to_repeat
+from src.exciting_settings.constants import settings
+from src.io.parsers import install_excitingtools
+from src.reference.reference import run_single_reference
+from src.runner.profile import Build_type, build_type_str_to_enum, build_type_enum_to_str
+from src.runner.set_inputs import input_files_for_tests
+from src.runner.set_tests import set_skipped_tests, set_tests_to_repeat, remove_tests_to_skip, \
+    get_test_directories, partial_test_name_matches
+from src.runner.test import run_tests
+from src.tester.report import skipped_test_summary
 
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
@@ -45,18 +46,18 @@ def option_parser(test_farm: str, exe_dir: str):
     """
 
     p = ap.ArgumentParser(
-        description="Usage: python3 runtest.py -a <action> -t <tests> -e <executable> -np <NP> -omp <omp> -handle-errors -run-failing-tests")
+        description="Usage: python3 runtest.py -a <action> -t <tests> -e <executable> -np <NP> -omp <omp> "
+                    "-handle-errors -run-failing-tests -repeat-tests <N>")
 
-    # TODO(Alex) ref functionality should be moved
     help_action = "Defines what action is done. " \
-                  + "'run' for running tests; " \
-                  + "'ref' for running references; "
+                  + "'run' for running tests (default); " \
+                  + "'ref' for (re)running all references; "
 
     p.add_argument('-a',
                    metavar='--action',
                    help=help_action,
                    type=str,
-                   choices=settings.action_choices,
+                   choices=['run', 'ref'],
                    default='run')
 
     help_test = "Tests to run. This can be some partial string match, such as `PBE`, or a full path " \
@@ -182,57 +183,8 @@ def option_parser(test_farm: str, exe_dir: str):
     return input_options
 
 
-# TODO(Alex) Move in a new MR
-def get_test_directories(test_farm_root: str, basename=False) -> List[str]:
-    """
-    Get test directories from the test farm root.
-
-    Test farm has the directory structure:
-     test_farm/method/test_directory
-
-    :param str test_farm_root: Test farm root directory name
-    :param bool basename: Only return test directory base names
-    :return List[str] test_dirs: List of test directories, given relative to test_farm_root
-    if basename is false.
-    """
-
-    method_dirs = next(os.walk(test_farm_root))[1]
-
-    if basename:
-        test_dirs = []
-        for method_dir in method_dirs:
-            method_dir = os.path.join(test_farm_root, method_dir)
-            test_dirs += next(os.walk(method_dir))[1]
-        return test_dirs
-
-    else:
-        full_dirs = []
-        for method_dir in method_dirs:
-            method_dir = os.path.join(test_farm_root, method_dir)
-            test_dirs = next(os.walk(method_dir))[1]
-            full_dirs += [os.path.join(method_dir, t) for t in test_dirs]
-        return full_dirs
-
-
-def partial_test_name_matches(all_tests: List[str], input_tests: List[str]) -> List[str]:
-    """
-    Given a list of strings, return any full or partial matches in the test_farm
-    subdirectories.
-
-    :param List[str] all_tests: All tests in the test_farm
-    :param List[str] input_tests: List of partial test names, provided from input
-    :return List[str] tests_to_run: List of tests to run
-    """
-
-    all_tests_str = "\n".join(test for test in all_tests)
-
-    tests_to_run = []
-    for test in input_tests:
-        tests_to_run += re.findall("^.*" + test + ".*$", all_tests_str, re.MULTILINE)
-
-    return tests_to_run
-
-
+# TODO(Bene) Split this up and put the call in the correct place i.e. don't return from argparse too soon
+# just replace any defaults that need resetting.
 def set_up_make_test(test_farm: str, exe_dir: str) -> dict:
     """
     Set up test suite for running via make test. The function will check which binaries were compiled
@@ -292,77 +244,102 @@ def set_up_make_test(test_farm: str, exe_dir: str) -> dict:
     input_options['np'] = settings.default_np[build_type]
     input_options['omp'] = settings.default_threads[build_type]
 
+    # Set test names
+    all_test_dirs = get_test_directories(test_farm)
+    if input_options['tests'][0] == 'all':
+        input_options['tests'] = all_test_dirs
+    else:
+        tests_to_run = partial_test_name_matches(all_test_dirs, input_options['tests'])
+        if not tests_to_run:
+            raise ValueError('Could not find any full or partial string matches to %s for test names in '
+                             '%s subdirectories' % (input_options['tests'], test_farm))
+        input_options['tests'] = tests_to_run
+
     executable_string = os.path.join(exe_dir, build_type_enum_to_str[build_type])
     if build_type in [settings.binary_purempi, settings.binary_mpismp]:
         executable_string = 'mpirun -np %i %s' % (input_options['np'], executable_string)
     input_options['executable'] = executable_string
+    input_options['repeat_tests'] = 0
 
     return input_options
 
 
 def main(settings: namedtuple, input_options: dict):
     """
-    Run test suite actions
- 
-    These include 'run' the test suite, rerun 'ref'erence calculations
-    or collect 'report's, depending on the action specified as a 
-    command-line argument.   
+    Run test suite
 
     :param settings: Default settings for environment variables, paths
                      and run-time parameters. 
     :param input_options: parsed command-line arguments
     """
-
     print('Run test suite:')
+    print(input_options['executable'])
 
     os.environ["OMP_NUM_THREADS"] = str(input_options['omp'])
-
-    print(input_options['executable'])
-    species_files = next(os.walk(settings.species))[2]
-    action = input_options['action']
     executable_command = input_options['executable']
     executable = executable_command.split('/')[-1]
 
-    skipped_tests = set_skipped_tests(executable, input_options['run_failing_tests'])
+    # Set tests to run, and their input files
     repeated_tests: dict = set_tests_to_repeat(executable, input_options['repeat_tests'])
+    skipped_tests = set_skipped_tests(executable, input_options['run_failing_tests'])
+    test_list, removed_tests = remove_tests_to_skip(input_options['tests'], skipped_tests)
+    # TODO(Alex) This API is wrong, but will do for now
+    input_files = input_files_for_tests(test_list, sub_directory='ref')
 
-    if action == "run":
-        run_tests(settings.main_output,
-                  input_options['tests'],
-                  settings.run_dir,
-                  settings.ref_dir,
-                  settings.input_file,
-                  species_files,
-                  settings.init_default,
-                  executable_command,
-                  input_options['np'],
-                  input_options['omp'],
-                  settings.max_time,
-                  skipped_tests,
-                  input_options['handle_errors'],
-                  repeated_tests)
+    report = run_tests(settings.main_output,
+                       test_list,
+                       settings.run_dir,
+                       settings.ref_dir,
+                       input_files,
+                       executable_command,
+                       input_options['np'],
+                       input_options['omp'],
+                       settings.max_time,
+                       input_options['handle_errors'],
+                       repeated_tests)
 
-    # TODO(Alex) This functionality should be moved 
-    elif action == "ref":
-        while True:
-            answer = input("Are you sure that you want to rerun reference(s)? " +
-                           "This will replace the old reference(s) with reference(s) " +
-                           "created by the current state of the code and should only " +
-                           "be done if all tests succeed with the current version of the code.(yes/nn)\n")
-            if answer.lower() in ['yes', 'y']:
-                break
-            elif answer.lower() in ['no', 'n']:
-                exit()
+    report.print()
+    skipped_test_summary(removed_tests)
+    report.print_timing()
+    assert report.n_failed_test_cases == 0, "Some test suite cases failed."
 
-        warnings.warn("Reference will always be run with %s!" % settings.exe_ref)
 
-        executable = os.path.join(settings.exe_dir, build_type_enum_to_str[settings.exe_ref])
+def run_references(settings, input_options):
+    """
+    Run all test suite cases, such that all reference outputs are regenerated.
+    There are very few use cases where this should be done
 
-        for test in input_options['tests']:
-            reference_dir = os.path.join(test, settings.ref_dir)
-            run_single_reference(reference_dir, executable, settings)
+    TODO(Alex/Bene) Consider moving this feature to its own script
+
+    :param settings: Default settings for environment variables, paths
+                     and run-time parameters.
+    :param input_options: parsed command-line arguments
+    """
+    while True:
+        answer = input("Are you sure that you want to rerun reference(s)? " +
+                       "This will replace ALL reference(s) with reference(s) " +
+                       "created by the current state of the code and should only " +
+                       "be done if all tests succeed with the current version of the code.(yes/nn)\n")
+        if answer.lower() in ['yes', 'y']:
+            break
+        elif answer.lower() in ['no', 'n']:
+            exit()
+
+    warnings.warn("Reference will always be run with %s!" % settings.exe_ref)
+
+    executable = os.path.join(settings.exe_dir, build_type_enum_to_str[settings.exe_ref])
+
+    for test in input_options['tests']:
+        reference_dir = os.path.join(test, settings.ref_dir)
+        run_single_reference(reference_dir, executable, settings)
 
 
 if __name__ == "__main__":
     input_options = option_parser(settings.test_farm, settings.exe_dir)
-    main(settings, input_options)
+
+    if input_options['action'] == 'run':
+        main(settings, input_options)
+    elif input_options['action'] == 'ref':
+        run_references(settings, input_options)
+    else:
+        raise ValueError(f"Input action invalid: {input_options['action']}")

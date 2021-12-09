@@ -7,8 +7,7 @@ pytest -s selftests/test_wildcard_processor.py
 ```
 """
 import unittest
-import re
-from ..modules.wildcard_processor import wildcard_processor
+from ..src.utilities.wildcard_processor import wildcard_processor
 
 
 class test_wild_card_processor(unittest.TestCase):
