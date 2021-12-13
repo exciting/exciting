@@ -3,7 +3,7 @@ Build Profile
 """
 import enum
 import re
-from typing import List
+from typing import List, Union
 import sys
 
 
@@ -41,9 +41,9 @@ build_type_enum_to_str = {value: key for key, value in build_type_str_to_enum.it
 
 
 class CompilerBuild:
-    def __init__(self, compiler: Compiler, build: Build_type):
-        self.compiler = compiler
-        self.build = build
+    def __init__(self, compiler: Union[Compiler, str], build: Union[Build_type, str]):
+        self.compiler = Compiler[compiler] if isinstance(compiler, str) else compiler
+        self.build = Build_type[build] if isinstance(build, str) else build
 
 
 class ExcitingCalculation(enum.Enum):
