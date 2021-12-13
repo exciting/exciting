@@ -24,7 +24,7 @@ Subroutine oepvnl (vnlcv, vnlvv)
          Do ik = 1, nkpt
             Write (*, '("Info(oepvnl): ", I6, " of ", I6, " k-points")') ik, nkpt
 #endif
-            Call oepvnlk3 (ik, vnlcv(:, :, :, ik), vnlvv(:, :, ik))
+            Call oepvnlk (ik, vnlcv(:, :, :, ik), vnlvv(:, :, ik))
          End Do
 #ifdef MPI
         call mpi_allgatherv_ifc(nkpt,rlen=ncrmax*natmtot*nstsv,zbuf=vnlcv)

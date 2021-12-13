@@ -20,14 +20,14 @@ subroutine calc_vxnl()
 
     integer(4) :: ikp, ik, jk, iq, ikq
     integer(4) :: ie12, ie12tot, ie1, ie2, ie3, icg
-    integer(4) :: ist, l, im
-    integer(4) :: i, j, k, jst, ispn
+!    integer(4) :: ist, l, im
+!    integer(4) :: i, j, k, jst, ispn
     integer(4) :: is, ia, ias, ic
     integer(4) :: n, nmdim, m, mdim
     integer(4) :: iblk, nblk, mstart, mend
     real(8)    :: tstart, tend, sxs2
     complex(8) :: mvm, zt1, vc
-    integer    :: ikfirst, iklast
+!    integer    :: ikfirst, iklast
 
     integer(4), allocatable :: idxpair(:,:)
     complex(8), allocatable :: minm(:,:,:)
@@ -36,10 +36,11 @@ subroutine calc_vxnl()
 
     complex(8), external :: zdotc
 
+! allocatables for ACE
+    complex(8), allocatable :: vxpsimt (:, :, :, :), vxpsiir(:, :)
+
     call cpu_time(tstart)
 
-write(*,*) input%groundstate%hybrid%method
-if (input%groundstate%hybrid%method.eq."MB") then
     !----------------------------------------
     ! Read KS eigenvalues from file EVALSV.OUT
     !----------------------------------------
@@ -60,6 +61,9 @@ if (input%groundstate%hybrid%method.eq."MB") then
 
     ! singular term prefactor
     sxs2 =  4.d0*pi*vi*singc2*kqset%nkpt
+
+if (input%groundstate%hybrid%method.eq."MB") then
+
 
     if ((input%gw%coreflag=='all').or. &
         (input%gw%coreflag=='xal')) then
@@ -108,10 +112,9 @@ if (input%groundstate%hybrid%method.eq."MB") then
     !---------------------------------------
     ! Loop over k-points
     !---------------------------------------
+
     ikq = 0
     do ikp = 1, kset%nkpt
-      ! Write(*,*) kset%nkpt
-      ! stop
 
       !---------------------------------------
       ! Integration over BZ
@@ -223,7 +226,8 @@ if (input%groundstate%hybrid%method.eq."MB") then
           !--------------------------
           if (Gamma) then
             do ie1 = 1, nomax
-              vxnl(ie1,ie1,ikp) = vxnl(ie1,ie1,ikp) ! - sxs2*kiw(ie1,ik)
+              vxnl(ie1,ie1,ikp) = vxnl(ie1,ie1,ikp) - sxs2*kiw(ie1,ik)
+!              write(*,*) 'kiw', ie1,ik,kiw(ie1,ik)
             end do
           end if
 
@@ -241,7 +245,6 @@ if (input%groundstate%hybrid%method.eq."MB") then
     deallocate(eveckalm)
     deallocate(eveckpalm)
     deallocate(idxpair)
-
 #ifdef MPI
     call MPI_ALLREDUCE(MPI_IN_PLACE, vxnl, nstfv*nstfv*kset%nkpt,  &
                        MPI_DOUBLE_COMPLEX,  MPI_SUM, &
@@ -262,40 +265,88 @@ if (input%groundstate%hybrid%method.eq."MB") then
 
 
 
-else ! Use of oepvnl
+else ! Use oepvnl
 
 
 
 
       if (allocated(vxnl)) deallocate(vxnl)
       allocate(vxnl(nstfv,nstfv,kset%nkpt))
+      allocate(vxpsiir (ngrtot, nstsv))
+      allocate(vxpsimt (lmmaxvr, nrcmtmax, natmtot, nstsv))
       vxnl(:,:,:) = zzero
 
+      ! singular term prefactor
+      sxs2 =  4.d0*pi*vi*singc2*kqset%nkpt
 
-      Allocate (vnlcv(ncrmax, natmtot, nstsv, kset%nkpt))
-!      Allocate (vxnl(nstsv, nstsv, nkpt))
-      Call oepvnl (vnlcv, vxnl)
-      deallocate(vnlcv)
+      allocate(evalfv(nstfv,kset%nkpt))
+      evalfv(:,:) = 0.d0
+      do ik = 1, nkpt
+        call getevalfv(kset%vkl(:,ik), evalfv(:,ik))
+      end do
+
+      ! VB / CB state index
+      call find_vbm_cbm(1, nstfv, kset%nkpt, evalfv, efermi, nomax, numin, ikvbm, ikcbm, ikvcm)
+
+      ! BZ integration weights 
+      call kintw()
+      deallocate(evalfv)
 
 
-    allocate(evalfv(nstfv,kset%nkpt))
-    evalfv(:,:) = 0.d0
-    do ik = 1, nkpt
-      call getevalfv(kset%vkl(:,ik), evalfv(:,ik))
-    end do
+#ifdef MPI
+      Do ik = firstk (rank), lastk (rank)
+#else
+      Do ik = 1, nkpt
+#endif
+        vxpsiir=zzero
+        vxpsimt=zzero
+        call oepvnlk3 (ik, vxnl(:, :, ik),vxpsiir,vxpsimt)
+! q=0 correction
+        do ie1 = 1, nomax
+          vxnl(ie1,ie1,ik) = vxnl(ie1,ie1,ik) - sxs2*kiw(ie1,ik)
+        end do
+        call calcACE (ik, vxnl(:, :, ik),vxpsiir,vxpsimt)
+      End Do
+#ifdef MPI
+        call MPI_ALLREDUCE(MPI_IN_PLACE, vxnl , nstsv*nstsv*nkpt, MPI_DOUBLE_COMPLEX,  MPI_SUM, MPI_COMM_WORLD, ierr)
+#endif
 
-    ! VB / CB state index
-    call find_vbm_cbm(1, nstfv, kset%nkpt, evalfv, efermi, nomax, numin, ikvbm, ikcbm, ikvcm)
-    ! write(*,*) 'calc_vxnl: ', nomax, numin, efermi
+!         Do ik = 1, kset%nkpt
+!           vxpsiir=zzero
+!           vxpsimt=zzero
+!           call oepvnlk3 (ik, vxnl(:, :, ik),vxpsiir,vxpsimt)
+!#ifdef MPI
+!
+!           call MPI_ALLREDUCE(MPI_IN_PLACE, vxnl(:,:,ik) , nstfv*nstfv, MPI_DOUBLE_COMPLEX,  MPI_SUM, MPI_COMM_WORLD, ierr)
+!           call MPI_ALLREDUCE(MPI_IN_PLACE, vxpsiir, ngrtot*nstsv, MPI_DOUBLE_COMPLEX,  MPI_SUM, MPI_COMM_WORLD, ierr)
+!           call MPI_ALLREDUCE(MPI_IN_PLACE, vxpsimt, lmmaxvr*nrcmtmax*natmtot*nstsv, MPI_DOUBLE_COMPLEX,  MPI_SUM, MPI_COMM_WORLD, ierr)
+!#endif
+!           write(*,*) 'intermediate stop',rank,ik,sum(vxpsiir),sum(vxpsimt)
+!           call calcACE (ik, vxnl(:, :, ik),vxpsiir,vxpsimt) 
 
-    ! BZ integration weights
-    call kintw()
-    deallocate(evalfv)
+!           write(*,*) 'intermediate stop',rank,ik,sum(pace)
+!           stop 
+!         End Do
+    
 
+    deallocate(vxpsiir)
+    deallocate(vxpsimt)
+
+
+
+!    do iq = 1, kqset%nkpt
+!        do ie1 = 1, nomax
+!          vxnl(ie1,ie1,ikp) = vxnl(ie1,ie1,ikp) - sxs2*kiw(ie1,ik)
+!!          write(*,*) 'kiw', ie1,ik,kiw(ie1,ik)
+!        end do
+
+    sxs2 =  4.d0*pi*vi*singc2*kqset%nkpt
     exnl = 0.d0
     do ikp = 1, kset%nkpt
-!      write(*,*) 'ikp=',ikp
       do ie1 = 1, nstfv
+! the q=0 correction
+        vxnl(ie1,ie1,ikp) = vxnl(ie1,ie1,ikp) !- sxs2*kiw(ie1,ikp)
+! making sure that the exchange matrix is Hermitian 
         do ie2 = ie1+1, nstfv
           vxnl(ie2,ie1,ikp) = conjg(vxnl(ie1,ie2,ikp))
         end do
@@ -331,11 +382,8 @@ if (.false.) then
       end do
     end do ! ikp
 
-
-stop
 endif
 
     call cpu_time(tend)
-
     return
 end subroutine
