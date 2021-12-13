@@ -283,8 +283,7 @@ def main(settings: namedtuple, input_options: dict):
     repeated_tests: dict = set_tests_to_repeat(executable, input_options['repeat_tests'])
     skipped_tests = set_skipped_tests(executable, input_options['run_failing_tests'])
     test_list, removed_tests = remove_tests_to_skip(input_options['tests'], skipped_tests)
-    # TODO(Alex) This API is wrong, but will do for now
-    input_files = input_files_for_tests(test_list, sub_directory='ref')
+    input_files = input_files_for_tests(test_list, subdirectory='ref')
 
     report = run_tests(settings.main_output,
                        test_list,

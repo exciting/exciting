@@ -35,14 +35,14 @@ _default_threads = {Build_type.serial: 1, Build_type.puresmp: 2, Build_type.pure
 # Define an immutable instance of the default settings
 # Access like settings.max_time
 settings = Defaults(max_time       = 1800,
-                    test_farm      = 'test_farm',  
+                    test_farm      = 'test_farm',
                     input_file     = 'input.xml',
                     main_output    = 'INFO.OUT',    
                     run_dir        = 'run',       
                     ref_dir        = 'ref',        
                     exe_dir        =  os.path.normpath(os.path.join(os.getcwd(), '../bin')),
                     ignored_output = ['STATE.OUT', 'OCC', 'EVEC', 'EVALSV', 'EVALFV', 'APWCMT', 'SYM',
-                                      'PMAT', 'FERMISURF', 'RMSDVEFF', 'LOCMT', 'EXCLI', 'SCCLI'], 
+                                      'PMAT', 'FERMISURF', 'RMSDVEFF', 'LOCMT', 'EXCLI', 'SCCLI'],
                     binary_names    = _binary_names,
                     binary_mpismp   = Build_type.mpiandsmp,
                     binary_purempi  = Build_type.purempi,
