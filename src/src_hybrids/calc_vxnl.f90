@@ -267,9 +267,6 @@ if (input%groundstate%hybrid%method.eq."MB") then
 
 else ! Use oepvnl
 
-
-
-
       if (allocated(vxnl)) deallocate(vxnl)
       allocate(vxnl(nstfv,nstfv,kset%nkpt))
       allocate(vxpsiir (ngrtot, nstsv))
@@ -300,7 +297,14 @@ else ! Use oepvnl
 #endif
         vxpsiir=zzero
         vxpsimt=zzero
-        call oepvnlk3 (ik, vxnl(:, :, ik),vxpsiir,vxpsimt)
+        call FockExchange (ik, vxnl(:, :, ik),vxpsiir,vxpsimt)
+
+        do ie1 = 1, nstfv
+! making sure that the exchange matrix is Hermitian 
+          do ie2 = ie1+1, nstfv
+            vxnl(ie2,ie1,ikp) = conjg(vxnl(ie1,ie2,ikp))
+          end do
+        end do
 ! q=0 correction
         do ie1 = 1, nomax
           vxnl(ie1,ie1,ik) = vxnl(ie1,ie1,ik) - sxs2*kiw(ie1,ik)
@@ -308,77 +312,17 @@ else ! Use oepvnl
         call calcACE (ik, vxnl(:, :, ik),vxpsiir,vxpsimt)
       End Do
 #ifdef MPI
-        call MPI_ALLREDUCE(MPI_IN_PLACE, vxnl , nstsv*nstsv*nkpt, MPI_DOUBLE_COMPLEX,  MPI_SUM, MPI_COMM_WORLD, ierr)
+      call MPI_ALLREDUCE(MPI_IN_PLACE, vxnl , nstsv*nstsv*nkpt, MPI_DOUBLE_COMPLEX,  MPI_SUM, MPI_COMM_WORLD, ierr)
 #endif
-
-!         Do ik = 1, kset%nkpt
-!           vxpsiir=zzero
-!           vxpsimt=zzero
-!           call oepvnlk3 (ik, vxnl(:, :, ik),vxpsiir,vxpsimt)
-!#ifdef MPI
-!
-!           call MPI_ALLREDUCE(MPI_IN_PLACE, vxnl(:,:,ik) , nstfv*nstfv, MPI_DOUBLE_COMPLEX,  MPI_SUM, MPI_COMM_WORLD, ierr)
-!           call MPI_ALLREDUCE(MPI_IN_PLACE, vxpsiir, ngrtot*nstsv, MPI_DOUBLE_COMPLEX,  MPI_SUM, MPI_COMM_WORLD, ierr)
-!           call MPI_ALLREDUCE(MPI_IN_PLACE, vxpsimt, lmmaxvr*nrcmtmax*natmtot*nstsv, MPI_DOUBLE_COMPLEX,  MPI_SUM, MPI_COMM_WORLD, ierr)
-!#endif
-!           write(*,*) 'intermediate stop',rank,ik,sum(vxpsiir),sum(vxpsimt)
-!           call calcACE (ik, vxnl(:, :, ik),vxpsiir,vxpsimt) 
-
-!           write(*,*) 'intermediate stop',rank,ik,sum(pace)
-!           stop 
-!         End Do
-    
 
     deallocate(vxpsiir)
     deallocate(vxpsimt)
 
 
-
-!    do iq = 1, kqset%nkpt
-!        do ie1 = 1, nomax
-!          vxnl(ie1,ie1,ikp) = vxnl(ie1,ie1,ikp) - sxs2*kiw(ie1,ik)
-!!          write(*,*) 'kiw', ie1,ik,kiw(ie1,ik)
-!        end do
-
-    sxs2 =  4.d0*pi*vi*singc2*kqset%nkpt
     exnl = 0.d0
     do ikp = 1, kset%nkpt
-      do ie1 = 1, nstfv
-! the q=0 correction
-        vxnl(ie1,ie1,ikp) = vxnl(ie1,ie1,ikp) !- sxs2*kiw(ie1,ikp)
-! making sure that the exchange matrix is Hermitian 
-        do ie2 = ie1+1, nstfv
-          vxnl(ie2,ie1,ikp) = conjg(vxnl(ie1,ie2,ikp))
-        end do
-      end do
       do ie1 = 1, nomax
-!        write(*,*) exnl,vxnl(ie1,ie1,ikp)
         exnl = exnl + kset%wkpt(ikp)*vxnl(ie1,ie1,ikp)
-      end do
-    end do ! ikp
-
-
-endif
-
-! --- sheit ---
-if (.false.) then
-    write(*,*) 'exnl=', exnl
-    write(*,*) 'real'
-    do ikp = 1, kset%nkpt
-      write(*,*) 'ikp=',ikp
-      do ie1 = 1, 10!nstfv
-!        do ie2 = 1, nstfv
-          write(*,'(10F18.10)') dble(vxnl(ie1,1:10,ikp))
-!        end do
-      end do
-    end do ! ikp
-!    write(*,*)
-
-    write(*,*) 'imag'
-    do ikp = 1, kset%nkpt
-      write(*,*) 'ikp=',ikp
-      do ie1 = 1, 10!nstfv
-          write(*,'(10F18.10)') dimag(vxnl(ie1,1:10,ikp))
       end do
     end do ! ikp
 

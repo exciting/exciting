@@ -1,3 +1,9 @@
+!
+!
+!
+! Copyright (C) 2021 J. Cimurs, A. Gulans
+!
+!
 Subroutine calcACE (ikp, vnlvv, vxpsiir,vxpsimt)
       Use modmain
       Use modinput
