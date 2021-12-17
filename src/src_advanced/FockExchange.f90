@@ -62,6 +62,7 @@ Subroutine FockExchange (ikp, vnlvv, vxpsiir,vxpsimt)
       Allocate (zrhoir(ngrtot))
       Allocate (zvcltp(ntpll, nrcmtmax))
       Allocate (zfmt(lmmaxvr, nrcmtmax))
+      Allocate (zvclmt(lmmaxvr, nrcmtmax, natmtot, nstsv))
 
 
     if (allocated(evalfv)) deallocate(evalfv)

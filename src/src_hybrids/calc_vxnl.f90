@@ -302,7 +302,7 @@ else ! Use oepvnl
         do ie1 = 1, nstfv
 ! making sure that the exchange matrix is Hermitian 
           do ie2 = ie1+1, nstfv
-            vxnl(ie2,ie1,ikp) = conjg(vxnl(ie1,ie2,ikp))
+            vxnl(ie2,ie1,ik) = conjg(vxnl(ie1,ie2,ik))
           end do
         end do
 ! q=0 correction

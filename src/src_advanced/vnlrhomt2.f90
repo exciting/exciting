@@ -60,10 +60,6 @@ Subroutine vnlrhomt2 (tsh, is, wfmt1, wfmt2, zrhomt)
 	 Call zgemm ('N', 'N', lmmaxvr, nrcmt(is), ntpll, zone, &
         & zfshthf, lmmaxvr, zfmt, ntpll, zzero, zrhomt, lmmaxvr)
 	
-	Do ist1 = 1, lmmaxvr
-		Write(*,*) zrhomt(ist1, 600)
-	End Do
-	
         ! Call zgemm ('N', 'N', lmmaxvr, nrcmt(is), lmmaxvr, zone, &
         !& zfshtvr, lmmaxvr, zfmt, lmmaxvr, zzero, zrhomt, lmmaxvr)
          Deallocate (zfmt)
