@@ -25,7 +25,7 @@ subroutine calc_vxnl()
     integer(4) :: is, ia, ias, ic
     integer(4) :: n, nmdim, m, mdim
     integer(4) :: iblk, nblk, mstart, mend
-    real(8)    :: tstart, tend, sxs2
+    real(8)    :: tstart, tend, sxs2, ta, tb
     complex(8) :: mvm, zt1, vc
 !    integer    :: ikfirst, iklast
 
@@ -60,8 +60,7 @@ subroutine calc_vxnl()
     deallocate(evalfv)
 
     ! singular term prefactor
-    sxs2 =  4.d0*pi*vi*singc2*kqset%nkpt
-
+    sxs2 = 4.d0*pi*vi*singc2*kqset%nkpt 
 if (input%groundstate%hybrid%method.eq."MB") then
 
 
@@ -267,14 +266,13 @@ if (input%groundstate%hybrid%method.eq."MB") then
 
 else ! Use oepvnl
 
+
       if (allocated(vxnl)) deallocate(vxnl)
       allocate(vxnl(nstfv,nstfv,kset%nkpt))
       allocate(vxpsiir (ngrtot, nstsv))
       allocate(vxpsimt (lmmaxvr, nrcmtmax, natmtot, nstsv))
       vxnl(:,:,:) = zzero
 
-      ! singular term prefactor
-      sxs2 =  4.d0*pi*vi*singc2*kqset%nkpt
 
       allocate(evalfv(nstfv,kset%nkpt))
       evalfv(:,:) = 0.d0
@@ -297,26 +295,39 @@ else ! Use oepvnl
 #endif
         vxpsiir=zzero
         vxpsimt=zzero
+        call timesec(ta)
         call FockExchange (ik, vxnl(:, :, ik),vxpsiir,vxpsimt)
+        call timesec(tb)
+        if (rank==0) write(*,*) 'FockExchange',tb-ta
+!stop
 
         do ie1 = 1, nstfv
 ! making sure that the exchange matrix is Hermitian 
           do ie2 = ie1+1, nstfv
-            vxnl(ie2,ie1,ikp) = conjg(vxnl(ie1,ie2,ikp))
+            vxnl(ie2,ie1,ik) = conjg(vxnl(ie1,ie2,ik))
           end do
         end do
 ! q=0 correction
         do ie1 = 1, nomax
           vxnl(ie1,ie1,ik) = vxnl(ie1,ie1,ik) - sxs2*kiw(ie1,ik)
         end do
+
+        call timesec(ta)
         call calcACE (ik, vxnl(:, :, ik),vxpsiir,vxpsimt)
+        call timesec(tb)
+        if (rank==0) write(*,*) 'calcACE',tb-ta
+
       End Do
+
 #ifdef MPI
       call MPI_ALLREDUCE(MPI_IN_PLACE, vxnl , nstsv*nstsv*nkpt, MPI_DOUBLE_COMPLEX,  MPI_SUM, MPI_COMM_WORLD, ierr)
 #endif
 
+
     deallocate(vxpsiir)
     deallocate(vxpsimt)
+
+    if (rank==0) write(*,*) '-----------------'
 
 
     exnl = 0.d0

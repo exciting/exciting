@@ -122,7 +122,7 @@ contains
           f2 = f2 + dexp(-beta*gpq2)/gpq2
 
         enddo ! ipw
-        write(*,*) dexp(-beta*gpq2)/gpq2
+!        write(*,*) dexp(-beta*gpq2)/gpq2
         ! Loop over G-vectors
 !        do ipw = ipwin, Gqset%ngk(1,iq)
 
