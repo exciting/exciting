@@ -242,51 +242,15 @@ Sx=zzero
        nsize=nsize+nadd
 
        call HloSlo(n_local,npw_local,nsize,system,trialvec,Hx,Sx,.true.)
-write(*,*) '----------------'
-write(*,*) 'npw_local',npw_local
-write(*,*) 'other sizes',nsize,nusedsingular
-write(*,*) nusedsingular
-write(*,*) sum(singular)
-write(*,*) sum(singular(:,1,1))
-write(*,*) sum(singular(:,2,1))
-write(*,*) sum(singular(:,3,1))
-write(*,*) sum(singular(:,4,1))
-write(*,*) '----------------'
-write(*,*) sum(trialvec)
 ! -> 2. singular components
        if (nusedsingular.ne.0) then
          trialvec(1:npw_local,nsize+1:nsize+nusedsingular)=singular(1:npw_local,1:nusedsingular,ik)
          nsize=nsize+nusedsingular
-write(*,*) sum(trialvec)
          call GSortho(n_local,0,nsize-nloall,trialvec(:,nloall+1:))
-write(*,*) '+++++++'
-write(*,*) sum(trialvec(:,1))
-write(*,*) sum(trialvec(:,2))
-write(*,*) sum(trialvec(:,3))
-write(*,*) sum(trialvec(:,4))
-write(*,*) '+++++++'
-!write(*,*) sum(trialvec)
        endif
-write(*,*) sum(trialvec)
-!       allocate(BlockS(nsize,nsize))
-!       allocate(BlockH(nsize,nsize))
-!       write(*,*) 'GSortho'
-!       read(*,*)
-!       if (input%groundstate%spinorbit) then
-!         call HapwSapw(n_local,npw,nusedsingular*2,system,trialvec(1:n_local,nsize-2*nusedsingular+1:nsize),Hx(1:n_local,nsize-2*nusedsingular+1:nsize),Sx(1:n_local,nsize-2*nusedsingular+1:nsize),.true.)
-!       else
-!         call HapwSapw(n_local,npw,nusedsingular,system,trialvec(1:n_local,nsize-nusedsingular+1:nsize),Hx(1:n_local,nsize-nusedsingular+1:nsize),Sx(1:n_local,nsize-nusedsingular+1:nsize),.true.)
-!       endif
 
-!       call innerproduct_lo(n_local,nsize,nsize,trialvec,Hx,blockH,npw_local,nloall)
-!       call innerproduct_lo(n_local,nsize,nsize,trialvec,Sx,blockS,npw_local,nloall)
-!       extraS(1:nsize,1:nsize)=blockS(1:nsize,1:nsize)
-!       extraH(1:nsize,1:nsize)=blockH(1:nsize,1:nsize)
-!       deallocate(BlockS,BlockH)
-!     endif
 ! -> 3. initial guess for wavefunctions
        if (dble(sum(evecfv)).ne.0d0) then
-!write(*,*) 'reading wfns'
 !       wavefunctions from previous scf iterations
          trialvec(1:npw,nsize+1:nsize+nst)=evecfv(1:npw, 1:nst)
          nsize=nsize+nst
@@ -300,8 +264,6 @@ write(*,*) sum(trialvec)
          nsize=nsize+ndiv
        endif
 
-write(*,*) sum(trialvec)
-write(*,*) '----------------'
 ! GEV
 
 call timesec(time1)
@@ -311,21 +273,9 @@ call timesec(time1)
       BlockH=zero
       BlockS=zero
 !
-!write(*,*) sum(trialvec(:,1:nsize))
       call GSortho(n_local,nsize-ndiv-nloall,nsize-nloall,trialvec(:,nloall+1:))
-write(*,*) sum(system%apwi)
-!write(*,*) sum(trialvec(:,1:nsize))
       call HapwSapw(n_local,npw,nsize-nloall,system,trialvec(:,nloall+1:nsize),Hx(:,nloall+1:nsize),Sx(:,nloall+1:nsize),.true.)
 
- write(*,*) 'Hx'
- do i=1,nsize
-   write(*,*) Hx(1,i)
- enddo
- write(*,*) 'Sx'
- do i=1,nsize
-   write(*,*) Sx(1,i)
- enddo
-!stop
       call innerproduct(n_local,nsize,nsize,trialvec,Hx(:,1:nsize),blockH(:,1:nsize))
       call innerproduct(n_local,nsize,nsize,trialvec,Sx(:,1:nsize),blockS(:,1:nsize))
 !      blockH(1:nsize-ndiv,1:nsize-ndiv)=extraH(1:nsize-ndiv,1:nsize-ndiv)
