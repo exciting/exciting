@@ -21,11 +21,13 @@ Module mod_Gkvector
       Integer, target :: ngkmax
 ! index from G+k-vectors to G-vectors
       Integer, Allocatable, target :: igkig (:, :, :)
+      Integer, pointer :: current_igkig (:)
 ! G+k-vectors in lattice coordinates
       Real (8), pointer :: vgkl_ptr(:, :, :, :)
       Real (8), Allocatable, target :: vgkl (:, :, :, :)
 ! G+k-vectors in Cartesian coordinates
       Real (8), Allocatable, target :: vgkc (:, :, :, :)
+      real(8), pointer :: current_vgkc (:,:)
 ! length of G+k-vectors
       Real (8), Allocatable, target :: gkc (:, :, :)
 ! (theta, phi) coordinates of G+k-vectors

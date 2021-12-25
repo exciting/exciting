@@ -38,6 +38,8 @@ Module mod_Gvector
       Complex (8), Allocatable :: cfunig (:)
 ! real-space characteristic function: 0 inside the muffin-tins and 1 outside
       Real (8), Allocatable :: cfunir (:)
+! the first element in cfunig(:)
+      Complex (8) :: cfunig0
 ! damping coefficient for characteristic function
 !replaced by inputstructurereal(8)::cfdamp
 End Module

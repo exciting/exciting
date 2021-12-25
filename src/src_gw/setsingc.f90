@@ -23,7 +23,7 @@ subroutine setsingc
       write(fdebug,*)
     end if
 
-    beta = (omega/(6.0d0*pi*pi))**(1.0d0/3.0d0)*0.15d0
+    beta = 0.406 ! (omega/(6.0d0*pi*pi))**(1.0d0/3.0d0)*0.15d0
     intf1 = omega/(4.0d0*pi*pi*beta)
     intf2 = omega/(4.0d0*pi*pi)*sqrt(pi/beta)
 

@@ -551,6 +551,10 @@ Subroutine init0
       If (allocated(dpp1d)) deallocate (dpp1d)
       Allocate (dpp1d(npp1d))
 !
+
+! initialisation for the Davidson solver
+      nsingular=-1
+
       Call timesec (ts1)
 !!      timeinit = timeinit + ts1 - ts0
 !

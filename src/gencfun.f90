@@ -114,6 +114,11 @@ Subroutine gencfun
             cfunig (ig) = cfunig (ig) * t2
          End Do
       End If
+      cfunig0=cfunig(1)
+      if ((input%groundstate%solver%type.eq.'Davidson').and.(.not.(input%groundstate%solver%constructHS))) then
+        deallocate(cfunig)
+      endif
+
       Deallocate (ffacg, zfft)
       Return
 End Subroutine

@@ -58,6 +58,8 @@ subroutine scf_cycle(verbosity)
     If ((task == 1) .or. (task == 3)) Then
         Call readstate
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Potential read in from STATE.OUT")')
+        veffig0=sum(cfunir*veffir)
+        veffig0= veffig0/dble(ngrtot)
     Else If (task == 7) Then
         ! restart from previous HYBRID iteration
         call genmeffig()
@@ -236,7 +238,7 @@ call timesec(ta)
 ! start k-point loop
 #ifdef MPI
         call barrier()
-        If (rank == 0) Call delevec()
+!        If (rank == 0) Call delevec()
         splittfile = .True.
         Do ik = firstofset(rank,nkpt), lastofset(rank,nkpt)
 #else
@@ -250,6 +252,13 @@ call timesec(ta)
             Allocate (evalfv(nstfv, nspnfv))
             Allocate (evecfv(nmatmax, nstfv, nspnfv))
             Allocate (evecsv(nstsv, nstsv))
+
+            write(*,*) 'iscl',iscl
+            if (iscl.le.1) then
+              evecfv=0d0
+            elseif (input%groundstate%solver%type.eq.'Davidson') then
+              Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
+            endif
 
 !! TIME - seceqn does not belong to IO
 

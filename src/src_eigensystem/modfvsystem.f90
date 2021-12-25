@@ -26,6 +26,7 @@ Module modfvsystem
     !
     Type evsystem
         Type (HermitianMatrix) :: hamilton, overlap
+        Complex(8), allocatable :: apwi(:,:,:)
     End Type evsystem
     !
 !    Type MatrixArray

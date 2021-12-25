@@ -14,7 +14,7 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   ! !USES:
       Use modinput
       Use mod_Gkvector, only: ngkmax
-      Use mod_APW_LO, only: apwordmax
+      Use mod_APW_LO, only: apwordmax, apword
       Use mod_atoms, only: natmtot
       Use mod_muffin_tin, only: lmmaxapw
       Use mod_eigensystem, only: nmatmax, h1on, h1aa, h1loa, h1lolo, mt_hscf, MTRedirect
@@ -25,6 +25,9 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       use mod_misc,                  only: task
       use m_plotmat
       Use constants, only: zzero, zone
+! apwi related
+      use mod_atoms, only: idxas, nspecies, natoms
+      use mod_muffin_tin, only: idxlm
 !
   ! !INPUT/OUTPUT PARAMETERS:
   !   nmatp  : order of overlap and Hamiltonian matrices (in,integer)
@@ -63,31 +66,80 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       Integer :: ist
       Complex (8), allocatable :: zm(:,:),zm2(:,:)
       !character( len=64) :: fname
-
+ ! apwi related variables
+      Integer :: is,ia,ias,l,io,m,ifun,lm
   !----------------------------------------!
   !     Hamiltonian and overlap set up     !
   !----------------------------------------!
 
       packed = input%groundstate%solver%packedmatrixstorage
 
-      Call newsystem (system, packed, nmatp)
-      h1on=(input%groundstate%ValenceRelativity.eq.'iora*')
-      call MTRedirect(mt_hscf%main,mt_hscf%spinless)
-      Call hamiltonsetup (system, ngp, apwalm, igpig, vgpc)
-      Call overlapsetup (system, ngp, apwalm, igpig, vgpc)
+      if ((input%groundstate%solver%type.ne.'Davidson').or.((input%groundstate%solver%constructHS))) then
+        Call newsystem (system, packed, nmatp)
+        h1on=(input%groundstate%ValenceRelativity.eq.'iora*')
+        call MTRedirect(mt_hscf%main,mt_hscf%spinless)
+        Call hamiltonsetup (system, ngp, apwalm, igpig, vgpc)
+        Call overlapsetup (system, ngp, apwalm, igpig, vgpc)
 
   !------------------------------------------------------------------------!
   !   If Hybrid potential is used apply the non-local exchange potential !
   !------------------------------------------------------------------------!
-      if (task == 7) then
-          system%hamilton%za(:,:) = system%hamilton%za(:,:) + &
-                                    ex_coef*vnlmat(1:nmatp,1:nmatp,ik)
-      end if
+        if (task == 7) then
+          system%hamilton%za(:,:) = system%hamilton%za(:,:) + ex_coef*vnlmat(1:nmatp,1:nmatp,ik)
+        end if
+
+
+      else
+        nullify(system%hamilton%za)
+        nullify(system%overlap%za)
+        nullify(system%hamilton%ca)
+        nullify(system%overlap%ca)
+        nullify(system%hamilton%zap)
+        nullify(system%overlap%zap)
+        nullify(system%hamilton%cap)
+        nullify(system%overlap%cap)
+        nullify(system%hamilton%ipiv)
+        nullify(system%overlap%ipiv)        
+
+      endif
+
+      ! Rearranging matching coefficients should be generalised beyond the Davidson solver and moved to seceqn
+      if (input%groundstate%solver%type.eq.'Davidson') then 
+        allocate(system%apwi(mt_hscf%maxaa,ngp,natmtot))
+        system%apwi=zzero
+        Do is = 1, nspecies
+          Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
+            ifun=0
+            Do l = 0, input%groundstate%lmaxmat
+
+                Do m = - l, l
+                  lm = idxlm (l, m)
+              Do io = 1, apword (l, is)
+                  ifun=ifun+1
+                  system%apwi(ifun,1:ngp,ias)=apwalm(1:ngp, io, lm, ias)
+                End Do
+              End Do
+            End Do
+          End Do
+        End Do
+
+      endif
 
   !------------------------------------!
   !     solve the secular equation     !
   !------------------------------------!
-      Call solvewithlapack(system,nstfv,evecfv,evalfv)
+      if (input%groundstate%solver%type.eq.'Lapack') then
+        Call solvewithlapack(system,nstfv,evecfv,evalfv)
+      elseif (input%groundstate%solver%type.eq.'Davidson') then
+        call singularcomponents(system,nstfv,evecfv,evalfv,ik)
+!        stop
+        call davidson(system,nstfv,evecfv,evalfv,ik)
+        Call deletesystem (system)
+        deallocate(system%apwi)
+      endif
+
+
 
       if (task == 7) call kinetic_energy(ik,evecfv,apwalm,ngp,vgpc,igpig)
 

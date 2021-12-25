@@ -438,32 +438,24 @@
                 <xs:documentation>Selects the eigenvalue solver for the first variational
                   equation</xs:documentation>
               </xs:annotation>
-              <xs:simpleType>
-                <xs:restriction base="xs:string">
-                  <xs:enumeration value="Lapack">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>1</oldnr>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:enumeration>
-                  <xs:enumeration value="Arpack">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>2</oldnr>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:enumeration>
-                  <!-- xs:enumeration value="DIIS">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>3</oldnr>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:enumeration-->
-                </xs:restriction>
-              </xs:simpleType>
+               <xs:simpleType>
+                 <xs:restriction base="xs:string">
+                   <xs:enumeration value="Lapack"/>
+                   <xs:enumeration value="Arpack"/>
+                   <xs:enumeration value="Davidson"/>
+                 </xs:restriction>
+               </xs:simpleType>
             </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="constructHS"
+              type="xs:boolean" use="optional" default="true">
+              <xs:annotation>
+                <xs:documentation>
+                  If the Davidson algorithm is used, the construction of the Hamiltonian and overlap matrices can be omitted.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
             <xs:attribute ex:importance="expert" ex:unit="" name="packedmatrixstorage"
               type="xs:boolean" use="optional" default="false">
               <xs:annotation>

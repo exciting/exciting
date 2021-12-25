@@ -157,7 +157,7 @@ Subroutine overlapsetup (system, ngp, apwalm, igpig, vgpc)
 
 ! interstitial contributions
        Call timesec (ts0)
-      Call olpistln (system%overlap, ngp, igpig, vgpc)
+       Call olpistln (system%overlap, ngp, igpig, vgpc)
        Call timesec (ts1)
        time_olpistln=ts1-ts0+time_olpistln
 
