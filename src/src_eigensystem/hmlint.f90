@@ -51,6 +51,10 @@ Subroutine hmlint(mt_h)
       mt_basis%apwfr=>apwfr
 
         call MTRedirect(mt_h%main,mt_h%spinless)
+        mt_h%main%aa=0d0
+        mt_h%main%alo=0d0
+        mt_h%main%loa=0d0
+        mt_h%main%lolo=0d0
         call mt_kin(veffmt,mt_basis,mt_h)
         call mt_pot(veffmt,mt_basis,mt_h)
 
