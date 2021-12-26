@@ -117,7 +117,6 @@ Subroutine singularcomponents (system, nst, evecfv, evalfv,ik)
 write(*,*) 'ik=',ik
 call timesec(tsa)
 
-
       tol = input%groundstate%solver%epsarpack
       packed=.false.
 

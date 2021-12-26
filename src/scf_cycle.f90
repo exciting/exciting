@@ -75,7 +75,11 @@ subroutine scf_cycle(verbosity)
         time_density_init=tin1-tin0
         Call timesec(tin0)
         Call poteff
-        Call genveffig
+       
+        if ((input%groundstate%solver%type.ne.'Davidson').or.(input%groundstate%solver%constructHS)) Call genveffig
+        veffig0=sum(cfunir*veffir)
+        veffig0= veffig0/dble(ngrtot)
+
         Call timesec(tin1)
         time_pot_init=tin1-tin0
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Density and potential initialised from atomic data")')
@@ -507,7 +511,10 @@ call timesec(tb)
 !---------------
 
 ! Fourier transform effective potential to G-space
-        Call genveffig
+        if ((input%groundstate%solver%type.ne.'Davidson').or.(input%groundstate%solver%constructHS)) Call genveffig
+        veffig0=sum(cfunir*veffir)
+        veffig0= veffig0/dble(ngrtot)
+
         if (allocated(meffig)) deallocate(meffig)
         if (allocated(m2effig)) deallocate(m2effig)
 ! add the fixed spin moment effect field
@@ -743,6 +750,7 @@ call timesec(tb)
     end if
     ! write density and potentials to file only if maxscl > 1
     If ((input%groundstate%maxscl > 1)) Then
+        if ((input%groundstate%solver%type.eq.'Davidson').and.(.not.input%groundstate%solver%constructHS)) Call genveffig
         Call writestate
         If ((verbosity>-1).and.(rank==0)) Then
             Write (60, '(" STATE.OUT is written")')

@@ -28,7 +28,6 @@ call timesec(ta)
 Sx=zzero
 Hx=zzero
 if (associated(system%hamilton%za)) then
-!if (.false.) then
       call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
                  'N', &           ! TRANSB = 'N'  op( B ) = B.
                   n, &          ! M ... rows of op( A ) = rows of C
@@ -169,7 +168,7 @@ else
                       nwf, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
-                      mt_hscf%main%alo(1,1,ias), &        ! A
+                      mt_hscf%main%loa(1,1,ias), &        ! A
                       maxnlo,&           ! LDA ... leading dimension of A
                       zax, &           ! B
                       mt_hscf%maxaa, &          ! LDB ... leading dimension of B
@@ -281,6 +280,7 @@ endif !constructHS
 !write(*,*) 'sum(Hx)',sum(Hx)
 !write(*,*) 'sum(Sx)',sum(Sx)
 call timesec(tb)
+
 #ifdef TIMINGS
 write(*,*) 'HapwSapw',tb-ta,td-tc
 !stop

@@ -20,7 +20,6 @@ subroutine HloSlo(n,npw,nwf,system,x,Hx,Sx,usematrix)
       Parameter (alpha=1d0 / 137.03599911d0, a2=0.5d0*alpha**2) 
 
 call timesec(ta)
-
 if (associated(system%hamilton%za)) then
         if (n-npw.ne.0) then
               call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
@@ -119,14 +118,14 @@ else
         
 ! Now the Hamiltonian
 ! APW-LO
-          call zgemm('C', &           ! TRANSA = 'N'  op( A ) = A.
+          call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
                       mt_hscf%maxaa, &          ! M ... rows of op( A ) = rows of C
                       nwf, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
                       mt_hscf%main%alo(1,1,ias), &        ! A
-                      maxnlo,&           ! LDA ... leading dimension of A
+                      mt_hscf%maxaa,&           ! LDA ... leading dimension of A
                       x(LOoffset+1,1), &           ! B
                       n, &          ! LDB ... leading dimension of B
                       zzero, &          ! beta

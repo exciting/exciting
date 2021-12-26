@@ -28,7 +28,6 @@ Subroutine genveffig
 ! allocatable arrays
       Complex (8), Allocatable :: zfft (:)
 
-      if ((input%groundstate%solver%type.ne.'Davidson').or.(input%groundstate%solver%constructHS)) then
         Allocate (zfft(ngrtot))
 ! multiply effective potential with characteristic function
         zfft (:) = veffir (:) * cfunir (:)
@@ -39,10 +38,6 @@ Subroutine genveffig
           veffig (ig) = zfft (ifg)
         End Do
         Deallocate (zfft)
-      endif
-        veffig0=sum(cfunir*veffir)
-        veffig0= veffig0/dble(ngrtot)
-write(*,*) 'veffig0',veffig0
       Return
 End Subroutine
 !EOC

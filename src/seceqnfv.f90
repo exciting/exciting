@@ -74,7 +74,18 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
 
       packed = input%groundstate%solver%packedmatrixstorage
 
-      if ((input%groundstate%solver%type.ne.'Davidson').or.((input%groundstate%solver%constructHS))) then
+      if (input%groundstate%solver%type.ne.'Davidson') then
+        nullify(system%hamilton%za)
+        nullify(system%overlap%za)
+        nullify(system%hamilton%ca)
+        nullify(system%overlap%ca)
+        nullify(system%hamilton%zap)
+        nullify(system%overlap%zap)
+        nullify(system%hamilton%cap)
+        nullify(system%overlap%cap)
+        nullify(system%hamilton%ipiv)
+        nullify(system%overlap%ipiv)        
+
         Call newsystem (system, packed, nmatp)
         h1on=(input%groundstate%ValenceRelativity.eq.'iora*')
         call MTRedirect(mt_hscf%main,mt_hscf%spinless)
@@ -89,7 +100,32 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
         end if
 
 
-      else
+      elseif (input%groundstate%solver%constructHS) then
+        nullify(system%hamilton%za)
+        nullify(system%overlap%za)
+        nullify(system%hamilton%ca)
+        nullify(system%overlap%ca)
+        nullify(system%hamilton%zap)
+        nullify(system%overlap%zap)
+        nullify(system%hamilton%cap)
+        nullify(system%overlap%cap)
+        nullify(system%hamilton%ipiv)
+        nullify(system%overlap%ipiv)
+
+        Call newsystem (system, packed, nmatp)
+        h1on=(input%groundstate%ValenceRelativity.eq.'iora*')
+        call MTRedirect(mt_hscf%main,mt_hscf%spinless)
+        Call hamiltonsetup (system, ngp, apwalm, igpig, vgpc)
+        Call overlapsetup (system, ngp, apwalm, igpig, vgpc)
+
+  !------------------------------------------------------------------------!
+  !   If Hybrid potential is used apply the non-local exchange potential !
+  !------------------------------------------------------------------------!
+        if (task == 7) then
+          system%hamilton%za(:,:) = system%hamilton%za(:,:) + ex_coef*vnlmat(1:nmatp,1:nmatp,ik)
+        end if
+      else 
+
         nullify(system%hamilton%za)
         nullify(system%overlap%za)
         nullify(system%hamilton%ca)
@@ -100,7 +136,8 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
         nullify(system%overlap%cap)
         nullify(system%hamilton%ipiv)
         nullify(system%overlap%ipiv)        
-
+        h1on=(input%groundstate%ValenceRelativity.eq.'iora*')
+        call MTRedirect(mt_hscf%main,mt_hscf%spinless)
       endif
 
       ! Rearranging matching coefficients should be generalised beyond the Davidson solver and moved to seceqn

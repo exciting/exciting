@@ -24,7 +24,6 @@ subroutine OverlapX(n,npw,nwf,system,x,Sx)
       call timesec(ta)
       Sx=zzero
       if (associated(system%overlap%za)) then
-!      if (.false.) then
 ! The overlap matrix is available
         call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
                    'N', &           ! TRANSB = 'N'  op( B ) = B.
