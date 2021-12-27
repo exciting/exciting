@@ -84,6 +84,13 @@ Subroutine FockExchange (ikp, vnlvv, vxpsiir,vxpsimt)
     call find_vbm_cbm(1, nstfv, kset%nkpt, evalfv, efermi, nomax, numin, ikvbm, ikcbm, ikvcm)
 
       call WFInit(wf1)
+
+      ik  = kset%ikp2ik(ikp) ! 1d reduced index -> 1d non-reduced k-point index
+      call genWF(ik,wf1)
+      call genWFinMT(wf1)
+      call genWFonMesh(wf1)
+
+
       call WFInit(wf2)
       call WFInit(prod)
       call WFInit(pot)
@@ -105,11 +112,15 @@ Subroutine FockExchange (ikp, vnlvv, vxpsiir,vxpsimt)
 
 ! start loop over non-reduced k-point set
        do iq = 1, kqset%nkpt
-         ik  = kset%ikp2ik(ikp) ! 1d reduced index -> 1d non-reduced k-point index
+
+call timesec(ta)
+!         ik  = kset%ikp2ik(ikp) ! 1d reduced index -> 1d non-reduced k-point index
          jk  = kqset%kqid(ik,iq) ! k-dependent weight of each q-point???
 
 ! determine q-vector
          v (:) = kqset%vkc (:, ik) - kqset%vkc (:, jk)
+!$OMP PARALLEL DEFAULT(NONE) PRIVATE(ig) SHARED(vgqc,vgc,v,ngvec,gqc,tpgqc,ylmgq,input) 
+!$OMP DO
          Do ig = 1, ngvec
 ! determine G+q vectors
             vgqc (:, ig) = vgc (:, ig) + v (:) ! Checked: vgc == Gset%vgc
@@ -119,6 +130,9 @@ Subroutine FockExchange (ikp, vnlvv, vxpsiir,vxpsimt)
 ! spherical harmonics for G+q-vector
             Call genylm (input%groundstate%lmaxvr, tpgqc(:, ig), ylmgq(:, ig))
          End Do
+!$OMP END DO
+!$OMP END PARALLEL
+
 ! structure factors for G+q
          Call gensfacgp (ngvec, vgqc, ngvec, sfacgq)
 ! find the shortest G+q-vector
@@ -128,14 +142,18 @@ Subroutine FockExchange (ikp, vnlvv, vxpsiir,vxpsimt)
          lmax = input%groundstate%lmaxvr + input%groundstate%npsden + 1
          Call genjlgpr (lmax, gqc, jlgqr)
          Call genjlgq0r (gqc(igq0), jlgq0r)
+call timesec(tb)
+!write(*,*) 'qpt init', tb-ta
+
 ! calculate the wavefunctions for occupied states
-         call genWF(ik,wf1)
-         call genWFinMT(wf1)
-         call genWFonMesh(wf1)
+
+call timesec(ta)
 
          call genWF(jk,wf2)
          call genWFinMT(wf2)
          call genWFonMesh(wf2)
+call timesec(tb)
+!write(*,*) 'genWFs',tb-ta
          Do ist2 = 1, nomax
            
            wf2ir(:) = 0.d0
@@ -153,69 +171,65 @@ Subroutine FockExchange (ikp, vnlvv, vxpsiir,vxpsimt)
                wf1ir(ifg) = t1*wf1%gk(igk, ist3)
              End Do
              Call zfftifc (3, ngrid, 1, wf1ir(:))
-             !Write(*,*) ist2, ist3, sum(wf2%ir(:,ist3)), sum(wf2ir(:))
 
 ! calculate the complex overlap density
 !-------------------------------------------------------------------
 call timesec(ta)
                      call WFprodrs(ist2,wf2,ist3,wf1,prod)
                      prodir(:)=conjg(wf2ir(:))*wf1ir(:)
-                     !Write(*,*) ist2, ist3, sum(prod%ir(:,1)), sum(prodir(:))
 call timesec(tb)
+!write(*,*) 'WFprod',tb-ta
+
 if (ik.eq.jk) then
-! write(*,*) 'WFprod',tb-ta
 call timesec(ta)
-                    ! Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, &
-                    !& igq0), sfacgq0, prod%mtrlm(:,:,:,1), prod%ir(:,1), zrho01)
                      Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, &
                     & igq0), sfacgq0, prod%mtrlm(:,:,:,1), prodir(:), zrho01) 
 call timesec(tb)
 !write(*,*) 'zrhogp',tb-ta
 call timesec(ta)
-                     !prod%ir(:,1)=prod%ir(:,1)-zrho01
                      prodir(:)=prodir(:)-zrho01
                      prod%mtrlm(1,:,:,1)=prod%mtrlm(1,:,:,1)-zrho01/y00
-                     !Write(*,*) ist2, ist3, sum(prod%ir(:,1)), sum(prodir(:))
 
 call timesec(tb)
+!write(*,*) 'q=0 subtraction', tb-ta
 endif
 
 call timesec(ta)
 ! calculate the Coulomb potential
-                    ! Call zpotcoul (nrcmt, nrcmtmax, nrcmtmax, rcmt, &
-                    !& igq0, gqc, jlgqr, ylmgq, sfacgq, zn, prod%mtrlm(:,:,:,1), &
-                    !& prod%ir(:,1), pot%mtrlm(:,:,:,1), pot%ir(:,1), zrho02)
                      Call zpotcoul (nrcmt, nrcmtmax, nrcmtmax, rcmt, &
                     & igq0, gqc, jlgqr, ylmgq, sfacgq, zn, prod%mtrlm(:,:,:,1), &
                     & prodir(:), pot%mtrlm(:,:,:,1), potir(:), zrho02)
-                    !Write(*,*) ist2, ist3, sum(prod%ir(:,1)), sum(prodir(:))
 call timesec(tb)
+!write(*,*) 'zpotcoul',tb-ta
 
 if (ik.eq.jk) then
-                  !Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, &
-                  !& igq0), sfacgq0, pot%mtrlm(:,:,:,1), pot%ir(:,1), zrho01)
+call timesec(ta)
                   Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, &
                   & igq0), sfacgq0, pot%mtrlm(:,:,:,1), potir(:), zrho01)
 
                   potir(:)=potir(:)-zrho01
-                  !pot%ir(:,1) = pot%ir(:,1)-zrho01
                   pot%mtrlm(1,:,:,1)=pot%mtrlm(1,:,:,1)-zrho01/y00
-                  !Write(*,*) ist2, ist3, sum(pot%ir(:,1)), sum(potir(:))
+call timesec(tb)
+!write(*,*) 'q=0 subtraction', tb-ta
 endif
 !-------------------------------------------------------------------
+call timesec(ta)
                         call genWFonMeshOne(pot)
-                       !pot%ir(:,1)=conjg(pot%ir(:,1))
                        pot%mtmesh=conjg(pot%mtmesh)
                         call WFprodrs(1,pot,ist2,wf2,prod)
                        prodir(:) = potir(:)*wf2ir(:)
-                       !Write(*,*) ist2, ist3, sum(prod%ir(:,1)), sum(prodir(:))
-
 ! ------------------------------------------------------------------
 ! ------------------------------------------------------------------
 ! ------------------------------------------------------------------
-                        !vxpsiir(:,ist3)=vxpsiir(:,ist3)+prod%ir(:,1)*wkptnr(jk)
                         vxpsiir(:,ist3)=vxpsiir(:,ist3)+prodir(:)*wkptnr(jk)
                         vxpsimt(:,:,:,ist3)=vxpsimt(:,:,:,ist3)+prod%mtrlm(:,:,:,1)*wkptnr(jk)
+! ------------------------------------------------------------------
+! ------------------------------------------------------------------
+! ------------------------------------------------------------------
+call timesec(tb)
+!write(*,*) 'VxPsi', tb-ta
+
+
 ! ------------------------------------------------------------------
 ! ------------------------------------------------------------------
 ! ------------------------------------------------------------------
@@ -280,6 +294,7 @@ Do is = 1, nspecies
 End Do
 End If
 
+call timesec(ta)
 Do ist1 = 1, nstsv
       wf1ir(:) = 0.d0
       Do igk = 1, Gkqset%ngk (1, ik)
@@ -289,17 +304,18 @@ Do ist1 = 1, nstsv
       Call zfftifc (3, ngrid, 1, wf1ir(:))
 
       Do ist3 = 1, nstsv
-            !zt1 = zfinp (.True., wf1%mtrlm(:,:,:,ist1),vxpsimt(:,:,:,ist3), wf1%ir(:,ist1), vxpsiir(:,ist3))
             zt1 = zfinp (.True., wf1%mtrlm(:,:,:,ist1),vxpsimt(:,:,:,ist3), wf1ir(:), vxpsiir(:,ist3))
             vnlvv (ist1, ist3) = vnlvv (ist1, ist3) - zt1
       End Do
 End Do
 
-write(*,*) 'vnlvv real'
-do ist1 = 1, 12
-        write(*,'(12F13.9)') dble(vnlvv(ist1,1:12))
-end do
-
+!write(*,*) 'vnlvv real'
+!do ist1 = 1, 12
+!        write(*,'(12F13.9)') dble(vnlvv(ist1,1:12))
+!end do
+call timesec(tb)
+!write(*,*) 'Matrix',tb-ta
+      
       Deallocate (vgqc, tpgqc, gqc, jlgqr, jlgq0r)
       Deallocate (ylmgq, sfacgq)
       Deallocate (wfcr1)
@@ -308,7 +324,6 @@ end do
       call WFRelease(wf1)
       call WFRelease(wf2)
       call WFRelease(prod)
-
       Return
 End Subroutine
 !EOC
