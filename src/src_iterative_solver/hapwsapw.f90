@@ -277,6 +277,8 @@ deallocate(zfft)
 endif !false
 
 endif !constructHS
+
+
 !write(*,*) 'sum(Hx)',sum(Hx)
 !write(*,*) 'sum(Sx)',sum(Sx)
 call timesec(tb)

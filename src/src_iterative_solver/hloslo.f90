@@ -1,10 +1,9 @@
-subroutine HloSlo(n,npw,nwf,system,x,Hx,Sx,usematrix)
+subroutine HloSlo(n,npw,nwf,system,x,Hx,Sx)
       use modmain
       use modxs
       Use modfvsystem
       use modmpi
       implicit none
-      logical :: usematrix
       integer ::n,nwf,npw
       complex(8) :: x(n,nwf),Sx(n,nwf),Hx(n,nwf)
       Type (evsystem) :: system

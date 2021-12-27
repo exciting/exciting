@@ -114,7 +114,6 @@ Subroutine singularcomponents (system, nst, evecfv, evalfv,ik)
       complex(8), external :: zdotc
       integer, allocatable :: offset(:),ngklist(:),ibuf(:)
 
-write(*,*) 'ik=',ik
 call timesec(tsa)
 
       tol = input%groundstate%solver%epsarpack

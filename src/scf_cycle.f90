@@ -257,7 +257,6 @@ call timesec(ta)
             Allocate (evecfv(nmatmax, nstfv, nspnfv))
             Allocate (evecsv(nstsv, nstsv))
 
-            write(*,*) 'iscl',iscl
             if (iscl.le.1) then
               evecfv=0d0
             elseif (input%groundstate%solver%type.eq.'Davidson') then

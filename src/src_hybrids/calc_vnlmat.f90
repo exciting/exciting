@@ -90,13 +90,15 @@ subroutine calc_vnlmat
             call deletesystem(system)
             deallocate(temp)
             deallocate(temp1)
-        else
+        else 
+          if ((input%groundstate%solver%type.ne.'Davidson').or.(input%groundstate%solver%constructHS)) then
             ! calculate vnlmat=P+*P
             nmatp = nmat(1,ik)
             call zgemm('c', 'n', nmatp, nmatp, nstsv, &
             &          dcmplx(-1d0,0d0), pace(:,1:nmatp,ik), nstsv, &
             &          pace(:,1:nmatp,ik), nstsv, zzero, &
-            &          vnlmat(1:nmatp,1:nmatp,ik), nmatp) ! nmatmax)
+            &          vnlmat(1,1,ik), nmatmax)
+          endif
         endif
 
     end do ! ik
