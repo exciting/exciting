@@ -482,7 +482,7 @@ if (info.eq.0) then
 
 
 if (rank.eq.0)  write(*,*) nadd,maxresid,sum(rd(nstart:nstart-1+ndiv)),calls
-call barrier
+!call barrier
 
 #ifdef garums
       do i=1,nsize !nstart,ndiv+nstart

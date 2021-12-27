@@ -89,7 +89,7 @@ if (m.gt.0) then
 #endif
       A=abs(A)
       write(*,*) 'GSortho test1',sum(A)
-      call barrier
+!      call barrier
 #endif
       deallocate(A,update)
 

@@ -342,10 +342,10 @@ blockH=0d0
          deallocate(blockH)
 
        enddo
-if (ik.ne.1) then
- write(*,*) 'fix the size of singular(...)'
- stop
-endif
+!if (ik.ne.1) then
+! write(*,*) 'fix the size of singular(...)'
+! stop
+!endif
 write(*,*) calls,' calls'
 if (.not.(allocated(singular))) then
   i=ndiv
@@ -358,7 +358,7 @@ if (.not.(allocated(singular))) then
   else
     nsingular=1
   endif
-  allocate(singular(n_local,nsingular,nkpt))
+  allocate(singular(ngkmax,nsingular,nkpt))
   allocate(evalsingular(nsingular,nkpt))
 
   singular=zzero
