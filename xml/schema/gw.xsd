@@ -184,6 +184,16 @@
                   </xs:documentation></xs:annotation>
                 </xs:attribute>
 
+                <xs:attribute ex:importance="experimental" ex:unit="" name="q0beta" type="fortrandouble" default="-1.0d0">
+                  <xs:annotation>
+                    <xs:documentation> beta for the q=0 correction in hybrid calculations. 
+                                       The parameter is invoked in the F (q) =  sum_G exp (-beta * (G + q)^2) / (G + q)^2 [Massida, Posternak, Baldereschi].
+                                       A negative (default) value invokes an automatic calculation where beta depends on the volume of the cell. 
+                                       A positive value corresponds to an explicit definition useful for molecules.
+                    </xs:documentation>
+                  </xs:annotation>
+               </xs:attribute>
+
               </xs:complexType>
             </xs:element>
 

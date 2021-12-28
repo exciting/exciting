@@ -72,6 +72,9 @@ real(8) r,r2,kf,s,u,v
 real(8) rs,z,g,ks,ksg
 real(8) t,uu,vv,ww
 real(8) g2rho,exup,exdn
+
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i,r,r2,kf,s,u,v,exup,exdn,rs,z,g,ks,ksg,t,uu,g2rho,vv,ww)
+!$OMP DO
 do i=1,n
   if ((rhoup(i).gt.1.d-12).and.(rhodn(i).gt.1.d-12)) then
 ! exchange energy density and potential
@@ -122,6 +125,8 @@ do i=1,n
     vcdn(i)=0.d0
   end if
 end do
+!$OMP END DO
+!$OMP END PARALLEL
 return
 end subroutine
 !EOC

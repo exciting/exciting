@@ -38,13 +38,15 @@ subroutine calc_vnlmat
     !------------------------------------------!
     ! Matrix elements of non-local potential   !
     !------------------------------------------!
-    if (allocated(vnlmat)) deallocate(vnlmat)
-    allocate(vnlmat(nmatmax,nmatmax,ikfirst:iklast))
-    vnlmat = zzero
-    allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv))
-    apwalm = zzero
-    allocate(evec(nmatmax,nstfv))
-    evec = zzero
+    if ((input%groundstate%solver%type.ne.'Davidson').or.(input%groundstate%solver%constructHS)) then
+      if (allocated(vnlmat)) deallocate(vnlmat)
+      allocate(vnlmat(nmatmax,nmatmax,ikfirst:iklast))
+      vnlmat = zzero
+      allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv))
+      apwalm = zzero
+      allocate(evec(nmatmax,nstfv))
+      evec = zzero
+    endif
 
     do ik = ikfirst, iklast
         if (input%groundstate%hybrid%method.eq."MB") then
@@ -103,8 +105,10 @@ subroutine calc_vnlmat
 
     end do ! ik
 
-    deallocate(apwalm)
-    deallocate(evec)
+    if ((input%groundstate%solver%type.ne.'Davidson').or.(input%groundstate%solver%constructHS)) then
+      deallocate(apwalm)
+      deallocate(evec)
+    endif
 
     return
 end subroutine
