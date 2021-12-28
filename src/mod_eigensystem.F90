@@ -1020,7 +1020,7 @@ call timesec(ta)
 call timesec(tb)
 !write(*,*) tb-ta
 
-     prod%ir(:,1)=conjg(wf1%ir(:,ist1))*wf2%ir(:,ist2)
+     !prod%ir(:,1)=conjg(wf1%ir(:,ist1))*wf2%ir(:,ist2)
      end subroutine WFprodrs
 
 End Module

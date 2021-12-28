@@ -59,10 +59,12 @@ wfsize=wf%maxaa+wf%maxnlo
 Allocate(wf1(wfsize,nstfv))
 if (.not.allocated(wf%mt)) Allocate(wf%mt(wfsize,nstsv,natmtot))
 
+if (.not.allocated(wf%gk)) Allocate(wf%gk(nmatmax, nstfv))
 ! get the eigenvalues/vectors from file for input k-point
 !     Call getevalsv (vkl(:, ik), evalsv)
 Call getevecfv (kqset%vkl(:, ik), Gkqset%vgkl(:, :, :, ik), evecfv)
 !     Call getevecsv (vkl(:, ik), evecsv)
+wf%gk = evecfv
 
 ! find the matching coefficients
 Allocate(apwalm(ngkmax, apwordmax, lmmaxapw, natmtot))
@@ -145,25 +147,23 @@ End Do
 Deallocate(apwi)
 Deallocate(apwalm)
 Deallocate(wf1)
-!     wf%mt(1:wf%maxaa,:,:)=0d0
 
-
-if (.not.allocated(wf%ir)) Allocate(wf%ir(ngrtot,nstsv))
-
-!     interstitial part
- t1 = 1 / sqrt(omega)
- Do j = 1, nstsv
-   wf%ir(:,j) = 0.d0
-! spin-unpolarised wavefunction
-   Do igk = 1, Gkqset%ngk (1, ik)
-     ifg = igfft (Gkqset%igkig(igk, 1, ik))
-     wf%ir(ifg, j) = t1*evecfv(igk, j)
-   End Do
-! Fourier transform wavefunction to real-space
-   Call zfftifc (3, ngrid, 1, wf%ir(:, j))
- End Do
-! wf%ir(:,:) = 0.d0
-! wf%mt(:,:,:)=0.d0
+!if (.not.allocated(wf%ir)) Allocate(wf%ir(ngrtot,nstsv))
+!
+!!     interstitial part
+! t1 = 1 / sqrt(omega)
+! Do j = 1, nstsv
+!   wf%ir(:,j) = 0.d0
+!! spin-unpolarised wavefunction
+!   Do igk = 1, Gkqset%ngk (1, ik)
+!     ifg = igfft (Gkqset%igkig(igk, 1, ik))
+!     wf%ir(ifg, j) = t1*evecfv(igk, j)
+!   End Do
+!! Fourier transform wavefunction to real-space
+!   Call zfftifc (3, ngrid, 1, wf%ir(:, j))
+! End Do
+!! wf%ir(:,:) = 0.d0
+!! wf%mt(:,:,:)=0.d0
 Deallocate(evecfv)
 Deallocate(evecsv)
 

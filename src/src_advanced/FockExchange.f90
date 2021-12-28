@@ -21,8 +21,9 @@ Subroutine FockExchange (ikp, vnlvv, vxpsiir,vxpsimt)
       Integer :: nrc, iq, ig, iv (3), igq0, igk
       Integer :: ilo, loindex
       Integer :: info
+      Integer :: ifg
 
-      Real (8) :: v (3), cfq, ta,tb
+      Real (8) :: v (3), cfq, ta,tb, t1
       Complex (8) zrho01, zrho02, zt1, zt2
       Integer :: nr, l, m, io1, lm2, ir, if3
 ! automatic arrays
@@ -35,9 +36,13 @@ Subroutine FockExchange (ikp, vnlvv, vxpsiir,vxpsimt)
       Real (8), Allocatable :: jlgqr (:, :, :)
       Real (8), Allocatable :: jlgq0r (:, :, :)
       Real (8), Allocatable :: evalfv (:,:)
+      Complex (8), Allocatable :: prodir (:)
+      Complex (8), Allocatable :: potir (:)
       Complex (8), Allocatable :: ylmgq (:, :)
       Complex (8), Allocatable :: sfacgq (:, :)
       Complex (8), Allocatable :: wfcr1 (:, :, :)
+      Complex (8), Allocatable :: wf1ir (:)
+      Complex (8), Allocatable :: wf2ir (:)
       Complex (8), Allocatable :: zrhomt (:, :, :)
       Complex (8), Allocatable :: zrhoir (:)
       Complex (8), Allocatable :: zvclmt (:, :, :, :)
@@ -58,6 +63,10 @@ Subroutine FockExchange (ikp, vnlvv, vxpsiir,vxpsimt)
       Allocate (ylmgq(lmmaxvr, ngvec))
       Allocate (sfacgq(ngvec, natmtot))
       Allocate (wfcr1(ntpll, nrcmtmax, 2))
+      Allocate (wf1ir(ngrtot))
+      Allocate (wf2ir(ngrtot))
+      Allocate (prodir(ngrtot))
+      Allocate (potir(ngrtot))
       Allocate (zrhomt(lmmaxvr, nrcmtmax, natmtot))
       Allocate (zrhoir(ngrtot))
       Allocate (zvcltp(ntpll, nrcmtmax))
@@ -87,8 +96,13 @@ Subroutine FockExchange (ikp, vnlvv, vxpsiir,vxpsimt)
       call WFInit(pot)
 
       allocate(pot%mtrlm(lmmaxvr,nrmtmax,natmtot,1))
-      allocate(pot%ir(ngrtot,1))
+      !allocate(pot%ir(ngrtot,1))
+      allocate(prod%mtrlm(lmmaxvr,nrmtmax,natmtot,1))
+      !allocate(prod%ir(ngrtot,1))
 
+      t1 = 1/sqrt(omega)
+! factor for long-range term
+      cfq = 0.5d0 * (omega/pi) ** 2
 ! set the nuclear charges to zero
       zn (:) = 0.d0
       vxpsiir (:, :) = 0.d0
@@ -129,7 +143,7 @@ call timesec(ta)
          Call genjlgpr (lmax, gqc, jlgqr)
          Call genjlgq0r (gqc(igq0), jlgq0r)
 call timesec(tb)
-write(*,*) 'qpt init', tb-ta
+!write(*,*) 'qpt init', tb-ta
 
 ! calculate the wavefunctions for occupied states
 
@@ -139,64 +153,81 @@ call timesec(ta)
          call genWFinMT(wf2)
          call genWFonMesh(wf2)
 call timesec(tb)
-write(*,*) 'genWFs',tb-ta
+!write(*,*) 'genWFs',tb-ta
+         Do ist2 = 1, nomax
+           
+           wf2ir(:) = 0.d0
+           Do igk = 1, Gkqset%ngk (1, jk)
+             ifg = igfft (Gkqset%igkig(igk, 1, jk))
+             wf2ir(ifg) = t1*wf2%gk(igk, ist2)
+           End Do
+           Call zfftifc (3, ngrid, 1, wf2ir(:))
 
-         Do ist2 = 1, nomax 
-               Do ist3 = 1, nstfv
+           Do ist3 = 1, nstfv
+              
+             wf1ir(:) = 0.d0 
+             Do igk = 1, Gkqset%ngk (1, ik)
+               ifg = igfft (Gkqset%igkig(igk, 1, ik))
+               wf1ir(ifg) = t1*wf1%gk(igk, ist3)
+             End Do
+             Call zfftifc (3, ngrid, 1, wf1ir(:))
 
 ! calculate the complex overlap density
 !-------------------------------------------------------------------
 call timesec(ta)
                      call WFprodrs(ist2,wf2,ist3,wf1,prod)
+                     prodir(:)=conjg(wf2ir(:))*wf1ir(:)
 call timesec(tb)
-write(*,*) 'WFprod',tb-ta
+!write(*,*) 'WFprod',tb-ta
 
 if (ik.eq.jk) then
 call timesec(ta)
                      Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, &
-                    & igq0), sfacgq0, prod%mtrlm(:,:,:,1), prod%ir(:,1), zrho01)
-!call timesec(tb)
+                    & igq0), sfacgq0, prod%mtrlm(:,:,:,1), prodir(:), zrho01) 
+call timesec(tb)
 !write(*,*) 'zrhogp',tb-ta
-!call timesec(ta)
-                     prod%ir(:,1)=prod%ir(:,1)-zrho01
+call timesec(ta)
+                     prodir(:)=prodir(:)-zrho01
                      prod%mtrlm(1,:,:,1)=prod%mtrlm(1,:,:,1)-zrho01/y00
 
 call timesec(tb)
-write(*,*) 'q=0 subtraction', tb-ta
+!write(*,*) 'q=0 subtraction', tb-ta
 endif
 
 call timesec(ta)
 ! calculate the Coulomb potential
                      Call zpotcoul (nrcmt, nrcmtmax, nrcmtmax, rcmt, &
                     & igq0, gqc, jlgqr, ylmgq, sfacgq, zn, prod%mtrlm(:,:,:,1), &
-                    & prod%ir(:,1), pot%mtrlm(:,:,:,1), pot%ir(:,1), zrho02)
+                    & prodir(:), pot%mtrlm(:,:,:,1), potir(:), zrho02)
 call timesec(tb)
-write(*,*) 'zpotcoul',tb-ta
+!write(*,*) 'zpotcoul',tb-ta
 
 if (ik.eq.jk) then
 call timesec(ta)
                   Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, &
-                  & igq0), sfacgq0, pot%mtrlm(:,:,:,1), pot%ir(:,1), zrho01)
+                  & igq0), sfacgq0, pot%mtrlm(:,:,:,1), potir(:), zrho01)
 
-                  pot%ir(:,1)=pot%ir(:,1)-zrho01
+                  potir(:)=potir(:)-zrho01
                   pot%mtrlm(1,:,:,1)=pot%mtrlm(1,:,:,1)-zrho01/y00
 call timesec(tb)
-write(*,*) 'q=0 subtraction', tb-ta
+!write(*,*) 'q=0 subtraction', tb-ta
 endif
 !-------------------------------------------------------------------
 call timesec(ta)
                         call genWFonMeshOne(pot)
-                       pot%ir=conjg(pot%ir)
                        pot%mtmesh=conjg(pot%mtmesh)
                         call WFprodrs(1,pot,ist2,wf2,prod)
+                       prodir(:) = potir(:)*wf2ir(:)
 ! ------------------------------------------------------------------
 ! ------------------------------------------------------------------
 ! ------------------------------------------------------------------
-
-                        vxpsiir(:,ist3)=vxpsiir(:,ist3)+prod%ir(:,1)*wkptnr(jk)
+                        vxpsiir(:,ist3)=vxpsiir(:,ist3)+prodir(:)*wkptnr(jk)
                         vxpsimt(:,:,:,ist3)=vxpsimt(:,:,:,ist3)+prod%mtrlm(:,:,:,1)*wkptnr(jk)
+! ------------------------------------------------------------------
+! ------------------------------------------------------------------
+! ------------------------------------------------------------------
 call timesec(tb)
-write(*,*) 'VxPsi', tb-ta
+!write(*,*) 'VxPsi', tb-ta
 
 
 ! ------------------------------------------------------------------
@@ -265,17 +296,30 @@ End If
 
 call timesec(ta)
 Do ist1 = 1, nstsv
+      wf1ir(:) = 0.d0
+      Do igk = 1, Gkqset%ngk (1, ik)
+            ifg = igfft (Gkqset%igkig(igk, 1, ik))
+            wf1ir(ifg) = t1*wf1%gk(igk, ist1)
+      End Do
+      Call zfftifc (3, ngrid, 1, wf1ir(:))
+
       Do ist3 = 1, nstsv
-            zt1 = zfinp (.True., wf1%mtrlm(:,:,:,ist1),vxpsimt(:,:,:,ist3), wf1%ir(:,ist1), vxpsiir(:,ist3))
+            zt1 = zfinp (.True., wf1%mtrlm(:,:,:,ist1),vxpsimt(:,:,:,ist3), wf1ir(:), vxpsiir(:,ist3))
             vnlvv (ist1, ist3) = vnlvv (ist1, ist3) - zt1
       End Do
 End Do
-call timesec(tb)
-write(*,*) 'Matrix',tb-ta
 
+!write(*,*) 'vnlvv real'
+!do ist1 = 1, 12
+!        write(*,'(12F13.9)') dble(vnlvv(ist1,1:12))
+!end do
+call timesec(tb)
+!write(*,*) 'Matrix',tb-ta
+      
       Deallocate (vgqc, tpgqc, gqc, jlgqr, jlgq0r)
       Deallocate (ylmgq, sfacgq)
       Deallocate (wfcr1)
+      Deallocate (wf1ir, wf2ir, prodir, potir)
       Deallocate (zrhomt, zrhoir, zvcltp, zfmt)
       call WFRelease(wf1)
       call WFRelease(wf2)
