@@ -296,20 +296,15 @@ else ! Use oepvnl
         vxpsiir=zzero
         vxpsimt=zzero
         call timesec(ta)
-        call FockExchange (ik, vxnl(:, :, ik),vxpsiir,vxpsimt)
+        call FockExchange (ik, sxs2*kiw(1,ik) ,vxnl(:, :, ik),vxpsiir,vxpsimt)
         call timesec(tb)
         if (rank==0) write(*,*) 'FockExchange',tb-ta
-!stop
 
         do ie1 = 1, nstfv
 ! making sure that the exchange matrix is Hermitian 
           do ie2 = ie1+1, nstfv
             vxnl(ie2,ie1,ik) = conjg(vxnl(ie1,ie2,ik))
           end do
-        end do
-! q=0 correction
-        do ie1 = 1, nomax
-          vxnl(ie1,ie1,ik) = vxnl(ie1,ie1,ik) - sxs2*kiw(ie1,ik)
         end do
 
         call timesec(ta)

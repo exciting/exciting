@@ -4,13 +4,14 @@
 ! Copyright (C) 2021 D. Zavickis, A. Gulans
 !
 !
-Subroutine FockExchange (ikp, vnlvv, vxpsiir,vxpsimt)
+Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiir,vxpsimt)
       Use modmain
       Use modinput
       Use modgw, only : kqset,Gkqset, kset, nomax, numin, ikvbm, ikcbm, ikvcm, Gset
       Implicit None
 ! arguments
       Integer, Intent (In) :: ikp
+      Real (8), Intent (In) :: q0corr
       Complex (8), Intent (Out) :: vnlvv (nstsv, nstsv)
       Complex (8), Intent (Out) :: vxpsiir (ngrtot, nstsv)
       Complex (8), Intent (Out) :: vxpsimt (lmmaxvr, nrcmtmax, natmtot, nstsv)
@@ -303,10 +304,16 @@ Do ist1 = 1, nstsv
       End Do
       Call zfftifc (3, ngrid, 1, wf1ir(:))
 
+! q=0 correction
+      if (ist1.le.nomax) then
+        vxpsimt(:,:,:,ist1) = vxpsimt(:,:,:,ist1) + q0corr*wf1%mtrlm(:,:,:,ist1)
+        vxpsiir(:,ist1) = vxpsiir(:,ist1) + q0corr*wf1ir(:)
+      endif
+
       Do ist3 = 1, nstsv
             zt1 = zfinp (.True., wf1%mtrlm(:,:,:,ist1),vxpsimt(:,:,:,ist3), wf1ir(:), vxpsiir(:,ist3))
             vnlvv (ist1, ist3) = vnlvv (ist1, ist3) - zt1
-      End Do
+      End Do 
 End Do
 
 !write(*,*) 'vnlvv real'
