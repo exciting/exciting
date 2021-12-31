@@ -49,7 +49,7 @@ subroutine calc_vnlmat
     endif
 
     do ik = ikfirst, iklast
-        if (input%groundstate%hybrid%method.eq."MB") then
+        if (input%groundstate%hybrid%method.eq."MB".or.input%groundstate%hybrid%method.eq."BFB") then
             ! matching coefficients
             call match(ngk(1,ik), gkc(:,1,ik), tpgkc(:,:,1,ik), &
             &          sfacgk(:,:,1,ik), apwalm(:,:,:,:,1))
@@ -58,9 +58,8 @@ subroutine calc_vnlmat
             nmatp = nmat(1,ik)
             call newsystem(system,input%groundstate%solver%packedmatrixstorage,nmatp)
             call MTRedirect(mt_hscf%main,mt_hscf%spinless)
-            call hamiltonsetup(system, ngk(1, ik), apwalm, igkig(:, 1, ik), vgkc(:,:,1,ik))
+!            call hamiltonsetup(system, ngk(1, ik), apwalm, igkig(:, 1, ik), vgkc(:,:,1,ik))
             call overlapsetup(system, ngk(1, ik), apwalm, igkig(:, 1, ik), vgkc(:,:,1,ik))
-            !write(*,*) 'overlap=', ik, sum(system%overlap%za)
 
             ! c
             call getevecfv(vkl(:,ik), vgkl(:,:,:,ik), evec)

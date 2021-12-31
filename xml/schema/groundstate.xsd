@@ -360,6 +360,7 @@
                 <xs:restriction base="xs:string">
                   <xs:enumeration value="ACE"/>
                   <xs:enumeration value="MB"/>
+                  <xs:enumeration value="BFB"/>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>

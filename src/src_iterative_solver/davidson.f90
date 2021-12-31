@@ -243,7 +243,7 @@ Sx=zzero
 
        call HloSlo(n_local,npw_local,nsize,system,trialvec,Hx,Sx)
        if (allocated(pace).and.(.not.associated(system%hamilton%za))) then
-        call pacelo(n_local,npw_local,nsize,nstsv,0.25d0,pace(:,:,ik),trialvec ,Hx )
+        call pacelo(n_local,npw_local,nsize,nstsv,input%groundstate%hybrid%excoeff,pace(:,:,ik),trialvec ,Hx )
        endif
 
 ! -> 2. singular components
@@ -281,7 +281,7 @@ call timesec(time1)
       call HapwSapw(n_local,npw,nsize-nloall,system,trialvec(:,nloall+1:nsize),Hx(:,nloall+1:nsize),Sx(:,nloall+1:nsize),.true.)
       if (allocated(pace).and.(.not.associated(system%hamilton%za))) then
 write(*,*) 'pace activated'
-        call paceapw(n_local,npw,nsize-nloall,nstsv,0.25d0,pace(:,:,ik),trialvec(1:n_local,nloall+1:nsize) ,Hx(1:n_local,nloall+1:nsize))
+        call paceapw(n_local,npw,nsize-nloall,nstsv,input%groundstate%hybrid%excoeff,pace(:,:,ik),trialvec(1:n_local,nloall+1:nsize) ,Hx(1:n_local,nloall+1:nsize))
       endif
 
       call innerproduct(n_local,nsize,nsize,trialvec,Hx(:,1:nsize),blockH(:,1:nsize))
@@ -420,7 +420,7 @@ if (nadd.ne.0) then
 if (.true.) then
       call HapwSapw(n_local,npw,nadd,system,trialvec(:,nsize-nadd+1:nsize),Hx(:,nsize-nadd+1:nsize),Sx(:,nsize-nadd+1:nsize),.true.)
       if (allocated(pace).and.(.not.associated(system%hamilton%za))) then
-        call paceapw(n_local,npw,nadd,nstsv,0.25d0,pace(:,:,ik),trialvec(1:n_local,nsize-nadd+1:nsize) ,Hx(1:n_local,nsize-nadd+1:nsize))
+        call paceapw(n_local,npw,nadd,nstsv,input%groundstate%hybrid%excoeff,pace(:,:,ik),trialvec(1:n_local,nsize-nadd+1:nsize) ,Hx(1:n_local,nsize-nadd+1:nsize))
       endif
 
       call innerproduct(n_local,nsize,nsize,trialvec,Hx,blockH,npw_local)
@@ -538,7 +538,7 @@ endif
 !       call GSortho(n,0,nsize,trialvec)
        call HloSlo(n_local,npw_local,nsize,system,trialvec,Hx,Sx)      
        if (allocated(pace).and.(.not.associated(system%hamilton%za))) then
-        call pacelo(n_local,npw,nsize,nstsv,0.25d0,pace(:,:,ik),trialvec ,Hx )
+        call pacelo(n_local,npw,nsize,nstsv,input%groundstate%hybrid%excoeff,pace(:,:,ik),trialvec ,Hx )
        endif
 
        trialvec(1:npw_local,nsize+1:nsize+ndiv)=ritzvec(1:npw_local,1:ndiv)
@@ -552,7 +552,7 @@ endif
        call GSortho(n_local,0,nsize-nloall,trialvec(:,nloall+1:nsize))
        call HapwSapw(n_local,npw,nsize-nloall,system,trialvec(1:n_local,nloall+1:nsize),Hx(1:n_local,nloall+1:nsize),Sx(1:n_local,nloall+1:nsize),.true.)
        if (allocated(pace).and.(.not.associated(system%hamilton%za))) then
-         call paceapw(n_local,npw,nsize-nloall,nstsv,0.25d0,pace(:,:,ik),trialvec(1:n_local,nloall+1:nsize) ,Hx(1:n_local,nloall+1:nsize))
+         call paceapw(n_local,npw,nsize-nloall,nstsv,input%groundstate%hybrid%excoeff,pace(:,:,ik),trialvec(1:n_local,nloall+1:nsize) ,Hx(1:n_local,nloall+1:nsize))
        endif
 
        allocate(BlockS(nsize,nsize))
