@@ -15,6 +15,7 @@ Subroutine davidson (system, nst, evecfv, evalfv,ik)
       Use mod_eigenvalue_occupancy, Only: nstfv
       Use sclcontroll
       Use mod_kpoint, Only: nkpt
+      use modxs, only : fftmap_type
 !
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
@@ -99,7 +100,6 @@ Subroutine davidson (system, nst, evecfv, evalfv,ik)
 
       Type (HermitianMatrix), pointer ::pinverse
 ! sandbox variables :)
-      complex(8), allocatable :: h3(:,:),zfft(:),h2(:,:)
       integer :: ig
       real(8) :: summa,maxdiff,garums
       complex(8) :: rho,beta,alpha,rhoold, zsum,zsum2
@@ -113,6 +113,10 @@ Subroutine davidson (system, nst, evecfv, evalfv,ik)
 
       complex(8), external :: zdotc
       integer, allocatable :: gkoffset(:),ngklist(:),ibuf(:)
+
+      complex(8), allocatable :: zfftcf(:),zfftveff(:)
+      type(fftmap_type) :: fftmap
+
 
 !call memory_report
 write(*,*) 'ik=',ik
@@ -207,6 +211,28 @@ deallocate(zvec)
 endif
 
 
+      if (associated(system%overlap%za)) then
+        allocate(zfftcf(1))
+        allocate(zfftveff(1))
+      else
+        call genfftmap(fftmap,2*gkmax)
+
+        allocate(zfftcf(fftmap%ngrtot))
+        zfftcf=0d0
+        do ig=1, fftmap%ngvec
+          zfftcf(fftmap%igfft(ig))=cfunig(ig)
+        end do
+        call zfftifc(3, fftmap%ngrid, 1, zfftcf)
+
+        allocate(zfftveff(fftmap%ngrtot))
+        zfftveff=0d0
+        do ig=1, fftmap%ngvec
+          zfftveff(fftmap%igfft(ig))=veffig(ig)
+        end do
+        call zfftifc(3, fftmap%ngrid, 1, zfftveff)
+      endif
+
+
       nusedsingular=nsingular 
       ndiv=nst
       nblocks=12
@@ -278,7 +304,7 @@ call timesec(time1)
       BlockS=zero
 !
       call GSortho(n_local,nsize-ndiv-nloall,nsize-nloall,trialvec(:,nloall+1:))
-      call HapwSapw(n_local,npw,nsize-nloall,system,trialvec(:,nloall+1:nsize),Hx(:,nloall+1:nsize),Sx(:,nloall+1:nsize),.true.)
+      call HapwSapw(n_local,npw,nsize-nloall,system,fftmap,zfftcf,zfftveff,trialvec(:,nloall+1:nsize),Hx(:,nloall+1:nsize),Sx(:,nloall+1:nsize),.true.)
       if (allocated(pace).and.(.not.associated(system%hamilton%za))) then
 write(*,*) 'pace activated'
         call paceapw(n_local,npw,nsize-nloall,nstsv,input%groundstate%hybrid%excoeff,pace(:,:,ik),trialvec(1:n_local,nloall+1:nsize) ,Hx(1:n_local,nloall+1:nsize))
@@ -418,7 +444,7 @@ if (nadd.ne.0) then
 !      call GSortho(n,nsize-nadd,nsize,trialvec)
 
 if (.true.) then
-      call HapwSapw(n_local,npw,nadd,system,trialvec(:,nsize-nadd+1:nsize),Hx(:,nsize-nadd+1:nsize),Sx(:,nsize-nadd+1:nsize),.true.)
+      call HapwSapw(n_local,npw,nadd,system,fftmap,zfftcf,zfftveff,trialvec(:,nsize-nadd+1:nsize),Hx(:,nsize-nadd+1:nsize),Sx(:,nsize-nadd+1:nsize),.true.)
       if (allocated(pace).and.(.not.associated(system%hamilton%za))) then
         call paceapw(n_local,npw,nadd,nstsv,input%groundstate%hybrid%excoeff,pace(:,:,ik),trialvec(1:n_local,nsize-nadd+1:nsize) ,Hx(1:n_local,nsize-nadd+1:nsize))
       endif
@@ -550,7 +576,7 @@ endif
       endif
 
        call GSortho(n_local,0,nsize-nloall,trialvec(:,nloall+1:nsize))
-       call HapwSapw(n_local,npw,nsize-nloall,system,trialvec(1:n_local,nloall+1:nsize),Hx(1:n_local,nloall+1:nsize),Sx(1:n_local,nloall+1:nsize),.true.)
+       call HapwSapw(n_local,npw,nsize-nloall,system,fftmap,zfftcf,zfftveff,trialvec(1:n_local,nloall+1:nsize),Hx(1:n_local,nloall+1:nsize),Sx(1:n_local,nloall+1:nsize),.true.)
        if (allocated(pace).and.(.not.associated(system%hamilton%za))) then
          call paceapw(n_local,npw,nsize-nloall,nstsv,input%groundstate%hybrid%excoeff,pace(:,:,ik),trialvec(1:n_local,nloall+1:nsize) ,Hx(1:n_local,nloall+1:nsize))
        endif
@@ -593,6 +619,11 @@ endif
 
        
   enddo
+
+if (associated(fftmap%igfft)) deallocate(fftmap%igfft)
+deallocate(zfftcf)
+deallocate(zfftveff)
+
 !stop
 ! Additional wavefunction filtering
 if (.false.) then

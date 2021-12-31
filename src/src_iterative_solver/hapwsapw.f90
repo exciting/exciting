@@ -1,4 +1,4 @@
-subroutine HapwSapw(n,npw,nwf,system,x,Hx,Sx)
+subroutine HapwSapw(n,npw,nwf,system,fftmap,cfir,vir,x,Hx,Sx)
       use modmain
       use modxs
       Use modfvsystem
@@ -6,6 +6,9 @@ subroutine HapwSapw(n,npw,nwf,system,x,Hx,Sx)
       implicit none
       integer ::n,nwf,npw
       complex(8) :: x(n,nwf),Sx(n,nwf),Hx(n,nwf)
+      complex(8), intent(in) :: cfir(*)
+      complex(8), intent(in) :: vir(*)
+      Type (fftmap_type) :: fftmap
       Type (evsystem) :: system
 
       complex(8), allocatable :: zax(:,:),zax2(:,:),zalo(:,:),salo(:,:),zlox(:,:),buf(:,:)
@@ -189,7 +192,7 @@ else
 
 !stop
 
-if (.true.) then
+if (.false.) then
      call timesec(td)
 
 ! Overlap 
@@ -268,6 +271,95 @@ do i=1,nwf
 
     do ig=1,npw
      Hx(ig,i)=Hx(ig,i)+zfft(igfft(current_igkig(ig)))
+    enddo
+enddo
+!$OMP END DO
+deallocate(zfft)
+!$OMP END PARALLEL
+
+else
+
+! Overlap 
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i,ig,zfft)
+allocate(zfft(fftmap%ngrtot))
+!$OMP DO
+do i=1,nwf
+
+    zfft=0d0
+    do ig=1,npw
+     zfft(fftmap%igfft(current_igkig(ig)))=x(ig,i)
+    enddo
+    Call zfftifc (3, fftmap%ngrid,1, zfft)
+    do ig=1,fftmap%ngrtot
+     zfft(ig)=zfft(ig)*cfir(ig)
+    enddo
+    Call zfftifc (3, fftmap%ngrid,-1, zfft)
+
+    do ig=1,npw
+     Sx(ig,i)=Sx(ig,i)+zfft(fftmap%igfft(current_igkig(ig)))
+    enddo
+enddo
+!$OMP END DO
+deallocate(zfft)
+!$OMP END PARALLEL 
+
+
+
+! Kinetic energy
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i,ix,ig,zfft)
+allocate(zfft(fftmap%ngrtot))
+!$OMP DO
+do i=1,nwf
+  do ix=1,3   
+    zfft=0d0
+    do ig=1,npw
+      zfft(fftmap%igfft(current_igkig(ig)))=x(ig,i)*current_vgkc(ix,ig)
+    enddo
+
+    Call zfftifc (3, fftmap%ngrid,1, zfft)
+
+    if (input%groundstate%ValenceRelativity.ne."none") then
+      write(*,*) 'davidson.f90/hapwsapw.f90: the relativistic correction needs to be specified properly in the code'
+      stop
+      do ig=1,fftmap%ngrtot
+! vir includes cfir already, but it should not. Should we use meffir?
+       zfft(ig)=zfft(ig)/(1d0-vir(ig)*a2)*cfir(ig)
+      enddo
+    else
+      do ig=1,fftmap%ngrtot
+       zfft(ig)=zfft(ig)*cfir(ig)
+      enddo
+    endif
+
+    Call zfftifc (3, fftmap%ngrid,-1, zfft)
+    do ig=1,npw
+     Hx(ig,i)=Hx(ig,i)+0.5d0*zfft(fftmap%igfft(current_igkig(ig)))*current_vgkc(ix,ig)
+    enddo
+
+  enddo
+enddo
+!$OMP END DO
+deallocate(zfft)
+!$OMP END PARALLEL
+
+! potential energy
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i,ig,zfft)
+allocate(zfft(fftmap%ngrtot))
+!$OMP DO
+do i=1,nwf
+
+    zfft=0d0
+    do ig=1,npw
+     zfft(fftmap%igfft(current_igkig(ig)))=x(ig,i)
+    enddo
+    Call zfftifc (3, fftmap%ngrid,1, zfft)
+    do ig=1,fftmap%ngrtot
+     zfft(ig)=zfft(ig)*vir(ig)
+    enddo
+    Call zfftifc (3, fftmap%ngrid,-1, zfft)
+
+    do ig=1,npw
+     Hx(ig,i)=Hx(ig,i)+zfft(fftmap%igfft(current_igkig(ig)))
     enddo
 enddo
 !$OMP END DO

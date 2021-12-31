@@ -1,4 +1,4 @@
-subroutine OverlapX(n,npw,nwf,system,x,Sx)
+subroutine OverlapX(n,npw,nwf,system,fftmap,cfir,x,Sx)
       use modmain
       use modxs
       Use modfvsystem
@@ -6,6 +6,8 @@ subroutine OverlapX(n,npw,nwf,system,x,Sx)
       implicit none
       integer ::n,nwf,npw,nxy
       complex(8) :: x(n,nwf),Sx(n,nwf)
+      complex(8), intent(in) :: cfir(*)
+      Type (fftmap_type) :: fftmap
       Type (evsystem) :: system
 
       complex(8), allocatable :: zax(:,:),fftsx(:,:)
@@ -84,7 +86,7 @@ subroutine OverlapX(n,npw,nwf,system,x,Sx)
 
        deallocate(zax,buf)
        call timesec(td)
-if (.true.) then
+if (.false.) then
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ig,zfft)
        allocate(zfft(ngrtot))
 !$OMP DO
@@ -106,6 +108,29 @@ if (.true.) then
 !$OMP END DO
       deallocate(zfft)
 !$OMP END PARALLEL
+else
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ig,zfft)
+       allocate(zfft(fftmap%ngrtot))
+!$OMP DO
+       do i=1,nwf
+         zfft=0d0
+         do ig=1,npw
+           zfft(fftmap%igfft(current_igkig(ig)))=x(ig,i)
+         enddo
+         Call zfftifc (3, fftmap%ngrid,1, zfft)
+         do ig=1,fftmap%ngrtot
+           zfft(ig)=zfft(ig)*cfir(ig)
+         enddo
+         Call zfftifc (3, fftmap%ngrid,-1, zfft)
+
+         do ig=1,npw
+           Sx(ig,i)=Sx(ig,i)+zfft(fftmap%igfft(current_igkig(ig)))
+         enddo
+      enddo
+!$OMP END DO
+      deallocate(zfft)
+!$OMP END PARALLEL
+
 endif
 
 

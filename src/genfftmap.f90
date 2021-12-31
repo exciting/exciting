@@ -78,6 +78,12 @@ Subroutine genfftmap(fftmap,gmaxcustom)
          endif
       End Do
 
+      ig=1
+      do while (gc(ig).lt.gmaxcustom)
+        ig=ig+1
+      enddo
+      fftmap%ngvec=ig-1
+
       Return
 End Subroutine
 !EOC

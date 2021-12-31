@@ -9,7 +9,6 @@ subroutine HloSlo(n,npw,nwf,system,x,Hx,Sx)
       Type (evsystem) :: system
 
       complex(8), allocatable :: zax(:,:),zax2(:,:),zalo(:,:),salo(:,:),zlox(:,:)
-      complex(8), allocatable :: zfft(:),sx2(:,:),buf(:,:)
 
       integer :: i,ig,ix,LOoffset,if1,if3,ilo,l1,l,m,io1,ilo2,maxnlo,offset
 

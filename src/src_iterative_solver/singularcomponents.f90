@@ -15,6 +15,8 @@ Subroutine singularcomponents (system, nst, evecfv, evalfv,ik)
       Use mod_eigenvalue_occupancy, Only: nstfv
       Use sclcontroll
       Use mod_kpoint, Only: nkpt
+      use modxs, only : fftmap_type
+
 !
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
@@ -88,6 +90,7 @@ Subroutine singularcomponents (system, nst, evecfv, evalfv,ik)
 
       real(8), allocatable :: rdiag(:)
       complex(8), allocatable :: cdiag(:),cinvdiag(:),zvec(:),rrvec(:),pvec(:),qvec(:),extraS(:,:),extraH(:,:),extraSx(:,:),extraHx(:,:),ritzvec(:,:)
+      complex(8), allocatable :: zfftcf(:)
       Complex (8), Allocatable :: work (:),cwork(:), zax(:,:) !,singular(:,:)
       integer, allocatable :: iwork(:)
 
@@ -99,7 +102,6 @@ Subroutine singularcomponents (system, nst, evecfv, evalfv,ik)
 
       Type (HermitianMatrix), pointer ::pinverse
 ! sandbox variables :)
-      complex(8), allocatable :: h3(:,:),zfft(:),h2(:,:)
       integer :: ig
       real(8) :: summa,maxdiff
       complex(8) :: rho,beta,alpha,rhoold,zsum,zsum2
@@ -114,16 +116,19 @@ Subroutine singularcomponents (system, nst, evecfv, evalfv,ik)
       complex(8), external :: zdotc
       integer, allocatable :: offset(:),ngklist(:),ibuf(:)
 
+      type(fftmap_type) :: fftmap
+
+
+
 call timesec(tsa)
 
       tol = input%groundstate%solver%epsarpack
       packed=.false.
 
-!      n=system%hamilton%rank
       npw=ngk(1,ik)
 
-  n=nmat(1,ik)
-  n_local=npw
+      n=nmat(1,ik)
+      n_local=npw
 
 
 if (nsingular.eq.-1) then
@@ -132,9 +137,7 @@ if (.true.) then
   do is=1,nspecies
     nsingular=nsingular+natoms(is)*int(1.2d0*2.8d-3*(rmt(is)*gkmax)**4)
   enddo
-!  nsingular=1
 else
-  
   read(*,*) nsingular
 endif
 if (nsingular.eq.0) nsingular=1
@@ -173,6 +176,20 @@ enddo
       allocate(ritzvec(n_local,nblocks*ndiv))
       allocate(resvec(n_local))
 
+
+      if (associated(system%overlap%za)) then 
+        allocate(zfftcf(1))
+      else
+        call genfftmap(fftmap,2*gkmax) 
+        allocate(zfftcf(fftmap%ngrtot))
+        zfftcf=0d0
+        do ig=1, fftmap%ngvec
+          zfftcf(fftmap%igfft(ig))=cfunig(ig)
+        end do
+        call zfftifc(3, fftmap%ngrid, 1, zfftcf)
+      endif
+      
+
       extraH=zero
       extraS=zero
       ritzvec=zero
@@ -184,14 +201,11 @@ enddo
         trialvec(i,i)=one
         trialvec(i+1,i)=0.5d0
         trialvec(i+1,i)=0.25d0
-!        if (rank_in_kpt.eq.(i-1)/n_local) trialvec(i-n_local*rank_in_kpt,i)=one
-!        if (rank_in_kpt.eq.i/n_local) trialvec(i+1-n_local*rank_in_kpt,i)=0.5d0*one
-!        if (rank_in_kpt.eq.(i+1)/n_local) trialvec(i+2-n_local*rank_in_kpt,i)=0.125d0*one
       enddo
 
       allocate(zm2(n_local,nblocks*ndiv))
       allocate(Sx(n_local,nblocks*ndiv))
-Sx=0d0
+      Sx=0d0
       calls=1
       nsize=ndiv
 
@@ -200,7 +214,7 @@ Sx=0d0
 
       call GSortho(n_local,0,ndiv,trialvec) 
 
-      call OverlapX(n_local,npw,ndiv,system,trialvec,Sx,.true.)
+      call OverlapX(n_local,npw,ndiv,system,fftmap,zfftcf,trialvec,Sx,.true.)
 !write(*,*) 'sumsx',sum(Sx)
 !stop
       call innerproduct(n_local,nsize,nsize,trialvec,Sx,blockH)
@@ -254,7 +268,7 @@ endif
 !!write(*,*) it,ii,'res',sum(trialvec)
           call GSortho(n_local,nsize-ndiv,nsize,trialvec) 
 !!write(*,*) it,ii,'GSortho',sum(trialvec)
-          call OverlapX(n_local,npw,ndiv,system,trialvec(:,nsize-ndiv+1:nsize),zm3,.true.)
+          call OverlapX(n_local,npw,ndiv,system,fftmap,zfftcf,trialvec(:,nsize-ndiv+1:nsize),zm3,.true.)
 !!write(*,*) it,ii,'sumsx',sum(Sx)
 blockH=0d0
           call innerproduct(n_local,nsize,ndiv,trialvec,zm3,blockH(:,nsize-ndiv+1:nsize))
@@ -328,7 +342,7 @@ blockH=0d0
 !         nsize=ndiv
          trialvec=zero
          trialvec(1:n_local,1:ndiv)=ritzvec(1:n_local,1:ndiv)
-         call OverlapX(n_local,npw,ndiv,system,trialvec,zm2,.true.)
+         call OverlapX(n_local,npw,ndiv,system,fftmap,zfftcf,trialvec,zm2,.true.)
          Sx(1:n_local,1:ndiv)=zm2(1:n_local,1:ndiv)
          allocate(BlockH(ndiv,ndiv))
          call innerproduct(n_local,ndiv,ndiv,trialvec,zm2,blockH(1:ndiv,1:ndiv))
@@ -366,39 +380,8 @@ endif
 !stop
 
 deallocate(zm2)
-
-
-! 
-if (.false.) then
-allocate(zm2(mt_hscf%maxaa,ndiv))
-        call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
-                   'N', &           ! TRANSB = 'N'  op( B ) = B.
-                    mt_hscf%maxaa, &          ! M ... rows of op( A ) = rows of C
-                    ndiv, &           ! N ... cols of op( B ) = cols of C
-                    npw, &          ! K ... cols of op( A ) = rows of op( B )
-                    zone, &          ! alpha
-                    system%apwi(1,1,1), &           ! A
-                    mt_hscf%maxaa,&           ! LDA ... leading dimension of A
-                    ritzvec(1,1), &           ! B
-                    n_local, &          ! LDB ... leading dimension of B
-                    zzero, &          ! beta
-                    zm2, &  ! C
-                    mt_hscf%maxaa &      ! LDC ... leading dimension of C
-                   )
-
-write(*,*) 'zvec'
-do j=1,ndiv
-write(*,*) 'eigval',rd(j)
-do i=1,40
-  write(*,*) abs(zm2(i,j))
-enddo
-read(*,*)
-enddo
-!deallocate(zm2)
-stop
-endif
-
-
+if (associated(fftmap%igfft)) deallocate(fftmap%igfft)
+deallocate(zfftcf)
 
 singular(1:n_local,1:nsingular,ik)=ritzvec(1:n_local,1:nsingular)
 evalsingular(1:nsingular,ik)=rd(1:nsingular)
@@ -414,7 +397,6 @@ endif
       call timesec(tsb)
       write(*,*) 'singular components',tsb-tsa
       timefv=timefv+tsb-tsa
-!stop
       Return
 End Subroutine singularcomponents 
 

@@ -23,7 +23,7 @@ Module modxs
       end type
       Type fftmap_type
         integer, pointer :: igfft(:)
-        integer :: ngrid(3),ngrtot
+        integer :: ngrid(3),ngrtot,ngvec
       end type
 
       ! Type for band combinations

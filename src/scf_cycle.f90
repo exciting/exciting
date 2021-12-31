@@ -76,7 +76,8 @@ subroutine scf_cycle(verbosity)
         Call timesec(tin0)
         Call poteff
        
-        if ((input%groundstate%solver%type.ne.'Davidson').or.(input%groundstate%solver%constructHS)) Call genveffig
+!        if ((input%groundstate%solver%type.ne.'Davidson').or.(input%groundstate%solver%constructHS)) 
+        Call genveffig
         veffig0=sum(cfunir*veffir)
         veffig0= veffig0/dble(ngrtot)
 
