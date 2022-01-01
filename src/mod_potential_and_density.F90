@@ -68,7 +68,6 @@ Module mod_potential_and_density
 ! G-space interstitial effective potential
       Complex (8), Allocatable :: veffig (:),meffig (:), m2effig (:)
 ! interstitial effective potential at G=0
-      real(8) :: veffig0
       real(8) :: meffig0
       real(8) :: m2effig0
 

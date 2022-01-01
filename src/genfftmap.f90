@@ -79,7 +79,7 @@ Subroutine genfftmap(fftmap,gmaxcustom)
       End Do
 
       ig=1
-      do while (gc(ig).lt.gmaxcustom)
+      do while (gc(ig).le.gmaxcustom)
         ig=ig+1
       enddo
       fftmap%ngvec=ig-1

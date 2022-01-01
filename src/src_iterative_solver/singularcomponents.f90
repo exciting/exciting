@@ -180,7 +180,7 @@ enddo
       if (associated(system%overlap%za)) then 
         allocate(zfftcf(1))
       else
-        call genfftmap(fftmap,2*gkmax) 
+        call genfftmap(fftmap,2.01d0*gkmax) 
         allocate(zfftcf(fftmap%ngrtot))
         zfftcf=0d0
         do ig=1, fftmap%ngvec

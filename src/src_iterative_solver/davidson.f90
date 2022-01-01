@@ -159,7 +159,7 @@ enddo
 
 sdiag(npw_local+1:n_local)=1d0
 
-hdiag(1:npw)= veffig0
+hdiag(1:npw)= veffig(1)
 
 if (input%groundstate%ValenceRelativity.ne."none") then
   do i=1,npw
@@ -215,7 +215,7 @@ endif
         allocate(zfftcf(1))
         allocate(zfftveff(1))
       else
-        call genfftmap(fftmap,2*gkmax)
+        call genfftmap(fftmap,2.01d0*gkmax)
 
         allocate(zfftcf(fftmap%ngrtot))
         zfftcf=0d0
@@ -699,6 +699,7 @@ endif
       call timesec(tsb)
       write(*,*) 'iterations',tsb-tsa
       timefv=timefv+tsb-tsa
+!stop
       Return
 End Subroutine davidson 
 

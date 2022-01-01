@@ -277,7 +277,7 @@ enddo
 deallocate(zfft)
 !$OMP END PARALLEL
 
-else
+else  !--------------------------------------------
 
 ! Overlap 
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i,ig,zfft)
@@ -302,7 +302,6 @@ enddo
 !$OMP END DO
 deallocate(zfft)
 !$OMP END PARALLEL 
-
 
 
 ! Kinetic energy
