@@ -72,8 +72,9 @@ real(8) r,r2,kf,s,u,v
 real(8) rs,z,g,ks,ksg
 real(8) t,uu,vv,ww
 real(8) g2rho,exup,exdn
+real(8) cutoffscale
 
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i,r,r2,kf,s,u,v,exup,exdn,rs,z,g,ks,ksg,t,uu,g2rho,vv,ww)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i,r,r2,kf,s,u,v,exup,exdn,rs,z,g,ks,ksg,t,uu,g2rho,vv,ww,cutoffscale)
 !$OMP DO
 do i=1,n
   if ((rhoup(i).gt.1.d-12).and.(rhodn(i).gt.1.d-12)) then
@@ -116,6 +117,18 @@ do i=1,n
     else
       call c_pbe(beta,rs,z,t,uu,vv,ww,ec(i),vcup(i),vcdn(i))
     end if
+
+
+    cutoffscale=0.5d0*(erf(2d0*(log10(rhoup(i))+6.0d0))+1d0)
+!    ex(i)=ex(i)*cutoffscale
+!    ec(i)=ec(i)*cutoffscale
+    vxup(i)=vxup(i)*cutoffscale
+    vcup(i)=vcup(i)*cutoffscale
+
+    cutoffscale=0.5d0*(erf(2d0*(log10(rhodn(i))+6.0d0))+1d0)
+    vxdn(i)=vxdn(i)*cutoffscale
+    vcdn(i)=vcdn(i)*cutoffscale
+
   else
     ex(i)=0.d0
     ec(i)=0.d0
