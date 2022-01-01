@@ -28,12 +28,13 @@ Subroutine genfftmap(fftmap,gmaxcustom)
      & Sqrt(input%structure%crystal%basevect(1, :)**2+&
      & input%structure%crystal%basevect(2, :)**2+&
      & input%structure%crystal%basevect(3, :)**2)/pi) + 1
-#ifndef FFTW
+! probably unnecessary compiler directive
+! ifndef FFTW 
 ! find next largest FFT-compatible grid size
       Call nfftifc (fftmap%ngrid(1))
       Call nfftifc (fftmap%ngrid(2))
       Call nfftifc (fftmap%ngrid(3))
-#endif
+! xendif
 
       If ((fftmap%ngrid(1) .Le. 0) .Or. (fftmap%ngrid(2) .Le. 0) .Or. (fftmap%ngrid(3) .Le. &
      & 0)) Then

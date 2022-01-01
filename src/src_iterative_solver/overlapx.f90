@@ -109,7 +109,7 @@ if (.false.) then
       deallocate(zfft)
 !$OMP END PARALLEL
 else
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ig,zfft)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i,ig,zfft)
        allocate(zfft(fftmap%ngrtot))
 !$OMP DO
        do i=1,nwf
