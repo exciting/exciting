@@ -554,6 +554,7 @@ Subroutine init0
 
 ! initialisation for the Davidson solver
       nsingular=-1
+      mine0=input%groundstate%solver%minenergy
 
       Call timesec (ts1)
 !!      timeinit = timeinit + ts1 - ts0

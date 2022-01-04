@@ -9,7 +9,7 @@ subroutine pickritzvectors(n,segmentsize,evals,firstvec)
 
       call timesec(ta)      
       i=1      
-      do while ((i.le.n-segmentsize).and.(evals(i).lt.mine0-1d0))
+      do while ((i.le.n-segmentsize).and.(evals(i).lt.mine0))
        i=i+1
       enddo
       if (i.le.n-segmentsize+1) then

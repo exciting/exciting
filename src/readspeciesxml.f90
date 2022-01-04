@@ -261,7 +261,7 @@ Subroutine readspeciesxml
 !----------------------------
 
      mine0 = 0.d0
-     mine0 = min(apwe0(io,0,is),mine0)
+!     mine0 = min(apwe0(io,0,is),mine0)
      nlx = size(speziesdeflist(is)%sp%basis%customarray)
      If ( (nlx .Lt. 0) .And. (associated(speziesdeflist(is)%sp%basis%customarray)) ) Then
         Write (*,*)
@@ -330,7 +330,7 @@ Subroutine readspeciesxml
                 Write (*,*)
                 Stop
              End If
-             mine0=min(apwe0(io,lx,is),mine0)
+!             mine0=min(apwe0(io,lx,is),mine0)
           End Do
         
         else
@@ -349,7 +349,7 @@ Subroutine readspeciesxml
              apwe0(io, lx, is) = speziesdeflist(is)%sp%basis%customarray(ilx)%custom%trialEnergy
              apwdm(io, lx, is) = io-1
              apwve(io, lx, is) = speziesdeflist(is)%sp%basis%customarray(ilx)%custom%searchE
-             mine0=min(apwe0(io,lx,is),mine0)
+!             mine0=min(apwe0(io,lx,is),mine0)
           End Do
 !        
 !         lo in APW+lo method
@@ -373,7 +373,7 @@ Subroutine readspeciesxml
               lorbdm(io, nlo, is) = io-1
               lorbve(io, nlo, is) = apwve(1, lx, is)
             end do
-            mine0=min(lorbe0(io,nlo,is),mine0)
+!            mine0=min(lorbe0(io,nlo,is),mine0)
           end if
         
         end if
@@ -445,7 +445,7 @@ Subroutine readspeciesxml
               Write (*,*)
               Stop
            End If
-           mine0=min(lorbe0(io,ilo,is),mine0)
+!           mine0=min(lorbe0(io,ilo,is),mine0)
         End Do
      End Do
      Close (50)

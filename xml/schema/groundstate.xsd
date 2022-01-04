@@ -448,6 +448,12 @@
                </xs:simpleType>
             </xs:attribute>
 
+	    <xs:attribute ex:importance="expert" ex:unit="" name="minenergy" type="fortrandouble" default="-100.0">
+              <xs:annotation>
+                <xs:documentation>The smallest allowed KS eigenvalue.</xs:documentation>
+    	      </xs:annotation>
+	    </xs:attribute>
+
             <xs:attribute ex:importance="expert" ex:unit="" name="constructHS"
               type="xs:boolean" use="optional" default="true">
               <xs:annotation>
