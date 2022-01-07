@@ -56,7 +56,7 @@ Subroutine potcoul
       lmax = input%groundstate%lmaxvr + input%groundstate%npsden + 1
       Call genjlgpr (lmax, gc, jlgr)
 ! solve the complex Poisson's equation
-      Call zpotcoul (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
+      Call zpotcoul2 (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
       &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
 ! convert complex muffin-tin potential to real spherical harmonic expansion
       Do is = 1, nspecies

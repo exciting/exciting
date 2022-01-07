@@ -550,6 +550,7 @@ Subroutine init0
       Call timesec (ts1)
 !!      timeinit = timeinit + ts1 - ts0
 !
+      call f_lib_initialize()
       Return
 End Subroutine
 !EOC
