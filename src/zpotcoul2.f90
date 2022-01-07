@@ -18,10 +18,12 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 #ifdef USEOMP
       use omp_lib
 #endif
+#ifdef PSOLVER
    use dictionaries
    use Poisson_Solver
    use at_domain
    use numerics, only: onehalf
+#endif
 ! !INPUT/OUTPUT PARAMETERS:
 !   nr     : number of radial points for each species (in,integer(nspecies))
 !   nrmax  : maximum nr over all species (in,integer)
@@ -142,6 +144,8 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 ! external functions
       Real (8) :: factnm
       External factnm
+
+#ifdef PSOLVER
 ! PSolver related
    character(len=1) :: solvertype,afunc
    character(len=64) :: chain
@@ -157,9 +161,7 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
    integer, dimension(3) :: ndims
    real(kind=8), dimension(3) :: hgrids
 
-   write(*,*) 'zpotcoul'
 ! Initialise PSolver
-
    solvertype='P'
    afunc='F'
    isf_order=16
@@ -169,23 +171,20 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
    hgrids(1)=avec(1,1)/ngrid(1)
    hgrids(2)=avec(2,2)/ngrid(2)
    hgrids(3)=avec(3,3)/ngrid(3)
-   write(*,*) 'hgrids',hgrids
 
    dom=domain_new(units=ATOMIC_UNITS,bc=geocode_to_bc_enum(solvertype), abc= avec)!alpha_bc=onehalf*pi,beta_ac=onehalf*pi,gamma_ab=onehalf*pi,acell=ndims*hgrids)
-   write(*,*) 'dom done'
 
    dict=>dict_new('kernel' .is. dict_new('isf_order' .is. isf_order))
    !kernel=pkernel_init(0,1,dict,solvertype,(/n1,n2,n3/),(/hgrid,hgrid,hgrid/))
    kernel=pkernel_init(0,1,dict,dom,ngrid,hgrids)
    call dict_free(dict)
    call pkernel_set(kernel,verbose=.true.)
+#endif
  
-   write(*,*) 'pkernel_set'
-!stop
       fpo = fourpi / omega
 ! solve Poisson's equation for the isolated charge in the muffin-tin
       Do is = 1, nspecies
-!$OMP PARALLEL DEFAULT(SHARED) &avec
+!$OMP PARALLEL DEFAULT(SHARED) &
 !$OMP PRIVATE(ias)
 !$OMP DO
          Do ia = 1, natoms (is)
@@ -360,8 +359,7 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 
 
 !------------------------------
-
-If (.true.) then
+#ifdef PSOLVER
 ! Fourier transform interstitial potential to real space
       Call zfftifc (3, ngrid, 1, zvclir)
       allocate(rhopot(ngrtot),fake_arr(1))
@@ -373,7 +371,7 @@ If (.true.) then
 ! Fourier transform interstitial potential to reciprocal space
       Call zfftifc (3, ngrid, -1, zvclir)
       zvclir(1)=0d0
-else
+#else
 ! set zrho0 (pseudocharge density coefficient of the smallest G+p vector)
       ifg = igfft (igp0)
       zrho0 = zvclir (ifg)
@@ -387,7 +385,7 @@ else
             zvclir (ifg) = 0.d0
          End If
       End Do
-endif
+#endif
 !------------------------------
 
 ! match potentials at muffin-tin boundary by adding homogeneous solution
@@ -479,9 +477,9 @@ endif
         deallocate(vdplmt,vdplir)
       end if
 
-write(*,*) 'pkernel'
+#ifdef PSOLVER
    call pkernel_free(kernel)
-write(*,*) 'pkernel freed'
+#endif
       Return
 End Subroutine
 !EOC
