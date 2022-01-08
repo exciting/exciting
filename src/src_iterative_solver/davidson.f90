@@ -214,6 +214,7 @@ endif
       if (associated(system%overlap%za)) then
         allocate(zfftcf(1))
         allocate(zfftveff(1))
+        nullify(fftmap%igfft)
       else
         call genfftmap(fftmap,2.01d0*gkmax)
 

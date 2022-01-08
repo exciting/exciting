@@ -277,7 +277,7 @@ Subroutine mt_pot(pot,basis,mt_h)
                        inonz=inonz+1
                      enddo
                      mt_h%main%loa(if1,if3,ias)=mt_h%main%loa(if1,if3,ias)+zsum
-                     mt_h%main%alo(if3,if1,ias)=mt_h%main%loa(if1,if3,ias)
+                     mt_h%main%alo(if3,if1,ias)=conjg(mt_h%main%loa(if1,if3,ias))
 
                      if (io.ne.apword(l3,is)) inonz=ireset3
                   End Do

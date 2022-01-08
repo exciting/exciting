@@ -12,12 +12,13 @@ subroutine HloSlo(n,npw,nwf,system,x,Hx,Sx)
 
       integer :: i,ig,ix,LOoffset,if1,if3,ilo,l1,l,m,io1,ilo2,maxnlo,offset
 
-      integer :: is,ia,ias,gksize
+      integer :: is,ia,ias,gksize,napw
       real(8) :: ta,tb,summa
       Real(8) :: alpha,a2
       Parameter (alpha=1d0 / 137.03599911d0, a2=0.5d0*alpha**2) 
 
 call timesec(ta)
+!if (.true.) then
 if (associated(system%hamilton%za)) then
         if (n-npw.ne.0) then
               call zgemm('N', &           ! TRANSA = 'C'  op( A ) = A**H.
@@ -65,6 +66,14 @@ else
 !      if3=0
       Do is = 1, nspecies
         if (nlorb(is).ne.0) then
+
+!Determine the number of radial functions for given species
+          napw=0
+          l=input%groundstate%lmaxmat
+          do l1=0,l
+            napw=napw+(2*l1+1)*apword(l,is)
+          enddo     
+
         Do ia = 1, natoms (is)
           ias = idxas (ia, is)
 
@@ -116,25 +125,26 @@ else
         
 ! Now the Hamiltonian
 ! APW-LO
-          call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
+zax2=0d0
+              call zgemm('C', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
-                      mt_hscf%maxaa, &          ! M ... rows of op( A ) = rows of C
+                      napw, &          ! M ... rows of op( A ) = rows of C
                       nwf, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
-                      mt_hscf%main%alo(1,1,ias), &        ! A
-                      mt_hscf%maxaa,&           ! LDA ... leading dimension of A
+                      mt_hscf%main%loa(1,1,ias), &        ! A
+                      mt_hscf%maxnlo,&           ! LDA ... leading dimension of A
                       x(LOoffset+1,1), &           ! B
                       n, &          ! LDB ... leading dimension of B
                       zzero, &          ! beta
                       zax2, &  ! C
                       mt_hscf%maxaa &      ! LDC ... leading dimension of C
                       )
-          call zgemm('C', &           ! TRANSA = 'C'  op( A ) = A**H.
+              call zgemm('C', &           ! TRANSA = 'C'  op( A ) = A**H.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
                       npw, &          ! M ... rows of op( A ) = rows of C
                       nwf, &           ! N ... cols of op( B ) = cols of C
-                      mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
+                      napw, &         ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
                       system%apwi(1,1,ias), &           ! A
                       mt_hscf%maxaa,&           ! LDA ... leading dimension of A
@@ -145,7 +155,7 @@ else
                       n &      ! LDC ... leading dimension of C
                      )
 ! LO-LO
-          call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
+call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
                       mt_hscf%losize(is), &          ! M ... rows of op( A ) = rows of C
                       nwf, &           ! N ... cols of op( B ) = cols of C
@@ -160,7 +170,6 @@ else
                       n &      ! LDC ... leading dimension of C
                       )
 
-
           LOoffset=LOoffset+if3
         enddo
         endif
@@ -168,6 +177,15 @@ else
 
 deallocate(zax2)
 
+endif
+if (.false.) then
+do i=1,nwf
+ write(*,*) dble(sum(Sx(1:npw,i))),dble(sum(Hx(1:npw,i)))
+enddo
+write(*,*) 
+do i=1,nwf
+ write(*,*) dble(sum(Sx(npw+1:n,i))),dble(sum(Hx(npw+1:n,i)))
+enddo
 endif
 call timesec(tb)
 #ifdef TIMINGS
