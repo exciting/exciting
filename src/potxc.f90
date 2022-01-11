@@ -10,6 +10,7 @@ subroutine potxc
 ! !USES:
 use modmain
 use modxcifc
+Use vx_enums, only: HYB_PBE0, HYB_HSE
 ! !DESCRIPTION:
 !   Computes the exchange-correlation potential and energy density. In the
 !   muffin-tin, the density is transformed from spherical harmonic coefficients
@@ -260,6 +261,18 @@ do is=1,nspecies
                0.d0,ecmt(:,:,ias),lmmaxvr)
     call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,vxc,lmmaxvr, &
                 0.d0,vxcmt(:,:,ias),lmmaxvr)
+
+! Using 100% of the local exchange and correlation for calculating the kinetic energy later on
+! Should have been more general, something like "if (hybrid) then"
+    If  (xctype(1)==HYB_PBE0 .or. xctype(1)==HYB_HSE) Then
+      vxc(1:n)=vx(1:n)+vc(1:n)
+      if (ncmag) then
+        vxc(1:n)=0.5d0*(vxup(1:n)+vxdn(1:n)+vcup(1:n)+vcdn(1:n))
+      else
+        vxc(1:n)=vx(1:n)+vc(1:n)
+      endif
+      call dgemm('N','N',lmmaxvr,nr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,vxc,lmmaxvr, 0.d0,vrelmt(:,:,ias),lmmaxvr)      
+    endif          
   end do
 end do
 !------------------------------------------!
@@ -377,7 +390,11 @@ if (associated(input%groundstate%spin)) then
      exir(:) = exir(:)-ex_coef*exsr(:)
   endif
   ecir(:) = ec_coef*ecir(:)
-  
+
+! Should have been more general, something like "if (hybrid) then"
+  If  (xctype(1)==HYB_PBE0 .or. xctype(1)==HYB_HSE) Then
+     vrelir(1:ngrtot)=0.5d0*(vxup(1:ngrtot)+vxdn(1:ngrtot)+vcup(1:ngrtot)+vcdn(1:ngrtot))
+  endif
 else
 
   !--------------------------!
@@ -420,6 +437,12 @@ else
   ecir(:) = ec_coef*ecir(:)
 
 end if ! spin case
+
+! Using 100% of the local exchange and correlation for calculating the kinetic energy later on
+! Should have been more general, something like "if (hybrid) then"
+  If  (xctype(1)==HYB_PBE0 .or. xctype(1)==HYB_HSE) Then
+    vrelir(1:ngrtot)=vx(1:ngrtot)+vc(1:ngrtot)
+  endif
 
 ! OEP - EXX/HYBRIDS
 If  (associated(input%groundstate%OEP)) call oepmain

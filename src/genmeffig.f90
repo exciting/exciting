@@ -34,7 +34,7 @@ Subroutine genmeffig
          if (allocated(meffig)) deallocate(meffig)
          allocate(meffig(ngvec))
          Do ig = 1, ngrtot
-            zfft(ig)=cfunir(ig)/(1d0-veffir(ig)*a2)
+            zfft(ig)=cfunir(ig)/(1d0-vrelir(ig)*a2)
          End Do
          Call zfftifc (3, ngrid,-1, zfft)
          Do ig = 1, ngvec
@@ -46,7 +46,7 @@ Subroutine genmeffig
          if (allocated(m2effig)) deallocate(m2effig)
          allocate(m2effig(ngvec))
          Do ig = 1, ngrtot
-            zfft(ig)=cfunir(ig)/((1d0-veffir(ig)*a2)**2)
+            zfft(ig)=cfunir(ig)/((1d0-vrelir(ig)*a2)**2)
          End Do
          Call zfftifc (3, ngrid,-1, zfft)
          Do ig = 1, ngvec

@@ -52,10 +52,12 @@ Module mod_potential_and_density
 ! nosource is .true. if the field is to be made source-free
 !replaced by inputstructurelogical::nosource
 ! muffin-tin effective potential
-      Real (8), Allocatable :: veffmt (:, :, :)
+      Real (8), Allocatable, target :: veffmt (:, :, :)
 ! interstitial effective potential
-      Real (8), Allocatable :: veffir (:)
-
+      Real (8), Allocatable, target :: veffir (:)
+! effective potential plugged into relativistic kinetic energy
+      Real (8), pointer :: vrelmt (:, :, :)
+      Real (8), pointer :: vrelir (:)
 ! muffin-tin 'vhalf' potential (needed for DFT-1/2 calculations)
       Real (8), Allocatable :: vhalfmt (:, :, :)
 ! interstitial 'vhalf' potential (needed for DFT-1/2 calculations)

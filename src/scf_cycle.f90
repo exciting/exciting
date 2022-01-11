@@ -10,6 +10,7 @@ subroutine scf_cycle(verbosity)
     Use modmpi
     Use scl_xml_out_Module
     Use TS_vdW_module, Only: C6ab, R0_eff_ab
+    Use vx_enums, only: HYB_PBE0, HYB_HSE
 !
 ! !DESCRIPTION:
 !
@@ -835,4 +836,13 @@ call timesec(tb)
     end if
 
     call mt_hscf%release()
+! Should have been more general, something like "if (hybrid) then"
+!    If  (xctype(1)==HYB_PBE0 .or. xctype(1)==HYB_HSE) Then
+!      deallocate (vrelmt)
+!      deallocate (vrelir)
+!    Else
+!      nullify(vrelmt)
+!      nullify(vrelir)
+!    End If
+
 end subroutine

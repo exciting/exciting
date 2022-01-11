@@ -190,14 +190,6 @@ Subroutine init0
           If (input%groundstate%xctypenumber .Lt. 0) ex_coef=1.0
       End If
       
-      If (isspinorb()) Then
-        If (xctype(1)==HYB_PBE0 .or. xctype(1)==HYB_HSE) Then
-           call terminate_if_false(mpiglobal, input%groundstate%spin%realspace,'("Error(init0): &
-           &The parameter realspace, inside the element spin, needs to be set to true, for &
-           &calculations with hybrids functionals which account for spin-orbit coupling effects.")')
-        End If
-      End If
-
 ! reset input%groundstate%Hybrid%excoeff to ex_coef
 ! in case of libxc: overwritten by ex_coef as defined by libxc
       If (associated(input%groundstate%Hybrid)) input%groundstate%Hybrid%excoeff = ex_coef
@@ -464,13 +456,38 @@ Subroutine init0
       If (allocated(ecir)) deallocate (ecir)
       Allocate (ecir(ngrtot))
 ! effective potential
-      If (allocated(veffmt)) deallocate (veffmt)
+      If (allocated(veffmt)) then
+! Should have been more general, something like "if (hybrid) then"
+        If  (xctype(1)==HYB_PBE0 .or. xctype(1)==HYB_HSE) Then
+          deallocate(vrelmt)
+        else
+          nullify(vrelmt)         
+        endif
+        deallocate (veffmt)
+      endif
       Allocate (veffmt(lmmaxvr, nrmtmax, natmtot))
 !      If (allocated(vrefmt)) deallocate (vrefmt)
 !      Allocate (vrefmt(lmmaxvr, nrmtmax, natmtot))
 
-      If (allocated(veffir)) deallocate (veffir)
+      If (allocated(veffir)) then 
+! Should have been more general, something like "if (hybrid) then"
+        If  (xctype(1)==HYB_PBE0 .or. xctype(1)==HYB_HSE) Then
+          deallocate(vrelir)
+        else
+          nullify(vrelir)
+        endif
+        deallocate (veffir)
+      endif
       Allocate (veffir(ngrtot))
+      If  (xctype(1)==HYB_PBE0 .or. xctype(1)==HYB_HSE) Then
+        Allocate (vrelmt(lmmaxvr, nrmtmax, natmtot))
+        Allocate (vrelir(ngrtot))
+      Else
+        vrelmt => veffmt
+        vrelir => veffir
+      End If
+
+
       If (allocated(veffig)) deallocate (veffig)
       Allocate (veffig(ngvec))
 !      If (allocated(vrefig)) deallocate (vrefig)

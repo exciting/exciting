@@ -23,8 +23,25 @@ subroutine clean_gndstate
     if (allocated(exir)) deallocate(exir)
     if (allocated(ecmt)) deallocate(ecmt)
     if (allocated(ecir)) deallocate(ecir)
-    if (allocated(veffmt)) deallocate(veffmt)
-    if (allocated(veffir)) deallocate(veffir)
+    If (allocated(veffmt)) then
+! Should have been more general, something like "if (hybrid) then"
+      If  (xctype(1)==HYB_PBE0 .or. xctype(1)==HYB_HSE) Then
+        deallocate(vrelmt)
+      else
+        nullify(vrelmt)
+      endif
+      deallocate (vrelmt)
+    endif
+
+    If (allocated(veffir)) then 
+! Should have been more general, something like "if (hybrid) then"
+      If  (xctype(1)==HYB_PBE0 .or. xctype(1)==HYB_HSE) Then
+        deallocate(vrelir)
+      else
+        nullify(vrelir)
+      endif
+      deallocate (veffir)
+    endif
     if (allocated(veffig)) deallocate(veffig)
     if (allocated(chgmt)) deallocate(chgmt)
     if (allocated(mommt)) deallocate(mommt)

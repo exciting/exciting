@@ -16,7 +16,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Use mod_atoms, only: natmtot, nspecies, natoms, idxas, spr
       Use mod_muffin_tin, only: lmmaxvr, nrcmtmax, lmmaxapw, nrmtmax,&
                               & nrmt, nrcmt, idxlm, rcmt
-      Use mod_potential_and_density, only: bxcmt, veffmt, bxcir, ex_coef, ec_coef, xctype
+      Use mod_potential_and_density, only: bxcmt, veffmt, bxcir, ex_coef, ec_coef, xctype, vrelmt
       Use mod_SHT, only: rbshtvr, zbshtvr, zfshtvr
       Use mod_eigensystem !, only: nmatmax
       Use mod_spin, only: ncmag, nspinor, ndmag
@@ -57,7 +57,6 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Real (8), Allocatable :: cf (:, :)
       Real (8), Allocatable :: sor (:)
       Real (8), Allocatable :: rwork (:)
-      Real (8), Allocatable :: veffmt_pbe(:,:,:)
       Complex (8), Allocatable :: wfmt1 (:, :, :)
       Complex (8), Allocatable :: wfmt2 (:, :, :)
       Complex (8), Allocatable :: zfft1 (:)
@@ -72,12 +71,6 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       External zdotc, zfmtinp
       ! Type (MTHamiltonianList) :: mt_h
       ! Type (apw_lo_basis_type) :: mt_basis
-
-      If (task==7) then
-         if (allocated(veffmt_pbe)) deallocate(veffmt_pbe)
-         allocate(veffmt_pbe(lmmaxvr,nrmtmax,natmtot))
-         call poteff_soc(veffmt_pbe)
-      endif
 
 ! spin-unpolarised case
       If (( .Not. associated(input%groundstate%spin)) .And. (ldapu .Eq. 0)) Then
@@ -175,11 +168,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
 !               write(*,*) td-tc
 ! spin-orbit radial function
                If (isspinorb()) Then
-                  If (task==7) then
-                    vr(1:nrmt(is)) = veffmt_pbe(1, 1:nrmt(is), ias) * y00
-                  else
-                    vr(1:nrmt(is)) = veffmt(1, 1:nrmt(is), ias) * y00
-                  endif
+                  vr(1:nrmt(is)) = vrelmt(1, 1:nrmt(is), ias) * y00
                   Call fderiv (1, nrmt(is), spr(:, is), vr, drv, cf)
 ! spin-orbit coupling prefactor
                   irc = 0
