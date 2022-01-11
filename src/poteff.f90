@@ -41,8 +41,8 @@ Subroutine poteff
       call timesec(tb)
       shift=input%groundstate%energyref
 
-        write(*,*) 'potxc', ta-ts0
-        write(*,*) 'potcoul', tb-ta
+!        write(*,*) 'potxc', ta-ts0
+!        write(*,*) 'potcoul', tb-ta
 !----------------------------------------------------------
 ! add Coulomb and exchange-correlation potentials together
 !----------------------------------------------------------
