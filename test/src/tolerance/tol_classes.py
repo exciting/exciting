@@ -36,7 +36,7 @@ class TolWithMessage(Tol):
         elif isinstance(tol, (int, float, str)):
             super().__init__(tol, unit)
         else:
-            sys.exit('First argument of TolWithMessage must be an int, float, str, or instance of class Tol')
+            raise ValueError('First argument of TolWithMessage must be an int, float, str, or instance of class Tol')
         self.message = message
 
     def to_dict(self):
@@ -84,9 +84,8 @@ tol_file_name = {'groundstate': 'tolerance_ground_state.json',
                  'xanes': 'tolerance_xanes.json',
                  'tddft': 'tolerance_tddft.json',
                  'rt_tddft': 'tolerance_rt_tddft.json',
-                 'phonon': 'tolerance_phonon.json',
-                 'dos': 'tolerance_bands_dos.json',
-                 'band_structure': 'tolerance_bands_dos.json',
+                 'dos': 'tolerance_dos.json',
+                 'band_structure': 'tolerance_bandstructure.json',
                  'plot': 'tolerance_plotting.json',
                  'wannier': 'tolerance_wannier.json',
                  'transport': 'tolerance_transport.json',
@@ -95,3 +94,7 @@ tol_file_name = {'groundstate': 'tolerance_ground_state.json',
                  'core_properties': 'tolerance_core.json',
                  'spin_properties': 'tolerance_spin.json',
                  }
+
+methods = list(tol_file_name.keys())
+
+tol_file_to_method = {value: key for key, value in tol_file_name.items()}

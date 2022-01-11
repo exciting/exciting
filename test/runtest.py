@@ -1,25 +1,22 @@
 """
 Parser command-line arguments and run the test suite.
 
-To run all tests in serial, type `python3 runtest.py`
-To run all tests in parallel, type `python3 runtest.py -e exciting_mpismp`
+To run all tests in smp, type `python3 runtest.py`
+To run all tests in mpi and smp, type `python3 runtest.py -e exciting_mpismp`
 For more details, type `python3 runtest.py --help`
 """
-import sys
 import argparse as ap
 import warnings
-from collections import namedtuple
 import os
+from typing import List
 
-from src.exciting_settings.constants import settings
-from src.io.parsers import install_excitingtools
+from src.exciting_settings.constants import settings as exciting_settings, Defaults
 from src.reference.reference import run_single_reference
-from src.runner.profile import Build_type, build_type_str_to_enum, build_type_enum_to_str
-from src.runner.set_inputs import input_files_for_tests
-from src.runner.set_tests import set_skipped_tests, set_tests_to_repeat, remove_tests_to_skip, \
-    get_test_directories, partial_test_name_matches
+from src.runner.profile import BuildType, build_type_str_to_enum, build_type_enum_to_str
+from src.runner.set_tests import get_test_directories, partial_test_name_matches
 from src.runner.test import run_tests
 from src.tester.report import skipped_test_summary
+from src.runner.set_tests import set_tests_to_run, get_all_test_cases, remove_hanging_tests
 
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
@@ -29,20 +26,12 @@ def warning_on_one_line(message, category, filename, lineno, file=None, line=Non
 warnings.formatwarning = warning_on_one_line
 
 
-def option_parser(test_farm: str, exe_dir: str):
+def option_parser(settings: Defaults):
     """
-    Parse command line inputs 
-    
-    Parse: 
-      action to perform
-      test/s to run
-      executable choice
-      number of MPI processes
-      number of OMP threads
+    Parse command line inputs
 
-    :param test_farm: test farm directory
-    :param exe_dir: exciting executable directory 
-    :return input_options: Dictionary of parsed command line arguments 
+    :param Defaults settings: exciting defaults.
+    :return input_options: Dictionary of parsed command line arguments.
     """
 
     p = ap.ArgumentParser(
@@ -68,7 +57,7 @@ def option_parser(test_farm: str, exe_dir: str):
                    metavar='--tests',
                    help=help_test,
                    type=str,
-                   default=['all'],
+                   default=[],
                    nargs='+')
 
     help_executable = "exciting executables. " \
@@ -87,9 +76,9 @@ def option_parser(test_farm: str, exe_dir: str):
 
     p.add_argument('-np',
                    metavar='--NP',
-                   help="Number of cores for MPI run. Can only be used in " +
-                        "combination with exciting_mpi or exciting_mpismp as executable. " +
-                        "Default is 2 for MPI and MPI+OMP calculations, and 1 for serial or pure OMP",
+                   help="Number of cores for MPI run. Can only be used in combination with exciting_mpi or "
+                        "exciting_mpismp as executable. Default is 2 for MPI and MPI+OMP calculations, "
+                        "and 1 for serial or pure OMP",
                    type=int)
 
     p.add_argument('-omp',
@@ -99,9 +88,8 @@ def option_parser(test_farm: str, exe_dir: str):
                    type=int)
 
     p.add_argument('-handle-errors',
-                   help='Allow assertion failures and skips to propagate to the end ' +
-                        'of the test suite. If the option is excluded, the default is to not allow ' +
-                        'error propagation',
+                   help='Allow assertion failures to propagate to the end of the test suite. '
+                        'If the option is excluded, the default is to not allow error propagation',
                    dest='handle_errors',
                    default=False,
                    action='store_true')
@@ -134,93 +122,115 @@ def option_parser(test_farm: str, exe_dir: str):
 
     args = p.parse_args()
 
-    if args.make_test:
-        return set_up_make_test(test_farm, exe_dir)
-
     input_options = {'action': args.a,
-                     'tests': args.t,
+                     'tests': set_test_names_from_cmd_line(settings.test_farm, args.t),
                      'handle_errors': args.handle_errors,
                      'run_failing_tests': args.run_failing_tests,
                      'repeat_tests': args.repeat_tests
                      }
 
-    build_type = args.e if isinstance(args.e, Build_type) else build_type_str_to_enum[args.e]
+    if args.make_test:
+        return set_up_make_test(settings, input_options)
+
+    build_type = set_build_type(args, settings)
     input_options['np'] = args.np if args.np is not None else settings.default_np[build_type]
     input_options['omp'] = args.omp if args.omp is not None else settings.default_threads[build_type]
-
-    if args.e == settings.binary_serial:
-        if args.np is not None:
-            warnings.warn('Using serial exciting, -np will be ignored.')
-        if args.omp is not None:
-            warnings.warn('Using serial exciting, -omp will be ignored.')
-    if args.e == settings.binary_smp:
-        if args.np is not None:
-            warnings.warn('Using smp exciting, -np will be ignored.')
-    if args.e == settings.binary_purempi:
-        if args.omp is not None:
-            warnings.warn('Using pure mpi exciting, -omp will be ignored.')
-
-    all_test_dirs = get_test_directories(test_farm)
-
-    if input_options['tests'][0] == 'all':
-        input_options['tests'] = all_test_dirs
-    else:
-        tests_to_run = partial_test_name_matches(all_test_dirs, input_options['tests'])
-        if not tests_to_run:
-            raise ValueError('Could not find any full or partial string matches to %s for test names in '
-                             '%s subdirectories' % (input_options['tests'], test_farm))
-        input_options['tests'] = tests_to_run
-
-    executable_string = os.path.join(exe_dir, build_type_enum_to_str[build_type])
-
-    if not os.path.isfile(executable_string):
-        quit('exciting binary not found in' + exe_dir)
-
-    if build_type in [settings.binary_purempi, settings.binary_mpismp]:
-        executable_string = 'mpirun -np %i %s' % (input_options['np'], executable_string)
-    input_options['executable'] = executable_string
+    input_options['executable'] = set_execution_str(build_type, input_options['np'], settings)
 
     return input_options
 
 
-# TODO(Bene) Split this up and put the call in the correct place i.e. don't return from argparse too soon
-# just replace any defaults that need resetting.
-def set_up_make_test(test_farm: str, exe_dir: str) -> dict:
+def set_build_type(cmd_line_args, settings: Defaults) -> BuildType:
     """
-    Set up test suite for running via make test. The function will check which binaries were compiled
-    and set up the executable with the following hierarchy:
+    Determine the build type, given a command line argument string.
+
+    Also checks MPI and OMP processes requested, given the BuildType.
+
+    :param cmd_line_args: Command line arguments.
+    :param Defaults settings: Default exciting settings. Used to obtain valid build types
+    :return BuildType build_type: Build type enum.
+    """
+    build_type = cmd_line_args.e if isinstance(cmd_line_args.e, BuildType) else build_type_str_to_enum[cmd_line_args.e]
+
+    if cmd_line_args.e == settings.binary_serial:
+        if cmd_line_args.np is not None:
+            warnings.warn('Using serial exciting, -np will be ignored.')
+        if cmd_line_args.omp is not None:
+            warnings.warn('Using serial exciting, -omp will be ignored.')
+
+    if cmd_line_args.e == settings.binary_smp:
+        if cmd_line_args.np is not None:
+            warnings.warn('Using smp exciting, -np will be ignored.')
+
+    if cmd_line_args.e == settings.binary_purempi:
+        if cmd_line_args.omp is not None:
+            warnings.warn('Using pure mpi exciting, -omp will be ignored.')
+
+    return build_type
+
+
+def set_test_names_from_cmd_line(test_farm: str, input_tests: List[str]) -> List[str]:
+    """
+    Set test names to run from specified command line arguments.
+
+    If nothing is specified on the command line, an empty list is returned.
+    If partial test names or directories are specified, any string matches are returned.
+
+    :param str test_farm: Relative path to test farm directory, from the test/ root.
+    :param List[str] input_tests: Test names or partial string matches to test names.
+    :return List[str] tests_to_run: Test names, prepended by path w.r.t. test/ directory.
+    """
+    if not input_tests:
+        return []
+
+    all_test_dirs = get_test_directories(test_farm)
+    tests_to_run = partial_test_name_matches(all_test_dirs, input_tests)
+
+    if not tests_to_run:
+        raise ValueError(f'Could not find any full or partial string matches to {input_tests} for test names in '
+                         '{test_farm} subdirectories')
+    return tests_to_run
+
+
+def set_execution_str(build_type: BuildType, np: int, settings: Defaults) -> str:
+    """
+    Set the execution string.
+
+    :param BuildType build_type: Build type of program binary
+    :param int np: Number of MPI processes.
+    :param Defaults settings: Default exciting settings. Used to obtain valid build types and executable location.
+    :return str executable_string: Execution string.
+    """
+    executable_string = os.path.join(settings.exe_dir, build_type_enum_to_str[build_type])
+
+    if not os.path.isfile(executable_string):
+        raise FileNotFoundError(f'Could not find an exciting binary in {settings.exe_dir}')
+
+    if build_type in [settings.binary_purempi, settings.binary_mpismp]:
+        executable_string = 'mpirun -np %i %s' % (np, executable_string)
+
+    return executable_string
+
+
+def set_up_make_test(settings: Defaults, input_options: dict) -> dict:
+    """
+    Set the test suite options for running via `make test`.
+
+    The function will check which binaries are compiled and select the executable according to the following hierarchy:
 
         exciting_mpismp > exciting_smp > exciting_purempi > exciting_serial
 
-    If excitingtools is not installed, the function will do that if the user wishes.
-    Then the function sets up the default input_options and runs all test cases.
+    then overwrite the appropriate execution defaults.
 
-    :param str test_farm: test farm directory
-    :param str exe_dir: exciting executable directory
-    :return dict input_options: Dictionary of parsed command line arguments
+    :param Defaults settings: Default exciting settings.
+    :param dict input_options: Dictionary of parsed command line arguments.
+    :return dict input_options: Inputs, with appropriate defaults overwritten according to the binary selected.
     """
-    if 'excitingtools' not in sys.modules:
-        while True:
-            answer = input(
-                'The test suit requires the python package exctingtools. Do you wish to install excitingtools now? (yes/no) \n')
-            if answer.lower() in ['yes', 'y']:
-                install_excitingtools()
-                break
-            elif answer.lower() in ['no', 'n']:
-                print('You can install excitingtools later via \n\n' + \
-                      '    pip install -e %s \n \n' % os.path.join(os.environ('EXCITINGSCRIPTS'), 'exciting_tools'))
-                exit()
-
-    input_options = {'action': 'run',
-                     'tests': next(os.walk(test_farm))[1],
-                     'handle_errors': False,
-                     'run_failing_tests': False}
-
     compiled_binaries = []
     for x in next(os.walk('../bin/'))[2]:
         try:
             compiled_binaries.append(build_type_str_to_enum[x])
-        except Exception:
+        except KeyError:
             pass
 
     if settings.binary_mpismp in compiled_binaries:
@@ -236,35 +246,19 @@ def set_up_make_test(test_farm: str, exe_dir: str) -> dict:
         build_type = settings.binary_serial
 
     else:
-        raise Exception('Could not find any exciting binary. Running the test suite requires compiling ' 
-                        'one of the following exciting binaries:\n\n'
-                        '    %s  %s  %s  %s. \n\n' % (settings.binary_mpismp, settings.binary_smp,
-                                                      settings.binary_purempi, settings.binary_serial))
+        raise FileNotFoundError('Could not find any exciting binary. Running the test suite requires compiling '
+                                'one of the following exciting binaries:\n\n'
+                                '    %s  %s  %s  %s. \n\n' % (settings.binary_mpismp, settings.binary_smp,
+                                                              settings.binary_purempi, settings.binary_serial))
 
     input_options['np'] = settings.default_np[build_type]
     input_options['omp'] = settings.default_threads[build_type]
-
-    # Set test names
-    all_test_dirs = get_test_directories(test_farm)
-    if input_options['tests'][0] == 'all':
-        input_options['tests'] = all_test_dirs
-    else:
-        tests_to_run = partial_test_name_matches(all_test_dirs, input_options['tests'])
-        if not tests_to_run:
-            raise ValueError('Could not find any full or partial string matches to %s for test names in '
-                             '%s subdirectories' % (input_options['tests'], test_farm))
-        input_options['tests'] = tests_to_run
-
-    executable_string = os.path.join(exe_dir, build_type_enum_to_str[build_type])
-    if build_type in [settings.binary_purempi, settings.binary_mpismp]:
-        executable_string = 'mpirun -np %i %s' % (input_options['np'], executable_string)
-    input_options['executable'] = executable_string
-    input_options['repeat_tests'] = 0
+    input_options['executable'] = set_execution_str(build_type, input_options['np'], settings)
 
     return input_options
 
 
-def main(settings: namedtuple, input_options: dict):
+def main(settings: Defaults, input_options: dict):
     """
     Run test suite
 
@@ -273,46 +267,37 @@ def main(settings: namedtuple, input_options: dict):
     :param input_options: parsed command-line arguments
     """
     print('Run test suite:')
-    print(input_options['executable'])
+    print('Binary: ', input_options['executable'])
 
     os.environ["OMP_NUM_THREADS"] = str(input_options['omp'])
-    executable_command = input_options['executable']
-    executable = executable_command.split('/')[-1]
-
-    # Set tests to run, and their input files
-    repeated_tests: dict = set_tests_to_repeat(executable, input_options['repeat_tests'])
-    skipped_tests = set_skipped_tests(executable, input_options['run_failing_tests'])
-    test_list, removed_tests = remove_tests_to_skip(input_options['tests'], skipped_tests)
-    input_files = input_files_for_tests(test_list, subdirectory='ref')
+    tests = set_tests_to_run(settings, input_options)
 
     report = run_tests(settings.main_output,
-                       test_list,
+                       tests.run,
                        settings.run_dir,
                        settings.ref_dir,
-                       input_files,
-                       executable_command,
+                       input_options['executable'],
                        input_options['np'],
                        input_options['omp'],
                        settings.max_time,
                        input_options['handle_errors'],
-                       repeated_tests)
+                       tests.repeat)
 
     report.print()
-    skipped_test_summary(removed_tests)
+    skipped_test_summary(tests.failing)
+    print("Note, test names in groups that are not run are not printed.")
     report.print_timing()
     assert report.n_failed_test_cases == 0, "Some test suite cases failed."
 
 
-def run_references(settings, input_options):
+def run_references(settings: Defaults):
     """
     Run all test suite cases, such that all reference outputs are regenerated.
     There are very few use cases where this should be done
 
-    TODO(Alex/Bene) Consider moving this feature to its own script
+    TODO(Bene) Consider moving this feature to its own script.
 
-    :param settings: Default settings for environment variables, paths
-                     and run-time parameters.
-    :param input_options: parsed command-line arguments
+    :param settings: Default settings for environment variables, paths and run-time parameters.
     """
     while True:
         answer = input("Are you sure that you want to rerun reference(s)? " +
@@ -328,17 +313,20 @@ def run_references(settings, input_options):
 
     executable = os.path.join(settings.exe_dir, build_type_enum_to_str[settings.exe_ref])
 
-    for test in input_options['tests']:
+    test_names_in_farm = get_all_test_cases(settings.test_farm)
+    test_names_in_farm = remove_hanging_tests(test_names_in_farm, settings.hanging_tests)
+
+    for test in test_names_in_farm:
         reference_dir = os.path.join(test, settings.ref_dir)
         run_single_reference(reference_dir, executable, settings)
 
 
 if __name__ == "__main__":
-    input_options = option_parser(settings.test_farm, settings.exe_dir)
+    input_options = option_parser(exciting_settings)
 
     if input_options['action'] == 'run':
-        main(settings, input_options)
+        main(exciting_settings, input_options)
     elif input_options['action'] == 'ref':
-        run_references(settings, input_options)
+        run_references(exciting_settings)
     else:
         raise ValueError(f"Input action invalid: {input_options['action']}")

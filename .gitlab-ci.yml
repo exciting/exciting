@@ -91,8 +91,6 @@ build:debian-buster-Intel2019-serial:
     - cp -r build/utilities/modules/intel /etc/environment-modules/modules
     - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`" 
     - module load intel/2019
-    # Load physics' nfs server, containing Intel. Note, the -nolock option is required 
-    - mkdir -p /usr/global && mount -o nolock -t nfs global.physik.hu-berlin.de:/globaldisk/AMD64 /usr/global
   script:
     - cp build/platforms/make.inc.ifort build/make.inc
     - make serial -j 2
@@ -110,11 +108,9 @@ test-debian-buster-Intel2019-serial:
   tags: 
     - docker
   before_script:
-      # TODO(Alex) Check if this is inherited from the dependency   
     - cp -r build/utilities/modules/intel /etc/environment-modules/modules
     - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
     - module load intel/2019
-    - mkdir -p /usr/global && mount -o nolock -t nfs global.physik.hu-berlin.de:/globaldisk/AMD64 /usr/global
     - pip3 install --upgrade --force pillow==7.0.0 numpy termcolor lxml pytest pyyaml
   script:
     # run unit tests
@@ -134,7 +130,6 @@ build:debian-buster-Intel2019-mpiandsmp:
     - cp -r build/utilities/modules/intel /etc/environment-modules/modules
     - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
     - module load intel/2019
-    - mkdir -p /usr/global && mount -o nolock -t nfs global.physik.hu-berlin.de:/globaldisk/AMD64 /usr/global
     - apt-get install -y libfabric1 libfabric-dev
   script:
     - cp build/platforms/make.inc.ifort.profiler build/make.inc
@@ -159,7 +154,6 @@ test-debian-buster-Intel2019-mpiandsmp:
     - cp -r build/utilities/modules/intel /etc/environment-modules/modules
     - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
     - module load intel/2019
-    - mkdir -p /usr/global && mount -o nolock -t nfs global.physik.hu-berlin.de:/globaldisk/AMD64 /usr/global
     - apt-get install -y libfabric1 libfabric-dev
     - pip3 install --upgrade --force pillow==7.0.0 numpy termcolor lxml pytest pyyaml
   script:

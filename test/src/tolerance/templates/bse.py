@@ -43,7 +43,5 @@ bse_exciton_tols = {
 }
 
 
-bse_tolerances = {'files_under_test': ['EPSILON_??.OUT',
-                                       'EXCITON_??.OUT'],
-                  'EPSILON_??.OUT': bse_epsilon_tols,
+bse_tolerances = {'EPSILON_??.OUT': bse_epsilon_tols,
                   'EXCITON_??.OUT': bse_exciton_tols}

@@ -1,7 +1,4 @@
 {
-  "files_under_test": [
-    "LSJ.xml"
-  ],
   "LSJ.xml": {
     "J": {
       "tol": 1e-08,

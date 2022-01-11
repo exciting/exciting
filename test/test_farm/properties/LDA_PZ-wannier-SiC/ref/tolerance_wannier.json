@@ -1,8 +1,4 @@
 {
-  "files_under_test": [
-    "TDOS_WANNIER.OUT",
-    "WANNIER_INFO.OUT"
-  ],
   "TDOS_WANNIER.OUT": {
     "energy": {
       "tol": 1e-06,

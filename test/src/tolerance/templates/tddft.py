@@ -50,7 +50,5 @@ tddft_loss_tols = {
     'structure_factor': default.structure_factor
 }
 
-tddft_tolerances = {'files_under_test': ['EPSILON_??.OUT',
-                                         'LOSS_??.OUT'],
-                    'EPSILON_??.OUT': tddft_epsilon_tols,
+tddft_tolerances = {'EPSILON_??.OUT': tddft_epsilon_tols,
                     'LOSS_??.OUT': tddft_loss_tols}

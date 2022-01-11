@@ -1,11 +1,4 @@
 {
-  "files_under_test": [
-    "GW_INFO.OUT",
-    "EFERMI_GW.OUT",
-    "EVALQP.DAT",
-    "VXCNN.DAT",
-    "EPS00_GW.OUT"
-  ],
   "GW_INFO.OUT": {
     "Solution of the QP equation": {
       "tol": 0,

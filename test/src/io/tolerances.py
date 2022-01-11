@@ -144,7 +144,7 @@ def strip_tolerance_units(json_tolerance: dict) -> dict:
     return just_tolerances
 
 
-def get_json_tolerances(full_ref_dir: str) -> Tuple[dict, List[str]]:
+def get_json_tolerances(full_ref_dir: str, files_under_test: List[str]) -> Tuple[dict, List[str]]:
     """
     Load and preprocess JSON tolerance files.
 
@@ -153,7 +153,8 @@ def get_json_tolerances(full_ref_dir: str) -> Tuple[dict, List[str]]:
        Could achieve this by passing the comparison function as an argument
        See function documentation for a description of the issue
 
-    :param str full_ref_dir: Full path to reference directory
+    :param str full_ref_dir: Full path to reference directory.
+    :param List[str] files_under_test: Files under test.
     :return Tuple[dict, List[str]]: tolerances_without_units, reference_outputs:
        Tolerances dictionary of the form {'method': tols}, and output files to compare.
     """
@@ -161,7 +162,7 @@ def get_json_tolerances(full_ref_dir: str) -> Tuple[dict, List[str]]:
     tolerances: dict = load_tolerances(full_ref_dir, tolerance_files)
 
     files_in_directory = next(os.walk(full_ref_dir))[2]
-    reference_outputs = update_wildcard_files_under_test(tolerances.pop('files_under_test'), files_in_directory)
+    reference_outputs = update_wildcard_files_under_test(files_under_test, files_in_directory)
 
     tolerances = update_wildcard_tolerances(tolerances, reference_outputs)
     tolerances_without_units = strip_tolerance_units(tolerances)

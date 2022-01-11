@@ -1,12 +1,4 @@
 {
-  "files_under_test": [
-    "EPSILON_11.OUT",
-    "EPSILON_12.OUT",
-    "EPSILON_33.OUT",
-    "expiqr.xml",
-    "KERR.OUT",
-    "CHI_111.OUT"
-  ],
   "EPSILON_11.OUT": {
     "energy": {
       "tol": 1e-08,

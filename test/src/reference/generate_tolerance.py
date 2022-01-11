@@ -42,7 +42,7 @@ from src.tolerance.templates.properties import optical_properties_tolerances, co
     electric_field_properties_tolerances, spin_properties_tolerances
 from src.tolerance.templates.transport import transport_tolerances
 from src.tolerance.templates.plotting import plotting_tolerances
-from src.tolerance.templates.bandstructure_dos import bandstructure_dos_tolerances
+from src.tolerance.templates.bandstructure_dos import bandstructure_tolerances, dos_tolerances
 from src.tolerance.templates.wannier import wannier_tolerances
 from src.runner.profile import ExcitingCalculation, get_calculation_types
 
@@ -124,56 +124,61 @@ def generate_tolerance_file(calculation: ExcitingCalculation, file_path: str):
     For example for ground_state, it writes:
       test_farm/groundstate/test/ref/tolerance_ground_state.json
 
+    :param ExcitingCalculation calculation: exciting calculation type.
+    :param str file_path: Directory to write tolerances to.
     """
+    tolerances = {}
+
     full_file_name = os.path.join(file_path, tol_file_name[calculation.name])
 
     if calculation == ExcitingCalculation.groundstate:
-        write_tolerance_with_json(ground_state_tolerances, full_file_name)
+        tolerances = ground_state_tolerances
 
     if calculation == ExcitingCalculation.gw:
-        write_tolerance_with_json(gw_tolerances, full_file_name)
+        tolerances = gw_tolerances
 
     if calculation == ExcitingCalculation.hybrid:
         print(hybrid_message)
-        write_tolerance_with_json(hybrid_tolerances, full_file_name)
+        tolerances = hybrid_tolerances
 
     if calculation == ExcitingCalculation.tddft:
-        write_tolerance_with_json(tddft_tolerances, full_file_name)
+        tolerances = tddft_tolerances
 
     if calculation == ExcitingCalculation.rt_tddft:
-        write_tolerance_with_json(rt_tddf_tolerances, full_file_name)
+        tolerances = rt_tddf_tolerances
 
     if calculation == ExcitingCalculation.bse:
-        write_tolerance_with_json(bse_tolerances, full_file_name)
-
-    if calculation == ExcitingCalculation.phonon:
-        sys.exit('TODO(Ignacio). Add phonon tolerances')
-        # write_tolerance_with_json(phonon_tolerances, full_file_name)
+        tolerances = bse_tolerances
 
     # Properties
-    if calculation in [ExcitingCalculation.band_structure, ExcitingCalculation.dos]:
-        write_tolerance_with_json(bandstructure_dos_tolerances, full_file_name)
+    if calculation == ExcitingCalculation.band_structure:
+        tolerances = bandstructure_tolerances
+
+    if calculation == ExcitingCalculation.dos:
+        tolerances = dos_tolerances
 
     if calculation == ExcitingCalculation.plot:
-        write_tolerance_with_json(plotting_tolerances, full_file_name)
+        tolerances = plotting_tolerances
 
     if calculation == ExcitingCalculation.wannier:
-        write_tolerance_with_json(wannier_tolerances, full_file_name)
+        tolerances = wannier_tolerances
 
     if calculation == ExcitingCalculation.transport:
-        write_tolerance_with_json(transport_tolerances, full_file_name)
+        tolerances = transport_tolerances
 
     if calculation == ExcitingCalculation.optical_properties:
-        write_tolerance_with_json(optical_properties_tolerances, full_file_name)
+        tolerances = optical_properties_tolerances
 
     if calculation == ExcitingCalculation.electric_properties:
-        write_tolerance_with_json(electric_field_properties_tolerances, full_file_name)
+        tolerances = electric_field_properties_tolerances
 
     if calculation == ExcitingCalculation.core_properties:
-        write_tolerance_with_json(core_properties_tolerances, full_file_name)
+        tolerances = core_properties_tolerances
 
     if calculation == ExcitingCalculation.spin_properties:
-        write_tolerance_with_json(spin_properties_tolerances, full_file_name)
+        tolerances = spin_properties_tolerances
+
+    write_tolerance_with_json(tolerances, full_file_name)
 
 
 if __name__ == "__main__":

@@ -41,6 +41,13 @@ def input_files_for_tests(tests: List[str], subdirectory='') -> dict:
 
     When restarting tests from STATE.OUT becomes possible in the suite,
     this will need extending, and probably specifying in a config file.
+
+    Returns:
+      input_files = {'test_name': 'input.xml', 'X.xml', 'other_input.xml'}
+
+    :param List[str] tests: List of test names
+    :param str subdirectory: Subdirectory in which to look for input files
+    :return dict input_files: Input files per test case.
     """
     species_files_per_test = test_case_species_files(tests, subdirectory)
     input_xml = settings.input_file

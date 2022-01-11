@@ -1,12 +1,4 @@
 {
-  "files_under_test": [
-    "RHO3D.xml",
-    "VCL3D.xml",
-    "VXC3D.xml",
-    "WF3D.xml",
-    "ELF3D.xml",
-    "EF3D.xml"
-  ],
   "RHO3D.xml": {
     "originrs": {
       "tol": 1e-08,

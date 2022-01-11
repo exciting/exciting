@@ -11,7 +11,6 @@ Exclude -t and the new test will be placed in the current directory:
 import sys
 import os
 import argparse as ap
-import warnings
 from typing import List
 
 from runtest import get_test_directories
@@ -21,12 +20,6 @@ from src.reference.reference import run_single_reference
 from src.reference.generate_tolerance import generate_tolerance_file
 from src.runner.profile import build_type_enum_to_str, get_calculation_types, ExcitingCalculation
 from src.runner.set_inputs import input_files_for_tests
-
-def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
-    return '%s: %s \n' % (category.__name__, message)
-
-
-warnings.formatwarning = warning_on_one_line
 
 
 def option_parser() -> dict:
@@ -77,8 +70,8 @@ def determine_test_method(input_method: str, input_target_dir: str) -> List[Exci
     try:
         i = sub_directories.index('test_farm')
     except ValueError:
-        sys.exit("Cannot infer the method from the target directory.\n"
-                 "Please specify the method at input.")
+        raise ValueError("Cannot infer the method from the target directory.\n"
+                         "Please specify the method at input.")
 
     method_directory = sub_directories[i + 1]
     return get_calculation_types([method_directory])
@@ -180,7 +173,6 @@ def main(args: dict):
     calculation_types = determine_test_method(args['for'], args['t'])
     reference_location = set_reference_location(args['r'])
     target_location = set_target_directory(args['t'])
-    species_files = next(os.walk(settings.species))[2]
 
     check_clear_test_name(target_location)
     os.makedirs(os.path.join(target_location, settings.ref_dir))

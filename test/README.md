@@ -152,47 +152,168 @@ The tolerance files are generated according to default values, defined in `src/t
 value is consistently not appropriate, a new property is added to an output file, or indeed a new method is added to 
 exciting, the developer should modify the appropriate template. 
 
-Tolerance files also specify which files should be regression-tested. In simple cases like the ground state, each 
-tested file has a dictionary of tolerances. However, for a method like BSE, which has numerous output files, it often
-does not make sense to specify tolerances for each variation of one file. 
+In simple cases like the ground state, each tested file has a dictionary of tolerances. However, for a method like BSE, 
+which has numerous output files, it often does not make sense to specify tolerances for each variation of one file. 
 
-In this instance, the default `files_under_test` will be output containing wildcards (as specified in 
-`src/utilities/wildcard_processor`):
-
-```json
- {
-  "files_under_test": [
-    "EPSILON_??.OUT",
-    "EXCITON_??.OUT"
-  ]
-}
-```
-
-This tells the test framework to use the same tolerances for all files that match `EPSILON_??.OUT`, and for all for that
-match `EXCITON_??.OUT`, respectively. If one file, for example `EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT.xml`,
-requires a different set of tolerance values. This can be defined explicitly:
+In this instance, file name keys can be specified with wildcards (as defined in `src/utilities/wildcard_processor`). The 
+example below tells the test framework to use the same tolerances for all files that match `EPSILON_??.OUT`, and for all 
+for that match `EXCITON_??.OUT`, respectively. Furthermore, if one file,
+`EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT.xml` for example, requires a different set of tolerance values it can 
+be defined explicitly:
 
 ```json
- {"files_under_test": [
-    "EPSILON_??.OUT",
-    "EXCITON_??.OUT",
-    "EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT.xml"    
-  ],
+{
   "EPSILON_??.OUT": epsilon_tolerances_dict,
   "EXCITON_??.OUT": epsilon_tolerances_dict,
   "EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT.xml": specific_epsilon_tol_dict
 }
 ```
 
-Files under test will be removed from the `tolerance_*.json` files in the near-future, and placed in a general 
-configuration file. The documentation will be updated when this change is made. Finally, tolerance files are 
-automatically generated when running `newtestcase.py`, however, one is also free to generate them independently:
+Finally, tolerance files are automatically generated when running `newtestcase.py`, however, one is also free to 
+generate them independently:
 
 ```bash
 python3 src/reference/generate_tolerance.py -for <method>  
 ```
 
 which is appropriate if one manually prepares the inputs and outputs for a test case. 
+
+
+### Test Configuration File
+
+Once reference and tolerance data are generated for a test, it should be added to the configuration file:
+
+```bash
+test/tests_config.yml
+```
+
+This file defines all tests that are part of the test suite (and should be consistent with those present in `test_farm/`).
+Each test has several *properties*, which can either be explicitly defined, or omitted (causing the default to be used). 
+Valid properties are:
+
+```yaml
+group:            Developer-defined test group
+repeat:           True or False
+files_under_test: Each output file to be compared to reference data
+inputs:           All input files required for the calculation
+failing_builds:   Any build types for which the test fails
+comments:         Information on failing builds
+```
+
+At the time of writing, most tests have been specified with all of their properties omitted. This is **not** encouraged 
+for new test cases. Be **explicit** with inputs and files under test. A working test case will look something like:
+
+```yaml
+method/test_name:
+   files_under_test:
+      - "some_output.OUT"
+   inputs:
+      - "input.xml"
+      - "some_species_file.xml"
+```
+
+Test cases which fail for some builds will contain additional information:
+
+```yaml
+# YAML can include unparsed comments with the hash character
+# TODO(Alex) Issue 101
+groundstate/LDA_PW-collinear-Fe:
+   group: NONE
+   repeat: False
+   files_under_test:
+      - "INFO.OUT"
+      - "evalcore.xml"
+      - "geometry.xml"
+      - "eigval.xml"
+      - "atoms.xml"
+   inputs:
+      - "input.xml"
+      - "Fe.xml"
+   failing_builds:
+      - intel_mpiandsmp
+      - intel_serial
+      - gcc_mpiandsmp
+      - gcc_serial
+   comments: 'Most energies differ to reference by ~1.e-7. \n
+   scl%Sum of eigenvalues by ~ 1.e-6. \n
+   DOS at Fermi differs by 5.7e-04. '
+```
+
+### Test Case Properties
+
+Addressing each property:
+
+#### group
+
+`group` allows developer-defined grouping of tests. It could be that some tests are slow, or are only meant to be run on 
+specific hardware. Grouping allows more flexibility with what the CI runs. All groups, and whether or not they run, is 
+defined in `defaults_config.yml`. If the `group` property is not specified in a test case, `NONE` is assigned:
+
+```yaml
+group: NONE 
+```
+
+If a new group is added, the developer is also required to add the correspond entry to the enum class `TestGroup`, in
+`src/runner/configure_tests.py`. 
+
+#### repeat
+
+`repeat` specifies if a test should be repeated if it fails. This is intended for flakely tests that **sometimes** fail, 
+however in general, one should avoid committing flakely tests. The default is `False` (although it would make more sense 
+to make it a number, and remove the `-repeat-tests N` command line arugment):
+
+```yaml
+repeat: False 
+```
+
+Note, tests will only be repeated if `repeat: True` is specified in the config file and `-repeat-tests N` is given as 
+a command line argument to the test suite, where `N` is an integer `> 0`.
+
+#### files_under_test
+
+`files_under_test` specifies which exciting outputs should be regression-tested for each test case. Any output that has
+a corresponding parser can be included. All defaults are specified in `test/defaults_config.yml`. The defaults are
+used by omitting this property. Else, one specifies files like so:
+
+```yaml
+files_under_test:
+   - "INFO.OUT"
+   - "evalcore.xml"
+   - "geometry.xml"
+   - "eigval.xml"
+   - "atoms.xml"
+```
+
+#### inputs
+
+`inputs` defines the input files required to run a calculation (specifically, which files to copy to the `run/` directory
+of each test case). This should include species files. Explictly specifying inputs is particularly useful if a test 
+a) restarts or b) uses non-standard inputs. `inputs` are specified in the same way as `files_under_test`.
+
+Default inputs are not defined in `test/defaults_config.yml`, rather the test framework will inspect the test `ref/` 
+directory for `input.xml` and any species files, if the property is not specified. 
+
+#### failing_builds and comments
+
+In some cases, tests will fail with a given build stack. `failing_builds` can be used to specify if a test case fails 
+only for a given build. This is required due to the test migration from the 2020 suite, and where possible should not be 
+used for new tests. Valid failing builds choices are:
+
+```yaml
+failing_builds:
+  - intel_serial
+  - intel_smp
+  - intel_purempi
+  - intel_mpiandsmp
+  - gcc_serial
+  - gcc_smp
+  - gcc_purempi
+  - gcc_mpiandsmp
+comments: "This test case fails for all builds - see issue i."
+```
+
+Additionally, `comments` can be added to give more information on what fails. This can be printed by the framework
+at the end of execution. 
 
 
 ### Tolerance Templates
@@ -305,3 +426,8 @@ One could also structure the data like:
 ```
 
 where a reduction in serialisation avoids the problem.
+
+
+## Conclusion
+
+This concludes the explanation of exciting's regression-testing framework. Happy testing. 

@@ -1,9 +1,4 @@
 {
-  "files_under_test": [
-    "JIND.OUT",
-    "NEXC.OUT",
-    "ETOT_RTTDDFT.OUT"
-  ],
   "JIND.OUT": {
     "Time": {
       "tol": 1e-08,

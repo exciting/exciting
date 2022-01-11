@@ -1,0 +1,12 @@
+{
+  "dos.xml": {
+    "e": {
+      "tol": 1e-06,
+      "unit": "Hartree"
+    },
+    "dos": {
+      "tol": 1e-08,
+      "unit": "1/Hartree"
+    }
+  }
+}

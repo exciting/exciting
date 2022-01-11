@@ -1,7 +1,4 @@
 {
-  "files_under_test": [
-    "EFG.xml"
-  ],
   "EFG.xml": {
     "efg": {
       "tol": 1e-08,

@@ -64,12 +64,7 @@ rt_tddft_proj = {
     'projection': default.float
 }
 
-rt_tddf_tolerances = {'files_under_test': ['JIND.OUT',
-                                           'NEXC.OUT',
-                                           'ETOT_RTTDDFT.OUT',
-                                           'EIGVAL_??.OUT',
-                                           'PROJ_??.OUT'],
-                      'JIND.OUT': rt_tddft_jind,
+rt_tddf_tolerances = {'JIND.OUT': rt_tddft_jind,
                       'NEXC.OUT': rt_tddft_nexc,
                       'ETOT_RTTDDFT.OUT': rt_tddft_etot,
                       'EIGVAL_??.OUT': rt_tddft_eigval,

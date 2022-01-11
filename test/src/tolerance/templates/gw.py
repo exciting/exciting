@@ -118,8 +118,7 @@ eps_00_gw_tols = {'frequency': default.frequency,
                   }
 
 # Single dictionary for all tested GW outputs, for dumping to JSON
-gw_tolerances = {'files_under_test': ['GW_INFO.OUT', 'EFERMI_GW.OUT', 'EVALQP.DAT', 'VXCNN.DAT', 'EPS00_GW.OUT'],
-                 'GW_INFO.OUT': gw_info_tols,
+gw_tolerances = {'GW_INFO.OUT': gw_info_tols,
                  'EFERMI_GW.OUT': e_fermi_gw_tols,
                  'EVALQP.DAT': evalqp_tols,
                  'VXCNN.DAT': v_xc_nn_tols,

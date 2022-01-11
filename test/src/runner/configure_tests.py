@@ -3,10 +3,11 @@ Parse test suite configuration file, specified in YAML format, and use it in con
 to define the properties of all tests in the suite.
 """
 from collections import namedtuple
-from typing import List, Callable, Dict
+from typing import List, Callable, Dict, Union
 import enum
 import yaml
 import numpy as np
+import os
 
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
@@ -14,8 +15,11 @@ except ImportError:
     from yaml import Loader, Dumper
 
 from .set_inputs import input_files_for_tests
-from ..tolerance.tol_classes import tol_file_name
+from ..exciting_settings.constants import settings
+from ..io.tolerances import list_tolerance_files_in_directory
 from ..runner.profile import CompilerBuild
+from ..tolerance.tol_classes import tol_file_name, tol_file_to_method
+from ..tolerance.tol_classes import methods as valid_methods
 
 
 class TestGroup(enum.Enum):
@@ -27,8 +31,9 @@ class TestGroup(enum.Enum):
 
 
 # Properties/attributes of a test case.
+# TODO(Alex/Ben/Hannah) # Issue 114. Add 'depends_on'
 ConfigurationDefaults = namedtuple('ConfigurationDefaults',
-                                   ['files_under_test', 'inputs', 'repeat', 'failing_builds', 'depends_on', 'group']
+                                   ['files_under_test', 'inputs', 'repeat', 'failing_builds', 'group', 'comments']
                                    )
 
 
@@ -77,7 +82,7 @@ def str_attributes_to_enums(data: dict):
 
         return CompilerBuild(compiler, build)
 
-    # Data implicitly modified by local routines.
+    # `data` mutable and passed implicitly to these local routines, as all defined in same scope
     data = replace_scalar('group', lambda string: TestGroup[string])
     data = replace_list('failing_builds', compiler_build_str_to_enum)
 
@@ -94,15 +99,18 @@ def check_default_files_under_test(default_files_under_test: dict):
                                   'method': files_under_test_for_method
                                   }
 
-    Note, using tol_file_name to define the total list of expected method names may not be optimal.
-
     :param dict default_files_under_test: Files under test for all methods
     """
-    all_methods = {m.lower() for m in tol_file_name.keys()}
-    methods = {m.lower() for m in default_files_under_test.keys()}
-    missing_methods = all_methods - methods
+    tabulated_methods = {m.lower() for m in tol_file_name.keys()}
+    methods_from_config = {m.lower() for m in default_files_under_test.keys()}
+
+    missing_methods = tabulated_methods - methods_from_config
     if missing_methods:
         raise ValueError(f"Missing default_files_under_test in config, for methods: {missing_methods}")
+
+    missing_methods = methods_from_config - tabulated_methods
+    if missing_methods:
+        raise ValueError(f"Missing tabulated methods in tol_classes.py, for methods: {missing_methods}")
 
 
 def check_groups_in_config(groups: dict):
@@ -135,24 +143,83 @@ def parse_config_defaults_file(yaml_str: str) -> dict:
     return config_defaults
 
 
-def get_method_from_test_name(test_name: str) -> str:
+def get_method(test_name: str) -> str:
+    """
+    Get method from the test name.
+
+    TODO Remove interaction with the file system.
+    One needs to know the method to choose the correct default `files_under_test`,
+    when they are not specified in the config file.
+
+    The difficultly is that in most test cases, the file path defines the method.
+    For example, `BSE/LiF`. However, properties are all grouped under one subdirectory of the same name.
+    In this case, one can infer from the method from the tolerance file.
+    This is annoying to unit test though, as it requires one to interact with the file system. So every routine
+    that uses `get_method` (i.e. all higher-level routines in configure_tests.py) will then require
+    some file mocking when unit-tested.
+
+    Hence this use of this solution of a) checking the test name string and b) falling back to the tolerance file iff
+    it's a `properties` test.
+
+    The other solutions one could implement are:
+     a) Don't interact with the file system and instead specify every method in config input
+        - This is the cleanest solution with minimal extra typing
+        - May also restrict developers testing multiple properties in one test.
+     b) Split up the properties subdirectory according to the different tolerance files.
+
+    :param str test_name: Test name, prepended by path.
+    :return str method: Method name.
+    """
+    method = get_method_from_test_name(test_name)
+    if isinstance(method, KeyError):
+        method = get_method_from_tolerance_file(test_name)
+    return method
+
+
+def get_method_from_test_name(test_name: str) -> Union[str, KeyError]:
     """
     Get method string from test name.
 
-    Specific to the config file test naming convention. Expect test_name = 'method/test_case'
+    Specific to the config file test naming convention.
+    Expect test_name = 'method/test_case' or 'test_farm/method/test_case'
     Note, relying on strings and dealing with case is not the most robust approach.
 
-    :param str test_name: Test name
-    :return str method: Method name
+    :param str test_name: Test name, prepended by path.
+    :return Union[str, KeyError] method: Method name or KeyError
     """
-    method = test_name.split('/')[0].lower()
+    method = test_name.split('/')[-2].lower()
+    if method not in valid_methods:
+        # Properties are not differentiated in the directory structure of the test_farm, hence this requirement
+        return KeyError()
+    return method
+
+
+def get_method_from_tolerance_file(test_name: str, subdirectory=settings.ref_dir) -> str:
+    """
+    Get method from tolerance file inspection.
+
+    Uses the method specified in the {tolerance file : method map}
+
+    :param str test_name: Test name, prepended by path.
+    :param optional, str subdirectory: Subdirectory of test case, in which to look for tolerance file.
+    :return str method: Method name.
+    """
+    directory = os.path.join(test_name, subdirectory)
+    tolerance_files = list_tolerance_files_in_directory(directory)
+
+    if len(tolerance_files) != 1:
+        raise ValueError(f"Found {len(tolerance_files)} tolerance files in directory: {directory}")
+
+    tol_file = tolerance_files[0]
     try:
-        tol_file_name[method]
+        method = tol_file_to_method[tol_file]
     except KeyError:
-        valid_methods_str = "\n".join(m for m in tol_file_name.keys())
-        raise KeyError(f'Invalid method: {method}. Implies test_name in config file is erroneous: {test_name}. \n'
-                       f'Must be of the general form "method/test_name". \n'
-                       f'Method must be one of:\n{valid_methods_str}')
+        method_and_testname = "/".join(s for s in test_name.split('/')[-2:])
+        valid_tol_files_str = "\n".join(m for m in tol_file_to_method.keys())
+        raise KeyError(f'Invalid tolerance file, {tol_file}, for {method_and_testname}. \n'
+                       f'Method must correspond to a tolerance:\n{valid_tol_files_str}'
+                       )
+
     return method
 
 
@@ -171,16 +238,18 @@ def initialise_tests(test_names: List[str], default: ConfigurationDefaults) -> d
         raise KeyError(f"Default input keys (from inspecting test_farm) inconsistent with test_names (from config file): "
                        f"{inconsistent_test_names}")
 
+    # TODO(Alex/Ben/Hannah) # Issue 114. Add 'depends_on'
     tests = {}
     for name in test_names:
-        method = get_method_from_test_name(name)
+        method = get_method(name)
         default_files_under_test = default.files_under_test[method]
         tests[name] = {'files_under_test': default_files_under_test,
                        'inputs': default.inputs[name],
                        'repeat': default.repeat,
                        'failing_builds': default.failing_builds,
-                       'depends_on': default.depends_on,
-                       'group': default.group
+                        #'depends_on': default.depends_on,
+                       'group': default.group,
+                       'comments': default.comments
                        }
 
     # Check all keys are assigned default values.
@@ -255,18 +324,23 @@ def configure_all_tests(tests_yaml: str, defaults_yaml: str) -> dict:
     :param str defaults_yaml: Defaults config file as a string.
     :return dict tests: Tests dict, containing all test cases (even those that shouldn't run) and their properties.
     """
+    config_defaults = parse_config_defaults_file(defaults_yaml)
+
     config_data: dict = yaml.load(tests_yaml, Loader=Loader)
     config_data = str_attributes_to_enums(config_data)
-    config_defaults = parse_config_defaults_file(defaults_yaml)
+    # Must prepend with 'test_farm' directory, as this is not specified in the naming convention of the config file
+    config_data = {os.path.join(settings.test_farm, name): value for name, value in config_data.items()}
 
     test_names = [name for name in config_data.keys()]
     default_inputs = input_files_for_tests(test_names, subdirectory='ref')
+    # TODO(Alex/Ben/Hannah) # Issue 114. Add 'depends_on'
     default_attributes = ConfigurationDefaults(files_under_test=config_defaults['default_files_under_test'],
                                                inputs=default_inputs,
                                                repeat=False,
                                                failing_builds=[],
-                                               depends_on=[],
-                                               group=TestGroup.NONE
+                                               # depends_on=[],
+                                               group=TestGroup.NONE,
+                                               comments=''
                                                )
 
     tests = setup_tests(config_data, default_attributes)
@@ -317,8 +391,7 @@ def sort_tests_by_group(tests: dict) -> Dict[TestGroup, List[str]]:
 
     # Log tests by 'group' attribute
     for name, attributes in tests.items():
-        group_str = attributes['group']
-        group = TestGroup[group_str]
+        group = attributes['group']
         tests_by_group[group].append(name)
 
     return tests_by_group
@@ -344,29 +417,3 @@ def find_tests_to_skip_by_group(all_tests: dict, group_execution: dict) -> set:
 
     tests_to_skip = set(all_tests.keys()) - tests_to_run
     return tests_to_skip
-
-
-def find_tests_to_skip(all_tests: dict, config_defaults: dict, default_attributes: ConfigurationDefaults) -> dict:
-    """
-    Find tests that should not be run.
-
-    TODO(Alex) Test me once in use
-     Probably want to report on which tests were not run?
-
-    :param dict all_tests: Dictionary of all tests.
-    :param dict config_defaults: Test property defaults, read from config file
-    :param ConfigurationDefaults default_attributes: Named tuple of default test properties/attributes.
-    :return dict: Tests to run
-    """
-    all_test_names = set(all_tests.keys())
-
-    tests_to_skip = find_tests_to_skip_by_group(all_tests, config_defaults['group_execution'])
-    failing_tests = find_tests_with_attribute(all_tests, 'failing_builds', default_attributes.failing_builds)
-    tests_to_skip.update(failing_tests)
-
-    tests_to_run = all_test_names - tests_to_skip
-    return {name: all_tests[name] for name in tests_to_run}
-
-
-# TODO(Alex) Add call elsewhere
-# repeat_tests = find_tests_with_attribute(all_tests, 'repeat', default_attributes.repeat)
