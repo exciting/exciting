@@ -1,15 +1,4 @@
 {
-  "files_under_test": [
-    "JIND.OUT",
-    "NEXC.OUT",
-    "ETOT_RTTDDFT.OUT",
-    "EIGVAL_0.OUT",
-    "EIGVAL_20.OUT",
-    "EIGVAL_40.OUT",
-    "PROJ_0.OUT",
-    "PROJ_20.OUT",
-    "PROJ_40.OUT"
-  ],
   "JIND.OUT": {
     "Time": {
       "tol": 1e-08,

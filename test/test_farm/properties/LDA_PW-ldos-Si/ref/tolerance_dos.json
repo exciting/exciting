@@ -1,8 +1,4 @@
 {
-  "files_under_test": [
-    "ldos.out",
-    "band_edges.out"
-  ],
   "ldos.out": {
     "energy": {
       "tol": 1e-06,

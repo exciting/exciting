@@ -1,7 +1,4 @@
 {
-  "files_under_test": [
-    "JIND.OUT"
-  ],
   "JIND.OUT": {
     "Time": {
       "tol": 1e-08,

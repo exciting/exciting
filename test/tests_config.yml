@@ -1,0 +1,207 @@
+# ---------------------------------------------------------------------------------------------------------------
+# exciting Test Suite Configure File
+#
+# This file explicitly specifies each test case.
+#
+# The first test case is an example of explicitly specifying all test properties, as documented below, however
+# in most cases, only the test name is required. In this case, defaults defined in `defaults_config.yml` and
+# `src/runner/configire_tests.py` are used. The test name is specified like:
+#   ```
+#   method_directory/test_name:
+#   ```
+#  where the terminating `:` is required by the YAML format.
+#
+# One can explicitly add the attributes/properties:
+#
+#  group:              See defaults file.
+#                      Before groups are assigned, one should ensure there's a way to run them in the CI.
+#  repeat:             Repeat if test "sometimes fails". True or False
+#                      - Mimics the ctest behaviour: `-repeat until-pass:2`, for example
+#  failing_builds:     For a given test, valid choices are intel_serial, intel_mpiandsmp, gcc_serial, gcc_mpiandsmp
+#  comments:          "Comments regarding any failing tests"
+#  files_under_test:   See defaults file.
+#  inputs:             Default inputs are defined as 'input.xml' and any species files present in the ref directory.
+#                      Species files are found by the test framework inspecting the file system.
+#  depends_on:         Currently not implemented. See issue #114 in Gitlab
+#
+# ---------------------------------------------------------------------------------------------------------------
+
+
+# TODO(Alex) Issue 101. Also see Issue #75
+groundstate/LDA_PW-collinear-Fe:
+   group: NONE
+   repeat: False
+   files_under_test:
+      - "INFO.OUT"
+      - "evalcore.xml"
+      - "geometry.xml"
+      - "eigval.xml"
+      - "atoms.xml"
+   inputs:
+      - "input.xml"
+      - "Fe.xml"
+   failing_builds:
+      - intel_mpiandsmp
+      - intel_serial
+      - gcc_mpiandsmp
+      - gcc_serial
+   comments: 'Most energies differ to reference by ~1.e-7. \n
+   scl%Sum of eigenvalues by ~ 1.e-6. \n
+   DOS at Fermi differs by 5.7e-04. '
+
+# TODO(Sven) Issue #39.  See MR !173 for some additional details.
+# Results vary when run in the CI.
+# For example, total energy difference w.r.t. the ref is 1.34e-06 Ha, which seems too high.
+groundstate/LDA_PW-noncollinear-Fe:
+   failing_builds:
+      - intel_mpiandsmp
+      - intel_serial
+      - gcc_mpiandsmp
+      - gcc_serial
+   comments: 'Variation in total energy w.r.t. reference is too large.'
+
+groundstate/LDA_PW-PbTiO3:
+   failing_builds:
+      - intel_mpiandsmp
+      - gcc_mpiandsmp
+
+groundstate/LDA_VWN-Ar:
+
+groundstate/LDA_VWN-He:
+
+groundstate/LDA_VWN-msec-iora-Ar:
+
+groundstate/LDA_VWN-nonrelativistic-Ar:
+
+groundstate/LDA_VWN-zora-Ar:
+
+# TODO(Alex) Issue #36 chargedensityplot hangs when running with np > 1 cores
+# Hence test is commented out
+# groundstate/PBE-Al:
+
+groundstate/PBE-arpack_npacked-Al:
+
+groundstate/PBE-arpack_packed-Al:
+
+groundstate/PBE-lin-Al:
+
+groundstate/PBE-msec-Al:
+
+groundstate/PBE-pulay-Al:
+
+groundstate/PBE_SOL-Al:
+
+BSE/PBE_SOL-LiF:
+
+# TODO(Alex) Issue #103. App Tests: GW QP Energies Inconsistent with Reference
+# TODO(Alex) Issue #35. MPI GW calculations do not produce EPS00_GW.OUT
+#  - I suspect this occurs due to how the GW code distributes MPI processes.
+#  - If more ranks than q-points, ranks can lie idle starting from rank 0 (opposite from what one usually expects).
+#  - Also appear to get a failure for Intel 2019 serial (only occurs on the CI)
+GW/LDA_PW-Si:
+   failing_builds:
+      - intel_mpiandsmp
+      - intel_serial
+      - gcc_mpiandsmp
+      - gcc_serial
+
+hybrid/EXX-C:
+
+# TODO(Cecilia) Issue 54. HSE and PBE0 sometimes fail in our CI pipeline within Intel MPIANDSMP build
+#  - Repeating the test changes the results each time but the diff is never < tolerances.
+#  - Only occurs in the CI pipeline.
+hybrid/HSE-Si:
+   failing_builds:
+      - intel_mpiandsmp
+   comments: 'Test is flakey when run in the CI with Intel parallel build.'
+
+# TODO(Cecilia) Issue 54
+hybrid/PBE0-Si:
+   failing_builds:
+      - intel_mpiandsmp
+   comments: 'Test is flakey when run in the CI with Intel parallel build.'
+
+properties/LDA-PW-core_properties-Si:
+
+properties/LDA_PW-bandstructure-Si:
+
+properties/LDA_PW-dos-Si:
+
+properties/LDA_PW-electric_field-Si:
+
+# TODO(Alex) Issue 112
+properties/LDA_PW-ldos-Si:
+   failing_builds:
+      - intel_mpiandsmp
+      - intel_serial
+      - gcc_mpiandsmp
+      - gcc_serial
+   comments: 'Numbers are completely different - reference data needs reviewing.'
+   files_under_test:
+      - "ldos.out"
+      - "band_edges.out"
+
+properties/LDA_PW-LSJ-Si:
+   files_under_test:
+      - "LSJ.xml"
+
+# TODO(Alex) Issue 111.
+properties/LDA_PW-optical_properties-Si:
+   failing_builds:
+      - intel_mpiandsmp
+      - intel_serial
+      - gcc_mpiandsmp
+      - gcc_serial
+   comments: 'Epsilon 11 and 33 do not agree with serial reference values. \n
+   - CHI_111.OUT also reviews reviewing.'
+
+properties/LDA_PW-plotting-Si:
+
+# TODO(Bene) Issue 113
+properties/LDA_PW-SO-spintexture-Si:
+   failing_builds:
+      - intel_mpiandsmp
+      - intel_serial
+      - gcc_mpiandsmp
+      - gcc_serial
+   comments: "Reference data needs reviewing"
+
+# TODO(Maria) Issue 55
+properties/LDA_PW-transport-Si:
+   failing_builds:
+      - intel_mpiandsmp
+      - intel_serial
+      - gcc_mpiandsmp
+      - gcc_serial
+   comments: 'Test is flakey when run in the CI with GCC builds: Test outputs are not written.\n
+     Results with Intel for THERMALCOND_11 and ELECTCOND_11 have large absolute errors.'
+
+# TODO(Sebastian) Issue 40
+properties/LDA_PZ-wannier-SiC:
+   failing_builds:
+      - intel_mpiandsmp
+      - intel_serial
+      - gcc_mpiandsmp
+      - gcc_serial
+
+properties/PBE_SOL-core_overlap-BN:
+   files_under_test:
+      - "coreoverlap.xml"
+
+RT-TDDFT/LDA_PW-C-kick:
+
+RT-TDDFT/LDA_PW-Si-sinSq:
+   files_under_test:
+      - "JIND.OUT"
+
+RT-TDDFT/LDA_PW-SiC-trapCos:
+   files_under_test:
+      - "JIND.OUT"
+      - "NEXC.OUT"
+      - "ETOT_RTTDDFT.OUT"
+
+TDDFT/PBE-LiF:
+
+XANES/PBE_SOL-BN:
+
+XANES/PBE_SOL-TiO2:

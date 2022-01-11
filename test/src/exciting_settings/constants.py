@@ -5,7 +5,7 @@ Environment and directory variables
 from collections import namedtuple
 import os
 
-from ..runner.profile import Build_type, build_type_enum_to_str
+from ..runner.profile import BuildType, build_type_enum_to_str
 
 Defaults = namedtuple('Defaults', ['max_time',        # Time after which a test is killed (in seconds)
                                    'test_farm',       # Test farm directory
@@ -22,14 +22,19 @@ Defaults = namedtuple('Defaults', ['max_time',        # Time after which a test 
                                    'binary_serial',   # Serial exciting executable
                                    'default_np',      # Dict of default MPI processes per executable
                                    'default_threads', # Dict of default threads per executable
-                                   'exe_ref'          # Executable for running the reference calculations
+                                   'exe_ref',         # Executable for running the reference calculations
+                                   'hanging_tests'    # Added to account for the hanging tested inherited from the old suite
                                    ])
 
 
 _binary_names    = [binary for binary in build_type_enum_to_str.values()]
-_exe_ref         = Build_type.puresmp
-_default_np      = {Build_type.serial: 1, Build_type.puresmp: 1, Build_type.purempi: 2, Build_type.mpiandsmp: 2}
-_default_threads = {Build_type.serial: 1, Build_type.puresmp: 2, Build_type.purempi: 1, Build_type.mpiandsmp: 2}
+_exe_ref         = BuildType.puresmp
+_default_np      = {BuildType.serial: 1, BuildType.puresmp: 1, BuildType.purempi: 2, BuildType.mpiandsmp: 2}
+_default_threads = {BuildType.serial: 1, BuildType.puresmp: 2, BuildType.purempi: 1, BuildType.mpiandsmp: 2}
+
+
+# Hanging tests that can never be run (should never add to this)
+hanging_tests = {'test_farm/groundstate/PBE-Al'}
 
 
 # Define an immutable instance of the default settings
@@ -37,20 +42,21 @@ _default_threads = {Build_type.serial: 1, Build_type.puresmp: 2, Build_type.pure
 settings = Defaults(max_time       = 1800,
                     test_farm      = 'test_farm',
                     input_file     = 'input.xml',
-                    main_output    = 'INFO.OUT',    
-                    run_dir        = 'run',       
-                    ref_dir        = 'ref',        
+                    main_output    = 'INFO.OUT',
+                    run_dir        = 'run',
+                    ref_dir        = 'ref',
                     exe_dir        =  os.path.normpath(os.path.join(os.getcwd(), '../bin')),
                     ignored_output = ['STATE.OUT', 'OCC', 'EVEC', 'EVALSV', 'EVALFV', 'APWCMT', 'SYM',
                                       'PMAT', 'FERMISURF', 'RMSDVEFF', 'LOCMT', 'EXCLI', 'SCCLI'],
                     binary_names    = _binary_names,
-                    binary_mpismp   = Build_type.mpiandsmp,
-                    binary_purempi  = Build_type.purempi,
-                    binary_smp      = Build_type.puresmp,
-                    binary_serial   = Build_type.serial,
+                    binary_mpismp   = BuildType.mpiandsmp,
+                    binary_purempi  = BuildType.purempi,
+                    binary_smp      = BuildType.puresmp,
+                    binary_serial   = BuildType.serial,
                     default_np      = _default_np,
                     default_threads = _default_threads,
-                    exe_ref         = _exe_ref
+                    exe_ref         = _exe_ref,
+                    hanging_tests   = hanging_tests
                     )
 
 species_files = ['Ni.xml', 'La.xml', 'K.xml', 'Xe.xml', 'Ag.xml', 'Bk.xml', 'Co.xml', 'Md.xml', 'Lu.xml', 'Ar.xml',

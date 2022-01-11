@@ -135,11 +135,11 @@ def execute_and_compare_single_test(test_dir: str,
     return test_results
 
 
-def run_single_test(main_out: str,
-                    test_dir: str,
+def run_single_test(test_dir: str,
+                    test_properties: dict,
                     run_dir: str,
                     ref_dir: str,
-                    input_files: List[str],
+                    main_out: str,
                     executable: str,
                     max_time: int,
                     handle_errors: bool,
@@ -147,29 +147,27 @@ def run_single_test(main_out: str,
     """
     Runs a test case and compares output files under test against references.
 
-    :param main_out:        main output file of the exciting calculation
-    :param test_dir:        test case that will be run
-    :param run_dir:         name of the run directory of the test case
-    :param ref_dir:         name of the ref directory of the test case
-    :param input_files:     exciting input files
-    :param executable:      executable command
-    :param max_time:        max time a job is allowed to run for before being killed
-    :param handle_errors:   Whether or not failures and skips are allowed to propagate
-    :param dict repeated_tests: (key:value) = (Test Name: N times to repeat)
+    :param str test_dir:          Test name, prepended with relative path.
+    :param dict test_properties:  Test properties, as defined by ConfigurationDefaults namedTuple.
+    :param str main_out:          main output file of the exciting calculation
+    :param str run_dir:           name of the run directory of the test case
+    :param str ref_dir:           name of the ref directory of the test case
+    :param str executable:        executable command
+    :param int max_time:          max time a job is allowed to run for before being killed
+    :param bool handle_errors:    Whether or not failures and skips are allowed to propagate
+    :param dict repeated_tests:   (key:value) = (Test Name: N times to repeat)
 
     :return TestResults test_results: Test case results object.
     """
-    head_tail = os.path.split(test_dir)
-    test_name = head_tail[1]
-    method = head_tail[0].split('/')[-1]
+    method, test_name = test_dir.split('/')[-2:]
     full_ref_dir = os.path.join(test_dir, ref_dir)
     full_run_dir = os.path.join(test_dir, run_dir)
 
     print('Run test %s:' % test_name)
 
-    tolerances_without_units, output_files = get_json_tolerances(full_ref_dir)
+    tolerances_without_units, output_files = get_json_tolerances(full_ref_dir, test_properties['files_under_test'])
     create_run_dir(test_dir, run_dir)
-    copy_calculation_inputs(full_ref_dir, full_run_dir, input_files)
+    copy_calculation_inputs(full_ref_dir, full_run_dir, test_properties['inputs'])
 
     test_results = execute_and_compare_single_test(test_dir,
                                                    full_run_dir,
@@ -209,12 +207,12 @@ def run_single_test(main_out: str,
 
 
 def run_tests(main_out: str,
-              test_list: List[str],
+              tests: dict,
               run_dir: str,
               ref_dir: str,
-              input_files: dict,
               executable: str,
-              np: int, omp: int,
+              np: int,
+              omp: int,
               max_time: int,
               handle_errors: bool,
               repeated_tests: dict
@@ -222,17 +220,16 @@ def run_tests(main_out: str,
     """
     Runs tests in test_list.
 
-    :param main_out:          main output file of the exciting calculation
-    :param test_list:         test cases that will be run
-    :param run_dir:           name of the run directory of the test case
-    :param ref_dir:           name of the ref directory of the test case
-    :param input_files:       exciting input files per test case
-    :param executable:        executable command for the exciting run
-    :param np:                number of MPI processes
-    :param omp:               number of OMP threads
-    :param max_time:          max time before a job is killed
-    :param handle_errors:     Whether or not failures and skips are allowed to propagate
-    :param dict repeated_tests: (key:value) = (Test Name: N times to repeat)
+    :param str main_out:          main output file of the exciting calculation
+    :param dict tests:            All test cases that will be run
+    :param str run_dir:           name of the run directory of the test case
+    :param str ref_dir:           name of the ref directory of the test case
+    :param str executable:        executable command for the exciting run
+    :param int np:                number of MPI processes
+    :param int omp:               number of OMP threads
+    :param int max_time:          max time before a job is killed
+    :param bool handle_errors:    Whether or not failures and skips are allowed to propagate
+    :param dict repeated_tests:  (key:value) = (Test Name: N times to repeat)
 
     :return SummariseTests report: Test suite summary
     """
@@ -246,12 +243,12 @@ def run_tests(main_out: str,
         print('Run tests with exciting_purempi %i MPI processes.' % np)
 
     report = SummariseTests()
-    for test_name in test_list:
-        test_results = run_single_test(main_out,
-                                       test_name,
+    for test_name, test_properties in tests.items():
+        test_results = run_single_test(test_name,
+                                       test_properties,
                                        run_dir,
                                        ref_dir,
-                                       input_files[test_name],
+                                       main_out,
                                        executable,
                                        max_time,
                                        handle_errors,

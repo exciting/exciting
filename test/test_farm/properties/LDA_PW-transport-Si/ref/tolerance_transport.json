@@ -1,10 +1,4 @@
 {
-  "files_under_test": [
-    "SEEBECK_11.OUT",
-    "ELECTCOND_11.OUT",
-    "THERMALCOND_11.OUT",
-    "Z_11.OUT"
-  ],
   "SEEBECK_11.OUT": {
     "temperature": {
       "tol": 1e-08,

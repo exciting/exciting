@@ -34,11 +34,7 @@ transport_function_11 = {'temperature': default.temperature,
                          'im': default.au
                          }
 
-transport_tolerances = {'files_under_test': ['SEEBECK_11.OUT',
-                                             'ELECTCOND_11.OUT',
-                                             'THERMALCOND_11.OUT',
-                                             'Z_11.OUT'],
-                        'SEEBECK_11.OUT': transport_function_11,
+transport_tolerances = {'SEEBECK_11.OUT': transport_function_11,
                         'ELECTCOND_11.OUT': transport_function_11,
                         'THERMALCOND_11.OUT': transport_function_11,
                         'Z_11.OUT': transport_function_11

@@ -1,7 +1,4 @@
 {
-  "files_under_test": [
-    "spintext.xml"
-  ],
   "spintext.xml": {
     "ist": {
       "tol": 0,

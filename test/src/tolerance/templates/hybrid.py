@@ -37,8 +37,7 @@ info_out.update({'Correlation type': default.integer,
                 )
 
 # Single dictionary for all tested hybrid XC outputs, for dumping to JSON
-hybrid_tolerances = {'files_under_test': ['INFO.OUT', 'eigval.xml', 'evalcore.xml', 'atoms.xml', 'geometry.xml'],
-                     'INFO.OUT': info_out,
+hybrid_tolerances = {'INFO.OUT': info_out,
                      'eigval.xml': eigval,
                      'evalcore.xml': evalcore,
                      'atoms.xml': atoms,

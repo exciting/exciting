@@ -1,8 +1,4 @@
 {
-  "files_under_test": [
-    "EPSILON_??.OUT",
-    "EXCITON_??.OUT"
-  ],
   "EPSILON_??.OUT": {
     "frequency": {
       "tol": 1e-08,

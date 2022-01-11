@@ -1,9 +1,4 @@
 {
-  "files_under_test": [
-    "bandstructure.xml",
-    "dos.xml",
-    "effmass.xml"
-  ],
   "bandstructure.xml": {
     "eval": {
       "tol": 1e-06,
@@ -12,16 +7,6 @@
     "distance": {
       "tol": 1e-08,
       "unit": "Bohr^-1"
-    }
-  },
-  "dos.xml": {
-    "e": {
-      "tol": 1e-06,
-      "unit": "Hartree"
-    },
-    "dos": {
-      "tol": 1e-08,
-      "unit": "1/Hartree"
     }
   },
   "effmass.xml": {

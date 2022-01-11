@@ -230,7 +230,7 @@ class SummariseTests:
               (timing_results['longest']['time'], timing_results['longest']['name']))
 
 
-def skipped_test_summary(skipped_tests: list, print_comments=False):
+def skipped_test_summary(skipped_tests: dict, print_comments=False):
     """
     Summarises skipped tests
 
@@ -243,13 +243,13 @@ def skipped_test_summary(skipped_tests: list, print_comments=False):
         return
 
     if print_comments:
-        print_func = lambda test: print(' ', test['name'], '. ', test['comment'])
+        print_func = lambda name, properties: print(' ', name, '. ', properties['comments'])
     else:
-        print_func = lambda test: print(' ', test['name'], '. ')
+        print_func = lambda name, properties: print(' ', name, '. ')
 
-    print('Summary of SKIPPED tests (as defined in failing_tests.py):')
-    for test in skipped_tests:
-        print_func(test)
+    print('Summary of SKIPPED tests (as defined in tests_config.yml):')
+    for name, properties in skipped_tests.items():
+        print_func(name, properties)
 
 
 def indent(elem, level=0):

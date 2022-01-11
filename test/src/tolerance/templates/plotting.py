@@ -42,13 +42,7 @@ plot3d = {'originrs': default.float,
           'delta': default.float
           }
 
-plotting_tolerances = {'files_under_test': ['RHO3D.xml',
-                                            'VCL3D.xml',
-                                            'VXC3D.xml',
-                                            'WF3D.xml',
-                                            'ELF3D.xml',
-                                            'EF3D.xml'],
-                       'RHO3D.xml': plot3d,
+plotting_tolerances = {'RHO3D.xml': plot3d,
                        'VCL3D.xml': plot3d,
                        'VXC3D.xml': plot3d,
                        'WF3D.xml': plot3d,

@@ -1,0 +1,45 @@
+<input>
+  <title>Silicon</title>
+  <structure speciespath="./" autormt="false">
+    <crystal>
+      <basevect>5.13 5.13 0.00</basevect>
+      <basevect>5.13 0.00 5.13</basevect>
+      <basevect>0.00 5.13 5.13</basevect>
+    </crystal>
+    <species speciesfile="Si.xml" rmt="2.1">
+      <atom coord="0.00 0.00 0.00"></atom>
+      <atom coord="0.25 0.25 0.25"></atom>
+    </species>
+  </structure>
+
+  <groundstate
+    do="fromscratch"
+    rgkmax="7.0"
+    gmaxvr="12"
+    ngridk="4 4 4"
+    xctype="LDA_PW"
+    outputlevel="high"
+    >
+  </groundstate>
+
+  <properties>
+
+    <bandstructure>
+      <plot1d>
+        <path steps="10">
+          <point coord="0.000   0.000   0.000" label="GAMMA"/>
+          <point coord="0.500   0.500   0.000" label="X"    />
+        </path>
+      </plot1d>
+    </bandstructure>
+
+    <masstensor
+      vklem="0.0 0.0 0.0"
+      ndspem="1"
+      deltaem="0.025"      
+    >
+    </masstensor>
+  </properties>
+
+</input>
+

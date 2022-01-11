@@ -1,7 +1,4 @@
 {
-  "files_under_test": [
-    "coreoverlap.xml"
-  ],
   "coreoverlap.xml": {
     "nkpt": {
       "tol": 0,

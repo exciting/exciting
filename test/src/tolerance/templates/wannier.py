@@ -39,7 +39,5 @@ wannier_info = {'n_wannier': default.integer,
                 }
 
 # Single dictionary for all tested Wannier outputs, for dumping to JSON
-wannier_tolerances = {'files_under_test': ['TDOS_WANNIER.OUT',
-                                           'WANNIER_INFO.OUT'],
-                      'TDOS_WANNIER.OUT': tdos_wannier, 
+wannier_tolerances = {'TDOS_WANNIER.OUT': tdos_wannier, 
                       'WANNIER_INFO.OUT': wannier_info}

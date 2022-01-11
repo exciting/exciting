@@ -84,14 +84,7 @@ chi_111_out = {'energy': default.energy,
                'im': default.float,
                'modulus': default.float}
 
-optical_properties_tolerances = {'files_under_test': ['EPSILON_11.OUT',
-                                                      'EPSILON_12.OUT',
-                                                      'EPSILON_33.OUT',
-                                                      'POLARIZATION.OUT',
-                                                      'expiqr.xml',
-                                                      'KERR.OUT',
-                                                      'CHI_111.OUT'],
-                                 'EPSILON_11.OUT': epsilon_ij_out,
+optical_properties_tolerances = {'EPSILON_11.OUT': epsilon_ij_out,
                                  'EPSILON_12.OUT': epsilon_ij_out,
                                  'EPSILON_33.OUT': epsilon_ij_out,
                                  'POLARIZATION.OUT': polarization_out,
@@ -118,10 +111,7 @@ mossbauer_xml = {'numOfMeshPtsToNucRad': default.integer,
                  'contactChargeDensity': default.float,
                  'chemicalSymbol': default.str}
 
-core_properties_tolerances = {'files_under_test': ['coreoverlap.xml',
-                                                   'ELNES.OUT',
-                                                   'mossbauer.xml'],
-                              'coreoverlap.xml': coreoverlap_xml,
+core_properties_tolerances = {'coreoverlap.xml': coreoverlap_xml,
                               'ELNES.OUT': elnes_out,
                               'mossbauer.xml': mossbauer_xml}
 
@@ -133,8 +123,7 @@ efg_xml = {'efg': default.float,
                                            'I.e. ~ 0'),
            'chemicalSymbol': default.str}
 
-electric_field_properties_tolerances = {'files_under_test': ['EFG.xml'],
-                                        'EFG.xml': efg_xml}
+electric_field_properties_tolerances = {'EFG.xml': efg_xml}
 
 # Spin Properties
 spin_texture_xml = {'ist': default.integer,
@@ -148,7 +137,5 @@ lsj_xml = {'J': default.float,
            'chemicalSymbol': default.str,
            'L': default.float}
 
-spin_properties_tolerances = {'files_under_test': ['spintext.xml',
-                                                   'LSJ.xml'],
-                              'spintext.xml': spin_texture_xml,
+spin_properties_tolerances = {'spintext.xml': spin_texture_xml,
                               'LSJ.xml': lsj_xml}

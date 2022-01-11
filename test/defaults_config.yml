@@ -1,0 +1,75 @@
+# -------------------------------------
+# Test Suite Defaults
+# -------------------------------------
+
+default_files_under_test:
+   groundstate:
+      - "INFO.OUT"
+      - "evalcore.xml"
+      - "geometry.xml"
+      - "eigval.xml"
+      - "atoms.xml"
+   gw:
+      - "GW_INFO.OUT"
+      - "EFERMI_GW.OUT"
+      - "EVALQP.DAT"
+      - "VXCNN.DAT"
+      - "EPS00_GW.OUT"
+   hybrid:
+      - "INFO.OUT"
+      - "eigval.xml"
+      - "evalcore.xml"
+      - "atoms.xml"
+      - "geometry.xml"
+   bse:
+      - "EPSILON_??.OUT"
+      - "EXCITON_??.OUT"
+   tddft:
+       - "EPSILON_??.OUT"
+       - "LOSS_??.OUT"
+   rt_tddft:
+      - "JIND.OUT"
+      - "NEXC.OUT"
+      - "ETOT_RTTDDFT.OUT"
+      - "EIGVAL_??.OUT"
+      - "PROJ_??.OUT"
+   xanes:
+      - "EPSILON_??.OUT"
+      - "EXCITON_??.OUT"
+   band_structure:
+      - "bandstructure.xml"
+      - "effmass.xml"
+   dos:
+      - "dos.xml"
+   electric_properties:
+      - "EFG.xml"
+   spin_properties:
+      - "spintext.xml"
+   optical_properties:
+      - "EPSILON_??.OUT"
+      - "CHI_111.OUT"
+      - "KERR.OUT"
+   plot:
+      - "RHO3D.xml"
+      - "VCL3D.xml"
+      - "VXC3D.xml"
+      - "WF3D.xml"
+      - "ELF3D.xml"
+      - "EF3D.xml"
+   transport:
+      - "SEEBECK_11.OUT"
+      - "ELECTCOND_11.OUT"
+      - "THERMALCOND_11.OUT"
+      - "Z_11.OUT"
+   wannier:
+      - "TDOS_WANNIER.OUT"
+      - "WANNIER_INFO.OUT"
+   core_properties:
+      - "ELNES.OUT"
+      - "mossbauer.xml"
+
+# Specify each new group.
+# Any test without a group is assigned NONE
+group_execution:
+  NONE: True
+  SLOW_TESTS: False

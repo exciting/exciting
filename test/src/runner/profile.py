@@ -1,5 +1,5 @@
 """
-Build Profile
+Build profile and exciting methods
 """
 import enum
 import re
@@ -19,7 +19,7 @@ class Compiler(enum.Enum):
 compiler_enum_map = {'ifort': Compiler.intel, 'gfortran': Compiler.gcc}
 
 
-class Build_type(enum.Enum):
+class BuildType(enum.Enum):
     """
     """
     debug_serial = enum.auto()
@@ -31,19 +31,19 @@ class Build_type(enum.Enum):
     all = enum.auto()
 
 
-build_type_str_to_enum = {'exciting_serial': Build_type.serial,
-                          'exciting_mpismp': Build_type.mpiandsmp,
-                          'exciting_smp': Build_type.puresmp,
-                          'exciting_purempi': Build_type.purempi
+build_type_str_to_enum = {'exciting_serial': BuildType.serial,
+                          'exciting_mpismp': BuildType.mpiandsmp,
+                          'exciting_smp': BuildType.puresmp,
+                          'exciting_purempi': BuildType.purempi
                           }
 
 build_type_enum_to_str = {value: key for key, value in build_type_str_to_enum.items()}
 
 
 class CompilerBuild:
-    def __init__(self, compiler: Union[Compiler, str], build: Union[Build_type, str]):
+    def __init__(self, compiler: Union[Compiler, str], build: Union[BuildType, str]):
         self.compiler = Compiler[compiler] if isinstance(compiler, str) else compiler
-        self.build = Build_type[build] if isinstance(build, str) else build
+        self.build = BuildType[build] if isinstance(build, str) else build
 
 
 class ExcitingCalculation(enum.Enum):
