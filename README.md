@@ -29,6 +29,11 @@ exciting features include:
     \[[4](#citing-exciting-in-your-work)\] and core excitations
     \[[6](#citing-exciting-in-your-work)\].
 
+Documentation for developers
+----------------------------
+
+The documentation for developers can be found in the [exciting gitlab wiki](https://git.physik.hu-berlin.de/sol/exciting/-/wikis/home).
+
 Obtaining the Source
 --------------------
 
