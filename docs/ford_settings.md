@@ -41,6 +41,10 @@ basis sets is known as the most precise numerical scheme to
 solve the Kohn-Sham equations of density-functional theory (DFT),
 reaching up to micro-Hartree precision [[1](#citing-exciting-in-your-work)].
 
+## Documentation for developers
+
+The documentation for developers can be found in the [exciting gitlab wiki](https://git.physik.hu-berlin.de/sol/exciting/-/wikis/home).
+
 ## Citing exciting in Your Work
 
 If you use exciting in your work, please cite the following paper:
