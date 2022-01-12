@@ -255,4 +255,24 @@ def run_tests(main_out: str,
                                        repeated_tests)
         report.add(test_results)
 
+    # TODO(Alex/Ben/Hannah) Issue 114. Add depends-on functionality
+    # PASS DICT `explicit_test_dependencies` returned from inspecting config file... for tests we want to run
+    # test_dependencies = compute_dependency_trees(explicit_test_dependencies)
+    # batch = schedule_tests(all_test_dependencies)
+    #
+    # report = SummariseTests()
+    # for tests in batch.items():
+    #     # ADD FUNC. Copy input files from prior tests ... requires inspection of input files per test
+    #     for test_name, test_properties in tests.items():
+    #         test_results = run_single_test(test_name,
+    #                                        test_properties,
+    #                                        run_dir,
+    #                                        ref_dir,
+    #                                        main_out,
+    #                                        executable,
+    #                                        max_time,
+    #                                        handle_errors,
+    #                                        repeated_tests)
+    #         report.add(test_results)
+
     return report
