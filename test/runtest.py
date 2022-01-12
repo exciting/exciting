@@ -295,7 +295,7 @@ def run_references(settings: Defaults):
     Run all test suite cases, such that all reference outputs are regenerated.
     There are very few use cases where this should be done
 
-    TODO(Bene) Consider moving this feature to its own script.
+    TODO(Bene) Issue 116. Move this feature to its own script.
 
     :param settings: Default settings for environment variables, paths and run-time parameters.
     """
