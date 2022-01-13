@@ -1,6 +1,6 @@
 F90 = ifort
 #Define the path to the PSolver library here
-PSOLVER_PATH = 
+PSOLVER_PATH = /usr/local/lib 
 F90_OPTS = -O3 -ip -unroll  -scalar-rep -qopenmp -DUSEOMP -I$(PSOLVER_PATH)/include
 CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DIFORT -DFFTW -DPSOLVER
 F77 = $(F90)

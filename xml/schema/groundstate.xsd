@@ -2938,6 +2938,25 @@
         </xs:annotation>
       </xs:attribute>
 
+      <xs:attribute ex:importance="expert" ex:unit="" name="vha" default="exciting">
+	<xs:annotation>
+           <xs:documentation>Chooses the Poisson equation solver. Pick either "exciting" or "psolver0d" or "psolver1d" or "psolver2d" or "psolver3d", default is "exciting".
+	   </xs:documentation>
+         </xs:annotation>
+         <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="exciting"/>
+              <xs:enumeration value="psolver0d"/>
+              <xs:enumeration value="psolver1d"/>
+              <xs:enumeration value="psolver2d"/>
+              <xs:enumeration value="psolver3d"/>
+            </xs:restriction>
+         </xs:simpleType>
+       </xs:attribute>
+
+
+
+
             <xs:attribute ex:importance="expert" ex:unit="" name="ValenceRelativity" default="zora">
               <xs:annotation>
                 <xs:documentation>Relativistic Hamiltonian to use in groundstate calculations.

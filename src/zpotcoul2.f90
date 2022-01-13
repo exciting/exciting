@@ -150,35 +150,51 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
    character(len=1) :: solvertype,afunc
    character(len=64) :: chain
    
-   integer :: i1,i2,i3,n1,n2,n3,i1_max,i2_max,i3_max,isf_order
+   integer :: i1,i2,i3,n1,n2,n3,i1_max,i2_max,i3_max,isf_order, i
    real(kind=8) :: max_diff
    real(kind=8) :: sigma,length,hgrid,mu,energy,offset,acell,epot,intrhoS,intrhoF,intpotS,intpotF
    real(kind=8), dimension(:), allocatable :: fake_arr
-   real(kind=8), allocatable :: psi,rhopot(:)
+   real(kind=8), allocatable :: psi, r_v(:), c_v(:)
    type(coulomb_operator) :: kernel
    type(dictionary), pointer :: dict
    type(domain) :: dom
    integer, dimension(3) :: ndims
    real(kind=8), dimension(3) :: hgrids
+   logical psolver0d, psolver1d, psolver2d, psolver3d
+
 
 ! Initialise PSolver
-   solvertype='P'
+   psolver0d=(input%groundstate%vha.eq."psolver0d")
+   !psolver1d=(input%groundstate%vha.eqv."psolver1d")
+   !psolver0d=(input%groundstate%vha.eqv."psolver2d")
+   psolver3d=(input%groundstate%vha.eq."psolver3d")
+   if (psolver0d.eqv..True.) then
+       !write(*,*)"type F"
+       solvertype='F'
+   else if ((psolver3d.eqv..True.)) then
+       solvertype='P'
+       !write(*,*)"type P"
+   end if 
    afunc='F'
    isf_order=16
    n1=ngrid(1)
    n2=ngrid(2)
    n3=ngrid(3)
+write(*,*)n1,n2,n3
    hgrids(1)=avec(1,1)/ngrid(1)
    hgrids(2)=avec(2,2)/ngrid(2)
    hgrids(3)=avec(3,3)/ngrid(3)
-
+write(*,*)hgrids(1), hgrids(2), hgrids(3)
    dom=domain_new(units=ATOMIC_UNITS,bc=geocode_to_bc_enum(solvertype), abc= avec)!alpha_bc=onehalf*pi,beta_ac=onehalf*pi,gamma_ab=onehalf*pi,acell=ndims*hgrids)
 
    dict=>dict_new('kernel' .is. dict_new('isf_order' .is. isf_order))
    !kernel=pkernel_init(0,1,dict,solvertype,(/n1,n2,n3/),(/hgrid,hgrid,hgrid/))
    kernel=pkernel_init(0,1,dict,dom,ngrid,hgrids)
+
    call dict_free(dict)
    call pkernel_set(kernel,verbose=.true.)
+
+
 #endif
  
       fpo = fourpi / omega
@@ -358,19 +374,46 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 
 
 
+
+
 !------------------------------
 #ifdef PSOLVER
+
 ! Fourier transform interstitial potential to real space
       Call zfftifc (3, ngrid, 1, zvclir)
-      allocate(rhopot(ngrtot),fake_arr(1))
-      rhopot=dble(zvclir)
+      allocate(fake_arr(1),r_v(n1*n2*n3), c_v(n1*n2*n3))
+
+
+      if (psolver0d) then
+          call reorder(zvclir,ngrid, r_v, c_v)
+      else if (psolver3d) then
+            
+           r_v=dble(zvclir)
+           c_v=dimag(zvclir)
+           
+      end if
       offset=0
-      call H_potential('G',kernel,rhopot,fake_arr,energy,offset,.false.,quiet='yes')
-      zvclir=rhopot
-      deallocate(rhopot,fake_arr)
+
+
+
+      call H_potential('G',kernel,r_v,fake_arr,energy,offset,.false.,quiet='yes')
+      call H_potential('G',kernel,c_v,fake_arr,energy,offset,.false.,quiet='yes')
+     
+      zvclir=dcmplx(r_v,c_v)!combine complex and real solutions
+
+      if (solvertype.eq.'F') then
+      call reorder(zvclir,ngrid, r_v, c_v)
+      zvclir=dcmplx(r_v,c_v)
+      end if
+      deallocate(fake_arr, r_v, c_v)
+
+
 ! Fourier transform interstitial potential to reciprocal space
       Call zfftifc (3, ngrid, -1, zvclir)
       zvclir(1)=0d0
+      
+
+ 
 #else
 ! set zrho0 (pseudocharge density coefficient of the smallest G+p vector)
       ifg = igfft (igp0)

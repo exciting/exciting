@@ -110,12 +110,12 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
       Complex (8), Intent (In) :: sfacgp (ngvec, natmtot)
       Real (8), Intent (In) :: zn (nspecies)
       Complex (8), Intent (In) :: zrhomt (lmmaxvr, nrmax, natmtot)
-      Complex (8), Intent (In) :: zrhoir (ngrtot)
+      Complex (8), Intent (Inout) :: zrhoir (ngrtot)
       Complex (8), Intent (Out) :: zvclmt (lmmaxvr, nrmax, natmtot)
       Complex (8), Intent (Out) :: zvclir (ngrtot)
       Complex (8), Intent (Out) :: zrho0
 ! local variables
-      Integer :: is, ia, ias, l, m, lm
+      Integer :: is, ia, ias, l, m, lm, i, j
       Integer :: ir, ig, ifg
       Real (8) :: fpo, t1, t2, t3
       Complex (8) zsum, zt1, zt2
@@ -144,8 +144,26 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 !$OMP PARALLEL DEFAULT(SHARED) &
 !$OMP PRIVATE(ias)
 !$OMP DO
+   
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
+
+
+
+!call reorder(zrhoir,1)
+
+!write(*,*)"viss of"
+
+open(11,file='charge.dat', status='replace')
+do i=1,ngrtot
+write(11,*)zrhoir(i)
+end do
+ close(11)
+
+
+
+  
+
             Call zpotclmt (input%groundstate%ptnucl, &
             & input%groundstate%lmaxvr, nr(is), r(:, is), zn(is), &
             & lmmaxvr, zrhomt(:, :, ias), zvclmt(:, :, ias))
@@ -313,6 +331,18 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
          End Do
       End Do
 
+
+
+
+!-----------------------
+
+
+
+
+
+
+
+
 ! set zrho0 (pseudocharge density coefficient of the smallest G+p vector)
       ifg = igfft (igp0)
       zrho0 = zvclir (ifg)
@@ -326,6 +356,8 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
             zvclir (ifg) = 0.d0
          End If
       End Do
+      !call reorder(zvclir,0)
+      !call reorder(zrhoir,0)
 ! match potentials at muffin-tin boundary by adding homogeneous solution
       Do is = 1, nspecies
 ! compute (r/R_mt)^l
@@ -340,6 +372,7 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
             ias = idxas (ia, is)
 ! find the spherical harmonic expansion of the interstitial potential at the
 ! muffin-tin radius
+
             vilm (:) = 0.d0
 
 #ifdef USEOMP
