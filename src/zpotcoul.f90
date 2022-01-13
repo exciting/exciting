@@ -150,15 +150,7 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 
 
 
-!call reorder(zrhoir,1)
 
-!write(*,*)"viss of"
-
-open(11,file='charge.dat', status='replace')
-do i=1,ngrtot
-write(11,*)zrhoir(i)
-end do
- close(11)
 
 
 
