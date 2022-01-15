@@ -42,6 +42,7 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiir,vxpsimt)
       Complex (8), Allocatable :: ylmgq (:, :)
       Complex (8), Allocatable :: sfacgq (:, :)
       Complex (8), Allocatable :: wfcr1 (:, :, :)
+      Complex (8), Allocatable :: wfcr1p (:, :, :)
       Complex (8), Allocatable :: wf1ir (:)
       Complex (8), Allocatable :: wf2ir (:)
       Complex (8), Allocatable :: zrhomt (:, :, :)
@@ -64,6 +65,7 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiir,vxpsimt)
       Allocate (ylmgq(lmmaxvr, ngvec))
       Allocate (sfacgq(ngvec, natmtot))
       Allocate (wfcr1(ntpll, nrcmtmax, 2))
+      Allocate (wfcr1p(lmmaxvr, nrcmtmax, 2))
 !      Allocate (wf1ir(ngrtot))
 !      Allocate (wf2ir(ngrtot))
 !      Allocate (prodir(ngrtot))
@@ -155,11 +157,12 @@ call timesec(ta)
          call genWFinMT(wf2)
          call genWFonMesh(wf2)
 call timesec(tb)
-!write(*,*) 'genWFs',tb-ta
+write(*,*) 'genWFs',tb-ta
 
       zvclir (:, :) = 0.d0
       zvclmt (:, :, :, :) = 0.d0
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist3,wf1ir,wf2ir,igk,ifg,prod,prodir,zrho01,pot,potir,ta,tb) REDUCTION(+:zvclir) REDUCTION(+:zvclmt)
+
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist3,wf1ir,wf2ir,igk,ifg,prod,prodir,zrho01,pot,potir,ta,tb) REDUCTION(+:zvclir,zvclmt)
 
 
       call WFInit(prod)
@@ -271,7 +274,6 @@ vxpsimt=vxpsimt+zvclmt
 !----------------------------------------------!
 ! begin loops over atoms and species
       zvclmt (:, :, :, :) = 0.d0
-
 call timesec(ta)      
 If (.true.) Then
 Do is = 1, nspecies
@@ -287,7 +289,6 @@ Do is = 1, nspecies
 
 ! Begin loop over occupied and empty states
             Do ist3 = 1, nstsv
-               ! If (evalfv(ist3,ik) .Gt. efermi) Then
 
 ! calculate the complex overlap density
 
@@ -305,13 +306,12 @@ Do is = 1, nspecies
                 & zone, zbshthf, ntpll, zfmt, lmmaxvr, &
                 & zzero, zvcltp, ntpll) ! Returns zvcltp in SC
 
+                zvcltp=conjg(zvcltp)
 ! calculate the complex overlap density
-                Call vnlrhomt2 (.true., is, wfcr1(:, :, 1), zvcltp, &
-                & zrhomt(:, :, ias)) ! Returns in SH
+                Call vnlrhomt2 (.true., is, zvcltp, wfcr1(:, :, 1), zrhomt(:, :, ias)) ! Returns in SH
 
                 zvclmt(:,:,ias,ist3)=zvclmt(:,:,ias,ist3)+zrhomt(:, :, ias)
 ! end loop over ist3
-                 ! End If
             End Do
 ! end loops over ist2 and m1
          End Do
