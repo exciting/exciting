@@ -576,6 +576,9 @@ Subroutine init0
       Call timesec (ts1)
 !!      timeinit = timeinit + ts1 - ts0
 !
+#ifdef PSOLVER
+      call f_lib_initialize()
+#endif
       Return
 End Subroutine
 !EOC
