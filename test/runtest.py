@@ -300,10 +300,10 @@ def run_references(settings: Defaults):
     :param settings: Default settings for environment variables, paths and run-time parameters.
     """
     while True:
-        answer = input("Are you sure that you want to rerun reference(s)? " +
-                       "This will replace ALL reference(s) with reference(s) " +
+        answer = input("Are you sure that you want to rerun references? " +
+                       "This will replace ALL existing references with references " +
                        "created by the current state of the code and should only " +
-                       "be done if all tests succeed with the current version of the code.(yes/nn)\n")
+                       "be done if all tests succeed with the current version of the code.(yes/no)\n")
         if answer.lower() in ['yes', 'y']:
             break
         elif answer.lower() in ['no', 'n']:
