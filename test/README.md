@@ -84,7 +84,6 @@ python3 runtest.py
                                          If excitingtools is not installed, the test suite will provide 
                                          instructions on how to install the package.
 
-
 ## Adding new Tests:
 
 Use the script `newtestcase.py` to add a new test case.
@@ -178,6 +177,52 @@ python3 src/reference/generate_tolerance.py -for <method>
 
 which is appropriate if one manually prepares the inputs and outputs for a test case. 
 
+## Manually Preparing Test Cases
+
+The developer is also free to manually prepare test cases. Indeed, `newtestcase.py` will only copy `input.xml` and 
+any species files present in the initial directory, so more elaborate tests must be done manually. To manually prepare 
+a test case:
+
+```bash
+# Prepare inputs and tolerance in test_farm
+python3 src/reference/generate_tolerance.py -for <method>
+mkdir test_farm/method/test_case/ref
+cp <INPUT FILES> test_farm/method/test_case/ref/*
+mv tolerance_method.py test_farm/method/test_case/ref/.
+
+# Run test
+cd test_farm/method/test_case/
+export OMP_NUM_THREADS= 2
+./$EXCITINGROOT/bin/exciting_smp
+
+# Remove outputs that will not be tested
+rm <IRRELEVANT_OUPUTS> 
+```
+
+where `$EXCITINGROOT` is exciting's root directory, `<method>` corresponds to the specific exciting method,
+`<INPUT FILES>` corresponds to all inputs required for the calculation, and `<IRRELEVANT_OUPUTS>` are all files not
+under test.
+
+### Rerunning Reference Data For a Test Case
+
+The test framework does not provide a means of rerunning an existing test case to refresh reference data. Instead, this
+is done straightforwardly from the terminal:
+
+```bash
+cd test_farm/method/test_case/ref
+export OMP_NUM_THREADS= 2
+./$EXCITINGROOT/bin/exciting_smp
+```
+
+The command:
+
+```bash
+python3 runtest.py -a ref 
+```
+
+should be **AVOIDED**, and is only intended for use when a bug is found that affects all test cases (in the ground state, 
+for example). This feature has been flagged to be removed from the `runtest.py` script. See issue 116 in exciting's
+Gitlab issue tracker. 
 
 ### Test Configuration File
 

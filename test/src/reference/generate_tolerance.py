@@ -90,8 +90,7 @@ def serialise_tolerance_values(tol_dict: dict) -> dict:
 
     {'key': {'tol': numerical_tolerance, 'unit': 'unit_string'}
     """
-    output_dict = {"files_under_test": tol_dict.pop("files_under_test")}
-
+    output_dict = {}
     for file_name, file_tols in tol_dict.items():
         serialised_tol_dict = {}
         for key, value in file_tols.items():
