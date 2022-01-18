@@ -177,7 +177,7 @@ write(*,*) 'genWFs',tb-ta
 
 
          Do ist2 = 1, nomax
-!write(*,*) ist2           
+write(*,*) ist2           
            wf2ir(:) = 0.d0
            Do igk = 1, Gkqset%ngk (1, jk)
              ifg = igfft (Gkqset%igkig(igk, 1, jk))
@@ -200,7 +200,7 @@ write(*,*) 'genWFs',tb-ta
                      call WFprodrs(ist2,wf2,ist3,wf1,prod)
                      prodir(:)=conjg(wf2ir(:))*wf1ir(:)
 
-if (ik.eq.jk) then
+if ((ik.eq.jk).and.(input%groundstate%vha.ne."psolver0d")) then
                      Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, &
                     & igq0), sfacgq0, prod%mtrlm(:,:,:,1), prodir(:), zrho01) 
                      prodir(:)=prodir(:)-zrho01
@@ -209,11 +209,20 @@ endif
 
 !write(*,*) dble(sum(prodir)),dble(sum(prod%mtrlm))
 ! calculate the Coulomb potential
+#ifdef PSOLVER
+                     Call zpotcoul2 (nrcmt, nrcmtmax, nrcmtmax, rcmt, &
+                    & igq0, gqc, jlgqr, ylmgq, sfacgq, zn, prod%mtrlm(:,:,:,1), &
+                    & prodir(:), pot%mtrlm(:,:,:,1), potir(:), zrho02)
+
+#else
                      Call zpotcoul (nrcmt, nrcmtmax, nrcmtmax, rcmt, &
                     & igq0, gqc, jlgqr, ylmgq, sfacgq, zn, prod%mtrlm(:,:,:,1), &
                     & prodir(:), pot%mtrlm(:,:,:,1), potir(:), zrho02)
 
-if (ik.eq.jk) then
+#endif
+
+
+if ((ik.eq.jk).and.(input%groundstate%vha.ne."psolver0d")) then
                   Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, &
                   & igq0), sfacgq0, pot%mtrlm(:,:,:,1), potir(:), zrho01)
 
@@ -275,6 +284,7 @@ vxpsimt=vxpsimt+zvclmt
 ! begin loops over atoms and species
       zvclmt (:, :, :, :) = 0.d0
 call timesec(ta)      
+write(*,*) '----vcv----'
 If (.true.) Then
 Do is = 1, nspecies
   nrc = nrcmt(is)

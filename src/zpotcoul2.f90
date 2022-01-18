@@ -195,7 +195,6 @@ write(*,*)hgrids(1), hgrids(2), hgrids(3)
    call pkernel_set(kernel,verbose=.true.)
 
 
-#endif
  
       fpo = fourpi / omega
 ! solve Poisson's equation for the isolated charge in the muffin-tin
@@ -377,7 +376,6 @@ write(*,*)hgrids(1), hgrids(2), hgrids(3)
 
 
 !------------------------------
-#ifdef PSOLVER
 
 ! Fourier transform interstitial potential to real space
       Call zfftifc (3, ngrid, 1, zvclir)
@@ -410,25 +408,9 @@ write(*,*)hgrids(1), hgrids(2), hgrids(3)
 
 ! Fourier transform interstitial potential to reciprocal space
       Call zfftifc (3, ngrid, -1, zvclir)
-      zvclir(1)=0d0
+      if (psolver3d) zvclir(1)=0d0
       
-
  
-#else
-! set zrho0 (pseudocharge density coefficient of the smallest G+p vector)
-      ifg = igfft (igp0)
-      zrho0 = zvclir (ifg)
-      zvclir (ifg) = 0.d0
-! solve Poissons's equation in G-space for the pseudocharge
-      Do ig = 1, ngvec
-         ifg = igfft (ig)
-         If (gpc(ig) .Gt. input%structure%epslat) Then
-            zvclir (ifg) = fourpi * zvclir (ifg) / (gpc(ig)**2)
-         Else
-            zvclir (ifg) = 0.d0
-         End If
-      End Do
-#endif
 !------------------------------
 
 ! match potentials at muffin-tin boundary by adding homogeneous solution
@@ -520,7 +502,6 @@ write(*,*)hgrids(1), hgrids(2), hgrids(3)
         deallocate(vdplmt,vdplir)
       end if
 
-#ifdef PSOLVER
    call pkernel_free(kernel)
 #endif
       Return

@@ -268,7 +268,7 @@ call timesec(ta)
 !__________________________________________________________
 ! solve the first- and second-variational secular equations
             Call seceqn (ik, evalfv, evecfv, evecsv)
-
+write(*,*) 'seceqn done'
             Call timesec(ts0)
 
 !______________________________________
@@ -288,11 +288,12 @@ call timesec(ta)
 
 ! end k-point loop -------------------------------------------------------------
 
+write(*,*) 'mpi_allgatherv_ifc'
 #ifdef MPI
         call mpi_allgatherv_ifc(nkpt, inplace=.False., rlen=nstsv, rbuf=evalsv)
         if (task==7) call mpi_allgatherv_ifc(nkpt, inplace=.False., rlen=nstfv, rbuf=engyknst)
 #endif
-
+write(*,*) 'allgatherv done'
 
 call timesec(tb)
 
@@ -303,6 +304,7 @@ call timesec(tb)
 ! find the occupation numbers and Fermi energy
 !-----------------------------------------------
         Call occupy
+write(*,*) 'occupy done'
         If (rank==0) Then
 ! write out the eigenvalues and occupation numbers
             Call writeeval
@@ -317,7 +319,7 @@ call timesec(tb)
 #endif
             Call putoccsv (ik, occsv(:, ik))
         End Do
-
+write(*,*) 'putocc done'
 !-----------------------------------------------
 ! Calculate density and magnetization
 !-----------------------------------------------
@@ -483,7 +485,10 @@ call timesec(tb)
 !-----------------------------------
 ! Compute the effective potential
 !-----------------------------------
+write(*,*) 'poteff starting'
+
         Call poteff
+write(*,*) 'poteff done'
 
 !---------------
 ! Mixing

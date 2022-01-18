@@ -266,6 +266,7 @@ if (input%groundstate%hybrid%method.eq."MB") then
 
 else ! Use oepvnl
 
+      if (input%groundstate%vha.eq."psolver0d") sxs2=0d0
 
       if (allocated(vxnl)) deallocate(vxnl)
       allocate(vxnl(nstfv,nstfv,kset%nkpt))

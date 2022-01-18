@@ -57,8 +57,14 @@ Subroutine potcoul
       Call genjlgpr (lmax, gc, jlgr)
 ! solve the complex Poisson's equation
 #ifdef PSOLVER
-      Call zpotcoul2 (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
-      &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
+      if (input%groundstate%vha.eq.'exciting') then
+        Call zpotcoul (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
+        &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
+
+      else
+        Call zpotcoul2 (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
+        &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)    
+      endif
 #else
       Call zpotcoul (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
       &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
