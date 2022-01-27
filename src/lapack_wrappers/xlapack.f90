@@ -5,5 +5,7 @@ module xlapack
   use general_matrix_multiplication, only: matrix_multiply
   use hermitian_matrix_multiplication, only: hermitian_matrix_multiply
   ! decomposition
-  use singular_value_decomposition, only: svd_divide_conquer, matrix_rank
+  use singular_value_decomposition, only: xgesdd, svd_divide_conquer
+  ! utils
+  use matrix_rank, only: matrix_rank_SVD
 end module xlapack

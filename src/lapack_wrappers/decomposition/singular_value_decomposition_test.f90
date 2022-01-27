@@ -15,7 +15,7 @@ module singular_value_decomposition_test
                          complex_full_rank_matrix_5x5, &
                          complex_rank_4_matrix_5x7, &
                          complex_rank_4_matrix_7x5
-  use singular_value_decomposition, only: svd_divide_conquer, matrix_rank
+  use singular_value_decomposition, only: svd_divide_conquer
 
   implicit none
 
@@ -41,8 +41,6 @@ contains
     call test_singular_value_decomposition_real(test_report)
     
     call test_singular_value_decomposition_complex(test_report)
-
-    call test_matrix_rank(test_report)
 
     if (present(kill_on_failure)) then
       call test_report%report('singular_value_decomposition', kill_on_failure)
@@ -346,48 +344,5 @@ contains
                            'Test svd_divide_conquer with complex input and not calculating any singular vectors. &
                            Expected: Sigma should be the same as before.')
   end subroutine test_singular_value_decomposition_complex
-
-
-  !> Test matrix rank relying on singular value decomposition.
-  subroutine test_matrix_rank(test_report)
-    !> Test report object
-    type(unit_test_type) :: test_report
-
-    integer :: rank
-
-    call test_report%assert(matrix_rank(real_full_rank_matrix_5x5) == 5, &
-                           'Test matrix_rank for a real full rank matrix. &
-                           Expected: The rank is 5.')
-                           
-    call test_report%assert(matrix_rank(real_rank_4_matrix_5x7) == 4, &
-                           'Test matrix_rank for real 5 x 7 matrix with rank 4. &
-                           Expected: The rank is 4.')
-    
-    call test_report%assert(matrix_rank(real_rank_4_matrix_7x5) == 4, &
-                           'Test matrix_rank for real 7 x 5 matrix with rank 4. &
-                           Expected: The rank is 4.')
-    
-    call test_report%assert(matrix_rank(real_full_rank_matrix_5x5, tol=1._dp) == 4, &
-                           'Test matrix_rank for a real full rank matrix with a given tolerance for &
-                           defining the singular values as zero. &
-                           Expected: The rank is 4.')
-
-    call test_report%assert(matrix_rank(complex_full_rank_matrix_5x5) == 5, &
-                           'Test matrix_rank for a complex full rank matrix. &
-                           Expected: The rank is 5.')
-
-    call test_report%assert(matrix_rank(complex_rank_4_matrix_5x7) == 4, &
-                           'Test matrix_rank for complex 5 x 7 matrix with rank 4. &
-                           Expected: The rank is 4.')
-
-    call test_report%assert(matrix_rank(complex_rank_4_matrix_7x5) == 4, &
-                           'Test matrix_rank for complex 7 x 5 matrix with rank 4. &
-                           Expected: The rank is 4.')
-
-    call test_report%assert(matrix_rank(complex_full_rank_matrix_5x5, tol=10._dp) == 4, &
-                           'Test matrix_rank for a complex full rank matrix with a given tolerance for &
-                           defining the singular values as zero. &
-                           Expected: The rank is 4.')
-  end subroutine test_matrix_rank
 
 end module singular_value_decomposition_test

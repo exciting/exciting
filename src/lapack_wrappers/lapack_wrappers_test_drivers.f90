@@ -2,10 +2,14 @@
 module lapack_wrappers_test_drivers
   use modmpi, only: mpiinfo
   ! Load test drivers here
+  ! multiplication
   use vector_multiplication_test, only: vector_multiplication_test_driver
   use general_matrix_multiplication_test, only: general_matrix_multiplication_test_driver
   use hermitian_matrix_multiplication_test, only: hermitian_matrix_multiplication_test_driver
+  ! decomposition
   use singular_value_decomposition_test, only: singular_value_decomposition_test_driver
+  ! utils
+  use matrix_rank_test, only: matrix_rank_test_driver
 
   implicit none
   
@@ -13,6 +17,7 @@ module lapack_wrappers_test_drivers
   public :: lapack_wrappers_test_driver
 
 contains
+
   subroutine lapack_wrappers_test_driver(mpiglobal, kill_on_failure)
     !> mpi information
     type(mpiinfo), intent(in) :: mpiglobal
@@ -21,10 +26,14 @@ contains
     logical, optional :: kill_on_failure 
 
     ! Call test drivers here
+    ! multiplication
     call vector_multiplication_test_driver(mpiglobal, kill_on_failure)
     call general_matrix_multiplication_test_driver(mpiglobal, kill_on_failure)
     call hermitian_matrix_multiplication_test_driver(mpiglobal, kill_on_failure)
+    ! decomposition
     call singular_value_decomposition_test_driver(mpiglobal, kill_on_failure)
+    ! utils
+    call matrix_rank_test_driver(mpiglobal, kill_on_failure)
   end subroutine lapack_wrappers_test_driver
 
 end module lapack_wrappers_test_drivers

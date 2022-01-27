@@ -3,22 +3,18 @@
 !> **[[dgesdd]]**, **[[zgesdd]]**.
 module singular_value_decomposition
   use precision, only: dp
-  use constants, only: zzero, zone
   use asserts, only: assert
   use modmpi, only: mpiglobal, terminate_if_false
-  use math_utils, only: is_square, all_zero
   use lapack_f95_interfaces, only: dgesdd, zgesdd
 
   implicit none 
   
   private
-  public :: svd_divide_conquer, matrix_rank
+  public :: svd_divide_conquer, xgesdd
 
   !> Default tolerance \( \frac {\min(m, n)} {\max(m, n)} < \text{tol} \) such that 
   !> \( {\min(m, n)}  \ll {\max(m, n)} \) can be assumed
   real(dp), parameter :: default_tol_narrow_matrix = 1e-5_dp
-  !> Tolerance for defining \(\sigma_i = 0 \)
-  real(dp), parameter :: default_tol_sigma = 1e-10_dp
 
   !> Calculate the singular value decomposition (SVD) of a matrix \( \mathbf{A} \):
   !> \[
@@ -34,20 +30,18 @@ module singular_value_decomposition
   !>
   !> Note that the routine returns \( \mathbf{V}^T \), not \( \mathbf{V} \).
   interface svd_divide_conquer
-    module procedure svd_divide_and_conquer_real_dp_immutable, &
-                     svd_divide_and_conquer_real_dp_mutable, &
-                     svd_divide_and_conquer_complex_dp_immutable, &
-                     svd_divide_and_conquer_complex_dp_mutable
+    module procedure svd_divide_and_conquer_real_dp, &
+                     svd_divide_and_conquer_complex_dp
   end interface svd_divide_conquer
 
 
-  !> Determine the rank of a matrix \( \mathbf{A} \) by calculating the SVD and 
-  !> counting the non-zero singular values.
-  !> A singular value is understood as non-zero if it is 
-  !> greater than a tolerance **tol**.
-  interface matrix_rank 
-    module procedure matrix_rank_real_dp, matrix_rank_complex_dp
-  end interface matrix_rank
+  !> See [[svd_divide_and_conquer]]. Use this interface, if \(\mathbf{A}\) can be mutated.
+  !>
+  !> This routine acts on the arrays as expected by [[*gesdd]].
+  interface xgesdd
+    module procedure dgesdd_wrapper, &
+                     zgesdd_wrapper
+  end interface xgesdd
 
   contains 
 
@@ -74,7 +68,7 @@ module singular_value_decomposition
   !> without guard digits, but we know of none.
   !> Use this interface, if \(\mathbf{A}\) should be unchanged.
   !> (This documation is from netlib.org)
-  subroutine svd_divide_and_conquer_real_dp_immutable(A, sigma, U, V_T)
+  subroutine svd_divide_and_conquer_real_dp(A, sigma, U, V_T)
     !> Input matrix \( \mathbf{A} \in \mathbb{R}^{m \times n} \)
     real(dp), intent(in), contiguous :: A(:, :)
     !> Singular values (diagonal elements of \( \Sigma \)), stored as array, 
@@ -114,12 +108,12 @@ module singular_value_decomposition
 
     if(present(U) .and. present(V_T)) then
       jobz = setup_jobz(shape(A), shape(U), shape(V_T))
-      call svd_divide_and_conquer_real_dp_mutable(jobz, A_, sigma, U, V_T)
+      call dgesdd_wrapper(jobz, A_, sigma, U, V_T)
     
     else if(.not. (present(U) .or. present(V_T))) then
       jobz = 'N'
       allocate(U_(1, 1)); allocate(V_T_(1, 1))
-      call svd_divide_and_conquer_real_dp_mutable(jobz, A_, sigma, U_, V_T_)
+      call dgesdd_wrapper(jobz, A_, sigma, U_, V_T_)
     
     else 
       call terminate_if_false(.false., 'Either both, U and V_T, must be present or none of both.')
@@ -127,11 +121,13 @@ module singular_value_decomposition
 
     if (jobz == 'O' .and. size(A, dim=1) >= size(A, dim=2)) U = A_ 
     if (jobz == 'O' .and. size(A, dim=1)  < size(A, dim=2)) V_T = A_ 
-  end subroutine svd_divide_and_conquer_real_dp_immutable
+  end subroutine svd_divide_and_conquer_real_dp
 
 
-  !> See [[svd_divide_and_conquer_real_dp_immutable]]. Use this interface if \(\mathbf{A}\) can be mutated.
-  subroutine svd_divide_and_conquer_real_dp_mutable(jobz, A, sigma, U, V_T)
+  !> See [[svd_divide_and_conquer_real_dp]]. Use this interface if \(\mathbf{A}\) can be mutated.
+  !>
+  !> This routine acts on the arrays as expected by [[dgesdd]].
+  subroutine dgesdd_wrapper(jobz, A, sigma, U, V_T)
     !> Specifies options for computing all or part of the matrix U (see zgesdd):
     !> 
     !> - `'A'`: All \( m \) left and all \( n \) right singular values are calculated. 
@@ -235,7 +231,7 @@ module singular_value_decomposition
 
     call terminate_if_false(info == 0, &
                            'dgesdd failed for calculating the SVD of A.')
-  end subroutine svd_divide_and_conquer_real_dp_mutable
+  end subroutine dgesdd_wrapper
 
 
   !> Calculate the singular value decomposition (SVD) of a matrix 
@@ -261,7 +257,7 @@ module singular_value_decomposition
   !> without guard digits, but we know of none.
   !> Use this interface, if \(\mathbf{A}\) should be unchanged.
   !> (This documation is from netlib.org)
-  subroutine svd_divide_and_conquer_complex_dp_immutable(A, sigma, U, V_H)
+  subroutine svd_divide_and_conquer_complex_dp(A, sigma, U, V_H)
     !> Input matrix \( \mathbf{A} \in \mathbb{C}^{m \times n} \)
     complex(dp), intent(in), contiguous :: A(:,:)
     !> Singular values (diagonal elements of \( \Sigma \)), stored as array, 
@@ -301,20 +297,22 @@ module singular_value_decomposition
 
     if(present(U) .and. present(V_H)) then
       jobz = setup_jobz(shape(A), shape(U), shape(V_H))
-      call svd_divide_and_conquer_complex_dp_mutable(jobz, A_, sigma, U, V_H)
+      call zgesdd_wrapper(jobz, A_, sigma, U, V_H)
     else
       jobz = 'N'
       allocate(U_(1, 1)); allocate(V_H_(1, 1))
-      call svd_divide_and_conquer_complex_dp_mutable(jobz, A_, sigma, U_, V_H_)
+      call zgesdd_wrapper(jobz, A_, sigma, U_, V_H_)
     end if
 
     if (jobz == 'O' .and. size(A, dim=1) >= size(A, dim=2)) U = A_ 
     if (jobz == 'O' .and. size(A, dim=1)  < size(A, dim=2)) V_H = A_ 
-  end subroutine svd_divide_and_conquer_complex_dp_immutable
+  end subroutine svd_divide_and_conquer_complex_dp
 
 
-  !> See [[svd_divide_and_conquer_complex_dp_immutable]]. Use this interface, if \(\mathbf{A}\) can be mutated.
-  subroutine svd_divide_and_conquer_complex_dp_mutable(jobz, A, sigma, U, V_H, tol)
+  !> See [[svd_divide_and_conquer_complex_dp]]. Use this interface, if \(\mathbf{A}\) can be mutated.
+  !>
+  !> This routine acts on the arrays as expected by [[zgesdd]].
+  subroutine zgesdd_wrapper(jobz, A, sigma, U, V_H, tol)
     !> Specifies options for computing all or part of the matrix U (see zgesdd):
     !> 
     !> - `'A'`: All \( m \) left and all \( n \) right singular values are calculated. 
@@ -434,81 +432,7 @@ module singular_value_decomposition
     
     call terminate_if_false(info == 0, &
                            'zgesdd failed for calculating the SVD of A.')
-  end subroutine svd_divide_and_conquer_complex_dp_mutable
-
-
-! matrix_rank
-
-  !> Calculate the rank of a matrix \( \mathbf{A} \) by determining
-  !> the singular value decomposition. The rank is 
-  !> given by the number of non-zero singular values.
-  !> A singular value is understood as non-zero if it is 
-  !> greater than a tolerance **tol**.
-  function matrix_rank_real_dp(A, tol) result(rank)
-    !> Input matrix \( \mathbf{A} \)
-    real(dp), intent(in), contiguous :: A(:, :)
-    !> Tolerance for defining 
-    !> \(\sigma_i \equiv 0 \Leftrightarrow \sigma_i \le \text{tol} \)
-    real(dp), intent(in), optional :: tol 
-  
-    integer :: rank
-
-    real(dp) :: tol_
-    real(dp), allocatable :: sigma(:)
-    integer :: i
-
-    tol_ = default_tol_sigma
-    if(present(tol)) tol_ = tol
-
-    allocate(sigma(min(size(A, dim=1), size(A, dim=2))))
-    call svd_divide_conquer(A, sigma)
-
-    rank = size(sigma)
-    do i=size(sigma), 1, -1
-      if (all_zero(sigma(i), tol=tol_)) then
-        rank = rank - 1
-      else  
-        exit
-      end if
-    end do
-  end function matrix_rank_real_dp
-
-
-  !> Calculate the rank of a matrix \( \mathbf{A} \) by determining
-  !> the singular value decomposition. The rank is 
-  !> given by the number of non-zero singular values.
-  !> A singular value is understood as non-zero if it is 
-  !> greater than a tolerance **tol**.
-  function matrix_rank_complex_dp(A, tol) result(rank)
-    !> Input matrix \( \mathbf{A} \)
-    complex(dp), intent(in), contiguous :: A(:, :)
-    !> Tolerance for defining 
-    !> \(\sigma_i \equiv 0 \Leftrightarrow \sigma_i \le \text{tol} \)
-    real(dp), intent(in), optional :: tol 
-  
-    integer :: rank
-
-    real(dp) :: tol_
-    real(dp), allocatable :: sigma(:)
-    integer :: i
-
-    tol_ = default_tol_sigma
-    if(present(tol)) tol_ = tol
-
-    allocate(sigma(min(size(A, dim=1), size(A, dim=2))))
-    
-    call svd_divide_conquer(A, sigma)
-
-    rank = size(sigma)
-    do i=size(sigma), 1, -1
-      if (all_zero(sigma(i), tol=tol_)) then
-        rank = rank - 1
-      else  
-        exit
-      end if
-    end do
-  end function matrix_rank_complex_dp
-
+  end subroutine zgesdd_wrapper
 
 ! Utils
 
