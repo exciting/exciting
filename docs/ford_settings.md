@@ -57,6 +57,8 @@ Additionally, if you use specific features, please cite the corresponding papers
 
 [3]: [Time-dependent density functional theory versus Bethe–Salpeter equation: an all-electron study. ***Phys. Chem. Chem. Phys.***, 2009, **11**, 4451-4457.](https://doi.org/10.1039/B903676H)
 
-[4]: [Accurate all-electron G0W0 quasiparticle energies employing the full-potential augmented plane-wave method. Phys. Rev. B **94**, 035118 (2016).](https://doi.org/10.1103/PhysRevB.94.035118)
+[4]: [All-electron full-potential implementation of real-time TDDFT in exciting. Electron. Struct. **3**, 037001 (2021).](https://doi.org/10.1088/2516-1075/ac0c26)
 
-[5]: [Addressing electron-hole correlation in core excitations of solids: An all-electron many-body approach from first principles. Phys. Rev. B **95**, 155121 (2017).](https://doi.org/10.1103/PhysRevB.95.155121)
+[5]: [Accurate all-electron G0W0 quasiparticle energies employing the full-potential augmented plane-wave method. Phys. Rev. B **94**, 035118 (2016).](https://doi.org/10.1103/PhysRevB.94.035118)
+
+[6]: [Addressing electron-hole correlation in core excitations of solids: An all-electron many-body approach from first principles. Phys. Rev. B **95**, 155121 (2017).](https://doi.org/10.1103/PhysRevB.95.155121)

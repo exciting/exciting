@@ -17,7 +17,7 @@ module math_utils_test
                         mod1, &
                         shuffle_vector, &
                         mask_vector, &
-                        round_down
+                        round_down                        
   use mock_arrays, only: real_symmetric_matrix_5x5, &
                          real_orthogonal_matrix_5x5, &
                          real_matrix_5x7, &
@@ -32,7 +32,6 @@ module math_utils_test
   real(dp), parameter :: identity_3d(3, 3) = reshape([1.0_dp, 0.0_dp, 0.0_dp, &
                                                       0.0_dp, 1.0_dp, 0.0_dp, &
                                                       0.0_dp, 0.0_dp, 1.0_dp], [3, 3])
-    
   private
   public :: math_utils_test_driver
 
@@ -43,8 +42,8 @@ contains
     !> mpi information
     type(mpiinfo), intent(in) :: mpiglobal
     !> Kill the program before the test driver finishes
-    !> if an assertion fails 
-    logical, optional :: kill_on_failure  
+    !> if an assertion fails
+    logical, optional :: kill_on_failure
     !> test object
     type(unit_test_type) :: test_report
     !> Number of assertions
@@ -68,7 +67,7 @@ contains
     call test_diag(test_report)
     
     call test_kronecker_product(test_report)
-    
+
     call test_determinant(test_report)
 
     call test_mod1(test_report)
@@ -76,7 +75,7 @@ contains
     call test_mask_vector(test_report)
 
     call test_round_down(test_report)
-
+  
     ! report results
     if (present(kill_on_failure)) then
       call test_report%report('math_utils', kill_on_failure)
@@ -127,7 +126,7 @@ contains
     !> tolerance
     real(dp), parameter :: tol = 1.e-10_dp
     !> test input
-    real(dp) :: a(3,4) 
+    real(dp) :: a(3,4)
     !> test input
     complex(dp) :: b(3,4)
 
@@ -261,7 +260,7 @@ contains
                     & Expected: [zone,zone,zone] ' )
   end subroutine test_diag
 
-  
+
   !> Test kronecker_product for real input
   subroutine test_kronecker_product(test_report)
 
@@ -270,7 +269,7 @@ contains
     !> test input
     real(dp) :: triv(2) = [1.0_dp, 1.0_dp], &
                 non_triv(2) = [1.0_dp, 2.0_dp], &
-                
+
                 v_1(2) = [ 1.0_dp, 2.0_dp ], &
                 v_2(3) = [ 3.0_dp, 4.0_dp, 5.0_dp ], &
                 v_3(4) = [ 6.0_dp, 7.0_dp, 8.0_dp, 9.0_dp ], &
@@ -279,11 +278,11 @@ contains
                             32.0_dp,  36.0_dp,  30.0_dp,  35.0_dp,  40.0_dp,  45.0_dp,  &
                             36.0_dp,  42.0_dp,  48.0_dp,  54.0_dp,  48.0_dp,  56.0_dp,  &
                             64.0_dp,  72.0_dp,  60.0_dp,  70.0_dp,  80.0_dp,  90.0_dp ]
-                
+
     real(dp), allocatable :: kron_prod_real(:)
     complex(dp) :: ref_complex(24)
     complex(dp), allocatable :: kron_prod_complex(:)
-    
+
     ! test if the function reproduces the correct structure:
     kron_prod_real = kronecker_product(triv, triv, non_triv)
     call test_report%assert(size(kron_prod_real)==8, &
@@ -324,11 +323,11 @@ contains
 
     kron_prod_complex = kronecker_product(v_1*zone, v_2*zone, v_3*zone)
     ref_complex = ref * zone
-    call test_report%assert(all_close(kron_prod_complex, ref_complex), & 
+    call test_report%assert(all_close(kron_prod_complex, ref_complex), &
                     'Test kronecker_product for complex input: The first input has dimension 2, the second 3 and the third 4. &
                     Expected: Complex vector that is the kronecker product of the input vectors.')
     deallocate(kron_prod_complex)
-    
+
   end subroutine test_kronecker_product
 
 
@@ -371,7 +370,7 @@ contains
   subroutine test_mod1(test_report)
     !> Unit test report
     type(unit_test_type), intent(inout) :: test_report
-    
+
     call test_report%assert(mod1(4, 8) ==  4, &
                'Test mod1(4, 8). &
                Expected: 4')
@@ -383,15 +382,15 @@ contains
     call test_report%assert(mod1(8, 4) ==  4, &
                'Test mod1(8, 4). &
                Expected: 4')
-    
+
     call test_report%assert(mod1(9, 4) ==  1, &
                'Test mod1(9, 4). &
                Expected: 4')
-    
+
     call test_report%assert(mod1(-4, 8) == 4, &
                'Test mod1(-4, 8). &
                Expected: 4')
-               
+
     call test_report%assert(mod1(-9, 4) == -1, &
                'Test mod1(-9, 4). &
                Expected: -1')
@@ -407,7 +406,7 @@ contains
     call test_report%assert(mod1(8, -4) == -4, &
                'Test mod1(8, -4). &
                Expected: -4')
-    
+
     call test_report%assert(mod1(-5, -8) == -5, &
                'Test mod1(-5, -8). &
                Expected: -5')
@@ -447,7 +446,7 @@ contains
     subroutine test_round_down(test_report)
       !> Our test object
       type(unit_test_type), intent(inout) :: test_report
-   
+
       !scalar positive x; scalar positive n
       call test_report%assert(all_close(round_down(2123.77963_dp, 3), 2123.779_dp), &
                               'Test function round_down for scalar with scalar n = 3. &
@@ -494,5 +493,6 @@ contains
                               Expected result: [2123.77_dp, 212.377_dp, 2.12377_dp]')
    
    end subroutine test_round_down
-   
+
+
 end module math_utils_test
