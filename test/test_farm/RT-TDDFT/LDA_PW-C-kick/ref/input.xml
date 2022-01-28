@@ -38,7 +38,7 @@
           nempty="20">
 
           <realTimeTDDFT
-            propagator="AETRS"                                                                                                                                               
+            propagator="RK4"                                                                                                                                              
             timeStep="0.25d0"                                                                                                                                                
             endTime="10.0d0"                                                                                                                                                 
             readPmatBasis="false"                                                                                                                                            
