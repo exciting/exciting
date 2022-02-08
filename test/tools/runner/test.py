@@ -62,8 +62,10 @@ def run_single_test(test_farm:str, main_out:str, test_name:str, run_dir:str,
         report.writeToTerminal()    
         report.assert_errors(handle_errors)
         return report
+
     print('Run succeeded')
-    print(os.path.join(test_dir, run_dir))
+    full_run_dir = os.path.join(test_dir, run_dir)
+    print(full_run_dir)
 
     # Flatten run directory
     flatten_directory(os.path.join(test_dir, run_dir))
@@ -87,11 +89,15 @@ def run_single_test(test_farm:str, main_out:str, test_name:str, run_dir:str,
         try:
             run_data = parser_chooser(run_path)
         except OSError:
-            test_results.append(Failure(Failure_code.FILENOTEXIST, err_msg=file_name))
+            test_results.append(Failure(error=Failure_code.FILENOTEXIST,
+                                        failure_code=Failure_code.FILENOTEXIST,
+                                        err_msg=file_name))
             report.collectTest(test_results)
             continue
         except ErroneousFileError:
-            test_results.append(Failure(Failure_code.ERRORFILE, err_msg=file_name))
+            test_results.append(Failure(error=Failure_code.ERRORFILE,
+                                        failure_code=Failure_code.ERRORFILE,
+                                        err_msg=file_name))
             report.collectTest(test_results)
             continue
         

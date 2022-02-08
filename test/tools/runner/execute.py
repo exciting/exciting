@@ -10,7 +10,7 @@ import time
 def execute(path:str, executable_str:str, mainOut:str, maxTime:int):
     """
     Executes a exciting run, checks if it was successfull.
-    :param path:          path to directory where the execuatble will be run
+    :param path:          path to directory where the executable will be run
     :param executable_str:    executable command (poorly-named). For example:
                               exciting_serial exciting_smp or mpirun -np NP exciting_mpismp
     :param mainOut:       main output file (INFO.OUT)
@@ -25,11 +25,11 @@ def execute(path:str, executable_str:str, mainOut:str, maxTime:int):
 
     try:
         os.chdir(os.path.join(current_dir, path))
-    except:
+    except OSError:
         raise OSError('Could not enter %s.'%path)
 
     t_start = time.time()
-    executable = Popen(executable_str.split(), stdout = PIPE)
+    executable = Popen(executable_str.split(), stdout=PIPE)
     
     try:
         errMess = executable.communicate(timeout=maxTime)[0]
@@ -41,7 +41,6 @@ def execute(path:str, executable_str:str, mainOut:str, maxTime:int):
     
     executable.wait()
     t_end = time.time()
-
     os.chdir(current_dir)
     
     return runSucc, errMess, t_end-t_start
