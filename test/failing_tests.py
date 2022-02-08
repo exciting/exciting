@@ -44,7 +44,6 @@ failing_tests = [
      'tags': [CompilerBuild(Compiler.gcc, Build_type.all)]
     }, 
 
-
     # TODO(Sven) Issue #39 
     # Andris comment: I have tried several runs with a different number of threads and MPI ranks, 
     # but the calculations always converged in 19-20 iterations and always to the same energy with the threshold.
@@ -85,7 +84,15 @@ failing_tests = [
     {'name':'groundstate-LDA_PW-properties-transport-Si',
      'comment':'Test is flakey when run in the CI with GCC builds: Test outputs are not written',
      'tags': [CompilerBuild(Compiler.gcc, Build_type.all)]
-    }
+    },
+
+    # Tested by Alex and Santiago on Debian with (ifort 2019, MKL) and (GCC 8, system lapack openMPI) and Mac Catalina
+    # with (GCC 9, openBLAS 0.3.12) - all fine. Also fine in the CI with serial debug build.
+    {'name': 'groundstate-GGA_PBE-iora-Ar',
+     'comment': 'Test does not run in exciting\'s Gitlab CI in serial, however it is fine when tested on both '
+                'Debian and Mac systems with Intel and GCC. Disabled to allow further oxygen patches',
+     'tags':[CompilerBuild(Compiler.gcc, Build_type.serial)]
+     }
 ]
 
 # These always have to be skipped else the suite hangs 

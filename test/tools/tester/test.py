@@ -52,13 +52,17 @@ class Test(list):
                          'array':0,
                          'string':0,
                          'integer':0,
-                         'reference':0}
+                         'reference':0,
+                         'File does not exist':0,
+                         'file_error':0}
 
         failure_code_to_str = {Failure_code.FORMAT: 'format',
                                   Failure_code.FLOAT: 'float',
                                   Failure_code.ARRAY: 'array',
                                   Failure_code.STRING: 'string',
-                                  Failure_code.INT: 'integer'
+                                  Failure_code.INT: 'integer',
+                                  Failure_code.FILENOTEXIST: 'File does not exist',
+                                  Failure_code.ERRORFILE: 'file_error'
                                     }
 
         for failure in self:
