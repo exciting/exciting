@@ -46,7 +46,7 @@
           tolFloat  = '1e-5'
           tolMSE    = '1e-5'
           condition = '0 0'
-          ignore    = ''/>
+          ignore    = 'vec'/>
   <test   file      = 'TDOS_WANNIER.OUT'
           tolFloat  = '1e-3'
           tolMSE    = '1e-3'

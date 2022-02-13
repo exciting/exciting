@@ -43,7 +43,7 @@
           ignore    = ''/>
   <test   file      = 'ELECTCOND_11.OUT'
           tolFloat  = '1'
-          tolMSE    = '4e12'
+          tolMSE    = '6e12'
           condition = '0 0'
           ignore    = ''/>
   <test   file      = 'THERMALCOND_11.OUT'

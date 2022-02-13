@@ -5,7 +5,7 @@
 !
 Subroutine findsymgenr (nc, mt, ngen, nsgen, gen, orbgen)
       Use modsym
-      use sorting, only: sort_index_1d
+      use sorting, only: sortidx
       Implicit None
   ! arguments
       Integer, Intent (In) :: nc
@@ -31,7 +31,7 @@ Subroutine findsymgenr (nc, mt, ngen, nsgen, gen, orbgen)
          End Do
       End Do
   ! sort orbits according to their number of elements
-      idx = sort_index_1d( nc, norb)
+      Call sortidx (nc, dble(norb), idx)
   ! add largest generator to set
       ngen = 1
       gen (:) = 0
