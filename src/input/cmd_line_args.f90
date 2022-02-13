@@ -68,10 +68,8 @@ contains
             j = INDEX(arg, '=')
             if (j /= 0) then
                end = j - 1
-               write(*,*) 'Found =', arg(:end)
             else
                end = len(trim(arg))
-               write(*,*) 'No =', arg(:end)
             end if
    
             select case (arg(:end))

@@ -972,7 +972,7 @@ module mod_opt_tetra
 !* Initialization
 !**************************************************************
   subroutine opt_tetra_init( self, kset, tetra_type, reduce)
-    use sorting
+    use sorting, only: sort_index_1d, sort_index_2d
     !
     ! This routine set the corners and additional points for each tetrahedra
     !
@@ -1027,7 +1027,7 @@ module mod_opt_tetra
     ivvec0(i) = 1
     divvec(i,i) = -1
     
-    ! Devide a subcell into 6 tetrahedra
+    ! Divide a subcell into 6 tetrahedra
     itet = 0
     do i1 = 1, 3
       do i2 = 1, 3

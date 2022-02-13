@@ -4,8 +4,8 @@ module math_test_drivers
   use modmpi, only: mpiinfo
   ! Load test drivers here
   use math_utils_test, only: math_utils_test_driver
-
   use grid_utils_test, only: grid_utils_test_driver
+  use sorting_test, only: sorting_test_driver
 
   private
   public :: math_test_driver
@@ -20,8 +20,9 @@ contains
 
     ! Call test drivers here
     call math_utils_test_driver(mpiglobal, kill_on_failure)
-    
     call grid_utils_test_driver(mpiglobal, kill_on_failure)
+    call sorting_test_driver(mpiglobal, kill_on_failure)
+
   end subroutine math_test_driver
 
 end module math_test_drivers
