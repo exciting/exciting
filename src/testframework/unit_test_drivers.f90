@@ -51,17 +51,17 @@ contains
       if (run%lapack .or. run%all) then
          call lapack_wrappers_test_driver(mpiglobal, kill_on_failure)
       end if
-      
-      if (run%mpi .or. run%all) then         
+
+      if (run%mpi .or. run%all) then
          call mpi_test_driver(mpiglobal, kill_on_failure)
       end if
-      
+
       if (run%gw .or. run%all) then
          ! Placeholder
          !call gw_test_driver(mpiglobal, kill_on_failure)
       end if
 
-      if (run%structure .or. run%all) then         
+      if (run%structure .or. run%all) then
          call structure_test_driver(mpiglobal, kill_on_failure)
       end if
 

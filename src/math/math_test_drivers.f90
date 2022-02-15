@@ -8,6 +8,7 @@ module math_test_drivers
   use matrix_exp_test, only: matrix_exp_test_driver
   use integration_test, only: integration_test_driver
   use normalize_test, only: normalize_test_driver
+  use sorting_test, only: sorting_test_driver
 
   private
   public :: math_test_driver
@@ -27,6 +28,7 @@ contains
     call matrix_exp_test_driver(mpiglobal, kill_on_failure)
     call integration_test_driver(mpiglobal, kill_on_failure)
     call normalize_test_driver(mpiglobal, kill_on_failure)
+    call sorting_test_driver(mpiglobal, kill_on_failure)
 
   end subroutine math_test_driver
 

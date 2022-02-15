@@ -175,7 +175,7 @@ subroutine dielmat
 !--------------------------
             if (intraband.and.(.not.drude)) then
                 do ist = 1, nstsv
-                    zt1 = occsvt(ist)*pmat(a,ist,ist)*conjg(pmat(b,ist,ist))
+                    zt1 = occmax*pmat(a,ist,ist)*conjg(pmat(b,ist,ist))
                     t1 = (evalsvt(ist)-efermi)/input%groundstate%swidth
                     wplas = wplas+dble(zt1)*sdelta(input%groundstate%stypenumber,t1)/input%groundstate%swidth
                 end do

@@ -138,7 +138,7 @@ def parser_chooser(full_file_name: str):
 
     files_with_parsers = [name for name in _file_to_parser.keys()]
     if not (file_name in files_with_parsers):
-        sys.exit("File does not have a parser:" + file_name)
+        sys.exit(f"File does not have a parser: {file_name}")
 
     parser = _file_to_parser[file_name]
 
@@ -147,6 +147,6 @@ def parser_chooser(full_file_name: str):
 
     else:
         if not os.path.exists(full_file_name):
-            raise OSError('File path not valid:' + full_file_name)
+            raise OSError(f'File path not valid: {full_file_name}')
         data = parser(full_file_name)
         return container_converter(data)

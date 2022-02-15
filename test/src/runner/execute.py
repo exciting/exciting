@@ -1,7 +1,7 @@
 # TODO(Bene): Robust method to check if a calculation was successfull or not.
 #                So far the functions checks if INFO.OUT is present but that is not good
 #                since the run can crash in a scl cycle.
-# TODO(Alex) This can be combined with the runner written for ASE's exciting calculator
+# TODO(Alex) This can be combined with the runner written for the exciting calculator
 
 import os
 from subprocess import PIPE, Popen, TimeoutExpired
@@ -42,7 +42,6 @@ def execute(path: str, executable_str: str, mainOut: str, maxTime: int):
 
     executable.wait()
     t_end = time.time()
-
     os.chdir(current_dir)
 
     return run_succ, err_mess, t_end - t_start
