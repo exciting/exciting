@@ -35,7 +35,7 @@ module cmd_line_args
       logical :: math = .false.      !! math
       logical :: lapack = .false.    !! lapack_wrapperss
       logical :: gw = .false.        !! GW
-      logical :: structure = .false. !! structure 
+      logical :: structure = .false. !! structure
       logical :: mpi = .false.       !! modmpi
    contains
       procedure :: init => set_unit_tests
@@ -70,10 +70,8 @@ contains
             j = INDEX(arg, '=')
             if (j /= 0) then
                end = j - 1
-               write(*,*) 'Found =', arg(:end)
             else
                end = len(trim(arg))
-               write(*,*) 'No =', arg(:end)
             end if
 
             select case (arg(:end))

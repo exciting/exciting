@@ -26,7 +26,7 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
       Use mod_eigenvalue_occupancy, Only: nstfv
       Use sclcontroll
       Use mod_kpoint, Only: nkpt
-      use sorting, only: sort_index_1d
+      use sorting, only: sortidx
 !
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
@@ -681,7 +681,7 @@ endif
   !##########################
  !     write(*,*) i
       rd = real (d)
-      idx = sort_index_1d( nstfv, rd)
+      Call sortidx (nstfv, rd(:), idx(:))
       Do j = 1, nstfv
 !         write(*,*) rd(idx(j))
          evecfv (1:n, j, ispn) = v (1:n, idx(j))
@@ -814,8 +814,8 @@ if (SeparateDegenerates) then
       enddo 
       if (.not.sorted) then  ! we sort the eigenvals and eigenvecs
         allocate(idx(nstfv))
-        idx = sort_index_1d( nstfv, evalfv(:,ispn))
-        allocate(v(n,nstfv))        
+        Call sortidx (nstfv, evalfv(:,ispn), idx(:))
+        allocate(v(n,nstfv))
         allocate(evals(nstfv))
         v(1:n,:)=evecfv(1:n,:,ispn)
         evals(:)=evalfv(:,ispn)
