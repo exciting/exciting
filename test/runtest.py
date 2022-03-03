@@ -192,6 +192,20 @@ def set_test_names_from_cmd_line(test_farm: str, input_tests: List[str]) -> List
     return tests_to_run
 
 
+def set_mpi_command() -> str:
+    """ Set the MPI command.
+
+    mpirun (at least for openMPI) cannot automatically run as root.
+    Docker executes commands as root, so one needs to append a flag to mpirun.
+
+    :return mpi_cmd: mpi run command.
+    """
+    mpi_cmd = "mpirun"
+    if os.getenv('OPENMPI_IN_DOCKER') is not None:
+        mpi_cmd += " --allow-run-as-root"
+    return mpi_cmd
+
+
 def set_execution_str(build_type: BuildType, np: int, settings: Defaults) -> str:
     """
     Set the execution string.
@@ -207,7 +221,8 @@ def set_execution_str(build_type: BuildType, np: int, settings: Defaults) -> str
         raise FileNotFoundError(f'Could not find an exciting binary in {settings.exe_dir}')
 
     if build_type in [settings.binary_purempi, settings.binary_mpismp]:
-        executable_string = 'mpirun -np %i %s' % (np, executable_string)
+        mpi_cmd = set_mpi_command()
+        executable_string = f'{mpi_cmd} -np {np} {executable_string}'
 
     return executable_string
 

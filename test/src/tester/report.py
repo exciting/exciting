@@ -93,7 +93,7 @@ class TestResults:
 
     def assert_errors(self, handle_errors: bool, fail_if_unevaluated=True):
         """
-        Throws if the any assertions for if a test case failed.
+        Throws an assertion if any regression error occurs, or test case fails to run.
 
         Failure is defined as any comparison/assertion failing for a given file, or if a reference/target file
         could not be opened (implying either the exciting run did not write it, or the reference is missing).
@@ -102,6 +102,7 @@ class TestResults:
         :param bool fail_if_unevaluated: If true, unevaluated files count as a failure
         """
         if not handle_errors:
+            assert self.completed, "Test execution failed to complete"
             if fail_if_unevaluated:
                 assert (len(self.files_with_errors) == 0) and (len(self.unevaluated_files) == 0), "Test case failed"
             else:
