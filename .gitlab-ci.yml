@@ -76,7 +76,7 @@ test-debian-buster-GCC8-mpiandsmp:
     - pip3 install -e tools/exciting_tools
     # Allow mpirun to run as root (mpirun typically shouldn't be run as root)
     # See this ref: https://github.com/open-mpi/ompi/issues/4451
-    - sed -i '/input_options/s/mpirun -np/mpirun --allow-run-as-root -np /g' test/runtest.py
+    - export OPENMPI_IN_DOCKER=True
     - cd test && pytest test_functions
     - python3 runtest.py -a run -e exciting_mpismp -repeat-tests 2
     - cd ../tools/exciting_tools && pytest
