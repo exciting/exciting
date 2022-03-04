@@ -66,7 +66,7 @@ def test_parse_value_regex():
 def test_failures_with_parse_value_regex():
     """
     This fails for timings because matching 'Initialization' returns ':        15.46',
-    (for example), and the colon cannot be interpretted by eval()
+    (for example), and the colon cannot be interpreted by eval()
     """
     test_string = """
      Initialization                             :        15.46

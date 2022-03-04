@@ -6,7 +6,10 @@ setup(name='excitingtools',
       author='SOL Group',
       author_email='abuccheri@physik.hu-berlin.de',  # Add a point of contact
       packages=['excitingtools'],
+      include_package_data=True,
       install_requires=[
           'numpy>=1.14.5',
-          'matplotlib>=2.2.0']
+          'matplotlib>=2.2.0'],
+      extras_requires=[
+          'ase=>3.20.0']
       )

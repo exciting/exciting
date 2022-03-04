@@ -102,3 +102,23 @@ One could also structure the data like:
 ```
 where the less serialised data removes the key nesting.
 
+## Uploading to PyPi
+
+excitingtools is available as a separate package on PyPi. In order to upload a new version:
+
+```bash
+# Ensure twine is installed
+pip3 install twine
+# Build the wheels
+cd $EXCITINGROOT/tools/exciting_tools
+python3 setup.py sdist bdist_wheel
+
+# Test the distribution and uploading (one requires a test-PyPi account)
+twine check dist/*
+twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+
+# Upload to PyPi
+twine upload dist/*
+```
+
+Before doing so, please ensure the semantic versioning is appropriately updated in `setup.py`.

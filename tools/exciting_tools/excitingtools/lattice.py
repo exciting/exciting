@@ -4,32 +4,42 @@ Functions that operate on lattice vectors
 import numpy as np
 
 from .math_utils import triple_product
-import xml.etree.cElementTree as ET
 
 
-def parse_lattice_vectors(file_path:str) -> np.array:
+def check_lattice(lattice: list):
+    """Check lattice vector consistency.
+
+    Checks that the user supplies three different lattice vectors.
+    One could also check the lattice vector angles.
+
+    :param list lattice: Lattice vectors
     """
-    Parse the lattice coordinate from the input.xml. Units are in bohr.
-    :param file_path:    relative path to the input.xml
-    :return lattvec:    matrix that holds the lattice vectors.
+    if len(lattice) != 3:
+        raise ValueError('lattice argument expected to have 3 elements')
+
+    for i in range(0, 3):
+        if len(lattice[i]) != 3:
+            raise ValueError(f'lattice vector {i} expected to have 3 components. Instead has {len(lattice[i])}')
+
+    for i, j in [(0, 1), (1, 2), (0, 2)]:
+        if np.allclose(lattice[i], lattice[j], atol=1.e-6):
+            raise ValueError(f'lattice vectors {i} and {j} are numerically equivalent')
+
+
+def check_lattice_vector_norms(lattice: list, tol=1.e-6):
+    """ Check the norm of each lattice vector.
+
+    :param list lattice: Lattice vectors
+    :param tol: Optional tolerance for what is considered numerically zero.
     """
-    file_name = 'input.xml'
-    treeinput = ET.parse(file_path)
-    if file_path.split('/')[-1] != file_name:
-        file_path = os.path.join(file_path, fileName)
+    norms = np.empty(shape=3)
 
-    treeinput = ET.parse(file_path)
-    root_input = treeinput.getroot()
+    for i in range(0, 3):
+        norms[i] = np.linalg.norm(lattice[i])
 
-    try:
-        scale = float(root_input.find("structure").find("crystal").attrib["scale"])
-    except Exception:
-        scale = 1.0
-    lat_vec = [np.array(val.text.split(), dtype=float)*scale for val in root_input.find("structure").find("crystal").findall("basevect")]
-    lat_vec = np.array(lat_vec).transpose()
-    
-    return lat_vec
-
+    zero_norms = np.where(norms < tol)[0]
+    for i in zero_norms:
+        raise ValueError(f'lattice vector {i} has a norm of zero')
 
 
 def parallelpiped_volume(lattice_vectors: np.ndarray) -> float:
@@ -61,8 +71,8 @@ def reciprocal_lattice_vectors(a: np.ndarray) -> np.ndarray:
     return b
 
 
-#TODO(Bene) This needs cleaning up. Missing any documenting maths. Not at all clear what's happening
-def plane_transformation(rec_lat_vec:np.array, plot_vec:np.array) -> np.array:
+# TODO(Bene) This needs cleaning up. Missing any documenting maths. Not at all clear what's happening
+def plane_transformation(rec_lat_vec: np.array, plot_vec: np.array) -> np.array:
     """
     Take reciprocal lattice vectors and ONS of a plane in rec. lat. coordinates where the first two vectors span the plane and the third is normal to them 
     and calculate a matrix that transforms points in the plane to the xy plane in cartesian coordinates.
@@ -75,10 +85,10 @@ def plane_transformation(rec_lat_vec:np.array, plot_vec:np.array) -> np.array:
     # transform plot vec in cartesian coordinates
     plot_vec = (rec_lat_vec.dot(plot_vec)).transpose()
     # extend plot vec to an orthogonal system
-    plot_vec = np.array([(plot_vec[1] - plot_vec[0]) / norm(plot_vec[1] - plot_vec[0]), 
-                         (plot_vec[2] - plot_vec[0]) / norm(plot_vec[2] - plot_vec[0]), 
+    plot_vec = np.array([(plot_vec[1] - plot_vec[0]) / norm(plot_vec[1] - plot_vec[0]),
+                         (plot_vec[2] - plot_vec[0]) / norm(plot_vec[2] - plot_vec[0]),
                          np.cross(plot_vec[1] - plot_vec[0], plot_vec[2] - plot_vec[0]) \
-                           / norm(np.cross(plot_vec[1] - plot_vec[0], plot_vec[2] - plot_vec[0])) ])
+                         / norm(np.cross(plot_vec[1] - plot_vec[0], plot_vec[2] - plot_vec[0]))])
     transformation_matrix = np.linalg.inv(plot_vec)
     for v in transformation_matrix:
         v = v / norm(v)
