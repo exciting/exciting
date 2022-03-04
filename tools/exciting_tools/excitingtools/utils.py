@@ -1,7 +1,7 @@
 """
 General utility functions
 """
-from typing import Union, List
+from typing import Union, List, Optional, Callable
 import re
 
 def can_be_float(value) -> bool:
@@ -60,3 +60,11 @@ def get_new_line_indices(string: str) -> List[int]:
     indices = [0]
     indices += [m.start() + 1 for m in re.finditer('\n', string)]
     return indices
+
+
+def list_to_str(mylist: list, modifier: Optional[Callable] = None) -> str:
+    """ Convert a list to a string
+    """
+    if modifier is None:
+        modifier = lambda x: x
+    return "".join(modifier(str(xyz)) + ' ' for xyz in mylist).strip()

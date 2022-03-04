@@ -120,7 +120,7 @@ def parser_expects_file_str(file_name: str) -> bool:
         return False
 
 
-def parser_chooser(full_file_name: str):
+def parser_chooser(full_file_name: str) -> dict:
     """
     Selects parser according to the name of the input file
     then returns the result of the parser.

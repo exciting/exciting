@@ -1,11 +1,11 @@
 """
-Utilities for manipiulating dictionaries
+Utilities for manipulating dictionaries
 """
-from typing import Callable, Iterator, Union
+from typing import Optional, Iterator, Union
 import json
 import numpy as np
 import copy
-from collections.abc import MutableMapping, Mapping, Hashable
+from collections.abc import Mapping, Hashable, KeysView
 import sys
 
 
@@ -24,7 +24,7 @@ def common_iterable(obj: Union[dict, list]):
         return (index for index, value in enumerate(obj))
 
 
-def __container_converter(data: Union[list,dict]):
+def __container_converter(data: Union[list, dict]):
     """
     Mutates the input dictionary, converting string representations of numerical data into numerical data.
 
@@ -36,7 +36,7 @@ def __container_converter(data: Union[list,dict]):
 
     for element in common_iterable(data):
         if isinstance(data[element], dict) or isinstance(data[element], list):
-           data[element] = __container_converter(data[element])
+            data[element] = __container_converter(data[element])
         elif isinstance(data[element], np.ndarray):
             data[element] = data[element].tolist()
         elif isinstance(data[element], (np.float64, np.int32)):
@@ -139,3 +139,17 @@ def delete_nested_key(dictionary: dict, key_chain: list):
         return
     else:
         delete_nested_key(dictionary[key_chain[0]], key_chain[1:])
+
+
+def check_valid_keys(input_keys: Union[list, set, tuple, KeysView],
+                     valid_keys: Union[list, set, tuple, KeysView],
+                     name: Optional[str] = ''):
+    """ Check that a given set of input keys are valid.
+
+    :param input_keys: Input keys
+    :param valid_keys: Valid keys
+    :param name: Optional name for error message
+    """
+    erroneous_inputs = set(input_keys) - set(valid_keys)
+    if erroneous_inputs:
+        raise ValueError(f'{name} keys are not valid: {erroneous_inputs}')

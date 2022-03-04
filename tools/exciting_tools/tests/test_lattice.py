@@ -63,7 +63,6 @@ def test_plane_transformation():
                           )
 
     transformation_matrix = plane_transformation(plot_vec, rec_lat_vec) # This is supposed to be 3x3 Identity
-    print(transformation_matrix)
 
     diagonal = transformation_matrix.diagonal()
     offdiagonal = transformation_matrix[np.where(~np.eye(transformation_matrix.shape[0], dtype=bool))]
