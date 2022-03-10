@@ -145,8 +145,9 @@ class ExcitingStructure(ExcitingInput):
             self.atom_properties = self._init_atom_properties(atoms)
         else:
             self.lattice, self.species, self.positions = self._init_lattice_species_positions_from_ase_atoms(atoms)
+            self.atom_properties = [{}] * len(self.species)
 
-        # TODO(Fab) 117. Implement check that MT spheres do not overlap. check_muffin_tin_radii()
+            # TODO(Fab) 117. Implement check that MT spheres do not overlap. check_muffin_tin_radii()
         self.species_path = species_path
         self.unique_species = sorted(set(self.species))
 

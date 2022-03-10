@@ -6,6 +6,7 @@ from xml.etree import ElementTree
 
 from excitingtools.input.structure import ExcitingStructure
 from excitingtools.input.ground_state import ExcitingGroundStateInput
+from excitingtools.input.xml_utils import xml_tree_to_pretty_str, prettify_tag_attributes
 
 
 def initialise_input_xml(title: str) -> ElementTree.Element:
@@ -25,15 +26,15 @@ def initialise_input_xml(title: str) -> ElementTree.Element:
 
 
 def exciting_input_xml(structure: ExcitingStructure,
-                       title: Optional[str] = '',
-                       groundstate: Optional[ExcitingGroundStateInput] = None) -> ElementTree.Element:
+                       groundstate: ExcitingGroundStateInput,
+                       title: Optional[str] = '') -> ElementTree.Element:
     """Compose XML ElementTrees from exciting input classes to create an input XML tree.
 
-    Expected usage: input_xml = exciting_input_xml(structure, title=title, groundstate = groundstate)
+    Expected usage: input_xml = exciting_input_xml(structure, groundstate, title=title)
 
     :param ExcitingStructure structure: Structure containing lattice vectors and atomic positions.
-    :param Optional[str] title: Optional title for input file
-    :param groundstate: exciting ground state input object
+    :param groundstate: exciting ground state input object.
+    :param Optional[str] title: Optional title for input file.
     :return ElementTree.Element root: Input XML tree, with sub-elements inserted.
     """
     root = initialise_input_xml(title)
@@ -48,3 +49,17 @@ def exciting_input_xml(structure: ExcitingStructure,
             root.append(element.to_xml())
 
     return root
+
+
+def exciting_input_xml_str(structure: ExcitingStructure,
+                           groundstate: ExcitingGroundStateInput,
+                           **kwargs) -> str:
+    """ "Compose XML ElementTrees from exciting input classes to create an input xml string.
+
+    :param ExcitingStructure structure: Structure containing lattice vectors and atomic positions.
+    :param groundstate: exciting ground state input object.
+    :return input_xml_str: Input XML tree as a string, with pretty formatting.
+    """
+    xml_tree = exciting_input_xml(structure, groundstate, **kwargs)
+    input_xml_str = prettify_tag_attributes(xml_tree_to_pretty_str(xml_tree), "<groundstate")
+    return input_xml_str
