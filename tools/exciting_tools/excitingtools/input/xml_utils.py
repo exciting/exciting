@@ -5,8 +5,8 @@ from xml.etree import ElementTree
 import re
 
 
-def prettify(elem: ElementTree.Element) -> str:
-    """Make the XML elements prettier to read
+def xml_tree_to_pretty_str(elem: ElementTree.Element) -> str:
+    """Convert an XML element to a pretty string.
 
     :param ElementTree.Element elem: Element/ element tree
     :return str : XML tree string, with pretty formatting.

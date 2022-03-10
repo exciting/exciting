@@ -274,14 +274,14 @@ def test_optional_species_attributes_xml(tmpdir, lattice_and_atoms_CdS):
 @pytest.fixture
 def lattice_and_atoms_H20(tmpdir):
     """
-    structure object initialised with a H20 molecule in a big box (angstrom)
+    H20 molecule in a big box (angstrom)
     """
     cubic_lattice = [[10.0, 0.0, 0.0], [0.0, 10.0, 0.0], [0.0, 0.0, 10.0]]
-    arbitrary_atoms = [{'species': 'H', 'position': [0.00000, 0.75545, -0.47116]},
+    atoms = [{'species': 'H', 'position': [0.00000, 0.75545, -0.47116]},
                        {'species': 'O', 'position': [0.00000, 0.00000, 0.11779]},
                        {'species': 'H', 'position': [0.00000, 0.75545, -0.47116]}]
     mock_species_files(tmpdir, ["H", "O"])
-    return cubic_lattice, arbitrary_atoms
+    return cubic_lattice, atoms
 
 
 def test_group_atoms_by_species(tmpdir, lattice_and_atoms_H20):
@@ -303,7 +303,23 @@ def test_group_atoms_by_species(tmpdir, lattice_and_atoms_H20):
     assert oxygen == ["O"], "Expect list to contain only one O symbol"
 
 
-def test_class_exciting_structure_ase(tmpdir, lattice_and_atoms_H20):
+@pytest.fixture
+def ase_atoms_H20(tmpdir, lattice_and_atoms_H20):
+    """
+    H20 molecule in a big box (angstrom), in ASE Atoms()
+    Converts a List[dict] to ase.atoms.Atoms.
+    """
+    lattice, atoms = lattice_and_atoms_H20
+    symbols = [atom['species'] for atom in atoms]
+    cubic_cell = np.asarray(lattice)
+    positions = [atom['position'] for atom in atoms]
+    if "ase" in sys.modules:
+        return ase.atoms.Atoms(symbols=symbols, positions=positions, cell=cubic_cell)
+    # TODO(Alex) Issue 117. Not sure of the best way to handle if ase is not present
+    return []
+
+
+def test_class_exciting_structure_ase(tmpdir, ase_atoms_H20):
     """
     Test the ASE Atoms object gets used correctly by the ExcitingStructure constructor.
     """
@@ -311,21 +327,21 @@ def test_class_exciting_structure_ase(tmpdir, lattice_and_atoms_H20):
         # ASE not available, so do not run
         return
 
-    cubic_cell = np.array([[10.0, 0.0, 0.0], [0.0, 10.0, 0.0], [0.0, 0.0, 10.0]])
-    pos = [[0.00000, 0.75545, -0.47116],
-           [0.00000, 0.00000, 0.11779],
-           [0.00000, 0.75545, -0.47116]]
-    ase_atoms = ase.atoms.Atoms(symbols=["H", "O", "H"], positions=pos, cell=cubic_cell)
-    mock_species_files(tmpdir, ["H", "O", "H"])
-
-    structure = ExcitingStructure(ase_atoms, species_path=tmpdir)
+    atoms = ase_atoms_H20
+    mock_species_files(tmpdir, atoms.get_chemical_symbols())
+    structure = ExcitingStructure(atoms, species_path=tmpdir)
 
     assert structure.species == ["H", "O", "H"]
     assert np.allclose(structure.lattice,
                        [[10.0, 0.0, 0.0], [0.0, 10.0, 0.0], [0.0, 0.0, 10.0]]), \
         'Expect lattice vectors to match input values'
 
-    assert np.allclose(structure.positions, pos), 'Expect positions to match input values.'
+    assert np.allclose(structure.positions, atoms.positions), 'Expect positions to match input values.'
+
+    # TODO(Alex) Issue 117. Compare xml_structure built with and without ASE - should be consistent
+    # This just confirms the XML tree is built, not that it is correct.
+    xml_structure = structure.to_xml()
+    assert list(xml_structure.keys()) == ['speciespath'], 'Only expect speciespath in structure xml keys'
 
 
 def test_check_for_species_files_not_exist_dir():
