@@ -31,12 +31,13 @@ module cmd_line_args
    !>
    !> All unit tests initialised to .false.
    type unit_tests_type
-      logical :: all = .false.       !! All unit tests
-      logical :: math = .false.      !! math
-      logical :: lapack = .false.    !! lapack_wrapperss
-      logical :: gw = .false.        !! GW
-      logical :: structure = .false. !! structure
-      logical :: mpi = .false.       !! modmpi
+      logical :: all = .false.               !! All unit tests
+      logical :: math = .false.              !! math
+      logical :: lapack = .false.            !! lapack_wrapperss
+      logical :: gw = .false.                !! GW
+      logical :: structure = .false.         !! structure
+      logical :: mpi = .false.               !! modmpi
+      logical :: phononscreening = .false.   !! phononscreening
    contains
       procedure :: init => set_unit_tests
    end type unit_tests_type
@@ -159,7 +160,9 @@ contains
       case ('mpi')
          run%mpi = .true.
       case('structure')
-         run%mpi = .true.
+         run%structure = .true.
+      case('phononscreening')
+         run%phononscreening = .true.
       case default
          call terminate_mpi_env(mpi_env, 'Unrecognised unit test name: '&
             & //trim(test_name)//'. Please add to set_unit_test and unit_test_names_type')

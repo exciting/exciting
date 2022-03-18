@@ -93,6 +93,17 @@ groundstate/PBE_SOL-Al:
 
 BSE/PBE_SOL-LiF:
 
+BSE/PBE-LiF-phononscreening:
+   files_under_test:
+      - "EPSILON_??.OUT"
+      - "EXCITON_??.OUT"
+   inputs:
+      - "input.xml"
+      - "Li.xml"
+      - "F.xml"
+      - "lif.eig"
+      - "lif.dyn1"
+
 # TODO(Alex) Issue #103. App Tests: GW QP Energies Inconsistent with Reference
 # TODO(Alex) Issue #35. MPI GW calculations do not produce EPS00_GW.OUT
 #  - I suspect this occurs due to how the GW code distributes MPI processes.

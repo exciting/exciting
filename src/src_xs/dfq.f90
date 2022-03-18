@@ -433,8 +433,10 @@ subroutine dfq(iq)
 
       ! Do not use scissors correction for screening (why?)
       if(task .eq. 430) then
-        scis12c(:, :) = zzero
-        scis21c(:, :) = zzero
+        if(.not. input%xs%screening%quasiparticle_correction == 'scissor') then
+          scis12c = zzero
+          scis21c = zzero
+        end if
       end if
 
 !*********** Plane wave calculation *****************************!
