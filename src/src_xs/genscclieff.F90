@@ -43,11 +43,6 @@ subroutine genscclieff(iqr, iqrnr, nmax, n, scieff)
 
   ! Calculate effective screened interaction
   if(tq0) then
-    ! Compute contributions due to polar phonons
-    if (input%xs%eph=='polar') then
-      ! call eph_polar(1, [cmplx(0.d0,0.d0,8)], scrnh)
-      scrnh = scrnh * input%xs%wlo**2 / input%xs%wto**2
-    end if
     ! Averaging using Lebedev-Laikov spherical grids
     call angavsc0(n, nmax, scrnh, scrnw, scrn, scieff)
   else

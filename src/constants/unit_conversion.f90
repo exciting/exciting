@@ -31,10 +31,9 @@ module unit_conversion
     ! 1 Hartree / (hc) = 2.194 746 313 705(15) * 10^7 m^{-1}
     real(dp), public, parameter :: hartree_to_inv_cm = 2.194746313705e-5_dp
 
-    ! TODO(Alex) Issue #20. Update to CODATA 2018 physical units if required
-    !> Conversion from Hartrees to THz (CODATA 2006):
-    ! 1 Hartree / h = 6.579 683 920 722(44) * 10^{15} Hz
-    real(dp), public, parameter :: hartree_to_thz = 6.579683920722e-3_dp
+    !> Conversion from Hartrees to THz (CODATA 2018):
+    ! 1 Hartree / h = 6.579 683 920 502(13) * 10^{15} Hz
+    real(dp), public, parameter :: hartree_to_thz = 6.579683920502e+3_dp
 
     ! Conversion from Hartree to Joules (CODATA 2018)
     real(dp), public, parameter :: hartree_to_j = 4.3597447222071e-18_dp

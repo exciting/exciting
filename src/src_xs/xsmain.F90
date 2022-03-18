@@ -14,7 +14,10 @@
 !   \\\&
 !   S. Sagmeister\&
 !   Leoben, August 2008
-!
+! TODO (Max) Issue 64: Use task names instead of numbers 
+!                     (see example task\_screened\_Coulomb)
+! TODO (Max) Issue 65 Collect launchers in module(s)  
+!              (see example ph\_screening\_launcher)
 !EOI
 
 subroutine xsmain(plan, nxstasks)
@@ -24,8 +27,14 @@ subroutine xsmain(plan, nxstasks)
   use mod_exciton_wf
   use mod_hdf5
   use m_write_hdf5, only: fhdf5_inter
-
+  use phonon_screening, only: phonon_screening_launcher
+  
   implicit none
+
+  !> Screening from polar phonons
+  integer, parameter :: task_phonon_screening = 431
+  !> Screened Coulomb interaction for BSE
+  integer, parameter :: task_screened_coulomb = 440 
 
   type(plan_type), intent(in) :: plan
   integer(4), intent(in) :: nxstasks
@@ -149,9 +158,14 @@ subroutine xsmain(plan, nxstasks)
       case(430)
         ! RPA screening
         call screenlauncher
- 
+      
+      ! Taskname 'phonon_screening'
+      case(task_phonon_screening) 
+
+        call phonon_screening_launcher
+
       ! Taskname 'scrcoulint'
-      case(440)
+      case(task_screened_coulomb)
         ! screened Coulomb interaction
         call scrcoulintlauncher
 

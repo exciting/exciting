@@ -5,12 +5,15 @@
 !BOP
 ! !ROUTINE: scrcoulint
 ! !INTERFACE:
+! TODO (Max) Issue 66: Restructure maps between q-points 
+
 subroutine scrcoulint(iqmt, fra)
-! !USES:
+  use precision, only: sp, dp
   use mod_misc, only: filext
   use modinput, only: input
   use modmpi
-  use constants, only: zzero, zone, fourpi
+  use exciting_mpi, only: xmpi_bcast
+  use constants, only: zzero, zone
   use mod_APW_LO, only: lolmax
   use mod_qpoint, only: iqmap, vql, vqc, nqpt, ivq, wqpt
   use mod_lattice, only: omega
@@ -23,7 +26,7 @@ subroutine scrcoulint(iqmt, fra)
                  & bcbs, ematraddir, eps0dirname,&
                  & filext0, usefilext0, iqmt0, iqmt1,&
                  & iqmtgamma,&
-                 & bsedl, bsedu, bsedd, bsed
+                 & bsedl, bsedu, bsedd, bsed, vkl0
   use m_xsgauntgen
   use m_findgntn0
   use m_writevars
@@ -35,6 +38,13 @@ subroutine scrcoulint(iqmt, fra)
   use mod_xsgrids
   use mod_Gkvector, only: gkmax
   use mod_hdf5, only: fhdf5, hdf5_exist_group, hdf5_create_group, hdf5_write 
+  !> Needed for phonon part of the BSE-Hamiltonian
+  use mod_eigenvalue_occupancy, only: nstsv
+  use phonon_screening, only: gen_phonon_hamiltonian, select_bse_energies, &
+                              init_phonon_hamiltonian
+  use mod_atoms, only: natmtot
+  use modmain, only: natoms
+  use unit_conversion, only: hartree_to_ev
 ! !DESCRIPTION:
 !   Calculates the resonant-resonant or resonant-anit-resonant block of the
 !   direct term of the Bethe-Salpeter Hamiltonian for a momentum transfer 
@@ -43,85 +53,119 @@ subroutine scrcoulint(iqmt, fra)
 ! !REVISION HISTORY:
 !   Forked from scrcoulint.F90 and adapted for non-TDA BSE and finite Q. (Aurich)
 !EOP
-!BOC      
+!BOC  
 
   implicit none
 
-  ! I/O
-  integer, intent(in) :: iqmt ! Index of momentum transfer Q
-  logical, intent(in) :: fra  ! Construct RA coupling block
-
-  ! Local variables
+  !> Index of momentum transfer Q
+  integer, intent(in) :: iqmt 
+  !> Construct RA coupling block
+  logical, intent(in) :: fra 
+  !> Local variable name
   character(*), parameter :: thisname = 'scrcoulint'
 
-  ! ik,jk block of W matrix (final product)
-  complex(8), allocatable :: sccli(:,:)
+  !> ik,jk block of W matrix (final product)
+  complex(dp), allocatable :: sccli(:,:)
 
-  ! Diagonal of W (needed for MB TDDFT kernels)
-  complex(8), allocatable :: bsedt(:, :)
+  !> Diagonal of W (needed for MB TDDFT kernels)
+  complex(dp), allocatable :: bsedt(:, :)
 
-  ! Auxilliary arrays for the construction of sccli
-  complex(8), allocatable :: sccli_t1(:, :), sccli_t2(:, :, :, :)
-  complex(8), allocatable :: zm(:,:)
-  ! Plane wave arrays
-  complex(8), allocatable :: muu(:, :, :), cmuu(:, :)
-  complex(8), allocatable :: moo(:, :, :), cmoo(:, :)
-  complex(8), allocatable :: mou(:, :, :), cmou(:, :)
-  complex(8), allocatable :: muo(:, :, :), cmuo(:, :)
-  ! The fourier coefficients of the screend coulomb potential
-  complex(8), allocatable :: wfc(:, :)
-  ! Auxilliary arrays/vars for the construction of wfc
-  complex(8), allocatable :: scieffg(:, :, :)
-  complex(8), allocatable :: phf(:, :)
-  ! Symmerty maps creation 
-  integer(4) :: sc(maxsymcrys), ivgsc(3, maxsymcrys)
-  integer(4), allocatable :: igqmap(:)
-  integer(4) :: jsym, jsymi
-  integer(4) :: nsc, ivgsym(3)
+  !> Auxilliary arrays for the construction of sccli
+  complex(dp), allocatable :: sccli_t1(:, :), sccli_t2(:, :, :, :)
+  complex(dp), allocatable :: zm(:,:)
+  !> Plane wave arrays
+  complex(dp), allocatable :: muu(:, :, :), cmuu(:, :)
+  complex(dp), allocatable :: moo(:, :, :), cmoo(:, :)
+  complex(dp), allocatable :: mou(:, :, :), cmou(:, :)
+  complex(dp), allocatable :: muo(:, :, :), cmuo(:, :)
+  !> The fourier coefficients of the screend coulomb potential
+  complex(dp), allocatable :: wfc(:, :)
+  !> Auxilliary arrays/vars for the construction of wfc
+  complex(dp), allocatable :: scieffg(:, :, :)
+  complex(dp), allocatable :: phf(:, :)
+  !> Symmerty maps creation 
+  integer(sp) :: sc(maxsymcrys), ivgsc(3, maxsymcrys)
+  integer(sp), allocatable :: igqmap(:)
+  integer(sp) :: jsym, jsymi
+  integer(sp) :: nsc, ivgsym(3)
   logical :: tphf
-  ! Mappings of jk ik combinations to q points
-  integer(4) :: ikkp, iknr, jknr, ikpnr, ikmnr, jkpnr, jkmnr, ik, jk
-  integer(4) :: iqrnr, iqr, iq
-  real(8) :: vqr(3), vq(3)
-  integer(4) :: numgq
+  !> Mappings of jk ik combinations to q points
+  integer(sp) :: ikkp, iknr, jknr, ikpnr, ikmnr, jkpnr, jkmnr, ik, jk
+  integer(sp) :: iqrnr, iqr, iq
+  real(dp) :: vqr(3), vq(3)
+  integer(sp) :: numgq
   logical :: tq0
-  ! Number of occupied/unoccupied states at ik and jk
-  integer(4) :: ino, inu, jno, jnu
-  ! Number of transitions at ik and jk
-  integer(4) :: inou, jnou
-  ! Number of (o/u)_i (o/u)_j combinations
-  integer(4) :: noo, nuu, nou, nuo
-  ! State loop indices
-  integer(4) :: io, jo, iu, ju
-  ! Combinded loop indices 
-  integer(4) :: jaoff, iaoff, ia, ja
-  ! Maximal l used in the APWs and LOs
-  !   Influences quality of plane wave matrix elements
-  integer(4) :: maxl_apwlo
-  ! Maximal l used in the Reghley expansion of exponential
-  !   Influences quality of plane wave matrix elements
-  integer(4) :: maxl_e
-  ! Maximal l used in the APWs and LOs in the groundstate calculations
-  !   Influences quality of eigencoefficients.
-  integer(4) :: maxl_mat
-  ! Aux.
-  integer(4) :: j1, j2
-  complex(8) :: pref, zt1
-  real(8) :: t1
-  ! Timing vars
-  real(8) :: tscc1, tscc0
+  !> Number of occupied/unoccupied states at ik and jk
+  integer(sp) :: ino, inu, jno, jnu
+  !> Number of transitions at ik and jk
+  integer(sp) :: inou, jnou
+  !> Number of (o/u)_i (o/u)_j combinations
+  integer(sp) :: noo, nuu, nou, nuo
+  !> State loop indices
+  integer(sp) :: io, jo, iu, ju
+  !> Combinded loop indices 
+  integer(sp) :: jaoff, iaoff, ia, ja
+  !> Maximal l used in the APWs and LOs
+  !>   Influences quality of plane wave matrix elements
+  integer(sp) :: maxl_apwlo
+  !> Maximal l used in the Reghley expansion of exponential
+  !>   Influences quality of plane wave matrix elements
+  integer(sp) :: maxl_e
+  !> Maximal l used in the APWs and LOs in the groundstate calculations
+  !>   Influences quality of eigencoefficients.
+  integer(sp) :: maxl_mat
+  !> Aux.
+  integer(sp) :: j1, j2
+  complex(dp) :: pref, zt1
+  real(dp) :: t1
+  !> Timing vars
+  real(dp) :: tscc1, tscc0
 
-  ! Auxilliary strings
+  !> Auxilliary strings
   character(256) :: syscommand, fileext_scr_read, fileext_ematrad_write
-  ! HDF5 variables
+  !> HDF5 variables
   character(256) :: ciq, gname, group
-  ! External functions
+  !> External functions
   logical, external :: tqgamma
 
-  real(8) :: vqoff(3)
-  real(8), parameter :: epslat = 1.0d-8
+  real(dp) :: vqoff(3)
+  real(dp), parameter :: epslat = 1.0d-8
 
   logical :: fsameq, fsamekp, fsamekm
+
+  !> Phonon variables
+  !> Fourier coefficients of the phonon screend coulomb potential W_{GG'}
+  !> at all q_points for all modes
+  complex(dp), allocatable :: scieffg_ph(:,:,:,:)
+  !> Fourier coefficients of the phonon screend coulomb potential W_{GG'}
+  !> with applied phasefactor at one q_point for all modes
+  complex(dp), allocatable :: wfc_ph(:,:,:)
+  !> Scissor correction of bandgap
+  real(dp) :: bse_scissor
+  !> All second-variational eigenvalues at different k_points
+  Real (dp), Allocatable :: evalsv0_ik (:), evalsv0_jk (:)
+  !> Second-variational eigenvalues of considered occupied bands at k,k'
+  Real (dp), Allocatable :: eigvals_o(:,:)
+  !> Second-variational eigenvalues of considered unoccupied bands at k,k'
+  Real (dp), Allocatable :: eigvals_u(:,:)
+  !> Phonon frequencies for all modes and all q-vectors
+  real(dp), allocatable :: freq_ph(:, :)
+  ! BSE eigen-energy for self-consistent BSE 
+  real(dp) :: eigen_exc
+  !> ik,jk block of phonon W matrix (final product)
+  complex(dp), allocatable :: W_ph(:,:,:)
+  !> Running index phonon mode
+  integer(sp) :: imode
+  !> Number of phonon modes
+  integer(sp) :: n_phonon_modes
+  !> Running index to create integer array
+  integer(sp) :: i_run
+  !> Array containing indices of G-vectors
+  integer(sp), allocatable :: g_ids(:)
+  !> Phasefactors for transforming reduced to non-reduced quantities
+  complex(dp), allocatable :: phasefactors(:, :)
+
+ 
 
   !---------------!
   !   main part   !
@@ -284,7 +328,7 @@ subroutine scrcoulint(iqmt, fra)
   call init1offs(k_kqmtp%kset%vkloff)
   vql = 0.0d0
   call init2offs(vqoff, input%xs%reduceq)
-  ! Copy results q-ponit results form mod_qpoint into modxs variables
+  ! Copy q-point results form mod_qpoint into modxs variables
   nqptr = nqpt
   ivqr = ivq
   iqmapr = iqmap
@@ -471,6 +515,45 @@ subroutine scrcoulint(iqmt, fra)
     call timesec(tscc0)
   end if
 
+  !---------------------------------------------------
+  ! Initialisation for phonon contribution to the Hamiltonian
+  !---------------------------------------------------
+  if( associated(input%xs%phonon_screening) ) then 
+    n_phonon_modes = 3*natmtot  
+    allocate(scieffg_ph(ngqmax, ngqmax, n_phonon_modes, nqptr))
+    allocate (freq_ph(n_phonon_modes, nqptr))
+
+    ! Read phonon screened Coulomb interaction (for all q and all phonon modes)
+    ! and all phonon frequencies on rank 0 and broadcast afterwards
+    if(mpiglobal%rank == mpiglobal%root) then
+      call init_phonon_hamiltonian(n_phonon_modes,natoms,& 
+                              ngqr,vqcr, scieffg_ph, freq_ph)
+    end if 
+   
+    Call xmpi_bcast(mpiglobal, freq_ph)
+    Call xmpi_bcast(mpiglobal, scieffg_ph)
+    
+    ! Excitation energy and scissor
+    eigen_exc = input%xs%phonon_screening%excitation_energy/hartree_to_ev 
+    bse_scissor = input%xs%scissor
+
+    ! All second variational energy values
+    allocate(evalsv0_ik(nstsv))
+    allocate(evalsv0_jk(nstsv))
+
+    ! Sec. var. energy values at k and k' of considered
+    ! occ. and unocc. bands for BSE
+    allocate(eigvals_o(no_bse_max, 2))
+    allocate(eigvals_u(nu_bse_max, 2))
+
+    ! Allocate final work array: ik,jk block of W matrix
+    allocate(W_ph(nou_bse_max, nou_bse_max, n_phonon_modes))
+
+  end if 
+  !--------------------------------------------------------------
+  ! End phonon allocation 
+  !--------------------------------------------------------------
+  
   ! Distributed loop over combinations of non-reduced k-point
   ! that contribute to the desired energy range (or bands).
   call genparidxran('p', nkkp_bse)
@@ -555,7 +638,7 @@ subroutine scrcoulint(iqmt, fra)
       ! Generate phase factor for dielectric matrix due to non-primitive
       ! translations
       call genphasedm(iq, jsym, ngqmax, numgq, phf, tphf)
-      ! W(G,G',q) <-- W(\tilde{G},\tilde{G}',qr)
+      ! W(G,G',q) <-- W(\tilde{G},\tilde{G}',qr)    
       wfc(:,:) = phf(:numgq, :numgq) * scieffg(igqmap, igqmap, iqr)
     else
       wfc(:,:) = scieffg(1:numgq, 1:numgq, iqr)
@@ -621,7 +704,7 @@ subroutine scrcoulint(iqmt, fra)
 
       ! Allocate helper array
       allocate(zm(nuu,numgq))
-
+ 
       ! Calculate matrix elements of screened coulomb interaction scclit_{j1, j2}(q)
       ! zm = cmuu * wfc
       !   i.e. zm_{j1,G'} = \Sum_{G} cmuu_{j1,G} wfc_{G,G'}
@@ -636,7 +719,6 @@ subroutine scrcoulint(iqmt, fra)
         & cmoo, noo, zzero, sccli_t1(1:nuu,1:noo), nuu)
 
       deallocate(zm)
-      deallocate(cmoo, cmuu)
 
       ! Offset in combined index for ik and jk
       jaoff = sum(kousize(1:jknr-1))
@@ -674,7 +756,51 @@ subroutine scrcoulint(iqmt, fra)
       end do
       !$OMP END DO
       !$OMP END PARALLEL
+           
+      ! Phonon contribution 
+      if(associated(input%xs%phonon_screening)) then 
 
+        if(allocated(wfc_ph)) deallocate(wfc_ph)
+        allocate(wfc_ph(numgq, numgq,3*natmtot))
+        
+        ! Get second variational eigenenergies at k and k'
+        ! and select those of the states considered in BSE
+        call getevalsv0(vkl0(1:3, iknr), evalsv0_ik)
+        call getevalsv0(vkl0(1:3, jknr), evalsv0_jk)
+        call select_bse_energies(koulims(:,iknr),evalsv0_ik,evalsv0_jk,&
+                                    &bse_scissor,eigvals_o,eigvals_u) 
+
+        ! Use phase factor if q-points were reduced
+        ! (previously generated for electronic part)
+        if(allocated(g_ids)) deallocate(g_ids)
+        allocate(g_ids(numgq))
+        if(allocated(phasefactors)) deallocate(phasefactors)
+        allocate(phasefactors(numgq, numgq))
+                                    
+        if(input%xs%reduceq) then
+          g_ids = igqmap
+          phasefactors = phf(:numgq, :numgq)
+        else
+          g_ids = [(i_run, i_run=1, numgq)]
+          phasefactors = 1._dp
+        end if         
+        
+        do imode = 1, n_phonon_modes
+           wfc_ph(:, :, imode) = phasefactors * &
+                               scieffg_ph(g_ids, g_ids, imode, iqr)
+
+          ! Compute phonon contribution for given mode and (k,k')-combination
+          call gen_phonon_hamiltonian(pref, wfc_ph(:,: , imode), cmuu, cmoo,& 
+              & eigvals_o, eigvals_u, freq_ph(imode, iqr), & 
+              & eigen_exc, smap_rel, iaoff, jaoff, W_ph(:, :, imode))
+        end do
+
+          !Add el. + ph. parts together
+          sccli = sccli + sum(W_ph, dim=3)
+
+      end if
+
+      deallocate(cmoo, cmuu)   
       ! Parallel write
       call putbsemat(scclifname, 77, ikkp, iqmt, sccli)
 
@@ -802,6 +928,8 @@ subroutine scrcoulint(iqmt, fra)
 
     deallocate(igqmap)
     deallocate(wfc)
+    if(allocated(wfc_ph)) deallocate(wfc_ph)
+
 #ifndef MPI
     if(mpiglobal%rank == 0) then
       write(6, '(a,"Calculating Screened Coulomb Matrix Elements:    ", f10.3)', advance="no")&
@@ -841,6 +969,8 @@ subroutine scrcoulint(iqmt, fra)
   deallocate(sccli)
   deallocate(sccli_t1)
   deallocate(sccli_t2)
+  ! Deallocate phonon helper array if used
+  if(allocated(W_ph)) deallocate(W_ph)
   if(.not. fra) then 
     deallocate(muu)
     deallocate(moo)

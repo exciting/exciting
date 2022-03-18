@@ -1,0 +1,429 @@
+================================================================================
+| EXCITING OXYGEN started for task xsgeneigvec (301)                           =
+| version hash id: b302732ff77e76ab26925779d455e723ad8ded2d                    =
+| MPI version using      1 processor(s)                                        =
+| |  using MPI-2 features                                                      =
+|                                                                              =
+| Date (DD-MM-YYYY) : 12-01-2022                                               =
+================================================================================
+================================================================================
+One-shot GS runs for BSE calculations
+================================================================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+One-shot GS runs for k+qmt/2 grids
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(xsgeneigvec): Generating eigenvectors for Q-point      1
+--------------------------------------------------------------------------------
+Info(xsgeneigvec): Generation of eigenvectors finished
+
+Info(xsfinit): task Nr.     301 stopped gracefully
+
+ Timings: 
+     Date (DD-MM-YYYY)      : 12-01-2022
+     Time (hh:mm:ss)        : 10:10:06
+     CPU time               : 38.10 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 38 s )
+     wall time              : 7.01 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 07 s )
+     CPU load               : 543.15 %
+     CPU time  (cumulative) : 237.45 sec; 0.07 hrs; ( 0 d, 00 h, 03 m, 57 s )
+     wall time (cumulative) : 7.01 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 07 s )
+     CPU load  (cumulative) : 543.15 %
+
+================================================================================
+= EXCITING OXYGEN stopped for task    301                                      =
+================================================================================
+
+
+================================================================================
+| EXCITING OXYGEN started for task writepmatxs (320)                           =
+| MPI version using      1 processor(s)                                        =
+| |  using MPI-2 features                                                      =
+| Date (DD-MM-YYYY) : 12-01-2022                                               =
+================================================================================
+Info(writepmatxs): Momentum matrix elements finished
+Info(xsfinit): task Nr.     320 stopped gracefully
+
+ Timings: 
+     Date (DD-MM-YYYY)      : 12-01-2022
+     Time (hh:mm:ss)        : 10:10:09
+     CPU time               : 13.39 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 13 s )
+     wall time              : 2.61 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 03 s )
+     CPU load               : 513.46 %
+     CPU time  (cumulative) : 250.83 sec; 0.07 hrs; ( 0 d, 00 h, 04 m, 11 s )
+     wall time (cumulative) : 9.62 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 10 s )
+     CPU load  (cumulative) : 513.46 %
+
+================================================================================
+= EXCITING OXYGEN stopped for task    320                                      =
+================================================================================
+
+
+================================================================================
+| EXCITING OXYGEN started for task scrgeneigvec (401)                          =
+| MPI version using      1 processor(s)                                        =
+| |  using MPI-2 features                                                      =
+| Date (DD-MM-YYYY) : 12-01-2022                                               =
+================================================================================
+
+Info(xsinit): mapping screening-specific parameters
+
+================================================================================
+One-shot GS runs for BSE calculations
+================================================================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+One-shot GS runs for k+qmt/2 grids
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(xsgeneigvec): Generating eigenvectors for Q-point      1
+Using screening GS parameters.
+--------------------------------------------------------------------------------
+Info(xsgeneigvec): Generation of eigenvectors finished
+
+Info(xsfinit): task Nr.     401 stopped gracefully
+
+ Timings: 
+     Date (DD-MM-YYYY)      : 12-01-2022
+     Time (hh:mm:ss)        : 10:10:19
+     CPU time               : 55.54 sec; 0.02 hrs; ( 0 d, 00 h, 00 m, 56 s )
+     wall time              : 9.96 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 10 s )
+     CPU load               : 557.62 %
+     CPU time  (cumulative) : 306.37 sec; 0.09 hrs; ( 0 d, 00 h, 05 m, 06 s )
+     wall time (cumulative) : 19.58 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 20 s )
+     CPU load  (cumulative) : 557.62 %
+
+================================================================================
+= EXCITING OXYGEN stopped for task    401                                      =
+================================================================================
+
+
+================================================================================
+| EXCITING OXYGEN started for task scrwritepmat (420)                          =
+| MPI version using      1 processor(s)                                        =
+| |  using MPI-2 features                                                      =
+| Date (DD-MM-YYYY) : 12-01-2022                                               =
+================================================================================
+
+Info(xsinit): mapping screening-specific parameters
+
+Info(writepmatxs): Momentum matrix elements finished
+Info(scrwritepmat): Momentum matrix elements for screening finished
+Info(xsfinit): task Nr.     420 stopped gracefully
+
+ Timings: 
+     Date (DD-MM-YYYY)      : 12-01-2022
+     Time (hh:mm:ss)        : 10:10:22
+     CPU time               : 13.13 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 13 s )
+     wall time              : 2.47 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load               : 530.76 %
+     CPU time  (cumulative) : 319.50 sec; 0.09 hrs; ( 0 d, 00 h, 05 m, 20 s )
+     wall time (cumulative) : 22.05 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 22 s )
+     CPU load  (cumulative) : 530.76 %
+
+================================================================================
+= EXCITING OXYGEN stopped for task    420                                      =
+================================================================================
+
+
+================================================================================
+| EXCITING OXYGEN started for task screen (430)                                =
+| MPI version using      1 processor(s)                                        =
+| |  using MPI-2 features                                                      =
+| Date (DD-MM-YYYY) : 12-01-2022                                               =
+================================================================================
+
+Info(xsinit): mapping screening-specific parameters
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(screenlauncher): Calculating screening for unshifted q-grid.
+Info(screenlauncher): Number of q points:       4
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Info(screenlauncher): lowest (partially)  unoccupied state:      6
+Info(screenlauncher): highest (partially) occupied state  :      5
+Info(screenlauncher): number of occupied states considered:    5
+Info(screenlauncher): number of unoccupied states considered:  116
+--------------------------------------------------------------------------------
+
+Info(screenlauncher): Starting loop over q-points
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(screenlauncher): Screening for unshifted q-grid finished
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Info(screenlauncher): Screening finished
+Info(xsfinit): task Nr.     430 stopped gracefully
+
+ Timings: 
+     Date (DD-MM-YYYY)      : 12-01-2022
+     Time (hh:mm:ss)        : 10:10:37
+     CPU time               : 87.11 sec; 0.02 hrs; ( 0 d, 00 h, 01 m, 27 s )
+     wall time              : 15.65 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 16 s )
+     CPU load               : 556.50 %
+     CPU time  (cumulative) : 406.62 sec; 0.11 hrs; ( 0 d, 00 h, 06 m, 47 s )
+     wall time (cumulative) : 37.71 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 38 s )
+     CPU load  (cumulative) : 556.50 %
+
+================================================================================
+= EXCITING OXYGEN stopped for task    430                                      =
+================================================================================
+
+
+================================================================================
+| EXCITING OXYGEN started for task phonon_screening (431)                      =
+| MPI version using      1 processor(s)                                        =
+| |  using MPI-2 features                                                      =
+| Date (DD-MM-YYYY) : 12-01-2022                                               =
+================================================================================
+
+Info(xsinit): mapping screening-specific parameters
+
+Info(xsfinit): task Nr.     431 stopped gracefully
+
+ Timings: 
+     Date (DD-MM-YYYY)      : 12-01-2022
+     Time (hh:mm:ss)        : 10:10:37
+     CPU time               : 0.80 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
+     wall time              : 0.17 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     CPU load               : 483.29 %
+     CPU time  (cumulative) : 407.42 sec; 0.11 hrs; ( 0 d, 00 h, 06 m, 47 s )
+     wall time (cumulative) : 37.88 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 38 s )
+     CPU load  (cumulative) : 483.29 %
+
+================================================================================
+= EXCITING OXYGEN stopped for task    431                                      =
+================================================================================
+
+
+================================================================================
+| EXCITING OXYGEN started for task scrcoulint (440)                            =
+| MPI version using      1 processor(s)                                        =
+| |  using MPI-2 features                                                      =
+| Date (DD-MM-YYYY) : 12-01-2022                                               =
+================================================================================
+
+Info(xsinit): mapping BSE-specific parameters
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(scrcoulintlauncher): Setting up screened Coulomb interaction matrix W.
+Info(scrcoulintlauncher): Using momentum transfer vectors from list :   1 to  1
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(scrcoulintlauncher): Calculating screened Coulomb interaction matrix W
+Info(scrcoulintlauncher): Momentum transfer list index: iqmt=  1
+Info(scrcoulintlauncher): Momentum transfer: vqmtl=   0.000   0.000   0.000
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Info(scrcoulintlauncher): Calculating RR block of W
+
+--------------------------------------------------------------------------------
+Info(scrcoulint): Inspecting occupations...
+Info(setranges_modxs): Determining k+qmt/2 grid
+Info(setranges_modxs): Determining k-qmt/2 grid
+Info(setranges_modxs): Number of non-reduced k-points:       27
+Info(setranges_modxs): Number of states considered:        7
+Info(setranges_modxs): Number of (partially) occupied states:        5
+Info(setranges_modxs): Highest (partially) occupied states:        5
+Info(setranges_modxs): Number of (partially) unoccupied states:        2
+Info(setranges_modxs): Lowest (partially) unoccupied states:        6
+--------------------------------------------------------------------------------
+Info(scrcoulint): Selecting transitions...
+Info(select_transitions): Inspecting transitions in the  band interval:
+  lowest occupied state:   1
+  highest occupied state:   5
+  lowest unoccupied state:   6
+  highest unoccupied state:   7
+  Opening gap with a scissor of:      0.209/H      5.700/eV
+Info(select_transitions): Number of participating transitions:     270
+--------------------------------------------------------------------------------
+Info(scrcoulint): Size of file SCCLI will be about     0.000563 GB
+Info(scrcoulint): Using q-grid
+Info(scrcoulint): Number of reduced q-points:      4
+Info(scrcoulint): Number of non-reduced q-points:     27
+
+Info(scrcoulint): Calculating W(G1,G2,qr) fourier coefficients
+Info(scrcoulint): Calculating W matrix elements
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(scrcoulintlauncher): Screened coulomb interaction finished for iqmt=   1
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(xsfinit): task Nr.     440 stopped gracefully
+
+ Timings: 
+     Date (DD-MM-YYYY)      : 12-01-2022
+     Time (hh:mm:ss)        : 10:10:39
+     CPU time               : 9.17 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 09 s )
+     wall time              : 1.60 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load               : 574.13 %
+     CPU time  (cumulative) : 416.59 sec; 0.12 hrs; ( 0 d, 00 h, 06 m, 57 s )
+     wall time (cumulative) : 39.47 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 39 s )
+     CPU load  (cumulative) : 574.13 %
+
+================================================================================
+= EXCITING OXYGEN stopped for task    440                                      =
+================================================================================
+
+
+================================================================================
+| EXCITING OXYGEN started for task exccoulint (441)                            =
+| MPI version using      1 processor(s)                                        =
+| |  using MPI-2 features                                                      =
+| Date (DD-MM-YYYY) : 12-01-2022                                               =
+================================================================================
+
+Info(xsinit): mapping BSE-specific parameters
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(exccoulintlauncher): Setting up exchange interaction matrix V.
+Info(exccoulintlauncher): Using momentum transfer vectors from list :   1 to  1
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(exccoulintlauncher):Calculating exchange interaction matrix V
+Info(exccoulintlauncher): Momentum transfer list index: iqmt=  1
+Info(exccoulintlauncher): Momentum transfer: vqmtl=   0.000   0.000   0.000
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Info(exccoulintlauncher): Calculating RR block of V
+
+--------------------------------------------------------------------------------
+Info(exccoulint): Inspecting occupations...
+Info(setranges_modxs): Determining k+qmt/2 grid
+Info(setranges_modxs): Determining k-qmt/2 grid
+Info(setranges_modxs): Number of non-reduced k-points:       27
+Info(setranges_modxs): Number of states considered:        7
+Info(setranges_modxs): Number of (partially) occupied states:        5
+Info(setranges_modxs): Highest (partially) occupied states:        5
+Info(setranges_modxs): Number of (partially) unoccupied states:        2
+Info(setranges_modxs): Lowest (partially) unoccupied states:        6
+--------------------------------------------------------------------------------
+Info(exccoulint): Selecting transitions...
+Info(select_transitions): Inspecting transitions in the  band interval:
+  lowest occupied state:   1
+  highest occupied state:   5
+  lowest unoccupied state:   6
+  highest unoccupied state:   7
+  Opening gap with a scissor of:      0.209/H      5.700/eV
+Info(select_transitions): Number of participating transitions:     270
+--------------------------------------------------------------------------------
+Info(exccoulint): Size of file EXCLI will be about     0.000563 GB
+
+Info(exccoulint): Generating plane wave matrix elements for momentum transfer iqmt=   1
+  Timing (in seconds)	   :       0.035
+
+Info(exccoulint): Generating V matrix elements
+Info(exccoulint): Zeroing Coulomb potential at G+qmt index:  1
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(exccoulintlauncher): Exchange interaction finished for iqmt=   1
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(xsfinit): task Nr.     441 stopped gracefully
+
+ Timings: 
+     Date (DD-MM-YYYY)      : 12-01-2022
+     Time (hh:mm:ss)        : 10:10:39
+     CPU time               : 1.43 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
+     wall time              : 0.33 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     CPU load               : 437.68 %
+     CPU time  (cumulative) : 418.02 sec; 0.12 hrs; ( 0 d, 00 h, 06 m, 58 s )
+     wall time (cumulative) : 39.80 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 40 s )
+     CPU load  (cumulative) : 437.68 %
+
+================================================================================
+= EXCITING OXYGEN stopped for task    441                                      =
+================================================================================
+
+
+================================================================================
+| EXCITING OXYGEN started for task bse (445)                                   =
+| MPI version using      1 processor(s)                                        =
+| |  using MPI-2 features                                                      =
+| Date (DD-MM-YYYY) : 12-01-2022                                               =
+================================================================================
+
+Info(xsinit): mapping BSE-specific parameters
+
+Info(bselauncher): Init time:    0.144851
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(bselauncher): Setting up and diagonalizing BSE Hamiltonian.
+Info(bselauncher): Using momentum transfer vectors from list :   1 to  1
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(bselauncher): Distributing qmt-points over   1 processes.
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+--------------------------------------------------------------------------------
+Info(bselauncher): Momentum transfer list index: iqmt=  1
+Info(bselauncher): Momentum transfer: vqmtl=   0.000   0.000   0.000
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+Info(bse): Inspecting occupations...
+Info(setranges_modxs): Determining k+qmt/2 grid
+Info(setranges_modxs): Determining k-qmt/2 grid
+Info(setranges_modxs): Number of non-reduced k-points:       27
+Info(setranges_modxs): Number of states considered:        7
+Info(setranges_modxs): Number of (partially) occupied states:        5
+Info(setranges_modxs): Highest (partially) occupied states:        5
+Info(setranges_modxs): Number of (partially) unoccupied states:        2
+Info(setranges_modxs): Lowest (partially) unoccupied states:        6
+Info(select_transitions): Inspecting transitions in the  band interval:
+  lowest occupied state:   1
+  highest occupied state:   5
+  lowest unoccupied state:   6
+  highest unoccupied state:   7
+  Opening gap with a scissor of:      0.209/H      5.700/eV
+Info(select_transitions): Number of participating transitions:     270
+--------------------------------------------------------------------------------
+Info(bse): Selecting transitions...
+--------------------------------------------------------------------------------
+
+Info(bse):bsegap (eV):    15.0330371800651790
+Info(bse): Assembling BSE matrix
+  RR/RA blocks of global BSE-Hamiltonian:
+  Size of the Hamiltonian:     270
+  Number of k-points:      27
+  Distributing matrix to   1 processes
+  Local matrix shape    270 x   270
+Info(bse): max local RAM needed for BSE matrices ~     0.001086 GB
+
+--------------------------------------------------------------------------------
+Info(setup_bse_block): Setting up RR part of hamiltonian
+Info(setup_bse_block): Singlet spin state
+ Hamiltonian constructed.
+All processes build their local matrix
+Info(bse): Diagonalizing RR Hamiltonian (TDA)
+Info(bse): Invoking Lapack routine ZHEEVR
+       270 eigen solutions found in the interval:
+         i1=       1 i2=     270
+
+--------------------------------------------------------------------------------
+Info(makeoscistr_dist): Making oscillator strengths (distributed).
+Info(makeoscistr_dist): iqmt=   1
+Info(makeoscistr_dist): Qmt=       0.000000       0.000000       0.000000
+Info(makeoscistr_dist): Using zero momentum transfer formalismus.
+Info(makeoscistr_dist): Making oscillator strengths using dipole operator matrix elements.
+  Building Dipole matrix.
+  Building distributed resonant oscillator strengths.
+
+--------------------------------------------------------------------------------
+Info(bse): Writing excition energies and oscillator strengths to text file.
+Info(makespectrum_dist): Making spectrum using formula for coupling with time reversed AR basis.
+Info(makespectrum_dist): Using formalism for vanishing momentum transfer.
+Info(finalizespectrum): Finalizing spectrum.
+Info(finalizespectrum): Using modified density-response function to build spectrum.
+Info(writederived): Writing quantities derived from the macroscopic dielectric function.
+  Derived quantities written.
+--------------------------------------------------------------------------------
+Info(bselauncher): Spectrum finished for iqmt=  1
+--------------------------------------------------------------------------------
+Info(xsfinit): task Nr.     445 stopped gracefully
+
+ Timings: 
+     Date (DD-MM-YYYY)      : 12-01-2022
+     Time (hh:mm:ss)        : 10:10:40
+     CPU time               : 1.19 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
+     wall time              : 0.24 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     CPU load               : 502.53 %
+     CPU time  (cumulative) : 419.21 sec; 0.12 hrs; ( 0 d, 00 h, 06 m, 59 s )
+     wall time (cumulative) : 40.04 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 40 s )
+     CPU load  (cumulative) : 502.53 %
+
+================================================================================
+= EXCITING OXYGEN stopped for task    445                                      =
+================================================================================
+
+

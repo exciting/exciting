@@ -207,6 +207,12 @@ subroutine xstasklauncher
       ! Generate KS RPA screening
       nxstasks = nxstasks+1
       input%xs%plan%doonlyarray(nxstasks)%doonly%task="screen"
+      ! Task 431 corresponds to "phonon_screening" plan
+      ! Generate phonon screening
+      if( associated(input%xs%phonon_screening) ) then
+        nxstasks = nxstasks+1
+        input%xs%plan%doonlyarray(nxstasks)%doonly%task="phonon_screening"
+      end if
       ! Task 440 corresponds to "scrcoulint" plan
       ! Generate screened Coulomb interaction matrix
       nxstasks = nxstasks+1

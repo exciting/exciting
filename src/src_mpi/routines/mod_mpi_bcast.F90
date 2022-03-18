@@ -14,6 +14,7 @@ module mod_mpi_bcast
       interface xmpi_bcast
           module procedure :: mpi_bcast_rank0_int_sp, mpi_bcast_rank0_real_dp,&
             mpi_bcast_rank1_real_dp, mpi_bcast_rank2_real_dp,&
+            mpi_bcast_rank3_real_dp,&
             & mpi_bcast_rank0_complex_dp, mpi_bcast_rank2_complex_dp, &
             & mpi_bcast_rank3_complex_dp, mpi_bcast_rank4_complex_dp, &
             & mpi_bcast_character, mpi_bcast_character_array 
@@ -62,8 +63,19 @@ module mod_mpi_bcast
   
         call MPI_BCAST(buffer, size(buffer), MPI_DOUBLE_PRECISION, mpi_env%root, mpi_env%comm, mpi_env%ierr)
       end subroutine 
+
+
+      !> Broadcasts real array (Rank = 3) from the process with rank root to all other processes of the group. 
+      subroutine mpi_bcast_rank3_real_dp(mpi_env, buffer)
+        !> MPI environment
+        type(mpiinfo), intent(inout) :: mpi_env
+        !> Buffer
+        real(dp), intent(in) :: buffer(:,:,:) 
   
+        call MPI_BCAST(buffer, size(buffer), MPI_DOUBLE_PRECISION, mpi_env%root, mpi_env%comm, mpi_env%ierr)
+      end subroutine 
   
+      
       !> Broadcasts complex scalar from the process with rank root to all other processes of the group. 
       subroutine mpi_bcast_rank0_complex_dp(mpi_env, buffer)
         !> MPI environment

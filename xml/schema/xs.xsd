@@ -1108,39 +1108,84 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
+            <xs:attribute ex:importance="experimental" ex:unit=""  name="quasiparticle_correction" default="none">
+              <xs:annotation>
+                <xs:documentation>Define if quasi-particle correction of the band should be applied to the screening. So far: only scissor correction concerned, no GW.</xs:documentation>
+              </xs:annotation>
+               <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="none"/>
+                  <xs:enumeration value="scissor"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+        <xs:element ex:importance="experimental" ex:unit="" name="phonon_screening" minOccurs="0" maxOccurs="1">
+          <xs:complexType>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="file_type" default="quantum_espresso">
+              <xs:annotation>
+                <xs:documentation>(experimental) File type of phonon_file and zstar_file, i.e. specifies if the files were produced by quantum espresso or exciting.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="exciting"/>
+                  <xs:enumeration value="quantum_espresso"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="phonon_file" type="xs:string" use="required">
+              <xs:annotation>
+                <xs:documentation>(experimental) File containing phonon frequencies + eigvecs at all reducible q-points of the BSE-calculation. Valid file types i) Quantum Espresso: matdyn.eig produced from matdyn.x
+                  ii) exciting: PHONON.OUT from a phonon calculation (see the corresponding phonon tutorial) 
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="zstar_file" type="xs:string"  use="required">
+              <xs:annotation>
+                <xs:documentation>(experimental) File containing Born-effective charges and high frequency dielectric matrix. Valid file types i) Quantum Espresso: xxx.dyn1 (dynamical matrix at q=0) procuded from ph.x, ii) exciting: EPSINFZSTAR.OUT 
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="experimental" type="fortrandouble" ex:unit="Hartree" name="excitation_energy"  use="required">
+              <xs:annotation>
+                <xs:documentation>(experimental) Energy of the excited state for self-consistent BSE obtained with purely electronic screening. Note that with the k-grid densities currently feasible with exciting, this quantity is usually unconverged.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>       
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="BSE" minOccurs="0" maxOccurs="1">
           <xs:complexType>
-          <xs:attribute ex:importance="expert" ex:unit="" name="outputlevel" default="normal">
-            <xs:annotation>
-              <xs:documentation>
-                Specify amount of information which is printed to files:
-                <list>
-                    <li>normal - (default) standard information</li>
-                    <li>exper   - detailed output</li>
-                </list>
-              </xs:documentation>
-            </xs:annotation>
-            <xs:simpleType>
-              <xs:restriction base="xs:string">
-                <xs:enumeration value="normal">
-                  <xs:annotation>
-                    <xs:appinfo>
-                      <oldnr>0</oldnr>
-                    </xs:appinfo>
-                  </xs:annotation>
-                </xs:enumeration>
-                <xs:enumeration value="expert">
-                  <xs:annotation>
-                    <xs:appinfo>
-                      <oldnr>1</oldnr>
-                    </xs:appinfo>
-                  </xs:annotation>
-                </xs:enumeration>
-              </xs:restriction>
-            </xs:simpleType>
-          </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="outputlevel" default="normal">
+              <xs:annotation>
+                <xs:documentation>
+                  Specify amount of information which is printed to files:
+                  <list>
+                      <li>normal - (default) standard information</li>
+                      <li>exper   - detailed output</li>
+                  </list>
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="normal">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr>0</oldnr>
+                      </xs:appinfo>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="expert">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr>1</oldnr>
+                      </xs:appinfo>
+                    </xs:annotation>
+                  </xs:enumeration>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="nosym" type="xs:boolean"
               default="false">
               <xs:annotation>
@@ -1844,6 +1889,15 @@
                               shift).</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+                        <xs:enumeration value="phonon_screening">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>431</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>Calculate RPA screening (ignoring scissor's
+                              shift).</xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
                         <xs:enumeration value="scrcoulint">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2405,25 +2459,6 @@
             energies.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-
-      <xs:attribute ex:importance="experimental" ex:unit="" name="eph" type="xs:string" default="none">
-        <xs:annotation>
-          <xs:documentation>(experimental) Include the electron-phonon coupling due to polar phonons.</xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-      <xs:attribute ex:importance="experimental" type="fortrandouble" ex:unit="" name="wlo" default="0.0">
-        <xs:annotation>
-          <xs:documentation>(experimental) The LO phonon frequency for the polar electron-phonon coupling.</xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-      <xs:attribute ex:importance="experimental" type="fortrandouble" ex:unit="" name="wto" default="0.0">
-        <xs:annotation>
-          <xs:documentation>
-            (experimental) The TO phonon frequency for the polar electron-phonon coupling.
-          </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-
     </xs:complexType>
   </xs:element>
 
