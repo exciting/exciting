@@ -1,6 +1,7 @@
 """
-Simple text parsers
+Simple text parsers.
 """
+
 
 def match_current_return_line_n(file_string: str, match: str, n_line=1) -> str:
     """
@@ -13,13 +14,15 @@ def match_current_return_line_n(file_string: str, match: str, n_line=1) -> str:
     :return str matched line string
     """
     file = file_string.split('\n')
-    for i,line in enumerate(file):
+    for i, line in enumerate(file):
         if match in line:
             return file[i + n_line]
     return None
 
 
-def match_current_extract_from_line_n(input_string: str, keys_extractions: dict, n_line=1) -> dict:
+def match_current_extract_from_line_n(input_string: str,
+                                      keys_extractions: dict,
+                                      n_line=1) -> dict:
     """
     Given an input_string, match a substring (defined by the key of keys_extractions),
     return the a substring from the i+n_line line below the match, and extract a value
@@ -35,6 +38,6 @@ def match_current_extract_from_line_n(input_string: str, keys_extractions: dict,
     data = {}
     for key, extract_data in keys_extractions.items():
         match = match_current_return_line_n(input_string, key, n_line=n_line)
-        if match != None:
+        if match is not None:
             data[key] = extract_data(match)
     return data

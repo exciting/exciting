@@ -17,10 +17,12 @@ def parse_EPSILON_NAR(name):
         data = np.genfromtxt(name, skip_header=14)
     except:
         raise ParseError
-    out = {"frequency": data[:, 0], 
-           "real_oscillator_strength": data[:, 1], 
-           "imag_oscillator_strength": data[:, 2],
-           "real_oscillator_strength_kkt": data[:, 3]}
+    out = {
+        "frequency": data[:, 0],
+        "real_oscillator_strength": data[:, 1],
+        "imag_oscillator_strength": data[:, 2],
+        "real_oscillator_strength_kkt": data[:, 3]
+    }
 
     return out
 
@@ -35,13 +37,14 @@ def parse_LOSS_NAR(name):
         data = np.genfromtxt(name, skip_header=14)
     except:
         raise ParseError
-    out = {"frequency": data[:, 0],
-           "real_oscillator_strength": data[:, 1],
-           "imag_oscillator_strength": data[:, 2]
-           }
+    out = {
+        "frequency": data[:, 0],
+        "real_oscillator_strength": data[:, 1],
+        "imag_oscillator_strength": data[:, 2]
+    }
 
     return out
-    
+
 
 def parse_EXCITON_NAR_BSE(name):
     """
@@ -52,11 +55,11 @@ def parse_EXCITON_NAR_BSE(name):
     except:
         raise ParseError
     out = {}
-    out["state"] = data[:,0]
-    out["energy"] = data[:,1]
-    out["energy_shifted"] = data[:,2]
-    out["abs_oscillator_strength"] = data[:,3]
-    out["real_oscillator_strength"] = data[:,4]
-    out["imaginary_oscillator_strength"] = data[:,5]
+    out["state"] = data[:, 0]
+    out["energy"] = data[:, 1]
+    out["energy_shifted"] = data[:, 2]
+    out["abs_oscillator_strength"] = data[:, 3]
+    out["real_oscillator_strength"] = data[:, 4]
+    out["imaginary_oscillator_strength"] = data[:, 5]
 
     return out

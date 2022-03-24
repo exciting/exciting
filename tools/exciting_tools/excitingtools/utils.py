@@ -4,6 +4,7 @@ General utility functions
 from typing import Union, List, Optional, Callable
 import re
 
+
 def can_be_float(value) -> bool:
     """
     Check if a value can be interpreted as a float
@@ -18,7 +19,7 @@ def can_be_float(value) -> bool:
         return False
 
 
-def convert_to_literal(s: str) -> Union[int, float]:
+def convert_to_literal(input_str: str) -> Union[int, float]:
     """
     If possible, convert string to an int or float
 
@@ -27,16 +28,16 @@ def convert_to_literal(s: str) -> Union[int, float]:
       convert_to_literal('1') returns 1
       convert_to_literal('1.0') returns 1.0
 
-    :param str s: Input string
+    :param str input_str: Input string
     :return Union[int, float] x: Numerical literal of x, else None.
     """
     try:
-        x = int(s)
-        return x
+        integer_string = int(input_str)
+        return integer_string
     except ValueError:
         try:
-            x = float(s)
-            return x
+            float_string = float(input_str)
+            return float_string
         except ValueError:
             return None
 

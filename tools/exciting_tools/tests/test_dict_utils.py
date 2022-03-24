@@ -9,22 +9,68 @@ from excitingtools.dict_utils import container_converter, serialise_dict_values,
 
 
 def test_convert_container():
-    input = {'a': '5.0', 'b': ['1.0', '10.0'], 'c': {'a1': '1.0'}, 'd': "blu", 'e': [['1', '2.3'], '3'],
-             'f': ['1', 'a']}
-    expected = {'a': 5.0, 'b': [1.0, 10.0], 'c': {'a1': 1.0}, 'd': "blu", 'e': [[1, 2.3], 3], 'f': [1, 'a']}
+    """Test container_converter function on string values in a dict."""
+    input = {
+        'a': '5.0',
+        'b': ['1.0', '10.0'],
+        'c': {
+            'a1': '1.0'
+        },
+        'd': "blu",
+        'e': [['1', '2.3'], '3'],
+        'f': ['1', 'a']
+    }
+    expected = {
+        'a': 5.0,
+        'b': [1.0, 10.0],
+        'c': {
+            'a1': 1.0
+        },
+        'd': "blu",
+        'e': [[1, 2.3], 3],
+        'f': [1, 'a']
+    }
 
-    assert container_converter(input) == expected, 'String value/s failed to convert to numerical values'
+    assert container_converter(input) == expected, (
+        'String value/s failed to convert to numerical values')
 
 
 def test_convert_container_no_strings():
-    input = {'a': 5.0, 'b': [1.0, 10.0], 'c': {'a1': 1.0}, 'd': "blu", 'e': [[1, 2.3], 3], 'f': [1, 11.3]}
+    """Test container_converter where there are no string values in dict."""
+    input = {
+        'a': 5.0,
+        'b': [1.0, 10.0],
+        'c': {
+            'a1': 1.0
+        },
+        'd': "blu",
+        'e': [[1, 2.3], 3],
+        'f': [1, 11.3]
+    }
 
-    assert container_converter(input) == input, "Expect the converter to do nothing"
+    assert container_converter(input) == input, (
+        "Expect the converter to do nothing")
 
 
 def test_convert_container_data_type():
-    input = {'a': '5.0', 'b': ['1.0', '10.0'], 'c': {'a1': '1.0'}, 'd': "blu", 'e': [['1', '2.3'], '3']}
-    expected = {'a': 5.0, 'b': [1.0, 10.0], 'c': {'a1': 1.0}, 'd': "blu", 'e': [[1, 2.3], 3]}
+    input = {
+        'a': '5.0',
+        'b': ['1.0', '10.0'],
+        'c': {
+            'a1': '1.0'
+        },
+        'd': "blu",
+        'e': [['1', '2.3'], '3']
+    }
+    expected = {
+        'a': 5.0,
+        'b': [1.0, 10.0],
+        'c': {
+            'a1': 1.0
+        },
+        'd': "blu",
+        'e': [[1, 2.3], 3]
+    }
 
     output = container_converter(input)
 
@@ -39,10 +85,12 @@ def test_convert_container_data_type():
     for elem, elem2 in zip(output['e'][0], expected['e'][0]):
         assert type(elem) == type(elem2)
 
-    assert output == expected, "Output is consistent with the expected dictionary"
+    assert output == expected, (
+        "Output is consistent with the expected dictionary")
 
 
 class Mock:
+
     def __init__(self, a, b):
         self.a = a
         self.b = b
@@ -53,12 +101,24 @@ def test_serialise_dict_values():
     # Value is an object
     input = {'mock_key': Mock(1, 2)}
     output = serialise_dict_values(input)
-    assert output == {'mock_key': {'a': 1, 'b': 2}}, "Convert object values to dicts"
+    assert output == {
+        'mock_key': {
+            'a': 1,
+            'b': 2
+        }
+    }, "Convert object values to dicts"
 
     # Object nested in a dictionary
     input = {'mock_key': {'another-key': Mock(1, 2)}}
     output = serialise_dict_values(input)
-    assert output == {'mock_key': {'another-key':{'a': 1, 'b': 2}}}, "Convert nested object values into dicts"
+    assert output == {
+        'mock_key': {
+            'another-key': {
+                'a': 1,
+                'b': 2
+            }
+        }
+    }, "Convert nested object values into dicts"
 
     # Object nested in a list, and within a dictionary within a list
     input = {'a': [1, 2, Mock(3, 4), {'b': Mock(5, 6)}]}
@@ -80,7 +140,7 @@ def test_serialise_dict_value_is_tuple():
 def test_serialise_dict_value_is_set():
 
     # Object nested in a dictionary, nested within a set
-    input = { 'mock_key': {1, 2, Mock(1, 2)} }
+    input = {'mock_key': {1, 2, Mock(1, 2)}}
     output = serialise_dict_values(input)
 
     output_keys = [k for k in output.keys()]
@@ -109,7 +169,9 @@ def test_serialise_dict_value_is_set():
 
 
 def test_serialise_dict_values_null_behaviour():
-
+    """"
+    Test serialize_dict_values on different dict key types.
+    """
     input = {'mock_key': [1, 2]}
     output = serialise_dict_values(input)
     assert output == input, "Pass over list values"
@@ -126,8 +188,11 @@ def test_serialise_dict_values_null_behaviour():
     output = serialise_dict_values(input)
     assert output == input, "Pass over np.array values"
 
-def test_delete_nested_key():
 
+def test_delete_nested_key():
+    """
+    Test delete_nested_key removes a key from dict.
+    """
     input = {'a': {'b': 1, 'c': {'d': 1, 'e': 2}}}
     key_to_remove = ['a']
     delete_nested_key(input, key_to_remove)

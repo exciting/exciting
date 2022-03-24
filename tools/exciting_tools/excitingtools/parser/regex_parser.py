@@ -8,7 +8,10 @@ from math import floor
 from excitingtools.utils import convert_to_literal
 
 
-def parse_value_regex(file_string: str, key: str, no_colon=True, silent_key_error=False) -> dict:
+def parse_value_regex(file_string: str,
+                      key: str,
+                      no_colon=True,
+                      silent_key_error=False) -> dict:
     """
     Match the first instance of a string (key) if present in file_string,
     and return the result in a dictionary.
@@ -35,7 +38,8 @@ def parse_value_regex(file_string: str, key: str, no_colon=True, silent_key_erro
         # Remove escape characters
         parser_key = key.replace('\\', "")
         processed_values = [process_value(raw_value) for raw_value in values]
-        data[parser_key] = processed_values[0] if len(processed_values) == 1 else processed_values
+        data[parser_key] = processed_values[0] if len(
+            processed_values) == 1 else processed_values
 
     except AttributeError:
         if not silent_key_error:
@@ -59,7 +63,8 @@ def parse_values_regex(file_string: str, keys: List[str]) -> dict:
 
     :return dict parsed_data: Matched data
     """
-    assert type(keys) == list, "2nd argument of parse_values_regex must be List[str]"
+    assert type(
+        keys) == list, "2nd argument of parse_values_regex must be List[str]"
     matches_dict = {}
     for key in keys:
         matches_dict.update(**parse_value_regex(file_string, key))

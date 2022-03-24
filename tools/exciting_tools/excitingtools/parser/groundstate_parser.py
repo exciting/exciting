@@ -22,7 +22,7 @@ def parse_info_out(name: str) -> dict:
     nini = []
 
     # Get line numbers for SCF iteration blocks
-    for i,line in enumerate(lines):
+    for i, line in enumerate(lines):
         # stores the number of the first and last line of every iteration into a list
         if ('SCF iteration number' in line) or ('Hybrids iteration number'
                                                 in line):
@@ -32,9 +32,9 @@ def parse_info_out(name: str) -> dict:
             nscl.append(i)
         # stores the number of the first and last line of the initialization into a list
         if 'Starting initialization' in line:
-            nini.append(i+2)
+            nini.append(i + 2)
         if 'Ending initialization' in line:
-            nini.append(i-2)
+            nini.append(i - 2)
 
     calculation_failed = True
     for line in reversed(lines):

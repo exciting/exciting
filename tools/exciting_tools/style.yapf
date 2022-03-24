@@ -1,0 +1,277 @@
+# --------------------------------------------------------------------------------
+# YAPF Style Settings for Excitingtools.
+# YAPF Style template: https://github.com/readthedocs/common/blob/main/style.yapf
+# Taken from yapf==0.26.0
+# --------------------------------------------------------------------------------
+
+[style]
+
+# ------------------------------------------------------
+# Settings that have a large visual effect on formatting
+# ------------------------------------------------------
+# If an argument / parameter list is going to be split, then split before the first argument.
+SPLIT_BEFORE_FIRST_ARGUMENT=False
+
+# Split before arguments, but do not split all subexpressions recursively (unless needed)."""
+SPLIT_ALL_TOP_LEVEL_COMMA_SEPARATED_VALUES=True
+
+# Put closing brackets on a separate line, indented, if the bracketed
+# expression can't fit in a single line. Applies to all kinds of brackets,
+# including function definitions and calls
+INDENT_CLOSING_BRACKETS=True
+
+# The column limit.
+COLUMN_LIMIT=99
+
+# The penalty for characters over the column limit.
+SPLIT_PENALTY_EXCESS_CHARACTER = 50
+
+# Put closing brackets on a separate line, dedented, if the bracketed
+# expression can't fit in a single line. Applies to all kinds of
+# brackets, including function definitions and calls. For example:
+#
+#   config = {
+#       'key1': 'value1',
+#       'key2': 'value2',
+#   }        # <--- this bracket is dedented and on a separate line
+#
+#   time_series = self.remote_client.query_entity_counters(
+#       entity='dev3246.region1',
+#       key='dns.query_latency_tcp',
+#       transform=Transformation.AVERAGE(window=timedelta(seconds=60)),
+#       start_ts=now()-timedelta(days=3),
+#       end_ts=now(),
+#   )        # <--- this bracket is dedented and on a separate line
+
+# We don't use this as it looks ugly w.r.t. indenting
+DEDENT_CLOSING_BRACKETS=False
+
+# -----------------------------------------------------
+# All Other Settings
+# -----------------------------------------------------
+
+# Align closing bracket with visual indentation.
+ALIGN_CLOSING_BRACKET_WITH_VISUAL_INDENT=True
+
+# Allow lambdas to be formatted on more than one line.
+ALLOW_MULTILINE_LAMBDAS=False
+
+# Allow dictionary keys to exist on multiple lines. For example:
+#
+# x = {
+#     ('this is the first element of a tuple',
+#      'this is the second element of a tuple'):
+#          value,
+# }
+ALLOW_MULTILINE_DICTIONARY_KEYS=False
+
+# Allow splitting before a default / named assignment in an argument list.
+ALLOW_SPLIT_BEFORE_DEFAULT_OR_NAMED_ASSIGNS=True
+
+# Let spacing indicate operator precedence. For example:
+# a = 1 * 2 + 3 / 4
+# b = 1 / 2 - 3 * 4
+# c = (1 + 2) * (3 - 4)
+# d = (1 - 2) / (3 + 4)
+# e = 1 * 2 - 3
+# f = 1 + 2 + 3 + 4
+#
+# will be formatted as follows to indicate precedence:
+#
+# a = 1*2 + 3/4
+# b = 1/2 - 3*4
+# c = (1+2) * (3-4)
+# d = (1-2) / (3+4)
+# e = 1*2 - 3
+# f = 1 + 2 + 3 + 4
+ARITHMETIC_PRECEDENCE_INDICATION=FALSE
+
+# Insert a blank line before a 'def' or 'class' immediately nested
+# within another 'def' or 'class'. For example:
+#
+#   class Foo:
+#                      # <------ this blank line
+#     def method():
+#       ...
+BLANK_LINE_BEFORE_NESTED_CLASS_OR_DEF=True
+
+# Insert a blank line before a module docstring.
+BLANK_LINE_BEFORE_MODULE_DOCSTRING=True
+
+# Insert a blank line before a class-level docstring.
+BLANK_LINE_BEFORE_CLASS_DOCSTRING=True
+
+# Sets the number of desired blank lines surrounding top-level function and class definitions. For example:
+#
+# class Foo:
+#     pass
+#                    # <------ having two blank lines here
+#                    # <------ is the default setting
+# class Bar:
+#     pass
+BLANK_LINES_AROUND_TOP_LEVEL_DEFINITION=2
+
+# Do not split consecutive brackets. Only relevant when
+# dedent_closing_brackets is set. For example:
+#
+#    call_func_that_takes_a_dict(
+#        {
+#            'key1': 'value1',
+#            'key2': 'value2',
+#        }
+#    )
+#
+# would reformat to:
+#
+#    call_func_that_takes_a_dict({
+#        'key1': 'value1',
+#        'key2': 'value2',
+#    })
+COALESCE_BRACKETS=True
+
+# Indent width used for line continuations.
+CONTINUATION_INDENT_WIDTH=4
+
+# Disable the heuristic which places each list element on a separate
+# line if the list is comma-terminated.
+DISABLE_ENDING_COMMA_HEURISTIC=False
+
+# Place each dictionary entry onto its own line.
+EACH_DICT_ENTRY_ON_SEPARATE_LINE=False
+
+# The regex for an i18n comment. The presence of this comment stops
+# reformatting of that line, because the comments are required to be
+# next to the string they translate.
+I18N_COMMENT=
+
+# The i18n function call names. The presence of this function stops
+# reformattting on that line, because the string it has cannot be moved
+# away from the i18n comment.
+I18N_FUNCTION_CALL=["_", "ugettext", "gettext"]
+
+# Indent the dictionary value if it cannot fit on the same line as the
+# dictionary key. For example:
+#
+#   config = {
+#       'key1':
+#           'value1',
+#       'key2': value1 +
+#               value2,
+#   }
+INDENT_DICTIONARY_VALUE=False
+
+# The number of columns to use for indentation.
+INDENT_WIDTH=4
+
+# Set to True to prefer indented blank lines rather than empty
+INDENT_BLANK_LINES=False
+
+# Join short lines into one line. E.g., single line 'if' statements.
+JOIN_MULTIPLE_LINES=True
+
+# Use spaces around the power operator.
+SPACES_AROUND_POWER_OPERATOR=True
+
+# Do not include spaces around selected binary operators. For example:
+# 1 + 2 * 3 - 4 / 5
+# will be formatted as follows when configured with a value "*,/":
+# 1 + 2*3 - 4/5
+NO_SPACES_AROUND_SELECTED_BINARY_OPERATORS=False
+
+# Set to True to prefer spaces around the assignment operator for
+# default or keyword arguments.
+SPACES_AROUND_DEFAULT_OR_NAMED_ASSIGN=False
+
+# The number of spaces required before a trailing comment.
+SPACES_BEFORE_COMMENT=2
+
+# Insert a space between the ending comma and closing bracket of a list,
+# etc.
+SPACE_BETWEEN_ENDING_COMMA_AND_CLOSING_BRACKET=False
+
+# Split before arguments if the argument list is terminated by a
+# comma.
+SPLIT_ARGUMENTS_WHEN_COMMA_TERMINATED=True
+
+# If a comma separated list (dict, list, tuple, or function def) is on
+# a line that is too long, split such that all elements are on a
+# single line.
+SPLIT_ALL_COMMA_SEPARATED_VALUES=False
+
+# Set to True to prefer splitting before '&', '|' or '^' rather than
+# after.
+SPLIT_BEFORE_BITWISE_OPERATOR=False
+
+# Split before the closing bracket if a list or dict literal doesn't fit on a single line.
+SPLIT_BEFORE_CLOSING_BRACKET=False
+
+# Split before a dictionary or set generator (comp_for). For example,
+# note the split before the for:
+#
+# foo = {
+#     variable: 'Hello world, have a nice day!'
+#     for variable in bar if variable != 42
+# }
+SPLIT_BEFORE_DICT_SET_GENERATOR=True
+
+# Split before the '.' if we need to split a longer expression:
+# foo = ('This is a really long string: {}, {}, {}, {}'.format(a, b, c, d))
+# would reformat to something like:
+#  foo = ('This is a really long string: {}, {}, {}, {}'
+#         .format(a, b, c, d))
+SPLIT_BEFORE_DOT=True
+
+# Split after the opening paren which surrounds an expression if it doesn't fit on a single line.
+SPLIT_BEFORE_EXPRESSION_AFTER_OPENING_PAREN=True
+
+# Set to True to prefer splitting before 'and' or 'or' rather than
+# after.
+SPLIT_BEFORE_LOGICAL_OPERATOR=False
+
+# Split named assignments onto individual lines.
+SPLIT_BEFORE_NAMED_ASSIGNS=False
+
+# For list comprehensions and generator expressions with multiple clauses
+SPLIT_COMPLEX_COMPREHENSION=False
+
+# The penalty for splitting right after the opening bracket.
+SPLIT_PENALTY_AFTER_OPENING_BRACKET=2000
+
+# The penalty for splitting the line after a unary operator.
+SPLIT_PENALTY_AFTER_UNARY_OPERATOR=10000
+
+# The penalty for splitting right before an if expression.
+SPLIT_PENALTY_BEFORE_IF_EXPR=0
+
+# The penalty of splitting the line around the '&', '|', and '^'
+# operators.
+SPLIT_PENALTY_BITWISE_OPERATOR=300
+
+# The penalty for splitting a list comprehension or generator expression.
+SPLIT_PENALTY_COMPREHENSION=80
+
+# The penalty incurred by adding a line split to the unwrapped
+# line. The more line splits added the higher the penalty.
+SPLIT_PENALTY_FOR_ADDED_LINE_SPLIT=30
+
+# The penalty of splitting a list of "import as" names. For example:
+#
+#   from a_very_long_or_indented_module_name_yada_yad import (long_argument_1,
+#                                                             long_argument_2,
+#                                                             long_argument_3)
+#
+# would reformat to something like:
+#
+#   from a_very_long_or_indented_module_name_yada_yad import (
+#       long_argument_1, long_argument_2, long_argument_3)
+SPLIT_PENALTY_IMPORT_NAMES=1000
+
+# The penalty of splitting the line around the 'and' and 'or'
+# operators.
+SPLIT_PENALTY_LOGICAL_OPERATOR=300
+
+# Use the Tab character for indentation.
+USE_TABS=False
+
+# Allow splits before the dictionary value.
+ALLOW_SPLIT_BEFORE_DICT_VALUE=False

@@ -5,7 +5,7 @@ import subprocess
 from typing import Optional
 
 
-def grep(string: str, fname: str, options: Optional[dict]=None) -> str:
+def grep(string: str, fname: str, options: Optional[dict] = None) -> str:
     """
     Wrapper for command-line grep.
 
@@ -26,7 +26,8 @@ def grep(string: str, fname: str, options: Optional[dict]=None) -> str:
     try:
         output = subprocess.check_output(grep_str, shell=True).decode("utf-8")
     except subprocess.CalledProcessError as grepexc:
-        print("subprocess error:", grepexc.returncode, "grep found:", grepexc.output)
+        print("subprocess error:", grepexc.returncode, "grep found:",
+              grepexc.output)
         output = grepexc.output
 
     return output
