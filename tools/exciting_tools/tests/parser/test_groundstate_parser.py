@@ -37,7 +37,7 @@ def test_parse_info_out():
                 "0.0000000000",
                 "0.0000000000",
                 "15.0000000000"
-            ],
+                ],
             "Maximum Hamiltonian size": "263",
             "Maximum number of plane-waves": "251",
             "Maximum |G| for potential and density": "7.50000000",
@@ -55,7 +55,7 @@ def test_parse_info_out():
                 "0.0000000000",
                 "0.0000000000",
                 "0.4188790205"
-            ],
+                ],
             "Smearing scheme": "Gaussian",
             "Smearing width": "0.00100000",
             "Species": "1 (Ar)",
@@ -86,7 +86,7 @@ def test_parse_info_out():
             "nuclear charge": "-18.00000000",
             "parameters loaded from": "Ar.xml",
             "potential and density": "4"
-        },
+            },
         "scl": {
             "1": {
                 "Core-electron kinetic energy": "0.00000000",
@@ -116,7 +116,7 @@ def test_parse_info_out():
                 "total charge in muffin-tins": "17.99816103",
                 "valence": "8.00000000",
                 "xc potential energy": "-38.82700618"
-            },
+                },
             "11": {
                 "Core-electron kinetic energy": "0.00000000",
                 "Correlation energy": "-1.43084350",
@@ -145,9 +145,9 @@ def test_parse_info_out():
                 "total charge in muffin-tins": "17.99815963",
                 "valence": "8.00000000",
                 "xc potential energy": "-38.82693481"
+                }
             }
         }
-    }
 
     info_out = parse_info_out("../../test/test_farm/groundstate/LDA_VWN-Ar/ref/INFO.OUT")
 

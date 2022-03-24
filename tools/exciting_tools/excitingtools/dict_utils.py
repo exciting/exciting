@@ -26,13 +26,12 @@ def common_iterable(obj: Union[dict, list]):
 
 def __container_converter(data: Union[list, dict]):
     """
-    Mutates the input dictionary, converting string representations of numerical data into numerical data.
+    Converts string versions of numerical data from input dict into numerical data.
 
     :param dict data: Dictionary with string values.
     :return:dict new_data: Dictionary with all string literal values converted to numerical values.
     """
-    np_convert = {np.float64: float,
-                  np.int32: int}
+    np_convert = {np.float64: float, np.int32: int}
 
     for element in common_iterable(data):
         if isinstance(data[element], dict) or isinstance(data[element], list):
@@ -48,7 +47,8 @@ def __container_converter(data: Union[list, dict]):
             except:
                 pass
         else:
-            message = 'Type not converted by dict converter: ' + str(type(data[element]))
+            message = 'Type not converted by dict converter: ' + str(
+                type(data[element]))
             sys.exit(message)
 
     return data
@@ -56,7 +56,9 @@ def __container_converter(data: Union[list, dict]):
 
 def container_converter(data: dict):
     """
-    Mutates the input dictionary, converting string representations of numerical data into numerical data.
+    Converts string representations of numerical data into numerical data.
+
+    Acts on string data in the input dict.
 
     :param dict data: Dictionary to be copied containing string values.
     :return: dict new_data: Copied dictionary with all string literal values converted to numerical values.

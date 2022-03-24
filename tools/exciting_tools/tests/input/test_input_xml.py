@@ -37,16 +37,17 @@ def test_exciting_input_xml_structure_and_gs(tmpdir):
     mock_species_files(tmpdir, ["Li", "F"])
     structure = ExcitingStructure(arbitrary_atoms, cubic_lattice, tmpdir)
 
-    ground_state = ExcitingGroundStateInput(rgkmax=8.0,
-                                            do="fromscratch",
-                                            ngridk=[6, 6, 6],
-                                            xctype="GGA_PBE_SOL",
-                                            vkloff=[0, 0, 0],
-                                            tforce=True,
-                                            nosource=False)
+    ground_state = ExcitingGroundStateInput(
+        rgkmax=8.0,
+        do="fromscratch",
+        ngridk=[6, 6, 6],
+        xctype="GGA_PBE_SOL",
+        vkloff=[0, 0, 0],
+        tforce=True,
+        nosource=False
+        )
 
-    input_xml_tree = exciting_input_xml(
-        structure, title='Test Case', groundstate=ground_state)
+    input_xml_tree = exciting_input_xml(structure, title='Test Case', groundstate=ground_state)
 
     assert input_xml_tree.tag == 'input'
     assert input_xml_tree.keys() == []

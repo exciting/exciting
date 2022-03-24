@@ -5,7 +5,7 @@ from xml.etree.ElementTree import ParseError
 import numpy as np
 from typing import List
 
-from excitingtools.parser.grep_parser import  grep
+from excitingtools.parser.grep_parser import grep
 
 
 def parse_nexc(name, skiprows=1):
@@ -16,11 +16,12 @@ def parse_nexc(name, skiprows=1):
         data = np.genfromtxt(name, skip_header=skiprows)
     except:
         raise ParseError
-    out = {"Time": data[:, 0],
-           "number_electrons_GroundState": data[:, 1],
-           "number_electrons_ExcitedState": data[:, 2],
-           "sum": data[:, 3]
-           }
+    out = {
+        "Time": data[:, 0],
+        "number_electrons_GroundState": data[:, 1],
+        "number_electrons_ExcitedState": data[:, 2],
+        "sum": data[:, 3]
+    }
 
     return out
 
@@ -33,7 +34,12 @@ def parse_jind(name, skiprows=0):
         data = np.genfromtxt(name, skip_header=skiprows)
     except:
         raise ParseError
-    out = {"Time": data[:, 0], "Jx": data[:, 1], "Jy": data[:, 2], "Jz": data[:, 3]}
+    out = {
+        "Time": data[:, 0],
+        "Jx": data[:, 1],
+        "Jy": data[:, 2],
+        "Jz": data[:, 3]
+    }
 
     return out
 
@@ -46,27 +52,30 @@ def parse_etot(name):
         data = np.genfromtxt(name, skip_header=1)
     except:
         raise ParseError
-    out = {"Time": data[:, 0],
-           "ETOT": data[:, 1],
-           "Madelung": data[:, 2],
-           "Eigenvalues-Core": data[:, 3],
-           "Eigenvalues-Valence": data[:, 4],
-           "Exchange": data[:, 5],
-           "Correlation": data[:, 6],
-           "XC-potential": data[:, 7],
-           "Coulomb pot. energy": data[:, 8]
-           }
+    out = {
+        "Time": data[:, 0],
+        "ETOT": data[:, 1],
+        "Madelung": data[:, 2],
+        "Eigenvalues-Core": data[:, 3],
+        "Eigenvalues-Valence": data[:, 4],
+        "Exchange": data[:, 5],
+        "Correlation": data[:, 6],
+        "XC-potential": data[:, 7],
+        "Coulomb pot. energy": data[:, 8]
+    }
 
     return out
 
 
 def parse_eigval_screenshots(name: str) -> dict:
     """
-    Parser for EIGVAL_*.OUT
-
+    Parser for EIGVAL_*.OUT.
     """
+
     def get_k_point_blocks(name: str, fortran_index=False) -> List[dict]:
         """
+        Parse the k point blocks.
+
         For a file:
         line 0   ik =       1
         line 1    1     -0.357413438539
@@ -85,7 +94,7 @@ def parse_eigval_screenshots(name: str) -> dict:
           k_blocks[1]['end']   = line 75  i.e.   38      8.808472531393
 
 
-        Default line indexing starts at 0
+        Default line indexing starts at 0.
         """
 
         # Lines for which a new k-point block starts
@@ -105,8 +114,7 @@ def parse_eigval_screenshots(name: str) -> dict:
         k_start = 0 + offset
         for ik in k_point_lines[1:]:
             k_end = ik - 2
-            k_blocks.append({'start': k_start,
-                             'end': k_end})
+            k_blocks.append({'start': k_start, 'end': k_end})
             k_start = k_end + 2
 
         # Account for final k-block
@@ -117,7 +125,7 @@ def parse_eigval_screenshots(name: str) -> dict:
     k_blocks = get_k_point_blocks(name)
 
     # Parse file
-    with open(name) as f:
+    with open(name, 'r') as f:
         file = f.readlines()
 
     data = {}
@@ -125,11 +133,14 @@ def parse_eigval_screenshots(name: str) -> dict:
     for indices in k_blocks:
         kpoint = {}
         ik = int(file[indices['start']].split()[-1])
-        eigenvalues = [float(file[i].split()[-1]) for i in range(indices['start']+1, indices['end']+1)]
-        kpoint['ik'] = ik 
+        eigenvalues = [
+            float(file[i].split()[-1])
+            for i in range(indices['start'] + 1, indices['end'] + 1)
+        ]
+        kpoint['ik'] = ik
         kpoint['eigenvalues'] = eigenvalues
         kpoints.append(kpoint)
-        
+
     data['kpoints'] = kpoints
 
     return data
@@ -137,7 +148,7 @@ def parse_eigval_screenshots(name: str) -> dict:
 
 def parse_proj_screenshots(name: str) -> dict:
     """
-    Parser for PROJ_*.OUT
+    Parser for PROJ_*.OUT.
 
     Effectively the same code as parse_eigval_screenshots, but the whitespace
     between blocks differs by 1.
@@ -171,7 +182,7 @@ def parse_proj_screenshots(name: str) -> dict:
             projection.append([float(x) for x in file[j].split()])
         kpoint['ik'] = ik
         kpoint['projection'] = np.asarray(projection)
-    
+
     data['kpoints'] = kpoints
 
     return data

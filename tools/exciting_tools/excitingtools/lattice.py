@@ -19,11 +19,14 @@ def check_lattice(lattice: list):
 
     for i in range(0, 3):
         if len(lattice[i]) != 3:
-            raise ValueError(f'lattice vector {i} expected to have 3 components. Instead has {len(lattice[i])}')
+            raise ValueError(
+                f'lattice vector {i} expected to have 3 components. Instead has {len(lattice[i])}'
+            )
 
     for i, j in [(0, 1), (1, 2), (0, 2)]:
         if np.allclose(lattice[i], lattice[j], atol=1.e-6):
-            raise ValueError(f'lattice vectors {i} and {j} are numerically equivalent')
+            raise ValueError(
+                f'lattice vectors {i} and {j} are numerically equivalent')
 
 
 def check_lattice_vector_norms(lattice: list, tol=1.e-6):
@@ -49,7 +52,9 @@ def parallelpiped_volume(lattice_vectors: np.ndarray) -> float:
     :param np.ndarray lattice_vectors: Lattice vectors, stored column-wise
     :return: float: Cell volume
     """
-    return np.abs(triple_product(lattice_vectors[:, 0], lattice_vectors[:, 1], lattice_vectors[:, 2]))
+    return np.abs(
+        triple_product(lattice_vectors[:, 0], lattice_vectors[:, 1],
+                       lattice_vectors[:, 2]))
 
 
 def reciprocal_lattice_vectors(a: np.ndarray) -> np.ndarray:
@@ -72,7 +77,8 @@ def reciprocal_lattice_vectors(a: np.ndarray) -> np.ndarray:
 
 
 # TODO(Bene) This needs cleaning up. Missing any documenting maths. Not at all clear what's happening
-def plane_transformation(rec_lat_vec: np.array, plot_vec: np.array) -> np.array:
+def plane_transformation(rec_lat_vec: np.array,
+                         plot_vec: np.array) -> np.array:
     """
     Take reciprocal lattice vectors and ONS of a plane in rec. lat. coordinates where the first two vectors span the plane and the third is normal to them 
     and calculate a matrix that transforms points in the plane to the xy plane in cartesian coordinates.

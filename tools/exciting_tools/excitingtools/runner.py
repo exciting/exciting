@@ -20,7 +20,12 @@ class RunnerCode(enum.Enum):
 class SubprocessRunResults:
     """ Results returned from subprocess.run()
     """
-    def __init__(self, stdout, stderr, return_code: Union[int, RunnerCode], process_time: Optional[float] = None):
+
+    def __init__(self,
+                 stdout,
+                 stderr,
+                 return_code: Union[int, RunnerCode],
+                 process_time: Optional[float] = None):
         self.stdout = stdout
         self.stderr = stderr
         self.return_code = return_code
@@ -39,8 +44,7 @@ class BinaryRunner:
                  omp_num_threads: int,
                  time_out: int,
                  directory: Optional[path_type] = './',
-                 args=None
-                 ) -> None:
+                 args=None) -> None:
         """ Initialise class.
 
         :param str binary: Binary name prepended by full path, or just binary name (if present in $PATH).
@@ -69,7 +73,9 @@ class BinaryRunner:
             # If just the binary name, try checking the $PATH
             self.binary = shutil.which(self.binary)
             if self.binary is None:
-                raise FileNotFoundError(f"{binary} does not exist and cannot be found in the $PATH")
+                raise FileNotFoundError(
+                    f"{binary} does not exist and cannot be found in the $PATH"
+                )
 
         if not Path(directory).is_dir():
             raise OSError(f"Run directory does not exist: {directory}")
@@ -77,7 +83,9 @@ class BinaryRunner:
         if isinstance(run_cmd, str):
             self.run_cmd = run_cmd.split()
         elif not isinstance(run_cmd, list):
-            raise ValueError("Run commands expected in a str or list. For example ['mpirun', '-np', '2']")
+            raise ValueError(
+                "Run commands expected in a str or list. For example ['mpirun', '-np', '2']"
+            )
 
         self._check_mpi_processes()
 
@@ -94,7 +102,7 @@ class BinaryRunner:
         try:
             i = self.run_cmd.index('-np')
             mpi_processes = eval(self.run_cmd[i + 1])
-            if type(mpi_processes) != int:
+            if isinstance(mpi_processes) != int:
                 raise ValueError("Number of MPI processes should be an int")
             if mpi_processes <= 0:
                 raise ValueError("Number of MPI processes must be > 0")
@@ -133,8 +141,10 @@ class BinaryRunner:
                                     timeout=self.time_out,
                                     cwd=self.directory)
             total_time = time.time() - time_start
-            return SubprocessRunResults(result.stdout, result.stderr, result.returncode, total_time)
+            return SubprocessRunResults(result.stdout, result.stderr,
+                                        result.returncode, total_time)
 
         except subprocess.TimeoutExpired as timed_out:
             error = 'BinaryRunner: Job timed out. \n\n' + timed_out.stderr
-            return SubprocessRunResults(timed_out.output, error, RunnerCode.time_out, self.time_out)
+            return SubprocessRunResults(timed_out.output, error,
+                                        RunnerCode.time_out, self.time_out)

@@ -28,6 +28,7 @@ class Unit(enum.Enum):
     bohr_velocity_over_bohr_radius = enum.auto()
     null = enum.auto()
 
+
 # Map Unit enums to strings.
 # Required because JSON cannot dump objects to file.
 enum_to_string = {

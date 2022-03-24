@@ -10,7 +10,8 @@ def test_line_reformatter():
     input_str = (
         '<groundstate do="fromscratch" ngridk="6 6 6" nosource="false" '
         'rgkmax="8.0" tforce="true" vkloff="0 0 0" xctype="GGA_PBE_SOL"> '
-        '</groundstate>')
+        '</groundstate>'
+        )
     pretty_input_str = line_reformatter(input_str, '<groundstate')
     # Note, whitespace is important
     reference = """        <groundstate
@@ -36,13 +37,13 @@ def test_line_reformatter_unmatched_tag():
     input_str = (
         '<groundstate do="fromscratch" ngridk="6 6 6" nosource="false" '
         'rgkmax="8.0" tforce="true" vkloff="0 0 0" xctype="GGA_PBE_SOL"> '
-        '</groundstate>')
+        '</groundstate>'
+        )
 
     with pytest.raises(ValueError) as error:
         line_reformatter(input_str, '<error')
 
-    assert error.value.args[
-        0] == 'tag, "<error", is inconsistent the element name, "<groun"'
+    assert error.value.args[0] == 'tag, "<error", is inconsistent the element name, "<groun"'
 
 
 def test_prettify_tag_attributes():
@@ -50,7 +51,8 @@ def test_prettify_tag_attributes():
     input_str = (
         '<groundstate do="fromscratch" ngridk="6 6 6" nosource="false" '
         'rgkmax="8.0" tforce="true" vkloff="0 0 0" xctype="GGA_PBE_SOL"> '
-        '</groundstate>')
+        '</groundstate>'
+        )
 
     output = prettify_tag_attributes(input_str, '<unmatched')
     assert output.rstrip() == input_str, (

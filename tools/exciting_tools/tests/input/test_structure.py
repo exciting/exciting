@@ -49,7 +49,7 @@ def xml_structure_H2He(tmpdir):
     structure object initialised with a mock crystal, using mandatory arguments only.
     """
     cubic_lattice = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
-    arbitrary_atoms = [{'species': 'H', 'position': [0, 0, 0]},
+    arbitrary_atoms = [{'species': 'H', 'position': [0, 0,0]},
                        {'species': 'H', 'position': [1, 0, 0]},
                        {'species': 'He', 'position': [2, 0, 0]}]
     mock_species_files(tmpdir, ["H", "He"])
@@ -118,14 +118,13 @@ def xml_structure_CdS(tmpdir):
     Optional atom attributes require the generic container, List[dict].
     """
     cubic_lattice = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
-    arbitrary_atoms = [{'species': 'Cd',
-                        'position': [0.0, 0.0, 0.0],
-                        'bfcmt': [1.0, 1.0, 1.0],
-                        'lockxyz': [False, False, False],
-                        'mommtfix': [2.0, 2.0, 2.0]},
-                       {'species': 'S',
-                        'position': [1.0, 0.0, 0.0]}
-                       ]
+    arbitrary_atoms = [{
+        'species': 'Cd',
+        'position': [0.0, 0.0, 0.0],
+        'bfcmt': [1.0, 1.0, 1.0],
+        'lockxyz': [False, False, False],
+        'mommtfix': [2.0, 2.0, 2.0]
+        }, {'species': 'S', 'position': [1.0, 0.0, 0.0]}]
     mock_species_files(tmpdir, ["Cd", "S"])
     structure = ExcitingStructure(arbitrary_atoms, cubic_lattice, str(tmpdir))
     return structure.to_xml()
@@ -191,16 +190,12 @@ def test_optional_structure_attributes_xml(tmpdir, lattice_and_atoms_CdS):
     Test optional structure attributes.
     """
     cubic_lattice, arbitrary_atoms = lattice_and_atoms_CdS
-    structure_attributes = {'autormt': True,
-                            'cartesian': False,
-                            'epslat': 1.e-6,
-                            'primcell': False,
-                            'tshift': True
-                            }
-    structure = ExcitingStructure(arbitrary_atoms,
-                                  cubic_lattice,
-                                  str(tmpdir),
-                                  structure_properties=structure_attributes)
+    structure_attributes = {
+        'autormt': True, 'cartesian': False, 'epslat': 1.e-6, 'primcell': False, 'tshift': True
+        }
+    structure = ExcitingStructure(
+        arbitrary_atoms, cubic_lattice, str(tmpdir), structure_properties=structure_attributes
+        )
     xml_structure = structure.to_xml()
 
     mandatory = ['speciespath']
@@ -223,11 +218,12 @@ def test_optional_crystal_attributes_xml(tmpdir, lattice_and_atoms_CdS):
     """
     cubic_lattice, arbitrary_atoms = lattice_and_atoms_CdS
 
-    structure = ExcitingStructure(arbitrary_atoms,
-                                  cubic_lattice,
-                                  str(tmpdir),
-                                  crystal_properties={'scale': 1.00, 'stretch': 1.00}
-                                  )
+    structure = ExcitingStructure(
+        arbitrary_atoms,
+        cubic_lattice,
+        str(tmpdir),
+        crystal_properties={'scale': 1.00, 'stretch': 1.00}
+        )
     xml_structure = structure.to_xml()
 
     elements = list(xml_structure)
@@ -247,10 +243,9 @@ def test_optional_species_attributes_xml(tmpdir, lattice_and_atoms_CdS):
     cubic_lattice, arbitrary_atoms = lattice_and_atoms_CdS
     species_attributes = {'Cd': {'rmt': 3.0}, 'S': {'rmt': 4.0}}
 
-    structure = ExcitingStructure(arbitrary_atoms,
-                                  cubic_lattice,
-                                  str(tmpdir),
-                                  species_properties=species_attributes)
+    structure = ExcitingStructure(
+        arbitrary_atoms, cubic_lattice, str(tmpdir), species_properties=species_attributes
+        )
     xml_structure = structure.to_xml()
 
     elements = list(xml_structure)

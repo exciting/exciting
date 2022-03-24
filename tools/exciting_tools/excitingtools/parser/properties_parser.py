@@ -110,13 +110,15 @@ def parse_efg(name: str) -> dict:
 
     for species in root.findall('species'):
         species_key = species.tag + str(species.attrib['n'])
-        data[species_key] = {'chemicalSymbol': species.attrib['chemicalSymbol']}
+        data[species_key] = {
+            'chemicalSymbol': species.attrib['chemicalSymbol']
+        }
 
         for atom in species.findall('atom'):
             atom_key = atom.tag + atom.attrib['n']
 
             for efg_tensor in atom.findall("EFG-tensor"):
-                efg = np.empty(shape=(3,3))
+                efg = np.empty(shape=(3, 3))
 
                 for i, line in enumerate(efg_tensor.findall("line")):
                     efg[i, :] = [float(x) for x in line.text.split()]
@@ -124,10 +126,11 @@ def parse_efg(name: str) -> dict:
                 for eigenvalues in efg_tensor.findall("eigenvalues"):
                     eig = [float(e) for e in eigenvalues.text.split()]
 
-            data[species_key][atom_key] = {'trace': float(efg_tensor.attrib['trace']),
-                                           'efg': efg,
-                                           'eigenvalues': eig
-                                           }
+            data[species_key][atom_key] = {
+                'trace': float(efg_tensor.attrib['trace']),
+                'efg': efg,
+                'eigenvalues': eig
+            }
     return data
 
 
@@ -253,13 +256,13 @@ def parse_bandstructure(name: str) -> dict:
         for item in points:
             name = str(i)
             band["point"][name] = item
-            i = i+1
+            i = i + 1
     bandstructure["band"] = {}
     j = 1
     for item in bands:
         name = str(j)
         bandstructure["band"][name] = item
-        j = j+1
+        j = j + 1
     return bandstructure
 
 
@@ -275,7 +278,7 @@ def parse_dos(name: str) -> dict:
     dos["title"] = root.find("title").text
     totaldos = root.find("totaldos").attrib
     dos["totaldos"] = totaldos
-    diagram  = root.find("totaldos").find("diagram").attrib
+    diagram = root.find("totaldos").find("diagram").attrib
     dos["totaldos"]["diagram"] = diagram
     points = []
     for node in root.find("totaldos").find("diagram").findall("point"):
@@ -286,7 +289,7 @@ def parse_dos(name: str) -> dict:
     for item in points:
         name = str(i)
         dos["totaldos"]["diagram"]["point"][name] = item
-        i = i+1
+        i = i + 1
     return dos
 
 
@@ -302,9 +305,7 @@ def parse_kerr(name: str) -> dict:
     except:
         raise ParseError
 
-    out = {'energy': data[:, 0],
-           're':     data[:, 1],
-           'im':     data[:, 2]}
+    out = {'energy': data[:, 0], 're': data[:, 1], 'im': data[:, 2]}
 
     return out
 
@@ -335,10 +336,12 @@ def parse_chi(name: str) -> dict:
         data = np.genfromtxt(name, skip_header=1)
     except:
         raise ParseError
-    out = {'energy':  data[:, 0],
-           're':      data[:, 1],
-           'im':      data[:, 2],
-           'modulus': data[:, 3]}
+    out = {
+        'energy': data[:, 0],
+        're': data[:, 1],
+        'im': data[:, 2],
+        'modulus': data[:, 3]
+    }
     return out
 
 
@@ -368,10 +371,12 @@ def parse_seebeck(name: str) -> dict:
         data = np.genfromtxt(name)
     except:
         raise ParseError
-    out = {'temperature': data[:, 0],
-           'mu': data[:, 1],
-           're': data[:, 2],
-           'im': data[:, 3]}
+    out = {
+        'temperature': data[:, 0],
+        'mu': data[:, 1],
+        're': data[:, 2],
+        'im': data[:, 3]
+    }
 
     return out
 
@@ -446,11 +451,13 @@ def parse_spintext(name: str) -> dict:
             spin.append([float(s) for s in val.attrib["spin"].split()])
             energy.append(float(val.attrib["energy"]))
 
-        spintext[str(i)] = {"ist": int(band.attrib["ist"]),
-                         "k-point":k_point,
-                         "spin": spin,
-                         "energy": energy}
-        i +=1
+        spintext[str(i)] = {
+            "ist": int(band.attrib["ist"]),
+            "k-point": k_point,
+            "spin": spin,
+            "energy": energy
+        }
+        i += 1
 
     return spintext
 
@@ -468,7 +475,11 @@ def parse_polarization(name: str) -> dict:
         line = next(file)
         if '#' not in line:
             lines.append(line.split())
-    polarization = {'total': lines[0], 'electronic': lines[1], 'ionic': lines[2]}
+    polarization = {
+        'total': lines[0],
+        'electronic': lines[1],
+        'ionic': lines[2]
+    }
     return polarization
 
 
@@ -508,20 +519,26 @@ def parse_wannier_info(name: str) -> dict:
         if start:
             lines.append(line)
     for i in range(len(lines)):
-        if lines[i].strip().startswith( '1'):
-            for j in range (4):
-                data.append(lines[i+j].split())
-        if lines[i].strip().startswith( '5'):
-            for j in range (4):
-                data.append(lines[i+j].split())
-        if lines[i].strip().startswith( 'total'):
+        if lines[i].strip().startswith('1'):
+            for j in range(4):
+                data.append(lines[i + j].split())
+        if lines[i].strip().startswith('5'):
+            for j in range(4):
+                data.append(lines[i + j].split())
+        if lines[i].strip().startswith('total'):
             total.append(lines[i].split())
     file.close()
 
     # Package data into dictionary
     n_wannier = len(data)
-    localisation_center = np.empty(shape=(n_wannier,3))
-    wannier = {'n_wannier': n_wannier, 'Omega': [], 'Omega_I': [], 'Omega_D': [], 'Omega_OD': []}
+    localisation_center = np.empty(shape=(n_wannier, 3))
+    wannier = {
+        'n_wannier': n_wannier,
+        'Omega': [],
+        'Omega_I': [],
+        'Omega_D': [],
+        'Omega_OD': []
+    }
 
     for i, item in enumerate(data):
         localisation_center[i, :] = [float(x) for x in item[1:4]]
@@ -573,9 +590,11 @@ def parse_core_overlap(name: str) -> dict:
         raise ParseError
 
     root = tree.getroot()
-    core_overlap = {'nkpt': int(root.attrib['nkpt']),
-                    'nstfv': int(root.attrib['nstfv']),
-                    'ncg': int(root.attrib['ncg'])}
+    core_overlap = {
+        'nkpt': int(root.attrib['nkpt']),
+        'nstfv': int(root.attrib['nstfv']),
+        'ncg': int(root.attrib['ncg'])
+    }
 
     k_points = []
     for k_point in root:
@@ -586,7 +605,8 @@ def parse_core_overlap(name: str) -> dict:
             pair['ist1'] = int(pair['ist1'])
             pair['ist2'] = int(pair['ist2'])
             pair["de"] = float(pair["de"])
-            pair["overlap"] = float(pair["overlap"].split()[0])**2 + float(pair["overlap"].split()[1])**2
+            pair["overlap"] = float(pair["overlap"].split()[0])**2 + float(
+                pair["overlap"].split()[1])**2
             pairs.append(pair)
         kpt["pairs"] = pairs
         k_points.append(kpt)
@@ -604,7 +624,7 @@ def parse_lossfunction(fname: str) -> tuple:
     """
     xdata = []
     ydata = []
-    file = open(fname,'r')
+    file = open(fname, 'r')
     for lines in file:
         if 'Frequency' in lines:
             break
