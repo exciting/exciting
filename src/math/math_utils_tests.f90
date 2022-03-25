@@ -17,7 +17,10 @@ module math_utils_test
                         mod1, &
                         shuffle_vector, &
                         mask_vector, &
-                        round_down                        
+                        round_down, &
+                        distance_matrix, &
+                        outer_sum, &
+                        get_subinterval_indices 
   use mock_arrays, only: real_symmetric_matrix_5x5, &
                          real_orthogonal_matrix_5x5, &
                          real_matrix_5x7, &
@@ -47,7 +50,7 @@ contains
     !> test object
     type(unit_test_type) :: test_report
     !> Number of assertions
-    integer, parameter :: n_assertions = 62
+    integer, parameter :: n_assertions = 73
 
     ! Initialize test object
     call test_report%init(n_assertions, mpiglobal)
@@ -75,6 +78,13 @@ contains
     call test_mask_vector(test_report)
 
     call test_round_down(test_report)
+
+    call test_distance_matrix(test_report)
+
+    call test_outer_sum(test_report)
+
+    call test_get_subinterval_indices(test_report)
+
   
     ! report results
     if (present(kill_on_failure)) then
@@ -494,5 +504,94 @@ contains
    
    end subroutine test_round_down
 
+   subroutine test_distance_matrix(test_report)
+    !> Our test object
+    type(unit_test_type), intent(inout) :: test_report
+    
+    !> Test input
+    !> Position A
+    real(dp) :: pos_A(3, 3) = reshape([0.0_dp, 1.0_dp, 0.0_dp, &
+                                      2.0_dp, 1.0_dp, 1.0_dp, &
+                                      0.0_dp, 1.0_dp, 0.0_dp], [3, 3])
+    !> Position B 
+    real(dp) :: pos_B(3, 2) = reshape([0.0_dp, -1.0_dp, 0.0_dp,&
+                                      2.0_dp, 2.0_dp, 1.0_dp], [3, 2])
+    !> Position C
+    real(dp) :: pos_C(3,3) = 0.0_dp    
+    !> Result D
+    real(dp) :: D_1(3, 2), D_2(2, 3),  D_3(3, 3)
+    
+    call distance_matrix(pos_A, pos_B, D_1)
+    call test_report%assert(all_close(D_1, &
+                            reshape([2.0_dp, 3.0_dp, 2.0_dp, &
+                                    sqrt(6.0_dp), 1.0_dp, sqrt(6.0_dp)], &
+                                    [3, 2])), &
+                            'Tests distance_matrix with second dimension of first input matrix &
+                            larger than second dimension of second input matrix dim(A) > dim(B).')
+
+    call distance_matrix(pos_B, pos_A, D_2)
+    call test_report%assert(all_close(D_2, &
+                            reshape([2.0_dp, sqrt(6.0_dp), 3.0_dp, &
+                                    1.0_dp, 2.0_dp, sqrt(6.0_dp)], &
+                                    [2, 3])), &
+                            'Tests distance_matrix with second dimension of first input matrix &
+                            smaller than second dimension of second input matrix: dim(A) < dim(B).')
+    
+    call distance_matrix(pos_A, pos_C, D_3)    
+    call test_report%assert(all_close(D_3, &
+                            reshape([1.0_dp, sqrt(6.0_dp), 1.0_dp, &
+                                    1.0_dp, sqrt(6.0_dp), 1.0_dp, &
+                                    1.0_dp, sqrt(6.0_dp), 1.0_dp], &
+                                    [3, 3])), &
+                            'Tests distance_matrix with second dimension of first input matrix &
+                            equal to second dimension of second input matrix: dim(A) = dim(B).')
+
+  end subroutine test_distance_matrix
+
+  subroutine test_outer_sum(test_report)
+    !> Our test object
+    type(unit_test_type), intent(inout) :: test_report
+
+    real(dp) :: C_1(3, 3), C_2(3, 2), C_3(2, 3)
+
+    call outer_sum([-1.0_dp, 2.0_dp, 5.0_dp], [1.0_dp, 2.0_dp, 3.0_dp], C_1)
+    call test_report%assert(all_close(C_1, reshape([0.0_dp, 3.0_dp, 6.0_dp, 1.0_dp, &
+                            4.0_dp, 7.0_dp, 2.0_dp, 5.0_dp, 8.0_dp], [3,3])), &
+                            'Test function outer_sum for array size a == b.')
+
+    call outer_sum([1.0_dp, 2.0_dp, 3.0_dp],[-1.0_dp, 2.0_dp], C_2)
+    call test_report%assert(all_close(C_2, reshape([0.0_dp, 1.0_dp, 2.0_dp, 3.0_dp, 4.0_dp, 5.0_dp], [3,2])), &
+                    'Test function outer_sum for array size a > b.')
+    
+    call outer_sum([-1.0_dp, 2.0_dp], [1.0_dp, 2.0_dp, 3.0_dp], C_3)
+    call test_report%assert(all_close(C_3, reshape([0.0_dp, 3.0_dp, 1.0_dp, 4.0_dp, 2.0_dp, 5.0_dp], [2,3])), &
+                           'Test function outer_sum for array size a < b.')
+
+  end subroutine test_outer_sum
+
+  subroutine test_get_subinterval_indices(test_report)
+    !> Our test object
+    type(unit_test_type), intent(inout) :: test_report
+
+    real(dp) :: res1(2, 2), res2(2, 1)
+    integer :: vector_length, block_size
+    
+    vector_length = 6
+    block_size = 3
+    res1 = get_subinterval_indices(vector_length, block_size)
+    call test_report%assert(size(res1, 1) == 2 .and. size(res1, 2) == 2, &
+                            'Tests returned size of function get_subinterval_indices.')
+    call test_report%assert(all_close(res1(:, 1), [1.0_dp, 3.0_dp]), "First set of limits.")
+    call test_report%assert(all_close(res1(:, 2), [4.0_dp, 6.0_dp]), "Second set of limits.")
+    
+    vector_length = 6
+    block_size = 6
+    res2 = get_subinterval_indices(vector_length, block_size)
+    call test_report%assert(size(res2, 1) == 2 .and. size(res2, 2) == 1, &
+                            'Tests returned size of function get_subinterval_indices for an equal block size.')
+    call test_report%assert(all_close(res2(:, 1), [1.0_dp, 6.0_dp]), &
+                            "Set of limits for function get_subinterval_indices for an equal block size.")
+                 
+  end subroutine test_get_subinterval_indices
 
 end module math_utils_test

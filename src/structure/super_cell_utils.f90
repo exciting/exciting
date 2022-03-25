@@ -7,7 +7,8 @@ module super_cell_utils
    private
    public :: get_translation_vectors, &
              supercell_atomic_positions, &
-             TranslationIntegers_type
+             TranslationIntegers_type, &
+             extend_rmt_natoms
 
    !> Translation integers type containing methods to get
    !> total number of translations and checking if their
@@ -121,5 +122,36 @@ contains
 
    end function supercell_atomic_positions
 
-end module
+  
+   !> Given the muffin-tin radius \(\mathbf{rmt}(is)\), for each species \(is\), and the number of atoms per 
+   !> species \(\mathbf{natoms}(is)\), expands the \(\mathbf{rmt}\) vector of size \(ns\), the total number
+   !> of species, to the size of the total number of atoms in one cell \(na\), containing the corresponding 
+   !> rmt value for each atom instead of for each species.
+   function extend_rmt_natoms(natoms, rmt) result(extended_rmt)
+      !> Number of atoms per species
+      integer, intent(in) :: natoms(:)
+      !> Muffin-tin radius for each species
+      real(dp), intent(in) :: rmt(:)
 
+      integer :: is, ia, iatom, ns
+
+      !> Muffin-tin radius for each atom
+      real(dp), allocatable :: extended_rmt(:)
+
+      call assert(size(natoms) == size(rmt), message= &
+                  "Dimensions of natoms and rmt have to be equal.") 
+      allocate(extended_rmt(sum(natoms)))
+
+      ns = size(natoms)
+      iatom = 0
+      do is = 1, ns
+         do ia = 1, natoms(is)
+            iatom = iatom + 1
+            extended_rmt(iatom) = rmt(is)
+         end do
+      end do
+
+   end function extend_rmt_natoms
+
+
+end module

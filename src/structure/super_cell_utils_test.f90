@@ -3,8 +3,11 @@ module super_cell_utils_test
    use modmpi, only: mpiinfo
    use unit_test_framework, only: unit_test_type
    use math_utils, only: all_close
-   use super_cell_utils, only: get_translation_vectors, supercell_atomic_positions, &
-                               TranslationIntegers_type
+   use super_cell_utils, only: get_translation_vectors, &
+                              supercell_atomic_positions, &
+                              TranslationIntegers_type, &
+                              extend_rmt_natoms
+                              
    implicit none
    private
    public :: super_cell_utils_test_driver
@@ -21,7 +24,7 @@ contains
       !> Test report object
       type(unit_test_type) :: test_report
       !> Number of assertions
-      integer, parameter :: n_assertions = 13
+      integer, parameter :: n_assertions = 15
 
       call test_report%init(n_assertions, mpiglobal)
 
@@ -29,6 +32,7 @@ contains
       call test_get_translation(test_report)
       call test_supercell_atomic_positions(test_report)
       call check_integers_valid(test_report)
+      call test_extend_rmt_natoms(test_report)
 
       if (present(kill_on_failure)) then
          call test_report%report('super_cell_utils', kill_on_failure)
@@ -162,5 +166,23 @@ contains
                                         ref), 'Tests new positions after translation. Expected: [[-1, 2, 1], [-0.5, 2.5, 1.5]]')
 
    end subroutine test_supercell_atomic_positions
+
+   subroutine test_extend_rmt_natoms(test_report)
+      !> Our test object
+      type(unit_test_type), intent(inout) :: test_report
+
+      !> Rmt values
+      real(dp) :: rmt(3) = [0.3_dp, 4.5_dp, 6.7_dp]
+      !> Number of atoms per species
+      integer :: natoms(3) = [1, 3, 2]
+
+      call test_report%assert(size(extend_rmt_natoms(natoms, rmt)) == sum(natoms), &
+                              'Tests size of extended rmt vector. Expected size &
+                              is number of atoms in unit cell (sum of the natoms vector).')
+
+      call test_report%assert(all_close(extend_rmt_natoms(natoms, rmt), [0.3_dp, 4.5_dp, 4.5_dp, 4.5_dp, 6.7_dp, 6.7_dp]), &
+                              'Tests result of extended rmt vector.')
+
+   end subroutine test_extend_rmt_natoms
 
 end module super_cell_utils_test
