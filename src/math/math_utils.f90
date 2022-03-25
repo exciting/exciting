@@ -25,6 +25,9 @@ module math_utils
             shuffle_vector, &
             mask_vector, &
             round_down, &
+            distance_matrix, &
+            outer_sum, &
+            get_subinterval_indices, & 
             is_positive_definite
 
   !> default tolerance
@@ -1045,7 +1048,7 @@ contains
     end do
   end function mask_vector
 
-  !> !> Rounds a real number down to the nth decimal place, e.g.
+  !> Rounds a real number down to the nth decimal place, e.g.
   !>
   !> If n is greater than 0, then number is rounded down to the specified number of decimal places.
   !> 1123.234523 -> 1123.234 for n = 3.
@@ -1065,6 +1068,107 @@ contains
     x_rounded = dble(int(x*(10.0_dp**n)))/(10.0_dp**n)
 
   end function round_down
+
+  !> Given two matrices \( \mathbf{A} \in \mathbb{R}^{k \times n} \), matrix of \(n\) vectors in
+  !> \(k\) dimensions, and \( \mathbf{B} \in \mathbb{R}^{k \times m} \), matrix of \(m\) vectors in
+  !> \(k\) dimensions, returns the distances of the vectors pairwise (by calculating the Euclidean norm),      
+  !> such that the result is a matrix \( \mathbf{D} \in \mathbb{R}^{n \times m} \), element wise given by:
+  !> \[ 
+  !>   \text{D}_{ij} = \sqrt{ \sum_{l=1}^k \left( \text{A}_{li} - \text{B}_{lj} \right)^2 }
+  !> \]
+  subroutine distance_matrix(A, B, D)
+    !> Inout matrix A
+    real(dp), intent(in), contiguous :: A(:, :) 
+    !> Input matrix B
+    real(dp), intent(in), contiguous :: B(:, :)
+    !> Distance matrix D
+    real(dp), intent(out), contiguous :: D(:, :)
+
+    integer :: i, j
+  
+    call assert(size(A,1) == size(B,1), message = "First dimension of &
+                input matrices have to be equal.")
+    
+    call assert(all(shape(D) == [size(A,2), size(B,2)]), "First dimension of output matrix D &
+                has to equal the second dimension of input matrix A and second dimension of output matrix D &
+                has to equal the second dimension of input matrix B.")
+  
+    do j = 1, size(B,2)
+      do i = 1, size(A,2) 
+        D(i, j) = norm2(A(:, i) - B(:, j)) 
+      end do
+    end do
+
+  end subroutine distance_matrix
+
+  !> Calculate the outer sum of two vectors \( \mathbf{a} \in \mathbb{R}^n \) and \( \mathbf{b} \in \mathbb{R}^m \)
+  !> such that the result is a matrix \( \mathbf{C} \in \mathbb{R}^{n \times m} \), given element wise by
+  !> \[
+  !>   \text{C}_{ij} = \text{a}_{i} + \text{b}_{j}.
+  !> \]
+  subroutine outer_sum(a, b, C) 
+    !> Input vector a
+    real(dp), intent(in), contiguous :: a(:)
+    !> Input vector b 
+    real(dp), intent(in), contiguous :: b(:)
+    !> Output matrix C
+    real(dp), intent(out), contiguous :: C(:, :)
+
+    integer :: i, j
+
+    call assert(all(shape(C) == [size(a), size(b)]), "First dimension of output matrix C &
+                has to equal the size of input vector a and second dimension of output matrix C &
+                has to equal the size of input vector b.")
+
+    do j = 1, size(b)
+       do i = 1, size(a)
+          C(i, j) = a(i) + b(j)
+       end do
+    end do
+
+  end subroutine outer_sum
+
+  
+
+  !> Given the size of an interval \( i \in \mathbb{N} \) and a subinterval size \( s \in \mathbb{N} \), 
+  !> where \(i\) must be a multiple of \(s\), such that \( n = \frac{i}{s} \in \mathbb{N} \), splits
+  !> the interval into \(n\) subintervals of size \(s\) and returns the lower and upper boundary
+  !> indice of each subinterval, saved columnwise in the output matrix. 
+  !>
+  !> \[ \text{Example: } i = 6, s = 3, \text{ returns: }
+  !> \mathbf{indices} = \left( \begin{smallmatrix}
+  !>  1 & 4\\
+  !>  3 & 6
+  !> \end{smallmatrix} \right)
+  !> \]
+  function get_subinterval_indices(interval_size, subinterval_size) result(indices)
+    !> Interval size 
+    integer, intent(in) :: interval_size
+    !> Subinterval size 
+    integer, intent(in) :: subinterval_size
+    !> Number of multiples
+    integer ::  n_multiple
+
+    integer :: i, i1, i2
+    !> Output indices matrix
+    integer, allocatable :: indices(:, :)
+
+    call assert(interval_size >= subinterval_size, message = "Interval size has to be &
+                larger than or equal to the subinterval size.")
+    
+    n_multiple = interval_size/ subinterval_size
+    allocate(indices(2, n_multiple))
+            
+    call assert(n_multiple * subinterval_size == interval_size, message = "n_multiple has to be an &
+                integer. Input sizes have to be multiples of each other.")
+                
+    do i = 1, n_multiple
+      i1 = 1 + (i-1) * subinterval_size
+      i2 = i1 + subinterval_size - 1
+      indices(:, i) = [i1, i2]
+    end do 
+
+  end function get_subinterval_indices
 
 
   !> Check if a hermitian matrix is positive-definite. This is done by checking
@@ -1101,9 +1205,6 @@ contains
     is_positive_definite = all( eigenvalues > 0._dp )
   end function
 
-  
-
-
-  
-
 end module math_utils
+
+
