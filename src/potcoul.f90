@@ -56,8 +56,13 @@ Subroutine potcoul
       lmax = input%groundstate%lmaxvr + input%groundstate%npsden + 1
       Call genjlgpr (lmax, gc, jlgr)
 ! solve the complex Poisson's equation
+#ifdef PSOLVER
+      Call zpotcoul2 (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
+      &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
+#else
       Call zpotcoul (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
       &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
+#endif
 ! convert complex muffin-tin potential to real spherical harmonic expansion
       Do is = 1, nspecies
          Do ia = 1, natoms (is)
@@ -68,6 +73,7 @@ Subroutine potcoul
             End Do
          End Do
       End Do
+
 ! store complex interstitial potential in real array
       vclir (:) = dble (zvclir(:))
       Deallocate (jlgr, zrhomt, zrhoir, zvclmt, zvclir)

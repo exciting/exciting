@@ -35,7 +35,9 @@ Subroutine rhoplot
 !---------------------------------------------
 ! Read density (and magnetization) from file
 !---------------------------------------------
+write(*,*)"before init0"
       Call init0
+write(*,*)"after init0"
 ! read density from file
       Call readstate
 ! visualize only valence density      

@@ -10,13 +10,19 @@
 ! !INTERFACE:
 !
 !
-Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
+Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 & zn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
       Use modinput
 ! !USES:
       Use modmain
 #ifdef USEOMP
       use omp_lib
+#endif
+#ifdef PSOLVER
+   use dictionaries
+   use Poisson_Solver
+   use at_domain
+   use numerics, only: onehalf
 #endif
 ! !INPUT/OUTPUT PARAMETERS:
 !   nr     : number of radial points for each species (in,integer(nspecies))
@@ -110,12 +116,12 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
       Complex (8), Intent (In) :: sfacgp (ngvec, natmtot)
       Real (8), Intent (In) :: zn (nspecies)
       Complex (8), Intent (In) :: zrhomt (lmmaxvr, nrmax, natmtot)
-      Complex (8), Intent (Inout) :: zrhoir (ngrtot)
+      Complex (8), Intent (In) :: zrhoir (ngrtot)
       Complex (8), Intent (Out) :: zvclmt (lmmaxvr, nrmax, natmtot)
       Complex (8), Intent (Out) :: zvclir (ngrtot)
       Complex (8), Intent (Out) :: zrho0
 ! local variables
-      Integer :: is, ia, ias, l, m, lm, i, j
+      Integer :: is, ia, ias, l, m, lm
       Integer :: ir, ig, ifg
       Real (8) :: fpo, t1, t2, t3
       Complex (8) zsum, zt1, zt2
@@ -128,34 +134,108 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
       Complex (8) qilocal (lmmaxvr)
       Complex (8) zrp (lmmaxvr)
       real(8) :: vn(nrmax)
-      real(8) :: third
+      real(8) :: third 
       parameter (third=0.3333333333333333333333d0)
 #ifdef USEOMP
       integer ithr,nthreads,whichthread
 #endif
-      real(8), allocatable :: vdplmt(:,:,:), vdplir(:)
+      real(8), allocatable :: vdplmt(:,:,:), vdplir(:) 
 
 ! external functions
       Real (8) :: factnm
       External factnm
+
+#ifdef PSOLVER
+! PSolver related
+   character(len=1) :: solvertype,afunc
+   character(len=64) :: chain
+   
+   integer :: i1,i2,i3,n1,n2,n3,i1_max,i2_max,i3_max,isf_order, i, bc_type
+   real(kind=8) :: max_diff, alpha_bc, beta_ac, gamma_ab, bc, ac, ab
+   real(kind=8) :: sigma,length,hgrid,mu,energy,offset,acell,epot,intrhoS,intrhoF,intpotS,intpotF
+   real(kind=8), dimension(:), allocatable :: fake_arr
+   real(kind=8), allocatable :: psi, r_v(:), c_v(:)
+   type(coulomb_operator) :: kernel
+   type(dictionary), pointer :: dict
+   type(domain) :: dom
+   integer, dimension(3) :: ndims
+   real(kind=8), dimension(3) :: hgrids
+   logical psolver0d, psolver1d, psolver2d, psolver3d
+
+
+! Initialise PSolver
+!call f_lib_initialize()
+   psolver0d=(input%groundstate%vha.eq."psolver0d")
+   psolver1d=(input%groundstate%vha.eq."psolver1d")
+   psolver2d=(input%groundstate%vha.eq."psolver2d")
+   psolver3d=(input%groundstate%vha.eq."psolver3d")
+   !afunc='F'
+   if (psolver0d) then! free in all directions
+       write(*,*)"type F"
+       solvertype='F'
+       bc_type = 0
+   else if ((psolver3d)) then! periodic x, y, z
+       solvertype='P'
+       bc_type = 3
+       write(*,*)"type P"
+   else if (psolver1d) then!free in x,y, periodic in z
+       solvertype = 'W'
+       bc_type = 1
+       write(*,*) "type W"
+   else if (psolver2d) then! free in y, periodic x, z
+       solvertype = 'S'
+       !afunc='S'
+       bc_type = 2
+       
+       write(*,*) "type S"
+   end if 
+
+
+
+   isf_order=16
+   n1=ngrid(1)
+   n2=ngrid(2)
+   n3=ngrid(3)
+write(*,*)n1,n2,n3, "n1, n2, n3"
+   hgrids(1)=avec(1,1)/ngrid(1)
+   hgrids(2)=avec(2,2)/ngrid(2)
+   hgrids(3)=avec(3,3)/ngrid(3)
+
+!write(*,*)hgrids(1), hgrids(2), hgrids(3), "hgrids"
+  ! bc = acos(avec(:,2)* avec(:,3) / (SQRT(avec(:,2)* avec(:,2)) * SQRT(avec(:,3)* avec(:,3) ) ) )
+   !ac = acos(avec(:,1)* avec(:,3) / (SQRT(avec(:,1)* avec(:,1)) * SQRT(avec(:,3)* avec(:,3) ) ) )
+  ! ab = acos(avec(:,1)* avec(:,2) / (SQRT(avec(:,1)* avec(:,1)) * SQRT(avec(:,2)* avec(:,2) ) ) )
+
+   bc = acos(DOT_PRODUCT(avec(:,2), avec(:,3)) / (SQRT(DOT_PRODUCT(avec(:,2), avec(:,2))) * SQRT(DOT_PRODUCT(avec(:,3), avec(:,3)) ) ) )!y, z
+   ac = acos(DOT_PRODUCT(avec(:,1), avec(:,3)) / (SQRT(DOT_PRODUCT(avec(:,1), avec(:,1))) * SQRT(DOT_PRODUCT(avec(:,3), avec(:,3)) ) ) )!x, z
+   ab = acos(DOT_PRODUCT(avec(:,1), avec(:,2)) / (SQRT(DOT_PRODUCT(avec(:,1), avec(:,1))) * SQRT(DOT_PRODUCT(avec(:,2), avec(:,2)) ) ) )!z, y
+
+!write(*,*) avec(:,1), "avec, 23", bc
+!write(*,*) avec(:,2), "avec, 13", ac
+!write(*,*) avec(:,3), "avec, 12", ab
+   dom=domain_new(units=ATOMIC_UNITS,bc=geocode_to_bc_enum(solvertype), alpha_bc=bc, beta_ac=ac, gamma_ab=ab,acell=ngrid*hgrids)!abc= avec)
+!write(*,*) "after"
+   dict=>dict_new('kernel' .is. dict_new('isf_order' .is. isf_order))
+!write(*,*)"dict"
+   !kernel=pkernel_init(0,1,dict,solvertype,(/n1,n2,n3/),(/hgrid,hgrid,hgrid/))
+
+   kernel=pkernel_init(0,1,dict,dom,ngrid,hgrids)
+
+   call dict_free(dict)
+!write(*,*)"dict free"
+   call pkernel_set(kernel,verbose=.true.)
+
+
+#endif
+ !write(*,*)"reg"
       fpo = fourpi / omega
 ! solve Poisson's equation for the isolated charge in the muffin-tin
       Do is = 1, nspecies
 !$OMP PARALLEL DEFAULT(SHARED) &
 !$OMP PRIVATE(ias)
 !$OMP DO
-   
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
-
-
-
-
-
-
-
-  
-
             Call zpotclmt (input%groundstate%ptnucl, &
             & input%groundstate%lmaxvr, nr(is), r(:, is), zn(is), &
             & lmmaxvr, zrhomt(:, :, ias), zvclmt(:, :, ias))
@@ -214,6 +294,8 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
                   qmt (lm, ias) = t1 * zvclmt (lm, nr(is), ias)
                End Do
             End Do
+!            write(*,*) qmt (:, ias)
+!            write(*,*)
          End Do
       End Do
 
@@ -228,7 +310,7 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(NONE) PRIVATE(qilocal,ig,ifg,zt1,t1,lm,t2,zt2,m,l,nthreads,whichthread,ithr) SHARED(input,gpc,sfacgp,zvclir,rmt,qi,ias,ngvec,is,ylmgp,jlgpr,zil,rmtl,igfft)
             qilocal=0d0
-!$OMP DO
+!$OMP DO    
 #else
             qilocal=0d0
 #endif
@@ -257,7 +339,7 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
             whichthread=omp_get_thread_num()
             do ithr=0,nthreads-1
               if (ithr.eq.whichthread) then
-                qi(:,ias)=qi(:,ias)+qilocal(:)
+                qi(:,ias)=qi(:,ias)+qilocal(:) 
               endif
 !$OMP BARRIER
             enddo
@@ -267,8 +349,7 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 #endif
          End Do
       End Do
-!write(*,*) abs(qi)
-!      stop
+
 ! find the smooth pseudocharge within the muffin-tin whose multipoles are the
 ! difference between the real muffin-tin and interstitial multipoles
       Do is = 1, nspecies
@@ -290,7 +371,7 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 ! add the pseudocharge and real interstitial densities in G-space
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(NONE) PRIVATE(ig,ifg,zt1,t1,t2,zsum,m,l,lm,t3) SHARED(input,gpc,zvclir,rmt,qi,ias,ngvec,is,ylmgp,jlgpr,zil,rmtl,igfft,zrp,fpo,sfacgp)
-!$OMP DO
+!$OMP DO    
 #endif
             Do ig = 1, ngvec
                ifg = igfft (ig)
@@ -316,7 +397,7 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
             End Do
 #ifdef USEOMP
 !$OMP END DO
-!$OMP END PARALLEL
+!$OMP END PARALLEL 
 #endif
 
          End Do
@@ -324,20 +405,96 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 
 
 
+!open (11, file = 'charge.dat', status = 'replace')
+!
+! do i = 1, 5000
+!	write(11,*) dble(zvclir(i))
+! end do
+ 
+! close(11)
 
-!-----------------------
+!write(*,*)"too much"
 
 
 
+!------------------------------
+#ifdef PSOLVER
+
+! Fourier transform interstitial potential to real space
+      Call zfftifc (3, ngrid, 1, zvclir)
+      allocate(fake_arr(1),r_v(n1*n2*n3), c_v(n1*n2*n3))
+
+      
+      if (psolver0d) then
+          write(*,*)"reorder statement"
+          call reorder(bc_type, zvclir,ngrid, r_v, c_v)     
+      else 
+          write(*,*)"periodic in some dir"
+          r_v=dble(zvclir)
+          c_v=dimag(zvclir)
+      end if
 
 
 
+     ! if (psolver3d) then
+      !    write(*,*)"periodic in some dir"
+     !     r_v=dble(zvclir)
+     !     c_v=dimag(zvclir)
+     ! else 
+     !     write(*,*)"reorder statement"
+     !     call reorder(bc_type, zvclir,ngrid, r_v, c_v)     
+     ! end if
 
 
+      offset=0
+
+!open (11, file = 'charge.dat', status = 'replace')!
+
+ !do i = 1,5000
+!	write(11,*) r_v(i)
+! end do
+ 
+ !close(11)
+
+
+
+      call H_potential('G',kernel,r_v,fake_arr,energy,offset,.false.,quiet='yes')
+
+      call H_potential('G',kernel,c_v,fake_arr,energy,offset,.false.,quiet='yes')
+
+
+!open (11, file = 'charge.dat', status = 'replace')!
+
+ !do i = 1,5000
+!	write(11,*) r_v(i)
+ !end do
+ 
+ !close(11)
+
+
+
+      zvclir=dcmplx(r_v,c_v)!combine complex and real solutions
+
+      if (bc_type.eq.0) then
+      write(*,*) "de-order"
+      call reorder(bc_type, zvclir,ngrid, r_v, c_v)
+      zvclir=dcmplx(r_v,c_v)
+      end if
+      deallocate(fake_arr, r_v, c_v)
+!stop
+
+! Fourier transform interstitial potential to reciprocal space
+      Call zfftifc (3, ngrid, -1, zvclir)
+      zvclir(1)=0d0
+      
+
+ 
+#else
 ! set zrho0 (pseudocharge density coefficient of the smallest G+p vector)
       ifg = igfft (igp0)
       zrho0 = zvclir (ifg)
-      ! zvclir (ifg) = 0.d0
+      zvclir (ifg) = 0.d0
+
 ! solve Poissons's equation in G-space for the pseudocharge
       Do ig = 1, ngvec
          ifg = igfft (ig)
@@ -347,8 +504,9 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
             zvclir (ifg) = 0.d0
          End If
       End Do
-      !call reorder(zvclir,0)
-      !call reorder(zrhoir,0)
+#endif
+!------------------------------
+
 ! match potentials at muffin-tin boundary by adding homogeneous solution
       Do is = 1, nspecies
 ! compute (r/R_mt)^l
@@ -363,15 +521,14 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
             ias = idxas (ia, is)
 ! find the spherical harmonic expansion of the interstitial potential at the
 ! muffin-tin radius
-
             vilm (:) = 0.d0
 
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(NONE) PRIVATE(ig,ifg,zt1,zt2,zsum,m,l,lm,t3,qilocal,nthreads,whichthread,ithr) SHARED(input,zvclir,ias,ngvec,is,ylmgp,jlgpr,zil,rmtl,igfft,sfacgp,vilm)
             qilocal=0d0
-!$OMP DO
+!$OMP DO  
 #else
-            qilocal=0d0
+            qilocal=0d0  
 #endif
             Do ig = 1, ngvec
                ifg = igfft (ig)
@@ -396,9 +553,9 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
               endif
 !$OMP BARRIER
             enddo
-!$OMP END PARALLEL
+!$OMP END PARALLEL 
 #else
-            vilm  = vilm +qilocal
+            vilm  = vilm +qilocal 
 #endif
 
 ! add homogenous solution
@@ -438,6 +595,10 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
         zvclir(:) =  zvclir(:)+vdplir(:)
         deallocate(vdplmt,vdplir)
       end if
+
+#ifdef PSOLVER
+   call pkernel_free(kernel)
+#endif
 
       Return
 End Subroutine
