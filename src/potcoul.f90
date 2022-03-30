@@ -73,6 +73,7 @@ Subroutine potcoul
             End Do
          End Do
       End Do
+
 ! store complex interstitial potential in real array
       vclir (:) = dble (zvclir(:))
       Deallocate (jlgr, zrhomt, zrhoir, zvclmt, zvclir)

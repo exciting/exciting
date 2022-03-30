@@ -1,10 +1,10 @@
-subroutine reorder(zrhoir,ngrid, real_z, imag_z)
+subroutine reorder(bc_type, zrhoir,ngrid, real_z, imag_z)
 implicit none
 
-integer, intent(in) ::ngrid(3)
+integer, intent(in) ::ngrid(3), bc_type
 complex(8), intent(in) :: zrhoir(ngrid(1),ngrid(2),ngrid(3))
 real(8), intent(out) :: real_z(ngrid(1),ngrid(2),ngrid(3)), imag_z(ngrid(1),ngrid(2),ngrid(3))
-integer :: lx, ly, lz, lbx, lby, lbz,i, x,y,z, lbyy, lbxx, lbzz,mx,my,mz
+integer :: lx, ly, lz, lbx, lby, lbz,i, x,y,z, lbyy, lbxx, lbzz,mx,my,mz, j
 
 x = (mod(ngrid(1),2))
 y = (mod(ngrid(2),2))
@@ -61,38 +61,13 @@ end if
 
 
 
-if (.false.) then!pāris skaitļi
-real_z(1:lx         , 1:ly        ,1:lz)         =dble(zrhoir(lbx:ngrid(1),lby:ngrid(2),lbz:ngrid(3)))
-real_z(lbx:ngrid(1), 1:ly        ,1:lz)         =dble(zrhoir(1:lx         ,lby:ngrid(2),lbz:ngrid(3)))
-real_z(1:lx         ,lby:ngrid(2),1:lz)         =dble(zrhoir(lbx:ngrid(1),1:ly         ,lbz:ngrid(3)))
-real_z(1:lx         ,1:ly         ,lbz:ngrid(3))=dble(zrhoir(lbx:ngrid(1),lby:ngrid(2),1:lz))
-real_z(lbx:ngrid(1),lby:ngrid(2),1:lz)         =dble(zrhoir(1:lx         ,1:ly         ,lbz:ngrid(3)))
-real_z(lbx:ngrid(1),1:ly         ,lbz:ngrid(3))=dble(zrhoir(1:lx         ,lby:ngrid(2),1:lz))
-real_z(1:lx         ,lby:ngrid(2),lbz:ngrid(3))=dble(zrhoir(lbx:ngrid(1),1:ly         ,1:lz))
-real_z(lbx:ngrid(1),lby:ngrid(2),lbz:ngrid(3))=dble(zrhoir(1:lx         ,1:ly         ,1:lz))
-
-
-
-
-
-imag_z(1:lx         , 1:ly        ,1:lz)         =dimag(zrhoir(lbx:ngrid(1),lby:ngrid(2),lbz:ngrid(3)))
-imag_z(lbx:ngrid(1), 1:ly        ,1:lz)         =dimag(zrhoir(1:lx         ,lby:ngrid(2),lbz:ngrid(3)))
-imag_z(1:lx         ,lby:ngrid(2),1:lz)         =dimag(zrhoir(lbx:ngrid(1),1:ly         ,lbz:ngrid(3)))
-imag_z(1:lx         ,1:ly         ,lbz:ngrid(3))=dimag(zrhoir(lbx:ngrid(1),lby:ngrid(2),1:lz))
-imag_z(lbx:ngrid(1),lby:ngrid(2),1:lz)         =dimag(zrhoir(1:lx         ,1:ly         ,lbz:ngrid(3)))
-imag_z(lbx:ngrid(1),1:ly         ,lbz:ngrid(3))=dimag(zrhoir(1:lx         ,lby:ngrid(2),1:lz))
-imag_z(1:lx         ,lby:ngrid(2),lbz:ngrid(3))=dimag(zrhoir(lbx:ngrid(1),1:ly         ,1:lz))
-imag_z(lbx:ngrid(1),lby:ngrid(2),lbz:ngrid(3))=dimag(zrhoir(1:lx         ,1:ly         ,1:lz))
-!
-end if
 
 
 
 
 
 
-
-
+if (bc_type.eq.0) then
 
 
 real_z(1:lx         , 1:ly        ,1:lz)         =dble(zrhoir(lbxx:ngrid(1),lbyy:ngrid(2),lbzz:ngrid(3)))
@@ -120,35 +95,79 @@ imag_z(lbx:ngrid(1),lby:ngrid(2),lbz:ngrid(3))=dimag(zrhoir(1:mx         ,1:my  
 
 
 
-if (.false.) then!nepāra
-!old 
-lx = ngrid(1)/2
-ly = ngrid(2)/2
-lz = ngrid(3)/2
-
-lbx = ngrid(1)/2+1
-lby = ngrid(2)/2+1
-lbz = ngrid(3)/2+1
-real_z(1:lx         , 1:ly        ,1:lz)         =dble(zrhoir(lbx+1:ngrid(1),lby+1:ngrid(2),lbz+1:ngrid(3)))
-real_z(lx+1:ngrid(1), 1:ly        ,1:lz)         =dble(zrhoir(1:lbx         ,lby+1:ngrid(2),lbz+1:ngrid(3)))
-real_z(1:lx         ,ly+1:ngrid(2),1:lz)         =dble(zrhoir(lbx+1:ngrid(1),1:lby         ,lbz+1:ngrid(3)))
-real_z(1:lx         ,1:ly         ,lz+1:ngrid(3))=dble(zrhoir(lbx+1:ngrid(1),lby+1:ngrid(2),1:lbz))
-real_z(lx+1:ngrid(1),ly+1:ngrid(2),1:lz)         =dble(zrhoir(1:lbx         ,1:lby         ,lbz+1:ngrid(3)))
-real_z(lx+1:ngrid(1),1:ly         ,lz+1:ngrid(3))=dble(zrhoir(1:lbx         ,lby+1:ngrid(2),1:lbz))
-real_z(1:lx         ,ly+1:ngrid(2),lz+1:ngrid(3))=dble(zrhoir(lbx+1:ngrid(1),1:lby         ,1:lbz))
-real_z(lx+1:ngrid(1),ly+1:ngrid(2),lz+1:ngrid(3))=dble(zrhoir(1:lbx         ,1:lby         ,1:lbz))
+end if
 
 
-imag_z(1:lx         , 1:ly        ,1:lz)         =dimag(zrhoir(lbx+1:ngrid(1),lby+1:ngrid(2),lbz+1:ngrid(3)))
-imag_z(lx+1:ngrid(1), 1:ly        ,1:lz)         =dimag(zrhoir(1:lbx         ,lby+1:ngrid(2),lbz+1:ngrid(3)))
-imag_z(1:lx         ,ly+1:ngrid(2),1:lz)         =dimag(zrhoir(lbx+1:ngrid(1),1:lby         ,lbz+1:ngrid(3)))
-imag_z(1:lx         ,1:ly         ,lz+1:ngrid(3))=dimag(zrhoir(lbx+1:ngrid(1),lby+1:ngrid(2),1:lbz))
-imag_z(lx+1:ngrid(1),ly+1:ngrid(2),1:lz)         =dimag(zrhoir(1:lbx         ,1:lby         ,lbz+1:ngrid(3)))
-imag_z(lx+1:ngrid(1),1:ly         ,lz+1:ngrid(3))=dimag(zrhoir(1:lbx         ,lby+1:ngrid(2),1:lbz))
-imag_z(1:lx         ,ly+1:ngrid(2),lz+1:ngrid(3))=dimag(zrhoir(lbx+1:ngrid(1),1:lby         ,1:lbz))
-imag_z(lx+1:ngrid(1),ly+1:ngrid(2),lz+1:ngrid(3))=dimag(zrhoir(1:lbx         ,1:lby         ,1:lbz))
+if (bc_type.eq.2) then!surface boundary conditions
+!free in y, periodic in x and z
+
+real_z(1:ngrid(1)         , 1:ly        ,1:ngrid(3))         =dble(zrhoir(1:ngrid(1),lbyy:ngrid(2),1:ngrid(3)))!y
+imag_z(1:ngrid(1)         , 1:ly        ,1:ngrid(3))         =dimag(zrhoir(1:ngrid(1),lbyy:ngrid(2),1:ngrid(3)))
+
+real_z(1:ngrid(1)         , lby:ngrid(2)        ,1:ngrid(3))         =dble(zrhoir(1:ngrid(1),1:my,1:ngrid(3)))!y
+imag_z(1:ngrid(1)         , lby:ngrid(2)        ,1:ngrid(3))         =dimag(zrhoir(1:ngrid(1),1:my,1:ngrid(3)))
+
+
+write(*,*) "surface"
+end if
+
+if (bc_type.eq.1) then!wire boundary conditions
+!free in x,y, periodic in z
+!----move y axis
+real_z(1:ngrid(1)         , 1:ly        ,1:ngrid(3))         =dble(zrhoir(1:ngrid(1),lbyy:ngrid(2),1:ngrid(3)))!y
+imag_z(1:ngrid(1)         , 1:ly        ,1:ngrid(3))         =dimag(zrhoir(1:ngrid(1),lbyy:ngrid(2),1:ngrid(3)))
+
+real_z(1:ngrid(1)         , lby:ngrid(2)        ,1:ngrid(3))         =dble(zrhoir(1:ngrid(1),1:my,1:ngrid(3)))!y
+imag_z(1:ngrid(1)         , lby:ngrid(2)        ,1:ngrid(3))         =dimag(zrhoir(1:ngrid(1),1:my,1:ngrid(3)))
+
+!---- move x axis
+real_z(1:lx         , 1:ngrid(2)        ,1:ngrid(3))         =dble(zrhoir(lbxx:ngrid(1),1:ngrid(2),1:ngrid(3)))!x
+imag_z(1:lx         , 1:ngrid(2)        ,1:ngrid(3))         =dimag(zrhoir(lbxx:ngrid(1),1:ngrid(2),1:ngrid(3)))
+
+real_z(lbx:ngrid(1)         , 1:ngrid(2)       ,1:ngrid(3))         =dble(zrhoir(1:mx,1:ngrid(2),1:ngrid(3)))!x
+imag_z(lbx:ngrid(1)         , 1:ngrid(2)       ,1:ngrid(3))         =dimag(zrhoir(1:mx,1:ngrid(2),1:ngrid(3)))
+
+!---- move z axis
+!real_z(1:ngrid(1)         , 1:ngrid(2)        ,1:lz)         =dble(zrhoir(1:ngrid(1),1:ngrid(2),1:lbzz))!x
+!imag_z(1:ngrid(1)         , 1:ngrid(2)        ,1:lz)         =dimag(zrhoir(1:ngrid(1),1:ngrid(2),1:lbzz))
+
+!real_z(1:ngrid(1)         , 1:ngrid(2)       ,lbz:ngrid(3))         =dble(zrhoir(1:ngrid(1),1:ngrid(2),1:mz))!x
+!imag_z(1:ngrid(1)         , 1:ngrid(2)       ,lbz:ngrid(3))         =dimag(zrhoir(1:ngrid(1),1:ngrid(2),1:mz))
+
+
+write(*,*) "wire"
 
 end if
+
+
+
+
+!open (11, file = 'charge.dat', status = 'replace')
+
+! do i = 1, ngrid(1)
+!	write(11,*) real_z(i,1,1)
+ !end do
+
+ !do i = 1, ngrid(3)
+  ! do j = 1, ngrid(2)
+   !   write(11,*) real_z(i,j,1)
+   !end do
+ !end do
+
+ !close(11)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 end subroutine

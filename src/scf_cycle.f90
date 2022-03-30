@@ -149,8 +149,9 @@ subroutine scf_cycle(verbosity)
 !----------------------------------------!
 ! begin the self-consistent loop
 !----------------------------------------!
+
     Do iscl = 1, input%groundstate%maxscl
-!
+
 ! exit self-consistent loop if last iteration is complete
         if (tlast) then
             If ((verbosity>-1).and.(rank==0)) Then
@@ -258,6 +259,7 @@ call timesec(ta)
 
 !__________________________________________________________
 ! solve the first- and second-variational secular equations
+
             Call seceqn (ik, evalfv, evecfv, evecsv)
 
             Call timesec(ts0)
@@ -393,6 +395,8 @@ call timesec(tb)
 
   else ! if (input%groundstate%useDensityMatrix) then
 
+
+
 #ifdef MPI
     Do ik = firstofset(rank,nkpt), lastofset(rank,nkpt)
 #else
@@ -431,7 +435,6 @@ call timesec(tb)
         Call timesec(ts1)
         timeio=ts1-ts0+timeio
 !! TIME - End of second IO segment
-
         Call timesec(ts0)
 ! symmetrise the density
         Call symrf(input%groundstate%lradstep, rhomt, rhoir)

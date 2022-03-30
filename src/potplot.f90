@@ -27,7 +27,14 @@ Subroutine potplot
       Implicit None
 ! initialise universal variables
       type(plotlabels),pointer ::labels
+
+#ifdef PSOLVER
+ call f_lib_finalize()
+#endif
+
+!write(*,*)"before init"
       Call init0
+!write(*,*)"after init"
 ! read the density and potentials from file
       Call readstate
 ! write the potential plots to file

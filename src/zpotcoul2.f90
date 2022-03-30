@@ -150,8 +150,8 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
    character(len=1) :: solvertype,afunc
    character(len=64) :: chain
    
-   integer :: i1,i2,i3,n1,n2,n3,i1_max,i2_max,i3_max,isf_order, i
-   real(kind=8) :: max_diff
+   integer :: i1,i2,i3,n1,n2,n3,i1_max,i2_max,i3_max,isf_order, i, bc_type
+   real(kind=8) :: max_diff, alpha_bc, beta_ac, gamma_ab, bc, ac, ab
    real(kind=8) :: sigma,length,hgrid,mu,energy,offset,acell,epot,intrhoS,intrhoF,intpotS,intpotF
    real(kind=8), dimension(:), allocatable :: fake_arr
    real(kind=8), allocatable :: psi, r_v(:), c_v(:)
@@ -164,39 +164,70 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 
 
 ! Initialise PSolver
+!call f_lib_initialize()
    psolver0d=(input%groundstate%vha.eq."psolver0d")
-   !psolver1d=(input%groundstate%vha.eqv."psolver1d")
-   !psolver0d=(input%groundstate%vha.eqv."psolver2d")
+   psolver1d=(input%groundstate%vha.eq."psolver1d")
+   psolver2d=(input%groundstate%vha.eq."psolver2d")
    psolver3d=(input%groundstate%vha.eq."psolver3d")
-   if (psolver0d.eqv..True.) then
-       !write(*,*)"type F"
+   !afunc='F'
+   if (psolver0d) then! free in all directions
+       write(*,*)"type F"
        solvertype='F'
-   else if ((psolver3d.eqv..True.)) then
+       bc_type = 0
+   else if ((psolver3d)) then! periodic x, y, z
        solvertype='P'
-       !write(*,*)"type P"
+       bc_type = 3
+       write(*,*)"type P"
+   else if (psolver1d) then!free in x,y, periodic in z
+       solvertype = 'W'
+       bc_type = 1
+       write(*,*) "type W"
+   else if (psolver2d) then! free in y, periodic x, z
+       solvertype = 'S'
+       !afunc='S'
+       bc_type = 2
+       
+       write(*,*) "type S"
    end if 
-   afunc='F'
+
+
+
    isf_order=16
    n1=ngrid(1)
    n2=ngrid(2)
    n3=ngrid(3)
-write(*,*)n1,n2,n3
+write(*,*)n1,n2,n3, "n1, n2, n3"
    hgrids(1)=avec(1,1)/ngrid(1)
    hgrids(2)=avec(2,2)/ngrid(2)
    hgrids(3)=avec(3,3)/ngrid(3)
-write(*,*)hgrids(1), hgrids(2), hgrids(3)
-   dom=domain_new(units=ATOMIC_UNITS,bc=geocode_to_bc_enum(solvertype), abc= avec)!alpha_bc=onehalf*pi,beta_ac=onehalf*pi,gamma_ab=onehalf*pi,acell=ndims*hgrids)
 
+!write(*,*)hgrids(1), hgrids(2), hgrids(3), "hgrids"
+  ! bc = acos(avec(:,2)* avec(:,3) / (SQRT(avec(:,2)* avec(:,2)) * SQRT(avec(:,3)* avec(:,3) ) ) )
+   !ac = acos(avec(:,1)* avec(:,3) / (SQRT(avec(:,1)* avec(:,1)) * SQRT(avec(:,3)* avec(:,3) ) ) )
+  ! ab = acos(avec(:,1)* avec(:,2) / (SQRT(avec(:,1)* avec(:,1)) * SQRT(avec(:,2)* avec(:,2) ) ) )
+
+   bc = acos(DOT_PRODUCT(avec(:,2), avec(:,3)) / (SQRT(DOT_PRODUCT(avec(:,2), avec(:,2))) * SQRT(DOT_PRODUCT(avec(:,3), avec(:,3)) ) ) )!y, z
+   ac = acos(DOT_PRODUCT(avec(:,1), avec(:,3)) / (SQRT(DOT_PRODUCT(avec(:,1), avec(:,1))) * SQRT(DOT_PRODUCT(avec(:,3), avec(:,3)) ) ) )!x, z
+   ab = acos(DOT_PRODUCT(avec(:,1), avec(:,2)) / (SQRT(DOT_PRODUCT(avec(:,1), avec(:,1))) * SQRT(DOT_PRODUCT(avec(:,2), avec(:,2)) ) ) )!z, y
+
+!write(*,*) avec(:,1), "avec, 23", bc
+!write(*,*) avec(:,2), "avec, 13", ac
+!write(*,*) avec(:,3), "avec, 12", ab
+   dom=domain_new(units=ATOMIC_UNITS,bc=geocode_to_bc_enum(solvertype), alpha_bc=bc, beta_ac=ac, gamma_ab=ab,acell=ngrid*hgrids)!abc= avec)
+!write(*,*) "after"
    dict=>dict_new('kernel' .is. dict_new('isf_order' .is. isf_order))
+!write(*,*)"dict"
    !kernel=pkernel_init(0,1,dict,solvertype,(/n1,n2,n3/),(/hgrid,hgrid,hgrid/))
+
    kernel=pkernel_init(0,1,dict,dom,ngrid,hgrids)
 
    call dict_free(dict)
+!write(*,*)"dict free"
    call pkernel_set(kernel,verbose=.true.)
 
 
 #endif
- 
+ !write(*,*)"reg"
       fpo = fourpi / omega
 ! solve Poisson's equation for the isolated charge in the muffin-tin
       Do is = 1, nspecies
@@ -318,7 +349,7 @@ write(*,*)hgrids(1), hgrids(2), hgrids(3)
 #endif
          End Do
       End Do
-!      stop
+
 ! find the smooth pseudocharge within the muffin-tin whose multipoles are the
 ! difference between the real muffin-tin and interstitial multipoles
       Do is = 1, nspecies
@@ -374,6 +405,16 @@ write(*,*)hgrids(1), hgrids(2), hgrids(3)
 
 
 
+!open (11, file = 'charge.dat', status = 'replace')
+!
+! do i = 1, 5000
+!	write(11,*) dble(zvclir(i))
+! end do
+ 
+! close(11)
+
+!write(*,*)"too much"
+
 
 
 !------------------------------
@@ -383,30 +424,64 @@ write(*,*)hgrids(1), hgrids(2), hgrids(3)
       Call zfftifc (3, ngrid, 1, zvclir)
       allocate(fake_arr(1),r_v(n1*n2*n3), c_v(n1*n2*n3))
 
-
+      
       if (psolver0d) then
-          call reorder(zvclir,ngrid, r_v, c_v)
-      else if (psolver3d) then
-            
-           r_v=dble(zvclir)
-           c_v=dimag(zvclir)
-           
+          write(*,*)"reorder statement"
+          call reorder(bc_type, zvclir,ngrid, r_v, c_v)     
+      else 
+          write(*,*)"periodic in some dir"
+          r_v=dble(zvclir)
+          c_v=dimag(zvclir)
       end if
+
+
+
+     ! if (psolver3d) then
+      !    write(*,*)"periodic in some dir"
+     !     r_v=dble(zvclir)
+     !     c_v=dimag(zvclir)
+     ! else 
+     !     write(*,*)"reorder statement"
+     !     call reorder(bc_type, zvclir,ngrid, r_v, c_v)     
+     ! end if
+
+
       offset=0
+
+!open (11, file = 'charge.dat', status = 'replace')!
+
+ !do i = 1,5000
+!	write(11,*) r_v(i)
+! end do
+ 
+ !close(11)
 
 
 
       call H_potential('G',kernel,r_v,fake_arr,energy,offset,.false.,quiet='yes')
+
       call H_potential('G',kernel,c_v,fake_arr,energy,offset,.false.,quiet='yes')
-     
+
+
+!open (11, file = 'charge.dat', status = 'replace')!
+
+ !do i = 1,5000
+!	write(11,*) r_v(i)
+ !end do
+ 
+ !close(11)
+
+
+
       zvclir=dcmplx(r_v,c_v)!combine complex and real solutions
 
-      if (solvertype.eq.'F') then
-      call reorder(zvclir,ngrid, r_v, c_v)
+      if (bc_type.eq.0) then
+      write(*,*) "de-order"
+      call reorder(bc_type, zvclir,ngrid, r_v, c_v)
       zvclir=dcmplx(r_v,c_v)
       end if
       deallocate(fake_arr, r_v, c_v)
-
+!stop
 
 ! Fourier transform interstitial potential to reciprocal space
       Call zfftifc (3, ngrid, -1, zvclir)
@@ -419,6 +494,7 @@ write(*,*)hgrids(1), hgrids(2), hgrids(3)
       ifg = igfft (igp0)
       zrho0 = zvclir (ifg)
       zvclir (ifg) = 0.d0
+
 ! solve Poissons's equation in G-space for the pseudocharge
       Do ig = 1, ngvec
          ifg = igfft (ig)
@@ -523,6 +599,7 @@ write(*,*)hgrids(1), hgrids(2), hgrids(3)
 #ifdef PSOLVER
    call pkernel_free(kernel)
 #endif
+
       Return
 End Subroutine
 !EOC
