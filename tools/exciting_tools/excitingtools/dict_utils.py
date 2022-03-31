@@ -155,3 +155,19 @@ def check_valid_keys(input_keys: Union[list, set, tuple, KeysView],
     erroneous_inputs = set(input_keys) - set(valid_keys)
     if erroneous_inputs:
         raise ValueError(f'{name} keys are not valid: {erroneous_inputs}')
+
+
+def string_value_to_type(input: dict) -> dict:
+    """ Convert dictionary string values to appropriate types.
+
+    :param input: Dictionary with string values.
+    :return: Dictionary with type-converted values.
+    """
+    output = {}
+    for key, value in input.items():
+        try:
+            output[key] = json.loads(value)
+        except json.decoder.JSONDecodeError:
+            # Most likely value that should not be converted, like 'some_string'
+            output[key] = value
+    return output
