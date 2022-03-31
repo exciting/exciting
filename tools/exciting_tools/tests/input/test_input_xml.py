@@ -2,6 +2,7 @@
 
 TODO(Fab/Alex/Dan) Issue 117. Would be nice to assert that the output is valid
     XML * https://lxml.de/validation.html
+Also see: https://xmlschema.readthedocs.io/en/latest/usage.html#xsd-declarations
 """
 from typing import List
 

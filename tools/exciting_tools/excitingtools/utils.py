@@ -3,6 +3,7 @@ General utility functions
 """
 from typing import Union, List, Optional, Callable
 import re
+import json
 
 
 def can_be_float(value) -> bool:
@@ -19,7 +20,7 @@ def can_be_float(value) -> bool:
         return False
 
 
-def convert_to_literal(input_str: str) -> Union[int, float]:
+def convert_to_literal(input_str: str) -> Union[int, float, None]:
     """
     If possible, convert string to an int or float
 
@@ -69,3 +70,20 @@ def list_to_str(mylist: list, modifier: Optional[Callable] = None) -> str:
     if modifier is None:
         modifier = lambda x: x
     return "".join(modifier(str(xyz)) + ' ' for xyz in mylist).strip()
+
+
+def string_to_bool(string: str) -> bool:
+    """ Convert string representation of true/false to True/False.
+
+    :param string: String
+    :return bool
+    """
+    if string.lower() == 'true':
+        return True
+    elif string.lower() == 'false':
+        return False
+    else:
+        raise ValueError()
+
+
+
