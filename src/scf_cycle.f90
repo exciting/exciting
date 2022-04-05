@@ -10,6 +10,7 @@ subroutine scf_cycle(verbosity)
     Use modmpi
     Use scl_xml_out_Module
     Use TS_vdW_module, Only: C6ab, R0_eff_ab
+    Use vx_enums, only: HYB_PBE0, HYB_HSE
 !
 ! !DESCRIPTION:
 !
@@ -269,7 +270,7 @@ call timesec(ta)
 ! solve the first- and second-variational secular equations
 
             Call seceqn (ik, evalfv, evecfv, evecsv)
-
+write(*,*) 'seceqn done'
             Call timesec(ts0)
 
 !______________________________________
@@ -289,11 +290,12 @@ call timesec(ta)
 
 ! end k-point loop -------------------------------------------------------------
 
+write(*,*) 'mpi_allgatherv_ifc'
 #ifdef MPI
         call mpi_allgatherv_ifc(nkpt, inplace=.False., rlen=nstsv, rbuf=evalsv)
         if (task==7) call mpi_allgatherv_ifc(nkpt, inplace=.False., rlen=nstfv, rbuf=engyknst)
 #endif
-
+write(*,*) 'allgatherv done'
 
 call timesec(tb)
 
@@ -304,6 +306,7 @@ call timesec(tb)
 ! find the occupation numbers and Fermi energy
 !-----------------------------------------------
         Call occupy
+write(*,*) 'occupy done'
         If (rank==0) Then
 ! write out the eigenvalues and occupation numbers
             Call writeeval
@@ -318,7 +321,7 @@ call timesec(tb)
 #endif
             Call putoccsv (ik, occsv(:, ik))
         End Do
-
+write(*,*) 'putocc done'
 !-----------------------------------------------
 ! Calculate density and magnetization
 !-----------------------------------------------
@@ -485,7 +488,10 @@ call timesec(tb)
 !-----------------------------------
 ! Compute the effective potential
 !-----------------------------------
+write(*,*) 'poteff starting'
+
         Call poteff
+write(*,*) 'poteff done'
 
 !---------------
 ! Mixing
@@ -838,4 +844,13 @@ call timesec(tb)
     end if
 
     call mt_hscf%release()
+! Should have been more general, something like "if (hybrid) then"
+!    If  (xctype(1)==HYB_PBE0 .or. xctype(1)==HYB_HSE) Then
+!      deallocate (vrelmt)
+!      deallocate (vrelir)
+!    Else
+!      nullify(vrelmt)
+!      nullify(vrelir)
+!    End If
+
 end subroutine

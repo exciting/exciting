@@ -543,7 +543,7 @@ Contains
        deallocate(wf%mtrlm)
      endif
 !     nullify(wf%mtrlm)
-     if (allocated(wf%mtrlm)) then
+     if (allocated(wf%mtmesh)) then
        deallocate(wf%mtmesh)
      endif
 !     nullify(wf%mtmesh)

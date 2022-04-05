@@ -16,7 +16,7 @@ Subroutine hmlint(mt_h)
       use modinput
       use mod_eigensystem, only: MTHamiltonianList, level_zora, MTInit, MTRedirect
       use mod_APW_LO, only: apw_lo_basis_type, lofr, apwfr
-      use mod_potential_and_density, only: bxcmt, veffmt
+      use mod_potential_and_density, only: bxcmt, veffmt, vrelmt
       use mod_spin, only: ncmag
       use mod_atoms, only: nspecies, natoms, idxas
       use constants, only: zi, y00
@@ -57,7 +57,7 @@ Subroutine hmlint(mt_h)
           mt_h%main%loa=0d0
           mt_h%main%lolo=0d0
         endif
-        call mt_kin(veffmt,mt_basis,mt_h)
+        call mt_kin(vrelmt,mt_basis,mt_h)
         call mt_pot(veffmt,mt_basis,mt_h)
 
 ! now the magnetic field
@@ -175,7 +175,7 @@ Subroutine hmlint(mt_h)
           endif
 
 ! add the spin orbit interaction if requested
-          if (isspinorb()) call mt_so(veffmt,mt_basis,mt_basis,mt_h,level_zora)
+          if (isspinorb()) call mt_so(vrelmt,mt_basis,mt_basis,mt_h,level_zora)
         endif
 
 !deallocate(mt_h%losize)

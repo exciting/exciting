@@ -13,7 +13,8 @@
 Subroutine poteff
 ! !USES:
       Use modmain
-! !DESCRIPTION:
+      Use vx_enums, only: HYB_PBE0, HYB_HSE
+      ! !DESCRIPTION:
 !   Computes the effective potential by adding together the Coulomb and
 !   exchange-correlation potentials. See routines {\tt potcoul} and {\tt potxc}.
 !
@@ -41,8 +42,8 @@ Subroutine poteff
       call timesec(tb)
       shift=input%groundstate%energyref
 
-        write(*,*) 'potxc', ta-ts0
-        write(*,*) 'potcoul', tb-ta
+!        write(*,*) 'potxc', ta-ts0
+!        write(*,*) 'potcoul', tb-ta
 !----------------------------------------------------------
 ! add Coulomb and exchange-correlation potentials together
 !----------------------------------------------------------
@@ -53,6 +54,7 @@ Subroutine poteff
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
             lmmax = lmmaxinr
+! The loops should be reordered here. Cheers, Andris.
             Do ir = 1, nrmt (is)
                If (ir .Gt. nrmtinr(is)) lmmax = lmmaxvr
                Do lm = 1, lmmax
@@ -68,7 +70,14 @@ Subroutine poteff
             End Do
          End Do
       End Do
-      
+
+! Should have been more general, something like "if (hybrid) then"
+      If  (xctype(1)==HYB_PBE0 .or. xctype(1)==HYB_HSE) Then
+! Is it fine to exclude vhalfir(:) from the effective potential used in the relativistic kinetic energy operator?
+! How likely it is that we try to run DFT-1/2 combined with hybrids?
+        vrelmt = vrelmt + vclmt 
+      endif
+
       ! interstitial part
       vclir(:) = vclir(:) + shift
       
@@ -77,7 +86,14 @@ Subroutine poteff
       else
         veffir(:) = vclir(:) + vxcir(:)
       endif
-      
+
+! Should have been more general, something like "if (hybrid) then"
+      If  (xctype(1)==HYB_PBE0 .or. xctype(1)==HYB_HSE) Then
+! Is it fine to exclude vhalfir(:) from the effective potential used in the relativistic kinetic energy operator?
+        vrelir = vrelir + vclir
+      endif
+
+
       Call timesec (ts1)
       timepot = timepot + ts1 - ts0
       

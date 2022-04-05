@@ -18,7 +18,7 @@ Subroutine gencore
         & spnrmax
       use mod_symmetry, only: eqatoms
       use mod_muffin_tin, only: nrmt
-      use mod_potential_and_density, only: veffmt
+      use mod_potential_and_density, only: veffmt, vrelmt
       use constants, only: y00, fourpi
       use mod_corestate, only: rhocr, rwfcr, evalcr
       !Use modmain
@@ -50,13 +50,12 @@ Subroutine gencore
          Do ia = 1, natoms (is)
             If ( .Not. done(ia)) Then
                ias = idxas (ia, is)
-               vr (1:nrmt(is)) = veffmt (1, 1:nrmt(is), ias) * y00
                If (input%groundstate%frozencore) Then
 ! use atomic potential for the frozen core approximation
                   vr (1:nrmt(is)) = spvr (1:nrmt(is), is)
                Else
 ! else use the spherical part of the crystal effective potential
-                  vr (1:nrmt(is)) = veffmt (1, 1:nrmt(is), ias) * y00
+                  vr (1:nrmt(is)) = vrelmt (1, 1:nrmt(is), ias) * y00
                End If
 ! append the effective potential from the atomic calculation
                t1 = vr (nrmt(is)) - spvr (nrmt(is), is)

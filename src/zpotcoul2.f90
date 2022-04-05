@@ -231,8 +231,10 @@ if (.not.excite) then
 
 end if
 
+
 #endif
- !write(*,*)"reg"
+
+
       fpo = fourpi / omega
 ! solve Poisson's equation for the isolated charge in the muffin-tin
       Do is = 1, nspecies
@@ -413,8 +415,10 @@ end if
 
 
 !------------------------------
+
 #ifdef PSOLVER
 if (.not.excite) then
+
 ! Fourier transform interstitial potential to real space
       Call zfftifc (3, ngrid, 1, zvclir)
       allocate(fake_arr(1),r_v(n1*n2*n3), c_v(n1*n2*n3))
@@ -449,8 +453,9 @@ if (.not.excite) then
 
 ! Fourier transform interstitial potential to reciprocal space
       Call zfftifc (3, ngrid, -1, zvclir)
-      zvclir(1)=0d0
+      if (psolver3d) zvclir(1)=0d0
       
+
 end if!psolver
  
 #endif
@@ -584,6 +589,7 @@ end if
 
 #ifdef PSOLVER
 if (.not.excite) then
+
    call pkernel_free(kernel)
 end if
 #endif
