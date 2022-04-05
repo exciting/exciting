@@ -13,6 +13,7 @@
 Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 & zn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
       Use modinput
+      Use mod_kpoint, only: nkptnr
 ! !USES:
       Use modmain
 #ifdef USEOMP
@@ -146,12 +147,12 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
       External factnm
 
 #ifdef PSOLVER
+
 ! PSolver related
    character(len=1) :: solvertype,afunc
    character(len=64) :: chain
-   
    integer :: i1,i2,i3,n1,n2,n3,i1_max,i2_max,i3_max,isf_order, i, bc_type
-   real(kind=8) :: max_diff, alpha_bc, beta_ac, gamma_ab, bc, ac, ab
+   real(kind=8) :: max_diff, alpha_bc, beta_ac, gamma_ab, bc, ac, ab, r_c
    real(kind=8) :: sigma,length,hgrid,mu,energy,offset,acell,epot,intrhoS,intrhoF,intpotS,intpotF
    real(kind=8), dimension(:), allocatable :: fake_arr
    real(kind=8), allocatable :: psi, r_v(:), c_v(:)
@@ -160,7 +161,7 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
    type(domain) :: dom
    integer, dimension(3) :: ndims
    real(kind=8), dimension(3) :: hgrids
-   logical psolver0d, psolver1d, psolver2d, psolver3d
+   logical psolver0d, psolver1d, psolver2d, psolver3d, exciting, exciting0d, excite
 
 
 ! Initialise PSolver
@@ -169,6 +170,13 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
    psolver1d=(input%groundstate%vha.eq."psolver1d")
    psolver2d=(input%groundstate%vha.eq."psolver2d")
    psolver3d=(input%groundstate%vha.eq."psolver3d")
+   exciting =(input%groundstate%vha.eq."exciting")
+   exciting0d=(input%groundstate%vha.eq."exciting0d")
+   if (exciting.or.exciting0d) then
+      excite = .True.
+   end if
+write(*,*)"excite", excite
+if (.not.excite) then
    !afunc='F'
    if (psolver0d) then! free in all directions
        write(*,*)"type F"
@@ -196,7 +204,7 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
    n1=ngrid(1)
    n2=ngrid(2)
    n3=ngrid(3)
-write(*,*)n1,n2,n3, "n1, n2, n3"
+!write(*,*)n1,n2,n3, "n1, n2, n3"
    hgrids(1)=avec(1,1)/ngrid(1)
    hgrids(2)=avec(2,2)/ngrid(2)
    hgrids(3)=avec(3,3)/ngrid(3)
@@ -214,17 +222,14 @@ write(*,*)n1,n2,n3, "n1, n2, n3"
 !write(*,*) avec(:,2), "avec, 13", ac
 !write(*,*) avec(:,3), "avec, 12", ab
    dom=domain_new(units=ATOMIC_UNITS,bc=geocode_to_bc_enum(solvertype), alpha_bc=bc, beta_ac=ac, gamma_ab=ab,acell=ngrid*hgrids)!abc= avec)
-!write(*,*) "after"
    dict=>dict_new('kernel' .is. dict_new('isf_order' .is. isf_order))
-!write(*,*)"dict"
-   !kernel=pkernel_init(0,1,dict,solvertype,(/n1,n2,n3/),(/hgrid,hgrid,hgrid/))
 
    kernel=pkernel_init(0,1,dict,dom,ngrid,hgrids)
 
    call dict_free(dict)
-!write(*,*)"dict free"
    call pkernel_set(kernel,verbose=.true.)
 
+end if
 
 #endif
  !write(*,*)"reg"
@@ -405,21 +410,11 @@ write(*,*)n1,n2,n3, "n1, n2, n3"
 
 
 
-!open (11, file = 'charge.dat', status = 'replace')
-!
-! do i = 1, 5000
-!	write(11,*) dble(zvclir(i))
-! end do
- 
-! close(11)
-
-!write(*,*)"too much"
-
 
 
 !------------------------------
 #ifdef PSOLVER
-
+if (.not.excite) then
 ! Fourier transform interstitial potential to real space
       Call zfftifc (3, ngrid, 1, zvclir)
       allocate(fake_arr(1),r_v(n1*n2*n3), c_v(n1*n2*n3))
@@ -434,28 +429,7 @@ write(*,*)n1,n2,n3, "n1, n2, n3"
           c_v=dimag(zvclir)
       end if
 
-
-
-     ! if (psolver3d) then
-      !    write(*,*)"periodic in some dir"
-     !     r_v=dble(zvclir)
-     !     c_v=dimag(zvclir)
-     ! else 
-     !     write(*,*)"reorder statement"
-     !     call reorder(bc_type, zvclir,ngrid, r_v, c_v)     
-     ! end if
-
-
       offset=0
-
-!open (11, file = 'charge.dat', status = 'replace')!
-
- !do i = 1,5000
-!	write(11,*) r_v(i)
-! end do
- 
- !close(11)
-
 
 
       call H_potential('G',kernel,r_v,fake_arr,energy,offset,.false.,quiet='yes')
@@ -463,48 +437,58 @@ write(*,*)n1,n2,n3, "n1, n2, n3"
       call H_potential('G',kernel,c_v,fake_arr,energy,offset,.false.,quiet='yes')
 
 
-!open (11, file = 'charge.dat', status = 'replace')!
-
- !do i = 1,5000
-!	write(11,*) r_v(i)
- !end do
- 
- !close(11)
-
-
-
       zvclir=dcmplx(r_v,c_v)!combine complex and real solutions
 
       if (bc_type.eq.0) then
-      write(*,*) "de-order"
-      call reorder(bc_type, zvclir,ngrid, r_v, c_v)
-      zvclir=dcmplx(r_v,c_v)
+        write(*,*) "de-order"
+        call reorder(bc_type, zvclir,ngrid, r_v, c_v)
+        zvclir=dcmplx(r_v,c_v)
       end if
       deallocate(fake_arr, r_v, c_v)
-!stop
+
 
 ! Fourier transform interstitial potential to reciprocal space
       Call zfftifc (3, ngrid, -1, zvclir)
       zvclir(1)=0d0
       
-
+end if!psolver
  
-#else
+#endif
+if (excite) then!exciting or exciting0d
+write(*,*)"excite"
 ! set zrho0 (pseudocharge density coefficient of the smallest G+p vector)
       ifg = igfft (igp0)
       zrho0 = zvclir (ifg)
       zvclir (ifg) = 0.d0
-
+r_c = (3d0*omega*nkptnr/(fourpi))**(1d0/3d0)
+write(*,*)"# of k-points", nkptnr, (fourpi*0.5d0)*r_c**2
 ! solve Poissons's equation in G-space for the pseudocharge
       Do ig = 1, ngvec
          ifg = igfft (ig)
+       if (input%groundstate%vha.eq."exciting0d") then
+
+         
+         If (gpc(ig) .Gt. input%structure%epslat) Then
+            zvclir (ifg) = fourpi * zvclir (ifg)*(1d0-cos(gpc(ig) * r_c )) / (gpc(ig)**2)
+         Else
+            zvclir (ifg) = zvclir(ifg)*(fourpi*0.5d0)*r_c**2
+         End If
+       end if
+
+
+       
+       if (input%groundstate%vha.eq."exciting") then
          If (gpc(ig) .Gt. input%structure%epslat) Then
             zvclir (ifg) = fourpi * zvclir (ifg) / (gpc(ig)**2)
          Else
             zvclir (ifg) = 0.d0
          End If
+       end if
       End Do
-#endif
+!write(*,*)"Rc", r_c
+end if
+
+
 !------------------------------
 
 ! match potentials at muffin-tin boundary by adding homogeneous solution
@@ -597,7 +581,9 @@ write(*,*)n1,n2,n3, "n1, n2, n3"
       end if
 
 #ifdef PSOLVER
+if (.not.excite) then
    call pkernel_free(kernel)
+end if
 #endif
 
       Return
