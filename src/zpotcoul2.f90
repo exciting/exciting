@@ -460,6 +460,8 @@ write(*,*)"excite"
       ifg = igfft (igp0)
       zrho0 = zvclir (ifg)
       zvclir (ifg) = 0.d0
+
+!radius
 r_c = (3d0*omega*nkptnr/(fourpi))**(1d0/3d0)
 write(*,*)"# of k-points", nkptnr, (fourpi*0.5d0)*r_c**2
 ! solve Poissons's equation in G-space for the pseudocharge
