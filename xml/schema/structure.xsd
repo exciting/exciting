@@ -297,18 +297,13 @@
         </xs:annotation>
       </xs:attribute>
 <!-- Giulio Biddau 1.11.2012-->
-      <xs:attribute ex:importance="expert" ex:unit="" name="rmtapm" type="vect2d"
-        default="0.25d0 0.95d0">
+      <xs:attribute ex:importance="expert" ex:unit="" name="rmtapm" type="fortrandouble"
+        default="0.95d0">
         <xs:annotation>
-          <xs:documentation> This attribute assigns the two parameters governing the automatic
-            generation of the muffin-tin radii. When the attribute <attref>autormt</attref> is set
-            to <pre>"true"</pre>, the muffin-tin radii are determined according to the following
-            expression <displaymath>R_i\propto 1+\zeta|Z_i|^{1/3}, </displaymath> where
-              <inlinemath>Z_i</inlinemath> is the atomic number of the <inlinemath>i</inlinemath> th
-            species, <inlinemath>\zeta</inlinemath> is stored in <attref>rmtapm</attref>(1). The
-            distance between the muffin-tin speheres is determined by the value of
-              <attref>rmtapm</attref>(2): When <attref>rmtapm</attref>(2)=1, the closest muffin-tin
-            spheres will touch each other. </xs:documentation>
+          <xs:documentation> This attribute determines a global scaling parameter for all muffin-tin radii, 
+            if the attribute <attref>autormt</attref> is set to <pre>"true"</pre>.
+            It is normalized such that the closest muffin-tin spheres will touch each other,
+            if <attref>rmtapm</attref>=1. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="Bohr" name="epslat" type="fortrandouble"
@@ -323,7 +318,7 @@
         default="false">
         <xs:annotation>
           <xs:documentation> If <pre>"true"</pre>, the muffin-tin radius of each species is
-            automatically set according to the variables specified by the attribute
+            automatically set according to the variable specified by the attribute
               <attref>rmtapm</attref>. </xs:documentation>
         </xs:annotation>
       </xs:attribute>

@@ -8,6 +8,7 @@ module unit_test_drivers
    use phonon_screening_tests, only: phonon_screening_test_driver
    use lapack_wrappers_test_drivers, only: lapack_wrappers_test_driver
    use mpi_test_drivers, only: mpi_test_driver
+   use autormt_test_drivers, only: autormt_test_driver
    use structure_test_drivers, only : structure_test_driver
 
    implicit none
@@ -66,6 +67,10 @@ contains
          !call gw_test_driver(mpiglobal, kill_on_failure)
       end if
 
+      if (run%autormt .or. run%all) then         
+         call autormt_test_driver(mpiglobal, kill_on_failure)
+      end if 
+      
       if (run%structure .or. run%all) then
          call structure_test_driver(mpiglobal, kill_on_failure)
       end if

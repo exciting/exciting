@@ -2,7 +2,7 @@
 Species :    1 (Si), atom :    1
  APW functions :
   l =  0, order =  1 :   0.1500000000    
-  l =  1, order =  1 :   0.5850000000    
+  l =  1, order =  1 :   0.5625000000    
   l =  2, order =  1 :   0.1500000000    
   l =  2, order =  2 :   0.1500000000    
   l =  3, order =  1 :   0.1500000000    
@@ -20,13 +20,13 @@ Species :    1 (Si), atom :    1
  local-orbital functions :
   l.o. =  1, l =  0, order =  1 :   0.1500000000    
   l.o. =  1, l =  0, order =  2 :   0.1500000000    
-  l.o. =  2, l =  1, order =  1 :   0.5850000000    
-  l.o. =  2, l =  1, order =  2 :   0.5850000000    
+  l.o. =  2, l =  1, order =  1 :   0.5625000000    
+  l.o. =  2, l =  1, order =  2 :   0.5625000000    
  
 Species :    2 (C), atom :    1
  APW functions :
   l =  0, order =  1 :   0.1500000000    
-  l =  1, order =  1 :   0.2200000000    
+  l =  1, order =  1 :   0.2250000000    
   l =  2, order =  1 :   0.1500000000    
   l =  2, order =  2 :   0.1500000000    
   l =  3, order =  1 :   0.1500000000    
@@ -44,5 +44,5 @@ Species :    2 (C), atom :    1
  local-orbital functions :
   l.o. =  1, l =  0, order =  1 :   0.1500000000    
   l.o. =  1, l =  0, order =  2 :   0.1500000000    
-  l.o. =  2, l =  1, order =  1 :   0.2200000000    
-  l.o. =  2, l =  1, order =  2 :   0.2200000000    
+  l.o. =  2, l =  1, order =  1 :   0.2250000000    
+  l.o. =  2, l =  1, order =  2 :   0.2250000000    

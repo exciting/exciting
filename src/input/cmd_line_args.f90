@@ -38,6 +38,7 @@ module cmd_line_args
       logical :: structure = .false.         !! structure
       logical :: mpi = .false.               !! modmpi
       logical :: phononscreening = .false.   !! phononscreening
+      logical :: autormt = .false.           !! autormt
    contains
       procedure :: init => set_unit_tests
    end type unit_tests_type
@@ -159,6 +160,8 @@ contains
          run%gw = .true.
       case ('mpi')
          run%mpi = .true.
+      case('autormt')
+         run%autormt = .true.
       case('structure')
          run%structure = .true.
       case('phononscreening')

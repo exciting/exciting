@@ -22,6 +22,7 @@ src_dir: ../src/src_gw
          ../src/errors_warnings
          ../src/src_mpi
          ../src/src_xs/src_rttddft/
+         ../src/autormt
          ../src/structure
          ../src/wavefunctions
 

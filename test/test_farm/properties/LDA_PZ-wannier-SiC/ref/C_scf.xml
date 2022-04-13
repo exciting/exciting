@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="C" name="carbon" z="-6.00000" mass="21894.16673">
-    <muffinTin rmin="0.100000E-04" radius="1.6124" rinf="21.0932" radialmeshPoints="250"/>
+    <muffinTin rmin="0.100000E-04" radius="1.5904" rinf="21.0932" radialmeshPoints="250"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="false"/>
     <atomicState n="2" l="1" kappa="1" occ="1.00000" core="false"/>
@@ -14,15 +14,15 @@
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
       </custom>
       <custom l="1">
-        <wf matchingOrder="0" trialEnergy="0.2200" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="0.2250" searchE="true"/>
       </custom>
       <lo l="0">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
       </lo>
       <lo l="1">
-        <wf matchingOrder="0" trialEnergy="0.2200" searchE="true"/>
-        <wf matchingOrder="1" trialEnergy="0.2200" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="0.2250" searchE="true"/>
+        <wf matchingOrder="1" trialEnergy="0.2250" searchE="true"/>
       </lo>
     </basis>
     <!-- This file was automatically generated-->

@@ -349,15 +349,9 @@ subroutine checkinput
     end if
   end if
   if (associated(input%groundstate)) then
-    if (input%structure%rmtapm(1).lt.0.d0) then
+    if ((input%structure%rmtapm.le.0.d0).or.(input%structure%rmtapm.gt.1.d0)) then
       write(*,*)
-      write(*,'("Error(checkinput): /input/groundstate/@rmtapm(1) < 0 : ",G18.10)') input%structure%rmtapm(1)
-      write(*,*)
-      stop
-    end if
-    if ((input%structure%rmtapm(2).le.0.d0).or.(input%structure%rmtapm(2).gt.1.d0)) then
-      write(*,*)
-      write(*,'("Error(checkinput): /input/groundstate/@rmtapm(2) not in (0,1] : ",G18.10)') input%structure%rmtapm(2)
+      write(*,'("Error(checkinput): /input/groundstate/@rmtapm not in (0,1] : ",G18.10)') input%structure%rmtapm
       write(*,*)
       stop
     end if

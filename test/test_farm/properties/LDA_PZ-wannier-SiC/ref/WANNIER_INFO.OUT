@@ -31,12 +31,12 @@
 ********************************************************************************
  
  calculate plane-wave matrix-elements...
-     duration (seconds):                         1.2
+     duration (seconds):                         0.9
      #k-points:                                   64
      #neighbors per k-point:                       4
  
  calculate projection overlap matrices...
-     duration (seconds):                         0.5
+     duration (seconds):                         0.8
      #k-points:                                   64
      #states:                                     11
      #projection functions:                       72
@@ -70,17 +70,17 @@
  
  calculate improved optimized projection functions (iOPF)...
      duration (seconds):                         0.1
-     iterations:                                  24
+     iterations:                                  23
      gradient cutoff:                   0.100000E-01
-     norm of gradient:                  0.349512E-02
-     Omega:                                14.438515
+     norm of gradient:                  0.574365E-02
+     Omega:                                14.439483
  
  minimize localization functional Omega...
-     duration (seconds):                         1.5
-     iterations:                                 378
+     duration (seconds):                         2.4
+     iterations:                                 439
      gradient cutoff:                   0.100000E-09
-     norm of gradient:                  0.771609E-10
-     Omega:                                14.391007
+     norm of gradient:                  0.996933E-10
+     Omega:                                14.391740
      reduction:                                   0%
  
  
@@ -101,38 +101,38 @@
  
  calculate improved optimized projection functions (iOPF)...
      duration (seconds):                         0.2
-     iterations:                                  61
+     iterations:                                  50
      gradient cutoff:                   0.100000E-01
-     norm of gradient:                  0.912969E-02
-     Omega:                                27.171091
+     norm of gradient:                  0.902554E-02
+     Omega:                                26.920253
  
  disentangle optimal subspace...
      duration (seconds):                         0.0
      iterations:                                  24
      convergence cutoff:                0.100000E-03
-     norm of gradient:                  0.893570E-04
-     Omega_I before:                       37.384297
-     Omega_I after:                        31.301325
-     reduction:                                  16%
+     norm of gradient:                  0.980271E-04
+     Omega_I before:                       34.587381
+     Omega_I after:                        31.302275
+     reduction:                                   9%
  
  calculate improved optimized projection functions (iOPF)...
-     duration (seconds):                         0.3
-     iterations:                                 114
+     duration (seconds):                         0.4
+     iterations:                                 117
      gradient cutoff:                   0.100000E-01
-     norm of gradient:                  0.744870E-02
-     Omega:                                34.859276
+     norm of gradient:                  0.948248E-02
+     Omega:                                34.860333
  
  minimize localization functional Omega...
      duration (seconds):                         0.4
-     iterations:                                 106
+     iterations:                                 107
      gradient cutoff:                   0.100000E-09
-     norm of gradient:                  0.974232E-10
-     Omega:                                34.608076
+     norm of gradient:                  0.996151E-10
+     Omega:                                34.609602
      reduction:                                   1%
  
  
 --------------------------------------------------------------------------------
-- total duration (seconds):                 4.8                                -
+- total duration (seconds):                 5.8                                -
 --------------------------------------------------------------------------------
  
 ********************************************************************************
@@ -141,20 +141,20 @@
  
    #             localization center (lattice)           Omega      Omega_I      Omega_D     Omega_OD
 ================================================================================
-   1        0.162193     0.162193     0.162193        3.597752     3.072156     0.003723     0.521873
-   2        0.162193     0.513421     0.162193        3.597752     3.072156     0.003723     0.521873
-   3        0.162193     0.162193     0.513421        3.597751     3.072155     0.003723     0.521873
-   4        0.513421     0.162193     0.162193        3.597752     3.072156     0.003723     0.521873
+   1        0.162196     0.162196     0.162196        3.597935     3.072271     0.003724     0.521939
+   2        0.162196     0.513412     0.162196        3.597935     3.072272     0.003724     0.521939
+   3        0.162196     0.162196     0.513412        3.597934     3.072271     0.003724     0.521939
+   4        0.513412     0.162196     0.162196        3.597936     3.072272     0.003724     0.521939
 --------------------------------------------------------------------------------
-                                           total:    14.391007    12.288624     0.014894     2.087490
+                                           total:    14.391740    12.289086     0.014896     2.087758
 --------------------------------------------------------------------------------
-   5       -0.096944    -0.096944     0.290833        8.652023     7.861491     0.052723     0.737809
-   6       -0.096944     0.290833    -0.096944        8.652017     7.861485     0.052723     0.737808
-   7        0.290833    -0.096944    -0.096944        8.652016     7.861484     0.052723     0.737808
-   8       -0.096944    -0.096944    -0.096944        8.652020     7.861489     0.052723     0.737809
+   5       -0.096946     0.290839    -0.096946        8.652398     7.861733     0.052724     0.737941
+   6       -0.096946    -0.096946    -0.096946        8.652402     7.861737     0.052724     0.737941
+   7        0.290839    -0.096946    -0.096946        8.652396     7.861732     0.052724     0.737941
+   8       -0.096946    -0.096946     0.290839        8.652406     7.861740     0.052724     0.737941
 --------------------------------------------------------------------------------
-                                           total:    34.608076    31.445950     0.210892     2.951235
+                                           total:    34.609602    31.446943     0.210895     2.951764
 ================================================================================
-                                           total:    48.999083    43.734573     0.225785     5.038725
-                                         average:     6.124885     5.466822     0.028223     0.629841
+                                           total:    49.001342    43.736028     0.225791     5.039522
+                                         average:     6.125168     5.467004     0.028224     0.629940
  
