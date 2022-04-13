@@ -2,24 +2,24 @@
 <atomlist>
   <Hamiltonian RelativityModel="dirac" xctype="3"/>
   <atom chemicalSymbol="Si" species="Si.xml">
-    <NumericalSetup TotalNumberOfGridPoints="724" NumberOfMTGridPoints="300" GridType="cubic" rmin="1.000000000000e-5" rmt="1.776800000000e0" rmax="2.508599527286e1"/>
+    <NumericalSetup TotalNumberOfGridPoints="721" NumberOfMTGridPoints="300" GridType="cubic" rmin="1.000000000000e-5" rmt="1.798800000000e0" rmax="2.508226484196e1"/>
     <spectrum>
-      <state n="1" l="0" kappa="1" energy="-65.3520528434"/>
-      <state n="2" l="0" kappa="1" energy="-5.09800653624"/>
-      <state n="2" l="1" kappa="1" energy="-3.52865042448"/>
-      <state n="2" l="1" kappa="2" energy="-3.50489096941"/>
-      <state n="3" l="0" kappa="1" energy="-0.399635387226"/>
-      <state n="3" l="1" kappa="1" energy="-0.153659685544"/>
-      <state n="3" l="1" kappa="2" energy="-0.152458706188"/>
+      <state n="1" l="0" kappa="1" energy="-65.3520528460"/>
+      <state n="2" l="0" kappa="1" energy="-5.09800653635"/>
+      <state n="2" l="1" kappa="1" energy="-3.52865042459"/>
+      <state n="2" l="1" kappa="2" energy="-3.50489096951"/>
+      <state n="3" l="0" kappa="1" energy="-0.399635387208"/>
+      <state n="3" l="1" kappa="1" energy="-0.153659685525"/>
+      <state n="3" l="1" kappa="2" energy="-0.152458706169"/>
     </spectrum>
   </atom>
   <atom chemicalSymbol="C" species="C.xml">
-    <NumericalSetup TotalNumberOfGridPoints="589" NumberOfMTGridPoints="250" GridType="cubic" rmin="1.000000000000e-5" rmt="1.612400000000e0" rmax="2.120574240378e1"/>
+    <NumericalSetup TotalNumberOfGridPoints="591" NumberOfMTGridPoints="250" GridType="cubic" rmin="1.000000000000e-5" rmt="1.590400000000e0" rmax="2.113015239951e1"/>
     <spectrum>
-      <state n="1" l="0" kappa="1" energy="-9.95167919938"/>
-      <state n="2" l="0" kappa="1" energy="-0.501191284893"/>
-      <state n="2" l="1" kappa="1" energy="-0.199206966103"/>
-      <state n="2" l="1" kappa="2" energy="-0.198880646001"/>
+      <state n="1" l="0" kappa="1" energy="-9.95167919871"/>
+      <state n="2" l="0" kappa="1" energy="-0.501191284885"/>
+      <state n="2" l="1" kappa="1" energy="-0.199206966095"/>
+      <state n="2" l="1" kappa="2" energy="-0.198880645993"/>
     </spectrum>
   </atom>
 </atomlist>

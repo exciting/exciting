@@ -14,6 +14,7 @@ Subroutine init0
 ! !USES:
       Use modinput
       Use modmain
+      Use autormt, only: optimal_rmt
       Use modxcifc
       Use modmpi, only: mpiglobal
       Use errors_warnings, only: terminate_if_false
@@ -303,9 +304,10 @@ Subroutine init0
       Call setupsym
 #endif
 ! automatically determine the muffin-tin radii if required
-      If (input%structure%autormt) Call autoradmt
-! check for overlapping muffin-tins
-      Call checkmt
+      If (input%structure%autormt) Call optimal_rmt(rmt, spzn, input%structure%crystal%basevect, atposc&
+                                          &,input%structure%rmtapm, natoms, nspecies, 1)         
+! check for overlapping muffin-tins               
+      Call checkmt  
 !
 !-----------------------!
 !     radial meshes     !

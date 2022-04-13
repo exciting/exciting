@@ -7,10 +7,10 @@
       <basevect>   0.000000000       3.415680000       3.415680000</basevect>
       <basevect>   3.415680000       3.415680000       0.000000000</basevect>
     </crystal>
-    <species speciesfile="B.xml" rmt="1.3805">
+    <species speciesfile="B.xml" rmt="1.3604">
       <atom coord="0.0000000000      0.0000000000      0.0000000000"/>
     </species>
-    <species speciesfile="N.xml" rmt="1.4296">
+    <species speciesfile="N.xml" rmt="1.4496">
       <atom coord="0.2500000000      0.2500000000      0.2500000000"/>
     </species>
   </structure>

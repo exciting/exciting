@@ -1,8 +1,8 @@
 ================================================================================
 | EXCITING OXYGEN started for task xsgeneigvec (301)                           =
-| version hash id: c4f3d46131d2c0b171143ca8613922ad73ab0f75                    =
+| version hash id: db1af6655483acc0d004c84381c13b590f8da658                    =
 |                                                                              =
-| Date (DD-MM-YYYY) : 29-05-2021                                               =
+| Date (DD-MM-YYYY) : 06-04-2022                                               =
 ================================================================================
 ================================================================================
 One-shot GS runs for BSE calculations
@@ -17,14 +17,14 @@ Info(xsgeneigvec): Generation of eigenvectors finished
 Info(xsfinit): task Nr.     301 stopped gracefully
  
  Timings: 
-     Date (DD-MM-YYYY)      : 29-05-2021
-     Time (hh:mm:ss)        : 19:50:37
-     CPU time               : 1.41 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
-     wall time              : 0.72 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
-     CPU load               : 195.33 %
-     CPU time  (cumulative) : 10.23 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 10 s )
-     wall time (cumulative) : 0.72 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
-     CPU load  (cumulative) : 195.33 %
+     Date (DD-MM-YYYY)      : 06-04-2022
+     Time (hh:mm:ss)        : 12:35:15
+     CPU time               : 2.21 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     wall time              : 1.10 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
+     CPU load               : 199.84 %
+     CPU time  (cumulative) : 16.86 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 17 s )
+     wall time (cumulative) : 1.10 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
+     CPU load  (cumulative) : 199.84 %
  
 ================================================================================
 = EXCITING OXYGEN stopped for task    301                                      =
@@ -33,20 +33,20 @@ Info(xsfinit): task Nr.     301 stopped gracefully
  
 ================================================================================
 | EXCITING OXYGEN started for task writepmatxs (320)                           =
-| Date (DD-MM-YYYY) : 29-05-2021                                               =
+| Date (DD-MM-YYYY) : 06-04-2022                                               =
 ================================================================================
 Info(writepmatxs): Momentum matrix elements finished
 Info(xsfinit): task Nr.     320 stopped gracefully
  
  Timings: 
-     Date (DD-MM-YYYY)      : 29-05-2021
-     Time (hh:mm:ss)        : 19:50:39
-     CPU time               : 2.55 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 03 s )
-     wall time              : 1.55 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
-     CPU load               : 165.20 %
-     CPU time  (cumulative) : 12.78 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 13 s )
-     wall time (cumulative) : 2.26 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
-     CPU load  (cumulative) : 165.20 %
+     Date (DD-MM-YYYY)      : 06-04-2022
+     Time (hh:mm:ss)        : 12:35:17
+     CPU time               : 3.53 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 04 s )
+     wall time              : 2.10 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load               : 168.25 %
+     CPU time  (cumulative) : 20.39 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 20 s )
+     wall time (cumulative) : 3.21 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 03 s )
+     CPU load  (cumulative) : 168.25 %
  
 ================================================================================
 = EXCITING OXYGEN stopped for task    320                                      =
@@ -55,7 +55,7 @@ Info(xsfinit): task Nr.     320 stopped gracefully
  
 ================================================================================
 | EXCITING OXYGEN started for task scrgeneigvec (401)                          =
-| Date (DD-MM-YYYY) : 29-05-2021                                               =
+| Date (DD-MM-YYYY) : 06-04-2022                                               =
 ================================================================================
  
 Info(xsinit): mapping screening-specific parameters
@@ -74,14 +74,14 @@ Info(xsgeneigvec): Generation of eigenvectors finished
 Info(xsfinit): task Nr.     401 stopped gracefully
  
  Timings: 
-     Date (DD-MM-YYYY)      : 29-05-2021
-     Time (hh:mm:ss)        : 19:50:39
-     CPU time               : 1.22 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
-     wall time              : 0.61 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
-     CPU load               : 199.72 %
-     CPU time  (cumulative) : 14.00 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 14 s )
-     wall time (cumulative) : 2.87 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 03 s )
-     CPU load  (cumulative) : 199.72 %
+     Date (DD-MM-YYYY)      : 06-04-2022
+     Time (hh:mm:ss)        : 12:35:18
+     CPU time               : 1.99 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     wall time              : 0.99 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
+     CPU load               : 200.25 %
+     CPU time  (cumulative) : 22.39 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 22 s )
+     wall time (cumulative) : 4.20 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 04 s )
+     CPU load  (cumulative) : 200.25 %
  
 ================================================================================
 = EXCITING OXYGEN stopped for task    401                                      =
@@ -90,7 +90,7 @@ Info(xsfinit): task Nr.     401 stopped gracefully
  
 ================================================================================
 | EXCITING OXYGEN started for task scrwritepmat (420)                          =
-| Date (DD-MM-YYYY) : 29-05-2021                                               =
+| Date (DD-MM-YYYY) : 06-04-2022                                               =
 ================================================================================
  
 Info(xsinit): mapping screening-specific parameters
@@ -100,14 +100,14 @@ Info(scrwritepmat): Momentum matrix elements for screening finished
 Info(xsfinit): task Nr.     420 stopped gracefully
  
  Timings: 
-     Date (DD-MM-YYYY)      : 29-05-2021
-     Time (hh:mm:ss)        : 19:50:40
-     CPU time               : 1.41 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
-     wall time              : 0.98 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
-     CPU load               : 144.24 %
-     CPU time  (cumulative) : 15.40 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 15 s )
-     wall time (cumulative) : 3.85 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 04 s )
-     CPU load  (cumulative) : 144.24 %
+     Date (DD-MM-YYYY)      : 06-04-2022
+     Time (hh:mm:ss)        : 12:35:19
+     CPU time               : 1.84 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     wall time              : 1.25 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
+     CPU load               : 146.38 %
+     CPU time  (cumulative) : 24.22 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 24 s )
+     wall time (cumulative) : 5.46 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 05 s )
+     CPU load  (cumulative) : 146.38 %
  
 ================================================================================
 = EXCITING OXYGEN stopped for task    420                                      =
@@ -116,7 +116,7 @@ Info(xsfinit): task Nr.     420 stopped gracefully
  
 ================================================================================
 | EXCITING OXYGEN started for task screen (430)                                =
-| Date (DD-MM-YYYY) : 29-05-2021                                               =
+| Date (DD-MM-YYYY) : 06-04-2022                                               =
 ================================================================================
  
 Info(xsinit): mapping screening-specific parameters
@@ -142,14 +142,14 @@ Info(screenlauncher): Screening finished
 Info(xsfinit): task Nr.     430 stopped gracefully
  
  Timings: 
-     Date (DD-MM-YYYY)      : 29-05-2021
-     Time (hh:mm:ss)        : 19:50:42
-     CPU time               : 3.51 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 04 s )
-     wall time              : 1.76 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
-     CPU load               : 199.35 %
-     CPU time  (cumulative) : 18.92 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 19 s )
-     wall time (cumulative) : 5.61 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 06 s )
-     CPU load  (cumulative) : 199.35 %
+     Date (DD-MM-YYYY)      : 06-04-2022
+     Time (hh:mm:ss)        : 12:35:22
+     CPU time               : 5.71 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 06 s )
+     wall time              : 2.86 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 03 s )
+     CPU load               : 199.44 %
+     CPU time  (cumulative) : 29.93 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 30 s )
+     wall time (cumulative) : 8.32 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 08 s )
+     CPU load  (cumulative) : 199.44 %
  
 ================================================================================
 = EXCITING OXYGEN stopped for task    430                                      =
@@ -158,7 +158,7 @@ Info(xsfinit): task Nr.     430 stopped gracefully
  
 ================================================================================
 | EXCITING OXYGEN started for task scrcoulint (440)                            =
-| Date (DD-MM-YYYY) : 29-05-2021                                               =
+| Date (DD-MM-YYYY) : 06-04-2022                                               =
 ================================================================================
  
 Info(xsinit): mapping BSE-specific parameters
@@ -209,14 +209,14 @@ Info(scrcoulintlauncher): Screened coulomb interaction finished for iqmt=   1
 Info(xsfinit): task Nr.     440 stopped gracefully
  
  Timings: 
-     Date (DD-MM-YYYY)      : 29-05-2021
-     Time (hh:mm:ss)        : 19:50:44
-     CPU time               : 3.42 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 03 s )
-     wall time              : 1.71 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
-     CPU load               : 199.88 %
-     CPU time  (cumulative) : 22.34 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 22 s )
-     wall time (cumulative) : 7.33 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 07 s )
-     CPU load  (cumulative) : 199.88 %
+     Date (DD-MM-YYYY)      : 06-04-2022
+     Time (hh:mm:ss)        : 12:35:24
+     CPU time               : 5.14 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 05 s )
+     wall time              : 2.57 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 03 s )
+     CPU load               : 199.92 %
+     CPU time  (cumulative) : 35.07 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 35 s )
+     wall time (cumulative) : 10.89 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 11 s )
+     CPU load  (cumulative) : 199.92 %
  
 ================================================================================
 = EXCITING OXYGEN stopped for task    440                                      =
@@ -225,7 +225,7 @@ Info(xsfinit): task Nr.     440 stopped gracefully
  
 ================================================================================
 | EXCITING OXYGEN started for task exccoulint (441)                            =
-| Date (DD-MM-YYYY) : 29-05-2021                                               =
+| Date (DD-MM-YYYY) : 06-04-2022                                               =
 ================================================================================
  
 Info(xsinit): mapping BSE-specific parameters
@@ -266,7 +266,7 @@ Info(select_transitions): Number of participating transitions:     240
 Info(exccoulint): Size of file EXCLI will be about     0.000483 GB
  
 Info(exccoulint): Generating plane wave matrix elements for momentum transfer iqmt=   1
-  Timing (in seconds)	   :       6.822
+  Timing (in seconds)	   :      10.296
  
 Info(exccoulint): Generating V matrix elements
 Info(exccoulint): Zeroing Coulomb potential at G+qmt index:  1
@@ -276,14 +276,14 @@ Info(exccoulintlauncher): Exchange interaction finished for iqmt=   1
 Info(xsfinit): task Nr.     441 stopped gracefully
  
  Timings: 
-     Date (DD-MM-YYYY)      : 29-05-2021
-     Time (hh:mm:ss)        : 19:50:51
-     CPU time               : 14.15 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 14 s )
-     wall time              : 7.07 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 07 s )
-     CPU load               : 199.98 %
-     CPU time  (cumulative) : 36.49 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 36 s )
-     wall time (cumulative) : 14.40 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 14 s )
-     CPU load  (cumulative) : 199.98 %
+     Date (DD-MM-YYYY)      : 06-04-2022
+     Time (hh:mm:ss)        : 12:35:35
+     CPU time               : 21.36 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 21 s )
+     wall time              : 10.68 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 11 s )
+     CPU load               : 199.97 %
+     CPU time  (cumulative) : 56.43 sec; 0.02 hrs; ( 0 d, 00 h, 00 m, 56 s )
+     wall time (cumulative) : 21.57 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 22 s )
+     CPU load  (cumulative) : 199.97 %
  
 ================================================================================
 = EXCITING OXYGEN stopped for task    441                                      =
@@ -292,12 +292,12 @@ Info(xsfinit): task Nr.     441 stopped gracefully
  
 ================================================================================
 | EXCITING OXYGEN started for task bse (445)                                   =
-| Date (DD-MM-YYYY) : 29-05-2021                                               =
+| Date (DD-MM-YYYY) : 06-04-2022                                               =
 ================================================================================
  
 Info(xsinit): mapping BSE-specific parameters
  
-Info(bselauncher): Init time:    0.128279
+Info(bselauncher): Init time:    0.212580
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Info(bselauncher): Setting up and diagonalizing BSE Hamiltonian.
 Info(bselauncher): Using momentum transfer vectors from list :   1 to  1
@@ -329,7 +329,7 @@ Info(select_transitions): Number of participating transitions:     240
 Info(bse): Selecting transitions...
 --------------------------------------------------------------------------------
  
-Info(bse):bsegap (eV):   378.4781151535012782
+Info(bse):bsegap (eV):   378.4792756096870789
 Info(bse): Assembling BSE matrix
   RR/RA blocks of global BSE-Hamiltonian:
   Size of the Hamiltonian:     240
@@ -371,14 +371,14 @@ Info(bselauncher): Spectrum finished for iqmt=  1
 Info(xsfinit): task Nr.     445 stopped gracefully
  
  Timings: 
-     Date (DD-MM-YYYY)      : 29-05-2021
-     Time (hh:mm:ss)        : 19:50:51
-     CPU time               : 0.31 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
-     wall time              : 0.17 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
-     CPU load               : 186.56 %
-     CPU time  (cumulative) : 36.80 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 37 s )
-     wall time (cumulative) : 14.57 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 15 s )
-     CPU load  (cumulative) : 186.56 %
+     Date (DD-MM-YYYY)      : 06-04-2022
+     Time (hh:mm:ss)        : 12:35:35
+     CPU time               : 0.52 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
+     wall time              : 0.27 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     CPU load               : 194.07 %
+     CPU time  (cumulative) : 56.95 sec; 0.02 hrs; ( 0 d, 00 h, 00 m, 57 s )
+     wall time (cumulative) : 21.84 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 22 s )
+     CPU load  (cumulative) : 194.07 %
  
 ================================================================================
 = EXCITING OXYGEN stopped for task    445                                      =
