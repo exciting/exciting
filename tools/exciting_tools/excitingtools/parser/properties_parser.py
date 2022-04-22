@@ -1,10 +1,12 @@
-"""
-Module containing parsers for exciting properties
+"""Parsers for exciting properties
 """
 import xml.etree.cElementTree as ET
 from xml.etree.ElementTree import ParseError
 import numpy as np
 import os
+from typing import Dict, List
+
+from excitingtools.parser.parser_utils import xml_root
 
 
 def parse_plot_3d(name: str) -> dict:
@@ -235,7 +237,9 @@ def parse_effmass(name: str) -> dict:
 
 def parse_bandstructure(name: str) -> dict:
     """
-    Parser for bandstructure.xml
+    Parser for bandstructure.xml.
+
+    Used for parsing in the test framework, as returns a dict.
 
     :param str name: File name
     :return dict output: Parsed data
@@ -266,6 +270,66 @@ def parse_bandstructure(name: str) -> dict:
     return bandstructure
 
 
+class BandData:
+    """Container to return bandstructure.xml data to.
+    """
+    def __init__(self,
+                 k_points: np.ndarray,
+                 bands: np.ndarray,
+                 vertices: List[dict]):
+        """
+        Initialise with k-points along a path, optionally defined in vertices,
+        and band energies, or initialising by parsing the XML file.
+        """
+        self.k_points = k_points
+        self.bands = bands
+        self.vertices = vertices
+        self.n_k_points, self.n_bands = self.bands.shape
+
+    def band_path(self):
+        """ Get a list of high symmetry points from vertices.
+        """
+        raise NotImplementedError('Getting a list of high symmetry points from self.vertices not implemented')
+
+
+@xml_root
+def parse_band_structure_to_arrays(root) -> BandData:
+    """ Parse bandstructure.xml.
+
+    :param root: Band structure XML file name, XML string or ElementTree.Element as input.
+    :return: BandData object, containing the discrete points sampling the k-path, the band energies,
+    and the vertex information (high symmetry points along the band path).
+    """
+    # Split band structure file contents: title, bands and vertices
+    bs_xml: Dict[str, list] = {'title': [], 'band': [], 'vertex': []}
+    for item in list(root):
+        try:
+            bs_xml[item.tag].append(item)
+        except KeyError:
+            raise KeyError(f'Element tag {item.tag} requires implementing in band structure parser')
+
+    n_bands = len(bs_xml['band'])
+    first_band = bs_xml['band'][0]
+    n_kpts = len(list(first_band))
+
+    # Same set of flattened k-points, per band - so parse once
+    k_points_along_band = np.array([point.get('distance') for point in list(first_band)], dtype=float)
+
+    # Read E(k), per band
+    band_energies = np.empty(shape=(n_kpts, n_bands))
+    for ib, band in enumerate(bs_xml['band']):
+        for ik, point in enumerate(list(band)):
+            band_energies[ik, ib] = point.get('eval')
+
+    vertices = []
+    for element in bs_xml['vertex']:
+        vertices.append({'distance': float(element.get('distance')),
+                         'label': element.get('label'),
+                         'coord':  [float(x) for x in element.get('coord').split()]})
+
+    return BandData(k_points_along_band, band_energies, vertices)
+
+
 def parse_dos(name: str) -> dict:
     """
     Parser for dos.xml
@@ -291,6 +355,22 @@ def parse_dos(name: str) -> dict:
         dos["totaldos"]["diagram"]["point"][name] = item
         i = i + 1
     return dos
+
+
+@xml_root
+def parse_charge_density(root) -> np.ndarray:
+    """ Parse charge density from RHO1D.xml file.
+
+    `axis` and `vertex` sub-trees ignored in the parsing.
+
+    :param root: XML file name, XML string or ElementTree.Element as input.
+    :return: Numpy array containing rho[:, 1] = distance and rho[:, 2] = density.
+    """
+    function_points = root.find('grid').find('function')
+    rho = np.empty(shape=(len(function_points), 2))
+    for i, point in enumerate(function_points):
+        rho[i, :] = [point.attrib['distance'], float(point.attrib['value'])]
+    return rho
 
 
 def parse_kerr(name: str) -> dict:
@@ -431,7 +511,7 @@ def parse_spintext(name: str) -> dict:
     :param str name: Path to the spintext.xml that will be parsed
     :return dict spintext: List that holds the parsed spintexture.xml
     """
-    #parse file
+    # parse file
     file_name = 'spintext.xml'
     if name.split('/')[-1] != file_name:
         name = os.path.join(name, file_name)
@@ -605,8 +685,8 @@ def parse_core_overlap(name: str) -> dict:
             pair['ist1'] = int(pair['ist1'])
             pair['ist2'] = int(pair['ist2'])
             pair["de"] = float(pair["de"])
-            pair["overlap"] = float(pair["overlap"].split()[0])**2 + float(
-                pair["overlap"].split()[1])**2
+            pair["overlap"] = float(pair["overlap"].split()[0]) ** 2 + float(
+                pair["overlap"].split()[1]) ** 2
             pairs.append(pair)
         kpt["pairs"] = pairs
         k_points.append(kpt)
