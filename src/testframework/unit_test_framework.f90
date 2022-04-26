@@ -41,7 +41,7 @@ contains
    !> with zofu). this%mpi_env will only be used to terminate
    !> the code.
    subroutine init(this, n_assertions, mpi_env)
-      !> Test object
+      !> Test report object
       class(unit_test_type), intent(inout) :: this
       !> Total number of assertions
       integer, intent(in) :: n_assertions
@@ -61,7 +61,7 @@ contains
 
    !> Log failed assertions
    subroutine assert(this, condition, message)
-      !> Test object
+      !> Test report object
       class(unit_test_type), intent(inout) :: this
       !> Assertion status
       logical, intent(in) :: condition
@@ -145,7 +145,7 @@ contains
    !> Clean up unit test object by deallocating
    !> any allocatable data.
    subroutine finalise(this)
-      !> Test object
+      !> Test report object
       class(unit_test_type), intent(inout) :: this
       deallocate (this%messages)
       deallocate (this%failures)

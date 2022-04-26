@@ -20,7 +20,7 @@ contains
       !> Kill the program upon failure of an assertion
       logical, intent(in), optional :: kill_on_failure
 
-      !> test object
+      !> Test report object
       type(unit_test_type) :: test_report
       !> Number of assertions
       integer, parameter :: n_assertions = 100
@@ -43,7 +43,7 @@ contains
 
    !> Test generation of 2D grid
    subroutine test_find_2d_grid(test_report)
-      !> Test object
+      !> Test report object
       type(unit_test_type), intent(inout) :: test_report
 
       integer :: n_groups
@@ -97,7 +97,7 @@ contains
 
 
    subroutine test_distribute_loop(test_report)
-      !> Test object
+      !> Test report object
       type(unit_test_type), intent(inout) :: test_report
       !> Mock mpi environment, such that tests can run in serial
       type(mpiinfo) :: mpi_mock_env

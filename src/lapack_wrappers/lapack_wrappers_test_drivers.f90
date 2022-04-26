@@ -8,8 +8,11 @@ module lapack_wrappers_test_drivers
   use hermitian_matrix_multiplication_test, only: hermitian_matrix_multiplication_test_driver
   ! decomposition
   use singular_value_decomposition_test, only: singular_value_decomposition_test_driver
+  use lu_factorization_test, only: lu_factorization_test_driver
   ! utils
   use matrix_rank_test, only: matrix_rank_test_driver
+  use determinant_test, only: determinant_test_driver
+  use inverse_test, only: inverse_test_driver
 
   implicit none
   
@@ -32,8 +35,11 @@ contains
     call hermitian_matrix_multiplication_test_driver(mpiglobal, kill_on_failure)
     ! decomposition
     call singular_value_decomposition_test_driver(mpiglobal, kill_on_failure)
+    call lu_factorization_test_driver(mpiglobal, kill_on_failure)
     ! utils
     call matrix_rank_test_driver(mpiglobal, kill_on_failure)
+    call determinant_test_driver(mpiglobal, kill_on_failure)
+    call inverse_test_driver(mpiglobal, kill_on_failure)
   end subroutine lapack_wrappers_test_driver
 
 end module lapack_wrappers_test_drivers

@@ -5,7 +5,7 @@ module grid_utils_test
    use modmpi, only: mpiinfo
    use unit_test_framework, only: unit_test_type
    use math_utils, only: all_close
-   use grid_utils, only: linspace, grid_3d, phase, fft_frequencies
+   use grid_utils, only: mesh_1d, linspace, grid_3d, phase, fft_frequencies
 
    implicit none
 
@@ -21,14 +21,16 @@ contains
       !> Kill the program upon failure of an assertion
       logical, intent(in), optional :: kill_on_failure
 
-      !> test object
+      !> Test report object
       type(unit_test_type) :: test_report
       !> Number of assertions
-      integer, parameter :: n_assertions = 18
+      integer, parameter :: n_assertions = 24
 
       call test_report%init(n_assertions, mpiglobal)
 
       ! Run unit tests
+      call test_mesh_1d(test_report)
+      
       call test_linspace(test_report)
 
       call test_grid_3d(test_report)
@@ -46,10 +48,44 @@ contains
       call test_report%finalise()
    end subroutine grid_utils_test_driver
 
+     !> Test mesh_1d
+    subroutine test_mesh_1d(test_report)
+      !> Unit test object
+      type(unit_test_type), intent(inout) :: test_report
+
+      integer, allocatable :: test_range(:), reference_range(:)
+
+      test_range = mesh_1d(3, 8)
+      reference_range = [3, 4, 5, 6, 7, 8]
+      call test_report%assert(all(test_range == reference_range), &
+                             'Test mesh_1d for ascending order.')
+
+      test_range = mesh_1d(12, 9)
+      reference_range = [12, 11, 10, 9]
+      call test_report%assert(all(test_range == reference_range), &
+                             'Test mesh_1d for descending order.')
+
+      test_range = mesh_1d(13, 20, 3)
+      reference_range = [13, 16, 19, 22, 25, 28, 31, 34]
+      call test_report%assert(all(test_range == reference_range), &
+                             'Test mesh_1d for ascending order with spacing = 3.')
+
+      test_range = mesh_1d(6, 2, 2)
+      reference_range = [6, 4, 2, 0, -2]
+      call test_report%assert(all(test_range == reference_range), &
+                             'Test mesh_1d for descending order with spacing = 2.')
+
+      test_range = mesh_1d(1, 1, 1)
+      reference_range = [0]
+      call test_report%assert(all(test_range == reference_range), &
+                             'Test mesh_1d for end == start. Expected: [0].')
+                             
+    end subroutine test_mesh_1d
+
 
    !> Test linspace for different inputs.
    subroutine test_linspace(test_report)
-      !> Test object
+      !> Test report object
       type(unit_test_type), intent(inout) :: test_report
       !> Grids
       real(dp), allocatable :: grid(:), descending_grid(:), single_point(:)
@@ -118,7 +154,7 @@ contains
    !> Test grid_3d for a three dimensional lattice with different numbers of points per dimension.
    !> Expected output: Array of size (2,3,4) with qubicly distributed grid points.
    subroutine test_grid_3d(test_report)
-      !> Test object
+      !> Test report object
       type(unit_test_type), intent(inout) :: test_report
       !> test grid
       real(dp), allocatable :: grid(:,:)

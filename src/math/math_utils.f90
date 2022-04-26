@@ -27,7 +27,7 @@ module math_utils
             round_down, &
             distance_matrix, &
             outer_sum, &
-            get_subinterval_indices, & 
+            get_subinterval_indices, &
             is_positive_definite
 
   !> default tolerance
@@ -1066,36 +1066,35 @@ contains
 
     real(dp) :: x_rounded
     x_rounded = dble(int(x*(10.0_dp**n)))/(10.0_dp**n)
-
   end function round_down
 
   !> Given two matrices \( \mathbf{A} \in \mathbb{R}^{k \times n} \), matrix of \(n\) vectors in
   !> \(k\) dimensions, and \( \mathbf{B} \in \mathbb{R}^{k \times m} \), matrix of \(m\) vectors in
-  !> \(k\) dimensions, returns the distances of the vectors pairwise (by calculating the Euclidean norm),      
+  !> \(k\) dimensions, returns the distances of the vectors pairwise (by calculating the Euclidean norm),
   !> such that the result is a matrix \( \mathbf{D} \in \mathbb{R}^{n \times m} \), element wise given by:
-  !> \[ 
+  !> \[
   !>   \text{D}_{ij} = \sqrt{ \sum_{l=1}^k \left( \text{A}_{li} - \text{B}_{lj} \right)^2 }
   !> \]
   subroutine distance_matrix(A, B, D)
     !> Inout matrix A
-    real(dp), intent(in), contiguous :: A(:, :) 
+    real(dp), intent(in), contiguous :: A(:, :)
     !> Input matrix B
     real(dp), intent(in), contiguous :: B(:, :)
     !> Distance matrix D
     real(dp), intent(out), contiguous :: D(:, :)
 
     integer :: i, j
-  
+
     call assert(size(A,1) == size(B,1), message = "First dimension of &
                 input matrices have to be equal.")
-    
+
     call assert(all(shape(D) == [size(A,2), size(B,2)]), "First dimension of output matrix D &
                 has to equal the second dimension of input matrix A and second dimension of output matrix D &
                 has to equal the second dimension of input matrix B.")
-  
+
     do j = 1, size(B,2)
-      do i = 1, size(A,2) 
-        D(i, j) = norm2(A(:, i) - B(:, j)) 
+      do i = 1, size(A,2)
+        D(i, j) = norm2(A(:, i) - B(:, j))
       end do
     end do
 
@@ -1106,10 +1105,10 @@ contains
   !> \[
   !>   \text{C}_{ij} = \text{a}_{i} + \text{b}_{j}.
   !> \]
-  subroutine outer_sum(a, b, C) 
+  subroutine outer_sum(a, b, C)
     !> Input vector a
     real(dp), intent(in), contiguous :: a(:)
-    !> Input vector b 
+    !> Input vector b
     real(dp), intent(in), contiguous :: b(:)
     !> Output matrix C
     real(dp), intent(out), contiguous :: C(:, :)
@@ -1128,12 +1127,12 @@ contains
 
   end subroutine outer_sum
 
-  
 
-  !> Given the size of an interval \( i \in \mathbb{N} \) and a subinterval size \( s \in \mathbb{N} \), 
+
+  !> Given the size of an interval \( i \in \mathbb{N} \) and a subinterval size \( s \in \mathbb{N} \),
   !> where \(i\) must be a multiple of \(s\), such that \( n = \frac{i}{s} \in \mathbb{N} \), splits
   !> the interval into \(n\) subintervals of size \(s\) and returns the lower and upper boundary
-  !> indice of each subinterval, saved columnwise in the output matrix. 
+  !> indice of each subinterval, saved columnwise in the output matrix.
   !>
   !> \[ \text{Example: } i = 6, s = 3, \text{ returns: }
   !> \mathbf{indices} = \left( \begin{smallmatrix}
@@ -1142,9 +1141,9 @@ contains
   !> \end{smallmatrix} \right)
   !> \]
   function get_subinterval_indices(interval_size, subinterval_size) result(indices)
-    !> Interval size 
+    !> Interval size
     integer, intent(in) :: interval_size
-    !> Subinterval size 
+    !> Subinterval size
     integer, intent(in) :: subinterval_size
     !> Number of multiples
     integer ::  n_multiple
@@ -1155,18 +1154,18 @@ contains
 
     call assert(interval_size >= subinterval_size, message = "Interval size has to be &
                 larger than or equal to the subinterval size.")
-    
+
     n_multiple = interval_size/ subinterval_size
     allocate(indices(2, n_multiple))
-            
+
     call assert(n_multiple * subinterval_size == interval_size, message = "n_multiple has to be an &
                 integer. Input sizes have to be multiples of each other.")
-                
+
     do i = 1, n_multiple
       i1 = 1 + (i-1) * subinterval_size
       i2 = i1 + subinterval_size - 1
       indices(:, i) = [i1, i2]
-    end do 
+    end do
 
   end function get_subinterval_indices
 
