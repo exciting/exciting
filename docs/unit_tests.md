@@ -158,7 +158,7 @@ contains
       type(mpiinfo), intent(in) :: mpiglobal
       logical, intent(in), optional :: kill_on_failure
 
-      !> test object
+      !> Test report object
       type(unit_test_type) :: test
       !> Number of assertions
       integer, parameter :: n_assertions = 19

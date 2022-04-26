@@ -26,7 +26,7 @@ contains
     !> Kill the program upon failure of an assertion
     logical, intent(in), optional :: kill_on_failure
 
-    !> test object
+    !> Test report object
     type(unit_test_type) :: test_report
     !> Number of assertions
     integer, parameter :: n_assertions = 12
@@ -51,7 +51,7 @@ contains
 
   !> Test dot product
   subroutine test_dot_multiply(test_report)
-    !> Test object
+    !> Test report object
     type(unit_test_type), intent(inout) :: test_report
 
     real(dp), allocatable :: p(:), q(:)

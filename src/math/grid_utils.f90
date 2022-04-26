@@ -10,7 +10,8 @@ module grid_utils
   implicit none
   
   private
-  public :: linspace, &
+  public :: mesh_1d, &
+            linspace, &
             grid_3d, &
             phase, &
             fft_frequencies
@@ -31,6 +32,40 @@ module grid_utils
   end interface phase
   
 contains
+
+  !> Generate an array of ascending or descending evenly distributed integers
+  !> in the range `[start, start + (end - start) * spacing]`. The array has `abs(end - start) + 1`
+  !> elements.
+  function mesh_1d(start, end, spacing) result(range_out)
+    !> First element of the range
+    integer, intent(in) :: start 
+    !> Last element of the range
+    integer, intent(in) :: end
+    !> Spacing between the elements. Default is 1.
+    integer, intent(in), optional :: spacing
+
+    integer, allocatable :: range_out(:)
+
+    integer :: i, spacing_, sign
+
+    spacing_ = 1
+    if (present(spacing)) spacing_ = spacing
+
+    call assert(spacing_ > 0, 'Spacing must be at least 1.')
+    if (start == end) then
+      range_out = [0]
+      return 
+    end if
+
+    allocate(range_out(abs(end - start) + 1))
+
+    sign = (end - start)/abs(end - start)
+
+    do i=0, abs(end-start)
+      range_out(i+1) = start + sign * i * spacing_
+    end do 
+  end function mesh_1d
+
 
   !> Return a vector of evenly-spaced numbers over a given interval.
   !>

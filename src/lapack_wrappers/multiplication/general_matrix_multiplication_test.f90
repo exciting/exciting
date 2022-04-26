@@ -31,7 +31,7 @@ contains
     !> Kill the program upon failure of an assertion
     logical, intent(in), optional :: kill_on_failure
 
-    !> test object
+    !> Test report object
     type(unit_test_type) :: test_report
     !> Number of assertions
     integer, parameter :: n_assertions = 35
@@ -68,7 +68,7 @@ contains
 
   !> Test general matrix vector product for a real matrix and vector.
   subroutine test_real_matrix_vector_multiplication(test_report)
-    !> Test object
+    !> Test report object
     type(unit_test_type), intent(inout) :: test_report
     
     real(dp), allocatable :: A(:,:), b(:), c(:), c_ref(:)
@@ -96,7 +96,7 @@ contains
 
   !> Test general matrix vector product for a complex matrix and vector.
   subroutine test_complex_matrix_vector_multiplication(test_report)
-    !> Test object
+    !> Test report object
     type(unit_test_type), intent(inout) :: test_report
                             
     complex(dp), allocatable :: A(:,:), b(:), c(:), c_ref(:)
@@ -130,7 +130,7 @@ contains
 
   !> Test general matrix-vector product for a real matrix and a complex vector
   subroutine test_real_matrix_complex_vector_multiplication(test_report)
-    !> Test object
+    !> Test report object
     type(unit_test_type), intent(inout) :: test_report
     
     real(dp), allocatable :: A(:, :)
@@ -157,7 +157,7 @@ contains
 
   !> Test general matrix product for a complex matrix and a real vector
   subroutine test_complex_matrix_real_vector_multiplication(test_report)
-    !> Test object
+    !> Test report object
     type(unit_test_type), intent(inout) :: test_report
     
     real(dp), allocatable :: b(:)
@@ -313,7 +313,7 @@ contains
 
   !> Test genreal matrix-matrix product for a real matrix times a complex matrix.
   subroutine test_real_matrix_complex_matrix_multiply(test_report)
-    !> Test object
+    !> Test report object
     type(unit_test_type), intent(inout) :: test_report
     
     real(dp), allocatable :: A(:, :)
@@ -374,7 +374,7 @@ contains
 
   !> Test genreal matrix-matrix product for a real matrix times a complex matrix.
   subroutine test_complex_matrix_real_matrix_multiply(test_report)
-    !> Test object
+    !> Test report object
     type(unit_test_type), intent(inout) :: test_report
     
     real(dp), allocatable :: B(:, :)

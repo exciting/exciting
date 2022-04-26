@@ -34,9 +34,9 @@ contains
     call test_matrix_rank_SVD(test_report)
 
     if (present(kill_on_failure)) then
-      call test_report%report('matrix_rank', kill_on_failure)
+      call test_report%report('matrix_rank_lapack', kill_on_failure)
     else
-      call test_report%report('matrix_rank')
+      call test_report%report('matrix_rank_lapack')
     end if
 
     call test_report%finalise()
@@ -47,8 +47,6 @@ contains
   subroutine test_matrix_rank_SVD(test_report)
     !> Test report object
     type(unit_test_type) :: test_report
-
-    integer :: rank
 
     call test_report%assert(matrix_rank_SVD(real_full_rank_matrix_5x5) == 5, &
                            'Test matrix_rank_SVD for a real full rank matrix. &
