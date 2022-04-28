@@ -1,9 +1,7 @@
 !> Module for hermitian (symmetric) matrix-vector and matrix-matrix multiplication.
 !> The interfaces combine wrappers for the LAPACK routines 
 !> DSYMV, ZHEMV, DSYMM, ZHEMM,
-!> provided as subroutine calls and function calls.
-!> Use the subroutine call whenever efficiency is a major issue or 
-!> you want to mutate a matrix or a slice of an array.
+!> provided as subroutine calls.
 module hermitian_matrix_multiplication
   use precision, only: dp
   use constants, only: zone, zzero
@@ -21,9 +19,11 @@ module hermitian_matrix_multiplication
   integer, parameter :: storage_spacing = 1
   !> Default value for uplo
   character(len=1), parameter :: uplo_default = 'U'
+  !> Default value for side
+  character(len=1), parameter :: side_default = 'L'
 
 
-  !> Calculate the matrix-matrix, matrix-vector and vector-matrix product as a subroutine call
+  !> Calculate the matrix-matrix and matrix-vector product as a subroutine call
   !> \[ \mathbf{C} = \mathbf{A} \cdot \mathbf{B}, \]
   !> \[ \mathbf{c} = \mathbf{A} \cdot \mathbf{b}, \]
   !> where A or B is a hermitian (complex) or symmetric (real) matrix respectively.
@@ -52,10 +52,14 @@ contains
     real(dp), intent(in), contiguous :: b(:)
     !> Output vector
     real(dp), intent(out), contiguous :: c(:)
-    !> Specify whether the upper or lower triangular part of 
-    !> the hermitian matrix A is to be referenced
-    !> 'U' or 'u' upper triangular part (default)
-    !> 'L' or 'l' lower triangular part
+    !> Define if the upper or the lower triangular part of 
+    !> the hermitian matrix \( \mathbf{A} \) is to be referenced:
+    !>
+    !> - upper triangular part: **uplo** = `'U'` or **uplo** = `'u'`
+    !> 
+    !> - lower triangular part: **uplo** = `'L'` or **uplo** = `'l'`
+    !>
+    !> Default is **uplo** = `'U'`.
     character(len=1), intent(in), optional :: uplo
 
     character(len=1) :: uplo_
@@ -63,10 +67,12 @@ contains
     uplo_ = uplo_default
     if (present(uplo)) uplo_ = uplo 
 
+#ifdef USE_ASSERT
     call assert(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
     call assert(is_hermitian(A), 'A needs to be a symmetric matrix.')
     call assert(size(A, dim=2) == size(b), 'Number of columns of A needs to be the same as number of elements of b.')
     call assert(size(A, dim=1) == size(c), 'Number of rows of A needs to be the same as number of elements of c.')
+#endif
 
     call dsymv(uplo_, size(A, dim=1), 1.0_dp, A, size(A, dim=1), b, storage_spacing, 0.0_dp, C, storage_spacing)
   end subroutine matrix_vector_multiplication_real_dp
@@ -84,10 +90,14 @@ contains
     complex(dp), intent(in), contiguous :: b(:)
     !> Output vector
     complex(dp), intent(out), contiguous :: c(:)
-    !> Specify whether the upper or lower triangular part of 
-    !> the hermitian matrix A is to be referenced
-    !> 'U' or 'u' upper triangular part (default)
-    !> 'L' or 'l' lower triangular part
+    !> Define if the upper or the lower triangular part of 
+    !> the hermitian matrix \( \mathbf{A} \) is to be referenced:
+    !>
+    !> - upper triangular part: **uplo** = `'U'` or **uplo** = `'u'`
+    !> 
+    !> - lower triangular part: **uplo** = `'L'` or **uplo** = `'l'`
+    !>
+    !> Default is **uplo** = `'U'`.
     character(len=1), intent(in), optional :: uplo
 
     character(len=1) :: uplo_
@@ -95,11 +105,13 @@ contains
     uplo_ = uplo_default
     if (present(uplo)) uplo_ = uplo 
 
+#ifdef USE_ASSERT
     call assert(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
     call assert(is_hermitian(A), 'A needs to be a hermitian matrix.')
     call assert(size(A, dim=2) == size(b), 'Number of columns of A needs to be the same as number of elements of b.')
     call assert(size(A, dim=1) == size(c), 'Number of rows of A needs to be the same as number of elements of c.')
-    
+#endif
+
     call zhemv(uplo_, size(A, dim=1), zone, A, size(A, dim=1), b, storage_spacing, zzero, C, storage_spacing)
   end subroutine matrix_vector_multiplication_complex_dp
 
@@ -116,10 +128,14 @@ contains
     complex(dp), intent(in), contiguous :: b(:)
     !> Output vector
     complex(dp), intent(out), contiguous :: c(:)
-    !> Specify whether the upper or lower triangular part of 
-    !> the hermitian matrix A is to be referenced
-    !> 'U' or 'u' upper triangular part (default)
-    !> 'L' or 'l' lower triangular part
+    !> Define if the upper or the lower triangular part of 
+    !> the hermitian matrix \( \mathbf{A} \) is to be referenced:
+    !>
+    !> - upper triangular part: **uplo** = `'U'` or **uplo** = `'u'`
+    !> 
+    !> - lower triangular part: **uplo** = `'L'` or **uplo** = `'l'`
+    !>
+    !> Default is **uplo** = `'U'`.
     character(len=1), intent(in), optional :: uplo
 
     character(len=1) :: uplo_
@@ -127,11 +143,13 @@ contains
     uplo_ = uplo_default
     if (present(uplo)) uplo_ = uplo 
 
+#ifdef USE_ASSERT
     call assert(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
     call assert(is_hermitian(A), 'A needs to be a hermitian matrix.')
     call assert(size(A, dim=2) == size(b), 'Number of columns of A needs to be the same as number of elements of b.')
     call assert(size(A, dim=1) == size(c), 'Number of rows of A neecomplexds to be the same as number of elements of c.')
-    
+#endif
+
     call zhemv(uplo_, size(A, dim=1), zone, cmplx(A, 0.0_dp, kind=dp), size(A, dim=1), b, storage_spacing, zzero, C, storage_spacing)
   end subroutine matrix_vector_multiplication_real_complex_dp
 
@@ -148,10 +166,14 @@ contains
     real(dp), intent(in), contiguous :: b(:)
     !> Output vector
     complex(dp), intent(out), contiguous :: c(:)
-    !> Specify whether the upper or lower triangular part of 
-    !> the hermitian matrix A is to be referenced
-    !> 'U' or 'u' upper triangular part (default)
-    !> 'L' or 'l' lower triangular part
+    !> Define if the upper or the lower triangular part of 
+    !> the hermitian matrix \( \mathbf{A} \) is to be referenced:
+    !>
+    !> - upper triangular part: **uplo** = `'U'` or **uplo** = `'u'`
+    !> 
+    !> - lower triangular part: **uplo** = `'L'` or **uplo** = `'l'`
+    !>
+    !> Default is **uplo** = `'U'`.
     character(len=1), intent(in), optional :: uplo
 
     character(len=1) :: uplo_
@@ -159,18 +181,20 @@ contains
     uplo_ = uplo_default
     if (present(uplo)) uplo_ = uplo 
 
+#ifdef USE_ASSERT
     call assert(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
     call assert(is_hermitian(A), 'A needs to be a hermitian matrix.')
     call assert(size(A, dim=2) == size(b), 'Number of columns of A needs to be the same as number of elements of b.')
     call assert(size(A, dim=1) == size(c), 'Number of rows of A needs to be the same as number of elements of c.')
-    
+#endif
+
     call zhemv(uplo_, size(A, dim=1), zone, A, size(A, dim=1), cmplx(b, 0.0_dp, kind=dp), storage_spacing, zzero, C, storage_spacing)
   end subroutine matrix_vector_multiplication_complex_real_dp
 
 
 ! matrix-matrix product
 
-  !> Calculate the matrix-matrix product between two real matrices \( mathbf{A} \) 
+  !> Calculate the matrix-matrix product between two real matrices \( \mathbf{A} \) 
   !> and \( \mathbf{B} \)
   !> \[
   !>    \mathbf{C} = \mathbf{A} \cdot \mathbf{B},
@@ -181,14 +205,24 @@ contains
     real(dp), intent(in), contiguous :: A(:, :), B(:, :)
     !> Output matrix
     real(dp), intent(out), contiguous :: C(:, :)
-    !> Specify whether the upper or lower triangular part of 
-    !> the symmetric matrix A is to be referenced
-    !> 'U' or 'u' upper triangular part (default)
-    !> 'L' or 'l' lower triangular part
+    !> Define if the upper or the lower triangular part of 
+    !> the hermitian matrix \( \mathbf{A} \) is to be referenced:
+    !>
+    !> - upper triangular part: **uplo** = `'U'` or **uplo** = `'u'`
+    !> 
+    !> - lower triangular part: **uplo** = `'L'` or **uplo** = `'l'`
+    !>
+    !> Default is **uplo** = `'U'`.
     character(len=1), intent(in), optional :: uplo
-    !> Specify from which which of \( mathbf{A} \) and \( \mathbf{B} \) is symmetric.
-    !> 'L' or 'l' for left:  \( mathbf{A} \) is symmetric (default)
-    !> 'R' or 'r' for right: \( mathbf{B} \) is symmetric
+    !> Define which matrix of \( \mathbf{A} \) and \( \mathbf{B} \) is assumed to be symmetric.
+    !>
+    !> - for the left matrix: **side** = `'L'` or **side** = `'l'` 
+    !>   \( \Rightarrow \mathbf{A} \) is assumed to be symmetric.
+    !>
+    !> - for the right matrix: **side** = `'R'` or **side** = `'r'` 
+    !>   \( \Rightarrow \mathbf{B} \) is assumed to be symmetric.
+    !> 
+    !> Default is **side** = `'L'`.
     character(len=1), intent(in), optional :: side
 
     logical :: is_side_L
@@ -197,14 +231,16 @@ contains
     uplo_ = uplo_default
     if (present(uplo)) uplo_ = uplo
 
-    side_ = 'L'
+    side_ = side_default
     if (present(side)) side_ = side
 
+#ifdef USE_ASSERT
     call assert(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
     call assert(any(side_ == ['L', 'l', 'R', 'r']), 'side needs to be one of "L", "l", "R" or "r".')
     call assert(size(A, dim=2) == size(B, dim=1), 'Number of columns of A needs to be the same as the number of rows of B.')
     call assert(size(C, dim=1) == size(A, dim=1), 'The number of rows of C must be equal to the number of rows of A.')
     call assert(size(C, dim=2) == size(B, dim=2), 'The number of columns of C must be equal to the number of columns of B.')
+#endif
 
     is_side_L = any(side_ == ['L', 'l'])
 
@@ -218,7 +254,7 @@ contains
   end subroutine matrix_matrix_multiplication_real_dp
 
   
-  !> Calculate the matrix-matrix product between two complex matrices \( mathbf{A} \)  
+  !> Calculate the matrix-matrix product between two complex matrices \( \mathbf{A} \)  
   !> and \( \mathbf{B} \)
   !> \[
   !>    \mathbf{C} = \mathbf{A} \cdot \mathbf{B},
@@ -229,14 +265,24 @@ contains
     complex(dp), intent(in), contiguous :: A(:, :), B(:, :)
     !> Output matrix
     complex(dp), intent(out), contiguous :: C(:, :)
-    !> Specify whether the upper or lower triangular part of 
-    !> the hermitian matrix A is to be referenced
-    !> 'U' or 'u' upper triangular part (default)
-    !> 'L' or 'l' lower triangular part
+    !> Define if the upper or the lower triangular part of 
+    !> the hermitian matrix \( \mathbf{A} \) is to be referenced:
+    !>
+    !> - upper triangular part: **uplo** = `'U'` or **uplo** = `'u'`.
+    !> 
+    !> - lower triangular part: **uplo** = `'L'` or **uplo** = `'l'`.
+    !>
+    !> Default is **uplo** = `'U'`.
     character(len=1), intent(in), optional :: uplo
-    !> Specify from which which of \( mathbf{A} \) and \( \mathbf{B} \) is hermitian.
-    !> 'L' or 'l' for left:  \( mathbf{A} \) is hermitian (default)
-    !> 'R' or 'r' for right: \( mathbf{B} \) is hermitian
+    !> Define which matrix of \( \mathbf{A} \) and \( \mathbf{B} \) is assumed to be hermitian.
+    !>
+    !> - for the left matrix: **side** = `'L'` or **side** = `'l'` 
+    !>   \( \Rightarrow \mathbf{A} \) is assumed to be hermitian.
+    !>
+    !> - for the right matrix: **side** = `'R'` or **side** = `'r'` 
+    !>   \( \Rightarrow \mathbf{B} \) is assumed to be hermitian.
+    !> 
+    !> Default is **side** = `'L'`.
     character(len=1), intent(in), optional :: side
 
     logical :: is_side_L
@@ -245,14 +291,16 @@ contains
     uplo_ = uplo_default
     if (present(uplo)) uplo_ = uplo
 
-    side_ = 'L'
+    side_ = side_default
     if (present(side)) side_ = side
 
+#ifdef USE_ASSERT
     call assert(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
     call assert(any(side_ == ['L', 'l', 'R', 'r']), 'side needs to be one of "L", "l", "R" or "r".')
     call assert(size(A, dim=2) == size(B, dim=1), 'Number of columns of A needs to be the same as the number of rows of B.')
     call assert(size(C, dim=1) == size(A, dim=1), 'The number of rows of C must be equal to the number of rows of A.')
     call assert(size(C, dim=2) == size(B, dim=2), 'The number of columns of C must be equal to the number of columns of B.')
+#endif
 
     is_side_L = any(side_ == ['L', 'l'])
 
@@ -266,7 +314,7 @@ contains
   end subroutine matrix_matrix_multiplication_complex_dp
 
 
-  !> Calculate the matrix-matrix product between a real matrix \( mathbf{A} \)  
+  !> Calculate the matrix-matrix product between a real matrix \( \mathbf{A} \)  
   !> and a complex matrix \( \mathbf{B} \)
   !> \[
   !>    \mathbf{C} = \mathbf{A} \cdot \mathbf{B},
@@ -274,19 +322,30 @@ contains
   !> where one of both is symmetric or hermitian respectively.
   subroutine matrix_matrix_multiplication_real_complex_dp(A, B, C, uplo, side)
     !> Real input matrix \( \mathbf{A} \)
-    real(dp), intent(in) :: A(:, :)
+    real(dp), intent(in), contiguous :: A(:, :)
     !> Complex input matrix \( \mathbf{B} \)
-    complex(dp), intent(in) :: B(:, :)
+    complex(dp), intent(in), contiguous :: B(:, :)
     !> Output matrix
     complex(dp), intent(out), contiguous :: C(:, :)
-    !> Specify whether the upper or lower triangular part of 
-    !> the hermitian matrix A is to be referenced
-    !> 'U' or 'u' upper triangular part (default)
-    !> 'L' or 'l' lower triangular part
+    !> Define if the upper or the lower triangular part of 
+    !> the hermitian matrix \( \mathbf{A} \) is to be referenced:
+    !>
+    !> - upper triangular part: **uplo** = `'U'` or **uplo** = `'u'`.
+    !> 
+    !> - lower triangular part: **uplo** = `'L'` or **uplo** = `'l'`.
+    !>
+    !> Default is **uplo** = `'U'`.
     character(len=1), intent(in), optional :: uplo
-    !> Specify from which which of \( mathbf{A} \) and \( \mathbf{B} \) is hermitian.
-    !> 'L' or 'l' for left:  \( mathbf{A} \) is hermitian (default)
-    !> 'R' or 'r' for right: \( mathbf{B} \) is hermitian
+    !> Define which matrix of \( \mathbf{A} \) and \( \mathbf{B} \) is assumed to be symmetric 
+    !> or hermitian respectively.
+    !>
+    !> - for the left matrix: **side** = `'L'` or **side** = `'l'` 
+    !>   \( \Rightarrow \mathbf{A} \) is assumed to be symmetric.
+    !>
+    !> - for the right matrix: **side** = `'R'` or **side** = `'r'` 
+    !>   \( \Rightarrow \mathbf{B} \) is assumed to be hermitian.
+    !> 
+    !> Default is **side** = `'L'`.
     character(len=1), intent(in), optional :: side
 
     logical :: is_side_L
@@ -295,14 +354,16 @@ contains
     uplo_ = uplo_default
     if (present(uplo)) uplo_ = uplo
 
-    side_ = 'L'
+    side_ = side_default
     if (present(side)) side_ = side
 
+#ifdef USE_ASSERT
     call assert(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
     call assert(any(side_ == ['L', 'l', 'R', 'r']), 'side needs to be one of "L", "l", "R" or "r".')
     call assert(size(A, dim=2) == size(B, dim=1), 'Number of columns of A needs to be the same as the number of rows of B.')
     call assert(size(C, dim=1) == size(A, dim=1), 'The number of rows of C must be equal to the number of rows of A.')
     call assert(size(C, dim=2) == size(B, dim=2), 'The number of columns of C must be equal to the number of columns of B.')
+#endif
 
     is_side_L = any(side_ == ['L', 'l'])
 
@@ -315,7 +376,8 @@ contains
     end if
   end subroutine matrix_matrix_multiplication_real_complex_dp
 
-  !> Calculate the matrix-matrix product between a complex matrix \( mathbf{A} \)  
+
+  !> Calculate the matrix-matrix product between a complex matrix \( \mathbf{A} \)  
   !> and a real matrix \( \mathbf{B} \)
   !> \[
   !>    \mathbf{C} = \mathbf{A} \cdot \mathbf{B},
@@ -323,19 +385,30 @@ contains
   !> where one of both is hermitian or symmetric respectively.
   subroutine matrix_matrix_multiplication_complex_real_dp(A, B, C, uplo, side)
     !> Real input matrix \( \mathbf{A} \)
-    complex(dp), intent(in) :: A(:, :)
+    complex(dp), intent(in), contiguous :: A(:, :)
     !> Complex input matrix \( \mathbf{B} \)
-    real(dp), intent(in) :: B(:, :)
+    real(dp), intent(in), contiguous :: B(:, :)
     !> Output matrix
     complex(dp), intent(out), contiguous :: C(:, :)
-    !> Specify whether the upper or lower triangular part of 
-    !> the hermitian matrix A is to be referenced
-    !> 'U' or 'u' upper triangular part (default)
-    !> 'L' or 'l' lower triangular part
+    !> Define if the upper or the lower triangular part of 
+    !> the hermitian matrix \( \mathbf{A} \) is to be referenced:
+    !>
+    !> - upper triangular part: **uplo** = `'U'` or **uplo** = `'u'`.
+    !> 
+    !> - lower triangular part: **uplo** = `'L'` or **uplo** = `'l'`.
+    !>
+    !> Default is **uplo** = `'U'`.
     character(len=1), intent(in), optional :: uplo
-    !> Specify from which which of \( mathbf{A} \) and \( \mathbf{B} \) is hermitian.
-    !> 'L' or 'l' for left:  \( mathbf{A} \) is hermitian (default)
-    !> 'R' or 'r' for right: \( mathbf{B} \) is hermitian
+    !> Define which matrix of \( \mathbf{A} \) and \( \mathbf{B} \) is assumed to be symmetric 
+    !> or hermitian respectively.
+    !>
+    !> - for the left matrix: **side** = `'L'` or **side** = `'l'` 
+    !>   \( \Rightarrow \mathbf{A} \) is assumed to be hermitian.
+    !>
+    !> - for the right matrix: **side** = `'R'` or **side** = `'r'` 
+    !>   \( \Rightarrow \mathbf{B} \) is assumed to be symmetric.
+    !> 
+    !> Default is **side** = `'L'`.
     character(len=1), intent(in), optional :: side
 
     logical :: is_side_L
@@ -344,14 +417,16 @@ contains
     uplo_ = uplo_default
     if (present(uplo)) uplo_ = uplo
 
-    side_ = 'L'
+    side_ = side_default
     if (present(side)) side_ = side
 
+#ifdef USE_ASSERT
     call assert(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
     call assert(any(side_ == ['L', 'l', 'R', 'r']), 'side needs to be one of "L", "l", "R" or "r".')
     call assert(size(A, dim=2) == size(B, dim=1), 'Number of columns of A needs to be the same as the number of rows of B.')
     call assert(size(C, dim=1) == size(A, dim=1), 'The number of rows of C must be equal to the number of rows of A.')
     call assert(size(C, dim=2) == size(B, dim=2), 'The number of columns of C must be equal to the number of columns of B.')
+#endif
 
     is_side_L = any(side_ == ['L', 'l'])
 
