@@ -1,6 +1,6 @@
 !> Module for general matrix-vector and matrix-matrix multiplication.
 !> The interfaces combine wrappers for the LAPACK routines 
-!> DGEMV, ZGEMVM, DGEMM, ZGEMM.
+!> DGEMV, ZGEMV, DGEMM, ZGEMM.
 module general_matrix_multiplication
   use precision, only: dp
   use constants, only: zone, zzero
@@ -12,11 +12,22 @@ module general_matrix_multiplication
   private
   public :: matrix_multiply
 
-  !> Calculate the matrix-vector, vector-matrix and matrix-matrix, product for general matrices 
-  !> with a subroutine call:
-  !> \[ \mathbf{c} = \mathbf{A} \cdot \mathbf{b}, \]
-  !> \[ \mathbf{c} = \mathbf{a} \cdot \mathbf{B}, \]
-  !> \[ \mathbf{C} = \mathbf{A} \cdot \mathbf{B}. \]
+
+  !> Default for **trans_A** and **trans_B** respectively which define if the matrix is used, its transpose or its
+  !> conjugate transpose in case of complex matrices. Default is to use the matrix (`'N'`).
+  character(len=1), parameter :: default_trans_char = 'N'
+
+
+  !> Calculate for general matrices the matrix-vector and the matrix-matrix product.
+  !>
+  !> Capital letters denote matrices and small letters vectors.
+  !> The matrix-vector product
+  !> \[ \mathbf{c} = \mathbf{A} \cdot \mathbf{b} \]
+  !> is computed with the subroutine call `call matrix_multiply(A, b, c)`.
+  !>
+  !> The matrix-matrix product
+  !> \[ \mathbf{C} = \mathbf{A} \cdot \mathbf{B} \]
+  !> is computed with the subroutine call `call matrix_multiply(A, B, C)`.
   interface matrix_multiply
     module procedure :: matrix_vector_multiplication_real_dp, &
                         matrix_vector_multiplication_complex_dp, &
@@ -37,7 +48,11 @@ contains
   !> \[
   !>     \mathbf{c} = \text{op}(\mathbf{A}) \cdot \mathbf{b},
   !> \]
-  !> where op takes into account that the matrix can be used also as transposed (see **trans_A**). 
+  !> where \( \text{op}(\mathbf{A}) \) is, depending on **trans_A**, one of 
+  !>
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A} \) if **trans_A** = `'N'` or **trans_A** = `'n'`,
+  !>
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^T \) if **trans_A** = `'T'` or **trans_A** = `'t'`.
   subroutine matrix_vector_multiplication_real_dp(A, b, c, trans_A) 
     !> Input matrix     
     real(dp), intent(in), contiguous :: A(:,:)
@@ -45,13 +60,20 @@ contains
     real(dp), intent(in), contiguous :: b(:)
     !> Output vector
     real(dp), intent(out), contiguous :: c(:)
-    !> Define if \( \mathbf{A} \) is used as is for 'N', 'n' or as transposed for 'T', 't'.
-    !> Default is 'N'. 
+    !> Define \(  \text{op}(\mathbf{A}) \): 
+    !> 
+    !> - if **trans_A** = `'N'` or **trans_A** = `'n'`,
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A} \).
+    !>
+    !> - if **trans_A** = `'T'` or **trans_A** = `'t'`,
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^T \).
+    !>
+    !> Default is gven by [[default_trans_char]].
     character(len=1), intent(in), optional :: trans_A                    
     
     character(len=1) :: trans_A_
 
-    trans_A_ = 'N'
+    trans_A_ = default_trans_char
     if (present(trans_A)) trans_A_ = trans_A
     
     call assert(size(c) == integer_gemv(shape(A), size(b), trans_A_), &
@@ -65,7 +87,13 @@ contains
   !> \[
   !>     \mathbf{c} = \text{op}(\mathbf{A}) \cdot \mathbf{b},
   !> \]
-  !> where op takes into account that the matrix can be used also as transposed or conjugate-transposed (see **trans_A**). 
+  !> where \( \text{op}(\mathbf{A}) \) is, depending on **trans_A**, one of 
+  !>
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A} \) if **trans_A** = `'N'` or **trans_A** = `'n'`,
+  !>
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^T \) if **trans_A** = `'T'` or **trans_A** = `'t'`,
+  !>
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^\dagger \) if **trans_A** = `'C'` or **trans_A** = `'c'`.
   subroutine matrix_vector_multiplication_complex_dp(A, b, c, trans_A)
     !> Input matrix 
     complex(dp), intent(in), contiguous :: A(:, :)
@@ -73,14 +101,23 @@ contains
     complex(dp), intent(in), contiguous :: b(:)
     !> Output vector
     complex(dp), intent(out), contiguous :: c(:)
-    !> Define if \( \mathbf{A} \) is used as is for 'N', 'n', as transposed for 'T', 't' or 
-    !> as complex conjugate-transpose for 'c', 'c'.
-    !> Default is 'N'.
+    !> Define \(  \text{op}(\mathbf{A}) \): 
+    !> 
+    !> - if **trans_A** = `'N'` or **trans_A** = `'n'`,
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A} \).
+    !>
+    !> - if **trans_A** = `'T'` or **trans_A** = `'t'`,
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^T \).
+    !>
+    !> - if **trans_A** = `'C'` or **trans_A** = `'c'`,
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^\dagger \).
+    !>
+    !> Default is gven by [[default_trans_char]].
     character(len=1), intent(in), optional :: trans_A                    
     
     character(len=1) :: trans_A_
 
-    trans_A_ = 'N'
+    trans_A_ = default_trans_char
     if (present(trans_A)) trans_A_ = trans_A
     
     call assert(size(c) == integer_gemv(shape(A), size(b), trans_A_), &
@@ -94,7 +131,11 @@ contains
   !> \[
   !>     \mathbf{c} = \text{op}(\mathbf{A}) \cdot \mathbf{b},
   !> \]
-  !> where op takes into account that the matrix can be used also as transposed or conjugate-transposed (see **trans_A**). 
+  !> where \( \text{op}(\mathbf{A}) \) is, depending on **trans_A**, one of 
+  !>
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A} \) if **trans_A** = `'N'` or **trans_A** = `'n'`,
+  !>
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^T \) if **trans_A** = `'T'` or **trans_A** = `'t'`.
   subroutine matrix_vector_multiplication_real_complex_dp(A, b, c, trans_A)
     !> Input matrix 
     real(dp), intent(in), contiguous :: A(:, :)
@@ -102,14 +143,20 @@ contains
     complex(dp), intent(in), contiguous :: b(:)
     !> Output vector
     complex(dp), intent(out), contiguous :: c(:)
-    !> Define if \( \mathbf{A} \) is used as is for 'N', 'n', as transposed for 'T', 't' or 
-    !> as complex conjugate-transpose for 'c', 'c'.
-    !> Default is 'N'.
+    !> Define \(  \text{op}(\mathbf{A}) \): 
+    !> 
+    !> - if **trans_A** = `'N'` or **trans_A** = `'n'`,
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A} \).
+    !>
+    !> - if **trans_A** = `'T'` or **trans_A** = `'t'`,
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^T \).
+    !>
+    !> Default is gven by [[default_trans_char]].
     character(len=1), intent(in), optional :: trans_A                    
     
     character(len=1) :: trans_A_
 
-    trans_A_ = 'N'
+    trans_A_ = default_trans_char
     if (present(trans_A)) trans_A_ = trans_A
     
     call assert(size(c) == integer_gemv(shape(A), size(b), trans_A_), &
@@ -123,7 +170,13 @@ contains
   !> \[
   !>     \mathbf{c} = \text{op}(\mathbf{A}) \cdot \mathbf{b},
   !> \]
-  !> where op takes into account that the matrix can be used also as transposed or conjugate-transposed (see **trans_A**). 
+  !> where \( \text{op}(\mathbf{A}) \) is, depending on **trans_A**, one of 
+  !>
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A} \) if **trans_A** = `'N'` or **trans_A** = `'n'`,
+  !>
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^T \) if **trans_A** = `'T'` or **trans_A** = `'t'`,
+  !>
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^\dagger \) if **trans_A** = `'C'` or **trans_A** = `'c'`.
   subroutine matrix_vector_multiplication_complex_real_dp(A, b, c, trans_A)
     !> Input matrix 
     complex(dp), intent(in), contiguous :: A(:, :)
@@ -131,14 +184,23 @@ contains
     real(dp), intent(in), contiguous :: b(:)
     !> Output vector
     complex(dp), intent(out), contiguous :: c(:)
-    !> Define if \( \mathbf{A} \) is used as is for 'N', 'n', as transposed for 'T', 't' or 
-    !> as complex conjugate-transpose for 'c', 'c'.
-    !> Default is 'N'.
+    !> Define \(  \text{op}(\mathbf{A}) \): 
+    !> 
+    !> - if **trans_A** = `'N'` or **trans_A** = `'n'`,
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A} \).
+    !>
+    !> - if **trans_A** = `'T'` or **trans_A** = `'t'`,
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^T \).
+    !>
+    !> - if **trans_A** = `'C'` or **trans_A** = `'c'`,
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^\dagger \).
+    !>
+    !> Default is gven by [[default_trans_char]].
     character(len=1), intent(in), optional :: trans_A                    
     
     character(len=1) :: trans_A_
 
-    trans_A_ = 'N'
+    trans_A_ = default_trans_char
     if (present(trans_A)) trans_A_ = trans_A
     
     call assert(size(c) == integer_gemv(shape(A), size(b), trans_A_), &
@@ -154,23 +216,50 @@ contains
   !> \[
   !>    \mathbf{C} = \text{op}(\mathbf{A}) \cdot \text{op}(\mathbf{B}),
   !> \]
-  !> where op takes into account that the matrices can be used also as transposed (see **trans_A** and **trans_B**).
+  !> where \( \text{op}(\mathbf{A}) \) is, depending on **trans_A**, one of 
+  !>
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A} \) if **trans_A** = `'N'` or **trans_A** = `'n'`,
+  !>
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^T \) if **trans_A** = `'T'` or **trans_A** = `'t'`.
+  !>
+  !> and \( \text{op}(\mathbf{B}) \) is, depending on **trans_B**, one of 
+  !>
+  !> - \( \text{op}(\mathbf{B}) = \mathbf{B} \) if **trans_B** = `'N'` or **trans_B** = `'n'`,
+  !>
+  !> - \( \text{op}(\mathbf{B}) = \mathbf{B}^T \) if **trans_B** = `'T'` or **trans_B** = `'t'`.
   subroutine matrix_matrix_multiplication_real_dp(A, B, C, trans_A, trans_B)
     !> Input matrices 
     real(dp), intent(in), contiguous :: A(:, :), B(:, :)
     !> Output matrix 
     real(dp), intent(out), contiguous :: C(:, :)
-    !> Determine if \( \mathbf{A} \) or \( \mathbf{B} \) are used as is ('N' or 'n')
-    !> or the transposed is used ('T' or 't').
-    character(len=1), intent(in), optional :: trans_A, trans_B
+    !> Define \(  \text{op}(\mathbf{A}) \): 
+    !> 
+    !> - if **trans_A** = `'N'` or **trans_A** = `'n'`,
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A} \).
+    !>
+    !> - if **trans_A** = `'T'` or **trans_A** = `'t'`,
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^T \).
+    !>
+    !> Default is gven by [[default_trans_char]].
+    character(len=1), intent(in), optional :: trans_A
+    !> Define \(  \text{op}(\mathbf{B}) \): 
+    !> 
+    !> - if **trans_B** = `'N'` or **trans_B** = `'n'`,
+    !>   \( \text{op}(\mathbf{B}) = \mathbf{B} \).
+    !>
+    !> - if **trans_B** = `'T'` or **trans_B** = `'t'`,
+    !>   \( \text{op}(\mathbf{B}) = \mathbf{B}^T \).
+    !>
+    !> Default is gven by [[default_trans_char]].
+    character(len=1), intent(in), optional :: trans_B
 
     integer :: M, N, K, LDA, LDB, LDC
     character(len=1) :: trans_A_, trans_B_
     
-    trans_A_ = 'N'
+    trans_A_ = default_trans_char
     if(present(trans_A)) trans_A_ = trans_A
 
-    trans_B_ = 'N'
+    trans_B_ = default_trans_char
     if(present(trans_B)) trans_B_ = trans_B
                
     call integer_gemm(shape(A), shape(B), trans_A_, trans_B_,  M, N, K, LDA, LDB, LDC)
@@ -186,24 +275,60 @@ contains
   !> \[
   !>    \mathbf{C} = \text{op}(\mathbf{A}) \cdot \text{op}(\mathbf{B}),
   !> \]
-  !> where op takes into account that the matrices can be also used as transposed or 
-  !> conjugate-transposed (see **trans_A** and **trans_B**). 
+  !> where \( \text{op}(\mathbf{A}) \) is, depending on **trans_A**, one of 
+  !>
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A} \) if **trans_A** = `'N'` or **trans_A** = `'n'`,
+  !>
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^T \) if **trans_A** = `'T'` or **trans_A** = `'t'`,
+  !>
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^\dagger \) if **trans_A** = `'C'` or **trans_A** = `'c'`.
+  !>
+  !> and \( \text{op}(\mathbf{B}) \) is, depending on **trans_B**, one of 
+  !>
+  !> - \( \text{op}(\mathbf{B}) = \mathbf{B} \) if **trans_B** = `'N'` or **trans_B** = `'n'`,
+  !>
+  !> - \( \text{op}(\mathbf{B}) = \mathbf{B}^T \) if **trans_B** = `'T'` or **trans_B** = `'t'`,
+  !>
+  !> - \( \text{op}(\mathbf{B}) = \mathbf{B}^\dagger \) if **trans_B** = `'C'` or **trans_B** = `'c'`.
   subroutine matrix_matrix_multiplication_complex_dp(A, B, C, trans_A, trans_B)
     !> Input matrices 
     complex(dp), intent(in), contiguous  :: A(:, :), B(:, :)
     !> Output matrix
     complex(dp), intent(out), contiguous  :: C(:, :)
-    !> Determine if \( \mathbf{A} \) or \( \mathbf{B} \) are used as is ('N' or 'n')
-    !> or the transposed is used ('T' or 't').
-    character(len=1), intent(in), optional :: trans_A, trans_B
+    !> Define \(  \text{op}(\mathbf{A}) \): 
+    !> 
+    !> - if **trans_A** = `'N'` or **trans_A** = `'n'`,
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A} \).
+    !>
+    !> - if **trans_A** = `'T'` or **trans_A** = `'t'`,
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^T \).
+    !>
+    !> - if **trans_A** = `'C'` or **trans_A** = `'c'`,
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^\dagger \).
+    !>
+    !> Default is gven by [[default_trans_char]].
+    character(len=1), intent(in), optional :: trans_A
+    !> Define \(  \text{op}(\mathbf{B}) \): 
+    !> 
+    !> - if **trans_B** = `'N'` or **trans_B** = `'n'`,
+    !>   \( \text{op}(\mathbf{B}) = \mathbf{B} \).
+    !>
+    !> - if **trans_B** = `'T'` or **trans_B** = `'t'`,
+    !>   \( \text{op}(\mathbf{B}) = \mathbf{B}^T \).
+    !>
+    !> - if **trans_B** = `'C'` or **trans_B** = `'c'`,
+    !>   \( \text{op}(\mathbf{B}) = \mathbf{B}^\dagger \).
+    !>
+    !> Default is gven by [[default_trans_char]].
+    character(len=1), intent(in), optional :: trans_B
     
     integer :: M, N, K, LDA, LDB, LDC
     character(len=1) :: trans_A_, trans_B_
     
-    trans_A_ = 'N'
+    trans_A_ = default_trans_char
     if(present(trans_A)) trans_A_ = trans_A
 
-    trans_B_ = 'N'
+    trans_B_ = default_trans_char
     if(present(trans_B)) trans_B_ = trans_B
                
     call integer_gemm(shape(A), shape(B), trans_A_, trans_B_,  M, N, K, LDA, LDB, LDC)
@@ -219,25 +344,56 @@ contains
   !> \[
   !>    \mathbf{C} = \text{op}(\mathbf{A}) \cdot \text{op}(\mathbf{B}),
   !> \]
-  !> where op takes into account that the matrices can be also used as transposed or 
-  !> conjugate-transposed (see **trans_A** and **trans_B**). 
+  !> where \( \text{op}(\mathbf{A}) \) is, depending on **trans_A**, one of 
+  !>
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A} \) if **trans_A** = `'N'` or **trans_A** = `'n'`,
+  !>
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^T \) if **trans_A** = `'T'` or **trans_A** = `'t'`.
+  !>
+  !> and \( \text{op}(\mathbf{B}) \) is, depending on **trans_B**, one of 
+  !>
+  !> - \( \text{op}(\mathbf{B}) = \mathbf{B} \) if **trans_B** = `'N'` or **trans_B** = `'n'`,
+  !>
+  !> - \( \text{op}(\mathbf{B}) = \mathbf{B}^T \) if **trans_B** = `'T'` or **trans_B** = `'t'`,
+  !>
+  !> - \( \text{op}(\mathbf{B}) = \mathbf{B}^\dagger \) if **trans_B** = `'C'` or **trans_B** = `'c'`.
   subroutine matrix_matrix_multiplication_real_complex_dp(A, B, C, trans_A, trans_B)
     !> Input matrices 
     real(dp), intent(in), contiguous :: A(:, :)
     complex(dp), intent(in), contiguous :: B(:, :)
     !> Output matrix 
     complex(dp), intent(out), contiguous :: C(:, :)
-    !> Determine if \( \mathbf{A} \) or \( \mathbf{B} \) are used as is ('N' or 'n')
-    !> or the transposed is used ('T' or 't').
-    character(len=1), intent(in), optional :: trans_A, trans_B
+    !> Define \(  \text{op}(\mathbf{A}) \): 
+    !> 
+    !> - if **trans_A** = `'N'` or **trans_A** = `'n'`,
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A} \).
+    !>
+    !> - if **trans_A** = `'T'` or **trans_A** = `'t'`,
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^T \).
+    !>
+    !> Default is gven by [[default_trans_char]].
+    character(len=1), intent(in), optional :: trans_A
+    !> Define \(  \text{op}(\mathbf{B}) \): 
+    !> 
+    !> - if **trans_B** = `'N'` or **trans_B** = `'n'`,
+    !>   \( \text{op}(\mathbf{B}) = \mathbf{B} \).
+    !>
+    !> - if **trans_B** = `'T'` or **trans_B** = `'t'`,
+    !>   \( \text{op}(\mathbf{B}) = \mathbf{B}^T \).
+    !>
+    !> - if **trans_B** = `'C'` or **trans_B** = `'c'`,
+    !>   \( \text{op}(\mathbf{B}) = \mathbf{B}^\dagger \).
+    !>
+    !> Default is gven by [[default_trans_char]].
+    character(len=1), intent(in), optional :: trans_B
 
     integer :: M, N, K, LDA, LDB, LDC
     character(len=1) :: trans_A_, trans_B_
     
-    trans_A_ = 'N'
+    trans_A_ = default_trans_char
     if(present(trans_A)) trans_A_ = trans_A
 
-    trans_B_ = 'N'
+    trans_B_ = default_trans_char
     if(present(trans_B)) trans_B_ = trans_B
                
     call integer_gemm(shape(A), shape(B), trans_A_, trans_B_,  M, N, K, LDA, LDB, LDC)
@@ -253,25 +409,57 @@ contains
   !> \[
   !>    \mathbf{C} = \text{op}(\mathbf{A}) \cdot \text{op}(\mathbf{B}),
   !> \]
-  !> where op takes into account that the matrices can be also used as transposed or 
-  !> conjugate-transposed (see **trans_A** and **trans_B**). 
+  !> where \( \text{op}(\mathbf{A}) \) is, depending on **trans_A**, one of 
+  !>
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A} \) if **trans_A** = `'N'` or **trans_A** = `'n'`,
+  !>
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^T \) if **trans_A** = `'T'` or **trans_A** = `'t'`,
+  !>
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^\dagger \) if **trans_A** = `'C'` or **trans_A** = `'c'`.
+  !>
+  !> and \( \text{op}(\mathbf{B}) \) is, depending on **trans_B**, one of 
+  !>
+  !> - \( \text{op}(\mathbf{B}) = \mathbf{B} \) if **trans_B** = `'N'` or **trans_B** = `'n'`,
+  !>
+  !> - \( \text{op}(\mathbf{B}) = \mathbf{B}^T \) if **trans_B** = `'T'` or **trans_B** = `'t'`.
   subroutine matrix_matrix_multiplication_complex_real_dp(A, B, C, trans_A, trans_B)
     !> Input matrices 
     complex(dp), intent(in), contiguous :: A(:, :)
     real(dp), intent(in), contiguous :: B(:, :)
     !> Output matrix 
     complex(dp), intent(out), contiguous :: C(:, :)
-    !> Determine if \( \mathbf{A} \) or \( \mathbf{B} \) are used as is ('N' or 'n')
-    !> or the transposed is used ('T' or 't').
-    character(len=1), intent(in), optional :: trans_A, trans_B
+    !> Define \(  \text{op}(\mathbf{A}) \): 
+    !> 
+    !> - if **trans_A** = `'N'` or **trans_A** = `'n'`,
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A} \).
+    !>
+    !> - if **trans_A** = `'T'` or **trans_A** = `'t'`,
+    !>   \( \text{op}(\mathbf{B}) = \mathbf{B}^T \).
+    !>
+    !> - if **trans_A** = `'C'` or **trans_A** = `'c'`,
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^\dagger \).
+    !>
+    !> Default is gven by [[default_trans_char]].
+    character(len=1), intent(in), optional :: trans_A
+    !> Define \(  \text{op}(\mathbf{B}) \): 
+    !> 
+    !> - if **trans_B** = `'N'` or **trans_B** = `'n'`,
+    !>   \( \text{op}(\mathbf{B}) = \mathbf{B} \).
+    !>
+    !> - if **trans_B** = `'T'` or **trans_B** = `'t'`,
+    !>   \( \text{op}(\mathbf{B}) = \mathbf{B}^T \).
+    !>
+    !> Default is gven by [[default_trans_char]].
+    character(len=1), intent(in), optional :: trans_B
+
 
     integer :: M, N, K, LDA, LDB, LDC
     character(len=1) :: trans_A_, trans_B_
     
-    trans_A_ = 'N'
+    trans_A_ = default_trans_char
     if(present(trans_A)) trans_A_ = trans_A
 
-    trans_B_ = 'N'
+    trans_B_ = default_trans_char
     if(present(trans_B)) trans_B_ = trans_B
                
     call integer_gemm(shape(A), shape(B), trans_A_, trans_B_,  M, N, K, LDA, LDB, LDC)
@@ -281,16 +469,16 @@ contains
 
     call zgemm(trans_A_, trans_B_, M, N, K, zone, A, LDA, cmplx(B, 0.0_dp, kind=dp), LDB, zzero, C, LDC)
   end subroutine matrix_matrix_multiplication_complex_real_dp
-  
-  
+
+
   ! Setup functions for LAPACK routine call
 
   !> Setup the integers for *gemv calls.
   integer function integer_gemv(shape_A, size_B, trans_A)
     !> Shape of the input arrays
     integer, intent(in) :: shape_A(2), size_B
-    !> Determine if \( \mathbf{A} \) or \( \mathbf{B} \) are used as is ('N' or 'n'),
-    !> the transposed ('T' or 't') or the complex conjugated ('C', 'c') is used.
+    !> Determine if \( \mathbf{A} \) is used as is ('N' or 'n'),
+    !> the transpose (`'T'` or `'t'`) or the conjugate transpose (`'C'`, `'c'`) is used.
     character(len=1), intent(in) :: trans_A
     !> Integers for *func_matrix_multiply call
 
@@ -316,15 +504,15 @@ contains
     !> Shape of the input arrays
     integer, intent(in) :: shape_A(2), shape_B(2)
     !> Determine if \( \mathbf{A} \) or \( \mathbf{B} \) are used as is ('N' or 'n'),
-    !> the transposed ('T' or 't') or the complex conjugated ('C', 'c') is used.
+    !> the transposed (`'T'` or `'t'`) or the complex conjugated (`'C'`, `'c'`) is used.
     character(len=1), intent(in) :: trans_A, trans_B
-    !> Integers for *func_matrix_multiply call
+    !> Integers for *gemm calls
     integer, intent(out) :: M, N, K, LDA, LDB, LDC
 
     logical :: trans_A_, trans_B_
 
-    trans_A_ = any(trans_A == ["T", "t", "C", "c"])
-    trans_B_ = any(trans_B == ["T", "t", "C", "c"])
+    trans_A_ = any(trans_A == ['T', 't', 'C', 'c'])
+    trans_B_ = any(trans_B == ['T', 't', 'C', 'c'])
 
     if ((.not. trans_A_) .and. (.not. trans_B_)) then
       call assert(shape_A(2) == shape_B(1), &
@@ -358,6 +546,5 @@ contains
       call assert(.false., 'trans_A must be one of "N", "n", "T", "t" "C", "c".')
     end if
   end subroutine integer_gemm
-
 
 end module general_matrix_multiplication
