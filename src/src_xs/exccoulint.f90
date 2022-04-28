@@ -594,7 +594,7 @@ subroutine exccoulint(iqmt)
     subroutine makeexcli(pmuo1,pmuo2,excli)
       ! momentum matrix elements needed for corrections of the head of the 
       !exchange matrix elements
-      complex(8), intent(in)  :: pmuo1(:,:,:), pmuo2(:,:,:)
+      complex(8), intent(in), allocatable  :: pmuo1(:,:,:), pmuo2(:,:,:)
       ! exchange matrix elements of the BSE
       complex(8), intent(out) :: excli(inou, jnou) 
 
