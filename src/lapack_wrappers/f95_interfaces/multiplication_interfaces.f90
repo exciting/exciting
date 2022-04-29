@@ -1,6 +1,7 @@
 !> Fortran 95 explicit interfaces for LAPACK Fortran 77 routines calculating array products.
 !> This ensures that the compiler is able to fully optimise.
-!> For a complete documentation, refer to the [offical LAPACK documentation](http://www.netlib.org/lapack/explore-html/index.html).
+!> For a complete documentation, refer to the
+!> [offical LAPACK documentation](http://www.netlib.org/lapack/explore-html/index.html)].
 module multiplication_interfaces
   use precision, only: dp
   
@@ -9,6 +10,23 @@ module multiplication_interfaces
 !---------------
 ! BLAS Level 1 | 
 !---------------
+
+    ! 2 norm
+    real(dp) function dnrm2(n, x, incx)
+      import :: dp
+      implicit none
+      integer, intent(in) :: n
+      real(dp), intent(in) :: x(*)
+      integer, intent(in) :: incx
+    end function
+
+    real(dp) function dznrm2(n, x, incx)
+      import :: dp
+      implicit none
+      integer, intent(in) :: n
+      complex(dp), intent(in) :: x(*)
+      integer, intent(in) :: incx
+    end function
 
     ! dot product
     real(dp) function ddot(n, dx, incx, dy, incy)
