@@ -10,7 +10,7 @@ module vector_multiplication_test
                          complex_vector_7, &
                          real_matrix_5x7, &
                          complex_matrix_5x7
-  use vector_multiplication, only: dot_multiply, outer_product
+  use vector_multiplication, only: norm, dot_multiply, outer_product
 
   implicit none
 
@@ -29,7 +29,7 @@ contains
     !> Test report object
     type(unit_test_type) :: test_report
     !> Number of assertions
-    integer, parameter :: n_assertions = 12
+    integer, parameter :: n_assertions = 14
 
     call test_report%init(n_assertions, mpiglobal)
 
@@ -47,6 +47,29 @@ contains
 
     call test_report%finalise()
   end subroutine vector_multiplication_test_driver
+
+
+  !> Test norm
+  subroutine test_norm(test_report)
+    !> Test report object
+    type(unit_test_type), intent(inout) :: test_report
+
+    real(dp) :: norm_ref
+    
+    real(dp), allocatable :: p(:)
+    complex(dp), allocatable :: phi(:)
+
+    p = real_vector_5
+    phi = complex_vector_5
+
+    norm_ref = sqrt(sum(p ** 2))
+    call test_report%assert(all_close(norm(p), norm_ref), &
+                           'Test norm for a real vector.')
+    
+    norm_ref = sqrt(sum(real(conjg(phi) * phi, dp)))                           
+    call test_report%assert(all_close(norm(phi), norm_ref), &
+                           'Test norm for a complex vector.')
+  end subroutine test_norm
 
 
   !> Test dot product
@@ -87,7 +110,6 @@ contains
     call test_report%assert(all_close(dot_multiply(phi, q, conjg_a = .false.), dot_multiply(conjg(phi), q)), &
                            'Test dot_multiply for complex times real vectors. &
                            Expeceted: phi * psi')
-
   end subroutine test_dot_multiply
 
 

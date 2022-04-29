@@ -1,16 +1,16 @@
 !> Module for vector vector multiplication.
 !> The interfaces combine wrappers for the LAPACK routines
-!> ddot, zdotc, zdotu
+!> dnrm2, dznrm2, ddot, zdotc, zdotu, dger,  zgerc, zgeru
 module vector_multiplication
   use precision, only: dp
   use constants, only: zone, zzero
   use asserts, only: assert
-  use lapack_f95_interfaces, only: ddot, zdotc, zdotu, dger,  zgerc, zgeru
+  use lapack_f95_interfaces, only: dnrm2, dznrm2, ddot, zdotc, zdotu, dger,  zgerc, zgeru
 
   implicit none
 
   private
-  public :: dot_multiply, outer_product
+  public :: norm, dot_multiply, outer_product
 
   !> Spacing between the elements of an vector.
   integer, parameter :: storage_spacing = 1
@@ -28,6 +28,15 @@ module vector_multiplication
                         dot_multiplication_real_complex_dp, &
                         dot_multiplication_complex_real_dp
   end interface dot_multiply
+
+
+  !> Calculate the eucledian norm of a vector \( \mathbf{v} = (v_1, \cdots, v_n) \)
+  !> \[
+  !>   \sqrt{\sum_{i=1}^n v_i^2}
+  !> \]
+  interface norm 
+    module procedure :: norm2_real_dp, norm2_complex_dp
+  end interface
 
 
   !> Calculate the outer product between two vectors with a subroutine call:
@@ -48,6 +57,31 @@ module vector_multiplication
   end interface outer_product
 
 contains
+
+! norm 
+
+  !> Calculate the eucledian norm of a vector \( \mathbf{v} = (v_1, \cdots, v_n) \)
+  !> \[
+  !>   \sqrt{\sum_{i=1}^n v_i^2}.
+  !> \]
+  real(dp) function norm2_real_dp(v)
+    !> Vector for which the norm is to be calculated
+    real(dp), intent(in) :: v(:)
+
+    norm2_real_dp = dnrm2(size(v), v, storage_spacing)
+  end function
+
+
+  !> Calculate the eucledian norm of a vector \( \mathbf{v} = (v_1, \cdots, v_n) \)
+  !> \[
+  !>   \sqrt{\sum_{i=1}^n v_i^2}.
+  !> \]
+  real(dp) function norm2_complex_dp(v)
+    !> Vector for which the norm is to be calculated
+    complex(dp), intent(in) :: v(:)
+
+    norm2_complex_dp = dznrm2(size(v), v, storage_spacing)
+  end function
 
 ! dot product
 
@@ -135,7 +169,6 @@ contains
       dot_multiplication_complex_real_dp = zdotu(size(a), a, storage_spacing, cmplx(b, 0.0_dp, kind=dp), storage_spacing)
     end if
   end function dot_multiplication_complex_real_dp
-
 
 ! outer product
 
