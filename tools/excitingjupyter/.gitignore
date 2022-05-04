@@ -1,0 +1,6 @@
+run/
+venv/
+.ipynb_checkpoints
+__pycache__
+build/
+run_*
