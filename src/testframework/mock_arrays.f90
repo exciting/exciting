@@ -1,10 +1,15 @@
 !> Mock arrays for testing.
 module mock_arrays
-  use precision, only: dp 
+  use precision, only: dp, sp
 
   implicit none
 
   private
+  public :: fill_array, value_map_real_rank1, &
+                        value_map_complex_rank2, &
+                        value_map_complex_rank3, &
+                        value_map_complex_rank4
+
 
 ! double arrays
 
@@ -290,4 +295,185 @@ module mock_arrays
                                                                                              0.0_dp, &
                                                                                              0.0_dp,          0.0_dp,          0.0_dp,          0.0_dp, &
                                                                                              0.0_dp], kind=dp), [5, 7]))
+
+                                                                                
+        !> Fills a given array with (arbitrary) numbers. Helpful for I/O tests, 
+        !> where the acutal content of the array is not relevant.
+        interface fill_array
+                procedure ::  fill_real_array_rank0,&
+                        fill_real_array_rank1,& 
+                        fill_complex_array_rank2,&
+                        fill_complex_array_rank3,&
+                        fill_complex_array_rank4                
+        end interface
+        
+        
+ contains 
+                                                                                        
+        !> Given its index, this function maps
+        !> one element of a real double-precision
+        !> array \( \mathbf{a} \) of rank 1 according to
+        !> \[
+        !>    a_{m} = 1.5m   
+        !>                                      \].
+        pure function value_map_real_rank1(m) result(b)
+                integer(sp), intent(in) :: m 
+                real(dp) :: b
+                b = 1.5_dp * m
+        end function
+
+        !> Given its indices, this function maps
+        !> one element of a complex double-precision
+        !> array \( \mathbf{a} \) of rank 2 according to
+        !> \[
+        !>    a_{mn} = m + 2n \cdot i   
+        !>                                      \].
+        pure function value_map_complex_rank2(m, n) result(b)
+                integer(sp), intent(in) :: m, n
+                complex(dp) :: b
+                b = cmplx(m, 2*n, dp)
+        end function
+
+        !> Given its indices, this function maps
+        !> one element of a complex double-precision 
+        !> array \( \mathbf{a} \) of rank 3 according to
+        !> \[
+        !>    a_{mnl} = m + 2(n+l) \cdot i   
+        !>                                      \].
+        pure function value_map_complex_rank3(m, n, l) result(b)
+                integer(sp), intent(in) :: m, n, l
+                complex(dp) :: b
+                b = cmplx(m, 2*(n+l), dp)
+        end function
+
+        !> Given its indices, this function maps
+        !> one element of a complex double-precision 
+        !> array \( \mathbf{a} \) of rank 4 according to
+        !> \[
+        !>    a_{mnlk} = m + l + 2nk \cdot i   
+        !>                                      \].
+        pure function value_map_complex_rank4(m, n, l, k) result(b)
+                integer(sp), intent(in) :: m, n, l, k
+                complex(dp) :: b
+                
+                b = cmplx(m + l, 2*n*k, dp)
+        end function
+
+
+        !> Fills a real double-precision scalar \( \mathbf{a} \)
+        !> according to a value map.
+        subroutine fill_real_array_rank0(array, value_map)
+                real(dp), intent(out) :: array
+
+                interface
+                pure function value_map(a) result(b)
+                        use precision, only: dp
+                        integer, intent(in) :: a
+                        real(dp) :: b
+                end function value_map
+                end interface
+
+                array = value_map(1)
+
+        end subroutine fill_real_array_rank0
+        
+        !> Fills a real double-precision array \( \mathbf{a} \) of rank 1
+        !> according to a value map.
+        subroutine fill_real_array_rank1(array, value_map)
+                real(dp), intent(out) :: array(:)
+                integer(sp) :: n
+
+                interface
+                        pure function value_map(a) result(b)
+                                use precision, only: dp
+                                integer, intent(in) :: a
+                                real(dp) :: b
+                        end function value_map
+                end interface
+
+                do n = 1, size(array, dim=1)
+                        array(n) = value_map(n)
+                end do
+
+        end subroutine fill_real_array_rank1
+                                                    
+        
+        !> Fills a complex double-precision array \( \mathbf{a} \) of rank 2
+        !> according to a value map.
+        subroutine fill_complex_array_rank2(array, value_map)
+                complex(dp), intent(out) :: array(:, :)
+                integer(sp) :: n, m
+
+                interface
+                        pure function value_map(a, b) result(c)
+                                use precision, only: dp
+                                integer, intent(in) :: a, b
+                                complex(dp) :: c
+                        end function value_map
+                end interface
+
+
+                do m = 1, size(array, dim=1)
+                        do n = 1, size(array, dim=2)
+                                array(m, n) = value_map(m, n)
+                        end do
+                end do
+
+        end subroutine fill_complex_array_rank2
+
+
+
+        !> Fills a complex double-precision array \( \mathbf{a} \) of rank 3
+        !> according to a value map.
+        subroutine fill_complex_array_rank3(array, value_map)
+
+                complex(dp), intent(out) :: array(:, :, :)
+                integer(sp) :: m, n, l
+                interface
+                        pure function value_map(a, b, c) result(d)
+                                use precision, only: dp
+                                integer, intent(in) :: a, b, c
+                                complex(dp) :: d
+                        end function value_map
+                end interface
+
+                do m = 1, size(array, dim=1)
+                        do n = 1, size(array, dim=2)
+                                do l = 1, size(array, dim=3)
+                                        array(m, n, l) = value_map(m, n, l)
+                                end do
+                        end do
+                end do
+
+        end subroutine fill_complex_array_rank3
+
+
+        !> Fills a complex double-precision array \( \mathbf{a} \) of rank 4
+        !> according to a value map.
+        subroutine fill_complex_array_rank4(array, value_map)
+
+                complex(dp), intent(out) :: array(:, :, :, :)
+                integer(sp) :: m, n, l, k
+
+                !> Allows to 
+                interface
+                        pure function value_map(a, b, c, d) result(e)
+                                use precision, only: dp
+                                integer, intent(in) :: a, b, c, d
+                                complex(dp) :: e
+                        end function value_map
+                end interface
+
+                do m = 1, size(array, dim=1)
+                        do n = 1, size(array, dim=2)
+                                do l = 1, size(array, dim=3)
+                                        do k = 1, size(array, dim=4)
+                                                array(m, n, l, k) = &
+                                                 value_map(m, n, l, k)
+                                        end do
+                                end do
+                        end do
+                end do
+
+        end subroutine fill_complex_array_rank4
 end module mock_arrays

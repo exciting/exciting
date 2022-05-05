@@ -13,7 +13,7 @@ subroutine dfq(iq)
   use mod_misc, only: task
   use constants, only: zzero, zone, zi, krondelta
   use mod_kpoint, only: nkpt, wkpt
-  use mod_qpoint, only: nqpt, vql
+  use mod_qpoint, only: nqpt, vql, vqc
   use mod_lattice, only: omega
   use modxs, only: tfxcbse, tscreen, bzsampl, wpari,&
                 & wparf, ngq, fnpmat,&
@@ -45,7 +45,7 @@ subroutine dfq(iq)
   use m_genfilname
   use m_ematqk
   use m_writecmplxparts
-  use m_putgeteps0
+  use putgeteps0, only: puteps0_finite_q, puteps0_zero_q
   use mod_variation, only: ematqk_sv
 
 ! !INPUT/OUTPUT PARAMETERS:
@@ -956,10 +956,16 @@ subroutine dfq(iq)
       ! It uses the reduced set, but the grid parameters are saved in
       ! mod_qpoint, where in the case of task >430 the non-reduces parameters
       ! are saved...
-      call puteps0(reduced=.false.,&
-        & iq=iq, iw=iw, w=wreal(iw-wi+1),&
-        & eps0=chi0(:,:,iw-wi+1), eps0wg=chi0w(:,:,:,iw-wi+1),&
-        & eps0hd=chi0h(:,:,iw-wi+1), fname=fneps0)
+      if(tq0) then 
+        call puteps0_zero_q(qvec = vqc(:,iq), &
+          & iq=iq, iw=iw, w=wreal(iw-wi+1),&
+          & eps0=chi0(:,:,iw-wi+1), eps0wg=chi0w(:,:,:,iw-wi+1),&
+          & eps0hd=chi0h(:,:,iw-wi+1), fname=fneps0)
+      else 
+         call puteps0_finite_q(qvec = vqc(:,iq), &
+          & iq=iq, iw=iw, w=wreal(iw-wi+1),&
+          & eps0=chi0(:,:,iw-wi+1), fname=fneps0)
+      end if
     end do
   ! Not tscreen
   else
