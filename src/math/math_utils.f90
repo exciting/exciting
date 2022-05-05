@@ -64,7 +64,8 @@ module math_utils
   interface all_close
     module procedure all_close_rank0_real_dp, all_close_rank1_real_dp, &
                    & all_close_rank2_real_dp, all_close_rank0_complex_dp,&
-                   & all_close_rank1_complex_dp, all_close_rank2_complex_dp
+                   & all_close_rank1_complex_dp, all_close_rank2_complex_dp,&
+                   all_close_rank3_complex_dp, all_close_rank4_complex_dp
   end interface all_close
 
 
@@ -521,7 +522,67 @@ contains
 
   end function all_close_rank2_complex_dp
 
+  !> Check if two rank-3 arrays \( \mathbf{a} \) and \( \mathbf{b} \)
+  !> of are equal, where equal is defined as
+  !>  \( |a_{ijk} - b_{ijk}| \leq abs\_tol,  \forall i,j,k \).
+  !> As such, the tolerance is a real value and is
+  !> checked elementwise.
+  logical function all_close_rank3_complex_dp(a, b, tol)
 
+    !> Input array
+    complex(dp), intent(in) :: a(:, :, :)
+    !> Reference array
+    complex(dp), intent(in) :: b(:, :, :)
+    !> Absolute tolerance for input and reference to be considered equal
+    real(dp), intent(in), optional :: tol
+
+    !> Local absolute tolerance
+    real(dp) :: tol_
+
+    call assert(size(a) == size(b), &
+      & 'all_close_rank3_complex_dp: size of input arrays differs.')
+
+    call assert(all(shape(a) == shape(b)), &
+      & 'all_close_rank3_complex_dp: shape of input arrays differs.')
+
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
+
+    all_close_rank3_complex_dp = all(abs(a - b) <= tol_)
+
+  end function all_close_rank3_complex_dp
+
+  !> Check if two rank-4 arrays \( \mathbf{a} \) and \( \mathbf{b} \)
+  !> of are equal, where equal is defined as
+  !>  \( |a_{ijkl} - b_{ijkl}| \leq abs\_tol,  \forall i,j,k,l \).
+  !> As such, the tolerance is a real value and is
+  !> checked elementwise.
+  logical function all_close_rank4_complex_dp(a, b, tol)
+
+    !> Input array
+    complex(dp), intent(in) :: a(:, :, :, :)
+    !> Reference array
+    complex(dp), intent(in) :: b(:, :, :, :)
+    !> Absolute tolerance for input and reference to be considered equal
+    real(dp), intent(in), optional :: tol
+
+    !> Local absolute tolerance
+    real(dp) :: tol_
+
+    call assert(size(a) == size(b), &
+      & 'all_close_rank4_complex_dp: size of input arrays differs.')
+
+    call assert(all(shape(a) == shape(b)), &
+      & 'all_close_rank4_complex_dp: shape of input arrays differs.')
+
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
+
+    all_close_rank4_complex_dp = all(abs(a - b) <= tol_)
+
+  end function all_close_rank4_complex_dp
+
+  
 ! all_zero
 !
 ! Check if a sclalar, a vector or a matrix is element wise close to zero.

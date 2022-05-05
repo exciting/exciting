@@ -37,8 +37,9 @@ module cmd_line_args
       logical :: gw = .false.                !! GW
       logical :: structure = .false.         !! structure
       logical :: mpi = .false.               !! modmpi
-      logical :: phononscreening = .false.   !! phononscreening
+      logical :: xs = .false.                !! Excited states
       logical :: autormt = .false.           !! autormt
+      logical :: testframework = .false.           !! testframework
    contains
       procedure :: init => set_unit_tests
    end type unit_tests_type
@@ -164,8 +165,10 @@ contains
          run%autormt = .true.
       case('structure')
          run%structure = .true.
-      case('phononscreening')
-         run%phononscreening = .true.
+      case('xs')
+         run%xs = .true.
+      case('testframework')
+         run%testframework = .true.
       case default
          call terminate_mpi_env(mpi_env, 'Unrecognised unit test name: '&
             & //trim(test_name)//'. Please add to set_unit_test and unit_test_names_type')

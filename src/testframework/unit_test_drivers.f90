@@ -5,11 +5,12 @@ module unit_test_drivers
 
    ! Load unit test driver modules here. One per src/ subdirectory 
    use math_test_drivers, only: math_test_driver
-   use phonon_screening_tests, only: phonon_screening_test_driver
+   use xs_test_drivers, only: xs_test_driver
    use lapack_wrappers_test_drivers, only: lapack_wrappers_test_driver
    use mpi_test_drivers, only: mpi_test_driver
    use autormt_test_drivers, only: autormt_test_driver
    use structure_test_drivers, only : structure_test_driver
+   use testframework_test_drivers, only: testframework_test_driver
 
    implicit none
    private
@@ -50,8 +51,8 @@ contains
          call math_test_driver(mpiglobal, kill_on_failure) 
       end if
 
-      if (run%phononscreening .or. run%all) then
-         call phonon_screening_test_driver(mpiglobal, kill_on_failure) 
+      if (run%xs .or. run%all) then
+         call xs_test_driver(mpiglobal, kill_on_failure) 
       end if
 
       if (run%lapack .or. run%all) then
@@ -73,6 +74,10 @@ contains
       
       if (run%structure .or. run%all) then
          call structure_test_driver(mpiglobal, kill_on_failure)
+      end if
+
+      if (run%testframework .or. run%all) then
+         call testframework_test_driver(mpiglobal, kill_on_failure)
       end if
 
    end subroutine unit_test_driver

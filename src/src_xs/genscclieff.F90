@@ -5,8 +5,8 @@
 subroutine genscclieff(iqr, iqrnr, nmax, n, scieff)
   use modinput, only: input
   use constants, only: zzero
-  use m_putgeteps0
-  use modxs, only: eps0dirname
+  use putgeteps0, only: geteps0_finite_q, geteps0_zero_q
+  use modxs, only: eps0dirname, vqcr
   use m_genfilname
 
   implicit none
@@ -37,15 +37,18 @@ subroutine genscclieff(iqr, iqrnr, nmax, n, scieff)
   ! of the head (G=G'=q=0) are also symmetrized w.r.t. the lattice symmetry.
   call genfilname(basename=trim(adjustl(eps0dirname))//'/'//'EPS0',&
    & appfilext=.true., iq=iqr, filnam=fneps0)
-  ! Read form direct access file.
-  call geteps0(reduced=.true., iq=iqr, iw=1, w=0.0d0,&
-    & eps0=scrn, eps0wg=scrnw, eps0hd=scrnh, fname=fneps0)
 
   ! Calculate effective screened interaction
   if(tq0) then
+    ! Read form direct access file.
+    call geteps0_zero_q(qvec=vqcr(:,iqr), iq=iqr, iw=1, w=0.0d0,&
+    & eps0=scrn, eps0wg=scrnw, eps0hd=scrnh, fname=fneps0)
     ! Averaging using Lebedev-Laikov spherical grids
     call angavsc0(n, nmax, scrnh, scrnw, scrn, scieff)
   else
+    ! Read form direct access file.
+    call geteps0_finite_q(qvec=vqcr(:,iqr), iq=iqr, iw=1, w=0.0d0,&
+    & eps0=scrn, fname=fneps0)
     ! Averaging using numerical method and extrapolation
     call avscq(iqr, n, nmax, scrn, scieff)
   end if
