@@ -163,10 +163,10 @@ module autormt
 
          ! Get initial muffin-tin radii
          select case (init_rad_version) 
-            case (0)
-               rmt = [(get_inital_rmt_formula((spzn(is))), is = 1, nspecies)]   
+            case(0)
+               rmt(1:nspecies) = [(get_inital_rmt_formula((spzn(is))), is = 1, nspecies)]   
             case(1)
-               rmt = [(get_inital_rmt_rgkmax((spzn(is))), is = 1, nspecies)]
+               rmt(1:nspecies) = [(get_inital_rmt_rgkmax((spzn(is))), is = 1, nspecies)]
          end select
      
          ! Scale muffin-tin radii 
