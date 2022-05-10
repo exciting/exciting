@@ -1,6 +1,5 @@
 module putgeteps0
   use modmpi
-  use modinput, only: input
   use m_getunit, only: getunit
   use m_genfilname
   use precision, only: sp, dp
@@ -25,7 +24,8 @@ module putgeteps0
     !> In each record the following is saved:
     !> iq, qvec, numgq, iw, w, eps0(, eps0wg, chhd).
     !> Head and wings are present due to vanishing \( \mathbf{q} \). 
-    subroutine puteps0_zero_q(iq, qvec, iw, w, eps0, eps0wg, eps0hd, fname)
+    subroutine puteps0_zero_q(iq, qvec, iw, w, eps0, eps0wg, eps0hd, &
+                            fname, debug)
       use modmpi, only: terminate_if_false
 
       !> q-point index from reduced q-point set
@@ -44,6 +44,9 @@ module putgeteps0
       complex(dp), intent(in) :: eps0hd(:,:)
       !> Filename
       character(*), intent(in), optional :: fname
+      !> Debug mode
+      logical, intent(in), optional :: debug
+      
       !> Name of subroutine
       character(*), parameter :: thisnam = 'puteps0_zero_q'
       !> Filename
@@ -56,6 +59,8 @@ module putgeteps0
       integer(sp) ::  reclen
       !> Number of (G+q)-points for current q-point
       integer(sp) :: numgq
+      !> Local debug mode
+      logical :: debug_local
 
       numgq = size(eps0, dim=1)
 
@@ -65,6 +70,14 @@ module putgeteps0
       else
         call genfilname(basename='EPS0', iq=iq, filnam=filename)
       end if
+
+      ! Check for debug mode
+      if(present(debug)) then
+        debug_local = debug
+      else 
+        debug_local = .false.
+      end if
+
       call getunit(un)
       
       ! Get record length (q dependent through numgq)
@@ -94,7 +107,7 @@ module putgeteps0
       close(un)
 
       ! Debug output
-      if(associated(input%xs) .and. input%xs%dbglev>2) then
+      if(debug_local) then
         write(*,*) "========puteps0_zero_q========"
         write(*,*) "Writing file:", trim(filename)
         write(*,*) "Writing record:", iw
@@ -124,7 +137,8 @@ module putgeteps0
     !> In each record the following is saved:
     !> iq, qvec, numgq, iw, w, eps0(, eps0wg, chhd).
     !> Head and wings are not present due to finite \( \mathbf{q} \). 
-    subroutine puteps0_finite_q(iq, qvec, iw, w, eps0,  fname)
+    subroutine puteps0_finite_q(iq, qvec, iw, w, eps0, &
+                                fname, debug)
       use modmpi, only: terminate_if_false
 
       !> q-point index from reduced q-point set
@@ -139,6 +153,9 @@ module putgeteps0
       complex(dp), intent(in) :: eps0(:, :)
       !> Filename
       character(*), intent(in), optional :: fname
+      !> Debug mode
+      logical, intent(in), optional :: debug
+      
       !> Name of subroutine
       character(*), parameter :: thisnam = 'puteps0_finite_q'
       !> Filename
@@ -151,6 +168,8 @@ module putgeteps0
       integer(sp) ::  reclen
       !> Number of (G+q)-points for current q-point
       integer(sp) :: numgq
+      !> Local debug mode
+      logical :: debug_local
 
       numgq = size(eps0, dim=1)
 
@@ -160,6 +179,14 @@ module putgeteps0
       else
         call genfilname(basename='EPS0', iq=iq, filnam=filename)
       end if
+
+      ! Check for debug mode
+      if(present(debug)) then
+        debug_local = debug
+      else 
+        debug_local = .false.
+      end if
+
       call getunit(un)
   
       ! Get record length (q dependent through numgq)
@@ -185,7 +212,7 @@ module putgeteps0
       close(un)
 
       ! Debug output
-      if(associated(input%xs) .and. input%xs%dbglev>2) then
+      if(debug_local) then
         write(*,*) "========puteps0_finite_q========"
         write(*,*) "Writing file:", trim(filename)
         write(*,*) "Writing record:", iw
@@ -210,7 +237,8 @@ module putgeteps0
     !> In each record the following is saved:
     !> iq, qvec, numgq, iw, w, eps0(, eps0wg, chhd).
     !> Head and wings are present due to vanishing \( \mathbf{q} \).
-    subroutine geteps0_zero_q(iq, qvec, iw, w, eps0, eps0wg, eps0hd, fname)
+    subroutine geteps0_zero_q(iq, qvec, iw, w, eps0, eps0wg, eps0hd, &
+                           fname, debug)
       use math_utils, only: all_close, all_zero
       
       !> q-point index from reduced q-vector set if xs%reduceq = "true",
@@ -230,9 +258,10 @@ module putgeteps0
       complex(dp), intent(out) :: eps0hd(:,:)
       !> Filename
       character(*), intent(in), optional :: fname
+      !> Debug mode
+      logical, intent(in), optional :: debug
       !> Number of (G+q)-points for current q-point
       integer(sp) :: numgq
-
       !> Routine name
       character(*), parameter :: thisnam = 'geteps0_zero_q'
       !> Filename
@@ -255,6 +284,9 @@ module putgeteps0
       !> Tolerance for  comparing of requested and read data
       real(dp), parameter :: tol=1.e-8_dp
       logical :: existent
+      !> Local debug mode
+      logical :: debug_local
+
 
       ! Generate q dependent file name
       if(present(fname)) then 
@@ -263,6 +295,13 @@ module putgeteps0
         call genfilname(basename='EPS0', iq=iq, filnam=filename)
       end if
       call getunit(un)
+
+      ! Check for debug mode
+      if(present(debug)) then
+        debug_local = debug
+      else 
+        debug_local = .false.
+      end if
 
       ! Check if file exists
       inquire(file=trim(filename), exist=existent)
@@ -299,7 +338,7 @@ module putgeteps0
       close(un)
 
        ! Debug output
-      if(associated(input%xs) .and. input%xs%dbglev>2) then
+      if(debug_local) then
         write(*,*) "========geteps0_zero_q========"
         write(*,*) "Reading file:", trim(filename)
         write(*,*) "Reading record:", iw
@@ -347,7 +386,8 @@ module putgeteps0
     !> In each record the following is saved:
     !> iq, qvec, numgq, iw, w, eps0(, eps0wg, chhd).
     !> Head and wings are not present due to finite \( \mathbf{q} \).
-    subroutine geteps0_finite_q(iq, qvec, iw, w, eps0, fname)
+    subroutine geteps0_finite_q(iq, qvec, iw, w, eps0, &
+                                fname, debug)
    
       use math_utils, only: all_close, all_zero
 
@@ -364,6 +404,9 @@ module putgeteps0
       complex(dp), intent(out) :: eps0(:, :)
       !> Filename
       character(*), intent(in), optional :: fname
+      !> Debug mode
+      logical, intent(in), optional :: debug
+
       !> Number of (G+q)-points for current q-point
       integer(sp) :: numgq
       !> Routine name
@@ -389,6 +432,8 @@ module putgeteps0
       !> Tolerance for  comparing of requested and read data
       real(dp), parameter :: tol=1.e-8_dp
       logical :: existent
+      !> Local debug mode
+      logical :: debug_local
 
       ! Generate q dependent file name
       if(present(fname)) then 
@@ -396,6 +441,15 @@ module putgeteps0
       else
         call genfilname(basename='EPS0', iq=iq, filnam=filename)
       end if
+
+      ! Check for debug mode
+      if(present(debug)) then
+        debug_local = debug
+      else 
+        debug_local = .false.
+      end if
+
+
       call getunit(un)
 
       ! Check if file exists
@@ -433,7 +487,7 @@ module putgeteps0
       close(un)
 
       ! Debug output
-      if(associated(input%xs) .and. input%xs%dbglev>2) then
+      if(debug_local) then
         write(*,*) "========geteps0_finite_q========"
         write(*,*) "Reading file:", trim(filename)
         write(*,*) "Reading record:", iw

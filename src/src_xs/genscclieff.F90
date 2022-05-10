@@ -42,13 +42,14 @@ subroutine genscclieff(iqr, iqrnr, nmax, n, scieff)
   if(tq0) then
     ! Read form direct access file.
     call geteps0_zero_q(qvec=vqcr(:,iqr), iq=iqr, iw=1, w=0.0d0,&
-    & eps0=scrn, eps0wg=scrnw, eps0hd=scrnh, fname=fneps0)
+          eps0=scrn, eps0wg=scrnw, eps0hd=scrnh, fname=fneps0,&
+          debug=input%xs%dbglev>2)
     ! Averaging using Lebedev-Laikov spherical grids
     call angavsc0(n, nmax, scrnh, scrnw, scrn, scieff)
   else
     ! Read form direct access file.
     call geteps0_finite_q(qvec=vqcr(:,iqr), iq=iqr, iw=1, w=0.0d0,&
-    & eps0=scrn, fname=fneps0)
+                eps0=scrn, fname=fneps0, debug=input%xs%dbglev>2)
     ! Averaging using numerical method and extrapolation
     call avscq(iqr, n, nmax, scrn, scieff)
   end if

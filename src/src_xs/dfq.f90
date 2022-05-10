@@ -960,11 +960,11 @@ subroutine dfq(iq)
         call puteps0_zero_q(qvec = vqc(:,iq), &
           & iq=iq, iw=iw, w=wreal(iw-wi+1),&
           & eps0=chi0(:,:,iw-wi+1), eps0wg=chi0w(:,:,:,iw-wi+1),&
-          & eps0hd=chi0h(:,:,iw-wi+1), fname=fneps0)
+          & eps0hd=chi0h(:,:,iw-wi+1), fname=fneps0, debug=input%xs%dbglev>2)
       else 
          call puteps0_finite_q(qvec = vqc(:,iq), &
           & iq=iq, iw=iw, w=wreal(iw-wi+1),&
-          & eps0=chi0(:,:,iw-wi+1), fname=fneps0)
+          & eps0=chi0(:,:,iw-wi+1), fname=fneps0, debug=input%xs%dbglev>2)
       end if
     end do
   ! Not tscreen
