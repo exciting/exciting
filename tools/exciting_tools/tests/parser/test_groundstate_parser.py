@@ -20,8 +20,6 @@ def test_parse_info_out():
     # Only retained first and last SCF keys
     info_ref = {
         "initialization": {
-            "# of radial points in muffin-tin": "1000",
-            "1": "0.00000000  0.00000000  0.00000000",
             "APW functions": "8",
             "Brillouin zone volume": "0.0734963595",
             "Effective Wigner radius, r_s": "3.55062021",
@@ -37,7 +35,7 @@ def test_parse_info_out():
                 "0.0000000000",
                 "0.0000000000",
                 "15.0000000000"
-                ],
+            ],
             "Maximum Hamiltonian size": "263",
             "Maximum number of plane-waves": "251",
             "Maximum |G| for potential and density": "7.50000000",
@@ -55,10 +53,23 @@ def test_parse_info_out():
                 "0.0000000000",
                 "0.0000000000",
                 "0.4188790205"
-                ],
+            ],
             "Smearing scheme": "Gaussian",
             "Smearing width": "0.00100000",
-            "Species": "1 (Ar)",
+            "Species 1": {
+                "# of radial points in muffin-tin": "1000",
+                "Atomic positions": {
+                    "Atom 1": "0.00000000  0.00000000  0.00000000"
+                },
+                "Species": "1 (Ar)",
+                "Species symbol": "Ar",
+                "atomic mass": "72820.74920000",
+                "electronic charge": "18.00000000",
+                "muffin-tin radius": "6.00000000",
+                "name": "argon",
+                "nuclear charge": "-18.00000000",
+                "parameters loaded from": "Ar.xml"
+            },
             "Species with R^MT_min": "1 (Ar)",
             "Maximum |G+k| for APW functions": "1.66666667",
             "Spin treatment": "spin-unpolarised",
@@ -72,21 +83,17 @@ def test_parse_info_out():
             "Total number of valence states": "10",
             "Total valence charge": "8.00000000",
             "Unit cell volume": "3375.0000000000",
-            "atomic mass": "72820.74920000",
-            "atomic positions (lattice)": "",
             "computing H and O matrix elements": "4",
-            "electronic charge": "18.00000000",
             "inner part of muffin-tin": "2",
             "k-point grid": "1    1    1",
             "R^MT_min * |G+k|_max (rgkmax)": "10.00000000",
             "libxc; exchange": "Slater exchange; correlation",
             "mixing": "Using multisecant Broyden potential mixing",
-            "muffin-tin radius": "6.00000000",
-            "name": "argon",
-            "nuclear charge": "-18.00000000",
-            "parameters loaded from": "Ar.xml",
-            "potential and density": "4"
-            },
+            "potential and density": "4",
+            "units": {
+                "positions": "lattice"
+            }
+        },
         "scl": {
             "1": {
                 "Core-electron kinetic energy": "0.00000000",
@@ -116,7 +123,7 @@ def test_parse_info_out():
                 "total charge in muffin-tins": "17.99816103",
                 "valence": "8.00000000",
                 "xc potential energy": "-38.82700618"
-                },
+            },
             "11": {
                 "Core-electron kinetic energy": "0.00000000",
                 "Correlation energy": "-1.43084350",
@@ -145,9 +152,9 @@ def test_parse_info_out():
                 "total charge in muffin-tins": "17.99815963",
                 "valence": "8.00000000",
                 "xc potential energy": "-38.82693481"
-                }
             }
         }
+    }
 
     info_out = parse_info_out("../../test/test_farm/groundstate/LDA_VWN-Ar/ref/INFO.OUT")
 
