@@ -2,6 +2,7 @@
 Ground state file parsers
 """
 import xml.etree.ElementTree as ET
+from typing import Union
 
 from .erroneous_file_error import ErroneousFileError
 
@@ -28,7 +29,7 @@ def parse_info_out(name: str) -> dict:
                                                 in line):
             nscl.append(i)
         if ('Convergence criteria checked for the last 2 iterations'
-                in line) or ('Self-consistent loop stopped' in line):
+            in line) or ('Self-consistent loop stopped' in line):
             nscl.append(i)
         # stores the number of the first and last line of the initialization into a list
         if 'Starting initialization' in line:
@@ -50,6 +51,7 @@ def parse_info_out(name: str) -> dict:
     ini = []
     inits = {}
     k = 0
+    speci = 0  # variable to detect different species in INFO.OUT
 
     # loops through all lines of the initialization
     for i in range(nini[0], nini[1]):
@@ -57,11 +59,14 @@ def parse_info_out(name: str) -> dict:
         if (':' in lines[i]):
             lines[i] = lines[i].split(':')
             ini.append(lines[i])
+            if ini[k][0][1] != ' ' and speci != 0:  # if indentation stops, species part is ended
+                speci = 0
+
             ini[k][0] = ini[k][0].strip()
             ini[k][1] = ini[k][1].strip()
             if ('Lattice vectors'
-                    in ini[k][0]) or ('Reciprocal lattice vectors'
-                                      in ini[k][0]):
+                in ini[k][0]) or ('Reciprocal lattice vectors'
+                                  in ini[k][0]):
                 ini[k][1] = []
                 lines[i + 1] = (lines[i + 1].split())
                 lines[i + 2] = (lines[i + 2].split())
@@ -72,13 +77,33 @@ def parse_info_out(name: str) -> dict:
                     ini[k][1].append(lines[i + 3][j])
                 if ' ' in ini[k][1]:
                     ini[k][1] = ini[k][1].split()
-            # stores variable-value pairs in a dictionary
-            inits.update({ini[k][0]: ini[k][1]})
+
+            # initialize species subdict if key Species is found:
+            if ini[k][0] == 'Species':
+                speci = ini[k][1][0]
+                speci_name = ini[k][1][3:-1]
+                inits.update({'Species ' + speci: {'Species symbol': speci_name}})
+
+            # stores variable-value pairs in a dictionary, in species subdict if necessary
+            if speci != 0:
+                if ini[k][0][:16] == 'atomic positions':
+                    split_key = ini[k][0].split()
+                    unit = split_key[2][1:-1]
+                    inits['Species ' + speci].update({'Atomic positions': {}})
+                else:
+                    try:
+                        key_name = 'Atom ' + str(int(ini[k][0]))
+                        inits['Species ' + speci]['Atomic positions'].update({key_name: ini[k][1]})
+                    except ValueError:
+                        inits['Species ' + speci].update({ini[k][0]: ini[k][1]})
+            else:
+                inits.update({ini[k][0]: ini[k][1]})
             k = k + 1
         # type of mixing is stored in the dictionary too
         if 'mixing' in lines[i]:
             lines[i] = lines[i].strip()
             inits.update({'mixing': lines[i]})
+    inits.update({'units': {'positions': unit}})
 
     INFO['initialization'] = inits
 
@@ -170,7 +195,7 @@ def parse_info_xml(name):
                     excitingRun[i]['moments']['atomic'] = atomic_moment
         i = i + 1
     info['scl'] = {}
-    for item in excitingRun:  #converts list of scl-iterations into a dictionary
+    for item in excitingRun:  # converts list of scl-iterations into a dictionary
         name = item['iteration']
         info['scl'][name] = item
 
@@ -202,13 +227,13 @@ def parse_atoms(name):
         atom[i]['NumericalSetup'] = node.find('NumericalSetup').attrib
         atom[i]['spectrum'] = {}
         j = 0
-        for item in spectrum:  #converts list of states into a dictionary
+        for item in spectrum:  # converts list of states into a dictionary
             name = str(j)
             atom[i]['spectrum'][name] = item
             j = j + 1
         i = i + 1
     atoms['atom'] = {}
-    for item in atom:  #converts list of atoms into a dictionary
+    for item in atom:  # converts list of atoms into a dictionary
         name = item['chemicalSymbol']
         atoms['atom'][name] = item
 
@@ -233,13 +258,13 @@ def parse_eigval(name):
         state = []
         for subnode in node:
             state.append(subnode.attrib)
-            kpt['state'] = {}  #converts list of states into a dictionary
+            kpt['state'] = {}  # converts list of states into a dictionary
         for item in state:
             name = item['ist']
             kpt['state'][name] = item
             kpts.append(kpt)
             eigval['kpt'] = {}
-    for item in kpts:  #converts list of kpts into a dictionary
+    for item in kpts:  # converts list of kpts into a dictionary
         name = item['ik']
         eigval['kpt'][name] = item
 
@@ -269,17 +294,17 @@ def parse_evalcore(name):
                 state = subnode1.attrib
                 states.append(state)
             atom['state'] = {}
-            for item in states:  #converts list of states into a dictionary
+            for item in states:  # converts list of states into a dictionary
                 name = item['ist']
                 atom['state'][name] = item
             atoms.append(atom)
             species['atom'] = {}
-            for item in atoms:  #converts list of atoms into a dictionary
+            for item in atoms:  # converts list of atoms into a dictionary
                 name = item['ia']
                 species['atom'][name] = item
         speciess.append(species)
     evalcore['species'] = {}
-    for item in speciess:  #converts list of species into a dictionary
+    for item in speciess:  # converts list of species into a dictionary
         name = item['chemicalSymbol']
         evalcore['species'][name] = item
 
