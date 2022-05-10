@@ -106,13 +106,13 @@ contains
         ! Write dielectric matrix to file
         do i_freq = 1, n_freqs
             call puteps0_finite_q(1, qvec, i_freq, freqs(i_freq), &
-                                  eps_body(:, :, i_freq), trim(filename))
+                                  eps_body(:, :, i_freq), fname=trim(filename))
         end do
 
         ! Read dielectric matrix from file
         do i_freq = 1, n_freqs
             call geteps0_finite_q(1, qvec, i_freq, freqs(i_freq), &
-                                  eps_read(:, :, i_freq), trim(filename))
+                                  eps_read(:, :, i_freq), fname=trim(filename))
         end do
 
         ! Compare written and read data
@@ -178,7 +178,7 @@ contains
                                 eps_body(:, :, i_freq), &
                                 eps_wings(:, :, :, i_freq), &
                                 eps_head(:, :, i_freq), &
-                                trim(filename))
+                               fname=trim(filename))
         end do
 
         ! Read dielectric matrix from file
@@ -187,7 +187,7 @@ contains
                                 eps_body_read(:, :, i_freq), &
                                 eps_wings_read(:, :, :, i_freq), &
                                 eps_head_read(:, :, i_freq), &
-                                trim(filename))
+                                fname=trim(filename))
         end do
 
         ! Compare written and read data
