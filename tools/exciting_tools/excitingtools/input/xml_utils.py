@@ -1,5 +1,6 @@
 """Utilities to aid in writing and formatting XML
 """
+from typing import Union, List
 from xml.dom import minidom
 from xml.etree import ElementTree
 import re
@@ -48,18 +49,22 @@ def line_reformatter(input_str: str, tag: str) -> str:
     """
     # Get rid of format characters, like \n, \t etc
     input_str = input_str.strip()
+    number_of_tag_indents = len(tag) - len(tag.strip())
     tag = tag.strip()
 
     # This should not occur if the routine is only used with `prettify_tag_attributes`
     if tag != input_str[0:len(tag)]:
         raise ValueError(f'tag, "{tag}", is inconsistent the element name, "{input_str[0:len(tag)]}"')
 
-    tag_indent = ' ' * 8
+    tag_indent = '\t' * number_of_tag_indents
     attr_indent = tag_indent + ' ' * 3
 
     # Isolate attributes according to position of quotation marks in string
     # (cannot use whitespaces to split)
     quote_indices = [x.start() for x in re.finditer('\"', input_str)]
+    # if there are only few attributes present:
+    if len(quote_indices) < 5:
+        return tag_indent + input_str
     closing_quote_indices = quote_indices[1::2]
     attribute_start_indices = [len(tag) + 1] + [i + 1 for i in closing_quote_indices[:-1]]
 
@@ -71,11 +76,13 @@ def line_reformatter(input_str: str, tag: str) -> str:
         attribute_str = input_str[i1:i2 + 1].strip()
         reformatted_str += attr_indent + attribute_str + '\n'
 
-    reformatted_str += tag_indent + input_str[-(len(tag) + 2):] + '\n'
+    reformatted_str = reformatted_str[:-1] + '>\n'
+    if input_str[-(len(tag) + 2):-len(tag)] == '</':
+        reformatted_str += tag_indent + input_str[-(len(tag) + 2):] + '\n'
     return reformatted_str
 
 
-def prettify_tag_attributes(xml_string: str, tag: str) -> str:
+def prettify_tag_attributes(xml_string: str, tag: Union[str, List[str]]) -> str:
     """Prettify XML string formatting of attributes, for a given XML element.
 
     The routine finds the line containing the XML element which matches <tag, applies
@@ -100,16 +107,20 @@ def prettify_tag_attributes(xml_string: str, tag: str) -> str:
     ```
 
     :param str xml_string: Already-prettified XML string (assumes tags are on their own lines)
-    :param str tag: XML element of the form "<tag"
+    :param str tag: XML element of the form "<tag" or multiple of these tags as list
     :return str reformatted_xml_string: xml_string, with the tag substring reformatted according to the example
      - Line break per attribute.
     """
+    if isinstance(tag, str):
+        tag = [tag]
+
     xml_list = xml_string.split('\n')
 
     for i, line in enumerate(xml_list):
-        match = re.match(tag, line)
-        if match:
-            xml_list[i] = line_reformatter(line, tag)
-            break
+        for single_tag in tag:
+            match = re.match(single_tag, line)
+            if match:
+                xml_list[i] = line_reformatter(line, single_tag)
+                break
 
     return "".join(x + '\n' for x in xml_list)

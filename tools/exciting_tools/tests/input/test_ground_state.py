@@ -95,4 +95,5 @@ def test_invalid_input():
     with pytest.raises(ValueError) as error:
         ExcitingGroundStateInput(erroneous_attribute=True)
 
-    assert error.value.args[0] == "Input/s are not valid: ['erroneous_attribute']"
+    assert error.value.args[
+               0] == "groundstate keys are not valid: {'erroneous_attribute'}"

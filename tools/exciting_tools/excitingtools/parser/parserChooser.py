@@ -8,8 +8,6 @@ it should be added to the function `parser_expects_file_str`.
 """
 import os
 import sys
-from xml.etree.ElementTree import ParseError
-from typing import Callable
 
 from excitingtools.dict_utils import container_converter
 
@@ -18,7 +16,6 @@ from . import properties_parser
 from . import bse_parser
 from . import gw_parser
 from . import RT_TDDFT_parser
-from .erroneous_file_error import ErroneousFileError
 from .parser_utils import generic_parser
 
 
@@ -59,7 +56,7 @@ _file_to_parser = {
     'POLARIZATION.OUT': properties_parser.parse_polarization,
     'TDOS_WANNIER.OUT': properties_parser.parse_tdos_wannier,
     'WANNIER_INFO.OUT': properties_parser.parse_wannier_info,
-    'coreoverlap.xml': properties_parser.parse_core_overlap,  
+    'coreoverlap.xml': properties_parser.parse_core_overlap,
     'EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT': bse_parser.parse_EPSILON_NAR,
     'EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT': bse_parser.parse_EPSILON_NAR,
     'EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT': bse_parser.parse_EPSILON_NAR,
@@ -72,6 +69,9 @@ _file_to_parser = {
     'EPSILON_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT': bse_parser.parse_EPSILON_NAR,
     'EPSILON_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT': bse_parser.parse_EPSILON_NAR,
     'EPSILON_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT': bse_parser.parse_EPSILON_NAR,
+    'EPSILON_BSE-IP_SCR-full_OC11.OUT': bse_parser.parse_EPSILON_NAR,
+    'EPSILON_BSE-IP_SCR-full_OC22.OUT': bse_parser.parse_EPSILON_NAR,
+    'EPSILON_BSE-IP_SCR-full_OC33.OUT': bse_parser.parse_EPSILON_NAR,
     'LOSS_NAR_FXCMB1_OC11_QMT001.OUT': bse_parser.parse_LOSS_NAR,
     'LOSS_NAR_FXCMB1_OC22_QMT001.OUT': bse_parser.parse_LOSS_NAR,
     'LOSS_NAR_FXCMB1_OC33_QMT001.OUT': bse_parser.parse_LOSS_NAR,
@@ -80,13 +80,19 @@ _file_to_parser = {
     'LOSS_NAR_NLF_FXCMB1_OC33_QMT001.OUT': bse_parser.parse_LOSS_NAR,
     'LOSS_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT': bse_parser.parse_LOSS_NAR,
     'LOSS_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT': bse_parser.parse_LOSS_NAR,
-    'LOSS_BSE-singlet-TDA-BAR_SCR-full_OC33.out': bse_parser.parse_LOSS_NAR,
+    'LOSS_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT': bse_parser.parse_LOSS_NAR,
+    'LOSS_BSE-IP_SCR-full_OC11.OUT': bse_parser.parse_LOSS_NAR,
+    'LOSS_BSE-IP_SCR-full_OC22.OUT': bse_parser.parse_LOSS_NAR,
+    'LOSS_BSE-IP_SCR-full_OC33.OUT': bse_parser.parse_LOSS_NAR,
     'EXCITON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT': bse_parser.parse_EXCITON_NAR_BSE,
     'EXCITON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT': bse_parser.parse_EXCITON_NAR_BSE,
     'EXCITON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT': bse_parser.parse_EXCITON_NAR_BSE,
     'EXCITON_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT': bse_parser.parse_EXCITON_NAR_BSE,
     'EXCITON_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT': bse_parser.parse_EXCITON_NAR_BSE,
     'EXCITON_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT': bse_parser.parse_EXCITON_NAR_BSE,
+    'EXCITON_BSE-IP_SCR-full_OC11.OUT': bse_parser.parse_EXCITON_NAR_BSE,
+    'EXCITON_BSE-IP_SCR-full_OC22.OUT': bse_parser.parse_EXCITON_NAR_BSE,
+    'EXCITON_BSE-IP_SCR-full_OC33.OUT': bse_parser.parse_EXCITON_NAR_BSE,
     'GW_INFO.OUT': gw_parser.parse_gw_info,
     'EFERMI_GW.OUT': gw_parser.parse_efermi_gw,
     'EVALQP.DAT': gw_parser.parse_evalqp,
