@@ -18,8 +18,6 @@ or
 
 """
 import sys
-from typing import List
-import py
 import pytest
 import numpy as np
 
@@ -31,42 +29,29 @@ except ImportError:
 from excitingtools.input.structure import ExcitingStructure
 
 
-def mock_species_files(tmpdir: py.path.local, species: List[str]):
-    """
-    Mock species files for test cases.
-
-    :param tmpdir: Temporary directory, used by pytest
-    :param species: List of species to mock
-    """
-    for element in species:
-        file = tmpdir / element + ".xml"
-        file.write("Arbitrary text")
-
-
 @pytest.fixture
-def xml_structure_H2He(tmpdir):
+def xml_structure_H2He():
     """
     structure object initialised with a mock crystal, using mandatory arguments only.
     """
     cubic_lattice = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
-    arbitrary_atoms = [{'species': 'H', 'position': [0, 0,0]},
+    arbitrary_atoms = [{'species': 'H', 'position': [0, 0, 0]},
                        {'species': 'H', 'position': [1, 0, 0]},
                        {'species': 'He', 'position': [2, 0, 0]}]
-    mock_species_files(tmpdir, ["H", "He"])
-    structure = ExcitingStructure(arbitrary_atoms, cubic_lattice, tmpdir)
+    structure = ExcitingStructure(arbitrary_atoms, cubic_lattice, './')
     return structure.to_xml()
 
 
-def test_class_exciting_structure_xml(tmpdir, xml_structure_H2He):
+def test_class_exciting_structure_xml(xml_structure_H2He):
     """
     Test input XML attributes from an instance of ExcitingStructure.
     """
     assert xml_structure_H2He.tag == 'structure', 'XML root should be structure'
     assert xml_structure_H2He.keys() == ['speciespath'], 'structure defined to have only speciespath '
-    assert xml_structure_H2He.get('speciespath') == str(tmpdir), 'species path set to tmpdir'
+    assert xml_structure_H2He.get('speciespath') == './', 'species path set to ./'
 
 
-def test_class_exciting_structure_crystal_xml(tmpdir, xml_structure_H2He):
+def test_class_exciting_structure_crystal_xml(xml_structure_H2He):
     """
     crystal subtree of structure.
     """
@@ -85,7 +70,7 @@ def test_class_exciting_structure_crystal_xml(tmpdir, xml_structure_H2He):
     assert lattice_vectors[2].text == "0.0 0.0 1.0", "Lattice vector `c` differs from input"
 
 
-def test_class_exciting_structure_species_xml(tmpdir, xml_structure_H2He):
+def test_class_exciting_structure_species_xml(xml_structure_H2He):
     """
     species subtrees of structure.
     """
@@ -112,7 +97,7 @@ def test_class_exciting_structure_species_xml(tmpdir, xml_structure_H2He):
 
 
 @pytest.fixture
-def xml_structure_CdS(tmpdir):
+def xml_structure_CdS():
     """
     structure object initialised with a mock crystal, using all atom properties.
     Optional atom attributes require the generic container, List[dict].
@@ -125,18 +110,17 @@ def xml_structure_CdS(tmpdir):
         'lockxyz': [False, False, False],
         'mommtfix': [2.0, 2.0, 2.0]
         }, {'species': 'S', 'position': [1.0, 0.0, 0.0]}]
-    mock_species_files(tmpdir, ["Cd", "S"])
-    structure = ExcitingStructure(arbitrary_atoms, cubic_lattice, str(tmpdir))
+    structure = ExcitingStructure(arbitrary_atoms, cubic_lattice, './')
     return structure.to_xml()
 
 
-def test_optional_atom_attributes_xml(tmpdir, xml_structure_CdS):
+def test_optional_atom_attributes_xml(xml_structure_CdS):
     """
     Test optional atom attributes are correctly set in XML tree.
     """
     assert xml_structure_CdS.tag == 'structure'
     assert xml_structure_CdS.keys() == ['speciespath'], 'structure defined to have only speciespath '
-    assert xml_structure_CdS.get('speciespath') == str(tmpdir), 'speciespath should equal tmpdir'
+    assert xml_structure_CdS.get('speciespath') == './', 'speciespath set to be ./'
 
     elements = list(xml_structure_CdS)
     assert len(elements) == 3, 'Expect structure tree to have 3 sub-elements'
@@ -174,18 +158,17 @@ def test_optional_atom_attributes_xml(tmpdir, xml_structure_CdS):
 
 
 @pytest.fixture
-def lattice_and_atoms_CdS(tmpdir):
+def lattice_and_atoms_CdS():
     """
     structure object initialised with a mock crystal
     """
     cubic_lattice = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
     arbitrary_atoms = [{'species': 'Cd', 'position': [0.0, 0.0, 0.0]},
                        {'species': 'S', 'position': [1.0, 0.0, 0.0]}]
-    mock_species_files(tmpdir, ["Cd", "S"])
     return cubic_lattice, arbitrary_atoms
 
 
-def test_optional_structure_attributes_xml(tmpdir, lattice_and_atoms_CdS):
+def test_optional_structure_attributes_xml(lattice_and_atoms_CdS):
     """
     Test optional structure attributes.
     """
@@ -194,7 +177,7 @@ def test_optional_structure_attributes_xml(tmpdir, lattice_and_atoms_CdS):
         'autormt': True, 'cartesian': False, 'epslat': 1.e-6, 'primcell': False, 'tshift': True
         }
     structure = ExcitingStructure(
-        arbitrary_atoms, cubic_lattice, str(tmpdir), structure_properties=structure_attributes
+        arbitrary_atoms, cubic_lattice, './', structure_properties=structure_attributes
         )
     xml_structure = structure.to_xml()
 
@@ -204,7 +187,7 @@ def test_optional_structure_attributes_xml(tmpdir, lattice_and_atoms_CdS):
     assert xml_structure.tag == 'structure'
     assert xml_structure.keys() == mandatory + optional, \
         'Should contain mandatory speciespath plus all optional attributes'
-    assert xml_structure.get('speciespath') == str(tmpdir), 'species path should equal tmpdir'
+    assert xml_structure.get('speciespath') == './', 'species path should be ./'
     assert xml_structure.get('autormt') == 'true'
     assert xml_structure.get('cartesian') == 'false'
     assert xml_structure.get('epslat') == '1e-06'
@@ -212,7 +195,7 @@ def test_optional_structure_attributes_xml(tmpdir, lattice_and_atoms_CdS):
     assert xml_structure.get('tshift') == 'true'
 
 
-def test_optional_crystal_attributes_xml(tmpdir, lattice_and_atoms_CdS):
+def test_optional_crystal_attributes_xml(lattice_and_atoms_CdS):
     """
     Test optional crystal attributes.
     """
@@ -221,7 +204,7 @@ def test_optional_crystal_attributes_xml(tmpdir, lattice_and_atoms_CdS):
     structure = ExcitingStructure(
         arbitrary_atoms,
         cubic_lattice,
-        str(tmpdir),
+        './',
         crystal_properties={'scale': 1.00, 'stretch': 1.00}
         )
     xml_structure = structure.to_xml()
@@ -236,7 +219,7 @@ def test_optional_crystal_attributes_xml(tmpdir, lattice_and_atoms_CdS):
     assert crystal_xml.get('stretch') == '1.0', 'stretch value inconsistent with input'
 
 
-def test_optional_species_attributes_xml(tmpdir, lattice_and_atoms_CdS):
+def test_optional_species_attributes_xml(lattice_and_atoms_CdS):
     """
     Test optional species attributes.
     """
@@ -244,7 +227,7 @@ def test_optional_species_attributes_xml(tmpdir, lattice_and_atoms_CdS):
     species_attributes = {'Cd': {'rmt': 3.0}, 'S': {'rmt': 4.0}}
 
     structure = ExcitingStructure(
-        arbitrary_atoms, cubic_lattice, str(tmpdir), species_properties=species_attributes
+        arbitrary_atoms, cubic_lattice, './', species_properties=species_attributes
         )
     xml_structure = structure.to_xml()
 
@@ -267,24 +250,23 @@ def test_optional_species_attributes_xml(tmpdir, lattice_and_atoms_CdS):
 
 
 @pytest.fixture
-def lattice_and_atoms_H20(tmpdir):
+def lattice_and_atoms_H20():
     """
     H20 molecule in a big box (angstrom)
     """
     cubic_lattice = [[10.0, 0.0, 0.0], [0.0, 10.0, 0.0], [0.0, 0.0, 10.0]]
     atoms = [{'species': 'H', 'position': [0.00000, 0.75545, -0.47116]},
-                       {'species': 'O', 'position': [0.00000, 0.00000, 0.11779]},
-                       {'species': 'H', 'position': [0.00000, 0.75545, -0.47116]}]
-    mock_species_files(tmpdir, ["H", "O"])
+             {'species': 'O', 'position': [0.00000, 0.00000, 0.11779]},
+             {'species': 'H', 'position': [0.00000, 0.75545, -0.47116]}]
     return cubic_lattice, atoms
 
 
-def test_group_atoms_by_species(tmpdir, lattice_and_atoms_H20):
+def test_group_atoms_by_species(lattice_and_atoms_H20):
     """
     Test group_atoms_by_species method.
     """
     cubic_lattice, atoms = lattice_and_atoms_H20
-    structure = ExcitingStructure(atoms, cubic_lattice, tmpdir)
+    structure = ExcitingStructure(atoms, cubic_lattice, './')
     assert structure.species == ['H', 'O', 'H'], 'Species list differs from lattice_and_atoms_H20'
 
     indices = structure._group_atoms_by_species()
@@ -299,7 +281,7 @@ def test_group_atoms_by_species(tmpdir, lattice_and_atoms_H20):
 
 
 @pytest.fixture
-def ase_atoms_H20(tmpdir, lattice_and_atoms_H20):
+def ase_atoms_H20(lattice_and_atoms_H20):
     """
     H20 molecule in a big box (angstrom), in ASE Atoms()
     Converts a List[dict] to ase.atoms.Atoms.
@@ -314,7 +296,7 @@ def ase_atoms_H20(tmpdir, lattice_and_atoms_H20):
     return []
 
 
-def test_class_exciting_structure_ase(tmpdir, ase_atoms_H20):
+def test_class_exciting_structure_ase(ase_atoms_H20):
     """
     Test the ASE Atoms object gets used correctly by the ExcitingStructure constructor.
     """
@@ -323,8 +305,7 @@ def test_class_exciting_structure_ase(tmpdir, ase_atoms_H20):
         return
 
     atoms = ase_atoms_H20
-    mock_species_files(tmpdir, atoms.get_chemical_symbols())
-    structure = ExcitingStructure(atoms, species_path=tmpdir)
+    structure = ExcitingStructure(atoms, species_path='./')
 
     assert structure.species == ["H", "O", "H"]
     assert np.allclose(structure.lattice,
@@ -337,61 +318,3 @@ def test_class_exciting_structure_ase(tmpdir, ase_atoms_H20):
     # This just confirms the XML tree is built, not that it is correct.
     xml_structure = structure.to_xml()
     assert list(xml_structure.keys()) == ['speciespath'], 'Only expect speciespath in structure xml keys'
-
-
-def test_check_for_species_files_not_exist_dir():
-    """
-    Ensure an error raised when species files directory does not exist.
-    """
-    cubic_lattice = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
-    arbitrary_atoms = [{'species': 'Cd', 'position': [0.0, 0.0, 0.0]},
-                       {'species': 'S', 'position': [1.0, 0.0, 0.0]}]
-
-    with pytest.raises(StopIteration) as error:
-        ExcitingStructure(arbitrary_atoms, cubic_lattice, species_path="./not_existing_dir")
-
-    assert error.value.args[0] == \
-           "species_path does not exist or is empty: ./not_existing_dir"
-
-
-def test_check_for_species_files_no_species_files(tmpdir):
-    """
-    Test that an error is raised when species files don't exist.
-    Achieved by not mocking the species files in this test.
-    """
-    cubic_lattice = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
-    arbitrary_atoms = [{'species': 'Cd', 'position': [0.0, 0.0, 0.0]},
-                       {'species': 'S', 'position': [1.0, 0.0, 0.0]}]
-
-    with pytest.raises(FileNotFoundError) as error:
-        ExcitingStructure(arbitrary_atoms, cubic_lattice, species_path=tmpdir)
-
-    assert error.value.args[0] == f"species_path directory does not contain species files: {tmpdir}"
-
-
-def test_check_for_species_files_missing_species(tmpdir):
-    """
-    Ensure error raised when a required species file is missing.
-    """
-    cubic_lattice = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
-    arbitrary_atoms = [{'species': 'H', 'position': [0.0, 0.0, 0.0]}]
-    mock_species_files(tmpdir, ['He'])
-
-    with pytest.raises(FileNotFoundError) as error:
-        ExcitingStructure(arbitrary_atoms, cubic_lattice, species_path=tmpdir)
-
-    assert error.value.args[0] == f"Species files, ['H.xml'], are missing from: {tmpdir}"
-
-
-def test_initialise_with_bad_chemical_symbol(tmpdir):
-    """
-    Ensure error raised when initialising with a species that is not a
-    chemical element.
-    """
-    cubic_lattice = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
-    arbitrary_atoms = [{'species': 'Xx', 'position': [1, 0, 0]}]
-
-    with pytest.raises(ValueError) as error:
-        ExcitingStructure(arbitrary_atoms, cubic_lattice, tmpdir)
-
-    assert error.value.args[0] == "Species input keys are not valid: {'xx'}"

@@ -1,10 +1,11 @@
-"""Base class for exciting input classes
+"""Base class for exciting input classes.
 """
 from abc import ABC, abstractmethod
-from typing import Union
-import xml
+from typing import Union, Set
 from xml.etree import ElementTree
 from pathlib import Path
+
+from excitingtools.dict_utils import check_valid_keys
 
 
 class ExcitingInput(ABC):
@@ -12,12 +13,61 @@ class ExcitingInput(ABC):
 
     @abstractmethod
     def to_xml(self) -> ElementTree:
+        """ Convert class attributes to XML ElementTree."""
         ...
 
-    def to_xml_str(self) -> str:
-        """ Convert attributes to XML tree string
+
+class ExcitingXMLInput(ExcitingInput):
+    """Base class for exciting inputs that only consist of many attributes."""
+
+    # Convert python data to string, formatted specifically for
+    _attributes_to_input_str = {int: lambda x: str(x),
+                                float: lambda x: str(x),
+                                bool: lambda x: str(x).lower(),
+                                str: lambda x: x,
+                                list: lambda mylist: " ".join(str(x).lower() for x in mylist).strip(),
+                                tuple: lambda mylist: " ".join(str(x).lower() for x in mylist).strip()
+                                }
+
+    def __init__(self, name: str, valid_attributes: Set[str] = None, **kwargs):
+        """Initialise class attributes with kwargs.
+
+        Rather than define all options for a given method, pass as kwargs and directly
+        insert as class attributes.
+
+        :param name: Method name.
         """
-        return xml.etree.ElementTree.tostring(self.to_xml(), encoding='unicode', method='xml')
+        self.name = name
+        if valid_attributes is not None:
+            check_valid_keys(kwargs.keys(), valid_attributes, self.name)
+        self.__dict__.update(kwargs)
+
+    def to_xml(self) -> ElementTree:
+        """Put class attributes into an XML tree, with the element given by self.name.
+
+        Example ground state XML sub-tree:
+           <groundstate vkloff="0.5  0.5  0.5" ngridk="2 2 2" mixer="msec" </groundstate>
+
+        Note, kwargs preserve the order of the arguments, however the order does not appear to be
+        preserved when passed to (or perhaps converted to string) with xml.etree.ElementTree.tostring.
+
+        :return ElementTree.Element sub_tree: sub_tree element tree, with class attributes inserted.
+        """
+        inputs = {}
+        attributes = {key: value for key, value in self.__dict__.items() if key != 'name'}
+        for key, value in attributes.items():
+            inputs[key] = self._attributes_to_input_str[type(value)](value)
+
+        sub_tree = ElementTree.Element(self.name, **inputs)
+
+        # Seems to want this operation on a separate line
+        sub_tree.text = ' '
+
+        return sub_tree
+
+    def to_xml_str(self) -> str:
+        """ Convert attributes to XML tree string. """
+        return ElementTree.tostring(self.to_xml(), encoding='unicode', method='xml')
 
 
 def query_exciting_version(exciting_root: Union[Path, str]) -> dict:
@@ -43,7 +93,8 @@ def query_exciting_version(exciting_root: Union[Path, str]) -> dict:
     version_inc = exciting_root / 'src/version.inc'
 
     if not version_inc.exists():
-        raise FileNotFoundError(f'{version_inc} cannot be found. This file generated when the code is built')
+        raise FileNotFoundError(f'{version_inc} cannot be found. '
+                                f'This file generated when the code is built')
 
     with open(version_inc, 'r') as fid:
         all_lines = fid.readlines()

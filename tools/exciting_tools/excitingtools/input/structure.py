@@ -1,8 +1,6 @@
 """Structure class, mirroring that of exciting's structure XML sub-tree.
 http://exciting.wikidot.com/ref:structure
 """
-import os
-
 from typing import Optional, Union, List
 import pathlib
 import xml.etree.ElementTree as ET
@@ -10,7 +8,8 @@ import xml.etree.ElementTree as ET
 from excitingtools.utils import list_to_str
 from excitingtools.dict_utils import check_valid_keys
 from excitingtools.lattice import check_lattice, check_lattice_vector_norms
-from excitingtools.input.base_class import ExcitingInput
+from excitingtools.input.base_class import ExcitingXMLInput
+
 
 # Set of all elements
 all_species = {'Ni', 'La', 'K', 'Xe', 'Ag', 'Bk', 'Co', 'Md', 'Lu', 'Ar',
@@ -24,42 +23,6 @@ all_species = {'Ni', 'La', 'K', 'Xe', 'Ag', 'Bk', 'Co', 'Md', 'Lu', 'Ar',
                'Al', 'V', 'Cd', 'Tm', 'Tl', 'Ba', 'Ce', 'W', 'Am', 'Cr',
                'Nb', 'Mn', 'S', 'Ca', 'Be', 'Br', 'Th', 'Ti', 'Np', 'Ne',
                'P.', 'Cu', 'F', 'Nd'}
-
-# List of all species files
-all_species_files = ['Ni.xml', 'La.xml', 'K.xml', 'Xe.xml', 'Ag.xml', 'Bk.xml', 'Co.xml', 'Md.xml', 'Lu.xml', 'Ar.xml',
-                     'Bi.xml', 'Cm.xml', 'H.xml', 'Yb.xml', 'Zn.xml', 'Te.xml', 'I.xml', 'Cl.xml', 'As.xml', 'Mg.xml',
-                     'No.xml', 'Ta.xml', 'N.xml', 'Ac.xml', 'Y.xml', 'At.xml', 'Tb.xml', 'Tc.xml', 'Au.xml', 'O.xml',
-                     'Lr.xml', 'In.xml', 'Ge.xml', 'Re.xml', 'Pm.xml', 'Gd.xml', 'Kr.xml', 'Po.xml', 'Sc.xml', 'Rf.xml',
-                     'Sb.xml', 'Rb.xml', 'Ru.xml', 'Dy.xml', 'Ho.xml', 'Ra.xml', 'Se.xml', 'Sr.xml', 'Fr.xml', 'Ga.xml',
-                     'Fe.xml', 'Es.xml', 'Si.xml', 'Pr.xml', 'Pd.xml', 'Er.xml', 'Rn.xml', 'Ir.xml', 'He.xml', 'Eu.xml',
-                     'Pt.xml', 'Pu.xml', 'Sn.xml', 'Pb.xml', 'Hf.xml', 'Fm.xml', 'Rh.xml', 'Sm.xml', 'Pa.xml', 'Hg.xml',
-                     'Os.xml', 'B.xml', 'U.xml', 'Zr.xml', 'Cf.xml', 'C.xml', 'Na.xml', 'Li.xml', 'Mo.xml', 'Cs.xml',
-                     'Al.xml', 'V.xml', 'Cd.xml', 'Tm.xml', 'Tl.xml', 'Ba.xml', 'Ce.xml', 'W.xml', 'Am.xml', 'Cr.xml',
-                     'Nb.xml', 'Mn.xml', 'S.xml', 'Ca.xml', 'Be.xml', 'Br.xml', 'Th.xml', 'Ti.xml', 'Np.xml', 'Ne.xml',
-                     'P.xml', 'Cu.xml', 'F.xml', 'Nd.xml']
-
-
-def check_for_species_files(species_path: str, species: List[str]):
-    """ Check that the specified species files exist in the species_path.
-
-    :param species_path: Species path
-    :param species: List of species
-    """
-    try:
-        files_in_directory = next(os.walk(species_path))[2]
-    except StopIteration:
-        raise StopIteration(f'species_path does not exist or is empty: {species_path}')
-
-    species_in_directory = set(files_in_directory) & set(all_species_files)
-
-    if not species_in_directory:
-        raise FileNotFoundError(f"species_path directory does not contain species files: {species_path}")
-
-    species_files_required = {s + '.xml' for s in set(species)}
-
-    if not set(species_files_required).issubset(species_in_directory):
-        missing_species = [s for s in species_files_required if s not in species_in_directory]
-        raise FileNotFoundError(f"Species files, {missing_species}, are missing from: {species_path}")
 
 
 def check_muffin_tin_radii():
@@ -77,7 +40,7 @@ def check_muffin_tin_radii():
     raise NotImplementedError('Check of MT radii requires implementing. See exciting gitlab issue 117')
 
 
-class ExcitingStructure(ExcitingInput):
+class ExcitingStructure(ExcitingXMLInput):
     """ Class allowing exciting XML structure to be written from python data.
 
     TODO(Fabian/Alex) 117. Implement all remaining attributes:
@@ -147,14 +110,13 @@ class ExcitingStructure(ExcitingInput):
             self.lattice, self.species, self.positions = self._init_lattice_species_positions_from_ase_atoms(atoms)
             self.atom_properties = [{}] * len(self.species)
 
-            # TODO(Fab) 117. Implement check that MT spheres do not overlap. check_muffin_tin_radii()
+        # TODO(Fab) 117. Implement check that MT spheres do not overlap. check_muffin_tin_radii()
         self.species_path = species_path
         self.unique_species = sorted(set(self.species))
 
         # Catch symbols that are not valid elements
         check_valid_keys({x.lower() for x in self.unique_species},
                          {x.lower() for x in all_species}, name='Species input')
-        check_for_species_files(self.species_path, self.unique_species)
 
         # Optional properties
         self.structure_properties = self._init_structure_properties(structure_properties)
@@ -201,7 +163,10 @@ class ExcitingStructure(ExcitingInput):
 
         for atom in atoms:
             optional_property_keys = set(atom.keys()) & self._valid_atom_attributes
-            optional_properties = {key: list_to_str(atom[key], lambda x: x.lower()) for key in optional_property_keys}
+            optional_atom = {key: atom[key] for key in optional_property_keys}
+            optional_properties = {}
+            for key, value in optional_atom.items():
+                optional_properties[key] = self._attributes_to_input_str[type(value)](value)
             atom_properties.append(optional_properties)
 
         return atom_properties

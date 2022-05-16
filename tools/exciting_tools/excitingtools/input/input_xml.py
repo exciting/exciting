@@ -6,6 +6,7 @@ from xml.etree import ElementTree
 
 from excitingtools.input.structure import ExcitingStructure
 from excitingtools.input.ground_state import ExcitingGroundStateInput
+from excitingtools.input.xs import ExcitingXSInput
 from excitingtools.input.xml_utils import xml_tree_to_pretty_str, prettify_tag_attributes
 
 
@@ -27,7 +28,8 @@ def initialise_input_xml(title: str) -> ElementTree.Element:
 
 def exciting_input_xml(structure: ExcitingStructure,
                        groundstate: ExcitingGroundStateInput,
-                       title: Optional[str] = '') -> ElementTree.Element:
+                       title: Optional[str] = '',
+                       xs: Optional[ExcitingXSInput] = None) -> ElementTree.Element:
     """Compose XML ElementTrees from exciting input classes to create an input XML tree.
 
     Expected usage: input_xml = exciting_input_xml(structure, groundstate, title=title)
@@ -35,6 +37,7 @@ def exciting_input_xml(structure: ExcitingStructure,
     :param ExcitingStructure structure: Structure containing lattice vectors and atomic positions.
     :param groundstate: exciting ground state input object.
     :param Optional[str] title: Optional title for input file.
+    :param xs: exciting xs input object.
     :return ElementTree.Element root: Input XML tree, with sub-elements inserted.
     """
     root = initialise_input_xml(title)
@@ -42,7 +45,7 @@ def exciting_input_xml(structure: ExcitingStructure,
     structure_tree = structure.to_xml()
     root.append(structure_tree)
 
-    exciting_elements = OrderedDict([('groundstate', groundstate)])
+    exciting_elements = OrderedDict([('groundstate', groundstate), ('xs', xs)])
 
     for element in exciting_elements.values():
         if element is not None:
@@ -61,5 +64,7 @@ def exciting_input_xml_str(structure: ExcitingStructure,
     :return input_xml_str: Input XML tree as a string, with pretty formatting.
     """
     xml_tree = exciting_input_xml(structure, groundstate, **kwargs)
-    input_xml_str = prettify_tag_attributes(xml_tree_to_pretty_str(xml_tree), "<groundstate")
+    tags_to_prettify = ["\t<structure", "\t\t<crystal", "\t\t<species", "\t\t\t<atom", "\t<groundstate", "\t<xs",
+                        "\t\t<screening", "\t\t<BSE", "\t\t<energywindow"]
+    input_xml_str = prettify_tag_attributes(xml_tree_to_pretty_str(xml_tree), tags_to_prettify)
     return input_xml_str
