@@ -122,3 +122,15 @@ twine upload dist/*
 ```
 
 Before doing so, please ensure the semantic versioning is appropriately updated in `setup.py`.
+
+
+## Contributors
+The following people (in alphabetic order by their family names) have contributed to excitingtools:
+
+* Alexander Buccheri
+* Hannah Kleine
+* Martin Kuban
+* Benedikt Maurer
+* Fabian Peschel
+* Daniel Speckhard
+* Elisa Stephan
