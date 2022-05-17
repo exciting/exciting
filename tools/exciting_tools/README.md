@@ -4,7 +4,7 @@ the post-processing of exciting outputs.
 
 ## Installation
 If one wishes to import *exciting tools* in their own scripts, it can be installed from this project's root directory 
-(`exciting/tools/exciting_tools`) with:
+(`<EXCITINGROOT>/tools/exciting_tools`) with:
 
 ```angular2html
 pip install -e .
