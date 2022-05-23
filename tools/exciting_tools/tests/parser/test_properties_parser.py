@@ -12,7 +12,7 @@ def test_parse_band_structure_to_arrays():
     assert band_data.k_points.shape[0] == 6, "sampling points per band"
     assert band_data.n_bands == 2, "band_structure_xml contains two bands"
 
-    ref_k_points = [0.,  0.04082159, 0.08164318, 0.12246477, 0.16328636, 0.20410795]
+    ref_k_points = [0., 0.04082159, 0.08164318, 0.12246477, 0.16328636, 0.20410795]
 
     ref_bands = np.array([[-0.45003454, -0.00937631],
                           [-0.44931675, -0.01419609],
@@ -42,12 +42,28 @@ def test_parse_band_structure_to_arrays_vertices():
     band_data = parse_band_structure_to_arrays(band_structure_xml)
     assert band_data.vertices == vertices_ref
 
-    with pytest.raises(NotImplementedError) as error:
-        band_data.band_path()
 
-    assert error.value.args[0] == (
-        "Getting a list of high symmetry points from self.vertices not implemented")
+def test_parse_band_structure_to_arrays_band_path():
+    vertices_ref = [0.000000000, 0.6123238446, 0.9184857670, 1.134974938, 1.784442453, 2.314730457,
+                    2.689700702, 2.906189873, 3.339168216, 3.714138460, 3.714138460, 3.930627631]
+    labels_ref = ["G", "X", "W", "K", "G", "L", "U", "W", "L", "K", "U", "X"]
 
+    band_data = parse_band_structure_to_arrays(band_structure_xml)
+    vertices, labels = band_data.band_path()
+
+    assert np.allclose(vertices, vertices_ref)
+    assert labels == labels_ref
+
+
+def test_parse_band_structure_to_arrays_replace_gamma():
+    unicode_gamma = '\u0393'
+    gamma_ref = [unicode_gamma]
+
+    band_data = parse_band_structure_to_arrays(band_structure_xml_gamma)
+    vertices, labels = band_data.band_path()
+
+    assert labels == gamma_ref
+    assert np.allclose(vertices, [[0, 0, 0]])
 
 def test_parse_charge_density():
     rho1 = parse_charge_density(RHO1_xml)
@@ -117,4 +133,20 @@ RHO1_xml = """<?xml version="1.0" encoding="UTF-8"?>
     <vertex distance="4.443235504" upperboundary="1985.188367" lowerboundary="0.8456287531E-01" label="" coord="0.2500000000      0.2500000000      0.2500000000"/>
   </grid>
 </plot1d>
+"""
+
+# band_structure_xml with most values removed to test if the vertex "Gamma" is replaced by the unicode character
+
+band_structure_xml_gamma = """<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="http://xml.exciting-code.org/visualizationtemplates/bandstructure2html.xsl" type="text/xsl"?>
+<bandstructure>
+  <title>silicon-primitive-PBEsol</title>
+  <band>
+    <point distance="0.000000000" eval="-0.4500345371"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="-0.9376311739E-02"/>
+  </band>
+  <vertex distance="0.000000000" upperboundary="0.8623187822" lowerboundary="-1.106211197" label="Gamma" coord="0.000000000       0.000000000       0.000000000"/>
+</bandstructure>
 """

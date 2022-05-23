@@ -4,7 +4,7 @@ import xml.etree.cElementTree as ET
 from xml.etree.ElementTree import ParseError
 import numpy as np
 import os
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from excitingtools.parser.parser_utils import xml_root
 
@@ -273,6 +273,8 @@ def parse_bandstructure(name: str) -> dict:
 class BandData:
     """Container to return bandstructure.xml data to.
     """
+    ticks_and_labels = Tuple[np.ndarray, List[str]]
+
     def __init__(self,
                  k_points: np.ndarray,
                  bands: np.ndarray,
@@ -286,10 +288,27 @@ class BandData:
         self.vertices = vertices
         self.n_k_points, self.n_bands = self.bands.shape
 
-    def band_path(self):
-        """ Get a list of high symmetry points from vertices.
+    def band_path(self) -> ticks_and_labels:
         """
-        raise NotImplementedError('Getting a list of high symmetry points from self.vertices not implemented')
+        Get an array of points in the k-path which correspond to high symmetry points
+        and a list of their labels.
+
+        The label "Gamma" is replaced by the unicode character of the greek letter
+        in order to make plotting easier.
+
+        :return: Tuple of NumPy array containing high symmetry points and list containing their labels.
+        """
+        vertices = np.empty(len(self.vertices))
+        labels = []
+
+        for i in range(len(self.vertices)):
+            vertices[i] = self.vertices[i]["distance"]
+            labels.append(self.vertices[i]["label"])
+
+        unicode_gamma = '\u0393'
+        labels = list(map(lambda x: x.replace('Gamma', unicode_gamma), labels))
+
+        return vertices,labels
 
 
 @xml_root
