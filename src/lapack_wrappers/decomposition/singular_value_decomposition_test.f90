@@ -190,7 +190,6 @@ contains
     ! Calculate only sigma
     sigma_ref = sigma 
     call svd_divide_conquer(A, sigma)
-
     call test_report%assert(all_close(sigma, sigma_ref), &
                            'Test svd_divide_conquer with real input and not calculating any singular vectors. &
                            Expected: Sigma should be the same as before.')
