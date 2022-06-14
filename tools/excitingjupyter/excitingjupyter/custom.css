@@ -1,0 +1,47 @@
+/*Output color*/
+div.output_subarea {
+    background: #ECFFDC;
+}
+
+/*Left alignment for tables*/
+table{
+    float: left;
+}
+
+/*Table style*/
+th, td {
+    font-size: 13px;
+    font-family: Verdana, sans-serif;
+    background-color: #F7F2E0;
+}
+th, td:nth-child(3)
+{
+  color: #FFFFFF;
+  background-color: #61380B;
+}
+/*Add exciting logo*/
+#ipython_notebook img {
+    display:block;
+    background: url("logotransp.png") no-repeat;
+    background-size: contain;
+    width: 100px;
+    height: 200px;
+    padding-left: 100px;
+    padding-right: 50px;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+/*Move toolbar down to make space for logo*/
+#header-container {
+    height: 100px;
+}
+
+#menubar-container {
+    height: 70px;
+}
+
+span.save_widget span.filename {
+    margin-top: 30px;
+    margin-left: 40px;
+}
