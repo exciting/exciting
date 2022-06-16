@@ -34,25 +34,24 @@ contains
    !> Initialise the MPI_COMM_WORLD, and the MPI environment object
    !>
    !> TODO(Alex) Issue 26. Extend this to threading support: mpi_init_thread()
-   subroutine xmpi_init(mpi_env)
+   subroutine xmpi_init(this,comm)
     !> MPI environment 
-    class(mpiinfo), intent(inout) :: mpi_env
-
+    class(mpiinfo), intent(inout) :: this
+    integer, intent(in) :: comm
 #ifdef MPI
-    call mpi_init(mpi_env%ierr)
-    mpi_env%comm = mpi_comm_world
-    call mpi_comm_size(mpi_env%comm, mpi_env%procs, mpi_env%ierr)
-    call mpi_comm_rank(mpi_env%comm, mpi_env%rank, mpi_env%ierr)
+    this%comm = comm
+    call mpi_comm_size(this%comm, this%procs, this%ierr)
+    call mpi_comm_rank(this%comm, this%rank, this%ierr)
 #else
-    mpi_env%comm = 0
-    mpi_env%procs = 1
-    mpi_env%rank= 0
+    this%comm = 0
+    this%procs = 1
+    this%rank= 0
 #endif
 
     ! Root process is always defined as 0
     ! Assumes local indexing of root ids for sub-communicators
-    mpi_env%root = 0
-    mpi_env%is_root = mpi_env%rank == mpi_env%root
+    this%root = 0
+    this%is_root = this%rank == this%root
 
    end subroutine xmpi_init
 
