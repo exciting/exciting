@@ -77,8 +77,14 @@ contains
    !>
    !> Also initialises global legacy variables: procs, rank. These should be scrapped.
   subroutine initmpi()
-    ! Modern exciting wrapper for mpi_init()
-    call mpiglobal%init()
+  implicit none
+  integer :: ierr
+#ifdef MPI
+    call mpi_init(ierr)
+    call mpiglobal%init(mpi_comm_world)
+#else
+    call mpiglobal%init(0)
+#endif
 
    ! Set legacy globals, because who knows where they're used
     procs = mpiglobal%procs
@@ -110,10 +116,14 @@ contains
     ! Wait for everyone to reach this point
     call barrier(mpiglobal)
 #ifdef MPI
-    call barrier(mpinodes%mpi)
-    if (mpinodes%mpiintercom%rank >= 0) then
-       call barrier(mpinodes%mpiintercom)
-    end if
+    !
+    ! Note:
+    !   This barriers are commented because the global barrier on the previous line should do the job.
+    !   The commented code can be removed next time you review this function.
+    !call barrier(mpinodes%mpi)
+    !if (mpinodes%mpiintercom%rank >= 0) then
+    !   call barrier(mpinodes%mpiintercom)
+    !end if
     call mpi_finalize(ierr)
     if (ierr /= 0) then
        write (*, *) "Error (finitmpi): ierr =", ierr
