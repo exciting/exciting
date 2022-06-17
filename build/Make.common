@@ -10,12 +10,15 @@ SOURCEDIRS=	\
     ../../src/lapack_wrappers/f95_interfaces \
     ../../src/lapack_wrappers/multiplication \
     ../../src/lapack_wrappers/decomposition \
-    ../../src/lapack_wrappers/utils \
+  	../../src/lapack_wrappers/utils \
+  ../../src/char_utils \
+  ../../src/writers \
   ../../src/structure \
 	../../src/src_advanced/ \
 	../../src/constants \
 	../../src/src_eigensystem/ \
 	../../src/errors_warnings \
+	../../src/char_utils \
     ../../src/src_fermisurfdx/ \
 	../../src/src_gw/ \
 	../../src/src_gw/src_vxc \

@@ -41,17 +41,7 @@ One can leave the venv at any time by typing `deactivate`. If you are repeating 
 ```bash
 source tools/excitingjupyter/venv/excitingvenv/bin/activate
 ```
-## Adding Custom CSS Style
-In order to add the layout style designed for the Jupyter tutorials, type the following commands starting from ```tools/excitingjupyter```:
-```bash
-# Find path for custom CSS file:
-path=$(python -c "import notebook; print(notebook.__file__)")
-notebookpath=${path::-11}
-csspath="${notebookpath}static/custom/."
-# Add custom CSS style:
-cp excitingjupyter/custom.css "$csspath"
-cp ../../docs/logo/logotransp.png "$csspath"
-```
+
 ## Runtime Libraries
 
 Please note that exciting requires certain libraries at runtime (for the SMP version, openBLAS or MKL), and setting them in a terminal shell is not sufficient as each Jupyter cell creates a new shell instance. The easiest way to ensure they are present is to add them to your `.bashrc`. For example, the SOL group uses the TCL module system so one would add:

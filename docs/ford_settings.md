@@ -25,6 +25,8 @@ src_dir: ../src/src_gw
          ../src/autormt
          ../src/structure
          ../src/wavefunctions
+         ../src/char_utils
+         ../src/writers
 
 [//]: # "Note, ford commands can not be separated by whitelines."  
 [//]: # "More information on ford's project file options can be found at:"  
