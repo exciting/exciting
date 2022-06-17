@@ -39,7 +39,8 @@ module cmd_line_args
       logical :: mpi = .false.               !! modmpi
       logical :: xs = .false.                !! Excited states
       logical :: autormt = .false.           !! autormt
-      logical :: testframework = .false.           !! testframework
+      logical :: char = .false.              !! char_utils
+      logical :: testframework = .false.     !! testframework
    contains
       procedure :: init => set_unit_tests
    end type unit_tests_type
@@ -165,6 +166,8 @@ contains
          run%autormt = .true.
       case('structure')
          run%structure = .true.
+      case('char')
+         run%char = .true.
       case('xs')
          run%xs = .true.
       case('testframework')

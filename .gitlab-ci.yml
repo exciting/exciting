@@ -35,7 +35,6 @@ test-debian-buster-GCC8-serial:
   script:
     # run unit tests
     - bin/exciting_serial -run-unit-tests -kill-on-failure
-    # run application tests
     # Provide test suite parsers
     - pip3 install -e tools/exciting_tools
     # Run pytest unit tests for test suite functions
