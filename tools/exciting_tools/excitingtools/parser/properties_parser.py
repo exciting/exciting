@@ -298,17 +298,25 @@ class BandData:
 
         :return: Tuple of NumPy array containing high symmetry points and list containing their labels.
         """
-        vertices = np.empty(len(self.vertices))
-        labels = []
+        vertices = [self.vertices[0]["distance"]]
+        labels = [self.vertices[0]["label"]]
 
-        for i in range(len(self.vertices)):
-            vertices[i] = self.vertices[i]["distance"]
-            labels.append(self.vertices[i]["label"])
+        for i in range(1, len(self.vertices)):
+            vertex = self.vertices[i]["distance"]
+            label = self.vertices[i]["label"]
+
+            # Handle discontinuities in the band path
+            if np.isclose(vertex, vertices[-1]):
+                vertices.pop()
+                label = labels.pop() + ',' + label
+
+            vertices.append(vertex)
+            labels.append(label)
 
         unicode_gamma = '\u0393'
         labels = list(map(lambda x: x.replace('Gamma', unicode_gamma), labels))
 
-        return vertices,labels
+        return np.asarray(vertices),labels
 
 
 @xml_root

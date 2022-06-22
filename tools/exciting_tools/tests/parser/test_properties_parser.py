@@ -45,8 +45,8 @@ def test_parse_band_structure_to_arrays_vertices():
 
 def test_parse_band_structure_to_arrays_band_path():
     vertices_ref = [0.000000000, 0.6123238446, 0.9184857670, 1.134974938, 1.784442453, 2.314730457,
-                    2.689700702, 2.906189873, 3.339168216, 3.714138460, 3.714138460, 3.930627631]
-    labels_ref = ["G", "X", "W", "K", "G", "L", "U", "W", "L", "K", "U", "X"]
+                    2.689700702, 2.906189873, 3.339168216, 3.714138460, 3.930627631]
+    labels_ref = ["G", "X", "W", "K", "G", "L", "U", "W", "L", "K,U", "X"]
 
     band_data = parse_band_structure_to_arrays(band_structure_xml)
     vertices, labels = band_data.band_path()
@@ -64,6 +64,7 @@ def test_parse_band_structure_to_arrays_replace_gamma():
 
     assert labels == gamma_ref
     assert np.allclose(vertices, [[0, 0, 0]])
+
 
 def test_parse_charge_density():
     rho1 = parse_charge_density(RHO1_xml)
