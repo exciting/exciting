@@ -17,12 +17,14 @@ from . import bse_parser
 from . import gw_parser
 from . import RT_TDDFT_parser
 from .parser_utils import generic_parser
+from . import input_parser
 
 
 # Map file name to parser function
 _file_to_parser = {
     'INFO.OUT': groundstate_parser.parse_info_out,
     'info.xml': groundstate_parser.parse_info_xml,
+    'input.xml': input_parser.parse_input_xml,
     'atoms.xml': groundstate_parser.parse_atoms,
     'evalcore.xml': groundstate_parser.parse_evalcore,
     'eigval.xml': groundstate_parser.parse_eigval,
@@ -57,6 +59,7 @@ _file_to_parser = {
     'TDOS_WANNIER.OUT': properties_parser.parse_tdos_wannier,
     'WANNIER_INFO.OUT': properties_parser.parse_wannier_info,
     'coreoverlap.xml': properties_parser.parse_core_overlap,
+    'INFOXS.OUT': bse_parser.parse_infoxs_out,
     'EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT': bse_parser.parse_EPSILON_NAR,
     'EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT': bse_parser.parse_EPSILON_NAR,
     'EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT': bse_parser.parse_EPSILON_NAR,
