@@ -129,17 +129,17 @@ subroutine parse_gwinput()
       if (rank==0) write(fgw,*) 'Convolution method:'
       select case (input%gw%freqgrid%fconv)
         case('nofreq')
-          if (rank==0) write(fgw,*) '  nofreq : no frequecy dependence of the weights'
+          if (rank==0) write(fgw,*) '  nofreq : no frequency dependence of the weights'
         case('refreq')
-          if (rank==0) write(fgw,*) '  refreq : weights calculated for real frequecies'
+          if (rank==0) write(fgw,*) '  refreq : weights calculated for real frequencies'
         case('imfreq')
-          if (rank==0) write(fgw,*) '  imfreq : weights calculated for imaginary frequecies'
+          if (rank==0) write(fgw,*) '  imfreq : weights calculated for imaginary frequencies'
         case default
           if (rank==0) write(*,*) 'ERROR(parse_gwinput): Unknown frequency convolution method!'
           if (rank==0) write(*,*) '  Currently supported options are:'
-          if (rank==0) write(*,*) '  nofreq : no frequecy dependence of the weights'
-          if (rank==0) write(*,*) '  refreq : weights calculated for real frequecies'
-          if (rank==0) write(*,*) '  imfreq : weights calculated for imaginary frequecies'
+          if (rank==0) write(*,*) '  nofreq : no frequency dependence of the weights'
+          if (rank==0) write(*,*) '  refreq : weights calculated for real frequencies'
+          if (rank==0) write(*,*) '  imfreq : weights calculated for imaginary frequencies'
           stop
       end select
       if (rank==0) call linmsg(fgw,'-','')
@@ -154,6 +154,7 @@ subroutine parse_gwinput()
     if (input%gw%selfenergy%nempty>0) then
       if (rank==0) write(fgw,*) 'Number of empty states:', input%gw%selfenergy%nempty
     end if
+
     if (rank==0) write(fgw,*) 'Solution of the QP equation:'
     select case (input%gw%selfenergy%eqpsolver)
         case(0)
@@ -166,6 +167,7 @@ subroutine parse_gwinput()
             if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal value for input%gw%SelfEnergy%eqpsolver'
             stop
     end select
+
     if (rank==0) write(fgw,*) 'Energy alignment:'
     select case (input%gw%selfenergy%eshift)
         case(0)
@@ -178,34 +180,51 @@ subroutine parse_gwinput()
             if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal value for input%gw%SelfEnergy%eshift'
             stop
     end select
+
     if (rank==0) write(fgw,*) 'Analytic continuation method:'
     select case (trim(input%gw%selfenergy%actype))
         case('pade','Pade','PADE')
-            if (rank==0) write(fgw,*) " PADE - Thiele's reciprocal difference method &
-            &(by H. J. Vidberg and J. W. Serence, J. Low Temp. Phys. 29, 179 (1977))"
+            if (rank==0) then
+                write(fgw, *) " PADE - Thiele's reciprocal difference method"
+                write(fgw, *) " Citation: H. J. Vidberg and J. W. Serence, J. Low Temp. Phys. 29, 179 (1977)"
+            endif     
         case('aaa','AAA')
-            if (rank==0) write(fgw,*) " AAA: Y. Nakatsukasa, O. Sete, L. N. Trefethen, The AAA algorithm for rational approximation, SIAM J. Sci. Comp. 40 (2018), A1494-A1522"
+            if (rank==0) then
+                write(fgw, *) " AAA - The AAA algorithm for rational approximation"
+                write(fgw, *) " Citation: Y. Nakatsukasa, O. Sete, L. N. Trefethen, SIAM J. Sci. Comp. 40 (2018), A1494-A1522"
+            endif 
         case default
-            if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal value for input%gw%SelfEnergy%actype'
+            if (rank==0) write(*, *) 'ERROR(parse_gwinput): Illegal value for input%gw%SelfEnergy%actype'
             stop
     end select
-    if (rank==0) write(fgw,*) 'Scheme to treat singularities:'
+
+    if (rank==0) write(fgw, *) 'Scheme to treat singularities:'
     select case (trim(input%gw%selfenergy%singularity))
       case('none')
-        if (rank==0) write(fgw,*) ' No scheme is used (test purpose only)'
+        if (rank==0) then 
+            write(fgw, *) ' No scheme is used (test purpose only)'
+        endif 
       case('avg')
-        if (rank==0) write(fgw,*) ' Replace the singular term by the corresponding spherical average over small volume arounf Gamma point.'
+        if (rank==0) then
+            write(fgw, *) ' Replace the singular term by the corresponding spherical average over small volume around Gamma point.'
+        endif     
       case('mpb')
-        if (rank==0) write(fgw,*) ' Auxiliary function method by &
-        &S. Massidda, M. Posternak, and A. Baldereschi, PRB 48, 5058 (1993)'
+        if (rank==0) then
+            write(fgw, *) ' Auxiliary function method "mpb"'
+            write(fgw, *) ' Citation: S. Massidda, M. Posternak, and A. Baldereschi, PRB 48, 5058 (1993)'
+        endif
       case('crg')
-        if (rank==0) write(fgw,*) ' Auxiliary function method by &
-        &P. Carrier, S. Rohra, and A. Goerling, PRB 75, 205126 (2007)'
+        if (rank==0) then
+            write(fgw, *) ' Auxiliary function method "crg"'
+            write(fgw, *) ' Citation: P. Carrier, S. Rohra, and A. Goerling, PRB 75, 205126 (2007)'
+        endif 
       case('rim')
-        if (rank==0) write(fgw,*) '(experimental) RIM by Yambo'
+        if (rank==0) then
+            write(fgw, *) 'RIM (experimental):'
+            write(fgw, *) 'Citation: Yambo code'
+        endif 
       case default
         write(*,*) 'ERROR(parse_gwinput): Unknown singularity treatment scheme!'
-        call barrier()
         stop
     end select
     if (rank==0) call linmsg(fgw,'-','')
@@ -231,15 +250,15 @@ subroutine parse_gwinput()
 !-------------------------------------------------------------------------------
 ! Bare Coulomb potential parameters
 !-------------------------------------------------------------------------------
-    if (.not.associated(input%gw%barecoul)) &
-    &  input%gw%barecoul => getstructbarecoul(emptynode)
-    if (rank==0) write(fgw,*) 'Bare Coulomb potential parameters:'
-    if (rank==0) write(fgw,*) '  Plane wave cutoff (in units of Gkmax*input%gw%MixBasis%gmb): ', &
-    &  input%gw%barecoul%pwm
-    if (rank==0) write(fgw,*) '  Error tolerance for structure constants: ', &
-    &  input%gw%barecoul%stctol
-    if (rank==0) write(fgw,*) '  Tolerance factor to reduce the MB size based on'
-    if (rank==0) write(fgw,*) '  the eigenvectors of the bare Coulomb potential: ', input%gw%barecoul%barcevtol
+    if (.not.associated(input%gw%barecoul)) input%gw%barecoul => getstructbarecoul(emptynode)
+    if (rank==0) then 
+        write(fgw, *) 'Bare Coulomb potential parameters:'
+        write(fgw, '(X, A, X, F17.14)') '  Plane wave cutoff (in units of Gkmax*input%gw%MixBasis%gmb): ', input%gw%barecoul%pwm
+        write(fgw, *) '  Error tolerance for structure constants: ', input%gw%barecoul%stctol
+        write(fgw, *) '  Tolerance factor to reduce the MB size based on'
+        write(fgw, *) '  the eigenvectors of the bare Coulomb potential: ', input%gw%barecoul%barcevtol
+    endif
+
     select case (trim(input%gw%barecoul%cutofftype))
       case('none')
         vccut = .false.
@@ -411,5 +430,4 @@ subroutine parse_gwinput()
 
     if (rank==0) call flushifc(fgw)
 
-    return
 end subroutine
