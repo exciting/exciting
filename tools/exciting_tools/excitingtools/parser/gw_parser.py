@@ -1,5 +1,4 @@
-"""
-Module containing parsers for GW output files:
+"""Prsers for GW output files:
   * GW_INFO.OUT
   * EVALQP.DAT
   * EFERMI_GW.OUT
@@ -8,7 +7,7 @@ Module containing parsers for GW output files:
 """
 from xml.etree.ElementTree import ParseError
 import numpy as np
-from typing import List, Callable
+from typing import List
 import sys
 import copy
 import re
@@ -20,7 +19,7 @@ from .regex_parser import parse_value_regex, parse_values_regex
 from .simple_parser import match_current_return_line_n, match_current_extract_from_line_n
 from .grep_parser import grep
 from .parser_utils import generic_parser
-from ..utils import can_be_float, convert_to_literal
+from ..utils import can_be_float
 
 
 def parse_correlation_self_energy_params(file_string: str) -> dict:
@@ -28,25 +27,40 @@ def parse_correlation_self_energy_params(file_string: str) -> dict:
     Parse correlation self-energy parameters.
 
     Match the key on one line and return the value from the second, according to some
-    specified extraction behaviour:
+    specified extraction behaviour given by `keys_extractions`.
 
-    Solution of the QP equation:
-      0 - perturbative solution
-    Energy alignment:
-      0 - no alignment
-
-    returns {'Solution of the QP equation': 0, 'Energy alignment': 0}
+    Also extract the analytic continuation and singularity schemes, plus their references.
 
     :param str file_string: Input string
     :return dict data: Matched data
     """
-    keys_extractions = {
-        'Solution of the QP equation': lambda x: int(x.split()[0]),
-        'Energy alignment': lambda x: int(x.split()[0]),
-        'Analytic continuation method': lambda x: x.strip(),
-        'Scheme to treat singularities': lambda x: x.strip()
-    }
-    return match_current_extract_from_line_n(file_string, keys_extractions)
+    keys_extractions = {'Solution of the QP equation': lambda x: int(x.split()[0]),
+                        'Energy alignment': lambda x: int(x.split()[0]),
+                        'Analytic continuation method': lambda x: x.strip(),
+                        'Scheme to treat singularities': lambda x: x.strip()
+                        }
+
+    data = match_current_extract_from_line_n(file_string, keys_extractions)
+
+    # Also extract citations
+    def ref_after_citation(x: str) -> str:
+        """
+        Expected format is
+        Citation: Paper reference
+        """
+        try:
+            i = x.index(":")
+            return x[i + 1:].strip()
+        except ValueError:
+            return 'Not found'
+
+    # Extraction of citations after
+    for key in ['Analytic continuation method', 'Scheme to treat singularities']:
+        citation_extraction = {key: ref_after_citation}
+        matched_dictionary = match_current_extract_from_line_n(file_string, citation_extraction, n_line=2)
+        data[key + ' citation'] = matched_dictionary[key]
+
+    return data
 
 
 def parse_mixed_product_params(file_string: str) -> dict:
@@ -97,28 +111,19 @@ def parse_bare_coulomb_potential_params(file_string: str) -> dict:
     :return dict data: Matched data
     """
 
-    pw_cutoff = list(
-        parse_value_regex(
-            file_string,
-            'Plane wave cutoff \\(in units of Gkmax\\*input%gw%MixBasis%gmb\\):'
-        ).values())
-    assert len(
-        pw_cutoff
-    ) == 1, "Matched plane wave cutoff is ambiguous - more than one match"
+    pw_cutoff_matching_str = 'Plane wave cutoff \\(in units of Gkmax\\*input%gw%MixBasis%gmb\\):'
+    pw_cutoff = list(parse_value_regex(file_string, pw_cutoff_matching_str).values())
+    assert len(pw_cutoff) == 1, "Matched plane wave cutoff is ambiguous - more than one match"
+
     # Defined with less-verbose key
     data = {'Plane wave cutoff (in units of Gkmax*gmb)': float(pw_cutoff[0])}
 
-    data2 = parse_value_regex(file_string,
-                              'Error tolerance for structure constants:')
+    data2 = parse_value_regex(file_string, 'Error tolerance for structure constants:')
 
-    data3 = parse_value_regex(
-        file_string, 'the eigenvectors of the bare Coulomb potential:')
+    data3 = parse_value_regex(file_string, 'the eigenvectors of the bare Coulomb potential:')
 
     # Defined with less-verbose key (see docs above for full key, over 2 lines)
-    modified_data3 = {
-        'MB tolerance factor':
-        data3.pop('the eigenvectors of the bare Coulomb potential')
-    }
+    modified_data3 = {'MB tolerance factor': data3.pop('the eigenvectors of the bare Coulomb potential')}
 
     return {**data, **data2, **modified_data3}
 
@@ -147,10 +152,11 @@ def parse_frequency_grid_info(file_string: str) -> dict:
     :param str file_string: Input string
     :return dict data: Matched data
     """
-    fgrid_keys = [
-        'Type: < fgrid >', 'Frequency axis: < fconv >',
-        'Number of frequencies: < nomeg >', 'Cutoff frequency: < freqmax >'
-    ]
+    fgrid_keys = ['Type: < fgrid >',
+                  'Frequency axis: < fconv >',
+                  'Number of frequencies: < nomeg >',
+                  'Cutoff frequency: < freqmax >'
+                  ]
 
     return parse_values_regex(file_string, fgrid_keys)
 
@@ -185,13 +191,17 @@ def parse_ks_eigenstates(file_string: str) -> dict:
     """
 
     # Trailing whitespace in some instances required for match
-    ks_eigenstates_keys = [
-        'Maximum number of LAPW states:', 'Minimal number of LAPW states:',
-        '- total KS', '- occupied', '- unoccupied ', '- dielectric function',
-        '- self energy', 'Energy of the highest unoccupied state: ',
-        'Number of valence electrons:',
-        'Number of valence electrons treated in GW: '
-    ]
+    ks_eigenstates_keys = ['Maximum number of LAPW states:',
+                           'Minimal number of LAPW states:',
+                           '- total KS',
+                           '- occupied',
+                           '- unoccupied ',
+                           '- dielectric function',
+                           '- self energy',
+                           'Energy of the highest unoccupied state: ',
+                           'Number of valence electrons:',
+                           'Number of valence electrons treated in GW: '
+                           ]
 
     data = parse_values_regex(file_string, ks_eigenstates_keys)
 
@@ -244,13 +254,11 @@ def extract_kpoint(file_string: str) -> dict:
         try:
             match = re.search(key + '(.+?)\n', file_string)
             k_point_and_index = match.group(1).split()
-            data = {
-                'k_point': [float(k) for k in k_point_and_index[:3]],
-                'ik': int(k_point_and_index[-1])
-            }
+            data = {'k_point': [float(k) for k in k_point_and_index[:3]],
+                    'ik': int(k_point_and_index[-1])}
 
         except AttributeError:
-            print("extract_kpoint. Did not find the key", match)
+            raise AttributeError("extract_kpoint. Did not find the key", match)
 
         return data
 
@@ -288,10 +296,8 @@ def extract_kpoints(file_string: str) -> dict:
             match = re.search(key + '(.+?)\n', file_string)
             parser_key = match_key_to_parser_key[key].replace('\\', "")
             k_point_and_index = match.group(1).split()
-            data[parser_key] = {
-                'k_point': [float(k) for k in k_point_and_index[:3]],
-                'ik': int(k_point_and_index[-1])
-            }
+            data[parser_key] = {'k_point': [float(k) for k in k_point_and_index[:3]],
+                                'ik': int(k_point_and_index[-1])}
 
         except AttributeError:
             print("extract_kpoints. Did not find the key", match)
@@ -301,7 +307,7 @@ def extract_kpoints(file_string: str) -> dict:
     k_data = parse_k_match(file_string, 'at k\\(VBM\\) = ')
     k_data2 = parse_k_match(file_string, 'k\\(CBm\\) = ')
 
-    return {**k_data, **k_data2}
+    return {** k_data, **k_data2}
 
 
 def parse_band_structure_info(file_string: str, bs_type: str) -> dict:
@@ -345,10 +351,10 @@ def parse_band_structure_info(file_string: str, bs_type: str) -> dict:
         sys.exit("bs_type must be 'ks' or 'gw'")
 
     # Indirect BandGap may not be present
-    band_structure_keys = [
-        'Fermi energy:', 'Energy range:', 'Band index of VBM:',
-        'Band index of CBm:'
-    ]
+    band_structure_keys = ['Fermi energy:',
+                           'Energy range:',
+                           'Band index of VBM:',
+                           'Band index of CBm:']
 
     data = parse_values_regex(file_string, band_structure_keys)
 
@@ -383,36 +389,23 @@ def parse_gw_info(file_string: str) -> dict:
     :return: dict data: dictionary of parsed data
     """
     data = {}
-    data[
-        'correlation_self_energy_parameters'] = parse_correlation_self_energy_params(
-            file_string)
-    data['mixed_product_basis_parameters'] = parse_mixed_product_params(
-        file_string)
-    data[
-        'bare_coulomb_potential_parameters'] = parse_bare_coulomb_potential_params(
-            file_string)
-    data['screened_coulomb_potential'] = match_current_return_line_n(
-        file_string, 'Screened Coulomb potential:').strip()
-    data['core_electrons_treatment'] = match_current_return_line_n(
-        file_string, 'Core electrons treatment:').strip()
+    data['correlation_self_energy_parameters'] = parse_correlation_self_energy_params(file_string)
+    data['mixed_product_basis_parameters'] = parse_mixed_product_params(file_string)
+    data['bare_coulomb_potential_parameters'] = parse_bare_coulomb_potential_params(file_string)
+    data['screened_coulomb_potential'] =  match_current_return_line_n(file_string, 'Screened Coulomb potential:').strip()
+    data['core_electrons_treatment'] = match_current_return_line_n(file_string, 'Core electrons treatment:').strip()
     data['qp_interval'] = parse_value_regex(file_string, 'Interval of quasiparticle states \\(ibgw, nbgw\\):')\
         ['Interval of quasiparticle states (ibgw, nbgw)']
-    data['n_empty'] = parse_value_regex(
-        file_string,
-        'Number of empty states \\(GW\\):')['Number of empty states (GW)']
-    data['q_grid'] = parse_value_regex(file_string,
-                                       'k/q-points grid:')['k/q-points grid']
+    data['n_empty'] = parse_value_regex(file_string, 'Number of empty states \\(GW\\):')['Number of empty states (GW)']
+    data['q_grid'] = parse_value_regex(file_string, 'k/q-points grid:')['k/q-points grid']
     data['mixed_product_wf_info'] = parse_mixed_product_wf_info(file_string)
     data['frequency_grid'] = parse_frequency_grid_info(file_string)
     n_freq_points = data['frequency_grid']['Number of frequencies: < nomeg >']
-    data['frequency_grid']['frequencies_weights'] = parse_frequency_grid(
-        file_string, n_freq_points)
+    data['frequency_grid']['frequencies_weights'] = parse_frequency_grid(file_string, n_freq_points)
     data['ks_eigenstates_summary'] = parse_ks_eigenstates(file_string)
-    data['ks_band_structure_summary'] = parse_band_structure_info(
-        file_string, 'ks')
+    data['ks_band_structure_summary'] = parse_band_structure_info(file_string, 'ks')
     data['n_q_cycles'] = parse_n_q_point_cycles(file_string)
-    data['g0w0_band_structure_summary'] = parse_band_structure_info(
-        file_string, 'gw')
+    data['g0w0_band_structure_summary'] = parse_band_structure_info(file_string, 'gw')
     return data
 
 
@@ -611,6 +604,7 @@ def parse_evalqp(full_file_name: str) -> dict:
     Parse  and return data of the form:
       data[ik] = {'k_point': k_point, 'weight': weight, 'energies': energies}
 
+    # TODO(Alex) SHOULD TRANSPOSE this. Will be slow to access
     energies have the shape (n_states, 10), where the 10 elements are defined as:
     ('E_KS', 'E_HF', 'E_GW', 'sigma_x', 'Re_sigma_c', 'Im_sigma_c', 'V_xc', 'delta_HF', 'delta_GW', 'Znk')
 
@@ -618,13 +612,12 @@ def parse_evalqp(full_file_name: str) -> dict:
     :return dict data: Parsed k-points and energies from EVALQP.DAT
     """
     if not Path(full_file_name).is_file():
-        sys.exit("File does not exist:", full_file_name)
+        sys.exit("File does not exist:" + full_file_name)
 
     n_states = generic_parser(full_file_name, n_states_from_evalqp)
     k_points = k_points_from_evalqp(full_file_name)
     energies = parse_evalqp_blocks(full_file_name, k_points, n_states)
-    assert len(k_points) == len(
-        energies), "Should be a set of energies for each k-point"
+    assert len(k_points) == len(energies), "Should be a set of energies for each k-point"
 
     # Repackage energies with their respective k-points
     data = {}
@@ -832,9 +825,6 @@ def parse_eps00_gw(file_string: str) -> dict:
     # Repackage frequency points and eps00 together
     data = {}
     for i_freq in range(1, len(frequencies) + 1):
-        data[i_freq] = {
-            'frequency': frequencies[i_freq],
-            'eps00': eps00[i_freq]
-        }
+        data[i_freq] = {'frequency': frequencies[i_freq], 'eps00': eps00[i_freq]}
 
     return data

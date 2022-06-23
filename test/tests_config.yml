@@ -106,10 +106,14 @@ BSE/PBE-LiF-phononscreening:
 
 # TODO(Alex) Issue #103. App Tests: GW QP Energies Inconsistent with Reference
 # TODO(Alex) Issue #35. MPI GW calculations do not produce EPS00_GW.OUT
-#  - I suspect this occurs due to how the GW code distributes MPI processes.
-#  - If more ranks than q-points, ranks can lie idle starting from rank 0 (opposite from what one usually expects).
-#  - Also appear to get a failure for Intel 2019 serial (only occurs on the CI)
 GW/LDA_PW-Si:
+   files_under_test:
+      - "GW_INFO.OUT"
+      - "EFERMI_GW.OUT"
+      - 'VXCNN.DAT'
+   inputs:
+      - "input.xml"
+      - "Si.xml"
    failing_builds:
       - intel_mpiandsmp
       - intel_serial

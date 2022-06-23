@@ -4,7 +4,7 @@ Wrapper for command-line grep
 import subprocess
 from typing import Optional
 
-
+# TODO(Alex) This should raise an error if it fails
 def grep(string: str, fname: str, options: Optional[dict] = None) -> str:
     """
     Wrapper for command-line grep.

@@ -63,8 +63,7 @@ def parse_values_regex(file_string: str, keys: List[str]) -> dict:
 
     :return dict parsed_data: Matched data
     """
-    assert type(
-        keys) == list, "2nd argument of parse_values_regex must be List[str]"
+    assert type(keys) == list, "2nd argument of parse_values_regex must be List[str]"
     matches_dict = {}
     for key in keys:
         matches_dict.update(**parse_value_regex(file_string, key))

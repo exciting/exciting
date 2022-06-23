@@ -1,9 +1,10 @@
 """
 Simple text parsers.
 """
+from typing import Union
 
 
-def match_current_return_line_n(file_string: str, match: str, n_line=1) -> str:
+def match_current_return_line_n(file_string: str, match: str, n_line=1) -> Union[str, None]:
     """
     Match a string on the ith line and return a substring from the i+n_line line.
 
@@ -11,7 +12,7 @@ def match_current_return_line_n(file_string: str, match: str, n_line=1) -> str:
     :param str match: String to match
     :param int n_line: The index of the line to return, following the matched line
 
-    :return str matched line string
+    :return Union[str, None] matched line string, or None
     """
     file = file_string.split('\n')
     for i, line in enumerate(file):

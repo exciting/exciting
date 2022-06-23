@@ -79,7 +79,7 @@ gw_info_tols = {
     'Number of states used in GW - unoccupied': default.integer,
     'Number of states used in GW - dielectric function': default.integer,
     'Number of states used in GW - self energy': default.integer,
-    'Energy of the highest unoccupied state': default.energy,
+    'Energy of the highest unoccupied state': default.energy,  #TODO(Alex) Missing a key here?
     'Energy of the highest unoccupied state': default.energy,
     'Number of valence electrons': TolWithMessage(default.integer, message='In the ground state calculation'),
     'Number of valence electrons treated in GW': default.integer,
