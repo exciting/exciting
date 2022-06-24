@@ -73,3 +73,4 @@ default_files_under_test:
 group_execution:
   NONE: True
   SLOW_TESTS: False
+  GW: False

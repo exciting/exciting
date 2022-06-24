@@ -21,16 +21,16 @@
       "unit": "null"
     },
     "MT Linear dependence tolerance factor": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "null"
     },
     "Plane wave cutoff (in units of Gkmax)": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "null",
       "message": "For the mixed product basis"
     },
     "Plane wave cutoff (in units of Gkmax*gmb)": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "null",
       "message": "For the bare Coulomb potential. Unit in key"
     },
@@ -40,7 +40,7 @@
       "message": "Value can be extremely small ~ 1e-16"
     },
     "MB tolerance factor": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "null"
     },
     "screened_coulomb_potential": {
@@ -92,11 +92,11 @@
       "unit": "null"
     },
     "Cutoff frequency: < freqmax >": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "null"
     },
     "frequencies_weights": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "null"
     },
     "Maximum number of LAPW states": {
@@ -128,7 +128,7 @@
       "unit": "null"
     },
     "Energy of the highest unoccupied state": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "Hartree"
     },
     "Number of valence electrons": {
@@ -141,12 +141,12 @@
       "unit": "null"
     },
     "Fermi energy": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "Hartree",
       "message": "Applies to KS and GW band structures"
     },
     "Energy range": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "Hartree",
       "message": "Applies to KS and GW band structures"
     },
@@ -161,22 +161,22 @@
       "message": "Applies to KS and GW band structures"
     },
     "Indirect BandGap (eV)": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "Hartree",
       "message": "Applies to KS and GW band structures"
     },
     "Direct Bandgap at k(VBM) (eV)": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "Hartree",
       "message": "Applies to KS and GW band structures"
     },
     "Direct Bandgap at k(CBm) (eV)": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "Hartree",
       "message": "Applies to KS and GW band structures"
     },
     "k_point": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "null",
       "message": "Applies to the VBM and CBm of KS and GW band structures"
     },
@@ -190,50 +190,14 @@
       "unit": "null"
     }
   },
-  "EFERMI_GW.OUT": {
-    "EFERMI_GW": {
-      "tol": 1e-08,
-      "unit": "Hartree"
-    }
-  },
-  "EVALQP.DAT": {
-    "energies": {
-      "tol": 1e-08,
-      "unit": "Hartree"
-    },
-    "k_point": {
-      "tol": 1e-08,
-      "unit": "null"
-    },
-    "weight": {
-      "tol": 1e-08,
-      "unit": "null"
-    }
-  },
   "VXCNN.DAT": {
     "v_xc_nn": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "Hartree"
     },
     "vkl": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "null"
-    }
-  },
-  "EPS00_GW.OUT": {
-    "frequency": {
-      "tol": 1e-08,
-      "unit": "null"
-    },
-    "re": {
-      "tol": 1e-08,
-      "unit": "null",
-      "message": "eps00"
-    },
-    "img": {
-      "tol": 1e-08,
-      "unit": "null",
-      "message": "eps00"
     }
   }
 }

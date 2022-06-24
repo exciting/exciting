@@ -1,2 +1,12 @@
 Log File for Tolerances
 -----------------------
+
+Inputs generated with serial Intel build, linking to sequential MKL.
+Done on SOL debian machine.
+
+We know that several bugs occured when merging
+https://git.physik.hu-berlin.de/sol/exciting/-/merge_requests/4
+in a development version which became oxygen.
+
+Therefore expect this reference to be changed several times, as bugs
+are resolved.

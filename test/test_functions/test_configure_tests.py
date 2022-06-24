@@ -570,9 +570,10 @@ def test_sort_tests_by_group():
 
     tests_by_group = sort_tests_by_group(yaml_specified_tests)
 
-    expected_test_grouping = {Group.NONE: ['groundstate/LiF', 'BSE/LiF'],
-                              Group.SLOW_TESTS: ['groundstate/LDA_PW-PbTiO3']
-                              }
+    expected_test_grouping = {enum: [] for enum in Group}
+    expected_test_grouping.update({Group.NONE: ['groundstate/LiF', 'BSE/LiF'],
+                                   Group.SLOW_TESTS: ['groundstate/LDA_PW-PbTiO3']
+                                  })
 
     assert tests_by_group == expected_test_grouping
 

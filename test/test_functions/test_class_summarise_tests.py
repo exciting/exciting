@@ -3,14 +3,20 @@ Test the class SummariseTests attributes and print method
 
 Running
 -----------
-Should be run from exciting/test. From exciting's root:
 ```
 cd test
 pytest -s test_functions/test_class_summarise_tests.py
 ```
-else the relative imports will cause test failures
-
-Note, import statements means this can only be run from the `test` directory
+or
+```
+cd test/test_functions
+pytest -s test_class_summarise_tests.py
+```
+or
+```
+cd test/
+pytest -s
+```
 
 Debugging Notes
 -----------
@@ -28,6 +34,7 @@ import sys
 from io import StringIO
 import os
 from typing import List
+from pathlib import Path
 
 # Rename TestResults else pytest will try to collect from it
 from ..src.tester.report import TestResults as ExTestResults, SummariseTests
@@ -61,13 +68,20 @@ def failing_arrays1d2d_test_dir() -> str:
     return "test_functions/dummy_app_tests/GW_ZrO2_failing_arrays"
 
 
+def get_test_framework_root():
+    this_file_path = os.path.dirname(os.path.realpath(__file__))
+    exciting_root = Path(this_file_path).parents[1]
+    return exciting_root / 'test'
+
+
 def get_test_results(test_dir: str, output_files_to_check: List[str]) -> dict:
     """
     Set the run and reference directories, files to regression test, tolerances, and
     return the results of comparing the test data.
     """
-    full_run_dir = os.path.join(test_dir, "run")
-    full_ref_dir = os.path.join(test_dir, "ref")
+    root = get_test_framework_root()
+    full_run_dir = os.path.join(root, test_dir, "run")
+    full_ref_dir = os.path.join(root, test_dir, "ref")
 
     tolerance_files = list_tolerance_files_in_directory(full_ref_dir)
     json_tolerances = load_tolerances(full_ref_dir, tolerance_files)
