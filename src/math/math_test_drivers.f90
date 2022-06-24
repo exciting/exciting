@@ -9,6 +9,7 @@ module math_test_drivers
   use integration_test, only: integration_test_driver
   use normalize_test, only: normalize_test_driver
   use sorting_test, only: sorting_test_driver
+  use multi_index_conversion_test, only: multi_index_conversion_test_driver
 
   private
   public :: math_test_driver
@@ -29,6 +30,7 @@ contains
     call integration_test_driver(mpiglobal, kill_on_failure)
     call normalize_test_driver(mpiglobal, kill_on_failure)
     call sorting_test_driver(mpiglobal, kill_on_failure)
+    call multi_index_conversion_test_driver(mpiglobal, kill_on_failure)
 
   end subroutine math_test_driver
 

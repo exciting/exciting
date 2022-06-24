@@ -232,15 +232,15 @@ build:debian-buster-documentation:
 build:debian-buster-GCC8-smp:
   image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8-April2022
   stage: build
-  tags: 
+  tags:
     - docker
   script:
-    - cp build/platforms/make.inc.gfortran build/make.inc 
+    - cp build/platforms/make.inc.gfortran build/make.inc
     - make smp -j 2
   artifacts:
     paths:
       - bin/exciting_smp
-      - build/make.inc 
+      - build/make.inc
     expire_in: 5 hrs
 
 # Test the Jupyter tutorials only

@@ -156,10 +156,10 @@ contains
          run%all = .true.
       case ('math')
          run%math = .true.
-      case ('lapack')
-         run%lapack = .true.
       case ('gw')
          run%gw = .true.
+      case ('lapack')
+         run%lapack = .true.
       case ('mpi')
          run%mpi = .true.
       case('autormt')

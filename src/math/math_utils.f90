@@ -10,7 +10,8 @@ module math_utils
   implicit none
 
   private
-  public :: identity_real_dp, &
+  public :: identity_integer, &
+            identity_real_dp, &
             identity_complex_dp, &
             all_close, &
             all_zero, &
@@ -57,7 +58,7 @@ module math_utils
   !>    \mathbf{A}^{-1} = \mathbf{A}^\dagger.
   !> \]
   interface is_unitary
-    module procedure is_orthogonal_real_dp, is_unitary_complex_dp
+    module procedure is_orthogonal_integer, is_orthogonal_real_dp, is_unitary_complex_dp
   end interface is_unitary
 
   !>  Check if two arrays are close, within an absolute tolerance
@@ -121,6 +122,22 @@ contains
 ! identity_real_dp, identity_complex_dp
 !
 ! Setup identity matrix
+
+  !> Setup integer identity matrix.
+  function identity_integer(N) result(identity)
+    !> Dimension of the identity
+    integer, intent(in) :: N
+
+    integer, allocatable :: identity(:, :)
+
+    integer :: i
+
+    allocate(identity(N, N), source=0)
+
+    do i=1, N
+      identity(i, i) = 1
+    end do
+  end function identity_integer
 
   !> Setup real identity matrix.
   function identity_real_dp(N) result(identity)
@@ -300,7 +317,48 @@ contains
 !
 ! Check if a matrix is unitary or orthogonal respectively.
 
-  !> Check if a real matrix is orthognal
+  !> Check if an integer matrix is orthogonal
+  !> The definition of orthogonality is extended to rectangular matrices such that
+  !> a matrix \(\mathbf{A} \in \mathbb{Z}^{m \times n}\), if \(m \le n\), is understood to be orthogonal if
+  !> \[
+  !>   \mathbf{A} \cdot \mathbf{A}^T = mathbf{I}_m
+  !> \]
+  !> and if \(n > m\)
+  !> \[
+  !>   \mathbf{A}^T \cdot \mathbf{A} = mathbf{I}_n,
+  !> \]
+  !> where \(\mathbf{I}_m\) is the \(m \times m\) dimensional identity matrix.
+  logical function is_orthogonal_integer(A)
+    !> Matrix to check for
+    integer, intent(in) :: A(:, :)
+
+    integer, allocatable :: A_times_A_T(:, :)
+
+    integer :: m, n
+
+    m = size(A, dim=1)
+    n = size(A, dim=2)
+
+    if(m <= n) then
+      A_times_A_T = matmul(A, transpose(A))
+    else
+      A_times_A_T = matmul(transpose(A), A)
+    end if
+
+    is_orthogonal_integer = all(A_times_A_T == identity_integer(size(A_times_A_T, dim=1)))
+  end function is_orthogonal_integer
+
+  !> Check if an real matrix is orthogonal
+  !> The definition of orthogonality is extended to rectangular matrices such that
+  !> a matrix \(\mathbf{A} \in \mathbb{R}^{m \times n}\), if \(m \le n\), is understood to be orthogonal if
+  !> \[
+  !>   \mathbf{A} \cdot \mathbf{A}^T = mathbf{I}_m
+  !> \]
+  !> and if \(n > m\)
+  !> \[
+  !>   \mathbf{A}^T \cdot \mathbf{A} = mathbf{I}_n,
+  !> \]
+  !> where \(\mathbf{I}_m\) is the \(m \times m\) dimensional identity matrix.
   logical function is_orthogonal_real_dp(A, tol)
     !> Matrix to check for
     real(dp), intent(in) :: A(:, :)
@@ -308,22 +366,36 @@ contains
     real(dp), intent(in), optional :: tol
 
     real(dp) tol_
-    real(dp), allocatable :: A_A_T(:, :)
+    real(dp), allocatable :: A_times_A_T(:, :)
+    integer :: m, n
 
     tol_ = default_tol
     if(present(tol)) tol_ = tol
 
-    if(size(A, dim=1) <= size(A, dim=2)) then
-      A_A_T = matmul(A, transpose(A))
+    m = size(A, dim=1)
+    n = size(A, dim=2)
+
+    if(m <= n) then
+      A_times_A_T = matmul(A, transpose(A))
     else
-      A_A_T = matmul(transpose(A), A)
+      A_times_A_T = matmul(transpose(A), A)
     end if
 
-    is_orthogonal_real_dp = all_close(A_A_T, identity_real_dp(size(A_A_T, dim=1)), tol_)
+    is_orthogonal_real_dp = all_close(A_times_A_T, identity_real_dp(size(A_times_A_T, dim=1)), tol_)
   end function is_orthogonal_real_dp
 
 
   !> Check if a complex matrix is unitary
+  !> The definition of unitarity is extended to rectangular matrices such that
+  !> a matrix \(\mathbf{A} \in \mathbb{C}^{m \times n}\), if \(m \le n\), is understood to be orthogonal if
+  !> \[
+  !>   \mathbf{A} \cdot \mathbf{A}^T = mathbf{I}_m
+  !> \]
+  !> and if \(n > m\)
+  !> \[
+  !>   \mathbf{A}^T \cdot \mathbf{A} = mathbf{I}_n,
+  !> \]
+  !> where \(\mathbf{I}_m\) is the \(m \times m\) dimensional identity matrix.
   logical function is_unitary_complex_dp(A, tol)
     !> Matrix to check for
     complex(dp), intent(in) :: A(:, :)
@@ -331,20 +403,23 @@ contains
     real(dp), intent(in), optional :: tol
 
     real(dp) tol_
-    real(dp), allocatable :: A_A_T(:, :)
+    complex(dp), allocatable :: A_times_A_C(:, :)
+    integer :: m, n
 
     tol_ = default_tol
     if(present(tol)) tol_ = tol
 
-    if(size(A, dim=1) <= size(A, dim=2)) then
-      A_A_T = matmul(A, transpose(conjg(A)))
+    m = size(A, dim=1)
+    n = size(A, dim=2)
+
+    if(m <= n) then
+      A_times_A_C = matmul(A, transpose(conjg(A)))
     else
-      A_A_T = matmul(transpose(conjg(A)), A)
+      A_times_A_C = matmul(transpose(conjg(A)), A)
     end if
 
-    is_unitary_complex_dp = all_close(A_A_T, identity_real_dp(size(A_A_T, dim=1)), tol_)
+    is_unitary_complex_dp = all_close(A_times_A_C, identity_complex_dp(size(A_times_A_C, dim=1)), tol_)
   end function is_unitary_complex_dp
-
 
 ! all_close
 !
