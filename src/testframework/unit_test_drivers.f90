@@ -56,6 +56,10 @@ contains
       if (run%xs .or. run%all) then
          call xs_test_driver(mpiglobal, kill_on_failure) 
       end if
+         
+      if (run%xs .or. run%all) then
+         call xs_test_driver(mpiglobal, kill_on_failure) 
+      end if
 
       if (run%lapack .or. run%all) then
          call lapack_wrappers_test_driver(mpiglobal, kill_on_failure)
@@ -63,6 +67,10 @@ contains
 
       if (run%mpi .or. run%all) then
          call mpi_test_driver(mpiglobal, kill_on_failure)
+      end if
+
+      if (run%structure .or. run%all) then
+         call structure_test_driver(mpiglobal, kill_on_failure)
       end if
 
       if (run%gw .or. run%all) then

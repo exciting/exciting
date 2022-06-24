@@ -1,7 +1,5 @@
 !> Tools that are useful for defining grids or working with grids.
 module grid_utils
-  use iso_fortran_env, only: error_unit
-
   use precision, only: sp, dp
   use constants, only: pi, zi
   use asserts, only: assert
@@ -14,7 +12,10 @@ module grid_utils
             linspace, &
             grid_3d, &
             phase, &
-            fft_frequencies
+            fft_frequencies, &
+            n_grid_diff
+
+  real(dp), parameter :: offset_default(3) = [0._dp, 0._dp, 0._dp]
             
 
   !> Generate a vector of evenly spaced number over a given interval. 
@@ -22,21 +23,24 @@ module grid_utils
   interface linspace
     module procedure :: linspace_spacing, linspace_number_of_points
   end interface linspace
-
+    
+  !> Generate a regular grid with the last index changing the fastest
   interface grid_3d 
     module procedure :: cubic_grid_3d, regular_cubic_grid_3d
   end interface grid_3d
-
+  
+  !> Calculate the complex phase for a given k-point and a r-point or
+  !> an array of r-points
   interface phase
     module procedure :: phase_single_point, phase_array
   end interface phase
   
 contains
 
-  !> Generate an array of ascending or descending evenly distributed integers
-  !> in the range `[start, start + (end - start) * spacing]`. The array has `abs(end - start) + 1`
-  !> elements.
-  function mesh_1d(start, end, spacing) result(range_out)
+  !> Generate an array of ascending or descending evenly distributed integers.
+  !> The first element is alway `start` and the last element is always `<= end`.
+  !> The end point is not guaranteed when `(start - end) / spacing` is not an integer number.
+  function mesh_1d(start, end, spacing) result(range)
     !> First element of the range
     integer, intent(in) :: start 
     !> Last element of the range
@@ -44,26 +48,25 @@ contains
     !> Spacing between the elements. Default is 1.
     integer, intent(in), optional :: spacing
 
-    integer, allocatable :: range_out(:)
+    integer, allocatable :: range(:)
 
-    integer :: i, spacing_, sign
+    integer :: i, spacing_, dx, N
+    external :: sign
 
     spacing_ = 1
     if (present(spacing)) spacing_ = spacing
 
+    call assert(start /= end, 'Start and end can not be the same.')
     call assert(spacing_ > 0, 'Spacing must be at least 1.')
-    if (start == end) then
-      range_out = [0]
-      return 
-    end if
 
-    allocate(range_out(abs(end - start) + 1))
+    dx = end - start
+    spacing_ = isign(spacing_, dx)
+    N = int(dx / spacing_) + 1
 
-    sign = (end - start)/abs(end - start)
-
-    do i=0, abs(end-start)
-      range_out(i+1) = start + sign * i * spacing_
-    end do 
+    allocate(range(N))
+    do i = 1, N
+       range(i) = start + (i-1) * spacing_
+    end do
   end function mesh_1d
 
 
@@ -248,6 +251,7 @@ contains
     grid = cubic_grid_3d([N, N, N], start, end)
   end function
 
+  
   !> Generate the Bloch phase for a point in the unit cell and a k-point:
   !> \[ 
   !>     \text{phase}(\mathbf r, \mathbf k) = 
@@ -265,6 +269,7 @@ contains
 
     phase_single_point = exp(-2 * zi * pi * sum(k * r))
   end function phase_single_point
+
 
   !> Generate the complex phase on a grid for a k-point and store it to an array in the correct order:
   !> \[ 
@@ -286,7 +291,7 @@ contains
     integer :: i
 
     call assert(size(r_array, 1) == 3, &
-                'phase_array: First dimension of r_array needs to be 3.')
+                'Error(phase_array): First dimension of r_array needs to be 3.')
     
     allocate(phase(size(r_array, 2)))
 
@@ -329,6 +334,32 @@ contains
     frequencies(1, :) = kronecker_product(ones3, ones2, f1)
     frequencies(2, :) = kronecker_product(ones3, f2,    ones1)
     frequencies(3, :) = kronecker_product(f3,    ones2, ones1)
-  end function fft_frequencies
+  end function fft_frequencies   
+
+
+  !> Calculate the number of grid points per dimension of the difference grid with the given the number of grid
+  !> points per dimension of a regular origin grid. In each dimension with more then one grid point, the number of grid
+  !> points is doubled because the difference grid take to into account \( \mathbf{p}_1 - \mathf{p}_2\) and
+  !> \( \mathbf{p}_2 - \mathf{p}_1\) where \(\mathbf{p}_1, \mathbf{p}_2\) are points of the origin grid. Example:
+  !> \[
+  !>   \begin{split}
+  !>     2 3 4 \rightarrow 4 6 8
+  !>     1 2 3 \rightarrow 1 4 6
+  !>   \end{split}
+  !> \]
+  function n_grid_diff(N_grid_in) result(N_grid_out)
+    !> Number of grid points per dimension
+    integer, intent(in) :: N_grid_in(3)
+
+    integer :: N_grid_out(3)
+
+    integer :: i
+
+    call assert(all(N_grid_in > 0),  'Number of k-points per dimension is zero.')
+    N_grid_out = 2 * N_grid_in
+    do i = 1, 3
+      if (N_grid_in(i) == 1) N_grid_out(i) = 1
+    end do
+  end function n_grid_diff 
 
 end module grid_utils

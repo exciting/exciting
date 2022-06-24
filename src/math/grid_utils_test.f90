@@ -4,8 +4,9 @@ module grid_utils_test
    use constants, only: zone
    use modmpi, only: mpiinfo
    use unit_test_framework, only: unit_test_type
-   use math_utils, only: all_close
-   use grid_utils, only: mesh_1d, linspace, grid_3d, phase, fft_frequencies
+   use math_utils, only: all_close, all_zero
+   use grid_utils, only: mesh_1d, linspace, grid_3d, phase, fft_frequencies, &
+                         n_grid_diff
 
    implicit none
 
@@ -24,7 +25,7 @@ contains
       !> Test report object
       type(unit_test_type) :: test_report
       !> Number of assertions
-      integer, parameter :: n_assertions = 24
+      integer, parameter :: n_assertions = 27
 
       call test_report%init(n_assertions, mpiglobal)
 
@@ -38,6 +39,8 @@ contains
       call test_phase_3d(test_report)
 
       call test_fft_frequencies(test_report)
+
+      call test_n_grid_diff(test_report)
 
       if (present(kill_on_failure)) then
          call test_report%report('grid_utils', kill_on_failure)
@@ -58,28 +61,23 @@ contains
       test_range = mesh_1d(3, 8)
       reference_range = [3, 4, 5, 6, 7, 8]
       call test_report%assert(all(test_range == reference_range), &
-                             'Test mesh_1d for ascending order.')
+                            'Test mesh_1d for ascending order.')
 
       test_range = mesh_1d(12, 9)
       reference_range = [12, 11, 10, 9]
       call test_report%assert(all(test_range == reference_range), &
-                             'Test mesh_1d for descending order.')
+                            'Test mesh_1d for descending order.')
 
       test_range = mesh_1d(13, 20, 3)
-      reference_range = [13, 16, 19, 22, 25, 28, 31, 34]
+      write(*,*) test_range
+      reference_range = [13, 16, 19]
       call test_report%assert(all(test_range == reference_range), &
-                             'Test mesh_1d for ascending order with spacing = 3.')
+                            'Test mesh_1d for ascending order with spacing = 3.')
 
       test_range = mesh_1d(6, 2, 2)
-      reference_range = [6, 4, 2, 0, -2]
+      reference_range = [6, 4, 2]
       call test_report%assert(all(test_range == reference_range), &
-                             'Test mesh_1d for descending order with spacing = 2.')
-
-      test_range = mesh_1d(1, 1, 1)
-      reference_range = [0]
-      call test_report%assert(all(test_range == reference_range), &
-                             'Test mesh_1d for end == start. Expected: [0].')
-                             
+                            'Test mesh_1d for descending order with spacing = 2.')
     end subroutine test_mesh_1d
 
 
@@ -300,7 +298,43 @@ contains
 
       call test_report%assert(all_close(fft_frequencies([4, 2, 3]), ref), &
                       'Test fft_frequencies for a 3D grid with [4, 2, 3] numbers of points per dimension. &
-&                     Expected output: 3 x 24 element array with the fast fourier freqencies corresponding to the grid in correct order.')
-   end subroutine test_fft_frequencies
+                      Expected output: 3 x 24 element array with the fast fourier freqencies corresponding to the grid in correct order.')
+  end subroutine test_fft_frequencies
+
+
+  subroutine test_n_grid_diff(test_report)
+    !> Our test object
+    type(unit_test_type), intent(inout) :: test_report
+
+    integer :: N_ks(3)
+
+    N_ks = [2, 5 ,3]
+
+    call test_report%assert(all(n_grid_diff(N_ks) == [4, 10, 6]), &
+                           'Test if n_grid_diff returns the correct n_grid_diff for 3d k-grid. &
+                           Expected: [4, 10, 6]')
+
+
+    N_ks = [4, 1, 23]
+    
+    call test_report%assert(all(n_grid_diff(N_ks) == [8, 1, 46]), &
+                           'Test if n_grid_diff returns the correct n_grid_diff for 2d k-grid. &
+                           Expected: [8, 1, 46]')
+
+                        
+    N_ks = [1, 4, 1]
+    
+    call test_report%assert(all(n_grid_diff(N_ks) == [1, 8, 1]), &
+                           'Test if n_grid_diff returns the correct n_grid_diff for 1d k-grid. &
+                           Expected: [1, 8, 1]')
+
+
+    N_ks = [1, 1, 1]
+    
+    call test_report%assert(all(n_grid_diff(N_ks) == [1, 1, 1]), &
+                           'Test if n_grid_diff returns the correct n_grid_diff for 10d k-grid. &
+                           Expected: [1, 1, 1]')
+
+  end subroutine test_n_grid_diff
 
 end module grid_utils_test

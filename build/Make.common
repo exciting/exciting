@@ -32,6 +32,7 @@ SOURCEDIRS=	\
 	../../src/src_lib/ \
     ../../src/src_lib/bessel \
 	../../src/math \
+  ../../src/structure \
 	../../src/src_mixing/ \
 	../../src/src_mpi/ \
 	../../src/src_mpi/routines/ \
