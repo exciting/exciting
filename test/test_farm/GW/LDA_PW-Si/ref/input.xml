@@ -25,7 +25,7 @@
 
   <gw
     taskname="g0w0" 
-    ibgw="1" nbgw="15"
+    ibgw="1" nbgw="14"
     nempty="100"
     ngridq="1 1 1"
     >

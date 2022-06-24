@@ -8,6 +8,7 @@ import enum
 import yaml
 import numpy as np
 import os
+from pathlib import Path
 
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
@@ -22,12 +23,30 @@ from ..tolerance.tol_classes import tol_file_name, tol_file_to_method
 from ..tolerance.tol_classes import methods as valid_methods
 
 
-class TestGroup(enum.Enum):
+def dynamically_generate_test_group_enum_class() -> enum.Enum:
+    """ Dynamically generate the TestGroup enum class from YAML file attributes.
+
+    TODO. defaults_config.yml gets parsed twice by the test suite, which is not needed
+
+    :return TestGroup: Enum class containing the enums defined by `group_execution`
+    in 'defaults_config.yml'.
     """
-    All GROUP definitions
-    """
-    NONE = enum.auto()
-    SLOW_TESTS = enum.auto()
+    # Get the full path of defaults_config.yml.
+    # Not the most robust. Better choice might be to move 'defaults_config.yml' to src/exciting_settings
+    this_file_path = os.path.dirname(os.path.realpath(__file__))
+    defaults_config_file = Path(*Path(this_file_path).parts[:-2]) / 'defaults_config.yml'
+
+    try:
+        with open(defaults_config_file, 'r') as stream:
+            data = yaml.safe_load(stream)
+    except FileNotFoundError:
+        raise FileNotFoundError(f'Cannot find YAML defaults file {defaults_config_file}')
+
+    group_names = [name for name in data['group_execution'].keys()]
+    return enum.Enum(value='TestGroup', names=group_names)
+
+
+TestGroup = dynamically_generate_test_group_enum_class()
 
 
 # Properties/attributes of a test case.
@@ -113,7 +132,7 @@ def check_default_files_under_test(default_files_under_test: dict):
         raise ValueError(f"Missing tabulated methods in tol_classes.py, for methods: {missing_methods}")
 
 
-def check_groups_in_config(groups: dict):
+def check_groups_in_config(groups: list):
     """
     Check that all groups explicitly defined in the defaults config file are also defined as enums.
 
@@ -124,10 +143,13 @@ def check_groups_in_config(groups: dict):
 
     :param dict groups: Groups read from config, with keys = group names and values = True/False.
     """
-    enum_group_names = set(TestGroup._member_names_)
-    groups_in_config_file = set(groups.keys())
-    if enum_group_names != groups_in_config_file:
-        raise ValueError('Groups specified in TestGroup and config file differ')
+    enum_group_names = set([enum for enum in TestGroup])
+    groups_in_config_file = set(groups)
+
+    if not groups_in_config_file.issubset(enum_group_names):
+        missing_groups = groups_in_config_file - enum_group_names
+        raise ValueError(f'Groups {missing_groups} specified in the config file '
+                         f'are not specified in the defaults_config file')
 
 
 def parse_config_defaults_file(yaml_str: str) -> dict:
@@ -139,7 +161,6 @@ def parse_config_defaults_file(yaml_str: str) -> dict:
     """
     config_defaults: dict = yaml.load(yaml_str, Loader=Loader)
     check_default_files_under_test(config_defaults['default_files_under_test'])
-    check_groups_in_config(config_defaults['group_execution'])
     return config_defaults
 
 
@@ -331,6 +352,15 @@ def configure_all_tests(tests_yaml: str, defaults_yaml: str) -> dict:
     # Must prepend with 'test_farm' directory, as this is not specified in the naming convention of the config file
     config_data = {os.path.join(settings.test_farm, name): value for name, value in config_data.items()}
 
+    # Check GROUPs assigned to tests are consistent with those defined in defaults_config.yml
+    # Could be done more cleanly
+    groups_in_config = []
+    for value in config_data.values():
+        if value is not None:
+            if 'group' in value:
+                groups_in_config.append(value['group'])
+    check_groups_in_config(groups_in_config)
+
     test_names = [name for name in config_data.keys()]
     default_inputs = input_files_for_tests(test_names, subdirectory='ref')
     # TODO(Alex/Ben/Hannah) # Issue 114. Add 'depends_on'
@@ -386,7 +416,7 @@ def sort_tests_by_group(tests: dict) -> Dict[TestGroup, List[str]]:
     :param dict tests: Tests.
     :return Dict[TestGroup, List[str]] tests_by_group: Tests sorted by group.
     """
-    # Initialise
+    # Initialise entries for all possible groups
     tests_by_group = {group: [] for group in TestGroup}
 
     # Log tests by 'group' attribute

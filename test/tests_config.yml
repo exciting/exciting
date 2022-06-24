@@ -107,18 +107,13 @@ BSE/PBE-LiF-phononscreening:
 # TODO(Alex) Issue #103. App Tests: GW QP Energies Inconsistent with Reference
 # TODO(Alex) Issue #35. MPI GW calculations do not produce EPS00_GW.OUT
 GW/LDA_PW-Si:
+   group: GW
    files_under_test:
       - "GW_INFO.OUT"
-      - "EFERMI_GW.OUT"
       - 'VXCNN.DAT'
    inputs:
       - "input.xml"
       - "Si.xml"
-   failing_builds:
-      - intel_mpiandsmp
-      - intel_serial
-      - gcc_mpiandsmp
-      - gcc_serial
 
 hybrid/EXX-C:
 

@@ -3,7 +3,7 @@ Test the classes TestResults
 
 Running
 -----------
-Should be run from exciting/test. From exciting's root:
+Should be runnable from any folder
 ```
 cd test
 pytest -s test_functions/test_class_testresults.py
@@ -25,14 +25,16 @@ import pytest
 import sys
 from io import StringIO
 import os
-from typing import List
+from typing import List, Union
 import re
+from pathlib import Path
 
 from ..src.tester.compare import ErrorFinder
 # Rename TestResults else pytest will try to collect from it
 from ..src.tester.report import TestResults as ExTestResults
 from ..src.io.tolerances import load_tolerances, strip_tolerance_units, list_tolerance_files_in_directory
 from ..src.runner.test import compare_outputs
+
 
 def strip_ansi(text: str) -> str:
     r"""
@@ -67,6 +69,12 @@ def redirect_stdout(func):
     return wrapper
 
 
+def get_test_framework_root():
+    this_file_path = os.path.dirname(os.path.realpath(__file__))
+    exciting_root = Path(this_file_path).parents[1]
+    return exciting_root / 'test'
+
+
 @pytest.fixture()
 def successful_test_dir() -> str:
     return "test_functions/dummy_app_tests/LDA_VWN-He_passing"
@@ -83,17 +91,19 @@ def failing_arrays1d2d_test_dir() -> str:
 
 
 @pytest.fixture()
-def missing_files_test_dir() -> str:
-    return "test_functions/dummy_app_tests/LDA_VWN-He_missing_files"
+def missing_files_test_dir() -> Path:
+    root = get_test_framework_root()
+    return root / "test_functions/dummy_app_tests/LDA_VWN-He_missing_files"
 
 
-def get_test_results(test_dir: str, output_files_to_check: List[str]) -> dict:
+def get_test_results(test_dir: Union[str, Path], output_files_to_check: List[str]) -> dict:
     """
     Set the run and reference directories, files to regression test, tolerances, and
     return the results of comparing the test data.
     """
-    full_run_dir = os.path.join(test_dir, "run")
-    full_ref_dir = os.path.join(test_dir, "ref")
+    root = get_test_framework_root()
+    full_run_dir = os.path.join(root, test_dir, "run")
+    full_ref_dir = os.path.join(root, test_dir, "ref")
 
     tolerance_files = list_tolerance_files_in_directory(full_ref_dir)
     json_tolerances = load_tolerances(full_ref_dir, tolerance_files)
@@ -112,7 +122,7 @@ def test_attributes_successful(successful_test_dir):
     test_results_dict = get_test_results(successful_test_dir, gs_files)
     test_results.set_results(test_results_dict)
 
-    assert test_results.test_name == "test_functions/dummy_app_tests/LDA_VWN-He_passing", "Test name"
+    assert os.path.basename(test_results.test_name) == "LDA_VWN-He_passing", "Base test name"
     assert test_results.completed, "exciting run completed (rather than crashed)"
     assert set(test_results.file_names) == set(gs_files), "Expect these ground state files to be regression-tested"
     assert set(test_results.succeeded_files) == set(gs_files), "All tested files should succeed"
@@ -141,7 +151,7 @@ def test_print_successful(successful_test_dir):
     output_print_buffer = print_results()
     colourless_output_buffer = strip_ansi(output_print_buffer)
 
-    expected_print_buffer = """Test Case: test_functions/dummy_app_tests/LDA_VWN-He_passing
+    expected_print_buffer = f"""Test Case: {test_results.test_name}
 Time (s): 0.0
 Test execution completed
 Output Files: SUCCESS 5/5, NOT EVALUATED 0/5, FAIL 0/5.
@@ -170,7 +180,7 @@ def test_attributes_erroneous_scalars(failing_scalars_test_dir):
     test_results = ExTestResults(failing_scalars_test_dir, completed=True, timing=0.0)
     test_results.set_results(test_results_dict)
 
-    assert test_results.test_name == "test_functions/dummy_app_tests/LDA_VWN-He_failing_scalars", "Test name = directory"
+    assert os.path.basename(test_results.test_name) == "LDA_VWN-He_failing_scalars", "Base test name"
     assert test_results.completed, "exciting run completed (rather than crashed)"
     assert set(test_results.file_names) == set(gs_files), "Expect specified ground state files to be regression-tested"
     assert set(test_results.succeeded_files) == {'evalcore.xml', 'geometry.xml', 'eigval.xml', 'atoms.xml'}, \
@@ -200,7 +210,7 @@ def test_print_erroneous_scalars(failing_scalars_test_dir):
     output_print_buffer = print_results()
     colourless_output_buffer = strip_ansi(output_print_buffer)
     
-    expected_print = """Test Case: test_functions/dummy_app_tests/LDA_VWN-He_failing_scalars
+    expected_print = f"""Test Case: {test_results.test_name}
 Time (s): 0.0
 Test execution completed
 Output Files: SUCCESS 4/5, NOT EVALUATED 0/5, FAIL 1/5.
@@ -246,7 +256,7 @@ def test_attributes_failing_array(failing_arrays1d2d_test_dir):
     test_results = ExTestResults(failing_arrays1d2d_test_dir, completed=True, timing=0.0)
     test_results.set_results(test_results_dict)
 
-    assert test_results.test_name == "test_functions/dummy_app_tests/GW_ZrO2_failing_arrays", "Test name = directory"
+    assert os.path.basename(test_results.test_name) == "GW_ZrO2_failing_arrays", "Base test name"
     assert test_results.completed, "exciting run completed (rather than crashed)"
     assert set(test_results.file_names) == {'EVALQP.DAT'}, "Expect only this GW file to be regression-tested"
     assert len(test_results.succeeded_files) == 0, "Quasi-particle run file should contain errors"
@@ -275,7 +285,7 @@ def test_print_failing_array(failing_arrays1d2d_test_dir):
     output_print_buffer = print_results()
     colourless_output_buffer = strip_ansi(output_print_buffer)
 
-    expected_print_buffer = """Test Case: test_functions/dummy_app_tests/GW_ZrO2_failing_arrays
+    expected_print_buffer = f"""Test Case: {test_results.test_name}
 Time (s): 0.0
 Test execution completed
 Output Files: SUCCESS 0/1, NOT EVALUATED 0/1, FAIL 1/1.
@@ -317,7 +327,7 @@ def test_attributes_missing_files(missing_files_test_dir):
     test_results = ExTestResults(missing_files_test_dir, completed=True, timing=0.0)
     test_results.set_results(test_results_dict)
 
-    assert test_results.test_name == "test_functions/dummy_app_tests/LDA_VWN-He_missing_files", "Test name = directory"
+    assert os.path.basename(test_results.test_name) == "LDA_VWN-He_missing_files", "Base test name"
     assert test_results.completed, "exciting run completed (rather than crashed)"
     assert set(test_results.file_names) == set(present_files), "Expect present files to be regression-tested"
     assert set(test_results.succeeded_files) == set(present_files), "All files that do not give an IO error should succeed"
@@ -341,19 +351,20 @@ def test_print_missing_file(missing_files_test_dir):
 
     output_print_buffer = print_results()
     colourless_output_buffer = strip_ansi(output_print_buffer)
+    root = get_test_framework_root()
 
-    expected_print_buffer = """Test Case: test_functions/dummy_app_tests/LDA_VWN-He_missing_files
+    expected_print_buffer = f"""Test Case: {test_results.test_name}
 Time (s): 0.0
 Test execution completed
 Output Files: SUCCESS 2/5, NOT EVALUATED 3/5, FAIL 0/5.
     INFO.OUT NOT EVALUATED
-      File test_functions/dummy_app_tests/LDA_VWN-He_missing_files/run/INFO.OUT could not be opened.
+      File {root}/test_functions/dummy_app_tests/LDA_VWN-He_missing_files/run/INFO.OUT could not be opened.
     evalcore.xml SUCCESS
     geometry.xml NOT EVALUATED
-      File test_functions/dummy_app_tests/LDA_VWN-He_missing_files/ref/geometry.xml could not be opened.
+      File {root}/test_functions/dummy_app_tests/LDA_VWN-He_missing_files/ref/geometry.xml could not be opened.
     eigval.xml SUCCESS
     atoms.xml NOT EVALUATED
-      File test_functions/dummy_app_tests/LDA_VWN-He_missing_files/run/atoms.xml could not be opened.
+      File {root}/test_functions/dummy_app_tests/LDA_VWN-He_missing_files/run/atoms.xml could not be opened.
 """
 
     assert colourless_output_buffer == expected_print_buffer, \
