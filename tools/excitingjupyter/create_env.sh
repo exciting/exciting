@@ -11,3 +11,10 @@ pip3 install -e ../exciting_tools
 pip3 install .
 # Install local kernal for jupyter
 python3 -m ipykernel install --user --name=excitingjupyter
+# Find path for custom CSS file:
+path=$(python -c "import notebook; print(notebook.__file__)")
+notebookpath=${path::-11}
+csspath="${notebookpath}static/custom/."
+# Add custom CSS style:
+cp excitingjupyter/custom.css "$csspath"
+cp ../../docs/logo/logotransp.png "$csspath"
