@@ -75,6 +75,11 @@ groundstate/LDA_VWN-nonrelativistic-Ar:
 
 groundstate/LDA_VWN-zora-Ar:
 
+groundstate/LDA_TETER93-BN:
+   group: LIBXC
+
+groundstate/LDA_TETER93-spin-BN:
+   group: LIBXC
 # TODO(Alex) Issue #36 chargedensityplot hangs when running with np > 1 cores
 # Hence test is commented out
 # groundstate/PBE-Al:
@@ -90,6 +95,11 @@ groundstate/PBE-msec-Al:
 groundstate/PBE-pulay-Al:
 
 groundstate/PBE_SOL-Al:
+
+groundstate/PBE-libxc-Al:
+   group: LIBXC
+groundstate/PBE-libxc-spin-Al:
+   group: LIBXC
 
 BSE/PBE_SOL-LiF:
 
@@ -131,6 +141,12 @@ hybrid/PBE0-Si:
       - intel_mpiandsmp
    comments: 'Test is flakey when run in the CI with Intel parallel build.'
 
+hybrid/PBEH-spin-Si:
+   group: LIBXC
+
+hybrid/PBEH-Si:
+   group: LIBXC
+   
 properties/LDA-PW-core_properties-Si:
 
 properties/LDA_PW-bandstructure-Si:
