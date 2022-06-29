@@ -39,7 +39,6 @@ contains
       else
          call test_report%report('super_cell_utils')
       end if
-
    end subroutine super_cell_utils_test_driver
 
    subroutine test_get_translation(test_report)

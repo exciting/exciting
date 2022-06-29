@@ -2,26 +2,62 @@ module linear_algebra_3d
   use asserts, only: assert
   use precision, only: dp
   use constants, only: pi
+  use math_utils, only: all_zero
+
+  implicit none
 
   private
-  public :: determinant_3d, cross_product, inverse_3d, triple_product, volume_parallelepiped, reciprocal_lattice
+  public :: determinant_3d, &
+            cross_product, &
+            inverse_3d, &
+            triple_product
 
-  !> Volume tolerance for [[reciprocal_lattice]]. If a parallelpiped is smaller than this,
-  !> the volume is taken as zero.
-  real(dp), parameter :: v_tol = 1.e-8_dp
+  !> Calculate the determinant of a matrix \( \mathbf{A} \).
+  interface determinant_3d
+    module procedure :: determinant_3d_real_dp, determinant_3d_integer
+  end interface
+
+  !> Calculate triple product for three vectors \( \mathbf{a}_1, \mathbf{a}_2, \mathbf{a}_3 \in \mathbb{R}^3 \):
+  !> \[
+  !>   s = \mathbf{a}_{1} \cdot (\mathbf{a}_{2} \times \mathbf{a}_{3}).
+  !> \]
+  !> The routine takes the input vectors independently or columnwise as \(3 \cross 3\) matrix.
+  interface triple_product
+    module procedure :: determinant_3d_real_dp, triple_product_vector_inputs
+  end interface
 
   contains 
 
   ! Calculate the determinant of a matrix \( \mathbf{A} \).
-  real(dp) function determinant_3d(A)
+  pure real(dp) function determinant_3d_real_dp(A)
     !> Input matrix
-    real(dp) :: A(3, 3)
+    real(dp), intent(in) :: A(3, 3)
 
-    determinant_3d = A(1, 1) * A(2, 2) * A(3, 3)  -  A(3, 1) * A(2, 2) * A(1, 3) &
-                   + A(1, 2) * A(2, 3) * A(3, 1)  -  A(3, 2) * A(2, 3) * A(1, 1) &
-                   + A(1, 3) * A(2, 1) * A(3, 2)  -  A(3, 3) * A(2, 1) * A(1, 2)
-  end function determinant_3d
+    determinant_3d_real_dp = A(1, 1) * A(2, 2) * A(3, 3)  -  A(3, 1) * A(2, 2) * A(1, 3) &
+                           + A(1, 2) * A(2, 3) * A(3, 1)  -  A(3, 2) * A(2, 3) * A(1, 1) &
+                           + A(1, 3) * A(2, 1) * A(3, 2)  -  A(3, 3) * A(2, 1) * A(1, 2)
+  end function determinant_3d_real_dp
 
+  ! Calculate the determinant of a matrix \( \mathbf{A} \).
+  pure integer function determinant_3d_integer(A)
+    !> Input matrix
+    integer, intent(in) :: A(3, 3)
+
+    determinant_3d_integer = A(1, 1) * A(2, 2) * A(3, 3)  -  A(3, 1) * A(2, 2) * A(1, 3) &
+                           + A(1, 2) * A(2, 3) * A(3, 1)  -  A(3, 2) * A(2, 3) * A(1, 1) &
+                           + A(1, 3) * A(2, 1) * A(3, 2)  -  A(3, 3) * A(2, 1) * A(1, 2)
+  end function determinant_3d_integer
+
+  !> Calculate triple product for three vectors \( \mathbf{a}_1, \mathbf{a}_2, \mathbf{a}_3 \in \mathbb{R}^3 \):
+  !> \[
+  !>   s = \mathbf{a}_{1} \cdot (\mathbf{a}_{2} \times \mathbf{a}_{3}).
+  !> \]
+  pure function triple_product_vector_inputs(v1, v2, v3) result(t_prod)
+    !> Input vectors
+    real(dp), intent(in) :: v1(3), v2(3), v3(3)
+    real(dp) :: t_prod
+    t_prod = determinant_3d_real_dp(reshape([v1, v2, v3], [3, 3]))
+  end function
 
   !> Calculate the cross product between two three dimensional real vectors 
   !> \\(mathbf{b}\) and  \\(mathbf{c}\):
@@ -29,11 +65,10 @@ module linear_algebra_3d
   !>   \mathbf{a} = \mathbf{b} \times \mathbf{c}
   !>              = \epsilon_{ijk}b_j c_k
   !> \]
-  function cross_product(b, c) result(a)
-
+  pure function cross_product(b, c) result(a)
     !> input vectors
     real(dp), intent(in) :: b(3), c(3)
-    !> cross product of b and c
+    
     real(dp) :: a(3)
 
     a(1) = b(2) * c(3) - b(3) * c(2)
@@ -41,23 +76,22 @@ module linear_algebra_3d
     a(3)=  b(1) * c(2) - b(2) * c(1)
   end function cross_product
 
-
   !> Invert real \(3 \times 3 \) matrix \(A\) such that
   !> \[
   !>   A^{-1} \cdot A = A \cdot A^{-1} = I_{3 \times 3},
   !> \]
   !> where \(I_{3 \times 3}\) is the identity matrix.
-  function inverse_3d(A) result(inverse_A)
+  pure function inverse_3d(A) result(inverse_A)
     !> input matrix
     real(dp), intent(in) :: A(3, 3)
-    !> inverse of input matrix
+    
     real(dp) :: inverse_A(3, 3)
 
     real(dp) :: determinant
 
     determinant = determinant_3d(A)
 
-    call assert(determinant /= 0, 'det A is zero.')
+    if (all_zero(determinant)) error stop 'The determinant is too close to zero.'
 
     inverse_A(1, 1) = (A(2, 2) * A(3, 3) - A(2, 3) * A(3, 2)) / determinant
     inverse_A(1, 2) = (A(1, 3) * A(3, 2) - A(1, 2) * A(3, 3)) / determinant
@@ -71,66 +105,5 @@ module linear_algebra_3d
     inverse_A(3, 2) = (A(1, 2) * A(3, 1) - A(1, 1) * A(3, 2)) / determinant
     inverse_A(3, 3) = (A(1, 1) * A(2, 2) - A(1, 2) * A(2, 1)) / determinant
   end function inverse_3d
-
-
-  !> Calculate triple product for lattice vectors expected column-wise, 
-  !> with the column vectors \( \mathbf{a}_1, \mathbf{a}_2, \mathbf{a}_3 \in \mathbb{R}^3}, defined as
-  !> \[ 
-  !>   s = \mathbf{a}_{1} \cdot (\mathbf{a}_{2} \times \mathbf{a}_{3}),
-  !> \]
-  !> where
-  !> \[ 
-  !>   \mathbf{a}_{1} , \mathbf{a}_{2} , \mathbf{a}_{3}
-  !> \]
-  !> are the lattice vectors.
-  real(dp) function triple_product(lattice_vec)
-    !> lattice vectors
-    real(dp), intent(in) :: lattice_vec(3, 3)
-
-    real(dp) :: b_cross_c(3)
-
-    b_cross_c = cross_product(lattice_vec(:, 2), lattice_vec(:, 3))
-    
-    triple_product = dot_product(lattice_vec(:, 1), b_cross_c)
-  end function triple_product
-
-
-  !> Calculate the volume of a parallepid, spanned by lattice vectors expected column-wise 
-  !> as absolute value of the result of [[triple_product]].
-  real(dp) function volume_parallelepiped(lattice_vec)
-    !> lattice vectors
-    real(dp), intent(in) :: lattice_vec(3, 3)
-
-    volume_parallelepiped = abs(triple_product(lattice_vec))
-  end function volume_parallelepiped
-
-
-  !> Calculate reciprocal lattice vectors from real-space lattice vectors expected column-wise,
-  !> \[ 
-  !>   \left[\mathbf{b}_{1} \mathbf{b}_{2} \mathbf{b}_{3}\right]^{\top}=
-  !>     2 \pi\left[\mathbf{a}_{1} \mathbf{a}_{2} \mathbf{a}_{3}\right]^{-1}
-  !> \]
-  !> \]
-  !> are the real-space lattice vectors and
-  !> \[ 
-  !>   \mathbf{b}_{1} , \mathbf{b}_{2} , \mathbf{b}_{3} 
-  !> \]
-  !> are the reciprocal lattice vectors returned column-wise.
-  function reciprocal_lattice(lattice) result(rec_lattice)
-    !> Lattice vectors
-    real(dp), intent(in) :: lattice(3, 3)
-    
-    real(dp) :: rec_lattice(3, 3)
-
-    real(dp) :: omega
-
-    omega = triple_product(lattice)
-
-    call assert(abs(triple_product(lattice)) > v_tol, 'Unit cell volume is too small.')
-
-    rec_lattice(:, 1) = 2 * pi / omega * cross_product(lattice(:, 2), lattice(:, 3))
-    rec_lattice(:, 2) = 2 * pi / omega * cross_product(lattice(:, 3), lattice(:, 1))
-    rec_lattice(:, 3) = 2 * pi / omega * cross_product(lattice(:, 1), lattice(:, 2))
-  end function reciprocal_lattice
 
 end module linear_algebra_3d

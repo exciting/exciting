@@ -28,9 +28,11 @@ module math_utils
             distance_matrix, &
             outer_sum, &
             get_subinterval_indices, &
-            is_positive_definite
+            is_positive_definite, &
+            fractional_part, &
+            integer_part
 
-  !> default tolerance
+  !> Default tolerance
   real(dp), parameter :: default_tol = 1e-10
 
 
@@ -115,6 +117,37 @@ module math_utils
   end interface permanent
 
 
+  !> Calculate the fractional part of \(x\), where negative numbers are treated the same as negative
+  !> Numbers:
+  !> \[
+  !>    x - \lfloor x \rfloor.
+  !> \]
+  !> The routine allows for defining an offset \( c \). If specified the function returns
+  !> \[
+  !>   x - \lfloor x - c \rfloor
+  !> \]
+  !> Supported interfaces for scalar vector and matrix input. For matrix input the offset is expected
+  !> as vector. For the \(i\)'th row of the input matrix, the \(i\)'th element of the offset vector is
+  !> taken as offset.
+  interface fractional_part
+    module procedure :: fractional_part_scalar, fractional_part_matrix
+  end interface fractional_part
+
+
+  !> Calculate the integer part of of a real number \( x \):
+  !> \[
+  !>   \lfloor x \rfloor.
+  !> \]
+  !> The routine allows for defining an offset \( c \). Then it returns
+  !> \[
+  !>    \lfloor x - c \rfloor.
+  !> \]
+  !> If the result is close to one, with respect to a tolerance that can be defined,
+  !> the result as given by the intrinsic `floor` function is increased by 1.
+  interface integer_part
+    module procedure :: integer_part_scalar, integer_part_matrix
+  end interface integer_part
+
 contains
 
 
@@ -123,7 +156,7 @@ contains
 ! Setup identity matrix
 
   !> Setup real identity matrix.
-  function identity_real_dp(N) result(identity)
+  pure function identity_real_dp(N) result(identity)
     !> Dimension of the identity
     integer, intent(in) :: N
 
@@ -140,7 +173,7 @@ contains
 
 
   !> Setup complex identity matrix.
-  function identity_complex_dp(N) result(identity)
+  pure function identity_complex_dp(N) result(identity)
     !> Dimension of the identity
     integer, intent(in) :: N
 
@@ -224,7 +257,7 @@ contains
 ! Check if a matrix is suqare
 
   !> Check if a real matrix is square
-  function is_square_real_dp(a) result(square)
+  pure function is_square_real_dp(a) result(square)
     !> Input matrix
     real(dp), intent(in) :: a(:, :)
     !> Is the matrix square
@@ -234,7 +267,7 @@ contains
 
 
   !> Check if a complex matrix is square
-  function is_square_complex_dp(a) result(square)
+  pure function is_square_complex_dp(a) result(square)
     !> Input matrix
     complex(dp), intent(in) :: a(:, :)
     !> Is the matrix square
@@ -244,7 +277,7 @@ contains
 
 
   !> Check if a integer matrix is square
-  function is_square_integer(a) result(square)
+  pure function is_square_integer(a) result(square)
     !> Input matrix
     integer, intent(in) :: a(:, :)
     !> Is the matrix square
@@ -594,7 +627,7 @@ contains
   !>    |a| = \sqrt{ a \cdot {a}^*}.
   !> \]
   !> As such, the tolerance is a real value.
-  logical function all_zero_rank0_complex_dp(a, tol)
+  pure logical function all_zero_rank0_complex_dp(a, tol)
 
     !> Input array
     complex(dp), intent(in) :: a
@@ -620,7 +653,7 @@ contains
   !> \]
   !> As such, the tolerance is a real value and is
   !> checked elementwise.
-  logical function all_zero_rank1_complex_dp(a, tol)
+  pure logical function all_zero_rank1_complex_dp(a, tol)
 
     !> Input array
     complex(dp), intent(in) :: a(:)
@@ -646,7 +679,7 @@ contains
   !> \]
   !> As such, the tolerance is a real value and is
   !> checked elementwise.
-  logical function all_zero_rank2_complex_dp(a, tol)
+  pure logical function all_zero_rank2_complex_dp(a, tol)
 
     !> Input array
     complex(dp), intent(in) :: a(:,:)
@@ -668,7 +701,7 @@ contains
 
   !> Check if a real scalar \(a \) is zero, where zero
   !> is defined as \( |a| \leq abs\_tol \).
-  logical function all_zero_rank0_real_dp(a, tol)
+  pure logical function all_zero_rank0_real_dp(a, tol)
 
     !> Input array
     real(dp), intent(in) :: a
@@ -689,7 +722,7 @@ contains
   !> Check if a real rank-1 array \( \mathbf{a} \) is zero,
   !> where zero  is defined as \( |a_i| \leq abs\_tol,  \forall i \).
   !> As such, the tolerance is checked elementwise.
-  logical function all_zero_rank1_real_dp(a, tol)
+  pure logical function all_zero_rank1_real_dp(a, tol)
 
     !> Input array
     real(dp), intent(in) :: a(:)
@@ -710,7 +743,7 @@ contains
   !> Check if a real rank-2 array \( \mathbf{a} \) is zero,
   !> where zero  is defined as \( |a_{ij}| \leq abs\_tol,  \forall i,j \).
   !> As such, the tolerance and is checked elementwise.
-  logical function all_zero_rank2_real_dp(a, tol)
+  pure logical function all_zero_rank2_real_dp(a, tol)
 
     !> Input array
     real(dp), intent(in) :: a(:,:)
@@ -1264,6 +1297,148 @@ contains
     call assert( info==0, error_msg )
     is_positive_definite = all( eigenvalues > 0._dp )
   end function
+
+
+  !> Calculate the fractional part of a real number \(x\):
+  !> \[
+  !>    x - \lfloor x \rfloor
+  !>  \]
+  !> Optionally an integer offset \( c \) for the intervall can be defined, such that \( x \) is mapped to
+  !> \( [c, c + 1) \).
+  !> If the actual result is close to zero or one (or \(c\) and \(c+1\) respectively) with respect to a tolerance that
+  !> can be specified, the routine returns zero as fractional part.
+  elemental function fractional_part_scalar(x_in, c_in, tol) result(frac)
+    !> Number to map to \([c, c + 1)\)
+    real(dp), intent(in) :: x_in
+    !> Offset of the intervall
+    integer, optional, intent(in) :: c_in
+    !> Tolerance for real numbers to be defined as zero.
+    real(dp), intent(in), optional :: tol
+
+    real(dp) :: frac
+
+    real(dp) :: tol_, c
+    real(dp), parameter :: default_c = 0._dp
+
+    c = default_c
+    if(present(c_in)) c = real(c_in, dp)
+
+    tol_ = default_tol
+    if(present(tol)) tol_ = tol
+
+    frac = x_in - real(floor(x_in - c), dp)
+    if(abs(frac - c) < tol_) frac = c
+    if(abs(frac - c - 1._dp) < tol_) frac = c
+  end function fractional_part_scalar
+
+
+  !> Calculate the fractional part of a matrix. See [[fractional_part_scalar(function)]].
+  pure function fractional_part_matrix(X_in, C_in, tol) result(X_out)
+    !> Matrix to map to the intervall
+    real(dp), intent(in) :: X_in(:, :)
+    !> Offset. It is expected that it has at least the same dimension as rank 1 of [[X]].
+    !> Only the elements 1 to the dimension of rank 1 of [[X]] are taken into account. The \(i\)'th element of
+    !> this array is taken as the offset for the \(i\)'th row of [[X]].
+    integer, intent(in), optional :: C_in(:)
+    !> Tolerance for real numbers to be defined as zero.
+    real(dp), intent(in), optional :: tol
+
+    real(dp), allocatable :: X_out(:, :)
+
+    real(dp) :: tol_
+    integer, parameter :: default_c = 0
+    real(dp), allocatable :: X(:)
+    integer, allocatable :: C(:)
+    integer :: M, N
+
+    tol_ = default_tol
+    if(present(tol)) tol_ = tol
+
+    M = size(X_in, 1)
+    N = size(X_in, 2)
+
+    if (present(C_in)) then
+      if (size(C_in) /= M) error stop 'C_in has not the same dimension as rank 1 of X_in.'
+      C = reshape(spread(C_in, 2, N), [M * N])
+    else
+      C = spread(default_c, 1, M * N)
+    end if
+
+    X = reshape(X_in, [M * N])
+    X_out = reshape(fractional_part_scalar(X, C, tol_), [M, N])
+  end function fractional_part_matrix
+
+
+  !> Calculate the integer part of of a real number \( x \):
+  !> \[
+  !>   \lfloor x \rfloor.
+  !> \]
+  !> The routine allows for defining an offset \( c \). Then it returns
+  !> \[
+  !>    \lfloor x - c \rfloor.
+  !> \]
+  !> If the result is close to one, with respect to a tolerance that can be defined,
+  !> the result as given by the intrinsic `floor` function is increased by 1.
+  elemental function integer_part_scalar(x_in, c_in, tol) result(int)
+    !> Number to map to \([c, c + 1)\)
+    real(dp), intent(in) :: x_in
+    !> Offset of the intervall
+    integer, optional, intent(in) :: c_in
+    !> Tolerance for real numbers to be defined as zero. For default see [[default_tol]].
+    real(dp), intent(in), optional :: tol
+
+    integer :: int
+
+    real(dp) :: tol_, c, frac
+    real(dp), parameter :: default_c = 0._dp
+
+    c = default_c
+    if(present(c_in)) c = real(c_in, dp)
+
+    tol_ = default_tol
+    if(present(tol)) tol_ = tol
+
+    int = floor(x_in - c)
+    frac = x_in - c - real(int, dp)
+    if(abs(frac - 1._dp) < tol_) int = int + 1
+  end function integer_part_scalar
+
+
+  !> Calculate the integer part of a matrix. See [[integer_part_scalar(function)]].
+  pure function integer_part_matrix(X_in, C_in, tol) result(I_out)
+    !> Matrix to map to the intervall
+    real(dp), intent(in) :: X_in(:, :)
+    !> Offset. It is expected that it has at least the same dimension as rank 1 of [[X]].
+    !> Only the elements 1 to the dimension of rank 1 of [[X]] are taken into account. The \(i\)'th element of
+    !> this array is taken as the offset for the \(i\)'th row of [[X]].
+    integer, intent(in), optional :: C_in(:)
+    !> Tolerance for real numbers to be defined as zero.
+    real(dp), intent(in), optional :: tol
+
+    integer, allocatable :: I_out(:, :)
+
+    real(dp) :: tol_
+    integer, parameter :: default_c = 0
+    real(dp), allocatable :: X(:)
+    integer, allocatable :: C(:)
+    integer :: M, N
+
+    tol_ = default_tol
+    if(present(tol)) tol_ = tol
+
+    M = size(X_in, 1)
+    N = size(X_in, 2)
+
+    if (present(C_in)) then
+      if (size(C_in) /= M) error stop 'C_in has not the same dimension as rank 1 of X_in.'
+      C = reshape(spread(C_in, 2, N), [M * N])
+    else
+      C = spread(default_c, 1, M * N)
+    end if
+
+    X = reshape(X_in, [M * N])
+    I_out = reshape(integer_part_scalar(X, C, tol_), [M, N])
+  end function integer_part_matrix
 
 end module math_utils
 

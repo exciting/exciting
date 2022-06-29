@@ -20,7 +20,10 @@ module math_utils_test
                         round_down, &
                         distance_matrix, &
                         outer_sum, &
-                        get_subinterval_indices
+                        get_subinterval_indices, &
+                        fractional_part, &
+                        integer_part
+
   use mock_arrays, only: real_symmetric_matrix_5x5, &
                          real_orthogonal_matrix_5x5, &
                          real_matrix_5x7, &
@@ -50,7 +53,7 @@ contains
     !> Test report object
     type(unit_test_type) :: test_report
     !> Number of assertions
-    integer, parameter :: n_assertions = 73
+    integer, parameter :: n_assertions = 100
 
     ! Initialize test object
     call test_report%init(n_assertions, mpiglobal)
@@ -84,6 +87,12 @@ contains
     call test_outer_sum(test_report)
 
     call test_get_subinterval_indices(test_report)
+
+    call test_fractional_part(test_report)
+
+    call test_integer_part(test_report)
+
+    call test_consistency_r3frac(test_report)
 
 
     ! report results
@@ -593,5 +602,139 @@ contains
                             "Set of limits for function get_subinterval_indices for an equal block size.")
 
   end subroutine test_get_subinterval_indices
+
+  !> Test [[fractional_part]]
+  subroutine test_fractional_part(test_report)
+    !> Unit test report
+    type(unit_test_type), intent(inout) :: test_report
+
+    integer :: offset(3)
+    real(dp) :: points_test(3, 2), points_input(3, 2), points_ref(3, 2)
+
+
+    call test_report%assert(all_close(fractional_part(0.54_dp), 0.54_dp), &
+            'fractional_part(x) does not return x for 0 < x < 1.')
+    call test_report%assert(all_close(fractional_part(12.34_dp), 0.34_dp), &
+            'fractional_part(x) does not return x - floor(x) for x > 1.')
+    call test_report%assert(all_close(fractional_part(-0.34_dp), 0.66_dp), &
+            'fractional_part(x) does not return 1 - x for -1 < x < 0.')
+    call test_report%assert(all_close(fractional_part(-235.325_dp), 0.675_dp), &
+            'fractional_part(x) does not return x - floor(x) for x < -1.')
+
+    call test_report%assert(all_close(fractional_part(0.25_dp, tol=0.3_dp), 0.0_dp), &
+            'fractional_part(x, tol) does not return 0.0 for abs(x) < tol.')
+    call test_report%assert(all_close(fractional_part(0.75_dp, tol=0.3_dp), 0.0_dp), &
+            'fractional_part(x, tol) does not return 0.0 for abs(x - 1) < tol.')
+    call test_report%assert(all_close(fractional_part(12.25_dp, tol=0.3_dp), 0.0_dp), &
+            'fractional_part(x, tol) does not return 0.0 for abs(x - floor(x)) < tol and x > 1.')
+    call test_report%assert(all_close(fractional_part(-34.25_dp, tol=0.3_dp), 0.0_dp), &
+            'fractional_part(x, tol) does not return 0.0 for abs(x - floor(x) - 1) < tol and x < -1.')
+
+    call test_report%assert(all_close(fractional_part(12.36_dp, 12), 12.36_dp), &
+            'fractional_part(x, c) does not return x - floor(x - c) for c < x < c + 1.')
+    call test_report%assert(all_close(fractional_part(-14.64_dp, 12), 12.36_dp), &
+            'fractional_part(x, c) does not return x - floor(x - c) for x < c + 1.')
+
+    call test_report%assert(all_close(fractional_part(-12.89_dp, 2, tol=0.3_dp), 2._dp), &
+            'fractional_part(x, c, tol) does not return c for abs(x - floor(x - c)) < tol.')
+    call test_report%assert(all_close(fractional_part(-12.01_dp, 2, tol=0.3_dp), 2._dp), &
+            'fractional_part(x, c, tol) does not return c for abs(x - floor(x - c) - 1) < tol.')
+
+
+    ! Matrix interfaces
+    points_input = reshape([30.1_dp, -5.978_dp, 10.0_dp, &
+                             0.1_dp, 0.978_dp, 0.672_dp], [3, 2])
+    points_test = fractional_part(points_input)
+    points_ref = reshape([0.1_dp, 0.022_dp, 0.0_dp, &
+                          0.1_dp, 0.978_dp, 0.672_dp], [3, 2])
+    call test_report%assert(all_close(points_test, points_ref), &
+            'fractional_part did not return the correct point array for array as input and without offset.')
+
+    offset = [3, 5, -23]
+    points_input = reshape([30.1_dp, -5.978_dp, 10.0_dp, &
+                             3.1_dp, 5.978_dp, -22.328_dp], [3, 2])
+    points_test = fractional_part(points_input, offset)
+    points_ref = reshape([3.1_dp, 5.022_dp, -23.0_dp, &
+                          3.1_dp, 5.978_dp, -22.328_dp], [3, 2])
+    call test_report%assert(all_close(points_test, points_ref), &
+            'fractional_part did not return the correct point array for array as input and with offset.')
+  end subroutine test_fractional_part
+
+  !> Test [[integer_part]]
+  subroutine test_integer_part(test_report)
+    !> Unit test report
+    type(unit_test_type), intent(inout) :: test_report
+
+    integer :: offset(3), points_test(3, 2), points_ref(3, 2)
+    real(dp) ::  points_input(3, 2)
+
+    call test_report%assert(integer_part(0.5_dp) == 0, &
+            'integer_part(x) does not return 0 for 0 < x < 1.')
+    call test_report%assert(integer_part(5.3_dp) == 5, &
+            'integer_part(x) does not return floor(x) for x > 1.')
+    call test_report%assert(integer_part(-12.8_dp) == -13, &
+            'integer_part(x) does not return floor(x) for x < -1.')
+
+    call test_report%assert(integer_part(0.9_dp, tol=0.3_dp) == 1, &
+            'integer_part(x) does not increase the result of floor(x) by one if the fractional part is close to 1 for &
+            0 < x < 1 and abs(x - 1) < tol.')
+    call test_report%assert(integer_part(4.9_dp, tol=0.3_dp) == 5, &
+            'integer_part(x) does not increase the result of floor(x) by one if the fractional part is close to 1 for &
+             x > 1 and abs(x - floor(x) - 1) < tol.')
+
+    call test_report%assert(integer_part(0.5_dp, 19) == -19, &
+            'integer_part(x, c) does not return floor(x - c) for 0 < x < 1.')
+    call test_report%assert(integer_part(4.5_dp, 19) == -15, &
+            'integer_part(x, c) does not return floor(x - c) for x > 1 and x < c.')
+    call test_report%assert(integer_part(23.92_dp, 12) == 11, &
+            'integer_part(x, c) does not return floor(x - c) for x > 1 and x > c.')
+    call test_report%assert(integer_part(23.92_dp, 12, tol=0.2_dp) == 12, &
+            'integer_part(x, c) does not increase the result of floor(x-c) by one if the fractional part is close to 1 &
+            for x > 1, c < x and and abs(x - floor(x) - 1) < tol.')
+
+    ! Matrix interfaces
+    points_input = reshape([30.1_dp, -5.978_dp, 10.0_dp, &
+                             0.1_dp, 0.978_dp, 0.672_dp], [3, 2])
+    points_test = integer_part(points_input)
+    points_ref = reshape([ 30, -6, 10, &
+                            0,  0,  0 ], [3, 2])
+    call test_report%assert(all(points_test == points_ref), &
+            'integer_part did not return the correct point array for array as input and without offset.')
+
+    offset = [3, 5, -23]
+    points_input = reshape([30.1_dp, -5.978_dp, 10.0_dp, &
+                             3.1_dp, 5.978_dp, -22.328_dp], [3, 2])
+    points_test = integer_part(points_input, offset)
+    points_ref = reshape( [27, -11, 33, &
+                            0,   0,  0 ], [3, 2])
+    print*, points_test
+    call test_report%assert(all(points_test == points_ref), &
+            'integer_part did not return the correct point array for array as input and with offset.')
+  end subroutine test_integer_part
+
+  !> Test if the functions [[fractional_part]] and [[integer_part]] give the same results as [[r3frac]].
+  subroutine test_consistency_r3frac(test_report)
+    !> Unit test report
+    type(unit_test_type), intent(inout) :: test_report
+
+    real(dp) :: test_point(3), fractional_new(3), fractional_r3frac(3)
+    integer :: integer_new(3), integer_r3frac(3)
+
+    test_point = [0.02_dp, 24.35_dp, 125.97_dp]
+
+    ! New implementation
+    fractional_new = fractional_part(test_point, tol=0.1_dp)
+    integer_new = integer_part(test_point, tol=0.1_dp)
+
+    ! Old implementation with r3frac
+    fractional_r3frac = test_point ! copy the array because r3frac changes the input
+    call r3frac(0.1_dp, fractional_r3frac, integer_r3frac)
+
+    call test_report%assert(all_close(fractional_new, fractional_r3frac), &
+            'The fracional part calculated with fractional_part is not the same as calculated with r3frac.')
+
+    call test_report%assert(all(integer_new == integer_r3frac), &
+            'The integer part calculated with fractional_part is not the same as calculated with r3frac.')
+  end subroutine test_consistency_r3frac
 
 end module math_utils_test
