@@ -74,3 +74,4 @@ group_execution:
   NONE: True
   SLOW_TESTS: False
   GW: False
+  LIBXC: True

@@ -1,0 +1,27 @@
+<input>
+  <title>Si crystal</title>
+  <structure speciespath=".">
+    <crystal>
+      <basevect>5.13 5.13 0.00</basevect>
+      <basevect>5.13 0.00 5.13</basevect>
+      <basevect>0.00 5.13 5.13</basevect>
+    </crystal>
+    <species speciesfile="Si.xml" rmt="2.1">
+      <atom coord="0.00 0.00 0.00"></atom>
+      <atom coord="0.25 0.25 0.25"></atom>
+    </species>
+  </structure>
+  <groundstate
+    do="fromscratch"
+    rgkmax="6.0"
+    ngridk="4 4 4"
+    outputlevel="high"
+    > 
+    <libxc
+	     xc="XC_HYB_GGA_XC_PBEH">
+        </libxc>
+    <spin/>
+  </groundstate>
+</input>
+
+

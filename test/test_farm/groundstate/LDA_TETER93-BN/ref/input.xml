@@ -1,0 +1,29 @@
+<input>
+ 
+   <title>Cubic boron nitride </title>
+ 
+   <structure autormt="true" speciespath=".">
+      <crystal scale="6.83136">
+         <basevect>0.5 0.0 0.5</basevect>
+         <basevect>0.0 0.5 0.5</basevect>
+         <basevect>0.5 0.5 0.0</basevect>
+      </crystal>
+      <species speciesfile="B.xml" >
+         <atom coord="0.00 0.00 0.00" />
+      </species>
+      <species speciesfile="N.xml">
+         <atom coord="0.25 0.25 0.25" />
+      </species>
+   </structure>
+ 
+   <groundstate
+      do="fromscratch" 
+      nempty="30"
+      reducek="false"
+      ngridk="3 3 3"
+      gmaxvr="16.0">
+       <libxc
+	     xc="XC_LDA_XC_TETER93">
+        </libxc>
+  </groundstate>
+</input>
