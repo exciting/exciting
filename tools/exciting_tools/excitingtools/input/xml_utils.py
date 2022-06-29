@@ -43,6 +43,10 @@ def line_reformatter(input_str: str, tag: str) -> str:
              xctype="GGA_PBE_SOL">
         </groundstate>
 
+    There are 3 possibilities: the xml element has further subelements, than it ends only with a single '>',
+    if the xml element has only attributes, than there are two options to close the element: either long with a
+    '> </tag>' or short with a '/>'.
+
     :param str input_str: Input string, opened and closed with an XML element.
     :param str tag: XML element name.
     :return str reformatted_str: Reformatted form of input_str
@@ -54,7 +58,8 @@ def line_reformatter(input_str: str, tag: str) -> str:
 
     # This should not occur if the routine is only used with `prettify_tag_attributes`
     if tag != input_str[0:len(tag)]:
-        raise ValueError(f'tag, "{tag}", is inconsistent the element name, "{input_str[0:len(tag)]}"')
+        raise ValueError(f'tag, "{tag}", is inconsistent the element name, '
+                         f'"{input_str[0:len(tag)]}"')
 
     tag_indent = '\t' * number_of_tag_indents
     attr_indent = tag_indent + ' ' * 3
@@ -66,7 +71,8 @@ def line_reformatter(input_str: str, tag: str) -> str:
     if len(quote_indices) < 5:
         return tag_indent + input_str
     closing_quote_indices = quote_indices[1::2]
-    attribute_start_indices = [len(tag) + 1] + [i + 1 for i in closing_quote_indices[:-1]]
+    attribute_start_indices = [len(tag) + 1] + [i + 1 for i in
+                                                closing_quote_indices[:-1]]
 
     reformatted_str = tag_indent + tag + '\n'
 
@@ -76,9 +82,15 @@ def line_reformatter(input_str: str, tag: str) -> str:
         attribute_str = input_str[i1:i2 + 1].strip()
         reformatted_str += attr_indent + attribute_str + '\n'
 
+    # short ending option:
+    if input_str[-2:] == '/>':
+        return reformatted_str[:-1] + '/>\n'
     reformatted_str = reformatted_str[:-1] + '>\n'
-    if input_str[-(len(tag) + 2):-len(tag)] == '</':
-        reformatted_str += tag_indent + input_str[-(len(tag) + 2):] + '\n'
+    # no ending option:
+    if not input_str[-(len(tag) + 2):-len(tag)] == '</':
+        return reformatted_str
+    # long ending option:
+    reformatted_str += tag_indent + input_str[-(len(tag) + 2):] + '\n'
     return reformatted_str
 
 
