@@ -6,6 +6,7 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
 &                   ivp, vpl, vpc, wppt)
     use modinput
     use modmain
+    use modmpi, only : terminate
 #ifdef XS
     use modxs
 #endif
@@ -32,6 +33,7 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
     ! tetrahedron library related variables
     integer(4) :: nsym
     integer(4), allocatable :: symmat(:,:,:)
+    character(100) :: err_msg
 
 #ifdef XS
     integer :: jsym, nsymcrys_, lsplsymc_(maxsymcrys), lsplsymct(maxsymcrys)
@@ -71,7 +73,6 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
     nsym = 1
     if (reducep) nsym = nsymcrys
 
-    if(allocated(symmat))deallocate(symmat)
     allocate(symmat(3,3,nsym))
     do isym = 1, nsym
       lspl = lsplsymc(isym)
@@ -155,7 +156,7 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
         v1(3) = dble(i3) / dble(ngridp(3))
         do i2 = 0, ngridp(2)-1
           v1(2) = dble(i2) / dble(ngridp(2))
-            do i1 = 0, ngridp(1)-1
+          do i1 = 0, ngridp(1)-1
             v1(1) = dble(i1) / dble(ngridp(1))
             call r3mv(b, v1, v2)
             v2(:) = v2(:)+boxl(:,1)
@@ -168,15 +169,22 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
                 call r3mv( s, v2, v3)
                 call r3frac(input%structure%epslat, v3, iv)
                 v3 = v3 - boxl(:,1)
+                call r3frac(input%structure%epslat, v3, iv)
                 v3 = v3*dble( ngridp)
                 call r3frac(input%structure%epslat, v3, iv)
                 if( .not. any( v3 .gt. input%structure%epslat)) then
                   jpnr = 1 + iv(1) + iv(2)*ngridp(1) + iv(3)*ngridp(2)*ngridp(1)
                   done( jpnr) = .true.
+                  if (iv(1) < 0 .or. iv(1) >= ngridp(1) .or. &
+                      iv(2) < 0 .or. iv(2) >= ngridp(2) .or. &
+                      iv(3) < 0 .or. iv(3) >= ngridp(3)) then
+                    write(err_msg,'("iv vector [",3I3, "] is out of bounds [",3I3,"]")')iv, ngridp
+                    call terminate(err_msg)
+                  endif
                   ipmap( iv(1), iv(2), iv(3)) = ip
                   starr( isym) = jpnr
                 end if
-              end do
+              end do !isym
               wppt( ip) = 0.d0
               do isym = 1, nsym
                 if( starr( isym) .ne. 0) then
@@ -189,7 +197,7 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
               ipmap( i1, i2, i3) = ip
               ivp( :, ip) = (/i1, i2, i3/)
               vpl( :, ip) = v2
-            endif
+            endif ! .not. done( ipnr)
 
 !            if (reducep) Then
 !              call r3frac(input%structure%epslat, v2, iv)
@@ -221,11 +229,10 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
 !            vpl(:,ip) = v2(:)
 !            wppt(ip)  = t1
 !10          continue
-          end do
-        end do
-      end do
+          end do ! i1
+        end do !i2
+      end do !i3
       nppt = ip
-
     end if ! tetra vs default
 
     do ip = 1, nppt
