@@ -32,6 +32,7 @@ module mod_hdf5
     public hdf5_finalize
     public hdf5_create_file
     public hdf5_create_group
+    public hdf5_delete_object
 
     character(256) :: fhdf5
 contains
@@ -126,7 +127,7 @@ contains
 #endif
     end function hdf5_exist_group
 
-!-------------------------------------------------------------------------------    
+!-------------------------------------------------------------------------------
     subroutine hdf5_create_group(fname,path,gname)
 #ifdef _HDF5_
         use hdf5
@@ -177,6 +178,66 @@ contains
         stop
 #endif
     end subroutine
+!-------------------------------------------------------------------------------
+!> Delete a data set or group in a hdf5 file. 
+!> This will delete the data set but not restore memory! To do this 
+!> the file has to be repacked via the h5repack command!
+    subroutine hdf5_delete_object(fname, path, oname)
+#ifdef _HDF5_
+        use hdf5
+#endif
+        implicit none 
+        !> File name
+        character(*), intent(in) :: fname
+        !> Path to group
+        character(*), intent(in) :: path
+        !> Object name
+        character(*), intent(in) :: oname
+
+#ifdef _HDF5_
+        integer(hid_t) root_id, group_id, dataset_id
+        integer ierr
+        character*100 errmsg
+
+        call h5fopen_f(trim(fname), H5F_ACC_RDWR_F, root_id, ierr)
+        if (ierr /= 0) then
+          write(errmsg,'("Error(hdf5_delete_object): h5fopen_f returned ",I6)') ierr
+          goto 10
+        endif
+        
+        call h5gopen_f(root_id, trim(path), group_id, ierr)
+        if (ierr /= 0) then
+          write(errmsg,'("Error(hdf5_delete_object): h5gopen_f returned ",I6)') ierr
+          goto 10
+        endif
+
+        call h5ldelete_f(group_id, oname, ierr)
+        if (ierr /= 0) then
+          write(errmsg,'("Error(hdf5_delete_object): h5ldelete_f returned ",I6)') ierr
+          goto 10
+        endif
+
+        call h5gclose_f(group_id, ierr)
+        if (ierr /= 0) then
+          write(errmsg,'("Error(hdf5_delete_object): h5gclose_f returned ",I6)') ierr
+          goto 10
+        endif
+
+        call h5fclose_f(root_id, ierr)
+        if (ierr /= 0) then
+          write(errmsg,'("Error(hdf5_delete_object): h5fclose_f returned ",I6)') ierr
+          goto 10
+        endif
+
+        return
+
+        10 continue
+        write(*,'(A)')trim(errmsg)
+        write(*,'("  fname : ",A)') trim(fname)
+        write(*,'("  path  : ",A)') trim(path)
+        write(*,'("  gname : ",A)') trim(oname) 
+#endif
+    end subroutine hdf5_delete_object
 
 !-------------------------------------------------------------------------------
     subroutine hdf5_write_i4(fname,path,dname,val,dims)
