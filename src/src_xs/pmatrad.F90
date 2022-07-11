@@ -138,7 +138,7 @@ Subroutine pmatrad
                            lm3 = idxlm (l3, m3)
                            Do io2 = 1, apword (l3, is)
                               Do j = 1, 3
-                                 fr (1:nr) = r2 (1:nr) * lofr (:, 1, ilo, &
+                                 fr (1:nr) = r2 (1:nr) * lofr (1:nr, 1, ilo, &
                                 & ias) * dapwfr (lm1, 1:nr, j, io2, &
                                 & lm3)
                                  Call fderiv (-1, nr, spr(1, is), fr, &
@@ -163,7 +163,7 @@ Subroutine pmatrad
                         Do m3 = - l3, l3
                            lm3 = idxlm (l3, m3)
                            Do j = 1, 3
-                              fr (1:nr) = r2 (1:nr) * lofr (:, 1, ilo1, &
+                              fr (1:nr) = r2 (1:nr) * lofr (1:nr, 1, ilo1, &
                              & ias) * dlofr (lm1, 1:nr, j, ilo2, m3)
                               Call fderiv (-1, nr, spr(1, is), fr, gr, &
                              & cf)
