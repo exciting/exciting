@@ -14,7 +14,8 @@ module math_test_drivers
   private
   public :: math_test_driver
 
-contains
+  contains
+
   subroutine math_test_driver(mpiglobal, kill_on_failure)
     !> mpi information
     type(mpiinfo), intent(in) :: mpiglobal
