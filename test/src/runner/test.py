@@ -2,20 +2,20 @@
 Module to execute test cases
 """
 import os
-from typing import List, Tuple
+from typing import List
 from copy import deepcopy
 
 from excitingtools.dict_utils import delete_nested_key
 
-from ..exciting_settings.constants import keys_to_remove
+from ..exciting_settings.constants import keys_to_remove, Defaults, RunProperties, ExcitingRunProperties
 from ..io.file_system import create_run_dir, copy_calculation_inputs, flatten_directory
 from ..io.parsers import read_output_file
 from ..io.tolerances import get_json_tolerances
 from ..tester.compare import ErrorFinder
 from ..tester.failure import Failure
-from ..tester.report import TestResults, SummariseTests, skipped_test_summary
-
-from .execute import execute
+from ..tester.report import TestResults, SummariseTests
+from ..runner.set_tests import TestLists
+from .execute import execute_job
 
 
 def remove_untested_keys(data: dict, full_file_name: str, keys_to_remove: dict) -> dict:
@@ -101,158 +101,142 @@ def compare_outputs(run_dir: str, ref_dir: str, output_files: List[str], toleran
 
 
 def execute_and_compare_single_test(test_dir: str,
-                                    full_run_dir: str,
-                                    full_ref_dir: str,
-                                    execute_cmd: str,
-                                    main_out: str,
-                                    max_time: int,
+                                    calculation: RunProperties,
+                                    my_env,
                                     output_files: List[str],
                                     just_tolerances: dict) -> TestResults:
-    """
-    Execute a test case and compare the output files to reference files.
+    """Execute a test case and compare the output files to reference files.
 
-    :param str test_dir: Path to test case (relative to test_farm).
-    :param str full_run_dir: test_dir + reference_dir.
-    :param str full_ref_dir: test_dir + run_dir.
-    :param str execute_cmd: executable command.
-    :param str main_out: File always output by program.
-    :param int max_time: Time before program is terminated.
-    :param List[str] output_files: List of files under test.
-    :param dict just_tolerances: Tolerances without units.
-
+    :param test_dir: test case directory (relative to test_farm).
+    :param calculation: Common properties associated with a program execution.
+    :param my_env: Environment instance,
+    :param output_files: List of files under test.
+    :param just_tolerances: Tolerances without units.
     :return TestResults test_results: Test case results.
     """
-    run_success, err_mess, timing = execute(full_run_dir, execute_cmd, main_out, max_time)
+    run_success, err_mess, timing = execute_job(calculation, my_env=my_env)
 
     test_results = TestResults(test_dir, run_success, timing)
 
-    flatten_directory(full_run_dir)
+    flatten_directory(calculation.run_dir)
 
     if run_success:
-        test_results_dict = compare_outputs(full_run_dir, full_ref_dir, output_files, just_tolerances)
+        test_results_dict = compare_outputs(calculation.run_dir, calculation.ref_dir, output_files, just_tolerances)
         test_results.set_results(test_results_dict)
 
     return test_results
 
 
-def run_single_test(test_dir: str,
-                    test_properties: dict,
-                    run_dir: str,
-                    ref_dir: str,
-                    main_out: str,
-                    executable: str,
-                    max_time: int,
-                    handle_errors: bool,
-                    repeated_tests: dict) -> TestResults:
+def get_number_of_repeats(method, test_name, repeated_tests: dict) -> int:
+    """ Get the number of times a test should be repeated.
+
+    TODO(Alex). Issue 134. Should change value of repeated_tests to an int
+    :param method: Method subdirectory.
+    :param test_name: Test name relative to method subdirectory.
+    :param repeated_tests: (key:value) = (Test Name: N times to repeat).
+    :return n_repeats: Number of times to repeat a test.
     """
-    Runs a test case and compares output files under test against references.
+    try:
+        n_repeats = repeated_tests[os.path.join(method, test_name)]
+    except KeyError:
+        n_repeats = 0
+    return n_repeats
 
-    :param str test_dir:          Test name, prepended with relative path.
-    :param dict test_properties:  Test properties, as defined by ConfigurationDefaults namedTuple.
-    :param str main_out:          main output file of the exciting calculation
-    :param str run_dir:           name of the run directory of the test case
-    :param str ref_dir:           name of the ref directory of the test case
-    :param str executable:        executable command
-    :param int max_time:          max time a job is allowed to run for before being killed
-    :param bool handle_errors:    Whether or not failures and skips are allowed to propagate
-    :param dict repeated_tests:   (key:value) = (Test Name: N times to repeat)
 
+def run_single_test(test_dir,
+                    test_properties: dict,
+                    repeated_tests: dict,
+                    settings: Defaults,
+                    input_options: dict,
+                    my_env: dict) -> TestResults:
+    """Runs a test case and compares output files under test against references.
+
+    :param str test_dir: Test name, prepended with relative path.
+    :param dict test_properties: Test properties, as defined by ConfigurationDefaults namedTuple.
+    :param repeated_tests: (key:value) = (Test Name: N times to repeat).
+    :param settings: Default test settings.
+    :param input_options: Run time options.
+    :param my_env: Instance of the environment.
     :return TestResults test_results: Test case results object.
     """
     method, test_name = test_dir.split('/')[-2:]
-    full_ref_dir = os.path.join(test_dir, ref_dir)
-    full_run_dir = os.path.join(test_dir, run_dir)
-
     print('Run test %s:' % test_name)
 
-    tolerances_without_units, output_files = get_json_tolerances(full_ref_dir, test_properties['files_under_test'])
-    create_run_dir(test_dir, run_dir)
-    copy_calculation_inputs(full_ref_dir, full_run_dir, test_properties['inputs'])
+    # Repackage properties common to a calculation
+    # One could also define a calculation instance per test case, and just pass that
+    # to `execute_and_compare_single_test`
+    calculation = ExcitingRunProperties(input_options['executable'],
+                                        settings.max_time,
+                                        ref_dir=os.path.join(test_dir, settings.ref_dir),
+                                        run_dir=os.path.join(test_dir, settings.run_dir),
+                                        main_output=settings.main_output)
 
-    test_results = execute_and_compare_single_test(test_dir,
-                                                   full_run_dir,
-                                                   full_ref_dir,
-                                                   executable,
-                                                   main_out,
-                                                   max_time,
-                                                   output_files,
-                                                   tolerances_without_units)
-    test_results.print_results()
+    tolerances_without_units, output_files = get_json_tolerances(calculation.ref_dir,
+                                                                 test_properties['files_under_test'])
+    n_repeats = get_number_of_repeats(method, test_name, repeated_tests)
+    create_run_dir(test_dir, settings.run_dir)
+    copy_calculation_inputs(calculation.ref_dir, calculation.run_dir, test_properties['inputs'])
 
-    # Rerun the test if it fails and is assigned as flakey in failing_tests.py
-    if len(test_results.files_with_errors) > 0:
-        try:
-            n_repeats = repeated_tests[os.path.join(method, test_name)]
-        except KeyError:
-            n_repeats = 0
+    for ith_repeat in range(0, n_repeats + 1):
+        if ith_repeat > 0: print(f'Repeating: {test_dir}: {ith_repeat} / {n_repeats}')
 
-        for ith_repeat in range(1, n_repeats + 1):
-            print(f'Repeating: {test_dir}: {ith_repeat} / {n_repeats}')
-            test_results = execute_and_compare_single_test(test_dir,
-                                                           full_run_dir,
-                                                           full_ref_dir,
-                                                           executable,
-                                                           main_out,
-                                                           max_time,
-                                                           output_files,
-                                                           tolerances_without_units)
-            test_results.print_results()
+        test_results = execute_and_compare_single_test(test_dir,
+                                                       calculation,
+                                                       my_env,
+                                                       output_files,
+                                                       tolerances_without_units)
+        test_results.print_results()
 
-            if len(test_results.files_with_errors) == 0:
-                continue
+        if len(test_results.files_with_errors) == 0:
+            continue
 
-    test_results.assert_errors(handle_errors)
+    test_results.assert_errors(input_options['handle_errors'])
 
     return test_results
 
 
-def run_tests(main_out: str,
-              tests: dict,
-              run_dir: str,
-              ref_dir: str,
-              executable: str,
-              np: int,
-              omp: int,
-              max_time: int,
-              handle_errors: bool,
-              repeated_tests: dict
-              ) -> SummariseTests:
-    """
-    Runs tests in test_list.
+def print_input_info(input_options: dict):
+    """ Print input options.
 
-    :param str main_out:          main output file of the exciting calculation
-    :param dict tests:            All test cases that will be run
-    :param str run_dir:           name of the run directory of the test case
-    :param str ref_dir:           name of the ref directory of the test case
-    :param str executable:        executable command for the exciting run
-    :param int np:                number of MPI processes
-    :param int omp:               number of OMP threads
-    :param int max_time:          max time before a job is killed
-    :param bool handle_errors:    Whether or not failures and skips are allowed to propagate
-    :param dict repeated_tests:  (key:value) = (Test Name: N times to repeat)
-
-    :return SummariseTests report: Test suite summary
+    :param input_options: Executable and run options.
     """
+    executable = input_options['executable']
+    omp = input_options['omp']
+    np = input_options['np']
+
     if 'exciting_serial' in executable:
         print('Run tests with exciting_serial.')
     elif 'exciting_smp' in executable:
-        print('Run tests with exciting_smp with %i open MP threads.' % (omp))
+        print(f'Run tests with exciting_smp with {omp} open MP threads.')
     elif 'exciting_mpismp' in executable:
-        print('Run tests with exciting_mpismp with %i open MP threads and %i MPI processes.' % (omp, np))
+        print(f'Run tests with exciting_mpismp with {omp} open MP threads and {np} MPI processes.')
     elif 'exciting_purempi' in executable:
-        print('Run tests with exciting_purempi %i MPI processes.' % np)
+        print(f'Run tests with exciting_purempi {np} MPI processes.')
+
+
+def run_tests(settings: Defaults,
+              input_options: dict,
+              all_tests: TestLists,
+              my_env
+              ) -> SummariseTests:
+    """Runs tests.
+
+    :param settings: Code-specific settings (named tuple instance).
+    :param input_options: Command line input options.
+    :param my_env: Instance of the environment.
+    :param all_tests: Tests container.
+    :return SummariseTests report: Test suite summary
+    """
+    print_input_info(input_options)
 
     report = SummariseTests()
-    for test_name, test_properties in tests.items():
+    for test_name, test_properties in all_tests.run.items():
         test_results = run_single_test(test_name,
                                        test_properties,
-                                       run_dir,
-                                       ref_dir,
-                                       main_out,
-                                       executable,
-                                       max_time,
-                                       handle_errors,
-                                       repeated_tests)
+                                       all_tests.repeat,
+                                       settings,
+                                       input_options,
+                                       my_env)
         report.add(test_results)
 
     # TODO(Alex/Ben/Hannah) Issue 114. Add depends-on functionality
@@ -266,13 +250,10 @@ def run_tests(main_out: str,
     #     for test_name, test_properties in tests.items():
     #         test_results = run_single_test(test_name,
     #                                        test_properties,
-    #                                        run_dir,
-    #                                        ref_dir,
-    #                                        main_out,
-    #                                        executable,
-    #                                        max_time,
-    #                                        handle_errors,
-    #                                        repeated_tests)
+    #                                        all_tests.repeat,
+    #                                        settings,
+    #                                        input_options,
+    #                                        my_env)
     #         report.add(test_results)
 
     return report

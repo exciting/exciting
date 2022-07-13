@@ -39,7 +39,7 @@ test-debian-buster-GCC8-serial:
     - pip3 install -e tools/exciting_tools
     # Run pytest unit tests for test suite functions
     - cd test && pytest test_functions
-    - python3 runtest.py -a run -e exciting_serial -repeat-tests 2
+    - python3 runtest.py -e exciting_serial -repeat-tests 2
     # As currently in root/test
     - cd ../tools/exciting_tools && pytest
 
@@ -76,7 +76,7 @@ test-debian-buster-GCC8-mpiandsmp:
     # See this ref: https://github.com/open-mpi/ompi/issues/4451
     - export OPENMPI_IN_DOCKER=True
     - cd test && pytest test_functions
-    - python3 runtest.py -a run -e exciting_mpismp -repeat-tests 2
+    - python3 runtest.py -e exciting_mpismp -repeat-tests 2
     - cd ../tools/exciting_tools && pytest
 
 # Pure serial build, which links to sequential MKL
@@ -118,7 +118,7 @@ test-debian-buster-Intel2019-pure-serial-GW:
     - cd test && pytest test_functions
     - "sed -i 's/  NONE.*/  NONE: False/g' defaults_config.yml"
     - "sed -i 's/  GW_TESTS.*/  GW_TESTS: True/g' defaults_config.yml"
-    - python3 runtest.py -a run -e exciting_serial -repeat-tests 2
+    - python3 runtest.py -e exciting_serial -repeat-tests 2
     - cd ../tools/exciting_tools && pytest
 
 # Note, this is not `pure` serial, as it links to threaded MKL
@@ -159,7 +159,7 @@ test-debian-buster-Intel2019-serial:
     # run application tests
     - pip3 install -e tools/exciting_tools
     - cd test && pytest test_functions
-    - python3 runtest.py -a run -e exciting_serial -repeat-tests 2
+    - python3 runtest.py -e exciting_serial -repeat-tests 2
     - cd ../tools/exciting_tools && pytest
 
 build:debian-buster-Intel2019-mpiandsmp:
@@ -203,7 +203,7 @@ test-debian-buster-Intel2019-mpiandsmp:
     # run application tests
     - pip3 install -e tools/exciting_tools
     - cd test && pytest test_functions
-    - python3 runtest.py -a run -e exciting_mpismp -repeat-tests 2
+    - python3 runtest.py -e exciting_mpismp -repeat-tests 2
     - cd ../tools/exciting_tools && pytest
     - cd ../../docs/profiling && profmerge
     - codecov -prj test_suite
