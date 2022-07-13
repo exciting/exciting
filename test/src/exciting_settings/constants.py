@@ -1,9 +1,8 @@
+"""Environment and directory variables
 """
-Environment and directory variables
-"""
-
 from collections import namedtuple
 import os
+from abc import ABC, abstractmethod
 
 from ..runner.profile import BuildType, build_type_enum_to_str
 
@@ -73,3 +72,55 @@ species_files = ['Ni.xml', 'La.xml', 'K.xml', 'Xe.xml', 'Ag.xml', 'Bk.xml', 'Co.
 
 # Keys to be removed from test and reference dictionaries (i.e. that we do not want to test)
 keys_to_remove = {'INFO.OUT': [['scl', 'Wall time (seconds)']]}
+
+
+class RunProperties(ABC):
+    """Base class for properties used by a run."""
+    executable_cmd: str
+    max_time: int
+    ref_dir: str
+    run_dir: str
+
+    @abstractmethod
+    def calculation_completed(self, terminated_cleanly: bool) -> bool:
+        """ Has a calculation successfully completed.
+
+        :param terminated_cleanly: Subprocess returned cleanly.
+        """
+        ...
+
+
+class ExcitingRunProperties(RunProperties):
+    """Container grouping properties associated with a program execution
+
+    Note, this could be further specified for GS and excited state calculations,
+    whether the measure of whether a calculation successfully completed will
+    differ.
+    """
+    def __init__(self, executable_cmd: str, max_time: int, ref_dir, run_dir, outputs=None, main_output=None):
+        self.executable_cmd = executable_cmd
+        self.max_time = max_time
+        self.ref_dir = ref_dir
+        self.run_dir = run_dir
+        self.outputs = outputs
+        self.main_output = main_output
+
+    def calculation_completed(self, terminated_cleanly: bool) -> bool:
+        """Has an exciting calculation successfully completed.
+
+        Defined as the calculation cleanly exiting, and the
+        main output file being written. This should be sufficient for GS.
+        Should not need to check INFO.OUT or warnings file to confirm max SCF reached:
+        - This is responsibility of the caller, and will be caught be the reference comparison
+
+        TODO(Bene). Issue 133. Extend ExcitingRunProperties for Excited States
+        To confirm an XS calculation finished successfully:
+          * One needs to consider what to check in this case.
+          * May need a new class or method
+
+        :param terminated_cleanly: Subprocess returned cleanly.
+        :return run_success: Whether the run succeeded.
+        """
+        main_output = os.path.join(self.run_dir, self.main_output)
+        run_success = terminated_cleanly and os.path.isfile(main_output)
+        return run_success
