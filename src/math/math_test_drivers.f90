@@ -10,6 +10,7 @@ module math_test_drivers
   use normalize_test, only: normalize_test_driver
   use sorting_test, only: sorting_test_driver
   use multi_index_conversion_test, only: multi_index_conversion_test_driver
+  use seed_generation_test, only: seed_generation_test_driver
 
   private
   public :: math_test_driver
@@ -32,7 +33,7 @@ module math_test_drivers
     call normalize_test_driver(mpiglobal, kill_on_failure)
     call sorting_test_driver(mpiglobal, kill_on_failure)
     call multi_index_conversion_test_driver(mpiglobal, kill_on_failure)
-
+    call seed_generation_test_driver(mpiglobal, kill_on_failure)
   end subroutine math_test_driver
 
 end module math_test_drivers
