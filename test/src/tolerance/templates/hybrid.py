@@ -15,7 +15,7 @@ from .groundstate import info_out as gs_info_out, eigval, evalcore, atoms, geome
 
 default = DefaultTolerances(integer=Tol(0),
                             float=Tol(1.e-8),
-                            str=Tol(''),
+                            str=Tol('')
                             )
 
 

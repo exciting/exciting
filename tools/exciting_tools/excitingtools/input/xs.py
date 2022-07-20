@@ -6,8 +6,8 @@ from xml.etree import ElementTree as ET
 
 import numpy as np
 from excitingtools.input.base_class import ExcitingXMLInput
-from excitingtools.utils import list_to_str
-from excitingtools.dict_utils import check_valid_keys
+from excitingtools.utils.utils import list_to_str
+from excitingtools.utils.dict_utils import check_valid_keys
 
 
 class ExcitingXSInput(ExcitingXMLInput):

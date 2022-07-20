@@ -4,8 +4,9 @@ from abc import ABC, abstractmethod
 from typing import Union, Set
 from xml.etree import ElementTree
 from pathlib import Path
+import numpy as np
 
-from excitingtools.dict_utils import check_valid_keys
+from excitingtools.utils.dict_utils import check_valid_keys
 
 
 class ExcitingInput(ABC):
@@ -22,6 +23,8 @@ class ExcitingXMLInput(ExcitingInput):
 
     # Convert python data to string, formatted specifically for
     _attributes_to_input_str = {int: lambda x: str(x),
+                                np.int64: lambda x: str(x),
+                                np.float64: lambda x: str(x),
                                 float: lambda x: str(x),
                                 bool: lambda x: str(x).lower(),
                                 str: lambda x: x,

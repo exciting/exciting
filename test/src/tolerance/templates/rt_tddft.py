@@ -15,8 +15,7 @@ Tolerances in default_tolerances cover files (** is one of 0, 20, 40):
   * EIGVAL_**.OUT
   * PROJ_**.OUT
 """
-
-from excitingtools.units import Unit
+from excitingtools import Unit
 
 from ..tol_classes import DefaultTolerances, Tol
 

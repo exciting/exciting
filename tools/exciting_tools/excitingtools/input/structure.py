@@ -5,9 +5,9 @@ from typing import Optional, Union, List
 import pathlib
 import xml.etree.ElementTree as ET
 
-from excitingtools.utils import list_to_str
-from excitingtools.dict_utils import check_valid_keys
-from excitingtools.lattice import check_lattice, check_lattice_vector_norms
+from excitingtools.utils.utils import list_to_str
+from excitingtools.utils.dict_utils import check_valid_keys
+from excitingtools.structure.lattice import check_lattice, check_lattice_vector_norms
 from excitingtools.input.base_class import ExcitingXMLInput
 
 

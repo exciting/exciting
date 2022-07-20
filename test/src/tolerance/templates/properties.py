@@ -41,7 +41,7 @@ TODO(Alex/Bee/Hannah) Issue 86. Establish units for property outputs
  * Documenting in the input
  * Adding to corresponding tolerance files
 """
-from excitingtools.units import Unit
+from excitingtools import Unit
 
 from ..tol_classes import DefaultTolerances, Tol, TolWithMessage
 

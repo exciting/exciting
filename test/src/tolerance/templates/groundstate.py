@@ -17,9 +17,7 @@ Tolerances in default_tolerances cover files:
   * Ideally one symmetry file                           TODO(Alex/Bene/Hannah) Issue 78. Expand test coverage.
   * Bond length.BONDLENGTH.OUT does not have a parser.  TODO(Alex/Bene/Hannah) Issue 78. Expand test coverage.
 """
-import os
-import sys
-from excitingtools.units import Unit
+from excitingtools import Unit
 
 # currentdir = os.path.dirname(os.path.realpath(__file__))
 # parentdir = os.path.dirname(currentdir)

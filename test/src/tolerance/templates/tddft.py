@@ -24,8 +24,7 @@ Files that require test coverage:
   * GQPOINTS_SCR_Q00001.OUT
   * EIGVAL_SCR.OUT
 """
-
-from excitingtools.units import Unit
+from excitingtools import Unit
 
 from ..tol_classes import DefaultTolerances, Tol
 

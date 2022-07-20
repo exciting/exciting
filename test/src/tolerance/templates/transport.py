@@ -16,7 +16,7 @@ Thermal Transport Properties
   * Z_11.OUT
 
 """
-from excitingtools.units import Unit
+from excitingtools import Unit
 
 from ..tol_classes import DefaultTolerances, Tol, TolWithMessage
 

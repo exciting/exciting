@@ -15,7 +15,7 @@ To print the keys associated with a parsed exciting output file, type:
 import argparse
 
 from excitingtools.parser import parser_chooser
-from excitingtools.dict_utils import get_hashable_entries
+from excitingtools.utils.dict_utils import get_hashable_entries
 
 
 def parse_input_args() -> dict:

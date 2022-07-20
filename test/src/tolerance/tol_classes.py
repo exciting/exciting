@@ -3,9 +3,8 @@ Module containing Tol class and constants
 """
 from collections import namedtuple
 from typing import Optional
-import sys
 
-from excitingtools.units import Unit, enum_to_string
+from excitingtools.constants.units import Unit, enum_to_string
 
 
 class Tol:

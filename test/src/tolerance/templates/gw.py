@@ -15,7 +15,7 @@ Tolerances in default_tolerances cover files:
   * VXCNN.DAT
   * EPS00_GW.OUT
 """
-from excitingtools.units import Unit
+from excitingtools import Unit
 
 from ..tol_classes import DefaultTolerances, Tol, TolWithMessage
 

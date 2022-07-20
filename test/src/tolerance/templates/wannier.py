@@ -13,7 +13,7 @@ Tolerances in default_tolerances cover files:
   * TDOS_WANNIER.OUT
   * WANNIER_INFO.OUT
 """
-from excitingtools.units import Unit
+from excitingtools import Unit
 
 from ..tol_classes import DefaultTolerances, Tol, TolWithMessage
 
