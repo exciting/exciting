@@ -5,7 +5,7 @@ import os
 from typing import List
 from copy import deepcopy
 
-from excitingtools.dict_utils import delete_nested_key
+from excitingtools.utils.dict_utils import delete_nested_key
 
 from ..exciting_settings.constants import keys_to_remove, Defaults, RunProperties, ExcitingRunProperties
 from ..io.file_system import create_run_dir, copy_calculation_inputs, flatten_directory

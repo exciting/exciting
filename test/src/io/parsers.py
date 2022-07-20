@@ -8,7 +8,7 @@ import os
 import warnings
 from typing import Union
 
-from excitingtools.parser.grep_parser import grep
+from excitingtools.parser_utils.grep_parser import grep
 
 from ..runner.profile import compiler_enum_map, Compiler
 from ..tester.failure import Failure, Failure_code
@@ -44,8 +44,8 @@ excitingtools can be uninstalled by typing:
     """
     warnings.warn(message)
 finally:
-    from excitingtools.parser.erroneous_file_error import ErroneousFileError
-    from excitingtools.parser.parserChooser import parser_chooser
+    from excitingtools.parser_utils.erroneous_file_error import ErroneousFileError
+    from excitingtools.exciting_dict_parsers.parser_factory import parser_chooser
 
 
 def read_output_file(file_name: str) -> Union[dict, Failure]:

@@ -46,7 +46,6 @@ def dynamically_generate_test_group_enum_class() -> enum.Enum:
     return enum.Enum(value='TestGroup', names=group_names)
 
 
-
 TestGroup = dynamically_generate_test_group_enum_class()
 
 

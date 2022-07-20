@@ -12,7 +12,7 @@ Tolerances in default_tolerances cover files (** is one of 11, 22, 33):
   * EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC**.OUT
   * EXCITON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC**.OUT
 """
-from excitingtools.units import Unit 
+from excitingtools import Unit
 
 from ..tol_classes import DefaultTolerances, Tol
 
