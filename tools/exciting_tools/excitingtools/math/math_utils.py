@@ -4,7 +4,7 @@ import numpy as np
 
 
 def triple_product(a, b, c) -> np.ndarray:
-    """
+    r"""
     Vector triple product, defined as 
       \mathbf{a} \cdot (\mathbf{b} \wedge \mathbf{c})
 
@@ -17,7 +17,7 @@ def triple_product(a, b, c) -> np.ndarray:
 
 
 def unit_vector(x: np.ndarray) -> np.ndarray:
-    """ 
+    r"""
     Unit vector of a vector 'x' 
       \mathbf{\hat{x}} =  \frac{\mathbf{x}}{|\mathbf{x}|}
 
