@@ -17,13 +17,12 @@ F77_DEBUGOPTS = $(F90_DEBUGOPTS)
 INCL = -I/opt/local/lib/gcc9/gcc/x86_64-apple-darwin19/9.3.0/finclude/
 
 # Libaries
-LIB_ARP = libarpack.a
 # Use native blas/lapack by default
 export USE_SYS_LAPACK=true
 LIB_LPK = -L./ -llapack -lopenblas
 LIB_FFT = fftlib.a
 LIB_BZINT = libbzint.a
-LIBS = $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
+LIBS = $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
 
 # SMP and MPI compilers, flags and preprocessing variables
 MPIF90 = mpif90

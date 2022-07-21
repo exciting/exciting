@@ -1,6 +1,6 @@
 -include ../make.inc
 .NOTPARALLEL:
-	
+
 SOURCEDIRS=	\
     ../../src/math \
 	../../src/testframework \
@@ -26,8 +26,6 @@ SOURCEDIRS=	\
 	../../src/src_hybrids/ \
     ../../src/input \
 	../../src/src_inputparser/ \
-	../../src/src_iterative_solver/ \
-	../../src/src_iterative_solver/src_diis/ \
 	../../src/src_LDAU/ \
 	../../src/src_lib/ \
     ../../src/src_lib/bessel \
@@ -53,7 +51,7 @@ SOURCEDIRS=	\
     ../../src/src_xs/modtetra \
     ../../src/src_xs/src_rttddft \
     ../../src/wavefunctions
-
+	
 GeneratedFiles = ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90
 
 LIBXCMOD = ../../external/libXC/src/libxc.f90 ../../external/libXC/src/libxc_funcs.f90
@@ -91,11 +89,11 @@ tidy::
 # --------------------------------
 
 ifeq ($(USE_SYS_LAPACK), true)
-libs:: libfox libbzint.a fftlib.a libarpack.a libmsec.a leblaiklib.a libxc.a liblbfgs.a
+libs:: libfox libbzint.a fftlib.a libmsec.a leblaiklib.a libxc.a liblbfgs.a
 endif
 
 ifeq ($(USE_SYS_LAPACK), false)
-libs:: libfox libbzint.a libblas.a liblapack.a fftlib.a libarpack.a libmsec.a \
+libs:: libfox libbzint.a libblas.a liblapack.a fftlib.a libmsec.a \
 	leblaiklib.a libxc.a liblbfgs.a
 endif
 
@@ -113,12 +111,6 @@ liblapack.a::
 	../../external/LAPACK\
 	&& $(MAKE) -f Makefile.lapack liblapack.a 
 	
-libarpack.a::
-	../../build/utilities/mkmf -t ./template.f77 -f -m Makefile.libarpack -p libarpack.a \
-	../../external/ARPACK/SRC/ \
-	../../external/ARPACK/UTIL/ \
-	&& $(MAKE) -f Makefile.libarpack libarpack.a
-
 libfox:lib/libFoX_common.a
 
 ifeq ($(HLRN),true)
