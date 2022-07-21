@@ -84,10 +84,6 @@ groundstate/LDA_TETER93-spin-BN:
 # Hence test is commented out
 # groundstate/PBE-Al:
 
-groundstate/PBE-arpack_npacked-Al:
-
-groundstate/PBE-arpack_packed-Al:
-
 groundstate/PBE-lin-Al:
 
 groundstate/PBE-msec-Al:

@@ -24,13 +24,12 @@ F77_DEBUGOPTS = $(F90_DEBUGOPTS)
 INCL = 
 
 # Libaries
-LIB_ARP = libarpack.a
 # Use native blas/lapack by default
 export USE_SYS_LAPACK=true
 LIB_LPK = -L./ -llapack -lblas
 LIB_FFT = fftlib.a
 LIB_BZINT = libbzint.a
-LIBS = $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
+LIBS = $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
 
 # SMP and MPI compilers, flags and preprocessing variables
 MPIF90 = mpif90

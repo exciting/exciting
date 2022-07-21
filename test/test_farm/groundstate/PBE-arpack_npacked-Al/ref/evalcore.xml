@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<evalcore>
-  <species is="1" chemicalSymbol="Al">
-    <atom ia="1">
-      <state ist="1" n="1" l="0" k="0" eigenvalue="-5.505938942483e1"/>
-      <state ist="2" n="2" l="0" k="0" eigenvalue="-3.509401625916e0"/>
-    </atom>
-  </species>
-</evalcore>

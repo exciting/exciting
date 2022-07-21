@@ -17,7 +17,6 @@ Subroutine setdefault
       Use modmpi, Only: rank
       Use modxs
 #endif
-      Use sclcontroll
 ! !DESCRIPTION:
 !   Sets default values for the input parameters.
 !
@@ -44,15 +43,6 @@ Subroutine setdefault
       bflmt (:, :, :) = 0.d0
       scrpath = './'
       nvp1d = 2
-      tarpack = .False.
-      tlapack = .True.
-      tdiis = .False.
-      tjdqz = .False.
-      diisfirstscl = 10
-      lowesteval = - 1.d0
-      packedmatrixstorage = .True.
-      epsarpack = 1e-8
-      maxncv = 200
       If (allocated(vvlp1d)) deallocate (vvlp1d)
       Allocate (vvlp1d(3, nvp1d))
       vvlp1d (:, 1) = 0.d0

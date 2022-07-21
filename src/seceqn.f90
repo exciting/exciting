@@ -14,7 +14,6 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
       Use modinput
       Use modmain
       Use modmpi
-      Use sclcontroll
 !
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
@@ -27,6 +26,7 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
   !
   ! !REVISION HISTORY:
   !   Created March 2004 (JKD)
+  !   Removed a call to arpack July 2022 (Andris)
   !EOP
   !BOC
       Implicit None
@@ -59,26 +59,9 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
          Call timesec(ts1)
          timematch=ts1-ts0+timematch
      ! solve the first-variational secular equation
-          If (doARPACKiteration()) Then
-            Call iterativearpacksecequn (ik, ispn, apwalm(1, 1, 1, 1, &
-           & ispn), vgkc(1, 1, ispn, ik), evalfv, evecfv)
-         Else If (doLAPACKsolver()) Then
-            If (tseqit) Then
-           ! iteratively
-               Call seceqnit (nmat(ispn, ik), ngk(ispn, ik), igkig(:, &
-              & ispn, ik), vkl(:, ik), vgkl(:, :, ispn, ik), vgkc(:, :, &
-              & ispn, ik), apwalm(:, :, :, :, ispn), evalfv(:, ispn), &
-              & evecfv(:, :, ispn))
-            Else
-           ! directly
-               Call seceqnfv(ispn, ik, nmat(ispn,ik), ngk(ispn,ik), &
-              &  igkig(:,ispn,ik), vgkc(:,:,ispn,ik), apwalm(:,:,:,:,ispn), &
-              &  evalfv(:,ispn), evecfv(:,:,ispn))
-            End If
-         Else If (.True.) Then
-            Write (*,*) "error in solverselect secequn.F90"
-!
-         End If
+         Call seceqnfv(ispn, ik, nmat(ispn,ik), ngk(ispn,ik), &
+        &  igkig(:,ispn,ik), vgkc(:,:,ispn,ik), apwalm(:,:,:,:,ispn), &
+        &  evalfv(:,ispn), evecfv(:,:,ispn))
       End Do
       If (isspinspiral()) Then
      ! solve the spin-spiral second-variational secular equation
