@@ -86,7 +86,7 @@ module inverse
     integer, allocatable :: row_pivot_map(:)
 
     call assert(is_square(A), 'A is not a square matrix.')
-    call assert(abs(determinant_LU(A)) > default_det_tol, 'The absolute value of the determinant of A is zero.')
+    !call assert(abs(determinant_LU(A)) > default_det_tol, 'The absolute value of the determinant of A is zero.')
 
     allocate(row_pivot_map(size(A, dim=1)))
 

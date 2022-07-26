@@ -52,7 +52,7 @@ contains
   !>
   !> - \( \text{op}(\mathbf{A}) = \mathbf{A} \) if **trans_A** = `'N'` or **trans_A** = `'n'`,
   !>
-  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^T \) if **trans_A** = `'T'` or **trans_A** = `'t'`.
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^\top \) if **trans_A** = `'T'` or **trans_A** = `'t'`.
   subroutine matrix_vector_multiplication_real_dp(A, b, c, trans_A) 
     !> Input matrix     
     real(dp), intent(in), contiguous :: A(:,:)
@@ -66,7 +66,7 @@ contains
     !>   \( \text{op}(\mathbf{A}) = \mathbf{A} \).
     !>
     !> - if **trans_A** = `'T'` or **trans_A** = `'t'`,
-    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^T \).
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^\top \).
     !>
     !> Default is gven by [[default_trans_char]].
     character(len=1), intent(in), optional :: trans_A                    
@@ -91,7 +91,7 @@ contains
   !>
   !> - \( \text{op}(\mathbf{A}) = \mathbf{A} \) if **trans_A** = `'N'` or **trans_A** = `'n'`,
   !>
-  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^T \) if **trans_A** = `'T'` or **trans_A** = `'t'`,
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^\top \) if **trans_A** = `'T'` or **trans_A** = `'t'`,
   !>
   !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^\dagger \) if **trans_A** = `'C'` or **trans_A** = `'c'`.
   subroutine matrix_vector_multiplication_complex_dp(A, b, c, trans_A)
@@ -107,7 +107,7 @@ contains
     !>   \( \text{op}(\mathbf{A}) = \mathbf{A} \).
     !>
     !> - if **trans_A** = `'T'` or **trans_A** = `'t'`,
-    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^T \).
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^\top \).
     !>
     !> - if **trans_A** = `'C'` or **trans_A** = `'c'`,
     !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^\dagger \).
@@ -135,7 +135,7 @@ contains
   !>
   !> - \( \text{op}(\mathbf{A}) = \mathbf{A} \) if **trans_A** = `'N'` or **trans_A** = `'n'`,
   !>
-  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^T \) if **trans_A** = `'T'` or **trans_A** = `'t'`.
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^\top \) if **trans_A** = `'T'` or **trans_A** = `'t'`.
   subroutine matrix_vector_multiplication_real_complex_dp(A, b, c, trans_A)
     !> Input matrix 
     real(dp), intent(in), contiguous :: A(:, :)
@@ -149,7 +149,7 @@ contains
     !>   \( \text{op}(\mathbf{A}) = \mathbf{A} \).
     !>
     !> - if **trans_A** = `'T'` or **trans_A** = `'t'`,
-    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^T \).
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^\top \).
     !>
     !> Default is gven by [[default_trans_char]].
     character(len=1), intent(in), optional :: trans_A                    
@@ -174,7 +174,7 @@ contains
   !>
   !> - \( \text{op}(\mathbf{A}) = \mathbf{A} \) if **trans_A** = `'N'` or **trans_A** = `'n'`,
   !>
-  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^T \) if **trans_A** = `'T'` or **trans_A** = `'t'`,
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^\top \) if **trans_A** = `'T'` or **trans_A** = `'t'`,
   !>
   !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^\dagger \) if **trans_A** = `'C'` or **trans_A** = `'c'`.
   subroutine matrix_vector_multiplication_complex_real_dp(A, b, c, trans_A)
@@ -190,7 +190,7 @@ contains
     !>   \( \text{op}(\mathbf{A}) = \mathbf{A} \).
     !>
     !> - if **trans_A** = `'T'` or **trans_A** = `'t'`,
-    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^T \).
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^\top \).
     !>
     !> - if **trans_A** = `'C'` or **trans_A** = `'c'`,
     !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^\dagger \).
@@ -220,13 +220,13 @@ contains
   !>
   !> - \( \text{op}(\mathbf{A}) = \mathbf{A} \) if **trans_A** = `'N'` or **trans_A** = `'n'`,
   !>
-  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^T \) if **trans_A** = `'T'` or **trans_A** = `'t'`.
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^\top \) if **trans_A** = `'T'` or **trans_A** = `'t'`.
   !>
   !> and \( \text{op}(\mathbf{B}) \) is, depending on **trans_B**, one of 
   !>
   !> - \( \text{op}(\mathbf{B}) = \mathbf{B} \) if **trans_B** = `'N'` or **trans_B** = `'n'`,
   !>
-  !> - \( \text{op}(\mathbf{B}) = \mathbf{B}^T \) if **trans_B** = `'T'` or **trans_B** = `'t'`.
+  !> - \( \text{op}(\mathbf{B}) = \mathbf{B}^\top \) if **trans_B** = `'T'` or **trans_B** = `'t'`.
   subroutine matrix_matrix_multiplication_real_dp(A, B, C, trans_A, trans_B)
     !> Input matrices 
     real(dp), intent(in), contiguous :: A(:, :), B(:, :)
@@ -238,7 +238,7 @@ contains
     !>   \( \text{op}(\mathbf{A}) = \mathbf{A} \).
     !>
     !> - if **trans_A** = `'T'` or **trans_A** = `'t'`,
-    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^T \).
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^\top \).
     !>
     !> Default is gven by [[default_trans_char]].
     character(len=1), intent(in), optional :: trans_A
@@ -248,7 +248,7 @@ contains
     !>   \( \text{op}(\mathbf{B}) = \mathbf{B} \).
     !>
     !> - if **trans_B** = `'T'` or **trans_B** = `'t'`,
-    !>   \( \text{op}(\mathbf{B}) = \mathbf{B}^T \).
+    !>   \( \text{op}(\mathbf{B}) = \mathbf{B}^\top \).
     !>
     !> Default is gven by [[default_trans_char]].
     character(len=1), intent(in), optional :: trans_B
@@ -279,7 +279,7 @@ contains
   !>
   !> - \( \text{op}(\mathbf{A}) = \mathbf{A} \) if **trans_A** = `'N'` or **trans_A** = `'n'`,
   !>
-  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^T \) if **trans_A** = `'T'` or **trans_A** = `'t'`,
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^\top \) if **trans_A** = `'T'` or **trans_A** = `'t'`,
   !>
   !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^\dagger \) if **trans_A** = `'C'` or **trans_A** = `'c'`.
   !>
@@ -287,7 +287,7 @@ contains
   !>
   !> - \( \text{op}(\mathbf{B}) = \mathbf{B} \) if **trans_B** = `'N'` or **trans_B** = `'n'`,
   !>
-  !> - \( \text{op}(\mathbf{B}) = \mathbf{B}^T \) if **trans_B** = `'T'` or **trans_B** = `'t'`,
+  !> - \( \text{op}(\mathbf{B}) = \mathbf{B}^\top \) if **trans_B** = `'T'` or **trans_B** = `'t'`,
   !>
   !> - \( \text{op}(\mathbf{B}) = \mathbf{B}^\dagger \) if **trans_B** = `'C'` or **trans_B** = `'c'`.
   subroutine matrix_matrix_multiplication_complex_dp(A, B, C, trans_A, trans_B)
@@ -301,7 +301,7 @@ contains
     !>   \( \text{op}(\mathbf{A}) = \mathbf{A} \).
     !>
     !> - if **trans_A** = `'T'` or **trans_A** = `'t'`,
-    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^T \).
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^\top \).
     !>
     !> - if **trans_A** = `'C'` or **trans_A** = `'c'`,
     !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^\dagger \).
@@ -314,7 +314,7 @@ contains
     !>   \( \text{op}(\mathbf{B}) = \mathbf{B} \).
     !>
     !> - if **trans_B** = `'T'` or **trans_B** = `'t'`,
-    !>   \( \text{op}(\mathbf{B}) = \mathbf{B}^T \).
+    !>   \( \text{op}(\mathbf{B}) = \mathbf{B}^\top \).
     !>
     !> - if **trans_B** = `'C'` or **trans_B** = `'c'`,
     !>   \( \text{op}(\mathbf{B}) = \mathbf{B}^\dagger \).
@@ -348,13 +348,13 @@ contains
   !>
   !> - \( \text{op}(\mathbf{A}) = \mathbf{A} \) if **trans_A** = `'N'` or **trans_A** = `'n'`,
   !>
-  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^T \) if **trans_A** = `'T'` or **trans_A** = `'t'`.
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^\top \) if **trans_A** = `'T'` or **trans_A** = `'t'`.
   !>
   !> and \( \text{op}(\mathbf{B}) \) is, depending on **trans_B**, one of 
   !>
   !> - \( \text{op}(\mathbf{B}) = \mathbf{B} \) if **trans_B** = `'N'` or **trans_B** = `'n'`,
   !>
-  !> - \( \text{op}(\mathbf{B}) = \mathbf{B}^T \) if **trans_B** = `'T'` or **trans_B** = `'t'`,
+  !> - \( \text{op}(\mathbf{B}) = \mathbf{B}^\top \) if **trans_B** = `'T'` or **trans_B** = `'t'`,
   !>
   !> - \( \text{op}(\mathbf{B}) = \mathbf{B}^\dagger \) if **trans_B** = `'C'` or **trans_B** = `'c'`.
   subroutine matrix_matrix_multiplication_real_complex_dp(A, B, C, trans_A, trans_B)
@@ -369,7 +369,7 @@ contains
     !>   \( \text{op}(\mathbf{A}) = \mathbf{A} \).
     !>
     !> - if **trans_A** = `'T'` or **trans_A** = `'t'`,
-    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^T \).
+    !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^\top \).
     !>
     !> Default is gven by [[default_trans_char]].
     character(len=1), intent(in), optional :: trans_A
@@ -379,7 +379,7 @@ contains
     !>   \( \text{op}(\mathbf{B}) = \mathbf{B} \).
     !>
     !> - if **trans_B** = `'T'` or **trans_B** = `'t'`,
-    !>   \( \text{op}(\mathbf{B}) = \mathbf{B}^T \).
+    !>   \( \text{op}(\mathbf{B}) = \mathbf{B}^\top \).
     !>
     !> - if **trans_B** = `'C'` or **trans_B** = `'c'`,
     !>   \( \text{op}(\mathbf{B}) = \mathbf{B}^\dagger \).
@@ -413,7 +413,7 @@ contains
   !>
   !> - \( \text{op}(\mathbf{A}) = \mathbf{A} \) if **trans_A** = `'N'` or **trans_A** = `'n'`,
   !>
-  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^T \) if **trans_A** = `'T'` or **trans_A** = `'t'`,
+  !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^\top \) if **trans_A** = `'T'` or **trans_A** = `'t'`,
   !>
   !> - \( \text{op}(\mathbf{A}) = \mathbf{A}^\dagger \) if **trans_A** = `'C'` or **trans_A** = `'c'`.
   !>
@@ -421,7 +421,7 @@ contains
   !>
   !> - \( \text{op}(\mathbf{B}) = \mathbf{B} \) if **trans_B** = `'N'` or **trans_B** = `'n'`,
   !>
-  !> - \( \text{op}(\mathbf{B}) = \mathbf{B}^T \) if **trans_B** = `'T'` or **trans_B** = `'t'`.
+  !> - \( \text{op}(\mathbf{B}) = \mathbf{B}^\top \) if **trans_B** = `'T'` or **trans_B** = `'t'`.
   subroutine matrix_matrix_multiplication_complex_real_dp(A, B, C, trans_A, trans_B)
     !> Input matrices 
     complex(dp), intent(in), contiguous :: A(:, :)
@@ -434,7 +434,7 @@ contains
     !>   \( \text{op}(\mathbf{A}) = \mathbf{A} \).
     !>
     !> - if **trans_A** = `'T'` or **trans_A** = `'t'`,
-    !>   \( \text{op}(\mathbf{B}) = \mathbf{B}^T \).
+    !>   \( \text{op}(\mathbf{B}) = \mathbf{B}^\top \).
     !>
     !> - if **trans_A** = `'C'` or **trans_A** = `'c'`,
     !>   \( \text{op}(\mathbf{A}) = \mathbf{A}^\dagger \).
@@ -447,7 +447,7 @@ contains
     !>   \( \text{op}(\mathbf{B}) = \mathbf{B} \).
     !>
     !> - if **trans_B** = `'T'` or **trans_B** = `'t'`,
-    !>   \( \text{op}(\mathbf{B}) = \mathbf{B}^T \).
+    !>   \( \text{op}(\mathbf{B}) = \mathbf{B}^\top \).
     !>
     !> Default is gven by [[default_trans_char]].
     character(len=1), intent(in), optional :: trans_B

@@ -8,6 +8,8 @@ module xlapack
   use singular_value_decomposition, only: xgesdd, svd_divide_conquer
   use lu_factorization, only: lu_full_pivot, lu_row_pivot, xgetc2, xgetrf2, xgetri
   use qr_factorization, only: qr_column_pivot, xgeqp3, xorgqr, extract_R
+  ! diagonalization
+  use diagonalize_tridiagonal, only: diagonalize_symtridiag
   ! utils
   use matrix_rank, only: matrix_rank_SVD
   use determinant, only: determinant_LU
