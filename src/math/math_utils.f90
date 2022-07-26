@@ -6,6 +6,7 @@ module math_utils
   use precision, only: sp, dp
   use constants, only: pi, zzero, zone, zi
   use asserts, only: assert
+  use seed_generation, only: set_seed
 
   implicit none
 
@@ -23,12 +24,13 @@ module math_utils
             determinant, &
             permanent, &
             mod1, &
-            shuffle_vector, &
-            mask_vector, &
+            random_order, &
             round_down, &
-            distance_matrix, &
+            calculate_all_vector_distances, &
+            calculate_all_vector_differences, &
             outer_sum, &
             get_subinterval_indices, &
+            boundary_mask, &
             is_positive_definite, &
             fractional_part, &
             integer_part
@@ -36,24 +38,20 @@ module math_utils
   !> Default tolerance
   real(dp), parameter :: default_tol = 1e-10
 
-
   !>  Return the diagonal of a 2D array
   interface diag
     module procedure diag_int_sp, diag_real_dp, diag_complex_dp
   end interface diag
-
 
   !>  Check if a matrix is square
   interface is_square
     module procedure is_square_real_dp, is_square_complex_dp, is_square_integer
   end interface is_square
 
-
   !> Check if a matrix is hermitian (symmetric)
   interface is_hermitian
     module procedure is_symmetric_real_dp, is_hermitian_complex_dp
   end interface is_hermitian
-
 
   !> Check if a matrix is unitary (orthogonal), such that
   !> \[
@@ -71,14 +69,12 @@ module math_utils
                    all_close_rank3_complex_dp, all_close_rank4_complex_dp
   end interface all_close
 
-
   !>  Check if an array is zero, to within an absolute tolerance
   interface all_zero
     module procedure all_zero_rank0_real_dp, all_zero_rank1_real_dp, &
                    & all_zero_rank2_real_dp, all_zero_rank0_complex_dp,&
                    & all_zero_rank1_complex_dp, all_zero_rank2_complex_dp
   end interface all_zero
-
 
   !> Calculate the Kronecker product for three vectors
   !>
@@ -93,7 +89,6 @@ module math_utils
      module procedure kronecker_product_real_dp, kronecker_product_complex_dp
   end interface kronecker_product
 
-
   !> Calculate the determinant of a matrix using Laplace extension.
   !> \[
   !>     \det A = \sum_{i=1}^n (-1)^{i+j}a_ij \cdot \det A_{ij}
@@ -104,7 +99,6 @@ module math_utils
   interface determinant
     module procedure integer_determinant, real_determinant_dp, complex_determinant_dp
   end interface determinant
-
 
   !> Calculate the permanent of a matrix using Laplace extension.
   !> \[
@@ -117,6 +111,25 @@ module math_utils
     module procedure integer_permanent, real_permanent_dp, complex_permanent_dp
   end interface permanent
 
+  !> Modulus after floor division, returning in the range \((0,N]\). Works like the modulus function but instead of
+  !> \( \text{mod}(M, N) = 0 \), it returns \( \text{mod1}(M, N) = N \).
+  interface mod1
+    module procedure mod1_without_offset, mod1_with_offset
+  end interface mod1
+
+  !> For a vector of dimensions \( (N_1, ..., N_d) \), setup a \(d\)-rank logical mask with those dimension, such that either 
+  !> the upper or the lower boundaries are set to false. The interface supports \(d=3\).
+  !> 
+  !> The lower boundaries are defined as the first subslabs for each dimension:
+  !> `boundary_mask(1, :, ..., :) = .false., boundary_mask(:, 1, :, ..., :) = .false., boundary_mask(:, ..., :, 1) = .false.`
+  !>
+  !> The upper boundaries are defined as the last subslabs for each dimension:
+  !> `boundary_mask(N(1), :, ..., :) = .false., boundary_mask(:, N(2), :, ..., :) = .false., boundary_mask(:, ..., :, N(d)) = .false.`
+  !>
+  !> By default, the upper boundaries are set to false.
+  interface boundary_mask
+    module procedure boundary_mask_3d
+  end interface boundary_mask
 
   !> Calculate the fractional part of \(x\), where negative numbers are treated the same as negative
   !> Numbers:
@@ -150,7 +163,6 @@ module math_utils
   end interface integer_part
 
 contains
-
 
 ! identity_real_dp, identity_complex_dp
 !
@@ -476,7 +488,6 @@ contains
     if (present(tol)) tol_ = tol
 
     all_close_rank0_real_dp = abs(a - b) <= tol_
-
   end function all_close_rank0_real_dp
 
 
@@ -485,7 +496,6 @@ contains
   !> \( |a_i - b_i| \leq abs\_tol,  \forall i \).
   !> As such, the tolerance is checked elementwise.
   logical function all_close_rank1_real_dp(a, b, tol)
-
     !> Input array
     real(dp), intent(in) :: a(:)
     !> Reference array
@@ -503,7 +513,6 @@ contains
     if (present(tol)) tol_ = tol
 
     all_close_rank1_real_dp = all(abs(a - b) <= tol_)
-
   end function all_close_rank1_real_dp
 
 
@@ -512,7 +521,6 @@ contains
   !> \( |a_{ij} - b_{ij}| \leq abs\_tol,  \forall i,j \).
   !> As such, the tolerance is checked elementwise.
   logical function all_close_rank2_real_dp(a, b, tol)
-
     !> Input array
     real(dp), intent(in) :: a(:,:)
     !> Reference array
@@ -533,7 +541,6 @@ contains
     if (present(tol)) tol_ = tol
 
     all_close_rank2_real_dp = all(abs(a - b) <= tol_)
-
   end function all_close_rank2_real_dp
 
 
@@ -545,7 +552,6 @@ contains
   !> \]
   !> As such, the tolerance is a real value.
   logical function all_close_rank0_complex_dp(a, b, tol)
-
     !> Input array
     complex(dp), intent(in) :: a
     !> Reference array
@@ -560,7 +566,6 @@ contains
     if (present(tol)) tol_ = tol
 
     all_close_rank0_complex_dp = abs(a - b) <= tol_
-
   end function all_close_rank0_complex_dp
 
 
@@ -574,7 +579,6 @@ contains
   !> As such, the tolerance is a real value and is
   !> checked elementwise.
   logical function all_close_rank1_complex_dp(a, b, tol)
-
     !> Input array
     complex(dp), intent(in) :: a(:)
     !> Reference array
@@ -592,7 +596,6 @@ contains
     if (present(tol)) tol_ = tol
 
     all_close_rank1_complex_dp = all(abs(a - b) <= tol_)
-
   end function all_close_rank1_complex_dp
 
 
@@ -606,7 +609,6 @@ contains
   !> As such, the tolerance is a real value and is
   !> checked elementwise.
   logical function all_close_rank2_complex_dp(a, b, tol)
-
     !> Input array
     complex(dp), intent(in) :: a(:,:)
     !> Reference array
@@ -627,7 +629,6 @@ contains
     if (present(tol)) tol_ = tol
 
     all_close_rank2_complex_dp = all(abs(a - b) <= tol_)
-
   end function all_close_rank2_complex_dp
 
   !> Check if two rank-3 arrays \( \mathbf{a} \) and \( \mathbf{b} \)
@@ -703,7 +704,6 @@ contains
   !> \]
   !> As such, the tolerance is a real value.
   pure logical function all_zero_rank0_complex_dp(a, tol)
-
     !> Input array
     complex(dp), intent(in) :: a
     !> Absolute tolerance for input and reference to be considered equal
@@ -716,7 +716,6 @@ contains
     if (present(tol)) tol_ = tol
 
     all_zero_rank0_complex_dp = abs(a ) <= tol_
-
   end function all_zero_rank0_complex_dp
 
 
@@ -729,7 +728,6 @@ contains
   !> As such, the tolerance is a real value and is
   !> checked elementwise.
   pure logical function all_zero_rank1_complex_dp(a, tol)
-
     !> Input array
     complex(dp), intent(in) :: a(:)
     !> Absolute tolerance for input and reference to be considered equal
@@ -742,7 +740,6 @@ contains
     if (present(tol)) tol_ = tol
 
     all_zero_rank1_complex_dp = all(abs(a) <= tol_)
-
   end function all_zero_rank1_complex_dp
 
 
@@ -755,7 +752,6 @@ contains
   !> As such, the tolerance is a real value and is
   !> checked elementwise.
   pure logical function all_zero_rank2_complex_dp(a, tol)
-
     !> Input array
     complex(dp), intent(in) :: a(:,:)
     !> Absolute tolerance for input and reference to be considered equal
@@ -769,15 +765,12 @@ contains
     if (present(tol)) tol_ = tol
 
     all_zero_rank2_complex_dp = all(abs(a) <= tol_)
-
   end function all_zero_rank2_complex_dp
-
 
 
   !> Check if a real scalar \(a \) is zero, where zero
   !> is defined as \( |a| \leq abs\_tol \).
   pure logical function all_zero_rank0_real_dp(a, tol)
-
     !> Input array
     real(dp), intent(in) :: a
     !> Absolute tolerance for input to be considered equal
@@ -790,7 +783,6 @@ contains
     if (present(tol)) tol_ = tol
 
     all_zero_rank0_real_dp = abs(a) <= tol_
-
   end function all_zero_rank0_real_dp
 
 
@@ -798,7 +790,6 @@ contains
   !> where zero  is defined as \( |a_i| \leq abs\_tol,  \forall i \).
   !> As such, the tolerance is checked elementwise.
   pure logical function all_zero_rank1_real_dp(a, tol)
-
     !> Input array
     real(dp), intent(in) :: a(:)
     !> Absolute tolerance for input to be considered equal
@@ -811,7 +802,6 @@ contains
     if (present(tol)) tol_ = tol
 
     all_zero_rank1_real_dp = all(abs(a) <= tol_)
-
   end function all_zero_rank1_real_dp
 
 
@@ -819,7 +809,6 @@ contains
   !> where zero  is defined as \( |a_{ij}| \leq abs\_tol,  \forall i,j \).
   !> As such, the tolerance and is checked elementwise.
   pure logical function all_zero_rank2_real_dp(a, tol)
-
     !> Input array
     real(dp), intent(in) :: a(:,:)
     !> Absolute tolerance for input to be considered equal
@@ -832,7 +821,6 @@ contains
     if (present(tol)) tol_ = tol
 
     all_zero_rank2_real_dp = all(abs(a) <= tol_)
-
   end function all_zero_rank2_real_dp
 
 
@@ -1007,8 +995,6 @@ contains
     !> Setting permanent to 1 computes the permanent.
     !> Setting permanent to -1 computes the determinant.
     integer, intent(in), optional :: permanent
-
-
     real(dp), allocatable :: b(:,:)
     integer :: permanent_, i, sgn
     real(dp) :: accumulation
@@ -1128,94 +1114,71 @@ contains
     end if
   end function integer_determinant_laplace
 
-
 ! mod1
 
-  !> Modulus after floor division, returning in the range (0,N]
-  !> For example:
-  !>   mod1(3,2) = 1
-  !>   mod1(4,2) = 2
-  integer function mod1(M, N)
+  !> Modulus after floor division. Maps an integer number to an interval \((0,N]\).
+  !> \[
+  !>   \begin{split}
+  !>     \text{mod1}(1, 4) &= 1 \\\
+  !>     \text{mod1}(4, 4) &= 4 \\\
+  !>     \text{mod1}(6, 4) &= 2 \\\
+  !>     \text{mod1}(12, 4) &= 4 \\\
+  !>     \text{mod1}(0, 4) &= 4 \\\
+  !>     \text{mod1}(-1, 4) &= 3 \\\
+  !>     \text{mod1}(-1, -4) &= -1 \\\
+  !>     \text{mod1}(1, -4) &= -3
+  !>   \end{split}
+  !> \]
+  integer elemental function mod1_without_offset(M, N)
     !> integer to translate
     integer, intent(in) :: M
     !> length of the cycle
     integer, intent(in) :: N
 
-    if (M > 0) then
-     if (mod(M, N) == 0) then
-       mod1 = N
-     else
-       mod1 = mod(M, N)
-     end if
-
-    else
-      if (mod(M + N, N) == 0) then
-        mod1 = N
-      else
-        mod1 = mod(M + N, N)
-      end if
+    if (mod(M, N) == 0) then
+      mod1_without_offset = N
+    elseif(real(M) / N > 0.0) then
+      mod1_without_offset = mod(M, N)
+    elseif(real(M) / N < 0.0) then
+      mod1_without_offset = mod(M, N) + N
     end if
-  end function
+  end function mod1_without_offset
 
+  !> Modulus after floor division with integer offset, returning in the range \((\text{offset}, N + \text{offset}]\):
+  !> `mod1_offset(M, N, offset) = mod1(M - offset, N) + offset. Sess [[mod1_]].
+  integer elemental function mod1_with_offset(M, N, offset)
+    !> integer to translate
+    integer, intent(in) :: M
+    !> length of the cycle
+    integer, intent(in) :: N
+    !> Offset of the cycle
+    integer, intent(in) :: offset
 
-! shuffle_vector
+    mod1_with_offset = mod1_without_offset(M - offset, N) + offset
+  end function mod1_with_offset
+
+! random_order
 
   !> Return an integer vector of length N with all numbers between 1 and N randomly ordered.
-  !> The result can be used to shuffle a vector.
-  function shuffle_vector(N) result (p)
-    ! input/output
+  function random_order(N) result (p)
     !> length of the permutation
     integer, intent(in) :: N
-    !> random permutation
+
     integer :: p(N)
-    ! local variables
+
     integer :: j, k
     real(sp) :: u
 
     p = 0
     do j = 1, N
       call random_number(u)
-      k = floor(j*u) + 1
+      k = floor(j * u) + 1
       p(j) = p(k)
       p(k) = j
     end do
-  end function shuffle_vector
+  end function random_order
 
-
-
-! mask_vector
-
-  !> Filter a vector with a mask vector.
-  !>
-  !> The mask vector is a vector of logicals, which is used to determine
-  !> which elements to retain in 'vector_in'
-  !>
-  !> For example:
-  !>   [1, 3] = mask_vector([1, 2, 3, 4], [.true., .false., .true., .false.])
-  function mask_vector(vector_in, mask) result(vector_out)
-    !> Input vector
-    complex(dp), intent(in) :: vector_in(:)
-    !> Mask vector
-    logical, intent(in) :: mask(:)
-    !> Output vector
-    complex(dp), allocatable :: vector_out(:)
-    ! local variables
-    integer :: i, j, dim_out
-
-    call assert(size(vector_in) == size(mask), &
-        message = "mask_vector: vector_in and mask_vector differ in size.")
-
-    dim_out = count(mask)
-    allocate(vector_out(dim_out))
-
-    j = 1
-    do i = 1, size(vector_in)
-      if(mask(i)) then
-        vector_out(j) = vector_in(i)
-        j = j + 1
-      end if
-    end do
-  end function mask_vector
+! round down
 
   !> Rounds a real number down to the nth decimal place, e.g.
   !>
@@ -1237,37 +1200,59 @@ contains
     x_rounded = dble(int(x*(10.0_dp**n)))/(10.0_dp**n)
   end function round_down
 
-  !> Given two matrices \( \mathbf{A} \in \mathbb{R}^{k \times n} \), matrix of \(n\) vectors in
-  !> \(k\) dimensions, and \( \mathbf{B} \in \mathbb{R}^{k \times m} \), matrix of \(m\) vectors in
-  !> \(k\) dimensions, returns the distances of the vectors pairwise (by calculating the Euclidean norm),
-  !> such that the result is a matrix \( \mathbf{D} \in \mathbb{R}^{n \times m} \), element wise given by:
-  !> \[
-  !>   \text{D}_{ij} = \sqrt{ \sum_{l=1}^k \left( \text{A}_{li} - \text{B}_{lj} \right)^2 }
-  !> \]
-  subroutine distance_matrix(A, B, D)
-    !> Inout matrix A
-    real(dp), intent(in), contiguous :: A(:, :)
-    !> Input matrix B
-    real(dp), intent(in), contiguous :: B(:, :)
-    !> Distance matrix D
-    real(dp), intent(out), contiguous :: D(:, :)
+  !> Given two sets of vectors with the same dimension, calculate the Eucledian distances between all vectors of the sets.
+  subroutine calculate_all_vector_distances(vector_set1, vector_set2, all_vector_distances)
+    !> Vector sets.
+    real(dp), intent(in), contiguous :: vector_set1(:, :), vector_set2(:, :)
+    !> Matrix that holds the differences, such that `all_vector_distances(i, j) = norm2(vector_set1(:, i) - vector_set2(:, j))`
+    real(dp), intent(out), contiguous :: all_vector_distances(:, :)
 
-    integer :: i, j
+    integer :: i, j, k, l, m, n
+    real(dp) :: vector2(3)
 
-    call assert(size(A,1) == size(B,1), message = "First dimension of &
-                input matrices have to be equal.")
+    k = size(vector_set1, 1)
+    l = size(vector_set1, 2)
+    m = size(vector_set2, 1)
+    n = size(vector_set2, 2) 
 
-    call assert(all(shape(D) == [size(A,2), size(B,2)]), "First dimension of output matrix D &
-                has to equal the second dimension of input matrix A and second dimension of output matrix D &
-                has to equal the second dimension of input matrix B.")
+    call assert(k == m, 'vector_set1 and vector_set2 have not the same number of rows.')
+    call assert(all(shape(all_vector_distances) == [l, n]), "all_vector_distances has the wrong shape.")
 
-    do j = 1, size(B,2)
-      do i = 1, size(A,2)
-        D(i, j) = norm2(A(:, i) - B(:, j))
+    do j = 1, n
+      vector2 = vector_set2(:, j)
+      do i = 1, l
+        all_vector_distances(i, j) = norm2(vector_set1(:, i) - vector2)
       end do
     end do
 
-  end subroutine distance_matrix
+  end subroutine calculate_all_vector_distances
+
+  !> Given two sets of vectors with the same dimension, calculate the differences between all vectors of the sets.
+  subroutine calculate_all_vector_differences(vector_set1, vector_set2, all_vector_differences)
+    !> Vector sets
+    real(dp), intent(in), contiguous :: vector_set1(:, :), vector_set2(:, :)
+    !> Differences between the vectors such that `all_vector_differences(:, i, j) = vector_set1(:, i) - vector_set2(:, j)`
+    real(dp), intent(out), contiguous :: all_vector_differences(:, :, :)
+
+    integer :: i, j, k, l, m, n
+    real(dp) :: vector2(3)
+
+    k = size(vector_set1, 1)
+    l = size(vector_set1, 2)
+    m = size(vector_set2, 1)
+    n = size(vector_set2, 2)
+
+    call assert(k == m, 'vector_set1 and vector_set2 have not the same number of rows.')
+    call assert(all(shape(all_vector_differences) == [k, l, n]), 'all_vector_differences has not the correct shape.')
+
+    do j = 1, n
+      vector2 = vector_set2(:, j)
+      do i = 1, l
+        all_vector_differences(:, i, j) = vector_set1(:, i) - vector2
+      end do
+    end do
+
+  end subroutine calculate_all_vector_differences
 
   !> Calculate the outer sum of two vectors \( \mathbf{a} \in \mathbb{R}^n \) and \( \mathbf{b} \in \mathbb{R}^m \)
   !> such that the result is a matrix \( \mathbf{C} \in \mathbb{R}^{n \times m} \), given element wise by
@@ -1295,7 +1280,6 @@ contains
     end do
 
   end subroutine outer_sum
-
 
 
   !> Given the size of an interval \( i \in \mathbb{N} \) and a subinterval size \( s \in \mathbb{N} \),
@@ -1338,6 +1322,44 @@ contains
 
   end function get_subinterval_indices
 
+! boundary_mask
+
+  !> For a vector of dimensions \( (N_1, N_2, N_3) \), setup a \(3\)-rank logical mask with those dimension, such that either
+  !> the upper or the lower boundaries are set to false.
+  !>
+  !> The lower boundaries are defined as the first subslabs for each dimension:
+  !> `boundary_mask(1, :, :) = .false., boundary_mask(:, 1, :) = .false., boundary_mask(:, :, 1) = .false.`
+  !>
+  !> The upper boundaries are defined as the last subslabs for each dimension:
+  !> `boundary_mask(N(1), :, :) = .false., boundary_mask(:, N(2), :) = .false., boundary_mask(:, :, N(3)) = .false.`
+  !>
+  !> By default, the upper boundaries are set to false.
+  function boundary_mask_3d(upper_bounds, use_lower_bounds) result(boundary_mask)
+    !> Number of grid points per dimension
+    integer :: upper_bounds(3)
+    !> Set the lower boundaries to .false. if .true.
+    !> If false (default), the upper boundaries are set to .false.
+    logical, optional :: use_lower_bounds
+
+    logical, allocatable :: boundary_mask(:, :, :)
+
+    integer :: bounds(3)
+    logical :: use_lower_bounds_local
+
+    use_lower_bounds_local = .false.
+    if(present(use_lower_bounds)) use_lower_bounds_local = use_lower_bounds
+
+    bounds = upper_bounds
+    if(use_lower_bounds_local) bounds = [1, 1, 1]
+
+    allocate(boundary_mask(upper_bounds(1), upper_bounds(2), upper_bounds(3)))
+    boundary_mask = .true.
+
+    boundary_mask(bounds(1), :, :) = .false.
+    boundary_mask(:, bounds(2), :) = .false.
+    boundary_mask(:, :, bounds(3)) = .false.
+  end function boundary_mask_3d
+
 
   !> Check if a hermitian matrix is positive-definite. This is done by checking
   !> if all the eigenvalues are positive
@@ -1350,8 +1372,7 @@ contains
     complex(dp), allocatable  :: A_copy(:, :), work(:)
     character(200)            :: error_msg
 
-    call assert( is_hermitian(A), 'Error(is_positive_definite): A is not &
-      & hermitian' )
+    call assert( is_hermitian(A), 'A is not hermitian' )
     ! TODO Issue #25: Lapack wrapper for ZHEEV needed
     dim = size( A, 1 )
     allocate( A_copy(dim, dim), eigenvalues(dim), rwork(3*dim-2) )
@@ -1365,10 +1386,8 @@ contains
     deallocate( work )
     allocate( work(lwork) )
     ! Obtain the eigenvalues of A
-    call ZHEEV( 'N', 'U', dim, A_copy, dim, eigenvalues, work, lwork, rwork, &
-      & info )
-    write(error_msg,*) &
-      & 'Error(is_positive_definite): ZHEEV returned info = ', info
+    call ZHEEV( 'N', 'U', dim, A_copy, dim, eigenvalues, work, lwork, rwork, info )
+    write(error_msg,*) 'Error(is_positive_definite): ZHEEV returned info = ', info
     call assert( info==0, error_msg )
     is_positive_definite = all( eigenvalues > 0._dp )
   end function
