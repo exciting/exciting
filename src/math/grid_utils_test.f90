@@ -4,10 +4,10 @@ module grid_utils_test
    use constants, only: zone
    use modmpi, only: mpiinfo
    use unit_test_framework, only: unit_test_type
-   use math_utils, only: all_close, all_zero
-   use grid_utils, only: mesh_1d, linspace, grid_3d, phase, fft_frequencies, &
-                         n_grid_diff
-
+   use math_utils, only: all_close, all_zero, mod1
+   use grid_utils, only: mesh_1d, linspace, concatenate, grid_3d, phase, fft_frequencies, &
+                         partial_grid, n_grid_diff, flattend_map
+    use multi_index_conversion, only: indices_to_composite_index, composite_index_to_indices
    implicit none
 
    private
@@ -25,14 +25,16 @@ contains
       !> Test report object
       type(unit_test_type) :: test_report
       !> Number of assertions
-      integer, parameter :: n_assertions = 27
+      integer, parameter :: n_assertions = 35
 
       call test_report%init(n_assertions, mpiglobal)
 
       ! Run unit tests
       call test_mesh_1d(test_report)
-      
+
       call test_linspace(test_report)
+
+      call test_concatenate(test_report)
 
       call test_grid_3d(test_report)
 
@@ -40,7 +42,11 @@ contains
 
       call test_fft_frequencies(test_report)
 
+      call test_partial_grid(test_report)
+
       call test_n_grid_diff(test_report)
+
+      call test_flattened_map(test_report)
 
       if (present(kill_on_failure)) then
          call test_report%report('grid_utils', kill_on_failure)
@@ -51,12 +57,17 @@ contains
       call test_report%finalise()
    end subroutine grid_utils_test_driver
 
-     !> Test mesh_1d
+    !> Test mesh_1d
     subroutine test_mesh_1d(test_report)
       !> Unit test object
       type(unit_test_type), intent(inout) :: test_report
 
       integer, allocatable :: test_range(:), reference_range(:)
+
+      test_range = mesh_1d(5)
+      reference_range = [1, 2, 3, 4, 5]
+      call test_report%assert(all(test_range == reference_range), &
+                            'Test mesh_1d for N_coords as input.')
 
       test_range = mesh_1d(3, 8)
       reference_range = [3, 4, 5, 6, 7, 8]
@@ -149,8 +160,37 @@ contains
    end subroutine test_linspace
 
 
-   !> Test grid_3d for a three dimensional lattice with different numbers of points per dimension.
-   !> Expected output: Array of size (2,3,4) with qubicly distributed grid points.
+   !> Test mesh_1d
+   subroutine test_concatenate(test_report)
+     !> Unit test object
+     type(unit_test_type), intent(inout) :: test_report
+
+     integer, allocatable :: v1_int(:), v2_int(:), v_ref_int(:)
+     real(dp), allocatable :: v1_r8(:), v2_r8(:), v_ref_r8(:)
+     complex(dp), allocatable :: v1_c8(:), v2_c8(:), v_ref_c8(:)
+
+       v1_int = [1, 2, 4, 3]
+       v2_int = [5, 0, 1]
+       v_ref_int = [1, 2, 4, 3, 5, 0, 1]
+       call test_report%assert(all(concatenate(v1_int, v2_int) ==  v_ref_int), &
+               'Test concatonate for integer input.')
+
+       v1_r8 = [1._dp, 2._dp, 0.4_dp, 3._dp, 123._dp]
+       v2_r8 = [5._dp]
+       v_ref_r8 = [1._dp, 2._dp, 0.4_dp, 3._dp, 123._dp, 5._dp]
+       call test_report%assert(all_close(concatenate(v1_r8, v2_r8), v_ref_r8), &
+               'Test concatonate for double input.')
+
+       v1_c8 = [cmplx(1., 9., kind=dp), cmplx(-1., 0., kind=dp)]
+       v2_c8 = [cmplx(1., 0., kind=dp), cmplx(1., -0.5, kind=dp)]
+       v_ref_c8 = [cmplx(1., 9., kind=dp), cmplx(-1., 0., kind=dp), cmplx(1., 0., kind=dp), cmplx(1., -0.5, kind=dp)]
+       call test_report%assert(all_close(concatenate(v1_c8, v2_c8), v_ref_c8), &
+               'Test concatonate for double complex &input.')
+   end subroutine test_concatenate
+
+
+   !> Test grid_3d for a three dimensional lattice with different numbers of coords per dimension.
+   !> Expected output: Array of size (2,3,4) with qubicly distributed grid coords.
    subroutine test_grid_3d(test_report)
       !> Test report object
       type(unit_test_type), intent(inout) :: test_report
@@ -298,10 +338,11 @@ contains
 
       call test_report%assert(all_close(fft_frequencies([4, 2, 3]), ref), &
                       'Test fft_frequencies for a 3D grid with [4, 2, 3] numbers of points per dimension. &
-                      Expected output: 3 x 24 element array with the fast fourier freqencies corresponding to the grid in correct order.')
+                      Expected output: 3 x 24 element array with the fast fourier freqencies corresponding to the grid &
+                      in correct order.')
   end subroutine test_fft_frequencies
 
-
+  !> Test [[n_grid_diff]]
   subroutine test_n_grid_diff(test_report)
     !> Our test object
     type(unit_test_type), intent(inout) :: test_report
@@ -316,25 +357,117 @@ contains
 
 
     N_ks = [4, 1, 23]
-    
+
     call test_report%assert(all(n_grid_diff(N_ks) == [8, 1, 46]), &
                            'Test if n_grid_diff returns the correct n_grid_diff for 2d k-grid. &
                            Expected: [8, 1, 46]')
 
-                        
+
     N_ks = [1, 4, 1]
-    
+
     call test_report%assert(all(n_grid_diff(N_ks) == [1, 8, 1]), &
                            'Test if n_grid_diff returns the correct n_grid_diff for 1d k-grid. &
                            Expected: [1, 8, 1]')
 
 
     N_ks = [1, 1, 1]
-    
+
     call test_report%assert(all(n_grid_diff(N_ks) == [1, 1, 1]), &
                            'Test if n_grid_diff returns the correct n_grid_diff for 10d k-grid. &
                            Expected: [1, 1, 1]')
 
   end subroutine test_n_grid_diff
+
+  !> Test [[partial_grid]]
+  subroutine test_partial_grid(test_report)
+    !> Our test object
+    type(unit_test_type), intent(inout) :: test_report
+
+    integer, parameter :: N_grid_dense(3) = [4, 4, 1], &
+                          N_grid(3) = [2, 2, 1], &
+                          int_offset(3) = [0, 0, 0], &
+                          indices_3d(3, 4) = reshape([1, 1, 1, &
+                                                      2, 1, 1, &
+                                                      1, 2, 1, &
+                                                      2, 2, 1], [3, 4]), &
+                          int_coords_dense(3, 16) = reshape([1, 1, 1, &
+                                                             2, 1, 1, &
+                                                             3, 1, 1, &
+                                                             4, 1, 1, &
+                                                             1, 2, 1, &
+                                                             2, 2, 1, &
+                                                             3, 2, 1, &
+                                                             4, 2, 1, &
+                                                             1, 3, 1, &
+                                                             2, 3, 1, &
+                                                             3, 3, 1, &
+                                                             4, 3, 1, &
+                                                             1, 4, 1, &
+                                                             2, 4, 1, &
+                                                             3, 4, 1, &
+                                                             4, 4, 1], [3, 16])
+    integer, allocatable :: map_to_dense_grid(:)
+    integer :: divider(3), i, index3d(3)
+
+    divider = N_grid_dense / N_grid
+    map_to_dense_grid = partial_grid(N_grid_dense, N_grid)
+
+    call test_report%assert(size(map_to_dense_grid) == product(N_grid), &
+            'Test if the map that is given out by partial_grid has the correct size (product(N_grid)).')
+
+    call test_report%assert(all(int_coords_dense(:, map_to_dense_grid) == indices_3d * spread(divider, 2, product(N_grid))), &
+            'Test partial grid. Expected: partial_grid gives back a map that maps the points of the big grid to &
+            the point of the small grid.')
+  end subroutine test_partial_grid
+
+  !> Test flattened_map
+  subroutine test_flattened_map(test_report)
+    !> Test report object
+    type(unit_test_type), intent(inout) :: test_report
+
+    integer :: ind, i, j, k, N_A_2(2), N_A_3(3), N_B_2(2), N_B_3(3)
+    integer, allocatable :: map(:), A_2(:, :), B_2(:, :), A_3(:, :, :), B_3(:, :, :), A_flat(:)
+
+    N_B_2 = [13, 7]
+    allocate(B_2(N_B_2(1), N_B_2(2)))
+    do ind=1, product(N_B_2)
+      call composite_index_to_indices(ind, N_B_2, i, j)
+      B_2(i, j) = ind
+    end do
+
+    N_A_2 = [20, 12]
+    allocate(A_2(N_A_2(1), N_A_2(2)))
+    A_2 = 0
+    A_2(1 : N_B_2(1), 1 : N_B_2(2)) = B_2
+
+    allocate(A_flat(product(N_A_2)))
+    map = flattend_map(N_B_2, N_A_2)
+    A_flat = 0
+    A_flat(map) = reshape(B_2, [product(N_B_2)])
+
+    call test_report%assert(all(A_2 == reshape(A_flat, N_A_2)), 'Test flattened_map for rank-2 arrays. Expeted: &
+            all(A == reshape(A_flat, N_A)).')
+    deallocate(A_flat)
+
+    N_B_3 = [13, 7, 153]
+    allocate(B_3(N_B_3(1), N_B_3(2), N_B_3(3)))
+    do ind=1, product(N_B_3)
+      call composite_index_to_indices(ind, N_B_3, i, j, k)
+      B_3(i, j, k) = ind
+    end do
+
+    N_A_3 = [20, 12, 362]
+    allocate(A_3(N_A_3(1), N_A_3(2), N_A_3(3)))
+    A_3 = 0
+    A_3(1 : N_B_3(1), 1 : N_B_3(2), 1 : N_B_3(3)) = B_3
+
+    allocate(A_flat(product(N_A_3)))
+    map = flattend_map(N_B_3, N_A_3)
+    A_flat = 0
+    A_flat(map) = reshape(B_3, [product(N_B_3)])
+
+    call test_report%assert(all(A_3 == reshape(A_flat, N_A_3)), 'Test flattened_map for rank-4 arrays. Expeted: &
+            all(A == reshape(A_flat, N_A)).')
+  end subroutine test_flattened_map
 
 end module grid_utils_test

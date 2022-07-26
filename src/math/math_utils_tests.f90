@@ -5,6 +5,7 @@ module math_utils_test
   use constants, only: zone, zzero
   use modmpi, only: mpiinfo
   use unit_test_framework, only : unit_test_type
+  use multi_index_conversion, only: indices_to_composite_index, composite_index_to_indices
   use math_utils, only: all_close, &
                         all_zero, &
                         diag, &
@@ -15,10 +16,12 @@ module math_utils_test
                         determinant, &
                         permanent, &
                         mod1, &
-                        shuffle_vector, &
-                        mask_vector, &
+                        random_order, &
                         round_down, &
-                        distance_matrix, &
+                        boundary_mask, &
+                        round_down, &
+                        calculate_all_vector_distances, &
+                        calculate_all_vector_differences, &
                         outer_sum, &
                         get_subinterval_indices, &
                         fractional_part, &
@@ -31,7 +34,7 @@ module math_utils_test
                          complex_hermitian_matrix_5x5, &
                          complex_unitary_matrix_5x5, &
                          complex_matrix_5x7
-                         
+
 
   implicit none
 
@@ -53,7 +56,7 @@ contains
     !> Test report object
     type(unit_test_type) :: test_report
     !> Number of assertions
-    integer, parameter :: n_assertions = 100
+    integer, parameter :: n_assertions = 121
 
     ! Initialize test object
     call test_report%init(n_assertions, mpiglobal)
@@ -78,11 +81,13 @@ contains
 
     call test_mod1(test_report)
 
-    call test_mask_vector(test_report)
-
     call test_round_down(test_report)
 
+    call test_boundary_mask(test_report)
+
     call test_distance_matrix(test_report)
+
+    call test_difference_tensor(test_report)
 
     call test_outer_sum(test_report)
 
@@ -106,7 +111,7 @@ contains
     call test_report%finalise()
   end subroutine math_utils_test_driver
 
-  
+
   !> Test all_close for real and complex arrays
   subroutine test_all_close(test_report)
 
@@ -410,13 +415,13 @@ contains
                'Test mod1(-4, 8). &
                Expected: 4')
 
-    call test_report%assert(mod1(-9, 4) == -1, &
+    call test_report%assert(mod1(-9, 4) == 3, &
                'Test mod1(-9, 4). &
-               Expected: -1')
+               Expected: 3')
 
-    call test_report%assert(mod1(-7, 4) == -3, &
+    call test_report%assert(mod1(-7, 4) == 1, &
                'Test mod1(-7, 4). &
-               Expected: -3')
+               Expected: 1')
 
     call test_report%assert(mod1(-8, 4) == 4, &
                'Test mod1(-8, 4). &
@@ -431,87 +436,166 @@ contains
                Expected: -5')
 
     call test_report%assert(mod1(0, 5) == 5, &
-               'Test mod1(0, 1). &
-               Expected: 0')
+               'Test mod1(0, 5). &
+               Expected: 5')
 
-    call test_report%assert(mod1(0,-3) == -3, &
-               'Test mod1(0,-1). &
-               Expected: 0')
+    call test_report%assert(mod1(0, -3) == -3, &
+               'Test mod1(0, -3). &
+               Expected: -3')
+
+    call test_report%assert(mod1(5, -4) == -3, &
+               'Test mod1(5, -4). &
+               Expected: -3')
+
+    ! Tests with offset
+    call test_report%assert(mod1(9, 8, 5) ==  9, &
+               'Test mod1(9, 8, 5). &
+               Expected: 9')
+
+    call test_report%assert(mod1(1, 8, -4) ==  1, &
+               'Test mod1(1, 8, -4). &
+               Expected: 1')
+
+    call test_report%assert(mod1(11, 4, 3) ==  7, &
+               'Test mod1(11, 4, 3). &
+               Expected: 7')
+
+    call test_report%assert(mod1(-5, 4, -14) ==  -13, &
+               'Test mod1(-5, 4, -14). &
+               Expected: -13')
+
+    call test_report%assert(mod1(19, 8, 23) == 27, &
+               'Test mod1(19, 8, 23). &
+               Expected: 27')
+
+    call test_report%assert(mod1(-9, 4, 0) == 3, &
+               'Test mod1(-9, 4, 0). &
+               Expected: 3')
+
+    call test_report%assert(mod1(-11, 4, -4) == -3, &
+               'Test mod1(-11, 4, -4). &
+               Expected: -3')
+
+    call test_report%assert(mod1(-6, 4, 2) == 6, &
+               'Test mod1(-6, 4, 2). &
+               Expected: 6')
+
+    call test_report%assert(mod1(10, -4, 2) == -2, &
+               'Test mod1((10, -4, 2). &
+               Expected: -2')
+
+    call test_report%assert(mod1(-2, -8, 3) == -2, &
+               'Test mod1(-2, -8, 3). &
+               Expected: -2')
+
+    call test_report%assert(mod1(3, 5, 3) == 8, &
+               'Test mod1(3, 5, 3). &
+               Expected: 8')
+
+    call test_report%assert(mod1(4,-3, 4) == 1, &
+               'Test mod1(4,-3, 4). &
+               Expected: 1')
   
   end subroutine test_mod1
 
 
-  !> Test mask for a four element array.
-  subroutine test_mask_vector(test_report)
-    !> Unit test report
+  !> Test round_down
+  subroutine test_round_down(test_report)
+    !> Our test object
     type(unit_test_type), intent(inout) :: test_report
 
-    call test_report%assert(all_close(mask_vector([ 1.0_dp, 4.5_dp, 3.45623_dp, -5.0_dp ]*zone, [ .true., .false., .false., .true. ]), [ 1.0_dp, -5.0_dp ]*zone), &
-                    'Test mask_vector for a four element array. &
-                    Expected: complex two element array. The elements are the ones, corresponding to true elements in the mask ([1.0, -5.0]).')    
-  end subroutine test_mask_vector
+    !scalar positive x; scalar positive n
+    call test_report%assert(all_close(round_down(2123.77963_dp, 3), 2123.779_dp), &
+            'Test function round_down for scalar with scalar n = 3. &
+            Expected result: 2123.779')
 
-  !> Test mask for a four element array.
-  subroutine test_mask(test_report)
-      !> Unit test report
+    !scalar negative x; scalar positive n
+    call test_report%assert(all_close(round_down(-2123.77963_dp, 3), -2123.779_dp), &
+            'Test function round_down for negative scalar with positive &
+            scalar n = 3. Expected result: -2123.779')
+
+    !scalar positive x; scalar negative n
+    call test_report%assert(all_close(round_down(2123.77963_dp, -2), 2100.0_dp), &
+            'Test function round_down for positive scalar with negative &
+            scalar n = -2. Expected result: 2100')
+
+    !scalar negative x; scalar negative n
+    call test_report%assert(all_close(round_down(-2123.77963_dp, -2), -2100.0_dp), &
+            'Test function round_down for negative scalar with negative &
+            scalar n = -2. Expected result: -2100')
+
+    !scalar positive x; n=0
+    call test_report%assert(all_close(round_down(2123.77963_dp, 0), 2123.0_dp), &
+            'Test function round_down for positive scalar with &
+            scalar n = 0. Expected result: 2123.0')
+
+    !scalar negative x; n=0
+    call test_report%assert(all_close(round_down(-2123.77963_dp, 0), -2123.0_dp), &
+            'Test function round_down for negative scalar with &
+            scalar n = 0. Expected result: -2123.0')
+
+    !mixed array x; scalar positive n
+    call test_report%assert(all_close(round_down([2123.77963_dp, -212.377963_dp, 2.12377963_dp], 3), &
+            [2123.779_dp, -212.377_dp, 2.123_dp]), 'Test function round_down for three &
+            element array with scalar n = 3. Expected result: [2123.779, -212.377, 2.123]')
+
+    !positive scalar x; array positive n
+    call test_report%assert(all_close(round_down(2123.77963_dp, [1, 2, 4]), [2123.7_dp, 2123.77_dp, 2123.7796_dp]), &
+            'Test function round_down for scalar with array n = [1, 2, 4]. &
+                    Expected result: [2123.7, 2123.77, 2123.7796]')
+
+    !array x; array n
+    call test_report%assert(all_close(round_down([2123.77963_dp, 212.377963_dp, 2.12377963_dp], &
+            [2, 3, 5]), [2123.77_dp, 212.377_dp, 2.12377_dp]), &
+            'Test function round_down for array with array n = [2, 3, 5]. &
+            Expected result: [2123.77_dp, 212.377_dp, 2.12377_dp]')
+  end subroutine test_round_down
+
+
+  !> Test boundary_mask
+  subroutine test_boundary_mask(test_report)
+    !> Test report object
     type(unit_test_type), intent(inout) :: test_report
 
-    call test_report%assert(all_close(mask_vector([ 1.0_dp, 4.5_dp, 3.45623_dp, -5.0_dp ]*zone, [ .true., .false., .false., .true. ]), [ 1.0_dp, -5.0_dp ]*zone), &
-                      'Test mask_vector for a four element array. &
-  &                    Expected: complex two element array. The elements are the ones, corresponding to true elements in the mask: &
-  &                    [1.0, -5.0]')
-  end subroutine test_mask
+    logical, allocatable :: test_mask(:, : , :)
 
-    subroutine test_round_down(test_report)
-      !> Our test object
-      type(unit_test_type), intent(inout) :: test_report
+    test_mask = boundary_mask([6, 2, 8])
 
-      !scalar positive x; scalar positive n
-      call test_report%assert(all_close(round_down(2123.77963_dp, 3), 2123.779_dp), &
-                              'Test function round_down for scalar with scalar n = 3. &
-                              Expected result: 2123.779')
-   
-      !scalar negative x; scalar positive n
-      call test_report%assert(all_close(round_down(-2123.77963_dp, 3), -2123.779_dp), &
-                              'Test function round_down for negative scalar with positive &
-                              scalar n = 3. Expected result: -2123.779')
-   
-      !scalar positive x; scalar negative n
-      call test_report%assert(all_close(round_down(2123.77963_dp, -2), 2100.0_dp), &
-                              'Test function round_down for positive scalar with negative &
-                              scalar n = -2. Expected result: 2100')
-   
-      !scalar negative x; scalar negative n
-      call test_report%assert(all_close(round_down(-2123.77963_dp, -2), -2100.0_dp), &
-                              'Test function round_down for negative scalar with negative &
-                              scalar n = -2. Expected result: -2100')
-      !scalar positive x; n=0
-      call test_report%assert(all_close(round_down(2123.77963_dp, 0), 2123.0_dp), &
-                              'Test function round_down for positive scalar with &
-                              scalar n = 0. Expected result: 2123.0')
-   
-      !scalar negative x; n=0
-      call test_report%assert(all_close(round_down(-2123.77963_dp, 0), -2123.0_dp), &
-                              'Test function round_down for negative scalar with &
-                              scalar n = 0. Expected result: -2123.0')
-   
-      !mixed array x; scalar positive n
-      call test_report%assert(all_close(round_down([2123.77963_dp, -212.377963_dp, 2.12377963_dp], 3), &
-                              [2123.779_dp, -212.377_dp, 2.123_dp]), 'Test function round_down for three &
-                              element array with scalar n = 3. Expected result: [2123.779, -212.377, 2.123]')
-   
-      !positive scalar x; array positive n
-      call test_report%assert(all_close(round_down(2123.77963_dp, [1, 2, 4]), [2123.7_dp, 2123.77_dp, 2123.7796_dp]), &
-                              'Test function round_down for scalar with array n = [1, 2, 4]. &
-                              Expected result: [2123.7, 2123.77, 2123.7796]')
-   
-      !array x; array n
-      call test_report%assert(all_close(round_down([2123.77963_dp, 212.377963_dp, 2.12377963_dp], &
-                              [2, 3, 5]), [2123.77_dp, 212.377_dp, 2.12377_dp]), &
-                              'Test function round_down for array with array n = [2, 3, 5]. &
-                              Expected result: [2123.77_dp, 212.377_dp, 2.12377_dp]')
-   
-   end subroutine test_round_down
+    call test_report%assert(all(test_mask(:5, :1, :7)), &
+                          'Test that boundary mask for upper bounds sets the &
+                          inner part of the array to true.')
+
+    call test_report%assert(.not. all(test_mask(:, :, 8)), &
+                          'Test that boundary mask for upper bounds sets the &
+                          x-y boundary to false.')
+
+    call test_report%assert(.not. all(test_mask(:, 2, :)), &
+                          'Test that boundary mask for upper bounds sets the &
+                          x-z boundary to false.')
+
+    call test_report%assert(.not. all(test_mask(6, :, :)), &
+                          'Test that boundary mask for upper bounds sets the &
+                          y-z boundary to false.')
+
+    deallocate(test_mask)
+    test_mask = boundary_mask([5, 3, 4], use_lower_bounds=.true.)
+
+    call test_report%assert(all(test_mask(2:, 2:, 2:)), &
+                          'Test that boundary mask for lower bounds sets the &
+                          inner part of the array to true.')
+
+    call test_report%assert(.not. all(test_mask(:, :, 1)), &
+                          'Test that boundary mask for lower bounds sets the &
+                            x-y boundary to false.')
+
+    call test_report%assert(.not. all(test_mask(:, 1, :)), &
+                          'Test that boundary mask for lower bounds sets the &
+                          x-z boundary to false.')
+
+    call test_report%assert(.not. all(test_mask(1, :, :)), &
+                      'Test that boundary mask for lower bounds sets the &
+                          y-z boundary to false.')
+  end subroutine test_boundary_mask
 
    subroutine test_distance_matrix(test_report)
     !> Our test object
@@ -530,32 +614,75 @@ contains
     !> Result D
     real(dp) :: D_1(3, 2), D_2(2, 3),  D_3(3, 3)
 
-    call distance_matrix(pos_A, pos_B, D_1)
+    call calculate_all_vector_distances(pos_A, pos_B, D_1)
     call test_report%assert(all_close(D_1, &
                             reshape([2.0_dp, 3.0_dp, 2.0_dp, &
                                     sqrt(6.0_dp), 1.0_dp, sqrt(6.0_dp)], &
                                     [3, 2])), &
-                            'Tests distance_matrix with second dimension of first input matrix &
+                            'Tests calculate_all_vector_distances with second dimension of first input matrix &
                             larger than second dimension of second input matrix dim(A) > dim(B).')
 
-    call distance_matrix(pos_B, pos_A, D_2)
+    call calculate_all_vector_distances(pos_B, pos_A, D_2)
     call test_report%assert(all_close(D_2, &
                             reshape([2.0_dp, sqrt(6.0_dp), 3.0_dp, &
                                     1.0_dp, 2.0_dp, sqrt(6.0_dp)], &
                                     [2, 3])), &
-                            'Tests distance_matrix with second dimension of first input matrix &
+                            'Tests calculate_all_vector_distances with second dimension of first input matrix &
                             smaller than second dimension of second input matrix: dim(A) < dim(B).')
 
-    call distance_matrix(pos_A, pos_C, D_3)
+    call calculate_all_vector_distances(pos_A, pos_C, D_3)
     call test_report%assert(all_close(D_3, &
                             reshape([1.0_dp, sqrt(6.0_dp), 1.0_dp, &
                                     1.0_dp, sqrt(6.0_dp), 1.0_dp, &
                                     1.0_dp, sqrt(6.0_dp), 1.0_dp], &
                                     [3, 3])), &
-                            'Tests distance_matrix with second dimension of first input matrix &
+                            'Tests calculate_all_vector_distances with second dimension of first input matrix &
                             equal to second dimension of second input matrix: dim(A) = dim(B).')
-
   end subroutine test_distance_matrix
+
+  subroutine test_difference_tensor(test_report)
+    !> Our test object
+    type(unit_test_type), intent(inout) :: test_report
+
+    !> Test input
+    !> Position A
+    real(dp) :: pos_A(3, 3) = reshape([0.0_dp, 1.0_dp, 0.0_dp, &
+                                      2.0_dp, 1.0_dp, 1.0_dp, &
+                                      0.0_dp, 1.0_dp, 0.0_dp], [3, 3])
+    !> Position B
+    real(dp) :: pos_B(3, 2) = reshape([0.0_dp, -1.0_dp, 0.0_dp,&
+                                      2.0_dp, 2.0_dp, 1.0_dp], [3, 2])
+    !> Result D
+    real(dp) :: D_1(3, 3, 2), D_2(3, 2, 3)
+
+    call calculate_all_vector_differences(pos_A, pos_B, D_1)
+    call test_report%assert(all(abs(D_1 - &
+                            reshape([0.0_dp, 2.0_dp, 0.0_dp, &
+                                     2.0_dp, 2.0_dp, 1.0_dp, &
+                                     0.0_dp, 2.0_dp, 0.0_dp, &
+
+                                    -2.0_dp, -1.0_dp, -1.0_dp, &
+                                     0.0_dp, -1.0_dp,  0.0_dp, &
+                                    -2.0_dp, -1.0_dp, -1.0_dp], [3, 3, 2])) <= 1e-10_dp), &
+                            'Test calculate_all_vector_differences for two matrices, where the first is of shape 3 x 3 and the second &
+                                    of shape 3 x 2. Expected is a tensor of shape 3 x 3 x 2 where the first rank holds &
+                                    the differences between the rows of the input matrix.')
+
+    call calculate_all_vector_differences(pos_B, pos_A, D_2)
+    call test_report%assert(all(abs(D_2 - &
+                            reshape([0.0_dp, -2.0_dp,  0.0_dp, &
+                                     2.0_dp,  1.0_dp,  1.0_dp, &
+
+                                    -2.0_dp, -2.0_dp, -1.0_dp, &
+                                     0.0_dp,  1.0_dp,  0.0_dp, &
+
+                                     0.0_dp, -2.0_dp,  0.0_dp, &
+                                     2.0_dp,  1.0_dp,  1.0_dp], [3, 2, 3])) <= 1e-10_dp), &
+                            'Test calculate_all_vector_differences for two matrices, where the first is of shape 3 x 2 and the second &
+                                    of shape 3 x 3. Expected is a tensor of shape 3 x 2 x 3 where the first rank holds &
+                                    the differences between the rows of the input matrix.')
+  end subroutine test_difference_tensor
+
 
   subroutine test_outer_sum(test_report)
     !> Our test object
@@ -575,7 +702,6 @@ contains
     call outer_sum([-1.0_dp, 2.0_dp], [1.0_dp, 2.0_dp, 3.0_dp], C_3)
     call test_report%assert(all_close(C_3, reshape([0.0_dp, 3.0_dp, 1.0_dp, 4.0_dp, 2.0_dp, 5.0_dp], [2,3])), &
                            'Test function outer_sum for array size a < b.')
-
   end subroutine test_outer_sum
 
   subroutine test_get_subinterval_indices(test_report)
@@ -600,7 +726,6 @@ contains
                             'Tests returned size of function get_subinterval_indices for an equal block size.')
     call test_report%assert(all_close(res2(:, 1), [1.0_dp, 6.0_dp]), &
                             "Set of limits for function get_subinterval_indices for an equal block size.")
-
   end subroutine test_get_subinterval_indices
 
   !> Test [[fractional_part]]

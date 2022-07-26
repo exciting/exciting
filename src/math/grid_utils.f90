@@ -4,31 +4,48 @@ module grid_utils
   use constants, only: pi, zi
   use asserts, only: assert
   use math_utils, only: kronecker_product, mod1
-  
+  use multi_index_conversion, only: indices_to_composite_index, composite_index_to_indices
+
   implicit none
   
   private
   public :: mesh_1d, &
             linspace, &
+            concatenate, &
             grid_3d, &
             phase, &
             fft_frequencies, &
-            n_grid_diff
+            n_grid_diff, &
+            partial_grid, &
+            flattend_map
 
-  real(dp), parameter :: offset_default(3) = [0._dp, 0._dp, 0._dp]
-            
+  real(dp), parameter :: default_offset(3) = [0._dp, 0._dp, 0._dp]
 
-  !> Generate a vector of evenly spaced number over a given interval. 
-  !> The spacing can be either defined directly or by a number of points.
+  !> Generate a vector of evenly spaced integers, either defined by an Interval and spacing between the elements or
+  !> by the number of elements \(N\). In the latter case the output is an array of \(N\) ascending integers starting at
+  !> 1 and ending at \(N\) with a spacing of 1.
+  interface mesh_1d
+    module procedure :: mesh_1d_start_end, mesh_1d_N_points
+  end interface mesh_1d
+
+  !> Generate a vector of evenly spaced number over a given interval.
+  !> The spacing can be either defined directly or by a number of coords.
   interface linspace
-    module procedure :: linspace_spacing, linspace_number_of_points
+    module procedure :: linspace_spacing, linspace_number_of_points, linspace_interval
   end interface linspace
-    
+
+  !> Concatanate two 1-rank arrays:
+  !>
+  !> `concatenate([v1, ..., v_n], [w1, ..., w_m]) -> [v1, ..., v_n, w_1, ..., w_m]`
+  interface concatenate
+    module procedure :: concatenate_integer, concatenate_real_dp, concatenate_complex_dp
+  end interface concatenate
+
   !> Generate a regular grid with the last index changing the fastest
-  interface grid_3d 
+  interface grid_3d
     module procedure :: cubic_grid_3d, regular_cubic_grid_3d
   end interface grid_3d
-  
+
   !> Calculate the complex phase for a given k-point and a r-point or
   !> an array of r-points
   interface phase
@@ -40,9 +57,9 @@ contains
   !> Generate an array of ascending or descending evenly distributed integers.
   !> The first element is alway `start` and the last element is always `<= end`.
   !> The end point is not guaranteed when `(start - end) / spacing` is not an integer number.
-  function mesh_1d(start, end, spacing) result(range)
+  function mesh_1d_start_end(start, end, spacing) result(range)
     !> First element of the range
-    integer, intent(in) :: start 
+    integer, intent(in) :: start
     !> Last element of the range
     integer, intent(in) :: end
     !> Spacing between the elements. Default is 1.
@@ -67,13 +84,33 @@ contains
     do i = 1, N
        range(i) = start + (i-1) * spacing_
     end do
-  end function mesh_1d
+  end function mesh_1d_start_end
+
+
+  !> Generate an array of lenght N_tot of ascending distributed intergers
+  !> from 1 to N_tot.
+  !> This is generating the identiy map.
+  function mesh_1d_N_points(N_points) result(range_out)
+    !> First element of the range
+    integer, intent(in) :: N_points
+
+    integer, allocatable :: range_out(:)
+
+    integer :: i
+
+    call assert(N_points > 0, 'N_points <= 0.')
+    allocate(range_out(N_points))
+
+    do i=1, N_points
+      range_out(i) = i
+    end do
+  end function mesh_1d_N_points
 
 
   !> Return a vector of evenly-spaced numbers over a given interval.
   !>
-  !> The start point is always included in the grid, whereas the end point 
-  !> is never included. If start == end, a single point is returned, 
+  !> The start point is always included in the grid, whereas the end point
+  !> is never included. If start == end, a single point is returned,
   !> irrespective of spacing.
   !>
   !> If start > end, the grid is returned in descending from start to end.
@@ -117,7 +154,6 @@ contains
     end do
   end function linspace_spacing
 
-
   !> Generate a linearly-spaced grid between 'start' and 'end'. 
   !> 
   !> The number of grid points, N, must be > 0.
@@ -129,7 +165,7 @@ contains
     real(dp), intent(in) :: end 
     !> Number of points
     integer, intent(in) :: N
-    !> If true, include the endpoint 'end' in the grid 
+    !> If true, include the endpoint 'end' in the grid
     logical, intent(in), optional :: endpoint
     !> Linear grid
     real(dp), allocatable :: grid (:), grid_(:)
@@ -137,8 +173,7 @@ contains
     logical :: include_endpoint
     real(dp) :: spacing
     
-    call assert(N > 0, &
-                  message = 'linspace: The number of grid points must not be zero or smaller (N>0).')
+    call assert(N > 0, 'The number of grid points (N) is <= 0.')
 
     include_endpoint = .true.
     if (present(endpoint)) include_endpoint = endpoint
@@ -162,8 +197,69 @@ contains
 
       end if
     end if
-
   end function linspace_number_of_points
+
+  !> Generate a linearly-spaced grid in the interval `interval`.
+  !>
+  !> The number of grid coords, N, must be > 0.
+  !> Default is to include the endpoint
+  function linspace_interval(interval, N, endpoint) result(grid)
+    !> Interval to define the grid
+    real(dp), intent(in) :: interval(2)
+    !> Number of coords
+    integer, intent(in) :: N
+    !> If true, include the endpoint 'end' in the grid.
+    !> Default is true.
+    logical, intent(in), optional :: endpoint
+    !> Linear grid
+    real(dp), allocatable :: grid (:)
+
+    logical :: include_endpoint
+
+    include_endpoint = .true.
+    if (present(endpoint)) include_endpoint = endpoint
+
+    grid = linspace_number_of_points(interval(1), interval(2), N, include_endpoint)
+  end function linspace_interval
+
+  !> Concatonates two integer 1-rank arrays.
+  function concatenate_integer(v1, v2) result(v_out)
+    !> Vectors to be concatonated
+    integer, intent(in) :: v1(:), v2(:)
+
+    integer, allocatable :: v_out(:)
+
+    allocate(v_out(size(v1) + size(v2)))
+
+    v_out(: size(v1)) = v1
+    v_out(size(v1) + 1 :) = v2
+  end function concatenate_integer
+
+  !> Concatonates two double real 1-rank arrays.
+  function concatenate_real_dp(v1, v2) result(v_out)
+    !> Vectors to be concatonated
+    real(dp), intent(in) :: v1(:), v2(:)
+
+    real(dp), allocatable :: v_out(:)
+
+    allocate(v_out(size(v1) + size(v2)))
+
+    v_out(: size(v1)) = v1
+    v_out(size(v1) + 1 :) = v2
+  end function concatenate_real_dp
+
+  !> Concatonates two double complex 1-rank arrays.
+  function concatenate_complex_dp(v1, v2) result(v_out)
+    !> Vectors to be concatonated
+    complex(dp), intent(in) :: v1(:), v2(:)
+
+    complex(dp), allocatable :: v_out(:)
+
+    allocate(v_out(size(v1) + size(v2)))
+
+    v_out(: size(v1)) = v1
+    v_out(size(v1) + 1 :) = v2
+  end function concatenate_complex_dp
 
 
   !> Generate a cubic, 3D grid.
@@ -171,13 +267,13 @@ contains
   !> Sampling be specified per dimension by N.
   !>
   !> The grid is defined by the number of grid points per dimension and a cuboid.
-  !> The cuboid is defined by the points 'start' and 'end', which span the diagonal 
+  !> The cuboid is defined by the points 'start' and 'end', which span the diagonal
   !> of the cuboid.
   !> 
   !> The defaults for the start and of the cubic are (\(0, 0, 0)\) and (\(1, 1, 1)\),
   !> respectively.
   !>
-  !> The grid containes by default the end point. If this behavior is not wished, 
+  !> The grid containes by default the end point. If this behavior is not wished,
   !> the end point can be left out by setting endpoint to .false.
   function cubic_grid_3d(N, start, end, endpoint) result(grid)
     !> Number of grid points per dimension
@@ -186,14 +282,14 @@ contains
     real(dp), intent(in), optional :: start(3)
     !> Define the end point of the grid in each dimension
     real(dp), intent(in), optional :: end(3)
-    !> If true, include the endpoint 'end' in the grid 
+    !> If true, include the endpoint 'end' in the grid
     logical, intent(in), optional :: endpoint
     !> Cubic, 3D grid 
     real(dp), allocatable :: grid(:,:)
 
     !> Default origin for the grid
     real(dp), dimension(3), parameter :: default_start = [0._dp, 0._dp, 0._dp]
-    !> Default end point for the grid 
+    !> Default end point for the grid
     real(dp), dimension(3), parameter :: default_end   = [1._dp, 1._dp, 1._dp]
 
     real(dp) :: start_(3), end_(3), ones_x(N(1)), ones_y(N(2)), ones_z(N(3)) 
@@ -239,7 +335,7 @@ contains
     real(dp), intent(in), optional :: start(3)
     !> Define the end point of the grid in each dimension
     real(dp), intent(in), optional :: end(3)
-    !> If true, include the endpoint 'end' in the grid 
+    !> If true, include the endpoint 'end' in the grid
     logical, intent(in), optional :: endpoint
     !> Regular cubic grid 
     real(dp), allocatable :: grid(:, :)
@@ -251,7 +347,7 @@ contains
     grid = cubic_grid_3d([N, N, N], start, end)
   end function
 
-  
+
   !> Generate the Bloch phase for a point in the unit cell and a k-point:
   !> \[ 
   !>     \text{phase}(\mathbf r, \mathbf k) = 
@@ -290,8 +386,7 @@ contains
 
     integer :: i
 
-    call assert(size(r_array, 1) == 3, &
-                'Error(phase_array): First dimension of r_array needs to be 3.')
+    call assert(size(r_array, 1) == 3, 'First dimension of r_array needs to be 3.')
     
     allocate(phase(size(r_array, 2)))
 
@@ -334,7 +429,7 @@ contains
     frequencies(1, :) = kronecker_product(ones3, ones2, f1)
     frequencies(2, :) = kronecker_product(ones3, f2,    ones1)
     frequencies(3, :) = kronecker_product(f3,    ones2, ones1)
-  end function fft_frequencies   
+  end function fft_frequencies
 
 
   !> Calculate the number of grid points per dimension of the difference grid with the given the number of grid
@@ -360,6 +455,66 @@ contains
     do i = 1, 3
       if (N_grid_in(i) == 1) N_grid_out(i) = 1
     end do
-  end function n_grid_diff 
+  end function n_grid_diff
+
+  !> Calculate for a grid that is included in a denser grid, the indices of the grid points
+  !> in the denser grid. The number of grid points of the grid must divide the number of
+  !> grid points in the denser grid to be included.
+  function partial_grid(N_grid_dense, N_grid) result(map)
+    !> Number of grid points per dimension of the bigger grid
+    integer, intent(in) :: N_grid_dense(3)
+    !> Number of grid points per dimension of the smaller grid
+    integer, intent(in) :: N_grid(3)
+
+    integer, allocatable :: map(:)
+
+    integer :: divider(3), i, index3d(3)
+
+    call assert(any(mod(N_grid_dense, N_grid) == 0) , 'N_grid_dense modulus N_grid is not zero for all dimensions.')
+
+    divider = N_grid_dense / N_grid
+    allocate(map(product(N_grid)))
+
+    do i = 1, product(N_grid)
+      call composite_index_to_indices(i, N_grid, index3d)
+      map(i) = indices_to_composite_index(index3d * divider, N_grid_dense)
+    end do
+  end function partial_grid
+
+  !> For two arrays `A` and `B` of rank `M`, `all(shape(B) <= shape(A))` is true and
+  !>
+  !> `A(1 : size(B, 1), ..., A(1, size(B, M)) = B
+  !>
+  !> find the index map `map` such that
+  !>
+  !> 'A_flat(map) = B_flat`
+  !>
+  !> Where `A_flat` and `B_flat` are the flattened arrays to one dimension.
+  function flattend_map(N_B, N_A) result(map_out)
+    !> Shape of `B`
+    integer, intent(in) :: N_B(:)
+    !> Shape of `A`
+    integer, intent(in) :: N_A(:)
+
+    integer, allocatable :: map_out(:)
+
+    integer :: i, rank
+    integer, allocatable :: multi_index(:)
+
+
+    call assert(size(N_B) == size(N_A), 'N_B and N_A have not the same size.')
+    call assert(all(N_B <= N_A), 'N_B > N_A')
+
+    rank = size(N_B)
+    allocate(multi_index(rank))
+    allocate(map_out(product(N_B)))
+    do i = 1, product(N_B)
+      ! Calculate the multi index of B from the index for B_flat
+      call composite_index_to_indices(i, rank, N_B, multi_index)
+
+      ! Calculate the index of A_flat from the multi index of B
+      map_out(i) = indices_to_composite_index(multi_index, N_A)
+    end do
+  end function flattend_map
 
 end module grid_utils
