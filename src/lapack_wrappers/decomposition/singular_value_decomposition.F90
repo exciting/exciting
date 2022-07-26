@@ -28,7 +28,7 @@ module singular_value_decomposition
   !> \( \mathbf{U} \) and \( \mathbf{V} \) are the left and right singular vectors of \( \mathbf{A} \)
   !> respectively.
   !>
-  !> Note that the routine returns \( \mathbf{V}^T \), not \( \mathbf{V} \).
+  !> Note that the routine returns \( \mathbf{V}^\top \), not \( \mathbf{V} \).
   interface svd_divide_conquer
     module procedure svd_divide_and_conquer_real_dp, &
                      svd_divide_and_conquer_complex_dp
@@ -50,7 +50,7 @@ module singular_value_decomposition
   !> Calculate the singular value decomposition (SVD) of a matrix \( \mathbf{A} \in \mathbb{R}^{m \times n} \).
   !> The SVD is written as
   !> \[
-  !>    \mathbf{A} = \mathbf{U} \cdot \Sigma \cdot \mathbf{V}^T
+  !>    \mathbf{A} = \mathbf{U} \cdot \Sigma \cdot \mathbf{V}^\top
   !> \]
   !> where \( \Sigma \in \mathbb{R}^{m \times n} \) with \(\sigma_{ij} = 0 \) for \( i \neq j \), 
   !> \( \mathbf{U} \in \mathbb{R}^{m \times m} \) and \( \mathbf{V} \in \mathbb{R}^{n \times n} \) are  orthogonal matrices.  
@@ -58,7 +58,7 @@ module singular_value_decomposition
   !> are returned in descending order.  The first \( \min(m,n) \) columns of
   !> \( \mathbf{U} \) and \( \mathbf{V} \) are the left and right singular vectors of \( \mathbf{A} \).
   !>
-  !> Note that the routine returns \( \mathbf{V}^T \), not \( \mathbf{V} \).
+  !> Note that the routine returns \( \mathbf{V}^\top \), not \( \mathbf{V} \).
   !>
   !> The divide and conquer algorithm makes very mild assumptions about
   !> floating point arithmetic. It will work on machines with a guard
@@ -87,7 +87,7 @@ module singular_value_decomposition
     !>  - If \( \text{shape} ( \)**U** \( ) =   [m , \min(m, n)] \),
     !>    the first \( \min(m, n) \) left singular vectors are calculated.
     real(dp), intent(out), contiguous, optional :: U(:,:)
-    !> On exit, contains (part of the) transpose of the right singular vectors \( \mathbf{V}^T \).
+    !> On exit, contains (part of the) transpose of the right singular vectors \( \mathbf{V}^\top \).
     !> The vectors are stored row-wise in the array **V_T**.
     !>
     !> The shape of **V_T** determines how many the right singular vectors are calculated.
@@ -189,7 +189,7 @@ module singular_value_decomposition
     !>
     !> - If `jobz == 'N'`, **U** is not referenced.
     real(dp), intent(out), contiguous :: U(:,:)
-    !> Contains (part of) the transpose of the right singular vectors \( \mathbf{V}^T \in \mathbb{R}^{n \times n} \).
+    !> Contains (part of) the transpose of the right singular vectors \( \mathbf{V}^\top \in \mathbb{R}^{n \times n} \).
     !> The vectors are stored row-wise in the array **V_T**.
     !>
     !> - If `jobz == 'A'`, **V_T** contains all left singular vectors, stored column-wise.
@@ -440,7 +440,7 @@ module singular_value_decomposition
   function setup_jobz(shape_A, shape_U, shape_V_T) result(jobz)
     !> Shape of the input matrix A
     integer, intent(in) :: shape_A(2)
-    !> Shape of the output matrices \(\mathbf{U}\) and  \(\mathbf{V}^T\)  
+    !> Shape of the output matrices \(\mathbf{U}\) and  \(\mathbf{V}^\top\)
     integer, intent(in) :: shape_U(2), shape_V_T(2)
 
     character(len=1) jobz
@@ -466,7 +466,6 @@ module singular_value_decomposition
 
   end function setup_jobz
 
-
   !> Assert if the shape of the output arrays for *gesdd are valid.
   subroutine assert_array_shape(jobz, m, n, k, size_sigma, shape_U, shape_V_T)
     !> Job that shall be calculated
@@ -477,7 +476,7 @@ module singular_value_decomposition
     integer, intent(in) :: size_sigma
     !> Shape of \(\mathbf{U}\)
     integer, intent(in) :: shape_U(2)
-    !> shape of  \(\mathbf{V}^T\) or \(\mathbf{V}^\dagger\) respectively
+    !> shape of  \(\mathbf{V}^\top\) or \(\mathbf{V}^\dagger\) respectively
     integer, intent(in) :: shape_V_T(2)
 
 ! This preprocessor usage is deliberate, to prevent if statements being evaluated in production code.

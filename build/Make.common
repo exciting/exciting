@@ -7,13 +7,14 @@ SOURCEDIRS=	\
 	../../src/ \
 	../../src/autormt \
     ../../src/lapack_wrappers \
-    ../../src/lapack_wrappers/f95_interfaces \
-    ../../src/lapack_wrappers/multiplication \
-    ../../src/lapack_wrappers/decomposition \
-  	../../src/lapack_wrappers/utils \
-  ../../src/char_utils \
-  ../../src/writers \
-  ../../src/structure \
+        ../../src/lapack_wrappers/f95_interfaces \
+        ../../src/lapack_wrappers/multiplication \
+        ../../src/lapack_wrappers/decomposition \
+        ../../src/lapack_wrappers/diagonalization \
+  	    ../../src/lapack_wrappers/utils \
+    ../../src/char_utils \
+    ../../src/writers \
+    ../../src/structure \
 	../../src/src_advanced/ \
 	../../src/constants \
 	../../src/src_eigensystem/ \
@@ -30,7 +31,7 @@ SOURCEDIRS=	\
 	../../src/src_lib/ \
     ../../src/src_lib/bessel \
 	../../src/math \
-  ../../src/structure \
+    ../../src/structure \
 	../../src/src_mixing/ \
 	../../src/src_mpi/ \
 	../../src/src_mpi/routines/ \
