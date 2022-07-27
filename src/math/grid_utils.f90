@@ -21,13 +21,6 @@ module grid_utils
 
   real(dp), parameter :: default_offset(3) = [0._dp, 0._dp, 0._dp]
 
-  !> Generate a vector of evenly spaced integers, either defined by an Interval and spacing between the elements or
-  !> by the number of elements \(N\). In the latter case the output is an array of \(N\) ascending integers starting at
-  !> 1 and ending at \(N\) with a spacing of 1.
-  interface mesh_1d
-    module procedure :: mesh_1d_start_end, mesh_1d_N_points
-  end interface mesh_1d
-
   !> Generate a vector of evenly spaced number over a given interval.
   !> The spacing can be either defined directly or by a number of coords.
   interface linspace
@@ -55,36 +48,39 @@ module grid_utils
 contains
 
   !> Generate an array of ascending or descending evenly distributed integers.
-  !> The first element is alway `start` and the last element is always `<= end`.
-  !> The end point is not guaranteed when `(start - end) / spacing` is not an integer number.
-  function mesh_1d_start_end(start, end, spacing) result(range)
-    !> First element of the range
+  !> The first element is alway `start` and the last element `mesh_1d_last <= end` (for `end < start`:
+  !> `mesh_1d_last <= end`).
+  !>
+  !> `mesh_1d_last == end` when `(start - end) / spacing` is an integer number.
+  function mesh_1d(start, end, spacing) result(range)
+    !> First element of the range. If end is not given, this is interpreted as length of the mesh 
+    !> and the first element is set to 1
     integer, intent(in) :: start
-    !> Last element of the range
+    !> Last element of the range. Must be different from start. If `end < start`, a descending array is returned.
     integer, intent(in) :: end
-    !> Spacing between the elements. Default is 1.
+    !> Spacing between the elements. The routine expects `spacing > 0`. Default is 1.
     integer, intent(in), optional :: spacing
 
     integer, allocatable :: range(:)
 
-    integer :: i, spacing_, dx, N
+    integer :: i, spacing_local, dx, N
     external :: sign
 
-    spacing_ = 1
-    if (present(spacing)) spacing_ = spacing
+    spacing_local = 1
+    if (present(spacing)) spacing_local = spacing
 
-    call assert(start /= end, 'Start and end can not be the same.')
-    call assert(spacing_ > 0, 'Spacing must be at least 1.')
+    call assert(start /= end, 'start == end.')
+    call assert(spacing_local > 0, 'spacing <= 0.')
 
     dx = end - start
-    spacing_ = isign(spacing_, dx)
-    N = int(dx / spacing_) + 1
+    spacing_local = isign(spacing_local, dx)
+    N = int(dx / spacing_local) + 1
 
     allocate(range(N))
     do i = 1, N
-       range(i) = start + (i-1) * spacing_
+       range(i) = start + (i - 1) * spacing_local
     end do
-  end function mesh_1d_start_end
+  end function mesh_1d
 
 
   !> Generate an array of lenght N_tot of ascending distributed intergers
@@ -105,7 +101,6 @@ contains
       range_out(i) = i
     end do
   end function mesh_1d_N_points
-
 
   !> Return a vector of evenly-spaced numbers over a given interval.
   !>
@@ -155,28 +150,28 @@ contains
   end function linspace_spacing
 
   !> Generate a linearly-spaced grid between 'start' and 'end'. 
-  !> 
-  !> The number of grid points, N, must be > 0.
-  !> Default is to include the endpoint
-  function linspace_number_of_points(start, end, N, endpoint) result(grid)
+  function linspace_number_of_points(start, end, N, include_end) result(grid)
     !> Start of the grid
     real(dp), intent(in) :: start
     !> End of the grid
     real(dp), intent(in) :: end 
     !> Number of points
     integer, intent(in) :: N
-    !> If true, include the endpoint 'end' in the grid
-    logical, intent(in), optional :: endpoint
+    !> If true, `end` is the last element of the grid and `spacing = (end - start) / (N - 1)`, else
+    !> the last element is given by `end - spacing`, where`spacing = (end - start) / N`.
+    !> 
+    !> Default is true.
+    logical, intent(in), optional :: include_end
     !> Linear grid
     real(dp), allocatable :: grid (:), grid_(:)
 
-    logical :: include_endpoint
+    logical :: include_end_local
     real(dp) :: spacing
     
     call assert(N > 0, 'The number of grid points (N) is <= 0.')
 
-    include_endpoint = .true.
-    if (present(endpoint)) include_endpoint = endpoint
+    include_end_local = .true.
+    if (present(include_end)) include_end_local = include_end
 
     allocate(grid(N))
     
@@ -184,7 +179,7 @@ contains
       grid = [start]
 
     else
-      if (include_endpoint) then
+      if (include_end_local) then
         spacing = abs(end - start) / real(N - 1, kind=dp)
         grid_ = linspace_spacing(start, end, spacing)
         grid(1: N-1) = grid_(1: N-1)
@@ -199,66 +194,92 @@ contains
     end if
   end function linspace_number_of_points
 
-  !> Generate a linearly-spaced grid in the interval `interval`.
-  !>
-  !> The number of grid coords, N, must be > 0.
-  !> Default is to include the endpoint
-  function linspace_interval(interval, N, endpoint) result(grid)
+  !> Generate a linearly-spaced grid in the interval `interval = [start, end]`.
+  function linspace_interval(interval, N, include_end) result(grid)
     !> Interval to define the grid
     real(dp), intent(in) :: interval(2)
     !> Number of coords
     integer, intent(in) :: N
-    !> If true, include the endpoint 'end' in the grid.
-    !> Default is true.
-    logical, intent(in), optional :: endpoint
+    !> Influences the spacing between the points. If the include_end is included, `spacing = (end - start) / (N - 1)`,
+    !> else `spacing = (end - start) / N`.
+    logical, intent(in), optional :: include_end
     !> Linear grid
     real(dp), allocatable :: grid (:)
+    !> If true, `end` is the last element of the grid and `spacing = (end - start) / (N - 1)`, else
+    !> the last element is given by `end - spacing`, where`spacing = (end - start) / N`.
+    !> 
+    !> Default is true.
+    logical :: include_end_local
 
-    logical :: include_endpoint
+    include_end_local = .true.
+    if (present(include_end)) include_end_local = include_end
 
-    include_endpoint = .true.
-    if (present(endpoint)) include_endpoint = endpoint
-
-    grid = linspace_number_of_points(interval(1), interval(2), N, include_endpoint)
+    grid = linspace_number_of_points(interval(1), interval(2), N, include_end_local)
   end function linspace_interval
 
-  !> Concatonates two integer 1-rank arrays.
+  !> Concatenate two integer 1-rank arrays.
   function concatenate_integer(v1, v2) result(v_out)
-    !> Vectors to be concatonated
+    !> Vectors to be concatenated.
     integer, intent(in) :: v1(:), v2(:)
 
     integer, allocatable :: v_out(:)
 
-    allocate(v_out(size(v1) + size(v2)))
+    integer :: len_1, len_2
 
-    v_out(: size(v1)) = v1
-    v_out(size(v1) + 1 :) = v2
+    len_1 = size(v1)
+    len_2 = size(v2)
+
+    call assert(len_1 > 0, 'size(v1) == 0.')
+    call assert(len_2 > 0, 'size(v2) == 0.')
+
+    allocate(v_out(len_1 + len_2))
+
+    v_out(: len_1) = v1
+    v_out(len_1 + 1 :) = v2
   end function concatenate_integer
 
-  !> Concatonates two double real 1-rank arrays.
+  !> Concatenate two double real 1-rank arrays.
   function concatenate_real_dp(v1, v2) result(v_out)
-    !> Vectors to be concatonated
+    !> Vectors to be concatenated.
     real(dp), intent(in) :: v1(:), v2(:)
 
     real(dp), allocatable :: v_out(:)
 
-    allocate(v_out(size(v1) + size(v2)))
+    integer :: len_1, len_2
 
-    v_out(: size(v1)) = v1
-    v_out(size(v1) + 1 :) = v2
+    len_1 = size(v1)
+    len_2 = size(v2)
+
+    call assert(len_1 > 0, 'size(v1) == 0.')
+    call assert(len_2 > 0, 'size(v2) == 0.')
+
+    allocate(v_out(len_1 + len_2))
+
+    v_out(: len_1) = v1
+    v_out(len_1 + 1 :) = v2
   end function concatenate_real_dp
 
-  !> Concatonates two double complex 1-rank arrays.
+  !> Concatenate two double complex 1-rank arrays.
   function concatenate_complex_dp(v1, v2) result(v_out)
-    !> Vectors to be concatonated
+    !> Vectors to be concatenated.
     complex(dp), intent(in) :: v1(:), v2(:)
 
     complex(dp), allocatable :: v_out(:)
 
-    allocate(v_out(size(v1) + size(v2)))
+    integer :: len_1, len_2
 
-    v_out(: size(v1)) = v1
-    v_out(size(v1) + 1 :) = v2
+    len_1 = size(v1)
+    len_2 = size(v2)
+
+    call assert(len_1 > 0, 'size(v1) == 0.')
+    call assert(len_2 > 0, 'size(v2) == 0.')
+
+    allocate(v_out(len_1 + len_2))
+
+    v_out(: len_1) = v1
+    v_out(len_1 + 1 :) = v2
+
+    v_out = reshape([v1, v2], [len_1 + len_2])
   end function concatenate_complex_dp
 
 
@@ -274,16 +295,16 @@ contains
   !> respectively.
   !>
   !> The grid containes by default the end point. If this behavior is not wished,
-  !> the end point can be left out by setting endpoint to .false.
-  function cubic_grid_3d(N, start, end, endpoint) result(grid)
+  !> the end point can be left out by setting include_end to .false.
+  function cubic_grid_3d(N, start, end, include_end) result(grid)
     !> Number of grid points per dimension
     integer, intent(in) :: N(3)
     !> Define the start point of the grid in each dimension
     real(dp), intent(in), optional :: start(3)
     !> Define the end point of the grid in each dimension
     real(dp), intent(in), optional :: end(3)
-    !> If true, include the endpoint 'end' in the grid
-    logical, intent(in), optional :: endpoint
+    !> If true, include 'end' in the grid (see [[linspace_number_of_points]]).
+    logical, intent(in), optional :: include_end
     !> Cubic, 3D grid 
     real(dp), allocatable :: grid(:,:)
 
@@ -295,10 +316,10 @@ contains
     real(dp) :: start_(3), end_(3), ones_x(N(1)), ones_y(N(2)), ones_z(N(3)) 
     real(dp), allocatable :: grid_1D_x(:), grid_1D_y(:), grid_1D_z(:)
       
-    logical :: include_endpoint
+    logical :: include_end_local
     
-    include_endpoint = .true.
-    if (present(endpoint)) include_endpoint = endpoint
+    include_end_local = .true.
+    if (present(include_end)) include_end_local = include_end
 
     ! allocate grid
     allocate(grid(3, product(N)))
@@ -310,9 +331,9 @@ contains
     if (present(end)) end_ = end
 
     ! Generate 1d grids for each direction
-    grid_1D_x = linspace(start_(1), end_(1), N(1), endpoint = include_endpoint)
-    grid_1D_y = linspace(start_(2), end_(2), N(2), endpoint = include_endpoint)
-    grid_1D_z = linspace(start_(3), end_(3), N(3), endpoint = include_endpoint)
+    grid_1D_x = linspace(start_(1), end_(1), N(1), include_end = include_end_local)
+    grid_1D_y = linspace(start_(2), end_(2), N(2), include_end = include_end_local)
+    grid_1D_z = linspace(start_(3), end_(3), N(3), include_end = include_end_local)
             
     ! put 1d grids together
     ones_x = 1.0_dp
@@ -328,21 +349,21 @@ contains
   !> Generate a regular cubic grid.
   !>  
   !> See [[cubic_grid_3d]]
-  function regular_cubic_grid_3d(N, start, end, endpoint) result(grid)
+  function regular_cubic_grid_3d(N, start, end, include_end) result(grid)
     !> Number of grid points per dimension
     integer, intent(in) :: N
     !> Define the start point of the grid in each dimension
     real(dp), intent(in), optional :: start(3)
     !> Define the end point of the grid in each dimension
     real(dp), intent(in), optional :: end(3)
-    !> If true, include the endpoint 'end' in the grid
-    logical, intent(in), optional :: endpoint
+    !> If true, include 'end' in the grid (see [[linspace_number_of_points]]).
+    logical, intent(in), optional :: include_end
     !> Regular cubic grid 
     real(dp), allocatable :: grid(:, :)
-    logical :: include_endpoint
+    logical :: include_end_local
     
-    include_endpoint = .true.
-    if (present(endpoint)) include_endpoint = endpoint
+    include_end_local = .true.
+    if (present(include_end)) include_end_local = include_end
 
     grid = cubic_grid_3d([N, N, N], start, end)
   end function
@@ -470,7 +491,7 @@ contains
 
     integer :: divider(3), i, index3d(3)
 
-    call assert(any(mod(N_grid_dense, N_grid) == 0) , 'N_grid_dense modulus N_grid is not zero for all dimensions.')
+    call assert(all(mod(N_grid_dense, N_grid) /= 0) , 'N_grid_dense modulus N_grid is not zero for all dimensions.')
 
     divider = N_grid_dense / N_grid
     allocate(map(product(N_grid)))
@@ -481,39 +502,35 @@ contains
     end do
   end function partial_grid
 
-  !> For two arrays `A` and `B` of rank `M`, `all(shape(B) <= shape(A))` is true and
-  !>
-  !> `A(1 : size(B, 1), ..., A(1, size(B, M)) = B
-  !>
-  !> find the index map `map` such that
-  !>
-  !> 'A_flat(map) = B_flat`
-  !>
-  !> Where `A_flat` and `B_flat` are the flattened arrays to one dimension.
-  function flattend_map(N_B, N_A) result(map_out)
-    !> Shape of `B`
-    integer, intent(in) :: N_B(:)
+  !> Given the shapes of two `M`-rank arrays `shape_A` and `shape_B` with `all(shape_B <= shape_A)` is true and
+  !> `A(1 : shape_B(1), ..., 1 : shape_B(M)) = B, find the index map `map_out` of length `product(shape_B)` such that 
+  !> 'A_flat(map_out) = B_flat`. Where `A_flat = reshape(A, [product(shape_A)])` and `B_flat = reshape(B, [product(shape_B)])`.
+  function flattend_map(shape_A, shape_B) result(map_out)
     !> Shape of `A`
-    integer, intent(in) :: N_A(:)
+    integer, intent(in) :: shape_A(:)
+    !> Shape of `B`
+    integer, intent(in) :: shape_B(:)
 
     integer, allocatable :: map_out(:)
 
-    integer :: i, rank
+    integer :: i, rank, size_B
     integer, allocatable :: multi_index(:)
 
 
-    call assert(size(N_B) == size(N_A), 'N_B and N_A have not the same size.')
-    call assert(all(N_B <= N_A), 'N_B > N_A')
+    call assert(size(shape_B) == size(shape_A), 'shape_B and shape_A have not the same size.')
+    call assert(all(shape_A >= shape_B), 'shape_A < shape_B.')
 
-    rank = size(N_B)
+    size_B = product(shape_B)
+    rank = size(shape_B)
+
     allocate(multi_index(rank))
-    allocate(map_out(product(N_B)))
-    do i = 1, product(N_B)
-      ! Calculate the multi index of B from the index for B_flat
-      call composite_index_to_indices(i, rank, N_B, multi_index)
+    allocate(map_out(size_B))
 
+    do i = 1, size_B
+      ! Calculate the multi index of B from the index for B_flat
+      call composite_index_to_indices(i, rank, shape_B, multi_index)
       ! Calculate the index of A_flat from the multi index of B
-      map_out(i) = indices_to_composite_index(multi_index, N_A)
+      map_out(i) = indices_to_composite_index(multi_index, shape_A)
     end do
   end function flattend_map
 
