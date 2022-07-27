@@ -64,7 +64,7 @@ contains
 
       integer, allocatable :: test_range(:), reference_range(:)
 
-      test_range = mesh_1d(5)
+      test_range = mesh_1d(1, 5)
       reference_range = [1, 2, 3, 4, 5]
       call test_report%assert(all(test_range == reference_range), &
                             'Test mesh_1d for N_coords as input.')
@@ -148,7 +148,7 @@ contains
       deallocate (grid)
 
       ! Grid defined according to number of points, not including the end point
-      grid = linspace(2.0_dp, 3.0_dp, 5, endpoint=.false.)
+      grid = linspace(2.0_dp, 3.0_dp, 5, include_end=.false.)
       
       call test_report%assert(size(grid) == 5, message='Expect size(grid) == 5')
 
@@ -233,7 +233,7 @@ contains
       call test_report%assert(all_close(grid(:, 24), [1.0_dp, 1.0_dp, 1.0_dp]), &
                       'Test grid_3d for [2, 3, 4] with endpoint=.true. does include endpoint.')
 
-      grid = grid_3d([ 2, 3, 4 ], endpoint=.false.)
+      grid = grid_3d([ 2, 3, 4 ], include_end=.false.)
       call test_report%assert(all_close(grid, ref_3d), &
                       'Test grid_3d for [2, 3, 4] (without end point) as numbers of grid points per dimension. &
                       Expected: 3 x 24 element array that contains the coordinates of the grid points &
@@ -291,14 +291,14 @@ contains
                     'Test phase for single r-point. &
                     Expected: The result is equivalent to exp(- i * pi / 2) = (0.0, -1.0)')
 
-    phase_grid = phase(grid_3d([2, 2, 1], endpoint = .false.), [0.0_dp, 0.0_dp, 0.0_dp])
+    phase_grid = phase(grid_3d([2, 2, 1], include_end = .false.), [0.0_dp, 0.0_dp, 0.0_dp])
     call test_report%assert(all_close(phase_grid, ref_Gamma), &
                     'Test phase_3d at the Gamma point. &
                     Expected: Four element complex vector with complex phase for each grid point at the Gamma point (k=(0, 0, 0)) &
                     for a grid of [2, 2, 1] points per dimension in a cube of lenght 1. &
                     All phases must be (1.0, 0.0).')
 
-    phase_grid = phase(grid_3d([3, 2, 4], endpoint = .false.), [ 0.0_dp, 0.4_dp, 0.6_dp ])
+    phase_grid = phase(grid_3d([3, 2, 4], include_end = .false.), [ 0.0_dp, 0.4_dp, 0.6_dp ])
     call test_report%assert(all_close(phase_grid, ref_arb), &
                    'Test phase_3d at an arbitrary k-point. &
                     Expected: 24 element complex vector with complex phase for each grid point at k=(0.0, 0.4, 0.6) &
@@ -426,24 +426,25 @@ contains
     type(unit_test_type), intent(inout) :: test_report
 
     integer :: ind, i, j, k, N_A_2(2), N_A_3(3), N_B_2(2), N_B_3(3)
-    integer, allocatable :: map(:), A_2(:, :), B_2(:, :), A_3(:, :, :), B_3(:, :, :), A_flat(:)
+    integer, allocatable :: map(:), A_2(:, :), B_2(:, :), A_3(:, :, :), B_3(:, :, :), A_flat(:), B_flat(:)
 
-    N_B_2 = [13, 7]
+    N_B_2 = [3, 4]
     allocate(B_2(N_B_2(1), N_B_2(2)))
     do ind=1, product(N_B_2)
       call composite_index_to_indices(ind, N_B_2, i, j)
       B_2(i, j) = ind
     end do
 
-    N_A_2 = [20, 12]
-    allocate(A_2(N_A_2(1), N_A_2(2)))
-    A_2 = 0
+    N_A_2 = [5, 6]
+    allocate(A_2(N_A_2(1), N_A_2(2)), source=0)
     A_2(1 : N_B_2(1), 1 : N_B_2(2)) = B_2
 
-    allocate(A_flat(product(N_A_2)))
-    map = flattend_map(N_B_2, N_A_2)
-    A_flat = 0
-    A_flat(map) = reshape(B_2, [product(N_B_2)])
+
+    allocate(A_flat(product(N_A_2)), source = 0)
+    B_flat = reshape(B_2, [product(N_B_2)])
+    
+    map = flattend_map(N_A_2, N_B_2)
+    A_flat(map) = B_flat
 
     call test_report%assert(all(A_2 == reshape(A_flat, N_A_2)), 'Test flattened_map for rank-2 arrays. Expeted: &
             all(A == reshape(A_flat, N_A)).')
@@ -457,13 +458,13 @@ contains
     end do
 
     N_A_3 = [20, 12, 362]
-    allocate(A_3(N_A_3(1), N_A_3(2), N_A_3(3)))
-    A_3 = 0
+    allocate(A_3(N_A_3(1), N_A_3(2), N_A_3(3)), source = 0)
     A_3(1 : N_B_3(1), 1 : N_B_3(2), 1 : N_B_3(3)) = B_3
 
-    allocate(A_flat(product(N_A_3)))
-    map = flattend_map(N_B_3, N_A_3)
-    A_flat = 0
+    allocate(A_flat(product(N_A_3)), source = 0)
+    B_flat = reshape(B_3, [product(N_B_3)])
+
+    map = flattend_map(N_A_3, N_B_3)
     A_flat(map) = reshape(B_3, [product(N_B_3)])
 
     call test_report%assert(all(A_3 == reshape(A_flat, N_A_3)), 'Test flattened_map for rank-4 arrays. Expeted: &
