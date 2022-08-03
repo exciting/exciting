@@ -27,7 +27,6 @@ Defaults = namedtuple('Defaults', ['max_time',        # Time after which a test 
 
 
 _binary_names    = [binary for binary in build_type_enum_to_str.values()]
-_exe_ref         = BuildType.puresmp
 _default_np      = {BuildType.serial: 1, BuildType.puresmp: 1, BuildType.purempi: 2, BuildType.mpiandsmp: 2}
 _default_threads = {BuildType.serial: 1, BuildType.puresmp: 2, BuildType.purempi: 1, BuildType.mpiandsmp: 2}
 
@@ -54,7 +53,7 @@ settings = Defaults(max_time       = 1800,
                     binary_serial   = BuildType.serial,
                     default_np      = _default_np,
                     default_threads = _default_threads,
-                    exe_ref         = _exe_ref,
+                    exe_ref         = BuildType.serial,
                     hanging_tests   = hanging_tests
                     )
 

@@ -134,3 +134,4 @@ The following people (in alphabetic order by their family names) have contribute
 * Fabian Peschel
 * Daniel Speckhard
 * Elisa Stephan
+* Mara Voiculescu

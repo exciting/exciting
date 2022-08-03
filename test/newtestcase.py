@@ -1,5 +1,4 @@
-"""
-Create a new test case for the test suite.
+"""Create a new test case for the test suite.
 
 To run, for example:
   cd <EXCITINGROOT>/test
@@ -7,6 +6,9 @@ To run, for example:
 
 Exclude -t and the new test will be placed in the current directory:
   python3 newtestcase.py -r test_reference
+
+One might consider scrapping this module in favour of manually running a test
+and copying the relevant inputs/outputs into the test_farm,
 """
 import sys
 import os
@@ -18,6 +20,7 @@ from src.exciting_settings.constants import settings
 from src.io.file_system import copy_calculation_inputs
 from src.reference.reference import run_single_reference
 from src.reference.generate_tolerance import generate_tolerance_file
+from src.runner.execute import set_job_environment
 from src.runner.profile import build_type_enum_to_str, get_calculation_types, ExcitingCalculation
 from src.runner.set_inputs import input_files_for_tests
 
@@ -189,7 +192,8 @@ def main(args: dict):
     input_files_for_ref: List[str] = input_files[reference_location]
     copy_calculation_inputs(reference_location, test_directory, input_files_for_ref)
     binary = os.path.join(settings.exe_dir, build_type_enum_to_str[settings.exe_ref])
-    run_single_reference(test_directory, binary, settings)
+    job_env = set_job_environment({'omp': 1})
+    run_single_reference(test_directory, binary, settings, job_env)
 
 
 if __name__ == "__main__":
