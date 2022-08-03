@@ -11,6 +11,12 @@ from ..exciting_settings.constants import RunProperties
 def set_job_environment(threads: dict):
     """ Create an environment instance.
 
+    Use the existing environment, but modify the number
+    of exported threads.
+
+    Note, subprocess wants env values as strings,
+    so convert all values.
+
     :param threads: OMP and MKL threads.
     :return Instance of os._Environ (behaves like a dict)
     """
@@ -18,7 +24,7 @@ def set_job_environment(threads: dict):
 
     my_env["OMP_NUM_THREADS"] = str(threads['omp'])
 
-    mkl_threads = threads['mkl_threads']
+    mkl_threads = threads.get('mkl_threads')
     if mkl_threads is not None:
         my_env["MKL_NUM_THREADS"] = str(mkl_threads)
 

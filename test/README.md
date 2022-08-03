@@ -109,7 +109,7 @@ python3 newtestcase.py -for groundstate -r test_reference -t test_farm/groundsta
 
 will copy input files from `test_reference` to the directory `test_farm/groundstate/new_test/ref`, execute the input 
 with the appropriate exciting binary to generate reference output data and will add the file 
-`tolerance_ground_state.json` to the directory.  Reference calculations are always run with `exciting_smp`.
+`tolerance_ground_state.json` to the directory.  Reference calculations are always run with `exciting_serial`.
 If `-for` is not specified, the script will try to infer the calculation type from the target path and generate the 
 corresponding tolerance file. 
 
