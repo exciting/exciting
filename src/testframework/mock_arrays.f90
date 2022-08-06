@@ -6,6 +6,8 @@ module mock_arrays
 
   private
   public :: fill_array, value_map_real_rank1, &
+                        value_map_real_rank2, &
+                        value_map_real_rank3, &
                         value_map_complex_rank2, &
                         value_map_complex_rank3, &
                         value_map_complex_rank4
@@ -302,6 +304,8 @@ module mock_arrays
         interface fill_array
                 procedure ::  fill_real_array_rank0,&
                         fill_real_array_rank1,& 
+                        fill_real_array_rank2,&
+                        fill_real_array_rank3,&
                         fill_complex_array_rank2,&
                         fill_complex_array_rank3,&
                         fill_complex_array_rank4                
@@ -322,6 +326,30 @@ module mock_arrays
                 b = 1.5_dp * m
         end function
 
+        !> Given its indices, this function maps
+        !> one element of a real double-precision
+        !> array \( \mathbf{a} \) of rank 2 according to
+        !> \[
+        !>    a_{mn} = m + 2n 
+        !>                                      \].
+        pure function value_map_real_rank2(m, n) result(b)
+                integer(sp), intent(in) :: m, n
+                real(dp) :: b
+                b = 1_dp*m + 2_dp*n
+        end function
+
+        !> Given its indices, this function maps
+        !> one element of a real double-precision 
+        !> array \( \mathbf{a} \) of rank 3 according to
+        !> \[
+        !>    a_{mnl} = m + 2(n+l) 
+        !>                                      \].
+        pure function value_map_real_rank3(m, n, l) result(b)
+                integer(sp), intent(in) :: m, n, l
+                real(dp) :: b
+                b = 1._dp*m + 2_dp*(n+l)
+        end function
+       
         !> Given its indices, this function maps
         !> one element of a complex double-precision
         !> array \( \mathbf{a} \) of rank 2 according to
@@ -396,6 +424,54 @@ module mock_arrays
                 end do
 
         end subroutine fill_real_array_rank1
+
+        !> Fills a complex double-precision array \( \mathbf{a} \) of rank 2
+        !> according to a value map.
+        subroutine fill_real_array_rank2(array, value_map)
+                real(dp), intent(out) :: array(:, :)
+                integer(sp) :: n, m
+
+                interface
+                        pure function value_map(a, b) result(c)
+                                use precision, only: dp
+                                integer, intent(in) :: a, b
+                                real(dp) :: c
+                        end function value_map
+                end interface
+
+
+                do m = 1, size(array, dim=1)
+                        do n = 1, size(array, dim=2)
+                                array(m, n) = value_map(m, n)
+                        end do
+                end do
+
+        end subroutine fill_real_array_rank2
+
+
+        !> Fills a complex double-precision array \( \mathbf{a} \) of rank 3
+        !> according to a value map.
+        subroutine fill_real_array_rank3(array, value_map)
+
+                real(dp), intent(out) :: array(:, :, :)
+                integer(sp) :: m, n, l
+                interface
+                        pure function value_map(a, b, c) result(d)
+                                use precision, only: dp
+                                integer, intent(in) :: a, b, c
+                                real(dp) :: d
+                        end function value_map
+                end interface
+
+                do m = 1, size(array, dim=1)
+                        do n = 1, size(array, dim=2)
+                                do l = 1, size(array, dim=3)
+                                        array(m, n, l) = value_map(m, n, l)
+                                end do
+                        end do
+                end do
+
+        end subroutine fill_real_array_rank3
                                                     
         
         !> Fills a complex double-precision array \( \mathbf{a} \) of rank 2

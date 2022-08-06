@@ -27,6 +27,13 @@ module constants
   Complex (8), Public, Parameter :: zone = (1.d0, 0.d0)
   !> Complex i 
   Complex (8), Public, Parameter :: zi = (0.d0, 1.d0)
+
+  ! Real initialisation constants
+  !> Real zero
+  Real (dp), Public, Parameter :: real_zero = 0._dp
+  !> Real one
+  Real (dp), Public, Parameter :: real_one = 1._dp
+
     
   ! TODO(Alex). Issue #24. Replace maxatoms and maxspecies with values from input
 

@@ -15,6 +15,8 @@ module lapack_wrappers_test_drivers
   use matrix_rank_test, only: matrix_rank_test_driver
   use determinant_test, only: determinant_test_driver
   use inverse_test, only: inverse_test_driver
+  ! Tensor contraction
+  use tensor_contraction_test, only: tensor_contraction_test_driver
 
   implicit none
   
@@ -44,6 +46,8 @@ contains
     call matrix_rank_test_driver(mpiglobal, kill_on_failure)
     call determinant_test_driver(mpiglobal, kill_on_failure)
     call inverse_test_driver(mpiglobal, kill_on_failure)
+    call tensor_contraction_test_driver(mpiglobal, kill_on_failure)
+
   end subroutine lapack_wrappers_test_driver
 
 end module lapack_wrappers_test_drivers
