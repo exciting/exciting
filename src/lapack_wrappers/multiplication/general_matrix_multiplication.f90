@@ -10,7 +10,7 @@ module general_matrix_multiplication
   implicit none
   
   private
-  public :: matrix_multiply
+  public :: matrix_multiply, gemm_parameters
 
 
   !> Default for **trans_A** and **trans_B** respectively which define if the matrix is used, its transpose or its
@@ -262,7 +262,7 @@ contains
     trans_B_ = default_trans_char
     if(present(trans_B)) trans_B_ = trans_B
                
-    call integer_gemm(shape(A), shape(B), trans_A_, trans_B_,  M, N, K, LDA, LDB, LDC)
+    call gemm_parameters(shape(A), shape(B), trans_A_, trans_B_,  M, N, K, LDA, LDB, LDC)
 
     call assert(all(shape(C) == [M, N]), 'The number of rows of C must be equal to the number of rows of op(A) &
                and the number of culomns must be equal to the number of columns of op(B).')
@@ -331,7 +331,7 @@ contains
     trans_B_ = default_trans_char
     if(present(trans_B)) trans_B_ = trans_B
                
-    call integer_gemm(shape(A), shape(B), trans_A_, trans_B_,  M, N, K, LDA, LDB, LDC)
+    call gemm_parameters(shape(A), shape(B), trans_A_, trans_B_,  M, N, K, LDA, LDB, LDC)
 
     call assert(all(shape(C) == [M, N]), 'The number of rows of C must be equal to the number of rows of op(A) &
                and the number of culomns must be equal to the number of columns of op(B).')
@@ -396,7 +396,7 @@ contains
     trans_B_ = default_trans_char
     if(present(trans_B)) trans_B_ = trans_B
                
-    call integer_gemm(shape(A), shape(B), trans_A_, trans_B_,  M, N, K, LDA, LDB, LDC)
+    call gemm_parameters(shape(A), shape(B), trans_A_, trans_B_,  M, N, K, LDA, LDB, LDC)
 
     call assert(all(shape(C) == [M, N]), 'The number of rows of C must be equal to the number of rows of op(A) &
                and the number of culomns must be equal to the number of columns of op(B).')
@@ -462,7 +462,7 @@ contains
     trans_B_ = default_trans_char
     if(present(trans_B)) trans_B_ = trans_B
                
-    call integer_gemm(shape(A), shape(B), trans_A_, trans_B_,  M, N, K, LDA, LDB, LDC)
+    call gemm_parameters(shape(A), shape(B), trans_A_, trans_B_,  M, N, K, LDA, LDB, LDC)
 
     call assert(all(shape(C) == [M, N]), 'The number of rows of C must be equal to the number of rows of op(A) &
                and the number of culomns must be equal to the number of columns of op(B).')
@@ -500,7 +500,7 @@ contains
   end function integer_gemv
 
   !> Setup the integers for *gemm calls.
-  subroutine integer_gemm(shape_A, shape_B, trans_A, trans_B, M, N, K, LDA, LDB, LDC)
+  subroutine gemm_parameters(shape_A, shape_B, trans_A, trans_B, M, N, K, LDA, LDB, LDC)
     !> Shape of the input arrays
     integer, intent(in) :: shape_A(2), shape_B(2)
     !> Determine if \( \mathbf{A} \) or \( \mathbf{B} \) are used as is ('N' or 'n'),
@@ -545,6 +545,6 @@ contains
     else
       call assert(.false., 'trans_A must be one of "N", "n", "T", "t" "C", "c".')
     end if
-  end subroutine integer_gemm
+  end subroutine gemm_parameters
 
 end module general_matrix_multiplication

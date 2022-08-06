@@ -12,6 +12,7 @@ SOURCEDIRS=	\
         ../../src/lapack_wrappers/decomposition \
         ../../src/lapack_wrappers/diagonalization \
   	    ../../src/lapack_wrappers/utils \
+				../../src/lapack_wrappers/tensor_contraction \
     ../../src/char_utils \
     ../../src/writers \
     ../../src/structure \

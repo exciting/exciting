@@ -64,7 +64,8 @@ module math_utils
   !>  Check if two arrays are close, within an absolute tolerance
   interface all_close
     module procedure all_close_rank0_real_dp, all_close_rank1_real_dp, &
-                   & all_close_rank2_real_dp, all_close_rank0_complex_dp,&
+                   & all_close_rank2_real_dp, all_close_rank3_real_dp,&
+                     all_close_rank0_complex_dp,&
                    & all_close_rank1_complex_dp, all_close_rank2_complex_dp,&
                    all_close_rank3_complex_dp, all_close_rank4_complex_dp
   end interface all_close
@@ -542,6 +543,36 @@ contains
 
     all_close_rank2_real_dp = all(abs(a - b) <= tol_)
   end function all_close_rank2_real_dp
+
+
+  !> Check if two real rank-3 arrays \( \mathbf{a} \) and \( \mathbf{b} \)
+  !> are equal, where equal is defined as
+  !> \( |a_{ijk} - b_{ijk}| \leq abs\_tol,  \forall i,j,k \).
+  !> As such, the tolerance is checked elementwise.
+  logical function all_close_rank3_real_dp(a, b, tol)
+
+    !> Input array
+    real(dp), intent(in) :: a(:, :, :)
+    !> Reference array
+    real(dp), intent(in) :: b(:, :, :)
+    !> Absolute tolerance for input and reference to be considered equal
+    real(dp), intent(in), optional :: tol
+
+    !> Local absolute tolerance
+    real(dp) :: tol_
+
+    call assert(size(a) == size(b), &
+      & 'all_close_rank3_real_dp: size of input arrays differs.')
+
+    call assert(all(shape(a) == shape(b)), &
+      & 'all_close_rank3_real_dp: shape of input arrays differs.')
+
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
+
+    all_close_rank3_real_dp = all(abs(a - b) <= tol_)
+
+  end function all_close_rank3_real_dp
 
 
   !> Check if two complex scalars \( a \) and \( b \)
