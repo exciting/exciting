@@ -19,6 +19,7 @@ Subroutine init0
       Use modmpi, only: mpiglobal
       Use errors_warnings, only: terminate_if_false
       Use vx_enums, only: HYB_PBE0, HYB_HSE
+      use tmp_mod_init0, only: map_atoms_per_species_to_atomic_index
 #ifdef XS
       Use modxs
 #endif
@@ -113,19 +114,9 @@ Subroutine init0
 
 ! find primitive cell if required
       If (input%structure%primcell) Call findprim
-      natmmax = 0
-      ias = 0
-      Do is = 1, nspecies
-         Do ia = 1, natoms (is)
-            ias = ias + 1
-            idxas (ia, is) = ias
-         End Do
-! maximum number of atoms over all species
-         natmmax = Max (natmmax, natoms(is))
-      End Do
-! total number of atoms
-      natmtot = ias
 !
+      call map_atoms_per_species_to_atomic_index (nspecies, natoms, idxas, natmmax, natmtot)
+      
 !------------------------!
 !     spin variables     !
 !------------------------!
@@ -254,6 +245,7 @@ Subroutine init0
       avec(:,1) = input%structure%crystal%basevect(:,1)
       avec(:,2) = input%structure%crystal%basevect(:,2)
       avec(:,3) = input%structure%crystal%basevect(:,3)
+
 ! generate the reciprocal lattice vectors and unit cell volume
       Call reciplat
 ! compute the inverse of the lattice vector matrix
