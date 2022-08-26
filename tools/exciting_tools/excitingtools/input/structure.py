@@ -22,7 +22,7 @@ all_species = {'Ni', 'La', 'K', 'Xe', 'Ag', 'Bk', 'Co', 'Md', 'Lu', 'Ar',
                'Os', 'B', 'U', 'Zr', 'Cf', 'C', 'Na', 'Li', 'Mo', 'Cs',
                'Al', 'V', 'Cd', 'Tm', 'Tl', 'Ba', 'Ce', 'W', 'Am', 'Cr',
                'Nb', 'Mn', 'S', 'Ca', 'Be', 'Br', 'Th', 'Ti', 'Np', 'Ne',
-               'P.', 'Cu', 'F', 'Nd'}
+               'P', 'Cu', 'F', 'Nd'}
 
 
 def check_muffin_tin_radii():
