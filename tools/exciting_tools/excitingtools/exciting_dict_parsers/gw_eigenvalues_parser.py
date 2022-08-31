@@ -5,6 +5,7 @@ import enum
 from itertools import count
 import numpy as np
 import re
+import os
 
 from excitingtools.dataclasses.data_structs import NumberOfStates
 
@@ -191,3 +192,18 @@ def parse_column_labels(file_string: str) -> enum.Enum:
     column_labels = column_str.split()[1:]
     # zip and count ensure enum indexing starts at 0
     return enum.Enum(value='EvalQPColumns', names=zip(column_labels, count()))
+
+
+def parse_gw_dos(full_file_name: str) -> dict:
+    """Parser for GW DOS files.
+
+    :param full_file_name: Path + file name
+    :return dict data: Parsed energies and DOS from GW DOS files
+    """
+    valid_file_names = ['TDOS.OUT', 'TDOS-QP.OUT']
+    path, file_name = os.path.split(full_file_name)
+    if file_name not in valid_file_names:
+        raise ValueError(f'{file_name} not a valid DOS file name.')
+
+    data = np.genfromtxt(full_file_name)
+    return {'energy': data[:, 0], 'dos': data[:, 1]}

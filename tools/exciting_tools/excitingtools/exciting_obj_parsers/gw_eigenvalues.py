@@ -5,9 +5,10 @@ from typing import Optional, List, Union, Dict
 import enum
 import numpy as np
 
-from excitingtools.exciting_dict_parsers.gw_eigenvalues_parser import parse_evalqp, _file_name
+from excitingtools.exciting_dict_parsers.gw_eigenvalues_parser import parse_evalqp, _file_name, parse_gw_dos
 from excitingtools.dataclasses.data_structs import NumberOfStates
 from excitingtools.dataclasses.eigenvalues import EigenValues
+from excitingtools.dataclasses.density_of_states import DOS
 
 
 class NitrogenEvalQPColumns(enum.Enum):
@@ -111,3 +112,13 @@ def gw_eigenvalue_parser(input_file_path: str, columns: Optional[columns_type] =
         eigen_values[column] = value
 
     return eigen_values
+
+
+def parse_obj_gw_dos(full_file_name: str) -> DOS:
+    """High-level parser for GW DOS files.
+
+    :param full_file_name: Path + file name
+    :return: DOS object
+    """
+    gw_dos_data = parse_gw_dos(full_file_name)
+    return DOS(gw_dos_data['energy'], gw_dos_data['dos'])
