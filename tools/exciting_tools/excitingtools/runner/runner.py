@@ -133,7 +133,7 @@ class BinaryRunner:
 
         time_start: float = time.time()
         try:
-            result = subprocess.run(execution_list[0],
+            result = subprocess.run(execution_list,
                                     env=my_env,
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE,
