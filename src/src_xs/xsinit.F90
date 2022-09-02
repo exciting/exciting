@@ -272,6 +272,8 @@ subroutine xsinit(j, plan)
   !----------------------------------!
   tgqmaxg=.false.
   if((input%xs%xstype.eq."TDDFT") .and. (input%xs%gqmaxtype.eq."|G|")) tgqmaxg=.true.
+  if((input%xs%xstype.eq."BSE") .and. (input%xs%gqmaxtype.eq."|G|")) tgqmaxg=.true.
+
   tfxcbse = .false.
   if(input%xs%tddft%fxctypenumber .eq. 5) then
     if(input%groundstate%gmaxvr .lt. 2.d0*input%xs%gqmax) then
