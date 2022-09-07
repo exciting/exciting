@@ -36,7 +36,7 @@ _file_to_parser = {
     'mossbauer.xml': properties_parser.parse_mossbauer,
     'expiqr.xml': properties_parser.parse_expiqr,
     'effmass.xml': properties_parser.parse_effmass,
-    'bandstructure.xml': properties_parser.parse_bandstructure,
+    'bandstructure.xml': properties_parser.parse_bandstructure_depreciated,
     'dos.xml': properties_parser.parse_dos,
     'KERR.OUT': properties_parser.parse_kerr,
     'EPSILON_11.OUT': properties_parser.parse_epsilon,

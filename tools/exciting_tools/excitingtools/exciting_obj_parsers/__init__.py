@@ -1,2 +1,2 @@
 # from excitingtools.exciting_obj_parsers.gw_eigenvalues import gw_eigenvalue_parser, OxygenEvalQPColumns, NitrogenEvalQPColumns
-from excitingtools.exciting_obj_parsers.ks_band_structure import parse_band_structure_to_arrays
+from excitingtools.exciting_obj_parsers.ks_band_structure import parse_band_structure
