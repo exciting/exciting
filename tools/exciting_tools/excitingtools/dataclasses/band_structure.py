@@ -1,6 +1,6 @@
 """ Band structure class.
 """
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 import numpy as np
 
 
@@ -9,17 +9,24 @@ class BandData:
     vertex_keys = ['distance', 'label', 'coord']
 
     def __init__(self,
-                 k_points: np.ndarray,
                  bands: np.ndarray,
-                 vertices: List[dict]):
+                 k_points: Optional[np.ndarray] = None,
+                 flattened_k_points: Optional[np.ndarray] = None,
+                 vertices: Optional[List[dict]] = None):
+        """ Initialise BandData.
+
+        :param bands: Band energies with shape (n_k_points, n_bands)
+        :param: k_points: k-points at which the band energies have been computed.
+        :param: flattened_k_points: Flattened k-points along which one can plot a band structure.
+        :param: vertices: exciting output containing high-symmetry points and symbols along the
+        flattened k-path, as defined in exciting.
         """
-        Initialise with k-points along a path, optionally defined in vertices,
-        and band energies, or initialising by parsing the XML file.
-        """
-        self.k_points = k_points
         self.bands = bands
-        self.vertices = vertices
         self.n_k_points, self.n_bands = self.bands.shape
+        self.k_points = k_points
+        self.flattened_k_points = flattened_k_points
+        self.vertices = vertices
+        self.xticks, self.labels = self.band_path()
 
     def band_path(self) -> ticks_and_labels:
         """ Get an array of points in the k-path that correspond to high symmetry points,
@@ -27,9 +34,14 @@ class BandData:
 
         vertices expected to have the form
         [{'distance': float, 'label': str, 'coord': [float, float, float]}, ...]
+        parsed from exciting's bandstructure.xml file.
 
         :return: Tuple of NumPy array containing high symmetry points and list containing their labels.
+        If vertices is None, return empty containers.
         """
+        if self.vertices is None:
+            return np.empty(shape=1), []
+
         assert list(self.vertices[0].keys()) == self.vertex_keys, \
             f'Expect a vertex to have the keys {self.vertex_keys}'
 
@@ -50,7 +62,7 @@ class BandData:
 
         # Replace for plotting purposes
         unicode_gamma = '\u0393'
-        labels = list(map(lambda x: x.replace('Gamma', unicode_gamma), labels))
+        labels = list(map(lambda x: x.replace('G', unicode_gamma), labels))
 
         return np.asarray(vertices), labels
 

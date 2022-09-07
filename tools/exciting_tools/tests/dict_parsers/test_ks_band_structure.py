@@ -1,21 +1,15 @@
-""" Test parsers that return to objects.
-
-Testing the object parsers also means to some extent testing
-the objects in which they return to. These two things
-can't be completely decoupled.
-"""
 import numpy as np
 
-from excitingtools.exciting_obj_parsers.ks_band_structure import parse_band_structure_to_arrays
+from excitingtools.exciting_dict_parsers.properties_parser import parse_band_structure_xml
 
 
-def test_parse_band_structure_to_arrays():
-    band_data = parse_band_structure_to_arrays(band_structure_xml)
+def test_parse_band_structure_xml():
+    band_data = parse_band_structure_xml(band_structure_xml)
 
-    assert band_data.k_points.shape[0] == band_data.bands.shape[0], (
+    assert band_data['n_kpts'] == band_data['band_energies'].shape[0], (
         "First dim of bands array equals the number of k-sampling points in the band structure")
-    assert band_data.k_points.shape[0] == 6, "sampling points per band"
-    assert band_data.n_bands == 2, "band_structure_xml contains two bands"
+    assert band_data['n_kpts'] == 6, "sampling points per band"
+    assert band_data['n_bands'] == 2, "band_structure_xml contains two bands"
 
     ref_k_points = [0., 0.04082159, 0.08164318, 0.12246477, 0.16328636, 0.20410795]
 
@@ -26,11 +20,11 @@ def test_parse_band_structure_to_arrays():
                           [-0.43858583, -0.06361773],
                           [-0.43217908, -0.0844593]])
 
-    assert np.allclose(band_data.k_points, ref_k_points, atol=1.e-8)
-    assert np.allclose(band_data.bands, ref_bands, atol=1.e-8)
+    assert np.allclose(band_data['k_points_along_band'], ref_k_points, atol=1.e-8)
+    assert np.allclose(band_data['band_energies'], ref_bands, atol=1.e-8)
 
 
-def test_parse_band_structure_to_arrays_vertices():
+def test_parse_band_structure_xml_vertices():
     vertices_ref = [{'distance': 0.0, 'label': 'G', 'coord': [0.0, 0.0, 0.0]},
                     {'distance': 0.6123238446, 'label': 'X', 'coord': [0.5, 0.0, 0.5]},
                     {'distance': 0.918485767, 'label': 'W', 'coord': [0.5, 0.25, 0.75]},
@@ -44,31 +38,8 @@ def test_parse_band_structure_to_arrays_vertices():
                     {'distance': 3.71413846, 'label': 'U', 'coord': [0.625, 0.25, 0.625]},
                     {'distance': 3.930627631, 'label': 'X', 'coord': [0.5, 0.0, 0.5]}]
 
-    band_data = parse_band_structure_to_arrays(band_structure_xml)
-    assert band_data.vertices == vertices_ref
-
-
-def test_parse_band_structure_to_arrays_band_path():
-    vertices_ref = [0.000000000, 0.6123238446, 0.9184857670, 1.134974938, 1.784442453, 2.314730457,
-                    2.689700702, 2.906189873, 3.339168216, 3.714138460, 3.930627631]
-    labels_ref = ["G", "X", "W", "K", "G", "L", "U", "W", "L", "K,U", "X"]
-
-    band_data = parse_band_structure_to_arrays(band_structure_xml)
-    vertices, labels = band_data.band_path()
-
-    assert np.allclose(vertices, vertices_ref)
-    assert labels == labels_ref
-
-
-def test_parse_band_structure_to_arrays_replace_gamma():
-    unicode_gamma = '\u0393'
-    gamma_ref = [unicode_gamma]
-
-    band_data = parse_band_structure_to_arrays(band_structure_xml_gamma)
-    vertices, labels = band_data.band_path()
-
-    assert labels == gamma_ref
-    assert np.allclose(vertices, [[0, 0, 0]])
+    band_data = parse_band_structure_xml(band_structure_xml)
+    assert band_data['vertices'] == vertices_ref
 
 
 # Band structure of silicon, containing two lowest bands and only 6 k-sampling points per band
