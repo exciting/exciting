@@ -1,7 +1,10 @@
 import os
 import pathlib
+from typing import Union
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import re
+from nbformat import read as read_nb
 
 
 def get_exciting_root() -> str:
@@ -53,3 +56,26 @@ def set_plot_parameters(figure_width: float, figure_height: float, fontsize: flo
     plt.rcParams['xtick.labelsize'] = 0.75 * plt.rcParams['font.size']
     plt.rcParams['ytick.labelsize'] = 0.75 * plt.rcParams['font.size']
     plt.rcParams['lines.linewidth'] = 3
+
+
+def re_input(nb_path: Union[str, pathlib.Path], title: str) -> str:
+    """ Extract an exciting input file string from a Jupyter notebook file.
+
+    Only return the first match. The developer should therefore
+    choose a unique identifying title, for example:
+
+      <title>DiamondForTutorial</title>
+
+    for the input they wish to parse.
+
+    :param nb_path: Notebook file location.
+    :param title: Title string between the XML tags.
+    :return parsed input.xml.
+    """
+    # This can likely be improved
+    pattern = f'(<input>[^;]*<title>{title}[^;]*<[/]input>)\n\n'
+    nb = read_nb(nb_path, as_version=4)
+    for cell in filter(lambda x: x["cell_type"] == "markdown", nb["cells"]):
+        matches = re.findall(pattern, cell["source"], flags = re.MULTILINE)
+        if len(matches) != 0:
+            return matches[0]
