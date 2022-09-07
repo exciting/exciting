@@ -308,6 +308,37 @@ def parse_band_structure_xml(root) -> dict:
             'band_energies': band_energies, 'vertices': vertices}
 
 
+def parse_band_structure_dat(name: str) -> dict:
+    """Parser for bandstructure.dat
+
+    :param str name: File name
+    :return dict output: Parsed data
+    """
+    bs_dat = np.loadtxt(name)
+    with open(name) as f:
+        header = f.readline()
+
+    n_kpts = int(header.split()[3])
+    n_bands = int(header.split()[2])
+    dimensions = 3
+
+    k_points = np.empty(shape=(n_kpts, dimensions))
+    flattened_k_points = np.empty(n_kpts)
+    for i in range(n_kpts):
+        k_points[i] = np.array([k for k in bs_dat[i, 2:5]])
+        flattened_k_points[i] = bs_dat[i, 5]
+
+    band_energies = np.reshape(bs_dat[:, 6], (n_kpts, n_bands), order='F')
+
+    return {
+            'n_kpts': n_kpts,
+            'n_bands': n_bands,
+            'k_points': k_points,
+            'flattened_k_points': flattened_k_points,
+            'band_energies': band_energies
+        }
+
+
 def parse_dos(name: str) -> dict:
     """
     Parser for dos.xml
