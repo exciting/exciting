@@ -151,7 +151,7 @@ subroutine coreinit (is, ia)
   end if
   !
   ! M45 (3d core level)
-  if (ncg .gt. 12) then
+  if (ncg .gt. 18) then
     spj(19)=1.5d0   ! 3d(3/2,-3/2)
     mj(19)=-1.5d0
     spj(20)=1.5d0   ! 3d(3/2,-1/2)
