@@ -1,7 +1,8 @@
 !> Module responsible for executing all unit tests
 module unit_test_drivers
    use modmpi, only: mpiinfo, terminate_mpi_env
-   use cmd_line_args, only: unit_tests_type, get_unit_tests_string
+   use cmd_line_args, only: get_unit_tests_string
+   use unit_tests, only: unit_tests_type
 
    ! Load unit test driver modules here. One per src/ subdirectory 
    use math_test_drivers, only: math_test_driver
