@@ -4,7 +4,8 @@
 
 !TODO(Bene): Issue #128: implement matrix conversion for real/complex(sp), integer, and logical.
 module to_char_conversion
-  use precision, only: sp, dp, str_16, str_32, sp_to_char, dp_to_char
+  use precision, only: sp, dp, str_16, str_32
+  use unit_conversion, only: sp_to_char, dp_to_char
 
   implicit none
 
@@ -359,4 +360,5 @@ module to_char_conversion
 
     len_vec_char = len_arr_start + len_var * size_vec + len_sep * (size_vec - 1) + len_arr_end
   end function len_vec_char
+
 end module to_char_conversion

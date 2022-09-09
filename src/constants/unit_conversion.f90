@@ -40,5 +40,11 @@ module unit_conversion
 
     !> Radians to degrees
     real(dp), public, parameter :: radians_to_degrees = 180._dp / pi
-    
+
+    !> Format character for converting a **real(sp)** variable to a string
+    character(*), parameter, public :: sp_to_char = '(ES13.6)'
+
+    !> Format character for converting a **real(dp)** variable to a string
+    character(*), parameter, public :: dp_to_char = '(ES21.14)'
+
 end module unit_conversion

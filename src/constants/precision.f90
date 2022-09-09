@@ -4,29 +4,42 @@
 
 !> Data precision module 
 module precision
-    implicit none    
-    !> Single precision 
-    integer, public,parameter :: sp = selected_real_kind(6, 37)
-    !> Double precision 
-    integer, public,parameter :: dp = selected_real_kind(15, 307)
-    !> Quadruple precision 
-    integer, public,parameter :: qp = selected_real_kind(33, 4931)
+    use, intrinsic :: iso_fortran_env, Only: int16, int32, int64, real32, real64, real128
+    implicit none
+    private
+
+    !> Single precision
+    integer, parameter, public :: sp = real32
+    !> Double precision
+    integer, parameter, public :: dp = real64
+    !> Quadruple precision
+    integer, parameter, public :: qp = real128
+
+    !> Working precision
+    !> Gives the flexibility to recompile complete code blocks
+    !> with different precision, if memory is an issue
+    integer, parameter, public :: wp = dp
+
+    !> Normal 4 byte integer
+    integer, parameter, public :: i32 = int32
+    !> Long integer
+    integer, parameter, Public :: long_int = int64
+    !> Short integer
+    integer, parameter, Public :: short_int = int16
+
     !> 16 character string
-    integer, parameter :: str_16 = 16
-    !> 16 character string
-    integer, parameter :: str_32 = 32
+    integer, parameter, public :: str_16 = 16
+    !> 32 character string
+    integer, parameter, public :: str_32 = 32
     !> 64 character string
-    integer, parameter :: str_64 = 64
+    integer, parameter, public :: str_64 = 64
     !> 128 character string
-    integer, parameter :: str_128 = 128
+    integer, parameter, public :: str_128 = 128
     !> 256 character string
-    integer, parameter :: str_256 = 256
+    integer, parameter, public :: str_256 = 256
     !> 512 character string
-    integer, parameter :: str_512 = 512
+    integer, parameter, public :: str_512 = 512
     !> length of a long string
-    integer, parameter :: str_1024 = 1024
-    !> format character for converting a **real(sp)** variable to a string
-    character(*), parameter :: sp_to_char = '(ES13.6)'
-    !> format character for converting a **real(dp)** variable to a string
-    character(*), parameter :: dp_to_char = '(ES21.14)'
+    integer, parameter, public :: str_1024 = 1024
+
 end module
