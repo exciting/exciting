@@ -524,6 +524,7 @@ module mock_arrays
         end subroutine fill_complex_array_rank3
 
 
+        !TODO(Max) Issue 139. Fix Order of Loops in mock_arrays
         !> Fills a complex double-precision array \( \mathbf{a} \) of rank 4
         !> according to a value map.
         subroutine fill_complex_array_rank4(array, value_map)
@@ -552,4 +553,5 @@ module mock_arrays
                 end do
 
         end subroutine fill_complex_array_rank4
+
 end module mock_arrays
