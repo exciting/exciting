@@ -4,11 +4,13 @@ Compiling exciting
 
 Requirements
 ------------------
+exciting requires `xsltproc` to preprocess its XML schema into code. PLEASE ensure you have
+this installed before proceeding.
 
 exciting comes with all the external libraries required to compile the code in serial.
 These include:
 
-        FoX XML library for parsing the input
+    FoX XML library for parsing the input
 	http://www.uszla.me.uk/FoX/DoX/Licensing.html
 	
 	BLAS & LAPACK for linear algebra operations 
@@ -20,8 +22,8 @@ These include:
 	LIBXC library of DFT exchange and correlation functionals 
 	http://www.tddft.org/programs/octopus/wiki/index.php/Libxc
 
-        BSPLINE-FORTRAN: Multidimensional B-Spline Interpolation of Data on a Regular Grid
-        https://github.com/jacobwilliams/bspline-fortran
+    BSPLINE-FORTRAN: Multidimensional B-Spline Interpolation of Data on a Regular Grid
+    https://github.com/jacobwilliams/bspline-fortran
 
 Compilation in parallel requires an MPI library, such as open-mpi, MPICH or Intel MPI library
 and optionally, a version of Scalapack. These can be installed with a package manager such as 
@@ -75,6 +77,12 @@ Please note that in order to use:
   make clean
 
 a make.inc file must be present in the build directory. 
+
+CMake Support
+------------------
+
+Whilst CMake is present in exciting, this is in the developmental phase and CANNOT
+be used to compile the code.
 
 
 OS Support 
@@ -139,8 +147,8 @@ Compilation is known to fail at src_lib/mod_manopt.f90 with the error:
 
 This is likely caused by a bug in the 2018 version of the ifort compiler.
 
-GCC 10
-If compiling with GCC 10, one should append the F90_OPTS and F90_DEBUGOPTS variables in
+GCC 10 and Above
+If compiling with GCC 10, one should append the F90_OPTS, F77_OPTS and F90_DEBUGOPTS variables in
 make.inc with `-fallow-argument-mismatch`. See:
 
   https://gcc.gnu.org/gcc-10/porting_to.html
