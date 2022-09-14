@@ -1,6 +1,6 @@
 # Example make.inc file for GCC
 #
-# NOTE: If compiling with GCC 10 append F90_OPTS and F90_DEBUGOPTS with: 
+# NOTE: If compiling with GCC 10 or above append F90_OPTS, F77_OPTS and F90_DEBUGOPTS with:
 #  -fallow-argument-mismatch
 # See here for more details: https://gcc.gnu.org/gcc-10/porting_to.html
 
