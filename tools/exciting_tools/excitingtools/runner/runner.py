@@ -144,6 +144,8 @@ class BinaryRunner:
                                         result.returncode, total_time)
 
         except subprocess.TimeoutExpired as timed_out:
-            error = 'BinaryRunner: Job timed out. \n\n' + timed_out.stderr
+            error = 'BinaryRunner: Job timed out. \n\n'
+            if timed_out.stderr:
+                error += timed_out.stderr.decode("utf-8")
             return SubprocessRunResults(timed_out.output, error,
                                         RunnerCode.time_out, self.time_out)
