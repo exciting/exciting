@@ -48,6 +48,10 @@ Subroutine findsymcrys
       Real (8) :: v (3), t1
       Real (8) :: apl (3, maxatoms, maxspecies), aplt (3, maxatoms, &
      & maxspecies)
+!psolver stuff
+      Integer :: counter
+      Real(8) ::r_cm(3), R_c(3), r_T(3)
+
 !
 ! allocatable arrays
       Integer, Allocatable :: iea (:, :, :)
@@ -64,14 +68,71 @@ Subroutine findsymcrys
       Do js = 1, nspecies
          If (natoms(js) .Lt. natoms(is)) is = js
       End Do
-      If ((input%structure%tshift) .And. (natmtot .Gt. 0)) Then
-! shift basis so that the first atom in the smallest atom set is at the origin
-         v (:) = input%structure%speciesarray(is)%species%atomarray(1)%atom%coord(:)
+
+
+
+  
+!!!!!!!!! PSOLVER option
+!if (.false.) then
+     If (input%groundstate%vha.eq."psolver0d") then
+         r_cm = 0d0
+         R_c = 0d0
+         r_T = 0d0
+         counter = 0
+
+!find the center of cell
+        Do i = 1,3
+            R_c = R_c+input%structure%crystal%basevect(i, :)    
+        End do
+        R_c = R_c*0.5d0
+
+!find center of the atom or atom system
+         Do js = 1, nspecies
+            Do ia = 1, natoms (js)
+               counter = counter+1
+               r_cm = r_cm+input%structure%speciesarray(js)%species%atomarray(ia)%atom%coord(:)
+            End Do
+         End Do
+
+         r_cm = r_cm/dble(counter)
+
+!the shift of system coordinates to center it 
+           r_T = R_c-r_cm*input%structure%crystal%scale
+
          Do js = 1, nspecies
             Do ia = 1, natoms (js)
 ! shift atom
                input%structure%speciesarray(js)%species%atomarray(ia)%atom%coord(:) = &
+              & input%structure%speciesarray(js)%species%atomarray(ia)%atom%coord(:) +r_T/dble(input%structure%crystal%scale)
+!write(*,*)"vector v", input%structure%speciesarray(js)%species%atomarray(ia)%atom%coord(:)*input%structure%crystal%scale !check new vectors
+! map lattice coordinates back to [0,1)
+               Call r3frac (input%structure%epslat, input%structure%speciesarray(js)%species%atomarray(ia)%atom%coord(:), iv)
+! determine the new Cartesian coordinates
+               Call r3mv (input%structure%crystal%basevect, input%structure%speciesarray(js)%species%atomarray(ia)%atom%coord(:), &
+              & atposc(:, ia, js))
+            End Do
+         End Do
+     End If
+!!!
+
+!end if
+
+
+
+
+      If ((input%structure%tshift) .And. (natmtot .Gt. 0)) Then
+! shift basis so that the first atom in the smallest atom set is at the origin
+         v (:) = input%structure%speciesarray(is)%species%atomarray(1)%atom%coord(:)
+!write(*,*)"vector v", input%structure%speciesarray(is)%species%atomarray(1)%atom%coord(:)
+         Do js = 1, nspecies
+            Do ia = 1, natoms (js)
+! shift atom
+
+!write(*,*)"vector v", input%structure%speciesarray(js)%species%atomarray(ia)%atom%coord(:)
+               input%structure%speciesarray(js)%species%atomarray(ia)%atom%coord(:) = &
               & input%structure%speciesarray(js)%species%atomarray(ia)%atom%coord(:) - v (:)
+
+
 ! map lattice coordinates back to [0,1)
                Call r3frac (input%structure%epslat, input%structure%speciesarray(js)%species%atomarray(ia)%atom%coord(:), iv)
 ! determine the new Cartesian coordinates

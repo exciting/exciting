@@ -19,9 +19,11 @@ lby = int(ngrid(2)/2)+1
 lbz = int(ngrid(3)/2)+1
 
 
+
 lbxx=int(ngrid(1)/2)+1
-lbyy=int(ngrid(1)/2)+1
-lbzz=int(ngrid(1)/2)+1
+lbyy=int(ngrid(2)/2)+1
+lbzz=int(ngrid(3)/2)+1
+
 
 mx = int(ngrid(1)/2)
 my = int(ngrid(2)/2)
@@ -54,7 +56,7 @@ end if
 !lbx = ngrid(1)/2+1
 !lby = ngrid(2)/2+1
 !lbz = ngrid(3)/2+1
-!write(*,*)lx,ly,lz
+write(*,*)lx,ly,lz
 !write(*,*)lbx
 
 

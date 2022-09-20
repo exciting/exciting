@@ -577,10 +577,10 @@ Subroutine init0
 !!      timeinit = timeinit + ts1 - ts0
 !
 #ifdef PSOLVER
-      if (input%groundstate%vha.ne."exciting") then
+      if ((input%groundstate%vha.ne."exciting0d").and.(input%groundstate%vha.ne."exciting")) then
+       
         call f_lib_initialize()
-      else
-        write(*,*) 'psolver skipped'
+     
       endif
 #endif
       Return

@@ -57,27 +57,31 @@ Subroutine potcoul
       Call genjlgpr (lmax, gc, jlgr)
 ! solve the complex Poisson's equation
 
-!#ifdef PSOLVER !this also works 
-    !  Call zpotcoul2 (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
-   !   &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
+!#ifdef PSOLVER
+! works with psolverNd and excting /0d
+ !       Call zpotcoul2 (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
+ !       &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)    
 !#else
- !    Call zpotcoul  (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
- !     &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
+!      Call zpotcoul (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
+!      &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
 !#endif
 
-#ifdef PSOLVER
+!#ifdef PSOLVER
       if (input%groundstate%vha.eq.'exciting') then
         Call zpotcoul (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
         &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
 
-      else
+      else!
         Call zpotcoul2 (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
         &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)    
       endif
-#else
-      Call zpotcoul (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
-      &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
-#endif
+!#else
+ !     Call zpotcoul (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
+  !    &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
+!#endif
+
+
+
 
 ! convert complex muffin-tin potential to real spherical harmonic expansion
       Do is = 1, nspecies
@@ -92,7 +96,12 @@ Subroutine potcoul
 
 ! store complex interstitial potential in real array
       vclir (:) = dble (zvclir(:))
+
+
+
       Deallocate (jlgr, zrhomt, zrhoir, zvclmt, zvclir)
       Return
+
+
 End Subroutine
 !EOC

@@ -145,27 +145,29 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 ! external functions
       Real (8) :: factnm
       External factnm
-
+!for compiling without PSOLVER library
+   logical psolver0d, psolver1d, psolver2d, psolver3d, exciting, exciting0d, excite
+   real(8) :: r_c
 #ifdef PSOLVER
 
 ! PSolver related
-   character(len=1) :: solvertype,afunc
+   character(len=1) :: solvertype
    character(len=64) :: chain
    integer :: i1,i2,i3,n1,n2,n3,i1_max,i2_max,i3_max,isf_order, i, bc_type
-   real(kind=8) :: max_diff, alpha_bc, beta_ac, gamma_ab, bc, ac, ab, r_c
-   real(kind=8) :: sigma,length,hgrid,mu,energy,offset,acell,epot,intrhoS,intrhoF,intpotS,intpotF
+   real(kind=8) :: max_diff, alpha_bc, beta_ac, gamma_ab, bc, ac, ab
+   real(kind=8) :: sigma,length,hgrid,mu,energy,offset,acell,epot
    real(kind=8), dimension(:), allocatable :: fake_arr
    real(kind=8), allocatable :: psi, r_v(:), c_v(:)
    type(coulomb_operator) :: kernel
    type(dictionary), pointer :: dict
    type(domain) :: dom
    integer, dimension(3) :: ndims
-   real(kind=8), dimension(3) :: hgrids
-   logical psolver0d, psolver1d, psolver2d, psolver3d, exciting, exciting0d, excite
-
+   real(kind=8), dimension(3) :: hgrids, acel
+   real(8), dimension(3,3) :: n_avec
+   
+#endif
 
 ! Initialise PSolver
-!call f_lib_initialize()
    psolver0d=(input%groundstate%vha.eq."psolver0d")
    psolver1d=(input%groundstate%vha.eq."psolver1d")
    psolver2d=(input%groundstate%vha.eq."psolver2d")
@@ -175,9 +177,19 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
    if (exciting.or.exciting0d) then
       excite = .True.
    end if
-write(*,*)"excite", excite
+
+
+   
+
+#ifdef PSOLVER
 if (.not.excite) then
-   !afunc='F'
+
+   n1=ngrid(1)
+   n2=ngrid(2)
+   n3=ngrid(3)
+
+isf_order = 16
+
    if (psolver0d) then! free in all directions
        write(*,*)"type F"
        solvertype='F'
@@ -189,48 +201,48 @@ if (.not.excite) then
    else if (psolver1d) then!free in x,y, periodic in z
        solvertype = 'W'
        bc_type = 1
+       isf_order=60
        write(*,*) "type W"
    else if (psolver2d) then! free in y, periodic x, z
        solvertype = 'S'
-       !afunc='S'
        bc_type = 2
-       
+       isf_order=60
        write(*,*) "type S"
    end if 
 
+   
 
 
-   isf_order=16
-   n1=ngrid(1)
-   n2=ngrid(2)
-   n3=ngrid(3)
-!write(*,*)n1,n2,n3, "n1, n2, n3"
-   hgrids(1)=avec(1,1)/ngrid(1)
-   hgrids(2)=avec(2,2)/ngrid(2)
-   hgrids(3)=avec(3,3)/ngrid(3)
 
-!write(*,*)hgrids(1), hgrids(2), hgrids(3), "hgrids"
-  ! bc = acos(avec(:,2)* avec(:,3) / (SQRT(avec(:,2)* avec(:,2)) * SQRT(avec(:,3)* avec(:,3) ) ) )
-   !ac = acos(avec(:,1)* avec(:,3) / (SQRT(avec(:,1)* avec(:,1)) * SQRT(avec(:,3)* avec(:,3) ) ) )
-  ! ab = acos(avec(:,1)* avec(:,2) / (SQRT(avec(:,1)* avec(:,1)) * SQRT(avec(:,2)* avec(:,2) ) ) )
 
-   bc = acos(DOT_PRODUCT(avec(:,2), avec(:,3)) / (SQRT(DOT_PRODUCT(avec(:,2), avec(:,2))) * SQRT(DOT_PRODUCT(avec(:,3), avec(:,3)) ) ) )!y, z
-   ac = acos(DOT_PRODUCT(avec(:,1), avec(:,3)) / (SQRT(DOT_PRODUCT(avec(:,1), avec(:,1))) * SQRT(DOT_PRODUCT(avec(:,3), avec(:,3)) ) ) )!x, z
-   ab = acos(DOT_PRODUCT(avec(:,1), avec(:,2)) / (SQRT(DOT_PRODUCT(avec(:,1), avec(:,1))) * SQRT(DOT_PRODUCT(avec(:,2), avec(:,2)) ) ) )!z, y
+do i=1,3 
+   hgrids(i) = sqrt(dot_product(avec(:,i), avec(:,i)))/ngrid(i)
+   
+   n_avec(:, i) = avec(:,i)/sqrt(dot_product(avec(:,i), avec(:,i)))
+   !write(*,*)i, hgrids(i)
+end do
+  
 
-!write(*,*) avec(:,1), "avec, 23", bc
-!write(*,*) avec(:,2), "avec, 13", ac
-!write(*,*) avec(:,3), "avec, 12", ab
-   dom=domain_new(units=ATOMIC_UNITS,bc=geocode_to_bc_enum(solvertype), alpha_bc=bc, beta_ac=ac, gamma_ab=ab,acell=ngrid*hgrids)!abc= avec)
+!   bc = acos(DOT_PRODUCT(avec(:,2), avec(:,3)) / (SQRT(DOT_PRODUCT(avec(:,2), avec(:,2))) * SQRT(DOT_PRODUCT(avec(:,3), avec(:,3)) ) ) )!y, z
+!   ac = acos(DOT_PRODUCT(avec(:,1), avec(:,3)) / (SQRT(DOT_PRODUCT(avec(:,1), avec(:,1))) * SQRT(DOT_PRODUCT(avec(:,3), avec(:,3)) ) ) )!x, z
+!   ab = acos(DOT_PRODUCT(avec(:,1), avec(:,2)) / (SQRT(DOT_PRODUCT(avec(:,1), avec(:,1))) * SQRT(DOT_PRODUCT(avec(:,2), avec(:,2)) ) ) )!z, y
+!check angles
+!write(*,*)  "bc23", bc*57.3
+!write(*,*)  "ac13", ac*57.3
+!write(*,*)  "ab12", ab*57.3
+
+
+
+   dom=domain_new(units=ATOMIC_UNITS,bc=geocode_to_bc_enum(solvertype), abc = n_avec)!alpha_bc=bc, beta_ac=ac, gamma_ab=ab, acell = ngrid*hgrids
    dict=>dict_new('kernel' .is. dict_new('isf_order' .is. isf_order))
-
    kernel=pkernel_init(0,1,dict,dom,ngrid,hgrids)
-
    call dict_free(dict)
-   call pkernel_set(kernel,verbose=.true.)
+   call pkernel_set(kernel,verbose=.false.)
+
+
+
 
 end if
-
 
 #endif
 
@@ -423,17 +435,17 @@ if (.not.excite) then
       Call zfftifc (3, ngrid, 1, zvclir)
       allocate(fake_arr(1),r_v(n1*n2*n3), c_v(n1*n2*n3))
 
-      
-      if (psolver0d) then
-          write(*,*)"reorder statement"
-          call reorder(bc_type, zvclir,ngrid, r_v, c_v)     
-      else 
-          write(*,*)"periodic in some dir"
+
+      !if (psolver0d) then
+          !write(*,*)"reorder"
+      !    call reorder(bc_type, zvclir,ngrid, r_v, c_v)     
+     ! else 
+          !write(*,*)"else order"
           r_v=dble(zvclir)
           c_v=dimag(zvclir)
-      end if
+     ! end if
 
-      offset=0
+      offset=0d0
 
 
       call H_potential('G',kernel,r_v,fake_arr,energy,offset,.false.,quiet='yes')
@@ -443,36 +455,42 @@ if (.not.excite) then
 
       zvclir=dcmplx(r_v,c_v)!combine complex and real solutions
 
-      if (bc_type.eq.0) then
-        write(*,*) "de-order"
-        call reorder(bc_type, zvclir,ngrid, r_v, c_v)
+
+    ! if (bc_type.eq.0) then
+        !write(*,*)"deorder"
+     !   call reorder(bc_type, zvclir,ngrid, r_v, c_v)
         zvclir=dcmplx(r_v,c_v)
-      end if
+     ! end if
       deallocate(fake_arr, r_v, c_v)
 
 
 ! Fourier transform interstitial potential to reciprocal space
       Call zfftifc (3, ngrid, -1, zvclir)
-      if (psolver3d) zvclir(1)=0d0
+      zvclir(1)=0d0
       
 
+
+
 end if!psolver
- 
+
 #endif
 if (excite) then!exciting or exciting0d
-write(*,*)"excite"
-! set zrho0 (pseudocharge density coefficient of the smallest G+p vector)
-      ifg = igfft (igp0)
-      zrho0 = zvclir (ifg)
-      zvclir (ifg) = 0.d0
 
-!radius
-r_c = (3d0*omega*nkptnr/(fourpi))**(1d0/3d0)
-write(*,*)"# of k-points", nkptnr, (fourpi*0.5d0)*r_c**2
+! set zrho0 (pseudocharge density coefficient of the smallest G+p vector)
+      !ifg = igfft (igp0)
+      !zrho0 = zvclir (ifg)
+      !zvclir (ifg) = 0.d0
+
+
+!r_c = (3d0*omega*nkptnr/(fourpi))**(1d0/3d0)
+r_c = (omega*nkptnr)**(1d0/3d0)*0.50d0!0.171d0
+
+
 ! solve Poissons's equation in G-space for the pseudocharge
+   if (input%groundstate%vha.eq."exciting0d") then
       Do ig = 1, ngvec
          ifg = igfft (ig)
-       if (input%groundstate%vha.eq."exciting0d") then
+
 
          
          If (gpc(ig) .Gt. input%structure%epslat) Then
@@ -480,20 +498,29 @@ write(*,*)"# of k-points", nkptnr, (fourpi*0.5d0)*r_c**2
          Else
             zvclir (ifg) = zvclir(ifg)*(fourpi*0.5d0)*r_c**2
          End If
-       end if
+      
+      End Do
+   end if
 
+   if (input%groundstate%vha.eq."exciting") then
 
-       
-       if (input%groundstate%vha.eq."exciting") then
+      ifg = igfft (igp0)
+      zrho0 = zvclir (ifg)
+      zvclir (ifg) = 0.d0
+     Do ig = 1, ngvec
+         ifg = igfft (ig)
          If (gpc(ig) .Gt. input%structure%epslat) Then
             zvclir (ifg) = fourpi * zvclir (ifg) / (gpc(ig)**2)
          Else
             zvclir (ifg) = 0.d0
          End If
-       end if
+       
       End Do
-!write(*,*)"Rc", r_c
+   end if
+
 end if
+
+
 
 
 !------------------------------

@@ -28,8 +28,16 @@ Subroutine potplot
 ! initialise universal variables
       type(plotlabels),pointer ::labels
 
+
 #ifdef PSOLVER
+logical exciting, exciting0d
+exciting =(input%groundstate%vha.eq."exciting")
+exciting0d=(input%groundstate%vha.eq."exciting0d")
+if (exciting.or.exciting0d) then
+     write(*,*)"no psolve"
+else
  call f_lib_finalize()
+end if
 #endif
 
 !write(*,*)"before init"
