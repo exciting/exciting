@@ -111,7 +111,7 @@ excitingtools is available as a separate package on PyPi. In order to upload a n
 pip3 install twine
 # Build the wheels
 cd $EXCITINGROOT/tools/exciting_tools
-python3 setup.py sdist bdist_wheel
+python3 -m build
 
 # Test the distribution and uploading (one requires a test-PyPi account)
 twine check dist/*
