@@ -73,9 +73,10 @@ def re_input(nb_path: Union[str, pathlib.Path], title: str) -> str:
     :return parsed input.xml.
     """
     # This can likely be improved
-    pattern = f'(<input>[^;]*<title>{title}[^;]*<[/]input>)\n\n'
+    pattern = f'(<input>[^;]*<title>{title}[^;]*<[/]input>)'
     nb = read_nb(nb_path, as_version=4)
     for cell in filter(lambda x: x["cell_type"] == "markdown", nb["cells"]):
         matches = re.findall(pattern, cell["source"], flags = re.MULTILINE)
         if len(matches) != 0:
             return matches[0]
+    return 'NULL'
