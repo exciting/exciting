@@ -19,7 +19,7 @@
         <wf matchingOrder="0" trialEnergy="1.0000" searchE="true"/>
       </custom>
       <custom l="1">
-        <wf matchingOrder="0" trialEnergy="-0.9675" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-0.9787" searchE="true"/>
       </custom>
       <custom l="2">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
@@ -29,8 +29,8 @@
         <wf matchingOrder="1" trialEnergy="1.0000" searchE="true"/>
       </lo>
       <lo l="1">
-        <wf matchingOrder="0" trialEnergy="-0.9675" searchE="true"/>
-        <wf matchingOrder="1" trialEnergy="-0.9675" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-0.9787" searchE="true"/>
+        <wf matchingOrder="1" trialEnergy="-0.9787" searchE="true"/>
       </lo>
       <lo l="2">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
@@ -39,12 +39,12 @@
       <lo l="0">
         <wf matchingOrder="0" trialEnergy="1.0000" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="1.0000" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-1.8735" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-1.8860" searchE="true"/>
       </lo>
       <lo l="1">
-        <wf matchingOrder="0" trialEnergy="-0.9675" searchE="true"/>
-        <wf matchingOrder="1" trialEnergy="-0.9675" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="-0.9659" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-0.9787" searchE="true"/>
+        <wf matchingOrder="1" trialEnergy="-0.9787" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-0.9772" searchE="true"/>
       </lo>
     </basis>
     <!-- This file was automatically generated-->
