@@ -14,15 +14,15 @@
         <wf matchingOrder="0" trialEnergy="1.0000" searchE="true"/>
       </custom>
       <custom l="1">
-        <wf matchingOrder="0" trialEnergy="-0.9675" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-0.9787" searchE="true"/>
       </custom>
       <lo l="0">
         <wf matchingOrder="0" trialEnergy="1.0000" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="1.0000" searchE="true"/>
       </lo>
       <lo l="1">
-        <wf matchingOrder="0" trialEnergy="-0.9675" searchE="true"/>
-        <wf matchingOrder="1" trialEnergy="-0.9675" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-0.9787" searchE="true"/>
+        <wf matchingOrder="1" trialEnergy="-0.9787" searchE="true"/>
       </lo>
     </basis>
     <!-- This file was automatically generated-->

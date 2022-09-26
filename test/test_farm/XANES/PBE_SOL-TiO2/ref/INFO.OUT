@@ -1,12 +1,12 @@
 ================================================================================
 | EXCITING OXYGEN started                                                      =
-| version hash id: c4f3d46131d2c0b171143ca8613922ad73ab0f75                    =
+| version hash id: 857b78c25a3bf566878cbdb26efd4618f4636ab8                    =
 |                                                                              =
 | compiler: ifort (IFORT) 19.0.0.117 20180804                                  =
 |                                                                              =
 |                                                                              =
-| Date (DD-MM-YYYY) : 29-05-2021                                               =
-| Time (hh:mm:ss)   : 19:50:52                                                 =
+| Date (DD-MM-YYYY) : 26-09-2022                                               =
+| Time (hh:mm:ss)   : 13:25:31                                                 =
 |                                                                              =
 | All units are atomic (Hartree, Bohr, etc.)                                   =
 ================================================================================
@@ -67,8 +67,8 @@
  Number of Bravais lattice symmetries       :      16
  Number of crystal symmetries               :      16
  
- k-point grid                               :       4    4    6
- Total number of k-points                   :      24
+ k-point grid                               :       1    1    2
+ Total number of k-points                   :       2
  k-point set is reduced with crystal symmetries
  
  R^MT_min * |G+k|_max (rgkmax)              :       7.00000000
@@ -93,8 +93,8 @@
  Number of empty states                     :       5
  Total number of valence states             :      30
  
- Maximum Hamiltonian size                   :     485
- Maximum number of plane-waves              :     443
+ Maximum Hamiltonian size                   :     481
+ Maximum number of plane-waves              :     439
  Total number of local-orbitals             :      42
  
  Exchange-correlation type                  :      22
@@ -124,13 +124,13 @@
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 + SCF iteration number :    1                                                  +
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- Total energy                               :     -1999.19663852
+ Total energy                               :     -1999.03922006
  _______________________________________________________________
  Fermi energy                               :         0.20472026
- Kinetic energy                             :      2028.56876896
- Coulomb energy                             :     -3911.62865694
- Exchange energy                            :      -112.67450737
- Correlation energy                         :        -3.46224318
+ Kinetic energy                             :      2028.70915165
+ Coulomb energy                             :     -3911.59709169
+ Exchange energy                            :      -112.68975641
+ Correlation energy                         :        -3.46152361
  
  DOS at Fermi energy (states/Ha/cell)       :         0.00000000
  
@@ -138,33 +138,33 @@
      core                                   :        28.00000000
      core leakage                           :         0.00000115
      valence                                :        48.00000000
-     interstitial                           :         6.29249499
+     interstitial                           :         6.27349624
      charge in muffin-tin spheres :
-                  atom     1    Ti          :        18.15285731
-                  atom     2    Ti          :        18.15285731
-                  atom     3     O          :         8.35044760
-                  atom     4     O          :         8.35044760
-                  atom     5     O          :         8.35044760
-                  atom     6     O          :         8.35044760
-     total charge in muffin-tins            :        69.70750501
+                  atom     1    Ti          :        18.13266161
+                  atom     2    Ti          :        18.13266161
+                  atom     3     O          :         8.36529514
+                  atom     4     O          :         8.36529514
+                  atom     5     O          :         8.36529514
+                  atom     6     O          :         8.36529514
+     total charge in muffin-tins            :        69.72650376
      total charge                           :        76.00000000
  
  Estimated fundamental gap                  :         0.21216271
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    1      0.0000  0.0000  0.0000
  
- Wall time (seconds)                        :         3.24
+ Wall time (seconds)                        :         2.27
  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 + SCF iteration number :    2                                                  +
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- Total energy                               :     -2006.40137358
+ Total energy                               :     -2005.45893289
  _______________________________________________________________
- Fermi energy                               :         0.21355094
- Kinetic energy                             :      2021.44786203
- Coulomb energy                             :     -3912.26523613
- Exchange energy                            :      -112.10031132
- Correlation energy                         :        -3.48368816
+ Fermi energy                               :         0.21345453
+ Kinetic energy                             :      2022.25942188
+ Coulomb energy                             :     -3912.11692633
+ Exchange energy                            :      -112.12034909
+ Correlation energy                         :        -3.48107935
  
  DOS at Fermi energy (states/Ha/cell)       :         0.00000000
  
@@ -172,37 +172,37 @@
      core                                   :        28.00000000
      core leakage                           :         0.00000110
      valence                                :        48.00000000
-     interstitial                           :         7.18279471
+     interstitial                           :         7.13644034
      charge in muffin-tin spheres :
-                  atom     1    Ti          :        18.78985617
-                  atom     2    Ti          :        18.78985617
-                  atom     3     O          :         7.80937324
-                  atom     4     O          :         7.80937324
-                  atom     5     O          :         7.80937324
-                  atom     6     O          :         7.80937324
-     total charge in muffin-tins            :        68.81720529
+                  atom     1    Ti          :        18.70409058
+                  atom     2    Ti          :        18.70409058
+                  atom     3     O          :         7.86384462
+                  atom     4     O          :         7.86384462
+                  atom     5     O          :         7.86384462
+                  atom     6     O          :         7.86384462
+     total charge in muffin-tins            :        68.86355966
      total charge                           :        76.00000000
  
- Estimated fundamental gap                  :         0.07175896
+ Estimated fundamental gap                  :         0.06899881
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    1      0.0000  0.0000  0.0000
  
- Wall time (seconds)                        :         5.83
+ Wall time (seconds)                        :         3.79
  
- RMS change in effective potential (target) :  0.763250      ( 0.100000E-05)
- Absolute change in total energy   (target) :   7.20474      ( 0.100000E-05)
- Charge distance                   (target) :  0.587209E-01  ( 0.100000E-04)
+ RMS change in effective potential (target) :  0.762872      ( 0.100000E-05)
+ Absolute change in total energy   (target) :   6.41971      ( 0.100000E-05)
+ Charge distance                   (target) :  0.548288E-01  ( 0.100000E-04)
  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 + SCF iteration number :    3                                                  +
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- Total energy                               :     -2007.32799852
+ Total energy                               :     -2007.38110207
  _______________________________________________________________
- Fermi energy                               :         0.21405574
- Kinetic energy                             :      2020.49027020
- Coulomb energy                             :     -3912.27522316
- Exchange energy                            :      -112.05654570
- Correlation energy                         :        -3.48649987
+ Fermi energy                               :         0.21271784
+ Kinetic energy                             :      2020.48848007
+ Coulomb energy                             :     -3912.32291861
+ Exchange energy                            :      -112.06103440
+ Correlation energy                         :        -3.48562912
  
  DOS at Fermi energy (states/Ha/cell)       :         0.00000000
  
@@ -210,151 +210,151 @@
      core                                   :        28.00000000
      core leakage                           :         0.00000110
      valence                                :        48.00000000
-     interstitial                           :         7.27150048
+     interstitial                           :         7.26827935
      charge in muffin-tin spheres :
-                  atom     1    Ti          :        18.88104260
-                  atom     2    Ti          :        18.88104260
-                  atom     3     O          :         7.74160358
-                  atom     4     O          :         7.74160358
-                  atom     5     O          :         7.74160358
-                  atom     6     O          :         7.74160358
-     total charge in muffin-tins            :        68.72849952
+                  atom     1    Ti          :        18.85445772
+                  atom     2    Ti          :        18.85445772
+                  atom     3     O          :         7.75570130
+                  atom     4     O          :         7.75570130
+                  atom     5     O          :         7.75570130
+                  atom     6     O          :         7.75570130
+     total charge in muffin-tins            :        68.73172065
      total charge                           :        76.00000000
  
- Estimated fundamental gap                  :         0.05991748
+ Estimated fundamental gap                  :         0.04673517
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    1      0.0000  0.0000  0.0000
  
- Wall time (seconds)                        :         8.43
+ Wall time (seconds)                        :         5.30
  
- RMS change in effective potential (target) :  0.558545      ( 0.100000E-05)
- Absolute change in total energy   (target) :  0.926625      ( 0.100000E-05)
- Charge distance                   (target) :  0.720145E-02  ( 0.100000E-04)
+ RMS change in effective potential (target) :  0.557168      ( 0.100000E-05)
+ Absolute change in total energy   (target) :   1.92217      ( 0.100000E-05)
+ Charge distance                   (target) :  0.115546E-01  ( 0.100000E-04)
  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 + SCF iteration number :    4                                                  +
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- Total energy                               :     -2000.72941734
+ Total energy                               :     -1996.20084012
  _______________________________________________________________
- Fermi energy                               :         0.22426907
- Kinetic energy                             :      2025.07518469
- Coulomb energy                             :     -3910.29949352
- Exchange energy                            :      -112.02685517
- Correlation energy                         :        -3.47825334
+ Fermi energy                               :         0.23391850
+ Kinetic energy                             :      2028.01765013
+ Coulomb energy                             :     -3908.75285998
+ Exchange energy                            :      -111.99219059
+ Correlation energy                         :        -3.47343968
  
  DOS at Fermi energy (states/Ha/cell)       :         0.00000000
  
  Electron charges :
      core                                   :        28.00000000
-     core leakage                           :         0.00000113
+     core leakage                           :         0.00000115
      valence                                :        48.00000000
-     interstitial                           :         7.17349602
+     interstitial                           :         7.11877831
      charge in muffin-tin spheres :
-                  atom     1    Ti          :        18.59901912
-                  atom     2    Ti          :        18.59901912
-                  atom     3     O          :         7.90711643
-                  atom     4     O          :         7.90711643
-                  atom     5     O          :         7.90711643
-                  atom     6     O          :         7.90711643
-     total charge in muffin-tins            :        68.82650398
+                  atom     1    Ti          :        18.41877716
+                  atom     2    Ti          :        18.41877716
+                  atom     3     O          :         8.01091684
+                  atom     4     O          :         8.01091684
+                  atom     5     O          :         8.01091684
+                  atom     6     O          :         8.01091684
+     total charge in muffin-tins            :        68.88122169
      total charge                           :        76.00000000
  
- Estimated fundamental gap                  :         0.10750339
+ Estimated fundamental gap                  :         0.13445366
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    1      0.0000  0.0000  0.0000
  
- Wall time (seconds)                        :        11.02
+ Wall time (seconds)                        :         6.84
  
- RMS change in effective potential (target) :  0.709290E-01  ( 0.100000E-05)
- Absolute change in total energy   (target) :   6.59858      ( 0.100000E-05)
- Charge distance                   (target) :  0.192016E-01  ( 0.100000E-04)
+ RMS change in effective potential (target) :  0.120908      ( 0.100000E-05)
+ Absolute change in total energy   (target) :   11.1803      ( 0.100000E-05)
+ Charge distance                   (target) :  0.293767E-01  ( 0.100000E-04)
  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 + SCF iteration number :    5                                                  +
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- Total energy                               :     -2011.84876850
+ Total energy                               :     -2012.56669733
  _______________________________________________________________
- Fermi energy                               :         0.20218127
- Kinetic energy                             :      2017.49479831
- Coulomb energy                             :     -3913.70589893
- Exchange energy                            :      -112.14777571
- Correlation energy                         :        -3.48989216
+ Fermi energy                               :         0.19619849
+ Kinetic energy                             :      2017.46289027
+ Coulomb energy                             :     -3914.31816940
+ Exchange energy                            :      -112.22404876
+ Correlation energy                         :        -3.48736944
  
  DOS at Fermi energy (states/Ha/cell)       :         0.00000000
  
  Electron charges :
      core                                   :        28.00000000
-     core leakage                           :         0.00000110
+     core leakage                           :         0.00000109
      valence                                :        48.00000000
-     interstitial                           :         7.27451032
+     interstitial                           :         7.18848667
      charge in muffin-tin spheres :
-                  atom     1    Ti          :        19.06531843
-                  atom     2    Ti          :        19.06531843
-                  atom     3     O          :         7.64871320
-                  atom     4     O          :         7.64871320
-                  atom     5     O          :         7.64871320
-                  atom     6     O          :         7.64871320
-     total charge in muffin-tins            :        68.72548968
+                  atom     1    Ti          :        19.01123404
+                  atom     2    Ti          :        19.01123404
+                  atom     3     O          :         7.69726131
+                  atom     4     O          :         7.69726131
+                  atom     5     O          :         7.69726131
+                  atom     6     O          :         7.69726131
+     total charge in muffin-tins            :        68.81151333
      total charge                           :        76.00000000
  
- Estimated fundamental gap                  :         0.04214331
+ Estimated fundamental gap                  :         0.03222182
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    1      0.0000  0.0000  0.0000
  
- Wall time (seconds)                        :        13.62
+ Wall time (seconds)                        :         8.38
  
- RMS change in effective potential (target) :  0.559107E-01  ( 0.100000E-05)
- Absolute change in total energy   (target) :   11.1194      ( 0.100000E-05)
- Charge distance                   (target) :  0.295663E-01  ( 0.100000E-04)
+ RMS change in effective potential (target) :  0.563128E-01  ( 0.100000E-05)
+ Absolute change in total energy   (target) :   16.3659      ( 0.100000E-05)
+ Charge distance                   (target) :  0.369712E-01  ( 0.100000E-04)
  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 + SCF iteration number :    6                                                  +
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- Total energy                               :     -2006.16420628
+ Total energy                               :     -2006.12334217
  _______________________________________________________________
- Fermi energy                               :         0.21511742
- Kinetic energy                             :      2021.04042268
- Coulomb energy                             :     -3911.69611185
- Exchange energy                            :      -112.02273814
- Correlation energy                         :        -3.48577897
+ Fermi energy                               :         0.21347291
+ Kinetic energy                             :      2021.09014725
+ Coulomb energy                             :     -3911.69898414
+ Exchange energy                            :      -112.02975347
+ Correlation energy                         :        -3.48475181
  
  DOS at Fermi energy (states/Ha/cell)       :         0.00000000
  
  Electron charges :
      core                                   :        28.00000000
-     core leakage                           :         0.00000112
+     core leakage                           :         0.00000111
      valence                                :        48.00000000
-     interstitial                           :         7.30402996
+     interstitial                           :         7.29286263
      charge in muffin-tin spheres :
-                  atom     1    Ti          :        18.86777612
-                  atom     2    Ti          :        18.86777612
-                  atom     3     O          :         7.74010445
-                  atom     4     O          :         7.74010445
-                  atom     5     O          :         7.74010445
-                  atom     6     O          :         7.74010445
-     total charge in muffin-tins            :        68.69597004
+                  atom     1    Ti          :        18.83653758
+                  atom     2    Ti          :        18.83653758
+                  atom     3     O          :         7.75851556
+                  atom     4     O          :         7.75851556
+                  atom     5     O          :         7.75851556
+                  atom     6     O          :         7.75851556
+     total charge in muffin-tins            :        68.70713737
      total charge                           :        76.00000000
  
- Estimated fundamental gap                  :         0.06439215
+ Estimated fundamental gap                  :         0.05211110
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    1      0.0000  0.0000  0.0000
  
- Wall time (seconds)                        :        16.20
+ Wall time (seconds)                        :         9.90
  
- RMS change in effective potential (target) :  0.449778E-02  ( 0.100000E-05)
- Absolute change in total energy   (target) :   5.68456      ( 0.100000E-05)
- Charge distance                   (target) :  0.116275E-01  ( 0.100000E-04)
+ RMS change in effective potential (target) :  0.477004E-02  ( 0.100000E-05)
+ Absolute change in total energy   (target) :   6.44336      ( 0.100000E-05)
+ Charge distance                   (target) :  0.979716E-02  ( 0.100000E-04)
  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 + SCF iteration number :    7                                                  +
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- Total energy                               :     -2005.97134110
+ Total energy                               :     -2005.86909825
  _______________________________________________________________
- Fermi energy                               :         0.21484957
- Kinetic energy                             :      2021.29865635
- Coulomb energy                             :     -3911.74688329
- Exchange energy                            :      -112.03817487
- Correlation energy                         :        -3.48493929
+ Fermi energy                               :         0.21342706
+ Kinetic energy                             :      2021.40055476
+ Coulomb energy                             :     -3911.74100513
+ Exchange energy                            :      -112.04480044
+ Correlation energy                         :        -3.48384744
  
  DOS at Fermi energy (states/Ha/cell)       :         0.00000000
  
@@ -362,37 +362,37 @@
      core                                   :        28.00000000
      core leakage                           :         0.00000111
      valence                                :        48.00000000
-     interstitial                           :         7.27912218
+     interstitial                           :         7.26755278
      charge in muffin-tin spheres :
-                  atom     1    Ti          :        18.84319234
-                  atom     2    Ti          :        18.84319234
-                  atom     3     O          :         7.75862328
-                  atom     4     O          :         7.75862328
-                  atom     5     O          :         7.75862328
-                  atom     6     O          :         7.75862328
-     total charge in muffin-tins            :        68.72087782
+                  atom     1    Ti          :        18.80886911
+                  atom     2    Ti          :        18.80886911
+                  atom     3     O          :         7.77867725
+                  atom     4     O          :         7.77867725
+                  atom     5     O          :         7.77867725
+                  atom     6     O          :         7.77867725
+     total charge in muffin-tins            :        68.73244722
      total charge                           :        76.00000000
  
- Estimated fundamental gap                  :         0.06785858
+ Estimated fundamental gap                  :         0.05624694
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    1      0.0000  0.0000  0.0000
  
- Wall time (seconds)                        :        18.78
+ Wall time (seconds)                        :        11.42
  
- RMS change in effective potential (target) :  0.281182E-02  ( 0.100000E-05)
- Absolute change in total energy   (target) :  0.192865      ( 0.100000E-05)
- Charge distance                   (target) :  0.198539E-02  ( 0.100000E-04)
+ RMS change in effective potential (target) :  0.356031E-02  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.254244      ( 0.100000E-05)
+ Charge distance                   (target) :  0.217683E-02  ( 0.100000E-04)
  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 + SCF iteration number :    8                                                  +
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- Total energy                               :     -2006.18832934
+ Total energy                               :     -2006.14363270
  _______________________________________________________________
- Fermi energy                               :         0.21448926
- Kinetic energy                             :      2021.13393089
- Coulomb energy                             :     -3911.79858450
- Exchange energy                            :      -112.03842833
- Correlation energy                         :        -3.48524740
+ Fermi energy                               :         0.21293254
+ Kinetic energy                             :      2021.18887469
+ Coulomb energy                             :     -3911.80313927
+ Exchange energy                            :      -112.04513933
+ Correlation energy                         :        -3.48422879
  
  DOS at Fermi energy (states/Ha/cell)       :         0.00000000
  
@@ -400,37 +400,37 @@
      core                                   :        28.00000000
      core leakage                           :         0.00000111
      valence                                :        48.00000000
-     interstitial                           :         7.28382656
+     interstitial                           :         7.27318365
      charge in muffin-tin spheres :
-                  atom     1    Ti          :        18.85448471
-                  atom     2    Ti          :        18.85448471
-                  atom     3     O          :         7.75180100
-                  atom     4     O          :         7.75180100
-                  atom     5     O          :         7.75180100
-                  atom     6     O          :         7.75180100
-     total charge in muffin-tins            :        68.71617344
+                  atom     1    Ti          :        18.82309460
+                  atom     2    Ti          :        18.82309460
+                  atom     3     O          :         7.77015679
+                  atom     4     O          :         7.77015679
+                  atom     5     O          :         7.77015679
+                  atom     6     O          :         7.77015679
+     total charge in muffin-tins            :        68.72681635
      total charge                           :        76.00000000
  
- Estimated fundamental gap                  :         0.06632462
+ Estimated fundamental gap                  :         0.05413196
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    1      0.0000  0.0000  0.0000
  
- Wall time (seconds)                        :        21.36
+ Wall time (seconds)                        :        12.95
  
- RMS change in effective potential (target) :  0.135890E-03  ( 0.100000E-05)
- Absolute change in total energy   (target) :  0.216988      ( 0.100000E-05)
- Charge distance                   (target) :  0.752777E-03  ( 0.100000E-04)
+ RMS change in effective potential (target) :  0.171513E-03  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.274534      ( 0.100000E-05)
+ Charge distance                   (target) :  0.951759E-03  ( 0.100000E-04)
  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 + SCF iteration number :    9                                                  +
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- Total energy                               :     -2006.16730354
+ Total energy                               :     -2006.12035014
  _______________________________________________________________
- Fermi energy                               :         0.21454536
- Kinetic energy                             :      2021.14628529
- Coulomb energy                             :     -3911.79050067
- Exchange energy                            :      -112.03785138
- Correlation energy                         :        -3.48523678
+ Fermi energy                               :         0.21298678
+ Kinetic energy                             :      2021.20514743
+ Coulomb energy                             :     -3911.79645905
+ Exchange energy                            :      -112.04483287
+ Correlation energy                         :        -3.48420564
  
  DOS at Fermi energy (states/Ha/cell)       :         0.00000000
  
@@ -438,37 +438,37 @@
      core                                   :        28.00000000
      core leakage                           :         0.00000111
      valence                                :        48.00000000
-     interstitial                           :         7.28409822
+     interstitial                           :         7.27309201
      charge in muffin-tin spheres :
-                  atom     1    Ti          :        18.85387223
-                  atom     2    Ti          :        18.85387223
-                  atom     3     O          :         7.75203933
-                  atom     4     O          :         7.75203933
-                  atom     5     O          :         7.75203933
-                  atom     6     O          :         7.75203933
-     total charge in muffin-tins            :        68.71590178
+                  atom     1    Ti          :        18.82212566
+                  atom     2    Ti          :        18.82212566
+                  atom     3     O          :         7.77066417
+                  atom     4     O          :         7.77066417
+                  atom     5     O          :         7.77066417
+                  atom     6     O          :         7.77066417
+     total charge in muffin-tins            :        68.72690799
      total charge                           :        76.00000000
  
- Estimated fundamental gap                  :         0.06640171
+ Estimated fundamental gap                  :         0.05427843
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    1      0.0000  0.0000  0.0000
  
- Wall time (seconds)                        :        23.96
+ Wall time (seconds)                        :        14.47
  
- RMS change in effective potential (target) :  0.373495E-04  ( 0.100000E-05)
- Absolute change in total energy   (target) :  0.210258E-01  ( 0.100000E-05)
- Charge distance                   (target) :  0.345969E-04  ( 0.100000E-04)
+ RMS change in effective potential (target) :  0.100291E-03  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.232826E-01  ( 0.100000E-05)
+ Charge distance                   (target) :  0.613448E-04  ( 0.100000E-04)
  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 + SCF iteration number :   10                                                  +
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- Total energy                               :     -2006.17117322
+ Total energy                               :     -2006.13114797
  _______________________________________________________________
- Fermi energy                               :         0.21453529
- Kinetic energy                             :      2021.14380448
- Coulomb energy                             :     -3911.79180202
- Exchange energy                            :      -112.03793616
- Correlation energy                         :        -3.48523952
+ Fermi energy                               :         0.21295644
+ Kinetic energy                             :      2021.19838834
+ Coulomb energy                             :     -3911.80022596
+ Exchange energy                            :      -112.04509824
+ Correlation energy                         :        -3.48421212
  
  DOS at Fermi energy (states/Ha/cell)       :         0.00000000
  
@@ -476,37 +476,37 @@
      core                                   :        28.00000000
      core leakage                           :         0.00000111
      valence                                :        48.00000000
-     interstitial                           :         7.28407482
+     interstitial                           :         7.27297400
      charge in muffin-tin spheres :
-                  atom     1    Ti          :        18.85401161
-                  atom     2    Ti          :        18.85401161
-                  atom     3     O          :         7.75197549
-                  atom     4     O          :         7.75197549
-                  atom     5     O          :         7.75197549
-                  atom     6     O          :         7.75197549
-     total charge in muffin-tins            :        68.71592518
+                  atom     1    Ti          :        18.82247213
+                  atom     2    Ti          :        18.82247213
+                  atom     3     O          :         7.77052043
+                  atom     4     O          :         7.77052043
+                  atom     5     O          :         7.77052043
+                  atom     6     O          :         7.77052043
+     total charge in muffin-tins            :        68.72702600
      total charge                           :        76.00000000
  
- Estimated fundamental gap                  :         0.06638298
+ Estimated fundamental gap                  :         0.05422745
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    1      0.0000  0.0000  0.0000
  
- Wall time (seconds)                        :        26.56
+ Wall time (seconds)                        :        16.00
  
- RMS change in effective potential (target) :  0.107672E-05  ( 0.100000E-05)
- Absolute change in total energy   (target) :  0.386968E-02  ( 0.100000E-05)
- Charge distance                   (target) :  0.824835E-05  ( 0.100000E-04)
+ RMS change in effective potential (target) :  0.797638E-05  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.107978E-01  ( 0.100000E-05)
+ Charge distance                   (target) :  0.204580E-04  ( 0.100000E-04)
  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 + SCF iteration number :   11                                                  +
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- Total energy                               :     -2006.17129905
+ Total energy                               :     -2006.13192718
  _______________________________________________________________
- Fermi energy                               :         0.21453498
- Kinetic energy                             :      2021.14371513
- Coulomb energy                             :     -3911.79183754
- Exchange energy                            :      -112.03793696
- Correlation energy                         :        -3.48523969
+ Fermi energy                               :         0.21295483
+ Kinetic energy                             :      2021.19792803
+ Coulomb energy                             :     -3911.80053026
+ Exchange energy                            :      -112.04511223
+ Correlation energy                         :        -3.48421272
  
  DOS at Fermi energy (states/Ha/cell)       :         0.00000000
  
@@ -514,37 +514,37 @@
      core                                   :        28.00000000
      core leakage                           :         0.00000111
      valence                                :        48.00000000
-     interstitial                           :         7.28407596
+     interstitial                           :         7.27297647
      charge in muffin-tin spheres :
-                  atom     1    Ti          :        18.85401607
-                  atom     2    Ti          :        18.85401607
-                  atom     3     O          :         7.75197297
-                  atom     4     O          :         7.75197297
-                  atom     5     O          :         7.75197297
-                  atom     6     O          :         7.75197297
-     total charge in muffin-tins            :        68.71592404
+                  atom     1    Ti          :        18.82250082
+                  atom     2    Ti          :        18.82250082
+                  atom     3     O          :         7.77050547
+                  atom     4     O          :         7.77050547
+                  atom     5     O          :         7.77050547
+                  atom     6     O          :         7.77050547
+     total charge in muffin-tins            :        68.72702353
      total charge                           :        76.00000000
  
- Estimated fundamental gap                  :         0.06638236
+ Estimated fundamental gap                  :         0.05422333
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    1      0.0000  0.0000  0.0000
  
- Wall time (seconds)                        :        29.16
+ Wall time (seconds)                        :        17.53
  
- RMS change in effective potential (target) :  0.816348E-06  ( 0.100000E-05)
- Absolute change in total energy   (target) :  0.125822E-03  ( 0.100000E-05)
- Charge distance                   (target) :  0.533415E-06  ( 0.100000E-04)
+ RMS change in effective potential (target) :  0.658937E-06  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.779204E-03  ( 0.100000E-05)
+ Charge distance                   (target) :  0.182632E-05  ( 0.100000E-04)
  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 + SCF iteration number :   12                                                  +
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- Total energy                               :     -2006.17124828
+ Total energy                               :     -2006.13188509
  _______________________________________________________________
- Fermi energy                               :         0.21453507
- Kinetic energy                             :      2021.14376524
- Coulomb energy                             :     -3911.79183618
- Exchange energy                            :      -112.03793777
- Correlation energy                         :        -3.48523957
+ Fermi energy                               :         0.21295493
+ Kinetic energy                             :      2021.19794227
+ Coulomb energy                             :     -3911.80050451
+ Exchange energy                            :      -112.04511011
+ Correlation energy                         :        -3.48421274
  
  DOS at Fermi energy (states/Ha/cell)       :         0.00000000
  
@@ -552,37 +552,37 @@
      core                                   :        28.00000000
      core leakage                           :         0.00000111
      valence                                :        48.00000000
-     interstitial                           :         7.28407419
+     interstitial                           :         7.27297785
      charge in muffin-tin spheres :
-                  atom     1    Ti          :        18.85401274
-                  atom     2    Ti          :        18.85401274
-                  atom     3     O          :         7.75197508
-                  atom     4     O          :         7.75197508
-                  atom     5     O          :         7.75197508
-                  atom     6     O          :         7.75197508
-     total charge in muffin-tins            :        68.71592581
+                  atom     1    Ti          :        18.82249990
+                  atom     2    Ti          :        18.82249990
+                  atom     3     O          :         7.77050558
+                  atom     4     O          :         7.77050558
+                  atom     5     O          :         7.77050558
+                  atom     6     O          :         7.77050558
+     total charge in muffin-tins            :        68.72702215
      total charge                           :        76.00000000
  
- Estimated fundamental gap                  :         0.06638282
+ Estimated fundamental gap                  :         0.05422349
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    1      0.0000  0.0000  0.0000
  
- Wall time (seconds)                        :        31.76
+ Wall time (seconds)                        :        19.06
  
- RMS change in effective potential (target) :  0.524112E-07  ( 0.100000E-05)
- Absolute change in total energy   (target) :  0.507634E-04  ( 0.100000E-05)
- Charge distance                   (target) :  0.284535E-06  ( 0.100000E-04)
+ RMS change in effective potential (target) :  0.128093E-06  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.420902E-04  ( 0.100000E-05)
+ Charge distance                   (target) :  0.232455E-06  ( 0.100000E-04)
  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 + SCF iteration number :   13                                                  +
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- Total energy                               :     -2006.17125280
+ Total energy                               :     -2006.13187244
  _______________________________________________________________
- Fermi energy                               :         0.21453506
- Kinetic energy                             :      2021.14376370
- Coulomb energy                             :     -3911.79183895
- Exchange energy                            :      -112.03793798
- Correlation energy                         :        -3.48523958
+ Fermi energy                               :         0.21295496
+ Kinetic energy                             :      2021.19795057
+ Coulomb energy                             :     -3911.80050026
+ Exchange energy                            :      -112.04511004
+ Correlation energy                         :        -3.48421272
  
  DOS at Fermi energy (states/Ha/cell)       :         0.00000000
  
@@ -590,37 +590,37 @@
      core                                   :        28.00000000
      core leakage                           :         0.00000111
      valence                                :        48.00000000
-     interstitial                           :         7.28407409
+     interstitial                           :         7.27297762
      charge in muffin-tin spheres :
-                  atom     1    Ti          :        18.85401278
-                  atom     2    Ti          :        18.85401278
-                  atom     3     O          :         7.75197509
-                  atom     4     O          :         7.75197509
-                  atom     5     O          :         7.75197509
-                  atom     6     O          :         7.75197509
-     total charge in muffin-tins            :        68.71592591
+                  atom     1    Ti          :        18.82249940
+                  atom     2    Ti          :        18.82249940
+                  atom     3     O          :         7.77050589
+                  atom     4     O          :         7.77050589
+                  atom     5     O          :         7.77050589
+                  atom     6     O          :         7.77050589
+     total charge in muffin-tins            :        68.72702238
      total charge                           :        76.00000000
  
- Estimated fundamental gap                  :         0.06638282
+ Estimated fundamental gap                  :         0.05422356
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    1      0.0000  0.0000  0.0000
  
- Wall time (seconds)                        :        34.34
+ Wall time (seconds)                        :        20.59
  
- RMS change in effective potential (target) :  0.225726E-07  ( 0.100000E-05)
- Absolute change in total energy   (target) :  0.451830E-05  ( 0.100000E-05)
- Charge distance                   (target) :  0.119134E-07  ( 0.100000E-04)
+ RMS change in effective potential (target) :  0.419797E-07  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.126440E-04  ( 0.100000E-05)
+ Charge distance                   (target) :  0.415259E-07  ( 0.100000E-04)
  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 + SCF iteration number :   14                                                  +
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- Total energy                               :     -2006.17125201
+ Total energy                               :     -2006.13187483
  _______________________________________________________________
- Fermi energy                               :         0.21453506
- Kinetic energy                             :      2021.14376265
- Coulomb energy                             :     -3911.79183723
- Exchange energy                            :      -112.03793785
- Correlation energy                         :        -3.48523958
+ Fermi energy                               :         0.21295495
+ Kinetic energy                             :      2021.19794837
+ Coulomb energy                             :     -3911.80050046
+ Exchange energy                            :      -112.04511000
+ Correlation energy                         :        -3.48421273
  
  DOS at Fermi energy (states/Ha/cell)       :         0.00000000
  
@@ -628,37 +628,37 @@
      core                                   :        28.00000000
      core leakage                           :         0.00000111
      valence                                :        48.00000000
-     interstitial                           :         7.28407415
+     interstitial                           :         7.27297770
      charge in muffin-tin spheres :
-                  atom     1    Ti          :        18.85401285
-                  atom     2    Ti          :        18.85401285
-                  atom     3     O          :         7.75197504
-                  atom     4     O          :         7.75197504
-                  atom     5     O          :         7.75197504
-                  atom     6     O          :         7.75197504
-     total charge in muffin-tins            :        68.71592585
+                  atom     1    Ti          :        18.82249955
+                  atom     2    Ti          :        18.82249955
+                  atom     3     O          :         7.77050580
+                  atom     4     O          :         7.77050580
+                  atom     5     O          :         7.77050580
+                  atom     6     O          :         7.77050580
+     total charge in muffin-tins            :        68.72702230
      total charge                           :        76.00000000
  
- Estimated fundamental gap                  :         0.06638281
+ Estimated fundamental gap                  :         0.05422354
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    1      0.0000  0.0000  0.0000
  
- Wall time (seconds)                        :        36.93
+ Wall time (seconds)                        :        22.12
  
- RMS change in effective potential (target) :  0.115749E-07  ( 0.100000E-05)
- Absolute change in total energy   (target) :  0.794427E-06  ( 0.100000E-05)
- Charge distance                   (target) :  0.665256E-08  ( 0.100000E-04)
+ RMS change in effective potential (target) :  0.453443E-08  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.238249E-05  ( 0.100000E-05)
+ Charge distance                   (target) :  0.103423E-07  ( 0.100000E-04)
  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 + SCF iteration number :   15                                                  +
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- Total energy                               :     -2006.17125237
+ Total energy                               :     -2006.13187513
  _______________________________________________________________
- Fermi energy                               :         0.21453506
- Kinetic energy                             :      2021.14376200
- Coulomb energy                             :     -3911.79183696
- Exchange energy                            :      -112.03793783
- Correlation energy                         :        -3.48523958
+ Fermi energy                               :         0.21295495
+ Kinetic energy                             :      2021.19794812
+ Coulomb energy                             :     -3911.80050052
+ Exchange energy                            :      -112.04511000
+ Correlation energy                         :        -3.48421273
  
  DOS at Fermi energy (states/Ha/cell)       :         0.00000000
  
@@ -666,38 +666,76 @@
      core                                   :        28.00000000
      core leakage                           :         0.00000111
      valence                                :        48.00000000
-     interstitial                           :         7.28407416
+     interstitial                           :         7.27297771
      charge in muffin-tin spheres :
-                  atom     1    Ti          :        18.85401288
-                  atom     2    Ti          :        18.85401288
-                  atom     3     O          :         7.75197502
-                  atom     4     O          :         7.75197502
-                  atom     5     O          :         7.75197502
-                  atom     6     O          :         7.75197502
-     total charge in muffin-tins            :        68.71592584
+                  atom     1    Ti          :        18.82249956
+                  atom     2    Ti          :        18.82249956
+                  atom     3     O          :         7.77050579
+                  atom     4     O          :         7.77050579
+                  atom     5     O          :         7.77050579
+                  atom     6     O          :         7.77050579
+     total charge in muffin-tins            :        68.72702229
      total charge                           :        76.00000000
  
- Estimated fundamental gap                  :         0.06638281
+ Estimated fundamental gap                  :         0.05422354
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    1      0.0000  0.0000  0.0000
  
- Wall time (seconds)                        :        39.52
+ Wall time (seconds)                        :        23.65
  
- RMS change in effective potential (target) :  0.636403E-08  ( 0.100000E-05)
- Absolute change in total energy   (target) :  0.366889E-06  ( 0.100000E-05)
- Charge distance                   (target) :  0.200582E-08  ( 0.100000E-04)
+ RMS change in effective potential (target) :  0.100431E-08  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.306104E-06  ( 0.100000E-05)
+ Charge distance                   (target) :  0.893437E-09  ( 0.100000E-04)
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :   16                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :     -2006.13187570
+ _______________________________________________________________
+ Fermi energy                               :         0.21295495
+ Kinetic energy                             :      2021.19794823
+ Coulomb energy                             :     -3911.80050116
+ Exchange energy                            :      -112.04511004
+ Correlation energy                         :        -3.48421273
+ 
+ DOS at Fermi energy (states/Ha/cell)       :         0.00000000
+ 
+ Electron charges :
+     core                                   :        28.00000000
+     core leakage                           :         0.00000111
+     valence                                :        48.00000000
+     interstitial                           :         7.27297770
+     charge in muffin-tin spheres :
+                  atom     1    Ti          :        18.82249956
+                  atom     2    Ti          :        18.82249956
+                  atom     3     O          :         7.77050579
+                  atom     4     O          :         7.77050579
+                  atom     5     O          :         7.77050579
+                  atom     6     O          :         7.77050579
+     total charge in muffin-tins            :        68.72702230
+     total charge                           :        76.00000000
+ 
+ Estimated fundamental gap                  :         0.05422354
+        valence-band maximum at    1      0.0000  0.0000  0.0000
+     conduction-band minimum at    1      0.0000  0.0000  0.0000
+ 
+ Wall time (seconds)                        :        25.18
+ 
+ RMS change in effective potential (target) :  0.398692E-08  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.566037E-06  ( 0.100000E-05)
+ Charge distance                   (target) :  0.102635E-08  ( 0.100000E-04)
                                                                                 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 | Convergency criteria checked for the last 2 iterations                       +
 | Convergence targets achieved. Performing final SCF iteration                 +
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- Total energy                               :     -2006.17125364
+ Total energy                               :     -2006.13187569
  _______________________________________________________________
- Fermi energy                               :         0.21453506
- Kinetic energy                             :      2021.14376196
- Coulomb energy                             :     -3911.79183813
- Exchange energy                            :      -112.03793790
- Correlation energy                         :        -3.48523958
+ Fermi energy                               :         0.21295495
+ Kinetic energy                             :      2021.19794833
+ Coulomb energy                             :     -3911.80050125
+ Exchange energy                            :      -112.04511004
+ Correlation energy                         :        -3.48421273
  
  DOS at Fermi energy (states/Ha/cell)       :         0.00000000
  
@@ -705,18 +743,18 @@
      core                                   :        28.00000000
      core leakage                           :         0.00000111
      valence                                :        48.00000000
-     interstitial                           :         7.28407415
+     interstitial                           :         7.27297771
      charge in muffin-tin spheres :
-                  atom     1    Ti          :        18.85401289
-                  atom     2    Ti          :        18.85401289
-                  atom     3     O          :         7.75197502
-                  atom     4     O          :         7.75197502
-                  atom     5     O          :         7.75197502
-                  atom     6     O          :         7.75197502
-     total charge in muffin-tins            :        68.71592585
+                  atom     1    Ti          :        18.82249956
+                  atom     2    Ti          :        18.82249956
+                  atom     3     O          :         7.77050579
+                  atom     4     O          :         7.77050579
+                  atom     5     O          :         7.77050579
+                  atom     6     O          :         7.77050579
+     total charge in muffin-tins            :        68.72702229
      total charge                           :        76.00000000
  
- Estimated fundamental gap                  :         0.06638281
+ Estimated fundamental gap                  :         0.05422354
         valence-band maximum at    1      0.0000  0.0000  0.0000
      conduction-band minimum at    1      0.0000  0.0000  0.0000
  
@@ -729,7 +767,7 @@
 * Groundstate module stopped                                                   *
 ********************************************************************************
  
- Total time spent (seconds)                 :        41.82
+ Total time spent (seconds)                 :        22.06
 ================================================================================
 | EXCITING OXYGEN stopped                                                      =
 ================================================================================

@@ -2,30 +2,30 @@
 <evalcore>
   <species is="1" chemicalSymbol="Ti">
     <atom ia="1">
-      <state ist="1" n="1" l="0" k="0" eigenvalue="-1.782875256744e2"/>
-      <state ist="2" n="2" l="0" k="0" eigenvalue="-1.933482231135e1"/>
-      <state ist="3" n="2" l="1" k="1" eigenvalue="-1.608151430138e1"/>
-      <state ist="4" n="2" l="1" k="1" eigenvalue="-1.586989434433e1"/>
+      <state ist="1" n="1" l="0" k="0" eigenvalue="-1.782990366336e2"/>
+      <state ist="2" n="2" l="0" k="0" eigenvalue="-1.934853160958e1"/>
+      <state ist="3" n="2" l="1" k="1" eigenvalue="-1.609499554951e1"/>
+      <state ist="4" n="2" l="1" k="1" eigenvalue="-1.588338903859e1"/>
     </atom>
     <atom ia="2">
-      <state ist="1" n="1" l="0" k="0" eigenvalue="-1.782875256744e2"/>
-      <state ist="2" n="2" l="0" k="0" eigenvalue="-1.933482231135e1"/>
-      <state ist="3" n="2" l="1" k="1" eigenvalue="-1.608151430138e1"/>
-      <state ist="4" n="2" l="1" k="1" eigenvalue="-1.586989434433e1"/>
+      <state ist="1" n="1" l="0" k="0" eigenvalue="-1.782990366336e2"/>
+      <state ist="2" n="2" l="0" k="0" eigenvalue="-1.934853160958e1"/>
+      <state ist="3" n="2" l="1" k="1" eigenvalue="-1.609499554951e1"/>
+      <state ist="4" n="2" l="1" k="1" eigenvalue="-1.588338903859e1"/>
     </atom>
   </species>
   <species is="2" chemicalSymbol="O">
     <atom ia="1">
-      <state ist="1" n="1" l="0" k="0" eigenvalue="-1.829428850751e1"/>
+      <state ist="1" n="1" l="0" k="0" eigenvalue="-1.828382443809e1"/>
     </atom>
     <atom ia="2">
-      <state ist="1" n="1" l="0" k="0" eigenvalue="-1.829428850751e1"/>
+      <state ist="1" n="1" l="0" k="0" eigenvalue="-1.828382443809e1"/>
     </atom>
     <atom ia="3">
-      <state ist="1" n="1" l="0" k="0" eigenvalue="-1.829428850751e1"/>
+      <state ist="1" n="1" l="0" k="0" eigenvalue="-1.828382443809e1"/>
     </atom>
     <atom ia="4">
-      <state ist="1" n="1" l="0" k="0" eigenvalue="-1.829428850751e1"/>
+      <state ist="1" n="1" l="0" k="0" eigenvalue="-1.828382443809e1"/>
     </atom>
   </species>
 </evalcore>

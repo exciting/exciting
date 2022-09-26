@@ -20,15 +20,15 @@
    <groundstate
       do="fromscratch" 
       rgkmax="7.0"
-      ngridk="4 4 6"
+      ngridk="1 1 2"
       xctype="GGA_PBE_SOL"
       epsocc="1.0d-6">
    </groundstate>
 
    <xs
       xstype="BSE" 
-      ngridk="2 2 3"
-      ngridq="2 2 3"
+      ngridk="1 1 2"
+      ngridq="1 1 2"
       rgkmax="7.0" 
       vkloff="0.05 0.15 0.25"
       reduceq="false"
@@ -43,14 +43,14 @@
          points="100" />
       <screening 
          screentype="full" 
-         nempty="75" />
+         nempty="50" />
       <BSE
          xas="true"
          xasspecies="1"
          xasatom="2"
          xasedge="L23" 
          bsetype="singlet"  
-         nstlxas="1 20" />
+         nstlxas="1 10" />
       <qpointset>
          <qpoint>0.0 0.0 0.0</qpoint>
       </qpointset>
