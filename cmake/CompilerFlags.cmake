@@ -2,16 +2,14 @@
 # CMake will append CMAKE_Fortran_FLAGS with CMAKE_Fortran_FLAGS_BUILDTYPE
 # CMAKE_Fortran_FLAGS_BUILDTYPE may also have predefined values, hence initialise it
 
-# Standard flags to use in all cases
+# Standard flags to use in all modern fortran source
 set(STD_FFLAGS
-    -std='f2008'            # Fortran standard set to 2008
+    -std=f2008              # Fortran standard set to 2008
     -fimplicit-none         # Specify that no implicit typing is allowed
     -ffree-line-length-0    # No fixed line length
     -march=native           # Produces code optimized for the local machine under the constraints of the
                             # selected instruction set (hence the result might not run on different machines).
    )
-string(REPLACE ";" " " STD_FFLAGS "${STD_FFLAGS}")
-set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${STD_FFLAGS}")
 
 # GCC
 set(GCC_DEBUG
@@ -24,7 +22,6 @@ set(GCC_DEBUG
 # More debug flags to consider:
 # -finit-integer=2147483647 -finit-real=snan \
 # -frecord-gcc-switches -finit-character=42 -finit-logical=true -fdump-core -fstack-protector-all -pipe
-
 
 set(GCC_RELEASE -O3)  # Level 3 optimisation. Could also consider -fpack-derived
 
@@ -69,5 +66,6 @@ string(REPLACE ";" " " FF_RELEASE "${FF_RELEASE}")
 
 # Initialise BUILDTYPE flags so we completely define/control
 # the compiler settings
+# Note, these flags are GLOBALS and will apply to ALL libs/executables built by CMake
 set(CMAKE_Fortran_FLAGS_DEBUG "${FF_DEBUG}")
 set(CMAKE_Fortran_FLAGS_RELEASE "${FF_RELEASE}")
