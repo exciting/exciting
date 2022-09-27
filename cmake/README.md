@@ -2,15 +2,21 @@
 
 CMake for exciting is a *work-in-progress*, and cannot be used to build exciting.
 
+## Done
+  * libXC - see `cmake/libxc.cmake`
+  * FoX - see `cmake/fox.cmake`
+
 ## Outline of TODOs:
 
 * Check for essential packages: `xsltproc`
 * Building external libraries (start by building those in `external/`, extend to cloning if not present)
-  * FoX
   * Lbfgsb.3.0
   * leblaiklib
-  * libXC - see `cmake/libxc.cmake`
+  * fftlib (in source)
+  * libbzint (in source)
+  * libmsec (in source)
 * Generate version stamp, calling or replacing `versionstamp.pl`
+* Add (required) preprocessor variables 
 * Custom command to preprocess `inputmodules.f90` and `speciesmodules.f90` from XML schema
 * Find Ford and `make docs`
 * Build exciting as a lib
