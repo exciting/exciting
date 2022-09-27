@@ -30,6 +30,7 @@ include(cmake/CompilerFlags.cmake)
 # Compiler warnings
 include(cmake/CompilerWarnings.cmake)
 
+
 # External libraries
 # Note, for Blas and Lapack, this is also able to find vendor-specific versions:
 # https://cmake.org/cmake/help/v3.15/module/FindBLAS.html
@@ -37,17 +38,12 @@ find_package(BLAS REQUIRED)
 find_package(LAPACK REQUIRED)
 
 include(cmake/libxc.cmake)
+add_subdirectory("${PROJECT_SOURCE_DIR}/external/Lbfgsb.3.0")
 
-# Python required for application testing
-include(cmake/python3.cmake)
-find_python_module(numpy)
-find_python_module(pytest)
 
-# Enable ctest
-enable_testing()
-
-# Our library directories
+# exciting
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+# Location of exciting's CMakeLists
 add_subdirectory(src)
 
 # Set installation location
@@ -57,3 +53,13 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
             CACHE STRING "Choose the installation directory. Default location is ${default_install_prefix}"
             FORCE)
 endif()
+
+
+# Testing
+# Enable ctest
+enable_testing()
+
+# Python required for application testing
+include(cmake/python3.cmake)
+find_python_module(numpy)
+find_python_module(pytest)

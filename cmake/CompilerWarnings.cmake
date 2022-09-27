@@ -46,5 +46,3 @@
      message(SEND_ERROR "Warning flags have not been defined for this compiler: \
             ${CMAKE_Fortran_COMPILER_ID}")
    endif()
-
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${COMPILER_WARNINGS}")
