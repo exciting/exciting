@@ -30,16 +30,16 @@ include(cmake/CompilerFlags.cmake)
 # Compiler warnings
 include(cmake/CompilerWarnings.cmake)
 
-
 # External libraries
 # Note, for Blas and Lapack, this is also able to find vendor-specific versions:
 # https://cmake.org/cmake/help/v3.15/module/FindBLAS.html
 find_package(BLAS REQUIRED)
 find_package(LAPACK REQUIRED)
 
+# Configure, build and install libs in external/
 include(cmake/libxc.cmake)
+include(cmake/fox.cmake)
 add_subdirectory("${PROJECT_SOURCE_DIR}/external/Lbfgsb.3.0")
-
 
 # exciting
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
@@ -53,7 +53,6 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
             CACHE STRING "Choose the installation directory. Default location is ${default_install_prefix}"
             FORCE)
 endif()
-
 
 # Testing
 # Enable ctest
