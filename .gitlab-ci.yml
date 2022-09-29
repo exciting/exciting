@@ -256,6 +256,6 @@ test-debian-buster-gcc8-smp-jupyter:
    - cd tools/excitingjupyter
    - source create_env.sh
    - cd excitingjupyter
-   - jupyter nbconvert --execute 01_getting_started/tutorial1.ipynb --to markdown 
-   - jupyter nbconvert --execute 02_excited_states/excited_states_from_tddft.ipynb --to markdown
+   - jupyter nbconvert --execute 01_getting_started/tutorial1.ipynb --to markdown
    - jupyter nbconvert --execute tutorial_excited_states_from_bse/tutorial_excited_states_from_bse.ipynb --to markdown
+   - jupyter nbconvert --execute 02_excited_states/xray_emission_spectra.ipynb --to markdown
