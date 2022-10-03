@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<input>
+
+   <title>silicon-primitive-PBEsol</title>
+
+   <structure speciespath=".">
+      <crystal  scale="10.2612128567">
+         <basevect>0.00000000   0.50000000   0.50000000 </basevect>
+         <basevect>0.50000000   0.00000000   0.50000000</basevect>
+         <basevect>0.50000000   0.50000000   0.00000000</basevect>
+      </crystal>
+
+      <species speciesfile="Si.xml" rmt="2.2">
+         <atom coord="0.00 0.00 0.00"></atom>
+         <atom coord="0.25 0.25 0.25"></atom>
+      </species>
+   </structure>
+
+   <groundstate
+      do="skip"
+      rgkmax="6.0"
+      ngridk="2 2 2"
+      xctype="GGA_PBE_SOL"
+      epsengy="1.e-6"
+      gmaxvr="15.0"
+      >
+   </groundstate>
+
+   <gw
+      taskname="g0w0"
+      ngridq="2 2 2"
+      nempty="61"
+      ibgw="5"
+      nbgw="20"
+      coreflag="xal"
+      skipgnd="false">
+
+      <mixbasis
+         lmaxmb="3"
+         epsmb="1.d-4"
+         gmb="1.0">
+      </mixbasis>
+
+      <freqgrid
+         nomeg="6">
+      </freqgrid>
+
+      <barecoul
+        basis="mb"
+        barcevtol="0.1"
+      ></barecoul>
+      
+      <selfenergy
+	 method="ac" 
+	 actype="pade"
+         singularity="crg"
+      >
+       <wgrid
+         type="eqdist"
+         size="1000"
+         wmax="1.0"
+         wmin="-2.0"
+       />
+      </selfenergy>
+
+   </gw>
+
+</input>

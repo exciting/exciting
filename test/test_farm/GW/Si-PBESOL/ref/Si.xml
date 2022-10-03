@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <sp chemicalSymbol="Si" name="silicon" z="-14.0" mass="51196.73454">
+    <muffinTin rmin="1e-06" radius="2.199" rinf="24.976" radialmeshPoints="300"/>
+      <atomicState n="1" l="0" kappa="1" occ="2.0" core="true"/>
+      <atomicState n="2" l="0" kappa="1" occ="2.0" core="false"/>
+      <atomicState n="2" l="1" kappa="1" occ="2.0" core="false"/>
+      <atomicState n="2" l="1" kappa="2" occ="4.0" core="false"/>
+      <atomicState n="3" l="0" kappa="1" occ="2.0" core="false"/>
+      <atomicState n="3" l="1" kappa="1" occ="1.0" core="false"/>
+      <atomicState n="3" l="1" kappa="2" occ="1.0" core="false"/>
+    <basis>
+       <default type="apw" trialEnergy="0.15" searchE="false"/> 
+
+      <custom l="0" type="apw" trialEnergy="0.38" searchE="false"/> 
+
+      <lo l="0">
+       <wf matchingOrder="0" trialEnergy="0.38" searchE="false"/>
+       <wf matchingOrder="1" trialEnergy="0.38" searchE="false"/>
+      </lo>
+      <lo l="0">
+       <wf matchingOrder="0" trialEnergy="0.38" searchE="false"/>
+       <wf matchingOrder="0" trialEnergy="-4.7" searchE="false"/>
+      </lo>
+      <lo l="0">
+       <wf matchingOrder="0" trialEnergy="-4.7" searchE="false"/>
+       <wf matchingOrder="1" trialEnergy="-4.7" searchE="false"/>
+      </lo>
+      <lo l="0">
+       <wf matchingOrder="1" trialEnergy="-4.7" searchE="false"/>
+       <wf matchingOrder="2" trialEnergy="-4.7" searchE="false"/>
+      </lo>
+
+      <custom l="1" type="apw" trialEnergy="0.8" searchE="false"/> 
+
+      <lo l="1">
+       <wf matchingOrder="0" trialEnergy="0.8" searchE="false"/>
+       <wf matchingOrder="1" trialEnergy="0.8" searchE="false"/>
+      </lo>
+      <lo l="1">
+       <wf matchingOrder="0" trialEnergy="0.8" searchE="false"/>
+       <wf matchingOrder="0" trialEnergy="-3.1" searchE="false"/>
+      </lo>
+      <lo l="1">
+       <wf matchingOrder="0" trialEnergy="-3.1" searchE="false"/>
+       <wf matchingOrder="1" trialEnergy="-3.1" searchE="false"/>
+      </lo>
+      <lo l="1">
+       <wf matchingOrder="1" trialEnergy="-3.1" searchE="false"/>
+       <wf matchingOrder="2" trialEnergy="-3.1" searchE="false"/>
+      </lo>
+
+      <custom l="2" type="apw" trialEnergy="1.3" searchE="false"/> 
+
+      <lo l="2">
+       <wf matchingOrder="0" trialEnergy="1.3" searchE="false"/>
+       <wf matchingOrder="1" trialEnergy="1.3" searchE="false"/>
+      </lo>
+      <lo l="2">
+       <wf matchingOrder="1" trialEnergy="1.3" searchE="false"/>
+       <wf matchingOrder="2" trialEnergy="1.3" searchE="false"/>
+      </lo>
+
+      <custom l="3" type="apw" trialEnergy="2.9" searchE="false"/> 
+ 
+    </basis>
+  </sp>
+</spdb>

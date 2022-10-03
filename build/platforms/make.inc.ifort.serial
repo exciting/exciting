@@ -1,10 +1,11 @@
 # Example make.inc for Intel 2019
 # This only differs from make.inc.intel in the MKL library linked to
+# Note, -I"${MKLROOT}/include/intel64/lp64" is added to find mkl_service.mod
 
 # Compiler, flags and preprocessing variables 
 F90 = ifort
-F90_OPTS = -O3 -ip -unroll -scalar_rep -I"${MKLROOT}/include"
-CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DIFORT -DFFTW
+F90_OPTS = -O3 -ip -unroll -scalar_rep -I"${MKLROOT}/include" -I"${MKLROOT}/include/intel64/lp64"
+CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DIFORT -DFFTW -DMKL
 F77 = $(F90)
 F77_OPTS = -O3
 # Required for libXC compilation 

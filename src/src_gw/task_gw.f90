@@ -239,7 +239,7 @@ subroutine task_gw()
         call calcselfc_ac()
       end if
 
- !$OMP critical
+!$OMP critical
 
       !===============================
       ! Write self-energies to files

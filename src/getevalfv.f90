@@ -84,7 +84,7 @@ Subroutine getevalfv (vpl, evalfv)
             Exit
          Else
             Call system ('sync')
-            Write (*,*) "Waiting for other process to write" // ":getev&
+            Write (*,*) "Waiting for other process to write/file does not exist" // ":getev&
            &alfv:" // trim (outfilenamestring(filetag, ik))
             Call sleep (5)
          End If

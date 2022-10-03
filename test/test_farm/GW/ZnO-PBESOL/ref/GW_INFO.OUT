@@ -1,0 +1,175 @@
+ 
+================================================================================
+=                            GW input parameters                               =
+================================================================================
+ 
+ 
+ GW taskname:
+ 
+   g0w0 - G0W0 run
+ 
+--------------------------------------------------------------------------------
+ 
+ Frequency integration parameters:
+ Number of frequencies:            4
+ Cutoff frequency:    1.00000000000000     
+ Grid type:
+   gauleg2 - Double Gauss-Legendre grid: [0, freqmax] + [freqmax, infty]
+ Convolution method:
+   imfreq : weights calculated for imaginary frequencies
+ 
+--------------------------------------------------------------------------------
+ 
+ Correlation self-energy parameters:
+ Solution of the QP equation:
+   0 - perturbative solution
+ Energy alignment:
+   0 - no alignment
+ Analytic continuation method:
+  PADE - Thiele's reciprocal difference method
+  Citation: H. J. Vidberg and J. W. Serence, J. Low Temp. Phys. 29, 179 (1977)
+ Scheme to treat singularities:
+  Auxiliary function method "crg"
+  Citation: P. Carrier, S. Rohra, and A. Goerling, PRB 75, 205126 (2007)
+ 
+--------------------------------------------------------------------------------
+ 
+ Mixed product basis parameters:
+   MT part:
+     Angular momentum cutoff:            4
+     Linear dependence tolerance factor:   1.000000000000000E-004
+   Interstitial:
+     Plane wave cutoff (in units of Gkmax):    1.00000000000000     
+ 
+--------------------------------------------------------------------------------
+ 
+ Bare Coulomb potential parameters:
+   Plane wave cutoff (in units of Gkmax*input%gw%MixBasis%gmb):   2.00000000000000
+   Error tolerance for structure constants:   1.000000000000000E-015
+   Tolerance factor to reduce the MB size based on
+   the eigenvectors of the bare Coulomb potential:   0.100000000000000     
+ 
+--------------------------------------------------------------------------------
+ 
+ Screened Coulomb potential:
+   Full-frequency Random-Phase Approximation
+ 
+--------------------------------------------------------------------------------
+ 
+ Core electrons treatment:
+   xal - Core states are included in exchange but not in correlation
+ 
+--------------------------------------------------------------------------------
+ 
+ Interval of quasiparticle states (ibgw, nbgw):      23     33
+ 
+ Number of empty states (GW):           50
+ 
+ k/q-points grid:            2           2           1
+ 
+--------------------------------------------------------------------------------
+-                           Mixed product WF info                              -
+--------------------------------------------------------------------------------
+ 
+  Maximal number of MT wavefunctions per atom:          396
+  Total number of MT wavefunctions:                    1230
+  Maximal number of PW wavefunctions:                   350
+  Total number of mixed-product wavefunctions:         1580
+ 
+ 
+--------------------------------------------------------------------------------
+-                               frequency grid                                 -
+--------------------------------------------------------------------------------
+ 
+ Type: < fgrid > gauleg2                                 
+ Frequency axis: < fconv > imfreq                                  
+ Number of frequencies: < nomeg >            4
+ Cutoff frequency: < freqmax >    1.00000000000000     
+ frequency list: < #    freqs    weight > 
+   1  0.2113248654      0.5000000000    
+   2  0.7886751346      0.5000000000    
+   3   1.267949192      0.8038475773    
+   4   4.732050808       11.19615242    
+ 
+--------------------------------------------------------------------------------
+-                       Kohn-Sham eigenstates summary                          -
+--------------------------------------------------------------------------------
+ 
+ Maximum number of LAPW states:                      440
+ Minimal number of LAPW states:                      415
+ Number of states used in GW:
+     - total KS                                       77
+     - occupied                                       26
+     - unoccupied                                     50
+     - dielectric function                            77
+     - self energy                                    77
+ Energy of the highest unoccupied state:        2.047337
+ Number of valence electrons:                         52
+ Number of valence electrons treated in GW:            8
+ 
+--------------------------------------------------------------------------------
+-                          Kohn-Sham band structure                            -
+--------------------------------------------------------------------------------
+ 
+ Fermi energy:     0.0000
+ Energy range:    -4.5400    2.0473
+ Band index of VBM:  26
+ Band index of CBm:  27
+ 
+ Direct BandGap (eV):                      0.6796
+ at k      =    0.000   0.000   0.000 ik =     1
+ 
+================================================================================
+=                                  GW cycle                                    =
+================================================================================
+ 
+ (task_gw): q-point cycle, iq =            1
+ (task_gw): q-point cycle, iq =            2
+ (task_gw): q-point cycle, iq =            3
+ (task_gw): q-point cycle, iq =            4
+ 
+--------------------------------------------------------------------------------
+-                            G0W0 band structure                               -
+--------------------------------------------------------------------------------
+ 
+ Fermi energy:     0.0190
+ Energy range:    -0.1318    0.5714
+ Band index of VBM:  26
+ Band index of CBm:  27
+ 
+ Direct BandGap (eV):                      1.7521
+ at k      =    0.000   0.000   0.000 ik =     1
+ 
+================================================================================
+=                          GW timing info (seconds)                            =
+================================================================================
+ 
+ Initialization                             :         3.58
+     - init_scf                             :         1.79
+     - init_kpt                             :         0.01
+     - init_eval                            :         0.00
+     - init_freq                            :         0.00
+     - init_mb                              :         0.80
+ Subroutines                                : 
+     - calcpmat                             :         4.06
+     - calcbarcmb                           :        13.99
+     - BZ integration weights               :         0.14
+     Dielectric function                    :        27.20
+     - head                                 :         0.00
+     - wings                                :         0.00
+     - body                                 :         0.00
+     - inversion                            :         3.16
+     WF products expansion                  :         0.27
+     - diagsgi                              :         0.10
+     - calcmpwipw                           :         0.17
+     - calcmicm                             :         0.00
+     - calcminc                             :         0.02
+     - calcminm                             :         0.00
+     Self-energy                            :        18.03
+     - calcselfx                            :         3.15
+     - calcselfc                            :        14.89
+     - calcvxcnn                            :         0.93
+     - input/output                         :         0.00
+ _________________________________________________________
+ Total                                      :        72.62
+ 

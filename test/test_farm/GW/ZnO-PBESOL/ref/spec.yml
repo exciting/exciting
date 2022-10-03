@@ -1,0 +1,10 @@
+githash: "MR !249"
+compiler:
+  module: "intel-oneapi/2021.3"
+  make_inc: "platforms/make.inc.ifort2021"
+machine: "SOL42"
+endian: "little"
+reference:
+  MKL_NUM_THREADS: 1
+  OMP_NUM_THREADS: 1
+  run: "mpirun -np 1 ~/exciting/bin/exciting_mpismp"

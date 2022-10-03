@@ -1,12 +1,15 @@
 # Example make.inc for Intel 2019
+# Note, -I"${MKLROOT}/include/intel64/lp64" is added to find mkl_service.mod
 
 # Compiler, flags and preprocessing variables 
 F90 = ifort
-F90_OPTS = -O3 -ip -unroll -scalar_rep -I"${MKLROOT}/include"
-CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DIFORT -DFFTW
+F90_OPTS = -O3 -ip -unroll -scalar_rep 
+INCL = -I"${MKLROOT}/include" -I"${MKLROOT}/include/intel64/lp64"
+
+CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DIFORT -DFFTW -DMKL
 F77 = $(F90)
 F77_OPTS = -O3
-# Required for libXC compilation 
+# Required to be cpp for libXC compilation 
 FCCPP = cpp
 
 F90_DEBUGOPTS = -g -O0 -DUSE_ASSERT -debug all -implicitnone -warn unused \
@@ -25,10 +28,10 @@ LIBS = $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
 # SMP and MPI compilers, flags and preprocessing variables 
 MPIF90 = mpiifort
 MPIF90_OPTS = -DMPI -DSCAL
-MPI_LIBS = -L${MKLROOT}/lib/intel64 -lmkl_blacs_intelmpi_lp64 -lmkl_scalapack_lp64
-
+MPI_LIBS =  -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -lmkl_blacs_intelmpi_lp64 -liomp5 -lpthread -lm -ldl
 
 SMPF90_OPTS = -qopenmp -DUSEOMP
+#SMPF90_OPTS = 
 SMPF77_OPTS = $(SMPF90_OPTS)
 SMP_LIBS = 
 

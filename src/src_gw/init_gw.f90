@@ -10,11 +10,15 @@ subroutine init_gw()
     use mod_hybrids, only: hybridhf
     use m_filedel
     use mod_hdf5
+    use gw_scf, only: set_gs_solver_threads, thread_consistent_scf
 
     implicit none
     logical :: reducek
     integer :: lmax, ik
     real(8) :: t0, t1, tstart, tend
+
+    !> Threads to use for GW call to ground state SCF
+    integer :: gs_solver_threads
 
     call timesec(tstart)
 
@@ -61,7 +65,9 @@ subroutine init_gw()
 
       if (.not. input%gw%skipgnd) then
         input%groundstate%maxscl = 1
-        call scf_cycle(-2)
+        gs_solver_threads = set_gs_solver_threads(mpiglobal)
+        call thread_consistent_scf(gs_solver_threads)
+
         if (rank == 0) then
           ! safely remove unnecessary files
           call filedel('EIGVAL'//trim(filext))

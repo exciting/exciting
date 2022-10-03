@@ -167,6 +167,69 @@ contains
       end if
     end subroutine
 
+    !> Write exchange self-energy in real text format
+    ! TODO(Alex) Would be nicer to print the actual k-point, too
+    ! NOTE. Not tested - how does it behave when running with MPI w.r.t. ik?
+    subroutine write_exchange_selfenergy(ibgw, nbgw, nkpt)
+      use precision, only: dp
+      !> Band limits for which GW correction is applied
+      integer, intent(in) :: ibgw, nbgw
+      !>  Number of k-points 
+      integer, intent(in) :: nkpt     
+      !> Exchange self-energy   
+      !complex(dp), intent(in) :: selfex(:, :)
+      !> ile ID unit
+      integer :: fid                      
+      integer :: ik, ie
+
+      open(newunit=fid, file='SELFX.DAT', form='FORMATTED', status='UNKNOWN')
+      write(fid, *) '# first band, last band, N k-points'
+      write(fid) ibgw, nbgw, nkpt
+      write(fid,*) '# ie,    ik,    selfex'
+
+      do ik = 1, nkpt
+          do ie = ibgw, nbgw
+            write(fid,'(2i6,2f18.6)') ie, ik, selfex(ie, ik)
+          end do
+      end do
+
+      close(fid)
+    end subroutine
+
+    !> Write correlation self-energy in real text format
+    ! TODO(Alex) Would be nicer to print the actual k-point, too
+    ! NOTE. Not tested - how does it behave when running with MPI w.r.t. ik?
+    subroutine write_correlation_selfenergy(ibgw, nbgw, nw, nkpt)
+      use precision, only: dp
+      !> Band limits for which GW correction is applied
+      integer, intent(in) :: ibgw, nbgw
+      !>  Number of frequency points 
+      integer, intent(in) :: nw
+      !>  Number of k-points 
+      integer, intent(in) :: nkpt     
+      !> Correlation self-energy   
+      !complex(dp), intent(in) :: selfec(:, :, :)
+      !> ile ID unit
+      integer :: fid                      
+      integer :: ik, ie
+
+      open(newunit=fid, file='SELFC.DAT', form='FORMATTED', status='UNKNOWN')
+      write(fid, *) '# first band, last band, N k-points, N frequencies'
+      write(fid) ibgw, nbgw, nkpt, nw
+      write(fid,*) '# ie,   iom,   ik,   selfec'
+
+      do ik = 1, nkpt
+        do iom = 1, nw
+          do ie = ibgw, nbgw
+            write(fid,'(2i6,2f18.6)') ie, iom, ik, selfec(ie, iom, ik)
+          end do
+        end do
+      end do
+
+      close(fid)
+    end subroutine
+
+
     !---------------------------------------------------------------------------
     subroutine plot_selfc_iw()
       implicit none

@@ -99,10 +99,12 @@ contains
         do ipw = ipwin, Gqset%ngk(1,iq)
 
           vgpq(1:3) = Gset%vgc(1:3,Gqset%igkig(ipw,1,iq))+kqset%vqc(1:3,iq)
-          gpq2 = vgpq(1)**2+vgpq(2)**2+vgpq(3)**2
-          gpq  = dsqrt(gpq2)
+          gpq2 = dot_product(vgpq, vgpq)
+          gpq = dsqrt(gpq2)
 
-          f1 = f1 + dexp(-beta*gpq)/gpq
+          ! In the FHI-Gap paper, there is a typo in Eq. for f1
+          ! Should be vgpq . vgpq for correction units
+          f1 = f1 + dexp(-beta*gpq2)/gpq
           f2 = f2 + dexp(-beta*gpq2)/gpq2
 
         enddo ! ipw

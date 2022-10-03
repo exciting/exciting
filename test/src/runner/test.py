@@ -2,19 +2,23 @@
 Module to execute test cases
 """
 import os
+import warnings
 from typing import List
 from copy import deepcopy
+import yaml
 
 from excitingtools.utils.dict_utils import delete_nested_key
 
-from ..exciting_settings.constants import keys_to_remove, Defaults, RunProperties, ExcitingRunProperties
+from ..exciting_settings.constants import keys_to_remove, Defaults, RunProperties, ExcitingRunProperties, main_output
 from ..io.file_system import create_run_dir, copy_calculation_inputs, flatten_directory
-from ..io.parsers import read_output_file
+from ..io.parsers import read_output_file, get_compiler_type
 from ..io.tolerances import get_json_tolerances
 from ..tester.compare import ErrorFinder
 from ..tester.failure import Failure
 from ..tester.report import TestResults, SummariseTests
+from ..runner.configure_tests import TestGroup
 from ..runner.set_tests import TestLists
+from ..runner.profile import Compiler
 from .execute import execute_job
 
 
@@ -169,7 +173,7 @@ def run_single_test(test_dir,
                                         settings.max_time,
                                         ref_dir=os.path.join(test_dir, settings.ref_dir),
                                         run_dir=os.path.join(test_dir, settings.run_dir),
-                                        main_output=settings.main_output)
+                                        main_output=main_output(method))
 
     tolerances_without_units, output_files = get_json_tolerances(calculation.ref_dir,
                                                                  test_properties['files_under_test'])
@@ -213,6 +217,55 @@ def print_input_info(input_options: dict):
     elif 'exciting_purempi' in executable:
         print(f'Run tests with exciting_purempi {np} MPI processes.')
 
+    # ASSUME one will not write tests that compile with GCC but link to MKL.
+    # If they do, `get_compiler_type` would need to be extended to return linked libs too
+    compiler = get_compiler_type()
+    mkl_threads = input_options['mkl_threads']
+    if compiler is Compiler.intel:
+        print(f'MKL threads set to {mkl_threads}')
+
+
+def check_gw_test_spec(gw_tests: List[str], input_mkl_threads: int):
+    """ Check MKL threads used to generate GW reference data is consistent
+    with the value used for execution of the test suite.
+
+    Note, one could use this routine to set the MKL threads prior to each
+    GW execution by the test suite.
+
+    :param gw_tests: GW test names
+    :param input_mkl_threads: MKL_NUM_THREADS passed to test suite via command line
+    """
+    gw_mkl_threads = set()
+    for test in gw_tests:
+        file = os.path.join(test, 'ref/spec.yml')
+        try:
+            with open(file, 'r') as stream:
+                spec = yaml.safe_load(stream)
+        except FileNotFoundError:
+            raise FileNotFoundError(f'Cannot find GW test spec file {file}')
+        gw_mkl_threads.add(spec['reference']['MKL_NUM_THREADS'])
+
+    # All tests use same number of MKL threads
+    assert len(gw_mkl_threads) == 1, "GW tests generated with different number of MKL threads" \
+                                     "Tests will not agree with reference data as the test suite" \
+                                     "can only be run with one specified MKL_NUM_THREADS value."
+
+    gw_mkl_threads = next(iter(gw_mkl_threads))
+
+    # MKL threads passed as a cmd line arg to the test suite
+    if input_mkl_threads is not None:
+        if gw_mkl_threads != input_mkl_threads:
+            warnings.warn(f"MKL_NUM_THREADS passed to the test suite, {input_mkl_threads} disagree "
+                          f"with the threads used to generate the GW reference data, {gw_mkl_threads}")
+        return
+
+    # MKL threads read from env
+    env_mkl_threads = os.environ.get('MKL_NUM_THREADS')
+    if (env_mkl_threads is None) or (gw_mkl_threads != env_mkl_threads):
+        warnings.warn(f"MKL_NUM_THREADS read from the shell env, {env_mkl_threads}, disagree "
+                      f"with the threads used to generate the GW reference data, {gw_mkl_threads}")
+        return
+
 
 def run_tests(settings: Defaults,
               input_options: dict,
@@ -228,6 +281,13 @@ def run_tests(settings: Defaults,
     :return SummariseTests report: Test suite summary
     """
     print_input_info(input_options)
+
+    # Check that the MKL threads used for running the test are consistent
+    # with that used to generate the reference data.
+    if 'GW_INTEL' in all_tests.groups:
+        gw_tests = [test for test, properties in all_tests.run.items()
+                    if properties['group'] == TestGroup.GW_INTEL]
+        check_gw_test_spec(gw_tests, input_options['mkl_threads'])
 
     report = SummariseTests()
     for test_name, test_properties in all_tests.run.items():
