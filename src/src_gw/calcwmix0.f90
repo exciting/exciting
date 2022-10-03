@@ -36,6 +36,8 @@ subroutine calcwmix0(wi0)
 !EOP
 !BOC
 
+    wi0(1:matsiz) = zzero
+
     !---------
     ! MT part
     !---------

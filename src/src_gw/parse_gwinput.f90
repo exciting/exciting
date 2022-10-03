@@ -284,9 +284,16 @@ subroutine parse_gwinput()
     if (vccut) then
         ! Coulomb potential truncation techniques are implemented only for the PW basis
         input%gw%barecoul%basis = "pw"
+        ! TODO(Alex/Ronaldo) Issue #142. Default should be taken from schema
         input%gw%barecoul%pwm = 4.d0
     end if
     if (rank==0) call linmsg(fgw,'-','')
+
+    ! TODO(Alex/Ronaldo) Issue #142 . Implement the fixes required to get GW in PW basis consistent
+    ! with exciting Nitrogen.
+    if (input%gw%barecoul%basis == "pw") then
+        call terminate_mpi_env(mpiglobal, message="GW in a plane-wave basis is currently unsupported.")
+    end if
 
 !-------------------------------------------------------------------------------
 ! Parameters for averaging the dielectric function

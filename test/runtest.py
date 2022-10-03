@@ -181,7 +181,7 @@ def set_test_names_from_cmd_line(test_farm: str, input_tests: List[str]) -> List
 
     if not tests_to_run:
         raise ValueError(f'Could not find any full or partial string matches to {input_tests} for test names in '
-                         '{test_farm} subdirectories')
+                         f'{test_farm} subdirectories')
     return tests_to_run
 
 

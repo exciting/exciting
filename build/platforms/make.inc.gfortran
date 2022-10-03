@@ -6,7 +6,7 @@
 
 # Compiler, flags and preprocessing variables
 F90 = gfortran
-F90_OPTS = -O3 -march=native -ffree-line-length-0
+F90_OPTS = -O3 -march=native -ffree-line-length-0 
 CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC
 F77 = $(F90)
 F77_OPTS = -O3

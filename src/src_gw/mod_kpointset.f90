@@ -764,8 +764,8 @@ CONTAINS
         allocate(self%sfacgk(self%ngkmax,natmtot,nspnfv,kset%nkpt))
 
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ispn, ik, igp, ig)
-!$OMP DO
+ !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ispn, ik, igp, ig)
+ !$OMP DO
 #endif
         do ispn = 1, nspnfv
           do ik = 1, kset%nkpt
@@ -789,8 +789,8 @@ CONTAINS
           end do
         end do
 #ifdef USEOMP
-!$OMP END DO
-!$OMP END PARALLEL
+ !$OMP END DO
+ !$OMP END PARALLEL
 #endif
         deallocate(igk2ig)
 
@@ -857,8 +857,8 @@ CONTAINS
           allocate(self%sfacgknr(self%ngknrmax,natmtot,nspnfv,kset%nkptnr))
 
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ispn, ik, igp, ig)
-!$OMP DO COLLAPSE(2)
+ !$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ispn, ik, igp, ig)
+ !$OMP DO COLLAPSE(2)
 #endif
           do ispn = 1, nspnfv
             do ik = 1, kset%nkptnr
@@ -880,8 +880,8 @@ CONTAINS
             end do
           end do
 #ifdef USEOMP
-!$OMP END DO
-!$OMP END PARALLEL
+ !$OMP END DO
+ !$OMP END PARALLEL
 #endif
           deallocate(igk2ig)
 

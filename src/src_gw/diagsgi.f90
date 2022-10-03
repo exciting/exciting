@@ -1,38 +1,29 @@
-!BOP
-!
-!!ROUTINE: diagsgi
-!!INTERFACE:
-!
+!> Generate the overlap matrix of the product functions in the interstitial region and diagonalize it. 
+!>
+!> In the interstitial region, the product basis is constructed from planewaves. 
+!> These interstitial planewaves (IPW’s) are not orthogonal. To obtain a set of 
+!> orthogonal wavefunctions, we diagonalize the overlap matrix by solving the MT
+!> eigenvalue equation.
+!>
+!> The output is the matrix $S_{\vec{G}i}$.
 subroutine diagsgi(iq)
-!
-! !DESCRIPTION:
-!
-! This subroutine generates the overlap matrix of the product functions in the
-! interstitial region and diagonalizes it. 
-! The output is the matrix $S_{\vec{G}i}$.
-!
-!!USES:
+  
     use modinput
     use modmain, only : cfunig
-    use modgw,   only : Gset, Gqset, sgi, &
-    &                   fdebug, time_diagsgi
-      
-!!INPUT PARAMETERS:
+    use modgw,   only : Gset, Gqset, sgi, fdebug, time_diagsgi
     implicit none
     integer(4), intent(in) :: iq      
 
-!!LOCAL VARIABLES:
     integer(4) :: ig, ngq
-    integer(4) :: igq   ! Counter: Runs over igq's
-    integer(4) :: jgq   ! Counter: Runs over igq's
-    integer(4), dimension(3) :: iig    ! integer coordinates of G-G'
+    integer(4) :: igq                  !! Counter: Runs over igq's
+    integer(4) :: jgq                  !! Counter: Runs over igq's
+    integer(4), dimension(3) :: iig    !! integer coordinates of G-G'
     real(8)   :: tstart, tend
     
     complex(8) :: cfact
     real(8), allocatable :: epsipw(:)
     complex(8), allocatable :: zmat(:,:)
     
-    ! for diagonalization subroutine
     real(8) :: vl, vu, abstol
     integer :: il, iu, neval, lwork, info, lrwork, liwork
     complex(8), allocatable :: work(:)
@@ -40,22 +31,11 @@ subroutine diagsgi(iq)
     integer,    allocatable :: iwork(:), ifail(:), isuppz(:)
     real(8), external :: dlamch
 
-!!EXTERNAL ROUTINES: 
-    external zheev      ! Lapack diagonalization subroutine
+    external zheev  
 
-!
-! !REVISION HISTORY:
-!
-! Created Dec. 2003. by RGA
-! Last Modification May. 2006 by RGA
-! Revisited 10.05.2011 by DIN
-!
-!EOP
-!BOC
     call timesec(tstart)
     
     ngq = Gqset%ngk(1,iq)
-
     if(allocated(sgi)) deallocate(sgi)
     allocate(sgi(ngq,ngq))
     
@@ -73,7 +53,8 @@ subroutine diagsgi(iq)
         ig = Gset%ivgig(iig(1),iig(2),iig(3))
         ! if (ig>??) stop 'G basis is too small for the selected G_{max}^{MB}'
         sgi(igq,jgq) = conjg(cfunig(ig))
-        sgi(jgq,igq) = conjg(sgi(igq,jgq))
+        ! NOTE(ALEX) The lower triangle should not be needed by LAPACK CALL - confirm
+        !sgi(jgq,igq) = conjg(sgi(igq,jgq))
       end do ! jgq
     end do ! igq
       
@@ -92,39 +73,10 @@ subroutine diagsgi(iq)
     !-----------------------------------------------------------
     allocate(epsipw(ngq))
     
-if (.false.) then
-    lwork = 2*ngq-1
-    allocate(work(lwork),rwork(3*ngq-2))
-    call zheev('V','U',ngq,sgi,ngq,epsipw,work,lwork,rwork,info)
+    lwork = 2 * ngq - 1
+    allocate(work(lwork),rwork(3 * ngq - 2))
+    call zheev('V','U', ngq, sgi, ngq, epsipw, work, lwork, rwork, info)
     if (info.ne.0) stop "diagsgi: Fail in calling zheev"
-    deallocate(work,rwork)
-else
-    allocate(zmat(ngq,ngq))
-    zmat(:,:) = sgi(:,:)
-    lrwork = -1
-    liwork = -1
-    lwork = -1
-    iu = ngq
-    abstol = 2.d0*dlamch('S')
-    allocate(work(1),rwork(1),iwork(1),isuppz(1))
-    call zheevr('V', 'A', 'U', ngq, zmat, ngq, vl, vu, il, iu, &
-    &           abstol, neval, epsipw, sgi, ngq, isuppz, work, lwork, rwork, &
-    &           lrwork, iwork, liwork, info)
-    call errmsg(info.ne.0,'CALCBARCMB',"Fail to diag. barc by zheevr !!!")
-    lrwork = int(rwork(1))
-    liwork = int(iwork(1))
-    lwork = int(work(1))
-    ! write(*,*) lrwork,liwork,lwork
-    deallocate(work,rwork,iwork,isuppz)
-    allocate(work(lwork),rwork(lrwork),iwork(liwork))
-    allocate(isuppz(2*ngq))
-    call zheevr('V', 'A', 'U', ngq, zmat, ngq, vl, vu, il, iu, &
-    &           abstol, neval, epsipw, sgi, ngq, isuppz, work, lwork, rwork, &
-    &           lrwork, iwork, liwork, info)
-    call errmsg(info.ne.0,'CALCBARCMB',"Fail to diag. barc by zheevr !!!")
-    deallocate(work,rwork,iwork,isuppz)
-    deallocate(zmat)
-end if
 
     if (input%gw%debug) then
       write(fdebug,*) "### sgi-1 ###"
@@ -147,12 +99,8 @@ end if
       cfact = cmplx(1.0d0/sqrt(dabs(epsipw(igq))),0.0d0,8)
       sgi(:,igq) = cfact*sgi(:,igq)
     enddo
-    deallocate(epsipw)
 
     call timesec(tend)
     time_diagsgi = time_diagsgi+tend-tstart
       
-    return
 end subroutine
-!EOC
-

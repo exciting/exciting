@@ -113,6 +113,8 @@ subroutine barcq0()
             jas = idxas(ja,js)
             dpos(1:3) = atposl(1:3,ia,is)-atposl(1:3,ja,js)
 
+! TODO(Alex) Issue 140. Look at refactoring this block such that OMP CRITICAL can be removed
+! Note, it is currently there to prevent a race condition.
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ig,igl,gvec,gpr,expg)
 !$OMP DO
@@ -120,11 +122,11 @@ subroutine barcq0()
             do ig = 2, ng
               igl = ig2igl(ig)
               gvec(1:3) = dble(Gset%ivg(1:3,ig))
-              gpr = gvec(1)*dpos(1)+ &
-              &     gvec(2)*dpos(2)+ &
-              &     gvec(3)*dpos(3)
+              gpr = dot_product(gvec, dpos)
+              !$OMP CRITICAL         
               expg = cmplx(cos(2.0d0*pi*gpr),-sin(2.0d0*pi*gpr),8)
               phase(igl,ias,jas) = phase(igl,ias,jas)+expg
+              !$OMP END CRITICAL
             enddo ! igl
 #ifdef USEOMP
 !$OMP END DO

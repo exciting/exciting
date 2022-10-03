@@ -9,7 +9,6 @@ from ..runner.profile import BuildType, build_type_enum_to_str
 Defaults = namedtuple('Defaults', ['max_time',        # Time after which a test is killed (in seconds)
                                    'test_farm',       # Test farm directory
                                    'input_file',      # Input file for exciting
-                                   'main_output',     # Main output from exciting
                                    'run_dir',         # Run directory for tests
                                    'ref_dir',         # Directory for test reference data
                                    'exe_dir',         # Location of exciting executable
@@ -40,7 +39,6 @@ hanging_tests = {'test_farm/groundstate/PBE-Al'}
 settings = Defaults(max_time       = 1800,
                     test_farm      = 'test_farm',
                     input_file     = 'input.xml',
-                    main_output    = 'INFO.OUT',
                     run_dir        = 'run',
                     ref_dir        = 'ref',
                     exe_dir        =  os.path.normpath(os.path.join(os.getcwd(), '../bin')),
@@ -71,6 +69,18 @@ species_files = ['Ni.xml', 'La.xml', 'K.xml', 'Xe.xml', 'Ag.xml', 'Bk.xml', 'Co.
 
 # Keys to be removed from test and reference dictionaries (i.e. that we do not want to test)
 keys_to_remove = {'INFO.OUT': [['scl', 'Wall time (seconds)']]}
+
+
+def main_output(method: str) -> str:
+    """Given a method, return the main output file.
+
+    :param method: Method
+    :return Output file name
+    """
+    if method.lower() == 'gw':
+        return 'GW_INFO.OUT'
+    else:
+        return "INFO.OUT"
 
 
 class RunProperties(ABC):
@@ -122,4 +132,5 @@ class ExcitingRunProperties(RunProperties):
         """
         main_output = os.path.join(self.run_dir, self.main_output)
         run_success = terminated_cleanly and os.path.isfile(main_output)
+        run_success = terminated_cleanly
         return run_success

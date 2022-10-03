@@ -1,4 +1,4 @@
-!> Parse arguments from the command line and store in an object. 
+!> Parse arguments from the command line and store in an object.
 !>
 !> In the future, we might consider adopting one of the libraries
 !> listed on the [fortran wiki](http://fortranwiki.org/fortran/show/Command-line+arguments),
@@ -7,7 +7,7 @@ module cmd_line_args
    use modmpi, only: mpiinfo, terminate_mpi_env
 #ifdef MPI
    use mpi
-#endif 
+#endif
    implicit none
    private
 
@@ -26,7 +26,7 @@ module cmd_line_args
       !> Number of threads used by the eigensolver, in the ground state.
       !> Option to store it as GW only gives fully consistent numbers
       !> between executions if the init SCF call is performed with a
-      !> number of threads consistent with the ground state (one `assumes` 
+      !> number of threads consistent with the ground state (one `assumes`
       !> specifically for the eigensolver)
       integer :: ground_state_solver_threads
    contains
@@ -55,12 +55,12 @@ contains
 
       this%ground_state_solver_threads = null_solver_threads
 
-      ! Parse command line arguments from root, only 
+      ! Parse command line arguments from root, only
       if (mpi_env%is_root) then
 
          do i = 1, command_argument_count()
             call get_command_argument(i, arg)
-   
+
             ! If setting=options is specified, apply select case to the setting only
             j = INDEX(arg, '=')
             if (j /= 0) then
@@ -68,11 +68,11 @@ contains
             else
                end = len(trim(arg))
             end if
-   
+
             select case(arg(:end))
             case('-run-unit-tests')
                this%run_unit_tests = .true.
-            
+
             case('-kill-on-failure')
                this%kill_on_failure = .true.
 
@@ -80,24 +80,24 @@ contains
                ! Get value following the matched option
                call get_command_argument(i + 1, arg)
                ! Not likely to have more than 999 threads
-               read(arg,'(i3)') this%ground_state_solver_threads 
+               read(arg,'(i3)') this%ground_state_solver_threads
                cycle
+
             end select
-   
+
          end do
-   
+
       endif
 
       ! Broadcast object data to other processes
-      ! If command-line arguments grow, one should bcast the whole object instance (this) instead 
+      ! If command-line arguments grow, one should bcast the whole object instance (this) instead
 #ifdef MPI
       call mpi_bcast(this%run_unit_tests, 1, MPI_LOGICAL, mpi_env%root, mpi_env%comm, mpi_env%ierr)
       call mpi_bcast(this%kill_on_failure, 1, MPI_LOGICAL, mpi_env%root, mpi_env%comm, mpi_env%ierr)
       call mpi_bcast(this%ground_state_solver_threads, 1, MPI_LOGICAL, mpi_env%root, mpi_env%comm, mpi_env%ierr)
-#endif 
+#endif
 
    end subroutine parse_command_line_args
-
 
    !> Get the unit tests substring from the command line arguments.
    !>

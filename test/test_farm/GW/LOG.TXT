@@ -1,12 +1,46 @@
-Log File for Tolerances
+Log File GW Testing
 -----------------------
 
-Inputs generated with serial Intel build, linking to sequential MKL.
-Done on SOL debian machine.
+In order to test the GW, one needs to initially generate some benchmark data with
+the input settings:
 
-We know that several bugs occured when merging
-https://git.physik.hu-berlin.de/sol/exciting/-/merge_requests/4
-in a development version which became oxygen.
+```
+<groundstate
+    do="fromscratch"
 
-Therefore expect this reference to be changed several times, as bugs
-are resolved.
+<gw
+    skipgnd="false"
+```
+
+The GW calculation can then be repeated with the settings:
+
+```
+<groundstate
+    do="skip"
+
+<gw
+    skipgnd="false"
+```
+
+In order to ensure the result is independent of the choice of threads or MPI processes,
+all test executions (following generation of reference data, including `STATE.OUT`) should be run with:
+
+```
+mpirun -np <NP> ~/exciting/bin/exciting_mpismp -gw-scf-threads <THREADS>
+```
+
+where <THREADS> is equal to the number of threads used by MKL for the
+ground state calculation. That it, in order to get QP eigenvalues that are invariant
+w.r.t. the choice of threads or MPI processes, the SCF call in the GW must be performed
+with the same number of threads as was used by MKL in the ground state calculation.
+
+This is achieved in the GW by temporarily setting MKL threads to <THREADS> while performing
+the SCF call. For all other GW execution, the MKL threads will equal whatever is set
+via `export MKL_NUM_THREADS`, therefore having a negligible impact on performance.
+
+As such, we:
+    a) Store STATE.OUT files
+    b) Only test with MKL, as one cannot do the same thread setting in the code with
+       openBLAS (see `src/src_gw/gw_scf.F0` for further discussion), and `STATE.OUT`
+       is compiler-specific. One could move towards addressing this situation by
+       converting `STATE.OUT` to HDF5.

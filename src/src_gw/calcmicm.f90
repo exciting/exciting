@@ -72,8 +72,8 @@
 
     ! loop over core states
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(icg,is,ia,ic,l1,m1,ias,arg,phs,im,irm,bl,bm,imix,l2min,l2max,l2,m2,l2m2,angint,ie2,io2,sum,ilo2,igk2)
-!$OMP DO
+ !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(icg,is,ia,ic,l1,m1,ias,arg,phs,im,irm,bl,bm,imix,l2min,l2max,l2,m2,l2m2,angint,ie2,io2,sum,ilo2,igk2)
+ !$OMP DO
 #endif 
     do icg = cstart, cend
       is  = corind(icg,1)
@@ -149,8 +149,8 @@
         
     end do ! icg
 #ifdef USEOMP
-!$OMP END DO
-!$OMP END PARALLEL
+ !$OMP END DO
+ !$OMP END PARALLEL
 #endif    
 
     !------------------------------------------------------------------

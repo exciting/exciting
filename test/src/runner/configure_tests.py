@@ -26,7 +26,7 @@ from ..tolerance.tol_classes import methods as valid_methods
 def dynamically_generate_test_group_enum_class() -> enum.Enum:
     """ Dynamically generate the TestGroup enum class from YAML file attributes.
 
-    NOTE. defaults_config.yml gets parsed twice by the test suite, which 
+    NOTE. defaults_config.yml gets parsed twice by the test suite, which
     could be avoided. However, the file is small so the overhead is negligible.
 
     :return TestGroup: Enum class containing the enums defined by `group_execution`
@@ -150,6 +150,8 @@ def check_groups_in_config(groups: list):
         missing_groups = groups_in_config_file - enum_group_names
         raise ValueError(f'Groups {missing_groups} specified in the config file '
                          f'are not specified in the defaults_config file')
+
+
 def parse_config_defaults_file(yaml_str: str) -> dict:
     """
     Read the defaults configuration file and extract data.

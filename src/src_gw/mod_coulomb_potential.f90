@@ -3,7 +3,7 @@
 !--------------------------------------------!
 
 module mod_coulomb_potential
-
+    use precision, only: dp, i32
     use constants, only: pi, twopi, fourpi
     use modmain, only: avec
     implicit none
@@ -355,26 +355,28 @@ contains
         end do
     end subroutine
 
-
+    
     subroutine vcoul_3d(Gamma, ik, Gkset, vcoul)
-        use mod_kpointset
-        implicit none
-        logical,      intent(in)  :: Gamma
-        integer(4),   intent(in)  :: ik
-        type(Gk_set), intent(in)  :: Gkset
-        real(8),      intent(out) :: vcoul(:)
-        integer(4) :: igk, igk0
-        real(8)    :: k
-        if (Gamma) then
-            igk0 = 2
-            vcoul(1) = 0.d0
-        else
-            igk0 = 1
-        end if
-        do igk = igk0, Gkset%ngk(1,ik)
-            k = Gkset%gkc(igk,1,ik)
-            vcoul(igk) = 4.d0*pi / k**2
+        use mod_kpointset, only: Gk_set
+        use modgw,         only : Gset, kqset, Gqset, Gqbarc
+        !> Indicate if ik is Gamma
+        logical,       intent(in)  :: Gamma
+        !> k-point index
+        integer(i32),  intent(in)  :: ik
+        !> G + k vectors
+        type(Gk_set),  intent(in)  :: Gkset
+        !> 3D bare Coulomb potential
+        real(dp),      intent(out) :: vcoul(:)
+        !> G + q vector (I assume)
+        real(dp) :: gpq(3)
+        integer(i32)   :: igk
+
+        do igk = 1, Gkset%ngk(1,ik)            
+            gpq(1:3) = Gset%vgc(1:3,Gqbarc%igkig(igk,1,ik)) + kqset%vqc(1:3,ik)
+            vcoul(igk) =  fourpi / dot_product(gpq, gpq)
         end do
+        if (Gamma) vcoul(1) = 0._dp
+
     end subroutine
 
 

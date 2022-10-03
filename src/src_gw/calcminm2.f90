@@ -82,13 +82,13 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     enddo
 
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(tmat,imix,is,ia,ias,irm,bl,bm,arg,phs,l1,m1,l1m1,l2min,l2max,l2,m2,l2m2,angint,ie2,io1,io2,ilo2,igk2,ilo1,ie1,igk1,veckp)
+ !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(tmat,imix,is,ia,ias,irm,bl,bm,arg,phs,l1,m1,l1m1,l2min,l2max,l2,m2,l2m2,angint,ie2,io1,io2,ilo2,igk2,ilo1,ie1,igk1,veckp)
 #endif
     allocate(tmat(nstart:nend,mstart:mend))
     allocate(veckp(mstart:mend))
 
 #ifdef USEOMP
-!$OMP DO SCHEDULE(DYNAMIC)
+ !$OMP DO SCHEDULE(DYNAMIC)
 #endif
     ! loop over MT product basis functions
     do imix = 1, locmatsiz
@@ -191,11 +191,11 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
 
     end do ! imix
 #ifdef USEOMP
-!$OMP END DO
+ !$OMP END DO
 #endif
     deallocate(tmat,veckp)
 #ifdef USEOMP
-!$OMP END PARALLEL
+ !$OMP END PARALLEL
 #endif
     deallocate(lok,lokp)
 

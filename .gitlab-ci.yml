@@ -79,88 +79,47 @@ test-debian-buster-GCC8-mpiandsmp:
     - python3 runtest.py -e exciting_mpismp -repeat-tests 2
     - cd ../tools/exciting_tools && pytest
 
-# Pure serial build, which links to sequential MKL
-build:debian-buster-Intel2019-pure-serial:
-  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
-  stage: build
-  tags:
-    - docker
-  before_script:
-    # Module file, with paths consistent with the nfs drive
-    - cp -r build/utilities/modules/intel /etc/environment-modules/modules
-    - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
-    - module load intel/2019
-  script:
-    - cp build/platforms/make.inc.ifort.serial build/make.inc
-    - make serial -j 2
-  artifacts:
-    paths:
-      - bin/exciting_serial
-      - build/make.inc
-    expire_in: 5 hrs
-
-# Used for testing GW only
-test-debian-buster-Intel2019-pure-serial-GW:
-  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
-  stage: test
-  dependencies:
-    - build:debian-buster-Intel2019-pure-serial
-  tags:
-    - docker
-  before_script:
-    - cp -r build/utilities/modules/intel /etc/environment-modules/modules
-    - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
-    - module load intel/2019
-    - pip3 install --upgrade --force pillow==7.0.0 numpy termcolor lxml pytest pyyaml
-  script:
-    # run GW application tests only, via the GROUP option
-    - pip3 install -e tools/exciting_tools
-    - cd test && pytest test_functions
-    - "sed -i 's/  NONE.*/  NONE: False/g' defaults_config.yml"
-    - "sed -i 's/  GW_TESTS.*/  GW_TESTS: True/g' defaults_config.yml"
-    - python3 runtest.py -e exciting_serial -repeat-tests 2
-    - cd ../tools/exciting_tools && pytest
-
-# Note, this is not `pure` serial, as it links to threaded MKL
+ # Note, exciting is serial, MKL is threaded
+ # although the test suite default sets OMP threads to 1
 build:debian-buster-Intel2019-serial:
-  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
-  stage: build
-  tags:
-    - docker
-  before_script:
-    # Module file, with paths consistent with the nfs drive
-    - cp -r build/utilities/modules/intel /etc/environment-modules/modules
-    - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
-    - module load intel/2019
-  script:
-    - cp build/platforms/make.inc.ifort build/make.inc
-    - make serial -j 2
-  artifacts:
-    paths:
-      - bin/exciting_serial
-      - build/make.inc
-    expire_in: 5 hrs
+   image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
+   stage: build
+   tags:
+     - docker
+   before_script:
+     # Module file, with paths consistent with the nfs drive
+     - cp -r build/utilities/modules/intel /etc/environment-modules/modules
+     - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
+     - module load intel/2019
+   script:
+     - cp build/platforms/make.inc.ifort build/make.inc
+     - make serial -j 2
+   artifacts:
+     paths:
+       - bin/exciting_serial
+       - build/make.inc
+     expire_in: 5 hrs
 
 test-debian-buster-Intel2019-serial:
-  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
-  stage: test
-  dependencies:
-    - build:debian-buster-Intel2019-serial
-  tags:
-    - docker
-  before_script:
-    - cp -r build/utilities/modules/intel /etc/environment-modules/modules
-    - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
-    - module load intel/2019
-    - pip3 install --upgrade --force pillow==7.0.0 numpy termcolor lxml pytest pyyaml
-  script:
-    # run unit tests
-    - bin/exciting_serial -run-unit-tests -kill-on-failure
-    # run application tests
-    - pip3 install -e tools/exciting_tools
-    - cd test && pytest test_functions
-    - python3 runtest.py -e exciting_serial -repeat-tests 2
-    - cd ../tools/exciting_tools && pytest
+   image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
+   stage: test
+   dependencies:
+     - build:debian-buster-Intel2019-serial
+   tags:
+     - docker
+   before_script:
+     - cp -r build/utilities/modules/intel /etc/environment-modules/modules
+     - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
+     - module load intel/2019
+     - pip3 install --upgrade --force pillow==7.0.0 numpy termcolor lxml pytest pyyaml
+   script:
+     # run unit tests
+     - bin/exciting_serial -run-unit-tests -kill-on-failure
+     # run application tests
+     - pip3 install -e tools/exciting_tools
+     - cd test && pytest test_functions
+     - python3 runtest.py -e exciting_serial -repeat-tests 2
+     - cd ../tools/exciting_tools && pytest
 
 build:debian-buster-Intel2019-mpiandsmp:
   image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
@@ -212,6 +171,57 @@ test-debian-buster-Intel2019-mpiandsmp:
       - docs/profiling/CodeCoverage
       - docs/profiling/CODE_COVERAGE.HTML
 
+# Used for testing GW only
+# Commented-out because the variation in GW numbers is too large
+# for regression testing
+#build:debian-buster-Intel2021-mpiandsmp:
+# image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
+# stage: build
+# tags:
+#   - docker
+# before_script:
+#   - cp -r build/utilities/modules/intel /etc/environment-modules/modules
+#   - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
+#   - module load intel/oneapi-2021.3
+#   - ls $MKLROOT/include/intel64/lp64/
+# script:
+#   - cp build/platforms/make.inc.ifort2021 build/make.inc
+#   - make mpiandsmp -j 2
+# artifacts:
+#   paths:
+#     - bin/exciting_mpismp
+#     - build/make.inc
+#   expire_in: 5 hrs
+
+# Used for testing GW only. - GW only tested for full parallel build
+# Commented-out because the variation in GW numbers is too large
+# for regression testing
+#test-debian-buster-Intel2021-mpiandsmp:
+#  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
+#  stage: test
+#  dependencies:
+#    - build:debian-buster-Intel2021-mpiandsmp
+#  tags:
+#    - docker
+#  before_script:
+#    - cp -r build/utilities/modules/intel /etc/environment-modules/modules
+#    - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
+#    - module load intel/oneapi-2021.3
+#    # Install all python packages to a venv to resolve PATH issues
+#    - mkdir venv && cd venv && python3 -m venv docker
+#    - source docker/bin/activate && cd ../
+#    - pip3 install --upgrade --force pillow==7.0.0 numpy termcolor lxml pytest pyyaml
+#  script:
+#    # run GW application tests only, via the GROUP option
+#    - source venv/docker/bin/activate
+#    - pip3 install -e tools/exciting_tools
+#    - cd test && pytest test_functions
+#    - python3 set_groups.py -file defaults_config.yml -groups GW_INTEL
+#    # MKL threads used to run GW test must be equal to those used
+#    # to generate the ground state STATE.OUT
+#    - export MKL_NUM_THREADS=1
+#    - python3 runtest.py -e exciting_mpismp -repeat-tests 2
+
 # Build documentation
 build:debian-buster-documentation:
   image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-docs
@@ -229,6 +239,7 @@ build:debian-buster-documentation:
       - docs/exciting/excitinginput.pdf
       - docs/exciting_ford
 
+# Used for testing Jupyter tutorials
 build:debian-buster-GCC8-smp:
   image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8-April2022
   stage: build

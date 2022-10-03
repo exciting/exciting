@@ -1,0 +1,185 @@
+ 
+================================================================================
+=                            GW input parameters                               =
+================================================================================
+ 
+ 
+ GW taskname:
+ 
+   g0w0 - G0W0 run
+ 
+--------------------------------------------------------------------------------
+ 
+ Frequency integration parameters:
+ Number of frequencies:            4
+ Cutoff frequency:    1.00000000000000     
+ Grid type:
+   gauleg2 - Double Gauss-Legendre grid: [0, freqmax] + [freqmax, infty]
+ Convolution method:
+   imfreq : weights calculated for imaginary frequencies
+ 
+--------------------------------------------------------------------------------
+ 
+ Correlation self-energy parameters:
+ Solution of the QP equation:
+   0 - perturbative solution
+ Energy alignment:
+   0 - no alignment
+ Analytic continuation method:
+  PADE - Thiele's reciprocal difference method
+  Citation: H. J. Vidberg and J. W. Serence, J. Low Temp. Phys. 29, 179 (1977)
+ Scheme to treat singularities:
+  Auxiliary function method "crg"
+  Citation: P. Carrier, S. Rohra, and A. Goerling, PRB 75, 205126 (2007)
+ 
+--------------------------------------------------------------------------------
+ 
+ Mixed product basis parameters:
+   MT part:
+     Angular momentum cutoff:            3
+     Linear dependence tolerance factor:   1.000000000000000E-002
+   Interstitial:
+     Plane wave cutoff (in units of Gkmax):    1.00000000000000     
+ 
+--------------------------------------------------------------------------------
+ 
+ Bare Coulomb potential parameters:
+   Plane wave cutoff (in units of Gkmax*input%gw%MixBasis%gmb):   2.00000000000000
+   Error tolerance for structure constants:   1.000000000000000E-016
+   Tolerance factor to reduce the MB size based on
+   the eigenvectors of the bare Coulomb potential:   0.100000000000000     
+ 
+--------------------------------------------------------------------------------
+ 
+ Screened Coulomb potential:
+   Full-frequency Random-Phase Approximation
+ 
+--------------------------------------------------------------------------------
+ 
+ Core electrons treatment:
+   all - Core states are included in all calculations
+ 
+--------------------------------------------------------------------------------
+ 
+ Interval of quasiparticle states (ibgw, nbgw):      16     26
+ 
+ Number of empty states (GW):           20
+ 
+ k/q-points grid:            2           2           2
+ 
+--------------------------------------------------------------------------------
+-                           Mixed product WF info                              -
+--------------------------------------------------------------------------------
+ 
+  Maximal number of MT wavefunctions per atom:          226
+  Total number of MT wavefunctions:                     432
+  Maximal number of PW wavefunctions:                   190
+  Total number of mixed-product wavefunctions:          622
+ 
+ 
+--------------------------------------------------------------------------------
+-                               frequency grid                                 -
+--------------------------------------------------------------------------------
+ 
+ Type: < fgrid > gauleg2                                 
+ Frequency axis: < fconv > imfreq                                  
+ Number of frequencies: < nomeg >            4
+ Cutoff frequency: < freqmax >    1.00000000000000     
+ frequency list: < #    freqs    weight > 
+   1  0.2113248654      0.5000000000    
+   2  0.7886751346      0.5000000000    
+   3   1.267949192      0.8038475773    
+   4   4.732050808       11.19615242    
+ 
+--------------------------------------------------------------------------------
+-                       Kohn-Sham eigenstates summary                          -
+--------------------------------------------------------------------------------
+ 
+ Maximum number of LAPW states:                      226
+ Minimal number of LAPW states:                      216
+ Number of states used in GW:
+     - total KS                                       42
+     - occupied                                       21
+     - unoccupied                                     20
+     - dielectric function                            42
+     - self energy                                    42
+ Energy of the highest unoccupied state:        1.205940
+ Number of valence electrons:                         42
+ Number of valence electrons treated in GW:           12
+ 
+--------------------------------------------------------------------------------
+-                          Kohn-Sham band structure                            -
+--------------------------------------------------------------------------------
+ 
+ Fermi energy:     0.0000
+ Energy range:   -14.7209    1.2059
+ Band index of VBM:  21
+ Band index of CBm:  22
+ 
+ Indirect BandGap (eV):                    3.0154
+ at k(VBM) =    0.000   0.500   0.500 ik =     3
+    k(CBm) =    0.000   0.000   0.000 ik =     1
+ Direct Bandgap at k(VBM) (eV):            3.5171
+ Direct Bandgap at k(CBm) (eV):            3.5676
+ 
+================================================================================
+=                                  GW cycle                                    =
+================================================================================
+ 
+ (task_gw): q-point cycle, iq =            1
+ (task_gw): q-point cycle, iq =            2
+ (task_gw): q-point cycle, iq =            3
+ (task_gw): q-point cycle, iq =            4
+ (task_gw): q-point cycle, iq =            5
+ (task_gw): q-point cycle, iq =            6
+ (task_gw): q-point cycle, iq =            7
+ (task_gw): q-point cycle, iq =            8
+ 
+--------------------------------------------------------------------------------
+-                            G0W0 band structure                               -
+--------------------------------------------------------------------------------
+ 
+ Fermi energy:     0.0601
+ Energy range:    -0.2872    0.4181
+ Band index of VBM:  21
+ Band index of CBm:  22
+ 
+ Indirect BandGap (eV):                    4.7400
+ at k(VBM) =    0.000   0.500   0.500 ik =     3
+    k(CBm) =    0.000   0.000   0.000 ik =     1
+ Direct Bandgap at k(VBM) (eV):            5.0461
+ Direct Bandgap at k(CBm) (eV):            5.4441
+ 
+================================================================================
+=                          GW timing info (seconds)                            =
+================================================================================
+ 
+ Initialization                             :         2.53
+     - init_scf                             :         1.42
+     - init_kpt                             :         0.01
+     - init_eval                            :         0.00
+     - init_freq                            :         0.00
+     - init_mb                              :         0.26
+ Subroutines                                : 
+     - calcpmat                             :         3.28
+     - calcbarcmb                           :         3.39
+     - BZ integration weights               :         0.25
+     Dielectric function                    :        13.53
+     - head                                 :         0.00
+     - wings                                :         0.00
+     - body                                 :         0.00
+     - inversion                            :         0.61
+     WF products expansion                  :         0.10
+     - diagsgi                              :         0.04
+     - calcmpwipw                           :         0.07
+     - calcmicm                             :         0.05
+     - calcminc                             :         0.03
+     - calcminm                             :         0.00
+     Self-energy                            :         8.53
+     - calcselfx                            :         2.02
+     - calcselfc                            :         6.51
+     - calcvxcnn                            :         0.68
+     - input/output                         :         0.00
+ _________________________________________________________
+ Total                                      :        33.85
+ 
