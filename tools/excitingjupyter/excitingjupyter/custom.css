@@ -44,3 +44,98 @@ span.save_widget span.filename {
     margin-top: 30px;
     margin-left: 40px;
 }
+
+/*Intro page style*/
+
+body[data-notebook-path] {
+    background-color:white;
+}
+
+.tabbable {
+    color: black;
+}
+
+.nav-tabs {
+    border-bottom-color: #cbd6f0;
+}
+
+.nav-tabs>li>a:hover, .nav>li>a:focus {
+    background-color: #FFF8DC;
+    border-color: #cbd6f0;
+}
+
+.nav-tabs>li.active>a, .nav-tabs>li.active>a:focus, .nav-tabs>li.active>a:hover {
+    color: black;
+    background-color: #FFF8DC;
+    border-color: #cbd6f0;
+}
+
+.list_container {
+    border-color: #cbd6f0;
+}
+
+.list_container>div {
+    border-bottom-color: #cbd6f0;
+}
+
+.list_item:hover {
+    background-color: #FFF8DC;
+}
+
+.list_header {
+    background-color: #FFF8DC;
+}
+
+#notebook_list input[type="checkbox"] {
+    opacity: 0.6;
+}
+
+.item_icon {
+    color: black;
+}
+
+.item_icon:hover {
+    color: white;
+}
+
+.panel {
+    border-color: #cbd6f0;
+    background-color: white;
+}
+
+.panel-default>.panel-heading {
+    border-color: #cbd6f0;
+}
+
+#site .panel-group .panel .panel-heading {
+    background-color: #FFF8DC;
+}
+
+#running .panel-group .panel .panel-body .list_container .list_item {
+    border-bottom-color: #cbd6f0;
+}
+
+a {
+    color: black;
+}
+p {
+    color: black;
+}
+
+li {
+    color: black;
+}
+
+/*Notebook background*/
+
+@media not print {
+    .notebook_app #notebook {
+        background-color: #FFF8DC;
+
+    }
+    .notebook_app #notebook-container, .edit_app #texteditor-backdrop {
+        background-color: 'white';
+        border-radius: .35em;
+    }
+}
+
