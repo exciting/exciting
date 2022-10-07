@@ -193,6 +193,14 @@ subroutine bselauncher
   !---------------------------------------------------------------------------!
   ! Assemble and solve BSE for each Q-point in range
   !---------------------------------------------------------------------------!
+
+#ifndef MPI
+  if(mpiglobal%rank == 0) then
+    write(6, '(a)', advance="no") "Solving BSE Eigenvalue Problem"
+    flush(6)
+  end if
+#endif
+
   do iqmt = iqmti+iq1-1, iqmti+iq2-1
 
     ! Get full Q vector for info out
@@ -215,13 +223,6 @@ subroutine bselauncher
       &trim(thisname), iqmt
     call printline(unitout, "-")
 
-#ifndef MPI
-    if(mpiglobal%rank == 0) then
-      write(6, '(a,"Solving BSE Eigenvalue Problem:                  ", f10.3)', advance="no")&
-        & achar( 13), 100.0d0*dble(iqmt-iqmti+1)/dble(iq2-iq1+1)
-      flush(6)
-    end if
-#endif
   end do
   !---------------------------------------------------------------------------!
 

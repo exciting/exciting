@@ -302,6 +302,13 @@ subroutine exccoulint(iqmt)
   ! participating in the BSE
   call genparidxran('k', nk_bse)
 
+#ifndef MPI
+  if(mpiglobal%rank == 0) then
+    write(6, '(a)', advance="no") "Calculating Plane-wave matrix elements"
+    flush(6)
+  end if
+#endif
+
   !! RR:  M_uok(G,qmt) = <iu ikm|e^{-i(G+qmt)r}|io ikp>
   !!      with ikp = ik+qmt
   do ik = kpari, kparf
@@ -327,14 +334,6 @@ subroutine exccoulint(iqmt)
 
     ! and save it for all ik
     ematuok(1:inu, 1:ino, 1:numgq, ik) = muo(1:inu, 1:ino, 1:numgq)
-#ifndef MPI
-    if(mpiglobal%rank == 0) then
-      write(6, '(a,"Calculating Plane-wave matrix elements:          ", f10.3)', advance="no")&
-        & achar( 13), 100.0d0*dble(ik-kpari+1)/dble(kparf-kpari+1)
-      flush(6)
-    end if
-#endif
-
   end do
 
 #ifndef MPI
@@ -405,6 +404,13 @@ subroutine exccoulint(iqmt)
     end if
     call timesec(tpw0)
   end if
+
+#ifndef MPI
+  if(mpiglobal%rank == 0) then
+      write(6, '(a)', advance="no") "Calculating Exchange Interaction Matrix Elements"
+      flush(6)
+    end if
+#endif
 
   kkp: do ikkp = ppari, pparf
 
@@ -485,15 +491,6 @@ subroutine exccoulint(iqmt)
 
     ! Parallel write
     call putbsemat(exclifname, 77, ikkp, iqmt, excli)
-#ifndef MPI
-    if(mpiglobal%rank == 0) then
-      if ( ( modulo( ikkp-ppari + 1, 100 ) == 0 ) .or. ( ikkp-ppari+1 == pparf-ppari+1 ) ) then
-        write(6, '(a,"Calculating Exchange Interaction Matrix Elements:", f10.3)', advance="no")&
-          & achar( 13), 100.0d0*dble(ikkp-ppari+1)/dble(pparf-ppari+1)
-        flush(6)
-      end if
-    end if
-#endif
   ! End loop over(k,kp) pairs
   end do kkp
 #ifndef MPI

@@ -419,6 +419,13 @@ subroutine scrcoulint(iqmt, fra)
     & Calculating W(G1,G2,qr) fourier coefficients")')
   call timesec(tscc0)
 
+#ifndef MPI
+  if(mpiglobal%rank == 0) then
+    write(6, '(a)', advance="no") "Calculating Screened Coulomb Potential"
+    flush(6)
+  end if
+#endif
+
   do iqr = qpari, qparf ! Reduced q
 
     ! Locate reduced q-point in non-reduced set
@@ -438,13 +445,6 @@ subroutine scrcoulint(iqmt, fra)
     ! and save them to disk.
     filext = fileext_ematrad_write
     call putematrad(iqr, iqrnr)
-#ifndef MPI
-    if(mpiglobal%rank == 0) then
-      write(6, '(a,"Calculating Screened Coulomb Potential:          ", f10.3)', advance="no")&
-        & achar( 13), 100.0d0*dble(iqr-qpari+1)/dble(qparf-qpari+1)
-      flush(6)
-    end if
-#endif
   end do
 
 #ifndef MPI
@@ -563,6 +563,13 @@ subroutine scrcoulint(iqmt, fra)
   bsedt(1, :) = 1.d8
   bsedt(2, :) = -1.d8
   bsedt(3, :) = zzero
+
+#ifndef MPI
+  if(mpiglobal%rank == 0) then
+      write(6, '(a)', advance="no") "Calculating Screened Coulomb Matrix Elements"
+      flush(6)
+    end if
+#endif
 
   kkploop: do ikkp = ppari, pparf
 
@@ -930,15 +937,6 @@ subroutine scrcoulint(iqmt, fra)
     deallocate(wfc)
     if(allocated(wfc_ph)) deallocate(wfc_ph)
 
-#ifndef MPI
-    if(mpiglobal%rank == 0) then
-      if ( ( modulo( ikkp-ppari + 1, 100 ) == 0 ) .or. ( ikkp-ppari+1 == pparf-ppari+1 ) ) then ! Find a better solution. This does not scale and does not print at 100 %
-        write(6, '(a,"Calculating Screened Coulomb Matrix Elements:    ", f10.3)', advance="no")&
-          & achar( 13), 100.0d0*dble(ikkp-ppari+1)/dble(pparf-ppari+1)
-        flush(6)
-      end if
-    end if
-#endif
   ! End loop over(k,kp)-pairs
   end do kkploop
 
