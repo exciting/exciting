@@ -199,6 +199,14 @@ subroutine screenlauncher
   write(unitout,*)
   write(unitout, '(a, i4)') 'Info(' // thisname // '): Starting loop over q-points'
   write(unitout, *)
+
+#ifndef MPI
+  if(mpiglobal%rank == 0) then
+    write(6, '(a)', advance="no") "Calculating RPA Dielectric Function"
+    flush(6)
+  end if
+#endif
+
   ! Loop over q-points 
   do iq = qpari, qparf
 
@@ -216,14 +224,6 @@ subroutine screenlauncher
         & response function finished for q - point:', iq
       call printline(unitout, "-")
     end if
-
-#ifndef MPI
-    if(mpiglobal%rank == 0) then
-      write(6, '(a,"Calculating RPA Dielectric Function:             ", f10.3)', advance="no")&
-        & achar( 13), 100.0d0*dble(iq-qpari+1)/dble(qparf-qpari+1)
-      flush(6)
-    end if
-#endif
 
   end do
 
