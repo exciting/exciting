@@ -57,7 +57,7 @@ def exciting_input_xml(structure: ExcitingStructure,
 def exciting_input_xml_str(structure: ExcitingStructure,
                            groundstate: ExcitingGroundStateInput,
                            **kwargs) -> str:
-    """ "Compose XML ElementTrees from exciting input classes to create an input xml string.
+    """Compose XML ElementTrees from exciting input classes to create an input xml string.
 
     :param ExcitingStructure structure: Structure containing lattice vectors and atomic positions.
     :param groundstate: exciting ground state input object.

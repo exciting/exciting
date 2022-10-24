@@ -31,12 +31,12 @@ test-debian-buster-GCC8-serial:
     - docker
   before_script:
     - apt-get --allow-releaseinfo-change update && apt-get install -y libpython3.7 libpython3.7-dev python3-pip
-    - pip3 install --upgrade --force pillow==7.0.0 numpy termcolor lxml pytest pyyaml
+    - python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor lxml pytest pyyaml
   script:
     # run unit tests
     - bin/exciting_serial -run-unit-tests -kill-on-failure
     # Provide test suite parsers
-    - pip3 install -e tools/exciting_tools
+    - python3 -m pip install -e tools/exciting_tools
     # Run pytest unit tests for test suite functions
     - cd test && pytest test_functions
     - python3 runtest.py -e exciting_serial -repeat-tests 2
@@ -66,12 +66,12 @@ test-debian-buster-GCC8-mpiandsmp:
     - docker
   before_script:
     - apt-get --allow-releaseinfo-change update && apt-get install -y libpython3.7 libpython3.7-dev python3-pip
-    - pip3 install --upgrade --force pillow==7.0.0 numpy termcolor lxml pytest pyyaml
+    - python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor lxml pytest pyyaml
   script:
     # run unit tests
     - export OMP_NUM_THREADS=2 && mpirun --allow-run-as-root -np 2 bin/exciting_mpismp -run-unit-tests -kill-on-failure
     # run application tests
-    - pip3 install -e tools/exciting_tools
+    - python3 -m pip install -e tools/exciting_tools
     # Allow mpirun to run as root (mpirun typically shouldn't be run as root)
     # See this ref: https://github.com/open-mpi/ompi/issues/4451
     - export OPENMPI_IN_DOCKER=True
@@ -111,12 +111,12 @@ test-debian-buster-Intel2019-serial:
      - cp -r build/utilities/modules/intel /etc/environment-modules/modules
      - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
      - module load intel/2019
-     - pip3 install --upgrade --force pillow==7.0.0 numpy termcolor lxml pytest pyyaml
+     - python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor lxml pytest pyyaml
    script:
      # run unit tests
      - bin/exciting_serial -run-unit-tests -kill-on-failure
      # run application tests
-     - pip3 install -e tools/exciting_tools
+     - python3 -m pip install -e tools/exciting_tools
      - cd test && pytest test_functions
      - python3 runtest.py -e exciting_serial -repeat-tests 2
      - cd ../tools/exciting_tools && pytest
@@ -155,12 +155,12 @@ test-debian-buster-Intel2019-mpiandsmp:
     - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
     - module load intel/2019
     - apt-get install -y libfabric1 libfabric-dev
-    - pip3 install --upgrade --force pillow==7.0.0 numpy termcolor lxml pytest pyyaml
+    - python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor lxml pytest pyyaml
   script:
     # run unit tests
     - export OMP_NUM_THREADS=2 && mpirun -np 2 bin/exciting_mpismp -run-unit-tests -kill-on-failure
     # run application tests
-    - pip3 install -e tools/exciting_tools
+    - python3 -m pip install -e tools/exciting_tools
     - cd test && pytest test_functions
     - python3 runtest.py -e exciting_mpismp -repeat-tests 2
     - cd ../tools/exciting_tools && pytest
