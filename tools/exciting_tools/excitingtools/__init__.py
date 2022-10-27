@@ -8,3 +8,7 @@ from excitingtools.exciting_dict_parsers.parser_factory import parser_chooser
 from excitingtools.exciting_obj_parsers import *
 # User-level objects
 from excitingtools.dataclasses import *
+
+from pkg_resources import get_distribution
+
+__version__ = get_distribution('excitingtools').version
