@@ -87,7 +87,7 @@ module math_utils
   !>      \end{pmatrix}
   !> \]
   interface kronecker_product
-     module procedure kronecker_product_real_dp, kronecker_product_complex_dp
+     module procedure kronecker_product_integer, kronecker_product_real_dp, kronecker_product_complex_dp
   end interface kronecker_product
 
   !> Calculate the determinant of a matrix using Laplace extension.
@@ -859,6 +859,49 @@ contains
 !
 ! Calculate the Kronecker product for three vectors.
 
+  !> Calculate the Kronecker product for three integer vectors with various dimensions:
+  !> \( \mathbf{A} \bigotimes \mathbf{B} \bigotimes \mathbf{C} \)
+  !>
+  !> The Kronecker product for two vectors is defined as:
+  !> \[
+  !>    \mathbf{A} \bigotimes \mathbf{B} =
+  !>           \begin{pmatrix}
+  !>               a_1\mathbf{B}\\ \vdots \\ a_n\mathbf{B}
+  !>           \end{pmatrix}
+  !> \]
+  function kronecker_product_integer(A, B, C) result(output_vector)
+    !> first input vector A
+    integer, intent(in) :: A(:), &
+      !> second input vector B
+      B(:), &
+      !> third input vector C
+      C(:)
+    !> result
+    integer, allocatable :: output_vector(:)
+    ! local variables
+    integer :: i, NA, NB, NC, ilow, iup
+    integer, allocatable :: work(:)
+
+    NA = size(A)
+    NB = size(B)
+    NC = size(C)
+
+    allocate (work(NA * NB))
+    do i = 1, NA
+      ilow = (i - 1) * NB + 1
+      iup = ilow - 1 + NB
+      work(ilow: iup) = A(i) * B
+    end do
+
+    allocate (output_vector(NA * NB * NC))
+    do i = 1, size(A)*size(B)
+      ilow = (i - 1) * NC + 1
+      iup = ilow - 1 + NC
+      output_vector(ilow: iup) = work(i) * C
+    end do
+  end function kronecker_product_integer
+
+
   !> Calculate the Kronecker product for three real vectors with various dimensions:
   !> \( \mathbf{A} \bigotimes \mathbf{B} \bigotimes \mathbf{C} \)
   !>
@@ -879,18 +922,25 @@ contains
     !> result
     real(dp), allocatable :: output_vector(:)
     ! local variables
-    integer :: i
+    integer :: i, NA, NB, NC, ilow, iup
     real(dp), allocatable :: work(:)
 
-    allocate (output_vector(size(A)*size(B)*size(C)))
-    allocate (work(size(A)*size(B)))
+    NA = size(A)
+    NB = size(B)
+    NC = size(C)
 
-    do i = 1, size(A)
-      work((i - 1)*size(B) + 1:i*size(B)) = A(i)*B
+    allocate (work(NA * NB))
+    do i = 1, NA
+      ilow = (i - 1) * NB + 1
+      iup = ilow - 1 + NB
+      work(ilow: iup) = A(i) * B
     end do
 
+    allocate (output_vector(NA * NB * NC))
     do i = 1, size(A)*size(B)
-      output_vector((i - 1)*size(C) + 1:i*size(C)) = work(i)*C
+      ilow = (i - 1) * NC + 1
+      iup = ilow - 1 + NC
+      output_vector(ilow: iup) = work(i) * C
     end do
   end function kronecker_product_real_dp
 
@@ -914,18 +964,25 @@ contains
     !> result
     complex(dp), allocatable :: output_vector(:)
     ! local variables
-    integer :: i
+    integer :: i, NA, NB, NC, ilow, iup
     complex(dp), allocatable :: work(:)
 
-    allocate (output_vector(size(A)*size(B)*size(C)))
-    allocate (work(size(A)*size(B)))
+    NA = size(A)
+    NB = size(B)
+    NC = size(C)
 
-    do i = 1, size(A)
-      work((i - 1)*size(B) + 1:i*size(B)) = A(i)*B
+    allocate (work(NA * NB))
+    do i = 1, NA
+      ilow = (i - 1) * NB + 1
+      iup = ilow - 1 + NB
+      work(ilow: iup) = A(i) * B
     end do
 
+    allocate (output_vector(NA * NB * NC))
     do i = 1, size(A)*size(B)
-      output_vector((i - 1)*size(C) + 1:i*size(C)) = work(i)*C
+      ilow = (i - 1) * NC + 1
+      iup = ilow - 1 + NC
+      output_vector(ilow: iup) = work(i) * C
     end do
   end function kronecker_product_complex_dp
 
@@ -1436,7 +1493,7 @@ contains
     !> Number to map to \([c, c + 1)\)
     real(dp), intent(in) :: x_in
     !> Offset of the intervall
-    integer, optional, intent(in) :: c_in
+    integer, intent(in), optional :: c_in
     !> Tolerance for real numbers to be defined as zero.
     real(dp), intent(in), optional :: tol
 
@@ -1508,7 +1565,7 @@ contains
     !> Number to map to \([c, c + 1)\)
     real(dp), intent(in) :: x_in
     !> Offset of the intervall
-    integer, optional, intent(in) :: c_in
+    integer, intent(in), optional :: c_in
     !> Tolerance for real numbers to be defined as zero. For default see [[default_tol]].
     real(dp), intent(in), optional :: tol
 

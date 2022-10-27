@@ -1,5 +1,4 @@
 !> Collect all unit test drivers for structure modules
-
 module structure_test_drivers
    use modmpi, only: mpiinfo
 
@@ -22,7 +21,6 @@ contains
       ! Call test drivers here
       call super_cell_utils_test_driver(mpiglobal, kill_on_failure)
       call unit_cell_utils_test_driver(mpiglobal, kill_on_failure)
-
    end subroutine structure_test_driver
 
 end module structure_test_drivers
