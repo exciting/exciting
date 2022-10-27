@@ -56,7 +56,7 @@ contains
     !> Test report object
     type(unit_test_type) :: test_report
     !> Number of assertions
-    integer, parameter :: n_assertions = 121
+    integer, parameter :: n_assertions = 122
 
     ! Initialize test object
     call test_report%init(n_assertions, mpiglobal)
@@ -303,54 +303,58 @@ contains
                             36.0_dp,  42.0_dp,  48.0_dp,  54.0_dp,  48.0_dp,  56.0_dp,  &
                             64.0_dp,  72.0_dp,  60.0_dp,  70.0_dp,  80.0_dp,  90.0_dp ]
 
-    real(dp), allocatable :: kron_prod_real(:)
-    complex(dp) :: ref_complex(24)
-    complex(dp), allocatable :: kron_prod_complex(:)
+    real(dp), allocatable :: kronprod_real(:)
+    complex(dp), allocatable :: kronprod_complex(:), ref_complex(:)
+    integer, allocatable :: kronprod_int(:), ref_int(:)
 
     ! test if the function reproduces the correct structure:
-    kron_prod_real = kronecker_product(triv, triv, non_triv)
-    call test_report%assert(size(kron_prod_real)==8, &
+    kronprod_real = kronecker_product(triv, triv, non_triv)
+    call test_report%assert(size(kronprod_real)==8, &
                     'Test if kronecker_product is returning an array with the correct size for input vectors with the same size. &
                     Expected: 8 element vector.')
 
-    call test_report%assert(all_close(kron_prod_real, &
+    call test_report%assert(all_close(kronprod_real, &
                     [1.0_dp, 2.0_dp, 1.0_dp, 2.0_dp, 1.0_dp, 2.0_dp, 1.0_dp, 2.0_dp]), &
                     'Test kronecker_product structure: Third is non trivial. &
                     Expected: [1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0]')
-    deallocate(kron_prod_real)
+    deallocate(kronprod_real)
 
-    kron_prod_real = kronecker_product(triv, non_triv, triv)
-    call test_report%assert(all_close(kron_prod_real, &
+    kronprod_real = kronecker_product(triv, non_triv, triv)
+    call test_report%assert(all_close(kronprod_real, &
                     [1.0_dp, 1.0_dp, 2.0_dp, 2.0_dp, 1.0_dp, 1.0_dp, 2.0_dp, 2.0_dp]), &
                     'Test kronecker_product structure: Second input is non trivial. &
                     Expected: [1.0, 1.0, 2.0, 2.0, 1.0, 1.0, 2.0, 2.0]')
-    deallocate(kron_prod_real)
+    deallocate(kronprod_real)
 
-    kron_prod_real = kronecker_product(non_triv, triv, triv)
-    call test_report%assert(all_close(kron_prod_real, &
+    kronprod_real = kronecker_product(non_triv, triv, triv)
+    call test_report%assert(all_close(kronprod_real, &
                     [1.0_dp, 1.0_dp, 1.0_dp, 1.0_dp, 2.0_dp, 2.0_dp, 2.0_dp, 2.0_dp]), &
                     'Test kronecker_product structure: First input is non trivial. &
                     Expected: [1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0]')
-    deallocate(kron_prod_real)
 
     ! test kronecker product for real input
-    kron_prod_real = kronecker_product(v_1, v_2, v_3)
-    call test_report%assert(size(kron_prod_real) == 24, &
+    kronprod_real = kronecker_product(v_1, v_2, v_3)
+    call test_report%assert(size(kronprod_real) == 24, &
                     'Test if kronecker_product returns an array with the correct size for real input vectors with different size. &
                     Expected: 24 element vector.')
 
     call test_report%assert(all_close( kronecker_product(v_1, v_2, v_3), ref), &
                     'Test kronecker_product for real input: The first input has dimension 2, the second 3 and the third 4. &
                     Expected: Real vector that is the kronecker product of the input vectors.')
-    deallocate(kron_prod_real)
-    ! test kronecker product for complex input
 
-    kron_prod_complex = kronecker_product(v_1*zone, v_2*zone, v_3*zone)
+    ! test kronecker product for complex input
+    kronprod_complex = kronecker_product(v_1*zone, v_2*zone, v_3*zone)
     ref_complex = ref * zone
-    call test_report%assert(all_close(kron_prod_complex, ref_complex), &
+    call test_report%assert(all_close(kronprod_complex, ref_complex), &
                     'Test kronecker_product for complex input: The first input has dimension 2, the second 3 and the third 4. &
                     Expected: Complex vector that is the kronecker product of the input vectors.')
-    deallocate(kron_prod_complex)
+    deallocate(kronprod_complex)
+
+    kronprod_int = kronecker_product(dint(v_1), dint(v_2), dint(v_3))
+    ref_int = dint(ref)
+    call test_report%assert(all(kronprod_int == ref_int), &
+      'Test kronecker_product for integer input: The first input has dimension 2, the second 3 and the third 4. &
+        Expected: Integer vector that is the kronecker product of the input vectors.')
 
   end subroutine test_kronecker_product
 
@@ -832,7 +836,7 @@ contains
     points_test = integer_part(points_input, offset)
     points_ref = reshape( [27, -11, 33, &
                             0,   0,  0 ], [3, 2])
-    print*, points_test
+
     call test_report%assert(all(points_test == points_ref), &
             'integer_part did not return the correct point array for array as input and with offset.')
   end subroutine test_integer_part

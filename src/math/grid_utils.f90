@@ -3,7 +3,7 @@ module grid_utils
   use precision, only: sp, dp
   use constants, only: pi, zi
   use asserts, only: assert
-  use math_utils, only: kronecker_product, mod1
+  use math_utils, only: kronecker_product, mod1, all_close
   use multi_index_conversion, only: indices_to_composite_index, composite_index_to_indices
 
   implicit none
@@ -17,7 +17,7 @@ module grid_utils
             fft_frequencies, &
             n_grid_diff, &
             partial_grid, &
-            flattend_map
+            flattened_map
 
   real(dp), parameter :: default_offset(3) = [0._dp, 0._dp, 0._dp]
 
@@ -48,20 +48,20 @@ module grid_utils
 contains
 
   !> Generate an array of ascending or descending evenly distributed integers.
-  !> The first element is alway `start` and the last element `mesh_1d_last <= end` (for `end < start`:
-  !> `mesh_1d_last <= end`).
+  !> The first element is alway `first` and the last element `mesh_1d_last <= last` (for `last < first`:
+  !> `mesh_1d_last <= last`).
   !>
-  !> `mesh_1d_last == end` when `(start - end) / spacing` is an integer number.
-  function mesh_1d(start, end, spacing) result(range)
-    !> First element of the range. If end is not given, this is interpreted as length of the mesh 
+  !> `mesh_1d_last == last` when `(first - last) / spacing` is an integer number.
+  function mesh_1d(first, last, spacing) result(mesh)
+    !> First element of the mesh. If last is not given, this is interpreted as length of the mesh
     !> and the first element is set to 1
-    integer, intent(in) :: start
-    !> Last element of the range. Must be different from start. If `end < start`, a descending array is returned.
-    integer, intent(in) :: end
+    integer, intent(in) :: first
+    !> Last element of the mesh. Must be different from first. If `last < first`, a descending array is returned.
+    integer, intent(in) :: last
     !> Spacing between the elements. The routine expects `spacing > 0`. Default is 1.
     integer, intent(in), optional :: spacing
 
-    integer, allocatable :: range(:)
+    integer, allocatable :: mesh(:)
 
     integer :: i, spacing_local, dx, N
     external :: sign
@@ -69,150 +69,126 @@ contains
     spacing_local = 1
     if (present(spacing)) spacing_local = spacing
 
-    call assert(start /= end, 'start == end.')
     call assert(spacing_local > 0, 'spacing <= 0.')
 
-    dx = end - start
+    dx = last - first
     spacing_local = isign(spacing_local, dx)
     N = int(dx / spacing_local) + 1
 
-    allocate(range(N))
+    allocate(mesh(N))
     do i = 1, N
-       range(i) = start + (i - 1) * spacing_local
+       mesh(i) = first + (i - 1) * spacing_local
     end do
   end function mesh_1d
 
-
-  !> Generate an array of lenght N_tot of ascending distributed intergers
-  !> from 1 to N_tot.
-  !> This is generating the identiy map.
-  function mesh_1d_N_points(N_points) result(range_out)
-    !> First element of the range
-    integer, intent(in) :: N_points
-
-    integer, allocatable :: range_out(:)
-
-    integer :: i
-
-    call assert(N_points > 0, 'N_points <= 0.')
-    allocate(range_out(N_points))
-
-    do i=1, N_points
-      range_out(i) = i
-    end do
-  end function mesh_1d_N_points
-
   !> Return a vector of evenly-spaced numbers over a given interval.
   !>
-  !> The start point is always included in the grid, whereas the end point
-  !> is never included. If start == end, a single point is returned,
+  !> The first point is always included in the grid, whereas the last point
+  !> is never included. If first == last, a single point is returned,
   !> irrespective of spacing.
   !>
-  !> If start > end, the grid is returned in descending from start to end.
+  !> If first > last, the grid is returned in descending from first to last.
   !> For example:
   !>
   !>  [5, 4, 3, 2, 1] = linspace_spacing(5, 0, 1) 
   !>
-  function linspace_spacing(start, end, spacing) result(grid) 
-    !> Start of the grid
-    real(dp), intent(in) :: start
-    !> End of the grid: This number is never contained in the grid.
-    real(dp), intent(in) ::  end
-    !> Spacing between the points
+  function linspace_spacing(first, last, spacing) result(grid)
+    !> First element of the grid.
+    real(dp), intent(in) :: first
+    !> Last element of the grid.
+    real(dp), intent(in) ::  last
+    !> Spacing between the points.
     real(dp), intent(in) :: spacing
     !> Grid
     real(dp), allocatable :: grid(:)
 
     integer :: N, i, sign
 
-    if (start == end) then
-      allocate(grid(1), source = start)
-      return 
-    end if 
+    call assert(spacing >= 0._dp, &
+        message='linspace: Spacing must be larger equal zero.')
 
-    call assert(spacing > 0._dp, & 
-        message='linspace: Spacing must be larger than zero.')
+    if (all_close(spacing, 0._dp)) then
+      grid = [first]
+      return
+    end if
 
-    call assert(abs(start - end) >= spacing, &
-        message = "linspace: Requires spacing <= |start - end|")
+    if (first == last) then
+      grid = [first]
+      return
+    end if
 
-    N = floor(abs(end - start) / spacing) + 1
+    N = floor(abs(last - first) / spacing) + 1
     allocate(grid(N)) 
 
     sign = 1 
-    if (end < start) then
+    if (last < first) then
       sign = -1
     endif
 
     do i = 1, N
-      grid(i) = start + sign * (i - 1) * abs(spacing)
+      grid(i) = first + sign * (i - 1) * abs(spacing)
     end do
   end function linspace_spacing
 
-  !> Generate a linearly-spaced grid between 'start' and 'end'. 
-  function linspace_number_of_points(start, end, N, include_end) result(grid)
+  !> Generate a linearly-spaced grid between 'first' and 'last'.
+  function linspace_number_of_points(first, last, N, include_last) result(grid)
     !> Start of the grid
-    real(dp), intent(in) :: start
+    real(dp), intent(in) :: first
     !> End of the grid
-    real(dp), intent(in) :: end 
+    real(dp), intent(in) :: last
     !> Number of points
     integer, intent(in) :: N
-    !> If true, `end` is the last element of the grid and `spacing = (end - start) / (N - 1)`, else
-    !> the last element is given by `end - spacing`, where`spacing = (end - start) / N`.
+    !> If true, `last` is the last element of the grid and `spacing = (last - first) / (N - 1)`, else
+    !> the last element is given by `last - spacing`, where`spacing = (last - first) / N`.
     !> 
     !> Default is true.
-    logical, intent(in), optional :: include_end
+    logical, intent(in), optional :: include_last
     !> Linear grid
-    real(dp), allocatable :: grid (:), grid_(:)
+    real(dp), allocatable :: grid(:)
 
     logical :: include_end_local
+    integer :: n_points
     real(dp) :: spacing
     
     call assert(N > 0, 'The number of grid points (N) is <= 0.')
+    call assert( .not. (all_close(first, last) .and. N /= 1), 'start == end, thus N must be 1.' )
+
+    if (N == 1) then
+      grid = [first]
+      return
+    end if
 
     include_end_local = .true.
-    if (present(include_end)) include_end_local = include_end
+    if (present(include_last)) include_end_local = include_last
 
-    allocate(grid(N))
-    
-    if (N == 1) then
-      grid = [start]
+    n_points = N
+    if (include_end_local) n_points = N - 1
 
-    else
-      if (include_end_local) then
-        spacing = abs(end - start) / real(N - 1, kind=dp)
-        grid_ = linspace_spacing(start, end, spacing)
-        grid(1: N-1) = grid_(1: N-1)
-        grid(N) = end
+    spacing = abs(last - first) / real(n_points, kind = dp)
 
-      else   
-        spacing = abs(end - start) / real(N, kind=dp)
-        grid_ = linspace_spacing(start, end, spacing)
-        grid = grid_(:N)
-
-      end if
-    end if
+    grid = linspace_spacing(first, last, spacing)
+    grid = grid(1: N)
   end function linspace_number_of_points
 
-  !> Generate a linearly-spaced grid in the interval `interval = [start, end]`.
-  function linspace_interval(interval, N, include_end) result(grid)
+  !> Generate a linearly-spaced grid in the interval `interval = [first, last]`.
+  function linspace_interval(interval, N, include_last) result(grid)
     !> Interval to define the grid
     real(dp), intent(in) :: interval(2)
     !> Number of coords
     integer, intent(in) :: N
-    !> Influences the spacing between the points. If the include_end is included, `spacing = (end - start) / (N - 1)`,
-    !> else `spacing = (end - start) / N`.
-    logical, intent(in), optional :: include_end
+    !> Influences the spacing between the points. If the include_last is included, `spacing = (last - first) / (N - 1)`,
+    !> else `spacing = (last - first) / N`.
+    logical, intent(in), optional :: include_last
     !> Linear grid
     real(dp), allocatable :: grid (:)
-    !> If true, `end` is the last element of the grid and `spacing = (end - start) / (N - 1)`, else
-    !> the last element is given by `end - spacing`, where`spacing = (end - start) / N`.
+    !> If true, `last` is the last element of the grid and `spacing = (last - first) / (N - 1)`, else
+    !> the last element is given by `last - spacing`, where`spacing = (last - first) / N`.
     !> 
     !> Default is true.
     logical :: include_end_local
 
     include_end_local = .true.
-    if (present(include_end)) include_end_local = include_end
+    if (present(include_last)) include_end_local = include_last
 
     grid = linspace_number_of_points(interval(1), interval(2), N, include_end_local)
   end function linspace_interval
@@ -288,52 +264,52 @@ contains
   !> Sampling be specified per dimension by N.
   !>
   !> The grid is defined by the number of grid points per dimension and a cuboid.
-  !> The cuboid is defined by the points 'start' and 'end', which span the diagonal
+  !> The cuboid is defined by the points 'first' and 'last', which span the diagonal
   !> of the cuboid.
   !> 
-  !> The defaults for the start and of the cubic are (\(0, 0, 0)\) and (\(1, 1, 1)\),
+  !> The defaults for the first and of the cubic are (\(0, 0, 0)\) and (\(1, 1, 1)\),
   !> respectively.
   !>
-  !> The grid containes by default the end point. If this behavior is not wished,
-  !> the end point can be left out by setting include_end to .false.
-  function cubic_grid_3d(N, start, end, include_end) result(grid)
+  !> The grid containes by default the last point. If this behavior is not wished,
+  !> the last point can be left out by setting include_last to .false.
+  function cubic_grid_3d(N, first, last, include_last) result(grid)
     !> Number of grid points per dimension
     integer, intent(in) :: N(3)
-    !> Define the start point of the grid in each dimension
-    real(dp), intent(in), optional :: start(3)
-    !> Define the end point of the grid in each dimension
-    real(dp), intent(in), optional :: end(3)
-    !> If true, include 'end' in the grid (see [[linspace_number_of_points]]).
-    logical, intent(in), optional :: include_end
+    !> Define the first point of the grid in each dimension
+    real(dp), intent(in), optional :: first(3)
+    !> Define the last point of the grid in each dimension
+    real(dp), intent(in), optional :: last(3)
+    !> If true, include 'last' in the grid (see [[linspace_number_of_points]]).
+    logical, intent(in), optional :: include_last
     !> Cubic, 3D grid 
     real(dp), allocatable :: grid(:,:)
 
     !> Default origin for the grid
-    real(dp), dimension(3), parameter :: default_start = [0._dp, 0._dp, 0._dp]
-    !> Default end point for the grid
+    real(dp), dimension(3), parameter :: default_first = [0._dp, 0._dp, 0._dp]
+    !> Default last point for the grid
     real(dp), dimension(3), parameter :: default_end   = [1._dp, 1._dp, 1._dp]
 
-    real(dp) :: start_(3), end_(3), ones_x(N(1)), ones_y(N(2)), ones_z(N(3)) 
+    real(dp) :: first_(3), end_(3), ones_x(N(1)), ones_y(N(2)), ones_z(N(3))
     real(dp), allocatable :: grid_1D_x(:), grid_1D_y(:), grid_1D_z(:)
       
     logical :: include_end_local
     
     include_end_local = .true.
-    if (present(include_end)) include_end_local = include_end
+    if (present(include_last)) include_end_local = include_last
 
     ! allocate grid
     allocate(grid(3, product(N)))
 
-    ! set start and end for constructing the cuboid
-    start_ = default_start
+    ! set first and last for constructing the cuboid
+    first_ = default_first
     end_ = default_end 
-    if (present(start)) start_ = start
-    if (present(end)) end_ = end
+    if (present(first)) first_ = first
+    if (present(last)) end_ = last
 
     ! Generate 1d grids for each direction
-    grid_1D_x = linspace(start_(1), end_(1), N(1), include_end = include_end_local)
-    grid_1D_y = linspace(start_(2), end_(2), N(2), include_end = include_end_local)
-    grid_1D_z = linspace(start_(3), end_(3), N(3), include_end = include_end_local)
+    grid_1D_x = linspace(first_(1), end_(1), N(1), include_last = include_end_local)
+    grid_1D_y = linspace(first_(2), end_(2), N(2), include_last = include_end_local)
+    grid_1D_z = linspace(first_(3), end_(3), N(3), include_last = include_end_local)
             
     ! put 1d grids together
     ones_x = 1.0_dp
@@ -349,23 +325,23 @@ contains
   !> Generate a regular cubic grid.
   !>  
   !> See [[cubic_grid_3d]]
-  function regular_cubic_grid_3d(N, start, end, include_end) result(grid)
+  function regular_cubic_grid_3d(N, first, last, include_last) result(grid)
     !> Number of grid points per dimension
     integer, intent(in) :: N
-    !> Define the start point of the grid in each dimension
-    real(dp), intent(in), optional :: start(3)
-    !> Define the end point of the grid in each dimension
-    real(dp), intent(in), optional :: end(3)
-    !> If true, include 'end' in the grid (see [[linspace_number_of_points]]).
-    logical, intent(in), optional :: include_end
+    !> Define the first point of the grid in each dimension
+    real(dp), intent(in), optional :: first(3)
+    !> Define the last point of the grid in each dimension
+    real(dp), intent(in), optional :: last(3)
+    !> If true, include 'last' in the grid (see [[linspace_number_of_points]]).
+    logical, intent(in), optional :: include_last
     !> Regular cubic grid 
     real(dp), allocatable :: grid(:, :)
     logical :: include_end_local
     
     include_end_local = .true.
-    if (present(include_end)) include_end_local = include_end
+    if (present(include_last)) include_end_local = include_last
 
-    grid = cubic_grid_3d([N, N, N], start, end)
+    grid = cubic_grid_3d([N, N, N], first, last)
   end function
 
 
@@ -433,7 +409,7 @@ contains
     do i = 1, 3
         pos_max(i) =  int(floor(real(N(i), kind=sp) / 2.0_sp)) - (1 - modulo(N(i), 2))
         neg_min(i) = -int(floor(real(N(i), kind=sp) / 2.0_sp))
-    end do  
+    end do
 
     ones1 = 1.0_dp
     f1(1:pos_max(1)+1) = [(i, i=0, pos_max(1))]
@@ -461,7 +437,7 @@ contains
   !>   \begin{split}
   !>     2 3 4 \rightarrow 4 6 8
   !>     1 2 3 \rightarrow 1 4 6
-  !>   \end{split}
+  !>   \last{split}
   !> \]
   function n_grid_diff(N_grid_in) result(N_grid_out)
     !> Number of grid points per dimension
@@ -491,7 +467,7 @@ contains
 
     integer :: divider(3), i, index3d(3)
 
-    call assert(all(mod(N_grid_dense, N_grid) /= 0) , 'N_grid_dense modulus N_grid is not zero for all dimensions.')
+    call assert(all(mod(N_grid_dense, N_grid) == 0) , 'N_grid_dense modulus N_grid is not zero for all dimensions.')
 
     divider = N_grid_dense / N_grid
     allocate(map(product(N_grid)))
@@ -505,7 +481,7 @@ contains
   !> Given the shapes of two `M`-rank arrays `shape_A` and `shape_B` with `all(shape_B <= shape_A)` is true and
   !> `A(1 : shape_B(1), ..., 1 : shape_B(M)) = B, find the index map `map_out` of length `product(shape_B)` such that 
   !> 'A_flat(map_out) = B_flat`. Where `A_flat = reshape(A, [product(shape_A)])` and `B_flat = reshape(B, [product(shape_B)])`.
-  function flattend_map(shape_A, shape_B) result(map_out)
+  function flattened_map(shape_A, shape_B) result(map_out)
     !> Shape of `A`
     integer, intent(in) :: shape_A(:)
     !> Shape of `B`
@@ -532,6 +508,6 @@ contains
       ! Calculate the index of A_flat from the multi index of B
       map_out(i) = indices_to_composite_index(multi_index, shape_A)
     end do
-  end function flattend_map
+  end function flattened_map
 
 end module grid_utils

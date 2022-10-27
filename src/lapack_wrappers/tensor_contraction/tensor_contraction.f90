@@ -347,7 +347,7 @@ contains
 
         rank_A = size(shape_A)
 
-        call assert(rank_A > 2, 'Error shape_rank_2: rank_A <= 2') 
+        call assert(rank_A >= 2, 'Error shape_rank_2: rank_A < 2.')
 
        if (contracted_dims_are_trailing) then
             n_combined_leading = product(shape_A(1:rank_A - n_contracted_dims))
