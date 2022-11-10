@@ -19,7 +19,7 @@ target_sources(excitingLib PRIVATE
     constants/precision.f90
     constants/constants.f90)
 
-target_link_libraries(excitingLib liblbfgsb ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
+target_link_libraries(excitingLib liblbfgsb libleblaik ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
 
 # TODO Link excitingLib to exciting executable
 
