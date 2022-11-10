@@ -15,6 +15,12 @@ set(CMAKE_Fortran_BIN_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 set(CMAKE_Fortran_LIB_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/modules)
 
+# External libraries
+# Note, for Blas and Lapack, this is also able to find vendor-specific versions:
+# https://cmake.org/cmake/help/v3.15/module/FindBLAS.html
+find_package(BLAS REQUIRED)
+find_package(LAPACK REQUIRED)
+
 # Define GNU standard installation directories
 include(GNUInstallDirs)
 
@@ -30,19 +36,16 @@ include(cmake/CompilerFlags.cmake)
 # Compiler warnings
 include(cmake/CompilerWarnings.cmake)
 
-# External libraries
-# Note, for Blas and Lapack, this is also able to find vendor-specific versions:
-# https://cmake.org/cmake/help/v3.15/module/FindBLAS.html
-find_package(BLAS REQUIRED)
-find_package(LAPACK REQUIRED)
-
-# Configure, build and install libs in external/
+# External libs, packaged with source
+# LibXC should eventually be switched out for V5
 include(cmake/libxc.cmake)
 include(cmake/fox.cmake)
 add_subdirectory("${PROJECT_SOURCE_DIR}/external/Lbfgsb.3.0")
+add_subdirectory("${PROJECT_SOURCE_DIR}/external/leblaiklib")
 
 # exciting
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+
 # Location of exciting's CMakeLists
 add_subdirectory(src)
 
@@ -53,6 +56,7 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
             CACHE STRING "Choose the installation directory. Default location is ${default_install_prefix}"
             FORCE)
 endif()
+
 
 # Testing
 # Enable ctest
