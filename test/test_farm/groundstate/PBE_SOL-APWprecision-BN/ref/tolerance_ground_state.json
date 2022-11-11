@@ -1,0 +1,354 @@
+{
+  "INFO.OUT": {
+    "Lattice vectors (cartesian)": {
+      "tol": 1e-08,
+      "unit": "Bohr"
+    },
+    "Reciprocal lattice vectors (cartesian)": {
+      "tol": 1e-08,
+      "unit": "Bohr^-1"
+    },
+    "Unit cell volume": {
+      "tol": 1e-08,
+      "unit": "Bohr^3"
+    },
+    "Brillouin zone volume": {
+      "tol": 1e-08,
+      "unit": "Bohr^-3"
+    },
+    "Total number of atoms per unit cell": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "Number of Bravais lattice symmetries": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "Number of crystal symmetries": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "k-point grid": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "Total number of k-points": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "Spin treatment": {
+      "tol": "",
+      "unit": "null"
+    },
+    "Smearing scheme": {
+      "tol": "",
+      "unit": "null"
+    },
+    "R^MT_min * |G+k|_max (rgkmax)": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Maximum |G+k| for APW functions": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Maximum |G| for potential and density": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Polynomial order for pseudochg. density": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "G-vector grid sizes": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "Total number of G-vectors": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "APW functions": {
+      "tol": 0,
+      "unit": "null",
+      "message": "Key prefix 'Maximum angular momentum used for'"
+    },
+    "computing H and O matrix elements": {
+      "tol": 0,
+      "unit": "null",
+      "message": "Key prefix 'Maximum angular momentum used for'"
+    },
+    "potential and density": {
+      "tol": 0,
+      "unit": "null",
+      "message": "Key prefix 'Maximum angular momentum used for'"
+    },
+    "inner part of muffin-tin": {
+      "tol": 0,
+      "unit": "null",
+      "message": "Key prefix 'Maximum angular momentum used for'"
+    },
+    "Total nuclear charge": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Total electronic charge": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Total core charge": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Total valence charge": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Effective Wigner radius, r_s": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Number of empty states": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "Total number of valence states": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "Maximum Hamiltonian size": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "Maximum number of plane-waves": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "Total number of local-orbitals": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "Exchange-correlation type": {
+      "tol": 0,
+      "unit": "null",
+      "message": "XC type denoted by integer, so the integer tolerance is 0"
+    },
+    "Smearing width": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Total energy": {
+      "tol": 1e-08,
+      "unit": "Hartree"
+    },
+    "Fermi energy": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Kinetic energy": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Coulomb energy": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Exchange energy": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Correlation energy": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Sum of eigenvalues": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Effective potential energy": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Coulomb potential energy": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "xc potential energy": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Hartree energy": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Electron-nuclear energy": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Nuclear-nuclear energy": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Madelung energy": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Core-electron kinetic energy": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "DOS at Fermi energy (states/Ha/cell)": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "core": {
+      "tol": 1e-07,
+      "unit": "Hartree",
+      "message": "Key prefix 'Electron charges'"
+    },
+    "core leakage": {
+      "tol": 1e-07,
+      "unit": "Hartree",
+      "message": "Key prefix 'Electron charges'"
+    },
+    "valence": {
+      "tol": 1e-07,
+      "unit": "Hartree",
+      "message": "Key prefix 'Electron charges'"
+    },
+    "interstitial": {
+      "tol": 1e-07,
+      "unit": "Hartree",
+      "message": "Key prefix 'Electron charges'"
+    },
+    "total charge in muffin-tins": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "total charge": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Estimated fundamental gap": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "Correlation type": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "Exchange type": {
+      "tol": "",
+      "unit": "null"
+    },
+    "Mixing coefficient for exact exchange": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "Screening parameter (omega)": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  },
+  "eigval.xml": {
+    "eigenvalue": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "occupancy": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  },
+  "evalcore.xml": {
+    "n": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "l": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "k": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "eigenvalue": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    }
+  },
+  "atoms.xml": {
+    "RelativityModel": {
+      "tol": "",
+      "unit": "null"
+    },
+    "chemicalSymbol": {
+      "tol": "",
+      "unit": "null"
+    },
+    "GridType": {
+      "tol": "",
+      "unit": "null"
+    },
+    "xctype": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "TotalNumberOfGridPoints": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "NumberOfMTGridPoints": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "rmin": {
+      "tol": 1e-10,
+      "unit": "Bohr",
+      "message": "rmin can be very small. Should set the tolerance to the smallest plausible value"
+    },
+    "rmt": {
+      "tol": 1e-08,
+      "unit": "Bohr"
+    },
+    "rmax": {
+      "tol": 1e-08,
+      "unit": "Bohr"
+    },
+    "n": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "l": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "kappa": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "energy": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    }
+  },
+  "geometry.xml": {
+    "1": {
+      "tol": 1e-08,
+      "unit": "Bohr"
+    },
+    "2": {
+      "tol": 1e-08,
+      "unit": "Bohr"
+    },
+    "3": {
+      "tol": 1e-08,
+      "unit": "Bohr"
+    },
+    "rmt": {
+      "tol": 1e-08,
+      "unit": "Bohr"
+    }
+  }
+}

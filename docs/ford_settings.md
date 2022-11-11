@@ -22,7 +22,7 @@ src_dir: ../src/src_gw
          ../src/errors_warnings
          ../src/src_mpi
          ../src/src_xs/src_rttddft/
-         ../src/autormt
+         ../src/simplified_input
          ../src/structure
          ../src/wavefunctions
          ../src/char_utils

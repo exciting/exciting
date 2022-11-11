@@ -66,6 +66,14 @@ subroutine checkinput
       stop
     end if
   end if
+  if (associated(input%groundstate))then
+    if (input%groundstate%APWprecision.lt.0.d0) then 
+      write(*,*)
+      write(*,'("Error(checkinput): invalid /input/groundstate/@APWprecision < 0: ",G18.10)') input%groundstate%APWprecision
+      write(*,*)
+      stop
+    end if
+  end if
   if (associated(input%xs))then
     if (input%xs%rgkmax.lt.0.d0) then
       write(*,*)

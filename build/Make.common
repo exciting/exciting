@@ -5,7 +5,7 @@ SOURCEDIRS=	\
     ../../src/math \
 	../../src/testframework \
 	../../src/ \
-	../../src/autormt \
+	../../src/simplified_input \
     ../../src/lapack_wrappers \
         ../../src/lapack_wrappers/f95_interfaces \
         ../../src/lapack_wrappers/multiplication \

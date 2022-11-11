@@ -2207,6 +2207,30 @@
             a proper choice of this parameter for your system! </xs:documentation>
         </xs:annotation>
       </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="APWprecision" type="fortrandouble"
+        use="optional" default="0.7d0">
+        <xs:annotation>
+          <xs:documentation> The parameter <attref>APWprecision</attref> determines the needed rgkmax to reach the
+          (in <attref>APWprecision</attref>) specified precision in the total energy for the given material. The given 
+          parameter <attref>APWprecision</attref> scales a predefined rgkmax value 
+          of the element of the given material that has the smallest muffin-tin radius. These predefined rgkmax values 
+          are obtained by studying the convergence of the total energy. Applying these rgkmax values to the elemental 
+          solids only should yield a precision in the energy of about $0.1$ meV/atom (assuming all other parameters used  
+          in the calculation allow this kind of precision). 
+          <attref>APWprecision</attref> =  1 will mean that the chosen rgkmax value for the calculation is equal to the
+          predefined rgkmax (where a precision of about $0.1$ meV/atom is reached for elemental solids).  
+             </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+        <xs:attribute ex:importance="expert" ex:unit="" name="useAPWprecision" type="xs:boolean"
+        use="optional" default="false">
+        <xs:annotation>
+          <xs:documentation> If the parameter <attref>useAPWprecision</attref> is set to true, the rgkmax for the calculation will be 
+          determined using the <attref>APWprecision</attref> attribute. If rgkmax has been manually specified in the input file, it will 
+          be overwritten by the rgkmax value determined using the <attref>APWprecision</attref> value.
+             </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
       <xs:attribute ex:importance="essential" ex:unit="" name="epspot" type="fortrandouble"
         use="optional" default="1.0d-6">
         <xs:annotation>

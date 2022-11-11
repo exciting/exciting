@@ -36,10 +36,10 @@ module unit_tests
       logical :: xc = .false.
       logical :: xs = .false.
 
-      logical :: autormt = .false.
       logical :: char = .false.
       logical :: lapack = .false.
       logical :: math = .false.
+      logical :: simplified_input = .false.
       logical :: structure = .false.
       logical :: testframework = .false.
 
@@ -143,14 +143,14 @@ contains
          run%xs = .true.
 
          ! Modern directory conventions
-      case ('autormt')
-         run%autormt = .true.
       case ('char')
          run%char = .true.
       case ('lapack')
          run%lapack = .true.
       case ('math')
          run%math = .true.
+      case('simplified_input')
+         run%simplified_input = .true.
       case ('structure')
          run%structure = .true.
       case ('testframework')
