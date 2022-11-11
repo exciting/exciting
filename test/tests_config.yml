@@ -92,6 +92,8 @@ groundstate/PBE-pulay-Al:
 
 groundstate/PBE_SOL-Al:
 
+groundstate/PBE_SOL-APWprecision-BN:
+
 groundstate/PBE-libxc-Al:
    group: LIBXC
 groundstate/PBE-libxc-spin-Al:

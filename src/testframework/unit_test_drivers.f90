@@ -9,10 +9,10 @@ module unit_test_drivers
    use xs_test_drivers, only: xs_test_driver
    use lapack_wrappers_test_drivers, only: lapack_wrappers_test_driver
    use mpi_test_drivers, only: mpi_test_driver
-   use autormt_test_drivers, only: autormt_test_driver
    use structure_test_drivers, only: structure_test_driver
    use testframework_test_drivers, only: testframework_test_driver
    use char_utils_test_drivers, only: char_utils_test_driver
+   use simplified_input_test_drivers, only: simplified_input_test_driver
 
    implicit none
    private
@@ -77,10 +77,6 @@ contains
          ! Placeholder
          !call gw_test_driver(mpiglobal, kill_on_failure)
       end if
-
-      if (run%autormt .or. run%all) then         
-         call autormt_test_driver(mpiglobal, kill_on_failure)
-      end if 
       
       if (run%structure .or. run%all) then
          call structure_test_driver(mpiglobal, kill_on_failure)
@@ -90,6 +86,10 @@ contains
          call char_utils_test_driver(mpiglobal, kill_on_failure) 
       end if
       
+      if (run%simplified_input .or. run%all) then         
+         call simplified_input_test_driver(mpiglobal, kill_on_failure)
+      end if 
+
       if (run%testframework .or. run%all) then
          call testframework_test_driver(mpiglobal, kill_on_failure)
       end if

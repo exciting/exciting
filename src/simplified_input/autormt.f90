@@ -2,6 +2,7 @@ module autormt
    Use modmpi, only: mpiglobal
    Use errors_warnings, only: terminate_if_false
    use precision, only: dp
+   use predefined_rgkmax, only: get_predefined_rgkmax
 
    implicit none 
    private
@@ -43,27 +44,11 @@ module autormt
          
          ! Label for atomic number
          character(10) :: z_label
-
-         !> Number of initial values for muffin-tin calculation 
-         integer, parameter :: n_initial_rgkmax = 86 
-         !> Initial values for muffin-tin calculation for atomic numbers going from 1 to 86
-         real(dp), parameter :: inital_rgkmax_params(n_initial_rgkmax) = [5.835430_dp, 8.226318_dp, 8.450962_dp, 8.307929_dp,&
-         & 8.965808_dp, 9.376204_dp, 9.553568_dp, 10.239864_dp, 10.790975_dp, 10.444355_dp, 10.636286_dp, 10.579793_dp,&
-         & 10.214125_dp, 10.605334_dp, 10.356352_dp, 9.932381_dp, 10.218153_dp, 10.466519_dp, 10.877475_dp, 10.774763_dp,&
-         & 11.580691_dp, 11.800971_dp, 11.919804_dp, 12.261896_dp, 12.424606_dp, 12.571031_dp, 12.693836_dp, 12.781331_dp,& 
-         & 12.619806_dp, 12.749802_dp, 12.681350_dp, 12.802838_dp, 12.785680_dp, 12.898916_dp, 12.400000_dp, 10.596757_dp,&
-         & 11.346060_dp, 10.857573_dp, 11.324413_dp, 11.664200_dp, 11.859519_dp, 11.892673_dp, 12.308470_dp, 12.551024_dp,&
-         & 12.740728_dp, 12.879424_dp, 13.027090_dp, 13.080576_dp, 13.230621_dp, 13.450665_dp, 13.495632_dp, 13.261039_dp,&
-         & 13.432654_dp, 11.329591_dp, 13.343047_dp, 13.011835_dp, -1.0_dp, -1.0_dp, -1.0_dp, -1.0_dp, -1.0_dp, -1.0_dp, -1.0_dp, -1.0_dp,&
-         & -1.0_dp, -1.0_dp, -1.0_dp, -1.0_dp, -1.0_dp, -1.0_dp, 15.134859_dp, 14.955721_dp, 14.607311_dp, 13.930505_dp, 13.645267_dp,&
-         & 13.629439_dp, 13.450805_dp, 13.069046_dp, 13.226699_dp, 13.261342_dp, 13.365992_dp, 13.557571_dp, 13.565048_dp,&
-         & 13.579543_dp, -1.0_dp, 12.273924_dp]
          
+         rmt_is = get_predefined_rgkmax(spzn_is)
          write(z_label,'(I3)') idnint(Abs(spzn_is))
-         call terminate_if_false(mpiglobal, inital_rgkmax_params(idnint(Abs(spzn_is))) /= -1.0_dp ,"(Error (autormt):&
-                                 & initial muffin-tin radius for given atomic number"// trim(z_label) // " does not exist.")
-         rmt_is = inital_rgkmax_params(idnint(Abs(spzn_is)))
-
+         call terminate_if_false(mpiglobal, rmt_is /= -1.0_dp ,"(Error (autormt): initial muffin-tin& 
+                                 & radius for given atomic number"// trim(z_label) // " does not exist.")
       end function get_inital_rmt_rgkmax
 
       !> Scales the given initial muffin-tin radii in \(\text{rmt}\). 

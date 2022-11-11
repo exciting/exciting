@@ -20,6 +20,7 @@ Subroutine init0
       Use errors_warnings, only: terminate_if_false
       Use vx_enums, only: HYB_PBE0, HYB_HSE
       use tmp_mod_init0, only: map_atoms_per_species_to_atomic_index
+      Use APW_basis_size, only: determine_rgkmax, determine_APWprecision
 #ifdef XS
       Use modxs
 #endif
@@ -323,6 +324,12 @@ Subroutine init0
      & input%groundstate%isgkmax = js
 ! set up atomic and muffin-tin radial meshes
       Call genrmesh
+
+      If (input%groundstate%useAPWprecision) Then
+            input%groundstate%rgkmax = determine_rgkmax(input%groundstate%APWprecision, spzn(input%groundstate%isgkmax))
+      Else 
+            input%groundstate%APWprecision = determine_APWprecision(input%groundstate%rgkmax, spzn(input%groundstate%isgkmax))
+      End If
 !
 !--------------------------------------!
 !     charges and number of states     !
