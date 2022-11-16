@@ -12,7 +12,8 @@ def parse_band_structure(file_name: str) -> BandData:
     """ High-level parser for KS band structure. Calls dictionary parsers to parse information from both
     "bandstructure.xml" and "bandstructure.dat" files.
 
-    :param str file_name: File name for band structure such as "bandstructure.dat", "bandstructure.xml" or "bandstructure"
+    :param str file_name: File name for band structure such as "bandstructure.dat", "bandstructure.xml" or
+                          "bandstructure"
     :return: BandData object.
     """
     name = os.path.splitext(file_name)[0]

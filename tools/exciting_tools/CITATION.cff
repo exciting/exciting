@@ -1,0 +1,58 @@
+cff-version: 1.2.0
+title: 'excitingtools: An exciting Workflow Tool'
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+version: 1.1.0
+date-released: 2022-09-20
+authors:
+  - given-names: Alexander
+    family-names: Buccheri
+    email: alexander.buccheri@mpsd.mpg.de
+    affiliation: >-
+      Max Planck Institute for the Structure and
+      Dynamics of Matter
+    orcid: 'https://orcid.org/0000-0001-5983-8631'
+  - given-names: Hannah
+    family-names: Kleine
+    email: kleineha@physik.hu-berlin.de
+    affiliation: >-
+      Humboldt-Universität zu Berlin
+    orcid: 'https://orcid.org/0000-0003-2251-8719'
+  - given-names: Martin
+    family-names: Kuban
+    email: kuban@physik.hu-berlin.de
+    affiliation: >-
+      Humboldt-Universität zu Berlin
+    orcid: 'https://orcid.org/0000-0002-1619-2460'
+  - given-names: Benedikt
+    family-names: Maurer
+    email: benedikt.moritz.maurer@physik.hu-berlin.de
+    affiliation: >-
+      Humboldt-Universität zu Berlin
+    orcid: 'https://orcid.org/0000-0001-9152-7390'
+  - given-names: Fabian
+    family-names: Peschel
+    email: peschelf@physik.hu-berlin.de
+    affiliation: >-
+      Humboldt-Universität zu Berlin
+    orcid: 'https://orcid.org/0000-0003-0619-6713'
+  - given-names: Daniel T.
+    family-names: Speckhard
+    email: speckhard@fhi.mpg.de
+    affiliation: >-
+      Fritz-Haber-Institut der Max-Planck-Gesellschaft, Humboldt-Universität zu Berlin
+    orcid: 'https://orcid.org/0000-0002-9849-0022'
+  - given-names: Elisa
+    family-names: Stephan
+    email: stephael@physik.hu-berlin.de
+    affiliation: >-
+      Humboldt-Universität zu Berlin
+    orcid: 'https://orcid.org/0000-0002-6359-9044'
+  - given-names: Mara
+    family-names: Voiculescu
+    email: voiculem@physik.hu-berlin.de
+    affiliation: >-
+      Humboldt-Universität zu Berlin
+    orcid: 'https://orcid.org/0000-0003-4393-8528'
