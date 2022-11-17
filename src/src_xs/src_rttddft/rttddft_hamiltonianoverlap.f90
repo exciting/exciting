@@ -90,14 +90,8 @@ contains
 
     if ( .not. predcorr ) ham_past(:,:,:) = ham_time(:,:,:)
 
-#ifdef MPI
-    first_kpt = firstk(rank)
-    last_kpt = lastk(rank)
-#else
-    first_kpt = 1
-    last_kpt = nkpt
-#endif
-
+    call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
+ 
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(NONE), PRIVATE(ik,nmatp), &
 !$OMP& SHARED(first_kpt,last_kpt,calculateOverlap,nkpt,natmtot,natoms), &

@@ -27,6 +27,7 @@ Subroutine genveffig
       Integer :: ig, ifg
 ! allocatable arrays
       Complex (8), Allocatable :: zfft (:)
+      call stopwatch("exciting:genveffig", 1)
       Allocate (zfft(ngrtot))
 ! multiply effective potential with characteristic function
       zfft (:) = veffir (:) * cfunir (:)
@@ -37,6 +38,7 @@ Subroutine genveffig
          veffig (ig) = zfft (ifg)
       End Do
       Deallocate (zfft)
+      call stopwatch("exciting:genveffig", 0)
       Return
 End Subroutine
 !EOC

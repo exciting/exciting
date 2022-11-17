@@ -572,7 +572,8 @@ def test_sort_tests_by_group():
 
     expected_test_grouping = {enum: [] for enum in Group}
     expected_test_grouping.update({Group.NONE: ['groundstate/LiF', 'BSE/LiF'],
-                                   Group.SLOW_TESTS: ['groundstate/LDA_PW-PbTiO3']
+                                   Group.SLOW_TESTS: ['groundstate/LDA_PW-PbTiO3'],
+                                   Group.SIRIUS: []
                                   })
 
     assert tests_by_group == expected_test_grouping

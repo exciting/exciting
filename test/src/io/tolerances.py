@@ -73,10 +73,7 @@ def update_wildcard_tolerances(tolerances: dict, files_under_test: List[str]) ->
     tolerances_updated = {}
     unmatched_file_names = []
 
-    #print('GW files under test', files_under_test)
-
     for file_name, file_tolerances in tolerances.items():
-        #print(file_name)
         regex = re.compile(wildcard_processor(file_name))
         matched = False
 

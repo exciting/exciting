@@ -15,12 +15,11 @@ module rttddft_main
   use rttddft_GlobalVariables
   use precision, only: dp
   use rttddft_Energy, only: TotalEnergy, obtain_energy_rttddft
-#ifdef MPI
-  use modmpi, only: rank, firstk, lastk, procs, MPI_BARRIER, MPI_COMM_WORLD, ierr
-#else
   use mod_kpoint, only: nkpt
-  use modmpi, only: rank
+#ifdef MPI
+  use mpi, only: MPI_BARRIER
 #endif
+  use modmpi, only: rank, procs, ierr, mpi_env_k, distribute_loop
 
   implicit none
 
@@ -173,13 +172,7 @@ contains
     call print_jpa( filepvec, 1, timestore(1), pvec(:) )
 
     ! Initialize integers that contain the first and last k-point
-#ifdef MPI
-    first_kpt = firstk(rank)
-    last_kpt = lastk(rank)
-#else
-    first_kpt = 1
-    last_kpt = nkpt
-#endif
+    call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
 
     ! Total energy, number of excitations, and screenshots at t=0
     ! Total energy
@@ -403,7 +396,7 @@ contains
 #ifdef MPI
       ! Make all the processes wait here
       ! The master alone has been writing the files above
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+      call MPI_BARRIER(mpi_env_k%comm,ierr)
 #endif
     end do ! do it = 1, nsteps
 
@@ -432,7 +425,7 @@ contains
           call putevecfv( ik, evecfv_time(:,:,ik) )
         end do
       end if
-      call MPI_BARRIER( MPI_COMM_WORLD, ierr )
+      call MPI_BARRIER( mpi_env_k%comm, ierr )
     end do
 #else
     do ik = 1,nkpt

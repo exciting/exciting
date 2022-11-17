@@ -33,7 +33,7 @@ Module mod_potential_and_density
       Real (8), Allocatable :: magir (:, :)
 ! muffin-tin Coulomb potential
       Real (8), Allocatable :: vclmt (:, :, :)
-! Madulung potential (excluding the on-ste nuclear contribution) in the innermost radial point
+! Madulung potential (excluding the on-site nuclear contribution) in the innermost radial point
       Real (8), Allocatable :: vmad (:)
 ! interstitial real-space Coulomb potential
       Real (8), Allocatable :: vclir (:)
@@ -277,14 +277,14 @@ Contains
      use mod_spin, only: ncmag, nspnfv
      use mod_eigensystem, only: nmatmax
      use mod_eigenvalue_occupancy, only: nstfv, nstsv
-     use modmpi, only : rank, firstk, lastk
+     use modmpi, only : mpi_env_k, distribute_loop
      use mod_timing, only: timerho, timeio
      use precision, only: dp
      use constants, only: zi
      implicit none
        !> Muffin-tin basis 
        type (apw_lo_basis_type) :: mt_basis
-       integer :: ik
+       integer :: ik, firstk, lastk
        complex(dp), allocatable :: evecfv(:, :, :), evecsv(:, :)
        real(dp) :: ts0, ts1
 
@@ -310,11 +310,8 @@ Contains
          end if
          mt_dm%main%ff => mt_dm%alpha%ff
        end if
-#ifdef MPI
-       do ik = firstk( rank ), lastk( rank )
-#else
-       do ik = 1, nkpt
-#endif
+       call distribute_loop( mpi_env_k, nkpt, firstk, lastk )
+       do ik = firstk, lastk
          call timesec( ts0 )
          ! get the eigenvectors from file
          call Getevecfv( vkl(:, ik), vgkl(:, :, :, ik), evecfv )
@@ -371,9 +368,7 @@ Contains
          timerho = timerho + ts1 - ts0
        end if ! if (input%groundstate%useDensityMatrix) then
 
-#ifdef MPI
-       call Mpisumrhoandmag()
-#endif
+       call Mpisumrhoandmag( mpi_env_k )
 
      end subroutine generate_density_and_magnetization
 

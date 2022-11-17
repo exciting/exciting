@@ -124,8 +124,63 @@ To build exciting's documentation using FORD, type:
 
 FORD generates html-based documentation, including graphical dependency analysis, which can be 
 viewed by opening docs/exciting_ford/index.html in a web browser. More details of FORD can be found 
-on its Github page: https://github.com/Fortran-FOSS-Programmers/ford and additonal details regarding
+on its Github page: https://github.com/Fortran-FOSS-Programmers/ford and additional details regarding
 installation of dependencies can be found under 'Known Issues', below. 
+
+
+Compiling with exciting with SIRIUS
+-----------------------------------
+
+[SIRIUS](https://github.com/electronic-structure/SIRIUS) is a domain specific library for electronic structure calculations.
+It implements pseudopotential plane wave (PP-PW) and full potential linearized augmented plane wave (FP-LAPW) methods,
+and is designed for GPU acceleration of popular community codes such as Exciting, Elk and Quantum ESPRESSO.
+
+Compiling exciting with SIRIUS is non-trivial, and as of this release, only one build chain is documented (CPU-only with
+GCC9, MKL2017 and MPICH 3.3.2). This is provided in `build/utilities/docker/Dockerfile_ci_sirius`, with the main commands
+reiterated here. The majority of SIRIUS's hard dependencies can be completely installed with the python package manager
+spack. Assuming one has the build prerequisites (see apt-get in the Dockerfile), SIRIUS can be installed as follows:
+
+```
+git clone -c feature.manyFiles=true https://github.com/spack/spack.git
+spack compiler find
+spack external find
+export SPEC="sirius@develop %gcc@9.4.0 build_type=Release +scalapack +fortran +tests ^intel-mkl@2017: threads=openmp ^mpich@3.3.2 ^spfft+single_precision target=x86_64"
+# The location SIRIUS is installed to
+export SIRIUS_ROOT=spack-sirius-install
+export SIRIUS_ENV=spack-sirius-env
+spack env create --with-view $SIRIUS_ROOT -d $SIRIUS_ENV
+# Install SIRIUS's dependencies
+# Note, this can take 1 - 2 hours depending on whether GCC and MPICH have already been installed on your system
+# and then discovered by spack. Be sure to run the find and external commands AFTER installation of these packages.
+spack -e $SIRIUS_ENV install --only=dependencies $SPEC
+# Install SIRIUS
+spack -e $SIRIUS_ENV install $SPEC
+```
+
+exciting can then be built, linking to SIRIUS, as follows (we note that SIRIUS_ROOT should probably be edited in the
+make.inc to be consistent with the user's own installation path):
+
+```
+cd <EXCITINGROOT>
+cp build/platforms/make.inc.sirius_ci build/make.inc
+spack build-env ${SPEC} -- make mpiandsmp -j 4
+```
+
+and tested by:
+
+```
+cd test/
+# Ensure the bottom of `test/defaults_config.yml` is set to:
+# group_execution:
+#   NONE: False
+#   SLOW_TESTS: False
+#   GW: False
+#   LIBXC: False
+#   SIRIUS: True
+python3 runtest.py -e exciting_mpismp -t sirius
+```
+
+We note that as of exciting Fluorine, SIRIUS is only routinely tested on Ubuntu Focal.
 
 
 Compiler Support

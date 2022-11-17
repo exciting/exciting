@@ -100,7 +100,7 @@ subroutine getevalsv(vpl, evalsvp)
   end do
 
   if(splittfile) then
-     koffset = ik - firstk(procofk(ik)) + 1
+     koffset = ik - firstk(procofk(ik, nkpt), nkpt) + 1
   else
      koffset = ik
   end if

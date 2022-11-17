@@ -41,7 +41,9 @@ Subroutine genapwfr
      & (apwordmax)
       Real (8) :: q0 (nrmtmax, apwordmax), q1 (nrmtmax, apwordmax)
       Real (8) :: hp0 (nrmtmax)
-      
+
+      call stopwatch("exciting:genapwfr", 1)
+
       Do is = 1, nspecies
          nr = nrmt (is)
          Do ia = 1, natoms (is)
@@ -109,7 +111,7 @@ Subroutine genapwfr
             End Do
          End Do
       End Do
-!      write(*,*)
+      call stopwatch("exciting:genapwfr", 0)
       Return
 End Subroutine
 !EOC

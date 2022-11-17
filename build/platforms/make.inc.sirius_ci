@@ -1,0 +1,50 @@
+# make.inc file for Sirius.
+# SPEC is defined according to the ENV VAR in build/utilities/docker/Dockerfile_ci_sirius
+# Note, SIRIUS_ROOT environment variable must be set
+# Additionally, one must compile in the spack env, for example
+# /spack/bin/spack build-env $SPEC -- make mpiandsmp -j 4
+
+# Compiler, flags and preprocessing variables
+F90 = gfortran
+F77 = $(F90)
+
+# Required for compilation of LibXC
+FCCPP = cpp
+
+# Flags
+F90_OPTS = -O3 -march=native -ffree-line-length-0  -m64  -I"${MKLROOT}/include"
+F77_OPTS = -O3
+
+# SIRIUS_ROOT as based on the Dockerfile - this directory name is arbitrary
+SIRIUS_ROOT=spack-sirius-install
+ifeq ($(SIRIUS_ROOT),)
+$(error SIRIUS_ROOT must be set in the environment or hard-coded in make.inc)
+endif
+SIRIUS_CPP_FLAGS=-DSIRIUS -I/$(SIRIUS_ROOT)/include/sirius
+
+# Note, CPP_ON_OPTS is used for all libs, but unnecessary options get ignored
+CPP_ON_OPTS = -cpp -DXS -DISO $(SIRIUS_CPP_FLAGS)
+
+F90_DEBUGOPTS = -g -O0 -DUSE_ASSERT -fbounds-check -fbacktrace -Wall -Wextra -ffree-line-length-0 -fcheck=all -finit-integer=2147483647 -finit-real=snan \
+-frecord-gcc-switches -finit-character=42 -finit-loical=true -ffpe-trap=invalid,zero,overflow -fdump-core -fstack-protector-all -pipe
+F77_DEBUGOPTS = $(F90_DEBUGOPTS)
+
+# Libaries
+# Use native blas/lapack by default
+export USE_SYS_LAPACK=true
+LIB_LPK =  -L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl
+LIB_SIRIUS = -L/${SIRIUS_ROOT}/lib -lsirius -Wl,-rpath="/${SIRIUS_ROOT}/lib"
+LIB_FFT = fftlib.a
+LIB_BZINT = libbzint.a
+LIBS = $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT) $(LIB_SIRIUS)
+
+# SMP and MPI compilers, flags and preprocessing variables
+MPIF90 = mpif90
+MPIF90_OPTS = -DMPI
+
+SMPF90_OPTS = -fopenmp -DUSEOMP
+SMPF77_OPTS = $(SMPF90_OPTS)
+
+BUILDMPI = true
+BUILDSMP = true
+BUILDMPISMP = true

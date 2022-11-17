@@ -52,6 +52,8 @@ Subroutine genlofr
       Real (8) energy,energyp,tmp,tmp2,ens(0:20),elo,ehi,flo,fhi,emi,fmi
       integer nodes
 
+      call stopwatch("exciting:genlofr", 1)
+
 ! The following segment is useful if you want to come up 
 ! with energies for local orbitals with several nodes.
 ! Cheers,
@@ -231,6 +233,7 @@ Subroutine genlofr
          End Do
       End Do
       Deallocate (ipiv, xa, ya, a, b, c)
+      call stopwatch("exciting:genlofr", 0)
       Return
 End Subroutine
 !EOC

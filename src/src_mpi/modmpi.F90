@@ -36,7 +36,11 @@ module modmpi
 #ifdef MPI
   use mpi
 #endif
-
+#ifdef SIRIUS
+  ! Have to call the external lib rather than the API
+  ! to avoid a circular dependency (as this module is far too large)
+  use sirius, only: sirius_initialize, sirius_finalize, sirius_print_timers
+#endif
   use exciting_mpi, only: mpiinfo
   implicit none
 
@@ -57,6 +61,11 @@ module modmpi
   ! TODO(Alex) Issue #23. Legacy data for refactoring
   !> mpiinfo with global scope. Instantiating a global instance of the MPI env is pointless
   type(mpiinfo) :: mpiglobal
+  !> MPI communicator which is used to distribute k-points.
+  type(mpiinfo) :: mpi_env_k
+  !> MPI communicator which is used to parallelized bands and diagonalization in SIRIUS.
+  !> In pure Exciting this communicator is set to the trivial MPI_COMM_SELF
+  type(mpiinfo) :: mpi_env_band
 
   !> Nodes as procgroup
   type(procgroup) :: mpinodes
@@ -73,12 +82,25 @@ module modmpi
 
 contains
 
-   !> Initialise a global instance of the MPI environment, mpiglobal
+   !> Initialise a global instance of the MPI environment, mpiglobal.
    !>
    !> Also initialises global legacy variables: procs, rank. These should be scrapped.
   subroutine initmpi()
-    ! Modern exciting wrapper for mpi_init()
-    call mpiglobal%init()
+    integer :: ierr
+    !> MPI communicator
+    integer :: comm
+    comm = 0
+
+#ifdef MPI
+#ifdef SIRIUS
+    call sirius_initialize(.true.)
+#else
+    call mpi_init(ierr)
+#endif
+    comm = mpi_comm_world
+#endif
+
+    call mpiglobal%init(comm)
 
    ! Set legacy globals, because who knows where they're used
     procs = mpiglobal%procs
@@ -104,20 +126,27 @@ contains
   !>
   !> Note: For other communicators you need to make sure they have finished communication.
   subroutine finitmpi()
-    integer(4) :: ierr
+    integer(4) :: ierr = 0
     logical :: flag
 
     ! Wait for everyone to reach this point
     call barrier(mpiglobal)
 #ifdef MPI
-    call barrier(mpinodes%mpi)
-    if (mpinodes%mpiintercom%rank >= 0) then
-       call barrier(mpinodes%mpiintercom)
-    end if
+    !call barrier(mpinodes%mpi)
+    !if (mpinodes%mpiintercom%rank >= 0) then
+    !   call barrier(mpinodes%mpiintercom)
+    !end if
+#ifdef SIRIUS
+    call sirius_finalize(call_mpi_fin=.true.)
+    if ( mpiglobal%rank == 0 ) then
+      call sirius_print_timers( .false. )
+    endif
+#else
     call mpi_finalize(ierr)
     if (ierr /= 0) then
        write (*, *) "Error (finitmpi): ierr =", ierr
     end if
+#endif
 #endif
  end subroutine finitmpi
 
@@ -1490,59 +1519,65 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
 !    !EOC
 
     !+++++++++++++++++++++++++++++++++++++++++++!
-    ! Older k-point partitioning routines.      !
+    ! Old k-point partitioning routines.      !
     !+++++++++++++++++++++++++++++++++++++++++++!
+    ! These have be superceded but still require replacing in:
+    !
+    ! For procofk:
+    ! * getevalfv.f90, putevalfv.f90
+    ! * getevecfv.f90, getevecsv.f90, putevecfv.f90, putevalsv.f90
+    ! * getoccsv.f90, putoccsv.f90
+    !
+    ! For firstk and lastk:
+    ! * src_hybrids/putvxnl.f90
+    ! * Several src_xs/src_rttddft/ routines (sigh)
 
-    ! Service functions to partition k points
-    ! still kept around but should be replaced by generig functions
-    ! firstofset nofset lastofset ....
+   !> Number of k-points on MPI process.
+   !> Only used by the depreciated routines, firstk and lastk.
+   function nofk(process, nkpt)
+     integer(4) :: nofk
+     integer(4), intent(in) :: process
+     integer, intent(in) :: nkpt
+     nofk = nkpt / procs
+     if((mod(nkpt, procs) .gt. process)) nofk = nofk + 1
+   end function nofk
 
-    function nofk(process)
-      use mod_kpoint, only: nkpt
-      integer(4) :: nofk
+   function firstk(process, nkpt)
+      integer(4) :: firstk
       integer(4), intent(in) :: process
-      nofk = nkpt / procs
-      if((mod(nkpt, procs) .gt. process)) nofk = nofk + 1
-    end function nofk
+      integer, intent(in) :: nkpt
+      integer(4)::i
+      firstk = 1
+      do i = 0, process - 1
+         firstk = firstk + nofk(i, nkpt)
+      end do
+   end function firstk
 
-    function firstk(process)
-       integer(4) :: firstk
-       integer(4), intent(in) :: process
-       integer(4)::i
-       firstk = 1
-       do i = 0, process - 1
-          firstk = firstk + nofk(i)
-       end do
-    end function firstk
+   function lastk(process, nkpt)
+      integer(4) :: lastk, i
+      integer(4), intent(in) :: process
+      integer, intent(in) :: nkpt
+      lastk = 0
+      do i = 0, process
+         lastk = lastk + nofk(i, nkpt)
+      end do
+   end function lastk
 
-    function lastk(process)
-       integer(4) :: lastk, i
-       integer(4), intent(in) :: process
-       lastk = 0
-       do i = 0, process
-          lastk = lastk + nofk(i)
-       end do
-    end function lastk
+   function procofk(k, nkpt)
+      integer(4) :: procofk
+      integer(4), intent(in) :: k
+      integer, intent(in) :: nkpt
+      integer(4) :: iproc
+      procofk = 0
+      do iproc = 0, procs - 1
+         if(k .gt. lastk(iproc, nkpt)) procofk = procofk + 1
+      end do
+   end function procofk
 
-    function procofk(k)
-       integer(4) :: procofk
-       integer(4), intent(in) :: k
-       integer(4) :: iproc
-       procofk = 0
-       do iproc = 0, procs - 1
-          if(k .gt. lastk(iproc)) procofk = procofk + 1
-       end do
-    end function procofk
-
-
-!TODO(Alex/Peter) Issue 79. SIRUS Integration.
-! Review routine usage following sirius integration.
-!
 !> Find a 2D grid distribution, given n_processes and n_groups.
 !>
 !> The number of processes must be equally divisible by the number of groups,
 !> else a 2D grid cannot be constructed.
-!>
 !>
 subroutine find_2d_grid(n_processes, n_groups, rows_per_group, cols_per_group, group_label)
   use precision, only: dp

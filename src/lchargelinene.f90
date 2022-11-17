@@ -33,6 +33,8 @@ subroutine lchargelinene
   Complex (8), Allocatable :: apwalm (:, :, :, :, :)
   Logical :: done (natmmax)
 
+  call stopwatch("exciting:lchargelinene", 1)
+
   ! set lmax for maximum accuracy
   lmax=input%groundstate%lmaxapw
   lmmax = (lmax+1) ** 2
@@ -241,7 +243,7 @@ subroutine lchargelinene
     end do ! ia
   end do ! is
   deallocate(lstate,lcharge,nl,el)
-
+  call stopwatch("exciting:lchargelinene", 0)
   return
 end subroutine
 !EOC

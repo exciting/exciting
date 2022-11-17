@@ -90,7 +90,7 @@ Subroutine getoccsv (vpl, occsvp)
          End If
       End Do
       If (splittfile) Then
-         koffset = ik - firstk (procofk(ik)) + 1
+         koffset = ik - firstk (procofk(ik, nkpt), nkpt) + 1
       Else
          koffset = ik
       End If

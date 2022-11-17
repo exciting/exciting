@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<input>
+  <title>GaN</title>
+  
+  <structure speciespath="./">
+    <crystal scale="6.13845">
+      <basevect>    0.9810830229526963    0.0000000000000000    0.0000000000000000 </basevect>
+      <basevect>    0.4905415114763481    0.8496428211139336    0.0000000000000000 </basevect>
+      <basevect>    0.0000000000000000    0.0000000000000000    1.5874937290142779 </basevect>
+    </crystal>
+    <species speciesfile="Ga.xml" rmt="1.35">
+      <atom coord="0.00 0.00 0.00"/>
+      <atom coord="0.33333333333333333 0.33333333333333333 0.5"/>
+    </species>
+    <species speciesfile="N.xml" rmt="1.35">
+      <atom coord="0.3333333333333 0.33333333333333 0.8778116"/>
+      <atom coord="0.0  0.0  0.3778116"/>
+    </species>
+  </structure>
+
+  <groundstate 
+    do="fromscratch"
+    ngridk="2 2 2" 
+    xctype="GGA_PBE" 
+    rgkmax="6" 
+    gmaxvr="14" 
+    epsengy="1d-6" 
+    fracinr="1d-12" 
+    lmaxvr="8" lmaxmat="8" lmaxapw="8" 
+    radialgridtype="expocubic" 
+    tforce="true">
+   <!-- <sirius xc="true" vha="true" eigenstates="true" density="true" densityinit="false" cfun="true" /> -->
+      <!-- <libxc correlation="XC_GGA_C_PBE" exchange="XC_GGA_X_PBE"/> -->
+  </groundstate>
+  <!--relax maxsteps="3"/-->
+
+</input>

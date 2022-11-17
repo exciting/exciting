@@ -37,7 +37,7 @@ Subroutine exxengy
       verbosity=input%groundstate%outputlevelnumber
 
 #ifdef MPI
-         Do ik = firstk (rank), lastk (rank)
+         Do ik = firstk(rank, nkpt), lastk(rank, nkpt)
             If (verbosity>1) then
                Write (*, '("Info(exxengy): ", I6, " of ", I6, " k-points on pr&
            &oc:", I6)') ik, nkpt, rank

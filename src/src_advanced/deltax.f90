@@ -42,7 +42,7 @@ if (iscl.lt.1) return
 !********************************************
 allocate(vnlvv_full(nstsv,nkpt))
 #ifdef MPI
-         Do ik = firstk (rank), lastk (rank)
+         Do ik = firstk(rank, nkpt), lastk(rank, nkpt)
 #else
          Do ik = 1, nkpt
 #endif       
@@ -71,7 +71,7 @@ allocate(vnlvv_full(nstsv,nkpt))
   !write(*,*) "nstsv = ", nstsv
 
 #ifdef MPI
-Do ik = firstk (rank), lastk (rank)
+Do ik = firstk(rank, nkpt), lastk(rank, nkpt)
 #else
 Do ik = 1, nkpt
 #endif       

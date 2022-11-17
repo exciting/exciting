@@ -4,8 +4,6 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-!
-!
 Module mod_Gvector
 !--------------------------------!
 !     G-vector set variables     !
@@ -39,6 +37,5 @@ Module mod_Gvector
 ! real-space characteristic function: 0 inside the muffin-tins and 1 outside
       Real (8), Allocatable :: cfunir (:)
 ! damping coefficient for characteristic function
-!replaced by inputstructurereal(8)::cfdamp
+! replaced by inputstructurereal(8)::cfdamp
 End Module
-!

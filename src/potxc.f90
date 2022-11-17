@@ -10,6 +10,8 @@ subroutine potxc
 ! !USES:
 use modmain
 use modxcifc
+use sirius_init, only: sirius_options
+use sirius_api, only: set_exchange_correlation_sirius, set_xc_magnetic_sirius
 ! !DESCRIPTION:
 !   Computes the exchange-correlation potential and energy density. In the
 !   muffin-tin, the density is transformed from spherical harmonic coefficients
@@ -41,6 +43,18 @@ real(8), allocatable :: vc(:),vcup(:),vcdn(:)
 real(8), allocatable :: dxdg2(:),dxdgu2(:),dxdgd2(:),dxdgud(:)
 real(8), allocatable :: dcdg2(:),dcdgu2(:),dcdgd2(:),dcdgud(:)
 real(8), allocatable :: mag(:,:),bxc(:,:)
+
+if ( associated(input%groundstate%sirius) .and. sirius_options%use_xc ) then
+
+  call set_exchange_correlation_sirius(lmmaxvr, nrmtmax, ngrtot, rhoir, &
+                                     & vxcmt, vxcir, exmt, exir, ecmt, ecir)
+
+  if (ndmag /= 0) then
+    call set_xc_magnetic_sirius(ndmag, lmmaxvr, nrmtmax, ngrtot, bxcmt, bxcir)
+  endif
+
+  return
+end if
 
 n=lmmaxvr*nrmtmax
 allocate(rho(n),ex(n),ec(n),vxc(n))

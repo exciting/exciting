@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+  <title>GaN</title>
+  <structure speciespath="./">
+    <crystal>
+      <basevect>   6.022329082       0.000000000       0.000000000</basevect>
+      <basevect>   3.011164541       5.215489975       0.000000000</basevect>
+      <basevect>   0.000000000       0.000000000       9.744750881</basevect>
+    </crystal>
+    <species speciesfile="Ga.xml" rmt="1.3500">
+      <atom coord="0.0000000000      0.0000000000      0.0000000000"/>
+      <atom coord="0.3333333333      0.3333333333      0.5000000000"/>
+    </species>
+    <species speciesfile="N.xml" rmt="1.3500">
+      <atom coord="0.3333333333      0.3333333333      0.8778116000"/>
+      <atom coord="0.0000000000      0.0000000000      0.3778116000"/>
+    </species>
+  </structure>
+</input>

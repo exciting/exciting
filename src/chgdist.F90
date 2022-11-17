@@ -37,6 +37,7 @@ Subroutine chgdist(rhomtref,rhoirref)
 ! external functions
       real(8), external :: ddot
 ! find the muffin-tin charges
+      call stopwatch("exciting:chgdist", 1)
       chgdstmt=0.d0
       chgdstir=0.d0
       Do is = 1, nspecies
@@ -64,5 +65,6 @@ Subroutine chgdist(rhomtref,rhoirref)
       End Do
       chgdstir = sum * omega / dble (ngrtot)
       chgdst = (chgdstmt + chgdstir)/chgtot
+      call stopwatch("exciting:chgdist", 0)
 end subroutine
 !EOC

@@ -3,22 +3,22 @@ stages:
   - test
 
 build:debian-buster-GCC8-serial:
-  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8
-  stage: build
-  # Tags assign the gitlab runners.
-  tags:
-    - docker
-  script:
-    - cp build/platforms/make.inc.gfortran build/make.inc
-    - make serial -j 2
-  # Upload exciting binary and make.inc (so test can determine compiler)
-  # Alternative is to use an env variable
-  artifacts:
-    paths:
-      - bin/exciting_serial
-      - build/make.inc
-    # Uploads expire after 5 hours
-    expire_in: 5 hrs
+ image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8
+ stage: build
+ # Tags assign the gitlab runners.
+ tags:
+   - docker
+ script:
+   - cp build/platforms/make.inc.gfortran build/make.inc
+   - make serial -j 2
+ # Upload exciting binary and make.inc (so test can determine compiler)
+ # Alternative is to use an env variable
+ artifacts:
+   paths:
+     - bin/exciting_serial
+     - build/make.inc
+   # Uploads expire after 5 hours
+   expire_in: 5 hrs
 
 test-debian-buster-GCC8-serial:
   image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8
@@ -44,18 +44,18 @@ test-debian-buster-GCC8-serial:
     - cd ../tools/exciting_tools && pytest
 
 build:debian-buster-GCC8-mpiandsmp:
-  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8
-  stage: build
-  tags:
-    - docker
-  script:
-    - cp build/platforms/make.inc.gfortran build/make.inc
-    - make mpiandsmp -j 2
-  artifacts:
-    paths:
-      - bin/exciting_mpismp
-      - build/make.inc
-    expire_in: 5 hrs
+ image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8
+ stage: build
+ tags:
+   - docker
+ script:
+   - cp build/platforms/make.inc.gfortran build/make.inc
+   - make mpiandsmp -j 2
+ artifacts:
+   paths:
+     - bin/exciting_mpismp
+     - build/make.inc
+   expire_in: 5 hrs
 
 test-debian-buster-GCC8-mpiandsmp:
   image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8
@@ -122,25 +122,25 @@ test-debian-buster-Intel2019-serial:
      - cd ../tools/exciting_tools && pytest
 
 build:debian-buster-Intel2019-mpiandsmp:
-  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
-  stage: build
-  tags:
-    - docker
-  before_script:
-    - cp -r build/utilities/modules/intel /etc/environment-modules/modules
-    - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
-    - module load intel/2019
-    - apt-get install -y libfabric1 libfabric-dev
-  script:
-    - cp build/platforms/make.inc.ifort.profiler build/make.inc
-    - mkdir docs/profiling
-    - make mpiandsmp -j 2
-  artifacts:
-    paths:
-      - bin/exciting_mpismp
-      - build/make.inc
-      # This dir includes pgopti.spi and pgopti.spl for use in profiling
-      - docs/profiling
+ image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
+ stage: build
+ tags:
+   - docker
+ before_script:
+   - cp -r build/utilities/modules/intel /etc/environment-modules/modules
+   - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
+   - module load intel/2019
+   - apt-get install -y libfabric1 libfabric-dev
+ script:
+   - cp build/platforms/make.inc.ifort.profiler build/make.inc
+   - mkdir docs/profiling
+   - make mpiandsmp -j 2
+ artifacts:
+   paths:
+     - bin/exciting_mpismp
+     - build/make.inc
+     # This dir includes pgopti.spi and pgopti.spl for use in profiling
+     - docs/profiling
 
 # Run tests and profile test coverage
 test-debian-buster-Intel2019-mpiandsmp:
@@ -224,35 +224,35 @@ test-debian-buster-Intel2019-mpiandsmp:
 
 # Build documentation
 build:debian-buster-documentation:
-  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-docs
-  stage: build
-  tags:
-    - docker
-  script:
-    - cp build/platforms/make.inc.gfortran build/make.inc
-    # exciting input documentation
-    - make doc
-    # Ford documentation with graphical dependencies
-    - make ford
-  artifacts:
-    paths:
-      - docs/exciting/excitinginput.pdf
-      - docs/exciting_ford
+ image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-docs
+ stage: build
+ tags:
+   - docker
+ script:
+   - cp build/platforms/make.inc.gfortran build/make.inc
+   # exciting input documentation
+   - make doc
+   # Ford documentation with graphical dependencies
+   - make ford
+ artifacts:
+   paths:
+     - docs/exciting/excitinginput.pdf
+     - docs/exciting_ford
 
 # Used for testing Jupyter tutorials
 build:debian-buster-GCC8-smp:
-  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8-April2022
-  stage: build
-  tags:
-    - docker
-  script:
-    - cp build/platforms/make.inc.gfortran build/make.inc
-    - make smp -j 2
-  artifacts:
-    paths:
-      - bin/exciting_smp
-      - build/make.inc
-    expire_in: 5 hrs
+ image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8-April2022
+ stage: build
+ tags:
+   - docker
+ script:
+   - cp build/platforms/make.inc.gfortran build/make.inc
+   - make smp -j 2
+ artifacts:
+   paths:
+     - bin/exciting_smp
+     - build/make.inc
+   expire_in: 5 hrs
 
 # Test the Jupyter tutorials only
 test-debian-buster-gcc8-smp-jupyter:
@@ -273,3 +273,37 @@ test-debian-buster-gcc8-smp-jupyter:
    - jupyter nbconvert --execute 01_getting_started/tutorial4.ipynb --to markdown
    - jupyter nbconvert --execute tutorial_excited_states_from_bse/tutorial_excited_states_from_bse.ipynb --to markdown
    - jupyter nbconvert --execute 02_excited_states/q_dependent_bse_calculations.ipynb --to markdown
+
+# Sirius
+build:ubuntu-focal-sirius-gcc9-mpich-3.3.2-mkl:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:sirius-gcc9-mpich-3.3.2-mkl
+  stage: build
+  tags:
+    - docker
+  script:
+    - cp build/platforms/make.inc.sirius_ci build/make.inc
+    # SPEC VAR defined in the docker image
+    - echo "Compiling exciting in the spack env defined by the SPEC ${SPEC}"
+    - /spack/bin/spack build-env ${SPEC} -- make mpiandsmp -j 4
+  artifacts:
+    paths:
+      - bin/exciting_mpismp
+      - build/make.inc
+    expire_in: 5 hrs
+
+test-ubuntu-focal-sirius-gcc9-mpich-3.3.2-mkl:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:sirius-gcc9-mpich-3.3.2-mkl
+  stage: test
+  dependencies:
+    - build:ubuntu-focal-sirius-gcc9-mpich-3.3.2-mkl
+  tags:
+    - docker
+  script:
+    - pip3 install -e tools/exciting_tools
+    - cd test
+    # Set GROUPs to run i.e. just tested tagged as SIRIUS
+    - python3 set_groups.py -file defaults_config.yml -groups SIRIUS
+    # Run SIRIUS application tests
+    # Note, the test suite has no means with which to pass command line args
+    # to exciting, therefore kptgroups is always the default
+    - python3 runtest.py -e exciting_mpismp

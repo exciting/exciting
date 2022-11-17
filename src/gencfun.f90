@@ -15,6 +15,8 @@ Subroutine gencfun
       Use modinput
       Use modmain
       use constants, only: fourpi
+      use sirius_api, only: get_step_function
+      use sirius_init, only: sirius_options
 ! !DESCRIPTION:
 !   Generates the smooth characteristic function. This is the function which is
 !   0 within the muffin-tins and 1 in the intersitial region and is constructed
@@ -34,34 +36,51 @@ Subroutine gencfun
 !   Created January 2003 (JKD)
 !EOP
 !BOC
-      Implicit None
+      implicit none
 ! local variables
-      Integer :: is, ia, ig, ifg
-      Real (8) :: t1, t2
-      Complex (8) zt1
+      integer :: is, ia, ig, ifg
+      real (8) :: t1, t2
+      complex (8) :: zt1
+      integer :: ngv
 ! allocatable arrays
-      Real (8), Allocatable :: ffacg (:)
-      Complex (8), Allocatable :: zfft (:)
-      Allocate (ffacg(ngrtot))
-      Allocate (zfft(ngrtot))
+      real (8), allocatable :: ffacg (:)
+      complex (8), allocatable :: zfft (:)
+
+      ! Exciting generates the full set of G-vectors equal to the size of FFT box in real space.
+      ! The full set of G-vectors is used only here, in generating step function. For SIRIUS
+      ! only G-vectors within a plane-wave cutoff are generated. This is not problem as it leads to
+      ! negligible errors in total energy.
+      ngv = ngrtot
+      if (associated(input%groundstate%sirius)) then
+        ngv = ngvec
+      end if
+
 ! allocate global characteristic function arrays
       If (allocated(cfunig)) deallocate (cfunig)
-      Allocate (cfunig(ngrtot))
+      Allocate (cfunig(ngv))
       If (allocated(cfunir)) deallocate (cfunir)
       Allocate (cfunir(ngrtot))
+
+      if (associated(input%groundstate%sirius) .and. sirius_options%use_c_function) then
+        call get_step_function( cfunig, cfunir, ngrtot )
+        return
+      endif
+
+      Allocate (ffacg(ngrtot))
+      Allocate (zfft(ngrtot))
+
       cfunig (:) = 0.d0
       cfunig (1) = 1.d0
       t1 = fourpi / omega
-#ifdef USEOMP
-!$OMP PARALLEL DEFAULT(NONE) SHARED(nspecies,ngrtot,gc,input,rmt,ffacg,natoms,vgc,atposc,cfunig,zfft,igfft,t1) PRIVATE(is,ig,t2,ia,zt1,ifg)
-#endif
+!$OMP PARALLEL DEFAULT(NONE) &
+!$OMP          SHARED(nspecies,ngrtot,gc,input,rmt,ffacg,natoms, &
+!$OMP                &vgc,atposc,cfunig,zfft,igfft,t1,ngv) &
+!$OMP          PRIVATE(is,ig,t2,ia,zt1,ifg)
 ! begin loop over species
       Do is = 1, nspecies
 ! smooth step function form factors for each species
-#ifdef USEOMP
 !$OMP DO
-#endif
-         Do ig = 1, ngrtot
+         Do ig = 1, ngv
             If (gc(ig) .Gt. input%structure%epslat) Then
                t2 = gc (ig) * rmt (is)
                ffacg (ig) = t1 * (Sin(t2)-t2*Cos(t2)) / (gc(ig)**3)
@@ -69,39 +88,29 @@ Subroutine gencfun
                ffacg (ig) = (t1/3.d0) * rmt (is) ** 3
             End If
          End Do
-#ifdef USEOMP
 !$OMP END DO
-#endif
 ! loop over atoms
          Do ia = 1, natoms (is)
-#ifdef USEOMP
 !$OMP DO
-#endif
-            Do ig = 1, ngrtot
+            Do ig = 1, ngv
 ! structure factor
                t2 = - dot_product (vgc(:, ig), atposc(:, ia, is))
                zt1 = cmplx (Cos(t2), Sin(t2), 8)
 ! add to characteristic function in G-space
                cfunig (ig) = cfunig (ig) - zt1 * ffacg (ig)
             End Do
-#ifdef USEOMP
 !$OMP END DO NOWAIT
-#endif
          End Do
       End Do
-#ifdef USEOMP
 !$OMP BARRIER
 !$OMP DO
-#endif
 
-      Do ig = 1, ngrtot
+      Do ig = 1, ngv
          ifg = igfft (ig)
          zfft (ifg) = cfunig (ig)
       End Do
-#ifdef USEOMP
 !$OMP END DO
 !$OMP END PARALLEL 
-#endif
 !
 ! Fourier transform to real-space
       Call zfftifc (3, ngrid, 1, zfft)
@@ -109,7 +118,7 @@ Subroutine gencfun
 ! damp the characteristic function in G-space if required
       If (input%groundstate%cfdamp .Gt. 0.d0) Then
          t1 = input%groundstate%cfdamp / input%groundstate%gmaxvr
-         Do ig = 1, ngrtot
+         Do ig = 1, ngv
             t2 = Exp (-(t1*gc(ig))**2)
             cfunig (ig) = cfunig (ig) * t2
          End Do

@@ -22,7 +22,7 @@ contains
   !> input%groundstate%useDensityMatrix .false.)
   subroutine UpdateDensity( it, timeini, timefinal, timerho, &
       & timesymrf, timerfmtctof, timerhocr, timecharge, timerhonorm )
-    use modmpi
+    use modmpi, only: mpi_env_k, distribute_loop
     use precision, only: dp
     use modmain, only : iscl
     use modinput, only: input
@@ -63,20 +63,15 @@ contains
     rhomt(:,:,:) = 0._dp
     rhoir(:) = 0._dp
 
-#ifdef MPI
-  first_kpt = firstk(rank)
-  last_kpt = lastk(rank)
-#else
-  first_kpt = 1
-  last_kpt = nkpt
-#endif
+    call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
 
     do ik = first_kpt, last_kpt
       call rhovalk( ik, evecfv_time(:, :, ik), evecsv(:, :, ik) )
       call genrhoir( ik, evecfv_time(:, :, ik), evecsv(:, :, ik) )
     end do
+    
 #ifdef MPI
-    call mpisumrhoandmag
+    call mpisumrhoandmag(mpi_env_k)
 #endif
     if ( present( timerho ) ) then
       call timesec( timef )

@@ -105,14 +105,14 @@ allocate(buffer(Recl*recordunit_inbytes))
      Open (71, File=trim(filetagarg)//trim(filext), Action='WRITE', &
         & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
 	endif
-    if(rank.lt.nkpt)Open (77, File=outfilenamestring(filetagarg, firstk(rank)), &
+    if(rank.lt.nkpt)Open (77, File=outfilenamestring(filetagarg, firstk(rank, nkpt)), &
         & Action='READ', Form='UNFORMATTED', Access='DIRECT', &
         & Recl=Recl)
     Do ik =1,nkpt
-    	if(procofk(ik).eq.rank .and. (rank.lt.nkpt)) then
-            Read (77, Rec=ik-firstk(procofk(ik))+1) buffer
+    	if(procofk(ik, nkpt).eq.rank .and. (rank.lt.nkpt)) then
+            Read (77, Rec=ik-firstk(procofk(ik, nkpt), nkpt)+1) buffer
         endif
-        Call MPI_bcast (buffer,Recl*recordunit_inbytes , MPI_CHARACTER, procofk(ik), MPI_COMM_WORLD, ierr)
+        Call MPI_bcast (buffer,Recl*recordunit_inbytes , MPI_CHARACTER, procofk(ik, nkpt), MPI_COMM_WORLD, ierr)
 
         if(rank.eq.0 .or. (.not. input%sharedfs .and. firstinnode)) then
             Write (71, Rec=ik) buffer

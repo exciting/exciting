@@ -13,6 +13,7 @@ Subroutine gndstate
     Use modmain
     Use modmpi
     Use scl_xml_out_Module
+    use sirius_api, only : finalize_sirius
 !
 ! !DESCRIPTION:
 !   Computes the self-consistent Kohn-Sham ground-state. General information is
@@ -278,7 +279,8 @@ Subroutine gndstate
         call printline(60,"=")
         close (60)
     endif
-   
-    Return
+    if ( associated(input%groundstate%sirius) ) then
+      call finalize_sirius()
+    endif
    End Subroutine gndstate
 !EOC

@@ -75,3 +75,4 @@ group_execution:
   SLOW_TESTS: False
   GW_INTEL: False
   LIBXC: True
+  SIRIUS: False

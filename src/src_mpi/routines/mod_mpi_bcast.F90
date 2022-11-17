@@ -1,4 +1,7 @@
 !> exciting wrappers for mpi_bcast
+!> Every addition to a parallel wrapper als requires a serial overload
+!> One notes the number of routines could drastically be reduced using assumed-rank
+!> but this has not been used due to limited compiler support.
 module mod_mpi_bcast   
 #ifdef MPI
       use mpi
@@ -12,16 +15,25 @@ module mod_mpi_bcast
       public :: xmpi_bcast
   
       interface xmpi_bcast
-          module procedure :: mpi_bcast_rank0_int_sp, mpi_bcast_rank0_real_dp,&
-            mpi_bcast_rank1_real_dp, mpi_bcast_rank2_real_dp,&
-            mpi_bcast_rank3_real_dp,&
-            & mpi_bcast_rank0_complex_dp, mpi_bcast_rank2_complex_dp, &
-            & mpi_bcast_rank3_complex_dp, mpi_bcast_rank4_complex_dp, &
-            & mpi_bcast_character, mpi_bcast_character_array 
+          module procedure :: mpi_bcast_rank0_int_sp, &
+            & mpi_bcast_rank0_logical, &
+            & mpi_bcast_rank0_real_dp, mpi_bcast_rank1_real_dp, mpi_bcast_rank2_real_dp, mpi_bcast_rank3_real_dp, &
+            & mpi_bcast_rank0_complex_dp, mpi_bcast_rank2_complex_dp, mpi_bcast_rank3_complex_dp, mpi_bcast_rank4_complex_dp, &
+            & mpi_bcast_character, mpi_bcast_character_array
       end interface 
   
   contains
-  
+
+      !> Broadcasts logical from the process with rank root to all other processes of the group. 
+      subroutine mpi_bcast_rank0_logical(mpi_env, buffer)
+        !> MPI environment
+        type(mpiinfo), intent(inout) :: mpi_env
+        !> Buffer
+        logical,  intent(in) :: buffer
+        call MPI_BCAST(buffer, 1, MPI_LOGICAL, mpi_env%root, mpi_env%comm, mpi_env%ierr)
+      end subroutine 
+
+
       !> Broadcasts integer scalar from the process with rank root to all other processes of the group. 
       subroutine mpi_bcast_rank0_int_sp(mpi_env, buffer)
         !> MPI environment

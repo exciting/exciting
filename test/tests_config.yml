@@ -259,3 +259,16 @@ TDDFT/PBE-LiF:
 XANES/PBE_SOL-BN:
 
 XANES/PBE_SOL-TiO2:
+
+sirius/GaN:
+   group: SIRIUS
+   inputs:
+      - "Ga.xml"
+      - "N.xml"
+      - "input.xml"
+   files_under_test:
+      - "INFO.OUT"
+      - "eigval.xml"
+      - "evalcore.xml"
+      - "atoms.xml"
+      - "geometry.xml"
