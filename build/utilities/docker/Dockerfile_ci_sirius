@@ -1,0 +1,69 @@
+# Dockerfile
+FROM ubuntu:focal
+
+ENV DEBIAN_FRONTEND noninteractive
+
+# Lowest-level Build Dependencies
+RUN \
+ apt-get update && \
+ apt-get install -y apt-utils gcc g++ gfortran git make unzip \
+ wget pkg-config python3-pip curl tcl m4 cpio hwloc automake \
+ xsltproc libomp-dev
+
+# Library dependencies which are slow to build with spack
+RUN apt-get update && apt-get install -y mpich libhdf5-cpp-103 libhdf5-mpich-103 libhdf5-mpich-dev libxc-dev
+
+RUN pip install cmake==3.24.1
+
+# Install spack
+RUN git clone -c feature.manyFiles=true https://github.com/spack/spack.git
+
+# Place output of source setup-env.sh into a dir executed by the login shell,
+# and ensure all subsequent RUN commands invoke the login shell (the default shell is not a login shell).
+# https://stackoverflow.com/questions/20635472/using-the-run-instruction-in-a-dockerfile-with-source-does-not-work
+# https://stackoverflow.com/questions/38024160/how-to-get-etc-profile-to-run-automatically-in-alpine-docker/44581167
+
+RUN echo "source /spack/share/spack/setup-env.sh" >> /etc/profile.d/spack.sh
+SHELL ["/bin/bash", "--login", "-c"]
+
+RUN /spack/bin/spack compiler find
+RUN /spack/bin/spack external find
+
+# Sirius build specification
+ENV SPEC="sirius@develop %gcc@9.4.0 build_type=Release +scalapack +fortran ^mpich@3.3.2 ^intel-oneapi-mkl+cluster ^spfft target=x86_64"
+
+# Sirius installation location
+ENV SIRIUS_ROOT=spack-sirius-install
+
+# Location of sirius env `spack.yaml`
+ENV SIRIUS_ENV=spack-sirius-env
+
+# Create an environment
+RUN /spack/bin/spack env create --with-view $SIRIUS_ROOT -d $SIRIUS_ENV
+
+# Install sirius's dependencies
+RUN /spack/bin/spack compiler find && spack/bin/spack -e $SIRIUS_ENV install --only=dependencies $SPEC
+
+# Install sirius
+RUN /spack/bin/spack compiler find && /spack/bin/spack -e $SIRIUS_ENV install $SPEC
+
+# Remove any intermediate dependencies
+RUN /spack/bin/spack gc -y
+
+# Test suite dependencies
+RUN apt-get update && apt-get install -y python3.8-full python3.8-venv
+RUN pip install termcolor lxml pytest pyyaml pytest-cov
+
+# ---------------------------------------------
+# Build exciting, linking to sirius
+# This is defined in the CI, but the commented
+# commands are retained for reference
+# ---------------------------------------------
+
+# RUN cp build/platforms/make.inc.sirius_ci build/make.inc 
+# RUN spack build-env $SPEC -- make mpiandsmp -j 4
+
+# Run test suite for mpiandsmp binary, for the sirius test cases
+# RUN cd /exciting/tools/exciting_tools && pip install . 
+# RUN cd test && cp sirius_defaults_config.yml defaults_config.yml
+# RUN python3 runtest.py -e exciting_mpismp -t sirius

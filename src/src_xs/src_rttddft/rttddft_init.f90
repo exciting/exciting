@@ -67,18 +67,12 @@ subroutine initialize_rttddft
   call init1
   call init2
 
-#ifdef MPI
-  first_kpt = firstk(rank)
-  last_kpt = lastk(rank)
-#else
-  first_kpt = 1
-  last_kpt = nkpt
-#endif
+  call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
 
   ! Print to RTTDDFT_INFO that we will start the single-shot GS calculation
   if ( rank == 0 ) then
     call printline(fileinfortddft, "=")
-    write( fileinfortddft, '("One-shot GS runs for TDDFT calculations")' )
+    write( fileinfortddft, '("Non-self-consistent GS runs for TDDFT calculations")' )
     write( fileinfortddft, * )
   end if
 

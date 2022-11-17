@@ -15,13 +15,19 @@ Subroutine init1
       Use modinput
       Use modmain
       Use modmpi, only: terminate
+
+
 #ifdef TETRA
       Use modtetra
 #endif
 #ifdef XS
       Use modxs
 #endif
-      Use modfvsystem
+      use modfvsystem
+      use sirius_init, only: use_sirius_gkvec
+      use sirius_api,  only: setup_sirius_gs_handler, get_gkvec_arrays_sirius, &
+                             get_max_num_gkvec_sirius
+
 ! !DESCRIPTION:
 !   Generates the $k$-point set and then allocates and initialises global
 !   variables which depend on the $k$-point set.
@@ -48,6 +54,8 @@ Subroutine init1
       Complex (8) gauntyry
       External gauntyry
 !
+      call stopwatch("exciting:init1", 1)
+
       wannierband = .false.
       if( associated( input%properties)) then
         if( associated( input%properties%bandstructure)) wannierband = input%properties%bandstructure%wannier
@@ -139,9 +147,9 @@ Subroutine init1
                End Do
             End Do
          End Do
-!      
+!
       Else If (task .Eq. 42) Then
-         !         
+         !
          !          2D spin texture plot
          !
            np2d        = input%properties%spintext%plot2d%parallelogram%grid
@@ -325,28 +333,24 @@ Subroutine init1
          &             symlat, lsplsymc, vtlsymc, isymlat, scimap)
 #endif
       End If
+
+      if ( associated(input%groundstate%sirius) ) then
+         call setup_sirius_gs_handler(input)
+      endif
 !
 !---------------------!
 !     G+k vectors     !
 !---------------------!
 ! determine gkmax
-      If ((input%groundstate%isgkmax .Ge. 1) .And. &
-     & (input%groundstate%isgkmax .Le. nspecies)) Then
-         gkmax = input%groundstate%rgkmax / rmt &
-        & (input%groundstate%isgkmax)
-      Else
-         gkmax = input%groundstate%rgkmax / 2.d0
-      End If
-      If (2.d0*gkmax .Gt. &
-     & input%groundstate%gmaxvr+input%structure%epslat) Then
-         Write (*,*)
-         Write (*, '("Error(init1): 2*gkmax > gmaxvr  ", 2G18.10)') &
-        & 2.d0 * gkmax, input%groundstate%gmaxvr
-         Write (*,*)
-         Stop
-      End If
+      call Get_gkmax(input, gkmax)
+
 ! find the maximum number of G+k-vectors
-      Call getngkmax
+      if ( associated(input%groundstate%sirius) .and. use_sirius_gkvec ) then
+        call get_max_num_gkvec_sirius(ngkmax)
+      else
+        call getngkmax
+      end if
+
       ngkmax_ptr => ngkmax
 ! allocate the G+k-vector arrays
       If (allocated(ngk)) deallocate (ngk)
@@ -370,6 +374,8 @@ Subroutine init1
 !      igkfft=0
       Do ik = 1, nkpt
          Do ispn = 1, nspnfv
+            ! Comment (Alex) isspinspiral() is independent of the loops
+            ! Why is it evaluated in them?
             If (isspinspiral()) Then
 ! spin-spiral case
                If (ispn .Eq. 1) Then
@@ -385,6 +391,16 @@ Subroutine init1
                vl (:) = vkl (:, ik)
                vc (:) = vkc (:, ik)
             End If
+
+            if ( associated(input%groundstate%sirius) .and. use_sirius_gkvec ) then
+               ! ./seceqn.f90 implies nspnfv=2 is equivalent to spin-spirals
+               if ( ispn == 2 ) then
+                 write(*,*)"SIRIUS doesn't support spin spirals"
+                 call terminate()
+               end if
+               call get_gkvec_arrays_sirius(ik, ngk(ispn, ik), igkig(:, ispn, ik), vgkl(:, :, ispn, ik), &
+                                            vgkc(:, :, ispn, ik), gkc(:, ispn, ik), tpgkc(:, :, ispn, ik))
+            else
 ! generate the G+k-vectors
 ! commented and uncommented versions differ by igkfft(:,ik)
 !            Call gengpvec (vl, vc, ngk(ispn, ik), igkig(:, ispn, ik), &
@@ -393,6 +409,7 @@ Subroutine init1
             Call gengpvec (vl, vc, ngk(ispn, ik), igkig(:, ispn, ik), &
            & vgkl(:, :, ispn, ik), vgkc(:, :, ispn, ik), gkc(:, ispn, &
            & ik), tpgkc(:, :, ispn, ik))
+           endif
 ! generate structure factors for G+k-vectors
             Call gensfacgp (ngk(ispn, ik), vgkc(:, :, ispn, ik), &
            & ngkmax, sfacgk(:, :, ispn, ik))
@@ -460,7 +477,7 @@ Subroutine init1
 !     secular equation variables     !
 !------------------------------------!
 ! number of first-variational states
-      nstfv = Int (chgval/2.d0) + input%groundstate%nempty + 1
+      nstfv = get_nstfv(chgval, input%groundstate%nempty)
 ! overlap and Hamiltonian matrix sizes
       If (allocated(nmat)) deallocate (nmat)
       Allocate (nmat(nspnfv, nkpt))
@@ -638,6 +655,7 @@ Subroutine init1
 !
       nullify(arpackinverse)
       Call timesec (ts1)
+      call stopwatch("exciting:init1", 0)
 !
       Return
 End Subroutine

@@ -55,5 +55,26 @@ Module mod_timing
       Real (8) :: time_oepvnl
       Real (8) :: time_oep_iter
 
+      public :: stopwatch
+
+contains
+
+      !> Sirius timer.
+      !>
+      !> Note, if sirius_start_timer and sirius_stop_timer are straightforward,
+      !> one could move them to exciting and general `stopwatch`, such that
+      !> it can be used to time any code block.
+      subroutine stopwatch(label, s)
+#ifdef SIRIUS
+      use sirius, only: sirius_start_timer, sirius_stop_timer
+#endif
+      !> Subroutine, module or code block label
+      character(len=*), intent(in) :: label
+      !> Start/stop integer: 0 or 1, respectively
+      integer, intent(in) :: s
+#ifdef SIRIUS
+      if (s.eq.1) call sirius_start_timer(label)
+      if (s.eq.0) call sirius_stop_timer(label)
+#endif
+      end subroutine stopwatch
 End Module
-!

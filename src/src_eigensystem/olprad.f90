@@ -40,6 +40,8 @@ Subroutine olprad
       Real (8) :: angular,t1,t2,rm,a,alpha
       parameter (alpha=1d0 / 137.03599911d0)
 
+      call stopwatch("exciting:olprad", 1)
+
       h1aa=0d0
       h1loa=0d0
       h1lolo=0d0
@@ -139,6 +141,7 @@ Subroutine olprad
             End Do
          End Do
       End Do
+      call stopwatch("exciting:olprad", 0)
       Return
 End Subroutine
 !EOC

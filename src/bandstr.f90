@@ -101,7 +101,7 @@ Subroutine bandstr
 #ifdef MPI
   Call MPI_barrier (MPI_COMM_WORLD, ierr)
   splittfile = .True.
-  Do ik = firstk (rank), lastk (rank)
+  Do ik = firstk(rank, nkpt), lastk(rank, nkpt)
 #else
   splittfile = .False.
   Do ik = 1, nkpt

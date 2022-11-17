@@ -13,16 +13,24 @@ module mod_serial_bcast
     public :: xmpi_bcast
 
     interface xmpi_bcast
-      module procedure :: mpi_bcast_rank0_int_sp, mpi_bcast_rank0_real_dp,&
-                mpi_bcast_rank1_real_dp, mpi_bcast_rank2_real_dp,&
-                mpi_bcast_rank3_real_dp,&
-                & mpi_bcast_rank0_complex_dp, mpi_bcast_rank2_complex_dp, &
-                & mpi_bcast_rank3_complex_dp, mpi_bcast_rank4_complex_dp, &
+      module procedure :: mpi_bcast_rank0_int_sp, &
+                & mpi_bcast_rank0_logical, &
+                & mpi_bcast_rank0_real_dp, mpi_bcast_rank1_real_dp, mpi_bcast_rank2_real_dp, mpi_bcast_rank3_real_dp, &
+                & mpi_bcast_rank0_complex_dp, mpi_bcast_rank2_complex_dp, mpi_bcast_rank3_complex_dp, mpi_bcast_rank4_complex_dp, &
                 & mpi_bcast_character, mpi_bcast_character_array 
     end interface 
 
 contains    
 
+    !> Dummy routine for serial version of mpi_bcast
+    subroutine mpi_bcast_rank0_logical(mpi_env, buffer)
+      !> MPI environment
+      type(mpiinfo), intent(inout) :: mpi_env
+      !> Buffer
+      logical,  intent(in) :: buffer
+    end subroutine 
+
+    
     !> Dummy routine for serial version of mpi_bcast
     subroutine mpi_bcast_rank0_int_sp(mpi_env, buffer)
       !> MPI environment

@@ -39,7 +39,6 @@ Subroutine linengy
       character(1024) :: message
 
       linenetype = trim(input%groundstate%findlinentype)
-
 !________________________________
 !     switch off LE search
 
@@ -71,7 +70,8 @@ Subroutine linengy
           if ((iscl>1).and.(currentconvergence>0.0001)) call lchargelinene
           return
       end if
-      
+
+      call stopwatch("exciting:linengy", 1)
 ! begin loops over atoms and species
       Do is = 1, nspecies
          done (:) = .False.
@@ -217,7 +217,7 @@ Subroutine linengy
            deallocate(p0,p1,q0,q1)
          end if
       End Do ! is
-
+      call stopwatch("exciting:linengy", 0)
       Return
 End Subroutine
 !EOC

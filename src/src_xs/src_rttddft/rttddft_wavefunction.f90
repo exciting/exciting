@@ -18,9 +18,7 @@ module rttddft_Wavefunction
   use constants, only: zone, zzero, zi
   use precision, only: dp
   use modmpi
-#ifdef USE_ASSERT
   use asserts, only: assert
-#endif
 
   implicit none
 
@@ -62,13 +60,7 @@ contains
     !> auxiliary variable to store the overlap and hamiltonian matrices
     complex(dp), allocatable  :: overl(:,:), ham(:,:), hamold(:,:)
 
-#ifdef MPI
-    first_kpt = firstk(rank)
-    last_kpt = lastk(rank)
-#else
-    first_kpt = 1
-    last_kpt = nkpt
-#endif
+    call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
 
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(NONE) PRIVATE(ik,nmatp,overl,ham,hamold), &

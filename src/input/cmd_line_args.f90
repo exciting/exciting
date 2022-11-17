@@ -4,10 +4,9 @@
 !> listed on the [fortran wiki](http://fortranwiki.org/fortran/show/Command-line+arguments),
 !> depending on the our needs.
 module cmd_line_args
-   use modmpi, only: mpiinfo, terminate_mpi_env
-#ifdef MPI
-   use mpi
-#endif
+   use modmpi, only: terminate_mpi_env
+   ! exciting MPI wrappers
+   use exciting_mpi, only: mpiinfo, xmpi_bcast
    implicit none
    private
 
@@ -28,7 +27,12 @@ module cmd_line_args
       !> between executions if the init SCF call is performed with a
       !> number of threads consistent with the ground state (one `assumes`
       !> specifically for the eigensolver)
-      integer :: ground_state_solver_threads
+      integer :: ground_state_solver_threads = null_solver_threads
+      !> The number of groups to block a grid of k-point into
+      !> used for MPI distribution/communicator-splitting
+      !> Non-positive values mean that the number of groups is equal to the number of MPI ranks
+      !> (as defined by the sirius API)
+      integer :: kptgroups = 1
    contains
       !> Initialise by parsing arguments from the command line
       procedure :: parse => parse_command_line_args
@@ -36,13 +40,20 @@ module cmd_line_args
 
 contains
 
-   !> Parse arguments from the command line.
-   !>
-   !> Separate arguments are defined by the whitespace delimiter.
-   !
    ! For reference, if one needs to convert a string to real:
    ! READ(arg1, *) num1
    ! where num1 is the real
+
+   !> Parse arguments from the command line.
+   !>
+   !> Separate arguments are defined by the whitespace delimiter.
+   !>
+   !> This command gets the value following a matched option:
+   !>  call get_command_argument(i + 1, arg)
+   !> i.e.
+   !> `-option value` is passed at the command line.
+   !> '-option' is matched.
+   !> value is returned.
    subroutine parse_command_line_args(this, mpi_env)
       !> Instance of command line options
       class(cmd_line_args_type), intent(inout) :: this
@@ -83,6 +94,11 @@ contains
                read(arg,'(i3)') this%ground_state_solver_threads
                cycle
 
+            case('-kptgroups')
+               call get_command_argument(i + 1, arg)
+               read(arg,'(i3)') this%kptgroups
+               cycle
+
             end select
 
          end do
@@ -90,12 +106,11 @@ contains
       endif
 
       ! Broadcast object data to other processes
-      ! If command-line arguments grow, one should bcast the whole object instance (this) instead
-#ifdef MPI
-      call mpi_bcast(this%run_unit_tests, 1, MPI_LOGICAL, mpi_env%root, mpi_env%comm, mpi_env%ierr)
-      call mpi_bcast(this%kill_on_failure, 1, MPI_LOGICAL, mpi_env%root, mpi_env%comm, mpi_env%ierr)
-      call mpi_bcast(this%ground_state_solver_threads, 1, MPI_LOGICAL, mpi_env%root, mpi_env%comm, mpi_env%ierr)
-#endif
+      ! If command-line arguments grow, one should bcast the whole object instance (this) instead 
+      call xmpi_bcast(mpi_env, this%run_unit_tests)
+      call xmpi_bcast(mpi_env, this%kill_on_failure)
+      call xmpi_bcast(mpi_env, this%ground_state_solver_threads)
+      call xmpi_bcast(mpi_env, this%kptgroups)
 
    end subroutine parse_command_line_args
 
@@ -137,10 +152,7 @@ contains
             input = trim(input)//trim(arg)
          end do
       endif
-
-#ifdef MPI
-      call mpi_bcast(input, len(input), MPI_CHARACTER, mpi_env%root, mpi_env%comm, mpi_env%ierr)
-#endif
+      call xmpi_bcast(mpi_env, input)
 
       ! Find where the '-run-unit-tests=' substring begins
       i = INDEX(input, '-run-unit-tests=')

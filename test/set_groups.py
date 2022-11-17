@@ -1,7 +1,10 @@
 """ Module to change GROUP settings in  defaults_config.yml,
 typically used when running an instance in the CI.
 
-Safer than using sed because one can easily throw an error
+Safer than using sed because one can easily throw an error in this case,
+whereas very easy not to catch them with sed
+
+sed commands to achieve the same thing:
  - "sed -i 's/  NONE.*/  NONE: False/g' defaults_config.yml" 
  - "sed -i 's/  GW.*/  GW: True/g' defaults_config.yml"
 """

@@ -4,10 +4,9 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-!
-!
 Module mod_eigenvalue_occupancy
       Use modinput
+      implicit none
 !--------------------------------------------!
 !     eigenvalue and occupancy variables     !
 !--------------------------------------------!
@@ -43,5 +42,19 @@ Module mod_eigenvalue_occupancy
       Real (8), Allocatable :: evalsv (:, :)
 ! tevecsv is .true. if second-variational eigenvectors are calculated
 !replaced by inputstructurelogical::tevecsv
+
+contains
+
+   !> Get number of first-variational states
+   !> for spin-unpolarised calculations.
+   function get_nstfv(chgval, nempty) result(nstfv)
+      use precision, only: dp
+      !> Total valence charge
+      real(dp), intent(in) :: chgval
+      !> Number of empty states
+      integer, intent(in) :: nempty
+      integer :: nstfv
+      nstfv = int ( chgval / 2._dp ) + nempty + 1
+   end function 
+
 End Module
-!

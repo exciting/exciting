@@ -56,13 +56,8 @@ contains
     ! Calculate gradient of radial functions times spherical harmonics
     call pmatrad
 
-#ifdef MPI
-    first_kpt = firstk(rank)
-    last_kpt = lastk(rank)
-#else
-    first_kpt = 1
-    last_kpt = nkpt
-#endif
+    call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
+    
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(NONE), PRIVATE(ik) SHARED(first_kpt,last_kpt,rank,apwalm,pmat,ripaa,ripalo,riploa,riplolo)
 !$OMP DO

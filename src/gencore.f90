@@ -21,6 +21,7 @@ Subroutine gencore
       use mod_potential_and_density, only: veffmt
       use constants, only: y00, fourpi
       use mod_corestate, only: rhocr, rwfcr, evalcr
+      use mod_timing, only: stopwatch
       !Use modmain
 ! !DESCRIPTION:
 !   Computes the core radial wavefunctions, eigenvalues and densities. The
@@ -41,7 +42,8 @@ Subroutine gencore
 ! automatic arrays
       Logical :: done (natmmax)
       Real (8) :: vr (spnrmax)
-      
+
+      call stopwatch("exciting:gencore", 1)
 
       dirac_eq=(input%groundstate%CoreRelativity.eq."dirac")
      
@@ -117,6 +119,7 @@ Subroutine gencore
             End If
          End Do
       End Do
+      call stopwatch("exciting:gencore", 0)
       Return
 End Subroutine
 !EOC

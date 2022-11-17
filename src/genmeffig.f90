@@ -29,6 +29,7 @@ Subroutine genmeffig
       Parameter (alpha=1d0 / 137.03599911d0, a2=0.5d0*alpha**2)
 ! allocatable arrays
       Complex (8), Allocatable :: zfft (:)
+      call stopwatch("exciting:genmeffig", 1)
       Allocate (zfft(ngrtot))
       if (input%groundstate%ValenceRelativity.ne."none") then
          if (allocated(meffig)) deallocate(meffig)
@@ -54,8 +55,8 @@ Subroutine genmeffig
            m2effig (ig) = zfft (ifg)
          End Do
       endif
-
       Deallocate (zfft)
+      call stopwatch("exciting:genmeffig", 0)
       Return
 End Subroutine
 !EOC

@@ -10,11 +10,14 @@
 ! !INTERFACE:
 !
 !
-Subroutine force
+Subroutine force(compute_ibs)
 ! !USES:
       Use modinput
       Use modmain
       Use modmpi
+      use sirius_init, only: sirius_options
+      use sirius_api, only: get_forces_sirius
+
 ! !DESCRIPTION:
 !   Computes the various contributions to the atomic forces. In principle, the
 !   force acting on a nucleus is simply the gradient at that site of the
@@ -84,8 +87,11 @@ Subroutine force
 !EOP
 !BOC
       Implicit None
+! Arguments
+      !> Compute IBS force
+      logical, intent(in) :: compute_ibs
 ! local variables
-      Integer :: ik, is, ia, ias, nr, i
+      Integer :: ik, is, ia, ias, nr, i, kstart, kend
       Real (8) :: sum, t1
       Real (8) :: ts0, ts1
 ! allocatable arrays
@@ -106,15 +112,19 @@ Subroutine force
 !--------------------------------!
 !     Hellmann-Feynman force     !
 !--------------------------------!
-      Do is = 1, nspecies
-         Do ia = 1, natoms (is)
-            ias = idxas (ia, is)
+      if (associated(input%groundstate%sirius)) then
+         call get_forces_sirius('hf', forcehf)
+      else
+         Do is = 1, nspecies
+            Do ia = 1, natoms (is)
+               ias = idxas (ia, is)
 ! compute the gradient of the Coulomb potential
-            Call gradrfmt (1, nrmt(is), spr(:, is), lmmaxvr, nrmtmax, &
-           & vclmt(:, :, ias), grfmt)
-            forcehf (:, ias) = - spzn (is) * grfmt (1, 1, :) * y00
+               Call gradrfmt (1, nrmt(is), spr(:, is), lmmaxvr, nrmtmax, &
+              & vclmt(:, :, ias), grfmt)
+               forcehf (:, ias) = - spzn (is) * grfmt (1, 1, :) * y00
+            End Do
          End Do
-      End Do
+      endif
 ! symmetrise Hellmann-Feynman force
       Call symvect (.False., forcehf)
 !--------------------------------------!
@@ -143,56 +153,53 @@ Subroutine force
 ! set the IBS forces to zero
       forceibs (:, :) = 0.d0
 
-
-
-      If (input%groundstate%tfibs) Then
-         Allocate (ffacg(ngvec, nspecies))
+      If (compute_ibs) Then
+         if (associated(input%groundstate%sirius).and.sirius_options%use_eigen_states) then
+           call get_forces_sirius('ibs', forceibs)
+         else
+            Allocate (ffacg(ngvec, nspecies))
 ! generate the step function form factors
-         Do is = 1, nspecies
-            Call genffacg (is, ffacg(:, is))
-         End Do
+            Do is = 1, nspecies
+               Call genffacg (is, ffacg(:, is))
+            End Do
 
-         call olprad
+            call olprad
 
 ! compute k-point dependent contribution to the IBS force
+            call distribute_loop(mpi_env_k, nkpt, kstart, kend)
+            Do ik = kstart, kend
+               Call forcek (ik, ffacg)
+            End Do
 
 #ifdef MPI
-         Do ik = firstk (rank), lastk (rank)
-#else
-         Do ik = 1, nkpt
-#endif
-            Call forcek (ik, ffacg)
-         End Do
-
-#ifdef MPI
-        allocate(forcesum(3,natmtot))
-        forcesum=0d0
-        call MPI_ALLREDUCE(forceibs, forcesum, natmtot*3, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
-        forceibs=forcesum
-        deallocate(forcesum)
+           allocate(forcesum(3,natmtot))
+           forcesum=0d0
+           call MPI_ALLREDUCE(forceibs, forcesum, natmtot*3, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
+           forceibs=forcesum
+           deallocate(forcesum)
 #endif
 
 ! integral of effective potential with gradient of valence density
-         Do is = 1, nspecies
-            nr = nrmt (is)
-            Do ia = 1, natoms (is)
-               ias = idxas (ia, is)
-               rfmt (:, 1:nr) = rhomt (:, 1:nr, ias)
-               rfmt (1, 1:nr) = rfmt (1, 1:nr) - rhocr (1:nr, ias) / &
-              & y00
-               Call gradrfmt (input%groundstate%lmaxvr, nr, spr(:, is), &
-              & lmmaxvr, nrmtmax, rfmt, grfmt)
-               Do i = 1, 3
-                  t1 = rfmtinp (1, input%groundstate%lmaxvr, nr, spr(:, &
-                 & is), lmmaxvr, veffmt(:, :, ias), grfmt(:, :, i))
-                  forceibs (i, ias) = forceibs (i, ias) + t1
+            Do is = 1, nspecies
+               nr = nrmt (is)
+               Do ia = 1, natoms (is)
+                  ias = idxas (ia, is)
+                  rfmt (:, 1:nr) = rhomt (:, 1:nr, ias)
+                  rfmt (1, 1:nr) = rfmt (1, 1:nr) - rhocr (1:nr, ias) / &
+                 & y00
+                  Call gradrfmt (input%groundstate%lmaxvr, nr, spr(:, is), &
+                 & lmmaxvr, nrmtmax, rfmt, grfmt)
+                  Do i = 1, 3
+                     t1 = rfmtinp (1, input%groundstate%lmaxvr, nr, spr(:, &
+                    & is), lmmaxvr, veffmt(:, :, ias), grfmt(:, :, i))
+                     forceibs (i, ias) = forceibs (i, ias) + t1
+                  End Do
                End Do
             End Do
-         End Do
-
+            Deallocate (ffacg)
+         endif
 ! symmetrise IBS force
          Call symvect (.False., forceibs)
-         Deallocate (ffacg)
       End If
 ! remove net forces of ibs, core, and HF forces (center of mass should not move)
 

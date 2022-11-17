@@ -46,7 +46,7 @@ program main
       call initsolver()
       call readspeciesxml()
       call scl_xml_out_create()
-      !TODO(Alex) See if there'anything useful in here
+      !See if there'anything useful in testingfun
       !call testingfun
       call tasklauncher()
       call scl_xml_out_close()

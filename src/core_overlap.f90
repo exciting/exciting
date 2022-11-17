@@ -118,7 +118,7 @@ Subroutine core_overlap
   !---------------------------------------!
 #ifdef MPI
 !TODO(Alex) Issue #23 Refactor mpi module
-  Do ik = firstk (rank), lastk (rank)
+  Do ik = firstk(rank, nkpt), lastk(rank, nkpt)
 #else
   Do ik = 1, nkpt
 #endif

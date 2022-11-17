@@ -16,7 +16,7 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
   !use mod_kpoint, only: vkl
   !use mod_Gkvector, only: ngkmax, vgkl, ngk
   !use mod_eigensystem, only: nmatmax, nmat
-  use mod_kpoint, only: vkl_ptr
+  use mod_kpoint, only: vkl_ptr, nkpt
   use mod_Gkvector, only: ngkmax_ptr, vgkl_ptr, ngk_ptr
   use mod_eigensystem, only: nmatmax_ptr, nmat_ptr
   use mod_eigensystem, only: idxlo
@@ -118,7 +118,7 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
          End If
       End Do
       If (splittfile) Then
-         koffset = ik - firstk (procofk(ik)) + 1
+         koffset = ik - firstk (procofk(ik, nkpt), nkpt) + 1
       Else
          koffset = ik
       End If

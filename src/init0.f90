@@ -15,8 +15,12 @@ Subroutine init0
       Use modinput
       Use modmain
       Use autormt, only: optimal_rmt
+      use cmd_line_args, only: cmd_line_args_type
       Use modxcifc
-      Use modmpi, only: mpiglobal
+      Use modmpi, only: mpiglobal, mpi_env_k, mpi_env_band, find_2d_grid
+#ifdef MPI
+      use modmpi, only: MPI_COMM_SELF
+#endif
       Use errors_warnings, only: terminate_if_false
       Use vx_enums, only: HYB_PBE0, HYB_HSE
       use tmp_mod_init0, only: map_atoms_per_species_to_atomic_index
@@ -24,6 +28,9 @@ Subroutine init0
 #ifdef XS
       Use modxs
 #endif
+      use sirius_init, only: sirius_options
+      use sirius_api, only: setup_sirius, get_mpi_comm_sirius, gengvec_sirius, warn_array_sizes_sirius
+
 ! !DESCRIPTION:
 !   Performs basic consistency checks as well as allocating and initialising
 !   global variables not dependent on the $k$-point set.
@@ -37,6 +44,22 @@ Subroutine init0
       Integer :: is, js, ia, ias
       Integer :: ist, l, m, lm, iv (3)
       Real (8) :: ts0, ts1, tv3 (3)
+
+      integer :: rows_per_kpt, cols_per_kpt
+      integer :: mpi_grid(2)
+      integer :: ierr
+
+      !> Bare mpi communicator for k-points
+      integer :: comm_k
+      !> Bare mpi communicator for bands. 
+      !> This will only be set when using sirius
+      integer :: comm_band
+      real(8) :: mb, ylmg_mb, sfacg_mb
+      !> Command line arguments
+      type(cmd_line_args_type) :: args
+
+      call stopwatch("exciting:init0", 1)
+
 ! zero self-consistent loop number
       iscl = 0
       tlast = .False.
@@ -368,15 +391,47 @@ Subroutine init0
 ! effective Wigner radius
       rwigner = (3.d0/(fourpi*(chgtot/omega))) ** (1.d0/3.d0)
 
+! find the G-vector grid sizes
+      Call gridsize
+
+      ! Setup SIRIUS and MPI communicators
+      if ( associated(input%groundstate%sirius) ) then
+        call sirius_options%initialise(input)
+        call args%parse(mpiglobal)
+        call find_2d_grid(mpiglobal%procs, args%kptgroups, rows_per_kpt, &
+                          cols_per_kpt, "k-points")
+        mpi_grid = [rows_per_kpt, cols_per_kpt]
+        call setup_sirius(input, mpiglobal%comm, mpi_grid)
+        call get_mpi_comm_sirius(comm_k, comm_band)
+      else
+        ! Leave simple layout for pure Exciting, with no band distribution    
+        comm_k = mpiglobal%comm
+        comm_band = 0
+#ifdef MPI
+        comm_band = MPI_COMM_SELF
+#endif
+      end if
+
+      call mpi_env_band%init(comm_band)
+      call mpi_env_k%init(comm_k)
+
 !-------------------------!
 !     G-vector arrays     !
 !-------------------------!
-! find the G-vector grid sizes
-      Call gridsize
 ! generate the G-vectors
-      Call gengvec
-! generate the spherical harmonics of the G-vectors
-      Call genylmg
+      if (associated(input%groundstate%sirius)) then
+        call gengvec_sirius(ivg, ivgig, igfft, vgc, gc, ngvec, intgv)
+      else
+        call gengvec
+      end if
+
+      ! Check for ylmg and sfacg, which will become an issue
+      ! if running sirius with many MPI instances per node,
+      ! for large systems
+      call warn_array_sizes_sirius(lmmaxvr, ngvec)
+
+      call genylmg
+
 ! allocate structure factor array for G-vectors
       If (allocated(sfacg)) deallocate (sfacg)
       Allocate (sfacg(ngvec, natmtot))
@@ -551,6 +606,7 @@ Subroutine init0
       Call timesec (ts1)
 !!      timeinit = timeinit + ts1 - ts0
 !
+      call stopwatch("exciting:init0", 0)
       Return
 End Subroutine
 !EOC

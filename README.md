@@ -56,8 +56,7 @@ If you use exciting in your work, please cite the following paper:
 
 \[1\]: [exciting --- a full-potential all-electron package implementing
 density-functional theory and many-body perturbation theory. 2014
-J.Phys.: Condens. Matter 26363202.]
-(https://doi.org/10.1088/0953-8984/26/36/363202)
+J.Phys.: Condens. Matter 26363202.](https://doi.org/10.1088/0953-8984/26/36/363202)
 
 Additionally, if you use specific features, please cite the
 corresponding papers where applicable:

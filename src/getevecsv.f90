@@ -16,7 +16,7 @@ Subroutine getevecsv (vpl, evecsv)
       Use modmpi
       Use mod_eigenvalue_occupancy, only: nstfv, nstsv
       Use mod_names, only: filetag_evecsv
-      Use mod_kpoint, only: vkl_ptr
+      Use mod_kpoint, only: vkl_ptr, nkpt
       Use mod_symmetry, only: lspnsymc, symlatc
 ! !DESCRIPTION:
 !   The file where the (second-variational) eigenvectors are stored is
@@ -95,7 +95,7 @@ Subroutine getevecsv (vpl, evecsv)
          End If
       End Do
       If (splittfile) Then
-         koffset = ik - firstk (procofk(ik)) + 1
+         koffset = ik - firstk (procofk(ik, nkpt), nkpt) + 1
       Else
          koffset = ik
       End If

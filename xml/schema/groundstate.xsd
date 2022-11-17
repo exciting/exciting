@@ -419,6 +419,75 @@
           </xs:complexType>
         </xs:element>
 
+        <xs:element ex:importance="expert" ex:unit="" name="sirius" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation> Element for specifying details how the SIRIUS library is used.
+                               If this element does not exist, SIRIUS is not used.
+                               Note that, in order to use SIRIUS, exciting has to be compiled with the -DSIRIUS flag
+                               and linked with the SIRIUS library.
+            </xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="sfacg" type="xs:boolean" use="optional" default="true">
+              <xs:annotation>
+                <xs:documentation>
+                   Generate G-vector structure factors with SIRIUS.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="cfun" type="xs:boolean" use="optional" default="true">
+              <xs:annotation>
+                <xs:documentation>
+                   Generate characteristic function (unit step function) with SIRIUS.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="eigenstates" type="xs:boolean" use="optional" default="true">
+              <xs:annotation>
+                <xs:documentation>
+                   Outsource diagonalization to SIRIUS.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="density" type="xs:boolean" use="optional" default="true">
+              <xs:annotation>
+                <xs:documentation>
+                   Outsource calculation of density to SIRIUS.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="vha" type="xs:boolean" use="optional" default="true">
+              <xs:annotation>
+                <xs:documentation>
+                   Outsource solving of the Poisson equation to SIRIUS.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="xc" type="xs:boolean" use="optional" default="true">
+              <xs:annotation>
+                <xs:documentation>
+                   Outsource calculation of the exchange-correlation potential to SIRIUS.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="densityinit" type="xs:boolean" use="optional" default="false">
+              <xs:annotation>
+                <xs:documentation>
+                   Outsource the initialization of density to SIRIUS.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+          </xs:complexType>
+        </xs:element>
+
         <xs:element ex:importance="expert" ex:unit="" name="solver" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>Optional configuration options for eigenvector
@@ -2870,6 +2939,7 @@
           </xs:appinfo>
         </xs:annotation>
       </xs:attribute>
+
       <xs:attribute ex:importance="expert" ex:unit="" name="fracinr" type="fortrandouble"
         default="0.02d0">
         <xs:annotation>

@@ -30,7 +30,7 @@ Subroutine putevecfv (ik, evecfv)
          Open (70, File=outfilenamestring(filetag, ik), Action='WRITE', &
         & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
          If (splittfile) Then
-            koffset = ik - firstk (procofk(ik)) + 1
+            koffset = ik - firstk (procofk(ik, nkpt), nkpt) + 1
          Else
             koffset = ik
          End If

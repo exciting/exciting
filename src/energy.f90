@@ -115,6 +115,7 @@ Subroutine energy
 ! external functions
       Real(8),    external :: rfmtinp, rfinp, rfint
       Complex(8), external :: zdotc
+      call stopwatch("exciting:energy", 1)
 !-----------------------------------------------!
 !     exchange-correlation potential energy     !
 !-----------------------------------------------!
@@ -354,7 +355,7 @@ endif
 ! add the LDA+U correction if required
       If (ldapu .Ne. 0) engytot = engytot + engylu
 
-! WRITE(*,*) "end energy"
+      call stopwatch("exciting:energy", 0)
       Return
 End Subroutine
 !EOC

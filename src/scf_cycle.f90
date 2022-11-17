@@ -5,13 +5,16 @@
 !
 subroutine scf_cycle(verbosity)
 ! !USES:
-    Use modinput
-    Use modmain
-    Use modmpi
-    Use scl_xml_out_Module
-    Use TS_vdW_module, Only: C6ab, R0_eff_ab
+    use modinput
+    use modmain
+    use modmpi
+    use scl_xml_out_Module
+    use TS_vdW_module, only: C6ab, R0_eff_ab
+    use sirius_init,   only: sirius_options
+    use sirius_api,    only: set_radial_functions_sirius, solve_seceqn_sirius, get_eval_sirius, get_evec_sirius, &
+                             put_occ_sirius, generate_density_sirius, get_periodic_function_sirius
     use mod_potential_and_density, only: generate_density_and_magnetization
-!
+
 ! !DESCRIPTION:
 !
 ! !REVISION HISTORY:
@@ -24,7 +27,7 @@ subroutine scf_cycle(verbosity)
     Real(8), Allocatable :: evalfv(:, :)
     Complex (8), Allocatable :: evecfv(:, :, :)
     Complex (8), Allocatable :: evecsv(:, :)
-    Logical :: tibs, exist
+    Logical :: exist
     Integer :: ik, is, ia, idm, id
     Integer :: n, nwork
     !Integer :: i,j, ias
@@ -53,7 +56,7 @@ subroutine scf_cycle(verbosity)
 
 !_______________________________________________________________
 ! initialise or read the charge density and potentials from file
-
+    call stopwatch("exciting:init_scf", 1)
 !! TIME - Begin of initialisation segment
     Call timesec (ts0)
     If ((task == 1) .or. (task == 3)) Then
@@ -85,6 +88,7 @@ subroutine scf_cycle(verbosity)
         write (60, *)
         Call flushifc (60)
     end if
+    call stopwatch("exciting:init_scf", 0)
 
     call MTNullify(mt_hscf)
 
@@ -150,6 +154,7 @@ subroutine scf_cycle(verbosity)
 !----------------------------------------!
 ! begin the self-consistent loop
 !----------------------------------------!
+    call stopwatch("exciting:scf", 1)
     Do iscl = 1, input%groundstate%maxscl
 !
 ! exit self-consistent loop if last iteration is complete
@@ -195,7 +200,6 @@ subroutine scf_cycle(verbosity)
 !! TIME - End of first IO segment
 
 !! TIME - Muffin-tin segment
-
         Call timesec (ts0)
 
         if (task /= 7) then
@@ -207,12 +211,16 @@ subroutine scf_cycle(verbosity)
           call genlofr(tlast)   ! generate the local-orbital radial functions
           call olprad           ! compute the overlap radial integrals
         end if
-
+        if ( associated(input%groundstate%sirius) ) then
+          call set_radial_functions_sirius( input )
+        end if
 !------------------------------------------------------------
 ! Effective Hamiltonian Setup: Radial and Angular integrals
 !------------------------------------------------------------
+        call stopwatch("exciting:rad_int", 1)
         call MTInitAll(mt_hscf)
         call hmlint(mt_hscf)
+        call stopwatch("exciting:rad_int", 0)
 !________________
 ! partial charges
 
@@ -233,64 +241,70 @@ subroutine scf_cycle(verbosity)
 !-----------------------------------------------
 ! Solve Secular Equation for each k-point
 !-----------------------------------------------
-call timesec(ta)
+        call timesec(ta)
+
+        if ( associated(input%groundstate%sirius) .and. sirius_options%use_eigen_states ) then
+          call solve_seceqn_sirius()
+          call get_eval_sirius()
+          call get_evec_sirius()
+        else
 ! start k-point loop
 #ifdef MPI
-        call barrier()
-        If (rank == 0) Call delevec()
-        splittfile = .True.
-        Do ik = firstofset(rank,nkpt), lastofset(rank,nkpt)
+            call barrier()
+            If (rank == 0) Call delevec()
+            splittfile = .True.
+            Do ik = firstofset(rank,nkpt), lastofset(rank,nkpt)
 #else
-        splittfile = .False.
-        Do ik = 1, nkpt
+            splittfile = .False.
+            Do ik = 1, nkpt
 #endif
 
 !____________________________________________
 ! every thread should allocate its own arrays
 
-            Allocate (evalfv(nstfv, nspnfv))
-            Allocate (evecfv(nmatmax, nstfv, nspnfv))
-            Allocate (evecsv(nstsv, nstsv))
+                Allocate (evalfv(nstfv, nspnfv))
+                Allocate (evecfv(nmatmax, nstfv, nspnfv))
+                Allocate (evecsv(nstsv, nstsv))
 
 !! TIME - seceqn does not belong to IO
 
-            Call timesec(ts1)
-            timeio=ts1-ts0+timeio
+                Call timesec(ts1)
+                timeio=ts1-ts0+timeio
 
 !__________________________________________________________
 ! solve the first- and second-variational secular equations
-            Call seceqn (ik, evalfv, evecfv, evecsv)
+                Call seceqn (ik, evalfv, evecfv, evecsv)
 
-            Call timesec(ts0)
+                Call timesec(ts0)
 
 !______________________________________
 ! write the eigenvalues/vectors to file
 
-            Call putevalfv (ik, evalfv)
-            Call putevalsv (ik, evalsv(:, ik))
-            Call putevecfv (ik, evecfv)
-            Call putevecsv (ik, evecsv)
+                Call putevalfv (ik, evalfv)
+                Call putevalsv (ik, evalsv(:, ik))
+                Call putevecfv (ik, evecfv)
+                Call putevecsv (ik, evecsv)
 
 !__________________________
 ! calculate partial charges
-            if (input%groundstate%tpartcharges) call genpchgs(ik,evecfv,evecsv)
-            deallocate (evalfv, evecfv, evecsv)
+                if (input%groundstate%tpartcharges) call genpchgs(ik,evecfv,evecsv)
+                deallocate (evalfv, evecfv, evecsv)
 
-        End Do ! ik
+            End Do ! ik
 
 ! end k-point loop -------------------------------------------------------------
 
 #ifdef MPI
-        call mpi_allgatherv_ifc(nkpt, inplace=.False., rlen=nstsv, rbuf=evalsv)
-        if (task==7) call mpi_allgatherv_ifc(nkpt, inplace=.False., rlen=nstfv, rbuf=engyknst)
+            call mpi_allgatherv_ifc(nkpt, inplace=.False., rlen=nstsv, rbuf=evalsv)
+            if (task==7) call mpi_allgatherv_ifc(nkpt, inplace=.False., rlen=nstfv, rbuf=engyknst)
 #endif
+        end if
 
-
-call timesec(tb)
-
+        call timesec(tb)
 ! Release memory used by the MT Hamiltonian
 !        call mt_hscf%release()
 
+        call stopwatch("exciting:occ", 1)
 !-----------------------------------------------
 ! find the occupation numbers and Fermi energy
 !-----------------------------------------------
@@ -309,37 +323,47 @@ call timesec(tb)
 #endif
             Call putoccsv (ik, occsv(:, ik))
         End Do
+        if ( associated(input%groundstate%sirius) ) then
+          call put_occ_sirius()
+        end if
+        call stopwatch("exciting:occ", 0)
 
+        call stopwatch("exciting:rhomag", 1)
 !-----------------------------------------------
 ! Calculate density and magnetization
 !-----------------------------------------------
-        call generate_density_and_magnetization()
-
+        if (associated(input%groundstate%sirius) .and. sirius_options%use_density ) then
+          call generate_density_sirius()
+          call get_periodic_function_sirius(rhoir, ngrtot)
+        else
+          call generate_density_and_magnetization()
 #ifdef MPI
         ! EXX case
-        If (input%groundstate%xctypenumber.Lt.0) Call mpiresumeevecfiles()
+          If (input%groundstate%xctypenumber.Lt.0) Call mpiresumeevecfiles()
 #endif
 
-        if ((input%groundstate%tpartcharges).and.(rank==0)) then
-            ! write out partial charges
-            call writepchgs(69,input%groundstate%lmaxvr)
-            call flushifc(69)
-        end if
-        Call timesec(ts1)
-        timeio=ts1-ts0+timeio
+          if ((input%groundstate%tpartcharges).and.(rank==0)) then
+              ! write out partial charges
+              call writepchgs(69,input%groundstate%lmaxvr)
+              call flushifc(69)
+          end if
+          Call timesec(ts1)
+          timeio=ts1-ts0+timeio
 !! TIME - End of second IO segment
 
-        Call timesec(ts0)
+          Call timesec(ts0)
 ! symmetrise the density
-        Call symrf(input%groundstate%lradstep, rhomt, rhoir)
+          Call symrf(input%groundstate%lradstep, rhomt, rhoir)
 ! symmetrise the magnetisation
-        If (associated(input%groundstate%spin)) Call symrvf(input%groundstate%lradstep, magmt, magir)
+          If (associated(input%groundstate%spin)) Call symrvf(input%groundstate%lradstep, magmt, magir)
 ! convert the density from a coarse to a fine radial mesh
-        Call rfmtctof (rhomt)
+          Call rfmtctof (rhomt)
 ! convert the magnetisation from a coarse to a fine radial mesh
-        Do idm = 1, ndmag
-            Call rfmtctof (magmt(:, :, :, idm))
-        End Do
+          Do idm = 1, ndmag
+              Call rfmtctof (magmt(:, :, :, idm))
+          End Do
+        end if
+
 ! add the core density to the total density
         Call addrhocr
 ! calculate the charges
@@ -348,6 +372,7 @@ call timesec(tb)
         If (associated(input%groundstate%spin)) Call moment
 ! normalise the density
         Call rhonorm
+        call stopwatch("exciting:rhomag", 0)
 ! LDA+U
         If (ldapu .Ne. 0) Then
 ! generate the LDA+U density matrix
@@ -372,7 +397,6 @@ call timesec(tb)
 ! Compute the effective potential
 !-----------------------------------
         Call poteff
-
 !---------------
 ! Mixing
 !---------------
@@ -393,7 +417,6 @@ call timesec(tb)
 ! unpack potential and field
         Call packeff (.False., n, v)
 !---------------
-
 ! Fourier transform effective potential to G-space
         Call genveffig
         if (allocated(meffig)) deallocate(meffig)
@@ -427,10 +450,7 @@ call timesec(tb)
 ! compute the forces (without IBS corrections)
 !----------------------------------------------
         if (input%groundstate%tforce) then
-            tibs=input%groundstate%tfibs
-            input%groundstate%tfibs=.false.
-            Call force
-            input%groundstate%tfibs=tibs
+            Call force(.false.)
         end if
 
 !-----------------------------
@@ -619,10 +639,10 @@ call timesec(tb)
         Call timesec(ts1)
         timeio=ts1-ts0+timeio
 !! TIME - End of fourth IO segment
-
     End Do ! iscl
 ! end the self-consistent loop
 20  Continue
+    call stopwatch("exciting:scf", 0)
 
     Call timesec(ts0)
     If ((verbosity>-1).and.(rank==0)) Then
@@ -651,7 +671,7 @@ call timesec(tb)
 ! Compute forces
 !------------------
     If (( .Not. tstop) .And. (input%groundstate%tforce)) Then
-        Call force
+        Call force(input%groundstate%tfibs)
 #ifdef MPI
 ! For whatever reason each MPI process may produce very slightly different forces.
 ! At this spot, we equalise them, so that we do not end up with a different geometry
@@ -685,6 +705,7 @@ call timesec(tb)
         end if
     End If ! compute forces
 
+    call stopwatch("exciting:post_scf", 1)
     ! set nwork to -2 to tell interface to call the deallocation functions
     If (rank .Eq. 0) Call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, -2)
     Deallocate(v)
@@ -723,4 +744,5 @@ call timesec(tb)
     end if
 
     call mt_hscf%release()
+    call stopwatch("exciting:post_scf", 0)
 end subroutine

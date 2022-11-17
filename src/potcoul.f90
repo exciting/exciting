@@ -14,6 +14,8 @@ Subroutine potcoul
 ! !USES:
       Use modinput
       Use modmain
+      use sirius_init, only: sirius_options
+      use sirius_api, only: generate_coulomb_potential_sirius
 ! !DESCRIPTION:
 !   Calculates the Coulomb potential of the real charge density stored in the
 !   global variables {\tt rhomt} and {\tt rhoir} by solving Poisson's equation.
@@ -34,6 +36,12 @@ Subroutine potcoul
       Complex (8), Allocatable :: zrhoir (:)
       Complex (8), Allocatable :: zvclmt (:, :, :)
       Complex (8), Allocatable :: zvclir (:)
+
+      if (associated(input%groundstate%sirius) .and. sirius_options%use_v_hartree) then
+        call generate_coulomb_potential_sirius(lmmaxvr, nrmtmax, natmmax, ngrtot, rhoir, vmad, vclmt, vclir)
+        return
+      end if
+
       Allocate (jlgr(0:input%groundstate%lmaxvr+input%groundstate%npsden+1, &
       &              ngvec, nspecies))
       Allocate (zrhomt(lmmaxvr, nrmtmax, natmtot))
