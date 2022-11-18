@@ -49,6 +49,8 @@ Subroutine init1
       real (8) :: d1,d2,d12,t1,t2
       Real (8) :: blen(3), lambdab
       logical :: wannierband
+      ! +/-1 for sign of spin-dependent term
+      real (8) :: sign
 
 ! external functions
       Complex (8) gauntyry
@@ -374,19 +376,10 @@ Subroutine init1
 !      igkfft=0
       Do ik = 1, nkpt
          Do ispn = 1, nspnfv
-            ! Comment (Alex) isspinspiral() is independent of the loops
-            ! Why is it evaluated in them?
             If (isspinspiral()) Then
-! spin-spiral case
-               If (ispn .Eq. 1) Then
-                  vl (:) = vkl (:, ik) + 0.5d0 * &
-                 & input%groundstate%spin%vqlss(:)
-                  vc (:) = vkc (:, ik) + 0.5d0 * vqcss (:)
-               Else
-                  vl (:) = vkl (:, ik) - 0.5d0 * &
-                 & input%groundstate%spin%vqlss(:)
-                  vc (:) = vkc (:, ik) - 0.5d0 * vqcss (:)
-               End If
+               sign = (-1.d0)**(ispn+1)
+               vl (:) = vkl (:, ik) + sign * 0.5d0 * input%groundstate%spin%vqlss(:)
+               vc (:) = vkc (:, ik) + sign * 0.5d0 * vqcss (:)
             Else
                vl (:) = vkl (:, ik)
                vc (:) = vkc (:, ik)
