@@ -94,8 +94,8 @@ subroutine bselauncher
   if(input%xs%bse%iqmtrange(1) /= -1) then 
     iqmti=input%xs%bse%iqmtrange(1)
     iqmtf=input%xs%bse%iqmtrange(2)
-    nqmtselected = iqmtf-iqmti+1
   end if
+  nqmtselected = iqmtf-iqmti+1
   ! Check requested range is compatible with qpointlist
   if(iqmtf > nqmt .or. iqmti < -1 .or. iqmti > iqmtf) then 
     write(unitout, '("Error(",a,"):", a)') trim(thisname),&
