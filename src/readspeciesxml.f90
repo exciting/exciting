@@ -260,8 +260,8 @@ Subroutine readspeciesxml
 !    Custom definitions
 !----------------------------
 
-     mine0 = 0.d0
-     mine0 = min(apwe0(io,0,is),mine0)
+     mine0 = minval(apwe0(1:apword(0, is),0,is))
+     mine0 = min(mine0, 0.d0)
      nlx = size(speziesdeflist(is)%sp%basis%customarray)
      If ( (nlx .Lt. 0) .And. (associated(speziesdeflist(is)%sp%basis%customarray)) ) Then
         Write (*,*)
