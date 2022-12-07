@@ -2733,14 +2733,42 @@
           </xs:appinfo>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="radialgridtype" type="xs:string" default="cubic">
+      <xs:attribute ex:importance="expert" ex:unit="" name="radialgridtype" default="cubic">
         <xs:annotation>
-          <xs:documentation> The parameter defines a functional form how radial-grid points are distributed.
-                             Choose from "cubic", "exponential" and "expocubic". "cubic" is the most suitable
-                             one for a majority of calculations, but switch to "expocubic" if you set the
-                             innermost grid point very close to a nucleus.
+          <xs:documentation> The parameter defines a functional form how 
+              radial-grid points are distributed.  Choose from "cubic", 
+              "cubic-2", "exponential" and "expocubic". 
+              The expressions for "cubic" and "cubic-2" differ by
+              <list>
+              <li> <bf>cubic</bf>: <inlinemath>r(i) = \left(\frac{i-1}{N-1}\right)^3(R_{MT}-R_{min}) + R_{min} 
+                 \quad i=1,\ldots, N</inlinemath>, where <inlinemath>N</inlinemath> 
+                 and <inlinemath>R_{min}</inlinemath> are the parameters 
+                 <it>radialmeshPoints</it> and <it>rmin</it>, respectively, 
+                 given inside the element <it>muffinTin</it> in the species file. 
+              </li>
+              <li> <bf>cubic-2</bf>: for each muffin-tin sphere, the radial mesh is given
+                 <inlinemath>r(i) = \left(\frac{i-1}{N-1}\right)^3(R_{MT}-R_{min}N) + iR_{min} 
+                 \quad i=1,\ldots, N</inlinemath>, where <inlinemath>N</inlinemath> 
+                 and <inlinemath>R_{min}</inlinemath> are the parameters 
+                 <it>radialmeshPoints</it> and <it>rmin</it>, respectively, 
+                 given inside the element <it>muffinTin</it> in the species file. 
+              </li>
+            </list>                             
+            "cubic" is the most suitable
+            one for a majority of calculations, but switch to "expocubic" if you set the
+            innermost grid point very close to a nucleus.
+
           </xs:documentation>
         </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="cubic"/>
+            <xs:enumeration value="cubic-2"/>
+            <xs:enumeration value="expocubic"/>
+            <xs:enumeration value="exponential"/>
+          </xs:restriction>
+        </xs:simpleType>
+
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="nprad" type="xs:integer" default="4">
         <xs:annotation>

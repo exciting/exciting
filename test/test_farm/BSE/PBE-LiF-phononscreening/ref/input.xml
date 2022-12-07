@@ -16,7 +16,7 @@
     </species>
   </structure>
   
-  <groundstate ngridk="4 4 4" epsengy="1d-7" outputlevel="high"/>
+  <groundstate ngridk="4 4 4" epsengy="1d-7" radialgridtype="cubic-2" outputlevel="high"/>
 
   <xs 
     xstype="BSE" 

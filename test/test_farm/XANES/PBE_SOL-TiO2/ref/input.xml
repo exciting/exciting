@@ -22,6 +22,7 @@
       rgkmax="7.0"
       ngridk="1 1 2"
       xctype="GGA_PBE_SOL"
+      radialgridtype="cubic-2"
       epsocc="1.0d-6">
    </groundstate>
 

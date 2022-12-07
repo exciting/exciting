@@ -19,6 +19,7 @@
    <groundstate 
       ngridk="4 4 4"
       xctype="GGA_PBE_SOL"
+      radialgridtype="cubic-2"
       gmaxvr="14.0" />
 
    <xs

@@ -18,7 +18,7 @@
     </species>
   </structure>
 
-  <groundstate ngridk="4 4 4" outputlevel="high"/>
+  <groundstate ngridk="4 4 4" outputlevel="high" radialgridtype="cubic-2"/>
 
   <xs xstype="TDDFT"
    ngridq="3 3 3"

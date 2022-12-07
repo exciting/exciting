@@ -18,6 +18,7 @@
     ngridk="6 6 6"
     xctype="LDA_PW"
     outputlevel="high"
+    radialgridtype="cubic-2"
     >
   </groundstate>
   <properties>

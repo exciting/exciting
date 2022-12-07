@@ -21,6 +21,7 @@
       nempty="30"
       reducek="false"
       ngridk="3 3 3"
+      radialgridtype="cubic-2"
       gmaxvr="16.0">
        <libxc
 	     xc="XC_LDA_XC_TETER93">

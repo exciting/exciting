@@ -60,10 +60,11 @@ Subroutine genrmesh
       external erf
 ! estimate the number of radial mesh points to infinity
       if ((input%groundstate%radialgridtype.ne."cubic").and. &
+          (input%groundstate%radialgridtype.ne."cubic-2").and. &
           (input%groundstate%radialgridtype.ne."expocubic").and. &
           (input%groundstate%radialgridtype.ne."exponential")) then 
          write(*,*) 'Wrong radialGridType.'
-         write(*,*) 'Choose between cubic, expocubic and exponential!'
+         write(*,*) 'Choose between cubic, cubic-2, expocubic and exponential!'
          write(*,*) 'Terminating...'
          stop
       endif
@@ -93,10 +94,11 @@ Subroutine genrmesh
 
          Do ir = 1, spnr (is)
            if (input%groundstate%radialgridtype.eq."cubic") then
-           !New MT grid construction
-            spr (ir, is) = (dble(ir-1)/dble(nrmt(is)-1))**3*(rmt(is)-sprmin (is)*nrmt(is))+sprmin(is)*ir 
-           !MT grid construction until exciting-Nitrogen-14 
-!            spr (ir, is) = sprmin (is)+(dble(ir-1)/dble(nrmt(is)-1))**3*(rmt(is)-sprmin (is))
+           !default MT grid construction for all releases except for exciting-oxygen
+             spr (ir, is) = sprmin (is)+(dble(ir-1)/dble(nrmt(is)-1))**3*(rmt(is)-sprmin (is))
+           !default MT grid construction for exciting-oxygen 
+           elseif( input%groundstate%radialgridtype.eq."cubic-2" ) then
+             spr (ir, is) = (dble(ir-1)/dble(nrmt(is)-1))**3*(rmt(is)-sprmin (is)*nrmt(is))+sprmin(is)*ir
            !Others MT grid construction
 !            spr (ir, is) = sprmin (is)*dble(ir)+(dble(ir-1)/dble(nrmt(is)-1))**3*(rmt(is)-sprmin (is)*dble(nrmt(is)))
 !             spr (ir, is) = sprmin (is)*dble(2*ir-1)+(dble(ir-1)/dble(nrmt(is)-1))**3*(rmt(is)-sprmin (is)*dble(2*nrmt(is)-1))

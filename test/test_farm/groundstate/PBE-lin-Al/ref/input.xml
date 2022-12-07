@@ -12,7 +12,8 @@
 <atom coord="0.0  0.0  0.0" bfcmt="0.0  0.0  0.0"></atom>
 </species>
 </structure>
-<groundstate  vkloff="0.5  0.5  0.5" ngridk="4  4  4" mixer="lin" outputlevel="high">
+<groundstate  vkloff="0.5  0.5  0.5" ngridk="4  4  4" mixer="lin" 
+   radialgridtype="cubic-2" outputlevel="high">
  
 </groundstate>
 <properties></properties>
