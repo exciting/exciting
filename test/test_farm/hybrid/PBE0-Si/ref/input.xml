@@ -17,6 +17,7 @@
     ngridk="2 2 2"
     xctype="HYB_PBE0"
     outputlevel="high"
+    radialgridtype="cubic-2"
     >
   </groundstate>
 </input>

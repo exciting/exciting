@@ -16,6 +16,7 @@
     rgkmax="6.0"
     ngridk="4 4 4"
     outputlevel="high"
+    radialgridtype="cubic-2"
     > 
     <libxc
 	     xc="XC_HYB_GGA_XC_PBEH">

@@ -27,6 +27,7 @@
                 outputlevel="high"
                 nempty="20"
                 useDensityMatrix="false"
+                radialgridtype="cubic-2"
                 xctype="LDA_PW">
         </groundstate>
         <xs

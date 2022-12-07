@@ -18,7 +18,8 @@
     </species>
   </structure>
   
-  <groundstate xctype="GGA_PBE" ngridk="4 4 4" epsengy="1d-7" outputlevel="high"/>
+  <groundstate xctype="GGA_PBE" ngridk="4 4 4" epsengy="1d-7" 
+    radialgridtype="cubic-2" outputlevel="high"/>
 
   <xs xstype="BSE" 
    ngridq="3 3 3"

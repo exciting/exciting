@@ -28,6 +28,7 @@
     epsengy="1d-6"
     do='fromscratch'
     outputlevel="high"
+    radialgridtype="cubic-2"
   >
   </groundstate>
 

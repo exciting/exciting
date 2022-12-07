@@ -24,7 +24,7 @@
     lmaxapw="8"
     lmaxvr="4"
     mixer="msec"
-    radialgridtype="cubic"
+    radialgridtype="cubic-2"
     CoreRelativity="none"
     ValenceRelativity="none"
     swidth="0.001"

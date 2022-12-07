@@ -21,6 +21,7 @@
       xctype="GGA_PBE_SOL"
       gmaxvr="14.0"
       useAPWprecision="true"
-      APWprecision="0.67">
+      APWprecision="0.67"
+      radialgridtype="cubic-2">
   </groundstate>
 </input>

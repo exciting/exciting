@@ -22,6 +22,7 @@
       reducek="false"
       ngridk="3 3 3"
       gmaxvr="16.0"
+      radialgridtype="cubic-2"
       xctype="GGA_PBE_SOL" />
    <properties>
      <coreoverlap corespecies="2" coreatom="1"/>

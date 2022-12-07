@@ -271,10 +271,6 @@
       "tol": "",
       "unit": "null"
     },
-    "GridType": {
-      "tol": "",
-      "unit": "null"
-    },
     "xctype": {
       "tol": 0,
       "unit": "null"

@@ -22,6 +22,7 @@
     lmaxmat="8"
     lmaxvr="8"
     outputlevel="high"
+    radialgridtype="cubic-2"
     >
   <spin spinorb="true" realspace="false"/> 
   </groundstate>  

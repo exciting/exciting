@@ -20,7 +20,8 @@
       ngridk="2 1 1"
       xctype="EXX"
       vkloff="0.5 0.5 0.5"
-      nempty="10">
+      nempty="10"
+      radialgridtype="cubic-2">
  
       <OEP 
          maxitoep="20"> 
