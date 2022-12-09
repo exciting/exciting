@@ -778,7 +778,7 @@ contains
         write(*, *)'Warning: large ylmg array of ',ylmg_mb, 'Mb'
     end if
     if (sfacg_mb > 1000._dp) then
-        write(*,*)'Warning: large sfacg array of ',ylmg_mb, 'Mb'
+        write(*,*)'Warning: large sfacg array of ',sfacg_mb, 'Mb'
     end if
 
   end subroutine
