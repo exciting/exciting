@@ -27,7 +27,7 @@ subroutine genrhomt( basis1, basis2, densitymt )
   real(8), intent(out) :: densitymt(lmmaxvr,nrmtmax,natmtot)
 ! local variables
   integer :: is, ia, ias
-  integer :: i, n
+  integer :: i, imax, n
       Real (8) :: t1, t2
       Real (8) :: ts0, ts1
       integer :: l3,lm3,m3,io1,io2,if1,if3,l1,m1,lm1,lm2,if3old,if1old
@@ -58,6 +58,7 @@ call timesec(t1)
 
 
       densitymt=0d0
+      imax = size( indgnt, 1 )
 
       Do is = 1, nspecies
         n = lmmaxvr * nrcmt (is)
@@ -98,9 +99,9 @@ call timesec(t1)
                       do while(indgnt(i,lm3,lm1).ne.0)
                         lm2=indgnt(i,lm3,lm1)
                         if (lm2.le.lmmaxvr) factorsnew(lm2,1)=factorsnew(lm2,1)+dble(mt_dm%main%ff(if1,if3,ias)*conjg(listgnt(i,lm3,lm1)))
-!                        write(*,*) "indgnt",lm2,conjg(listgnt(i,lm3,lm1))
                         i=i+1
-                      enddo
+                        if( i > imax ) exit
+                      end do
                     enddo
                   enddo
 #ifdef xUSEOMP
@@ -156,6 +157,7 @@ if (losize(is).gt.0) then
                         lm2=indgnt(i,lm3,lm1)
                         if (lm2.le.lmmaxvr) factorsnew(lm2,1)=factorsnew(lm2,1)+2d0*dble(mt_dm%main%ff(if1,maxaa+if3,ias)*conjg(listgnt(i,lm3,lm1)))
                         i=i+1
+                        if( i > imax ) exit
                       enddo
 
 
@@ -204,6 +206,7 @@ if (losize(is).gt.0) then
                         lm2=indgnt(i,lm3,lm1)
                         if (lm2.le.lmmaxvr) factorsnew(lm2,1)=factorsnew(lm2,1)+dble(mt_dm%main%ff(maxaa+if1,maxaa+if3,ias)*conjg(listgnt(i,lm3,lm1)))
                         i=i+1
+                        if( i > imax ) exit
                       enddo
 
                   enddo
