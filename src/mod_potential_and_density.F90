@@ -20,6 +20,7 @@ Module mod_potential_and_density
       Integer :: xcgrad
 ! exchange mixing parameter for hybrid functionals
       Real (8) :: ex_coef
+! correlation mixing parameter for hybrid functionals
       Real (8) :: ec_coef
 ! ?
       Integer :: maxncv
@@ -33,7 +34,7 @@ Module mod_potential_and_density
       Real (8), Allocatable :: magir (:, :)
 ! muffin-tin Coulomb potential
       Real (8), Allocatable :: vclmt (:, :, :)
-! Madulung potential (excluding the on-site nuclear contribution) in the innermost radial point
+! Madelung potential (excluding the on-site nuclear contribution) in the innermost radial point
       Real (8), Allocatable :: vmad (:)
 ! interstitial real-space Coulomb potential
       Real (8), Allocatable :: vclir (:)

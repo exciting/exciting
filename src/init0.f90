@@ -4,14 +4,19 @@
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
-!BOP
-! !ROUTINE: init0
-! !INTERFACE:
-!
-!
+
+
+
+!> Performs basic consistency checks as well as allocating and initialising
+!> global variables not dependent on the $k$-point set.
+!>
+!> NOTE: No one should extend this routine with a bare implementation.
+!> New code should be in initialisation routines, and called here.
+!>
+!> !REVISION HISTORY:
+!>   Created January 2004 (JKD)
+!>   Started clean-up. 2022 (ABuccheri)
 Subroutine init0
-! !USES:
       Use modinput
       Use modmain
       Use autormt, only: optimal_rmt
@@ -23,24 +28,19 @@ Subroutine init0
 #endif
       Use errors_warnings, only: terminate_if_false
       Use vx_enums, only: HYB_PBE0, HYB_HSE
-      use tmp_mod_init0, only: map_atoms_per_species_to_atomic_index
       Use APW_basis_size, only: determine_rgkmax, determine_APWprecision
+      ! TODO(ALEX) Once everyone has done their refactor
+      ! initialisation routines should be moved from tmp_mod_init0
+      ! and tmp_mod_init0 should be deleted.
+      Use tmp_mod_init0
 #ifdef XS
       Use modxs
 #endif
       use sirius_init, only: sirius_options
       use sirius_api, only: setup_sirius, get_mpi_comm_sirius, gengvec_sirius, warn_array_sizes_sirius
 
-! !DESCRIPTION:
-!   Performs basic consistency checks as well as allocating and initialising
-!   global variables not dependent on the $k$-point set.
-!
-! !REVISION HISTORY:
-!   Created January 2004 (JKD)
-!EOP
-!BOC
       Implicit None
-! local variables
+
       Integer :: is, js, ia, ias
       Integer :: ist, l, m, lm, iv (3)
       Real (8) :: ts0, ts1, tv3 (3)
@@ -51,7 +51,7 @@ Subroutine init0
 
       !> Bare mpi communicator for k-points
       integer :: comm_k
-      !> Bare mpi communicator for bands. 
+      !> Bare mpi communicator for bands.
       !> This will only be set when using sirius
       integer :: comm_band
       real(8) :: mb, ylmg_mb, sfacg_mb
@@ -60,37 +60,12 @@ Subroutine init0
 
       call stopwatch("exciting:init0", 1)
 
-! zero self-consistent loop number
+      ! Zero self-consistent loop number
       iscl = 0
       tlast = .False.
 
-!-------------------------------!
-!     zero timing variables     !
-!-------------------------------!
-      timeinit = 0.d0
-      timemat = 0.d0
-      timefv = 0.d0
-      timesv = 0.d0
-      timerho = 0.d0
-      timepot = 0.d0
-      timefor = 0.d0
-      timeio=0d0
-      timemt=0d0
-      timemixer=0d0
-      timematch=0d0
-      time_hmlaan=0d0
-      time_hmlalon=0d0
-      time_hmllolon=0d0
-      time_olpaan=0d0
-      time_olpalon=0d0
-      time_olplolon=0d0
-      time_hmlistln=0d0
-      time_olpistln=0d0
-      time_rdirac=0d0
-      time_rschrod=0d0
-      time_oepvnl=0.0d0
-      time_oep_iter=0.0d0
-      Call timesec (ts0)
+      call initialise_groundstate_timings()
+      call timesec(ts0)
 
 !------------------------------------!
 !     angular momentum variables     !
@@ -140,7 +115,7 @@ Subroutine init0
       If (input%structure%primcell) Call findprim
 !
       call map_atoms_per_species_to_atomic_index (nspecies, natoms, idxas, natmmax, natmtot)
-      
+
 !------------------------!
 !     spin variables     !
 !------------------------!
@@ -183,26 +158,8 @@ Subroutine init0
 ! Hartree-Fock/RDMFT requires second-variational eigenvectors
       If ((task .Eq. 5) .Or. (task .Eq. 6) .Or. (task .Eq. 300)) &
      & input%groundstate%tevecsv = .True.
-! get exchange-correlation functional data
-      If  (associated(input%groundstate%HartreeFock) .And. &
-      &    associated(input%groundstate%OEP)) Then
-         Write (*,*)
-         Write (*, '("Error(init0): illegal choice for exact exchange")')
-         Write (*, '("You cannot use HF and OEP simultaneously")')
-         Write (*,*)
-         Stop
-      End If
 
-      Call getxcdata (xctype, xcdescr, xcspin, xcgrad, ex_coef)
-
-      If  (xctype(1)==HYB_PBE0 .or. xctype(1)==HYB_HSE) Then
-          ex_coef = input%groundstate%Hybrid%excoeff
-          ec_coef = input%groundstate%Hybrid%eccoeff
-      Else
-          ex_coef = 0.0
-          ec_coef = 1.0
-          If (input%groundstate%xctypenumber .Lt. 0) ex_coef=1.0
-      End If
+     call initialise_xc_mixing_coefficients(input%groundstate, xctype, xcdescr, xcspin, xcgrad, ex_coef, ec_coef)
       
       If (isspinorb()) Then
         If (xctype(1)==HYB_PBE0 .or. xctype(1)==HYB_HSE) Then
@@ -350,7 +307,7 @@ Subroutine init0
 
       If (input%groundstate%useAPWprecision) Then
             input%groundstate%rgkmax = determine_rgkmax(input%groundstate%APWprecision, spzn(input%groundstate%isgkmax))
-      Else 
+      Else
             input%groundstate%APWprecision = determine_APWprecision(input%groundstate%rgkmax, spzn(input%groundstate%isgkmax))
       End If
 !
@@ -404,7 +361,7 @@ Subroutine init0
         call setup_sirius(input, mpiglobal%comm, mpi_grid)
         call get_mpi_comm_sirius(comm_k, comm_band)
       else
-        ! Leave simple layout for pure Exciting, with no band distribution    
+        ! Leave simple layout for pure Exciting, with no band distribution
         comm_k = mpiglobal%comm
         comm_band = 0
 #ifdef MPI
@@ -484,13 +441,9 @@ Subroutine init0
          Allocate (magmt(lmmaxvr, nrmtmax, natmtot, ndmag))
          Allocate (magir(ngrtot, ndmag))
       End If
-! Coulomb potential
-      If (allocated(vclmt)) deallocate (vclmt)
-      Allocate (vclmt(lmmaxvr, nrmtmax, natmtot))
-      If (allocated(vclir)) deallocate (vclir)
-      Allocate (vclir(ngrtot))
-      If (allocated(vmad)) deallocate (vmad)
-      Allocate (vmad(natmtot))
+
+call allocate_coulomb_potentials(lmmaxvr, nrmtmax, natmtot, ngrtot, vclmt, vclir, vmad)
+
 ! exchange-correlation potential
       If (allocated(vxcmt)) deallocate (vxcmt)
       Allocate (vxcmt(lmmaxvr, nrmtmax, natmtot))
@@ -529,6 +482,7 @@ Subroutine init0
       Allocate (veffig(ngvec))
 !      If (allocated(vrefig)) deallocate (vrefig)
 !      Allocate (vrefig(ngvec))
+
 ! allocate muffin-tin charge and moment arrays
       If (allocated(chgmt)) deallocate (chgmt)
       Allocate (chgmt(natmtot))

@@ -30,7 +30,7 @@ program main
       call unit_test_driver(mpiglobal, args%kill_on_failure)
    else
       call loadinputDOM("input.xml")
-      ! Initialize default values that are not definet in the input schema
+      ! Initialise default values that are not defined in the input schema
       call setdefault()
       ! Construct the input datastructure
       input = getstructinput(inputnp)
