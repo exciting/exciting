@@ -45,7 +45,7 @@ Subroutine occupy
       character(1024) :: message
 
       external sdelta, stheta
-      real(8), external :: dostet_exciting
+      real(8), external :: dostet_exciting, dos_at_energy
 
       type( k_set) :: kset
       type( t_set) :: tetra
@@ -121,20 +121,15 @@ Subroutine occupy
 10       Continue
 ! find the density of states at the Fermi surface in units of
 ! states/Hartree/spin/unit cell
-         fermidos = 0.d0
+         fermidos = dos_at_energy( nkpt, wkpt, nstsv, evalsv, occmax, efermi, &
+                      input%groundstate%stypenumber, input%groundstate%swidth)
          Do ik = 1, nkpt
-            Do ist = 1, nstsv
-               x = (evalsv(ist, ik)-efermi) * t1
-               fermidos = fermidos + wkpt (ik) * sdelta &
-                 & (input%groundstate%stypenumber, x) * t1
-            End Do
             If (occsv(nstsv, ik) .Gt. input%groundstate%epsocc) Then
                call warning('Warning(occupy):')
                Write (message, '(" Not enough empty states for k-point ", I6)') ik
                call warning(message)
             End If
          End Do
-         fermidos = fermidos * occmax
 
       else  if (input%groundstate%stypenumber==-1) then
          !------------------------------------------------------------
@@ -181,3 +176,201 @@ Subroutine occupy
       Return
 End Subroutine
 !EOC
+
+!> Find the Fermi level and occupation number for a given set of eigenenergies and k-points
+!> using smearing and the bisection method.
+!> The total charge \(\rho\) in the system is given by
+!> \[ \rho = \sum_{n,{\bf k}} w_{\bf k} \, f_{n{\bf k}} \;, \]
+!> where \(f_{n{\bf k}} = \theta(\epsilon_{\rm F} - \epsilon_{n{\bf k}})\) is the occupation of state \(\Psi_{n{\bf k}}\)
+!> and \(\epsilon_{\rm F}\) is the Fermi energy.
+!> The Fermi energy is iteratively refined using the bisection method until the resulting occupation numbers yield
+!> the desired charge within a given tolerance.
+!> \(\theta(x)\) is approximated with a smooth function according to `stype` and `swidth`.
+subroutine find_fermi( nkpt, wkpt, nst, eval, chg, maxocc, stype, swidth, epschg, efermi, occ)
+  use precision, only: dp
+  use modmpi, only: terminate_if_false
+  !> number of k-points
+  integer, intent(in) :: nkpt
+  !> k-point weights
+  real(dp), intent(in) :: wkpt(nkpt)
+  !> number of states
+  integer, intent(in) :: nst
+  !> eigenenergies
+  real(dp), intent(in) :: eval(nst,nkpt)
+  !> charge to fill
+  real(dp), intent(in) :: chg
+  !> maximum occupation per state
+  real(dp), intent(in) :: maxocc
+  !> smearing type
+  integer, intent(in) :: stype
+  !> smearing width
+  real(dp), intent(in) :: swidth
+  !> tolerance for occupied charged
+  real(dp), intent(in) :: epschg
+  !> Fermi energy
+  real(dp), intent(out) :: efermi
+  !> occupation numbers
+  real(dp), intent(out) :: occ(nst,nkpt)
+
+  integer, parameter :: maxiter = 100
+
+  integer :: nvm, it, ip, ist
+  real(dp) :: e0, e1, c, x, drift
+  logical :: smaller, greater
+
+  real(dp), external :: stheta, sdelta
+
+  ! find Fermi level and occupations
+  drift = 0.1_dp
+  smaller = .false.; greater = .false.
+
+  ! initial guess for energy interval from estimate of VBM and CBm
+  nvm = nint( chg/maxocc)
+  e0 = maxval( eval(nvm,:))
+  e1 = minval( eval(nvm+1,:))
+  do it = 1, maxiter
+    efermi = 0.5*(e0 + e1)
+    c = 0.d0
+    do ip = 1, nkpt
+      do ist = 1, nst
+        x = (efermi - eval(ist,ip))/swidth 
+        occ(ist,ip) = maxocc*stheta( stype, x)
+        c = c + wkpt(ip)*occ(ist,ip)
+      end do
+    end do
+    if( abs(c - chg) < epschg) exit
+    if( c < chg) then
+      smaller = .true.
+      e0 = efermi
+      e1 = e1 + (chg-c)*drift
+    else
+      greater = .true.
+      e1 = efermi
+      e0 = e0 + (chg-c)*drift
+    end if
+    if( smaller .and. greater) drift = 0.d0
+  end do
+  call terminate_if_false( it <= maxiter, &
+    '(find_fermi) Fermi level search did not converge.')
+end subroutine find_fermi
+
+!> Find the Fermi level and occupation number response upon any perturbation for a given set of eigenenergies and k-points
+!> using smearing and the bisection method.
+!> The response of the total charge \(\rho\) in the system is given by
+!> \[ \delta\rho = \sum_{n,{\bf k}} w_{\bf k} \, \delta f_{n{\bf k}} \;, \]
+!> where \(\delta f_{n{\bf k}} = (\delta \epsilon_{\rm F} - \delta \epsilon_{n{\bf k}}) \delta(\epsilon_{\rm F} - \epsilon_{n{\bf k}})\)
+!> is the occupation response of state \(\Psi_{n{\bf k}}\) and \(\delta\epsilon_{\rm F}\) is the Fermi energy response.
+!> The Fermi energy response is iteratively refined using the bisection method until the resulting occupation number responses yield
+!> the desired charge response within a given tolerance.
+!> \(\delta(x)\) is approximated with a smooth function according to `stype` and `swidth`.
+subroutine find_dfermi( nkpt, wkpt, nst, eval, deval, dchg, maxocc, efermi, defermi, docc, stype, swidth, epschg)
+  use precision, only: dp
+  use modmpi, only: terminate_if_false
+  !> number of k-points
+  integer, intent(in) :: nkpt
+  !> k-point weights
+  real(dp), intent(in) :: wkpt(nkpt)
+  !> number of states
+  integer, intent(in) :: nst
+  !> eigenenergies
+  real(dp), intent(in) :: eval(nst,nkpt)
+  !> eigenenergy responses
+  real(dp), intent(in) :: deval(nst,nkpt)
+  !> charge response
+  real(dp), intent(in) :: dchg
+  !> maximum occupation per state
+  real(dp), intent(in) :: maxocc
+  !> Fermi energy
+  real(dp), intent(in) :: efermi
+  !> Fermi energy response
+  real(dp), intent(out) :: defermi
+  !> occupation number responses
+  real(dp), intent(out) :: docc(nst,nkpt)
+  !> smearing type
+  integer, intent(in) :: stype
+  !> smearing width
+  real(dp), intent(in) :: swidth
+  !> tolerance for occupied charged
+  real(dp), intent(in) :: epschg
+
+  integer, parameter :: maxiter = 100
+
+  integer :: nvm, it, ip, ist
+  real(dp) :: e0, e1, dc, x, dx, drift
+  logical :: smaller, greater
+
+  real(dp), external :: stheta, sdelta
+
+  ! find Fermi level and occupations
+  drift = 0.1d0
+  smaller = .false.; greater = .false.
+
+  ! initial guess of energy interval
+  e0 = minval( deval)
+  e1 = maxval( deval)
+  do it = 1, maxiter
+    defermi = 0.5*(e0 + e1)
+    if( it == 1) defermi = 0.d0
+    dc = 0.d0
+    do ip = 1, nkpt
+      do ist = 1, nst
+        x = (efermi - eval(ist,ip))/swidth 
+        dx = (defermi - deval(ist,ip))/swidth 
+        docc(ist,ip) = maxocc*sdelta( stype, x)*dx
+        dc = dc + wkpt(ip)*docc(ist,ip)
+      end do
+    end do
+    if( abs(dc - dchg) < epschg) exit
+    if( dc < dchg) then
+      smaller = .true.
+      e0 = defermi
+      e1 = e1 + (dchg-dc)*drift
+    else
+      greater = .true.
+      e1 = defermi
+      e0 = e0 + (dchg-dc)*drift
+    end if
+    if( smaller .and. greater) drift = 0.d0
+  end do
+  call terminate_if_false( it <= maxiter, &
+    '(find_dfermi) Fermi level response search did not converge.')
+end subroutine find_dfermi
+
+!> Evaluate the density of states at a given energy level using smearing given by
+!> \[ D(\epsilon) = \sum_{n,{\bf k}} w_{\bf k}\, \delta(\epsilon_{n{\bf k}} - \epsilon) \;. \]
+!> \(\delta(x)\) is approximated with a smooth function according to `stype` and `swidth`.
+function dos_at_energy( nkpt, wkpt, nst, eval, maxocc, energy, stype, swidth) result(dos)
+  use precision, only: dp
+  !> number of k-points
+  integer, intent(in) :: nkpt
+  !> k-point weights
+  real(dp), intent(in) :: wkpt(nkpt)
+  !> number of states
+  integer, intent(in) :: nst
+  !> eigenenergies
+  real(dp), intent(in) :: eval(nst,nkpt)
+  !> maximum occupation per state
+  real(dp), intent(in) :: maxocc
+  !> energy at which to evaluate the DOS
+  real(dp), intent(in) :: energy
+  !> smearing type
+  integer, intent(in) :: stype
+  !> smearing width
+  real(dp), intent(in) :: swidth
+  !> DOS at given energy
+  real(dp) :: dos
+
+  integer :: ip, ist
+  real(dp) :: x
+
+  real(dp), external :: sdelta
+
+  dos = 0._dp
+  do ip = 1, nkpt
+    do ist = 1, nst
+      x = (eval(ist,ip) - energy)/swidth
+      dos = dos + wkpt(ip)*sdelta( stype, x)/swidth
+    end do
+  end do
+  dos = dos*maxocc
+end function dos_at_energy

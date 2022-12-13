@@ -12,6 +12,7 @@
 !
 Subroutine packeff (tpack, n, nu)
 ! !USES:
+      use mixer_pack, only: pack_fun, unpack_fun
       Use modmain
 ! !INPUT/OUTPUT PARAMETERS:
 !   tpack : .true. for packing, .false. for unpacking (in,logical)
@@ -26,6 +27,7 @@ Subroutine packeff (tpack, n, nu)
 ! !REVISION HISTORY:
 !   Created June 2003 (JKD)
 !   Modified Feb 2014 (UW)
+!   Modified Aug 2022 (SeTi)
 !EOP
 !BOC
       Implicit None
@@ -40,14 +42,24 @@ Subroutine packeff (tpack, n, nu)
 !      density for mixing 
 !      only tested for spin unpolarized
       If (input%groundstate%mixerswitch .eq. 2) then
-       Call rfpack (tpack, n, 1, rhomt, rhoir, nu)
+        if( tpack) then
+          call pack_fun( rhomt, input%groundstate%lmaxvr, 1, rhoir, n, nu)
+        else
+          call unpack_fun( rhomt, input%groundstate%lmaxvr, 1, rhoir, n, nu)
+        end if
 !      potential and magnetic field for mixing
       Else
-       Call rfpack (tpack, n, 1, veffmt, veffir, nu)
-       Do idm = 1, ndmag
-          Call rfpack (tpack, n, 1, bxcmt(:, :, :, idm), bxcir(:, idm), &
-         & nu)
-       End Do
+        if( tpack) then
+          call pack_fun( veffmt, input%groundstate%lmaxvr, 1, veffir, n, nu)
+          do idm = 1, ndmag
+            call pack_fun( bxcmt(:,:,:,idm), input%groundstate%lmaxvr, 1, bxcir(:,idm), n, nu)
+          end do
+        else
+          call unpack_fun( veffmt, input%groundstate%lmaxvr, 1, veffir, n, nu)
+          do idm = 1, ndmag
+            call unpack_fun( bxcmt(:,:,:,idm), input%groundstate%lmaxvr, 1, bxcir(:,idm), n, nu)
+          end do
+        end if
        ! pack the LDA+U potential if required
        If (ldapu .Ne. 0) Then
          Do ias = 1, natmtot

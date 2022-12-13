@@ -180,16 +180,16 @@ contains
     !> Error message that is printed to the terminal if present and condition is false.
     character(*), optional, intent(in) :: message
 
-    character(256) :: error_message
+    character(512) :: error_message
 
     error_message = 'Error'
     if (present(message)) then
-      error_message = error_message//': '//trim(adjustl(message))
+      error_message = trim(error_message)//': '//trim(adjustl(message))
     end if
 
     if(.not. condition) then
       write(error_unit, *)
-      write(error_unit, *) trim(error_message)
+      write(error_unit, '(a)') trim(error_message)
       write(error_unit, *)
       call trace_back()
       call terminate()
