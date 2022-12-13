@@ -45,5 +45,211 @@ Module mod_symmetry
       Integer, Allocatable :: lsplsyms (:, :)
 ! site symmetry global spin rotation element in lattice point group
       Integer, Allocatable :: lspnsyms (:, :)
+
+  contains
+
+    !> Symmetrize a real function in the muffin-tin spheres
+    !> given as a real spherical harmonics expansion.
+    subroutine symmetrize_real_mt( &
+        f, lmax, nr, isym, &
+        rstep, rstart)
+      use precision, only: dp
+      use constants, only: zzero
+      use mod_atoms, only: nspecies, natoms, natmtot, natmmax, idxas
+      !> on input: real function; 
+      !> on output: symmetrized real function
+      real(dp), intent(inout) :: f(:,:,:)
+      !> maximum l to use in the expansion
+      integer, intent(in) :: lmax
+      !> number of radial points per species
+      integer, intent(in) :: nr(:)
+      !> global indices of symmetries
+      integer, intent(in) :: isym(:)
+      !> radial step (default: 1)
+      integer, optional, intent(in) :: rstep
+      !> first radial point per species (default: 1)
+      integer, optional, intent(in) :: rstart(:)
+
+      integer :: is, ia, ias, ja, jas, &
+                 ir, ir_start, ir_step, irc, nrc, &
+                 nsym, i, lspl, lmmax
+      real(dp) :: sc(3,3)
+      
+      real(dp), allocatable :: ft(:)
+      complex(dp), allocatable :: zf(:,:,:), szf(:,:)
+
+      ir_step = 1
+      if( present( rstep)) ir_step = rstep
+
+      lmmax = (lmax + 1)**2
+      nrc = maxval(nr) / ir_step
+      nsym = size(isym)
+
+      allocate( ft(lmmax))
+      allocate( zf(lmmax,nrc,natmmax))
+      allocate( szf(lmmax,nrc))
+
+      do is = 1, nspecies
+        ir_start = 1
+        if( present( rstart)) ir_start = rstart(is)
+        do ia = 1, natoms(is)
+          ias = idxas(ia,is)
+          ! make a complex copy of the input and delete input
+          irc = 0
+          do ir = ir_start, nr(is), ir_step
+            irc = irc + 1
+            call rtozflm( lmax, f(:,ir,ias), zf(:,irc,ia))
+            f(:,ir,ias) = 0._dp
+          end do
+        end do
+        nrc = irc
+        do ia = 1, natoms(is)
+          ias = idxas(ia,is)
+          ! loop over symmetries
+          do i = 1, nsym
+            ! rotate function
+            lspl = lsplsymc(isym(i))
+            sc = symlatc(:,:,lspl)
+            ja = ieqatom(ia,is,isym(i))
+            jas = idxas(ja,is)
+            call rotzflm( sc, lmax, nrc, lmmax, zf(:,:,ja), szf)
+            ! add to output
+            irc = 0
+            do ir = ir_start, nr(is), ir_step
+              irc = irc + 1
+              call ztorflm( lmax, szf(:,irc), ft)
+              f(:lmmax,ir,ias) = f(:lmmax,ir,ias) + ft/nsym
+            end do
+          end do
+        end do
+      end do
+
+      deallocate( ft, zf, szf)
+    end subroutine symmetrize_real_mt
+
+    !> symmetrize a real function in the interstitial region
+    !> given as a Fourier series on a real-space grid
+    subroutine symmetrize_real_ir( &
+        f, ng, ivg, intgv, ivgig, igfft, isym)
+      use precision, only: dp
+      use constants, only: zzero
+      !> on input: real function; 
+      !> on output: symmetrized real function
+      real(dp), intent(inout) :: f(:)
+      !> number of G-vectors to consider in the expansion
+      integer, intent(in) :: ng
+      !> integer components of G-vectors the function is defined on
+      integer, intent(in) :: ivg(:,:)
+      !> range of integer components of G-vectors
+      integer, intent(in) :: intgv(3,2)
+      !> map from integer components of G-vector to its index in the list
+      integer, intent(in) :: ivgig(intgv(1,1):intgv(1,2),intgv(2,1):intgv(2,2),intgv(3,1):intgv(3,2))
+      !> map from G-vector list to FFT grid
+      integer, intent(in) :: igfft(:)
+      !> global indices of symmetries
+      integer, intent(in) :: isym(:)
+
+      integer :: ngrid(3), ngrtot, nsym, i, lspl
+
+      complex(dp), allocatable :: zf(:), szf(:)
+
+      ngrid = intgv(:,2) - intgv(:,1) + 1
+      ngrtot = product( ngrid)
+      nsym = size(isym)
+
+      allocate( zf(ngrtot), szf(ngrtot))
+
+      ! transform function to reciprocal space
+      zf = cmplx( f, 0._dp, dp)
+      call zfftifc( 3, ngrid, -1, zf)
+
+      ! loop over symmetries
+      szf = zzero
+      do i = 1, nsym
+        lspl = lsplsymc(isym(i))
+        ! rotate the function
+        call symapp_zfig( symlat(:,:,lspl), vtlsymc(:,isym(i)), [0._dp,0._dp,0._dp], &
+               zf, ng, ivg, igfft, .true., &
+               szf, intgv, ivgig, igfft, .true.)
+      end do
+
+      ! tranform function to real space and normalize
+      call zfftifc( 3, ngrid, 1, szf)
+      f = dble(szf)*(1._dp/dble(nsym))
+
+      deallocate( zf, szf)
+    end subroutine symmetrize_real_ir
+
+    !> Applies a crystal symmetry operation to an interstitial region function
+    !> given by its Fourier components
+    !> and adds the result to another function.
+    !> The symmetry operation is defined by the translation followed by the rotation.
+    !> Both functions can be given on different sets of G-vectors.
+    subroutine symapp_zfig( rotl, vtl, vpl, zfig1, ng, ivg1, igfft1, fft1, zfig2, intgv2, ivgig2, igfft2, fft2)
+      use precision
+      use constants, only: twopi
+    
+      !> symmetry rotation matrix in lattice coordinates
+      integer, intent(in) :: rotl(3,3)
+      !> symmetry translation vector in lattice coordinates
+      real(dp), intent(in) :: vtl(3)
+      !> Bloch wavevector of function in lattice coordinates
+      real(dp), intent(in) :: vpl(3)
+      !> function 1 to which the symmetry operation is applied
+      complex(dp), intent(in) :: zfig1(:)
+      !> number of G-vectors in the expansion of the function 1
+      integer, intent(in) :: ng
+      !> integer components of G-vectors function 1 is defined on
+      integer, intent(in) :: ivg1(:,:)
+      !> map from G-vector list to FFT grid for function 1
+      !> (not referenced if `fft1=.false.`)
+      integer, intent(in) :: igfft1(:)
+      !> if `.true.` function 1 is given on the FFT grid; 
+      !> if `.false.` function 1 is given on the G-vector grid
+      logical, intent(in) :: fft1
+      !> function 2 to which the result is added
+      complex(dp), intent(inout) :: zfig2(:)
+      !> range of integer components of G-vectors for function 2
+      integer, intent(in) :: intgv2(3,2)
+      !> map from integer components of G-vector to 
+      !> its index in the list for function 2
+      integer, intent(in) :: ivgig2(intgv2(1,1):intgv2(1,2),intgv2(2,1):intgv2(2,2),intgv2(3,1):intgv2(3,2))
+      !> map from G-vector list to FFT grid for function 2
+      !> (not referenced if `fft2=.false.`)
+      integer, intent(in) :: igfft2(:)
+      !> if `.true.` function 2 is given on the FFT grid; 
+      !> if `.false.` function 2 is given on the G-vector grid
+      logical, intent(in) :: fft2
+    
+      integer :: irotl(3,3), ig, igf, jg, jgf, ivg(3), shift(3), ngrid(3)
+      real(dp) :: v(3), phase
+    
+      ! get inverse of rotation matrix
+      call i3minv( rotl, irotl)
+      ! apply inverse rotation to p from the left
+      call r3mtv( dble( irotl), vpl, v)
+      ! get reciprocal lattice vector that maps R^-T.p back to the 1st BZ
+      call r3frac( 1e-6_dp, v, shift)
+    
+      ngrid = intgv2(:,2) - intgv2(:,1) + 1
+    
+      do ig = 1, ng
+        igf = ig
+        if( fft1) igf = igfft1(ig)
+        ! apply inverse rotation to G+p from the left and save integer part
+        ivg(1) = irotl(1,1)*ivg1(1,ig) + irotl(2,1)*ivg1(2,ig) + irotl(3,1)*ivg1(3,ig) + shift(1)
+        ivg(2) = irotl(1,2)*ivg1(1,ig) + irotl(2,2)*ivg1(2,ig) + irotl(3,2)*ivg1(3,ig) + shift(2)
+        ivg(3) = irotl(1,3)*ivg1(1,ig) + irotl(2,3)*ivg1(2,ig) + irotl(3,3)*ivg1(3,ig) + shift(3)
+        ! get phase factor from translation
+        phase = -twopi*dot_product( dble( ivg1(:,ig)) + vpl, vtl)
+        ! get index of rotated G+p vector in output G set
+        ivg = modulo( ivg-intgv2(:,1), ngrid) + intgv2(:,1)
+        jg = ivgig2( ivg(1), ivg(2), ivg(3))
+        jgf = jg
+        if( fft2) jgf = igfft2(jg)
+        ! update entry in output function
+        zfig2(jgf) = zfig2(jgf) + cmplx( cos(phase), sin(phase), dp)*zfig1(igf)
+      end do    
+    end subroutine symapp_zfig
 End Module
 !

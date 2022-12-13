@@ -20,11 +20,13 @@ module m_linalg
     subroutine zgediag( mat, eval, levec, revec)
       complex(8), intent( in) :: mat(:,:)
       complex(8), intent( out) :: eval(:)
-      complex(8), optional, intent( out) :: levec(:,:), revec(:,:)
+      complex(8), optional, target, intent( out) :: levec(:,:), revec(:,:)
 
       integer :: m, info, lwork
       character :: lv, rv
-      complex(8), allocatable :: cpy(:,:), work(:)
+      complex(8), pointer :: lv_ptr, rv_ptr
+      complex(8), allocatable, target :: cpy(:,:)
+      complex(8), allocatable :: work(:)
       real(8), allocatable :: rwork(:)
 
       m = size( mat, 1)
@@ -44,6 +46,7 @@ module m_linalg
       lv = 'n'
       if( present( levec)) then
         lv = 'v'
+        lv_ptr => levec(1,1)
         if( (size( levec, 1) .ne. m) .or. (size( levec, 2) .ne. m)) then
           write(*,'("Error (zgediag): The eigenvector array must have the same dimension as the matrix.")')
           stop
@@ -52,6 +55,7 @@ module m_linalg
       rv = 'n'
       if( present( revec)) then
         rv = 'v'
+        rv_ptr => revec(1,1)
         if( (size( revec, 1) .ne. m) .or. (size( revec, 2) .ne. m)) then
           write(*,'("Error (zgediag): The eigenvector array must have the same dimension as the matrix.")')
           stop
@@ -62,12 +66,14 @@ module m_linalg
       allocate( work(1), rwork( 2*m))
 
       cpy = mat
+      if( lv == 'n') lv_ptr => cpy(1,1)
+      if( rv == 'n') rv_ptr => cpy(1,1)
 
-      call zgeev( lv, rv, m, cpy, m, eval, levec, m, revec, m, work, -1, rwork, info)
+      call zgeev( lv, rv, m, cpy, m, eval, lv_ptr, m, rv_ptr, m, work, -1, rwork, info)
       lwork = nint( dble( work( 1)))
       deallocate( work)
       allocate( work( lwork))
-      call zgeev( lv, rv, m, cpy, m, eval, levec, m, revec, m, work, lwork, rwork, info)
+      call zgeev( lv, rv, m, cpy, m, eval, lv_ptr, m, rv_ptr, m, work, lwork, rwork, info)
 
       if( info .ne. 0) then
         write(*,'("Error (zgediag): Diagonalization failed. ZGEEV returned info ",i4)') info
@@ -84,14 +90,11 @@ module m_linalg
       real(8), intent( out) :: eval(:)
       complex(8), optional, intent( out) :: evec(:,:)
 
-      integer :: m, n, info, lrwork, liwork, lwork
+      integer :: m, n, info, lwork
       character :: rv
-      real(8) :: vl, vu, eps
-      integer, allocatable :: iwork(:), isuppz(:)
       complex(8), allocatable :: cpy(:,:), work(:)
       real(8), allocatable :: rwork(:)
 
-      eps = 2.d0*dlamch( 's')
       m = size( mat, 1)
 
       if( m .le. 0) then
@@ -116,26 +119,89 @@ module m_linalg
       end if
 
       allocate( cpy( m, m))
-      allocate( work(1), rwork(1), iwork(1), isuppz( 2*m))
+      allocate( work(1), rwork( 3*m-2))
 
       cpy = mat
 
-      call zheevr( rv, 'a', 'u', m, cpy, m, vl, vu, 1, m, eps, n, eval, evec, m, isuppz, work, -1, rwork, -1, iwork, -1, info)
-      lrwork = nint( rwork( 1))
-      liwork = iwork( 1)
+      call zheev( rv, 'u', m, cpy, m, eval, work, -1, rwork, info)
       lwork = nint( dble( work( 1)))
-      deallocate( work, rwork, iwork)
-      allocate( work( lwork), rwork( lrwork), iwork( liwork))
-      call zheevr( rv, 'a', 'u', m, cpy, m, vl, vu, 1, m, eps, n, eval, evec, m, isuppz, work, lwork, rwork, lrwork, iwork, liwork, info)
+      deallocate( work)
+      allocate( work( lwork))
+      call zheev( rv, 'u', m, cpy, m, eval, work, lwork, rwork, info)
+      if( rv == 'v') evec = cpy
 
       if( info .ne. 0) then
-        write(*,'("Error (zhediag): Diagonalization failed. ZHEEVR returned info ",i4)') info
+        write(*,'("Error (zhediag): Diagonalization failed. ZHEEV returned info ",i4)') info
         stop
       end if
 
-      deallocate( cpy, work, rwork, iwork, isuppz)
+      deallocate( cpy, work, rwork)
       return
     end subroutine zhediag
+
+    ! find unique gauge of eigenvectors
+    ! First, degenerate eigenvectors \({\bf U}_{:,m:n}\) are rotated using a
+    ! \((n-m+1)\)-dimensional unitary matrix \({\bf Q}\) that is obtained from
+    ! a QR decomposition \({\bf U}_{:,m:n}^\dagger = {\bf Q}^\dagger \cdot {\bf R}^\dagger\), 
+    ! and the degenerate eigenvectors \({\bf U}_{:,m:n}\) are replaced by 
+    ! \({\bf R} = {\bf U}_{:,m:n} \cdot {\bf Q}\).
+    ! In a second step, all eigenvectors are multiplied with a constant phase factor
+    ! such that the first occurence of their largest component is real and positive.
+    subroutine zhegauge( eval, evec, eps)
+      use m_plotmat
+      real(8), intent( in)           :: eval(:)
+      complex(8), intent( inout)     :: evec(:,:)
+      real(8), optional, intent( in) :: eps
+
+      integer :: m, n, i, j, k, l
+      real(8) :: epsil, t1
+      complex(8) :: z1
+      complex(8), allocatable :: aux1(:,:), aux2(:,:)
+
+      m = size( evec, 1)
+      n = size( evec, 2)
+
+      if( size( eval) < n) then
+        write(*,'("Error (zhegauge): Less eigenvalues than eigenvectors.")')
+        stop
+      end if
+
+      epsil = 1.d-10
+      if( present( eps)) epsil = eps
+
+      i = 1; j = 1
+      do while( j <= n)
+        if( j < n) then
+          if( abs( eval(j+1) - eval(j)) < epsil) then
+            j = j + 1
+            cycle
+          end if
+        end if
+        k = j - i + 1
+        ! states i to j are degenerate
+        if( k > 1) then
+          ! get rotated eigenvector from QR decomposition
+          allocate( aux1(k,m), aux2(k,m))
+          aux1 = conjg( transpose( evec(:,i:j)))
+          where( abs( aux1) < 1.d-12) aux1 = zzero
+          call zqr( aux1, r=aux2)
+          evec(:,i:j) = conjg( transpose( aux2))
+          deallocate( aux1, aux2)
+        end if
+        ! rotate eigenvectors such that the first occurance of the largest component is real and positive
+        do l = i, j
+          t1 = maxval( abs( evec(:,l)))
+          do k = 1, m
+            if( abs( evec(k,l)) + epsil > t1) exit
+          end do
+          z1 = conjg( evec(k,l))/abs( evec(k,l))
+          evec(:,l) = evec(:,l)*z1
+        end do
+        ! increment counters
+        i = j + 1
+        j = i
+      end do
+    end subroutine zhegauge
 
     ! diagonalize real symmetric matrix
     subroutine rsydiag( mat, eval, evec)
@@ -292,18 +358,22 @@ module m_linalg
 
     ! diagonalize complex hermitian matrices
     ! mat2 must be positive definite
-    subroutine zhegdiag( mat1, mat2, eval, evec)
+    subroutine zhegdiag( mat1, mat2, eval, evec, irange, erange)
       complex(8), intent( in) :: mat1(:,:), mat2(:,:)
       real(8), intent( out) :: eval(:)
       complex(8), optional, intent( out) :: evec(:,:)
+      integer, optional, intent( in) :: irange(2)
+      real(8), optional, intent( in) :: erange(2)
 
-      integer :: m, i, j, info, lwork
-      character :: rv
-      real(8) :: phase
+      integer :: m, n, i, j, il, iu, info, lwork
+      character :: rv, rr
+      real(8) :: phase, vl, vu
+      integer, allocatable :: iwork(:), ifail(:)
       complex(8), allocatable :: cpy1(:,:), cpy2(:,:), work(:)
       real(8), allocatable :: rwork(:)
 
       m = size( mat1, 1)
+      n = m
 
       if( m .le. 0) then
         write(*,'("Error (zhegdiag): Invalid matrix dimension.")')
@@ -317,43 +387,51 @@ module m_linalg
         write(*,'("Error (zhegdiag): Both matrices must have equal shapes.")')
         stop
       end if
-      if( size( eval, 1) .ne. m) then
-        write(*,'("Error (zhegdiag): The eigenvalue array must have the same dimension as the matrices.")')
+      rr = 'a'
+      if( present( erange)) then
+        vl = min( erange(1), erange(2))
+        vu = max( erange(1), erange(2))
+        rr = 'v'
+      end if
+      if( present( irange)) then
+        il = max( 1, min( irange(1), irange(2)))
+        iu = min( m, max( irange(1), irange(2)))
+        n = iu - il + 1
+        rr = 'i'
+      end if
+      if( size( eval, 1) .ne. n) then
+        write(*,'("Error (zhegdiag): The eigenvalue array has incorrect dimensions.")')
         stop
       end if
       rv = 'n'
       if( present( evec)) then
         rv = 'v'
-        if( (size( evec, 1) .ne. m) .or. (size( evec, 2) .ne. m)) then
-          write(*,'("Error (zhegdiag): The eigenvector array must have the same dimension as the matrices.")')
+        if( (size( evec, 1) .ne. m) .or. (size( evec, 2) .ne. n)) then
+          write(*,'("Error (zhegdiag): The eigenvector array has incorrect dimensions.")')
           stop
         end if
       end if
 
       allocate( cpy1, source=mat1)
       allocate( cpy2, source=mat2)
-      allocate( work(1), rwork( max( 1, 3*m-2)))
+      allocate( work(1), rwork(7*m), iwork(5*m), ifail(m))
 
-      call zhegv( 1, rv, 'u', m, cpy1, m, cpy2, m, eval, work, -1, rwork, info)
+      call zhegvx( 1, rv, rr, 'u', m, cpy1, m, cpy2, m, vl, vu, il, iu, 2*DLAMCH('S'), i, eval, cpy1, m, work, -1, rwork, iwork, ifail, info)
       lwork = nint( dble( work(1)))
       deallocate( work)
       allocate( work( lwork))
-      call zhegv( 1, rv, 'u', m, cpy1, m, cpy2, m, eval, work, lwork, rwork, info)
-
       if( rv == 'v') then
-        do i = 1, m
-          j = maxloc( abs( cpy1(:,i)), 1)
-          phase = atan2( aimag( cpy1(j,i)), dble( cpy1(j,i)))
-          evec(:,i) = cmplx( cos( phase), -sin( phase), 8)*cpy1(:,i)
-        end do
+        call zhegvx( 1, rv, rr, 'u', m, cpy1, m, cpy2, m, vl, vu, il, iu, 2*DLAMCH('S'), i, eval, evec, m, work, lwork, rwork, iwork, ifail, info)
+      else
+        call zhegvx( 1, rv, rr, 'u', m, cpy1, m, cpy2, m, vl, vu, il, iu, 2*DLAMCH('S'), i, eval, cpy1, m, work, lwork, rwork, iwork, ifail, info)
       end if
 
       if( info .ne. 0) then
-        write(*, '("Error( zhegdiag): Diagonalisation failed. ZHEGV returned info", i4)') info
+        write(*, '("Error( zhegdiag): Diagonalisation failed. ZHEGVX returned info", i4)') info
         stop
       end if
 
-      deallocate( cpy1, cpy2, work, rwork)
+      deallocate( cpy1, cpy2, work, rwork, iwork, ifail)
       return
     end subroutine zhegdiag
 
@@ -672,7 +750,7 @@ module m_linalg
     !***********************************
     ! complex QR factorization
     subroutine zqr( mat, q, r)
-      complex(8), intent( in)  :: mat(:,:)
+      complex(8), intent( in) :: mat(:,:)
       complex(8), optional, intent( out) :: q(:,:)
       complex(8), optional, intent( out) :: r(:,:)
 
@@ -734,7 +812,7 @@ module m_linalg
 
       if( dor) then
         r = zzero
-        do i = 1, m
+        do i = 1, k
           do j = i, n
             r(i,j) = cpy(i,j)
           end do
@@ -742,11 +820,11 @@ module m_linalg
       end if
 
       if( doq) then
-        call zungqr( m, n, k, cpy, m, tau, work, -1, info)
+        call zungqr( m, k, k, cpy, m, tau, work, -1, info)
         lwork = nint( dble( work(1)))
         deallocate( work)
         allocate( work( lwork))
-        call zungqr( m, n, k, cpy, m, tau, work, lwork, info)
+        call zungqr( m, k, k, cpy, m, tau, work, lwork, info)
         if( info .ne. 0) then
           write(*,'("Error (zqr): QR factorization failed. ZUNGQR returned info ",i4)') info
           stop
@@ -821,7 +899,7 @@ module m_linalg
 
       if( dor) then
         r = 0.d0
-        do i = 1, m
+        do i = 1, k
           do j = i, n
             r(i,j) = cpy(i,j)
           end do
@@ -829,11 +907,11 @@ module m_linalg
       end if
 
       if( doq) then
-        call dorgqr( m, n, k, cpy, m, tau, work, -1, info)
+        call dorgqr( m, k, k, cpy, m, tau, work, -1, info)
         lwork = nint( dble( work(1)))
         deallocate( work)
         allocate( work( lwork))
-        call dorgqr( m, n, k, cpy, m, tau, work, lwork, info)
+        call dorgqr( m, k, k, cpy, m, tau, work, lwork, info)
         if( info .ne. 0) then
           write(*,'("Error (rqr): QR factorization failed. DORGQR returned info ",i4)') info
           stop

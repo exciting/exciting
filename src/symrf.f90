@@ -105,7 +105,7 @@ Subroutine symrf (lrstp, rfmt, rfir)
 !---------------------------!
 !     interstitial part     !
 !---------------------------!
-      Call symrfir (ngvec, rfir)
+      call symmetrize_real_ir( rfir, ngvec, ivg, intgv, ivgig, igfft, [(isym,isym=1,nsymcrys)])
       Deallocate (rfmt1, rfmt2)
       Return
 End Subroutine
