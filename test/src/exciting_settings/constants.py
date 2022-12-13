@@ -21,17 +21,15 @@ Defaults = namedtuple('Defaults', ['max_time',        # Time after which a test 
                                    'default_np',      # Dict of default MPI processes per executable
                                    'default_threads', # Dict of default threads per executable
                                    'exe_ref',         # Executable for running the reference calculations
-                                   'hanging_tests'    # Added to account for the hanging tested inherited from the old suite
+                                   'SAFE_MODE',       # Run the code with extra checks/turn warnings to errors
+                                   'tests_file',      # Yaml configuration file, defining all tests
+                                   'defaults_file'    # Yaml file with test configuration defaults
                                    ])
 
 
 _binary_names    = [binary for binary in build_type_enum_to_str.values()]
 _default_np      = {BuildType.serial: 1, BuildType.puresmp: 1, BuildType.purempi: 2, BuildType.mpiandsmp: 2}
 _default_threads = {BuildType.serial: 1, BuildType.puresmp: 2, BuildType.purempi: 1, BuildType.mpiandsmp: 2}
-
-
-# Hanging tests that can never be run (should never add to this)
-hanging_tests = {'test_farm/groundstate/PBE-Al'}
 
 
 # Define an immutable instance of the default settings
@@ -52,7 +50,9 @@ settings = Defaults(max_time       = 1800,
                     default_np      = _default_np,
                     default_threads = _default_threads,
                     exe_ref         = BuildType.serial,
-                    hanging_tests   = hanging_tests
+                    SAFE_MODE       = bool(os.getenv('SAFE_MODE')) if os.getenv('SAFE_MODE') is not None else False,
+                    tests_file      = 'tests_config.yml',
+                    defaults_file   = 'defaults_config.yml'
                     )
 
 species_files = ['Ni.xml', 'La.xml', 'K.xml', 'Xe.xml', 'Ag.xml', 'Bk.xml', 'Co.xml', 'Md.xml', 'Lu.xml', 'Ar.xml',
@@ -132,5 +132,4 @@ class ExcitingRunProperties(RunProperties):
         """
         main_output = os.path.join(self.run_dir, self.main_output)
         run_success = terminated_cleanly and os.path.isfile(main_output)
-        run_success = terminated_cleanly
         return run_success

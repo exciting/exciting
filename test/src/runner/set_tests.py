@@ -3,8 +3,9 @@ Module containing functions that define or modify a list of test cases.
 """
 import os
 import re
-from typing import List, Set, Tuple
+from typing import List, Set
 import yaml
+
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
@@ -12,9 +13,9 @@ except ImportError:
 
 from ..io.parsers import get_compiler_type
 from ..runner.profile import Compiler, BuildType, CompilerBuild, build_type_str_to_enum
-
 from ..exciting_settings.constants import Defaults
 from ..runner.configure_tests import configure_all_tests, find_tests_to_skip_by_group, find_tests_with_attribute
+from ..utilities.warnings_errors import warnings_as_errors
 
 
 def get_test_directories(test_farm_root: str, basename=False) -> List[str]:
@@ -147,25 +148,6 @@ def set_tests_to_repeat(tests: dict, n_repeats: int) -> dict:
     return tests_to_repeat
 
 
-def remove_hanging_tests(test_cases: Set[str], hanging_tests: List[str]) -> Set[str]:
-    """
-    Remove the hanging test from test_cases set.
-
-    NOTE: Might make sense to adding a hanging tag to the configuration file as
-    hanging tests should NOT be run even when using the `run-failing-tests` flag.
-
-    :param Set[str] test_cases: Set of test cases (names).
-    :param List[str] hanging_tests: List of hanging tests to remove from the test_cases.
-    :return Set[str] test_cases: Test cases with hanging tests removed.
-    """
-    for name in hanging_tests:
-        try:
-            test_cases.remove(name)
-        except KeyError:
-            pass
-    return test_cases
-
-
 class TestLists:
     """
     Container for tests of all groups assigned to run.
@@ -183,7 +165,36 @@ class TestLists:
         self.repeat = repeat
 
 
-def set_tests_to_run(settings: Defaults, input_options: dict) -> TestLists:
+def get_test_cases_from_config(settings: Defaults) -> dict:
+    """ Get test cases from the YAML configuration file, filling in missing fields
+    with defaults.
+
+    :param settings: Instance of Defaults named tuple.
+    :return tests_in_config: Dict of tests defined in the configuration file,
+    `settings.tests_file`.
+    """
+    # Load defaults file and test configuration file
+    with open(settings.defaults_file, 'r') as file_handle:
+        defaults_str = file_handle.read()
+
+    with open(settings.tests_file, 'r') as file_handle:
+        tests_str = file_handle.read()
+
+    tests_in_config = configure_all_tests(tests_str, defaults_str)
+    test_names_in_config = set(tests_in_config.keys())
+
+    # Check config file and test cases in the farm are consistent
+    test_names_in_farm = get_all_test_cases(settings.test_farm)
+    missing_test_cases = (test_names_in_farm ^ test_names_in_config)
+
+    if missing_test_cases:
+        msg = f'Test cases in the test_farm are missing from config file: {missing_test_cases}'
+        warnings_as_errors(msg, ValueError, settings.SAFE_MODE)
+
+    return tests_in_config
+
+
+def set_tests_to_run(settings: Defaults, input_options: dict, tests_in_config: dict) -> TestLists:
     """
     Set tests to run according to those defined in `input_options` and those specified in
     the tests configuration file "tests_config.yml".
@@ -208,45 +219,24 @@ def set_tests_to_run(settings: Defaults, input_options: dict) -> TestLists:
           This suggests `configure_all_tests` should be split up.
           - The same thing is being done with `tests_to_repeat`
 
-        * Defaults from the config file are parsed from str to dict once here, and once in `configure_all_tests`
-          - Probably not a big deal
-
-        * This routine could be split in half. Return all tests, then a second routine to sort according to those to
-          run, failing, groups_to_skip, repeat, etc.
-
     :param Defaults settings: Default program settings.
-    :param dict input_options: Command line arguments.
+    :param input_options: Command line arguments.
+    :param tests_in_config
     :return TestLists: Object containing the test dictionaries
     """
-    # Load defaults file and test configuration file
-    with open('defaults_config.yml', 'r') as file_handle:
-        defaults_str = file_handle.read()
-
-    with open('tests_config.yml', 'r') as file_handle:
-        tests_str = file_handle.read()
-
-    tests_in_config = configure_all_tests(tests_str, defaults_str)
-    test_names_in_config = set(tests_in_config.keys())
-
-    # Check config file and test cases in the farm are consistent
-    test_names_in_farm = get_all_test_cases(settings.test_farm)
-    test_names_in_farm = remove_hanging_tests(test_names_in_farm, settings.hanging_tests)
-    missing_test_cases = (test_names_in_farm ^ test_names_in_config)
-    if missing_test_cases:
-        raise ValueError(f'Test cases in the test_farm are missing from config file: {missing_test_cases}')
-
     # Set test names and tests dictionary
     if input_options['tests']:
         test_names = set(input_options['tests'])
-        test_names = remove_hanging_tests(test_names, settings.hanging_tests)
         specified_tests_to_run = {name: tests_in_config[name] for name in test_names}
         tests_in_config.clear()
     else:
-        test_names = test_names_in_config
+        test_names = set(tests_in_config.keys())
         specified_tests_to_run = tests_in_config
 
     # Tests in groups to skip
     # Note, duplicate work occurring - sorting through group dict twice
+    with open(settings.defaults_file, 'r') as file_handle:
+        defaults_str = file_handle.read()
     config_defaults = yaml.load(defaults_str, Loader=Loader)
     groups_to_run = [name for name, to_run in config_defaults['group_execution'].items() if to_run]
     tests_to_skip_by_group: set = find_tests_to_skip_by_group(specified_tests_to_run,

@@ -4,13 +4,12 @@ There are very few use cases where this should be done!
 Note, this has not been tested following refactoring into its own module.
 """
 import os
-import warnings
 
 from ..exciting_settings.constants import settings as exciting_settings, Defaults
 from ..reference.reference import run_single_reference
 from ..runner.execute import set_job_environment
 from ..runner.profile import build_type_enum_to_str
-from ..runner.set_tests import get_all_test_cases, remove_hanging_tests
+from ..runner.set_tests import get_test_cases_from_config
 
 
 def run_references(settings: Defaults):
@@ -19,15 +18,14 @@ def run_references(settings: Defaults):
 
     :param settings: Default settings for environment variables, paths and run-time parameters.
     """
-    warnings.warn("Reference will always be run with %s!" % settings.exe_ref)
-
     executable = os.path.join(settings.exe_dir, build_type_enum_to_str[settings.exe_ref])
     my_env = set_job_environment({'omp': '1', 'mkl_threads': '1'})
 
-    test_names_in_farm = get_all_test_cases(settings.test_farm)
-    test_names_in_farm = remove_hanging_tests(test_names_in_farm, settings.hanging_tests)
+    tests_in_config = get_test_cases_from_config(settings)
+    print(f'Running tests defined in {settings.tests_file}')
+    print(f"All references will be run with {settings.exe_ref}")
 
-    for test in test_names_in_farm:
+    for test in list(tests_in_config):
         reference_dir = os.path.join(test, settings.ref_dir)
         run_single_reference(reference_dir, executable, settings, my_env)
 

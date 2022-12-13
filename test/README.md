@@ -84,6 +84,48 @@ python3 runtest.py
                                          If excitingtools is not installed, the test suite will provide 
                                          instructions on how to install the package.
 
+## Environment Variables.
+
+### List of Variables
+
+```bash
+MKL_NUM_THREADS
+OPENMPI_IN_DOCKER
+SAFE_MODE
+```
+
+#### MKL_NUM_THREADS
+
+The number of threads used by Intel MKL (ignored when not using MKL). If `MKL_NUM_THREADS` is not set by the user, then 
+the run time test environment will not set anything either and MKL is free to choose the thread count. Threads are 
+exported like so:
+
+```bash
+export MKL_NUM_THREADS=4
+```
+
+#### OPENMPI_IN_DOCKER
+
+If any value is set for this variable, `mpirun` with be passed the flag " --allow-run-as-root". This should only be 
+used in Docker, and is only a valid flag for `openMPI`.
+
+```bash
+# All result in the same behaviour
+export OPENMPI_IN_DOCKER='true'
+export OPENMPI_IN_DOCKER='yes'
+export OPENMPI_IN_DOCKER='some-value'
+```
+
+#### SAFE_MODE
+
+The test framework can perform extra consistency-checking of the test farm and configuration file, however this may 
+not always be wanted. When safe mode is true, warnings are converted to errors. Options are `'true'` or `'false'`:
+
+```bash
+export SAFE_MODE='true'
+```
+
+
 ## Adding new Tests:
 
 Use the script `newtestcase.py` to add a new test case.
