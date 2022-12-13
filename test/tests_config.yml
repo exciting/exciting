@@ -80,9 +80,12 @@ groundstate/LDA_TETER93-BN:
 
 groundstate/LDA_TETER93-spin-BN:
    group: LIBXC
+
 # TODO(Alex) Issue #36 chargedensityplot hangs when running with np > 1 cores
-# Hence test is commented out
-# groundstate/PBE-Al:
+groundstate/PBE-Al:
+   failing_builds:
+      - intel_mpiandsmp
+      - gcc_mpiandsmp
 
 groundstate/PBE-lin-Al:
 

@@ -16,7 +16,7 @@ from src.runner.profile import BuildType, build_type_str_to_enum, build_type_enu
 from src.runner.set_tests import get_test_directories, partial_test_name_matches
 from src.runner.test import run_tests
 from src.tester.report import skipped_test_summary
-from src.runner.set_tests import set_tests_to_run
+from src.runner.set_tests import get_test_cases_from_config, set_tests_to_run
 
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
@@ -290,7 +290,8 @@ def main(settings: Defaults, input_options: dict):
     print('Binary: ', input_options['executable'])
 
     my_env = set_job_environment({key: input_options[key] for key in ['omp', 'mkl_threads']})
-    tests = set_tests_to_run(settings, input_options)
+    tests_in_config = get_test_cases_from_config(settings)
+    tests = set_tests_to_run(settings, input_options, tests_in_config)
     report = run_tests(settings, input_options, tests, my_env)
 
     report.print()
