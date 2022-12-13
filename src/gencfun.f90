@@ -14,7 +14,7 @@ Subroutine gencfun
 ! !USES:
       Use modinput
       Use modmain
-      use constants, only: fourpi
+      use constants, only: fourpi, zzero
       use sirius_api, only: get_step_function
       use sirius_init, only: sirius_options
 ! !DESCRIPTION:
@@ -38,12 +38,10 @@ Subroutine gencfun
 !BOC
       implicit none
 ! local variables
-      integer :: is, ia, ig, ifg
+      integer :: ig
       real (8) :: t1, t2
-      complex (8) :: zt1
       integer :: ngv
 ! allocatable arrays
-      real (8), allocatable :: ffacg (:)
       complex (8), allocatable :: zfft (:)
 
       ! Exciting generates the full set of G-vectors equal to the size of FFT box in real space.
@@ -66,52 +64,11 @@ Subroutine gencfun
         return
       endif
 
-      Allocate (ffacg(ngrtot))
-      Allocate (zfft(ngrtot))
+      Allocate (zfft(ngrtot), source=zzero)
+      call gencfunig( ngv, gc, vgc, cfunig)
 
-      cfunig (:) = 0.d0
-      cfunig (1) = 1.d0
-      t1 = fourpi / omega
-!$OMP PARALLEL DEFAULT(NONE) &
-!$OMP          SHARED(nspecies,ngrtot,gc,input,rmt,ffacg,natoms, &
-!$OMP                &vgc,atposc,cfunig,zfft,igfft,t1,ngv) &
-!$OMP          PRIVATE(is,ig,t2,ia,zt1,ifg)
-! begin loop over species
-      Do is = 1, nspecies
-! smooth step function form factors for each species
-!$OMP DO
-         Do ig = 1, ngv
-            If (gc(ig) .Gt. input%structure%epslat) Then
-               t2 = gc (ig) * rmt (is)
-               ffacg (ig) = t1 * (Sin(t2)-t2*Cos(t2)) / (gc(ig)**3)
-            Else
-               ffacg (ig) = (t1/3.d0) * rmt (is) ** 3
-            End If
-         End Do
-!$OMP END DO
-! loop over atoms
-         Do ia = 1, natoms (is)
-!$OMP DO
-            Do ig = 1, ngv
-! structure factor
-               t2 = - dot_product (vgc(:, ig), atposc(:, ia, is))
-               zt1 = cmplx (Cos(t2), Sin(t2), 8)
-! add to characteristic function in G-space
-               cfunig (ig) = cfunig (ig) - zt1 * ffacg (ig)
-            End Do
-!$OMP END DO NOWAIT
-         End Do
-      End Do
-!$OMP BARRIER
-!$OMP DO
+      zfft( igfft(1:ngv)) = cfunig
 
-      Do ig = 1, ngv
-         ifg = igfft (ig)
-         zfft (ifg) = cfunig (ig)
-      End Do
-!$OMP END DO
-!$OMP END PARALLEL 
-!
 ! Fourier transform to real-space
       Call zfftifc (3, ngrid, 1, zfft)
       cfunir (:) = dble (zfft(:))
@@ -123,8 +80,80 @@ Subroutine gencfun
             cfunig (ig) = cfunig (ig) * t2
          End Do
       End If
-      Deallocate (ffacg, zfft)
+      Deallocate (zfft)
       Return
 End Subroutine
 !EOC
 
+!> Generate the Fourier coefficients of the smooth step function
+!> for a given set of G-vectors given by
+!> \[ \hat{\Theta}({\bf G}) = \begin{cases}
+!>    \delta_{{bf G}0} - \sum\alpha {\rm e}^{-{\rm i}{\bf G}\cdot{\bf \tau}_\alpha} 
+!>    \frac{4\pi R_\alpha^3}{3\Omega} & {\bf G} = 0 \\
+!>    \sum\alpha {\rm e}^{-{\rm i}{\bf G}\cdot{\bf \tau}_\alpha} 
+!>    \frac{4\pi R_\alpha^3}{\Omega} \frac{j_1(G\,R_\alpha)}{G\,R_\alpha} & {\bf G} \neq 0
+!>    \end{cases} \;. \]
+subroutine gencfunig( ng, gc, vgc, cfunig)
+  use precision, only: dp
+  use modinput
+  use constants, only: zzero, zone, fourpi
+  use mod_lattice, only: omega
+  use mod_atoms, only: nspecies, natoms, atposc
+  use mod_muffin_tin, only: rmt
+  
+  !Note: assumed-size declaration needed because routine is not in a module.
+  !> number of G-vectors
+  integer, intent(in) :: ng
+  !> length of the G-vectors
+  real(dp), intent(in) :: gc(*)
+  !> G-vectors in Cartesian coordinates
+  real(dp), intent(in) :: vgc(3,*)
+  !> Fourier coefficients of smooth step function
+  complex(dp), intent(out) :: cfunig(*)
+
+  integer :: is, ia, i, ig
+  real(dp) :: t1, t2
+
+  integer, allocatable :: finite_g_indices(:), zero_g_indices(:)
+  real(dp), allocatable :: ffacg(:)
+
+  t1 = fourpi/omega
+
+  allocate( ffacg(ng))
+  finite_g_indices = pack( [(ig,ig=1,ng)], [(gc(ig) > input%structure%epslat, ig=1, ng)])
+  zero_g_indices = pack( [(ig,ig=1,ng)], [(gc(ig) <= input%structure%epslat, ig=1, ng)])
+  
+  cfunig(finite_g_indices) = zzero
+  cfunig(zero_g_indices) = zone
+
+!$omp parallel default(shared) private(is,ia,i,ig,t2)
+  do is = 1, nspecies
+    ! smooth step function form factors for each species
+!$omp do
+    do i = 1, size( finite_g_indices)
+      ig = finite_g_indices(i)
+      t2 = gc(ig) * rmt(is)
+      ffacg(ig) = t1 * (sin(t2) - t2 * cos(t2)) / (gc(ig)**3)
+    end do
+!$omp end do
+!$omp do
+    do i = 1, size( zero_g_indices)
+      ig = zero_g_indices(i)
+      ffacg(ig) = t1 / 3._dp * rmt(is)**3
+    end do
+!$omp end do
+!$omp barrier
+
+    do ia = 1, natoms(is)
+!$omp do
+      do ig = 1, ng
+        t2 = -dot_product( vgc(:,ig), atposc(:,ia,is))
+        ! add to characteristic function in G-space
+        cfunig(ig) = cfunig(ig) - ffacg(ig)*cmplx(cos(t2),sin(t2),dp)
+      end do
+!$omp end do
+    end do
+
+  end do
+!$omp end parallel
+end subroutine
