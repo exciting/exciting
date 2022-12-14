@@ -6,7 +6,7 @@ module grid_utils_test
    use unit_test_framework, only: unit_test_type
    use math_utils, only: all_close, all_zero, mod1
    use grid_utils, only: mesh_1d, linspace, concatenate, grid_3d, phase, fft_frequencies, &
-                         partial_grid, n_grid_diff, flattened_map
+                         partial_grid, n_grid_diff, flattened_map, point_in_triangle
     use multi_index_conversion, only: indices_to_composite_index, composite_index_to_indices
    implicit none
 
@@ -56,6 +56,53 @@ contains
 
       call test_report%finalise()
    end subroutine grid_utils_test_driver
+
+
+    subroutine test_point_in_triangle(test_report)
+
+      !> Our test object
+      type(unit_test_type), intent(inout) :: test_report
+
+      !> First 2d reciprocal lattice vector
+      real(dp) :: lat_vec1(2)
+      !>  Second 2d reciprocal lattice vector
+      real(dp) :: lat_vec2(2)
+      !>  High-symmetry point K
+      real(dp) :: triangle_center(2)
+      !>  High-symmetry point K_bar
+      real(dp) :: p_out_1(2)
+      !>  Point in the region around the K-valley
+      real(dp) :: p_in_1(2)
+      !>  Point in the region around the K_bar-valley
+      real(dp) :: p_out_2(2)
+
+      lat_vec1 = (/1.0544585551_dp, 0.6087919333_dp/)
+      lat_vec2 = (/0._dp, 1.2175838665_dp/)
+
+      triangle_center = 1._dp/3._dp*(lat_vec1 + lat_vec2)
+      p_out_1 = 2._dp/3._dp*(lat_vec1 + lat_vec2)
+
+      ! A point that should be in the triangle
+      p_in_1 = (/0.2_dp*(lat_vec1(1) +lat_vec2(1)),&
+        &  0.16_dp*(lat_vec1(2) + lat_vec2(2))/)
+      
+      ! A point that should not be in the triangle
+      p_out_2 = (/0.75_dp*(lat_vec1(1) + lat_vec2(1)),&
+        &  0.5_dp*(lat_vec1(2) + lat_vec2(2))/)
+
+      call test_report%assert(point_in_triangle(lat_vec1, lat_vec2, triangle_center), &
+                    & 'Expected:  triangle center is contained in the triangle.')
+
+      call test_report%assert(.not. point_in_triangle(lat_vec1, lat_vec2,&
+                          &p_out_1), 'Expected: point not in triangle')
+
+      call test_report%assert(point_in_triangle(lat_vec1, lat_vec2, p_in_1), &
+                    & 'Expected: Point in triangle')
+
+      call test_report%assert(.not. point_in_triangle(lat_vec1, lat_vec2,&
+                         &p_out_2), 'Expected:  point not in triangle')
+
+    end subroutine
 
     !> Test mesh_1d
     subroutine test_mesh_1d(test_report)

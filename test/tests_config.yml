@@ -115,6 +115,18 @@ BSE/PBE-LiF-phononscreening:
       - "lif.eig"
       - "lif.dyn1"
 
+BSE/PBE-MoS2-dichroism:
+   files_under_test:
+      - "EPSILON_??.OUT"
+      - "EXCITON_??.OUT"
+      - "DICHROIC_??.OUT"
+      - "OSCI_??.OUT"
+   inputs:
+      - "input.xml"
+      - "Mo.xml"
+      - "S.xml"
+
+
 # TODO(Alex) Issue #103. App Tests: GW QP Energies Inconsistent with Reference
 # TODO(Alex) Issue #35. MPI GW calculations do not produce EPS00_GW.OUT
 GW/Si-PBESOL:

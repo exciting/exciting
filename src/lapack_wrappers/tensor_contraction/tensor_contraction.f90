@@ -272,8 +272,7 @@ contains
 
         ! Check: rank_C = rank_A + rank_B - 2*n_contracted
         call assert(mod(rank_A + rank_B - rank_C, 2) == 0,&
-                        'Error real_tensor_contraction_dp:&
-                        Ranks of arrays are not correct.')
+                        'Ranks of arrays are not correct.')
 
         n_contracted = (rank_A + rank_B - rank_C) / 2
 
@@ -347,7 +346,7 @@ contains
 
         rank_A = size(shape_A)
 
-        call assert(rank_A >= 2, 'Error shape_rank_2: rank_A < 2.')
+        call assert(rank_A >= 2, 'rank_A < 2') 
 
        if (contracted_dims_are_trailing) then
             n_combined_leading = product(shape_A(1:rank_A - n_contracted_dims))

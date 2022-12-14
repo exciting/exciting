@@ -39,6 +39,8 @@ subroutine bse(iqmt)
   use m_invertzmat
   ! Wannier functions
   use mod_wannier_bse
+  use dichroism, only: dichroism_main
+
 ! !DESCRIPTION:
 !   Solves the Bethe-Salpeter equation(BSE). The BSE is treated as equivalent
 !   effective eigenvalue problem(thanks to the spectral theorem that can
@@ -125,7 +127,9 @@ subroutine bse(iqmt)
   ! Allocatable arrays
   real(8), allocatable, dimension(:) :: exeval, w
   complex(8), allocatable, dimension(:,:,:) :: symspectr
-  complex(8), allocatable, dimension(:,:) :: oscsr
+
+  complex(8), allocatable, dimension(:,:) :: oscsr, excevec
+
 
   real(8) :: bsegap
   real(8) :: v1, v2, en1, en2
@@ -602,6 +606,14 @@ subroutine bse(iqmt)
   !       is not complaining here.
   if(.not. allocated(exeval)) allocate(exeval(hamsize))
 
+
+  ! Valley-selective circular dichroism in 2D materials
+  if(input%xs%BSE%dichroism) then
+    if(.not. allocated(excevec)) allocate(excevec(hamsize,hamsize))
+    call dzmat_send2global_all(excevec, dexevec,bicurrent)
+    call dichroism_main(input, bsegap,exeval, excevec)
+  end if
+  
   ! Calculate oscillator strengths.
   ! Note: Deallocates dexevec and dcmat
   if(fcoup) then 
@@ -630,6 +642,7 @@ subroutine bse(iqmt)
         & Writing excition energies and oscillator strengths to text file.")')&
         & trim(thisname)
       call writeoscillator(hamsize, nexc, nk_bse, -bsegap, exeval, oscsr, iqmt=iqmt)
+  
     end if
 
     ! Allocate arrays used in spectrum construction

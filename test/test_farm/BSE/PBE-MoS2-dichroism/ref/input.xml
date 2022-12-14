@@ -1,0 +1,85 @@
+<input>
+ 
+  <title> MoS2 with SOC </title>
+
+
+  <structure speciespath="./ " cartesian="true"  tshift="false">
+
+    <crystal scale = "6.0246">
+      <basevect>   1.000000       0.0000000       0.000000000</basevect>
+      <basevect>  -0.500000       0.8660254       0.000000000</basevect>
+      <basevect>   0.000000       0.0000000       2.0</basevect>
+    </crystal>
+    <species speciesfile="Mo.xml" rmt="2.2000">
+      <atom coord="0.0     3.47830442      6.01020121"/>
+    </species>
+    <species speciesfile="S.xml" rmt="2.2000">
+      <atom coord="3.0123      1.73915221      3.0353247"/>
+      <atom coord="3.0123      1.73915221      8.98501039"/>
+    </species>
+  </structure>       
+  
+<groundstate 
+       do="fromscratch" 
+       ngridk="2 2 1" 
+       xctype="GGA_PBE" 
+       nempty="2" 
+       rgkmax="3"
+       radialgridtype="cubic-2"
+       >
+    <spin spinorb="true">
+    </spin>
+  </groundstate>
+
+
+   <xs 
+      xstype="BSE" 
+      ngridk="3 3 1" 
+      vkloff="0.5 0.5 0.0"
+      ngridq="3 3 1"
+      nempty="100"
+      gqmax="1.3"
+      broad="0.0018"
+      scissor="0.0"
+      tappinfo="true"
+      tevout="true"
+      dfoffdiag="true">
+ 
+      <energywindow 
+         intv="0.0 0.5" 
+         points="2400"/>
+ 
+      <screening 
+         screentype="full"
+         nempty="100"/>
+ 
+      <BSE
+         bsetype="singlet"
+         nstlbse="23 26 1 4"
+         nosymspec="true"     
+         dichroism="true"
+	 />
+ 
+      <qpointset>
+         <qpoint>0.0 0.0 0.0</qpoint>
+      </qpointset>
+
+
+<plan>
+    <doonly task="xsgeneigvec"/>
+     <doonly task="writepmatxs"/>
+     <doonly task="scrgeneigvec"/>
+     <doonly task="scrwritepmat"/>
+     <doonly task="screen"/>
+
+     <doonly task="scrcoulint"/>
+     <doonly task="exccoulint"/>
+     <doonly task="bse"/>
+
+  </plan>
+ 
+
+</xs>
+
+
+</input>

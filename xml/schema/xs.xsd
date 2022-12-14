@@ -1490,6 +1490,21 @@
                   for the BSE spectrum. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            
+            <xs:attribute ex:importance="experimental" ex:unit="" name="nosymspec" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation> Set to  <pre>"true"</pre> if the dielectric function should not be symmetrized wrt to the crystal structure.    </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            
+              <xs:attribute ex:importance="experimental" ex:unit="" name="dichroism" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation> Set to  <pre>"true"</pre> if valley-slective circular dichroism should be computed.   </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
             <xs:attribute ex:importance="expert" ex:unit="" name="bsetype" default="singlet">
               <xs:annotation>
                 <xs:documentation>Defines which parts of the BSE Hamiltonian are to be

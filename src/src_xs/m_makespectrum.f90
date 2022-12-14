@@ -807,10 +807,15 @@ module m_makespectrum
             do o2=1,3
              ! Symmetrize the macroscopic dielectric tensor
               if (input%xs%BSE%chibar0) then
-                call symt2app(o1, o2, nfreq, symt2, buf, spc(o1,o2,:))
+                if (.not. input%xs%BSE%nosymspec) then
+                  call symt2app(o1, o2, nfreq, symt2, buf, spc(o1,o2,:))
+                else
+                                  spc(o1,o2,:)=buf(o1,o2,:)
+                end if
               else
                 spc(o1,o2,:)=buf(o1,o2,:)
               end if
+
             end do
           end do
         end if
