@@ -13,16 +13,12 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
 ! !USES:
   Use modmpi
   Use modinput
-  !use mod_kpoint, only: vkl
-  !use mod_Gkvector, only: ngkmax, vgkl, ngk
-  !use mod_eigensystem, only: nmatmax, nmat
   use mod_kpoint, only: vkl_ptr, nkpt
   use mod_Gkvector, only: ngkmax_ptr, vgkl_ptr, ngk_ptr
   use mod_eigensystem, only: nmatmax_ptr
   use mod_eigenvalue_occupancy, only: nstfv
   use mod_spin, only: nspnfv
   use mod_names, only: filetag_evecfv
-  use constants, only: twopi
 ! !DESCRIPTION:
 !   The file where the (first-variational) eigenvectors are stored is
 !   {\tt EVECFV.OUT}.

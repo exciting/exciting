@@ -177,8 +177,6 @@ Subroutine occupy
 End Subroutine
 !EOC
 
-!> Find the Fermi level and occupation number for a given set of eigenenergies and k-points
-!> using smearing and the bisection method.
 !> The total charge \(\rho\) in the system is given by
 !> \[ \rho = \sum_{n,{\bf k}} w_{\bf k} \, f_{n{\bf k}} \;, \]
 !> where \(f_{n{\bf k}} = \theta(\epsilon_{\rm F} - \epsilon_{n{\bf k}})\) is the occupation of state \(\Psi_{n{\bf k}}\)
@@ -263,7 +261,7 @@ end subroutine find_fermi
 !> The Fermi energy response is iteratively refined using the bisection method until the resulting occupation number responses yield
 !> the desired charge response within a given tolerance.
 !> \(\delta(x)\) is approximated with a smooth function according to `stype` and `swidth`.
-subroutine find_dfermi( nkpt, wkpt, nst, eval, deval, dchg, maxocc, efermi, defermi, docc, stype, swidth, epschg)
+subroutine find_dfermi( nkpt, wkpt, nst, eval, deval, dchg, maxocc, efermi, stype, swidth, epschg, defermi, docc)
   use precision, only: dp
   use modmpi, only: terminate_if_false
   !> number of k-points
@@ -282,16 +280,16 @@ subroutine find_dfermi( nkpt, wkpt, nst, eval, deval, dchg, maxocc, efermi, defe
   real(dp), intent(in) :: maxocc
   !> Fermi energy
   real(dp), intent(in) :: efermi
-  !> Fermi energy response
-  real(dp), intent(out) :: defermi
-  !> occupation number responses
-  real(dp), intent(out) :: docc(nst,nkpt)
   !> smearing type
   integer, intent(in) :: stype
   !> smearing width
   real(dp), intent(in) :: swidth
   !> tolerance for occupied charged
   real(dp), intent(in) :: epschg
+  !> Fermi energy response
+  real(dp), intent(out) :: defermi
+  !> occupation number responses
+  real(dp), intent(out) :: docc(nst,nkpt)
 
   integer, parameter :: maxiter = 100
 

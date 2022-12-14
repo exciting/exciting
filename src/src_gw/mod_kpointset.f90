@@ -1,5 +1,6 @@
 
 MODULE mod_kpointset
+    use precision, only: dp
 
     implicit none
 
@@ -49,12 +50,30 @@ MODULE mod_kpointset
         real(8) :: bvec(3,3)  ! Lattice basis vectors
         integer :: ngrtot     ! total number of grid points
         integer :: intgv(3,2) ! integer grid size
+        real(8) :: voff(3)    ! offset for G+p vectors
         ! G-points
         integer :: ngvec                  ! number of G-points
         real(8), allocatable :: vgc(:,:)  ! Cartesian coodinates of lattice
         real(8), allocatable :: gc(:)     ! Length of G vector
         integer, allocatable :: ivg(:,:)  ! integer coordinates
         integer, allocatable :: ivgig(:,:,:) ! integer coordinates -> 1d index
+        ! FFT-points
+        integer :: ngrid(3)   ! FFT grid size 
+        integer, allocatable :: igfft(:) ! map of G-vector to FFT grid
+
+        contains
+          ! all accessible via `ig2igfft`
+          procedure :: ig2igfft_real => Gset_ig2igfft_real
+          procedure :: ig2igfft_complex => Gset_ig2igfft_complex
+          generic :: ig2igfft => ig2igfft_real, ig2igfft_complex
+          ! all accessible via `igfft2ig`
+          procedure :: igfft2ig_real => Gset_igfft2ig_real
+          procedure :: igfft2ig_complex => Gset_igfft2ig_complex
+          generic :: igfft2ig => igfft2ig_real, igfft2ig_complex
+          ! all accessible via `change_set`
+          procedure :: change_set_real => Gset_change_set_real
+          procedure :: change_set_complex => Gset_change_set_complex
+          generic :: change_set => change_set_real, change_set_complex
     end type G_set
 
 !-------------------------------------------------------------------------------
@@ -520,33 +539,49 @@ CONTAINS
     end subroutine print_k_vectors
 
 !-------------------------------------------------------------------------------
-    subroutine generate_G_vectors(self,bvec,intgv,gmaxvr)
+    subroutine generate_G_vectors(self,bvec,intgv,gmaxvr,vpl,auto_intgv)
         use sorting, only: sortidx
         implicit none
         type(G_set), intent(OUT) :: self
         real(8), intent(IN) :: bvec(3,3)
         integer, intent(IN) :: intgv(3,2) ! integer ranges for G-grid
         real(8), intent(IN) :: gmaxvr
+        real(8), optional, intent(IN) :: vpl(3) ! offset for G+p vectors
+        logical, optional, intent(IN) :: auto_intgv ! auto determine `intgv` based on `gmaxvr` (default: `.false.`)
 
         ! local variables
         integer :: ig, i1, i2, i3, k
-        real(8) :: v(3), t1
+        real(8) :: avec(3,3), voff(3), v(3), t1
 
         ! allocatable arrays
         integer, allocatable :: idx(:)
         integer, allocatable :: iar(:)
         real(8), allocatable :: rar(:)
 
+        self%voff = 0.d0
+        if( present( vpl)) self%voff = vpl
+
         ! Reciprocal lattice basis
         self%bvec = bvec
 
         ! G grid dimensions
         self%intgv(:,:) = intgv(:,:)
+        self%ngrid = self%intgv(:,2) - self%intgv(:,1) + 1
+        ! auto determine if requested
+        if( present( auto_intgv)) then
+          if( auto_intgv) then
+            call r3minv( bvec, avec)
+            do i1 = 1, 3
+              self%ngrid(i1) = int( 2.d0*gmaxvr*norm2( avec(i1,:))) + 1
+              call nfftifc( self%ngrid(i1))
+              self%intgv(i1,1) = self%ngrid(i1)/2 - self%ngrid(i1) + 1
+              self%intgv(i1,2) = self%ngrid(i1)/2
+            end do
+          end if
+        end if
 
         ! Number of G points on grid
-        self%ngrtot = (self%intgv(1,2)-self%intgv(1,1)+1)* &
-        &             (self%intgv(2,2)-self%intgv(2,1)+1)* &
-        &             (self%intgv(3,2)-self%intgv(3,1)+1)
+        self%ngrtot = product( self%ngrid)
 
         ! Cutoff G vector length
         self%gmaxvr = gmaxvr
@@ -560,9 +595,9 @@ CONTAINS
 
         ! 3D index (integer coordinates) --> 1D index map
         if (allocated(self%ivgig)) deallocate(self%ivgig)
-        allocate(self%ivgig(intgv(1,1):intgv(1,2), &
-        &                   intgv(2,1):intgv(2,2), &
-        &                   intgv(3,1):intgv(3,2)))
+        allocate(self%ivgig(self%intgv(1,1):self%intgv(1,2), &
+        &                   self%intgv(2,1):self%intgv(2,2), &
+        &                   self%intgv(3,1):self%intgv(3,2)))
 
         ! Cartesian coordinates of G vectors
         if (allocated(self%vgc)) deallocate(self%vgc)
@@ -579,10 +614,10 @@ CONTAINS
 
         ! Generate 3D index and modulus of all G vectors
         ig = 0
-        do i1 = intgv(1,1), intgv(1,2)
-          do i2 = intgv(2,1), intgv(2,2)
-            do i3 = intgv(3,1), intgv(3,2)
-              v(:) = dble(i1)*bvec(:,1)+dble(i2)*bvec(:,2)+dble(i3)*bvec(:,3)
+        do i1 = self%intgv(1,1), self%intgv(1,2)
+          do i2 = self%intgv(2,1), self%intgv(2,2)
+            do i3 = self%intgv(3,1), self%intgv(3,2)
+              v(:) = dble(i1+self%voff(1))*bvec(:,1)+dble(i2+self%voff(2))*bvec(:,2)+dble(i3+self%voff(3))*bvec(:,3)
               t1 = v(1)**2+v(2)**2+v(3)**2
               ig = ig+1
               ! map from G-vector to (i1,i2,i3) index
@@ -623,17 +658,22 @@ CONTAINS
           ! map from (i1,i2,i3) index to G-vector
           self%ivgig(i1,i2,i3) = ig
           ! assign G-vectors to global array
-          self%vgc(:,ig) = dble(i1)*bvec(:,1)+dble(i2)*bvec(:,2)+dble(i3)*bvec(:,3)
+          self%vgc(:,ig) = dble(i1+self%voff(1))*bvec(:,1)+dble(i2+self%voff(2))*bvec(:,2)+dble(i3+self%voff(3))*bvec(:,3)
         end do
 
         ! Find the number of vectors with G < gmaxvr
         self%ngvec = 1
         do ig = self%ngrtot, 1, -1
-          if (self%gc(ig) < gmaxvr) then
+          if (self%gc(ig) < self%gmaxvr) then
             self%ngvec = ig
             exit
           end if
         end do
+
+        ! Build FFT map
+        if( allocated( self%igfft)) deallocate( self%igfft)
+        allocate( self%igfft( self%ngrtot))
+        call genigfft( self%ngrid, self%ivg, self%ngrtot, self%igfft)
 
         deallocate(idx,iar,rar)
         return
@@ -646,6 +686,7 @@ CONTAINS
         if (allocated(self%gc)) deallocate(self%gc)
         if (allocated(self%ivg)) deallocate(self%ivg)
         if (allocated(self%ivgig)) deallocate(self%ivgig)
+        if (allocated(self%igfft)) deallocate(self%igfft)
     end subroutine delete_G_vectors
 
 !-------------------------------------------------------------------------------
@@ -672,6 +713,320 @@ CONTAINS
         102 format(i6,4x,3i4,4x,i6,4x,4f10.4)
         return
     end subroutine print_G_vectors
+
+!-------------------------------------------------------------------------------
+    !> Translates a real function `fin` given on the G-vector grid
+    !> into `fout` given on the FFT grid.
+    subroutine Gset_ig2igfft_real( this, fin, fout, ng, gmax)
+      class(G_set), intent(in) :: this
+      !> real function on G-vector grid
+      real(dp), intent(in) :: fin(:)
+      !> real function on FFT grid
+      real(dp), intent(inout) :: fout(:)
+      !> maximum number of G-vectors to consider; 
+      !> overrules input `gmax` (default: `this%ngrtot`)
+      integer, optional, intent(in) :: ng
+      !> maximum |G| to consider (default: infinity)
+      real(dp), optional, intent(in) :: gmax
+
+      real(dp), parameter :: eps = 1.d-12
+
+      integer :: i, ig, n
+      real(dp) :: gm
+
+      integer, allocatable :: ig_idx(:)
+
+      n = this%ngrtot
+      gm = this%gc(n)
+      if( present( ng)) then
+        n = ng
+      else if( present( gmax)) then
+        gm = gmax
+      end if
+      gm = gm + eps
+
+      ig_idx = pack( [(i, i=1, n)], [(this%gc(i) < gm, i=1, n)])
+      n = size( ig_idx)
+!$omp parallel default(shared) private(i,ig)
+!$omp do
+      do i = 1, n
+        ig = ig_idx(i)
+        fout( this%igfft(ig)) = fin(ig)
+      end do
+!$omp end do
+!$omp end parallel
+    end subroutine
+    !> Translates a complex function `fin` given on the G-vector grid
+    !> into `fout` given on the FFT grid.
+    subroutine Gset_ig2igfft_complex( this, fin, fout, ng, gmax)
+      class(G_set), intent(in) :: this
+      !> complex function on G-vector grid
+      complex(dp), intent(in) :: fin(:)
+      !> complex function on FFT grid
+      complex(dp), intent(inout) :: fout(:)
+      !> maximum number of G-vectors to consider; 
+      !> overrules input `gmax` (default: `this%ngrtot`)
+      integer, optional, intent(in) :: ng
+      !> maximum |G| to consider (default: infinity)
+      real(dp), optional, intent(in) :: gmax
+
+      real(dp), parameter :: eps = 1.d-12
+
+      integer :: i, ig, n
+      real(dp) :: gm
+
+      integer, allocatable :: ig_idx(:)
+
+      n = this%ngrtot
+      gm = this%gc(n)
+      if( present( ng)) then
+        n = ng
+      else if( present( gmax)) then
+        gm = gmax
+      end if
+      gm = gm + eps
+
+      ig_idx = pack( [(i, i=1, n)], [(this%gc(i) < gm, i=1, n)])
+      n = size( ig_idx)
+!$omp parallel default(shared) private(i,ig)
+!$omp do
+      do i = 1, n
+        ig = ig_idx(i)
+        fout( this%igfft(ig)) = fin(ig)
+      end do
+!$omp end do
+!$omp end parallel
+    end subroutine
+
+!-------------------------------------------------------------------------------
+    !> Translates a real function `fin` given on the FFT grid
+    !> into `fout` given on the G-vector grid.
+    subroutine Gset_igfft2ig_real( this, fin, fout, ng, gmax)
+      class(G_set), intent(in) :: this
+      !> real function on FFT grid
+      real(dp), intent(in) :: fin(:)
+      !> real function on G-vector grid
+      real(dp), intent(inout) :: fout(:)
+      !> maximum number of G-vectors to consider;
+      !> overrules input `gmax` (default: `this%ngrtot`)
+      integer, optional, intent(in) :: ng
+      ! maximum |G| to consider (default: infinity)
+      real(dp), optional, intent(in) :: gmax
+
+      real(dp), parameter :: eps = 1.d-12
+
+      integer :: i, ig, n
+      real(dp) :: gm
+
+      integer, allocatable :: ig_idx(:)
+
+      n = this%ngrtot
+      gm = this%gc(n)
+      if( present( ng)) then
+        n = ng
+      else if( present( gmax)) then
+        gm = gmax
+      end if
+      gm = gm + eps
+
+      ig_idx = pack( [(i, i=1, n)], [(this%gc(i) < gm, i=1, n)])
+      n = size( ig_idx)
+!$omp parallel default(shared) private(i,ig)
+!$omp do
+      do i = 1, n
+        ig = ig_idx(i)
+        fout(ig) = fin( this%igfft(ig))
+      end do
+!$omp end do
+!$omp end parallel
+    end subroutine
+    !> Translates a complex functions `fin` given on the FFT grid
+    !> into `fout` given on the G-vector grid.
+    subroutine Gset_igfft2ig_complex( this, fin, fout, ng, gmax)
+      class(G_set), intent(in) :: this
+      !> complex function on FFT grid
+      complex(dp), intent(in) :: fin(:)
+      !> complex function on G-vector grid
+      complex(dp), intent(inout) :: fout(:)
+      !> maximum number of G-vectors to consider;
+      !> overrules input `gmax` (default: `this%ngrtot`)
+      integer, optional, intent(in) :: ng
+      ! maximum |G| to consider (default: infinity)
+      real(dp), optional, intent(in) :: gmax
+
+      real(dp), parameter :: eps = 1.d-12
+
+      integer :: i, ig, n
+      real(dp) :: gm
+
+      integer, allocatable :: ig_idx(:)
+
+      n = this%ngrtot
+      gm = this%gc(n)
+      if( present( ng)) then
+        n = ng
+      else if( present( gmax)) then
+        gm = gmax
+      end if
+      gm = gm + eps
+
+      ig_idx = pack( [(i, i=1, n)], [(this%gc(i) < gm, i=1, n)])
+      n = size( ig_idx)
+!$omp parallel default(shared) private(i,ig)
+!$omp do
+      do i = 1, n
+        ig = ig_idx(i)
+        fout(ig) = fin( this%igfft(ig))
+      end do
+!$omp end do
+!$omp end parallel
+    end subroutine
+
+!-------------------------------------------------------------------------------
+    !> Transfers a real function `fin` given on this G-set to a real function `fout`
+    !> given on another G-set.
+    !> In mode `push`, `ng` and `gmax` refer to this G-set, i.e., this G-set pushes
+    !> values of `fin` into `fout`
+    !> In mode `pull`, `ng` and `gmax` refer to the other G-set, i.e., the other G-set pulls
+    !> values from `fin` into `fout`.
+    subroutine Gset_change_set_real( this, Gset, fin, fout, mode, ng, gmax)
+      class(G_set), intent(in) :: this
+      !> the transfer G-set
+      type(G_set), intent(in) :: Gset
+      !> real function on this G-set
+      real(dp), intent(in) :: fin(:)
+      !> real function on transfer G-set
+      real(dp), intent(inout) :: fout(:)
+      !> either `push` or `pull`
+      character(len=4), intent(in) :: mode
+      !> maximum number of G-vectors to consider;
+      !> overrules input `gmax` (default: `ngrtot` of respective G-set)
+      integer, optional, intent(in) :: ng
+      !> maximum |G| to consider (default: infinity)
+      real(dp), optional, intent(in) :: gmax
+
+      real(dp), parameter :: eps = 1.d-12
+
+      integer :: i, ig, n, ivg(3)
+      real(dp) :: gm
+
+      integer, allocatable :: ig_idx(:)
+
+      if( mode == 'push') then
+        n = this%ngrtot
+        gm = this%gc(n)
+      else
+        n = Gset%ngrtot
+        gm = Gset%gc(n)
+      end if
+      if( present( ng)) then
+        n = ng
+      else if( present( gmax)) then
+        gm = gmax
+      end if
+      gm = gm + eps
+
+      if( mode == 'push') then
+        ig_idx = pack( [(i, i=1, n)], [(this%gc(i) < gm, i=1, n)]) 
+        n = size( ig_idx)
+!$omp parallel default(shared) private(i,ig,ivg)
+!$omp do
+        do i = 1, n
+          ig = ig_idx(i)
+          ivg = modulo( this%ivg(:,ig)-Gset%intgv(:,1), Gset%ngrid) + Gset%intgv(:,1)
+          fout( Gset%ivgig( ivg(1), ivg(2), ivg(3))) = fin(ig)
+        end do
+!$omp end do
+!$omp end parallel
+      else if( mode == 'pull') then
+        ig_idx = pack( [(i, i=1, n)], [(Gset%gc(i) < gm, i=1, n)])
+        n = size( ig_idx)
+!$omp parallel default(shared) private(i,ig,ivg)
+!$omp do
+        do i = 1, n
+          ig = ig_idx(i)
+          ivg = modulo( Gset%ivg(:,ig)-this%intgv(:,1), this%ngrid) + this%intgv(:,1)
+          fout(ig) = fin( this%ivgig( ivg(1), ivg(2), ivg(3)))
+        end do
+!$omp end do
+!$omp end parallel
+      else
+        write(*,*) 'ERROR(mod_kpoints::Gset_change_set_real) invalid mode. mode must be `push` or `pull`.'
+        stop
+      end if
+    end subroutine
+    !> Transfers a complex function `fin` given on this G-set to a complex function `fout`
+    !> given on another G-set.
+    !> In mode `push`, `ng` and `gmax` refer to this G-set, i.e., this G-set pushes
+    !> values of `fin` into `fout`
+    !> In mode `pull`, `ng` and `gmax` refer to the other G-set, i.e., the other G-set pulls
+    !> values from `fin` into `fout`.
+    subroutine Gset_change_set_complex( this, Gset, fin, fout, mode, ng, gmax)
+      class(G_set), intent(in) :: this
+      !> the transfer G-set
+      type(G_set), intent(in) :: Gset
+      !> real function on this G-set
+      complex(dp), intent(in) :: fin(:)
+      !> real function on transfer G-set
+      complex(dp), intent(inout) :: fout(:)
+      !> either `push` or `pull`
+      character(len=4), intent(in) :: mode
+      !> maximum number of G-vectors to consider;
+      !> overrules input `gmax` (default: `ngrtot` of respective G-set)
+      integer, optional, intent(in) :: ng
+      !> maximum |G| to consider (default: infinity)
+      real(dp), optional, intent(in) :: gmax
+
+      real(dp), parameter :: eps = 1.d-12
+
+      integer :: i, ig, n, ivg(3)
+      real(dp) :: gm
+
+      integer, allocatable :: ig_idx(:)
+
+      if( mode == 'push') then
+        n = this%ngrtot
+        gm = this%gc(n)
+      else
+        n = Gset%ngrtot
+        gm = Gset%gc(n)
+      end if
+      if( present( ng)) then
+        n = ng
+      else if( present( gmax)) then
+        gm = gmax
+      end if
+      gm = gm + eps
+
+      if( mode == 'push') then
+        ig_idx = pack( [(i, i=1, n)], [(this%gc(i) < gm, i=1, n)]) 
+        n = size( ig_idx)
+!$omp parallel default(shared) private(i,ig,ivg)
+!$omp do
+        do i = 1, n
+          ig = ig_idx(i)
+          ivg = modulo( this%ivg(:,ig)-Gset%intgv(:,1), Gset%ngrid) + Gset%intgv(:,1)
+          fout( Gset%ivgig( ivg(1), ivg(2), ivg(3))) = fin(ig)
+        end do
+!$omp end do
+!$omp end parallel
+      else if( mode == 'pull') then
+        ig_idx = pack( [(i, i=1, n)], [(Gset%gc(i) < gm, i=1, n)])
+        n = size( ig_idx)
+!$omp parallel default(shared) private(i,ig,ivg)
+!$omp do
+        do i = 1, n
+          ig = ig_idx(i)
+          ivg = modulo( Gset%ivg(:,ig)-this%intgv(:,1), this%ngrid) + this%intgv(:,1)
+          fout(ig) = fin( this%ivgig( ivg(1), ivg(2), ivg(3)))
+        end do
+!$omp end do
+!$omp end parallel
+      else
+        write(*,*) 'ERROR(mod_kpoints::Gset_change_set_complex) invalid mode. mode must be `push` or `pull`.'
+        stop
+      end if
+    end subroutine
 
 !-------------------------------------------------------------------------------
     subroutine generate_Gk_vectors(self,kset,Gset,gkmax)
