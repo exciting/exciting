@@ -142,6 +142,7 @@ contains
       case ('xs')
          run%xs = .true.
 
+
          ! Modern directory conventions
       case ('char')
          run%char = .true.

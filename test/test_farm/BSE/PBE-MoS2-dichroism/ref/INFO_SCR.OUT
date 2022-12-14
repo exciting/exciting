@@ -1,0 +1,179 @@
+================================================================================
+| EXCITING OXYGEN started                                                      =
+| version hash id: e3f4f5b360f2b9de50efddf947c699ad7d28e6c7                    =
+|                                                                              =
+| compiler: GNU Fortran (Debian 8.3.0-6) 8.3.0                                 =
+|                                                                              =
+|                                                                              =
+| Date (DD-MM-YYYY) : 12-07-2022                                               =
+| Time (hh:mm:ss)   : 10:53:51                                                 =
+|                                                                              =
+| All units are atomic (Hartree, Bohr, etc.)                                   =
+================================================================================
+
+********************************************************************************
+* Ground-state run resuming from STATE.OUT                                     *
+********************************************************************************
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Starting initialization                                                      +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+ Lattice vectors (cartesian) :
+      6.0246000000      0.0000000000      0.0000000000
+     -3.0123000000      5.2174566248      0.0000000000
+      0.0000000000      0.0000000000     12.0492000000
+
+ Reciprocal lattice vectors (cartesian) :
+      1.0429215727      0.6021310534     -0.0000000000
+      0.0000000000      1.2042621068      0.0000000000
+      0.0000000000     -0.0000000000      0.5214607864
+
+ Unit cell volume                           :     378.7435781719
+ Brillouin zone volume                      :       0.6549291598
+
+ Species :    1 (Mo)
+     parameters loaded from                 :    Mo.xml
+     name                                   :    molybdenum
+     nuclear charge                         :     -42.00000000
+     electronic charge                      :      42.00000000
+     atomic mass                            :  174887.92120000
+     muffin-tin radius                      :       2.20000000
+     # of radial points in muffin-tin       :     400
+
+     atomic positions (cartesian) :
+       1 :   0.00000000  3.47830442  6.01020121
+
+ Species :    2 (S)
+     parameters loaded from                 :    S.xml
+     name                                   :    sulphur
+     nuclear charge                         :     -16.00000000
+     electronic charge                      :      16.00000000
+     atomic mass                            :   58452.74216000
+     muffin-tin radius                      :       2.20000000
+     # of radial points in muffin-tin       :     300
+
+     atomic positions (cartesian) :
+       1 :   3.01230000  1.73915221  3.03532470
+       2 :   3.01230000  1.73915221  8.98501039
+
+ Total number of atoms per unit cell        :       3
+
+ Spin treatment                             :    spin-polarised
+ Spin-orbit coupling is included
+ Global magnetic field (cartesian) :        0.00000000   0.00000000   0.00000000
+ non-collinear magnetisation
+
+ Number of Bravais lattice symmetries       :      24
+ Number of crystal symmetries               :       6
+
+ k-point grid                               :       3    3    1
+ k-point offset :       0.500000  0.500000  0.000000
+ Total number of k-points                   :       9
+ k-point set is not reduced
+
+ R^MT_min * |G+k|_max (rgkmax)              :       3.00000000
+ Species with R^MT_min                      :       1 (Mo)
+ Maximum |G+k| for APW functions            :       1.36363636
+ Maximum |G| for potential and density      :      12.00000000
+
+ G-vector grid sizes                        :      24    24    48
+ Total number of G-vectors                  :   11087
+
+ Maximum angular momentum used for
+     APW functions                          :       8
+     computing H and O matrix elements      :       8
+     potential and density                  :       8
+     inner part of muffin-tin               :       2
+
+ Total nuclear charge                       :     -74.00000000
+ Total electronic charge                    :      74.00000000
+ Total core charge                          :      48.00000000
+ Total valence charge                       :      26.00000000
+
+ Number of empty states                     :     100
+ Total number of valence states             :      74
+
+ Maximum Hamiltonian size                   :      39
+ Maximum number of plane-waves              :      18
+ Total number of local-orbitals             :      21
+
+ Exchange-correlation type                  :      20
+     Perdew-Burke-Ernzerhof, Phys. Rev. Lett. 77, 3865 (1996)
+     Generalised gradient approximation (GGA)
+
+ Smearing scheme                            :    Gaussian
+ Smearing width                             :       0.00100000
+
+ Using multisecant Broyden potential mixing
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Ending initialization                                                        +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+********************************************************************************
+* Groundstate module started                                                   *
+********************************************************************************
+ Output level for this task is set to normal
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Self-consistent loop started                                                 +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Potential read in from STATE.OUT
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Reached self-consistent loops maximum :    1                                 +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :     -4846.03744097
+ _______________________________________________________________
+ Fermi energy                               :         0.38171836
+ Kinetic energy                             :      5004.55739026
+ Coulomb energy                             :     -9675.48094196
+ Exchange energy                            :      -171.61711342
+ Correlation energy                         :        -3.49677585
+ No external B-field energy in total energy
+
+ DOS at Fermi energy (states/Ha/cell)       :         0.00000000
+
+ Electron charges :
+     core                                   :        48.00000000
+     core leakage                           :         0.00014577
+     valence                                :        26.00000000
+     interstitial                           :         7.07537851
+     charge in muffin-tin spheres :
+                  atom     1    Mo          :        38.56771477
+                  atom     2     S          :        14.17844321
+                  atom     3     S          :        14.17846351
+     total charge in muffin-tins            :        66.92462149
+     total charge                           :        74.00000000
+
+ Moments :
+     interstitial                 :    -0.00000000    -0.00000000    -0.00000000
+     moment in muffin-tin spheres :
+         atom     1    Mo         :    -0.00000000    -0.00000000     0.00000000
+         atom     2     S         :    -0.00000000    -0.00000000     0.00000000
+         atom     3     S         :     0.00000000    -0.00000000     0.00000000
+     total moment in muffin-tins  :    -0.00000000    -0.00000000     0.00000000
+     total moment                 :    -0.00000000    -0.00000000    -0.00000000
+
+ Estimated fundamental gap                  :         0.09172898
+        valence-band maximum at    9      0.8333  0.8333  0.0000
+     conduction-band minimum at    9      0.8333  0.8333  0.0000
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Self-consistent loop stopped                                                 +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+********************************************************************************
+* Groundstate module stopped                                                   *
+********************************************************************************
+
+ Total time spent (seconds)                 :         4.28
+
+--------------------------------------------------------------------------------
+- CAUTION! Warnings have been written in file WARNING.OUT !                    -
+--------------------------------------------------------------------------------
+================================================================================
+| EXCITING OXYGEN stopped                                                      =
+================================================================================

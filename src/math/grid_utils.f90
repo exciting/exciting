@@ -17,7 +17,7 @@ module grid_utils
             fft_frequencies, &
             n_grid_diff, &
             partial_grid, &
-            flattened_map
+            flattened_map, point_in_triangle
 
   real(dp), parameter :: default_offset(3) = [0._dp, 0._dp, 0._dp]
 
@@ -46,6 +46,42 @@ module grid_utils
   end interface phase
   
 contains
+
+    !> Checks if a given 2d vector \( \vec{p} = (p_x,p_y) \) is in a triangle
+    !> spanned by the origin and two other points \( \vec{a} = (a_x,a_y), \vec{b} = (b_x,b_y) \).
+    !> Inspired from the solution in https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle#:~:text=A%20simple%20way%20is%20to,point%20is%20inside%20the%20triangle:
+    !> The point is inside the triangle if \(s > 0 and t > 0 and 1 - s - t > 0),
+    !> where  \( s \) and \( t \) are defined as
+    !> \[
+    !>          s = 1/(2A) (   b_y p_x - b_x p_y) \\
+    !>          t = 1/(2A)*( - a_y p_x + a_x p_y).
+    !> \]
+    !> and the area \( A =  0.5*(- a_y b_x +  a_x b_y).\)
+    logical function point_in_triangle(corner_1, corner_2, vector)
+
+    !> First corner
+    real(dp), intent(in) :: corner_1(2)
+    !>  Second corner
+    real(dp), intent(in) :: corner_2(2)
+    !> vector
+    real(dp), intent(in) :: vector(2)
+
+    !> Area of the triangle
+    real(dp) :: area
+    !> Parameter s
+    real(dp) :: s
+    !> Parameter t
+    real(dp) :: t
+
+    area = 0.5*(-corner_1(2)*corner_2(1) + corner_1(1)*corner_2(2))
+    s = 1/(2*area)*(corner_2(2)*vector(1) - corner_2(1)*vector(2))
+    t = 1/(2*area)*(-corner_1(2)*vector(1) + corner_1(1)*vector(2))
+
+    point_in_triangle = s >= 0._dp .and. &
+                          t >= 0._dp .and. &
+                          1._dp - s - t >= 0._dp
+
+  end function
 
   !> Generate an array of ascending or descending evenly distributed integers.
   !> The first element is alway `first` and the last element `mesh_1d_last <= last` (for `last < first`:
