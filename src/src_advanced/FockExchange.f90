@@ -104,6 +104,9 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiir,vxpsimt)
 ! if (.true.) then
 ! start loop over non-reduced k-point set
       Do iq = 1, kqset%nkpt
+         Write(*,*) "y not go in?"
+         Call testsym(ik)
+         stop
 
 
 call timesec(ta)
@@ -150,7 +153,7 @@ write(*,*) 'genWFs',tb-ta
          zvclir (:, :) = 0.d0
          zvclmt (:, :, :, :) = 0.d0
 
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist3,wf1ir,wf2ir,igk,ifg,prod,prodir,zrho01,pot,potir,ta,tb)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist3,wf1ir,wf2ir,igk,ifg,prod,prodir,zrho01,pot,potir,ta,tb) REDUCTION(+:zvclir,zvclmt)
          call WFInit(prod)
          call WFInit(pot)
 
