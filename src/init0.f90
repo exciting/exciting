@@ -160,14 +160,6 @@ Subroutine init0
      & input%groundstate%tevecsv = .True.
 
      call initialise_xc_mixing_coefficients(input%groundstate, xctype, xcdescr, xcspin, xcgrad, ex_coef, ec_coef)
-      
-      If (isspinorb()) Then
-        If (xctype(1)==HYB_PBE0 .or. xctype(1)==HYB_HSE) Then
-           call terminate_if_false(mpiglobal, input%groundstate%spin%realspace,'("Error(init0): &
-           &The parameter realspace, inside the element spin, needs to be set to true, for &
-           &calculations with hybrids functionals which account for spin-orbit coupling effects.")')
-        End If
-      End If
 
 ! reset input%groundstate%Hybrid%excoeff to ex_coef
 ! in case of libxc: overwritten by ex_coef as defined by libxc

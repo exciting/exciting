@@ -106,13 +106,15 @@ contains
            call terminate()
         endif
 
-        if (isspinorb()) Then
-            call terminate_if_false(gs_input%spin%realspace,'("Error(init0): &
+        call getxcdata(xctype, xcdescr, xcspin, xcgrad, ex_coef)
+
+        if (isspinorb()) then
+            if (xctype(1)==HYB_PBE0 .or. xctype(1)==HYB_HSE) then
+                call terminate_if_false(gs_input%spin%realspace,'("Error(init0): &
                   & `input%groundstate%spin%realspace` needs to be set to true, for &
                   & calculations with hybrid functionals which account for spin-orbit coupling effects.")')
+            end if
         endif
-
-        call getxcdata(xctype, xcdescr, xcspin, xcgrad, ex_coef)
 
         ! Default - No mixing
         ex_coef = 0.0_dp
