@@ -81,6 +81,8 @@ def get_exciting_root() -> Union[str, None]:
 
     :return str root: exciting's root directory.
     """
+    # TODO(Alex) Move `exciting_test_dir` to exciting_settings
+    # Move this function to excitingtools
     exciting_test_dir = 'test'
     sub_dirs = os.getcwd().split('/')
 

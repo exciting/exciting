@@ -17,7 +17,7 @@
   </structure>
  
   <groundstate
-    do="skip"
+    do="fromscratch"
     fracinr="1d-12"
     rgkmax="6.0"
     gmaxvr="14.0"
@@ -34,7 +34,8 @@
     ibgw="23"
     nbgw="33"
     coreflag="xal"
-    skipgnd="false">
+    skipgnd="false"
+    qdepw="sum">
 
     <mixbasis
        lmaxmb="4"

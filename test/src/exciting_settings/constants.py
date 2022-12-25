@@ -28,8 +28,8 @@ Defaults = namedtuple('Defaults', ['max_time',        # Time after which a test 
 
 
 _binary_names    = [binary for binary in build_type_enum_to_str.values()]
-_default_np      = {BuildType.serial: 1, BuildType.puresmp: 1, BuildType.purempi: 2, BuildType.mpiandsmp: 2}
-_default_threads = {BuildType.serial: 1, BuildType.puresmp: 2, BuildType.purempi: 1, BuildType.mpiandsmp: 2}
+_default_np      = {BuildType.serial: 1, BuildType.smp: 1, BuildType.purempi: 2, BuildType.mpiandsmp: 2}
+_default_threads = {BuildType.serial: 1, BuildType.smp: 2, BuildType.purempi: 1, BuildType.mpiandsmp: 2}
 
 
 # Define an immutable instance of the default settings
@@ -45,7 +45,7 @@ settings = Defaults(max_time       = 1800,
                     binary_names    = _binary_names,
                     binary_mpismp   = BuildType.mpiandsmp,
                     binary_purempi  = BuildType.purempi,
-                    binary_smp      = BuildType.puresmp,
+                    binary_smp      = BuildType.smp,
                     binary_serial   = BuildType.serial,
                     default_np      = _default_np,
                     default_threads = _default_threads,

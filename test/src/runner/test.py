@@ -211,9 +211,9 @@ def print_input_info(input_options: dict):
     if 'exciting_serial' in executable:
         print('Run tests with exciting_serial.')
     elif 'exciting_smp' in executable:
-        print(f'Run tests with exciting_smp with {omp} open MP threads.')
+        print(f'Run tests with exciting_smp with {omp} openMP threads.')
     elif 'exciting_mpismp' in executable:
-        print(f'Run tests with exciting_mpismp with {omp} open MP threads and {np} MPI processes.')
+        print(f'Run tests with exciting_mpismp with {omp} openMP threads and {np} MPI processes.')
     elif 'exciting_purempi' in executable:
         print(f'Run tests with exciting_purempi {np} MPI processes.')
 

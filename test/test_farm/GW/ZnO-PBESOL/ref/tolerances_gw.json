@@ -186,7 +186,7 @@
       "message": "Applies to the VBM and CBm of KS and GW band structures"
     },
     "n_q_cycles": {
-      "tol": 0,
+      "tol": 6,
       "unit": "null"
     }
   },
