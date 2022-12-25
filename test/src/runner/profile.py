@@ -26,14 +26,14 @@ class BuildType(enum.Enum):
     debug_mpiandsmp = enum.auto()
     serial = enum.auto()
     mpiandsmp = enum.auto()
-    puresmp = enum.auto()
+    smp = enum.auto()
     purempi = enum.auto()
     all = enum.auto()
 
 
 build_type_str_to_enum = {'exciting_serial': BuildType.serial,
                           'exciting_mpismp': BuildType.mpiandsmp,
-                          'exciting_smp': BuildType.puresmp,
+                          'exciting_smp': BuildType.smp,
                           'exciting_purempi': BuildType.purempi
                           }
 
@@ -46,6 +46,7 @@ class CompilerBuild:
         self.build = BuildType[build] if isinstance(build, str) else build
 
 
+# TODO(Alex) Move this to exciting_settings
 class ExcitingCalculation(enum.Enum):
     """
     Broad categories of calculations performed by exciting

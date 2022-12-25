@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<atomlist>
+  <Hamiltonian RelativityModel="dirac" xctype="3"/>
+  <atom chemicalSymbol="" species="Zn.xml">
+    <NumericalSetup TotalNumberOfGridPoints="1840" NumberOfMTGridPoints="800" GridType="cubic" rmin="1.000000000000e-6" rmt="1.800000000000e0" rmax="2.194709954093e1"/>
+    <spectrum>
+      <state n="1" l="0" kappa="1" energy="-349.289290880"/>
+      <state n="2" l="0" kappa="1" energy="-42.4732339712"/>
+      <state n="2" l="1" kappa="1" energy="-37.4499546342"/>
+      <state n="2" l="1" kappa="2" energy="-36.5745949118"/>
+      <state n="3" l="0" kappa="1" energy="-4.72561263870"/>
+      <state n="3" l="1" kappa="1" energy="-3.13519524668"/>
+      <state n="3" l="1" kappa="2" energy="-3.02206071832"/>
+      <state n="3" l="2" kappa="2" energy="-0.390987163559"/>
+      <state n="3" l="2" kappa="3" energy="-0.377829207881"/>
+      <state n="4" l="0" kappa="1" energy="-0.228548900980"/>
+    </spectrum>
+  </atom>
+  <atom chemicalSymbol="" species="O.xml">
+    <NumericalSetup TotalNumberOfGridPoints="1350" NumberOfMTGridPoints="600" GridType="cubic" rmin="1.000000000000e-6" rmt="1.500000000000e0" rmax="1.713351135457e1"/>
+    <spectrum>
+      <state n="1" l="0" kappa="1" energy="-18.7729144278"/>
+      <state n="2" l="0" kappa="1" energy="-0.872726538331"/>
+      <state n="2" l="1" kappa="1" energy="-0.338713294477"/>
+      <state n="2" l="1" kappa="2" energy="-0.337360314152"/>
+    </spectrum>
+  </atom>
+</atomlist>

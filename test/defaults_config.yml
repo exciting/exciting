@@ -71,8 +71,11 @@ default_files_under_test:
 # Specify each new group.
 # Any test without a group is assigned NONE
 group_execution:
+  # Default
   NONE: True
   SLOW_TESTS: False
   GW_INTEL: False
   LIBXC: True
   SIRIUS: False
+  # Do not run (useful for disabling in the CI)
+  NORUN: False

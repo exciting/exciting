@@ -43,8 +43,10 @@ groundstate/LDA_PW-collinear-Fe:
    failing_builds:
       - intel_mpiandsmp
       - intel_serial
+      - intel_smp
       - gcc_mpiandsmp
       - gcc_serial
+      - gcc_smp
    comments: 'Most energies differ to reference by ~1.e-7. \n
    scl%Sum of eigenvalues by ~ 1.e-6. \n
    DOS at Fermi differs by 5.7e-04. '
@@ -56,8 +58,10 @@ groundstate/LDA_PW-noncollinear-Fe:
    failing_builds:
       - intel_mpiandsmp
       - intel_serial
+      - intel_smp
       - gcc_mpiandsmp
       - gcc_serial
+      - gcc_smp
    comments: 'Variation in total energy w.r.t. reference is too large.'
 
 groundstate/LDA_PW-PbTiO3:
@@ -126,6 +130,15 @@ BSE/PBE-MoS2-dichroism:
       - "Mo.xml"
       - "S.xml"
 
+GW/ZnO-PBESOL:
+   files_under_test:
+      - "GW_INFO.OUT"
+      - "VXCNN.DAT"
+      - "EVALQP.DAT"
+   inputs:
+      - "input.xml"
+      - "Zn.xml"
+      - "O.xml"
 
 # TODO(Alex) Issue #103. App Tests: GW QP Energies Inconsistent with Reference
 # TODO(Alex) Issue #35. MPI GW calculations do not produce EPS00_GW.OUT
@@ -138,19 +151,6 @@ GW/Si-PBESOL:
    inputs:
       - "input.xml"
       - "Si.xml"
-      - "STATE.OUT"
-      - "EFERMI.OUT"
-
-GW/ZnO-PBESOL:
-   group: GW_INTEL
-   files_under_test:
-      - "GW_INFO.OUT"
-      - "VXCNN.DAT"
-      - "EVALQP.DAT"
-   inputs:
-      - "input.xml"
-      - "Zn.xml"
-      - "O.xml"
       - "STATE.OUT"
       - "EFERMI.OUT"
 
@@ -203,8 +203,10 @@ properties/LDA_PW-ldos-Si:
    failing_builds:
       - intel_mpiandsmp
       - intel_serial
+      - intel_smp
       - gcc_mpiandsmp
       - gcc_serial
+      - gcc_smp
    comments: 'Numbers are completely different - reference data needs reviewing.'
    files_under_test:
       - "ldos.out"
@@ -219,8 +221,10 @@ properties/LDA_PW-optical_properties-Si:
    failing_builds:
       - intel_mpiandsmp
       - intel_serial
+      - intel_smp
       - gcc_mpiandsmp
       - gcc_serial
+      - gcc_smp
    comments: 'Epsilon 11 and 33 do not agree with serial reference values. \n
    - CHI_111.OUT also reviews reviewing.'
 
@@ -231,8 +235,10 @@ properties/LDA_PW-SO-spintexture-Si:
    failing_builds:
       - intel_mpiandsmp
       - intel_serial
+      - intel_smp
       - gcc_mpiandsmp
       - gcc_serial
+      - gcc_smp
    comments: "Reference data needs reviewing"
 
 # TODO(Maria) Issue 55
@@ -240,8 +246,10 @@ properties/LDA_PW-transport-Si:
    failing_builds:
       - intel_mpiandsmp
       - intel_serial
+      - intel_smp
       - gcc_mpiandsmp
       - gcc_serial
+      - gcc_smp
    comments: 'Test is flakey when run in the CI with GCC builds: Test outputs are not written.\n
      Results with Intel for THERMALCOND_11 and ELECTCOND_11 have large absolute errors.'
 
@@ -250,8 +258,10 @@ properties/LDA_PZ-wannier-SiC:
    failing_builds:
       - intel_mpiandsmp
       - intel_serial
+      - intel_smp
       - gcc_mpiandsmp
       - gcc_serial
+      - gcc_smp
 
 properties/PBE_SOL-core_overlap-BN:
    files_under_test:
