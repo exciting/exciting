@@ -1,0 +1,49 @@
+# GCC8 serial build and tests.
+# Links to serial blas/lapack.
+# Consult `build/utilities/docker/` to find the base Dockerfile
+
+build:debian-buster-GCC8-serial:
+ image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8-April2022
+ stage: build
+ # Do not run when excitingtools is updated
+ # Note, I do not know how this behaves if 
+ # "tools/exciting_tools/*" is updated .and. "any/other/dir/*"" is updated, 
+ # so I have commented it out.
+#  except:
+#    changes:
+#      - "tools/exciting_tools/*"
+ # Tags assign the gitlab runners.
+ tags:
+   - docker
+ script:
+   - cp build/platforms/make.inc.gfortran build/make.inc
+   - make serial -j 2
+ artifacts:
+   paths:
+     - bin/exciting_serial
+     # Required by test framework to infer compiler used
+     - build/make.inc
+   # Uploads expire after 5 hours
+   expire_in: 5 hrs
+
+test-debian-buster-GCC8-serial:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8-April2022
+  stage: test
+  except:
+    changes:
+      - "tools/exciting_tools/*"
+  # Depends on completion of the build stage
+  # Artifacts of the build stage get downloaded
+  dependencies:
+    - build:debian-buster-GCC8-serial
+    - python:excitingtools-python-3.7
+    - python:regressionframework-python-3.7
+  tags:
+    - docker
+  script:
+    # Run exciting unit tests
+    - bin/exciting_serial -run-unit-tests -kill-on-failure
+    # Install test framework parsers
+    - python3 -m pip install -e tools/exciting_tools
+    # Run exciting app tests
+    - cd test/ && python3 runtest.py -e exciting_serial -repeat-tests 2

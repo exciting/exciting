@@ -1,0 +1,18 @@
+# Documentation
+
+# Build exciting's documentation
+build:exciting-debian-buster-documentation:
+ image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-docs
+ stage: build
+ tags:
+   - docker
+ script:
+   - cp build/platforms/make.inc.gfortran build/make.inc
+   # exciting input documentation
+   - make doc
+   # Ford documentation without graphical dependencies (which is slow)
+   - make ford
+ artifacts:
+   paths:
+     - docs/exciting/excitinginput.pdf
+     - docs/exciting_ford

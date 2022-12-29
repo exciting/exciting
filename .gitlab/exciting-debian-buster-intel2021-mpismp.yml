@@ -1,0 +1,42 @@
+# Example Testing Intel 2021 in the CI
+# NOTE, this has not been tested following the CI refactor.
+
+build:debian-buster-Intel2021-mpiandsmp:
+image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
+stage: build
+tags:
+  - docker
+before_script:
+  - cp -r build/utilities/modules/intel /etc/environment-modules/modules
+  - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
+  - module load intel/oneapi-2021.3
+  - ls $MKLROOT/include/intel64/lp64/
+script:
+  - cp build/platforms/make.inc.ifort2021 build/make.inc
+  - make mpiandsmp -j 2
+artifacts:
+  paths:
+    - bin/exciting_mpismp
+    - build/make.inc
+  expire_in: 5 hrs
+
+test-debian-buster-Intel2021-mpiandsmp:
+ image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
+ stage: test
+ dependencies:
+   - build:debian-buster-Intel2021-mpiandsmp
+   - python:regressionframework-python-3.7
+ tags:
+   - docker
+ before_script:
+   - cp -r build/utilities/modules/intel /etc/environment-modules/modules
+   - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
+   - module load intel/oneapi-2021.3
+   # Install all python packages to a venv to resolve PATH issues
+   - mkdir venv && cd venv && python3 -m venv docker
+   - source docker/bin/activate && cd ../
+   - pip3 install --upgrade --force pillow==7.0.0 numpy termcolor lxml pytest pyyaml
+ script:
+   - source venv/docker/bin/activate
+   - pip3 install -e tools/exciting_tools
+   - cd test/ && python3 runtest.py -e exciting_mpismp -repeat-tests 2
