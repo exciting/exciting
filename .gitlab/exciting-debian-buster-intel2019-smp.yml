@@ -1,0 +1,50 @@
+# Intel 2019 SMP build and tests.
+#
+# The Intel modules are provided by HU's NFS server, rather than installed in 
+# the base image (as it totals ~ 10 GB).
+# The TCL module file is however, still provided by exciting.
+#
+# The line `- python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor lxml pytest pyyaml`
+# is required because the docker base used for intel does not include python
+# and the corresponding packages. Consider building a new `exciting:debian-base-with-nfs` image
+
+build:debian-buster-Intel2019-smp:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
+  stage: build
+  tags:
+    - docker
+  before_script:
+    # Module file, with paths consistent with the nfs drive
+    - cp -r build/utilities/modules/intel /etc/environment-modules/modules
+    - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
+    - module load intel/2019
+  script:
+    - cp build/platforms/make.inc.ifort build/make.inc
+    - make smp -j 2
+  artifacts:
+    paths:
+      - bin/exciting_smp
+      - build/make.inc
+    expire_in: 5 hrs
+
+test-debian-buster-Intel2019-smp:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
+  stage: test
+  dependencies:
+    - build:debian-buster-Intel2019-smp
+    - python:regressionframework-python-3.7
+  tags:
+    - docker
+  before_script:
+    - cp -r build/utilities/modules/intel /etc/environment-modules/modules
+    - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
+    - module load intel/2019
+    - python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor lxml pytest pyyaml
+  script:
+    # Run exciting unit tests
+    - export OMP_NUM_THREADS=2 && bin/exciting_smp -run-unit-tests -kill-on-failure
+    # Install test framework parsers
+    - python3 -m pip install -e tools/exciting_tools
+    # Run exciting app tests
+    # TODO(Alex) Remove MKL_NUM_THREADS
+    - cd test/ && export MKL_NUM_THREADS=1 && python3 runtest.py -e exciting_smp -repeat-tests 2

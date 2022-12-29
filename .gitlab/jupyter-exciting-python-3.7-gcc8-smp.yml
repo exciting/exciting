@@ -1,0 +1,24 @@
+# Test the Jupyter tutorials
+
+include:
+  - local: '/.gitlab/python-libs.yml'
+
+test-debian-buster-gcc8-smp-jupyter:
+ image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8-April2022
+ stage: test
+ dependencies:
+   - build:debian-buster-GCC8-smp
+   - python:excitingtools-python-3.7
+ tags:
+   - docker
+ # One might consider moving construction of venv to the build state and make it an artifact
+ script:
+   - cd tools/excitingjupyter
+   - source create_env.sh
+   - cd excitingjupyter
+   - jupyter nbconvert --execute 01_getting_started/tutorial1.ipynb --to markdown
+   - jupyter nbconvert --execute 01_getting_started/tutorial2.ipynb --to markdown
+   - jupyter nbconvert --execute 01_getting_started/tutorial3.ipynb --to markdown
+   - jupyter nbconvert --execute 01_getting_started/tutorial4.ipynb --to markdown
+   - jupyter nbconvert --execute tutorial_excited_states_from_bse/tutorial_excited_states_from_bse.ipynb --to markdown
+   - jupyter nbconvert --execute 02_excited_states/q_dependent_bse_calculations.ipynb --to markdown

@@ -1,0 +1,93 @@
+# Intel 2019 MPI+SMP build and tests.
+#
+# This test instance also performs the code coverage analysis and uploads
+# the HTML result as an artifact.
+#
+# The Intel modules are provided by HU's NFS server, rather than installed in 
+# the base image (as it totals ~ 10 GB).
+# The TCL module file is however, still provided by exciting.
+#
+# The line `- python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor lxml pytest pyyaml`
+# is required because the docker base used for intel does not include python
+# and the corresponding packages. Consider building a new `exciting:debian-base-with-nfs` image
+#
+# The GW application test passes locally but fails for Intel MPISMP when using OMP > 1 
+# in the CI. Application tests are therefore run as follows:
+#   a) GW is disabled via sed and the GROUPs tag
+#   b) All tests (except GW) run with default OMP and MPI test settings
+#   c) The test suite is called again but only the GW test is run, 
+#      with OMP = 1 (and otherwise standard MPI+SMP settings)
+#
+# This could be simplified by either:
+#  a) Removing the GW test from the Intel MPI+SMP test phase (it works for all others)
+#  b) Or, adding an --except command to the test framework such that one can specify 
+#     tests to leave out.
+
+build:debian-buster-Intel2019-mpiandsmp:
+ image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
+ stage: build
+ tags:
+   - docker
+ before_script:
+   - cp -r build/utilities/modules/intel /etc/environment-modules/modules
+   - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
+   - module load intel/2019
+   - apt-get install -y libfabric1 libfabric-dev
+ script:
+   - cp build/platforms/make.inc.ifort.profiler build/make.inc
+   - mkdir docs/profiling
+   - make mpiandsmp -j 2
+ artifacts:
+   paths:
+     - bin/exciting_mpismp
+     - build/make.inc
+     # This dir includes pgopti.spi and pgopti.spl for use in profiling
+     - docs/profiling
+
+test-debian-buster-Intel2019-mpiandsmp:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
+  stage: test
+  dependencies:
+    - build:debian-buster-Intel2019-mpiandsmp
+    - python:regressionframework-python-3.7
+  tags:
+    - docker
+  before_script:
+    - cp -r build/utilities/modules/intel /etc/environment-modules/modules
+    - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
+    - module load intel/2019
+    # diffutils for `cmp` command
+    - apt-get install -y libfabric1 libfabric-dev diffutils
+    - python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor lxml pytest pyyaml
+  script:
+    # Run unit tests
+    - export OMP_NUM_THREADS=2 && mpirun -np 2 bin/exciting_mpismp -run-unit-tests -kill-on-failure
+    # Install the parsers
+    - cd $CI_PROJECT_DIR/tools/exciting_tools
+    - python3 -m pip install -e .
+
+    # Run all app tests, apart from GW
+    # - Disable GW test and run with the default mpiandsmp test settings
+    - cd $CI_PROJECT_DIR/test
+    - cp tests_config.yml orig_tests_config.yml
+    - >-
+     sed -i '/GW\/ZnO-PBESOL\:/a\'$'\n''   group: NORUN' tests_config.yml
+    - |-
+      if [[cmp --silent -- tests_config.yml orig_tests_config.yml]]; then
+        echo "sed failed to add 'group: NORUN' to app test GW/ZnO-PBESOL"
+        echo "This test is expected to fail for Intel MPISMP in the CI, so the CI is bailing now"
+        exit 1
+      fi
+    - python3 runtest.py -e exciting_mpismp -repeat-tests 2
+
+    # Run the GW test, only
+    - cp orig_tests_config.yml tests_config.yml 
+    - export MKL_NUM_THREADS=2 && python3 runtest.py -e exciting_mpismp -omp 1 -np 2 -repeat-tests 2 -t GW
+
+    # Profile the code
+    - cd $CI_PROJECT_DIR/docs/profiling && profmerge
+    - codecov -prj test_suite
+  artifacts:
+    paths:
+      - docs/profiling/CodeCoverage
+      - docs/profiling/CODE_COVERAGE.HTML

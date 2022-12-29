@@ -1,0 +1,49 @@
+# exciting calling Sirius C++ library
+#
+# The build chain is based on Ubuntu focal as it's not clear
+# if GCC8 (default on debian buster) C++ compiler supports the 
+# standard used by Sirius, and it was much faster to build the dependencies
+# using a mix of apt-get and spack, rather than purely spack.
+
+build:ubuntu-focal-sirius-gcc9-mpich-3.3.2-mkl:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:sirius-gcc9-mpich-3.3.2-mkl
+  stage: build
+  except:
+   changes:
+     - "tools/exciting_tools/*"
+  tags:
+    - docker
+  script:
+    - cp build/platforms/make.inc.sirius_ci build/make.inc
+    # SPEC VAR defined in the docker image
+    - echo "Compiling exciting in the spack env defined by the SPEC ${SPEC}"
+    - /spack/bin/spack build-env ${SPEC} -- make mpiandsmp -j 4
+  artifacts:
+    paths:
+      - bin/exciting_mpismp
+      - build/make.inc
+    expire_in: 5 hrs
+
+test-ubuntu-focal-sirius-gcc9-mpich-3.3.2-mkl:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:sirius-gcc9-mpich-3.3.2-mkl
+  stage: test
+  except:
+   changes:
+     - "tools/exciting_tools/*"
+  dependencies:
+    - build:ubuntu-focal-sirius-gcc9-mpich-3.3.2-mkl
+    - python:excitingtools-python-3.7
+    - python:regressionframework-python-3.7
+  tags:
+    - docker
+  script:
+    # Run exciting unit tests
+    - pip3 install -e tools/exciting_tools
+    # Set GROUPs to run 
+    - cd test
+    # In this case, ONLY run tests with GROUPS tag: SIRIUS
+    - python3 set_groups.py -file defaults_config.yml -groups SIRIUS
+    # Run exciting-SIRIUS application tests
+    # Note, the test suite has no means with which to pass command line args
+    # to exciting, therefore kptgroups is always the default
+    - python3 runtest.py -e exciting_mpismp

@@ -1,0 +1,43 @@
+# GCC8 SMP build and tests.
+# Links to serial blas/lapack.
+# Consult `build/utilities/docker/` to find the base Dockerfile
+
+build:debian-buster-GCC8-smp:
+ image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8-April2022
+ stage: build
+ # Note, I do not know how this behaves if 
+ # "tools/exciting_tools/*" is updated .and. "any/other/dir/*"" is updated, 
+ # so I have commented it out.
+#  except:
+#   changes:
+#     - "tools/exciting_tools/*"
+ tags:
+   - docker
+ script:
+   - cp build/platforms/make.inc.gfortran build/make.inc
+   - make smp -j 2
+ artifacts:
+   paths:
+     - bin/exciting_smp
+     - build/make.inc
+   expire_in: 5 hrs
+
+test-debian-buster-GCC8-smp:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8-April2022
+  stage: test
+  except:
+    changes:
+      - "tools/exciting_tools/*"
+  dependencies:
+    - build:debian-buster-GCC8-smp
+    - python:excitingtools-python-3.7
+    - python:regressionframework-python-3.7
+  tags:
+    - docker
+  script:
+    # Run exciting unit tests
+    - export OMP_NUM_THREADS=2 && bin/exciting_smp -run-unit-tests -kill-on-failure
+    # Install test framework parsers
+    - python3 -m pip install -e tools/exciting_tools
+    # Run exciting app tests
+    - cd test/ && python3 runtest.py -e exciting_smp -repeat-tests 2
