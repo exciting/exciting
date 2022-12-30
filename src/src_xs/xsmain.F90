@@ -28,13 +28,18 @@ subroutine xsmain(plan, nxstasks)
   use mod_hdf5
   use m_write_hdf5, only: fhdf5_inter
   use phonon_screening, only: phonon_screening_launcher
-  
+  use write_screening, only: write_screening_launcher
+
   implicit none
 
   !> Screening from polar phonons
   integer, parameter :: task_phonon_screening = 431
   !> Screened Coulomb interaction for BSE
   integer, parameter :: task_screened_coulomb = 440 
+  !> Writing dielectric matrix for all non-reduced q-vectors
+  integer, parameter :: task_write_dielectric_matrix = 442
+  !> Writing screened Coulomb matrix for all non-reduced q-vectors
+  integer, parameter :: task_write_screened_coulomb = 443
 
   type(plan_type), intent(in) :: plan
   integer(4), intent(in) :: nxstasks
@@ -174,6 +179,16 @@ subroutine xsmain(plan, nxstasks)
         ! exchange Coulomb interaction
         call exccoulintlauncher
 
+      ! Taskname 'write_dielectric_matrix'
+      case (task_write_dielectric_matrix)
+          ! Expanding dielectric matrix
+          call write_screening_launcher('write_dielectric_matrix')
+
+          ! Taskname 'write_screened_coulomb'
+      case (task_write_screened_coulomb)
+          ! Expanding dielectric matrix
+          call write_screening_launcher('write_screened_coulomb')
+
       ! Taskname 'bse'
       case(445)
         ! Bethe-Salpeter equation
@@ -242,7 +257,7 @@ subroutine xsmain(plan, nxstasks)
 
    end do
 
-   
+
   ! Finalization of hdf5 output
 #ifdef _HDF5_
   if (mpiglobal%rank == 0) then

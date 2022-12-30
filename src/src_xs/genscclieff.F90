@@ -2,17 +2,19 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine genscclieff(iqr, iqrnr, nmax, n, scieff)
+subroutine genscclieff(iqr,  nmax, n, scieff)
   use modinput, only: input
   use constants, only: zzero
   use putgeteps0, only: geteps0_finite_q, geteps0_zero_q
   use modxs, only: eps0dirname, vqcr
   use m_genfilname
+  use math_utils, only: all_zero
+  use precision, only: dp
 
   implicit none
 
   ! Arguments
-  integer, intent(in) :: iqr, iqrnr, n, nmax
+  integer, intent(in) :: iqr, n, nmax
   complex(8), intent(out) :: scieff(nmax, nmax)
 
   ! Local variables
@@ -20,8 +22,7 @@ subroutine genscclieff(iqr, iqrnr, nmax, n, scieff)
   complex(8), allocatable :: scrn(:, :), scrnw(:, :, :), scrnh(:, :)
   character(256) :: fneps0
 
-  ! External functions
-  logical, external :: tqgamma
+
 
   allocate(scrn(n, n), scrnw(n, 2, 3), scrnh(3, 3))
   scrn=zzero
@@ -30,7 +31,7 @@ subroutine genscclieff(iqr, iqrnr, nmax, n, scieff)
 
   ! Check whether q=0, that is it checks whether mod_qpoint::vqc(:,iqr) has
   ! a norm smaller than epslat (mod_qpoint should contain the non reduced q grid)
-  tq0 = tqgamma(iqrnr)
+  tq0 = all_zero(vqcr(:,iqr), tol=1e-12_dp)
 
   ! Read the Coulomb-symmetrized macroscopic dielectric function/tensor
   ! in RPA for requested q point and zero frequency. The Cartesian components
