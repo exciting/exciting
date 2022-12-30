@@ -439,7 +439,7 @@ subroutine scrcoulint(iqmt, fra)
     ! 0 frequency and then multiplying
     ! it with v^{1/2} from both sides.
     filext = fileext_scr_read
-    call genscclieff(iqr, iqrnr, ngqmax, numgq, scieffg(:,:,iqr))
+    call genscclieff(iqr, ngqmax, numgq, scieffg(:,:,iqr))
 
     ! Generate radial integrals for matrix elements of plane wave
     ! and save them to disk.

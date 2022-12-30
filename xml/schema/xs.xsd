@@ -1913,6 +1913,22 @@
                               shift).</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+                        <xs:enumeration value="write_dielectric_matrix">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>442</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>Writes the dielectric matrix for the full set of non-reduced q-vectors.</xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="write_screened_coulomb">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>443</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>Writes the screened coulomb interaction for the full set of non-reduced q-vectors.</xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
                         <xs:enumeration value="scrcoulint">
                           <xs:annotation>
                             <xs:appinfo>

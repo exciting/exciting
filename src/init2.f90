@@ -204,7 +204,8 @@ Subroutine init2
 
       ! BSE specific tasks require reduced and non-reduced 
       ! q-points (in the above sense).
-      If ((task .Eq. 440) .Or. &
+      If ((task .Eq. 440) .Or. (task .Eq. 442) .Or. &
+          (task .Eq. 443) .Or. &
       &   (task .Eq. 450) .Or. (task .Eq. 451) .Or. &
       &   (task .Eq. 499) .Or. (task .Eq. 700) .Or. &
       &   (task .Eq. 710)) Then
@@ -322,7 +323,8 @@ Subroutine init2
       End Do
 
       ! Make ngq list for reduced set
-      If ((task .Eq. 440) .Or. &
+      If ((task .Eq. 440) .Or. (task .Eq. 442) .Or. &
+          (task .Eq. 443) .Or. &
       &   (task .Eq. 450) .Or. (task .Eq. 451) .Or. &
       &   (task .Eq. 499) .Or. (task .Eq. 700) .Or. &
       &   (task .Eq. 710)) Then

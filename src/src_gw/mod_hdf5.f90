@@ -68,12 +68,12 @@ contains
         integer ierr
         integer(hid_t) h5_root_id
         call h5fcreate_f(trim(fname),H5F_ACC_TRUNC_F,h5_root_id,ierr)
-        if (ierr.ne.0) then
+        if (ierr /= 0) then
           write(*,'("Error(hdf5_create_file): h5fcreate_f returned ",I6)')ierr
           goto 10
         endif
         call h5fclose_f(h5_root_id,ierr)
-        if (ierr.ne.0) then
+        if (ierr /= 0) then
           write(*,'("Error(hdf5_create_file): h5fclose_f returned ",I6)')ierr
           goto 10
         endif
@@ -85,7 +85,7 @@ contains
     end subroutine
 
 !-------------------------------------------------------------------------------
-    logical function hdf5_exist_group(fname,path,gname)
+    logical function hdf5_exist_group(fname, path, gname)
         ! Check if group with the given name exists
 #ifdef _HDF5_
         use hdf5
@@ -99,22 +99,22 @@ contains
         integer ierr
  
         call h5fopen_f(trim(fname),H5F_ACC_RDWR_F,h5_root_id,ierr)
-        if (ierr.ne.0) then
+        if (ierr /= 0) then
           write(*,'("Error(hdf5_create_group): h5fopen_f returned ",I6)')ierr
           goto 10
         endif
         call h5gopen_f(h5_root_id,trim(path),h5_group_id,ierr)
-        if (ierr.ne.0) then
+        if (ierr /= 0) then
           write(*,'("Error(hdf5_create_group): h5gopen_f returned ",I6)')ierr
           goto 10
         endif
         call h5lexists_f(h5_group_id,trim(gname),hdf5_exist_group,ierr)
-        if (ierr.ne.0) then
+        if (ierr /= 0) then
           write(*,'("Error(hdf5_create_group): h5lexists_f returned ",I6)')ierr
           goto 10
         endif
         call h5fclose_f(h5_root_id,ierr)
-        if (ierr.ne.0) then
+        if (ierr /= 0) then
           write(*,'("Error(hdf5_create_group): h5fclose_f returned ",I6)')ierr
           goto 10
         endif
@@ -126,9 +126,9 @@ contains
         stop
 #endif
     end function hdf5_exist_group
+!-------------------------------------------------------------------------------    
 
-!-------------------------------------------------------------------------------
-    subroutine hdf5_create_group(fname,path,gname)
+    subroutine hdf5_create_group(fname, path, gname)
 #ifdef _HDF5_
         use hdf5
 #endif
@@ -141,32 +141,32 @@ contains
         integer ierr
 
         call h5fopen_f(trim(fname),H5F_ACC_RDWR_F,h5_root_id,ierr)
-        if (ierr.ne.0) then
+        if (ierr /= 0) then
           write(*,'("Error(hdf5_create_group): h5fopen_f returned ",I6)')ierr
           goto 10
         endif
         call h5gopen_f(h5_root_id,trim(path),h5_group_id,ierr)
-        if (ierr.ne.0) then
+        if (ierr /= 0) then
           write(*,'("Error(hdf5_create_group): h5gopen_f returned ",I6)')ierr
           goto 10
         endif
         call h5gcreate_f(h5_group_id,trim(gname),h5_new_group_id,ierr)
-        if (ierr.ne.0) then
+        if (ierr /= 0) then
           write(*,'("Error(hdf5_create_group): h5gcreate_f returned ",I6)')ierr
           goto 10
         endif
         call h5gclose_f(h5_new_group_id,ierr)
-        if (ierr.ne.0) then
+        if (ierr /= 0) then
           write(*,'("Error(hdf5_create_group): h5gclose_f for the new group returned ",I6)')ierr
           goto 10
         endif
         call h5gclose_f(h5_group_id,ierr)
-        if (ierr.ne.0) then
+        if (ierr /= 0) then
           write(*,'("Error(hdf5_create_group): h5gclose_f for the existing path returned ",I6)')ierr
           goto 10
         endif
         call h5fclose_f(h5_root_id,ierr)
-        if (ierr.ne.0) then
+        if (ierr /= 0) then
           write(*,'("Error(hdf5_create_group): h5fclose_f returned ",I6)')ierr
           goto 10
         endif
@@ -556,47 +556,47 @@ subroutine hdf5_write_array_i4(a,ndims,dims,fname,path,nm)
       h_dims(i)=dims(i)
     enddo
     call h5fopen_f(trim(fname),H5F_ACC_RDWR_F,h5_root_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_i4): h5fopen_f returned ",I6)')ierr
       goto 10
     endif
     call h5screate_simple_f(ndims,h_dims,dataspace_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_i4): h5screate_simple_f returned ",I6)')ierr
       goto 10
     endif
     call h5gopen_f(h5_root_id,trim(path),group_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_i4): h5gopen_f returned ",I6)')ierr
       goto 10
     endif
     call h5dcreate_f(group_id,trim(nm),H5T_NATIVE_INTEGER,dataspace_id,dataset_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_i4): h5dcreate_f returned ",I6)')ierr
       goto 10
     endif 
     call h5dwrite_f(dataset_id,H5T_NATIVE_INTEGER,a,h_dims,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_i4): h5dwrite_f returned ",I6)')ierr
       goto 10
     endif 
     call h5dclose_f(dataset_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_i4): h5dclose_f returned ",I6)')ierr
       goto 10
     endif
     call h5gclose_f(group_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_i4): h5gclose_f returned ",I6)')ierr
       goto 10
     endif
     call h5sclose_f(dataspace_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_i4): h5sclose_f returned ",I6)')ierr
       goto 10
     endif
     call h5fclose_f(h5_root_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_i4): h5fclose_f returned ",I6)')ierr
       goto 10
     endif
@@ -631,47 +631,47 @@ subroutine hdf5_write_array_d(a,ndims,dims,fname,path,nm)
       h_dims(i)=dims(i)
     enddo
     call h5fopen_f(trim(fname),H5F_ACC_RDWR_F,h5_root_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_d): h5fopen_f returned ",I6)')ierr
       goto 10
     endif
     call h5screate_simple_f(ndims,h_dims,dataspace_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_d): h5screate_simple_f returned ",I6)')ierr
       goto 10
     endif
     call h5gopen_f(h5_root_id,trim(path),group_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_d): h5gopen_f returned ",I6)')ierr
       goto 10
     endif
     call h5dcreate_f(group_id,trim(nm),H5T_NATIVE_DOUBLE,dataspace_id,dataset_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_d): h5dcreate_f returned ",I6)')ierr
       goto 10
     endif 
     call h5dwrite_f(dataset_id,H5T_NATIVE_DOUBLE,a,h_dims,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_d): h5dwrite_f returned ",I6)')ierr
       goto 10
     endif 
     call h5dclose_f(dataset_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_d): h5dclose_f returned ",I6)')ierr
       goto 10
     endif
     call h5gclose_f(group_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_d): h5gclose_f returned ",I6)')ierr
       goto 10
     endif
     call h5sclose_f(dataspace_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_d): h5sclose_f returned ",I6)')ierr
       goto 10
     endif
     call h5fclose_f(h5_root_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_d): h5fclose_f returned ",I6)')ierr
       goto 10
     endif
@@ -706,47 +706,47 @@ subroutine hdf5_write_array_f(a,ndims,dims,fname,path,nm)
       h_dims(i)=dims(i)
     enddo
     call h5fopen_f(trim(fname),H5F_ACC_RDWR_F,h5_root_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_f): h5fopen_f returned ",I6)')ierr
       goto 10
     endif
     call h5screate_simple_f(ndims,h_dims,dataspace_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_f): h5screate_simple_f returned ",I6)')ierr
       goto 10
     endif
     call h5gopen_f(h5_root_id,trim(path),group_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_f): h5gopen_f returned ",I6)')ierr
       goto 10
     endif
     call h5dcreate_f(group_id,trim(nm),H5T_NATIVE_REAL,dataspace_id,dataset_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_f): h5dcreate_f returned ",I6)')ierr
       goto 10
     endif 
     call h5dwrite_f(dataset_id,H5T_NATIVE_REAL,a,h_dims,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_f): h5dwrite_f returned ",I6)')ierr
       goto 10
     endif 
     call h5dclose_f(dataset_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_f): h5dclose_f returned ",I6)')ierr
       goto 10
     endif
     call h5gclose_f(group_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_f): h5gclose_f returned ",I6)')ierr
       goto 10
     endif
     call h5sclose_f(dataspace_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_f): h5sclose_f returned ",I6)')ierr
       goto 10
     endif
     call h5fclose_f(h5_root_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_f): h5fclose_f returned ",I6)')ierr
       goto 10
     endif
@@ -771,7 +771,7 @@ subroutine hdf5_read_array_i4(a,ndims,dims,fname,path,nm)
     character(*), intent(in) :: fname
     character(*), intent(in) :: path
     character(*), intent(in) :: nm
-
+    
     integer(hid_t) h5_root_id,dataset_id,group_id
     integer ierr,i
     integer(HSIZE_T), dimension(ndims) :: h_dims
@@ -782,37 +782,37 @@ subroutine hdf5_read_array_i4(a,ndims,dims,fname,path,nm)
     enddo
 
     call h5fopen_f(trim(fname),H5F_ACC_RDONLY_F,h5_root_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_i4): h5fopen_f returned ",I6)')ierr
       goto 10
     endif
     call h5gopen_f(h5_root_id,trim(path),group_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_i4): h5gopen_f returned ",I6)')ierr
       goto 10
     endif
     call h5dopen_f(group_id,trim(nm),dataset_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_i4): h5dopen_f returned ",I6)')ierr
       goto 10
     endif
     call h5dread_f(dataset_id,H5T_NATIVE_INTEGER,a,h_dims,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_i4): h5dread_f returned ",I6)')ierr
       goto 10
     endif
     call h5dclose_f(dataset_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_i4): h5dclose_f returned ",I6)')ierr
       goto 10
     endif
     call h5gclose_f(group_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_i4): h5gclose_f returned ",I6)')ierr
       goto 10
     endif
     call h5fclose_f(h5_root_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_i4): h5fclose_f returned ",I6)')ierr
       goto 10
     endif
@@ -848,37 +848,37 @@ subroutine hdf5_read_array_d(a,ndims,dims,fname,path,nm)
       h_dims(i)=dims(i)
     enddo
     call h5fopen_f(trim(fname),H5F_ACC_RDONLY_F,h5_root_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_d): h5fopen_f returned ",I6)')ierr
       goto 10
     endif
     call h5gopen_f(h5_root_id,trim(path),group_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_d): h5gopen_f returned ",I6)')ierr
       goto 10
     endif
     call h5dopen_f(group_id,trim(nm),dataset_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_d): h5dopen_f returned ",I6)')ierr
       goto 10
     endif
     call h5dread_f(dataset_id,H5T_NATIVE_DOUBLE,a,h_dims,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_d): h5dread_f returned ",I6)')ierr
       goto 10
     endif
     call h5dclose_f(dataset_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_d): h5dclose_f returned ",I6)')ierr
       goto 10
     endif
     call h5gclose_f(group_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_d): h5gclose_f returned ",I6)')ierr
       goto 10
     endif
     call h5fclose_f(h5_root_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_d): h5fclose_f returned ",I6)')ierr
       goto 10
     endif
@@ -927,7 +927,7 @@ subroutine hdf5_write_array_c(a,ndims,dims,fname,path,nm)
     enddo
     
     call h5fopen_f(trim(fname),H5F_ACC_RDWR_F,h5_root_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_c): h5fopen_f returned ",I6)')ierr
       goto 10
     endif
@@ -940,17 +940,17 @@ subroutine hdf5_write_array_c(a,ndims,dims,fname,path,nm)
     CALL H5Tset_strpad_f(filetype,H5T_STR_NULLPAD_F,ierr)
     !------------------------------------------------------
     call h5screate_simple_f(ndims,h_dims,dataspace_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_c): h5screate_simple_f returned ",I6)')ierr
       goto 10
     endif
     call h5gopen_f(h5_root_id,trim(path),group_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_c): h5gopen_f returned ",I6)')ierr
       goto 10
     endif
     call h5dcreate_f(group_id,trim(nm),filetype,dataspace_id,dataset_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_c): h5dcreate_f returned ",I6)')ierr
       goto 10
     endif
@@ -958,32 +958,32 @@ subroutine hdf5_write_array_c(a,ndims,dims,fname,path,nm)
     !call h5dwrite_f(dataset_id,filetype,a,h_dims,ierr)
     CALL h5dwrite_vl_f(dataset_id,filetype,a,data_dims,s_len,ierr,dataspace_id)
     !------------------------------------------------------
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_c): h5dwrite_f returned ",I6)')ierr
       goto 10
     endif
     call h5dclose_f(dataset_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_c): h5dclose_f returned ",I6)')ierr
       goto 10
     endif
     call h5gclose_f(group_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_c): h5gclose_f returned ",I6)')ierr
       goto 10
     endif
     call h5sclose_f(dataspace_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_c): h5sclose_f returned ",I6)')ierr
       goto 10
     endif
     call H5Tclose_f(filetype,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_c): h5tclose_f returned ",I6)')ierr
       goto 10
     endif
     call h5fclose_f(h5_root_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_write_array_c): h5fclose_f returned ",I6)')ierr
       goto 10
     endif
@@ -1030,17 +1030,17 @@ subroutine hdf5_read_array_c(a,ndims,dims,fname,path,nm)
       data_dims(i+1) = h_dims(i)
     enddo
     call h5fopen_f(trim(fname),H5F_ACC_RDONLY_F,h5_root_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_c): h5fopen_f returned ",I6)')ierr
       goto 10
     endif
     call h5gopen_f(h5_root_id,trim(path),group_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_c): h5gopen_f returned ",I6)')ierr
       goto 10
     endif
     call h5dopen_f(group_id,trim(nm),dataset_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_c): h5dopen_f returned ",I6)')ierr
       goto 10
     endif
@@ -1053,27 +1053,27 @@ subroutine hdf5_read_array_c(a,ndims,dims,fname,path,nm)
     !call h5dread_f(dataset_id,H5T_FORTRAN_S1,a,h_dims,ierr)
     CALL h5dread_vl_f(dataset_id,filetype,a,data_dims,s_len,ierr,dataspace_id)
     !------------------------------------------------------    
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_c): h5dread_f returned ",I6)')ierr
       goto 10
     endif
     call h5dclose_f(dataset_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_c): h5dclose_f returned ",I6)')ierr
       goto 10
     endif
     call h5gclose_f(group_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_c): h5gclose_f returned ",I6)')ierr
       goto 10
     endif
     CALL H5Tclose_f(filetype,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_c): h5tclose_f returned ",I6)')ierr
       goto 10
     endif
     call h5fclose_f(h5_root_id,ierr)
-    if (ierr.ne.0) then
+    if (ierr /= 0) then
       write(errmsg,'("Error(hdf5_read_array_c): h5fclose_f returned ",I6)')ierr
       goto 10
     endif
