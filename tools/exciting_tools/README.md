@@ -94,7 +94,15 @@ https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) for
 acceptable to follow. 
 
 ### Generating Documentation 
-- [ ] TODO(Alex) Issue 57 Set up generation of documentation from docstrings, and description here. 
+
+Documentation can straightforwardly be generated using the [pdoc](https://docs.python.org/3/library/pydoc.html) package:
+
+```bash
+pip install pdoc
+pdoc -o documentation -d restructuredtext --math excitingtools/
+```
+
+- [ ] TODO(Alex) Issue 57. Set up generation of documentation from docstrings, with Sphinx 
 
 ### Basic Usage
 
