@@ -18,12 +18,14 @@ class EigenValues:
                  k_points: point_type,
                  k_indices: index_type,
                  all_eigenvalues: np.ndarray,
-                 weights=None):
+                 weights=None,
+                 occupations: Optional[np.ndarray] = None):
         self.state_range = state_range
         self.k_points = k_points
         self.k_indices = k_indices
         self.all_eigenvalues = all_eigenvalues
         self.weights = weights
+        self.occupations = occupations
         if all_eigenvalues.shape != (len(self.k_points), self.state_range.n_states):
             raise ValueError('Shape of all_eigenvalues does not match (n_k, n_states)')
 

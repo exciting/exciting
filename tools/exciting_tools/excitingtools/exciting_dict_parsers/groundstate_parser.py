@@ -5,6 +5,7 @@ All functions in this module could benefit from refactoring.
 import xml.etree.ElementTree as ET
 
 from excitingtools.parser_utils.erroneous_file_error import ErroneousFileError
+from excitingtools.parser_utils.parser_decorators import xml_root
 
 
 def parse_info_out(name: str) -> dict:
@@ -240,16 +241,13 @@ def parse_atoms(name) -> dict:
     return atoms
 
 
-def parse_eigval(name) -> dict:
-    """                                                                                                  
-    Parser exciting eigval.xml into a python dictionary.                                                   
-    In:                                                                                                  
-        name     string     path of the file to parse                                                    
-    Out:                                                                                                 
-        info     dict       contains the content of the file to parse                                    
-    """
+@xml_root
+def parse_eigval(root) -> dict:
+    """ Parse eigenvalues from eigval.xml file.
 
-    root = ET.parse(name).getroot()
+    :param root: XML file name, XML string or ElementTree.Element as input.
+    :return: dict output: Parsed data.
+    """
     eigval = root.attrib
 
     kpts = []
