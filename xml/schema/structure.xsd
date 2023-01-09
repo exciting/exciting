@@ -297,13 +297,13 @@
         </xs:annotation>
       </xs:attribute>
 <!-- Giulio Biddau 1.11.2012-->
-      <xs:attribute ex:importance="expert" ex:unit="" name="rmtapm" type="fortrandouble"
+      <xs:attribute ex:importance="expert" ex:unit="" name="autormtscaling" type="fortrandouble"
         default="0.95d0">
         <xs:annotation>
           <xs:documentation> This attribute determines a global scaling parameter for all muffin-tin radii, 
             if the attribute <attref>autormt</attref> is set to <pre>"true"</pre>.
             It is normalized such that the closest muffin-tin spheres will touch each other,
-            if <attref>rmtapm</attref>=1. </xs:documentation>
+            if <attref>autormtscaling</attref>=1. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="Bohr" name="epslat" type="fortrandouble"
@@ -319,7 +319,7 @@
         <xs:annotation>
           <xs:documentation> If <pre>"true"</pre>, the muffin-tin radius of each species is
             automatically set according to the variable specified by the attribute
-              <attref>rmtapm</attref>. </xs:documentation>
+              <attref>autormtscaling</attref>. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="primcell" type="xs:boolean"
