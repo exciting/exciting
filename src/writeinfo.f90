@@ -130,7 +130,7 @@ Subroutine writeinfo (fnum)
          If (input%structure%autormt) Then
             Write (fnum,*)
             Write (fnum, '(" Automatic determination of muffin-tin radii :")')
-            Write (fnum, '("     global rmt scale", T45, ": ", F18.10)') input%structure%rmtapm
+            Write (fnum, '("     global rmt scale", T45, ": ", F18.10)') input%structure%autormtscaling
          End If
          If (input%groundstate%frozencore) Then
             Write (fnum,*)

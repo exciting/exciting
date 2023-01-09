@@ -270,7 +270,7 @@ Subroutine init0
 #endif
 ! automatically determine the muffin-tin radii if required
       If (input%structure%autormt) Call optimal_rmt(rmt, spzn, input%structure%crystal%basevect, atposc&
-                                          &,input%structure%rmtapm, natoms, nspecies, 1)         
+                                          &,input%structure%autormtscaling, natoms, nspecies, 1)         
 ! check for overlapping muffin-tins               
       Call checkmt  
 !

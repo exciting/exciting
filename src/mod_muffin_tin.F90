@@ -17,10 +17,6 @@ Module mod_muffin_tin
       Integer :: nrmt (maxspecies)
 ! maximum nrmt over all the species
       Integer :: nrmtmax
-! autormt is .true. for automatic determination of muffin-tin radii
-!replaced by inputstructurelogical::autormt
-! parameters for determining muffin-tin radii automatically
-!replaced by inputstructurereal(8)::rmtapm(2)
 ! muffin-tin radii
       Real (8) :: rmt (maxspecies)
 ! species for which the muffin-tin radius will be used for calculating gkmax
