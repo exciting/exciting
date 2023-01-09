@@ -21,5 +21,7 @@ test-debian-buster-gcc8-smp-jupyter:
    - jupyter nbconvert --execute 01_getting_started/tutorial3.ipynb --to markdown
    - jupyter nbconvert --execute 01_getting_started/tutorial4.ipynb --to markdown
    - jupyter nbconvert --execute 02_ground_state/tutorial_hybrid_functional_calculations.ipynb --to markdown
+   - jupyter nbconvert --execute 02_ground_state/tutorial_spin_orbit_coupling.ipynb --to markdown
+   - jupyter nbconvert --execute 02_ground_state/tutorial_spin_polarized_calculations_for_bcc_Fe.ipynb --to markdown
    - jupyter nbconvert --execute tutorial_excited_states_from_bse/tutorial_excited_states_from_bse.ipynb --to markdown
    - jupyter nbconvert --execute 03_excited_states/q_dependent_bse_calculations.ipynb --to markdown
