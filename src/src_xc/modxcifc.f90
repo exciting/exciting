@@ -5,6 +5,8 @@
 
 module modxcifc
 use libxcifc
+use asserts, only: assert
+
 !Use scl_xml_out_Module
 
 contains
@@ -69,45 +71,45 @@ implicit none
 integer, intent(in) :: xctype(3)
 integer, intent(in) :: n
 ! optional arguments
-real(8), optional, intent(in) :: rho(*)
-real(8), optional, intent(in) :: rhoup(*)
-real(8), optional, intent(in) :: rhodn(*)
-real(8), optional, intent(in) :: grho(*)
-real(8), optional, intent(in) :: gup(*)
-real(8), optional, intent(in) :: gdn(*)
-real(8), optional, intent(in) :: g2rho(*)
-real(8), optional, intent(in) :: g2up(*)
-real(8), optional, intent(in) :: g2dn(*)
-real(8), optional, intent(in) :: g3rho(*)
-real(8), optional, intent(in) :: g3up(*)
-real(8), optional, intent(in) :: g3dn(*)
-real(8), optional, intent(in) :: grho2(*)
-real(8), optional, intent(in) :: gup2(*)
-real(8), optional, intent(in) :: gdn2(*)
-real(8), optional, intent(in) :: gupdn(*)
-real(8), optional, intent(out) :: ex(*)
-real(8), optional, intent(out) :: ec(*)
-real(8), optional, intent(out) :: vx(*)
-real(8), optional, intent(out) :: vc(*)
-real(8), optional, intent(out) :: exsr(*)
-real(8), optional, intent(out) :: vxsr(*)
-real(8), optional, intent(out) :: vxsrup(*)
-real(8), optional, intent(out) :: vxsrdn(*)
-real(8), optional, intent(out) :: v2xsr(*)
-real(8), optional, intent(out) :: v2xsrup(*)
-real(8), optional, intent(out) :: v2xsrdn(*)
-real(8), optional, intent(out) :: vxup(*)
-real(8), optional, intent(out) :: vxdn(*)
-real(8), optional, intent(out) :: vcup(*)
-real(8), optional, intent(out) :: vcdn(*)
-real(8), optional, intent(out) :: dxdg2(*)
-real(8), optional, intent(out) :: dxdgu2(*)
-real(8), optional, intent(out) :: dxdgd2(*)
-real(8), optional, intent(out) :: dxdgud(*)
-real(8), optional, intent(out) :: dcdg2(*)
-real(8), optional, intent(out) :: dcdgu2(*)
-real(8), optional, intent(out) :: dcdgd2(*)
-real(8), optional, intent(out) :: dcdgud(*)
+real(8), optional, intent(in) :: rho(:)
+real(8), optional, intent(in) :: rhoup(:)
+real(8), optional, intent(in) :: rhodn(:)
+real(8), optional, intent(in) :: grho(:)
+real(8), optional, intent(in) :: gup(:)
+real(8), optional, intent(in) :: gdn(:)
+real(8), optional, intent(in) :: g2rho(:)
+real(8), optional, intent(in) :: g2up(:)
+real(8), optional, intent(in) :: g2dn(:)
+real(8), optional, intent(in) :: g3rho(:)
+real(8), optional, intent(in) :: g3up(:)
+real(8), optional, intent(in) :: g3dn(:)
+real(8), optional, intent(in) :: grho2(:)
+real(8), optional, intent(in) :: gup2(:)
+real(8), optional, intent(in) :: gdn2(:)
+real(8), optional, intent(in) :: gupdn(:)
+real(8), optional, intent(out) :: ex(:)
+real(8), optional, intent(out) :: ec(:)
+real(8), optional, intent(out) :: vx(:)
+real(8), optional, intent(out) :: vc(:)
+real(8), optional, intent(out) :: exsr(:)
+real(8), optional, intent(out) :: vxsr(:)
+real(8), optional, intent(out) :: vxsrup(:)
+real(8), optional, intent(out) :: vxsrdn(:)
+real(8), optional, intent(out) :: v2xsr(:)
+real(8), optional, intent(out) :: v2xsrup(:)
+real(8), optional, intent(out) :: v2xsrdn(:)
+real(8), optional, intent(out) :: vxup(:)
+real(8), optional, intent(out) :: vxdn(:)
+real(8), optional, intent(out) :: vcup(:)
+real(8), optional, intent(out) :: vcdn(:)
+real(8), optional, intent(out) :: dxdg2(:)
+real(8), optional, intent(out) :: dxdgu2(:)
+real(8), optional, intent(out) :: dxdgd2(:)
+real(8), optional, intent(out) :: dxdgud(:)
+real(8), optional, intent(out) :: dcdg2(:)
+real(8), optional, intent(out) :: dcdgu2(:)
+real(8), optional, intent(out) :: dcdgd2(:)
+real(8), optional, intent(out) :: dcdgud(:)
 ! local variables
 real(8) kappa,mu,beta
 ! local variable for PBE short-range (hybrid HSE)
@@ -120,6 +122,10 @@ integer :: iflag, i
 !variable for HSE
 real(8), allocatable:: exsrup(:), exsrdn(:)
 real(8) :: t1
+! exchange id
+integer :: exchange_id
+! correlation id
+integer :: correlation_id
 
 if (allocated(exsrup)) deallocate(exsrup)
 allocate(exsrup(n))
@@ -332,28 +338,39 @@ case(30)
     goto 10
   end if
 case(100)
-! libxc library functionals
+  ! libxc library functionals
+  ! define exchange and correlation id
+  exchange_id = xctype(2)
+  call assert(exchange_id >= 0, message="Id for exchange functional is below zero.")
+  correlation_id = xctype(3)
+  call assert(correlation_id >= 0, message="Id for exchange functional is below zero.")
+
+  ! libxc spin-polarised GGA potential
   if (present(rhoup).and.present(rhodn).and.present(gup2).and.present(gdn2) &
-   .and.present(gupdn).and.present(ex).and.present(ec).and.present(vxup) &
-   .and.present(vxdn).and.present(vcup).and.present(vcdn).and.present(dxdgu2) &
-   .and.present(dxdgd2).and.present(dxdgud).and.present(dcdgu2) &
-   .and.present(dcdgd2).and.present(dcdgd2).and.present(dcdgud)) then
-    call xcifc_libxc(xctype,n,rhoup=rhoup,rhodn=rhodn,gup2=gup2,gdn2=gdn2, &
-     gupdn=gupdn,ex=ex,ec=ec,vxup=vxup,vxdn=vxdn,vcup=vcup,vcdn=vcdn, &
-     dxdgu2=dxdgu2,dxdgd2=dxdgd2,dxdgud=dxdgud,dcdgu2=dcdgu2,dcdgd2=dcdgd2, &
-     dcdgud=dcdgud)
+    .and.present(gupdn).and.present(ex).and.present(ec).and.present(vxup) &
+    .and.present(vxdn).and.present(vcup).and.present(vcdn).and.present(dxdgu2) &
+    .and.present(dxdgd2).and.present(dxdgud).and.present(dcdgu2) &
+    .and.present(dcdgd2).and.present(dcdgd2).and.present(dcdgud)) then
+    call libxc_gga_potential(exchange_id, n, rhoup, rhodn, gup2, gdn2, &
+                            gupdn, ex, vxup, vxdn, dxdgu2, dxdgd2, dxdgud)
+    call libxc_gga_potential(correlation_id, n, rhoup, rhodn, gup2, gdn2, &
+                            gupdn, ec, vcup, vcdn, dcdgu2, dcdgd2, dcdgud)
+  ! libxc spin-polarised LDA potential
   else if (present(rhoup).and.present(rhodn).and.present(ex).and.present(ec) &
-   .and.present(vxup).and.present(vxdn).and.present(vcup) &
-   .and.present(vcdn)) then
-    call xcifc_libxc(xctype,n,rhoup=rhoup,rhodn=rhodn,ex=ex,ec=ec,vxup=vxup, &
-     vxdn=vxdn,vcup=vcup,vcdn=vcdn)
+    .and.present(vxup).and.present(vxdn).and.present(vcup) &
+    .and.present(vcdn)) then
+    call libxc_lda_potential(exchange_id, n, rhoup, rhodn, ex, vxup, vxdn)
+    call libxc_lda_potential(correlation_id, n, rhoup, rhodn, ec, vcup, vcdn)
+  ! libxc spin-unpolarised GGA potential
   else if (present(rho).and.present(grho2).and.present(ex).and.present(ec) &
-   .and.present(vx).and.present(vc).and.present(dxdg2).and.present(dcdg2)) then
-    call xcifc_libxc(xctype,n,rho=rho,grho2=grho2,ex=ex,ec=ec,vx=vx,vc=vc, &
-     dxdg2=dxdg2,dcdg2=dcdg2)
+    .and.present(vx).and.present(vc).and.present(dxdg2).and.present(dcdg2)) then
+    call libxc_gga_potential(exchange_id, n, rho, grho2, ex, vx, dxdg2)
+    call libxc_gga_potential(correlation_id, n, rho, grho2, ec, vc, dcdg2)
+  ! libxc spin-unpolarised LDA potential
   else if (present(rho).and.present(ex).and.present(ec).and.present(vx) &
-   .and.present(vc)) then
-    call xcifc_libxc(xctype,n,rho=rho,ex=ex,ec=ec,vx=vx,vc=vc)
+    .and.present(vc)) then
+    call libxc_lda_potential(exchange_id, n, rho, ex, vx)
+    call libxc_lda_potential(correlation_id, n, rho, ec, vc)
   else
     goto 10
   end if

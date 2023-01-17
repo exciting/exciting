@@ -4,225 +4,239 @@
 
 module libxcifc
 #ifdef LIBXC
-use xc_f90_lib_m
+   use xc_f90_lib_m
 #endif
+   use precision, only: dp
+   use asserts, only: assert
+
+   implicit none
+   private
+   public :: libxc_lda_potential, &
+             libxc_gga_potential, &
+             xcdata_libxc
+
+   interface libxc_lda_potential
+      procedure libxc_lda_pot_spin_polarized
+      procedure libxc_lda_pot_spin_unpolarized
+   end interface
+
+   interface libxc_gga_potential
+      procedure libxc_gga_pot_spin_polarized
+      procedure libxc_gga_pot_spin_unpolarized
+   end interface 
+
 contains
 
-!BOP
-! !ROUTINE: xcifc_libxc
-! !INTERFACE:
-subroutine xcifc_libxc(xctype,n,rho,rhoup,rhodn,grho2,gup2,gdn2,gupdn,ex,ec, &
- vx,vc,vxup,vxdn,vcup,vcdn,dxdg2,dxdgu2,dxdgd2,dxdgud,dcdg2,dcdgu2,dcdgd2, &
- dcdgud)
+   !> Call the LDA libxc functional for the spin-unpolarised case which  
+   !> returns the spin-unpolarised LDA potential.
+   subroutine libxc_lda_pot_spin_unpolarized(id, n, rho, exc, vxc)
+      !> Id of functional
+      integer, intent(in) :: id
+      !> Number of points
+      integer, intent(in) :: n
+      !> Spin-unpolarised charge density
+      real(dp), intent(in) :: rho(:)
+      !> Exchange correlation energy density
+      real(dp), intent(out) :: exc(:)
+      !> Spin-unpolarised exchange correlation potential
+      real(dp), intent(out) :: vxc(:)
 
-
-
-! !INPUT/OUTPUT PARAMETERS:
-!   xctype : type of exchange-correlation functional (in,integer(3))
-!   n      : number of density points (in,integer)
-!   rho    : spin-unpolarised charge density (in,real(n),optional)
-!   rhoup  : spin-up charge density (in,real(n),optional)
-!   rhodn  : spin-down charge density (in,real(n),optional)
-!   grho2  : |grad rho|^2 (in,real(n),optional)
-!   gup2   : |grad rhoup|^2 (in,real(n),optional)
-!   gdn2   : |grad rhodn|^2 (in,real(n),optional)
-!   gupdn  : (grad rhoup).(grad rhodn) (in,real(n),optional)
-!   ex     : exchange energy density (out,real(n),optional)
-!   ec     : correlation energy density (out,real(n),optional)
-!   vx     : spin-unpolarised exchange potential (out,real(n),optional)
-!   vc     : spin-unpolarised correlation potential (out,real(n),optional)
-!   vxup   : spin-up exchange potential (out,real(n),optional)
-!   vxdn   : spin-down exchange potential (out,real(n),optional)
-!   vcup   : spin-up correlation potential (out,real(n),optional)
-!   vcdn   : spin-down correlation potential (out,real(n),optional)
-!   dxdg2  : de_x/d(|grad rho|^2) (out,real(n),optional)
-!   dxdgu2 : de_x/d(|grad rhoup|^2) (out,real(n),optional)
-!   dxdgd2 : de_x/d(|grad rhodn|^2) (out,real(n),optional)
-!   dxdgud : de_x/d((grad rhoup).(grad rhodn)) (out,real(n),optional)
-!   dcdg2  : de_c/d(|grad rho|^2) (out,real(n),optional)
-!   dcdgu2 : de_c/d(|grad rhoup|^2) (out,real(n),optional)
-!   dcdgd2 : de_c/d(|grad rhodn|^2) (out,real(n),optional)
-!   dcdgud : de_c/d((grad rhoup).(grad rhodn)) (out,real(n),optional)
-! !DESCRIPTION:
-!   Interface to the {\tt libxc} exchange-correlation functional library:
-!   \newline{\tt http://www.tddft.org/programs/octopus/wiki/index.php/Libxc}.
-!   The second and third integers in {\tt xctype} define the exchange and
-!   correlation functionals in {\tt libxc}, respectively.
-!
-! !REVISION HISTORY:
-!   Created April 2009 (Tyrel McQueen)
-!   Modified September 2009 (JKD and TMQ)
-!   Modified September 2012 (UW)
-!   Modified Januar 2013(UW)
-!   Modified Oktober 2013 (UW)
-!EOP
-!BOC
-implicit none
-! mandatory arguments
-integer, intent(in) :: xctype(3)
-integer, intent(in) :: n
-! optional arguments
-real(8), optional, intent(in) :: rho(*)
-real(8), optional, intent(in) :: rhoup(*)
-real(8), optional, intent(in) :: rhodn(*)
-real(8), optional, intent(in) :: grho2(*)
-real(8), optional, intent(in) :: gup2(*)
-real(8), optional, intent(in) :: gdn2(*)
-real(8), optional, intent(in) :: gupdn(*)
-real(8), optional, intent(out) :: ex(*)
-real(8), optional, intent(out) :: ec(*)
-real(8), optional, intent(out) :: vx(*)
-real(8), optional, intent(out) :: vc(*)
-real(8), optional, intent(out) :: vxup(*)
-real(8), optional, intent(out) :: vxdn(*)
-real(8), optional, intent(out) :: vcup(*)
-real(8), optional, intent(out) :: vcdn(*)
-real(8), optional, intent(out) :: dxdg2(*)
-real(8), optional, intent(out) :: dxdgu2(*)
-real(8), optional, intent(out) :: dxdgd2(*)
-real(8), optional, intent(out) :: dxdgud(*)
-real(8), optional, intent(out) :: dcdg2(*)
-real(8), optional, intent(out) :: dcdgu2(*)
-real(8), optional, intent(out) :: dcdgd2(*)
-real(8), optional, intent(out) :: dcdgud(*)
 #ifdef LIBXC
-! local variables
-integer nspin,xcf,id,i,k
-real(8) r(2),v(2),sigma(3),vsigma(3)
-type(xc_f90_pointer_t) p
-type(xc_f90_pointer_t) info
+      type(xc_f90_pointer_t) :: p
+      type(xc_f90_pointer_t) :: info
+      integer :: family_id 
 
-if (present(rho)) then
-  nspin=XC_UNPOLARIZED
-else if (present(rhoup).and.present(rhodn)) then
-  nspin=XC_POLARIZED
-else
-  write(*,*)
-  write(*,'("Error(xcifc_libxc): missing arguments")')
-  write(*,*)
-  stop
-end if
-! loop over functional kinds (exchange or correlation)
-do k=2,3
-  id=xctype(k)
-  if (id.gt.0) then
-    xcf=xc_f90_family_from_id(id)
-    select case(xcf)
-    case(XC_FAMILY_LDA)
-!-------------------------!
-!     LDA functionals     !
-!-------------------------!
-      if (id.eq.XC_LDA_X) then
-        call xc_f90_func_init(p,info,id,nspin)!,3,XC_NON_RELATIVISTIC)
-      else if (id.eq.XC_LDA_C_XALPHA) then
-        call xc_f90_func_init(p,info,id,nspin)!3,1.d0)
-      else
-        call xc_f90_func_init(p,info,id,nspin)
-      end if
-      if (k.eq.2) then
-! exchange
-        if (present(rho)) then
-          do i=1,n
-            call xc_f90_lda_exc_vxc(p,1,rho(i), ex(i),vx(i))
-          end do
-        else
-          do i=1,n
-            r(1)=rhoup(i); r(2)=rhodn(i)
-            call xc_f90_lda_exc_vxc(p,1,r(1), ex(i),v(1))
-            vxup(i)=v(1); vxdn(i)=v(2)
-          end do
-        end if
-      else
-! correlation
-        if (present(rho)) then
-          do i=1,n
-            call xc_f90_lda_exc_vxc(p,1,rho(i), ec(i),vc(i))
-          end do
-        else
-          do i=1,n
-            r(1)=rhoup(i); r(2)=rhodn(i)
-            call xc_f90_lda_exc_vxc(p,1,r(1), ec(i),v(1))
-            vcup(i)=v(1); vcdn(i)=v(2)
-          end do
-        end if
-      end if
-! destroy functional
-      call xc_f90_func_end(p)
-    case(XC_FAMILY_GGA,XC_FAMILY_HYB_GGA)
-!-------------------------!
-!     GGA functionals     !
-!-------------------------!
-      call xc_f90_func_init(p,info,id,nspin)
-      if (k.eq.2) then
-! exchange
-        if (present(rho)) then
-            call xc_f90_gga_exc_vxc(p,n,rho(1),grho2(1),ex(1), vx(1),dxdg2(1))
-        else
-          do i=1,n
-            r(1)=rhoup(i); r(2)=rhodn(i)
-            sigma(1)=gup2(i); sigma(2)=gupdn(i); sigma(3)=gdn2(i)
-            call xc_f90_gga_exc_vxc(p,1,r(1),sigma(1), ex(i),v(1),vsigma(1))
-            vxup(i)=v(1); vxdn(i)=v(2)
-            dxdgu2(i)=vsigma(1); dxdgud(i)=vsigma(2); dxdgd2(i)=vsigma(3)
-          end do
-        end if
-      else
-! correlation
-        if (present(rho)) then
-          do i=1,n
-            call xc_f90_gga_exc_vxc(p,1,rho(i),grho2(i), ec(i),vc(i),dcdg2(i))
-          end do
-        else
-          do i=1,n
-            r(1)=rhoup(i); r(2)=rhodn(i)
-            sigma(1)=gup2(i); sigma(2)=gupdn(i); sigma(3)=gdn2(i)
-            call xc_f90_gga_exc_vxc(p,1,r(1),sigma(1), ec(i),v(1),vsigma(1))
-            vcup(i)=v(1); vcdn(i)=v(2)
-            dcdgu2(i)=vsigma(1); dcdgud(i)=vsigma(2); dcdgd2(i)=vsigma(3)
-          end do
-        end if
-      end if
-    case default
-      write(*,*)
-      write(*,'("Error(xcifc_libxc): unsupported libxc functional family : ",&
-       &I8)') xcf
-      write(*,*)
-      stop
-    end select
-  else
-! case when id=0
-    if (k.eq.2) then
-      ex(1:n)=0.d0
-      if (present(rho)) then
-        vx(1:n)=0.d0
-        if (present(dxdg2))  dxdg2(1:n)=0.d0
-      else
-        vxup(1:n)=0.d0
-        vxdn(1:n)=0.d0
-        if (present(dxdgu2))  dxdgu2(1:n)=0.d0
-        if (present(dxdgd2))  dxdgd2(1:n)=0.d0
-        if (present(dxdgud))  dxdgud(1:n)=0.d0
-      end if
-    else
-      ec(1:n)=0.d0
-      if (present(rho)) then
-        vc(1:n)=0.d0
-        if (present(dcdg2)) dcdg2(1:n)=0.d0
-      else
-        vcup(1:n)=0.d0
-        vcdn(1:n)=0.d0
-        if (present(dcdgu2))  dcdgu2(1:n)=0.d0
-        if (present(dcdgd2))  dcdgd2(1:n)=0.d0
-        if (present(dcdgud))  dcdgud(1:n)=0.d0
-      end if
-    end if
-  end if
-end do
-return
+      if (id == 0) then 
+         exc(1:n) = 0.0_dp
+         vxc(1:n) = 0.0_dp
+         return
+      end if 
 
+      family_id = xc_f90_family_from_id(id)
+      call assert(family_id == XC_FAMILY_LDA, "Error(libxcifc): Id of functional has & 
+                  to belong to the family of LDA functionals.")
+      call assert(id > 0, message="Id for xc functional has to be greater than zero.")
+
+      call xc_f90_func_init(p, info, id, XC_UNPOLARIZED)
+      call xc_f90_lda_exc_vxc(p, n, rho(1), exc(1), vxc(1))
 #endif
+   end subroutine
 
-end subroutine
+   !> Call the LDA libxc functional for the spin-polarised case which  
+   !> returns the spin-polarised LDA potential.
+   subroutine libxc_lda_pot_spin_polarized(id, n, rhoup, rhodn, exc, vxcup, vxcdn)
+      !> Id of functional
+      integer, intent(in) :: id
+      !> Number of points
+      integer, intent(in) :: n
+      !> Spin-polarised charge density spin up
+      real(dp), intent(in) :: rhoup(:)
+      !> Spin-polarised charge density spin dn
+      real(dp), intent(in) :: rhodn(:)
+      !> Exchange correlation energy density
+      real(dp), intent(out) :: exc(:)
+      !> Spin-up exchange correlation potential
+      real(dp), intent(out) :: vxcup(:)
+      !> Spin-dn exchange correlation potential
+      real(dp), intent(out) :: vxcdn(:)
+
+      ! [rhoup, rhodn]
+      real(dp) :: rho_total(2)
+      ! [vxcup, vxcdn]
+      real(dp) :: v_total(2)
+
+#ifdef LIBXC
+      type(xc_f90_pointer_t) :: p
+      type(xc_f90_pointer_t) :: info
+      integer :: i
+      integer :: family_id 
+
+      if (id == 0) then 
+         exc(1:n) = 0.0_dp
+         vxcup(1:n) = 0.0_dp
+         vxcdn(1:n) = 0.0_dp
+         return
+      end if 
+
+      family_id = xc_f90_family_from_id(id)
+      call assert(family_id == XC_FAMILY_LDA, "Error(libxcifc): Id of functional has & 
+                  to belong to the family of LDA functionals.")
+      call assert(id > 0, message="Id for xc functional has to be greater than zero.")
+
+      call xc_f90_func_init(p, info, id, XC_POLARIZED)
+      do i = 1, n
+         !TODO: pack density (see MR !330)
+         rho_total(1) = rhoup(i)
+         rho_total(2) = rhodn(i)
+         call xc_f90_lda_exc_vxc(p, 1, rho_total(1), exc(i), v_total(1))
+         !TODO: unpack potential
+         vxcup(i) = v_total(1)
+         vxcdn(i) = v_total(2)
+      end do
+#endif
+   end subroutine
+
+   !> Call the GGA libxc functional for the spin-unpolarised case which 
+   !> returns the spin-unpolarised GGA potential.
+   subroutine libxc_gga_pot_spin_unpolarized(id, n, rho, grho2, exc, vxc, dxcdg2)
+      !> Id of functional
+      integer, intent(in) :: id
+      !> Number of points
+      integer, intent(in) :: n
+      !> Spin-unpolarised charge density
+      real(dp), intent(in) :: rho(:)
+      !> Gradient Density squared |grad rho|^2
+      real(dp), intent(in) :: grho2(:)
+      !> Exchange correlation energy density
+      real(dp), intent(out) :: exc(:)
+      !> Spin-unpolarised exchange correlation potential
+      real(dp), intent(out) :: vxc(:)
+      !> de_xc/d(|grad rho|^2)
+      real(dp), intent(out) :: dxcdg2(:)
+
+#ifdef LIBXC
+      type(xc_f90_pointer_t) :: p
+      type(xc_f90_pointer_t) :: info
+      integer :: family_id 
+
+      if (id .eq. 0) then  
+         exc(1:n) = 0.0_dp
+         vxc(1:n) = 0.0_dp
+         dxcdg2(1:n) = 0.0_dp 
+         return
+      end if 
+
+      family_id = xc_f90_family_from_id(id)
+      call assert((family_id == XC_FAMILY_GGA) .or. (family_id == XC_FAMILY_HYB_GGA), & 
+                  "Error(libxcifc): Id of functional has to belong to the family of GGA functionals.")
+      call assert(id > 0, message="Id for xc functional has to be greater than zero.")
+
+      call xc_f90_func_init(p, info, id, XC_UNPOLARIZED)
+      call xc_f90_gga_exc_vxc(p, n, rho(1), grho2(1), exc(1), vxc(1), dxcdg2(1))
+#endif
+   end subroutine
+
+   !> Call the GGA libxc functional for the spin-polarised case which 
+   !> returns the spin-polarised GGA potential.
+   subroutine libxc_gga_pot_spin_polarized(id, n, rhoup, rhodn, gup2, gdn2, &
+                                       gupdn, exc, vxcup, vxcdn, dxcdgu2, dxcdgd2, dxcdgud)
+      !> Id of functional
+      integer, intent(in) :: id
+      !> Number of points
+      integer, intent(in) :: n
+      !> Spin-polarised charge density spin up
+      real(dp), intent(in) :: rhoup(:)
+      !> Spin-polarised charge density spin down
+      real(dp), intent(in) :: rhodn(:)
+      !> Gradient Density spin up squared |grad rhoup|^2
+      real(dp), intent(in) :: gup2(:)
+      !> Gradient Density spin down squared |grad rhodn|^2
+      real(dp), intent(in) :: gdn2(:)
+      !> (grad rhoup).(grad rhodn)
+      real(dp), intent(in) :: gupdn(:)
+      !> Exchange correlation energy density
+      real(dp), intent(out) :: exc(:)
+      !> Spin-up exchange correlation potential
+      real(dp), intent(out) :: vxcup(:)
+      !> Spin-down exchange correlation potential
+      real(dp), intent(out) :: vxcdn(:)
+      !> de_xc/d(|grad rhoup|^2)
+      real(dp), intent(out) :: dxcdgu2(:)
+      !> de_xc/d(|grad rhodn|^2)
+      real(dp), intent(out) :: dxcdgd2(:)
+      !> de_xc/d((grad rhoup).(grad rhodn))
+      real(dp), intent(out) :: dxcdgud(:)
+
+      ! [rhoup, rhodn]
+      real(dp) :: rho_total(2)
+      ! [vxcup, vxcdn]
+      real(dp) :: v_total(2)
+      ! [rhoup*rhoup, rhodn*rhodn, rhoup*rhodn]
+      real(dp) :: sigma(3)
+      ! [de_xc/d(rhoup*rhoup), de_xc/d(rhodn*rhodn), de_xc/d(rhoup*rhodn)
+      real(dp) :: vsigma(3)
+
+#ifdef LIBXC
+      type(xc_f90_pointer_t) :: p
+      type(xc_f90_pointer_t) :: info
+      integer :: i
+      integer :: family_id
+
+      if (id .eq. 0) then  
+         exc(1:n) = 0.0_dp
+         vxcup(1:n) = 0.0_dp
+         vxcdn(1:n) = 0.0_dp
+         dxcdgu2(1:n) = 0.0_dp 
+         dxcdgd2(1:n) = 0.0_dp
+         dxcdgud(1:n) = 0.0_dp
+         return
+      end if 
+
+      family_id = xc_f90_family_from_id(id)
+      family_id = 32
+      call assert((family_id == XC_FAMILY_GGA) .or. (family_id == XC_FAMILY_HYB_GGA), & 
+                  "Error(libxcifc): Id of functional has to belong to the family of GGA functionals.")
+      call assert(id > 0, message="Id for xc functional has to be greater than zero.")
+
+      call xc_f90_func_init(p, info, id, XC_POLARIZED)
+      do i = 1, n
+         !TODO: pack density
+         rho_total(1) = rhoup(i)
+         rho_total(2) = rhodn(i)
+         sigma(1) = gup2(i)
+         sigma(2) = gupdn(i)
+         sigma(3) = gdn2(i)
+         call xc_f90_gga_exc_vxc(p, 1, rho_total(1), sigma(1), exc(i), v_total(1), vsigma(1))
+         !TODO: unpack potential
+         vxcup(i) = v_total(1)
+         vxcdn(i) = v_total(2)
+         dxcdgu2(i) = vsigma(1)
+         dxcdgud(i) = vsigma(2)
+         dxcdgd2(i) = vsigma(3)
+      end do
+#endif
+   end subroutine
+
 
 subroutine xcdata_libxc(xctype,xcdescr,xcspin,xcgrad,ex_coef)
 
@@ -232,7 +246,7 @@ integer, intent(in) :: xctype(3)
 character(512), intent(out) :: xcdescr
 integer, intent(out) :: xcspin
 integer, intent(out) :: xcgrad
-real(8), intent(out) :: ex_coef
+real(dp), intent(out) :: ex_coef
 #ifdef LIBXC
 
 ! local variables
