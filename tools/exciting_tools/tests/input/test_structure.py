@@ -109,7 +109,7 @@ def xml_structure_CdS():
         'bfcmt': [1.0, 1.0, 1.0],
         'lockxyz': [False, False, False],
         'mommtfix': [2.0, 2.0, 2.0]
-        }, {'species': 'S', 'position': [1.0, 0.0, 0.0]}]
+    }, {'species': 'S', 'position': [1.0, 0.0, 0.0]}]
     structure = ExcitingStructure(arbitrary_atoms, cubic_lattice, './')
     return structure.to_xml()
 
@@ -175,10 +175,10 @@ def test_optional_structure_attributes_xml(lattice_and_atoms_CdS):
     cubic_lattice, arbitrary_atoms = lattice_and_atoms_CdS
     structure_attributes = {
         'autormt': True, 'cartesian': False, 'epslat': 1.e-6, 'primcell': False, 'tshift': True
-        }
+    }
     structure = ExcitingStructure(
         arbitrary_atoms, cubic_lattice, './', structure_properties=structure_attributes
-        )
+    )
     xml_structure = structure.to_xml()
 
     mandatory = ['speciespath']
@@ -206,7 +206,7 @@ def test_optional_crystal_attributes_xml(lattice_and_atoms_CdS):
         cubic_lattice,
         './',
         crystal_properties={'scale': 1.00, 'stretch': 1.00}
-        )
+    )
     xml_structure = structure.to_xml()
 
     elements = list(xml_structure)
@@ -228,7 +228,7 @@ def test_optional_species_attributes_xml(lattice_and_atoms_CdS):
 
     structure = ExcitingStructure(
         arbitrary_atoms, cubic_lattice, './', species_properties=species_attributes
-        )
+    )
     xml_structure = structure.to_xml()
 
     elements = list(xml_structure)
@@ -247,6 +247,43 @@ def test_optional_species_attributes_xml(lattice_and_atoms_CdS):
     assert species_s_xml.keys() == ['speciesfile', 'rmt'], "species attributes differ from expected"
     assert species_s_xml.get('speciesfile') == 'S.xml', 'speciesfile differs from expected'
     assert species_s_xml.get('rmt') == '4.0', 'S muffin tin radius differs from input'
+
+
+ref_dict = {'xml_string': '<structure speciespath="./"><crystal><basevect>1.0 0.0 '
+                          '0.0</basevect><basevect>0.0 1.0 0.0</basevect><basevect>0.0 '
+                          '0.0 1.0</basevect></crystal><species '
+                          'speciesfile="Cd.xml"><atom coord="0.0 0.0 0.0"> '
+                          '</atom></species><species speciesfile="S.xml"><atom coord="1.0 '
+                          '0.0 0.0"> </atom></species></structure>'}
+
+
+def test_as_dict(lattice_and_atoms_CdS, mock_env_jobflow_missing):
+    cubic_lattice, arbitrary_atoms = lattice_and_atoms_CdS
+
+    structure = ExcitingStructure(arbitrary_atoms, cubic_lattice, './')
+
+    assert structure.as_dict() == ref_dict, 'expected different dict representation'
+
+
+def test_as_dict_jobflow(lattice_and_atoms_CdS, mock_env_jobflow):
+    cubic_lattice, arbitrary_atoms = lattice_and_atoms_CdS
+
+    structure = ExcitingStructure(arbitrary_atoms, cubic_lattice, './')
+
+    assert structure.as_dict() == {**ref_dict, '@class': 'ExcitingStructure',
+                                   '@module': 'excitingtools.input.structure'}, \
+        'expected different dict representation'
+
+
+def test_from_dict(lattice_and_atoms_CdS):
+    cubic_lattice, arbitrary_atoms = lattice_and_atoms_CdS
+    structure = ExcitingStructure.from_dict(ref_dict)
+
+    print(arbitrary_atoms)
+    assert structure.lattice == cubic_lattice
+    assert structure.species == [d['species'] for d in arbitrary_atoms]
+    assert structure.positions == [d['position'] for d in arbitrary_atoms]
+    assert structure.species_path == './'
 
 
 @pytest.fixture

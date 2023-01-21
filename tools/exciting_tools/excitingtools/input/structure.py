@@ -5,6 +5,7 @@ from typing import Optional, Union, List
 import pathlib
 import xml.etree.ElementTree as ET
 
+from excitingtools.exciting_dict_parsers.input_parser import parse_structure
 from excitingtools.utils.utils import list_to_str
 from excitingtools.utils.dict_utils import check_valid_keys
 from excitingtools.structure.lattice import check_lattice, check_lattice_vector_norms
@@ -122,6 +123,23 @@ class ExcitingStructure(ExcitingXMLInput):
         self.structure_properties = self._init_structure_properties(structure_properties)
         self.crystal_properties = self._init_crystal_properties(crystal_properties)
         self.species_properties = self._init_species_properties(species_properties)
+
+    @classmethod
+    def from_xml(cls, xml_string: str):
+        """ Initialise class instance from XML-formatted string.
+        """
+        structure = parse_structure(xml_string)
+        return cls(structure['atoms'],
+                   lattice=structure['lattice'],
+                   species_path=structure['species_path'],
+                   structure_properties=structure['structure_properties'],
+                   crystal_properties=structure['crystal_properties'],
+                   species_properties=structure['species_properties']
+                   )
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls.from_xml(d["xml_string"])
 
     @staticmethod
     def _init_lattice_species_positions_from_ase_atoms(atoms) -> tuple:
@@ -241,13 +259,11 @@ class ExcitingStructure(ExcitingXMLInput):
         """ Add the required atomic positions and any optional attributes, per species.
 
         :param x: Species
-        :param species: Empty SubElement for species x
-        :return species: species SubElement with all atomic positions included
+        :param species: Empty SubElement for species x, which gets filled
         """
         for iatom in atomic_indices[x]:
             coord_str = list_to_str(self.positions[iatom])
             ET.SubElement(species, "atom", coord=coord_str, **self.atom_properties[iatom]).text = ' '
-        return species
 
     def to_xml(self) -> ET.Element:
         """Convert structure attributes to XML ElementTree
@@ -280,6 +296,6 @@ class ExcitingStructure(ExcitingXMLInput):
         atomic_indices = self._group_atoms_by_species()
         for x in self.unique_species:
             species = ET.SubElement(structure, "species", speciesfile=x + '.xml', **self.species_properties[x])
-            species = self._xml_atomic_subtree(x, species, atomic_indices)
+            self._xml_atomic_subtree(x, species, atomic_indices)
 
         return structure

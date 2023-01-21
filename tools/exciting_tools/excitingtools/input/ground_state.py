@@ -5,6 +5,7 @@ because excitingtools will also be available as a standalone package, one would 
 to have a copy of the schema XML in excitingtools, which is kept synchronised with
 the <EXCITINGROOT>/xml/.
 """
+from excitingtools.exciting_dict_parsers.input_parser import parse_groundstate
 from excitingtools.input.base_class import ExcitingXMLInput
 
 
@@ -25,3 +26,13 @@ class ExcitingGroundStateInput(ExcitingXMLInput):
     def __init__(self, **kwargs):
         """Generate an object of ExcitingXMLInput for the groundstate attributes."""
         super().__init__('groundstate', self._valid_attributes, **kwargs)
+
+    @classmethod
+    def from_xml(cls, xml_string: str):
+        """ Initialise class instance from XML-formatted string.
+        """
+        return cls(**parse_groundstate(xml_string))
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls.from_xml(d["xml_string"])

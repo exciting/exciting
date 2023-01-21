@@ -67,6 +67,14 @@ def test_parse_groundstate():
         }
 
 
+def test_parse_groundstate_from_gs_root():
+    ground_state = parse_groundstate('<groundstate xctype="GGA_PBE" ngridk="4 4 4" epsengy="1d-7" outputlevel="high"/>')
+    assert ground_state == {
+        'xctype': 'GGA_PBE', 'ngridk': '4 4 4',
+        'epsengy': '1d-7', 'outputlevel': 'high'
+        }
+
+
 def test_parse_structure():
     structure = parse_structure(reference_input_str)
     structure_ref = {
@@ -165,4 +173,3 @@ def test_parse_xs_warning():
                   'xs_properties':
                       {'ngridq': '3 3 3', 'vkloff': '0.05 0.15 0.25',
                        'nempty': '1', 'broad': '0.0073499', 'nosym': 'true'}}
-

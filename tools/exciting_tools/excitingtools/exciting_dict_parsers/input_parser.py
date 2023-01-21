@@ -9,6 +9,7 @@ from typing import Dict, Union
 from xml.etree import ElementTree
 
 from excitingtools.parser_utils.parser_decorators import xml_root
+from excitingtools.parser_utils.parser_utils import find_element
 
 # Valid input formats for all parsers
 root_type = Union[str, ElementTree.Element, pathlib.Path]
@@ -21,7 +22,7 @@ def parse_groundstate(root: root_type) -> dict:
     :param root: Input for the parser.
     :returns: Dictionary containing the groundstate input element attributes.
     """
-    ground_state = root.find('groundstate')
+    ground_state = find_element(root, 'groundstate')
     return ground_state.attrib
 
 
@@ -37,7 +38,7 @@ def parse_structure(root: root_type) -> dict:
          'crystal_properties': dictionary with the crystal_properties,
          'species_properties': dictionary with the species_properties}
     """
-    structure = root.find('structure')
+    structure = find_element(root, 'structure')
     structure_properties = structure.attrib
     species_path = structure_properties.pop('speciespath')
     crystal = structure.find('crystal')
@@ -81,7 +82,7 @@ def parse_xs(root: root_type) -> dict:
          'screening': dictionary with the screening_properties, 'BSE': dictionary with bse_properties,
          'qpointset': List of qpoints, 'plan': List of tasks}
     """
-    xs = root.find('xs')
+    xs = find_element(root, 'xs')
     if xs is None:
         return {}
 
