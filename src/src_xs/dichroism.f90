@@ -29,7 +29,7 @@ contains
         use modinput, only: input_type
         use mod_eigenvalue_occupancy, only: evalsv
         use m_genwgrid, only: genwgrid
-        use os_utils, only: create_directory
+        use os_utils, only: make_directory_command
         use modmpi, only: mpiglobal 
         use constants, only: pi
 
@@ -92,10 +92,14 @@ contains
                                                                          'OSCI_K', 'OSCI_KBAR', 'OSCI_K_KBAR']
         !> Running index directories
         integer :: idir
+        !> OS command
+        character(256) :: os_command
 
         do idir = 1, size(dirnames_dichroic_tensors)
-            call create_directory(dirnames_dichroic_tensors(idir))
-            call create_directory(dirnames_oscillator_strengths(idir))
+            os_command = make_directory_command(dirnames_dichroic_tensors(idir))
+            call system(trim(adjustl(os_command)))
+            os_command = make_directory_command(dirnames_oscillator_strengths(idir))
+            call system(trim(adjustl(os_command)))
         end do
 
         use_gw = associated(input%gw)

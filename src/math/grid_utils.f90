@@ -16,10 +16,14 @@ module grid_utils
             phase, &
             fft_frequencies, &
             n_grid_diff, &
+            index_column_vector_in_array, &
+            indices_zero_vectors, indices_finite_vectors,&
             partial_grid, &
             flattened_map, point_in_triangle
 
-  real(dp), parameter :: default_offset(3) = [0._dp, 0._dp, 0._dp]
+  real(dp), parameter :: offset_default(3) = [0._dp, 0._dp, 0._dp]
+  logical, parameter :: kill_on_failure_default = .false.        
+  real(dp), parameter  :: tol_default = 1e-9_dp
 
   !> Generate a vector of evenly spaced number over a given interval.
   !> The spacing can be either defined directly or by a number of coords.
@@ -464,7 +468,6 @@ contains
     frequencies(3, :) = kronecker_product(f3,    ones2, ones1)
   end function fft_frequencies
 
-
   !> Calculate the number of grid points per dimension of the difference grid with the given the number of grid
   !> points per dimension of a regular origin grid. In each dimension with more then one grid point, the number of grid
   !> points is doubled because the difference grid take to into account \( \mathbf{p}_1 - \mathf{p}_2\) and
@@ -489,6 +492,102 @@ contains
       if (N_grid_in(i) == 1) N_grid_out(i) = 1
     end do
   end function n_grid_diff
+
+  !> This routine determines the index of a reference vector
+  !> in an array of vectors. It is assumed that the vector appears only once
+  !> in the array, therefore only the first instance is returned.
+  !> The shape of the array is assumed to be (3, n_vecs).
+  !> Returns 0 if the reference vector is not found in the array.
+  !> Note that this function should not used if the array is not
+  !> a regular array in regular order - in this case looping over the array
+  !> is not necessary, the index should be determined by a
+  !> multi-index conversion (lattice coordinates -> 1d index).
+  function index_column_vector_in_array(vector, array, tol) result(idx_vec)
+
+      use modmpi, only: terminate_if_false, mpiglobal
+      use asserts, only: assert
+
+      !> Reference vector
+      real(dp), intent(in) :: vector(:)
+      !> Grid of vectors
+      real(dp), intent(in) :: array(:, :)
+      !> q-vector index of the reference vector in array
+      integer :: idx_vec
+      !> Absolute tolerance
+      real(dp), optional, intent(in) :: tol
+
+      !> Running index vectors
+      integer :: i
+      !> Default absolute tolerance
+      real(dp) :: tol_
+
+      call assert(size(array, dim=1) == size(vector), message= &
+                  'index_in_grid: First dimension of array should be dimension of vector.')
+
+      tol_ = tol_default
+      if (present(tol)) tol_ = tol
+
+      idx_vec = 0
+
+      outer: do i = 1, size(array, dim=2)
+          if (all_close(vector, array(:, i), tol=tol_)) then
+              idx_vec = i
+              exit outer
+          end if
+      end do outer
+
+    end function
+
+    !> Returns the indices of vectors in a grid with a norm smaller than
+    !> a given tolerance. The grid is assumed to be of shape (3, n_vecs).
+    function indices_zero_vectors(grid,  tol) result(index_list)
+
+      use precision, only: dp
+      use modmpi, only: terminate_if_false
+      integer :: n_vecs
+      real(dp) :: grid(:, :)
+      integer, allocatable :: index_list(:)
+
+      real(dp), optional  :: tol
+      real(dp)  :: tol_
+      integer :: i
+
+      tol_ = tol_default
+      if (present(tol)) tol_ = tol
+
+      n_vecs = size(grid, dim=2)
+
+      index_list = pack([(i, i=1, n_vecs)], &
+                        norm2(grid, dim=1) < tol_)
+
+    end function
+
+    !> Returns the indices of all vectors in a grid with a norm larger than
+    !> a given tolerance. The grid is assumed to be of shape (3, n_vecs).
+    !> If no vector matches the condition, an array of size=0 is returned.
+    function indices_finite_vectors(grid, tol) result(index_list)
+
+
+      real(dp), intent(in) :: grid(:, :)
+      integer :: n_vecs
+      integer, allocatable :: index_list(:)
+      real(dp), optional  :: tol
+
+      real(dp)  :: tol_
+      integer :: i
+
+      call assert(size(grid, dim=1) == 3, 'Error indices_finite_vectors: &
+                  Grid dimensions are wrong (should be (3, n_vecs)).')
+
+      tol_ = tol_default
+      if (present(tol)) tol_ = tol
+
+      n_vecs = size(grid, dim=2)
+
+      index_list = pack([(i, i=1, n_vecs)], &
+                        norm2(grid, dim=1) > tol_)
+
+    end function
 
   !> Calculate for a grid that is included in a denser grid, the indices of the grid points
   !> in the denser grid. The number of grid points of the grid must divide the number of

@@ -3,13 +3,13 @@ module os_utils
     implicit none
 
     private 
-    public :: create_directory, remove_directory
+    public :: make_directory_command, remove_directory_command
 
 contains
 
     !> Creates a directory in the run directory (only if the directory
     !> is not yet present).
-    subroutine create_directory(directory_name)
+    function make_directory_command(directory_name) result(command)
         !> Name of directory
         character(*), intent(in) :: directory_name
 
@@ -17,23 +17,19 @@ contains
 
         command = 'test ! -e '//trim(adjustl(directory_name))//&
                     &' && mkdir '//trim(adjustl(directory_name))
-        call system(command)
-
-    end subroutine
+    end 
 
 
-    !> Removes a directory in the run directory recursively 
-    !>  (only if the directory is present).
-    subroutine remove_directory(directory_name)
+   !> Creates a directory in the run directory (only if the directory
+    !> is not yet present).
+    function remove_directory_command(directory_name) result(command)
         !> Name of directory
         character(*), intent(in) :: directory_name
 
         character(:), allocatable :: command
 
         command = 'test ! -e '//trim(adjustl(directory_name))//&
-                    &' && rm -r '//trim(adjustl(directory_name))
-        call system(command)
-
-    end subroutine
+        &' && rm -r '//trim(adjustl(directory_name))
+    end 
 
 end module

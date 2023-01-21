@@ -316,7 +316,7 @@ module mock_arrays
                                                                                         
         !> Given its index, this function maps
         !> one element of a real double-precision
-        !> array \( \mathbf{a} \) of rank 1 according to
+        !> array \( \mathbf{a} \) of rank 1 according to the arbitrary expression
         !> \[
         !>    a_{m} = 1.5m   
         !>                                      \].
@@ -328,7 +328,7 @@ module mock_arrays
 
         !> Given its indices, this function maps
         !> one element of a real double-precision
-        !> array \( \mathbf{a} \) of rank 2 according to
+        !> array \( \mathbf{a} \) of rank 2 according to the arbitrary expression
         !> \[
         !>    a_{mn} = m + 2n 
         !>                                      \].
@@ -340,7 +340,7 @@ module mock_arrays
 
         !> Given its indices, this function maps
         !> one element of a real double-precision 
-        !> array \( \mathbf{a} \) of rank 3 according to
+        !> array \( \mathbf{a} \) of rank 3 according to the arbitrary expression
         !> \[
         !>    a_{mnl} = m + 2(n+l) 
         !>                                      \].
@@ -352,7 +352,7 @@ module mock_arrays
        
         !> Given its indices, this function maps
         !> one element of a complex double-precision
-        !> array \( \mathbf{a} \) of rank 2 according to
+        !> array \( \mathbf{a} \) of rank 2 according to the arbitrary expression
         !> \[
         !>    a_{mn} = m + 2n \cdot i   
         !>                                      \].
@@ -364,7 +364,7 @@ module mock_arrays
 
         !> Given its indices, this function maps
         !> one element of a complex double-precision 
-        !> array \( \mathbf{a} \) of rank 3 according to
+        !> array \( \mathbf{a} \) of rank 3 according to the arbitrary expression
         !> \[
         !>    a_{mnl} = m + 2(n+l) \cdot i   
         !>                                      \].
@@ -376,7 +376,7 @@ module mock_arrays
 
         !> Given its indices, this function maps
         !> one element of a complex double-precision 
-        !> array \( \mathbf{a} \) of rank 4 according to
+        !> array \( \mathbf{a} \) of rank 4 according to the arbitrary expression
         !> \[
         !>    a_{mnlk} = m + l + 2nk \cdot i   
         !>                                      \].

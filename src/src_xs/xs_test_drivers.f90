@@ -4,6 +4,7 @@ module xs_test_drivers
     ! Load test drivers here
     use phonon_screening_tests, only: phonon_screening_test_driver
     use putgeteps0_tests, only: putgeteps0_test_driver
+    use expand_add_eps_tests, only: expand_add_eps_test_driver
 
     private
     public :: xs_test_driver
@@ -22,7 +23,9 @@ contains
             call putgeteps0_test_driver(mpiglobal, kill_on_failure)
         end if
 
+        call expand_add_eps_test_driver(mpiglobal, kill_on_failure)
 
+        
     end subroutine xs_test_driver
 
-    end module xs_test_drivers
+end module xs_test_drivers

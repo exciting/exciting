@@ -6,7 +6,7 @@ module mod_mpi_bcast
 #ifdef MPI
       use mpi
       use mod_mpi_env, only: mpiinfo
-      use precision, only: sp, dp 
+      use precision, only:  dp, i32
   
       implicit none
       private
@@ -15,10 +15,13 @@ module mod_mpi_bcast
       public :: xmpi_bcast
   
       interface xmpi_bcast
-          module procedure :: mpi_bcast_rank0_int_sp, &
+          module procedure :: mpi_bcast_rank0_int_sp,mpi_bcast_rank1_int_sp, &
             & mpi_bcast_rank0_logical, &
-            & mpi_bcast_rank0_real_dp, mpi_bcast_rank1_real_dp, mpi_bcast_rank2_real_dp, mpi_bcast_rank3_real_dp, &
-            & mpi_bcast_rank0_complex_dp, mpi_bcast_rank2_complex_dp, mpi_bcast_rank3_complex_dp, mpi_bcast_rank4_complex_dp, &
+             mpi_bcast_rank0_real_dp,&
+            mpi_bcast_rank1_real_dp, mpi_bcast_rank2_real_dp,&
+            mpi_bcast_rank3_real_dp,&
+            & mpi_bcast_rank0_complex_dp, mpi_bcast_rank2_complex_dp, &
+            & mpi_bcast_rank3_complex_dp, mpi_bcast_rank4_complex_dp, &
             & mpi_bcast_character, mpi_bcast_character_array
       end interface 
   
@@ -39,8 +42,18 @@ module mod_mpi_bcast
         !> MPI environment
         type(mpiinfo), intent(inout) :: mpi_env
         !> Buffer
-        integer(sp),  intent(in) :: buffer
+        integer(i32),  intent(in) :: buffer
         call MPI_BCAST(buffer, 1, MPI_INTEGER, mpi_env%root, mpi_env%comm, mpi_env%ierr)
+      end subroutine 
+
+
+      !> Broadcasts integer array from the process with rank root to all other processes of the group. 
+      subroutine mpi_bcast_rank1_int_sp(mpi_env, buffer)
+        !> MPI environment
+        type(mpiinfo), intent(inout) :: mpi_env
+        !> Buffer
+        integer(i32),  intent(in) :: buffer(:)
+        call MPI_BCAST(buffer, size(buffer), MPI_INTEGER, mpi_env%root, mpi_env%comm, mpi_env%ierr)
       end subroutine 
   
   

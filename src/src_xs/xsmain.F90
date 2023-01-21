@@ -28,6 +28,7 @@ subroutine xsmain(plan, nxstasks)
   use mod_hdf5
   use m_write_hdf5, only: fhdf5_inter
   use phonon_screening, only: phonon_screening_launcher
+  use expand_add_eps, only: expand_add_eps_launcher
   use write_screening, only: write_screening_launcher
 
   implicit none
@@ -36,6 +37,8 @@ subroutine xsmain(plan, nxstasks)
   integer, parameter :: task_phonon_screening = 431
   !> Screened Coulomb interaction for BSE
   integer, parameter :: task_screened_coulomb = 440 
+  !> Expanding dielectric matrix from unit cell to super cell
+  integer, parameter :: task_expand_add_eps = 432
   !> Writing dielectric matrix for all non-reduced q-vectors
   integer, parameter :: task_write_dielectric_matrix = 442
   !> Writing screened Coulomb matrix for all non-reduced q-vectors
@@ -168,9 +171,14 @@ subroutine xsmain(plan, nxstasks)
       case(task_phonon_screening) 
 
         call phonon_screening_launcher
-
+        
+      ! Taskname 'expand_eps'
+      case(task_expand_add_eps)
+        ! Expanding dielectric matrix
+        call expand_add_eps_launcher
+ 
       ! Taskname 'scrcoulint'
-      case(task_screened_coulomb)
+      case(440)
         ! screened Coulomb interaction
         call scrcoulintlauncher
 
