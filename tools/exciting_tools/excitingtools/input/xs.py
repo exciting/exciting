@@ -5,6 +5,7 @@ from typing import Optional, List, Union
 from xml.etree import ElementTree as ET
 
 import numpy as np
+from excitingtools.exciting_dict_parsers.input_parser import parse_xs
 from excitingtools.input.base_class import ExcitingXMLInput
 from excitingtools.utils.utils import list_to_str
 from excitingtools.utils.dict_utils import check_valid_keys
@@ -53,6 +54,23 @@ class ExcitingXSInput(ExcitingXMLInput):
         self.energywindow = self._initialise_subelement_attribute(ExcitingXSEnergywindowInput, energywindow)
         self.qpointset = self._initialise_subelement_attribute(ExcitingXSQpointsetInput, qpointset)
         self.plan = self._initialise_subelement_attribute(ExcitingXSPlanInput, plan)
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls.from_xml(d["xml_string"])
+
+    @classmethod
+    def from_xml(cls, xml_string: str):
+        """ Initialise class instance from XML-formatted string.
+
+        Example Usage
+        --------------
+        xs_input = ExcitingXSInput.from_xml(xml_string)
+        """
+        xs = parse_xs(xml_string)
+        xs_type = xs.pop('xstype')
+        xs_properties = xs.pop('xs_properties')
+        return cls(xs_type, xs_properties, **xs)
 
     def to_xml(self) -> ET.Element:
         """Put class attributes into an XML tree, 'xs'.

@@ -9,13 +9,21 @@ python:excitingtools-python-3.7:
     - docker
   before_script:
     - apt-get update && apt-get install -y python3-pip
-    - pip3 install pylint
+    - pip3 install --upgrade --force pylint coverage
   script:
     - cd tools/exciting_tools && pip3 install -e .
-    - pytest
+    # Run excitingtools unit tests and collect test coverage
+    - coverage run -m pytest
+    - coverage xml -o excitingtools_testcov.xml
   after_script:
     # Run pylint on all modified python files
     - sh .gitlab/run_pylint.sh $CI_BUILD_REF_NAME
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: tools/exciting_tools/excitingtools_testcov.xml
 
 python:regressionframework-python-3.7:
   image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8-April2022
@@ -24,7 +32,12 @@ python:regressionframework-python-3.7:
     - docker
   before_script:
     # Can do as excitingtools and only retain `python3-pip`, but maybe this is more consistent(?)
-    - apt-get --allow-releaseinfo-change update && apt-get install -y libpython3.7 libpython3.7-dev python3-pip    
+    - apt-get --allow-releaseinfo-change update && apt-get install -y libpython3.7 libpython3.7-dev python3-pip
+    - pip3 install --upgrade --force coverage
   script:
     - pip3 install -e tools/exciting_tools
-    - cd test/ && pytest test_functions/
+    - cd test/ && coverage run -m pytest test_functions/
+    - coverage report > testframework_testcov.txt
+  artifacts:
+    paths:
+      - test/testframework_testcov.txt

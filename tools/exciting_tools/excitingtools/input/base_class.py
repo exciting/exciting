@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 
 from excitingtools.utils.dict_utils import check_valid_keys
+from excitingtools.utils.jobflow_utils import special_serialization_attrs
 
 
 class ExcitingInput(ABC):
@@ -71,6 +72,10 @@ class ExcitingXMLInput(ExcitingInput):
     def to_xml_str(self) -> str:
         """ Convert attributes to XML tree string. """
         return ElementTree.tostring(self.to_xml(), encoding='unicode', method='xml')
+
+    def as_dict(self) -> dict:
+        serialise_attrs = special_serialization_attrs(self)
+        return {**serialise_attrs, "xml_string": self.to_xml_str()}
 
 
 def query_exciting_version(exciting_root: Union[Path, str]) -> dict:

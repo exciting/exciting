@@ -15,6 +15,26 @@ def test_class_ExcitingXSInput():
     assert xs_xml.items() == [('xstype', 'BSE')]
 
 
+def test_ExcitingXSInput_as_dict(mock_env_jobflow_missing):
+    xs_input = ExcitingXSInput("BSE")
+    ref_dict = {'xml_string': '<xs xstype="BSE"> </xs>'}
+    assert xs_input.as_dict() == ref_dict, 'expected different dict representation'
+
+
+def test_ExcitingXSInput_as_dict_jobflow(mock_env_jobflow):
+    xs_input = ExcitingXSInput("BSE")
+    ref_dict = {'@class': 'ExcitingXSInput',
+                '@module': 'excitingtools.input.xs',
+                'xml_string': '<xs xstype="BSE"> </xs>'}
+    assert xs_input.as_dict() == ref_dict, 'expected different dict representation'
+
+
+def test_ExcitingXSInput_from_dict():
+    ref_dict = {'xml_string': '<xs xstype="BSE"> </xs>'}
+    recreated_xs = ExcitingXSInput.from_dict(ref_dict)
+    assert recreated_xs.to_xml_str() == ref_dict['xml_string']
+
+
 def test_class_ExcitingXSInput_xs():
     xs = {'broad': 0.32, 'ngridk': [8, 8, 8], 'tevout': True, 'nempty': 52, 'pwmat': 'fft'}
     mandatory = ['xstype']

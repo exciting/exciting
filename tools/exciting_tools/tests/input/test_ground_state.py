@@ -33,53 +33,40 @@ from excitingtools.input.ground_state import ExcitingGroundStateInput
      ({'autokpt': False}, [('autokpt', 'false')]), ({'beta0': 0.4}, [('beta0', '0.4')]),
      ({'betadec': 0.6}, [('betadec', '0.6')]), ({'betainc': 1.1}, [('betainc', '1.1')]),
      ({'cfdamp': 0.0}, [('cfdamp', '0.0')]), ({'chgexs': 0.0}, [('chgexs', '0.0')]),
-     ({'deband': 2.5e-3}, [('deband', '0.0025')]), ({'dipolecorrection': True}, [
-         ('dipolecorrection', 'true')
-         ]), ({'dipoleposition': 1.0}, [('dipoleposition', '1.0')]), ({'dlinengyfermi': -0.1}, [
-             ('dlinengyfermi', '-0.1')
-             ]), ({'do': "fromscratch"}, [('do', "fromscratch")]),
+     ({'deband': 2.5e-3}, [('deband', '0.0025')]),
+     ({'dipolecorrection': True}, [('dipolecorrection', 'true')]),
+     ({'dipoleposition': 1.0}, [('dipoleposition', '1.0')]),
+     ({'dlinengyfermi': -0.1}, [('dlinengyfermi', '-0.1')]),
+     ({'do': "fromscratch"}, [('do', "fromscratch")]),
      ({'energyref': 0.0}, [('energyref', '0.0')]), ({'epsband': 1.0e-6}, [('epsband', '1e-06')]),
      ({'epschg': 1.0e-5}, [('epschg', '1e-05')]), ({'epsengy': 1e-6}, [('epsengy', '1e-06')]),
      ({'epsforcescf': 5.0e-5}, [('epsforcescf', '5e-05')]),
      ({'epsocc': 1e-8}, [('epsocc', '1e-08')]), ({'epspot': 1e-6}, [('epspot', '1e-06')]),
-     ({'fermilinengy': False}, [('fermilinengy', 'false')]), ({'findlinentype': "Wigner_Seitz"}, [
-         ('findlinentype', "Wigner_Seitz")
-         ]), ({'fracinr': 0.02}, [('fracinr', '0.02')]), ({'frozencore': False}, [
-             ('frozencore', 'false')
-             ]), ({'gmaxvr': 12}, [('gmaxvr', '12')]), ({'isgkmax': -1}, [('isgkmax', '-1')]),
+     ({'fermilinengy': False}, [('fermilinengy', 'false')]),
+     ({'findlinentype': "Wigner_Seitz"}, [('findlinentype', "Wigner_Seitz")]),
+     ({'fracinr': 0.02}, [('fracinr', '0.02')]), ({'frozencore': False}, [('frozencore', 'false')]),
+     ({'gmaxvr': 12}, [('gmaxvr', '12')]), ({'isgkmax': -1}, [('isgkmax', '-1')]),
      ({'ldapu': "none"}, [('ldapu', "none")]), ({'lmaxapw': 8}, [('lmaxapw', '8')]),
-     ({'lmaxinr': 2}, [('lmaxinr', '2')]), ({'lmaxmat': 8}, [('lmaxmat', '8')]), ({'lmaxvr': 8}, [
-         ('lmaxvr', '8')
-         ]), ({'lorecommendation': False}, [('lorecommendation', 'false')]), ({'lradstep': 1}, [
-             ('lradstep', '1')
-             ]), ({'maxscl': 200}, [('maxscl', '200')]), ({'mixer': 'msec'}, [('mixer', 'msec')]),
-     ({'mixerswitch': 1}, [('mixerswitch', '1')]), ({'modifiedsv': False}, [
-         ('modifiedsv', 'false')
-         ]), ({'msecStoredSteps': 8}, [('msecStoredSteps', '8')]), ({'nempty': 5}, [
-             ('nempty', '5')
-             ]), ({'niterconvcheck': 2}, [('niterconvcheck', '2')]), ({'nktot': 0}, [
-                 ('nktot', '0')
-                 ]), ({'nosource': False}, [('nosource', 'false')]), ({'nosym': False
-                                                                       }, [('nosym', 'false')]),
-     ({'nprad': 4}, [('nprad', '4')]), ({'npsden': 9}, [('npsden', '9')]), ({'nwrite': 0}, [
-         ('nwrite', '0')
-         ]), ({'outputlevel': 'normal'}, [('outputlevel', 'normal')]), ({'ptnucl': True}, [
-             ('ptnucl', 'true')
-             ]), ({'radialgridtype': 'cubic'}, [('radialgridtype', 'cubic')]), ({'radkpt': 40.0}, [
-                 ('radkpt', '40.0')
-                 ]), ({'reducek': True}, [('reducek', 'true')]), ({'scfconv': 'multiple'}, [
-                     ('scfconv', 'multiple')
-                     ]), ({'stype': 'Gaussian'}, [('stype', 'Gaussian')]), ({'swidth': 0.001}, [
-                         ('swidth', '0.001')
-                         ]), ({'symmorph': False}, [('symmorph', 'false')]), ({'tevecsv': False}, [
-                             ('tevecsv', 'false')
-                             ]), ({'tfibs': True}, [('tfibs', 'true')]), ({'tforce': False}, [
-                                 ('tforce', 'false')
-                                 ]), ({'tpartcharges': False}, [('tpartcharges', 'false')]),
-     ({'useDensityMatrix': True}, [('useDensityMatrix', 'true')]), ({'vdWcorrection': 'none'}, [
-         ('vdWcorrection', 'none')
-         ]), ({'xctype': 'GGA_PBE'}, [('xctype', 'GGA_PBE')])]
-    )
+     ({'lmaxinr': 2}, [('lmaxinr', '2')]), ({'lmaxmat': 8}, [('lmaxmat', '8')]),
+     ({'lmaxvr': 8}, [('lmaxvr', '8')]), ({'lorecommendation': False}, [('lorecommendation', 'false')]),
+     ({'lradstep': 1}, [('lradstep', '1')]),
+     ({'maxscl': 200}, [('maxscl', '200')]), ({'mixer': 'msec'}, [('mixer', 'msec')]),
+     ({'mixerswitch': 1}, [('mixerswitch', '1')]), ({'modifiedsv': False}, [('modifiedsv', 'false')]),
+     ({'msecStoredSteps': 8}, [('msecStoredSteps', '8')]), ({'nempty': 5}, [('nempty', '5')]),
+     ({'niterconvcheck': 2}, [('niterconvcheck', '2')]), ({'nktot': 0}, [('nktot', '0')]),
+     ({'nosource': False}, [('nosource', 'false')]), ({'nosym': False}, [('nosym', 'false')]),
+     ({'nprad': 4}, [('nprad', '4')]), ({'npsden': 9}, [('npsden', '9')]),
+     ({'nwrite': 0}, [('nwrite', '0')]), ({'outputlevel': 'normal'}, [('outputlevel', 'normal')]),
+     ({'ptnucl': True}, [('ptnucl', 'true')]), ({'radialgridtype': 'cubic'}, [('radialgridtype', 'cubic')]),
+     ({'radkpt': 40.0}, [('radkpt', '40.0')]), ({'reducek': True}, [('reducek', 'true')]),
+     ({'scfconv': 'multiple'}, [('scfconv', 'multiple')]), ({'stype': 'Gaussian'}, [('stype', 'Gaussian')]),
+     ({'swidth': 0.001}, [('swidth', '0.001')]), ({'symmorph': False}, [('symmorph', 'false')]),
+     ({'tevecsv': False}, [('tevecsv', 'false')]), ({'tfibs': True}, [('tfibs', 'true')]),
+     ({'tforce': False}, [('tforce', 'false')]), ({'tpartcharges': False}, [('tpartcharges', 'false')]),
+     ({'useDensityMatrix': True}, [('useDensityMatrix', 'true')]),
+     ({'vdWcorrection': 'none'}, [('vdWcorrection', 'none')]),
+     ({'xctype': 'GGA_PBE'}, [('xctype', 'GGA_PBE')])]
+)
 def test_class_exciting_ground_state_input_parametrized(test_input, expected):
     gs_input = ExcitingGroundStateInput(**test_input)
     gs_xml = gs_input.to_xml()
@@ -97,3 +84,29 @@ def test_invalid_input():
 
     assert error.value.args[
                0] == "groundstate keys are not valid: {'erroneous_attribute'}"
+
+
+def test_as_dict(mock_env_jobflow_missing):
+    ref_rgkmax = 8.5
+    gs_input = ExcitingGroundStateInput(rgkmax=ref_rgkmax)
+    ref_dict = {'xml_string': f'<groundstate rgkmax="{ref_rgkmax}"> </groundstate>'}
+    assert gs_input.as_dict() == ref_dict, 'expected different dict representation'
+
+
+def test_as_dict_jobflow(mock_env_jobflow):
+    ref_rgkmax = 8.5
+    gs_input = ExcitingGroundStateInput(rgkmax=ref_rgkmax)
+    ref_dict = {'@class': 'ExcitingGroundStateInput',
+                '@module': 'excitingtools.input.ground_state',
+                'xml_string': f'<groundstate rgkmax="{ref_rgkmax}"> </groundstate>'}
+    assert gs_input.as_dict() == ref_dict, 'expected different dict representation'
+
+
+def test_from_dict():
+    ref_rgkmax = 8.5
+    ref_dict = {'xml_string': f'<groundstate rgkmax="{ref_rgkmax}"> </groundstate>'}
+    gs_input = ExcitingGroundStateInput.from_dict(ref_dict)
+
+    assert gs_input.name == 'groundstate'
+    # added comment for pylint to disable warning, because of dynamic attributes
+    assert gs_input.rgkmax == str(ref_rgkmax), f'Expect rgkmax to be equal {ref_rgkmax}'  # pylint: disable=no-member

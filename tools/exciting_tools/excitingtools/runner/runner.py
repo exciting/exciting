@@ -1,5 +1,6 @@
 """ Binary runner and results classes.
 """
+import copy
 from typing import List, Optional, Union
 from pathlib import Path
 import os
@@ -7,6 +8,9 @@ import subprocess
 import shutil
 import time
 import enum
+
+
+from excitingtools.utils.jobflow_utils import special_serialization_attrs
 
 
 class RunnerCode(enum.Enum):
@@ -66,14 +70,12 @@ class BinaryRunner:
         self.time_out = time_out
         self.args = args
 
-        try:
-            os.path.isfile(self.binary)
-        except FileNotFoundError:
+        if not os.path.isfile(self.binary):
             # If just the binary name, try checking the $PATH
             self.binary = shutil.which(self.binary)
-            if self.binary is None:
+            if not self.binary:
                 raise FileNotFoundError(
-                    f"{binary} does not exist and cannot be found in the $PATH"
+                    f"{binary} binary is not present in the current directory nor in $PATH"
                 )
 
         if not Path(directory).is_dir():
@@ -94,21 +96,40 @@ class BinaryRunner:
         if time_out <= 0:
             raise ValueError("time_out must be a positive integer")
 
-    def _check_mpi_processes(self):
-        """ Check that the number of MPI processes specified is valid.
+    def as_dict(self) -> dict:
+        """Returns a dictionary representing the current object for later recreation.
+        The serialise attributes are required for recognition by monty and jobflow.
         """
-        # MPI
+        serialise_attrs = special_serialization_attrs(self)
+        return {**serialise_attrs, **self.__dict__}
+
+    @classmethod
+    def from_dict(cls, d: dict):
+        my_dict = copy.deepcopy(d)
+        # Remove key value pairs needed for workflow programs
+        # call function on class to get only the keys (values not needed)
+        serialise_keys = special_serialization_attrs(cls)
+        for key in serialise_keys:
+            my_dict.pop(key)
+        return cls(**my_dict)
+
+    def _check_mpi_processes(self):
+        """ Check whether mpi is specified and if yes that the number of MPI processes specified is valid.
+        """
+        # Search if MPI is specified:
         try:
             i = self.run_cmd.index('-np')
-            mpi_processes = eval(self.run_cmd[i + 1])
-            if type(mpi_processes) != int:
-                raise ValueError("Number of MPI processes should be an int")
-            if mpi_processes <= 0:
-                raise ValueError("Number of MPI processes must be > 0")
-        # Serial and OMP-only
         except ValueError:
             # .index will return ValueError if 'np' not found. This corresponds to serial and omp calculations.
-            pass
+            return
+        try:
+            mpi_processes = int(self.run_cmd[i + 1])
+        except IndexError:
+            raise ValueError("Number of MPI processes must be specified after the '-np'")
+        except ValueError:
+            raise ValueError("Number of MPI processes should be an int")
+        if mpi_processes <= 0:
+            raise ValueError("Number of MPI processes must be > 0")
 
     def _compose_execution_list(self) -> list:
         """Generate a complete list of strings to pass to subprocess.run(), to execute the calculation.

@@ -18,5 +18,5 @@ setup(name='excitingtools',
       include_package_data=True,
       python_requires=">=3.6",
       install_requires=['wheel>=0.35.0', 'numpy>=1.14.5', 'matplotlib>=2.2.0'],
-      extras_require={"ase": ['ase>=3.20.0']}
+      extras_require={"input_generation": ['ase>=3.20.0']}
       )
