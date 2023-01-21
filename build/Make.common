@@ -2,7 +2,7 @@
 .NOTPARALLEL:
 
 SOURCEDIRS=	\
-    ../../src/math \
+	../../src/math \
 	../../src/testframework \
 	../../src/ \
 	../../src/simplified_input \

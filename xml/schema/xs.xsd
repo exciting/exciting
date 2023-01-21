@@ -1155,6 +1155,22 @@
             </xs:attribute>       
           </xs:complexType>
         </xs:element>
+        <xs:element ex:importance="experimental" ex:unit="" name="expand_eps">
+          <xs:complexType>
+              <xs:attribute ex:unit="" name="supercell_1" type="integertriple"
+              default="1 1 1">
+              <xs:annotation>
+                <xs:documentation> Dimensions of the supercell of the first component, given as m x n x l.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+             <xs:attribute ex:unit="" name="supercell_2" type="integertriple"
+              default="1 1 1">
+              <xs:annotation>
+                <xs:documentation> Dimensions of the supercell of the first component, given as m x n x l.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="BSE" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:attribute ex:importance="expert" ex:unit="" name="outputlevel" default="normal">
@@ -1913,7 +1929,15 @@
                               shift).</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
-                        <xs:enumeration value="write_dielectric_matrix">
+                        <xs:enumeration value="expand_add_eps">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>432</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation> For the two individual components of a bilayer heterostructure, this task  expands the dielectric matrix from the individual unit cells to the individual super-cells and adds the two contributions to obtain the dielectric matrix of the hetero-structure.</xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+                         <xs:enumeration value="write_dielectric_matrix">
                           <xs:annotation>
                             <xs:appinfo>
                               <oldnr>442</oldnr>

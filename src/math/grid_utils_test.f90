@@ -6,7 +6,8 @@ module grid_utils_test
    use unit_test_framework, only: unit_test_type
    use math_utils, only: all_close, all_zero, mod1
    use grid_utils, only: mesh_1d, linspace, concatenate, grid_3d, phase, fft_frequencies, &
-                         partial_grid, n_grid_diff, flattened_map, point_in_triangle
+                         partial_grid, n_grid_diff, flattened_map, point_in_triangle,&
+                         index_column_vector_in_array,  indices_zero_vectors, indices_finite_vectors
     use multi_index_conversion, only: indices_to_composite_index, composite_index_to_indices
    implicit none
 
@@ -25,7 +26,7 @@ contains
       !> Test report object
       type(unit_test_type) :: test_report
       !> Number of assertions
-      integer, parameter :: n_assertions = 36
+      integer, parameter :: n_assertions = 43
 
       call test_report%init(n_assertions, mpiglobal)
 
@@ -42,9 +43,13 @@ contains
 
       call test_fft_frequencies(test_report)
 
-      call test_partial_grid(test_report)
+      call test_index_in_grid(test_report)
 
       call test_n_grid_diff(test_report)
+
+      call test_finite_zero_indices(test_report)
+
+      call test_partial_grid(test_report)
 
       call test_flattened_map(test_report)
 
@@ -123,12 +128,12 @@ contains
       test_range = mesh_1d(3, 8)
       reference_range = [3, 4, 5, 6, 7, 8]
       call test_report%assert(all(test_range == reference_range), &
-                            'Test mesh_1d for ascending order.')
+                              'Test mesh_1d for ascending order.')
 
       test_range = mesh_1d(12, 9)
       reference_range = [12, 11, 10, 9]
       call test_report%assert(all(test_range == reference_range), &
-                            'Test mesh_1d for descending order.')
+                              'Test mesh_1d for descending order.')
 
       test_range = mesh_1d(13, 20, 3)
       reference_range = [13, 16, 19]
@@ -140,7 +145,6 @@ contains
       call test_report%assert(all(test_range == reference_range), &
                             'Test mesh_1d for descending order with spacing = 2.')
     end subroutine test_mesh_1d
-
 
    !> Test linspace for different inputs.
    subroutine test_linspace(test_report)
@@ -425,6 +429,84 @@ contains
 
   end subroutine test_n_grid_diff
 
+   !> Test index_in_gid
+    subroutine test_index_in_grid(test_report)
+      use mock_arrays, only: fill_array
+      !> Unit test object
+      type(unit_test_type), intent(inout) :: test_report
+
+      !> Test grid
+      real(dp), allocatable :: grid(:, :)
+      !> Vector of which to find index in grid
+      real(dp) :: vector(3)
+      !> Running index grid vectors
+      integer :: i
+      !> Number of vectors in grid
+      integer :: n_vecs
+      !> Index of vector
+      integer :: id_vec
+
+      n_vecs = 5
+
+      allocate (grid(3, n_vecs))
+
+      do i = 1, n_vecs
+         grid(:, i) = i*(/1._dp, 2._dp, 3._dp/)
+      end do
+
+      vector = (/4._dp, 8._dp, 12._dp/)
+
+      id_vec = index_column_vector_in_array(vector, grid)
+
+      call test_report%assert(id_vec == 4, &
+                             'Test index_in_grid. &
+                              Expected: Reference vector at index 4 of grid.')
+
+   end subroutine test_index_in_grid
+
+
+   !> Test routines 'find_zero_vector' and 'indices_finite_vectors'
+   !> to find indices of zero vector and finite vectors.
+   subroutine test_finite_zero_indices(test_report)
+      use math_utils, only: all_close
+      use mock_arrays, only: fill_array, value_map_real_rank2
+
+      !> Unit test report
+      type(unit_test_type), intent(inout) :: test_report
+      real(dp), allocatable :: grid(:,:)
+      integer, parameter :: n_vecs = 4
+      integer, parameter :: id_zero_ref = 2
+      integer, allocatable :: ids_finite_ref(:)
+      integer, allocatable :: ids_finite(:) 
+      integer, allocatable :: ids_zero(:) 
+
+      integer :: id_zero 
+      integer :: i
+
+      
+      allocate(ids_finite_ref(n_vecs - 1))
+      ids_finite_ref = (/1, 3, 4/)
+
+      allocate(grid(3, n_vecs))
+      call fill_array(grid, value_map_real_rank2)
+      grid(:, id_zero_ref) = 0._dp
+
+ 
+      ids_zero = indices_zero_vectors(grid)
+      id_zero = ids_zero(1)
+      ids_finite = indices_finite_vectors(grid)
+
+      call test_report%assert(id_zero == id_zero_ref, &
+                              'Test test_finite_zero_indices: &
+                              Expected: Zero vector at index 2.')
+      
+      call test_report%assert(all(ids_finite == ids_finite_ref), &
+                              'Test test_finite_zero_indices: &
+                              Expected: Finite vectors at indices 1, 3, 4.')
+
+
+
+   end subroutine
   !> Test [[partial_grid]]
   subroutine test_partial_grid(test_report)
     !> Our test object

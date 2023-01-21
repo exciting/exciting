@@ -471,7 +471,8 @@ contains
 !
 ! Check if two scalars, vectors or matrices are close to each other element wise
 ! with respect to a certain tolerance
-
+  
+  
   !> Check if two real scalars \( a \) and \( b \) are equal,
   !> where equal is defined as \( |a - b| \leq abs\_tol \).
   logical function all_close_rank0_real_dp(a, b, tol)
