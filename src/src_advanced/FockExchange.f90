@@ -5,7 +5,7 @@
 !
 !
 Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiir,vxpsimt)
-      Use modmain
+      Use modmain 
       Use modinput
       Use modgw, only : kqset,Gkqset, kset, nomax, numin, ikvbm, ikcbm, ikvcm, Gset
       Implicit None
@@ -25,7 +25,7 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiir,vxpsimt)
       Integer :: ifg
       Logical :: solver
 
-      Real (8) :: v (3), cfq, ta,tb, t1
+      Real (8) :: v (3), cfq, ta,tb, t1, norm, uir
       Complex (8) zrho01, zrho02, zt1, zt2
       Integer :: nr, l, m, io1, lm2, ir, if3
 ! automatic arrays
@@ -42,8 +42,7 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiir,vxpsimt)
       Complex (8), Allocatable :: potir (:)
       Complex (8), Allocatable :: ylmgq (:, :)
       Complex (8), Allocatable :: sfacgq (:, :)
-      Complex (8), Allocatable :: wfcr1 (:, :, :)
-      Complex (8), Allocatable :: wfcr1p (:, :, :)
+      Complex (8), Allocatable :: wfcr1 (:, :)
       Complex (8), Allocatable :: wf1ir (:)
       Complex (8), Allocatable :: wf2ir (:)
       Complex (8), Allocatable :: zrhomt (:, :, :)
@@ -65,12 +64,7 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiir,vxpsimt)
       Allocate (jlgq0r(0:input%groundstate%lmaxvr, nrcmtmax, nspecies))
       Allocate (ylmgq(lmmaxvr, ngvec))
       Allocate (sfacgq(ngvec, natmtot))
-      Allocate (wfcr1(ntpll, nrcmtmax, 2))
-      Allocate (wfcr1p(lmmaxvr, nrcmtmax, 2))
-!      Allocate (wf1ir(ngrtot))
-!      Allocate (wf2ir(ngrtot))
-!      Allocate (prodir(ngrtot))
-!      Allocate (potir(ngrtot))
+      Allocate (wfcr1(ntpll, nrcmtmax))
       Allocate (zrhomt(lmmaxvr, nrcmtmax, natmtot))
       Allocate (zrhoir(ngrtot))
       Allocate (zvcltp(ntpll, nrcmtmax))
@@ -79,14 +73,14 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiir,vxpsimt)
       Allocate (zvclir(ngrtot, nstsv))
 
 
-    if (allocated(evalfv)) deallocate(evalfv)
-    allocate(evalfv(nstfv,kset%nkpt))
+      if (allocated(evalfv)) deallocate(evalfv)
+      allocate(evalfv(nstfv,kset%nkpt))
 
-    evalfv(:,:) = 0.d0
-    do ik = 1, nkpt
-      call getevalfv(kset%vkl(:,ik), evalfv(:,ik))
-    end do
-    call find_vbm_cbm(1, nstfv, kset%nkpt, evalfv, efermi, nomax, numin, ikvbm, ikcbm, ikvcm)
+      evalfv(:,:) = 0.d0
+      Do ik = 1, nkpt
+         Call getevalfv(kset%vkl(:,ik), evalfv(:,ik))
+      End Do
+      call find_vbm_cbm(1, nstfv, kset%nkpt, evalfv, efermi, nomax, numin, ikvbm, ikcbm, ikvcm)
 
       call WFInit(wf1)
 
@@ -97,13 +91,6 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiir,vxpsimt)
 
 
       call WFInit(wf2)
-!      call WFInit(prod)
-!      call WFInit(pot)
-
-!      allocate(pot%mtrlm(lmmaxvr,nrmtmax,natmtot,1))
-      !allocate(pot%ir(ngrtot,1))
-!      allocate(prod%mtrlm(lmmaxvr,nrmtmax,natmtot,1))
-      !allocate(prod%ir(ngrtot,1))
 
       t1 = 1/sqrt(omega)
 ! factor for long-range term
@@ -115,12 +102,16 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiir,vxpsimt)
       vnlvv (:, :) = 0.d0
 ! calculate the wavefunctions for all states for the input k-point
 
+! if (.true.) then
 ! start loop over non-reduced k-point set
-       do iq = 1, kqset%nkpt
+      Do iq = 1, kqset%nkpt
+        ! Write(*,*) "y not go in?"
+        ! Call testsym(ik)
+        ! stop
+
 
 call timesec(ta)
-!         ik  = kset%ikp2ik(ikp) ! 1d reduced index -> 1d non-reduced k-point index
-         jk  = kqset%kqid(ik,iq) ! k-dependent weight of each q-point???
+         jk  = kqset%kqid(ik,iq) ! ID(k') = ID(k-q)-> ID(k) set
 
 ! determine q-vector
          v (:) = kqset%vkc (:, ik) - kqset%vkc (:, jk)
@@ -160,6 +151,7 @@ call timesec(ta)
 call timesec(tb)
 write(*,*) 'genWFs',tb-ta
 
+
       solver = .false.
       if (input%groundstate%hybrid%singularity.ne."exc") then
         solver = .true.
@@ -169,18 +161,17 @@ write(*,*) 'genWFs',tb-ta
       zvclir (:, :) = 0.d0
       zvclmt (:, :, :, :) = 0.d0
 
+
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist3,wf1ir,wf2ir,igk,ifg,prod,prodir,zrho01,pot,potir,ta,tb) REDUCTION(+:zvclir,zvclmt)
+         call WFInit(prod)
+         call WFInit(pot)
 
-
-      call WFInit(prod)
-      call WFInit(pot)
-
-      allocate(pot%mtrlm(lmmaxvr,nrmtmax,natmtot,1))
-      allocate(prod%mtrlm(lmmaxvr,nrmtmax,natmtot,1))
-      Allocate (wf1ir(ngrtot))
-      Allocate (wf2ir(ngrtot))
-      Allocate (prodir(ngrtot))
-      Allocate (potir(ngrtot))
+         Allocate(pot%mtrlm(lmmaxvr,nrmtmax,natmtot,1))
+         Allocate(prod%mtrlm(lmmaxvr,nrmtmax,natmtot,1))
+         Allocate (wf1ir(ngrtot))
+         Allocate (wf2ir(ngrtot))
+         Allocate (prodir(ngrtot))
+         Allocate (potir(ngrtot))
 
 
 
@@ -188,6 +179,7 @@ write(*,*) 'genWFs',tb-ta
 
 
          Do ist2 = 1, nomax
+
           
            wf2ir(:) = 0.d0
            Do igk = 1, Gkqset%ngk (1, jk)
@@ -197,20 +189,21 @@ write(*,*) 'genWFs',tb-ta
            Call zfftifc (3, ngrid, 1, wf2ir(:))
 
 
+
 !$OMP DO
+            Do ist3 = 1, nstfv
 
-
-           Do ist3 = 1, nstfv
               
-             wf1ir(:) = 0.d0 
-             Do igk = 1, Gkqset%ngk (1, ik)
-               ifg = igfft (Gkqset%igkig(igk, 1, ik))
-               wf1ir(ifg) = t1*wf1%gk(igk, ist3)
-             End Do
-             Call zfftifc (3, ngrid, 1, wf1ir(:))
+               wf1ir(:) = 0.d0 
+               Do igk = 1, Gkqset%ngk (1, ik)
+                  ifg = igfft (Gkqset%igkig(igk, 1, ik))
+                  wf1ir(ifg) = t1*wf1%gk(igk, ist3)
+               End Do
+               Call zfftifc (3, ngrid, 1, wf1ir(:))
 
 ! calculate the complex overlap density
 !-------------------------------------------------------------------
+
                      call WFprodrs(ist2,wf2,ist3,wf1,prod)
                      prodir(:)=conjg(wf2ir(:))*wf1ir(:)
 if ((ik.eq.jk).and.(.not.solver)) then
@@ -237,6 +230,8 @@ else
 
 end if
 
+               call WFprodrs(ist2,wf2,ist3,wf1,prod)
+               prodir(:)=conjg(wf2ir(:))*wf1ir(:)
 
 
 
@@ -250,42 +245,36 @@ if ((ik.eq.jk).and.(.not.solver)) then
                   potir(:)=potir(:)-zrho01
                   pot%mtrlm(1,:,:,1)=pot%mtrlm(1,:,:,1)-zrho01/y00
 endif
-!write(*,*) dble(sum(potir)),dble(sum(pot%mtrlm))
 
 !-------------------------------------------------------------------
-                        call genWFonMeshOne(pot)
-                       pot%mtmesh=conjg(pot%mtmesh)
-                        call WFprodrs(1,pot,ist2,wf2,prod)
-                       prodir(:) = potir(:)*wf2ir(:)
-! ------------------------------------------------------------------
-! ------------------------------------------------------------------
-! ------------------------------------------------------------------
-!write(*,*) dble(sum(prodir)),dble(sum(prod%mtrlm)) 
+               call genWFonMeshOne(pot)
+               pot%mtmesh=conjg(pot%mtmesh)
+               call WFprodrs(1,pot,ist2,wf2,prod)
+               prodir(:) = potir(:)*wf2ir(:)
 
-                        zvclir(:,ist3)=zvclir(:,ist3)+prodir(:)*wkptnr(jk)
-                        zvclmt(:,:,:,ist3)=zvclmt(:,:,:,ist3)+prod%mtrlm(:,:,:,1)*wkptnr(jk)
-!write(*,*) dble(sum(zvclir)),dble(sum(zvclmt))                    
-! ------------------------------------------------------------------
-! ------------------------------------------------------------------
 
-! end loop over ist3
-               End Do
+! ------------------------------------------------------------------
+               zvclir(:,ist3)=zvclir(:,ist3)+prodir(:)*wkptnr(jk)
+               zvclmt(:,:,:,ist3)=zvclmt(:,:,:,ist3)+prod%mtrlm(:,:,:,1)*wkptnr(jk)
+
+            End Do ! ist3
 
 !$OMP END DO NOWAIT
+         End Do ! ist2
+
 
 
 !stop
 !write(*,*) dble(sum(zvclir)),dble(sum(zvclmt))
 !write(*,*) dble(sum(vxpsiir)),dble(sum(vxpsimt))
 
-! end loop over ist2
-         End Do
       call WFRelease(prod)
       call WFRelease(pot)
       Deallocate (wf1ir)
       Deallocate (wf2ir)
       Deallocate (prodir)
       Deallocate (potir)
+
 
 
 !$OMP END PARALLEL
@@ -297,93 +286,137 @@ vxpsimt=vxpsimt+zvclmt
 ! end loop over non-reduced k-point set
       End Do
 
+
 !----------------------------------------------!
-!     valence-core-valence contribution     !
+!     valence-core-valence contribution        !
 !----------------------------------------------!
-! begin loops over atoms and species
+call timesec(ta)
       zvclmt (:, :, :, :) = 0.d0
-call timesec(ta)      
-write(*,*) '----vcv----'
+            
 If (.true.) Then
-Do is = 1, nspecies
-  nrc = nrcmt(is)
-  Do ia = 1, natoms (is)
-    ias = idxas (ia, is)
-    Do ist2 = 1, spnst (is)
-      If (spcore(ist2, is)) Then
-         Do m1 = - spk (ist2, is), spk (ist2, is) - 1
-! pass m-1/2 to wavefcr
-            Call wavefcr2 (input%groundstate%lradstep, is, ia, &
-           & ist2, m1, nrcmtmax, wfcr1) !Psi*_{a}; Returns in SC (I think)
+      Do is = 1, nspecies
+         nrc = nrcmt(is)
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
+            Do ist2 = 1, spnst (is) !This is essentially ncore(is)
+               If (spcore(ist2, is)) Then
+                  l = spl(ist2, is)
+                  norm = sqrt(0.5d0*spocc(ist2,is)/dble(2*l+1))
+                  Do m = -l, l
+                     lm = idxlm (l, m)
+                     Do ir = 1, nrmt(is)
+                        uir = norm * rwfcr (ir, 1, ist2, ias) / spr (ir, is)
+                        wfcr1 (1:ntpll, ir) = uir * zbshthf (1:ntpll, lm)
+                     End Do ! ir
 
-! Begin loop over occupied and empty states
-            Do ist3 = 1, nstsv
+                     ! Begin loop over occupied and empty states
+                     Do ist3 = 1, nstsv
 
 ! calculate the complex overlap density
-
-                Call vnlrhomt2 (.true., is, wfcr1(:, :, 1), &
-                & wf1%mtmesh(:, :, ias, ist3), zrhomt(:, :, &
-                & ias)) ! Psi*_{a}.Psi_{nk} = rho_{a;nk}; Returns in SH)
-
+                        Call vnlrhomt2 (.true., is, wfcr1(:, :), &
+                        & wf1%mtmesh(:, :, ias, ist3), zrhomt(:, :, &
+                        & ias)) ! Psi*_{a}.Psi_{nk} = rho_{a;nk}; Returns in SH)
+      
 ! calculate the Coulomb potential
-
-                Call zpotclmt (input%groundstate%ptnucl, &
-                & input%groundstate%lmaxvr, nrc, rcmt(:, is), &
-                & 0.d0, lmmaxvr, zrhomt(:, :, ias), zfmt) ! Returns SH
-
-                Call zgemm ('N', 'N', ntpll, nrc, lmmaxvr, &
-                & zone, zbshthf, ntpll, zfmt, lmmaxvr, &
-                & zzero, zvcltp, ntpll) ! Returns zvcltp in SC
-
-                zvcltp=conjg(zvcltp)
+                        Call zpotclmt (input%groundstate%ptnucl, &
+                        & input%groundstate%lmaxvr, nrc, rcmt(:, is), &
+                        & 0.d0, lmmaxvr, zrhomt(:, :, ias), zfmt) ! Returns SH
+      
+                        Call zgemm ('N', 'N', ntpll, nrc, lmmaxvr, &
+                        & zone, zbshthf, ntpll, zfmt, lmmaxvr, &
+                        & zzero, zvcltp, ntpll) ! Returns zvcltp in SC
+      
+                        zvcltp=conjg(zvcltp)
+      
 ! calculate the complex overlap density
-                Call vnlrhomt2 (.true., is, zvcltp, wfcr1(:, :, 1), zrhomt(:, :, ias)) ! Returns in SH
-
-                zvclmt(:,:,ias,ist3)=zvclmt(:,:,ias,ist3)+zrhomt(:, :, ias)
-! end loop over ist3
-            End Do
-! end loops over ist2 and m1
-         End Do
-      End If
-    End do
-  End Do
-End Do
+                        Call vnlrhomt2 (.true., is, zvcltp, wfcr1(:, :), zrhomt(:, :, ias)) ! Returns in SH
+      
+                        zvclmt(:,:,ias,ist3)=zvclmt(:,:,ias,ist3)+zrhomt(:, :, ias)
+                        
+                     End Do ! ist3
+                  End Do ! m
+               End If ! spcore(ist2, is)
+            End do ! ist2
+         End Do ! ia
+      End Do ! is
 End If
 call timesec(tb) 
 write(*,*) 'vcv',tb-ta
 
-vxpsimt=vxpsimt+zvclmt
+      vxpsimt=vxpsimt+zvclmt
+      Allocate (wf1ir(ngrtot))
 
 call timesec(ta)
-Allocate (wf1ir(ngrtot))
-
-Do ist1 = 1, nstsv
-      wf1ir(:) = 0.d0
-      Do igk = 1, Gkqset%ngk (1, ik)
+      Do ist1 = 1, nstsv
+         wf1ir(:) = 0.d0
+         Do igk = 1, Gkqset%ngk (1, ik)
             ifg = igfft (Gkqset%igkig(igk, 1, ik))
             wf1ir(ifg) = t1*wf1%gk(igk, ist1)
-      End Do
-      Call zfftifc (3, ngrid, 1, wf1ir(:))
+         End Do
+         Call zfftifc (3, ngrid, 1, wf1ir(:))
 
 ! q=0 correction
-      if (ist1.le.nomax) then
-        vxpsimt(:,:,:,ist1) = vxpsimt(:,:,:,ist1) + q0corr*wf1%mtrlm(:,:,:,ist1)
-        vxpsiir(:,ist1) = vxpsiir(:,ist1) + q0corr*wf1ir(:)
-      endif
+         if (ist1.le.nomax) then
+            vxpsimt(:,:,:,ist1) = vxpsimt(:,:,:,ist1) + q0corr*wf1%mtrlm(:,:,:,ist1)
+            vxpsiir(:,ist1) = vxpsiir(:,ist1) + q0corr*wf1ir(:)
+         endif
 
-      Do ist3 = 1, nstsv
+         Do ist3 = 1, nstsv
             zt1 = zfinp (.True., wf1%mtrlm(:,:,:,ist1),vxpsimt(:,:,:,ist3), wf1ir(:), vxpsiir(:,ist3))
             vnlvv (ist1, ist3) = vnlvv (ist1, ist3) - zt1
-      End Do 
-End Do
+         End Do ! ist3
+      End Do ! ist1
 
-!write(*,*) 'vnlvv real'
-!do ist1 = 1, 8
-!        write(*,'(12F13.9)') dble(vnlvv(ist1,1:8))
-!end do
-!stop
-!call timesec(tb)
+
+
+
+call timesec(tb)
+
 write(*,*) 'Matrix',tb-ta
+
+if (.false.) then
+      write(*,*) 'vnlvv real (1:14,1:14)'
+      do ist1 = 1, 14
+         write(*,'(14F13.9)') dble(vnlvv(ist1,1:14))
+      end do
+      
+      write(*,*) 'vnlvv real, (1:14,14:28)'
+      do ist1 = 1, 14
+         write(*,'(15F13.9)') dble(vnlvv(ist1,14:28))
+      end do
+      
+      write(*,*) 'vnlvv real, (14:28,1:14)'
+      do ist1 = 14, 28
+         write(*,'(14F13.9)') dble(vnlvv(ist1,1:14))
+      end do
+      
+      write(*,*) 'vnlvv real, (14:28,14:28)'
+      do ist1 = 14, 28
+         write(*,'(15F13.9)') dble(vnlvv(ist1,14:28))
+      end do
+      
+      
+      write(*,*) 'vnlvv imag (1:14,1:14)--'
+      do ist1 = 1, 14
+         write(*,'(14F13.9)') dimag(vnlvv(ist1,1:14))
+      end do
+      
+      write(*,*) 'vnlvv imag, (1:14,14:28)'
+      do ist1 = 1, 14
+         write(*,'(15F13.9)') dimag(vnlvv(ist1,14:28))
+      end do
+      
+      write(*,*) 'vnlvv imag, (14:28,1:14)'
+      do ist1 = 14, 28
+         write(*,'(14F13.9)') dimag(vnlvv(ist1,1:14))
+      end do
+      
+      write(*,*) 'vnlvv imag, (14:28,14:28)'
+      do ist1 = 14, 28
+         write(*,'(15F13.9)') dimag(vnlvv(ist1,14:28))
+      end do
+      
+end if
       
       Deallocate (vgqc, tpgqc, gqc, jlgqr, jlgq0r)
       Deallocate (ylmgq, sfacgq)
