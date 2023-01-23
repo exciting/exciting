@@ -364,6 +364,20 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
+	    <xs:attribute ex:importance="essential" ex:unit="" name="singularity" default="exc">
+              <xs:annotation>
+                <xs:documentation>
+                    Method for singularity solution in Fock operator.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="ps0d"/>
+                  <xs:enumeration value="exc0d"/>
+                  <xs:enumeration value="exc"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
             <xs:attribute ex:importance="essential" ex:unit="" name="excoeff" type="fortrandouble"
               default="0.25d0">
               <xs:annotation>

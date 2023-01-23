@@ -11,7 +11,7 @@
 !
 !
 Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
-& zn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
+& zn, zrhomt, zrhoir, hybrid, zvclmt, zvclir, zrho0)
       Use modinput
       Use mod_kpoint, only: nkptnr
 ! !USES:
@@ -39,6 +39,7 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 !   zn     : nuclear charges at the atomic centers (in,real(nspecies))
 !   zrhomt : muffin-tin charge density (in,complex(lmmaxvr,nrmax,natmtot))
 !   zrhoir : interstitial charge density (in,complex(ngrtot))
+!   hybrid : hybrid calculation option 0 or 1 (in, integer)
 !   zvclmt : muffin-tin Coulomb potential (out,complex(lmmaxvr,nrmax,natmtot))
 !   zvclir : interstitial Coulomb potential (out,complex(ngrtot))
 !   zrho0  : G+p=0 term of the pseudocharge density (out,complex)
@@ -118,6 +119,7 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
       Real (8), Intent (In) :: zn (nspecies)
       Complex (8), Intent (In) :: zrhomt (lmmaxvr, nrmax, natmtot)
       Complex (8), Intent (In) :: zrhoir (ngrtot)
+      Integer , Intent(In) :: hybrid
       Complex (8), Intent (Out) :: zvclmt (lmmaxvr, nrmax, natmtot)
       Complex (8), Intent (Out) :: zvclir (ngrtot)
       Complex (8), Intent (Out) :: zrho0
@@ -178,7 +180,14 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
       excite = .True.
    end if
 
-
+   if (hybrid.eq.1) then! for hybrid calculations, using methods for Fock operator calculations
+     exciting0d=(input%groundstate%hybrid%singularity.eq."exc0d")
+     psolver0d=(input%groundstate%hybrid%singularity.eq."ps0d")
+     if (psolver0d) then
+            excite = .False.
+     end if
+     write(*,*)"exc0d", exciting0d
+   end if
    
 
 #ifdef PSOLVER
@@ -191,7 +200,7 @@ if (.not.excite) then
 isf_order = 16
 
    if (psolver0d) then! free in all directions
-       write(*,*)"type F"
+       write(*,*)"type Free"
        solvertype='F'
        bc_type = 0
    else if ((psolver3d)) then! periodic x, y, z
@@ -237,7 +246,7 @@ end do
    dict=>dict_new('kernel' .is. dict_new('isf_order' .is. isf_order))
    kernel=pkernel_init(0,1,dict,dom,ngrid,hgrids)
    call dict_free(dict)
-   call pkernel_set(kernel,verbose=.false.)
+   call pkernel_set(kernel,verbose=.true.)
 
 
 
@@ -430,7 +439,7 @@ end if
 
 #ifdef PSOLVER
 if (.not.excite) then
-
+write(*,*)"psolver"
 ! Fourier transform interstitial potential to real space
       Call zfftifc (3, ngrid, 1, zvclir)
       allocate(fake_arr(1),r_v(n1*n2*n3), c_v(n1*n2*n3))
@@ -448,7 +457,7 @@ if (.not.excite) then
       offset=0d0
 
 
-      call H_potential('G',kernel,r_v,fake_arr,energy,offset,.false.,quiet='yes')
+      call H_potential('G',kernel,r_v,fake_arr,energy,offset,.false.,quiet='no')
 
       call H_potential('G',kernel,c_v,fake_arr,energy,offset,.false.,quiet='yes')
 
@@ -466,7 +475,7 @@ if (.not.excite) then
 
 ! Fourier transform interstitial potential to reciprocal space
       Call zfftifc (3, ngrid, -1, zvclir)
-      zvclir(1)=0d0
+      !zvclir(1)=0d0
       
 
 
@@ -475,7 +484,7 @@ end if!psolver
 
 #endif
 if (excite) then!exciting or exciting0d
-
+write(*,*)"exciting0"
 ! set zrho0 (pseudocharge density coefficient of the smallest G+p vector)
       !ifg = igfft (igp0)
       !zrho0 = zvclir (ifg)

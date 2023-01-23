@@ -23,6 +23,7 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiir,vxpsimt)
       Integer :: ilo, loindex
       Integer :: info
       Integer :: ifg
+      Logical :: solver
 
       Real (8) :: v (3), cfq, ta,tb, t1
       Complex (8) zrho01, zrho02, zt1, zt2
@@ -159,6 +160,12 @@ call timesec(ta)
 call timesec(tb)
 write(*,*) 'genWFs',tb-ta
 
+      solver = .false.
+      if (input%groundstate%hybrid%singularity.ne."exc") then
+        solver = .true.
+      end if
+
+
       zvclir (:, :) = 0.d0
       zvclmt (:, :, :, :) = 0.d0
 
@@ -176,16 +183,23 @@ write(*,*) 'genWFs',tb-ta
       Allocate (potir(ngrtot))
 
 
+
+
+
+
          Do ist2 = 1, nomax
-write(*,*) ist2           
+          
            wf2ir(:) = 0.d0
            Do igk = 1, Gkqset%ngk (1, jk)
              ifg = igfft (Gkqset%igkig(igk, 1, jk))
              wf2ir(ifg) = t1*wf2%gk(igk, ist2)
            End Do
            Call zfftifc (3, ngrid, 1, wf2ir(:))
-      
+
+
 !$OMP DO
+
+
            Do ist3 = 1, nstfv
               
              wf1ir(:) = 0.d0 
@@ -199,30 +213,37 @@ write(*,*) ist2
 !-------------------------------------------------------------------
                      call WFprodrs(ist2,wf2,ist3,wf1,prod)
                      prodir(:)=conjg(wf2ir(:))*wf1ir(:)
-
-if ((ik.eq.jk).and.(input%groundstate%vha.ne."psolver0d")) then
-                     Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, &
+if ((ik.eq.jk).and.(.not.solver)) then
+!write(*,*)"auxiliary 1"
+                    Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, &
                     & igq0), sfacgq0, prod%mtrlm(:,:,:,1), prodir(:), zrho01) 
                      prodir(:)=prodir(:)-zrho01
                      prod%mtrlm(1,:,:,1)=prod%mtrlm(1,:,:,1)-zrho01/y00
 endif
 
-!write(*,*) dble(sum(prodir)),dble(sum(prod%mtrlm))
-! calculate the Coulomb potential
-#ifdef PSOLVER
+
+if (solver) then
+!write(*,*)"zpotcoul2"
+
                      Call zpotcoul2 (nrcmt, nrcmtmax, nrcmtmax, rcmt, &
                     & igq0, gqc, jlgqr, ylmgq, sfacgq, zn, prod%mtrlm(:,:,:,1), &
-                    & prodir(:), pot%mtrlm(:,:,:,1), potir(:), zrho02)
+                    & prodir(:), 1, pot%mtrlm(:,:,:,1), potir(:), zrho02)
 
-#else
+else
+!write(*,*)"zpotcoul exciting"
                      Call zpotcoul (nrcmt, nrcmtmax, nrcmtmax, rcmt, &
                     & igq0, gqc, jlgqr, ylmgq, sfacgq, zn, prod%mtrlm(:,:,:,1), &
                     & prodir(:), pot%mtrlm(:,:,:,1), potir(:), zrho02)
 
-#endif
+end if
 
 
-if ((ik.eq.jk).and.(input%groundstate%vha.ne."psolver0d")) then
+
+
+
+!if ((ik.eq.jk).and.(input%groundstate%vha.ne."psolver0d")) then
+if ((ik.eq.jk).and.(.not.solver)) then
+!write(*,*)"auxiliary 2"
                   Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, &
                   & igq0), sfacgq0, pot%mtrlm(:,:,:,1), potir(:), zrho01)
 
@@ -246,16 +267,12 @@ endif
 !write(*,*) dble(sum(zvclir)),dble(sum(zvclmt))                    
 ! ------------------------------------------------------------------
 ! ------------------------------------------------------------------
-! ------------------------------------------------------------------
-
-
-! ------------------------------------------------------------------
-! ------------------------------------------------------------------
-! ------------------------------------------------------------------
 
 ! end loop over ist3
                End Do
+
 !$OMP END DO NOWAIT
+
 
 !stop
 !write(*,*) dble(sum(zvclir)),dble(sum(zvclmt))
@@ -270,7 +287,9 @@ endif
       Deallocate (prodir)
       Deallocate (potir)
 
+
 !$OMP END PARALLEL
+
 vxpsiir=vxpsiir+zvclir
 vxpsimt=vxpsimt+zvclmt
 !stop
@@ -359,10 +378,11 @@ Do ist1 = 1, nstsv
 End Do
 
 !write(*,*) 'vnlvv real'
-!do ist1 = 1, 12
-!        write(*,'(12F13.9)') dble(vnlvv(ist1,1:12))
+!do ist1 = 1, 8
+!        write(*,'(12F13.9)') dble(vnlvv(ist1,1:8))
 !end do
-call timesec(tb)
+!stop
+!call timesec(tb)
 write(*,*) 'Matrix',tb-ta
       
       Deallocate (vgqc, tpgqc, gqc, jlgqr, jlgq0r)

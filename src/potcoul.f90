@@ -66,19 +66,16 @@ Subroutine potcoul
 !      &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
 !#endif
 
-!#ifdef PSOLVER
       if (input%groundstate%vha.eq.'exciting') then
+        !write(*,*)"pot exciting"
         Call zpotcoul (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
         &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
 
       else!
+        !write(*,*)"pot zpot2"
         Call zpotcoul2 (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
-        &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)    
+        &              sfacg, spzn, zrhomt, zrhoir, 0, zvclmt, zvclir, zrho0)    
       endif
-!#else
- !     Call zpotcoul (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
-  !    &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
-!#endif
 
 
 

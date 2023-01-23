@@ -35,7 +35,7 @@ subroutine calc_vxnl()
     complex(8), allocatable :: vnlcv(:,:,:,:)
 
     complex(8), external :: zdotc
-
+    logical :: hybrid
 ! allocatables for ACE
     complex(8), allocatable :: vxpsimt (:, :, :, :), vxpsiir(:, :)
 
@@ -266,7 +266,15 @@ if (input%groundstate%hybrid%method.eq."MB") then
 
 else ! Use oepvnl
 
-      if (input%groundstate%vha.eq."psolver0d") sxs2=0d0
+     ! hybrid = .False.
+     ! if (input%groundstate%hybrid%singularity.ne."exc") then
+        !hybrid = .True.
+       !write(*,*)"calc_vx hybrid", hybrid
+      !end if
+
+
+      if (input%groundstate%hybrid%singularity.ne."exc") sxs2=0d0
+      !if (input%groundstate%vha.eq."psolver0d") sxs2=0d0
 
       if (allocated(vxnl)) deallocate(vxnl)
       allocate(vxnl(nstfv,nstfv,kset%nkpt))
