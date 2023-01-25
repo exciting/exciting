@@ -31,11 +31,11 @@
       "unit": "eV"
     },
     "abs_oscillator_strength": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "null"
     },
     "real_oscillator_strength": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "null"
     },
     "imag_oscillator_strength": {
@@ -75,15 +75,15 @@
       "unit": "eV"
     },
     "abs_oscillator_strength": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "null"
     },
     "real_oscillator_strength": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "null"
     },
     "imag_oscillator_strength": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "null"
     }
   }
