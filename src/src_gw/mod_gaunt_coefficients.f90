@@ -19,6 +19,7 @@ contains
 !!INTERFACE:
 !
     subroutine calcgauntcoef(maxj)
+      use wigner3j_symbol, only: gaunt_yyy
 !
 !!DESCRIPTION:
 !      
@@ -31,7 +32,7 @@ contains
 ! \end{equation}
 ! 
 ! for $l$ and $l' = 0,1,$... \verb"maxj". The integral is done numerically
-! on a special grid (see gaunt.f90).
+! on a special grid (see wigner3j\_symbol.f90).
 ! The values are calculated only for $l\ge l'$ and $m' \ge 0$. 
 ! 
 ! The storage is optimized by saving the values in a vector
@@ -65,9 +66,6 @@ contains
         integer(4) :: m1, m2, m3 
         integer(4) :: ntot, ngrid
       
-!!EXTERNAL ROUTINES: 
-        real(8), external :: gaunt
-
 !!REVISION HISTORY:
 !
 ! Created: Apr. 2004 by RGA
@@ -90,7 +88,7 @@ contains
                   i = i+1
                   if (mod(l1+l2+l3,2)==0) then
                     if (iabs(m3)<=l3) then
-                      gauntcoef(i) = gaunt(l3,l1,l2,m3,m1,m2)
+                      gauntcoef(i) = gaunt_yyy(l3,l1,l2,m3,m1,m2)
                     else
                       gauntcoef(i) = 0.0d0
                     endif
