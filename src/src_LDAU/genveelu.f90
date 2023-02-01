@@ -7,6 +7,7 @@
 !
 !
 Subroutine genveelu (l, u, j, lmax, vee)
+      use wigner3j_symbol, only: gaunt_yyy
       Implicit None
 ! arguments
       Integer, Intent (In) :: l
@@ -20,9 +21,6 @@ Subroutine genveelu (l, u, j, lmax, vee)
       Real (8), Parameter :: fourpi = 12.566370614359172954d0
       Real (8) :: r1, r2, f (0:6)
       Real (8) :: sum1, sum2, t1
-! external functions
-      Real (8) :: gaunt
-      External gaunt
 ! Slater integrals F(k) for d and f electrons in Ry, to be converted in Htr
       f (:) = 0.d0
       f (0) = u
@@ -58,8 +56,8 @@ Subroutine genveelu (l, u, j, lmax, vee)
                   Do k = 0, 2 * l, 2
                      sum2 = 0.d0
                      Do q = - k, k
-                        t1 = gaunt (l, k, l, m1, q, m2) * gaunt (l, k, &
-                       & l, m3,-q, m4)
+                        t1 = gaunt_yyy(l, k, l, m1, q, m2) * &
+                             gaunt_yyy(l, k, l, m3,-q, m4)
                         If (Mod(q, 2) .Eq. 0) Then
                            sum2 = sum2 + t1
                         Else

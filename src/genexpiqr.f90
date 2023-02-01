@@ -7,6 +7,7 @@ Subroutine genexpiqr (ik, emat)
       Use modmain
       Use modinput
       use constants, only: fourpi
+      use wigner3j_symbol, only: gaunt_yyy
       Implicit None
 ! arguments
       Integer, Intent (In) :: ik
@@ -47,9 +48,8 @@ Subroutine genexpiqr (ik, emat)
       Complex (8), Allocatable :: zfir2 (:)
       Complex (8), Allocatable :: em (:, :)
 ! external functions
-      Real (8) :: gaunt
       Complex (8) zfmtinp, zdotc
-      External gaunt, zfmtinp, zdotc
+      External zfmtinp, zdotc
 ! check if q-vector is zero
       t1 = input%properties%elnes%vecql(1) ** 2 + &
      & input%properties%elnes%vecql(2) ** 2 + &
@@ -110,7 +110,7 @@ Subroutine genexpiqr (ik, emat)
                   Do l3 = 0, input%groundstate%lmaxvr
                      Do m3 = - l3, l3
                         lm3 = idxlm (l3, m3)
-                        gnt (lm1, lm2, lm3) = gaunt (l1, l2, l3, m1, &
+                        gnt (lm1, lm2, lm3) = gaunt_yyy (l1, l2, l3, m1, &
                        & m2, m3)
                      End Do
                   End Do

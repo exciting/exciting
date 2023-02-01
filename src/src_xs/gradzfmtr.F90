@@ -31,6 +31,7 @@ Subroutine gradzfmtr (lmax, nr, r, l1, m1, ld1, ld2, fmt, gfmt)
 !EOP
 !BOC
       use constants, only: sqrt_two
+      use wigner3j_symbol, only: clebsch_gordan
       Implicit None
   ! arguments
       Integer, Intent (In) :: lmax
@@ -47,9 +48,6 @@ Subroutine gradzfmtr (lmax, nr, r, l1, m1, ld1, ld2, fmt, gfmt)
       Real (8) :: tt1, tt2
   ! automatic arrays
       Real (8) :: f (nr), g1 (nr), cf (3, nr)
-  ! external functions
-      Real (8) :: clebgor
-      External clebgor
       If (lmax .Lt. 0) Then
          Write (*,*)
          Write (*, '("Error(gradzfmtr): lmax < 0 : ", I8)') lmax
@@ -69,9 +67,9 @@ Subroutine gradzfmtr (lmax, nr, r, l1, m1, ld1, ld2, fmt, gfmt)
          lm2 = l2 ** 2
          Do m2 = - l2, l2
             lm2 = lm2 + 1
-            t3 = clebgor (l2, 1, l1, m2,-1, m1)
-            t4 = clebgor (l2, 1, l1, m2, 0, m1)
-            t5 = clebgor (l2, 1, l1, m2, 1, m1)
+            t3 = clebsch_gordan (l2, 1, l1, m2,-1, m1)
+            t4 = clebsch_gordan (l2, 1, l1, m2, 0, m1)
+            t5 = clebsch_gordan (l2, 1, l1, m2, 1, m1)
             Do ir = 1, nr
                tt1 = g1 (ir)
                tt2 = t1 * (fmt(ir)*dble(l1)/r(ir)-tt1)
@@ -88,9 +86,9 @@ Subroutine gradzfmtr (lmax, nr, r, l1, m1, ld1, ld2, fmt, gfmt)
          lm2 = l2 ** 2
          Do m2 = - l2, l2
             lm2 = lm2 + 1
-            t3 = clebgor (l2, 1, l1, m2,-1, m1)
-            t4 = clebgor (l2, 1, l1, m2, 0, m1)
-            t5 = clebgor (l2, 1, l1, m2, 1, m1)
+            t3 = clebsch_gordan (l2, 1, l1, m2,-1, m1)
+            t4 = clebsch_gordan (l2, 1, l1, m2, 0, m1)
+            t5 = clebsch_gordan (l2, 1, l1, m2, 1, m1)
             Do ir = 1, nr
                tt1 = g1 (ir)
                tt2 = t2 * (fmt(ir)*dble(l1+1)/r(ir)+tt1)

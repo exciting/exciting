@@ -15,7 +15,7 @@ Subroutine init1
       Use modinput
       Use modmain
       Use modmpi, only: terminate
-
+      use wigner3j_symbol, only: gaunt_yry
 
 #ifdef TETRA
       Use modtetra
@@ -52,10 +52,6 @@ Subroutine init1
       ! +/-1 for sign of spin-dependent term
       real (8) :: sign
 
-! external functions
-      Complex (8) gauntyry
-      External gauntyry
-!
       call stopwatch("exciting:init1", 1)
 
       wannierband = .false.
@@ -555,7 +551,7 @@ Subroutine init1
                   Do l3 = 0, input%groundstate%lmaxapw
                      Do m3 = - l3, l3
                         lm3 = idxlm (l3, m3)
-                        gntyry (lm1, lm2, lm3) = gauntyry (l1, l2, l3, m1, m2, m3)
+                        gntyry (lm1, lm2, lm3) = gaunt_yry (l1, l2, l3, m1, m2, m3)
                         if ((abs(gntyry (lm1, lm2, lm3)).gt.1d-20)) nonzcount=nonzcount+1
                      End Do
                   End Do
@@ -584,7 +580,7 @@ Subroutine init1
               Do l2 = 0, input%groundstate%lmaxvr
                 Do m2 = - l2, l2
                   lm2 = idxlm (l2, m2)
-                  gntryy (lm2, lm3, lm1) = gauntyry (l1, l2, l3, m1, m2, m3)
+                  gntryy (lm2, lm3, lm1) = gaunt_yry (l1, l2, l3, m1, m2, m3)
                 End Do
               End Do
             End Do

@@ -259,11 +259,7 @@ contains
             call delete_Gk_vectors(gq_grids(i_system))
             call delete_k_vectors(q_grids(i_system))
         end do
-
-        !----- will be removed before merge
-        call compare_dielectric_matrix(eps0_dirnames(hs), 'EPS0_sc', n_qvecs(hs), .1_dp)
-        !-----
-
+        
     end subroutine
 
     !> Given the two dielectric matrices (DMs),

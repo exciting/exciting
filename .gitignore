@@ -115,3 +115,5 @@ xml/excitinginput.xsd
 # Jetbrains
 .idea/  
 
+# Ctags tag files
+tags

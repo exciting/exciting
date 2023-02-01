@@ -11,6 +11,7 @@ contains
   subroutine xsgauntgen(lmax1, lmax2, lmax3)
     use mod_muffin_tin, only: idxlm
     use modxs, only: xsgnt
+    use wigner3j_symbol, only: gaunt_yyy
     implicit none
 
     ! Arguments
@@ -19,9 +20,6 @@ contains
     ! Local variables
     integer :: l1, l2, l3, m1, m2, m3
     integer :: lm1, lm2, lm3, lmmax1, lmmax2, lmmax3
-
-    ! External functions
-    real(8), external :: gaunt
 
     ! Allocate and generate complex gaunt coefficient array
     lmmax1 = (lmax1+1) ** 2
@@ -40,7 +38,7 @@ contains
             do l3 = 0, lmax3
               do m3 = - l3, l3
                 lm3 = idxlm(l3, m3)
-                xsgnt(lm1, lm2, lm3) = gaunt(l1, l2, l3, m1, m2, m3)
+                xsgnt(lm1, lm2, lm3) = gaunt_yyy(l1, l2, l3, m1, m2, m3)
               end do
             end do
           end do
@@ -55,14 +53,14 @@ contains
     use modxas, only: nxas, lxas, xasstart, xasstop, preml, mj2ml, spj, mj
     use mod_muffin_tin, only: idxlm
     use m_ematqk, only: emat_ccket
+    use wigner3j_symbol, only: gaunt_yyy
     Implicit None
     ! arguments
     Integer, Intent (In) :: lmax2, lmax3
     ! local variables
     Integer :: n1, n2, l2, l3, m2, m3, lm1, lm2, lm3, &
       & lmmax2, lmmax3, nsp 
-    Real (8) :: gaunt, prefac
-    External :: gaunt
+    Real (8) :: prefac
     
     if (.not. (input%groundstate%tevecsv)) then
       ! allocate and generate complex Gaunt coefficient array
@@ -85,26 +83,26 @@ contains
                 if (.not. emat_ccket) then
                   !resonant part
                   xsgntou (n1, lm2, lm3) = prefac*preml(lxas,spj(n1+xasstart-1),&
-                    & mj(n1+xasstart-1),1)*gaunt (lxas, l2, l3, mj2ml(lxas,mj(n1+xasstart-1),1),&
-                    & m2, m3)+prefac*preml(lxas,spj(n1+xasstart-1),mj(n1+xasstart-1),2)*gaunt&
+                    & mj(n1+xasstart-1),1)*gaunt_yyy (lxas, l2, l3, mj2ml(lxas,mj(n1+xasstart-1),1),&
+                    & m2, m3)+prefac*preml(lxas,spj(n1+xasstart-1),mj(n1+xasstart-1),2)*gaunt_yyy&
                     & (lxas, l2, l3, mj2ml(lxas,mj(n1+xasstart-1),2), m2, m3)
                   ! anti-resonant
                   xsgntuo (n1, lm2, lm3) = prefac*preml(lxas,spj(n1+xasstart-1),mj(n1+&
-                    & xasstart-1),1)*gaunt (l3, l2, lxas, m3, m2,&
+                    & xasstart-1),1)*gaunt_yyy (l3, l2, lxas, m3, m2,&
                     & mj2ml(lxas,mj(n1+xasstart-1),1))+prefac*preml(lxas,spj(n1+xasstart-1),mj&
-                    & (n1+xasstart-1),2)*gaunt(l3, l2, lxas, m3, m2, mj2ml(lxas,mj(n1+xasstart-1)&
+                    & (n1+xasstart-1),2)*gaunt_yyy(l3, l2, lxas, m3, m2, mj2ml(lxas,mj(n1+xasstart-1)&
                     & ,2))
                 else
                   !resonant part
                   xsgntou (n1, lm2, lm3) = prefac*preml(lxas,spj(n1+xasstart-1),&
-                    & mj(n1+xasstart-1),1)*gaunt(lxas, l2, l3, mj2ml(lxas,mj(n1+xasstart-1),1),&
-                    & m2,-m3)+prefac*preml(lxas,spj(n1+xasstart-1),mj(n1+xasstart-1),2)*gaunt&
+                    & mj(n1+xasstart-1),1)*gaunt_yyy(lxas, l2, l3, mj2ml(lxas,mj(n1+xasstart-1),1),&
+                    & m2,-m3)+prefac*preml(lxas,spj(n1+xasstart-1),mj(n1+xasstart-1),2)*gaunt_yyy&
                     & (lxas, l2, l3, mj2ml(lxas,mj(n1+xasstart-1),2), m2, -m3)
                   ! anti-resonant
                   xsgntuo (n1, lm2, lm3) = prefac*preml(lxas,spj(n1+xasstart-1),-mj(n1+&
-                    & xasstart-1),1)*gaunt (l3, l2, lxas, m3, m2,&
+                    & xasstart-1),1)*gaunt_yyy (l3, l2, lxas, m3, m2,&
                     & mj2ml(lxas,-mj(n1+xasstart-1),1))+prefac*preml(lxas,spj(n1+xasstart-1),mj&
-                    & (n1+xasstart-1),2)*gaunt(l3, l2, lxas, m3, m2, mj2ml(lxas,-mj(n1+xasstart-1)&
+                    & (n1+xasstart-1),2)*gaunt_yyy(l3, l2, lxas, m3, m2, mj2ml(lxas,-mj(n1+xasstart-1)&
                     & ,2))
                   ! time-reversal prefactor
                   xsgntuo(n1,lm2,lm3)=(-1.0d0)**(lxas+0.5d0-spj(n1+xasstart-1))*(-1.0d0)**&
@@ -116,17 +114,17 @@ contains
             Do n2 = 1, nxas
               if (.not. emat_ccket) then
                 xsgntoo(n1,lm2,n2)=preml(lxas, spj(n1+xasstart-1), mj(n1+xasstart-1),1)&
-                  & *preml(lxas, spj(n2+xasstart-1), mj(n2+xasstart-1),1)*gaunt (lxas, l2,&
+                  & *preml(lxas, spj(n2+xasstart-1), mj(n2+xasstart-1),1)*gaunt_yyy (lxas, l2,&
                   & lxas, mj2ml(lxas,mj(n1+xasstart-1),1), m2, mj2ml(lxas,mj(n2+xasstart-1),1))+preml&
                   & (lxas,spj(n1+xasstart-1),mj(n1+xasstart-1),2)*preml(lxas,spj(n2+xasstart&
-                  &-1), mj(n2+xasstart-1),2)*gaunt(lxas, l2, lxas, mj2ml(lxas,mj(n1+xasstart-1),&
+                  &-1), mj(n2+xasstart-1),2)*gaunt_yyy(lxas, l2, lxas, mj2ml(lxas,mj(n1+xasstart-1),&
                   & 2), m2,mj2ml(lxas,mj(n2+xasstart-1),2))
               else
                 xsgntoo(n1,lm2,n2)=preml(lxas, spj(n1+xasstart-1), mj(n1+xasstart-1),1)&
-                  & *preml(lxas, spj(n2+xasstart-1), -mj(n2+xasstart-1),1)*gaunt (lxas, l2,&
+                  & *preml(lxas, spj(n2+xasstart-1), -mj(n2+xasstart-1),1)*gaunt_yyy (lxas, l2,&
                   & lxas, mj2ml(lxas,mj(n1+xasstart-1),1), m2, mj2ml(lxas,-mj(n2+xasstart-1),1))+preml&
                   & (lxas,spj(n1+xasstart-1),mj(n1+xasstart-1),2)*preml(lxas,spj(n2+xasstart&
-                  &-1), -mj(n2+xasstart-1),2)*gaunt(lxas, l2, lxas, mj2ml(lxas,mj(n1+xasstart-1),&
+                  &-1), -mj(n2+xasstart-1),2)*gaunt_yyy(lxas, l2, lxas, mj2ml(lxas,mj(n1+xasstart-1),&
                   & 2), m2,mj2ml(lxas,-mj(n2+xasstart-1),2))
                 xsgntoo(n1,lm2,n2)=(-1.0d0)**(lxas+0.5d0-spj(n2+xasstart-1))*(-1.0d0)**&
                   & (-mj(n2+xasstart-1))*xsgntoo(n1,lm2,n2)
@@ -156,20 +154,20 @@ contains
                   if (.not. emat_ccket) then
                     !resonant part
                     xsgntousv (n1, lm2, lm3, nsp) = preml(lxas,spj(n1+xasstart-1),&
-                      & mj(n1+xasstart-1),nsp)*gaunt (lxas, l2, l3, mj2ml(lxas,mj(n1+xasstart-1),nsp),&
+                      & mj(n1+xasstart-1),nsp)*gaunt_yyy (lxas, l2, l3, mj2ml(lxas,mj(n1+xasstart-1),nsp),&
                       & m2, m3)
                     ! anti-resonant
                     xsgntuosv (n1, lm2, lm3, nsp) =preml(lxas,spj(n1+xasstart-1),mj(n1+&
-                      & xasstart-1),nsp)*gaunt (l3, l2, lxas, m3, m2,&
+                      & xasstart-1),nsp)*gaunt_yyy (l3, l2, lxas, m3, m2,&
                       & mj2ml(lxas,mj(n1+xasstart-1),nsp))
                   else
                     !resonant part
                     xsgntousv (n1, lm2, lm3, nsp) = preml(lxas,spj(n1+xasstart-1),&
-                      & mj(n1+xasstart-1),nsp)*gaunt(lxas, l2, l3, mj2ml(lxas,mj(n1+xasstart-1),nsp),&
+                      & mj(n1+xasstart-1),nsp)*gaunt_yyy(lxas, l2, l3, mj2ml(lxas,mj(n1+xasstart-1),nsp),&
                       & m2,-m3)
                     ! anti-resonant
                     xsgntuosv (n1, lm2, lm3, nsp) = preml(lxas,spj(n1+xasstart-1),-mj(n1+&
-                      & xasstart-1),nsp)*gaunt (l3, l2, lxas, m3, m2,&
+                      & xasstart-1),nsp)*gaunt_yyy (l3, l2, lxas, m3, m2,&
                       & mj2ml(lxas,-mj(n1+xasstart-1),nsp))                    ! time-reversal prefactor
                     xsgntuosv(n1,lm2,lm3,nsp)=(-1.0d0)**(lxas+0.5d0-spj(n1+xasstart-1))*(-1.0d0)**&
                       & (-mj(n1+xasstart-1))*xsgntuosv(n1,lm2,lm3,nsp)
@@ -181,17 +179,17 @@ contains
             Do n2 = 1, nxas
               if (.not. emat_ccket) then
                 xsgntoo(n1,lm2,n2)=preml(lxas, spj(n1+xasstart-1), mj(n1+xasstart-1),1)&
-                  & *preml(lxas, spj(n2+xasstart-1), mj(n2+xasstart-1),1)*gaunt (lxas, l2,&
+                  & *preml(lxas, spj(n2+xasstart-1), mj(n2+xasstart-1),1)*gaunt_yyy (lxas, l2,&
                   & lxas, mj2ml(lxas,mj(n1+xasstart-1),1), m2, mj2ml(lxas,mj(n2+xasstart-1),1))+preml&
                   & (lxas,spj(n1+xasstart-1),mj(n1+xasstart-1),2)*preml(lxas,spj(n2+xasstart&
-                  &-1), mj(n2+xasstart-1),2)*gaunt(lxas, l2, lxas, mj2ml(lxas,mj(n1+xasstart-1),&
+                  &-1), mj(n2+xasstart-1),2)*gaunt_yyy(lxas, l2, lxas, mj2ml(lxas,mj(n1+xasstart-1),&
                   & 2), m2,mj2ml(lxas,mj(n2+xasstart-1),2))
               else
                 xsgntoo(n1,lm2,n2)=preml(lxas, spj(n1+xasstart-1), mj(n1+xasstart-1),1)&
-                  & *preml(lxas, spj(n2+xasstart-1), -mj(n2+xasstart-1),1)*gaunt (lxas, l2,&
+                  & *preml(lxas, spj(n2+xasstart-1), -mj(n2+xasstart-1),1)*gaunt_yyy (lxas, l2,&
                   & lxas, mj2ml(lxas,mj(n1+xasstart-1),1), m2, mj2ml(lxas,-mj(n2+xasstart-1),1))+preml&
                   & (lxas,spj(n1+xasstart-1),mj(n1+xasstart-1),2)*preml(lxas,spj(n2+xasstart&
-                  &-1), -mj(n2+xasstart-1),2)*gaunt(lxas, l2, lxas, mj2ml(lxas,mj(n1+xasstart-1),&
+                  &-1), -mj(n2+xasstart-1),2)*gaunt_yyy(lxas, l2, lxas, mj2ml(lxas,mj(n1+xasstart-1),&
                   & 2), m2,mj2ml(lxas,-mj(n2+xasstart-1),2))
                 xsgntoo(n1,lm2,n2)=(-1.0d0)**(lxas+0.5d0-spj(n2+xasstart-1))*(-1.0d0)**&
                   & (-mj(n2+xasstart-1))*xsgntoo(n1,lm2,n2)
