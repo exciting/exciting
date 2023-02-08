@@ -9,6 +9,7 @@
 Subroutine energynn
       Use modmain
       Use modinput
+      use potentials, only: coulomb_potential
       Implicit None
 ! local variables
       Integer :: is, ia, ias, lmax
@@ -34,8 +35,8 @@ Subroutine energynn
       lmax = input%groundstate%lmaxvr + input%groundstate%npsden + 1
       Call genjlgpr (lmax, gc, jlgr)
 ! solve the complex Poisson's equation
-      Call zpotcoul (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
-     & sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
+      call coulomb_potential( nrmt, spr, ngvec, gc, 1, jlgr, ylmg, sfacg, spzn, &
+                              zrhomt, zrhoir, zvclmt, zvclir, zrho0)
 ! compute the nuclear-nuclear energy
       engynn = 0.d0
       Do is = 1, nspecies

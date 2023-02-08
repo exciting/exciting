@@ -14,6 +14,7 @@ Subroutine potcoul
 ! !USES:
       Use modinput
       Use modmain
+      use potentials, only: coulomb_potential
       use sirius_init, only: sirius_options
       use sirius_api, only: generate_coulomb_potential_sirius
 ! !DESCRIPTION:
@@ -64,8 +65,8 @@ Subroutine potcoul
       lmax = input%groundstate%lmaxvr + input%groundstate%npsden + 1
       Call genjlgpr (lmax, gc, jlgr)
 ! solve the complex Poisson's equation
-      Call zpotcoul (nrmt, nrmtmax, spnrmax, spr, 1, gc, jlgr, ylmg, &
-      &              sfacg, spzn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
+      call coulomb_potential( nrmt, spr, ngvec, gc, 1, jlgr, ylmg, sfacg, spzn, &
+                              zrhomt, zrhoir, zvclmt, zvclir, zrho0)
 ! convert complex muffin-tin potential to real spherical harmonic expansion
       Do is = 1, nspecies
          Do ia = 1, natoms (is)
