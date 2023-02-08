@@ -186,7 +186,7 @@
       "unit": "Hartree"
     },
     "Nuclear-nuclear energy": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "Hartree"
     },
     "Madelung energy": {

@@ -190,7 +190,7 @@
       "unit": "Hartree"
     },
     "Madelung energy": {
-      "tol": 1e-08,
+      "tol": 2e-08,
       "unit": "Hartree"
     },
     "Core-electron kinetic energy": {

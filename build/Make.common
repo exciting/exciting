@@ -52,7 +52,9 @@ SOURCEDIRS=	\
     ../../src/src_xs/src_rttddft \
     ../../src/wavefunctions \
     ../../src/sirius \
-    ../../src/read
+    ../../src/read \
+    ../../src/potential
+	
 GeneratedFiles = ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90
 
 LIBXCMOD = ../../external/libXC/src/libxc.f90 ../../external/libXC/src/libxc_funcs.f90

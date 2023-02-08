@@ -27,6 +27,7 @@ src_dir: ../src/src_gw
          ../src/wavefunctions
          ../src/char_utils
          ../src/writers
+         ../src/potential
          ../src/src_xc
 
 [//]: # "Note, ford commands can not be separated by whitelines."  
