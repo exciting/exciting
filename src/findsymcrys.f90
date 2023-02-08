@@ -74,7 +74,7 @@ Subroutine findsymcrys
   
 !!!!!!!!! PSOLVER option
 !if (.false.) then
-     If (input%groundstate%vha.eq."psolver0d") then
+     If ((input%groundstate%vha.eq."psolver0d").or.(input%groundstate%hybrid%singularity.eq."ps0d")) then
          r_cm = 0d0
          R_c = 0d0
          r_T = 0d0

@@ -192,6 +192,7 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 
 #ifdef PSOLVER
 if (.not.excite) then
+!call f_lib_initialize()
 
    n1=ngrid(1)
    n2=ngrid(2)
@@ -448,11 +449,11 @@ write(*,*)"psolver"
       !if (psolver0d) then
           !write(*,*)"reorder"
       !    call reorder(bc_type, zvclir,ngrid, r_v, c_v)     
-     ! else 
+      !else 
           !write(*,*)"else order"
           r_v=dble(zvclir)
           c_v=dimag(zvclir)
-     ! end if
+      !end if
 
       offset=0d0
 
@@ -465,11 +466,11 @@ write(*,*)"psolver"
       zvclir=dcmplx(r_v,c_v)!combine complex and real solutions
 
 
-    ! if (bc_type.eq.0) then
+     !if (bc_type.eq.0) then
         !write(*,*)"deorder"
      !   call reorder(bc_type, zvclir,ngrid, r_v, c_v)
-        zvclir=dcmplx(r_v,c_v)
-     ! end if
+        !zvclir=dcmplx(r_v,c_v)
+      !end if
       deallocate(fake_arr, r_v, c_v)
 
 
@@ -486,9 +487,10 @@ end if!psolver
 if (excite) then!exciting or exciting0d
 write(*,*)"exciting0"
 ! set zrho0 (pseudocharge density coefficient of the smallest G+p vector)
-      !ifg = igfft (igp0)
-      !zrho0 = zvclir (ifg)
+      ifg = igfft (igp0)
+      zrho0 = zvclir (ifg)
       !zvclir (ifg) = 0.d0
+      
 
 
 !r_c = (3d0*omega*nkptnr/(fourpi))**(1d0/3d0)
@@ -625,7 +627,7 @@ end if
 
 #ifdef PSOLVER
 if (.not.excite) then
-
+   !call f_lib_finalize()
    call pkernel_free(kernel)
 end if
 #endif

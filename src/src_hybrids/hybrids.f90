@@ -184,13 +184,15 @@ Subroutine hybrids
         !
         ! Inizialize mixed-product basis
         call init_product_basis()
+        ! Initialize mt_hcsf parameter
+        call MTInitAll(mt_hscf)
         !_____________________________________________________________________________________
         ! step 2: Read hybrid density and potential and get prepared for scf_cycle() + task=7
         call readstate()
         call readfermi()
-        call hmlint()
+        call hmlint(mt_hscf)
         call genmeffig()
-
+        call MTNullify(mt_hscf)
       case default
         stop 'ERROR(hybrids): Not supported task!'
 
@@ -304,7 +306,6 @@ Subroutine hybrids
               Call flushifc(60)
           End If
       End If
-
     end do ! ihyb
 
     if (rank==0) then

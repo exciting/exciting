@@ -152,10 +152,8 @@ call timesec(tb)
 write(*,*) 'genWFs',tb-ta
 
 
-      solver = .false.
-      if (input%groundstate%hybrid%singularity.ne."exc") then
-        solver = .true.
-      end if
+      solver = (input%groundstate%hybrid%singularity.ne."exc")
+      
 
 
       zvclir (:, :) = 0.d0
@@ -163,6 +161,7 @@ write(*,*) 'genWFs',tb-ta
 
 
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist3,wf1ir,wf2ir,igk,ifg,prod,prodir,zrho01,pot,potir,ta,tb) REDUCTION(+:zvclir,zvclmt)
+
          call WFInit(prod)
          call WFInit(pot)
 
@@ -236,7 +235,7 @@ end if
 
 
 
-!if ((ik.eq.jk).and.(input%groundstate%vha.ne."psolver0d")) then
+
 if ((ik.eq.jk).and.(.not.solver)) then
 !write(*,*)"auxiliary 2"
                   Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, &
@@ -264,9 +263,6 @@ endif
 
 
 
-!stop
-!write(*,*) dble(sum(zvclir)),dble(sum(zvclmt))
-!write(*,*) dble(sum(vxpsiir)),dble(sum(vxpsimt))
 
       call WFRelease(prod)
       call WFRelease(pot)
@@ -281,8 +277,7 @@ endif
 
 vxpsiir=vxpsiir+zvclir
 vxpsimt=vxpsimt+zvclmt
-!stop
-!write(*,*)
+
 ! end loop over non-reduced k-point set
       End Do
 
