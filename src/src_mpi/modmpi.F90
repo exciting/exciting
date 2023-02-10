@@ -234,6 +234,31 @@ contains
 #endif
     end subroutine terminate
 
+    !> Resolve MPI error code to error message.
+    !> Appends `errstring` with `errmsg` and the resolved MPI error message
+    !> corresponding to error code `ierr`.
+    subroutine mpi_error_to_string( errmsg, ierr, errstring)
+      use precision, only: str_1024
+      !> custom error message to add
+      character(*), intent(in) :: errmsg
+      !> MPI error code
+      integer, intent(in) :: ierr
+      !> error string to be appended
+      character(:), allocatable, intent(inout) :: errstring
+
+      integer :: errlen, i
+      character(len=str_1024) :: mpi_error
+
+      if (ierr == 0) return
+
+#ifdef MPI
+      call MPI_error_string( ierr, mpi_error, errlen, i)
+      errstring = trim(errstring)//trim(errmsg)//" (MPI Error: "//trim(mpi_error)//")"//NEW_LINE('a')
+#else
+      errstring = trim(errstring)//trim(errmsg)//" (No MPI used.)"//new_line('a')
+#endif
+    end subroutine mpi_error_to_string
+
 
     !+++++++++++++++++++++++++++++++++++++++++++!
     ! Partitioning of N elements to P processes !

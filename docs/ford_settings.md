@@ -29,6 +29,7 @@ src_dir: ../src/src_gw
          ../src/writers
          ../src/potential
          ../src/src_xc
+         ../src/file_io
 
 [//]: # "Note, ford commands can not be separated by whitelines."  
 [//]: # "More information on ford's project file options can be found at:"  
