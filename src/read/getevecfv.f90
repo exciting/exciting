@@ -19,6 +19,7 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
   use mod_eigenvalue_occupancy, only: nstfv
   use mod_spin, only: nspnfv
   use mod_names, only: filetag_evecfv
+  use constants, only: twopi
 ! !DESCRIPTION:
 !   The file where the (first-variational) eigenvectors are stored is
 !   {\tt EVECFV.OUT}.

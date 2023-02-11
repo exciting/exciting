@@ -130,7 +130,7 @@ module sh_product_test
       use mod_SHT, only: gen_rshtmat, gen_zshtmat
 
       integer :: l, m, lm, ir
-      real(dp) :: t1, kc, tp(2)
+      real(dp) :: kc, tp(2)
       complex(dp) :: z1
       real(dp), allocatable :: jl(:,:,:)
       complex(dp), allocatable :: ylm(:), exact(:,:), residue(:,:)

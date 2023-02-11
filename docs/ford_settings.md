@@ -28,6 +28,7 @@ src_dir: ../src/src_gw
          ../src/char_utils
          ../src/writers
          ../src/potential
+         ../src/matrix_elements
          ../src/src_xc
          ../src/file_io
 

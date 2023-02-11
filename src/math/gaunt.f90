@@ -41,7 +41,7 @@ module gaunt
   type, extends(non_zero_gaunt), public :: non_zero_gaunt_complex
     private
     !> value of non-zero coefficients for given \((l_1,m_1)\) and \((l_3,m_3)\)
-    complex(dp), allocatable :: val(:,:,:)
+    complex(dp), allocatable, public :: val(:,:,:)
   end type non_zero_gaunt_complex
 
   abstract interface
@@ -64,19 +64,19 @@ module gaunt
   !> Objects of non-zero gaunt coefficients of the form
   !> \( \langle Y_{l_1 m_1} | Y_{l_2 m_2} | Y_{l_3 m_3} \rangle \).
   !> See [[non_zero_gaunt_yyy(function)]] for construction and usage.
-  type(non_zero_gaunt_real), public :: gaunt_coeff_yyy
+  type(non_zero_gaunt_real), target, public :: gaunt_coeff_yyy
   !> Objects of non-zero gaunt coefficients of the form
   !> \( \langle R_{l_1 m_1} | R_{l_2 m_2} | R_{l_3 m_3} \rangle \).
   !> See [[non_zero_gaunt_yyy(function)]] for construction and usage.
-  type(non_zero_gaunt_real), public :: gaunt_coeff_rrr
+  type(non_zero_gaunt_real), target, public :: gaunt_coeff_rrr
   !> Objects of non-zero gaunt coefficients of the form
   !> \( \langle Y_{l_1 m_1} | R_{l_2 m_2} | Y_{l_3 m_3} \rangle \).
   !> See [[non_zero_gaunt_yyy(function)]] for construction and usage.
-  type(non_zero_gaunt_complex), public :: gaunt_coeff_yry
+  type(non_zero_gaunt_complex), target, public :: gaunt_coeff_yry
   !> Objects of non-zero gaunt coefficients of the form
   !> \( \langle Y_{l_1 m_1} | R_{l_2 m_2} | R_{l_3 m_3} \rangle \).
   !> See [[non_zero_gaunt_yyy(function)]] for construction and usage.
-  type(non_zero_gaunt_complex), public :: gaunt_coeff_yrr
+  type(non_zero_gaunt_complex), target, public :: gaunt_coeff_yrr
 
   public :: non_zero_gaunt_yyy, non_zero_gaunt_yry, non_zero_gaunt_yrr, non_zero_gaunt_rrr
 
