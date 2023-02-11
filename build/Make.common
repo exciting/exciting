@@ -54,6 +54,7 @@ SOURCEDIRS=	\
     ../../src/sirius \
     ../../src/read \
     ../../src/potential \
+    ../../src/matrix_elements \
     ../../src/file_io
 GeneratedFiles = ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90
 

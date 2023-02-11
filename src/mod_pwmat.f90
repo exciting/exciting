@@ -47,8 +47,7 @@ module mod_pwmat
           real(8), optional, intent( in) :: gmax
           logical, optional, intent( in) :: fft
 
-          integer :: l1, l2, l3, m1, m2, m3, o1, lm1, lm2, lm3, i, is, ilo, lam
-          real(8) :: gnt
+          integer :: l1, m1, o1, lm1, is, ilo, lam
 
           ttot   = 0.d0
           tinit  = 0.d0
@@ -238,8 +237,8 @@ module mod_pwmat
           real(8), intent( in) :: vecql_(3)
           integer, intent( in) :: vecgl_(3,*), ng_
 
-          integer :: l1, l2, l3, m1, m2, m3, o1, o2, lm1, lm2, lm3, is, ia, ias, i, ig, vg(3)
-          integer :: lam1, lam2, ilo1, ilo2, idxlo1, idxlo2, idx1, idx2
+          integer :: l1, l2, l3, m1, m2, lm1, lm2, lm3, is, ia, ias, i, ig, vg(3)
+          integer :: lam1, lam2, idx1, idx2
           real(8) :: qgc, tp(2), vr(3)
           complex(8) :: strf, ylm( (pwmat_lmaxexp + 1)**2)
 
@@ -430,14 +429,13 @@ module mod_pwmat
           complex(8), intent( in)  :: evec1( nmatmax_ptr, *), evec2( nmatmax_ptr, *)
           complex(8), intent( out) :: pwmat( pwmat_fst1:pwmat_lst1, pwmat_fst2:pwmat_lst2, ng)
 
-          integer :: ngp, ngpq, i, is, ia, ias, l, m, lm, o, ilo, lam
+          integer :: ngp, ngpq, is, ia, ias 
           real(8) :: veckl(3), veckc(3), veckql(3), veckqc(3)
           integer :: shift(3), g(3), gs(3), igk, igq, ig
 
           integer, allocatable :: igpig(:), igpqig(:) 
           real(8), allocatable :: vgpql(:,:), vgpqc(:,:), gkqc(:), tpgkqc(:,:)
-          complex(8), allocatable :: sfacgkq(:,:), apwalm(:,:,:,:)
-          complex(8), allocatable :: auxmat(:,:), auxvec(:), evecmt1(:,:,:), evecmt2(:,:,:), cfunmat(:,:)
+          complex(8), allocatable :: auxmat(:,:), evecmt1(:,:,:), evecmt2(:,:,:), cfunmat(:,:)
 
           pwmat = zzero
           

@@ -14,6 +14,7 @@ module unit_test_drivers
    use char_utils_test_drivers, only: char_utils_test_driver
    use file_io_test_drivers, only: file_io_test_driver
    use simplified_input_test_drivers, only: simplified_input_test_driver
+   use matrix_elements_test_drivers, only: matrix_elements_test_driver
 
    implicit none
    private
@@ -91,6 +92,10 @@ contains
          call simplified_input_test_driver(mpiglobal, kill_on_failure)
       end if 
       
+      if (run%matrix_elements .or. run%all) then
+         call matrix_elements_test_driver(mpiglobal, kill_on_failure)
+      end if
+
       if (run%file_io .or. run%all) then
         call file_io_test_driver(mpiglobal, kill_on_failure)
       end if

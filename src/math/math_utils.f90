@@ -4,7 +4,7 @@ module math_utils
   use, intrinsic :: ISO_C_BINDING
 
   use precision, only: sp, dp
-  use constants, only: pi, zzero, zone, zi
+  use constants, only: pi, zzero, zone, zi, fourpi
   use asserts, only: assert
   use seed_generation, only: set_seed
 
@@ -33,7 +33,9 @@ module math_utils
             boundary_mask, &
             is_positive_definite, &
             fractional_part, &
-            integer_part
+            integer_part, &
+            plane_wave_in_spherical_harmonics, &
+            get_degeneracies
 
   !> Default tolerance
   real(dp), parameter :: default_tol = 1e-10
@@ -1622,6 +1624,105 @@ contains
     X = reshape(X_in, [M * N])
     I_out = reshape(integer_part_scalar(X, C, tol_), [M, N])
   end function integer_part_matrix
+
+  !> Get the spherical harmonics expansion of a plane wave.
+  !>
+  !> \[ {\rm e}^{{\rm i} {\bf p} \cdot {\bf r}}
+  !>    = 4\pi \sum_{l,m} {\rm i}^l\, j_l(pr)\, Y_{lm}^\ast(\hat{\bf p})\, Y_{lm}(\hat{\bf r}) \]
+  subroutine plane_wave_in_spherical_harmonics( p, radial_grid, lmax, plane_wave_sh )
+    !> wavevector in Cartesian coordinates
+    real(dp), intent(in) :: p(3)
+    !> radial grid
+    real(dp), intent(in) :: radial_grid(:)
+    !> maximum angular momentum \(l\) in expansion
+    integer, intent(in) :: lmax
+    !> radial functions of spherical harmonics expansion
+    !> (\((l,m)\) index in first dimension, radial grid point in second)
+    complex(dp), allocatable, intent(out) :: plane_wave_sh(:,:)
+  
+    integer :: nr, lmmax, l, m, lm, ir
+    real(dp) :: p_length, p_angles(2)
+    complex(dp) :: fourpi_il
+  
+    real(dp), allocatable :: besselj(:)
+    complex(dp), allocatable :: ylm(:)
+  
+    nr = size( radial_grid )
+    lmmax = (lmax + 1)**2
+    allocate( besselj(0:lmax) )
+    allocate( ylm(lmmax) )
+  
+    if( allocated( plane_wave_sh ) ) deallocate( plane_wave_sh )
+    allocate( plane_wave_sh(lmmax, nr) )
+  
+    ! decompose wavevector into length and angles
+    call sphcrd( p, p_length, p_angles )
+    ! generate spherical harmonics of wavevector
+    call genylm( lmax, p_angles, ylm )
+  
+    do ir = 1, nr
+      ! generate spherical bessel functions
+      call sbessel( lmax, p_length*radial_grid(ir), besselj )
+      lm = 1
+      fourpi_il = cmplx( fourpi, 0.0_dp, dp ) ! 4*pi*i^l
+      ! synthesize radial functions
+      do l = 0, lmax
+        do m = -l, l
+          plane_wave_sh(lm, ir) = fourpi_il * besselj(l) * conjg( ylm(lm) )
+          lm = lm + 1
+        end do
+        ! multiply with i to increment exponent
+        fourpi_il = cmplx( -aimag( fourpi_il ), dble( fourpi_il ), dp )
+      end do
+    end do
+  
+    deallocate( ylm, besselj )
+  end subroutine plane_wave_in_spherical_harmonics
+
+  !> For a list of non-decreasing eigenvalues \(e_{i+1} \geq e_i\) with \(i=1,\dots,N\),
+  !> find blocks of degenerate eigenvalues \((l,m)_k\) with \(l \leq m\) and
+  !> \(e_m - e_l < \epsilon\) for some given tolerance \(\epsilon\).
+  !> The results will be returned as triples \((l,m,n)_k\), where \(l\) (\(m\))
+  !> is the index of the first (last) degenerate state in the block and
+  !> \(n = m-l+1\) is the degree of the degeneracy.
+  pure function get_degeneracies( eval, tol ) result( deg )
+    !> list of increasing eigenvalues
+    real(dp), intent(in) :: eval(:)
+    !> tolerance for degeneracies
+    real(dp), intent(in) :: tol
+    !> list of degenerate blocks
+    integer, allocatable :: deg(:,:)
+
+    real(dp), parameter :: eps0 = 1e-128_dp ! effective 0
+
+    integer :: n, i, j
+    real(dp) :: e
+    integer, allocatable :: tmp(:,:)
+
+    n = size( eval )
+
+    do i = 2, n
+      if( eval(i) + eps0 < eval(i-1) ) error stop 'Eigenvalues are not increasing.'
+    end do
+
+    if( allocated( deg ) ) deallocate( deg )
+    allocate( tmp(3, n) )
+
+    j = 0; e = -huge( 1.0_dp )
+    do i = 1, n
+      if( eval(i) - e < tol ) then
+        tmp(2, j) = i
+        tmp(3, j) = tmp(3, j) + 1
+      else
+        j = j + 1
+        e = eval(i)
+        tmp(:, j) = [i, i, 1]
+      end if
+    end do
+
+    allocate( deg, source=tmp(:, 1:j) )
+    deallocate( tmp )
+  end function get_degeneracies
 
 end module math_utils
 
