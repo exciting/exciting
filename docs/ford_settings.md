@@ -31,6 +31,7 @@ src_dir: ../src/src_gw
          ../src/matrix_elements
          ../src/src_xc
          ../src/file_io
+         ../src/dfpt
 
 [//]: # "Note, ford commands can not be separated by whitelines."  
 [//]: # "More information on ford's project file options can be found at:"  

@@ -25,7 +25,8 @@ module math_utils_test
                         outer_sum, &
                         get_subinterval_indices, &
                         fractional_part, &
-                        integer_part
+                        integer_part, &
+                        get_degeneracies
 
   use mock_arrays, only: real_symmetric_matrix_5x5, &
                          real_orthogonal_matrix_5x5, &
@@ -56,7 +57,7 @@ contains
     !> Test report object
     type(unit_test_type) :: test_report
     !> Number of assertions
-    integer, parameter :: n_assertions = 122
+    integer, parameter :: n_assertions = 124
 
     ! Initialize test object
     call test_report%init(n_assertions, mpiglobal)
@@ -98,6 +99,8 @@ contains
     call test_integer_part(test_report)
 
     call test_consistency_r3frac(test_report)
+
+    call test_get_degeneracies(test_report)
 
 
     ! report results
@@ -866,4 +869,33 @@ contains
             'The integer part calculated with fractional_part is not the same as calculated with r3frac.')
   end subroutine test_consistency_r3frac
 
+  !> Test [[get_degeneracies]].
+  subroutine test_get_degeneracies(test_report)
+    !> Unit test report
+    type(unit_test_type), intent(inout) :: test_report
+
+    real(dp), parameter :: tol = 1e-8_dp
+
+    real(dp) :: eval(9)
+    integer :: ref(3,5)
+    integer, allocatable :: deg(:,:)
+
+    eval = [-1.0_dp, -1.0_dp, &
+      0.0_dp, 0.0_dp, tol/2, &
+      tol, &
+      2.0_dp, 2.0_dp, &
+      3.0_dp]
+    ref(:, 1) = [1, 2, 2]
+    ref(:, 2) = [3, 5, 3]
+    ref(:, 3) = [6, 6, 1]
+    ref(:, 4) = [7, 8, 2]
+    ref(:, 5) = [9, 9, 1]
+
+    deg = get_degeneracies( eval, tol )
+
+    call test_report%assert( all( shape(deg) == shape(ref) ), &
+      'Shape does not match reference shape.' )
+    call test_report%assert( all( deg == ref ), &
+      'Result does not equal reference.' )
+  end subroutine test_get_degeneracies
 end module math_utils_test
