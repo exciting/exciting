@@ -283,6 +283,7 @@ module matrix_elements_test
       apword = 0
       apword(0:lmaxb, 1) = apwordmax
       lmmaxapw = (lmaxb + 1)**2
+      if( allocated( apwfr ) ) deallocate( apwfr )
       allocate( apwfr(nrmtmax, 2, apwordmax, 0:lmaxb, 1), source=0.0_dp )
       do ir = 1, nrtot
         call sbessel( lmaxb, norm2( vpc ) * spr(ir, 1), jbessel )
@@ -311,6 +312,7 @@ module matrix_elements_test
       nlotot = 0
       nlomax = (lmaxb + 1) * ng
       lolmmax = (lmaxb + 1)**2
+      if( allocated( lofr ) ) deallocate( lofr )
       allocate( lofr(nrmtmax, 2, nlomax, 1), source=0.0_dp )
       nlorb = 0
       nlorb(1) = nlomax

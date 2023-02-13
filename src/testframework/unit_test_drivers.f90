@@ -92,14 +92,14 @@ contains
          call simplified_input_test_driver(mpiglobal, kill_on_failure)
       end if 
       
-      if (run%matrix_elements .or. run%all) then
-         call matrix_elements_test_driver(mpiglobal, kill_on_failure)
-      end if
-
       if (run%file_io .or. run%all) then
         call file_io_test_driver(mpiglobal, kill_on_failure)
       end if
       
+      if (run%matrix_elements .or. run%all) then
+         call matrix_elements_test_driver(mpiglobal, kill_on_failure)
+      end if
+
       if (run%testframework .or. run%all) then
          call testframework_test_driver(mpiglobal, kill_on_failure)
       end if
