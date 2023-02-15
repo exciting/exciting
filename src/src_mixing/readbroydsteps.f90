@@ -25,7 +25,7 @@ Subroutine readbroydsteps_and_init_SY (noldsteps, n, S, Y, potential, &
 !      INQUIRE(FILE="BROYDEN.OUT", SIZE=file_size)
 !      noldsteps=file_size/(n*16)
       
-      Open (23, File="BROYDEN.OUT", Access="DIRECT", &
+      Open (23, File=trim(scrpath)//"BROYDEN.OUT", Access="DIRECT", &
      & Recl=reclength, Action="READ", Form='UNFORMATTED')
       If (noldsteps .Lt. noldstepsmax) Then
          firstrec = 1

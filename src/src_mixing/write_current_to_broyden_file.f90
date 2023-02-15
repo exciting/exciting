@@ -6,6 +6,7 @@
 Subroutine write_current_to_broyden_file (n, iscl, potential, residual)
       Use modmixermsec, Only: record_of_last_iter, noldstepsmax, &
      & noldstepsin_file
+      use mod_misc, only: scrpath
       Implicit None
       Integer, Intent (In) :: n, iscl
       Real (8), Intent (In) :: potential (n), residual (n)
@@ -17,7 +18,7 @@ Subroutine write_current_to_broyden_file (n, iscl, potential, residual)
       Inquire (IoLength=reclength) potential, residual
 !
 !      Open (23, File=outfilenamestring(filetag, 1), Access="DIRECT", &
-      Open (23, File="BROYDEN.OUT", Access="DIRECT", &
+      Open (23, File=trim(scrpath)//"BROYDEN.OUT", Access="DIRECT", &
      & Recl=reclength, Form='UNFORMATTED')
       Write (23, Rec=record_of_last_iter) potential, residual
       Close (23)
