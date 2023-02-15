@@ -213,9 +213,6 @@ module dfpt_eigensystem
       call zhegauge( eval(1:n), evec(1:nmatp, 1:n), eps=1e-6_dp )
       ! deallocate local variables
       deallocate( apwalm, S, H )
-
-      print *, ip
-      write(*,'(3f20.10)') eval(1:6)
     end subroutine dfpt_eig_ks
 
     !> For a given effective potential response \(\delta V_{\rm eff}({\bf r})\), 

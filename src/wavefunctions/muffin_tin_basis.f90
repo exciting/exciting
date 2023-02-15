@@ -100,7 +100,7 @@ module muffin_tin_basis
     module procedure :: setup_mt_basis
   end interface
 
-  public :: mt_basis_type
+  public :: mt_basis_type, generate_non_zero_clebsch_gordan
 
 contains
 
@@ -516,5 +516,66 @@ contains
 
     deallocate( contracted )
   end subroutine transform_evec
+
+  subroutine generate_non_zero_clebsch_gordan( lmax, eps, cg_num, cg_lm, cg_val )
+    use constants, only: zzero, zone, sqrt_two
+    use wigner3j_symbol, only: clebsch_gordan
+    integer, intent(in) :: lmax
+    real(dp), intent(in) :: eps
+    integer, allocatable, intent(out) :: cg_num(:,:,:)
+    integer, allocatable, intent(out) :: cg_lm(:,:,:,:)
+    complex(dp), allocatable, intent(out) :: cg_val(:,:,:,:)
+
+    integer :: i, l, m, lm, ll, mm, lmmax, sig
+    real(dp) :: cg(-1:1), t1
+
+    lmmax = (lmax + 1)**2
+
+    if( allocated( cg_num ) ) deallocate( cg_num )
+    if( allocated( cg_lm ) ) deallocate( cg_lm )
+    if( allocated( cg_val ) ) deallocate( cg_val )
+    allocate( cg_num(0:3, -1:1, lmmax), source=0 )
+    allocate( cg_lm((lmax + 2)**2, 0:3, -1:1, lmmax), source=0 )
+    allocate( cg_val((lmax + 2)**2, 0:3, -1:1, lmmax), source=zzero )
+
+    do sig = -1, 1
+      do l = max(0, -sig), lmax
+        do m = -l, l
+          lm = l * (l + 1) + m + 1
+          if( sig == 0 ) then
+            cg_num(:, 0, lm) = 1
+            cg_lm(1, :, 0, lm) = lm
+            cg_val(1, :, 0, lm) = zone
+          else
+            ll = l + sig
+            do mm = -ll, ll
+              cg = [(clebsch_gordan( ll, 1, l, mm, i, m ), i=-1, 1)]
+              ! x-component
+              t1 = cg(-1) - cg(1)
+              if( abs( t1 ) > eps ) then
+                cg_num(1, sig, lm) = cg_num(1, sig, lm) + 1
+                cg_lm(cg_num(1, sig, lm), 1, sig, lm) = ll * (ll + 1) + mm + 1
+                cg_val(cg_num(1, sig, lm), 1, sig, lm) = cmplx( t1 / sqrt_two, 0, dp )
+              end if
+              ! y-component
+              t1 = cg(-1) + cg(1)
+              if( abs( t1 ) > eps ) then
+                cg_num(2, sig, lm) = cg_num(2, sig, lm) + 1
+                cg_lm(cg_num(2, sig, lm), 2, sig, lm) = ll * (ll + 1) + mm + 1
+                cg_val(cg_num(2, sig, lm), 2, sig, lm) = cmplx( 0, - t1 / sqrt_two, dp )
+              end if
+              ! z-component
+              t1 = cg(0)
+              if( abs( t1 ) > eps ) then
+                cg_num(3, sig, lm) = cg_num(3, sig, lm) + 1
+                cg_lm(cg_num(3, sig, lm), 3, sig, lm) = ll * (ll + 1) + mm + 1
+                cg_val(cg_num(3, sig, lm), 3, sig, lm) = cmplx( t1, 0, dp )
+              end if
+            end do
+          end if
+        end do
+      end do
+    end do
+  end subroutine generate_non_zero_clebsch_gordan
 
 end module muffin_tin_basis

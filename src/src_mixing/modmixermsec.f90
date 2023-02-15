@@ -75,6 +75,7 @@ Contains
 
 
       Subroutine freearraysmixermsec ()
+         use mod_misc, only: scrpath
          Character (256), External :: outfilenamestring
          Character (256) :: filetag
          filetag = "BROYDEN"
@@ -86,7 +87,7 @@ Contains
          if (allocated(FHIST)) deallocate(FHIST)
          if (allocated(CLMHIST)) deallocate(CLMHIST)
          if (allocated(yhist)) deallocate(yhist)
-         Open (23, File=outfilenamestring(filetag, 1))
+         Open (23, File=trim(scrpath)//trim(filetag)//'.OUT')
          Close (23, Status='DELETE')
       End Subroutine
 

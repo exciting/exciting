@@ -14,7 +14,7 @@ module matrix_elements_lapw_lo
   use asserts, only: assert
   use constants, only: zzero, zone
   use modmpi
-  use muffin_tin_basis, only: mt_basis_type
+  use muffin_tin_basis, only: mt_basis_type, generate_non_zero_clebsch_gordan
   use mod_kpointset, only: G_set
 
   implicit none
@@ -33,6 +33,12 @@ module matrix_elements_lapw_lo
   integer, allocatable :: lm_join(:,:)
   !> map from combined \((l,m)\) index to \(l\) and \(m\)
   integer, allocatable :: lm_split(:,:)
+  !> number of non-zero Clebsch-Gordan coefficients for a given \((l,m)\) pair
+  integer, allocatable :: cg_num(:,:,:)
+  !> \((l',m')\) pair of non-zero Clebsch-Gordan coefficients for a given \((l,m)\) pair
+  integer, allocatable :: cg_lm(:,:,:,:)
+  !> value non-zero Clebsch-Gordan coefficients for a given \((l,m)\) pair
+  complex(dp), allocatable :: cg_val(:,:,:,:)
 
   ! INTERSTITIAL BASIS
 
@@ -101,6 +107,9 @@ module matrix_elements_lapw_lo
       if( .not. gaunt_coeff_rrr%check_bounds( lmax, lmaxo+1, lmaxb+1 ) ) &
         gaunt_coeff_rrr = non_zero_gaunt_rrr( lmax, lmaxo+1, lmaxb+1 )
 
+      ! generate Clebsch-Gordan coefficients
+      call generate_non_zero_clebsch_gordan( lmaxb, 1e-64_dp, cg_num, cg_lm, cg_val )
+
       ! generate G-vectors sets
       Gset => Gset0
       call generate_G_vectors( Gset2, Gset%bvec, [[0,0,0],[0,0,0]], 2*Gset%gmaxvr, auto_intgv=.true. )
@@ -122,6 +131,8 @@ module matrix_elements_lapw_lo
       use mod_kpointset, only: delete_G_vectors
       if( allocated( lm_join ) ) deallocate( lm_join )
       if( allocated( lm_split ) ) deallocate( lm_split )
+      if( allocated( cg_num ) ) deallocate( cg_num )
+      if( allocated( cg_val ) ) deallocate( cg_val )
       if( allocated( cfunr ) ) deallocate( cfunr )
       if( associated( Gset ) ) nullify( Gset )
       call delete_G_vectors( Gset2 )
@@ -285,7 +296,7 @@ module matrix_elements_lapw_lo
                       idx2 = basis%idx_basis_fun(lm2, lam2, is)
 
                       ! sum over Gaunt coefficients from basis functions and operator
-                      call me_lapwlo_mt_gaunt_sum( lmax, l1, l2, m1, m2, lam1, lam2, lg1(ig1), lg2(ig2), left_gradient, right_gradient, real_expansion, zri, rignt(idx1, idx2) )
+                      call me_lapwlo_mt_gaunt_sum( lmax, lm1, lm2, lam1, lam2, lg1(ig1), lg2(ig2), left_gradient, right_gradient, real_expansion, zri, rignt(idx1, idx2) )
 
                     end do
                   end do
@@ -647,16 +658,14 @@ module matrix_elements_lapw_lo
     !> given in [[muffin_tin_basis(module):get_gradient_rad_fun(function)]] and is 
     !> given by the input parameters `g1` and `g2`, respectively, and \(i\) is the Cartesian direction
     !> of the gradient, given by `left_gradient` and `right_gradient`, respectively.
-    subroutine me_lapwlo_mt_gaunt_sum( lmax_op, l1, l2, m1, m2, lam1, lam2, g1, g2, left_gradient, right_gradient, real_expansion, ri, rignt )
+    subroutine me_lapwlo_mt_gaunt_sum( lmax_op, lm1, lm2, lam1, lam2, g1, g2, left_gradient, right_gradient, real_expansion, ri, rignt )
       use constants, only: sqrt_two,zzero
       use wigner3j_symbol, only: clebsch_gordan
       use gaunt
       !> maximum \(l\) for operator expansion
       integer, intent(in) :: lmax_op
-      !> \(l\) on the left and right
-      integer, intent(in) :: l1, l2
-      !> \(m\) on the left and right
-      integer, intent(in) :: m1, m2
+      !> \((l,m)\) on the left and right
+      integer, intent(in) :: lm1, lm2
       !> \(\tilde{\lambda}\) on the left and right
       integer, intent(in) :: lam1, lam2
       !> part of left radial functions in case of gradients (-1/+1 for gradient, 0 if no gradient)
@@ -674,84 +683,40 @@ module matrix_elements_lapw_lo
       !> radial integrals times gaunt coefficients \(O^\alpha_{\lambda_1 \lambda_2}\)
       complex(dp), intent(inout) :: rignt
 
-      integer :: lmmax, ll1, ll2, mm1, mm2, mm1_range(2), mm2_range(2), lm1, lm2, lm, i
-      real(dp) :: cg
-      complex(dp) :: c1, c2, z1
+      integer :: i, j, k, lm, lmmax, lmm1, lmm2
+      complex(dp) :: cg1, cg2, z1
       type(non_zero_gaunt_real), pointer :: gntr
       type(non_zero_gaunt_complex), pointer :: gntz
 
       lmmax = (lmax_op + 1)**2
-      ll1 = l1 + g1
-      ll2 = l2 + g2
 
-      if( g1 == 0 ) then
-        mm1_range = [m1, m1]
-      else
-        mm1_range = [-ll1, ll1]
-      end if
-      if( g2 == 0 ) then
-        mm2_range = [m2, m2]
-      else
-        mm2_range = [-ll2, ll2]
-      end if
-      
-      loop1: do mm1 = mm1_range(1), mm1_range(2)
-        lm1 = lm_join(ll1, mm1)
-        select case( left_gradient )
-          case(1)
-            cg = clebsch_gordan(ll1, 1, l1, mm1, -1, m1 ) - clebsch_gordan(ll1, 1, l1, mm1, 1, m1 )
-            if( abs( cg ) < 1e-16_dp ) cycle loop1
-            c1 = cmplx( cg / sqrt_two, 0, dp )
-          case(2)
-            cg = clebsch_gordan(ll1, 1, l1, mm1, -1, m1 ) + clebsch_gordan( ll1, 1, l1, mm1, 1, m1 )
-            if( abs( cg ) < 1e-16_dp ) cycle loop1
-            c1 = cmplx( 0, -cg / sqrt_two, dp )
-          case(3)
-            cg = clebsch_gordan(ll1, 1, l1, mm1, 0, m1 )
-            if( abs( cg ) < 1e-16_dp ) cycle loop1
-            c1 = cmplx( cg, 0, dp )
-          case default
-            c1 = zone
-        end select
-        loop2: do mm2 = mm2_range(1), mm2_range(2)
-          lm2 = lm_join(ll2, mm2)
-          select case( right_gradient )
-            case(1)
-              cg = clebsch_gordan(ll2, 1, l2, mm2, -1, m2 ) - clebsch_gordan(ll2, 1, l2, mm2, 1, m2 )
-              if( abs( cg ) < 1e-16_dp ) cycle loop2
-              c2 = cmplx( cg / sqrt_two, 0, dp )
-            case(2)
-              cg = clebsch_gordan(ll2, 1, l2, mm2, -1, m2 ) + clebsch_gordan( ll2, 1, l2, mm2, 1, m2 )
-              if( abs( cg ) < 1e-16_dp ) cycle loop2
-              c2 = cmplx( 0, -cg / sqrt_two, dp )
-            case(3)
-              cg = clebsch_gordan(ll2, 1, l2, mm2, 0, m2 )
-              if( abs( cg ) < 1e-16_dp ) cycle loop2
-              c2 = cmplx( cg, 0, dp )
-            case default
-              c2 = zone
-          end select
+      do i = 1, cg_num(left_gradient, g1, lm1)
+        lmm1 = cg_lm(i, left_gradient, g1, lm1)
+        cg1 = cg_val(i, left_gradient, g1, lm1)
+        do j = 1, cg_num(right_gradient, g2, lm2)
+          lmm2 = cg_lm(j, right_gradient, g2, lm2)
+          cg2 = cg_val(j, right_gradient, g2, lm2)
 
           if( real_expansion ) then
             gntz => gaunt_coeff_yry
-            do i = 1, gntz%num(lm1, lm2)
-              lm = gntz%lm2(i, lm1, lm2)
+            do k = 1, gntz%num(lmm1, lmm2)
+              lm = gntz%lm2(k, lmm1, lmm2)
               if( lm > lmmax ) exit
-              z1 = conjg( c1 ) * c2 * gntz%val(i, lm1, lm2)
+              z1 = conjg( cg1 ) * cg2 * gntz%val(k, lmm1, lmm2)
               rignt = rignt + z1 * ri(lam1, lam2, lm)
             end do
           else
             gntr => gaunt_coeff_yyy
-            do i = 1, gntr%num(lm1, lm2)
-              lm = gntr%lm2(i, lm1, lm2)
+            do k = 1, gntr%num(lmm1, lmm2)
+              lm = gntr%lm2(k, lmm1, lmm2)
               if( lm > lmmax ) exit
-              z1 = conjg( c1 ) * c2 * gntr%val(i, lm1, lm2)
+              z1 = conjg( cg1 ) * cg2 * gntr%val(k, lmm1, lmm2)
               rignt = rignt + z1 * ri(lam1, lam2, lm)
             end do
           end if
 
-        end do loop2
-      end do loop1
+        end do
+      end do
     end subroutine me_lapwlo_mt_gaunt_sum
 
     !> Having prepared the \({\bf p}\) independent radial integrals times Gaunt coefficients

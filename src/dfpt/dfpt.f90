@@ -25,8 +25,8 @@ module dfpt
     !> This routine is setting up the different tasks that need to be done
     !> according to the input file and starts the execution of these tasks.
     subroutine dfpt_launcher
-      !TODO PHONON use phonons
-      !TODO PHONON use phonons_variables, only: ph_var_init, ph_parts_per_rank
+      use phonons
+      use phonons_variables, only: ph_var_init, ph_parts_per_rank
 
       use modmpi
       use modinput
@@ -103,7 +103,7 @@ module dfpt
       ! perform phonon dry run
       if( any( task_list == 'dry_run' ) ) then
         call dfpt_io_set_prefix( 'PHONON', 'phonon' )
-        !TODO PHONON call ph_dry_run
+        call ph_dry_run
       end if
 
       ! initialize density and potential variables
@@ -123,55 +123,55 @@ module dfpt
       end if
 
       ! initialize global DFPT phonons variables
-      !TODO PHONON if( any( task_list == 'phonons_scf' ) .or. &
-      !TODO PHONON     any( task_list == 'phonons_forces' ) .or. &
-      !TODO PHONON     any( task_list == 'phonons_dynmat' ) .or. &
-      !TODO PHONON     any( task_list == 'phonons_write_dpot' ) ) &
-      !TODO PHONON   call ph_var_init
+      if( any( task_list == 'phonons_scf' ) .or. &
+          any( task_list == 'phonons_forces' ) .or. &
+          any( task_list == 'phonons_dynmat' ) .or. &
+          any( task_list == 'phonons_write_dpot' ) ) &
+        call ph_var_init
 
       ! prepare phonon calculation
       if( any( task_list == 'phonons_scf' ) .or. &
           any( task_list == 'phonons_forces' ) ) then
         call dfpt_io_set_prefix( 'PHONON', 'phonon' )
-        !TODO call ph_prepare( do_force=any( task_list == 'phonons_forces' ) )
+        call ph_prepare( do_force=any( task_list == 'phonons_forces' ) )
       end if
 
       ! execute independent phonons parts
       if( any( task_list == 'phonons_scf' ) .or. &
           any( task_list == 'phonons_forces' ) ) then
-        !TODO PHONON do i = 1, size( ph_parts_per_rank )
-        !TODO PHONON   ! prepare independent part
-        !TODO PHONON   call ph_part_prepare( ph_parts_per_rank(i) )
-        !TODO PHONON   ! solve self-consistency cycle for density and potential response
-        !TODO PHONON   if( any( task_list == 'phonons_scf' ) ) &
-        !TODO PHONON     call ph_part_scf( ph_parts_per_rank(i) )
-        !TODO PHONON   ! compute force response
-        !TODO PHONON   ! (dynamical matrix row in irrep coordinates)
-        !TODO PHONON   if( any( task_list == 'phonons_forces' ) ) &
-        !TODO PHONON     call ph_part_force( ph_parts_per_rank(i) )
-        !TODO PHONON   ! finalize independent part
-        !TODO PHONON   call ph_part_finalize( ph_parts_per_rank(i) )
-        !TODO PHONON end do
+        do i = 1, size( ph_parts_per_rank )
+          ! prepare independent part
+          call ph_part_prepare( ph_parts_per_rank(i) )
+          ! solve self-consistency cycle for density and potential response
+          if( any( task_list == 'phonons_scf' ) ) &
+            call ph_part_scf( ph_parts_per_rank(i) )
+          ! compute force response
+          ! (dynamical matrix row in irrep coordinates)
+          if( any( task_list == 'phonons_forces' ) ) &
+            call ph_part_force( ph_parts_per_rank(i) )
+          ! finalize independent part
+          call ph_part_finalize( ph_parts_per_rank(i) )
+        end do
       end if
       call barrier( mpicom=mpiglobal )
 
       ! compute dynamical matrices in canonical basis
       ! and write them to file
-      !TODO PHONON if( any( task_list == 'phonons_dynmat' ) ) &
-      !TODO PHONON   call ph_write_dyn_canonical
+      if( any( task_list == 'phonons_dynmat' ) ) &
+        call ph_write_dyn_canonical
       call barrier( mpicom=mpiglobal )
 
       ! compute effective potential response in canonical basis
       ! and write it to file
-      !TODO PHONON if( any( task_list == 'phonons_write_dpot' ) ) &
-      !TODO PHONON   call ph_write_dpot_canonical
+      if( any( task_list == 'phonons_write_dpot' ) ) &
+        call ph_write_dpot_canonical
       call barrier( mpicom=mpiglobal )
 
       ! finalize phonon calculation
-      !TODO PHONON if( any( task_list == 'phonons_scf' ) .or. &
-      !TODO PHONON     any( task_list == 'phonons_forces' ) .or. &
-      !TODO PHONON     any( task_list == 'phonons_dynmat' ) ) &
-      !TODO PHONON   call ph_finalize
+      if( any( task_list == 'phonons_scf' ) .or. &
+          any( task_list == 'phonons_forces' ) .or. &
+          any( task_list == 'phonons_dynmat' ) ) &
+        call ph_finalize
 
       ! delete files EVALK0.TMP and EVECK0.TMP
       if( any( task_list == 'cleanup')) &
