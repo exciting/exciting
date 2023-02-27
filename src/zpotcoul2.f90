@@ -498,38 +498,62 @@ r_c = (omega*nkptnr)**(1d0/3d0)*0.50d0!0.171d0
 
 
 ! solve Poissons's equation in G-space for the pseudocharge
-   if (input%groundstate%vha.eq."exciting0d") then
+If (associated(input%groundstate%hybrid)) Then 
+
+   If ((input%groundstate%vha.eq."exciting0d").or.(input%groundstate%hybrid%singularity.eq."exc0d")) Then
+
       Do ig = 1, ngvec
          ifg = igfft (ig)
-
-
-         
-         If (gpc(ig) .Gt. input%structure%epslat) Then
+         If (gpc(ig) .Gt. input%structure%epslat) Then 
             zvclir (ifg) = fourpi * zvclir (ifg)*(1d0-cos(gpc(ig) * r_c )) / (gpc(ig)**2)
          Else
             zvclir (ifg) = zvclir(ifg)*(fourpi*0.5d0)*r_c**2
          End If
-      
       End Do
-   end if
 
-   if (input%groundstate%vha.eq."exciting") then
-
+   Else
+   
       ifg = igfft (igp0)
       zrho0 = zvclir (ifg)
       zvclir (ifg) = 0.d0
-     Do ig = 1, ngvec
+
+      Do ig = 1, ngvec
          ifg = igfft (ig)
          If (gpc(ig) .Gt. input%structure%epslat) Then
             zvclir (ifg) = fourpi * zvclir (ifg) / (gpc(ig)**2)
          Else
             zvclir (ifg) = 0.d0
          End If
-       
       End Do
-   end if
 
-end if
+   End If
+
+Else If (input%groundstate%vha.eq."exciting0d") Then
+
+   Do ig = 1, ngvec
+      ifg = igfft (ig)
+      If (gpc(ig) .Gt. input%structure%epslat) Then
+         zvclir (ifg) = fourpi * zvclir (ifg)*(1d0-cos(gpc(ig) * r_c )) / (gpc(ig)**2)
+      Else
+         zvclir (ifg) = zvclir(ifg)*(fourpi*0.5d0)*r_c**2
+      End If
+   End Do
+
+Else
+
+   ifg = igfft (igp0)
+   zrho0 = zvclir (ifg)
+   zvclir (ifg) = 0.d0
+   Do ig = 1, ngvec
+      ifg = igfft (ig)
+      If (gpc(ig) .Gt. input%structure%epslat) Then
+         zvclir (ifg) = fourpi * zvclir (ifg) / (gpc(ig)**2)
+      Else
+         zvclir (ifg) = 0.d0
+      End If
+   End Do
+
+End If
 
 
 
