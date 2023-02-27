@@ -554,7 +554,7 @@ Else
    End Do
 
 End If
-
+End If ! excite check
 
 
 
