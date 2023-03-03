@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # -*- coding: utf-8 -*-
 #_______________________________________________________________________________
 # Please, check http://exciting-code.org/oxygen-the-python-script-plot-multitask-py

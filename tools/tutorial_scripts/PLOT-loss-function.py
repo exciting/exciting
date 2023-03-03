@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -8,9 +8,24 @@ import sys
 import matplotlib.style
 if matplotlib.__version__.split(".")[0]=="2": matplotlib.style.use('classic')
 
+def parse_lossfunction(fname):
+    """
+    Parses files containing loss function
+    e.g. LOSS_FXCRPA_OC11_QMT001.OUT
 
-sys.path.append(os.path.dirname(__file__)+'/exciting_tools/excitingtools/parser/')
-from properties_parser import parse_lossfunction
+    :param str fname: name of the file
+    """
+    xdata = []
+    ydata = []
+    with open(fname, 'r') as file:
+        for lines in file:
+            if 'Frequency' in lines:
+                break
+        for lines in file:
+            data = lines.split()
+            xdata.append(float(data[0]))
+            ydata.append(float(data[1]))
+    return xdata, ydata
 
 #-------------------------------------------------------------------------------
 

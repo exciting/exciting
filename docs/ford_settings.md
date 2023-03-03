@@ -37,7 +37,7 @@ src_dir: ../src/src_gw
 [//]: # "More information on ford's project file options can be found at:"  
 [//]: # "https://github.com/Fortran-FOSS-Programmers/ford/wiki/Project-File-Options"  
 
-Release: exciting oxygen.  
+Release: exciting fluorine.  
 Copyright (C) 2002-2021 The exciting team.  
 
 ## Description
