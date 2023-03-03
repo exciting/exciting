@@ -136,7 +136,7 @@ if mode == 2:
     cmd="xsltproc $EXCITINGROOT/xml/inputfileconverter/xmlinput2xsf.xsl input.xml > input.xsf.tmp\n"
     cmd=cmd+"xsltproc $EXCITINGROOT/xml/visualizationtemplates/plot3d2xsf.xsl "+fname+" > stm3d.xsf.tmp\n"
     cmd=cmd+"xsltproc $EXCITINGROOT/xml/visualizationtemplates/plot3d2xsf.xsl "+fname+" > stm3d.xsf.tmp\n"
-    cmd=cmd+"cat $EXCITINGROOT/tools/stm/xcrysden1 input.xsf.tmp stm3d.xsf.tmp $EXCITINGROOT/tools/stm/xcrysden2 > STM3d.xcrysden\n"
+    cmd=cmd+"cat $EXCITINGTOOLS/stm/xcrysden1 input.xsf.tmp stm3d.xsf.tmp $EXCITINGTOOLS/tools/stm/xcrysden2 > STM3d.xcrysden\n"
     cmd=cmd+"cat input.xsf.tmp stm3d.xsf.tmp > STM3d.xsf\n"
     cmd=cmd+"rm input.xsf.tmp stm3d.xsf.tmp\n"
     cmd=cmd+"xcrysden --script STM3d.xcrysden\n"
