@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 
 """
 Plot square spin texture. This script is designed to work with SETUP-spintexture-plane.py together.

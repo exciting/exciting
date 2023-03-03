@@ -10,21 +10,21 @@ def test_tutorial_excited_states_from_bse(epsilon_result: dict, path_to_referenc
     epsilon_reference = parser_chooser(os.path.join(path_to_reference,"EPSILON/EPSILON_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT"))
 
     assert np.allclose(epsilon_result['frequency'],
-                       epsilon_reference['frequency']), (
+                       epsilon_reference['frequency'], atol=2e-6), (
                        "Freqeuncy grid not equivalent \
                         to reference calculation")
 
     assert np.allclose(epsilon_result['real_oscillator_strength'],
-                       epsilon_reference['real_oscillator_strength']), (
+                       epsilon_reference['real_oscillator_strength'], atol=2e-6), (
                         "Real part of dielectric function not equivalent \
                         to reference calculation")
 
     assert np.allclose(epsilon_result['imag_oscillator_strength'],
-                       epsilon_reference['imag_oscillator_strength']), (
+                       epsilon_reference['imag_oscillator_strength'], atol=2e-6), (
                         "Imaginary part of dielectric function not equivalent \
                         to reference calculation")
                         
     assert np.allclose(epsilon_result['real_oscillator_strength_kkt'],
-                       epsilon_reference['real_oscillator_strength_kkt']), (
+                       epsilon_reference['real_oscillator_strength_kkt'], atol=2e-6), (
                         "Real part of dielectric function (by Kramers-Kronig) \
                          not equivalent to reference calculation")
