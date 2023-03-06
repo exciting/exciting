@@ -13,7 +13,7 @@ Subroutine calcACE (ikp, vnlvv, vxpsiir,vxpsimt)
 ! arguments
       Integer, Intent (In) :: ikp
       Complex (8), Intent (In) :: vnlvv (nstsv, nstsv)
-      Complex (8), Intent (In) :: vxpsiir (ngrtot, nstsv)
+      Complex (8), Intent (In) :: vxpsiir (ngkmax, nstsv)
       Complex (8), Intent (In) :: vxpsimt (lmmaxvr, nrcmtmax, natmtot, nstsv)
 
 ! local variables
@@ -82,7 +82,7 @@ Subroutine calcACE (ikp, vnlvv, vxpsiir,vxpsimt)
       Allocate (matrixm(nstsv,nstsv))
       Allocate (matrixm1(nstsv,nstsv))
       Allocate (matrixm2(nstsv,nstsv))
-      Allocate (hfxiir(ngrtot,nstsv))
+      Allocate (hfxiir(ngkmax,nstsv))
       Allocate (hfximt(lmmaxvr, nrcmtmax, natmtot, nstsv))
 
       if (.not.(allocated(pace))) then
@@ -101,6 +101,7 @@ matrixl = -vnlvv ! create copy
 Do ist1 = 2, nstsv
     matrixl(ist1-1,ist1:)=0
 End Do
+Write (*, *) "aft matrixl"
 
 Call zpotrf('L',nstsv,matrixl,nstsv,info) ! Computes the Cholesky factorization
 If (info==0) Then
@@ -114,7 +115,8 @@ Else
     stop
 End If
 
-Call zgemm('N','C',ngrtot,nstsv,nstsv,(1.0D0,0.0),vxpsiir,ngrtot,matrixl,nstsv,(0.0D0,0.0),hfxiir,ngrtot) ! compute IR part of ACEO   hfxiir=zvclir*matrixl+
+Call zgemm('N','C',ngkmax,nstsv,nstsv,(1.0D0,0.0),vxpsiir,ngkmax,matrixl,nstsv,(0.0D0,0.0),hfxiir,ngkmax) ! compute IR part of ACEO   hfxiir=zvclir*matrixl+
+
 
 Do ilm = 1, lmmaxvr
     Do irc = 1, nrcmtmax
@@ -123,19 +125,12 @@ Do ilm = 1, lmmaxvr
 End Do
 
 ! -- calculating IR part of <xi|phi>
-! hfxiir=0
-
-pace(:,:,ikp)=0
-Do ist1 =1, nstsv
-    zfft=hfxiir(:,ist1)*cfunir
-    Call zfftifc (3, ngrid,-1,zfft) ! FT(xi_ir*theta)
-    Do igk=1,ngk(1,ikp)
-        pace(ist1,igk, ikp)=conjg(zfft(igfft(igkig(igk,1,ikp))))*sqrt(Omega) ! pace IR
-    End Do
+pace(:,:,ikp)=0.d0
+Do ist1 = 1, nstsv
+  pace(ist1,1:ngk(1,ikp), ikp) = conjg(hfxiir(1:ngk(1,ikp),ist1))
 End Do
 
 ! -- calculating MT and LO part of <xi|phi>
-
 ! apwi=0
 Call match (ngk(1, ikp), gkc(:, 1, ikp), tpgkc(:, :, 1, ikp), sfacgk(:, :, 1, ikp), apwalm)
 loindex=0

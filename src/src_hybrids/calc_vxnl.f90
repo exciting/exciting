@@ -273,12 +273,12 @@ else ! Use oepvnl
       !end if
 
 
-      if (input%groundstate%hybrid%singularity.ne."exc") sxs2=0d0
+      if (input%groundstate%hybrid%singularity.ne."exc") sxs2=0.d0
       !if (input%groundstate%vha.eq."psolver0d") sxs2=0d0
 
       if (allocated(vxnl)) deallocate(vxnl)
       allocate(vxnl(nstfv,nstfv,kset%nkpt))
-      allocate(vxpsiir (ngrtot, nstsv))
+      allocate(vxpsiir (ngkmax, nstsv))
       allocate(vxpsimt (lmmaxvr, nrcmtmax, natmtot, nstsv))
       vxnl(:,:,:) = zzero
 

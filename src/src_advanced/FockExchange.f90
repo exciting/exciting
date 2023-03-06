@@ -4,7 +4,7 @@
 ! Copyright (C) 2021 D. Zavickis, A. Gulans
 !
 !
-Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiir,vxpsimt)
+Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiirgk, vxpsimt)
       Use modmain 
       Use modinput
       Use modgw, only : kqset,Gkqset, kset, nomax, numin, ikvbm, ikcbm, ikvcm, Gset
@@ -13,7 +13,7 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiir,vxpsimt)
       Integer, Intent (In) :: ikp
       Real (8), Intent (In) :: q0corr
       Complex (8), Intent (Out) :: vnlvv (nstsv, nstsv)
-      Complex (8), Intent (Out) :: vxpsiir (ngrtot, nstsv)
+      Complex (8), Intent (Out) :: vxpsiirgk (ngkmax, nstsv)
       Complex (8), Intent (Out) :: vxpsimt (lmmaxvr, nrcmtmax, natmtot, nstsv)
 
 ! local variables
@@ -26,13 +26,14 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiir,vxpsimt)
       Logical :: solver
 
       Real (8) :: v (3), cfq, ta,tb, t1, norm, uir
-      Complex (8) zrho01, zrho02, zt1, zt2
+      Complex (8) zrho01, zrho02, ztmt, zt2, ztir
       Integer :: nr, l, m, io1, lm2, ir, if3
 ! automatic arrays
       Real (8) :: zn (nspecies)
       Complex (8) sfacgq0 (natmtot)
 ! allocatable arrays
       Real (8), Allocatable :: vgqc (:, :)
+      Real (8), Allocatable :: vtest (:)
       Real (8), Allocatable :: tpgqc (:, :)
       Real (8), Allocatable :: gqc (:)
       Real (8), Allocatable :: jlgqr (:, :, :)
@@ -42,6 +43,7 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiir,vxpsimt)
       Complex (8), Allocatable :: potir (:)
       Complex (8), Allocatable :: ylmgq (:, :)
       Complex (8), Allocatable :: sfacgq (:, :)
+      Complex (8), Allocatable :: vxpsiirtmp (:)
       Complex (8), Allocatable :: wfcr1 (:, :)
       Complex (8), Allocatable :: wf1ir (:)
       Complex (8), Allocatable :: wf2ir (:)
@@ -57,6 +59,7 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiir,vxpsimt)
       External zfinp, zfmtinp
 
 ! allocate local arrays
+      Allocate (vtest(3))
       Allocate (vgqc(3, ngvec))
       Allocate (tpgqc(2, ngvec))
       Allocate (gqc(ngvec))
@@ -64,6 +67,7 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiir,vxpsimt)
       Allocate (jlgq0r(0:input%groundstate%lmaxvr, nrcmtmax, nspecies))
       Allocate (ylmgq(lmmaxvr, ngvec))
       Allocate (sfacgq(ngvec, natmtot))
+      Allocate (vxpsiirtmp(ngrtot))
       Allocate (wfcr1(ntpll, nrcmtmax))
       Allocate (zrhomt(lmmaxvr, nrcmtmax, natmtot))
       Allocate (zrhoir(ngrtot))
@@ -97,7 +101,7 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiir,vxpsimt)
       cfq = 0.5d0 * (omega/pi) ** 2
 ! set the nuclear charges to zero
       zn (:) = 0.d0
-      vxpsiir (:, :) = 0.d0
+      vxpsiirgk (:, :) = 0.d0
       vxpsimt (:, :, :, :) = 0.d0
       vnlvv (:, :) = 0.d0
 ! calculate the wavefunctions for all states for the input k-point
@@ -105,10 +109,6 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiir,vxpsimt)
 ! if (.true.) then
 ! start loop over non-reduced k-point set
       Do iq = 1, kqset%nkpt
-        ! Write(*,*) "y not go in?"
-        ! Call testsym(ik)
-        ! stop
-
 
 call timesec(ta)
          jk  = kqset%kqid(ik,iq) ! ID(k') = ID(k-q)-> ID(k) set
@@ -152,15 +152,13 @@ call timesec(tb)
 write(*,*) 'genWFs',tb-ta
 
 
-      solver = (input%groundstate%hybrid%singularity.ne."exc")
-      
+         solver = (input%groundstate%hybrid%singularity.ne."exc")
+         
+         zvclmt (:, :, :, :) = 0.d0
+         zvclir (:, :) = 0.d0
 
 
-      zvclir (:, :) = 0.d0
-      zvclmt (:, :, :, :) = 0.d0
-
-
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist3,wf1ir,wf2ir,igk,ifg,prod,prodir,zrho01,pot,potir,ta,tb) REDUCTION(+:zvclir,zvclmt)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ist3,wf1ir,wf2ir,igk,ifg,prod,prodir,zrho01,pot,potir,ta,tb,vxpsiirtmp) REDUCTION(+:zvclmt,vxpsiirgk,zvclir)
 
          call WFInit(prod)
          call WFInit(pot)
@@ -173,26 +171,19 @@ write(*,*) 'genWFs',tb-ta
          Allocate (potir(ngrtot))
 
 
-
-
-
-
          Do ist2 = 1, nomax
 
-          
-           wf2ir(:) = 0.d0
-           Do igk = 1, Gkqset%ngk (1, jk)
-             ifg = igfft (Gkqset%igkig(igk, 1, jk))
-             wf2ir(ifg) = t1*wf2%gk(igk, ist2)
-           End Do
-           Call zfftifc (3, ngrid, 1, wf2ir(:))
+            wf2ir(:) = 0.d0
+            Do igk = 1, Gkqset%ngk (1, jk)
+               ifg = igfft (Gkqset%igkig(igk, 1, jk))
+               wf2ir(ifg) = t1*wf2%gk(igk, ist2)
+            End Do
+            Call zfftifc (3, ngrid, 1, wf2ir(:))
 
-
-
-!$OMP DO
+   !$OMP DO
             Do ist3 = 1, nstfv
 
-              
+               vxpsiirtmp(:) = 0.d0
                wf1ir(:) = 0.d0 
                Do igk = 1, Gkqset%ngk (1, ik)
                   ifg = igfft (Gkqset%igkig(igk, 1, ik))
@@ -200,86 +191,70 @@ write(*,*) 'genWFs',tb-ta
                End Do
                Call zfftifc (3, ngrid, 1, wf1ir(:))
 
-! calculate the complex overlap density
-!-------------------------------------------------------------------
-
-                     call WFprodrs(ist2,wf2,ist3,wf1,prod)
-                     prodir(:)=conjg(wf2ir(:))*wf1ir(:)
-if ((ik.eq.jk).and.(.not.solver)) then
-!write(*,*)"auxiliary 1"
-                    Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, &
-                    & igq0), sfacgq0, prod%mtrlm(:,:,:,1), prodir(:), zrho01) 
-                     prodir(:)=prodir(:)-zrho01
-                     prod%mtrlm(1,:,:,1)=prod%mtrlm(1,:,:,1)-zrho01/y00
-endif
-
-
-if (solver) then
-!write(*,*)"zpotcoul2"
-
-                     Call zpotcoul2 (nrcmt, nrcmtmax, nrcmtmax, rcmt, &
-                    & igq0, gqc, jlgqr, ylmgq, sfacgq, zn, prod%mtrlm(:,:,:,1), &
-                    & prodir(:), 1, pot%mtrlm(:,:,:,1), potir(:), zrho02)
-
-else
-!write(*,*)"zpotcoul exciting"
-                     Call zpotcoul (nrcmt, nrcmtmax, nrcmtmax, rcmt, &
-                    & igq0, gqc, jlgqr, ylmgq, sfacgq, zn, prod%mtrlm(:,:,:,1), &
-                    & prodir(:), pot%mtrlm(:,:,:,1), potir(:), zrho02)
-
-end if
+   ! calculate the complex overlap density
+   !-----------------------------------------------------------------------------------
 
                call WFprodrs(ist2,wf2,ist3,wf1,prod)
                prodir(:)=conjg(wf2ir(:))*wf1ir(:)
 
+   if ((ik.eq.jk).and.(.not.solver)) then
+                  Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, &
+                  & igq0), sfacgq0, prod%mtrlm(:,:,:,1), prodir(:), zrho01) 
+                  prodir(:)=prodir(:)-zrho01
+                  prod%mtrlm(1,:,:,1)=prod%mtrlm(1,:,:,1)-zrho01/y00
+   endif
 
+   if (solver) then
+                  Call zpotcoul2 (nrcmt, nrcmtmax, nrcmtmax, rcmt, &
+                  & igq0, gqc, jlgqr, ylmgq, sfacgq, zn, prod%mtrlm(:,:,:,1), &
+                  & prodir(:), 1, pot%mtrlm(:,:,:,1), potir(:), zrho02)
+   else
+   !write(*,*)"zpotcoul exciting"
+                  Call zpotcoul (nrcmt, nrcmtmax, nrcmtmax, rcmt, &
+                  & igq0, gqc, jlgqr, ylmgq, sfacgq, zn, prod%mtrlm(:,:,:,1), &
+                  & prodir(:), pot%mtrlm(:,:,:,1), potir(:), zrho02)
+   end if
 
+               call WFprodrs(ist2,wf2,ist3,wf1,prod)
+               prodir(:)=conjg(wf2ir(:))*wf1ir(:)
 
-
-if ((ik.eq.jk).and.(.not.solver)) then
-!write(*,*)"auxiliary 2"
+   if ((ik.eq.jk).and.(.not.solver)) then
                   Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, &
                   & igq0), sfacgq0, pot%mtrlm(:,:,:,1), potir(:), zrho01)
 
                   potir(:)=potir(:)-zrho01
                   pot%mtrlm(1,:,:,1)=pot%mtrlm(1,:,:,1)-zrho01/y00
-endif
+   endif
 
-!-------------------------------------------------------------------
+   !-----------------------------------------------------------------------------------
                call genWFonMeshOne(pot)
                pot%mtmesh=conjg(pot%mtmesh)
                call WFprodrs(1,pot,ist2,wf2,prod)
-               prodir(:) = potir(:)*wf2ir(:)
+               vxpsiirtmp(:) = potir(:)*wf2ir(:)*wkptnr(jk)*cfunir(:)
 
+   ! ----------------------------------------------------------------------------------
+               ! Calculate Fourier transform of vxpsiirtmp(r)
+               Call zfftifc (3, ngrid,-1,vxpsiirtmp)
+               Do igk=1, Gkqset%ngk (1, ik)
+                  vxpsiirgk(igk, ist3)=vxpsiirgk(igk, ist3)+vxpsiirtmp(igfft(Gkqset%igkig(igk, 1, ik)))*sqrt(Omega) ! pace IR
+               End Do
 
-! ------------------------------------------------------------------
-               zvclir(:,ist3)=zvclir(:,ist3)+prodir(:)*wkptnr(jk)
                zvclmt(:,:,:,ist3)=zvclmt(:,:,:,ist3)+prod%mtrlm(:,:,:,1)*wkptnr(jk)
 
             End Do ! ist3
-
 !$OMP END DO NOWAIT
          End Do ! ist2
 
-
-
-
-      call WFRelease(prod)
-      call WFRelease(pot)
-      Deallocate (wf1ir)
-      Deallocate (wf2ir)
-      Deallocate (prodir)
-      Deallocate (potir)
-
-
+         call WFRelease(prod)
+         call WFRelease(pot)
+         Deallocate (wf2ir)
+         Deallocate (prodir)
+         Deallocate (potir)
 
 !$OMP END PARALLEL
 
-vxpsiir=vxpsiir+zvclir
-vxpsimt=vxpsimt+zvclmt
-
-! end loop over non-reduced k-point set
-      End Do
+         vxpsimt=vxpsimt+zvclmt
+      End Do ! non-reduced k-point set
 
 
 !----------------------------------------------!
@@ -335,12 +310,11 @@ If (.true.) Then
          End Do ! ia
       End Do ! is
 End If
-call timesec(tb) 
+call timesec(tb)
 write(*,*) 'vcv',tb-ta
 
       vxpsimt=vxpsimt+zvclmt
       Allocate (wf1ir(ngrtot))
-
 call timesec(ta)
       Do ist1 = 1, nstsv
          wf1ir(:) = 0.d0
@@ -350,15 +324,23 @@ call timesec(ta)
          End Do
          Call zfftifc (3, ngrid, 1, wf1ir(:))
 
-! q=0 correction
-         if (ist1.le.nomax) then
-            vxpsimt(:,:,:,ist1) = vxpsimt(:,:,:,ist1) + q0corr*wf1%mtrlm(:,:,:,ist1)
-            vxpsiir(:,ist1) = vxpsiir(:,ist1) + q0corr*wf1ir(:)
-         endif
-
          Do ist3 = 1, nstsv
-            zt1 = zfinp (.True., wf1%mtrlm(:,:,:,ist1),vxpsimt(:,:,:,ist3), wf1ir(:), vxpsiir(:,ist3))
-            vnlvv (ist1, ist3) = vnlvv (ist1, ist3) - zt1
+            vxpsiirtmp(:) = 0.d0
+            Do igk = 1, Gkqset%ngk (1, ik) !ngkmax
+               ifg = igfft (Gkqset%igkig(igk, 1, ik))
+               vxpsiirtmp(ifg) = t1*vxpsiirgk(igk, ist3)
+            End Do
+            Call zfftifc (3, ngrid, 1, vxpsiirtmp(:))
+
+            ! q=0 correction
+            if ((ist1.le.nomax).and.(ist3.eq.ist1).and.(q0corr.ne.0.d0)) then
+               vxpsimt(:,:,:,ist1) = vxpsimt(:,:,:,ist1) + q0corr*wf1%mtrlm(:,:,:,ist1)
+               vxpsiirtmp(:) = vxpsiirtmp(:) + q0corr*wf1ir(:)*cfunir(:)
+            endif
+
+            ztir = sum(conjg(wf1ir)*vxpsiirtmp)*omega/dble(ngrtot)
+            ztmt = zfinp (.True., wf1%mtrlm(:,:,:,ist1),vxpsimt(:,:,:,ist3), 0.d0*wf1ir(:), 0.d0*vxpsiirtmp(:))
+            vnlvv (ist1, ist3) = vnlvv (ist1, ist3) - ztmt - ztir
          End Do ! ist3
       End Do ! ist1
 
@@ -370,53 +352,22 @@ call timesec(tb)
 write(*,*) 'Matrix',tb-ta
 
 if (.false.) then
+      Write(*,*) "ikp, ik, memopt:", ikp, ik
       write(*,*) 'vnlvv real (1:14,1:14)'
       do ist1 = 1, 14
          write(*,'(14F13.9)') dble(vnlvv(ist1,1:14))
       end do
       
-      write(*,*) 'vnlvv real, (1:14,14:28)'
-      do ist1 = 1, 14
-         write(*,'(15F13.9)') dble(vnlvv(ist1,14:28))
-      end do
-      
-      write(*,*) 'vnlvv real, (14:28,1:14)'
-      do ist1 = 14, 28
-         write(*,'(14F13.9)') dble(vnlvv(ist1,1:14))
-      end do
-      
-      write(*,*) 'vnlvv real, (14:28,14:28)'
-      do ist1 = 14, 28
-         write(*,'(15F13.9)') dble(vnlvv(ist1,14:28))
-      end do
-      
-      
       write(*,*) 'vnlvv imag (1:14,1:14)--'
       do ist1 = 1, 14
          write(*,'(14F13.9)') dimag(vnlvv(ist1,1:14))
       end do
-      
-      write(*,*) 'vnlvv imag, (1:14,14:28)'
-      do ist1 = 1, 14
-         write(*,'(15F13.9)') dimag(vnlvv(ist1,14:28))
-      end do
-      
-      write(*,*) 'vnlvv imag, (14:28,1:14)'
-      do ist1 = 14, 28
-         write(*,'(14F13.9)') dimag(vnlvv(ist1,1:14))
-      end do
-      
-      write(*,*) 'vnlvv imag, (14:28,14:28)'
-      do ist1 = 14, 28
-         write(*,'(15F13.9)') dimag(vnlvv(ist1,14:28))
-      end do
-      
 end if
       
       Deallocate (vgqc, tpgqc, gqc, jlgqr, jlgq0r)
       Deallocate (ylmgq, sfacgq)
       Deallocate (wfcr1)
-      Deallocate (wf1ir) !, wf2ir) !, prodir, potir)
+      Deallocate (wf1ir)
       Deallocate (zrhomt, zrhoir, zvcltp, zfmt)
       call WFRelease(wf1)
       call WFRelease(wf2)
