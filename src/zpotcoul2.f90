@@ -186,7 +186,7 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
      if (psolver0d) then
             excite = .False.
      end if
-     write(*,*)"exc0d", exciting0d
+!     write(*,*)"exc0d", exciting0d
    end if
    
 
@@ -485,7 +485,7 @@ end if!psolver
 
 #endif
 if (excite) then!exciting or exciting0d
-write(*,*)"exciting0"
+!write(*,*)"exciting0"
 ! set zrho0 (pseudocharge density coefficient of the smallest G+p vector)
       ifg = igfft (igp0)
       zrho0 = zvclir (ifg)

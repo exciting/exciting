@@ -139,7 +139,7 @@ call timesec(ta)
          Call genjlgpr (lmax, gqc, jlgqr)
          Call genjlgq0r (gqc(igq0), jlgq0r)
 call timesec(tb)
-!write(*,*) 'qpt init', tb-ta
+write(*,*) 'qpt init', tb-ta
 
 ! calculate the wavefunctions for occupied states
 
@@ -274,6 +274,9 @@ endif
 
 
 !$OMP END PARALLEL
+
+call timesec(ta)
+write(*,*) 'omp loop',ta-tb
 
 vxpsiir=vxpsiir+zvclir
 vxpsimt=vxpsimt+zvclmt
