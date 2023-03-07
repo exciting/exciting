@@ -52,10 +52,12 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiirgk, vxpsimt)
       Complex (8), Allocatable :: zvclmt (:, :, :, :)
       Complex (8), Allocatable :: zvcltp (:, :)
       Complex (8), Allocatable :: zfmt (:, :)
+      Complex (8), Allocatable :: zwfir (:)
+      Complex (8), Allocatable :: tmpwfir (:)
       type (WFType) :: wf1,wf2,prod,pot
 ! external functions
-      Complex (8) zfinp, zfmtinp
-      External zfinp, zfmtinp
+      Complex (8) zfinp, zfmtinp, zfinpir, zfinpmt
+      External zfinp, zfmtinp, zfinpir, zfinpmt
 
 ! allocate local arrays
       Allocate (vtest(3))
@@ -73,6 +75,8 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiirgk, vxpsimt)
       Allocate (zvcltp(ntpll, nrcmtmax))
       Allocate (zfmt(lmmaxvr, nrcmtmax))
       Allocate (zvclmt(lmmaxvr, nrcmtmax, natmtot, nstsv))
+      Allocate (zwfir((ngkmax)))
+      Allocate (tmpwfir((ngrtot)))
 
 
       if (allocated(evalfv)) deallocate(evalfv)
@@ -315,45 +319,39 @@ write(*,*) 'vcv',tb-ta
       Allocate (wf1ir(ngrtot))
 call timesec(ta)
       Do ist1 = 1, nstsv
-         wf1ir(:) = 0.d0
-         Do igk = 1, Gkqset%ngk (1, ik)
-            ifg = igfft (Gkqset%igkig(igk, 1, ik))
-            wf1ir(ifg) = t1*wf1%gk(igk, ist1)
-         End Do
-         Call zfftifc (3, ngrid, 1, wf1ir(:))
-!         write(*,*) 'ist1=',ist1
-         Do ist3 = 1, nstsv
-            call timesec(ta)
-            vxpsiirtmp(:) = 0.d0
-            Do igk = 1, Gkqset%ngk (1, ik) !ngkmax
+
+         If ((ist1.le.nomax).and.(q0corr.ne.0.d0)) Then
+            ! Evaluate wavefunction in real space
+            wf1ir(:) = 0.d0
+            Do igk = 1, Gkqset%ngk (1, ik)
                ifg = igfft (Gkqset%igkig(igk, 1, ik))
-               vxpsiirtmp(ifg) = t1*vxpsiirgk(igk, ist3)
+               wf1ir(ifg) = t1*wf1%gk(igk, ist1)
             End Do
-            Call zfftifc (3, ngrid, 1, vxpsiirtmp(:))
-            call timesec(tb)
-            write(*,*) 'fft',tb-ta
+            Call zfftifc (3, ngrid, 1, wf1ir(:))
 
-            ! q=0 correction
-            if ((ist1.le.nomax).and.(ist3.eq.ist1).and.(q0corr.ne.0.d0)) then
-               vxpsimt(:,:,:,ist1) = vxpsimt(:,:,:,ist1) + q0corr*wf1%mtrlm(:,:,:,ist1)
-               vxpsiirtmp(:) = vxpsiirtmp(:) + q0corr*wf1ir(:)*cfunir(:)
-            endif
+            ! Apply q=0 correction to MT part
+            vxpsimt(:,:,:,ist1) = vxpsimt(:,:,:,ist1) + q0corr*wf1%mtrlm(:,:,:,ist1)
 
-            call timesec(ta)
-            ztir = sum(conjg(wf1ir)*vxpsiirtmp)*omega/dble(ngrtot)
-            call timesec(tb)
-            write(*,*) 'ztir',tb-ta
-            call timesec(ta)
-            ztmt = zfinp (.True., wf1%mtrlm(:,:,:,ist1),vxpsimt(:,:,:,ist3), 0.d0*wf1ir(:), 0.d0*vxpsiirtmp(:))
-            call timesec(tb)
-            write(*,*) 'ztmt',tb-ta
+            ! Apply correction to IR part and roll back correction to momentum space
+            vxpsiirtmp(:) = q0corr*wf1ir(:)*cfunir(:)
+            Call zfftifc (3, ngrid,-1,vxpsiirtmp)
+            Do igk=1, Gkqset%ngk (1, ik)
+               vxpsiirgk(igk, ist1)=vxpsiirgk(igk, ist1)+vxpsiirtmp(igfft(Gkqset%igkig(igk, 1, ik)))*sqrt(Omega) ! pace IR
+            End Do
+         End If 
+
+         Write(*,*) 'ist1=',ist1
+         Do ist3 = 1, nstsv
+
+            ztir = 0.d0
+            Do igk = 1, Gkqset%ngk (1, ik)
+               ztir = ztir + conjg(wf1%gk(igk, ist1))*vxpsiirgk(igk,ist3)
+            End Do
+            ztmt = zfinpmt (.True., wf1%mtrlm(:,:,:,ist1),vxpsimt(:,:,:,ist3))
             vnlvv (ist1, ist3) = vnlvv (ist1, ist3) - ztmt - ztir
+
          End Do ! ist3
       End Do ! ist1
-
-
-
-
 call timesec(tb)
 
 write(*,*) 'Matrix',tb-ta
