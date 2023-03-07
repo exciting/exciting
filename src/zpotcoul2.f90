@@ -186,7 +186,6 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
      if (psolver0d) then
             excite = .False.
      end if
-!     write(*,*)"exc0d", exciting0d
    end if
    
 
@@ -201,23 +200,23 @@ if (.not.excite) then
 isf_order = 16
 
    if (psolver0d) then! free in all directions
-       write(*,*)"type Free"
+       !write(*,*)"type Free"
        solvertype='F'
        bc_type = 0
    else if ((psolver3d)) then! periodic x, y, z
        solvertype='P'
        bc_type = 3
-       write(*,*)"type P"
+       !write(*,*)"type P"
    else if (psolver1d) then!free in x,y, periodic in z
        solvertype = 'W'
        bc_type = 1
        isf_order=60
-       write(*,*) "type W"
+       !write(*,*) "type W"
    else if (psolver2d) then! free in y, periodic x, z
        solvertype = 'S'
        bc_type = 2
        isf_order=60
-       write(*,*) "type S"
+       !write(*,*) "type S"
    end if 
 
    
@@ -440,7 +439,7 @@ end if
 
 #ifdef PSOLVER
 if (.not.excite) then
-write(*,*)"psolver"
+!write(*,*)"psolver"
 ! Fourier transform interstitial potential to real space
       Call zfftifc (3, ngrid, 1, zvclir)
       allocate(fake_arr(1),r_v(n1*n2*n3), c_v(n1*n2*n3))
