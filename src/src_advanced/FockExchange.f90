@@ -53,7 +53,6 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiirgk, vxpsimt)
       Complex (8), Allocatable :: zvcltp (:, :)
       Complex (8), Allocatable :: zfmt (:, :)
       Complex (8), Allocatable :: zwfir (:)
-      Complex (8), Allocatable :: tmpwfir (:)
       type (WFType) :: wf1,wf2,prod,pot
 ! external functions
       Complex (8) zfinp, zfmtinp, zfinpir, zfinpmt
@@ -75,8 +74,7 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiirgk, vxpsimt)
       Allocate (zvcltp(ntpll, nrcmtmax))
       Allocate (zfmt(lmmaxvr, nrcmtmax))
       Allocate (zvclmt(lmmaxvr, nrcmtmax, natmtot, nstsv))
-      Allocate (zwfir((ngkmax)))
-      Allocate (tmpwfir((ngrtot)))
+      Allocate (zwfir(ngkmax))
 
 
       if (allocated(evalfv)) deallocate(evalfv)
@@ -340,7 +338,7 @@ call timesec(ta)
             End Do
          End If 
 
-         Write(*,*) 'ist1=',ist1
+         ! Write(*,*) 'ist1=',ist1
          Do ist3 = 1, nstsv
 
             ztir = 0.d0
