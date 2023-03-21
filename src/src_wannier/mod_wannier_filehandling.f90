@@ -579,17 +579,17 @@ module mod_wannier_filehandling
 
       call printbox( wf_info, '*', "Wannier functions")
       write( wf_info, *)
-      write( wf_info, '(3x,"#",13x,"localization center (lattice)",11x,"Omega",6x,"Omega_I",6x,"Omega_D",5x,"Omega_OD")')
+      write( wf_info, '(3x,"#",4x,"localization center (lattice)",8x,"Omega",3x,"Omega_I",3x,"Omega_D",2x,"Omega_OD")')
       write( wf_info, '(80("="))')
 
       do igroup = 1, wf_ngroups
         do i = wf_groups( igroup)%fwf, wf_groups( igroup)%lwf
           call r3mv( ainv, wf_centers( :, i), vl)
-          write( wf_info, '(I4,3x,3F13.6,3x,4F13.6)') i, vl, wf_omega( i), wf_omega_i( i), wf_omega_d( i), wf_omega_od( i)
+          write( wf_info, '(I4,3x,3F10.4,3x,4F10.4)') i, vl, wf_omega( i), wf_omega_i( i), wf_omega_d( i), wf_omega_od( i)
         end do
         if( wf_ngroups .gt. 1) then
           if( igroup .le. wf_ngroups) write( wf_info, '(80("-"))')
-          write( wf_info, '(43x,"total:",4F13.6)') sum( wf_omega( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf)), &
+          write( wf_info, '(34x,"total:",4F10.4)') sum( wf_omega( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf)), &
                                                    sum( wf_omega_i( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf)), &
                                                    sum( wf_omega_d( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf)), &
                                                    sum( wf_omega_od( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf))
@@ -598,8 +598,8 @@ module mod_wannier_filehandling
       end do
 
       write( wf_info, '(80("="))')
-      write( wf_info, '(43x,"total:",4F13.6)') sum( wf_omega), sum( wf_omega_i), sum( wf_omega_d), sum( wf_omega_od)
-      write( wf_info, '(41x,"average:",4F13.6)') sum( wf_omega)/wf_nwf, sum( wf_omega_i)/wf_nwf, sum( wf_omega_d)/wf_nwf, sum( wf_omega_od)/wf_nwf
+      write( wf_info, '(34x,"total:",4F10.4)') sum( wf_omega), sum( wf_omega_i), sum( wf_omega_d), sum( wf_omega_od)
+      write( wf_info, '(32x,"average:",4F10.4)') sum( wf_omega)/wf_nwf, sum( wf_omega_i)/wf_nwf, sum( wf_omega_d)/wf_nwf, sum( wf_omega_od)/wf_nwf
 
       write( wf_info, *)
       call flushifc( wf_info)
