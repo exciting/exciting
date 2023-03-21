@@ -84,19 +84,15 @@ subroutine dshmul( lmax1, lmax2, lmax3, nr, a, f1, ld1, f2, ld2, b, f3, ld3)
   res = 0._dp
 
   ! compute product
-!$omp parallel default( shared) private( i, tmp) reduction(+:res)
-!$omp do collapse(2)
   do lm2 = 1, lmmax2
     do lm1 = 1, lmmax1
       tmp = f1c(:,lm1) * f2c(:,lm2)
       do i = 1, gaunt_coeff_rrr%num(lm1, lm2)
         if( gaunt_coeff_rrr%lm2(i, lm1, lm2) > lmmax3 ) exit
-        res(:, gaunt_coeff_rrr%lm2(i, lm1, lm2)) = res(:, gaunt_coeff_rrr%lm2(i, lm1, lm2)) + gaunt_coeff_rrr%val(i, lm1, lm2) * tmp
+        call daxpy( nr, gaunt_coeff_rrr%val(i, lm1, lm2), tmp, 1, res(1, gaunt_coeff_rrr%lm2(i, lm1, lm2)), 1 )
       end do
     end do
   end do
-!$omp end do
-!$omp end parallel
 
   f3(1:lmmax3,1:nr) = f3(1:lmmax3,1:nr) + a * transpose( res)
   deallocate( tmp, res, f1c, f2c)
@@ -185,8 +181,6 @@ subroutine zshmul( lmax1, lmax2, lmax3, nr, a, f1, ld1, f2, ld2, b, f3, ld3)
   res = 0._dp
 
   ! compute product
-!$omp parallel default( shared) private( l2, m2, lmm2, sgn, lm1, i, tmp) reduction(+:res)
-!$omp do
   do lm2 = 1, lmmax2
     l2 = int( sqrt( dble(lm2 - 1))) ! get l of (l,m)
     m2 = lm2 - (l2 + 1)**2 + l2     ! get m of (l,m)
@@ -196,12 +190,10 @@ subroutine zshmul( lmax1, lmax2, lmax3, nr, a, f1, ld1, f2, ld2, b, f3, ld3)
       tmp = f1( lm1, 1:nr) * f2( lm2, 1:nr)
       do i = 1, gaunt_coeff_yyy%num(lm1, lmm2)
         if( gaunt_coeff_yyy%lm2(i, lm1, lmm2) > lmmax3 ) exit
-        res(:, gaunt_coeff_yyy%lm2(i, lm1, lmm2)) = res(:, gaunt_coeff_yyy%lm2(i, lm1, lmm2)) + sgn * gaunt_coeff_yyy%val(i, lm1, lmm2) * tmp
+        call zaxpy( nr, cmplx(sgn*gaunt_coeff_yyy%val(i, lm1, lmm2), 0, dp), tmp, 1, res(1, gaunt_coeff_yyy%lm2(i, lm1, lmm2)), 1 )
       end do
     end do
   end do
-!$omp end do
-!$omp end parallel
 
   f3(1:lmmax3,1:nr) = f3(1:lmmax3,1:nr) + a * transpose( res)
 end subroutine zshmul
@@ -289,19 +281,15 @@ subroutine zshmulc( lmax1, lmax2, lmax3, nr, a, f1, ld1, f2, ld2, b, f3, ld3)
   res = 0._dp
 
   ! compute product
-!$omp parallel default( shared) private( i, tmp) reduction(+:res)
-!$omp do collapse(2)
   do lm2 = 1, lmmax2
     do lm1 = 1, lmmax1
       tmp = conjg( f1( lm1, 1:nr)) * f2( lm2, 1:nr)
       do i = 1, gaunt_coeff_yyy%num(lm2, lm1)
         if( gaunt_coeff_yyy%lm2(i, lm2, lm1) > lmmax3 ) exit
-        res(:, gaunt_coeff_yyy%lm2(i, lm2, lm1)) = res(:, gaunt_coeff_yyy%lm2(i, lm2, lm1)) + gaunt_coeff_yyy%val(i, lm2, lm1) * tmp
+        call zaxpy( nr, cmplx(gaunt_coeff_yyy%val(i, lm2, lm1), 0, dp), tmp, 1, res(1, gaunt_coeff_yyy%lm2(i, lm2, lm1)), 1 )
       end do
     end do
   end do
-!$omp end do
-!$omp end parallel
 
   f3(1:lmmax3,1:nr) = f3(1:lmmax3,1:nr) + a * transpose( res)
 end subroutine zshmulc

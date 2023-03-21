@@ -33,7 +33,7 @@ module mod_wannier_variables
   character(265) :: wf_filename
   real(8) :: wf_efermi
   logical :: wf_fermizero
-  logical :: wf_fixphases = .true.
+  logical :: wf_fixphases = .false.
 
   type( wannier_group), allocatable :: wf_groups(:)
   integer :: wf_ngroups

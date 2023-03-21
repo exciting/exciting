@@ -388,7 +388,7 @@ module phonons_force
             do ist = fst, lst
               t1 = kset%wkpt(ik) * occk(ist)
               if( ord == 1 ) t1 = t1 / 2
-              dforce(ip, ias) = dforce(ip, ias) + t1 * (dHmat(ist, 1) - evalk(ist) * dSmat(ist, 1))
+              dforce(ip, ias) = dforce(ip, ias) + t1 * conjg( dHmat(ist, 1) - evalk(ist) * dSmat(ist, 1) )
             end do
 
             ! ** contribution from eigenvalue and occupation response
