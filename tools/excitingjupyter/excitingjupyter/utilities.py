@@ -80,3 +80,32 @@ def re_input(nb_path: Union[str, pathlib.Path], title: str) -> str:
         if len(matches) != 0:
             return matches[0]
     return 'NULL'
+
+def get_input_xml_from_notebook(nb_path: Union[str, pathlib.Path], ident: str) -> str:
+    """ Extract an exciting input file string from a Jupyter notebook file.
+
+    Only return the first match. The input is identified by a (hidden) html tag, 
+    where the html class name identifies the cell to parse.
+
+    The structure of the cells must be:
+
+        <span class="{ident}"></span>
+        ```xml
+        <content/>
+        ```
+
+    where `{ident}` is replaced with the same string as in this function.
+
+    :param nb_path: Notebook file location (excluding file suffix).
+    :param ident: Identifier of input string cell.
+    :return parsed input.xml.
+    """
+    nb = read_nb(f"{nb_path}.ipynb", as_version=4)
+    # check markdown cells
+    for cell in filter(lambda x: x["cell_type"] == "markdown", nb["cells"]):
+        if ident in cell["source"]:
+            cell_content = cell["source"]
+            break
+    # delete first two (containing ident and markdown formatting) and last (contain formatting) line
+    cell_content = "\n".join(cell_content.split("\n")[2:-1])
+    return cell_content
