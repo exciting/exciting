@@ -27,7 +27,6 @@ else:
     ind = args.index("-mode")
     mode = int(args[ind+1]) 
 
-
 if mode == 1:
     if "-tile" in args:
         ind = args.index("-tile")
@@ -95,12 +94,13 @@ if mode == 1:
 
     white_red = LinearSegmentedColormap('whiteRed', cdict)
 
-
-    fig=plt.figure(1,figsize=(8.0,8.0))
+    fig=plt.figure(1,figsize=(8.0,4.0))
 
     params = {'font.size':15,
               'xtick.major.size': 5,
               'ytick.major.size': 5,
+              'ytick.major.width': 2,
+              'xtick.major.width': 2,
               'patch.linewidth': 1.5,
               'axes.linewidth': 2.,
               'axes.formatter.limits': (-4, 6),
@@ -113,15 +113,22 @@ if mode == 1:
               'savefig.dpi':80}
 
     plt.rcParams.update(params)
+    #plt.rcParams['text.usetex'] = True
+    
     ax=fig.add_subplot(111, aspect='equal')
 
     ax.pcolor(xnp,ynp,fnp,cmap=cm.copper)
 
-    ax.set_xlabel("$\AA$")
-    ax.set_ylabel("$\AA$")
+    plt.xlabel("Lengthscale ["+u"\u212B"+"]")
+    plt.ylabel("Lengthscale ["+u"\u212B"+"]")
+
+    ax.yaxis.set_major_locator(plt.MaxNLocator(5))
+
+    plt.tight_layout()
 
     if "-png" in args:
-        plt.savefig('PLOT.png', orientation='portrait',format='png')
+        #plt.savefig('PLOT.png', orientation='portrait',format='png', dpi=300)
+        plt.savefig('PLOT.png', orientation='portrait',format='png', bbox_inches='tight', dpi=300)
     else:
         plt.show()
 
@@ -132,11 +139,10 @@ if mode == 2:
     else:
         fname = "STM3d.xml"
     
-        
     cmd="xsltproc $EXCITINGROOT/xml/inputfileconverter/xmlinput2xsf.xsl input.xml > input.xsf.tmp\n"
     cmd=cmd+"xsltproc $EXCITINGROOT/xml/visualizationtemplates/plot3d2xsf.xsl "+fname+" > stm3d.xsf.tmp\n"
     cmd=cmd+"xsltproc $EXCITINGROOT/xml/visualizationtemplates/plot3d2xsf.xsl "+fname+" > stm3d.xsf.tmp\n"
-    cmd=cmd+"cat $EXCITINGTOOLS/stm/xcrysden1 input.xsf.tmp stm3d.xsf.tmp $EXCITINGTOOLS/tools/stm/xcrysden2 > STM3d.xcrysden\n"
+    cmd=cmd+"cat $EXCITINGTOOLS/stm/xcrysden1 input.xsf.tmp stm3d.xsf.tmp $EXCITINGTOOLS/stm/xcrysden2 > STM3d.xcrysden\n"
     cmd=cmd+"cat input.xsf.tmp stm3d.xsf.tmp > STM3d.xsf\n"
     cmd=cmd+"rm input.xsf.tmp stm3d.xsf.tmp\n"
     cmd=cmd+"xcrysden --script STM3d.xcrysden\n"

@@ -114,7 +114,7 @@ def option_parser():
                    type = int, help = help_kpoint_boundary)
 
     p.add_argument('-a','--assign_type',
-                   nargs = '*', default = [],
+                   nargs = '*', default = ['KS'],
                    choices = ['KS', 'GW', 'WA'],
                    type = str, help = help_assign_type)
     
