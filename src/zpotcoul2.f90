@@ -186,7 +186,6 @@ Subroutine zpotcoul2 (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
      if (psolver0d) then
             excite = .False.
      end if
-     write(*,*)"exc0d", exciting0d
    end if
    
 
@@ -201,23 +200,23 @@ if (.not.excite) then
 isf_order = 16
 
    if (psolver0d) then! free in all directions
-       write(*,*)"type Free"
+       !write(*,*)"type Free"
        solvertype='F'
        bc_type = 0
    else if ((psolver3d)) then! periodic x, y, z
        solvertype='P'
        bc_type = 3
-       write(*,*)"type P"
+       !write(*,*)"type P"
    else if (psolver1d) then!free in x,y, periodic in z
        solvertype = 'W'
        bc_type = 1
        isf_order=60
-       write(*,*) "type W"
+       !write(*,*) "type W"
    else if (psolver2d) then! free in y, periodic x, z
        solvertype = 'S'
        bc_type = 2
        isf_order=60
-       write(*,*) "type S"
+       !write(*,*) "type S"
    end if 
 
    
@@ -440,7 +439,7 @@ end if
 
 #ifdef PSOLVER
 if (.not.excite) then
-write(*,*)"psolver"
+!write(*,*)"psolver"
 ! Fourier transform interstitial potential to real space
       Call zfftifc (3, ngrid, 1, zvclir)
       allocate(fake_arr(1),r_v(n1*n2*n3), c_v(n1*n2*n3))
@@ -485,7 +484,7 @@ end if!psolver
 
 #endif
 if (excite) then!exciting or exciting0d
-write(*,*)"exciting0"
+!write(*,*)"exciting0"
 ! set zrho0 (pseudocharge density coefficient of the smallest G+p vector)
       ifg = igfft (igp0)
       zrho0 = zvclir (ifg)
@@ -498,39 +497,63 @@ r_c = (omega*nkptnr)**(1d0/3d0)*0.50d0!0.171d0
 
 
 ! solve Poissons's equation in G-space for the pseudocharge
-   if (input%groundstate%vha.eq."exciting0d") then
+If (associated(input%groundstate%hybrid)) Then 
+
+   If ((input%groundstate%vha.eq."exciting0d").or.(input%groundstate%hybrid%singularity.eq."exc0d")) Then
+
       Do ig = 1, ngvec
          ifg = igfft (ig)
-
-
-         
-         If (gpc(ig) .Gt. input%structure%epslat) Then
+         If (gpc(ig) .Gt. input%structure%epslat) Then 
             zvclir (ifg) = fourpi * zvclir (ifg)*(1d0-cos(gpc(ig) * r_c )) / (gpc(ig)**2)
          Else
             zvclir (ifg) = zvclir(ifg)*(fourpi*0.5d0)*r_c**2
          End If
-      
       End Do
-   end if
 
-   if (input%groundstate%vha.eq."exciting") then
-
+   Else
+   
       ifg = igfft (igp0)
       zrho0 = zvclir (ifg)
       zvclir (ifg) = 0.d0
-     Do ig = 1, ngvec
+
+      Do ig = 1, ngvec
          ifg = igfft (ig)
          If (gpc(ig) .Gt. input%structure%epslat) Then
             zvclir (ifg) = fourpi * zvclir (ifg) / (gpc(ig)**2)
          Else
             zvclir (ifg) = 0.d0
          End If
-       
       End Do
-   end if
 
-end if
+   End If
 
+Else If (input%groundstate%vha.eq."exciting0d") Then
+
+   Do ig = 1, ngvec
+      ifg = igfft (ig)
+      If (gpc(ig) .Gt. input%structure%epslat) Then
+         zvclir (ifg) = fourpi * zvclir (ifg)*(1d0-cos(gpc(ig) * r_c )) / (gpc(ig)**2)
+      Else
+         zvclir (ifg) = zvclir(ifg)*(fourpi*0.5d0)*r_c**2
+      End If
+   End Do
+
+Else
+
+   ifg = igfft (igp0)
+   zrho0 = zvclir (ifg)
+   zvclir (ifg) = 0.d0
+   Do ig = 1, ngvec
+      ifg = igfft (ig)
+      If (gpc(ig) .Gt. input%structure%epslat) Then
+         zvclir (ifg) = fourpi * zvclir (ifg) / (gpc(ig)**2)
+      Else
+         zvclir (ifg) = 0.d0
+      End If
+   End Do
+
+End If
+End If ! excite check
 
 
 

@@ -294,6 +294,7 @@ write(*,*)"afer calc_vxnl------"
                 end do
 
       call timesec(ts1)
+
       if ((input%groundstate%outputlevelnumber>1) .and.rank==0) then
         write(60,*)
         write(60,'(" CPU time for vxnl (seconds)",T45 ": ", F12.2)') ts1-ts0

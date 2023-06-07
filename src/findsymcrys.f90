@@ -48,9 +48,12 @@ Subroutine findsymcrys
       Real (8) :: v (3), t1
       Real (8) :: apl (3, maxatoms, maxspecies), aplt (3, maxatoms, &
      & maxspecies)
+#ifdef PSOLVER
 !psolver stuff
       Integer :: counter
       Real(8) ::r_cm(3), R_c(3), r_T(3)
+      logical :: usehybrids,usepsolver
+#endif
 
 !
 ! allocatable arrays
@@ -69,12 +72,15 @@ Subroutine findsymcrys
          If (natoms(js) .Lt. natoms(is)) is = js
       End Do
 
-
-
-  
+#ifdef PSOLVER  
 !!!!!!!!! PSOLVER option
 !if (.false.) then
-     If ((input%groundstate%vha.eq."psolver0d").or.(input%groundstate%hybrid%singularity.eq."ps0d")) then
+     usehybrids=associated(input%groundstate%hybrid)
+     usepsolver=(input%groundstate%vha.eq."psolver0d")
+     if (usehybrids) then 
+       usepsolver=(usepsolver.or.(input%groundstate%hybrid%singularity.eq."ps0d"))
+     endif
+     If (usepsolver) then
          r_cm = 0d0
          R_c = 0d0
          r_T = 0d0
@@ -116,9 +122,7 @@ Subroutine findsymcrys
 !!!
 
 !end if
-
-
-
+#endif
 
       If ((input%structure%tshift) .And. (natmtot .Gt. 0)) Then
 ! shift basis so that the first atom in the smallest atom set is at the origin
