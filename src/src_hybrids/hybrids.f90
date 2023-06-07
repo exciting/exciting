@@ -32,6 +32,7 @@ Subroutine hybrids
     ! Charge distance
     Real (8), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
     Real (8), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
+    real(8) :: conv_old, conv_emp ! convergence for more empty orbitals 
     logical :: exist
 
 !! TIME - Initialisation segment
@@ -151,11 +152,14 @@ Subroutine hybrids
         !________________________________
         ! Inizialize mixed product basis
         call init_product_basis()
-
+      
       case(1)
+write(*,*)"fromfile"
+      ! if (regular) then
         !----------------------------------------------
         ! Initialization from previous hybrid SCF run
         !----------------------------------------------
+
         if (rank == 0) then
           write(60,*)
           write(60,*) 'Restart from previous hybrid calculations'
@@ -175,6 +179,7 @@ Subroutine hybrids
         !
         ! Core/Valence radial functions and integrals required for scf_cycle() + task=7
         ! (initialzed from PBE)
+
         call gencore()          ! generate the core wavefunctions and densities
         call linengy()          ! find the new linearization energies
         call genapwfr()         ! generate the APW radial functions
@@ -193,6 +198,47 @@ Subroutine hybrids
         call hmlint(mt_hscf)
         call genmeffig()
         call MTNullify(mt_hscf)
+      if (input%groundstate%do.eq."extraempty") then
+write(*,*)"extra empty"
+        conv_emp = 0.d0
+        conv_old = 0.d0
+        splittfile = .False.
+        task=7
+        ex_coef = input%groundstate%Hybrid%excoeff
+        ec_coef = input%groundstate%Hybrid%eccoeff
+        input%groundstate%mixerswitch = 1
+        input%groundstate%scfconv = 'charge'
+        do ihyb=1, 10!input%groundstate%Hybrid%maxscl
+                write(*,*) ihyb, "----------restart with orbitals----------"
+
+                splittfile = .False.
+                call MTInitAll(mt_hscf)
+                call hmlint(mt_hscf)
+                call calc_vxnl()
+!                write(*,*)"afer calc_vxnl------"
+                do ik = 1, 14
+                        write(*,'(14F13.9)') dble(vxnl(ik,1:14, :))
+                end do
+                call calc_vnlmat()
+                call mt_hscf%release
+                call timesec(ts0)
+                call scf_cycle(-1)
+                call timesec(ts1)
+                do ik = 1, nstfv
+                     !  write(*,*)dble(vxnl(ik,ik, 1))
+                       conv_emp = conv_emp+ dble(vxnl(ik,ik, 1))**2
+                end do
+                write(*,*)conv_emp, "convergence criteria--------------"
+                if ((conv_emp-conv_old).lt.10**-6) then
+                        exit
+                end if
+                call flushifc(60)
+                conv_old = conv_emp
+                conv_emp = 0.d0
+
+        end do
+
+      end if 
       case default
         stop 'ERROR(hybrids): Not supported task!'
 
@@ -216,6 +262,10 @@ Subroutine hybrids
     input%groundstate%mixerswitch = 1
     input%groundstate%scfconv = 'charge'
 
+
+
+
+
     do ihyb = 1, input%groundstate%Hybrid%maxscl
 
       If (rank==0) Then
@@ -238,6 +288,11 @@ Subroutine hybrids
       !-----------------------------------
       call timesec(ts0)
       call calc_vxnl()
+write(*,*)"afer calc_vxnl------"
+                do ik = 1, 14
+                        write(*,'(14F13.9)') dble(vxnl(ik,1:14, :))
+                end do
+
       call timesec(ts1)
       if ((input%groundstate%outputlevelnumber>1) .and.rank==0) then
         write(60,*)

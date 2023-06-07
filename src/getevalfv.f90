@@ -108,15 +108,18 @@ Subroutine getevalfv (vpl, evalfv)
          Write (*, '(" file	     : ", a	 )') trim &
         & (outfilenamestring(filetag, ik))
          Write (*,*)
-         Stop
+         Write(*,*) "Ignore if more nempty restart used"
+         !Stop
       End If
       Allocate (evalfv_(nstfv_, nspnfv_))
       Inquire (IoLength=Recl) vkl_, nstfv_, nspnfv_, evalfv_
       Open (70, File=outfilenamestring(filetag, ik), Action='READ', &
      & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
       Read (70, Rec=koffset) vkl_, nstfv_, nspnfv_, evalfv_
-  ! retreive subset
-      evalfv (:, :) = evalfv_ (:nstfv, :)
+
+
+write(*,*)"-----compare nstfv",nstfv, nstfv_
+      evalfv (:nstfv_, :) = evalfv_ (:nstfv_, :)
       Deallocate (evalfv_)
 #endif
 !

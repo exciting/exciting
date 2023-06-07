@@ -34,18 +34,18 @@ subroutine read_vxnl()
       write(*,*) "ERROR(read_vxnl): Inconsistent number of k-points"
       write(*,*) "nkpt  = ", nkpt
       write(*,*) "nkpt_ = ", nkpt_
-      stop
+      !stop
     end if
     if (nstfv_ /= nstfv) then
       write(*,*) "ERROR(read_vxnl): Inconsistent number of states"
       write(*,*) "nstfv  = ", nstfv
       write(*,*) "nstfv_ = ", nstfv_
-      stop
+      !stop
     end if
 
     if (allocated(vxnl)) deallocate(vxnl)
-    allocate(vxnl(nstfv,nstfv,nkpt))
-
+    allocate(vxnl(nstfv_,nstfv_,nkpt))
+    vxnl(:,:,:) = 0d0
     inquire(IoLength=recl) nkpt_, nstfv_, vxnl(:,:,1)
     call getunit(fid)
     open(fid, File=fname_vxnl, Action='READ', Form='UNFORMATTED', &

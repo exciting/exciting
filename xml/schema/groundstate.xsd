@@ -2266,6 +2266,7 @@
           <xs:restriction base="xs:string">
             <xs:enumeration value="fromscratch"/>
             <xs:enumeration value="fromfile"/>
+            <xs:enumeration value="extraempty"/>
             <xs:enumeration value="skip"/>
           </xs:restriction>
         </xs:simpleType>

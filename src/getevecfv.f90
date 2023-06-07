@@ -133,7 +133,8 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
          Write (*, '(" EVECFV.OUT : ", I8)') nstfv_
          Write (*, '(" file	     : ", a)') trim(outfilenamestring(filetag,ik))
          Write (*,*)
-         Stop
+         Write(*,*)"Ignore the warning if more nempty option used"
+         !stop
       End If
       Allocate (evecfv_(nmatmax_, nstfv_, nspnfv_))
       Inquire (IoLength=Recl) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv_
@@ -141,7 +142,9 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
      & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
       Read (70, Rec=koffset) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv_
   ! retreive subset
-      evecfv (:, :, :) = evecfv_ (:, :nstfv, :)
+
+write(*,*)"-----compare evectors", nstfv, nstfv_
+      evecfv (:, :nstfv_, :) = evecfv_ (:, :nstfv_, :)
       Deallocate (evecfv_)
 #else
       Read (70, Rec=koffset) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv
