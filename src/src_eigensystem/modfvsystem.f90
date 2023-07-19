@@ -586,7 +586,6 @@ Contains
     Subroutine solvewithlapack(system,nstfv,evecfv,evalfv)
         use mod_timing
         use modinput
-        use mod_eigensystem, only:nmatmax
         Use mod_Gvector, only : ngrid,ngrtot,igfft
         use mod_gkvector, only : ngk
         implicit none
@@ -594,9 +593,9 @@ Contains
         integer::nstfv
 
         Real (8), Intent (Out) :: evalfv (nstfv)
-        Complex (8), Intent (Out) :: evecfv (nmatmax, nstfv)
+        Complex (8), Intent (Out) :: evecfv (:, :)
         !local
-        Integer :: is, ia, i, m, np, info ,nmatp
+        Integer :: is, ia, i, m, np, info ,nmatp, nmatmax
         Real (8) :: vl, vu
         Real (8) :: ts0, ts1
          ! allocatable arrays
@@ -608,6 +607,7 @@ Contains
         Complex (8), Allocatable :: work (:)
         Complex (8), Allocatable :: zfft (:)
         Call timesec (ts0)
+        nmatmax = Size( evecfv, dim=1 )
         if (system%hamilton%packed) then
         vl = 0.d0
         vu = 0.d0
