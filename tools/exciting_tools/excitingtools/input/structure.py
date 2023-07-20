@@ -5,11 +5,11 @@ from pathlib import Path
 from typing import Optional, Union, List, Dict
 from xml.etree import ElementTree
 
-from excitingtools.input.base_class import ExcitingXMLInput
+from excitingtools.constants.units import angstrom_to_bohr
+from excitingtools.input.base_class import ExcitingXMLInput, AbstractExcitingInput
 from excitingtools.structure.lattice import check_lattice, check_lattice_vector_norms
 from excitingtools.utils import valid_attributes
 from excitingtools.utils.utils import list_to_str
-from excitingtools.constants.units import angstrom_to_bohr
 
 
 class ExcitingStructureCrystalInput(ExcitingXMLInput):
@@ -118,6 +118,15 @@ class ExcitingStructure(ExcitingXMLInput):
         self.crystal_properties = self._initialise_subelement_attribute(ExcitingStructureCrystalInput,
                                                                         crystal_properties or {})
         self.species_properties = dict(self._init_species_properties(species_properties))
+
+    def __setattr__(self, name: str, value):
+        """ Overload the attribute setting from the base class, since here we use different attribute names than
+        defined in the schema.
+
+        :param name: name of the attribute
+        :param value: new value, can be anything
+        """
+        AbstractExcitingInput.__setattr__(self, name, value)
 
     def _init_lattice_species_positions_from_ase_atoms(self, atoms) -> tuple:
         """ Initialise lattice, species and positions from an ASE Atoms Object.

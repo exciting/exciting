@@ -1,9 +1,10 @@
 """Base class for exciting input classes.
 """
 import importlib
+import warnings
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Union, List, Type
+from typing import Union, List, Type, Iterator
 from xml.etree import ElementTree
 
 import numpy as np
@@ -55,9 +56,7 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
         Valid attributes, subtrees and mandatory attributes are taken automatically from
         the parsed schema, see [valid_attributes.py](excitingtools/utils/valid_attributes.py).
         """
-        valid_attributes = set(all_valid_attributes.__dict__.get(self.name + "_valid_attributes", set()))
-        valid_subtrees = all_valid_attributes.__dict__.get(self.name + "_valid_subtrees", [])
-        mandatory_keys = set(all_valid_attributes.__dict__.get(self.name + "_mandatory_attributes", set()))
+        valid_attributes, valid_subtrees, mandatory_keys = self.get_valid_attributes()
 
         # check the keys
         missing_mandatory_keys = mandatory_keys - set(kwargs.keys())
@@ -74,6 +73,32 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
 
         # Set attributes from kwargs
         self.__dict__.update(kwargs)
+
+    def __setattr__(self, name: str, value):
+        """ Overload the attribute setting in python with instance.attr = value to check for validity in the schema.
+
+        :param name: name of the attribute
+        :param value: new value, can be anything
+        """
+        valid_attributes, valid_subtrees, _ = self.get_valid_attributes()
+        check_valid_keys({name}, valid_attributes | set(valid_subtrees), self.name)
+        super().__setattr__(name, value)
+
+    def __delattr__(self, name: str):
+        mandatory_keys = list(self.get_valid_attributes())[2]
+        if name in mandatory_keys:
+            warnings.warn(f"Attempt to delete mandatory attribute '{name}' was prevented.")
+        else:
+            super().__delattr__(name)
+
+    def get_valid_attributes(self) -> Iterator:
+        """ Extract the valid attributes, valid subtrees and mandatory attributes from the parsed schema.
+
+        :return: valid attributes, valid subtrees and mandatory attributes
+        """
+        yield set(all_valid_attributes.__dict__.get(self.name + "_valid_attributes", set()))
+        yield all_valid_attributes.__dict__.get(self.name + "_valid_subtrees", [])
+        yield set(all_valid_attributes.__dict__.get(self.name + "_mandatory_attributes", set()))
 
     def _class_list_from_module(self) -> List[Type[AbstractExcitingInput]]:
         """ Find all exciting input classes in own module and excitingtools.

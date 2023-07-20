@@ -210,3 +210,19 @@ def test_class_ExcitingPlanInput_wrong_plan():
     with pytest.raises(ValueError) as error:
         ExcitingXSInput(xstype="BSE", plan=plan_input)
     assert error.value.args[0] == "plan keys are not valid: {'falseplan'}"
+
+
+def test_class_ExcitingXSInput_attribute_setting_getting():
+    xs_input = ExcitingXSInput(xstype="BSE")
+
+    xs_input.ngridk = [2, 2, 2]
+    with pytest.raises(ValueError, match="xs keys are not valid: {'abc'}"):
+        xs_input.abc = 3
+
+
+def test_class_ExcitingXSInput_attribute_deleting():
+    xs_input = ExcitingXSInput(xstype="BSE", ngridk=[2, 2, 2])
+
+    del xs_input.ngridk
+    with pytest.warns(UserWarning, match="Attempt to delete mandatory attribute 'xstype' was prevented."):
+        del xs_input.xstype  # pylint: disable=no-member
