@@ -2,7 +2,7 @@
 """
 
 from excitingtools.exciting_dict_parsers.input_parser import parse_input_xml as parse_input_xml_to_dict
-from excitingtools.input.input_xml import ExcitingInputXML
+from excitingtools.input.input_classes import ExcitingInputXML
 from excitingtools.parser_utils.parser_decorators import xml_root
 
 

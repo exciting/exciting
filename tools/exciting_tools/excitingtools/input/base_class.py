@@ -65,7 +65,7 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
         check_valid_keys(kwargs.keys(), valid_attributes | set(valid_subtrees), self.name)
 
         # initialise the subtrees
-        class_list = self._class_list_from_module()
+        class_list = self._class_list_excitingtools()
         subtree_class_map = {cls.name: cls for cls in class_list}
         subtrees = set(kwargs.keys()) - valid_attributes
         for subtree in subtrees:
@@ -100,12 +100,13 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
         yield all_valid_attributes.__dict__.get(self.name + "_valid_subtrees", [])
         yield set(all_valid_attributes.__dict__.get(self.name + "_mandatory_attributes", set()))
 
-    def _class_list_from_module(self) -> List[Type[AbstractExcitingInput]]:
+    @staticmethod
+    def _class_list_excitingtools() -> List[Type[AbstractExcitingInput]]:
         """ Find all exciting input classes in own module and excitingtools.
         """
-        excitingtools_contents = importlib.import_module("excitingtools").__dict__
-        module_contents = importlib.import_module(type(self).__module__).__dict__
-        all_contents = {**excitingtools_contents, **module_contents}.values()
+        excitingtools_namespace_content = importlib.import_module("excitingtools").__dict__
+        input_class_namespace_content = importlib.import_module("excitingtools.input.input_classes").__dict__
+        all_contents = {**excitingtools_namespace_content, **input_class_namespace_content}.values()
         return [cls for cls in all_contents if isinstance(cls, type) and issubclass(cls, AbstractExcitingInput)]
 
     @staticmethod

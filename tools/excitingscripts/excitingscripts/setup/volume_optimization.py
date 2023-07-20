@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from os.path import join
 from typing import Union
 
-from excitingtools.input.input_xml import ExcitingInputXML
+from excitingtools import ExcitingInputXML
 
 
 def setup_volume_optimization(input_file: Union[str, pathlib.Path], number_volume_values: int,

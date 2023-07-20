@@ -5,7 +5,8 @@ from typing import Union
 
 import matplotlib.pyplot as plt
 import pylab as pyl
-from excitingtools.input.input_xml import ExcitingInputXML
+
+from excitingtools import ExcitingInputXML
 
 # Plot settings
 figcolor = 'white'
