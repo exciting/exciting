@@ -7,44 +7,11 @@ from xml.etree import ElementTree
 
 from excitingtools.constants.units import angstrom_to_bohr
 from excitingtools.input.base_class import ExcitingXMLInput, AbstractExcitingInput
+# noinspection PyUnresolvedReferences
+from excitingtools.input.input_classes import ExcitingCrystalInput, ExcitingSpeciesInput
 from excitingtools.structure.lattice import check_lattice, check_lattice_vector_norms
 from excitingtools.utils import valid_attributes
 from excitingtools.utils.utils import list_to_str
-
-
-class ExcitingStructureCrystalInput(ExcitingXMLInput):
-    """
-    Class for exciting structure crystal input.
-    """
-    name = "crystal"
-
-
-class ExcitingStructureSpeciesInput(ExcitingXMLInput):
-    """
-    Class for exciting structure species input.
-    """
-    name = "species"
-
-
-class ExcitingStructureLDAplusUInput(ExcitingXMLInput):
-    """
-    Class for exciting structure LDAplusU input.
-    """
-    name = "LDAplusU"
-
-
-class ExcitingStructureDfthalfparamInput(ExcitingXMLInput):
-    """
-    Class for exciting structure dfthalfparam input.
-    """
-    name = "dfthalfparam"
-
-
-class ExcitingStructureShellInput(ExcitingXMLInput):
-    """
-    Class for exciting structure shell input.
-    """
-    name = "shell"
 
 
 class ExcitingStructure(ExcitingXMLInput):
@@ -61,8 +28,8 @@ class ExcitingStructure(ExcitingXMLInput):
                  atoms,
                  lattice: Optional[list] = None,
                  species_path: Optional[path_type] = './',
-                 crystal_properties: Optional[Union[dict, ExcitingStructureCrystalInput]] = None,
-                 species_properties: Optional[Dict[str, Union[dict, ExcitingStructureSpeciesInput]]] = None,
+                 crystal_properties: Optional[Union[dict, ExcitingCrystalInput]] = None,
+                 species_properties: Optional[Dict[str, Union[dict, ExcitingSpeciesInput]]] = None,
                  **kwargs):
         """ Initialise instance of ExcitingStructure.
 
@@ -115,7 +82,7 @@ class ExcitingStructure(ExcitingXMLInput):
         self.unique_species = sorted(set(self.species))
 
         # Optional properties
-        self.crystal_properties = self._initialise_subelement_attribute(ExcitingStructureCrystalInput,
+        self.crystal_properties = self._initialise_subelement_attribute(ExcitingCrystalInput,
                                                                         crystal_properties or {})
         self.species_properties = dict(self._init_species_properties(species_properties))
 
@@ -193,7 +160,7 @@ class ExcitingStructure(ExcitingXMLInput):
         for species in self.unique_species:
             props = species_properties.get(species) or {}
             props["speciesfile"] = species + '.xml'
-            yield species, self._initialise_subelement_attribute(ExcitingStructureSpeciesInput, props)
+            yield species, self._initialise_subelement_attribute(ExcitingSpeciesInput, props)
 
     def _group_atoms_by_species(self) -> dict:
         """Get the atomic indices for atoms of each species.

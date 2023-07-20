@@ -19,7 +19,7 @@ or
 """
 import pytest
 
-from excitingtools.input.ground_state import ExcitingGroundStateInput
+from excitingtools.input.input_classes import ExcitingGroundStateInput
 
 
 @pytest.mark.parametrize(
@@ -94,7 +94,7 @@ def test_as_dict_jobflow(mock_env_jobflow):
     ref_rgkmax = 8.5
     gs_input = ExcitingGroundStateInput(rgkmax=ref_rgkmax)
     ref_dict = {'@class': 'ExcitingGroundStateInput',
-                '@module': 'excitingtools.input.ground_state',
+                '@module': 'excitingtools.input.input_classes',
                 'xml_string': f'<groundstate rgkmax="{ref_rgkmax}"> </groundstate>'}
     assert gs_input.as_dict() == ref_dict, 'expected different dict representation'
 

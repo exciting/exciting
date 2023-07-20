@@ -140,9 +140,7 @@ ground state calculation could like this:
 import ase
 import numpy as np
 
-from excitingtools.input.structure import ExcitingStructure
-from excitingtools.input.ground_state import ExcitingGroundStateInput
-from excitingtools.input.input_xml import exciting_input_xml_str
+from excitingtools import ExcitingStructure, ExcitingGroundStateInput, ExcitingInputXML
 
 # Lattice and positions in angstrom, as expected by ASE
 lattice = np.array([[3.168394160510246,   0.0,                0.0],
@@ -169,13 +167,14 @@ ground_state = ExcitingGroundStateInput(
     nosource=False
     )
 
-input_xml_str = exciting_input_xml_str(structure, ground_state, title="My exciting Crystal")
+input_xml = ExcitingInputXML(structure=structure, 
+                             groundstate=ground_state, 
+                             title="My exciting Crystal")
 
-with open("input.xml", "w") as fid:
-    fid.write(input_xml_str)
+input_xml.write("input.xml")
 ```
 Here we defined the attributes required to perform a ground state calculation as seperate classes, and composed the 
-final XML string with `exciting_input_xml_str`. If the user does not have access to ASE, they can instead use a 
+final XML string with `ExcitingInputXML` class. If the user does not have access to ASE, they can instead use a 
 `List[dict]` to define the container with atoms data:
 
 ```python3

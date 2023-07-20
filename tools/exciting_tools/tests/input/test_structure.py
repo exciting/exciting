@@ -373,7 +373,9 @@ def test_class_exciting_structure_ase(ase_atoms_H20):
 
     assert structure.species == ["H", "O", "H"]
     assert np.allclose(structure.lattice,
-                       [[10.0, 0.0, 0.0], [0.0, 10.0, 0.0], [0.0, 0.0, 10.0]]), \
+                       [[18.897261246257703, 0.0, 0.0],
+                        [0.0, 18.897261246257703, 0.0],
+                        [0.0, 0.0, 18.897261246257703]]), \
         'Expect lattice vectors to match input values'
 
     assert np.allclose(structure.positions, atoms.get_scaled_positions()), 'Expect positions to match input values.'

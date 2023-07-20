@@ -3,7 +3,8 @@
 import numpy as np
 import pytest
 
-from excitingtools.input.xs import ExcitingXSInput, ExcitingXSBSEInput
+# noinspection PyUnresolvedReferences
+from excitingtools.input.input_classes import ExcitingBSEInput, ExcitingXSInput
 
 
 def test_class_ExcitingXSInput():
@@ -28,7 +29,7 @@ def test_ExcitingXSInput_as_dict(mock_env_jobflow_missing):
 def test_ExcitingXSInput_as_dict_jobflow(mock_env_jobflow):
     xs_input = ExcitingXSInput(xstype="BSE")
     ref_dict = {'@class': 'ExcitingXSInput',
-                '@module': 'excitingtools.input.xs',
+                '@module': 'excitingtools.input.input_classes',
                 'xml_string': '<xs xstype="BSE"> </xs>'}
     assert xs_input.as_dict() == ref_dict, 'expected different dict representation'
 
@@ -80,7 +81,7 @@ def test_class_ExcitingXSInput_BSE_element():
 
 
 def test_class_ExcitingXSInput_BSE_element_object():
-    bse_object = ExcitingXSBSEInput(bsetype='singlet', xas=True, xasspecies=1)
+    bse_object = ExcitingBSEInput(bsetype='singlet', xas=True, xasspecies=1)
     bse_keys = {'bsetype', 'xas', 'xasspecies'}
     xs_input = ExcitingXSInput(xstype="BSE", BSE=bse_object)
 
