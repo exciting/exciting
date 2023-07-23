@@ -111,10 +111,12 @@ contains
                                   (atot(1)/c)*pmat(1:nmatp,1:nmatp,1,ik) + &
                                   (atot(2)/c)*pmat(1:nmatp,1:nmatp,2,ik) + &
                                   (atot(3)/c)*pmat(1:nmatp,1:nmatp,3,ik)
-    end do
+   end do
+#ifdef USEOMP
 !$OMP END DO NOWAIT
 !$OMP END PARALLEL
-
+#endif
+   
     call mt_h%release()
 
     if(tGen) then
