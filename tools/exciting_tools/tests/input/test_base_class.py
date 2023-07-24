@@ -1,4 +1,10 @@
-"""Test exi class and its methods."""
+"""Test exiting input base class and its methods.
+
+NOTE:
+All attribute tests should assert on the XML tree content's as the attribute
+order is not preserved by the ElementTree.tostring method. Elements appear to
+be fine.
+"""
 
 import pathlib
 

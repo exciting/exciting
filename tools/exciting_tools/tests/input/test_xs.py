@@ -1,4 +1,9 @@
-"""Test ExcitingGroundStateInput class attribute assignment and methods
+"""Test ExcitingGroundStateInput class attribute assignment and methods.
+
+NOTE:
+All attribute tests should assert on the XML tree content's as the attribute
+order is not preserved by the ElementTree.tostring method. Elements appear to
+be fine.
 """
 import numpy as np
 import pytest

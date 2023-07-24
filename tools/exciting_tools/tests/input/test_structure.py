@@ -17,16 +17,11 @@ or
 '<groundstate rgkmax="8.6" ngridk="8 8 8"> </groundstate>'
 
 """
-import sys
 
 import numpy as np
 import pytest
 
-try:
-    import ase
-except ImportError:
-    pass
-
+from excitingtools.input.bandstructure import get_bandstructure_input_from_exciting_structure
 from excitingtools.input.structure import ExcitingStructure
 
 
@@ -307,7 +302,7 @@ def test_from_dict(lattice_and_atoms_CdS):
     cubic_lattice, arbitrary_atoms = lattice_and_atoms_CdS
     structure = ExcitingStructure.from_dict(ref_dict)
 
-    assert structure.lattice == cubic_lattice
+    assert np.allclose(structure.lattice, np.array(cubic_lattice))
     assert structure.species == [d['species'] for d in arbitrary_atoms]
     assert structure.positions == [d['position'] for d in arbitrary_atoms]
     assert structure.speciespath == './'  # pylint: disable=no-member
@@ -350,24 +345,18 @@ def ase_atoms_H20(lattice_and_atoms_H20):
     H20 molecule in a big box (angstrom), in ASE Atoms()
     Converts a List[dict] to ase.atoms.Atoms.
     """
+    ase = pytest.importorskip("ase")
     lattice, atoms = lattice_and_atoms_H20
     symbols = [atom['species'] for atom in atoms]
     cubic_cell = np.asarray(lattice)
     positions = [atom['position'] for atom in atoms]
-    if "ase" in sys.modules:
-        return ase.atoms.Atoms(symbols=symbols, positions=positions, cell=cubic_cell)
-    # TODO(Alex) Issue 117. Not sure of the best way to handle if ase is not present
-    return []
+    return ase.Atoms(symbols=symbols, positions=positions, cell=cubic_cell, pbc=True)
 
 
 def test_class_exciting_structure_ase(ase_atoms_H20):
     """
     Test the ASE Atoms object gets used correctly by the ExcitingStructure constructor.
     """
-    if "ase" not in sys.modules:
-        # ASE not available, so do not run
-        return
-
     atoms = ase_atoms_H20
     structure = ExcitingStructure(atoms, species_path='./')
 
@@ -407,3 +396,62 @@ def test_using_non_standard_species_symbol():
     atoms_h = list(species_c_xml)
     assert len(atoms_h) == 1
     assert atoms_h[0].items() == [('coord', '0.0 0.75545 -0.47116')]
+
+
+def test_get_full_lattice(lattice_and_atoms_CdS):
+    cubic_lattice, arbitrary_atoms = lattice_and_atoms_CdS
+    structure = ExcitingStructure(arbitrary_atoms, cubic_lattice, './',
+                                  crystal_properties={'scale': 1.50, 'stretch': [2.00, 1.00, 3.00]})
+    ref_lattice = np.array([[3, 0, 0], [0, 1.5, 0], [0, 0, 4.5]])
+    assert np.allclose(structure.get_lattice(), ref_lattice)
+
+
+def test_get_bandstructure_input_from_exciting_structure(lattice_and_atoms_H20):
+    pytest.importorskip("ase")
+    cubic_lattice, atoms = lattice_and_atoms_H20
+    structure = ExcitingStructure(atoms, cubic_lattice, './')
+    bandstructure = get_bandstructure_input_from_exciting_structure(structure)
+    bs_xml = bandstructure.to_xml()
+
+    assert bs_xml.tag == "bandstructure", 'Root tag should be "bandstructure"'
+
+    plot1d_xml = bs_xml.find("plot1d")
+    assert plot1d_xml is not None, 'Missing "plot1d" subtree'
+
+    path_xml = plot1d_xml.find("path")
+    assert path_xml is not None, 'Missing "path" subtree'
+    assert path_xml.get("steps") == "100", 'Invalid value for "steps" attribute'
+
+    assert len(list(path_xml)) == 8
+    point1 = path_xml[0]
+    assert point1.get("coord") == "0.0 0.0 0.0", 'Invalid value for "coord" attribute of point 1'
+    assert point1.get("label") == "G", 'Invalid value for "label" attribute of point 1'
+
+    point2 = path_xml[1]
+    assert point2.get("coord") == "0.0 0.5 0.0", 'Invalid value for "coord" attribute of point 2'
+    assert point2.get("label") == "X", 'Invalid value for "label" attribute of point 2'
+
+    point3 = path_xml[2]
+    assert point3.get("coord") == "0.5 0.5 0.0", 'Invalid value for "coord" attribute of point 3'
+    assert point3.get("label") == "M", 'Invalid value for "label" attribute of point 3'
+
+    point4 = path_xml[3]
+    assert point4.get("coord") == "0.0 0.0 0.0", 'Invalid value for "coord" attribute of point 4'
+    assert point4.get("label") == "G", 'Invalid value for "label" attribute of point 4'
+
+    point5 = path_xml[4]
+    assert point5.get("coord") == "0.5 0.5 0.5", 'Invalid value for "coord" attribute of point 5'
+    assert point5.get("label") == "R", 'Invalid value for "label" attribute of point 5'
+
+    point6 = path_xml[5]
+    assert point6.get("coord") == "0.0 0.5 0.0", 'Invalid value for "coord" attribute of point 6'
+    assert point6.get("label") == "X", 'Invalid value for "label" attribute of point 6'
+    assert point6.get("breakafter") == "true", 'Invalid value for "breakafter" attribute of point 6'
+
+    point7 = path_xml[6]
+    assert point7.get("coord") == "0.5 0.5 0.0", 'Invalid value for "coord" attribute of point 7'
+    assert point7.get("label") == "M", 'Invalid value for "label" attribute of point 7'
+
+    point8 = path_xml[7]
+    assert point8.get("coord") == "0.5 0.5 0.5", 'Invalid value for "coord" attribute of point 8'
+    assert point8.get("label") == "R", 'Invalid value for "label" attribute of point 8'

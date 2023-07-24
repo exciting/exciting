@@ -1,8 +1,8 @@
 """ Parse the schema and generate a python file which can be read by the input classes.
 Should only be run if changes to the schema are made.
 """
-from pathlib import Path
 import re
+from pathlib import Path
 from typing import List
 
 import xmlschema
@@ -106,8 +106,7 @@ def read_schema_to_dict(name: str) -> dict:
     for xsd_element in xsd_elements:
         attribute_group = xsd_element.attributes._attribute_group
         tag_info[xsd_element.name] = {"attribs": set(attribute_group.keys()),
-                                      "children": [], "mandatory_attribs": [],
-                                      "ref": xsd_element.ref is not None}
+                                      "children": [], "mandatory_attribs": []}
         if xsd_element.parent:
             tag_info[xsd_element.name]["parent"] = (xsd_element.parent.parent.parent.name, xsd_element.occurs[0])
 
@@ -140,7 +139,7 @@ def write_schema_info(super_tag: str, schema_dict: dict) -> str:
     :return info_string: string of python-formatted code
     """
     info_string = f"\n# {super_tag} information \n"
-    for tag in [x for x in schema_dict if not schema_dict[x]["ref"]]:
+    for tag in schema_dict:
         valid_attributes = sorted(schema_dict[tag]["attribs"])
         valid_subtrees = schema_dict[tag]['children']
         mandatory_attributes = sorted(schema_dict[tag]['mandatory_attribs'])
@@ -212,6 +211,10 @@ def main():
     xs_schema_dict = read_schema_to_dict("xs")
     info += "\n# valid entries for the xs subtree 'plan'\n"
     info += list_string_line_limit("valid_plan_entries", sorted(xs_schema_dict['doonly']['plan'])) + " \n"
+
+    # Add special case for 'properties' to add valid bandstructure subtrees (no idea why not included in schema)
+    info += "\n# valid bandstructure subtrees\n"
+    info += "bandstructure_valid_subtrees = ['plot1d'] \n"
 
     with open(filename, "w") as fid:
         fid.write(info)

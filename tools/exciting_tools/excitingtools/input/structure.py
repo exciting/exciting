@@ -1,13 +1,17 @@
 """Structure class, mirroring that of exciting's structure XML sub-tree.
 https://exciting.wikidot.com/ref:structure
 """
+from __future__ import annotations
+
+import copy
 from pathlib import Path
 from typing import Optional, Union, List, Dict
 from xml.etree import ElementTree
 
-from excitingtools.constants.units import angstrom_to_bohr
+import numpy as np
+
+from excitingtools.constants.units import angstrom_to_bohr, bohr_to_angstrom
 from excitingtools.input.base_class import ExcitingXMLInput, AbstractExcitingInput
-# noinspection PyUnresolvedReferences
 from excitingtools.input.input_classes import ExcitingCrystalInput, ExcitingSpeciesInput
 from excitingtools.structure.lattice import check_lattice, check_lattice_vector_norms
 from excitingtools.utils import valid_attributes
@@ -26,9 +30,9 @@ class ExcitingStructure(ExcitingXMLInput):
 
     def __init__(self,
                  atoms,
-                 lattice: Optional[list] = None,
-                 species_path: Optional[path_type] = './',
-                 crystal_properties: Optional[Union[dict, ExcitingCrystalInput]] = None,
+                 lattice: Optional[list | np.ndarray] = None,
+                 species_path: path_type = './',
+                 crystal_properties: Optional[dict | ExcitingCrystalInput] = None,
                  species_properties: Optional[Dict[str, Union[dict, ExcitingSpeciesInput]]] = None,
                  **kwargs):
         """ Initialise instance of ExcitingStructure.
@@ -71,7 +75,7 @@ class ExcitingStructure(ExcitingXMLInput):
         if isinstance(atoms, list):
             check_lattice(lattice)
             check_lattice_vector_norms(lattice)
-            self.lattice = lattice
+            self.lattice = np.asarray(lattice)
             self.species = [atom['species'].capitalize() for atom in atoms]
             self.positions = [atom['position'] for atom in atoms]
             self.atom_properties = self._init_atom_properties(atoms)
@@ -105,9 +109,8 @@ class ExcitingStructure(ExcitingXMLInput):
         """
         try:
             cell = atoms.get_cell()
-            # Convert to consistent form, [a, b, c], where a = [ax, ay, az]
-            # Additionally, ASE works in Angstrom, whereas exciting expects atomic units
-            lattice = [list(angstrom_to_bohr * cell[i, :]) for i in range(0, 3)]
+            # ASE works in Angstrom, whereas exciting expects atomic units
+            lattice = np.asarray(cell) * angstrom_to_bohr
             species = [x.capitalize() for x in atoms.get_chemical_symbols()]
             if self.structure_attributes.get("cartesian"):
                 positions = angstrom_to_bohr * atoms.get_positions()
@@ -161,6 +164,22 @@ class ExcitingStructure(ExcitingXMLInput):
             props = species_properties.get(species) or {}
             props["speciesfile"] = species + '.xml'
             yield species, self._initialise_subelement_attribute(ExcitingSpeciesInput, props)
+
+    def get_lattice(self, convert_to_angstrom: bool = False) -> np.ndarray:
+        """ Get the full lattice, meaning after the application of scale and stretch values to the stored
+        lattice vectors.
+
+        :param convert_to_angstrom: if True returns lattice in angstrom, else in bohr
+        :return: full lattice vectors, stored row-wise in a matrix
+        """
+        lattice = copy.deepcopy(self.lattice)
+        unit_conversion = bohr_to_angstrom if convert_to_angstrom else 1
+        scale = getattr(self.crystal_properties, "scale", 1)
+        lattice *= scale * unit_conversion
+
+        stretch = np.array(getattr(self.crystal_properties, "stretch", [1, 1, 1]))
+        lattice *= stretch[:, None]
+        return lattice
 
     def _group_atoms_by_species(self) -> dict:
         """Get the atomic indices for atoms of each species.

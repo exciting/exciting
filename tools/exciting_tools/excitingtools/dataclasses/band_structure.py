@@ -1,5 +1,5 @@
-""" Band structure class.
-"""
+""" Band structure class. """
+
 from typing import Tuple, List, Optional, Union
 from excitingtools.eigenstates.eigenstates import get_k_point_index
 import numpy as np
