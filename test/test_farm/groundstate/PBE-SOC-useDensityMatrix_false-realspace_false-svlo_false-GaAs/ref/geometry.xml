@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+  <title>GaAs</title>
+  <structure speciespath=".">
+    <crystal>
+      <basevect>   0.000000000       5.336586500       5.336586500</basevect>
+      <basevect>   5.336586500       0.000000000       5.336586500</basevect>
+      <basevect>   5.336586500       5.336586500       0.000000000</basevect>
+    </crystal>
+    <species speciesfile="Ga.xml" rmt="2.0000">
+      <atom coord="0.0000000000      0.0000000000      0.0000000000" bfcmt="0.000000000000000E+000  0.000000000000000E+000  0.000000000000000E+000"/>
+    </species>
+    <species speciesfile="As.xml" rmt="2.0000">
+      <atom coord="0.2500000000      0.2500000000      0.2500000000" bfcmt="0.000000000000000E+000  0.000000000000000E+000  0.000000000000000E+000"/>
+    </species>
+  </structure>
+</input>
