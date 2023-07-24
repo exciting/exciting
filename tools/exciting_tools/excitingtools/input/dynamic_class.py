@@ -77,7 +77,7 @@ def class_name_uppercase(name: str) -> str:
     :param name: name of the class/tag in original notation
     :return: name usually capitilized, see exceptions
     """
-    exceptions = {"groundstate": "GroundState", "xs": "XS", "gw": "GW"}
+    exceptions = {"groundstate": "GroundState", "xs": "XS", "gw": "GW", "bandstructure": "BandStructure"}
     if name in exceptions:
         return exceptions[name]
     return name[0].upper() + name[1:]

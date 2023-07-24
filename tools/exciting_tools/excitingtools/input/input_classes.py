@@ -14,9 +14,14 @@ from excitingtools.utils.dict_utils import check_valid_keys
 from excitingtools.utils.utils import list_to_str
 from excitingtools.utils.valid_attributes import valid_plan_entries
 
-# define names of classes which are meant to be available for a user
+# define names of classes which are meant to be available for a user or used directly elsewhere in excitingtools
+ExcitingCrystalInput: Callable
+ExcitingSpeciesInput: Callable
 ExcitingGroundStateInput: Callable
 ExcitingXSInput: Callable
+ExcitingPropertiesInput: Callable
+ExcitingPointInput: Callable
+ExcitingBandStructureInput: Callable
 
 # execute dynamically generated string with all standard class defintions
 exec(generate_classes_str())
@@ -112,3 +117,32 @@ class ExcitingPlanInput(AbstractExcitingInput):
             ElementTree.SubElement(plan, 'doonly', task=task)
 
         return plan
+
+
+class ExcitingPathInput(ExcitingXMLInput):
+    """
+    Class for exciting path input.
+    
+    Note: Not to be confused by the class name, it is NOT directly a band path. Defining what is in the
+    exciting input file under the subtree called 'path'.
+    """
+    name = "path"
+
+    def __init__(self,
+                 points: List[Union[dict, ExcitingPointInput]],
+                 **kwargs):
+        """Generate an object of ExcitingXMLInput for the path attributes."""
+        super().__init__(**kwargs)
+        self.__dict__["points"] = [self._initialise_subelement_attribute(ExcitingPointInput, point) for point in points]
+
+    def to_xml(self) -> ElementTree:
+        """Put class attributes into an XML tree, with the element given by self.name.
+        :return ElementTree.Element sub_tree: sub_tree element tree, with class attributes inserted.
+        """
+        attributes = {key: str(value) for key, value in vars(self).items() if key != "points"}
+        xml_tree = ElementTree.Element(self.name, **attributes)
+
+        for point in self.points:
+            xml_tree.append(point.to_xml())
+
+        return xml_tree

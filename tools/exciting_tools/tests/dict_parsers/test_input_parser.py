@@ -34,9 +34,29 @@ reference_input_str = """<?xml version="1.0" encoding="UTF-8"?>
   </structure>
   
   <groundstate xctype="GGA_PBE" ngridk="4 4 4" epsengy="1d-7" outputlevel="high">
-   <spin bfieldc="0 0 0" fixspin="total FSM"/>
-   <OEP maxitoep="100"> </OEP>
+    <spin bfieldc="0 0 0" fixspin="total FSM"/>
+    <OEP maxitoep="100"> </OEP>
   </groundstate>
+  
+  <properties>
+    <dos 
+      nsmdos="2"
+      ngrdos="300"
+      nwdos="1000"
+      winddos="-0.3 0.3">
+    </dos>
+    <bandstructure>
+      <plot1d>
+        <path steps="100">
+          <point coord="1.0     0.0     0.0" label="Gamma"/>
+          <point coord="0.625   0.375   0.0" label="K"/>
+          <point coord="0.5     0.5     0.0" label="X" breakafter="true"/>
+          <point coord="0.0     0.0     0.0" label="Gamma"/>
+          <point coord="0.5     0.0     0.0" label="L"/>
+        </path>
+      </plot1d>
+    </bandstructure>
+  </properties>
 
   <xs xstype="BSE" 
    ngridq="3 3 3"
@@ -136,7 +156,7 @@ def test_parse_xs():
     assert isinstance(xs["ngridq"][0], int)
 
 
-input_ref_parsed_keys = {'title', 'groundstate', 'structure', 'xs', 'sharedfs'}
+input_ref_parsed_keys = {'title', 'groundstate', 'structure', 'xs', 'sharedfs', "properties"}
 
 
 def test_parse_input_xml():
@@ -158,3 +178,21 @@ def test_parse_missing_tag():
 def test_parse_input_xml_with_tag():
     parsed_data = parse_element_xml(reference_input_str, tag="input")
     assert set(parsed_data.keys()) == input_ref_parsed_keys
+
+
+def test_parse_properties():
+    properties = parse_element_xml(reference_input_str, tag="properties")
+    properties_ref = {
+        'dos': {"nsmdos": 2, "ngrdos": 300, "nwdos": 1000, "winddos": [-0.3, 0.3]},
+        'bandstructure': {"plot1d": {"path": {
+            "steps": 100,
+            "points":
+                [
+                    {"coord": [1, 0, 0], "label": "Gamma"},
+                    {"coord": [0.625, 0.375, 0], "label": "K"},
+                    {"coord": [0.5, 0.5, 0], "label": "X", "breakafter": True},
+                    {"coord": [0, 0, 0], "label": "Gamma"},
+                    {"coord": [0.5, 0, 0], "label": "L"}
+                ]}}}
+    }
+    assert properties_ref == properties

@@ -3,6 +3,11 @@
 TODO(Fab/Alex/Dan) Issue 117. Would be nice to assert that the output is valid
     XML * https://lxml.de/validation.html
 Also see: https://xmlschema.readthedocs.io/en/latest/usage.html#xsd-declarations
+
+NOTE:
+All attribute tests should assert on the XML tree content's as the attribute
+order is not preserved by the ElementTree.tostring method. Elements appear to
+be fine.
 """
 
 import pytest

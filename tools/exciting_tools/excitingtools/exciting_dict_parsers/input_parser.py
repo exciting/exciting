@@ -128,10 +128,24 @@ def parse_structure(root) -> dict:
     }
 
 
+@xml_root
+def _parse_path_tree(root) -> dict:
+    """ Parse the path tree. Needs special handling because the subtree `point`
+     (which is the only valid subtree, also mandatory) occurs multiple times.
+
+    :param root: the xml root containing the input tag
+    :return: the parsed dictionary, data converted to actual data types
+    """
+    element_dict = convert_string_dict(copy.deepcopy(root.attrib))
+    element_dict["points"] = [parse_element_xml(point) for point in list(root)]
+    return element_dict
+
+
 # special tag to parse function map or lambda if one-liner
 # necessary for tags which doesn't contain simply xml attributes and subtrees
 special_tags_to_parse_map = {"input": _parse_input_tag,
                              "title": lambda root: root.text,
                              "structure": parse_structure,
                              "qpointset": lambda root: [[float(x) for x in qpoint.text.split()] for qpoint in root],
-                             "plan": lambda root: [doonly.attrib['task'] for doonly in root]}
+                             "plan": lambda root: [doonly.attrib['task'] for doonly in root],
+                             "path": _parse_path_tree}
