@@ -3,6 +3,7 @@ subroutine fermisurf
 
   use modmain
   use modmpi
+  use constants, only : zzero
   implicit none
 
 ! local variables
@@ -46,6 +47,8 @@ subroutine fermisurf
     allocate(evalfv(nstfv,nspnfv))
     allocate(evecfv(nmatmax,nstfv,nspnfv))
     allocate(evecsv(nstsv,nstsv))
+    ! initialise the eigenvectors if we use the Davidson eigensolver
+    if (input%groundstate%solver%type.eq.'Davidson') evecfv=zzero
     ! solve the first- and second-variational secular equations
     call seceqn(ik,evalfv,evecfv,evecsv)
     deallocate(evalfv,evecfv,evecsv)

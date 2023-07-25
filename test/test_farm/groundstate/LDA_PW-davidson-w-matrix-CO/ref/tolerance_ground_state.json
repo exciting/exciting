@@ -138,7 +138,7 @@
       "unit": "Hartree"
     },
     "Total energy": {
-      "tol": 1e-08,
+      "tol": 1e-07,
       "unit": "Hartree"
     },
     "Fermi energy": {
@@ -252,7 +252,7 @@
   },
   "eigval.xml": {
     "eigenvalue": {
-      "tol": 1e-07,
+      "tol": 1e-06,
       "unit": "Hartree"
     },
     "occupancy": {

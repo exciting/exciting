@@ -12,6 +12,7 @@ module spintexture
   Use modmain
   Use modmpi
   Use FoX_wxml, only: xmlf_t, xml_OpenFile, xml_NewElement, xml_AddAttribute, xml_EndElement, xml_Close
+  use constants, only : zzero
 
   character(256), parameter :: fname = "spintext.xml"
   contains
@@ -151,9 +152,12 @@ module spintexture
       Allocate (evalfv(nstfv, nspnfv))
       Allocate (evecfv(nmatmax, nstfv, nspnfv))
       Allocate (evecsv(nstsv, nstsv))
-        ! solve the first- and second-variational secular equations
+      ! initialise the eigenvectors if we use the Davidson eigensolver
+      if (input%groundstate%solver%type.eq.'Davidson') evecfv=zzero
+
+      ! solve the first- and second-variational secular equations
       Call seceqn (ik, evalfv, evecfv, evecsv)
-          ! calculate spin expectation values
+      ! calculate spin expectation values
       Do ist = band_min, band_max
         sc1 = zdotc(nstfv, evecsv(1:nstfv,ist), 1, evecsv(nstfv+1:nstsv,ist), 1)
         sc2 = zdotc(nstfv, evecsv(1:nstfv,ist), 1, evecsv(1:nstfv,ist), 1)

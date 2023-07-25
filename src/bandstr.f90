@@ -13,6 +13,7 @@ Subroutine bandstr
   use modmain
   use modmpi
   use FoX_wxml
+  use constants, only : zzero
 #ifdef _HDF5_
   use m_write_hdf5, only: write_bandstr_hdf5
 #endif
@@ -109,6 +110,8 @@ Subroutine bandstr
     Allocate (evalfv(nstfv, nspnfv))
     Allocate (evecfv(nmatmax, nstfv, nspnfv))
     Allocate (evecsv(nstsv, nstsv))
+    ! initialise the eigenvectors if we use the Davidson eigensolver
+    if (input%groundstate%solver%type.eq.'Davidson') evecfv=zzero
     ! solve the first- and second-variational secular equations
     Call seceqn (ik, evalfv, evecfv, evecsv)
     Do ist = 1, nstsv

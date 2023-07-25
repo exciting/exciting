@@ -5,6 +5,7 @@
 subroutine pickritzvectors(n,segmentsize,evals,firstvec)
 !> Selects a given number of the lowest eigenpairs that are larger than a predefined threshold value.
 !> 
+      use modmpi, only: terminate_mpi_env, mpiglobal
       use mod_APW_LO
       implicit none
       integer, intent(in) :: n             ! size of the subspace 
@@ -25,7 +26,7 @@ subroutine pickritzvectors(n,segmentsize,evals,firstvec)
       else
         write(*,*) 'Eigenvalue filtering:'
         write(*,*) 'Too many eigenvalues under the permitted bound of ',mine0
-        stop
+        call terminate_mpi_env(mpiglobal) 
       endif 
       call timesec(tb)
 !write(*,*) 'pickritzvectors', tb-ta
