@@ -76,6 +76,14 @@ Subroutine calcACE (ikp, vnlvv, vxpsiir,vxpsimt)
 ! external functions
       Complex (8) zfinp, zfmtinp
       External zfinp, zfmtinp
+! for decomposition
+      integer :: lwork, k, len
+      complex(8), allocatable :: work(:)
+      complex(8), allocatable ::  diag(:,:)
+      real(8), allocatable :: rwork(:), eigvals(:)
+
+
+
 
 ! -- Adaptively Compressed Exchange Operator starts --
       Allocate (matrixl(nstsv,nstsv))
@@ -101,21 +109,44 @@ matrixl = -vnlvv ! create copy
 Do ist1 = 2, nstsv
     matrixl(ist1-1,ist1:)=0
 End Do
-Write (*, *) "aft matrixl"
 
-Call zpotrf('L',nstsv,matrixl,nstsv,info) ! Computes the Cholesky factorization
-If (info==0) Then
-    Call ztrtri('L','N',nstsv,matrixl,nstsv,info) ! Invert L
-    If (.not.(info==0)) Then
-        Write (*, *) 'matrixl is not invertable! Info=',info
-        stop
-    End If
-Else
-    Write (*, *) 'vnlvv is not negative definite! Info=',info
-    stop
-End If
 
-Call zgemm('N','C',ngkmax,nstsv,nstsv,(1.0D0,0.0),vxpsiir,ngkmax,matrixl,nstsv,(0.0D0,0.0),hfxiir,ngkmax) ! compute IR part of ACEO   hfxiir=zvclir*matrixl+
+        Allocate (diag(nstsv,nstsv))
+        Allocate (work(nstsv))
+        Allocate (rwork(3*nstsv-2))
+        Allocate (eigvals(nstsv))
+
+
+        call zheev('V', 'L', nstsv, matrixl,nstsv, eigvals, work, -1, rwork, info)
+        k = int(work(1))
+
+        deallocate(work)
+        allocate(work(k))
+
+        call zheev('V', 'L', nstsv, matrixl, nstsv, eigvals, work, k, rwork, info)
+        !write(*,*)info, "eigval info"
+
+
+        !--sqrt matrix
+        diag = 0.d0
+        do k =1, nstsv
+                if (eigvals(k).gt.(1e-8)) then
+                        diag(k,k) = cmplx(1/sqrt(eigvals(k)),0.d0)
+                else 
+!        write(*,*)"small eigval", eigvals(k)
+                        diag(k,k) = cmplx(0.d0, 0.d0)
+                end if
+        end do
+
+
+        matrixl = conjg(transpose(matrixl))
+
+        call zgemm('N', 'N', nstsv, nstsv, nstsv,    dcmplx(1.0D0,0.0), diag, nstsv, matrixl, nstsv, dcmplx(0.0D0,0.0), matrixl, nstsv)   !construct B = sqrt(D^-1)*L^-1
+        deallocate(work, rwork, eigvals, diag)
+
+
+
+        Call zgemm('N','C',ngkmax,nstsv,nstsv,(1.0D0,0.0),vxpsiir,ngkmax,matrixl,nstsv,(0.0D0,0.0),hfxiir,ngkmax) ! compute IR part of ACEO   hfxiir=zvclir*matrixl+
 
 
 Do ilm = 1, lmmaxvr
@@ -185,7 +216,6 @@ Do is = 1, nspecies
                     End Do
             End Do
         End Do ! LO
-!        write(*,*) haaijSize, if3, loindex
         Call zgemm('N', 'N', nstsv, ngk(1,ikp), if3, dcmplx(1.0D0,0.0), xiintegral, nstsv, apwi, haaijSize, dcmplx(1.0D0,0.0), pace(:,:,ikp), nstsv) ! pace= paceMT+pace(IR+LO) = xiintegral*apwi+ pace
     End Do
 End Do

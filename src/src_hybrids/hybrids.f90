@@ -34,7 +34,6 @@ Subroutine hybrids
     Real (8), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
     real(8) :: conv_old, conv_emp ! convergence for more empty orbitals 
     logical :: exist
-
 !! TIME - Initialisation segment
     call timesec(tsg0)
     call timesec(ts0)
@@ -155,7 +154,6 @@ Subroutine hybrids
       
       case(1)
 write(*,*)"fromfile"
-      ! if (regular) then
         !----------------------------------------------
         ! Initialization from previous hybrid SCF run
         !----------------------------------------------
@@ -176,10 +174,12 @@ write(*,*)"fromfile"
         else
           stop 'ERROR(hybrids): Restart is not possible, STATE_PBE.OUT is missing!'
         end if
-        !
+        !copy to vrelmt because STATE.OUT only has veffmt saved
+        vrelmt=veffmt
+
+
         ! Core/Valence radial functions and integrals required for scf_cycle() + task=7
         ! (initialzed from PBE)
-
         call gencore()          ! generate the core wavefunctions and densities
         call linengy()          ! find the new linearization energies
         call genapwfr()         ! generate the APW radial functions
@@ -199,7 +199,7 @@ write(*,*)"fromfile"
         call genmeffig()
         call MTNullify(mt_hscf)
       if (input%groundstate%do.eq."extraempty") then
-write(*,*)"extra empty"
+
         conv_emp = 0.d0
         conv_old = 0.d0
         splittfile = .False.
@@ -208,8 +208,10 @@ write(*,*)"extra empty"
         ec_coef = input%groundstate%Hybrid%eccoeff
         input%groundstate%mixerswitch = 1
         input%groundstate%scfconv = 'charge'
-        do ihyb=1, 10!input%groundstate%Hybrid%maxscl
-                write(*,*) ihyb, "----------restart with orbitals----------"
+
+        
+        do ihyb=1, input%groundstate%Hybrid%maxscl
+                write(*,*) "----------restart with orbitals----------", ihyb
 
                 splittfile = .False.
                 call MTInitAll(mt_hscf)
@@ -219,6 +221,7 @@ write(*,*)"extra empty"
                 do ik = 1, 14
                         write(*,'(14F13.9)') dble(vxnl(ik,1:14, :))
                 end do
+
                 call calc_vnlmat()
                 call mt_hscf%release
                 call timesec(ts0)
@@ -228,8 +231,8 @@ write(*,*)"extra empty"
                      !  write(*,*)dble(vxnl(ik,ik, 1))
                        conv_emp = conv_emp+ dble(vxnl(ik,ik, 1))**2
                 end do
-                write(*,*)conv_emp, "convergence criteria--------------"
-                if ((conv_emp-conv_old).lt.10**-6) then
+                write(*,*)conv_emp-conv_old, "convergence criteria--------------"
+                if ((conv_emp-conv_old).lt.1e-5) then
                         exit
                 end if
                 call flushifc(60)
@@ -243,7 +246,6 @@ write(*,*)"extra empty"
         stop 'ERROR(hybrids): Not supported task!'
 
     end select
-
     !--------------------------------------------------
     ! External SCF loop
     !--------------------------------------------------
@@ -289,9 +291,9 @@ write(*,*)"extra empty"
       call timesec(ts0)
       call calc_vxnl()
 write(*,*)"afer calc_vxnl------"
-                do ik = 1, 14
-                        write(*,'(14F13.9)') dble(vxnl(ik,1:14, :))
-                end do
+!                do ik = 1, 14
+ !                       write(*,'(14F13.9)') dble(vxnl(ik,1:14, :))
+  !              end do
 
       call timesec(ts1)
 
@@ -315,6 +317,7 @@ write(*,*)"afer calc_vxnl------"
       call timesec(ts0)
       call scf_cycle(-1)
       call timesec(ts1)
+
       If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
         write(60, '(" CPU time for scf_cycle (seconds)",T45 ": ", F12.2)') ts1-ts0
         write(60,*)
