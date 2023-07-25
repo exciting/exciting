@@ -12,7 +12,7 @@ Subroutine davidson (system, nst, evecfv, evalfv,ik)
       Use constants, Only : zzero,zone 
       Use modinput
       Use modfvsystem
-      Use modmpi
+      Use modmpi, only: terminate_mpi_env, mpiglobal
       use modmain
       Use mod_eigensystem
       Use mod_timing
@@ -59,7 +59,7 @@ Subroutine davidson (system, nst, evecfv, evalfv,ik)
       type(fftmap_type) :: fftmap
 
 
-      if ((input%groundstate%outputlevel.eq."high").and.(rank.eq.0))  write(*,*) 'ik=',ik
+      if ((input%groundstate%outputlevel.eq."high").and.(mpiglobal%rank.eq.0))  write(*,*) 'ik=',ik
       call timesec(tsa)
 
 ! Initialise block sizes
@@ -240,10 +240,16 @@ Subroutine davidson (system, nst, evecfv, evalfv,ik)
          nsize=nsize+nst
        else
 !       or just a guess
+         if (4d0*nst.ge.npw) then
+           write(*,*) 'The number of required eigenvalues is too high for the davidson eigensolver'
+           write(*,*) 'The allowed maximum is one fourth of the number of LAPWs.'
+           call terminate_mpi_env(mpiglobal)
+         endif
          do i=1,ndiv
-           trialvec(i,nsize+i)=zone
-           trialvec(i+1,nsize+i)=0.5d0
-           trialvec(i+2,nsize+i)=0.25d0
+           trialvec((i-1)*4+1,nsize+i)=zone
+           trialvec((i-1)*4+1+1,nsize+i)=zone !0.5d0
+           trialvec((i-1)*4+1+2,nsize+i)=zone !0.25d0
+           trialvec((i-1)*4+1+3,nsize+i)=zone !0.125d0
          enddo
          nsize=nsize+ndiv
        endif
@@ -297,7 +303,7 @@ call timesec(time1)
       deallocate(zvec)
       deallocate(BlockS,BlockH)
 
-      if ((input%groundstate%outputlevel.eq."high").and.(rank.eq.0)) write(*,*) ndiv,maxresid,sum(rd(nstart:nstart+ndiv-1)),calls+1
+      if ((input%groundstate%outputlevel.eq."high").and.(mpiglobal%rank.eq.0)) write(*,*) ndiv,maxresid,sum(rd(nstart:nstart+ndiv-1)),calls+1
 
 call timesec(time2)
 
@@ -370,13 +376,13 @@ call timesec(time2)
             enddo  
             deallocate(zvec) 
 
-            if ((input%groundstate%outputlevel.eq."high").and.(rank.eq.0))  write(*,*) nadd,maxresid,sum(rd(nstart:nstart-1+ndiv)),calls
+            if ((input%groundstate%outputlevel.eq."high").and.(mpiglobal%rank.eq.0))  write(*,*) nadd,maxresid,sum(rd(nstart:nstart-1+ndiv)),calls
 
-          elseif (rank.eq.0) then
+          elseif (mpiglobal%rank.eq.0) then
             write(*,*) 'Subspace diagonalisation failed in davidson.f90.'
             write(*,*) 'Is the subspace linearly dependent?'
             write(*,*) 'info=',info
-            stop
+            call terminate_mpi_env(mpiglobal) 
           endif
           deallocate(BlockS,BlockH)
         endif
@@ -384,7 +390,7 @@ call timesec(time2)
         oldsum=newsum
         newsum=sum(rd(nstart:nstart+ndiv-1))
 
-        if ((maxresid.lt.tol).or.(calls.eq.12)) then
+        if ((maxresid.lt.tol).or.(calls.eq.nblocks)) then
           ii=nblocks
         endif
        enddo
@@ -403,7 +409,7 @@ call timesec(time2)
       call timesec(tsb)
 
       timefv=timefv+tsb-tsa
-      if ((input%groundstate%outputlevel.eq."high").and.(rank.eq.0)) then
+      if ((input%groundstate%outputlevel.eq."high").and.(mpiglobal%rank.eq.0)) then
         write(*,*) '***** HapwSapw calls=',calls
         write(*,*) 'iterations',tsb-tsa
       endif

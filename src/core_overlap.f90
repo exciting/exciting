@@ -122,6 +122,10 @@ Subroutine core_overlap
 #else
   Do ik = 1, nkpt
 #endif
+
+    ! initialise the eigenvectors if we use the Davidson eigensolver
+    if (input%groundstate%solver%type.eq.'Davidson') evecfv=zzero
+
     ! solve the first- and second-variational secular equations
     Call seceqn (ik, evalfv, evecfv, evecsv)
 

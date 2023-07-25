@@ -9,7 +9,7 @@ subroutine HapwSapw(n,npw,nwf,system,fftmap,cfir,vir,mir,x,Hx,Sx)
       use modmain
       use modxs
       Use modfvsystem
-      use modmpi
+      Use modmpi, only: terminate_mpi_env, mpiglobal 
       implicit none
       integer, intent(in) :: n              ! leading dimension of |psi>
       integer, intent(in) :: nwf            ! number of trial wavefunctions |psi> 
@@ -325,7 +325,7 @@ subroutine HapwSapw(n,npw,nwf,system,fftmap,cfir,vir,mir,x,Hx,Sx)
            enddo
          elseif (input%groundstate%ValenceRelativity.eq."iora*") then
            write(*,*) "Davidson/hapwsapw: matrixless iora* is currently not supported"
-           stop
+           call terminate_mpi_env(mpiglobal) 
          endif
 
          Call zfftifc (3, fftmap%ngrid,-1, zfft)

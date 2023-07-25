@@ -10,6 +10,7 @@ Subroutine effmass
       Use modmain
       Use modinput
       Use Fox_wxml
+      use constants, only : zzero
       Implicit None
 ! local variables
       Integer, Parameter :: lwork = 10
@@ -66,6 +67,8 @@ Subroutine effmass
          i2 = ivk (2, ik)
          i3 = ivk (3, ik)
          If ((i1 .Eq. 0) .And. (i2 .Eq. 0) .And. (i3 .Eq. 0)) ik0 = ik
+! initialise the eigenvectors if we use the Davidson eigensolver
+         if (input%groundstate%solver%type.eq.'Davidson') evecfv=zzero
 ! solve the first- and second-variational secular equations
          Call seceqn (ik, evalfv, evecfv, evecsv)
 ! copy eigenvalues to new array

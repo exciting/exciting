@@ -10,6 +10,7 @@ Subroutine genkinmat
 ! generates kinetic matrix elements for all states and k-points
       Use modinput
       Use modmain
+      use constants, only : zzero
       Implicit None
 ! local variables
       Integer :: is, ia, ias, idm
@@ -65,6 +66,8 @@ Subroutine genkinmat
            call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv)
            call getevecsv(vkl(:,ik),evecsv)
          else
+           ! initialise the eigenvectors if we use the Davidson eigensolver
+           if (input%groundstate%solver%type.eq.'Davidson') evecfv=zzero
            ! solve the first- and second-variational secular equations
            call seceqn (ik, evalfv, evecfv, evecsv)
            ! write the first variational eigenvalues/vectors to file (this ensures the
