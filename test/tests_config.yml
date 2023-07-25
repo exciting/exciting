@@ -333,3 +333,7 @@ sirius/GaN:
       - "evalcore.xml"
       - "atoms.xml"
       - "geometry.xml"
+      
+groundstate/PBE-SOC-useDensityMatrix_false-realspace_false-svlo_false-GaAs:
+
+groundstate/PBE-SOC-useDensityMatrix_false-realspace_true-svlo_false-GaAs:
