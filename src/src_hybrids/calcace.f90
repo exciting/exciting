@@ -79,7 +79,7 @@ Subroutine calcACE (ikp, vnlvv, vxpsiir,vxpsimt)
 ! for decomposition
       integer :: lwork, k, len
       complex(8), allocatable :: work(:)
-      complex(8), allocatable ::  diag(:,:)
+      complex(8), allocatable ::  diag(:,:), matrixl1(:,:)
       real(8), allocatable :: rwork(:), eigvals(:)
 
 
@@ -140,9 +140,12 @@ End Do
 
 
         matrixl = conjg(transpose(matrixl))
-
-        call zgemm('N', 'N', nstsv, nstsv, nstsv,    dcmplx(1.0D0,0.0), diag, nstsv, matrixl, nstsv, dcmplx(0.0D0,0.0), matrixl, nstsv)   !construct B = sqrt(D^-1)*L^-1
-        deallocate(work, rwork, eigvals, diag)
+        allocate(matrixl1(nstsv, nstsv))
+        matrixl1 = 0.d0
+        call zgemm('N', 'N', nstsv, nstsv, nstsv,    dcmplx(1.0D0,0.0), diag, nstsv, matrixl, nstsv, dcmplx(0.0D0,0.0), matrixl1, nstsv)   !construct B = sqrt(D^-1)*L^-1
+        matrixl = matrixl1
+        
+        deallocate(work, rwork, eigvals, diag, matrixl1)
 
 
 
