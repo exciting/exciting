@@ -9,7 +9,10 @@ echo "Checking excitingtools is consistent with exciting's schema ..."
 # Need to copy the old file out for reference
 cp tools/exciting_tools/excitingtools/utils/valid_attributes.py .
 
-python3 -m excitingtools.utils.schema_parsing
+if ! python3 -m excitingtools.utils.schema_parsing; then
+  rm -f valid_attributes.py
+  exit 1
+fi
 
 difference=$(diff valid_attributes.py tools/exciting_tools/excitingtools/utils/valid_attributes.py)
 # clean up
