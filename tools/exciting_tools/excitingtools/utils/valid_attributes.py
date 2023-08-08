@@ -103,7 +103,7 @@ Hybrid_valid_attributes = ['HSEsingularity', 'eccoeff', 'epsmb', 'exchangetype',
 
 sirius_valid_attributes = ['cfun', 'density', 'densityinit', 'eigenstates', 'sfacg', 'vha', 'xc'] 
 
-solver_valid_attributes = ['evaltol', 'packedmatrixstorage', 'type'] 
+solver_valid_attributes = ['constructHS', 'evaltol', 'minenergy', 'packedmatrixstorage', 'type'] 
 
 OEP_valid_attributes = ['convoep', 'maxitoep', 'tauoep'] 
 
@@ -262,8 +262,9 @@ exciton_valid_attributes = ['fix', 'lambda']
 electron_valid_subtrees = ['plot3d', 'plot1d', 'plot2d'] 
 
 realTimeTDDFT_valid_attributes = ['TaylorOrder', 'calculateNExcitedElectrons', 'calculateTotalEnergy', 'endTime', 
-                                  'normalizeWF', 'printAfterIterations', 'printTimingDetailed', 'printTimingGeneral', 
-                                  'propagator', 'readPmatBasis', 'subtractJ0', 'timeStep', 'vectorPotentialSolver'] 
+                                  'forcePmatHermitian', 'normalizeWF', 'printAfterIterations', 'printTimingDetailed', 
+                                  'printTimingGeneral', 'propagator', 'readPmatBasis', 'subtractJ0', 'timeStep', 
+                                  'vectorPotentialSolver'] 
 realTimeTDDFT_valid_subtrees = ['predictorCorrector', 'screenshots', 'laser'] 
 
 predictorCorrector_valid_attributes = [' maxIterations', 'tol'] 

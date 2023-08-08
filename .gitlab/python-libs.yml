@@ -11,13 +11,14 @@ python:excitingtools-python-3.7:
     - python3 -m pip install -U pip setuptools
     - python3 -m pip install --upgrade --force pylint coverage xmlschema ase
   script:
-    - cd tools/exciting_tools && python3 -m pip install .
+    - cd tools/exciting_tools && python3 -m pip install -e .
     # Run excitingtools unit tests and collect test coverage
     - coverage run -m pytest
     - coverage xml -o excitingtools_testcov.xml
-  after_script:
+    # go back to root
+    - cd ../..
     # Run pylint on all modified python files
-    - sh .gitlab/run_pylint.sh $CI_BUILD_REF_NAME
+    - sh .gitlab/run_pylint.sh $CI_COMMIT_BRANCH
     # Run the schema parsing to detect changes
     - sh .gitlab/run_schema_parsing.sh
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
