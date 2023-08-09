@@ -1,0 +1,51 @@
+name: CI Tests for exciting
+
+on: [push, pull_request]
+
+jobs:
+  GNU:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04]
+        compiler: [gfortran-9]
+
+    env:
+      FC: ${{ matrix.compiler }}
+
+    name: ${{ matrix.os }} / ${{ matrix.compiler }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.7'
+
+      - name: Install exciting Dependencies
+        run: |
+             apt-get update &&
+             apt-get install -y build-essential git xsltproc \
+               python2 libpython3.7 libpython3.7-dev python3-pip python3-venv python3-mysqldb python3-tk python3-mysqldb-dbg \
+               man tcllib environment-modules libfabric1 libfabric-dev gcc-8 libblas-dev liblapack-dev libopenmpi3 \
+               libhdf5-serial-dev libhdf5-mpi-dev
+
+      - name: Install Test Framework Dependencies
+        run: |
+             python3 -m pip install --upgrade pip setuptools
+             pip3 install --upgrade --force pillow==7.0.0 wheel>=0.35.0 numpy>=1.14.5 matplotlib>=2.2.0 \
+               termcolor lxml pytest pyyaml
+
+      - name: Build
+        run: |
+          - cp build/platforms/make.inc.gfortran8-9 build/make.inc
+          - make mpiandsmp -j 4
+
+      - name: Application Tests
+        run: |
+          pip install tools/exciting_tools/
+          cd test
+          python3 runtest.py -e exciting_mpismp
