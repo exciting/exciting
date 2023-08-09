@@ -79,6 +79,8 @@ Subroutine FockExchange (ikp, q0corr, vnlvv, vxpsiirgk, vxpsimt)
 
       if (allocated(evalfv)) deallocate(evalfv)
       allocate(evalfv(nstfv,kset%nkpt))
+      
+      ! test comment for push
 
       evalfv(:,:) = 0.d0
       Do ik = 1, nkpt
