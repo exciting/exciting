@@ -18,13 +18,15 @@ plot1d_valid_subtrees = ['path']
 plot1d_mandatory_attributes = ['path'] 
 
 path_valid_attributes = ['outfileprefix', 'steps'] 
+path_valid_subtrees = ['point'] 
 path_mandatory_attributes = ['steps'] 
 
 plot2d_valid_subtrees = ['parallelogram'] 
 plot2d_mandatory_attributes = ['parallelogram'] 
 
 parallelogram_valid_attributes = ['grid', 'outfileprefix'] 
-parallelogram_mandatory_attributes = ['grid'] 
+parallelogram_valid_subtrees = ['origin', 'point'] 
+parallelogram_mandatory_attributes = ['grid', 'origin', 'point'] 
 
 plot3d_valid_attributes = ['usesym'] 
 plot3d_valid_subtrees = ['box'] 
@@ -70,8 +72,6 @@ dfthalfparam_valid_subtrees = ['shell']
 dfthalfparam_mandatory_attributes = ['shell'] 
 
 shell_valid_attributes = ['ionization', 'number'] 
-
-symmetries_valid_attributes = ['None'] 
 
 
 # groundstate information 
@@ -131,8 +131,6 @@ phonondos_valid_attributes = ['ngrdos', 'nsmdos', 'ntemp', 'nwdos']
 phonondispplot_valid_subtrees = ['plot1d'] 
 phonondispplot_mandatory_attributes = ['plot1d'] 
 
-reformatdynmat_valid_attributes = ['None'] 
-
 interpolate_valid_attributes = ['ngridq', 'vqloff', 'writeeigenvectors'] 
 interpolate_mandatory_attributes = ['ngridq'] 
 
@@ -145,28 +143,48 @@ properties_valid_subtrees = ['spintext', 'coreoverlap', 'bandstructure', 'stm', 
                              'wannier', 'wannierplot', 'wanniergap', 'ldos', 'polarization'] 
 
 spintext_valid_attributes = ['bands'] 
+spintext_valid_subtrees = ['plot2d'] 
+spintext_mandatory_attributes = ['plot2d'] 
 
 coreoverlap_valid_attributes = ['coreatom', 'corespecies'] 
 
 bandstructure_valid_attributes = ['character', 'deriv', 'scissor', 'wannier'] 
+bandstructure_valid_subtrees = ['plot1d'] 
+bandstructure_mandatory_attributes = ['plot1d'] 
 
 stm_valid_attributes = ['bias', 'stmmode', 'stmtype'] 
-stm_valid_subtrees = ['region'] 
+stm_valid_subtrees = ['plot2d', 'region'] 
 
 region_valid_attributes = ['grid2d', 'grid3d', 'height', 'zrange'] 
 
 wfplot_valid_attributes = ['version'] 
-
-plot3d_valid_attributes = ['usesym'] 
+wfplot_valid_subtrees = ['kstlist', 'plot1d', 'plot2d', 'plot3d'] 
+wfplot_mandatory_attributes = ['kstlist'] 
 
 dos_valid_attributes = ['inttype', 'jdos', 'linkpt', 'lmirep', 'lonly', 'ngrdos', 'ngridkint', 'nsmdos', 'nwdos', 
                         'scissor', 'sqados', 'wannier', 'winddos'] 
 
+LSJ_valid_subtrees = ['kstlist'] 
+
 masstensor_valid_attributes = ['deltaem', 'ndspem', 'vklem'] 
 
 chargedensityplot_valid_attributes = ['nocore'] 
+chargedensityplot_valid_subtrees = ['plot1d', 'plot2d', 'plot3d'] 
+
+exccplot_valid_subtrees = ['plot1d', 'plot2d', 'plot3d'] 
+
+elfplot_valid_subtrees = ['plot1d', 'plot2d', 'plot3d'] 
+
+mvecfield_valid_subtrees = ['plot2d', 'plot3d'] 
+
+xcmvecfield_valid_subtrees = ['plot2d', 'plot3d'] 
+
+electricfield_valid_subtrees = ['plot2d', 'plot3d'] 
+
+gradmvecfield_valid_subtrees = ['plot1d', 'plot2d', 'plot3d'] 
 
 fermisurfaceplot_valid_attributes = ['nstfsp'] 
+fermisurfaceplot_valid_subtrees = ['plot2d', 'plot3d'] 
 
 expiqr_valid_subtrees = ['kstlist'] 
 
@@ -194,8 +212,6 @@ raman_mandatory_attributes = ['energywindow']
 eigvec_valid_attributes = ['comp'] 
 eigvec_mandatory_attributes = ['comp'] 
 
-energywindow_valid_attributes = ['intv', 'points'] 
-
 moke_valid_attributes = ['drude', 'intraband', 'scissor', 'swidth', 'tevout', 'wgrid', 'wmax'] 
 
 shg_valid_attributes = ['etol', 'scissor', 'swidth', 'tevout', 'wgrid', 'wmax'] 
@@ -217,7 +233,7 @@ projector_valid_attributes = ['nr']
 projector_mandatory_attributes = ['nr'] 
 
 wannierplot_valid_attributes = ['cell', 'fst', 'lst'] 
-wannierplot_valid_subtrees = ['plot2d', 'plot1d', 'plot3d'] 
+wannierplot_valid_subtrees = ['plot1d', 'plot2d', 'plot3d'] 
 
 wanniergap_valid_attributes = ['auto', 'ngridkint'] 
 wanniergap_valid_subtrees = ['pointband'] 
@@ -226,8 +242,6 @@ pointband_valid_attributes = ['band', 'extremal', 'vkl']
 pointband_mandatory_attributes = ['band', 'vkl'] 
 
 ldos_valid_attributes = ['delta', 'grid', 'newint', 'ngrdos', 'nsmdos', 'nwdos', 'scissor', 'tol', 'winddos'] 
-
-polarization_valid_attributes = ['None'] 
 
 
 # xs information 
@@ -244,8 +258,8 @@ storeexcitons_valid_attributes = ['MaxEnergyExcitons', 'MaxNumberExcitons', 'Min
                                   'selectenergy', 'useev'] 
 
 scrwfplot_valid_attributes = ['bandrange', 'kptrange'] 
-
-plot3d_valid_attributes = ['usesym'] 
+scrwfplot_valid_subtrees = ['plot3d'] 
+scrwfplot_mandatory_attributes = ['plot3d'] 
 
 writeexcitons_valid_attributes = ['MaxEnergyExcitons', 'MaxNumberExcitons', 'MinEnergyExcitons', 'MinNumberExcitons', 
                                   'abscutares', 'abscutres', 'selectenergy', 'useev'] 
@@ -259,7 +273,9 @@ excitonPlot_mandatory_attributes = ['electron', 'hole']
 
 exciton_valid_attributes = ['fix', 'lambda'] 
 
-electron_valid_subtrees = ['plot3d', 'plot1d', 'plot2d'] 
+hole_valid_subtrees = ['plot1d', 'plot2d', 'plot3d'] 
+
+electron_valid_subtrees = ['plot1d', 'plot2d', 'plot3d'] 
 
 realTimeTDDFT_valid_attributes = ['TaylorOrder', 'calculateNExcitedElectrons', 'calculateTotalEnergy', 'endTime', 
                                   'forcePmatHermitian', 'normalizeWF', 'printAfterIterations', 'printTimingDetailed', 
@@ -317,8 +333,6 @@ istate_mandatory_attributes = ['statestype']
 
 tetra_valid_attributes = ['cw1k', 'kordexc', 'qweights', 'tetradf', 'tetraocc'] 
 
-energywindow_valid_attributes = ['intv', 'points'] 
-
 plan_valid_subtrees = ['doonly'] 
 
 doonly_valid_attributes = ['task'] 
@@ -368,6 +382,3 @@ valid_plan_entries = ['bse', 'bsegenspec', 'bsesurvey', 'df', 'df2', 'dielectric
                       'write_screened_coulomb', 'write_wfplot', 'writebandgapgrid', 'writebevec', 'writeemat', 
                       'writeematasc', 'writekpathweights', 'writeoverlapxs', 'writepmat', 'writepmatasc', 'writepmatxs', 
                       'writepwmat', 'x0toasc', 'x0tobin', 'xsestimate', 'xsgeneigvec'] 
-
-# valid bandstructure subtrees
-bandstructure_valid_subtrees = ['plot1d'] 
