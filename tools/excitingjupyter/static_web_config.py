@@ -1,4 +1,5 @@
 import os
+
 import pygments
 from nbconvert.preprocessors import TagRemovePreprocessor
 
@@ -7,7 +8,7 @@ OUTDIR = os.path.join(os.environ["EXCITINGROOT"], "tools", "excitingjupyter", "s
 
 os.makedirs(OUTDIR, exist_ok=True)
 
-c = get_config()  # type:ignore
+c = get_config()  # type:ignore # pylint: disable=E0602
 
 c.NbConvertApp.notebooks = [
     # Convert all tutorials in 01_getting_started and 02_ground_state (may be slow if combined with the --execute flag)

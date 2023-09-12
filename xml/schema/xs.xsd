@@ -1194,7 +1194,7 @@
           </xs:complexType>
         </xs:element>
 
-        <xs:element ex:importance="experimental" ex:unit="" name="expand_eps">
+        <xs:element ex:importance="experimental" ex:unit="" name="expand_eps" minOccurs="0">
           <xs:complexType>
               <xs:attribute ex:unit="" name="supercell_1" type="integertriple"
               default="1 1 1">
@@ -1652,7 +1652,7 @@
         <xs:element ex:importance="expert" ex:unit="" name="fastBSE" minOccurs="0" maxOccurs="1">
           <xs:complexType>
 
-            <xs:attribute ex:importance="expert" ex:unit="" name="seed" minOccurs="0" maxOccurs="1" default="clock">
+            <xs:attribute ex:importance="expert" ex:unit="" name="seed" default="clock">
               <xs:annotation>
                 <xs:documentation>
                   Specify the solver type for solving the BSE:

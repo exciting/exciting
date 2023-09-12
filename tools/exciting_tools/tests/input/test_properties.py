@@ -31,7 +31,7 @@ def test_bandstructure_properties_input():
     properties = {
         "bandstructure": {"plot1d": {"path": {
             "steps": 100,
-            "points":
+            "point":
                 [
                     {"coord": [1, 0, 0], "label": "Gamma"},
                     {"coord": [0.625, 0.375, 0], "label": "K"},
@@ -53,7 +53,6 @@ def test_bs_from_ase(ase_ag):
     correct.
     """
     ase_ag.set_cell(ase_ag.cell * 3)
-    print(ase_ag.cell)
     bs = band_structure_input_from_ase_atoms_obj(ase_ag)
     properties_input = ExcitingPropertiesInput(bandstructure=bs)
     bs_xml_string = properties_input.to_xml_str()

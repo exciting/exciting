@@ -31,7 +31,7 @@ def band_structure_input_from_cell(cell: Cell,
         else:
             points.append({"coord": list(bandpath.special_points[point]), "label": point})
 
-    return ExcitingBandStructureInput(plot1d={"path": {"steps": steps, "points": points}})
+    return ExcitingBandStructureInput(plot1d={"path": {"steps": steps, "point": points}})
 
 
 def band_structure_input_from_lattice(lattice_vectors: List[List[float]] | np.ndarray,

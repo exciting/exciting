@@ -2,19 +2,14 @@
 # -*- coding: utf-8 -*-
 # _______________________________________________________________________________
 
-from sys import stdin
-from math import sqrt
-from math import factorial
-from pylab import *
-import matplotlib.transforms as ptf
-import matplotlib.ticker as ptk
-import matplotlib.pyplot as plt
-import pylab as pyl
-import numpy
-import sys
 import os
+import sys
 
+import matplotlib.pyplot as plt
 import matplotlib.style
+import matplotlib.ticker as ptk
+import pylab as pyl
+from pylab import *
 
 if matplotlib.__version__.split(".")[0] == "2": matplotlib.style.use('classic')
 
@@ -156,7 +151,10 @@ while True:
 
 if (len(y1) > 0): rmin = y1[0]
 if (len(y2) > 0): rmin = y2[0]
-if (len(y3) > 0): rmin = y3[0]
+if (len(y3) > 0):
+    rmin = y3[0]
+else:
+    rmin = 0
 
 newrmin, espo = mantissa(rmin);
 mant = 10. ** espo

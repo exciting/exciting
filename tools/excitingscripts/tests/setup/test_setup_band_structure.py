@@ -1,7 +1,6 @@
-import os
-
 import pytest
 from excitingscripts.setup.band_structure import setup_band_structure
+
 from excitingtools.exciting_dict_parsers.input_parser import parse_element_xml
 from excitingtools.exciting_obj_parsers.input_xml import parse_input_xml
 from excitingtools.utils.test_utils import MockFile
@@ -42,11 +41,12 @@ def input_xml_mock(tmp_path) -> MockFile:
 
     return MockFile(input_xml_file, input_xml_str)
 
+
 def test_setup_band_structure(input_xml_mock, tmp_path):
     properties_ref = {
         "bandstructure": {"plot1d": {"path": {
             "steps": 100,
-            "points":
+            "point":
                 [
                     {"coord": [0.0, 0.0, 0.0], "label": "G"},
                     {"coord": [0.5, 0.0, 0.5], "label": "X"},
@@ -62,7 +62,7 @@ def test_setup_band_structure(input_xml_mock, tmp_path):
                     {"coord": [0.5, 0.0, 0.5], "label": "X"}]}}}}
 
     setup_band_structure(input_xml_mock.full_path, root_directory=tmp_path)
-    parsed_input = parse_input_xml(tmp_path  / "input.xml")
-    parsed_input_properties = parsed_input.properties.to_xml()
+    parsed_input = parse_input_xml(tmp_path / "input.xml")
+    parsed_input_properties = parsed_input.properties.to_xml()  # pylint: disable=no-member
 
     assert properties_ref == parse_element_xml(parsed_input_properties)

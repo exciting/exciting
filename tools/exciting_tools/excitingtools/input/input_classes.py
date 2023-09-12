@@ -113,32 +113,3 @@ class ExcitingPlanInput(AbstractExcitingInput):
             ElementTree.SubElement(plan, 'doonly', task=task)
 
         return plan
-
-
-class ExcitingPathInput(ExcitingXMLInput):
-    """
-    Class for exciting path input.
-    
-    Note: Not to be confused by the class name, it is NOT directly a band path. Defining what is in the
-    exciting input file under the subtree called 'path'.
-    """
-    name = "path"
-
-    def __init__(self,
-                 points: List[Union[dict, ExcitingPointInput]],
-                 **kwargs):
-        """Generate an object of ExcitingXMLInput for the path attributes."""
-        super().__init__(**kwargs)
-        self.__dict__["points"] = [self._initialise_subelement_attribute(ExcitingPointInput, point) for point in points]
-
-    def to_xml(self) -> ElementTree:
-        """Put class attributes into an XML tree, with the element given by self.name.
-        :return ElementTree.Element sub_tree: sub_tree element tree, with class attributes inserted.
-        """
-        attributes = {key: str(value) for key, value in vars(self).items() if key != "points"}
-        xml_tree = ElementTree.Element(self.name, **attributes)
-
-        for point in self.points:
-            xml_tree.append(point.to_xml())
-
-        return xml_tree

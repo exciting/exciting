@@ -1,4 +1,5 @@
-from excitingtools.utils.utils import can_be_float, convert_to_literal, get_new_line_indices
+""" Tests for utils. """
+from excitingtools.utils.utils import can_be_float, convert_to_literal, get_new_line_indices, flatten_list
 
 
 def test_can_be_float():
@@ -34,3 +35,9 @@ def test_get_new_line_indices():
     assert len(get_new_line_indices(test_string)) == expected_line_indices
     assert get_new_line_indices(test_string)[0] == expected_line_index_list[0]
     assert get_new_line_indices(test_string)[1] == expected_line_index_list[1]
+
+
+def test_flatten_list():
+    input_list = [[1, 2, 3], 4, 5, [6, [7, 8]], {'9': 9, '10': 10}]
+    ref_list = [1, 2, 3, 4, 5, 6, 7, 8, {'9': 9, '10': 10}]
+    assert list(flatten_list(input_list)) == ref_list

@@ -12,15 +12,15 @@ Require the following files:
 
 '''
 
-from xml.etree import ElementTree as ET
-import sys
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
-import os
-import numpy as np
 import argparse as ap
+import os
+import sys
+from xml.etree import ElementTree as ET
 
+import matplotlib.pyplot as plt
 import matplotlib.style
+import matplotlib.ticker as ticker
+import numpy as np
 
 if matplotlib.__version__.split(".")[0] == "2": matplotlib.style.use('classic')
 
@@ -688,7 +688,7 @@ def main(input_options):
         if (reverse_colors):
             lc = line_color[number_of_plots - 1 - i]
             sc = spin_color[number_of_plots - 1 - i]
-        leg_spin = ["$\uparrow$", "$\downarrow$"]
+        leg_spin = [r"$\uparrow$", r"$\downarrow$"]
         for j in range(len(band[i])):
             xkvec = kvec[i][j]
             if (different_volumes):
