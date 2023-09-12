@@ -31,10 +31,10 @@ default = DefaultTolerances(integer=Tol(0),
                             float=Tol(1.e-8),
                             energy=Tol(1.e-8, Unit.hartree),
                             oscillator_strength=Tol(1.e-8, Unit.null),
-                            time=Tol(1e-8, Unit.au),               # Which would be hbar / E_H
-                            current_density=Tol(1e-8, Unit.au)     # Which would be  (e * E_H) / (hbar * a0)
-                            length=Tol(1e-8, Unit.bohr)
-                            velocity=Tol(1e-8, Unit.bohr_velocity)
+                            time=Tol(1e-8, Unit.au),  # Which would be hbar / E_H
+                            current_density=Tol(1e-8, Unit.au),  # Which would be  (e * E_H) / (hbar * a0)
+                            length=Tol(1e-8, Unit.bohr),
+                            velocity=Tol(1e-8, Unit.bohr_velocity),
                             force=Tol(1e-8, Unit.force)
                             )
 
@@ -95,13 +95,13 @@ rt_tddft_force = {
 }
 
 rt_tddft_tolerances = {'JIND.OUT': rt_tddft_jind,
-                      'NEXC.OUT': rt_tddft_nexc,
-                      'ETOT_RTTDDFT.OUT': rt_tddft_etot,
-                      'EIGVAL_??.OUT': rt_tddft_eigval,
-                      'PROJ_??.OUT': rt_tddft_proj,
-                      'ATOM_????.OUT': rt_tddft_atom,
-                      'FCR': rt_tddft_force, 
-                      'FEXT': rt_tddft_force, 
-                      'FHF': rt_tddft_force, 
-                      'FVAL': rt_tddft_force, 
-                      }
+                       'NEXC.OUT': rt_tddft_nexc,
+                       'ETOT_RTTDDFT.OUT': rt_tddft_etot,
+                       'EIGVAL_??.OUT': rt_tddft_eigval,
+                       'PROJ_??.OUT': rt_tddft_proj,
+                       'ATOM_????.OUT': rt_tddft_atom,
+                       'FCR': rt_tddft_force,
+                       'FEXT': rt_tddft_force,
+                       'FHF': rt_tddft_force,
+                       'FVAL': rt_tddft_force,
+                       }

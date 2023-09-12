@@ -7,7 +7,8 @@ inputs and the post-processing of <span style="font-family:american typewriter; 
 
 * Generation of the <span style="font-family:american typewriter; font-size:1em;">**exciting**</span> input XML file 
   using Python classes:
-  - Currently supported for `groundstate`, `structure` and `BSE`
+  - Automatically supported for the whole input file through dynamic class construction
+  - Currently tested for `groundstate`, `structure`, `BSE` and `bandstructure`
 
 
 * Parsing of <span style="font-family:american typewriter; font-size:1em;">**exciting**</span> outputs into Python dictionaries

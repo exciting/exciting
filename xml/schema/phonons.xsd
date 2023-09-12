@@ -29,171 +29,6 @@
     </xs:annotation>
 
     <xs:complexType>
-      <xs:attribute ex:importance="expert" ex:unit="" name="do" default="fromscratch">
-        <xs:annotation>
-          <xs:documentation> Specify if the phonon calculation is performed from scratch (value <pre>fromscratch</pre>), 
-            resumed from a previous calculation (value <pre>fromfile</pre>, DFPT only) or skipped (value <pre>skip</pre>.) 
-            In the latter case the dynamical matrix is read from files produced in a previous
-            run with the same parameters. In case of a DFPT phonon calculation, value <pre>dry</pre> triggers a dry run
-            that only generates the irreducible representations and prints the parallelization pattern.</xs:documentation>
-        </xs:annotation>
-        <xs:simpleType>
-          <xs:restriction base="xs:string">
-            <xs:enumeration value="fromscratch"/>
-            <xs:enumeration value="fromfile"/>
-            <xs:enumeration value="skip"/>
-            <xs:enumeration value="dry"/>
-          </xs:restriction>
-        </xs:simpleType>
-      </xs:attribute>
-
-      <xs:attribute ex:importance="expert" ex:unit="" name="ngridq" type="integertriple" default="1 1 1">
-        <xs:annotation>
-          <xs:documentation>Number of <inlinemath>{\bf q}</inlinemath> grid points along the basis vector
-            directions. This determines the size of the supercell. In case of a DPFT calculation this grid must
-            be commensurate with the <inlinemath>{\bf k}</inlinemath> grid from the <pre>groundstate</pre> element.
-          </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-
-      <xs:attribute ex:importance="expert" ex:unit="" name="reduceq" type="xs:boolean" default="true">
-        <xs:annotation>
-          <xs:documentation> The attribute <pre>reduceq</pre> is set to <pre>"true"</pre>
-            if the <inlinemath>{\bf q}</inlinemath>-point set is to be reduced with the crystal symmetries.
-          </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-
-      <xs:attribute ex:importance="expert" ex:unit="" name="deltaph" type="fortrandouble" default="0.03d0">
-        <xs:annotation>
-          <xs:documentation>
-            <p>Applies to <pre>method="sc"</pre> only!</p>
-            <p>Phonon calculations are performed by constructing a supercell
-            corresponding to a particular <inlinemath>{\bf q}</inlinemath>-vector and
-            making small periodic sin- and cos-like displacements of the atoms. The amplitude of this
-            displacement, in cartesian coordinates for each component, is given by <pre>deltaph</pre> (in units of Bohr).
-            Additionally a displacement of <pre>2*deltaph</pre> is done, so in general each atom is displaced four times.</p>
-            <p><pre>deltaph</pre> should not be made too large, as
-            anharmonic terms could then become significant, neither should it be too
-            small as this can introduce a numerical error.</p> </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-
-      <xs:attribute ex:importance="expert" ex:unit="" name="gamma"  default="twostep">
-        <xs:annotation>
-          <xs:documentation>
-            <p>Applies to <pre>method="sc"</pre> only!</p>
-            Determines how force constants at the <inlinemath>\Gamma</inlinemath>-point are computed. The numerical
-            differentiation is done from (a) a displacement by <pre>deltaph</pre> and the equilibirum
-            (<pre>onestep</pre>), 
-            (b) displacements by <inlinemath>\pm</inlinemath><pre>deltaph</pre> 
-            (<pre>twostep</pre>), or (c) displacements by 
-            <pre>deltaph</pre> and 2<pre>deltaph</pre> (<pre>standard</pre>) for each atom in each cartesian direction.
-            Note that options (a) requires <inlinemath>3N+1</inlinemath> computations, whereas option (b) and (c)
-            require <inlinemath>6N</inlinemath> for <inlinemath>N</inlinemath> atoms.
-            In particular if only the <inlinemath>\Gamma</inlinemath>-point is to be computed, option (b) is more accurate and
-            yields better eigenvectors than (a).
-          </xs:documentation>
-        </xs:annotation>
-        <xs:simpleType>
-          <xs:restriction base="xs:string">
-            <xs:enumeration value="onestep"/>
-            <xs:enumeration value="twostep"/>
-            <xs:enumeration value="standard"/>
-          </xs:restriction>
-        </xs:simpleType>
-      </xs:attribute>
-
-      <xs:attribute ex:importance="expert" ex:unit="" name="method" default="dfpt">
-        <xs:annotation>
-          <xs:documentation>
-            Method to compute phonons. Either <pre>"sc"</pre> for super-cell approach or <pre>"dfpt"</pre> for density-functional perturbation theory.
-          </xs:documentation>
-        </xs:annotation>
-        <xs:simpleType>
-          <xs:restriction base="xs:string">
-            <xs:enumeration value="sc"/>
-            <xs:enumeration value="dfpt"/>
-          </xs:restriction>
-        </xs:simpleType>
-      </xs:attribute>
-
-      <xs:attribute ex:importance="experimental" ex:unit="" name="sumrule" type="xs:boolean" default="true">
-        <xs:annotation>
-          <xs:documentation>
-            <p>Applies to <pre>method="dfpt"</pre> only!</p>
-            If the attribute <pre>sumrule</pre> is set to <pre>"true"</pre>,
-            the acoustic sum rule is imposed on the Gamma point phonons.
-          </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-
-      <xs:attribute ex:importance="expert" ex:unit="" name="polar" type="xs:boolean" default="true">
-        <xs:annotation>
-          <xs:documentation> The attribute <pre>polar</pre> is set to <pre>"true"</pre>
-            if a polar material is assumed and Born effective charges <inlinemath>Z^\ast</inlinemath> 
-            and the high frequency dielectric tensor <inlinemath>\epsilon^\infty</inlinemath> should be
-            computed.
-          </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-
-      <xs:attribute ex:importance="experimental" ex:unit="" name="canonical" type="xs:boolean" default="false">
-        <xs:annotation>
-          <xs:documentation>
-            <p>Applies to <pre>method="dfpt"</pre> only!</p>
-            If the attribute <pre>canonical</pre> is set to <pre>"true"</pre>,
-            the canonical (Cartesian) displacement patterns are used. Otherwhise, irreducible representations are used (default).
-          </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-
-      <xs:attribute ex:importance="expert" ex:unit="" name="drynumprocs" type="xs:integer" default="1">
-        <xs:annotation>
-          <xs:documentation>
-            <p>Applies to <pre>method="dfpt"</pre> only!</p>
-            If the attribute <pre>do</pre> is set to <pre>"dry"</pre>,
-            this number of processes is assumed for a parrallel run.
-          </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-
-      <xs:attribute ex:importance="experimental" ex:unit="" name="minprocsperpart" type="xs:integer" default="1">
-        <xs:annotation>
-          <xs:documentation>
-            <p>Applies to <pre>method="dfpt"</pre> only!</p>
-            Minimum number of processes per part in an MPI parallel run.
-          </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-
-      <xs:attribute ex:importance="experimental" ex:unit="" name="maxprocsperpart" type="xs:integer" default="100000">
-        <xs:annotation>
-          <xs:documentation>
-            <p>Applies to <pre>method="dfpt"</pre> only!</p>
-            Maximum number of processes per part in an MPI parallel run.
-          </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-
-      <xs:attribute ex:importance="experimental" ex:unit="" name="write_schedule" type="xs:boolean" default="false">
-        <xs:annotation>
-          <xs:documentation>
-            <p>Applies to <pre>method="dfpt"</pre> only!</p>
-            Print execution schedule in an MPI parallel run.
-          </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-
-      <xs:attribute ex:importance="experimental" ex:unit="" name="delete_eigensystem_response" type="xs:boolean" default="true">
-        <xs:annotation>
-          <xs:documentation>
-            <p>Applies to <pre>method="dfpt"</pre> only!</p>
-            If the attribute <pre>delete_eigensystem_response</pre> is set to <pre>"true"</pre>,
-            the file <pre>*_DEVAL_*.OUT</pre>, <pre>*_DEVEC_*.OUT</pre> and <pre>*_DOCC_*.OUT</pre> are deleted after the calculation.
-          </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
 
       <xs:all>
         <xs:element ex:importance="expert" ex:unit="" ref="qpointset" minOccurs="0" maxOccurs="1"/>
@@ -361,6 +196,172 @@
 
         <xs:element ex:importance="expert" ex:unit="" ref="parts" minOccurs="0" maxOccurs="1"/>
       </xs:all>
+
+      <xs:attribute ex:importance="expert" ex:unit="" name="do" default="fromscratch">
+        <xs:annotation>
+          <xs:documentation> Specify if the phonon calculation is performed from scratch (value <pre>fromscratch</pre>),
+            resumed from a previous calculation (value <pre>fromfile</pre>, DFPT only) or skipped (value <pre>skip</pre>.)
+            In the latter case the dynamical matrix is read from files produced in a previous
+            run with the same parameters. In case of a DFPT phonon calculation, value <pre>dry</pre> triggers a dry run
+            that only generates the irreducible representations and prints the parallelization pattern.</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="fromscratch"/>
+            <xs:enumeration value="fromfile"/>
+            <xs:enumeration value="skip"/>
+            <xs:enumeration value="dry"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="expert" ex:unit="" name="ngridq" type="integertriple" default="1 1 1">
+        <xs:annotation>
+          <xs:documentation>Number of <inlinemath>{\bf q}</inlinemath> grid points along the basis vector
+            directions. This determines the size of the supercell. In case of a DPFT calculation this grid must
+            be commensurate with the <inlinemath>{\bf k}</inlinemath> grid from the <pre>groundstate</pre> element.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="expert" ex:unit="" name="reduceq" type="xs:boolean" default="true">
+        <xs:annotation>
+          <xs:documentation> The attribute <pre>reduceq</pre> is set to <pre>"true"</pre>
+            if the <inlinemath>{\bf q}</inlinemath>-point set is to be reduced with the crystal symmetries.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="expert" ex:unit="" name="deltaph" type="fortrandouble" default="0.03d0">
+        <xs:annotation>
+          <xs:documentation>
+            <p>Applies to <pre>method="sc"</pre> only!</p>
+            <p>Phonon calculations are performed by constructing a supercell
+            corresponding to a particular <inlinemath>{\bf q}</inlinemath>-vector and
+            making small periodic sin- and cos-like displacements of the atoms. The amplitude of this
+            displacement, in cartesian coordinates for each component, is given by <pre>deltaph</pre> (in units of Bohr).
+            Additionally a displacement of <pre>2*deltaph</pre> is done, so in general each atom is displaced four times.</p>
+            <p><pre>deltaph</pre> should not be made too large, as
+            anharmonic terms could then become significant, neither should it be too
+            small as this can introduce a numerical error.</p> </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="expert" ex:unit="" name="gamma"  default="twostep">
+        <xs:annotation>
+          <xs:documentation>
+            <p>Applies to <pre>method="sc"</pre> only!</p>
+            Determines how force constants at the <inlinemath>\Gamma</inlinemath>-point are computed. The numerical
+            differentiation is done from (a) a displacement by <pre>deltaph</pre> and the equilibirum
+            (<pre>onestep</pre>),
+            (b) displacements by <inlinemath>\pm</inlinemath><pre>deltaph</pre>
+            (<pre>twostep</pre>), or (c) displacements by
+            <pre>deltaph</pre> and 2<pre>deltaph</pre> (<pre>standard</pre>) for each atom in each cartesian direction.
+            Note that options (a) requires <inlinemath>3N+1</inlinemath> computations, whereas option (b) and (c)
+            require <inlinemath>6N</inlinemath> for <inlinemath>N</inlinemath> atoms.
+            In particular if only the <inlinemath>\Gamma</inlinemath>-point is to be computed, option (b) is more accurate and
+            yields better eigenvectors than (a).
+          </xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="onestep"/>
+            <xs:enumeration value="twostep"/>
+            <xs:enumeration value="standard"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="expert" ex:unit="" name="method" default="dfpt">
+        <xs:annotation>
+          <xs:documentation>
+            Method to compute phonons. Either <pre>"sc"</pre> for super-cell approach or <pre>"dfpt"</pre> for density-functional perturbation theory.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="sc"/>
+            <xs:enumeration value="dfpt"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="experimental" ex:unit="" name="sumrule" type="xs:boolean" default="true">
+        <xs:annotation>
+          <xs:documentation>
+            <p>Applies to <pre>method="dfpt"</pre> only!</p>
+            If the attribute <pre>sumrule</pre> is set to <pre>"true"</pre>,
+            the acoustic sum rule is imposed on the Gamma point phonons.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="expert" ex:unit="" name="polar" type="xs:boolean" default="true">
+        <xs:annotation>
+          <xs:documentation> The attribute <pre>polar</pre> is set to <pre>"true"</pre>
+            if a polar material is assumed and Born effective charges <inlinemath>Z^\ast</inlinemath>
+            and the high frequency dielectric tensor <inlinemath>\epsilon^\infty</inlinemath> should be
+            computed.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="experimental" ex:unit="" name="canonical" type="xs:boolean" default="false">
+        <xs:annotation>
+          <xs:documentation>
+            <p>Applies to <pre>method="dfpt"</pre> only!</p>
+            If the attribute <pre>canonical</pre> is set to <pre>"true"</pre>,
+            the canonical (Cartesian) displacement patterns are used. Otherwhise, irreducible representations are used (default).
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="expert" ex:unit="" name="drynumprocs" type="xs:integer" default="1">
+        <xs:annotation>
+          <xs:documentation>
+            <p>Applies to <pre>method="dfpt"</pre> only!</p>
+            If the attribute <pre>do</pre> is set to <pre>"dry"</pre>,
+            this number of processes is assumed for a parrallel run.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="experimental" ex:unit="" name="minprocsperpart" type="xs:integer" default="1">
+        <xs:annotation>
+          <xs:documentation>
+            <p>Applies to <pre>method="dfpt"</pre> only!</p>
+            Minimum number of processes per part in an MPI parallel run.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="experimental" ex:unit="" name="maxprocsperpart" type="xs:integer" default="100000">
+        <xs:annotation>
+          <xs:documentation>
+            <p>Applies to <pre>method="dfpt"</pre> only!</p>
+            Maximum number of processes per part in an MPI parallel run.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="experimental" ex:unit="" name="write_schedule" type="xs:boolean" default="false">
+        <xs:annotation>
+          <xs:documentation>
+            <p>Applies to <pre>method="dfpt"</pre> only!</p>
+            Print execution schedule in an MPI parallel run.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="experimental" ex:unit="" name="delete_eigensystem_response" type="xs:boolean" default="true">
+        <xs:annotation>
+          <xs:documentation>
+            <p>Applies to <pre>method="dfpt"</pre> only!</p>
+            If the attribute <pre>delete_eigensystem_response</pre> is set to <pre>"true"</pre>,
+            the file <pre>*_DEVAL_*.OUT</pre>, <pre>*_DEVEC_*.OUT</pre> and <pre>*_DOCC_*.OUT</pre> are deleted after the calculation.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
 
     </xs:complexType>
   </xs:element>

@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import List
 
 import xmlschema
+from xmlschema.validators import XsdAnyElement
 
 from excitingtools.utils.utils import get_excitingtools_root
 
@@ -102,31 +103,28 @@ def read_schema_to_dict(name: str) -> dict:
     schema = xmlschema.XMLSchema(f'{name}.xsd')
 
     tag_info = {}
-    xsd_elements = [element for element in schema.iter_components() if isinstance(element, xmlschema.XsdElement)]
-    for xsd_element in xsd_elements:
-        attribute_group = xsd_element.attributes._attribute_group
-        tag_info[xsd_element.name] = {"attribs": set(attribute_group.keys()),
-                                      "children": [], "mandatory_attribs": []}
-        if xsd_element.parent:
-            tag_info[xsd_element.name]["parent"] = (xsd_element.parent.parent.parent.name, xsd_element.occurs[0])
+    xsd_elements = filter(lambda x: isinstance(x, xmlschema.XsdElement) and x.ref is None, schema.iter_components())
 
-        for attrib in tag_info[xsd_element.name]["attribs"]:
-            if attribute_group[attrib].use == "required":
-                tag_info[xsd_element.name]["mandatory_attribs"].append(attrib)
+    for xsd_element in xsd_elements:
+        attributes = xsd_element.attributes
+        mandatory_attributes = set([k for k, v in attributes.items() if v.use == "required"])
+        children = [x.name for x in xsd_element.iterchildren() if not isinstance(x, XsdAnyElement)]
+        mandatory_children = set([x.name for x in xsd_element.iterchildren() if x.min_occurs > 0])
+        multiple_childs = set([x.name for x in xsd_element.iterchildren() if x.max_occurs is None or x.max_occurs > 1])
+
+        tag_info[xsd_element.name] = {"attribs": filter(lambda x: x is not None, attributes), "children": children,
+                                      "mandatory_attribs": mandatory_attributes | mandatory_children,
+                                      "multiple_children": multiple_childs}
 
         # special handling for the plan
         if xsd_element.name == "doonly":
-            valid_plan = attribute_group["task"].type.validators[0].enumeration
-            tag_info["doonly"]["plan"] = set(valid_plan)
+            tag_info["doonly"]["plan"] = attributes["task"].type.validators[0].enumeration
 
-    # add the child information
-    tags_with_parents = [tag for tag in tag_info if tag_info[tag].get("parent")]
-    for tag in tags_with_parents:
-        parent_name, min_occurs = tag_info[tag]["parent"]
-        tag_info[parent_name]["children"].append(tag)
-        # exclude structure things
-        if min_occurs > 0 and parent_name not in {'structure', 'crystal', 'species', 'atom'}:
-            tag_info[parent_name]["mandatory_attribs"].append(tag)
+    # exclude special structure attributes (already explicitly specified in the __init__ of ExcitingStructure class)
+    if name == "structure":
+        tag_info["structure"]["mandatory_attribs"].remove("crystal")
+        tag_info["crystal"]["mandatory_attribs"].remove("basevect")
+        tag_info["species"]["mandatory_attribs"].remove("atom")
 
     return tag_info
 
@@ -143,6 +141,7 @@ def write_schema_info(super_tag: str, schema_dict: dict) -> str:
         valid_attributes = sorted(schema_dict[tag]["attribs"])
         valid_subtrees = schema_dict[tag]['children']
         mandatory_attributes = sorted(schema_dict[tag]['mandatory_attribs'])
+        multiple_childs = sorted(schema_dict[tag]['multiple_children'])
 
         if not (valid_attributes or valid_subtrees or mandatory_attributes):
             continue
@@ -153,6 +152,8 @@ def write_schema_info(super_tag: str, schema_dict: dict) -> str:
             info_string += list_string_line_limit(f"{tag}_valid_subtrees", valid_subtrees) + " \n"
         if mandatory_attributes:
             info_string += list_string_line_limit(f"{tag}_mandatory_attributes", mandatory_attributes) + " \n"
+        if multiple_childs:
+            info_string += list_string_line_limit(f"{tag}_multiple_children", multiple_childs) + " \n"
         info_string += "\n"
     return info_string
 
@@ -214,10 +215,6 @@ def main():
     xs_schema_dict = read_schema_to_dict("xs")
     info += "\n# valid entries for the xs subtree 'plan'\n"
     info += list_string_line_limit("valid_plan_entries", sorted(xs_schema_dict['doonly']['plan'])) + " \n"
-
-    # Add special case for 'properties' to add valid bandstructure subtrees (no idea why not included in schema)
-    info += "\n# valid bandstructure subtrees\n"
-    info += "bandstructure_valid_subtrees = ['plot1d'] \n"
 
     with open(filename, "w") as fid:
         fid.write(info)

@@ -15,10 +15,12 @@ def setup_band_structure(input_file: Union[str, pathlib.Path], root_directory=os
     :param root_directory: Root directory.
     """
     parsed_input = ExcitingInputXML.from_xml(input_file)
-    band_structure = get_bandstructure_input_from_exciting_structure(parsed_input.structure)
+    band_structure = get_bandstructure_input_from_exciting_structure(
+        parsed_input.structure)  # pylint: disable=no-member
     parsed_input.properties = ExcitingPropertiesInput(bandstructure=band_structure)
 
     parsed_input.write(join(root_directory, "input.xml"))
+
 
 def main() -> None:
     parser = ArgumentParser(description="""Add band structure element to given input file by getting the band path from

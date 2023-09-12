@@ -13,6 +13,7 @@ from excitingtools.exciting_dict_parsers.input_parser import parse_element_xml
 from excitingtools.utils import valid_attributes as all_valid_attributes
 from excitingtools.utils.dict_utils import check_valid_keys
 from excitingtools.utils.jobflow_utils import special_serialization_attrs
+from excitingtools.utils.utils import flatten_list
 
 path_type = Union[str, Path]
 
@@ -56,7 +57,7 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
         Valid attributes, subtrees and mandatory attributes are taken automatically from
         the parsed schema, see [valid_attributes.py](excitingtools/utils/valid_attributes.py).
         """
-        valid_attributes, valid_subtrees, mandatory_keys = self.get_valid_attributes()
+        valid_attributes, valid_subtrees, mandatory_keys, multiple_children = self.get_valid_attributes()
 
         # check the keys
         missing_mandatory_keys = mandatory_keys - set(kwargs.keys())
@@ -68,8 +69,13 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
         class_list = self._class_list_excitingtools()
         subtree_class_map = {cls.name: cls for cls in class_list}
         subtrees = set(kwargs.keys()) - valid_attributes
-        for subtree in subtrees:
+        single_subtrees = subtrees - multiple_children
+        multiple_subtrees = subtrees - single_subtrees
+        for subtree in single_subtrees:
             kwargs[subtree] = self._initialise_subelement_attribute(subtree_class_map[subtree], kwargs[subtree])
+        for subtree in multiple_subtrees:
+            kwargs[subtree] = [self._initialise_subelement_attribute(subtree_class_map[subtree], x) for
+                               x in kwargs[subtree]]
 
         # Set attributes from kwargs
         self.__dict__.update(kwargs)
@@ -80,7 +86,7 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
         :param name: name of the attribute
         :param value: new value, can be anything
         """
-        valid_attributes, valid_subtrees, _ = self.get_valid_attributes()
+        valid_attributes, valid_subtrees, _, _ = self.get_valid_attributes()
         check_valid_keys({name}, valid_attributes | set(valid_subtrees), self.name)
         super().__setattr__(name, value)
 
@@ -92,13 +98,15 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
             super().__delattr__(name)
 
     def get_valid_attributes(self) -> Iterator:
-        """ Extract the valid attributes, valid subtrees and mandatory attributes from the parsed schema.
+        """ Extract the valid attributes, valid subtrees, mandatory attributes and multiple children
+        from the parsed schema.
 
-        :return: valid attributes, valid subtrees and mandatory attributes
+        :return: valid attributes, valid subtrees, mandatory attributes and multiple children
         """
-        yield set(all_valid_attributes.__dict__.get(self.name + "_valid_attributes", set()))
-        yield all_valid_attributes.__dict__.get(self.name + "_valid_subtrees", [])
-        yield set(all_valid_attributes.__dict__.get(self.name + "_mandatory_attributes", set()))
+        yield set(getattr(all_valid_attributes, f"{self.name}_valid_attributes", set()))
+        yield getattr(all_valid_attributes, f"{self.name}_valid_subtrees", [])
+        yield set(getattr(all_valid_attributes, f"{self.name}_mandatory_attributes", set()))
+        yield set(getattr(all_valid_attributes, f"{self.name}_multiple_children", set()))
 
     @staticmethod
     def _class_list_excitingtools() -> List[Type[AbstractExcitingInput]]:
@@ -135,13 +143,14 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
 
         :return ElementTree.Element sub_tree: sub_tree element tree, with class attributes inserted.
         """
+        valid_attributes, valid_subtrees, _, multiple_children = self.get_valid_attributes()
+
         attributes = {key: self._attributes_to_input_str[type(value)](value) for key, value
-                      in vars(self).items() if not isinstance(value, AbstractExcitingInput)}
+                      in vars(self).items() if key in valid_attributes}
         xml_tree = ElementTree.Element(self.name, **attributes)
 
-        valid_subtrees = all_valid_attributes.__dict__.get(self.name + "_valid_subtrees", [])
         subtrees = {key: self.__dict__[key] for key in set(vars(self).keys()) - set(attributes.keys())}
-        ordered_subtrees = [subtrees[x] for x in valid_subtrees if x in subtrees]
+        ordered_subtrees = flatten_list([subtrees[x] for x in valid_subtrees if x in subtrees])
         for subtree in ordered_subtrees:
             xml_tree.append(subtree.to_xml())
 
