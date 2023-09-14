@@ -373,7 +373,6 @@ gw_valid_attributes = ['at1', 'at2', 'coreflag', 'debug', 'eph', 'ibgw', 'ibmax'
                        'printSpectralFunction', 'qdepw', 'reduceq', 'rmax', 'rpath', 'rpmat', 'skipgnd', 'taskname', 
                        'vqloff', 'wlo', 'wto'] 
 gw_valid_subtrees = ['plot1d', 'freqgrid', 'selfenergy', 'mixbasis', 'barecoul', 'scrcoul'] 
-gw_mandatory_attributes = ['plot1d'] 
 
 freqgrid_valid_attributes = ['eta', 'fconv', 'fgrid', 'freqmax', 'freqmin', 'nomeg'] 
 

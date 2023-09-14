@@ -18,7 +18,7 @@
 
             <!-- ================ List of elements ===================== -->
 
-            <xs:element ex:importance="experimental" ex:unit="" ref="plot1d"/>
+            <xs:element ex:importance="experimental" ex:unit="" ref="plot1d" minOccurs="0"/>
 
             <xs:element ex:importance="expert" ex:unit="" name="freqgrid" maxOccurs="1" minOccurs="0">
               <xs:annotation>
