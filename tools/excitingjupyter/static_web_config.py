@@ -12,10 +12,10 @@ c = get_config()  # type:ignore # pylint: disable=E0602
 
 c.NbConvertApp.notebooks = [
     # Convert all tutorials in 01_getting_started and 02_ground_state (may be slow if combined with the --execute flag)
-    os.path.join(NB_ROOT, "01_getting_started", "tutorial_*.ipynb"),
-    os.path.join(NB_ROOT, "02_ground_state", "tutorial_*.ipynb")
+    os.path.join(NB_ROOT, "01_getting_started", "*_tutorial_*.ipynb"),
+    os.path.join(NB_ROOT, "02_ground_state", "*_tutorial_*.ipynb")
     # for fast testing use, e.g., (because it has images etc.):
-    # os.path.join(NB_ROOT, "01_getting_started", "tutorial_electronic_band_structure_and_density_of_states.ipynb")
+    # os.path.join(NB_ROOT, "01_getting_started", "03_tutorial_electronic_band_structure_and_density_of_states.ipynb")
 ]
 c.NbConvertApp.export_format = "html"
 
