@@ -15,7 +15,7 @@ stages:
 
 # Split configurations into separate files
 include:
-  - local: '/.gitlab/python-libs.yml'
+  - local: '/.gitlab/python-libs.yml' 
   - local: '/.gitlab/docs.yml'
   - local: '/.gitlab/exciting-debian-buster-gcc8-serial.yml'
   - local: '/.gitlab/exciting-debian-buster-gcc8-smp.yml'

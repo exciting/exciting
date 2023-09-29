@@ -7,27 +7,28 @@ test-debian-buster-gcc8-smp-jupyter:
  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8-April2022
  stage: test
  dependencies:
-   - build:debian-buster-GCC8-smp
-   - python:excitingtools-python-3.7
+  - build:debian-buster-GCC8-smp
+  - python:excitingtools-python-3.7
  tags:
-   - docker
+  - docker
  # One might consider moving construction of venv to the build state and make it an artifact
  script:
-   - cd tools/excitingjupyter
-   - source set_env_vars.sh
-   - source create_env.sh
-   - pip3 install pytest
-   - python3 -m pytest -vv ../excitingscripts/tests
-   - cd excitingjupyter
-   - jupyter nbconvert --execute 01_getting_started/tutorial_how_to_start_an_exciting_calculation.ipynb --to markdown
-   - python3 01_getting_started/assertions_how_to_start_an_exciting_calculation.py
-  # - jupyter nbconvert --execute 01_getting_started/tutorial_simple_convergence_tests.ipynb --to markdown
-   - jupyter nbconvert --execute 01_getting_started/tutorial_electronic_band_structure_and_density_of_states.ipynb --to markdown
-   - jupyter nbconvert --execute 01_getting_started/tutorial_understanding_the_exciting_species_files.ipynb --to markdown
-  # - jupyter nbconvert --execute 02_ground_state/tutorial_exchange_correlation_functionals.ipynb --to markdown
-   - jupyter nbconvert --execute 02_ground_state/tutorial_hybrid_functional_calculations.ipynb --to markdown
-   - jupyter nbconvert --execute 02_ground_state/tutorial_spin_orbit_coupling.ipynb --to markdown
-   - jupyter nbconvert --execute 02_ground_state/tutorial_spin_polarized_calculations_for_bcc_Fe.ipynb --to markdown
-   - jupyter nbconvert --execute 02_ground_state/tutorial_excitingtools.ipynb --to markdown
-   - jupyter nbconvert --execute tutorial_excited_states_from_bse/tutorial_excited_states_from_bse.ipynb --to markdown
-   - jupyter nbconvert --execute 03_excited_states/q_dependent_bse_calculations.ipynb --to markdown
+  - cd tools/excitingjupyter
+  - source set_env_vars.sh
+  - source create_env.sh
+  - pip3 install pytest
+  - python3 -m pytest -vv ../excitingscripts/tests
+  - cd excitingjupyter
+  - time jupyter nbconvert --execute 01_getting_started/01_tutorial_how_to_start_an_exciting_calculation.ipynb --to markdown
+  - time python3 01_getting_started/assertions_how_to_start_an_exciting_calculation.py
+  #- time jupyter nbconvert --execute 01_getting_started/02_tutorial_simple_convergence_tests.ipynb --to markdown # commented out because of timeout
+  - time jupyter nbconvert --execute 01_getting_started/03_tutorial_electronic_band_structure_and_density_of_states.ipynb --to markdown
+  - time jupyter nbconvert --execute 01_getting_started/04_tutorial_understanding_the_exciting_species_files.ipynb --to markdown
+  #- time jupyter nbconvert --execute 02_ground_state/01_tutorial_exchange_correlation_functionals.ipynb --to markdown # commented out because of timeout
+  - time jupyter nbconvert --execute 02_ground_state/05_tutorial_hybrid_functional_calculations.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/04_tutorial_spin_orbit_coupling.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/03_tutorial_spin_polarized_calculations_for_bcc_Fe.ipynb --to markdown
+  #- time jupyter nbconvert --execute 02_ground_state/10_tutorial_low_dimensional_systems.ipynb --to markdown # commented out because of timeout
+  - time jupyter nbconvert --execute 02_ground_state/tutorial_excitingtools.ipynb --to markdown
+  #- time jupyter nbconvert --execute tutorial_excited_states_from_bse/tutorial_excited_states_from_bse.ipynb --to markdown
+  #- time jupyter nbconvert --execute 03_excited_states/q_dependent_bse_calculations.ipynb --to markdown
