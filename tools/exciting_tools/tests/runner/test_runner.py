@@ -2,12 +2,13 @@
 Excludes the run method.
 """
 import shutil
+import sys
 from pathlib import Path
 from typing import Any
 
 import pytest
 
-from excitingtools.runner.runner import BinaryRunner
+from excitingtools.runner.runner import BinaryRunner, RunnerCode
 
 mock_binary = "false_exciting_binary"
 
@@ -117,3 +118,23 @@ def test_run_with_bash_command(tmp_path: Path):
     assert run_results.success
     assert run_results.stderr == b''
     assert run_results.stdout.decode() == binary.as_posix() + "\n"
+
+
+@pytest.mark.skipif(sys.version_info < (3, 8), reason="requires python3.8 or higher")
+def test_timeout_with_bash_command(tmp_path: Path):
+    """Produces a runner with binary and run dir mocked up.
+    Test a simple sleep command to get a timeout.
+
+    Note: Skip for python3.7 because it returns b'' as stdout instead of None
+    """
+    time_out = 1
+    binary = tmp_path / "sleep.sh"
+    binary.write_text(f"sleep {time_out + 0.1}")
+    runner = BinaryRunner(binary.as_posix(), ["sh"], 1, time_out, tmp_path.as_posix())
+    run_results = runner.run()
+    assert not run_results.success
+    assert run_results.stderr == 'BinaryRunner: Job timed out. \n\n'
+    assert run_results.stdout is None
+    assert run_results.process_time == time_out
+    assert isinstance(run_results.return_code, RunnerCode)
+    assert run_results.return_code == RunnerCode.time_out
