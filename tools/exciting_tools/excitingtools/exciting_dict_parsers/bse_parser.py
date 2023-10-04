@@ -1,8 +1,9 @@
 """Parsers for BSE output files.
 """
 import re
-import numpy as np
 from typing import Optional
+
+import numpy as np
 
 
 def numpy_gen_from_txt(name: str, skip_header: Optional[int] = 0) -> np.ndarray:
@@ -94,32 +95,29 @@ def parse_infoxs_out(name: str) -> dict:
     current_task = -1
 
     lines = "\n".join(lines)
-    lines_with_tasks = re.findall(r'EXCITING .* started for task .*\)|'
-                                  r'EXCITING .* stopped for task .* \d+', lines)
-    for line in lines_with_tasks:
-        split_line = line.split()
-        if split_line[2] == 'started':
+    all_tasks = re.findall(r'EXCITING .* (started) for task (.*) \( ?(\d+)\)|'
+                           r'EXCITING .* stopped for task .* (\d+)', lines)
+
+    for task in all_tasks:
+        if task[0] == 'started':
             tasks.append({
-                'name': split_line[5],
-                'number': int(split_line[6][1:-1]),
+                'name': task[1],
+                'number': int(task[2]),
                 'finished': False
             })
             current_task += 1
         else:
             # asserts shouldn't happen with Exciting:
             assert tasks != [], 'No tasks started!'
-            assert tasks[current_task]['number'] == int(split_line[5]), \
-                'Wrong task stopped.'
+            assert tasks[current_task]['number'] == int(task[3]), 'Wrong task stopped.'
             tasks[current_task]['finished'] = True
 
     success = tasks[-1]['finished']
     last_finished_task = None
     if success:
         last_finished_task = tasks[-1]['name']
-    else:
-        if len(tasks) > 1:
-            if tasks[-2]['finished']:
-                last_finished_task = tasks[-2]['name']
+    elif len(tasks) > 1 and tasks[-2]['finished']:
+        last_finished_task = tasks[-2]['name']
 
     return {'tasks': tasks,
             'success': success,

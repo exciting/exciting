@@ -8,6 +8,7 @@ import os
 import shutil
 import subprocess
 import time
+from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -18,23 +19,21 @@ class RunnerCode(enum.Enum):
     """ Runner codes.
      By default, the initial value starts at 1.
     """
-    time_out = enum.auto
+    time_out = enum.auto()
 
 
+@dataclass
 class SubprocessRunResults:
     """ Results returned from subprocess.run()
     """
 
-    def __init__(self,
-                 stdout,
-                 stderr,
-                 return_code: Union[int, RunnerCode],
-                 process_time: Optional[float] = None):
-        self.stdout = stdout
-        self.stderr = stderr
-        self.return_code = return_code
-        self.success = return_code == 0
-        self.process_time = process_time
+    stdout: str | bytes
+    stderr: str | bytes
+    return_code: int | RunnerCode
+    process_time: float = None
+
+    def __post_init__(self):
+        self.success = self.return_code == 0
 
 
 class BinaryRunner:

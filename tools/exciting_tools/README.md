@@ -52,7 +52,7 @@ python3 -m pip install --upgrade --force pip
 pip install --upgrade setuptools
 ```
 
-No matter which type of environment or none is used, it should always be verified that the Python version is compatible with <span style="font-family:american typewriter; font-size:1em;">**excitingtools**</span> (>=3.6) and that `pip` is up-to-date (>=22.0) and also points to the same Python version.
+No matter which type of environment or none is used, it should always be verified that the Python version is compatible with <span style="font-family:american typewriter; font-size:1em;">**excitingtools**</span> (>=3.7) and that `pip` is up-to-date (>=22.0) and also points to the same Python version.
 
 Now you can proceed to install <span style="font-family:american typewriter; font-size:1em;">**excitingtools**</span>
 from <span style="font-family:american typewriter; font-size:1em;">**exciting's**</span>'s root:
