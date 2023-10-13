@@ -1,11 +1,9 @@
 # make.inc Intel compilation of exciting with fastBSE
-# You need to have installed HDF5 and be able to access h5fc 
-# (serial and SMP) and h5pfc (MPI) via the terminal.
 
 # Compiler, flags and preprocessing variables 
-F90 = h5fc
+F90 = h5pfc  # If you HDF5 installation is serial, replace h5pfc with h5fc.
 F90_OPTS = -O3 -ip -unroll -scalar-rep -I"${MKLROOT}/include" -I"${MKLROOT}/include/fftw"
-CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DIFORT -DFFTW -D_HDF5_ -DFFTW3_INTERFACE
+CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DIFORT -DFFTW -DXHDF5 -DFFTW3_INTERFACE
 F77 = $(F90)
 F77_OPTS = -O3
 # Required for libXC compilation 

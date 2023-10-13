@@ -24,7 +24,7 @@ module hdf5_dataset_utils
     integer :: rank
     integer(hdf5_size), allocatable :: dataset_shape_max(:)
 
-#ifdef _HDF5_
+#ifdef XHDF5
     integer :: h5err
     integer(hdf5_id) :: h5id_group, h5id_dset, h5id_dspace, h5id_dtype
 

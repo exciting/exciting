@@ -17,7 +17,7 @@ module hdf5_file
 
   !> Initialize global variables, used by HDF5 library functions.
   subroutine hdf5_initialize()
-#ifdef _HDF5_    
+#ifdef XHDF5    
     integer :: h5err 
     call h5open_f(h5err)
     call handle_hdf5_error('h5open_f', h5err)
@@ -26,7 +26,7 @@ module hdf5_file
   
   !> Finalize global variables, used by HDF5 library functions.
   subroutine hdf5_finalize()
-#ifdef _HDF5_       
+#ifdef XHDF5       
     integer :: h5err
  
     call h5close_f(h5err)
@@ -46,7 +46,7 @@ module hdf5_file
     !> Set to `.true.` if only serial access is possible.
     logical, intent(in) :: serial_access
 
-#ifdef _HDF5_   
+#ifdef XHDF5   
     integer :: h5err
     integer(hdf5_id) :: h5id_plist
 
@@ -81,7 +81,7 @@ module hdf5_file
     !> Set to `.true.` if only serial access is possible.
     logical, intent(in) :: serial_access
 
-#ifdef _HDF5_   
+#ifdef XHDF5   
     integer :: h5err
     integer(hdf5_id) :: h5id_plist
 
@@ -107,7 +107,7 @@ module hdf5_file
   subroutine hdf5_close_file(h5id_file)
     !> Identifier of the file, used by HDF5.
     integer(hdf5_id), intent(in) :: h5id_file
-#ifdef _HDF5_   
+#ifdef XHDF5   
     integer :: h5err
     
     call h5fclose_f(h5id_file, h5err)

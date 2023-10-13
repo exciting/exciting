@@ -1,7 +1,7 @@
 !> Utilities for hdf5 wrapper
 module hdf5_utils
 
-#ifdef _HDF5_  
+#ifdef XHDF5  
   use hdf5
 #endif
 
@@ -16,7 +16,7 @@ module hdf5_utils
   character(*), parameter :: hdf5_root = './'
 
   !> HDF5 integer kinds
-#ifdef _HDF5_
+#ifdef XHDF5
   integer, parameter :: hdf5_id = HID_T
   integer, parameter :: hdf5_size = HSIZE_T
   integer, parameter :: hdf5_ssize = HSSIZE_T
@@ -37,7 +37,7 @@ module hdf5_utils
 
   !> Return HDF5 id for double
   integer(hdf5_id) function hdf5_double()
-#ifdef _HDF5_
+#ifdef XHDF5
     hdf5_double = H5T_NATIVE_DOUBLE
 #else
     hdf5_double = dp
@@ -46,7 +46,7 @@ module hdf5_utils
 
   !> Return HDF5 id for real (sp)
   integer(hdf5_id) function hdf5_float()
-#ifdef _HDF5_
+#ifdef XHDF5
     hdf5_float = H5T_NATIVE_REAL
 #else
     hdf5_float = sp
@@ -56,7 +56,7 @@ module hdf5_utils
 
   !> Return HDF5 id for integer
   integer(hdf5_id) function hdf5_integer()
-#ifdef _HDF5_    
+#ifdef XHDF5    
     hdf5_integer = H5T_NATIVE_INTEGER
 #else
     hdf5_integer = sp
@@ -65,7 +65,7 @@ module hdf5_utils
 
   !> Return HDF5 id for character
   integer(hdf5_id) function hdf5_character()
-#ifdef _HDF5_
+#ifdef XHDF5
     hdf5_character = H5T_NATIVE_CHARACTER
 #else
     hdf5_character = sp
