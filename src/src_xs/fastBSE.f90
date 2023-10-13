@@ -603,9 +603,16 @@ module fastBSE
       call bsh%times_vector(vector_in, vector_out)
     end subroutine
 
+    !> Write the imaginary part of the diagonal of \(\epsilon^M\) to a text file.
+    !> The first column contains \(\omega\), the following \(\epsilon^M_{11}), \(\epsilon^M_{22}) and \(\epsilon^M_{33}).
     subroutine write_eps_im_textfile(fname, omega, eps_im, escale)
+      !> Name of the file
       character(*), intent(in) :: fname
-      real(dp), intent(in) :: omega(:), eps_im(:, :)
+      !> Energy grid for \(\omega\)
+      real(dp), intent(in) :: omega(:)
+      !> Imaginary part of the diagonal of \(\epsilon^M\) with dimensions stored columnwise.
+      real(dp), intent(in) :: eps_im(:, :)
+      !> Energy scaling. As usual 1.0 means the energy is in Hartree.
       real(dp), intent(in) :: escale
 
       integer :: n_omega, i_omega, unit 
@@ -630,9 +637,12 @@ module fastBSE
 
   end subroutine
 
+  !> Terminate exciting if the input file is not compatible with `fastBSE`.
   subroutine fastBSE_sanity_checks(mpi_env, input)
     use modmpi, only: terminate_mpi_env
+    !> MPI environment to terminate.
     type(mpiinfo), intent(inout) :: mpi_env
+    !> Input file container to check.
     type(input_type), intent(in) :: input 
 
     call abort_if_not_fftw3(mpi_env, "Error(fastBSE): exciting needs to be linked to FFTW3 for running fastBSE.")
@@ -641,6 +651,22 @@ module fastBSE
     if(input%xs%BSE%coupling) then 
       call terminate_mpi_env(mpi_env, 'Error(fastBSE): fastBSE only supports TDA.')
     end if 
+
+    if(input%xs%BSE%xas) then
+      call terminate_mpi_env(mpi_env, 'Error(fastBSE): fastBSE only supports valence excitations.')
+    end if
+
+    if(associated(input%xs%excitonPlot)) then
+      call terminate_mpi_env(mpi_env, 'Error(fastBSE): fastBSE does not support the element excitonPlot.')
+    end if
+
+    if(associated(input%xs%writekpathweights)) then
+      call terminate_mpi_env(mpi_env, 'Error(fastBSE): fastBSE does not support the element writekpathweights.')
+    end if
+
+    if(associated(input%xs%excitonPlot)) then
+      call terminate_mpi_env(mpi_env, 'Error(fastBSE): fastBSE does not support the element writeexcitons.')
+    end if
 
   end subroutine
 

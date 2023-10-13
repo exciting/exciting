@@ -18,7 +18,7 @@ module hdf5_group
     character(*), intent(in) :: h5path
     !> Name of the group to create.
     character(*), intent(in) :: group
-#ifdef _HDF5_
+#ifdef XHDF5
     integer :: h5err
     integer(hdf5_id) :: h5id_group, h5id_newgroup
 
@@ -43,7 +43,7 @@ module hdf5_group
     integer(hdf5_id), intent(in) :: h5id_file
     !> Path to an object in an HDF5 file. Can be given as `path/to/object`.
     character(*), intent(in) :: h5path
-#ifdef _HDF5_
+#ifdef XHDF5
     integer :: h5err
 
     call h5lexists_f(h5id_file, h5path, hdf5_link_exists, h5err)
@@ -60,7 +60,7 @@ module hdf5_group
   integer(hdf5_id), intent(in) :: h5id_file
     !> Path to an object in an HDF5 file. Can be given as `path/to/object`.
     character(*), intent(in) :: h5path
-#ifdef _HDF5_
+#ifdef XHDF5
     integer :: h5err
 
     call h5ldelete_f(h5id_file, h5path, h5err)

@@ -238,6 +238,52 @@ SIRIUS Gotchas
   `make.inc` file to point to the correct directory.
 
 
+fastBSE
+------------------
+To use fastBSE, you need to link it with HDF5 and FFTW3.
+
+**GCC**
+
+```shell
+  sudo apt-get install -y libhdf5-serial-dev libhdf5-mpi-dev libfftw3-dev
+  cd $EXCITINGROOT
+  cp build/platforms/make.inc.gfortran10+.hdf5.fftw3 build/make.inc
+  make smp # Choose the required build type as explained above.
+```
+Please note that the recommended `make.inc` file supports **GCC10+**. If you use an older version drop the flags `-fallow-argument-mismatch` 
+and `-fallow-invalid-boz`.
+
+You might need to edit the compiler option -I"/usr/include" according to your system.
+
+**INTEL**
+
+If you intend to use Intel, you must manually compile HDF5. We recommend using HDF5 1.12.0. The source code can be found on the HDF5 website. 
+We recommend configuring the build as follows:
+
+```shell
+  configure --enable-build-mode=production --enable-parallel --enable-fortran --enable-fortran2003
+```
+
+For details on the options, refer to the HDF5 documentation. 
+After a successful installation, update the PATH variable with the location of the HDF5 binaries:
+
+```shell
+  export PATH="path/to/hdf5-build/hdf5/bin:$PATH"
+```
+
+Intel provides an FFTW3 API to their own FFT library in the MKL library. We recommend using this API.
+
+Then follow these steps:
+
+```shell
+  cp build/platforms/make.inc.intel.hdf5.fftw3-mkl-api build/make.inc
+  make smp # Choose the required build type as explained above.
+```
+
+Please note that this code is not executable as-is; it provides instructions for setting up the fastBSE environment. 
+Make sure to adjust the paths and options according to your system and requirements.
+
+
 Compiler Support
 ------------------
 
