@@ -281,6 +281,23 @@
                     Plasmon-pole frequency (fitting parameter).
                     </xs:documentation></xs:annotation>
                   </xs:attribute>
+                <xs:attribute ex:importance="expert" ex:unit="" name="averaging" default="isotropic">
+                  <xs:annotation><xs:documentation>
+                  Averaging of the inverse dielectric function in the q <inlinemath>\to</inlinemath> 0 limit.
+                  </xs:documentation></xs:annotation>
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:enumeration value="isotropic"/>
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:attribute>
+                <xs:attribute ex:importance="expert" ex:unit="" name="q0eps" type="vect3d" default="1.0d0 1.0d0 1.0d0">
+                  <xs:annotation><xs:documentation>
+                  q0eps - averaging direction q <inlinemath>\to</inlinemath> 0.
+                  Default: (1,1,1)
+                  </xs:documentation></xs:annotation>
+                </xs:attribute>
+
               </xs:complexType>
             </xs:element>
 

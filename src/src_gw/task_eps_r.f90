@@ -5,6 +5,8 @@ subroutine task_eps_r
     use modmain
     use modgw
     use mod_coulomb_potential
+    use invert_dielectric_function, only: calcinveps
+    use modxs, only: symt2
     use mod_mpi_gw
     use m_getunit
     use mod_hdf5
@@ -153,7 +155,8 @@ subroutine task_eps_r
 
 if (.false.) then
       ! inverse dielectic matrix
-      call calcinveps(iomstart,iomend)
+      call calcinveps(iomstart, iomend, gamma, input%gw%scrcoul, freq%fconv, symt2,&
+                      &epsilon, epsw1, epsw2, epsh, eps00, time_dfinv)
       do im = 1, mbsiz
         epsilon(im,im,iom) = epsilon(im,im,iom)+zone
       end do

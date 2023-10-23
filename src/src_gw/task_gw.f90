@@ -16,6 +16,8 @@ subroutine task_gw()
     use modmain,               only: zzero, efermi
     use modgw
     use mod_coulomb_potential
+    use invert_dielectric_function, only: calcinveps
+    use modxs, only: symt2
     use mod_vxc,               only: vxcnn
     use mod_mpi_gw
     use m_getunit
@@ -193,7 +195,8 @@ subroutine task_gw()
             !==========================================
             ! Calculate the screened Coulomb potential
             !==========================================
-            call calcinveps(iomstart, iomend)
+            call calcinveps(iomstart, iomend, gamma, input%gw%scrcoul, freq%fconv, symt2,&
+                            &epsilon, epsw1, epsw2, epsh, eps00, time_dfinv)
         end select
         !========================================
         ! Calculate the q-dependent self-energy

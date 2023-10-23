@@ -5,6 +5,8 @@ subroutine task_emac()
     use modmain
     use modgw
     use mod_coulomb_potential
+    use invert_dielectric_function, only: calcinveps
+    use modxs, only: symt2
     use mod_mpi_gw
     use m_getunit
 
@@ -75,7 +77,8 @@ subroutine task_emac()
 
       case default
         call calcepsilon(iq, 1, freq%nomeg)
-        call calcinveps(1, freq%nomeg)
+        call calcinveps(1, freq%nomeg, gamma, input%gw%scrcoul, freq%fconv, symt2,&
+                        &epsilon, epsw1, epsw2, epsh, eps00, time_dfinv)
 
     end select
 
