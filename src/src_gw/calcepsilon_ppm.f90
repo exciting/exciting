@@ -4,6 +4,8 @@ subroutine calcepsilon_ppm(iq,iomstart,iomend)
     use modinput
     use modmain
     use modgw
+    use invert_dielectric_function, only: calcinveps
+    use modxs, only: symt2
     implicit none
     ! input parameters
     integer, intent(in) :: iq
@@ -26,7 +28,8 @@ subroutine calcepsilon_ppm(iq,iomstart,iomend)
     ! calculate the dielectric tensor at \omega=0 and \omega=\omega_p
     call init_dielectric_function(mbsiz,1,2,Gamma)
     call calcepsilon(iq,1,2)
-    call calcinveps(1,2)
+    call calcinveps(1, 2, gamma, input%gw%scrcoul, freq%fconv, symt2,&
+                    &epsilon, epsw1, epsw2, epsh, eps00, time_dfinv)
 
     ! save \epsilon in local arrays for PPM fitting
     allocate(eb(mbsiz,mbsiz,1:2))
