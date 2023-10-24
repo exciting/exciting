@@ -68,7 +68,10 @@ species_files = ['Ni.xml', 'La.xml', 'K.xml', 'Xe.xml', 'Ag.xml', 'Bk.xml', 'Co.
                  'P.xml', 'Cu.xml', 'F.xml', 'Nd.xml']
 
 # Keys to be removed from test and reference dictionaries (i.e. that we do not want to test)
-keys_to_remove = {'INFO.OUT': [['scl', 'Wall time (seconds)']]}
+keys_to_remove = {
+    'INFO.OUT': [['scl', 'Wall time (seconds)']],
+    'STATE.OUT': [['version'], ['versionhash'], ['muffintin radial meshes']],
+    }
 
 
 def main_output(method: str) -> str:

@@ -330,5 +330,83 @@
       "tol": 1e-08,
       "unit": "Bohr"
     }
+  },
+  "STATE.OUT" : {
+    "spinpol": {
+        "tol": 0,
+        "unit": "null"
+    },
+    "nspecies": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "lmmaxvr": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "nrmtmax": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "number of atoms": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "ngvec": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "ndmag": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "nspinor": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "ldapu": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "lmmaxlu": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "muffintin density": {
+      "tol": 1e-5,
+      "unit": "null"
+    },
+    "interstitial density": {
+      "tol": 1e-10,
+      "unit": "null"
+    },
+    "muffintin coulomb potential": {
+      "tol": 1e-5,
+      "unit": "null"
+    },
+    "interstitial coulomb potential": {
+      "tol": 1e-10,
+      "unit": "null"
+    },
+    "muffintin exchange-correlation potential": {
+      "tol": 1e-5,
+      "unit": "null"
+    },
+    "interstitial exchange-correlation potential": {
+      "tol": 1e-10,
+      "unit": "null"
+    },
+    "muffintin effective potential": {
+      "tol": 1e-5,
+      "unit": "null"
+    },
+    "interstitial effective potential": {
+      "tol": 1e-10,
+      "unit": "null"
+    },
+    "reciprocal effective potential": {
+      "tol": 1e-10,
+      "unit": "null"
+    }
   }
 }

@@ -79,6 +79,13 @@ groundstate/LDA_PW-noncollinear-Fe:
    comments: 'Variation in total energy w.r.t. reference is too large.'
 
 groundstate/LDA_PW-PbTiO3:
+   files_under_test:
+      - "INFO.OUT"
+      - "evalcore.xml"
+      - "geometry.xml"
+      - "eigval.xml"
+      - "atoms.xml"
+      - "STATE.OUT"
    failing_builds:
       - !Build intel_mpiandsmp
       - !Build gcc_mpiandsmp
