@@ -268,9 +268,16 @@ def extract_xticks_labels(xmlfile, phonon):
     plot1d = inquire_element("plot1d",bandstructure)
     path = inquire_element("path",plot1d)
     label = []
+    buffer_ = None
     for point in path.findall("point"):
         lab = point.attrib["label"]
         if lab.lower() == 'gamma': lab = '\u0393'
+        if point.attrib.get("breakafter") == "true":
+            buffer_ = lab
+            continue
+        if buffer_ is not None:
+            lab = f"{buffer_},{lab}"
+            buffer_ = None
         label.append(lab)
     return label
 #_______________________________________________________________________________
@@ -591,8 +598,8 @@ def main(input_options):
     # Read x-ticks position and labels (assuming all plots with the same k-path)
 
     bandlines = read_xticks_position(directory[0] + "/" + bandlinesfile)
-    label = extract_xticks_labels(directory[0] + "/" + "input.xml",phonon)
-            
+    label = extract_xticks_labels(directory[0] + "/" + "input.xml", phonon)
+
     #-------------------------------------------------------------------------------
     # Settings for the plot 
     
