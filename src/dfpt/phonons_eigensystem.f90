@@ -22,37 +22,37 @@ module phonons_eigensystem
     !> for the given \({\bf k}\) point.
     !>
     !> The total response of the overlap matrix is given by
-    !> \[ \delta^{\bf q}_{I \mu} S_{mn}({\bf k}) = \sum_{\alpha,i} p^{I \mu}_{\alpha i}({\bf q})\,
-    !>    \delta^{\bf q}_{\alpha i} S_{mn}({\bf k}) \;, \]
+    !> \[ \delta^{\bf q}_{I \mu} S_{mn}({\bf k}) = \sum_{\kappa,\alpha} p^{I \mu}_{\kappa\alpha}({\bf q})\,
+    !>    \delta^{\bf q}_{\kappa\alpha} S_{mn}({\bf k}) \;, \]
     !> with
-    !> \[ \delta^{\bf q}_{\alpha i} S_{mn}({\bf k})
-    !>    = \int\limits_{{\rm MT} \alpha} {\rm d}{\bf r} \left[ 
-    !>      \left( \breve{\bar{\delta}}\phantom{}^{\bf -q}_{\alpha i} \psi_{m{\bf k+q}}({\bf r}) \right)^\ast \,
+    !> \[ \delta^{\bf q}_{\kappa\alpha} S_{mn}({\bf k})
+    !>    = \int\limits_{{\rm MT} \kappa} {\rm d}{\bf r} \left[ 
+    !>      \left( \breve{\bar{\delta}}\phantom{}^{\bf -q}_{\kappa\alpha} \psi_{m{\bf k+q}}({\bf r}) \right)^\ast \,
     !>      \psi_{n{\bf k}}({\bf r}) + 
     !>      \psi_{m{\bf k+q}}^\ast({\bf r}) \,
-    !>      \breve{\bar{\delta}}\phantom{}^{\bf q}_{\alpha i} \psi_{n{\bf k}}({\bf r}) \right]
-    !>    - \oint\limits_{\partial {\rm MT}\alpha} \left[ \psi_{m{\bf k+q}}^\ast({\bf r})\,
-    !>      \psi_{n{\bf k}}({\bf r}) \right]_{\rm IR} \hat{e}_i\, {\rm d}S \;, \]
-    !> where \(\breve{\bar{\delta}}\phantom{}^{\bf q}_{\alpha i} \psi_{n{\bf k}}\)
+    !>      \breve{\bar{\delta}}\phantom{}^{\bf q}_{\kappa\alpha} \psi_{n{\bf k}}({\bf r}) \right]
+    !>    - \oint\limits_{\partial {\rm MT}\kappa} \left[ \psi_{m{\bf k+q}}^\ast({\bf r})\,
+    !>      \psi_{n{\bf k}}({\bf r}) \right]_{\rm IR} \hat{e}_\alpha\, {\rm d}S \;, \]
+    !> where \(\breve{\bar{\delta}}\phantom{}^{\bf q}_{\kappa\alpha} \psi_{n{\bf k}}\)
     !> is the contribution to the wavefunction response coming from the soft part of 
     !> the basis function response (i.e., without the gradient).
     !>
     !> Similarly, the full Hamiltonian matrix response is described in terms of the Canonical
     !> response
-    !> \[ \delta^{\bf q}_{\alpha i} H_{mn}({\bf k})
-    !>    = \int\limits_{{\rm MT} \alpha} {\rm d}{\bf r} \left[ 
-    !>      \left( \breve{\bar{\delta}}\phantom{}^{\bf -q}_{\alpha i} \psi_{m{\bf k+q}}({\bf r}) \right)^\ast \,
+    !> \[ \delta^{\bf q}_{\kappa\alpha} H_{mn}({\bf k})
+    !>    = \int\limits_{{\rm MT} \kappa} {\rm d}{\bf r} \left[ 
+    !>      \left( \breve{\bar{\delta}}\phantom{}^{\bf -q}_{\kappa\alpha} \psi_{m{\bf k+q}}({\bf r}) \right)^\ast \,
     !>      \hat{\bf H}\, \psi_{n{\bf k}}({\bf r}) + 
     !>      \psi_{m{\bf k+q}}^\ast({\bf r})\, \hat{\bf H}\,
-    !>      \breve{\bar{\delta}}\phantom{}^{\bf q}_{\alpha i} \psi_{n{\bf k}}({\bf r}) \right]
-    !>    - \oint\limits_{\partial {\rm MT}\alpha} \left[ \psi_{m{\bf k+q}}^\ast({\bf r})\, \hat{\bf H}\, 
-    !>      \psi_{n{\bf k}}({\bf r}) \right]_{\rm IR} \hat{e}_i\, {\rm d}S \\
+    !>      \breve{\bar{\delta}}\phantom{}^{\bf q}_{\kappa\alpha} \psi_{n{\bf k}}({\bf r}) \right]
+    !>    - \oint\limits_{\partial {\rm MT}\kappa} \left[ \psi_{m{\bf k+q}}^\ast({\bf r})\, \hat{\bf H}\, 
+    !>      \psi_{n{\bf k}}({\bf r}) \right]_{\rm IR} \hat{e}_\alpha\, {\rm d}S \\
     !>    + \int\limits_\Omega {\rm d}{\bf r}\, \psi_{m{\bf k+q}}^\ast({\bf r})\, 
-    !>      \breve{\delta}\phantom{}^{\bf q}_{\alpha i} V_{\rm eff}({\bf r})\,
+    !>      \breve{\delta}\phantom{}^{\bf q}_{\kappa\alpha} V_{\rm eff}({\bf r})\,
     !>      \psi_{n{\bf k}}({\bf r}) \;, \]
-    !> where \(\breve{\delta}\phantom{}^{\bf q}_{\alpha i} V_{\rm eff}\) is the soft part
+    !> where \(\breve{\delta}\phantom{}^{\bf q}_{\kappa\alpha} V_{\rm eff}\) is the soft part
     !> of the effective potential response (i.e., without the gradient). Accordingly, the third
-    !> term (also called \(\delta^{\bf q}_{\alpha i} {\bf H}^0\)) is the only part of the
+    !> term (also called \(\delta^{\bf q}_{\kappa\alpha} {\bf H}^0\)) is the only part of the
     !> Hamiltonian response that changes during the self-consistency cycle. Hence, the 
     !> first two terms form the so called constant part of the Hamiltonoan matrix response.
     !>
@@ -83,11 +83,11 @@ module phonons_eigensystem
       integer, intent(in) :: fst, lst
       !> eigenvectors at \({\bf k}\) and \({\bf k+q}\)
       complex(dp), intent(in) :: eveck(:,:), eveckq(:,:)
-      !> (L)APW matching coefficients \(A^\alpha_{{\bf G+p},lm,\xi}\) at \({\bf k}\) and \({\bf k+q}\)
+      !> (L)APW matching coefficients \(A^\kappa_{{\bf G+p},lm,\xi}\) at \({\bf k}\) and \({\bf k+q}\)
       complex(dp), intent(in) :: apwalmk(:,:,:,:), apwalmkq(:,:,:,:)
       !> overlap response and constant part of Hamiltonian response
       complex(dp), intent(inout) :: dSmat(:,:), dHmat(:,:)
-      !> displacement pattern \(p^{I \mu}_{\alpha i}({\bf q})\)
+      !> displacement pattern \(p^{I \mu}_{\kappa\alpha}({\bf q})\)
       complex(dp), optional, intent(in) :: pat(3, natmtot)
       !> radial integrals of effective potential response times Gaunt coefficients
       complex(dp), optional, intent(in) :: dHmat_mt_basis(:,:,:)
@@ -245,24 +245,24 @@ module phonons_eigensystem
     !>
     !> I.e., it computes
     !> \[ \delta^{\bf q}_{I \mu} S_{mn}^{\rm MT}({\bf k})
-    !>    = \sum\limits_{\alpha, i} p^{I \mu}_{\alpha i}({\bf q})\, \int\limits_{{\rm MT} \alpha} {\rm d}{\bf r} \left[ 
-    !>      \left( \breve{\bar{\delta}}\phantom{}^{\bf -q}_{\alpha i} \psi_{m{\bf k+q}}({\bf r}) \right)^\ast \,
+    !>    = \sum\limits_{\kappa, i} p^{I \mu}_{\kappa\alpha}({\bf q})\, \int\limits_{{\rm MT} \kappa} {\rm d}{\bf r} \left[ 
+    !>      \left( \breve{\bar{\delta}}\phantom{}^{\bf -q}_{\kappa\alpha} \psi_{m{\bf k+q}}({\bf r}) \right)^\ast \,
     !>      \psi_{n{\bf k}}({\bf r}) + 
     !>      \psi_{m{\bf k+q}}^\ast({\bf r}) \,
-    !>      \breve{\bar{\delta}}\phantom{}^{\bf q}_{\alpha i} \psi_{n{\bf k}}({\bf r}) \right] \]
+    !>      \breve{\bar{\delta}}\phantom{}^{\bf q}_{\kappa\alpha} \psi_{n{\bf k}}({\bf r}) \right] \]
     !> and
     !> \[ \delta^{\bf q}_{I \mu} H_{mn}^{\rm MT}({\bf k})
-    !>    = \sum\limits_{\alpha,i} p^{I \mu}_{\alpha i}({\bf q})\, \int\limits_{{\rm MT} \alpha} {\rm d}{\bf r} \left[ 
-    !>      \left( \breve{\bar{\delta}}\phantom{}^{\bf -q}_{\alpha i} \psi_{m{\bf k+q}}({\bf r}) \right)^\ast \,
+    !>    = \sum\limits_{\kappa,\alpha} p^{I \mu}_{\kappa\alpha}({\bf q})\, \int\limits_{{\rm MT} \kappa} {\rm d}{\bf r} \left[ 
+    !>      \left( \breve{\bar{\delta}}\phantom{}^{\bf -q}_{\kappa\alpha} \psi_{m{\bf k+q}}({\bf r}) \right)^\ast \,
     !>      \hat{\bf H}\, \psi_{n{\bf k}}({\bf r}) + 
     !>      \psi_{m{\bf k+q}}^\ast({\bf r})\, \hat{\bf H}\,
-    !>      \breve{\bar{\delta}}\phantom{}^{\bf q}_{\alpha i} \psi_{n{\bf k}}({\bf r}) \right] \;, \]
+    !>      \breve{\bar{\delta}}\phantom{}^{\bf q}_{\kappa\alpha} \psi_{n{\bf k}}({\bf r}) \right] \;, \]
     !> where 
-    !> \[ \breve{\bar{\delta}}\phantom{}^{\bf q}_{\alpha i} \psi_{n{\bf k}}({\bf r}_\alpha)
-    !>    = \sum\limits_{\bf G+k} C_{{\bf G+k}\,n}({\bf k}) \sum_{l,m} \sum_\xi \delta^{\bf q}_{\alpha i} A^{\alpha}_{{\bf G+k},lm,\xi}\, 
-    !>      u^\alpha_{l,\xi}(r_\alpha)\, Y_{lm}(\hat{\bf r}_\alpha) \;.\]
+    !> \[ \breve{\bar{\delta}}\phantom{}^{\bf q}_{\kappa\alpha} \psi_{n{\bf k}}({\bf r}_\kappa)
+    !>    = \sum\limits_{\bf G+k} C_{{\bf G+k}\,n}({\bf k}) \sum_{l,m} \sum_\xi \delta^{\bf q}_{\kappa\alpha} A^{\kappa}_{{\bf G+k},lm,\xi}\, 
+    !>      u^\kappa_{l,\xi}(r_\kappa)\, Y_{lm}(\hat{\bf r}_\kappa) \;.\]
     !> See [[gen_dapwalm(subroutine)]] for the calculation of the response of the matching coefficients
-    !> \(A^\alpha_{{\bf G+k},lm,\xi}\).
+    !> \(A^\kappa_{{\bf G+k},lm,\xi}\).
     !>
     !> @note The result is added to the input matrix! @endnote
     subroutine gen_dSH0_mt( ik, Gkset, Gkqset, fst1, lst1, fst2, lst2, eveck, eveckq, apwalmk, apwalmkq, pat, dSmat, dHmat, &
@@ -281,9 +281,9 @@ module phonons_eigensystem
       integer, intent(in) :: fst2, lst2
       !> eigenvectors at \({\bf k}\) and \({\bf k+q}\)
       complex(dp), intent(in) :: eveck(:,:), eveckq(:,:)
-      !> (L)APW matching coefficients \(A^\alpha_{{\bf G+p},lm,\xi}\) at \({\bf k}\) and \({\bf k+q}\)
+      !> (L)APW matching coefficients \(A^\kappa_{{\bf G+p},lm,\xi}\) at \({\bf k}\) and \({\bf k+q}\)
       complex(dp), intent(in) :: apwalmk(:,:,:,:), apwalmkq(:,:,:,:)
-      !> displacement pattern \(p^{I \mu}_{\alpha i}({\bf q})\)
+      !> displacement pattern \(p^{I \mu}_{\kappa\alpha}({\bf q})\)
       complex(dp), intent(in) :: pat(3, natmtot)
       !> overlap and Hamiltonian response
       complex(dp), intent(inout) :: dSmat(:,:), dHmat(:,:)
@@ -348,19 +348,19 @@ module phonons_eigensystem
     !>
     !> I.e., it computes
     !> \[ \delta^{\bf q}_{I \mu} S_{mn}^{\rm IR}({\bf k})
-    !>    = \sum\limits_{\alpha,i} p^{I \mu}_{\alpha i}({\bf q}) 
+    !>    = \sum\limits_{\kappa,\alpha} p^{I \mu}_{\kappa\alpha}({\bf q}) 
     !>      \int\limits_{\Omega} \left[ \psi_{m{\bf k+q}}^\ast({\bf r})\,
-    !>      \psi_{n{\bf k}}({\bf r}) \right]_{\rm IR}\, \delta^{\bf q}_{\alpha i} \Theta({\bf r})\, {\rm d}^3r \]
+    !>      \psi_{n{\bf k}}({\bf r}) \right]_{\rm IR}\, \delta^{\bf q}_{\kappa\alpha} \Theta({\bf r})\, {\rm d}^3r \]
     !> and
     !> \[ \delta^{\bf q}_{I \mu} H_{mn}^{\rm IR}({\bf k})
-    !>    = \sum\limits_{\alpha,i} p^{I \mu}_{\alpha i}({\bf q}) 
+    !>    = \sum\limits_{\kappa,\alpha} p^{I \mu}_{\kappa\alpha}({\bf q}) 
     !>      \int\limits_{\Omega} \left[ \psi_{m{\bf k+q}}^\ast({\bf r})\,
-    !>      \hat{\bf H}\, \psi_{n{\bf k}}({\bf r}) \right]_{\rm IR}\, \delta^{\bf q}_{\alpha i} \Theta({\bf r})\, {\rm d}^3r  \;, \]
+    !>      \hat{\bf H}\, \psi_{n{\bf k}}({\bf r}) \right]_{\rm IR}\, \delta^{\bf q}_{\kappa\alpha} \Theta({\bf r})\, {\rm d}^3r  \;, \]
     !> where \([\dots]_{\rm IR}\) means that the interstitial represenation of the integrand
     !> has to be used.
     !>
     !> See [[gen_dcfun_ig(subroutine)]] for the Foruier transform of the smooth characteristic 
-    !> function response \(\delta^{\bf q}_{\alpha i} \Theta({\bf r})\).
+    !> function response \(\delta^{\bf q}_{\kappa\alpha} \Theta({\bf r})\).
     !>
     !> @note The result is added to the input matrix! @endnote
     subroutine gen_dSH0_ir( ik, Gkset, Gkqset, fst1, lst1, fst2, lst2, eveck, eveckq, pat, dSmat, dHmat, &
@@ -383,7 +383,7 @@ module phonons_eigensystem
       integer, intent(in) :: fst2, lst2
       !> eigenvectors at \({\bf k}\) and \({\bf k+q}\)
       complex(dp), intent(in) :: eveck(:,:), eveckq(:,:)
-      !> displacement pattern \(p^{I \mu}_{\alpha i}({\bf q})\)
+      !> displacement pattern \(p^{I \mu}_{\kappa\alpha}({\bf q})\)
       complex(dp), intent(in) :: pat(3, natmtot)
       !> overlap and Hamiltonian response
       complex(dp), intent(inout) :: dSmat(:,:), dHmat(:,:)
@@ -465,18 +465,18 @@ module phonons_eigensystem
     !> for a single atom.
     !>
     !> They are given by
-    !> \[ \delta^{\bf q}_{I \mu} A^\alpha_{{\bf G+k},lm,\xi} 
-    !>    = \sum_i p^{I \mu}_{\alpha i}({\bf q})\, {\rm i} (G_i + k_i)\, A^\alpha_{{\bf G+k},lm,\xi} \;.\]
+    !> \[ \delta^{\bf q}_{I \mu} A^\kappa_{{\bf G+k},lm,\xi} 
+    !>    = \sum_\alpha p^{I \mu}_{\kappa\alpha}({\bf q})\, {\rm i} (G_\alpha + k_\alpha)\, A^\kappa_{{\bf G+k},lm,\xi} \;.\]
     subroutine gen_dapwalm( ngp, vgpc, pat, apwalm, dapwalm )
       !> number of \({\bf G+p}\) vectors
       integer, intent(in) :: ngp
       !> \({\bf G+p}\) vectors in Cartesian coordinates
       real(dp), intent(in) :: vgpc(3,*)
-      !> dispalcement pattern \(p^{I \mu}_{\alpha i}({\bf q})\) of the atom \(\alpha\)
+      !> dispalcement pattern \(p^{I \mu}_{\kappa\alpha}({\bf q})\) of the atom \(\kappa\)
       complex(dp), intent(in) :: pat(3)
-      !> unperturbed matching coefficients \(A^\alpha_{{\bf G+k},lm,\xi}\)
+      !> unperturbed matching coefficients \(A^\kappa_{{\bf G+k},lm,\xi}\)
       complex(dp), intent(in) :: apwalm(:,:,:)
-      !> perturbed matching coefficients \(\delta^{\bf q}_{I \mu} A^\alpha_{{\bf G+k},lm,\xi}\)
+      !> perturbed matching coefficients \(\delta^{\bf q}_{I \mu} A^\kappa_{{\bf G+k},lm,\xi}\)
       complex(dp), intent(out) :: dapwalm(:,:,:)
 
       integer :: i, j
@@ -506,16 +506,16 @@ module phonons_eigensystem
     !> for a phonon-like perturbation of a given atom.
     !>
     !> The smooth characteristic function response is given by
-    !> \[ \delta^{\bf q}_{\alpha i} \Theta({\bf r}) = 
-    !>    \sum\limits_{\bf G} \delta^{\bf q}_{\alpha i}\hat{\Theta}({\bf G}+{\bf q})\, 
+    !> \[ \delta^{\bf q}_{\kappa\alpha} \Theta({\bf r}) = 
+    !>    \sum\limits_{\bf G} \delta^{\bf q}_{\kappa\alpha}\hat{\Theta}({\bf G}+{\bf q})\, 
     !>    {\rm e}^{{\rm i} ({\bf G}+{\bf q}) \cdot {\bf r}} \;, \]
     !> with
-    !> \[ \delta^{\bf q}_{\alpha i}\hat{\Theta}({\bf G}+{\bf q}) = 
-    !>    \frac{4\pi\, {\rm i}\, R_\alpha^3}{\Omega} \frac{j_1(|{\bf G}+{\bf q}|R_\alpha)}{|{\bf G}+{\bf q}|R_\alpha}
-    !>    {\rm e}^{-{\rm i} ({\bf G}+{\bf q}) \cdot {\bf r}}\, (G_i + q_i) \;. \]
+    !> \[ \delta^{\bf q}_{\kappa\alpha}\hat{\Theta}({\bf G}+{\bf q}) = 
+    !>    \frac{4\pi\, {\rm i}\, R_\kappa^3}{\Omega} \frac{j_1(|{\bf G}+{\bf q}|R_\kappa)}{|{\bf G}+{\bf q}|R_\kappa}
+    !>    {\rm e}^{-{\rm i} ({\bf G}+{\bf q}) \cdot {\bf r}}\, (G_\alpha + q_\alpha) \;. \]
     !> This routine will add
-    !> \[ \delta^{\bf q}_{I \mu, \alpha} \hat{\Theta}({\bf G}+{\bf q}) = \sum_i p^{I \mu}_{\alpha i}({\bf q}) \,
-    !>    \delta^{\bf q}_{\alpha i}\hat{\Theta}({\bf G}+{\bf q}) \]
+    !> \[ \delta^{\bf q}_{I \mu, \kappa} \hat{\Theta}({\bf G}+{\bf q}) = \sum_\alpha p^{I \mu}_{\kappa\alpha}({\bf q}) \,
+    !>    \delta^{\bf q}_{\kappa\alpha}\hat{\Theta}({\bf G}+{\bf q}) \]
     !> to the input array `dcfun_ig`.
     subroutine gen_dcfun_ig( ngq, gqc, vgqc, is, ia, pat, dcfun_ig )
       use constants, only: fourpi
@@ -533,9 +533,9 @@ module phonons_eigensystem
       integer, intent(in) :: is
       !> atom index
       integer, intent(in) :: ia
-      !> displacement pattern \({\bf p}^{I \mu}_\alpha ({\bf q})\) of the atom
+      !> displacement pattern \({\bf p}^{I \mu}_\kappa ({\bf q})\) of the atom
       complex(dp), intent(in) :: pat(3)
-      !> Fourier coefficients \(\delta^{\bf q}_{\alpha i}\hat{\Theta}({\bf G}+{\bf q})\)
+      !> Fourier coefficients \(\delta^{\bf q}_{\kappa\alpha}\hat{\Theta}({\bf G}+{\bf q})\)
       complex(dp), intent(inout) :: dcfun_ig(*)
 
       integer :: i, igq

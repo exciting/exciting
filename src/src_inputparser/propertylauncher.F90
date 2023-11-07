@@ -9,17 +9,12 @@ Subroutine propertylauncher
       Use modmain, Only: task
       Use modmpi, Only: rank
       Use spintexture, Only: calculate_spintexture
+      use xhdf5, only: xhdf5_type
       Use mod_hdf5, only: fhdf5, hdf5_initialize, hdf5_create_file, hdf5_finalize
       Implicit None
       integer :: l, a, b, c, i
       integer:: k 
-#ifdef _HDF5_
-  if(rank == 0) then
-    call hdf5_initialize()
-    fhdf5='property.h5'
-    call hdf5_create_file(fhdf5)
-  end if
-#endif
+
       call delete_warnings
 
 ! properties which depend on the ground state only
@@ -299,10 +294,4 @@ Subroutine propertylauncher
          call calculate_spintexture(input%properties%spintext%bands(1), input%properties%spintext%bands(2))
       end if
 
-! Finalization of hdf5 output
-#ifdef _HDF5_
-    if (rank == 0) then
-      call hdf5_finalize()
-    end if
-#endif
 End Subroutine propertylauncher

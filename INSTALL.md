@@ -238,14 +238,60 @@ SIRIUS Gotchas
   `make.inc` file to point to the correct directory.
 
 
+fastBSE
+------------------
+To use fastBSE, you need to link it with HDF5 and FFTW3.
+
+**GCC**
+
+```shell
+  sudo apt-get install -y libhdf5-serial-dev libhdf5-mpi-dev libfftw3-dev
+  cd $EXCITINGROOT
+  cp build/platforms/make.inc.gfortran10+.hdf5.fftw3 build/make.inc
+  make smp # Choose the required build type as explained above.
+```
+Please note that the recommended `make.inc` file supports **GCC10+**. If you use an older version drop the flags `-fallow-argument-mismatch` 
+and `-fallow-invalid-boz`.
+
+You might need to edit the compiler option -I"/usr/include" according to your system.
+
+**INTEL**
+
+If you intend to use Intel, you must manually compile HDF5. We recommend using HDF5 1.12.0. The source code can be found on the HDF5 website. 
+We recommend configuring the build as follows:
+
+```shell
+  configure --enable-build-mode=production --enable-parallel --enable-fortran --enable-fortran2003
+```
+
+For details on the options, refer to the HDF5 documentation. 
+After a successful installation, update the PATH variable with the location of the HDF5 binaries:
+
+```shell
+  export PATH="path/to/hdf5-build/hdf5/bin:$PATH"
+```
+
+Intel provides an FFTW3 API to their own FFT library in the MKL library. We recommend using this API.
+
+Then follow these steps:
+
+```shell
+  cp build/platforms/make.inc.intel.hdf5.fftw3-mkl-api build/make.inc
+  make smp # Choose the required build type as explained above.
+```
+
+Please note that this code is not executable as-is; it provides instructions for setting up the fastBSE environment. 
+Make sure to adjust the paths and options according to your system and requirements.
+
+
 Compiler Support
 ------------------
 
 exciting requires an F2008-compliant compiler. exciting is known to compile with:
 
-* Intel ifort: 2015, 2016, 2017, 2019, 2021
+* Intel ifort: 2019, 2021
   
-* GCC gfortran: 7, 8, 9, 10, 12
+* GCC gfortran: 8, 9, 10, 12
   
 
 Compliant but not tested:
@@ -258,9 +304,16 @@ Compliant but not tested:
 Known Issues
 ------------------
 
-### Intel 2018
+### Intel MPI
 
-Compilation is known to fail at src_lib/mod_manopt.f90 with the error:
+Intel MPI 2019 and 2021.3 are known to exhibit memory leaks. This can be troublesome for memory-intensive calculations
+and cause exciting to crash. See the threads associated with [Qbox](https://groups.google.com/g/cp2k/c/BJ9c21ey0Ls) and
+[CP2K](https://github.com/cp2k/cp2k/issues/1830) for further discussion.
+
+
+### Intel Compiler 2018
+
+Compilation is known to fail at `src_lib/mod_manopt.f90` with the error:
 
 ```
    catastrophic error: **Internal compiler error: segmentation violation signal raised** 

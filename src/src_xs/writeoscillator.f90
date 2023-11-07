@@ -16,6 +16,7 @@ module m_writeoscillator
       use mod_lattice, only: omega
 
       ! I/O
+      !> Number of transitions & number of excitons
       integer(4), intent(in) :: hamsize, nexc
       integer(4), intent(in) :: nk
       real(8), intent(in) :: eshift
@@ -117,8 +118,7 @@ module m_writeoscillator
       end if 
       !write hdf5 output
       gname="excitons"//trim(bsetypestring)//trim(scrtypestring)
-      call write_excitons_hdf5(hamsize, nexc, eshift, evalre, oscstrr,&
-      & gname, iqmt=iq)
+      call write_excitons_hdf5(hamsize, nexc, eshift, evalre, oscstrr, gname, iq)
 
       io1=1
       io2=3

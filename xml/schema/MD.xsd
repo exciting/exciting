@@ -1,0 +1,123 @@
+<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
+    <xs:include id="common" schemaLocation="common.xsd"/>
+    <xs:annotation>
+      <xs:appinfo>
+        <parent>/input</parent>
+        <root>MD</root>
+      </xs:appinfo>
+    </xs:annotation>
+    <xs:element ex:importance="expert" ex:unit="" name="MD">
+      <xs:annotation>
+        <xs:documentation>Setup for molecular dynamics (MD) calculation. 
+          The output files are named as <pre>ATOM_xyzw.OUT</pre>, where  
+          <pre>x</pre>, <pre>y</pre>, <pre>z</pre> and <pre>w</pre> are integer 
+          numbers <pre>0-9</pre> and refer to the number of the atom as given in
+          the input file.
+        </xs:documentation>
+      </xs:annotation>
+      <xs:complexType>
+        <xs:attribute ex:importance="essential" ex:unit="" name="type" default="Ehrenfest">
+          <xs:annotation>
+            <xs:documentation>Type of MD to be performed. In Ehrenfest MD, the 
+              outputs are printed out every <pre>n</pre> steps, where <pre>n</pre>
+              is given by <attref>printAfterIterations</attref>. </xs:documentation>
+          </xs:annotation>
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="Ehrenfest" />
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:attribute>
+
+        <xs:attribute ex:importance="essential" ex:unit="" name="integrationAlgorithm" 
+          default="HeunSimplified">
+          <xs:annotation>
+            <xs:documentation>Algorithm employed for the trajectory of the nuclei.</xs:documentation>
+          </xs:annotation>
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="HeunSimplified"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:attribute>
+
+        <xs:attribute ex:importance="expert" ex:unit="" name="printAllForces" 
+            type="xs:boolean" default="false">
+          <xs:annotation>
+            <xs:documentation> When set to <pre>"true"</pre>, the following
+              components of the total force acting on an ion are printed out: 
+              external, Hellmann-Feynman, core and valence corrections.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+
+        <xs:attribute ex:importance="expert" ex:unit="atomic units" name="timeStep"
+            type="fortrandouble" default="0d1">
+          <xs:annotation>
+            <xs:documentation> Time step of the MD calculation. When doing 
+            Ehrenfest MD, if not a multiple of the time step 
+            <inlinemath>\Delta t_e</inlinemath> used in the electronic evolution 
+            (RT-TDDFT evolution), 
+            it will be automatically rounded down to 
+            <inlinemath>n \Delta t_e </inlinemath>, where 
+            <inlinemath>n </inlinemath> is the largest integer lower or equal 
+            the ratio between <attref>timeStep</attref> and 
+            <inlinemath>\Delta t_e</inlinemath>.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+
+        <xs:attribute ex:importance="experimental" ex:unit="" name="updateOverlap" 
+          type="xs:boolean" default="true">
+          <xs:annotation>
+            <xs:documentation> When <pre>"true"</pre>, the overlap matrix is recalculated 
+              in each MD step. The option false would be an unphysical situation, 
+              and only makes sense for computational experiments.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+
+        <xs:attribute ex:importance="experimental" ex:unit="" name="updatePmat" 
+          type="xs:boolean" default="true">
+          <xs:annotation>
+            <xs:documentation> When <pre>"true"</pre>, momentum matrix elements are recalculated
+              in each MD step. If updateOverlap is false, updatePmat is ignored.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+
+        <xs:attribute ex:importance="experimental" ex:unit="" name="basisDerivative" 
+          type="xs:boolean" default="true">
+          <xs:annotation>
+            <xs:documentation> When set to <pre>"true"</pre>, the term which expresses the
+              time derivative of the basis set is considered in the evolution
+              of the wavefunctions. This should only be set to false for 
+              testing purposes.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+
+        <xs:attribute ex:importance="expert" ex:unit="" name="coreCorrections" 
+          type="xs:boolean" default="true">
+          <xs:annotation>
+            <xs:documentation> Evaluates the so-called core corrections in 
+               Pulay forces.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+
+        <xs:attribute ex:importance="expert" ex:unit="" name="valenceCorrections" 
+          type="xs:boolean" default="true">
+          <xs:annotation>
+            <xs:documentation> Evaluates the so-called valence corrections in 
+              Pulay forces.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+
+      </xs:complexType>
+    </xs:element>
+</xs:schema>

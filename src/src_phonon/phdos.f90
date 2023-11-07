@@ -12,102 +12,138 @@ Subroutine phdos
       Use FoX_wxml
       Use modmpi
       Use physical_constants, only: kboltz
+      use phonons_util, only: ph_util_setup_interpolation, ph_util_interpolate, ph_util_diag_dynmat
+      use phonons_io_util, only: ph_io_read_dielten, ph_io_read_borncharge
+      use matrix_fourier_interpolation, only: mfi_type
+      use mod_kpointset, only: k_set, generate_k_vectors, delete_k_vectors
+      use mod_opt_tetra
       Implicit None
 ! local variables
-      Integer :: n, iq, i, iw
-      Integer :: i1, i2, i3
-      Real (8) :: wmin, wmax, wd, dw
+      Integer :: n, iq, i, iw, ngridqint(3)
+      Real (8) :: wmin, wmax, wd, dw, dielten(3, 3)
       Real (8) :: tmax, temp (input%phonons%phonondos%ntemp), s (input%phonons%phonondos%ntemp)
-      Real (8) :: v (3), t1, t2
+      Real (8) :: t1, t2
+      type(k_set) :: qset_int
+      type(t_set) :: tset
+      type(mfi_type) :: mfi
       Type (xmlf_t), Save :: xf
       Character (256) :: buffer
+      logical :: success
 ! allocatable arrays
-      Real (8), Allocatable :: wp (:)
+      Real (8), Allocatable :: borncharge(:, :, :)
+      Real (8), Allocatable :: wp (:, :)
       Real (8), Allocatable :: w (:)
+      Real (8), Allocatable :: wgt (:, :, :)
       Real (8), Allocatable :: gw (:)
       Real (8), Allocatable :: f (:), g (:), cf (:, :)
-      Complex (8), Allocatable :: dynq (:, :, :)
       Complex (8), Allocatable :: dynr (:, :, :)
-      Complex (8), Allocatable :: dynp (:, :)
+      Complex (8), Allocatable :: dynp (:, :, :)
       Complex (8), Allocatable :: ev (:, :)
-! do this only in master process
+      ! do this only in master process
       if (rank .ne. 0) goto 10
-! initialise universal variables
+      ! initialise universal variables
       Call init0
       Call init2
       n = 3 * natmtot
-      Allocate (wp(n))
-      Allocate (w(input%phonons%phonondos%nwdos))
-      Allocate (gw(input%phonons%phonondos%nwdos))
-      Allocate (f(input%phonons%phonondos%nwdos), &
-     & g(input%phonons%phonondos%nwdos), cf(3, &
-     & input%phonons%phonondos%nwdos))
-      Allocate (dynq(n, n, nqpt))
-      Allocate (dynr(n, n, ngridq(1)*ngridq(2)*ngridq(3)))
-      Allocate (dynp(n, n))
-      Allocate (ev(n, n))
-! read in the dynamical matrices
-      Call readdyn (.true.,dynq)
-! apply the acoustic sum rule
-      Call sumrule (dynq)
-! Fourier transform the dynamical matrices to real-space
-      Call dynqtor (dynq, dynr)
-! find the minimum and maximum frequencies
-      wmin = 0.d0
-      wmax = 0.d0
-      Do iq = 1, nqpt
-         Call dyndiag (dynq(:, :, iq), wp, ev)
-         wmin = Min (wmin, wp(1))
-         wmax = Max (wmax, wp(n))
-      End Do
+      ! try to read dielectric tensor and Born effective charges
+      if( input%phonons%polar ) then
+        call ph_io_read_dielten( dielten, 'EPSINF.OUT', success )
+        call terminate_if_false( success, '(phdos) &
+          Failed to read dielectric tensor from EPSINF.OUT.' )
+        call ph_io_read_borncharge( borncharge, 'ZSTAR.OUT', success )
+        call terminate_if_false( success, '(phdos) &
+          Failed to read Born effective charge tensors from ZSTAR.OUT.' )
+      end if
+      ! set up interpolation
+      if( input%phonons%polar ) then
+        call ph_util_setup_interpolation( bvec, ngridq, nqpt, ivq(:, 1:nqpt), vql(:, 1:nqpt), mfi, dynr, &
+          dielten=dielten, borncharge=borncharge, &
+          sumrule=input%phonons%sumrule )
+      else
+        call ph_util_setup_interpolation( bvec, ngridq, nqpt, ivq(:, 1:nqpt), vql(:, 1:nqpt), mfi, dynr, &
+          sumrule=input%phonons%sumrule )
+      end if
+      ! generate integration q-grid
+      ngridqint = input%phonons%phonondos%ngridqint
+      if( input%phonons%phonondos%ngrdos > 0 ) &
+        ngridqint = input%phonons%phonondos%ngrdos
+      call generate_k_vectors( qset_int, bvec, ngridqint, [0.d0, 0.d0, 0.d0], .true., uselibzint=.false. )
+      ! interpolate phonon frequencies on integration grid
+      if( input%phonons%polar ) then
+        call ph_util_interpolate( qset_int%nkpt, qset_int%vkl(:, 1:qset_int%nkpt), mfi, dynr, dynp, &
+          dielten=dielten, borncharge=borncharge )
+      else
+        call ph_util_interpolate( qset_int%nkpt, qset_int%vkl(:, 1:qset_int%nkpt), mfi, dynr, dynp )
+      end if
+      allocate( wp(n, qset_int%nkpt), ev(n, n) )
+      do iq = 1, qset_int%nkpt
+        call ph_util_diag_dynmat( dynp(:, :, iq), wp(:, iq), ev )
+      end do
+      ! find the minimum and maximum frequencies
+      wmin = minval( wp )
+      wmax = maxval( wp )
       wmax = wmax + (wmax-wmin) * 0.1d0
       wmin = wmin - (wmax-wmin) * 0.1d0
+      ! generate energy grid
       wd = wmax - wmin
-      If (wd .Lt. 1.d-8) wd = 1.d0
-      dw = wd / dble (input%phonons%phonondos%nwdos)
-! generate energy grid
-      Do iw = 1, input%phonons%phonondos%nwdos
-         w (iw) = dw * dble (iw-1) + wmin
-      End Do
-      gw (:) = 0.d0
-      Do i1 = 0, input%phonons%phonondos%ngrdos - 1
-         v (1) = dble (i1) / dble (input%phonons%phonondos%ngrdos)
-         Do i2 = 0, input%phonons%phonondos%ngrdos - 1
-            v (2) = dble (i2) / dble (input%phonons%phonondos%ngrdos)
-            Do i3 = 0, input%phonons%phonondos%ngrdos - 1
-               v (3) = dble (i3) / dble (input%phonons%phonondos%ngrdos)
-! compute the dynamical matrix at this particular q-point
-               Call dynrtoq (v, dynr, dynp)
-! find the phonon frequencies
-               Call dyndiag (dynp, wp, ev)
-               Do i = 1, n
-                  t1 = (wp(i)-wmin) / dw + 1.d0
-                  iw = Nint (t1)
-                  If ((iw .Ge. 1) .And. (iw .Le. &
-                 & input%phonons%phonondos%nwdos)) Then
-                     gw (iw) = gw (iw) + 1.d0
-                  End If
-               End Do
-            End Do
-         End Do
-      End Do
-      t1 = 1.d0 / (dw*dble(input%phonons%phonondos%ngrdos)**3)
-      gw (:) = t1 * gw (:)
-! smooth phonon DOS if required
-      If (input%phonons%phonondos%nsmdos .Gt. 0) Call fsmooth &
-     & (input%phonons%phonondos%nsmdos, input%phonons%phonondos%nwdos, 1, gw)
-! write phonon DOS to file
-      Open (50, File='PHDOS.OUT', Action='WRITE', Form='FORMATTED')
-      Do iw = 1, input%phonons%phonondos%nwdos
-         Write (50, '(2G18.10)') w (iw), gw (iw)
-      End Do
-      Close (50)
-      Write (*,*)
-      Write (*, '("Info(phdos):")')
-      Write (*, '(" phonon density of states written to PHDOS.OUT")')
+      if( wd < 1.d-8 ) wd = 1.d0
+      dw = wd / input%phonons%phonondos%nwdos
+      allocate( w(input%phonons%phonondos%nwdos) )
+      do iw = 1, input%phonons%phonondos%nwdos
+        w(iw) = dw * dble(iw-1) + wmin
+      end do
+      ! calculate DOS
+      allocate( gw(input%phonons%phonondos%nwdos), source=0.d0 )
+      ! new method (improved tetrahedron integration)
+      if( input%phonons%phonondos%inttype == 'tetra' ) then
+        call opt_tetra_init( tset, qset_int, 2, reduce=.true. )
+        allocate( wgt( n, qset_int%nkpt, input%phonons%phonondos%nwdos) )
+        call opt_tetra_wgt_delta( tset, qset_int%nkpt, n, wp, input%phonons%phonondos%nwdos, w, wgt )
+        do iw = 1, input%phonons%phonondos%nwdos
+          gw(iw) = sum( wgt(:, : ,iw) )
+        end do
+        deallocate( wgt )
+        call opt_tetra_destroy( tset )
+      ! old method (direct summation)
+      else
+        !$omp parallel default( shared ) private( t1, iw ) reduction( +: gw )
+        !$omp do collapse(2)
+        do iq = 1, qset_int%nkpt
+          do i = 1, n
+            t1 = (wp(i, iq) - wmin) / dw + 1.d0
+            iw = nint( t1 )
+            if( (iw >= 1) .and. (iw <= input%phonons%phonondos%nwdos) ) &
+              gw(iw) = gw(iw) + qset_int%wkpt(iq)
+          end do
+        end do
+        !$omp end do
+        !$omp end parallel
+        t1 = 1.d0 / dw
+        gw = t1 * gw
+      end if
+      ! smooth phonon DOS if required
+      if( input%phonons%phonondos%nsmdos > 0) &
+        call fsmooth( input%phonons%phonondos%nsmdos, input%phonons%phonondos%nwdos, 1, gw )
+      ! write phonon DOS to file
+      open( 50, file='PHDOS.OUT', action='WRITE', form='FORMATTED' )
+      do iw = 1, input%phonons%phonondos%nwdos
+        write( 50, '(2G18.10)' ) w(iw), gw(iw)
+      end do
+      close( 50 )
+      write( *, * )
+      write( *, '("Info(phdos):")' )
+      write( *, '(" phonon density of states written to PHDOS.OUT")' )
+      ! clean up
+      deallocate( wp, ev )
+      if( allocated( dynr ) ) deallocate( dynr )
+      if( allocated( dynp ) ) deallocate( dynp )
+      if( allocated( borncharge ) ) deallocate( borncharge )
+      call delete_k_vectors( qset_int )
+      call mfi%destroy
 !-------------------------------------------!
 !     thermodynamic properties from DOS     !
 !-------------------------------------------!
+      Allocate (f(input%phonons%phonondos%nwdos), g(input%phonons%phonondos%nwdos), cf(3, input%phonons%phonondos%nwdos))
 ! maximum temperature
       tmax = wmax / kboltz
 ! temperature grid
@@ -267,7 +303,7 @@ Subroutine phdos
       Call xml_Close (xf)
       Write (*, '(" thermodynamic properties written to THERMO.OUT")')
       Write (*,*)
-      Deallocate (wp, w, gw, f, g, cf, dynq, dynr, dynp, ev)
+      Deallocate ( w, gw, f, g, cf )
 10    continue
 #ifdef MPI
       call MPI_Barrier(MPI_Comm_World, ierr)

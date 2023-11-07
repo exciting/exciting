@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<evalcore>
+  <species is="1" chemicalSymbol="Ga">
+    <atom ia="1">
+      <state ist="1" n="1" l="0" k="0" eigenvalue="-3.754585959548e2"/>
+      <state ist="2" n="2" l="0" k="0" eigenvalue="-4.598297950613e1"/>
+      <state ist="3" n="2" l="1" k="1" eigenvalue="-4.066003495876e1"/>
+      <state ist="4" n="2" l="1" k="1" eigenvalue="-3.964371717904e1"/>
+      <state ist="5" n="3" l="0" k="0" eigenvalue="-5.086464445035e0"/>
+      <state ist="6" n="3" l="1" k="1" eigenvalue="-3.367684258140e0"/>
+      <state ist="7" n="3" l="1" k="1" eigenvalue="-3.235294982285e0"/>
+    </atom>
+  </species>
+  <species is="2" chemicalSymbol="As">
+    <atom ia="1">
+      <state ist="1" n="1" l="0" k="0" eigenvalue="-4.300133686654e2"/>
+      <state ist="2" n="2" l="0" k="0" eigenvalue="-5.408247731601e1"/>
+      <state ist="3" n="2" l="1" k="1" eigenvalue="-4.825974759203e1"/>
+      <state ist="4" n="2" l="1" k="1" eigenvalue="-4.691622485955e1"/>
+      <state ist="5" n="3" l="0" k="0" eigenvalue="-6.481349248222e0"/>
+      <state ist="6" n="3" l="1" k="1" eigenvalue="-4.526332794522e0"/>
+      <state ist="7" n="3" l="1" k="1" eigenvalue="-4.342362616857e0"/>
+    </atom>
+  </species>
+</evalcore>

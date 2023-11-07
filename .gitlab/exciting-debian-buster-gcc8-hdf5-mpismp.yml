@@ -1,0 +1,53 @@
+# GCC8 MPI+SMP build and tests.
+# Links to serial blas/lapack and libopenmpi3
+# Consult `build/utilities/docker/` to find the base Dockerfile
+
+build:debian-buster-GCC8-hdf5-mpiandsmp:
+ image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8-hdf5-Juli2023
+ stage: build
+ # Do not run when excitingtools is updated
+
+# only:
+#   changes:
+#     - "src/*"
+#     - "build/*"
+#
+# except:
+#   changes:
+#     - "tools/exciting_tools/*"
+
+ tags:
+   - docker
+ script:
+   - cp build/platforms/make.inc.gfortran-hdf5 build/make.inc
+   - make mpiandsmp -j 2
+ artifacts:
+   paths:
+     - bin/exciting_mpismp
+     - build/make.inc
+   expire_in: 5 hrs
+
+test-debian-buster-GCC8-hdf5-mpiandsmp:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8-hdf5-Juli2023
+  stage: test
+  except: 
+   changes:
+     - "tools/exciting_tools/*"
+  dependencies:
+    - build:debian-buster-GCC8-hdf5-mpiandsmp
+    - python:excitingtools-python-3.7
+    - python:regressionframework-python-3.7
+  tags:
+    - docker
+  script:
+    # Run exciting unit tests
+    - export OMP_NUM_THREADS=2 && mpirun --allow-run-as-root -np 2 bin/exciting_mpismp -run-unit-tests -kill-on-failure
+    # Install test framework parsers
+    - python3 -m pip install --upgrade pip setuptools
+    - python3 -m pip install tools/exciting_tools
+    # Allow mpirun to run as root (mpirun typically shouldn't be run as root)
+    # See this ref: https://github.com/open-mpi/ompi/issues/4451
+    # This variable gets parsed by the test framework
+    - export OPENMPI_IN_DOCKER=True
+    # Run exciting app tests
+    - cd test/ && python3 runtest.py -e exciting_mpismp -repeat-tests 2

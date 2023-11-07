@@ -66,11 +66,15 @@ module math_utils
 
   !>  Check if two arrays are close, within an absolute tolerance
   interface all_close
-    module procedure all_close_rank0_real_dp, all_close_rank1_real_dp, &
-                   & all_close_rank2_real_dp, all_close_rank3_real_dp,&
-                     all_close_rank0_complex_dp,&
-                   & all_close_rank1_complex_dp, all_close_rank2_complex_dp,&
-                   all_close_rank3_complex_dp, all_close_rank4_complex_dp
+    module procedure all_close_rank0_real_sp, all_close_rank1_real_sp, &
+                     all_close_rank2_real_sp, all_close_rank3_real_sp, &
+                     all_close_rank4_real_sp, &
+                     all_close_rank0_real_dp, all_close_rank1_real_dp, &
+                     all_close_rank2_real_dp, all_close_rank3_real_dp, &
+                     all_close_rank4_real_dp, &
+                     all_close_rank0_complex_dp, all_close_rank1_complex_dp, &
+                     all_close_rank2_complex_dp, all_close_rank3_complex_dp, &
+                     all_close_rank4_complex_dp
   end interface all_close
 
   !>  Check if an array is zero, to within an absolute tolerance
@@ -474,8 +478,140 @@ contains
 !
 ! Check if two scalars, vectors or matrices are close to each other element wise
 ! with respect to a certain tolerance
-  
-  
+
+
+  !> Check if two real scalars \( a \) and \( b \) are equal,
+  !> where equal is defined as \( |a - b| \leq abs\_tol \).
+  logical function all_close_rank0_real_sp(a, b, tol)
+    !> Input array
+    real(sp), intent(in) :: a
+    !> Reference array
+    real(sp), intent(in) :: b
+    !> Absolute tolerance for input and reference to be considered equal
+    real(sp), intent(in), optional :: tol
+
+    !> Local absolute tolerance
+    real(sp) :: tol_
+
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
+
+    all_close_rank0_real_sp = abs(a - b) <= tol_
+  end function all_close_rank0_real_sp
+
+
+  !> Check if two real rank-1 arrays \( \mathbf{a} \) and \( \mathbf{b} \)
+  !> are equal, where equal is defined as
+  !> \( |a_i - b_i| \leq abs\_tol,  \forall i \).
+  !> As such, the tolerance is checked elementwise.
+  logical function all_close_rank1_real_sp(a, b, tol)
+    !> Input array
+    real(sp), intent(in) :: a(:)
+    !> Reference array
+    real(sp), intent(in) :: b(:)
+    !> Absolute tolerance for input and reference to be considered equal
+    real(sp), intent(in), optional :: tol
+
+    !> Local absolute tolerance
+    real(sp) :: tol_
+
+    call assert(size(a) == size(b), &
+      & 'all_close_rank1_real_sp: size of input arrays differs.')
+
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
+
+    all_close_rank1_real_sp = all(abs(a - b) <= tol_)
+  end function all_close_rank1_real_sp
+
+
+  !> Check if two real rank-2 arrays \( \mathbf{a} \) and \( \mathbf{b} \)
+  !> are equal, where equal is defined as
+  !> \( |a_{ij} - b_{ij}| \leq abs\_tol,  \forall i,j \).
+  !> As such, the tolerance is checked elementwise.
+  logical function all_close_rank2_real_sp(a, b, tol)
+    !> Input array
+    real(sp), intent(in) :: a(:,:)
+    !> Reference array
+    real(sp), intent(in) :: b(:,:)
+    !> Absolute tolerance for input and reference to be considered equal
+    real(sp), intent(in), optional :: tol
+
+    !> Local absolute tolerance
+    real(sp) :: tol_
+
+    call assert(size(a) == size(b), &
+      & 'all_close_rank2_real_sp: size of input arrays differs.')
+
+    call assert(all(shape(a) == shape(b)), &
+      & 'all_close_rank2_real_sp: shape of input arrays differs.')
+
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
+
+    all_close_rank2_real_sp = all(abs(a - b) <= tol_)
+  end function all_close_rank2_real_sp
+
+
+  !> Check if two real rank-3 arrays \( \mathbf{a} \) and \( \mathbf{b} \)
+  !> are equal, where equal is defined as
+  !> \( |a_{ijk} - b_{ijk}| \leq abs\_tol,  \forall i,j,k \).
+  !> As such, the tolerance is checked elementwise.
+  logical function all_close_rank3_real_sp(a, b, tol)
+
+    !> Input array
+    real(sp), intent(in) :: a(:, :, :)
+    !> Reference array
+    real(sp), intent(in) :: b(:, :, :)
+    !> Absolute tolerance for input and reference to be considered equal
+    real(sp), intent(in), optional :: tol
+
+    !> Local absolute tolerance
+    real(sp) :: tol_
+
+    call assert(size(a) == size(b), &
+      & 'all_close_rank3_real_sp: size of input arrays differs.')
+
+    call assert(all(shape(a) == shape(b)), &
+      & 'all_close_rank3_real_sp: shape of input arrays differs.')
+
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
+
+    all_close_rank3_real_sp = all(abs(a - b) <= tol_)
+
+  end function all_close_rank3_real_sp
+
+
+  !> Check if two real rank-4 arrays \( \mathbf{a} \) and \( \mathbf{b} \)
+  !> are equal, where equal is defined as
+  !> \( |a_{ijk} - b_{ijk}| \leq abs\_tol,  \forall i,j,k \).
+  !> As such, the tolerance is checked elementwise.
+  logical function all_close_rank4_real_sp(a, b, tol)
+
+    !> Input array
+    real(sp), intent(in) :: a(:, :, :, :)
+    !> Reference array
+    real(sp), intent(in) :: b(:, :, :, :)
+    !> Absolute tolerance for input and reference to be considered equal
+    real(sp), intent(in), optional :: tol
+
+    !> Local absolute tolerance
+    real(sp) :: tol_
+
+    call assert(size(a) == size(b), &
+      & 'all_close_rank4_real_sp: size of input arrays differs.')
+
+    call assert(all(shape(a) == shape(b)), &
+      & 'all_close_rank4_real_sp: shape of input arrays differs.')
+
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
+
+    all_close_rank4_real_sp = all(abs(a - b) <= tol_)
+
+  end function all_close_rank4_real_sp
+    
   !> Check if two real scalars \( a \) and \( b \) are equal,
   !> where equal is defined as \( |a - b| \leq abs\_tol \).
   logical function all_close_rank0_real_dp(a, b, tol)
@@ -577,6 +713,36 @@ contains
     all_close_rank3_real_dp = all(abs(a - b) <= tol_)
 
   end function all_close_rank3_real_dp
+
+
+  !> Check if two real rank-4 arrays \( \mathbf{a} \) and \( \mathbf{b} \)
+  !> are equal, where equal is defined as
+  !> \( |a_{ijk} - b_{ijk}| \leq abs\_tol,  \forall i,j,k \).
+  !> As such, the tolerance is checked elementwise.
+  logical function all_close_rank4_real_dp(a, b, tol)
+
+    !> Input array
+    real(dp), intent(in) :: a(:, :, :, :)
+    !> Reference array
+    real(dp), intent(in) :: b(:, :, :, :)
+    !> Absolute tolerance for input and reference to be considered equal
+    real(dp), intent(in), optional :: tol
+
+    !> Local absolute tolerance
+    real(dp) :: tol_
+
+    call assert(size(a) == size(b), &
+      & 'all_close_rank4_real_dp: size of input arrays differs.')
+
+    call assert(all(shape(a) == shape(b)), &
+      & 'all_close_rank4_real_dp: shape of input arrays differs.')
+
+    tol_ = default_tol
+    if (present(tol)) tol_ = tol
+
+    all_close_rank4_real_dp = all(abs(a - b) <= tol_)
+
+  end function all_close_rank4_real_dp
 
 
   !> Check if two complex scalars \( a \) and \( b \)

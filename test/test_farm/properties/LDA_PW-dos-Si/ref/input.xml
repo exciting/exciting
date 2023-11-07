@@ -24,7 +24,10 @@
   </groundstate>
 
   <properties>
-    <dos nwdos="501"/>
+    <dos
+      nwdos="501"
+      inttype="trilin">
+    </dos>
   </properties>
 
 </input>

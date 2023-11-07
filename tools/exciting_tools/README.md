@@ -7,7 +7,8 @@ inputs and the post-processing of <span style="font-family:american typewriter; 
 
 * Generation of the <span style="font-family:american typewriter; font-size:1em;">**exciting**</span> input XML file 
   using Python classes:
-  - Currently supported for `groundstate`, `structure` and `BSE`
+  - Automatically supported for the whole input file through dynamic class construction
+  - Currently tested for `groundstate`, `structure`, `BSE` and `bandstructure`
 
 
 * Parsing of <span style="font-family:american typewriter; font-size:1em;">**exciting**</span> outputs into Python dictionaries
@@ -51,7 +52,7 @@ python3 -m pip install --upgrade --force pip
 pip install --upgrade setuptools
 ```
 
-No matter which type of environment or none is used, it should always be verified that the Python version is compatible with <span style="font-family:american typewriter; font-size:1em;">**excitingtools**</span> (>=3.6) and that `pip` is up-to-date (>=22.0) and also points to the same Python version.
+No matter which type of environment or none is used, it should always be verified that the Python version is compatible with <span style="font-family:american typewriter; font-size:1em;">**excitingtools**</span> (>=3.7) and that `pip` is up-to-date (>=22.0) and also points to the same Python version.
 
 Now you can proceed to install <span style="font-family:american typewriter; font-size:1em;">**excitingtools**</span>
 from <span style="font-family:american typewriter; font-size:1em;">**exciting's**</span>'s root:
@@ -199,7 +200,7 @@ Next we can define a runner and run our calculation:
 ```python3
 from excitingtools.runner.runner import BinaryRunner
 
-runner = BinaryRunner('exciting_smp', run_cmd=[''], omp_num_threads=4, time_out=500)
+runner = BinaryRunner('exciting_smp', run_cmd='', omp_num_threads=4, time_out=500)
 run_status = runner.run()
 ```
 

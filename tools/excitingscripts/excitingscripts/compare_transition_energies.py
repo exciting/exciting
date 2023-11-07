@@ -39,8 +39,8 @@ def main() -> None:
     transition_energies = [[""], ["Gamma -> Gamma:"],["Gamma -> X:"]]
     transition_energies[0].extend(args.root_directories)
     for i in range(len(args.root_directories)):
-        transition_energies[1].append(str(determine_transition_energies(args.root_directories[i])[0]))
-        transition_energies[2].append(str(determine_transition_energies(args.root_directories[i])[1]))
+        transition_energies[1].append(str(round(determine_transition_energies(args.root_directories[i])[0], 3)))
+        transition_energies[2].append(str(round(determine_transition_energies(args.root_directories[i])[1], 3)))
 
     print("\n------------------------------------------------\n")
     print(" Transition energies in eV:\n")

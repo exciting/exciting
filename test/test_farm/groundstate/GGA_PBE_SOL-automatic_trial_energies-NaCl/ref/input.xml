@@ -1,0 +1,31 @@
+<input>
+ 
+   <title>NaCl</title>
+ 
+   <structure speciespath=".">
+ 
+      <crystal scale="10.658">
+            <basevect>0.0   0.5   0.5</basevect>
+            <basevect>0.5   0.0   0.5</basevect>
+            <basevect>0.5   0.5   0.0</basevect>
+      </crystal>
+ 
+      <species speciesfile="Na.xml">
+         <atom coord="0.00 0.00 0.00"/>
+      </species>
+ 
+      <species speciesfile="Cl.xml">
+         <atom coord="0.50 0.50 0.50"/>
+      </species>
+ 
+   </structure>
+ 
+   <groundstate 
+      ngridk="4 4 4"
+      xctype="GGA_PBE_SOL">
+     <lorecommendation
+	 lmaxlo="3"
+	 nodesmaxlo="20"/>
+   </groundstate>
+ 
+</input>

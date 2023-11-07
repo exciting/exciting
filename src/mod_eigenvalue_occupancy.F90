@@ -14,8 +14,6 @@ Module mod_eigenvalue_occupancy
 !replaced by inputstructureinteger::nempty
 ! number of first-variational states
       Integer :: nstfv
-! number of basis functions used in second-variation
-      Integer :: nbasisfsv
 ! number of second-variational states
       Integer :: nstsv
 ! smearing type

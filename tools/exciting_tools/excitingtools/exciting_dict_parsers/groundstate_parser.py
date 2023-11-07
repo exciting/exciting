@@ -3,6 +3,8 @@
 All functions in this module could benefit from refactoring.
 """
 import xml.etree.ElementTree as ET
+import re
+import numpy as np
 
 from excitingtools.parser_utils.erroneous_file_error import ErroneousFileError
 from excitingtools.parser_utils.parser_decorators import xml_root
@@ -355,3 +357,78 @@ def parse_geometry(name) -> dict:
         structure['crystal']['basevect'][name] = item
         k = k + 1
     return geometry
+
+
+def parse_linengy(name: str) -> dict:
+    """
+    Parser for: LINENGY.OUT
+
+    :param name: path of the file to parse
+    :returns: dictionary containing parsed file
+    """
+
+    linengy = {}
+
+    with open(file=name, mode='r') as fid:
+        lines = fid.readlines()
+
+    apw_line = []
+    lo_line = []
+
+    for i, line in enumerate(lines):
+        if 'APW functions' in line:
+            apw_line.append(i)
+        if 'local-orbital functions' in line:
+            lo_line.append(i)
+
+    apw_line.append(len(lines))
+
+    for i in range(0, len(lo_line)):
+        linengy[str(i)] = {}
+        apw = []
+        lo = []
+
+        for j in range(apw_line[i], lo_line[i]):
+            if "l =" in lines[j]:
+                apw.append(lines[j].split(':')[1].strip())
+        linengy[str(i)]['apw'] = apw
+
+        for j in range(lo_line[i], apw_line[i+1]):
+            if "l =" in lines[j]:
+                lo.append(lines[j].split(':')[1].strip())
+        linengy[str(i)]['lo'] = lo
+
+    return linengy
+
+
+def parse_lo_recommendation(name: str) -> dict:
+    """
+    Parser for: LO_RECOMMENDATION.OUT
+
+    :param name: path of the file to parse
+    :returns: dictionary containing parsed file                                                                                                  
+    """
+    with open(file=name, mode='r') as fid:
+        lines = fid.readlines()
+
+    n_species = int(lines[2].split(':')[1])
+    n_l_channels = int(lines[3].split(':')[1])
+    n_nodes = int(lines[4].split(':')[1])
+
+    lo_recommendation = {'n_species': n_species, 'n_l_channels': n_l_channels, 'n_nodes': n_nodes}
+
+    blocks = lines[6 :]
+    block_size = n_nodes + 3
+    n_blocks = n_l_channels * n_species
+
+    for iblock in range(0, n_blocks):
+        offset = iblock * block_size
+        matches = re.findall(r':\s(.*?)(?:,|$)', blocks[offset+0])
+        species, l = matches[0], int(matches[1])
+        # Package (node, n, energy) as one likes                                                                                        
+        if not species in lo_recommendation:
+            lo_recommendation.update({species: {}})
+        lo_recommendation[species].update({l: np.loadtxt(blocks[offset+2:offset+n_nodes+2]).tolist()})
+
+    return lo_recommendation
+

@@ -16,7 +16,7 @@ module phonons_symmetry
   type, public :: irrep
     !> dimension of the irrep \(d_I\) (number of members)
     integer :: dim = 0
-    !> displacement patterns \(p^{I \mu}_{\alpha i}({\bf q})\)
+    !> displacement patterns \(p^{I \mu}_{\kappa\alpha}({\bf q})\)
     complex(dp), allocatable :: pat(:,:,:)
     !> matrix representation \(\texttt{S}^{I}({\bf q})\) of each symmetry operation
     complex(dp), allocatable :: symmat(:,:,:)
@@ -43,7 +43,7 @@ module phonons_symmetry
       procedure :: free => free_irrep_basis
   end type
 
-  public :: ph_sym_find_irreps
+  public :: ph_sym_find_irreps, ph_sym_find_kpt, ph_sym_rotate_devec
 
   contains
 
@@ -52,7 +52,7 @@ module phonons_symmetry
     !> This is done by first finding the small group of \({\bf q}\), \(\mathcal{G}_{\bf q}\).
     !> Then, a random dynamical matrix is set up and symmetrized with the symmetries
     !> of \(\mathcal{G}_{\bf q}\). The eigenvectors of this random symmetrized dynamical
-    !> matrix describe the displacement patterns \(p^{I \mu}_{\alpha i}({\bf q})\) and
+    !> matrix describe the displacement patterns \(p^{I \mu}_{\kappa\alpha}({\bf q})\) and
     !> all eigenvectors corresponding to degenerate eigenvalues form the \(d_I\) members
     !> of an irrep \(I\). In the end, for each symmetry operation from \(\mathcal{G}_{\bf q}\),
     !> its matrix representation \({\bf \texttt{S}}^I({\bf q})\) in the basis of the irreps
@@ -60,17 +60,17 @@ module phonons_symmetry
     !>
     !> When canonical displacement patterns are assumed, \(3N_{\rm at}\) one-dimensional
     !> irreps are returned and the respective displacement patterns are set to
-    !> \(p^{I \mu=1}_{\alpha i}({\bf q}) = 1\) for \(I = 3(\alpha - 1) + i\) and 0 otherwise.
+    !> \(p^{I \mu=1}_{\kappa\alpha}({\bf q}) = 1\) for \(I = 3(\kappa - 1) + i\) and 0 otherwise.
     !> The only symmetry considered in this case is the identity.
     !>
     !> When the unperturbed system is assumed, \(N_{\rm at}\) three-dimensional 
     !> irreps are returned and the respective displacement patterns are set to
-    !> \(p^{I \mu}_{\alpha i}({\bf q}) = \delta_{i \mu}\, \delta_{\alpha I}\).
+    !> \(p^{I \mu}_{\kappa\alpha}({\bf q}) = \delta_{i \mu}\, \delta_{\kappa\alpha}\).
     !> The number of symmetries is set to the total number of crystal symmetries in
     !> \(\mathcal{G}\) and the matrix representations are set to the \(3 \times 3\) 
     !> rotation matrices \(\texttt{S}^I_{\mu \nu}({\bf 0}) = {\rm S}_{\mu \nu}\).
     subroutine ph_sym_find_irreps( vql, basis, &
-        canonical, unperturbed)
+        canonical, unperturbed )
       use phonons_util, only: ph_util_symmetrize_dyn, ph_util_diag_dynmat, ph_util_symmetry_T
       use math_utils, only: get_degeneracies, all_zero
       use constants, only: zzero, zone
@@ -229,6 +229,86 @@ module phonons_symmetry
 
       deallocate( rauxdyn, auxdyn, dynsym, symmat )
     end subroutine ph_sym_find_irreps
+
+    !> For a given \({\bf k}\)-vector \({\bf k}_0\) find a \({\bf k}\) with \({\bf k}_0 = {\rm S}{\bf k}\)
+    !> and the corresponding symmetry operation \({\rm S}\).
+    subroutine ph_sym_find_kpt( vkl0, vkl, nkpt, irrep, isym, ik )
+      use mod_symmetry, only: symlat, lsplsymc, find_equivalent_wavevectors
+      !> \({\bf k}_0\) in lattice coordinates
+      real(dp), intent(in) :: vkl0(3)
+      !> set of \({\bf k}\)
+      real(dp), intent(in) :: vkl(3,*)
+      !> number of \({\bf k}\)
+      integer, intent(in) :: nkpt
+      !> index of irrep
+      type(irrep_basis), intent(in) :: irrep
+      !> index of symmetry operation (within irrep)
+      integer, intent(out) :: isym
+      !> index of symmetry equivalent point
+      integer, intent(out) :: ik
+
+      real(dp), parameter :: eps = 1e-6_dp
+
+      integer, allocatable :: ik_list(:), isym_list(:)
+
+      call find_equivalent_wavevectors( 3, vkl0, vkl, nkpt, symlat(:, :, lsplsymc(irrep%isym)), irrep%nsym, &
+        ik_list, isym_list, first_only=.true., tolerance=eps )
+
+      ik = -1
+      isym = -1
+      if( size( ik_list ) == 0 ) return
+      ik = ik_list(1)
+      isym = isym_list(1)
+    end subroutine ph_sym_find_kpt
+
+    !> Rotates the eigenvector response corresponding to wavefunctions \(\delta^{\bf q}_{I \mu} \psi_{n{\bf p}}\)
+    !> to the ones corresponing to \(\delta^{\bf q}_{I \mu} \psi_{n{\bf p}'}\) using the symmetry operation
+    !> `isym` which rotates \({\bf p}\) into \({\bf p}'\), i.e., 
+    !> \({\bf p}' = {\bf S}^\top \cdot {\bf p}\). 
+    subroutine ph_sym_rotate_devec( irrep, iirrep, isym, vpl, vprl, ngp, vgpl, vgprl, devec, ld1, ld2, nst )
+      use constants, only: zzero, zone
+      !> irrep basis
+      type(irrep_basis), intent(in) :: irrep
+      !> index of irrep
+      integer, intent(in) :: iirrep
+      !> index of symmetry operation (within irrep)
+      integer, intent(in) :: isym
+      !> k-point \({\bf p}\) in lattice coordinates
+      real(dp), intent(in) :: vpl(3)
+      !> rotated k-point \({\bf p}' = {\bf S}^\top \cdot {\bf p}\) in lattice coordinates
+      real(dp), intent(in) :: vprl(3)
+      !> number of \({\bf G+p}\) vectors
+      integer, intent(in) :: ngp
+      !> \({\bf G+p}\) vectors at \({\bf p}\)
+      real(dp), intent(in) :: vgpl(3, *)
+      !> \(\bf G+p}'\) vectors at \({bf p}'\)
+      real(dp), intent(in) :: vgprl(3, *)
+      !> leading dimensions of `devec`
+      integer, intent(in) :: ld1, ld2
+      !> on input: eigenvector response at \({\bf p}\);
+      !> on output: eigenvector response at \({\bf p}'\)
+      complex(dp), intent(inout) :: devec(ld1, ld2, *)
+      !> number of states
+      integer, intent(in) :: nst
+
+      integer :: nd, id
+
+      complex(dp), allocatable :: devec_tmp(:,:,:)
+
+      nd = irrep%irreps(iirrep)%dim
+
+      allocate( devec_tmp, source=devec(:, 1:nst, 1:nd) )
+
+      do id = 1, nd
+        call rotate_evecfv( irrep%isym(isym), vpl, vprl, ngp, vgpl, vgprl, devec_tmp(:, :, id), ld1, nst )
+      end do
+      call zgemm( 'n', 'c', ld1*nst, nd, nd, zone, &
+             devec_tmp, ld1*nst, &
+             irrep%irreps(iirrep)%symmat(:, :, isym), nd, zzero, &
+             devec, ld1*ld2 )
+
+      deallocate( devec_tmp )
+    end subroutine ph_sym_rotate_devec
 
     !> destroy irrep
     subroutine free_irrep( this )

@@ -151,7 +151,6 @@ contains
 
   end subroutine
 
-
   !> This subroutine obtains the exponential \( \exp(\alpha \hat{H}) \) applied
   !> to a set of vectors \( | \Psi_{j\mathbf{k}}\rangle \),
   !> as done in [[exp_hermitianoperator_times_wavefunctions]].

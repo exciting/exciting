@@ -74,7 +74,7 @@ subroutine HloSlo(n,npw,nwf,system,x,Hx,Sx)
             napw=0
             l=input%groundstate%lmaxmat
             do l1=0,l
-              napw=napw+(2*l1+1)*apword(l,is)
+              napw=napw+(2*l1+1)*apword(l1,is)
             enddo     
 
             Do ia = 1, natoms (is)

@@ -9,6 +9,7 @@ from xml.etree import ElementTree
 
 from excitingtools.parser_utils.parser_decorators import xml_root
 from excitingtools.parser_utils.parser_utils import find_element, convert_string_dict
+from excitingtools.utils import valid_attributes as all_valid_attributes
 from excitingtools.utils.valid_attributes import input_valid_attributes
 
 
@@ -52,9 +53,17 @@ def parse_element_xml(root, tag: str = None) -> dict:
 
     element_dict = convert_string_dict(copy.deepcopy(root.attrib))
 
+    multiple_children = set(getattr(all_valid_attributes, f"{tag}_multiple_children", set()))
     subelements = list(root)
+    multiple_tags = set([subelement.tag for subelement in subelements]) & multiple_children
+    element_dict.update({tag: [] for tag in multiple_tags})
+
+    # for loop over all subelements to retain the order
     for subelement in subelements:
-        element_dict[subelement.tag] = parse_element_xml(subelement)
+        if subelement.tag in multiple_children:
+            element_dict[subelement.tag].append(parse_element_xml(subelement))
+        else:
+            element_dict[subelement.tag] = parse_element_xml(subelement)
 
     return element_dict
 
@@ -128,24 +137,10 @@ def parse_structure(root) -> dict:
     }
 
 
-@xml_root
-def _parse_path_tree(root) -> dict:
-    """ Parse the path tree. Needs special handling because the subtree `point`
-     (which is the only valid subtree, also mandatory) occurs multiple times.
-
-    :param root: the xml root containing the input tag
-    :return: the parsed dictionary, data converted to actual data types
-    """
-    element_dict = convert_string_dict(copy.deepcopy(root.attrib))
-    element_dict["points"] = [parse_element_xml(point) for point in list(root)]
-    return element_dict
-
-
 # special tag to parse function map or lambda if one-liner
 # necessary for tags which doesn't contain simply xml attributes and subtrees
 special_tags_to_parse_map = {"input": _parse_input_tag,
                              "title": lambda root: root.text,
                              "structure": parse_structure,
                              "qpointset": lambda root: [[float(x) for x in qpoint.text.split()] for qpoint in root],
-                             "plan": lambda root: [doonly.attrib['task'] for doonly in root],
-                             "path": _parse_path_tree}
+                             "plan": lambda root: [doonly.attrib['task'] for doonly in root]}

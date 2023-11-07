@@ -128,8 +128,8 @@ def test_parse_structure():
                                'Li': {'dfthalfparam': {'ampl': 1,
                                                        'cut': 3.9,
                                                        'exponent': 8,
-                                                       'shell': {'ionization': 0.25,
-                                                                 'number': 0}},
+                                                       'shell': [{'ionization': 0.25,
+                                                                 'number': 0}]},
                                       'rmt': 1.5}},
         'autormt': False,
         'epslat': 1.0e-6,
@@ -186,7 +186,7 @@ def test_parse_properties():
         'dos': {"nsmdos": 2, "ngrdos": 300, "nwdos": 1000, "winddos": [-0.3, 0.3]},
         'bandstructure': {"plot1d": {"path": {
             "steps": 100,
-            "points":
+            "point":
                 [
                     {"coord": [1, 0, 0], "label": "Gamma"},
                     {"coord": [0.625, 0.375, 0], "label": "K"},

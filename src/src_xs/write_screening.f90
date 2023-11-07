@@ -22,6 +22,10 @@ module write_screening
 
     use constants, only: zzero
     use precision, only: i32, dp
+    use modmpi, only: mpiinfo, distribute_loop, terminate_mpi_env, mpi_allgatherv_ifc
+    use os_utils, only: join_paths
+    use grid_utils, only: mesh_1d
+    use xhdf5
 
     implicit none
 
@@ -54,28 +58,35 @@ contains
     !> To be consistent with the naming conventions chosen for the types
     !> 'gk_set' and 'q_set', the suffix '_nr' is assigned to all variables
     !> referring to quantities on the non-reduced q-grid.
-    subroutine write_screening_launcher(task)
+    subroutine write_screening_launcher(task, h5file, h5path, mpi_env)
         use mod_xsgrids, only: xsgrids_init, q, g_q
         use mod_Gkvector, only: gkmax
-        use modmpi, only: terminate_mpi_env, mpiglobal
         use modinput, only: input
+        use modmpi, only: terminate_mpi_env, mpiglobal
         use modxs, only: qpari, qparf, ivqr, iqmapr, &
                          vqlr, vqcr, wqptr, ngqr, &
                          eps0dirname, nqptr
         use mod_qpoint, only: iqmap, vql, vqc, ivq, nqpt
         use xs_file_interface, only: write_gq_vectors, write_q_vectors
 
+        !> Name of the HDF5 file to write in.
+        character(*), intent(in) :: h5file
+        !> Path in the HDF5 file to write in.
+        character(*), intent(in) :: h5path
+        !> MPI environment.
+        type(mpiinfo), intent(inout) :: mpi_env
+
         !> Defines if DM or screened Coulomb interaction should be written
         character(*), intent(in) :: task
         !> Directory name for (G+q)-vectors for non-reduced q-vectors
-        character(256), parameter :: gqvecs_dirname = 'GQPOINTS'
+        character(*), parameter :: gqvecs_dirname = 'GQPOINTS'
         !> File name for non-reduced q-vectors
-        character(256), parameter :: qvecs_fname = 'QPOINTS_SCR.OUT'
+        character(*), parameter :: qvecs_fname = 'QPOINTS_SCR.OUT'
         !>  Folder name for dielectric matrix for non-reduced q-vectors
-        character(256), parameter :: eps0_dirname = 'EPS0'
+        character(*), parameter :: eps0_dirname = 'EPS0'
 
         !> Gamma point
-        real(dp) :: gamma_point(3) = [0._dp, 0._dp, 0._dp]
+        real(dp), parameter :: gamma_point(3) = [0._dp, 0._dp, 0._dp]
         !> Spin index, only needed to use types q_set and gk_set
         integer(i32), parameter :: ispin = 1
         !> Running index non-reduced q-vectors
@@ -94,11 +105,10 @@ contains
         !> Body of DM for all reduced q-vectors
         complex(dp), allocatable  :: eps_body(:, :, :)
         !> True if the inquired file exists
-        logical :: file_exists
+        logical :: path_exists
 
         ! Initialize q-grid and (G+q)-grid for both the reduced and the
         ! non-reduced set of q-vectors
-        gamma_point = (/0._dp, 0._dp, 0._dp/)
 
         call init0
         call init1
@@ -117,7 +127,7 @@ contains
         call init2offs(gamma_point, .false.)
 
         ! Write q-grid and (G+q)-grid to file for all non-reduced q-vectors
-        if (mpiglobal%is_root) then
+        if (mpi_env%is_root) then
 
             call write_q_vectors(qvecs_fname, q%qset%vklnr, &
                                  q%qset%vkcnr, g_q%ngknr(ispin, :))
@@ -138,20 +148,20 @@ contains
 
             ! Read dielectric matrix on reduced q-vectors
             call get_dielectric_matrix(trim(adjustl(eps0_dirname)), &
-                                       g_q%ngk(ispin, :), q%qset%vkc, &
-                                       eps_head, eps_wings, eps_body)
+                                       g_q%ngk(ispin, :), q%qset%vkc(:, :q%qset%nkpt), &
+                                       eps_head, eps_wings, eps_body, mpi_env)
 
             call write_dielectric_matrix(eps_head, eps_wings, &
-                                         eps_body)
+                                         eps_body, mpi_env)
 
         case ('write_screened_coulomb')
-
-            call write_screened_coulomb_interaction
+            
+            call write_screened_coulomb_interaction(h5file, h5path, mpi_env)
 
         case default
-            if (mpiglobal%is_root) then
+            if (mpi_env%is_root) then
                 error_message = 'write_screening_init: Invalid task: '//trim(task)
-                call terminate_mpi_env(mpiglobal, error_message)
+                call terminate_mpi_env(mpi_env, error_message)
             end if
         end select
     end subroutine
@@ -166,16 +176,13 @@ contains
     !> To be consistent with the naming conventions chosen for the types
     !> 'gk_set' and 'q_set', the suffix '_nr' is assigned to all variables
     !> referring to quantities on the non-reduced q-grid.
-    subroutine write_dielectric_matrix(eps_head, eps_wings, &
-                                       eps_body)
+    subroutine write_dielectric_matrix(eps_head, eps_wings, eps_body, mpi_env)
 
         use mod_xsgrids, only: q, g_q
-        use modxs, only: qpari, qparf
         use mod_symmetry, only: maxsymcrys
         use modinput, only: input
         use m_getunit, only: getunit
         use putgeteps0, only: puteps0_finite_q, puteps0_zero_q
-        use modmpi, only: mpiglobal, terminate_mpi_env
 
         !> Head of DM at Gamma for reduced q-vectors
         complex(dp), intent(in)  :: eps_head(:, :)
@@ -183,6 +190,8 @@ contains
         complex(dp), intent(in)  :: eps_wings(:, :, :)
         !> Body of reduced DM for reduced q-vectors
         complex(dp), intent(in) :: eps_body(:, :, :)
+        !> MPI environment.
+        type(mpiinfo), intent(inout) :: mpi_env
 
         !> Running index reduced q-vectors
         integer(i32) :: iq
@@ -224,18 +233,19 @@ contains
         integer(i32), parameter :: ispin = 1
         !>  Directory name for dielectric matrix for non-reduced q-vectors
         character(256), parameter :: eps0_dirname = 'EPS0'
+        !> Index of first and last \(\mahtbf q\)-point, considered in the current rank.
+        integer(i32) :: iq_first, iq_last
 
         ! Find indices of zero and finite q-vectors, respectively
         indices_finite_q = pack([(i, i=1, q%qset%nkptnr)], norm2(q%qset%vkcnr, dim=1) > 1.e-9_dp)
         indices_zero_q = pack([(i, i=1, q%qset%nkptnr)], norm2(q%qset%vkcnr, dim=1) < 1.e-9_dp)
+        
         if (size(indices_zero_q) > 1) then
-            call terminate_mpi_env(mpiglobal, &
-                                   'Error eps_on_all_q: More than one &
-                                   non-reduced q-vector is zero.')
+            call terminate_mpi_env(mpi_env, 'Error eps_on_all_q: More than one non-reduced q-vector is zero.')
         end if
 
-        ! Only need to write q=0 from one process. No symmetry operation needed.
-        if (mpiglobal%is_root) then
+        ! Writing for q=0 only on root process. No symmetry operation needed.
+        if (mpi_env%is_root) then
 
             ! Index and lattice coordinates of current non-reduced q-vector
             iq_nr = indices_zero_q(1)
@@ -259,10 +269,9 @@ contains
         allocate (igqmap(g_q%ngknrmax), source=0)
 
         ! Distribute finite q-vectors of reduced q-grid over all processes
-        ! Respective first / last index stored in qpari / qparf
-        call genparidxran('q', size(indices_finite_q))
+        call distribute_loop(mpi_env, size(indices_finite_q), iq_first, iq_last)
 
-        do i = qpari, qparf
+        do i = iq_first, iq_last
 
             ! Index and lattice coordinates of current non-reduced q-vector
             iq_nr = indices_finite_q(i)
@@ -320,18 +329,22 @@ contains
     !> To be consistent with the naming convecntions chosen for the types
     !> 'gk_set' and 'q_set', the suffix '_nr' is assigned to all variables
     !> referring to quantities on the non-reduced q-grid.
-    ! TODO (Max / Benedikt): It should be checked if this is still needed
-    ! or if Benedikt has already implemented a newer version
-    subroutine write_screened_coulomb_interaction
+    subroutine write_screened_coulomb_interaction(h5file, h5path, mpi_env)
 
         use mod_xsgrids, only: q, g_q
         use mod_symmetry, only: maxsymcrys
         use modinput, only: input
         use m_getunit, only: getunit
-        use modmpi, only: mpiglobal, terminate_mpi_env, mpi_allgatherv_ifc
-        use modxs, only: eps0dirname, qpari, qparf
-        use mod_hdf5, only: fhdf5, hdf5_exist_group, hdf5_create_group, &
-                            hdf5_write, hdf5_delete_object
+        use modxs, only: eps0dirname
+        use math_utils, only: mod1
+        use modmpi, only: mpiglobal
+
+        !> Name of the HDF5 file to write in.
+        character(*), intent(in) :: h5file
+        !> Path in the HDF5 file to write in.
+        character(*), intent(in) :: h5path
+        !> MPI environment.
+        type(mpiinfo), intent(inout) :: mpi_env
 
         !> Running index reduced q-vectors
         integer(i32) :: iq
@@ -347,7 +360,7 @@ contains
         integer(i32) :: jsymi
         !> Map between (G+q)-vectors of reduced and non-reduced q-grid
         integer(i32), allocatable :: igqmap(:)
-        !> Phasefactors for dielectric matrix
+        !> Phasefactors for dielectric matrixls 
         complex(8), allocatable :: phasefactors(:, :)
         !> Checks if non-trivial phase appears at least for one (G,Gp) component
         logical :: tphf
@@ -376,7 +389,14 @@ contains
         !> Spin index, needed to use types q_set and gk_set
         integer(i32), parameter :: ispin = 1
         ! HDF5 variables
-        character(256) :: ciq, gname, group
+        character(:), allocatable :: h5path_new
+
+        integer :: first, last 
+        integer, allocatable :: n_G_per_q(:), q_list(:)
+        real(dp), allocatable :: G_q_vectors(:, :, :), q_vectors(:, :)
+        type(xhdf5_type) :: h5
+
+        call abort_if_not_hdf5(mpi_env, 'Error(write_screened_coulomb_interaction): exciting is not linked to HDF5. Thus, this task has no effect.')
 
         ! Set name for global variable, needed in gensclieff.f90
         eps0dirname = 'EPS0'
@@ -384,99 +404,82 @@ contains
         allocate (igqmap(g_q%ngknrmax), source=0)
         allocate (screened_coulomb(g_q%ngkmax, g_q%ngkmax, q%qset%nkpt))
 
-        ! Distribute reduced q-grid over all processes
-        ! Respective first / last index stored in qpari / qparf
-        call genparidxran('q', q%qset%nkpt)
-
         ! Compute screened Coulomb interaction for reduced q-grid
-        do iq = qpari, qparf
+        call distribute_loop(mpi_env, q%qset%nkpt, first, last)
+        q_list = mesh_1d(first, last)
+
+        do iq = first, last
             n_gq = g_q%ngk(ispin, iq)
             call genscclieff(iq, g_q%ngkmax, n_gq, screened_coulomb(:, :, iq))
         end do
 
         ! Communicate array-parts wrt. reduced q-grid
         call mpi_allgatherv_ifc(set=q%qset%nkpt, rlen=g_q%ngkmax**2,&
-          & zbuf=screened_coulomb, inplace=.true., comm=mpiglobal)
+          & zbuf=screened_coulomb, inplace=.true., comm=mpi_env)
 
         ! Find results for finite non-reduced q-vectors
-        allocate (phasefactors(g_q%ngkmax, g_q%ngkmax))
-
-        allocate (screened_coulomb_nr(g_q%ngkmax, g_q%ngkmax, q%qset%nkptnr))
+        
 
         ! Distribute non-reduced q-grid over all processes
-        ! Respective first / last index stored in qpari / qparf
-        call genparidxran('q', q%qset%nkptnr)
+        call distribute_loop(mpi_env, q%qset%nkptnr, first, last)
+        q_list = mesh_1d(first, last)
+
+        allocate(phasefactors(g_q%ngkmax, g_q%ngkmax))
+        allocate(screened_coulomb_nr(g_q%ngkmax, g_q%ngkmax, size(q_list)), source = zzero)
 
         ! Obtain screened Coulomb interaction for non-reduced q-grid
         ! with the help of the results for the corresponding
         ! reduced q-vector using  symmetry operations.
-        do iq_nr = qpari, qparf
+        do iq_nr = 1, size(q_list)
 
             ! Lattice coordinates of current non-reduced q-vector
-            q_vec_nr = q%qset%vklnr(:, iq_nr)
+            q_vec_nr = q%qset%vklnr(:, q_list(iq_nr))
 
             ! Index and lattice coordinates of reduced q-vector
-            iq = q%qset%ik2ikp(iq_nr)
+            iq = q%qset%ik2ikp(q_list(iq_nr))
             q_vec = q%qset%vkl(:, iq)
 
             ! Number of (G+q)-vector for non-reduced q-vector
-            n_gq_nr = g_q%ngknr(ispin, iq_nr)
+            n_gq_nr = g_q%ngknr(ispin, q_list(iq_nr))
 
             ! Find a crystal symmetry operation that rotates the non-reduced
             ! (G+q_nr)-vectors  onto (G'+q)-vectors (where q is a
             ! vector from the reduced q-grid) and generate a Map G' --> G
             call findsymeqiv(input%xs%bse%fbzq, q_vec_nr, q_vec, nsc, sc, ivgsc)
-            call findgqmap(iq_nr, iq, nsc, sc, ivgsc, n_gq_nr, jsym, jsymi, ivgsym, igqmap(:n_gq_nr))
+            call findgqmap(q_list(iq_nr), iq, nsc, sc, ivgsc, n_gq_nr, jsym, jsymi, ivgsym, igqmap(:n_gq_nr))
 
             ! Generate phase factor for dielectric matrix due to non-primitive
             ! translations
-            call genphasedm(iq_nr, jsym, g_q%ngknrmax, n_gq_nr, &
-                            phasefactors, tphf)
+            call genphasedm(q_list(iq_nr), jsym, g_q%ngknrmax, n_gq_nr, phasefactors, tphf)
 
             screened_coulomb_nr(:n_gq_nr, :n_gq_nr, iq_nr) = &
-                phasefactors(:n_gq_nr, :n_gq_nr)* &
-                screened_coulomb(igqmap(:n_gq_nr), igqmap(:n_gq_nr), iq)
-
+                phasefactors(:n_gq_nr, :n_gq_nr) * screened_coulomb(igqmap(:n_gq_nr), igqmap(:n_gq_nr), iq)
         end do
 
-        ! Communicate array-parts wrt. reduced q-grid
-        call mpi_allgatherv_ifc(set=q%qset%nkptnr, rlen=g_q%ngkmax**2,&
-          & zbuf=screened_coulomb_nr, inplace=.true., comm=mpiglobal)
-
         ! Write to HDF5
-#ifdef _HDF5_
-        if (mpiglobal%is_root) then
-            if (.not. hdf5_exist_group(fhdf5, '/', 'screenedpotential')) then
-                call hdf5_create_group(fhdf5, '/', 'screenedpotential')
-            end if
-            gname = "/screenedpotential"
+        call h5%initialize(h5file, mpi_env%comm)
+        call h5%initialize_group(h5path, 'screened_coulomb_non_reduced_q') !TODO: Put group and dataset names in paramters.
 
-            if (hdf5_exist_group(fhdf5, '/', gname)) call hdf5_delete_object(fhdf5, '/', gname)
-            call hdf5_create_group(fhdf5, '/', gname)
-
-            ! loop over all non-reduced q-vectors
-            do iq_nr = 1, q%qset%nkptnr
-                write (ciq, '(I4.4)') iq_nr
-                if (.not. hdf5_exist_group(fhdf5, trim(adjustl(gname)), ciq)) then
-                    call hdf5_create_group(fhdf5, trim(adjustl(gname)), ciq)
-                end if
-                group = "/screenedpotential/"//ciq//'/'
-                call hdf5_write(fhdf5, group, "wqq", screened_coulomb_nr(1, 1, iq_nr), shape(screened_coulomb_nr(:, :, iq_nr)))
-            end do
-        end if
-#endif
+        h5path_new = join_paths(h5path, 'screened_coulomb_non_reduced_q')
+        q_vectors = q%qset%vkcnr(:, first : last)
+        G_q_vectors = g_q%vgknrc(:, :, ispin, first : last)
+        n_G_per_q = g_q%ngknr(ispin, first : last)
+        
+        call h5%write(h5path_new, 'interaction', screened_coulomb_nr, [1, 1, first], [g_q%ngkmax, g_q%ngkmax, q%qset%nkptnr])
+        call h5%write(h5path_new, 'q_vectors_cartesian', q_vectors, [1, first], [3, q%qset%nkptnr])
+        call h5%write(h5path_new, 'number_of_G_per_q', n_G_per_q, [first], [q%qset%nkptnr])
+        call h5%write(h5path_new, 'G+q_vectors_cartesian', G_q_vectors, [1, 1, first], [3, g_q%ngknrmax, q%qset%nkptnr])
+        call h5%finalize()
 
     end subroutine
 
     !> Wrapper for geteps0_finite_q and geteps0_zero_q:
     !> Reads dielectric matrix for all q-vectors from file.
     subroutine get_dielectric_matrix(eps0_dirname, n_gqvecs, qvecs_cart, &
-                                     eps_head, eps_wings, eps_body)
+                                     eps_head, eps_wings, eps_body, mpi_env)
         use math_utils, only: all_zero
         use constants, only: zzero
         use putgeteps0, only: geteps0_finite_q, geteps0_zero_q
-        use modmpi, only: mpiglobal, terminate_mpi_env, mpi_allgatherv_ifc
-        use modxs, only: qpari, qparf
         use exciting_mpi, only: xmpi_bcast
 
         !> Directory where dielectric matrices are stored
@@ -491,37 +494,36 @@ contains
         complex(dp), allocatable, intent(out) :: eps_wings(:, :, :)
         !> Body of dielectric matrix at all q-vectors
         complex(dp), allocatable, intent(out)  :: eps_body(:, :, :)
+        !> MPI environment.
+        type(mpiinfo), intent(inout) :: mpi_env
 
         !> Number of q-vectors
         integer(i32) :: n_qvecs
-        !> Running index (G+q)-vectors in unit cell
-        integer(i32) :: iq
+        !> Running indices
+        integer(i32) :: i, iq
         !> Name of a file
         character(256) :: fname
         !> string for filename
         character(256) :: strnum
         !> Maximum number of (G+q)-vectors per q-vector
         integer(i32) :: n_gq_max
-        !> Indices of finite q
+        !> Indices of finite \(\mathbf q\)-vectors
         integer(i32), allocatable :: indices_finite_q(:)
-        !> Index of q = 0
+        !> Indices of zero \(\mathbf q\)-vectors
         integer(i32), allocatable :: indices_zero_q(:)
-        !> Dummy index for creating integer array
-        integer(i32) :: i
 
         n_gq_max = maxval(n_gqvecs)
-
         n_qvecs = size(n_gqvecs)
 
-        ! Find indices of zero and finite q-vectors, respectively
-        indices_finite_q = pack([(i, i=1, n_qvecs)], norm2(qvecs_cart, dim=1) > 1.e-9_dp)
-        indices_zero_q = pack([(i, i=1, n_qvecs)], norm2(qvecs_cart, dim=1) < 1.e-9_dp)
+        ! Find indices of zero and finite q-vectors, respectively        
+        indices_finite_q = pack(mesh_1d(1, n_qvecs), norm2(qvecs_cart, dim=1) > 1.e-9_dp)
+        indices_zero_q = pack(mesh_1d(1, n_qvecs), norm2(qvecs_cart, dim=1) <= 1.e-9_dp)
 
         allocate (eps_body(n_gq_max, n_gq_max, n_qvecs), source=zzero)
         allocate (eps_head(3, 3))
         allocate (eps_wings(n_gqvecs(indices_zero_q(1)), 2, 3))
 
-        if (mpiglobal%is_root) then
+        if (mpi_env%is_root) then
 
             ! Read DM for q = 0
             iq = indices_zero_q(1)
@@ -544,9 +546,9 @@ contains
         end if
 
         ! Broadcast dielectric matrix to all processes
-        call xmpi_bcast(mpiglobal, eps_head)
-        call xmpi_bcast(mpiglobal, eps_wings)
-        call xmpi_bcast(mpiglobal, eps_body)
+        call xmpi_bcast(mpi_env, eps_head)
+        call xmpi_bcast(mpi_env, eps_wings)
+        call xmpi_bcast(mpi_env, eps_body)
 
     end subroutine
 

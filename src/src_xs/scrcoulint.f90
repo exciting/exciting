@@ -419,13 +419,6 @@ subroutine scrcoulint(iqmt, fra)
     & Calculating W(G1,G2,qr) fourier coefficients")')
   call timesec(tscc0)
 
-#ifndef MPI
-  if(mpiglobal%rank == 0) then
-    write(6, '(a)', advance="no") "Calculating Screened Coulomb Potential"
-    flush(6)
-  end if
-#endif
-
   do iqr = qpari, qparf ! Reduced q
 
     ! Locate reduced q-point in non-reduced set
@@ -446,12 +439,6 @@ subroutine scrcoulint(iqmt, fra)
     filext = fileext_ematrad_write
     call putematrad(iqr, iqrnr)
   end do
-
-#ifndef MPI
-  if(mpiglobal%rank == 0) then
-    write(6, *)
-  end if
-#endif
 
   ! Set file extesion for later read EMATRAD in getematrad
   ! (some ranks may not participate in the qr loop above)
@@ -563,13 +550,6 @@ subroutine scrcoulint(iqmt, fra)
   bsedt(1, :) = 1.d8
   bsedt(2, :) = -1.d8
   bsedt(3, :) = zzero
-
-#ifndef MPI
-  if(mpiglobal%rank == 0) then
-      write(6, '(a)', advance="no") "Calculating Screened Coulomb Matrix Elements"
-      flush(6)
-    end if
-#endif
 
   kkploop: do ikkp = ppari, pparf
 
@@ -936,11 +916,6 @@ subroutine scrcoulint(iqmt, fra)
   deallocate(bsedt)
   !   Write BSE kernel diagonal parameters
   if(mpiglobal%rank .eq. 0) call putbsediag('BSEDIAG.OUT')
-#ifndef MPI 
-  if(mpiglobal%rank == 0) then
-    write(6, *)
-  end if
-#endif
   if(allocated(igqmap)) deallocate(igqmap)
   if(allocated(wfc)) deallocate(wfc)
 

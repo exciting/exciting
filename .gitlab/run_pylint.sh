@@ -31,7 +31,10 @@ do
   # F0001 disables import errors. This is a workaround for when files
   # have been deleted between commits (and there's nothing 
   # check in that instance)
-  error_msg=$(pylint -E --disable=F0001 "$file")
+  # E0402 checks for relative imports beyond top-level package
+  # E0401 checks more imports
+  # E0001 are syntax errors, needed for the old python2 scripts
+  error_msg=$(pylint -E --disable=F0001 --disable=E0402 --disable=E0401 --disable=E0001 "$file")
   # pylint returns nothing if there are no errors
   if [ -n "$error_msg" -a "$error_msg" != " " ]; then
       echo "pylint has experienced an error:"

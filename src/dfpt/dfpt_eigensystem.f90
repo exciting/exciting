@@ -36,7 +36,7 @@ module dfpt_eigensystem
   !> radial muffin-tin integrals times Gaunt coefficients for Hamiltonian matrix \(H\)
   complex(dp), allocatable, public :: Hmat_mt_basis(:,:,:)
   !> characteristic function in reciprocal space
-  complex(dp), allocatable :: cfun_ig(:)
+  complex(dp), allocatable, public :: cfun_ig(:)
   !> interstitial effective potential times characteristic function in reciprocal space
   complex(dp), allocatable :: pot_cfun_ig(:)
   !> interstitial (scalar relativistic) kinetic energy times characteristic function in reciprocal space

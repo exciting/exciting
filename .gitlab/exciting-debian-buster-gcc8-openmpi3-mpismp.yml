@@ -14,7 +14,7 @@ build:debian-buster-GCC8-mpiandsmp:
  tags:
    - docker
  script:
-   - cp build/platforms/make.inc.gfortran build/make.inc
+   - cp build/platforms/make.inc.gfortran8-9 build/make.inc
    - make mpiandsmp -j 2
  artifacts:
    paths:

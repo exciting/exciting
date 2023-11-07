@@ -2,24 +2,24 @@
 !> of the force acting on the nuclei in the crystal upon a phonon-like
 !> perturbation \(\delta^{\bf q}_{I \mu}\).
 !>
-!> The response of the force \({\bf F}_\beta\) acting on nuclei \(\beta\)
-!> upon a canonical phonon-like perturbation \(\delta^{\bf q}_{\alpha i}\)
+!> The response of the force \({\bf F}_\kappa'\) acting on nuclei \(\kappa'\)
+!> upon a canonical phonon-like perturbation \(\delta^{\bf q}_{\kappa\alpha}\)
 !> reads
-!> \[ \delta^{\bf q}_{\alpha i} F_{\beta j}
+!> \[ \delta^{\bf q}_{\kappa\alpha} F_{\kappa\beta}
 !>    = \sum_{\bf R} {\rm e}^{{\rm i}{\bf q}\cdot{\bf R}}\,
-!>      \frac{\partial F_{\beta j}}{\partial \tau_{\alpha {\bf R} i}}
+!>      \frac{\partial F_{\kappa\beta}}{\partial \tau_{\kappa {\bf R} i}}
 !>    = \sum_{\bf R} {\rm e}^{{\rm i}{\bf q}\cdot{\bf R}}\,
-!>      \frac{\partial^2 E}{\partial \tau_{\alpha {\bf R} i}\, \partial \tau_{\beta {\bf 0} j}}
+!>      \frac{\partial^2 E}{\partial \tau_{\kappa {\bf R} i}\, \partial \tau_{\kappa' {\bf 0} j}}
 !>    = \sum_{\bf R} {\rm e}^{{\rm i}{\bf q}\cdot{\bf R}}\,
-!>      \Phi_{\alpha i, \beta j}({\bf R},{\bf 0})
-!>    = \sqrt{M_\alpha M_\beta}\, D_{\alpha i, \beta j}({\bf q}) \;, \]
+!>      \Phi_{\kappa\alpha, \kappa\beta}({\bf R},{\bf 0})
+!>    = \sqrt{M_\kappa M_\kappa'}\, D_{\kappa\alpha, \kappa\beta}({\bf q}) \;, \]
 !> which is exactly the Fourier transform of the interatomic force constants
 !> \({\bf \Phi}({\bf R},{\bf R}')\) and hence directly give
 !> the entries of the dynamical matrix \({\bf D}({\bf q})\).
 !>
 !> The total force can be separated into three terms: The Hellmann-Feynman
-!> force \({\bf F}^{\rm HF}_\beta\), the Pulay force \({\bf F}^{\rm Pulay}_\beta\)
-!> and the surface force \({\bf F}^{\rm SF}_\beta\).
+!> force \({\bf F}^{\rm HF}_\kappa'\), the Pulay force \({\bf F}^{\rm Pulay}_\kappa'\)
+!> and the surface force \({\bf F}^{\rm SF}_\kappa'\).
 !> The Pulay force has two origins. First, that the wavefunctions are only
 !> variational eigenfunctions of the Hamiltonian and second, that we use
 !> an atom position dependent basis and partitioning of the unit cell.
@@ -44,15 +44,15 @@ module phonons_force
     !> of the Pulay force response coming from the given \({\bf k}\) point.
     !>
     !> The Pulay force is given by
-    !> \[ F^{\rm Pulay}_{\beta j}
+    !> \[ F^{\rm Pulay}_{\kappa\beta}
     !>    = \sum\limits_{n,{\bf k}}^{\rm valence} w_{\bf k}\, f_{n{\bf k}} \left[
     !>      \langle \psi_{n{\bf k}} | \hat{\bf H} - \epsilon_{n{\bf k}} | 
-    !>      \breve{\bar{\psi}}\phantom{}^{\beta j}_{n{\bf k}} \rangle_{{\rm MT}\beta}
-    !>    + \langle \breve{\bar{\psi}}\phantom{}^{\beta j}_{n{\bf k}} |
-    !>      \hat{\bf H} - \epsilon_{n{\bf k}} | \psi_{n{\bf k}} \rangle_{{\rm MT}\beta} \right]
-    !>    - \int\limits_{{\rm MT}\beta} \nabla_j n({\bf r})\, V_{\rm eff}({\bf r})\, {\rm d}{\bf r} \;, \]
-    !> where \(\breve{\bar{\psi}}\phantom{}^{\beta j}_{n{\bf k}}\) is the contribution
-    !> to \(\frac{{\rm d} \psi_{n{\bf k}}}{{\rm d} \tau_{\beta j}}\) that comes from 
+    !>      \breve{\bar{\psi}}\phantom{}^{\kappa\beta}_{n{\bf k}} \rangle_{{\rm MT}\kappa'}
+    !>    + \langle \breve{\bar{\psi}}\phantom{}^{\kappa\beta}_{n{\bf k}} |
+    !>      \hat{\bf H} - \epsilon_{n{\bf k}} | \psi_{n{\bf k}} \rangle_{{\rm MT}\kappa'} \right]
+    !>    - \int\limits_{{\rm MT}\kappa'} \nabla_\beta n({\bf r})\, V_{\rm eff}({\bf r})\, {\rm d}{\bf r} \;, \]
+    !> where \(\breve{\bar{\psi}}\phantom{}^{\kappa\beta}_{n{\bf k}}\) is the contribution
+    !> to \(\frac{{\rm d} \psi_{n{\bf k}}}{{\rm d} \tau_{\kappa\beta}}\) that comes from 
     !> the change in the matching coefficients, i.e., the soft part of the basis function
     !> change.
     !>
@@ -88,9 +88,9 @@ module phonons_force
       complex(dp), intent(in) :: eveck(:,:)
       !> eigenvector response at \({\bf k}\)
       complex(dp), intent(in) :: deveck(:,:)
-      !> (L)APW matching coefficients \(A^\alpha_{{\bf G+p},lm,\xi}\) at \({\bf k}\) and \({\bf k+q}\)
+      !> (L)APW matching coefficients \(A^\kappa_{{\bf G+p},lm,\xi}\) at \({\bf k}\) and \({\bf k+q}\)
       complex(dp), intent(in) :: apwalmk(:,:,:,:), apwalmkq(:,:,:,:)
-      !> displacement pattern \(p^{I \mu}_{\alpha i}({\bf q})\)
+      !> displacement pattern \(p^{I \mu}_{\kappa\alpha}({\bf q})\)
       complex(dp), intent(in) :: pat(3, natmtot)
       !> true for Gamma point phonons
       logical, intent(in) :: gamma
@@ -231,14 +231,14 @@ module phonons_force
     !> of the Surface force response coming from the given \({\bf k}\) point.
     !>
     !> The Surface force is given by
-    !> \[ F^{\rm SF}_{\beta j}
+    !> \[ F^{\rm SF}_{\kappa\beta}
     !>    = \sum\limits_{n,{\bf k}}^{\rm valence} w_{\bf k}\, f_{n{\bf k}}\,
-    !>      \oint\limits_{\partial{\rm MT}\beta} \left[
+    !>      \oint\limits_{\partial{\rm MT}\kappa'} \left[
     !>      \psi_{n{\bf k}}^\ast({\bf r}) \left[ \hat{\bf T} - \epsilon_{n{\bf k}} \right]
-    !>      \psi_{n{\bf k}}({\bf r}) \right]_{\rm IR} \hat{e}_j\, {\rm d}S
-    !>    - \oint\limits_{\partial{\rm MT}\beta} \left[ n({\bf r})
+    !>      \psi_{n{\bf k}}({\bf r}) \right]_{\rm IR} \hat{e}_\beta\, {\rm d}S
+    !>    - \oint\limits_{\partial{\rm MT}\kappa'} \left[ n({\bf r})
     !>      \left( V_{\rm C}({\bf r}) + \epsilon_{\rm xc}({\bf r}) \right) \right]_{\rm SF}
-    !>      \hat{e}_j\, {\rm d}S \;. \]
+    !>      \hat{e}_\beta\, {\rm d}S \;. \]
     !>
     !> This subroutine computes the response of the contribution from a single \({\bf k}\) 
     !> point to the first term upon a phonon-like perturbation \(\delta^{\bf q}_{I \mu}\).
@@ -275,7 +275,7 @@ module phonons_force
       complex(dp), intent(in) :: eveck(:,:)
       !> eigenvector response at \({\bf k}\)
       complex(dp), intent(in) :: deveck(:,:)
-      !> displacement pattern \(p^{I \mu}_{\alpha i}({\bf q})\)
+      !> displacement pattern \(p^{I \mu}_{\kappa\alpha}({\bf q})\)
       complex(dp), intent(in) :: pat(3, natmtot)
       !> true for Gamma point phonons
       logical, intent(in) :: gamma
@@ -430,13 +430,13 @@ module phonons_force
     !> to the Pulay force response.
     !>
     !> The Pulay force is given by
-    !> \[ F^{\rm Pulay}_{\beta j}
+    !> \[ F^{\rm Pulay}_{\kappa\beta}
     !>    = \sum\limits_{n,{\bf k}}^{\rm valence} w_{\bf k}\, f_{n{\bf k}} \left[
     !>      \langle \psi_{n{\bf k}} | \hat{\bf H} - \epsilon_{n{\bf k}} | 
-    !>      \breve{\bar{\psi}}\phantom{}^{\beta j}_{n{\bf k}} \rangle_{{\rm MT}\beta}
-    !>    + \langle \breve{\bar{\psi}}\phantom{}^{\beta j}_{n{\bf k}} |
-    !>      \hat{\bf H} - \epsilon_{n{\bf k}} | \psi_{n{\bf k}} \rangle_{{\rm MT}\beta} \right]
-    !>    - \int\limits_{{\rm MT}\beta} \nabla_j n({\bf r})\, V_{\rm eff}({\bf r})\, {\rm d}{\bf r} \;. \]
+    !>      \breve{\bar{\psi}}\phantom{}^{\kappa\beta}_{n{\bf k}} \rangle_{{\rm MT}\kappa'}
+    !>    + \langle \breve{\bar{\psi}}\phantom{}^{\kappa\beta}_{n{\bf k}} |
+    !>      \hat{\bf H} - \epsilon_{n{\bf k}} | \psi_{n{\bf k}} \rangle_{{\rm MT}\kappa'} \right]
+    !>    - \int\limits_{{\rm MT}\kappa'} \nabla_\beta n({\bf r})\, V_{\rm eff}({\bf r})\, {\rm d}{\bf r} \;. \]
     !>
     !> This subroutine computes the response of the second integral term upon a 
     !> phonon-like perturbation \(\delta^{\bf q}_{I \mu}\).
@@ -494,12 +494,12 @@ module phonons_force
 
     !> This subroutine calculates the response of the Hellmann-Feynman force.
     !>
-    !> The Hellmann-Feynman force acting of atom \(\beta\) is defined as the negative 
+    !> The Hellmann-Feynman force acting of atom \(\kappa'\) is defined as the negative 
     !> gradient of the Coulomb potential induced by all charges except the nucleus
-    !> charge of atom \(\beta\) evaluated at the position of the nucleus
-    !> \[ F^{\rm HF}_{\beta j}
-    !>    = -Z_{\beta} \sum_{\bf R} \lim\limits_{{\bf r} \rightarrow {\bf \tau}_{\beta {\bf R}}}
-    !>      \nabla_j \left[ \sum_{\alpha \neq \beta} \frac{Z_{\alpha}}{|{\bf r}-{\bf \tau}_\alpha|} 
+    !> charge of atom \(\kappa'\) evaluated at the position of the nucleus
+    !> \[ F^{\rm HF}_{\kappa\beta}
+    !>    = -Z_{\kappa'} \sum_{\bf R} \lim\limits_{{\bf r} \rightarrow {\bf \tau}_{\kappa' {\bf R}}}
+    !>      \nabla_\beta \left[ \sum_{\kappa \neq \kappa'} \frac{Z_{\kappa}}{|{\bf r}-{\bf \tau}_\kappa|} 
     !>      -\int \frac{n({\bf r}')}{|{\bf r}-{\bf r}'|} {\rm d}{\bf r}' \right] \;. \]
     !>
     !> This subroutine computes the response of the Hellmann-Feynman force upon a 
@@ -558,7 +558,7 @@ module phonons_force
     !> in the basis of an irrep. See also [[phonons_symmetry(module)]].
     !>
     !> If `acoustic_sum_rule=.true.`, then the acoustic sum rule is imposed, i.e.,
-    !> \[ \sum \delta^{\bf q}_{I \mu} {\bf F}_{\beta} = 0 \;. \]
+    !> \[ \sum \delta^{\bf q}_{I \mu} {\bf F}_{\kappa'} = 0 \;. \]
     !> Note, that this only holds for \({\bf q} = {\bf 0}\).
     subroutine ph_frc_symmetrize( dforce, vql, dirrep, nsym, isym, ivsym, symmat, &
         acoustic_sum_rule )

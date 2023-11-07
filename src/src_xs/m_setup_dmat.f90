@@ -101,7 +101,7 @@ module m_setup_dmat
             end do
           end do
           !$OMP END PARALLEL DO
-        end if 
+        end if
       end do
       call timesec(t1)
       if (input%xs%BSE%outputlevelnumber == 1) &
@@ -127,8 +127,7 @@ module m_setup_dmat
         !   \sqrt{|f_{o_a,k_a}-f_{u_a,k_a}|} *
         !     i * P^j_{u_a,o_a,k_a} /(e_{u_a, k_a} - e_{o_a, k_a}) 
         ! Note: The scissor does not enter here, so subtract it again.
-        dmat(a1, :) = zi * ofac(a1)&
-          &*pmuok(:, iu, io, ik)/(de(a1)-sci)
+        dmat(a1, :) = zi * ofac(a1) * pmuok(:, iu, io, ik) / (de(a1)-sci)
       end do
       !$OMP END PARALLEL DO
 
@@ -250,6 +249,7 @@ module m_setup_dmat
           m = kousize(iknr)
           n = 3
 
+
           !!***********************!!
           !! READ AND PREPARE DATA !! 
           !!***********************!!
@@ -273,7 +273,8 @@ module m_setup_dmat
                 & iuabs1, iuabs2, ioabs1, ioabs2,&
                 & .true., 'PMAT_XS.OUT', pmuo(:,1:inu,1:ino))
             end if
-
+            
+            
             ! Din: Renormalise pm according to Del Sole PRB48, 11789(1993)
             ! \frac{v^\text{QP}_{okuk}}{E_uk - E_ok} \approx \frac{p^\text{LDA}_{okuk}}{e_uk - e_ok}
             !   In the case that we use the quasi-particle energies E but the LDA eigenfunctions:
@@ -284,14 +285,12 @@ module m_setup_dmat
             !   The following scales the LDA momentum matrix elements so that 3) is 
             !   true for calculations on top of LDA or GW (Eigenvalues only).
             if(associated(input%gw)) then
-              !$OMP PARALLEL DO &
-              !$OMP& COLLAPSE(2) &
-              !$OMP& DEFAULT(SHARED), PRIVATE(io,iu)
+              !$OMP PARALLEL DO COLLAPSE(2) DEFAULT(SHARED), PRIVATE(io,iu) 
               do io = 1, ino
                 do iu = 1, inu
-                  pmuo(:,iu,io) = pmuo(:,iu,io)&
-                    &* (evalsv(iuabs1+iu-1,iknr) - evalsv(ioabs1+io-1,iknr))&
-                    &/ (eval0(iuabs1+iu-1,iknr) - eval0(ioabs1+io-1,iknr))
+                  pmuo(:,iu,io) = pmuo(:,iu,io) &
+                    * (evalsv(iuabs1+iu-1,iknr) - evalsv(ioabs1+io-1,iknr)) &
+                    / (eval0(iuabs1+iu-1,iknr) - eval0(ioabs1+io-1,iknr))
                 end do
               end do
               !$OMP END PARALLEL DO

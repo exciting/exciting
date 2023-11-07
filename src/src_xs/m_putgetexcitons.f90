@@ -424,8 +424,8 @@ module m_putgetexcitons
       call mpi_bcast(ioref_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
       call mpi_bcast(iuref_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
       call mpi_bcast(iq_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(vqlmt_,shape(vqlmt_), MPI_DOUBLE_PRECISION,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(ngridk_,shape(ngridk_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(vqlmt_,size(vqlmt_), MPI_DOUBLE_PRECISION,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(ngridk_,size(ngridk_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
 #endif
 #else
       ! Read Meta data
@@ -499,16 +499,16 @@ module m_putgetexcitons
         call hdf5_read(fhdf5,gname_,"evals",evalstmp(1), shape(evalstmp))
 #ifdef MPI
       end if
-      call mpi_bcast(ikmap_,shape(ikmap_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(ik2ikqmtm_,shape(ik2ikqmtm_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(ik2ikqmtp_,shape(ik2ikqmtm_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(kousize_,shape(kousize_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(koulims_,shape(koulims_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(smap_,shape(smap_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(smap_rel_,shape(smap_rel_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(vkl0_,shape(vkl0_), MPI_REAL,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(vkl_,shape(vkl_), MPI_REAL,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(evalstmp,shape(evalstmp), MPI_REAL,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(ikmap_,size(ikmap_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(ik2ikqmtm_,size(ik2ikqmtm_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(ik2ikqmtp_,size(ik2ikqmtm_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(kousize_,size(kousize_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(koulims_,size(koulims_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(smap_,size(smap_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(smap_rel_,size(smap_rel_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(vkl0_,size(vkl0_), MPI_REAL,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(vkl_,size(vkl_), MPI_REAL,0,mpiglobal%comm,mpiglobal%ierr)
+      call mpi_bcast(evalstmp,size(evalstmp), MPI_REAL,0,mpiglobal%comm,mpiglobal%ierr)
 #endif
 #else
       read(unexc, pos=mypos)&
@@ -595,11 +595,11 @@ module m_putgetexcitons
 
 #ifdef _HDF5_
 #ifdef MPI
-    call mpi_bcast(evals_, shape(evals_), MPI_DOUBLE_COMPLEX,0, mpiglobal%comm,mpiglobal%ierr)
-    call mpi_bcast(rvec_, shape(rvec_), MPI_DOUBLE_COMPLEX,0, mpiglobal%comm,mpiglobal%ierr)
+    call mpi_bcast(evals_, size(evals_), MPI_DOUBLE_COMPLEX,0, mpiglobal%comm,mpiglobal%ierr)
+    call mpi_bcast(rvec_, size(rvec_), MPI_DOUBLE_COMPLEX,0, mpiglobal%comm,mpiglobal%ierr)
     call mpi_bcast(nk_bse_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
     call mpi_bcast(iuref_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-    call mpi_bcast(koulims_,shape(koulims_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
+    call mpi_bcast(koulims_,size(koulims_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
 #endif
 #endif
 

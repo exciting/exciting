@@ -110,9 +110,11 @@ def read_schema_to_dict(name: str) -> dict:
         mandatory_attributes = set([k for k, v in attributes.items() if v.use == "required"])
         children = [x.name for x in xsd_element.iterchildren() if not isinstance(x, XsdAnyElement)]
         mandatory_children = set([x.name for x in xsd_element.iterchildren() if x.min_occurs > 0])
+        multiple_childs = set([x.name for x in xsd_element.iterchildren() if x.max_occurs is None or x.max_occurs > 1])
 
         tag_info[xsd_element.name] = {"attribs": filter(lambda x: x is not None, attributes), "children": children,
-                                      "mandatory_attribs": mandatory_attributes | mandatory_children}
+                                      "mandatory_attribs": mandatory_attributes | mandatory_children,
+                                      "multiple_children": multiple_childs}
 
         # special handling for the plan
         if xsd_element.name == "doonly":
@@ -123,9 +125,6 @@ def read_schema_to_dict(name: str) -> dict:
         tag_info["structure"]["mandatory_attribs"].remove("crystal")
         tag_info["crystal"]["mandatory_attribs"].remove("basevect")
         tag_info["species"]["mandatory_attribs"].remove("atom")
-    # exclude 'point' since user defined class already defines this in the __init__
-    if name == "common":
-        tag_info["path"]["mandatory_attribs"].remove("point")
 
     return tag_info
 
@@ -142,6 +141,7 @@ def write_schema_info(super_tag: str, schema_dict: dict) -> str:
         valid_attributes = sorted(schema_dict[tag]["attribs"])
         valid_subtrees = schema_dict[tag]['children']
         mandatory_attributes = sorted(schema_dict[tag]['mandatory_attribs'])
+        multiple_childs = sorted(schema_dict[tag]['multiple_children'])
 
         if not (valid_attributes or valid_subtrees or mandatory_attributes):
             continue
@@ -152,6 +152,8 @@ def write_schema_info(super_tag: str, schema_dict: dict) -> str:
             info_string += list_string_line_limit(f"{tag}_valid_subtrees", valid_subtrees) + " \n"
         if mandatory_attributes:
             info_string += list_string_line_limit(f"{tag}_mandatory_attributes", mandatory_attributes) + " \n"
+        if multiple_childs:
+            info_string += list_string_line_limit(f"{tag}_multiple_children", multiple_childs) + " \n"
         info_string += "\n"
     return info_string
 

@@ -673,6 +673,7 @@ isspinspiral=.true.
 endif
 endif
 end function
+
 function issvlo()
 logical::issvlo
 issvlo=.false.
@@ -682,7 +683,6 @@ issvlo=.true.
 endif
 endif
 end function
-
 
 function getfixspinnumber()
 implicit none

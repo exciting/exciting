@@ -183,5 +183,4 @@ ground_state_tolerances = {'INFO.OUT': info_out,
                            'eigval.xml': eigval,
                            'evalcore.xml': evalcore,
                            'atoms.xml': atoms,
-                           'geometry.xml': geometry
-                           }
+                           'geometry.xml': geometry}

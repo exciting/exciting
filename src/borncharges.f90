@@ -84,94 +84,35 @@ subroutine borncharges( pol, disp, zstar, sumrule, mode)
   contains
     subroutine put( z)
       use mod_misc, only: filext
-      use m_getunit
+      use phonons_io_util, only: ph_io_write_borncharge
       real(8), intent( in) :: z(3,3,0:natmtot)
 
-      integer :: un
+      logical :: success
 
-      if( mpiglobal%rank == 0) then
-        call getunit( un)
-        open( un, file='ZSTAR'//trim( filext), action='write', form='formatted')
-        write( un, '("# Born effective charges")')
-        if( sumrule) write( un, '("# Note: Acoustic sum rule was automatically imposed.")')
-        do is = 1, nspecies
-          do ia = 1, natoms( is)
-            ias = idxas( ia, is)
-            call r3mv( ainv, atposc(:,ia,is), vr)
-            write( un,'("# Species ",i2,"  Atom ",i2," (",a2,i2") : ",3f13.6)') is, ia, spsymb( is), ia, vr
-            do ip = 1, 3
-              write( un, '(3f16.6)') z(ip,:,ias)
-            end do
-          end do
-        end do
-        if( sumrule) then
-          write( un, '("# acoustic sum rule correction")')
-          do ip = 1, 3
-            write( un, '(3f16.6)') z(ip,:,0)
-          end do
-        end if
-        close( un)
-      end if
+      call ph_io_write_borncharge( z(:, :, 1:natmtot), 'ZSTAR'//trim( filext ), success, &
+        sumrule_correction=z(:, :, 0) )
       call barrier
-
-      return
     end subroutine
 
     subroutine get( z)
-      use m_getunit
       use mod_misc, only: filext
+      use phonons_io_util, only: ph_io_read_borncharge
       real(8), intent( out) :: z(3,3,0:natmtot)
       
-      integer :: un, i, l, ias
-      character(256) :: fname, buf
-      logical :: exist
+      logical :: success
+      real(8) :: corr(3, 3)
+      real(8), allocatable :: borncharge(:, :, :)
 
-      z = 0.d0
-      write( fname, '("ZSTAR")')
-      fname = trim( fname)//trim( filext)
-      inquire( file=trim( fname), exist=exist)
-      if( .not. exist) then
-        if( mpiglobal%rank == 0) then
-          write(*,*)
-          write(*,'("Error (borncharges): File ",a," does not exist.")') trim( fname)
-        end if
-        call terminate
-      end if
-      call getunit( un)
-      open( un, file=trim( fname), status='old', form='formatted')
-      l = 0; ias = 0
-      do
-        read( un, '(a)', iostat=i) buf
-        if( i /= 0) exit
-        if( (buf( 1:1) == '#') .or. (len( trim( buf)) == 0)) cycle
-        if( modulo( l, 3) == 0) ias = ias + 1
-        if( ias <= natmtot) then
-          i = modulo( l, 3) + 1
-          read( buf, *) z(i,1,ias), z(i,2,ias), z(i,3,ias)
-        end if
-        if( ias == natmtot+1) then
-          i = modulo( l, 3) + 1
-          read( buf, *) z(i,1,0), z(i,2,0), z(i,3,0)
-        end if
-        l = l + 1
-      end do
-      close( un)
+      call ph_io_read_borncharge( borncharge, 'ZSTAR'//trim( filext ), success, &
+        sumrule_correction=corr )
+      z(:, :, 0) = corr
+      z(:, :, 1:natmtot) = borncharge
 
-      if( (ias > natmtot) .and. .not. sumrule) then
+      if( .not. sumrule ) then
         do ias = 1, natmtot
           z(:,:,ias) = z(:,:,ias) + z(:,:,0)
         end do
       end if
-      if( sumrule) ias = ias - 1
-      if( ias < natmtot) then
-        if( mpiglobal%rank == 0) then
-          write(*,*)
-          write(*,'("Error (borncharges): File ",a," contains not enough data.")') trim( fname)
-        end if
-        call terminate
-      end if
-
-      return
     end subroutine
 end subroutine borncharges
 !EOC

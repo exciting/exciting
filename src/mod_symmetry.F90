@@ -251,5 +251,82 @@ Module mod_symmetry
         zfig2(jgf) = zfig2(jgf) + cmplx( cos(phase), sin(phase), dp)*zfig1(igf)
       end do    
     end subroutine symapp_zfig
+
+    !> Find all pairs of points and rotations from a list of points and rotations that 
+    !> are symmetry equivalent to a given target point.
+    !>
+    !> Points \({\bf p}\) and \({\bf p}'\) are symmetry equivalent, if there is
+    !> a rotation \({\bf R}\) such that
+    !> \[ {\bf R}({\bf p} + {\bf G}) = {\bf p}' \;, \]
+    !> where \({\bf G}\) is an integer vector.
+    pure subroutine find_equivalent_wavevectors( &
+        dim, point, pointlist, npt, rotations, nrot, &
+        equiv_point_idx, rotation_idx, &
+        integer_vectors, tolerance, first_only )
+      use precision, only: dp
+      !> spatial dimension
+      integer, intent(in) :: dim
+      !> wavevector \({\bf p}'\) whos equivalents to find (in lattice coordiantes)
+      real(dp), intent(in) :: point(dim)
+      !> number of wavevectors in list
+      integer, intent(in) :: npt
+      !> list of wavevectors \({\bf p}\) to search in (in lattice coordiantes)
+      real(dp), intent(in) :: pointlist(dim, *)
+      !> number of allowed rotations
+      integer, intent(in) :: nrot
+      !> allowed rotation matrices \({\bf R}\) (in lattice coordinates)
+      integer, intent(in) :: rotations(dim, dim, *)
+      !> list of indices of equivalent points in list
+      integer, allocatable, intent(out) :: equiv_point_idx(:)
+      !> list of rotations that rotate quivalent point into target point
+      integer, allocatable, intent(out) :: rotation_idx(:)
+      !> list of integer integer vectors \({\bf G}\)
+      integer, allocatable, optional, intent(out) :: integer_vectors(:, :)
+      !> tolerance for two points beeing equivalent (default: `1e-12`)
+      real(dp), optional, intent(in) :: tolerance
+      !> return only first equivalent point and rotation (default: `.false.`)
+      logical, optional, intent(in) :: first_only
+    
+      integer :: nequiv, ipt, irot, idiff(dim)
+      real(dp) :: tol, rot_point(dim), diff(dim)
+      logical :: first
+    
+      integer, allocatable :: tmp(:, :)
+    
+      ! set tolerance
+      tol = 1e-12_dp
+      if( present( tolerance ) ) tol = tolerance
+    
+      ! return after first pair was found
+      first = .false.
+      if( present( first_only ) ) first = first_only
+    
+      allocate( tmp(npt*nrot, 2+dim) )
+    
+      nequiv = 0
+      outer: do irot = 1, nrot
+        ! p' = R.p in Cartesian <==> p = R^T.p' in lattice
+        ! multiply matrix from right == multiply transpose from left
+        rot_point = matmul( point, rotations(:, :, irot) )
+        do ipt = 1, npt
+          diff =  rot_point - pointlist(:, ipt)
+          idiff = nint( diff )
+          ! check if points differ by an integer vector
+          if( any( abs( diff - idiff ) > tol ) ) cycle
+          ! add to list of equivalent points
+          nequiv = nequiv + 1
+          tmp(nequiv, 1:2) = [ipt, irot]
+          tmp(nequiv, 3:) = idiff
+          if( first ) exit outer
+        end do
+      end do outer
+    
+      allocate( equiv_point_idx, source=tmp(1:nequiv, 1) )
+      allocate( rotation_idx, source=tmp(1:nequiv, 2) )
+      if( present( integer_vectors ) ) &
+        allocate( integer_vectors, source=transpose( tmp(1:nequiv, 3:) ) )
+    
+      deallocate( tmp )
+    end subroutine find_equivalent_wavevectors
 End Module
 !

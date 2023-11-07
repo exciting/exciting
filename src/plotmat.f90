@@ -34,7 +34,7 @@ module m_plotmat
         do y = 1, sy-1
           write( *, '(SP,E23.16,E23.16,"*1i, ")', advance='no') mat( x, y)
         end do
-        write( *, '(SP,E23.16,E23.16,"*1i];")', advance='no') mat( x, y)
+        write( *, '(SP,E23.16,E23.16,"*1i];")' ) mat( x, y)
       else
         do x = 1, sx
           do y = 1, sy

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<evalcore>
+  <species is="1" chemicalSymbol="Si">
+    <atom ia="1">
+      <state ist="1" n="1" l="0" k="0" eigenvalue="-6.495665505314e1"/>
+      <state ist="2" n="2" l="0" k="0" eigenvalue="-4.709458244705e0"/>
+      <state ist="3" n="2" l="1" k="1" eigenvalue="-3.139293001089e0"/>
+      <state ist="4" n="2" l="1" k="1" eigenvalue="-3.115572110146e0"/>
+    </atom>
+    <atom ia="2">
+      <state ist="1" n="1" l="0" k="0" eigenvalue="-6.495665443925e1"/>
+      <state ist="2" n="2" l="0" k="0" eigenvalue="-4.709457787449e0"/>
+      <state ist="3" n="2" l="1" k="1" eigenvalue="-3.139292537111e0"/>
+      <state ist="4" n="2" l="1" k="1" eigenvalue="-3.115571647123e0"/>
+    </atom>
+  </species>
+</evalcore>

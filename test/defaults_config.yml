@@ -72,6 +72,10 @@ default_files_under_test:
       - "wf2d-????-????.xsf"
       - "wf3d-????-????.xsf"
       - "wf3d-????-????.cube"
+# TODO(Bene #160): 
+# Fix fastBSE test      
+#   fastBSE:
+#      - "fastBSE_test.h5"
 
 
 # Specify each new group.
@@ -83,5 +87,6 @@ group_execution:
   GW_INTEL: False
   LIBXC: True
   SIRIUS: False
+  HDF5: False
   # Do not run (useful for disabling in the CI)
   NORUN: False

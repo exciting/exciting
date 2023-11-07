@@ -61,8 +61,9 @@
 !> </li>
 !> </ol>
 module rttddft_Energy
-
+  use hermitian_matrix_multiplication, only: hermitian_matrix_multiply
   use precision, only: dp
+  use vector_multiplication, only: dot_multiply
 
   implicit none
 
@@ -150,11 +151,9 @@ contains
     real(dp)                        :: rfinp
     complex(dp)                     :: acc(nstfv)
     complex(dp),allocatable         :: scratch(:,:),occcmplx(:)
-    complex(dp)                     :: zdotc
 
 
     allocate(scratch(nmatmax,nmatmax))
-
 
     ! contribution of XC and Coulomb potentials, \( v_H \) and \( v_{XC} \), respectively
     rt_tddft_energy%Coulomb = rfinp (1, rhomt, vclmt, rhoir, vclir)
@@ -190,19 +189,16 @@ contains
 #endif
     do ik = first_kpt, last_kpt
       nmatp = nmat(1,ik)
-      ! C := alpha*A*B + beta*C, A hermitian
-      ! ZHEMM(SIDE,UPLO,M,N,ALPHA,A,LDA,B,LDB,BETA,C,LDC)
-      call ZHEMM( 'L', 'U', nmatp, nstfv, zone, ham(:,:,ik), nmatmax, evec(:,:,ik), &
-        & nmatmax, zzero, scratch, nmatmax )
+      call hermitian_matrix_multiply( ham(:, :, ik), evec(:, :, ik), scratch, side='L', uplo='U' )
 
       do ist = 1, nstfv
         ! If the occupation is small, we assume that the current and
         ! all other states with higher "ist" will be unoccupied
         if ( occsv(ist,ik) <= input%groundstate%epsocc ) exit
-        acc(ist) = ZDOTC( nmatp, evec(:, ist, ik), 1, scratch(:,ist), 1)
+        acc(ist) = dot_multiply( evec(1:nmatp, ist, ik), scratch(1:nmatp,ist), conjg_a=.true. )
       end do
       occcmplx(:) = occsv(:,ik)
-      aux(ik) = dble(wkpt(ik)*ZDOTC( ist, occcmplx(:), 1, acc(:), 1))
+      aux(ik) = dble( wkpt(ik)*dot_multiply(occcmplx(1:ist-1), acc(1:ist-1), conjg_a=.true.) )
     end do
 #ifdef USEOMP
 !$OMP END DO NOWAIT

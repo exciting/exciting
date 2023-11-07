@@ -251,13 +251,13 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="inttype" default="trilin">
+            <xs:attribute ex:importance="expert" ex:unit="" name="inttype" default="tetra">
               <xs:annotation>
                 <xs:documentation>
                   Defines the method that is used for evaluating BZ integrals.
-                  The default option is a trilinear interpolation (<pre>trilin</pre>) with <pre>ngrdos</pre> defining the number of interpolation points.
-                  An alternative is a partially analytic version of the trilinear interpolation (<pre>trilin+</pre>) which is more efficient for high values of <pre>ngrdos</pre> and give less noisy results.
-                  The third option is the (optimized) tetrahedron integration (<pre>tetra</pre>) which usually converges faster w.r.t. the k-point density is a about as efficient as <pre>trilin+</pre>.
+                  The default option is the (optimized) tetrahedron integration (<pre>tetra</pre>) which usually converges faster w.r.t. the k-point density.
+                  An alternative is a trilinear interpolation (<pre>trilin</pre>) with <pre>ngrdos</pre> defining the number of interpolation points.
+                  The third option is a partially analytic version of the trilinear interpolation (<pre>trilin+</pre>) which is more efficient for high values of <pre>ngrdos</pre> and give less noisy results.
                 </xs:documentation>
               </xs:annotation>
               <xs:simpleType>

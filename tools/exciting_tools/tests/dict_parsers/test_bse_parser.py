@@ -5,6 +5,7 @@ Execute tests from exciting_tools directory:
 pytest --capture=tee-sys
 """
 import pytest
+
 from excitingtools.exciting_dict_parsers.bse_parser import parse_infoxs_out
 
 infoxs_file_str_success = """================================================================================
@@ -98,7 +99,7 @@ Info(xsinit): mapping BSE-specific parameters
 """
 
 infoxs_file_str_fail = """================================================================================
-| EXCITING NITROGEN-14 started for task xsgeneigvec (301)                      =
+| EXCITING NITROGEN-14 started for task xsgeneigvec ( 301)                      =
 | version hash id: 1775bff4453c84689fb848894a9224f155377cfc                    =
 |                                                                              =
 | Date (DD-MM-YYYY) : 10-12-2020                                               =
@@ -130,7 +131,7 @@ Info(xsfinit): task Nr.     301 stopped gracefully
 ================================================================================
 
 ================================================================================
-| EXCITING NITROGEN-14 started for task writepmatxs (320)                      =
+| EXCITING NITROGEN-14 started for task writepmatxs ( 320)                      =
 | Date (DD-MM-YYYY) : 10-12-2020                                               =
 ================================================================================
 Info(writepmatxs): Momentum matrix elements finished

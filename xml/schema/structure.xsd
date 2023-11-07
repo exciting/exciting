@@ -92,6 +92,14 @@
                     </xs:annotation>
                   </xs:attribute>
 
+                  <xs:attribute ex:importance="essential" ex:unit="atomic units" name="velocity"
+                    type="vect3d" use="optional">
+                    <xs:annotation>
+                      <xs:documentation>Atom velocity in Cartesian coordinates.
+                      Used for molecular dynamics. </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+
                   <xs:attribute ex:importance="expert" ex:unit="" name="lockxyz" type="booleantriple"
                     default="false false false" use="optional">
                     <xs:annotation>

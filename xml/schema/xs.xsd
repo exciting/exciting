@@ -65,30 +65,31 @@
           </xs:complexType>
         </xs:element>
 
-        <xs:element ex:importance="expert" ex:unit="" name="scrwfplot" maxOccurs="1" minOccurs="0">
+        <xs:element ex:importance="experimental" ex:unit="" name="pwelements" maxOccurs="1" minOccurs="0">
           <xs:annotation>
-            <xs:documentation>Wavefunction plot.</xs:documentation>
+            <xs:documentation>Output planewave matrix elements.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:annotation>
-              <xs:documentation>Plot the wave function at a set of kpoints</xs:documentation>
+              <xs:documentation>Compute matrix elements of the planewave for given band combinations and write to binaray direct access file.</xs:documentation>
             </xs:annotation>
-            <xs:all>
-              <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="1" maxOccurs="1"/>
-            </xs:all>
-            <xs:attribute ex:importance="expert" ex:unit="" name="kptrange" type="integerpair">
+            <xs:attribute ex:importance="experimental" ex:unit="" name="band_combinations" use="required">
               <xs:annotation>
-                <xs:documentation>Range of k-points to be visualized.</xs:documentation>
+                <xs:documentation>Choice of band combinations.</xs:documentation>
               </xs:annotation>
-            </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="bandrange" type="integerpair">
-              <xs:annotation>
-                <xs:documentation>Range of bands to be visualized.</xs:documentation>
-              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="all"/>
+                  <xs:enumeration value="occ_unocc"/>
+                  <xs:enumeration value="unocc_occ"/>
+                  <xs:enumeration value="unocc_unocc"/>
+                  <xs:enumeration value="occ_occ"/>
+                </xs:restriction>
+              </xs:simpleType>
             </xs:attribute>
           </xs:complexType>
         </xs:element>
-        
+
         <xs:element ex:importance="expert" ex:unit="" name="writeexcitons" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>When present this element allows to write the stored exciton components (BSE eigenvectors)
@@ -557,7 +558,6 @@
 
             </xs:complexType>
           </xs:element>
-
 
         </xs:all>
 
@@ -1038,12 +1038,33 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="ngridq_interpolation" type="integertriple"
+              default="0 0 0">
+              <xs:annotation>
+                <xs:documentation><inlinemath>Coarse {\mathbf q}</inlinemath>-point from which to interpolate the dielectric matrix. Should only be used if <pre>interpolate="true".</pre> </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+             <xs:attribute ex:importance="experimental" ex:unit="" name="nqpt_unique" type="xs:integer"
+              default="0">
+              <xs:annotation>
+                <xs:documentation>Number of q-vectors for which the dielectric matrix is to be interpolated. </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="tr" type="xs:boolean"
               default="true">
               <xs:annotation>
                 <xs:documentation>
                   <attref>tr</attref> is <pre>"true"</pre> if the time reversal symmetry is used to equate the
                   anit-resonant with the resonant part of Chi0 in the case of static screening without broadening.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+             <xs:attribute ex:importance="expert" ex:unit="" name="qpointsgamma" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation>
+                  Is <pre>"true"</pre> if the dielectric matrix is only to be computed on the 
+                  q-vectors relevant in a dense k-grid.
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -1132,6 +1153,7 @@
             </xs:attribute>
           </xs:complexType>
         </xs:element>
+        
         <xs:element ex:importance="experimental" ex:unit="" name="phonon_screening" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:attribute ex:importance="experimental" ex:unit="" name="file_type" default="quantum_espresso">
@@ -1171,6 +1193,7 @@
             </xs:attribute>       
           </xs:complexType>
         </xs:element>
+
         <xs:element ex:importance="experimental" ex:unit="" name="expand_eps" minOccurs="0">
           <xs:complexType>
               <xs:attribute ex:unit="" name="supercell_1" type="integertriple"
@@ -1187,8 +1210,40 @@
             </xs:attribute>
           </xs:complexType>
         </xs:element>
+
         <xs:element ex:importance="expert" ex:unit="" name="BSE" minOccurs="0" maxOccurs="1">
           <xs:complexType>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="solver" default="direct">
+              <xs:annotation>
+                <xs:documentation>
+                  Solver that is used to solve BSE:
+                  <list>
+                      <li>direct  - setup full Hamiltonian and diagonalize it directly.</li>
+                      <li>fastBSE - fastBSE solver.</li>
+                  </list>
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="direct">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr>0</oldnr>
+                      </xs:appinfo>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="fastBSE">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr>1</oldnr>
+                      </xs:appinfo>
+                    </xs:annotation>
+                  </xs:enumeration>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
             <xs:attribute ex:importance="expert" ex:unit="" name="outputlevel" default="normal">
               <xs:annotation>
                 <xs:documentation>
@@ -1590,8 +1645,88 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            
           </xs:complexType>
         </xs:element>
+
+        <xs:element ex:importance="expert" ex:unit="" name="fastBSE" minOccurs="0" maxOccurs="1">
+          <xs:complexType>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="seed" default="clock">
+              <xs:annotation>
+                <xs:documentation>
+                  Specify the solver type for solving the BSE:
+                  <list>
+                    <li>clock - (default) Seed random number generation with the system time.</li>
+                    <li>fixed - Use always the same seed (for testing).</li>
+                  </list>
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="clock">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr>0</oldnr>
+                      </xs:appinfo>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="fixed">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr>1</oldnr>
+                      </xs:appinfo>
+                    </xs:annotation>
+                  </xs:enumeration>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="rsampling" use="optional" type="integertriple" default="5 5 5">
+              <xs:annotation>
+                <xs:documentation>
+                  Sampling of the real space grid for calculating the wavefunctions on.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="cvtsteplim" use="optional" type="xs:integer" default="100">
+              <xs:annotation>
+                <xs:documentation>
+                  Number sub matrix size
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>                
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="cvttol" use="optional" type="fortrandouble" default="1e-2">
+              <xs:annotation>
+                <xs:documentation>
+                  Tolerance for deciding if the cluster centroids are element wise the same as in the previous CVT step.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="lanczosmaxits" use="optional" type="xs:integer" default="50">
+              <xs:annotation>
+                <xs:documentation>
+                  Number Lanczos iterations
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="nisdf" use="optional" type="integertriple" default="10 10 10">
+              <xs:annotation>
+                <xs:documentation>
+                  Number ISDF interpolation points for the wavefunction pair product. The first value is used for the exchange interaction kernel,
+                  The second and third for pairs of occupied and unoccupied wavefunctions respectly, used for the calculation of the screened 
+                  interaction kernel.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+          </xs:complexType>
+        </xs:element>
+
         <xs:element ex:importance="expert" ex:unit="" name="transitions" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>Describe transitions between Kohn-Sham states for the calculation of
@@ -1834,6 +1969,7 @@
                     </xs:annotation>
                     <xs:simpleType>
                       <xs:restriction base="xs:string">
+
                         <!-- required workflow tasks below -->
                         <xs:enumeration value="xsgeneigvec">
                           <xs:annotation>
@@ -1844,6 +1980,7 @@
                               occupancies.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="tetcalccw">
                           <xs:annotation>
                             <xs:appinfo>
@@ -1853,6 +1990,7 @@
                               using the linear tetrahedron method. </xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="writepmatxs">
                           <xs:annotation>
                             <xs:appinfo>
@@ -1861,10 +1999,20 @@
                             <xs:documentation>Calculate momentum matrix elements.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="writeemat">
                           <xs:annotation>
                             <xs:appinfo>
                               <oldnr>330</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>Calculate q-dependent matrix
+                              elements.</xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="planewave_elements">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>332</oldnr>
                             </xs:appinfo>
                             <xs:documentation>Calculate q-dependent matrix
                               elements.</xs:documentation>
@@ -1879,6 +2027,7 @@
                               the code.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="df2">
                           <xs:annotation>
                             <xs:appinfo>
@@ -1890,6 +2039,7 @@
                               !</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="idf">
                           <xs:annotation>
                             <xs:appinfo>
@@ -1900,6 +2050,7 @@
                               function and other spectroscopic quantities.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="scrgeneigvec">
                           <xs:annotation>
                             <xs:appinfo>
@@ -1909,6 +2060,7 @@
                               screening</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="scrtetcalccw">
                           <xs:annotation>
                             <xs:appinfo>
@@ -1918,6 +2070,7 @@
                               using the linear tetrahedron method for screening. </xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="scrwritepmat">
                           <xs:annotation>
                             <xs:appinfo>
@@ -1927,6 +2080,7 @@
                               screening.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="screen">
                           <xs:annotation>
                             <xs:appinfo>
@@ -1936,6 +2090,7 @@
                               shift).</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="phonon_screening">
                           <xs:annotation>
                             <xs:appinfo>
@@ -1953,7 +2108,7 @@
                             <xs:documentation> For the two individual components of a bilayer heterostructure, this task  expands the dielectric matrix from the individual unit cells to the individual super-cells and adds the two contributions to obtain the dielectric matrix of the hetero-structure.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
-                         <xs:enumeration value="write_dielectric_matrix">
+                        <xs:enumeration value="write_dielectric_matrix">
                           <xs:annotation>
                             <xs:appinfo>
                               <oldnr>442</oldnr>
@@ -1978,6 +2133,7 @@
                               Hamiltonian.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="exccoulint">
                           <xs:annotation>
                             <xs:appinfo>
@@ -1987,6 +2143,7 @@
                               Hamiltonian.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="bse">
                           <xs:annotation>
                             <xs:appinfo>
@@ -1995,6 +2152,7 @@
                             <xs:documentation>Bethe-Salpeter equation.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="bsegenspec">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2003,6 +2161,7 @@
                             <xs:documentation>Read BSE eigenvalues and regenerate dielectric and loss functions.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="writebevec">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2011,6 +2170,7 @@
                             <xs:documentation>ASCII output of BSE eigenvalues.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <!-- Interpolate the excitonic weights onto a banstructure -->
                         <xs:enumeration value="writekpathweights">
                           <xs:annotation>
@@ -2020,6 +2180,7 @@
                             <xs:documentation>Interpolates excitonic weights onto a bandstructure.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <!-- Survey transitions to be considered in the BSE -->
                         <xs:enumeration value="bsesurvey">
                           <xs:annotation>
@@ -2031,6 +2192,7 @@
                             </xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="kernxc_bse">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2040,6 +2202,7 @@
                               the Bethe-Salpeter equation in first order. </xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <!-- experimental and debugging tasks below -->
                         <xs:enumeration value="writebandgapgrid">
                           <xs:annotation>
@@ -2049,15 +2212,17 @@
                             <xs:documentation>Estimate bandgap from regular grid.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="write_wfplot">
                           <xs:annotation>
                             <xs:appinfo>
                               <oldnr>451</oldnr>
                             </xs:appinfo>
                             <xs:documentation>Real-space plot of wavefunctions
-                            used in screening calc.</xs:documentation>
+                            used in xs calc.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="write_screen">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2066,6 +2231,7 @@
                             <xs:documentation>Writes screened Coulomb interaction to HDF5 file</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="writepmat">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2075,6 +2241,7 @@
                               (legacy).</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="dielectric">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2083,6 +2250,44 @@
                             <xs:documentation>Linear optics (legacy).</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
+                        <xs:enumeration value="fastBSE_main">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>501</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>Matrix free solution of the BSE.</xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+
+                        <xs:enumeration value="fastBSE_setup_transitions">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>510</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>Setup transitions for fastBSE.</xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+
+                        <xs:enumeration value="fastBSE_isdf_cvt">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>512</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>Calculate ISDF with CVT for BSE.</xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+
+                        <xs:enumeration value="fastBSE_isdf_vexc_test">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>513</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>Test ISDF that was calculated for the fast BSE exchange kernel.</xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+
+
                         <xs:enumeration value="writepmatasc">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2092,6 +2297,7 @@
                               elements.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="pmatxs2orig">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2101,6 +2307,7 @@
                               format.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="writeoverlapxs">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2110,6 +2317,16 @@
                               states.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
+                         <xs:enumeration value="write_pmat_hdf5_xs">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>324</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>Write full p-matrix array to an hdf5 dataset.</xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+
                         <xs:enumeration value="writeematasc">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2119,6 +2336,7 @@
                               elements.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="writepwmat">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2128,6 +2346,7 @@
                               version for checking).</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="emattest">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2137,6 +2356,7 @@
                               matr. el.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="x0toasc">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2146,6 +2366,7 @@
                               function.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="x0tobin">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2155,6 +2376,7 @@
                               function.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="fxc_alda_check">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2163,6 +2385,7 @@
                             <xs:documentation>Check ALDA kernel.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="kernxc_bse3">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2172,6 +2395,7 @@
                               version.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+                        
                         <xs:enumeration value="testxs">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2180,6 +2404,7 @@
                             <xs:documentation>Debug routine of xs-part.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="xsestimate">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2189,6 +2414,7 @@
                               requirements.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <!-- debugging main part -->
                         <xs:enumeration value="testmain">
                           <xs:annotation>
@@ -2211,7 +2437,6 @@
                           </xs:annotation>
                         </xs:enumeration>
 
-
                         <!-- import/export tasks below -->
                         <xs:enumeration value="portstate(1)">
                           <xs:annotation>
@@ -2222,6 +2447,7 @@
                               file.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="portstate(2)">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2231,6 +2457,7 @@
                               file.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="portstate(-1)">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2240,6 +2467,7 @@
                               file.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+
                         <xs:enumeration value="portstate(-2)">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2249,6 +2477,7 @@
                               file.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
+                        
                       </xs:restriction>
                     </xs:simpleType>
                   </xs:attribute>
@@ -2352,6 +2581,7 @@
             <xs:enumeration value="TDDFT"/>
             <xs:enumeration value="BSE"/>
             <xs:enumeration value="RT-TDDFT"/>
+            <xs:enumeration value="fastBSE"/>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
@@ -2384,6 +2614,20 @@
             <xs:enumeration value="mm"/>
           </xs:restriction>
         </xs:simpleType>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="expert" ex:unit="" name="h5fname" type="xs:string"
+        default="bse_output.h5">
+        <xs:annotation>
+          <xs:documentation>Name of the hdf5 file to write the outputs to. Must end with <pre>.h5</pre>.</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="expert" ex:unit="" name="h5gname" type="xs:string"
+        default="/">
+        <xs:annotation>
+          <xs:documentation>Name of the group in the hdf5 file to write the outputs to.</xs:documentation>
+        </xs:annotation>
       </xs:attribute>
 
       <xs:attribute ex:importance="expert" ex:unit="" name="writexsgrids" type="xs:boolean"

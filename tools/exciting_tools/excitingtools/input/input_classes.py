@@ -57,11 +57,7 @@ class ExcitingInputXML(ExcitingXMLInput):
 
         :return: Input XML tree as a string, with pretty formatting.
         """
-        xml_tree = self.to_xml()
-        tags_to_prettify = ["\t<structure", "\t\t<crystal", "\t\t<species", "\t\t\t<atom", "\t<groundstate", "\t<xs",
-                            "\t\t<screening", "\t\t<BSE", "\t\t<energywindow"]
-        input_xml_str = prettify_tag_attributes(xml_tree_to_pretty_str(xml_tree), tags_to_prettify)
-        return input_xml_str
+        return prettify_tag_attributes(xml_tree_to_pretty_str(self.to_xml()))
 
     def write(self, filename: Union[str, Path] = _default_filename):
         """Writes the xml string to file.
@@ -117,32 +113,3 @@ class ExcitingPlanInput(AbstractExcitingInput):
             ElementTree.SubElement(plan, 'doonly', task=task)
 
         return plan
-
-
-class ExcitingPathInput(ExcitingXMLInput):
-    """
-    Class for exciting path input.
-    
-    Note: Not to be confused by the class name, it is NOT directly a band path. Defining what is in the
-    exciting input file under the subtree called 'path'.
-    """
-    name = "path"
-
-    def __init__(self,
-                 points: List[Union[dict, ExcitingPointInput]],
-                 **kwargs):
-        """Generate an object of ExcitingXMLInput for the path attributes."""
-        super().__init__(**kwargs)
-        self.__dict__["points"] = [self._initialise_subelement_attribute(ExcitingPointInput, point) for point in points]
-
-    def to_xml(self) -> ElementTree:
-        """Put class attributes into an XML tree, with the element given by self.name.
-        :return ElementTree.Element sub_tree: sub_tree element tree, with class attributes inserted.
-        """
-        attributes = {key: str(value) for key, value in vars(self).items() if key != "points"}
-        xml_tree = ElementTree.Element(self.name, **attributes)
-
-        for point in self.points:
-            xml_tree.append(point.to_xml())
-
-        return xml_tree

@@ -17,6 +17,8 @@ module phonons_variables
   logical, public :: ph_commensurate = .false.
   !> use canonical displacement patterns
   logical, public :: ph_canonical = .false.
+  !> assume polar material
+  logical, public :: ph_polar = .false.
   !> number of phonon modes
   integer, public :: ph_nmodes
 
@@ -43,11 +45,11 @@ module phonons_variables
   type(irrep_basis), allocatable, public :: ph_irrep_basis(:)
 
   ! ** auxiliary quantities
-  !> spherical Bessel functions \(j_l(|{\bf G+q}|R_\alpha)\)
+  !> spherical Bessel functions \(j_l(|{\bf G+q}|R_\kappa)\)
   real(dp), allocatable, public :: ph_jlgqr(:,:,:)
   !> spherical harmonics \(Y_{lm}(\widehat{{\bf G+q}})\)
   complex(dp), allocatable, public :: ph_ylmgq(:,:)
-  !> structure factors \({\rm e}^{{\rm i} ({\bf G+q})\cdot{\bf \tau}_\alpha}\)
+  !> structure factors \({\rm e}^{{\rm i} ({\bf G+q})\cdot{\bf \tau}_\kappa}\)
   complex(dp), allocatable, public :: ph_sfacgq(:,:)
 
   ! ** parallelization variables
@@ -83,6 +85,9 @@ module phonons_variables
       ! check if canonical displacement patterns should be used
       ph_canonical = input%phonons%canonical
 
+      ! check if polar material is assumed
+      ph_polar = input%phonons%polar
+
       ! generate q-point set
       call generate_k_vectors( ph_qset, dfpt_kset%bvec, &
              input%phonons%ngridq, &
@@ -100,20 +105,20 @@ module phonons_variables
       call terminate_if_false( ph_commensurate, '(ph_var_init) &
         k- and q-grid are not commensuarate.' )
 
-     ! find basis of irreducible representations (symmetry adapted displacement patterns)
-     ph_nmodes = 3 * natmtot
-     allocate( ph_irrep_basis(0:ph_qset%nkpt) )
-     do iq = 1, ph_qset%nkpt
-       call ph_sym_find_irreps( ph_qset%vkl(:, iq), ph_irrep_basis(iq), canonical=ph_canonical )
-     end do
-     ! the 0th basis contains the symmetries of the unpertubed system
-     call ph_sym_find_irreps( [0.0_dp, 0.0_dp, 0.0_dp], ph_irrep_basis(0), canonical=.false., unperturbed=.true. )
+      ! find basis of irreducible representations (symmetry adapted displacement patterns)
+      ph_nmodes = 3 * natmtot
+      allocate( ph_irrep_basis(0:ph_qset%nkpt) )
+      do iq = 1, ph_qset%nkpt
+        call ph_sym_find_irreps( ph_qset%vkl(:, iq), ph_irrep_basis(iq), canonical=ph_canonical )
+      end do
+      ! the 0th basis contains the symmetries of the unpertubed system
+      call ph_sym_find_irreps( [0.0_dp, 0.0_dp, 0.0_dp], ph_irrep_basis(0), canonical=.false., unperturbed=.true. )
 
-     ! set number of processes
-     ph_numprocs = mpiglobal%procs
+      ! set number of processes
+      ph_numprocs = mpiglobal%procs
 
-     ! allocate list of done parts
-     allocate( ph_parts_done(ph_qset%nkpt, 3*natmtot), source=.false. )
+      ! allocate list of done parts
+      allocate( ph_parts_done(ph_qset%nkpt, 3*natmtot), source=.false. )
     end subroutine ph_var_init
 
     !> This subroutine frees memory from global variables.

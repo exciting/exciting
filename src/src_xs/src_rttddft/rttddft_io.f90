@@ -12,7 +12,7 @@ module rttddft_io
 #endif
   use precision, only: dp, i32
   use rttddft_Energy, only: TotalEnergy
-  use rttddft_GlobalVariables, only: TimingRTTDDFT, calculateNexc, &
+  use rttddft_GlobalVariables, only: Timing_RTTDDFT_and_MD, calculateNexc, &
     calculateTotalEnergy, predictorCorrector, printTimesDetailed
   
   implicit none
@@ -26,6 +26,7 @@ module rttddft_io
             write_file_info_header, write_file_info_fill_line_with_char, &
             open_file_timing, close_file_timing, write_timing, &
             file_pmat_exists, read_pmat, write_pmat, &
+            file_pmat_mt_exists, read_pmat_mt, write_pmat_mt, &
             write_wavefunction
 
   !> Number of the unit to print timings
@@ -323,7 +324,7 @@ contains
   end subroutine
 
   !> Subroutine to output the timings into `TIMING_RTTDDFT.OUT`
-  subroutine write_timing_RTTDDFT_steps( itNumber, n, timing, screenshot_was_taken )
+  subroutine write_timing_RTTDDFT_steps( itNumber, n, timing, screenshot_was_taken, molecular_dynamics )
     !> itNumber: The actual number of the counter that tells how many time steps 
     !> have already been executed
     integer, intent(in)             :: itNumber
@@ -331,45 +332,69 @@ contains
     integer, intent(in)             :: n
     !> timing: Array of timings. Each elements contains information
     !>   about how many seconds (timings) were spent in different parts of code
-    type(TimingRTTDDFT), intent(in) :: timing(n)
+    type(Timing_RTTDDFT_and_MD), intent(in) :: timing(n)
     !> if `.True.`, a screenshot was taken at `itNumber`
     logical, intent(in)             :: screenshot_was_taken(n)
+    !> Does timings about MD need to be printed?
+    logical, intent(in), optional   :: molecular_dynamics
+    
 
     integer                         :: ip, shift
+    logical                         :: MD
 
     shift = itNumber - n
+    MD = .False.
+    if( present(molecular_dynamics) ) MD = molecular_dynamics
 
     if ( rank == 0 ) then
       do ip = 1, n
+        associate( t_rttddft => timing(ip)%t_RTTDDFT )
         write(file_time,'(A30,I10)')'Time (sec) spent in iteration:',ip+shift
-        write(file_time,format_timing) 'updatewvf:',timing(ip)%t_wvf
-        write(file_time,format_timing) 'updatedens:',timing(ip)%t_dens
+        write(file_time,format_timing) 'updatewvf:',t_rttddft%t_wvf
+        write(file_time,format_timing) 'updatedens:',t_rttddft%t_dens
         if ( printTimesDetailed ) then
-          write(file_time,format_timing) '-- rhovalk and genrhoir:',timing(ip)%t_dens_rho
-          write(file_time,format_timing) '-- symrf:',timing(ip)%t_dens_symrf
-          write(file_time,format_timing) '-- rfmtctof:',timing(ip)%t_dens_rfmtctof
-          write(file_time,format_timing) '-- addrhocr:',timing(ip)%t_dens_addrhocr
-          write(file_time,format_timing) '-- charge:',timing(ip)%t_dens_charge
-          write(file_time,format_timing) '-- rhonorm:',timing(ip)%t_dens_rhonorm
+          write(file_time,format_timing) '-- rhovalk and genrhoir:',t_rttddft%t_dens_rho
+          write(file_time,format_timing) '-- symrf:',t_rttddft%t_dens_symrf
+          write(file_time,format_timing) '-- rfmtctof:',t_rttddft%t_dens_rfmtctof
+          write(file_time,format_timing) '-- addrhocr:',t_rttddft%t_dens_addrhocr
+          write(file_time,format_timing) '-- charge:',t_rttddft%t_dens_charge
+          write(file_time,format_timing) '-- rhonorm:',t_rttddft%t_dens_rhonorm
         end if
-        write(file_time,format_timing) 'updatepot:',timing(ip)%t_uppot
+        write(file_time,format_timing) 'updatepot:',t_rttddft%t_uppot
         if ( printTimesDetailed ) then
-          write(file_time,format_timing) '-- poteff:',timing(ip)%t_poteff
-          write(file_time,format_timing) '-- genveffig:',timing(ip)%t_genveffig
-          write(file_time,format_timing) '-- genmeffig:',timing(ip)%t_genmeffig
+          write(file_time,format_timing) '-- poteff:',t_rttddft%t_poteff
+          write(file_time,format_timing) '-- genveffig:',t_rttddft%t_genveffig
+          write(file_time,format_timing) '-- genmeffig:',t_rttddft%t_genmeffig
         end if
-        write(file_time,format_timing) 'UpdateCurrentDensity:',timing(ip)%t_curr
-        write(file_time,format_timing) 'ObtainA:',timing(ip)%t_obtaina
-        write(file_time,format_timing) 'updatehamiltonian:',timing(ip)%t_upham
+        write(file_time,format_timing) 'UpdateCurrentDensity:',t_rttddft%t_curr
+        write(file_time,format_timing) 'ObtainA:',t_rttddft%t_obtaina
+        write(file_time,format_timing) 'updatehamiltonian:',t_rttddft%t_upham
         if ( printTimesDetailed ) then
-          write(file_time,format_timing) '-- hmlint:',timing(ip)%t_hmlint
-          write(file_time,format_timing) '-- other subs:',timing(ip)%t_ham
+          write(file_time,format_timing) '-- hmlint:',t_rttddft%t_hmlint
+          write(file_time,format_timing) '-- other subs:',t_rttddft%t_ham
         end if
         if ( predictorCorrector )  &
-          & write(file_time,format_timing) 'All cycles of predcorr:',timing(ip)%t_predcorr
-        if ( calculateTotalEnergy .and. printTimesDetailed ) write(file_time,format_timing) 'Total Energy:',timing(ip)%t_toten
-        if ( calculateNexc .and. printTimesDetailed ) write(file_time,format_timing)'nexc:',timing(ip)%t_nexc
-        if ( screenshot_was_taken(ip) ) write(file_time,format_timing) 'Screenshots:',timing(ip)%t_screenshot
+          & write(file_time,format_timing) 'All cycles of predcorr:',t_rttddft%t_predcorr
+        if ( calculateTotalEnergy .and. printTimesDetailed ) write(file_time,format_timing) 'Total Energy:',t_rttddft%t_toten
+        if ( calculateNexc .and. printTimesDetailed ) write(file_time,format_timing)'nexc:',t_rttddft%t_nexc
+        if ( screenshot_was_taken(ip) ) write(file_time,format_timing) 'Screenshots:',t_rttddft%t_screenshot
+        end associate
+        if( MD ) then
+          associate( t_MD => timing(ip)%t_Ehrenfest )
+          if( t_MD%MD_was_carried_out ) then
+            write(file_time,format_timing) 'MD:', t_MD%t_MD_step
+            if( printTimesDetailed ) then
+              write(file_time,format_timing) '-- 1st part of forces:', t_MD%t_MD_1st
+              write(file_time,format_timing) '-- 2nd part of forces:', t_MD%t_MD_2nd
+              write(file_time,format_timing) '-- sum forces:', t_MD%t_MD_sumforces 
+              write(file_time,format_timing) '-- move ions:', t_MD%t_MD_moveions
+              write(file_time,format_timing) '-- update basis:', t_MD%t_MD_updateBasis
+              write(file_time,format_timing) '-- update H, S:', t_MD%t_MD_hamoverl
+              write(file_time,format_timing) '-- update pmat:', t_MD%t_MD_pmat
+            end if
+          end if
+          end associate
+        end if
         write(file_time,format_timing) 'time per iteration:',timing(ip)%t_iteration
       end do
     end if
@@ -381,29 +406,57 @@ contains
 
   !> Read the momentum matrix elements from file
   subroutine read_pmat( first_kpt, pmat, mpi_env )
-    !> index of the first `k-point` to be considered
+    !> Index of the first `k-point` to be considered
     integer,intent(in)        :: first_kpt
-    !> momentum matrix elements
+    !> Momentum matrix elements
     complex(dp), intent(out)  :: pmat(:, :, :, first_kpt:)
     !> MPI environment (needed to write in parallel over MPI procs.)
-    type(mpiinfo), intent(in) :: mpi_env
+    type(mpiinfo), intent(inout) :: mpi_env
     
     call read_array(add_default_extension( filename_pmat ), first_kpt, pmat, mpi_env )
   end subroutine
 
   !> Write the momentum matrix elements to file
   subroutine write_pmat( first_kpt, pmat, mpi_env )
-    !> index of the first `k-point` to be considered in the sum
+    !> Index of the first `k-point` to be considered in the sum
     integer,intent(in)        :: first_kpt
-    !> momentum matrix elements
+    !> Momentum matrix elements
     complex(dp), intent(in)   :: pmat(:, :, :, first_kpt:)
     !> MPI environment (needed to write in parallel over MPI procs.)
-    type(mpiinfo), intent(in) :: mpi_env
+    type(mpiinfo), intent(inout) :: mpi_env
     
     call write_array(add_default_extension( filename_pmat ), first_kpt, pmat, mpi_env )
   end subroutine
 
-  !> Wrapper to call `putevecfv`
+  !> Check if file with `pmat_mt` exists
+  logical function file_pmat_mt_exists()
+    inquire( file=trim(add_default_extension(filename_pmat_mt)), exist=file_pmat_mt_exists )
+  end function
+
+  !> Read the muffin-tin part of the momentum matrix (`pmat_mt`) from file
+  subroutine read_pmat_mt( first_kpt, pmat_mt, mpi_env )
+    !> Index of the first `k-point` to be considered in the sum
+    integer,intent(in)        :: first_kpt
+    !> Muffin-tin part of the momentum matrix
+    complex(dp), intent(out)  :: pmat_mt(:, :, :, :, first_kpt:)
+    !> MPI environment (needed to write in parallel over MPI procs.)
+    type(mpiinfo), intent(inout) :: mpi_env
+
+    call read_array( add_default_extension( filename_pmat_mt ), first_kpt, pmat_mt, mpi_env )
+  end subroutine
+
+  !> Write the muffin-tin part of the momentum matrix (`pmat_mt`) to file
+  subroutine write_pmat_mt( first_kpt, pmat_mt, mpi_env )
+    !> Index of the first `k-point` to be considered in the sum
+    integer,intent(in)        :: first_kpt
+    !> Muffin-tin part of the momentum matrix
+    complex(dp), intent(in)   :: pmat_mt(:, :, :, :, first_kpt:)
+    !> MPI environment (needed to write in parallel over MPI procs.)
+    type(mpiinfo), intent(inout) :: mpi_env
+    
+    call write_array( add_default_extension( filename_pmat_mt ), first_kpt, pmat_mt, mpi_env )
+  end subroutine
+
   subroutine write_wavefunction( first_kpt, wavefunction )
     !> index of the first `k-point` to be considered in the sum
     integer,intent(in)        :: first_kpt

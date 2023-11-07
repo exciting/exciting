@@ -9,7 +9,7 @@ Module mod_misc
   implicit none
   
   !> Code version
-  character(40) :: versionname = 'FLUORINE'
+  character(40) :: versionname = 'NEON'
 
   !> Build date of current version
   integer :: version(3)

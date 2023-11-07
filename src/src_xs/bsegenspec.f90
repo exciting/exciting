@@ -121,7 +121,6 @@ subroutine bsegenspec()
 
       ! Calculate lattice symmetrized spectrum.
       call redospectrum(iqmt, nexc, nk, evals, oscirmat, symspectr)
-      !print *, symspectr(1,1,:)
       !call makespectrum(iqmt, nexc, nk, evals, oscirmat, symspectr)
 
       ! Generate an evenly spaced frequency grid 

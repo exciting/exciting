@@ -6,14 +6,14 @@
 ## Compilation of exciting
 
 Before starting, be sure that **`exciting`** is already compiled according to the procedure reported in 
-**[<span style="color:#D79922">Download and compile exciting</span>](http://exciting.wikidot.com/fluorine-download-and-compile-exciting)**. 
+**[<span style="color:#D79922">Download and compile exciting</span>](http://exciting.wikidot.com/neon-download-and-compile-exciting)**. 
 This is also documented in exciting's `INSTALL` file in the repository root.
 
 ## Running the Wikidot Tutorial Scripts
 
 In order to run the scripts used in the **`exciting`** tutorials it is important that the relevant environment variables 
 are already defined in your **~/.bashrc** file as specified in **[<span style="color:#D79922">How to set environment 
-variables for tutorials scripts</span>](http://exciting.wikidot.com/fluorine-tutorial-scripts-and-environment-variables)**. 
+variables for tutorials scripts</span>](http://exciting.wikidot.com/neon-tutorial-scripts-and-environment-variables)**. 
 However, this is not necessary for running the tutorials inside Jupyter Notebooks.
 
 ## Installing the excitingJupyter Package

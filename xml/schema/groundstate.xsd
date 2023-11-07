@@ -177,14 +177,14 @@
 		            </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="experimental" ex:unit="" name="svlo" type="xs:boolean" default="false">
-              <xs:annotation>
-                <xs:documentation>
-                  If <attref>svlo</attref> is <pre>"true"</pre>, then local orbitals are separately used as basis functions when constructing the
-                  second-variational Hamiltonian.
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
+	    <xs:attribute ex:importance="essential" ex:unit="" name="svlo" type="xs:boolean" default="false">
+	      <xs:annotation>
+		<xs:documentation>
+		  If <attref>svlo</attref> is <pre>"true"</pre>, then local orbitals are separately used as basis functions when constructing the
+		  second-variational Hamiltonian.
+		</xs:documentation>
+	      </xs:annotation>
+	    </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="realspace" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation>
@@ -2236,6 +2236,26 @@
           </xs:complexType>
         </xs:element>
 
+        <xs:element ex:importance="expert" ex:unit="" name="lorecommendation" minOccurs="0" maxOccurs="1">
+          <xs:annotation><xs:documentation>
+            Local orbitals may be used for improving unoccupied states. But what
+            energy parameters to use? If this element is present, you will get
+            a list of trial energies computed by using the Wigner-Seitz rules.
+          </xs:documentation></xs:annotation>
+          <xs:complexType>
+            <xs:attribute ex:importance="expert" ex:unit="" name="lmaxlo" type="xs:integer" default="3">
+              <xs:annotation><xs:documentation>
+                Angular momentum cutoff for local orbital trial energy recommendations.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="nodesmaxlo" type="xs:integer" default="20">
+              <xs:annotation><xs:documentation>
+                Number of nodes cutoff for local orbital trial energy recommendations. 
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+
       </xs:all>
 
       <xs:attribute ex:importance="expert" ex:unit="" name="vdWcorrection"  default="none">
@@ -2748,20 +2768,6 @@
             coarse radial mesh and then interpolated onto a fine mesh. This is done for the sake of
             efficiency. lradstp defines the step size in going from the fine to the coarse radial
             mesh. If it is too large, loss of precision may occur.</xs:documentation>
-          <xs:appinfo>
-            <oldname>lradstp</oldname>
-          </xs:appinfo>
-        </xs:annotation>
-      </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="lorecommendation" type="xs:boolean" default="false">
-        <xs:annotation>
-          <xs:documentation> Local orbitals may be used for improving unoccupied states. But what
-                             energy parameters to use? Set this parameter to true, and you will get
-                             a list of energies at which the radial wavefunction turns to zero on the
-                             muffin-tin sphere. These energies are calculated using atomic potential,
-                             and to make them transferable to a general system, use the average of two
-                             consecutive atomic energies.
-          </xs:documentation>
           <xs:appinfo>
             <oldname>lradstp</oldname>
           </xs:appinfo>

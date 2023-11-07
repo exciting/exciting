@@ -9,6 +9,7 @@
 
 !> This module contains the global variables for the RT-TDDFT implementation
 module rttddft_GlobalVariables
+  use MD, only: MD_timing
   use precision, only: dp
 
   implicit none
@@ -27,9 +28,20 @@ module rttddft_GlobalVariables
     & ntrapcos, dirtrapcos, ampltrapcos, omegatrapcos, phasetrapcos, &
     & t0trapcos, trtrapcos, wtrapcos, &
     & nsinsq, dirsinsq, amplsinsq, omegasinsq, phasesinsq, &
-    & t0sinsq, tpulsesinsq, &
-    & pmat, &
-    & timesecRTTDDFT, TimingRTTDDFT
+    & t0sinsq, tpulsesinsq, pmat, &
+    & mathcalH, mathcalB, B_time, B_past, efield, pmatmt, &
+    & timesecRTTDDFT, Timing_RTTDDFT_and_MD, TimingRTTDDFT, TimingEhrenfest
+
+  !> Type to store timings for Ehrenfest MD
+  type, extends (MD_timing) :: TimingEhrenfest
+    !> if `.True.`, it means that an MD step was conducted
+    !> This is needed since the time step for MD is a multiple of the time step for RT-TDDFT
+    logical  :: MD_was_carried_out
+    !> time to recalculate `pmat` in an Ehrenfest MD step
+    real(dp) :: t_MD_pmat
+    !> time to recalculate the hamiltonian and overlap matrices in an Ehrenfest MD step
+    real(dp) :: t_MD_hamoverl
+  end type
 
   !> This type stores the time (in seconds) spent in the procedures of RT-TDDFT
   type :: TimingRTTDDFT
@@ -77,9 +89,16 @@ module rttddft_GlobalVariables
     real(dp) :: t_nexc
     !> timing: time for obtaining a screenshot
     real(dp) :: t_screenshot
-    !> timing: time of each RT-TDDFT iteration
-    real(dp) :: t_iteration
   end type TimingRTTDDFT
+
+  type Timing_RTTDDFT_and_MD
+    !> type that contains timings for RT-TDDFT (for evolving KS wavefunctions)
+    type(TimingRTTDDFT)   :: t_RTTDDFT
+    !> type that contains timings in an Ehrenfest MD
+    type(TimingEhrenfest) :: t_Ehrenfest
+    !> timing: time of each iteration (RT-TDDFT plus MD)
+    real(dp) :: t_iteration
+  end type 
 
   !> Number of time steps \( \Delta t \) required to reach `tend`
   integer                   :: nsteps
@@ -217,6 +236,38 @@ module rttddft_GlobalVariables
 
   !> Momentum matrix elements (projected onto the (L)APW+LO basis elements)
   complex(dp), allocatable  :: pmat(:,:,:,:)
+  
+  !> Muffin-tin part of the Momentum matrix
+  complex(dp), allocatable  :: pmatmt(:,:,:,:,:)
+
+  !> `mathcalH` gives the impact of an ion displacement on the hamiltonian matrix
+  !> \[ \left[ \left\langle 
+  !> \frac{\partial \phi_{\mu'}^{\mathbf{k}}}{\partial \mathbf{R}_J}
+  !> \Bigg|\hat{H}\Bigg|\phi_{\mu}^{\mathbf{k}}\right\rangle +
+  !> \left\langle\phi_{\mu'}^{\mathbf{k}}\Bigg|\hat{H}\Bigg|\frac{\partial 
+  !> \phi_{\mu}^{\mathbf{k}}}{\partial \mathbf{R}_J}\right\rangle \right] 
+  !> \]
+  complex(dp), allocatable  :: mathcalH(:,:,:,:,:)
+  
+  !> `mathcalB` measures how the ions displacements affect overlap elements
+  !> \[ \mathcal{B}_{J\mu'\mu}^{\mathbf{k}} = \left \langle
+  !> \phi_{\mu'}^{\mathbf{k}}\bigg| \frac{\partial}{\partial \mathbf{R}_J}
+  !> \phi_{\mu}^{\mathbf{k}} \right\rangle \]
+  complex(dp), allocatable  :: mathcalB(:,:,:,:,:)
+  
+  !> `B_time` quantifies the impact of the Ehrenfest molecular dynamics
+  !> on the time evolution of the electonic wavefunctions.
+  !> \[B_{\mu'\mu}^{\mathbf{k}} = \left \langle
+  !> \phi_{\mu'}^{\mathbf{k}}\left|\frac{d}{d t}\right.
+  !> \phi_{\mu}^{\mathbf{k}}\right\rangle =
+  !> \sum_J \dot{\mathbf{R}}_J\cdot \mathcal{B}_{J\mu'\mu}^{\mathbf{k}} \]
+  complex(dp), allocatable  :: B_time(:,:,:)
+  !> Same as `B_time`, but at the previous time step: \(t-\Delta t\)
+  complex(dp), allocatable  :: B_past(:,:,:)
+
+  !> Electric field
+  real(dp)                  :: efield(3)
+
 
 contains
 

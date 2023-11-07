@@ -10,6 +10,7 @@
 !===============================================================================
 
 module mod_hdf5
+    use trace, only: trace_back
 
     interface hdf5_write
         module procedure hdf5_write_i4, &
@@ -80,6 +81,7 @@ contains
         return
         10 continue
         write(*,'("  fname: ",A)')trim(fname)
+        call trace_back()
         stop
 #endif
     end subroutine
@@ -123,6 +125,7 @@ contains
         write(*,'("  fname : ",A)')trim(fname)
         write(*,'("  path  : ",A)')trim(path)
         write(*,'("  gname : ",A)')trim(gname)  
+        call trace_back()
         stop
 #endif
     end function hdf5_exist_group
@@ -175,6 +178,7 @@ contains
         write(*,'("  fname : ",A)')trim(fname)
         write(*,'("  path  : ",A)')trim(path)
         write(*,'("  gname : ",A)')trim(gname)  
+        call trace_back()
         stop
 #endif
     end subroutine
@@ -539,6 +543,7 @@ end module
 !-------------------------------------------------------------------------------
 subroutine hdf5_write_array_i4(a,ndims,dims,fname,path,nm)
     use hdf5
+    use trace, only: trace_back
     implicit none
     integer(4), intent(in) :: a(*)
     integer, intent(in) :: ndims
@@ -608,12 +613,14 @@ subroutine hdf5_write_array_i4(a,ndims,dims,fname,path,nm)
     write(*,'("  fname : ",A)')trim(fname)
     write(*,'("  path  : ",A)')trim(path)
     write(*,'("  nm    : ",A)')trim(nm)
-    stop
+    call trace_back()
+        stop
 end subroutine
 
 !-------------------------------------------------------------------------------
 subroutine hdf5_write_array_d(a,ndims,dims,fname,path,nm)
     use hdf5
+    use trace, only: trace_back
     implicit none
     real(8), intent(in) :: a(*)
     integer, intent(in) :: ndims
@@ -683,12 +690,14 @@ subroutine hdf5_write_array_d(a,ndims,dims,fname,path,nm)
     write(*,'("  fname : ",A)')trim(fname)
     write(*,'("  path  : ",A)')trim(path)
     write(*,'("  nm    : ",A)')trim(nm)
-    stop
+    call trace_back()
+        stop
 end subroutine
 
 !-------------------------------------------------------------------------------
 subroutine hdf5_write_array_f(a,ndims,dims,fname,path,nm)
     use hdf5
+    use trace, only: trace_back
     implicit none
     real(4), intent(in) :: a(*)
     integer, intent(in) :: ndims
@@ -758,12 +767,14 @@ subroutine hdf5_write_array_f(a,ndims,dims,fname,path,nm)
     write(*,'("  fname : ",A)')trim(fname)
     write(*,'("  path  : ",A)')trim(path)
     write(*,'("  nm    : ",A)')trim(nm)
-    stop
+    call trace_back()
+        stop
 end subroutine
 !-------------------------------------------------------------------------------
 
 subroutine hdf5_read_array_i4(a,ndims,dims,fname,path,nm)
     use hdf5
+    use trace, only: trace_back
     implicit none
     integer(4), intent(out) :: a(*)
     integer, intent(in) :: ndims
@@ -825,12 +836,14 @@ subroutine hdf5_read_array_i4(a,ndims,dims,fname,path,nm)
     write(*,'("  fname : ",A)')trim(fname)
     write(*,'("  path : ",A)')trim(path)
     write(*,'("  nm : ",A)')trim(nm)
-    stop
+    call trace_back()
+        stop
 end subroutine
 
 !-------------------------------------------------------------------------------
 subroutine hdf5_read_array_d(a,ndims,dims,fname,path,nm)
     use hdf5
+    use trace, only: trace_back
     implicit none
     real(8), intent(out) :: a(*)
     integer, intent(in) :: ndims
@@ -891,12 +904,14 @@ subroutine hdf5_read_array_d(a,ndims,dims,fname,path,nm)
     write(*,'("  fname : ",A)')trim(fname)
     write(*,'("  path : ",A)')trim(path)
     write(*,'("  nm : ",A)')trim(nm)
-    stop
+    call trace_back()
+        stop
 end subroutine
 
 !-------------------------------------------------------------------------------
 subroutine hdf5_write_array_c(a,ndims,dims,fname,path,nm)
     use hdf5
+    use trace, only: trace_back
     implicit none
     character(*), intent(in) :: a(*)
     integer, intent(in) :: ndims
@@ -996,12 +1011,14 @@ subroutine hdf5_write_array_c(a,ndims,dims,fname,path,nm)
     write(*,'("  fname : ",A)')trim(fname)
     write(*,'("  path  : ",A)')trim(path)
     write(*,'("  nm    : ",A)')trim(nm)
-    stop
+    call trace_back()
+        stop
 end subroutine
 
 !-------------------------------------------------------------------------------
 subroutine hdf5_read_array_c(a,ndims,dims,fname,path,nm)
     use hdf5
+    use trace, only: trace_back
     implicit none
     character(*), intent(out) :: a(*)
     integer, intent(in) :: ndims
@@ -1086,7 +1103,8 @@ subroutine hdf5_read_array_c(a,ndims,dims,fname,path,nm)
     write(*,'("  fname : ",A)')trim(fname)
     write(*,'("  path : ",A)')trim(path)
     write(*,'("  nm : ",A)')trim(nm)
-    stop
+    call trace_back()
+        stop
 end subroutine
 
 #endif

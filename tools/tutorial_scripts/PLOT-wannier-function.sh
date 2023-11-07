@@ -18,4 +18,6 @@ elif [ "$s" == "i" ]; then
 else
     bash wannierplot_real.sh $n > plot.xcrysden
 fi
+
 xcrysden -s plot.xcrysden >/dev/null 2>&1 &
+

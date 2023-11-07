@@ -177,26 +177,30 @@ Subroutine core_overlap
   Call mpi_allgatherv_ifc(nkpt, nstfv*ncg, zbuf=overlap)
 #endif
 
-#ifdef _HDF5_
+!TODO(Bene #159): Replace HDF5 legacy wrappers with the new ones.
+!#ifdef _HDF5_
 !-----------------------------------------------------------------------------!
 !                         Output to HDF5 File                                 !
 !                                                                             ! 
 !-----------------------------------------------------------------------------!
-  if (rank == 0) then
-    if (.not. hdf5_exist_group(fhdf5, "/", "overlap")) then
-      call hdf5_create_group(fhdf5,"/", "overlap")
-    end if
-    if (.not. hdf5_exist_group(fhdf5, "/", "energy-diff")) then
-      call hdf5_create_group(fhdf5,"/", "energy-diff")
-    end if
-    do ik=1,nkpt 
-      write(cik, '(I8.8)') ik
-      ! Write hdf5
-      call hdf5_write(fhdf5,'overlap',cik, overlap(1,1,ik), shape(overlap(:,:,ik)))
-      call hdf5_write(fhdf5,'energy-diff',cik, de(1,1,ik), shape(de(:,:,ik)))
-    end do
-  end if
-#else
+!  if (rank == 0) then
+!    if (.not. hdf5_exist_group(fhdf5, "/", "overlap")) then
+!      call hdf5_create_group(fhdf5,"/", "overlap")
+!    end if
+!    if (.not. hdf5_exist_group(fhdf5, "/", "energy-diff")) then
+!      call hdf5_create_group(fhdf5,"/", "energy-diff")
+!    end if
+!    do ik=1,nkpt 
+!      write(cik, '(I8.8)') ik
+!      ! Write hdf5
+!      call hdf5_write(fhdf5,'overlap',cik, overlap(1,1,ik), shape(overlap(:,:,ik)))
+!      call hdf5_write(fhdf5,'energy-diff',cik, de(1,1,ik), shape(de(:,:,ik)))
+!    end do
+!  end if
+!#else
+!  call terminate('coreoverlap: HDF5 output can not be created because exciting was not compiled with HDF5.')
+!#endif 
+!  else 
 !-----------------------------------------------------------------------------!
 !                          Output to XML File                                 !
 !                                                                             ! 
@@ -242,7 +246,7 @@ Subroutine core_overlap
     Call xml_endElement (xf, "coreoverlap")
     Call xml_close (xf)
    endif
-#endif
+!endif
   call mt_hscf%release()
   Deallocate (apwalmt)
   Deallocate (wfmt,overlap)

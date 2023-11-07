@@ -55,27 +55,27 @@ if ( -e  "../../.git/" . $ref ) {
 #
 # Returns string $compiler_version
 sub GetCompiler {
-    # Input argument
-    my($string) = @_;
+    # Get compiler command F90
+    my ($F90_line) = @_;
+    my @F90_line = split(' ', $F90_line);
+    my $F90 = $F90_line[2];
 
-    # Initialised return value
-    my $compiler_version = "";
+    # Find compiler version
+    # This isn't declaring a string,
+    # it's a call to the shell, which returns to $stdout
+    my $stdout = `$F90 --version`;
+    my @arr = split("\n", $stdout);
+    my $compiler_version = $arr[0];
 
-    if (index($string, "ifort") != -1) {
-        # This isn't declaring a string,
-        # it's a call to the shell, which returns to $stdout
-        my $stdout = `ifort --version`;
-        my @arr = split("\n", $stdout);
-        $compiler_version = $arr[0];
-       }
-    elsif (index($string, "gfortran") != -1) {
-        my $stdout = `gfortran --version`;
-        my @arr = split("\n", $stdout);
-        $compiler_version = $arr[0];
-       }
-    else {
-        # Do nothing
-       }
+    # Check if compiler is supported.
+    my $compiler_is_valid
+        = (index($compiler_version, 'ifort') != -1) 
+        + (index($compiler_version, 'GNU') != -1);
+
+    if ( $compiler_is_valid == 0){
+      $compiler_version = "";
+    }
+
     return $compiler_version
 }
 
@@ -84,7 +84,7 @@ open ( my $make_inc, '<', '../make.inc' ) or die $!;
 
 my $compiler = "";
 while (my $line = <$make_inc> ) {
-   if($line =~ /^F90/) {
+   if($line =~ /^F90 =/) {
     $compiler = GetCompiler($line);
    }
     # Stop checking file if compiler has been matched

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<input>
+  <title>GaAs</title>
+  <structure speciespath=".">
+    <crystal scale="10.673173">
+      <basevect>0.0   0.5   0.5</basevect>
+      <basevect>0.5   0.0   0.5</basevect>
+      <basevect>0.5   0.5   0.0</basevect>
+    </crystal>
+    <species speciesfile="Ga.xml">
+      <atom coord="0.00 0.00 0.00"/>
+    </species>
+    <species speciesfile="As.xml">
+      <atom coord="0.25 0.25 0.25"/>
+    </species>
+  </structure>
+  <groundstate do="fromscratch" ngridk="1 1 1" outputlevel="normal" rgkmax="5.0" gmaxvr="12.0" xctype="GGA_PBE" nempty="28" maxscl="30" ValenceRelativity="zora" useDensityMatrix="false">
+    <spin spinorb="true" svlo="true" realspace="false"/>
+  </groundstate>
+</input>

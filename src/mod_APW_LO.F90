@@ -25,6 +25,13 @@ Module mod_APW_LO
       Real (8), Allocatable :: apwe (:, :, :)
 ! APW derivative order
       Integer :: apwdm (maxapword, 0:maxlapw, maxspecies)
+! APW principal quantum number
+! If a principal quantum number is speciefied for a custom (L)APW in the species file,
+! it is used to calculate the according trial energy automatically.
+! If it is not specified, the principal quantum number is set to -1 by default.
+      Integer :: apwn (maxapword, 0:maxlapw, maxspecies)
+! Default (L)APW principal quantum number
+      Integer, parameter :: default_apwn = -1
 ! apwve is .true. if the linearisation energies are allowed to vary
       Logical :: apwve (maxapword, 0:maxlapw, maxspecies)
 ! APW radial functions
@@ -45,6 +52,10 @@ Module mod_APW_LO
       Integer :: lorbord (maxlorb, maxspecies)
 ! local-orbital angular momentum
       Integer :: lorbl (maxlorb, maxspecies)
+! local-orbital principle quantum number                                                               
+      Integer :: lorbn (maxlorbord, maxlorb, maxspecies)
+! Default local orbital principal quantum number
+      Integer, parameter :: default_lorbn = -1
 ! local-orbital relativistic quantum number kappa = (l-j)(2j+1)                                                                                         
       Integer :: lorbk (maxlorb,maxspecies)
 ! wave-function relativistic quantum number kappa = (l-j)(2j+1)     

@@ -294,7 +294,7 @@ Subroutine init2
       If (allocated(ngq)) deallocate (ngq)
       Allocate (ngq(nqpt))
       If (allocated(igqig)) deallocate (igqig)
-      Allocate (igqig(ngqmax, nqpt))
+      Allocate (igqig(ngqmax, nqpt), source=0)
       If (allocated(vgql)) deallocate (vgql)
       Allocate (vgql(3, ngqmax, nqpt))
       If (allocated(vgqc)) deallocate (vgqc)

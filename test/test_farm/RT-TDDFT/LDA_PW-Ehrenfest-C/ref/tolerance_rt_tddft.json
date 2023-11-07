@@ -1,0 +1,318 @@
+{
+  "JIND.OUT": {
+    "Time": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "Jx": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "Jy": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "Jz": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    }
+  },
+  "INFO.OUT":{
+    "Total energy": {
+      "tol": 5e-08,
+      "unit": "Hartree"
+    },
+    "Fermi energy": {
+      "tol": 5e-08,
+      "unit": "Hartree"
+    },
+    "Kinetic energy": {
+      "tol": 2e-07,
+      "unit": "Hartree"
+    },
+    "Coulomb energy": {
+      "tol": 5e-08,
+      "unit": "Hartree"
+    },
+    "Exchange energy": {
+      "tol": 5e-08,
+      "unit": "Hartree"
+    },
+    "Correlation energy": {
+      "tol": 5e-08,
+      "unit": "Hartree"
+    },
+    "Sum of eigenvalues": {
+      "tol": 5e-08,
+      "unit": "Hartree"
+    },
+    "Effective potential energy": {
+      "tol": 5e-08,
+      "unit": "Hartree"
+    },
+    "Coulomb potential energy": {
+      "tol": 5e-08,
+      "unit": "Hartree"
+    },
+    "xc potential energy": {
+      "tol": 5e-08,
+      "unit": "Hartree"
+    },
+    "Hartree energy": {
+      "tol": 2e-07,
+      "unit": "Hartree"
+    },
+    "Electron-nuclear energy": {
+      "tol": 2e-07,
+      "unit": "Hartree"
+    },
+    "Nuclear-nuclear energy": {
+      "tol": 5e-08,
+      "unit": "Hartree"
+    },
+    "Madelung energy": {
+      "tol": 5e-08,
+      "unit": "Hartree"
+    },
+    "Core-electron kinetic energy": {
+      "tol": 5e-08,
+      "unit": "Hartree"
+    },
+    "DOS at Fermi energy (states/Ha/cell)": {
+      "tol": 1e-06,
+      "unit": "Hartree"
+    },
+    "Estimated fundamental gap": {
+      "tol": 5e-08,
+      "unit": "Hartree"
+    }
+  },
+  "ATOM_0001.OUT": {
+    "Time": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "x": {
+      "tol": 1e-08,
+      "unit": "Bohr"
+    },
+    "y": {
+      "tol": 1e-08,
+      "unit": "Bohr"
+    },
+    "z": {
+      "tol": 1e-08,
+      "unit": "Bohr"
+    },
+    "vx": {
+      "tol": 1e-08,
+      "unit": "Bohr/t_Bohr"
+    },
+    "vy": {
+      "tol": 1e-08,
+      "unit": "Bohr/t_Bohr"
+    },
+    "vz": {
+      "tol": 1e-08,
+      "unit": "Bohr/t_Bohr"
+    },
+    "Fx": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    },
+    "Fy": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    },
+    "Fz": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    }
+  },
+  "ATOM_0002.OUT":{
+    "Time": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "x": {
+      "tol": 1e-08,
+      "unit": "Bohr"
+    },
+    "y": {
+      "tol": 1e-08,
+      "unit": "Bohr"
+    },
+    "z": {
+      "tol": 1e-08,
+      "unit": "Bohr"
+    },
+    "vx": {
+      "tol": 1e-08,
+      "unit": "Bohr/t_Bohr"
+    },
+    "vy": {
+      "tol": 1e-08,
+      "unit": "Bohr/t_Bohr"
+    },
+    "vz": {
+      "tol": 1e-08,
+      "unit": "Bohr/t_Bohr"
+    },
+    "Fx": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    },
+    "Fy": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    },
+    "Fz": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    }
+  },
+  "FCR_0001.OUT":{
+    "Time": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "Fx": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    },
+    "Fy": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    },
+    "Fz": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    }
+  },
+  "FCR_0002.OUT":{
+    "Time": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "Fx": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    },
+    "Fy": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    },
+    "Fz": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    }
+  },
+  "FEXT_0001.OUT":{
+    "Time": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "Fx": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    },
+    "Fy": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    },
+    "Fz": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    }
+  },
+  "FEXT_0002.OUT":{
+    "Time": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "Fx": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    },
+    "Fy": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    },
+    "Fz": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    }
+  },
+  "FHF_0001.OUT":{
+    "Time": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "Fx": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    },
+    "Fy": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    },
+    "Fz": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    }
+  },
+  "FHF_0002.OUT":{
+    "Time": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "Fx": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    },
+    "Fy": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    },
+    "Fz": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    }
+  },
+  "FVAL_0001.OUT":{
+    "Time": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "Fx": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    },
+    "Fy": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    },
+    "Fz": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    }
+  },
+  "FVAL_0002.OUT":{
+    "Time": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "Fx": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    },
+    "Fy": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    },
+    "Fz": {
+      "tol": 1e-08,
+      "unit": "Hartree/Bohr"
+    }
+  }
+}

@@ -11,6 +11,7 @@
   <xs:include id="properties" schemaLocation="properties.xsd"/>
   <xs:include id="xs" schemaLocation="xs.xsd"/>
   <xs:include id="gw" schemaLocation="gw.xsd"/>
+  <xs:include id="MD" schemaLocation="MD.xsd"/>
   <xs:include id="eph" schemaLocation="eph.xsd"/>
 
   <xs:annotation>
@@ -117,6 +118,7 @@
         <xs:element ex:importance="expert" ex:unit="" maxOccurs="1" minOccurs="0" ref="phonons"/>
         <xs:element ex:importance="expert" ex:unit="" maxOccurs="1" minOccurs="0" ref="xs"/>
         <xs:element ex:importance="expert" ex:unit="" maxOccurs="1" minOccurs="0" ref="gw"/>
+        <xs:element ex:importance="expert" ex:unit="" maxOccurs="1" minOccurs="0" ref="MD"/>
         <xs:element ex:importance="experimental" ex:unit="" maxOccurs="1" minOccurs="0" ref="eph"/>
         <xs:element maxOccurs="1" minOccurs="0" name="keywords" type="xs:string">
           <xs:annotation>

@@ -220,7 +220,7 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
     evllpu = minval(evalsv(iunocc_common, :))
   end if
 
-  ! Determine if system has a gap in energy
+  ! Determine if system has a gap in energe
   ksgap = evlhpo .lt. efermi
   !write(*,*) "findocclims: efermi=", efermi
   !write(*,*) "findocclims: ksgap=", ksgap

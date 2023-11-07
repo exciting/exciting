@@ -6,6 +6,10 @@
 
 Subroutine writephnlist(nppt,vpl,twrev,fname)
       Use modmain
+      use modmpi
+      use phonons_util, only: ph_util_setup_interpolation, ph_util_interpolate, ph_util_diag_dynmat
+      use phonons_io_util, only: ph_io_read_dielten, ph_io_read_borncharge
+      use matrix_fourier_interpolation, only: mfi_type
       Implicit None
 ! arguments
       integer, intent(in) :: nppt
@@ -14,31 +18,49 @@ Subroutine writephnlist(nppt,vpl,twrev,fname)
       character(*), intent(in) :: fname
 ! local variables
       Integer :: n, iq, i, j, is, ia, ip
-      Real (8) :: er, ei, eeps
+      Real (8) :: er, ei, eeps, dielten(3, 3)
+      type(mfi_type) :: mfi
+      logical :: success
 ! allocatable arrays
+      Real (8), Allocatable :: borncharge (:, :, :)
       Real (8), Allocatable :: w (:)
       Complex (8), Allocatable :: ev (:, :)
-      Complex (8), Allocatable :: dynq (:, :, :)
-      Complex (8), Allocatable :: dynp (:, :)
+      Complex (8), Allocatable :: dynp (:, :, :)
       Complex (8), Allocatable :: dynr (:, :, :)
       n = 3 * natmtot
       Allocate (w(n))
       Allocate (ev(n, n))
-      Allocate (dynq(n, n, nqpt))
-      Allocate (dynp(n, n))
-      Allocate (dynr(n, n, ngridq(1)*ngridq(2)*ngridq(3)))
-! set threshold for the eigenvector components
+      ! set threshold for the eigenvector components
       eeps = 1E-15
-! read in the dynamical matrices
-      Call readdyn (.true.,dynq)
-! apply the acoustic sum rule
-      Call sumrule (dynq)
-! Fourier transform the dynamical matrices to real-space
-      Call dynqtor (dynq, dynr)
+      ! try to read dielectric tensor and Born effective charges
+      if( input%phonons%polar ) then
+        call ph_io_read_dielten( dielten, 'EPSINF.OUT', success )
+        call terminate_if_false( success, '(writephnlist) &
+          Failed to read dielectric tensor from EPSINF.OUT.' )
+        call ph_io_read_borncharge( borncharge, 'ZSTAR.OUT', success )
+        call terminate_if_false( success, '(writephnlist) &
+          Failed to read Born effective charge tensors from ZSTAR.OUT.' )
+      end if
+      ! set up interpolation
+      if( input%phonons%polar ) then
+        call ph_util_setup_interpolation( bvec, ngridq, nqpt, ivq(:, 1:nqpt), vql(:, 1:nqpt), mfi, dynr, &
+          dielten=dielten, borncharge=borncharge, &
+          sumrule=input%phonons%sumrule )
+      else
+        call ph_util_setup_interpolation( bvec, ngridq, nqpt, ivq(:, 1:nqpt), vql(:, 1:nqpt), mfi, dynr, &
+          sumrule=input%phonons%sumrule )
+      end if
+      ! interpolate dynamical matrices on list
+      if( input%phonons%polar ) then
+        call ph_util_interpolate( nppt, vpl(:, 1:nppt), mfi, dynr, dynp, &
+          dielten=dielten, borncharge=borncharge )
+      else
+        call ph_util_interpolate( nppt, vpl(:, 1:nppt), mfi, dynr, dynp )
+      end if
+      ! write phonons
       Open (50, File=trim(fname), Action='WRITE', Form='FORMATTED')
       Do iq = 1, nppt
-         Call dynrtoq (vpl(:, iq), dynr, dynp)
-         Call dyndiag (dynp, w, ev)
+         call ph_util_diag_dynmat( dynp(:, :, iq), w, ev )
          Write (50,*)
          Write (50, '(I6, 3G18.10, " : q-point, vpl")') iq, vpl &
         & (:, iq)
@@ -79,6 +101,11 @@ Subroutine writephnlist(nppt,vpl,twrev,fname)
      &written to ",a)') trim(fname)
       Write (*, '(" for all q-vectors in the phwrite list")')
       Write (*,*)
-      Deallocate (w, ev, dynq, dynp, dynr)
+      ! clean up
+      Deallocate (w, ev )
+      if( allocated( dynr ) ) deallocate( dynr )
+      if( allocated( dynp ) ) deallocate( dynp )
+      if( allocated( borncharge ) ) deallocate( borncharge )
+      call mfi%destroy
       Return
 End Subroutine

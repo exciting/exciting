@@ -3,8 +3,8 @@ Build profile and exciting methods
 """
 import enum
 import re
-from typing import List, Union
 import sys
+from typing import List, Union
 
 
 class Compiler(enum.Enum):
@@ -17,6 +17,7 @@ class Compiler(enum.Enum):
 
 
 compiler_enum_map = {'ifort': Compiler.intel, 'gfortran': Compiler.gcc}
+compiler_version_identifier_map = {'ifort': Compiler.intel, 'GNU': Compiler.gcc}
 
 
 class BuildType(enum.Enum):
@@ -79,7 +80,7 @@ def get_calculation_types(input_calcs: List[str]) -> List[ExcitingCalculation]:
     :param List[str] input_calcs: Input strings for calculation names
     :return  List[Calculation] List of Calculation enums
     """
-    all_calculations_str = "\n".join(calc for calc in ExcitingCalculation._member_names_)
+    all_calculations_str = "\n".join(calc for calc in ExcitingCalculation._member_names_)  # pylint: disable=no-member
 
     matched_calculations = []
     for calc in input_calcs:
@@ -89,7 +90,8 @@ def get_calculation_types(input_calcs: List[str]) -> List[ExcitingCalculation]:
         unmatched_calcs = set(input_calcs) - set(matched_calculations)
         print("Some calculation inputs did not match any valid method choices: ", unmatched_calcs)
         print("Here is a complete list of valid method strings (substring matches are also valid):")
-        all_calculations_pretty_str = "\n".join(" * " + calc for calc in ExcitingCalculation._member_names_)
+        all_calculations_pretty_str = "\n".join(" * " + calc for calc in
+                                                ExcitingCalculation._member_names_)  # pylint: disable=no-member
         print(all_calculations_pretty_str)
         sys.exit()
 

@@ -302,13 +302,6 @@ subroutine exccoulint(iqmt)
   ! participating in the BSE
   call genparidxran('k', nk_bse)
 
-#ifndef MPI
-  if(mpiglobal%rank == 0) then
-    write(6, '(a)', advance="no") "Calculating Plane-wave matrix elements"
-    flush(6)
-  end if
-#endif
-
   !! RR:  M_uok(G,qmt) = <iu ikm|e^{-i(G+qmt)r}|io ikp>
   !!      with ikp = ik+qmt
   do ik = kpari, kparf
@@ -336,11 +329,6 @@ subroutine exccoulint(iqmt)
     ematuok(1:inu, 1:ino, 1:numgq, ik) = muo(1:inu, 1:ino, 1:numgq)
   end do
 
-#ifndef MPI
-  if(mpiglobal%rank == 0) then
-    write(6, *)
-  end if
-#endif
   ! Helper no longer needed
   if(allocated(muo)) deallocate(muo)
 
@@ -404,13 +392,6 @@ subroutine exccoulint(iqmt)
     end if
     call timesec(tpw0)
   end if
-
-#ifndef MPI
-  if(mpiglobal%rank == 0) then
-      write(6, '(a)', advance="no") "Calculating Exchange Interaction Matrix Elements"
-      flush(6)
-    end if
-#endif
 
   kkp: do ikkp = ppari, pparf
 
@@ -493,11 +474,6 @@ subroutine exccoulint(iqmt)
     call putbsemat(exclifname, 77, ikkp, iqmt, excli)
   ! End loop over(k,kp) pairs
   end do kkp
-#ifndef MPI
-  if(mpiglobal%rank == 0) then
-    write(6,*)
-  end if
-#endif
   call barrier(callername=trim(thisname))
 
   if(mpiglobal%rank == 0) then

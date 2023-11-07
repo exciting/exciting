@@ -59,4 +59,4 @@ reference_input_str = """<?xml version="1.0" encoding="UTF-8"?>
 def test_parse_input_xml_to_object():
     input_xml = parse_input_xml(reference_input_str)
     assert set(vars(input_xml)) == {'xs', 'groundstate', 'structure', 'title'}
-    assert input_xml.to_xml_str().startswith('<?xml version="1.0" ?>\n<input>\n\t \n\t<title>Lithium Fluoride BSE')
+    assert input_xml.to_xml_str().startswith('<?xml version="1.0" ?>\n<input>\n\t<title>Lithium Fluoride BSE')

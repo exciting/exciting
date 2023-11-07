@@ -22,7 +22,7 @@ module phonons
   real(dp), allocatable :: occk(:,:), occkq(:,:)
   !> eigenvectors at single \({\bf k}\) and \({\bf k+q}\) point
   complex(dp), allocatable :: eveck(:,:), eveckq(:,:)
-  !> (L)APW matching coefficients \(A^\alpha_{{\bf G+p},lm,\xi}\) at \({\bf k}\) and \({\bf k+q}\)
+  !> (L)APW matching coefficients \(A^\kappa_{{\bf G+p},lm,\xi}\) at \({\bf k}\) and \({\bf k+q}\)
   complex(dp), allocatable :: apwalmk(:,:,:,:), apwalmkq(:,:,:,:)
   !> eigenvalue and occupation response at single \({\bf k}\) point
   real(dp), allocatable :: devalk(:,:,:), docck(:,:,:)
@@ -50,6 +50,8 @@ module phonons
   complex(dp), allocatable :: dforce_const(:,:,:)
   !> force response for all atoms and irrep members
   complex(dp), allocatable :: dforce(:,:,:)
+  !> polarization response for all irrep members
+  complex(dp), allocatable :: dpol(:,:)
   !> parallel i/o file objects for eigenvectors 
   !> at \({\bf q}\)-dependent \({\bf k}\)- and \({\bf k+q}\)-grid
   type(block_data_file_type) :: feveck, feveckq
@@ -64,9 +66,9 @@ module phonons
   integer :: localmasterrank
 
   public :: ph_prepare, ph_finalize, ph_dry_run
-  public :: ph_part_prepare, ph_part_finalize, ph_part_scf, ph_part_force
-  public :: ph_write_dyn_canonical, ph_write_dpot_canonical
-  public :: ph_dynmat_canonical_from_file, ph_dpot_canonical_from_file
+  public :: ph_part_prepare, ph_part_finalize, ph_part_scf, ph_part_force, ph_part_polarization
+  public :: ph_write_dyn_canonical, ph_write_dpot_canonical, ph_write_borncharge_canonical
+  public :: ph_dynmat_canonical_from_file, ph_dpot_canonical_from_file, ph_borncharge_canonical_from_file
 
   contains
 
@@ -89,7 +91,7 @@ module phonons
              input%phonons%minprocsperpart, input%phonons%maxprocsperpart, ph_parts_done, &
              ph_parts, ph_schedule, all_parts=ph_parts_all )
       ! print run information
-      call ph_io_print_calc_info
+      call ph_io_print_calc_info( print_schedule=input%phonons%write_schedule )
       ! free memory
       call ph_var_free
     end subroutine ph_dry_run
@@ -107,7 +109,7 @@ module phonons
         do_force )
       use dfpt_eigensystem, only: dfpt_eig_ks
       use phonons_parallelization, only: ph_par_distribute, ph_par_parts_from_schedule
-      use phonons_density_potential, only: ph_rhopot_init!TODO, ph_rhopot_free
+      use phonons_density_potential, only: ph_rhopot_init
       use phonons_force, only: ph_frc_dpulay_k, ph_frc_dsurf_k, ph_frc_symmetrize
 
       use constants, only: zzero
@@ -137,7 +139,7 @@ module phonons
       ph_parts_per_rank = ph_par_parts_from_schedule( ph_schedule(mpiglobal%rank+1, :) )
 
       ! print run information
-      call ph_io_print_calc_info
+      call ph_io_print_calc_info( print_schedule=input%phonons%write_schedule )
 
       ! initialize more global variables
       call ph_var_init_q(0)
@@ -146,6 +148,12 @@ module phonons
       ! try to read constant part of force response from file
       allocate( dforce_const(3, natmtot, 3), source=zzero )
       call ph_io_read_dforce_const( dforce_const, success )
+
+      ! check if temporary file for eigenvectors and eigenvalues are available
+      exists = fevalk0%exists() .and. feveck0%exists()
+      exists = exists .and. (fevalk0%is_open() .and. feveck0%is_open())
+      call terminate_if_false( exists, &
+             '(ph_prepare): Eigenvalues and eigenvectors were not prepared. Call `dfpt_prepare` in advance.' )
 
       ! compute constant part of force response
       if( force .and. size( ph_parts ) > 0 .and. .not. success ) then
@@ -159,11 +167,6 @@ module phonons
         allocate( occk(nstfv, dfpt_kset%nkpt) )
         allocate( eveck(nmatmaxk, nmatmaxk) )
         allocate( apwalmk(ngkmaxk, apwordmax, lmmaxapw, natmtot) )
-        ! check if temporary file for eigenvectors and eigenvalues are available
-        exists = fevalk0%exists() .and. feveck0%exists()
-        exists = exists .and. (fevalk0%is_open() .and. feveck0%is_open())
-        call terminate_if_false( exists, &
-               '(ph_prepare): Eigenvalues and eigenvectors were not prepared. Call dfpt_prepare in advance.' )
         ! read eigenvalues from file
         do ik = ik1, ik2
           call dfpt_eig_ks( ik, dfpt_kset, dfpt_Gset, dfpt_Gkset, nmatmaxk, evalk(:,ik), eveck, &
@@ -333,6 +336,7 @@ module phonons
       allocate( dHmat_mt_basis(mt_basis%n_basis_fun_max, mt_basis%n_basis_fun_max, natmtot, id1:id2) )
       allocate( dpot_cfun_ig(ph_Gqset%ngvec, id1:id2) )
       allocate( dkin_cfun_ig(ph_Gqset%ngvec, id1:id2) )
+      allocate( dpol(3, dirrep) )
       if( master ) then ! only the master needs to know all irrep members
         allocate( drho_mt(dfpt_lmmaxvr, nrmtmax, natmtot, dirrep) )
         allocate( drho_ir(dfpt_Gset%ngrtot, dirrep) )
@@ -413,7 +417,7 @@ module phonons
                    drho_mt(:, :, :, id), drho_ir(:, id), dpot_mt(:, :, :, id), dpot_ir(:, id) )
           end if
         end do
-        if( from_file ) call dfpt_io_info_string( 'Density and potential response read from file.' )
+        if( from_file ) call dfpt_io_info_string( new_line( 'a' )//'Initial density and potential response read from file.' )
       end if
       ! open files for eigenvalue, occupancy and eigenvector response
       call ph_io_irrep_fxt( iq, iirrep, 0, fxt )
@@ -433,28 +437,35 @@ module phonons
     !> This includes freeing memory from unneeded variables, closing files,
     !> deleting temporary files and leaving the subdirectory of this part.
     subroutine ph_part_finalize( ipart, &
-        info_output )
+        info_output, delete_files )
       use mod_misc, only: scrpath
       !> index of the independent part
       integer, intent( in) :: ipart
       !> create and write info output files (default: `.true.`)
       logical, optional, intent(in) :: info_output
+      !> delete files for eigensystem response (default: `.true.`)
+      logical, optional, intent(in) :: delete_files
 
-      logical :: write_info
+      logical :: write_info, delete
 
       write_info = .true.
       if( present( info_output ) ) write_info = info_output
+      delete = .true.
+      if( present( delete_files ) ) delete = delete_files
 
       ! return if this rank is not working on this part
       if( .not. ph_parts(ipart)%is_my_rank( mpiglobal%rank) ) return
 
-      ! close file for eigenvalue and eigenvector response
+      ! close file for eigensystem response
       call fdevalk%close( mpilocal )
       call fdocck%close( mpilocal )
       call fdeveck%close( mpilocal )
-      ! delete file for eigenvector response
-      ! TODO remove this or add an optional flag if files are needed
-      call fdeveck%delete( mpilocal )
+      ! delete file for eigensystem response
+      if( delete ) then
+        call fdevalk%delete( mpilocal )
+        call fdocck%delete( mpilocal )
+        call fdeveck%delete( mpilocal )
+      end if
       ! close temporary files for eigenvectors at k and k+q and delete them
       call feveck%close( mpilocal )
       call feveck%delete( mpilocal )
@@ -484,6 +495,7 @@ module phonons
       if( allocated( dpot_cfun_ig ) ) deallocate( dpot_cfun_ig )
       if( allocated( dkin_cfun_ig ) ) deallocate( dkin_cfun_ig )
       if( allocated( dforce ) ) deallocate( dforce )
+      if( allocated( dpol ) ) deallocate( dpol )
       call ph_var_free_q
       ! finalize info output
       if( master .and. write_info ) call ph_io_info_finit
@@ -571,7 +583,7 @@ module phonons
 #endif
       end if
       ! initialize scf cycle info output
-      if( master .and. write_info ) call dfpt_io_info_scf_init( success )
+      if( master .and. write_info ) call dfpt_io_info_scf_init
 
       !********************************
       !* START SCF LOOP
@@ -753,8 +765,8 @@ module phonons
       !* END SCF LOOP
       !********************************
 
-     ! finalize scf loop output
-     if( master .and. write_info ) call dfpt_io_info_scf_finit
+      ! finalize scf loop output
+      if( master .and. write_info ) call dfpt_io_info_scf_finit
 
       ! deallocate mixer
       deallocate( rlen, roff )
@@ -767,7 +779,7 @@ module phonons
       call barrier( mpicom=mpilocal )
     end subroutine ph_part_scf
 
-    !> This subroutine calculates the force response (= dynamical matrix row) 
+    !> This subroutine calculates the force response (= dynamical matrix column) 
     !> from the converged density and potential response for an independent part
     !> of a DFPT phonon calculation and writes it to file.
     !>
@@ -782,7 +794,7 @@ module phonons
       use phonons_parallelization, only: ph_par_zgather
       use phonons_density_potential, only: ph_rhopot_gen_dpot
       use phonons_force
-      use phonons_util, only: ph_util_write_dynmat
+      use phonons_io_util, only: ph_io_write_dynmat_col
 
       use constants, only: zzero, zone
       use mod_potential_and_density, only: pot_mt => veffmt, pot_ir => veffir
@@ -898,14 +910,14 @@ module phonons
                ph_irrep_basis(iq)%nsym, ph_irrep_basis(iq)%isym, ph_irrep_basis(iq)%ivsym, &
                ph_irrep_basis(iq)%irreps(iirrep)%symmat, &
                acoustic_sum_rule=(gamma .and. input%phonons%sumrule) )
-        ! write dynamical matrix row in irrep basis to file
+        ! write dynamical matrix column in irrep basis to file
         to_file = .true.
         do id = 1, dirrep
           call ph_io_irrep_fxt( iq, iirrep, id, fxt )
-          call ph_util_write_dynmat( dforce(:, :, id), fxt, success, directory=ph_io_qi_dirname )
+          call ph_io_write_dynmat_col( dforce(:, :, id), fxt, success, directory=ph_io_qi_dirname )
           to_file = to_file .and. success
         end do
-        if( to_file ) call dfpt_io_info_string( 'Dynamical matrix rows written to file.' )
+        if( to_file ) call dfpt_io_info_string( 'Dynamical matrix columns written to file.' )
       end if
 
       deallocate( rlen, roff )
@@ -913,16 +925,154 @@ module phonons
       call barrier( mpicom=mpilocal )
     end subroutine ph_part_force
 
+    !> This subroutine calculates the polarization response (= Born effective charge column) 
+    !> from the converged density and potential response for an independent part
+    !> of a DFPT phonon calculation and writes it to file.
+    !>
+    !> The polarization response is calculated using the Berry phase approach.
+    !>
+    !> See [[ph_borncharge_canonical_from_file(subroutine)]] for the transformation of the Born effective 
+    !> charge into canonical (Cartesian) coordinates.
+    subroutine ph_part_polarization( ipart )
+      use dfpt_polarization
+      use phonons_polarization
+      use phonons_symmetry, only: ph_sym_find_kpt, ph_sym_rotate_devec
+
+      use constants, only: zzero
+      use mod_eigenvalue_occupancy, only: occmax
+      !> index of the independent part
+      integer, intent(in) :: ipart
+
+      integer :: iq, iirrep, dirrep, id, ik, ikb, ik1, ik2, ip
+      integer :: iknr, ikbnr, isym, nst, ivkb(3)
+      real(dp) :: binv(3, 3), tmp(3, 2)
+      logical :: success, to_file
+      character(:), allocatable :: fxt
+
+      complex(dp), allocatable :: devecknr(:,:,:), eveckbnr(:,:), deveckbnr(:,:,:)
+
+      ! return if this rank is not working on this part
+      if( .not. ph_parts(ipart)%is_my_rank( mpiglobal%rank ) ) return
+
+      ! return if q is different from 0
+      if( .not. gamma ) return
+      
+      ! set q-point and irrep
+      iq = ph_parts(ipart)%iq
+      iirrep = ph_parts(ipart)%iirrep
+      dirrep = ph_parts(ipart)%dirrep
+      ! set limits for k-point loops
+      ik1 = firstofset( mpilocal%rank, ph_kset%nkptnr, nprocs=mpilocal%procs )
+      ik2 = lastofset( mpilocal%rank, ph_kset%nkptnr, nprocs=mpilocal%procs )
+
+      allocate( devecknr(size( deveck, dim=1 ), size( deveck, dim=2 ), dirrep) )
+      allocate( eveckbnr(size( eveck, dim=1 ), size( eveck, dim=2 )) )
+      allocate( deveckbnr(size( deveck, dim=1 ), size( deveck, dim=2 ), dirrep) )
+
+      dpol = zzero
+      ! initialize plane wave matrix elements
+      call ph_pol_init( ph_irrep_basis(iq)%irreps(iirrep) )
+      do ip = 1, 3
+        ! initialize plane wave matrix elements
+        call dfpt_pol_init_p( - ph_kset%bvec(:, ip) / ph_kset%ngridk(ip) )
+        ! we have to loop over the full k-set
+        do iknr = ik1, ik2
+          ! find equivalent point in reduced set and corresponding symmetry
+          call ph_sym_find_kpt( ph_kset%vklnr(:, iknr), ph_kset%vkl, ph_kset%nkpt, ph_irrep_basis(iq), isym, ik )
+          call terminate_if_false( ik > 0, '(ph_part_polarization) &
+            Equivalent k-point not found.' )
+          ! get number of occupied states
+          nst = count( occk(:, ik) > occmax/2 )
+          ! read eigenvector at k
+          call feveck%read( ik, eveck )
+          call rotate_evecfv( ph_irrep_basis(iq)%isym(isym), ph_kset%vkl(:, ik), ph_kset%vklnr(:, iknr), &
+            ph_Gkset%ngk(1, ik), ph_Gkset%vgkl(:, :, 1, ik), ph_Gkset%vgknrl(:, :, 1, iknr), &
+            eveck, size( eveck, dim=1 ), nst )
+          ! read eigenvector response at k
+          do id = 1, dirrep
+            call fdeveck%read( ph_parts(ipart)%get_dk_offset(id, ik) + 1, devecknr(:, :, id) )
+          end do
+          call ph_sym_rotate_devec( ph_irrep_basis(iq), iirrep, isym, ph_kset%vkl(:, ik), ph_kset%vklnr(:, iknr), &
+            ph_Gkset%ngk(1, ik), ph_Gkset%vgkl(:, :, 1, ik), ph_Gkset%vgknrl(:, :, 1, iknr), &
+            devecknr, size( devecknr, dim=1 ), size( devecknr, dim=2 ), nst )
+          ! find vector k+b and its equivalent in reduced set
+          ivkb = ph_kset%ivknr(:, iknr)
+          ivkb(ip) = modulo( ivkb(ip) + 1, ph_kset%ngridk(ip) )
+          ikbnr = ph_kset%ikmapnr(ivkb(1), ivkb(2), ivkb(3))
+          call ph_sym_find_kpt( ph_kset%vklnr(:, ikbnr), ph_kset%vkl, ph_kset%nkpt, ph_irrep_basis(iq), isym, ikb )
+          call terminate_if_false( ikb > 0, '(ph_part_polarization) &
+            Equivalent k-point not found.' )
+          ! read eigenvector at k+b
+          call feveck%read( ikb, eveckbnr )
+          call rotate_evecfv( ph_irrep_basis(iq)%isym(isym), ph_kset%vkl(:, ikb), ph_kset%vklnr(:, ikbnr), &
+            ph_Gkset%ngk(1, ikb), ph_Gkset%vgkl(:, :, 1, ikb), ph_Gkset%vgknrl(:, :, 1, ikbnr), &
+            eveckbnr, size( eveckbnr, dim=1 ), nst )
+          ! read eigenvector response at k+b
+          do id = 1, dirrep
+            call fdeveck%read( ph_parts(ipart)%get_dk_offset(id, ikb) + 1, deveckbnr(:, :, id) )
+          end do
+          call ph_sym_rotate_devec( ph_irrep_basis(iq), iirrep, isym, ph_kset%vkl(:, ikb), ph_kset%vklnr(:, ikbnr), &
+            ph_Gkset%ngk(1, ikb), ph_Gkset%vgkl(:, :, 1, ikb), ph_Gkset%vgknrl(:, :, 1, ikbnr), &
+            deveckbnr, size( deveckbnr, dim=1 ), size( deveckbnr, dim=2 ), nst )
+
+          ! add k-point contribution to polarization response
+          do id = 1, dirrep
+            call ph_pol_dpol_k( iknr, ikbnr, ph_kset, ph_Gkset, 1, nst, &
+              eveck, eveckbnr, devecknr(:, :, id), deveckbnr(:, :, id), &
+              ph_irrep_basis(iq)%irreps(iirrep)%pat(:, :, id), id, &
+              dpol(ip, id) )
+          end do
+
+        end do
+      end do
+      ! free memory
+      call ph_pol_free
+      call barrier( mpicom=mpilocal )
+      ! reduce polarization response over k-points
+#ifdef MPI
+      call MPI_Allreduce( MPI_IN_PLACE, dpol, size( dpol ), MPI_DOUBLE_COMPLEX, MPI_SUM, &
+             mpilocal%comm, mpilocal%ierr )
+#endif
+      ! transform into Cartesian coordinates
+      call r3minv( ph_kset%bvec, binv )
+      do id = 1, dirrep
+        dpol(:, id) = dpol(:, id) * ph_kset%ngridk
+        call r3mtv( binv, dble(  dpol(:, id) ), tmp(:, 1) )
+        call r3mtv( binv, aimag( dpol(:, id) ), tmp(:, 2) )
+        dpol(:, id) = cmplx( tmp(:, 1), tmp(:, 2), dp )
+      end do
+      ! add ionic contribution
+      call ph_pol_dpol_ion( dirrep, ph_irrep_basis(iq)%irreps(iirrep)%pat, dpol )
+      ! symmetrize
+      call ph_pol_symmetrize( dpol, dirrep, &
+             ph_irrep_basis(iq)%nsym, ph_irrep_basis(iq)%isym, ph_irrep_basis(iq)%ivsym, &
+             ph_irrep_basis(iq)%irreps(iirrep)%symmat )
+      ! write to file
+      if( master ) then
+        to_file = .true.
+        do id = 1, dirrep
+          call ph_io_irrep_fxt( iq, iirrep, id, fxt )
+          call ph_io_write_borncharge_col( dpol(:, id), fxt, success, directory=ph_io_qi_dirname )
+          to_file = to_file .and. success
+        end do
+        if( to_file ) call dfpt_io_info_string( 'Born effective charge columns written to file.' )
+      end if
+
+      deallocate( devecknr, eveckbnr, deveckbnr )
+
+      call barrier( mpicom=mpilocal )
+    end subroutine ph_part_polarization
+
     !> This subroutine tries to read the dynamical matrices in (half) irrep coordinates
     !> from a previous SCF run and transforms them into the canonical (Cartesian) basis
     !> and writes them to file.
     !>
     !> The dynamical matrices in canonical (Cartesian) coordinates are obtained
-    !> from the irrep displacement patterns \(p^{I \mu}_{\alpha i}({\bf q})\) by
-    !> \[ D_{\alpha i,\beta j}({\bf q}) = 
-    !>    \sum_{I, \mu} {p^{I \mu}_{\beta j}}^\ast ({\bf q}) \, D_{\alpha i,I \mu}({\bf q}) \;. \]
+    !> from the irrep displacement patterns \(p^{I \mu}_{\kappa\alpha}({\bf q})\) by
+    !> \[ D_{\kappa\alpha,\kappa'\beta}({\bf q}) = 
+    !>    \sum_{I, \mu} {p^{I \mu}_{\kappa'\beta}}^\ast ({\bf q}) \, D_{\kappa\alpha,I \mu}({\bf q}) \;. \]
     subroutine ph_write_dyn_canonical
-      use phonons_util, only: ph_util_write_dynmat
+      use phonons_io_util, only: ph_io_write_dynmat_col
       use mod_atoms, only: natmtot, nspecies, natoms, idxas
 
       integer :: iq, is, ia, ias, ip, i
@@ -943,9 +1093,9 @@ module phonons
               ! get file extension
               call ph_io_canon_fxt( iq, is, ia, ip, fxt )
               ! try to write dynamical matrix to file
-              call ph_util_write_dynmat( reshape( dyn(:, i), [3, natmtot] ), fxt, success )
+              call ph_io_write_dynmat_col( reshape( dyn(:, i), [3, natmtot] ), fxt, success )
               call terminate_if_false( success, '(ph_write_dyn_canonical) &
-                Was not able to write dynamical matrix row to file '//&
+                Was not able to write dynamical matrix column to file '//&
                 new_line( 'a' )//'DYN_'//trim( fxt )//'.OUT' )
             end do
           end do
@@ -961,14 +1111,15 @@ module phonons
     !> First, for the given \({\bf q}\) its symmetry equivalent point \({\bf q}_0\) in the set of
     !> \({\bf q}\)-vectors and the connecting symmetry operation is found. Then, the dynamical matrix
     !> in irrep coordinates at \({\bf q}_0\) is read from file, transformed into canonical coordinates via
-    !> \[ D_{\alpha i,\beta j}({\bf q}_0) = 
-    !>    \sum_{I, \mu} {p^{I \mu}_{\beta j}}^\ast ({\bf q}_0) \, D_{\alpha i,I \mu}({\bf q}_0) \;, \]
-    !> where \(p^{I \mu}_{\alpha i}({\bf q})\) are the irrep displacement patterns,
+    !> \[ D_{\kappa\alpha,\kappa'\beta}({\bf q}_0) = 
+    !>    \sum_{I, \mu} {p^{I \mu}_{\kappa'\beta}}^\ast ({\bf q}_0) \, D_{\kappa\alpha,I \mu}({\bf q}_0) \;, \]
+    !> where \(p^{I \mu}_{\kappa\alpha}({\bf q})\) are the irrep displacement patterns,
     !> and possibly rotated into \({\bf q}\) using [[ph_util_symapp_dyn(subroutine)]].
     subroutine ph_dynmat_canonical_from_file( vql, dyn )
       use constants, only: zzero
       use mod_atoms, only: natmtot, nspecies, natoms, idxas
-      use phonons_util, only: ph_util_symapp_dyn, ph_util_read_dynmat
+      use phonons_util, only: ph_util_symapp_dyn
+      use phonons_io_util, only: ph_io_read_dynmat_col
       !> phonon wavevector \({\bf q}\) in lattice coordinates
       real(dp), intent(in) :: vql(3)
       !> dynamical matrix
@@ -1001,9 +1152,9 @@ module phonons
          ! get file extension of part
           call ph_io_irrep_fxt( iq, iirrep, id, fxt )
           ! try to read dynamical matrix from file
-          call ph_util_read_dynmat( dyn_i, fxt, success, directory=qidirname )
+          call ph_io_read_dynmat_col( dyn_i, fxt, success, directory=qidirname )
           call terminate_if_false( success, '(ph_dynmat_canonical_from_file) &
-            Was not able to read dynamical matrix row supposed to be in file '//&
+            Was not able to read dynamical matrix column supposed to be in file '//&
             new_line( 'a' )//trim( qidirname )//'/DYN_'//trim(fxt)//'.OUT' )
           ! store irrep displacement pattern
           pat = ph_irrep_basis(iq)%irreps(iirrep)%pat(:, :, id)
@@ -1034,9 +1185,9 @@ module phonons
     !> and writes it to file.
     !>
     !> The effective potential response in canonical (Cartesian) coordinates is obtained
-    !> from the irrep displacement patterns \(p^{I \mu}_{\alpha i}({\bf q})\) by
-    !> \[ \delta^{\bf q}_{\alpha i}V_{\rm eff}({\bf r}) = 
-    !>    \sum_{I, \mu} {p^{I \mu}_{\alpha i}}^\ast ({\bf q}) \, \delta^{\bf q}_{I \mu}V_{\rm eff}({\bf r}) \;. \]
+    !> from the irrep displacement patterns \(p^{I \mu}_{\kappa\alpha}({\bf q})\) by
+    !> \[ \delta^{\bf q}_{\kappa\alpha}V_{\rm eff}({\bf r}) = 
+    !>    \sum_{I, \mu} {p^{I \mu}_{\kappa\alpha}}^\ast ({\bf q}) \, \delta^{\bf q}_{I \mu}V_{\rm eff}({\bf r}) \;. \]
     subroutine ph_write_dpot_canonical
       use mod_atoms, only: natmtot, nspecies, natoms, idxas
       use mod_phonon, only: natoms0, natmtot0, ngrid0, ngrtot0
@@ -1076,9 +1227,9 @@ module phonons
     !> First, for the given \({\bf q}\) its symmetry equivalent point \({\bf q}_0\) in the set of
     !> \({\bf q}\)-vectors and the connecting symmetry operation is found. Then, the potential response
     !> in irrep coordinates at \({\bf q}_0\) is read from file, transformed into canonical coordinates via
-    !> \[ \delta^{{\bf q}_0}_{\alpha i}V_{\rm eff}({\bf r}) = 
-    !>    \sum_{I, \mu} {p^{I \mu}_{\alpha i}}^\ast ({\bf q}_0) \, \delta^{{\bf q}_0}_{I \mu}V_{\rm eff}({\bf r}) \;, \]
-    !> where \(p^{I \mu}_{\alpha i}({\bf q})\) are the irrep displacement patterns,
+    !> \[ \delta^{{\bf q}_0}_{\kappa\alpha}V_{\rm eff}({\bf r}) = 
+    !>    \sum_{I, \mu} {p^{I \mu}_{\kappa\alpha}}^\ast ({\bf q}_0) \, \delta^{{\bf q}_0}_{I \mu}V_{\rm eff}({\bf r}) \;, \]
+    !> where \(p^{I \mu}_{\kappa\alpha}({\bf q})\) are the irrep displacement patterns,
     !> and possibly rotated into \({\bf q}\) using [[ph_rhopot_rotate_q_canonical(subroutine)]].
     subroutine ph_dpot_canonical_from_file( vql, dpot_mt, dpot_ir )
       use phonons_density_potential, only: ph_rhopot_rotate_q_canonical
@@ -1149,4 +1300,109 @@ module phonons
         call ph_rhopot_rotate_q_canonical( ph_qset%vkl(:, iq), vql, isym, dpot_mt, dpot_ir )
     end subroutine ph_dpot_canonical_from_file
 
+    !> This subroutine tries to read the Born effective charges in irrep coordinates
+    !> from a previous SCF run and transforms them into the canonical (Cartesian) basis
+    !> and writes them to file.
+    !>
+    !> The Born effective charges in canonical (Cartesian) coordinates are obtained
+    !> from the irrep displacement patterns \(p^{I \mu}_{\kappa\alpha}({\bf q})\) by
+    !> \[ Z^{\ast}_{i,\kappa'\beta} = 
+    !>    \sum_{I, \mu} {p^{I \mu}_{\kappa'\beta}}^\ast ({\bf 0}) \, Z^{\ast}_{i,I \mu} \;. \]
+    subroutine ph_write_borncharge_canonical
+      use phonons_io_util, only: ph_io_write_borncharge
+      use phonons_util, only: ph_util_sumrule_borncharge
+      use modinput
+
+      integer :: iq
+      real(dp) :: correction(3, 3)
+      logical :: success
+
+      real(dp), allocatable :: zstar(:,:,:)
+
+      if( mpiglobal%rank /= 0 ) return
+
+      do iq = 1, ph_qset%nkpt
+        if( norm2( ph_qset%vkl(:, iq) ) > 1e-6_dp ) cycle
+        ! get Born effective charge in canonical coordinates
+        call ph_borncharge_canonical_from_file( zstar )
+        if( input%phonons%sumrule ) then
+          ! impose acoustic sum rule
+          call ph_util_sumrule_borncharge( zstar, correction )
+          ! try to write Born effective charge to file
+          call ph_io_write_borncharge( zstar, 'ZSTAR.OUT', success, &
+            sumrule_correction=correction )
+        else
+          ! try to write Born effective charge to file
+          call ph_io_write_borncharge( zstar, 'ZSTAR.OUT', success )
+        end if
+        if( success ) then
+          write( *, * )
+          write( *, '("Info (ph_write_borncharge_canonical):")' )
+          write( *, '(" Born-effective charge tensors written to ZSTAR.OUT")' )
+        end if
+        call terminate_if_false( success, '(ph_write_borncharge_canonical) &
+          Was not able to write Born effective charge tensors to file '//&
+          new_line( 'a' )//'ZSTAR.OUT' )
+      end do
+
+      if( allocated( zstar ) ) deallocate( zstar )
+    end subroutine ph_write_borncharge_canonical
+
+    !> For a given phonon wavevector \({\bf q}\), this subroutine tries to read the dynamical matrix
+    !> in irrep coordinates from a previous SCF run and transforms it into the canonical (Cartesian) basis.
+    !>
+    !> First, for the given \({\bf q}\) its symmetry equivalent point \({\bf q}_0\) in the set of
+    !> \({\bf q}\)-vectors and the connecting symmetry operation is found. Then, the dynamical matrix
+    !> in irrep coordinates at \({\bf q}_0\) is read from file, transformed into canonical coordinates via
+    !> \[ D_{\kappa\alpha,\kappa'\beta}({\bf q}_0) = 
+    !>    \sum_{I, \mu} {p^{I \mu}_{\kappa'\beta}}^\ast ({\bf q}_0) \, D_{\kappa\alpha,I \mu}({\bf q}_0) \;, \]
+    !> where \(p^{I \mu}_{\kappa\alpha}({\bf q})\) are the irrep displacement patterns,
+    !> and possibly rotated into \({\bf q}\) using [[ph_util_symapp_dyn(subroutine)]].
+    subroutine ph_borncharge_canonical_from_file( zstar )
+      use constants, only: zzero
+      use mod_atoms, only: natmtot, nspecies, natoms, idxas
+      !> dynamical matrix
+      real(dp), allocatable, intent(out) :: zstar(:,:,:)
+
+      integer :: iq, isym, iirrep, dirrep, id, &
+                 is, ia, ias, ip
+      complex(dp) :: pat(3, natmtot), zstar_i(3)
+      character(:), allocatable :: qidirname, fxt
+      logical :: success
+      
+      ! allocate output arrays
+      if( allocated( zstar ) ) deallocate( zstar )
+      allocate( zstar(3, 3, natmtot), source=0.0_dp )
+
+      ! find equivalent Gamma point in set
+      call findkptinset( [0._dp, 0._dp, 0._dp], ph_qset, isym, iq )
+
+      ! read Born effective charge in irrep basis
+      ! and transform it into canonical basis
+      do iirrep = 1, ph_irrep_basis(iq)%nirrep
+        dirrep = ph_irrep_basis(iq)%irreps(iirrep)%dim
+        ! get subdirectory of part
+        call ph_io_irrep_fxt( iq, iirrep, 0, qidirname )
+        do id = 1, dirrep
+          ! get file extension of part
+          call ph_io_irrep_fxt( iq, iirrep, id, fxt )
+          ! try to read Born effective charge from file
+          call ph_io_read_borncharge_col( zstar_i, fxt, success, directory=qidirname )
+          call terminate_if_false( success, '(ph_borncharge_canonical_from_file) &
+            Was not able to read Born effective charge column supposed to be in file '//&
+            new_line( 'a' )//trim( qidirname )//'/ZSTAR_'//trim(fxt)//'.OUT' )
+          ! store irrep displacement pattern
+          pat = ph_irrep_basis(iq)%irreps(iirrep)%pat(:, :, id)
+          ! add contribution to dynamical matrix in canonical basis
+          do is = 1, nspecies
+            do ia = 1, natoms(is)
+              ias = idxas(ia, is)
+              do ip = 1, 3
+                zstar(:, ip, ias) = zstar(:, ip, ias) + dble( conjg( pat(ip, ias) ) * zstar_i )
+              end do
+            end do
+          end do
+        end do
+      end do
+    end subroutine ph_borncharge_canonical_from_file
 end module phonons

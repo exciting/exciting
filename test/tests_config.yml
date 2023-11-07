@@ -15,7 +15,7 @@
 #
 #  group:              Assign a group to a test.
 #                      This allows only LONG_TESTS or SIRIUS tests to run, for example.
-#                      `defaults_config.ym` defines the GROUPs and which are executed by the test framework.
+#                      `defaults_config.yml` defines the GROUPs and which are executed by the test framework.
 #                      To run different defaults in the CI, `set_groups.py` can be called.
 #                      Note, when specifying a group in this file, an extra tag, `!Group`, must be used.
 #                      This is parsed by pyyaml as an ENUM, and simplifies the python implementation.
@@ -79,6 +79,13 @@ groundstate/LDA_PW-noncollinear-Fe:
    comments: 'Variation in total energy w.r.t. reference is too large.'
 
 groundstate/LDA_PW-PbTiO3:
+   files_under_test:
+      - "INFO.OUT"
+      - "evalcore.xml"
+      - "geometry.xml"
+      - "eigval.xml"
+      - "atoms.xml"
+      - "STATE.OUT"
    failing_builds:
       - !Build intel_mpiandsmp
       - !Build gcc_mpiandsmp
@@ -113,6 +120,20 @@ groundstate/PBE-pulay-Al:
 
 groundstate/PBE_SOL-Al:
 
+groundstate/GGA_PBE_SOL-automatic_trial_energies-NaCl:
+   input:
+      - "input.xml"
+      - "Na.xml"
+      - "Cl.xml"
+   files_under_test:
+      - "INFO.OUT"
+      - "evalcore.xml"
+      - "geometry.xml"
+      - "eigval.xml"
+      - "atoms.xml"
+      - "LINENGY.OUT"
+      - "LO_RECOMMENDATION.OUT"
+
 groundstate/PBE_SOL-BN:
 
 groundstate/PBE-libxc-Al:
@@ -121,6 +142,9 @@ groundstate/PBE-libxc-Al:
 groundstate/PBE-libxc-spin-Al:
    group: !Group LIBXC
 
+groundstate/PBE-SOC-useDensityMatrix_false-realspace_false-svlo_true-GaAs:
+
+groundstate/PBE-SOC-useDensityMatrix_false-realspace_true-svlo_true-GaAs:
 
 groundstate/LDA_PW-davidson-wo-matrix-CO:
 
@@ -302,13 +326,57 @@ properties/PBE_SOL-core_overlap-BN:
 
 properties/LDA_PW-wfplot-Si:
   
-RT-TDDFT/LDA_PW-C-kick:
+RT-TDDFT/LDA_PW-C-kick-RK4:
 
-RT-TDDFT/LDA_PW-Si-sinSq:
+RT-TDDFT/LDA_PW-Ehrenfest-C:
+   repeat: False
    files_under_test:
       - "JIND.OUT"
+      - "INFO.OUT"
+      - "ATOM_0001.OUT"
+      - "ATOM_0002.OUT"
+      - "FCR_0001.OUT"
+      - "FCR_0002.OUT"
+      - "FEXT_0001.OUT"
+      - "FEXT_0002.OUT"
+      - "FHF_0001.OUT"
+      - "FHF_0002.OUT"
+      - "FVAL_0001.OUT"
+      - "FVAL_0002.OUT"
+   inputs:
+      - "input.xml"
+      - "C.xml"
 
-RT-TDDFT/LDA_PW-SiC-trapCos:
+RT-TDDFT/LDA_PW-Ehrenfest-BN:
+   repeat: False
+   files_under_test:
+      - "JIND.OUT"
+      - "INFO.OUT"
+      - "ATOM_0001.OUT"
+      - "ATOM_0002.OUT"
+      - "FCR_0001.OUT"
+      - "FCR_0002.OUT"
+      - "FEXT_0001.OUT"
+      - "FEXT_0002.OUT"
+      - "FHF_0001.OUT"
+      - "FHF_0002.OUT"
+      - "FVAL_0001.OUT"
+      - "FVAL_0002.OUT"
+   inputs:
+      - "input.xml"
+      - "B.xml"
+      - "N.xml"
+
+RT-TDDFT/LDA_PW-Si-sinSq-CFM4:
+   files_under_test:
+      - "atoms.xml"
+      - "eigval.xml"
+      - "evalcore.xml"
+      - "JIND.OUT"
+      - "NEXC.OUT"
+      - "ETOT_RTTDDFT.OUT"
+
+RT-TDDFT/LDA_PW-SiC-trapCos-AETRS:
    files_under_test:
       - "JIND.OUT"
       - "NEXC.OUT"
@@ -333,7 +401,18 @@ sirius/GaN:
       - "evalcore.xml"
       - "atoms.xml"
       - "geometry.xml"
-      
-groundstate/PBE-SOC-useDensityMatrix_false-realspace_false-svlo_false-GaAs:
-
-groundstate/PBE-SOC-useDensityMatrix_false-realspace_true-svlo_false-GaAs:
+# TODO(Bene #160): fix tests:
+# Code works but something is wrong with the test case.
+# The HDF5 output file does not contain anything.
+# Build should be done with MKL to have access to fftw3 APIs 
+# or fft needs to be done differently.
+#fastBSE/diamond:
+#   group: !Group HDF5
+#   files_under_test:
+#      - "fastBSE_test.h5"
+#      - !Build intel_mpiandsmp
+#      - !Build intel_serial
+#      - !Build intel_smp
+#      - !Build gcc_mpiandsmp
+#      - !Build gcc_serial
+#      - !Build gcc_smp

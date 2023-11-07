@@ -1157,10 +1157,16 @@ module matrix_elements_lapw_lo
       nr1 = .false.; if( present( non_reduced_p1 ) ) nr1 = non_reduced_p1
       nr2 = .false.; if( present( non_reduced_p2 ) ) nr2 = non_reduced_p2
 
-      ngp1 = Gpset1%ngk(1, ip1)
-      if( nr1 ) ngp1 = Gpset1%ngknr(1, ip1)
-      ngp2 = Gpset2%ngk(1, ip2)
-      if( nr2 ) ngp2 = Gpset2%ngknr(1, ip2)
+      if( nr1 ) then 
+        ngp1 = Gpset1%ngknr(1, ip1) 
+      else 
+        ngp1 = Gpset1%ngk(1, ip1) 
+      end if
+      if( nr2 ) then
+        ngp2 = Gpset2%ngknr(1, ip2)
+      else
+        ngp2 = Gpset2%ngk(1, ip2)
+      end if
       dimm = shape( mat )
       if( present( left_evec ) ) dimv1 = shape( left_evec )
       if( present( right_evec ) ) dimv2 = shape( right_evec )

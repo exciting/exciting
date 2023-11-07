@@ -160,7 +160,7 @@ subroutine task_epsilon
         if (.not.hdf5_exist_group(fgwh5,"/qpoints",cik)) &
         &  call hdf5_create_group(fgwh5,"/qpoints",cik)
         call hdf5_write(fgwh5,path,"epsilon", &
-        &               epsilon_(1,1,1,iq),(/matsizmax,matsizmax,1:freq%nomeg/))
+        &               epsilon_(1,1,1,iq),(/matsizmax,matsizmax,freq%nomeg/))
 #endif
         call getunit(fid)
         inquire(iolength=recl) epsilon_(:,:,:,iq)
