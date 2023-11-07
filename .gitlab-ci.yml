@@ -15,11 +15,12 @@ stages:
 
 # Split configurations into separate files
 include:
-  - local: '/.gitlab/python-libs.yml'
+  - local: '/.gitlab/python-libs.yml' 
   - local: '/.gitlab/docs.yml'
   - local: '/.gitlab/exciting-debian-buster-gcc8-serial.yml'
   - local: '/.gitlab/exciting-debian-buster-gcc8-smp.yml'
   - local: '/.gitlab/exciting-debian-buster-gcc8-openmpi3-mpismp.yml'
+  - local: '/.gitlab/exciting-debian-buster-gcc8-hdf5-mpismp.yml'
   - local: '/.gitlab/jupyter-exciting-python-3.7-gcc8-smp.yml'
   # - local: '/.gitlab/exciting-sirius.yml' Alex. Temporarily disable sirius to enable all features to be merged
   - local: '/.gitlab/exciting-debian-buster-intel2019-serial.yml'

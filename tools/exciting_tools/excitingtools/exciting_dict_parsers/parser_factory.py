@@ -12,7 +12,7 @@ from excitingtools.utils.dict_utils import container_converter
 
 from excitingtools.exciting_dict_parsers import \
     bse_parser, groundstate_parser, gw_eigenvalues_parser, gw_eps00_parser, gw_info_parser, gw_vxc_parser, \
-    input_parser, properties_parser, RT_TDDFT_parser, species_parser
+    input_parser, properties_parser, RT_TDDFT_parser, species_parser, state_parser
 
 
 # Map file name to parser function
@@ -25,6 +25,8 @@ _file_to_parser = {
     'evalcore.xml': groundstate_parser.parse_evalcore,
     'eigval.xml': groundstate_parser.parse_eigval,
     'geometry.xml': groundstate_parser.parse_geometry,
+    'LINENGY.OUT': groundstate_parser.parse_linengy,
+    'LO_RECOMMENDATION.OUT': groundstate_parser.parse_lo_recommendation,
     'RHO3D.xml': properties_parser.parse_plot_3d,
     'VCL3D.xml': properties_parser.parse_plot_3d,
     'VXC3D.xml': properties_parser.parse_plot_3d,
@@ -123,6 +125,11 @@ _file_to_parser = {
     'ETOT_RTTDDFT.OUT': RT_TDDFT_parser.parse_etot,
     'EIGVAL_': RT_TDDFT_parser.parse_eigval_screenshots,
     'PROJ_': RT_TDDFT_parser.parse_proj_screenshots,
+    'ATOM_': RT_TDDFT_parser.parse_atom_position_velocity_force,
+    'FCR_': RT_TDDFT_parser.parse_force,
+    'FEXT_': RT_TDDFT_parser.parse_force,
+    'FHF_': RT_TDDFT_parser.parse_force,
+    'FVAL_': RT_TDDFT_parser.parse_force,
     'wf1d-0001-0001.dat': properties_parser.parse_wf1d,
     'wf1d-0003-0001.dat': properties_parser.parse_wf1d,
     'wf2d-0001-0001.xsf': properties_parser.parse_wf2d,
@@ -130,7 +137,8 @@ _file_to_parser = {
     'wf3d-0001-0001.xsf': properties_parser.parse_wf3d,
     'wf3d-0003-0001.xsf': properties_parser.parse_wf3d,
     'wf3d-0001-0001.cube': properties_parser.parse_cube,
-    'wf3d-0003-0001.cube': properties_parser.parse_cube
+    'wf3d-0003-0001.cube': properties_parser.parse_cube,
+    'STATE.OUT': state_parser.parse_state_out,
 }
 
 
@@ -145,7 +153,16 @@ def truncate_fnames_with_exts(file_name: str) -> str:
     an extension beginning with '_'.
     :return file_name: File name prefix, else input file name.
     """
-    if ('EIGVAL_' in file_name) or ('PROJ_' in file_name):
+    prefixes = [
+        'EIGVAL_',
+        'PROJ_',
+        'ATOM_',
+        'FCR_',
+        'FEXT_',
+        'FHF_',
+        'FVAL_'
+    ]
+    if any( [ prefix in file_name for prefix in prefixes ] ) :
         file_name_prefix = file_name.split('_')[0] + '_'
         return file_name_prefix
 
@@ -162,6 +179,7 @@ def parser_chooser(full_file_name: str) -> dict:
     param: str, full_file_name: file name prepended by full path
     return: parsed data
     """
+ 
     full_file_name = full_file_name.rstrip()
     if not os.path.exists(full_file_name):
         raise FileNotFoundError(f'File not found: {full_file_name}')
@@ -180,3 +198,4 @@ def parser_chooser(full_file_name: str) -> dict:
     #   container_converter should therefore be used as a decorator on parsers with values that are strings.
     #   That will massively speed up parsing
     return container_converter(data)
+

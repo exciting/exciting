@@ -76,7 +76,7 @@ subroutine xsinit(j, plan)
   
   ! write to info file
   call printline(unitout,"=")
-  write(string,'("EXCITING ", a, " started for task ",a," (",i3,")")') trim(versionname), trim(taskname), task
+  write(string,'("EXCITING ", a, " started for task ",a," (",i4,")")') trim(versionname), trim(taskname), task
   call printtext(unitout,"=",string)
   if(calledxs .eq. 1) then
     write(string,'("version hash id: ",a)') githash

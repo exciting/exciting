@@ -22,12 +22,14 @@ module phonons_inout
   public :: ph_io_info_init, ph_io_info_finit, &
             ph_io_info_symmetries_and_parallelization, ph_io_info_irrep_patterns
   public :: ph_io_write_dforce_const, ph_io_read_dforce_const
+  public :: ph_io_write_borncharge_col, ph_io_read_borncharge_col
   public :: ph_io_print_calc_info
 
   contains
 
     !> get the file extension for a given \({\bf q}\) point, irrep, and irrep member
     subroutine ph_io_irrep_fxt( iq, iirrep, dirrep, fxt )
+      use phonons_io_util, only: ph_io_q_string
       !> index of \({\bf q}\) point
       integer, intent(in) :: iq
       !> index of the irrep
@@ -37,26 +39,17 @@ module phonons_inout
       !> file extension
       character(:), allocatable, intent(out) :: fxt
 
-      integer :: i, j, ivq(3), m(3), n(3)
-      character(64) :: tmp
+      character(32) :: string
 
-      integer, external :: gcd
-
-      ivq = ph_qset%ivk(:, iq)
-      m = 0; n = 0
-      do i = 1, 3
-        if( ivq(i) == 0 ) cycle
-        j = gcd( abs( ivq(i) ), ph_qset%ngridk(i) )
-        m(i) = abs( ivq(i) / j )
-        n(i) = abs( ph_qset%ngridk(i) / j )
-      end do
-      write( tmp, '("Q",2i2.2,"_",2i2.2,"_",2i2.2,"_I",i3.3)' ) m(1), n(1), m(2), n(2), m(3), n(3), iirrep
-      if( dirrep > 0 ) write( tmp, '(a,"_",i1.1)' ) trim( tmp ), dirrep
-      fxt = trim( tmp )
+      fxt = ph_io_q_string( ph_qset%ivk(:, iq), ph_qset%ngridk )
+      write( string, '("_I",i3.3)' ) iirrep
+      if( dirrep > 0 ) write( string, '(a,"_",i1.1)' ) trim( string ), dirrep
+      fxt = fxt // trim( string )
     end subroutine ph_io_irrep_fxt
 
     !> get file extension for a given \({\bf q}\) point, atom and Cartesian direction
-    subroutine ph_io_canon_fxt( iq, is, ia, ip, fxt)
+    subroutine ph_io_canon_fxt( iq, is, ia, ip, fxt )
+      use phonons_io_util, only: ph_io_qsap_string
       !> index of \({\bf q}\) point
       integer, intent(in) :: iq
       !> species index
@@ -68,21 +61,7 @@ module phonons_inout
       !> file extension
       character(:), allocatable, intent(out) :: fxt
 
-      integer :: i, j, ivq(3), m(3), n(3)
-      character(64) :: tmp
-
-      integer, external :: gcd
-
-      ivq = ph_qset%ivk(:, iq)
-      m = 0; n = 0
-      do i = 1, 3
-        if( ivq(i) == 0 ) cycle
-        j = gcd( abs( ivq(i) ), ph_qset%ngridk(i) )
-        m(i) = abs( ivq(i) / j )
-        n(i) = abs( ph_qset%ngridk(i) / j )
-      end do
-      write( tmp, '("Q",2i2.2,"_",2i2.2,"_",2i2.2,"_S",i2.2,"_A",i3.3,"_P",i1.1)' ) m(1), n(1), m(2), n(2), m(3), n(3), is, ia, ip
-      fxt = trim( tmp )
+      fxt = ph_io_qsap_string( ph_qset%ivk(:, iq), ph_qset%ngridk, is, ia, ip )
     end subroutine ph_io_canon_fxt
 
     !> generate directory for independent \(({\bf q},I)\) part
@@ -119,7 +98,7 @@ module phonons_inout
     end subroutine ph_io_genqidir
 
     !> Find which parts have already been done, i.e., for which parts
-    !> the dynamical matrix has been computed.
+    !> the dynamical matrix (and Born effective charges in polar materials) has been computed.
     subroutine ph_io_find_done_parts( qset, basis, qi_done )
       use phonons_symmetry, only: irrep_basis
       use mod_kpointset, only: k_set
@@ -145,6 +124,8 @@ module phonons_inout
           do dirrep = 1, basis(iq)%irreps(iirrep)%dim
             call ph_io_irrep_fxt( iq, iirrep, dirrep, fxt )
             done = done .and. path_exists( trim( qidirname )//'/DYN_'//trim( fxt )//'.OUT', ierr )
+            if( ph_polar .and. norm2( qset%vkl(:, iq) ) < 1e-6_dp ) &
+              done = done .and. path_exists( trim( qidirname )//'/ZSTAR_'//trim( fxt )//'.OUT', ierr )
           end do
           qi_done(iq, iirrep) = done
         end do
@@ -353,15 +334,20 @@ module phonons_inout
 
     !> This subroutine prints information and parallelization
     !> possibilities for a DFPT phonon calculation.
-    subroutine ph_io_print_calc_info
-      use m_getunit
+    subroutine ph_io_print_calc_info( print_schedule )
+      !> print execution schedule (default: `.false.`)
+      logical, optional, intent(in) :: print_schedule
+
       integer :: ip, iq, un, stat, totload, remload, load
       character(64) :: str
+      logical :: do_schedule
 
       if( mpiglobal%rank /= 0 ) return
 
-      call getunit( un )
-      open( un, file=trim( prefix_upper )//'_RUN_INFO.OUT', action='write', form='formatted', iostat=stat )
+      do_schedule = .false.
+      if( present( print_schedule ) ) do_schedule = print_schedule
+
+      open( newunit=un, file=trim( prefix_upper )//'_RUN_INFO.OUT', action='write', form='formatted', iostat=stat )
 
       call printbox( un, '=', 'DFPT PHONON CALCULATION INFORMATION' )
       write( un, * )
@@ -449,9 +435,11 @@ module phonons_inout
         end if
       end do
 
-      write( un, * )
-      write( un, '("execution schedule")' )
-      call write_schedule( un, ph_schedule )
+      if( do_schedule ) then
+        write( un, * )
+        write( un, '("execution schedule")' )
+        call write_schedule( un, ph_schedule )
+      end if
 
       close( un, iostat=stat )
     end subroutine ph_io_print_calc_info
@@ -459,7 +447,6 @@ module phonons_inout
     !> Write constant part of force response (independent of displacement
     !> patterns and density / potential response) to file.
     subroutine ph_io_write_dforce_const( dforce, success )
-      use m_getunit
       use mod_atoms, only: natmtot, nspecies, natoms, idxas, spsymb
       !> constant part of fore response
       complex(dp), intent(in) :: dforce(3, natmtot, 3)
@@ -469,9 +456,7 @@ module phonons_inout
       integer :: un, stat, is, ia, ias, ip
       complex(dp) :: row(3)
 
-      call getunit(un)
-
-      open( un, file=trim( prefix_upper )//'_DFORCE_CONST.OUT', action='write', form='formatted', iostat=stat )
+      open( newunit=un, file=trim( prefix_upper )//'_DFORCE_CONST.OUT', action='write', form='formatted', iostat=stat )
       success = (stat == 0)
       if( .not. success ) return
 
@@ -495,7 +480,6 @@ module phonons_inout
     !> Read constant part of force response (independent of displacement
     !> patterns and density / potential response) from file.
     subroutine ph_io_read_dforce_const( dforce, success )
-      use m_getunit
       use mod_atoms, only: natmtot, nspecies, natoms, idxas
       !> constant part of fore response
       complex(dp), intent(out) :: dforce(3, natmtot, 3)
@@ -506,9 +490,7 @@ module phonons_inout
       character(256) :: line
       real(dp) :: row(6)
 
-      call getunit(un)
-
-      open( un, file=trim( prefix_upper )//'_DFORCE_CONST.OUT', action='read', form='formatted', iostat=stat )
+      open( newunit=un, file=trim( prefix_upper )//'_DFORCE_CONST.OUT', action='read', form='formatted', iostat=stat )
       success = (stat == 0)
       if( .not. success ) return
 
@@ -526,6 +508,81 @@ module phonons_inout
 
       close( un )
     end subroutine ph_io_read_dforce_const
+
+    !> Write Born effective charge column to file.
+    subroutine ph_io_write_borncharge_col( born, fxt, success, &
+        directory )
+      !> Born effective charge matrix column
+      complex(dp), intent(in) :: born(3)
+      !> file extension
+      character(*), intent(in) :: fxt
+      !> `.true.` if writing was successful
+      logical, intent(out) :: success
+      !> path to directory (default: current directory)
+      character(*), optional, intent(in) :: directory
+
+      integer :: stat, un, ip
+      real(dp) :: a, b
+      character(256) :: dirname
+
+      dirname = '.'
+      if( present( directory ) ) write( dirname, '(a)' ) trim( directory )
+      dirname = trim( dirname )//'/'
+
+      open( newunit=un, file=trim( dirname )//'ZSTAR_'//trim( fxt )//'.OUT', action='write', form='formatted', iostat=stat )
+      success = (stat == 0)
+      if( .not. success ) return
+      do ip = 1, 3
+        a = dble( born(ip) )
+        b = aimag( born(ip) )
+        if( abs(a) < 1e-12_dp ) a = 0.0_dp
+        if( abs(b) < 1e-12_dp ) b = 0.0_dp
+        write( un, '(2g18.10," : ip = ",i4)', iostat=stat ) a, b, ip
+        success = success .and. (stat == 0)
+      end do
+      close( un )
+    end subroutine ph_io_write_borncharge_col
+
+    !> Read Born effective charge column from file.
+    subroutine ph_io_read_borncharge_col( born, fxt, success, &
+        directory )
+      !> Born effective charge matrix column
+      complex(dp), intent(out) :: born(3)
+      !> file extension
+      character(*), intent(in) :: fxt
+      !> `.true.` if writing was successful
+      logical, intent(out) :: success
+      !> path to directory (default: current directory)
+      character(*), optional, intent(in) :: directory
+
+      integer :: stat, un, ip, jp
+      real(dp) :: a, b
+      character(256) :: dirname
+
+      dirname = '.'
+      if( present( directory ) ) write( dirname, '(a)' ) trim( directory )
+      dirname = trim( dirname )//'/'
+
+      open( newunit=un, file=trim( dirname )//'ZSTAR_'//trim( fxt )//'.OUT', action='read', status='old', form='formatted', iostat=stat )
+      success = (stat == 0)
+      if( .not. success ) return
+      do ip = 1, 3
+        jp = 0;
+        read( un, '(2g18.10,tr1,1(tr7,i4))', iostat=stat ) a, b, jp
+        success = success .and. (stat == 0)
+        if( jp /= ip ) then
+          write( *, * )
+          write( *, '("Error (ph_io_read_borncharge): Incompatible file content in file")' )
+          write( *, '(a)' ) trim(dirname)//'ZSTAR_'//trim(fxt)//'.OUT'
+          write( *, '("expected:       ip = ",i4)', iostat=stat ) ip
+          write( *, '("read from file: ip = ",i4)', iostat=stat ) jp
+          success = .false.
+          return
+        end if
+        born(ip) = cmplx( a, b, dp )
+      end do
+      close( un )
+    end subroutine ph_io_read_borncharge_col
 
     !> Print q-vectors and symmetries and irrep information for all parts to unit.
     subroutine write_qi_parts( un, qset, basis, parts, ipart )

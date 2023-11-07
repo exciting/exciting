@@ -1,7 +1,7 @@
 #!/usr/bin/python2
 # -*- coding: utf-8 -*-
 #_______________________________________________________________________________
-# Please, check http://exciting-code.org/oxygen-the-python-script-plot-multitask-py
+# Please, check http://exciting-code.org/tools-the-python-script-plot-multitask-py
 # to better understand how to use this script
 
 import matplotlib
@@ -383,6 +383,8 @@ def set_implicit_options( options ):
             options['ylabel'] = ['Current Density [a.u.]']
         elif ( options['nexc'] ):
             options['ylabel'] = ['$N_{exc}(t)$']
+        else: 
+            options['ylabel'] = ['y']
 
     # In case we have the dielectric function
     if ( options['imag_eps'] or options['real_eps'] ):
@@ -459,9 +461,6 @@ def sanity_checks( options ):
     Function to make some sanity checks of the command line arguments
     :param options: dictionary with the command line arguments
     """
-    # ylabel has been provided?
-    if not options['ylabel']:
-        raise RuntimeError( 'Label for the y-axis not provided' )
 
     # positive numbers given for number of columns, scaling factor, skip_lines
     # and wcut?

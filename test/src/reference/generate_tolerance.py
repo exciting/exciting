@@ -37,7 +37,7 @@ from src.tolerance.templates.gw import gw_tolerances
 from src.tolerance.templates.hybrid import hybrid_tolerances, hybrid_message
 from src.tolerance.templates.bse import bse_tolerances
 from src.tolerance.templates.tddft import tddft_tolerances
-from src.tolerance.templates.rt_tddft import rt_tddf_tolerances
+from src.tolerance.templates.rt_tddft import rt_tddft_tolerances
 from src.tolerance.templates.properties import optical_properties_tolerances, core_properties_tolerances, \
     electric_field_properties_tolerances, spin_properties_tolerances
 from src.tolerance.templates.transport import transport_tolerances
@@ -144,7 +144,7 @@ def generate_tolerance_file(calculation: ExcitingCalculation, file_path: str):
         tolerances = tddft_tolerances
 
     if calculation == ExcitingCalculation.rt_tddft:
-        tolerances = rt_tddf_tolerances
+        tolerances = rt_tddft_tolerances
 
     if calculation == ExcitingCalculation.bse:
         tolerances = bse_tolerances

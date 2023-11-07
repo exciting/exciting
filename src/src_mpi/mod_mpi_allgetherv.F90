@@ -1,0 +1,84 @@
+module mod_mpi_allgatherv
+  use mod_mpi_env, only: mpiinfo
+  use precision, only: sp, dp
+
+#ifdef MPI
+  use mpi
+#endif   
+
+  implicit none 
+  private
+
+  !> exciting wrapper for mpi_allgetherv
+  public :: xmpi_allgetherv
+
+  interface xmpi_allgetherv
+    module procedure :: &
+      mpi_allgetherv_in_place_rank3_complex_dp
+  end interface
+
+contains
+
+  subroutine mpi_allgetherv_in_place_rank3_complex_dp(mpi_env, buffer, offset, chunk_shape)
+    !> MPI environment
+    type(mpiinfo), intent(inout) :: mpi_env
+    !> Buffer
+    complex(dp), intent(inout) :: buffer(:, :, :)
+    !> Offset
+    integer, intent(in) :: offset(3)
+    !> Chunk shape 
+    integer, intent(in) :: chunk_shape(3)
+#ifdef MPI
+    integer :: mpi_error
+    integer :: send_count
+    integer, allocatable :: receive_counts(:), displacements(:)
+
+    send_count = product(chunk_shape)
+
+    call gather_receive_counts(mpi_env, send_count, receive_counts)
+    call calculate_displacements(mpi_env, receive_counts, displacements)
+    
+    call mpi_allgatherv( &
+            MPI_IN_PLACE, &
+            0, &
+            MPI_DATATYPE_NULL, &
+            buffer, &
+            receive_counts, &
+            displacements, &
+            MPI_DOUBLE_COMPLEX, &
+            mpi_env%comm, &
+            mpi_error &
+          )
+#endif    
+  end subroutine mpi_allgetherv_in_place_rank3_complex_dp
+
+
+  subroutine gather_receive_counts(mpi_env, send_count, receive_counts)
+    type(mpiinfo), intent(inout) :: mpi_env
+    integer, intent(in) :: send_count
+    integer, allocatable, intent(out) :: receive_counts(:)
+#ifdef MPI    
+    integer :: mpi_err
+    allocate(receive_counts(mpi_env%procs))
+    receive_counts(mpi_env%rank + 1) = send_count
+    call mpi_allgather(send_count, 1, MPI_INTEGER, &
+                       receive_counts, 1, MPI_INTEGER, &
+                       mpi_env%comm, mpi_err)
+#endif
+  end subroutine gather_receive_counts
+
+  subroutine calculate_displacements(mpi_env, receive_counts, displacements)
+    type(mpiinfo), intent(inout) :: mpi_env
+    integer, intent(in) :: receive_counts(:)
+    integer, allocatable, intent(out) :: displacements(:)
+
+    integer :: rank
+
+    allocate(displacements(mpi_env%procs))
+
+    do rank=0, mpi_env%procs-1
+      displacements(rank+1) = sum(receive_counts(1 : rank))
+    end do
+  end subroutine 
+
+end module mod_mpi_allgatherv

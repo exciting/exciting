@@ -1,0 +1,6 @@
+{%- extends 'classic/index.html.j2' -%}
+
+{% block notebook_css %}
+{{ super() }}
+{{ resources.include_css("static/excitingjupyter.css") }}
+{% endblock notebook_css %}

@@ -7,6 +7,7 @@ import enum
 
 bohr_to_angstrom = 0.529177210903
 angstrom_to_bohr = 1. / bohr_to_angstrom
+Hartree_to_eV = 27.211396641308
 
 
 class Unit(enum.Enum):
@@ -31,6 +32,8 @@ class Unit(enum.Enum):
     GK_max = enum.auto()
     electron_rest_mass = enum.auto()
     bohr_velocity_over_bohr_radius = enum.auto()
+    bohr_velocity = enum.auto()
+    force = enum.auto()
     null = enum.auto()
 
 
@@ -51,5 +54,7 @@ enum_to_string = {
     Unit.GK_max: 'GK_max',
     Unit.electron_rest_mass: 'm_electron',
     Unit.bohr_velocity_over_bohr_radius: 'v_Bohr/r_Bohr',
+    Unit.bohr_velocity: 'Bohr/t_Bohr',
+    Unit.force: 'Hartree/Bohr', 
     Unit.null: 'null'
 }

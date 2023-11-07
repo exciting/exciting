@@ -1,0 +1,49 @@
+/*Change properties defined in variables by finding where they are used and redefining them*/
+/*Values not set by variables must be changed explicitly*/
+
+/*Output color*/
+div.output_subarea {
+    background: #FFF8DC;
+}
+
+/*Left alignment for tables*/
+table{
+    float: left;
+}
+
+/*Table style*/
+th, td {
+    font-size: 13px;
+    font-family: Verdana, sans-serif;
+    background-color: #F7F2E0;
+}
+th {
+  color: #FFFFFF;
+  background-color: #61380B;
+}
+
+/*Background color*/
+@media not print {
+    #notebook {
+        background-color: #FFF8DC;
+    }
+}
+
+/*Color for table of contents text*/
+a {
+    color: black;
+}
+p {
+    color: black;
+}
+
+/*Colors for input elements and attributes*/
+.highlight .nt {
+  color: green;
+  font-weight: normal;
+}
+
+.highlight .na {
+  color: mediumblue;
+}
+

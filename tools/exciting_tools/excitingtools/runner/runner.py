@@ -1,14 +1,16 @@
 """ Binary runner and results classes.
 """
-import copy
-from typing import List, Optional, Union
-from pathlib import Path
-import os
-import subprocess
-import shutil
-import time
-import enum
+from __future__ import annotations
 
+import copy
+import enum
+import os
+import shutil
+import subprocess
+import time
+from dataclasses import dataclass
+from pathlib import Path
+from typing import List, Optional, Union
 
 from excitingtools.utils.jobflow_utils import special_serialization_attrs
 
@@ -17,23 +19,21 @@ class RunnerCode(enum.Enum):
     """ Runner codes.
      By default, the initial value starts at 1.
     """
-    time_out = enum.auto
+    time_out = enum.auto()
 
 
+@dataclass
 class SubprocessRunResults:
     """ Results returned from subprocess.run()
     """
 
-    def __init__(self,
-                 stdout,
-                 stderr,
-                 return_code: Union[int, RunnerCode],
-                 process_time: Optional[float] = None):
-        self.stdout = stdout
-        self.stderr = stderr
-        self.return_code = return_code
-        self.success = return_code == 0
-        self.process_time = process_time
+    stdout: str | bytes
+    stderr: str | bytes
+    return_code: int | RunnerCode
+    process_time: float = None
+
+    def __post_init__(self):
+        self.success = self.return_code == 0
 
 
 class BinaryRunner:
@@ -42,28 +42,28 @@ class BinaryRunner:
     path_type = Union[str, Path]
 
     def __init__(self,
-                 binary: str,
-                 run_cmd: Union[List[str], str],
-                 omp_num_threads: int,
-                 time_out: int,
-                 directory: Optional[path_type] = './',
-                 args=None) -> None:
+                 binary: path_type,
+                 run_cmd: List[str] | str = "",
+                 omp_num_threads: int = 1,
+                 time_out: int = 60,
+                 directory: path_type = './',
+                 args: Optional[List[str]] = None):
         """ Initialise class.
 
         :param str binary: Binary name prepended by full path, or just binary name (if present in $PATH).
         :param Union[List[str], str] run_cmd: Run commands sequentially as a list. For example:
-          * For serial: ['./'] or ['']
+          * For serial: []
           * For MPI:   ['mpirun', '-np', '2']
         or as a string. For example"
-          * For serial: "./"
+          * For serial: ""
           * For MPI: "mpirun -np 2"
-        :param int omp_num_threads: Number of OMP threads.
-        :param int time_out: Number of seconds before a job is defined to have timed out.
-        :param List[str] args: Optional arguments for the binary.
+        :param omp_num_threads: Number of OMP threads.
+        :param time_out: Number of seconds before a job is defined to have timed out.
+        :param args: Optional arguments for the binary.
         """
         if args is None:
             args = []
-        self.binary = binary
+        self.binary = Path(binary).as_posix()
         self.directory = directory
         self.run_cmd = run_cmd
         self.omp_num_threads = omp_num_threads
@@ -131,25 +131,10 @@ class BinaryRunner:
         if mpi_processes <= 0:
             raise ValueError("Number of MPI processes must be > 0")
 
-    def _compose_execution_list(self) -> list:
-        """Generate a complete list of strings to pass to subprocess.run(), to execute the calculation.
-
-        For example, given:
-          ['mpirun', '-np, '2'] + ['binary.exe'] + ['>', 'std.out']
-
-        return ['mpirun', '-np, '2', 'binary.exe', '>', 'std.out']
-        """
-        run_cmd = self.run_cmd
-
-        if self.run_cmd[0] == './':
-            run_cmd = []
-
-        return run_cmd + [self.binary] + self.args
-
     def run(self) -> SubprocessRunResults:
         """Run a binary.
         """
-        execution_list = self._compose_execution_list()
+        execution_list = self.run_cmd + [self.binary] + self.args
         my_env = {**os.environ, "OMP_NUM_THREADS": str(self.omp_num_threads)}
 
         time_start: float = time.time()

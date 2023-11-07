@@ -239,7 +239,6 @@ module m_makespectrum
         if(fcoup) usechibar = .false.
         if(.not. fcoup) usechibar = .true.
       end if
-      print *, 'usechibar=', usechibar
 
       write(unitout, '("Info(",a,"):&
        & Making spectrum using formula for coupling with time reversed ar basis.")')&

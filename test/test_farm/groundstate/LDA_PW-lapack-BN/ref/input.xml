@@ -40,7 +40,6 @@
     mixerswitch="1"
     xctype="LDA_PW"
     outputlevel="normal"
-    lorecommendation="false"
     nosym="false"
 >
  <solver

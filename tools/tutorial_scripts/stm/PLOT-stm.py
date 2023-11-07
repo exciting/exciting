@@ -145,14 +145,9 @@ if mode == 2:
     cmd=cmd+"cat $EXCITINGTOOLS/stm/xcrysden1 input.xsf.tmp stm3d.xsf.tmp $EXCITINGTOOLS/stm/xcrysden2 > STM3d.xcrysden\n"
     cmd=cmd+"cat input.xsf.tmp stm3d.xsf.tmp > STM3d.xsf\n"
     cmd=cmd+"rm input.xsf.tmp stm3d.xsf.tmp\n"
-    cmd=cmd+"xcrysden --script STM3d.xcrysden\n"
-
+    if (os.environ["EXCITINGROOT"] == "/data/scratch/how-exciting-2023/exciting-git"): 
+        cmd=cmd+"/usr/global/xcrysden-1.5.24/xcrysden --script STM3d.xcrysden\n"
+    else: 
+        cmd=cmd+"xcrysden --script STM3d.xcrysden\n"
+        
     os.system(cmd)
-
-
-
-
-
-
-
-

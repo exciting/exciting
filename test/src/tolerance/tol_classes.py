@@ -65,6 +65,8 @@ DefaultTolerances = namedtuple('DefaultTolerances',
                                 'structure_factor',
                                 'time',
                                 'current_density',
+                                'velocity',
+                                'force',
                                 'au',
                                 'dos',
                                 'effective_mass'
@@ -92,7 +94,10 @@ tol_file_name = {'groundstate': 'tolerance_ground_state.json',
                  'electric_properties': 'tolerance_electric.json',
                  'core_properties': 'tolerance_core.json',
                  'spin_properties': 'tolerance_spin.json',
-                 'wfplot': 'tolerance_wfplot.json',
+                 'wfplot': 'tolerance_wfplot.json'
+                 # TODO(Bene #160): 
+                 # Fix fastBSE test      
+                 #'fastBSE': 'tolerance_fastBSE.json'
                  }
 
 methods = list(tol_file_name.keys())

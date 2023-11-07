@@ -233,7 +233,7 @@ if (.false.) then
         if (.not.hdf5_exist_group(fgwh5,"/qpoints",cik)) &
         &  call hdf5_create_group(fgwh5,"/qpoints",cik)
         call hdf5_write(fgwh5,path,"chi0", &
-        &               chi0(1,1,iomstart,iq),(/matsizmax,matsizmax,iomstart:iomend/))
+        &               chi0(1,1,iomstart,iq),(/matsizmax,matsizmax,iomend-iomstart+1/))
 #endif
         call getunit(fid)
         inquire(iolength=recl) chi0(:,:,:,iq)

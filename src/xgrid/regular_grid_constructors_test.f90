@@ -5,7 +5,7 @@ module regular_grid_constructors_test
   use precision, only: dp
   use unit_test_framework, only : unit_test_type
   use regular_grid, only: regular_grid_type
-  use regular_grid_constructors, only: setup_unitcell_grid, setup_fft_grid
+  use  xgrid, only: setup_unitcell_grid, setup_fft_grid
   use bravais_lattice, only: rhombohedral_hex_setting
   use grid_utils, only: mesh_1d, grid_3d, fft_frequencies
   use math_utils, only: all_close

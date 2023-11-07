@@ -78,8 +78,8 @@ module phonons_density_potential
     !> This subroutine calculates the effective potential response from a given
     !> soft density response using Weinert's method. See also [[dfpt_rhopot_gen_dpot(subroutine)]].
     !>
-    !> This subroutine expects the soft density \(\breve{\delta}\phantom{}^{\bf q}_{I \mu} n({\bf r})\)
-    !> response as input (i.e., without the gradient). Accordingly, in the muffin-tins 
+    !> This subroutine expects the soft density response \(\breve{\delta}\phantom{}^{\bf q}_{I \mu} n({\bf r})\)
+    !> as input (i.e., without the gradient). Accordingly, in the muffin-tins 
     !> additional multipole moments coming from the gradient arise and must be passed 
     !> to the call of [[dfpt_rhopot_gen_dpot(subroutine)]]. Further, the homogeneous solution
     !> from the Coulomb potential gradient has to be added. See also [[gen_gpot_coul(subroutine)]].
@@ -89,8 +89,8 @@ module phonons_density_potential
     !> Otherwise, the full potential response
     !> \[ \delta^{\bf q}_{I \mu} V_{\rm eff}({\bf r}) 
     !>    = \breve{\delta}\phantom{}^{\bf q}_{I \mu} V_{\rm eff}({\bf r})
-    !>    - \sum\limits_{\alpha,i} p^{I \mu}_{\alpha i}({\bf q})\, 
-    !>      \nabla_i \left. V_{\rm eff}({\bf r}) \right|_{{\rm MT}\alpha} \]
+    !>    - \sum\limits_{\kappa,\alpha} p^{I \mu}_{\kappa\alpha}({\bf q})\, 
+    !>      \nabla_\alpha \left. V_{\rm eff}({\bf r}) \right|_{{\rm MT}\kappa} \]
     !> is returned.
     !>
     !> If `coulomb=.true.`, then the Coulomb potential response is included.
@@ -100,7 +100,7 @@ module phonons_density_potential
       use constants, only: zzero
       use mod_atoms, only: natmtot, nspecies, natoms, idxas, spr
       use mod_muffin_tin, only: nrmtmax, rmt, nrmt
-      !> displacement patterns \(p^{I \mu}_{\alpha i}({\bf q})\)
+      !> displacement patterns \(p^{I \mu}_{\kappa\alpha}({\bf q})\)
       complex(dp), intent(in) :: pat(3, natmtot)
       !> soft muffin-tin density response as complex spherical harmonics expansion
       complex(dp), intent(in) :: drho_mt(:,:,:)
@@ -195,12 +195,12 @@ module phonons_density_potential
     !> 
     !> Therefore, the density response is set to the density gradient, i.e.,
     !> in the muffin-tin spheres it is set to
-    !> \[ \delta^{\bf q}_{I \mu} n({\bf r}_\alpha) 
-    !>    = \sum_i p^{I \mu}_{\alpha i}({\bf q})\, \nabla_i n({\bf r}_\alpha) \]
+    !> \[ \delta^{\bf q}_{I \mu} n({\bf r}_\kappa) 
+    !>    = \sum_\alpha p^{I \mu}_{\kappa\alpha}({\bf q})\, \nabla_\alpha n({\bf r}_\kappa) \]
     !> and in the interstitial region it is set to
     !> \[ \delta^{\bf q}_{I \mu} n({\bf r}) 
-    !>    = \frac{1}{N_{\rm at}}\sum\limits_{\alpha,i} 
-    !>      p^{I \mu}_{\alpha i}({\bf q})\, \nabla_i n({\bf r}) \;. \]
+    !>    = \frac{1}{N_{\rm at}}\sum\limits_{\kappa,\alpha} 
+    !>      p^{I \mu}_{\kappa\alpha}({\bf q})\, \nabla_\alpha n({\bf r}) \;. \]
     !>
     !> If `soft=.true.`, then only the soft density response 
     !> \(\breve{\delta}\phantom{}^{\bf q}_{I \mu} n\) is initialized. It differs from
@@ -210,7 +210,7 @@ module phonons_density_potential
       use constants, only: zzero
       use mod_atoms, only: natmtot, nspecies, natoms, idxas
       use mod_muffin_tin, only: nrmt
-      !> displacement patterns \(p^{I \mu}_{\alpha i}({\bf q})\)
+      !> displacement patterns \(p^{I \mu}_{\kappa\alpha}({\bf q})\)
       complex(dp), intent(in) :: pat(3, natmtot)
       !> (soft) muffin-tin density response as complex spherical harmonics expansion
       complex(dp), intent(out) :: drho_mt(:,:,:)
@@ -254,7 +254,7 @@ module phonons_density_potential
     !> 
     !> It differs from [[dfpt_rhopot_drho_k(subroutine)]] in that it accounts for the
     !> response of the basis functions coming from the perturbed matching coefficients
-    !> \(\delta^{\bf q}_{I \mu} A^\alpha_{{\bf G+k},lm,\xi}\) (see [[gen_dapwalm(subroutine)]]).
+    !> \(\delta^{\bf q}_{I \mu} A^\kappa_{{\bf G+k},lm,\xi}\) (see [[gen_dapwalm(subroutine)]]).
     subroutine ph_rhopot_gen_drho_k( ik, kset, Gkset, Gkqset, fst, lst, occk, docck, eveck, deveck, apwalmk, apwalmkq, pat, gamma, drho_mat, drho_ir )
       use phonons_eigensystem, only: gen_dapwalm
 
@@ -283,9 +283,9 @@ module phonons_density_potential
       complex(dp), intent(in) :: eveck(:,:)
       !> eigenvector response at \({\bf k}\)
       complex(dp), intent(in) :: deveck(:,:)
-      !> (L)APW matching coefficients \(A^\alpha_{{\bf G+p},lm,\xi}\) at \({\bf k}\) and \({\bf k+q}\)
+      !> (L)APW matching coefficients \(A^\kappa_{{\bf G+p},lm,\xi}\) at \({\bf k}\) and \({\bf k+q}\)
       complex(dp), intent(in) :: apwalmk(:,:,:,:), apwalmkq(:,:,:,:)
-      !> displacement patterns \(p^{I \mu}_{\alpha i}({\bf q})\)
+      !> displacement patterns \(p^{I \mu}_{\kappa\alpha}({\bf q})\)
       complex(dp), intent(in) :: pat(3, natmtot)
       !> `.true.` for Gamma point phonons
       logical, intent(in) :: gamma
@@ -322,6 +322,7 @@ module phonons_density_potential
                       [(wgt1(i) > input%groundstate%epsocc, i=fst, lst)] )
       end if
       nst = size( bands )
+      if( nst == 0 ) return
 
       ! **** muffin-tin density response matrix
       allocate( dapwalmk, source=apwalmk(:, :, :, 1) )
@@ -400,7 +401,7 @@ module phonons_density_potential
     end subroutine ph_rhopot_gen_drho_k
 
     !> This subroutine calculates the muffin-tin density response 
-    !> from the given density response matrix \(\delta^{\bf q}_{I \mu}{\bf D}^\alpha\).
+    !> from the given density response matrix \(\delta^{\bf q}_{I \mu}{\bf D}^\kappa\).
     !> See also [[dfpt_rhopot_gen_drho_mt(subroutine)]].
     !>
     !> If `soft=.true.`, then only the soft part of the density response 
@@ -408,14 +409,14 @@ module phonons_density_potential
     !> Otherwise, the full density response
     !> \[ \delta^{\bf q}_{I \mu} n({\bf r}) 
     !>    = \breve{\delta}\phantom{}^{\bf q}_{I \mu} n({\bf r})
-    !>    - \sum\limits_{\alpha,i} p^{I \mu}_{\alpha i}({\bf q})\, 
-    !>      \nabla_i \left. n({\bf r}) \right|_{{\rm MT}\alpha} \]
+    !>    - \sum\limits_{\kappa,\alpha} p^{I \mu}_{\kappa\alpha}({\bf q})\, 
+    !>      \nabla_\alpha \left. n({\bf r}) \right|_{{\rm MT}\kappa} \]
     !> is returned.
     subroutine ph_rhopot_gen_drho_mt( pat, drho_mat, drho_mt, &
         soft )
       use mod_atoms, only: natmtot, nspecies, natoms, idxas
       use mod_muffin_tin, only: nrmt
-      !> displacement patterns \(p^{I \mu}_{\alpha i}({\bf q})\)
+      !> displacement patterns \(p^{I \mu}_{\kappa\alpha}({\bf q})\)
       complex(dp), intent(in) :: pat(3, natmtot)
       !> muffin-tin density response matrix
       complex(dp), intent(in) :: drho_mat(:,:,:)
@@ -538,7 +539,7 @@ module phonons_density_potential
         call zfftifc( 3, dfpt_Gset%ngrid, -1, zfun_ir(:, d) )
         call dfpt_Gset%igfft2ig( zfun_ir(:, d), zfun_ig2 )
         call dfpt_Gset%change_set( ph_Gqset, zfun_ig2, zfun_ig1(:, d), 'pull', ng=ph_Gqset%ngvec )
-        zfun_ir(:,d) = zzero
+        zfun_ir(:, d) = zzero
       end do
       do s = 1, nsym
         lspl = lsplsymc(isym(s))
@@ -567,23 +568,23 @@ module phonons_density_potential
     !> This subroutine ccomputes the gradient of the Coulomb potential as well as
     !> the multipole moments of the density gradient.
     !>
-    !> In the case of a canonical phonon-like perturbation \(\delta^{\bf q}_{\alpha i}\)
+    !> In the case of a canonical phonon-like perturbation \(\delta^{\bf q}_{\kappa\alpha}\)
     !> the response of the Hartree potential reads
-    !> \[ \delta^{\bf q}_{\alpha i} V_{\rm H}({\bf r})
-    !>    = \int \frac{\breve{\delta}\phantom{}^{\bf q}_{\alpha i}n({\bf r}')}
+    !> \[ \delta^{\bf q}_{\kappa\alpha} V_{\rm H}({\bf r})
+    !>    = \int \frac{\breve{\delta}\phantom{}^{\bf q}_{\kappa\alpha}n({\bf r}')}
     !>      {|{\bf r} - {\bf r'}|} {\rm d}{\bf r}'
-    !>    - \int\limits_{{\rm MT}\alpha} \frac{\nabla_i n({\bf r}')}{|{\bf r} - {\bf r}'|} {\rm d}{\bf r}'
-    !>    + \sum_{\bf R} {\rm e}^{{\rm i}{\bf q}\cdot{\bf R}} \oint\limits_{\partial{\rm MT}\alpha{\bf R}}
-    !>      \frac{[n({\bf r}')]_{\rm SF}}{|{\bf r} - {\bf r}'|} \hat{e}_i\, {\rm d}S \;, \]
-    !> where \(\breve{\delta}\phantom{}^{\bf q}_{\alpha i} n\) is the soft density response
+    !>    - \int\limits_{{\rm MT}\kappa} \frac{\nabla_\alpha n({\bf r}')}{|{\bf r} - {\bf r}'|} {\rm d}{\bf r}'
+    !>    + \sum_{\bf R} {\rm e}^{{\rm i}{\bf q}\cdot{\bf R}} \oint\limits_{\partial{\rm MT}\kappa{\bf R}}
+    !>      \frac{[n({\bf r}')]_{\rm SF}}{|{\bf r} - {\bf r}'|} \hat{e}_\alpha\, {\rm d}S \;, \]
+    !> where \(\breve{\delta}\phantom{}^{\bf q}_{\kappa\alpha} n\) is the soft density response
     !> and the last integral comes from the density discontinuity on the muffin-tin surface
     !> where \([\dots]_{\rm SF}\) describes the difference of the muffin-tin and interstitial
     !> representation of the integrand.
     !>
     !> The response of the external potential is given by its negative gradient
-    !> \[ \delta^{\bf q}_{\alpha i} V_{\rm ext}({\bf r})
+    !> \[ \delta^{\bf q}_{\kappa\alpha} V_{\rm ext}({\bf r})
     !>    = \sum_{\bf R} {\rm e}^{{\rm i}{\bf q}\cdot{\bf R}}
-    !>      \nabla_i \frac{Z_\alpha}{|{\bf r}-{\bf \tau}_\alpha-{\bf R}|} \;. \]
+    !>      \nabla_\alpha \frac{Z_\kappa}{|{\bf r}-{\bf \tau}_\kappa-{\bf R}|} \;. \]
     !>
     !> Both the gradient and the surface terms give rise to additional multipole moments
     !> when calculating the Coulomb potential response using Weinert's method which are 
@@ -779,7 +780,7 @@ module phonons_density_potential
     !> This subroutine computes the gradient of the exchange correlation potential
     !> in the muffin-tin spheres and stores them in `gpot_xc_mt`.
     subroutine gen_gpot_xc
-!      use dfpt_density_potential, only: apply_xckernel_mt
+      !use dfpt_density_potential, only: apply_xckernel_mt
       use mod_potential_and_density, only: pot_xc_mt => vxcmt
       use mod_atoms, only: natmtot, nspecies, natoms, idxas, spr
       use mod_muffin_tin, only: nrmtmax, nrmt
@@ -808,9 +809,9 @@ module phonons_density_potential
     !> The function is rotated using the symmetry operation \(\mathcal{S}=\lbrace \mathrm{\bf R} | {\bf \tau} \rbrace\)
     !> that connects \({\bf q}\) and \({\bf q}_0\) via \({\bf q} = \mathrm{\bf R}({\bf q}_0 + {\bf G})\).
     !> The rotated function is given by
-    !> \[ \delta^{\bf q}_{\alpha\,i} f({\bf r}) = 
-    !>      \sum_{\beta,j} \delta^{{\bf q}_0}_{\beta\,j} f(\mathcal{S}^{-1}{\bf r})\,
-    !>      \Gamma^\ast_{\alpha\,i,\beta\,j}(\mathcal{S};{\bf q}_0) \;, \]
+    !> \[ \delta^{\bf q}_{\kappa\,\alpha} f({\bf r}) = 
+    !>      \sum_{\kappa',\beta} \delta^{{\bf q}_0}_{\kappa'\,\beta} f(\mathcal{S}^{-1}{\bf r})\,
+    !>      \Gamma^\ast_{\kappa\,\alpha,\kappa'\,\beta}(\mathcal{S};{\bf q}_0) \;, \]
     !> with the phonon symmetry matrix \({\bf \Gamma}(\mathcal{S};{\bf q}_0)\) (see [[ph_util_symmetry_G(subroutine)]]).
     subroutine ph_rhopot_rotate_q_canonical( vql0, vql, isym, dfun_mt, dfun_ir )
       use constants, only: zzero, zone, twopi

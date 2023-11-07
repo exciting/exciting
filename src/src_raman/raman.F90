@@ -30,6 +30,7 @@ use raman_trmat
 use m_symvec
 use m_raman_utils
 use m_genfilname
+use xs_task_launcher, only: xstasklauncher
 #ifdef IFORT
   use ifport
 #endif
@@ -733,7 +734,7 @@ do imode = 1, nmode
          endif
 !
 !  compute optical spectra according to input
-         call xstasklauncher
+         call xstasklauncher()
 !
 !  if the user did not specify a plan element, deallocate the plan constructed in xstasklauncher       
          if (.not. dplan) deallocate(input%xs%plan)

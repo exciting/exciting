@@ -17,6 +17,7 @@ module unit_test_drivers
    use hybrids_test_drivers, only: hybrids_test_driver
    use matrix_elements_test_drivers, only: matrix_elements_test_driver
    use xgrid_test_drivers, only: xgrid_test_driver
+   use xhdf5_test, only: xhdf5_test_driver
 
    implicit none
    private
@@ -110,6 +111,9 @@ contains
          call xgrid_test_driver(mpiglobal, kill_on_failure)
       end if
 
+      if (run%xhdf5 .or. run%all) then
+         call xhdf5_test_driver(mpiglobal, kill_on_failure)
+      end if
    end subroutine unit_test_driver
 
 end module unit_test_drivers

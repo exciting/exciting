@@ -211,6 +211,10 @@ Subroutine readspeciesxml
 !    Default definitions
 !----------------------------
 
+!    Setting principal quantum number of all (L)APWs to -1 (default) 
+!    to avoid automatic calculations of trial energies.
+     apwn(1:maxapword, 0:maxlapw, is) = default_apwn
+     
      if (size(speziesdeflist(is)%sp%basis%default%wfarray)>0) then
        
 !      DEFAULT: Element wf is specified
@@ -294,10 +298,10 @@ Subroutine readspeciesxml
         Write (*,*)
         Stop
      End If
-
+     
      nlo = 0
      Do ilx = 1, nlx
-        
+
         lx = speziesdeflist(is)%sp%basis%customarray(ilx)%custom%l
         If (lx .Lt. 0) Then
            Write (*,*)
@@ -342,6 +346,7 @@ Subroutine readspeciesxml
              Stop
           End If
           Do io = 1, apword (lx, is)
+             apwn(io, lx, is) = speziesdeflist(is)%sp%basis%customarray(ilx)%custom%wfarray(io)%wf%n  
              apwe0(io, lx, is) = speziesdeflist(is)%sp%basis%customarray(ilx)%custom%wfarray(io)%wf%trialEnergy
              apwdm(io, lx, is) = speziesdeflist(is)%sp%basis%customarray(ilx)%custom%wfarray(io)%wf%matchingOrder
              apwve(io, lx, is) = speziesdeflist(is)%sp%basis%customarray(ilx)%custom%wfarray(io)%wf%searchE
@@ -371,6 +376,7 @@ Subroutine readspeciesxml
           end if
           Do io = 1, apword(lx, is)
              apwe0(io, lx, is) = speziesdeflist(is)%sp%basis%customarray(ilx)%custom%trialEnergy
+             apwn(io, lx, is) = speziesdeflist(is)%sp%basis%customarray(ilx)%custom%n
              apwdm(io, lx, is) = io-1
              apwve(io, lx, is) = speziesdeflist(is)%sp%basis%customarray(ilx)%custom%searchE
              mine0=min(apwe0(io,lx,is),mine0)
@@ -407,6 +413,7 @@ Subroutine readspeciesxml
             lorbord(nlo, is) = 2
             do io = 1, lorbord(nlo, is)
               lorbe0(io, nlo, is) = apwe0(1, lx, is)
+              lorbn(io, nlo, is) = speziesdeflist(is)%sp%basis%customarray(ilx)%custom%n
               lorbdm(io, nlo, is) = io-1
               lorbve(io, nlo, is) = apwve(1, lx, is)
               wfkappa(io, nlo, is) = lorbk(nlo, is)
@@ -472,6 +479,7 @@ Subroutine readspeciesxml
         End If
         Do io = 1, lorbord(ilo, is)
            lorbe0(io, ilo, is) = speziesdeflist(is)%sp%basis%loarray(ilx)%lo%wfarray(io)%wf%trialEnergy
+           lorbn(io, ilo, is)  = speziesdeflist(is)%sp%basis%loarray(ilx)%lo%wfarray(io)%wf%n
            lorbdm(io, ilo, is) = speziesdeflist(is)%sp%basis%loarray(ilx)%lo%wfarray(io)%wf%matchingOrder
            lorbve(io, ilo, is) = speziesdeflist(is)%sp%basis%loarray(ilx)%lo%wfarray(io)%wf%searchE
            wfkappa(io, ilo, is) = speziesdeflist(is)%sp%basis%loarray(ilx)%lo%wfarray(io)%wf%kappa

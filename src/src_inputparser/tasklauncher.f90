@@ -6,6 +6,8 @@
 !> Select exciting features to run
 subroutine tasklauncher()
     use modinput
+    use xs_task_launcher
+    
     implicit none
 
     ! Note that the order of the calls below may be important!

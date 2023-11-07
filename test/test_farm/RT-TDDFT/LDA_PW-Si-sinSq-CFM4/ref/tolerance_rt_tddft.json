@@ -1,0 +1,159 @@
+{
+  "eigval.xml": {
+    "eigenvalue": {
+      "tol": 1e-08,
+      "unit": "Hartree"
+    },
+    "occupancy": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  },
+  "evalcore.xml": {
+    "n": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "l": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "k": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "eigenvalue": {
+      "tol": 1e-08,
+      "unit": "Hartree"
+    }
+  },
+  "atoms.xml": {
+    "RelativityModel": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "chemicalSymbol": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "GridType": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "xctype": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "TotalNumberOfGridPoints": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "NumberOfMTGridPoints": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "rmin": {
+      "tol": 1e-10,
+      "unit": "Bohr",
+      "message": "rmin can be very small. Should set the tolerance to the smallest plausible value"
+    },
+    "rmt": {
+      "tol": 1e-08,
+      "unit": "Bohr"
+    },
+    "rmax": {
+      "tol": 1e-08,
+      "unit": "Bohr"
+    },
+    "n": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "l": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "kappa": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "energy": {
+      "tol": 1e-08,
+      "unit": "Hartree"
+    }
+  },
+  "JIND.OUT": {
+    "Time": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "Jx": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "Jy": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "Jz": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    }
+  },
+  "NEXC.OUT": {
+    "Time": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "number_electrons_GroundState": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "number_electrons_ExcitedState": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "sum": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  },
+  "ETOT_RTTDDFT.OUT": {
+    "Time": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "ETOT": {
+      "tol": 1e-08,
+      "unit": "Ha"
+    },
+    "Madelung": {
+      "tol": 1e-08,
+      "unit": "Ha"
+    },
+    "Eigenvalues-Core": {
+      "tol": 1e-08,
+      "unit": "Ha"
+    },
+    "Eigenvalues-Valence": {
+      "tol": 1e-08,
+      "unit": "Ha"
+    },
+    "Exchange": {
+      "tol": 1e-08,
+      "unit": "Ha"
+    },
+    "Correlation": {
+      "tol": 1e-08,
+      "unit": "Ha"
+    },
+    "XC-potential": {
+      "tol": 1e-08,
+      "unit": "Ha"
+    },
+    "Coulomb pot. energy": {
+      "tol": 1e-08,
+      "unit": "Ha"
+    }
+  }
+}

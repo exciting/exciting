@@ -88,13 +88,14 @@
     The actual basis functions  for the calculation inside the MT are linear combinations of these and <inlinemath>Y_{lm}</inlinemath>.</xs:documentation>
   </xs:annotation>
   <xs:complexType>
-      <xs:attribute name="trialEnergy" type="fortrandouble" use="required">
+      <xs:attribute name="trialEnergy" type="fortrandouble" default="0.15d0">
         <xs:annotation>
         <xs:documentation>
           Energy level of the radial wave function (initial condition for numerical radial Schrodinger equation)
         </xs:documentation>
         </xs:annotation>
       </xs:attribute>
+      
       <xs:attribute name="matchingOrder" type="xs:integer" use="required">
         <xs:annotation>
         <xs:documentation>
@@ -102,6 +103,7 @@
         </xs:documentation>
         </xs:annotation>
       </xs:attribute>
+      
       <xs:attribute name="searchE" type="xs:boolean" use="required">
         <xs:annotation>
         <xs:documentation>
@@ -111,6 +113,14 @@
         </xs:documentation>
         </xs:annotation>
       </xs:attribute>
+      <xs:attribute name="n" type="xs:integer" default="-1">
+      <xs:annotation>
+        <xs:documentation>                                                                              
+          Specifies the principal quantum number of the wave function.
+          If given, automatically computed trial energies are used. 
+      </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
       <xs:attribute name="kappa" type="xs:integer" default="0">
         <xs:annotation>
         <xs:documentation>
@@ -179,7 +189,17 @@
       </xs:documentation>
       </xs:annotation>
     </xs:attribute>
-   
+
+     <xs:attribute name="n" type="xs:integer" default="-1">
+      <xs:annotation>
+	<xs:documentation>
+	  Specifies the principal quantum number for which the custom definition applies. 
+    If given, automatically computed trial energies are used. 
+      </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+
+    
     <xs:sequence>
       <xs:element ref="wf" minOccurs="0" maxOccurs="unbounded"></xs:element>
     </xs:sequence>

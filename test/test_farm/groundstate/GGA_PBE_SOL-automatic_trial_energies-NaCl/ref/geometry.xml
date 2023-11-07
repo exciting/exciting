@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+  <title>NaCl</title>
+  <structure speciespath=".">
+    <crystal>
+      <basevect>   0.000000000       5.329000000       5.329000000</basevect>
+      <basevect>   5.329000000       0.000000000       5.329000000</basevect>
+      <basevect>   5.329000000       5.329000000       0.000000000</basevect>
+    </crystal>
+    <species speciesfile="Na.xml" rmt="2.0000">
+      <atom coord="0.0000000000      0.0000000000      0.0000000000"/>
+    </species>
+    <species speciesfile="Cl.xml" rmt="1.4500">
+      <atom coord="0.5000000000      0.5000000000      0.5000000000"/>
+    </species>
+  </structure>
+</input>

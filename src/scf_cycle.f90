@@ -14,6 +14,9 @@ subroutine scf_cycle(verbosity)
     use sirius_api,    only: set_radial_functions_sirius, solve_seceqn_sirius, get_eval_sirius, get_evec_sirius, &
                              put_occ_sirius, generate_density_sirius, get_periodic_function_sirius
     use mod_potential_and_density, only: generate_density_and_magnetization
+    use trial_energy_selection, only: select_local_orbital_trial_energies, select_apw_trial_energies
+    use lo_recommendation, only: recommend_local_orbital_trial_energies
+!
 
 ! !DESCRIPTION:
 !
@@ -28,7 +31,7 @@ subroutine scf_cycle(verbosity)
     Complex (8), Allocatable :: evecfv(:, :, :)
     Complex (8), Allocatable :: evecsv(:, :)
     Logical :: exist
-    Integer :: ik, is, ia, idm, id
+    Integer :: ik, is, ia, idm, id, lmax, nodesmax
     Integer :: n, nwork
     !Integer :: i,j, ias
     Real(8), Allocatable :: v(:),forcesum(:,:)
@@ -204,10 +207,21 @@ subroutine scf_cycle(verbosity)
         if (task /= 7) then
           ! No updates of core and valence radial functions during hybrids run
           call gencore          ! generate the core wavefunctions and densities
+          ! find the first linearization energies 
+          if (iscl==1) then 
+             call select_local_orbital_trial_energies(nlorb, lorbord, lorbl, lorbn, nspecies, idxas, nrmt, spr, veffmt(1,:,:), lorbe0) 
+             call select_apw_trial_energies(maxapword, maxlapw, apwn(:, 0:, :), nspecies, idxas, nrmt, spr, veffmt(1,:,:), apwe0(:, 0:, :))
+          endif
           call linengy          ! find the new linearization energies
           if (rank==0) call writelinen
           call genapwfr         ! generate the APW radial functions
           call genlofr(tlast)   ! generate the local-orbital radial functions
+          ! compute recommendations for local orbital trial energies
+          if ((associated(input%groundstate%lorecommendation)) .and. (tlast)) then
+            nodesmax = input%groundstate%lorecommendation%nodesmaxlo
+            lmax = input%groundstate%lorecommendation%lmaxlo
+            call recommend_local_orbital_trial_energies(nodesmax, lmax, nspecies, spsymb, idxas, nrmt, spr, veffmt(1,:,:))
+          endif
           call olprad           ! compute the overlap radial integrals
         end if
         if ( associated(input%groundstate%sirius) ) then

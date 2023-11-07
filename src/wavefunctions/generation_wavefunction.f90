@@ -15,7 +15,7 @@ contains
   !> generated in two ways:
   !> <ol>
   !> <li> <b>Second variation with local orbital (issvlo()==true).</b> <br>
-  !> The total number of second variation basis functions (nbasisfsv) is the 
+  !> The total number of second variation basis functions (num_of_basis_funs_sv) is the 
   !> sum of the first variational states (nstfv) and the total number of local
   !> orbitals (nlotot). 
   !> For the first nstfv basis functions the second variation basis is the first variational
@@ -35,7 +35,7 @@ contains
   !> </li>
   !> <li> <b> Traditional second variation. </b><br>
   !> Reference: Li, Chun, <i>et al.</i>, <i>Phys. Rev. B</i> <b>42</b>, 5433, 1990
-  !> The total number of second variation basis function (nbasisfsv) is equal to the
+  !> The total number of second variation basis function (num_of_basis_funs_sv) is equal to the
   !> number of the first variational states (nstfv). The basis function is therefore 
   !> the first variational wavefunction constructed as an expansion of spherical harmonic 
   !> expansion of the APW and local orbitals. For atom \(\alpha\) and a particular 
@@ -58,7 +58,8 @@ contains
     Use mod_atoms, only: natmtot
     Use mod_APW_LO, only: apwordmax, nlotot
     Use mod_muffin_tin, only: nrcmtmax, lmmaxapw
-    Use mod_eigenvalue_occupancy, only: nstfv, nbasisfsv
+    Use mod_eigenvalue_occupancy, only: nstfv
+    Use svlo, only: get_num_of_basis_funs_sv
     Use mod_eigensystem, only: nmatmax
     implicit none
     !> maximum angular momentum for potentials and densities (lmax = input%groundstate%lmaxvr)
@@ -76,22 +77,25 @@ contains
     !> First variation eigenvector
     complex(dp), intent(in) :: evecfv (nmatmax,nstfv)
     !> First variation wavefunction in the MT region
-    complex(dp), intent(out) :: wfmtfv(lmmax, nrcmtmax, nbasisfsv)
+    complex(dp), intent(out) :: wfmtfv(lmmax, nrcmtmax, get_num_of_basis_funs_sv())
 
+    Integer :: num_of_basis_funs_sv
+    num_of_basis_funs_sv = get_num_of_basis_funs_sv()
+    
     wfmtfv(:,:,:)=zzero 
 
     If (issvlo()) Then
        call terminate_if_true(mpiglobal,nlotot==0, "SVLO does not work with nlotot = 0")
-       call assert(nbasisfsv == nstfv + nlotot, "For svlo basis, &
+       call assert(num_of_basis_funs_sv == nstfv + nlotot, "For svlo basis, &
             & expect total number of basis functions to be equal to & 
             & first variational states plus total number of local &
             & orbitals")
        call generate_basisfunction_secondvariation_MT_APW(lmax, &
             & lmmax, ia, is, ngp, apwalm, evecfv(:,1:nstfv), wfmtfv(:,:,1:nstfv))
        call generate_basisfunction_secondvariation_MT_lo(lmmax, &
-            & ia, is, wfmtfv(:,:,nstfv+1:nbasisfsv))
+            & ia, is, wfmtfv(:,:,nstfv+1:num_of_basis_funs_sv))
     Else
-       call assert(nbasisfsv == nstfv , "For standard sv &
+       call assert(num_of_basis_funs_sv == nstfv , "For standard sv &
             & basis, expect total number of basis functions to be &
             & equal to first variational states ")
        call generate_wavefunction_firstvariation_MT_APW_and_lo(lmax,&

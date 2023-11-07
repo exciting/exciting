@@ -154,6 +154,76 @@ subroutine xsgeneigveclauncher()
     deallocate(vkloff_kqmtp)
     deallocate(vkloff_kqmtm)
 
+  ! fastBSE does yet not support shifted Q grids.
+    else if(input%xs%xstype == "fastBSE") then 
+
+      call printline(unitout, "=")
+      write(unitout, '("One-shot GS runs for fastBSE calculations")')
+      call printline(unitout, "=")
+  
+      ! Offsets for k+qmt/2 grids
+      allocate(vkloff_kqmtp(3,nqpt))
+      ! Offsets for the k-qmt/2 grid
+      allocate(vkloff_kqmtm(3,nqpt))
+  
+      ! For each Q-point in the Q-point list generate grids and
+      ! save offsets which are needed to call the gound state routine.
+  
+      ! Write out detailed information about the used grids.
+      if(input%xs%writexsgrids) then 
+        fwg = .true.
+      else
+        fwg = .false.
+      end if
+
+      if (nqpt > 1) &
+        print*, 'Warning: fastBSE does not support finite momentum transfer. Results are calculated only for the Gamma point.'
+  
+      do iq = 1, nqpt
+  
+        call xsgrids_init(totalqlmt(1:3, iq), gkmax, makegk_=fwg, makegq_=fwg)
+        if(mpiglobal%rank == 0 .and. fwg) then 
+          call xsgrids_write_grids(iq)
+        end if
+  
+        !! Only save offsets
+        ! Offset for (k+qmt/2) grid
+        vkloff_kqmtp(1:3,iq) = k_kqmtp%kqmtset%vkloff
+        ! Offset for (k-qmt/2) grid
+        vkloff_kqmtm(1:3,iq) = k_kqmtm%kqmtset%vkloff
+  
+        ! Clear grids again
+        call xsgrids_finalize()
+  
+      end do
+  
+      ! Depending on the BSE Hamiltonian to be constructed 
+      ! the eigensolutions on differing grids are needed.
+  
+      !! (k+qmt/2) grid
+      tmqmt=.false.
+      call printline(unitout, "+")
+      write(unitout, '("One-shot GS runs for k+qmt/2 grids")')
+      call printline(unitout, "+")
+      ! Do one-shot GS calculations for qmt-points number 1 to qf
+      call xsgeneigvec(1, qf, nqpt, vql(1:3,1:nqpt), vkloff_kqmtp(1:3,1:nqpt),&
+        & tscreen, tmqmt)
+  
+      !! (k-qmt/2) grid
+      ! Skip Gamma (assumed to be the first entry)
+      if(qf > 1) then 
+        tmqmt=.true.
+        call printline(unitout, "+")
+        write(unitout, '("One-shot GS runs for k-qmt/2 grids")')
+        call printline(unitout, "+")
+        ! Do one-shot GS calculations for qmt-points number 2 to qf
+        call xsgeneigvec(2, qf, nqpt, vql(1:3,1:nqpt), vkloff_kqmtm(1:3,1:nqpt),&
+          & tscreen, tmqmt)
+      end if
+  
+      deallocate(vkloff_kqmtp)
+      deallocate(vkloff_kqmtm)  
+
   else if(input%xs%xstype == "TDDFT") then
 
     call printline(unitout, "=")

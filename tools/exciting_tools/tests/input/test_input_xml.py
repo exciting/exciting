@@ -179,7 +179,7 @@ def test_as_dict(exciting_input_xml: ExcitingInputXML, mock_env_jobflow_missing)
     dict_representation = exciting_input_xml.as_dict()
     assert set(dict_representation.keys()) == {"xml_string"}
     # check only that the xml string starts with the correct first lines:
-    assert dict_representation["xml_string"].startswith('<?xml version="1.0" ?>\n<input sharedfs="true">\n\t \n\t'
+    assert dict_representation["xml_string"].startswith('<?xml version="1.0" ?>\n<input sharedfs="true">\n\t'
                                                         '<title>Test Case</title>\n\t<structure')
 
 
@@ -189,7 +189,7 @@ def test_as_dict_jobflow(exciting_input_xml: ExcitingInputXML, mock_env_jobflow)
     assert dict_representation == {'@class': 'ExcitingInputXML',
                                    '@module': 'excitingtools.input.input_classes'}
     # check only that the xml string starts with the correct first lines:
-    assert xml_string.startswith('<?xml version="1.0" ?>\n<input sharedfs="true">\n\t \n\t'
+    assert xml_string.startswith('<?xml version="1.0" ?>\n<input sharedfs="true">\n\t'
                                  '<title>Test Case</title>\n\t<structure')
 
 

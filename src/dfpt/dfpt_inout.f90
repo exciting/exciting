@@ -240,15 +240,9 @@ module dfpt_inout
 
     !> This subroutine initializes the self-consistency loop output in the general 
     !> info outout file (human readable and xml).
-    subroutine dfpt_io_info_scf_init( fromfile )
-      !> density response initialized from file
-      logical, intent(in) :: fromfile
-
+    subroutine dfpt_io_info_scf_init
       call printbox( info_out_unit, '*', 'scf loop for Sternheimer equation started' )
       call xml_NewElement( info_out_xml, 'scf' )
-      if( fromfile ) then
-        write( info_out_unit, '("Initial density response read from file.")' )
-      end if
       write( info_out_unit, * )
     end subroutine dfpt_io_info_scf_init
 

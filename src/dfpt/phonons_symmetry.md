@@ -3,10 +3,10 @@ operations \(\mathcal{S}\) under which the density and potential are
 invariant. All symmetry operations form a group called \(\mathcal{G}\).
 Each symmetry operation \(\mathcal{S}=\lbrace {\bf \rm S}, {\bf \tau}_S \rbrace\)
 is formed by an (im)proper rotation matrix \({\bf \rm S}\) and a translation
-vector \({\bf \tau}_S\) such that each atom \(\alpha\) is mapped into an 
-chemically equivalent atom \(\alpha'\), i.e,
-\[ \mathcal{S}\, {\bf \tau}_\alpha = {\bf \rm S} ({\bf \tau}_\alpha + {\bf \tau}_S)
-   = {\bf \tau}_{\alpha'} + {\bf R}_S \;.\]
+vector \({\bf \tau}_S\) such that each atom \(\kappa\) is mapped into an 
+chemically equivalent atom \(\kappa'\), i.e,
+\[ \mathcal{S}\, {\bf \tau}_\kappa = {\bf \rm S} ({\bf \tau}_\kappa + {\bf \tau}_S)
+   = {\bf \tau}_{\kappa'} + {\bf R}_S \;.\]
 @note Mostly, in the literature, the symmetry operations are defined by the rotation
 followed by the translation. In \(\texttt{exciting}\), they are defined by the translation
 followed by the rotation. @endnote
@@ -19,12 +19,12 @@ from which all other points in the Brillouin zone (BZ) can be reached
 by rotations with the crystal symmetries. The missing information can then
 be restored by symmetrizing the density response with all crystal symmetries.
 
-Let's consider the perturbation of a phonon-like displacement of atom \(\alpha\) 
+Let's consider the perturbation of a phonon-like displacement of atom \(\kappa\) 
 in the Cartesian direction \(i\) with wavevector \({\bf q}\), 
-\(\delta^{\bf q}_{\alpha i}\). The problem is that the application of each
+\(\delta^{\bf q}_{\kappa\alpha}\). The problem is that the application of each
 symmetry operation mixes phonon wavectors, atoms and Cartesian directions
-\[ \mathcal{S}\, \delta^{\bf q}_{\alpha i} 
-   \rightarrow \sum_{j=1}^3 S_{ij}\, \delta^{{\bf q}'}_{\alpha' j} \;.\]
+\[ \mathcal{S}\, \delta^{\bf q}_{\kappa\alpha} 
+   \rightarrow \sum_{j=1}^3 S_{ij}\, \delta^{{\bf q}'}_{\kappa\beta} \;.\]
 As a consequence, in order to symmetrize the density response, one has to calculate
 the response to \(N_{\bf q} \times 3 N_{\rm at}\) simultaneously which is 
 impractial in terms of memory consumption. 
@@ -42,8 +42,8 @@ to a \({\bf q}\)-dependent increased irreducible Brillouin zone \(\text{IBZ}({\b
 
 The second step is to use special symmetry adapted displacement patterns \(\delta^{\rm q}_{I \mu}\)
 expressed as linear combinations of the canonical displacement patterns
-\[ \delta^{\bf q}_{I \mu} = \sum_{\alpha,i} p^{I \mu}_{\alpha i}({\bf q})\, \delta^{\bf q}_{\alpha i} \;. \]
-The coefficients \(p^{I \mu}_{\alpha i}({\bf q})\) describe the so-called 
+\[ \delta^{\bf q}_{I \mu} = \sum_{\kappa,\alpha} p^{I \mu}_{\kappa\alpha}({\bf q})\, \delta^{\bf q}_{\kappa\alpha} \;. \]
+The coefficients \(p^{I \mu}_{\kappa\alpha}({\bf q})\) describe the so-called 
 *irreducible representations* (irreps) \(I\). The index \(\mu = 1, \dots, d_I\) labels
 the *members of the irrep* \(I\) and \(d_I\) is the *dimension of the irrep* \(I\).
 The dimension is typically a relatively small number \(\leq 3\) and at most it is 6.

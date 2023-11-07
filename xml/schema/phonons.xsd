@@ -29,6 +29,7 @@
     </xs:annotation>
 
     <xs:complexType>
+
       <xs:all>
         <xs:element ex:importance="expert" ex:unit="" ref="qpointset" minOccurs="0" maxOccurs="1"/>
 
@@ -65,12 +66,39 @@
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="essential" ex:unit="" ref="ngrdos" default="100"  > 
+            <xs:attribute ex:importance="expert" ex:unit="" name="ngridqint" type="integertriple" default="20 20 20">
+              <xs:annotation>
+                <xs:documentation>
+                  The dense integration grid on which the eigenvalues are interpolated.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" ref="ngrdos" default="0"  > 
               <xs:annotation>
                 <xs:documentation>
                   Number of grid points in each lattice direction on which the eigenvalues are interpolated.
+                  Overwrites <pre>ngridqint</pre> if it is explcitly set.
                 </xs:documentation>
               </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="inttype" default="tetra">
+              <xs:annotation>
+                <xs:documentation>
+                  Defines the method that is used for evaluating BZ integrals.
+                  The default option is the (optimized) tetrahedron integration (<pre>tetra</pre>) which usually converges faster w.r.t. the q-point density.
+                  An alternative is the direct summation (<pre>sum</pre>) on the dense grid.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="tetra">
+                  </xs:enumeration>
+                  <xs:enumeration value="sum">
+                  </xs:enumeration>
+                </xs:restriction>
+              </xs:simpleType>
             </xs:attribute>
 
             <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos" default="0"  >
@@ -244,10 +272,10 @@
         </xs:simpleType>
       </xs:attribute>
 
-      <xs:attribute ex:importance="experimental" ex:unit="" name="method" default="dfpt">
+      <xs:attribute ex:importance="expert" ex:unit="" name="method" default="dfpt">
         <xs:annotation>
           <xs:documentation>
-            Method to compute phonons. Either <pre>"sc"</pre> for super-cell approach (default) or <pre>"dfpt"</pre> for density-functional perturbation theory.
+            Method to compute phonons. Either <pre>"sc"</pre> for super-cell approach or <pre>"dfpt"</pre> for density-functional perturbation theory.
           </xs:documentation>
         </xs:annotation>
         <xs:simpleType>
@@ -264,6 +292,16 @@
             <p>Applies to <pre>method="dfpt"</pre> only!</p>
             If the attribute <pre>sumrule</pre> is set to <pre>"true"</pre>,
             the acoustic sum rule is imposed on the Gamma point phonons.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="expert" ex:unit="" name="polar" type="xs:boolean" default="true">
+        <xs:annotation>
+          <xs:documentation> The attribute <pre>polar</pre> is set to <pre>"true"</pre>
+            if a polar material is assumed and Born effective charges <inlinemath>Z^\ast</inlinemath>
+            and the high frequency dielectric tensor <inlinemath>\epsilon^\infty</inlinemath> should be
+            computed.
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
@@ -302,6 +340,25 @@
           <xs:documentation>
             <p>Applies to <pre>method="dfpt"</pre> only!</p>
             Maximum number of processes per part in an MPI parallel run.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="experimental" ex:unit="" name="write_schedule" type="xs:boolean" default="false">
+        <xs:annotation>
+          <xs:documentation>
+            <p>Applies to <pre>method="dfpt"</pre> only!</p>
+            Print execution schedule in an MPI parallel run.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="experimental" ex:unit="" name="delete_eigensystem_response" type="xs:boolean" default="true">
+        <xs:annotation>
+          <xs:documentation>
+            <p>Applies to <pre>method="dfpt"</pre> only!</p>
+            If the attribute <pre>delete_eigensystem_response</pre> is set to <pre>"true"</pre>,
+            the file <pre>*_DEVAL_*.OUT</pre>, <pre>*_DEVEC_*.OUT</pre> and <pre>*_DOCC_*.OUT</pre> are deleted after the calculation.
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>

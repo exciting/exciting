@@ -22,7 +22,7 @@ import matplotlib.style
 import matplotlib.ticker as ticker
 import numpy as np
 
-if matplotlib.__version__.split(".")[0]=="2": matplotlib.style.use('classic')
+if matplotlib.__version__.split(".")[0] == "2": matplotlib.style.use('classic')
 
 #START_DEF++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -189,8 +189,8 @@ def option_parser():
     
     input_options['kp'] = args.kpoint_boundary
    
-    if ( input_options['kmin']<0.0 or 
-         input_options['kmax']>1.0 or 
+    if ( input_options['kmin'] < 0.0 or
+         input_options['kmax'] > 1.0 or
          input_options['kmin']>=input_options['kmax'] ):
         print("\n ERROR: It must be  0 ≤ kmin < kmax ≤ 1 !\n")
         print("        kmin = "+str(input_options['kmin']))
@@ -244,7 +244,7 @@ def inquire_spin(xmlfile):
     return lspin
 #_______________________________________________________________________________
 
-def inquire_element(element,xmlpath):
+def inquire_element(element, xmlpath):
     '''
     check if element is in xmlfile
     '''
@@ -253,7 +253,7 @@ def inquire_element(element,xmlpath):
     return xmlpath.find(element)
 #_______________________________________________________________________________
 
-def extract_xticks_labels(xmlfile,phonon):
+def extract_xticks_labels(xmlfile, phonon):
     '''
     extract x-ticks labels for band structure from xmlfile
     '''
@@ -270,7 +270,7 @@ def extract_xticks_labels(xmlfile,phonon):
     label = []
     for point in path.findall("point"):
         lab = point.attrib["label"]
-        if lab.lower()== 'gamma': lab = '\u0393'
+        if lab.lower() == 'gamma': lab = '\u0393'
         label.append(lab)
     return label
 #_______________________________________________________________________________
@@ -296,35 +296,35 @@ def set_legend_label(leg_label,spin,leg_spin,local_single,k,j):
     return legend_label
 #_______________________________________________________________________________
 
-def set_energy_zero(band,band_spin,spin,ezero):
+def set_energy_zero(band, band_spin, spin, ezero):
     '''
     set energy zero, assume in input bands aligned to the Fermi energy 
     '''
     vbm = -1e30  ;  cbm =  1e30
     for j in range(len(band)):
-        all_negative = [x for x in band[j] if x<0]
+        all_negative = [x for x in band[j] if x < 0]
         if len(all_negative)!=0: vbm = max(vbm, max(all_negative))
-        all_positive = [x for x in band[j] if x>0]
+        all_positive = [x for x in band[j] if x > 0]
         if len(all_positive)!=0: cbm = min(cbm, min(all_positive))
-    eshift = vbm+(cbm-vbm)/2.
+    eshift = vbm + (cbm-vbm) / 2.
     if ezero== "vbM": eshift = vbm
     band = band-eshift
     if spin: band_spin = band_spin - eshift
     return band, band_spin
 #_______________________________________________________________________________
  
-def plot_ezero(ezero,ymin,ymax,xmin,xmax,kmin,kmax,sx,phonon,ax1):
+def plot_ezero(ezero, ymin, ymax, xmin, xmax, kmin, kmax, sx, phonon, ax1):
     '''
     plot the energy zero
     '''
     ezero_size = "40"
     ezero_label = '$E_{{F}}$'
     xshift = 0.01
-    if ezero== "vbM": ezero_label = '$E_{_{VBM}}$'
+    if ezero == "vbM": ezero_label = '$E_{_{VBM}}$'
     dx = xmax-xmin
     dk = kmax-kmin
     ezero_position = xmax+xshift*dx/sx
-    if ymin<=0.0 and 0.0<=ymax and (not phonon):
+    if ymin <= 0.0 and 0.0 <= ymax and (not phonon):
         plt.text(ezero_position, 0.0, ezero_label, size=ezero_size, 
                  ha='left', va='center', transform=ax1.transData)
     return
@@ -335,12 +335,12 @@ def read_phonon_dispersion(kvec,band,infile,funit):
     read phonon-dispersion curves frome files infile 
     '''
     au2icm = 2.194746313705e5
-    icm2mev = 1.0/8.06573
+    icm2mev = 1.0 / 8.06573
     icm2thz = 0.0299793
     
     conversion_factor = au2icm
-    if funit== 'meV': conversion_factor = au2icm * icm2mev
-    if funit== 'THz': conversion_factor = au2icm * icm2thz
+    if funit == 'meV': conversion_factor = au2icm * icm2mev
+    if funit == 'THz': conversion_factor = au2icm * icm2thz
    
     band.append([])  ;  kvec.append([])
     list1=[]  ;  list2=[]
@@ -350,7 +350,7 @@ def read_phonon_dispersion(kvec,band,infile,funit):
         if len(i_line):
             list1.append(float(i_line[0]))
             frequency = (float(i_line[1]))
-            if abs(frequency)*au2icm<1.e-4:
+            if abs(frequency) * au2icm < 1.e-4:
                 list2.append(0.0)
             else:
                 list2.append(frequency*conversion_factor)
@@ -375,14 +375,14 @@ def read_electronic_band(kvec,band,band_spin,spin,infile,eunit):
     steps=find_steps(infile)
     k_list = np.genfromtxt(infile)[:,0]
     e_list = np.genfromtxt(infile)[:,1] * conversion_factor
-    for j in range(0,len(k_list),steps): kvec[-1].append(k_list[j:j + steps])   
-    for j in range(0,len(e_list),steps): band[-1].append(e_list[j:j + steps]) 
+    for j in range(0, len(k_list), steps): kvec[-1].append(k_list[j:j + steps])
+    for j in range(0, len(e_list) ,steps): band[-1].append(e_list[j:j + steps])
     if spin:
-        nbands=int(len(band[-1])/2)
+        nbands=int(len(band[-1]) / 2)
         kspin = [] ; band_up = []  ;  band_down = []
         for j in range(nbands): kspin.append(kvec[-1][j])
         for j in range(nbands): band_up.append(band[-1][j])
-        for j in range(nbands,2*nbands): band_down.append(band[-1][j])
+        for j in range(nbands,2 * nbands): band_down.append(band[-1][j])
         band[-1] = band_up
         band_spin[-1] = band_down
     return
@@ -395,8 +395,8 @@ def find_steps(infile):
     inf = open(infile,"r")
     steps = 0
     while True:
-       line=inf.readline().strip().split()
-       if len(line)==0: break
+       line = inf.readline().strip().split()
+       if len(line) == 0: break
        steps += 1
     inf.close()
     return steps
@@ -417,7 +417,7 @@ def check_number_of_plots(nop,nmax):
     un update of the colors list could be necessary.
     no_leg = input_options['no_legend']
     '''
-    if nop>nmax:
+    if nop > nmax:
        print("\n WARNING: Number of plots = "+str(nop)+" is larger than "+str(nmax)+" !")
        print("          Updating the list of colors may be necessary.\n")
     return
@@ -460,9 +460,9 @@ def main(input_options):
         number_of_plots = len(directory)
     else:
         number_of_plots = max(len(directory),len(atype))
-        if len(directory)==1 and len(directory)<len(atype):
+        if len(directory) == 1 and len(directory) < len(atype):
             for i in range(1,len(atype)): directory.append(directory[0])
-        if len(directory)>len(atype):
+        if len(directory) > len(atype):
             len_atype = len(atype)
             for i in range(len_atype,len(directory)): atype.append("KS")
 
@@ -472,10 +472,10 @@ def main(input_options):
     wannier = ( "WA" in atype )
     
     for i in range(len(directory)): 
-        if directory[i]== "./": directory[i] = "."
+        if directory[i] == "./": directory[i] = "."
 
     local_single = ( number_of_plots==1 and directory[0]=="." )
-    local_only = ( all(x==directory[0] for x in directory) and directory[0]=="." )
+    local_only = ( all(x == directory[0] for x in directory) and directory[0] == "." )
     
     #---------------------------------------------------------------------------
     # Initialize labels and filenames
@@ -498,16 +498,16 @@ def main(input_options):
     for i in range(number_of_plots):
         leg_label.append(directory[i])
         filename = directory[i]+"/"+bandfileroot
-        if directory[i]== ".": leg_label[i] = ""
+        if directory[i] == ".": leg_label[i] = ""
         if not phonon:
-            if atype[i]== "GW":
+            if atype[i] == "GW":
                 leg_label[i] = leg_label[i]+bar+'$G_0W_0$'
                 filename = filename+"-QP"
-            if atype[i]== "WA":
+            if atype[i] == "WA":
                 leg_label[i] = leg_label[i]+bar+'WA'
                 filename = filename+"_WANNIER"
-            if atype[i]== "KS" and gw: leg_label[i] = leg_label[i] + bar + 'KS'
-            if atype[i]== "KS" and wannier: leg_label[i] = leg_label[i] + bar + 'KS'
+            if atype[i] == "KS" and gw: leg_label[i] = leg_label[i] + bar + 'KS'
+            if atype[i] == "KS" and wannier: leg_label[i] = leg_label[i] + bar + 'KS'
         infile.append(filename+".OUT")
         if i<len(legend): leg_label[i] = legend[i]
         
@@ -515,7 +515,7 @@ def main(input_options):
     # Plot defaults
 
     xpos_title = 1
-    ypos_title = 1.0+0.05/sy
+    ypos_title = 1.0 + 0.05 / sy
     size_title = "40"
     
     elab = 'Energy $-$ $E_{{F}}$ ['+eunit+']'
@@ -524,8 +524,8 @@ def main(input_options):
         elab = 'Frequency [cm$^{-1}$]'
         if funit!= 'icm': elab = 'Frequency [' + funit + ']'
 
-    xplot_size = 16*sx
-    yplot_size = 9*sy
+    xplot_size = 16 * sx
+    yplot_size = 9 * sy
     
     line_thickness = "3.0"
     sline_thickness = "1.4"
@@ -545,7 +545,7 @@ def main(input_options):
     line_color = ["mediumblue", "firebrick", 
                   "green", "darkgoldenrod"]
     length_line_color = len(line_color)
-    if number_of_plots>length_line_color:
+    if number_of_plots > length_line_color:
         for i in range(length_line_color,number_of_plots): 
             line_color.append("darkslategrey")
 
@@ -560,8 +560,8 @@ def main(input_options):
  
     spin = []  ;  xml_label = [] ; global_spin = False
     for i in range(number_of_plots):
-        spin.append(inquire_spin(directory[i]+"/"+"input.xml"))
-        xml_label.append(extract_title_text(directory[i]+"/"+"input.xml"))
+        spin.append(inquire_spin(directory[i] + "/" + "input.xml"))
+        xml_label.append(extract_title_text(directory[i] + "/" + "input.xml"))
         global_spin = ( global_spin or spin[i] )
     
     if global_spin: leg_size = 27
@@ -590,8 +590,8 @@ def main(input_options):
     #-------------------------------------------------------------------------------
     # Read x-ticks position and labels (assuming all plots with the same k-path)
 
-    bandlines = read_xticks_position(directory[0]+"/"+bandlinesfile)
-    label = extract_xticks_labels(directory[0]+"/"+"input.xml",phonon)
+    bandlines = read_xticks_position(directory[0] + "/" + bandlinesfile)
+    label = extract_xticks_labels(directory[0] + "/" + "input.xml",phonon)
             
     #-------------------------------------------------------------------------------
     # Settings for the plot 
@@ -600,14 +600,14 @@ def main(input_options):
     fig.patch.set_edgecolor(figcolor)
     fig.patch.set_facecolor(figcolor)
 
-    plt.rcParams['axes.linewidth']  = axes_thickness # set the value globally
-    plt.rcParams['grid.linewidth']  = 1.5
+    plt.rcParams['axes.linewidth'] = axes_thickness # set the value globally
+    plt.rcParams['grid.linewidth'] = 1.5
     plt.rcParams['xtick.labelsize'] = 40
     plt.rcParams['ytick.labelsize'] = 30
-    plt.rcParams['axes.edgecolor']  = 'black'
-    plt.rcParams['axes.labelsize']  = 40      # fontsize of the x any y labels
+    plt.rcParams['axes.edgecolor'] = 'black'
+    plt.rcParams['axes.labelsize'] = 40      # fontsize of the x any y labels
     plt.rcParams['axes.labelcolor'] = 'black'
-    plt.rcParams['axes.axisbelow']  = 'True'  # axis gridlines and ticks are below
+    plt.rcParams['axes.axisbelow'] = 'True'  # axis gridlines and ticks are below
                                               # the axes elements (lines, text, etc)
     plt.rcParams['legend.fontsize'] = leg_size
     plt.rcParams['xtick.major.pad'] = 10
@@ -619,13 +619,13 @@ def main(input_options):
     # Band structure plot 
     
     ax1 = fig.add_subplot(111)
-    ax1.xaxis.grid(True,which='major',color='k',linestyle='-',linewidth=line_thickness)
-    ax1.axhline(y=0,linestyle="dashed",linewidth=line_thickness,color="black")
+    ax1.xaxis.grid(True,which='major', color='k', linestyle='-', linewidth=line_thickness)
+    ax1.axhline(y=0, linestyle="dashed", linewidth=line_thickness, color="black")
 
     ax1.xaxis.set_label_position('bottom')
     ax1.set_xticks(bandlines)
     ax1.set_xticklabels(label)
-    ax1.set_ylabel(elab, labelpad=18*sx)
+    ax1.set_ylabel(elab, labelpad=18 * sx)
 
     for line in ax1.get_xticklines() + ax1.get_yticklines():
         line.set_markersize(10)
@@ -650,7 +650,7 @@ def main(input_options):
             ax1.plot(kvec[i][j], band[i][j], color=lc, lw=line_thickness, label=llab)
             if npspin:
                 llab = set_legend_label(leg_label[i],npspin,leg_spin,local_single,1,j)
-                ax1.plot(kvec[i][j], band_spin[i][j], 
+                ax1.plot(kvec[i][j], band_spin[i][j],
                          color=sc, lw=sline_thickness, label=llab)
  
     if title is not None:  
@@ -675,8 +675,8 @@ def main(input_options):
     
     for i in range(2):
         if (kp[i] is not None) and (kp[i] not in list(range(1, len(bandlines) + 1))):
-            sys.exit("\n ERROR: k-point index = '"+str(kp[i])+
-                     "' out of range [1,"+str(len(bandlines))+"] !\n")
+            sys.exit("\n ERROR: k-point index = '" + str(kp[i])+
+                     "' out of range [1," + str(len(bandlines))+"] !\n")
     
     if kp[0] is not None: xmin = bandlines[kp[0]-1]
     if kp[1] is not None: xmax = bandlines[kp[1]-1]
@@ -687,11 +687,11 @@ def main(input_options):
     xmin = x0 + kmin*dx
     xmax = x0 + kmax*dx
     
-    plt.xlim(xmin,xmax)
+    plt.xlim(xmin, xmax)
     
-    plot_ezero(ezero,ymin,ymax,xmin,xmax,kmin,kmax,sx,phonon,ax1)
+    plot_ezero(ezero, ymin, ymax, xmin, xmax, kmin, kmax, sx, phonon, ax1)
         
-    fig.savefig('PLOT.png',format='png',dpi=300, bbox_inches='tight')
+    fig.savefig('PLOT.png', format='png', dpi=300, bbox_inches='tight')
 
     if show:
        plt.show()

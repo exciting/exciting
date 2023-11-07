@@ -186,3 +186,49 @@ def parse_proj_screenshots(name: str) -> dict:
     data['kpoints'] = kpoints
 
     return data
+
+def parse_atom_position_velocity_force(name: str) -> dict:
+    """ Parser for ATOM_????.OUT 
+    :param str name: name of file to parse
+    :return dict out: each dict key corresponds to time, position (3 columns), velocity (3 columns), total force (3 columns).
+    The 3 columns refer to the x, y, z components
+    """
+    try:
+        data = np.genfromtxt(name, skip_header=0)
+    except:
+        raise ParseError
+    out = {
+        "Time": data[:, 0],
+        "x": data[:, 1],
+        "y": data[:, 2],
+        "z": data[:, 3],
+        "vx": data[:, 4],
+        "vy": data[:, 5],
+        "vz": data[:, 6],
+        "Fx": data[:, 7],
+        "Fy": data[:, 8],
+        "Fz": data[:, 9]
+    }
+
+    return out
+
+def parse_force(name, skiprows=0):
+    """
+    Parser for X_????.OUT, where X can be:
+    - FCR: core corrections to forces
+    - FEXT: external forces (due to e.g. an electric field)
+    - FHF: Hellman-Feynman term of forces
+    - FVAL: valence corrections to forces
+    """
+    try:
+        data = np.genfromtxt(name, skip_header=skiprows)
+    except:
+        raise ParseError
+    out = {
+        "Time": data[:, 0],
+        "Fx": data[:, 1],
+        "Fy": data[:, 2],
+        "Fz": data[:, 3]
+    }
+
+    return out

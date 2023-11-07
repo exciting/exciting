@@ -22,7 +22,7 @@ contains
   !> See e.g. https://en.wikipedia.org/wiki/Cauchy_distribution.
   pure function lorentzian(x, gamma, mu) result(lorentzian_func)
 
-    !> x of the frequency grid
+    !> Grid on which the function is calculated
     real(dp), intent(in) :: x(:)
     !> Broadening \(\gamma\)
     real(dp), intent(in) :: gamma

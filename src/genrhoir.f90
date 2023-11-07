@@ -14,6 +14,7 @@ Subroutine genrhoir (ik, evecfv, evecsv)
 ! !USES:
       Use modinput
       Use modmain
+      Use svlo, only: get_num_of_basis_funs_sv
 ! !INPUT/OUTPUT PARAMETERS:
 !   ik     : k-point number (in,integer)
 !   evecfv : first-variational eigenvectors (in,complex(nmatmax,nstfv,nspnfv))
@@ -46,6 +47,7 @@ Subroutine genrhoir (ik, evecfv, evecsv)
       Real (8) :: t1, t2, t3, t4
       Real (8) :: ts0, ts1
       Complex (8) zt1, zt2, zt3
+      Integer :: num_of_basis_funs_sv
 ! allocatable arrays
       Complex (8), Allocatable :: zfft (:, :)
 !addidional arrays to make truncationerrors predictable
@@ -53,6 +55,9 @@ Subroutine genrhoir (ik, evecfv, evecsv)
       Real (8) :: magir_k (ngrtot, ndmag)
 
       Call timesec (ts0)
+
+      num_of_basis_funs_sv = get_num_of_basis_funs_sv()
+      
       rhoir_k (:) = 0
       magir_k (:, :) = 0
       If (associated(input%groundstate%spin)) Then
@@ -75,7 +80,6 @@ Subroutine genrhoir (ik, evecfv, evecsv)
             zfft (:, :) = 0.d0
             If (input%groundstate%tevecsv) Then
 ! generate spinor wavefunction from second-variational eigenvectors
-               i = 0
                Do ispn = 1, nspinor
                   If (isspinspiral()) Then
                      jspn = ispn
@@ -83,7 +87,7 @@ Subroutine genrhoir (ik, evecfv, evecsv)
                      jspn = 1
                   End If
                   Do ist = 1, nstfv
-                     i = i + 1
+                     i = (ispn - 1) * num_of_basis_funs_sv + ist
                      zt1 = evecsv (i, j)
                      If (Abs(dble(zt1))+Abs(aimag(zt1)) .Gt. &
                     & input%groundstate%epsocc) Then

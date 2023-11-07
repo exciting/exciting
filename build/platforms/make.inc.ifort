@@ -4,9 +4,9 @@
 # Compiler, flags and preprocessing variables 
 F90 = ifort
 F90_OPTS = -O3 -ip -unroll -scalar_rep 
-INCL = -I"${MKLROOT}/include" -I"${MKLROOT}/include/intel64/lp64"
+INCL = -I"${MKLROOT}/include" -I"${MKLROOT}/include/fftw" -I"${MKLROOT}/include/intel64/lp64"
 
-CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DIFORT -DFFTW -DMKL
+CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DIFORT -DFFTW -DMKL -DFFTW3_INTERFACE
 F77 = $(F90)
 F77_OPTS = -O3
 # Required to be cpp for libXC compilation 
@@ -14,7 +14,7 @@ FCCPP = cpp
 
 F90_DEBUGOPTS = -g -O0 -DUSE_ASSERT -debug all -implicitnone -warn unused \
    -fp-stack-check -heap-arrays -ftrapuv -check pointers \
-   -check bounds -check all -check noarg_temp_created -traceback -I"${MKLROOT}/include"
+   -check bounds -check all -check noarg_temp_created -traceback -I"${MKLROOT}/include" -I"${MKLROOT}/include/fftw"
 
 F77_DEBUGOPTS = $(F90_DEBUGOPTS)
 

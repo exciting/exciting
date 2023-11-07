@@ -43,7 +43,7 @@ contains
     !> system specific error code, 0 on success
     integer :: ierr
 
-#ifdef IFORT
+#ifdef __INTEL_COMPILER
     integer, external :: system
     ierr = system(trim(cmd))
 #else
@@ -98,7 +98,7 @@ contains
     integer :: ierr_local
     character(:), allocatable :: dir
 
-#ifdef IFORT
+#ifdef __INTEL_COMPILER
     dir = trim(path)
     if( dir(len(dir):len(dir)) == '/' ) then
       inquire(directory=trim(path), exist=exists, iostat=ierr_local)
@@ -133,20 +133,22 @@ contains
 
     integer :: last_char_index
 
-    ! Remove whitespaces on the left and right
+    ! Remove delimiter from the end of path1
     path1_cleaned = adjustl(trim(path1))
-    path2_cleaned = adjustl(trim(path2))
-
-    ! Remove delimiter from the end and beginning of path1 and path2 respectively
     last_char_index = len(path1_cleaned)
-    do while (path1_cleaned(last_char_index:last_char_index) == delimiter)  
+    if (path1_cleaned == delimiter) then
+      path1_cleaned = ""
+    else if (path1_cleaned(last_char_index:last_char_index) == delimiter) then
       path1_cleaned = path1_cleaned(:last_char_index - 1)
-      last_char_index = len(path1_cleaned)
-    end do
+    end if
 
-    do while (path2_cleaned(1:1) == delimiter) 
+    ! Remove delimiter from the beginning of path2
+    path2_cleaned = adjustl(trim(path2))
+    if (path2_cleaned == delimiter) then
+      path2_cleaned = ""
+    else if (path2_cleaned(1:1) == delimiter) then
       path2_cleaned = path2_cleaned(2:)
-    end do
+    end if
 
     ! Join paths
     joined_path = path1_cleaned // delimiter // path2_cleaned

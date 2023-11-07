@@ -1,0 +1,65 @@
+<input>
+        <title>C</title>
+        <structure speciespath="./">
+                <crystal scale="6.833">
+                        <basevect>0.0 0.5 0.5 </basevect>
+                        <basevect>0.5 0.0 0.5 </basevect>
+                        <basevect>0.5 0.5 0.0 </basevect>
+                </crystal>
+ 		<species speciesfile="B.xml" rmt="1.32">
+	      		<atom coord="0.0000000000      0.0000000000      0.0000000000"/>
+    		</species>
+    		<species speciesfile="N.xml" rmt="1.28">
+      			<atom coord="0.25 0.25 0.25"/>
+    		</species>
+        </structure>
+        <groundstate
+                ngridk="2 2 2"
+                rgkmax="4.0"
+                gmaxvr="12.0"
+                epsengy="1e-5"
+                reducek="false"
+                nosym="true"
+                vkloff="0.0 0.0 0.0"
+                do="fromscratch"
+                mixerswitch="1"
+                mixer="msec"
+                findlinentype="Wigner_Seitz"
+                frozencore="false"
+                outputlevel="high"
+                nempty="4"
+                useDensityMatrix="false"
+                xctype="LDA_PW">
+        </groundstate>
+        <xs
+          xstype ="RT-TDDFT"
+          ngridk="2 2 2"
+          vkloff="0.0 0.0 0.0"
+          nosym="true"
+          reducek="false"
+          nempty="2">
+          <realTimeTDDFT
+            propagator="SE"
+            timeStep="0.2d0"
+            endTime="5.0d0"
+            readPmatBasis="false"
+            printTimingGeneral="true"
+            printTimingDetailed="true"
+            calculateNExcitedElectrons="false"
+            printAfterIterations="1"
+            vectorPotentialSolver="improvedeuler">
+            <laser fieldType="total">
+	            <sinSq amplitude="10.d0" omega="0.1d0" phase="0.d0" t0="0.d0" pulseLength="16.d0" direction="z"/>
+              <sinSq amplitude="10.d0" omega="0.1d0" phase="0.d0" t0="0.d0" pulseLength="16.d0" direction="y"/>
+              <sinSq amplitude="10.d0" omega="0.1d0" phase="0.d0" t0="0.d0" pulseLength="16.d0" direction="x"/>
+            </laser>
+          </realTimeTDDFT>
+
+        </xs>
+        <MD 
+          type="Ehrenfest"
+          printAllForces="true"
+          timeStep="0.2d0"
+          integrationAlgorithm="HeunSimplified">
+        </MD>
+</input>

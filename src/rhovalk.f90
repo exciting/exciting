@@ -14,6 +14,7 @@ Subroutine rhovalk (ik, evecfv, evecsv)
 ! !USES:
       Use modinput
       Use modmain
+      Use svlo, only: get_num_of_basis_funs_sv
 ! !INPUT/OUTPUT PARAMETERS:
 !   ik     : k-point number (in,integer)
 !   evecfv : first-variational eigenvectors (in,complex(nmatmax,nstfv,nspnfv))
@@ -46,6 +47,8 @@ Subroutine rhovalk (ik, evecfv, evecsv)
       Real (8) :: t1
       Real (8) :: ts0, ts1
       Complex (8) zt1, zt2, zt3
+      Integer :: ilo, l, m, lm, nr ! loop variables for local orbitals, needed for svlo
+      Integer :: num_of_basis_funs_sv
 ! allocatable arrays
       Logical, Allocatable :: done (:, :)
       Real (8), Allocatable :: rflm (:, :)
@@ -61,6 +64,9 @@ Subroutine rhovalk (ik, evecfv, evecsv)
       Real (8) :: magmt_k (lmmaxvr, nrmtmax, natmtot, ndmag)
 
       Call timesec (ts0)
+
+      num_of_basis_funs_sv = get_num_of_basis_funs_sv()
+      
       rhoir_k (:) = 0.d0
       magir_k (:, :) = 0.d0
       rhomt_k (:, :, :) = 0.d0
@@ -74,13 +80,13 @@ Subroutine rhovalk (ik, evecfv, evecsv)
       Else
          nsd = 1
       End If
-      Allocate (done(nstfv, nspnfv))
+      Allocate (done(num_of_basis_funs_sv, nspnfv))
       Allocate (rflm(lmmaxvr, nsd))
       Allocate (rfmt(lmmaxvr, nrcmtmax, nsd))
       Allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
       Allocate (wfmt1(lmmaxvr, nrcmtmax))
       If (input%groundstate%tevecsv) allocate (wfmt2(lmmaxvr, nrcmtmax, &
-     & nstfv, nspnfv))
+     & num_of_basis_funs_sv, nspnfv))
       Allocate (wfmt3(lmmaxvr, nrcmtmax, nspinor))
 
 ! find the matching coefficients
@@ -103,7 +109,6 @@ Subroutine rhovalk (ik, evecfv, evecsv)
                   If (input%groundstate%tevecsv) Then
 ! generate spinor wavefunction from second-variational eigenvectors
                      wfmt3 (:, :, :) = 0.d0
-                     i = 0
                      Do ispn = 1, nspinor
                         If (isspinspiral()) Then
                            jspn = ispn
@@ -111,17 +116,26 @@ Subroutine rhovalk (ik, evecfv, evecsv)
                            jspn = 1
                         End If
                         Do ist = 1, nstfv
-                           i = i + 1
+                           i = (ispn-1)*num_of_basis_funs_sv + ist
                            zt1 = evecsv (i, j)
                            If (Abs(dble(zt1))+Abs(aimag(zt1)) .Gt. &
                           & input%groundstate%epsocc) Then
                               If ( .Not. done(ist, jspn)) Then
-                                 Call wavefmt &
-                                & (input%groundstate%lradstep, &
-                                & input%groundstate%lmaxvr, is, ia, &
-                                & ngk(jspn, ik), apwalm(:, :, :, :, &
-                                & jspn), evecfv(:, ist, jspn), lmmaxvr, &
-                                & wfmt1)
+                                 If (issvlo()) Then
+                                    Call wavefmt_apw &
+                                         & (input%groundstate%lradstep, &
+                                         & input%groundstate%lmaxvr, is, ia, &
+                                         & ngk(jspn, ik), apwalm(:, :, :, :, &
+                                         & jspn), evecfv(:, ist,jspn), lmmaxvr, &
+                                         &wfmt1)
+                                 Else
+                                    Call wavefmt &
+                                         & (input%groundstate%lradstep, &
+                                         & input%groundstate%lmaxvr, is, ia, &
+                                         & ngk(jspn, ik), apwalm(:, :, :, :, &
+                                         & jspn), evecfv(:, ist, jspn), lmmaxvr, &
+                                         & wfmt1)
+                                 End If
 ! convert from spherical harmonics to spherical coordinates
                                  Call zgemm ('N', 'N', lmmaxvr, &
                                 & nrcmt(is), lmmaxvr, zone, zbshtvr, &
@@ -134,6 +148,33 @@ Subroutine rhovalk (ik, evecfv, evecsv)
                              & jspn), 1, wfmt3(:, :, ispn), 1)
                            End If
                         End Do
+! add local orbital contribution in case of a svlo calculation 
+                        If (issvlo()) Then
+                           Do ilo= 1, nlorb(is)
+                              l=lorbl(ilo,is)
+                              If (l .Le.input%groundstate%lmaxvr ) Then
+                                 Do m= -l,l
+                                    lm=idxlm(l,m)
+                                    ist = nstfv + idxlo (lm, ilo, ias)
+                                    i = (ispn-1)*num_of_basis_funs_sv + ist
+                                    zt1 = evecsv (i, j)
+                                    If (Abs(dble(zt1))+Abs(aimag(zt1)) .Gt. &
+                                         & input%groundstate%epsocc) Then
+                                       If ( .Not. done(ist, jspn)) Then
+                                          nr=0
+                                          Do ir= 1, nrmt(is),input%groundstate%lradstep
+                                             nr=nr+1
+                                             wfmt2(:, nr, ist, jspn) = zbshtvr(:,lm) * lofr(ir,1,ilo,ias)
+                                          End do
+                                          done (ist, jspn) = .True.
+                                       End If
+                                       Call zaxpy (n, zt1, wfmt2(:, :, ist, &
+                                            & jspn), 1, wfmt3(:, :, ispn), 1)
+                                    End If
+                                 End Do
+                              End If
+                           End Do
+                        End If
                      End Do
                   Else
 ! spin-unpolarised wavefunction

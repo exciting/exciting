@@ -23,7 +23,9 @@ Subroutine init1
 #ifdef XS
       Use modxs
 #endif
-      use modfvsystem
+
+      Use modfvsystem
+      Use svlo, only: set_num_of_basis_funs_sv
       use sirius_init, only: use_sirius_gkvec
       use sirius_api,  only: setup_sirius_gs_handler, get_gkvec_arrays_sirius, &
                              get_max_num_gkvec_sirius
@@ -51,7 +53,7 @@ Subroutine init1
       logical :: wannierband
       ! +/-1 for sign of spin-dependent term
       real (8) :: sign
-
+      Integer :: num_of_basis_funs_sv
       call stopwatch("exciting:init1", 1)
 
       wannierband = .false.
@@ -485,16 +487,21 @@ Subroutine init1
             nstfv = Min (nstfv, nmat(ispn, ik))
          End Do
       End Do
-! In the standard second-variation implementation the number of basis functions 
-! is equal to the first variation state. 
-      nbasisfsv = nstfv
-! If second variation with local orbitals is used (issvlo=true) the number of &
-! second varaition basis is the sum of first variational states and local orbitals. 
+
+! In the standard second-variation implementation, the number of basis functions 
+! is equal to the number of first variational states. 
+      num_of_basis_funs_sv = nstfv
+! If second variation with local orbitals is used (issvlo=true),
+! the number of second-varaitional basis functions is the sum of
+! first variational states and local orbitals. 
       if (issvlo()) then
-         nbasisfsv = nstfv + nlotot
+         num_of_basis_funs_sv = nstfv + nlotot
       endif
+      Call set_num_of_basis_funs_sv(num_of_basis_funs_sv)
+      
 ! number of second-variational states
-      nstsv = nbasisfsv * nspinor
+      nstsv = num_of_basis_funs_sv * nspinor
+
 #ifdef XS
       If (init1norealloc) Go To 20
 #endif

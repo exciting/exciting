@@ -117,7 +117,17 @@ constant.
 * Volume Optimization for Cubic Systems
 * Exchange-Correlation Functionals
 </br></br>
+#### <span style="color:#15317E">setup.band_structure.py</span>
 
+Add properties element with bandstructure element to given input file by getting the band path from the lattice cell.
+**Note**: If a properties tree already exists, it will be overwritten!
+
+Located at `tools/excitingscripts/excitingscripts/setup/band_structure.py`. Call as:
+
+```bash
+python3 -m excitingscripts.setup.band_structure
+```
+</br></br>
 ### EXECUTE
 
 #### <span style="color:#15317E">EXECUTE-convergence-test.sh</span>

@@ -25,20 +25,34 @@ subroutine xsmain(plan, nxstasks)
   use modmpi
   use mod_misc, only: task
   use mod_exciton_wf
-  use mod_hdf5
+  use mod_hdf5, only: fhdf5
   use m_write_hdf5, only: fhdf5_inter
+  use xhdf5, only: xhdf5_type
+
+  use mod_write_screen, only: write_screen
+
   use phonon_screening, only: phonon_screening_launcher
   use expand_add_eps, only: expand_add_eps_launcher
   use write_screening, only: write_screening_launcher
-
+  use xhdf5, only: xhdf5_type
+  use xstring, only: validate_filename
+  use fastBSE, only: fastBSE_main, fastBSE_sanity_checks
+  use fastBSE_write_wfplot, only: fastBSE_write_u
+  use fastBSE_transitions, only: fastBSE_setup_transitions
+  use fastBSE_isdf, only: fastBSE_isdf_cvt
+  use fastBSE_isdf_tests, only: fastBSE_isdf_vexc_test
+  use modxs, only: unitout
+  use write_screening, only: write_screening_launcher
+  
   implicit none
 
   !> Screening from polar phonons
   integer, parameter :: task_phonon_screening = 431
-  !> Screened Coulomb interaction for BSE
-  integer, parameter :: task_screened_coulomb = 440 
   !> Expanding dielectric matrix from unit cell to super cell
   integer, parameter :: task_expand_add_eps = 432
+  !> Screened Coulomb interaction for BSE
+  integer, parameter :: task_screened_coulomb = 440 
+  
   !> Writing dielectric matrix for all non-reduced q-vectors
   integer, parameter :: task_write_dielectric_matrix = 442
   !> Writing screened Coulomb matrix for all non-reduced q-vectors
@@ -46,23 +60,23 @@ subroutine xsmain(plan, nxstasks)
 
   type(plan_type), intent(in) :: plan
   integer(4), intent(in) :: nxstasks
-  logical :: fex
   integer(4) :: i
+  character(:), allocatable :: ghdf5
+  type(xhdf5_type) :: h5
 
   ! initialization of hdf5 output
-#ifdef _HDF5_
-  if(mpiglobal%rank == 0) then
-    call hdf5_initialize()
-    fhdf5="bse_output.h5"
-    ! find out whether file already exists
-    inquire(file=trim(fhdf5), exist=fex)
-    if (.not. fex) then
-      call hdf5_create_file(fhdf5)
-    end if
-    fhdf5_inter='bse_matrix.h5'
-    call hdf5_create_file(fhdf5_inter)
-  end if
-#endif
+  fhdf5 = trim( adjustl( input%xs%h5fname ))
+  ghdf5 = trim( adjustl( input%xs%h5gname ))
+
+  call terminate_if_false(validate_filename(fhdf5, '.h5'), 'HDF5 file name for bse output is not valid.')
+
+  call h5%initialize(fhdf5, mpiglobal%comm)
+  if (ghdf5 /= '/') call h5%initialize_group('/', ghdf5)
+  call h5%finalize()
+
+  fhdf5_inter = 'bse_matrix.h5'
+  call h5%initialize(fhdf5_inter, mpiglobal%comm)
+  call h5%finalize()
 
   do i = 1, nxstasks
      task = plan%doonlyarray(i)%doonly%tasknumber
@@ -75,7 +89,8 @@ subroutine xsmain(plan, nxstasks)
     ! Set task number
     task = plan%doonlyarray(i)%doonly%tasknumber
 
-    ! initialization for xs tasks (dependent on task number)
+    ! initialization for xs tasks (dependent on task number)case(321)
+        !   
     call xsinit(i,plan)
 
     select case(task)
@@ -169,9 +184,8 @@ subroutine xsmain(plan, nxstasks)
       
       ! Taskname 'phonon_screening'
       case(task_phonon_screening) 
-
         call phonon_screening_launcher
-        
+
       ! Taskname 'expand_eps'
       case(task_expand_add_eps)
         ! Expanding dielectric matrix
@@ -190,12 +204,12 @@ subroutine xsmain(plan, nxstasks)
       ! Taskname 'write_dielectric_matrix'
       case (task_write_dielectric_matrix)
           ! Expanding dielectric matrix
-          call write_screening_launcher('write_dielectric_matrix')
+          call write_screening_launcher('write_dielectric_matrix', fhdf5, ghdf5, mpiglobal)
 
           ! Taskname 'write_screened_coulomb'
       case (task_write_screened_coulomb)
           ! Expanding dielectric matrix
-          call write_screening_launcher('write_screened_coulomb')
+          call write_screening_launcher('write_screened_coulomb', fhdf5, ghdf5, mpiglobal)
 
       ! Taskname 'bse'
       case(445)
@@ -227,15 +241,36 @@ subroutine xsmain(plan, nxstasks)
         ! BSE-kernel
         call kernxc_bse
 
-      ! Taskname 'screen'
+      ! Taskname 'write_wfplot'
       case(451)
         ! write real-space XS wfcts to file
-        call write_wfplot
+        call fastBSE_sanity_checks(mpiglobal, input)
+        call fastBSE_write_u(fhdf5, ghdf5, input, mpiglobal)
 
       ! Taskname 'write_screen'
       case(452)
         ! write screened Coulomb potential to file
         call write_screen
+
+      ! Taskname 'fastBSE_main'
+      case(501)
+        call fastBSE_sanity_checks(mpiglobal, input)
+        call fastBSE_main(mpiglobal, input, fhdf5, ghdf5, unitout)
+
+      case(510)
+      ! Taskname 'fastBSE_setup_transitions'
+        call fastBSE_sanity_checks(mpiglobal, input)
+        call fastBSE_setup_transitions(mpiglobal, input, fhdf5, ghdf5, unitout)
+
+      ! Taskname 'fastBSE_isdf_cvt'
+      case(512)
+        call fastBSE_sanity_checks(mpiglobal, input)
+        call fastBSE_isdf_cvt(mpiglobal, input, fhdf5, ghdf5, unitout)  
+
+      ! Taskname 'fastBSE_isdf_vexc_test'
+      case(513)
+        call fastBSE_sanity_checks(mpiglobal, input)
+        call fastBSE_isdf_vexc_test(mpiglobal, input, fhdf5, ghdf5, unitout)
 
       ! Taskname 'xsestimate'
       case(700)
@@ -264,13 +299,5 @@ subroutine xsmain(plan, nxstasks)
      call xsfinit
 
    end do
-
-
-  ! Finalization of hdf5 output
-#ifdef _HDF5_
-  if (mpiglobal%rank == 0) then
-    call hdf5_finalize()
-  end if
-#endif
 
 end subroutine xsmain

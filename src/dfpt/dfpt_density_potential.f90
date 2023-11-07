@@ -36,7 +36,7 @@ module dfpt_density_potential
   public :: dfpt_rhopot_init, dfpt_rhopot_free
   public :: dfpt_rhopot_gen_dpot
   public :: dfpt_rhopot_mixpack
-  public :: dfpt_rhopot_gen_drho_mt!, dfpt_rhopot_drho_k
+  public :: dfpt_rhopot_gen_drho_mt, dfpt_rhopot_drho_k
   public :: apply_xckernel_mt, apply_xckernel_ir
 
   contains
@@ -268,9 +268,15 @@ module dfpt_density_potential
     !> @warning This subroutine does not account for contributions coming from the variation of the
     !>          basis functions upon the perturbation and only accounts for the variation of the 
     !>          expansion coefficients of the wavefunctions.
-    subroutine dfpt_rhopot_drho_k( ik, kset, Gkset1, Gkset2, fst, lst, occk, eveck, deveck, drhSmat, drho_ir, &
+    subroutine dfpt_rhopot_drho_k( ik, kset, Gkset1, Gkset2, fst, lst, occk, eveck, deveck, apwalmk1, apwalmk2, drho_mat, drho_ir, &
         docck )
+      use constants, only: zzero, zone
       use mod_kpointset, only: k_set, Gk_set
+      use mod_atoms, only: nspecies, natoms, idxas
+      use mod_APW_LO, only: nlotot
+      use mod_eigensystem, only: idxlo
+      use mod_lattice, only: omega
+      use modinput
       !> index of the wavevector \({\bf k}\) in the set
       integer, intent(in) :: ik
       !> set of \({\bf k}\) vectors
@@ -287,13 +293,102 @@ module dfpt_density_potential
       complex(dp), intent(in) :: eveck(:,:)
       !> eigenvector response at \({\bf k}\)
       complex(dp), intent(in) :: deveck(:,:)
+      !> (L)APW matching coefficients \(A^\alpha_{{\bf G+p},lm,\xi}\) for wavefunctions
+      complex(dp), intent(in) :: apwalmk1(:,:,:,:)
+      !> (L)APW matching coefficients \(A^\alpha_{{\bf G+p},lm,\xi}\) for wavefunction response
+      complex(dp), intent(in) :: apwalmk2(:,:,:,:)
       !> muffin-tin density response matrix
-      complex(dp), intent(inout) :: drhSmat(:,:,:)
+      complex(dp), intent(inout) :: drho_mat(:,:,:)
       !> interstitial density response on real space FFT grid
       complex(dp), intent(inout) :: drho_ir(:)
       !> occupation number response at \({\bf k}\)
       real(dp), optional, intent( in) :: docck(:)
-      !TODO add implementation (will follow for E-field perturbation)
+
+      integer :: ngk1, ngk2, i, ist, nst
+      integer :: is, ia, ias
+      real(dp) :: t1, t2
+
+      integer, allocatable :: bands(:)
+      real(dp), allocatable :: wgt1(:), wgt2(:)
+      complex(dp), allocatable :: evecmt1(:,:), evecmt2(:,:), devecmt(:,:)
+      complex(dp), allocatable :: zfft(:,:)
+
+      ngk1 = Gkset1%ngk(1, ik)
+      ngk2 = Gkset2%ngk(1, ik)
+
+      ! find k-point weights for bands and bands that contribute
+      allocate( wgt1(fst:lst), wgt2(fst:lst) )
+      wgt1 = [(2*kset%wkpt(ik)*occk(i), i=fst, lst)]
+      if( present( docck ) ) then
+        wgt2 = [(kset%wkpt(ik)*docck(i), i=fst, lst)]
+        bands = pack( [(i, i=fst, lst)], &
+                      [(wgt1(i) > input%groundstate%epsocc .or. &
+                        wgt2(i) > input%groundstate%epsocc, i=fst, lst)] )
+      else
+        bands = pack( [(i, i=fst, lst)], &
+                      [(wgt1(i) > input%groundstate%epsocc, i=fst, lst)] )
+      end if
+      nst = size( bands )
+      if( nst == 0 ) return
+
+      ! **** muffin-tin density response matrix
+      do is = 1, nspecies
+        do ia = 1, natoms(is)
+          ias = idxas(ia, is)
+          ! generate shortened MT eigenvector response at current k-point
+          call mt_basis%transform_evec( is, ngk2, nlotot, idxlo(:, :, ias), apwalmk2(:, :, :, ias), deveck(:, bands), devecmt )
+          ! generate shortened MT eigenvector at current k-point
+          call mt_basis%transform_evec( is, ngk1, nlotot, idxlo(:, :, ias), apwalmk1(:, :, :, ias), eveck(:, bands), evecmt1 )
+          ! contribution from occupation response
+          if( present( docck ) ) then
+            allocate( evecmt2, source=evecmt1 )
+            do i = 1, nst
+              ist = bands(i)
+              evecmt2(:, i) = wgt2(ist) * evecmt1(:, i)
+            end do
+            call zgemm( 'n', 'c', mt_basis%n_basis_fun(is), mt_basis%n_basis_fun(is), nst, zone, &
+                   evecmt2, size(evecmt2, dim=1), &
+                   evecmt1, size(evecmt1, dim=1), zone, &
+                   drho_mat(:, :, ias), size(drho_mat, dim=1) )
+            deallocate( evecmt2 )
+          end if
+          ! sum up MT eigenvectors over occupied states
+          do i = 1, nst
+            ist = bands(i)
+            evecmt1(:, i) = wgt1(ist) * evecmt1(:, i)
+          end do
+          call zgemm( 'n', 'c', mt_basis%n_basis_fun(is), mt_basis%n_basis_fun(is), nst, zone, &
+                 devecmt, size(devecmt, dim=1), &
+                 evecmt1, size(evecmt1, dim=1), zone, &
+                 drho_mat(:, :, ias), size(drho_mat, dim=1) )
+        end do
+      end do
+      if( allocated( evecmt1 ) ) deallocate( evecmt1 )
+      if( allocated( devecmt ) ) deallocate( devecmt )
+
+      ! **** interstitial density response
+      ! sum over occupied states
+      allocate( zfft(dfpt_Gset%ngrtot, 2) )
+      do i = 1, nst
+        ist = bands(i)
+        t1 = wgt1(ist) / omega
+        t2 = wgt2(ist) / omega
+        zfft = zzero
+        ! Fourier transform wavefunction to real space
+        zfft(dfpt_Gset%igfft(Gkset1%igkig(1:ngk1, 1, ik)), 1) = eveck(1:ngk1, ist)
+        call zfftifc( 3, dfpt_Gset%ngrid, 1, zfft(:, 1) )
+        ! Fourier transform wavefunction response to real space
+        zfft(dfpt_Gset%igfft(Gkset2%igkig(1:ngk2, 1, ik)), 2) = deveck(1:ngk2, ist)
+        call zfftifc( 3, dfpt_Gset%ngrid, 1, zfft(:, 2) )
+        ! multiply wavefunction and wavefunction response and add to density response
+        if( present( docck ) ) then
+          drho_ir = drho_ir + conjg( zfft(:, 1) ) * (t1 * zfft(:, 2) + t2 * zfft(:, 1))
+        else
+          drho_ir = drho_ir + t1 * conjg( zfft(:, 1) ) * zfft(:, 2)
+        end if
+      end do
+      deallocate( zfft )
+      deallocate( wgt1, wgt2 )
     end subroutine dfpt_rhopot_drho_k
 
     !> This subroutine calculates the muffin-tin density response 
@@ -305,14 +400,14 @@ module dfpt_density_potential
     !> \[\delta n_{lm}(r_\alpha) = \sum_{\lambda,\lambda'} \delta D^\alpha_{\lambda \lambda'} \,
     !>   \varphi_{\lambda}(r_\alpha) \, \varphi_{\lambda'}^\ast(r_\alpha) \, 
     !>   \langle Y_{l_\lambda m_\lambda} | Y_{lm} | Y_{l_{\lambda'} m_{\lambda'}} \rangle \;.\]
-    subroutine dfpt_rhopot_gen_drho_mt( drhSmat, drho_mt )
+    subroutine dfpt_rhopot_gen_drho_mt( drho_mat, drho_mt )
       use constants, only: zzero
       use mod_muffin_tin, only: nrmtmax
       use mod_atoms, only: nspecies, natoms, idxas
       use mod_muffin_tin, only: nrmt
       use gaunt
       !> muffin-tin density response matrix
-      complex(dp), intent(in) :: drhSmat(:,:,:)
+      complex(dp), intent(in) :: drho_mat(:,:,:)
       !> (soft) muffin-tin density response as complex spherical harmonics expansion
       complex(dp), intent(out) :: drho_mt(:,:,:)
 
@@ -354,7 +449,7 @@ module dfpt_density_potential
                       do i = 1, yyy%num(lm2, lm1)
                         lm3 = yyy%lm2(i, lm2, lm1)
                         if( lm3 > dfpt_lmmaxvr ) exit
-                        z1 = yyy%val(i, lm2, lm1) * drhSmat(idx2, idx1, ias)
+                        z1 = yyy%val(i, lm2, lm1) * drho_mat(idx2, idx1, ias)
                         drhotmp(1:nrmt(is), lm3) = drhotmp(1:nrmt(is), lm3) + z1 * f2(1:nrmt(is))
                       end do
 

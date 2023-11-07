@@ -1,14 +1,14 @@
 [project]
 name = "excitingtools"
 description = "Utilities for aiding in the construction of exciting inputs and the postprocessing exciting outputs."
-version = "1.4.0"
+version = "1.5.1"
 authors = [
     { name = "Alexander Buccheri", email = "alexander.buccheri@mpsd.mpg.de"},
     { name = "Fabian Peschel",     email = "peschelf@physik.hu-berlin.de"}
 ]
 license = {file = "COPYING.md"}
 readme = "README.md"
-requires-python = ">=3.6"
+requires-python = ">=3.7"
 
 dependencies = [
     'numpy>=1.14.5',

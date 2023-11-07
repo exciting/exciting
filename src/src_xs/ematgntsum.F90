@@ -31,7 +31,6 @@ Subroutine ematgntsum (iq, igq, integrals)
      
       complex(8), allocatable :: intrgaa(:,:,:,:),intrgloa(:,:,:,:),intrglolo(:,:,:,:),intrgalo(:,:,:,:)
 
-!      print *,'howdy'
       lmax1 = Max (input%xs%lmaxapwwf, lolmax)
       lmax2 = input%xs%lmaxemat
   ! lmax1 and lmax3 should be the same

@@ -1,0 +1,61 @@
+<input>
+        <title>C</title>
+        <structure speciespath="./">
+                <crystal scale="6.7407">
+                        <basevect>0.0 0.5 0.5 </basevect>
+                        <basevect>0.5 0.0 0.5 </basevect>
+                        <basevect>0.5 0.5 0.0 </basevect>
+                </crystal>
+                <species speciesfile="C.xml" rmt="1.35">
+                        <atom coord="0.00 0.00 0.00"/>
+                        <atom coord="0.30 0.30 0.30"/>
+                </species>
+        </structure>
+        <groundstate
+                ngridk="3 3 3"
+                rgkmax="4.0"
+                gmaxvr="12.0"
+                epsengy="1e-6"
+                reducek="false"
+                nosym="true"
+                vkloff="0.097 0.273 0.493"
+                do="fromscratch"
+                mixerswitch="1"
+                mixer="msec"
+                findlinentype="Wigner_Seitz"
+                frozencore="false"
+                outputlevel="high"
+                nempty="20"
+                useDensityMatrix="false"
+                xctype="LDA_PW">
+        </groundstate>
+        <xs
+          xstype ="RT-TDDFT"
+          ngridk="3 3 3"
+          vkloff="0.0 0.0 0.0"
+          nosym="true"
+          reducek="false"
+          nempty="2">
+          <realTimeTDDFT
+            propagator="SE"
+            timeStep="0.2d0"
+            endTime="20.0d0"
+            readPmatBasis="false"
+            printTimingGeneral="true"
+            printTimingDetailed="true"
+            calculateNExcitedElectrons="false"
+            printAfterIterations="1"
+            vectorPotentialSolver="improvedeuler"
+            forcePmatHermitian="true">
+            <laser fieldType="total">
+            </laser>
+          </realTimeTDDFT>
+
+        </xs>
+        <MD 
+          type="Ehrenfest"
+          printAllForces="true"
+          timeStep="1.0d0"
+          integrationAlgorithm="HeunSimplified">
+        </MD>
+</input>

@@ -255,6 +255,7 @@ if (rank==0) then
       if( input%properties%dos%inttype == 'tetra') then
         call generate_k_vectors( kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, input%groundstate%reducek, uselibzint=.false.)
         call opt_tetra_init( tset, kset, 2, reduce=.true.)
+        allocate( wgt( nstsv, kset%nkpt, input%properties%dos%nwdos))
       end if
 
       Open (50, File='TDOS.OUT', Action='WRITE', Form='FORMATTED')
@@ -293,10 +294,9 @@ if (rank==0) then
            & input%properties%dos%nwdos, input%properties%dos%winddos, nstsv, nstsv, &
            & e(:,:,ispn), f, g(:,ispn))
          else if( input%properties%dos%inttype == 'tetra') then
-           allocate( wgt( nstsv, kset%nkpt, input%properties%dos%nwdos))
            call opt_tetra_wgt_delta( tset, kset%nkpt, nstsv, e(:,:,ispn), input%properties%dos%nwdos, w, wgt)
            do iw = 1, input%properties%dos%nwdos
-             g( iw, ispn) = sum( wgt(:,:,iw))
+             g( iw, ispn) = sum( wgt(:,:,iw) * f)
            end do
            if( input%properties%dos%nsmdos > 0) &
              call fsmooth( input%properties%dos%nsmdos, input%properties%dos%nwdos, 1, g(:,ispn))
