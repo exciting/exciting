@@ -72,12 +72,12 @@ def give_class_dictionary(name: str) -> dict:
 def class_name_uppercase(name: str) -> str:
     """ Converts the name in a string which better fits as class name, capitalizing the first letter and
     leaving the rest unchanged.
-    Exceptions are groundstate -> GroundState, xs -> XS, gw -> GW.
+    Exceptions are groundstate -> GroundState, xs -> XS, gw -> GW, bandstructure -> BandStructure, eph -> EPH
 
     :param name: name of the class/tag in original notation
     :return: name usually capitilized, see exceptions
     """
-    exceptions = {"groundstate": "GroundState", "xs": "XS", "gw": "GW", "bandstructure": "BandStructure"}
+    exceptions = {"groundstate": "GroundState", "xs": "XS", "gw": "GW", "bandstructure": "BandStructure", "eph": "EPH"}
     if name in exceptions:
         return exceptions[name]
     return name[0].upper() + name[1:]

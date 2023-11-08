@@ -1,7 +1,7 @@
 [project]
 name = "excitingtools"
 description = "Utilities for aiding in the construction of exciting inputs and the postprocessing exciting outputs."
-version = "1.5.1"
+version = "1.6.0"
 authors = [
     { name = "Alexander Buccheri", email = "alexander.buccheri@mpsd.mpg.de"},
     { name = "Fabian Peschel",     email = "peschelf@physik.hu-berlin.de"}
@@ -20,6 +20,7 @@ dev = [
     "pytest",
     "ase>=3.20.0"
 ]
+schemaparsing = ["xmlschema"]
 
 [project.urls]
 repository = "https://github.com/exciting/excitingtools"
