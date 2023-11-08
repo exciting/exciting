@@ -9,9 +9,9 @@ python:excitingtools-python-3.7:
     - docker
   before_script:
     - python3 -m pip install -U pip setuptools
-    - python3 -m pip install --upgrade --force pylint coverage xmlschema ase
+    - python3 -m pip install --upgrade --force pylint coverage
   script:
-    - cd tools/exciting_tools && python3 -m pip install -e .
+    - cd tools/exciting_tools && python3 -m pip install -e .[dev,schemaparsing]
     # Run excitingtools unit tests and collect test coverage
     - coverage run -m pytest
     - coverage xml -o excitingtools_testcov.xml

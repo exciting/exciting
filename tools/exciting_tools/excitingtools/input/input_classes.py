@@ -22,6 +22,11 @@ ExcitingXSInput: Callable
 ExcitingPropertiesInput: Callable
 ExcitingPointInput: Callable
 ExcitingBandStructureInput: Callable
+ExcitingRelaxInput: Callable
+ExcitingPhononsInput: Callable
+ExcitingGWInput: Callable
+ExcitingMDInput: Callable
+ExcitingEPHInput: Callable
 
 # execute dynamically generated string with all standard class defintions
 exec(generate_classes_str())
