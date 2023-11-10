@@ -21,7 +21,7 @@ build:debian-buster-Intel2019-serial:
      # Module file, with paths consistent with the nfs drive
      - cp -r build/utilities/modules/intel /etc/environment-modules/modules
      - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
-     - module load intel/2019
+     - module load intel/oneapi-2021.3
    script:
      - cp build/platforms/make.inc.ifort build/make.inc
      - make serial -j 2
@@ -42,7 +42,7 @@ test-debian-buster-Intel2019-serial:
    before_script:
      - cp -r build/utilities/modules/intel /etc/environment-modules/modules
      - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
-     - module load intel/2019
+     - module load intel/oneapi-2021.3
      - python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor lxml pytest pyyaml
    script:
     # Run exciting unit tests

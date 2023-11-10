@@ -55,7 +55,7 @@ module m_write_hdf5
       igqmt = ivgigq(ivgmt(1,iq),ivgmt(2,iq),ivgmt(3,iq),iq)
       gname_ = gname
 
-      call h5%initialize(fhdf5, mpiglobal%comm, serial_access=.true.)
+      call h5%initialize(fhdf5, mpiglobal, serial_access=.true.)
       call h5%initialize_group('.', gname_)
 
       write(momentum_index, '(I4.4)') iq ! Generate string out of momentum transfer index
@@ -159,7 +159,7 @@ module m_write_hdf5
 
       gname_ = gname
 
-      call h5%initialize(fhdf5, mpiglobal%comm, serial_access=.true.)
+      call h5%initialize(fhdf5, mpiglobal, serial_access=.true.)
       call h5%initialize_group('.', gname_)
       
       write(momentum_index, '(I4.4)') iqmt
@@ -232,7 +232,7 @@ module m_write_hdf5
       bsetypestring = '-' // trim(input%xs%bse%bsetype) // trim(tdastring)
       scrtypestring = '-' // trim(input%xs%screening%screentype)
 
-      call h5%initialize(fhdf5, mpiglobal%comm, serial_access=.true.)
+      call h5%initialize(fhdf5, mpiglobal, serial_access=.true.)
       
       
       ! generate group
@@ -303,7 +303,7 @@ module m_write_hdf5
       bsetypestring = '-' // trim(input%xs%bse%bsetype) // tdastring
       scrtypestring = '-' // trim(input%xs%screening%screentype)
 
-      call h5%initialize(fhdf5, mpiglobal%comm, serial_access=.true.)   
+      call h5%initialize(fhdf5, mpiglobal, serial_access=.true.)   
 
       gname_='kpathweights' // bsetypestring // scrtypestring
       call h5%initialize_group('/', gname_)
@@ -372,7 +372,7 @@ module m_write_hdf5
       type(xhdf5_type) :: h5
       character(:), allocatable :: group
 
-      call h5%initialize(h5file, mpi_env%comm)
+      call h5%initialize(h5file, mpi_env)
       call h5%initialize_group(h5group, bands_group)
       group = join_paths(h5group, bands_group)
       call h5%write(group, energies_dset, energies, [1, 1], shape(energies))

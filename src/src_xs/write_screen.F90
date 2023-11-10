@@ -338,7 +338,7 @@ module mod_write_screen
       call barrier(callername=trim(thisname))
     
       if (input%xs%BSE%writepotential.and. mpiglobal%rank == 0) then
-        call h5%initialize(fhdf5, mpiglobal%comm)
+        call h5%initialize(fhdf5, mpiglobal)
         call h5%initialize_group('/', 'screenedpotential')
         gname = 'screenedpotential'
 

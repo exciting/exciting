@@ -78,7 +78,7 @@ module fastBSE_write_wfplot
     offset_u = [1, 1, first]
     full_shape = [r_grid%npt, n_bands, nk_bse]
     
-    call h5%initialize(h5file, mpi_env%comm)
+    call h5%initialize(h5file, mpi_env)
     call h5%initialize_group(h5group, h5group_wfplot)
     group = join_paths(h5group, h5group_wfplot)
 

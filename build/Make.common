@@ -64,6 +64,7 @@ SOURCEDIRS=	\
   ../../src/wfplot \
   ../../src/xhdf5 \
   ../../src/xhdf5/hdf5_wrappers \
+	../../src/xhdf5/utilities \
   ../../src/svlo \
   ../../src/xfftw \
   ../../src/isdf \

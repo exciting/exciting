@@ -31,7 +31,7 @@ build:debian-buster-Intel2019-mpiandsmp:
  before_script:
    - cp -r build/utilities/modules/intel /etc/environment-modules/modules
    - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
-   - module load intel/2019
+   - module load intel/oneapi-2021.3
    - apt-get install -y libfabric1 libfabric-dev
  script:
    - cp build/platforms/make.inc.ifort.profiler build/make.inc
@@ -55,7 +55,7 @@ test-debian-buster-Intel2019-mpiandsmp:
   before_script:
     - cp -r build/utilities/modules/intel /etc/environment-modules/modules
     - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
-    - module load intel/2019
+    - module load intel/oneapi-2021.3
     # diffutils for `cmp` command
     - apt-get install -y libfabric1 libfabric-dev diffutils
     - python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor lxml pytest pyyaml

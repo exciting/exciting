@@ -1,6 +1,4 @@
 # Example make.inc file for GCC with HDF5 and FFTW3
-#
-# NOTE: You might need to change the path in -I"/usr/include" according to your system.
 
 # Compiler, flags and preprocessing variables
 F90 = h5fc

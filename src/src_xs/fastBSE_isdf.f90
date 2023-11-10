@@ -102,7 +102,7 @@ module fastBSE_isdf
     rho = sqrt(sum(abs(u_o) ** 2, dim=2) + sum(abs(u_u) ** 2, dim=2))
     points = r_grid%coordinate_array()
 
-    call h5%initialize(h5file, mpi_env%comm)
+    call h5%initialize(h5file, mpi_env)
 
     if(calculate_vexc) then
       
@@ -298,7 +298,7 @@ module fastBSE_isdf
   !  ! Read wavefunctions
   !  allocate(u_o(n_r, n_o, n_k))
   !  allocate(u_u(n_r, n_u, n_k))
-  !  call h5%initialize(h5file, mpi_env%comm)
+  !  call h5%initialize(h5file, mpi_env)
   !  call h5%read(h5group, h5ds_wfplot, u_o, [1, 1, 1])
   !  call h5%read(h5group, h5ds_wfplot, u_u, [1, n_o + 1, 1])
 !
@@ -540,7 +540,7 @@ module fastBSE_isdf
     type(xhdf5_type) :: h5
     character(:), allocatable :: group
 
-    call h5%initialize(h5file, mpi_env%comm)
+    call h5%initialize(h5file, mpi_env)
     group = join_paths(h5group, h5group_wfplot)
     
     call h5%dataset_shape(group, h5ds_u, shape_u, .true.)

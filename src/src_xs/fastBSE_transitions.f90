@@ -128,7 +128,7 @@ module fastBSE_transitions
     mpiglobal = mpiglobal_save
 
     ! Write data
-    call h5%initialize(h5file, mpi_env%comm)
+    call h5%initialize(h5file, mpi_env)
     call h5%initialize_group(h5group, h5group_transitions)
     group = join_paths(h5group, h5group_transitions)
     call h5%write(group, h5ds_energies, de, [1], shape(de))
