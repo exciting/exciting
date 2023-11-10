@@ -15,7 +15,7 @@ module fastBSE
   use xfftw, only: fft_type, FFTW_FORWARD, abort_if_not_fftw3
   use unit_cell_utils, only: reciprocal_lattice, volume_parallelepiped
   use dynamic_indices, only: dynindex_type
-  use  xgrid, only: regular_grid_type, setup_unitcell_grid, setup_fft_grid
+  use xgrid, only: regular_grid_type, setup_unitcell_grid, setup_fft_grid
   
   use xisdf, only: cvt, qrcp, isdf
 
@@ -213,7 +213,7 @@ module fastBSE
     type(xhdf5_type) :: h5
     character(:), allocatable :: group
 
-    call h5%initialize(h5file, mpi_env%comm)
+    call h5%initialize(h5file, mpi_env)
     group = join_paths(h5group, h5group_transitions)
 
     ! Read eigen energies
@@ -287,7 +287,7 @@ module fastBSE
     call timesec(t_start)
 
     ! Read dataset shapes
-    call h5%initialize(h5file, mpi_env%comm)
+    call h5%initialize(h5file, mpi_env)
     
     group = join_paths(h5group, h5group_isdf_vexc)
     call h5%dataset_shape(group, h5ds_zeta, shape_zeta, .true.)
@@ -377,7 +377,7 @@ module fastBSE
     
    call timesec(t_start)
 
-   call h5%initialize(h5file, mpi_env%comm)
+   call h5%initialize(h5file, mpi_env)
 
    ! Read dataset shapes
    group = join_paths(h5group, h5group_isdf_wscr_o)
@@ -488,7 +488,7 @@ module fastBSE
 
     character(:), allocatable :: bse_type, result_group, text_file
     integer :: i_dim, iterations, n_k, n_o, n_u, n_transitions, n_omega_points, ierr
-    real(dp) :: omega_vol, lattice(3, 3), omega_intervall(2), escale
+    real(dp) :: omega_vol, lattice(3, 3), omega_intervall(2), energy_conversion
     real(dp), allocatable ::  alpha(:), beta(:), eigenvalues(:), eigenvectors(:, :), tridiag_vec(:, :)
     complex(dp), allocatable :: Q_k(:, :)
 
@@ -520,8 +520,8 @@ module fastBSE
     allocate(exciton_eval(lanczosmaxits, 3), source = 0._dp)
     allocate(exciton_evec(n_transitions, lanczosmaxits, 3), source = zzero)
     
-    escale = 1._dp
-    if(input%xs%tevout) escale = hartree_to_ev
+    energy_conversion = 1._dp
+    if(input%xs%tevout) energy_conversion = hartree_to_ev
     
 
     do i_dim=1, 3
@@ -571,7 +571,7 @@ module fastBSE
     
 
     result_group = brand_name // '_' // bse_type 
-    call h5%initialize(h5file, mpi_env%comm)
+    call h5%initialize(h5file, mpi_env)
     call h5%initialize_group(h5group, result_group)
     result_group = trim(adjustl(join_paths(h5group, result_group)))
 
@@ -584,7 +584,7 @@ module fastBSE
     call h5%finalize()
 
     text_file = brand_name // '_' // bse_type // '_' // eps_im_dataset // '.out'
-    call write_eps_im_textfile(text_file , omega, eps_im, escale)
+    call write_eps_im_textfile(text_file , omega, eps_im, energy_conversion)
 
     deallocate(omega, eps_im, exciton_eval, exciton_evec, gaussquad_energies, gaussquad_weights, eigenvalues, eigenvectors, tridiag_vec)
 
@@ -605,7 +605,7 @@ module fastBSE
 
     !> Write the imaginary part of the diagonal of \(\epsilon^M\) to a text file.
     !> The first column contains \(\omega\), the following \(\epsilon^M_{11}), \(\epsilon^M_{22}) and \(\epsilon^M_{33}).
-    subroutine write_eps_im_textfile(fname, omega, eps_im, escale)
+    subroutine write_eps_im_textfile(fname, omega, eps_im, energy_conversion)
       !> Name of the file
       character(*), intent(in) :: fname
       !> Energy grid for \(\omega\)
@@ -613,7 +613,7 @@ module fastBSE
       !> Imaginary part of the diagonal of \(\epsilon^M\) with dimensions stored columnwise.
       real(dp), intent(in) :: eps_im(:, :)
       !> Energy scaling. As usual 1.0 means the energy is in Hartree.
-      real(dp), intent(in) :: escale
+      real(dp), intent(in) :: energy_conversion
 
       integer :: n_omega, i_omega, unit 
 
@@ -626,11 +626,11 @@ module fastBSE
 
       write(unit, '(A)') '# fastBSE imaginary macroscopic dielectric function'
       write(unit, '(A)') '# '
-      write(unit, '(A, f12.6, A)')'# Energy scaling: ', escale, ' Hartree'
-      write(unit, '(A, f12.6, A, f12.6, A)')'# Broadening: ', broadening, ' x ', escale, ' Hartree'
+      write(unit, '(A, f12.6, A)')'# Energy scaling: ', energy_conversion, ' Hartree'
+      write(unit, '(A, f12.6, A, f12.6, A)')'# Broadening: ', broadening, ' x ', energy_conversion, ' Hartree'
       write(unit, '(A, A22, 1x, A23, 1x, A23, 1x, A23)') '#',  'omega', 'oc11', 'oc22', 'oc33'
       write(unit, '(SP, E23.16, 1x, E23.16, 1x, E23.16, 1x, E23.16)') &
-              (omega(i_omega) * escale, eps_im(i_omega, 1), eps_im(i_omega, 2), eps_im(i_omega, 3), i_omega=1, n_omega)
+              (omega(i_omega) * energy_conversion, eps_im(i_omega, 1), eps_im(i_omega, 2), eps_im(i_omega, 3), i_omega=1, n_omega)
       
       close(unit)
     end subroutine

@@ -70,12 +70,12 @@ subroutine xsmain(plan, nxstasks)
 
   call terminate_if_false(validate_filename(fhdf5, '.h5'), 'HDF5 file name for bse output is not valid.')
 
-  call h5%initialize(fhdf5, mpiglobal%comm)
+  call h5%initialize(fhdf5, mpiglobal)
   if (ghdf5 /= '/') call h5%initialize_group('/', ghdf5)
   call h5%finalize()
 
   fhdf5_inter = 'bse_matrix.h5'
-  call h5%initialize(fhdf5_inter, mpiglobal%comm)
+  call h5%initialize(fhdf5_inter, mpiglobal)
   call h5%finalize()
 
   do i = 1, nxstasks

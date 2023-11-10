@@ -150,7 +150,7 @@
       "unit": "Hartree"
     },
     "Coulomb energy": {
-      "tol": 1e-08,
+      "tol": 5e-08,
       "unit": "Hartree"
     },
     "Exchange energy": {

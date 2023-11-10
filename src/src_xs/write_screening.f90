@@ -457,7 +457,7 @@ contains
         end do
 
         ! Write to HDF5
-        call h5%initialize(h5file, mpi_env%comm)
+        call h5%initialize(h5file, mpi_env)
         call h5%initialize_group(h5path, 'screened_coulomb_non_reduced_q') !TODO: Put group and dataset names in paramters.
 
         h5path_new = join_paths(h5path, 'screened_coulomb_non_reduced_q')
