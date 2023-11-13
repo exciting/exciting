@@ -301,7 +301,7 @@
               </xs:documentation>
             </xs:annotation>
             <xs:complexType>
-              <xs:attribute ex:importance="expert" ex:unit="" name=" maxIterations" type="xs:integer"
+              <xs:attribute ex:importance="expert" ex:unit="" name="maxIterations" type="xs:integer"
                 default="10">
                 <xs:annotation>
                   <xs:documentation> The maximum number of iteractions

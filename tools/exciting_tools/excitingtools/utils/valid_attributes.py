@@ -303,7 +303,7 @@ realTimeTDDFT_valid_attributes = ['TaylorOrder', 'calculateNExcitedElectrons', '
                                   'vectorPotentialSolver'] 
 realTimeTDDFT_valid_subtrees = ['predictorCorrector', 'screenshots', 'laser'] 
 
-predictorCorrector_valid_attributes = [' maxIterations', 'tol'] 
+predictorCorrector_valid_attributes = ['maxIterations', 'tol'] 
 
 screenshots_valid_attributes = ['niter', 'printAbsProjCoeffs'] 
 
