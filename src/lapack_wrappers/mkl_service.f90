@@ -19,7 +19,7 @@
 MODULE MKL_SERVICE
 
     IMPLICIT NONE
-
+#ifdef MKL
     INTEGER (KIND=4), PARAMETER, PUBLIC :: MKL_DOMAIN_ALL  = 0
     INTEGER (KIND=4), PARAMETER, PUBLIC :: MKL_DOMAIN_BLAS = 1
     INTEGER (KIND=4), PARAMETER, PUBLIC :: MKL_DOMAIN_FFT  = 2
@@ -320,5 +320,5 @@ MODULE MKL_SERVICE
     INTEGER (KIND=4), PARAMETER, PUBLIC :: MKL_CBWR_SSE3           = 5
 
 !*******************************************************************************
-
+#endif MKL
 END MODULE MKL_SERVICE

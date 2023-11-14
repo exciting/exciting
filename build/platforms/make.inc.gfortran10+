@@ -21,7 +21,7 @@ INCL =
 
 # Libaries
 # Use native blas/lapack by default
-export USE_SYS_LAPACK=true
+export USE_SYS_LAPACK=false
 LIB_LPK = -L./ -llapack -lblas
 LIB_FFT = fftlib.a
 LIB_BZINT = libbzint.a
