@@ -22,6 +22,7 @@ module fastBSE_isdf
 
   implicit none
 
+  
   private
   public :: fastBSE_isdf_cvt! , fastBSE_isdf_qrcp
 
@@ -35,11 +36,8 @@ module fastBSE_isdf
   character(*), parameter, public :: h5ds_wfplot_isdf_o = "wfplot_isdf_occ"
   character(*), parameter, public :: h5ds_wfplot_isdf_u = "wfplot_isdf_unocc"
 
+
   contains 
-
-
-
-
 
 
   !> Calculate ISDF with interpolation points obtained by [[]]

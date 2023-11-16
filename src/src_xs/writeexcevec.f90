@@ -44,6 +44,11 @@ subroutine writeexcevec()
   character(256) :: syscommand, bevecdir, bevecksumdir, excitonevecdir
   character(256) :: tdastring, bsetypestring, scrtypestring
 
+
+  if (input%xs%BSE%brixshdf5) then 
+    call terminate_mpi_env(mpiglobal, 'Error(writebevec): input%xs%BSE%brixshdf5="true" is not compatible with this task.')
+  end if 
+  
   ! Only rank=0 does the work
   if(mpiglobal%rank == 0) then 
 

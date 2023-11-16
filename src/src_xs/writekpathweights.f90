@@ -5,9 +5,7 @@ subroutine writekpathweights
   use m_putgetexcitons
   use unit_conversion, only: hartree_to_ev
   use bspline_module
-  use m_write_hdf5, only: write_weights_hdf5, &
-    & write_kpathplot_hdf5
-use mod_kpointset
+  use mod_kpointset
   use mod_wannier, only: wf_nwf, wf_kset
   use mod_wannier_interpolate, only: wfint_init, wfint_eval, wfint_bandmap, &
    & wfint_matchksgw_linreal
@@ -59,20 +57,16 @@ use mod_kpointset
     ! Read in band structure data to read_bandstrucute   !
     ! module                                             !
     !====================================================!
-#ifdef _HDF5_
-    call read_bandstructure('property.h5')
-#else
     call read_bandstructure('bandstructure.dat')
-#endif
     !====================================================!
 
     ! Make output directory
     exckpathdir='KPATHEXC'
-#ifndef _HDF5_
+
     syscommand = 'test ! -e '//trim(adjustl(exckpathdir))&
       & //' && mkdir -p '//trim(adjustl(exckpathdir))
     call system(trim(adjustl(syscommand)))
-#endif
+
     ! Write out excitonic weights on grid?
     fwritegridweights = input%xs%writekpathweights%printgridweights
 
@@ -311,15 +305,8 @@ use mod_kpointset
         end if
 
         ! Writeout
-#ifndef _HDF5_
         call writekpathplot()
-#else
-        if (fcoup_) then
-          call write_kpathplot_hdf5(lambda,iv1,iv2,ic1,ic2,rvw,rcw,arvw=arvw,arcw=arcw)
-        else
-          call write_kpathplot_hdf5(lambda,iv1,iv2,ic1,ic2,rvw,rcw)
-        end if
-#endif
+
         !====================================================!
 
       ! Exciton loop
@@ -450,7 +437,7 @@ use mod_kpointset
       end if
       bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
       scrtypestring = '-'//trim(input%xs%screening%screentype)
-#ifndef _HDF5_
+
       ! Make filename
       call genfilname(dirname=trim(exckpathdir), basename="WEIGHTS",&
         & lambda=lambda, iqmt=iq_,&
@@ -513,13 +500,7 @@ use mod_kpointset
       end if
 
       close(un)
-#else
-      if (.not. fcoup_) then
-        call write_weights_hdf5(lambda,vkl_, vkl0_, ivmin, ivmax, icmin, icmax, rvwgrid, rcwgrid)
-      else
-        call write_weights_hdf5(lambda,vkl_, vkl0_, ivmin, ivmax, icmin, icmax, rvwgrid, rcwgrid, arv=arvwgrid, arc=arcwgrid)
-      end if
-#endif
+
     end subroutine writeweights
 
     subroutine interpolate_kpathweights(i1, i2, x, y, z, wsource, winterp)

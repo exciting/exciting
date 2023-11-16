@@ -2,7 +2,7 @@
 module hdf5_write
   use iso_c_binding, only: c_ptr
 
-#ifdef XHDF5  
+#ifdef _HDF5_  
   use hdf5
 #endif
 
@@ -41,7 +41,7 @@ module hdf5_write
     !> Set to `.true.` if only serial access is possible.
     logical, intent(in) :: serial_access
 
-#ifdef XHDF5
+#ifdef _HDF5_
     integer(hdf5_id) :: h5id_group, h5id_fspace, h5id_dset, h5id_dspace, h5id_plist
     integer :: h5err 
 
