@@ -27,7 +27,7 @@ module xhdf5_test
     !> Number of assertions
     integer, parameter :: n_assertions = 47
 
-#ifdef XHDF5
+#ifdef _HDF5_
     ! Initialize test object
     call test_report%init(n_assertions, mpiglobal)
 

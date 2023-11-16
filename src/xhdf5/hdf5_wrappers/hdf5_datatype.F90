@@ -1,6 +1,6 @@
 module hdf5_datatype
 
-#ifdef XHDF5  
+#ifdef _HDF5_  
   use hdf5
 #endif
 
@@ -21,7 +21,7 @@ module hdf5_datatype
 
   !> Return HDF5 precision for double
   integer(hdf5_id) function hdf5_double()
-#ifdef XHDF5
+#ifdef _HDF5_
     hdf5_double = H5T_NATIVE_DOUBLE
 #else
     hdf5_double = real64
@@ -30,7 +30,7 @@ module hdf5_datatype
 
   !> Return HDF5 precision for real (real32)
   integer(hdf5_id) function hdf5_float()
-#ifdef XHDF5
+#ifdef _HDF5_
     hdf5_float = H5T_NATIVE_REAL
 #else
     hdf5_float = real32
@@ -40,7 +40,7 @@ module hdf5_datatype
 
   !> Return HDF5 precision for integer
   integer(hdf5_id) function hdf5_integer()
-#ifdef XHDF5    
+#ifdef _HDF5_    
     hdf5_integer = H5T_NATIVE_INTEGER
 #else
     hdf5_integer = int32
@@ -59,7 +59,7 @@ module hdf5_datatype
     integer :: h5err
 
     string_len_local = string_len
-#ifdef XHDF5
+#ifdef _HDF5_
     call h5tcopy_f(H5T_NATIVE_CHARACTER, hdf5_string, h5err)
     call handle_hdf5_error(mpi_comm, 'h5tcopy_f', h5err)
 
@@ -82,7 +82,7 @@ module hdf5_datatype
     !> Name of the dataset to obtain shape of.
     character(*), intent(in) :: dataset
 
-#ifdef XHDF5
+#ifdef _HDF5_
     integer :: h5err
     integer(hdf5_id) :: h5id_group, h5id_dset, h5id_dtype
 
@@ -116,7 +116,7 @@ module hdf5_datatype
     !> Identifier of the datatype.
     integer(hdf5_id), intent(in) :: h5id_type
 
-#ifdef XHDF5
+#ifdef _HDF5_
     integer :: h5err
 
     call h5tget_size_f(h5id_type, hdf5_get_type_size, h5err)
@@ -134,7 +134,7 @@ module hdf5_datatype
     !> Identifier of the datatypes that are compared.
     integer(hdf5_id), intent(in) :: h5id_type1, h5id_type2
 
-#ifdef XHDF5
+#ifdef _HDF5_
     integer :: h5err
 
     call h5tequal_f(h5id_type1, h5id_type1, hdf5_datatypes_equal, h5err)

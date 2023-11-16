@@ -2,7 +2,7 @@
 module hdf5_read
   use iso_c_binding, only: c_ptr
 
-#ifdef XHDF5  
+#ifdef _HDF5_  
   use hdf5
 #endif
 
@@ -41,7 +41,7 @@ module hdf5_read
     !> Set to `.true.` if only serial access is possible.
     logical, intent(in) :: serial_access
 
-#ifdef XHDF5
+#ifdef _HDF5_
     integer(hdf5_id) :: h5id_group, h5id_fspace, h5id_dset, h5id_dspace, h5id_plist
     integer :: h5err
 
@@ -100,7 +100,7 @@ module hdf5_read
   
     call h5gclose_f(h5id_group, h5err)
     call handle_hdf5_error(mpi_comm, 'h5gclose_f', h5err)
-#endif XHDF5    
+#endif _HDF5_    
   end subroutine hdf5_read_dataset
 
 end module hdf5_read  

@@ -1,12 +1,12 @@
 module m_putgetbsemat
   use modinput
-  use modmpi, only: mpiglobal
+  use modmpi, only: mpiglobal, terminate_mpi_env
   use modbse
   use modxs, only: vqlmt
   use m_getunit
   use m_genfilname
-  use m_write_hdf5, only: fhdf5_inter
-  use mod_hdf5, only: hdf5_exist_group, hdf5_create_group, hdf5_write
+  use xhdf5, only: xhdf5_type
+  use os_utils, only: join_paths
 
   implicit none
 
@@ -401,8 +401,10 @@ module m_putgetbsemat
       integer(4) :: ik, jk, iknr, jknr
       integer(4) :: inou, jnou
       integer(4) :: buffer(5)
-      character(256) :: ciq, dataname_, group_
+      character(:), allocatable :: group, dataset
       complex(8) :: zmat_buffer(nou_bse_max,nou_bse_max)
+
+      type(xhdf5_type) :: h5
 
 
 #ifdef MPI
@@ -464,38 +466,7 @@ module m_putgetbsemat
 #ifdef MPI
         end do
 #endif
-#ifdef _HDF5_
-          if (input%xs%BSE%writehamhdf5) then
-            ! create group for iqmt if necessary
-            write(ciq, '(I4.4)') iqmt
-            if (.not. hdf5_exist_group(fhdf5_inter,'/', ciq )) then
-              call hdf5_create_group(fhdf5_inter,'/', ciq)
-            end if
-            group_='/'//trim(ciq)//'/'
-            !create group for matrix depending on the filename
-            call genfilname(basename=scclifbasename, iqmt=iqmt, filnam=scclifname)
-            if (input%xs%bse%chibarq) then
-              call genfilname(basename=exclifbasename, bsetype='-BAR', iqmt=iqmt, filnam=exclifname)
-            else
-              call genfilname(basename=exclifbasename, iqmt=iqmt, filnam=exclifname) 
-            end if
-            ! create group depending on the filename 
-            if (fname == scclifname) then
-              if (.not. hdf5_exist_group(fhdf5_inter, ciq, scclifname)) then
-                call hdf5_create_group(fhdf5_inter, ciq, scclifname)
-              end if
-              group_=trim(ciq)//'/'//trim(scclifname)//'/'
-            elseif (fname == exclifname) then
-              if (.not. hdf5_exist_group(fhdf5_inter, ciq, exclifname)) then
-                call hdf5_create_group(fhdf5_inter, ciq, exclifname)
-              end if
-              group_=trim(ciq)//'/'//trim(exclifname)//'/'
-            end if
-            ! create dataset named with the ikkp index
-            write(dataname_, '(I6.6)') ikkp
-            call hdf5_write(fhdf5_inter,group_,trim(dataname_),zmat(1,1),shape(zmat))
-          end if
-#endif
+
 #ifdef MPI
       end if
 #endif
