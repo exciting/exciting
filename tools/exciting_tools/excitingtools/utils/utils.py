@@ -76,20 +76,6 @@ def list_to_str(mylist: list, modifier: Optional[Callable] = None) -> str:
     return "".join(modifier(str(xyz)) + ' ' for xyz in mylist).strip()
 
 
-def string_to_bool(string: str) -> bool:
-    """ Convert string representation of true/false to True/False.
-
-    :param string: String
-    :return bool
-    """
-    if string.lower() == 'true':
-        return True
-    elif string.lower() == 'false':
-        return False
-    else:
-        raise ValueError()
-
-
 def flatten_list(input_list: list) -> Iterator:
     """ Flatten a list of lists and other elements.
 
