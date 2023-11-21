@@ -29,7 +29,7 @@ module xhdf5_error_handling
 
 
   !> Assert that the HDF5 error flag `h5err` is zero. 
-!> If not, call [[terminate_mpi_comm]] with an error message containing the name of `calling_routine`.
+  !> If not, call [[terminate_mpi_comm]] with an error message containing the name of `calling_routine`.
   subroutine handle_hdf5_error(mpi_comm, calling_routine, h5err)
     !> MPI communicator.
     type(mpi_comm_type), intent(in) :: mpi_comm
@@ -62,7 +62,7 @@ module xhdf5_error_handling
     character(:), allocatable :: message_local
     type(mpiinfo) :: mpi_env_local
 
-    character(*), parameter :: default_message = "Error: exciting needs to be linked to HDF5 to run this routine."
+    character(*), parameter :: default_message = "Error: exciting needs to be linked to HDF5 to run this workflow."
     
     message_local = default_message
     if(present(message)) message_local = message
@@ -70,7 +70,7 @@ module xhdf5_error_handling
     mpi_env_local = mpiglobal
     if(present(mpi_env)) mpi_env_local = mpi_env
 
-#ifndef XHDF5 
+#ifndef _HDF5_ 
     call terminate_mpi_env(mpi_env_local, message=message)
 #endif  
   end subroutine abort_if_not_hdf5

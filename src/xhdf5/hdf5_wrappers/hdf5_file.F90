@@ -1,7 +1,7 @@
 !> Wrappers for initializing/finalizing HDF5 dependent globals and creating/opening/closing HDF5 files.
 module hdf5_file
 
-#ifdef XHDF5  
+#ifdef _HDF5_  
   use hdf5
 #endif
 
@@ -28,7 +28,7 @@ module hdf5_file
   subroutine hdf5_initialize(mpi_comm)
     !> MPI communicator handle
     type(mpi_comm_type), intent(in) :: mpi_comm
-#ifdef XHDF5    
+#ifdef _HDF5_    
     integer :: h5err 
     call h5open_f(h5err)
     call handle_hdf5_error(mpi_comm, 'h5open_f', h5err)
@@ -39,7 +39,7 @@ module hdf5_file
   subroutine hdf5_finalize(mpi_comm)
     !> MPI communicator handle
     type(mpi_comm_type), intent(in) :: mpi_comm
-#ifdef XHDF5       
+#ifdef _HDF5_       
     integer :: h5err
  
     call h5close_f(h5err)
@@ -59,7 +59,7 @@ module hdf5_file
     !> Set to `.true.` if only serial access is possible.
     logical, intent(in) :: serial_access
 
-#ifdef XHDF5   
+#ifdef _HDF5_   
     integer :: h5err
     integer(hdf5_id) :: h5id_plist
 
@@ -94,7 +94,7 @@ module hdf5_file
     !> Set to `.true.` if only serial access is possible.
     logical, intent(in) :: serial_access
 
-#ifdef XHDF5   
+#ifdef _HDF5_   
     integer :: h5err
     integer(hdf5_id) :: h5id_plist
 
@@ -122,7 +122,7 @@ module hdf5_file
     type(mpi_comm_type), intent(in) :: mpi_comm
     !> Identifier of the file, used by HDF5.
     integer(hdf5_id), intent(in) :: h5id_file
-#ifdef XHDF5   
+#ifdef _HDF5_   
     integer :: h5err
     
     call h5fclose_f(h5id_file, h5err)

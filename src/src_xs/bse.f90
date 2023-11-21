@@ -141,8 +141,9 @@ subroutine bse(iqmt)
   type(dzmat) :: dham, dexevec, doscsr, dresvec, daresvec
   type(dzmat) :: dcmat, dcpmat
 
+  logical :: fmeasure, dhma_isdistributed_save, dexevec_isdistributed_save
+
   ! Write out the coupling measures ? 
-  logical :: fmeasure
   fmeasure = input%xs%bse%measure
 
   !! Greeting
@@ -398,10 +399,12 @@ subroutine bse(iqmt)
       ! Diagonalize Hamiltonian (destroys the content of ham)
       call timesec(ts0)
 
-      ! Use Lapack instead of ScaLapck if only current 
+      ! Use Lapack instead of ScaLapack if only current 
       ! rank diagonalizes, i.e. bi0d is used. (bit of a workaround)
-      if(fdist .eqv. .false.) then 
+      if(.not. fdist) then
+        dhma_isdistributed_save = dham%isdistributed
         dham%isdistributed = .false.
+        dexevec_isdistributed_save = dexevec%isdistributed
         dexevec%isdistributed = .false.
       end if
 
@@ -437,9 +440,9 @@ subroutine bse(iqmt)
       end if
 
       ! Set it back (see above)
-      if(fdist .eqv. .false.) then 
-        dham%isdistributed = .true.
-        dexevec%isdistributed = .true.
+      if(.not. fdist) then 
+        dham%isdistributed = dhma_isdistributed_save
+        dexevec%isdistributed = dexevec_isdistributed_save
       end if
 
       ! Square root of EVs
@@ -579,7 +582,7 @@ subroutine bse(iqmt)
           call del_dzmat(daresvec)
 
         ! For TDA we can directly write out the desired eigenvectors
-        else if(.not. fcoup) then  
+        else if(.not. fcoup) then
 
           write(unitout, '("Info(",a,"):&
             & Writing exciton eigenvectors to file.")') trim(thisname)

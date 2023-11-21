@@ -1,6 +1,6 @@
 module hdf5_dataset_utils
 
-#ifdef XHDF5  
+#ifdef _HDF5_  
   use hdf5
 #endif
 
@@ -33,7 +33,7 @@ module hdf5_dataset_utils
     integer :: rank
     integer(hdf5_size), allocatable :: dataset_shape_max(:)
 
-#ifdef XHDF5
+#ifdef _HDF5_
     integer :: h5err
     integer(hdf5_id) :: h5id_group, h5id_dset, h5id_dspace, h5id_dtype
 

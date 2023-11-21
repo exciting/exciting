@@ -26,10 +26,7 @@ subroutine xsmain(plan, nxstasks)
   use mod_misc, only: task
   use mod_exciton_wf
   use mod_hdf5, only: fhdf5
-  use m_write_hdf5, only: fhdf5_inter
-  use xhdf5, only: xhdf5_type
-
-  use mod_write_screen, only: write_screen
+  use xhdf5, only: xhdf5_type, abort_if_not_hdf5
 
   use phonon_screening, only: phonon_screening_launcher
   use expand_add_eps, only: expand_add_eps_launcher
@@ -72,10 +69,6 @@ subroutine xsmain(plan, nxstasks)
 
   call h5%initialize(fhdf5, mpiglobal)
   if (ghdf5 /= '/') call h5%initialize_group('/', ghdf5)
-  call h5%finalize()
-
-  fhdf5_inter = 'bse_matrix.h5'
-  call h5%initialize(fhdf5_inter, mpiglobal)
   call h5%finalize()
 
   do i = 1, nxstasks
@@ -246,11 +239,6 @@ subroutine xsmain(plan, nxstasks)
         ! write real-space XS wfcts to file
         call fastBSE_sanity_checks(mpiglobal, input)
         call fastBSE_write_u(fhdf5, ghdf5, input, mpiglobal)
-
-      ! Taskname 'write_screen'
-      case(452)
-        ! write screened Coulomb potential to file
-        call write_screen
 
       ! Taskname 'fastBSE_main'
       case(501)

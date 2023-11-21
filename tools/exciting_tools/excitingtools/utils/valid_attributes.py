@@ -330,12 +330,12 @@ phonon_screening_mandatory_attributes = ['alat_qe', 'excitation_energy', 'phonon
 
 expand_eps_valid_attributes = ['supercell_1', 'supercell_2'] 
 
-BSE_valid_attributes = ['aresbse', 'blocks', 'bsedirsing', 'bsetype', 'checkposdef', 'chibar0', 'chibar0comp', 
-                        'chibarq', 'coupling', 'cuttype', 'dichroism', 'distribute', 'econv', 'eecs', 'efind', 'fbzq', 
-                        'iqmtrange', 'lmaxdielt', 'measure', 'nexc', 'ngridksub', 'nleblaik', 'nosym', 'nosymspec', 
-                        'nstlbse', 'nstlxas', 'outputlevel', 'reducek', 'rgkmax', 'sciavbd', 'sciavqbd', 'sciavqhd', 
-                        'sciavqwg', 'sciavtype', 'scrherm', 'solver', 'vkloff', 'writehamhdf5', 'writepotential', 'xas', 
-                        'xasatom', 'xasedge', 'xasspecies', 'xes'] 
+BSE_valid_attributes = ['aresbse', 'blocks', 'brixshdf5', 'bsedirsing', 'bsetype', 'checkposdef', 'chibar0', 
+                        'chibar0comp', 'chibarq', 'coupling', 'cuttype', 'dichroism', 'distribute', 'econv', 'eecs', 
+                        'efind', 'fbzq', 'iqmtrange', 'lmaxdielt', 'measure', 'nexc', 'ngridksub', 'nleblaik', 'nosym', 
+                        'nosymspec', 'nstlbse', 'nstlxas', 'outputlevel', 'reducek', 'rgkmax', 'sciavbd', 'sciavqbd', 
+                        'sciavqhd', 'sciavqwg', 'sciavtype', 'scrherm', 'solver', 'vkloff', 'xas', 'xasatom', 'xasedge', 
+                        'xasspecies', 'xes'] 
 
 fastBSE_valid_attributes = ['cvtsteplim', 'cvttol', 'lanczosmaxits', 'nisdf', 'rsampling', 'seed'] 
 

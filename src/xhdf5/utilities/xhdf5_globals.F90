@@ -1,7 +1,7 @@
 !> Global definitions for the xhdf5 module
 module xhdf5_globals
 
-#ifdef XHDF5  
+#ifdef _HDF5_  
   use hdf5, only: HID_T, HSIZE_T, HSSIZE_T
 #endif
 
@@ -18,7 +18,7 @@ module xhdf5_globals
   character(*), parameter, public :: h5group_root = './'
 
   !> HDF5 integer kinds
-#ifdef XHDF5
+#ifdef _HDF5_
   integer, parameter, public :: hdf5_id = HID_T
   integer, parameter, public :: hdf5_size = HSIZE_T
   integer, parameter, public :: hdf5_ssize = HSSIZE_T

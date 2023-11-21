@@ -3,7 +3,7 @@
 # Compiler, flags and preprocessing variables
 F90 = h5fc
 F90_OPTS = -O3 -march=native -ffree-line-length-0 -fallow-argument-mismatch -fallow-invalid-boz -I"/usr/include"
-CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DXHDF5 -DFFTW3_INTERFACE
+CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -D_HDF5_ -DFFTW3_INTERFACE
 F77 = $(F90)
 F77_OPTS = -O3
 # Required for compilation of LibXC 
@@ -19,7 +19,7 @@ F77_DEBUGOPTS = $(F90_DEBUGOPTS)
 
 # Libaries
 # Use native blas/lapack by default
-export USE_SYS_LAPACK=true
+export USE_SYS_LAPACK=false
 LIB_LPK = -L./ -llapack -lblas
 LIB_FFT = fftlib.a
 LIB_FFTW = -lfftw3
