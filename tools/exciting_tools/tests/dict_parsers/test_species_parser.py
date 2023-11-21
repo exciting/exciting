@@ -7,17 +7,17 @@ def test_parse_species_xml():
     assert isinstance(species_str, str), (
         "Expect species parser to handle strings of XML data, "
         "due to use of decorator"
-        )
+    )
 
     species_dict = parse_species_xml(species_str)
 
     assert set(species_dict) == {'species', 'muffin_tin', 'atomic_states', 'basis'}, 'Top level species file keys'
     assert species_dict['species'] == {
         'chemicalSymbol': 'Zn', 'name': 'zinc', 'z': -30.0, 'mass': 119198.678
-        }
+    }
     assert species_dict['muffin_tin'] == {
         'rmin': 1e-06, 'radius': 2.0, 'rinf': 21.8982, 'radialmeshPoints': 600.0
-        }
+    }
 
     assert isinstance(species_dict['atomic_states'], list), 'Atomic states stored as a list'
     atomic_states = [{'n': 1, 'l': 0, 'kappa': 1, 'occ': 2.00000,
@@ -45,33 +45,40 @@ def test_parse_species_xml():
         {'l': 3, 'type': 'lapw', 'trialEnergy': 1.000,
          'searchE': False}, {'l': 4, 'type': 'lapw', 'trialEnergy': 1.000, 'searchE': False},
         {'l': 5, 'type': 'lapw', 'trialEnergy': 1.000, 'searchE': False}
-        ]
+    ]
 
     # All explicitly specified LOs
-    los = [{'l': 0, 'matchingOrder': [0, 1], 'trialEnergy': [-4.37848525995355, -4.37848525995355],
-            'searchE': [False, False]},
-           {'l': 0, 'matchingOrder': [0, 1], 'trialEnergy': [1.35670550183736, 1.35670550183736],
-            'searchE': [False, False]},
-           {'l': 0, 'matchingOrder': [0, 0], 'trialEnergy': [1.35670550183736, -4.37848525995355],
-            'searchE': [False, False]},
-           {'l': 0, 'matchingOrder': [1, 2], 'trialEnergy': [1.35670550183736, 1.35670550183736],
-            'searchE': [False, False]},
-           {'l': 1, 'matchingOrder': [0, 1], 'trialEnergy': [-2.69952312512447, -2.69952312512447],
-            'searchE': [False, False]},
-           {'l': 1, 'matchingOrder': [1, 2], 'trialEnergy': [-2.69952312512447, -2.69952312512447],
-            'searchE': [False, False]},
-           {'l': 2, 'matchingOrder': [0, 1], 'trialEnergy': [0.0, 0.0], 'searchE': [False, False]},
-           {'l': 2, 'matchingOrder': [1, 2], 'trialEnergy': [0.0, 0.0], 'searchE': [False, False]},
-           {'l': 3, 'matchingOrder': [0, 1], 'trialEnergy': [1.0, 1.0], 'searchE': [False, False]},
-           {'l': 3, 'matchingOrder': [1, 2], 'trialEnergy': [1.0, 1.0], 'searchE': [False, False]},
-           {'l': 4, 'matchingOrder': [0, 1], 'trialEnergy': [1.0, 1.0], 'searchE': [False, False]},
-           {'l': 4, 'matchingOrder': [1, 2], 'trialEnergy': [1.0, 1.0], 'searchE': [False, False]},
-           {'l': 5, 'matchingOrder': [0, 1], 'trialEnergy': [1.0, 1.0], 'searchE': [False, False]},
-           {'l': 5, 'matchingOrder': [1, 2], 'trialEnergy': [1.0, 1.0], 'searchE': [False, False]}]
-
+    los = [{'l': 0, 'wf': [{'matchingOrder': 0, 'searchE': False, 'trialEnergy': -4.37848525995355},
+                           {'matchingOrder': 1, 'searchE': False, 'trialEnergy': -4.37848525995355}]},
+           {'l': 0, 'wf': [{'matchingOrder': 0, 'searchE': False, 'trialEnergy': 1.35670550183736},
+                           {'matchingOrder': 1, 'searchE': False, 'trialEnergy': 1.35670550183736}]},
+           {'l': 0, 'wf': [{'matchingOrder': 0, 'searchE': False, 'trialEnergy': 1.35670550183736},
+                           {'matchingOrder': 0, 'searchE': False, 'trialEnergy': -4.37848525995355}]},
+           {'l': 0, 'wf': [{'matchingOrder': 1, 'searchE': False, 'trialEnergy': 1.35670550183736},
+                           {'matchingOrder': 2, 'searchE': False, 'trialEnergy': 1.35670550183736}]},
+           {'l': 1, 'wf': [{'matchingOrder': 0, 'searchE': False, 'trialEnergy': -2.69952312512447},
+                           {'matchingOrder': 1, 'searchE': False, 'trialEnergy': -2.69952312512447}]},
+           {'l': 1, 'wf': [{'matchingOrder': 1, 'searchE': False, 'trialEnergy': -2.69952312512447},
+                           {'matchingOrder': 2, 'searchE': False, 'trialEnergy': -2.69952312512447}]},
+           {'l': 2, 'wf': [{'matchingOrder': 0, 'searchE': False, 'trialEnergy': 0.0},
+                           {'matchingOrder': 1, 'searchE': False, 'trialEnergy': 0.0}]},
+           {'l': 2, 'wf': [{'matchingOrder': 1, 'searchE': False, 'trialEnergy': 0.0},
+                           {'matchingOrder': 2, 'searchE': False, 'trialEnergy': 0.0}]},
+           {'l': 3, 'wf': [{'matchingOrder': 0, 'searchE': False, 'trialEnergy': 1.0},
+                           {'matchingOrder': 1, 'searchE': False, 'trialEnergy': 1.0}]},
+           {'l': 3, 'wf': [{'matchingOrder': 1, 'searchE': False, 'trialEnergy': 1.0},
+                           {'matchingOrder': 2, 'searchE': False, 'trialEnergy': 1.0}]},
+           {'l': 4, 'wf': [{'matchingOrder': 0, 'searchE': False, 'trialEnergy': 1.0},
+                           {'matchingOrder': 1, 'searchE': False, 'trialEnergy': 1.0}]},
+           {'l': 4, 'wf': [{'matchingOrder': 1, 'searchE': False, 'trialEnergy': 1.0},
+                           {'matchingOrder': 2, 'searchE': False, 'trialEnergy': 1.0}]},
+           {'l': 5, 'wf': [{'matchingOrder': 0, 'searchE': False, 'trialEnergy': 1.0},
+                           {'matchingOrder': 1, 'searchE': False, 'n': 5}]},
+           {'l': 5, 'wf': [{'matchingOrder': 1, 'n': 5, 'searchE': False},
+                           {'matchingOrder': 2, 'n': 6, 'searchE': False}]}]
+    
     assert len(basis['lo']) == 14, "Number of explicitly-defined local orbitals"
-    assert set(basis['lo'][0]) == {'l', 'matchingOrder', 'trialEnergy', 'searchE'}, \
-        "Attributes defining a local orbital"
+    assert set(basis['lo'][0]) == {'l', 'wf'}, "Attributes defining a local orbital"
     assert basis['lo'] == los
 
 
@@ -90,10 +97,11 @@ def test_parse_species_xml_different_ordering():
     ref_basis = {'default': [{'type': 'lapw', 'trialEnergy': 0.15, 'searchE': False}],
                  'custom': [{'l': 0, 'type': 'apw+lo', 'trialEnergy': 0.15, 'searchE': True},
                             {'l': 1, 'type': 'apw+lo', 'trialEnergy': 0.15, 'searchE': True}],
-                 'lo': [{'l': 0, 'wfproj': False, 'matchingOrder': [0, 1, 0], 'trialEnergy': [0.15, 0.15, -9.8],
-                         'searchE': [True, True, False]}]
-             }
-
+                 'lo': [{'l': 0, 'wfproj': False,
+                         'wf': [{'matchingOrder': 0, 'trialEnergy': 0.15, 'searchE': True},
+                                {'matchingOrder': 1, 'trialEnergy': 0.15, 'searchE': True},
+                                {'matchingOrder': 0, 'trialEnergy': -9.8, 'searchE': False}]}]}
+    
     assert species_dict['species'] == ref_species, "species data disagrees"
     assert species_dict['muffin_tin'] == ref_muffin_tin, "muffin tin data disagrees"
     assert species_dict['atomic_states'] == ref_atomic_states, "atomic state data disagrees"
@@ -180,18 +188,17 @@ species_str = """<?xml version="1.0" encoding="utf-8"?>
       <custom l="5" type="lapw" trialEnergy="1.000" searchE="false"/>
       <lo l="5">
 	<wf matchingOrder="0" trialEnergy="1.000" searchE="false"/>
-	<wf matchingOrder="1" trialEnergy="1.000" searchE="false"/>
+  <wf matchingOrder="1" n="5" searchE="false"/>      
       </lo>
       <lo l="5">
-        <wf matchingOrder="1" trialEnergy="1.000" searchE="false"/>
-        <wf matchingOrder="2" trialEnergy="1.000" searchE="false"/>
+        <wf matchingOrder="1" n="5" searchE="false"/>
+        <wf matchingOrder="2" n="6" searchE="false"/>
       </lo>
 
     </basis>
   </sp>
 </spdb>
 """
-
 
 species_str_diff_order = """<?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
