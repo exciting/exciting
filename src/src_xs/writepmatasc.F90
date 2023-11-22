@@ -27,6 +27,7 @@ subroutine writepmatasc
   use m_putpmat
   use m_genfilname
   use mod_hdf5
+  use mod_core_states, only: init_core_states
   use m_getunit, only: getunit
   use xhdf5, only: xhdf5_type
   use os_utils
@@ -86,6 +87,9 @@ subroutine writepmatasc
     call init2
   end if
 
+  ! Initialize xas specific globals
+  if(input%xs%bse%xas .or. input%xs%BSE%xes) call xasinit
+
   ! Check if fast (default) version of matrix elements is used
   fast=.false.
 
@@ -106,12 +110,11 @@ subroutine writepmatasc
   allocate(evecsvt(nstsv, nstsv))
 
   ! Allocate the momentum matrix elements array
-  if (input%xs%bse%xas) then ! Allocation for xas calculation
-    call init_core_states()
-    allocate(pmat(3, ncg, nstsv,nkpt))
+  if (input%xs%bse%xas) then
+    allocate(pmat(3, ncg, nstsv,nkpt), source=zzero)
     pmat(:,:,:,:)=zzero
   else
-    allocate(pmat(3, nstsv, nstsv,nkpt))
+    allocate(pmat(3, nstsv, nstsv, nkpt))
     pmat(:,:,:,:)=zzero
   end if  
 
