@@ -14,14 +14,18 @@ subroutine calcbarcmb_pw(iq)
     real(8),    allocatable :: vc(:)
     complex(8), allocatable :: tmat(:,:)
 
+
+    npw = Gqbarc%ngk(1,iq)
+    allocate(tmat(matsiz, npw))
+    allocate(vc(npw))
+
     if (Gamma) then
       ipw0 = 2
+      tmat(:, 1) = zzero
+      if (vccut) tmat(:, 1) = low_dim_singularity * mpwmix(:, 1)
     else
       ipw0 = 1
     end if
-
-    npw = Gqbarc%ngk(1,iq)
-    allocate(vc(npw))
 
     select case (trim(input%gw%barecoul%cutofftype))
 
@@ -71,10 +75,9 @@ subroutine calcbarcmb_pw(iq)
 
     end select
 
-    allocate(tmat(matsiz,npw))
     do ipw = ipw0, npw
       tmat(:,ipw) = vc(ipw)*mpwmix(:,ipw)
-    end do ! ipw
+    end do
     deallocate(vc)
 
     call zgemm('n', 'c', matsiz, matsiz, npw, &
@@ -85,5 +88,4 @@ subroutine calcbarcmb_pw(iq)
                barc, matsiz)
     deallocate(tmat)
 
-    return
 end subroutine

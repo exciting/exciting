@@ -47,13 +47,15 @@ subroutine calcmpwmix(iq)
     npw = Gqbarc%ngk(1,iq)
 
     if (allocated(mpwmix)) deallocate(mpwmix)
-    allocate(mpwmix(matsiz,npw))
-    mpwmix(:,:) = zzero
+    allocate(mpwmix(matsiz,npw), source=zzero)
       
     const = 4.d0*pi*sqrt(vi)
       
     if (Gamma) then
-      ipw0 = 2      
+      ipw0 = 2
+      allocate(wi0(matsiz))
+      call calcwmix0(wi0)
+      mpwmix(1:matsiz, 1) = wi0(1:matsiz)
     else
       ipw0 = 1
     end if

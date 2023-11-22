@@ -74,7 +74,9 @@ subroutine task_gw()
 
     ! occupancy dependent BZ integration weights
     call kintw()
-
+    singc1 = 0.d0
+    singc2 = 0.d0
+  
     !---------------------------------------
     ! treatment of singularities at G+q->0
     !---------------------------------------
@@ -99,13 +101,13 @@ subroutine task_gw()
             end select
 
         case('0d')
-            call vcoul_q0_0d(singc2)
+            call vcoul_q0_0d(low_dim_singularity)
 
         case('1d')
-            call vcoul_q0_1d(kqset%nkpt, singc2)
+            call vcoul_q0_1d(kqset%nkpt, low_dim_singularity)
 
         case('2d')
-            call vcoul_q0_2d(kqset%nkpt, singc2)
+            call vcoul_q0_2d(kqset%nkpt, low_dim_singularity)
 
     end select
 
@@ -171,17 +173,7 @@ subroutine task_gw()
         !========================================
         ! Set v-diagonal MB and reduce its size
         !========================================
-        if (vccut) then
-          mbsiz = matsiz
-          if (allocated(barc)) deallocate(barc)
-          allocate(barc(matsiz,mbsiz))
-          do im = 1, matsiz
-            vc = cmplx(barcev(im),0.d0,8)
-            barc(:,im) = vmat(:,im)*sqrt(vc)
-          end do
-        else
-          call setbarcev(input%gw%barecoul%barcevtol)
-        end if
+        call setbarcev(input%gw%barecoul%barcevtol)
         call delete_coulomb_potential
         !===================================
         ! Calculate the dielectric function
