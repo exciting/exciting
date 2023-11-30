@@ -43,7 +43,8 @@ def class_constructor_string(class_definitions: Dict[str, Union[dict, str]]) -> 
     :return: class_definition_str: A Python-interpretable string of class definitions using
     the type() constructor.
     """
-    class_definition_str = ''
+    # first import the base class
+    class_definition_str = 'from excitingtools.input.base_class import ExcitingXMLInput \n'
     for class_name, bases_and_attributes in class_definitions.items():
         # Parent class (or classes)
         bases = bases_and_attributes['bases']

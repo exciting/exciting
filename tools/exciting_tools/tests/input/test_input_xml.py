@@ -12,7 +12,8 @@ be fine.
 
 import pytest
 
-from excitingtools.input.input_classes import ExcitingGroundStateInput, ExcitingXSInput, ExcitingInputXML
+from excitingtools.input.input_classes import ExcitingGroundStateInput, ExcitingXSInput
+from excitingtools.input.input_xml import ExcitingInputXML
 from excitingtools.input.structure import ExcitingStructure
 
 
@@ -187,7 +188,7 @@ def test_as_dict_jobflow(exciting_input_xml: ExcitingInputXML, mock_env_jobflow)
     dict_representation = exciting_input_xml.as_dict()
     xml_string = dict_representation.pop("xml_string")
     assert dict_representation == {'@class': 'ExcitingInputXML',
-                                   '@module': 'excitingtools.input.input_classes'}
+                                   '@module': 'excitingtools.input.input_xml'}
     # check only that the xml string starts with the correct first lines:
     assert xml_string.startswith('<?xml version="1.0" ?>\n<input sharedfs="true">\n\t'
                                  '<title>Test Case</title>\n\t<structure')
