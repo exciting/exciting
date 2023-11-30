@@ -64,7 +64,7 @@ deploy:excitingtools-pypi:
         python3 -m build
         twine upload --skip-existing --non-interactive --username __token__ --password $PYPI_TOKEN dist/*
       else
-        echo "pyproject.toml has changed but the version number has not, so do not push to pypi"
+        echo "pyproject.toml may have changed but the version number has not, so do not push to pypi"
       fi
   rules:
     # Only deploy when a feature is merged, not each time the pipeline passes

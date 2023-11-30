@@ -12,7 +12,8 @@ import pytest
 from excitingtools.exciting_dict_parsers.input_parser import parse_element_xml
 from excitingtools.input.bandstructure import band_structure_input_from_ase_atoms_obj, \
     get_bandstructure_input_from_exciting_structure, band_structure_input_from_cell_or_bandpath
-from excitingtools.input.input_classes import ExcitingPropertiesInput, ExcitingGroundStateInput, ExcitingInputXML
+from excitingtools.input.input_classes import ExcitingPropertiesInput, ExcitingGroundStateInput
+from excitingtools.input.input_xml import ExcitingInputXML
 from excitingtools.input.structure import ExcitingStructure
 
 

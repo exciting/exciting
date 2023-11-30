@@ -2,7 +2,6 @@
 from excitingtools.input.input_classes import (
     ExcitingGroundStateInput,
     ExcitingXSInput,
-    ExcitingInputXML,
     ExcitingPropertiesInput,
     ExcitingRelaxInput,
     ExcitingPhononsInput,
@@ -10,4 +9,5 @@ from excitingtools.input.input_classes import (
     ExcitingMDInput,
     ExcitingEPHInput
 )
+from excitingtools.input.input_xml import ExcitingInputXML
 from excitingtools.input.structure import ExcitingStructure

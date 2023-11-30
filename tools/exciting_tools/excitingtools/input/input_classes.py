@@ -1,15 +1,12 @@
 """ Automatic generation of all standard input classes plus definiton of exceptions. """
-
-from pathlib import Path
 from typing import Optional, List, Callable
 from typing import Union
 from xml.etree import ElementTree
 
 import numpy as np
 
-from excitingtools.input.base_class import AbstractExcitingInput, ExcitingXMLInput
+from excitingtools.input.base_class import AbstractExcitingInput
 from excitingtools.input.dynamic_class import generate_classes_str
-from excitingtools.input.xml_utils import xml_tree_to_pretty_str, prettify_tag_attributes
 from excitingtools.utils.dict_utils import check_valid_keys
 from excitingtools.utils.utils import list_to_str
 from excitingtools.utils.valid_attributes import valid_plan_entries
@@ -44,33 +41,6 @@ class ExcitingTitleInput(AbstractExcitingInput):
         title_tree = ElementTree.Element(self.name)
         title_tree.text = self.title
         return title_tree
-
-
-class ExcitingInputXML(ExcitingXMLInput):
-    """
-    Container for a complete input xml file.
-    """
-    name = "input"
-    _default_filename = "input.xml"
-
-    def set_title(self, title: str):
-        """ Set a new title. """
-        self.__dict__["title"].title = title
-
-    def to_xml_str(self) -> str:
-        """Compose XML ElementTrees from exciting input classes to create an input xml string.
-
-        :return: Input XML tree as a string, with pretty formatting.
-        """
-        return prettify_tag_attributes(xml_tree_to_pretty_str(self.to_xml()))
-
-    def write(self, filename: Union[str, Path] = _default_filename):
-        """Writes the xml string to file.
-
-        :param filename: name of the file.
-        """
-        with open(filename, "w") as fid:
-            fid.write(self.to_xml_str())
 
 
 class ExcitingQpointsetInput(AbstractExcitingInput):
