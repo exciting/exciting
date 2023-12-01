@@ -48,15 +48,15 @@ Info(xsfinit): task Nr.     301 stopped gracefully
 Info(writepmatxs): Momentum matrix elements finished
 Info(xsfinit): task Nr.     320 stopped gracefully
  
- Timings: 
+  Timings: 
      Date (DD-MM-YYYY)      : 10-12-2020
-     Time (hh:mm:ss)        : 20:05:24
-     CPU time               : 4.46 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 04 s )
-     wall time              : 0.84 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
-     CPU load               : 533.19 %
-     CPU time  (cumulative) : 116.04 sec; 0.03 hrs; ( 0 d, 00 h, 01 m, 56 s )
-     wall time (cumulative) : 2.96 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 03 s )
-     CPU load  (cumulative) : 533.19 %
+     Time (hh:mm:ss)        : 20:05:23
+     CPU time               : 14.57 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 15 s )
+     wall time              : 2.13 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load               : 684.78 %
+     CPU time  (cumulative) : 111.58 sec; 0.03 hrs; ( 0 d, 00 h, 01 m, 52 s )
+     wall time (cumulative) : 2.13 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load  (cumulative) : 684.78 %
  
 ================================================================================
 = EXCITING NITROGEN-14 stopped for task    320                                 =
@@ -69,11 +69,20 @@ Info(xsfinit): task Nr.     320 stopped gracefully
 ================================================================================
  
 Info(xsinit): mapping screening-specific parameters
+
+  Timings: 
+     Date (DD-MM-YYYY)      : 10-12-2020
+     Time (hh:mm:ss)        : 20:05:23
+     CPU time               : 14.57 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 15 s )
+     wall time              : 2.13 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load               : 684.78 %
+     CPU time  (cumulative) : 111.58 sec; 0.03 hrs; ( 0 d, 00 h, 01 m, 52 s )
+     wall time (cumulative) : 2.13 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load  (cumulative) : 684.78 %
  
 ================================================================================
 = EXCITING NITROGEN-14 stopped for task    401                                 =
 ================================================================================
- 
  
 ================================================================================
 | EXCITING NITROGEN-14 started for task scrwritepmat (420)                     =
@@ -82,6 +91,16 @@ Info(xsinit): mapping screening-specific parameters
  
 Info(xsinit): mapping screening-specific parameters
  
+  Timings: 
+     Date (DD-MM-YYYY)      : 10-12-2020
+     Time (hh:mm:ss)        : 20:05:23
+     CPU time               : 14.57 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 15 s )
+     wall time              : 2.13 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load               : 684.78 %
+     CPU time  (cumulative) : 111.58 sec; 0.03 hrs; ( 0 d, 00 h, 01 m, 52 s )
+     wall time (cumulative) : 2.13 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load  (cumulative) : 684.78 %
+
 ================================================================================
 = EXCITING NITROGEN-14 stopped for task    420                                 =
 ================================================================================
@@ -92,6 +111,16 @@ Info(xsinit): mapping screening-specific parameters
 ================================================================================
  
 Info(xsinit): mapping BSE-specific parameters
+
+  Timings: 
+     Date (DD-MM-YYYY)      : 10-12-2020
+     Time (hh:mm:ss)        : 20:05:23
+     CPU time               : 14.57 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 15 s )
+     wall time              : 2.13 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load               : 684.78 %
+     CPU time  (cumulative) : 111.58 sec; 0.03 hrs; ( 0 d, 00 h, 01 m, 52 s )
+     wall time (cumulative) : 2.13 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load  (cumulative) : 684.78 %
 
 ================================================================================
 = EXCITING NITROGEN-14 stopped for task    445                                 =
@@ -116,7 +145,7 @@ Info(xsgeneigvec): Generation of eigenvectors finished
 
 Info(xsfinit): task Nr.     301 stopped gracefully
 
- Timings: 
+  Timings: 
      Date (DD-MM-YYYY)      : 10-12-2020
      Time (hh:mm:ss)        : 20:05:23
      CPU time               : 14.57 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 15 s )
@@ -155,7 +184,7 @@ Info(xsgeneigvec): Generation of eigenvectors finished
 
 Info(xsfinit): task Nr.     301 stopped gracefully
 
- Timings: 
+  Timings: 
      Date (DD-MM-YYYY)      : 10-12-2020
      Time (hh:mm:ss)        : 20:05:23
      CPU time               : 14.57 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 15 s )
@@ -177,15 +206,15 @@ Info(xsfinit): task Nr.     301 stopped gracefully
 Info(writepmatxs): Momentum matrix elements finished
 Info(xsfinit): task Nr.     320 stopped gracefully
  
- Timings: 
+  Timings: 
      Date (DD-MM-YYYY)      : 10-12-2020
-     Time (hh:mm:ss)        : 20:05:24
-     CPU time               : 4.46 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 04 s )
-     wall time              : 0.84 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
-     CPU load               : 533.19 %
-     CPU time  (cumulative) : 116.04 sec; 0.03 hrs; ( 0 d, 00 h, 01 m, 56 s )
-     wall time (cumulative) : 2.96 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 03 s )
-     CPU load  (cumulative) : 533.19 %
+     Time (hh:mm:ss)        : 20:05:23
+     CPU time               : 14.57 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 15 s )
+     wall time              : 2.13 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load               : 684.78 %
+     CPU time  (cumulative) : 111.58 sec; 0.03 hrs; ( 0 d, 00 h, 01 m, 52 s )
+     wall time (cumulative) : 2.13 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load  (cumulative) : 684.78 %
  
 ================================================================================
 = EXCITING NITROGEN-14 stopped for task    320                                 =
@@ -199,6 +228,16 @@ Info(xsfinit): task Nr.     320 stopped gracefully
  
 Info(xsinit): mapping screening-specific parameters
  
+  Timings: 
+     Date (DD-MM-YYYY)      : 10-12-2020
+     Time (hh:mm:ss)        : 20:05:23
+     CPU time               : 14.57 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 15 s )
+     wall time              : 2.13 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load               : 684.78 %
+     CPU time  (cumulative) : 111.58 sec; 0.03 hrs; ( 0 d, 00 h, 01 m, 52 s )
+     wall time (cumulative) : 2.13 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load  (cumulative) : 684.78 %
+
 ================================================================================
 = EXCITING NITROGEN-14 stopped for task    401                                 =
 ================================================================================
@@ -210,40 +249,75 @@ Info(xsinit): mapping screening-specific parameters
 ================================================================================
 """
 
+
 reference_parsed_infoxs_file_success = {
-    'tasks': [{'name': 'xsgeneigvec', 'number': 301,
-               'finished': True}, {'name': 'writepmatxs', 'number': 320,
-                                   'finished': True},
-              {'name': 'scrgeneigvec', 'number': 401,
-               'finished': True}, {'name': 'scrwritepmat', 'number': 420,
-                                   'finished': True},
+    'tasks': [{'name': 'xsgeneigvec', 'number': 301, 'finished': True}, 
+              {'name': 'writepmatxs', 'number': 320, 'finished': True},
+              {'name': 'scrgeneigvec', 'number': 401, 'finished': True}, 
+              {'name': 'scrwritepmat', 'number': 420, 'finished': True},
               {'name': 'bse', 'number': 445, 'finished': True}],
     'success': True,
     'last_finished_task': 'bse'
     }
 
 reference_parsed_infoxs_file_fail = {
-    'tasks': [{'name': 'xsgeneigvec', 'number': 301,
-               'finished': True}, {'name': 'writepmatxs', 'number': 320,
-                                   'finished': False},
-              {'name': 'xsgeneigvec', 'number': 301,
-               'finished': True}, {'name': 'writepmatxs', 'number': 320,
-                                   'finished': True},
-              {'name': 'scrgeneigvec', 'number': 401,
-               'finished': True}, {'name': 'scrwritepmat', 'number': 420,
-                                   'finished': False}],
+    'tasks': [{'name': 'xsgeneigvec', 'number': 301, 'finished': True}, 
+              {'name': 'writepmatxs', 'number': 320, 'finished': False},
+              {'name': 'xsgeneigvec', 'number': 301, 'finished': True}, 
+              {'name': 'writepmatxs', 'number': 320, 'finished': True},
+              {'name': 'scrgeneigvec', 'number': 401, 'finished': True}, 
+              {'name': 'scrwritepmat', 'number': 420, 'finished': False}],
     'success': False,
     'last_finished_task': 'scrgeneigvec'
     }
 
 
 @pytest.mark.parametrize(["infoxs_file_str", "reference_parsed_dict"],
-                         [(infoxs_file_str_success,
-                           reference_parsed_infoxs_file_success),
-                          (infoxs_file_str_fail,
-                           reference_parsed_infoxs_file_fail)])
+                         [(infoxs_file_str_success, reference_parsed_infoxs_file_success),
+                          (infoxs_file_str_fail, reference_parsed_infoxs_file_fail)])
 def test_parse_info_xs_out(infoxs_file_str, reference_parsed_dict, tmp_path):
     infoxs_file_path = tmp_path / "INFOXS.OUT"
     infoxs_file_path.write_text(infoxs_file_str)
     info_xs_out = parse_infoxs_out(infoxs_file_path.as_posix())
+    assert info_xs_out == reference_parsed_dict
+
+
+reference_parsed_infoxs_file_times_success = {
+    'tasks': [{'name': 'xsgeneigvec', 'number': 301, 'finished': True,
+               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13}, 
+              {'name': 'writepmatxs', 'number': 320, 'finished': True,
+               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13},
+              {'name': 'scrgeneigvec', 'number': 401, 'finished': True,
+               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13}, 
+              {'name': 'scrwritepmat', 'number': 420, 'finished': True,
+              'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13},
+              {'name': 'bse', 'number': 445, 'finished': True,
+               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13}],
+    'success': True,
+    'last_finished_task': 'bse'
+    }
+
+reference_parsed_infoxs_file_times_fail = {
+    'tasks': [{'name': 'xsgeneigvec', 'number': 301, 'finished': True,
+               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13}, 
+              {'name': 'writepmatxs', 'number': 320, 'finished': False},
+              {'name': 'xsgeneigvec', 'number': 301, 'finished': True,
+               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13}, 
+              {'name': 'writepmatxs', 'number': 320, 'finished': True,
+               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13},
+              {'name': 'scrgeneigvec', 'number': 401, 'finished': True,
+               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13}, 
+              {'name': 'scrwritepmat', 'number': 420, 'finished': False}],
+    'success': False,
+    'last_finished_task': 'scrgeneigvec'
+    }
+
+
+@pytest.mark.parametrize(["infoxs_file_str", "reference_parsed_dict"],
+                         [(infoxs_file_str_success, reference_parsed_infoxs_file_times_success),
+                          (infoxs_file_str_fail, reference_parsed_infoxs_file_times_fail)])
+def test_parse_info_xs_out_timing(infoxs_file_str, reference_parsed_dict, tmp_path):
+    infoxs_file_path = tmp_path / "INFOXS.OUT"
+    infoxs_file_path.write_text(infoxs_file_str)
+    info_xs_out = parse_infoxs_out(infoxs_file_path.as_posix(), parse_timing=True)
     assert info_xs_out == reference_parsed_dict

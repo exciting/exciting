@@ -72,7 +72,7 @@ def parse_EXCITON_NAR_BSE(name):
     return out
 
 
-def parse_infoxs_out(name: str) -> dict:
+def parse_infoxs_out(name: str, parse_timing: bool = False) -> dict:
     """
     Parser for INFOXS.OUT file. Parses only the started and stopped tasks.
     Searches for lines like:
@@ -84,8 +84,11 @@ def parse_infoxs_out(name: str) -> dict:
     If the task is found to be finished afterwards, the status finished is set to True.
 
     For success, the last started tasks has to be finished after that (in the file).
-    Last finished task is the last task if calculation was successful, the task before that if it finished, else None.
+    Last finished task is the last task if calculation was successful, the task before that 
+    if it finished, else None.
     :param name: path of the file to parse
+    :param parse_timing: parse also timing information for the tasks. By default this is set to
+                         False. If the task has not finished None is returned as timing.
     :returns: dictionary containing parsed file
     """
     with open(name) as file:
@@ -119,6 +122,37 @@ def parse_infoxs_out(name: str) -> dict:
     elif len(tasks) > 1 and tasks[-2]['finished']:
         last_finished_task = tasks[-2]['name']
 
+    if parse_timing:
+        times = parse_times(lines)
+        finished_tasks = [task for task in tasks if task['finished']]
+        assert len(times['cpu']) == len(finished_tasks), 'Numbers of finished tasks and parsed times are not the same.'
+
+        for index, task in enumerate(finished_tasks):
+            task['cpu_time'] = float(times['cpu'][index])
+            task['wall_time'] = float(times['wall'][index])
+            task['cpu_time_cum'] = float(times['cpu_cum'][index])
+            task['wall_time_cum'] = float(times['wall_cum'][index])
+    
     return {'tasks': tasks,
             'success': success,
             'last_finished_task': last_finished_task}
+
+
+def parse_times(infoxs_string: str) -> dict:
+    """Parse the run times in INFOXS.OUT for each task.
+    :param infoxs_string: String that contains the INFOXS.OUT file.
+    :returns: dictionary containing a list of run times for each measurement.
+    """
+    cpu_times = re.findall(r'CPU time \s*: ([\d\.\d]+) sec', infoxs_string)
+    wall_times = re.findall(r'wall time \s*: ([\d\.\d]+) sec', infoxs_string)
+    cpu_times_cum = re.findall(r'CPU time \s* \(cumulative\) \s*: ([\d\.\d]+) sec', infoxs_string)
+    wall_times_cum = re.findall(r'wall time \(cumulative\) \s*: ([\d\.\d]+) sec', infoxs_string)
+
+    assert len(cpu_times) == len(wall_times), 'Numbers of parsed timings are not consistent.'
+    assert len(cpu_times) == len(cpu_times_cum), 'Numbers of parsed timings are not consistent.'
+    assert len(cpu_times) == len(wall_times_cum), 'Numbers of parsed timings are not consistent.'
+    
+    return {'cpu': cpu_times, 
+            'wall': wall_times,
+            'cpu_cum': cpu_times_cum,
+            'wall_cum': wall_times_cum}
