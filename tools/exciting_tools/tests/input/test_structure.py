@@ -406,6 +406,13 @@ def test_get_full_lattice(lattice_and_atoms_CdS):
     assert np.allclose(structure.get_lattice(), ref_lattice)
 
 
+def test_structure_input_with_integers(tmp_path):
+    atoms = [{"species": "C", "position": [0, 0, 0]}]
+    structure = ExcitingStructure(atoms, [[1, 0, 0], [0, 1, 0], [0, 0, 1]], "./")
+    ref_lattice = np.array([[0.52917721, 0., 0.], [0., 0.52917721, 0.], [0., 0., 0.52917721]])
+    assert np.allclose(structure.get_lattice(convert_to_angstrom=True), ref_lattice)
+
+
 def test_get_bandstructure_input_from_exciting_structure(lattice_and_atoms_H20):
     pytest.importorskip("ase")
     cubic_lattice, atoms = lattice_and_atoms_H20
