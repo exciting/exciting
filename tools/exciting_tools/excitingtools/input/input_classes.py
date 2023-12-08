@@ -1,5 +1,5 @@
 """ Automatic generation of all standard input classes plus definiton of exceptions. """
-from typing import Optional, List, Callable
+from typing import List, Callable
 from typing import Union
 from xml.etree import ElementTree
 
@@ -49,7 +49,7 @@ class ExcitingQpointsetInput(AbstractExcitingInput):
     """
     name = "qpointset"
 
-    def __init__(self, qpointset: Optional[Union[np.ndarray, List[List[float]]]] = np.array([0.0, 0.0, 0.0])):
+    def __init__(self, qpointset: Union[np.ndarray, List[List[float]]] = np.array([0.0, 0.0, 0.0])):
         """
         Qpointset should be passed either as numpy array or as a list of lists, so either
         np.array([[0., 0., 0.], [0.0, 0.0, 0.01], ...])
@@ -88,3 +88,27 @@ class ExcitingPlanInput(AbstractExcitingInput):
             ElementTree.SubElement(plan, 'doonly', task=task)
 
         return plan
+
+
+class ExcitingKstlistInput(AbstractExcitingInput):
+    """
+    Class for exciting Kstlist Input
+    """
+    name = "kstlist"
+
+    def __init__(self, kstlist: Union[np.ndarray, List[List[int]]]):
+        """
+        Kstlist should be passed either as numpy array or as a list of lists, so either
+        np.array([[1, 2], [3, 4], ...])
+        or
+        [[1, 2], [3, 4], ...]
+        """
+        self.kstlist = kstlist
+
+    def to_xml(self) -> ElementTree.Element:
+        """ Special implementation of to_xml for the kstlist element. """
+        kstlist = ElementTree.Element(self.name)
+        for pointstatepair in self.kstlist:
+            ElementTree.SubElement(kstlist, 'pointstatepair').text = list_to_str(pointstatepair)
+
+        return kstlist
