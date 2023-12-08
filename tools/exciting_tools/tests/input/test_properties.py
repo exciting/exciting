@@ -167,3 +167,18 @@ def test_get_bandstructure_input_from_ase_bandpath(ase_ag):
     point3 = path_xml[2]
     assert point3.get("coord") == "0.0 0.0 0.0", 'Invalid value for "coord" attribute of point 3'
     assert point3.get("label") == "G", 'Invalid value for "label" attribute of point 3'
+
+
+def test_class_ExcitingKstlistInput():
+    properties = {"wfplot": {"kstlist": [[1, 4], [2, 5]]}}
+    properties_input = ExcitingPropertiesInput(**properties)
+    properties_tree = properties_input.to_xml()
+    wfplot = properties_tree.find("wfplot")
+    kstlist = wfplot.find("kstlist")
+
+    pointstatepair = list(kstlist)
+    assert len(pointstatepair) == 2
+    assert pointstatepair[0].tag == "pointstatepair"
+    assert pointstatepair[0].items() == []
+    assert pointstatepair[0].text == "1 4"
+    assert pointstatepair[1].text == "2 5"
