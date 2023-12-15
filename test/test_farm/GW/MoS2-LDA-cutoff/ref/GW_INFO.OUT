@@ -136,44 +136,44 @@
 -                            G0W0 band structure                               -
 --------------------------------------------------------------------------------
  
- Fermi energy:     0.1785
- Energy range:    -2.1662    0.4523
+ Fermi energy:     0.1294
+ Energy range:    -2.2526    0.4522
  Band index of VBM:  13
  Band index of CBm:  14
  
- Direct BandGap (eV):                      5.4456
+ Direct BandGap (eV):                      8.1183
  at k      =    0.000   0.000   0.000 ik =     1
  
 ================================================================================
 =                          GW timing info (seconds)                            =
 ================================================================================
  
- Initialization                             :         1.92
-     - init_scf                             :         0.68
-     - init_kpt                             :         0.02
-     - init_eval                            :         0.01
+ Initialization                             :         2.88
+     - init_scf                             :         1.36
+     - init_kpt                             :         0.10
+     - init_eval                            :         0.00
      - init_freq                            :         0.00
-     - init_mb                              :         0.23
+     - init_mb                              :         0.34
  Subroutines                                : 
-     - calcpmat                             :         0.51
-     - calcbarcmb                           :         0.93
+     - calcpmat                             :         0.56
+     - calcbarcmb                           :         1.43
      - BZ integration weights               :         0.00
-     Dielectric function                    :         1.55
+     Dielectric function                    :         3.33
      - head                                 :         0.00
      - wings                                :         0.00
      - body                                 :         0.00
-     - inversion                            :         0.01
-     WF products expansion                  :         0.02
-     - diagsgi                              :         0.02
-     - calcmpwipw                           :         0.00
-     - calcmicm                             :         0.03
-     - calcminc                             :         0.06
+     - inversion                            :         0.06
+     WF products expansion                  :         0.09
+     - diagsgi                              :         0.06
+     - calcmpwipw                           :         0.03
+     - calcmicm                             :         0.05
+     - calcminc                             :         0.14
      - calcminm                             :         0.00
-     Self-energy                            :         2.65
-     - calcselfx                            :         1.32
-     - calcselfc                            :         1.33
-     - calcvxcnn                            :         0.17
+     Self-energy                            :         5.08
+     - calcselfx                            :         2.67
+     - calcselfc                            :         2.41
+     - calcvxcnn                            :         0.42
      - input/output                         :         0.00
  _________________________________________________________
- Total                                      :         8.92
+ Total                                      :        14.94
  

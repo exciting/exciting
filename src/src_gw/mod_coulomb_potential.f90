@@ -97,46 +97,28 @@ contains
                   )
         ! Final value
         sing = 2.d0*(t1 - t2)
-        if (.true.) then
-            print*, ''
-            print*, '1D: LIMIT q->0'
-            print*, 'omega_xy   =', omega_xy
-            print*, 'c          =', c
-            print*, 'beta       =', beta
-            print*, 't1         =', t1
-            print*, 't2         =', t2
-            print*, 'sing       =', sing
-            print*, ''
-        end if
+
     end subroutine
 
     subroutine vcoul_q0_2d(nkpt, sing)
+        use incgamma, only: incgam
         implicit none
-        integer(4), intent(in)  :: nkpt
-        real(8),    intent(out) :: sing
-        real(8) :: ab_plane, ab_norm(3), q0_vol
+        integer(i32), intent(in)  :: nkpt
+        real(dp),    intent(out) :: sing
+        real(dp) :: ab_plane, ab_norm(3), q0_vol
+        real(dp), parameter :: eulergamma = 0.5772156649015329
         !--------------------------------------------------------
         ! Spherically averaged value of the integral around q->0
         !--------------------------------------------------------
         ! cutoff length
-        rcut = 0.5d0*dsqrt(dot_product(avec(:,3),avec(:,3)))
+        rcut = 0.5d0*norm2(avec(:,3))
         ! ab-plane surface area
         call r3cross(avec(:,1), avec(:,2), ab_norm(:))
-        ab_plane = sqrt(dot_product(ab_norm(:), ab_norm(:)))
-        q0_vol   = 2.d0*pi / sqrt(pi*ab_plane*nkpt)
-        sing     = q0_vol*rcut - ((q0_vol*rcut)**2.0d0)/4.0d0
+        ab_plane = norm2(ab_norm(:))
+        q0_vol   = twopi / sqrt(pi*ab_plane*nkpt)
+        sing     = incgam(0.d0, q0_vol*rcut) + eulergamma + log(q0_vol*rcut)
         sing     = 2.d0 * ab_plane * sing * dble(nkpt)
-        if (.true.) then
-            write(*,*)
-            write(*,*) '2D: LIMIT q->0'
-            write(*,*) ' nqpt     = ', nkpt
-            write(*,*) ' rcut     = ', rcut
-            write(*,*) ' ab_norm  = ', ab_norm
-            write(*,*) ' ab_plane = ', ab_plane
-            write(*,*) ' q0_vol   = ', q0_vol
-            write(*,*) ' sing     = ', sing
-            write(*,*)
-        end if
+
     end subroutine
 
 
