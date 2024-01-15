@@ -39,7 +39,7 @@ test-debian-buster-Intel2019-smp:
     - cp -r build/utilities/modules/intel /etc/environment-modules/modules
     - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
     - module load intel/2019
-    - python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor lxml pytest pyyaml
+    - python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor pytest pyyaml
   script:
     # Run exciting unit tests
     - export OMP_NUM_THREADS=2 && bin/exciting_smp -run-unit-tests -kill-on-failure
