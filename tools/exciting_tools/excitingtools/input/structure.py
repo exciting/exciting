@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import copy
 from pathlib import Path
-from typing import Optional, Union, List, Dict
+from typing import Optional, Union, List, Dict, Iterator, Tuple
 from xml.etree import ElementTree
 
 import numpy as np
@@ -149,7 +149,7 @@ class ExcitingStructure(ExcitingXMLInput):
 
         return atom_properties
 
-    def _init_species_properties(self, species_properties: dict) -> Dict[str, ExcitingXMLInput]:
+    def _init_species_properties(self, species_properties: dict) -> Iterator[Tuple[str, ExcitingXMLInput]]:
         """ Initialise species_properties.
 
         For species without properties, return empty_properties: {'S': {}, 'Al': {}}.

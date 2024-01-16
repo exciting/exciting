@@ -21,6 +21,10 @@ path_type = Union[str, Path]
 class AbstractExcitingInput(ABC):
     """Base class for exciting inputs."""
 
+    @abstractmethod
+    def __init__(self, **kwargs):
+        ...
+
     @property
     @abstractmethod
     def name(self) -> str:

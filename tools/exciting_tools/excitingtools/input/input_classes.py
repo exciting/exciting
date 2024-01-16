@@ -1,6 +1,5 @@
 """ Automatic generation of all standard input classes plus definiton of exceptions. """
-from typing import List, Callable
-from typing import Union
+from typing import List, Union, Any
 from xml.etree import ElementTree
 
 import numpy as np
@@ -12,18 +11,19 @@ from excitingtools.utils.utils import list_to_str
 from excitingtools.utils.valid_attributes import valid_plan_entries
 
 # define names of classes which are meant to be available for a user or used directly elsewhere in excitingtools
-ExcitingCrystalInput: Callable
-ExcitingSpeciesInput: Callable
-ExcitingGroundStateInput: Callable
-ExcitingXSInput: Callable
-ExcitingPropertiesInput: Callable
-ExcitingPointInput: Callable
-ExcitingBandStructureInput: Callable
-ExcitingRelaxInput: Callable
-ExcitingPhononsInput: Callable
-ExcitingGWInput: Callable
-ExcitingMDInput: Callable
-ExcitingEPHInput: Callable
+# type hint as Any to not conflict with static type checkers as the input classes are generated dynamically
+ExcitingCrystalInput: Any
+ExcitingSpeciesInput: Any
+ExcitingGroundStateInput: Any
+ExcitingXSInput: Any
+ExcitingPropertiesInput: Any
+ExcitingPointInput: Any
+ExcitingBandStructureInput: Any
+ExcitingRelaxInput: Any
+ExcitingPhononsInput: Any
+ExcitingGWInput: Any
+ExcitingMDInput: Any
+ExcitingEPHInput: Any
 
 # execute dynamically generated string with all standard class defintions
 exec(generate_classes_str())
