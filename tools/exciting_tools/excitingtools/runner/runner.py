@@ -30,7 +30,7 @@ class SubprocessRunResults:
     stdout: str | bytes
     stderr: str | bytes
     return_code: int | RunnerCode
-    process_time: float = None
+    process_time: Optional[float] = None
 
     def __post_init__(self):
         self.success = self.return_code == 0
