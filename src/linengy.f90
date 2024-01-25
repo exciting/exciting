@@ -15,6 +15,8 @@ Subroutine linengy
       Use modinput
       Use modmain
       Use scl_xml_out_Module
+      use trial_energy_selection, only: select_local_orbital_trial_energies, select_apw_trial_energies
+
 ! !DESCRIPTION:
 !   Calculates the new linearisation energies for both the APW and local-orbital
 !   radial functions. See the routine {\tt findband}.
@@ -39,6 +41,12 @@ Subroutine linengy
       character(1024) :: message
 
       linenetype = trim(input%groundstate%findlinentype)
+
+      ! find the initial linearization energies 
+      if ((iscl==1) .or. (iscl==0)) then 
+         call select_local_orbital_trial_energies(nlorb, lorbord, lorbl, lorbn, nspecies, idxas, nrmt, spr, veffmt(1,:,:), lorbe0) 
+         call select_apw_trial_energies(maxapword, maxlapw, apwn(:, 0:, :), nspecies, idxas, nrmt, spr, veffmt(1,:,:), apwe0(:, 0:, :))
+      endif
 !________________________________
 !     switch off LE search
 
