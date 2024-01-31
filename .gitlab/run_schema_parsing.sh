@@ -25,10 +25,14 @@ if [ -n "$difference" ]; then
   echo "A discrepancy in the parsed schema was found. That usually means that you have touched the schema of exciting, "
   echo "and not updated the schema's representation in excitingtools."
   echo ""
-  echo "In order to do so, install excitingtools and xmlschema with the following commands:"
-  echo "python3 -m pip install xmlschema"
-  echo "python3 -m pip install \$EXCITINGROOT/tools/exciting_tools"
+  echo "In order to do so, upgrade pip, install excitingtools in editable mode and xmlschema"
+  echo "and run the schema_parsing with the following commands:"
+  echo "python3 -m pip install --upgrade pip xmlschema"
+  echo "python3 -m pip install -e \$EXCITINGROOT/tools/exciting_tools"
   echo "python3 -m excitingtools.utils.schema_parsing"
+  echo ""
+  echo "NOTE: If you are using python3.7, you need an older version of xmlschema via:"
+  echo "python3 -m pip install xmlschema==2.5.1"
   echo ""
   exit 1
 fi
