@@ -2,7 +2,6 @@
 Excludes the run method.
 """
 import shutil
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -116,16 +115,14 @@ def test_run_with_bash_command(tmp_path: Path):
     runner = BinaryRunner(binary.as_posix(), ["echo"], 1, 60, run_dir.as_posix())
     run_results = runner.run()
     assert run_results.success
-    assert run_results.stderr == b''
-    assert run_results.stdout.decode() == binary.as_posix() + "\n"
+    assert run_results.stderr == ''
+    assert run_results.stdout == binary.as_posix() + "\n"
 
 
-@pytest.mark.skipif(sys.version_info < (3, 8), reason="requires python3.8 or higher")
 def test_timeout_with_bash_command(tmp_path: Path):
     """Produces a runner with binary and run dir mocked up.
-    Test a simple sleep command to get a timeout.
 
-    Note: Skip for python3.7 because it returns b'' as stdout instead of None
+    Test a simple sleep command to get a timeout.
     """
     time_out = 1
     binary = tmp_path / "sleep.sh"
@@ -134,7 +131,7 @@ def test_timeout_with_bash_command(tmp_path: Path):
     run_results = runner.run()
     assert not run_results.success
     assert run_results.stderr == 'BinaryRunner: Job timed out. \n\n'
-    assert run_results.stdout is None
+    assert run_results.stdout == ""
     assert run_results.process_time == time_out
     assert isinstance(run_results.return_code, RunnerCode)
     assert run_results.return_code == RunnerCode.time_out
