@@ -14,11 +14,11 @@ subroutine init2offs(voffk, reduceq)
 
   implicit none
 
-  real(8), intent(in) :: voffk(3) ! q-grid offset in k-grid coordinates
+  real(8), intent(inout) :: voffk(3) ! q-grid offset in k-grid coordinates
   logical, intent(in) :: reduceq  ! whether or not to reduce the q-grid
 
   integer(4) :: iq, iv(3)
-  real(8) :: boxl(3, 4)
+  real(8) :: boxl(3, 4), voffk_copy(3)
 
 
 

@@ -1,0 +1,168 @@
+{
+  "bse_output.h5": {
+    "evals": {
+      "tol": 1e-05,
+      "unit": "eV"
+    },
+    "evalsIP": {
+      "tol": 1e-05,
+      "unit": "eV"
+    },
+    "0000000?": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "ensortidx": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "fcoup": {
+      "tol": "",
+      "unit": "null"
+    },
+    "fesel": {
+      "tol": "",
+      "unit": "null"
+    },
+    "hamsize": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "i1": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "i2": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "ik2ikqmtm": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "ik2ikqmtp": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "ikmap": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "ikqmtm2ikqmtp": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "ioref": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "iq": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "iuref": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "koulims": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "kousize": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "nexcstored": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "ngridk": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "nk_bse": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "nk_max": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "smap": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "smap_rel": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "vkl": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "vkl0": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "vqlmt(iq)": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "evalre": {
+      "tol": 1e-05,
+      "unit": "eV"
+    },
+    "oscstrr": {
+      "tol": 1e-05,
+      "unit": "null"
+    },
+    "escale": {
+      "tol": 1e-05,
+      "unit": "eV"
+    },
+    "eshift": {
+      "tol": 1e-05,
+      "unit": "eV"
+    },
+    "ivgmt": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "vgcmt": {
+      "tol": 1e-08,
+      "unit": "Bohr^-1"
+    },
+    "vqcmt": {
+      "tol": 1e-08,
+      "unit": "Bohr^-1"
+    },
+    "vqlmt": {
+      "tol": 1e-08,
+      "unit": "Bohr^-1"
+    },
+    "epsm": {
+      "tol": 5e-05,
+      "unit": "null"
+    },
+    "w": {
+      "tol": 1e-08,
+      "unit": "eV"
+    },
+    "lossfct": {
+      "tol": 1e-05,
+      "unit": "null"
+    },
+    "sigma": {
+      "tol": 1e-05,
+      "unit": "null"
+    },
+    "broad": {
+      "tol": 1e-05,
+      "unit": "eV"
+    },
+    "foff": {
+      "tol": "",
+      "unit": "null"
+    }
+  }
+}

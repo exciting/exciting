@@ -337,7 +337,7 @@ BSE_valid_attributes = ['aresbse', 'blocks', 'brixshdf5', 'bsedirsing', 'bsetype
                         'sciavqhd', 'sciavqwg', 'sciavtype', 'scrherm', 'solver', 'vkloff', 'xas', 'xasatom', 'xasedge', 
                         'xasspecies', 'xes'] 
 
-fastBSE_valid_attributes = ['cvtsteplim', 'cvttol', 'lanczosmaxits', 'nisdf', 'rsampling', 'seed'] 
+fastBSE_valid_attributes = ['clanczos', 'cvtsteplim', 'cvttol', 'ngridr', 'nisdf', 'nlanczos', 'saveQ', 'seed'] 
 
 transitions_valid_subtrees = ['individual', 'ranges', 'lists'] 
 
@@ -407,12 +407,11 @@ SpectralFunctionPloteph_valid_attributes = ['axis', 'eta', 'nwgrid', 'wmax', 'wm
 
 # valid entries for the xs subtree 'plan'
 valid_plan_entries = ['bse', 'bsegenspec', 'bsesurvey', 'df', 'df2', 'dielectric', 'emattest', 'exccoulint', 
-                      'excitonWavefunction', 'expand_add_eps', 'fastBSE_isdf_cvt', 'fastBSE_isdf_vexc_test', 
-                      'fastBSE_main', 'fastBSE_setup_transitions', 'fxc_alda_check', 'idf', 'kernxc_bse', 'kernxc_bse3', 
-                      'phonon_screening', 'planewave_elements', 'pmatxs2orig', 'portstate(-1)', 'portstate(-2)', 
-                      'portstate(1)', 'portstate(2)', 'scrcoulint', 'screen', 'scrgeneigvec', 'scrtetcalccw', 
-                      'scrwritepmat', 'testmain', 'testxs', 'tetcalccw', 'write_dielectric_matrix', 
-                      'write_pmat_hdf5_xs', 'write_screen', 'write_screened_coulomb', 'write_wfplot', 
-                      'writebandgapgrid', 'writebevec', 'writeemat', 'writeematasc', 'writekpathweights', 
-                      'writeoverlapxs', 'writepmat', 'writepmatasc', 'writepmatxs', 'writepwmat', 'x0toasc', 'x0tobin', 
-                      'xsestimate', 'xsgeneigvec'] 
+                      'excitonWavefunction', 'expand_add_eps', 'fastBSE_groundstate_properties', 'fastBSE_isdf_cvt', 
+                      'fastBSE_main', 'fastBSE_write_formatted_output', 'fxc_alda_check', 'idf', 'kernxc_bse', 
+                      'kernxc_bse3', 'phonon_screening', 'planewave_elements', 'pmatxs2orig', 'portstate(-1)', 
+                      'portstate(-2)', 'portstate(1)', 'portstate(2)', 'scrcoulint', 'screen', 'scrgeneigvec', 
+                      'scrtetcalccw', 'scrwritepmat', 'testmain', 'testxs', 'tetcalccw', 'write_dielectric_matrix', 
+                      'write_pmat_hdf5_xs', 'write_screen', 'write_screened_coulomb', 'writebandgapgrid', 'writebevec', 
+                      'writeemat', 'writeematasc', 'writekpathweights', 'writeoverlapxs', 'writepmat', 'writepmatasc', 
+                      'writepmatxs', 'writepwmat', 'x0toasc', 'x0tobin', 'xsestimate', 'xsgeneigvec'] 

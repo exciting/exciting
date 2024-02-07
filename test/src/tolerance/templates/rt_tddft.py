@@ -31,8 +31,8 @@ default = DefaultTolerances(integer=Tol(0),
                             float=Tol(1.e-8),
                             energy=Tol(1.e-8, Unit.hartree),
                             oscillator_strength=Tol(1.e-8, Unit.null),
-                            time=Tol(1e-8, Unit.au),  # Which would be hbar / E_H
-                            current_density=Tol(1e-8, Unit.au),  # Which would be  (e * E_H) / (hbar * a0)
+                            time=Tol(1e-8, Unit.au),               # Which would be hbar / E_H
+                            current_density=Tol(1e-8, Unit.au),    # Which would be  (e * E_H) / (hbar * a0)
                             length=Tol(1e-8, Unit.bohr),
                             velocity=Tol(1e-8, Unit.bohr_velocity),
                             force=Tol(1e-8, Unit.force)

@@ -44,7 +44,7 @@ def read_output_file(file_name: str) -> Union[dict, Failure]:
     if not (sub_dir in ['ref', 'run']):
         raise ValueError(f"Subdirectory in which output file exists is not 'ref' or 'run' \a"
                          "which is expected by the test suite: {file_name}")
-
+    
     try:
         data = parser_chooser(file_name)
         return data

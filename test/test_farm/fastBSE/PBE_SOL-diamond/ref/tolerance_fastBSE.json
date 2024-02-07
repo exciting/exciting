@@ -1,0 +1,150 @@
+{
+  "fastBSE_output.h5": {
+    "energies": {
+      "tol": 1e-05,
+      "unit": "Hartree"
+    },
+    "matrix_elements": {
+      "tol": 1e-08,
+      "unit": "Bohr^-1"
+    },
+    "band_index_lookup_table": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "uo_limits": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "mask": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "u": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "r_sampling": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "k_list": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "band_list": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "ngridk": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "eps_im": {
+      "tol": 1e-05,
+      "unit": "null"
+    },
+    "exciton_eval": {
+      "tol": 1e-05,
+      "unit": "Hartree"
+    },
+    "exciton_evec": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "gaussquad_energies": {
+      "tol": 1e-05,
+      "unit": "Hartree"
+    },
+    "gaussquad_weights": {
+      "tol": 1e-05,
+      "unit": "null"
+    },
+    "omega": {
+      "tol": 1e-05,
+      "unit": "Hartree"
+    },
+    "ip_gap": {
+      "tol": 1e-05,
+      "unit": "Hartree"
+    },
+    "r_cartesian": {
+      "tol": 1e-08,
+      "unit": "Bohr"
+    },
+    "r_isdf_indices": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "zeta": {
+      "tol": 1e-07,
+      "unit": "null"
+    },
+    "u_o_isdf": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "u_u_isdf": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "w_screened_hat": {
+      "tol": 1e-05,
+      "unit": "Hartree"
+    },
+    "q_cartesian": {
+      "tol": 1e-08,
+      "unit": "Bohr^-1"
+    },
+    "G+q_cartesian": {
+      "tol": 1e-08,
+      "unit": "Bohr^-1"
+    },
+    "N_G_per_q": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "ngridq": {
+      "tol": 0,
+      "unit": "null"
+    }
+  },
+  "fastBSE_absorption_spectrum.out": {
+    "energy_unit": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "broadening": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "frequency": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "imag_epsilon": {
+      "tol": 1e-05,
+      "unit": "null"
+    }
+  },
+  "fastBSE_exciton_energies.out": {
+    "energy_unit": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "ip_band_gap": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "exciton_energies": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    }
+  },
+  "fastBSE_oscillator_strengths.out": {
+    "oscillator_strength": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  }
+}
