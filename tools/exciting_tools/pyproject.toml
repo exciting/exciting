@@ -20,6 +20,9 @@ dev = [
     "pytest",
     "ase>=3.20.0"
 ]
+schemaparsing = ["xmlschema"]
+h5_parsing = ["h5py"]
+
 
 [project.urls]
 repository = "https://github.com/exciting/excitingtools"

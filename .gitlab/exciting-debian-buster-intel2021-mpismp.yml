@@ -12,7 +12,7 @@ before_script:
   - module load intel/oneapi-2021.3
   - ls $MKLROOT/include/intel64/lp64/
 script:
-  - cp build/platforms/make.inc.ifort2021 build/make.inc
+  - cp build/platforms/make.inc.ifort build/make.inc
   - make mpiandsmp -j 2
 artifacts:
   paths:

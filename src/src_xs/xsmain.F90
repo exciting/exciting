@@ -33,11 +33,9 @@ subroutine xsmain(plan, nxstasks)
   use write_screening, only: write_screening_launcher
   use xhdf5, only: xhdf5_type
   use xstring, only: validate_filename
-  use fastBSE, only: fastBSE_main, fastBSE_sanity_checks
-  use fastBSE_write_wfplot, only: fastBSE_write_u
-  use fastBSE_transitions, only: fastBSE_setup_transitions
+  use fastBSE, only: fastBSE_main, fastBSE_write_formatted_output, fastBSE_sanity_checks
+  use fastBSE_groundstate_properties, only: fastBSE_setup_groundstate_properties
   use fastBSE_isdf, only: fastBSE_isdf_cvt
-  use fastBSE_isdf_tests, only: fastBSE_isdf_vexc_test
   use modxs, only: unitout
   use write_screening, only: write_screening_launcher
   
@@ -234,31 +232,25 @@ subroutine xsmain(plan, nxstasks)
         ! BSE-kernel
         call kernxc_bse
 
-      ! Taskname 'write_wfplot'
-      case(451)
-        ! write real-space XS wfcts to file
-        call fastBSE_sanity_checks(mpiglobal, input)
-        call fastBSE_write_u(fhdf5, ghdf5, input, mpiglobal)
-
       ! Taskname 'fastBSE_main'
       case(501)
         call fastBSE_sanity_checks(mpiglobal, input)
         call fastBSE_main(mpiglobal, input, fhdf5, ghdf5, unitout)
 
-      case(510)
-      ! Taskname 'fastBSE_setup_transitions'
+      ! Taskname 'fastBSE_write_formatted_output'
+      case(502)
         call fastBSE_sanity_checks(mpiglobal, input)
-        call fastBSE_setup_transitions(mpiglobal, input, fhdf5, ghdf5, unitout)
+        call fastBSE_write_formatted_output(mpiglobal, input, fhdf5, ghdf5)
+
+      case(510)
+      ! Taskname 'fastBSE_groundstate_properties'
+        call fastBSE_sanity_checks(mpiglobal, input)
+        call fastBSE_setup_groundstate_properties(mpiglobal, input, fhdf5, ghdf5, unitout)
 
       ! Taskname 'fastBSE_isdf_cvt'
       case(512)
         call fastBSE_sanity_checks(mpiglobal, input)
         call fastBSE_isdf_cvt(mpiglobal, input, fhdf5, ghdf5, unitout)  
-
-      ! Taskname 'fastBSE_isdf_vexc_test'
-      case(513)
-        call fastBSE_sanity_checks(mpiglobal, input)
-        call fastBSE_isdf_vexc_test(mpiglobal, input, fhdf5, ghdf5, unitout)
 
       ! Taskname 'xsestimate'
       case(700)

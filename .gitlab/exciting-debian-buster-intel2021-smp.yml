@@ -8,7 +8,7 @@
 # is required because the docker base used for intel does not include python
 # and the corresponding packages. Consider building a new `exciting:debian-base-with-nfs` image
 
-build:debian-buster-Intel2019-smp:
+build:debian-buster-Intel2021-smp:
   image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
   stage: build
   tags:
@@ -27,11 +27,11 @@ build:debian-buster-Intel2019-smp:
       - build/make.inc
     expire_in: 5 hrs
 
-test-debian-buster-Intel2019-smp:
+test-debian-buster-Intel2021-smp:
   image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
   stage: test
   dependencies:
-    - build:debian-buster-Intel2019-smp
+    - build:debian-buster-Intel2021-smp
     - python:regressionframework-python-3.7
   tags:
     - docker

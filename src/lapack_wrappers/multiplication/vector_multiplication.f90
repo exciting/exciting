@@ -107,7 +107,7 @@ contains
   complex(dp) function dot_multiplication_complex_dp(a, b, conjg_a) 
     !> Input vectors
     complex(dp), intent(in) :: a(:), b(:)
-    !> Decide if a is takens as conjungated (default) or tranposed.
+    !> Decide if a is taken as conjungated (default) or transposed.
     logical, intent(in), optional :: conjg_a
 
     logical :: conjg_a_ 
@@ -152,7 +152,7 @@ contains
     complex(dp), intent(in) :: a(:)
     !> Real input vector
     real(dp), intent(in) :: b(:)
-    !> Decide if a is takens as conjungated (default) or tranposed.
+    !> Decide if a is taken as conjungated (default) or transposed.
     logical, intent(in), optional :: conjg_a
 
     logical :: conjg_a_ 

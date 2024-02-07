@@ -9,9 +9,9 @@ python:excitingtools-python-3.7:
     - docker
   before_script:
     - python3 -m pip install -U pip setuptools
-    - python3 -m pip install --upgrade --force pylint coverage xmlschema ase
+    - python3 -m pip install --upgrade --force pylint coverage
   script:
-    - cd tools/exciting_tools && python3 -m pip install -e .
+    - cd tools/exciting_tools && python3 -m pip install -e .[schemaparsing,h5_parsing,dev]
     # Run excitingtools unit tests and collect test coverage
     - coverage run -m pytest
     - coverage xml -o excitingtools_testcov.xml
@@ -38,6 +38,7 @@ python:regressionframework-python-3.7:
    # - python3.7 -m pip install --upgrade --force coverage
     - python3 -m pip install -U pip setuptools
     - python3 -m pip install coverage
+    - python3 -m pip install h5py
     - python3 -m pip install tools/exciting_tools
   script:
     - cd test/ && coverage run -m pytest test_functions/

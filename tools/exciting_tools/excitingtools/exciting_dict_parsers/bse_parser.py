@@ -7,7 +7,7 @@ import numpy as np
 
 
 def numpy_gen_from_txt(name: str, skip_header: Optional[int] = 0) -> np.ndarray:
-    """  Numpy genfromtxt, dressed in try/expect.
+    """Numpy genfromtxt, dressed in try/expect.
 
     Not worth generalising, as would need to support genfromtxt's API.
 
@@ -23,8 +23,7 @@ def numpy_gen_from_txt(name: str, skip_header: Optional[int] = 0) -> np.ndarray:
 
 
 def parse_EPSILON_NAR(name: str) -> dict:
-    """
-    Parser for:
+    """Parser for:
         EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC.OUT.xml,
         EPSILON_NAR_FXCMB1_OC_QMT001.OUT.xml,
         EPSILON_NAR_NLF_FXCMB1_OC_QMT001.OUT.xml,
@@ -41,8 +40,7 @@ def parse_EPSILON_NAR(name: str) -> dict:
 
 
 def parse_LOSS_NAR(name):
-    """
-    Parser for:
+    """Parser for:
      LOSS_NAR_FXCMB1_OC_QMT001.OUT.xml,
      LOSS_NAR_NLF_FXCMB1_OC_QMT001.OUT.xml
     """
@@ -57,8 +55,7 @@ def parse_LOSS_NAR(name):
 
 
 def parse_EXCITON_NAR_BSE(name):
-    """
-    Parser for EXCITON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC.OUT
+    """Parser for EXCITON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC.OUT
     """
     data = numpy_gen_from_txt(name, skip_header=14)
     out = {}
@@ -72,9 +69,8 @@ def parse_EXCITON_NAR_BSE(name):
     return out
 
 
-def parse_infoxs_out(name: str) -> dict:
-    """
-    Parser for INFOXS.OUT file. Parses only the started and stopped tasks.
+def parse_infoxs_out(name: str, parse_timing: bool=False) -> dict:
+    """Parser for INFOXS.OUT file. Parses only the started and stopped tasks.
     Searches for lines like:
         'EXCITING <version> started for task <taskname> (<tasknumber>)'
     and
@@ -86,6 +82,8 @@ def parse_infoxs_out(name: str) -> dict:
     For success, the last started tasks has to be finished after that (in the file).
     Last finished task is the last task if calculation was successful, the task before that if it finished, else None.
     :param name: path of the file to parse
+    :param parse_timing: parse also timing information for the tasks. By default this is set to False. If the task has not finished
+                         None is returned as timing.
     :returns: dictionary containing parsed file
     """
     with open(name) as file:
@@ -118,7 +116,80 @@ def parse_infoxs_out(name: str) -> dict:
         last_finished_task = tasks[-1]['name']
     elif len(tasks) > 1 and tasks[-2]['finished']:
         last_finished_task = tasks[-2]['name']
-
+    
     return {'tasks': tasks,
             'success': success,
             'last_finished_task': last_finished_task}
+
+    
+def parse_fastBSE_absorption_spectrum_out(name: str) -> dict:
+    """Parser for fastBSE_absorption_spectrum.out file.
+
+    :param name: path of the file to parse
+    :returns: dictionary containing parsed file
+    """
+
+    n_lines_description = 6
+    description = ""
+    with open(name, 'r') as file:
+        for _ in range(n_lines_description):
+            description += file.readline()
+
+    try:
+        energy_unit = float(re.findall(r'# Energy unit:\s*(.*) *Hartree', description)[0])
+    except IndexError:
+        raise RuntimeError('Could match regular expression for energy unit. Has the file header changed?')
+    
+    try:
+        broadening = float(re.findall(r'# Broadening:\s*(.*) energy unit', description)[0])
+    except IndexError:
+        raise RuntimeError('Could match regular expression for broadening. Has the file header changed?')
+
+    data = numpy_gen_from_txt(name, n_lines_description)
+
+    return {
+        'energy_unit': energy_unit,
+        'broadening': broadening,
+        'frequency': data[:, 0],
+        'imag_epsilon': data[:, 1:4]
+    }
+
+def parse_fastBSE_exciton_energies_out(name: str) -> dict:
+    """Parser for fastBSE_exciton_energies.out and fastBSE_gauss_quadrature_energies.out files.
+
+    :param name: path of the file to parse
+    :returns: dictionary containing parsed file
+    """
+
+    n_lines_description = 8
+    description = ""
+    with open(name, 'r') as file:
+        for _ in range(n_lines_description):
+            description += file.readline()
+
+    try:
+        energy_unit = float(re.findall(r'# Energy unit:\s*(.*) *Hartree', description)[0])
+    except IndexError:
+        raise RuntimeError('Could match regular expression for energy unit. Has the file header changed?')
+    
+    try:
+        ip_band_gap = float(re.findall(r'# IP band gap:\s*(.*) energy unit', description)[0])
+    except IndexError:
+        raise RuntimeError('Could match regular expression for ip band gap. Has the file header changed?')
+            
+    return {
+        'energy_unit': energy_unit,
+        'ip_band_gap': ip_band_gap,
+        'exciton_energies': numpy_gen_from_txt(name, n_lines_description)   
+    }
+
+
+def parse_fastBSE_oscillator_strength_out(name: str) -> dict:
+    """Parser for fastBSE_gauss_quadrature_oscillator_strengths.out.out file.
+
+    :param name: path of the file to parse
+    :returns: dictionary containing parsed file
+    """
+
+    return {'oscillator_strength': numpy_gen_from_txt(name, 5)}
+

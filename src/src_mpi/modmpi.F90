@@ -80,6 +80,10 @@ module modmpi
   !> Some parts use these
   logical :: splittfile, firstinnode
 
+  !> Terminate excting if a condition is `.false.`.
+  interface terminate_if_false
+    procedure :: terminate_if_false_serial, terminate_if_false_mpi
+  end interface terminate_if_false
 
 contains
 
@@ -175,7 +179,7 @@ contains
     end subroutine terminate_mpi_env
 
   !> Terminate exciting if condition is false
-  subroutine terminate_if_false(condition, message)
+  subroutine terminate_if_false_serial(condition, message)
     use iso_fortran_env, only: error_unit
     !> Error condition, need to be false to terminate the program and print the message
     logical, intent(in) :: condition
@@ -196,7 +200,33 @@ contains
       call trace_back()
       call terminate()
     end if
-  end subroutine terminate_if_false
+  end subroutine terminate_if_false_serial
+
+  !> Terminate exciting if condition is false by terminating the MPI environment.
+  subroutine terminate_if_false_mpi(mpi_env, condition, message)
+    use iso_fortran_env, only: error_unit
+    !> MPI environment to terminate
+    type(mpiinfo), intent(inout) :: mpi_env
+    !> Error condition, need to be false to terminate the program and print the message
+    logical, intent(in) :: condition
+    !> Error message that is printed to the terminal if present and condition is false.
+    character(*), optional, intent(in) :: message
+
+    character(512) :: error_message
+
+    error_message = 'Error'
+    if (present(message)) then
+      error_message = trim(error_message)//': '//trim(adjustl(message))
+    end if
+
+    if(.not. condition) then
+      write(error_unit, *)
+      write(error_unit, '(a)') trim(error_message)
+      write(error_unit, *)
+      call trace_back()
+      call terminate_mpi_env(mpi_env)
+    end if
+  end subroutine terminate_if_false_mpi
 
     !> Terminate global MPI environment
     !>

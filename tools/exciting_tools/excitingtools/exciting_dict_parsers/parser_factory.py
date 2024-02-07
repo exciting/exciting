@@ -12,7 +12,7 @@ from excitingtools.utils.dict_utils import container_converter
 
 from excitingtools.exciting_dict_parsers import \
     bse_parser, groundstate_parser, gw_eigenvalues_parser, gw_eps00_parser, gw_info_parser, gw_vxc_parser, \
-    input_parser, properties_parser, RT_TDDFT_parser, species_parser, state_parser
+    input_parser, properties_parser, RT_TDDFT_parser, species_parser, state_parser, hdf5_parser
 
 
 # Map file name to parser function
@@ -139,6 +139,11 @@ _file_to_parser = {
     'wf3d-0001-0001.cube': properties_parser.parse_cube,
     'wf3d-0003-0001.cube': properties_parser.parse_cube,
     'STATE.OUT': state_parser.parse_state_out,
+    'bse_output.h5': hdf5_parser.parse_hdf5_file_as_dict,
+    'fastBSE_output.h5': hdf5_parser.parse_hdf5_file_as_dict,
+    'fastBSE_absorption_spectrum.out': bse_parser.parse_fastBSE_absorption_spectrum_out,
+    'fastBSE_exciton_energies.out': bse_parser.parse_fastBSE_exciton_energies_out,
+    'fastBSE_oscillator_strengths.out': bse_parser.parse_fastBSE_oscillator_strength_out
 }
 
 
