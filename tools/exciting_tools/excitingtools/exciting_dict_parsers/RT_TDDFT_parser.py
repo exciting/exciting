@@ -170,21 +170,16 @@ def parse_proj_screenshots(name: str) -> dict:
     with open(name) as f:
         file = f.readlines()
 
-    data = {}
-    kpoints = []
+    data = {'ik': [], 'projection': []}
     for i in k_blocks:
-        kpoint = {}
         start = i[0]
         end = i[1]
         ik = int(file[start].split()[-1])
         projection = []
         for j in range(start + 1, end):
             projection.append([float(x) for x in file[j].split()])
-        kpoint['ik'] = ik
-        kpoint['projection'] = np.asarray(projection)
-
-    data['kpoints'] = kpoints
-
+        data['ik'].append(ik)
+        data['projection'].append(np.asarray(projection))
     return data
 
 def parse_atom_position_velocity_force(name: str) -> dict:
