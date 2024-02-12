@@ -408,7 +408,7 @@ SpectralFunctionPloteph_valid_attributes = ['axis', 'eta', 'nwgrid', 'wmax', 'wm
 # valid entries for the xs subtree 'plan'
 valid_plan_entries = ['bse', 'bsegenspec', 'bsesurvey', 'df', 'df2', 'dielectric', 'emattest', 'exccoulint', 
                       'excitonWavefunction', 'expand_add_eps', 'fastBSE_groundstate_properties', 'fastBSE_isdf_cvt', 
-                      'fastBSE_main', 'fastBSE_write_formatted_output', 'fxc_alda_check', 'idf', 'kernxc_bse', 
+                      'fastBSE_main', 'fastBSE_human_readable_output', 'fxc_alda_check', 'idf', 'kernxc_bse', 
                       'kernxc_bse3', 'phonon_screening', 'planewave_elements', 'pmatxs2orig', 'portstate(-1)', 
                       'portstate(-2)', 'portstate(1)', 'portstate(2)', 'scrcoulint', 'screen', 'scrgeneigvec', 
                       'scrtetcalccw', 'scrwritepmat', 'testmain', 'testxs', 'tetcalccw', 'write_dielectric_matrix', 

@@ -255,10 +255,10 @@ module xs_plan_manager
     nxstasks = nxstasks+1
     input%xs%plan%doonlyarray(nxstasks)%doonly%task="fastBSE_main"
 
-    ! Task 502 corresponds to "fastBSE_write_formatted_output"
+    ! Task 502 corresponds to "fastBSE_human_readable_output"
     ! Set up and solve BSE with ISDF compression of the BSH and Lanczos solver
     nxstasks = nxstasks+1
-    input%xs%plan%doonlyarray(nxstasks)%doonly%task="fastBSE_write_formatted_output"
+    input%xs%plan%doonlyarray(nxstasks)%doonly%task="fastBSE_human_readable_output"
 
     ! Set associated taks numbers
     do i = 1, nxstasks

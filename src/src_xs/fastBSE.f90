@@ -38,7 +38,7 @@ module fastBSE
 
 
   private
-  public :: fastBSE_main, fastBSE_sanity_checks, fastBSE_write_formatted_output, read_fastBSE_excitons_hdf5
+  public :: fastBSE_main, fastBSE_sanity_checks, fastBSE_human_readable_output, read_fastBSE_excitons_hdf5
 
 
   contains 
@@ -454,7 +454,8 @@ module fastBSE
       end if
 
 
-      deallocate(alpha, beta, eval_mask, evec_mask, evals, oscstr, evecs_tridiag)
+      deallocate(alpha, beta, eval_mask, evals, oscstr, evecs_tridiag)
+      if(save_exc_evecs) deallocate(eval_mask)
       
     end do
 
@@ -550,7 +551,7 @@ module fastBSE
 
   !> Read fastBSE results from HDF5 fike and write formatted output files for the spectrum, 
   !> the eigen energies, and the oscillator strengths.
-  subroutine fastBSE_write_formatted_output(mpi_env, input, h5file, h5path)
+  subroutine fastBSE_human_readable_output(mpi_env, input, h5file, h5path)
     !> MPI environment.
     type(mpiinfo), intent(inout) :: mpi_env
     !> Input file container.

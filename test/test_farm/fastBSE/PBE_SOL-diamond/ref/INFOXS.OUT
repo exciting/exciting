@@ -300,7 +300,7 @@ Info(xsfinit): task Nr.     501 stopped gracefully
 
 
 ================================================================================
-| EXCITING NEON started for task fastBSE_write_formatted_output ( 502)          =
+| EXCITING NEON started for task fastBSE_human_readable_output ( 502)          =
 | Date (DD-MM-YYYY) : 02-01-2024                                               =
 ================================================================================
 Info(xsfinit): task Nr.     502 stopped gracefully

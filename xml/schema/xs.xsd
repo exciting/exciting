@@ -2263,7 +2263,7 @@
                           </xs:annotation>
                         </xs:enumeration>
 
-                        <xs:enumeration value="fastBSE_write_formatted_output">
+                        <xs:enumeration value="fastBSE_human_readable_output">
                           <xs:annotation>
                             <xs:appinfo>
                               <oldnr>502</oldnr>

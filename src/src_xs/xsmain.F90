@@ -33,7 +33,7 @@ subroutine xsmain(plan, nxstasks)
   use write_screening, only: write_screening_launcher
   use xhdf5, only: xhdf5_type
   use xstring, only: validate_filename
-  use fastBSE, only: fastBSE_main, fastBSE_write_formatted_output, fastBSE_sanity_checks
+  use fastBSE, only: fastBSE_main, fastBSE_human_readable_output, fastBSE_sanity_checks
   use fastBSE_groundstate_properties, only: fastBSE_setup_groundstate_properties
   use fastBSE_isdf, only: fastBSE_isdf_cvt
   use modxs, only: unitout
@@ -237,10 +237,10 @@ subroutine xsmain(plan, nxstasks)
         call fastBSE_sanity_checks(mpiglobal, input)
         call fastBSE_main(mpiglobal, input, fhdf5, ghdf5, unitout)
 
-      ! Taskname 'fastBSE_write_formatted_output'
+      ! Taskname 'fastBSE_human_readable_output'
       case(502)
         call fastBSE_sanity_checks(mpiglobal, input)
-        call fastBSE_write_formatted_output(mpiglobal, input, fhdf5, ghdf5)
+        call fastBSE_human_readable_output(mpiglobal, input, fhdf5, ghdf5)
 
       case(510)
       ! Taskname 'fastBSE_groundstate_properties'
