@@ -454,7 +454,7 @@ module fastBSE
       end if
 
 
-      deallocate(alpha, beta, eval_mask, evals, oscstr, evecs_tridiag)
+      deallocate(alpha, beta, evals, oscstr, evecs_tridiag)
       if(save_exc_evecs) deallocate(eval_mask)
       
     end do
