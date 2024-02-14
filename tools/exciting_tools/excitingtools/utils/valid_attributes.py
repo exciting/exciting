@@ -298,10 +298,10 @@ hole_valid_subtrees = ['plot1d', 'plot2d', 'plot3d']
 electron_valid_subtrees = ['plot1d', 'plot2d', 'plot3d'] 
 
 realTimeTDDFT_valid_attributes = ['TaylorOrder', 'calculateNExcitedElectrons', 'calculateTotalEnergy', 'endTime', 
-                                  'forcePmatHermitian', 'normalizeWF', 'printAfterIterations', 'printTimingDetailed', 
-                                  'printTimingGeneral', 'propagator', 'readPmatBasis', 'subtractJ0', 'timeStep', 
-                                  'vectorPotentialSolver'] 
-realTimeTDDFT_valid_subtrees = ['predictorCorrector', 'screenshots', 'laser'] 
+                                  'normalizeWF', 'printAfterIterations', 'printTimingDetailed', 'printTimingGeneral', 
+                                  'propagator', 'subtractJ0', 'timeStep', 'vectorPotentialSolver'] 
+realTimeTDDFT_valid_subtrees = ['predictorCorrector', 'screenshots', 'laser', 'pmat'] 
+realTimeTDDFT_mandatory_attributes = ['pmat'] 
 
 predictorCorrector_valid_attributes = ['maxIterations', 'tol'] 
 
@@ -316,6 +316,8 @@ kick_valid_attributes = ['amplitude', 'direction', 't0', 'width']
 trapCos_valid_attributes = ['amplitude', 'direction', 'omega', 'phase', 'riseTime', 't0', 'width'] 
 
 sinSq_valid_attributes = ['amplitude', 'direction', 'omega', 'phase', 'pulseLength', 't0'] 
+
+pmat_valid_attributes = ['forceHermitian', 'readFromFile', 'writeToFile'] 
 
 tddft_valid_attributes = ['acont', 'ahc', 'alphalrc', 'alphalrcdyn', 'aresdf', 'aresfxc', 'betalrcdyn', 'do', 'drude', 
                           'fxcbsesplit', 'fxctype', 'intraband', 'kerndiag', 'lindhard', 'lmaxalda', 'mdfqtype', 

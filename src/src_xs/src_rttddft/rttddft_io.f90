@@ -25,8 +25,8 @@ module rttddft_io
             open_file_info, close_file_info, write_file_info, &
             write_file_info_header, write_file_info_fill_line_with_char, &
             open_file_timing, close_file_timing, write_timing, &
-            file_pmat_exists, read_pmat, write_pmat, &
-            file_pmat_mt_exists, read_pmat_mt, write_pmat_mt, &
+            file_pmat_exists, read_pmat, write_pmat, get_filename_pmat, &
+            file_pmat_mt_exists, read_pmat_mt, write_pmat_mt, get_filename_pmat_mt, &
             write_wavefunction
 
   !> Number of the unit to print timings
@@ -402,6 +402,16 @@ contains
 
   logical function file_pmat_exists()
     inquire( file=trim(add_default_extension(filename_pmat)), exist=file_pmat_exists )
+  end function
+
+  function get_filename_pmat() result(name)
+    character(len=:), allocatable :: name
+    name = add_default_extension( filename_pmat )
+  end function
+
+  function get_filename_pmat_mt() result(name)
+    character(len=:), allocatable :: name
+    name = add_default_extension( filename_pmat_mt )
   end function
 
   !> Read the momentum matrix elements from file

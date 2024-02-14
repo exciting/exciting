@@ -40,13 +40,12 @@
             propagator="SE"
             timeStep="0.2d0"
             endTime="20.0d0"
-            readPmatBasis="false"
             printTimingGeneral="true"
             printTimingDetailed="true"
             calculateNExcitedElectrons="false"
             printAfterIterations="1"
-            vectorPotentialSolver="improvedeuler"
-            forcePmatHermitian="true">
+            vectorPotentialSolver="improvedeuler">
+            <pmat readFromFile="false" forceHermitian="true"/>
             <laser fieldType="total">
             </laser>
           </realTimeTDDFT>

@@ -11,10 +11,9 @@
   </xs:annotation>
   <xs:element ex:importance="expert" ex:unit="" name="xs">
     <xs:annotation>
-      <xs:documentation> If this element is present with valid configuration, the macroscopic
-        dielectric function and related spectroscopic quantities in the linear regime are calculated
-        through either time-dependent DFT (TDDFT) or the Bethe-Salpeter equation
-        (BSE).</xs:documentation>
+      <xs:documentation> If this element is present with valid configuration, 
+      then a time-dependent DFT (TDDFT) or a Bethe-Salpeter equation
+        (BSE) calculation is carried out.</xs:documentation>
     </xs:annotation>
     <xs:complexType>
       <xs:all>
@@ -558,32 +557,52 @@
 
             </xs:complexType>
           </xs:element>
+          
+          <xs:element ex:importance="expert" ex:unit="" name="pmat" minOccurs="1" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation> 
+                This element defines some details needed in the evaluation of
+                the momentum matrix.
+              </xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+              <xs:attribute ex:importance="expert" ex:unit="" name="readFromFile"
+                type="xs:boolean"  default="false">
+                <xs:annotation>
+                  <xs:documentation> By setting it to <pre>"true"</pre>,
+                    the momentum matrix elements are read from <pre>PMATBASIS.OUT</pre>
+                    (a previous calculation must have been done with the same
+                    relevant parameter for the basis, like <pre>rgkmax</pre>, 
+                    <pre>k-grid</pre>, LOs, etc.).
+		              </xs:documentation>
+                </xs:annotation>
+              </xs:attribute>
+              <xs:attribute ex:importance="expert" ex:unit="" name="writeToFile"
+                type="xs:boolean"  default="false">
+                <xs:annotation>
+                  <xs:documentation> By setting it to <pre>"true"</pre>,
+                    the momentum matrix elements are written to <pre>PMATBASIS.OUT</pre>.
+                    This option is ignored when <attref>readFromFile</attref> is 
+                    <pre>"true"</pre>.
+		              </xs:documentation>
+                </xs:annotation>
+              </xs:attribute>
+              <xs:attribute ex:importance="expert" ex:unit="" name="forceHermitian"
+                type="xs:boolean"  default="true">
+                <xs:annotation>
+                  <xs:documentation> When <pre>"true"</pre>,
+                    the <inlinemath>x</inlinemath>, <inlinemath>y</inlinemath> and
+                    <inlinemath>z</inlinemath> components of the momentum matrix
+                    are forced to be Hermitian. This may be useful to avoid numerical
+                    noise.
+                  </xs:documentation>
+                </xs:annotation>
+              </xs:attribute>
+            </xs:complexType>
+          </xs:element>
 
         </xs:all>
-
-
-            <xs:attribute ex:importance="expert" ex:unit="" name="readPmatBasis"
-              type="xs:boolean"  default="false">
-              <xs:annotation>
-                <xs:documentation> By setting it to <pre>"true"</pre>,
-                the momentum matrix elements are read from PMATBASIS.OUT
-                (a previous calculation must have been done with the same
-                relevant parameter for the basis, like rgkmax, k-grid, LOs,
-                etc.).
-		            </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="forcePmatHermitian"
-              type="xs:boolean"  default="false">
-              <xs:annotation>
-                <xs:documentation> When <pre>"true"</pre>,
-                the <inlinemath>x</inlinemath>, <inlinemath>y</inlinemath> and
-                <inlinemath>z</inlinemath> components of the momentum matrix
-                are forced to be Hermitian. This may be useful to avoid numerical
-                noise.
-		            </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
+            
             <xs:attribute ex:importance="expert" ex:unit=""
               name="calculateTotalEnergy" type="xs:boolean"
               default="false">

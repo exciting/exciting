@@ -20,7 +20,7 @@ module rttddft_init
   use mod_muffin_tin, only: lmmaxapw
   use mod_misc, only: filext
   use modinput, only: input
-  use modmpi
+  use modmpi, only: terminate_if_false, rank, mpi_env_k, distribute_loop
   use modxs, only: isreadstate0
   use physical_constants, only: c
   use precision, only: dp, i32
@@ -28,10 +28,10 @@ module rttddft_init
   use rttddft_Density, only: updatedensity
   use rttddft_GlobalVariables
   use rttddft_HamiltonianOverlap, only: UpdateHam
+  use rttddft_pmat, only: Obtain_Pmat_LAPWLOBasis
   use rttddft_io, only: file_pmat_exists, read_pmat, write_pmat, &
     file_pmat_mt_exists, read_pmat_mt, write_pmat_mt, write_file_info, &
-    write_file_info_fill_line_with_char
-  use rttddft_pmat, only: Obtain_Pmat_LAPWLOBasis
+    write_file_info_fill_line_with_char, get_filename_pmat, get_filename_pmat_mt
 
   implicit none
 
@@ -48,7 +48,8 @@ subroutine initialize_rttddft( molecular_dynamics )
   integer                     :: ik, first_kpt, last_kpt
   character(len=50)           :: string
   character(len=*), parameter :: new_line = achar(13) // achar(10) 
-  logical                     :: file_exists, readPmatBasis, forcePmatHermitian
+  logical                     :: file_exists, readPmatFromFile
+  logical                     :: writePmatToFile, forcePmatHermitian
   real(dp)                    :: voff(3)
 
 
@@ -71,8 +72,11 @@ subroutine initialize_rttddft( molecular_dynamics )
 
   ! Interface with input variables
   voff(1:3) = input%xs%vkloff(1:3)
-  readPmatBasis = input%xs%realTimeTDDFT%readPmatbasis
-  forcePmatHermitian = input%xs%realTimeTDDFT%forcePmatHermitian
+
+  readPmatFromFile = input%xs%realTimeTDDFT%pmat%readFromFile
+  writePmatToFile = input%xs%realTimeTDDFT%pmat%writeToFile .and. ( .not. readPmatFromFile )
+  forcePmatHermitian = input%xs%realTimeTDDFT%pmat%forceHermitian
+
   method = input%xs%realTimeTDDFT%propagator
   printTimesGeneral = input%xs%realTimeTDDFT%printTimingGeneral
   printTimesDetailed = (printTimesGeneral .and. input%xs%realTimeTDDFT%printTimingDetailed)
@@ -139,18 +143,19 @@ subroutine initialize_rttddft( molecular_dynamics )
   end do
 
 
-  ! Check if the momentum matrix elements have already been calculated
-  file_exists = file_pmat_exists()
-  if ( molecular_dynamics%on ) file_exists = file_exists .and. file_pmat_mt_exists()
-  ! Calculate or read the momentum matrix elements
-  if ( file_exists .and. readPmatBasis ) then
+  if( readPmatFromFile ) then 
+    call terminate_if_false( file_pmat_exists(), 'File:'//trim( get_filename_pmat() )//' not found')
     call read_pmat( first_kpt, pmat, mpi_env_k )
-    if ( molecular_dynamics%on ) call read_pmat_mt( first_kpt, pmatmt, mpi_env_k )
+    if ( molecular_dynamics%on ) then 
+      call terminate_if_false( file_pmat_mt_exists(), 'File:'//trim( get_filename_pmat_mt() )//' not found')
+      call read_pmat_mt( first_kpt, pmatmt, mpi_env_k )
+    end if
   else
     call Obtain_Pmat_LAPWLOBasis( forcePmatHermitian, molecular_dynamics%on )
     call write_pmat( first_kpt, pmat, mpi_env_k )
     if ( molecular_dynamics%on ) call write_pmat_mt( first_kpt, pmatmt, mpi_env_k )
   end if
+  if( writePmatToFile ) call write_pmat( first_kpt, pmat, mpi_env_k )
 
   call init_laser
 
