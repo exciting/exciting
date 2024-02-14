@@ -94,7 +94,7 @@ contains
     if( present( update_mathcalB ) ) get_mathcalB = update_mathcalB
     get_pmat = .False.
     if( present( update_pmat ) ) get_pmat = update_pmat
-    forcePmatHermitian = input%xs%realTimeTDDFT%forcePmatHermitian
+    forcePmatHermitian = input%xs%realTimeTDDFT%pmat%forceHermitian
 
     ! sanity checks
     if( get_mathcalH ) call assert( calculateOverlap , 'The overlap matrix is needed to update mathcalH' )

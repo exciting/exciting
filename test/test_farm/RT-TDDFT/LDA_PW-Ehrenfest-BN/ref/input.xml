@@ -42,12 +42,12 @@
             propagator="SE"
             timeStep="0.2d0"
             endTime="5.0d0"
-            readPmatBasis="false"
             printTimingGeneral="true"
             printTimingDetailed="true"
             calculateNExcitedElectrons="false"
             printAfterIterations="1"
             vectorPotentialSolver="improvedeuler">
+            <pmat readFromFile="false"/>
             <laser fieldType="total">
 	            <sinSq amplitude="10.d0" omega="0.1d0" phase="0.d0" t0="0.d0" pulseLength="16.d0" direction="z"/>
               <sinSq amplitude="10.d0" omega="0.1d0" phase="0.d0" t0="0.d0" pulseLength="16.d0" direction="y"/>

@@ -519,6 +519,9 @@ contains
     call terminate_if_false( mpi_env, associated(inp%xs%realTimeTDDFT%laser), &
       & 'Element <laser> in <realTimeTDDFT> not found')
 
+    ! Consistency check
+    call terminate_if_false( mpi_env, associated(inp%xs%realTimeTDDFT%pmat), &
+      & 'Element <pmat> in <realTimeTDDFT> not found' )
     ! Consistency check: MD and predictor corrector?
     call terminate_if_false( mpi_env, .not. ( associated(inp%xs%realTimeTDDFT%predictorCorrector) &
       .and. associated(inp%MD) ), &
