@@ -263,3 +263,4 @@ def test_execute_volume_optimization(monkeypatch, info_out_mock, input_xml_mock,
 
     assert np.allclose(execute_volume_optimization(input_xml_mock.full_path, 3, root_directory=tmp_path),
                        volume_optimization_ref)
+

@@ -46,7 +46,15 @@ initial and final values for the
 #### <span style="color:#15317E">SETUP-dft0.5.py</span>
 
 Generate a set of input files varying the attribute <code><span style="color:mediumblue">cut</span></code>.
+#### New version:
+Located at `tools/excitingscripts/excitingscripts/setup/dft_05.py`. Call as:
 
+```bash
+python3 -m excitingscripts.setup.dft_05 r_cut_min r_cut_max number_r_cut_steps -s species -r root_dir
+```
+Where <code>r_cut_min</code> and <code>r_cut_max</code> are the minimum and maximum values for r_cut, 
+<code>number_r_cut_steps</code> is the number of r_cut values for which input files are generated, <code>species</code>
+is the species with regard to which r_cut is varied and <code>root_dir</code> is the root directory.
 #### Used in:
 * DFT-1/2
 </br></br>
@@ -165,6 +173,16 @@ Run a series of **exciting** calculations (for example using input files created
 #### <span style="color:#15317E">EXECUTE-elastic-strain.sh</span>
 
 Run a series of **exciting** calculations (for example using input files created by SETUP-elastic-strain.py).
+#### New version:
+Located at `tools/excitingscripts/excitingscripts/execute/elastic_strain.py`. Call as:
+
+```bash
+python3 -m excitingscripts.execute.elastic_strain -t calculation_type
+```
+Where  <code>calculation_type</code> is the type 
+of calculation. For DFT-1/2 calculations, set <code>calculation_type</code> to <code>dft-05</code>.
+Otherwise, <code>-t calculation_type</code> can be left out.
+</br></br>
 #### Used in:
 * Energy vs. Strain Calculations
 * Graphene: from the Ground State to Excitations
@@ -174,6 +192,13 @@ Run a series of **exciting** calculations (for example using input files created
 #### <span style="color:#15317E">EXECUTE-planarAverage.py</span>
 
 Extract planar-averaged electrostatic potential in a given direction.
+#### New version:
+Located at `tools/excitingscripts/excitingscripts/execute/planar_average.py`. Call as:
+
+```bash
+python3 -m excitingscripts.execute.planar_average direction
+```
+Where <code>direction</code> is the direction along which the plane-averaged potential will be visualized.
 #### Used in:
 * Dipole Correction for Surface Calculations
 </br></br>
@@ -417,6 +442,12 @@ Where <code>plot_mode</code> is either <code>k</code> for plotting energy curves
 #### <span style="color:#15317E">PLOT-compare-vdW.py</span>
 
 Visualize multiple energy-vs-distance curves.
+#### New version:
+Located at `tools/excitingscripts/excitingscripts/plot/compare_vdW.py`. Call as:
+
+```bash
+python3 -m excitingscripts.plot.compare_vdW -f file_name -r dir1 dir2 dir3
+```
 #### Used in:
 * Van-der-Waals Corrections
 </br></br>
@@ -440,6 +471,12 @@ python3 -m excitingscripts.plot.dos
 #### <span style="color:#15317E">PLOT-energy.py</span>
 
 Visualize energy-vs-strain curves.
+#### New version:
+Located at `tools/excitingscripts/excitingscripts/plot/energy.py`. Call as:
+
+```bash
+python3 -m excitingscripts.plot.energy
+```
 #### Used in:
 * Van-der-Walls Corrections.
 * Phonons at Γ in Diamond-Structure Crystals
@@ -618,6 +655,15 @@ The script can be used for any number of directories.
 #### <span style="color:#15317E">CONVERT-xml2xsf.sh</span>
 
 Convert **xml** files to **xsf**.
+#### New version:
+Located at `tools/excitingscripts/excitingscripts/convert_xml2xsf.py`. Call as:
+
+```bash
+python3 -m excitingscripts.convert_xml2xsf -f file -d dimension
+```
+Where <code>file</code> is the **xml** file to be converted to **xsf** and <code>dimension</code> is the dimension of
+<code><span style="color:green">plot</span></code> sub-element in the
+<code><span style="color:green">properties</span></code> element for a given exciting calculation.
 #### Used in:
 * How to visualize Kohn-Sham States
 * How to Run Calculations for Simple Molecules

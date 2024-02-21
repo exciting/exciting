@@ -100,7 +100,6 @@ def main() -> None:
                         help="interlayer distance at infinity")
 
     parser.add_argument("--root-directory", "-r",
-                        type=Union[str, pathlib.Path],
                         default=[os.getcwd()],
                         nargs=1,
                         dest="root_directory",
