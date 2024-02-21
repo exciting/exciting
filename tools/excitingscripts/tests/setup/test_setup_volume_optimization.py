@@ -1,5 +1,3 @@
-import os
-
 import pytest
 from excitingscripts.setup.volume_optimization import setup_volume_optimization
 from excitingtools.exciting_obj_parsers.input_xml import parse_input_xml
@@ -32,8 +30,6 @@ def input_xml_mock(tmp_path) -> MockFile:
 
     </input>
     """
-
-    os.makedirs(os.path.dirname(tmp_path / "input.xml"), exist_ok=True)
 
     input_xml_file = tmp_path / "input.xml"
     input_xml_file.write_text(input_xml_str)

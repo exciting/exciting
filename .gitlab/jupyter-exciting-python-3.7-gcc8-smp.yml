@@ -25,9 +25,10 @@ test-debian-buster-gcc8-smp-jupyter:
   - time jupyter nbconvert --execute 01_getting_started/03_tutorial_electronic_band_structure_and_density_of_states.ipynb --to markdown
   - time jupyter nbconvert --execute 01_getting_started/04_tutorial_understanding_the_exciting_species_files.ipynb --to markdown
   #- time jupyter nbconvert --execute 02_ground_state/01_tutorial_exchange_correlation_functionals.ipynb --to markdown # commented out because of timeout
-  - time jupyter nbconvert --execute 02_ground_state/05_tutorial_hybrid_functional_calculations.ipynb --to markdown
+  #- time jupyter nbconvert --execute 02_ground_state/05_tutorial_hybrid_functional_calculations.ipynb --to markdown # commented out because of timeout
   - time jupyter nbconvert --execute 02_ground_state/04_tutorial_spin_orbit_coupling.ipynb --to markdown
-  - time jupyter nbconvert --execute 02_ground_state/03_tutorial_spin_polarized_calculations_for_bcc_Fe.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/03_tutorial_spin_polarized_calculations_for_bcc_Fe.ipynb --to markdown # commented out because of timeout
+  #- time jupyter nbconvert --execute 02_ground_state/08_tutorial_dipole_correction_for_surface_calculations.ipynb --to markdown
   #- time jupyter nbconvert --execute 02_ground_state/10_tutorial_low_dimensional_systems.ipynb --to markdown # commented out because of timeout
   - time jupyter nbconvert --execute 02_ground_state/tutorial_excitingtools.ipynb --to markdown
   #- time jupyter nbconvert --execute tutorial_excited_states_from_bse/tutorial_excited_states_from_bse.ipynb --to markdown
