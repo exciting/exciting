@@ -11,6 +11,7 @@ be fine.
 """
 
 import pytest
+import numpy as np
 
 from excitingtools.input.input_classes import ExcitingGroundStateInput, ExcitingXSInput
 from excitingtools.input.input_xml import ExcitingInputXML
@@ -216,3 +217,41 @@ def test_from_gs_dict(exciting_structure):
     assert input_xml.title.title == "Test Case"  # pylint: disable=no-member
     assert input_xml.groundstate.rgkmax == 7.0  # pylint: disable=no-member
     assert input_xml.structure.speciespath == "."  # pylint: disable=no-member
+
+
+def test_from_xml():
+    input_str = """<?xml version='1.0' encoding='utf-8'?>
+    <input>
+        <title>BN (B3)</title>
+        <structure speciespath="speciespath" autormt="true">
+            <crystal scale="6.816242132875">
+                <basevect>0. 0.5 0.5</basevect>
+                <basevect>0.5 0. 0.5</basevect>
+                <basevect>0.5 0.5 0. </basevect>
+            </crystal>
+            <species speciesfile="B.xml">
+                <atom coord="0. 0. 0." />
+            </species>
+            <species speciesfile="N.xml">
+                <atom coord="0.25 0.25 0.25" />
+            </species>
+        </structure>
+        <groundstate outputlevel="high" ngridk="10 10 10" rgkmax="7.0" maxscl="200" do="fromscratch" xctype="GGA_PBE">
+        </groundstate>
+    </input>"""
+    input_xml = ExcitingInputXML.from_xml(input_str)
+    assert input_xml.title.title == "BN (B3)"
+
+    assert input_xml.structure.speciespath == "speciespath"
+    assert input_xml.structure.autormt is True
+    assert input_xml.structure.species == ['B', 'N']
+    np.testing.assert_allclose(input_xml.structure.positions, [[0.] * 3, [0.25] * 3])
+    np.testing.assert_allclose(input_xml.structure.lattice, np.full((3, 3), 0.5) - 0.5 * np.eye(3))
+    assert input_xml.structure.crystal_properties.scale == pytest.approx(6.816242132875)
+
+    assert input_xml.groundstate.outputlevel == "high"
+    assert input_xml.groundstate.ngridk == [10, 10, 10]
+    assert input_xml.groundstate.rgkmax == pytest.approx(7.0)
+    assert input_xml.groundstate.maxscl == 200
+    assert input_xml.groundstate.do == "fromscratch"
+    assert input_xml.groundstate.xctype == "GGA_PBE"
