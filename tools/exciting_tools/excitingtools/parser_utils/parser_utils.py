@@ -56,6 +56,13 @@ def json_convert(input_str: str):
     try:
         return loads(input_str)
     except JSONDecodeError:
+        pass
+
+    # the json standard (https://www.json.org/json-en.html) does not allow for numbers to have leading or trailing
+    # decimal points, therefore we need another try to parse floats.
+    try:
+        return float(input_str)
+    except ValueError:
         return input_str
 
 
