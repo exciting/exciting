@@ -121,10 +121,6 @@ subroutine gw_main()
             call init_gw()
             if (rank==0) call test_mixcomp()
 
-        ! Calculate and store the (q,\omega)-dependent dielectric function
-            ! case('epsilon')
-        !     call task_epsilon()
-
             ! Compute and output q-dependent \epsilon_00 along a k-path
             ! case('emac_q')
             !     call task_emac_q
