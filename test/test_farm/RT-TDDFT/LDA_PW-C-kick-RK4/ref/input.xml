@@ -52,7 +52,10 @@
             <laser fieldType="total">
               <kick t0="1.d0" width="0d0" amplitude="0.01d0" direction="z"/>
             </laser>
-            <screenshots niter="20" printAbsProjCoeffs="true" />
+            <screenshots niter="20">
+              <eigenvalues nEigenvalues="-1" tolerance="1d-14" />
+              <projectionCoefficients printAbsoluteValue="true" format="F10.5" />
+            </screenshots>
           </realTimeTDDFT>
 
         </xs>

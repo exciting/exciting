@@ -320,27 +320,110 @@
 
           <xs:element ex:importance="expert" ex:unit="" name="screenshots" minOccurs="0" maxOccurs="1">
             <xs:annotation>
-              <xs:documentation> Screenshots of the evolution.
+              <xs:documentation> 
+                'Screenshots' of the time evolution: these can be 
+                <ul>
+                  <li>eigenvalues (see <elementRef>eigenvalues</elementRef>) </li>
+                  <li>projection coefficients (see <elementRef>projectionCoefficients</elementRef>)</li>
+                  <li>occupations ()</li>
+                </ul>
               </xs:documentation>
             </xs:annotation>
             <xs:complexType>
+              <xs:all>
+                <xs:element ex:importance="expert" ex:unit="" name="eigenvalues" minOccurs="0" maxOccurs="1">
+                  <xs:annotation>
+                    <xs:documentation> 
+                      When present, print out all the eigenvalues of the 
+                      hamiltonian to the file <pre>EIGVAL_*.OUT</pre>, where 
+                      <pre>*</pre> is the step counter when the screenshot is 
+                      carried out.
+                    </xs:documentation>
+                  </xs:annotation>
+                  <xs:complexType>
+                    <xs:attribute ex:importance="expert" ex:unit="" name="nEigenvalues" type="xs:integer"
+                      default="-1">
+                      <xs:annotation>
+                        <xs:documentation> Number of eigenvalues to be printed out
+                          for each <b>k</b>-point. When <pre>nEigenvalues</pre> is
+                          <inlinemath>\le 0</inlinemath>, all eigenvalues are 
+                          printed out.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="tolerance" 
+                      type="fortrandouble" default="1.0d-14">
+                      <xs:annotation>
+                        <xs:documentation> LAPACK tolerance used to find eigenvalues.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                  </xs:complexType>
+                </xs:element>
+
+                <xs:element ex:importance="expert" ex:unit="" name="projectionCoefficients" 
+                  minOccurs="0" maxOccurs="1">
+                  <xs:annotation>
+                    <xs:documentation> 
+                      When present, project Kohn-Sham wavefunctions at time 
+                      <inlinemath>t</inlinemath> onto the groundstate wavefunctions.
+                    </xs:documentation>
+                  </xs:annotation>
+                  <xs:complexType>
+                    <xs:attribute ex:importance="expert" ex:unit="" name="printAbsoluteValue" 
+                      type="xs:boolean" default="true">
+                      <xs:annotation>
+                        <xs:documentation> If <pre>true</pre>, print the absolute value 
+                        of the projection coefficients. Otherwise, the full complex 
+                        number is printed.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="format"
+                      type="xs:string" default="F10.5">
+                      <xs:annotation>
+                        <xs:documentation> 
+                          Determine the Fortran format used to print the projection coefficients.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                  </xs:complexType>
+                </xs:element>  
+
+                <xs:element ex:importance="experimental" ex:unit="" name="occupations" 
+                  minOccurs="0" maxOccurs="1">
+                  <xs:annotation>
+                    <xs:documentation> 
+                      When present, print out the occupations of each KS level at
+                      time <inlinemath>t</inlinemath>. The occupation are evaluated 
+                      by summing up the projections of the KS wavefunctions at time 
+                      <inlinemath>t</inlinemath> onto the wavefunctions at time
+                      <inlinemath>t=0</inlinemath>.
+                    </xs:documentation>
+                  </xs:annotation>
+                  <xs:complexType>
+                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="format"
+                      type="xs:string" default="F10.5">
+                      <xs:annotation>
+                        <xs:documentation> 
+                          Determine the Fortran format used to print the occupation 
+                          numbers.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                  </xs:complexType>
+                </xs:element>        
+              </xs:all>    
+              
               <xs:attribute ex:importance="expert" ex:unit="" name="niter" type="xs:integer"
                 default="100">
                 <xs:annotation>
-                  <xs:documentation> At each 'niter' steps, outputs a 'screenshot'.
+                  <xs:documentation> Output a 'screenshot' every 
+                  <pre>niter</pre> steps.
                   </xs:documentation>
                 </xs:annotation>
               </xs:attribute>
-              <xs:attribute ex:importance="expert" ex:unit="" name="printAbsProjCoeffs" type="xs:boolean"
-                default="true">
-                <xs:annotation>
-                  <xs:documentation> When set to true, calculates the projection
-                    of the current Kohn-Sham wavefunctions onto the groundstate ones
-                    and prints the absolute value of the projection coefficients.
-                    When set to false, the full complex number is printed.
-                  </xs:documentation>
-                </xs:annotation>
-              </xs:attribute>
+
             </xs:complexType>
           </xs:element>
 

@@ -305,7 +305,14 @@ realTimeTDDFT_mandatory_attributes = ['pmat']
 
 predictorCorrector_valid_attributes = ['maxIterations', 'tol'] 
 
-screenshots_valid_attributes = ['niter', 'printAbsProjCoeffs'] 
+screenshots_valid_attributes = ['niter'] 
+screenshots_valid_subtrees = ['eigenvalues', 'projectionCoefficients', 'occupations'] 
+
+eigenvalues_valid_attributes = ['nEigenvalues', 'tolerance'] 
+
+projectionCoefficients_valid_attributes = ['format', 'printAbsoluteValue'] 
+
+occupations_valid_attributes = ['format'] 
 
 laser_valid_attributes = ['fieldType'] 
 laser_valid_subtrees = ['kick', 'trapCos', 'sinSq'] 
