@@ -6,6 +6,10 @@
 !------------------------------------------
 
 module mod_kqpts
+    use asserts, only: assert
+    ! We need to change internally to `terminate_when_false` to avoid a circular dependency
+    use modmpi, only: terminate_when_false => terminate_if_false
+    use precision, only: i32
 
     implicit none
     
@@ -79,6 +83,46 @@ module mod_kqpts
     complex(8), allocatable :: vbas(:,:)
       
     ! transform matrix that diagonalized original bare Coulomb matrix 
-    complex(8), allocatable :: barcvm(:,:)    
+    complex(8), allocatable :: barcvm(:,:)  
+    
+    !> Interface to be used for the ranges of k/q-point indexes defined in the input file
+    type, private :: ranges_of_indexes
+      integer(i32) :: first
+      integer(i32) :: last
+    contains
+      procedure :: parse_first_last
+      procedure :: sanity_checks
+    end type 
 
+contains 
+
+    subroutine sanity_checks( this, first, last, maximum )
+      class(ranges_of_indexes), intent(in) :: this
+      integer, intent(in) :: first
+      integer, intent(in) :: last
+      integer, intent(in) :: maximum
+    
+      call terminate_when_false( first>0, 'first k/q-point must be positive' )
+      ! Case qf <= 0 is interpreted as qf = n_qpt
+      if( last <=0 ) then
+        call terminate_when_false( first<=maximum, 'first k/q-point must <= the number of k/q-points' )
+      else
+        call terminate_when_false( first<=last, 'first k/q-point must be <= last k/q-point' )
+        call terminate_when_false( last<=maximum, 'last k/q-point must be <= the number of k/q-points' )
+      end if
+
+    end subroutine
+    
+
+    subroutine parse_first_last( this, first, last, maximum )
+      class(ranges_of_indexes), intent(inout)  :: this
+      integer, intent(in)   :: first, last, maximum
+    
+      call this%sanity_checks( first, last, maximum )
+      this%first = first
+      this%last = merge( tsource=last, fsource=maximum, mask=last>=0 ) 
+    
+    end
+    
+    
 end module

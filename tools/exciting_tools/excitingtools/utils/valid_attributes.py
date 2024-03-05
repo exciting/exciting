@@ -55,6 +55,8 @@ parts_multiple_children = ['dopart']
 dopart_valid_attributes = ['id'] 
 dopart_mandatory_attributes = ['id'] 
 
+qpoints_valid_attributes = ['qf', 'qi'] 
+
 
 # structure information 
 structure_valid_attributes = ['autormt', 'autormtscaling', 'cartesian', 'epslat', 'primcell', 'speciespath', 'tshift'] 

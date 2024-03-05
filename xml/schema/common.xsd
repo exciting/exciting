@@ -340,4 +340,23 @@
     </xs:complexType>
   </xs:element>
   
+  <xs:element ex:importance="expert" ex:unit="" name="qpoints">
+    <xs:complexType>
+      <xs:attribute ex:importance="expert" name="qi" type="xs:integer" default="1">
+        <xs:annotation>
+          <xs:documentation> Index of the first <pre>q-point</pre> in this set.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute ex:importance="expert" name="qf" type="xs:integer" default="1">
+        <xs:annotation>
+          <xs:documentation> Index of the last <pre>q-point</pre> in this set. 
+          -1 (or any negative number) is interpreted as the 
+          last <pre>q-point</pre> in the grid.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+
 </xs:schema>
