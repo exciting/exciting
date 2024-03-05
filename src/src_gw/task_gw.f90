@@ -80,36 +80,8 @@ subroutine task_gw()
     !---------------------------------------
     ! treatment of singularities at G+q->0
     !---------------------------------------
-    select case (trim(input%gw%barecoul%cutofftype))
-
-        case('none')
-
-            select case (trim(input%gw%selfenergy%singularity))
-              case('mpb')
-                ! Auxiliary function method
-                call setsingc
-              case('crg')
-                ! Auxiliary function method
-                call calc_q0_singularities
-              case('avg')
-                ! Spherical average
-                call vcoul_q0_3d(kqset%nkpt, singc2)
-              case('rim')
-                ! Spherical average
-              case default
-                call calc_q0_singularities
-            end select
-
-        case('0d')
-            call vcoul_q0_0d(low_dim_singularity)
-
-        case('1d')
-            call vcoul_q0_1d(kqset%nkpt, low_dim_singularity)
-
-        case('2d')
-            call vcoul_q0_2d(kqset%nkpt, low_dim_singularity)
-
-    end select
+    call calculate_singularities_coeff( input%gw%barecoul%cutofftype, &
+      input%gw%selfenergy%singularity, kqset%nkpt, singc2 )
 
     ! initialize self-energy arrays
     call init_selfenergy(ibgw, nbgw, kset%nkpt)
