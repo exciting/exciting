@@ -1,6 +1,6 @@
 
 subroutine gw_main()
-
+    use gw_io, only: open_gwinfo
     use modinput
     use modmain
     use modgw
@@ -26,8 +26,7 @@ subroutine gw_main()
     ! Main GW output file
     !---------------------
     if (rank == 0) then
-        call getunit(fgw)
-        open(fgw, File='GW_INFO.OUT')
+        call open_gwinfo
         ! open(fgw, File='GW_INFO.OUT', Access='Append')
         if (input%gw%debug) then
             call getunit(fdebug)

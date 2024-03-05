@@ -1,6 +1,7 @@
 
 module modgw
 
+    use gw_io, only: fgw
     use mod_core_states
     use mod_product_basis
     use mod_gaunt_coefficients
@@ -17,8 +18,8 @@ module modgw
     
     !use mod_bzintw
 
-    ! general gw output file
-    integer(4) :: fgw
+    implicit none
+
     ! debug info
     integer(4) :: fdebug
     ! gw results file name
