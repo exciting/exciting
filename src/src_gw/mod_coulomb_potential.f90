@@ -3,10 +3,16 @@
 !--------------------------------------------!
 
 module mod_coulomb_potential
-    use precision, only: dp, i32
+    use asserts, only: assert
     use constants, only: pi, twopi, fourpi
+    use gw_io, only: write_to_file, read_from_file, build_file_name
+    use mod_product_basis, only: mbsiz, matsiz
     use modmain, only: avec
+    use precision, only: dp, i32
+
     implicit none
+
+    character(len=*), parameter, private :: basename_barc = 'BARC_'
     
     ! The lattice summations matrix      
     complex(dp), allocatable :: sgm(:,:,:)
@@ -97,7 +103,6 @@ contains
                   )
         ! Final value
         sing = 2.d0*(t1 - t2)
-
     end subroutine
 
     subroutine vcoul_q0_2d(nkpt, sing)
@@ -118,7 +123,6 @@ contains
         q0_vol   = twopi / sqrt(pi*ab_plane*nkpt)
         sing     = incgam(0.d0, q0_vol*rcut) + eulergamma + log(q0_vol*rcut)
         sing     = 2.d0 * ab_plane * sing * dble(nkpt)
-
     end subroutine
 
 
@@ -483,6 +487,54 @@ contains
               call calc_q0_singularities
           end select
       end select
+    end subroutine
+
+    !> Matrix with the bare Coulomb potential is calculated. 
+    !> Then, it is diagonalized and finally one takes its square root.
+    !> The result is stored in the global variable `barc`
+    subroutine calculate_sqrt_bare_coulomb( iq, eigenvalue_tol )
+      integer(i32), intent(in) :: iq
+      real(dp), intent(in) :: eigenvalue_tol
+      
+      ! Get coulomb matrix im MB basis, its eigenvalues and eigenvectors
+      call calcbarcmb( iq )
+          
+      ! Set v-diagonal MB and reduce its size
+      call sqrt_coulomb_matrix( eigenvalue_tol )
+      call delete_coulomb_potential
+    end subroutine
+
+    subroutine sqrt_coulomb_matrix( eigenvalue_tol )
+      real(dp), intent(in) :: eigenvalue_tol
+    
+      call setbarcev( eigenvalue_tol )
+    end subroutine
+
+    subroutine write_barc_to_file( iq, binary_format )
+      integer(i32), intent(in) :: iq
+      logical, intent(in) :: binary_format 
+
+      integer(i32), parameter :: max_length = 30
+      character(len=max_length) :: file_name
+
+      call build_file_name( basename_barc, iq, file_name )
+
+      call write_to_file( file_name, barc, [1, 1], binary_format )
+
+    end subroutine
+
+
+    subroutine read_coulomb_potential_from_file( iq, file_format )
+      integer(i32), intent(in) :: iq
+      character(len=*), intent(in) :: file_format
+
+      integer(i32), parameter :: max_length = 30
+      character(len=max_length) :: file_name
+
+      call build_file_name( basename_barc, iq, file_name )
+      call read_from_file( file_name, barc, file_format )
+      matsiz = size( barc, 1 )
+      mbsiz = size( barc, 2 )
     end subroutine
 
 end module

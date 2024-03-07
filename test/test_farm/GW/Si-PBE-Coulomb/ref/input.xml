@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<input>
+
+   <title>silicon-primitive-PBEsol</title>
+
+   <structure speciespath=".">
+      <crystal  scale="10.2612128567">
+         <basevect>0.00000000   0.50000000   0.50000000 </basevect>
+         <basevect>0.50000000   0.00000000   0.50000000</basevect>
+         <basevect>0.50000000   0.50000000   0.00000000</basevect>
+      </crystal>
+
+      <species speciesfile="Si.xml" rmt="2.2">
+         <atom coord="0.00 0.00 0.00"></atom>
+         <atom coord="0.25 0.25 0.25"></atom>
+      </species>
+   </structure>
+
+   <groundstate
+      do="fromscratch"
+      rgkmax="6.0"
+      ngridk="2 2 2"
+      xctype="GGA_PBE"
+      epsengy="1.e-6"
+      gmaxvr="15.0">
+   </groundstate>
+
+   <gw
+      taskname="taskGroup"
+      ngridq="2 2 2"
+      nempty="10"
+      ibgw="1"
+      nbgw="10"
+      coreflag="xal"
+      skipgnd="false">
+      <taskGroup outputFormat="text">
+        <Coulomb>
+          <qpoints qi="1" qf="-1"/>
+        </Coulomb>
+      </taskGroup>
+      
+      <mixbasis
+        lmaxmb="3"
+        epsmb="1.d-3"
+        gmb="1.0">
+      </mixbasis>
+
+      <freqgrid
+        nomeg="6"
+        eta="1.d-3" 
+        fconv="imfreq" 
+        fgrid="gauleg2" 
+        freqmax="1.0d0" 
+        freqmin="0.0d0">
+      </freqgrid>
+
+      <barecoul
+        basis="mb"
+	barcevtol="0.2"
+        pwm="1.0">
+      </barecoul>
+      
+      <selfenergy
+        method="ac" 
+	actype="pade"
+        singularity="mpb">
+        <wgrid
+          type="eqdist"
+          size="300"
+          wmax="1.0"
+          wmin="-2.0"/>
+      </selfenergy>
+
+   </gw>
+
+</input>

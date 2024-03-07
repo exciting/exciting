@@ -9,6 +9,7 @@
             <root>gw</root>
         </xs:appinfo>
     </xs:annotation>
+
     <xs:element ex:importance="expert" ex:unit="" name="gw">
         <xs:annotation>
             <xs:documentation>G0W0 calculation setup.</xs:documentation>
@@ -301,6 +302,57 @@
               </xs:complexType>
             </xs:element>
 
+            <xs:element ex:importance="experimental" ex:unit="" name="taskGroup" maxOccurs="1" minOccurs="0">
+              <xs:annotation>
+                <xs:documentation>
+                  When <attref>taskname</attref><pre>="taskGroup"</pre>,
+                  execute the group of tasks defined by the elements present here.
+                  This splits <inlinemath>G_0W_0</inlinemath> into smaller calculations,
+                  allowing for a restart.
+                </xs:documentation>
+              </xs:annotation>
+
+              <xs:complexType>
+                <xs:all>
+                  <xs:element ex:importance="experimental" ex:unit="" name="Coulomb" maxOccurs="1" minOccurs="0">
+                    <xs:annotation>
+                      <xs:documentation>
+                        Setup for the Setup for the task <pre>="Coulomb"</pre>.
+                        The bare Coulomb matrix is calculated for each 
+                        <inlinemath>\mathbf{q}</inlinemath>-point and printed out in 
+                        <pre>BARC_*.OUT</pre>, where <pre>*</pre> is the index of the
+                        <inlinemath>\mathbf{q}</inlinemath>-point.
+                      </xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element ref="qpoints" minOccurs="1" maxOccurs="unbounded"/>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:all>
+                
+                  
+
+                <xs:attribute ex:importance="experimental" ex:unit="" name="outputFormat" default="binary">
+                  <xs:annotation>
+                    <xs:documentation>
+                      Format to print the outputs: <pre>binary</pre> or <pre>text</pre>.
+                      The option <pre>text</pre> is inefficient and should be 
+                      used only for testing.
+                    </xs:documentation>
+                  </xs:annotation>
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:enumeration value="binary"/>
+                      <xs:enumeration value="text"/>
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:attribute>
+
+              </xs:complexType>
+            </xs:element>
+
           </xs:all>
 
           <!-- ================ List of attributes ===================== -->
@@ -319,6 +371,10 @@
                     <li><pre>vxc</pre> - Calculate the diagonal matrix elements of the exchange-correlation potential</li>
                     <li><pre>pmat</pre> - Calculate matrix elements of the momentum operator</li>
                     <li><pre>acon</pre> - Perform analytic continuation of the correlation self-energy from imaginary to real frequency and calculate QP energies</li>
+                    <li><pre>taskGroup</pre> - Execute the group of tasks defined in <elementref>taskGroup</elementref>.</li>
+                    <!--li><pre>epsilon</pre> - Calculate and store the 
+                      <inlinemath>(q,\omega)</inlinemath>-dependent dielectric function. 
+                      See <elementref>epsilon</elementref>.</li-->
                   </list>
   	          </xs:documentation>
             </xs:annotation>

@@ -1,0 +1,98 @@
+{
+  "SGI_1.OUT": {
+    "OverlapMatrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "SGI_2.OUT": {
+    "OverlapMatrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "SGI_3.OUT": {
+    "OverlapMatrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "SGI_4.OUT": {
+    "OverlapMatrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "SGI_5.OUT": {
+    "OverlapMatrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  }, 
+  "SGI_6.OUT": {
+    "OverlapMatrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  }, 
+  "SGI_7.OUT": {
+    "OverlapMatrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  }, 
+  "SGI_8.OUT": {
+    "OverlapMatrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  }, 
+  "BARC_1.OUT": {
+    "CoulombMatrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "BARC_2.OUT": {
+    "CoulombMatrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "BARC_3.OUT": {
+    "CoulombMatrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "BARC_4.OUT": {
+    "CoulombMatrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "BARC_5.OUT": {
+    "CoulombMatrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "BARC_6.OUT": {
+    "CoulombMatrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "BARC_7.OUT": {
+    "CoulombMatrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "BARC_8.OUT": {
+    "CoulombMatrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  }
+}

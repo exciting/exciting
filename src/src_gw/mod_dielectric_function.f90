@@ -54,7 +54,7 @@ module mod_dielectric_function
     character(24) :: fname_eps='EPSILON'
     character(24) :: fname_head='HEAD.OUT'
     character(24) :: fname_wings='WINGS.OUT'
-
+    
 contains
 
     subroutine init_dielectric_function(mbsiz,iomstart,iomend,Gamma)

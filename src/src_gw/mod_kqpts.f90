@@ -7,6 +7,7 @@
 
 module mod_kqpts
     use asserts, only: assert
+    use modinput, only: qpoints_type_array
     ! We need to change internally to `terminate_when_false` to avoid a circular dependency
     use modmpi, only: terminate_when_false => terminate_if_false
     use precision, only: i32
@@ -94,35 +95,73 @@ module mod_kqpts
       procedure :: sanity_checks
     end type 
 
+    !> Interface to the list of ranges of k/q-point indexes given in the input file
+    type, public :: kpoints_sets
+      type(ranges_of_indexes), allocatable :: sets(:)
+      integer(i32), allocatable :: list_of_indexes(:)
+    contains 
+      procedure :: parse_input
+      procedure :: obtain_list_of_indexes
+    end type
+
 contains 
 
-    subroutine sanity_checks( this, first, last, maximum )
-      class(ranges_of_indexes), intent(in) :: this
-      integer, intent(in) :: first
-      integer, intent(in) :: last
-      integer, intent(in) :: maximum
-    
-      call terminate_when_false( first>0, 'first k/q-point must be positive' )
-      ! Case qf <= 0 is interpreted as qf = n_qpt
-      if( last <=0 ) then
-        call terminate_when_false( first<=maximum, 'first k/q-point must <= the number of k/q-points' )
-      else
-        call terminate_when_false( first<=last, 'first k/q-point must be <= last k/q-point' )
-        call terminate_when_false( last<=maximum, 'last k/q-point must be <= the number of k/q-points' )
-      end if
+subroutine sanity_checks( this, first, last, maximum )
+  class(ranges_of_indexes), intent(in) :: this
+  integer, intent(in) :: first
+  integer, intent(in) :: last
+  integer, intent(in) :: maximum
 
-    end subroutine
-    
+  call terminate_when_false( first>0, 'first k/q-point must be positive' )
+  ! Case qf <= 0 is interpreted as qf = n_qpt
+  if( last <=0 ) then
+    call terminate_when_false( first<=maximum, 'first k/q-point must <= the number of k/q-points' )
+  else
+    call terminate_when_false( first<=last, 'first k/q-point must be <= last k/q-point' )
+    call terminate_when_false( last<=maximum, 'last k/q-point must be <= the number of k/q-points' )
+  end if
 
-    subroutine parse_first_last( this, first, last, maximum )
-      class(ranges_of_indexes), intent(inout)  :: this
-      integer, intent(in)   :: first, last, maximum
-    
-      call this%sanity_checks( first, last, maximum )
-      this%first = first
-      this%last = merge( tsource=last, fsource=maximum, mask=last>=0 ) 
-    
-    end
-    
-    
+end subroutine
+
+
+subroutine parse_first_last( this, first, last, maximum )
+  class(ranges_of_indexes), intent(inout)  :: this
+  integer, intent(in)   :: first, last, maximum
+
+  call this%sanity_checks( first, last, maximum )
+  this%first = first
+  this%last = merge( tsource=last, fsource=maximum, mask=last>=0 ) 
+
+end subroutine
+
+
+subroutine parse_input( this, qpoints_array, n_qpoints_max )
+  class(kpoints_sets), intent(inout) :: this 
+  type(qpoints_type_array), pointer, intent(in) :: qpoints_array(:)
+  integer(i32), intent(in) :: n_qpoints_max
+
+  integer(i32) :: n, i
+
+  n = size( qpoints_array )
+  allocate( this%sets(n) )
+  do i = 1, n 
+    call this%sets(i)%parse_first_last( qpoints_array(i)%qpoints%qi, qpoints_array(i)%qpoints%qf, n_qpoints_max )
+  end do
+
+end subroutine
+
+
+subroutine obtain_list_of_indexes( this )
+  class(kpoints_sets), intent(inout) :: this
+
+  integer(i32) :: i, j
+
+  call assert( size( this%sets ) >= 1, 'sets must contain at least one element' )
+  this%list_of_indexes = [ (i, i=this%sets(1)%first,this%sets(1)%last) ]
+  do j = 2, size( this%sets )
+    this%list_of_indexes = [ this%list_of_indexes, ( i, i=this%sets(j)%first, this%sets(j)%last ) ]
+  end do
+end subroutine
+
+   
 end module

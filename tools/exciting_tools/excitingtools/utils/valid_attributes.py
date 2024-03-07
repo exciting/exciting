@@ -383,7 +383,7 @@ gw_valid_attributes = ['at1', 'at2', 'coreflag', 'debug', 'eph', 'ibgw', 'ibmax'
                        'igmin', 'iik', 'jjk', 'mblksiz', 'nbgw', 'nempty', 'ngridq', 'printSelfC', 
                        'printSpectralFunction', 'qdepw', 'reduceq', 'rmax', 'rpath', 'rpmat', 'skipgnd', 'taskname', 
                        'vqloff', 'wlo', 'wto'] 
-gw_valid_subtrees = ['plot1d', 'freqgrid', 'selfenergy', 'mixbasis', 'barecoul', 'scrcoul'] 
+gw_valid_subtrees = ['plot1d', 'freqgrid', 'selfenergy', 'mixbasis', 'barecoul', 'scrcoul', 'taskGroup'] 
 
 freqgrid_valid_attributes = ['eta', 'fconv', 'fgrid', 'freqmax', 'freqmin', 'nomeg'] 
 
@@ -397,6 +397,13 @@ mixbasis_valid_attributes = ['epsmb', 'gmb', 'lmaxmb']
 barecoul_valid_attributes = ['barcevtol', 'basis', 'cutofftype', 'pwm', 'stctol'] 
 
 scrcoul_valid_attributes = ['averaging', 'omegap', 'q0eps', 'scrtype'] 
+
+taskGroup_valid_attributes = ['outputFormat'] 
+taskGroup_valid_subtrees = ['Coulomb'] 
+
+Coulomb_valid_subtrees = ['qpoints'] 
+Coulomb_mandatory_attributes = ['qpoints'] 
+Coulomb_multiple_children = ['qpoints'] 
 
 
 # MD information 

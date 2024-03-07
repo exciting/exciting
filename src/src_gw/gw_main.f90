@@ -1,6 +1,6 @@
 
 subroutine gw_main()
-    use gw_io, only: open_gwinfo
+    use gw_io, only: fgw, open_gwinfo
     use modinput
     use modmain
     use modgw
@@ -9,6 +9,7 @@ subroutine gw_main()
     use m_getunit
     use mod_hdf5
     use mod_aaa_approximant
+    use task_group, only: execute_task_group
 
     implicit none
     real(8) :: tstart, tend
@@ -27,7 +28,6 @@ subroutine gw_main()
     !---------------------
     if (rank == 0) then
         call open_gwinfo
-        ! open(fgw, File='GW_INFO.OUT', Access='Append')
         if (input%gw%debug) then
             call getunit(fdebug)
             open(fdebug, File='debug.info', Action='Write')
@@ -119,6 +119,14 @@ subroutine gw_main()
         case('comp')
             call init_gw()
             if (rank==0) call test_mixcomp()
+
+        ! Calculate and store the (q,\omega)-dependent dielectric function
+        case('taskGroup')
+            call execute_task_group()
+
+        ! Calculate and store the (q,\omega)-dependent dielectric function
+            ! case('epsilon')
+        !     call task_epsilon()
 
             ! Compute and output q-dependent \epsilon_00 along a k-path
             ! case('emac_q')

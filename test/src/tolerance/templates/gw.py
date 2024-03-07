@@ -14,6 +14,8 @@ Tolerances in default_tolerances cover files:
   * EVALQP.DAT
   * VXCNN.DAT
   * EPS00_GW.OUT
+  * SGI_*.OUT
+  * BARC_*.OUT
 """
 from excitingtools import Unit
 
@@ -122,5 +124,7 @@ gw_tolerances = {'GW_INFO.OUT': gw_info_tols,
                  'EFERMI_GW.OUT': e_fermi_gw_tols,
                  'EVALQP.DAT': evalqp_tols,
                  'VXCNN.DAT': v_xc_nn_tols,
-                 'EPS00_GW.OUT': eps_00_gw_tols
+                 'EPS00_GW.OUT': eps_00_gw_tols,
+                 'SGI': 1e-8,
+                 'BARC': 1e-8
                  }

@@ -1,3 +1,4 @@
+!> This module is designed to centralize IO operation in GW
 module gw_io
   use asserts, only: assert
   use modmpi, only: terminate_if_false
@@ -12,6 +13,8 @@ module gw_io
   integer(i32), public, protected :: fgw
   !> Default name of the general GW output file
   character(len=*), parameter :: filename_gwinfo = 'GW_INFO.OUT'
+  !> Default extension
+  character(len=*), parameter :: default_file_extension = '.OUT'
   
   public :: open_gwinfo, write_to_gwinfo, write_to_gwinfo_boxmessage, &
     build_file_name, write_to_file, read_from_file
@@ -60,30 +63,43 @@ subroutine write_to_gwinfo_boxmessage( char, string )
 end subroutine
 
 
+!> Append an integer to a string together with the default extension, and 
+!> store the result in `file_name`
 subroutine build_file_name_with_integer( base_name, int, file_name )
+  !> String containing the base name, to which an integer will be added
   character(len=*), intent(in)  :: base_name
+  !> Integer to be appended to the string `base_name`
   integer(i32), intent(in)      :: int
+  !> Resulting string from appending `int` to the the end of `base_name`, and adding the extension
   character(len=*), intent(out) :: file_name
 
   write( file_name, * ) int
-  file_name = trim( adjustl(base_name) ) // trim( adjustl( file_name ) ) // '.OUT'
+  file_name = trim( adjustl(base_name) ) // trim( adjustl( file_name ) ) // default_file_extension
 
 end subroutine
 
 
+!> Add the default extension to `base_name` and store the result in `file_name`
 subroutine build_file_name_only_adding_extension( base_name, file_name )
+  !> String containing the base name, to which the default extension will be added
   character(len=*), intent(in)  :: base_name
+  !> Resulting string from adding the default extension to `base_name`
   character(len=*), intent(out) :: file_name
 
-  file_name = trim( adjustl(base_name) ) // '.OUT'
+  file_name = trim( adjustl(base_name) ) // default_file_extension
 
 end subroutine
   
-  
+
+!> Write a matrix (array of rank 2) to a file
 subroutine write_matrix_to_file_with_header( file_name, matrix, lbounds, binary_format )
+  !> File name where to write
   character(len=*), intent(in) :: file_name
+  !> lbounds of `matrix`
   integer(i32), intent(in) :: lbounds(2)
+  !> Matrix to be written into the file
   complex(dp), intent(in) :: matrix(lbounds(1):, lbounds(2):)
+  !> If true, the output has binary format
   logical, intent(in) :: binary_format
 
   integer(i32) :: unit, i, m, n, mini, mend, nini, nend
@@ -109,9 +125,13 @@ subroutine write_matrix_to_file_with_header( file_name, matrix, lbounds, binary_
 end subroutine
   
 
+!> Write a tensor of rank 3 to a file
 subroutine write_tensor_of_rank_3_to_file( file_name, tensor, file_format )
+  !> File name where to write
   character(len=*), intent(in) :: file_name
+  !> Tensor to be written into the file
   complex(dp), intent(in) :: tensor(:, :, :)
+  !> Format of the output file
   character(len=*), intent(in) :: file_format
 
   integer(i32) :: unit, i, j
@@ -137,20 +157,26 @@ subroutine write_tensor_of_rank_3_to_file( file_name, tensor, file_format )
 
 end subroutine
 
-  
+
+!> Check if a file exists and terminates the execution if it does not
 subroutine terminate_if_file_does_not_exist( file_name )
+  !> Name of the file to check
   character(len=*), intent(in) :: file_name
 
   logical :: ok
   inquire( file=trim(file_name), exist=ok )
   call terminate_if_false( ok, 'File '//trim(file_name)//' not found')
+
 end subroutine
   
   
 !> Read a matrix (array of rank 2) from a file
 subroutine read_matrix_from_file( file_name, matrix, file_format )
+  !> Name of the file to read
   character(len=*), intent(in)          :: file_name
+  !> Matrix to store the data read from the file
   complex(dp), intent(out), allocatable :: matrix(:, :)
+  !> Format of the file
   character(len=*), intent(in)          :: file_format
 
   integer(i32) :: unit, i, mini, mend, nini, nend
@@ -178,8 +204,11 @@ end subroutine
 
 !> Read a tensor of rank 3 stored in a file
 subroutine read_tensor_of_rank_3_from_file( file_name, tensor, file_format )
+  !> Name of the file to read
   character(len=*), intent(in)          :: file_name
+  !> Tensor to store the data read from the file
   complex(dp), intent(out), allocatable :: tensor(:, :, :)
+  !> Format of the file
   character(len=*), intent(in)          :: file_format
 
   integer(i32) :: unit, i, j, mini, mend, nini, nend, pini, pend
@@ -209,8 +238,11 @@ end subroutine
 
 !> Open a text file
 subroutine open_text_file( file_name, action, unit )
+  !> Name of the file
   character(len=*), intent(in)  :: file_name
+  !> Action: should be e. g. "read", "write"
   character(len=*), intent(in)  :: action
+  !> Unit of the file (that will be opened)
   integer(i32), intent(out)     :: unit
 
   call getunit( unit )
@@ -221,8 +253,11 @@ end subroutine
   
 !> Open a binary file
 subroutine open_binary_file( file_name, action, unit )
+  !> Name of the file
   character(len=*), intent(in)  :: file_name
+  !> Action: should be e. g. "read", "write"
   character(len=*), intent(in)  :: action
+  !> Unit of the file (that will be opened)
   integer(i32), intent(out)     :: unit
 
   call getunit( unit )
