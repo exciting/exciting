@@ -358,5 +358,4 @@
       </xs:attribute>
     </xs:complexType>
   </xs:element>
-
 </xs:schema>

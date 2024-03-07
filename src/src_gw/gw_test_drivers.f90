@@ -17,7 +17,6 @@ subroutine gw_test_driver(mpiglobal, kill_on_failure)
     logical, optional :: kill_on_failure 
 
     ! Call test drivers here
-    ! call task_epsilon_test_driver(mpiglobal, kill_on_failure)
 
 end subroutine
 

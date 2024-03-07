@@ -25,7 +25,7 @@ subroutine calcselfx(iq)
     complex(8) :: sx, vc
     complex(8) :: mvm     ! Sum_ij{M^i*V^c_{ij}*conjg(M^j)}
     complex(8), allocatable :: evecfv(:,:)
-
+  
     ! external routines
     complex(8), external :: zdotc
 
@@ -41,7 +41,7 @@ subroutine calcselfx(iq)
         sxs2 = 0.d0
         mbsiz = matsiz
         if (allocated(barc)) deallocate(barc)
-        allocate(barc(matsiz, mbsiz), source=zzero)
+        allocate(barc(matsiz,mbsiz), source=zzero)
         do im = 1, matsiz
             if (barcev(im) > 0.d0) then
                 vc = cmplx(barcev(im), 0.d0, 8)

@@ -1,5 +1,6 @@
 
 module mod_product_basis
+    use gw_io, only: read_from_file, write_to_file, build_file_name
 
     implicit none
     
@@ -138,6 +139,9 @@ module mod_product_basis
     !---------------------------------------------------------------!
     complex(8), allocatable :: rotmat(:,:)
 
+    !> Name of output file where sgi is written to
+    character(len=*), parameter, private :: basename_sgi = 'SGI_'
+
 contains
 
     subroutine delete_product_basis()
@@ -155,6 +159,35 @@ contains
         if (allocated(rtl)) deallocate(rtl)
         if (allocated(rrint)) deallocate(rrint)
         return
+    end subroutine
+
+    !> Write `sgi` to an output file
+    subroutine write_sgi_to_file( int, binary_output )
+      !> integer that will be added to `basename_sgi` to form the output name
+      integer, intent(in) :: int
+      !> If true, write binary output
+      logical, intent(in) :: binary_output
+    
+      character(len=30)   :: file_name
+      
+      call build_file_name( basename_sgi, int, file_name )
+      call write_to_file( file_name, sgi, [1, 1], binary_output )
+    
+    end subroutine
+
+
+    !> Read `sgi` stored in a file
+    subroutine read_sgi_from_file( int, file_format )
+      !> Integer that will be added to `basename_sgi` to form the output name
+      integer, intent(in) :: int
+      !> Format of the file to be read from
+      character(len=*), intent(in) :: file_format
+    
+      character(len=30)   :: file_name
+      
+      call build_file_name( basename_sgi, int, file_name )
+      call read_from_file( file_name, sgi, file_format )
+    
     end subroutine
     
 end module

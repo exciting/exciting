@@ -11,7 +11,8 @@ import os
 from excitingtools.utils.dict_utils import container_converter
 
 from excitingtools.exciting_dict_parsers import \
-    bse_parser, groundstate_parser, gw_eigenvalues_parser, gw_eps00_parser, gw_info_parser, gw_vxc_parser, \
+    bse_parser, groundstate_parser, \
+    gw_eigenvalues_parser, gw_eps00_parser, gw_info_parser, gw_vxc_parser, gw_taskgroup_parser, \
     input_parser, properties_parser, RT_TDDFT_parser, species_parser, state_parser
 
 
@@ -120,6 +121,8 @@ _file_to_parser = {
     'EVALQP.DAT': gw_eigenvalues_parser.parse_evalqp,
     'VXCNN.DAT': gw_vxc_parser.parse_vxcnn,
     'EPS00_GW.OUT': gw_eps00_parser.parse_eps00_gw,
+    'BARC_': gw_taskgroup_parser.parse_barc,
+    'SGI_': gw_taskgroup_parser.parse_sgi,
     'JIND.OUT': RT_TDDFT_parser.parse_jind,
     'NEXC.OUT': RT_TDDFT_parser.parse_nexc,
     'ETOT_RTTDDFT.OUT': RT_TDDFT_parser.parse_etot,
@@ -160,7 +163,9 @@ def truncate_fnames_with_exts(file_name: str) -> str:
         'FCR_',
         'FEXT_',
         'FHF_',
-        'FVAL_'
+        'FVAL_',
+        'SGI_',
+        'BARC_',
     ]
     if any( [ prefix in file_name for prefix in prefixes ] ) :
         file_name_prefix = file_name.split('_')[0] + '_'

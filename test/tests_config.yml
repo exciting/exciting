@@ -202,6 +202,43 @@ GW/MoS2-LDA-cutoff:
       - "Mo.xml"
       - "S.xml"
 
+GW/MoS2-LDA-Coulomb:
+   files_under_test:
+      - "SGI_1.OUT"
+      - "SGI_2.OUT"
+      - "SGI_3.OUT"
+      - "SGI_4.OUT"
+      - "BARC_1.OUT"
+      - "BARC_2.OUT"
+      - "BARC_3.OUT"
+      - "BARC_4.OUT"
+   inputs:
+      - "input.xml"
+      - "Mo.xml"
+      - "S.xml"
+
+GW/Si-PBE-Coulomb:
+   files_under_test:
+      - "SGI_1.OUT"
+      - "SGI_2.OUT"
+      - "SGI_3.OUT"
+      - "SGI_4.OUT"
+      - "SGI_5.OUT"
+      - "SGI_6.OUT"
+      - "SGI_7.OUT"
+      - "SGI_8.OUT"
+      - "BARC_1.OUT"
+      - "BARC_2.OUT"
+      - "BARC_3.OUT"
+      - "BARC_4.OUT"
+      - "BARC_5.OUT"
+      - "BARC_6.OUT"
+      - "BARC_7.OUT"
+      - "BARC_8.OUT"
+   inputs:
+      - "input.xml"
+      - "Si.xml"
+
 # TODO(Alex) Issue #103. App Tests: GW QP Energies Inconsistent with Reference
 # TODO(Alex) Issue #35. MPI GW calculations do not produce EPS00_GW.OUT
 GW/Si-PBESOL:

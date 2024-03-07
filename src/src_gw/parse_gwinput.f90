@@ -91,6 +91,8 @@ subroutine parse_gwinput()
             if (rank==0) write(fgw,*) '  Compute spectral function along the k-path'
         case('sv')
             if (rank==0) write(fgw,*) '  Apply second variation procedure'
+        case('taskGroup')
+            if (rank==0) write(fgw,*) '  Execute a group of tasks'
         case default
             if (rank==0) write(*,*) 'ERROR(parse_gwinput): Wrong task name!'
             if (rank==0) write(*,*)
