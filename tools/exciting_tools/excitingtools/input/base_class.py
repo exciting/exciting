@@ -1,6 +1,7 @@
-"""Base class for exciting input classes.
-"""
+"""Base class for exciting input classes."""
+
 import importlib
+import re
 import warnings
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -13,44 +14,68 @@ from excitingtools.exciting_dict_parsers.input_parser import parse_element_xml
 from excitingtools.utils import valid_attributes as all_valid_attributes
 from excitingtools.utils.dict_utils import check_valid_keys
 from excitingtools.utils.jobflow_utils import special_serialization_attrs
-from excitingtools.utils.utils import flatten_list
+from excitingtools.utils.utils import flatten_list, list_to_str
 
 path_type = Union[str, Path]
 
 
 class AbstractExcitingInput(ABC):
-    """Base class for exciting inputs."""
+    """Base class for exciting inputs.
+
+    name: Used as tag for the xml subelement
+    """
+
+    name: str = "ABSTRACT"  # not directly used, need a value here because of the dynamic class list
 
     @abstractmethod
     def __init__(self, **kwargs):
         ...
 
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        """ Tag of the xml subelement. """
-        ...
-
     @abstractmethod
     def to_xml(self) -> ElementTree:
         """ Convert class attributes to XML ElementTree."""
-        ...
+
+    def to_xml_str(self) -> str:
+        """ Convert attributes to XML tree string. """
+        return ElementTree.tostring(self.to_xml(), encoding='unicode', method='xml')
+
+    def as_dict(self) -> dict:
+        """ Convert attributes to dictionary. """
+        serialise_attrs = special_serialization_attrs(self)
+        return {**serialise_attrs, "xml_string": self.to_xml_str()}
+
+    @classmethod
+    def from_xml(cls, xml_string: path_type):
+        """ Initialise class instance from XML-formatted string.
+
+        Example Usage
+        --------------
+        xs_input = ExcitingXSInput.from_xml(xml_string)
+        """
+        return cls(**parse_element_xml(xml_string, tag=cls.name))
+
+    @classmethod
+    def from_dict(cls, d):
+        """ Recreates class instance from dictionary. """
+        return cls.from_xml(d["xml_string"])
 
 
 class ExcitingXMLInput(AbstractExcitingInput, ABC):
     """Base class for exciting inputs, with exceptions being title, plan, qpointset and kstlist,
      because they are not passed as a dictionary. """
 
-    # Convert python data to string, formatted specifically for
-    _attributes_to_input_str = {int: lambda x: str(x),
-                                np.int64: lambda x: str(x),
-                                np.float64: lambda x: str(x),
-                                float: lambda x: str(x),
-                                bool: lambda x: str(x).lower(),
-                                str: lambda x: x,
-                                list: lambda mylist: " ".join(str(x).lower() for x in mylist).strip(),
-                                tuple: lambda mylist: " ".join(str(x).lower() for x in mylist).strip()
-                                }
+    # Convert python data to string, formatted specifically for exciting
+    _attributes_to_input_str = {
+        int: lambda x: str(x),
+        np.int64: lambda x: str(x),
+        np.float64: lambda x: str(x),
+        float: lambda x: str(x),
+        bool: lambda x: str(x).lower(),
+        str: lambda x: x,
+        list: list_to_str,
+        tuple: list_to_str,
+        np.ndarray: list_to_str,
+    }
 
     def __init__(self, **kwargs):
         """Initialise class attributes with kwargs.
@@ -114,27 +139,26 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
 
     @staticmethod
     def _class_list_excitingtools() -> List[Type[AbstractExcitingInput]]:
-        """ Find all exciting input classes in own module and excitingtools.
-        """
+        """Find all exciting input classes in own module and excitingtools."""
         excitingtools_namespace_content = importlib.import_module("excitingtools").__dict__
         input_class_namespace_content = importlib.import_module("excitingtools.input.input_classes").__dict__
         all_contents = {**excitingtools_namespace_content, **input_class_namespace_content}.values()
         return [cls for cls in all_contents if isinstance(cls, type) and issubclass(cls, AbstractExcitingInput)]
 
     @staticmethod
-    def _initialise_subelement_attribute(XMLClass, element):
+    def _initialise_subelement_attribute(xml_class, element):
         """ Initialize given elements to the ExcitingXSInput constructor. If element is already ExcitingXMLInput class
         object, nothing happens. Else the class constructor of the given XMLClass is called. For a passed
         dictionary the dictionary is passed as kwargs.
         """
-        if isinstance(element, XMLClass):
+        if isinstance(element, xml_class):
             return element
         elif isinstance(element, dict):
             # assume kwargs
-            return XMLClass(**element)
+            return xml_class(**element)
         else:
             # Assume the element type is valid for the class constructor
-            return XMLClass(element)
+            return xml_class(element)
 
     def to_xml(self) -> ElementTree:
         """Put class attributes into an XML tree, with the element given by self.name.
@@ -163,33 +187,10 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
 
         return xml_tree
 
-    def to_xml_str(self) -> str:
-        """ Convert attributes to XML tree string. """
-        return ElementTree.tostring(self.to_xml(), encoding='unicode', method='xml')
-
-    def as_dict(self) -> dict:
-        """ Convert attributes to dictionary. """
-        serialise_attrs = special_serialization_attrs(self)
-        return {**serialise_attrs, "xml_string": self.to_xml_str()}
-
-    @classmethod
-    def from_xml(cls, xml_string: path_type):
-        """ Initialise class instance from XML-formatted string.
-
-        Example Usage
-        --------------
-        xs_input = ExcitingXSInput.from_xml(xml_string)
-        """
-        return cls(**parse_element_xml(xml_string, tag=cls.name))
-
-    @classmethod
-    def from_dict(cls, d):
-        """ Recreates class instance from dictionary. """
-        return cls.from_xml(d["xml_string"])
-
 
 def query_exciting_version(exciting_root: path_type) -> dict:
-    """Query the exciting version
+    """Query the exciting version.
+
     Inspect version.inc, which is constructed at compile-time.
 
     Assumes version.inc has this structure:
@@ -198,21 +199,14 @@ def query_exciting_version(exciting_root: path_type) -> dict:
      #define COMPILERVERSION "GNU Fortran (MacPorts gcc9 9.3.0_4) 9.3.0"
      #define VERSIONFROMDATE /21,12,01/
 
-    TODO(Fab) Issue 117. Parse major version.
-     Would need to parse src/mod_misc.F90 and regex for "character(40) :: versionname = "
-     Refactor whole routine to use regex.
+    Also checks the src/mod_misc.F90 file for the major exciting version.
 
     :param exciting_root: exciting root directory.
     :return version: Build and version details
     """
-    if isinstance(exciting_root, str):
-        exciting_root = Path(exciting_root)
-
+    exciting_root = Path(exciting_root)
     version_inc = exciting_root / 'src/version.inc'
-
-    if not version_inc.exists():
-        raise FileNotFoundError(f'{version_inc} cannot be found. '
-                                f'This file generated when the code is built')
+    assert version_inc.exists(), f'{version_inc} cannot be found. This file generated when the code is built'
 
     with open(version_inc, 'r') as fid:
         all_lines = fid.readlines()
@@ -222,5 +216,7 @@ def query_exciting_version(exciting_root: path_type) -> dict:
     compiler_parts = all_lines[2].split()[2:]
     compiler = " ".join(s for s in compiler_parts).strip()
 
-    version = {'compiler': compiler[1:-1], 'git_hash': git_hash_part1 + git_hash_part2}
-    return version
+    mod_misc = exciting_root / "src/mod_misc.F90"
+    major_version = re.search(r"character\(40\) :: versionname = '(NEON)'", mod_misc.read_text())[1]
+
+    return {'compiler': compiler[1:-1], 'git_hash': git_hash_part1 + git_hash_part2, "major": major_version}

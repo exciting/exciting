@@ -13,7 +13,7 @@ be fine.
 import pytest
 import numpy as np
 
-from excitingtools.input.input_classes import ExcitingGroundStateInput, ExcitingXSInput
+from excitingtools.input.input_classes import ExcitingGroundStateInput, ExcitingXSInput, ExcitingKeywordsInput
 from excitingtools.input.input_xml import ExcitingInputXML
 from excitingtools.input.structure import ExcitingStructure
 
@@ -53,9 +53,10 @@ def exciting_input_xml(exciting_structure: ExcitingStructure) -> ExcitingInputXM
                          screening=screening_attributes,
                          qpointset=qpointset_input,
                          plan=plan_input)
+    keywords = ExcitingKeywordsInput("keyword1 keyword2 keyword3")
 
     return ExcitingInputXML(sharedfs=True, structure=exciting_structure, title='Test Case', groundstate=ground_state,
-                            xs=xs)
+                            xs=xs, keywords=keywords)
 
 
 def test_exciting_input_xml_structure_and_gs_and_xs(exciting_input_xml: ExcitingInputXML):
@@ -68,7 +69,7 @@ def test_exciting_input_xml_structure_and_gs_and_xs(exciting_input_xml: Exciting
     assert input_xml_tree.keys() == ['sharedfs']
 
     subelements = list(input_xml_tree)
-    assert len(subelements) == 4
+    assert len(subelements) == 5
 
     title_xml = subelements[0]
     assert title_xml.tag == 'title'
@@ -145,6 +146,11 @@ def test_exciting_input_xml_structure_and_gs_and_xs(exciting_input_xml: Exciting
     assert doonlys[1].tag == 'doonly'
     assert doonlys[1].items() == [('task', 'bse')]
 
+    title_xml = subelements[4]
+    assert title_xml.tag == 'keywords'
+    assert title_xml.keys() == []
+    assert title_xml.text == 'keyword1 keyword2 keyword3'
+
 
 def test_attribute_modification(exciting_input_xml: ExcitingInputXML):
     """Test the XML created for a ground state input is valid.
@@ -157,7 +163,7 @@ def test_attribute_modification(exciting_input_xml: ExcitingInputXML):
     input_xml_tree = exciting_input_xml.to_xml()
 
     subelements = list(input_xml_tree)
-    assert len(subelements) == 4
+    assert len(subelements) == 5
 
     title_xml = subelements[0]
     assert title_xml.tag == 'title'

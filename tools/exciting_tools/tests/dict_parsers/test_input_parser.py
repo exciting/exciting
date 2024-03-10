@@ -85,12 +85,18 @@ reference_input_str = """<?xml version="1.0" encoding="UTF-8"?>
    </plan>
   </xs>
   
+  <keywords>keyword1 keyword2</keywords>
+  
 </input>
 """
 
 
 def test_parse_title():
     assert parse_element_xml(reference_input_str, tag="title") == "Lithium Fluoride BSE"
+
+
+def test_parse_keywords():
+    assert parse_element_xml(reference_input_str, tag="keywords") == "keyword1 keyword2"
 
 
 def test_parse_groundstate():
@@ -156,7 +162,7 @@ def test_parse_xs():
     assert isinstance(xs["ngridq"][0], int)
 
 
-input_ref_parsed_keys = {'title', 'groundstate', 'structure', 'xs', 'sharedfs', "properties"}
+input_ref_parsed_keys = {'title', 'groundstate', 'structure', 'xs', 'sharedfs', "properties", "keywords"}
 
 
 def test_parse_input_xml():

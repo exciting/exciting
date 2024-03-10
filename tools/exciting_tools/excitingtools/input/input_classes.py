@@ -14,6 +14,7 @@ from excitingtools.utils.valid_attributes import valid_plan_entries
 # type hint as Any to not conflict with static type checkers as the input classes are generated dynamically
 ExcitingCrystalInput: Any
 ExcitingSpeciesInput: Any
+ExcitingAtomInput: Any
 ExcitingGroundStateInput: Any
 ExcitingXSInput: Any
 ExcitingPropertiesInput: Any
@@ -36,11 +37,25 @@ class ExcitingTitleInput(AbstractExcitingInput):
     def __init__(self, title: str):
         self.title = title
 
-    def to_xml(self, **kwargs) -> ElementTree:
+    def to_xml(self) -> ElementTree:
         """ Puts title to xml, only the text is title. """
         title_tree = ElementTree.Element(self.name)
         title_tree.text = self.title
         return title_tree
+
+
+class ExcitingKeywordsInput(AbstractExcitingInput):
+    """ Input class for keywords. Can set any info via a text string, it's not used by exciting. """
+    name = "keywords"
+
+    def __init__(self, info: str):
+        self.info = info
+
+    def to_xml(self) -> ElementTree:
+        """ Puts keywords to xml. """
+        keywords_tree = ElementTree.Element(self.name)
+        keywords_tree.text = self.info
+        return keywords_tree
 
 
 class ExcitingQpointsetInput(AbstractExcitingInput):

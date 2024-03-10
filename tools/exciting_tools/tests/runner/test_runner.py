@@ -1,6 +1,5 @@
-"""Tests for the binary runner.
-Excludes the run method.
-"""
+"""Tests for the binary runner."""
+
 import shutil
 from pathlib import Path
 from typing import Any
@@ -14,9 +13,10 @@ mock_binary = "false_exciting_binary"
 
 @pytest.mark.xfail(shutil.which(mock_binary) is not None, reason="Binary name exists.")
 def test_no_binary():
+    my_runner = BinaryRunner(mock_binary, "./", 1, 1)
     with pytest.raises(FileNotFoundError,
                        match=fr"{mock_binary} binary is not present in the current directory nor in \$PATH"):
-        BinaryRunner(mock_binary, "./", 1, 1)
+        my_runner.run()
 
 
 @pytest.fixture
@@ -27,8 +27,9 @@ def exciting_smp(tmp_path: Path) -> str:
 
 
 def test_no_run_dir(exciting_smp: str):
+    my_runner = BinaryRunner(exciting_smp, "./", 1, 1, "non_existent_dir")
     with pytest.raises(OSError, match="Run directory does not exist: non_existent_dir"):
-        BinaryRunner(exciting_smp, "./", 1, 1, "non_existent_dir")
+        my_runner.run()
 
 
 def test_false_run_cmd(exciting_smp: str):

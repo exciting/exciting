@@ -308,6 +308,41 @@ def test_from_dict(lattice_and_atoms_CdS):
     assert structure.speciespath == './'  # pylint: disable=no-member
 
 
+def test_add_and_remove_atoms(lattice_and_atoms_CdS):
+    cubic_lattice, arbitrary_atoms = lattice_and_atoms_CdS
+    structure = ExcitingStructure(arbitrary_atoms, cubic_lattice, './')
+
+    assert len(structure.species) == 2, "initially there are 2 atoms in the structure"
+    # just confirm that the xml tree can be built, not that it is fully correct
+    structure.to_xml()
+
+    structure.add_atom("Cd", [0.25, 0.25, 0.25], {'bfcmt': [1.0, 1.0, 1.0]})
+    xml_tree = structure.to_xml()
+    assert xml_tree.findall("species")[0].findall("atom")[1].attrib == {
+        "coord": "0.25 0.25 0.25", "bfcmt": "1.0 1.0 1.0"
+    }
+
+    structure.add_atom("Mg", [0.75, 0.25, 0.0], species_properties={"rmt": 3})
+    xml_tree = structure.to_xml()
+    mg_tree = xml_tree.findall("species")[1]
+    assert mg_tree.attrib == {"rmt": "3", "speciesfile": "Mg.xml"}
+    mg_atom = mg_tree.findall("atom")[0]
+    assert mg_atom.attrib == {"coord": "0.75 0.25 0.0"}
+
+    structure.remove_atom(0)
+    xml_tree = structure.to_xml()
+    atoms = xml_tree.findall("species")[0].findall("atom")
+    assert len(atoms) == 1
+    assert atoms[0].attrib == {"coord": "0.25 0.25 0.25", "bfcmt": "1.0 1.0 1.0"}
+
+    structure.remove_atom(-1)
+    xml_tree = structure.to_xml()
+    species_trees = xml_tree.findall("species")
+    assert len(species_trees) == 2
+    assert species_trees[0].get("speciesfile") == "Cd.xml"
+    assert species_trees[1].get("speciesfile") == "S.xml"
+
+
 @pytest.fixture
 def lattice_and_atoms_H20():
     """

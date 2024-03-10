@@ -2,7 +2,7 @@
 """
 import pathlib
 import re
-from typing import Union, List, Optional, Callable, Iterator
+from typing import Union, List, Optional, Callable, Iterator, Iterable, Any
 
 
 def get_excitingtools_root() -> pathlib.Path:
@@ -68,12 +68,16 @@ def get_new_line_indices(string: str) -> List[int]:
     return indices
 
 
-def list_to_str(mylist: list, modifier: Optional[Callable] = None) -> str:
-    """ Convert a list to a string
+def list_to_str(mylist: Iterable[Any], modifier: Optional[Callable] = None) -> str:
+    """Convert a list or iterable to a lower-case string.
+
+    :param mylist: the input iterable
+    :param modifier: function which is additionally called on the stringified elements of the input iterable
+    :return: string representation in lower-case
     """
     if modifier is None:
-        modifier = lambda x: x
-    return "".join(modifier(str(xyz)) + ' ' for xyz in mylist).strip()
+        return " ".join([str(x).lower() for x in mylist])
+    return " ".join([modifier(str(x).lower()) for x in mylist])
 
 
 def flatten_list(input_list: list) -> Iterator:

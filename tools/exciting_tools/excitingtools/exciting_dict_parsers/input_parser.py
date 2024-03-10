@@ -1,8 +1,5 @@
-""" Parsers for input.xml.
+""" Parsers for input.xml. """
 
-TODO(Fabian): Issues 117 & 121:
-As more sub-elements are implemented in the input files, also add parsers here
-"""
 import copy
 from typing import Tuple
 from xml.etree import ElementTree
@@ -48,7 +45,7 @@ def parse_element_xml(root, tag: str = None) -> dict:
     """
     root, tag = get_root_from_tag(root, tag)
 
-    if tag in special_tags_to_parse_map.keys():
+    if tag in special_tags_to_parse_map:
         return special_tags_to_parse_map[tag](root)
 
     element_dict = convert_string_dict(copy.deepcopy(root.attrib))
@@ -142,6 +139,7 @@ def parse_structure(root) -> dict:
 special_tags_to_parse_map = {
     "input": _parse_input_tag,
     "title": lambda root: root.text,
+    "keywords": lambda root: root.text,
     "structure": parse_structure,
     "qpointset": lambda root: [[float(x) for x in qpoint.text.split()] for qpoint in root],
     "plan": lambda root: [doonly.attrib['task'] for doonly in root],
