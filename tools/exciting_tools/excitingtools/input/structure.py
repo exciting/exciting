@@ -1,6 +1,8 @@
 """Structure class, mirroring that of exciting's structure XML sub-tree.
-https://exciting.wikidot.com/ref:structure
+
+See https://exciting.wikidot.com/ref:structure
 """
+
 from __future__ import annotations
 
 import copy
@@ -9,19 +11,21 @@ from typing import Optional, Union, List, Dict, Iterator, Tuple
 from xml.etree import ElementTree
 
 import numpy as np
+from numpy.typing import NDArray
 
 from excitingtools.constants.units import angstrom_to_bohr, bohr_to_angstrom
 from excitingtools.input.base_class import ExcitingXMLInput, AbstractExcitingInput
-from excitingtools.input.input_classes import ExcitingCrystalInput, ExcitingSpeciesInput
+from excitingtools.input.input_classes import ExcitingCrystalInput, ExcitingSpeciesInput, ExcitingAtomInput
 from excitingtools.structure.lattice import check_lattice, check_lattice_vector_norms
 from excitingtools.utils import valid_attributes
+from excitingtools.utils.dict_utils import check_valid_keys
 from excitingtools.utils.utils import list_to_str
 
 
 class ExcitingStructure(ExcitingXMLInput):
-    """ Class allowing exciting XML structure to be written from python data.
-    """
+    """Class allowing exciting XML structure to be written from python data."""
     name = "structure"
+
     # Path type
     path_type = Union[str, Path]
 
@@ -78,7 +82,7 @@ class ExcitingStructure(ExcitingXMLInput):
             self.lattice = np.asarray(lattice, dtype=np.float64)
             self.species = [atom['species'].capitalize() for atom in atoms]
             self.positions = [atom['position'] for atom in atoms]
-            self.atom_properties = self._init_atom_properties(atoms)
+            self.atom_properties = list(self._init_atom_properties(atoms))
         else:
             self.lattice, self.species, self.positions = self._init_lattice_species_positions_from_ase_atoms(atoms)
             self.atom_properties = [{}] * len(self.species)
@@ -86,8 +90,9 @@ class ExcitingStructure(ExcitingXMLInput):
         self.unique_species = sorted(set(self.species))
 
         # Optional properties
-        self.crystal_properties = self._initialise_subelement_attribute(ExcitingCrystalInput,
-                                                                        crystal_properties or {})
+        self.crystal_properties = self._initialise_subelement_attribute(
+            ExcitingCrystalInput, crystal_properties or {}
+        )
         self.species_properties = dict(self._init_species_properties(species_properties))
 
     def __setattr__(self, name: str, value):
@@ -99,7 +104,9 @@ class ExcitingStructure(ExcitingXMLInput):
         """
         AbstractExcitingInput.__setattr__(self, name, value)
 
-    def _init_lattice_species_positions_from_ase_atoms(self, atoms) -> tuple:
+    def _init_lattice_species_positions_from_ase_atoms(
+            self, atoms
+    ) -> Tuple[NDArray[float], List[str], List[NDArray[float]]]:
         """ Initialise lattice, species and positions from an ASE Atoms Object.
 
         Duck typing for atoms, such that ASE is not a hard dependency.
@@ -116,13 +123,13 @@ class ExcitingStructure(ExcitingXMLInput):
                 positions = angstrom_to_bohr * atoms.get_positions()
             else:
                 positions = atoms.get_scaled_positions()
-            return lattice, species, positions
+            return lattice, species, list(positions)
         except AttributeError:
             message = "atoms must either be an ase.atoms.Atoms object or List[dict], of the form" \
                       "[{'species': 'X', 'position': [x, y, z]}, ...]."
             raise AttributeError(message)
 
-    def _init_atom_properties(self, atoms: List[dict]) -> List[dict]:
+    def _init_atom_properties(self, atoms: List[dict]) -> Iterator[dict]:
         """ Initialise atom_properties.
 
         For atoms that contain optional atomic properties, store them as
@@ -131,25 +138,18 @@ class ExcitingStructure(ExcitingXMLInput):
 
         For each element of atoms, one must have  {'species': 'X', 'position': [x, y, z]}  and
         may have the additional attributes: {'bfcmt': [bx, by, bz], 'lockxyz': [lx, ly, lz], 'mommtfix': [mx, my, mz]}.
-        Extract the optional attributes and return in `atom_properties`, with string values.
+        Extract the optional attributes and return in `atom_properties`.
 
         :param atoms: List container.
         :return atom_properties: List of atom properties. Each element is a dict.
         and the dict value has been converted to string - ready for XML usage.
         """
-        atom_properties: List[dict] = []
-
         for atom in atoms:
-            optional_property_keys = set(atom.keys()) & self._valid_atom_attributes
-            optional_atom = {key: atom[key] for key in optional_property_keys}
-            optional_properties = {}
-            for key, value in optional_atom.items():
-                optional_properties[key] = self._attributes_to_input_str[type(value)](value)
-            atom_properties.append(optional_properties)
+            atom_properties = {key: value for key, value in atom.items() if key not in {"species", "position"}}
+            check_valid_keys(atom_properties.keys(), self._valid_atom_attributes, "Atom properties")
+            yield atom_properties
 
-        return atom_properties
-
-    def _init_species_properties(self, species_properties: dict) -> Iterator[Tuple[str, ExcitingXMLInput]]:
+    def _init_species_properties(self, species_properties: Union[dict, None]) -> Iterator[Tuple[str, ExcitingXMLInput]]:
         """ Initialise species_properties.
 
         For species without properties, return empty_properties: {'S': {}, 'Al': {}}.
@@ -163,7 +163,7 @@ class ExcitingStructure(ExcitingXMLInput):
         for species in self.unique_species:
             props = species_properties.get(species) or {}
             props["speciesfile"] = species + '.xml'
-            yield species, self._initialise_subelement_attribute(ExcitingSpeciesInput, props)
+            yield species, ExcitingSpeciesInput(**props)
 
     def get_lattice(self, convert_to_angstrom: bool = False) -> np.ndarray:
         """ Get the full lattice, meaning after the application of scale and stretch values to the stored
@@ -181,6 +181,46 @@ class ExcitingStructure(ExcitingXMLInput):
         lattice *= stretch[:, None]
         return lattice
 
+    def add_atom(
+            self,
+            species: str,
+            position: Union[List[float], NDArray[float]],
+            properties: Union[dict, None] = None,
+            species_properties: Union[dict | None] = None
+    ):
+        """Add a new atom to the structure.
+
+        :param species: of the new atom
+        :param position: of the new atom
+        :param properties: optional atom properties
+        :param species_properties: if it is a new species, optional species properties, else not used
+        """
+        species_properties = species_properties or {}
+
+        self.species.append(species)
+        if species not in self.unique_species:
+            self.unique_species = sorted(set(self.species))
+            species_properties["speciesfile"] = species + ".xml"
+            self.species_properties[species] = ExcitingSpeciesInput(**species_properties)
+
+        self.positions.append(position)
+        properties = properties or {}
+        check_valid_keys(properties.keys(), self._valid_atom_attributes, "Atom properties")
+        self.atom_properties.append(properties)
+
+    def remove_atom(self, index: int):
+        """Remove atom from the structure.
+
+        :param index: Number specifying the atom to remove, start by 0, -1 means the last atom
+        """
+        removed_species = self.species.pop(index)
+        self.positions.pop(index)
+        self.atom_properties.pop(index)
+
+        if removed_species not in self.species:
+            self.unique_species = sorted(set(self.species))
+            del self.species_properties[removed_species]
+
     def _group_atoms_by_species(self) -> dict:
         """Get the atomic indices for atoms of each species.
 
@@ -196,15 +236,14 @@ class ExcitingStructure(ExcitingXMLInput):
             indices[x] = [i for i, element in enumerate(self.species) if element == x]
         return indices
 
-    def _xml_atomic_subtree(self, x: str, species, atomic_indices):
+    def _xml_atomic_subtree(self, species: str, species_tree: ElementTree.Element, atomic_indices: dict):
         """ Add the required atomic positions and any optional attributes, per species.
 
-        :param x: Species
-        :param species: Empty SubElement for species x, which gets filled
+        :param species: Species
+        :param species_tree: Empty SubElement for species x, which gets filled
         """
-        for iatom in atomic_indices[x]:
-            coord_str = list_to_str(self.positions[iatom])
-            ElementTree.SubElement(species, "atom", coord=coord_str, **self.atom_properties[iatom]).text = ' '
+        for index in atomic_indices[species]:
+            species_tree.append(ExcitingAtomInput(coord=self.positions[index], **self.atom_properties[index]).to_xml())
 
     def to_xml(self) -> ElementTree.Element:
         """Convert structure attributes to XML ElementTree
