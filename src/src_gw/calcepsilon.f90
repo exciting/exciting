@@ -8,7 +8,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
     use modgw
     use mod_mpi_gw, only : myrank
     use modxs,      only : symt2
-    use m_getunit
+    
     implicit none
     ! input/output
     integer(4), intent(in) :: iq
@@ -74,32 +74,6 @@ subroutine calcepsilon(iq,iomstart,iomend)
     case default
         stop "Error(calcepsilon): Unknown qdepw method!"
     end select
-
-    !==========================
-    ! Momentum matrix elements
-    !==========================
-    if (Gamma) then
-        !---------
-        ! val-val
-        !---------
-        if (allocated(pmatvv)) deallocate(pmatvv)
-        allocate(pmatvv(nomax,numin:nstdf,3))
-        inquire(iolength=recl) pmatvv
-        open(fid_pmatvv,File=fname_pmatvv, &
-        &    Action='READ',Form='UNFORMATTED',&
-        &    Access='DIRECT',Status='OLD',Recl=recl)
-        !----------
-        ! core-val
-        !----------
-        if (input%gw%coreflag=='all') then
-            if (allocated(pmatcv)) deallocate(pmatcv)
-            allocate(pmatcv(ncg,numin:nstdf,3))
-            inquire(iolength=recl) pmatcv
-            open(fid_pmatcv,File=fname_pmatcv, &
-            &    Action='READ',Form='UNFORMATTED', &
-            &    Access='DIRECT',Status='OLD',Recl=recl)
-        end if
-    end if
 
     !=================
     ! BZ integration
@@ -183,9 +157,6 @@ subroutine calcepsilon(iq,iomstart,iomend)
         ! deallocate the momentum matrix elements
         deallocate(pmatvv)
         if (input%gw%coreflag=='all') deallocate(pmatcv)
-        ! close files
-        close(fid_pmatvv)
-        if (input%gw%coreflag=='all') close(fid_pmatcv)
     end if
     deallocate(eveck)
     deallocate(eveckp)

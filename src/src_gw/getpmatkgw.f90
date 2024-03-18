@@ -3,21 +3,52 @@
 !
 subroutine getpmatkgw(ik)
 
-    use modinput
-    use modmain
-    use modgw
-    use mod_dielectric_function
-    use mod_hdf5
+    use modinput, only: input
+    !use modmain
+    use modgw, only: kset, kqset
+    use mod_bands, only: numin, nomax, nstdf
+    use mod_core_states, only: ncg
+    use mod_dielectric_function, only: pmatcv, pmatvv, fname_pmatcv, fname_pmatvv
+    use mod_symmetry, only: lsplsymc, nsymcrys, symlat, symlatc
+    use m_getunit, only: getunit
+
     implicit none
     
     ! input
     integer, intent(in) :: ik
     ! local
     integer :: ikp, isym, lspl, iv(3)
-    integer :: ie1, ie2, icg, is, ia, ias, ic
+    integer :: ie1, ie2, icg, ias
     real(8) :: s(3,3), v1(3), v2(3), v3(3), t1
-    logical :: lfound
+    logical :: lfound, calculate_core
     integer :: recl
+    integer :: fid_pmatvv
+    integer :: fid_pmatcv
+    
+
+    !---------
+    ! val-val
+    !---------
+    if (allocated(pmatvv)) deallocate(pmatvv)
+    allocate(pmatvv(nomax,numin:nstdf,3))
+    inquire(iolength=recl) pmatvv
+    call getunit( fid_pmatvv )
+    open(fid_pmatvv,File=fname_pmatvv, &
+    &    Action='READ',Form='UNFORMATTED',&
+    &    Access='DIRECT',Status='OLD',Recl=recl)
+    !----------
+    ! core-val
+    !----------
+    calculate_core = (input%gw%coreflag=='all')
+    if ( calculate_core ) then
+      call getunit( fid_pmatcv )
+      if (allocated(pmatcv)) deallocate(pmatcv)
+      allocate(pmatcv(ncg,numin:nstdf,3))
+      inquire(iolength=recl) pmatcv
+      open(fid_pmatcv,File=fname_pmatcv, &
+      &    Action='READ',Form='UNFORMATTED', &
+      &    Access='DIRECT',Status='OLD',Recl=recl)
+    end if
     
     ikp = kset%ik2ikp(ik)
     
@@ -92,5 +123,6 @@ subroutine getpmatkgw(ik)
       
     end if
 
-    return
+    close(fid_pmatvv)
+    if ( calculate_core ) close(fid_pmatcv)
 end subroutine

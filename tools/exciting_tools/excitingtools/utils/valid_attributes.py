@@ -399,11 +399,15 @@ barecoul_valid_attributes = ['barcevtol', 'basis', 'cutofftype', 'pwm', 'stctol'
 scrcoul_valid_attributes = ['averaging', 'omegap', 'q0eps', 'scrtype'] 
 
 taskGroup_valid_attributes = ['outputFormat'] 
-taskGroup_valid_subtrees = ['Coulomb'] 
+taskGroup_valid_subtrees = ['Coulomb', 'epsilon'] 
 
 Coulomb_valid_subtrees = ['qpoints'] 
 Coulomb_mandatory_attributes = ['qpoints'] 
 Coulomb_multiple_children = ['qpoints'] 
+
+epsilon_valid_subtrees = ['qpoints'] 
+epsilon_mandatory_attributes = ['qpoints'] 
+epsilon_multiple_children = ['qpoints'] 
 
 
 # MD information 

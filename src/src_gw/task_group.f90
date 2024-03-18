@@ -8,6 +8,7 @@ module task_group
   use mod_selfenergy, only: singc1, singc2
   use precision, only: i32, dp
   use task_Coulomb, only: execute_task_Coulomb
+  use task_epsilon, only: execute_task_epsilon
 
   implicit none
   
@@ -24,6 +25,7 @@ module task_group
     character(len=20) :: Coulomb_cutoff_type
     character(len=20) :: selfenergy_singularity_treatment
     logical :: task_Coulomb 
+    logical :: task_epsilon 
   contains
     procedure :: parse_input
   end type
@@ -44,6 +46,10 @@ contains
 
     if( input_parameters%task_Coulomb ) &
       call execute_task_Coulomb( n_qpoints, trim(input_parameters%output_format)=='binary' )
+
+    if( input_parameters%task_epsilon ) &
+      call execute_task_epsilon( n_qpoints, input_parameters%output_format )
+
   end subroutine
 
 
@@ -76,5 +82,6 @@ contains
     this%Coulomb_cutoff_type = trim( gw_inp%barecoul%cutofftype )
     this%selfenergy_singularity_treatment = trim( gw_inp%selfenergy%singularity )
     this%task_Coulomb = associated( gw_inp%taskGroup%Coulomb )
+    this%task_epsilon = associated( gw_inp%taskGroup%epsilon )
   end subroutine
 end module
