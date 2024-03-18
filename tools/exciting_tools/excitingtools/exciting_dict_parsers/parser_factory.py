@@ -123,6 +123,10 @@ _file_to_parser = {
     'EPS00_GW.OUT': gw_eps00_parser.parse_eps00_gw,
     'BARC_': gw_taskgroup_parser.parse_barc,
     'SGI_': gw_taskgroup_parser.parse_sgi,
+    'EPSILON-GW_': gw_taskgroup_parser.parse_epsilon, 
+    'EPSH.OUT': gw_taskgroup_parser.parse_epsilon, 
+    'EPSW1.OUT': gw_taskgroup_parser.parse_epsilon, 
+    'EPSW2.OUT': gw_taskgroup_parser.parse_epsilon,
     'JIND.OUT': RT_TDDFT_parser.parse_jind,
     'NEXC.OUT': RT_TDDFT_parser.parse_nexc,
     'ETOT_RTTDDFT.OUT': RT_TDDFT_parser.parse_etot,
@@ -166,6 +170,7 @@ def truncate_fnames_with_exts(file_name: str) -> str:
         'FVAL_',
         'SGI_',
         'BARC_',
+        'EPSILON-GW_',
     ]
     if any( [ prefix in file_name for prefix in prefixes ] ) :
         file_name_prefix = file_name.split('_')[0] + '_'

@@ -73,7 +73,7 @@ def parse_barc(file_name: str) -> Dict[str, NDArray[np.complex128]]:
 
     The file contains the product: M*(v^1/2), where M is a matrix with 
     eigenvectors, and v is a diagonal matrix with the eigenvalues.
-    Since the definition of M is not unique, we must return A*A^H, 
+    Since the definition of M is not unique, we must return A^H*A, 
     where A is the matrix read.
 
     :param file_name: name of the file
@@ -81,16 +81,28 @@ def parse_barc(file_name: str) -> Dict[str, NDArray[np.complex128]]:
     """
     return {"CoulombMatrix": __square_matrix(__parse_file_with_matrix(file_name))}
 
-
 def parse_sgi(file_name: str) -> Dict[str, NDArray[np.complex128]]:
     """Parser for SGI_*.OUT, where * is an integer.
 
     This file contains the vectors $\tilde{S_{Gi}}$, defined in Eq. (41) of 
     Computer Phys. Comm. 184, 348 (2013).
-    By reading the matrix A as stored, and performing A*A^H, one gets the overlap
+    By reading the matrix A as stored, and performing A^H*A, one gets the overlap
     matrix between basis elements defined for the interstitial region.
 
     :param file_name: name of the file
     :return: parsed data as dictionary
     """
     return {"OverlapMatrix": __square_matrix(__parse_file_with_matrix(file_name))}
+
+
+def parse_epsilon(file_name:str) -> Dict[str, NDArray[np.complex128]]:
+    """Parser for the gw-epsilon files, which contain the dielectric function, its head or wings.:
+      - EPSH.OUT,
+      - EPSW1.OUT,
+      - EPSW2.OUT, 
+      - EPSILON-GW_*.OUT, where * is an integer
+    
+    :param file_name: name of the file
+    :return: parsed data as dictionary
+    """
+    return {"epsilon_tensor": __parse_file_with_array_of_rank_3(file_name)}

@@ -1,0 +1,44 @@
+{
+  "EPSH.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "EPSW1.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "EPSW2.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "EPSILON-GW_1.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "EPSILON-GW_2.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "EPSILON-GW_3.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "EPSILON-GW_4.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  }
+}

@@ -3,63 +3,63 @@
 !----------------------------!
 
 module mod_dielectric_function
+    use gw_io, only: build_file_name, write_to_file, read_from_file
+    use precision, only: i32
+
+    implicit none
+
+    private
 
     ! dielectric function \epsilon(q)
-    complex(8), allocatable :: epsilon(:,:,:)
+    complex(8), public, allocatable :: epsilon(:,:,:)
 
     !-------------------------------------------------
     ! Analytical treatment of q=0 singularity
     !-------------------------------------------------
 
     ! valence-valence momentum matrix elements
-    complex(8), allocatable :: pmatvv(:,:,:)
+    complex(8), public, allocatable :: pmatvv(:,:,:)
 
     ! core-valence momentum matrix elements
-    complex(8), allocatable :: pmatcv(:,:,:)
+    complex(8), public, allocatable :: pmatcv(:,:,:)
 
     ! head of the dielectric function (tensor)
-    complex(8), allocatable :: epsh(:,:,:)
+    complex(8), public, allocatable :: epsh(:,:,:)
 
     ! the vertical wing of the dielectric matrix (vector)
-    complex(8), allocatable :: epsw1(:,:,:)
+    complex(8), public, allocatable :: epsw1(:,:,:)
 
     ! the horizontal wing of the dielectric matrix (vector)
-    complex(8), allocatable :: epsw2(:,:,:)
+    complex(8), public, allocatable :: epsw2(:,:,:)
 
     !----------------------------------------------------------------------
     ! Used for calculating the macroscopic dielectric function (task_emac)
     !----------------------------------------------------------------------
 
-    complex(8), allocatable :: eps00(:,:,:)
-
-    !--------------------------------------
-    complex(8), allocatable :: vPv(:,:,:)
-    complex(8), allocatable :: vPvh(:)
-    complex(8), allocatable :: vPvw1(:,:)
-    complex(8), allocatable :: vPvw2(:,:)
+    complex(8), public, allocatable :: eps00(:,:,:)
 
     !----------------------------------------------------------------------
     ! files containing data on PMAT and PMATCOR
     !----------------------------------------------------------------------
-    integer :: fid_pmatvv=300
-    character(24) :: fname_pmatvv='PMATVV.OUT'
-
-    integer :: fid_pmatcv=310
-    character(24) :: fname_pmatcv='PMATCV.OUT'
-
+    character(24), parameter, public :: fname_pmatvv='PMATVV.OUT'
+    character(24), parameter, public :: fname_pmatcv='PMATCV.OUT'
+    
     !----------------------------------------------------------------------
-    ! file to store the dielectric function
+    ! files to store the dielectric function
     !----------------------------------------------------------------------
-    integer :: fid_eps
-    character(24) :: fname_eps='EPSILON'
-    character(24) :: fname_head='HEAD.OUT'
-    character(24) :: fname_wings='WINGS.OUT'
+    character(len=*), parameter, private :: file_name_epsilon = 'EPSILON-GW_'
+    character(len=*), parameter, private :: file_name_epsilon_head = 'EPSH'
+    character(len=*), parameter, private :: file_name_epsilon_wings1 = 'EPSW1'
+    character(len=*), parameter, private :: file_name_epsilon_wings2 = 'EPSW2'
+
+    integer(i32), parameter   :: max_string_length = 40
+
+    public :: write_epsilon_to_file, init_dielectric_function, delete_dielectric_function
+
     
 contains
 
     subroutine init_dielectric_function(mbsiz,iomstart,iomend,Gamma)
-        use modinput
-        implicit none
         integer, intent(in) :: mbsiz
         integer, intent(in) :: iomstart, iomend
         logical, intent(in) :: Gamma
@@ -86,8 +86,6 @@ contains
     end subroutine
 
     subroutine delete_dielectric_function(Gamma)
-        use modinput
-        implicit none
         logical, intent(in) :: Gamma
         if (allocated(epsilon)) deallocate(epsilon)
         if (Gamma) then
@@ -97,5 +95,47 @@ contains
           if (allocated(eps00)) deallocate(eps00)
         end if
     end subroutine
+
+
+    subroutine write_epsilon_to_file( iq, is_Gamma_point, file_format )
+      integer(i32), intent(in)  :: iq 
+      logical, intent(in)       :: is_Gamma_point
+      character(len=*), intent(in) :: file_format
+    
+      character(len=max_string_length) :: file_name
+    
+      call build_file_name( file_name_epsilon, iq, file_name )
+      call write_to_file( file_name, epsilon, file_format )
+      if( is_Gamma_point ) then
+          call build_file_name( file_name_epsilon_head, file_name )
+          call write_to_file( file_name, epsh, file_format )
+          call build_file_name( file_name_epsilon_wings1, file_name )
+          call write_to_file( file_name, epsw1, file_format )
+          call build_file_name( file_name_epsilon_wings2, file_name )
+          call write_to_file( file_name, epsw2, file_format )
+      end if
+      
+  end subroutine
+
+
+  subroutine read_epsilon_from_file( iq, is_Gamma_point, file_format )
+      integer(i32), intent(in)  :: iq 
+      logical, intent(in)       :: is_Gamma_point
+      character(len=*), intent(in) :: file_format
+    
+      character(len=max_string_length) :: file_name
+
+      call build_file_name( file_name_epsilon, iq, file_name )
+      call read_from_file( file_name, epsilon, file_format )
+      if( is_Gamma_point ) then
+          call build_file_name( file_name_epsilon_head, file_name )
+          call read_from_file( file_name, epsh, file_format )
+          call build_file_name( file_name_epsilon_wings1, file_name )
+          call read_from_file( file_name, epsw1, file_format )
+          call build_file_name( file_name_epsilon_wings2, file_name )
+          call read_from_file( file_name, epsw2, file_format )
+      end if
+      
+  end subroutine
 
 end module

@@ -217,6 +217,32 @@ GW/MoS2-LDA-Coulomb:
       - "Mo.xml"
       - "S.xml"
 
+GW/MoS2-LDA-epsilon:
+   failing_builds:
+      - !Build intel_mpiandsmp 
+      # Results with intel_mpiandsmp are unstable in the pipelines
+      # See Issue #175 and the last comments in the MR !549
+   files_under_test:
+      - "EPSH.OUT"
+      - "EPSW1.OUT"
+      - "EPSW2.OUT"
+      - "EPSILON-GW_1.OUT"
+      - "EPSILON-GW_2.OUT"
+      - "EPSILON-GW_3.OUT"
+      - "EPSILON-GW_4.OUT"
+   inputs:
+      - "input.xml"
+      - "Mo.xml"
+      - "S.xml"
+      - "SGI_1.OUT"
+      - "SGI_2.OUT"
+      - "SGI_3.OUT"
+      - "SGI_4.OUT"
+      - "BARC_1.OUT"
+      - "BARC_2.OUT"
+      - "BARC_3.OUT"
+      - "BARC_4.OUT"
+
 GW/Si-PBE-Coulomb:
    files_under_test:
       - "SGI_1.OUT"
