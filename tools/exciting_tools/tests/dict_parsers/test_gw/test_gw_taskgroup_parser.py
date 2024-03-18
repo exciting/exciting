@@ -6,7 +6,7 @@ import pytest
 import numpy as np
 
 from excitingtools.exciting_dict_parsers.gw_taskgroup_parser import parse_barc, \
-  parse_sgi, parse_epsilon
+  parse_sgi, parse_epsilon, parse_inverse_epsilon
 
 rectangular_matrix = """ 2
 1 1 2 3
@@ -104,3 +104,14 @@ def test_parse_epsilon(file_epsilon_str, reference_epsilon, tmp_path):
     epsilon_file_path.write_text(file_epsilon_str)
     epsilon = parse_epsilon(epsilon_file_path.as_posix())
     np.testing.assert_allclose(epsilon["epsilon_tensor"], reference_epsilon["array"])
+
+@pytest.mark.parametrize(["file_inverse_epsilon_str", "reference_inverse_epsilon"],
+                         [(array_of_rank_3_example_1,reference_array_of_rank_3_example_1),
+                          (array_of_rank_3_example_2,reference_array_of_rank_3_example_2)])
+def test_parse_inverse_epsilon(file_inverse_epsilon_str, reference_inverse_epsilon, tmp_path):
+    inverse_epsilon_file_path = tmp_path / "INVERSE-EPSILON_1.OUT"
+    inverse_epsilon_file_path.write_text(file_inverse_epsilon_str)
+    inverse_epsilon = parse_inverse_epsilon(inverse_epsilon_file_path.as_posix())
+    np.testing.assert_allclose( 
+        inverse_epsilon["inverse_epsilon_tensor"], reference_inverse_epsilon["array"]
+    )

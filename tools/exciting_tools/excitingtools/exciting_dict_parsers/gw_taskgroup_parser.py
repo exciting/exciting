@@ -95,7 +95,7 @@ def parse_sgi(file_name: str) -> Dict[str, NDArray[np.complex128]]:
     return {"OverlapMatrix": __square_matrix(__parse_file_with_matrix(file_name))}
 
 
-def parse_epsilon(file_name:str) -> Dict[str, NDArray[np.complex128]]:
+def parse_epsilon(file_name: str) -> Dict[str, NDArray[np.complex128]]:
     """Parser for the gw-epsilon files, which contain the dielectric function, its head or wings.:
       - EPSH.OUT,
       - EPSW1.OUT,
@@ -106,3 +106,16 @@ def parse_epsilon(file_name:str) -> Dict[str, NDArray[np.complex128]]:
     :return: parsed data as dictionary
     """
     return {"epsilon_tensor": __parse_file_with_array_of_rank_3(file_name)}
+
+def parse_inverse_epsilon(file_name: str) -> Dict[str, NDArray[np.complex128]]:
+    """Parser for the gw-inverse-epsilon files, which contain the inverse of the
+    dielectric function, its head or wings:
+      - INVERSE-EPS-H.OUT,
+      - INVERSE-EPS-W1.OUT,
+      - INVERSE-EPS-W2.OUT, 
+      - INVERSE-EPSILON-_*.OUT, where * is an integer
+
+    :param file_name: name of the file
+    :return: parsed data as dictionary
+    """
+    return {"inverse_epsilon_tensor": __parse_file_with_array_of_rank_3(file_name)}
