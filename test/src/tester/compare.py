@@ -4,7 +4,7 @@ for all elements of two dictionaries.
 """
 import numpy as np
 from typing import Union, Tuple, Optional, List
-from collections.abc import Hashable
+from collections.abc import Hashable, Iterable
 import sys
 from copy import deepcopy
 
@@ -84,6 +84,13 @@ def all_hashable_or_dict(my_list: list) -> bool:
     """
     return all(isinstance(x, (Hashable, dict)) for x in my_list)
 
+def all_dict( data ) -> bool:
+    """
+    Checks if all elements of data are dictionaries
+    :param data: Container
+    """
+    assert isinstance(data, Iterable), 'data must be iterable' 
+    return all( isinstance(x, dict) for x in data )
 
 class ErrorContainer:
     def __init__(self,
@@ -369,7 +376,6 @@ class ErrorFinder:
         """
         assert type(test_data) == type(ref_data), "test_data and ref_data are different types"
         assert len(test_data) == len(ref_data), "Length of test_data differs from length of ref_data"
-
         for key, test_value in test_data.items():
             full_key += self.cc_symbol + str(key)
 
@@ -377,14 +383,21 @@ class ErrorFinder:
                 self._recursive_compare_reference_with_target(test_value, ref_data[key], tolerance, errors,
                                                               used_tol_keys, keys_not_in_tolerance, full_key)
 
-            if isinstance(test_value, list) and (not all_hashable_or_dict(test_value)):
-                # NOTE (Alex) I added this because for the GW parser, data parsed as np.ndarray was
-                # ending up as a list. This circumvents the problem but doesn't fix the cause (and I don't have
-                # the time or insight to debug)
-                try:
-                    test_value = np.asarray(test_value)
-                except ValueError:
-                    raise ValueError('All elements of a parsed list should be hashable or dict')
+            if isinstance(test_value, list):
+                if not all_hashable_or_dict(test_value):
+                    # NOTE (Alex) I added this because for the GW parser, data parsed as np.ndarray was
+                    # ending up as a list. This circumvents the problem but doesn't fix the cause (and I don't have
+                    # the time or insight to debug)
+                    try:
+                        test_value = np.asarray(test_value)
+                    except ValueError:
+                        raise ValueError('All elements of a parsed list should be hashable or dict')
+                elif all_dict( test_value ):
+                    for idx, element in enumerate( test_value ):
+                        self._recursive_compare_reference_with_target(element, ref_data[key][idx], tolerance, errors,
+                                                              used_tol_keys, keys_not_in_tolerance, full_key)
+                                        
+            
 
             if isinstance(test_value, (int, float, str, np.ndarray)) or hashable_list(test_value):
                 difference_function = diff_condition[type(test_value)]
