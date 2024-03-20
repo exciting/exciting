@@ -21,8 +21,9 @@ def test_class_dir():
 def test_class_constructor_string():
     test_input = {'Spin': {"bases": '(ExcitingXMLInput, )', "attributes": {
         "__doc__": "Class for exciting spin input.", 'name': "spin"}}}
-    ref_string = "ExcitingSpinInput = type('ExcitingSpinInput', (ExcitingXMLInput, ), " \
-                 "{'__doc__': 'Class for exciting spin input.', 'name': 'spin'}) \n"
+    ref_string = ("from excitingtools.input.base_class import ExcitingXMLInput \n"
+                  "ExcitingSpinInput = type('ExcitingSpinInput', (ExcitingXMLInput, ), "
+                  "{'__doc__': 'Class for exciting spin input.', 'name': 'spin'}) \n")
     assert class_constructor_string(test_input) == ref_string
 
 

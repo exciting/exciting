@@ -16,18 +16,15 @@ subroutine calcselfx(iq)
     integer(4), intent(in) :: iq
 
     ! local
-    integer(4) :: ik, ikp, jk
+    integer(4) :: ik, ikp, jk, i
     integer(4) :: mdim, nmdim
     real(8)    :: tstart, tend, t0, t1
     integer(4) :: ie1, ie2, im
     integer(4) :: ia, is, ias, ic, icg
-    real(8)    :: wkq, sxs2, fnk
+    real(8)    :: sxs2, fnk
     complex(8) :: sx, vc
     complex(8) :: mvm     ! Sum_ij{M^i*V^c_{ij}*conjg(M^j)}
     complex(8), allocatable :: evecfv(:,:)
-
-    integer :: k, l, ispn, ist, jst
-    complex(8) :: zsum
 
     ! external routines
     complex(8), external :: zdotc
@@ -41,14 +38,14 @@ subroutine calcselfx(iq)
     ! Set v-diagonal mixed product basis set
     !----------------------------------------
     if (vccut) then
+        sxs2 = 0.d0
         mbsiz = matsiz
         if (allocated(barc)) deallocate(barc)
-        allocate(barc(matsiz,mbsiz))
-        barc(:,:) = zzero
+        allocate(barc(matsiz, mbsiz), source=zzero)
         do im = 1, matsiz
             if (barcev(im) > 0.d0) then
-                vc = cmplx(barcev(im),0.d0,8)
-                barc(:,im) = vmat(:,im)*sqrt(vc)
+                vc = cmplx(barcev(im), 0.d0, 8)
+                barc(:,im) = vmat(:,im) * sqrt(vc)
             end if
         end do
     else

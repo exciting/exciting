@@ -204,6 +204,16 @@ GW/ZnO-PBESOL:
       - "Zn.xml"
       - "O.xml"
 
+GW/MoS2-LDA-cutoff:
+   files_under_test:
+      - "GW_INFO.OUT"
+      - "VXCNN.DAT"
+      - "EVALQP.DAT"
+   inputs:
+      - "input.xml"
+      - "Mo.xml"
+      - "S.xml"
+
 # TODO(Alex) Issue #103. App Tests: GW QP Energies Inconsistent with Reference
 # TODO(Alex) Issue #35. MPI GW calculations do not produce EPS00_GW.OUT
 GW/Si-PBESOL:

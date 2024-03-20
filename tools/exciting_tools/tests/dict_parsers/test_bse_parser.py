@@ -41,7 +41,6 @@ infoxs_file_str_success = """===================================================
 | EXCITING NITROGEN-14 started for task writepmatxs (320)                      =
 | Date (DD-MM-YYYY) : 10-12-2020                                               =
 ================================================================================
-
   Timings: 
      Date (DD-MM-YYYY)      : 10-12-2020
      Time (hh:mm:ss)        : 20:05:23
@@ -99,6 +98,16 @@ infoxs_file_str_success = """===================================================
 | EXCITING NITROGEN-14 started for task bse (445)                              =
 | Date (DD-MM-YYYY) : 10-12-2020                                               =
 ================================================================================
+
+  Timings: 
+     Date (DD-MM-YYYY)      : 10-12-2020
+     Time (hh:mm:ss)        : 20:05:23
+     CPU time               : 14.57 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 15 s )
+     wall time              : 2.13 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load               : 684.78 %
+     CPU time  (cumulative) : 111.58 sec; 0.03 hrs; ( 0 d, 00 h, 01 m, 52 s )
+     wall time (cumulative) : 2.13 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load  (cumulative) : 684.78 %
 
   Timings: 
      Date (DD-MM-YYYY)      : 10-12-2020
@@ -238,6 +247,47 @@ def test_parse_info_xs_out(infoxs_file_str, reference_parsed_dict, tmp_path):
     infoxs_file_path = tmp_path / "INFOXS.OUT"
     infoxs_file_path.write_text(infoxs_file_str)
     info_xs_out = parse_infoxs_out(infoxs_file_path.as_posix())
+    assert info_xs_out == reference_parsed_dict
+
+
+reference_parsed_infoxs_file_times_success = {
+    'tasks': [{'name': 'xsgeneigvec', 'number': 301, 'finished': True,
+               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13}, 
+              {'name': 'writepmatxs', 'number': 320, 'finished': True,
+               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13},
+              {'name': 'scrgeneigvec', 'number': 401, 'finished': True,
+               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13}, 
+              {'name': 'scrwritepmat', 'number': 420, 'finished': True,
+              'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13},
+              {'name': 'bse', 'number': 445, 'finished': True,
+               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13}],
+    'success': True,
+    'last_finished_task': 'bse'
+    }
+
+reference_parsed_infoxs_file_times_fail = {
+    'tasks': [{'name': 'xsgeneigvec', 'number': 301, 'finished': True,
+               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13}, 
+              {'name': 'writepmatxs', 'number': 320, 'finished': False},
+              {'name': 'xsgeneigvec', 'number': 301, 'finished': True,
+               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13}, 
+              {'name': 'writepmatxs', 'number': 320, 'finished': True,
+               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13},
+              {'name': 'scrgeneigvec', 'number': 401, 'finished': True,
+               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13}, 
+              {'name': 'scrwritepmat', 'number': 420, 'finished': False}],
+    'success': False,
+    'last_finished_task': 'scrgeneigvec'
+    }
+
+
+@pytest.mark.parametrize(["infoxs_file_str", "reference_parsed_dict"],
+                         [(infoxs_file_str_success, reference_parsed_infoxs_file_times_success),
+                          (infoxs_file_str_fail, reference_parsed_infoxs_file_times_fail)])
+def test_parse_info_xs_out_timing(infoxs_file_str, reference_parsed_dict, tmp_path):
+    infoxs_file_path = tmp_path / "INFOXS.OUT"
+    infoxs_file_path.write_text(infoxs_file_str)
+    info_xs_out = parse_infoxs_out(infoxs_file_path.as_posix(), parse_timing=True)
     assert info_xs_out == reference_parsed_dict
 
 

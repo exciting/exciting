@@ -1,4 +1,6 @@
 # Example make.inc file for GCC with HDF5 and FFTW3
+#
+# NOTE: You might need to change the path in -I"/usr/include" according to your system.
 
 # Compiler, flags and preprocessing variables
 F90 = h5fc
@@ -19,7 +21,7 @@ F77_DEBUGOPTS = $(F90_DEBUGOPTS)
 
 # Libaries
 # Use native blas/lapack by default
-export USE_SYS_LAPACK=false
+export USE_SYS_LAPACK=true
 LIB_LPK = -L./ -llapack -lblas
 LIB_FFT = fftlib.a
 LIB_FFTW = -lfftw3
