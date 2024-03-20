@@ -7,6 +7,9 @@ module m_putgetexcitons
   use modxs, only: vkl0, vqlmt
   use m_getunit
   use m_genfilname
+  use mod_hdf5
+  use xhdf5
+  use os_utils
 
   implicit none
 
@@ -55,9 +58,6 @@ module m_putgetexcitons
     subroutine put_excitons(evals, rvec, avec, iqmt, a1, a2)
       use mod_kpoint, only: ikmap
       use modinput
-      use mod_hdf5
-      use xhdf5
-      use os_utils
 
       implicit none
 
@@ -75,7 +75,7 @@ module m_putgetexcitons
 
       integer(8) :: mypos
 
-      character(:), allocatable :: group, gname,  char_iqpoint, char_iexciton, tdastring, bsetypestring, scrtypestring
+      character(:), allocatable :: group, gname, char_iqpoint, char_iexciton, tdastring, bsetypestring, scrtypestring
       character(256) :: fname
 
       type(xhdf5_type) :: h5
@@ -203,7 +203,7 @@ module m_putgetexcitons
         group = join_paths(group, 'rvec')
 
         allocate(character(len=8) :: char_iexciton)
-        do i_exciton=1, nexcstored
+        do i_exciton=i1, i2
           write(char_iexciton, '(I8.8)') i_exciton 
           call h5%write(group, char_iexciton, rvec(:, i_exciton))
         end do 
@@ -292,7 +292,8 @@ module m_putgetexcitons
       character(256) :: fname
 
       character(:), allocatable :: tdastring, bsetypestring, scrtypestring
-      character(:), allocatable :: group, char_iqpoint, gname,  pos
+      character(:), allocatable :: group, char_iqpoint, gname, pos, char_iexciton
+      type(xhdf5_type) :: h5 
 
       if(present(iqmt)) then 
         iq = iqmt
@@ -385,44 +386,71 @@ module m_putgetexcitons
       allocate(vqlmt_(3))
       allocate(ngridk_(3))
 
-      ! Set filename to EXCCOEFF_*.OUT
-      call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
-        & scrtype=trim(scrtypestring), filnam=fname)
-      ! Check if file exists
-      inquire(file=trim(fname), exist=fex)
-      if(.not. fex ) then
-        write(*,*)
-        write(*,'("Error(get_excitons): File does not exist:", a)') trim(fname)
-        write(*,*)
-        call terminate
-      end if
+      if(input%xs%BSE%brixshdf5) then 
+        call h5%initialize(fhdf5, mpiglobal)
 
-      ! Open stream access file 
-      call getunit(unexc)
-      open(unexc, file=trim(fname), access='stream',&
-        & action='read', form='unformatted', status='old', iostat=stat)
-      if(stat /= 0) then
-        write(*,*) stat
-        write(*,'("Error(get_excitons): Error opening file ", a)') trim(fname)
-        write(*,*)
-        call terminate
-      end if
-      
-      ! Read Meta data
-      read(unexc, pos=1)&
-        fcoup_, &         ! Was the TDA used?
-        fesel_, &         ! Were the transitions selected by energy?
-        nk_max_, &        ! Number of non-reduced k-points 
-        nk_bse_, &        ! Number of k-points used in the bse hamiltonian
-        hamsize_, &       ! Size of the RR block of the BSE hamiltonian and number of considered transitions
-        nexcstored_, &    ! Number of saved eigenvectors
-        iex1_, iex2_, &   ! Range of saved eigenvectors
-        ioref_, iuref_, & ! Reference absolute state index for occpied and unoccupied index (usually lowest and 1st unoccupied)
-        iq_, &            ! Index of momentum transfer vector
-        vqlmt_, &         ! Momentum transver vector
-        ngridk_           ! k-grid spacing
-      inquire(unexc, pos=mypos)
-  
+        allocate(character(len=4) :: char_iqpoint)
+        write(char_iqpoint, "(I4.4)") iq
+
+        group = join_paths('eigvec' // bsetypestring // scrtypestring, char_iqpoint)
+        group = join_paths(group, 'parameters')
+
+        call h5%read(group, 'fcoup', fcoup_)
+        call h5%read(group, 'fesel', fesel_)
+        call h5%read(group, 'nk_max', nk_max_)
+        call h5%read(group, 'nk_bse', nk_bse_)
+        call h5%read(group, 'hamsize', hamsize_)
+        call h5%read(group, 'nexcstored', nexcstored_)
+        call h5%read(group, 'i1', iex1_)
+        call h5%read(group, 'i2', iex2_)
+        call h5%read(group, 'ioref', ioref_)
+        call h5%read(group, 'iuref', iuref_)
+        call h5%read(group, 'iq', iq_)
+        call h5%read(group, 'vqlmt(iq)', vqlmt_)
+        call h5%read(group, 'ngridk', ngridk_)
+
+ 
+      else 
+
+        ! Set filename to EXCCOEFF_*.OUT
+        call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
+          & scrtype=trim(scrtypestring), filnam=fname)
+        ! Check if file exists
+        inquire(file=trim(fname), exist=fex)
+        if(.not. fex ) then
+          write(*,*)
+          write(*,'("Error(get_excitons): File does not exist:", a)') trim(fname)
+          write(*,*)
+          call terminate
+        end if
+
+        ! Open stream access file 
+        call getunit(unexc)
+        open(unexc, file=trim(fname), access='stream',&
+          & action='read', form='unformatted', status='old', iostat=stat)
+        if(stat /= 0) then
+          write(*,*) stat
+          write(*,'("Error(get_excitons): Error opening file ", a)') trim(fname)
+          write(*,*)
+          call terminate
+        end if
+        
+        ! Read Meta data
+        read(unexc, pos=1)&
+          fcoup_, &         ! Was the TDA used?
+          fesel_, &         ! Were the transitions selected by energy?
+          nk_max_, &        ! Number of non-reduced k-points 
+          nk_bse_, &        ! Number of k-points used in the bse hamiltonian
+          hamsize_, &       ! Size of the RR block of the BSE hamiltonian and number of considered transitions
+          nexcstored_, &    ! Number of saved eigenvectors
+          iex1_, iex2_, &   ! Range of saved eigenvectors
+          ioref_, iuref_, & ! Reference absolute state index for occpied and unoccupied index (usually lowest and 1st unoccupied)
+          iq_, &            ! Index of momentum transfer vector
+          vqlmt_, &         ! Momentum transver vector
+          ngridk_           ! k-grid spacing
+        inquire(unexc, pos=mypos)
+      end if 
+    
       ! Check read parameters against requested ones
       if(fcoup_ .neqv. fcoup) then 
         write(*,*)
@@ -464,23 +492,42 @@ module m_putgetexcitons
       allocate(smap_rel_(3,hamsize_))
       allocate(evalstmp(iex1_:iex2_))
 
-      read(unexc, pos=mypos)&
-        & ikmap_,&      ! Non reduced k-grid index map 3d -> 1d 
-        & vkl0_,&       ! Lattice vectors for k=k-qmt/2 grid
-        & vkl_,&        ! Lattice vectors for k'=k+qmt/2 grid
-        & ik2ikqmtm_,&  ! ik -> ik-qmt/2 index map
-        & ik2ikqmtp_,&  ! ik -> ik+qmt/2 index map
-        & ikqmtm2ikqmtp_,& ! ik-qmt/2 -> ik+qmt/2 index map
-        & kousize_,&    ! Number of transitions at each k point
-        & koulims_,&    ! For each k-point, lower and upper c and v index 
-        & smap_,&       ! Index map  alpha -> c,v,k (absolute c,v,k indices)
-        & smap_rel_,&   ! Index map  alpha -> c,v,k (relative c,v,k indices)
-        & evalstmp      ! Excitonic enegies
-      inquire(unexc, pos=mypos)
+      if(input%xs%BSE%brixshdf5) then 
 
-      ! Inquire ouput length of a complex number (in units of 4 byte by default)
-      inquire(iolength=cmplxlen) zdummy
-      cmplxlen=cmplxlen*4
+        group = join_paths('eigvec' // bsetypestring // scrtypestring, char_iqpoint)
+        call h5%read(group, 'evals', evalstmp)
+
+        group = join_paths(group, 'parameters')
+        call h5%read(group, 'ikmap', ikmap_)
+        call h5%read(group, 'vkl0', vkl0_)
+        call h5%read(group, 'vkl', vkl_)
+        call h5%read(group, 'ik2ikqmtm', ik2ikqmtm_)
+        call h5%read(group, 'ik2ikqmtp', ik2ikqmtp_)
+        call h5%read(group, 'ikqmtm2ikqmtp', ikqmtm2ikqmtp_)
+        call h5%read(group, 'kousize', kousize_)
+        call h5%read(group, 'koulims', koulims_)
+        call h5%read(group, 'smap', smap_)
+        call h5%read(group, 'smap_rel', smap_rel_)
+
+      else 
+        read(unexc, pos=mypos)&
+          & ikmap_,&      ! Non reduced k-grid index map 3d -> 1d 
+          & vkl0_,&       ! Lattice vectors for k=k-qmt/2 grid
+          & vkl_,&        ! Lattice vectors for k'=k+qmt/2 grid
+          & ik2ikqmtm_,&  ! ik -> ik-qmt/2 index map
+          & ik2ikqmtp_,&  ! ik -> ik+qmt/2 index map
+          & ikqmtm2ikqmtp_,& ! ik-qmt/2 -> ik+qmt/2 index map
+          & kousize_,&    ! Number of transitions at each k point
+          & koulims_,&    ! For each k-point, lower and upper c and v index 
+          & smap_,&       ! Index map  alpha -> c,v,k (absolute c,v,k indices)
+          & smap_rel_,&   ! Index map  alpha -> c,v,k (relative c,v,k indices)
+          & evalstmp      ! Excitonic enegies
+        inquire(unexc, pos=mypos)
+
+        ! Inquire ouput length of a complex number (in units of 4 byte by default)
+        inquire(iolength=cmplxlen) zdummy
+        cmplxlen=cmplxlen*4
+      end if
 
       if(useenergy) then 
         call energy2index(size(evalstmp), size(evalstmp),&
@@ -508,16 +555,39 @@ module m_putgetexcitons
 
       ! Resonant part of the eigenvectors
       allocate(rvec_(hamsize_, i1:i2))
-      pos1=int(i1-iex1_,8)*int(cmplxlen,8)*int(hamsize_,8)+mypos
-      read(unexc, pos=pos1) rvec_
-      if(fcoup_) then  
-        ! Anti-resonant part of the eigenvectors
-        allocate(avec_(hamsize_, i1:i2))
-        pos1=int(iex2_-iex1_+1,8)*int(cmplxlen,8)*int(hamsize_,8)+mypos
-        pos2=int(i1-iex1_,8)*int(cmplxlen,8)*int(hamsize_,8)+pos1
-        read(unexc, pos=pos2) avec_
-      end if
-      close(unexc)
+
+      if(input%xs%BSE%brixshdf5) then
+        group = join_paths('eigvec' // bsetypestring // scrtypestring, char_iqpoint)
+        group = join_paths(group, 'rvec')
+        allocate(character(len=8) :: char_iexciton)
+        do i_exciton=i1, i2
+          write(char_iexciton, '(I8.8)') i_exciton
+          call h5%read(group, char_iexciton, rvec_(:, i_exciton))
+        end do 
+
+        if (fcoup_) then 
+          allocate(avec_(hamsize_, i1:i2))
+          group = join_paths('eigvec' // bsetypestring // scrtypestring, char_iqpoint)
+          group = join_paths(group, 'avec')
+
+          do i_exciton=i1, i2 
+            write(char_iexciton, '(I8.8)') i_exciton
+            call h5%read(group, char_iexciton, avec_(:, i_exciton))
+          end do
+        end if 
+
+      else 
+        pos1=int(i1-iex1_,8)*int(cmplxlen,8)*int(hamsize_,8)+mypos
+        read(unexc, pos=pos1) rvec_
+        if(fcoup_) then  
+          ! Anti-resonant part of the eigenvectors
+          allocate(avec_(hamsize_, i1:i2))
+          pos1=int(iex2_-iex1_+1,8)*int(cmplxlen,8)*int(hamsize_,8)+mypos
+          pos2=int(i1-iex1_,8)*int(cmplxlen,8)*int(hamsize_,8)+pos1
+          read(unexc, pos=pos2) avec_
+        end if
+        close(unexc)
+      end if 
 
       ! Set stored index range
       iex1_ = i1
@@ -532,7 +602,6 @@ module m_putgetexcitons
       use modinput
       use xhdf5, only: xhdf5_type
       use mod_hdf5, only: fhdf5
-      use os_utils
 
       implicit none
 
