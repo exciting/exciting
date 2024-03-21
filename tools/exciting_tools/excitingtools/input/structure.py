@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import copy
 from pathlib import Path
-from typing import Optional, Union, List, Dict
+from typing import Optional, Union, List, Dict, Iterator, Tuple
 from xml.etree import ElementTree
 
 import numpy as np
@@ -75,7 +75,7 @@ class ExcitingStructure(ExcitingXMLInput):
         if isinstance(atoms, list):
             check_lattice(lattice)
             check_lattice_vector_norms(lattice)
-            self.lattice = np.asarray(lattice)
+            self.lattice = np.asarray(lattice, dtype=np.float64)
             self.species = [atom['species'].capitalize() for atom in atoms]
             self.positions = [atom['position'] for atom in atoms]
             self.atom_properties = self._init_atom_properties(atoms)
@@ -110,7 +110,7 @@ class ExcitingStructure(ExcitingXMLInput):
         try:
             cell = atoms.get_cell()
             # ASE works in Angstrom, whereas exciting expects atomic units
-            lattice = np.asarray(cell) * angstrom_to_bohr
+            lattice = np.asarray(cell, dtype=np.float64) * angstrom_to_bohr
             species = [x.capitalize() for x in atoms.get_chemical_symbols()]
             if self.structure_attributes.get("cartesian"):
                 positions = angstrom_to_bohr * atoms.get_positions()
@@ -149,7 +149,7 @@ class ExcitingStructure(ExcitingXMLInput):
 
         return atom_properties
 
-    def _init_species_properties(self, species_properties: dict) -> Dict[str, ExcitingXMLInput]:
+    def _init_species_properties(self, species_properties: dict) -> Iterator[Tuple[str, ExcitingXMLInput]]:
         """ Initialise species_properties.
 
         For species without properties, return empty_properties: {'S': {}, 'Al': {}}.

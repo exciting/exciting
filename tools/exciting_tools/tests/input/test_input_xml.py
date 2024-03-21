@@ -12,7 +12,8 @@ be fine.
 
 import pytest
 
-from excitingtools.input.input_classes import ExcitingGroundStateInput, ExcitingXSInput, ExcitingInputXML
+from excitingtools.input.input_classes import ExcitingGroundStateInput, ExcitingXSInput
+from excitingtools.input.input_xml import ExcitingInputXML
 from excitingtools.input.structure import ExcitingStructure
 
 

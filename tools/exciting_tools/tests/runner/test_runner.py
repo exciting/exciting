@@ -134,7 +134,7 @@ def test_timeout_with_bash_command(tmp_path: Path):
     run_results = runner.run()
     assert not run_results.success
     assert run_results.stderr == 'BinaryRunner: Job timed out. \n\n'
-    assert run_results.stdout is None
+    assert run_results.stdout == ""
     assert run_results.process_time == time_out
     assert isinstance(run_results.return_code, RunnerCode)
     assert run_results.return_code == RunnerCode.time_out

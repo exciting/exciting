@@ -303,7 +303,7 @@ realTimeTDDFT_valid_attributes = ['TaylorOrder', 'calculateNExcitedElectrons', '
                                   'vectorPotentialSolver'] 
 realTimeTDDFT_valid_subtrees = ['predictorCorrector', 'screenshots', 'laser'] 
 
-predictorCorrector_valid_attributes = [' maxIterations', 'tol'] 
+predictorCorrector_valid_attributes = ['maxIterations', 'tol'] 
 
 screenshots_valid_attributes = ['niter', 'printAbsProjCoeffs'] 
 
@@ -338,6 +338,8 @@ BSE_valid_attributes = ['aresbse', 'blocks', 'brixshdf5', 'bsedirsing', 'bsetype
                         'xasspecies', 'xes'] 
 
 fastBSE_valid_attributes = ['clanczos', 'cvtsteplim', 'cvttol', 'ngridr', 'nisdf', 'nlanczos', 'saveQ', 'seed'] 
+
+fastBSE_valid_attributes = ['cvtsteplim', 'cvttol', 'lanczosmaxits', 'nisdf', 'rsampling', 'seed'] 
 
 transitions_valid_subtrees = ['individual', 'ranges', 'lists'] 
 
@@ -385,7 +387,12 @@ mixbasis_valid_attributes = ['epsmb', 'gmb', 'lmaxmb']
 
 barecoul_valid_attributes = ['barcevtol', 'basis', 'cutofftype', 'pwm', 'stctol'] 
 
-scrcoul_valid_attributes = ['omegap', 'scrtype'] 
+scrcoul_valid_attributes = ['averaging', 'omegap', 'q0eps', 'scrtype'] 
+
+
+# MD information 
+MD_valid_attributes = ['basisDerivative', 'coreCorrections', 'integrationAlgorithm', 'printAllForces', 'timeStep', 
+                       'type', 'updateOverlap', 'updatePmat', 'valenceCorrections'] 
 
 
 # MD information 

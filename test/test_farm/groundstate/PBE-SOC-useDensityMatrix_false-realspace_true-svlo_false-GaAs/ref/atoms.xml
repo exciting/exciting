@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<atomlist>
+  <Hamiltonian RelativityModel="dirac" xctype="3"/>
+  <atom chemicalSymbol="Ga" species="Ga.xml">
+    <NumericalSetup TotalNumberOfGridPoints="1090" NumberOfMTGridPoints="450" GridType="cubic" rmin="1.000000000000e-6" rmt="2.000000000000e0" rmax="2.853477221138e1"/>
+    <spectrum>
+      <state n="1" l="0" kappa="1" energy="-375.125997603"/>
+      <state n="2" l="0" kappa="1" energy="-46.2859969400"/>
+      <state n="2" l="1" kappa="1" energy="-41.0212412793"/>
+      <state n="2" l="1" kappa="2" energy="-40.0071580505"/>
+      <state n="3" l="0" kappa="1" energy="-5.41376767468"/>
+      <state n="3" l="1" kappa="1" energy="-3.71201394169"/>
+      <state n="3" l="1" kappa="2" energy="-3.57824657147"/>
+      <state n="3" l="2" kappa="2" energy="-0.720590810668"/>
+      <state n="3" l="2" kappa="3" energy="-0.703570656089"/>
+      <state n="4" l="0" kappa="1" energy="-0.335129434308"/>
+      <state n="4" l="1" kappa="1" energy="-0.102113170544"/>
+    </spectrum>
+  </atom>
+  <atom chemicalSymbol="As" species="As.xml">
+    <NumericalSetup TotalNumberOfGridPoints="1805" NumberOfMTGridPoints="800" GridType="cubic" rmin="1.000000000000e-6" rmt="2.000000000000e0" rmax="2.301966817545e1"/>
+    <spectrum>
+      <state n="1" l="0" kappa="1" energy="-429.786517835"/>
+      <state n="2" l="0" kappa="1" energy="-54.5250455681"/>
+      <state n="2" l="1" kappa="1" energy="-48.7654919534"/>
+      <state n="2" l="1" kappa="2" energy="-47.4245891050"/>
+      <state n="3" l="0" kappa="1" energy="-6.96154810519"/>
+      <state n="3" l="1" kappa="1" energy="-5.02624497844"/>
+      <state n="3" l="1" kappa="2" energy="-4.84118768026"/>
+      <state n="3" l="2" kappa="2" energy="-1.51850591343"/>
+      <state n="3" l="2" kappa="3" energy="-1.49166525887"/>
+      <state n="4" l="0" kappa="1" energy="-0.540072317330"/>
+      <state n="4" l="1" kappa="1" energy="-0.203305258615"/>
+      <state n="4" l="1" kappa="2" energy="-0.192925571180"/>
+    </spectrum>
+  </atom>
+</atomlist>

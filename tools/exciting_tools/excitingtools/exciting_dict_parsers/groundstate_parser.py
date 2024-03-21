@@ -2,8 +2,11 @@
 
 All functions in this module could benefit from refactoring.
 """
+import re
 import xml.etree.ElementTree as ET
 import re
+import numpy as np
+
 import numpy as np
 
 from excitingtools.parser_utils.erroneous_file_error import ErroneousFileError
@@ -31,7 +34,7 @@ def parse_info_out(name: str) -> dict:
         if ('SCF iteration number' in line) or ('Hybrids iteration number'in line) \
            or ('Reached self-consistent loops maximum' in line):
             nscl.append(i)
-        if ('Convergence criteria checked for the last 2 iterations'
+        if ('Convergency criteria checked for the last'
             in line) or ('Self-consistent loop stopped' in line):
             nscl.append(i)
         # stores the number of the first and last line of the initialization into a list

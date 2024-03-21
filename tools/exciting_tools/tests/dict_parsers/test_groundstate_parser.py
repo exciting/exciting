@@ -123,7 +123,7 @@ def test_parse_info_out(tmp_path):
                 "valence": "8.00000000",
                 "xc potential energy": "-38.82700618"
             },
-            "11": {
+            "12": {
                 "Core-electron kinetic energy": "0.00000000",
                 "Correlation energy": "-1.43084350",
                 "Coulomb energy": "-1029.02642037",
@@ -141,7 +141,6 @@ def test_parse_info_out(tmp_path):
                 "Nuclear-nuclear energy": "-26.55163980",
                 "Sum of eigenvalues": "-305.07413840",
                 "Total energy": "-527.81796101",
-                "Wall time (seconds)": "4.95",
                 "atom     1    Ar": "17.99815963",
                 "charge in muffin-tin spheres": "",
                 "core": "10.00000000",
@@ -162,8 +161,9 @@ def test_parse_info_out(tmp_path):
     info_out = parse_info_out(file.as_posix())
 
     assert info_out['initialization'] == info_ref['initialization'], "Initialization data consistent"
+    assert len(info_out["scl"]) == 12, "expected 12 SCF steps"
     assert info_out['scl']['1'] == info_ref['scl']['1'], "SCF first iteration data consistent"
-    assert info_out['scl']['11'] == info_ref['scl']['11'], "SCF last iteration data consistent"
+    assert info_out['scl']['12'] == info_ref['scl']['12'], "SCF last iteration data consistent"
 
 
 LDA_VWN_Ar_INFO_OUT = """================================================================================

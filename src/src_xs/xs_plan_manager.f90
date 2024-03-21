@@ -250,7 +250,7 @@ module xs_plan_manager
     nxstasks = nxstasks+1
     input%xs%plan%doonlyarray(nxstasks)%doonly%task="fastBSE_isdf_cvt"
 
-    ! Task 501 corresponds to "isdf_lanczos_bse"
+    ! Task 501 corresponds to "fastBSE_main"
     ! Set up and solve BSE with ISDF compression of the BSH and Lanczos solver
     nxstasks = nxstasks+1
     input%xs%plan%doonlyarray(nxstasks)%doonly%task="fastBSE_main"

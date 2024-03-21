@@ -26,6 +26,9 @@ module mod_coulomb_potential
     ! spherical integral over the Coulomb singularity
     real(8) :: rcut
     
+    !> Singularity for 0D, 1D and 2D systems
+    real(dp) :: low_dim_singularity
+    
 contains
  
     subroutine delete_coulomb_potential()
@@ -39,8 +42,6 @@ contains
         real(8), intent(out) :: sing
         rcut = 0.5d0*dsqrt(dot_product(avec(:,3),avec(:,3)))
         sing = 2.d0*pi*rcut**2
-         ! 4pi/Nk prefactor is due to definition of the singular term in \Self_x
-        sing = sing / (4.d0*pi)
     end subroutine
 
     subroutine vcoul_q0_1d(nkpt, sing)
@@ -96,50 +97,28 @@ contains
                   )
         ! Final value
         sing = 2.d0*(t1 - t2)
-        ! 4pi/Nk prefactor is due to definition of the singular term in \Self_x
-        sing = sing / (4.d0*pi*dble(nkpt))
-        if (.true.) then
-            print*, ''
-            print*, '1D: LIMIT q->0'
-            print*, 'omega_xy   =', omega_xy
-            print*, 'c          =', c
-            print*, 'beta       =', beta
-            print*, 't1         =', t1
-            print*, 't2         =', t2
-            print*, 'sing       =', sing
-            print*, ''
-        end if
+
     end subroutine
 
     subroutine vcoul_q0_2d(nkpt, sing)
+        use incgamma, only: incgam
         implicit none
-        integer(4), intent(in)  :: nkpt
-        real(8),    intent(out) :: sing
-        real(8) :: ab_plane, ab_norm(3), q0_vol
+        integer(i32), intent(in)  :: nkpt
+        real(dp),    intent(out) :: sing
+        real(dp) :: ab_plane, ab_norm(3), q0_vol
+        real(dp), parameter :: eulergamma = 0.5772156649015329
         !--------------------------------------------------------
         ! Spherically averaged value of the integral around q->0
         !--------------------------------------------------------
         ! cutoff length
-        rcut = 0.5d0*dsqrt(dot_product(avec(:,3),avec(:,3)))
+        rcut = 0.5d0*norm2(avec(:,3))
         ! ab-plane surface area
         call r3cross(avec(:,1), avec(:,2), ab_norm(:))
-        ab_plane = sqrt(dot_product(ab_norm(:), ab_norm(:)))
-        q0_vol   = 2.d0*pi / sqrt(pi*ab_plane*nkpt)
-        sing     = q0_vol*rcut - ((q0_vol*rcut)**2.0d0)/4.0d0
+        ab_plane = norm2(ab_norm(:))
+        q0_vol   = twopi / sqrt(pi*ab_plane*nkpt)
+        sing     = incgam(0.d0, q0_vol*rcut) + eulergamma + log(q0_vol*rcut)
         sing     = 2.d0 * ab_plane * sing * dble(nkpt)
-        ! 4pi/Nk prefactor is due to definition of the singular term in \Self_x
-        sing = sing / (4.d0*pi*dble(nkpt))
-        if (.true.) then
-            write(*,*)
-            write(*,*) '2D: LIMIT q->0'
-            write(*,*) ' nqpt     = ', nkpt
-            write(*,*) ' rcut     = ', rcut
-            write(*,*) ' ab_norm  = ', ab_norm
-            write(*,*) ' ab_plane = ', ab_plane
-            write(*,*) ' q0_vol   = ', q0_vol
-            write(*,*) ' sing     = ', sing
-            write(*,*)
-        end if
+
     end subroutine
 
 
@@ -333,26 +312,29 @@ contains
 
     subroutine vcoul_2d(Gamma, ik, Gkset, vcoul)
         use mod_kpointset
+        use modgw, only : Gset, kqset, Gqset, Gqbarc
         implicit none
         logical,      intent(in)  :: Gamma
         integer(4),   intent(in)  :: ik
         type(Gk_set), intent(in)  :: Gkset
         real(8),      intent(out) :: vcoul(:)
         integer(4) :: igk, igk0
-        real(8)    :: vkc(3), k, kxy, kz
+        real(8)    :: kxy, kz, g_plus_q2, g_plus_q(3)
+ 
+        igk0 = 1
         if (Gamma) then
             igk0 = 2
-            vcoul(1) = 0.d0
-        else
-            igk0 = 1
+            vcoul(1) = 0.d0            
         end if
-        do igk = igk0, Gkset%ngk(1,ik)
-            k      = Gkset%gkc(igk,1,ik)
-            vkc(:) = Gkset%vgkc(:,igk,1,ik)
-            kxy    = sqrt(vkc(1)*vkc(1)+vkc(2)*vkc(2))
-            kz     = abs(vkc(3))
-            vcoul(igk) = 4.d0*pi/k**2 * (1.d0 - exp(-kxy*rcut) * cos(kz*rcut))
+
+        do igk = igk0, Gqbarc%ngk(1,ik)
+            g_plus_q(1:3) = Gset%vgc(1:3, Gqbarc%igkig(igk,1,ik)) + kqset%vqc(1:3,ik)
+            g_plus_q2 = dot_product(g_plus_q, g_plus_q)
+            kxy = norm2(g_plus_q(1:2))
+            kz = g_plus_q(3)
+            vcoul(igk) = 4.d0*pi/g_plus_q2 * (1.d0 - exp(-kxy*rcut) * cos(kz*rcut))
         end do
+
     end subroutine
 
     
@@ -367,15 +349,20 @@ contains
         type(Gk_set),  intent(in)  :: Gkset
         !> 3D bare Coulomb potential
         real(dp),      intent(out) :: vcoul(:)
-        !> G + q vector (I assume)
-        real(dp) :: gpq(3)
-        integer(i32)   :: igk
+        !> G + q vector
+        real(dp) :: g_plus_q(3)
+        integer(i32)   :: igk, igk0
 
-        do igk = 1, Gkset%ngk(1,ik)            
-            gpq(1:3) = Gset%vgc(1:3,Gqbarc%igkig(igk,1,ik)) + kqset%vqc(1:3,ik)
-            vcoul(igk) =  fourpi / dot_product(gpq, gpq)
+        igk0 = 1
+        if (Gamma) then
+            vcoul(1) = 0._dp
+            igk0 = 2
+        endif
+
+        do igk = igk0, Gkset%ngk(1,ik)            
+            g_plus_q(1:3) = Gset%vgc(1:3,Gqbarc%igkig(igk,1,ik)) + kqset%vqc(1:3,ik)
+            vcoul(igk) =  fourpi / dot_product(g_plus_q, g_plus_q)
         end do
-        if (Gamma) vcoul(1) = 0._dp
 
     end subroutine
 
@@ -423,11 +410,7 @@ contains
         do i = 1, 3
             n(i) = nint(dble(n0)*b(i)/bmin)
         end do
-        
-        print*, 'grid=', n
-        print*, 'bmin=', bmin
-        print*, 'b=', b
-
+    
         ! Integration over a small volume around k-point
         alim(1) = -b(1) ; alim(2) = -b(2) ; alim(3) = -b(3)
         blim(1) =  b(1) ; blim(2) =  b(2) ; blim(3) =  b(3)

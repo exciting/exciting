@@ -14,7 +14,6 @@ subroutine scf_cycle(verbosity)
     use sirius_api,    only: set_radial_functions_sirius, solve_seceqn_sirius, get_eval_sirius, get_evec_sirius, &
                              put_occ_sirius, generate_density_sirius, get_periodic_function_sirius
     use mod_potential_and_density, only: generate_density_and_magnetization
-    use trial_energy_selection, only: select_local_orbital_trial_energies, select_apw_trial_energies
     use lo_recommendation, only: recommend_local_orbital_trial_energies
 !
 

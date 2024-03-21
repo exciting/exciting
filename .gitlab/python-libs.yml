@@ -59,13 +59,13 @@ deploy:excitingtools-pypi:
   script:
     - cd tools/exciting_tools
     - >
-      if [[ -n $(git diff origin/development HEAD -- pyproject.toml | grep '+version') ]]; then
+      if [[ -n $(git diff HEAD^ HEAD -- pyproject.toml | grep '+version') ]]; then
         echo "excitingtools version has been bumped. Pushing to pypi"
         pip3 install -U pip build twine
         python3 -m build
         twine upload --skip-existing --non-interactive --username __token__ --password $PYPI_TOKEN dist/*
       else
-        echo "pyproject.toml has changed but the version number has not, so do not push to pypi"
+        echo "pyproject.toml may have changed but the version number has not, so do not push to pypi"
       fi
   rules:
     # Only deploy when a feature is merged, not each time the pipeline passes

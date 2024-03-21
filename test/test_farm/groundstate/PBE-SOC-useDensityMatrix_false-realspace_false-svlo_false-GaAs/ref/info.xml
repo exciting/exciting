@@ -1,0 +1,328 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="http://xml.exciting-code.org/info.xsl" type="text/xsl"?>
+<info date="2023-07-24" time="14:16:59" versionhash="dce6121241c2e30fe8aa95d027f139c5bad6f339" title="GaAs">
+  <groundstate status="finished">
+    <scl>
+      <iter iteration="1" rms="8.152619161372431E-002" rmslog10="-1.08870284468" deltae="4215.88889866399" deltaelog10="3.62488915739" chgdst="5.610582132454576E-002" chgdstlog10="-1.25099207568" fermidos="0.824354917711E-10">
+        <energies totalEnergy="-4215.88889866" fermiEnergy="0.187148539794" sum-of-eigenvalues="-2421.26174655" electronic-kinetic="4290.88085711" core-electron-kinetic="0.00000000000" Coulomb="-8346.49068474" Coulomb-potential="-6503.62804812" nuclear-nuclear="-453.364144117" electron-nuclear="-9282.62503312" Hartree="1389.49849250" Madelung="-5094.67666068" xc-potential="-208.514555541" xc-effective-B-field="0.194605055900E-35" external-B-field="0.00000000000" exchange="-157.147552564" correlation="-3.13151847923"/>
+        <charges totalcharge="64.00000000" core="36.00000000" core_leakage="0.7729161414E-02" valence="28.00000000" interstitial="4.559691105" muffin-tin-total="59.44030889">
+          <atom species="Ga" muffin-tin="28.32867397"/>
+          <atom species="As" muffin-tin="31.11163493"/>
+        </charges>
+        <timing timetot="2.91708683968" timeinit="1.56104898453" timemat="0.160694122314E-02" timefv="0.180196762085E-02" timesv="0.235629081726E-01" timerho="0.465961933136" timepot="0.863104104996" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="0.366949167170E-26" y="0.677318272614E-27" z="-0.761434208644E-27"/>
+          <interstitial x="0.366813432586E-26" y="0.678536822536E-27" z="-0.766599896881E-27"/>
+          <mommttot x="0.135734584029E-29" y="-0.121854992153E-29" z="0.516568823667E-29"/>
+          <atom species="Ga">
+            <mommt x="-0.544988495771E-30" y="0.319704888407E-30" z="-0.958284671867E-30"/>
+          </atom>
+          <atom species="As">
+            <mommt x="0.190233433606E-29" y="-0.153825480993E-29" z="0.612397290854E-29"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="2" rms="3.673702031669539E-002" rmslog10="-1.43489607156" deltae="6.86930833134375" deltaelog10="0.836913010276" chgdst="1.230331630894840E-002" chgdstlog10="-1.90997781047" fermidos="0.132481831120E-07">
+        <energies totalEnergy="-4209.01959033" fermiEnergy="0.208945161738" sum-of-eigenvalues="-2418.46512157" electronic-kinetic="4294.16970540" core-electron-kinetic="0.00000000000" Coulomb="-8343.13959086" Coulomb-potential="-6504.42483468" nuclear-nuclear="-453.364144117" electron-nuclear="-9275.12605880" Hartree="1385.35061206" Madelung="-5090.92717352" xc-potential="-208.209992297" xc-effective-B-field="0.195892619190E-33" external-B-field="0.00000000000" exchange="-156.920150012" correlation="-3.12955486548"/>
+        <charges totalcharge="64.00000000" core="36.00000000" core_leakage="0.7805801824E-02" valence="28.00000000" interstitial="4.697524082" muffin-tin-total="59.30247592">
+          <atom species="Ga" muffin-tin="28.49003085"/>
+          <atom species="As" muffin-tin="30.81244507"/>
+        </charges>
+        <timing itertime="2.75593686104" timetot="4.02762103081" timeinit="1.56104898453" timemat="0.307607650757E-02" timefv="0.343489646912E-02" timesv="0.469648838043E-01" timerho="0.945714950562" timepot="1.46738123894" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-0.442716863069E-26" y="-0.695064965017E-27" z="0.619954272867E-26"/>
+          <interstitial x="-0.443256728142E-26" y="-0.691929230373E-27" z="0.611475317191E-26"/>
+          <mommttot x="0.539865073041E-29" y="-0.313573464433E-29" z="0.847895567581E-28"/>
+          <atom species="Ga">
+            <mommt x="0.192935640613E-29" y="-0.154744936508E-29" z="0.205285240750E-28"/>
+          </atom>
+          <atom species="As">
+            <mommt x="0.346929432429E-29" y="-0.158828527924E-29" z="0.642610326831E-28"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="3" rms="2.075068320602284E-002" rmslog10="-1.68296759978" deltae="3.04542439909437" deltaelog10="0.483647822861" chgdst="6.618618981190386E-003" chgdstlog10="-2.17923261954" fermidos="0.479451592368E-01">
+        <energies totalEnergy="-4205.97416593" fermiEnergy="0.217381846936" sum-of-eigenvalues="-2417.26128699" electronic-kinetic="4295.69712409" core-electron-kinetic="0.00000000000" Coulomb="-8341.72494334" Coulomb-potential="-6504.88551202" nuclear-nuclear="-453.364144117" electron-nuclear="-9271.83608642" Hartree="1383.47528720" Madelung="-5089.28218733" xc-potential="-208.072899055" xc-effective-B-field="0.760057865657E-31" external-B-field="0.00000000000" exchange="-156.817601421" correlation="-3.12874526732"/>
+        <charges totalcharge="64.00000000" core="36.00000000" core_leakage="0.7857980766E-02" valence="28.00000000" interstitial="4.763968649" muffin-tin-total="59.23603135">
+          <atom species="Ga" muffin-tin="28.57266440"/>
+          <atom species="As" muffin-tin="30.66336695"/>
+        </charges>
+        <timing itertime="2.76010203362" timetot="5.17205190659" timeinit="1.56104898453" timemat="0.456428527832E-02" timefv="0.502085685730E-02" timesv="0.708220005035E-01" timerho="1.43047761917" timepot="2.10011816025" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-0.201314857496E-25" y="-0.218353212394E-25" z="0.161268211818E-26"/>
+          <interstitial x="-0.201319505820E-25" y="-0.218370847364E-25" z="0.160964664168E-26"/>
+          <mommttot x="0.464832471542E-30" y="0.176349698984E-29" z="0.303547650340E-29"/>
+          <atom species="Ga">
+            <mommt x="-0.692467526020E-30" y="-0.911698484674E-32" z="0.308815155641E-29"/>
+          </atom>
+          <atom species="As">
+            <mommt x="0.115729999756E-29" y="0.177261397469E-29" z="-0.526750530067E-31"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="4" rms="1.139459003568601E-002" rmslog10="-1.94330129562" deltae="0.287265643959472" deltaelog10="-0.541716311116" chgdst="4.861753704737564E-003" chgdstlog10="-2.31320704619" fermidos="0.121734504831E-05">
+        <energies totalEnergy="-4205.68690029" fermiEnergy="0.220885171708" sum-of-eigenvalues="-2417.15595458" electronic-kinetic="4295.91467631" core-electron-kinetic="0.00000000000" Coulomb="-8341.65638871" Coulomb-potential="-6504.99978921" nuclear-nuclear="-453.364144117" electron-nuclear="-9271.58469998" Hartree="1383.29245538" Madelung="-5089.15649411" xc-potential="-208.070841680" xc-effective-B-field="0.100715634233E-32" external-B-field="0.00000000000" exchange="-156.816227559" correlation="-3.12896033162"/>
+        <charges totalcharge="64.00000000" core="36.00000000" core_leakage="0.7809601854E-02" valence="28.00000000" interstitial="4.787891045" muffin-tin-total="59.21210895">
+          <atom species="Ga" muffin-tin="28.49619124"/>
+          <atom species="As" muffin-tin="30.71591771"/>
+        </charges>
+        <timing itertime="2.90201902390" timetot="6.35033702850" timeinit="1.56104898453" timemat="0.631237030029E-02" timefv="0.651383399963E-02" timesv="0.944180488586E-01" timerho="1.94818949699" timepot="2.73385429382" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="0.351718055917E-26" y="0.800986937577E-26" z="0.104859939137E-25"/>
+          <interstitial x="0.351712338232E-26" y="0.801185701311E-26" z="0.104854382930E-25"/>
+          <mommttot x="0.571768568108E-31" y="-0.198763733657E-29" z="0.555620671152E-30"/>
+          <atom species="Ga">
+            <mommt x="0.391166155322E-30" y="0.142202187019E-30" z="0.487562153862E-30"/>
+          </atom>
+          <atom species="As">
+            <mommt x="-0.333989298511E-30" y="-0.212983952359E-29" z="0.680585172895E-31"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="5" rms="4.141985835269546E-003" rmslog10="-2.38279139064" deltae="1.44483797276007" deltaelog10="0.159819147105" chgdst="1.052146704320063E-002" chgdstlog10="-1.97792370083" fermidos="43.3611687038">
+        <energies totalEnergy="-4204.24206232" fermiEnergy="0.225516536746" sum-of-eigenvalues="-2416.74931802" electronic-kinetic="4296.63262578" core-electron-kinetic="0.00000000000" Coulomb="-8340.99351874" Coulomb-potential="-6505.39594253" nuclear-nuclear="-453.364144117" electron-nuclear="-9269.86280672" Hartree="1382.23343210" Madelung="-5088.29554748" xc-potential="-207.986001280" xc-effective-B-field="0.256751812665E-34" external-B-field="0.00000000000" exchange="-156.752595389" correlation="-3.12857397251"/>
+        <charges totalcharge="64.00000000" core="36.00000000" core_leakage="0.7861657207E-02" valence="28.00000000" interstitial="4.835537462" muffin-tin-total="59.16446254">
+          <atom species="Ga" muffin-tin="28.64467309"/>
+          <atom species="As" muffin-tin="30.51978944"/>
+        </charges>
+        <timing itertime="2.77350091934" timetot="7.50408983231" timeinit="1.56104898453" timemat="0.783228874207E-02" timefv="0.800371170044E-02" timesv="0.117826938629" timerho="2.43288755417" timepot="3.37649035454" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-0.313327922260E-26" y="0.855428700456E-26" z="-0.652066382969E-26"/>
+          <interstitial x="-0.313308700374E-26" y="0.855344818910E-26" z="-0.651972747704E-26"/>
+          <mommttot x="-0.192218866509E-30" y="0.838815464206E-30" z="-0.936352653854E-30"/>
+          <atom species="Ga">
+            <mommt x="-0.177655055976E-31" y="0.339258480969E-30" z="-0.141198190900E-29"/>
+          </atom>
+          <atom species="As">
+            <mommt x="-0.174453360912E-30" y="0.499556983237E-30" z="0.475629255146E-30"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="6" rms="2.265836837487171E-003" rmslog10="-2.64477136682" deltae="0.442747917320958" deltaelog10="-0.353843473047" chgdst="3.126377490663581E-003" chgdstlog10="-2.50495858479" fermidos="0.896940390745">
+        <energies totalEnergy="-4203.79931440" fermiEnergy="0.224863935558" sum-of-eigenvalues="-2416.55941292" electronic-kinetic="4296.78205386" core-electron-kinetic="0.00000000000" Coulomb="-8340.71328382" Coulomb-potential="-6505.37265067" nuclear-nuclear="-453.364144117" electron-nuclear="-9269.32562874" Hartree="1381.97648904" Madelung="-5088.02695849" xc-potential="-207.968816108" xc-effective-B-field="0.350613407875E-34" external-B-field="0.00000000000" exchange="-156.739730337" correlation="-3.12835409562"/>
+        <charges totalcharge="64.00000000" core="36.00000000" core_leakage="0.7892446650E-02" valence="28.00000000" interstitial="4.828848141" muffin-tin-total="59.17115186">
+          <atom species="Ga" muffin-tin="28.59348110"/>
+          <atom species="As" muffin-tin="30.57767076"/>
+        </charges>
+        <timing itertime="2.77976417542" timetot="8.65338301659" timeinit="1.56104898453" timemat="0.935530662537E-02" timefv="0.949287414551E-02" timesv="0.141432046890" timerho="2.90690946579" timepot="4.02514433861" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-0.246119555130E-26" y="0.108357636528E-26" z="-0.102253595293E-27"/>
+          <interstitial x="-0.246119749677E-26" y="0.108366226786E-26" z="-0.100686117236E-27"/>
+          <mommttot x="0.194547086800E-32" y="-0.859025837687E-31" z="-0.156747805721E-29"/>
+          <atom species="Ga">
+            <mommt x="-0.383727715919E-31" y="-0.401470403535E-31" z="-0.128142226050E-29"/>
+          </atom>
+          <atom species="As">
+            <mommt x="0.403182424599E-31" y="-0.457555434152E-31" z="-0.286055796718E-30"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="7" rms="2.861368060347878E-004" rmslog10="-3.54342627491" deltae="0.437336868894818" deltaelog10="-0.359183908700" chgdst="2.711858263101928E-004" chgdstlog10="-3.56673301287" fermidos="1.24905206655">
+        <energies totalEnergy="-4204.23665127" fermiEnergy="0.224643108431" sum-of-eigenvalues="-2416.71644619" electronic-kinetic="4296.61406532" core-electron-kinetic="0.00000000000" Coulomb="-8340.96641987" Coulomb-potential="-6505.34032244" nuclear-nuclear="-453.364144117" electron-nuclear="-9269.86422906" Hartree="1382.26195331" Madelung="-5088.29625865" xc-potential="-207.990189073" xc-effective-B-field="0.691932397461E-34" external-B-field="0.00000000000" exchange="-156.755775259" correlation="-3.12852145873"/>
+        <charges totalcharge="64.00000000" core="36.00000000" core_leakage="0.7868243830E-02" valence="28.00000000" interstitial="4.826454842" muffin-tin-total="59.17354516">
+          <atom species="Ga" muffin-tin="28.59710976"/>
+          <atom species="As" muffin-tin="30.57643540"/>
+        </charges>
+        <timing itertime="2.76527595520" timetot="9.80454564095" timeinit="1.56104898453" timemat="0.108752250671E-01" timefv="0.109858512878E-01" timesv="0.164913892746" timerho="3.38223052025" timepot="4.67449116707" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-0.113409750266E-25" y="0.745061556562E-26" z="0.579141826364E-26"/>
+          <interstitial x="-0.113407243847E-25" y="0.745091609689E-26" z="0.578613244784E-26"/>
+          <mommttot x="-0.250641902342E-30" y="-0.300531265973E-30" z="0.528581580437E-29"/>
+          <atom species="Ga">
+            <mommt x="-0.245706514915E-30" y="-0.236467872388E-30" z="0.537185041997E-29"/>
+          </atom>
+          <atom species="As">
+            <mommt x="-0.493538742735E-32" y="-0.640633935851E-31" z="-0.860346155972E-31"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="8" rms="4.560975074689391E-005" rmslog10="-4.34094230113" deltae="4.999357975793828E-002" deltaelog10="-1.30108576476" chgdst="9.254500387586315E-005" chgdstlog10="-4.03364702205" fermidos="1.49171305796">
+        <energies totalEnergy="-4204.28664485" fermiEnergy="0.224589640641" sum-of-eigenvalues="-2416.73613248" electronic-kinetic="4296.58595024" core-electron-kinetic="0.00000000000" Coulomb="-8340.98665250" Coulomb-potential="-6505.32972842" nuclear-nuclear="-453.364144117" electron-nuclear="-9269.91528835" Hartree="1382.29277997" Madelung="-5088.32178829" xc-potential="-207.992354309" xc-effective-B-field="0.104274086293E-34" external-B-field="0.00000000000" exchange="-156.757397409" correlation="-3.12854517961"/>
+        <charges totalcharge="64.00000000" core="36.00000000" core_leakage="0.7864562463E-02" valence="28.00000000" interstitial="4.826251978" muffin-tin-total="59.17374802">
+          <atom species="Ga" muffin-tin="28.59896694"/>
+          <atom species="As" muffin-tin="30.57478108"/>
+        </charges>
+        <timing itertime="2.76086401939" timetot="10.9519369602" timeinit="1.56104898453" timemat="0.123441219330E-01" timefv="0.124876499176E-01" timesv="0.188371896744" timerho="3.85254430771" timepot="5.32513999939" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="0.199537611819E-26" y="-0.123359458345E-26" z="0.122612861145E-26"/>
+          <interstitial x="0.199554529617E-26" y="-0.123367481186E-26" z="0.122544088408E-26"/>
+          <mommttot x="-0.169177971814E-30" y="0.802284082677E-31" z="0.687727367232E-30"/>
+          <atom species="Ga">
+            <mommt x="0.735192720998E-31" y="-0.139986334446E-30" z="0.131519923330E-29"/>
+          </atom>
+          <atom species="As">
+            <mommt x="-0.242697243914E-30" y="0.220214742713E-30" z="-0.627471866067E-30"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="9" rms="5.171211486860299E-006" rmslog10="-5.28640770054" deltae="1.183006922474306E-002" deltaelog10="-1.92701271405" chgdst="1.258409240198325E-005" chgdstlog10="-4.90017810145" fermidos="1.46818324476">
+        <energies totalEnergy="-4204.27481478" fermiEnergy="0.224616319299" sum-of-eigenvalues="-2416.73168840" electronic-kinetic="4296.59351443" core-electron-kinetic="0.00000000000" Coulomb="-8340.98278823" Coulomb-potential="-6505.33337822" nuclear-nuclear="-453.364144117" electron-nuclear="-9269.90391001" Hartree="1382.28526589" Madelung="-5088.31609912" xc-potential="-207.991824612" xc-effective-B-field="0.133788678559E-35" external-B-field="0.00000000000" exchange="-156.757000835" correlation="-3.12854014373"/>
+        <charges totalcharge="64.00000000" core="36.00000000" core_leakage="0.7865373455E-02" valence="28.00000000" interstitial="4.826417490" muffin-tin-total="59.17358251">
+          <atom species="Ga" muffin-tin="28.59890097"/>
+          <atom species="As" muffin-tin="30.57468154"/>
+        </charges>
+        <timing itertime="2.75716495514" timetot="12.1071190834" timeinit="1.56104898453" timemat="0.138113498688E-01" timefv="0.140736103058E-01" timesv="0.212115764618" timerho="4.33132028580" timepot="5.97474908829" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="0.382844341463E-26" y="-0.297978140853E-26" z="-0.196259353016E-26"/>
+          <interstitial x="0.382860002702E-26" y="-0.297951554032E-26" z="-0.196223031224E-26"/>
+          <mommttot x="-0.156612384009E-30" y="-0.265868208909E-30" z="-0.363217923086E-30"/>
+          <atom species="Ga">
+            <mommt x="-0.703890302636E-31" y="-0.142903806989E-30" z="-0.372601528953E-30"/>
+          </atom>
+          <atom species="As">
+            <mommt x="-0.862233537450E-31" y="-0.122964401920E-30" z="0.938360586719E-32"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="10" rms="7.164437675285016E-007" rmslog10="-6.14481789098" deltae="6.591943683815771E-004" deltaelog10="-3.18098651155" chgdst="2.963908969129197E-006" chgdstlog10="-5.52813513902" fermidos="1.47569848812">
+        <energies totalEnergy="-4204.27547397" fermiEnergy="0.224614823822" sum-of-eigenvalues="-2416.73204552" electronic-kinetic="4296.59302681" core-electron-kinetic="0.00000000000" Coulomb="-8340.98294619" Coulomb-potential="-6505.33322981" nuclear-nuclear="-453.364144117" electron-nuclear="-9269.90437433" Hartree="1382.28557226" Madelung="-5088.31633128" xc-potential="-207.991842518" xc-effective-B-field="0.142207129581E-35" external-B-field="0.00000000000" exchange="-156.757014209" correlation="-3.12854038608"/>
+        <charges totalcharge="64.00000000" core="36.00000000" core_leakage="0.7865341677E-02" valence="28.00000000" interstitial="4.826416307" muffin-tin-total="59.17358369">
+          <atom species="Ga" muffin-tin="28.59895021"/>
+          <atom species="As" muffin-tin="30.57463348"/>
+        </charges>
+        <timing itertime="2.77218008041" timetot="13.2868013382" timeinit="1.56104898453" timemat="0.152764320374E-01" timefv="0.156285762787E-01" timesv="0.235698699951" timerho="4.82337045670" timepot="6.63577818871" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-0.153241950424E-26" y="0.257060391199E-27" z="0.266627906184E-26"/>
+          <interstitial x="-0.153237504456E-26" y="0.257015392834E-27" z="0.266598822133E-26"/>
+          <mommttot x="-0.444596716389E-31" y="0.449983647032E-31" z="0.290840512113E-30"/>
+          <atom species="Ga">
+            <mommt x="-0.579988683796E-31" y="0.236740076626E-31" z="0.610190947218E-30"/>
+          </atom>
+          <atom species="As">
+            <mommt x="0.135391967407E-31" y="0.213243570406E-31" z="-0.319350435105E-30"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="11" rms="9.309392557004661E-008" rmslog10="-7.03107865605" deltae="1.085304020307376E-004" deltaelog10="-3.96444858822" chgdst="4.433963362881079E-007" chgdstlog10="-6.35320789971" fermidos="1.47517974714">
+        <energies totalEnergy="-4204.27558250" fermiEnergy="0.224614825806" sum-of-eigenvalues="-2416.73206639" electronic-kinetic="4296.59299112" core-electron-kinetic="0.00000000000" Coulomb="-8340.98301367" Coulomb-potential="-6505.33320792" nuclear-nuclear="-453.364144117" electron-nuclear="-9269.90453118" Hartree="1382.28566163" Madelung="-5088.31640971" xc-potential="-207.991849589" xc-effective-B-field="0.602465669782E-36" external-B-field="0.00000000000" exchange="-156.757019519" correlation="-3.12854044154"/>
+        <charges totalcharge="64.00000000" core="36.00000000" core_leakage="0.7865330690E-02" valence="28.00000000" interstitial="4.826414892" muffin-tin-total="59.17358511">
+          <atom species="Ga" muffin-tin="28.59894716"/>
+          <atom species="As" muffin-tin="30.57463795"/>
+        </charges>
+        <timing itertime="2.77706980705" timetot="14.4325072765" timeinit="1.56104898453" timemat="0.168006420135E-01" timefv="0.171644687653E-01" timesv="0.259338617325" timerho="5.29229545593" timepot="7.28585910797" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-0.101102065400E-26" y="0.212142408384E-28" z="-0.600275589586E-27"/>
+          <interstitial x="-0.101098289325E-26" y="0.213370209810E-28" z="-0.600179257004E-27"/>
+          <mommttot x="-0.377607512097E-31" y="-0.122780142588E-30" z="-0.963325817958E-31"/>
+          <atom species="Ga">
+            <mommt x="-0.587195318589E-31" y="-0.376725506935E-31" z="-0.403646139928E-31"/>
+          </atom>
+          <atom species="As">
+            <mommt x="0.209587806492E-31" y="-0.851075918943E-31" z="-0.559679678030E-31"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="12" rms="1.998804135726071E-008" rmslog10="-7.69922976063" deltae="1.095368952519493E-005" deltaelog10="-4.96043957301" chgdst="1.207236306335848E-008" chgdstlog10="-7.91820771210" fermidos="1.47519586099">
+        <energies totalEnergy="-4204.27559346" fermiEnergy="0.224614820120" sum-of-eigenvalues="-2416.73207048" electronic-kinetic="4296.59298701" core-electron-kinetic="0.00000000000" Coulomb="-8340.98302012" Coulomb-potential="-6505.33320740" nuclear-nuclear="-453.364144117" electron-nuclear="-9269.90454462" Hartree="1382.28566861" Madelung="-5088.31641643" xc-potential="-207.991850098" xc-effective-B-field="0.171261974046E-35" external-B-field="0.00000000000" exchange="-156.757019900" correlation="-3.12854044526"/>
+        <charges totalcharge="64.00000000" core="36.00000000" core_leakage="0.7865330563E-02" valence="28.00000000" interstitial="4.826414828" muffin-tin-total="59.17358517">
+          <atom species="Ga" muffin-tin="28.59894703"/>
+          <atom species="As" muffin-tin="30.57463814"/>
+        </charges>
+        <timing itertime="2.75892996788" timetot="15.5800704956" timeinit="1.56104898453" timemat="0.182666778564E-01" timefv="0.187313556671E-01" timesv="0.282886505127" timerho="5.76208972931" timepot="7.93704724312" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="-0.260369288914E-26" y="-0.821639303871E-27" z="-0.212228661491E-26"/>
+          <interstitial x="-0.260373985365E-26" y="-0.821590473358E-27" z="-0.212303411664E-26"/>
+          <mommttot x="0.469645125735E-31" y="-0.488305131779E-31" z="0.747501732727E-30"/>
+          <atom species="Ga">
+            <mommt x="-0.103163985244E-30" y="-0.255762771770E-30" z="0.709607074900E-31"/>
+          </atom>
+          <atom species="As">
+            <mommt x="0.150128497817E-30" y="0.206932258592E-30" z="0.676541025237E-30"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="13" rms="8.379352089701254E-010" rmslog10="-9.07678956070" deltae="5.254621100903023E-006" deltaelog10="-5.27945859452" chgdst="8.585228456462176E-009" chgdstlog10="-8.06624814359" fermidos="1.47520083207">
+        <energies totalEnergy="-4204.27558820" fermiEnergy="0.224614826246" sum-of-eigenvalues="-2416.73206903" electronic-kinetic="4296.59298868" core-electron-kinetic="0.00000000000" Coulomb="-8340.98301676" Coulomb-potential="-6505.33320790" nuclear-nuclear="-453.364144117" electron-nuclear="-9269.90453739" Hartree="1382.28566474" Madelung="-5088.31641281" xc-potential="-207.991849802" xc-effective-B-field="0.772807348793E-35" external-B-field="0.00000000000" exchange="-156.757019678" correlation="-3.12854044310"/>
+        <charges totalcharge="64.00000000" core="36.00000000" core_leakage="0.7865330868E-02" valence="28.00000000" interstitial="4.826414867" muffin-tin-total="59.17358513">
+          <atom species="Ga" muffin-tin="28.59894709"/>
+          <atom species="As" muffin-tin="30.57463804"/>
+        </charges>
+        <timing itertime="2.77980017662" timetot="16.7341313362" timeinit="1.56104898453" timemat="0.197336673737E-01" timefv="0.203044414520E-01" timesv="0.306423425674" timerho="6.23887753487" timepot="8.58774328232" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="0.116492131916E-26" y="-0.224167469949E-27" z="-0.866577950575E-27"/>
+          <interstitial x="0.116466300035E-26" y="-0.224306921091E-27" z="-0.865257355630E-27"/>
+          <mommttot x="0.258318813873E-30" y="0.139451142772E-30" z="-0.132059494503E-29"/>
+          <atom species="Ga">
+            <mommt x="-0.782609692243E-32" y="-0.117842928638E-31" z="-0.658977516630E-30"/>
+          </atom>
+          <atom species="As">
+            <mommt x="0.266144910796E-30" y="0.151235435636E-30" z="-0.661617428400E-30"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="14" rms="2.952992499601935E-010" rmslog10="-9.52973765611" deltae="2.108936314471066E-008" deltaelog10="-7.67593653486" chgdst="3.905669109092923E-010" chgdstlog10="-9.40830455321" fermidos="1.47520278188">
+        <energies totalEnergy="-4204.27558822" fermiEnergy="0.224614816719" sum-of-eigenvalues="-2416.73206904" electronic-kinetic="4296.59298872" core-electron-kinetic="0.00000000000" Coulomb="-8340.98301682" Coulomb-potential="-6505.33320795" nuclear-nuclear="-453.364144117" electron-nuclear="-9269.90453745" Hartree="1382.28566475" Madelung="-5088.31641284" xc-potential="-207.991849805" xc-effective-B-field="0.282272741395E-31" external-B-field="0.00000000000" exchange="-156.757019680" correlation="-3.12854044310"/>
+        <charges totalcharge="64.00000000" core="36.00000000" core_leakage="0.7865330863E-02" valence="28.00000000" interstitial="4.826414872" muffin-tin-total="59.17358513">
+          <atom species="Ga" muffin-tin="28.59894709"/>
+          <atom species="As" muffin-tin="30.57463804"/>
+        </charges>
+        <timing itertime="2.77295994759" timetot="17.8926444054" timeinit="1.56104898453" timemat="0.212538242340E-01" timefv="0.217964649200E-01" timesv="0.331124305725" timerho="6.71961236000" timepot="9.23780846596" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="0.183968814157E-27" y="0.134129619055E-26" z="0.225486751713E-27"/>
+          <interstitial x="0.184154488667E-27" y="0.134137220140E-26" z="0.225077708371E-27"/>
+          <mommttot x="-0.185674509351E-30" y="-0.760108540183E-31" z="0.409043342245E-30"/>
+          <atom species="Ga">
+            <mommt x="-0.310408880324E-30" y="0.339733171904E-31" z="0.657616068720E-31"/>
+          </atom>
+          <atom species="As">
+            <mommt x="0.124734370974E-30" y="-0.109984171209E-30" z="0.343281735373E-30"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="15" rms="2.037655572344765E-010" rmslog10="-9.69086922351" deltae="1.317039277637377E-008" deltaelog10="-7.88040127302" chgdst="2.093500970552789E-011" chgdstlog10="-10.6791268334" fermidos="1.47520286409">
+        <energies totalEnergy="-4204.27558824" fermiEnergy="0.224614816518" sum-of-eigenvalues="-2416.73206905" electronic-kinetic="4296.59298870" core-electron-kinetic="0.00000000000" Coulomb="-8340.98301682" Coulomb-potential="-6505.33320795" nuclear-nuclear="-453.364144117" electron-nuclear="-9269.90453745" Hartree="1382.28566475" Madelung="-5088.31641284" xc-potential="-207.991849805" xc-effective-B-field="-0.413750053454E-34" external-B-field="0.00000000000" exchange="-156.757019680" correlation="-3.12854044310"/>
+        <charges totalcharge="64.00000000" core="36.00000000" core_leakage="0.7865330863E-02" valence="28.00000000" interstitial="4.826414871" muffin-tin-total="59.17358513">
+          <atom species="Ga" muffin-tin="28.59894709"/>
+          <atom species="As" muffin-tin="30.57463804"/>
+        </charges>
+        <timing itertime="2.75678610802" timetot="19.0584573746" timeinit="1.56104898453" timemat="0.227205753326E-01" timefv="0.233504772186E-01" timesv="0.354565382004" timerho="7.19197845459" timepot="9.90479350090" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="0.209909441805E-26" y="-0.178953352303E-26" z="-0.146902864341E-26"/>
+          <interstitial x="0.209913989095E-26" y="-0.178980964180E-26" z="-0.146837965330E-26"/>
+          <mommttot x="-0.454728950326E-31" y="0.276118768172E-30" z="-0.648990111383E-30"/>
+          <atom species="Ga">
+            <mommt x="-0.676137674410E-31" y="0.243865938659E-30" z="-0.245138371032E-30"/>
+          </atom>
+          <atom species="As">
+            <mommt x="0.221408724084E-31" y="0.322528295127E-31" z="-0.403851740351E-30"/>
+          </atom>
+        </moments>
+      </iter>
+      <iter iteration="16" rms="2.341608035439671E-010" rmslog10="-9.63048580025" deltae="8.291226549772546E-008" deltaelog10="-7.08138121801" chgdst="1.961444305878101E-010" chgdstlog10="-9.70742401891" fermidos="1.47519961589">
+        <energies totalEnergy="-4204.27558832" fermiEnergy="0.224614826458" sum-of-eigenvalues="-2416.73206906" electronic-kinetic="4296.59298866" core-electron-kinetic="0.00000000000" Coulomb="-8340.98301686" Coulomb-potential="-6505.33320791" nuclear-nuclear="-453.364144117" electron-nuclear="-9269.90453757" Hartree="1382.28566483" Madelung="-5088.31641290" xc-potential="-207.991849810" xc-effective-B-field="-0.113088055352E-32" external-B-field="0.00000000000" exchange="-156.757019683" correlation="-3.12854044313"/>
+        <charges totalcharge="64.00000000" core="36.00000000" core_leakage="0.7865330863E-02" valence="28.00000000" interstitial="4.826414866" muffin-tin-total="59.17358513">
+          <atom species="Ga" muffin-tin="28.59894709"/>
+          <atom species="As" muffin-tin="30.57463804"/>
+        </charges>
+        <timing itertime="2.77047300339" timetot="20.2220134735" timeinit="1.56104898453" timemat="0.241868495941E-01" timefv="0.248963832855E-01" timesv="0.378238439560" timerho="7.67655229568" timepot="10.5570905209" timefor="0.00000000000"/>
+        <moments>
+          <momtot x="0.229785635503E-28" y="-0.324919828491E-26" z="0.842752069274E-28"/>
+          <interstitial x="0.227351220576E-28" y="-0.324884894204E-26" z="0.829831955104E-28"/>
+          <mommttot x="0.243441492661E-30" y="-0.349342872403E-30" z="0.129201141705E-29"/>
+          <atom species="Ga">
+            <mommt x="-0.131099717163E-31" y="0.203132862769E-30" z="0.691540642046E-30"/>
+          </atom>
+          <atom species="As">
+            <mommt x="0.256551464377E-30" y="-0.552475735173E-30" z="0.600470775000E-30"/>
+          </atom>
+        </moments>
+      </iter>
+      <structure>
+        <crystal unitCellVolume="303.9629532" BrillouinZoneVolume="0.8160540974" nktot="0" ngridk="1    1    1">
+          <basevect>0.000000000       5.336586500       5.336586500</basevect>
+          <basevect>5.336586500       0.000000000       5.336586500</basevect>
+          <basevect>5.336586500       5.336586500       0.000000000</basevect>
+          <reciprvect>-0.5886895403      0.5886895403      0.5886895403</reciprvect>
+          <reciprvect>0.5886895403     -0.5886895403      0.5886895403</reciprvect>
+          <reciprvect>0.5886895403      0.5886895403     -0.5886895403</reciprvect>
+        </crystal>
+        <species chemicalSymbol="Ga">
+          <atom x="0.00000000000" y="0.00000000000" z="0.00000000000"/>
+        </species>
+        <species chemicalSymbol="As">
+          <atom x="0.250000000000" y="0.250000000000" z="0.250000000000"/>
+        </species>
+      </structure>
+    </scl>
+  </groundstate>
+</info>

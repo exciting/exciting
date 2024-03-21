@@ -3,8 +3,7 @@
 from typing import Dict
 
 from excitingtools.parser_utils.parser_decorators import xml_root
-from excitingtools.utils.dict_utils import string_value_to_type
-from excitingtools.utils.utils import string_to_bool
+from excitingtools.parser_utils.parser_utils import convert_string_dict
 
 
 @xml_root
@@ -40,11 +39,8 @@ def parse_species_xml(root) -> dict:
     :return : Dictionary of species file data (described above).
     """
     species_tree = root[0]
-    species = {key: value for key, value in species_tree.attrib.items()}
-
-    for key in ['z', 'mass']:
-        species[key] = float(species[key])
-
+    species = convert_string_dict(species_tree.attrib)
+    
     children: Dict[str, list] = {'atomicState': [], 'basis': [], 'muffinTin': []}
     for child in list(species_tree):
         children[child.tag].append(child)
@@ -52,25 +48,22 @@ def parse_species_xml(root) -> dict:
     assert len(children['muffinTin']) == 1, "More than one muffinTin sub-tree in the species file"
     assert len(children['basis']) == 1, "More than one basis sub-tree in the species file"
 
-    muffin_tin_tree = children['muffinTin'][0].attrib
-    muffin_tin = {key: float(value) for key, value in muffin_tin_tree.items()}
+    muffin_tin = convert_string_dict(children['muffinTin'][0].attrib)
 
     atomic_states = []
     for atomic_state_tree in children['atomicState']:
-        assert atomic_state_tree.tag == 'atomicState', "Expect tag to be atomicState"
-        atomic_states.append(string_value_to_type(atomic_state_tree.attrib))
+        atomic_states.append(convert_string_dict(atomic_state_tree.attrib))
 
     basis_tree = children['basis'][0]
     basis: Dict[str, list] = {'default': [], 'custom': [], 'lo': []}
 
     for func in basis_tree:
-        function: dict = func.attrib
-        processed_function = string_value_to_type(function)
+        parsed_attributes = convert_string_dict(func.attrib)
 
         if func.tag == 'lo':
-            processed_function.update(_parse_lo_from_species(func))
-
-        basis[func.tag].append(processed_function)
+            parsed_attributes["wf"] = [convert_string_dict(wf.attrib) for wf in func]
+        
+        basis[func.tag].append(parsed_attributes)
 
     return {
         'species': species,
@@ -80,21 +73,3 @@ def parse_species_xml(root) -> dict:
         }
 
 
-def _parse_lo_from_species(lo_function) -> dict:
-    """
-    Given some lo_function with:
-      wf {'matchingOrder': '0', 'trialEnergy': '-2.0', 'searchE': 'true'}
-      wf {'matchingOrder': '1', 'trialEnergy': '-2.0', 'searchE': 'true'}
-
-    return
-    {'matchingOrder': [0, 1], 'trialEnergy': [-2.0, -2.0], 'searchE': [True, True]}
-    """
-    # Use lists to GUARANTEE consistent ordering
-    matching_order = []
-    trial_energy = []
-    search = []
-    for radial in lo_function:
-        matching_order.append(int(radial.attrib.get('matchingOrder')))
-        trial_energy.append(float(radial.attrib.get('trialEnergy')))
-        search.append(string_to_bool(radial.attrib.get('searchE')))
-    return {'matchingOrder': matching_order, 'trialEnergy': trial_energy, 'searchE': search}

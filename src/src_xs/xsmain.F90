@@ -252,6 +252,26 @@ subroutine xsmain(plan, nxstasks)
         call fastBSE_sanity_checks(mpiglobal, input)
         call fastBSE_isdf_cvt(mpiglobal, input, fhdf5, ghdf5, unitout)  
 
+      ! Taskname 'fastBSE_main'
+      case(501)
+        call fastBSE_sanity_checks(mpiglobal, input)
+        call fastBSE_main(mpiglobal, input, fhdf5, ghdf5, unitout)
+
+      case(510)
+      ! Taskname 'fastBSE_setup_transitions'
+        call fastBSE_sanity_checks(mpiglobal, input)
+        call fastBSE_setup_transitions(mpiglobal, input, fhdf5, ghdf5, unitout)
+
+      ! Taskname 'fastBSE_isdf_cvt'
+      case(512)
+        call fastBSE_sanity_checks(mpiglobal, input)
+        call fastBSE_isdf_cvt(mpiglobal, input, fhdf5, ghdf5, unitout)  
+
+      ! Taskname 'fastBSE_isdf_vexc_test'
+      case(513)
+        call fastBSE_sanity_checks(mpiglobal, input)
+        call fastBSE_isdf_vexc_test(mpiglobal, input, fhdf5, ghdf5, unitout)
+
       ! Taskname 'xsestimate'
       case(700)
         ! estimate disk-space, cpu-time and memory

@@ -21,6 +21,10 @@ path_type = Union[str, Path]
 class AbstractExcitingInput(ABC):
     """Base class for exciting inputs."""
 
+    @abstractmethod
+    def __init__(self, **kwargs):
+        ...
+
     @property
     @abstractmethod
     def name(self) -> str:
@@ -34,7 +38,7 @@ class AbstractExcitingInput(ABC):
 
 
 class ExcitingXMLInput(AbstractExcitingInput, ABC):
-    """Base class for exciting inputs, with exceptions being title, plan and qpointset,
+    """Base class for exciting inputs, with exceptions being title, plan, qpointset and kstlist,
      because they are not passed as a dictionary. """
 
     # Convert python data to string, formatted specifically for

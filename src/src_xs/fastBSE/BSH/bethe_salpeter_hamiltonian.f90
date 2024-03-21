@@ -51,14 +51,12 @@ module bethe_salpeter_hamiltonian
     this%n_transitions = size(this%transition_energies)
   end subroutine set_diagonal
 
-
   subroutine set_isdf_vexc(this, vexc)
     class(bsh_type), intent(inout) :: this
     type(vexc_isdf_kernel_type), intent(in), target :: vexc
 
     this%vexc => vexc
   end subroutine set_isdf_vexc
-
   
   subroutine set_isdf_wscr(this, wscr)
     class(bsh_type), intent(inout) :: this

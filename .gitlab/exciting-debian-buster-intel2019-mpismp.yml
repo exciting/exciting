@@ -58,7 +58,7 @@ test-debian-buster-Intel2019-mpiandsmp:
     - module load intel/oneapi-2021.3
     # diffutils for `cmp` command
     - apt-get install -y libfabric1 libfabric-dev diffutils
-    - python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor lxml pytest pyyaml
+    - python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor pytest pyyaml
   script:
     # Run unit tests
     - export OMP_NUM_THREADS=2 && mpirun -np 2 bin/exciting_mpismp -run-unit-tests -kill-on-failure
