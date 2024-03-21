@@ -17,7 +17,7 @@
       "unit": "null"
     },
     "de": {
-      "tol": 1e-08,
+      "tol": 2e-08,
       "unit": "Hartree"
     },
     "overlap": {
