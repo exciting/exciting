@@ -1,8 +1,7 @@
 The exciting FP-LAPW Code
 =========================
 
-Release: exciting fluorine.  
-Copyright (C) 2002-2021 The exciting team.
+Copyright (C) 2002-2024 The exciting team.
 
 Description
 -----------
