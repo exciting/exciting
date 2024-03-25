@@ -207,15 +207,15 @@ run_status = runner.run()
 #### Parsing Outputs
 
 After the successful completion of the calculation, we can parse the relevant output files as dictionaries, using
-`parser_chooser`. These are the main files one would be interested in after performing a ground state calculation, for
+`parse`. These are the main files one would be interested in after performing a ground state calculation, for
 example:
 
 ```python3
-from excitingtools import parser_chooser
+from excitingtools import parse
 
-info_out: dict = parser_chooser("INFO.OUT")
-eigval_info: dict = parser_chooser("eigval.xml")
-atoms_info: dict = parser_chooser("atoms.xml")
+info_out: dict = parse("INFO.OUT")
+eigval_info: dict = parse("eigval.xml")
+atoms_info: dict = parse("atoms.xml")
 ```
 
 A full list of parsers is provided in `excitingtools/exciting_dict_parsers/parser_factory.py`. If we wish to perform

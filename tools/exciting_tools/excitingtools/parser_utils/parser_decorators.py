@@ -4,6 +4,8 @@ import pathlib
 import xml.etree.ElementTree as ET
 from typing import Callable, Union
 
+from excitingtools.utils.dict_utils import __container_converter
+
 
 def return_file_string(file_name: Union[str, pathlib.Path]) -> str:
     """ Given a file name, return the file contents as a string.
@@ -37,7 +39,6 @@ def file_handler(file_name: Union[str, pathlib.Path], parser_func: Callable[[str
 def accept_file_name(parser: Callable):
     """ Decorate parsers that accept string contents, such that they take file names instead.
     """
-
     def modified_func(file_name: Union[str, pathlib.Path]):
         """ Wrapper.
         param: file_name: File name.
@@ -45,6 +46,20 @@ def accept_file_name(parser: Callable):
         file_string = return_file_string(file_name)
         return parser(file_string)
     return modified_func
+
+
+def set_return_values(parser: Callable[[str], dict]) -> Callable[[str], dict]:
+    """ Mutate the values of a parsed dictionary to return
+    appropriate types, rather than strings.
+    """
+    def modified_exciting_parser(full_file_name: str) -> dict:
+        """ Wrapper.
+        :param full_file_name: File name.
+        :return: converted data
+        """
+        data = parser(full_file_name)
+        return __container_converter(data)
+    return modified_exciting_parser
 
 
 def xml_root(func: Callable):

@@ -1,7 +1,8 @@
-import numpy as np
 from os.path import dirname
 
-from excitingtools import parser_chooser
+import numpy as np
+
+from excitingtools import parse
 
 TUTORIAL_HOW_TO_START_AN_EXCITING_CALCULATION_RUNDIR = "run_tutorial_start_exciting_calculation"
 
@@ -58,7 +59,7 @@ def test_tutorial1(converged_results):
         f"Estimated fundamental gap in Ha is {converged_results['Estimated fundamental gap']}")
 
 def main():
-    results = parser_chooser(f"{dirname(__file__)}/{TUTORIAL_HOW_TO_START_AN_EXCITING_CALCULATION_RUNDIR}/INFO.OUT")
+    results = parse(f"{dirname(__file__)}/{TUTORIAL_HOW_TO_START_AN_EXCITING_CALCULATION_RUNDIR}/INFO.OUT")
     max_scf = max([int(i) for i in results['scl'].keys()])
     assert max_scf <= 13, "Expect max 13 SCF iterations to converge"
     converged_results = results['scl'][str(max_scf)]

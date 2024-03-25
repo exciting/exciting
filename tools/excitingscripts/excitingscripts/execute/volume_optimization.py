@@ -6,7 +6,8 @@ from typing import Union
 
 import numpy as np
 from excitingscripts.execute.single import run_exciting
-from excitingtools import parser_chooser
+
+from excitingtools import parse
 
 
 def execute_volume_optimization(input_file: Union[str, pathlib.Path], number_volume_values: int,
@@ -27,7 +28,7 @@ def execute_volume_optimization(input_file: Union[str, pathlib.Path], number_vol
 
         run_exciting(f"{root_directory}/volume-{i_v + 1}", excitingroot)
 
-        results = parser_chooser(join(os.getcwd(), f"{root_directory}/volume-{i_v + 1}/INFO.OUT"))
+        results = parse(join(os.getcwd(), f"{root_directory}/volume-{i_v + 1}/INFO.OUT"))
         max_scf = max([int(i) for i in results["scl"].keys()])
         converged_results = results["scl"][str(max_scf)]
         total_energy.append(converged_results["Total energy"])

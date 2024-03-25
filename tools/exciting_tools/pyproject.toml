@@ -1,12 +1,12 @@
 [project]
 name = "excitingtools"
 description = "Utilities for aiding in the construction of exciting inputs and the postprocessing exciting outputs."
-version = "1.6.4"
+version = "1.7.0"
 authors = [
-    { name = "Alexander Buccheri", email = "alexander.buccheri@mpsd.mpg.de"},
-    { name = "Fabian Peschel",     email = "peschelf@physik.hu-berlin.de"}
+    {name = "Alexander Buccheri", email = "alexander.buccheri@mpsd.mpg.de"},
+    {name = "Fabian Peschel", email = "peschelf@physik.hu-berlin.de"}
 ]
-license = {file = "COPYING.md"}
+license = {text = "GNU GENERAL PUBLIC LICENSE, see 'COPYING.md'"}
 readme = "README.md"
 requires-python = ">=3.7"
 

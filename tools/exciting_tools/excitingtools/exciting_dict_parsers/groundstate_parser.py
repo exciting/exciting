@@ -8,9 +8,10 @@ import xml.etree.ElementTree as ET
 import numpy as np
 
 from excitingtools.parser_utils.erroneous_file_error import ErroneousFileError
-from excitingtools.parser_utils.parser_decorators import xml_root
+from excitingtools.parser_utils.parser_decorators import xml_root, set_return_values
 
 
+@set_return_values
 def parse_info_out(name: str) -> dict:
     """
     Parser exciting INFO.OUT into a dictionary.
@@ -139,6 +140,7 @@ def parse_info_out(name: str) -> dict:
     return INFO
 
 
+@set_return_values
 def parse_info_xml(name) -> dict:
     """
     Parser exciting info.xml into a python dictionary.
@@ -206,6 +208,7 @@ def parse_info_xml(name) -> dict:
     return info
 
 
+@set_return_values
 def parse_atoms(name) -> dict:
     """                                                                                                  
     Parser exciting atoms.xml into a python dictionary.                                                   
@@ -244,6 +247,7 @@ def parse_atoms(name) -> dict:
     return atoms
 
 
+@set_return_values
 @xml_root
 def parse_eigval(root) -> dict:
     """ Parse eigenvalues from eigval.xml file.
@@ -272,6 +276,7 @@ def parse_eigval(root) -> dict:
     return eigval
 
 
+@set_return_values
 def parse_evalcore(name) -> dict:
     """                                                                                                  
     Parser exciting evalcore.xml into a python dictionary.                                                   
@@ -312,6 +317,7 @@ def parse_evalcore(name) -> dict:
     return evalcore
 
 
+@set_return_values
 def parse_geometry(name) -> dict:
     """                                                                                                  
     Parser exciting geometry.xml into a python dictionary.                                                   
@@ -360,6 +366,7 @@ def parse_geometry(name) -> dict:
     return geometry
 
 
+@set_return_values
 def parse_linengy(name: str) -> dict:
     """
     Parser for: LINENGY.OUT
@@ -402,6 +409,7 @@ def parse_linengy(name: str) -> dict:
     return linengy
 
 
+@set_return_values
 def parse_lo_recommendation(name: str) -> dict:
     """
     Parser for: LO_RECOMMENDATION.OUT

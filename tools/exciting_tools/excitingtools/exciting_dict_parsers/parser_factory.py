@@ -6,17 +6,29 @@ REQUIREMENTS. Parser function must:
  a) accept a file name (not a contents string)
  b) return a dictionary.
 """
-import os
 
-from excitingtools.utils.dict_utils import container_converter
+import warnings
+from fnmatch import fnmatch
+from pathlib import Path
+from typing import Callable, Union
 
-from excitingtools.exciting_dict_parsers import \
-    bse_parser, groundstate_parser, \
-    gw_eigenvalues_parser, gw_eps00_parser, gw_info_parser, gw_vxc_parser, gw_taskgroup_parser, \
-    input_parser, properties_parser, RT_TDDFT_parser, species_parser, state_parser
-
+from excitingtools.exciting_dict_parsers import (
+    RT_TDDFT_parser,
+    bse_parser,
+    groundstate_parser,
+    gw_eigenvalues_parser,
+    gw_eps00_parser,
+    gw_info_parser,
+    gw_taskgroup_parser,
+    gw_vxc_parser,
+    input_parser,
+    properties_parser,
+    species_parser,
+    state_parser,
+)
 
 # Map file name to parser function
+# Note: more specific names should be higher, as the search will go through this map top-down
 _file_to_parser = {
     'INFO.OUT': groundstate_parser.parse_info_out,
     'info.xml': groundstate_parser.parse_info_xml,
@@ -28,12 +40,7 @@ _file_to_parser = {
     'geometry.xml': groundstate_parser.parse_geometry,
     'LINENGY.OUT': groundstate_parser.parse_linengy,
     'LO_RECOMMENDATION.OUT': groundstate_parser.parse_lo_recommendation,
-    'RHO3D.xml': properties_parser.parse_plot_3d,
-    'VCL3D.xml': properties_parser.parse_plot_3d,
-    'VXC3D.xml': properties_parser.parse_plot_3d,
-    'WF3D.xml': properties_parser.parse_plot_3d,
-    'ELF3D.xml': properties_parser.parse_plot_3d,
-    'EF3D.xml': properties_parser.parse_plot_3d,
+    '*3D.xml': properties_parser.parse_plot_3d,
     'LSJ.xml': properties_parser.parse_lsj,
     'EFG.xml': properties_parser.parse_efg,
     'mossbauer.xml': properties_parser.parse_mossbauer,
@@ -42,9 +49,7 @@ _file_to_parser = {
     'bandstructure.xml': properties_parser.parse_bandstructure_depreciated,
     'dos.xml': properties_parser.parse_dos,
     'KERR.OUT': properties_parser.parse_kerr,
-    'EPSILON_11.OUT': properties_parser.parse_epsilon,
-    'EPSILON_12.OUT': properties_parser.parse_epsilon,
-    'EPSILON_33.OUT': properties_parser.parse_epsilon,
+    'EPSILON_??.OUT': properties_parser.parse_epsilon,
     'CHI_111.OUT': properties_parser.parse_chi,
     'ELNES.OUT': properties_parser.parse_elnes,
     'SEEBECK_11.OUT': properties_parser.parse_seebeck,
@@ -58,159 +63,82 @@ _file_to_parser = {
     'TDOS_WANNIER.OUT': properties_parser.parse_tdos_wannier,
     'WANNIER_INFO.OUT': properties_parser.parse_wannier_info,
     'coreoverlap.xml': properties_parser.parse_core_overlap,
+    'wf1d-*.dat': properties_parser.parse_wf1d,
+    'wf2d-*.xsf': properties_parser.parse_wf2d,
+    'wf3d-*.xsf': properties_parser.parse_wf3d,
+    'wf3d-*.cube': properties_parser.parse_cube,
     'INFOXS.OUT': bse_parser.parse_infoxs_out,
-    'EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT': bse_parser.parse_EPSILON_NAR,
-    'EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT': bse_parser.parse_EPSILON_NAR,
-    'EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT': bse_parser.parse_EPSILON_NAR,
-    'EPSILON_NAR_FXCMB1_OC11_QMT001.OUT': bse_parser.parse_EPSILON_NAR,
-    'EPSILON_NAR_FXCMB1_OC22_QMT001.OUT': bse_parser.parse_EPSILON_NAR,
-    'EPSILON_NAR_FXCMB1_OC33_QMT001.OUT': bse_parser.parse_EPSILON_NAR,
-    'EPSILON_NAR_NLF_FXCMB1_OC11_QMT001.OUT': bse_parser.parse_EPSILON_NAR,
-    'EPSILON_NAR_NLF_FXCMB1_OC22_QMT001.OUT': bse_parser.parse_EPSILON_NAR,
-    'EPSILON_NAR_NLF_FXCMB1_OC33_QMT001.OUT': bse_parser.parse_EPSILON_NAR,
-    'EPSILON_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT': bse_parser.parse_EPSILON_NAR,
-    'EPSILON_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT': bse_parser.parse_EPSILON_NAR,
-    'EPSILON_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT': bse_parser.parse_EPSILON_NAR,
-    'EPSILON_BSE-singlet-TDA-BAR_SCR-full_OC12.OUT': bse_parser.parse_EPSILON_NAR,
-    'DICHROIC_K_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT': bse_parser.parse_EPSILON_NAR,
-    'DICHROIC_K_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT': bse_parser.parse_EPSILON_NAR,
-    'DICHROIC_K_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT': bse_parser.parse_EPSILON_NAR,
-    'DICHROIC_K_BSE-singlet-TDA-BAR_SCR-full_OC12.OUT': bse_parser.parse_EPSILON_NAR,
-    'DICHROIC_KBAR_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT': bse_parser.parse_EPSILON_NAR,
-    'DICHROIC_KBAR_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT': bse_parser.parse_EPSILON_NAR,
-    'DICHROIC_KBAR_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT': bse_parser.parse_EPSILON_NAR,
-    'DICHROIC_KBAR_BSE-singlet-TDA-BAR_SCR-full_OC12.OUT': bse_parser.parse_EPSILON_NAR,
-    'DICHROIC_K_KBAR_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT': bse_parser.parse_EPSILON_NAR,
-    'DICHROIC_K_KBAR_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT': bse_parser.parse_EPSILON_NAR,
-    'DICHROIC_K_KBAR_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT': bse_parser.parse_EPSILON_NAR,
-    'DICHROIC_K_KBAR_BSE-singlet-TDA-BAR_SCR-full_OC12.OUT': bse_parser.parse_EPSILON_NAR,
-    'OSCI_K_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT': bse_parser.parse_EXCITON_NAR_BSE,
-    'OSCI_K_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT': bse_parser.parse_EXCITON_NAR_BSE,
-    'OSCI_K_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT': bse_parser.parse_EXCITON_NAR_BSE,
-    'OSCI_K_BSE-singlet-TDA-BAR_SCR-full_OC12.OUT': bse_parser.parse_EXCITON_NAR_BSE,
-    'OSCI_KBAR_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT': bse_parser.parse_EXCITON_NAR_BSE,
-    'OSCI_KBAR_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT': bse_parser.parse_EXCITON_NAR_BSE,
-    'OSCI_KBAR_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT': bse_parser.parse_EXCITON_NAR_BSE,
-    'OSCI_KBAR_BSE-singlet-TDA-BAR_SCR-full_OC12.OUT': bse_parser.parse_EXCITON_NAR_BSE,
-    'EPSILON_BSE-IP_SCR-full_OC11.OUT': bse_parser.parse_EPSILON_NAR,
-    'EPSILON_BSE-IP_SCR-full_OC22.OUT': bse_parser.parse_EPSILON_NAR,
-    'EPSILON_BSE-IP_SCR-full_OC33.OUT': bse_parser.parse_EPSILON_NAR,
-    'LOSS_NAR_FXCMB1_OC11_QMT001.OUT': bse_parser.parse_LOSS_NAR,
-    'LOSS_NAR_FXCMB1_OC22_QMT001.OUT': bse_parser.parse_LOSS_NAR,
-    'LOSS_NAR_FXCMB1_OC33_QMT001.OUT': bse_parser.parse_LOSS_NAR,
-    'LOSS_NAR_NLF_FXCMB1_OC11_QMT001.OUT': bse_parser.parse_LOSS_NAR,
-    'LOSS_NAR_NLF_FXCMB1_OC22_QMT001.OUT': bse_parser.parse_LOSS_NAR,
-    'LOSS_NAR_NLF_FXCMB1_OC33_QMT001.OUT': bse_parser.parse_LOSS_NAR,
-    'LOSS_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT': bse_parser.parse_LOSS_NAR,
-    'LOSS_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT': bse_parser.parse_LOSS_NAR,
-    'LOSS_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT': bse_parser.parse_LOSS_NAR,
-    'LOSS_BSE-IP_SCR-full_OC11.OUT': bse_parser.parse_LOSS_NAR,
-    'LOSS_BSE-IP_SCR-full_OC22.OUT': bse_parser.parse_LOSS_NAR,
-    'LOSS_BSE-IP_SCR-full_OC33.OUT': bse_parser.parse_LOSS_NAR,
-    'EXCITON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT': bse_parser.parse_EXCITON_NAR_BSE,
-    'EXCITON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT': bse_parser.parse_EXCITON_NAR_BSE,
-    'EXCITON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT': bse_parser.parse_EXCITON_NAR_BSE,
-    'EXCITON_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT': bse_parser.parse_EXCITON_NAR_BSE,
-    'EXCITON_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT': bse_parser.parse_EXCITON_NAR_BSE,
-    'EXCITON_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT': bse_parser.parse_EXCITON_NAR_BSE,
-    'EXCITON_BSE-IP_SCR-full_OC11.OUT': bse_parser.parse_EXCITON_NAR_BSE,
-    'EXCITON_BSE-IP_SCR-full_OC22.OUT': bse_parser.parse_EXCITON_NAR_BSE,
-    'EXCITON_BSE-IP_SCR-full_OC33.OUT': bse_parser.parse_EXCITON_NAR_BSE,
+    'EPSILON_BSE*.OUT': bse_parser.parse_EPSILON_NAR,
+    'EPSILON_NAR*.OUT': bse_parser.parse_EPSILON_NAR,
+    'DICHROIC_*.OUT': bse_parser.parse_EPSILON_NAR,
+    'OSCI_*.OUT': bse_parser.parse_EXCITON_NAR_BSE,
+    'EXCITON_*.OUT': bse_parser.parse_EXCITON_NAR_BSE,
+    'LOSS_*.OUT': bse_parser.parse_LOSS_NAR,
     'GW_INFO.OUT': gw_info_parser.parse_gw_info,
     'EFERMI_GW.OUT': gw_eigenvalues_parser.parse_efermi_gw,
     'EVALQP.DAT': gw_eigenvalues_parser.parse_evalqp,
     'VXCNN.DAT': gw_vxc_parser.parse_vxcnn,
     'EPS00_GW.OUT': gw_eps00_parser.parse_eps00_gw,
-    'BARC_': gw_taskgroup_parser.parse_barc,
-    'SGI_': gw_taskgroup_parser.parse_sgi,
-    'EPSILON-GW_': gw_taskgroup_parser.parse_epsilon, 
-    'EPSH.OUT': gw_taskgroup_parser.parse_epsilon, 
-    'EPSW1.OUT': gw_taskgroup_parser.parse_epsilon, 
+    'BARC_*': gw_taskgroup_parser.parse_barc,
+    'SGI_*': gw_taskgroup_parser.parse_sgi,
+    'EPSILON-GW_*': gw_taskgroup_parser.parse_epsilon,
+    'EPSH.OUT': gw_taskgroup_parser.parse_epsilon,
+    'EPSW1.OUT': gw_taskgroup_parser.parse_epsilon,
     'EPSW2.OUT': gw_taskgroup_parser.parse_epsilon,
-    'INVERSE-EPS-H.OUT': gw_taskgroup_parser.parse_inverse_epsilon,
-    'INVERSE-EPS-W1.OUT': gw_taskgroup_parser.parse_inverse_epsilon,
-    'INVERSE-EPS-W2.OUT': gw_taskgroup_parser.parse_inverse_epsilon,
-    'INVERSE-EPSILON_': gw_taskgroup_parser.parse_inverse_epsilon,
+    'INVERSE-EPS*': gw_taskgroup_parser.parse_inverse_epsilon,
     'JIND.OUT': RT_TDDFT_parser.parse_jind,
     'NEXC.OUT': RT_TDDFT_parser.parse_nexc,
     'ETOT_RTTDDFT.OUT': RT_TDDFT_parser.parse_etot,
-    'EIGVAL_': RT_TDDFT_parser.parse_eigval_screenshots,
-    'PROJ_': RT_TDDFT_parser.parse_proj_screenshots,
-    'ATOM_': RT_TDDFT_parser.parse_atom_position_velocity_force,
-    'FCR_': RT_TDDFT_parser.parse_force,
-    'FEXT_': RT_TDDFT_parser.parse_force,
-    'FHF_': RT_TDDFT_parser.parse_force,
-    'FVAL_': RT_TDDFT_parser.parse_force,
-    'wf1d-0001-0001.dat': properties_parser.parse_wf1d,
-    'wf1d-0003-0001.dat': properties_parser.parse_wf1d,
-    'wf2d-0001-0001.xsf': properties_parser.parse_wf2d,
-    'wf2d-0003-0001.xsf': properties_parser.parse_wf2d,
-    'wf3d-0001-0001.xsf': properties_parser.parse_wf3d,
-    'wf3d-0003-0001.xsf': properties_parser.parse_wf3d,
-    'wf3d-0001-0001.cube': properties_parser.parse_cube,
-    'wf3d-0003-0001.cube': properties_parser.parse_cube,
+    'EIGVAL_*': RT_TDDFT_parser.parse_eigval_screenshots,
+    'PROJ_*': RT_TDDFT_parser.parse_proj_screenshots,
+    'ATOM_*': RT_TDDFT_parser.parse_atom_position_velocity_force,
+    'FCR_*': RT_TDDFT_parser.parse_force,
+    'FEXT_*': RT_TDDFT_parser.parse_force,
+    'FHF_*': RT_TDDFT_parser.parse_force,
+    'FVAL_*': RT_TDDFT_parser.parse_force,
     'STATE.OUT': state_parser.parse_state_out,
 }
 
 
-def truncate_fnames_with_exts(file_name: str) -> str:
-    """ Truncate file names that have open-ended extensions.
-
-    For example:
-      EIGVAL_00.dat -> EIGVAL_
-      EIGVAL_01.dat -> EIGVAL_
-
-    :param file_name: File name containing fixed prefix and
-    an extension beginning with '_'.
-    :return file_name: File name prefix, else input file name.
-    """
-    prefixes = [
-        'EIGVAL_',
-        'PROJ_',
-        'ATOM_',
-        'FCR_',
-        'FEXT_',
-        'FHF_',
-        'FVAL_',
-        'SGI_',
-        'BARC_',
-        'EPSILON-GW_',
-        'INVERSE-EPSILON_'
-    ]
-    if any( [ prefix in file_name for prefix in prefixes ] ) :
-        file_name_prefix = file_name.split('_')[0] + '_'
-        return file_name_prefix
-
-    return file_name
-
-
-def parser_chooser(full_file_name: str) -> dict:
-    """ Selects parser according to the name of the input file then returns the result of the parser.
+def parse(full_file_name: str) -> dict:
+    """Selects parser according to the name of the input file then returns the result of the parser.
 
     REQUIREMENTS. Parser function must:
      a) accept a file name (not a contents string)
      b) return a dictionary.
 
-    param: str, full_file_name: file name prepended by full path
-    return: parsed data
+    :param full_file_name: file name prepended by full path
+    :return: parsed data
     """
- 
-    full_file_name = full_file_name.rstrip()
-    if not os.path.exists(full_file_name):
-        raise FileNotFoundError(f'File not found: {full_file_name}')
 
-    file_name = os.path.split(full_file_name)[1]
-    file_name = truncate_fnames_with_exts(file_name)
+    full_file_path = Path(full_file_name.rstrip())
+    if not full_file_path.exists():
+        raise FileNotFoundError(f'File not found: {full_file_path}')
 
-    files_with_parsers = [name for name in _file_to_parser.keys()]
-    if file_name not in files_with_parsers:
+    file_name = full_file_path.name
+
+    parser: Union[Callable[[str], dict], None] = None
+    for pattern in _file_to_parser:
+        if fnmatch(file_name, pattern):
+            parser = _file_to_parser[pattern]
+            break
+
+    if not parser:
         raise KeyError(f"File does not have a parser: {file_name}")
 
-    parser = _file_to_parser[file_name]
-    data = parser(full_file_name)
+    return parser(full_file_path.as_posix())
 
-    #  TODO(Alex) Issue 135 Ensure all parsers return appropriate values, not strings.
-    #   container_converter should therefore be used as a decorator on parsers with values that are strings.
-    #   That will massively speed up parsing
-    return container_converter(data)
 
+def parser_chooser(full_file_name: str) -> dict:
+    """Old API. Selects parser according to the name of the input file then returns the result of the parser.
+
+    :param full_file_name: file name prepended by full path
+    :return: parsed data
+    """
+    warnings.warn(
+        "Deprecated API. Use 'excitingtools.parse' instead. "
+        "Support for this API will be removed in excitingtools 1.8.0",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return parse(full_file_name)

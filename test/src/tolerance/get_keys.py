@@ -14,7 +14,7 @@ To print the keys associated with a parsed exciting output file, type:
 """
 import argparse
 
-from excitingtools.parser import parser_chooser
+from excitingtools import parse
 from excitingtools.utils.dict_utils import get_hashable_entries
 
 
@@ -46,7 +46,7 @@ def print_tolerance_keys(file: str):
 
     :param file: file name, prepended by the file path
     """
-    output = parser_chooser(file)
+    output = parse(file)
 
     unique_keys = set([key for key, value in get_hashable_entries(output)])
 
