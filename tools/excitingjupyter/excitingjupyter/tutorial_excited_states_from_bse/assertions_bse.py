@@ -1,13 +1,15 @@
-import numpy as np
 import os.path
-from excitingtools import parser_chooser
+
+import numpy as np
+
+from excitingtools import parse
 
 
 def test_tutorial_excited_states_from_bse(epsilon_result: dict, path_to_reference: str):
     """Automatically test results of tutorial_excited_states_from_bse notebook, LiF bulk calculation.
     """
     
-    epsilon_reference = parser_chooser(os.path.join(path_to_reference,"EPSILON/EPSILON_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT"))
+    epsilon_reference = parse(os.path.join(path_to_reference,"EPSILON/EPSILON_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT"))
 
     assert np.allclose(epsilon_result['frequency'],
                        epsilon_reference['frequency'], atol=2e-6), (

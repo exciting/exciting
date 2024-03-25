@@ -1,6 +1,8 @@
 import os.path
+
 import numpy as np
-from excitingtools import parser_chooser
+
+from excitingtools import parse
 
 
 def test_groundstate_BN(converged_results_BN: dict):
@@ -69,7 +71,7 @@ def test_dielectric_BN(epsilon_results_BN: dict, reference: str):
     """Test results of dielectric function calculations for cubic boron-nitride
     """
     
-    epsilon_reference_BN = parser_chooser(os.path.join(reference))
+    epsilon_reference_BN = parse(os.path.join(reference))
 
     assert np.allclose(epsilon_results_BN['frequency'], epsilon_reference_BN['frequency']), \
         f"Frequency grid not equivalent to reference calculation for dielectric function calculations for cubic boron-nitride"
@@ -88,7 +90,7 @@ def test_loss_BN(loss_results_BN: dict, reference: str):
     """Test results of loss function calculations for cubic boron-nitride
     """
     
-    loss_reference_BN = parser_chooser(os.path.join(reference))
+    loss_reference_BN = parse(os.path.join(reference))
 
     assert np.allclose(loss_results_BN['frequency'], loss_reference_BN['frequency']), \
         f"Frequency grid not equivalent to reference calculation for loss function calculations for cubic boron-nitride"
@@ -166,7 +168,7 @@ def test_dielectric_TiO2(epsilon_results_TiO2: dict, reference: str):
     """Test results of dielectric function calculations for rutile titanium dioxide
     """
     
-    epsilon_reference_TiO2 = parser_chooser(os.path.join(reference))
+    epsilon_reference_TiO2 = parse(os.path.join(reference))
 
     assert np.allclose(epsilon_results_TiO2['frequency'], epsilon_reference_TiO2['frequency']), \
         f"Frequency grid not equivalent to reference calculation for dielectric function calculations for rutile titanium dioxide"
@@ -185,7 +187,7 @@ def test_loss_TiO2(loss_results_TiO2: dict, reference: str):
     """Test results of loss function calculations for rutile titanium dioxide
     """
     
-    loss_reference_TiO2 = parser_chooser(os.path.join(reference))
+    loss_reference_TiO2 = parse(os.path.join(reference))
 
     assert np.allclose(loss_results_TiO2['frequency'], loss_reference_TiO2['frequency']), \
         f"Frequency grid not equivalent to reference calculation for loss function calculations for rutile titanium dioxide"
@@ -194,4 +196,4 @@ def test_loss_TiO2(loss_results_TiO2: dict, reference: str):
         f"Real part of loss function not equivalent to reference calculation for rutile titanium dioxide"
 
     assert np.allclose(loss_results_TiO2['imag_oscillator_strength'], loss_reference_TiO2['imag_oscillator_strength']), \
-        f"Imaginary part of loss function not equivalent to reference calculation for rutile titanium dioxide"     
+        f"Imaginary part of loss function not equivalent to reference calculation for rutile titanium dioxide"

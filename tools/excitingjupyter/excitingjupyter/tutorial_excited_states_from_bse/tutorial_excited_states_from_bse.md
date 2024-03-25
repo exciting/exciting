@@ -680,9 +680,10 @@ All of the main output files can by parsed by Python. In the example below, the 
 
 
 ```python
-from excitingtools import parser_chooser
+import os
+from excitingtools import parse
 
-epsilon_results: dict = parser_chooser(os.path.join(os.getcwd(),
+epsilon_results: dict = parse(os.path.join(os.getcwd(),
             "run/BSE/EPSILON/EPSILON_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT"))
 
 ```

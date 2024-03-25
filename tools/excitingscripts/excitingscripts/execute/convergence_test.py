@@ -6,7 +6,8 @@ from typing import Union
 
 import numpy as np
 from excitingscripts.execute.single import run_exciting
-from excitingtools import parser_chooser
+
+from excitingtools import parse
 
 
 def execute_convergence_test(k_initial: int, k_final: int, rgkmax_initial: int,
@@ -36,7 +37,7 @@ def execute_convergence_test(k_initial: int, k_final: int, rgkmax_initial: int,
 
             run_exciting(f"{root_directory}/{k}_{rgkmax}", excitingroot)
 
-            results = parser_chooser(join(os.getcwd(), f"{root_directory}/{k}_{rgkmax}/INFO.OUT"))
+            results = parse(join(os.getcwd(), f"{root_directory}/{k}_{rgkmax}/INFO.OUT"))
             max_scf = max([int(i) for i in results["scl"].keys()])
             converged_results = results["scl"][str(max_scf)]
             total_energy_ngridk_rgkmax[i_k, i_rgkmax] = converged_results["Total energy"]

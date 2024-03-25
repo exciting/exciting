@@ -1,6 +1,8 @@
 import os.path
+
 import numpy as np
-from excitingtools import parser_chooser
+
+from excitingtools import parse
 
 
 def test_groundstate(converged_results: dict):
@@ -68,7 +70,7 @@ def test_dielectric_optical_bse(epsilon_optical_bse_results: dict, reference: st
     """Test results of dielectric function in optical BSE calculations.
     """
 
-    epsilon_optical_bse_reference = parser_chooser(os.path.join(reference))
+    epsilon_optical_bse_reference = parse(os.path.join(reference))
 
     assert np.allclose(epsilon_optical_bse_results['frequency'], epsilon_optical_bse_reference['frequency']), \
         f"Frequency grid not equivalent to reference calculation in optical BSE dielectric function calculations"
@@ -90,7 +92,7 @@ def test_loss_optical_bse(loss_optical_bse_results: dict, reference: str):
     """Test results of loss function in optical BSE calculations.
     """
 
-    loss_optical_bse_reference = parser_chooser(os.path.join(reference))
+    loss_optical_bse_reference = parse(os.path.join(reference))
 
     assert np.allclose(loss_optical_bse_results['frequency'], loss_optical_bse_reference['frequency']), \
         f"Frequency grid not equivalent to reference calculation in optical BSE loss function calculations"
@@ -106,7 +108,7 @@ def test_dielectric_xray_bse(epsilon_xray_bse_results: dict, reference: str):
     """Test results of dielectric function in X-ray BSE calculations.
     """
 
-    epsilon_xray_bse_reference = parser_chooser(os.path.join(reference))
+    epsilon_xray_bse_reference = parse(os.path.join(reference))
 
     assert np.allclose(epsilon_xray_bse_results['frequency'], epsilon_xray_bse_reference['frequency']), \
         f"Frequency grid not equivalent to reference calculation in X-ray BSE dielectric function calculations"
@@ -128,7 +130,7 @@ def test_loss_xray_bse(loss_xray_bse_results: dict, reference: str):
     """Test results of loss function in X-ray BSE calculations.
     """
 
-    loss_xray_bse_reference = parser_chooser(os.path.join(reference))
+    loss_xray_bse_reference = parse(os.path.join(reference))
 
     assert np.allclose(loss_xray_bse_results['frequency'], loss_xray_bse_reference['frequency']), \
         f"Frequency grid not equivalent to reference calculation in X-ray BSE loss function calculations"

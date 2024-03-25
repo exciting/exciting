@@ -1,6 +1,8 @@
-import numpy as np
 import os.path
-from excitingtools import parser_chooser
+
+import numpy as np
+
+from excitingtools import parse
 
 
 def test_groundstate(converged_results: dict):
@@ -68,7 +70,7 @@ def test_dielectric(epsilon_results: dict, reference: str):
     """Test results of dielectric function calculations.
     """
     
-    epsilon_reference = parser_chooser(os.path.join(reference))
+    epsilon_reference = parse(os.path.join(reference))
 
     assert np.allclose(epsilon_results['frequency'], epsilon_reference['frequency']), \
         f"Frequency grid not equivalent to reference calculation for dielectric function calculations"
@@ -87,7 +89,7 @@ def test_loss(loss_results: dict, reference: str):
     """Test results of loss function calculations.
     """
     
-    loss_reference = parser_chooser(os.path.join(reference))
+    loss_reference = parse(os.path.join(reference))
 
     assert np.allclose(loss_results['frequency'], loss_reference['frequency']), \
         f"Frequency grid not equivalent to reference calculation for loss function calculations"

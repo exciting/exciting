@@ -1,14 +1,16 @@
 """Parsers for exciting properties.
 """
-import xml.etree.cElementTree as ET
-from xml.etree.ElementTree import ParseError
-import numpy as np
 import os
+import xml.etree.cElementTree as ET
 from typing import Dict
+from xml.etree.ElementTree import ParseError
 
-from excitingtools.parser_utils.parser_decorators import xml_root
+import numpy as np
+
+from excitingtools.parser_utils.parser_decorators import xml_root, set_return_values
 
 
+@set_return_values
 def parse_plot_3d(name: str) -> dict:
     """
     Parser for RHO3D.xml, VCL3D.xml, VXC3D.xml, WF3D.xml, ELF3D.xml, EF3D.xmlit
@@ -53,6 +55,7 @@ def parse_plot_3d(name: str) -> dict:
     return plot_3d
 
 
+@set_return_values
 def parse_lsj(name: str) -> dict:
     """
     Parser for LSJ.xml
@@ -132,6 +135,7 @@ def parse_efg(name: str) -> dict:
     return data
 
 
+@set_return_values
 def parse_mossbauer(name: str) -> dict:
     """
     Parser for mossbauer.xml
@@ -160,6 +164,7 @@ def parse_mossbauer(name: str) -> dict:
     return mossbauer
 
 
+@set_return_values
 def parse_expiqr(name: str) -> dict:
     """
     Parser for expiqr.xml
@@ -193,6 +198,7 @@ def parse_expiqr(name: str) -> dict:
     return expiqr
 
 
+@set_return_values
 def parse_effmass(name: str) -> dict:
     """
     Parser for effmass.xml
@@ -233,6 +239,7 @@ def parse_effmass(name: str) -> dict:
 
 # TODO(Hannah). Issue 138. Ensure test cases work with `parse_bandstructure` and remove `parse_bandstructure_depreciated`
 # This parser is depreciated. Please do not use.
+@set_return_values
 def parse_bandstructure_depreciated(name: str) -> dict:
     """
     Parser for bandstructure.xml.
@@ -339,6 +346,7 @@ def parse_band_structure_dat(name: str) -> dict:
         }
 
 
+@set_return_values
 def parse_dos(name: str) -> dict:
     """
     Parser for dos.xml
@@ -551,6 +559,7 @@ def parse_spintext(name: str) -> dict:
     return spintext
 
 
+@set_return_values
 def parse_polarization(name: str) -> dict:
     """
     Parser for POLARIZATION.OUT

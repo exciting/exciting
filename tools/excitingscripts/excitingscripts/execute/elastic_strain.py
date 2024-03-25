@@ -6,8 +6,9 @@ from typing import Union
 import numpy as np
 import numpy.typing as npt
 from excitingscripts.execute.single import run_exciting
-from excitingtools import parser_chooser
 from scipy.constants import physical_constants
+
+from excitingtools import parse
 
 
 def execute_elastic_strain(root_directory: Union[str, pathlib.Path]=os.getcwd(), dft_half: bool=False,
@@ -32,7 +33,7 @@ def execute_elastic_strain(root_directory: Union[str, pathlib.Path]=os.getcwd(),
     for i in range(displ_points):
         run_exciting(f"{root_directory}/rundir-{i + 1}", excitingroot)
 
-        results = parser_chooser(f"{root_directory}/rundir-{i + 1}/INFO.OUT")
+        results = parse(f"{root_directory}/rundir-{i + 1}/INFO.OUT")
         max_scf = max([int(j) for j in results["scl"].keys()])
         converged_results = results["scl"][str(max_scf)]
         if dft_half:
@@ -47,7 +48,7 @@ def execute_elastic_strain(root_directory: Union[str, pathlib.Path]=os.getcwd(),
     if os.path.exists(rundir_infty):
         run_exciting(rundir_infty, excitingroot, "input.xml", 1500)
 
-        results = parser_chooser(rundir_infty + "/INFO.OUT")
+        results = parse(rundir_infty + "/INFO.OUT")
         max_scf = max([int(i) for i in results["scl"].keys()])
         converged_results = results["scl"][str(max_scf)]
         energy.append(converged_results["Total energy"])

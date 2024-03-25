@@ -2,11 +2,12 @@
 Comparison module, containing the ErrorFinder class, which performs comparison and error logging
 for all elements of two dictionaries.
 """
-import numpy as np
-from typing import Union, Tuple, Optional, List
-from collections.abc import Hashable, Iterable
 import sys
+from collections.abc import Hashable, Iterable
 from copy import deepcopy
+from typing import Union, Tuple, Optional, List
+
+import numpy as np
 
 from ..utilities.termcolor_wrapper import print_color
 
@@ -32,7 +33,9 @@ def strings_equal(x: str, y: str, error_mgs='strings differ', ignore_lr_whitespa
 
 # Definition of the difference in two values, for a given data type
 diff_condition = {int: lambda x, y: abs(x - y),
+                  np.int64: lambda x, y: abs(x - y),
                   float: lambda x, y: abs(x - y),
+                  np.float64: lambda x, y: abs(x - y),
                   str: strings_equal,
                   list: lambda x, y: np.abs(np.array(x) - np.array(y)),
                   np.ndarray: lambda x, y: np.abs(x - y),
@@ -53,7 +56,9 @@ def all_close_to_zero(a: np.ndarray, a_tol):
 # Comparison logic for each data type
 # Each defined such that difference <= tolerance gives true
 comparison_function = {int: lambda diff, tol: diff <= tol,
+                       np.int64: lambda diff, tol: diff <= tol,
                        float: lambda diff, tol: diff <= tol,
+                       np.float64: lambda diff, tol: diff <= tol,
                        str: lambda diff, unused_tol: diff == '',
                        list: all_close_to_zero,
                        np.ndarray: all_close_to_zero,

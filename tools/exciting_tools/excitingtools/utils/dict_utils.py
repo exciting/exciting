@@ -29,7 +29,7 @@ def __container_converter(data: Union[list, dict]) -> dict:
     Converts string versions of numerical data from input dict into numerical data.
 
     :param dict data: Dictionary with string values.
-    :return:dict new_data: Dictionary with all string literal values converted to numerical values.
+    :return:dict data: Input dictionary with all string literal values converted to numerical values.
     """
     np_convert = {np.float64: float, np.int32: int}
 

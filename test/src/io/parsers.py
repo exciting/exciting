@@ -4,12 +4,11 @@ Wrapper module to expose exciting parsers
 For other codes, please replace with your own parser module/s.
 """
 import os
+import subprocess
 import warnings
 from typing import Union
-import subprocess
 
 from excitingtools.parser_utils.grep_parser import grep
-
 from ..runner.profile import compiler_version_identifier_map, Compiler
 from ..tester.failure import Failure, Failure_code
 
@@ -29,7 +28,7 @@ excitingtools can be uninstalled by typing:
     warnings.warn(message)
 finally:
     from excitingtools.parser_utils.erroneous_file_error import ErroneousFileError
-    from excitingtools.exciting_dict_parsers.parser_factory import parser_chooser
+    from excitingtools import parse
 
 
 def read_output_file(file_name: str) -> Union[dict, Failure]:
@@ -43,10 +42,10 @@ def read_output_file(file_name: str) -> Union[dict, Failure]:
     sub_dir = file_name.split('/')[-2]
     if not (sub_dir in ['ref', 'run']):
         raise ValueError(f"Subdirectory in which output file exists is not 'ref' or 'run' \a"
-                         "which is expected by the test suite: {file_name}")
+                         f"which is expected by the test suite: {file_name}")
 
     try:
-        data = parser_chooser(file_name)
+        data = parse(file_name)
         return data
     except OSError:
         failure_code = {'ref': Failure_code.REFERENCE, 'run': Failure_code.RUN}
