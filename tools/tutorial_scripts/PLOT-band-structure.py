@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #_______________________________________________________________________________
 '''
@@ -114,7 +114,7 @@ def option_parser():
                    type = int, help = help_kpoint_boundary)
 
     p.add_argument('-a','--assign_type',
-                   nargs = '*', default = ['KS'],
+                   nargs = '*', default = [],
                    choices = ['KS', 'GW', 'WA'],
                    type = str, help = help_assign_type)
     

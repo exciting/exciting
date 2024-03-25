@@ -4,7 +4,6 @@ module mod_pwmat
   use mod_atoms
   use mod_APW_LO
   use mod_muffin_tin
-  use gaunt
   use constants, only: zzero, zone, zi, zil, fourpi
   use mod_eigensystem, only : idxlo, nmatmax_ptr
   use mod_lattice, only : bvec
@@ -14,6 +13,7 @@ module mod_pwmat
   use mod_misc, only : filext
   use mod_kpointset
   use modxs, only : fftmap_type
+  use m_plotmat
 
   implicit none
   private
@@ -27,8 +27,9 @@ module mod_pwmat
   type( k_set)         :: pwmat_kset
   type( fftmap_type)   :: pwmat_fftmap
 
-  integer, allocatable    :: nlam(:,:), nlmlam(:), lam2apwlo(:,:,:), idxlmlam(:,:,:), lm2l(:)
+  integer, allocatable    :: nlam(:,:), nlmlam(:), lam2apwlo(:,:,:), idxlmlam(:,:,:), lm2l(:), idxgnt(:,:,:)
   integer, allocatable    :: vecgl(:,:)
+  real(8), allocatable    :: listgnt(:,:,:)
   complex(8), allocatable :: rignt(:,:,:,:), pwmat_cfunir(:)
 
   real(8) :: ts, te, t0, t1
@@ -47,7 +48,10 @@ module mod_pwmat
           real(8), optional, intent( in) :: gmax
           logical, optional, intent( in) :: fft
 
-          integer :: l1, m1, o1, lm1, is, ilo, lam
+          integer :: l1, l2, l3, m1, m2, m3, o1, lm1, lm2, lm3, i, is, ilo, lam
+          real(8) :: gnt
+
+          real(8), external :: gaunt
 
           ttot   = 0.d0
           tinit  = 0.d0
@@ -124,10 +128,37 @@ module mod_pwmat
           nlmlammax = maxval( nlmlam, 1)
           !write(*,'("pwmat init: nlmlammax = :",I4)') nlmlammax
 
-          ! check if Gaunt coefficients are available and create them if not
-          if( .not. gaunt_coeff_yyy%check_bounds( pwmat_lmaxapw, pwmat_lmaxexp, pwmat_lmaxapw)) &
-            gaunt_coeff_yyy = non_zero_gaunt_yyy( pwmat_lmaxapw, pwmat_lmaxexp, pwmat_lmaxapw)
+          ! build non-zero Gaunt list
+          allocate( idxgnt( pwmat_lmaxapw + 1, (pwmat_lmaxapw + 1)**2, (pwmat_lmaxapw + 1)**2), &
+                    listgnt( pwmat_lmaxapw + 1, (pwmat_lmaxapw + 1)**2, (pwmat_lmaxapw + 1)**2))
+          idxgnt(:,:,:) = 0
+          listgnt(:,:,:) = 0.d0
+          do l3 = 0, pwmat_lmaxapw
+            do m3 = -l3, l3
+              lm3 = idxlm( l3, m3)
 
+              do l1 = 0, pwmat_lmaxapw
+                do m1 = -l1, l1
+                  lm1 = idxlm( l1, m1)
+
+                  i = 0
+                  do l2 = 0, pwmat_lmaxexp
+                    do m2 = -l2, l2
+                      lm2 = idxlm( l2, m2)
+                      gnt = gaunt( l1, l2, l3, m1, m2, m3)
+                      if( abs( gnt) .gt. 1.d-20) then
+                        i = i + 1
+                        listgnt( i, lm1, lm3) = gnt
+                        idxgnt( i, lm1, lm3) = lm2
+                      end if
+                    end do
+                  end do
+
+                end do
+              end do
+            
+            end do
+          end do
           call timesec( t1)
           tinit = tinit + t1 - ts
 
@@ -237,8 +268,8 @@ module mod_pwmat
           real(8), intent( in) :: vecql_(3)
           integer, intent( in) :: vecgl_(3,*), ng_
 
-          integer :: l1, l2, l3, m1, m2, lm1, lm2, lm3, is, ia, ias, i, ig, vg(3)
-          integer :: lam1, lam2, idx1, idx2
+          integer :: l1, l2, l3, m1, m2, m3, o1, o2, lm1, lm2, lm3, is, ia, ias, i, ig, vg(3)
+          integer :: lam1, lam2, ilo1, ilo2, idxlo1, idxlo2, idx1, idx2
           real(8) :: qgc, tp(2), vr(3)
           complex(8) :: strf, ylm( (pwmat_lmaxexp + 1)**2)
 
@@ -292,17 +323,19 @@ module mod_pwmat
                       lm1 = idxlm( l1, m1)
                       do m2 = -l2, l2
                         lm2 = idxlm( l2, m2)
-
+                        
                         do lam1 = 1, nlam( l1, is)
                           idx1 = idxlmlam( lm1, lam1, is)
                           do lam2 = 1, nlam( l2, is)
                             idx2 = idxlmlam( lm2, lam2, is)
                           
-                            do i = 1, gaunt_coeff_yyy%num(lm1, lm2)
-                              lm3 = gaunt_coeff_yyy%lm2(i, lm1, lm2)
-                              l3 = lm2l(lm3)
-                              rignt(idx1, idx2, ias, ig) = rignt(idx1, idx2, ias, ig) + &
-                                   conjg( zil(l3) ) * conjg( ylm(lm3) ) * cmplx( gaunt_coeff_yyy%val(i, lm1, lm2) * radint( lam1, lam2, l3), 0, 8 )
+                            i = 1
+                            do while( idxgnt( i, lm1, lm2) .ne. 0)
+                              lm3 = idxgnt( i, lm1, lm2)
+                              l3 = lm2l( lm3)
+                              rignt( idx1, idx2, ias, ig) = rignt( idx1, idx2, ias, ig) + &
+                                   conjg( zil( l3))*conjg( ylm( lm3))*cmplx( listgnt( i, lm1, lm2)*radint( lam1, lam2, l3), 0, 8)
+                              i = i + 1
                             end do
                             
                           end do
@@ -429,13 +462,14 @@ module mod_pwmat
           complex(8), intent( in)  :: evec1( nmatmax_ptr, *), evec2( nmatmax_ptr, *)
           complex(8), intent( out) :: pwmat( pwmat_fst1:pwmat_lst1, pwmat_fst2:pwmat_lst2, ng)
 
-          integer :: ngp, ngpq, is, ia, ias 
+          integer :: ngp, ngpq, i, is, ia, ias, l, m, lm, o, ilo, lam
           real(8) :: veckl(3), veckc(3), veckql(3), veckqc(3)
           integer :: shift(3), g(3), gs(3), igk, igq, ig
 
           integer, allocatable :: igpig(:), igpqig(:) 
           real(8), allocatable :: vgpql(:,:), vgpqc(:,:), gkqc(:), tpgkqc(:,:)
-          complex(8), allocatable :: auxmat(:,:), evecmt1(:,:,:), evecmt2(:,:,:), cfunmat(:,:)
+          complex(8), allocatable :: sfacgkq(:,:), apwalm(:,:,:,:)
+          complex(8), allocatable :: auxmat(:,:), auxvec(:), evecmt1(:,:,:), evecmt2(:,:,:), cfunmat(:,:)
 
           pwmat = zzero
           
@@ -737,6 +771,8 @@ module mod_pwmat
           if( allocated( idxlmlam)) deallocate( idxlmlam)
           if( allocated( lm2l)) deallocate( lm2l)
           if( allocated( rignt)) deallocate( rignt)
+          if( allocated( idxgnt)) deallocate( idxgnt)
+          if( allocated( listgnt)) deallocate( listgnt)
           
           return
       end subroutine pwmat_destroy

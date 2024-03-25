@@ -52,7 +52,7 @@ subroutine gw_main()
     select case(input%gw%taskname)
 
         ! GW calculations
-        case('g0w0','g0w0-x','cohsex')
+        case('g0w0', 'g0w0-x', 'cohsex', 'g0w0_cubic')
             call task_gw()
 
         ! Calculate the QP band structure

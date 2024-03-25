@@ -68,7 +68,7 @@ module linear_algebra_3d
   pure function cross_product(b, c) result(a)
     !> input vectors
     real(dp), intent(in) :: b(3), c(3)
-    
+
     real(dp) :: a(3)
 
     a(1) = b(2) * c(3) - b(3) * c(2)
@@ -84,7 +84,7 @@ module linear_algebra_3d
   pure function inverse_3d(A) result(inverse_A)
     !> input matrix
     real(dp), intent(in) :: A(3, 3)
-    
+
     real(dp) :: inverse_A(3, 3)
 
     real(dp) :: determinant

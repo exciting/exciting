@@ -1,4 +1,5 @@
 MODULE mod_frequency
+    use precision, only: dp
 
     implicit none
 
@@ -13,10 +14,68 @@ MODULE mod_frequency
         real(8), allocatable :: womeg(:) ! integration weights
     end type frequency
 
+    type minimax_grid_type
+        character(:), allocatable :: conv                 !! real/imaginary axis label
+        integer :: n_points                               !! Number of grid points
+        real(dp), allocatable :: time(:)                  !! Time grid
+        real(dp), allocatable :: freq(:)                  !! Frequency grid
+        real(dp), allocatable :: time_weights(:)          !! Time weights
+        real(dp), allocatable :: freq_weights(:)          !! Frequency weights
+        real(dp), allocatable :: cos_time_to_freq_weights(:, :)          !! 
+        real(dp), allocatable :: cos_freq_to_time_weights(:, :)          !! 
+        real(dp), allocatable :: sin_time_to_freq_weights(:, :)          !! 
+    contains
+        procedure :: init => minimax_init  
+    end type
+
     external gaulag
     external gauleg
 
 CONTAINS
+
+    !> Initialise minimax grids and weights.
+    subroutine minimax_init(this, conv, n_points, & 
+                            time_grid, freq_grid, &
+                            time_weights, freq_weights, &
+                            cos_time_to_freq_weights, &
+                            cos_freq_to_time_weights, &
+                            sin_time_to_freq_weights  &
+                            )
+        class(minimax_grid_type), intent(inout) :: this
+        character(len=*), intent(in) :: conv
+        integer, intent(in) :: n_points
+        real(dp), intent(in), optional :: time_grid(:)
+        real(dp), intent(in), optional :: freq_grid(:)
+        real(dp), intent(in), optional :: time_weights(:)
+        real(dp), intent(in), optional :: freq_weights(:)
+
+        real(dp), intent(in), optional :: cos_time_to_freq_weights(:, :)
+        real(dp), intent(in), optional :: cos_freq_to_time_weights(:, :)
+        real(dp), intent(in), optional :: sin_time_to_freq_weights(:, :)
+
+        this%conv = conv
+        this%n_points = n_points
+
+        allocate(this%time(this%n_points))
+        allocate(this%freq(this%n_points))
+        allocate(this%time_weights(this%n_points))
+        allocate(this%freq_weights(this%n_points))
+        allocate(this%cos_time_to_freq_weights(this%n_points, this%n_points))
+        allocate(this%cos_freq_to_time_weights(this%n_points, this%n_points))
+        allocate(this%sin_time_to_freq_weights(this%n_points, this%n_points))
+
+        if (present(time_grid)) this%time = time_grid
+        if (present(freq_grid)) this%freq = freq_grid
+        if (present(time_weights)) this%time_weights = time_weights
+        if (present(freq_weights)) this%freq_weights = freq_weights    
+        if (present(cos_time_to_freq_weights)) this%cos_time_to_freq_weights = cos_time_to_freq_weights
+        if (present(cos_freq_to_time_weights)) this%cos_freq_to_time_weights = cos_freq_to_time_weights
+        if (present(sin_time_to_freq_weights)) this%sin_time_to_freq_weights = sin_time_to_freq_weights
+
+    end subroutine
+
+
+
 
 !-------------------------------------------------------------------------------
     subroutine delete_freqgrid(self)

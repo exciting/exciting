@@ -50,6 +50,8 @@ subroutine parse_gwinput()
         case('skip')
         case('g0w0')
             if (rank==0) write(fgw,*) '  g0w0 - G0W0 run'
+        case('g0w0_cubic')
+            if (rank==0) write(fgw,*) '  g0w0-cubic - G0W0 cubic run'
         case('g0w0-x')
             if (rank==0) write(fgw,*) '  g0w0-x - Exchange only G0W0 run'
         case('cohsex')

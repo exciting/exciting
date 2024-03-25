@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
 #  Transform exciting input from cartesian to lattice coordinates and viceversa.

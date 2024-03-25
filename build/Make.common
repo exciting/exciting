@@ -25,6 +25,7 @@ SOURCEDIRS=	\
 	../../src/src_gw/ \
 	../../src/src_gw/src_vxc \
 	../../src/src_gw/src_tests \
+	../../src/src_gw/space_time \
 	../../src/src_hybrids/ \
     ../../src/input \
 	../../src/src_inputparser/ \
@@ -51,13 +52,7 @@ SOURCEDIRS=	\
     ../../src/src_xs/modtetra \
     ../../src/src_xs/src_rttddft \
     ../../src/wavefunctions \
-    ../../src/sirius \
-    ../../src/read \
-    ../../src/potential \
-    ../../src/file_io \
-    ../../src/matrix_elements \
-    ../../src/dfpt
-	
+    ../../src/sirius
 GeneratedFiles = ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90
 
 LIBXCMOD = ../../external/libXC/src/libxc.f90 ../../external/libXC/src/libxc_funcs.f90

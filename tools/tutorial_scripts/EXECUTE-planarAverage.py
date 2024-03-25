@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 """
 A script which averages a RHO3D.xml or VCL3D.xml file in one direction to make a 1D curve.
 User must specify filename and direction on command line.

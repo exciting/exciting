@@ -27,17 +27,13 @@ src_dir: ../src/src_gw
          ../src/wavefunctions
          ../src/char_utils
          ../src/writers
-         ../src/potential
-         ../src/matrix_elements
          ../src/src_xc
-         ../src/file_io
-         ../src/dfpt
 
 [//]: # "Note, ford commands can not be separated by whitelines."  
 [//]: # "More information on ford's project file options can be found at:"  
 [//]: # "https://github.com/Fortran-FOSS-Programmers/ford/wiki/Project-File-Options"  
 
-Release: exciting fluorine.  
+Release: exciting oxygen.  
 Copyright (C) 2002-2021 The exciting team.  
 
 ## Description

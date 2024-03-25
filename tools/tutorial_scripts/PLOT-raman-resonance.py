@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #_______________________________________________________________________________
 
@@ -96,7 +96,7 @@ for line in ax1.get_xticklines() + ax1.get_yticklines():
     line.set_markersize(10)
     line.set_markeredgewidth(3)
 
-ax1.plot( ome, eff, color='red', lw=4.0, label="$\mathregular{\\vert d \chi / dQ\\vert^2}$")
+ax1.plot( ome, eff, color='red', lw=4.0, label="$\mathregular{\\vert d \chi' / dQ\\vert^2}$")
 
 leg=ax1.legend(loc=2,borderaxespad=0.7,numpoints=1)
 leg.get_frame().set_linewidth(4.0)

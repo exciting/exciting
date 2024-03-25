@@ -19,6 +19,22 @@ subroutine task_gw()
     use mod_vxc,               only: vxcnn
     use mod_mpi_gw
     use m_getunit
+    
+    !> Cubic GW (Manoar Hossain)
+    use precision, only: wp
+    use mod_frequency, only: minimax_grid_type 
+    use mod_dielectric_function, only: pola_q_mtmt, pola_q_mti, pola_q_ii
+    use mod_polarizability_q_mtmt, only: polarizability_q_mtmt, polarizability_tau_to_omega_mtmt
+    ! use mod_polarizability_R_mti, only: polarizability_R_mti
+    use mod_polarizability_q_mti, only: polarizability_q_mti, polarizability_tau_to_omega_mti
+    ! use mod_green_R_ii, only: green_R_ii
+    ! use mod_polarizability_R_ii, only: polarizability_R_ii
+    use mod_polarizability_q_ii, only: polarizability_q_ii, polarizability_tau_to_omega_ii
+    ! TODO: Dress with IFDEF 
+    use gx_minimax, only: gx_minimax_grid, gx_get_error_message 
+    !! TEST and DELETE 
+    use modmain, only : ngkmax   !! max value of G-vectors in all k-points
+  
 
 !!LOCAL VARIABLES:
     implicit none
@@ -35,6 +51,28 @@ subroutine task_gw()
     real(8) :: w, sRe, sIm, div
     complex(8) :: dsc
     real(8), allocatable :: sf(:)
+
+    ! minimax grid
+    !> Minimum and maximum transition energies
+    real(dp) :: e_transition_min, e_transition_max
+    type(minimax_grid_type) :: minimax_grid
+    real(dp) :: gx_max_errors(3)
+    real(dp) :: gx_cosft_duality_error
+    integer  :: gx_ierr
+    integer :: it, jt
+    character(len=500) :: gx_msg
+
+    ! Local variables for cubic GW (Manoar)
+    integer :: ir, nbigR
+    integer :: nlm_tot
+    integer :: ias1, ias2
+    integer :: nlm1, nlm2 
+    integer :: igq1, igq2
+    real(wp) :: t_i, t_f
+    complex(wp), allocatable :: pola_q_mtmt_omega(:,:,:,:,:,:)
+    complex(wp), allocatable :: pola_q_mti_omega(:,:,:,:,:)
+    complex(wp), allocatable :: pola_q_ii_omega(:,:,:,:)
+
 
 !!REVISION HISTORY:
 !
@@ -72,6 +110,7 @@ subroutine task_gw()
 
     ! occupancy dependent BZ integration weights
     call kintw()
+
 
     !---------------------------------------
     ! treatment of singularities at G+q->0
@@ -136,16 +175,180 @@ subroutine task_gw()
     iomend = freq%nomeg
 #endif
 
+
     if (myrank==0) call boxmsg(fgw,'=','GW cycle')
 
-    ! each process does a subset
-    do iq = iqstart, iqend
+    !-------------------------------------------------------------------------------------------------
+    !Cubic GW ---starts
+    select case (input%gw%taskname)
+      case ('g0w0_cubic')
 
+      ! Initialise the imaginary times, imaginary frequencies and the transformation weights
+      ! Note, `freq%nomeg` is a placeholder name (gives grid points)
+      call minimax_grid%init('imag', input%gw%freqgrid%nomeg)
+
+      
+      !(nomax and numin) are indices of VBM and CBM, respectively
+      write(*, *) evalfv(numin,:) 
+      write(*, *) 
+      write(*, *) evalfv(nomax,:) 
+      write(*, *) 
+      write(*, *) evalfv(:,1) 
+      
+      e_transition_min = minval(evalfv(numin,:)) - maxval(evalfv(nomax,:))
+      e_transition_max = maxval(evalfv(nstfv,:)) - minval(evalfv(1,:)) 
+      write(*, *) 'Minimum and maximum transition energies, respectively', e_transition_min, e_transition_max
+      write(*, *) 'N freq', minimax_grid%n_points 
+
+      call gx_minimax_grid(minimax_grid%n_points, e_transition_min, e_transition_max, & 
+                           minimax_grid%time, minimax_grid%time_weights, & 
+                           minimax_grid%freq, minimax_grid%freq_weights, & 
+                           minimax_grid%cos_time_to_freq_weights, & 
+                           minimax_grid%cos_freq_to_time_weights, & 
+                           minimax_grid%sin_time_to_freq_weights, & 
+                           gx_max_errors, gx_cosft_duality_error, gx_ierr) 
+
+      if (gx_ierr /= 0) then 
+        call gx_get_error_message(gx_msg) 
+        write(*, *) trim(gx_msg) 
+      endif 
+      
+      write(1, *) 'Img time grid n-points', minimax_grid%n_points
+      write(1, *) 'tau                                omega'
+      do it = 1 , minimax_grid%n_points
+        write(1, *) minimax_grid%time(it), minimax_grid%freq(it)
+      enddo
+      do it = 1 , minimax_grid%n_points
+        do jt = 1 , minimax_grid%n_points
+          write(7,*) minimax_grid%cos_time_to_freq_weights(jt, it)
+        enddo 
+      enddo 
+ 
+      ! Initialise variables, polarizability
+      nlm_tot = locmatsiz/natmtot
+      nbigR = kqset%nkpt
+      !-------------------------------------------------------------------------------------------------
+      !allocate(polarisability_mtmt(locmatsiz,locmatsiz,kqset%nkpt,minimax_grid%n_points))
+      !print*, 'Polarizability: shape', shape(polarisability_mtmt), 'size =', size(polarisability_mtmt)
+      !print*, 'freq grid', freq%nomeg, input%gw%freqgrid%nomeg
+      print*, '-------------------------------------------------------------------------------------------------'
+      print*, 'testPrint variables'
+      print*, 'Total atoms', natmtot
+      print*, 'Total k-points (irreduced) and Bravais latt.', nkpt, kset%nkptnr, kqset%nkpt, nbigR
+      print*, 'Total k-points (reduced)', kset%nkpt, size(evalfv,2)
+      print*, 'Fermi energy/chemical potential', efermi
+      print*, 'VBM and CBM positions', nomax, numin
+      print*, 'combined "lm" dimension ->lmmaxapw', lmmaxapw
+      print*, 'Number of states used to calculate the dielectric function', nstdf
+      print*, 'Number of states used to calculate the self-energy', nstse
+      print*, 'Size of the local part of the mixed basis including LM combinations locmatsiz', locmatsiz
+      print*, 'locmatsiz/natmtot, nlm_tot', locmatsiz/natmtot, nlm_tot
+      !print*, 'integer k', ikv
+      !print*, 'mbindex test', mbindex(:,4)!, mbindex(1,5)
+      print*, '-------------------------------------------------------------------------------------------------'
+      ! stop
+
+      ! lmmaxapw -> combined "lm" dimension
+      ! natmtot --> total number of atoms in the system
+      ! kqset%nkpt -> Total(irreduced) k-points. 
+      ! NOTE: later it shoule be replaced by number of bravias vector R
+      allocate(pola_q_mtmt_omega(nlm_tot, natmtot, nlm_tot, natmtot, kqset%nkpt, minimax_grid%n_points))
+      allocate(pola_q_mti_omega(nlm_tot, natmtot, ngkmax, kqset%nkpt, minimax_grid%n_points))
+      allocate(pola_q_ii_omega(ngkmax, ngkmax, kqset%nkpt, minimax_grid%n_points))
+
+      pola_q_mtmt_omega = cmplx(0.0_wp, 0.0_wp, kind=wp)
+      pola_q_mti_omega = cmplx(0.0_wp, 0.0_wp, kind=wp)
+      pola_q_ii_omega = cmplx(0.0_wp, 0.0_wp, kind=wp)
+
+      call CPU_TIME(t_i)
+      
+      do it = 1, minimax_grid%n_points
+        print*, '-------------------------------------------------------------------------------'
+        print*, '=========================== *** tau loop ***', it, '==========================='
+        print*, '-------------------------------------------------------------------------------'
+        
+        call polarizability_q_mtmt(minimax_grid%time(it), pola_q_mtmt)
+        call polarizability_tau_to_omega_mtmt(it, &
+             minimax_grid%cos_time_to_freq_weights, &
+             pola_q_mtmt, pola_q_mtmt_omega) 
+
+
+        call polarizability_q_mti(minimax_grid%time(it), pola_q_mti)
+        call polarizability_tau_to_omega_mti(it, &
+             minimax_grid%cos_time_to_freq_weights, &
+             pola_q_mti, pola_q_mti_omega) 
+
+
+        ! call polarizability_q_ii(minimax_grid%time(it), pola_q_ii)
+        ! call polarizability_tau_to_omega_ii(it, &
+        !      minimax_grid%cos_time_to_freq_weights, &
+        !      pola_q_ii, pola_q_ii_omega) 
+
+      enddo   !! it loop ends ($\tau$)
+
+      !! Polarizability in omega MT-MT TEST ------------------
+      do it = 1, minimax_grid%n_points
+        do iq = 1, kqset%nkpt
+          do ias2 = 1, natmtot
+            do nlm2 = 1, nlm_tot
+              do ias1 = 1, natmtot
+                do nlm1 = 1, nlm_tot
+                  ! write(90+it, *) pola_q_mtmt_omega(nlm1, ias1, nlm2, ias2, iq, it)
+                  write(1000000+1000*iq+it, *) pola_q_mtmt_omega(nlm1, ias1, nlm2, ias2, iq, it)
+                enddo 
+              enddo 
+            enddo 
+          enddo 
+        enddo 
+      enddo 
+      !! Polarizability in omega MT-MT TEST ------------------
+
+      !! Polarizability in omega MT-I TEST ------------------
+      do it = 1, minimax_grid%n_points
+        do iq = 1, kqset%nkpt
+          do igq2 = 1, ngkmax
+            do ias1 = 1, natmtot
+              do nlm1 = 1, nlm_tot
+                write(2000000+1000*iq+it, *) pola_q_mti_omega(nlm1, ias1, igq2, iq, it)
+                ! write(20000+100*iq+70+it, *) pola_q_mtmt_omega(nlm1, ias1, nlm2, ias2, iq, it)
+              enddo 
+            enddo 
+          enddo 
+        enddo 
+      enddo 
+      !! Polarizability in omega MT-I TEST ------------------
+
+      !! Polarizability in omega I-I TEST ------------------
+      do it = 1, minimax_grid%n_points
+        do iq = 1, kqset%nkpt
+          do igq1 = 1, ngkmax  !! need to change with actual dimension
+            do igq2 = 1, ngkmax  !! need to change with actual dimension
+              write(3000000+1000*iq+it, *) pola_q_ii_omega(igq2, igq1, iq, it)
+            enddo 
+          enddo 
+        enddo 
+      enddo 
+      !! Polarizability in omega I-I TEST ------------------
+      
+      call CPU_TIME(t_f)
+      print*, 'Total time taken (cubic GW):', t_f - t_i
+      
+      ! stop
+     !Cubic GW ---ends
+     !-------------------------------------------------------------------------------------------------
+      
+
+      
+    case default ! quartic algorithm follows
+
+      ! each process does a subset
+    do iq = iqstart, iqend
+      
       if (myrank==0) then
         write(fgw,*) '(task_gw): q-point cycle, iq = ', iq
         call flushifc(fgw)
       end if
-
+      
       Gamma = gammapoint(kqset%vqc(:,iq))
 
       !========================================
@@ -164,7 +367,7 @@ subroutine task_gw()
       ! Calculate \Sigma^{x}_{kn}(q)
       !===============================
       call calcselfx(iq)
-
+      
       if (input%gw%taskname /= 'g0w0-x') then
         !========================================
         ! Set v-diagonal MB and reduce its size
@@ -311,6 +514,10 @@ subroutine task_gw()
     call delete_kq_vectors(kqset)
     call delete_Gk_vectors(Gqset)
     call delete_Gk_vectors(Gqbarc)
+
+
+    end select ! Cubic vs quartic GW
+
 
     return
 end subroutine

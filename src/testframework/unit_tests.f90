@@ -42,8 +42,6 @@ module unit_tests
       logical :: simplified_input = .false.
       logical :: structure = .false.
       logical :: testframework = .false.
-      logical :: file_io = .false.
-      logical :: matrix_elements = .false.
 
    contains
       procedure :: init => set_unit_tests
@@ -158,10 +156,6 @@ contains
          run%structure = .true.
       case ('testframework')
          run%testframework = .true.
-      case ('file_io')
-         run%file_io = .true.
-      case ('matrix_elements')
-         run%matrix_elements = .true.
 
       case default
          call terminate_mpi_env(mpi_env, 'Unrecognised unit test name: '&

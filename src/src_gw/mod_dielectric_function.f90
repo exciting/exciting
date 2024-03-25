@@ -3,9 +3,26 @@
 !----------------------------!
 
 module mod_dielectric_function
+    use precision, only: wp
 
     ! dielectric function \epsilon(q)
     complex(8), allocatable :: epsilon(:,:,:)
+    !
+    !----------------------- Manoar Hossain ----------------------------------------------
+    ! Variables for cubic GW implementation
+    !> Green's function in R and MT and for occupied part
+    !!complex(wp), allocatable :: greenr_pp_occ(:,:,:,:,:)
+    !> Green's function in R and MT and for unoccupied part
+    !!complex(wp), allocatable :: greenr_pp_uno(:,:,:,:,:)
+    !> Polarizability in MT-MT region
+    !!complex(wp), allocatable :: polarizabilityR_mtmt(:,:,:,:,:)
+    !> Polarizability in q-space in MT-MT region
+    complex(wp), allocatable :: pola_q_mtmt(:,:,:,:,:)
+    !> Polarizability in q-space in MT-I region
+    complex(wp), allocatable :: pola_q_mti(:,:,:,:)
+    !> Polarizability in q-space in MT-I region
+    complex(wp), allocatable :: pola_q_ii(:,:,:)
+    !------------------------------------------------------------------------
 
     !-------------------------------------------------
     ! Analytical treatment of q=0 singularity

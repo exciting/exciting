@@ -31,6 +31,7 @@ program main
    else
       call loadinputDOM("input.xml")
       ! Initialise default values that are not defined in the input schema
+      ! (very bad approach)
       call setdefault()
       ! Construct the input datastructure
       input = getstructinput(inputnp)

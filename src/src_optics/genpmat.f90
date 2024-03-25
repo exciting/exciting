@@ -90,6 +90,7 @@ Subroutine genpmat (ngp, igpig, vgpc, apwalm, evecfv, evecsv, pmat)
 ! calculate momemntum matrix elements in the interstitial region
       wfir (:, :) = 0.d0
       gwfir (:, :, :) = 0.d0
+      !print*, 'shape(wfir)', shape(wfir)
       Do ist = 1, nstfv
          Do igp = 1, ngp
             ifg = igfft (igpig(igp))

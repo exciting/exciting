@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #_______________________________________________________________________________
 '''
@@ -479,10 +479,10 @@ def main(input_options):
     ax1.set_ylabel(labely, labelpad=20)
 
     if ( maxticksx is not None ): 
-        ax1.xaxis.set_major_locator(plt.MaxNLocator(maxticksx-1))
+        ax1.xaxis.set_major_locator(plt.MaxNLocator(maxticksx))
         
     if ( maxticksy is not None ): 
-        ax1.yaxis.set_major_locator(plt.MaxNLocator(maxticksy-1))
+        ax1.yaxis.set_major_locator(plt.MaxNLocator(maxticksy))
         
     if ( no_scientific ):
         ax1.ticklabel_format(useOffset=False, style='plain')
@@ -534,10 +534,10 @@ def main(input_options):
         leg.get_frame().set_edgecolor("grey")
         leg.draw_frame(True)
 
-    if xxmin is not None: plt.xlim(left=xxmin)
-    if xxmax is not None: plt.xlim(right=xxmax)
-    if yymin is not None: plt.ylim(bottom=yymin)
-    if yymax is not None: plt.ylim(top=yymax)
+    if xxmin is not None: plt.xlim(xmin=xxmin)
+    if xxmax is not None: plt.xlim(xmax=xxmax)
+    if yymin is not None: plt.ylim(ymin=yymin)
+    if yymax is not None: plt.ylim(ymax=yymax)
     
     if (grid): pyl.grid(True)
 

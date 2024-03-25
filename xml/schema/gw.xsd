@@ -293,6 +293,7 @@
               <xs:documentation>
                   Tasks launcher:
                   <list>
+                    <li><pre>g0w0_cubic</pre> - G0W0 cubic algorithms test-purpose</li>
                     <li><pre>g0w0</pre> - G0W0 calculations</li>
                     <li><pre>g0w0-x</pre> - Exchange only G0W0 calculations</li>
                     <li><pre>cohsex</pre> - Coulomb-hole and screened-exchange (COHSEX) approximation</li>
@@ -493,6 +494,18 @@
             <xs:annotation><xs:documentation>
 	            Output the correlation self-energy.
 	          </xs:documentation></xs:annotation>
+          </xs:attribute>
+
+          <xs:attribute ex:importance="experimental" ex:unit="" name="method" type="xs:string" default="quartic">
+            <xs:annotation>
+              <xs:documentation>
+                  Options:
+                  <list>
+                    <li><pre>quartic</pre> - Standard quartic scaling algorithm</li>
+                    <li><pre>cubic</pre> - Real-space imaginary time algorithm (in development!)</li>
+                  </list>
+  	          </xs:documentation>
+            </xs:annotation>
           </xs:attribute>
 
         </xs:complexType>

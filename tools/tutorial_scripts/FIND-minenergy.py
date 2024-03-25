@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python
 #
 ################################################################################
 #
@@ -123,7 +123,7 @@ while (len(strain) > 1):
 
 output_file.close()
 
-os.system("PLOT-files.py -f minimum-energy -lx 'Maximal strain' -ly 'Strain at minimum' -pm")
+os.system("PLOT-one.py minimum-energy")
 #-------------------------------------------------------------------------------
 
 

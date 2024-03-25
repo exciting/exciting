@@ -5,15 +5,15 @@
 
 ## Compilation of exciting
 
-Before starting, be sure that **`exciting`** is already compiled according to the procedure reported in 
-**[<span style="color:#D79922">Download and compile exciting</span>](http://exciting.wikidot.com/fluorine-download-and-compile-exciting)**. 
+Before starting, be sure that **exciting** is already compiled according to the procedure reported in 
+**[<span style="color:#D79922">Download and compile exciting</span>](http://exciting.wikidot.com/oxygen-download-and-compile-exciting)**. 
 This is also documented in exciting's `INSTALL` file in the repository root.
 
 ## Running the Wikidot Tutorial Scripts
 
-In order to run the scripts used in the **`exciting`** tutorials it is important that the relevant environment variables 
+In order to run the scripts used in the **exciting** tutorials it is important that the relevant environment variables 
 are already defined in your **~/.bashrc** file as specified in **[<span style="color:#D79922">How to set environment 
-variables for tutorials scripts</span>](http://exciting.wikidot.com/fluorine-tutorial-scripts-and-environment-variables)**. 
+variables for tutorials scripts</span>](http://exciting.wikidot.com/oxygen-tutorial-scripts-and-environment-variables)**. 
 However, this is not necessary for running the tutorials inside Jupyter Notebooks.
 
 ## Installing the excitingJupyter Package
@@ -21,23 +21,7 @@ However, this is not necessary for running the tutorials inside Jupyter Notebook
 All Jupyter tutorials require Python 3.7 or above to run.  As a first step in running the Jupyter tutorials, it is 
 useful to create a virtual environment in which you can install and run the notebooks. Each venv has its own Python binary 
 (which matches the version of the binary that was used to create this environment) and can have its own independent set 
-of installed Python packages in its site directories. To create a venv, move to:
-
-```bash
-cd $EXCITINGROOT/tools/excitingjupyter
-```
-
-You can create the venv using an executable bash script:
-
-```bash
-source create_env.sh
-```
-
-This script will automatically activate the environment, so you can start right ahead. 
-
-Alternatively, you can do it by hand.
-
-### Manually installing excitingjupyter
+of installed Python packages in its site directories. To create a venv, from `tools/excitingjupyter` type:
 
 ```bash
 # Create python venv for running excitingjupyter
@@ -65,9 +49,9 @@ is only required once, however you should ensure it is activated **every** time 
 exciting's root:
 
 ```bash
-source $EXCITINGROOT/tools/excitingjupyter/venv/excitingvenv/bin/activate
+source tools/excitingjupyter/venv/excitingvenv/bin/activate
 ```
-### Adding Custom CSS Style
+## Adding Custom CSS Style
 In order to add the layout style designed for the Jupyter tutorials, type the following commands starting from 
 `tools/excitingjupyter`:
 
@@ -91,27 +75,5 @@ module load intel/2019
 ```
 
 to the `.bashrc` (which loads everything required). **Please take an equivalent approach on your platform.**
-
-It is required to do this _in the same terminal where Jupyter is started_, before starting with the tutorials.
-
-## Starting Jupyter
-
-To start working with the Jupyter notebooks, move to:
-
-```bash
-cd $EXCITINGROOT/tools/excitingjupyter/excitingjupyter
-```
-
-and execute:
-
-```bash
-jupyter-notebook
-```
-
-This will open your browser, where you can select the tutorial you want to work on.
-To start, _e.g._, with the first tutorials, click on the folder **01_getting_started**,
-and select the notebook: **tutorial_how_to_start_an_exciting_calculation.ipynb**.
-
-This should launch an executable version of the notebook in a new tab of your browser.
 
 </div>

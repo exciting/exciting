@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #_______________________________________________________________________________
 
@@ -96,10 +96,10 @@ for line in ax1.get_xticklines() + ax1.get_yticklines():
 
 ax1.plot( ome, eff, color='red', lw=4.0, label="S")
 
-#leg=ax1.legend(loc=2,borderaxespad=0.7,numpoints=1)
-#leg.get_frame().set_linewidth(4.0)
-#leg.get_frame().set_edgecolor("grey")
-#leg.draw_frame(True)
+leg=ax1.legend(loc=2,borderaxespad=0.7,numpoints=1)
+leg.get_frame().set_linewidth(4.0)
+leg.get_frame().set_edgecolor("grey")
+leg.draw_frame(True)
 
 if (narg > 1): plt.xlim( xmin=xxmin )
 if (narg > 2): plt.xlim( xmax=xxmax )
