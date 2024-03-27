@@ -152,10 +152,11 @@ subroutine initialize_rttddft( molecular_dynamics )
     end if
   else
     call Obtain_Pmat_LAPWLOBasis( forcePmatHermitian, molecular_dynamics%on )
+  end if
+  if( writePmatToFile ) then
     call write_pmat( first_kpt, pmat, mpi_env_k )
     if ( molecular_dynamics%on ) call write_pmat_mt( first_kpt, pmatmt, mpi_env_k )
   end if
-  if( writePmatToFile ) call write_pmat( first_kpt, pmat, mpi_env_k )
 
   call init_laser
 
