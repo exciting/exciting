@@ -5,10 +5,10 @@ module rttddft_io_parallel
   use errors_warnings, only: terminate_if_false
   use mod_mpi_env, only: mpiinfo
   ! Remark(Ronaldo): using mpi instead of mpi_f08 leads to a seg. fault with openmpi
-  use mpi_f08, only: mpi_file_open, mpi_file_iread_at, mpi_file_iwrite_at, mpi_wait, &
+  use mpi_f08, only: mpi_file_open, mpi_file_iread_at, mpi_file_iwrite_at, mpi_wait, mpi_f_sync_reg, &
     MPI_DATATYPE, MPI_COMM, MPI_DOUBLE_COMPLEX, MPI_FILE, MPI_REQUEST, MPI_OFFSET_KIND, &
     MPI_STATUS, MPI_INFO_NULL, MPI_MODE_CREATE, MPI_MODE_RDONLY, MPI_MODE_WRONLY, &
-    MPI_SUCCESS
+    MPI_SUCCESS, MPI_REQUEST_NULL, MPI_ASYNC_PROTECTS_NONBLOCKING
   use precision, only: i32, dp
   use rttddft_arrays_utils, only: map_array_to_pointer
   
@@ -59,7 +59,9 @@ contains
     integer(MPI_OFFSET_KIND), allocatable, intent(out) :: offset(:)
 
     integer(i32) :: i
-    allocate( offset(first:last), source=int([((i-1)*bytes_block, i = first, last)], MPI_OFFSET_KIND) )
+    integer(MPI_OFFSET_KIND) :: bytes_block_
+    bytes_block_ = bytes_block
+    allocate( offset(first:last), source=[((i-1)*bytes_block_, i = first, last)] )
   end subroutine
 
   !> Read an array of rank=4 by chuncks
@@ -110,7 +112,7 @@ contains
     !> first index along 4th dim (needed to determine offsets)
     integer(i32), intent(in) :: first
     !> array to be written to binary file
-    complex(dp), intent(in) :: array(:, :, :, first:)
+    complex(dp), contiguous, intent(in) :: array(:, :, :, first:)
     !> MPI environment. The corresponding MPI processes will read from file
     type(mpiinfo), intent(inout):: mpi_env 
 
@@ -148,27 +150,35 @@ contains
   subroutine mpi_read_data( unit, offset, data_block )
     type(MPI_FILE), intent(in) :: unit
     integer(MPI_OFFSET_KIND) :: offset
-    complex(dp), intent(out) :: data_block(..)
+    complex(dp), contiguous, asynchronous, intent(out) :: data_block(..)
 
     integer(i32) :: ierr
     type(MPI_REQUEST) :: request
     type(MPI_STATUS) :: status
+    
+    request = MPI_REQUEST_NULL
     call mpi_file_iread_at( unit, offset, data_block, &
         size(data_block), MPI_DOUBLE_COMPLEX, request, ierr )
     call mpi_wait( request, status, ierr )
-  end subroutine
+    ! Ensure the correct treatment of buffers passed to nonblocking MPI-routines
+    if( .not. MPI_ASYNC_PROTECTS_NONBLOCKING ) call mpi_f_sync_reg( data_block )
+ end subroutine
 
   subroutine mpi_write_data( unit, offset, data_block )
     type(MPI_FILE), intent(in) :: unit
     integer(MPI_OFFSET_KIND) :: offset
-    complex(dp), intent(in)  :: data_block(..)
+    complex(dp), contiguous, asynchronous, intent(in)  :: data_block(..)
 
     integer(i32) :: ierr
     type(MPI_REQUEST) :: request
     type(MPI_STATUS) :: status
+
+    request = MPI_REQUEST_NULL
     call mpi_file_iwrite_at( unit, offset, data_block, &
         size(data_block), MPI_DOUBLE_COMPLEX, request, ierr )
     call mpi_wait( request, status, ierr )
+    ! Ensure the correct treatment of buffers passed to nonblocking MPI-routines
+    if( .not. MPI_ASYNC_PROTECTS_NONBLOCKING ) call mpi_f_sync_reg( data_block )
   end subroutine
 
   subroutine mpi_open_file( file_name, mpi_env, unit, mode )
