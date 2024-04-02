@@ -1,12 +1,12 @@
-"""Parsers for GW's EPS00_GW.OUT output.
-"""
+"""Parsers for GW's EPS00_GW.OUT output."""
+
 import numpy as np
 
 from excitingtools.parser_utils.parser_decorators import accept_file_name
 from excitingtools.utils.utils import get_new_line_indices
 
 # Output file name
-_file_name = 'EPS00_GW.OUT'
+_file_name = "EPS00_GW.OUT"
 
 
 def parse_eps00_frequencies(file_string: str) -> dict:
@@ -25,7 +25,7 @@ def parse_eps00_frequencies(file_string: str) -> dict:
 
     frequencies = {}
     j = 0
-    for i in range(0, n_freq):
+    for i in range(n_freq):
         j = i * block_size
         frequencies[i + 1] = float(file[j].split()[-1])
 
@@ -59,8 +59,7 @@ def parse_eps00_blocks(file_string: str, n_freq: int) -> dict:
      eps00, for each frequency point. Frequency indexing (keys) start at 1.
     """
     line = get_new_line_indices(file_string)
-    assert file_string[line[0]:line[1]].isspace(), (
-        "First line of EPS00_GW.OUT must be a whiteline")
+    assert file_string[line[0] : line[1]].isspace(), "First line of EPS00_GW.OUT must be a whiteline"
 
     initial_header = 3
     offset = initial_header - 1
@@ -75,7 +74,7 @@ def parse_eps00_blocks(file_string: str, n_freq: int) -> dict:
         eps_i_img = np.array(line.split()[3:6], dtype=float)
         return eps_i_re, eps_i_img
 
-    for i_freq in range(0, n_freq):
+    for i_freq in range(n_freq):
         i = offset + i_freq * repeat_block_size
 
         eps_x_re, eps_x_img = extract_eps_i(file_string[i])
@@ -83,8 +82,8 @@ def parse_eps00_blocks(file_string: str, n_freq: int) -> dict:
         eps_z_re, eps_z_img = extract_eps_i(file_string[i + 2])
 
         data[i_freq + 1] = {
-            're': np.array([eps_x_re, eps_y_re, eps_z_re]),
-            'img': np.array([eps_x_img, eps_y_img, eps_z_img])
+            "re": np.array([eps_x_re, eps_y_re, eps_z_re]),
+            "img": np.array([eps_x_img, eps_y_img, eps_z_img]),
         }
 
     return data
@@ -92,7 +91,7 @@ def parse_eps00_blocks(file_string: str, n_freq: int) -> dict:
 
 @accept_file_name
 def parse_eps00_gw(file_string: str) -> dict:
-    """ Parser frequency grid and epsilon00 from EPS00_GW.OUT.
+    """Parser frequency grid and epsilon00 from EPS00_GW.OUT.
 
     :param str file_string: Input string
     :return dict data: Dict containing the frequency, and real and imaginary parts
@@ -100,12 +99,11 @@ def parse_eps00_gw(file_string: str) -> dict:
     """
     frequencies = parse_eps00_frequencies(file_string)
     eps00 = parse_eps00_blocks(file_string, len(frequencies))
-    assert len(frequencies) == len(eps00), \
-        "Expect eps00 to have n frequencies consistent with the frequency grid"
+    assert len(frequencies) == len(eps00), "Expect eps00 to have n frequencies consistent with the frequency grid"
 
     # Repackage frequency points and eps00 together
     data = {}
     for i_freq in range(1, len(frequencies) + 1):
-        data[i_freq] = {'frequency': frequencies[i_freq], 'eps00': eps00[i_freq]}
+        data[i_freq] = {"frequency": frequencies[i_freq], "eps00": eps00[i_freq]}
 
     return data

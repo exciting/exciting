@@ -1,24 +1,24 @@
-""" Parsers for input.xml. """
+"""Parsers for input.xml."""
 
 import copy
-from typing import Tuple
+from typing import Optional, Tuple
 from xml.etree import ElementTree
 
 from excitingtools.parser_utils.parser_decorators import xml_root
-from excitingtools.parser_utils.parser_utils import find_element, convert_string_dict
+from excitingtools.parser_utils.parser_utils import convert_string_dict, find_element
 from excitingtools.utils import valid_attributes as all_valid_attributes
 from excitingtools.utils.valid_attributes import input_valid_attributes
 
 
 @xml_root
 def parse_input_xml(root):
-    """ Parse an input.xml file into dictionary. """
+    """Parse an input.xml file into dictionary."""
     assert root.tag == "input"
     return parse_element_xml(root)
 
 
-def get_root_from_tag(root: ElementTree.Element, tag: str = None) -> Tuple[ElementTree.Element, str]:
-    """ Get the root from a tag.
+def get_root_from_tag(root: ElementTree.Element, tag: Optional[str] = None) -> Tuple[ElementTree.Element, str]:
+    """Get the root from a tag.
 
     :param tag: tag of interest
     :param root: xml root containing the tag (or having the specified tag as tag)
@@ -35,8 +35,8 @@ def get_root_from_tag(root: ElementTree.Element, tag: str = None) -> Tuple[Eleme
 
 
 @xml_root
-def parse_element_xml(root, tag: str = None) -> dict:
-    """ Parse a xml element into dictionary. Can be input.xml root or a subelement of it.
+def parse_element_xml(root, tag: Optional[str] = None) -> dict:
+    """Parse a xml element into dictionary. Can be input.xml root or a subelement of it.
     Put the attributes simply in dict and add recursively the subtrees and nested dicts.
 
     :param tag: the tag to parse
@@ -52,7 +52,7 @@ def parse_element_xml(root, tag: str = None) -> dict:
 
     multiple_children = set(getattr(all_valid_attributes, f"{tag}_multiple_children", set()))
     subelements = list(root)
-    multiple_tags = set([subelement.tag for subelement in subelements]) & multiple_children
+    multiple_tags = {subelement.tag for subelement in subelements} & multiple_children
     element_dict.update({tag: [] for tag in multiple_tags})
 
     # for loop over all subelements to retain the order
@@ -66,7 +66,7 @@ def parse_element_xml(root, tag: str = None) -> dict:
 
 
 def _parse_input_tag(root) -> dict:
-    """ Parse special input tag. Necessary because exciting/xml allows arbitrary attributes at this level.
+    """Parse special input tag. Necessary because exciting/xml allows arbitrary attributes at this level.
     Only parses the explicitly named attributes in the schema.
 
     :param root: the xml root containing the input tag
@@ -84,7 +84,7 @@ def _parse_input_tag(root) -> dict:
 
 @xml_root
 def parse_structure(root) -> dict:
-    """ Parse exciting input.xml structure element into python dictionary.
+    """Parse exciting input.xml structure element into python dictionary.
 
     :param root: Input for the parser.
     :returns: Dictionary containing the structure input element attributes and subelements. Looks like:
@@ -94,28 +94,26 @@ def parse_structure(root) -> dict:
          'species_properties': dictionary with the species_properties,
          all additional keys are structure attributes}
     """
-    structure = find_element(root, 'structure')
+    structure = find_element(root, "structure")
     structure_properties = convert_string_dict(copy.deepcopy(structure.attrib))
-    species_path = structure_properties.pop('speciespath')
+    species_path = structure_properties.pop("speciespath")
 
-    crystal = structure.find('crystal')
+    crystal = structure.find("crystal")
     crystal_properties = convert_string_dict(copy.deepcopy(crystal.attrib))
-    lattice = []
-    for base_vect in crystal:
-        lattice.append([float(x) for x in base_vect.text.split()])
+    lattice = [[float(x) for x in base_vect.text.split()] for base_vect in crystal]
 
     atoms = []
     species_properties = {}
-    for species in structure.findall('species'):
+    for species in structure.findall("species"):
         species_attributes = convert_string_dict(copy.deepcopy(species.attrib))
-        species_file = species_attributes.pop('speciesfile')
+        species_file = species_attributes.pop("speciesfile")
         species_symbol = species_file[:-4]
 
         species_subelements = list(species)
         atom_xml_trees = [x for x in species_subelements if x.tag == "atom"]
         for atom in atom_xml_trees:
             atom_attributes = convert_string_dict(copy.deepcopy(atom.attrib))
-            atom_dict = {'species': species_symbol, 'position': atom_attributes.pop('coord')}
+            atom_dict = {"species": species_symbol, "position": atom_attributes.pop("coord")}
             atom_dict.update(atom_attributes)
             atoms.append(atom_dict)
 
@@ -125,12 +123,12 @@ def parse_structure(root) -> dict:
         species_properties[species_symbol] = species_attributes
 
     return {
-        'atoms': atoms,
-        'lattice': lattice,
-        'species_path': species_path,
-        'crystal_properties': crystal_properties,
-        'species_properties': species_properties,
-        **structure_properties
+        "atoms": atoms,
+        "lattice": lattice,
+        "species_path": species_path,
+        "crystal_properties": crystal_properties,
+        "species_properties": species_properties,
+        **structure_properties,
     }
 
 
@@ -142,6 +140,6 @@ special_tags_to_parse_map = {
     "keywords": lambda root: root.text,
     "structure": parse_structure,
     "qpointset": lambda root: [[float(x) for x in qpoint.text.split()] for qpoint in root],
-    "plan": lambda root: [doonly.attrib['task'] for doonly in root],
-    "kstlist": lambda root: [[int(x) for x in pointstatepair.text.split()] for pointstatepair in root]
+    "plan": lambda root: [doonly.attrib["task"] for doonly in root],
+    "kstlist": lambda root: [[int(x) for x in pointstatepair.text.split()] for pointstatepair in root],
 }

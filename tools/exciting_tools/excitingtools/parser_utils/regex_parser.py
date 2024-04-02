@@ -1,15 +1,12 @@
-"""Wrappers for parsing with regex
-"""
+"""Wrappers for parsing with regex"""
+
 import re
 from typing import List, Union
 
 from excitingtools.utils.utils import convert_to_literal
 
 
-def parse_value_regex(file_string: str,
-                      key: str,
-                      no_colon=True,
-                      silent_key_error=False) -> dict:
+def parse_value_regex(file_string: str, key: str, no_colon=True, silent_key_error=False) -> dict:
     """
     Match the first instance of a string (key) if present in file_string,
     and return the result in a dictionary.
@@ -27,27 +24,24 @@ def parse_value_regex(file_string: str,
         numerical_value = convert_to_literal(x)
         if numerical_value is None:
             return x.strip()
-        else:
-            return numerical_value
+        return numerical_value
 
     try:
-        match = re.search(key + '(.+)\n', file_string)
+        match = re.search(key + "(.+)\n", file_string)
         values = match.group(1).split()
         # Remove escape characters
-        parser_key = key.replace('\\', "")
+        parser_key = key.replace("\\", "")
         processed_values = [process_value(raw_value) for raw_value in values]
-        data[parser_key] = processed_values[0] if len(
-            processed_values) == 1 else processed_values
+        data[parser_key] = processed_values[0] if len(processed_values) == 1 else processed_values
 
     except AttributeError:
         if not silent_key_error:
-            print("parse_value_regex. Did not find the key:", key)
+            print("parse_value_regex. Did not find the key:", key)  # noqa: T201
         return {}
 
     if no_colon:
-        return {key.rstrip(':'): value for key, value in data.items()}
-    else:
-        return data
+        return {key.rstrip(":"): value for key, value in data.items()}
+    return data
 
 
 def parse_values_regex(file_string: str, keys: List[str]) -> dict:
@@ -61,7 +55,7 @@ def parse_values_regex(file_string: str, keys: List[str]) -> dict:
 
     :return dict parsed_data: Matched data
     """
-    assert type(keys) == list, "2nd argument of parse_values_regex must be List[str]"
+    assert isinstance(keys, list), "2nd argument of parse_values_regex must be List[str]"
     matches_dict = {}
     for key in keys:
         matches_dict.update(**parse_value_regex(file_string, key))

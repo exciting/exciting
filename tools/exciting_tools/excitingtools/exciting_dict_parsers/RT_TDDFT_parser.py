@@ -1,9 +1,11 @@
 """
 Parsers for real-time TDDFT output files
 """
-from xml.etree.ElementTree import ParseError
-import numpy as np
+
 from typing import List
+from xml.etree.ElementTree import ParseError
+
+import numpy as np
 
 from excitingtools.parser_utils.grep_parser import grep
 
@@ -14,13 +16,13 @@ def parse_nexc(name, skiprows=1):
     """
     try:
         data = np.genfromtxt(name, skip_header=skiprows)
-    except:
+    except Exception:
         raise ParseError
     out = {
         "Time": data[:, 0],
         "number_electrons_GroundState": data[:, 1],
         "number_electrons_ExcitedState": data[:, 2],
-        "sum": data[:, 3]
+        "sum": data[:, 3],
     }
 
     return out
@@ -32,14 +34,9 @@ def parse_jind(name, skiprows=0):
     """
     try:
         data = np.genfromtxt(name, skip_header=skiprows)
-    except:
+    except Exception:
         raise ParseError
-    out = {
-        "Time": data[:, 0],
-        "Jx": data[:, 1],
-        "Jy": data[:, 2],
-        "Jz": data[:, 3]
-    }
+    out = {"Time": data[:, 0], "Jx": data[:, 1], "Jy": data[:, 2], "Jz": data[:, 3]}
 
     return out
 
@@ -50,7 +47,7 @@ def parse_etot(name):
     """
     try:
         data = np.genfromtxt(name, skip_header=1)
-    except:
+    except Exception:
         raise ParseError
     out = {
         "Time": data[:, 0],
@@ -61,7 +58,7 @@ def parse_etot(name):
         "Exchange": data[:, 5],
         "Correlation": data[:, 6],
         "XC-potential": data[:, 7],
-        "Coulomb pot. energy": data[:, 8]
+        "Coulomb pot. energy": data[:, 8],
     }
 
     return out
@@ -98,8 +95,8 @@ def parse_eigval_screenshots(name: str) -> dict:
         """
 
         # Lines for which a new k-point block starts
-        raw_k_point_lines = grep("ik", name, options={'n': ''}).splitlines()
-        k_point_lines = [int(line.split(':')[0]) for line in raw_k_point_lines]
+        raw_k_point_lines = grep("ik", name, options={"n": ""}).splitlines()
+        k_point_lines = [int(line.split(":")[0]) for line in raw_k_point_lines]
 
         if fortran_index:
             offset = 1
@@ -114,34 +111,31 @@ def parse_eigval_screenshots(name: str) -> dict:
         k_start = 0 + offset
         for ik in k_point_lines[1:]:
             k_end = ik - 2
-            k_blocks.append({'start': k_start, 'end': k_end})
+            k_blocks.append({"start": k_start, "end": k_end})
             k_start = k_end + 2
 
         # Account for final k-block
-        k_blocks.append({'start': k_start, 'end': n_lines - 2})
+        k_blocks.append({"start": k_start, "end": n_lines - 2})
 
         return k_blocks
 
     k_blocks = get_k_point_blocks(name)
 
     # Parse file
-    with open(name, 'r') as f:
+    with open(name) as f:
         file = f.readlines()
 
     data = {}
     kpoints = []
     for indices in k_blocks:
         kpoint = {}
-        ik = int(file[indices['start']].split()[-1])
-        eigenvalues = [
-            float(file[i].split()[-1])
-            for i in range(indices['start'] + 1, indices['end'] + 1)
-        ]
-        kpoint['ik'] = ik
-        kpoint['eigenvalues'] = eigenvalues
+        ik = int(file[indices["start"]].split()[-1])
+        eigenvalues = [float(file[i].split()[-1]) for i in range(indices["start"] + 1, indices["end"] + 1)]
+        kpoint["ik"] = ik
+        kpoint["eigenvalues"] = eigenvalues
         kpoints.append(kpoint)
 
-    data['kpoints'] = kpoints
+    data["kpoints"] = kpoints
 
     return data
 
@@ -154,8 +148,8 @@ def parse_proj_screenshots(name: str) -> dict:
     between blocks differs by 1.
     """
 
-    raw_k_point_lines = grep("ik", name, options={'n': ''}).splitlines()
-    k_point_lines = [int(line.split(':')[0]) - 1 for line in raw_k_point_lines]
+    raw_k_point_lines = grep("ik", name, options={"n": ""}).splitlines()
+    k_point_lines = [int(line.split(":")[0]) - 1 for line in raw_k_point_lines]
     last_line = sum(1 for line in open(name))
 
     k_blocks = []
@@ -170,27 +164,26 @@ def parse_proj_screenshots(name: str) -> dict:
     with open(name) as f:
         file = f.readlines()
 
-    data = {'ik': [], 'projection': []}
+    data = {"ik": [], "projection": []}
     for i in k_blocks:
         start = i[0]
         end = i[1]
         ik = int(file[start].split()[-1])
-        projection = []
-        for j in range(start + 1, end):
-            projection.append([float(x) for x in file[j].split()])
-        data['ik'].append(ik)
-        data['projection'].append(np.asarray(projection))
+        projection = [[float(x) for x in file[j].split()] for j in range(start + 1, end)]
+        data["ik"].append(ik)
+        data["projection"].append(np.asarray(projection))
     return data
 
+
 def parse_atom_position_velocity_force(name: str) -> dict:
-    """ Parser for ATOM_????.OUT 
+    """Parser for ATOM_????.OUT
     :param str name: name of file to parse
     :return dict out: each dict key corresponds to time, position (3 columns), velocity (3 columns), total force (3 columns).
     The 3 columns refer to the x, y, z components
     """
     try:
         data = np.genfromtxt(name, skip_header=0)
-    except:
+    except Exception:
         raise ParseError
     out = {
         "Time": data[:, 0],
@@ -202,10 +195,11 @@ def parse_atom_position_velocity_force(name: str) -> dict:
         "vz": data[:, 6],
         "Fx": data[:, 7],
         "Fy": data[:, 8],
-        "Fz": data[:, 9]
+        "Fz": data[:, 9],
     }
 
     return out
+
 
 def parse_force(name, skiprows=0):
     """
@@ -217,13 +211,8 @@ def parse_force(name, skiprows=0):
     """
     try:
         data = np.genfromtxt(name, skip_header=skiprows)
-    except:
+    except Exception:
         raise ParseError
-    out = {
-        "Time": data[:, 0],
-        "Fx": data[:, 1],
-        "Fy": data[:, 2],
-        "Fz": data[:, 3]
-    }
+    out = {"Time": data[:, 0], "Fx": data[:, 1], "Fy": data[:, 2], "Fz": data[:, 3]}
 
     return out

@@ -1,17 +1,19 @@
-import pytest
 import numpy as np
-
-from excitingtools.utils.test_utils import MockFile
+import pytest
 
 from excitingtools.dataclasses.data_structs import NumberOfStates
-from excitingtools.exciting_dict_parsers.gw_eigenvalues_parser import k_points_from_evalqp, n_states_from_evalqp, \
-    parse_column_labels, parse_evalqp
+from excitingtools.exciting_dict_parsers.gw_eigenvalues_parser import (
+    k_points_from_evalqp,
+    n_states_from_evalqp,
+    parse_column_labels,
+    parse_evalqp,
+)
+from excitingtools.utils.test_utils import MockFile
 
 
 @pytest.fixture
 def evalqp_mock(tmp_path):
-    """ Mock EVALQP.OUT data with energies for 3 k-points, and corrections starting from the first state
-    """
+    """Mock EVALQP.OUT data with energies for 3 k-points, and corrections starting from the first state"""
     evalqp_str = """k-point #     1:    0.000000    0.000000    0.000000    0.125000
 state   E_KS       E_HF       E_GW       Sx         Re(Sc)     Im(Sc)     Vxc        DE_HF      DE_GW      Znk
   1   -14.68627  -16.50308  -16.31014   -4.72516    0.17351    0.00002   -2.90835   -1.81681   -1.62387    0.98817
@@ -62,7 +64,7 @@ k-point #     3:    0.000000    0.500000    0.500000    0.375000
 
 @pytest.fixture
 def evalqp_mock_partial_corrections(tmp_path):
-    """ Mock EVALQP.OUT data with energies for 3 k-points, BUT corrections starting from NOT the
+    """Mock EVALQP.OUT data with energies for 3 k-points, BUT corrections starting from NOT the
     first state.
     """
     evalqp_str = """k-point #     1:    0.000000    0.000000    0.000000    0.015625
@@ -92,21 +94,19 @@ k-point #     3:    0.000000    0.000000    0.500000    0.062500
 
 
 def test_k_points_from_evalqp(evalqp_mock):
-    """ Test parsing of EVALQP.DAT
-    """
+    """Test parsing of EVALQP.DAT"""
     ref = {
-        1: {'k_point': [0.000000, 0.000000, 0.000000], 'weight': 0.125000},
-        2: {'k_point': [0.000000, 0.000000, 0.500000], 'weight': 0.500000},
-        3: {'k_point': [0.000000, 0.500000, 0.500000], 'weight': 0.375000}
+        1: {"k_point": [0.000000, 0.000000, 0.000000], "weight": 0.125000},
+        2: {"k_point": [0.000000, 0.000000, 0.500000], "weight": 0.500000},
+        3: {"k_point": [0.000000, 0.500000, 0.500000], "weight": 0.375000},
     }
 
     k_points_and_weights = k_points_from_evalqp(evalqp_mock.string)
     assert k_points_and_weights == ref, "k_points_and_weights should match reference"
 
 
-def test_n_states_from_evalqp_one_kpoint(evalqp_mock):
-    """ Test parsing of EVALQP.DAT
-    """
+def test_n_states_from_evalqp_one_kpoint():
+    """Test parsing of EVALQP.DAT"""
     evalqp_str_with_one_kpoint = """k-point #     1:    0.000000    0.000000    0.000000    0.125000
  state   E_KS       E_HF       E_GW       Sx         Re(Sc)     Im(Sc)     Vxc        DE_HF      DE_GW      Znk
    1   -14.68627  -16.50308  -16.31014   -4.72516    0.17351    0.00002   -2.90835   -1.81681   -1.62387    0.98817
@@ -142,92 +142,122 @@ def test_n_states_from_evalqp_first_state_not_one(evalqp_mock_partial_correction
 
 def test_parse_column_labels_for_oxygen(evalqp_mock):
     column_labels = parse_column_labels(evalqp_mock.string)
-    assert column_labels._member_names_ == ['E_KS', 'E_HF', 'E_GW', 'Sx',
-                                            'Re(Sc)', 'Im(Sc)', 'Vxc', 'DE_HF', 'DE_GW', 'Znk']
+    assert column_labels._member_names_ == [
+        "E_KS",
+        "E_HF",
+        "E_GW",
+        "Sx",
+        "Re(Sc)",
+        "Im(Sc)",
+        "Vxc",
+        "DE_HF",
+        "DE_GW",
+        "Znk",
+    ]
     assert column_labels.E_KS.value == 0, "Expect first label value to start at 0"
 
 
 def test_parse_column_labels_for_nitrogen(evalqp_mock):
     column_labels = parse_column_labels(evalqp_mock.string)
-    assert column_labels._member_names_ == ['E_KS', 'E_HF', 'E_GW', 'Sx',
-                                            'Re(Sc)', 'Im(Sc)', 'Vxc', 'DE_HF', 'DE_GW', 'Znk']
+    assert column_labels._member_names_ == [
+        "E_KS",
+        "E_HF",
+        "E_GW",
+        "Sx",
+        "Re(Sc)",
+        "Im(Sc)",
+        "Vxc",
+        "DE_HF",
+        "DE_GW",
+        "Znk",
+    ]
     assert column_labels.E_KS.value == 0, "Expect first label value to start at 0"
 
 
 def test_parse_evalqp(evalqp_mock):
-    """ Test parsing eigenvalues and weights from EVALQP.DAT.
-    """
+    """Test parsing eigenvalues and weights from EVALQP.DAT."""
 
     # Energies for all states, per k-point
     energies_1 = np.array(
-        [[-14.68627, -16.50308, -16.31014, -4.72516, 0.17351, 0.00002, -2.90835, -1.81681, -1.62387, 0.98817],
-         [-11.48914, -12.99338, -12.79204, -4.36834, 0.18150, 0.00003, -2.86410, -1.50424, -1.30290, 0.98500],
-         [-11.48914, -12.99338, -12.79204, -4.36834, 0.18150, 0.00003, -2.86410, -1.50424, -1.30290, 0.98500],
-         [-11.48914, -12.99338, -12.79203, -4.36834, 0.18151, 0.00003, -2.86410, -1.50424, -1.30289, 0.98500],
-         [-6.24399, -7.20716, -7.01655, -3.72742, 0.17144, 0.00000, -2.76425, -0.96317, -0.77257, 0.97579],
-         [-6.24399, -7.20716, -7.01652, -3.72742, 0.17144, -0.00001, -2.76425, -0.96317, -0.77253, 0.97575],
-         [-6.24340, -7.20928, -7.01752, -3.73069, 0.17268, 0.00003, -2.76481, -0.96588, -0.77412, 0.97594],
-         [-6.24340, -7.20928, -7.01752, -3.73069, 0.17268, 0.00003, -2.76481, -0.96588, -0.77412, 0.97594],
-         [-6.24340, -7.20928, -7.01752, -3.73069, 0.17268, 0.00003, -2.76481, -0.96588, -0.77412, 0.97594],
-         [-1.82156, -2.31023, -2.07248, -1.52298, 0.20180, 0.00623, -1.03431, -0.48867, -0.25092, 0.87468],
-         [-1.00771, -1.29282, -1.07701, -1.21488, 0.19790, 0.02221, -0.92977, -0.28511, -0.06930, 0.79459]]
-        )
+        [
+            [-14.68627, -16.50308, -16.31014, -4.72516, 0.17351, 0.00002, -2.90835, -1.81681, -1.62387, 0.98817],
+            [-11.48914, -12.99338, -12.79204, -4.36834, 0.18150, 0.00003, -2.86410, -1.50424, -1.30290, 0.98500],
+            [-11.48914, -12.99338, -12.79204, -4.36834, 0.18150, 0.00003, -2.86410, -1.50424, -1.30290, 0.98500],
+            [-11.48914, -12.99338, -12.79203, -4.36834, 0.18151, 0.00003, -2.86410, -1.50424, -1.30289, 0.98500],
+            [-6.24399, -7.20716, -7.01655, -3.72742, 0.17144, 0.00000, -2.76425, -0.96317, -0.77257, 0.97579],
+            [-6.24399, -7.20716, -7.01652, -3.72742, 0.17144, -0.00001, -2.76425, -0.96317, -0.77253, 0.97575],
+            [-6.24340, -7.20928, -7.01752, -3.73069, 0.17268, 0.00003, -2.76481, -0.96588, -0.77412, 0.97594],
+            [-6.24340, -7.20928, -7.01752, -3.73069, 0.17268, 0.00003, -2.76481, -0.96588, -0.77412, 0.97594],
+            [-6.24340, -7.20928, -7.01752, -3.73069, 0.17268, 0.00003, -2.76481, -0.96588, -0.77412, 0.97594],
+            [-1.82156, -2.31023, -2.07248, -1.52298, 0.20180, 0.00623, -1.03431, -0.48867, -0.25092, 0.87468],
+            [-1.00771, -1.29282, -1.07701, -1.21488, 0.19790, 0.02221, -0.92977, -0.28511, -0.06930, 0.79459],
+        ]
+    )
 
     energies_2 = np.array(
-        [[-14.68627, -16.50308, -16.31014, -4.72516, 0.17351, 0.00002, -2.90835, -1.81681, -1.62387, 0.98817],
-         [-11.48915, -12.99338, -12.79204, -4.36834, 0.18150, 0.00003, -2.86410, -1.50424, -1.30289, 0.98500],
-         [-11.48915, -12.99338, -12.79204, -4.36834, 0.18151, 0.00003, -2.86410, -1.50424, -1.30289, 0.98500],
-         [-11.48914, -12.99338, -12.79204, -4.36834, 0.18150, 0.00003, -2.86410, -1.50424, -1.30290, 0.98500],
-         [-6.24401, -7.20719, -7.01653, -3.72740, 0.17145, -0.00001, -2.76423, -0.96318, -0.77252, 0.97574],
-         [-6.24401, -7.20719, -7.01650, -3.72740, 0.17145, -0.00001, -2.76423, -0.96318, -0.77249, 0.97570],
-         [-6.24345, -7.20933, -7.01756, -3.73065, 0.17268, 0.00003, -2.76477, -0.96588, -0.77411, 0.97593],
-         [-6.24344, -7.20932, -7.01754, -3.73066, 0.17268, 0.00003, -2.76478, -0.96588, -0.77410, 0.97593],
-         [-6.24344, -7.20932, -7.01755, -3.73066, 0.17268, 0.00003, -2.76478, -0.96588, -0.77411, 0.97593],
-         [-1.81969, -2.30723, -2.07258, -1.52476, 0.20051, 0.00867, -1.03723, -0.48754, -0.25289, 0.88104],
-         [-1.03473, -1.34882, -1.09998, -1.20344, 0.22865, 0.02686, -0.88936, -0.31408, -0.06525, 0.76380]]
+        [
+            [-14.68627, -16.50308, -16.31014, -4.72516, 0.17351, 0.00002, -2.90835, -1.81681, -1.62387, 0.98817],
+            [-11.48915, -12.99338, -12.79204, -4.36834, 0.18150, 0.00003, -2.86410, -1.50424, -1.30289, 0.98500],
+            [-11.48915, -12.99338, -12.79204, -4.36834, 0.18151, 0.00003, -2.86410, -1.50424, -1.30289, 0.98500],
+            [-11.48914, -12.99338, -12.79204, -4.36834, 0.18150, 0.00003, -2.86410, -1.50424, -1.30290, 0.98500],
+            [-6.24401, -7.20719, -7.01653, -3.72740, 0.17145, -0.00001, -2.76423, -0.96318, -0.77252, 0.97574],
+            [-6.24401, -7.20719, -7.01650, -3.72740, 0.17145, -0.00001, -2.76423, -0.96318, -0.77249, 0.97570],
+            [-6.24345, -7.20933, -7.01756, -3.73065, 0.17268, 0.00003, -2.76477, -0.96588, -0.77411, 0.97593],
+            [-6.24344, -7.20932, -7.01754, -3.73066, 0.17268, 0.00003, -2.76478, -0.96588, -0.77410, 0.97593],
+            [-6.24344, -7.20932, -7.01755, -3.73066, 0.17268, 0.00003, -2.76478, -0.96588, -0.77411, 0.97593],
+            [-1.81969, -2.30723, -2.07258, -1.52476, 0.20051, 0.00867, -1.03723, -0.48754, -0.25289, 0.88104],
+            [-1.03473, -1.34882, -1.09998, -1.20344, 0.22865, 0.02686, -0.88936, -0.31408, -0.06525, 0.76380],
+        ]
     )
 
     energies_3 = np.array(
-        [[-14.68627, -16.50308, -16.31014, -4.72516, 0.17351, 0.00002, -2.90835, -1.81681, -1.62387, 0.98818],
-         [-11.48915, -12.99338, -12.79204, -4.36834, 0.18150, 0.00003, -2.86410, -1.50424, -1.30290, 0.98500],
-         [-11.48915, -12.99338, -12.79204, -4.36834, 0.18150, 0.00003, -2.86410, -1.50424, -1.30289, 0.98500],
-         [-11.48915, -12.99338, -12.79204, -4.36834, 0.18151, 0.00003, -2.86410, -1.50424, -1.30289, 0.98500],
-         [-6.24405, -7.20722, -7.01657, -3.72737, 0.17144, -0.00001, -2.76420, -0.96317, -0.77252, 0.97574],
-         [-6.24403, -7.20721, -7.01657, -3.72738, 0.17144, -0.00000, -2.76421, -0.96317, -0.77253, 0.97575],
-         [-6.24346, -7.20934, -7.01757, -3.73064, 0.17268, 0.00004, -2.76476, -0.96588, -0.77411, 0.97593],
-         [-6.24344, -7.20932, -7.01755, -3.73066, 0.17268, 0.00003, -2.76478, -0.96588, -0.77412, 0.97594],
-         [-6.24344, -7.20932, -7.01755, -3.73066, 0.17268, 0.00003, -2.76478, -0.96588, -0.77411, 0.97593],
-         [-1.81908, -2.30620, -2.07323, -1.52531, 0.19899, 0.00760, -1.03818, -0.48712, -0.25415, 0.88205],
-         [-1.03685, -1.35370, -1.10126, -1.20433, 0.23184, 0.02427, -0.88748, -0.31684, -0.06441, 0.75775]]
+        [
+            [-14.68627, -16.50308, -16.31014, -4.72516, 0.17351, 0.00002, -2.90835, -1.81681, -1.62387, 0.98818],
+            [-11.48915, -12.99338, -12.79204, -4.36834, 0.18150, 0.00003, -2.86410, -1.50424, -1.30290, 0.98500],
+            [-11.48915, -12.99338, -12.79204, -4.36834, 0.18150, 0.00003, -2.86410, -1.50424, -1.30289, 0.98500],
+            [-11.48915, -12.99338, -12.79204, -4.36834, 0.18151, 0.00003, -2.86410, -1.50424, -1.30289, 0.98500],
+            [-6.24405, -7.20722, -7.01657, -3.72737, 0.17144, -0.00001, -2.76420, -0.96317, -0.77252, 0.97574],
+            [-6.24403, -7.20721, -7.01657, -3.72738, 0.17144, -0.00000, -2.76421, -0.96317, -0.77253, 0.97575],
+            [-6.24346, -7.20934, -7.01757, -3.73064, 0.17268, 0.00004, -2.76476, -0.96588, -0.77411, 0.97593],
+            [-6.24344, -7.20932, -7.01755, -3.73066, 0.17268, 0.00003, -2.76478, -0.96588, -0.77412, 0.97594],
+            [-6.24344, -7.20932, -7.01755, -3.73066, 0.17268, 0.00003, -2.76478, -0.96588, -0.77411, 0.97593],
+            [-1.81908, -2.30620, -2.07323, -1.52531, 0.19899, 0.00760, -1.03818, -0.48712, -0.25415, 0.88205],
+            [-1.03685, -1.35370, -1.10126, -1.20433, 0.23184, 0.02427, -0.88748, -0.31684, -0.06441, 0.75775],
+        ]
     )
 
     ref = {
-        1: {'k_point': [0.000000, 0.000000, 0.000000], 'weight': 0.125000},
-        2: {'k_point': [0.000000, 0.000000, 0.500000], 'weight': 0.500000},
-        3: {'k_point': [0.000000, 0.500000, 0.500000], 'weight': 0.375000}
-        }
+        1: {"k_point": [0.000000, 0.000000, 0.000000], "weight": 0.125000},
+        2: {"k_point": [0.000000, 0.000000, 0.500000], "weight": 0.500000},
+        3: {"k_point": [0.000000, 0.500000, 0.500000], "weight": 0.375000},
+    }
 
     output = parse_evalqp(evalqp_mock.full_path)
-    assert set(output.keys()) == {'state_range', 'column_labels', 1, 2, 3}, \
-        'Key include state range, columns and k-indices'
+    assert set(output.keys()) == {
+        "state_range",
+        "column_labels",
+        1,
+        2,
+        3,
+    }, "Key include state range, columns and k-indices"
 
-    del output['state_range']
-    del output['column_labels']
+    del output["state_range"]
+    del output["column_labels"]
 
     # k-points
     assert len(output) == 3, "Expect 3 k-points"
-    assert min([ik for ik in output.keys()]) == 1, 'k-point indexing starts at 1'
-    assert output[1]['k_point'] == ref[1]['k_point'], "Compare k-point 1 to reference"
-    assert output[2]['k_point'] == ref[2]['k_point'], "Compare k-point 2 to reference"
-    assert output[3]['k_point'] == ref[3]['k_point'], "Compare k-point 3 to reference"
+    assert min([ik for ik in output]) == 1, "k-point indexing starts at 1"
+    assert output[1]["k_point"] == ref[1]["k_point"], "Compare k-point 1 to reference"
+    assert output[2]["k_point"] == ref[2]["k_point"], "Compare k-point 2 to reference"
+    assert output[3]["k_point"] == ref[3]["k_point"], "Compare k-point 3 to reference"
 
     # Weights
-    assert output[1]['weight'] == ref[1]['weight'], "Compare weight 1 to reference"
-    assert output[2]['weight'] == ref[2]['weight'], "Compare weight 2 to reference"
-    assert output[3]['weight'] == ref[3]['weight'], "Compare weight 3 to reference"
+    assert output[1]["weight"] == ref[1]["weight"], "Compare weight 1 to reference"
+    assert output[2]["weight"] == ref[2]["weight"], "Compare weight 2 to reference"
+    assert output[3]["weight"] == ref[3]["weight"], "Compare weight 3 to reference"
 
     # Energies
-    assert output[1]['energies'].shape == (11, 10), 'rows = 11 states and cols = 10 energies'
-    assert np.allclose(output[1]['energies'], energies_1), "Compare energies 1 to reference"
-    assert np.allclose(output[2]['energies'], energies_2), "Compare energies 2 to reference"
-    assert np.allclose(output[3]['energies'], energies_3), "Compare energies 3 to reference"
+    assert output[1]["energies"].shape == (11, 10), "rows = 11 states and cols = 10 energies"
+    assert np.allclose(output[1]["energies"], energies_1), "Compare energies 1 to reference"
+    assert np.allclose(output[2]["energies"], energies_2), "Compare energies 2 to reference"
+    assert np.allclose(output[3]["energies"], energies_3), "Compare energies 3 to reference"

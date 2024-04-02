@@ -5,7 +5,7 @@ import re
 import warnings
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Union, List, Type, Iterator
+from typing import Iterator, List, Type, Union
 from xml.etree import ElementTree
 
 import numpy as np
@@ -28,25 +28,24 @@ class AbstractExcitingInput(ABC):
     name: str = "ABSTRACT"  # not directly used, need a value here because of the dynamic class list
 
     @abstractmethod
-    def __init__(self, **kwargs):
-        ...
+    def __init__(self, **kwargs): ...
 
     @abstractmethod
     def to_xml(self) -> ElementTree:
-        """ Convert class attributes to XML ElementTree."""
+        """Convert class attributes to XML ElementTree."""
 
     def to_xml_str(self) -> str:
-        """ Convert attributes to XML tree string. """
-        return ElementTree.tostring(self.to_xml(), encoding='unicode', method='xml')
+        """Convert attributes to XML tree string."""
+        return ElementTree.tostring(self.to_xml(), encoding="unicode", method="xml")
 
     def as_dict(self) -> dict:
-        """ Convert attributes to dictionary. """
+        """Convert attributes to dictionary."""
         serialise_attrs = special_serialization_attrs(self)
         return {**serialise_attrs, "xml_string": self.to_xml_str()}
 
     @classmethod
     def from_xml(cls, xml_string: path_type):
-        """ Initialise class instance from XML-formatted string.
+        """Initialise class instance from XML-formatted string.
 
         Example Usage
         --------------
@@ -56,13 +55,13 @@ class AbstractExcitingInput(ABC):
 
     @classmethod
     def from_dict(cls, d):
-        """ Recreates class instance from dictionary. """
+        """Recreates class instance from dictionary."""
         return cls.from_xml(d["xml_string"])
 
 
 class ExcitingXMLInput(AbstractExcitingInput, ABC):
     """Base class for exciting inputs, with exceptions being title, plan, qpointset and kstlist,
-     because they are not passed as a dictionary. """
+    because they are not passed as a dictionary."""
 
     # Convert python data to string, formatted specifically for exciting
     _attributes_to_input_str = {
@@ -103,14 +102,15 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
         for subtree in single_subtrees:
             kwargs[subtree] = self._initialise_subelement_attribute(subtree_class_map[subtree], kwargs[subtree])
         for subtree in multiple_subtrees:
-            kwargs[subtree] = [self._initialise_subelement_attribute(subtree_class_map[subtree], x) for
-                               x in kwargs[subtree]]
+            kwargs[subtree] = [
+                self._initialise_subelement_attribute(subtree_class_map[subtree], x) for x in kwargs[subtree]
+            ]
 
         # Set attributes from kwargs
         self.__dict__.update(kwargs)
 
     def __setattr__(self, name: str, value):
-        """ Overload the attribute setting in python with instance.attr = value to check for validity in the schema.
+        """Overload the attribute setting in python with instance.attr = value to check for validity in the schema.
 
         :param name: name of the attribute
         :param value: new value, can be anything
@@ -127,7 +127,7 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
             super().__delattr__(name)
 
     def get_valid_attributes(self) -> Iterator:
-        """ Extract the valid attributes, valid subtrees, mandatory attributes and multiple children
+        """Extract the valid attributes, valid subtrees, mandatory attributes and multiple children
         from the parsed schema.
 
         :return: valid attributes, valid subtrees, mandatory attributes and multiple children
@@ -147,18 +147,17 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
 
     @staticmethod
     def _initialise_subelement_attribute(xml_class, element):
-        """ Initialize given elements to the ExcitingXSInput constructor. If element is already ExcitingXMLInput class
+        """Initialize given elements to the ExcitingXSInput constructor. If element is already ExcitingXMLInput class
         object, nothing happens. Else the class constructor of the given XMLClass is called. For a passed
         dictionary the dictionary is passed as kwargs.
         """
         if isinstance(element, xml_class):
             return element
-        elif isinstance(element, dict):
+        if isinstance(element, dict):
             # assume kwargs
             return xml_class(**element)
-        else:
-            # Assume the element type is valid for the class constructor
-            return xml_class(element)
+        # Assume the element type is valid for the class constructor
+        return xml_class(element)
 
     def to_xml(self) -> ElementTree:
         """Put class attributes into an XML tree, with the element given by self.name.
@@ -171,10 +170,13 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
 
         :return ElementTree.Element sub_tree: sub_tree element tree, with class attributes inserted.
         """
-        valid_attributes, valid_subtrees, _, multiple_children = self.get_valid_attributes()
+        valid_attributes, valid_subtrees, _, _ = self.get_valid_attributes()
 
-        attributes = {key: self._attributes_to_input_str[type(value)](value) for key, value
-                      in vars(self).items() if key in valid_attributes}
+        attributes = {
+            key: self._attributes_to_input_str[type(value)](value)
+            for key, value in vars(self).items()
+            if key in valid_attributes
+        }
         xml_tree = ElementTree.Element(self.name, **attributes)
 
         subtrees = {key: self.__dict__[key] for key in set(vars(self).keys()) - set(attributes.keys())}
@@ -183,7 +185,7 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
             xml_tree.append(subtree.to_xml())
 
         # Seems to want this operation on a separate line
-        xml_tree.text = ' '
+        xml_tree.text = " "
 
         return xml_tree
 
@@ -205,10 +207,10 @@ def query_exciting_version(exciting_root: path_type) -> dict:
     :return version: Build and version details
     """
     exciting_root = Path(exciting_root)
-    version_inc = exciting_root / 'src/version.inc'
-    assert version_inc.exists(), f'{version_inc} cannot be found. This file generated when the code is built'
+    version_inc = exciting_root / "src/version.inc"
+    assert version_inc.exists(), f"{version_inc} cannot be found. This file generated when the code is built"
 
-    with open(version_inc, 'r') as fid:
+    with open(version_inc) as fid:
         all_lines = fid.readlines()
 
     git_hash_part1 = all_lines[0].split()[-1][1:-1]
@@ -219,4 +221,4 @@ def query_exciting_version(exciting_root: path_type) -> dict:
     mod_misc = exciting_root / "src/mod_misc.F90"
     major_version = re.search(r"character\(40\) :: versionname = '(NEON)'", mod_misc.read_text())[1]
 
-    return {'compiler': compiler[1:-1], 'git_hash': git_hash_part1 + git_hash_part2, "major": major_version}
+    return {"compiler": compiler[1:-1], "git_hash": git_hash_part1 + git_hash_part2, "major": major_version}

@@ -1,12 +1,16 @@
-import numpy as np
-import pytest
 from typing import Tuple
 
-from excitingtools.exciting_obj_parsers.gw_eigenvalues import gw_eigenvalue_parser, _file_name, OxygenEvalQPColumns, \
-    NitrogenEvalQPColumns
-from excitingtools.dataclasses.eigenvalues import EigenValues
+import numpy as np
+import pytest
 
 from excitingtools.dataclasses.data_structs import BandIndices
+from excitingtools.dataclasses.eigenvalues import EigenValues
+from excitingtools.exciting_obj_parsers.gw_eigenvalues import (
+    NitrogenEvalQPColumns,
+    OxygenEvalQPColumns,
+    _file_name,
+    gw_eigenvalue_parser,
+)
 from excitingtools.utils.test_utils import MockFile
 
 
@@ -51,7 +55,7 @@ def evalqp_oxygen(tmp_path) -> Tuple[MockFile, BandIndices]:
   22     0.06097    0.32400    0.08958   -0.36222   -0.22727   -0.00000   -0.62524    0.26303    0.02861    0.80010
   23     0.06097    0.32400    0.08957   -0.36222   -0.22728   -0.00000   -0.62524    0.26303    0.02860    0.80006
   24     0.17630    0.38074    0.18396   -0.27546   -0.19505    0.00000   -0.47989    0.20443    0.00766    0.81561
- 
+
 k-point #     2:    0.000000    0.000000    0.500000    0.500000
  state   E_KS       E_HF       E_GW       Sx         Re(Sc)     Im(Sc)     Vxc        DE_HF      DE_GW      Znk
   19    -0.15356   -0.36518   -0.19801   -0.93999    0.15132   -0.00008   -0.72837   -0.21162   -0.04445    0.73712
@@ -60,7 +64,7 @@ k-point #     2:    0.000000    0.000000    0.500000    0.500000
   22     0.08561    0.35313    0.11429   -0.38438   -0.23136    0.00001   -0.65190    0.26752    0.02868    0.79318
   23     0.08561    0.35313    0.11430   -0.38438   -0.23135    0.00001   -0.65190    0.26752    0.02869    0.79323
   24     0.16667    0.43794    0.19514   -0.48319   -0.23505    0.00001   -0.75446    0.27128    0.02848    0.78602
- 
+
 k-point #     3:    0.000000    0.500000    0.500000    0.375000
  state   E_KS       E_HF       E_GW       Sx         Re(Sc)     Im(Sc)     Vxc        DE_HF      DE_GW      Znk
   19    -0.11749   -0.30231   -0.15828   -0.93575    0.13070   -0.00001   -0.75094   -0.18481   -0.04078    0.75361
@@ -76,18 +80,21 @@ k-point #     3:    0.000000    0.500000    0.500000    0.375000
 
 
 def test_parse_evalqp_oxygen(evalqp_oxygen):
-    """ Test that the parser correctly returns to the EigenValues object.
-    """
+    """Test that the parser correctly returns to the EigenValues object."""
     file, band_indices = evalqp_oxygen
     eigen_values: EigenValues = gw_eigenvalue_parser(file.full_path)
 
-    ref_gw_eigenvalues = np.array([[-0.12905, -0.12891, -0.12896,  0.08958,  0.08957,  0.18396],
-                                   [-0.19801, -0.17047, -0.17035,  0.11429,  0.11430,  0.19514],
-                                   [-0.15828, -0.15818, -0.10809,  0.09569,  0.14613,  0.18404]])
+    ref_gw_eigenvalues = np.array(
+        [
+            [-0.12905, -0.12891, -0.12896, 0.08958, 0.08957, 0.18396],
+            [-0.19801, -0.17047, -0.17035, 0.11429, 0.11430, 0.19514],
+            [-0.15828, -0.15818, -0.10809, 0.09569, 0.14613, 0.18404],
+        ]
+    )
 
-    ref_k_points = np.array([[0.000000, 0.000000, 0.000000],
-                             [0.000000, 0.000000, 0.500000],
-                             [0.000000, 0.500000, 0.500000]])
+    ref_k_points = np.array(
+        [[0.000000, 0.000000, 0.000000], [0.000000, 0.000000, 0.500000], [0.000000, 0.500000, 0.500000]]
+    )
 
     assert eigen_values.state_range.first_state == 19
     assert eigen_values.state_range.last_state == 24
@@ -98,31 +105,37 @@ def test_parse_evalqp_oxygen(evalqp_oxygen):
 
 
 def test_parse_evalqp_oxygen_Znk(evalqp_oxygen):
-    """ Test that the parser correctly returns to the EigenValues object.
-    """
+    """Test that the parser correctly returns to the EigenValues object."""
     file, band_indices = evalqp_oxygen
     eigen_values: EigenValues = gw_eigenvalue_parser(file.full_path, columns=OxygenEvalQPColumns.Znk)
 
-    ref_gw_eigenvalues = np.array([[0.75633, 0.75570, 0.75582, 0.80010, 0.80006, 0.81561],
-                                   [0.73712, 0.74983, 0.74940, 0.79318, 0.79323, 0.78602],
-                                   [0.75361, 0.75304, 0.75686, 0.79516, 0.78053, 0.78971]])
+    ref_gw_eigenvalues = np.array(
+        [
+            [0.75633, 0.75570, 0.75582, 0.80010, 0.80006, 0.81561],
+            [0.73712, 0.74983, 0.74940, 0.79318, 0.79323, 0.78602],
+            [0.75361, 0.75304, 0.75686, 0.79516, 0.78053, 0.78971],
+        ]
+    )
 
     assert np.allclose(eigen_values.all_eigenvalues, ref_gw_eigenvalues), "Znk values, for all k-points"
 
 
 def test_parse_evalqp_nitrogen(evalqp_nitrogen):
-    """ Test that the parser correctly returns to the EigenValues object.
-    """
+    """Test that the parser correctly returns to the EigenValues object."""
     file, band_indices = evalqp_nitrogen
     eigen_values: EigenValues = gw_eigenvalue_parser(file.full_path, NitrogenEvalQPColumns.E_GW)
 
-    ref_gw_eigenvalues = np.array([[-0.03139, -0.03144, -0.03143, 0.08701, 0.08704],
-                                   [-0.17533, -0.05906, -0.05905, 0.06505, 0.12124],
-                                   [-0.28494, -0.07605, -0.07607, 0.04622, 0.11503]])
+    ref_gw_eigenvalues = np.array(
+        [
+            [-0.03139, -0.03144, -0.03143, 0.08701, 0.08704],
+            [-0.17533, -0.05906, -0.05905, 0.06505, 0.12124],
+            [-0.28494, -0.07605, -0.07607, 0.04622, 0.11503],
+        ]
+    )
 
-    ref_k_points = np.array([[0.000000, 0.000000, 0.000000],
-                             [0.000000, 0.000000, 0.250000],
-                             [0.000000, 0.000000, 0.500000]])
+    ref_k_points = np.array(
+        [[0.000000, 0.000000, 0.000000], [0.000000, 0.000000, 0.250000], [0.000000, 0.000000, 0.500000]]
+    )
 
     assert eigen_values.state_range.first_state == 10
     assert eigen_values.state_range.last_state == 14
@@ -133,15 +146,15 @@ def test_parse_evalqp_nitrogen(evalqp_nitrogen):
 
 
 def test_parse_evalqp_incompatible(evalqp_nitrogen):
-    """ Test for the exception.
+    """Test for the exception.
     Trying to parse _filename generated with nitrogen, but requesting oxygen column indexing.
     """
     file, band_indices = evalqp_nitrogen
 
     with pytest.raises(ValueError) as error:
-        eigen_values: EigenValues = gw_eigenvalue_parser(file.full_path,
-                                                         OxygenEvalQPColumns.E_GW)
-    assert error.value.args[
-               0] == "The requested data column is indexed according to exciting version OxygenEvalQPColumns," \
-                     "which is not consistent with the columns of the parsed data. " \
-                     "Check that your data was produced with the same code version."
+        gw_eigenvalue_parser(file.full_path, OxygenEvalQPColumns.E_GW)
+    assert (
+        error.value.args[0] == "The requested data column is indexed according to exciting version OxygenEvalQPColumns,"
+        "which is not consistent with the columns of the parsed data. "
+        "Check that your data was produced with the same code version."
+    )

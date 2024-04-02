@@ -1,7 +1,7 @@
 [project]
 name = "excitingtools"
 description = "Utilities for aiding in the construction of exciting inputs and the postprocessing exciting outputs."
-version = "1.7.0"
+version = "1.7.1"
 authors = [
     {name = "Alexander Buccheri", email = "alexander.buccheri@mpsd.mpg.de"},
     {name = "Fabian Peschel", email = "peschelf@physik.hu-berlin.de"}
@@ -18,7 +18,8 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "ase>=3.20.0"
+    "ase>=3.20.0",
+    "ruff",
 ]
 schemaparsing = ["xmlschema"]
 
@@ -34,3 +35,46 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["excitingtools"]
+
+[tool.ruff]
+line-length = 120
+extend-exclude = ["build/*", "valid_attributes.py"]
+
+[tool.ruff.format]
+skip-magic-trailing-comma = true
+
+[tool.ruff.lint]
+ignore = [
+    "E741",  # ambigous variable name like 'l'
+    "UP006",  # py3.7 doesn't support type hinting with built-in 'list'
+    "UP007",  # py3.7 doesn't support type hinting with 'X | Y'
+    "COM812",  # problems with linter
+    "ISC001",  # problems with linter, see https://github.com/astral-sh/ruff/issues/8272
+    "RET504",  # Unnecessary assignment
+    "SIM115",  # context handler not used for opening files
+    "PLR2004",  # magic values, maybe reintroduce at some point
+]
+extend-select = [
+    "I",  # sort imports
+    "UP",  # pyupgrade
+    "COM",  # trailing commas
+    "ISC",  # implicit string concats
+    "PIE",  # flake8-pie
+    "T20",  # no print statements
+    "Q",  # Quotes
+    "RET",  # return statements
+    "SIM",  # flake8 simplify
+    "ARG",  # unused arguments
+    "ERA",  # commented-out code
+    "NPY",  # find deprecated numpy code
+    "PERF",  # perflint
+    "PL",  # pylint
+]
+
+[tool.ruff.lint.isort]
+split-on-trailing-comma = false
+
+[tool.ruff.lint.pylint]
+max-args = 7
+max-branches = 14
+max-statements = 60

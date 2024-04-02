@@ -1,5 +1,4 @@
-"""Test XML utilities.
-"""
+"""Test XML utilities."""
 
 from excitingtools.input.xml_utils import line_reformatter
 
@@ -9,10 +8,10 @@ def test_line_reformatter_long_ending():
     input_str = (
         '<groundstate do="fromscratch" ngridk="6 6 6" nosource="false" '
         'rgkmax="8.0" tforce="true" vkloff="0 0 0" xctype="GGA_PBE_SOL"> '
-        '</groundstate>'
+        "</groundstate>"
     )
     pretty_input_str = line_reformatter(input_str)
-    # Note, whitespace is important
+    # Note whitespace is important
     reference = """<groundstate
    do="fromscratch"
    ngridk="6 6 6"
@@ -33,7 +32,7 @@ def test_line_reformatter_short_ending():
         'rgkmax="8.0" tforce="true" vkloff="0 0 0" xctype="GGA_PBE_SOL"/> '
     )
     pretty_input_str = line_reformatter(input_str)
-    # Note, whitespace is important
+    # Note whitespace is important
     reference = """<groundstate
    do="fromscratch"
    ngridk="6 6 6"
@@ -53,7 +52,7 @@ def test_line_reformatter_no_closing():
         'rgkmax="8.0" tforce="true" vkloff="0 0 0" xctype="GGA_PBE_SOL"> '
     )
     pretty_input_str = line_reformatter(input_str)
-    # Note, whitespace is important
+    # Note whitespace is important
     reference = """<groundstate
    do="fromscratch"
    ngridk="6 6 6"

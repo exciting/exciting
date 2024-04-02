@@ -1,12 +1,12 @@
-"""General utility functions. Typically, conversion/type-checking.
-"""
+"""General utility functions. Typically, conversion/type-checking."""
+
 import pathlib
 import re
-from typing import Union, List, Optional, Callable, Iterator, Iterable, Any
+from typing import Any, Callable, Iterable, Iterator, List, Optional, Union
 
 
 def get_excitingtools_root() -> pathlib.Path:
-    """ Get the root directory of excitingtools. """
+    """Get the root directory of excitingtools."""
     return pathlib.Path(__file__).parents[2]
 
 
@@ -64,7 +64,7 @@ def get_new_line_indices(string: str) -> List[int]:
      new lines in string.
     """
     indices = [0]
-    indices += [m.start() + 1 for m in re.finditer('\n', string)]
+    indices += [m.start() + 1 for m in re.finditer("\n", string)]
     return indices
 
 
@@ -81,7 +81,7 @@ def list_to_str(mylist: Iterable[Any], modifier: Optional[Callable] = None) -> s
 
 
 def flatten_list(input_list: list) -> Iterator:
-    """ Flatten a list of lists and other elements.
+    """Flatten a list of lists and other elements.
 
     :param input_list: input list
     :return: an iterator for the flattened list

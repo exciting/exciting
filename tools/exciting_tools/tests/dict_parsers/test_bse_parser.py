@@ -4,6 +4,7 @@ The infoxs reference is boiled down to the necessary parts for a test.
 Execute tests from exciting_tools directory:
 pytest --capture=tee-sys
 """
+
 import pytest
 
 from excitingtools.exciting_dict_parsers.bse_parser import parse_infoxs_out
@@ -251,30 +252,38 @@ Info(xsinit): mapping screening-specific parameters
 
 
 reference_parsed_infoxs_file_success = {
-    'tasks': [{'name': 'xsgeneigvec', 'number': 301, 'finished': True}, 
-              {'name': 'writepmatxs', 'number': 320, 'finished': True},
-              {'name': 'scrgeneigvec', 'number': 401, 'finished': True}, 
-              {'name': 'scrwritepmat', 'number': 420, 'finished': True},
-              {'name': 'bse', 'number': 445, 'finished': True}],
-    'success': True,
-    'last_finished_task': 'bse'
-    }
+    "tasks": [
+        {"name": "xsgeneigvec", "number": 301, "finished": True},
+        {"name": "writepmatxs", "number": 320, "finished": True},
+        {"name": "scrgeneigvec", "number": 401, "finished": True},
+        {"name": "scrwritepmat", "number": 420, "finished": True},
+        {"name": "bse", "number": 445, "finished": True},
+    ],
+    "success": True,
+    "last_finished_task": "bse",
+}
 
 reference_parsed_infoxs_file_fail = {
-    'tasks': [{'name': 'xsgeneigvec', 'number': 301, 'finished': True}, 
-              {'name': 'writepmatxs', 'number': 320, 'finished': False},
-              {'name': 'xsgeneigvec', 'number': 301, 'finished': True}, 
-              {'name': 'writepmatxs', 'number': 320, 'finished': True},
-              {'name': 'scrgeneigvec', 'number': 401, 'finished': True}, 
-              {'name': 'scrwritepmat', 'number': 420, 'finished': False}],
-    'success': False,
-    'last_finished_task': 'scrgeneigvec'
-    }
+    "tasks": [
+        {"name": "xsgeneigvec", "number": 301, "finished": True},
+        {"name": "writepmatxs", "number": 320, "finished": False},
+        {"name": "xsgeneigvec", "number": 301, "finished": True},
+        {"name": "writepmatxs", "number": 320, "finished": True},
+        {"name": "scrgeneigvec", "number": 401, "finished": True},
+        {"name": "scrwritepmat", "number": 420, "finished": False},
+    ],
+    "success": False,
+    "last_finished_task": "scrgeneigvec",
+}
 
 
-@pytest.mark.parametrize(["infoxs_file_str", "reference_parsed_dict"],
-                         [(infoxs_file_str_success, reference_parsed_infoxs_file_success),
-                          (infoxs_file_str_fail, reference_parsed_infoxs_file_fail)])
+@pytest.mark.parametrize(
+    ["infoxs_file_str", "reference_parsed_dict"],
+    [
+        (infoxs_file_str_success, reference_parsed_infoxs_file_success),
+        (infoxs_file_str_fail, reference_parsed_infoxs_file_fail),
+    ],
+)
 def test_parse_info_xs_out(infoxs_file_str, reference_parsed_dict, tmp_path):
     infoxs_file_path = tmp_path / "INFOXS.OUT"
     infoxs_file_path.write_text(infoxs_file_str)
@@ -283,39 +292,110 @@ def test_parse_info_xs_out(infoxs_file_str, reference_parsed_dict, tmp_path):
 
 
 reference_parsed_infoxs_file_times_success = {
-    'tasks': [{'name': 'xsgeneigvec', 'number': 301, 'finished': True,
-               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13}, 
-              {'name': 'writepmatxs', 'number': 320, 'finished': True,
-               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13},
-              {'name': 'scrgeneigvec', 'number': 401, 'finished': True,
-               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13}, 
-              {'name': 'scrwritepmat', 'number': 420, 'finished': True,
-              'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13},
-              {'name': 'bse', 'number': 445, 'finished': True,
-               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13}],
-    'success': True,
-    'last_finished_task': 'bse'
-    }
+    "tasks": [
+        {
+            "name": "xsgeneigvec",
+            "number": 301,
+            "finished": True,
+            "cpu_time": 14.57,
+            "wall_time": 2.13,
+            "cpu_time_cum": 111.58,
+            "wall_time_cum": 2.13,
+        },
+        {
+            "name": "writepmatxs",
+            "number": 320,
+            "finished": True,
+            "cpu_time": 14.57,
+            "wall_time": 2.13,
+            "cpu_time_cum": 111.58,
+            "wall_time_cum": 2.13,
+        },
+        {
+            "name": "scrgeneigvec",
+            "number": 401,
+            "finished": True,
+            "cpu_time": 14.57,
+            "wall_time": 2.13,
+            "cpu_time_cum": 111.58,
+            "wall_time_cum": 2.13,
+        },
+        {
+            "name": "scrwritepmat",
+            "number": 420,
+            "finished": True,
+            "cpu_time": 14.57,
+            "wall_time": 2.13,
+            "cpu_time_cum": 111.58,
+            "wall_time_cum": 2.13,
+        },
+        {
+            "name": "bse",
+            "number": 445,
+            "finished": True,
+            "cpu_time": 14.57,
+            "wall_time": 2.13,
+            "cpu_time_cum": 111.58,
+            "wall_time_cum": 2.13,
+        },
+    ],
+    "success": True,
+    "last_finished_task": "bse",
+}
 
 reference_parsed_infoxs_file_times_fail = {
-    'tasks': [{'name': 'xsgeneigvec', 'number': 301, 'finished': True,
-               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13}, 
-              {'name': 'writepmatxs', 'number': 320, 'finished': False},
-              {'name': 'xsgeneigvec', 'number': 301, 'finished': True,
-               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13}, 
-              {'name': 'writepmatxs', 'number': 320, 'finished': True,
-               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13},
-              {'name': 'scrgeneigvec', 'number': 401, 'finished': True,
-               'cpu_time': 14.57, 'wall_time': 2.13, 'cpu_time_cum': 111.58, 'wall_time_cum': 2.13}, 
-              {'name': 'scrwritepmat', 'number': 420, 'finished': False}],
-    'success': False,
-    'last_finished_task': 'scrgeneigvec'
-    }
+    "tasks": [
+        {
+            "name": "xsgeneigvec",
+            "number": 301,
+            "finished": True,
+            "cpu_time": 14.57,
+            "wall_time": 2.13,
+            "cpu_time_cum": 111.58,
+            "wall_time_cum": 2.13,
+        },
+        {"name": "writepmatxs", "number": 320, "finished": False},
+        {
+            "name": "xsgeneigvec",
+            "number": 301,
+            "finished": True,
+            "cpu_time": 14.57,
+            "wall_time": 2.13,
+            "cpu_time_cum": 111.58,
+            "wall_time_cum": 2.13,
+        },
+        {
+            "name": "writepmatxs",
+            "number": 320,
+            "finished": True,
+            "cpu_time": 14.57,
+            "wall_time": 2.13,
+            "cpu_time_cum": 111.58,
+            "wall_time_cum": 2.13,
+        },
+        {
+            "name": "scrgeneigvec",
+            "number": 401,
+            "finished": True,
+            "cpu_time": 14.57,
+            "wall_time": 2.13,
+            "cpu_time_cum": 111.58,
+            "wall_time_cum": 2.13,
+        },
+        {"name": "scrwritepmat", "number": 420, "finished": False},
+    ],
+    "success": False,
+    "last_finished_task": "scrgeneigvec",
+}
 
 
-@pytest.mark.parametrize(["infoxs_file_str", "reference_parsed_dict"],
-                         [(infoxs_file_str_success, reference_parsed_infoxs_file_times_success),
-                          (infoxs_file_str_fail, reference_parsed_infoxs_file_times_fail)])
+@pytest.mark.parametrize(
+    ["infoxs_file_str", "reference_parsed_dict"],
+    [
+        (infoxs_file_str_success, reference_parsed_infoxs_file_times_success),
+        (infoxs_file_str_fail, reference_parsed_infoxs_file_times_fail),
+    ],
+)
 def test_parse_info_xs_out_timing(infoxs_file_str, reference_parsed_dict, tmp_path):
     infoxs_file_path = tmp_path / "INFOXS.OUT"
     infoxs_file_path.write_text(infoxs_file_str)

@@ -1,4 +1,4 @@
-""" Utilities to interact with the pymatgen library. """
+"""Utilities to interact with the pymatgen library."""
 
 from pymatgen.core import Structure
 
@@ -7,7 +7,7 @@ from excitingtools.constants.units import angstrom_to_bohr, bohr_to_angstrom
 
 
 def exciting_structure_to_pymatgen(structure: ExcitingStructure) -> Structure:
-    """ Function to extract the physical structure from an exciting structure object
+    """Function to extract the physical structure from an exciting structure object
     and transforms it into a pymatgen.core.structure.Structure object.
 
     :param structure: input exciting structure object
@@ -20,7 +20,7 @@ def exciting_structure_to_pymatgen(structure: ExcitingStructure) -> Structure:
 
 
 def pymatgen_to_exciting_structure(structure: Structure) -> ExcitingStructure:
-    """ Initialise lattice, species and positions from a pymatgen Structure Object.
+    """Initialise lattice, species and positions from a pymatgen Structure Object.
     Note: pymatgen works in Angstrom, whereas exciting expects atomic units
 
     :param structure: pymatgen Structure object.

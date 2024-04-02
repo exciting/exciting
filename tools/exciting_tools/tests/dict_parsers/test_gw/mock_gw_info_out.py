@@ -1,24 +1,4 @@
-"""Outputs from GW_INFO.OUT
-"""
-import pytest
-from excitingtools.utils.test_utils import MockFile
-
-from excitingtools.exciting_dict_parsers.gw_info_parser import _file_name
-
-
-@pytest.fixture
-def zro2_gw_info_out_mock(tmp_path):
-    file = tmp_path / _file_name
-    file.write_text(zro2_gw_info_out)
-    return MockFile(file, zro2_gw_info_out)
-
-
-@pytest.fixture
-def si_2_gw_info_out_mock(tmp_path):
-    file = tmp_path / _file_name
-    file.write_text(si_2_gw_info_out)
-    return MockFile(file, si_2_gw_info_out)
-
+"""Outputs from GW_INFO.OUT"""
 
 # GW output for ZrO2. This reports an indirect gap, as well as its direct gap
 zro2_gw_info_out = """
@@ -418,4 +398,3 @@ si_2_gw_info_out = """
  _________________________________________________________
  Total                                      :         4.25
 """
-

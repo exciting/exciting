@@ -1,12 +1,13 @@
 import numpy as np
 import pytest
+
+from excitingtools.exciting_dict_parsers.properties_parser import parse_band_structure_dat, parse_band_structure_xml
 from excitingtools.utils.test_utils import MockFile
-from excitingtools.exciting_dict_parsers.properties_parser import parse_band_structure_xml, parse_band_structure_dat
 
 
 @pytest.fixture
 def band_structure_dat_mock(tmp_path) -> MockFile:
-    """ Mock 'bandstructure.dat' data, containing only two bands and
+    """Mock 'bandstructure.dat' data, containing only two bands and
     only 6 k-sampling points per band.
     """
     bs_dat_str = """#            1          2         6
@@ -32,69 +33,86 @@ def band_structure_dat_mock(tmp_path) -> MockFile:
 def test_parse_band_structure_xml():
     band_data = parse_band_structure_xml(band_structure_xml)
 
-    assert band_data['n_kpts'] == band_data['band_energies'].shape[0], (
-        "First dim of bands array equals the number of k-sampling points in the band structure")
-    assert band_data['n_kpts'] == 6, "sampling points per band"
-    assert band_data['n_bands'] == 2, "band_structure_xml contains two bands"
+    assert (
+        band_data["n_kpts"] == band_data["band_energies"].shape[0]
+    ), "First dim of bands array equals the number of k-sampling points in the band structure"
+    assert band_data["n_kpts"] == 6, "sampling points per band"
+    assert band_data["n_bands"] == 2, "band_structure_xml contains two bands"
 
-    ref_k_points = [0., 0.04082159, 0.08164318, 0.12246477, 0.16328636, 0.20410795]
+    ref_k_points = [0.0, 0.04082159, 0.08164318, 0.12246477, 0.16328636, 0.20410795]
 
-    ref_bands = np.array([[-0.45003454, -0.00937631],
-                          [-0.44931675, -0.01419609],
-                          [-0.44716535, -0.02681183],
-                          [-0.44358550, -0.04401707],
-                          [-0.43858583, -0.06361773],
-                          [-0.43217908, -0.0844593]])
+    ref_bands = np.array(
+        [
+            [-0.45003454, -0.00937631],
+            [-0.44931675, -0.01419609],
+            [-0.44716535, -0.02681183],
+            [-0.44358550, -0.04401707],
+            [-0.43858583, -0.06361773],
+            [-0.43217908, -0.0844593],
+        ]
+    )
 
-    assert np.allclose(band_data['k_points_along_band'], ref_k_points, atol=1.e-8)
-    assert np.allclose(band_data['band_energies'], ref_bands, atol=1.e-8)
+    assert np.allclose(band_data["k_points_along_band"], ref_k_points, atol=1.0e-8)
+    assert np.allclose(band_data["band_energies"], ref_bands, atol=1.0e-8)
 
 
 def test_parse_band_structure_xml_vertices():
-    vertices_ref = [{'distance': 0.0, 'label': 'G', 'coord': [0.0, 0.0, 0.0]},
-                    {'distance': 0.6123238446, 'label': 'X', 'coord': [0.5, 0.0, 0.5]},
-                    {'distance': 0.918485767, 'label': 'W', 'coord': [0.5, 0.25, 0.75]},
-                    {'distance': 1.134974938, 'label': 'K', 'coord': [0.375, 0.375, 0.75]},
-                    {'distance': 1.784442453, 'label': 'G', 'coord': [0.0, 0.0, 0.0]},
-                    {'distance': 2.314730457, 'label': 'L', 'coord': [0.5, 0.5, 0.5]},
-                    {'distance': 2.689700702, 'label': 'U', 'coord': [0.625, 0.25, 0.625]},
-                    {'distance': 2.906189873, 'label': 'W', 'coord': [0.5, 0.25, 0.75]},
-                    {'distance': 3.339168216, 'label': 'L', 'coord': [0.5, 0.5, 0.5]},
-                    {'distance': 3.71413846, 'label': 'K', 'coord': [0.375, 0.375, 0.75]},
-                    {'distance': 3.71413846, 'label': 'U', 'coord': [0.625, 0.25, 0.625]},
-                    {'distance': 3.930627631, 'label': 'X', 'coord': [0.5, 0.0, 0.5]}]
+    vertices_ref = [
+        {"distance": 0.0, "label": "G", "coord": [0.0, 0.0, 0.0]},
+        {"distance": 0.6123238446, "label": "X", "coord": [0.5, 0.0, 0.5]},
+        {"distance": 0.918485767, "label": "W", "coord": [0.5, 0.25, 0.75]},
+        {"distance": 1.134974938, "label": "K", "coord": [0.375, 0.375, 0.75]},
+        {"distance": 1.784442453, "label": "G", "coord": [0.0, 0.0, 0.0]},
+        {"distance": 2.314730457, "label": "L", "coord": [0.5, 0.5, 0.5]},
+        {"distance": 2.689700702, "label": "U", "coord": [0.625, 0.25, 0.625]},
+        {"distance": 2.906189873, "label": "W", "coord": [0.5, 0.25, 0.75]},
+        {"distance": 3.339168216, "label": "L", "coord": [0.5, 0.5, 0.5]},
+        {"distance": 3.71413846, "label": "K", "coord": [0.375, 0.375, 0.75]},
+        {"distance": 3.71413846, "label": "U", "coord": [0.625, 0.25, 0.625]},
+        {"distance": 3.930627631, "label": "X", "coord": [0.5, 0.0, 0.5]},
+    ]
 
     band_data = parse_band_structure_xml(band_structure_xml)
-    assert band_data['vertices'] == vertices_ref
+    assert band_data["vertices"] == vertices_ref
 
 
 def test_parse_band_structure_dat(band_structure_dat_mock):
     band_data = parse_band_structure_dat(band_structure_dat_mock.file)
 
-    assert band_data['n_kpts'] == band_data['band_energies'].shape[0], (
-        "First dim of bands array equals the number of k-sampling points in the band structure")
-    assert band_data['n_kpts'] == 6, "sampling points per band"
-    assert band_data['n_bands'] == 2, "band_structure_xml contains two bands"
+    assert (
+        band_data["n_kpts"] == band_data["band_energies"].shape[0]
+    ), "First dim of bands array equals the number of k-sampling points in the band structure"
+    assert band_data["n_kpts"] == 6, "sampling points per band"
+    assert band_data["n_bands"] == 2, "band_structure_xml contains two bands"
 
-    ref_k_points = np.array([[1.000000, 0.000000, 0.000000],
-                             [0.988281, 0.011719, 0.000000],
-                             [0.976562, 0.023438, 0.000000],
-                             [0.964844, 0.035156, 0.000000],
-                             [0.953125, 0.046875, 0.000000],
-                             [0.941406, 0.058594, 0.000000]])
+    ref_k_points = np.array(
+        [
+            [1.000000, 0.000000, 0.000000],
+            [0.988281, 0.011719, 0.000000],
+            [0.976562, 0.023438, 0.000000],
+            [0.964844, 0.035156, 0.000000],
+            [0.953125, 0.046875, 0.000000],
+            [0.941406, 0.058594, 0.000000],
+        ]
+    )
 
-    ref_bands = np.array([[-3.370713328, -2.024168147],
-                          [-3.370710744, -2.024186985],
-                          [-3.370705193, -2.024297489],
-                          [-3.370698602, -2.024460642],
-                          [-3.370682200, -2.024597185],
-                          [-3.370661229, -2.024765908]])
+    ref_bands = np.array(
+        [
+            [-3.370713328, -2.024168147],
+            [-3.370710744, -2.024186985],
+            [-3.370705193, -2.024297489],
+            [-3.370698602, -2.024460642],
+            [-3.370682200, -2.024597185],
+            [-3.370661229, -2.024765908],
+        ]
+    )
 
-    ref_flattened_k_points = np.array([0., 0.02697635, 0.05395270, 0.08092905, 0.10790540, 0.13488176])
+    ref_flattened_k_points = np.array([0.0, 0.02697635, 0.05395270, 0.08092905, 0.10790540, 0.13488176])
 
-    assert np.allclose(band_data['k_points'], ref_k_points, atol=1.e-8)
-    assert np.allclose(band_data['flattened_k_points'], ref_flattened_k_points, atol=1.e-8)
-    assert np.allclose(band_data['band_energies'], ref_bands, atol=1.e-8)
+    assert np.allclose(band_data["k_points"], ref_k_points, atol=1.0e-8)
+    assert np.allclose(band_data["flattened_k_points"], ref_flattened_k_points, atol=1.0e-8)
+    assert np.allclose(band_data["band_energies"], ref_bands, atol=1.0e-8)
+
 
 # Band structure of silicon, containing two lowest bands and only 6 k-sampling points per band
 
@@ -132,4 +150,3 @@ band_structure_xml = """<?xml version="1.0" encoding="UTF-8"?>
   <vertex distance="3.930627631" upperboundary="0.8623187822" lowerboundary="-1.106211197" label="X" coord="0.5000000000       0.000000000      0.5000000000"/>
 </bandstructure>
 """
-

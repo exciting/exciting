@@ -1,4 +1,5 @@
-""" Input xml class. """
+"""Input xml class."""
+
 from pathlib import Path
 from typing import Union
 
@@ -12,6 +13,7 @@ class ExcitingInputXML(ExcitingXMLInput):
     """
     Container for a complete input xml file.
     """
+
     name = "input"
     _default_filename = "input.xml"
     structure: ExcitingStructure
@@ -19,7 +21,7 @@ class ExcitingInputXML(ExcitingXMLInput):
     title: ExcitingTitleInput
 
     def set_title(self, title: str):
-        """ Set a new title. """
+        """Set a new title."""
         self.__dict__["title"].title = title
 
     def to_xml_str(self) -> str:

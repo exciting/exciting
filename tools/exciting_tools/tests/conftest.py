@@ -3,6 +3,7 @@ File containing pytest fixtures. They can be seen from all other files and subdi
 That's because of the special name of the file.
 Needed for testing environment variables.
 """
+
 import pytest
 
 
