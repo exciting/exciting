@@ -1,5 +1,5 @@
-"""Utils for serialization for jobflow.
-"""
+"""Utils for serialization for jobflow."""
+
 import os
 
 
@@ -10,6 +10,6 @@ def special_serialization_attrs(instance) -> dict:
     :param instance: object you want to serialise
     :returns: dictionary with the special keys + values
     """
-    if os.getenv('USE_JOBFLOW') is not None:
-        return {"@module": instance.__class__.__module__, "@class": instance.__class__.__name__, }
+    if os.getenv("USE_JOBFLOW") is not None:
+        return {"@module": instance.__class__.__module__, "@class": instance.__class__.__name__}
     return {}

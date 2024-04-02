@@ -1,21 +1,25 @@
-""" Band structure class. """
+"""Band structure class."""
 
-from typing import Tuple, List, Optional, Union
-from excitingtools.eigenstates.eigenstates import get_k_point_index
+from typing import List, Optional, Tuple, Union
+
 import numpy as np
+
+from excitingtools.eigenstates.eigenstates import get_k_point_index
 
 
 class BandData:
     ticks_and_labels = Tuple[np.ndarray, List[str]]
-    vertex_keys = ['distance', 'label', 'coord']
+    vertex_keys = ["distance", "label", "coord"]
 
-    def __init__(self,
-                 bands: np.ndarray,
-                 k_points: np.ndarray,
-                 e_fermi: float,
-                 flattened_k_points: Optional[np.ndarray] = None,
-                 vertices: Optional[List[dict]] = None):
-        """ Initialise BandData.
+    def __init__(
+        self,
+        bands: np.ndarray,
+        k_points: np.ndarray,
+        e_fermi: float,
+        flattened_k_points: Optional[np.ndarray] = None,
+        vertices: Optional[List[dict]] = None,
+    ):
+        """Initialise BandData.
 
         :param bands: Band energies with shape (n_k_points, n_bands).
         :param: k_points: k-points at which the band energies have been computed.
@@ -34,7 +38,7 @@ class BandData:
         self.i_vbm, self.i_cbm = self.get_band_edges()
 
     def band_path(self) -> ticks_and_labels:
-        """ Get an array of points in the k-path that correspond to high symmetry points,
+        """Get an array of points in the k-path that correspond to high symmetry points,
         and a list of their labels.
 
         vertices expected to have the form
@@ -47,8 +51,7 @@ class BandData:
         if self.vertices is None:
             return np.empty(shape=1), []
 
-        assert list(self.vertices[0].keys()) == self.vertex_keys, \
-            f'Expect a vertex to have the keys {self.vertex_keys}'
+        assert list(self.vertices[0].keys()) == self.vertex_keys, f"Expect a vertex to have the keys {self.vertex_keys}"
 
         vertices = [self.vertices[0]["distance"]]
         labels = [self.vertices[0]["label"]]
@@ -60,22 +63,21 @@ class BandData:
             # Handle discontinuities in the band path
             if np.isclose(vertex, vertices[-1]):
                 vertices.pop()
-                label = labels.pop() + ',' + label
+                label = labels.pop() + "," + label
 
             vertices.append(vertex)
             labels.append(label)
 
         # Replace for plotting purposes
-        unicode_gamma = '\u0393'
-        for label in ['Gamma', 'gamma', 'G']:
+        unicode_gamma = "\u0393"
+        for label in ["Gamma", "gamma", "G"]:
             labels = list(map(lambda x: x.replace(label, unicode_gamma), labels))
 
         return np.asarray(vertices), labels
 
     def get_k_point_index(self, k_point: Union[List[float], np.ndarray]) -> int:
-
         if len(k_point) != 3:
-            raise TypeError('Expected type for k-point: list or NumPy array of length 3')
+            raise TypeError("Expected type for k-point: list or NumPy array of length 3")
 
         return get_k_point_index(k_point, self.k_points, verbose=False)
 
@@ -96,18 +98,16 @@ class BandData:
         i_vbm = n_occupied - 1
 
         if i_vbm + 1 >= self.n_bands:
-            raise ValueError(f'Fermi level {self.e_fermi} larger than highest band energy {np.amax(self.bands)}')
+            raise ValueError(f"Fermi level {self.e_fermi} larger than highest band energy {np.amax(self.bands)}")
 
         return i_vbm, i_vbm + 1
 
     def get_valence_band_maximum(self) -> float:
-        """Get the value of the valence band maximum.
-        """
+        """Get the value of the valence band maximum."""
         return np.amax(self.bands[:, self.i_vbm])
 
     def get_conduction_band_minimum(self) -> float:
-        """Get the value of the conduction band minimum.
-        """
+        """Get the value of the conduction band minimum."""
         return np.amin(self.bands[:, self.i_cbm])
 
     def get_fundamental_band_gap(self) -> float:
@@ -125,7 +125,7 @@ class BandData:
         return self.bands[ik_c, self.i_cbm] - self.bands[ik_v, self.i_vbm]
 
     def get_band_gap(self, k_valence, k_conduction):
-        """ Get the value of the band gap calculated between two given k-points.
+        """Get the value of the band gap calculated between two given k-points.
 
         :param k_valence: k-point for the valence band.
         :param k_conduction: k-point for the valence band.

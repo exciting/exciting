@@ -86,15 +86,26 @@ from excitingtools.maths.math_utils import triple_product
 ```
 Exposed modules, forming user API, should be defined in `__init__.py` where ever possible.
 
-## Code Formatting 
-We currently favour [yapf](https://github.com/google/yapf) formatter, which by default applies PEP8 formatting to 
-the code.  
+## Code Checking and Formatting 
+We currently favour the [ruff](https://github.com/astral-sh/ruff) formatter, which by default applies PEP8 formatting to 
+the code. Additional rule selection and configuration can be found in the `pyproject.toml` file.
 
-After installing yapf, if you are in the root directory of excitingtools, you can simply type:
+After installing ruff via pip, if you are in the root directory of excitingtools, you can simply type:
 ```bash
-yapf -i excitingtools/path/to/file.py
+ruff check excitingtools/path/to/file.py
 ```
-and it will do the formatting for you. Note: This will automatically use our custom `.style.yapf` style-file.
+This will check the selected file for common errors. Without a path the whole project will be checked.
+
+Some problems can be solved automatically with enabling the `--fix` feature:
+```bash
+ruff check --fix excitingtools/path/to/file.py
+```
+Afterward, you can type
+```bash
+ruff format excitingtools/path/to/file.py
+```
+and it will do the formatting for you for the selected file, or again for the whole project without an argument.
+Check out the [docs](https://docs.astral.sh/ruff/) for more options.
 
 ## Documentation 
 
@@ -345,6 +356,7 @@ The following people (in alphabetic order by their family names) have contribute
 * Hannah Kleine
 * Martin Kuban
 * Benedikt Maurer
+* Ronaldo Pela
 * Fabian Peschel
 * Daniel Speckhard
 * Elisa Stephan

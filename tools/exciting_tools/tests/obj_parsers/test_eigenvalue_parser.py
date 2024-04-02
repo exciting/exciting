@@ -1,13 +1,13 @@
 import numpy as np
 import pytest
-from excitingtools.utils.test_utils import MockFile
+
 from excitingtools.exciting_obj_parsers.eigenvalue_parser import parse_eigenvalues
+from excitingtools.utils.test_utils import MockFile
 
 
 @pytest.fixture
 def eigval_xml_mock(tmp_path) -> MockFile:
-    """ Mock 'eigval.xml' data, containing only two k-sampling points.
-    """
+    """Mock 'eigval.xml' data, containing only two k-sampling points."""
     eigval_xml_str = """<?xml version="1.0" encoding="UTF-8"?>
     <eigval>
         <kpt ik="1" vkl="0.000000000000e0 0.000000000000e0 0.000000000000e0">
@@ -46,10 +46,34 @@ def test_parse_eigenvalues(eigval_xml_mock):
 
     ref_k_points = np.array([[0.0, 0.0, 0.0], [0.25, 0.0, 0.0]])
 
-    ref_eigenvalues = np.array([[-0.37284538, 0.41711092, 0.41711254, 0.41711254, 0.62407639, 0.62407733, 0.62407733,
-                                 0.90577707, 1.12982943, 1.39260832],
-                                [-0.30988964, 0.17579802, 0.35365277, 0.35365392, 0.70554696, 0.70554812, 0.71764897,
-                                 0.95780094, 1.18348852, 1.24223224]])
+    ref_eigenvalues = np.array(
+        [
+            [
+                -0.37284538,
+                0.41711092,
+                0.41711254,
+                0.41711254,
+                0.62407639,
+                0.62407733,
+                0.62407733,
+                0.90577707,
+                1.12982943,
+                1.39260832,
+            ],
+            [
+                -0.30988964,
+                0.17579802,
+                0.35365277,
+                0.35365392,
+                0.70554696,
+                0.70554812,
+                0.71764897,
+                0.95780094,
+                1.18348852,
+                1.24223224,
+            ],
+        ]
+    )
 
     ref_occupations = np.array([[2, 2, 2, 2, 0, 0, 0, 0, 0, 0], [2, 2, 2, 2, 0, 0, 0, 0, 0, 0]])
 

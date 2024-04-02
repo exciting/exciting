@@ -1,5 +1,5 @@
-"""Parsers for BSE output files.
-"""
+"""Parsers for BSE output files."""
+
 import re
 from typing import Optional
 
@@ -7,7 +7,7 @@ import numpy as np
 
 
 def numpy_gen_from_txt(name: str, skip_header: Optional[int] = 0) -> np.ndarray:
-    """  Numpy genfromtxt, dressed in try/expect.
+    """Numpy genfromtxt, dressed in try/expect.
 
     Not worth generalising, as would need to support genfromtxt's API.
 
@@ -18,7 +18,7 @@ def numpy_gen_from_txt(name: str, skip_header: Optional[int] = 0) -> np.ndarray:
     try:
         data = np.genfromtxt(name, skip_header=skip_header)
     except ValueError:
-        raise ValueError(f'Failed to parse {name}')
+        raise ValueError(f"Failed to parse {name}")
     return data
 
 
@@ -35,7 +35,7 @@ def parse_EPSILON_NAR(name: str) -> dict:
         "frequency": data[:, 0],
         "real_oscillator_strength": data[:, 1],
         "imag_oscillator_strength": data[:, 2],
-        "real_oscillator_strength_kkt": data[:, 3]
+        "real_oscillator_strength_kkt": data[:, 3],
     }
     return out
 
@@ -47,11 +47,7 @@ def parse_LOSS_NAR(name):
      LOSS_NAR_NLF_FXCMB1_OC_QMT001.OUT.xml
     """
     data = numpy_gen_from_txt(name, skip_header=14)
-    out = {
-        "frequency": data[:, 0],
-        "real_oscillator_strength": data[:, 1],
-        "imag_oscillator_strength": data[:, 2]
-    }
+    out = {"frequency": data[:, 0], "real_oscillator_strength": data[:, 1], "imag_oscillator_strength": data[:, 2]}
 
     return out
 
@@ -84,7 +80,7 @@ def parse_infoxs_out(name: str, parse_timing: bool = False) -> dict:
     If the task is found to be finished afterwards, the status finished is set to True.
 
     For success, the last started tasks has to be finished after that (in the file).
-    Last finished task is the last task if calculation was successful, the task before that 
+    Last finished task is the last task if calculation was successful, the task before that
     if it finished, else None.
     :param name: path of the file to parse
     :param parse_timing: parse also timing information for the tasks. By default this is set to
@@ -98,44 +94,39 @@ def parse_infoxs_out(name: str, parse_timing: bool = False) -> dict:
     current_task = -1
 
     lines = "\n".join(lines)
-    all_tasks = re.findall(r'EXCITING .* (started) for task (.*) \( ?(\d+)\)|'
-                           r'EXCITING .* stopped for task .* (\d+)', lines)
+    all_tasks = re.findall(
+        r"EXCITING .* (started) for task (.*) \( ?(\d+)\)|EXCITING .* stopped for task .* (\d+)", lines
+    )
 
     for task in all_tasks:
-        if task[0] == 'started':
-            tasks.append({
-                'name': task[1],
-                'number': int(task[2]),
-                'finished': False
-            })
+        if task[0] == "started":
+            tasks.append({"name": task[1], "number": int(task[2]), "finished": False})
             current_task += 1
         else:
             # asserts shouldn't happen with Exciting:
-            assert tasks != [], 'No tasks started!'
-            assert tasks[current_task]['number'] == int(task[3]), 'Wrong task stopped.'
-            tasks[current_task]['finished'] = True
+            assert tasks, "No tasks started!"
+            assert tasks[current_task]["number"] == int(task[3]), "Wrong task stopped."
+            tasks[current_task]["finished"] = True
 
-    success = tasks[-1]['finished']
+    success = tasks[-1]["finished"]
     last_finished_task = None
     if success:
-        last_finished_task = tasks[-1]['name']
-    elif len(tasks) > 1 and tasks[-2]['finished']:
-        last_finished_task = tasks[-2]['name']
+        last_finished_task = tasks[-1]["name"]
+    elif len(tasks) > 1 and tasks[-2]["finished"]:
+        last_finished_task = tasks[-2]["name"]
 
     if parse_timing:
         times = parse_times(lines)
-        finished_tasks = [task for task in tasks if task['finished']]
-        assert len(times['cpu']) == len(finished_tasks), 'Numbers of finished tasks and parsed times are not the same.'
+        finished_tasks = [task for task in tasks if task["finished"]]
+        assert len(times["cpu"]) == len(finished_tasks), "Numbers of finished tasks and parsed times are not the same."
 
         for index, task in enumerate(finished_tasks):
-            task['cpu_time'] = float(times['cpu'][index])
-            task['wall_time'] = float(times['wall'][index])
-            task['cpu_time_cum'] = float(times['cpu_cum'][index])
-            task['wall_time_cum'] = float(times['wall_cum'][index])
-    
-    return {'tasks': tasks,
-            'success': success,
-            'last_finished_task': last_finished_task}
+            task["cpu_time"] = float(times["cpu"][index])
+            task["wall_time"] = float(times["wall"][index])
+            task["cpu_time_cum"] = float(times["cpu_cum"][index])
+            task["wall_time_cum"] = float(times["wall_cum"][index])
+
+    return {"tasks": tasks, "success": success, "last_finished_task": last_finished_task}
 
 
 def parse_times(infoxs_string: str) -> dict:
@@ -143,16 +134,13 @@ def parse_times(infoxs_string: str) -> dict:
     :param infoxs_string: String that contains the INFOXS.OUT file.
     :returns: dictionary containing a list of run times for each measurement.
     """
-    cpu_times = re.findall(r'CPU time \s*: ([\d\.\d]+) sec', infoxs_string)
-    wall_times = re.findall(r'wall time \s*: ([\d\.\d]+) sec', infoxs_string)
-    cpu_times_cum = re.findall(r'CPU time \s* \(cumulative\) \s*: ([\d\.\d]+) sec', infoxs_string)
-    wall_times_cum = re.findall(r'wall time \(cumulative\) \s*: ([\d\.\d]+) sec', infoxs_string)
+    cpu_times = re.findall(r"CPU time \s*: ([\d\.\d]+) sec", infoxs_string)
+    wall_times = re.findall(r"wall time \s*: ([\d\.\d]+) sec", infoxs_string)
+    cpu_times_cum = re.findall(r"CPU time \s* \(cumulative\) \s*: ([\d\.\d]+) sec", infoxs_string)
+    wall_times_cum = re.findall(r"wall time \(cumulative\) \s*: ([\d\.\d]+) sec", infoxs_string)
 
-    assert len(cpu_times) == len(wall_times), 'Numbers of parsed timings are not consistent.'
-    assert len(cpu_times) == len(cpu_times_cum), 'Numbers of parsed timings are not consistent.'
-    assert len(cpu_times) == len(wall_times_cum), 'Numbers of parsed timings are not consistent.'
-    
-    return {'cpu': cpu_times, 
-            'wall': wall_times,
-            'cpu_cum': cpu_times_cum,
-            'wall_cum': wall_times_cum}
+    assert len(cpu_times) == len(wall_times), "Numbers of parsed timings are not consistent."
+    assert len(cpu_times) == len(cpu_times_cum), "Numbers of parsed timings are not consistent."
+    assert len(cpu_times) == len(wall_times_cum), "Numbers of parsed timings are not consistent."
+
+    return {"cpu": cpu_times, "wall": wall_times, "cpu_cum": cpu_times_cum, "wall_cum": wall_times_cum}

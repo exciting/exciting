@@ -20,7 +20,10 @@ def test_parse(tmp_path: Path) -> None:
     file.write_text("a\n" * 14 + "0 0 0 1\n0 0 0 2")
     parsed_data = parse(file.as_posix())
     assert set(parsed_data) == {
-        "frequency", "imag_oscillator_strength", "real_oscillator_strength", "real_oscillator_strength_kkt"
+        "frequency",
+        "imag_oscillator_strength",
+        "real_oscillator_strength",
+        "real_oscillator_strength_kkt",
     }
     assert_allclose(parsed_data["frequency"], [0.0, 0.0])
     assert_allclose(parsed_data["imag_oscillator_strength"], [0.0, 0.0])

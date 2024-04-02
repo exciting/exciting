@@ -14,8 +14,9 @@ mock_binary = "false_exciting_binary"
 @pytest.mark.xfail(shutil.which(mock_binary) is not None, reason="Binary name exists.")
 def test_no_binary():
     my_runner = BinaryRunner(mock_binary, "./", 1, 1)
-    with pytest.raises(FileNotFoundError,
-                       match=fr"{mock_binary} binary is not present in the current directory nor in \$PATH"):
+    with pytest.raises(
+        FileNotFoundError, match=rf"{mock_binary} binary is not present in the current directory nor in \$PATH"
+    ):
         my_runner.run()
 
 
@@ -72,31 +73,36 @@ def test_false_timeout(exciting_smp: str):
 
 @pytest.fixture
 def runner(tmp_path: Path, exciting_mpismp: str) -> BinaryRunner:
-    """Produces a runner with binary and run dir mocked up.
-    """
+    """Produces a runner with binary and run dir mocked up."""
     run_dir = tmp_path / "ab/de"
     run_dir.mkdir(parents=True)
     return BinaryRunner(exciting_mpismp, ["mpirun", "-np", "3"], 4, 260, run_dir.as_posix(), [">", "std.out"])
 
 
-def test_as_dict(tmp_path: Path, runner: BinaryRunner, mock_env_jobflow_missing):
-    assert runner.as_dict() == {'args': ['>', 'std.out'],
-                                'binary': (tmp_path / "exciting_mpismp").as_posix(),
-                                'directory': (tmp_path / "ab/de").as_posix(),
-                                'omp_num_threads': 4,
-                                'run_cmd': ['mpirun', '-np', '3'],
-                                'time_out': 260}
+@pytest.mark.usefixtures("mock_env_jobflow_missing")
+def test_as_dict(tmp_path: Path, runner: BinaryRunner):
+    assert runner.as_dict() == {
+        "args": [">", "std.out"],
+        "binary": (tmp_path / "exciting_mpismp").as_posix(),
+        "directory": (tmp_path / "ab/de").as_posix(),
+        "omp_num_threads": 4,
+        "run_cmd": ["mpirun", "-np", "3"],
+        "time_out": 260,
+    }
 
 
-def test_as_dict_jobflow(tmp_path: Path, runner: BinaryRunner, mock_env_jobflow):
-    assert runner.as_dict() == {'@class': 'BinaryRunner',
-                                '@module': 'excitingtools.runner.runner',
-                                'args': ['>', 'std.out'],
-                                'binary': (tmp_path / "exciting_mpismp").as_posix(),
-                                'directory': (tmp_path / "ab/de").as_posix(),
-                                'omp_num_threads': 4,
-                                'run_cmd': ['mpirun', '-np', '3'],
-                                'time_out': 260}
+@pytest.mark.usefixtures("mock_env_jobflow")
+def test_as_dict_jobflow(tmp_path: Path, runner: BinaryRunner):
+    assert runner.as_dict() == {
+        "@class": "BinaryRunner",
+        "@module": "excitingtools.runner.runner",
+        "args": [">", "std.out"],
+        "binary": (tmp_path / "exciting_mpismp").as_posix(),
+        "directory": (tmp_path / "ab/de").as_posix(),
+        "omp_num_threads": 4,
+        "run_cmd": ["mpirun", "-np", "3"],
+        "time_out": 260,
+    }
 
 
 def test_from_dict(tmp_path: Path, runner):
@@ -116,7 +122,7 @@ def test_run_with_bash_command(tmp_path: Path):
     runner = BinaryRunner(binary.as_posix(), ["echo"], 1, 60, run_dir.as_posix())
     run_results = runner.run()
     assert run_results.success
-    assert run_results.stderr == ''
+    assert run_results.stderr == ""
     assert run_results.stdout == binary.as_posix() + "\n"
 
 
@@ -131,7 +137,7 @@ def test_timeout_with_bash_command(tmp_path: Path):
     runner = BinaryRunner(binary.as_posix(), ["sh"], 1, time_out, tmp_path.as_posix())
     run_results = runner.run()
     assert not run_results.success
-    assert run_results.stderr == 'BinaryRunner: Job timed out. \n\n'
+    assert run_results.stderr == "BinaryRunner: Job timed out. \n\n"
     assert run_results.stdout == ""
     assert run_results.process_time == time_out
     assert isinstance(run_results.return_code, RunnerCode)

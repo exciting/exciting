@@ -1,10 +1,10 @@
-""" Classes and functions to aid unit testing.
-"""
+"""Classes and functions to aid unit testing."""
+
 import pathlib
 
 
 class MockFile:
-    """ Single class for testing parsers that require either:
+    """Single class for testing parsers that require either:
        * File.
        * String contents of file.
 
@@ -15,6 +15,7 @@ class MockFile:
        file.write_text(string_contents)
        return MockFile(file, string_contents)
     """
+
     def __init__(self, file: pathlib.Path, string: str):
         # File object
         self.file = file

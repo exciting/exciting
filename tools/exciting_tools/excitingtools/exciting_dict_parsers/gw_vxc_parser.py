@@ -1,9 +1,10 @@
-""" VXCNN.DAT Parser.
-"""
-import numpy as np
+"""VXCNN.DAT Parser."""
+
+import pathlib
 import re
 from typing import Union
-import pathlib
+
+import numpy as np
 
 from excitingtools.dataclasses.data_structs import NumberOfStates
 from excitingtools.exciting_dict_parsers.gw_eigenvalues_parser import n_states_from_file
@@ -21,7 +22,7 @@ def vkl_from_vxc(file_string: str) -> dict:
     :param str file_string: File string.
     :return dict vkl: k-points in fractional coordinates.
     """
-    raw_data: list = re.findall(r'\s*ik= .*$', file_string, flags=re.MULTILINE)
+    raw_data: list = re.findall(r"\s*ik= .*$", file_string, flags=re.MULTILINE)
     vkl = {}
     for ik, line in enumerate(raw_data):
         vkl[ik + 1] = [float(k) for k in line.split()[-3:]]
@@ -63,9 +64,7 @@ def parse_vxnn_vectors(full_file_name: Union[str, pathlib.Path], vkl: dict, n_st
 
     # Must iterate lowest to highest, else data won't match k-points
     for ik in range(1, len(vkl) + 1):
-        vxc_vector = np.loadtxt(full_file_name,
-                                skiprows=skip_lines,
-                                max_rows=n_states)
+        vxc_vector = np.loadtxt(full_file_name, skiprows=skip_lines, max_rows=n_states)
         # Ignore first column (state index)
         data[ik] = vxc_vector[:, 1:]
         skip_lines += n_states + (header_size + blank_line)
@@ -93,12 +92,11 @@ def parse_vxcnn(full_file_name: Union[str, pathlib.Path]) -> dict:
     states = n_states_from_vxcnn(file_string)
     vkl = vkl_from_vxc(file_string)
     v_xc = parse_vxnn_vectors(full_file_name, vkl, states.n_states)
-    assert len(vkl) == len(v_xc), (
-        "Should be a vector of Vxc_NN for each k-point")
+    assert len(vkl) == len(v_xc), "Should be a vector of Vxc_NN for each k-point"
 
     # Repackage Vxc vectors with their respective k-points
     data = {}
     for ik in range(1, len(vkl) + 1):
-        data[ik] = {'vkl': vkl[ik], 'v_xc_nn': v_xc[ik]}
+        data[ik] = {"vkl": vkl[ik], "v_xc_nn": v_xc[ik]}
 
     return data

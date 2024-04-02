@@ -1,5 +1,5 @@
-""" Binary runner and results classes.
-"""
+"""Binary runner and results classes."""
+
 from __future__ import annotations
 
 import copy
@@ -16,16 +16,16 @@ from excitingtools.utils.jobflow_utils import special_serialization_attrs
 
 
 class RunnerCode(enum.Enum):
-    """ Runner codes.
-     By default, the initial value starts at 1.
+    """Runner codes.
+    By default, the initial value starts at 1.
     """
+
     time_out = enum.auto()
 
 
 @dataclass
 class SubprocessRunResults:
-    """ Results returned from subprocess.run()
-    """
+    """Results returned from subprocess.run()"""
 
     stdout: str
     stderr: str
@@ -39,18 +39,20 @@ class SubprocessRunResults:
 
 
 class BinaryRunner:
-    """ Class to execute a subprocess.
-    """
+    """Class to execute a subprocess."""
+
     path_type = Union[str, Path]
 
-    def __init__(self,
-                 binary: path_type,
-                 run_cmd: List[str] | str = "",
-                 omp_num_threads: int = 1,
-                 time_out: int = 60,
-                 directory: path_type = './',
-                 args: Optional[List[str]] = None):
-        """ Initialise class.
+    def __init__(
+        self,
+        binary: path_type,
+        run_cmd: List[str] | str = "",
+        omp_num_threads: int = 1,
+        time_out: int = 60,
+        directory: path_type = "./",
+        args: Optional[List[str]] = None,
+    ):
+        """Initialise class.
 
         :param str binary: Binary name prepended by full path, or just binary name (if present in $PATH).
          No check for existence here as it could live on a remote worker (see run() doc)
@@ -74,9 +76,7 @@ class BinaryRunner:
         if isinstance(run_cmd, str):
             self.run_cmd = run_cmd.split()
         elif not isinstance(run_cmd, list):
-            raise ValueError(
-                "Run commands expected in a str or list. For example ['mpirun', '-np', '2']"
-            )
+            raise ValueError("Run commands expected in a str or list. For example ['mpirun', '-np', '2']")
 
         self._check_mpi_processes()
 
@@ -104,11 +104,10 @@ class BinaryRunner:
         return cls(**my_dict)
 
     def _check_mpi_processes(self):
-        """ Check whether mpi is specified and if yes that the number of MPI processes specified is valid.
-        """
+        """Check whether mpi is specified and if yes that the number of MPI processes specified is valid."""
         # Search if MPI is specified:
         try:
-            i = self.run_cmd.index('-np')
+            i = self.run_cmd.index("-np")
         except ValueError:
             # .index will return ValueError if 'np' not found. This corresponds to serial and omp calculations.
             return
@@ -136,9 +135,7 @@ class BinaryRunner:
         if not binary.is_file():
             binary = shutil.which(self.binary)
             if not binary:
-                raise FileNotFoundError(
-                    f"{self.binary} binary is not present in the current directory nor in $PATH"
-                )
+                raise FileNotFoundError(f"{self.binary} binary is not present in the current directory nor in $PATH")
 
         if not Path(self.directory).is_dir():
             raise OSError(f"Run directory does not exist: {self.directory}")
@@ -155,14 +152,14 @@ class BinaryRunner:
                 capture_output=True,
                 encoding="utf-8",
                 timeout=self.time_out,
+                check=False,
             )
             total_time = time.time() - time_start
-            return SubprocessRunResults(result.stdout, result.stderr,
-                                        result.returncode, total_time)
+            return SubprocessRunResults(result.stdout, result.stderr, result.returncode, total_time)
 
         except subprocess.TimeoutExpired as timed_out:
             output = timed_out.output.decode("utf-8") if timed_out.output else ""
-            error = 'BinaryRunner: Job timed out. \n\n'
+            error = "BinaryRunner: Job timed out. \n\n"
             if timed_out.stderr:
                 error += timed_out.stderr.decode("utf-8")
             return SubprocessRunResults(output, error, RunnerCode.time_out, self.time_out)

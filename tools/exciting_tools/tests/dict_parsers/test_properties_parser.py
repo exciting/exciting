@@ -2,7 +2,6 @@ import numpy as np
 
 from excitingtools.exciting_dict_parsers.properties_parser import parse_charge_density
 
-
 # Most of the values have been removed to shorten the test
 RHO1_xml = """<?xml version="1.0" encoding="UTF-8"?>
 <plot1d>
@@ -24,12 +23,17 @@ RHO1_xml = """<?xml version="1.0" encoding="UTF-8"?>
 </plot1d>
 """
 
+
 def test_parse_charge_density():
     rho1 = parse_charge_density(RHO1_xml)
-    ref = np.array([[0.00000000e+00, 1.98518837e+03],
-                    [4.48811667e-02, 5.08882988e+02],
-                    [8.97623334e-02, 1.51827164e+02],
-                    [1.34643500e-01, 5.22636138e+01],
-                    [1.79524667e-01, 2.43321622e+01],
-                    [2.24405834e-01, 1.59499145e+01]])
-    assert np.allclose(rho1, ref, atol=1.e-8)
+    ref = np.array(
+        [
+            [0.00000000e00, 1.98518837e03],
+            [4.48811667e-02, 5.08882988e02],
+            [8.97623334e-02, 1.51827164e02],
+            [1.34643500e-01, 5.22636138e01],
+            [1.79524667e-01, 2.43321622e01],
+            [2.24405834e-01, 1.59499145e01],
+        ]
+    )
+    assert np.allclose(rho1, ref, atol=1.0e-8)

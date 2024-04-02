@@ -1,13 +1,13 @@
-"""General parser utility functions.
-"""
+"""General parser utility functions."""
+
 import re
-from typing import Dict, Any
-from xml.etree import ElementTree
 from json import JSONDecodeError, loads
+from typing import Any, Dict
+from xml.etree import ElementTree
 
 
 def find_element(root: ElementTree.Element, tag: str) -> ElementTree.Element:
-    """ Finds a given tag in an Element, either return the full ElementTree
+    """Finds a given tag in an Element, either return the full ElementTree
     if the tag is correct or find the tag in that ElementTree.
     :param root: Element to find the tag in
     :param tag: tag to search for
@@ -19,7 +19,7 @@ def find_element(root: ElementTree.Element, tag: str) -> ElementTree.Element:
 
 
 def convert_string_dict(inputs: dict) -> Dict[str, Any]:
-    """ Parses and converts a dictionary with string values to their actual data types.
+    """Parses and converts a dictionary with string values to their actual data types.
 
     :param inputs: input dictionary
     :return: the converted dictionary
@@ -30,25 +30,22 @@ def convert_string_dict(inputs: dict) -> Dict[str, Any]:
 
 
 def convert_single_entry(input_str: str):
-    """ Converts a single string. Accepts also lists separated by whitespaces.
+    """Converts a single string. Accepts also lists separated by whitespaces.
 
     :param input_str: input string
     :return: the converted data
     """
-    split_string = input_str.split()
-    result = []
-    for i in split_string:
-        result.append(json_convert(standardise_fortran_exponent(i)))
+    result = [json_convert(standardise_fortran_exponent(i)) for i in input_str.split()]
 
     if len(result) == 1:
         return result[0]
-    if len(list((filter(lambda x: isinstance(x, str), result)))) == len(result):
+    if len(list(filter(lambda x: isinstance(x, str), result))) == len(result):
         return " ".join(result)
     return result
 
 
 def json_convert(input_str: str):
-    """ Tries to convert a single string with no whitespaces to its actual data type
+    """Tries to convert a single string with no whitespaces to its actual data type
     using the json decoder (detects int, float and bool). Else returns the string as string.
     :param input_str: input string
     :return: the converted value
@@ -67,7 +64,7 @@ def json_convert(input_str: str):
 
 
 def standardise_fortran_exponent(input_str: str, return_as_str: bool = True):
-    """ Tries to convert a single string representing a float value in scientific notation
+    """Tries to convert a single string representing a float value in scientific notation
     to the actual number.
     d(D) and q(Q) correspond to higher floating point precision than e(E). Replace
     them since they cannot be parsed by JSON
@@ -77,7 +74,7 @@ def standardise_fortran_exponent(input_str: str, return_as_str: bool = True):
     :return: If string can be converted to a float return it, else
     return the input string.
     """
-    subbed_str = re.sub('[dDqQ]', 'E', input_str, count=1)
+    subbed_str = re.sub("[dDqQ]", "E", input_str, count=1)
     if subbed_str == input_str:
         return input_str
 

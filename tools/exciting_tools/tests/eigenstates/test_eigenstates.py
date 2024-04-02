@@ -1,18 +1,23 @@
-""" Test for get_index function in eigenstates.py
-"""
+"""Test for get_index function in eigenstates.py"""
+
+import re
+
+import numpy as np
+import pytest
 
 from excitingtools.eigenstates.eigenstates import get_k_point_index
-import pytest
-import numpy as np
-import re
 
 
 def test_get_k_point_index():
-    k_points = np.array([[1.000000, 0.000000, 0.000000],
-                         [0.988281, 0.011719, 0.000000],
-                         [0.988281, 0.011719, 0.000000],
-                         [0.976562, 0.023438, 0.000000],
-                         [0.953125, 0.046875, 0.000000]])
+    k_points = np.array(
+        [
+            [1.000000, 0.000000, 0.000000],
+            [0.988281, 0.011719, 0.000000],
+            [0.988281, 0.011719, 0.000000],
+            [0.976562, 0.023438, 0.000000],
+            [0.953125, 0.046875, 0.000000],
+        ]
+    )
 
     assert get_k_point_index([1.000000, 0.000000, 0.000000], k_points) == 0
     assert get_k_point_index([0.953125, 0.046875, 0.000000], k_points) == 4

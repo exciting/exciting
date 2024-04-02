@@ -1,6 +1,7 @@
-""" Parse the schema and generate a python file which can be read by the input classes.
+"""Parse the schema and generate a python file which can be read by the input classes.
 Should only be run if changes to the schema are made.
 """
+
 import re
 from pathlib import Path
 from typing import List
@@ -12,7 +13,7 @@ from excitingtools.utils.utils import get_excitingtools_root
 
 
 def copy_schema_files_for_parsing(schema_files: List[str]) -> List[Path]:
-    """ Copies the schema files to the current directory.
+    """Copies the schema files to the current directory.
 
     Also generates a file (input.xsd) with schema extensions, with modified include paths.
     This is a work-around because the exciting documentation fails to compile
@@ -57,17 +58,19 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   
 </xs:schema>"""
 
-    inputschemaextentions_path = Path(f'{inputschemaextentions_name}.xsd')
+    inputschemaextentions_path = Path(f"{inputschemaextentions_name}.xsd")
     inputschemaextentions_path.write_text(inputschemaextentions)
     root = get_excitingtools_root()
 
     # handling of the input.xsd file
-    inputschema_file = root / '../../xml/schema/input.xsd'
+    inputschema_file = root / "../../xml/schema/input.xsd"
     content = inputschema_file.read_text().split("\n")
-    content[1] = ('<xs:schema xmlns:ex="inputschemaextentions.xsd" '
-                  'xmlns:xs="http://www.w3.org/2001/XMLSchema" '
-                  'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
-                  'xsi:schemaLocation="inputschemaextentions.xsd inputschemaextentions.xsd">')
+    content[1] = (
+        '<xs:schema xmlns:ex="inputschemaextentions.xsd" '
+        'xmlns:xs="http://www.w3.org/2001/XMLSchema" '
+        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        'xsi:schemaLocation="inputschemaextentions.xsd inputschemaextentions.xsd">'
+    )
     new_inputschema_file = Path("input.xsd")
     new_inputschema_file.write_text("\n".join(content))
 
@@ -75,8 +78,8 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 
     # handling of all other included schema files
     for schema_name in schema_files:
-        schema_root = root / '../../xml/schema'
-        schema_reference = schema_root / f'{schema_name}.xsd'
+        schema_root = root / "../../xml/schema"
+        schema_reference = schema_root / f"{schema_name}.xsd"
         content = schema_reference.read_text().split("\n")
 
         content[1] = f'  xmlns:ex="{inputschemaextentions_name}.xsd"'
@@ -91,7 +94,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 
 
 def read_schema_to_dict(name: str) -> dict:
-    """ Read schema and transform to sensible dictionary.
+    """Read schema and transform to sensible dictionary.
 
     Note: This could be done with an external library, such as `xmltodict` or `xmljson`
     but as this module should be run infrequently, a custom implementation reduces
@@ -100,7 +103,7 @@ def read_schema_to_dict(name: str) -> dict:
     :param name: name of the schema file and tag of the xml element
     :return: a dictionary with the need information about children/parents and valid attributes.
     """
-    schema = xmlschema.XMLSchema(f'{name}.xsd')
+    schema = xmlschema.XMLSchema(f"{name}.xsd")
 
     tag_info = {}
     xsd_elements = filter(lambda x: isinstance(x, xmlschema.XsdElement) and x.ref is None, schema.iter_components())
@@ -112,9 +115,12 @@ def read_schema_to_dict(name: str) -> dict:
         mandatory_children = set([x.name for x in xsd_element.iterchildren() if x.min_occurs > 0])
         multiple_childs = set([x.name for x in xsd_element.iterchildren() if x.max_occurs is None or x.max_occurs > 1])
 
-        tag_info[xsd_element.name] = {"attribs": filter(lambda x: x is not None, attributes), "children": children,
-                                      "mandatory_attribs": mandatory_attributes | mandatory_children,
-                                      "multiple_children": multiple_childs}
+        tag_info[xsd_element.name] = {
+            "attribs": filter(lambda x: x is not None, attributes),
+            "children": children,
+            "mandatory_attribs": mandatory_attributes | mandatory_children,
+            "multiple_children": multiple_childs,
+        }
 
         # special handling for the plan
         if xsd_element.name == "doonly":
@@ -130,7 +136,7 @@ def read_schema_to_dict(name: str) -> dict:
 
 
 def write_schema_info(super_tag: str, schema_dict: dict) -> str:
-    """ Converts dict representation of the schema to string.
+    """Converts dict representation of the schema to string.
 
     :param super_tag: name of the top-level element
     :param schema_dict: contains all the information read from the schema
@@ -139,9 +145,9 @@ def write_schema_info(super_tag: str, schema_dict: dict) -> str:
     info_string = f"\n# {super_tag} information \n"
     for tag in schema_dict:
         valid_attributes = sorted(schema_dict[tag]["attribs"])
-        valid_subtrees = schema_dict[tag]['children']
-        mandatory_attributes = sorted(schema_dict[tag]['mandatory_attribs'])
-        multiple_childs = sorted(schema_dict[tag]['multiple_children'])
+        valid_subtrees = schema_dict[tag]["children"]
+        mandatory_attributes = sorted(schema_dict[tag]["mandatory_attribs"])
+        multiple_childs = sorted(schema_dict[tag]["multiple_children"])
 
         if not (valid_attributes or valid_subtrees or mandatory_attributes):
             continue
@@ -159,7 +165,7 @@ def write_schema_info(super_tag: str, schema_dict: dict) -> str:
 
 
 def list_string_line_limit(name: str, content: list, max_length: int = 120) -> str:
-    """ Given a list of unique items, produces a python formatted string containing the definition of the list
+    """Given a list of unique items, produces a python formatted string containing the definition of the list
     given by the name:
         name = ['entry1', 'entry2', ...]
     Inserts a line break every time the string gets longer then the limit.
@@ -169,37 +175,39 @@ def list_string_line_limit(name: str, content: list, max_length: int = 120) -> s
     :param max_length: the maximum line length
     :return: the formatted string with fixed line length
     """
-    formatted_string = ''
-    current_line_string = name + ' = ['
+    formatted_string = ""
+    current_line_string = name + " = ["
     start_len = len(current_line_string)
-    entry_break_string = "', "
+    entry_break_string = '", '
 
     for entry in content:
         if len(str(entry) + current_line_string + entry_break_string) > max_length:
-            formatted_string += current_line_string + '\n'
-            current_line_string = start_len * ' '
-        current_line_string += f"'{entry}{entry_break_string}"
+            formatted_string += current_line_string + "\n"
+            current_line_string = start_len * " "
+        current_line_string += f'"{entry}{entry_break_string}'
 
     formatted_string += current_line_string[:-2] + "]"
     return formatted_string
 
 
 def get_all_include_files() -> list:
-    """ Gets a list of all included files in the input.xsd file.
-    """
-    input_schema_file = (get_excitingtools_root() / '../../xml/schema/input.xsd').resolve()
+    """Gets a list of all included files in the input.xsd file."""
+    input_schema_file = (get_excitingtools_root() / "../../xml/schema/input.xsd").resolve()
     if not input_schema_file.exists():
-        raise ValueError("Couldn't find exciting schema. Most likely you are using excitingtools outside of exciting."
-                         "To fix this, try installing excitingtools from source in editable (-e) mode.")
+        raise ValueError(
+            "Couldn't find exciting schema. Most likely you are using excitingtools outside of exciting."
+            "To fix this, try installing excitingtools from source in editable (-e) mode."
+        )
     return re.findall(r'<xs:include id=".*" schemaLocation="(.*)\.xsd"/>', input_schema_file.read_text())
 
 
 def main():
-    """ Main function to read the schema and write it to python readable file.
-    """
+    """Main function to read the schema and write it to python readable file."""
     filename = Path(__file__).parent / "valid_attributes.py"
-    info = '""" Automatically generated file with the valid attributes from the schema. \n' \
-           'Do not manually change. Instead, run "utils/schema_parsing.py" to regenerate. """ \n'
+    info = (
+        '""" Automatically generated file with the valid attributes from the schema. \n'
+        'Do not manually change. Instead, run "utils/schema_parsing.py" to regenerate. """ \n'
+    )
 
     schemas = get_all_include_files()
     tmp_files = copy_schema_files_for_parsing(schemas)
@@ -214,7 +222,7 @@ def main():
     # Handle special case for 'xs' to handle the valid plan entries
     xs_schema_dict = read_schema_to_dict("xs")
     info += "\n# valid entries for the xs subtree 'plan'\n"
-    info += list_string_line_limit("valid_plan_entries", sorted(xs_schema_dict['doonly']['plan'])) + " \n"
+    info += list_string_line_limit("valid_plan_entries", sorted(xs_schema_dict["doonly"]["plan"])) + " \n"
 
     with open(filename, "w") as fid:
         fid.write(info)

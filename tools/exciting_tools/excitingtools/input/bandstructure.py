@@ -1,4 +1,5 @@
-""" Generate bandstructure input from atoms. """
+"""Generate bandstructure input from atoms."""
+
 from __future__ import annotations
 
 import re
@@ -16,8 +17,8 @@ _default_steps = 100
 
 
 def band_structure_input_from_cell_or_bandpath(
-        cell_or_bandpath: Cell | ase.dft.kpoints.BandPath,
-        steps: int = _default_steps) -> ExcitingBandStructureInput:
+    cell_or_bandpath: Cell | ase.dft.kpoints.BandPath, steps: int = _default_steps
+) -> ExcitingBandStructureInput:
     """Get band path from ASE lattice cell or ASE bandpath object.
 
     :param cell_or_bandpath: ase.cell.Cell object or ase.dft.kpoints.BandPath
@@ -26,20 +27,20 @@ def band_structure_input_from_cell_or_bandpath(
     """
     bandpath = cell_or_bandpath.bandpath() if isinstance(cell_or_bandpath, Cell) else cell_or_bandpath
     points = []
-    pattern = r'[A-Z,][a-z]*[0-9]*'
+    pattern = r"[A-Z,][a-z]*[0-9]*"
     for point in re.findall(pattern, bandpath.path):
         if point == ",":
             points[-1]["breakafter"] = True
         else:
-            points.append(
-                {"coord": list(bandpath.special_points[point]), "label": point})
+            points.append({"coord": list(bandpath.special_points[point]), "label": point})
 
     return ExcitingBandStructureInput(plot1d={"path": {"steps": steps, "point": points}})
 
 
-def band_structure_input_from_lattice(lattice_vectors: List[List[float]] | np.ndarray,
-                                      steps: int = _default_steps) -> ExcitingBandStructureInput:
-    """ Get band path from lattice vectors as array or list of lists using ASE. Lattice vectors
+def band_structure_input_from_lattice(
+    lattice_vectors: List[List[float]] | np.ndarray, steps: int = _default_steps
+) -> ExcitingBandStructureInput:
+    """Get band path from lattice vectors as array or list of lists using ASE. Lattice vectors
     in array needs to be stored row-wise.
 
     :param lattice_vectors: lattice
@@ -49,9 +50,10 @@ def band_structure_input_from_lattice(lattice_vectors: List[List[float]] | np.nd
     return band_structure_input_from_cell_or_bandpath(Cell(lattice_vectors), steps=steps)
 
 
-def band_structure_input_from_ase_atoms_obj(atoms_obj: Atoms,
-                                            steps: int = _default_steps) -> ExcitingBandStructureInput:
-    """ Get band path from ase object.
+def band_structure_input_from_ase_atoms_obj(
+    atoms_obj: Atoms, steps: int = _default_steps
+) -> ExcitingBandStructureInput:
+    """Get band path from ase object.
 
     :param atoms_obj: ase atoms object
     :param steps: number of steps for bandstructure calculation
@@ -60,9 +62,10 @@ def band_structure_input_from_ase_atoms_obj(atoms_obj: Atoms,
     return band_structure_input_from_cell_or_bandpath(atoms_obj.cell, steps)
 
 
-def get_bandstructure_input_from_exciting_structure(structure: ExcitingStructure,
-                                                    steps: int = _default_steps) -> ExcitingBandStructureInput:
-    """ Use ase bandpath to get bandstructure input for exciting using ASE.
+def get_bandstructure_input_from_exciting_structure(
+    structure: ExcitingStructure, steps: int = _default_steps
+) -> ExcitingBandStructureInput:
+    """Use ase bandpath to get bandstructure input for exciting using ASE.
 
     :param structure: exciting structure input object
     :param steps: number of steps for bandstructure calculation

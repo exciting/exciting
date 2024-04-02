@@ -1,5 +1,6 @@
-""" Automatic generation of all standard input classes plus definiton of exceptions. """
-from typing import List, Union, Any
+"""Automatic generation of all standard input classes plus definiton of exceptions."""
+
+from typing import Any, List, Union
 from xml.etree import ElementTree
 
 import numpy as np
@@ -17,6 +18,7 @@ ExcitingSpeciesInput: Any
 ExcitingAtomInput: Any
 ExcitingGroundStateInput: Any
 ExcitingXSInput: Any
+ExcitingBSEInput: Any
 ExcitingPropertiesInput: Any
 ExcitingPointInput: Any
 ExcitingBandStructureInput: Any
@@ -31,28 +33,30 @@ exec(generate_classes_str())
 
 
 class ExcitingTitleInput(AbstractExcitingInput):
-    """ Holds only the title but for consistency reasons as class. """
+    """Holds only the title but for consistency reasons as class."""
+
     name = "title"
 
     def __init__(self, title: str):
         self.title = title
 
     def to_xml(self) -> ElementTree:
-        """ Puts title to xml, only the text is title. """
+        """Puts title to xml, only the text is title."""
         title_tree = ElementTree.Element(self.name)
         title_tree.text = self.title
         return title_tree
 
 
 class ExcitingKeywordsInput(AbstractExcitingInput):
-    """ Input class for keywords. Can set any info via a text string, it's not used by exciting. """
+    """Input class for keywords. Can set any info via a text string, it's not used by exciting."""
+
     name = "keywords"
 
     def __init__(self, info: str):
         self.info = info
 
     def to_xml(self) -> ElementTree:
-        """ Puts keywords to xml. """
+        """Puts keywords to xml."""
         keywords_tree = ElementTree.Element(self.name)
         keywords_tree.text = self.info
         return keywords_tree
@@ -62,6 +66,7 @@ class ExcitingQpointsetInput(AbstractExcitingInput):
     """
     Class for exciting Qpointset Input
     """
+
     name = "qpointset"
 
     def __init__(self, qpointset: Union[np.ndarray, List[List[float]]] = np.array([0.0, 0.0, 0.0])):
@@ -74,10 +79,10 @@ class ExcitingQpointsetInput(AbstractExcitingInput):
         self.qpointset = qpointset
 
     def to_xml(self) -> ElementTree.Element:
-        """ Special implementation of to_xml for the qpointset element. """
+        """Special implementation of to_xml for the qpointset element."""
         qpointset = ElementTree.Element(self.name)
         for qpoint in self.qpointset:
-            ElementTree.SubElement(qpointset, 'qpoint').text = list_to_str(qpoint)
+            ElementTree.SubElement(qpointset, "qpoint").text = list_to_str(qpoint)
 
         return qpointset
 
@@ -86,6 +91,7 @@ class ExcitingPlanInput(AbstractExcitingInput):
     """
     Class for exciting Plan Input
     """
+
     name = "plan"
 
     def __init__(self, plan: List[str]):
@@ -97,10 +103,10 @@ class ExcitingPlanInput(AbstractExcitingInput):
         self.plan = plan
 
     def to_xml(self) -> ElementTree.Element:
-        """ Special implementation of to_xml for the plan element. """
+        """Special implementation of to_xml for the plan element."""
         plan = ElementTree.Element(self.name)
         for task in self.plan:
-            ElementTree.SubElement(plan, 'doonly', task=task)
+            ElementTree.SubElement(plan, "doonly", task=task)
 
         return plan
 
@@ -109,6 +115,7 @@ class ExcitingKstlistInput(AbstractExcitingInput):
     """
     Class for exciting Kstlist Input
     """
+
     name = "kstlist"
 
     def __init__(self, kstlist: Union[np.ndarray, List[List[int]]]):
@@ -121,9 +128,9 @@ class ExcitingKstlistInput(AbstractExcitingInput):
         self.kstlist = kstlist
 
     def to_xml(self) -> ElementTree.Element:
-        """ Special implementation of to_xml for the kstlist element. """
+        """Special implementation of to_xml for the kstlist element."""
         kstlist = ElementTree.Element(self.name)
         for pointstatepair in self.kstlist:
-            ElementTree.SubElement(kstlist, 'pointstatepair').text = list_to_str(pointstatepair)
+            ElementTree.SubElement(kstlist, "pointstatepair").text = list_to_str(pointstatepair)
 
         return kstlist

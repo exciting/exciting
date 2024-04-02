@@ -1,5 +1,5 @@
-"""Utilities to aid in writing and formatting XML
-"""
+"""Utilities to aid in writing and formatting XML"""
+
 import re
 from xml.dom import minidom
 from xml.etree import ElementTree
@@ -11,7 +11,7 @@ def xml_tree_to_pretty_str(elem: ElementTree.Element) -> str:
     :param ElementTree.Element elem: Element/ element tree
     :return str : XML tree string, with pretty formatting.
     """
-    rough_string = ElementTree.tostring(elem, 'utf-8')
+    rough_string = ElementTree.tostring(elem, "utf-8")
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="\t")
 
@@ -52,36 +52,34 @@ def line_reformatter(input_str: str) -> str:
     tag = full_tag.strip()
     number_of_tag_indents = len(full_tag) - len(tag)
 
-    tag_indent = '\t' * number_of_tag_indents
-    attr_indent = tag_indent + ' ' * 3
+    tag_indent = "\t" * number_of_tag_indents
+    attr_indent = tag_indent + " " * 3
 
     # Get rid of format characters, like \n, \t etc
     input_str = input_str.strip()
 
     # Isolate attributes according to position of quotation marks in string
     # (cannot use whitespaces to split)
-    quote_indices = [x.start() for x in re.finditer('\"', input_str)]
+    quote_indices = [x.start() for x in re.finditer('"', input_str)]
     closing_quote_indices = quote_indices[1::2]
-    attribute_start_indices = [len(tag) + 1] + [i + 1 for i in
-                                                closing_quote_indices[:-1]]
+    attribute_start_indices = [len(tag) + 1] + [i + 1 for i in closing_quote_indices[:-1]]
 
-    reformatted_str = tag_indent + tag + '\n'
+    reformatted_str = tag_indent + tag + "\n"
 
-    for i in range(0, len(attribute_start_indices)):
-        i1 = attribute_start_indices[i]
+    for i, start_index in enumerate(attribute_start_indices):
         i2 = closing_quote_indices[i]
-        attribute_str = input_str[i1:i2 + 1].strip()
-        reformatted_str += attr_indent + attribute_str + '\n'
+        attribute_str = input_str[start_index : i2 + 1].strip()
+        reformatted_str += attr_indent + attribute_str + "\n"
 
     # short ending option:
-    if input_str[-2:] == '/>':
-        return reformatted_str[:-1] + '/>'
-    reformatted_str = reformatted_str[:-1] + '>'
+    if input_str[-2:] == "/>":
+        return reformatted_str[:-1] + "/>"
+    reformatted_str = reformatted_str[:-1] + ">"
     # no ending option:
-    if not input_str[-(len(tag) + 2):-len(tag)] == '</':
+    if input_str[-(len(tag) + 2) : -len(tag)] != "</":
         return reformatted_str
     # long ending option:
-    reformatted_str += "\n" + tag_indent + input_str[-(len(tag) + 2):] + ''
+    reformatted_str += "\n" + tag_indent + input_str[-(len(tag) + 2) :] + ""
     return reformatted_str
 
 
@@ -112,7 +110,7 @@ def prettify_tag_attributes(xml_string: str) -> str:
     :return str reformatted_xml_string: xml_string, with the tag substrings reformatted according to the example
      - Line break per attribute.
     """
-    xml_list = xml_string.split('\n')
+    xml_list = xml_string.split("\n")
     min_number_attributes_for_split = 3
 
     for i, line in enumerate(xml_list):
@@ -120,4 +118,4 @@ def prettify_tag_attributes(xml_string: str) -> str:
             xml_list[i] = line_reformatter(line)
 
     xml_list_without_blank_lines = filter(lambda x: x.strip(), xml_list)
-    return "".join(x + '\n' for x in xml_list_without_blank_lines)
+    return "".join(x + "\n" for x in xml_list_without_blank_lines)

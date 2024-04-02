@@ -1,9 +1,10 @@
-""" Dictionary Utilities.
-"""
+"""Dictionary Utilities."""
+
+import contextlib
 import copy
 import json
 import sys
-from collections.abc import Mapping, Hashable, KeysView
+from collections.abc import Hashable, KeysView, Mapping
 from typing import Iterator, Union
 
 import numpy as np
@@ -20,8 +21,7 @@ def common_iterable(obj: Union[dict, list]):
     """
     if isinstance(obj, dict):
         return obj
-    else:
-        return (index for index, value in enumerate(obj))
+    return (index for index, value in enumerate(obj))
 
 
 def __container_converter(data: Union[list, dict]) -> dict:
@@ -34,7 +34,7 @@ def __container_converter(data: Union[list, dict]) -> dict:
     np_convert = {np.float64: float, np.int32: int}
 
     for element in common_iterable(data):
-        if isinstance(data[element], dict) or isinstance(data[element], list):
+        if isinstance(data[element], (dict, list)):
             data[element] = __container_converter(data[element])
         elif isinstance(data[element], np.ndarray):
             data[element] = data[element].tolist()
@@ -42,13 +42,10 @@ def __container_converter(data: Union[list, dict]) -> dict:
             value = data[element]
             data[element] = np_convert[type(value)](value)
         elif isinstance(data[element], Hashable):
-            try:
+            with contextlib.suppress(Exception):
                 data[element] = json.loads(data[element])
-            except:
-                pass
         else:
-            message = 'Type not converted by dict converter: ' + str(
-                type(data[element]))
+            message = "Type not converted by dict converter: " + str(type(data[element]))
             sys.exit(message)
 
     return data
@@ -91,7 +88,7 @@ def serialise_dict_values(d):
             d[index] = list(d[index])
 
         # Class instances with the __dict__ attribute
-        if '__dict__' in dir(d[index]):
+        if "__dict__" in dir(d[index]):
             d[index] = vars(d[index])
 
         # Recursively apply routine to other containers
@@ -138,14 +135,13 @@ def delete_nested_key(dictionary: dict, key_chain: list):
     if len(key_chain) == 1:
         del dictionary[key_chain[0]]
         return
-    else:
-        delete_nested_key(dictionary[key_chain[0]], key_chain[1:])
+    delete_nested_key(dictionary[key_chain[0]], key_chain[1:])
 
 
-def check_valid_keys(input_keys: Union[list, set, tuple, KeysView],
-                     valid_keys: Union[list, set, tuple, KeysView],
-                     name: str = ''):
-    """ Check that a given set of input keys are valid.
+def check_valid_keys(
+    input_keys: Union[list, set, tuple, KeysView], valid_keys: Union[list, set, tuple, KeysView], name: str = ""
+):
+    """Check that a given set of input keys are valid.
 
     :param input_keys: Input keys
     :param valid_keys: Valid keys
@@ -153,4 +149,4 @@ def check_valid_keys(input_keys: Union[list, set, tuple, KeysView],
     """
     erroneous_inputs = set(input_keys) - set(valid_keys)
     if erroneous_inputs:
-        raise ValueError(f'{name} keys are not valid: {erroneous_inputs}')
+        raise ValueError(f"{name} keys are not valid: {erroneous_inputs}")

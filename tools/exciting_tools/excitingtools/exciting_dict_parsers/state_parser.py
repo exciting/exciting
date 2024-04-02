@@ -1,25 +1,23 @@
-""" Parser for STATE.OUT binary file.
-"""
-import numpy as np
+"""Parser for STATE.OUT binary file."""
+
 import struct
 import sys
 
+import numpy as np
+
 
 def get_byteorder_format_char(byteorder) -> str:
-    """ Converts the byteorder string to formatting symbol for struct.unpack function
+    """Converts the byteorder string to formatting symbol for struct.unpack function
 
     :param byteorder: endianness of the byteorder ("little" or "big")
     :return: the character representing the endianness ('<' or '>')
     """
-    chars = {
-        "little": '<',
-        "big": '>',
-    }
+    chars = {"little": "<", "big": ">"}
     return chars[byteorder]
 
 
 def read_array(file, shape, byteorder) -> np.ndarray:
-    """ Read in a sequence of double values and reshape them into the wanted shape.
+    """Read in a sequence of double values and reshape them into the wanted shape.
 
     :param file: binary file object, which contains the number sequence
     :param shape: the desired shape of the number sequence (with column-major order)
@@ -33,11 +31,11 @@ def read_array(file, shape, byteorder) -> np.ndarray:
     # get all the double numbers
     values = struct.unpack(f"{byteorder}{np.prod(shape)}d", file.read(num_bytes))
     # return the values as correctly shaped numpy array
-    return np.reshape(values, shape, order='F')
+    return np.reshape(values, shape, order="F")
 
 
 def read_complex_array(file, shape, byteorder) -> np.ndarray:
-    """ Read in a sequence of complex values and reshape them into the wanted shape.
+    """Read in a sequence of complex values and reshape them into the wanted shape.
 
     :param file: binary file object, which contains the number sequence
     :param shape: the desired shape of the number sequence (with column-major order)
@@ -46,13 +44,13 @@ def read_complex_array(file, shape, byteorder) -> np.ndarray:
     """
     byteorder = get_byteorder_format_char(byteorder)
     array = np.reshape(
-        [complex(*struct.unpack(f"{byteorder}2d", file.read(16))) for _ in range(np.prod(shape))], shape, order='F'
+        [complex(*struct.unpack(f"{byteorder}2d", file.read(16))) for _ in range(np.prod(shape))], shape, order="F"
     )
     return array
 
 
 def read_int(file, byteorder, num_bytes=4, signed=False) -> int:
-    """ Read in a single integer.
+    """Read in a single integer.
 
     :param file: binary file object, which contains the number
     :param byteorder: the endianness of the bytes representation
@@ -64,7 +62,7 @@ def read_int(file, byteorder, num_bytes=4, signed=False) -> int:
 
 
 def read_integers(file, integers, dest, byteorder):
-    """ Read in a sequence of named integers and store them in a dictionary.
+    """Read in a sequence of named integers and store them in a dictionary.
 
     :param file: binary file object, which contains the integers
     :param integers: the keys of the integers for the dictionary
@@ -78,7 +76,7 @@ def read_integers(file, integers, dest, byteorder):
 
 
 def parse_state_out(path, byteorder=sys.byteorder) -> dict:
-    """ Parser for: STATE.OUT
+    """Parser for: STATE.OUT
 
     STATE.OUT is a binary file. For every 'Write' (in Fortran) there are 4 leading bytes, which are an integer
     equal to the number of bytes of the Fortran objects written. After this the leading 4 bytes are

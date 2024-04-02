@@ -1,21 +1,22 @@
-""" Parse GW's EVALQP.DAT file into dicts.
+"""Parse GW's EVALQP.DAT file into dicts.
 Also seemed like a logical place to add the Fermi-level parser.
 """
+
 import enum
-from itertools import count
-import numpy as np
-import re
 import os
+import re
+from itertools import count
+
+import numpy as np
 
 from excitingtools.dataclasses.data_structs import NumberOfStates
 
-
 # GW eigenvalue file name
-_file_name = 'EVALQP.DAT'
+_file_name = "EVALQP.DAT"
 
 
 def parse_efermi_gw(name: str) -> dict:
-    """ Parser for EFERMI_GW.OUT.
+    """Parser for EFERMI_GW.OUT.
 
     :param name: File name
     :return data: GW Fermi level.
@@ -37,14 +38,11 @@ def k_points_from_evalqp(file_string: str) -> dict:
     :param file_string: File string.
     :return k_points: k-points and their weights.
     """
-    k_points_raw: list = re.findall(r'\s*k-point .*$', file_string, flags=re.MULTILINE)
+    k_points_raw: list = re.findall(r"\s*k-point .*$", file_string, flags=re.MULTILINE)
     k_points = {}
     for ik, line in enumerate(k_points_raw):
         kx, ky, kz, w = line.split()[-4:]
-        k_points[ik + 1] = {
-            'k_point': [float(k) for k in [kx, ky, kz]],
-            'weight': float(w)
-        }
+        k_points[ik + 1] = {"k_point": [float(k) for k in [kx, ky, kz]], "weight": float(w)}
     return k_points
 
 
@@ -68,10 +66,8 @@ def n_states_from_file(file_string: str, n_header: int) -> NumberOfStates:
     """
     lines = file_string.splitlines()
 
-    # ibgw = first_state
     first_state = int(lines[n_header].split()[0])
 
-    # nbgw = last_state
     last_state = None
     for line in reversed(lines):
         if len(line.strip()) > 0:
@@ -126,9 +122,7 @@ def parse_evalqp_blocks(full_file_name: str, k_points: dict, n_states: int) -> d
 
     # Must iterate lowest to highest, else data won't match k-points
     for ik in range(1, len(k_points) + 1):
-        block_data = np.loadtxt(full_file_name,
-                                skiprows=skip_lines,
-                                max_rows=n_states)
+        block_data = np.loadtxt(full_file_name, skiprows=skip_lines, max_rows=n_states)
         # Ignore first column (state index)
         data[ik] = block_data[:, 1:]
         skip_lines += n_states + (header_size + blank_line)
@@ -168,21 +162,19 @@ def parse_evalqp(full_file_name: str) -> dict:
     energies = parse_evalqp_blocks(full_file_name, k_points, eval_indexing.n_states)
     assert len(k_points) == len(energies), "Should be a set of energies for each k-point"
 
-    data = {'state_range': [eval_indexing.first_state, eval_indexing.last_state],
-            'column_labels': parse_column_labels(file_string)}
+    data = {
+        "state_range": [eval_indexing.first_state, eval_indexing.last_state],
+        "column_labels": parse_column_labels(file_string),
+    }
 
     # Repackage energies with their respective k-points
     for ik in range(1, len(k_points) + 1):
-        data[ik] = {
-            'k_point': k_points[ik]['k_point'],
-            'weight': k_points[ik]['weight'],
-            'energies': energies[ik]
-        }
+        data[ik] = {"k_point": k_points[ik]["k_point"], "weight": k_points[ik]["weight"], "energies": energies[ik]}
     return data
 
 
 def parse_column_labels(file_string: str) -> enum.Enum:
-    """ Parse the column labels of EVALQP.DAT, which vary between code versions.
+    """Parse the column labels of EVALQP.DAT, which vary between code versions.
 
     :param str file_string: Input string
     return An enum class with the column labels as attributes, with corresponding
@@ -191,7 +183,7 @@ def parse_column_labels(file_string: str) -> enum.Enum:
     column_str = file_string.splitlines()[1:2][0]
     column_labels = column_str.split()[1:]
     # zip and count ensure enum indexing starts at 0
-    return enum.Enum(value='EvalQPColumns', names=zip(column_labels, count()))
+    return enum.Enum(value="EvalQPColumns", names=zip(column_labels, count()))
 
 
 def parse_gw_dos(full_file_name: str) -> dict:
@@ -200,10 +192,10 @@ def parse_gw_dos(full_file_name: str) -> dict:
     :param full_file_name: Path + file name
     :return dict data: Parsed energies and DOS from GW DOS files
     """
-    valid_file_names = ['TDOS.OUT', 'TDOS-QP.OUT']
-    path, file_name = os.path.split(full_file_name)
+    valid_file_names = ["TDOS.OUT", "TDOS-QP.OUT"]
+    _, file_name = os.path.split(full_file_name)
     if file_name not in valid_file_names:
-        raise ValueError(f'{file_name} not a valid DOS file name.')
+        raise ValueError(f"{file_name} not a valid DOS file name.")
 
     data = np.genfromtxt(full_file_name)
-    return {'energy': data[:, 0], 'dos': data[:, 1]}
+    return {"energy": data[:, 0], "dos": data[:, 1]}

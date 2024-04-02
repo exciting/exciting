@@ -1,5 +1,5 @@
-""" Simple text parsers.
-"""
+"""Simple text parsers."""
+
 from typing import Union
 
 
@@ -13,16 +13,14 @@ def match_current_return_line_n(file_string: str, match: str, n_line=1) -> Union
 
     :return Union[str, None] matched line string, or None
     """
-    file = file_string.split('\n')
+    file = file_string.split("\n")
     for i, line in enumerate(file):
         if match in line:
             return file[i + n_line]
     return None
 
 
-def match_current_extract_from_line_n(input_string: str,
-                                      keys_extractions: dict,
-                                      n_line=1) -> dict:
+def match_current_extract_from_line_n(input_string: str, keys_extractions: dict, n_line=1) -> dict:
     """
     Given an input_string, match a substring (defined by the key of keys_extractions),
     return the a substring from the i+n_line line below the match, and extract a value

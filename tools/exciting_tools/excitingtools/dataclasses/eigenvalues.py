@@ -1,11 +1,12 @@
-""" Eigenvalue class.
-"""
+"""Eigenvalue class."""
+
 import warnings
 from itertools import permutations
-from typing import List, Union, Optional
+from typing import List, Optional, Union
 
 import numpy as np
-from excitingtools.dataclasses.data_structs import PointIndex, BandIndices, NumberOfStates
+
+from excitingtools.dataclasses.data_structs import BandIndices, NumberOfStates, PointIndex
 
 
 class EigenValues:
@@ -14,13 +15,15 @@ class EigenValues:
     # If a k-index is not matched
     NO_MATCH = -1
 
-    def __init__(self,
-                 state_range: NumberOfStates,
-                 k_points: point_type,
-                 k_indices: index_type,
-                 all_eigenvalues: np.ndarray,
-                 weights=None,
-                 occupations: Optional[np.ndarray] = None):
+    def __init__(
+        self,
+        state_range: NumberOfStates,
+        k_points: point_type,
+        k_indices: index_type,
+        all_eigenvalues: np.ndarray,
+        weights=None,
+        occupations: Optional[np.ndarray] = None,
+    ):
         self.state_range = state_range
         self.k_points = k_points
         self.k_indices = k_indices
@@ -28,10 +31,10 @@ class EigenValues:
         self.weights = weights
         self.occupations = occupations
         if all_eigenvalues.shape != (len(self.k_points), self.state_range.n_states):
-            raise ValueError('Shape of all_eigenvalues does not match (n_k, n_states)')
+            raise ValueError("Shape of all_eigenvalues does not match (n_k, n_states)")
 
     def get_array_index(self, i_state: int):
-        """ Given the state index, get the corresponding index in the eigenvalue array.
+        """Given the state index, get the corresponding index in the eigenvalue array.
 
         :param i_state: State index using fortran indexing
         :return array index, using zero-indexing
@@ -40,7 +43,7 @@ class EigenValues:
         return i_state - self.state_range.first_state
 
     def get_k_point(self, ik: int):
-        """ Get the k-point associated with ik index.
+        """Get the k-point associated with ik index.
 
         :param ik: k-point index.
         :return k-point in fractional coordinates.
@@ -49,7 +52,7 @@ class EigenValues:
         return self.k_points[ik - 1]
 
     def get_index(self, k_point, verbose=False) -> int:
-        """ Find the corresponding index of a k-point.
+        """Find the corresponding index of a k-point.
 
         If no k-point is found, NO_MATCH is returned.
 
@@ -61,17 +64,17 @@ class EigenValues:
         k_point = np.asarray(k_point)
         for i, point in enumerate(self.k_points):
             diff[i] = np.linalg.norm(np.asarray(point) - k_point)
-        indices = np.argwhere(diff < 1.e-8)
+        indices = np.argwhere(diff < 1.0e-8)
 
         if len(indices) == 0:
             if verbose:
-                warnings.warn(f'{k_point} not present in list of k-points')
+                warnings.warn(f"{k_point} not present in list of k-points")
             return self.NO_MATCH
 
         indices = indices[0]
 
         if len(indices) > 1:
-            raise ValueError(f'Found degenerate k-points at {indices}')
+            raise ValueError(f"Found degenerate k-points at {indices}")
 
         ik = indices[0] + 1
         return ik
@@ -96,7 +99,7 @@ class EigenValues:
         """
         if ik is None:
             if k_point is None:
-                raise ValueError('Must provide either k-index or k-point')
+                raise ValueError("Must provide either k-index or k-point")
             ik = self.get_index(k_point)
 
             if ik == self.NO_MATCH:
@@ -105,7 +108,7 @@ class EigenValues:
         return self.all_eigenvalues[ik - 1, :]
 
     def band_gap(self, band_indices: BandIndices, k_points=None, k_indices=None) -> Union[float, ValueError]:
-        """ Get a band gap for two k-points in the valence band top
+        """Get a band gap for two k-points in the valence band top
         and conduction band bottom, respectively.
 
         TODO(Alex) Consider adding objects to hold k_points and k_indices.
@@ -118,12 +121,12 @@ class EigenValues:
         """
         if k_indices is None:
             if k_points is None:
-                raise ValueError('Must pass either k_points or k_indices to band_gap method')
+                raise ValueError("Must pass either k_points or k_indices to band_gap method")
             k_indices = (self.get_index(k_points[0]), self.get_index(k_points[1]))
 
         if self.NO_MATCH in k_indices:
             indices = np.argwhere(k_indices == self.NO_MATCH)[0]
-            err_msg = f"".join(f'Requested k-point {k_points[i]} not present. \n' for i in indices)
+            err_msg = "".join(f"Requested k-point {k_points[i]} not present. \n" for i in indices)
             return ValueError(err_msg)
 
         i_vbm = self.get_array_index(band_indices.VBM)
@@ -149,16 +152,15 @@ class EigenValues:
         try:
             ik = next(i for i in indices_valence if i != self.NO_MATCH)
         except StopIteration:
-            raise ValueError(f'Requested valence k-point {valence_k_point} not present.')
+            raise ValueError(f"Requested valence k-point {valence_k_point} not present.")
 
         indices_conduction = [self.get_index(k_point) for k_point in permutations(conduction_k_point)]
         try:
             jk = next(i for i in indices_conduction if i != self.NO_MATCH)
         except StopIteration:
-            raise ValueError(f'Requested conduction k-point {conduction_k_point} not present.')
+            raise ValueError(f"Requested conduction k-point {conduction_k_point} not present.")
 
         iVBM = np.where(self.occupations[ik - 1] == 0)[0][0] + self.state_range.first_state - 1
         jCBm = np.where(self.occupations[jk - 1] == 0)[0][0] + self.state_range.first_state
 
         return self.band_gap(BandIndices(iVBM, jCBm), k_indices=[ik, jk])
-
