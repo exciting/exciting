@@ -82,7 +82,7 @@ _file_to_parser = {
     "EPS00_GW.OUT": gw_eps00_parser.parse_eps00_gw,
     "BARC_*": gw_taskgroup_parser.parse_barc,
     "SGI_*": gw_taskgroup_parser.parse_sgi,
-    "EPSILON-GW_*": gw_taskgroup_parser.parse_epsilon,
+    "EPSILON-GW_Q*": gw_taskgroup_parser.parse_epsilon,
     "EPSH.OUT": gw_taskgroup_parser.parse_epsilon,
     "EPSW1.OUT": gw_taskgroup_parser.parse_epsilon,
     "EPSW2.OUT": gw_taskgroup_parser.parse_epsilon,

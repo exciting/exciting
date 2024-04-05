@@ -4,57 +4,67 @@
 
 module mod_dielectric_function
     use gw_io, only: build_file_name, write_to_file, read_from_file
-    use precision, only: i32
+    use precision, only: i32, dp
 
     implicit none
 
     private
 
     ! dielectric function \epsilon(q)
-    complex(8), public, allocatable :: epsilon(:,:,:)
+    complex(dp), public, allocatable :: epsilon(:,:,:)
 
     !-------------------------------------------------
     ! Analytical treatment of q=0 singularity
     !-------------------------------------------------
 
     ! valence-valence momentum matrix elements
-    complex(8), public, allocatable :: pmatvv(:,:,:)
+    complex(dp), public, allocatable :: pmatvv(:,:,:)
 
     ! core-valence momentum matrix elements
-    complex(8), public, allocatable :: pmatcv(:,:,:)
+    complex(dp), public, allocatable :: pmatcv(:,:,:)
 
     ! head of the dielectric function (tensor)
-    complex(8), public, allocatable :: epsh(:,:,:)
+    complex(dp), public, allocatable :: epsh(:,:,:)
 
     ! the vertical wing of the dielectric matrix (vector)
-    complex(8), public, allocatable :: epsw1(:,:,:)
+    complex(dp), public, allocatable :: epsw1(:,:,:)
 
     ! the horizontal wing of the dielectric matrix (vector)
-    complex(8), public, allocatable :: epsw2(:,:,:)
+    complex(dp), public, allocatable :: epsw2(:,:,:)
 
     !----------------------------------------------------------------------
     ! Used for calculating the macroscopic dielectric function (task_emac)
     !----------------------------------------------------------------------
 
-    complex(8), public, allocatable :: eps00(:,:,:)
+    complex(dp), public, allocatable :: eps00(:,:,:)
 
     !----------------------------------------------------------------------
     ! files containing data on PMAT and PMATCOR
     !----------------------------------------------------------------------
-    character(24), parameter, public :: fname_pmatvv='PMATVV.OUT'
-    character(24), parameter, public :: fname_pmatcv='PMATCV.OUT'
+    character(len=*), parameter, public :: fname_pmatvv='PMATVV.OUT'
+    character(len=*), parameter, public :: fname_pmatcv='PMATCV.OUT'
     
     !----------------------------------------------------------------------
     ! files to store the dielectric function
     !----------------------------------------------------------------------
-    character(len=*), parameter, private :: file_name_epsilon = 'EPSILON-GW_'
+    character(len=*), parameter, private :: file_name_epsilon = 'EPSILON-GW_Q'
     character(len=*), parameter, private :: file_name_epsilon_head = 'EPSH'
     character(len=*), parameter, private :: file_name_epsilon_wings1 = 'EPSW1'
     character(len=*), parameter, private :: file_name_epsilon_wings2 = 'EPSW2'
 
+    !----------------------------------------------------------------------
+    ! files to store the inverse of the dielectric function
+    !----------------------------------------------------------------------
+    character(len=*), parameter, private :: file_name_inverse_epsilon = 'INVERSE-EPSILON_Q'
+    character(len=*), parameter, private :: file_name_inverse_epsilon_head = 'INVERSE-EPSH'
+    character(len=*), parameter, private :: file_name_inverse_epsilon_wings1 = 'INVERSE-EPSW1'
+    character(len=*), parameter, private :: file_name_inverse_epsilon_wings2 = 'INVERSE-EPSW2'
+
+
     integer(i32), parameter   :: max_string_length = 40
 
-    public :: write_epsilon_to_file, init_dielectric_function, delete_dielectric_function
+    public :: write_epsilon_to_file, init_dielectric_function, delete_dielectric_function, &
+              write_inverse_epsilon_to_file, read_epsilon_from_file
 
     
 contains
@@ -135,7 +145,34 @@ contains
           call build_file_name( file_name_epsilon_wings2, file_name )
           call read_from_file( file_name, epsw2, file_format )
       end if
-      
+
+  end subroutine
+
+  !> Write the inverse of epsilon into files
+  !> Attention: actually exciting stores the inverse of epsilon in
+  !> the same matrices as the dielectric matrix
+  subroutine write_inverse_epsilon_to_file( iq, is_Gamma_point, file_format )
+    !> q-point index
+    integer(i32), intent(in)  :: iq 
+    !> When true, it is the \(\Gamma\) point
+    logical, intent(in)       :: is_Gamma_point
+    !> Format of output file
+    character(len=*), intent(in) :: file_format
+  
+    integer(i32), parameter   :: max_length = 40
+    character(len=max_length) :: file_name
+  
+    call build_file_name( file_name_inverse_epsilon, iq, file_name )
+    call write_to_file( file_name, epsilon, file_format )
+    if( is_Gamma_point ) then
+        call build_file_name( file_name_inverse_epsilon_head, file_name )
+        call write_to_file( file_name, epsh, file_format )
+        call build_file_name( file_name_inverse_epsilon_wings1, file_name )
+        call write_to_file( file_name, epsw1, file_format )
+        call build_file_name( file_name_inverse_epsilon_wings2, file_name )
+        call write_to_file( file_name, epsw2, file_format )
+    end if
+    
   end subroutine
 
 end module

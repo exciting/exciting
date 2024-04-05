@@ -9,6 +9,7 @@ module task_group
   use precision, only: i32, dp
   use task_Coulomb, only: execute_task_Coulomb
   use task_epsilon, only: execute_task_epsilon
+  use task_invertEpsilon, only: execute_task_invertEpsilon
 
   implicit none
   
@@ -26,6 +27,7 @@ module task_group
     character(len=20) :: selfenergy_singularity_treatment
     logical :: task_Coulomb 
     logical :: task_epsilon 
+    logical :: task_invertEpsilon
   contains
     procedure :: parse_input
   end type
@@ -49,6 +51,9 @@ contains
 
     if( input_parameters%task_epsilon ) &
       call execute_task_epsilon( n_qpoints, input_parameters%output_format )
+
+    if( input_parameters%task_invertEpsilon ) &
+      call execute_task_invertEpsilon( n_qpoints, input_parameters%output_format )
 
   end subroutine
 
@@ -83,5 +88,8 @@ contains
     this%selfenergy_singularity_treatment = trim( gw_inp%selfenergy%singularity )
     this%task_Coulomb = associated( gw_inp%taskGroup%Coulomb )
     this%task_epsilon = associated( gw_inp%taskGroup%epsilon )
+    this%task_invertEpsilon = associated( gw_inp%taskGroup%invertEpsilon )
+
   end subroutine
+
 end module

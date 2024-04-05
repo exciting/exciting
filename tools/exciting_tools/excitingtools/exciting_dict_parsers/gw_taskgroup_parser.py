@@ -99,7 +99,7 @@ def parse_epsilon(file_name: str) -> Dict[str, NDArray[np.complex128]]:
       - EPSH.OUT,
       - EPSW1.OUT,
       - EPSW2.OUT,
-      - EPSILON-GW_*.OUT, where * is an integer
+      - EPSILON-GW_Q*.OUT, where * is an integer
 
     :param file_name: name of the file
     :return: parsed data as dictionary
@@ -110,10 +110,10 @@ def parse_epsilon(file_name: str) -> Dict[str, NDArray[np.complex128]]:
 def parse_inverse_epsilon(file_name: str) -> Dict[str, NDArray[np.complex128]]:
     """Parser for the gw-inverse-epsilon files, which contain the inverse of the
     dielectric function, its head or wings:
-      - INVERSE-EPS-H.OUT,
-      - INVERSE-EPS-W1.OUT,
-      - INVERSE-EPS-W2.OUT,
-      - INVERSE-EPSILON-_*.OUT, where * is an integer
+      - INVERSE-EPSH.OUT,
+      - INVERSE-EPSW1.OUT,
+      - INVERSE-EPSW2.OUT,
+      - INVERSE-EPSILON_Q*.OUT, where * is an integer
 
     :param file_name: name of the file
     :return: parsed data as dictionary
