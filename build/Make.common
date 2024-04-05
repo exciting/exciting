@@ -64,6 +64,7 @@ SOURCEDIRS=	\
   ../../src/wfplot \
   ../../src/xhdf5 \
   ../../src/xhdf5/hdf5_wrappers \
+	../../src/xhdf5/utilities \
   ../../src/svlo \
   ../../src/xfftw \
   ../../src/isdf \
@@ -108,7 +109,7 @@ tidy::
 # --------------------------------
 
 ifeq ($(USE_SYS_LAPACK), true)
-libs:: libfox libbzint.a fftlib.a libmsec.a leblaiklib.a libxc.a liblbfgs.a
+libs:: libfox libbzint.a fftlib.a libmsec.a leblaiklib.a libxc.a liblbfgs.a #libfftw3x_cdft.a
 endif
 
 ifeq ($(USE_SYS_LAPACK), false)
@@ -173,6 +174,12 @@ leblaiklib.a::
 liblbfgs.a::
 	cd ../../external/Lbfgsb.3.0 && make
 	cp ../../external/Lbfgsb.3.0/liblbfgs.a ./
+
+#libfftw3x_cdft.a::
+#	cd "$(MKLROOT)"/interfaces/fftw3x_cdft && \
+#	$(MAKE) libintel64 INSTALL_DIR="$(THISDIR)/lib/intel64" mpi=intelmpi compiler=intel INSTALL_LIBNAME="libfftw3x_cdft" \
+#  TARGET_ARCH="-lmkl_cdft_core -lmkl_intel_ilp64"
+
 
 # --------------------------------
 # Internal libraries

@@ -42,8 +42,8 @@ def read_output_file(file_name: str) -> Union[dict, Failure]:
     sub_dir = file_name.split('/')[-2]
     if not (sub_dir in ['ref', 'run']):
         raise ValueError(f"Subdirectory in which output file exists is not 'ref' or 'run' \a"
-                         f"which is expected by the test suite: {file_name}")
-
+                         "which is expected by the test suite: {file_name}")
+    
     try:
         data = parse(file_name)
         return data

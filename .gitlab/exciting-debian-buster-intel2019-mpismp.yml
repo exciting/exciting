@@ -7,7 +7,7 @@
 # the base image (as it totals ~ 10 GB).
 # The TCL module file is however, still provided by exciting.
 #
-# The line `- python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor lxml pytest pyyaml`
+# The line `- python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor pytest pyyaml`
 # is required because the docker base used for intel does not include python
 # and the corresponding packages. Consider building a new `exciting:debian-base-with-nfs` image
 #
@@ -31,7 +31,7 @@ build:debian-buster-Intel2019-mpiandsmp:
  before_script:
    - cp -r build/utilities/modules/intel /etc/environment-modules/modules
    - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
-   - module load intel/2019
+   - module load intel/oneapi-2021.3
    - apt-get install -y libfabric1 libfabric-dev
  script:
    - cp build/platforms/make.inc.ifort.profiler build/make.inc
@@ -55,7 +55,7 @@ test-debian-buster-Intel2019-mpiandsmp:
   before_script:
     - cp -r build/utilities/modules/intel /etc/environment-modules/modules
     - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
-    - module load intel/2019
+    - module load intel/oneapi-2021.3
     # diffutils for `cmp` command
     - apt-get install -y libfabric1 libfabric-dev diffutils
     - python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor pytest pyyaml

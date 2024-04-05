@@ -7,6 +7,9 @@ module m_putgetexcitons
   use modxs, only: vkl0, vqlmt
   use m_getunit
   use m_genfilname
+  use mod_hdf5
+  use xhdf5
+  use os_utils
 
   implicit none
 
@@ -55,7 +58,6 @@ module m_putgetexcitons
     subroutine put_excitons(evals, rvec, avec, iqmt, a1, a2)
       use mod_kpoint, only: ikmap
       use modinput
-      use mod_hdf5
 
       implicit none
 
@@ -66,13 +68,17 @@ module m_putgetexcitons
       integer(4), intent(in), optional :: iqmt, a1, a2
 
       ! Local
-      integer(4) :: stat, unexc
+      integer(4) :: stat, unexc, i_exciton
       logical :: fcoup, fesel, fchibarq
       integer(4) :: i1, i2, nexcstored, iq, m, n, ngridk(3)
+      real(8), allocatable :: de_sorted(:)
 
-      character(128) :: group, gname, gname_, ciq, ci
+      integer(8) :: mypos
+
+      character(:), allocatable :: group, gname, char_iqpoint, char_iexciton, tdastring, bsetypestring, scrtypestring
       character(256) :: fname
-      character(256) :: tdastring, bsetypestring, scrtypestring
+
+      type(xhdf5_type) :: h5
 
       ngridk = input%groundstate%ngridk
       
@@ -138,116 +144,138 @@ module m_putgetexcitons
         tdastring=''
       else
         if(fchibarq) then 
-          tdastring="-TDA-BAR"
+          tdastring='-TDA-BAR'
         else
-          tdastring="-TDA"
+          tdastring='-TDA'
         end if
       end if
-      if(input%xs%bse%bsetype == "IP") then
+      if(input%xs%bse%bsetype == 'IP') then
         tdastring=''
       end if
-      bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
-      scrtypestring = '-'//trim(input%xs%screening%screentype)
-#ifndef _HDF5_
-      ! Set filename to EXCCOEFF_*.OUT
-      call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
+      bsetypestring = '-' // trim(input%xs%bse%bsetype) // trim(tdastring)
+      scrtypestring = '-' // trim(input%xs%screening%screentype)
+
+      if(input%xs%BSE%brixshdf5) then
+        call h5%initialize(fhdf5, mpiglobal)
+
+        allocate(character(len=4) :: char_iqpoint)
+        write(char_iqpoint, "(I4.4)") iq
+
+        group = 'eigvec' // bsetypestring // scrtypestring
+        call h5%initialize_group('/', group)
+        call h5%initialize_group(group, char_iqpoint)
+        group = join_paths(group, char_iqpoint)
+
+        call h5%write(group, 'evals', evals, [1], shape(evals))
+        de_sorted = de(ensortidx)
+        call h5%write(group, "evalsIP", de_sorted, [1], shape(de))
+
+        call h5%initialize_group(group, 'parameters')
+        group = join_paths(group, 'parameters')
+
+        call h5%write(group, 'fcoup', fcoup)    ! Was the TDA used?
+        call h5%write(group, 'fesel', fesel)
+        call h5%write(group, 'nk_max', nk_max)
+        call h5%write(group, 'nk_bse', nk_bse)
+        call h5%write(group, 'hamsize', hamsize)
+        call h5%write(group, 'iq', iq)
+        call h5%write(group, 'vqlmt(iq)', vqlmt(:, iq))
+        call h5%write(group, 'ngridk', ngridk)
+        call h5%write(group, 'ikmap', ikmap(0:, 0:, 0:))
+        call h5%write(group, 'vkl0', vkl0)
+        call h5%write(group, 'vkl', vkl)
+        call h5%write(group, 'ik2ikqmtp', ik2ikqmtp)
+        call h5%write(group, 'ik2ikqmtm', ik2ikqmtm)
+        call h5%write(group, 'ikqmtm2ikqmtp', ikqmtm2ikqmtp)
+        call h5%write(group, 'kousize', kousize)
+        call h5%write(group, 'koulims', koulims)
+        call h5%write(group, 'smap', smap)
+        call h5%write(group, 'smap_rel', smap_rel)
+        call h5%write(group, 'nexcstored', nexcstored)
+        call h5%write(group, 'i1', i1)
+        call h5%write(group, 'i2', i2)
+        call h5%write(group, 'ioref', ioref)
+        call h5%write(group, 'iuref', iuref)
+        call h5%write(group, 'ensortidx', ensortidx)
+
+        group = join_paths('eigvec' // bsetypestring // scrtypestring, char_iqpoint)
+        call h5%initialize_group(group, 'rvec')
+        group = join_paths(group, 'rvec')
+
+        allocate(character(len=8) :: char_iexciton)
+        do i_exciton=i1, i2
+          write(char_iexciton, '(I8.8)') i_exciton 
+          call h5%write(group, char_iexciton, rvec(:, i_exciton))
+        end do 
+
+        if (present(avec)) then
+          group = join_paths('eigvec' // bsetypestring // scrtypestring, char_iqpoint)
+          call h5%initialize_group(group, 'avec')
+          group = join_paths(group, 'avec')
+
+          do i_exciton=1, nexcstored
+            write(char_iexciton, '(I8.8)') i_exciton 
+            call h5%write(group, char_iexciton, avec(:, i_exciton))
+          end do 
+        end if 
+
+        call h5%finalize()
+
+      else
+
+        ! Set filename to EXCCOEFF_*.OUT
+        call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
         & scrtype=trim(scrtypestring), filnam=fname)
 
-      ! Open stream access file 
-      call getunit(unexc)
-      open(unexc, file=trim(fname), access='stream',&
-        & action='write', form='unformatted', status='replace', iostat=stat)
-      if(stat /= 0) then
-        write(*,*) stat
-        write(*,'("Error(storeexcitons): Error creating file ", a)') trim(fname)
-        write(*,*)
-        call terminate
-      end if
-#endif
-#ifdef _HDF5_  
-      ! Create hdf5 File
-      write(ciq, '(I4.4)') iq ! Generate string out of momentum transfer index
-      gname="eigvec"//trim(bsetypestring)//trim(scrtypestring)
-      if (.not. hdf5_exist_group(fhdf5,"/",gname)) then
-        call hdf5_create_group(fhdf5,"/",gname)
-      end if
-      gname_=trim(adjustl(gname))//"/"
-      ! Generate subgroup for each iqmt
-      if (.not. hdf5_exist_group(fhdf5,gname_,ciq)) then
-        call hdf5_create_group(fhdf5,gname,ciq)
-      end if
-      gname_=trim(adjustl(gname_))//trim(adjustl(ciq))//"/"
-      
-      ! Write Metadata
-      call hdf5_create_group(fhdf5, gname_, "parameters")
-      group= trim(adjustl(gname_))//"parameters"
-      call hdf5_write(fhdf5,group,"fcoup",fcoup)    ! Was the TDA used?
-      call hdf5_write(fhdf5,group,"fesel",fesel)
-      call hdf5_write(fhdf5,group,"nk_max",nk_max)
-      call hdf5_write(fhdf5,group,"nk_bse",nk_bse)
-      call hdf5_write(fhdf5,group,"hamsize",hamsize)
-      call hdf5_write(fhdf5,group,"iq", iq)
-      call hdf5_write(fhdf5,group,"vqlmt(iq)", vqlmt(1,iq), shape(vqlmt(1:3,iq)))
-      call hdf5_write(fhdf5,group,"ngridk", ngridk(1), shape(ngridk))
-      call hdf5_write(fhdf5,group,"ikmap", ikmap(1,1,1), shape(ikmap))
-      call hdf5_write(fhdf5,group,"vkl0", vkl0(1,1), shape(vkl0))
-      call hdf5_write(fhdf5,group,"vkl", vkl(1,1), shape(vkl))
-      call hdf5_write(fhdf5,group,"ik2ikqmtp",ik2ikqmtp(1), shape(ik2ikqmtp(:)))
-      call hdf5_write(fhdf5,group,"ik2ikqmtm",ik2ikqmtm(1), shape(ik2ikqmtm(:)))
-      call hdf5_write(fhdf5,group,"ikqmtm2ikqmtp",ikqmtm2ikqmtp(1), shape(ikqmtm2ikqmtp(:)))
-      call hdf5_write(fhdf5,group,"kousize", kousize(1), shape(kousize))
-      call hdf5_write(fhdf5,group,"koulims",koulims(1,1), shape(koulims))
-      call hdf5_write(fhdf5,group,"smap",smap(1,1), shape(smap))
-      call hdf5_write(fhdf5,group,"smap_rel",smap_rel(1,1), shape(smap_rel))
-      call hdf5_write(fhdf5,group,"nexcstored",nexcstored)
-      call hdf5_write(fhdf5,group,"i1",i1)
-      call hdf5_write(fhdf5,group,"i2",i2)
-      call hdf5_write(fhdf5,group,"ioref",ioref)
-      call hdf5_write(fhdf5,group,"iuref",iuref)
-      ! Write actual data
-      call hdf5_write(fhdf5,gname_,"evals",evals(1), shape(evals))
-      call hdf5_write(fhdf5,gname_,"rvec", rvec(1,1), shape(rvec))
-      if(present(avec)) then
-        call hdf5_write(fhdf5,gname_,"avec", avec(1,1), shape(avec))
-      end if 
-#else
-      !   Meta data
-      write(unexc)&
-        & fcoup,&       ! Was the TDA used?
-        & fesel,&       ! Where the participating transitions chosen by energy?
-        & nk_max,&      ! Number of non-reduced k-points 
-        & nk_bse,&      ! Number of k-points used in the bse hamiltonian
-        & hamsize,&     ! Size of the RR block of the BSE hamiltonian and number of considered transitions
-        & nexcstored,&  ! Number of saved eigenvectors
-        & i1, i2,&      ! Range of saved eigenvectors
-        & ioref, iuref,&! Reference absolute state index for occpied and unoccupied index (usually lowest and 1st unoccupied)
-        & iq,&          ! Index of momentum transfer vector
-        & vqlmt(1:3,iq),& ! Momentum transver vector
-        & ngridk,&      ! k-grid spacing
-        & ikmap,&       ! k-grid index map 3d -> 1d 
-        & vkl0,&        ! Lattice vectors for k=k-qmt/2 grid
-        & vkl,&         ! Lattice vectors for k'=k+qmt/2 grid
-        & ik2ikqmtm(:),& ! ik -> ik-qmt/2 index map
-        & ik2ikqmtp(:),& ! ik -> ik+qmt/2 index map
-        & ikqmtm2ikqmtp(:),& ! ik-qmt/2 -> ik+qmt/2 index map
-        & kousize,&     ! Number of transitions at each k point
-        & koulims,&     ! For each k-point, lower and upper c and v index 
-        & smap,&        ! Index map  alpha -> c,v,k (absolute c,v,k indices)
-        & smap_rel      ! Index map  alpha -> c,v,k (relative c,v,k indices)
-      !   EVAL and EVEC
-      write(unexc) evals
-      write(unexc) rvec
-      if(present(avec)) then 
-        write(unexc) avec
-      end if
+        ! Open stream access file 
+        call getunit(unexc)
+        open(unexc, file=trim(fname), access='stream',&
+          & action='write', form='unformatted', status='replace', iostat=stat)
+        if(stat /= 0) then
+          write(*,*) stat
+          write(*,'("Error(storeexcitons): Error creating file ", a)') trim(fname)
+          write(*,*)
+          call terminate
+        end if
+        !   Meta data
+        write(unexc)&
+          & fcoup,&       ! Was the TDA used?
+          & fesel,&       ! Where the participating transitions chosen by energy?
+          & nk_max,&      ! Number of non-reduced k-points 
+          & nk_bse,&      ! Number of k-points used in the bse hamiltonian
+          & hamsize,&     ! Size of the RR block of the BSE hamiltonian and number of considered transitions
+          & nexcstored,&  ! Number of saved eigenvectors
+          & i1, i2,&      ! Range of saved eigenvectors
+          & ioref, iuref,&! Reference absolute state index for occpied and unoccupied index (usually lowest and 1st unoccupied)
+          & iq,&          ! Index of momentum transfer vector
+          & vqlmt(1:3,iq),& ! Momentum transver vector
+          & ngridk,&      ! k-grid spacing
+          & ikmap,&       ! k-grid index map 3d -> 1d 
+          & vkl0,&        ! Lattice vectors for k=k-qmt/2 grid
+          & vkl,&         ! Lattice vectors for k'=k+qmt/2 grid
+          & ik2ikqmtm(:),& ! ik -> ik-qmt/2 index map
+          & ik2ikqmtp(:),& ! ik -> ik+qmt/2 index map
+          & ikqmtm2ikqmtp(:),& ! ik-qmt/2 -> ik+qmt/2 index map
+          & kousize,&     ! Number of transitions at each k point
+          & koulims,&     ! For each k-point, lower and upper c and v index 
+          & smap,&        ! Index map  alpha -> c,v,k (absolute c,v,k indices)
+          & smap_rel      ! Index map  alpha -> c,v,k (relative c,v,k indices)
+        
+        !   EVAL and EVEC
 
-      close(unexc)
-#endif
+        write(unexc) evals
+
+        write(unexc) rvec
+
+        if(present(avec)) then 
+          write(unexc) avec
+        end if
+
+        close(unexc)
+      end if
     end subroutine put_excitons
 
     subroutine get_excitons(iqmt, a1, a2, e1, e2)
-      use mod_hdf5
-      
       integer(4), intent(in), optional :: iqmt, a1, a2
       real(8), intent(in), optional :: e1, e2
 
@@ -256,15 +284,16 @@ module m_putgetexcitons
       real(8), allocatable :: evalstmp(:)
       real(8), parameter :: epslat = 1.0d-6
       integer(4) :: stat, unexc, cmplxlen
-      integer(8) :: mypos, pos1, pos2, lambda, i
+      integer(8) :: mypos, pos1, pos2, lambda, i_exciton
       logical :: fcoup, fesel, fex, useindex, useenergy, fchibarq
       complex(8) :: zdummy
       complex(8), allocatable :: rvec2_(:)
 
       character(256) :: fname
 
-      character(256) :: tdastring, bsetypestring, scrtypestring
-      character(128) :: group, ciq, gname, gname_, pos
+      character(:), allocatable :: tdastring, bsetypestring, scrtypestring
+      character(:), allocatable :: group, char_iqpoint, gname, pos, char_iexciton
+      type(xhdf5_type) :: h5 
 
       if(present(iqmt)) then 
         iq = iqmt
@@ -349,100 +378,79 @@ module m_putgetexcitons
           tdastring="-TDA"
         end if
       end if
-      bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
-      scrtypestring = '-'//trim(input%xs%screening%screentype)
-#ifndef _HDF5_
-      ! Set filename to EXCCOEFF_*.OUT
-      call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
-        & scrtype=trim(scrtypestring), filnam=fname)
-      ! Check if file exists
-      inquire(file=trim(fname), exist=fex)
-      if(.not. fex ) then
-        write(*,*)
-        write(*,'("Error(get_excitons): File does not exist:", a)') trim(fname)
-        write(*,*)
-        call terminate
-      end if
-      ! Open stream access file 
-      call getunit(unexc)
-      open(unexc, file=trim(fname), access='stream',&
-        & action='read', form='unformatted', status='old', iostat=stat)
-      if(stat /= 0) then
-        write(*,*) stat
-        write(*,'("Error(get_excitons): Error opening file ", a)') trim(fname)
-        write(*,*)
-        call terminate
-      end if
-#endif
+      bsetypestring = '-' // trim(input%xs%bse%bsetype) // tdastring
+      scrtypestring = '-' // trim(input%xs%screening%screentype)
+
       ! Allocate arrays
       call clear_excitons()
       allocate(vqlmt_(3))
       allocate(ngridk_(3))
 
-#ifdef _HDF5_
-#ifdef MPI
-      if(mpiglobal%rank == 0) then
-#endif
-        ! Create hdf5 File
-        write(ciq, '(I4.4)') iq ! Generate string out of momentum transfer index
-        gname="eigvec"//trim(bsetypestring)//trim(scrtypestring)
-        if (.not. hdf5_exist_group(fhdf5,"/",gname)) then
-          call hdf5_create_group(fhdf5,"/",gname)
+      if(input%xs%BSE%brixshdf5) then 
+        call h5%initialize(fhdf5, mpiglobal)
+
+        allocate(character(len=4) :: char_iqpoint)
+        write(char_iqpoint, "(I4.4)") iq
+
+        group = join_paths('eigvec' // bsetypestring // scrtypestring, char_iqpoint)
+        group = join_paths(group, 'parameters')
+
+        call h5%read(group, 'fcoup', fcoup_)
+        call h5%read(group, 'fesel', fesel_)
+        call h5%read(group, 'nk_max', nk_max_)
+        call h5%read(group, 'nk_bse', nk_bse_)
+        call h5%read(group, 'hamsize', hamsize_)
+        call h5%read(group, 'nexcstored', nexcstored_)
+        call h5%read(group, 'i1', iex1_)
+        call h5%read(group, 'i2', iex2_)
+        call h5%read(group, 'ioref', ioref_)
+        call h5%read(group, 'iuref', iuref_)
+        call h5%read(group, 'iq', iq_)
+        call h5%read(group, 'vqlmt(iq)', vqlmt_)
+        call h5%read(group, 'ngridk', ngridk_)
+
+ 
+      else 
+
+        ! Set filename to EXCCOEFF_*.OUT
+        call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
+          & scrtype=trim(scrtypestring), filnam=fname)
+        ! Check if file exists
+        inquire(file=trim(fname), exist=fex)
+        if(.not. fex ) then
+          write(*,*)
+          write(*,'("Error(get_excitons): File does not exist:", a)') trim(fname)
+          write(*,*)
+          call terminate
         end if
-        gname_=trim(adjustl(gname))//"/"
-        ! Generate subgroup for each iqmt
-        if (.not. hdf5_exist_group(fhdf5,gname_,ciq)) then
-          call hdf5_create_group(fhdf5,gname,ciq)
+
+        ! Open stream access file 
+        call getunit(unexc)
+        open(unexc, file=trim(fname), access='stream',&
+          & action='read', form='unformatted', status='old', iostat=stat)
+        if(stat /= 0) then
+          write(*,*) stat
+          write(*,'("Error(get_excitons): Error opening file ", a)') trim(fname)
+          write(*,*)
+          call terminate
         end if
-        gname_=trim(adjustl(gname_))//trim(adjustl(ciq))//"/"
+        
         ! Read Meta data
-        group=trim(adjustl(gname_))//"parameters"
-        call hdf5_initialize()
-        call hdf5_read(fhdf5,group,"fcoup",fcoup_)      
-        call hdf5_read(fhdf5,group,"fesel",fesel_)      
-        call hdf5_read(fhdf5,group,"nk_max",nk_max_)
-        call hdf5_read(fhdf5,group,"nk_bse",nk_bse_)
-        call hdf5_read(fhdf5,group,"hamsize",hamsize_)
-        call hdf5_read(fhdf5,group,"iq", iq_)
-        call hdf5_read(fhdf5,group,"vqlmt(iq)", vqlmt_(1), (/3/))
-        call hdf5_read(fhdf5,group,"ngridk", ngridk_(1), shape(ngridk_))
-        call hdf5_read(fhdf5,group,"nexcstored",nexcstored_)
-        call hdf5_read(fhdf5,group,"i1",iex1_)
-        call hdf5_read(fhdf5,group,"i2",iex2_)
-        call hdf5_read(fhdf5,group,"ioref",ioref_)
-        call hdf5_read(fhdf5,group,"iuref",iuref_)
-#ifdef MPI
-      end if
-      call mpi_bcast(fcoup_,1, MPI_LOGICAL,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(fesel_,1, MPI_LOGICAL,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(nk_max_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(nk_bse_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(hamsize_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(nexcstored_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(iex1_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(iex2_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(ioref_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(iuref_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(iq_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(vqlmt_,size(vqlmt_), MPI_DOUBLE_PRECISION,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(ngridk_,size(ngridk_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-#endif
-#else
-      ! Read Meta data
-      read(unexc, pos=1)&
-        & fcoup_,&       ! Was the TDA used?
-        & fesel_,&       ! Were the transitions selected by energy?
-        & nk_max_,&      ! Number of non-reduced k-points 
-        & nk_bse_,&      ! Number of k-points used in the bse hamiltonian
-        & hamsize_,&     ! Size of the RR block of the BSE hamiltonian and number of considered transitions
-        & nexcstored_,&  ! Number of saved eigenvectors
-        & iex1_, iex2_,& ! Range of saved eigenvectors
-        & ioref_, iuref_,&! Reference absolute state index for occpied and unoccupied index (usually lowest and 1st unoccupied)
-        & iq_,&          ! Index of momentum transfer vector
-        & vqlmt_,&       ! Momentum transver vector
-        & ngridk_        ! k-grid spacing
-      inquire(unexc, pos=mypos)
-#endif  
+        read(unexc, pos=1)&
+          fcoup_, &         ! Was the TDA used?
+          fesel_, &         ! Were the transitions selected by energy?
+          nk_max_, &        ! Number of non-reduced k-points 
+          nk_bse_, &        ! Number of k-points used in the bse hamiltonian
+          hamsize_, &       ! Size of the RR block of the BSE hamiltonian and number of considered transitions
+          nexcstored_, &    ! Number of saved eigenvectors
+          iex1_, iex2_, &   ! Range of saved eigenvectors
+          ioref_, iuref_, & ! Reference absolute state index for occpied and unoccupied index (usually lowest and 1st unoccupied)
+          iq_, &            ! Index of momentum transfer vector
+          vqlmt_, &         ! Momentum transver vector
+          ngridk_           ! k-grid spacing
+        inquire(unexc, pos=mypos)
+      end if 
+    
       ! Check read parameters against requested ones
       if(fcoup_ .neqv. fcoup) then 
         write(*,*)
@@ -452,6 +460,7 @@ module m_putgetexcitons
         write(*,*)
         call terminate
       end if
+
       if(fesel_ .neqv. fesel) then 
         write(*,*)
         write(*,'("Error(get_excitons):  Transition selection schemes differs")')
@@ -460,6 +469,7 @@ module m_putgetexcitons
         write(*,*)
         call terminate
       end if
+
       if(norm2(vqlmt-vqlmt_)>epslat) then 
         write(*,*)
         write(*,'("Error(get_excitons): Differing momentum transfer vector.")')
@@ -480,55 +490,45 @@ module m_putgetexcitons
       allocate(koulims_(4,nk_max_))
       allocate(smap_(3,hamsize_))
       allocate(smap_rel_(3,hamsize_))
-
       allocate(evalstmp(iex1_:iex2_))
-#ifdef _HDF5_
-#ifdef MPI
-      if(mpiglobal%rank == 0) then
-#endif
-        call hdf5_read(fhdf5,group,"ikmap", ikmap_(0,0,0), shape(ikmap_))
-        call hdf5_read(fhdf5,group,"vkl0", vkl0_(1,1), shape(vkl0_))
-        call hdf5_read(fhdf5,group,"vkl", vkl_(1,1), shape(vkl_))
-        call hdf5_read(fhdf5,group,"ik2ikqmtm",ik2ikqmtm_(1), (/nk_max_/))
-        call hdf5_read(fhdf5,group,"ik2ikqmtp",ik2ikqmtp_(1), (/nk_max_/))
-        call hdf5_read(fhdf5,group,"ikqmtm2ikqmtp",ikqmtm2ikqmtp_(1), (/nk_max_/))
-        call hdf5_read(fhdf5,group,"kousize", kousize_(1), shape(kousize_))
-        call hdf5_read(fhdf5,group,"koulims",koulims_(1,1), shape(koulims_))
-        call hdf5_read(fhdf5,group,"smap",smap_(1,1), shape(smap_))
-        call hdf5_read(fhdf5,group,"smap_rel",smap_rel_(1,1), shape(smap_rel_))
-        call hdf5_read(fhdf5,gname_,"evals",evalstmp(1), shape(evalstmp))
-#ifdef MPI
-      end if
-      call mpi_bcast(ikmap_,size(ikmap_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(ik2ikqmtm_,size(ik2ikqmtm_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(ik2ikqmtp_,size(ik2ikqmtm_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(kousize_,size(kousize_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(koulims_,size(koulims_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(smap_,size(smap_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(smap_rel_,size(smap_rel_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(vkl0_,size(vkl0_), MPI_REAL,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(vkl_,size(vkl_), MPI_REAL,0,mpiglobal%comm,mpiglobal%ierr)
-      call mpi_bcast(evalstmp,size(evalstmp), MPI_REAL,0,mpiglobal%comm,mpiglobal%ierr)
-#endif
-#else
-      read(unexc, pos=mypos)&
-        & ikmap_,&      ! Non reduced k-grid index map 3d -> 1d 
-        & vkl0_,&       ! Lattice vectors for k=k-qmt/2 grid
-        & vkl_,&        ! Lattice vectors for k'=k+qmt/2 grid
-        & ik2ikqmtm_,&  ! ik -> ik-qmt/2 index map
-        & ik2ikqmtp_,&  ! ik -> ik+qmt/2 index map
-        & ikqmtm2ikqmtp_,& ! ik-qmt/2 -> ik+qmt/2 index map
-        & kousize_,&    ! Number of transitions at each k point
-        & koulims_,&    ! For each k-point, lower and upper c and v index 
-        & smap_,&       ! Index map  alpha -> c,v,k (absolute c,v,k indices)
-        & smap_rel_,&   ! Index map  alpha -> c,v,k (relative c,v,k indices)
-        & evalstmp      ! Excitonic enegies
-      inquire(unexc, pos=mypos)
 
-      ! Inquire ouput length of a complex number (in units of 4 byte by default)
-      inquire(iolength=cmplxlen) zdummy
-      cmplxlen=cmplxlen*4
-#endif
+      if(input%xs%BSE%brixshdf5) then 
+
+        group = join_paths('eigvec' // bsetypestring // scrtypestring, char_iqpoint)
+        call h5%read(group, 'evals', evalstmp)
+
+        group = join_paths(group, 'parameters')
+        call h5%read(group, 'ikmap', ikmap_)
+        call h5%read(group, 'vkl0', vkl0_)
+        call h5%read(group, 'vkl', vkl_)
+        call h5%read(group, 'ik2ikqmtm', ik2ikqmtm_)
+        call h5%read(group, 'ik2ikqmtp', ik2ikqmtp_)
+        call h5%read(group, 'ikqmtm2ikqmtp', ikqmtm2ikqmtp_)
+        call h5%read(group, 'kousize', kousize_)
+        call h5%read(group, 'koulims', koulims_)
+        call h5%read(group, 'smap', smap_)
+        call h5%read(group, 'smap_rel', smap_rel_)
+
+      else 
+        read(unexc, pos=mypos)&
+          & ikmap_,&      ! Non reduced k-grid index map 3d -> 1d 
+          & vkl0_,&       ! Lattice vectors for k=k-qmt/2 grid
+          & vkl_,&        ! Lattice vectors for k'=k+qmt/2 grid
+          & ik2ikqmtm_,&  ! ik -> ik-qmt/2 index map
+          & ik2ikqmtp_,&  ! ik -> ik+qmt/2 index map
+          & ikqmtm2ikqmtp_,& ! ik-qmt/2 -> ik+qmt/2 index map
+          & kousize_,&    ! Number of transitions at each k point
+          & koulims_,&    ! For each k-point, lower and upper c and v index 
+          & smap_,&       ! Index map  alpha -> c,v,k (absolute c,v,k indices)
+          & smap_rel_,&   ! Index map  alpha -> c,v,k (relative c,v,k indices)
+          & evalstmp      ! Excitonic enegies
+        inquire(unexc, pos=mypos)
+
+        ! Inquire ouput length of a complex number (in units of 4 byte by default)
+        inquire(iolength=cmplxlen) zdummy
+        cmplxlen=cmplxlen*4
+      end if
+
       if(useenergy) then 
         call energy2index(size(evalstmp), size(evalstmp),&
           & evalstmp(iex1_:iex2_), r1, r2, i1, i2)
@@ -552,56 +552,42 @@ module m_putgetexcitons
       allocate(evals_(i1:i2))
       evals_(:) = evalstmp(i1:i2)
       deallocate(evalstmp)
-#ifdef _HDF5_
+
       ! Resonant part of the eigenvectors
       allocate(rvec_(hamsize_, i1:i2))
-      allocate(rvec2_(hamsize_))
-#ifdef MPI
-      if(mpiglobal%rank == 0) then
-#endif
-        gname_=trim(adjustl(gname_))//'rvec'
-        do lambda=i1,i2
-          write(pos,'(I8.8)') lambda
-          call hdf5_read(fhdf5,gname_,pos, rvec2_(1), shape(rvec2_))
-          rvec_(:,lambda)=rvec2_(:)
-        end do
+
+      if(input%xs%BSE%brixshdf5) then
+        group = join_paths('eigvec' // bsetypestring // scrtypestring, char_iqpoint)
+        group = join_paths(group, 'rvec')
+        allocate(character(len=8) :: char_iexciton)
+        do i_exciton=i1, i2
+          write(char_iexciton, '(I8.8)') i_exciton
+          call h5%read(group, char_iexciton, rvec_(:, i_exciton))
+        end do 
+
+        if (fcoup_) then 
+          allocate(avec_(hamsize_, i1:i2))
+          group = join_paths('eigvec' // bsetypestring // scrtypestring, char_iqpoint)
+          group = join_paths(group, 'avec')
+
+          do i_exciton=i1, i2 
+            write(char_iexciton, '(I8.8)') i_exciton
+            call h5%read(group, char_iexciton, avec_(:, i_exciton))
+          end do
+        end if 
+
+      else 
+        pos1=int(i1-iex1_,8)*int(cmplxlen,8)*int(hamsize_,8)+mypos
+        read(unexc, pos=pos1) rvec_
         if(fcoup_) then  
           ! Anti-resonant part of the eigenvectors
           allocate(avec_(hamsize_, i1:i2))
-          gname_=trim(adjustl(gname_))//'rvec'
-        do lambda=i1,i2
-          write(pos,'(I8.8)') lambda
-          call hdf5_read(fhdf5,gname_,pos, avec_(1,lambda), (/hamsize_/))
-        end do
+          pos1=int(iex2_-iex1_+1,8)*int(cmplxlen,8)*int(hamsize_,8)+mypos
+          pos2=int(i1-iex1_,8)*int(cmplxlen,8)*int(hamsize_,8)+pos1
+          read(unexc, pos=pos2) avec_
         end if
-#ifdef MPI
-      end if
-#endif
-#else
-      ! Resonant part of the eigenvectors
-      allocate(rvec_(hamsize_, i1:i2))
-      pos1=int(i1-iex1_,8)*int(cmplxlen,8)*int(hamsize_,8)+mypos
-      read(unexc, pos=pos1) rvec_
-
-      if(fcoup_) then  
-        ! Anti-resonant part of the eigenvectors
-        allocate(avec_(hamsize_, i1:i2))
-        pos1=int(iex2_-iex1_+1,8)*int(cmplxlen,8)*int(hamsize_,8)+mypos
-        pos2=int(i1-iex1_,8)*int(cmplxlen,8)*int(hamsize_,8)+pos1
-        read(unexc, pos=pos2) avec_
-      end if
-      close(unexc)
-#endif
-
-#ifdef _HDF5_
-#ifdef MPI
-    call mpi_bcast(evals_, size(evals_), MPI_DOUBLE_COMPLEX,0, mpiglobal%comm,mpiglobal%ierr)
-    call mpi_bcast(rvec_, size(rvec_), MPI_DOUBLE_COMPLEX,0, mpiglobal%comm,mpiglobal%ierr)
-    call mpi_bcast(nk_bse_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-    call mpi_bcast(iuref_,1, MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-    call mpi_bcast(koulims_,size(koulims_), MPI_INTEGER,0,mpiglobal%comm,mpiglobal%ierr)
-#endif
-#endif
+        close(unexc)
+      end if 
 
       ! Set stored index range
       iex1_ = i1
@@ -612,9 +598,10 @@ module m_putgetexcitons
     end subroutine get_excitons
 
     subroutine putd_excitons(evals, drvec, davec, iqmt, a1, a2)
-      use mod_hdf5
       use mod_kpoint, only: ikmap
       use modinput
+      use xhdf5, only: xhdf5_type
+      use mod_hdf5, only: fhdf5
 
       implicit none
 
@@ -628,14 +615,17 @@ module m_putgetexcitons
       type(dzmat) :: dauxmat
       integer(4) :: stat, unexc
       logical :: fcoup, fesel, fchibarq
-      integer(4) :: i1, i2, nexcstored, iq, m, n, m2, n2, i, ngridk(3)
+      integer(4) :: i1, i2, nexcstored, iq, m, n, m2, n2, i_exciton, ngridk(3)
       logical :: sane, distributed
       real(8) :: de_(hamsize)
+      real(8), allocatable :: de_sorted(:)
 
+      character(:), allocatable :: fname, char_iqpoint, char_iexciton
+      character(:), allocatable :: tdastring, bsetypestring, scrtypestring
+      character(:), allocatable :: group,  gname
 
-      character(256) :: fname, ciq, ci
-      character(256) :: tdastring, bsetypestring, scrtypestring
-      character(256) :: group, gname_, gname
+      type(xhdf5_type) :: h5
+
       if(present(davec)) then
         sane = drvec%isdistributed .eqv. davec%isdistributed
       else
@@ -649,8 +639,7 @@ module m_putgetexcitons
           call put_excitons(evals(a1:a2), drvec%za(:,a1:a2), avec=davec%za(:,a1:a2),&
            & iqmt=iqmt, a1=a1, a2=a2)
         else
-          call put_excitons(evals(a1:a2), drvec%za(:,a1:a2),&
-           & iqmt=iqmt, a1=a1, a2=a2)
+          call put_excitons(evals(a1:a2), drvec%za(:,a1:a2), iqmt=iqmt, a1=a1, a2=a2)
         end if
         return
       else if(.not. sane) then 
@@ -738,164 +727,161 @@ module m_putgetexcitons
           tdastring=''
         else
           if(fchibarq) then 
-            tdastring="-TDA-BAR"
+            tdastring='-TDA-BAR'
           else
-            tdastring="-TDA"
+            tdastring='-TDA'
           end if
         end if
-        bsetypestring = '-'//trim(input%xs%bse%bsetype)//trim(tdastring)
-        scrtypestring = '-'//trim(input%xs%screening%screentype)
-#ifndef _HDF5_
-        ! Set filename to EXCCOEFF_*.OUT
-        call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
-          & scrtype=trim(scrtypestring), filnam=fname)
-
-        ! Open stream access file 
-        call getunit(unexc)
-        open(unexc, file=trim(fname), access='stream',&
-          & action='write', form='unformatted', status='replace', iostat=stat)
-        if(stat /= 0) then
-          write(*,*) stat
-          write(*,'("Error(storeexcitons): Error creating file ", a)') trim(fname)
-          write(*,*)
-          call terminate
-        end if
-#endif
-#ifdef _HDF5_
-        ! sort IP energy differences for write-out
-        de_(:)=de(ensortidx)
-        ! Create hdf5 File
-        write(ciq, '(I4.4)') iq ! Generate string out of momentum transfer index
-        gname="eigvec"//trim(bsetypestring)//trim(scrtypestring)
-        if (.not. hdf5_exist_group(fhdf5,"/",gname)) then
-          call hdf5_create_group(fhdf5,"/",gname)
-        end if
-        gname_=trim(adjustl(gname))//"/"
-        ! Generate subgroup for each iqmt
-        if (.not. hdf5_exist_group(fhdf5,gname_,ciq)) then
-          call hdf5_create_group(fhdf5,gname,ciq)
-        end if
-        gname_=trim(adjustl(gname_))//trim(adjustl(ciq))//"/"
-        ! Write Metadata
-        call hdf5_create_group(fhdf5, gname_, "parameters")
-        group= trim(adjustl(gname_))//'parameters'
-        call hdf5_write(fhdf5,group,"fcoup",fcoup)    ! Was the TDA used?
-        call hdf5_write(fhdf5,group,"fesel",fesel)
-        call hdf5_write(fhdf5,group,"nk_max",nk_max)
-        call hdf5_write(fhdf5,group,"nk_bse",nk_bse)
-        call hdf5_write(fhdf5,group,"hamsize",hamsize)
-        call hdf5_write(fhdf5,group,"iq", iq)
-        call hdf5_write(fhdf5,group,"vqlmt(iq)", vqlmt(1,iq), shape(vqlmt(1:3,iq)))
-        call hdf5_write(fhdf5,group,"ngridk", ngridk(1), shape(ngridk))
-        call hdf5_write(fhdf5,group,"ikmap", ikmap(0,0,0), shape(ikmap))
-        call hdf5_write(fhdf5,group,"vkl0", vkl0(1,1), shape(vkl0))
-        call hdf5_write(fhdf5,group,"vkl", vkl(1,1), shape(vkl))
-        call hdf5_write(fhdf5,group,"ik2ikqmtp",ik2ikqmtp(1), shape(ik2ikqmtp(:)))
-        call hdf5_write(fhdf5,group,"ik2ikqmtm",ik2ikqmtm(1), shape(ik2ikqmtm(:)))
-        call hdf5_write(fhdf5,group,"ikqmtm2ikqmtp",ikqmtm2ikqmtp(1), shape(ikqmtm2ikqmtp(:)))
-        call hdf5_write(fhdf5,group,"kousize", kousize(1), shape(kousize))
-        call hdf5_write(fhdf5,group,"koulims",koulims(1,1), shape(koulims))
-        call hdf5_write(fhdf5,group,"smap",smap(1,1), shape(smap))
-        call hdf5_write(fhdf5,group,"smap_rel",smap_rel(1,1), shape(smap_rel))
-        call hdf5_write(fhdf5,group,"nexcstored",nexcstored)
-        call hdf5_write(fhdf5,group,"i1",i1)
-        call hdf5_write(fhdf5,group,"i2",i2)
-        call hdf5_write(fhdf5,group,"ioref",ioref)
-        call hdf5_write(fhdf5,group,"iuref",iuref)
-        call hdf5_write(fhdf5,group,"ensortidx",ensortidx(1),shape(ensortidx))
-        ! Write actual data
-        call hdf5_write(fhdf5,gname_,"evals",evals(1), shape(evals))
-        call hdf5_write(fhdf5,gname_,"evalsIP",de_(1), shape(de_))
-        ! Create groups for distributed eigenvectors
-        if (.not. hdf5_exist_group(fhdf5,gname_,"rvec")) then
-          call hdf5_create_group(fhdf5,gname_,"rvec")
-        end if
-        if ((present(davec)) .and. (.not. hdf5_exist_group(fhdf5,gname_,"avec"))) then
-          call hdf5_create_group(fhdf5,gname_,"avec")
-        end if
-#endif
-#ifndef _HDF5_
-        ! Write data 
-        !   Meta data
-        write(unexc)&
-          & fcoup,&       ! Was the TDA used?
-          & fesel,&       ! Where the participating transitions chosen by energy?
-          & nk_max,&      ! Number of non-reduced k-points 
-          & nk_bse,&      ! Number of k-points used in the bse hamiltonian
-          & hamsize,&     ! Size of the RR block of the BSE hamiltonian and number of considered transitions
-          & nexcstored,&  ! Number of saved eigenvectors
-          & i1, i2,&      ! Range of saved eigenvectors
-          & ioref, iuref,&! Reference absolute state index for occpied and unoccupied index (usually lowest and 1st unoccupied)
-          & iq,&          ! Index of momentum transfer vector
-          & vqlmt(1:3,iq),& ! Momentum transver vector
-          & ngridk,&      ! k-grid spacing
-          & ikmap,&       ! k-grid index map 3d -> 1d 
-          & vkl0,&        ! Lattice vectors for k=k-qmt/2 grid
-          & vkl,&         ! Lattice vectors for k'=k+qmt/2 grid
-          & ik2ikqmtm(:),& ! ik -> ik-qmt/2 index map
-          & ik2ikqmtp(:),& ! ik -> ik+qmt/2 index map
-          & ikqmtm2ikqmtp(:),& ! ik-qmt/2 -> ik+qmt/2 index map
-          & kousize,&     ! Number of transitions at each k point
-          & koulims,&     ! For each k-point, lower and upper c and v index 
-          & smap,&        ! Index map  alpha -> c,v,k (absolute c,v,k indices)
-          & smap_rel      ! Index map  alpha -> c,v,k (relative c,v,k indices)
-        ! Evals
-        write(unexc) evals
-#endif
-        ! Collect eigenvectors column wise and write them to file 
+        bsetypestring = '-' // trim(input%xs%bse%bsetype) // tdastring
+        scrtypestring = '-' // trim(input%xs%screening%screentype)
 
         call new_dzmat(dauxmat, m, 1, bi0d)
-#ifdef _HDF5_
-        group=trim(adjustl(gname_))//'rvec'
-#endif
-        do i= 1, nexcstored
-          ! Copy i'th column of distributed eigenvector matrix to root 
-          call dzmat_copy(drvec%context, m, 1, dmata=drvec, dmatb=dauxmat,&
-            & ra=1, ca=i+drvec%subj-1)
-          ! Write eigenvector
-#ifdef _HDF5_
-          write(ci, '(I8.8)') i
-          call hdf5_write(fhdf5, group, ci, dauxmat%za(1,1),  shape(dauxmat%za(1:m,1)))
-#else          
-          write(unexc) dauxmat%za(1:m,1)
-#endif
+
+        if(input%xs%BSE%brixshdf5) then 
+          call h5%initialize(fhdf5, mpiglobal, serial_access=.true.)
+
+          group = 'eigvec' // bsetypestring // scrtypestring
+          call h5%initialize_group('/', group)
+
+          allocate(character(len=4) :: char_iqpoint)
+          write(char_iqpoint, '(I4.4)') iq ! Generate string out of momentum transfer index
+          call h5%initialize_group(group, char_iqpoint)
+          group = join_paths(group, char_iqpoint)
+
+          call h5%write(group, 'evals', evals)
+          de_sorted = de(ensortidx)
+          call h5%write(group, "evalsIP", de_sorted)
+
+          call h5%initialize_group(group, 'parameters')
+          group = join_paths(group, 'parameters')
+
+          call h5%write(group, 'fcoup', fcoup)    ! Was the TDA used?
+          call h5%write(group, 'fesel', fesel)
+          call h5%write(group, 'nk_max', nk_max)
+          call h5%write(group, 'nk_bse', nk_bse)
+          call h5%write(group, 'hamsize', hamsize)
+          call h5%write(group, 'iq', iq)
+          call h5%write(group, 'vqlmt(iq)', vqlmt(:, iq))
+          call h5%write(group, 'ngridk', ngridk)
+          call h5%write(group, 'ikmap', ikmap(0:, 0:, 0:))
+          call h5%write(group, 'vkl0', vkl0)
+          call h5%write(group, 'vkl', vkl)
+          call h5%write(group, 'ik2ikqmtp', ik2ikqmtp)
+          call h5%write(group, 'ik2ikqmtm', ik2ikqmtm)
+          call h5%write(group, 'ikqmtm2ikqmtp', ikqmtm2ikqmtp)
+          call h5%write(group, 'kousize', kousize)
+          call h5%write(group, 'koulims', koulims)
+          call h5%write(group, 'smap', smap)
+          call h5%write(group, 'smap_rel', smap_rel)
+          call h5%write(group, 'nexcstored', nexcstored)
+          call h5%write(group, 'i1', i1)
+          call h5%write(group, 'i2', i2)
+          call h5%write(group, 'ioref', ioref)
+          call h5%write(group, 'iuref', iuref)
+          call h5%write(group, 'ensortidx', ensortidx)
+
+          group = join_paths('eigvec' // bsetypestring // scrtypestring, char_iqpoint)
+          call h5%initialize_group(group, 'rvec')
+          group = join_paths(group, 'rvec')
+
+          allocate(character(len=8) :: char_iexciton)
+          do i_exciton=1, nexcstored
+            call dzmat_copy(drvec%context, m, 1, dmata=drvec, dmatb=dauxmat, ra=1, ca=i_exciton+drvec%subj-1)
+            write(char_iexciton, '(I8.8)') i_exciton 
+            call h5%write(group, char_iexciton, dauxmat%za(:, 1))
+          end do 
+
+          if (present(davec)) then
+            group = join_paths('eigvec' // bsetypestring // scrtypestring, char_iqpoint)
+            call h5%initialize_group(group, 'avec')
+            group = join_paths(group, 'avec')
+
+            do i_exciton=1, nexcstored
+              call dzmat_copy(davec%context, m, 1, dmata=davec, dmatb=dauxmat, ra=1, ca=i_exciton+davec%subj-1)
+              write(char_iexciton, '(I8.8)') i_exciton 
+              call h5%write(group, char_iexciton, dauxmat%za(:, 1))
+            end do 
+          end if 
+
+          call h5%finalize()
+        else
+
+          ! Set filename to EXCCOEFF_*.OUT
+          call genfilname(basename='EXCCOEFF', iqmt=iq, bsetype=trim(bsetypestring),&
+            & scrtype=trim(scrtypestring), filnam=fname)
+
+          ! Open stream access file 
+          call getunit(unexc)
+          open(unexc, file=trim(fname), access='stream',&
+            & action='write', form='unformatted', status='replace', iostat=stat)
+          if(stat /= 0) then
+            write(*,*) stat
+            write(*,'("Error(storeexcitons): Error creating file ", a)') trim(fname)
+            write(*,*)
+            call terminate
+          end if
+
+          ! Write data 
+          !   Meta data
+          write(unexc)&
+            & fcoup,&       ! Was the TDA used?
+            & fesel,&       ! Where the participating transitions chosen by energy?
+            & nk_max,&      ! Number of non-reduced k-points 
+            & nk_bse,&      ! Number of k-points used in the bse hamiltonian
+            & hamsize,&     ! Size of the RR block of the BSE hamiltonian and number of considered transitions
+            & nexcstored,&  ! Number of saved eigenvectors
+            & i1, i2,&      ! Range of saved eigenvectors
+            & ioref, iuref,&! Reference absolute state index for occpied and unoccupied index (usually lowest and 1st unoccupied)
+            & iq,&          ! Index of momentum transfer vector
+            & vqlmt(1:3,iq),& ! Momentum transver vector
+            & ngridk,&      ! k-grid spacing
+            & ikmap,&       ! k-grid index map 3d -> 1d 
+            & vkl0,&        ! Lattice vectors for k=k-qmt/2 grid
+            & vkl,&         ! Lattice vectors for k'=k+qmt/2 grid
+            & ik2ikqmtm(:),& ! ik -> ik-qmt/2 index map
+            & ik2ikqmtp(:),& ! ik -> ik+qmt/2 index map
+            & ikqmtm2ikqmtp(:),& ! ik-qmt/2 -> ik+qmt/2 index map
+            & kousize,&     ! Number of transitions at each k point
+            & koulims,&     ! For each k-point, lower and upper c and v index 
+            & smap,&        ! Index map  alpha -> c,v,k (absolute c,v,k indices)
+            & smap_rel      ! Index map  alpha -> c,v,k (relative c,v,k indices)
+          ! Evals
+          write(unexc) evals
+
+          do i_exciton= 1, nexcstored
+            ! Copy i_exciton'th column of distributed eigenvector matrix to root 
+            call dzmat_copy(drvec%context, m, 1, dmata=drvec, dmatb=dauxmat,&
+              & ra=1, ca=i_exciton+drvec%subj-1)
+            ! Write eigenvector        
+            write(unexc) dauxmat%za(1:m,1)
           end do
 
-#ifdef _HDF5_
-        group=trim(adjustl(gname_))//'avec'
-#endif
-        if(present(davec)) then 
-          do i= 1, nexcstored
-            call dzmat_copy(davec%context, m, 1, dmata=davec, dmatb=dauxmat,&
-              & ra=1, ca=i+davec%subj-1)
-            ! Write eigenvector
-#ifdef _HDF5_
-            write(ci, '(I4.8)') i
-            call hdf5_write(fhdf5, group, ci, dauxmat%za(1,1), shape(dauxmat%za(1:m,1)))
-#else          
-            write(unexc) dauxmat%za(1:m,1)
-#endif
+          if(present(davec)) then 
+            do i_exciton= 1, nexcstored
+              call dzmat_copy(davec%context, m, 1, dmata=davec, dmatb=dauxmat,&
+                & ra=1, ca=i_exciton+davec%subj-1)
+              ! Write eigenvector
+              write(unexc) dauxmat%za(1:m,1)
             end do
-        end if
+          end if
+
+          close(unexc)
+        end if 
 
         call del_dzmat(dauxmat)
-#ifndef _HDF5_
-        ! Done
-        close(unexc)
-#endif
       ! Send to root
       else
 
-        do i= 1, nexcstored
-          ! Copy i'th column of distributed eigenvector matrix to root 
+        do i_exciton= 1, nexcstored
+          ! Copy i_exciton'th column of distributed eigenvector matrix to root 
           call dzmat_copy(drvec%context, m, 1, dmata=drvec,&
-            & ra=1, ca=i+drvec%subj-1)
+            & ra=1, ca=i_exciton+drvec%subj-1)
         end do
 
         if(present(davec)) then 
-          do i= 1, nexcstored
+          do i_exciton= 1, nexcstored
             call dzmat_copy(davec%context, m, 1, dmata=davec,&
-              & ra=1, ca=i+davec%subj-1)
+              & ra=1, ca=i_exciton+davec%subj-1)
           end do
         end if
 

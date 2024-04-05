@@ -447,26 +447,7 @@ subroutine scrcoulint(iqmt, fra)
   ! Communicate array-parts wrt. q-points
   call mpi_allgatherv_ifc(set=nqptr, rlen=ngqmax*ngqmax,&
     & zbuf=scieffg, inplace=.true., comm=mpiglobal)
-  ! write W(G,G,q) to file if necessary
-#ifdef _HDF5_
-  if (input%xs%BSE%writepotential) then
-    if (mpiglobal%rank == 0) then
-      if (.not. hdf5_exist_group(fhdf5,'/','screenedpotential')) then
-        call hdf5_create_group(fhdf5,'/','screenedpotential')
-      end if
-      gname="/screenedpotential"
-      ! loop over all reduced q-vectors
-      do iqr=1, nqptr
-        write(ciq,'(I4.4)') iqr
-        if (.not. hdf5_exist_group(fhdf5,trim(adjustl(gname)),ciq)) then
-          call hdf5_create_group(fhdf5,trim(adjustl(gname)),ciq)
-        end if
-        group="/screenedpotential/"//ciq//'/'
-        call hdf5_write(fhdf5, group, "wqq",scieffg(1,1,iqr), shape(scieffg(:,:,iqr)))
-      end do
-    end if
-  end if
-#endif
+
   if(mpiglobal%rank == 0) then
     call timesec(tscc1)
     if (input%xs%BSE%outputlevelnumber == 1) &

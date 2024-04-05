@@ -244,16 +244,18 @@ To use fastBSE, you need to link it with HDF5 and FFTW3.
 
 **GCC**
 
+To install the libraries in a Debian-based distribution
 ```shell
   sudo apt-get install -y libhdf5-serial-dev libhdf5-mpi-dev libfftw3-dev
+```
+
+Then, to compile `exciting`
+```bash
   cd $EXCITINGROOT
   cp build/platforms/make.inc.gfortran10+.hdf5.fftw3 build/make.inc
   make smp # Choose the required build type as explained above.
 ```
-Please note that the recommended `make.inc` file supports **GCC10+**. If you use an older version drop the flags `-fallow-argument-mismatch` 
-and `-fallow-invalid-boz`.
-
-You might need to edit the compiler option -I"/usr/include" according to your system.
+Please note that the recommended `make.inc` file supports **GCC10+**. If you use an older version drop the flags `-fallow-argument-mismatch` and `-fallow-invalid-boz`.
 
 **INTEL**
 

@@ -2,6 +2,7 @@
 module bethe_salpeter_hamiltonian
   use precision, only: dp
   use constants, only: zone
+  use asserts, only: assert
 
   use interaction_kernel, only: interaction_kernel_type
   use vexc_isdf_kernel, only: vexc_isdf_kernel_type
@@ -23,12 +24,15 @@ module bethe_salpeter_hamiltonian
     contains
     
     procedure :: finalize
+    procedure :: times_vector
     generic :: set => set_diagonal, set_isdf_vexc, set_isdf_wscr
     procedure :: set_diagonal, set_isdf_vexc, set_isdf_wscr
-    procedure :: times_vector
+    procedure :: ip_gap
   end type bsh_type
 
+
   contains
+
 
   subroutine finalize(this)
     class(bsh_type), intent(out) :: this
@@ -36,7 +40,8 @@ module bethe_salpeter_hamiltonian
     if(allocated(this%transition_energies)) deallocate(this%transition_energies)
     if(associated(this%vexc)) this%vexc => null()
     if(associated(this%wscr)) this%wscr => null()
-  end subroutine
+  end subroutine finalize
+
 
   subroutine set_diagonal(this, transition_energies)
     class(bsh_type), intent(inout) :: this
@@ -60,12 +65,15 @@ module bethe_salpeter_hamiltonian
     this%wscr => wscr
   end subroutine set_isdf_wscr
 
-  integer function n_transitions(this)
-    !> ISDF BSH type
-    class(bsh_type) :: this
 
-    n_transitions = size(this%transition_energies)
-  end function n_transitions
+  real(dp) function ip_gap(this)
+    !> BSH type
+    class(bsh_type), intent(inout) :: this
+
+    call assert(allocated(this%transition_energies), 'this%transition_energies is not initialized.')
+    ip_gap = minval(this%transition_energies)
+  end function
+
 
   !> Apply the ISDF BSH \( \mathbf{H}_{BSH} \) to a vector \( \mathbf{v}_\text{in} \) such that
   !> \[

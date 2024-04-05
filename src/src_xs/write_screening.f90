@@ -22,7 +22,7 @@ module write_screening
 
     use constants, only: zzero
     use precision, only: i32, dp
-    use modmpi, only: mpiinfo, distribute_loop, terminate_mpi_env, mpi_allgatherv_ifc
+    use modmpi, only: mpiinfo, distribute_loop, terminate_mpi_env, mpi_allgatherv_ifc, terminate_if_false
     use os_utils, only: join_paths
     use grid_utils, only: mesh_1d
     use xhdf5
@@ -31,9 +31,24 @@ module write_screening
 
     private
 
-    public :: write_screening_launcher
+    public :: write_screening_launcher, read_screened_coulomb_hdf5
+
+    !> Group name to save the screened interaction in an HDF5 file
+    character(*), parameter, public :: h5group_screened_interaction = "screened_interaction"
+    !> Dataset name for the interaction \(w_{\mathbf q}(\mathbf{G, G'})\)
+    character(*), parameter, public :: h5ds_w = "w_screened_hat"
+    !> Dataset name for the \(\mathbf q\)-vectors
+    character(*), parameter, public :: h5ds_q = "q_cartesian"
+    !> Dataset name for the \(\mathbf {G+q}\)-vectors
+    character(*), parameter, public :: h5ds_G_plus_q = "G+q_cartesian"
+    !> Dataset name for the number \(\mathbf G\)-vectors per \(\mathbf q\)-vector
+    character(*), parameter, public :: h5ds_n_G_per_q = "N_G_per_q"
+    !> Dataset name for number of q points per dimension
+    character(*), parameter, public :: h5ds_ngridq = "ngridq"
+
 
 contains
+
 
     !> Launcher routine for the generation of the dielectric matrix (DM)
     !> and the screened Coulomb interaction on the
@@ -98,6 +113,8 @@ contains
         !> Error message
         character(256) :: error_message
 
+        real(dp) :: q_point(3)
+
         !> Head of DM
         complex(dp), allocatable  :: eps_head(:, :)
         !> Wings of DM
@@ -109,14 +126,16 @@ contains
 
         ! Initialize q-grid and (G+q)-grid for both the reduced and the
         ! non-reduced set of q-vectors
+        
+        q_point = gamma_point
 
         call init0
         call init1
         call xssave0
         call init2
-        call xsgrids_init(gamma_point, gkmax, makegq_=.true.)
-        call init1offs(gamma_point)
-        call init2offs(gamma_point, input%xs%reduceq)
+        call xsgrids_init(q_point, gkmax, makegq_=.true.)
+        call init1offs(q_point)
+        call init2offs(q_point, input%xs%reduceq)
 
         ! Copy q-point results from mod_qpoint into modxs variables
         nqptr = nqpt
@@ -124,7 +143,7 @@ contains
         iqmapr = iqmap
         vqlr = vql
         vqcr = vqc
-        call init2offs(gamma_point, .false.)
+        call init2offs(q_point, .false.)
 
         ! Write q-grid and (G+q)-grid to file for all non-reduced q-vectors
         if (mpi_env%is_root) then
@@ -155,7 +174,6 @@ contains
                                          eps_body, mpi_env)
 
         case ('write_screened_coulomb')
-            
             call write_screened_coulomb_interaction(h5file, h5path, mpi_env)
 
         case default
@@ -365,9 +383,9 @@ contains
         !> Checks if non-trivial phase appears at least for one (G,Gp) component
         logical :: tphf
         !> Screened Coulomb interaction (W_GG'(q)) for all reduced q-vectors
-        complex(dp), allocatable  :: screened_coulomb(:, :, :)
+        complex(dp), allocatable  :: w(:, :, :)
         !> Screened Coulomb interaction (W_GG'(q)) for one non-reduced q-vector
-        complex(dp), allocatable  :: screened_coulomb_nr(:, :, :)
+        complex(dp), allocatable  :: w_nr(:, :, :)
         !> Filename
         character(256) :: fname
         !> string for filename
@@ -389,11 +407,10 @@ contains
         !> Spin index, needed to use types q_set and gk_set
         integer(i32), parameter :: ispin = 1
         ! HDF5 variables
-        character(:), allocatable :: h5path_new
+        character(:), allocatable :: group
 
         integer :: first, last 
-        integer, allocatable :: n_G_per_q(:), q_list(:)
-        real(dp), allocatable :: G_q_vectors(:, :, :), q_vectors(:, :)
+        integer, allocatable :: q_list(:)
         type(xhdf5_type) :: h5
 
         call abort_if_not_hdf5(mpi_env, 'Error(write_screened_coulomb_interaction): exciting is not linked to HDF5. Thus, this task has no effect.')
@@ -402,7 +419,7 @@ contains
         eps0dirname = 'EPS0'
 
         allocate (igqmap(g_q%ngknrmax), source=0)
-        allocate (screened_coulomb(g_q%ngkmax, g_q%ngkmax, q%qset%nkpt))
+        allocate (w(g_q%ngkmax, g_q%ngkmax, q%qset%nkpt))
 
         ! Compute screened Coulomb interaction for reduced q-grid
         call distribute_loop(mpi_env, q%qset%nkpt, first, last)
@@ -410,12 +427,12 @@ contains
 
         do iq = first, last
             n_gq = g_q%ngk(ispin, iq)
-            call genscclieff(iq, g_q%ngkmax, n_gq, screened_coulomb(:, :, iq))
+            call genscclieff(iq, g_q%ngkmax, n_gq, w(:, :, iq))
         end do
 
         ! Communicate array-parts wrt. reduced q-grid
         call mpi_allgatherv_ifc(set=q%qset%nkpt, rlen=g_q%ngkmax**2,&
-          & zbuf=screened_coulomb, inplace=.true., comm=mpi_env)
+          & zbuf=w, inplace=.true., comm=mpi_env)
 
         ! Find results for finite non-reduced q-vectors
         
@@ -425,7 +442,7 @@ contains
         q_list = mesh_1d(first, last)
 
         allocate(phasefactors(g_q%ngkmax, g_q%ngkmax))
-        allocate(screened_coulomb_nr(g_q%ngkmax, g_q%ngkmax, size(q_list)), source = zzero)
+        allocate(w_nr(g_q%ngkmax, g_q%ngkmax, size(q_list)), source = zzero)
 
         ! Obtain screened Coulomb interaction for non-reduced q-grid
         ! with the help of the results for the corresponding
@@ -452,26 +469,101 @@ contains
             ! translations
             call genphasedm(q_list(iq_nr), jsym, g_q%ngknrmax, n_gq_nr, phasefactors, tphf)
 
-            screened_coulomb_nr(:n_gq_nr, :n_gq_nr, iq_nr) = &
-                phasefactors(:n_gq_nr, :n_gq_nr) * screened_coulomb(igqmap(:n_gq_nr), igqmap(:n_gq_nr), iq)
+            w_nr(:n_gq_nr, :n_gq_nr, iq_nr) = &
+                phasefactors(:n_gq_nr, :n_gq_nr) * w(igqmap(:n_gq_nr), igqmap(:n_gq_nr), iq)
         end do
 
         ! Write to HDF5
-        call h5%initialize(h5file, mpi_env%comm)
-        call h5%initialize_group(h5path, 'screened_coulomb_non_reduced_q') !TODO: Put group and dataset names in paramters.
-
-        h5path_new = join_paths(h5path, 'screened_coulomb_non_reduced_q')
-        q_vectors = q%qset%vkcnr(:, first : last)
-        G_q_vectors = g_q%vgknrc(:, :, ispin, first : last)
-        n_G_per_q = g_q%ngknr(ispin, first : last)
-        
-        call h5%write(h5path_new, 'interaction', screened_coulomb_nr, [1, 1, first], [g_q%ngkmax, g_q%ngkmax, q%qset%nkptnr])
-        call h5%write(h5path_new, 'q_vectors_cartesian', q_vectors, [1, first], [3, q%qset%nkptnr])
-        call h5%write(h5path_new, 'number_of_G_per_q', n_G_per_q, [first], [q%qset%nkptnr])
-        call h5%write(h5path_new, 'G+q_vectors_cartesian', G_q_vectors, [1, 1, first], [3, g_q%ngknrmax, q%qset%nkptnr])
+        group = join_paths(h5path, h5group_screened_interaction)
+        call h5%initialize(h5file, mpi_env)
+        call h5%initialize_group(h5group_root, h5group_screened_interaction)
+        call h5%write(group, h5ds_w, w_nr, [1, 1, first], [g_q%ngkmax, g_q%ngkmax, q%qset%nkptnr])
+        call h5%write(group, h5ds_q, q%qset%vkcnr(:, first : last), [1, first], [3, q%qset%nkptnr])
+        call h5%write(group, h5ds_n_G_per_q, g_q%ngknr(ispin, first : last), [first], [q%qset%nkptnr])
+        call h5%write(group, h5ds_G_plus_q, g_q%vgknrc(:, :, ispin, first : last), [1, 1, first], [3, g_q%ngknrmax, q%qset%nkptnr])
+        call h5%write(group, h5ds_ngridq, q%qset%ngridk, [1], [3])
         call h5%finalize()
-
     end subroutine
+
+    !> Read the screened coulomb interaction from an hdf5 file.
+    subroutine read_screened_coulomb_hdf5(mpi_env, h5file, h5path, w, q, G_plus_q, n_G_per_q, ngridq)
+        !> MPI environment
+        type(mpiinfo), intent(inout) :: mpi_env
+        !> Name of the HDF5 file
+        type(xhdf5_type), intent(inout) :: h5file
+        !> Name of the group in the HDF5 file
+        character(*), intent(in) :: h5path
+        !> Screened coulomb interaction \(W_\mathbf{q}(\mathbf{G, G'})\).
+        complex(dp), intent(out), allocatable :: w(:, :, :)
+        !> \(\mathbf q\)-vectors in cartesian coordinates.
+        real(dp), intent(out), allocatable :: q(:, :)
+        !> \(\mathbf{G + q}\)-vectors in cartesian coordinates.
+        real(dp), intent(out), allocatable :: G_plus_q(:, :, :)
+        !> Number of \(\mathbf G\)-vectors per \(\mathbf q\)-vectors
+        integer, intent(out), allocatable :: n_G_per_q(:)
+        !> Number of \(\mathbf q\)-vectors
+        integer, intent(out) :: ngridq(3)
+
+        real(dp), allocatable :: G_vectors(:, :)
+        integer :: n_G_per_q_max, n_q
+        integer, allocatable :: shape_w(:), shape_q(:), shape_G_plus_q(:), shape_n_G_per_q(:)
+        character(:), allocatable :: group
+
+        group = join_paths(h5path, h5group_screened_interaction)
+
+        call h5file%dataset_shape(group, h5ds_w, shape_w, complex_dataset=.true.)
+        call h5file%dataset_shape(group, h5ds_q, shape_q)
+        call h5file%dataset_shape(group, h5ds_G_plus_q, shape_G_plus_q)
+        call h5file%dataset_shape(group, h5ds_n_G_per_q, shape_n_G_per_q)
+
+        call h5file%read(group, h5ds_ngridq, ngridq)
+
+        n_q = product(ngridq)
+        n_G_per_q_max = shape_w(2)
+
+        call terminate_if_false(mpi_env, shape_w(1) == n_G_per_q_max, &
+                'read_screened_coulomb_hdf5: For dataset ' // h5ds_w // ' dimension 1 &
+                and 2 have not the same size. Expected is the maximum number of G+q vectors.')
+
+        call terminate_if_false(mpi_env, shape_q(1) == 3, &
+                'read_screened_coulomb_hdf5: For dataset ' // h5ds_q // ' dimension 1 is &
+                not 3 as expected for a set of reciprocal vectors.')
+
+        call terminate_if_false(mpi_env, shape_q(2) == n_q, &
+                'read_screened_coulomb_hdf5: For dataset ' // h5ds_q // ' dimension 2 is &
+                not the same number of q points as expected from dataset ' // h5ds_w // '.')
+
+        call terminate_if_false(mpi_env, shape_G_plus_q(1) == 3, &
+                'read_screened_coulomb_hdf5: For dataset ' // h5ds_G_plus_q // ' dimension 1 &
+                is not 3 as expected for a set of reciprocal vectors.')
+
+        call terminate_if_false(mpi_env, shape_G_plus_q(2) == n_G_per_q_max, &
+                'read_screened_coulomb_hdf5: For dataset ' // h5ds_G_plus_q // ' dimension 2 is &
+                not the maximum number of G+q vectors as expected from dataset ' // h5ds_w // '.')
+
+        call terminate_if_false(mpi_env, shape_G_plus_q(3) == n_q, &
+                'read_screened_coulomb_hdf5: For dataset ' // h5ds_G_plus_q // ' dimension 3 is &
+                 not the number of q vectors as expected from dataset ' // h5ds_w // '.')
+
+        call terminate_if_false(mpi_env, shape_n_G_per_q(1) == n_q, &
+                'read_screened_coulomb_hdf5: For dataset ' // h5ds_n_G_per_q // ' the size is &
+                 not the number of q vectors as expected from dataset ' // h5ds_w // '.')
+
+        allocate(w(n_G_per_q_max, n_G_per_q_max, n_q))
+        allocate(q(3, n_q))
+        allocate(G_plus_q(3, n_G_per_q_max, n_q))
+        allocate(n_G_per_q(n_q))
+
+        call h5file%read(group, h5ds_w, w)
+        call h5file%read(group, h5ds_q, q)
+        call h5file%read(group, h5ds_G_plus_q, G_plus_q)
+        call h5file%read(group, h5ds_n_G_per_q, n_G_per_q)
+
+        call terminate_if_false(mpi_env, maxval(n_G_per_q) == n_G_per_q_max, &
+                'read_screened_coulomb_hdf5: For dataset ' // h5ds_n_G_per_q // 'the maximum value &
+                is not the maximum number of G+q vectors as expected from dataset ' // h5ds_w // '.')
+
+    end subroutine read_screened_coulomb_hdf5
 
     !> Wrapper for geteps0_finite_q and geteps0_zero_q:
     !> Reads dielectric matrix for all q-vectors from file.

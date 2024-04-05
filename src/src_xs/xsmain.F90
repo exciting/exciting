@@ -26,21 +26,16 @@ subroutine xsmain(plan, nxstasks)
   use mod_misc, only: task
   use mod_exciton_wf
   use mod_hdf5, only: fhdf5
-  use m_write_hdf5, only: fhdf5_inter
-  use xhdf5, only: xhdf5_type
-
-  use mod_write_screen, only: write_screen
+  use xhdf5, only: xhdf5_type, abort_if_not_hdf5
 
   use phonon_screening, only: phonon_screening_launcher
   use expand_add_eps, only: expand_add_eps_launcher
   use write_screening, only: write_screening_launcher
   use xhdf5, only: xhdf5_type
   use xstring, only: validate_filename
-  use fastBSE, only: fastBSE_main, fastBSE_sanity_checks
-  use fastBSE_write_wfplot, only: fastBSE_write_u
-  use fastBSE_transitions, only: fastBSE_setup_transitions
+  use fastBSE, only: fastBSE_main, fastBSE_human_readable_output, fastBSE_sanity_checks
+  use fastBSE_groundstate_properties, only: fastBSE_setup_groundstate_properties
   use fastBSE_isdf, only: fastBSE_isdf_cvt
-  use fastBSE_isdf_tests, only: fastBSE_isdf_vexc_test
   use modxs, only: unitout
   use write_screening, only: write_screening_launcher
   
@@ -70,12 +65,8 @@ subroutine xsmain(plan, nxstasks)
 
   call terminate_if_false(validate_filename(fhdf5, '.h5'), 'HDF5 file name for bse output is not valid.')
 
-  call h5%initialize(fhdf5, mpiglobal%comm)
+  call h5%initialize(fhdf5, mpiglobal)
   if (ghdf5 /= '/') call h5%initialize_group('/', ghdf5)
-  call h5%finalize()
-
-  fhdf5_inter = 'bse_matrix.h5'
-  call h5%initialize(fhdf5_inter, mpiglobal%comm)
   call h5%finalize()
 
   do i = 1, nxstasks
@@ -241,42 +232,30 @@ subroutine xsmain(plan, nxstasks)
         ! BSE-kernel
         call kernxc_bse
 
-      ! Taskname 'write_wfplot'
-      case(451)
-        ! write real-space XS wfcts to file
-        call fastBSE_sanity_checks(mpiglobal, input)
-        call fastBSE_write_u(fhdf5, ghdf5, input, mpiglobal)
-
-      ! Taskname 'write_screen'
-      case(452)
-        ! write screened Coulomb potential to file
-        call write_screen
-
       ! Taskname 'fastBSE_main'
       case(501)
         call fastBSE_sanity_checks(mpiglobal, input)
         call fastBSE_main(mpiglobal, input, fhdf5, ghdf5, unitout)
 
-      case(510)
-      ! Taskname 'fastBSE_setup_transitions'
+      ! Taskname 'fastBSE_human_readable_output'
+      case(502)
         call fastBSE_sanity_checks(mpiglobal, input)
-        call fastBSE_setup_transitions(mpiglobal, input, fhdf5, ghdf5, unitout)
+        call fastBSE_human_readable_output(mpiglobal, input, fhdf5, ghdf5)
+
+      case(510)
+      ! Taskname 'fastBSE_groundstate_properties'
+        call fastBSE_sanity_checks(mpiglobal, input)
+        call fastBSE_setup_groundstate_properties(mpiglobal, input, fhdf5, ghdf5, unitout)
 
       ! Taskname 'fastBSE_isdf_cvt'
       case(512)
         call fastBSE_sanity_checks(mpiglobal, input)
         call fastBSE_isdf_cvt(mpiglobal, input, fhdf5, ghdf5, unitout)  
 
-      ! Taskname 'fastBSE_isdf_vexc_test'
-      case(513)
-        call fastBSE_sanity_checks(mpiglobal, input)
-        call fastBSE_isdf_vexc_test(mpiglobal, input, fhdf5, ghdf5, unitout)
-
       ! Taskname 'xsestimate'
       case(700)
         ! estimate disk-space, cpu-time and memory
         call xsestimate
-
 
       ! Taskname 'excitonWavefunction'
       case(710)

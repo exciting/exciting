@@ -35,7 +35,7 @@ from src.tolerance.tol_classes import tol_file_name
 from src.tolerance.templates.groundstate import ground_state_tolerances
 from src.tolerance.templates.gw import gw_tolerances
 from src.tolerance.templates.hybrid import hybrid_tolerances, hybrid_message
-from src.tolerance.templates.bse import bse_tolerances
+from src.tolerance.templates.bse import bse_tolerances, bse_hdf5_tolerances, fastBSE_tolerances
 from src.tolerance.templates.tddft import tddft_tolerances
 from src.tolerance.templates.rt_tddft import rt_tddft_tolerances
 from src.tolerance.templates.properties import optical_properties_tolerances, core_properties_tolerances, \
@@ -149,6 +149,9 @@ def generate_tolerance_file(calculation: ExcitingCalculation, file_path: str):
     if calculation == ExcitingCalculation.bse:
         tolerances = bse_tolerances
 
+    if calculation == ExcitingCalculation.bse_hdf5:
+        tolerances = bse_hdf5_tolerances
+
     # Properties
     if calculation == ExcitingCalculation.band_structure:
         tolerances = bandstructure_tolerances
@@ -176,6 +179,9 @@ def generate_tolerance_file(calculation: ExcitingCalculation, file_path: str):
 
     if calculation == ExcitingCalculation.spin_properties:
         tolerances = spin_properties_tolerances
+
+    if calculation == ExcitingCalculation.fastBSE:
+        tolerances = fastBSE_tolerances
 
     write_tolerance_with_json(tolerances, full_file_name)
 

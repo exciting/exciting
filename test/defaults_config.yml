@@ -24,6 +24,8 @@ default_files_under_test:
    bse:
       - "EPSILON_??.OUT"
       - "EXCITON_??.OUT"
+   bse_hdf5:
+      - "fastBSE_output.h5"
    tddft:
        - "EPSILON_??.OUT"
        - "LOSS_??.OUT"
@@ -72,11 +74,11 @@ default_files_under_test:
       - "wf2d-????-????.xsf"
       - "wf3d-????-????.xsf"
       - "wf3d-????-????.cube"
-# TODO(Bene #160): 
-# Fix fastBSE test      
-#   fastBSE:
-#      - "fastBSE_test.h5"
-
+   fastBSE:
+      - "fastBSE_output.h5"
+      - "fastBSE_absorption_spectrum.out"
+      - "fastBSE_exciton_energies.out"
+      - "fastBSE_oscillator_strengths.out"
 
 # Specify each new group.
 # Any test without a group is assigned NONE
@@ -88,5 +90,6 @@ group_execution:
   LIBXC: True
   SIRIUS: False
   HDF5: False
+  FASTBSE: False
   # Do not run (useful for disabling in the CI)
   NORUN: False

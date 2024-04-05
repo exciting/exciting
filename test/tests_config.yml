@@ -182,6 +182,18 @@ BSE/PBE-MoS2-dichroism:
       - "Mo.xml"
       - "S.xml"
 
+# TODO(Bene) Issue #171: Test execution hangs in bse task
+BSE/PBE_SOL-diamond-brixshdf5:
+   group: !Group HDF5
+   files_under_test:
+      - "bse_output.h5"
+   inputs:
+      - "input.xml"
+      - "C.xml"
+   failing_builds:
+      - !Build intel_mpiandsmp
+      - !Build gcc_mpiandsmp
+      
 GW/ZnO-PBESOL:
    files_under_test:
       - "GW_INFO.OUT"
@@ -474,18 +486,15 @@ sirius/GaN:
       - "evalcore.xml"
       - "atoms.xml"
       - "geometry.xml"
-# TODO(Bene #160): fix tests:
-# Code works but something is wrong with the test case.
-# The HDF5 output file does not contain anything.
-# Build should be done with MKL to have access to fftw3 APIs 
-# or fft needs to be done differently.
-#fastBSE/diamond:
-#   group: !Group HDF5
-#   files_under_test:
-#      - "fastBSE_test.h5"
-#      - !Build intel_mpiandsmp
-#      - !Build intel_serial
-#      - !Build intel_smp
-#      - !Build gcc_mpiandsmp
-#      - !Build gcc_serial
-#      - !Build gcc_smp
+
+fastBSE/PBE_SOL-diamond:
+   group: !Group FASTBSE
+   inputs:
+      - "C.xml"
+      - "input.xml"
+   files_under_test:
+      - "fastBSE_output.h5"
+      - "fastBSE_absorption_spectrum.out"
+      - "fastBSE_exciton_energies.out"
+      - "fastBSE_oscillator_strengths.out"
+   comments: 'Only runs for builds linked to HDF5 and FFTW3.'

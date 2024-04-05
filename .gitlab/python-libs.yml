@@ -11,7 +11,7 @@ python:excitingtools-python-3.7:
     - python3 -m pip install -U pip setuptools
     - python3 -m pip install --upgrade --force pylint coverage
   script:
-    - cd tools/exciting_tools && python3 -m pip install -e .[dev,schemaparsing]
+    - cd tools/exciting_tools && python3 -m pip install -e .[dev,schemaparsing,h5_parsing]
     # run ruff and check the files (includes some pylint, see also README.MD section Code 'Checking and Formatting')
     - ruff check
     - ruff format --diff
@@ -41,6 +41,7 @@ python:regressionframework-python-3.7:
    # - python3.7 -m pip install --upgrade --force coverage
     - python3 -m pip install -U pip setuptools
     - python3 -m pip install coverage
+    - python3 -m pip install h5py
     - python3 -m pip install tools/exciting_tools
   script:
     - cd test/ && coverage run -m pytest test_functions/

@@ -4,12 +4,12 @@
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: writepmatxs
+! !ROUTINE: writepmatasc
 ! !INTERFACE:
 subroutine writepmatasc
 ! !USES:
   use modinput, only: input
-  use modmpi, only: procs, rank, firstofset, lastofset, barrier, ierr
+  use modmpi, only: procs, rank, firstofset, lastofset, barrier, ierr, mpiglobal
   use constants, only: zzero
   use mod_misc, only: task, filext
   use mod_kpoint, only: nkpt, vkl
@@ -27,7 +27,10 @@ subroutine writepmatasc
   use m_putpmat
   use m_genfilname
   use mod_hdf5
+  use mod_core_states, only: init_core_states
   use m_getunit, only: getunit
+  use xhdf5, only: xhdf5_type
+  use os_utils
 #ifdef MPI
   use mpi
 #endif
@@ -55,15 +58,15 @@ subroutine writepmatasc
   complex(8), allocatable :: pmat(:, :, :,:)
   character(256) :: string
   logical :: fast
-  character(*), parameter :: thisname="writepmatxs"
-  character(128) :: gname, cik
+  character(*), parameter :: thisname="writepmatasc"
+  character(:), allocatable :: group, cik
   ! External functions
   logical, external :: tqgamma
 
-  integer :: ist, ist1, ist2, oct, un
+  integer :: ist, ist1, ist2, oct, un, n_st1
   integer :: ranks_
 
-  !write(*,*) "writepmatxs here at rank", rank
+  type(xhdf5_type) :: h5
 
   ! Initialise universal variables
   call init0
@@ -83,6 +86,9 @@ subroutine writepmatasc
     !   * Generates radial functions (mod_APW_LO)
     call init2
   end if
+
+  ! Initialize xas specific globals
+  if(input%xs%bse%xas .or. input%xs%BSE%xes) call xasinit
 
   ! Check if fast (default) version of matrix elements is used
   fast=.false.
@@ -104,47 +110,38 @@ subroutine writepmatasc
   allocate(evecsvt(nstsv, nstsv))
 
   ! Allocate the momentum matrix elements array
-  if (input%xs%bse%xas) then ! Allocation for xas calculation
-    allocate(pmat(3, ncg, nstsv,nkpt))
+  if (input%xs%bse%xas) then
+    allocate(pmat(3, ncg, nstsv,nkpt), source=zzero)
     pmat(:,:,:,:)=zzero
   else
-    allocate(pmat(3, nstsv, nstsv,nkpt))
+    allocate(pmat(3, nstsv, nstsv, nkpt))
     pmat(:,:,:,:)=zzero
   end if  
 
   ! Get eigenvectors for qmt=0, i.e. set file extension to _QMT001
   call genfilname(iqmt=iqmtgamma, setfilext=.true.)
 
-    if(allocated(apwcmt)) deallocate(apwcmt)
-    allocate(apwcmt(nstfv, apwordmax, lmmaxapw, natmtot))
-    if(allocated(ripaa)) deallocate(ripaa)
-    allocate(ripaa(apwordmax, lmmaxapw, apwordmax, lmmaxapw,natmtot, 3))
-    if(nlotot .gt. 0) then
-      if(allocated(locmt)) deallocate(locmt)
-      allocate(locmt(nstfv, nlomax,-lolmax:lolmax, natmtot))
-      if(allocated(ripalo)) deallocate(ripalo)
-      allocate(ripalo(apwordmax, lmmaxapw, nlomax,-lolmax:lolmax, natmtot, 3))
-      if(allocated(riploa)) deallocate(riploa)
-      allocate(riploa(nlomax,-lolmax:lolmax, apwordmax, lmmaxapw, natmtot, 3))
-      if(allocated(riplolo)) deallocate(riplolo)
-      allocate(riplolo(nlomax,-lolmax:lolmax, nlomax,-lolmax:lolmax, natmtot, 3))
-    end if
+  if(allocated(apwcmt)) deallocate(apwcmt)
+  allocate(apwcmt(nstfv, apwordmax, lmmaxapw, natmtot))
+  if(allocated(ripaa)) deallocate(ripaa)
+  allocate(ripaa(apwordmax, lmmaxapw, apwordmax, lmmaxapw,natmtot, 3))
+  if(nlotot .gt. 0) then
+    if(allocated(locmt)) deallocate(locmt)
+    allocate(locmt(nstfv, nlomax,-lolmax:lolmax, natmtot))
+    if(allocated(ripalo)) deallocate(ripalo)
+    allocate(ripalo(apwordmax, lmmaxapw, nlomax,-lolmax:lolmax, natmtot, 3))
+    if(allocated(riploa)) deallocate(riploa)
+    allocate(riploa(nlomax,-lolmax:lolmax, apwordmax, lmmaxapw, natmtot, 3))
+    if(allocated(riplolo)) deallocate(riplolo)
+    allocate(riplolo(nlomax,-lolmax:lolmax, nlomax,-lolmax:lolmax, natmtot, 3))
+  end if
 
     ! Calculate gradient of radial functions times spherical harmonics
-    call pmatrad
-#ifdef _HDF5_
-  if (rank == 0) then
-    if (.not. hdf5_exist_group(fhdf5, "/", "pmat")) then
-      call hdf5_create_group(fhdf5,"/", "pmat")
-    end if
-  end if
-#else
-  call getunit(un)
-  open(un, File="PMAT_XS_ASC.OUT",Action="write")
-#endif
-  kloop: do ik = kpari, kparf
+  call pmatrad
+
+  do ik = kpari, kparf
     if(task .ne. 120) call chkpt(2, (/ task, ik /), 'ematqk:&
-     & task, k - point index; momentum matrix elements')
+    & task, k - point index; momentum matrix elements')
 
     ! Get the eigenvectors and values from file
     call getevecfv(vkl(1, ik), vgkl(1, 1, 1, ik), evecfvt)
@@ -155,8 +152,8 @@ subroutine writepmatasc
       & sfacgk(1, 1, 1, ik), apwalmt)
 
     ! Generate apw expansion coefficients for muffin-tin
-     call genapwcmt(input%groundstate%lmaxapw, ngk(1, ik), 1,&
-       & nstfv, apwalmt, evecfvt, apwcmt)
+    call genapwcmt(input%groundstate%lmaxapw, ngk(1, ik), 1,&
+      & nstfv, apwalmt, evecfvt, apwcmt)
 
     ! Generate local orbital expansion coefficients for muffin-tin
     if(nlotot .gt. 0) & 
@@ -167,58 +164,67 @@ subroutine writepmatasc
       call genpmatcorxs(ik, ngk(1, ik), apwalmt, evecfvt, evecsvt, pmat(:,:,:,ik))
     else
       call genpmatxs(ngk(1, ik), igkig(1, 1, ik),&
-       & vgkc(1, 1, 1, ik), evecfvt, evecsvt, pmat(:,:,:,ik))
+      & vgkc(1, 1, 1, ik), evecfvt, evecsvt, pmat(:,:,:,ik))
     end if
-#ifndef _HDF5_
-    if (.NOT. input%xs%bse%xas) then
-      Do ist1 = 1, nstsv
-        Do ist2 = 1, nstsv
-          Do oct = 1, 3
-            Write (un, '(3i8, i4, 2g18.10)') ik, ist1, ist2, oct, &
-              & pmat (oct, ist1, ist2, ik)
-          End Do
-        End Do
-      End Do
-    else
-      Do ist1 = 1, ncg
-        Do ist2 = 1, nstsv
-          Do oct = 1, 3
-            Write (un, '(3i8, i4, 2g18.10)') ik, ist1, ist2, oct, &
-              & pmat (oct, ist1, ist2, ik)
-          End Do
-        End Do
-      End Do
-    end if
-#endif
-  end do kloop
-#ifdef _HDF5_
+  end do 
+
+  if(input%xs%BSE%brixshdf5) then 
+  
 #ifdef MPI
-  if (rank .eq. 0) then
-    call mpi_reduce(MPI_IN_PLACE,pmat,size(pmat),MPI_DOUBLE_COMPLEX, MPI_SUM, 0, &
-      & MPI_COMM_WORLD, ierr)
+
+    ! MR 479 (Bene). mpi_reduce call from a single process could be a bug. Consider investigating
+    if (rank == 0) then
+      call mpi_reduce(MPI_IN_PLACE,pmat,size(pmat),MPI_DOUBLE_COMPLEX, MPI_SUM, 0, &
+        & MPI_COMM_WORLD, ierr)
+    else
+      call mpi_reduce(pmat,0,size(pmat),MPI_DOUBLE_COMPLEX, MPI_SUM, 0, &
+        & MPI_COMM_WORLD, ierr)
+    end if
+
+#endif
+
+    if (rank == 0) then
+      call h5%initialize(fhdf5, mpiglobal, serial_access=.true.)
+      call h5%initialize_group('/', 'pmat')
+
+      allocate(character(len=8) :: cik)
+      do ik=1,nkpt 
+        write(cik, '(I8.8)') ik
+        call h5%initialize_group('pmat', cik)
+        group = join_paths('pmat', cik)
+
+        call h5%write(group, 'pmat', pmat(:, :, :, ik), [1, 1, 1], shape(pmat(:,:,:,ik)))
+      end do
+      call h5%finalize()
+    end if
+
   else
-    call mpi_reduce(pmat,0,size(pmat),MPI_DOUBLE_COMPLEX, MPI_SUM, 0, &
-      & MPI_COMM_WORLD, ierr)
-  endif
-#endif 
-  if (rank == 0) then
+
+    call getunit(un)
+    open(un, File="PMAT_XS_ASC.OUT",Action="write")
+
     do ik=1,nkpt 
-      write(cik, '(I8.8)') ik
-      if (.not. hdf5_exist_group(fhdf5, "/pmat/", trim(adjustl(cik)))) then
-        call hdf5_create_group(fhdf5,"/pmat/", trim(adjustl(cik)))
-      end if
-      gname="/pmat/"//trim(adjustl(cik))
-      ! Write hdf5
-      !write(*,*) 'shape(pmat)=', shape(pmat)
-      !write(*,*) "pmat(1,1,1)=", pmat(1,1,1)
-      call hdf5_write(fhdf5,gname,'pmat', pmat(1,1,1,ik), shape(pmat(:,:,:,ik)))
+      if (input%xs%bse%xas) then
+        n_st1 = ncg
+     else
+        n_st1 = nstsv
+     end if
+     
+     ! Where I also fixed the loop order for optimal access
+     Do ist2 = 1, nstsv
+       Do ist1 = 1, n_st1
+         Do oct = 1, 3
+             Write (un, '(3i8, i4, 2g18.10)') ik, ist1, ist2, oct, &
+                     & pmat (oct, ist1, ist2, ik)
+           End Do
+        End Do
+      End Do
+     
     end do
-  end if
-#endif
-  call barrier(callername=trim(thisname))
-#ifndef _HDF5_
-  close(un)
-#endif
+    close(un)
+
+  end if 
+
   inquire(iolength=reclen) vkl(:, ik), nstsv, pmat
   deallocate(apwalmt, evecfvt, evecsvt, pmat)
 
@@ -247,7 +253,5 @@ subroutine writepmatasc
 
   ! Reset global file extension to default
   call genfilname(setfilext=.true.)
-
 end subroutine writepmatasc
 !EOC
-
