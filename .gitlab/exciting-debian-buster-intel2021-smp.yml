@@ -4,11 +4,11 @@
 # the base image (as it totals ~ 10 GB).
 # The TCL module file is however, still provided by exciting.
 #
-# The line `- python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor lxml pytest pyyaml`
+# The line `- python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor pytest pyyaml`
 # is required because the docker base used for intel does not include python
 # and the corresponding packages. Consider building a new `exciting:debian-base-with-nfs` image
 
-build:debian-buster-Intel2019-smp:
+build:debian-buster-Intel2021-smp:
   image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
   stage: build
   tags:
@@ -17,7 +17,7 @@ build:debian-buster-Intel2019-smp:
     # Module file, with paths consistent with the nfs drive
     - cp -r build/utilities/modules/intel /etc/environment-modules/modules
     - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
-    - module load intel/2019
+    - module load intel/oneapi-2021.3
   script:
     - cp build/platforms/make.inc.ifort build/make.inc
     - make smp -j 2
@@ -27,18 +27,18 @@ build:debian-buster-Intel2019-smp:
       - build/make.inc
     expire_in: 5 hrs
 
-test-debian-buster-Intel2019-smp:
+test-debian-buster-Intel2021-smp:
   image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
   stage: test
   dependencies:
-    - build:debian-buster-Intel2019-smp
+    - build:debian-buster-Intel2021-smp
     - python:regressionframework-python-3.7
   tags:
     - docker
   before_script:
     - cp -r build/utilities/modules/intel /etc/environment-modules/modules
     - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
-    - module load intel/2019
+    - module load intel/oneapi-2021.3
     - python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor pytest pyyaml
   script:
     # Run exciting unit tests

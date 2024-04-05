@@ -15,31 +15,31 @@
 !> For examples how to use the library we refer kindly to the unit tests (`[[xhdf5_test.f90]]).
 !> These show all examples of usage.
 !>
-!> Be aware of that the writing routines will overwrite an existing datasets with the same name.
+!> Be aware of that the writing routines will overwrite an existing data set with the same name.
 module xhdf5
   use iso_c_binding, only: c_ptr, c_loc
 
-  use precision, only: dp
   use os_utils, only: path_exists, join_paths
-  use asserts, only: assert
+  use precision, only: sp, dp, i32
+  use modmpi, only: mpiinfo
 
-  use hdf5_utils
+  use xhdf5_globals
+  use xhdf5_error_handling
+  use mpi_utils
   use hdf5_file
   use hdf5_group
   use hdf5_write
   use hdf5_read
   use hdf5_dataset_utils
+  use hdf5_datatype
+  use datainfo_utils
 
 
   implicit none
 
 
   private
-  public :: xhdf5_type, abort_if_not_hdf5
-
-
-  !> Value for undefined integers.
-  integer(hdf5_id), parameter :: h5id_undefined = -1
+  public :: xhdf5_type, abort_if_not_hdf5, h5group_root
 
 
   !> Type for handeling an HDF5 file.
@@ -49,14 +49,18 @@ module xhdf5
     !> HDF5 file id.
     integer(hdf5_id) :: h5id = h5id_undefined
     !> MPI communicator handle
-    integer :: mpi_comm
+    type(mpi_comm_type) :: mpi_comm
     !> Flag to initialize HDF5 file in serial mode, even if compiled with MPI.
     !> By default this is set to false.
     logical :: serial_access = .false.
+    !> Number of overwritten datasets
+    integer :: n_overwritten_datasets = 0
 
     contains
 
-    procedure :: initialize
+    generic :: initialize => initialize_mpi_comm_type, initialize_mpiinfo
+    procedure :: initialize_mpi_comm_type, initialize_mpiinfo
+
     procedure :: finalize
     procedure :: initialize_group
     procedure :: dataset_shape
@@ -65,29 +69,24 @@ module xhdf5
 
     procedure :: delete => delete_link
 
-    generic :: write => write_string, &
-                        write_integer_rank_0, write_integer_rank_1, write_integer_rank_2, &
-                        write_real_dp_rank_0, write_real_dp_rank_1, write_real_dp_rank_2, write_real_dp_rank_3, write_real_dp_rank_4, &
-                        write_real_sp_rank_0, write_real_sp_rank_1, write_real_sp_rank_2, write_real_sp_rank_3, write_real_sp_rank_4, &
-                        write_complex_dp_rank_1, write_complex_dp_rank_2, write_complex_dp_rank_3, write_complex_dp_rank_4
+    procedure :: handle_if_dataset_exists
+    procedure :: evaluate_overwritten_datasets 
 
-    procedure :: write_string, &
-                 write_integer_rank_0, write_integer_rank_1, write_integer_rank_2, &
-                 write_real_dp_rank_0, write_real_dp_rank_1, write_real_dp_rank_2, write_real_dp_rank_3, write_real_dp_rank_4, &
-                 write_real_sp_rank_0, write_real_sp_rank_1, write_real_sp_rank_2, write_real_sp_rank_3, write_real_sp_rank_4, &
-                 write_complex_dp_rank_1, write_complex_dp_rank_2, write_complex_dp_rank_3, write_complex_dp_rank_4
+    generic :: write => write_string, write_bool, write_integer, &
+                        write_float, write_double, &
+                        write_float_complex, write_double_complex
 
-    generic :: read => read_string, &
-                       read_integer_rank_0, read_integer_rank_1, read_integer_rank_2, &
-                       read_real_dp_rank_0, read_real_dp_rank_1, read_real_dp_rank_2, read_real_dp_rank_3, read_real_dp_rank_4, &
-                       read_real_sp_rank_0, read_real_sp_rank_1, read_real_sp_rank_2, read_real_sp_rank_3, read_real_sp_rank_4, &
-                       read_complex_dp_rank_1, read_complex_dp_rank_2, read_complex_dp_rank_3, read_complex_dp_rank_4
+    procedure :: write_string, write_bool, write_integer, &
+                 write_float, write_double, &
+                 write_float_complex, write_double_complex
 
-    procedure :: read_string, &
-                 read_integer_rank_0, read_integer_rank_1, read_integer_rank_2, &
-                 read_real_dp_rank_0, read_real_dp_rank_1, read_real_dp_rank_2, read_real_dp_rank_3, read_real_dp_rank_4, &
-                 read_real_sp_rank_0, read_real_sp_rank_1, read_real_sp_rank_2, read_real_sp_rank_3, read_real_sp_rank_4, &
-                 read_complex_dp_rank_1, read_complex_dp_rank_2, read_complex_dp_rank_3, read_complex_dp_rank_4            
+    generic :: read => read_string, read_bool, read_integer, &
+                       read_float, read_double, &
+                       read_float_complex, read_double_complex
+
+    procedure :: read_string, read_bool, read_integer, &
+                 read_float, read_double, &
+                 read_float_complex, read_double_complex
 
   end type xhdf5_type
 
@@ -96,14 +95,15 @@ module xhdf5
 
 
   !> Initialize HDF5 library and, if `path` exists, open the file, else create a file at `path`.
-  subroutine initialize(this, path, mpi_comm, serial_access)
+  subroutine initialize_mpi_comm_type(this, path, mpi_comm, serial_access)
     !> HDF5 file handler.
     class(xhdf5_type), intent(inout) :: this
     !> Relative path to HDF5 file.
     character(*), intent(in) :: path
-    !> MPI communicator handle.
-    integer, intent(in) :: mpi_comm
-    !> Set to `.true.` if only serial access is possible.
+    !> MPI communicator.
+    type(mpi_comm_type), intent(in) :: mpi_comm
+    !> Set to `.true.` for serial access in an MPI environment. 
+    !> This is only allowed if the root process is the caller.
     logical, intent(in), optional :: serial_access
 
     this%path = trim(path)
@@ -113,13 +113,40 @@ module xhdf5
       this%serial_access = serial_access
     end if
 
-    call hdf5_initialize()
+    if(this%serial_access) then
+      call xhdf5_assert(this%mpi_comm, comm_to_rank(this%mpi_comm) == root_rank, &
+              'Error(xhdf5%initialize_mpi_comm_type): serial_access is set to .true., only the root process &
+              is allowed to call xhdf5 routines.')
+    end if
+
+    call hdf5_initialize(this%mpi_comm)
 
     if(path_exists(this%path)) then
       call hdf5_open_file(this%path, this%mpi_comm, this%h5id, this%serial_access)
     else 
       call hdf5_create_file(this%path, this%mpi_comm, this%h5id, this%serial_access)
-    end if    
+    end if
+  end subroutine
+
+
+  !> Initialize HDF5 library and, if `path` exists, open the file, else create a file at `path`.
+  subroutine initialize_mpiinfo(this, path, mpi_comm, serial_access)
+    !> HDF5 file handler.
+    class(xhdf5_type), intent(inout) :: this
+    !> Relative path to HDF5 file.
+    character(*), intent(in) :: path
+    !> MPI communicator.
+    type(mpiinfo), intent(in) :: mpi_comm
+    !> Set to `.true.` for serial access in an MPI environment. 
+    !> This is only allowed if the root process is the caller.
+    logical, intent(in), optional :: serial_access
+
+    logical :: serial_access_local 
+
+    serial_access_local = .false.
+    if(present(serial_access)) serial_access_local = serial_access
+
+    call this%initialize(path, mpi_comm_type(mpi_comm%comm), serial_access=serial_access_local)
   end subroutine
 
 
@@ -129,8 +156,9 @@ module xhdf5
     class(xhdf5_type), intent(inout) :: this
 
     if (this%h5id == h5id_undefined) return
-    call hdf5_close_file(this%h5id)
-    call hdf5_finalize()
+    call hdf5_close_file(this%mpi_comm, this%h5id)
+    call hdf5_finalize(this%mpi_comm)
+    call this%evaluate_overwritten_datasets()
     this%h5id = h5id_undefined
   end subroutine finalize 
   
@@ -138,39 +166,39 @@ module xhdf5
   !> Create a new group with name `group` at `h5path`. If the group already exists, the routine does nothing.
   subroutine initialize_group(this, h5path, groupname)
     !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
+    class(xhdf5_type), intent(inout) :: this
     !> Absolute path in the hdf5 file.
     character(*), intent(in) :: h5path
     !> Group name.
     character(*), intent(in) :: groupname
 
     if (this%exists(join_paths(h5path, groupname))) return
-    call hdf5_create_group(this%h5id, trim(h5path), groupname)
+    call hdf5_create_group(this%mpi_comm, this%h5id, trim(h5path), groupname)
   end subroutine initialize_group
   
 
   !> Return true or false, whether the link to `h5path` exists or not.
   logical function link_exists(this, h5path)
     !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
+    class(xhdf5_type), intent(inout) :: this
     !> Absolute path in the hdf5 file.
     character(*), intent(in) :: h5path
 
-    link_exists = hdf5_link_exists(this%h5id, trim(h5path))
+    link_exists = hdf5_link_exists(this%mpi_comm, this%h5id, trim(h5path))
   end function link_exists
 
   !> Delete link to `h5path`. This action frees the space on the drive allocated by the object `h5path` points to.
   subroutine delete_link(this, h5path)
     !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
+    class(xhdf5_type), intent(inout) :: this
     !> Absolute path in the hdf5 file.
     character(*), intent(in) :: h5path
 
-    call hdf5_delete_link(this%h5id, trim(h5path))
+    call hdf5_delete_link(this%mpi_comm, this%h5id, trim(h5path))
   end subroutine delete_link
 
 
-  !> Get the shape of a dataset.
+  !> Get the shape of a data set.
   subroutine dataset_shape(this, h5path, datasetname, shape, complex_dataset)
     !> HDF5 file handler.
     class(xhdf5_type), intent(in) :: this
@@ -180,7 +208,7 @@ module xhdf5
     character(*), intent(in) :: datasetname
     !> Dataset shape
     integer, allocatable :: shape(:)
-    !> Set to `.true.` if the dataset is complex. If not, the first dimension will be 
+    !> Set to `.true.` if the data set is complex. If not, the first dimension will be 
     !> always 2 for complex datasets.
     logical, optional :: complex_dataset
 
@@ -190,8 +218,8 @@ module xhdf5
     complex_dataset_local = .false.
     if(present(complex_dataset)) complex_dataset_local = complex_dataset
 
-    call hdf5_get_dataset_shape(this%h5id, h5path, datasetname, shape_local)
-    
+    call hdf5_get_dataset_shape(this%mpi_comm, this%h5id, h5path, datasetname, shape_local)
+
     if(complex_dataset_local) then 
       shape = shape_local(2:)
     else 
@@ -200,1602 +228,474 @@ module xhdf5
   end subroutine dataset_shape
 
 
+  !> Warn about overwritten datasets.
+  subroutine evaluate_overwritten_datasets(this)
+    !> HDF5 file handler.
+    class(xhdf5_type), intent(in) :: this
+
+#ifdef USE_ASSERT
+    if(this%n_overwritten_datasets > 0) then
+      write(error_unit, '(1x, A, I3, A, A, A)') &
+        "Warning(xhdf5): ", this%n_overwritten_datasets, " dataset(s) were overwritten in file ", this%path, "."
+    end if 
+#endif 
+  end subroutine evaluate_overwritten_datasets
+
+
+  !> Handles what to do if a data set already exists.
+  !> If this is the case, the data set will be overwritten with new data.
+  !> In debug mode, a warning is printed to the terminal.
+  subroutine handle_if_dataset_exists(this, h5path, datasetname)
+    !> HDF5 file handler.
+    class(xhdf5_type), intent(inout) :: this
+    !> Absolute path in the hdf5 file.
+    character(*), intent(in) :: h5path
+    !> Dataset name.
+    character(*), intent(in) :: datasetname
+
+    if (this%exists(join_paths(h5path, datasetname))) then
+      this%n_overwritten_datasets = this%n_overwritten_datasets + 1
+      call this%delete(join_paths(h5path, datasetname))
+
+#ifdef USE_ASSERT
+      write(error_unit, '(1x, A, A, A)') &
+          "Warning(xhdf5): Dataset ", datasetname, " already existed and was deleted. &
+          It will be overwritten with new data."
+#endif
+    end if
+
+  end subroutine
+
 !-----------------------------------------------------------------------------------------------------------------------
 ! WRITE DATASET
-
-
-! CHARACTER
-
 
   !> Write a string to an HDF5 file.
   subroutine write_string(this, h5path, dataset, string)
     !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to write the dataset to.
+    class(xhdf5_type), intent(inout) :: this
+    !> Absolute path in the HDF5 file to the group to write the data set to.
     character(*), intent(in) :: h5path
-    !> Name of the dataset to write.
+    !> Name of the data set to write.
     character(*), intent(in) :: dataset
-    !> String to write. Must be shorter then `[[hdf5_max_string_len]]`.
+    !> String to write.
     character(*), intent(in), target :: string
 
-    integer, parameter :: dataset_rank = 1
+    integer(hdf5_id) :: string_type
+    type(c_ptr) :: datachunk_ptr
+    type(datainfo_type) :: datainfo
 
+    call datainfo%initialize([1], [-1], [-1], .false.)
+    call datainfo%sanity_checks(this%mpi_comm, 'write_integer')
 
-    character(hdf5_max_string_len), target :: string_local
-    character(:), allocatable :: string_trim
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank), dataset_shape_local(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
+    call this%handle_if_dataset_exists(h5path, dataset)
 
-    if (this%exists(join_paths(h5path, dataset))) call this%delete(join_paths(h5path, dataset))
-
-    string_local = repeat(hdf5_blank, hdf5_max_string_len)
-    string_trim = trim(adjustl(string))
-    
-    call assert(len(string_trim) <= hdf5_max_string_len, 'len(string) > hdf5_max_string_len.')
-
-    string_local(1 : len(string_trim)) = string_trim
-
-    data_type_id = hdf5_character()
-    dataset_chunk_ptr = c_loc(string_local)
-    dataset_chunk_shape = [hdf5_max_string_len]
-    dataset_shape_local = [hdf5_max_string_len]
-    offset_local = [0]
-
-    call hdf5_write_dataset(this%h5id,           &
-                            trim(h5path),        &
-                            trim(dataset),       &
-                            data_type_id,        &
-                            dataset_chunk_ptr,   &
-                            dataset_rank,        &
-                            dataset_chunk_shape, &
-                            dataset_shape_local, &
-                            offset_local, &
-                            this%serial_access)
+    string_type = hdf5_string(this%mpi_comm, len(string, kind=hdf5_size))
+    datachunk_ptr = c_loc(string)
+    call hdf5_write_dataset(this%mpi_comm, this%h5id, trim(h5path), dataset, string_type, datachunk_ptr, datainfo, this%serial_access)
   end subroutine write_string
 
 
-! INTEGER
-
-  
-  !> Write an integer scalar to an HDF5 file.
-  subroutine write_integer_rank_0(this, h5path, dataset, scalar)
+  !> Write a boolean to an HDF5 file.
+  !> The routine does not really writes a boolean but a string representing the boolean. 
+  !> For '.true.' it writes `'true'` and for `.false.` `'false'`.
+  subroutine write_bool(this, h5path, dataset, bool)
     !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to write the dataset to.
+    class(xhdf5_type), intent(inout) :: this
+    !> Absolute path in the HDF5 file to the group to write the data set to.
     character(*), intent(in) :: h5path
-    !> Name of the dataset to write.
+    !> Name of the data set to write.
     character(*), intent(in) :: dataset
-    !> Integer to write.
-    integer, intent(in), target :: scalar
+    !> Boolean to write.
+    logical, intent(in), target :: bool
 
-    integer, parameter :: dataset_rank = 1
+    character(:), allocatable :: bool_string 
 
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank), dataset_shape_local(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
+    if(bool) then
+      bool_string = true_string
+    else 
+      bool_string = false_string
+    end if
 
-    if (this%exists(join_paths(h5path, dataset))) call this%delete(join_paths(h5path, dataset))
-
-    data_type_id = hdf5_integer()
-    dataset_chunk_ptr = c_loc(scalar)
-    dataset_chunk_shape = [1]
-    dataset_shape_local = [1]
-    offset_local = [0]
-
-    call hdf5_write_dataset(this%h5id,           &
-                            trim(h5path),        &
-                            trim(dataset),       &
-                            data_type_id,        &
-                            dataset_chunk_ptr,   &
-                            dataset_rank,        &
-                            dataset_chunk_shape, &
-                            dataset_shape_local, &
-                            offset_local, &
-                            this%serial_access)
-  end subroutine write_integer_rank_0
+    call write_string(this, h5path, dataset, bool_string)
+  end subroutine write_bool
 
 
-  !> Write an integer vector to an HDF5 file.
-  subroutine write_integer_rank_1(this, h5path, dataset, dataset_chunk, offset, dataset_shape)
+  !> Write an integer array to an HDF5 file.
+  subroutine write_integer(this, h5path, dataset, datachunk, offset, global_shape)
     !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to write the dataset to.
+    class(xhdf5_type), intent(inout) :: this
+    !> Absolute path in the HDF5 file to the group to write the data set to.
     character(*), intent(in) :: h5path
-    !> Name of the dataset to write.
-    character(*), intent(in) :: dataset
-    !> Chunk of the vector handled by the current MPI rank.
-    integer, intent(in), target :: dataset_chunk(:)
-    !> Offset of array chunk handled by the current MPI rank in the whole array.  
-    integer, intent(in) :: offset(1)
-    !> Shape of the whole array to be written.
-    integer, intent(in) :: dataset_shape(1)
-
-    integer, parameter :: dataset_rank = 1
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(1), dataset_shape_local(1)
-    integer(hdf5_ssize) :: offset_local(1)
-    type(c_ptr) :: dataset_chunk_ptr
-
-    if (this%exists(join_paths(h5path, dataset))) call this%delete(join_paths(h5path, dataset))
-
-    data_type_id = hdf5_integer()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = shape(dataset_chunk)
-    dataset_shape_local = dataset_shape
-    offset_local = offset - 1 ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), &
-                'Some elements of offset < 0.')
-    call assert(all(offset_local + dataset_chunk_shape <= dataset_shape_local), &
-                'Some elements of offset_local + dataset_chunk_shape > dataset_shape_local.')
-
-    call hdf5_write_dataset(this%h5id,           &
-                            trim(h5path),        &
-                            trim(dataset),       &
-                            data_type_id,        &
-                            dataset_chunk_ptr,   &
-                            dataset_rank,        &
-                            dataset_chunk_shape, &
-                            dataset_shape_local, &
-                            offset_local, &
-                            this%serial_access)
-  end subroutine write_integer_rank_1
-
-
-  !> Write an integer matrix to an HDF5 file.
-  subroutine write_integer_rank_2(this, h5path, dataset, dataset_chunk, offset, dataset_shape)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to write the dataset to.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to write.
+    !> Name of the data set to write.
     character(*), intent(in) :: dataset
     !> Array chunk handled by the current MPI rank.
-    integer, intent(in), target :: dataset_chunk(:, :)
+    integer(i32), intent(in), contiguous, target :: datachunk(..)
     !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(2)
+    integer(i32), intent(in), optional :: offset(:)
     !> Shape of the whole array to be written.
-    integer, intent(in) :: dataset_shape(2)
+    integer(i32), intent(in), optional :: global_shape(:)
 
-    integer, parameter :: dataset_rank = 2
+    integer(i32), allocatable :: global_shape_local(:), offset_local(:)
+    type(datainfo_type) :: datainfo
+    type(c_ptr) :: datachunk_ptr
+    
+    offset_local = [-1]
+    if(present(offset)) offset_local = offset
 
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank), dataset_shape_local(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
+    global_shape_local = [-1]
+    if(present(global_shape)) global_shape_local = global_shape
 
-    if (this%exists(join_paths(h5path, dataset))) call this%delete(join_paths(h5path, dataset))
+    call datainfo%initialize(shape(datachunk), global_shape_local, offset_local, .false.)
+    call datainfo%sanity_checks(this%mpi_comm, 'write_integer')
 
-    data_type_id = hdf5_integer()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = shape(dataset_chunk)
-    dataset_shape_local = dataset_shape
-    offset_local = offset - 1 ! Convert Fortran indexing to C indexing
+    call this%handle_if_dataset_exists(h5path, dataset)
 
-    call assert(all(offset_local >= 0), &
-                'Some elements of offset < 0.')
-    call assert(all(offset_local + dataset_chunk_shape <= dataset_shape_local), &
-                'Some elements of offset_local + dataset_chunk_shape > dataset_shape_local.')
-
-    call hdf5_write_dataset(this%h5id,           &
-                            trim(h5path),        &
-                            trim(dataset),       &
-                            data_type_id,        &
-                            dataset_chunk_ptr,   &
-                            dataset_rank,        &
-                            dataset_chunk_shape, &
-                            dataset_shape_local, &
-                            offset_local,        &
-                            this%serial_access)
-  end subroutine write_integer_rank_2
+    datachunk_ptr = c_loc(datachunk)
+    call hdf5_write_dataset(this%mpi_comm, this%h5id, h5path, dataset, hdf5_integer(), datachunk_ptr, datainfo, this%serial_access)
+  end subroutine write_integer
 
 
-! REAL(SP)
-
-
-  !> Write a single precision scalar to an HDF5 file.
-  subroutine write_real_sp_rank_0(this, h5path, dataset, scalar)
+  !> Write an float array to an HDF5 file.
+  subroutine write_float(this, h5path, dataset, datachunk, offset, global_shape)
     !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to write the dataset to.
+    class(xhdf5_type), intent(inout) :: this
+    !> Absolute path in the HDF5 file to the group to write the data set to.
     character(*), intent(in) :: h5path
-    !> Name of the dataset to write.
-    character(*), intent(in) :: dataset
-    !> Real(sp) to write.
-    real(sp), intent(in), target :: scalar
-
-    integer, parameter :: dataset_rank = 1
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank), dataset_shape_local(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
-
-    if (this%exists(join_paths(h5path, dataset))) call this%delete(join_paths(h5path, dataset))
-
-    data_type_id = hdf5_float()
-    dataset_chunk_ptr = c_loc(scalar)
-    dataset_chunk_shape = [1]
-    dataset_shape_local = [1]
-    offset_local = [0] ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), &
-                'Some elements of offset < 0.')
-    call assert(all(offset_local + dataset_chunk_shape <= dataset_shape_local), &
-                'Some elements of offset_local + dataset_chunk_shape > dataset_shape_local.')
-
-    call hdf5_write_dataset(this%h5id,           &
-                            trim(h5path),        &
-                            trim(dataset),       &
-                            data_type_id,        &
-                            dataset_chunk_ptr,   &
-                            dataset_rank,        &
-                            dataset_chunk_shape, &
-                            dataset_shape_local, &
-                            offset_local, &
-                            this%serial_access)
-  end subroutine write_real_sp_rank_0
-
-
-  !> Write a single precision vector to an HDF5 file.
-  subroutine write_real_sp_rank_1(this, h5path, dataset, dataset_chunk, offset, dataset_shape)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to write the dataset to.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to write.
+    !> Name of the data set to write.
     character(*), intent(in) :: dataset
     !> Array chunk handled by the current MPI rank.
-    real(sp), intent(in), target :: dataset_chunk(:)
+    real(sp), intent(in), contiguous, target :: datachunk(..)
     !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(1)
+    integer(i32), intent(in), optional :: offset(:)
     !> Shape of the whole array to be written.
-    integer, intent(in) :: dataset_shape(1)
+    integer(i32), intent(in), optional :: global_shape(:)
 
-    integer, parameter :: dataset_rank = 1
+    integer(i32), allocatable :: global_shape_local(:), offset_local(:)
+    type(datainfo_type) :: datainfo
+    type(c_ptr) :: datachunk_ptr
+    
+    offset_local = [-1]
+    if(present(offset)) offset_local = offset
 
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank), dataset_shape_local(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
+    global_shape_local = [-1]
+    if(present(global_shape)) global_shape_local = global_shape
 
-    if (this%exists(join_paths(h5path, dataset))) call this%delete(join_paths(h5path, dataset))
+    call datainfo%initialize(shape(datachunk), global_shape_local, offset_local, .false.)
+    call datainfo%sanity_checks(this%mpi_comm, 'write_float')
 
-    data_type_id = hdf5_float()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = shape(dataset_chunk)
-    dataset_shape_local = dataset_shape
-    offset_local = offset - 1 ! Convert Fortran indexing to C indexing
+    call this%handle_if_dataset_exists(h5path, dataset)
 
-    call assert(all(offset_local >= 0), &
-                'Some elements of offset < 0.')
-    call assert(all(offset_local + dataset_chunk_shape <= dataset_shape_local), &
-                'Some elements of offset_local + dataset_chunk_shape > dataset_shape_local.')
-
-    call hdf5_write_dataset(this%h5id,           &
-                            trim(h5path),        &
-                            trim(dataset),       &
-                            data_type_id,        &
-                            dataset_chunk_ptr,   &
-                            dataset_rank,        &
-                            dataset_chunk_shape, &
-                            dataset_shape_local, &
-                            offset_local, &
-                            this%serial_access)
-  end subroutine write_real_sp_rank_1
+    datachunk_ptr = c_loc(datachunk)
+    call hdf5_write_dataset(this%mpi_comm, this%h5id, h5path, dataset, hdf5_float(), datachunk_ptr, datainfo, this%serial_access)
+  end subroutine write_float
 
 
-  !> Write a single precision two rank array to an HDF5 file.
-  subroutine write_real_sp_rank_2(this, h5path, dataset, dataset_chunk, offset, dataset_shape)
+  !> Write a double array to an HDF5 file.
+  subroutine write_double(this, h5path, dataset, datachunk, offset, global_shape)
     !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to write the dataset to.
+    class(xhdf5_type), intent(inout) :: this
+    !> Absolute path in the HDF5 file to the group to write the data set to.
     character(*), intent(in) :: h5path
-    !> Name of the dataset to write.
+    !> Name of the data set to write.
     character(*), intent(in) :: dataset
     !> Array chunk handled by the current MPI rank.
-    real(sp), intent(in), target :: dataset_chunk(:, :)
+    real(dp), intent(in), contiguous, target :: datachunk(..)
     !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(2)
+    integer(i32), intent(in), optional :: offset(:)
     !> Shape of the whole array to be written.
-    integer, intent(in) :: dataset_shape(2)
+    integer(i32), intent(in), optional :: global_shape(:)
 
-    integer, parameter :: dataset_rank = 2
+    integer(i32), allocatable :: global_shape_local(:), offset_local(:)
+    type(datainfo_type) :: datainfo
+    type(c_ptr) :: datachunk_ptr
+    
+    offset_local = [-1]
+    if(present(offset)) offset_local = offset
 
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank), dataset_shape_local(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
+    global_shape_local = [-1]
+    if(present(global_shape)) global_shape_local = global_shape
 
-    if (this%exists(join_paths(h5path, dataset))) call this%delete(join_paths(h5path, dataset))
+    call datainfo%initialize(shape(datachunk), global_shape_local, offset_local, .false.)
+    call datainfo%sanity_checks(this%mpi_comm, 'write_double')
 
-    data_type_id = hdf5_float()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = shape(dataset_chunk)
-    dataset_shape_local = dataset_shape
-    offset_local = offset - 1 ! Convert Fortran indexing to C indexing
+    call this%handle_if_dataset_exists(h5path, dataset)
 
-    call assert(all(offset_local >= 0), &
-                'Some elements of offset < 0.')
-    call assert(all(offset_local + dataset_chunk_shape <= dataset_shape_local), &
-                'Some elements of offset_local + dataset_chunk_shape > dataset_shape_local.')
-
-    call hdf5_write_dataset(this%h5id,           &
-                            trim(h5path),        &
-                            trim(dataset),       &
-                            data_type_id,        &
-                            dataset_chunk_ptr,   &
-                            dataset_rank,        &
-                            dataset_chunk_shape, &
-                            dataset_shape_local, &
-                            offset_local, &
-                            this%serial_access)
-  end subroutine write_real_sp_rank_2
+    datachunk_ptr = c_loc(datachunk)
+    call hdf5_write_dataset(this%mpi_comm, this%h5id, h5path, dataset, hdf5_double(), datachunk_ptr, datainfo, this%serial_access)
+  end subroutine write_double
 
 
-  !> Write a single precision three rank array to an HDF5 file.
-  subroutine write_real_sp_rank_3(this, h5path, dataset, dataset_chunk, offset, dataset_shape)
+  !> Write a double complex array to an HDF5 file.
+  subroutine write_float_complex(this, h5path, dataset, datachunk, offset, global_shape)
     !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to write the dataset to.
+    class(xhdf5_type), intent(inout) :: this
+    !> Absolute path in the HDF5 file to the group to write the data set to.
     character(*), intent(in) :: h5path
-    !> Name of the dataset to write.
+    !> Name of the data set to write.
     character(*), intent(in) :: dataset
     !> Array chunk handled by the current MPI rank.
-    real(sp), intent(in), target :: dataset_chunk(:, :, :)
+    complex(sp), intent(in), contiguous, target :: datachunk(..)
     !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(3)
+    integer(i32), intent(in), optional :: offset(:)
     !> Shape of the whole array to be written.
-    integer, intent(in) :: dataset_shape(3)
+    integer(i32), intent(in), optional :: global_shape(:)
 
-    integer, parameter :: dataset_rank = 3
+    integer(i32), allocatable :: global_shape_local(:), offset_local(:)
+    type(datainfo_type) :: datainfo
+    type(c_ptr) :: datachunk_ptr
+    
+    offset_local = [-1]
+    if(present(offset)) offset_local = offset
 
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank), dataset_shape_local(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
+    global_shape_local = [-1]
+    if(present(global_shape)) global_shape_local = global_shape
 
-    if (this%exists(join_paths(h5path, dataset))) call this%delete(join_paths(h5path, dataset))
+    call datainfo%initialize(shape(datachunk), global_shape_local, offset_local, .true.)
+    call datainfo%sanity_checks(this%mpi_comm, 'write_float_complex')
 
-    data_type_id = hdf5_float()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = shape(dataset_chunk)
-    dataset_shape_local = dataset_shape
-    offset_local = offset - 1 ! Convert Fortran indexing to C indexing
+    call this%handle_if_dataset_exists(h5path, dataset)
 
-    call assert(all(offset_local >= 0), &
-                'Some elements of offset < 0.')
-    call assert(all(offset_local + dataset_chunk_shape <= dataset_shape_local), &
-                'Some elements of offset_local + dataset_chunk_shape > dataset_shape_local.')
-
-    call hdf5_write_dataset(this%h5id,           &
-                            trim(h5path),        &
-                            trim(dataset),       &
-                            data_type_id,        &
-                            dataset_chunk_ptr,   &
-                            dataset_rank,        &
-                            dataset_chunk_shape, &
-                            dataset_shape_local, &
-                            offset_local, &
-                            this%serial_access)
-  end subroutine write_real_sp_rank_3
+    datachunk_ptr = c_loc(datachunk)
+    call hdf5_write_dataset(this%mpi_comm, this%h5id, h5path, dataset, hdf5_float(), datachunk_ptr, datainfo, this%serial_access)
+  end subroutine write_float_complex  
 
 
-  !> Write a single precision four rank array to an HDF5 file.
-  subroutine write_real_sp_rank_4(this, h5path, dataset, dataset_chunk, offset, dataset_shape)
+
+  !> Write a double complex array to an HDF5 file.
+  subroutine write_double_complex(this, h5path, dataset, datachunk, offset, global_shape)
     !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to write the dataset to.
+    class(xhdf5_type), intent(inout) :: this
+    !> Absolute path in the HDF5 file to the group to write the data set to.
     character(*), intent(in) :: h5path
-    !> Name of the dataset to write.
+    !> Name of the data set to write.
     character(*), intent(in) :: dataset
     !> Array chunk handled by the current MPI rank.
-    real(sp), intent(in), target :: dataset_chunk(:, :, :, :)
+    complex(dp), intent(in), contiguous, target :: datachunk(..)
     !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(4)
+    integer(i32), intent(in), optional :: offset(:)
     !> Shape of the whole array to be written.
-    integer, intent(in) :: dataset_shape(4)
+    integer(i32), intent(in), optional :: global_shape(:)
 
-    integer, parameter :: dataset_rank = 4
+    integer(i32), allocatable :: global_shape_local(:), offset_local(:)
+    type(datainfo_type) :: datainfo
+    type(c_ptr) :: datachunk_ptr
+    
+    offset_local = [-1]
+    if(present(offset)) offset_local = offset
 
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank), dataset_shape_local(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
+    global_shape_local = [-1]
+    if(present(global_shape)) global_shape_local = global_shape
 
-    if (this%exists(join_paths(h5path, dataset))) call this%delete(join_paths(h5path, dataset))
+    call datainfo%initialize(shape(datachunk), global_shape_local, offset_local, .true.)
+    call datainfo%sanity_checks(this%mpi_comm, 'write_double_complex')
 
-    data_type_id = hdf5_float()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = shape(dataset_chunk)
-    dataset_shape_local = dataset_shape
-    offset_local = offset - 1 ! Convert Fortran indexing to C indexing
+    call this%handle_if_dataset_exists(h5path, dataset)
 
-    call assert(all(offset_local >= 0), &
-                'Some elements of offset < 0.')
-    call assert(all(offset_local + dataset_chunk_shape <= dataset_shape_local), &
-                'Some elements of offset_local + dataset_chunk_shape > dataset_shape_local.')
-
-    call hdf5_write_dataset(this%h5id,           &
-                            trim(h5path),        &
-                            trim(dataset),       &
-                            data_type_id,        &
-                            dataset_chunk_ptr,   &
-                            dataset_rank,        &
-                            dataset_chunk_shape, &
-                            dataset_shape_local, &
-                            offset_local, &
-                            this%serial_access)
-  end subroutine write_real_sp_rank_4
-
-
-! REAL(DP)
-
-
-  !> Write a double precision scalar to an HDF5 file.
-  subroutine write_real_dp_rank_0(this, h5path, dataset, scalar)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to write the dataset to.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to write.
-    character(*), intent(in) :: dataset
-    !> Real(dp) to write.
-    real(dp), intent(in), target :: scalar
-
-    integer, parameter :: dataset_rank = 1
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank), dataset_shape_local(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
-
-    if (this%exists(join_paths(h5path, dataset))) call this%delete(join_paths(h5path, dataset))
-
-    data_type_id = hdf5_double()
-    dataset_chunk_ptr = c_loc(scalar)
-    dataset_chunk_shape = [1]
-    dataset_shape_local = [1]
-    offset_local = [0] ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), &
-                'Some elements of offset < 0.')
-    call assert(all(offset_local + dataset_chunk_shape <= dataset_shape_local), &
-                'Some elements of offset_local + dataset_chunk_shape > dataset_shape_local.')
-
-    call hdf5_write_dataset(this%h5id,           &
-                            trim(h5path),        &
-                            trim(dataset),       &
-                            data_type_id,        &
-                            dataset_chunk_ptr,   &
-                            dataset_rank,        &
-                            dataset_chunk_shape, &
-                            dataset_shape_local, &
-                            offset_local, &
-                            this%serial_access)
-  end subroutine write_real_dp_rank_0
-
-
-  !> Write a double precision vector to an HDF5 file.
-  subroutine write_real_dp_rank_1(this, h5path, dataset, dataset_chunk, offset, dataset_shape)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to write the dataset to.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to write.
-    character(*), intent(in) :: dataset
-    !> Array chunk handled by the current MPI rank.
-    real(dp), intent(in), target :: dataset_chunk(:)
-    !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(1)
-    !> Shape of the whole array to be written.
-    integer, intent(in) :: dataset_shape(1)
-
-    integer, parameter :: dataset_rank = 1
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank), dataset_shape_local(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
-
-    if (this%exists(join_paths(h5path, dataset))) call this%delete(join_paths(h5path, dataset))
-
-    data_type_id = hdf5_double()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = shape(dataset_chunk)
-    dataset_shape_local = dataset_shape
-    offset_local = offset - 1 ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), &
-                'Some elements of offset < 0.')
-    call assert(all(offset_local + dataset_chunk_shape <= dataset_shape_local), &
-                'Some elements of offset_local + dataset_chunk_shape > dataset_shape_local.')
-
-    call hdf5_write_dataset(this%h5id,           &
-                            trim(h5path),        &
-                            trim(dataset),       &
-                            data_type_id,        &
-                            dataset_chunk_ptr,   &
-                            dataset_rank,        &
-                            dataset_chunk_shape, &
-                            dataset_shape_local, &
-                            offset_local, &
-                            this%serial_access)
-  end subroutine write_real_dp_rank_1
-
-
-  !> Write a double precision two rank array to an HDF5 file.
-  subroutine write_real_dp_rank_2(this, h5path, dataset, dataset_chunk, offset, dataset_shape)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to write the dataset to.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to write.
-    character(*), intent(in) :: dataset
-    !> Array chunk handled by the current MPI rank.
-    real(dp), intent(in), target :: dataset_chunk(:, :)
-    !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(2)
-    !> Shape of the whole array to be written.
-    integer, intent(in) :: dataset_shape(2)
-
-    integer, parameter :: dataset_rank = 2
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank), dataset_shape_local(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
-
-    if (this%exists(join_paths(h5path, dataset))) call this%delete(join_paths(h5path, dataset))
-
-    data_type_id = hdf5_double()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = shape(dataset_chunk)
-    dataset_shape_local = dataset_shape
-    offset_local = offset - 1 ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), &
-                'Some elements of offset < 0.')
-    call assert(all(offset_local + dataset_chunk_shape <= dataset_shape_local), &
-                'Some elements of offset_local + dataset_chunk_shape > dataset_shape_local.')
-
-    call hdf5_write_dataset(this%h5id,           &
-                            trim(h5path),        &
-                            trim(dataset),       &
-                            data_type_id,        &
-                            dataset_chunk_ptr,   &
-                            dataset_rank,        &
-                            dataset_chunk_shape, &
-                            dataset_shape_local, &
-                            offset_local, &
-                            this%serial_access)
-  end subroutine write_real_dp_rank_2
-
-
-  !> Write a double precision three rank array to an HDF5 file.
-  subroutine write_real_dp_rank_3(this, h5path, dataset, dataset_chunk, offset, dataset_shape)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to write the dataset to.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to write.
-    character(*), intent(in) :: dataset
-    !> Array chunk handled by the current MPI rank.
-    real(dp), intent(in), target :: dataset_chunk(:, :, :)
-    !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(3)
-    !> Shape of the whole array to be written.
-    integer, intent(in) :: dataset_shape(3)
-
-    integer, parameter :: dataset_rank = 3
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank), dataset_shape_local(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
-
-    if (this%exists(join_paths(h5path, dataset))) call this%delete(join_paths(h5path, dataset))
-
-    data_type_id = hdf5_double()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = shape(dataset_chunk)
-    dataset_shape_local = dataset_shape
-    offset_local = offset - 1 ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), &
-                'Some elements of offset < 0.')
-    call assert(all(offset_local + dataset_chunk_shape <= dataset_shape_local), &
-                'Some elements of offset_local + dataset_chunk_shape > dataset_shape_local.')
-
-    call hdf5_write_dataset(this%h5id,           &
-                            trim(h5path),        &
-                            trim(dataset),       &
-                            data_type_id,        &
-                            dataset_chunk_ptr,   &
-                            dataset_rank,        &
-                            dataset_chunk_shape, &
-                            dataset_shape_local, &
-                            offset_local, &
-                            this%serial_access)
-  end subroutine write_real_dp_rank_3
-
-
-  !> Write a double precision four rank array to an HDF5 file.
-  subroutine write_real_dp_rank_4(this, h5path, dataset, dataset_chunk, offset, dataset_shape)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to write the dataset to.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to write.
-    character(*), intent(in) :: dataset
-    !> Array chunk handled by the current MPI rank.
-    real(dp), intent(in), target :: dataset_chunk(:, :, :, :)
-    !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(4)
-    !> Shape of the whole array to be written.
-    integer, intent(in) :: dataset_shape(4)
-
-    integer, parameter :: dataset_rank = 4
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank), dataset_shape_local(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
-
-    if (this%exists(join_paths(h5path, dataset))) call this%delete(join_paths(h5path, dataset))
-
-    data_type_id = hdf5_double()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = shape(dataset_chunk)
-    dataset_shape_local = dataset_shape
-    offset_local = offset - 1 ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), &
-                'Some elements of offset < 0.')
-    call assert(all(offset_local + dataset_chunk_shape <= dataset_shape_local), &
-                'Some elements of offset_local + dataset_chunk_shape > dataset_shape_local.')
-
-    call hdf5_write_dataset(this%h5id,           &
-                            trim(h5path),        &
-                            trim(dataset),       &
-                            data_type_id,        &
-                            dataset_chunk_ptr,   &
-                            dataset_rank,        &
-                            dataset_chunk_shape, &
-                            dataset_shape_local, &
-                            offset_local, &
-                            this%serial_access)
-  end subroutine write_real_dp_rank_4
-
-
-! COMPLEX(DP)
-
-
-  !> Write a double vector array to an HDF5 file.
-  subroutine write_complex_dp_rank_1(this, h5path, dataset, dataset_chunk, offset, dataset_shape)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to write the dataset to.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to write.
-    character(*), intent(in) :: dataset
-    !> Array chunk handled by the current MPI rank.
-    complex(dp), intent(in), target :: dataset_chunk(:)
-    !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(1)
-    !> Shape of the whole array to be written.
-    integer, intent(in) :: dataset_shape(1)
-
-    ! HDF5 has no complex type. Real and imaginary part are written to seperate dimensions.
-    ! => rank(dataset) = rank(array) + 1
-    integer, parameter :: dataset_rank = 2
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank), dataset_shape_local(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
-
-    if (this%exists(join_paths(h5path, dataset))) call this%delete(join_paths(h5path, dataset))
-
-    data_type_id = hdf5_double()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = [[2], shape(dataset_chunk)]
-    dataset_shape_local = [[2], dataset_shape]
-    offset_local = [[0], offset - 1] ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), &
-                'Some elements of offset < 0.')
-    call assert(all(offset_local + dataset_chunk_shape <= dataset_shape_local), &
-                'Some elements of offset_local + dataset_chunk_shape > dataset_shape_local.')
-
-    call hdf5_write_dataset(this%h5id,           &
-                            trim(h5path),        &
-                            trim(dataset),       &
-                            data_type_id,        &
-                            dataset_chunk_ptr,   &
-                            dataset_rank,        &
-                            dataset_chunk_shape, &
-                            dataset_shape_local, &
-                            offset_local, &
-                            this%serial_access)
-  end subroutine write_complex_dp_rank_1
-
-
-  !> Write a double complex matrix to an HDF5 file.
-  subroutine write_complex_dp_rank_2(this, h5path, dataset, dataset_chunk, offset, dataset_shape)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to write the dataset to.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to write.
-    character(*), intent(in) :: dataset
-    !> Array chunk handled by the current MPI rank.
-    complex(dp), intent(in), target :: dataset_chunk(:, :)
-    !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(2)
-    !> Shape of the whole array to be written.
-    integer, intent(in) :: dataset_shape(2)
-
-    ! HDF5 has no complex type. Real and imaginary part are written to seperate dimensions.
-    ! => rank(dataset) = rank(array) + 1
-    integer, parameter :: dataset_rank = 3
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank), dataset_shape_local(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
-
-    if (this%exists(join_paths(h5path, dataset))) call this%delete(join_paths(h5path, dataset))
-
-    data_type_id = hdf5_double()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = [[2], shape(dataset_chunk)]
-    dataset_shape_local = [[2], dataset_shape]
-    offset_local = [[0], offset - 1] ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), &
-                'Some elements of offset < 0.')
-    call assert(all(offset_local + dataset_chunk_shape <= dataset_shape_local), &
-                'Some elements of offset_local + dataset_chunk_shape > dataset_shape_local.')
-
-    call hdf5_write_dataset(this%h5id,           &
-                            trim(h5path),        &
-                            trim(dataset),       &
-                            data_type_id,        &
-                            dataset_chunk_ptr,   &
-                            dataset_rank,        &
-                            dataset_chunk_shape, &
-                            dataset_shape_local, &
-                            offset_local, &
-                            this%serial_access)
-  end subroutine write_complex_dp_rank_2
-
-
-  !> Write a double complex three rank array to an HDF5 file.
-  subroutine write_complex_dp_rank_3(this, h5path, dataset, dataset_chunk, offset, dataset_shape)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to write the dataset to.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to write.
-    character(*), intent(in) :: dataset
-    !> Array chunk handled by the current MPI rank.
-    complex(dp), intent(in), target :: dataset_chunk(:, :, :)
-    !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(3)
-    !> Shape of the whole array to be written.
-    integer, intent(in) :: dataset_shape(3)
-
-    ! HDF5 has no complex type. Real and imaginary part are written to seperate dimensions.
-    ! => rank(dataset) = rank(array) + 1
-    integer, parameter :: dataset_rank = 4
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank), dataset_shape_local(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank) 
-    type(c_ptr) :: dataset_chunk_ptr
-
-    if (this%exists(join_paths(h5path, dataset))) call this%delete(join_paths(h5path, dataset))
-
-    data_type_id = hdf5_double() 
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = [[2], shape(dataset_chunk)]
-    dataset_shape_local = [[2], dataset_shape]
-    offset_local = [[0], offset - 1] ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), &
-                'Some elements of offset < 0.')
-    call assert(all(offset_local + dataset_chunk_shape <= dataset_shape_local), &
-                'Some elements of offset_local + dataset_chunk_shape > dataset_shape_local.')
-
-    call hdf5_write_dataset(this%h5id,           &
-                            trim(h5path),        &
-                            trim(dataset),       &
-                            data_type_id,        &
-                            dataset_chunk_ptr,   &
-                            dataset_rank,        &
-                            dataset_chunk_shape, &
-                            dataset_shape_local, &
-                            offset_local, &
-                            this%serial_access)
-  end subroutine write_complex_dp_rank_3
-
-
-  !> Write a double complex four rank array to an HDF5 file.
-  subroutine write_complex_dp_rank_4(this, h5path, dataset, dataset_chunk, offset, dataset_shape)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to write the dataset to.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to write.
-    character(*), intent(in) :: dataset
-    !> Array chunk handled by the current MPI rank.
-    complex(dp), intent(in), target :: dataset_chunk(:, :, :, :)
-    !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(4)
-    !> Shape of the whole array to be written.
-    integer, intent(in) :: dataset_shape(4)
-
-    ! HDF5 has no complex type. Real and imaginary part are written to seperate dimensions.
-    ! => rank(dataset) = rank(array) + 1
-    integer, parameter :: dataset_rank = 5
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank), dataset_shape_local(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank) 
-    type(c_ptr) :: dataset_chunk_ptr
-
-    if (this%exists(join_paths(h5path, dataset))) call this%delete(join_paths(h5path, dataset))
-
-    data_type_id = hdf5_double()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = [[2], shape(dataset_chunk)]
-    dataset_shape_local = [[2], dataset_shape]
-    offset_local = [[0], offset - 1] ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), &
-                'Some elements of offset < 0.')
-    call assert(all(offset_local + dataset_chunk_shape <= dataset_shape_local), &
-                'Some elements of offset_local + dataset_chunk_shape > dataset_shape_local.')
-
-    call hdf5_write_dataset(this%h5id,           &
-                            trim(h5path),        &
-                            trim(dataset),       &
-                            data_type_id,        &
-                            dataset_chunk_ptr,   &
-                            dataset_rank,        &
-                            dataset_chunk_shape, &
-                            dataset_shape_local, &
-                            offset_local, &
-                            this%serial_access)                        
-  end subroutine write_complex_dp_rank_4
+    datachunk_ptr = c_loc(datachunk)
+    call hdf5_write_dataset(this%mpi_comm, this%h5id, h5path, dataset, hdf5_double(), datachunk_ptr, datainfo, this%serial_access)
+  end subroutine write_double_complex
   
 
 !-----------------------------------------------------------------------------------------------------------------------
 ! READ DATASET
 
 
-! CHARACTER  
-
-
-  !> Read an character scalar from an HDF5 file.
+  !> Read a character scalar from an HDF5 file.
   subroutine read_string(this, h5path, dataset, string)
     !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to read the dataset from.
+    class(xhdf5_type), intent(inout) :: this
+    !> Absolute path in the HDF5 file to the group to read the data set from.
     character(*), intent(in) :: h5path
-    !> Name of the dataset to read from.
+    !> Name of the data set to read from.
     character(*), intent(in) :: dataset
     !> String to read.
-    character(:), allocatable, intent(out) :: string
+    character(:), allocatable, intent(out), target :: string
 
     integer, parameter :: dataset_rank = 1
 
-    character(hdf5_max_string_len), target :: string_local
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
+    integer(hdf5_size) :: string_len
+    integer(hdf5_id) :: dataset_type
+    type(c_ptr) :: datachunk_ptr
+    type(datainfo_type) :: datainfo
     
-    data_type_id = hdf5_character()
-    dataset_chunk_ptr = c_loc(string_local)
-    dataset_chunk_shape = [hdf5_max_string_len]
-    offset_local = [0]
-
-    call assert(all(offset_local >= 0), 'Some elements of offset < 0.')
-
-    call hdf5_read_dataset(this%h5id,           &
-                           trim(h5path),        &
-                           trim(dataset),       &
-                           data_type_id,        &
-                           dataset_chunk_ptr,   &
-                           dataset_rank,        &
-                           dataset_chunk_shape, &
-                           offset_local, &
-                            this%serial_access)
-
-    string = trim(adjustl(string_local))
+    dataset_type = hdf5_get_type(this%mpi_comm, this%h5id, h5path, dataset)
+    allocate(character(len=hdf5_get_type_size(this%mpi_comm, dataset_type)) :: string)
+    call datainfo%initialize([1], [-1], [-1], .false.)
+    
+    datachunk_ptr = c_loc(string)
+    call hdf5_read_dataset(this%mpi_comm, this%h5id, h5path, dataset, dataset_type, datachunk_ptr, datainfo, this%serial_access)
   end subroutine read_string
 
 
-! INTEGER
-
-
-  !> Read an integer scalar from an HDF5 file.
-  subroutine read_integer_rank_0(this, h5path, dataset, scalar)
+  !> Read a boolean to an HDF5 file.
+  !> The boolean is not saved as a boolean in the file but as a string representing the state
+  !> of the boolean. See [[read_bool]].
+  subroutine read_bool(this, h5path, dataset, bool)
     !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to read the dataset from.
+    class(xhdf5_type), intent(inout) :: this
+    !> Absolute path in the HDF5 file to the group to write the data set to.
     character(*), intent(in) :: h5path
-    !> Name of the dataset to read from.
+    !> Name of the data set to write.
     character(*), intent(in) :: dataset
-    !> Integer to read
-    integer, intent(in), target :: scalar
+    !> Boolean to read.
+    logical, intent(out), target :: bool
 
-    integer, parameter :: dataset_rank = 1
+    character(:), allocatable :: bool_string
 
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
+    call read_string(this, h5path, dataset, bool_string)
 
-    data_type_id = hdf5_integer()
-    dataset_chunk_ptr = c_loc(scalar)
-    dataset_chunk_shape = [1]
-    offset_local = [0] ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), 'Some elements of offset < 0.')
-
-    call hdf5_read_dataset(this%h5id,           &
-                           trim(h5path),        &
-                           trim(dataset),       &
-                           data_type_id,        &
-                           dataset_chunk_ptr,   &
-                           dataset_rank,        &
-                           dataset_chunk_shape, &
-                           offset_local, &
-                            this%serial_access)
-  end subroutine read_integer_rank_0
+    if (bool_string == true_string) then
+      bool = .true.
+    else if(bool_string == false_string) then 
+      bool = .false.
+    else 
+      call xhdf5_assert(this%mpi_comm, .false., 'dataset does not contain a string representing the state of a bool.')
+    end if 
+  end subroutine read_bool
 
 
-  !> Read a double precision two rank array from an HDF5 file.
-  subroutine read_integer_rank_1(this, h5path, dataset, dataset_chunk, offset)
+  !> Read an integer array from an HDF5 file.
+  subroutine read_integer(this, h5path, dataset, datachunk, offset)
     !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to read the dataset from.
+    class(xhdf5_type), intent(inout) :: this
+    !> Absolute path in the HDF5 file to the group to read the data set from.
     character(*), intent(in) :: h5path
-    !> Name of the dataset to read from.
+    !> Name of the data set to read from.
     character(*), intent(in) :: dataset
     !> On output, contains the array chunk, handled by the current MPI rank.
-    integer, intent(in), target :: dataset_chunk(:)
+    integer(i32), intent(in), contiguous, target :: datachunk(..)
     !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(1)
+    integer(i32), intent(in), optional :: offset(:)
 
-    integer, parameter :: dataset_rank = 1
+    integer(i32), allocatable :: offset_local(:), global_shape(:)
+    type(c_ptr) :: datachunk_ptr
+    type(datainfo_type) :: datainfo
 
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
+    offset_local = [-1]
+    if(present(offset)) offset_local = offset
 
-    data_type_id = hdf5_integer()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = shape(dataset_chunk)
-    offset_local = offset - 1 ! Convert Fortran indexing to C indexing
+    call this%dataset_shape(h5path, dataset, global_shape)
+    call datainfo%initialize(shape(datachunk), global_shape, offset_local, .false.)
+    call datainfo%sanity_checks(this%mpi_comm, 'read_integer')
 
-    call assert(all(offset_local >= 0), 'Some elements of offset < 0.')
-
-    call hdf5_read_dataset(this%h5id,           &
-                           trim(h5path),        &
-                           trim(dataset),       &
-                           data_type_id,        &
-                           dataset_chunk_ptr,   &
-                           dataset_rank,        &
-                           dataset_chunk_shape, &
-                           offset_local, &
-                            this%serial_access)
-  end subroutine read_integer_rank_1
+    datachunk_ptr = c_loc(datachunk)
+    call hdf5_read_dataset(this%mpi_comm, this%h5id, h5path, dataset, hdf5_integer(), datachunk_ptr, datainfo, this%serial_access)
+  end subroutine read_integer
 
 
-  !> Read a double precision two rank array from an HDF5 file.
-  subroutine read_integer_rank_2(this, h5path, dataset, dataset_chunk, offset)
+  !> Read a float array from an HDF5 file.
+  subroutine read_float(this, h5path, dataset, datachunk, offset)
     !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to read the dataset from.
+    class(xhdf5_type), intent(inout) :: this
+    !> Absolute path in the HDF5 file to the group to read the data set from.
     character(*), intent(in) :: h5path
-    !> Name of the dataset to read from.
+    !> Name of the data set to read from.
     character(*), intent(in) :: dataset
     !> On output, contains the array chunk, handled by the current MPI rank.
-    integer, intent(in), target :: dataset_chunk(:, :)
+    real(sp), intent(out), contiguous, target :: datachunk(..)
     !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(2)
+    integer(i32), intent(in), optional :: offset(:)
 
-    integer, parameter :: dataset_rank = 2
+    integer(i32), allocatable :: offset_local(:), global_shape(:)
+    type(c_ptr) :: datachunk_ptr
+    type(datainfo_type) :: datainfo
 
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
+    offset_local = [-1]
+    if(present(offset)) offset_local = offset
 
-    data_type_id = hdf5_integer()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = shape(dataset_chunk)
-    offset_local = offset - 1 ! Convert Fortran indexing to C indexing
+    call this%dataset_shape(h5path, dataset, global_shape)
+    call datainfo%initialize(shape(datachunk), global_shape, offset_local, .false.)
+    call datainfo%sanity_checks(this%mpi_comm, 'read_float')
 
-    call assert(all(offset_local >= 0), 'Some elements of offset < 0.')
-
-    call hdf5_read_dataset(this%h5id,           &
-                           trim(h5path),        &
-                           trim(dataset),       &
-                           data_type_id,        &
-                           dataset_chunk_ptr,   &
-                           dataset_rank,        &
-                           dataset_chunk_shape, &
-                           offset_local, &
-                            this%serial_access)
-  end subroutine read_integer_rank_2
+    datachunk_ptr = c_loc(datachunk)
+    call hdf5_read_dataset(this%mpi_comm, this%h5id, h5path, dataset, hdf5_float(), datachunk_ptr, datainfo, this%serial_access)
+  end subroutine read_float
 
 
-! REAL(SP)
-
-  
-  !> Read a single precision vector from an HDF5 file.
-  subroutine read_real_sp_rank_0(this, h5path, dataset, scalar)
+  !> Read a double array from an HDF5 file.
+  subroutine read_double(this, h5path, dataset, datachunk, offset)
     !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to read the dataset from.
+    class(xhdf5_type), intent(inout) :: this
+    !> Absolute path in the HDF5 file to the group to read the data set from.
     character(*), intent(in) :: h5path
-    !> Name of the dataset to read from.
-    character(*), intent(in) :: dataset
-    !> Real(sp) to read.
-    real(sp), intent(in), target :: scalar
-
-    integer, parameter :: dataset_rank = 1
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
-
-    data_type_id = hdf5_float()
-    dataset_chunk_ptr = c_loc(scalar)
-    dataset_chunk_shape = [1]
-    offset_local = [0] ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), 'Some elements of offset < 0.')
-
-    call hdf5_read_dataset(this%h5id,           &
-                           trim(h5path),        &
-                           trim(dataset),       &
-                           data_type_id,        &
-                           dataset_chunk_ptr,   &
-                           dataset_rank,        &
-                           dataset_chunk_shape, &
-                           offset_local, &
-                            this%serial_access)
-  end subroutine read_real_sp_rank_0
-
-
-  !> Read a single precision vector from an HDF5 file.
-  subroutine read_real_sp_rank_1(this, h5path, dataset, dataset_chunk, offset)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to read the dataset from.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to read from.
+    !> Name of the data set to read from.
     character(*), intent(in) :: dataset
     !> On output, contains the array chunk, handled by the current MPI rank.
-    real(sp), intent(in), target :: dataset_chunk(:)
+    real(dp), intent(out), contiguous, target :: datachunk(..)
     !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(1)
+    integer(i32), intent(in), optional :: offset(:)
 
-    integer, parameter :: dataset_rank = 1
+    integer(i32), allocatable :: offset_local(:), global_shape(:)
+    type(c_ptr) :: datachunk_ptr
+    type(datainfo_type) :: datainfo
 
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
+    offset_local = [-1]
+    if(present(offset)) offset_local = offset
 
-    data_type_id = hdf5_float()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = shape(dataset_chunk)
-    offset_local = offset - 1 ! Convert Fortran indexing to C indexing
+    call this%dataset_shape(h5path, dataset, global_shape)
+    call datainfo%initialize(shape(datachunk), global_shape, offset_local, .false.)
+    call datainfo%sanity_checks(this%mpi_comm, 'read_double')
 
-    call assert(all(offset_local >= 0), 'Some elements of offset < 0.')
-
-    call hdf5_read_dataset(this%h5id,           &
-                           trim(h5path),        &
-                           trim(dataset),       &
-                           data_type_id,        &
-                           dataset_chunk_ptr,   &
-                           dataset_rank,        &
-                           dataset_chunk_shape, &
-                           offset_local, &
-                            this%serial_access)
-  end subroutine read_real_sp_rank_1
+    datachunk_ptr = c_loc(datachunk)
+    call hdf5_read_dataset(this%mpi_comm, this%h5id, h5path, dataset, hdf5_double(), datachunk_ptr, datainfo, this%serial_access)
+  end subroutine read_double
 
 
-  !> Read a single precision two rank array from an HDF5 file.
-  subroutine read_real_sp_rank_2(this, h5path, dataset, dataset_chunk, offset)
+  !> Read a double complex array from an HDF5 file.
+  subroutine read_float_complex(this, h5path, dataset, datachunk, offset)
     !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to read the dataset from.
+    class(xhdf5_type), intent(inout) :: this
+    !> Absolute path in the HDF5 file to the group to read the data set from.
     character(*), intent(in) :: h5path
-    !> Name of the dataset to read from.
+    !> Name of the data set to read from.
     character(*), intent(in) :: dataset
     !> On output, contains the array chunk, handled by the current MPI rank.
-    real(sp), intent(in), target :: dataset_chunk(:, :)
+    complex(sp), intent(out), contiguous, target :: datachunk(..)
     !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(2)
+    integer(i32), intent(in), optional :: offset(:)
 
-    integer, parameter :: dataset_rank = 2
+    integer(i32), allocatable :: offset_local(:), global_shape(:)
+    type(c_ptr) :: datachunk_ptr
+    type(datainfo_type) :: datainfo
 
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
+    offset_local = [-1]
+    if(present(offset)) offset_local = offset
 
-    data_type_id = hdf5_float()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = shape(dataset_chunk)
-    offset_local = offset - 1 ! Convert Fortran indexing to C indexing
+    call this%dataset_shape(h5path, dataset, global_shape, .true.)
+    call datainfo%initialize(shape(datachunk), global_shape, offset_local, .true.)
+    call datainfo%sanity_checks(this%mpi_comm, 'read_float')
 
-    call assert(all(offset_local >= 0), 'Some elements of offset < 0.')
-
-    call hdf5_read_dataset(this%h5id,           &
-                           trim(h5path),        &
-                           trim(dataset),       &
-                           data_type_id,        &
-                           dataset_chunk_ptr,   &
-                           dataset_rank,        &
-                           dataset_chunk_shape, &
-                           offset_local, &
-                            this%serial_access)
-  end subroutine read_real_sp_rank_2
+    datachunk_ptr = c_loc(datachunk)
+    call hdf5_read_dataset(this%mpi_comm, this%h5id, h5path, dataset, hdf5_float(), datachunk_ptr, datainfo, this%serial_access)
+  end subroutine read_float_complex
 
 
-  !> Read a single precision three rank array from an HDF5 file.
-  subroutine read_real_sp_rank_3(this, h5path, dataset, dataset_chunk, offset)
+  !> Read a double complex array from an HDF5 file.
+  subroutine read_double_complex(this, h5path, dataset, datachunk, offset)
     !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to read the dataset from.
+    class(xhdf5_type), intent(inout) :: this
+    !> Absolute path in the HDF5 file to the group to read the data set from.
     character(*), intent(in) :: h5path
-    !> Name of the dataset to read from.
+    !> Name of the data set to read from.
     character(*), intent(in) :: dataset
     !> On output, contains the array chunk, handled by the current MPI rank.
-    real(sp), intent(in), target :: dataset_chunk(:, :, :)
+    complex(dp), intent(out), contiguous, target :: datachunk(..)
     !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(3)
+    integer(i32), intent(in), optional :: offset(:)
 
-    integer, parameter :: dataset_rank = 3
+    integer(i32), allocatable :: offset_local(:), global_shape(:)
+    type(c_ptr) :: datachunk_ptr
+    type(datainfo_type) :: datainfo
 
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
+    offset_local = [-1]
+    if(present(offset)) offset_local = offset
 
-    data_type_id = hdf5_float()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = shape(dataset_chunk)
-    offset_local = offset - 1 ! Convert Fortran indexing to C indexing
+    call this%dataset_shape(h5path, dataset, global_shape, .true.)
+    call datainfo%initialize(shape(datachunk), global_shape, offset_local, .true.)
+    call datainfo%sanity_checks(this%mpi_comm, 'read_double_complex')
 
-    call assert(all(offset_local >= 0), 'Some elements of offset < 0.')
-
-    call hdf5_read_dataset(this%h5id,           &
-                           trim(h5path),        &
-                           trim(dataset),       &
-                           data_type_id,        &
-                           dataset_chunk_ptr,   &
-                           dataset_rank,        &
-                           dataset_chunk_shape, &
-                           offset_local, &
-                            this%serial_access)
-  end subroutine read_real_sp_rank_3
-
-
-  !> Read a single precision four rank array from an HDF5 file.
-  subroutine read_real_sp_rank_4(this, h5path, dataset, dataset_chunk, offset)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to read the dataset from.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to read from.
-    character(*), intent(in) :: dataset
-    !> On output, contains the array chunk, handled by the current MPI rank.
-    real(sp), intent(in), target :: dataset_chunk(:, :, :, :)
-    !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(4)
-
-    integer, parameter :: dataset_rank = 4
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
-
-    data_type_id = hdf5_float()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = shape(dataset_chunk)
-    offset_local = offset - 1 ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), 'Some elements of offset < 0.')
-
-    call hdf5_read_dataset(this%h5id,           &
-                           trim(h5path),        &
-                           trim(dataset),       &
-                           data_type_id,        &
-                           dataset_chunk_ptr,   &
-                           dataset_rank,        &
-                           dataset_chunk_shape, &
-                           offset_local, &
-                            this%serial_access)
-  end subroutine read_real_sp_rank_4
-
-
-! REAL(DP)
-
-
-  !> Read a double precision vector from an HDF5 file.
-  subroutine read_real_dp_rank_0(this, h5path, dataset, scalar)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to read the dataset from.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to read from.
-    character(*), intent(in) :: dataset
-    !> Real(dp) to read.
-    real(dp), intent(in), target :: scalar
-
-    integer, parameter :: dataset_rank = 1
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
-
-    data_type_id = hdf5_double()
-    dataset_chunk_ptr = c_loc(scalar)
-    dataset_chunk_shape = [1]
-    offset_local = [0] ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), 'Some elements of offset < 0.')
-
-    call hdf5_read_dataset(this%h5id,           &
-                           trim(h5path),        &
-                           trim(dataset),       &
-                           data_type_id,        &
-                           dataset_chunk_ptr,   &
-                           dataset_rank,        &
-                           dataset_chunk_shape, &
-                           offset_local, &
-                            this%serial_access)
-  end subroutine read_real_dp_rank_0
-
-
-  !> Read a double precision vector from an HDF5 file.
-  subroutine read_real_dp_rank_1(this, h5path, dataset, dataset_chunk, offset)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to read the dataset from.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to read from.
-    character(*), intent(in) :: dataset
-    !> On output, contains the array chunk, handled by the current MPI rank.
-    real(dp), intent(in), target :: dataset_chunk(:)
-    !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(1)
-
-    integer, parameter :: dataset_rank = 1
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
-
-    data_type_id = hdf5_double()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = shape(dataset_chunk)
-    offset_local = offset - 1 ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), 'Some elements of offset < 0.')
-
-    call hdf5_read_dataset(this%h5id,           &
-                           trim(h5path),        &
-                           trim(dataset),       &
-                           data_type_id,        &
-                           dataset_chunk_ptr,   &
-                           dataset_rank,        &
-                           dataset_chunk_shape, &
-                           offset_local, &
-                            this%serial_access)
-  end subroutine read_real_dp_rank_1
-
-
-  !> Read a double precision two rank array from an HDF5 file.
-  subroutine read_real_dp_rank_2(this, h5path, dataset, dataset_chunk, offset)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to read the dataset from.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to read from.
-    character(*), intent(in) :: dataset
-    !> On output, contains the array chunk, handled by the current MPI rank.
-    real(dp), intent(in), target :: dataset_chunk(:, :)
-    !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(2)
-
-    integer, parameter :: dataset_rank = 2
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
-
-    data_type_id = hdf5_double()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = shape(dataset_chunk)
-    offset_local = offset - 1 ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), 'Some elements of offset < 0.')
-
-    call hdf5_read_dataset(this%h5id,           &
-                           trim(h5path),        &
-                           trim(dataset),       &
-                           data_type_id,        &
-                           dataset_chunk_ptr,   &
-                           dataset_rank,        &
-                           dataset_chunk_shape, &
-                           offset_local, &
-                            this%serial_access)
-  end subroutine read_real_dp_rank_2
-
-
-  !> Read a double precision three rank array from an HDF5 file.
-  subroutine read_real_dp_rank_3(this, h5path, dataset, dataset_chunk, offset)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to read the dataset from.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to read from.
-    character(*), intent(in) :: dataset
-    !> On output, contains the array chunk, handled by the current MPI rank.
-    real(dp), intent(in), target :: dataset_chunk(:, :, :)
-    !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(3)
-
-    integer, parameter :: dataset_rank = 3
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
-
-    data_type_id = hdf5_double()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = shape(dataset_chunk)
-    offset_local = offset - 1 ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), 'Some elements of offset < 0.')
-
-    call hdf5_read_dataset(this%h5id,           &
-                           trim(h5path),        &
-                           trim(dataset),       &
-                           data_type_id,        &
-                           dataset_chunk_ptr,   &
-                           dataset_rank,        &
-                           dataset_chunk_shape, &
-                           offset_local, &
-                            this%serial_access)
-  end subroutine read_real_dp_rank_3
-
-
-  !> Read a double precision four rank array from an HDF5 file.
-  subroutine read_real_dp_rank_4(this, h5path, dataset, dataset_chunk, offset)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to read the dataset from.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to read from.
-    character(*), intent(in) :: dataset
-    !> On output, contains the array chunk, handled by the current MPI rank.
-    real(dp), intent(in), target :: dataset_chunk(:, :, :, :)
-    !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(4)
-
-    integer, parameter :: dataset_rank = 4
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
-
-    data_type_id = hdf5_double()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = shape(dataset_chunk)
-    offset_local = offset - 1 ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), 'Some elements of offset < 0.')
-
-    call hdf5_read_dataset(this%h5id,           &
-                           trim(h5path),        &
-                           trim(dataset),       &
-                           data_type_id,        &
-                           dataset_chunk_ptr,   &
-                           dataset_rank,        &
-                           dataset_chunk_shape, &
-                           offset_local, &
-                            this%serial_access)
-  end subroutine read_real_dp_rank_4
-
-
-! COMPLEX(DP)
-
-
-  !> Read a double complex vector from an HDF5 file.
-  subroutine read_complex_dp_rank_1(this, h5path, dataset, dataset_chunk, offset)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to read the dataset from.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to read from.
-    character(*), intent(in) :: dataset
-    !> On output, contains the array chunk, handled by the current MPI rank.
-    complex(dp), intent(in), target :: dataset_chunk(:)
-    !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(1)
-
-    ! HDF5 has no complex type. Real and imaginary part are written to seperate dimensions.
-    ! => rank(dataset) = rank(array) + 1
-    integer, parameter :: dataset_rank = 2
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
-
-    data_type_id = hdf5_double()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = [[2], shape(dataset_chunk)]
-    offset_local = [[0], offset - 1] ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), 'Some elements of offset < 0.')
-
-    call hdf5_read_dataset(this%h5id,           &
-                           trim(h5path),        &
-                           trim(dataset),       &
-                           data_type_id,        &
-                           dataset_chunk_ptr,   &
-                           dataset_rank,        &
-                           dataset_chunk_shape, &
-                           offset_local, &
-                            this%serial_access)
-  end subroutine read_complex_dp_rank_1
-
-
-  !> Read a double complex matrix from an HDF5 file.
-  subroutine read_complex_dp_rank_2(this, h5path, dataset, dataset_chunk, offset)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to read the dataset from.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to read from.
-    character(*), intent(in) :: dataset
-    !> On output, contains the array chunk, handled by the current MPI rank.
-    complex(dp), intent(in), target :: dataset_chunk(:, :)
-    !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(2)
-
-    ! HDF5 has no complex type. Real and imaginary part are written to seperate dimensions.
-    ! => rank(dataset) = rank(array) + 1
-    integer, parameter :: dataset_rank = 3
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank)
-    type(c_ptr) :: dataset_chunk_ptr
-
-    data_type_id = hdf5_double()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = [[2], shape(dataset_chunk)]
-    offset_local = [[0], offset - 1] ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), 'Some elements of offset < 0.')
-
-    call hdf5_read_dataset(this%h5id,           &
-                           trim(h5path),        &
-                           trim(dataset),       &
-                           data_type_id,        &
-                           dataset_chunk_ptr,   &
-                           dataset_rank,        &
-                           dataset_chunk_shape, &
-                           offset_local, &
-                            this%serial_access)
-  end subroutine read_complex_dp_rank_2
-
-
-  !> Read a double complex three rank array from an HDF5 file.
-  subroutine read_complex_dp_rank_3(this, h5path, dataset, dataset_chunk, offset)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to read the dataset from.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to read from.
-    character(*), intent(in) :: dataset
-    !> On output, contains the array chunk, handled by the current MPI rank.
-    complex(dp), intent(in), target :: dataset_chunk(:, :, :)
-    !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(3)
-
-    ! HDF5 has no complex type. Real and imaginary part are written to seperate dimensions.
-    ! => rank(dataset) = rank(array) + 1
-    integer, parameter :: dataset_rank = 4
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank) 
-    type(c_ptr) :: dataset_chunk_ptr 
-
-    data_type_id = hdf5_double()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = [[2], shape(dataset_chunk)]
-    offset_local = [[0], offset - 1] ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), 'Some elements of offset < 0.')
-
-    call hdf5_read_dataset(this%h5id,           &
-                           trim(h5path),        &
-                           trim(dataset),       &
-                           data_type_id,        &
-                           dataset_chunk_ptr,   &
-                           dataset_rank,        &
-                           dataset_chunk_shape, &
-                           offset_local, &
-                            this%serial_access)
-  end subroutine read_complex_dp_rank_3
-
-
-  !> Read a double complex four rank array from an HDF5 file.
-  subroutine read_complex_dp_rank_4(this, h5path, dataset, dataset_chunk, offset)
-    !> HDF5 file handler.
-    class(xhdf5_type), intent(in) :: this
-    !> Absolute path in the HDF5 file to the group to read the dataset from.
-    character(*), intent(in) :: h5path
-    !> Name of the dataset to read from.
-    character(*), intent(in) :: dataset
-    !> On output, contains the array chunk, handled by the current MPI rank.
-    complex(dp), intent(in), target :: dataset_chunk(:, :, :, :)
-    !> Offset of array chunk handled by the current MPI rank in the whole array. 
-    integer, intent(in) :: offset(4)
-
-    ! HDF5 has no complex type. Real and imaginary part are written to seperate dimensions.
-    ! => rank(dataset) = rank(array) + 1
-    integer, parameter :: dataset_rank = 5
-
-    integer(hdf5_id) :: data_type_id
-    integer(hdf5_size) :: dataset_chunk_shape(dataset_rank)
-    integer(hdf5_ssize) :: offset_local(dataset_rank) 
-    type(c_ptr) :: dataset_chunk_ptr 
-
-    data_type_id = hdf5_double()
-    dataset_chunk_ptr = c_loc(dataset_chunk)
-    dataset_chunk_shape = [[2], shape(dataset_chunk)]
-    offset_local = [[0], offset - 1]  ! Convert Fortran indexing to C indexing
-
-    call assert(all(offset_local >= 0), 'Some elements of offset < 0.')
-
-    call hdf5_read_dataset(this%h5id,           &
-                           trim(h5path),        &
-                           trim(dataset),       &
-                           data_type_id,        &
-                           dataset_chunk_ptr,   &
-                           dataset_rank,        &
-                           dataset_chunk_shape, &
-                           offset_local, &
-                            this%serial_access)
-  end subroutine read_complex_dp_rank_4
+    datachunk_ptr = c_loc(datachunk)
+    call hdf5_read_dataset(this%mpi_comm, this%h5id, h5path, dataset, hdf5_double(), datachunk_ptr, datainfo, this%serial_access)
+  end subroutine read_double_complex
 
 end module xhdf5  

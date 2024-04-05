@@ -12,7 +12,7 @@ before_script:
   - module load intel/oneapi-2021.3
   - ls $MKLROOT/include/intel64/lp64/
 script:
-  - cp build/platforms/make.inc.ifort2021 build/make.inc
+  - cp build/platforms/make.inc.ifort build/make.inc
   - make mpiandsmp -j 2
 artifacts:
   paths:
@@ -35,7 +35,7 @@ test-debian-buster-Intel2021-mpiandsmp:
    # Install all python packages to a venv to resolve PATH issues
    - mkdir venv && cd venv && python3 -m venv docker
    - source docker/bin/activate && cd ../
-   - pip3 install --upgrade --force pillow==7.0.0 numpy termcolor lxml pytest pyyaml
+   - pip3 install --upgrade --force pillow==7.0.0 numpy termcolor pytest pyyaml
  script:
    - source venv/docker/bin/activate
    - pip3 install -e tools/exciting_tools

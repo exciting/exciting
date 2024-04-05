@@ -1194,13 +1194,13 @@ CONTAINS
           deallocate(ig2igk)
 
           ! Map (igknr, ispin, iknr) --> ig
-          allocate(self%igknrig(self%ngknrmax,nspnfv,kset%nkptnr))
+          allocate(self%igknrig(self%ngknrmax,nspnfv,kset%nkptnr), source=0)
 
           ! Lattice coordinates of G+k(ig(iknr), ispin, iknr)
-          allocate(self%vgknrl(3,self%ngknrmax,nspnfv,kset%nkptnr))
+          allocate(self%vgknrl(3,self%ngknrmax,nspnfv,kset%nkptnr), source=0._dp)
 
           ! Cartesian coordinates of G+knr(ig(iknr), ispin, iknr)
-          allocate(self%vgknrc(3,self%ngknrmax,nspnfv,kset%nkptnr))
+          allocate(self%vgknrc(3,self%ngknrmax,nspnfv,kset%nkptnr), source=0._dp)
 
           ! Length of G+k vector
           allocate(self%gknrc(self%ngknrmax,nspnfv,kset%nkptnr))

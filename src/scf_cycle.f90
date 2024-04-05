@@ -15,6 +15,7 @@ subroutine scf_cycle(verbosity)
                              put_occ_sirius, generate_density_sirius, get_periodic_function_sirius
     use mod_potential_and_density, only: generate_density_and_magnetization
     use lo_recommendation, only: recommend_local_orbital_trial_energies
+    use trial_energy_selection, only: select_apw_trial_energies, select_local_orbital_trial_energies
 !
 
 ! !DESCRIPTION:
@@ -206,6 +207,11 @@ subroutine scf_cycle(verbosity)
         if (task /= 7) then
           ! No updates of core and valence radial functions during hybrids run
           call gencore          ! generate the core wavefunctions and densities
+          ! find the first linearization energies 
+          if (iscl==1) then 
+             call select_local_orbital_trial_energies(nlorb, lorbord, lorbl, lorbn, nspecies, idxas, nrmt, spr, veffmt(1,:,:), lorbe0) 
+             call select_apw_trial_energies(maxapword, maxlapw, apwn(:, 0:, :), nspecies, idxas, nrmt, spr, veffmt(1,:,:), apwe0(:, 0:, :))
+          endif
           call linengy          ! find the new linearization energies
           if (rank==0) call writelinen
           call genapwfr         ! generate the APW radial functions

@@ -23,12 +23,11 @@ def numpy_gen_from_txt(name: str, skip_header: Optional[int] = 0) -> np.ndarray:
 
 
 def parse_EPSILON_NAR(name: str) -> dict:
-    """
-    Parser for:
-        EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC.OUT.xml,
-        EPSILON_NAR_FXCMB1_OC_QMT001.OUT.xml,
-        EPSILON_NAR_NLF_FXCMB1_OC_QMT001.OUT.xml,
-        LOSS_NAR_FXCMB1_OC_QMT001.OUT.xml
+    """Parser for:
+    EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC.OUT.xml,
+    EPSILON_NAR_FXCMB1_OC_QMT001.OUT.xml,
+    EPSILON_NAR_NLF_FXCMB1_OC_QMT001.OUT.xml,
+    LOSS_NAR_FXCMB1_OC_QMT001.OUT.xml
     """
     data = numpy_gen_from_txt(name, skip_header=14)
     out = {
@@ -41,10 +40,9 @@ def parse_EPSILON_NAR(name: str) -> dict:
 
 
 def parse_LOSS_NAR(name):
-    """
-    Parser for:
-     LOSS_NAR_FXCMB1_OC_QMT001.OUT.xml,
-     LOSS_NAR_NLF_FXCMB1_OC_QMT001.OUT.xml
+    """Parser for:
+    LOSS_NAR_FXCMB1_OC_QMT001.OUT.xml,
+    LOSS_NAR_NLF_FXCMB1_OC_QMT001.OUT.xml
     """
     data = numpy_gen_from_txt(name, skip_header=14)
     out = {"frequency": data[:, 0], "real_oscillator_strength": data[:, 1], "imag_oscillator_strength": data[:, 2]}
@@ -53,9 +51,7 @@ def parse_LOSS_NAR(name):
 
 
 def parse_EXCITON_NAR_BSE(name):
-    """
-    Parser for EXCITON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC.OUT
-    """
+    """Parser for EXCITON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC.OUT"""
     data = numpy_gen_from_txt(name, skip_header=14)
     out = {}
     out["state"] = data[:, 0]
@@ -144,3 +140,71 @@ def parse_times(infoxs_string: str) -> dict:
     assert len(cpu_times) == len(wall_times_cum), "Numbers of parsed timings are not consistent."
 
     return {"cpu": cpu_times, "wall": wall_times, "cpu_cum": cpu_times_cum, "wall_cum": wall_times_cum}
+
+
+def parse_fastBSE_absorption_spectrum_out(name: str) -> dict:
+    """Parser for fastBSE_absorption_spectrum.out file.
+
+    :param name: path of the file to parse
+    :returns: dictionary containing parsed file
+    """
+
+    n_lines_description = 6
+    description = ""
+    with open(name) as file:
+        for _ in range(n_lines_description):
+            description += file.readline()
+
+    try:
+        energy_unit = float(re.findall(r"# Energy unit:\s*(.*) *Hartree", description)[0])
+    except IndexError:
+        raise RuntimeError("Could match regular expression for energy unit. Has the file header changed?")
+
+    try:
+        broadening = float(re.findall(r"# Broadening:\s*(.*) energy unit", description)[0])
+    except IndexError:
+        raise RuntimeError("Could match regular expression for broadening. Has the file header changed?")
+
+    data = numpy_gen_from_txt(name, n_lines_description)
+
+    return {"energy_unit": energy_unit, "broadening": broadening, "frequency": data[:, 0], "imag_epsilon": data[:, 1:4]}
+
+
+def parse_fastBSE_exciton_energies_out(name: str) -> dict:
+    """Parser for fastBSE_exciton_energies.out and fastBSE_gauss_quadrature_energies.out files.
+
+    :param name: path of the file to parse
+    :returns: dictionary containing parsed file
+    """
+
+    n_lines_description = 8
+    description = ""
+    with open(name) as file:
+        for _ in range(n_lines_description):
+            description += file.readline()
+
+    try:
+        energy_unit = float(re.findall(r"# Energy unit:\s*(.*) *Hartree", description)[0])
+    except IndexError:
+        raise RuntimeError("Could match regular expression for energy unit. Has the file header changed?")
+
+    try:
+        ip_band_gap = float(re.findall(r"# IP band gap:\s*(.*) energy unit", description)[0])
+    except IndexError:
+        raise RuntimeError("Could match regular expression for ip band gap. Has the file header changed?")
+
+    return {
+        "energy_unit": energy_unit,
+        "ip_band_gap": ip_band_gap,
+        "exciton_energies": numpy_gen_from_txt(name, n_lines_description),
+    }
+
+
+def parse_fastBSE_oscillator_strength_out(name: str) -> dict:
+    """Parser for fastBSE_gauss_quadrature_oscillator_strengths.out.out file.
+
+    :param name: path of the file to parse
+    :returns: dictionary containing parsed file
+    """
+
+    return {"oscillator_strength": numpy_gen_from_txt(name, 5)}

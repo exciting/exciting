@@ -69,7 +69,10 @@ DefaultTolerances = namedtuple('DefaultTolerances',
                                 'force',
                                 'au',
                                 'dos',
-                                'effective_mass'
+                                'effective_mass',
+                                'momentum',
+                                'eigen_vectors',
+                                'wave_function'
                                 ])
 
 # Set all defaults to None, such that tolerance templates are not required to define
@@ -82,6 +85,7 @@ tol_file_name = {'groundstate': 'tolerance_ground_state.json',
                  'gw': 'tolerance_gw.json',
                  'hybrid': 'tolerance_hybrid.json',
                  'bse': 'tolerance_bse.json',
+                 'bse_hdf5': 'tolerance_bse_hdf5.json',
                  'xanes': 'tolerance_xanes.json',
                  'tddft': 'tolerance_tddft.json',
                  'rt_tddft': 'tolerance_rt_tddft.json',
@@ -94,10 +98,8 @@ tol_file_name = {'groundstate': 'tolerance_ground_state.json',
                  'electric_properties': 'tolerance_electric.json',
                  'core_properties': 'tolerance_core.json',
                  'spin_properties': 'tolerance_spin.json',
-                 'wfplot': 'tolerance_wfplot.json'
-                 # TODO(Bene #160): 
-                 # Fix fastBSE test      
-                 #'fastBSE': 'tolerance_fastBSE.json'
+                 'wfplot': 'tolerance_wfplot.json',
+                 'fastBSE': 'tolerance_fastBSE.json'
                  }
 
 methods = list(tol_file_name.keys())

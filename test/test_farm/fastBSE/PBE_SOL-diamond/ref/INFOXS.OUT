@@ -1,0 +1,322 @@
+================================================================================
+| EXCITING NEON started for task xsgeneigvec ( 301)                            =
+| version hash id: 276fe55d36a4588b4c69d2b6fa954023dcd8b7a5                    =
+|                                                                              =
+| Date (DD-MM-YYYY) : 02-01-2024                                               =
+================================================================================
+================================================================================
+One-shot GS runs for BSE calculations
+================================================================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+One-shot GS runs for k+qmt/2 grids
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(xsgeneigvec): Generating eigenvectors for Q-point      1
+--------------------------------------------------------------------------------
+Info(xsgeneigvec): Generation of eigenvectors finished
+
+Info(xsfinit): task Nr.     301 stopped gracefully
+
+ Timings: 
+     Date (DD-MM-YYYY)      : 02-01-2024
+     Time (hh:mm:ss)        : 15:52:11
+     CPU time               : 0.41 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     wall time              : 0.41 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     CPU load               : 100.10 %
+     CPU time  (cumulative) : 3.19 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 03 s )
+     wall time (cumulative) : 0.41 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     CPU load  (cumulative) : 100.10 %
+
+================================================================================
+= EXCITING NEON stopped for task    301                                        =
+================================================================================
+
+
+================================================================================
+| EXCITING NEON started for task writepmatxs ( 320)                            =
+| Date (DD-MM-YYYY) : 02-01-2024                                               =
+================================================================================
+Info(writepmatxs): Momentum matrix elements finished
+Info(xsfinit): task Nr.     320 stopped gracefully
+
+ Timings: 
+     Date (DD-MM-YYYY)      : 02-01-2024
+     Time (hh:mm:ss)        : 15:52:12
+     CPU time               : 0.58 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
+     wall time              : 0.58 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
+     CPU load               : 100.02 %
+     CPU time  (cumulative) : 3.77 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 04 s )
+     wall time (cumulative) : 0.98 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
+     CPU load  (cumulative) : 100.02 %
+
+================================================================================
+= EXCITING NEON stopped for task    320                                        =
+================================================================================
+
+
+================================================================================
+| EXCITING NEON started for task scrgeneigvec ( 401)                           =
+| Date (DD-MM-YYYY) : 02-01-2024                                               =
+================================================================================
+
+Info(xsinit): mapping screening-specific parameters
+
+================================================================================
+One-shot GS runs for BSE calculations
+================================================================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+One-shot GS runs for k+qmt/2 grids
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(xsgeneigvec): Generating eigenvectors for Q-point      1
+Using screening GS parameters.
+--------------------------------------------------------------------------------
+Info(xsgeneigvec): Generation of eigenvectors finished
+
+Info(xsfinit): task Nr.     401 stopped gracefully
+
+ Timings: 
+     Date (DD-MM-YYYY)      : 02-01-2024
+     Time (hh:mm:ss)        : 15:52:12
+     CPU time               : 0.31 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     wall time              : 0.32 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     CPU load               : 99.99 %
+     CPU time  (cumulative) : 4.09 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 04 s )
+     wall time (cumulative) : 1.30 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
+     CPU load  (cumulative) : 99.99 %
+
+================================================================================
+= EXCITING NEON stopped for task    401                                        =
+================================================================================
+
+
+================================================================================
+| EXCITING NEON started for task scrwritepmat ( 420)                           =
+| Date (DD-MM-YYYY) : 02-01-2024                                               =
+================================================================================
+
+Info(xsinit): mapping screening-specific parameters
+
+Info(writepmatxs): Momentum matrix elements finished
+Info(scrwritepmat): Momentum matrix elements for screening finished
+Info(xsfinit): task Nr.     420 stopped gracefully
+
+ Timings: 
+     Date (DD-MM-YYYY)      : 02-01-2024
+     Time (hh:mm:ss)        : 15:52:13
+     CPU time               : 0.58 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
+     wall time              : 0.58 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
+     CPU load               : 99.90 %
+     CPU time  (cumulative) : 4.66 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 05 s )
+     wall time (cumulative) : 1.88 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load  (cumulative) : 99.90 %
+
+================================================================================
+= EXCITING NEON stopped for task    420                                        =
+================================================================================
+
+
+================================================================================
+| EXCITING NEON started for task screen ( 430)                                 =
+| Date (DD-MM-YYYY) : 02-01-2024                                               =
+================================================================================
+
+Info(xsinit): mapping screening-specific parameters
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(screenlauncher): Calculating screening for unshifted q-grid.
+Info(screenlauncher): Number of q points:       3
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Info(screenlauncher): lowest (partially)  unoccupied state:      5
+Info(screenlauncher): highest (partially) occupied state  :      4
+Info(screenlauncher): number of occupied states considered:    4
+Info(screenlauncher): number of unoccupied states considered:    7
+--------------------------------------------------------------------------------
+
+Info(screenlauncher): Starting loop over q-points
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Info(screenlauncher): Screening for unshifted q-grid finished
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Info(screenlauncher): Screening finished
+Info(xsfinit): task Nr.     430 stopped gracefully
+
+ Timings: 
+     Date (DD-MM-YYYY)      : 02-01-2024
+     Time (hh:mm:ss)        : 15:52:13
+     CPU time               : 0.37 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     wall time              : 0.38 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     CPU load               : 99.01 %
+     CPU time  (cumulative) : 5.04 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 05 s )
+     wall time (cumulative) : 2.25 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load  (cumulative) : 99.01 %
+
+================================================================================
+= EXCITING NEON stopped for task    430                                        =
+================================================================================
+
+
+================================================================================
+| EXCITING NEON started for task write_screened_coulomb ( 443)                 =
+| Date (DD-MM-YYYY) : 02-01-2024                                               =
+================================================================================
+
+Info(xsinit): mapping BSE-specific parameters
+
+Info(xsfinit): task Nr.     443 stopped gracefully
+
+ Timings: 
+     Date (DD-MM-YYYY)      : 02-01-2024
+     Time (hh:mm:ss)        : 15:52:13
+     CPU time               : 0.12 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     wall time              : 0.12 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     CPU load               : 100.03 %
+     CPU time  (cumulative) : 5.16 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 05 s )
+     wall time (cumulative) : 2.37 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load  (cumulative) : 100.03 %
+
+================================================================================
+= EXCITING NEON stopped for task    443                                        =
+================================================================================
+
+
+================================================================================
+| EXCITING NEON started for task fastBSE_groundstate_properties ( 510)         =
+| Date (DD-MM-YYYY) : 02-01-2024                                               =
+================================================================================
+Info(setranges_modxs): Determining k+qmt/2 grid
+Info(setranges_modxs): Determining k-qmt/2 grid
+Info(setranges_modxs): Number of non-reduced k-points:        8
+Info(setranges_modxs): Number of states considered:       11
+Info(setranges_modxs): Number of (partially) occupied states:        4
+Info(setranges_modxs): Highest (partially) occupied states:        4
+Info(setranges_modxs): Number of (partially) unoccupied states:        7
+Info(setranges_modxs): Lowest (partially) unoccupied states:        5
+Info(fastBSE_groundstate_properties): Init time:     0.048693
+Info(select_transitions): Inspecting transitions in the  band interval:
+  lowest occupied state:   1
+  highest occupied state:   4
+  lowest unoccupied state:   5
+  highest unoccupied state:   9
+  Opening gap with a scissor of:      0.000/H      0.000/eV
+Info(select_transitions): Number of participating transitions:     160
+Info(xsfinit): task Nr.     510 stopped gracefully
+
+ Timings: 
+     Date (DD-MM-YYYY)      : 02-01-2024
+     Time (hh:mm:ss)        : 15:52:13
+     CPU time               : 0.11 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     wall time              : 0.11 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     CPU load               : 100.10 %
+     CPU time  (cumulative) : 5.27 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 05 s )
+     wall time (cumulative) : 2.49 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load  (cumulative) : 100.10 %
+
+================================================================================
+= EXCITING NEON stopped for task    510                                        =
+================================================================================
+
+
+================================================================================
+| EXCITING NEON started for task fastBSE_isdf_cvt ( 512)                       =
+| Date (DD-MM-YYYY) : 02-01-2024                                               =
+================================================================================
+
+ISDF + CVT done for V_exc
+CVT procedure has converged in    9 steps.
+Deviation : 2.00199809416773E-01
+
+number of interpolation points:        3
+
+Time(CVT)  (s):        0.000278
+Time(ISDF) (s):        0.000212
+
+
+ISDF + CVT done for W_scr occupied
+CVT procedure has converged in   15 steps.
+Deviation : 2.11718535244924E-01
+
+number of interpolation points:        4
+
+Time(CVT)  (s):        0.000486
+Time(ISDF) (s):        0.000141
+
+
+ISDF + CVT done for W_scr unoccupied
+CVT procedure has converged in   15 steps.
+Deviation : 1.87239430875092E-01
+
+number of interpolation points:        4
+
+Time(CVT)  (s):        0.000485
+Time(ISDF) (s):        0.000152
+
+Info(xsfinit): task Nr.     512 stopped gracefully
+
+ Timings: 
+     Date (DD-MM-YYYY)      : 02-01-2024
+     Time (hh:mm:ss)        : 15:52:13
+     CPU time               : 0.00 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     wall time              : 0.00 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     CPU load               : 87.75 %
+     CPU time  (cumulative) : 5.27 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 05 s )
+     wall time (cumulative) : 2.49 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU load  (cumulative) : 87.75 %
+
+================================================================================
+= EXCITING NEON stopped for task    512                                        =
+================================================================================
+
+
+================================================================================
+| EXCITING NEON started for task fastBSE_main ( 501)                           =
+| Date (DD-MM-YYYY) : 02-01-2024                                               =
+================================================================================
+Setup exchange interaction kernel.
+Time (s):        0.000479
+
+Setup screened interaction kernel.
+Time (s):        0.000627
+
+Diagonalization done.
+Lanczos iterations done:       10
+Time (s):        0.008441
+
+Info(xsfinit): task Nr.     501 stopped gracefully
+
+ Timings: 
+     Date (DD-MM-YYYY)      : 02-01-2024
+     Time (hh:mm:ss)        : 15:52:13
+     CPU time               : 0.01 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     wall time              : 0.01 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     CPU load               : 98.47 %
+     CPU time  (cumulative) : 5.28 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 05 s )
+     wall time (cumulative) : 2.50 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 03 s )
+     CPU load  (cumulative) : 98.47 %
+
+================================================================================
+= EXCITING NEON stopped for task    501                                        =
+================================================================================
+
+
+================================================================================
+| EXCITING NEON started for task fastBSE_human_readable_output ( 502)          =
+| Date (DD-MM-YYYY) : 02-01-2024                                               =
+================================================================================
+Info(xsfinit): task Nr.     502 stopped gracefully
+
+ Timings: 
+     Date (DD-MM-YYYY)      : 02-01-2024
+     Time (hh:mm:ss)        : 15:52:13
+     CPU time               : 0.00 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     wall time              : 0.00 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 00 s )
+     CPU load               : Infinity %
+     CPU time  (cumulative) : 5.28 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 05 s )
+     wall time (cumulative) : 2.50 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 03 s )
+     CPU load  (cumulative) : Infinity %
+
+================================================================================
+= EXCITING NEON stopped for task    502                                        =
+================================================================================
+
+

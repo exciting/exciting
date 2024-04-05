@@ -44,6 +44,7 @@ subroutine writeexcevec()
   character(256) :: syscommand, bevecdir, bevecksumdir, excitonevecdir
   character(256) :: tdastring, bsetypestring, scrtypestring
 
+  
   ! Only rank=0 does the work
   if(mpiglobal%rank == 0) then 
 

@@ -1393,6 +1393,14 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="brixshdf5" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation>
+                  Set to true if you need output for BRIXS.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="measure" type="xs:boolean"
               default="false">
               <xs:annotation>
@@ -1489,14 +1497,6 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="writehamhdf5" type="xs:boolean"
-              default="false">
-              <xs:annotation>
-                <xs:documentation>
-                  <attref>writehamhdf5</attref> is <pre>"true"</pre> when BSE matrix elements are
-                   written to HDF5 file. </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="chibar0" type="xs:boolean"
               default="true">
               <xs:annotation>
@@ -1522,14 +1522,6 @@
                 <xs:documentation>
                   <attref>reducek</attref> is <pre>"true"</pre> if <inlinemath>{\mathbf k}</inlinemath>-points are to be reduced with crystal
                   symmetries for BSE. </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="writepotential" type="xs:boolean"
-              default="false">
-              <xs:annotation>
-                <xs:documentation>
-                  If <attref>writepotential</attref> is <pre>"true"</pre>, the screened Coulomb potential <inlinemath>W_{\mathbf{G},}\mathbf{G'}(\mathbf{q})</inlinemath>
-                  is written to file.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="vkloff" type="vect3d"
@@ -1784,7 +1776,18 @@
               </xs:simpleType>
             </xs:attribute>
 
-            <xs:attribute ex:importance="expert" ex:unit="" name="rsampling" use="optional" type="integertriple" default="5 5 5">
+            <xs:attribute ex:importance="expert" ex:unit="" name="saveQ" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:appinfo>
+                  <oldname>nosymbse</oldname>
+                </xs:appinfo>
+                <xs:documentation> Save transformation matrix <inlinemath> Q_k </inlinemath> from the Lanczos iterations.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="ngridr" use="optional" type="integertriple" default="5 5 5">
               <xs:annotation>
                 <xs:documentation>
                   Sampling of the real space grid for calculating the wavefunctions on.
@@ -1808,10 +1811,20 @@
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="expert" ex:unit="" name="lanczosmaxits" use="optional" type="xs:integer" default="50">
+            <xs:attribute ex:importance="expert" ex:unit="" name="nlanczos" use="optional" type="xs:integer" default="0">
               <xs:annotation>
                 <xs:documentation>
                   Number Lanczos iterations
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="clanczos" use="optional" type="fortrandouble" default="0.01">
+              <xs:annotation>
+                <xs:documentation>
+                  Define the number of Lanczos iterations by the portion <inlinemath> c </inlinemath> of the BSE Hamiltonian size 
+                  <inlinemath> n_\text{BSH} </inlinemath> such that <inlinemath> n_\text{Lanczos} = c \cdot n_\text{BSH} </inlinemath>.
+                  If the element <attref>nlanczos</attref> is given (<inlinemath> > 0 </inlinemath>), this element is ignored.
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -2315,16 +2328,6 @@
                           </xs:annotation>
                         </xs:enumeration>
 
-                        <xs:enumeration value="write_wfplot">
-                          <xs:annotation>
-                            <xs:appinfo>
-                              <oldnr>451</oldnr>
-                            </xs:appinfo>
-                            <xs:documentation>Real-space plot of wavefunctions
-                            used in xs calc.</xs:documentation>
-                          </xs:annotation>
-                        </xs:enumeration>
-
                         <xs:enumeration value="write_screen">
                           <xs:annotation>
                             <xs:appinfo>
@@ -2362,7 +2365,16 @@
                           </xs:annotation>
                         </xs:enumeration>
 
-                        <xs:enumeration value="fastBSE_setup_transitions">
+                        <xs:enumeration value="fastBSE_human_readable_output">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>502</oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>Write fastBSE results to human readable output.</xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+
+                        <xs:enumeration value="fastBSE_groundstate_properties">
                           <xs:annotation>
                             <xs:appinfo>
                               <oldnr>510</oldnr>
@@ -2376,16 +2388,7 @@
                             <xs:appinfo>
                               <oldnr>512</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>Calculate ISDF with CVT for BSE.</xs:documentation>
-                          </xs:annotation>
-                        </xs:enumeration>
-
-                        <xs:enumeration value="fastBSE_isdf_vexc_test">
-                          <xs:annotation>
-                            <xs:appinfo>
-                              <oldnr>513</oldnr>
-                            </xs:appinfo>
-                            <xs:documentation>Test ISDF that was calculated for the fast BSE exchange kernel.</xs:documentation>
+                            <xs:documentation>Calculate ISDF with CVT for fastBSE.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
 

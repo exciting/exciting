@@ -59,6 +59,7 @@ class ExcitingCalculation(enum.Enum):
     tddft = enum.auto()
     rt_tddft = enum.auto()
     bse = enum.auto()
+    bse_hdf5 = enum.auto()
     hybrid = enum.auto()
     phonon = enum.auto()
     band_structure = enum.auto()
@@ -70,6 +71,7 @@ class ExcitingCalculation(enum.Enum):
     electric_properties = enum.auto()
     core_properties = enum.auto()
     spin_properties = enum.auto()
+    fastBSE = enum.auto()
 
 
 def get_calculation_types(input_calcs: List[str]) -> List[ExcitingCalculation]:

@@ -1,19 +1,14 @@
 !> Lanczos algorithm for the ISDF BSH as implemented for fast BSE.
 module iterative_solver
   use precision, only: dp
-  use iso_fortran_env, only: error_unit
   use asserts, only: assert
-  use modmpi, only: terminate_if_false
   use math_utils, only: all_zero
-  use grid_utils, only: mesh_1d
-  use xlapack, only: dot_multiply, norm, matrix_multiply, diagonalize_symtridiag
-  use bethe_salpeter_hamiltonian, only: bsh_type
-  use bse_post_processing, only: absorption_spectrum
+  use xlapack, only: norm
 
   implicit none
 
   private
-  public :: lanczos_iteration
+  public :: lanczos
 
   contains
 
@@ -38,7 +33,7 @@ module iterative_solver
   !> ]
   !> The first column of \( \mathbf{Q} \), \( \mathbf{q}_1 \) must be given.
   !> If the algorithm breaks down before the \( k \)'th itereration it returns the results so far.
-  subroutine lanczos_iteration(k, matrix_vector_product, q_1, alpha, beta, Q_k)
+  subroutine lanczos(k, matrix_vector_product, q_1, alpha, beta, save_Q, Q_k)
     !> Maximum number of lanczos iterations
     integer, intent(in) :: k
     !> Matrix vector product to be used
@@ -55,46 +50,53 @@ module iterative_solver
     real(dp), intent(out), allocatable :: alpha(:)
     !> Sub diagonal of \( \mathbf{T}_k \)
     real(dp), intent(out), allocatable :: beta(:)
-    !> Transformation matrix
+    !> Save the transformation matrix. If set to false, `[[Q_k]]` is not
+    !> touched.
+    logical, intent(in) :: save_Q
+    !> Transformation matrix. If `[[save_Q]]` is `.false.`, this matrix will not be allocated.
     complex(dp), intent(out), allocatable :: Q_k(:, :)
     
     ! local variables
-    integer :: i, k_, n_matrix 
+    integer :: iter, k_, n_matrix 
     real(dp), allocatable :: alpha_(:), beta_(:)
     complex(dp), allocatable :: Q_k_(:, :), q_vec(:), q_vec_old(:), x(:)
 
     n_matrix = size(q_1)
     call assert(k <= n_matrix, 'k is larger than the size of the matrix.')
 
-    allocate(Q_k_(n_matrix, k+1))
     allocate(alpha_(k))
     allocate(beta_(0 : k))
     allocate(x(n_matrix))
 
     q_vec = q_1 / norm(q_1)
-    Q_k_(:, 1) = q_vec
     q_vec_old = q_vec
     beta_(0) = 0.0_dp
+
+    if (save_Q) then
+      allocate(Q_k_(n_matrix, k+1))
+      Q_k_(:, 1) = q_vec
+    end if
+
     
-    do i=1, k
+    do iter=1, k
       call matrix_vector_product(q_vec, x)
-      x = x - beta_(i-1) * q_vec_old
-      alpha_(i) = real(dot_product(q_vec, x), kind=dp)
-      x = x - alpha_(i) * q_vec
-      beta_(i) = norm(x)
+      x = x - beta_(iter-1) * q_vec_old
+      alpha_(iter) = real(dot_product(q_vec, x), kind=dp)
+      x = x - alpha_(iter) * q_vec
+      beta_(iter) = norm(x)
 
       ! Break loop if linear independence is reached
-      if (all_zero(beta_(i))) exit
+      if (all_zero(beta_(iter))) exit
 
       q_vec_old = q_vec
-      q_vec = x / beta_(i)
-      Q_k_(:, i+1) = q_vec
-      k_ = i
+      q_vec = x / beta_(iter)
+      if (save_Q) Q_k_(:, iter+1) = q_vec
+      k_ = iter
     end do
 
     alpha = alpha_(:k_)
     beta = beta_(1 : k_)
-    Q_k = Q_k_(:, :k_)
-  end subroutine lanczos_iteration
+    if (save_Q) Q_k = Q_k_(:, :k_)
+  end subroutine lanczos
 
 end module iterative_solver

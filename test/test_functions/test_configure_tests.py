@@ -71,6 +71,7 @@ tolerance_ground_state.json
 tolerance_gw.json
 tolerance_hybrid.json
 tolerance_bse.json
+tolerance_bse_hdf5.json
 tolerance_xanes.json
 tolerance_tddft.json
 tolerance_rt_tddft.json
@@ -83,7 +84,8 @@ tolerance_optical.json
 tolerance_electric.json
 tolerance_core.json
 tolerance_spin.json
-tolerance_wfplot.json"""
+tolerance_wfplot.json
+tolerance_fastBSE.json"""
 
     with pytest.raises(KeyError) as error_info:
         method = get_method_from_tolerance_file(test_name.as_posix(), subdirectory='')

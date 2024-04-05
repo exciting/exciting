@@ -21,6 +21,7 @@ from excitingtools.exciting_dict_parsers import (
     gw_info_parser,
     gw_taskgroup_parser,
     gw_vxc_parser,
+    hdf5_parser,
     input_parser,
     properties_parser,
     species_parser,
@@ -97,6 +98,11 @@ _file_to_parser = {
     "FHF_*": RT_TDDFT_parser.parse_force,
     "FVAL_*": RT_TDDFT_parser.parse_force,
     "STATE.OUT": state_parser.parse_state_out,
+    "bse_output.h5": hdf5_parser.parse_hdf5_file_as_dict,
+    "fastBSE_output.h5": hdf5_parser.parse_hdf5_file_as_dict,
+    "fastBSE_absorption_spectrum.out": bse_parser.parse_fastBSE_absorption_spectrum_out,
+    "fastBSE_exciton_energies.out": bse_parser.parse_fastBSE_exciton_energies_out,
+    "fastBSE_oscillator_strengths.out": bse_parser.parse_fastBSE_oscillator_strength_out,
 }
 
 

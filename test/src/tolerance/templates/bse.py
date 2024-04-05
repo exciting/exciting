@@ -19,9 +19,23 @@ from ..tol_classes import DefaultTolerances, Tol
 default = DefaultTolerances(integer=Tol(0),
                             float=Tol(1.e-8),
                             str=Tol(''),
-                            energy=Tol(1.e-7, Unit.ev),
+                            energy=Tol(1.e-7, Unit.hartree),
                             frequency=Tol(1.e-8, Unit.ev),
                             oscillator_strength=Tol(1.e-8, Unit.null)
+                            )
+
+default_hdf5 = DefaultTolerances(
+                            integer=Tol(0),
+                            float=Tol(1.e-8),
+                            str=Tol(''),
+                            energy=Tol(1.e-5, Unit.hartree),
+                            frequency=Tol(1.e-8, Unit.ev),
+                            oscillator_strength=Tol(1.e-5, Unit.null),
+                            eigen_vectors=Tol(1e-8, Unit.null), 
+                            momentum=Tol(1e-8, Unit.hartree),
+                            wave_function=Tol(1e-8, Unit.null),
+                            length=Tol(1e-8, Unit.bohr),
+                            inv_length=Tol(1e-8, Unit.inv_bohr)
                             )
 
 # Tolerances for EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC**.OUT
@@ -42,6 +56,148 @@ bse_exciton_tols = {
     'imag_oscillator_strength': default.oscillator_strength
 }
 
+# Tolerances for bse_output.h5
+bse_hdf5_tols = {
+    # eigvec group
+    'evals': default_hdf5.energy,
+    'evalsIP': default_hdf5.energy,
+    # eigvec/ rvec and avec group
+    '0000000?': default_hdf5.eigen_vectors,
 
-bse_tolerances = {'EPSILON_??.OUT': bse_epsilon_tols,
-                  'EXCITON_??.OUT': bse_exciton_tols}
+    # eigvec/ parameters group
+    'ensortidx': default_hdf5.integer,
+    'fcoup': default_hdf5.str,
+    'fesel': default_hdf5.str,
+    'hamsize': default_hdf5.integer,
+    'i1': default_hdf5.integer,
+    'i2': default_hdf5.integer,
+    'ik2ikqmtm': default_hdf5.integer,
+    'ik2ikqmtp': default_hdf5.integer,
+    'ikmap': default_hdf5.integer,
+    'ikqmtm2ikqmtp': default_hdf5.integer,
+    'ioref': default_hdf5.integer,
+    'iq': default_hdf5.integer,
+    'iuref': default_hdf5.integer,
+    'koulims': default_hdf5.integer,
+    'kousize': default_hdf5.integer,
+    'nexcstored': default_hdf5.integer,
+    'ngridk': default_hdf5.integer,
+    'nk_bse': default_hdf5.integer,
+    'nk_max': default_hdf5.integer,
+    'smap': default_hdf5.integer,
+    'smap_rel': default_hdf5.integer,
+    'vkl': default_hdf5.integer,
+    'vkl0': default_hdf5.integer,
+    'vqlmt(iq)': default_hdf5.integer,
+
+    # excitons group
+    'evalre': default_hdf5.energy,
+
+    # excitons/ ?? groups
+    'oscstrr': default_hdf5.oscillator_strength,
+
+    # excitons/ parameter group
+    'escale': default_hdf5.energy,
+    'eshift': default_hdf5.energy,
+    'ivgmt': default_hdf5.integer,
+    'vgcmt': default_hdf5.inv_length,
+    'vqcmt': default_hdf5.inv_length,
+    'vqlmt': default_hdf5.inv_length,
+
+    # spectra group
+    # spectra/ diel group
+    'epsm': default_hdf5.oscillator_strength,
+    'w': default_hdf5.frequency,
+
+    # spectra/ loss group
+    'lossfct': default_hdf5.oscillator_strength,
+    'w': default_hdf5.frequency,
+
+    # spectra/ sigma group
+    'sigma': default_hdf5.oscillator_strength,
+    'w': default_hdf5.frequency,
+
+    # spectra/ parameters group
+    'broad': default_hdf5.energy,
+    'escale': default_hdf5.energy,
+    'foff': default_hdf5.str,
+    'ivgmt': default_hdf5.integer,
+    'nk_bse': default_hdf5.integer,
+    'vgcmt': default_hdf5.inv_length,
+    'vqcmt': default_hdf5.inv_length,
+    'vqlmt': default_hdf5.inv_length
+}
+
+# Tolerances for fastBSE_absorption_spectrum.out
+fastBSE_absorption_spectrum_tol = {
+    'energy_unit': default.energy,
+    'broadening': default.energy,
+    'frequency': default.energy,
+    'imag_epsilon': default.oscillator_strength
+}
+
+# Tolerances for fastBSE_exciton_energies.out
+fastBSE_exciton_energies_tol = {
+    'energy_unit': default.energy,
+    'ip_band_gap': default.energy,
+    'exciton_energies': default.energy
+}
+
+fastBSE_oscillator_strength_tol = {
+    'oscillator_strength': default.oscillator_strength
+}
+
+# Tolerances for fastBSE hdf5 output
+fastBSE_hdf5_tol = {
+    # fastBSE_groundstate_properties
+    'energies': default_hdf5.energy,
+    'matrix_elements': default_hdf5.inv_length,
+    'band_index_lookup_table': default_hdf5.integer,
+    'uo_limits': default_hdf5.integer,
+    'mask': default_hdf5.integer,
+    'u': default_hdf5.wave_function,
+    'r_sampling': default_hdf5.integer,
+    'k_list': default_hdf5.integer,
+    'band_list': default_hdf5.integer,
+    'ngridk': default_hdf5.integer,
+    
+    # fastBSE_singlet
+    'eps_im': default_hdf5.oscillator_strength,
+    'exciton_eval': default_hdf5.energy,
+    'exciton_evec': default_hdf5.eigen_vectors,
+    'gaussquad_energies': default_hdf5.energy,
+    'gaussquad_weights': default_hdf5.oscillator_strength,
+    'omega': default_hdf5.energy,
+    'ip_gap': default_hdf5.energy,
+
+    # fast_BSE_isdf_????
+    'r_cartesian': default_hdf5.length,
+    'r_isdf_indices': default_hdf5.integer,
+    'zeta': default_hdf5.float,
+    'u_o_isdf': default_hdf5.wave_function,
+    'u_u_isdf': default_hdf5.wave_function,
+
+    # screened_coulomb_non_reduced_q
+    'w_screened_hat': default_hdf5.energy,
+    'q_cartesian': default_hdf5.inv_length,
+    'G+q_cartesian': default_hdf5.inv_length,
+    'N_G_per_q': default_hdf5.integer,
+    'ngridq': default_hdf5.integer
+}
+
+bse_tolerances = {
+    'EPSILON_??.OUT': bse_epsilon_tols,
+    'EXCITON_??.OUT': bse_exciton_tols
+    }
+
+bse_hdf5_tolerances = {
+    'bse_output.h5': bse_hdf5_tols
+    }
+
+fastBSE_tolerances = {
+    'fastBSE_output.h5': fastBSE_hdf5_tol,
+    'fastBSE_absorption_spectrum.out': fastBSE_absorption_spectrum_tol,
+    'fastBSE_exciton_energies.out': fastBSE_exciton_energies_tol,
+    'fastBSE_oscillator_strengths.out': fastBSE_oscillator_strength_tol
+    }
+

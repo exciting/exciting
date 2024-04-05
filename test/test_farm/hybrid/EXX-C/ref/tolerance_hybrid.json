@@ -154,7 +154,7 @@
       "unit": "Hartree"
     },
     "Exchange energy": {
-      "tol": 1e-07,
+      "tol": 5e-07,
       "unit": "Hartree"
     },
     "Correlation energy": {

@@ -22,6 +22,8 @@ dev = [
     "ruff",
 ]
 schemaparsing = ["xmlschema"]
+h5_parsing = ["h5py"]
+
 
 [project.urls]
 repository = "https://github.com/exciting/excitingtools"

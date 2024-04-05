@@ -216,49 +216,49 @@ module xs_plan_manager
     nxstasks = nxstasks+1
     input%xs%plan%doonlyarray(nxstasks)%doonly%task="writepmatxs"
 
-    ! Task 451 corresponds to "write_wfplot" plan
-    ! Write wavfunctions to hdf5 file
-    nxstasks = nxstasks + 1
-    input%xs%plan%doonlyarray(nxstasks)%doonly%task="write_wfplot"
-
 
     ! Allows for skipping screening calculation
     if(input%xs%screening%do .eq. "fromscratch") then
-      ! Task 401 corresponds to "scrgeneigvec" plan
+      ! Task 401 corresponds to "scrgeneigvec"
       ! One shot GS calculation with more empty states xs%screening%nempty
       ! but otherwise identical parameters as "xsgeneigvec".
       nxstasks = nxstasks+1
       input%xs%plan%doonlyarray(nxstasks)%doonly%task="scrgeneigvec"
 
-      ! Task 420 corresponds to "scrwritepmat" plan
+      ! Task 420 corresponds to "scrwritepmat"
       nxstasks = nxstasks+1
       input%xs%plan%doonlyarray(nxstasks)%doonly%task="scrwritepmat"
 
-      ! Task 430 corresponds to "screen" plan
+      ! Task 430 corresponds to "screen"
       ! Generate KS RPA screening
       nxstasks = nxstasks+1
       input%xs%plan%doonlyarray(nxstasks)%doonly%task="screen"
-
-      ! Task 452 corresponds to "write_screened_coulomb" plan
-      ! Write screened Coulomb potential to file
-      nxstasks = nxstasks+1
-      input%xs%plan%doonlyarray(nxstasks)%doonly%task="write_screened_coulomb"
     end if
 
-     ! Task 510 corresponds to "isdf_lanczos_bse" plan
+    ! Task 452 corresponds to "write_screened_coulomb"
+    ! Write screened Coulomb potential to file
+    nxstasks = nxstasks+1
+    input%xs%plan%doonlyarray(nxstasks)%doonly%task="write_screened_coulomb"
+
+    ! Task 510 corresponds to "fastBSE_groundstate_properties"
     ! Set up and solve BSE with ISDF compression of the BSH and Lanczos solver
     nxstasks = nxstasks+1
-    input%xs%plan%doonlyarray(nxstasks)%doonly%task="fastBSE_setup_transitions"
+    input%xs%plan%doonlyarray(nxstasks)%doonly%task="fastBSE_groundstate_properties"
 
-     ! Task 512 corresponds to "isdf_lanczos_bse" plan
+    ! Task 512 corresponds to "fastBSE_isdf_cvt" plan
     ! Set up and solve BSE with ISDF compression of the BSH and Lanczos solver
     nxstasks = nxstasks+1
     input%xs%plan%doonlyarray(nxstasks)%doonly%task="fastBSE_isdf_cvt"
 
-    ! Task 501 corresponds to "isdf_lanczos_bse" plan
+    ! Task 501 corresponds to "fastBSE_main"
     ! Set up and solve BSE with ISDF compression of the BSH and Lanczos solver
     nxstasks = nxstasks+1
     input%xs%plan%doonlyarray(nxstasks)%doonly%task="fastBSE_main"
+
+    ! Task 502 corresponds to "fastBSE_human_readable_output"
+    ! Set up and solve BSE with ISDF compression of the BSH and Lanczos solver
+    nxstasks = nxstasks+1
+    input%xs%plan%doonlyarray(nxstasks)%doonly%task="fastBSE_human_readable_output"
 
     ! Set associated taks numbers
     do i = 1, nxstasks
@@ -266,8 +266,5 @@ module xs_plan_manager
     end do
     
   end subroutine xs_plan_fastBSE
-
-
-  
 
 end module xs_plan_manager

@@ -3,9 +3,9 @@ module bse_post_processing
   use asserts, only: assert
   use modmpi, only: terminate_if_false
   use distributions, only: lorentzian
-
+  
   private
-  public :: absorption_spectrum, symmetrize_quantity
+  public :: calculate_absorption_spectrum, setup_symmetric_matrix
   
   contains
 
@@ -15,10 +15,10 @@ module bse_post_processing
   !> \]
   !> where \( \varepsilon_i \) are the eigen energies and \( t_i \) the corresponding oscillator strengths, 'f' is a 
   !> distribution from [[distributions]].
-  subroutine absorption_spectrum(energies, weights, omega, broadening, func, spectrum)
+  subroutine calculate_absorption_spectrum(energies, weights, omega, broadening, func, spectrum)
     !> Exciton eigen energies
     real(dp), intent(in) :: energies(:)
-    !> Exciton oscillator strenghts
+    !> Exciton oscillator strengths
     real(dp), intent(in) :: weights(:)
     !> Frequency grid on which the spectrum is calculated
     real(dp), intent(in) ::  omega(:)
@@ -53,18 +53,12 @@ module bse_post_processing
               * (func(omega, broadening, energies(i_energy)) - func(omega, broadening, -1._dp * energies(i_energy)))
     end do
     
-  end subroutine absorption_spectrum
+  end subroutine calculate_absorption_spectrum
 
-  subroutine symmetrize_quantity(spectrum)
+
+  subroutine setup_symmetric_matrix(symmetric_matrix)
     use modxs, only: symt2
-    real(dp), intent(inout) :: spectrum(:, :)
-
-    real(dp) :: symmetric_matrix(3, 3)
-
-    integer :: n_spec, i, j
-
-
-    call assert(size(spectrum, 2) == 3, 'size(spectrum, 2) /= 3')
+    real(dp), intent(out) :: symmetric_matrix(3, 3)
 
     call init0
 
@@ -73,9 +67,6 @@ module bse_post_processing
         symmetric_matrix(i, j) = symt2(i, i, j, j)
       end do 
     end do
-
-    spectrum = transpose(matmul(symmetric_matrix, transpose(spectrum)))
-
-  end subroutine 
+  end subroutine setup_symmetric_matrix
 
 end module bse_post_processing 

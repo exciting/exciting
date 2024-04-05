@@ -5,7 +5,7 @@ module fastBSE_isdf
   use qrcp_utils, only: qrcp, setup_subsampling_matrix_samek, setup_subsampling_matrix_kkp
   use cvt_utils, only: cvt
   use isdf_utils, only: isdf
-  use modmpi, only: mpiinfo
+  use modmpi, only: mpiinfo, terminate_if_false, terminate_mpi_env
   use modinput, only: input_type
   use asserts, only: assert
   use xhdf5, only: xhdf5_type, abort_if_not_hdf5
@@ -16,33 +16,117 @@ module fastBSE_isdf
   use bse_utils, only: bse_type_to_bool
   use seed_generation, only: set_seed
   use xfftw, only: abort_if_not_fftw3
-  use fastBSE_write_wfplot, only: h5group_wfplot, h5ds_u, h5ds_r_sampling, h5ds_k_list, h5ds_band_list
-  use fastBSE_transitions, only: h5group_transitions, h5ds_uo_limits, h5ds_band_idx
+  use fastBSE_groundstate_properties, only: read_wavefunction_u_hdf5
+  use fastBSE_file_strings
 
 
   implicit none
 
+  
   private
-  public :: fastBSE_isdf_cvt! , fastBSE_isdf_qrcp
+  public :: fastBSE_isdf_cvt, read_isdf_hdf5 ! , fastBSE_isdf_qrcp
 
-  character(*), parameter, public :: h5group_isdf_vexc = "isdf_vexc"
-  character(*), parameter, public :: h5group_isdf_wscr_o = "isdf_wscr_occupied"
-  character(*), parameter, public :: h5group_isdf_wscr_u = "isdf_wscr_unoccupied"
-
-  character(*), parameter, public :: h5ds_points = "grid_points"
-  character(*), parameter, public :: h5ds_indices = "indices"
-  character(*), parameter, public :: h5ds_zeta = "zeta"
-  character(*), parameter, public :: h5ds_wfplot_isdf_o = "wfplot_isdf_occ"
-  character(*), parameter, public :: h5ds_wfplot_isdf_u = "wfplot_isdf_unocc"
 
   contains 
 
+  !> Read ISDF coeficients (`[[zeta]]`), the wave functions evaluated on the interpolation points (`[[u_o_isdf]] and/or `[[u_u_isdf]]`).
+  !> The coordinates of the real space grid, the wave functions are calculated on (`[[r_vectors]]`) and the indices of the interpolation
+  !> points (`[[r_isdf_indices]]`).
+  subroutine read_isdf_hdf5(mpi_env, h5file, h5path, zeta, u_o_isdf, u_u_isdf, r_vectors, r_isdf_indices)
+    !> MPI environment
+    type(mpiinfo), intent(inout) :: mpi_env
+    !> Name of the HDF5 file
+    type(xhdf5_type), intent(inout) :: h5file
+    !> Name of the group in the HDF5 file
+    character(*), intent(in) :: h5path
+    !> Interpolation coefficients \(\zeta_\mu(\mathbf r)\)
+    complex(dp), allocatable, intent(out) :: zeta(:, :)
+    !> Occupied wavefunctions, evaluated on the interpolation points.
+    complex(dp), allocatable, intent(out), optional :: u_o_isdf(:, :)
+    !> Unoccupied wavefunctions, evaluated on the interpolation points.
+    complex(dp), allocatable, intent(out), optional :: u_u_isdf(:, :)
+    !> Full real space points the wave functions are evaluated on for ISDF
+    real(dp), allocatable, intent(out), optional :: r_vectors(:, :)
+    !> Indices of the interpolation points \(\mathbf r_\mu\) in the full grid
+    integer, allocatable, intent(out), optional :: r_isdf_indices(:)
+    
+    integer :: n_isdf, n_r, n_ok, n_uk
+    integer, allocatable :: shape_r(:), shape_indices(:), shape_zeta(:), shape_u_o_isdf(:), shape_u_u_isdf(:)
+    character(:), allocatable :: group 
 
+    group = join_paths(h5path, isdf_group)
+    
+    ! Read data for the exchange kernel
+    if (present(u_o_isdf) .and. present(u_u_isdf)) then
+      group = join_paths(group, vexc_ou_group)
 
+    ! Read data for the occupied part of the screened kernel
+    else if (present(u_o_isdf) .and. (.not. present(u_u_isdf))) then
+      group = join_paths(group, wscr_oo_group)
 
+    ! Read data for the unoccupied part of the screened kernel
+    else if ((.not. present(u_o_isdf)) .and. present(u_u_isdf)) then
+      group = join_paths(group, wscr_uu_group)
 
+    ! You did something wrong
+    else 
+      call terminate_mpi_env(mpi_env, 'Error: read_fastBSE_isdf_vexc_hdf5: At least one of u_o_isdf or u_u_isdf must be present.')
+    end if 
 
-  !> Calculate ISDF with interpolation points obtained by [[]]
+    call h5file%dataset_shape(group, isdf_indices_dataset, shape_indices)
+    call h5file%dataset_shape(group, zeta_dataset, shape_zeta, complex_dataset = .true.)
+    call h5file%dataset_shape(group, rspace_coordinates_dataset, shape_r)
+
+    n_isdf = shape_indices(1)
+    n_r = shape_r(2)
+
+    call terminate_if_false(mpi_env, shape_zeta(1) == n_r, &
+            'read_fastBSE_isdf_vexc_hdf5: For dataset ' // zeta_dataset // ' dimension 1 is not &
+            the same as the size of dataset ' // rspace_coordinates_dataset //' (n_r), as expected.')
+
+    call terminate_if_false(mpi_env, shape_zeta(2) == n_isdf, &
+            'read_fastBSE_isdf_vexc_hdf5: For dataset ' // zeta_dataset // ' dimension 2 is not &
+            the same as the size of dataset ' // isdf_indices_dataset //' (n_isdf), as expected.')
+
+    
+    allocate(zeta(n_r, n_isdf))
+
+    call h5file%read(group, zeta_dataset, zeta, [1, 1])
+
+    if (present(u_o_isdf)) then
+      call h5file%dataset_shape(group, u_o_isdf_dataset, shape_u_o_isdf, complex_dataset = .true.)
+      call terminate_if_false(mpi_env, shape_u_o_isdf(1) == n_isdf, &
+              'read_fastBSE_isdf_vexc_hdf5: For dataset ' // u_o_isdf_dataset // ' dimension 1 is not &
+              the same as the size of dataset ' // isdf_indices_dataset //' (n_isdf), as expected.')
+
+      n_ok = shape_u_o_isdf(2)
+      allocate(u_o_isdf(n_isdf, n_ok))
+      call h5file%read(group, u_o_isdf_dataset, u_o_isdf)
+    end if
+
+    if (present(u_u_isdf)) then
+      call h5file%dataset_shape(group, u_u_isdf_dataset, shape_u_u_isdf, complex_dataset = .true.)
+      call terminate_if_false(mpi_env, shape_u_u_isdf(1) == n_isdf, &
+              'read_fastBSE_isdf_vexc_hdf5: For dataset ' // u_u_isdf_dataset // ' dimension 1 is not &
+              the same as the size of dataset ' // isdf_indices_dataset //' (n_isdf), as expected.')
+
+      n_uk = shape_u_u_isdf(2)
+      allocate(u_u_isdf(n_isdf, n_uk))
+      call h5file%read(group, u_u_isdf_dataset, u_u_isdf)
+    end if
+
+    if (present(r_isdf_indices)) then
+      allocate(r_isdf_indices(n_isdf))
+      call h5file%read(group, isdf_indices_dataset, r_isdf_indices)
+    end if
+
+    if (present(r_vectors)) then
+      allocate(r_vectors(3, n_r))
+      call h5file%read(group, rspace_coordinates_dataset, r_vectors)
+    end if 
+  end subroutine 
+
+  !> Calculate ISDF with interpolation points obtained by [[cvt]].
   subroutine fastBSE_isdf_cvt(mpi_env, input, h5file, h5group, info_unit)
     type(mpiinfo), intent(inout) :: mpi_env
     type(input_type), intent(in) :: input
@@ -51,7 +135,7 @@ module fastBSE_isdf
 
     ! HDF5
     type(xhdf5_type) :: h5
-    character(:), allocatable :: group
+    character(:), allocatable :: group_isdf, group
 
     character(:), allocatable :: seed, bse_type
     logical :: calculate_vexc, calculate_wscr, has_converged
@@ -65,8 +149,8 @@ module fastBSE_isdf
     complex(dp), allocatable :: u_o(:, :), u_u(:, :), u_o_isdf(:, :), u_u_isdf(:, :)
     
     ! CVT + ISDF
-    integer, allocatable :: indices(:)
-    real(dp), allocatable :: rho(:), points(:, :)
+    integer, allocatable :: r_isdf_indices(:)
+    real(dp), allocatable :: rho(:), real_space_coordinates(:, :)
     complex(dp), allocatable :: M(:, :), tau(:), zeta(:, :)
 
     type(regular_grid_type) :: r_grid 
@@ -76,7 +160,7 @@ module fastBSE_isdf
     lattice       = input%structure%crystal%basevect
     epslat        = input%structure%epslat
     r_offset      = spread(0._dp, 1, 3)
-    r_sampling    = input%xs%fastBSE%rsampling
+    r_sampling    = input%xs%fastBSE%ngridr
     r_grid        = setup_unitcell_grid(r_sampling, r_offset, lattice, epslat)
     n_r           = r_grid%number_of_points()
     n_k           = product(input%xs%ngridk)
@@ -85,24 +169,25 @@ module fastBSE_isdf
     nisdf = input%xs%fastBSE%nisdf
     bse_type      = input%xs%BSE%bsetype
 
-    call abort_if_not_fftw3(mpi_env, "Error(fastBSE_write_u): exciting needs to be linked to FFTW3 for running fastBSE.")
-    call abort_if_not_hdf5(mpi_env, "Error(fastBSE_write_u): exciting needs to be compiled with HDF5 to run fastBSE module.")
+    call abort_if_not_fftw3(mpi_env, "Error(fastBSE_isdf_cvt): exciting needs to be linked to FFTW3 for running fastBSE.")
+    call abort_if_not_hdf5(mpi_env, "Error(fastBSE_isdf_cvt): exciting needs to be compiled with HDF5 to run fastBSE module.")
     
     call bse_type_to_bool(bse_type, calculate_vexc, calculate_wscr)
 
+    ! Only calculate ISDF if the interaction kernels are needed.
     if (.not. (calculate_vexc .or. calculate_wscr)) return
     
     call set_seed(seed)
 
-    call load_u(mpi_env, input, h5file, h5group, u_u, u_o)
+    call h5%initialize(h5file, mpi_env)
+    call h5%initialize_group(h5group, isdf_group)
+    group_isdf = join_paths(h5group, isdf_group)
+    call read_wavefunction_u_hdf5(mpi_env, input, h5, h5group, u_u, u_o)
 
     n_uk = size(u_u, 2)
     n_ok = size(u_o, 2)
-    
     rho = sqrt(sum(abs(u_o) ** 2, dim=2) + sum(abs(u_u) ** 2, dim=2))
-    points = r_grid%coordinate_array()
-
-    call h5%initialize(h5file, mpi_env%comm)
+    real_space_coordinates = r_grid%coordinate_array()
 
     if(calculate_vexc) then
       
@@ -110,33 +195,32 @@ module fastBSE_isdf
       call timesec(time_start)
       n_isdf = min(nisdf(1), n_ok * n_uk / n_k)
       steps = cvtsteplim
-      indices = random_order(n_r, n_out=n_isdf)
-      call cvt(points, rho, tolerance, steps, indices, has_converged, deviation)
+      r_isdf_indices = random_order(n_r, n_out=n_isdf)
+      call cvt(real_space_coordinates, rho, tolerance, steps, r_isdf_indices, has_converged, deviation)
       call timesec(time_end)
       time_cvt = time_end - time_start
 
-      ! Calculate ISDF coefficients zeta
+      ! Calculate ISDF zeta zeta
       call timesec(time_start)
-      u_o_isdf = u_o(indices, :)
-      u_u_isdf = u_u(indices, :)
-      call isdf(mpi_env, u_o, u_u, u_o_isdf, u_u_isdf, indices, zeta)
+      u_o_isdf = u_o(r_isdf_indices, :)
+      u_u_isdf = u_u(r_isdf_indices, :)
+      call isdf(mpi_env, u_o, u_u, u_o_isdf, u_u_isdf, r_isdf_indices, zeta)
       call timesec(time_end)
       time_isdf = time_end - time_start
 
       ! Write results to file
-      call h5%initialize_group(h5group, h5group_isdf_vexc)
-      group = join_paths(h5group, h5group_isdf_vexc)
-      
-      call h5%write(group, h5ds_indices, indices, [1], [n_isdf])
-      call h5%write(group, h5ds_zeta, zeta, [1, 1], [r_grid%number_of_points(), n_isdf])
-      call h5%write(group, h5ds_points, r_grid%coordinate_array(), [1, 1], [3, r_grid%number_of_points()])
-      call h5%write(group, h5ds_wfplot_isdf_o, u_o_isdf, [1, 1], shape(u_o_isdf))
-      call h5%write(group, h5ds_wfplot_isdf_u, u_u_isdf, [1, 1], shape(u_u_isdf))
+      call h5%initialize_group(group_isdf, vexc_ou_group)
+      group = join_paths(group_isdf, vexc_ou_group)
+      call h5%write(group, isdf_indices_dataset, r_isdf_indices)
+      call h5%write(group, zeta_dataset, zeta)
+      call h5%write(group, rspace_coordinates_dataset, r_grid%coordinate_array())
+      call h5%write(group, u_o_isdf_dataset, u_o_isdf)
+      call h5%write(group, u_u_isdf_dataset, u_u_isdf)
 
       call write_info(info_unit, "V_exc", time_cvt, time_isdf, has_converged, steps, deviation, n_isdf)
 
       ! Clean up
-      deallocate(indices, zeta, u_o_isdf, u_u_isdf)
+      deallocate(r_isdf_indices, zeta, u_o_isdf, u_u_isdf)
     
     end if
 
@@ -148,31 +232,31 @@ module fastBSE_isdf
       call timesec(time_start)
       n_isdf = min(nisdf(2), n_ok**2)
       steps = cvtsteplim
-      indices = random_order(n_r, n_isdf)
-      call cvt(points, rho, tolerance, steps, indices, has_converged, deviation)
+      r_isdf_indices = random_order(n_r, n_isdf)
+      call cvt(real_space_coordinates, rho, tolerance, steps, r_isdf_indices, has_converged, deviation)
       call timesec(time_end)
       time_cvt = time_end - time_start
 
-      ! Calculate ISDF coefficients zeta
+      ! Calculate ISDF zeta zeta
       call timesec(time_start)
-      u_o_isdf = u_o(indices, :)
-      call isdf(mpi_env, u_o, u_o_isdf, indices, zeta)
+      u_o_isdf = u_o(r_isdf_indices, :)
+      call isdf(mpi_env, u_o, u_o_isdf, r_isdf_indices, zeta)
       call timesec(time_end)
       time_isdf = time_end - time_start
       
       ! Write results to file
-      call h5%initialize_group(h5group, h5group_isdf_wscr_o)
-      group = join_paths(h5group, h5group_isdf_wscr_o)
-      call h5%write(group, h5ds_indices, indices, [1], [n_isdf])
-      call h5%write(group, h5ds_zeta, zeta, [1, 1], [r_grid%number_of_points(), n_isdf])
-      call h5%write(group, h5ds_points, r_grid%coordinate_array(), [1, 1], [3, r_grid%number_of_points()])
-      call h5%write(group, h5ds_wfplot_isdf_o, u_o_isdf, [1, 1], shape(u_o_isdf))
+      call h5%initialize_group(group_isdf, wscr_oo_group)
+      group = join_paths(group_isdf, wscr_oo_group)
+      call h5%write(group, isdf_indices_dataset, r_isdf_indices)
+      call h5%write(group, zeta_dataset, zeta)
+      call h5%write(group, rspace_coordinates_dataset, r_grid%coordinate_array())
+      call h5%write(group, u_o_isdf_dataset, u_o_isdf)
       
       ! Write Info to file
       call write_info(info_unit, "W_scr occupied", time_cvt, time_isdf, has_converged, steps, deviation, n_isdf)
 
       ! Clean up
-      deallocate(indices, zeta, u_o_isdf)
+      deallocate(r_isdf_indices, zeta, u_o_isdf)
       
       ! unoccupied states
 
@@ -180,30 +264,31 @@ module fastBSE_isdf
       call timesec(time_start)
       n_isdf = min(nisdf(3), n_uk**2)
       steps = cvtsteplim
-      indices = random_order(n_r, n_isdf)
-      call cvt(points, rho, tolerance, steps, indices, has_converged, deviation)
+      r_isdf_indices = random_order(n_r, n_isdf)
+      call cvt(real_space_coordinates, rho, tolerance, steps, r_isdf_indices, has_converged, deviation)
       call timesec(time_end)
       time_cvt = time_end - time_start
 
-      ! Calculate ISDF coefficients zeta
+      ! Calculate ISDF zeta zeta
       call timesec(time_start)
-      u_u_isdf = u_u(indices, :)
-      call isdf(mpi_env, u_u, u_u_isdf, indices, zeta)
+      u_u_isdf = u_u(r_isdf_indices, :)
+      call isdf(mpi_env, u_u, u_u_isdf, r_isdf_indices, zeta)
       call timesec(time_end)
       time_isdf = time_end - time_start
 
       ! Write results to file
-      call h5%initialize_group(h5group, h5group_isdf_wscr_u)
-      group = join_paths(h5group, h5group_isdf_wscr_u)
-      call h5%write(group, h5ds_indices, indices, [1], [n_isdf])
-      call h5%write(group, h5ds_zeta, zeta, [1, 1], [r_grid%number_of_points(), n_isdf])
-      call h5%write(group, h5ds_points, r_grid%coordinate_array(), [1, 1], [3, r_grid%number_of_points()])
-      call h5%write(group, h5ds_wfplot_isdf_u, u_u_isdf, [1, 1], shape(u_u_isdf))
+      call h5%initialize_group(group_isdf, wscr_uu_group)
+      group = join_paths(group_isdf, wscr_uu_group)
+      call h5%write(group, isdf_indices_dataset, r_isdf_indices)
+      call h5%write(group, zeta_dataset, zeta)
+      call h5%write(group, rspace_coordinates_dataset, r_grid%coordinate_array())
+      call h5%write(group, u_u_isdf_dataset, u_u_isdf)
 
+      ! Write Info to file
       call write_info(info_unit, "W_scr unoccupied", time_cvt, time_isdf, has_converged, steps, deviation, n_isdf)
 
       ! Clean up
-      deallocate(indices, zeta, u_u_isdf)
+      deallocate(r_isdf_indices, zeta, u_u_isdf)
     end if
 
     call h5%finalize()
@@ -242,345 +327,5 @@ module fastBSE_isdf
     end subroutine write_info
 
   end subroutine fastBSE_isdf_cvt
-
-
-  
-
-  !subroutine fastBSE_isdf_qrcp(mpi_env, input, h5file, h5group, info_unit)
-  !  type(mpiinfo), intent(inout) :: mpi_env
-  !  type(input_type), intent(in) :: input
-  !  character(*), intent(in) :: h5file, h5group
-  !  integer, intent(in) :: info_unit
-!
-  !  ! HDF5
-  !  type(xhdf5_type) :: h5
-  !  character(:), allocatable :: group
-!
-  !  character(:), allocatable :: seed, bse_type
-  !  logical :: calculate_vexc, calculate_wscr
-!
-  !  integer :: n_r, n_o, n_u, n_k, n_isdf, n_sub, n_sub_input, r_sampling(3), n_combinations, nisdf(3)
-  !  integer :: i 
-  !  real(dp) :: lattice(3, 3), r_offset(3), epslat, qrcp_eps, tol_qrcp, c_vexc_qrcp, c_wscr_qrcp, time_start, time_end, time_qrcp, time_isdf, r_diag_limit
-!
-  !  complex(dp), allocatable, target :: u_o(:, :, :), u_u(:, :, :), u_o_isdf(:, :, :), u_u_isdf(:, :, :)
-  !  complex(dp), pointer :: u_o_ptr(:, :), u_u_ptr(:, :), u_o_isdf_ptr(:, :), u_u_isdf_ptr(:, :)
-  !  
-  !  ! QRCP + ISDF
-  !  integer, allocatable :: indices(:)
-  !  real(dp), allocatable ::  R_diag(:)
-  !  complex(dp), allocatable :: M(:, :), tau(:), zeta(:, :)
-!
-  !  type(regular_grid_type) :: r_grid 
-!
-!
-  !  ! Intialize input data
-  !  seed          = input%xs%fastBSE%seed
-  !  lattice       = input%structure%crystal%basevect
-  !  epslat        = input%structure%epslat
-  !  r_offset      = spread(0._dp, 1, 3)
-  !  r_sampling    = input%xs%fastBSE%rsampling
-  !  r_grid        = setup_unitcell_grid(r_sampling, r_offset, lattice, epslat)
-  !  n_r           = r_grid%number_of_points()  
-  !  n_o           = input%xs%BSE%nstlbse(2) - input%xs%BSE%nstlbse(1) + 1
-  !  n_u           = input%xs%BSE%nstlbse(4) - input%xs%BSE%nstlbse(3) + 1
-  !  n_k           = product(input%xs%ngridk)
-  !  tol_qrcp    = input%xs%fastBSE%tol_qrcp
-  !  c_vexc_qrcp   = input%xs%fastBSE%c_vexc_qrcp
-  !  c_wscr_qrcp   = input%xs%fastBSE%c_wscr_qrcp
-  !  n_sub_input   = input%xs%fastBSE%n_subsampling_rows
-  !  nisdf = input%xs%fastBSE%nisdf
-  !  bse_type      = input%xs%BSE%bsetype
-  !  call bse_type_to_bool(bse_type, calculate_vexc, calculate_wscr)
-!
-  !  call set_seed(seed)
-!
-  !  ! Read wavefunctions
-  !  allocate(u_o(n_r, n_o, n_k))
-  !  allocate(u_u(n_r, n_u, n_k))
-  !  call h5%initialize(h5file, mpi_env%comm)
-  !  call h5%read(h5group, h5ds_wfplot, u_o, [1, 1, 1])
-  !  call h5%read(h5group, h5ds_wfplot, u_u, [1, n_o + 1, 1])
-!
-  !
-  !  if(calculate_vexc) then
-  !    
-  !    call timesec(time_start)
-!
-  !    ! Setup subsampling matrix M
-  !    n_combinations = n_k * n_o * n_u
-  !    n_sub = min(floor(c_vexc_qrcp * sqrt(1._dp * n_o * n_u * n_k)), n_combinations)
-  !    n_isdf = min(nisdf(1), n_o * n_u)
-  !    r_diag_limit = 0._dp
-!
-  !    call setup_subsampling_matrix_samek(mpi_env, n_sub, u_o, u_u, M)
-!
-  !    ! ISDF grid via QRCP on M
-  !    allocate(indices(n_r), source=0)
-  !    allocate(tau(n_sub))
-  !    call xgeqp3(M, indices, tau)
-!
-  !    if (tol_qrcp > 0._dp) then
-  !      R_diag = abs([(M(i, i), i=1, n_sub)])
-  !      r_diag_limit = R_diag(1) * tol_qrcp
-  !      n_isdf = count(R_diag >= r_diag_limit)
-  !    end if
-!
-  !    indices = indices(1:n_isdf)
-!
-  !    call timesec(time_end)
-  !    time_qrcp = time_end - time_start
-!
-  !    call timesec(time_start)
- !
-  !    ! Calculate ISDF coefficients zeta
-  !    u_o_isdf = u_o(indices, :, :)
-  !    u_u_isdf = u_u(indices, :, :)
-  !    u_o_ptr(1 : n_r, 1 : n_o * n_k) => u_o
-  !    u_u_ptr(1 : n_r, 1 : n_u * n_k) => u_u
-  !    u_o_isdf_ptr(1 : n_isdf, 1 : n_o * n_k) => u_o_isdf
-  !    u_u_isdf_ptr(1 : n_isdf, 1 : n_u * n_k) => u_u_isdf
-  !    call isdf(mpi_env, u_o_ptr, u_u_ptr, u_o_isdf_ptr, u_u_isdf_ptr, indices, zeta)
-!
-  !    call timesec(time_end)
-  !    time_isdf = time_end - time_start
-!
-  !    ! Write results to file
-  !    call h5%initialize_group(h5group, h5group_isdf_vexc)
-  !    group = join_paths(h5group, h5group_isdf_vexc)
-  !    call h5%write(group, h5ds_indices, indices, [1], [n_isdf])
-  !    call h5%write(group, h5ds_zeta, zeta, [1, 1], [r_grid%number_of_points(), n_isdf])
-  !    call h5%write(group, h5ds_points, r_grid%coordinate_array(), [1, 1], [3, r_grid%number_of_points()])
-  !    call h5%write(group, h5ds_wfplot_isdf_o, u_o_isdf, [1, 1, 1], shape(u_o_isdf))
-  !    call h5%write(group, h5ds_wfplot_isdf_u, u_u_isdf, [1, 1, 1], shape(u_u_isdf))
-!
-  !    call write_info(info_unit, "V_exc", time_qrcp, time_isdf, n_combinations, n_sub, r_diag_limit, n_isdf)
-!
-  !    ! Clean up
-  !    deallocate(indices, M, tau, zeta, u_o_isdf, u_u_isdf)
-  !    if(allocated(R_diag)) deallocate(R_diag)
-  !    u_o_ptr => null()
-  !    u_u_ptr => null()
-  !    u_o_isdf_ptr => null()
-  !    u_u_isdf_ptr => null()
-  !  
-  !  end if
-!
-  !  if (calculate_wscr) then 
-!
-  !    ! occupied states
-!
-  !    call timesec(time_start)
-!
-  !    ! Setup subsampling matrix M
-  !    n_combinations = n_k * n_o
-  !    n_sub = min(floor(c_wscr_qrcp * sqrt(1._dp * n_combinations)), n_combinations)
-  !    n_isdf = min(nisdf(2), n_combinations**2)
-  !    r_diag_limit = 0._dp
-  !    
-  !    call setup_subsampling_matrix_kkp(mpi_env, n_sub, u_o, M)
-  !  
-  !    ! ISDF grid via QRCP on M
-  !    allocate(indices(n_r), source=0)
-  !    allocate(tau(n_sub**2))
-  !    call xgeqp3(M, indices, tau)
-!
-  !    if (tol_qrcp > 0._dp) then
-  !      R_diag = abs([(M(i, i), i=1, n_sub**2)])
-  !      r_diag_limit = R_diag(1) * tol_qrcp
-  !      n_isdf = count(R_diag >= r_diag_limit)
-  !    end if
-!
-  !    indices = indices(1:n_isdf)
-!
-  !    call timesec(time_end)
-  !    time_qrcp = time_end - time_start
-!
-  !    call timesec(time_start)
- !
-  !    ! Calculate ISDF coefficients zeta
-  !    u_o_isdf = u_o(indices, :, :)
-  !    u_o_ptr(1 : n_r, 1 : n_o * n_k) => u_o
-  !    u_o_isdf_ptr(1 : n_isdf, 1 : n_o * n_k) => u_o_isdf
-  !    call isdf(mpi_env, u_o_ptr, u_o_isdf_ptr, indices, zeta)
-!
-  !    call timesec(time_end)
-  !    time_isdf = time_end - time_start
-  !    
-  !    ! Write results to file
-  !    call h5%initialize_group(h5group, h5group_isdf_wscr_o)
-  !    group = join_paths(h5group, h5group_isdf_wscr_o)
-  !    call h5%write(group, h5ds_indices, indices, [1], [n_isdf])
-  !    call h5%write(group, h5ds_zeta, zeta, [1, 1], [r_grid%number_of_points(), n_isdf])
-  !    call h5%write(group, h5ds_points, r_grid%coordinate_array(), [1, 1], [3, r_grid%number_of_points()])
-  !    call h5%write(group, h5ds_wfplot_isdf_o, u_o_isdf, [1, 1, 1], shape(u_o_isdf))
-!
-  !    call write_info(info_unit, "W_scr occupied", time_qrcp, time_isdf, n_combinations**2, n_sub**2, r_diag_limit, n_isdf)
-!
-  !    ! Clean up
-  !    deallocate(indices, M, tau, zeta, u_o_isdf)
-  !    if(allocated(R_diag)) deallocate(R_diag)
-  !    u_o_ptr => null()
-  !    u_o_isdf_ptr => null()
-  !    
-!
-  !    ! unoccupied states
-!
-  !    call timesec(time_start)
-!
-  !    ! Setup subsampling matrix M
-  !    n_combinations = n_k * n_u
-  !    n_sub = min(floor(c_wscr_qrcp * sqrt(1._dp * n_combinations)), n_combinations)
-  !    n_isdf = min(nisdf(3), n_combinations**2)
-  !    r_diag_limit = 0._dp
-!
-  !    call setup_subsampling_matrix_kkp(mpi_env, n_sub, u_u, M)
-!
-  !    ! ISDF grid via QRCP on M
-  !    
-  !    allocate(indices(n_r), source=0)
-  !    allocate(tau(n_sub**2))
-  !    call xgeqp3(M, indices, tau)
-!
-  !    if (tol_qrcp > 0._dp) then
-  !      R_diag = abs([(M(i, i), i=1, n_sub**2)])
-  !      r_diag_limit = R_diag(1) * tol_qrcp
-  !      n_isdf = count(R_diag >= r_diag_limit)
-  !    end if
-!
-  !    indices = indices(1:n_isdf)
-!
-  !    !call qrcp(mpi_env, n_isdf, n_sub, u_u, indices)
-!
-  !    call timesec(time_end)
-  !    time_qrcp = time_end - time_start
-!
-  !    call timesec(time_start)
- !
-  !    ! Calculate ISDF coefficients zeta
-  !    u_u_isdf = u_u(indices, :, :)
-  !    u_u_ptr(1 : n_r, 1 : n_u * n_k) => u_u
-  !    u_u_isdf_ptr(1 : n_isdf, 1 : n_u * n_k) => u_u_isdf
-  !    call isdf(mpi_env, u_u_ptr, u_u_isdf_ptr, indices, zeta)
-!
-  !    call timesec(time_end)
-  !    time_isdf = time_end - time_start
-!
-  !    ! Write results to file
-  !    call h5%initialize_group(h5group, h5group_isdf_wscr_u)
-  !    group = join_paths(h5group, h5group_isdf_wscr_u)
-  !    call h5%write(group, h5ds_indices, indices, [1], [n_isdf])
-  !    call h5%write(group, h5ds_zeta, zeta, [1, 1], [r_grid%number_of_points(), n_isdf])
-  !    call h5%write(group, h5ds_points, r_grid%coordinate_array(), [1, 1], [3, r_grid%number_of_points()])
-  !    call h5%write(group, h5ds_wfplot_isdf_u, u_u_isdf, [1, 1, 1], shape(u_u_isdf))
-!
-  !    call write_info(info_unit, "W_scr unoccupied", time_qrcp, time_isdf, n_combinations**2, n_sub**2, r_diag_limit, n_isdf)
-!
-  !    ! Clean up
-  !    deallocate(indices, M, tau, zeta, u_u_isdf)
-  !    if(allocated(R_diag)) deallocate(R_diag)
-  !    u_u_ptr => null()
-  !    u_u_isdf_ptr => null()
-  !  end if
-!
-!  call h5%finalize
-!
-!  deallocate(u_o, u_u) 
-!  
-!  contains
-!
-!  subroutine write_info(info_unit, taskname, time_qrcp, time_isdf, n_combinations, n_sub, tol_times_R_ii, n_isdf)
-!    integer, intent(in) :: info_unit
-!    character(*), intent(in) :: taskname
-!    real(dp) :: time_qrcp, time_isdf
-!    integer :: n_combinations 
-!    integer :: n_sub
-!    real(dp) :: tol_times_R_ii
-!    integer :: n_isdf
-!    
-!    write(info_unit, *)
-!    write(info_unit, "(A, A)")     "ISDF + QRCP done for ", taskname
-!    write(info_unit, *)
-!
-!    write(info_unit, "(A, I8)")    "number of combinations:     ", n_combinations
-!    write(info_unit, "(A, I8)")    "number of subsampling rows: ", n_sub
-!    write(info_unit, *)
-!    
-!    write(info_unit, "(A, ES21.14)") "lower limit for R_ii: ",  tol_times_R_ii
-!    write(info_unit, "(A, I8)")    "number of interpolation points: ",  n_isdf
-!    write(info_unit, *)
-!
-!    write(info_unit, "(A, F15.6)") "Time(QRCP) (s): ", time_qrcp
-!    write(info_unit, "(A, F15.6)") "Time(ISDF) (s): ", time_isdf
-!    write(info_unit, *)
-!    
-!  end subroutine write_info
-!
-!end subroutine fastBSE_isdf_qrcp
-
-  !> Load the periodic part of the wavefunction \(u\) from the hdf5 file.
-  subroutine load_u(mpi_env, input, h5file, h5group, u_u, u_o)
-    !> MPI environment
-    type(mpiinfo), intent(inout) :: mpi_env
-    !> Input file container
-    type(input_type), intent(in) :: input
-    !> Name of the HDF5 file to read \(u\) from
-    character(*), intent(in) :: h5file
-    !> Name of the group in the HDF5 file to read \(u\) from
-    character(*), intent(in) :: h5group
-
-    complex(dp), allocatable, intent(out) :: u_u(:, :), u_o(:, :)
-    
-    integer, allocatable :: index_map_u(:, :), index_map_o(:, :)
-
-    integer :: r_sampling(3), n_r, n_k, n_bands, ik, first, last, first_band, last_band
-    integer, allocatable :: k_list(:), uo_limits(:, :), n_u(:), n_o(:), shape_u(:)
-    complex(dp), allocatable :: u_chunk(:, :, :)
-
-    type(xhdf5_type) :: h5
-    character(:), allocatable :: group
-
-    call h5%initialize(h5file, mpi_env%comm)
-    group = join_paths(h5group, h5group_wfplot)
-    
-    call h5%dataset_shape(group, h5ds_u, shape_u, .true.)
-    n_r     = shape_u(1)
-    n_k     = shape_u(3)
-    
-    group = join_paths(h5group, h5group_transitions)
-    allocate(uo_limits(4, n_k))
-    call h5%read(group, h5ds_uo_limits, uo_limits, [1, 1])
-    
-    n_u = uo_limits(2, :) - uo_limits(1, :) + 1
-    n_o = uo_limits(4, :) - uo_limits(3, :) + 1
-    
-    first_band = uo_limits(3, 1) ! I assume that the lowest occupied and hightes unoccupied band index is constant with ik
-    last_band = uo_limits(2, 1)
-    n_bands = last_band - first_band + 1
-
-    group = join_paths(h5group, h5group_wfplot)
-
-    if (allocated(u_u)) deallocate(u_u); allocate(u_u(n_r, sum(n_u)))
-    if (allocated(u_o)) deallocate(u_o); allocate(u_o(n_r, sum(n_o)))
-
-    allocate(u_chunk(n_r, n_bands, 1))
-    do ik=1, n_k
-      call h5%read(group, h5ds_u, u_chunk, [1, 1, ik])
-      
-      first = first_element(n_u, ik)
-      last = last_element(n_u, ik)
-      u_u(:, first : last) = u_chunk(:, uo_limits(1, ik) : uo_limits(2, ik), 1)
-
-      first = first_element(n_o, ik)
-      last = last_element(n_o, ik)
-      u_o(:, first : last) = u_chunk(:, uo_limits(3, ik): uo_limits(4, ik), 1)
-    end do
-
-    deallocate(u_chunk, uo_limits, n_u, n_o, shape_u)
-    
-  end subroutine load_u
-  
-
-  
 
 end module fastBSE_isdf
