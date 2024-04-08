@@ -47,7 +47,7 @@ contains
       input_parameters%selfenergy_singularity_treatment, kqset%nkpt, singc2 )
 
     if( input_parameters%task_Coulomb ) &
-      call execute_task_Coulomb( n_qpoints, trim(input_parameters%output_format)=='binary' )
+      call execute_task_Coulomb( n_qpoints, input_parameters%output_format )
 
     if( input_parameters%task_epsilon ) &
       call execute_task_epsilon( n_qpoints, input_parameters%output_format )

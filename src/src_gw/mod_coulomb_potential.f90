@@ -8,7 +8,7 @@ module mod_coulomb_potential
     use gw_io, only: write_to_file, read_from_file, build_file_name
     use mod_product_basis, only: mbsiz, matsiz
     use modmain, only: avec
-    use precision, only: dp, i32
+    use precision, only: dp, i32, max_length => str_32
 
     implicit none
 
@@ -510,16 +510,15 @@ contains
       call setbarcev( eigenvalue_tol )
     end subroutine
 
-    subroutine write_barc_to_file( iq, binary_format )
+    subroutine write_barc_to_file( iq, file_format )
       integer(i32), intent(in) :: iq
-      logical, intent(in) :: binary_format 
+      !> Format of the output file
+      character(len=*), intent(in) :: file_format
 
-      integer(i32), parameter :: max_length = 30
       character(len=max_length) :: file_name
 
       call build_file_name( basename_barc, iq, file_name )
-
-      call write_to_file( file_name, barc, [1, 1], binary_format )
+      call write_to_file( file_name, barc, [1, 1], file_format )
 
     end subroutine
 
@@ -528,7 +527,6 @@ contains
       integer(i32), intent(in) :: iq
       character(len=*), intent(in) :: file_format
 
-      integer(i32), parameter :: max_length = 30
       character(len=max_length) :: file_name
 
       call build_file_name( basename_barc, iq, file_name )
