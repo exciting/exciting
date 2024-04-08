@@ -162,16 +162,16 @@ contains
     end subroutine
 
     !> Write `sgi` to an output file
-    subroutine write_sgi_to_file( int, binary_output )
+    subroutine write_sgi_to_file( int, file_format )
       !> integer that will be added to `basename_sgi` to form the output name
       integer, intent(in) :: int
-      !> If true, write binary output
-      logical, intent(in) :: binary_output
+      !> Format of the output file
+      character(len=*), intent(in) :: file_format
     
       character(len=30)   :: file_name
       
       call build_file_name( basename_sgi, int, file_name )
-      call write_to_file( file_name, sgi, [1, 1], binary_output )
+      call write_to_file( file_name, sgi, [1, 1], file_format )
     
     end subroutine
 
