@@ -1,4 +1,5 @@
 module invert_dielectric_function
+   use asserts, only: assert
    use precision, only: dp, i32
    use constants, only: zone
    implicit none
@@ -18,21 +19,21 @@ contains
       !>Is true if gamma point is present
       logical, intent(in) :: gamma
       !>Input scrcoul element 
-      type(scrcoul_type), intent(in) :: scrcoul
+      type(scrcoul_type), optional, intent(in) :: scrcoul
       !>Select whether frequencies are real or imaginary
       character(6), intent(in) :: freqtype
       !>Symmetrization tensor
-      real(dp), intent(in) :: symt2(3, 3, 3, 3)
+      real(dp), optional, intent(in) :: symt2(3, 3, 3, 3)
       !>In: Body of the dielectric function. Out: Body of the inverse dielectric function
       complex(dp), intent(inout) :: epsilon(:, :, :)
       !>In: 1st wing of the dielectric function. Out: 1st wing of the inverse dielectric function
-      complex(dp), intent(inout) :: epsw1(:, :, :)
+      complex(dp), optional, intent(inout) :: epsw1(:, :, :)
       !>In: 2nd wing of the dielectric function. Out: 2nd wing of the inverse dielectric function
-      complex(dp), intent(inout) :: epsw2(:, :, :)
+      complex(dp), optional, intent(inout) :: epsw2(:, :, :)
       !>In: Head of the dielectric function. Out: Head of the inverse dielectric function
-      complex(dp), intent(inout) :: epsh(:, :, :)
+      complex(dp), optional, intent(inout) :: epsh(:, :, :)
       !>Symmetrized dielectric tensor
-      complex(dp), intent(out) :: eps00(:, :, :)
+      complex(dp), optional, intent(out) :: eps00(:, :, :)
       !>Timing
       real(dp), intent(inout) :: time_dfinv
 
@@ -50,6 +51,11 @@ contains
       external zgetrf, zgetri
 
       call timesec(tstart)
+      if( gamma ) then
+        call assert( present(scrcoul) .and. present(symt2) .and. present(epsw1) .and. &
+          present(epsw2) .and. present(epsh) .and. present(eps00), &
+          'Optional arguments must be present when gamma is true' )
+      end if
       mbsiz = size(epsilon, 1)
       ! local arrays for body
       allocate(eps(mbsiz,mbsiz))
