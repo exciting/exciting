@@ -153,15 +153,6 @@ subroutine task_eps_r
         epsilon(im,im,iomstart:iomend) = epsilon(im,im,iomstart:iomend)-zone
       end do
 
-if (.false.) then
-      ! inverse dielectic matrix
-      call calcinveps(iomstart, iomend, gamma, input%gw%scrcoul, freq%fconv, symt2,&
-                      &epsilon, epsw1, epsw2, epsh, eps00, time_dfinv)
-      do im = 1, mbsiz
-        epsilon(im,im,iom) = epsilon(im,im,iom)+zone
-      end do
-end if
-
       allocate(tmat(mbsiz,matsiz))
       call zgemm('n','c', &
       &          mbsiz,matsiz,mbsiz, &

@@ -159,8 +159,12 @@ subroutine task_gw()
             !==========================================
             ! Calculate the screened Coulomb potential
             !==========================================
-            call calcinveps(iomstart, iomend, gamma, input%gw%scrcoul, freq%fconv, symt2,&
-                            &epsilon, epsw1, epsw2, epsh, eps00, time_dfinv)
+            if( gamma ) then
+              call calcinveps(iomstart, iomend, gamma, input%gw%scrcoul, freq%fconv, symt2,&
+                              &epsilon, epsw1, epsw2, epsh, eps00, time_dfinv)
+            else
+              call calcinveps(iomstart, iomend, gamma, freqtype=freq%fconv, epsilon=epsilon, time_dfinv=time_dfinv)
+            end if
         end select
         !========================================
         ! Calculate the q-dependent self-energy

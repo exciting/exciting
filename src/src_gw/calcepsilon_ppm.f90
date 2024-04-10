@@ -28,8 +28,12 @@ subroutine calcepsilon_ppm(iq,iomstart,iomend)
     ! calculate the dielectric tensor at \omega=0 and \omega=\omega_p
     call init_dielectric_function(mbsiz,1,2,Gamma)
     call calcepsilon(iq,1,2)
-    call calcinveps(1, 2, gamma, input%gw%scrcoul, freq%fconv, symt2,&
-                    &epsilon, epsw1, epsw2, epsh, eps00, time_dfinv)
+    if( gamma ) then
+      call calcinveps(1, 2, gamma, input%gw%scrcoul, freq%fconv, symt2,&
+                      &epsilon, epsw1, epsw2, epsh, eps00, time_dfinv)
+    else
+      call calcinveps(1, 2, gamma, freqtype=freq%fconv, epsilon=epsilon, time_dfinv=time_dfinv)
+    end if
 
     ! save \epsilon in local arrays for PPM fitting
     allocate(eb(mbsiz,mbsiz,1:2))

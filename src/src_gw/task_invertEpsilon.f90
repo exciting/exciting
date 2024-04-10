@@ -85,9 +85,13 @@ subroutine execute_task_invertEpsilon( n_qpoints_max, file_format )
     end if
     Gamma = gammapoint(kqset%vqc(:,iq))
     call read_epsilon_from_file( iq, Gamma, file_format )
-    if( Gamma .and. (.not. allocated(eps00)) ) allocate(eps00(3, 3, omega_i:omega_f), source=zzero )
-    call calcinveps( omega_i, omega_f, Gamma, input%gw%scrcoul, freq%fconv, symt2,&
-      epsilon, epsw1, epsw2, epsh, eps00, time_dfinv )
+    if( Gamma ) then
+      if( .not. allocated(eps00) ) allocate(eps00(3, 3, omega_i:omega_f), source=zzero )
+      call calcinveps( omega_i, omega_f, Gamma, input%gw%scrcoul, freq%fconv, symt2,&
+                      &epsilon, epsw1, epsw2, epsh, eps00, time_dfinv)
+    else
+      call calcinveps( omega_i, omega_f, Gamma, freqtype=freq%fconv, epsilon=epsilon, time_dfinv=time_dfinv)
+    end if
     call write_inverse_epsilon_to_file( iq, Gamma, file_format )
   end do
 
