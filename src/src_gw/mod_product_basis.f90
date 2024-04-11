@@ -171,7 +171,7 @@ contains
       character(len=30)   :: file_name
       
       call build_file_name( basename_sgi, int, file_name )
-      call write_to_file( file_name, sgi, [1, 1], file_format )
+      call write_to_file( file_name, sgi, file_format )
     
     end subroutine
 

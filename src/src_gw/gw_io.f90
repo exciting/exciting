@@ -24,8 +24,10 @@ module gw_io
     build_file_name, write_to_file, read_from_file
   
   interface write_to_file
+    module procedure write_matrix_to_file
     module procedure write_matrix_to_file_given_lbounds
     module procedure write_tensor_of_rank_3_to_file
+    module procedure write_tensor_of_rank_3_to_file_given_lbounds
   end interface
   
   interface build_file_name
@@ -96,6 +98,17 @@ end subroutine
 
 
 !> Write a matrix (array of rank 2) to a file
+subroutine write_matrix_to_file( file_name, matrix, file_format )
+  character(len=*), intent(in) :: file_name
+  complex(dp), intent(in) :: matrix(:, :)
+  character(len=*), intent(in) :: file_format
+
+  call write_matrix_to_file_given_lbounds( file_name, matrix, [1, 1], file_format )
+
+end subroutine
+
+
+!> Write a matrix (array of rank 2) to a file, given its lower bounds
 subroutine write_matrix_to_file_given_lbounds( file_name, matrix, lbounds, file_format )
   !> File name where to write
   character(len=*), intent(in) :: file_name
@@ -124,6 +137,17 @@ subroutine write_tensor_of_rank_3_to_file( file_name, tensor, file_format )
   !> Tensor to be written into the file
   complex(dp), intent(in) :: tensor(:, :, :)
   !> Format of the output file
+  character(len=*), intent(in) :: file_format
+
+  call write_tensor_of_rank_3_to_file_given_lbounds( file_name, tensor, [1, 1, 1], file_format )
+
+end subroutine
+
+
+subroutine write_tensor_of_rank_3_to_file_given_lbounds( file_name, tensor, lbounds, file_format )
+  character(len=*), intent(in) :: file_name
+  integer(i32), intent(in) :: lbounds(3)
+  complex(dp), intent(in) :: tensor(lbounds(1):, lbounds(2):, lbounds(3):)
   character(len=*), intent(in) :: file_format
 
   integer(i32) :: unit, i, j
