@@ -518,7 +518,7 @@ contains
       character(len=max_length) :: file_name
 
       call build_file_name( basename_barc, iq, file_name )
-      call write_to_file( file_name, barc, [1, 1], file_format )
+      call write_to_file( file_name, barc, file_format )
 
     end subroutine
 
