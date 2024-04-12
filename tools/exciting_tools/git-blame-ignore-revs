@@ -2,3 +2,7 @@
 45aca187248f9ff8daaac543e6a50661b372c3dc
 # Commit message that applies yapf to the excitingtools source. 24th March 2022.
 ba71aff8a8a44fedc7f9bc42facabd4ca7c1f59c
+# Merge message that applies ruff to the excitingtools source. 2nd April 2024.
+eb95c6261eeb141ea66c569705198673c506ec86
+# Commit message that applies ruff to the excitingtools source. 2nd April 2024.
+187558d37308c2e7a444ac02fca2cebad404fb1a
