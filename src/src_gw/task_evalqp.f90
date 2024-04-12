@@ -88,6 +88,10 @@ subroutine task_evalqp()
       !------------------------------------------------------
       ! Write quasi-particle energies to file
       !------------------------------------------------------
+
+      ! Set KS so Efermi is 0
+      evalks(ibgw:nbgw,:) = evalks(ibgw:nbgw,:) - efermi
+
       call write_qp_energies('EVALQP.DAT')
       call bandstructure_analysis('G0W0',ibgw,nbgw,kset%nkpt,&
       &                            evalqp(ibgw:nbgw,:),eferqp)
@@ -95,7 +99,7 @@ subroutine task_evalqp()
       !----------------------------------------
       ! Save QP energies into binary file
       !----------------------------------------
-      call putevalqp('EVALQP.OUT', kset, ibgw, nbgw, evalks, eferks, evalqp, eferqp)
+      call putevalqp('EVALQP.OUT', kset, ibgw, nbgw, evalfv - efermi, 0.0, evalqp, eferqp)
 
       ! clear memory
       deallocate(evalks, evalfv)
