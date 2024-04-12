@@ -24,6 +24,8 @@ module gw_io
     build_file_name, write_to_file, read_from_file
   
   interface write_to_file
+    module procedure write_vector_to_file
+    module procedure write_vector_to_file_given_lbound
     module procedure write_matrix_to_file
     module procedure write_matrix_to_file_given_lbounds
     module procedure write_tensor_of_rank_3_to_file
@@ -36,6 +38,7 @@ module gw_io
   end interface
 
   interface read_from_file
+    module procedure read_vector_from_file
     module procedure read_matrix_from_file
     module procedure read_tensor_of_rank_3_from_file
   end interface
@@ -97,7 +100,38 @@ subroutine build_file_name_only_adding_extension( base_name, file_name )
 end subroutine
 
 
-!> Write a matrix (array of rank 2) to a file
+!> Same as [[write_vector_to_file_given_lbounds]] with l_bound = 1
+subroutine write_vector_to_file( file_name, vector, file_format )
+  character(len=*), intent(in) :: file_name
+  complex(dp), intent(in) :: vector(:)
+  character(len=*), intent(in) :: file_format
+
+  call write_vector_to_file_given_lbound( file_name, vector, 1, file_format )
+
+end subroutine
+
+
+!> Write a vector (array of rank 1) to a file
+subroutine write_vector_to_file_given_lbound( file_name, vector, l_bound, file_format )
+  !> File name where to write
+  character(len=*), intent(in) :: file_name
+  !> lbound of `vector`
+  integer(i32), intent(in) :: l_bound
+  !> Vector to be written into the file
+  complex(dp), intent(in) :: vector(l_bound:)
+  !> File format of output
+  character(len=*), intent(in) :: file_format
+
+  integer(i32) :: unit
+
+  call open_file_generic( file_name, 'write', file_format, unit )
+  call write_header_to_file( unit, vector, [l_bound] )
+  write( unit, * ) vector
+  close( unit )
+end subroutine
+
+
+!> Same as [[write_matrix_to_file_given_lbounds]] with lbounds = [1, 1]
 subroutine write_matrix_to_file( file_name, matrix, file_format )
   character(len=*), intent(in) :: file_name
   complex(dp), intent(in) :: matrix(:, :)
@@ -130,7 +164,7 @@ subroutine write_matrix_to_file_given_lbounds( file_name, matrix, lbounds, file_
 end subroutine
   
 
-!> Write a tensor of rank 3 to a file
+!> Same as [[write_tensor_of_rank_3_to_file_given_lbounds]] with lbounds = [1, 1, 1]
 subroutine write_tensor_of_rank_3_to_file( file_name, tensor, file_format )
   !> File name where to write
   character(len=*), intent(in) :: file_name
@@ -144,6 +178,7 @@ subroutine write_tensor_of_rank_3_to_file( file_name, tensor, file_format )
 end subroutine
 
 
+!> Write a tensor of rank 3 to a file
 subroutine write_tensor_of_rank_3_to_file_given_lbounds( file_name, tensor, lbounds, file_format )
   character(len=*), intent(in) :: file_name
   integer(i32), intent(in) :: lbounds(3)
@@ -212,7 +247,27 @@ subroutine terminate_if_file_does_not_exist( file_name )
 
 end subroutine
   
-  
+!> Read a vector (array of rank 1) from a file
+subroutine read_vector_from_file( file_name, vector, file_format )
+  !> Name of the file where the vector is stored
+  character(len=*), intent(in) :: file_name
+  !> Vector where to save the data read from file
+  complex(dp), intent(inout), allocatable :: vector(:)
+  !> Format of the file
+  character(len=*), intent(in) :: file_format
+
+  integer(i32) :: unit, read_rank, lbound_(1), ubound_(1)
+  integer(i32), parameter :: expected_rank = 1 !rank of a vector
+
+  call open_file_generic( file_name, 'read', file_format, unit )
+  call read_header_of_file( unit, read_rank, lbound_, ubound_ )
+  call terminate_if_false( read_rank==expected_rank, 'The file ' // trim(file_name) // ' contains no vector' )
+  allocate( vector(lbound_(1):ubound_(1)) )
+  read( unit, * ) vector
+  close( unit )
+
+end subroutine
+
 !> Read a matrix (array of rank 2) from a file
 subroutine read_matrix_from_file( file_name, matrix, file_format )
   !> Name of the file to read
@@ -261,7 +316,6 @@ subroutine read_tensor_of_rank_3_from_file( file_name, tensor, file_format )
   close( unit )
 
 end subroutine
-
 
 !> (private) generic subroutine to open a file
 subroutine open_file_generic( file_name, action, file_format, unit )
