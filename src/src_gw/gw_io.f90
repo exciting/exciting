@@ -4,6 +4,7 @@ module gw_io
   use modmpi, only: terminate_if_false
   use m_getunit, only: getunit
   use precision, only: dp, i32
+  use to_char_conversion, only: to_char
 
   implicit none
 
@@ -125,9 +126,15 @@ subroutine write_vector_to_file_given_lbound( file_name, vector, l_bound, file_f
   integer(i32) :: unit
 
   call open_file_generic( file_name, 'write', file_format, unit )
-  call write_header_to_file( unit, vector, [l_bound] )
-  write( unit, * ) vector
+  call write_header_to_file( unit, file_format, vector, [l_bound] )
+  select case( trim(file_format) )
+    case( file_format_text )
+      write( unit, * ) vector
+    case( file_format_binary )
+      write( unit ) vector
+  end select  
   close( unit )
+
 end subroutine
 
 
@@ -156,10 +163,17 @@ subroutine write_matrix_to_file_given_lbounds( file_name, matrix, lbounds, file_
   integer(i32) :: unit, i
 
   call open_file_generic( file_name, 'write', file_format, unit )
-  call write_header_to_file( unit, matrix, lbounds )
-  do i = lbounds(2), ubound( matrix, 2 )
-    write( unit, * ) matrix(:, i)
-  end do
+  call write_header_to_file( unit, file_format, matrix, lbounds )
+  select case( trim(file_format) )
+    case( file_format_text )
+      do i = lbounds(2), ubound( matrix, 2 )
+        write( unit, * ) matrix(:, i)
+      end do
+    case( file_format_binary )
+      do i = lbounds(2), ubound( matrix, 2 )
+        write( unit ) matrix(:, i)
+      end do
+  end select  
   close( unit )
 end subroutine
   
@@ -188,12 +202,21 @@ subroutine write_tensor_of_rank_3_to_file_given_lbounds( file_name, tensor, lbou
   integer(i32) :: unit, i, j
 
   call open_file_generic( file_name, 'write', file_format, unit )
-  call write_header_to_file( unit, tensor, lbound(tensor) )
-  do i = lbound( tensor, 3 ), ubound( tensor, 3 )
-    do j = lbound( tensor, 2 ), ubound( tensor, 2 )
-      write( unit, * ) tensor(:, j, i)
-    end do
-  end do
+  call write_header_to_file( unit, file_format, tensor, lbounds )
+  select case( trim(file_format) )
+    case( file_format_text )
+      do i = lbounds(3), ubound( tensor, 3 )
+        do j = lbounds(2), ubound( tensor, 2 )
+          write( unit, * ) tensor(:, j, i)
+        end do
+      end do
+    case( file_format_binary )
+      do i = lbounds(3), ubound( tensor, 3 )
+        do j = lbounds(2), ubound( tensor, 2 )
+          write( unit ) tensor(:, j, i)
+        end do
+      end do
+  end select
   close( unit )
 
 end subroutine
@@ -201,26 +224,36 @@ end subroutine
 
 !> (private) Write a header to an output file
 !> The header contains the rank of the array, its lbounds and ubounds
-subroutine write_header_to_file( unit, array, lbounds )
+subroutine write_header_to_file( unit, file_format, array, lbounds )
   !> Unit associated to the file where to write
   integer(i32), intent(in) :: unit
+  !> Format of the file
+  character(len=*), intent(in) :: file_format
   !> Array to be written into the file
   complex(dp), intent(in) :: array(..)
   !> Lbounds of `array`
   integer(i32), intent(in) :: lbounds(:)
 
   call assert( size(lbounds) == rank(array), 'Incompatible array rank and lbounds' )
-  write( unit, * ) rank( array )
-  write( unit, * ) lbounds, ubound( array ) + lbounds - 1
+  select case( trim(file_format) )
+    case( file_format_text )
+      write( unit, * ) rank( array )
+      write( unit, * ) lbounds, ubound( array ) + lbounds - 1
+    case( file_format_binary )
+      write( unit ) rank( array )
+      write( unit ) lbounds, ubound( array ) + lbounds - 1
+  end select
 
 end subroutine
 
 
 !> (private) Read the header of an input file
 !> The header contains the rank of the array, its lbounds and ubounds
-subroutine read_header_of_file( unit, rank_of_array, lbounds, ubounds )
+subroutine read_header_of_file( unit, file_format, rank_of_array, lbounds, ubounds )
   !> Unit associated to the file where to write
   integer(i32), intent(in) :: unit
+  !> Format of the file
+  character(len=*), intent(in) :: file_format
   !> Rank of the array stored in the file
   integer(i32), intent(out) :: rank_of_array
   !> Lbounds of the array
@@ -229,9 +262,18 @@ subroutine read_header_of_file( unit, rank_of_array, lbounds, ubounds )
   integer(i32), intent(out) :: ubounds(:)
   
   call assert( size(lbounds) == size(ubounds), 'lbounds and ubounds must have same size')
-  read( unit, * ) rank_of_array
-  call terminate_if_false( rank_of_array==size(lbounds), 'Incompatible rank of array' )
-  read( unit, * ) lbounds, ubounds
+  select case( trim(file_format) )
+    case( file_format_text )
+      read( unit, * ) rank_of_array
+      call terminate_if_false( rank_of_array==size(lbounds), &
+        'Incompatible rank of array. Stored in file is: ' // to_char(rank_of_array) // '; required for this calculation is: ' // to_char( size(lbounds) )  )
+      read( unit, * ) lbounds, ubounds
+    case( file_format_binary )
+      read( unit ) rank_of_array
+      call terminate_if_false( rank_of_array==size(lbounds), &
+        'Incompatible rank of array. Stored in file is: ' // to_char(rank_of_array) // '; required for this calculation is: ' // to_char( size(lbounds) )  )
+      read( unit ) lbounds, ubounds
+  end select
 
 end subroutine
 
@@ -260,10 +302,15 @@ subroutine read_vector_from_file( file_name, vector, file_format )
   integer(i32), parameter :: expected_rank = 1 !rank of a vector
 
   call open_file_generic( file_name, 'read', file_format, unit )
-  call read_header_of_file( unit, read_rank, lbound_, ubound_ )
+  call read_header_of_file( unit, file_format, read_rank, lbound_, ubound_ )
   call terminate_if_false( read_rank==expected_rank, 'The file ' // trim(file_name) // ' contains no vector' )
   allocate( vector(lbound_(1):ubound_(1)) )
-  read( unit, * ) vector
+  select case( trim(file_format) )
+    case( file_format_text )
+      read( unit, * ) vector
+    case( file_format_binary )
+      read( unit ) vector
+  end select 
   close( unit )
 
 end subroutine
@@ -281,12 +328,19 @@ subroutine read_matrix_from_file( file_name, matrix, file_format )
   integer(i32), parameter :: expected_rank = 2 !rank of a matrix
 
   call open_file_generic( file_name, 'read', file_format, unit )
-  call read_header_of_file( unit, read_rank, lbounds, ubounds )
+  call read_header_of_file( unit, file_format, read_rank, lbounds, ubounds )
   call terminate_if_false( read_rank==expected_rank, 'The file ' // trim(file_name) // ' contains no matrix' )
   allocate( matrix(lbounds(1):ubounds(1), lbounds(2):ubounds(2)) )
-  do i = lbounds(2), ubounds(2)
-    read( unit, * ) matrix(:, i)
-  end do
+  select case( trim(file_format) )
+    case( file_format_text )
+      do i = lbounds(2), ubounds(2)
+        read( unit, * ) matrix(:, i)
+      end do
+    case( file_format_binary )
+      do i = lbounds(2), ubounds(2)
+        read( unit ) matrix(:, i)
+      end do
+  end select 
   close( unit )
 
 end subroutine
@@ -305,14 +359,23 @@ subroutine read_tensor_of_rank_3_from_file( file_name, tensor, file_format )
   integer(i32), parameter :: expected_rank = 3 !rank of a tensor
 
   call open_file_generic( file_name, 'read', file_format, unit )
-  call read_header_of_file( unit, read_rank, lbounds, ubounds )
+  call read_header_of_file( unit, file_format, read_rank, lbounds, ubounds )
   call terminate_if_false( read_rank==expected_rank, 'The file ' // trim(file_name) // ' contains no tensor of rank 3' )
   allocate( tensor(lbounds(1):ubounds(1), lbounds(2):ubounds(2), lbounds(3):ubounds(3)) )
-  do i = lbounds(3), ubounds(3) 
-    do j = lbounds(2), ubounds(2) 
-      read( unit, * ) tensor(:, j, i)
-    end do
-  end do
+  select case( trim(file_format) )
+    case( file_format_text )
+      do i = lbounds(3), ubounds(3) 
+        do j = lbounds(2), ubounds(2)
+          read( unit, * ) tensor(:, j, i)
+        end do
+      end do
+    case( file_format_binary )
+      do i = lbounds(3), ubounds(3) 
+        do j = lbounds(2), ubounds(2)
+          read( unit ) tensor(:, j, i)
+        end do
+      end do
+  end select 
   close( unit )
 
 end subroutine
@@ -328,8 +391,7 @@ subroutine open_file_generic( file_name, action, file_format, unit )
   !> unit number of file to open
   integer, intent(out) :: unit
 
-  call assert( trim(file_format)==file_format_text .or. &
-    trim(file_format)==file_format_binary, &
+  call assert( trim(file_format)==file_format_text .or. trim(file_format)==file_format_binary, &
     'file_format must be '// file_format_text // ' or ' // file_format_binary )
   
   select case( trim( file_format ) )
