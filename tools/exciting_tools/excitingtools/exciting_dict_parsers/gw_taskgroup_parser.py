@@ -57,6 +57,32 @@ def __parse_file_with_array_of_rank_3(file_name: str) -> NDArray[np.complex128]:
     return array
 
 
+def __parse_file_with_array_of_rank_4(file_name: str) -> NDArray[np.complex128]:
+    """Parser for files containing arrays of rank 4.
+
+    The file to be parsed should look like:
+     1st line: 4 (rank=4)
+     2nd line: eight integers i,j,k,l,m,n,p,q with the ranges: tensor[i:m,j:n,k:p,l:q]
+     next lines: array elements (complex numbers)
+
+    :param file_name: name of the file
+    :return: array read from file
+    """
+    with open(file_name) as file:
+        dim = int(file.readline().split()[0])
+        m_ini, n_ini, p_ini, q_ini, m_end, n_end, p_end, q_end = (int(x) for x in file.readline().split())
+        assert dim == 4, "file should contain a full array"
+        m, n, p, q = (m_end - m_ini + 1, n_end - n_ini + 1, p_end - p_ini + 1, q_end - q_ini + 1)
+        array = np.zeros((m, n, p, q), dtype=complex)
+
+        counter = 0
+        for line in file:
+            for data in line.split():
+                array[np.unravel_index(counter, (m, n, p, q), order="F")] = complex(*literal_eval(data))
+                counter += 1
+    return array
+
+
 def __square_matrix(a: NDArray) -> NDArray:
     """Square a matrix.
 
@@ -105,6 +131,16 @@ def parse_epsilon(file_name: str) -> Dict[str, NDArray[np.complex128]]:
     :return: parsed data as dictionary
     """
     return {"epsilon_tensor": __parse_file_with_array_of_rank_3(file_name)}
+
+
+def parse_polarizability_factor(file_name: str) -> Dict[str, NDArray[np.complex128]]:
+    """Parser for the files POLARIZABILITY_FACTOR_Q*.OUT, where * is an integer
+    These files contain the polarizability factors needed to obtain the dielectric matrix.
+
+    :param file_name: name of the file
+    :return: parsed data as dictionary
+    """
+    return {"polarizability_factor": __parse_file_with_array_of_rank_4(file_name)}
 
 
 def parse_inverse_epsilon(file_name: str) -> Dict[str, NDArray[np.complex128]]:

@@ -9,6 +9,7 @@ from excitingtools.exciting_dict_parsers.gw_taskgroup_parser import (
     parse_barc,
     parse_epsilon,
     parse_inverse_epsilon,
+    parse_polarizability_factor,
     parse_sgi,
 )
 
@@ -143,3 +144,37 @@ def test_parse_inverse_epsilon(file_inverse_epsilon_str, reference_inverse_epsil
     inverse_epsilon_file_path.write_text(file_inverse_epsilon_str)
     inverse_epsilon = parse_inverse_epsilon(inverse_epsilon_file_path.as_posix())
     np.testing.assert_allclose(inverse_epsilon["inverse_epsilon_tensor"], reference_inverse_epsilon["array"])
+
+
+polarizability_factor_str = """ 4
+1 10 1 1 2 11 2 2
+(1.01E-4,-5.5E-8) (0.25,0.77) (0.35,0.88) 
+(0.000000000000000E+000,0.000000000000000E+000) (-1.01E+004,-5.4E-8) 
+(0.19,0.21) (1.5E-3,-9E6) (0.07,0.00) 
+(0.08,0.09) (1.1,2.2) (-4.5,-2.1) (-6.0E+000,8.0E-006)
+(0.1,0.2) (1.5,2.5) (3.5,7.8) (7.0,8.7) 
+"""
+
+reference_polarizability_factor = {
+    "polarizability_factor": np.array(
+        [
+            [
+                [[complex(1.01e-4, -5.5e-8), complex(0.08, 0.09)], [complex(-1.01e4, -5.4e-8), complex(0.1, 0.2)]],
+                [[complex(0.35, 0.88), complex(-4.5, -2.1)], [complex(1.5e-3, -9e6), complex(3.5, 7.8)]],
+            ],
+            [
+                [[complex(0.25, 0.77), complex(1.1, 2.2)], [complex(0.19, 0.21), complex(1.5, 2.5)]],
+                [[complex(0.00, 0.00), complex(-6.0, 8e-6)], [complex(0.07, 0.00), complex(7.0, 8.7)]],
+            ],
+        ]
+    )
+}
+
+
+def test_parse_polarizability_factor(tmp_path):
+    file_path = tmp_path / "POLARIZABILITY_FACTOR_Q1.OUT"
+    file_path.write_text(polarizability_factor_str)
+    polarizability_factor = parse_polarizability_factor(file_path.as_posix())
+    np.testing.assert_allclose(
+        polarizability_factor["polarizability_factor"], reference_polarizability_factor["polarizability_factor"]
+    )
