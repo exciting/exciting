@@ -87,6 +87,7 @@ _file_to_parser = {
     "EPSW1.OUT": gw_taskgroup_parser.parse_epsilon,
     "EPSW2.OUT": gw_taskgroup_parser.parse_epsilon,
     "INVERSE-EPS*": gw_taskgroup_parser.parse_inverse_epsilon,
+    "POLARIZABILITY_FACTOR_Q*": gw_taskgroup_parser.parse_polarizability_factor,
     "JIND.OUT": RT_TDDFT_parser.parse_jind,
     "NEXC.OUT": RT_TDDFT_parser.parse_nexc,
     "ETOT_RTTDDFT.OUT": RT_TDDFT_parser.parse_etot,
