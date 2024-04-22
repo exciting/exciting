@@ -19,7 +19,7 @@
       real(8),parameter:: weightwarn = 1.0e+3
       real(8):: ztol_vol = 1.e-10
       real(8):: tol_taylor = 10.0
-      real(8):: ztol_sorteq = 1.0*1.e-2
+      real(8), parameter :: ztol_sorteq = 1.0*1.e-2
 
       integer :: nirkp 
       integer :: ntet                  ! Total number of tetrahedra
@@ -38,5 +38,6 @@
       real(8):: omgga                  ! the frequency to be included
       integer:: sgnfrq              ! a sign to tell which weight to be calculated
       real(8):: vol_small_tetra
+
       end module tetra_internal
 !EOC      

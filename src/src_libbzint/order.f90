@@ -99,14 +99,19 @@
       
 ! !INPUT/OUTPUT PARAMETERS:
 
-      real(8), intent(inout) :: v(*)
+      ! real(8), intent(inout) :: v(*)
 
-      integer(4), optional, intent(inout) :: index(*)
+      ! integer(4), optional, intent(inout) :: index(*)
+
+      real(8), intent(inout) :: v(:)
+
+      integer(4), optional, intent(inout) :: index(:)
 
 ! !LOCAL VARIABLES:
 
       integer(4) :: i,itmp,indtp,j
       real(8)    :: vtmp
+
       
 ! !SYSTEM ROUTINES:
       

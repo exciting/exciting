@@ -345,6 +345,18 @@
                       <xs:sequence>
                         <xs:element ref="qpoints" minOccurs="1" maxOccurs="unbounded"/>
                       </xs:sequence>
+                      <xs:attribute ex:importance="experimental" ex:unit="" name="printPolarizabilityFactor" type="xs:boolean" default="false">
+                        <xs:annotation>
+                          <xs:documentation>When <pre>true</pre>, print the RPA Polarizability factor 
+                          <inlinemath>F_{nm}(\mathbf{k},\mathbf{q},\omega)</inlinemath> (please refer to
+                            Computer Physics Communications 184, 348 (2013)).
+                            The output files are named as <pre>POLARIZABILITY_FACTOR_Q*.OUT</pre>, 
+                            where <pre>*</pre> is the index of the
+                            <inlinemath>\mathbf{q}</inlinemath>-point.
+                            Useful to debug the code.
+                          </xs:documentation>
+                        </xs:annotation>
+                      </xs:attribute>
                     </xs:complexType>
                   </xs:element>
 

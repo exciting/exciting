@@ -405,6 +405,7 @@ Coulomb_valid_subtrees = ["qpoints"]
 Coulomb_mandatory_attributes = ["qpoints"] 
 Coulomb_multiple_children = ["qpoints"] 
 
+epsilon_valid_attributes = ["printPolarizabilityFactor"] 
 epsilon_valid_subtrees = ["qpoints"] 
 epsilon_mandatory_attributes = ["qpoints"] 
 epsilon_multiple_children = ["qpoints"] 

@@ -1,0 +1,68 @@
+{
+  "EPSH.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "EPSW1.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "EPSW2.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "EPSILON-GW_Q1.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "EPSILON-GW_Q2.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "EPSILON-GW_Q3.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "EPSILON-GW_Q4.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "POLARIZABILITY_FACTOR_Q1.OUT": {
+    "polarizability_factor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "POLARIZABILITY_FACTOR_Q2.OUT": {
+    "polarizability_factor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "POLARIZABILITY_FACTOR_Q3.OUT": {
+    "polarizability_factor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "POLARIZABILITY_FACTOR_Q4.OUT": {
+    "polarizability_factor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  }
+}

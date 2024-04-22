@@ -101,6 +101,7 @@ subroutine reduk(nsymt, divsh, weight)
                         &+ iio(:, 2, i)*kpr(2)&
                         &+ iio(:, 3, i)*kpr(3)
 
+
                  ! map to reciprocal unit cell [0,1)
                  call mapto01(epslat, kprt)
 
@@ -118,6 +119,7 @@ subroutine reduk(nsymt, divsh, weight)
 !       reduced to those which transform the offset onto a coarse grid
 !       point.
                  call mapto01(epslat, kprt)
+                 
 
                  ! if fractional part is present discard k-point
                  if(any(kprt .gt. epslat)) nkp(:)=-1
