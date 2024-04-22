@@ -255,6 +255,32 @@ GW/MoS2-LDA-epsilon:
       - "BARC_3.OUT"
       - "BARC_4.OUT"
 
+GW/MoS2-LDA-epsilon-tet:
+   files_under_test:
+      - "EPSH.OUT"
+      - "EPSW1.OUT"
+      - "EPSW2.OUT"
+      - "EPSILON-GW_Q1.OUT"
+      - "EPSILON-GW_Q2.OUT"
+      - "EPSILON-GW_Q3.OUT"
+      - "EPSILON-GW_Q4.OUT"
+      - "POLARIZABILITY_FACTOR_Q1.OUT"
+      - "POLARIZABILITY_FACTOR_Q2.OUT"
+      - "POLARIZABILITY_FACTOR_Q3.OUT"
+      - "POLARIZABILITY_FACTOR_Q4.OUT"
+   inputs:
+      - "input.xml"
+      - "Mo.xml"
+      - "S.xml"
+      - "SGI_1.OUT"
+      - "SGI_2.OUT"
+      - "SGI_3.OUT"
+      - "SGI_4.OUT"
+      - "BARC_1.OUT"
+      - "BARC_2.OUT"
+      - "BARC_3.OUT"
+      - "BARC_4.OUT"
+
 GW/MoS2-LDA-invertEpsilon:
    files_under_test:
       - "INVERSE-EPSH.OUT"

@@ -26,13 +26,11 @@ subroutine calcepsilon(iq,iomstart,iomend)
     complex(8) :: head(3,3), f, w
     complex(8), allocatable :: minm(:,:,:)
     complex(8), allocatable :: evecfv(:,:)
+    logical :: print_Polarizability
+
     external zgemm
 
     call timesec(tstart)
-
-    ! memory usage info
-    ! msize = sizeof(epsilon)*b2mb
-    ! write(*,'(" calcepsilon: rank, size(epsilon) (Mb):",i4,f8.2)') myrank, msize
 
     !=============================
     ! Initialization
@@ -60,8 +58,6 @@ subroutine calcepsilon(iq,iomstart,iomend)
     allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveck(nmatmax,nstfv))
     allocate(eveckp(nmatmax,nstfv))
-    ! msize = (sizeof(eveckalm)+sizeof(eveckpalm)+sizeof(eveck)+sizeof(eveckp))*b2mb
-    ! write(*,'(" calcepsilon: rank, size(eigenvectors) (Mb):",i4,f12.2)') myrank, msize
 
     !==================================================
     ! Calculate the q-dependent BZ integration weights
@@ -74,13 +70,16 @@ subroutine calcepsilon(iq,iomstart,iomend)
     case default
         stop "Error(calcepsilon): Unknown qdepw method!"
     end select
+    
+    print_Polarizability = associated(input%gw%taskGroup)
+    if( print_Polarizability ) print_Polarizability = associated(input%gw%taskGroup%epsilon)
+    if( print_Polarizability ) print_Polarizability = input%gw%taskGroup%epsilon%printPolarizabilityFactor
+    if( print_Polarizability ) call write_fnm_to_file( iq, fnm, lbound(fnm), input%gw%taskGroup%outputFormat )
 
     !=================
     ! BZ integration
     !=================
-    ! write(*,*)
     do ik = 1, kqset%nkpt
-        ! write(*,*) 'calcepsilon: rank, (iq, ik):', myrank, iq, ik
 
         ! k-q point
         jk = kqset%kqid(ik, iq)
@@ -109,15 +108,12 @@ subroutine calcepsilon(iq,iomstart,iomend)
         !=================================================
         do iblk = 1, nblk
 
-            ! call timesec(ta)
             mstart = numin + (iblk-1)*mblksiz
             mend   = min(nstdf, mstart+mblksiz-1)
             nmdim  = ndim * (mend-mstart+1)
-            ! print*, iblk, nblk, mstart, mend
 
             allocate(minmmat(mbsiz,ndim,mstart:mend))
             msize = sizeof(minmmat)*b2mb
-            ! write(*,'(" calcepsilon: rank, size(minmmat) (Mb):",3i4,f12.2)') myrank, mstart, mend, msize
 
             ! compute M^i_{nm}+M^i_{cm}
             call expand_products(ik, iq, 1, ndim, nomax, mstart, mend, -1, minmmat)
@@ -143,8 +139,6 @@ subroutine calcepsilon(iq,iomstart,iomend)
             deallocate(minm)
 
             deallocate(minmmat)
-            ! call timesec(tb)
-            ! write(*,*) iblk,' time:',tb-ta
 
         end do ! iblk
 
@@ -211,5 +205,29 @@ subroutine calcepsilon(iq,iomstart,iomend)
     call timesec(tend)
     time_df = time_df+tend-tstart
 
-    return
+contains 
+!> (private) Write the polarizability factor into an output file
+subroutine write_fnm_to_file( idx_qpoint, polarizability_factor, lbounds, file_format )
+    use gw_io, only: build_file_name, write_to_file
+    use precision, only: dp, i32, str_64
+
+    implicit none
+
+    !> q-point index
+    integer(i32), intent(in)  :: idx_qpoint 
+    !> lower bounds of `polarizability_factor`
+    integer(i32), intent(in)  :: lbounds(4)
+    !> Polarizability factor
+    complex(dp), intent(in) :: polarizability_factor(lbounds(1):, lbounds(2):, lbounds(3):, lbounds(4):)
+    !> Format of output file
+    character(len=*), intent(in) :: file_format
+
+    character(len=*), parameter :: file_name_polarizability_factor = 'POLARIZABILITY_FACTOR_Q'
+  
+    character(len=str_64) :: file_name
+  
+    call build_file_name( file_name_polarizability_factor, idx_qpoint, file_name )
+    call write_to_file( file_name, polarizability_factor, lbounds, file_format )
+  
+end subroutine  
 end subroutine

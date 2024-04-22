@@ -31,6 +31,8 @@ module gw_io
     module procedure write_matrix_to_file_given_lbounds
     module procedure write_tensor_of_rank_3_to_file
     module procedure write_tensor_of_rank_3_to_file_given_lbounds
+    module procedure write_tensor_of_rank_4_to_file
+    module procedure write_tensor_of_rank_4_to_file_given_lbounds
   end interface
   
   interface build_file_name
@@ -214,6 +216,54 @@ subroutine write_tensor_of_rank_3_to_file_given_lbounds( file_name, tensor, lbou
       do i = lbounds(3), ubound( tensor, 3 )
         do j = lbounds(2), ubound( tensor, 2 )
           write( unit ) tensor(:, j, i)
+        end do
+      end do
+  end select
+  close( unit )
+
+end subroutine
+
+
+!> Same as [[write_tensor_of_rank_4_to_file_given_lbounds]] with lbounds = [1, 1, 1, 1]
+subroutine write_tensor_of_rank_4_to_file( file_name, tensor, file_format )
+  !> File name where to write
+  character(len=*), intent(in) :: file_name
+  !> Tensor to be written into the file
+  complex(dp), intent(in) :: tensor(:, :, :, :)
+  !> Format of the output file
+  character(len=*), intent(in) :: file_format
+
+  call write_tensor_of_rank_4_to_file_given_lbounds( file_name, tensor, [1, 1, 1, 1], file_format )
+
+end subroutine
+
+
+!> Write a tensor of rank 4 to a file
+subroutine write_tensor_of_rank_4_to_file_given_lbounds( file_name, tensor, lbounds, file_format )
+  character(len=*), intent(in) :: file_name
+  integer(i32), intent(in) :: lbounds(4)
+  complex(dp), intent(in) :: tensor(lbounds(1):, lbounds(2):, lbounds(3):, lbounds(4):)
+  character(len=*), intent(in) :: file_format
+
+  integer(i32) :: unit, i, j, k
+
+  call open_file_generic( file_name, 'write', file_format, unit )
+  call write_header_to_file( unit, file_format, tensor, lbounds )
+  select case( trim(file_format) )
+    case( file_format_text )
+      do i = lbound( tensor, 4 ), ubound( tensor, 4 )
+        do j = lbound( tensor, 3 ), ubound( tensor, 3 )
+          do k = lbound( tensor, 2 ), ubound( tensor, 2 )
+            write( unit, * ) tensor(:, k, j, i)
+          end do
+        end do
+      end do
+    case( file_format_binary )
+      do i = lbound( tensor, 4 ), ubound( tensor, 4 )
+        do j = lbound( tensor, 3 ), ubound( tensor, 3 )
+          do k = lbound( tensor, 2 ), ubound( tensor, 2 )
+            write( unit ) tensor(:, k, j, i)
+          end do
         end do
       end do
   end select

@@ -2,7 +2,7 @@
 
 # Compiler, flags and preprocessing variables 
 F90 = h5pfc  # If you HDF5 installation is serial, replace h5pfc with h5fc.
-F90_OPTS = -O3 -ip -unroll -scalar-rep -I"${MKLROOT}/include" -I"${MKLROOT}/include/fftw"
+F90_OPTS = -O3 -ip -unroll -scalar-rep -no-wrap-margin -I"${MKLROOT}/include" -I"${MKLROOT}/include/fftw"
 CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DIFORT -DFFTW -D_HDF5_ -DFFTW3_INTERFACE
 F77 = $(F90)
 F77_OPTS = -O3

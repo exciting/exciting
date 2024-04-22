@@ -3,7 +3,7 @@
 
 # Compiler, flags and preprocessing variables 
 F90 = ifort
-F90_OPTS = -O3 -ip -unroll -scalar_rep 
+F90_OPTS = -O3 -ip -unroll -scalar_rep -no-wrap-margin
 INCL = -I"${MKLROOT}/include" -I"${MKLROOT}/include/fftw" -I"${MKLROOT}/include/intel64/lp64"
 
 CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DIFORT -DFFTW -DMKL -DFFTW3_INTERFACE
