@@ -251,17 +251,17 @@ subroutine write_tensor_of_rank_4_to_file_given_lbounds( file_name, tensor, lbou
   call write_header_to_file( unit, file_format, tensor, lbounds )
   select case( trim(file_format) )
     case( file_format_text )
-      do i = lbound( tensor, 4 ), ubound( tensor, 4 )
-        do j = lbound( tensor, 3 ), ubound( tensor, 3 )
-          do k = lbound( tensor, 2 ), ubound( tensor, 2 )
+      do i = lbounds(4), ubound( tensor, 4 )
+        do j = lbounds(3), ubound( tensor, 3 )
+          do k = lbounds(2), ubound( tensor, 2 )
             write( unit, * ) tensor(:, k, j, i)
           end do
         end do
       end do
     case( file_format_binary )
-      do i = lbound( tensor, 4 ), ubound( tensor, 4 )
-        do j = lbound( tensor, 3 ), ubound( tensor, 3 )
-          do k = lbound( tensor, 2 ), ubound( tensor, 2 )
+      do i = lbounds(4), ubound( tensor, 4 )
+        do j = lbounds(3), ubound( tensor, 3 )
+          do k = lbounds(2), ubound( tensor, 2 )
             write( unit ) tensor(:, k, j, i)
           end do
         end do
@@ -336,7 +336,6 @@ subroutine terminate_if_file_does_not_exist( file_name )
   logical :: ok
   inquire( file=trim(file_name), exist=ok )
   call terminate_if_false( ok, 'File '//trim(file_name)//' not found')
-
 end subroutine
   
 !> Read a vector (array of rank 1) from a file
