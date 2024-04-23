@@ -79,7 +79,7 @@ contains
     type(gw_type), intent(in) :: gw_inp
 
     call terminate_if_false( associated(gw_inp%taskGroup), &
-      'Element epsilon must be present when taskname='//'"'//task_name//'"' )
+      'Element taskGroup must be present when taskname='//'"'//task_name//'"' )
     call terminate_if_false( associated(gw_inp%barecoul), &
       'Element barecoul must be present when taskname='//'"'//task_name//'"' )
     this%output_format = trim( gw_inp%taskGroup%outputFormat )

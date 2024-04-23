@@ -33,9 +33,11 @@ module task_Coulomb
 
 contains 
 
+!> Subroutine to be invoked when task `Coulomb` must be executed
 subroutine execute_task_Coulomb( n_qpoints_max, file_format )
+  !> Maximum number of q-points for the system that is being calculated
   integer(i32), intent(in) :: n_qpoints_max
-  !> Format of the output file
+  !> Format to print output files
   character(len=*), intent(in) :: file_format
 
   integer(i32) :: iq, i, i_start, i_end
@@ -64,6 +66,7 @@ subroutine execute_task_Coulomb( n_qpoints_max, file_format )
     ! Obtain an orthonormal set of interstitial plane waves
     call diagsgi( iq )
     call write_sgi_to_file( iq, file_format )
+    ! Calculates the matrix elements between PW's and orthonormalized IPW's
     call calcmpwipw( iq )
     call calculate_sqrt_bare_coulomb( iq, input_parameters%Coulomb_eigenvalue_tol )
     call write_barc_to_file( iq, file_format )

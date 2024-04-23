@@ -119,7 +119,6 @@ subroutine execute_task_epsilon( n_qpoints_max, file_format )
   call deallocate_global_arrays
 end subroutine
 
-
 !> Check if the gamma point is among the q-points
 pure logical function isGammaInList( q_points )
   !> List of q-points (first dimension has the 3 cartesian coordinates)
