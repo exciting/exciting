@@ -64,7 +64,7 @@ module mod_dielectric_function
     integer(i32), parameter   :: max_string_length = 40
 
     public :: write_epsilon_to_file, init_dielectric_function, delete_dielectric_function, &
-              write_inverse_epsilon_to_file, read_epsilon_from_file
+              write_inverse_epsilon_to_file, read_epsilon_from_file, read_inverse_epsilon_from_file
 
     
 contains
@@ -171,6 +171,34 @@ contains
         call write_to_file( file_name, epsw1, file_format )
         call build_file_name( file_name_inverse_epsilon_wings2, file_name )
         call write_to_file( file_name, epsw2, file_format )
+    end if
+    
+  end subroutine
+
+
+  !> Read the inverse of epsilon from files
+  !> Attention: actually exciting stores the inverse of epsilon in
+  !> the same matrices as the dielectric matrix
+  subroutine read_inverse_epsilon_from_file( iq, is_Gamma_point, file_format )
+    !> q-point index
+    integer(i32), intent(in)  :: iq 
+    !> If true, the actual q-point refers to the \( \Gamma \) point
+    logical, intent(in)       :: is_Gamma_point
+    !> File format used in the files where the inverse of epsilon is stored
+    character(len=*), intent(in) :: file_format
+  
+    integer(i32), parameter   :: max_length = 40
+    character(len=max_length) :: file_name
+  
+    call build_file_name( file_name_inverse_epsilon, iq, file_name )
+    call read_from_file( file_name, epsilon, file_format )
+    if( is_Gamma_point ) then
+        call build_file_name( file_name_inverse_epsilon_head, file_name )
+        call read_from_file( file_name, epsh, file_format )
+        call build_file_name( file_name_inverse_epsilon_wings1, file_name )
+        call read_from_file( file_name, epsw1, file_format )
+        call build_file_name( file_name_inverse_epsilon_wings2, file_name )
+        call read_from_file( file_name, epsw2, file_format )
     end if
     
   end subroutine
