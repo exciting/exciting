@@ -449,6 +449,7 @@ subroutine open_file_generic( file_name, action, file_format, unit )
     case( file_format_binary )
       call open_binary_file( file_name, action, unit )
   end select
+
 end subroutine
 
 
