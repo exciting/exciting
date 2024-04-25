@@ -1,7 +1,7 @@
 
 subroutine init_dft_eigenvalues()
 
-    use modinput
+    use modinput, only: input
     use mod_LDA_LU, only: ldapu
     use mod_misc, only: filext
     use mod_charge_and_moment, only: chgval
@@ -19,6 +19,9 @@ subroutine init_dft_eigenvalues()
 
     integer(i32) :: ikp, ik, ib
     real(dp) :: e0, egap
+    logical :: degeneracy_check
+
+    degeneracy_check = input%gw%degeneracyCheck
 
     if (allocated(evalfv)) deallocate(evalfv)
     allocate(evalfv(nstfv,kset%nkpt), source = real_zero)
@@ -77,7 +80,7 @@ subroutine init_dft_eigenvalues()
     end if
 
     ! Checking for truncation of degenerate subspaces
-    call check_degenerate_subspaces(nstdf)
+    if( degeneracy_check ) call check_degenerate_subspaces(nstdf)
 
     ! initialize the number of states to calculate the correlation self energy
     if (input%gw%selfenergy%nempty>0) then
@@ -92,7 +95,7 @@ subroutine init_dft_eigenvalues()
         end if
 
         ! Again check for the truncation of degenerate subspaces
-        call check_degenerate_subspaces(nstse)
+        if( degeneracy_check ) call check_degenerate_subspaces(nstse)
 
     else
         nstse = nstdf
