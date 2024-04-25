@@ -35,6 +35,7 @@
   <gw
       taskname="taskGroup"
       skipgnd="false"
+      degeneracyCheck="false"
       ngridq="2 2 1"
       nempty="10"
       qdepw="tet"

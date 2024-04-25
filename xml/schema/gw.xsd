@@ -555,6 +555,19 @@
 	          </xs:documentation></xs:annotation>
           </xs:attribute>
 
+          <xs:attribute ex:importance="expert" ex:unit="" name="degeneracyCheck" type="xs:boolean" default="true" use="optional">
+            <xs:annotation><xs:documentation>
+                Truncating the number of empty bands can risk cutting a degenerate subspace.
+                This can cause the dielectric matrix and self-energy to lose the full symmetry 
+                of the crystal, leading to the lifting of degeneracies.
+                Setting <attref>degeneracyCheck</attref>
+	              to <pre>true</pre> can prevent symmetry breaking by adjusting the 
+                number of empty bands downward to avoid cutting off any degenerate subspace. 
+                For details, refer to Section 6 of <a
+              href="https://doi.org/10.1016/j.cpc.2011.12.006"> this paper </a>.
+	          </xs:documentation></xs:annotation>
+          </xs:attribute>
+
           <xs:attribute ex:importance="expert" ex:unit="" name="mblksiz" type="xs:integer" default="0" use="optional">
             <xs:annotation><xs:documentation>
 	              To reduce the memory usage, in summations over unoccupied states, big matrices are considered to be in a block form with a size of <attref>mblksiz</attref>.
