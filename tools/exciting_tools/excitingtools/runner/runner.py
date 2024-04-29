@@ -10,7 +10,7 @@ import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from excitingtools.utils.jobflow_utils import special_serialization_attrs
 
@@ -120,16 +120,11 @@ class BinaryRunner:
         if mpi_processes <= 0:
             raise ValueError("Number of MPI processes must be > 0")
 
-    def run(self) -> SubprocessRunResults:
-        """Run a binary.
+    def get_execution_list_and_env(self) -> Tuple[List[str], Dict[str, str]]:
+        """Prepares the execution list and the environment for running the binary.
 
-        First check for the binary and the run directory. Binary can be relative or absolute path to the
-        binary file. Alternatively, the binary name could exist at a different location, therefore check $PATH.
-
-        Then executes the binary with given run command and args.
-        Special handling is performed if the execution reached the time limit.
-
-        :return: the run results with output and error message, runner code and run time
+        :return: the execution list and the environment dictionary for use with subprocess.run(...) or
+        subprocess.Popen(...).
         """
         binary = Path(self.binary)
         if not binary.is_file():
@@ -142,6 +137,20 @@ class BinaryRunner:
 
         execution_list = self.run_cmd + [Path(binary).as_posix()] + self.args
         my_env = {**os.environ, "OMP_NUM_THREADS": str(self.omp_num_threads)}
+        return execution_list, my_env
+
+    def run(self) -> SubprocessRunResults:
+        """Run a binary.
+
+        First check for the binary and the run directory. Binary can be relative or absolute path to the
+        binary file. Alternatively, the binary name could exist at a different location, therefore check $PATH.
+
+        Then executes the binary with given run command and args.
+        Special handling is performed if the execution reached the time limit.
+
+        :return: the run results with output and error message, runner code and run time
+        """
+        execution_list, my_env = self.get_execution_list_and_env()
 
         time_start: float = time.time()
         try:
