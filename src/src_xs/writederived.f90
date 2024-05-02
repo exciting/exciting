@@ -11,6 +11,7 @@ subroutine writederived(iqmt, eps, nw, w)
   use m_writesigma
   use m_write_hdf5
   use m_writesumrls
+  use os_utils, only: make_directory_command
 
   implicit none
 
@@ -121,8 +122,11 @@ subroutine writederived(iqmt, eps, nw, w)
        !   & nar= .not. input%xs%bse%aresbse, filnam=fnsumrules)
       end if
       epsilondir='EPSILON'
+      call system(trim(adjustl(make_directory_command(epsilondir))))
       lossdir='LOSS'
+      call system(trim(adjustl(make_directory_command(lossdir))))
       sigmadir='SIGMA'
+      call system(trim(adjustl(make_directory_command(sigmadir))))
       
       fneps=trim(epsilondir)//'/'//trim(fneps)
       fnloss=trim(lossdir)//'/'//trim(fnloss)

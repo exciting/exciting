@@ -1393,6 +1393,15 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="readstatetask446" type="xs:boolean"
+              default="true">
+              <xs:annotation>
+                <xs:documentation>
+                  Set to false if you want to skip the reading of the STATE.OUT in the task 446. Attention: Skips also
+                  consistency checks that are normally performed during the read process.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="brixshdf5" type="xs:boolean"
               default="false">
               <xs:annotation>
