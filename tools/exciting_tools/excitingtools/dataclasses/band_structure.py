@@ -70,7 +70,7 @@ class BandData:
 
         # Replace for plotting purposes
         unicode_gamma = "\u0393"
-        for label in ["Gamma", "gamma", "G"]:
+        for label in ["Gamma", "gamma", "GAMMA", "G"]:
             labels = list(map(lambda x: x.replace(label, unicode_gamma), labels))
 
         return np.asarray(vertices), labels
