@@ -60,14 +60,6 @@ module mod_selfenergy
     character(len=*), parameter, private :: file_name_sigmax = 'SIGMAX_K'
     character(len=*), parameter, private :: file_name_sigmac = 'SIGMAC_K'
 
-
-    !----------------------------------------------------------------------
-    ! files to store the self-energy
-    !----------------------------------------------------------------------
-    character(len=*), parameter, private :: file_name_sigmax = 'SIGMAX_K'
-    character(len=*), parameter, private :: file_name_sigmac = 'SIGMAC_K'
-
-
 contains
 
     !---------------------------------------------------------------------------
