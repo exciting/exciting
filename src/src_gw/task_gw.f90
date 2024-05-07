@@ -169,7 +169,7 @@ subroutine task_gw()
         !========================================
         ! Calculate the q-dependent self-energy
         !========================================
-        call calcselfc(iq)
+        call calcselfc( iq, 1, kset%nkpt )
         call delete_dielectric_function(Gamma)
         if (allocated(kcw)) deallocate(kcw)
         if (allocated(unw)) deallocate(unw)

@@ -1,18 +1,32 @@
-subroutine calcselfc(iq)
-    use modinput
-    use modmain,    only : nstfv, apwordmax, lmmaxapw, natmtot, nspnfv, &
-    &                      zzero, nmatmax
-    use modgw
-    use mod_mpi_gw, only : myrank
-    use m_getunit
+!> Obtain the correlation part of the self energy for the given k-points, 
+!> evaluating the one term (of a sum) corresponding to a given q-point
+subroutine calcselfc(iq, ikp_first, ikp_last)
+    use modinput, only: input
+    use modgw, only: time_selfc, kqset, kset, Gkqset, b2mb, ibgw, nbgw, freq, mblksiz, msize
+    use mod_APW_LO, only: apwordmax
+    use mod_atoms, only: natmtot
+    use mod_bands, only: eveckalm, eveckpalm, eveckp, eveck, nstse
+    use mod_core_states, only: ncg
+    use mod_eigensystem, only: nmatmax
+    use mod_eigenvalue_occupancy, only: nstfv
+    use mod_muffin_tin, only: lmmaxapw
+    use mod_product_basis, only: minmmat, mbsiz
+    use mod_selfenergy, only: mwm
+    use precision, only: i32, dp
+
     implicit none
-    ! input/output
-    integer(4), intent(in) :: iq
+
+    !> index of the q-point term to evaluate
+    integer(i32), intent(in) :: iq
+    !> index of the first k-point (in the reduced BZ) to evaluate the self-energy
+    integer(i32), intent(in) :: ikp_first
+    !> index of the last k-point (in the reduced BZ) to evaluate the self-energy
+    integer(i32), intent(in) :: ikp_last
+
     ! local
-    integer(4) :: ik, ikp, jk, ispn
-    integer(4) :: mdim, iblk, nblk, mstart, mend
-    integer(4) :: fid
-    real(8) :: tstart, tend, t0, t1
+    integer(i32) :: ik, ikp, jk
+    integer(i32) :: mdim, iblk, nblk, mstart, mend
+    real(dp) :: tstart, tend
 
     call timesec(tstart)
 
@@ -51,9 +65,7 @@ subroutine calcselfc(iq)
     ! loop over irreducible k-points
     !================================
     ! write(*,*)
-    do ikp = 1, kset%nkpt
-      ! write(*,*) 'calcselfc: rank, (iq, ikp):', myrank, iq, ikp
-
+    do ikp = ikp_first, ikp_last
       ! k vector
       ik = kset%ikp2ik(ikp)
       ! k-q vector
@@ -78,7 +90,6 @@ subroutine calcselfc(iq)
         ! m-block M^i_{nm}
         allocate(minmmat(mbsiz,ibgw:nbgw,mstart:mend))
         msize = sizeof(minmmat)*b2mb
-        ! write(*,'(" calcselfc: rank, size(minmmat) (Mb):",3i4,f12.2)') myrank, mstart, mend, msize
 
         call expand_products(ik, iq, ibgw, nbgw, -1, mstart, mend, nstse, minmmat)
 
