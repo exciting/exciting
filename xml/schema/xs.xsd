@@ -685,7 +685,14 @@
           </xs:element>
 
         </xs:all>
-            
+            <xs:attribute ex:importance="expert" ex:unit="" name="calcNonlocalCurrentDensity" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation> When set to <pre>"true"</pre> the nonlocal current 
+                is calculated using RT-TDDFT with Hybrid functionals. 
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
             <xs:attribute ex:importance="expert" ex:unit=""
               name="calculateTotalEnergy" type="xs:boolean"
               default="false">

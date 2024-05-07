@@ -439,6 +439,19 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="BasisBareCoulomb" default="mb">
+              <xs:annotation>
+                <xs:documentation>
+                  Two approaches to compute the bare Coulomb potential:
+                  <list>
+                    <li><pre>mb</pre> - The Coulomb potential is computed in the mixed-product basis.</li>
+                    <li><pre>pw</pre> - The Coulomb potential is computed in the plane-wave basis and then converted into the mixed-product basis.
+                    This option is used only when the potential truncation technique <attref>cutofftype</attref> is employed. From practical point,
+                    usage of this approach requires to set a higher value of <attref>pwm</attref> (typically = 4.0)</li>.
+                  </list>
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
 
