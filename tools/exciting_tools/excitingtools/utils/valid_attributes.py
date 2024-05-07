@@ -110,8 +110,8 @@ spin_valid_attributes = ["bfieldc", "fixspin", "momfix", "nosv", "realspace", "r
 
 dfthalf_valid_attributes = ["printVSfile"] 
 
-Hybrid_valid_attributes = ["HSEsingularity", "eccoeff", "epsmb", "exchangetype", "excoeff", "gmb", "lmaxmb", "maxscl", 
-                           "mblksiz", "omega", "updateRadial"] 
+Hybrid_valid_attributes = ["BasisBareCoulomb", "HSEsingularity", "eccoeff", "epsmb", "exchangetype", "excoeff", "gmb", 
+                           "lmaxmb", "maxscl", "mblksiz", "omega", "updateRadial"] 
 
 sirius_valid_attributes = ["cfun", "density", "densityinit", "eigenstates", "sfacg", "vha", "xc"] 
 
@@ -299,9 +299,10 @@ hole_valid_subtrees = ["plot1d", "plot2d", "plot3d"]
 
 electron_valid_subtrees = ["plot1d", "plot2d", "plot3d"] 
 
-realTimeTDDFT_valid_attributes = ["TaylorOrder", "calculateNExcitedElectrons", "calculateTotalEnergy", "endTime", 
-                                  "normalizeWF", "printAfterIterations", "printTimingDetailed", "printTimingGeneral", 
-                                  "propagator", "subtractJ0", "timeStep", "vectorPotentialSolver"] 
+realTimeTDDFT_valid_attributes = ["TaylorOrder", "calcNonlocalCurrentDensity", "calculateNExcitedElectrons", 
+                                  "calculateTotalEnergy", "endTime", "normalizeWF", "printAfterIterations", 
+                                  "printTimingDetailed", "printTimingGeneral", "propagator", "subtractJ0", "timeStep", 
+                                  "vectorPotentialSolver"] 
 realTimeTDDFT_valid_subtrees = ["predictorCorrector", "screenshots", "laser", "pmat"] 
 realTimeTDDFT_mandatory_attributes = ["pmat"] 
 

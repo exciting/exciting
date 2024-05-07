@@ -37,6 +37,7 @@ subroutine init_hybrids()
     !---------------------------------------
     if (.not.associated(input%gw%BareCoul)) &
     &  input%gw%BareCoul => getstructbarecoul(emptynode)
+    input%gw%barecoul%basis = input%groundstate%Hybrid%BasisBareCoulomb
 
     !---------------------------------------------------------
     ! Initialize auxiliary arrays used further for convenience
