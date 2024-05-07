@@ -13,46 +13,53 @@ module mod_selfenergy
     !--------------!
 
     ! The exchange self-energy
-    complex(8), allocatable :: selfex(:,:)
+    complex(dp), allocatable :: selfex(:,:)
 
     ! Sum_ij{M^i*W^c_{ij}*conjg(M^j)}
-    complex(8), allocatable :: mwm(:,:,:)
+    complex(dp), allocatable :: mwm(:,:,:)
     target mwm
 
     ! The correlation self-energy
-    complex(8), allocatable :: selfeph(:,:,:)
-    complex(8), allocatable :: selfeph0(:,:)
-    real(8),    allocatable :: speceph(:,:,:)
-    complex(8), allocatable :: selfec(:,:,:)
+    complex(dp), allocatable :: selfeph(:,:,:)
+    complex(dp), allocatable :: selfeph0(:,:)
+    real(dp),    allocatable :: speceph(:,:,:)
+    complex(dp), allocatable :: selfec(:,:,:)
 
     ! Correction factors for (q^-1) and (q^-2) singularities
-    real(8) :: singc1
-    real(8) :: singc2
+    real(dp) :: singc1
+    real(dp) :: singc2
 
     !-------------!
     ! QP Energy   !
     !-------------!
 
     ! Original KS energies (evalfv will updated via self-consistent cycle)
-    real(8) :: eferks
-    real(8), allocatable :: evalks(:,:)
+    real(dp) :: eferks
+    real(dp), allocatable :: evalks(:,:)
 
     ! QP energies
-    real(8) :: eferqp
-    real(8), allocatable :: evalqp(:,:)
+    real(dp) :: eferqp
+    real(dp), allocatable :: evalqp(:,:)
 
     ! Chemical potential alignment
-    real(8) :: deltaE
+    real(dp) :: deltaE
 
     ! Linearization (renormalization) factor
-    real(8),    allocatable :: znorm(:,:)
+    real(dp),    allocatable :: znorm(:,:)
 
     ! AC to the real axis of the correlation self-energy (selfec)
-    complex(8), allocatable :: sigc(:,:)
+    complex(dp), allocatable :: sigc(:,:)
 
     ! COHSEX approximation
-    complex(8), allocatable :: sigsx(:,:) ! Screened exchange
-    complex(8), allocatable :: sigch(:,:) ! Coulomb hole
+    complex(dp), allocatable :: sigsx(:,:) ! Screened exchange
+    complex(dp), allocatable :: sigch(:,:) ! Coulomb hole
+
+    !----------------------------------------------------------------------
+    ! files to store the self-energy
+    !----------------------------------------------------------------------
+    character(len=*), parameter, private :: file_name_sigmax = 'SIGMAX_K'
+    character(len=*), parameter, private :: file_name_sigmac = 'SIGMAC_K'
+
 
     !----------------------------------------------------------------------
     ! files to store the self-energy
@@ -65,12 +72,12 @@ contains
 
     !---------------------------------------------------------------------------
     subroutine init_selfenergy(ibgw,nbgw,nkpt)
-        use modinput
+        use modinput, only: input
         implicit none
         integer, intent(in) :: ibgw, nbgw
         integer, intent(in) :: nkpt
         ! local
-        integer(4) :: nw
+        integer(i32) :: nw
 
         ! KS eigenvalues
         if (allocated(evalks)) deallocate(evalks)
@@ -88,25 +95,7 @@ contains
         selfex(:,:) = 0.d0
 
         ! Correlation self-energy
-        if (input%gw%selfenergy%method == 'cd') then
-          if ( .not.associated(input%gw%selfenergy%wgrid) ) &
-              input%gw%selfenergy%wgrid => getstructwgrid(emptynode)
-          call generate_freqgrid(freq_selfc, &
-                                 input%gw%selfenergy%wgrid%type, &
-                                 'refreq', &
-                                 input%gw%selfenergy%wgrid%size, &
-                                 input%gw%selfenergy%wgrid%wmin, &
-                                 input%gw%selfenergy%wgrid%wmax)
-        else
-          call generate_freqgrid(freq_selfc, &
-                                 input%gw%freqgrid%fgrid, &
-                                 input%gw%freqgrid%fconv, &
-                                 input%gw%freqgrid%nomeg, &
-                                 input%gw%freqgrid%freqmin, &
-                                 input%gw%freqgrid%freqmax)
-        end if
-        ! call print_freqgrid(freq_selfc,6)
-
+        call generate_frequency_grid_for_correlation_self_energy( input%gw )
         nw = freq_selfc%nomeg
 
         if (input%gw%taskname.ne.'g0w0-x') then
@@ -133,6 +122,31 @@ contains
           end if ! cohsex
         end if
 
+    end subroutine
+
+    !> Generate the frequency grid needed by the self energy
+    subroutine generate_frequency_grid_for_correlation_self_energy( gw_inp )
+      use modinput, only: gw_type, emptynode, getstructwgrid
+      !> GW input parameters
+      type(gw_type), intent(inout) :: gw_inp
+
+      if ( gw_inp%selfenergy%method == 'cd') then
+        if ( .not.associated(gw_inp%selfenergy%wgrid) ) &
+            gw_inp%selfenergy%wgrid => getstructwgrid(emptynode)
+        call generate_freqgrid(freq_selfc, &
+                               gw_inp%selfenergy%wgrid%type, &
+                               'refreq', &
+                               gw_inp%selfenergy%wgrid%size, &
+                               gw_inp%selfenergy%wgrid%wmin, &
+                               gw_inp%selfenergy%wgrid%wmax)
+      else
+        call generate_freqgrid(freq_selfc, &
+                               gw_inp%freqgrid%fgrid, &
+                               gw_inp%freqgrid%fconv, &
+                               gw_inp%freqgrid%nomeg, &
+                               gw_inp%freqgrid%freqmin, &
+                               gw_inp%freqgrid%freqmax)
+      end if
     end subroutine
 
     !---------------------------------------------------------------------------
@@ -271,7 +285,7 @@ contains
     !---------------------------------------------------------------------------
     subroutine plot_selfc_iw()
       implicit none
-      integer(4) :: ik, iw, nk, nb
+      integer(i32) :: ik, iw, nk, nb
       character(22) :: frmt
       nb = size(selfec,1)
       nk = size(selfec,3)
@@ -303,8 +317,8 @@ contains
     !---------------------------------------------------------------------------
     subroutine plot_selfc()
       implicit none
-      integer(4) :: ik, nk, nb, iw
-      real(8) :: w
+      integer(i32) :: ik, nk, nb, iw
+      real(dp) :: w
       character(22) :: frmt
       nb = size(selfec,1)
       nk = size(selfec,3)
