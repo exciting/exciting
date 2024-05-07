@@ -1,7 +1,10 @@
 
 module mod_selfenergy
-
+    use gw_io, only: build_file_name, read_from_file, write_to_file
     use mod_frequency
+    use precision, only: i32, dp
+
+    implicit none
 
     type(frequency) :: freq_selfc
 
@@ -50,6 +53,13 @@ module mod_selfenergy
     ! COHSEX approximation
     complex(8), allocatable :: sigsx(:,:) ! Screened exchange
     complex(8), allocatable :: sigch(:,:) ! Coulomb hole
+
+    !----------------------------------------------------------------------
+    ! files to store the self-energy
+    !----------------------------------------------------------------------
+    character(len=*), parameter, private :: file_name_sigmax = 'SIGMAX_K'
+    character(len=*), parameter, private :: file_name_sigmac = 'SIGMAC_K'
+
 
 contains
 
@@ -141,7 +151,7 @@ contains
     end subroutine
 
     !---------------------------------------------------------------------------
-    subroutine write_selfenergy(ibgw,nbgw,nkpt,nw)
+    subroutine write_selfenergy_binary(ibgw,nbgw,nkpt,nw)
       use modinput
       implicit none
       integer, intent(in) :: ibgw, nbgw
@@ -171,7 +181,6 @@ contains
     ! TODO(Alex) Would be nicer to print the actual k-point, too
     ! NOTE. Not tested - how does it behave when running with MPI w.r.t. ik?
     subroutine write_exchange_selfenergy(ibgw, nbgw, nkpt)
-      use precision, only: dp
       !> Band limits for which GW correction is applied
       integer, intent(in) :: ibgw, nbgw
       !>  Number of k-points 
@@ -200,7 +209,6 @@ contains
     ! TODO(Alex) Would be nicer to print the actual k-point, too
     ! NOTE. Not tested - how does it behave when running with MPI w.r.t. ik?
     subroutine write_correlation_selfenergy(ibgw, nbgw, nw, nkpt)
-      use precision, only: dp
       !> Band limits for which GW correction is applied
       integer, intent(in) :: ibgw, nbgw
       !>  Number of frequency points 
@@ -211,7 +219,7 @@ contains
       !complex(dp), intent(in) :: selfec(:, :, :)
       !> ile ID unit
       integer :: fid                      
-      integer :: ik, ie
+      integer :: ik, ie, iom
 
       open(newunit=fid, file='SELFC.DAT', form='FORMATTED', status='UNKNOWN')
       write(fid, *) '# first band, last band, N k-points, N frequencies'
@@ -227,6 +235,36 @@ contains
       end do
 
       close(fid)
+    end subroutine
+
+    !> Write the correlation part of the self-energy for a given k-point
+    subroutine write_selfec_single_kpoint( ik, file_format )
+      !> Index of the current k-point
+      integer(i32), intent(in) :: ik
+      !> Format of the file where to print. It can be e.g. 'text' or 'binary'
+      character(len=*), intent(in) :: file_format
+
+      integer(i32), parameter :: maxlen = 30
+      character(len=maxlen) :: file_name 
+      
+      call build_file_name( file_name_sigmac, ik, file_name )
+      call write_to_file( file_name, selfec(:, :, ik), [ lbound( selfec, 1 ), lbound( selfec, 2 ) ], file_format )
+
+    end subroutine
+
+    !> Write the exchange part of the self-energy for a given k-point
+    subroutine write_selfex_single_kpoint( ik, file_format )
+      !> Index of the current k-point
+      integer(i32), intent(in) :: ik
+      !> Format of the file where to print. It can be e.g. 'text' or 'binary'
+      character(len=*), intent(in) :: file_format
+
+      integer(i32), parameter :: maxlen = 30
+      character(len=maxlen) :: file_name 
+      
+      call build_file_name( file_name_sigmax, ik, file_name )
+      call write_to_file( file_name, selfex(:, ik), lbound( selfex, 1 ), file_format )
+
     end subroutine
 
 
