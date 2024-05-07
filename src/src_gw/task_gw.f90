@@ -215,7 +215,7 @@ subroutine task_gw()
       !===============================
       ! Write self-energies to files
       !===============================
-      call write_selfenergy(ibgw, nbgw, kset%nkpt, freq_selfc%nomeg)
+      call write_selfenergy_binary(ibgw, nbgw, kset%nkpt, freq_selfc%nomeg)
 
       !=======================================
       ! Calculate the quasiparticle energies
