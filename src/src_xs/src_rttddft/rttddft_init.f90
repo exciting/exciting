@@ -8,136 +8,131 @@
 
 !> Module implementing general initializations for RT-TDDFT
 module rttddft_init
-   use mod_bands, only: evalfv, nomax, numin, ikcbm, ikvbm, ikvcm
-   use constants, only: zzero
-   use m_gndstateq, only: gndstateq
-   use MD, only: force, MD_input_keys
-   use mod_APW_LO, only: apwordmax
-   use mod_atoms, only: natmtot, nspecies, idxas, natoms
-   use mod_eigensystem, only: nmatmax
-   use mod_eigenvalue_occupancy, only: occsv, nstfv, nstsv
-   use mod_gkvector, only: ngk, ngkmax, vgkl, gkc, tpgkc, sfacgk
-   use mod_kpoint, only: vkl, nkpt
-   use mod_muffin_tin, only: lmmaxapw
-   use mod_misc, only: filext
-   use modinput, only: input, getstructHybrid, emptynode
-   use modmpi
-   use modgw, only: kset
-   use mod_core_states, only: ncg
-   use mod_eigenvalue_occupancy, only: occsv, nstfv, nstsv, efermi
-   use mod_gkvector, only: ngk, ngkmax, vgkl, gkc, tpgkc, sfacgk
-   use modxs, only: isreadstate0
-   use physical_constants, only: c
-   use precision, only: dp, i32
-   use rttddft_CurrentDensity, only: UpdateCurrentDensity
-   use rttddft_Density, only: updatedensity
-   use rttddft_GlobalVariables
-   use rttddft_HamiltonianOverlap, only: UpdateHam
-   use rttddft_pmat, only: Obtain_Pmat_LAPWLOBasis
-   use rttddft_io, only: file_pmat_exists, read_pmat, write_pmat, &
-                         file_pmat_mt_exists, read_pmat_mt, write_pmat_mt, write_file_info, &
-                         write_file_info_fill_line_with_char, get_filename_pmat, get_filename_pmat_mt
-   use rttddft_pmat, only: Obtain_Pmat_LAPWLOBasis
-   use rttddft_hybrids, only: hybrids_used, Set_Dimension_mixed_product_basis, set_barecoul_basis
+  use constants, only: zzero
+  use m_gndstateq, only: gndstateq
+  use MD, only: force, MD_input_keys
+  use mod_APW_LO, only: apwordmax
+  use mod_atoms, only: natmtot, nspecies, idxas, natoms
+  use mod_bands, only: evalfv, nomax, numin, ikcbm, ikvbm, ikvcm
+  use mod_core_states, only: ncg
+  use mod_eigensystem, only: nmatmax
+  use mod_eigenvalue_occupancy, only: occsv, nstfv, nstsv, efermi
+  use mod_gkvector, only: ngk, ngkmax, vgkl, gkc, tpgkc, sfacgk
+  use mod_kpoint, only: vkl, nkpt
+  use mod_misc, only: filext
+  use mod_muffin_tin, only: lmmaxapw
+  use modgw, only: kset
+  use modinput, only: input, getstructHybrid, emptynode
+  use modmpi, only: rank, mpi_env_k, distribute_loop, terminate_if_false
+  use modxs, only: isreadstate0
+  use physical_constants, only: c
+  use precision, only: dp, i32
+  use rttddft_CurrentDensity, only: UpdateCurrentDensity
+  use rttddft_Density, only: updatedensity
+  use rttddft_GlobalVariables
+  use rttddft_HamiltonianOverlap, only: UpdateHam
+  use rttddft_hybrids, only: hybrids_used, Set_Dimension_mixed_product_basis, set_barecoul_basis
+  use rttddft_io, only: file_pmat_exists, read_pmat, write_pmat, &
+                        file_pmat_mt_exists, read_pmat_mt, write_pmat_mt, write_file_info, &
+                        write_file_info_fill_line_with_char, get_filename_pmat, get_filename_pmat_mt
+  use rttddft_pmat, only: Obtain_Pmat_LAPWLOBasis
+  
+  implicit none
 
-   implicit none
+  private
 
-   private :: read_WF_potential_rttddft, is_gs_input_compatible_with_xs, adjustments_for_Hybrid_RTTDDFT
-
-   public :: initialize_rttddft
+  public :: initialize_rttddft
 
 contains
 
 !> This subroutine initializes many global variables in a RT-TDDFT calculation.
-   subroutine initialize_rttddft(molecular_dynamics)
-      !> variable that is an interface to the input keys defined in `input.xml` inside the `MD` block
-      type(MD_input_keys), intent(in)         :: molecular_dynamics
+subroutine initialize_rttddft(molecular_dynamics)
+  !> variable that is an interface to the input keys defined in `input.xml` inside the `MD` block
+  type(MD_input_keys), intent(in)         :: molecular_dynamics
 
-      integer                     :: ik, first_kpt, last_kpt
-      character(len=50)           :: string
-      character(len=*), parameter :: new_line = achar(13)//achar(10)
-      logical                     :: file_exists, readPmatFromFile
-      logical                     :: writePmatToFile, forcePmatHermitian
-      real(dp)                    :: voff(3)
+  integer                     :: ik, first_kpt, last_kpt
+  character(len=*), parameter :: new_line = achar(13)//achar(10)
+  logical                     :: readPmatFromFile
+  logical                     :: writePmatToFile, forcePmatHermitian
+  real(dp)                    :: voff(3)
 
-      ! Backup groundstate variables
-      call backup0
-      call backup1
+  ! Backup groundstate variables
+  call backup0
+  call backup1
 
-      !--------------------------------------------!
-      !     map xs parameters associated to gs     !
-      !--------------------------------------------!
-      if (input%xs%rgkmax == 0.d0) input%xs%rgkmax = input%groundstate%rgkmax
-      if (hybrids_used()) call adjustments_for_Hybrid_RTTDDFT()
-      call mapxsparameters
-      ! Initialize universal variables
-      call init0
-      call init1
-      call init2
+  !--------------------------------------------!
+  !     map xs parameters associated to gs     !
+  !--------------------------------------------!
+  if (input%xs%rgkmax == 0.d0) input%xs%rgkmax = input%groundstate%rgkmax
+  if (hybrids_used()) call adjustments_for_Hybrid_RTTDDFT()
+  call mapxsparameters
+  ! Initialize universal variables
+  call init0
+  call init1
+  call init2
 
-      if (hybrids_used()) call init_hybrids()
+  if (hybrids_used()) call init_hybrids()
 
-      call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
+  call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
 
-      ! Interface with input variables
-      voff(1:3) = input%xs%vkloff(1:3)
+  ! Interface with input variables
+  voff(1:3) = input%xs%vkloff(1:3)
 
-      readPmatFromFile = input%xs%realTimeTDDFT%pmat%readFromFile
-      writePmatToFile = input%xs%realTimeTDDFT%pmat%writeToFile .and. (.not. readPmatFromFile)
-      forcePmatHermitian = input%xs%realTimeTDDFT%pmat%forceHermitian
+  readPmatFromFile = input%xs%realTimeTDDFT%pmat%readFromFile
+  writePmatToFile = input%xs%realTimeTDDFT%pmat%writeToFile .and. (.not. readPmatFromFile)
+  forcePmatHermitian = input%xs%realTimeTDDFT%pmat%forceHermitian
 
-      method = input%xs%realTimeTDDFT%propagator
-      printTimesGeneral = input%xs%realTimeTDDFT%printTimingGeneral
-      printTimesDetailed = (printTimesGeneral .and. input%xs%realTimeTDDFT%printTimingDetailed)
-      calculateTotalEnergy = input%xs%realTimeTDDFT%calculateTotalEnergy
-      calculateNexc = input%xs%realTimeTDDFT%calculateNExcitedElectrons
-      predictorCorrector = associated(input%xs%realTimeTDDFT%predictorCorrector)
-      if (predictorCorrector) then
-         tolPredCorr = input%xs%realTimeTDDFT%predictorCorrector%tol
-         maxstepsPredictorCorrector = input%xs%realTimeTDDFT%predictorCorrector%maxIterations
-      end if
-      tstep = input%xs%realTimeTDDFT%timeStep
-      tend = input%xs%realTimeTDDFT%endTime
-      nsteps = int(tend/tstep)
-      time = 0._dp
+  method = input%xs%realTimeTDDFT%propagator
+  printTimesGeneral = input%xs%realTimeTDDFT%printTimingGeneral
+  printTimesDetailed = (printTimesGeneral .and. input%xs%realTimeTDDFT%printTimingDetailed)
+  calculateTotalEnergy = input%xs%realTimeTDDFT%calculateTotalEnergy
+  calculateNexc = input%xs%realTimeTDDFT%calculateNExcitedElectrons
+  predictorCorrector = associated(input%xs%realTimeTDDFT%predictorCorrector)
+  if (predictorCorrector) then
+    tolPredCorr = input%xs%realTimeTDDFT%predictorCorrector%tol
+    maxstepsPredictorCorrector = input%xs%realTimeTDDFT%predictorCorrector%maxIterations
+  end if
+  tstep = input%xs%realTimeTDDFT%timeStep
+  tend = input%xs%realTimeTDDFT%endTime
+  nsteps = int(tend/tstep)
+  time = 0._dp
 
-      !> Print to RTTDDFT_INFO that we will start the single-shot GS calculation
-      if (rank == 0) then
-         call write_file_info_fill_line_with_char('=')
-         call write_file_info('Non-self-consistent GS for TDDFT calculations - started'//new_line)
-      end if
+  !> Print to RTTDDFT_INFO that we will start the single-shot GS calculation
+  if (rank == 0) then
+    call write_file_info_fill_line_with_char('=')
+    call write_file_info('Non-self-consistent GS for TDDFT calculations - started'//new_line)
+  end if
 
-      ! Read from STATE.OUT exclusively
-      isreadstate0 = .true.
+  ! Read from STATE.OUT exclusively
+  isreadstate0 = .true.
 
-      ! One-shot GS calculation
-      ! Since an XS calculation with Hybrid functionals uses the GS parameters, a one shot GS calculation serves no purpose
-      if (.not. hybrids_used()) call gndstateq(voff, '_RTTDDFT.OUT')
+  ! One-shot GS calculation
+  ! Since an XS calculation with Hybrid functionals uses the GS parameters, a one shot GS calculation serves no purpose
+  if (.not. hybrids_used()) call gndstateq(voff, '_RTTDDFT.OUT')
 
-      call allocate_globals(first_kpt, last_kpt, ionDynamics=molecular_dynamics%on, &
-                            allocate_mathcalH=molecular_dynamics%valence_corrections, &
-                            allocate_mathcalB=molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative, &
-                            allocate_pmatmt=molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative, &
-                            allocate_B=molecular_dynamics%basis_derivative)
+  call allocate_globals(first_kpt, last_kpt, ionDynamics=molecular_dynamics%on, &
+    allocate_mathcalH=molecular_dynamics%valence_corrections, &
+    allocate_mathcalB=molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative, &
+    allocate_pmatmt=molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative, &
+    allocate_B=molecular_dynamics%basis_derivative)
 
-      if (rank == 0) call write_to_info(molecular_dynamics%on)
+  if (rank == 0) call write_to_info(molecular_dynamics%on)
 
-      call read_WF_potential_rttddft(first_kpt, last_kpt)
+  call read_WF_potential_rttddft(first_kpt, last_kpt)
 
-      if (hybrids_used()) then
-         if (input%xs%realTimeTDDFT%calcNonlocalCurrentDensity) then
-            ! In the current implementation, the colomb potential used for the non local potential is calculated in plane wave basis
-            ! For details, please refer to Eq. 61 in doi:10.1016/j.cpc.2012.09.018
+  if (hybrids_used()) then
+    if (input%xs%realTimeTDDFT%calcNonlocalCurrentDensity) then
+      ! In the current implementation, the colomb potential used for the non local potential is calculated in plane wave basis
+      ! For details, please refer to Eq. 61 in doi:10.1016/j.cpc.2012.09.018
       call terminate_if_false(input%groundstate%Hybrid%BasisBareCoulomb == "pw", "For RTTDDFT with hybrids only input%hybrid%barecoul%basis=pw is supported")
-            call set_barecoul_basis()
-         end if
-      end if
+      call set_barecoul_basis()
+    end if
+  end if
 
-      do ik = first_kpt, last_kpt
-         ! Matching coefficients (apwalm)
-         call match(ngk(1, ik), gkc(:, 1, ik), tpgkc(:, :, 1, ik), sfacgk(:, :, 1, ik), apwalm(:, :, :, :, ik))
-      end do
-
+  do ik = first_kpt, last_kpt
+    ! Matching coefficients (apwalm)
+    call match(ngk(1, ik), gkc(:, 1, ik), tpgkc(:, :, 1, ik), sfacgk(:, :, 1, ik), apwalm(:, :, :, :, ik))
+  end do
 
   if( readPmatFromFile ) then 
     call terminate_if_false( file_pmat_exists(), 'File:'//trim( get_filename_pmat() )//' not found')
@@ -154,293 +149,297 @@ contains
     if ( molecular_dynamics%on ) call write_pmat_mt( first_kpt, pmatmt, mpi_env_k )
   end if
 
-      call init_laser
+  call init_laser
 
-      ! Initialize fields
-      pvec(:) = 0._dp
-      jpara(:) = 0._dp
-      jparaold(:) = 0._dp
-      jdia(:) = 0._dp
-      jind(:) = 0._dp
-      aext(:) = 0._dp
-      aind(:) = 0._dp
-      atot(:) = 0._dp
-      ! Hamiltonian at time t=0
-      call UpdateHam(predcorr=.False., calculateOverlap=.True., &
-        & update_mathcalH=allocated(mathcalH), update_mathcalB=allocated(mathcalB), update_pmat=.False.)
-      ham_past(:, :, :) = ham_time(:, :, :)
+  ! Initialize fields
+  pvec(:) = 0._dp
+  jpara(:) = 0._dp
+  jparaold(:) = 0._dp
+  jdia(:) = 0._dp
+  jind(:) = 0._dp
+  aext(:) = 0._dp
+  aind(:) = 0._dp
+  atot(:) = 0._dp
 
-      ! Spurious current
-      if (input%xs%realTimeTDDFT%subtractJ0) then
-         call UpdateCurrentDensity(first_kpt, last_kpt, evecfv_gnd(:, :, :), jparaspurious(:))
-      else
-         jparaspurious(:) = 0._dp
-      end if
+  ! Hamiltonian at time t=0
+  call UpdateHam( predcorr=.False., calculateOverlap=.True., &
+    update_mathcalH=allocated(mathcalH), &
+    update_mathcalB=allocated(mathcalB), &
+    update_pmat=.False. )
+  ham_past(:, :, :) = ham_time(:, :, :)
 
-   end subroutine
+  ! Spurious current
+  if (input%xs%realTimeTDDFT%subtractJ0) then
+    call UpdateCurrentDensity(first_kpt, last_kpt, evecfv_gnd(:, :, :), jparaspurious(:))
+  else
+    jparaspurious(:) = 0._dp
+  end if
+
+end subroutine
 
 !> Allocate global arrays
-   subroutine allocate_globals(first_kpt, last_kpt, ionDynamics, allocate_mathcalH, &
-                               allocate_mathcalB, allocate_pmatmt, allocate_B)
-      !> index of the first `k-point` to be considered in the sum
-      integer(i32), intent(in)        :: first_kpt
-      !> index of the last `k-point` considered
-      integer(i32), intent(in)        :: last_kpt
-      !> if `.True`, we need to allocate arrays for Ehrenfest molecular dynamics
-      logical, intent(in) :: ionDynamics
-      !> if `.True`, we need to allocate the global array `mathcalH`
-      logical, intent(in) :: allocate_mathcalH
-      !> if `.True`, we need to allocate the global array `mathcalB`
-      logical, intent(in) :: allocate_mathcalB
-      !> if `.True`, we need to allocate the global array `pmatmt`
-      logical, intent(in) :: allocate_pmatmt
-      !> if `.True`, we need to allocate the global arrays `B_time` and `B_past`
-      logical, intent(in) :: allocate_B
+subroutine allocate_globals(first_kpt, last_kpt, ionDynamics, allocate_mathcalH, &
+                            allocate_mathcalB, allocate_pmatmt, allocate_B)
+  !> index of the first `k-point` to be considered in the sum
+  integer(i32), intent(in)        :: first_kpt
+  !> index of the last `k-point` considered
+  integer(i32), intent(in)        :: last_kpt
+  !> if `.True`, we need to allocate arrays for Ehrenfest molecular dynamics
+  logical, intent(in) :: ionDynamics
+  !> if `.True`, we need to allocate the global array `mathcalH`
+  logical, intent(in) :: allocate_mathcalH
+  !> if `.True`, we need to allocate the global array `mathcalB`
+  logical, intent(in) :: allocate_mathcalB
+  !> if `.True`, we need to allocate the global array `pmatmt`
+  logical, intent(in) :: allocate_pmatmt
+  !> if `.True`, we need to allocate the global arrays `B_time` and `B_past`
+  logical, intent(in) :: allocate_B
 
-      allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt:last_kpt))
-      allocate (evecfv_gnd(nmatmax, nstfv, first_kpt:last_kpt), source=zzero)
-      allocate (evecfv_time(nmatmax, nstfv, first_kpt:last_kpt))
-      allocate (evecsv(nstsv, nstsv, first_kpt:last_kpt))
-      allocate (overlap(nmatmax, nmatmax, first_kpt:last_kpt), source=zzero)
-      allocate (ham_time(nmatmax, nmatmax, first_kpt:last_kpt), source=zzero)
-      allocate (ham_past(nmatmax, nmatmax, first_kpt:last_kpt), source=zzero)
-      allocate (pmat(nmatmax, nmatmax, 3, first_kpt:last_kpt))
-      if (predictorCorrector) then
-         allocate (ham_predcorr(nmatmax, nmatmax, nkpt), source=zzero)
-         allocate (evecfv_save(nmatmax, nstfv, nkpt))
-      end if
-      if (ionDynamics) then
-         if (allocate_mathcalH) allocate (mathcalH(nmatmax, nmatmax, 3, natmtot, last_kpt))
-         if (allocate_mathcalB) allocate (mathcalB(nmatmax, nmatmax, 3, natmtot, first_kpt:last_kpt))
-         if (allocate_pmatmt) allocate (pmatmt(nmatmax, nmatmax, 3, natmtot, first_kpt:last_kpt))
-         if (allocate_B) then
-            allocate (B_time(nmatmax, nmatmax, first_kpt:last_kpt), source=zzero)
-            allocate (B_past(nmatmax, nmatmax, first_kpt:last_kpt), source=zzero)
-         end if
-      end if
+  allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt:last_kpt))
+  allocate (evecfv_gnd(nmatmax, nstfv, first_kpt:last_kpt), source=zzero)
+  allocate (evecfv_time(nmatmax, nstfv, first_kpt:last_kpt))
+  allocate (evecsv(nstsv, nstsv, first_kpt:last_kpt))
+  allocate (overlap(nmatmax, nmatmax, first_kpt:last_kpt), source=zzero)
+  allocate (ham_time(nmatmax, nmatmax, first_kpt:last_kpt), source=zzero)
+  allocate (ham_past(nmatmax, nmatmax, first_kpt:last_kpt), source=zzero)
+  allocate (pmat(nmatmax, nmatmax, 3, first_kpt:last_kpt))
+  if (predictorCorrector) then
+    allocate (ham_predcorr(nmatmax, nmatmax, nkpt), source=zzero)
+    allocate (evecfv_save(nmatmax, nstfv, nkpt))
+  end if
+  if (ionDynamics) then
+    if (allocate_mathcalH) allocate (mathcalH(nmatmax, nmatmax, 3, natmtot, last_kpt))
+    if (allocate_mathcalB) allocate (mathcalB(nmatmax, nmatmax, 3, natmtot, first_kpt:last_kpt))
+    if (allocate_pmatmt) allocate (pmatmt(nmatmax, nmatmax, 3, natmtot, first_kpt:last_kpt))
+    if (allocate_B) then
+      allocate (B_time(nmatmax, nmatmax, first_kpt:last_kpt), source=zzero)
+      allocate (B_past(nmatmax, nmatmax, first_kpt:last_kpt), source=zzero)
+    end if
+  end if
 
-   end subroutine
+end subroutine
 
 !> Output general information to `RTTDDFT_INFO.OUT`
-   subroutine write_to_info(ionDynamics)
-      !> Are we performing an MD calculation?
-      logical, intent(in)         :: ionDynamics
+subroutine write_to_info(ionDynamics)
+  !> Are we performing an MD calculation?
+  logical, intent(in)         :: ionDynamics
 
-      character(len=100)          :: string
-      character(len=*), parameter :: formatMemory = '(A40,F12.1)'
-      integer(i32), parameter     :: MB = 1048576
+  character(len=100)          :: string
+  character(len=*), parameter :: formatMemory = '(A40,F12.1)'
+  integer(i32), parameter     :: MB = 1048576
 
-      call write_file_info('Non-self-consistent GS for TDDFT calculations - finished')
-      call write_file_info_fill_line_with_char('=')
-      call write_file_info('Allocated memory (MiB per MPI process)')
-      write (string, formatMemory) 'Coefficients to match LAPW functions:', dble(sizeof(apwalm)/MB)
-      call write_file_info(string)
-      write (string, formatMemory) 'Wavefunctions:', &
-         dble((sizeof(evecfv_gnd) + sizeof(evecfv_time) + sizeof(evecsv))/MB)
-      call write_file_info(string)
-      write (string, formatMemory) 'Hamiltonian and Overlap matrices:', &
-         dble((sizeof(overlap) + sizeof(ham_time) + sizeof(ham_past))/MB)
-      call write_file_info(string)
-      if (predictorCorrector) then
-         write (string, formatMemory) 'Extra storage (predictor-corrector):', &
-            dble((sizeof(ham_predcorr) + sizeof(evecfv_save))/MB)
-         call write_file_info(string)
-      end if
-      write (string, formatMemory) 'Momentum matrix:', dble((sizeof(pmat))/MB)
-      call write_file_info(string)
-      if (ionDynamics) then
-         call write_file_info(string)
-         write (string, formatMemory) 'Molecular Dynamics - Muffin-tin aux. matrices:', &
-            dble((sizeof(pmatmt) + sizeof(mathcalH) + sizeof(mathcalB) + sizeof(B_time) + sizeof(B_past))/MB)
-         call write_file_info(string)
-      end if
-      call write_file_info_fill_line_with_char('=')
-      ! General info to be printed to RTTDDFT_INFO
-      call write_file_info('Important output files: AVEC.OUT, PVEC.OUT, JIND.OUT.')
-      call write_file_info('JIND.OUT contains the x, y, and z components of the current density.')
-      call write_file_info('PVEC.OUT contains the x, y, and z components of the polarization vector.')
-      call write_file_info('AVEC.OUT contains in each line 6 elements:')
-      call write_file_info(': the x components of the induced and the total vector potential.')
-      call write_file_info(': the y components of the induced and the total vector potential.')
-      call write_file_info(': the z components of the induced and the total vector potential.')
-   end subroutine
+  call write_file_info('Non-self-consistent GS for TDDFT calculations - finished')
+  call write_file_info_fill_line_with_char('=')
+  call write_file_info('Allocated memory (MiB per MPI process)')
+  write (string, formatMemory) 'Coefficients to match LAPW functions:', dble(sizeof(apwalm)/MB)
+  call write_file_info(string)
+  write (string, formatMemory) 'Wavefunctions:', &
+      dble((sizeof(evecfv_gnd) + sizeof(evecfv_time) + sizeof(evecsv))/MB)
+  call write_file_info(string)
+  write (string, formatMemory) 'Hamiltonian and Overlap matrices:', &
+      dble((sizeof(overlap) + sizeof(ham_time) + sizeof(ham_past))/MB)
+  call write_file_info(string)
+  if (predictorCorrector) then
+    write (string, formatMemory) 'Extra storage (predictor-corrector):', &
+      dble((sizeof(ham_predcorr) + sizeof(evecfv_save))/MB)
+    call write_file_info(string)
+  end if
+  write (string, formatMemory) 'Momentum matrix:', dble((sizeof(pmat))/MB)
+  call write_file_info(string)
+  if (ionDynamics) then
+    call write_file_info(string)
+    write (string, formatMemory) 'Molecular Dynamics - Muffin-tin aux. matrices:', &
+      dble((sizeof(pmatmt) + sizeof(mathcalH) + sizeof(mathcalB) + sizeof(B_time) + sizeof(B_past))/MB)
+    call write_file_info(string)
+  end if
+  call write_file_info_fill_line_with_char('=')
+  ! General info to be printed to RTTDDFT_INFO
+  call write_file_info('Important output files: AVEC.OUT, PVEC.OUT, JIND.OUT.')
+  call write_file_info('JIND.OUT contains the x, y, and z components of the current density.')
+  call write_file_info('PVEC.OUT contains the x, y, and z components of the polarization vector.')
+  call write_file_info('AVEC.OUT contains in each line 6 elements:')
+  call write_file_info(': the x components of the induced and the total vector potential.')
+  call write_file_info(': the y components of the induced and the total vector potential.')
+  call write_file_info(': the z components of the induced and the total vector potential.')
+end subroutine
 
 !> Initialize the most important variables related to the vector potential
 !> applied by an external laser
-   subroutine init_laser
+subroutine init_laser
 
-      integer(i32) :: ik
+  integer(i32) :: ik
 
-      if (associated(input%xs%realTimeTDDFT%laser)) then
-         nkicks = size(input%xs%realTimeTDDFT%laser%kickarray)
-         if (nkicks >= 1) then
-            allocate (wkick(nkicks))
-            allocate (dirkick(nkicks))
-            allocate (amplkick(nkicks))
-            allocate (t0kick(nkicks))
-            do ik = 1, nkicks
-               wkick(ik) = input%xs%realTimeTDDFT%laser%kickarray(ik)%kick%width
-               dirkick(ik) = input%xs%realTimeTDDFT%laser%kickarray(ik)%kick%direction
-               amplkick(ik) = -c*(input%xs%realTimeTDDFT%laser%kickarray(ik)%kick%amplitude)
-               t0kick(ik) = input%xs%realTimeTDDFT%laser%kickarray(ik)%kick%t0
-            end do
-         end if
-         ntrapcos = size(input%xs%realTimeTDDFT%laser%trapCosarray)
-         if (ntrapcos >= 1) then
-            allocate (dirtrapcos(ntrapcos))
-            allocate (ampltrapcos(ntrapcos))
-            allocate (omegatrapcos(ntrapcos))
-            allocate (phasetrapcos(ntrapcos))
-            allocate (t0trapcos(ntrapcos))
-            allocate (trtrapcos(ntrapcos))
-            allocate (wtrapcos(ntrapcos))
-            do ik = 1, ntrapcos
-               dirtrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%direction
-               ampltrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%amplitude
-               omegatrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%omega
-               phasetrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%phase
-               t0trapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%t0
-               trtrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%riseTime
-               wtrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%width
-            end do
-         end if
-         nsinsq = size(input%xs%realTimeTDDFT%laser%sinSqarray)
-         if (nsinsq >= 1) then
-            allocate (dirsinsq(nsinsq))
-            allocate (amplsinsq(nsinsq))
-            allocate (omegasinsq(nsinsq))
-            allocate (phasesinsq(nsinsq))
-            allocate (t0sinsq(nsinsq))
-            allocate (tpulsesinsq(nsinsq))
-            do ik = 1, nsinsq
-               dirsinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%direction
-               amplsinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%amplitude
-               omegasinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%omega
-               phasesinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%phase
-               t0sinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%t0
-               tpulsesinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%pulseLength
-            end do
-         end if
+  if (associated(input%xs%realTimeTDDFT%laser)) then
+      nkicks = size(input%xs%realTimeTDDFT%laser%kickarray)
+      if (nkicks >= 1) then
+        allocate (wkick(nkicks))
+        allocate (dirkick(nkicks))
+        allocate (amplkick(nkicks))
+        allocate (t0kick(nkicks))
+        do ik = 1, nkicks
+            wkick(ik) = input%xs%realTimeTDDFT%laser%kickarray(ik)%kick%width
+            dirkick(ik) = input%xs%realTimeTDDFT%laser%kickarray(ik)%kick%direction
+            amplkick(ik) = -c*(input%xs%realTimeTDDFT%laser%kickarray(ik)%kick%amplitude)
+            t0kick(ik) = input%xs%realTimeTDDFT%laser%kickarray(ik)%kick%t0
+        end do
       end if
-   end subroutine
+      ntrapcos = size(input%xs%realTimeTDDFT%laser%trapCosarray)
+      if (ntrapcos >= 1) then
+        allocate (dirtrapcos(ntrapcos))
+        allocate (ampltrapcos(ntrapcos))
+        allocate (omegatrapcos(ntrapcos))
+        allocate (phasetrapcos(ntrapcos))
+        allocate (t0trapcos(ntrapcos))
+        allocate (trtrapcos(ntrapcos))
+        allocate (wtrapcos(ntrapcos))
+        do ik = 1, ntrapcos
+            dirtrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%direction
+            ampltrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%amplitude
+            omegatrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%omega
+            phasetrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%phase
+            t0trapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%t0
+            trtrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%riseTime
+            wtrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%width
+        end do
+      end if
+      nsinsq = size(input%xs%realTimeTDDFT%laser%sinSqarray)
+      if (nsinsq >= 1) then
+        allocate (dirsinsq(nsinsq))
+        allocate (amplsinsq(nsinsq))
+        allocate (omegasinsq(nsinsq))
+        allocate (phasesinsq(nsinsq))
+        allocate (t0sinsq(nsinsq))
+        allocate (tpulsesinsq(nsinsq))
+        do ik = 1, nsinsq
+            dirsinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%direction
+            amplsinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%amplitude
+            omegasinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%omega
+            phasesinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%phase
+            t0sinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%t0
+            tpulsesinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%pulseLength
+        end do
+      end if
+  end if
+end subroutine
 
 !> checks for consistency between gs hybrid calculation and rttddft and initializes pointer
-   subroutine adjustments_for_Hybrid_RTTDDFT()
-      use modinput, only: input
-      use rttddft_hybrids, only: hybrids_used
-      logical :: is_compatible
-      !> Tetrahedron method is used for Hybrid calculations
+subroutine adjustments_for_Hybrid_RTTDDFT()
+  use modinput, only: input
+  use rttddft_hybrids, only: hybrids_used
+  logical :: is_compatible
+  
+  ! Tetrahedron method is used for Hybrid calculations
   call terminate_if_false(input%groundstate%stypenumber==-1, "stypenumber in the groundstate element must be set to libbzint to use To run RTTDDFT on top of hybrid functional calculations in the xs element")
   call terminate_if_false(hybrids_used(), "The non local current density can be computed only when hybrid functionals are used")
-      is_compatible = .false.
-      call is_gs_input_compatible_with_xs(input, is_compatible)
+  is_compatible = .false.
+  call is_gs_input_compatible_with_xs(input, is_compatible)
   if( is_compatible .eqv. .false.) call terminate_if_false( is_compatible, 'ERROR(rttddft_init): Parameters form GS not compatible with XS!')
-       !> This pointer needs to get associated for when the calculation is started on top of a hybrid gs calculation
-      if (.not. associated(input%groundstate%Hybrid)) &
-         input%groundstate%Hybrid => getstructHybrid(emptynode)
-   end subroutine
+  ! This pointer needs to get associated for when the calculation is started on top of a hybrid gs calculation
+  if (.not. associated(input%groundstate%Hybrid)) &
+      input%groundstate%Hybrid => getstructHybrid(emptynode)
+end subroutine
 
-  !> For RT-TDDFT with hybrid funcionals, the same parameters for xs and the gs should be taken. This subroutine checks for that
-   subroutine is_gs_input_compatible_with_xs(input, is_compatible)
-      use modinput, only: input_type
-      !> Information from the input file
-      type(input_type), intent(in) :: input
-      !> True, if the input is compatible with rttddft and hybrid functionals (otherwise false)
-      logical, intent(out) :: is_compatible
-      !> Incompatibility message rttddft and hybrid functionals
-      integer :: i
+!> For RT-TDDFT with hybrid funcionals, the same parameters for xs and the gs should be taken. This subroutine checks for that
+subroutine is_gs_input_compatible_with_xs(input, is_compatible)
+  use modinput, only: input_type
+  !> Information from the input file
+  type(input_type), intent(in) :: input
+  !> True, if the input is compatible with rttddft and hybrid functionals (otherwise false)
+  logical, intent(out) :: is_compatible
+  !> Incompatibility message rttddft and hybrid functionals
+  integer :: i
 
-      is_compatible = .true.
+  is_compatible = .true.
 
-      if (input%xs%nosym .eqv. input%groundstate%nosym) is_compatible = .false.
-      do i = 1, 3
-         if (input%xs%ngridk(i) == input%groundstate%ngridk(i)) is_compatible = .false.
-         if (input%xs%vkloff(i) == input%groundstate%vkloff(i)) is_compatible = .false.
-      end do
-      if (input%xs%reducek .eqv. input%groundstate%reducek) is_compatible = .false.
-      if (input%xs%rgkmax == input%groundstate%rgkmax) is_compatible = .false.
-      if (input%xs%swidth == input%groundstate%swidth) is_compatible = .false.
-      if (input%xs%nempty == input%groundstate%nempty) is_compatible = .false.
+  if (input%xs%nosym .eqv. input%groundstate%nosym) is_compatible = .false.
+  do i = 1, 3
+    if (input%xs%ngridk(i) == input%groundstate%ngridk(i)) is_compatible = .false.
+    if (input%xs%vkloff(i) == input%groundstate%vkloff(i)) is_compatible = .false.
+  end do
+  if (input%xs%reducek .eqv. input%groundstate%reducek) is_compatible = .false.
+  if (input%xs%rgkmax == input%groundstate%rgkmax) is_compatible = .false.
+  if (input%xs%swidth == input%groundstate%swidth) is_compatible = .false.
+  if (input%xs%nempty == input%groundstate%nempty) is_compatible = .false.
 
-   end subroutine
+end subroutine
 
-    !> read WF and potential from potential gs run. For hybrid functionals, the parameters are read from the PBE run
-   subroutine read_WF_potential_rttddft(first_kpt, last_kpt)
-      !> First k-point treated by this (MPI)rank
-      integer, intent(in)         :: first_kpt
-      !> Last k-point treated by this (MPI)rank
-      integer, intent(in)         :: last_kpt
+!> read WF and potential from potential gs run. For hybrid functionals, the parameters are read from the PBE run
+subroutine read_WF_potential_rttddft(first_kpt, last_kpt)
+  !> First k-point treated by this (MPI)rank
+  integer, intent(in)         :: first_kpt
+  !> Last k-point treated by this (MPI)rank
+  integer, intent(in)         :: last_kpt
 
-      integer                     :: ik
-      logical                     :: file_exists
-      character(len=50)           :: string
+  integer                     :: ik
+  logical                     :: file_exists
+  character(len=50)           :: string
 
-      if (hybrids_used()) then
-      inquire (File='STATE_PBE.OUT', Exist=file_exists)
-      call terminate_if_false(file_exists, 'ERROR(rttddft_init): Start from GS calculation is not possible, STATE_PBE.OUT is missing!')
-            isreadstate0 = .false. ! We read not only from STATE.OUT
-            string = filext
-            filext = '_PBE.OUT'
-      else
-         string = filext
-         filext = '_RTTDDFT.OUT'
-      end if
-      call readstate        ! read the density and potentials from file
-      call gencore          ! generate the core wavefunctions and densities
-      call genmeffig
-      call linengy          ! find the new linearization energies
-      call genapwfr         ! generate the APW radial functions
-      call genlofr          ! generate the local-orbital radial functions
-      call olprad           ! compute the overlap radial integrals
-      if (hybrids_used()) then
-         filext = string
-         call energykncr()       ! core kinetic energy
-         call init_product_basis()
-         call readstate()
-         call readfermi()
-         call read_vxnl()        !The non local potential is read out from file
-         call genmeffig
+  if (hybrids_used()) then
+    inquire (File='STATE_PBE.OUT', Exist=file_exists)
+    call terminate_if_false(file_exists, 'ERROR(rttddft_init): Start from GS calculation is not possible, STATE_PBE.OUT is missing!')
+    isreadstate0 = .false. ! We read not only from STATE.OUT
+    string = filext
+    filext = '_PBE.OUT'
+  else
+    string = filext
+    filext = '_RTTDDFT.OUT'
+  end if
+  call readstate        ! read the density and potentials from file
+  call gencore          ! generate the core wavefunctions and densities
+  call genmeffig
+  call linengy          ! find the new linearization energies
+  call genapwfr         ! generate the APW radial functions
+  call genlofr          ! generate the local-orbital radial functions
+  call olprad           ! compute the overlap radial integrals
+  if (hybrids_used()) then
+    filext = string
+    call energykncr()       ! core kinetic energy
+    call init_product_basis()
+    call readstate()
+    call readfermi()
+    call read_vxnl()        !The non local potential is read out from file
+    call genmeffig
 
-         !----------------------------------------
-         ! Read KS eigenvalues from file EVALFV.OUT
-         !----------------------------------------
-         if (allocated(evalfv)) deallocate (evalfv)
-         allocate (evalfv(nstfv, kset%nkpt))
-         evalfv(:, :) = 0.d0
-         do ik = 1, kset%nkpt
-            call getevalfv(kset%vkl(:, ik), evalfv(:, ik))
-         end do
+    !----------------------------------------
+    ! Read KS eigenvalues from file EVALFV.OUT
+    !----------------------------------------
+    if (allocated(evalfv)) deallocate (evalfv)
+    allocate (evalfv(nstfv, kset%nkpt))
+    evalfv(:, :) = 0.d0
+    do ik = 1, kset%nkpt
+      call getevalfv(kset%vkl(:, ik), evalfv(:, ik))
+    end do
 
-         ! VB / CB state index
-         call find_vbm_cbm(1, nstfv, kset%nkpt, evalfv, efermi, nomax, numin, ikvbm, ikcbm, ikvcm)
+    ! VB / CB state index
+    call find_vbm_cbm(1, nstfv, kset%nkpt, evalfv, efermi, nomax, numin, ikvbm, ikcbm, ikvcm)
 
-         ! The matrix sizes of mixed product basis quantities depend on if the core electrons are treated as valence
-         ! This code block sets the dimension accordingly and is later read out in UpdateNonlocalCurrentDensity
-         if ((input%gw%coreflag == 'all') .or. &
-             (input%gw%coreflag == 'xal')) then
-            call Set_Dimension_mixed_product_basis(nomax + ncg)
-         else
-            call Set_Dimension_mixed_product_basis(nomax)
-         end if
+    ! The matrix sizes of mixed product basis quantities depend on if the core electrons are treated as valence
+    ! This code block sets the dimension accordingly and is later read out in UpdateNonlocalCurrentDensity
+    if ((input%gw%coreflag == 'all') .or. &
+        (input%gw%coreflag == 'xal')) then
+      call Set_Dimension_mixed_product_basis(nomax + ncg)
+    else
+      call Set_Dimension_mixed_product_basis(nomax)
+    end if
 
-         ! Set BZ integration weights
-         call kintw()
+    ! Set BZ integration weights
+    call kintw()
 
-         deallocate (evalfv)
+    deallocate (evalfv)
 
-      end if
+  end if
 
-      ! Get the eigenvectors and occupations from file
-      do ik = first_kpt, last_kpt
-         ! Eigenvectors (first and second-variational components)
-         call getevecfv(vkl(:, ik), vgkl(:, :, :, ik), evecfv_gnd(:, :, ik))
-         evecfv_time(1:nmatmax, 1:nstfv, ik) = evecfv_gnd(1:nmatmax, 1:nstfv, ik)
-         call getevecsv(vkl(:, ik), evecsv(:, :, ik))
-         call getoccsv(vkl(:, ik), occsv(:, ik))
-      end do
+  ! Get the eigenvectors and occupations from file
+  do ik = first_kpt, last_kpt
+    ! Eigenvectors (first and second-variational components)
+    call getevecfv(vkl(:, ik), vgkl(:, :, :, ik), evecfv_gnd(:, :, ik))
+    evecfv_time(1:nmatmax, 1:nstfv, ik) = evecfv_gnd(1:nmatmax, 1:nstfv, ik)
+    call getevecsv(vkl(:, ik), evecsv(:, :, ik))
+    call getoccsv(vkl(:, ik), occsv(:, ik))
+  end do
 
-      filext = string
+  filext = string
 
-   end subroutine
+end subroutine
 
 end module rttddft_init
