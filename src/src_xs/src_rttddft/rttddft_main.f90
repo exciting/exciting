@@ -20,6 +20,7 @@ module rttddft_main
   use MD_io, only: MD_out
   use mod_atoms, only: natmtot, natoms, nspecies, atposc, idxas
   use mod_charge_and_moment, only: chgval
+  use mod_eigenvalue_occupancy, only: occsv
   use mod_kpoint, only: nkpt
   use mod_lattice, only: omega
   use mod_misc, only: filext
@@ -28,7 +29,7 @@ module rttddft_main
   use modmpi, only: rank, procs, mpi_env_k, mpiglobal, distribute_loop, barrier
   use physical_constants, only: c
   use precision, only: dp, i32
-  use rttddft_CurrentDensity, only: UpdateCurrentDensity
+  use rttddft_CurrentDensity, only: Obtain_Paramagnetic_Current_Density
   use rttddft_Energy, only: TotalEnergy, obtain_energy_rttddft
   use rttddft_GlobalVariables
   use rttddft_HamiltonianOverlap, only: UpdateHam
@@ -220,7 +221,8 @@ contains
       if ( printTimesGeneral ) call timesecRTTDDFT(timei,timef,timing%t_RTTDDFT%t_wvf)
 
       ! Update the paramagnetic component of the induced current density
-      call UpdateCurrentDensity( first_kpt, last_kpt, evecfv_time(:,:,:),jparanext(:) )
+      call Obtain_Paramagnetic_Current_Density( evecfv_time, pmat, occsv(:, first_kpt:last_kpt), &
+        [(1._dp/nkpt, is = first_kpt, last_kpt)], jparanext )
       if ( input%xs%realTimeTDDFT%subtractJ0 ) jparanext(:) = jparanext(:)-jparaspurious(:)
       if ( printTimesGeneral ) call timesecRTTDDFT(timei,timef,timing%t_RTTDDFT%t_curr)
 
@@ -593,7 +595,7 @@ contains
     !> When `.True.`, it informs that the maximum steps have been reached
     logical, intent(out)           :: maxStepsReached
 
-    integer(i32) :: i
+    integer(i32) :: i, ik
     real(dp)     :: err
 
     do i = 1, maxSteps
@@ -602,7 +604,8 @@ contains
       call UpdateWavefunction( .True. )
 
       ! Update the paramagnetic component of the induced current density
-      call UpdateCurrentDensity( first_kpt, last_kpt, evecfv_time(:,:,:),jparanext(:))
+      call Obtain_Paramagnetic_Current_Density( evecfv_time, pmat, occsv(:, first_kpt:last_kpt), &
+        [(1._dp/nkpt, ik = first_kpt, last_kpt)], jparanext )
       if ( input%xs%realTimeTDDFT%subtractJ0 ) jparanext(:) = jparanext(:)-jparaspurious(:)
 
       ! DENSITY

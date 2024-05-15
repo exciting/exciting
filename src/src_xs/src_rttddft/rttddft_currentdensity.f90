@@ -9,106 +9,78 @@
 
 !> Module that deals with the Current Density in RT-TDDFT calculations
 module rttddft_CurrentDensity
+#ifdef MPI
+  use modmpi, only: MPI_IN_PLACE, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr
+#endif
+  use mod_lattice, only: Omega
+  use precision, only: dp
+  use constants, only: zzero, zone
+  use xlapack, only: dot_multiply, hermitian_matrix_multiply
+
   implicit none
 
   private
 
-  public :: UpdateCurrentDensity
+  public :: Obtain_Paramagnetic_Current_Density
 
 contains
 
-  !> Here, we calculate the paramagnetic part of the current density at time 
-  !> \( t \). It is calculated as:
+  !> Calculate the paramagnetic part of the current density at time \( t \) as:
   !> \[
   !>    \mathbf{J}(t) = \frac{\mathrm{i}}{\Omega} \sum_{j\mathbf{k}}
   !>      w_{\mathbf{k}}f_{j\mathbf{k}} \left\langle \psi_{j\mathbf{k}}(t) \big|
   !>      \nabla \big|\psi_{j\mathbf{k}}(t)\right\rangle
   !>  \]
-  !>  where \( N \) is the number of valence electrons in the unit cell with
-  !>  volume \( \Omega \), \( w_{\mathbf{k}} \) is the weight of the considered
-  !>  k-point, and \( f_{j\mathbf{k}} \) is the occupation number of the
-  !>  corresponding KS state.
-  subroutine UpdateCurrentDensity( first_kpt, last_kpt, evec, jpara )
-    use precision, only: dp
-    use constants, only: zzero, zone
-    use modinput, only: input
-    use modmpi
-    use mod_lattice, only: omega
-    use mod_eigenvalue_occupancy, only: occsv, nstfv
-    use mod_eigensystem, only: nmat, nmatmax
-    use rttddft_GlobalVariables, only: pmat
-
-    implicit none
-
-    !> index of the first `k-point` to be considered in the sum
-    integer,intent(in)        :: first_kpt
-    !> index of the last `k-point` considered
-    integer,intent(in)        :: last_kpt
-    !> Basis-expansion coefficients of the KS-wavefunctions at time \( t \).
-    !> Dimensions: `nmatmax`, `nstfv`, `first_kpt:last_kpt`
-    complex(dp), intent(in)   :: evec(:, :, first_kpt:)
+  !> where \( \Omega \) is the unit cell volume , \( w_{\mathbf{k}} \) is the 
+  !> k-point weight and \( f_{j\mathbf{k}} \) is the occupation number of the
+  !> corresponding KS state.
+  subroutine Obtain_Paramagnetic_Current_Density( psi, p_mat, occupation, kpt_weight, j_para )
+    !> Basis-expansion coefficients of the KS-wavefunctions at time \( t \)
+    complex(dp), intent(in)   :: psi(:, :, :)
+    !> Momentum matrix elements
+    complex(dp), intent(in)   :: p_mat(:, :, :, :)
+    !> Occupation of each KS state
+    real(dp), intent(in)      :: occupation(:, :)
+    !> Integration weight of each k-point
+    real(dp), intent(in)      :: kpt_weight(:)
     !> `x`, `y` and `z` components of the parametic current density
-    real(8), intent(out)      :: jpara(3)
+    real(dp), intent(out)     :: j_para(3)
 
-    integer                   :: ik, ist, j
+    integer                   :: ik, ist, j, last_kpt, n_states, n_basis, n_kpt
+    real(dp), allocatable     :: acc(:)
+    complex(dp), allocatable  :: draft(:, :)
+    real(dp), parameter       :: tol_default = 1e-6_dp
 
-    real(dp)                  :: weight
-    real(dp)                  :: acc(nstfv)
-    real(dp)                  :: aux2(3)
-    real(dp), allocatable     :: aux(:,:)
-    complex(dp), allocatable  :: scratch(:,:)
-    ! Blas subroutines
-    real(dp)                  :: ddot
-    complex(dp)               :: zdotc
+    n_kpt = size( psi, 3 )
+    n_states = size( psi, 2 )
+    n_basis = size( psi, 1 )
+    allocate( draft(n_basis, n_states), acc(n_states) )
+    j_para = 0._dp
 
-    allocate( scratch(nmatmax,nstfv) )
-    allocate( aux(3,first_kpt:last_kpt) )
-
-    aux(:,:) = 0._dp
-
-    ! Summation weight of each kpoint
-    ! TODO(Ronaldo): consider symmetries in the k-grid
-    weight = 1._dp/dble(product(input%groundstate%ngridk))
-
-    ! For the x, y, and z components ...
-    do j = 1,3
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(NONE), &
-!$OMP& PRIVATE(ik,ist,scratch,acc), &
-!$OMP& SHARED(j,first_kpt,last_kpt,aux,nmatmax,nstfv,pmat), &
-!$OMP& SHARED(evec,occsv,nmat,input)
-!$OMP DO
+!$OMP PARALLEL DO DEFAULT(NONE), PRIVATE(ik, j, ist, draft, acc), REDUCTION(+:j_para), &
+!$OMP& SHARED(n_kpt, n_states, p_mat, psi, occupation, kpt_weight)
 #endif
-      do ik = first_kpt, last_kpt
-        ! C := alpha*A*B + beta*C, A hermitian
-        ! ZHEMM(SIDE,UPLO,M,N,ALPHA,A,LDA,B,LDB,BETA,C,LDC)
-        call ZHEMM('L','U',nmat(1,ik),nstfv, zone,pmat(:,:,j,ik),nmatmax, &
-          & evec(:,:,ik),nmatmax, zzero,scratch(:,:),nmatmax)
-        do ist = 1, nstfv
-          ! If the occupation of a certain state is small, we can consider
-          ! that all the others above it will have occsv(ist,ik) zero
-          if ( occsv(ist, ik)  <= input%groundstate%epsocc ) exit
-          acc(ist) = dble(zdotc(nmat(1,ik),evec(:,ist,ik),1,scratch(:,ist),1))
+    do ik = 1, n_kpt
+      ! For the x, y, and z components ...
+      do j = 1, 3
+        call hermitian_matrix_multiply( p_mat(:, :, j, ik), psi(:, :, ik), draft, 'U', 'L', tol_default )
+        do ist = 1, n_states
+          acc(ist) = real( dot_multiply( psi(:, ist, ik), draft(:, ist), conjg_a=.true. ), dp )
         end do
-        aux(j,ik) = -ddot(ist-1,occsv(:,ik),1,acc(:),1)
-      end do ! do ik = first_kpt, last_kpt
-#ifdef USEOMP
-!$OMP END DO NOWAIT
-!$OMP END PARALLEL
-#endif
-    end do !do j = 1,3
-
-    do j = 1, 3
-      aux2(j) = sum( aux(j, first_kpt:last_kpt) )
+        j_para(j) = j_para(j) - dot_multiply( occupation(:, ik), acc )*kpt_weight(ik)
+      end do
     end do
-#ifdef MPI
-    call MPI_ALLREDUCE(aux2, jpara, 3, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
-    jpara = jpara*weight/omega
-#else
-    jpara = aux2*weight/omega
+#ifdef USEOMP
+!$OMP END PARALLEL DO 
 #endif
-    deallocate( scratch, aux )
+    
+    j_para = j_para / Omega
+  
+#ifdef MPI
+    call MPI_ALLREDUCE( MPI_IN_PLACE, j_para, 3, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr )
+#endif
 
-  end subroutine UpdateCurrentDensity
+  end subroutine
 
 end module rttddft_CurrentDensity
