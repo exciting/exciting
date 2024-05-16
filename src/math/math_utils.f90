@@ -4,7 +4,7 @@ module math_utils
   use, intrinsic :: ISO_C_BINDING
 
   use precision, only: sp, dp
-  use constants, only: pi, zzero, zone, zi, fourpi, twopi
+  use constants, only: pi, zzero, zone, zi, fourpi, twopi, real_zero, real_one
   use asserts, only: assert
   use seed_generation, only: set_seed
 
@@ -1880,47 +1880,71 @@ contains
 
   !> For a list of non-decreasing eigenvalues \(e_{i+1} \geq e_i\) with \(i=1,\dots,N\),
   !> find blocks of degenerate eigenvalues \((l,m)_k\) with \(l \leq m\) and
-  !> \(e_m - e_l < \epsilon\) for some given tolerance \(\epsilon\).
+  !> \(e_m - e_l < \epsilon\) for some given absolute and relative tolerances \(\epsilon\).
   !> The results will be returned as triples \((l,m,n)_k\), where \(l\) (\(m\))
   !> is the index of the first (last) degenerate state in the block and
   !> \(n = m-l+1\) is the degree of the degeneracy.
-  pure function get_degeneracies( eval, tol ) result( deg )
+  pure function get_degeneracies( eval, abstol, reltol ) result( deg )
     !> list of increasing eigenvalues
     real(dp), intent(in) :: eval(:)
-    !> tolerance for degeneracies
-    real(dp), intent(in) :: tol
+    !> absolute tolerance for degeneracies
+    real(dp), intent(in) :: abstol
+    !> relative tolerance for degeneracies
+    real(dp), intent(in), optional :: reltol
     !> list of degenerate blocks
     integer, allocatable :: deg(:,:)
 
-    real(dp), parameter :: eps0 = 1e-128_dp ! effective 0
+    real(dp), parameter :: eps0 = tiny(real_zero) ! smallest non-zero number 
 
     integer :: n, i, j
     real(dp) :: e
-    integer, allocatable :: tmp(:,:)
+    real(dp) :: reltol_local
 
     n = size( eval )
 
-    do i = 2, n
-      if( eval(i) + eps0 < eval(i-1) ) error stop 'Eigenvalues are not increasing.'
-    end do
+    if(present(reltol)) then 
+      reltol_local = reltol
+    else
+      reltol_local = real_zero
+    end if
 
-    if( allocated( deg ) ) deallocate( deg )
-    allocate( tmp(3, n) )
+    if (any(eval(2:n) + eps0 <  eval(1:n-1) )) then
+      error stop 'Eigenvalues are not increasing.'
+    end if
 
-    j = 0; e = -huge( 1.0_dp )
+    allocate( deg(3, n) )
+
+    j = 0 
+    e = -huge( real_one )
     do i = 1, n
-      if( eval(i) - e < tol ) then
-        tmp(2, j) = i
-        tmp(3, j) = tmp(3, j) + 1
+      if( isclose(eval(i), e, reltol_local, abstol) .and. abstol > real_zero ) then
+        deg(2, j) = i
+        deg(3, j) = deg(3, j) + 1
       else
         j = j + 1
         e = eval(i)
-        tmp(:, j) = [i, i, 1]
+        deg(:, j) = [i, i, 1]
       end if
     end do
 
-    allocate( deg, source=tmp(:, 1:j) )
-    deallocate( tmp )
+    deg = deg(:, 1:j) 
+  
+  contains
+    
+    !> For the checking of degeneracies we also use relative tolerance
+    !> It mimics Python's math.isclose()
+    elemental logical function isclose(a, b, rtol, atol)
+      !> numbers to compare
+      real(dp), intent(in) :: a, b 
+      !> Relative tolerance
+      real(dp), intent(in) :: rtol
+      !> Absolute tolerance
+      real(dp), intent(in) :: atol
+
+      isclose = abs(a - b) <= max(rtol * max(abs(a), abs(b)), atol)
+    
+    end function isclose
+  
   end function get_degeneracies
 
 end module math_utils

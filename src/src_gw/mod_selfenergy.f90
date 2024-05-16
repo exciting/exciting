@@ -3,6 +3,7 @@ module mod_selfenergy
     use gw_io, only: build_file_name, read_from_file, write_to_file
     use mod_frequency
     use precision, only: i32, dp
+    use constants, only: zzero
 
     implicit none
 
@@ -73,18 +74,15 @@ contains
 
         ! KS eigenvalues
         if (allocated(evalks)) deallocate(evalks)
-        allocate(evalks(ibgw:nbgw,nkpt))
-        evalks(:,:) = 0.d0
+        allocate(evalks(ibgw:nbgw,nkpt), source=0.0_dp)
 
         ! Quasi-Particle energy
         if (allocated(evalqp)) deallocate(evalqp)
-        allocate(evalqp(ibgw:nbgw,nkpt))
-        evalqp(:,:) = 0.d0
+        allocate(evalqp(ibgw:nbgw,nkpt), source=0.0_dp)
 
         ! Exchange self-energy
         if (allocated(selfex)) deallocate(selfex)
-        allocate(selfex(ibgw:nbgw,nkpt))
-        selfex(:,:) = 0.d0
+        allocate(selfex(ibgw:nbgw,nkpt), source=zzero)
 
         ! Correlation self-energy
         call generate_frequency_grid_for_correlation_self_energy( input%gw )
@@ -92,25 +90,25 @@ contains
 
         if (input%gw%taskname.ne.'g0w0-x') then
           if (allocated(selfec)) deallocate(selfec)
-          allocate(selfec(ibgw:nbgw,nw,nkpt))
-          selfec(:,:,:) = 0.d0
+          allocate(selfec(ibgw:nbgw,nw,nkpt), source=zzero)
+
           if (input%gw%taskname.ne.'cohsex') then
             ! Correlation self-energy at real frequencies after AC procedure
             if (allocated(sigc)) deallocate(sigc)
-            allocate(sigc(ibgw:nbgw,nkpt))
-            sigc(:,:) = 0.d0
+            allocate(sigc(ibgw:nbgw,nkpt), source=zzero)
+            
             ! Renormalization (linearization) factors
             if (allocated(znorm)) deallocate(znorm)
-            allocate(znorm(ibgw:nbgw,nkpt))
-            znorm(:,:) = 0.d0
+            allocate(znorm(ibgw:nbgw,nkpt), source=0.0_dp)
+            
           else
             ! COHSEX approximation
             if (allocated(sigsx)) deallocate(sigsx)
-            allocate(sigsx(ibgw:nbgw,nkpt))
-            sigsx(:,:) = 0.d0
+            allocate(sigsx(ibgw:nbgw,nkpt), source=zzero)
+            
             if (allocated(sigch)) deallocate(sigch)
-            allocate(sigch(ibgw:nbgw,nkpt))
-            sigch(:,:) = 0.d0
+            allocate(sigch(ibgw:nbgw,nkpt), source=zzero)
+            
           end if ! cohsex
         end if
 

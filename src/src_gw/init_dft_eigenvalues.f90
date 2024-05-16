@@ -10,6 +10,8 @@ subroutine init_dft_eigenvalues()
     use mod_eigensystem, only: nmat, nmatmax
     use modgw, only: kset, kqset, ibgw, nvelgw, fgw, nbandsgw, nbgw
     use mod_bands, only: numin, nomax, nstdf, nstse, evalfv, occfv
+    use mod_gw_degeneracies, only: initialize_degeneracy_module, absolute_tolerance_gw_degeneracy, &
+                                   relative_tolerance_gw_degeneracy
     use mod_mpi_gw, only : myrank
     use mod_hdf5
     use constants,  only: real_zero
@@ -19,9 +21,9 @@ subroutine init_dft_eigenvalues()
 
     integer(i32) :: ikp, ik, ib
     real(dp) :: e0, egap
-    logical :: degeneracy_check
+    logical :: enforce_degeneracy
 
-    degeneracy_check = input%gw%degeneracyCheck
+    enforce_degeneracy = input%gw%enforceDegeneracy
 
     if (allocated(evalfv)) deallocate(evalfv)
     allocate(evalfv(nstfv,kset%nkpt), source = real_zero)
@@ -64,6 +66,12 @@ subroutine init_dft_eigenvalues()
     evalcr(:,:) = evalcr(:,:) - efermi
     efermi = real_zero
 
+    !------------------------------------------------------------------------------------------------
+    ! Computing degenerate subspaces, this is needed to enforce symmetry in the self-energy operator
+    !------------------------------------------------------------------------------------------------
+    
+    call initialize_degeneracy_module(kset, nstfv, evalfv, occfv, enforce_degeneracy)
+
     !------------------------------------------------------------------
 
     nvelgw = chgval - 2.0_dp * real(ibgw-1, kind=dp)
@@ -80,7 +88,7 @@ subroutine init_dft_eigenvalues()
     end if
 
     ! Checking for truncation of degenerate subspaces
-    if( degeneracy_check ) call check_degenerate_subspaces(nstdf)
+    if( enforce_degeneracy ) call check_degenerate_subspaces(nstdf)
 
     ! initialize the number of states to calculate the correlation self energy
     if (input%gw%selfenergy%nempty>0) then
@@ -95,7 +103,7 @@ subroutine init_dft_eigenvalues()
         end if
 
         ! Again check for the truncation of degenerate subspaces
-        if( degeneracy_check ) call check_degenerate_subspaces(nstse)
+        if( enforce_degeneracy ) call check_degenerate_subspaces(nstse)
 
     else
         nstse = nstdf
@@ -156,13 +164,7 @@ subroutine init_dft_eigenvalues()
         stop
     end if
     nbandsgw = nbgw - ibgw + 1
-
-    !------------------------
-    ! If symmetry is used
-    !------------------------
-    ! TODO: Rewrite this to perform the averaging of self-energy operator
-    !if (input%gw%reduceq) call sym_state_degeneracy()
-
+    
     return
 
 contains
@@ -182,7 +184,6 @@ contains
       !> The truncation limit
       integer(i32), intent(inout) :: ntruncation
       ! Elements to check if we are truncating a degenerated subspace
-      real(dp), parameter :: tolerance = 1.0e-10_dp
       integer(i32) :: n_spaces, ispace
       !idx_degeneracies is allocated/deallocated inside the get_degeneracies procedure 
       integer(i32), allocatable :: idx_degeneracies(:,:)
@@ -204,7 +205,8 @@ contains
           ! Call get_degeneracies, which returns a list of the degenerate subspaces [each subspace info is
           ! giving in individual rows providing the starting [row 1] and ending [row 2]
           ! indices for each them, as well their size [row 3].
-          idx_degeneracies = get_degeneracies(evalfv(:nstfv,ikp), tolerance)
+          idx_degeneracies = get_degeneracies(evalfv(:nstfv,ikp), absolute_tolerance_gw_degeneracy, &
+                                              relative_tolerance_gw_degeneracy)
           n_spaces = size(idx_degeneracies, 2)
 
           ! Notice that we ignore the highest eigenvalue subspace as we cannot ensure that
@@ -229,7 +231,6 @@ contains
         ! Print new truncation
         write(fgw,*) "   -Final band truncation has been adjusted to prevent the cutting of the degenerate subspaces to ", ntruncation
         write(fgw,*)
-
       else
         ! We are working with the full space, so no correction is needed.
         write(fgw,*)

@@ -380,10 +380,10 @@ doonly_mandatory_attributes = ["task"]
 
 
 # gw information 
-gw_valid_attributes = ["at1", "at2", "coreflag", "debug", "degeneracyCheck", "eph", "ibgw", "ibmax", "ibmax2", "ibmin", 
-                       "ibmin2", "igmax", "igmin", "iik", "jjk", "mblksiz", "nbgw", "nempty", "ngridq", "printSelfC", 
-                       "printSpectralFunction", "qdepw", "reduceq", "rmax", "rpath", "rpmat", "skipgnd", "taskname", 
-                       "vqloff", "wlo", "wto"] 
+gw_valid_attributes = ["at1", "at2", "coreflag", "debug", "degeneracyAbsoluteTolerance", "degeneracyRelativeTolerance", 
+                       "enforceDegeneracy", "eph", "ibgw", "ibmax", "ibmax2", "ibmin", "ibmin2", "igmax", "igmin", 
+                       "iik", "jjk", "mblksiz", "nbgw", "nempty", "ngridq", "printSelfC", "printSpectralFunction", 
+                       "qdepw", "reduceq", "rmax", "rpath", "rpmat", "skipgnd", "taskname", "vqloff", "wlo", "wto"] 
 gw_valid_subtrees = ["plot1d", "freqgrid", "selfenergy", "mixbasis", "barecoul", "scrcoul", "taskGroup"] 
 
 freqgrid_valid_attributes = ["eta", "fconv", "fgrid", "freqmax", "freqmin", "nomeg"] 

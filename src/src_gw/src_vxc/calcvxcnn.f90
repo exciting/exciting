@@ -12,36 +12,45 @@ subroutine calcvxcnn
 ! the exchange correlation potential (only for valence states).
 
 !!USES:
-    use modinput
+    use modinput, only: input
     use modmain, only: apwordmax, lmmaxapw, lmmaxvr, natmtot, nlomax, &
                        nstfv, nmatmax, nspecies, zzero, &
                        nlotot, natoms, vxcmt, vxcir, zone, &
                        ldapu, llu
-    use mod_vxc
-    use modgw
-    use modmpi
-    use m_getunit
-    use mod_hdf5
+    use mod_misc, only: filext
+    use mod_vxc, only: vxcnn, vxcraa, vxcrloa, vxcrlolo, write_vxcnn
+    use modgw, only: kset, kqset, Gkset, Gkqset, ibgw, nbgw, time_vxc
+    use modmpi, only: firstofset, lastofset, rank, mpi_allgatherv_ifc, &
+                      barrier
+    use m_getunit, only: getunit
+    ! use mod_hdf5
     use mod_hybrids, only: hybridhf, vxnl
     use modxs, only: isreadstate0
+    use precision, only: i32, dp
+    use mod_gw_degeneracies, only: get_degenerate_limits_qp_interval_ikp, &
+                                   ibgw_including_degeneracy, &
+                                   nbgw_including_degeneracy, &
+                                   degenerate_subspaces
 
 !!LOCAL VARIABLES:
     implicit none
-    integer(4) :: ikp, ik
-    integer(4) :: ist, jst, i, j, k, l, ispn
-    integer(4) :: ia, is
-    integer(4) :: ngp, fid
-    real(8)    :: tstart, tend
-    complex(8) :: zsum, zt1
-    complex(8), allocatable :: apwalm(:,:,:,:)
-    complex(8), allocatable :: evecfv(:,:)
-    complex(8), allocatable :: h(:)
-    real(8)    :: t0, t1
+    integer(i32) :: ikp, ik
+    integer(i32) :: ist, jst, i, j, k, l, ispn
+    integer(i32) :: ia, is
+    integer(i32) :: ngp, fid
+    real(dp)    :: tstart, tend
+    complex(dp) :: zsum, zt1
+    complex(dp), allocatable :: apwalm(:,:,:,:)
+    complex(dp), allocatable :: evecfv(:,:)
+    complex(dp), allocatable :: h(:)
+    real(dp)    :: t0, t1
     character(80) :: filext_save
     logical :: isreadstate0_save
+    ! For the averaging over degenerate states
+    integer(i32) :: ispace_init, ispace_final, ispace, lowband, upband, size_deg
 
 !!EXTERNAL ROUTINES:
-    complex(8), external :: zdotc
+    complex(dp), external :: zdotc
 
 !!REVISION HISTORY:
 !
@@ -66,8 +75,7 @@ subroutine calcvxcnn
 
     ! Global array to store <n|Vxc|n>
     if (allocated(vxcnn)) deallocate(vxcnn)
-    allocate(vxcnn(nstfv,kset%nkpt))
-    vxcnn = zzero
+    allocate(vxcnn(ibgw_including_degeneracy:nbgw_including_degeneracy,kset%nkpt), source = zzero)
 
     ! allocate exchange-correlation integral arrays
     if (allocated(vxcraa)) deallocate(vxcraa)
@@ -99,14 +107,13 @@ subroutine calcvxcnn
     allocate(h(nmatmax))
 
     do ikp = firstofset(rank,kset%nkpt), lastofset(rank,kset%nkpt)
-
       ik = kset%ikp2ik(ikp)
       ngp = Gkqset%ngk(1,ik)
       call get_evec_gw(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
       call match(ngp, Gkqset%gkc(:,1,ik), Gkqset%tpgkc(:,:,1,ik), &
                  Gkqset%sfacgk(:,:,1,ik), apwalm)
 
-      do i = ibgw, nbgw
+      do i = ibgw_including_degeneracy, nbgw_including_degeneracy
         h(:) = zzero
         ! muffin-tin contributions
         do is = 1, nspecies
@@ -129,10 +136,23 @@ subroutine calcvxcnn
 
       if (hybridhf) then
         ! setup the hybrid Vxc
-        do i = 1, nstfv
+        do i = ibgw_including_degeneracy, nbgw_including_degeneracy
           vxcnn(i,ikp) = input%groundstate%Hybrid%excoeff*vxnl(i,i,ikp) + vxcnn(i,ikp)
         end do
       end if
+
+      ! Here we enforce degeneracies in the VXCNN (the degeneracy lifting is a numerical artifact here)
+
+      ! First we compute indeces of the subspaces we are interested in
+      call get_degenerate_limits_qp_interval_ikp(ikp, ispace_init, ispace_final)
+
+      ! We average
+      do ispace = ispace_init, ispace_final
+        lowband  = degenerate_subspaces(1, ispace, ikp)
+        upband   = degenerate_subspaces(2, ispace, ikp)
+        size_deg = degenerate_subspaces(3, ispace, ikp)
+        vxcnn(lowband:upband,ikp) = sum(vxcnn(lowband:upband,ikp)) / size_deg
+      end do
 
     enddo ! ikp
 
@@ -145,7 +165,7 @@ subroutine calcvxcnn
     if (hybridhf) deallocate(vxnl)
 
 #ifdef MPI
-    call mpi_allgatherv_ifc(kset%nkpt, nstfv, zbuf=vxcnn)
+    call mpi_allgatherv_ifc(kset%nkpt, nbgw_including_degeneracy-ibgw_including_degeneracy+1, zbuf=vxcnn)
     call barrier
 #endif
 

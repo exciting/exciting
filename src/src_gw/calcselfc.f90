@@ -8,12 +8,19 @@ subroutine calcselfc(iq, ikp_first, ikp_last)
     use mod_bands, only: eveckalm, eveckpalm, eveckp, eveck, nstse
     use mod_core_states, only: ncg
     use mod_eigensystem, only: nmatmax
+    use mod_APW_LO, only: apwordmax
+    use constants,  only: zzero
     use mod_eigenvalue_occupancy, only: nstfv
     use mod_muffin_tin, only: lmmaxapw
+    use modgw,      only: freq, kset, kqset, fdebug, ibgw, nbgw, mblksiz, b2mb, &
+                          Gkqset, time_selfc, msize
+    use mod_core_states, only: ncg 
+    use mod_bands, only: nstse, eveckalm, eveckpalm, eveck, eveckp, evalfv
+    use mod_selfenergy, only: mwm, freq_selfc, selfec
     use mod_product_basis, only: minmmat, mbsiz
-    use mod_selfenergy, only: mwm
+    use mod_mpi_gw, only : myrank
     use precision, only: i32, dp
-
+    use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
     implicit none
 
     !> index of the q-point term to evaluate
@@ -24,9 +31,10 @@ subroutine calcselfc(iq, ikp_first, ikp_last)
     integer(i32), intent(in) :: ikp_last
 
     ! local
-    integer(i32) :: ik, ikp, jk
+    integer(i32) :: ik, ikp, jk, ispn, ie1, iom
     integer(i32) :: mdim, iblk, nblk, mstart, mend
-    real(dp) :: tstart, tend
+    integer(i32) :: fid
+    real(dp) :: tstart, tend, t0, t1
 
     call timesec(tstart)
 
@@ -52,7 +60,7 @@ subroutine calcselfc(iq, ikp_first, ikp_last)
     !-------------------------------------------
     ! products M*W^c*M
     !-------------------------------------------
-    allocate(mwm(ibgw:nbgw,1:mdim,1:freq%nomeg))
+    allocate(mwm(ibgw_including_degeneracy:nbgw_including_degeneracy,1:mdim,1:freq%nomeg))
     ! msize = sizeof(mwm)*b2mb
     ! write(*,'(" calcselfc: size(mwm) (Mb):",f12.2)') msize
 
@@ -88,15 +96,15 @@ subroutine calcselfc(iq, ikp_first, ikp_last)
         mend = min(mdim, mstart+mblksiz-1)
 
         ! m-block M^i_{nm}
-        allocate(minmmat(mbsiz,ibgw:nbgw,mstart:mend))
+        allocate(minmmat(mbsiz,ibgw_including_degeneracy:nbgw_including_degeneracy,mstart:mend))
         msize = sizeof(minmmat)*b2mb
 
-        call expand_products(ik, iq, ibgw, nbgw, -1, mstart, mend, nstse, minmmat)
+        call expand_products(ik, iq, ibgw_including_degeneracy, nbgw_including_degeneracy, -1, mstart, mend, nstse, minmmat)
 
         !================================================================
         ! Calculate weight(q)*Sum_ij{M^i*W^c_{ij}(k,q;\omega)*conjg(M^j)}
         !================================================================
-        call calcmwm(ibgw, nbgw, mstart, mend, minmmat)
+        call calcmwm(ibgw_including_degeneracy, nbgw_including_degeneracy, mstart, mend, minmmat)
 
         deallocate(minmmat)
 
@@ -115,6 +123,17 @@ subroutine calcselfc(iq, ikp_first, ikp_last)
           ! Imaginary frequency formalism
           call calcselfc_freqconv_ac(ikp, iq, mdim)
         end if
+      end if
+
+      if (input%gw%debug) then
+        write(fdebug,*) 'CORRELATION SELF-ENERGY: iq=', iq, ' ikp=', ikp
+        write(fdebug,*) 'state iom  Sigma_c  enk'
+        do ie1 = ibgw, nbgw
+          do iom = 1, freq_selfc%nomeg
+            write(fdebug,*) ie1, iom, abs(selfec(ie1,iom,ikp)), evalfv(ie1,ikp)
+          end do
+        end do
+        write(fdebug,*)
       end if
 
     end do ! ikp

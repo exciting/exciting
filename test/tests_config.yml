@@ -204,6 +204,16 @@ GW/ZnO-PBESOL:
       - "Zn.xml"
       - "O.xml"
 
+GW/ZnO-PBESOL-nodeg:
+   files_under_test:
+      - "GW_INFO.OUT"
+      - "VXCNN.DAT"
+      - "EVALQP.DAT"
+   inputs:
+      - "input.xml"
+      - "Zn.xml"
+      - "O.xml"
+
 GW/MoS2-LDA-cutoff:
    files_under_test:
       - "GW_INFO.OUT"
