@@ -554,17 +554,33 @@
 	              Skip the recalculation of KS eigenvalues and eigenvectors for the specified k/q-point grids (restart option).
 	          </xs:documentation></xs:annotation>
           </xs:attribute>
-
-          <xs:attribute ex:importance="expert" ex:unit="" name="degeneracyCheck" type="xs:boolean" default="true" use="optional">
+          
+          <xs:attribute ex:importance="expert" ex:unit="" name="enforceDegeneracy" type="xs:boolean" default="true" use="optional">
             <xs:annotation><xs:documentation>
-                Truncating the number of empty bands can risk cutting a degenerate subspace.
-                This can cause the dielectric matrix and self-energy to lose the full symmetry 
-                of the crystal, leading to the lifting of degeneracies.
-                Setting <attref>degeneracyCheck</attref>
-	              to <pre>true</pre> can prevent symmetry breaking by adjusting the 
-                number of empty bands downward to avoid cutting off any degenerate subspace. 
-                For details, refer to Section 6 of <a
-              href="https://doi.org/10.1016/j.cpc.2011.12.006"> this paper </a>.
+                When <pre>true</pre>, enforce a special treatment of degeneracy by:
+                <list>
+                <li> Adjusting the number of unoccupied bands downward to prevent truncating 
+                    degenerate subspacess when computing the dielectric function and correlation self-energy. </li>
+                <li> Internally enlarging the range of KS states over which the diagonal elements of the self-energy elements and
+                     exchange-correlation potential are evaluated, to allow for performing an average over degenerate subspaces. </li>
+                </list>
+                Unless there is a good reason, it is not generally advisable to set <attref>enforceDegeneracy</attref> to <pre>false</pre>. 
+                For details, refer to Section 6 and Appendix A of <a href="https://doi.org/10.1016/j.cpc.2011.12.006"> this </a> and
+                <a href="https://doi.org/10.1103/PhysRevB.35.5585">this</a> papers, respectively.
+	          </xs:documentation></xs:annotation>
+          </xs:attribute>
+
+          <xs:attribute ex:importance="expert" ex:unit="" name="degeneracyAbsoluteTolerance" type="fortrandouble" default="1.0d-8" use="optional">
+            <xs:annotation><xs:documentation>
+                When <pre>enforceDegeneracy</pre> is <pre>true</pre>, this controls the absolute tolerance for considering two states degenerate.
+                Systems with flat bands and/or bunch of degenerate states in the vicinity of the Fermi level might require lower values.
+	          </xs:documentation></xs:annotation>
+          </xs:attribute>
+
+          <xs:attribute ex:importance="expert" ex:unit="" name="degeneracyRelativeTolerance" type="fortrandouble" default="1.0d-5" use="optional">
+            <xs:annotation><xs:documentation>
+                When <pre>enforceDegeneracy</pre> is <pre>true</pre>, this controls the relative tolerance for considering two states degenerate.
+                Systems with degenerate flat bands might require lower values.
 	          </xs:documentation></xs:annotation>
           </xs:attribute>
 

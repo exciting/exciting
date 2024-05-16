@@ -45,7 +45,7 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
             !============================= 
             ! Valence electron contribution
             !============================= 
-            enk = evalfv(ie2,jkp)-efermi
+            enk = evalfv(ie2,jkp) 
             xnm(1:freq%nomeg) = mwm(ie1,ie2,1:freq%nomeg)
           else
             !============================= 
@@ -56,7 +56,7 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
             ia = corind(icg,2)
             ic = corind(icg,3)
             ias = idxas(ia,is)
-            enk = evalcr(ic,ias)-efermi
+            enk = evalcr(ic,ias) - efermi
             xnm(1:freq%nomeg) = mwm(ie1,ie2,1:freq%nomeg)
           end if ! val/cor
 

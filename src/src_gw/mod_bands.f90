@@ -4,62 +4,87 @@
 !--------------------------------!
 
 module mod_bands
+
+    use precision, only: i32, dp
+
     implicit none
 
+    private
+    public :: evalfv, &
+              occfv, &
+              eveck, &
+              eveckp, &
+              eveckalm, &
+              eveckpalm, &
+              nomax, &
+              ikvbm, &
+              numin, &
+              ikcbm, &
+              ikvcm, &
+              nstdf, &
+              nstse, &
+              metallic, &
+              nkp1, &
+              kvecs1, &
+              eks1, &
+              eqp1, &
+              nkp2, &
+              kvecs2, &
+              eks2, &
+              eqp2, &
+              delete_bands
+
 ! First-variational eigenvalues
-    real(8), allocatable :: evalfv(:,:)
+    real(dp), allocatable :: evalfv(:,:)
 
 ! First-variational occupations
-    real(8), allocatable :: occfv(:,:)
+    real(dp), allocatable :: occfv(:,:)
 
 ! Eigenvectors at k
-    complex(8), allocatable :: eveck(:,:)
+    complex(dp), allocatable :: eveck(:,:)
       
 ! Eigenvectors at k'=k-q
-    complex(8), allocatable :: eveckp(:,:)
+    complex(dp), allocatable :: eveckp(:,:)
       
 ! Spherical harmonic expansion coefficients at k
-    complex(8), allocatable :: eveckalm(:,:,:,:)
+    complex(dp), allocatable :: eveckalm(:,:,:,:)
       
 ! Spherical harmonic expansion coefficients at k'=k-q
-    complex(8), allocatable :: eveckpalm(:,:,:,:)
+    complex(dp), allocatable :: eveckpalm(:,:,:,:)
     
 ! Position of Valence Band Maximum (VBM)      
-    integer(4) :: nomax
-    integer(4) :: ikvbm
+    integer(i32) :: nomax
+    integer(i32) :: ikvbm
     
 ! Position of Conduction Band Minimum (CBM)      
-    integer(4) :: numin
-    integer(4) :: ikcbm
+    integer(i32) :: numin
+    integer(i32) :: ikcbm
     
 ! Position of the direct v->c (optical) gap
-    integer(4) :: ikvcm
+    integer(i32) :: ikvcm
 
 ! Number of states used to calculate the dielectric function
-    integer(4) :: nstdf
+    integer(i32) :: nstdf
 
 ! Number of states used to calculate the self-energy
-    integer(4) :: nstse
+    integer(i32) :: nstse
     
 ! Metallicity flag
     logical :: metallic
-
-! Lower and upper indexes of the degenerated states
-    integer, allocatable :: n12dgn(:,:,:)
 
 !---------------------------------------------------------------
 ! To be used in the interpolation routine (band structure plot) 
 !---------------------------------------------------------------
 
 ! Input 
-    integer(4) :: nkp1
-    real(8), allocatable :: kvecs1(:,:)
-    real(8), allocatable :: eks1(:,:), eqp1(:,:)
+    integer(i32) :: nkp1
+    real(dp), allocatable :: kvecs1(:,:)
+    real(dp), allocatable :: eks1(:,:), eqp1(:,:)
 
 ! Output (interpolated)
-    integer(4) :: nkp2
-    real(8), allocatable :: kvecs2(:,:)
-    real(8), allocatable :: eks2(:,:), eqp2(:,:)
+    integer(i32) :: nkp2
+    real(dp), allocatable :: kvecs2(:,:)
+    real(dp), allocatable :: eks2(:,:), eqp2(:,:)
     
 contains
 
@@ -68,7 +93,6 @@ contains
         if (allocated(eveckp)) deallocate(eveckp)
         if (allocated(eveckalm)) deallocate(eveckalm)
         if (allocated(eveckpalm)) deallocate(eveckpalm)
-        if (allocated(n12dgn)) deallocate(n12dgn)
     end subroutine
     
 end module

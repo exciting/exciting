@@ -3,24 +3,34 @@
 ! using the frequency convolution
 !==================================================================
 subroutine calcselfc_freqconv_ac(ikp,iq,mdim)
-    use modinput
-    use modmain, only : idxas, evalcr, efermi
+    use modinput, only: input
+    use mod_atoms, only: idxas
+    use mod_eigenvalue_occupancy, only: efermi
+    use mod_corestate, only: evalcr
     use constants, only : zzero, pi
-    use modgw,   only : ibgw, nbgw, nstse, kset, kqset, freq, selfec, mwm, &
-    &                   ncg, corind, fdebug, freq_selfc, evalfv
+    use modgw,   only : ibgw, nbgw, kset, kqset, freq, fdebug
+    use mod_selfenergy, only: selfec, mwm, freq_selfc
+    use mod_core_states, only: ncg, corind
+    use mod_bands, only: nstse, evalfv
+#include "mod_gw_degeneracies.inc"
+    use mod_gw_degeneracies, only: get_degenerate_limits_qp_interval_ikp, &
+                                   degenerate_subspaces
+    use precision, only: i32, dp
     ! input variables
     implicit none
-    integer(4), intent(in) :: ikp
-    integer(4), intent(in) :: iq
-    integer(4), intent(in) :: mdim
+    integer(i32), intent(in) :: ikp
+    integer(i32), intent(in) :: iq
+    integer(i32), intent(in) :: mdim
     ! local variables
-    integer(4) :: ik, jk, jkp
-    integer(4) :: ia, is, ias, ic, icg
-    integer(4) :: ie1, ie2, i1, i2, n, m
-    integer(4) :: iom, jom, kom
-    real(8)    :: enk, wdiff, w_sc, f1, f2
-    complex(8) :: xnm(1:freq%nomeg)
-    complex(8) :: sc, zt1, zt2
+    integer(i32) :: ik, jk, jkp
+    integer(i32) :: ia, is, ias, ic, icg
+    integer(i32) :: ie1, ie2, i1, i2, n, m
+    integer(i32) :: iom, jom, kom
+    real(dp)     :: enk, wdiff, w_sc, f1, f2
+    complex(dp) :: xnm(1:freq%nomeg)
+    complex(dp) :: sc, zt1, zt2
+    ! For the averaging over degenerate states
+    integer(i32) :: ispace_init, ispace_final, ispace, lowband, upband, size_deg
 
     ! k point
     ik = kset%ikp2ik(ikp)
@@ -28,63 +38,72 @@ subroutine calcselfc_freqconv_ac(ikp,iq,mdim)
     jk = kqset%kqid(ik,iq)
     jkp = kset%ik2ikp(jk)
 
-    !------------------------
-    ! loop over frequencies
-    !------------------------
+    ! First obtain the limits for degenerate subspaces for the given irreducible point. 
+    call get_degenerate_limits_qp_interval_ikp(ikp, ispace_init, ispace_final)
 
-    do ie1 = ibgw, nbgw
+    !-------------------------------
+    ! Loop over degenerate subspaces
+    !-------------------------------
+    do ispace = ispace_init, ispace_final
 
-      ! sum over states
-      do ie2 = 1, mdim
+      lowband  = degenerate_subspaces(1, ispace, ikp)
+      upband   = degenerate_subspaces(2, ispace, ikp)
+      size_deg = degenerate_subspaces(3, ispace, ikp)
 
-        if ( ie2 <= nstse ) then
-          !=============================
-          ! Valence electron contribution
-          !=============================
-          enk = evalfv(ie2,jkp)-efermi
-        else
-          !=============================
-          ! Core electron contribution
-          !=============================
-          icg = ie2-nstse
-          is = corind(icg,1)
-          ia = corind(icg,2)
-          ic = corind(icg,3)
-          ias = idxas(ia,is)
-          enk = evalcr(ic,ias)-efermi
-        end if ! val/cor
+      ! Sum over states in the degenerate subspace
+      do ie1 = lowband, upband
+        
+        do ie2 = 1, mdim
 
-        ! Re W
-        xnm(:) = mwm(ie1,ie2,:)
-        ! xnm(:) = cmplx( dble(mwm(ie1,ie2,:)), 0.d0, 8)
+          if ( ie2 <= nstse ) then
+            !=============================
+            ! Valence electron contribution
+            !=============================
+            enk = evalfv(ie2,jkp)
+          else
+            !=============================
+            ! Core electron contribution
+            !=============================
+            icg = ie2-nstse
+            is = corind(icg,1)
+            ia = corind(icg,2)
+            ic = corind(icg,3)
+            ias = idxas(ia,is)
+            enk = evalcr(ic,ias) - efermi
+          end if ! val/cor
 
-        ! for each frequency
-        do iom = 1, freq_selfc%nomeg
+          xnm(:) = mwm(ie1,ie2,:)
 
-          w_sc = freq_selfc%freqs(iom)
+          ! for each frequency
+          do iom = 1, freq_selfc%nomeg
 
-          !--------------------------------
-          ! frequency convolution integral
-          !--------------------------------
+            w_sc = freq_selfc%freqs(iom)
 
-          ! (enk-iu)
-          zt1 = cmplx( enk, -w_sc, 8)
+            !--------------------------------
+            ! frequency convolution integral
+            !--------------------------------
 
-          sc = zzero
-          do jom = 1, freq%nomeg
-            zt2 = freq%womeg(jom) / ( freq%freqs(jom)**2 + zt1**2 )
-            sc = sc + (xnm(jom)-xnm(iom)) * zt2
-          end do
-          sc = sc*zt1/pi + xnm(iom)*sign(0.5d0,enk)
+            ! (enk-iu)
+            zt1 = cmplx( enk, -w_sc, dp)
 
-          ! sum over states
-          selfec(ie1,iom,ikp) = selfec(ie1,iom,ikp) + sc
+            sc = zzero
+            do jom = 1, freq%nomeg
+              zt2 = freq%womeg(jom) / ( freq%freqs(jom)**2 + zt1**2 )
+              sc = sc + (xnm(jom)-xnm(iom)) * zt2
+            end do
+            sc = sc*zt1/pi + xnm(iom) * sign(0.5_dp,enk)
 
-        end do ! frequency loop
+            ! Add the contribution to the degenerate subspace
+            ! Note that the range macro "QP_ADJUST_RANGE" is found in mod_gw_degeneracies.inc
+            selfec(QP_ADJUST_RANGE(lowband,upband),iom,ikp) = & 
+                selfec(QP_ADJUST_RANGE(lowband,upband),iom,ikp) + sc / size_deg
 
-      end do ! ie2
+          end do ! frequency loop
 
-    end do ! ie1
+        end do ! ie2
+      end do ! ie1
+
+    end do ! ispace
 
     return
 end subroutine

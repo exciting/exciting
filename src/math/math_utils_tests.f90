@@ -876,14 +876,12 @@ contains
     real(dp), parameter :: tol = 1e-8_dp
 
     real(dp) :: eval(9)
-    integer :: ref(3,5)
+    integer :: ref(3,5), i
     integer, allocatable :: deg(:,:)
 
-    eval = [-1.0_dp, -1.0_dp, &
-      0.0_dp, 0.0_dp, tol/2, &
-      tol, &
-      2.0_dp, 2.0_dp, &
-      3.0_dp]
+    eval = [-1.0_dp, -1.0_dp, 0.0_dp, 0.0_dp, tol/2, &
+             1.00001_dp * tol, 2.0_dp, 2.0_dp, 3.0_dp]
+
     ref(:, 1) = [1, 2, 2]
     ref(:, 2) = [3, 5, 3]
     ref(:, 3) = [6, 6, 1]
@@ -891,6 +889,10 @@ contains
     ref(:, 5) = [9, 9, 1]
 
     deg = get_degeneracies( eval, tol )
+    
+    do i = 1, size(deg, 2)
+        write(*,*) i, deg(:,i)
+    end do
 
     call test_report%assert( all( shape(deg) == shape(ref) ), &
       'Shape does not match reference shape.' )

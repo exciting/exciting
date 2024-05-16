@@ -1,21 +1,27 @@
 
+!> Analytical continuation of the correlation self-energy from the complex to the real frequency axis
+!> No need to tackle degeneracies, as the function in imaginary axis has proper degeneracy
 subroutine calcselfc_ac()
 
-    use modinput
-    use modmain
-    use modgw
-    use mod_frequency
-    use mod_vxc
-    use mod_aaa_approximant
-    use mod_pade
+    use modinput, only: input, getstructwgrid, emptynode
+    use modgw, only: kset, ibgw, nbgw
+    use mod_selfenergy, only: selfec, freq_selfc
+    use mod_frequency, only: generate_freqgrid, delete_freqgrid
+    use mod_aaa_approximant, only: aaa_approximant, set_aaa_approximant, &
+                                   init_aaa_approximant, delete_aaa_approximant, &
+                                   get_aaa_approximant
+    use mod_pade, only: pade_approximant
+    use constants, only: real_zero
+    use precision, only: i32, dp
+
     implicit none
 
     ! local variables
     type(aaa_approximant) :: aaa_minus, aaa_plus
-    integer(4) :: iw, ik, ib
-    real(8)    :: w
-    complex(8) :: sc, dsc
-    complex(8), allocatable :: zj(:), fj(:,:,:)
+    integer(i32) :: iw, ik, ib
+    real(dp)     :: w
+    complex(dp) :: sc, dsc
+    complex(dp), allocatable :: zj(:), fj(:,:,:)
 
     ! imaginary frequency grid
     allocate(fj(ibgw:nbgw,freq_selfc%nomeg,kset%nkpt))
@@ -23,7 +29,7 @@ subroutine calcselfc_ac()
     deallocate(selfec)
     allocate(zj(freq_selfc%nomeg))
     do iw = 1, freq_selfc%nomeg
-        zj(iw) = cmplx(0.d0, freq_selfc%freqs(iw), 8)
+        zj(iw) = cmplx(real_zero, freq_selfc%freqs(iw), dp)
     end do
     call delete_freqgrid(freq_selfc)
 
@@ -45,10 +51,10 @@ subroutine calcselfc_ac()
 
                 do iw = 1, freq_selfc%nomeg
                     w = freq_selfc%freqs(iw)
-                    if (w < 0.d0) then
-                        call pade_approximant(size(zj), -zj, conjg(fj(ib,:,ik)), cmplx(w,0.d0,8), sc, dsc)
+                    if (w < real_zero) then
+                        call pade_approximant(size(zj), -zj, conjg(fj(ib, :, ik)), cmplx(w, real_zero, dp), sc, dsc)
                     else
-                        call pade_approximant(size(zj), zj, fj(ib,:,ik), cmplx(w,0.d0,8), sc, dsc)
+                        call pade_approximant(size(zj), zj, fj(ib, :, ik), cmplx(w, real_zero, dp), sc, dsc)
                     end if
                     selfec(ib,iw,ik) = sc
                 end do
@@ -62,10 +68,10 @@ subroutine calcselfc_ac()
                                           conjg(aaa_plus%fj), conjg(aaa_plus%wj))
                 do iw = 1, freq_selfc%nomeg
                     w = freq_selfc%freqs(iw)
-                    if (w < 0.d0) then
-                        sc = get_aaa_approximant(aaa_minus, cmplx(w,0.d0,8))
+                    if (w < real_zero) then
+                        sc = get_aaa_approximant(aaa_minus, cmplx(w, real_zero, dp))
                     else
-                        sc = get_aaa_approximant(aaa_plus, cmplx(w,0.d0,8))
+                        sc = get_aaa_approximant(aaa_plus, cmplx(w, real_zero, dp))
                     end if
                     selfec(ib,iw,ik) = sc
                 end do
