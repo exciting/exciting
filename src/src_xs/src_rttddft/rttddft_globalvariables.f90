@@ -29,76 +29,7 @@ module rttddft_GlobalVariables
     & t0trapcos, trtrapcos, wtrapcos, &
     & nsinsq, dirsinsq, amplsinsq, omegasinsq, phasesinsq, &
     & t0sinsq, tpulsesinsq, pmat, &
-    & mathcalH, mathcalB, B_time, B_past, efield, pmatmt, &
-    & timesecRTTDDFT, Timing_RTTDDFT_and_MD, TimingRTTDDFT, TimingEhrenfest
-
-  !> Type to store timings for Ehrenfest MD
-  type, extends (MD_timing) :: TimingEhrenfest
-    !> if `.True.`, it means that an MD step was conducted
-    !> This is needed since the time step for MD is a multiple of the time step for RT-TDDFT
-    logical  :: MD_was_carried_out
-    !> time to recalculate `pmat` in an Ehrenfest MD step
-    real(dp) :: t_MD_pmat
-    !> time to recalculate the hamiltonian and overlap matrices in an Ehrenfest MD step
-    real(dp) :: t_MD_hamoverl
-  end type
-
-  !> This type stores the time (in seconds) spent in the procedures of RT-TDDFT
-  type :: TimingRTTDDFT
-    !> timing: evolution of the wavefunction
-    real(dp) :: t_wvf
-    !> timing: total time spent to update the density
-    real(dp) :: t_dens
-    !> timing: time spent to execute `rhovalk`, `genrhoir`, and eventually 
-    !> `mpisumrhoandmag`, see [[UpdateDensity]]
-    real(dp) :: t_dens_rho
-    !> timing: execution of `symrf`, see [[UpdateDensity]]
-    real(dp) :: t_dens_symrf
-    !> timing: execution of `rfmtctof`, see [[UpdateDensity]]
-    real(dp) :: t_dens_rfmtctof
-    !> timing: execution of `addrhocr`, see [[UpdateDensity]]
-    real(dp) :: t_dens_addrhocr
-    !> timing: execution of `charge`, see [[UpdateDensity]]
-    real(dp) :: t_dens_charge
-    !> timing: execution of `rhonorm`, see [[UpdateDensity]]
-    real(dp) :: t_dens_rhonorm
-    !> timing: time spent to update the KS potential, see [[uppot]]
-    real(dp) :: t_uppot
-    !> timing: execution of `poteff`, see [[uppot]]
-    real(dp) :: t_poteff
-    !> timing: execution of `genveffig`, see [[uppot]]
-    real(dp) :: t_genveffig
-    !> timing: execution of `genmeffig`, see [[uppot]]
-    real(dp) :: t_genmeffig
-    !> timing: update of the paramagnetic component of the induced current density
-    real(dp) :: t_curr
-    !> timing: update of the vector potential
-    real(dp) :: t_obtaina
-    !> timing: update the hamiltonian
-    real(dp) :: t_upham
-    !> timing: execution of `hmlint`, see [[UpdateHam]]
-    real(dp) :: t_hmlint
-    !> timing: time spent after executing `hmlint` until the update of the 
-    !> hamiltonian has been concluded, see [[UpdateHam]]
-    real(dp) :: t_ham
-    !> timing: predictor-corrector loop
-    real(dp) :: t_predcorr
-    !> timing: computation of the total energy
-    real(dp) :: t_toten
-    !> timing: calculation of the number of excited electrons (per unit cell)
-    real(dp) :: t_nexc
-    !> timing: time for obtaining a screenshot
-    real(dp) :: t_screenshot
-  end type TimingRTTDDFT
-
-  type Timing_RTTDDFT_and_MD
-    !> type that contains timings for RT-TDDFT (for evolving KS wavefunctions)
-    type(TimingRTTDDFT)   :: t_RTTDDFT
-    !> type that contains timings in an Ehrenfest MD
-    type(TimingEhrenfest) :: t_Ehrenfest
-    !> timing: time of each iteration (RT-TDDFT plus MD)
-    real(dp) :: t_iteration
-  end type 
+    & mathcalH, mathcalB, B_time, B_past, efield, pmatmt
 
   !> Number of time steps \( \Delta t \) required to reach `tend`
   integer                   :: nsteps
@@ -267,37 +198,5 @@ module rttddft_GlobalVariables
 
   !> Electric field
   real(dp)                  :: efield(3)
-
-
-contains
-
-  !> Check the clock (current execution time, in seconds) and store the 
-  !> difference between this time and `timei` (passed as `inout` argument).  
-  !> This helps to evaluate how long the execution of a subroutine is taking.
-  !> In the end, we assign the current time to `timei`.
-  !> One example of usage is:  
-  !> <code>
-  !>    call timesec( timei ) <br>
-  !>    call subroutine_1 <br>
-  !>    call timesecRTTDDFT( timei, timef, timediff ) <br>
-  !>    (code to treat/store timediff) <br>
-  !> </code>
-  !> Now, `timediff` contains the time elapsed to execute `subroutine_1`.
-  !> The code could follow as:  
-  !> <code>
-  !>    call subroutine_2 <br> 
-  !>    call timesecRTTDDFT( timei, timef, timediff ) <br>
-  !>    (code to treat/store timediff) <br>
-  !>    call subroutine_3 <br>
-  !>    call timesecRTTDDFT( timei, timef, timediff ) <br>
-  !>    (code to treat/store timediff)
-  !> </code>
-  subroutine timesecRTTDDFT(timei, timef, timediff )
-    real(dp),intent(inout) :: timei
-    real(dp),intent(out)   :: timef, timediff
-    call timesec(timef)
-    timediff = timef - timei
-    timei = timef
-  end subroutine timesecRTTDDFT
 
 end module rttddft_GlobalVariables

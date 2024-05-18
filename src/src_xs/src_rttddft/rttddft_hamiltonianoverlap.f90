@@ -12,7 +12,6 @@
 module rttddft_HamiltonianOverlap
   use asserts, only: assert
   use constants, only: fourpi, zi
-  
   use mod_APW_LO, only: apword, nlorb, lorbl
   use mod_atoms, only: nspecies, natoms, idxas, natmtot, atposc
   use mod_eigensystem, only: nmat, nmatmax, hloloij, idxlo, h1aa, h1loa, h1lolo, &
@@ -26,11 +25,13 @@ module rttddft_HamiltonianOverlap
   use mod_potential_and_density, only: veffig, meffig, m2effig
   use modinput, only: input
   use modmpi
-  use rttddft_GlobalVariables, only: ham_time, ham_past, overlap, mathcalH, apwalm, &
-    & atot, pmat, pmatmt, evecfv_time, timesecRTTDDFT
-  use rttddft_pmat, only: Obtain_Pmat_LAPWLOBasis
   use physical_constants, only: c
   use precision, only: dp
+  use rttddft_GlobalVariables, only: ham_time, ham_past, overlap, mathcalH, apwalm, &
+    & atot, pmat, pmatmt, evecfv_time
+  use rttddft_pmat, only: Obtain_Pmat_LAPWLOBasis
+  use rttddft_timings, only: Print_Timings, Timing_RTTDDFT_hamiltonian, &
+    Timing_Ehrenfest, timesec_RTTDDFT
   
   implicit none
 
@@ -44,27 +45,18 @@ contains
 
   !> In UpdateHam, we obtain the hamiltonian (and if requested, the overlap) at 
   !> time \( t \).
-  subroutine UpdateHam( predcorr, calculateOverlap, &
-    & timeGen, timeDetail, timeini, timefinal, tgenpmatbasis, thmlint, tham, &
+  subroutine UpdateHam( predcorr, calculateOverlap, printTimings, t_ham, t_MD, &
     & update_mathcalH, update_mathcalB, update_pmat )
     !> tells if we are in the loop of the predictor-Corrector scheme    
     logical, intent(in)               :: predcorr
     !> tells if we need to calculate the overlap
     logical, intent(in)               :: calculateOverlap
-    !> tells if we want a general timing
-    logical, intent(in), optional     :: timeGen
-    !> tells if we want a detailed timing (only works if `timeGen` is true)
-    logical, intent(in), optional     :: timeDetail
-    !> time (in seconds) when the subroutine was called (used for making time differences)
-    real(dp), intent(in), optional    :: timeini
-    !> time (in seconds) after executing this subroutine
-    real(dp), intent(out), optional   :: timefinal
-    !> time spent to execute hmlint
-    real(dp), intent(out), optional   :: thmlint
-    !> time spent after executing hmlint until the end of this subroutine
-    real(dp), intent(out), optional   :: tham
-    !> time spent when generating `pmat`
-    real(dp), intent(out), optional   :: tgenpmatbasis
+    !> Object that packs information about printing of timings [[Print_Timings]]
+    type(Print_Timings), optional, intent(in) :: printTimings
+    !> Object that packs information about timings to update the Hamiltonian
+    type(Timing_RTTDDFT_hamiltonian), optional, intent(out) :: t_ham
+    !> Object that packs information about timings related to MD
+    type(Timing_Ehrenfest), optional, intent(out) :: t_MD
     !> if `.True.`, update `mathcalH`
     logical, intent(in), optional     :: update_mathcalH
     !> if `.True.`, update `mathcalB`
@@ -73,7 +65,7 @@ contains
     logical, intent(in), optional     :: update_pmat
 
     integer               :: ik, nmatp, first_kpt, last_kpt
-    real(dp)              :: timei, timef
+    real(dp)              :: ti, tf, tStart
     logical               :: tGen, tDetail
     logical               :: get_mathcalH, get_mathcalB, get_pmat, forcePmatHermitian
 
@@ -84,9 +76,8 @@ contains
     ! Check optional arguments
     tGen = .False.
     tDetail = .False.
-    if ( present(timeGen) ) then
-      tGen = timeGen
-      if ( present(timeDetail) ) tDetail = timeDetail
+    if ( present(printTimings) ) then
+      call printTimings%get( tGen, tDetail )
     end if
     get_mathcalH = .False.
     if( present( update_mathcalH ) ) get_mathcalH = update_mathcalH
@@ -98,26 +89,25 @@ contains
 
     ! sanity checks
     if( get_mathcalH ) call assert( calculateOverlap , 'The overlap matrix is needed to update mathcalH' )
-    if( tGen ) call assert( present(timeini) .and. present(timefinal), &
-      'timeini and timefinal must be present when general timing is desired' )
-    if( tDetail ) then 
-      call assert( present(thmlint) .and. present(tham), &
-      'thmlint tham must be present when detailed timing is desired')
-      if( get_pmat ) call assert( present(tgenpmatbasis), &
-        'tgenpmatbasis must be present if detailed timing is desired and pmat is updated')
+    if( tGen ) call assert( present(t_ham) .or. present(t_MD), &
+      't_ham or t_MD must be present when general timing is desired' )
+    if( tDetail ) call assert( tGen, 'tGen must be true if tDetail is true')
+
+    if( tGen ) then 
+      call timesec( ti )
+      tStart = ti
     end if
 
-    if( tGen ) timei = timeini
     if( get_pmat ) then
       call Obtain_Pmat_LAPWLOBasis( forcePmatHermitian, allocated(pmatmt) )
-      if( tDetail ) call timesecRTTDDFT( timei, timef, tgenpmatbasis )
+      if( tDetail .and. present(t_MD) ) call timesec_RTTDDFT( ti, t_MD%pmat )
     end if
 
     call MTNullify(mt_h)
     call MTInitAll(mt_h)
     call hmlint(mt_h)
 
-    if ( tDetail ) call timesecRTTDDFT( timei, timef, thmlint )
+    if ( tDetail .and. present(t_ham) ) call timesec_RTTDDFT( ti, t_ham%hmlint )
 
     if ( .not. predcorr ) ham_past(:,:,:) = ham_time(:,:,:)
 
@@ -156,9 +146,11 @@ contains
     if ( get_mathcalH ) call obtain_interstitial_contribution_mathcalH( &
       & first_kpt, last_kpt )
 
-    if(tGen) then
-      call timesec(timefinal)
-      if(tDetail) tham = timefinal-timei
+    if( tGen ) then
+      call timesec( tf )
+      if( present(t_ham) ) t_ham%total = tf - tStart
+      if( tDetail .and. present(t_ham) ) t_ham%rest = tf - ti
+      if( tDetail .and. present(t_MD) ) t_MD%hamoverl = tf - ti
     end if
 
 end subroutine UpdateHam

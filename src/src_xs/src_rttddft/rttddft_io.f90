@@ -12,8 +12,9 @@ module rttddft_io
 #endif
   use precision, only: dp, i32
   use rttddft_Energy, only: TotalEnergy
-  use rttddft_GlobalVariables, only: Timing_RTTDDFT_and_MD, calculateNexc, &
+  use rttddft_GlobalVariables, only: calculateNexc, &
     calculateTotalEnergy, predictorCorrector, printTimesDetailed
+  use rttddft_timings, only: Timing_RTTDDFT_and_MD
   
   implicit none
 
@@ -350,34 +351,34 @@ contains
       do ip = 1, n
         associate( t_rttddft => timing(ip)%t_RTTDDFT )
         write(file_time,'(A30,I10)')'Time (sec) spent in iteration:',ip+shift
-        write(file_time,format_timing) 'updatewvf:',t_rttddft%t_wvf
-        write(file_time,format_timing) 'updatedens:',t_rttddft%t_dens
+        write(file_time,format_timing) 'updatewvf:',t_rttddft%wavefunction
+        write(file_time,format_timing) 'updatedens:',t_rttddft%dens%total
         if ( printTimesDetailed ) then
-          write(file_time,format_timing) '-- rhovalk and genrhoir:',t_rttddft%t_dens_rho
-          write(file_time,format_timing) '-- symrf:',t_rttddft%t_dens_symrf
-          write(file_time,format_timing) '-- rfmtctof:',t_rttddft%t_dens_rfmtctof
-          write(file_time,format_timing) '-- addrhocr:',t_rttddft%t_dens_addrhocr
-          write(file_time,format_timing) '-- charge:',t_rttddft%t_dens_charge
-          write(file_time,format_timing) '-- rhonorm:',t_rttddft%t_dens_rhonorm
+          write(file_time,format_timing) '-- rhovalk and genrhoir:',t_rttddft%dens%rho
+          write(file_time,format_timing) '-- symrf:',t_rttddft%dens%symrf
+          write(file_time,format_timing) '-- rfmtctof:',t_rttddft%dens%rfmtctof
+          write(file_time,format_timing) '-- addrhocr:',t_rttddft%dens%addrhocr
+          write(file_time,format_timing) '-- charge:',t_rttddft%dens%charge
+          write(file_time,format_timing) '-- rhonorm:',t_rttddft%dens%rhonorm
         end if
-        write(file_time,format_timing) 'updatepot:',t_rttddft%t_uppot
+        write(file_time,format_timing) 'updatepot:',t_rttddft%pot%total
         if ( printTimesDetailed ) then
-          write(file_time,format_timing) '-- poteff:',t_rttddft%t_poteff
-          write(file_time,format_timing) '-- genveffig:',t_rttddft%t_genveffig
-          write(file_time,format_timing) '-- genmeffig:',t_rttddft%t_genmeffig
+          write(file_time,format_timing) '-- poteff:',t_rttddft%pot%poteff
+          write(file_time,format_timing) '-- genveffig:',t_rttddft%pot%genveffig
+          write(file_time,format_timing) '-- genmeffig:',t_rttddft%pot%genmeffig
         end if
-        write(file_time,format_timing) 'UpdateCurrentDensity:',t_rttddft%t_curr
-        write(file_time,format_timing) 'ObtainA:',t_rttddft%t_obtaina
-        write(file_time,format_timing) 'updatehamiltonian:',t_rttddft%t_upham
+        write(file_time,format_timing) 'UpdateCurrentDensity:',t_rttddft%current_density
+        write(file_time,format_timing) 'ObtainA:',t_rttddft%vector_potential
+        write(file_time,format_timing) 'updatehamiltonian:',t_rttddft%ham%total
         if ( printTimesDetailed ) then
-          write(file_time,format_timing) '-- hmlint:',t_rttddft%t_hmlint
-          write(file_time,format_timing) '-- other subs:',t_rttddft%t_ham
+          write(file_time,format_timing) '-- hmlint:',t_rttddft%ham%hmlint
+          write(file_time,format_timing) '-- other subs:',t_rttddft%ham%rest
         end if
         if ( predictorCorrector )  &
-          & write(file_time,format_timing) 'All cycles of predcorr:',t_rttddft%t_predcorr
-        if ( calculateTotalEnergy .and. printTimesDetailed ) write(file_time,format_timing) 'Total Energy:',t_rttddft%t_toten
-        if ( calculateNexc .and. printTimesDetailed ) write(file_time,format_timing)'nexc:',t_rttddft%t_nexc
-        if ( screenshot_was_taken(ip) ) write(file_time,format_timing) 'Screenshots:',t_rttddft%t_screenshot
+          & write(file_time,format_timing) 'All cycles of predcorr:',t_rttddft%pred_corr
+        if ( calculateTotalEnergy .and. printTimesDetailed ) write(file_time,format_timing) 'Total Energy:',t_rttddft%energy
+        if ( calculateNexc .and. printTimesDetailed ) write(file_time,format_timing)'nexc:',t_rttddft%n_exc
+        if ( screenshot_was_taken(ip) ) write(file_time,format_timing) 'Screenshots:',t_rttddft%screenshot
         end associate
         if( MD ) then
           associate( t_MD => timing(ip)%t_Ehrenfest )
@@ -389,8 +390,8 @@ contains
               write(file_time,format_timing) '-- sum forces:', t_MD%t_MD_sumforces 
               write(file_time,format_timing) '-- move ions:', t_MD%t_MD_moveions
               write(file_time,format_timing) '-- update basis:', t_MD%t_MD_updateBasis
-              write(file_time,format_timing) '-- update H, S:', t_MD%t_MD_hamoverl
-              write(file_time,format_timing) '-- update pmat:', t_MD%t_MD_pmat
+              write(file_time,format_timing) '-- update H, S:', t_MD%hamoverl
+              write(file_time,format_timing) '-- update pmat:', t_MD%pmat
             end if
           end if
           end associate

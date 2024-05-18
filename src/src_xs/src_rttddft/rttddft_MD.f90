@@ -7,7 +7,7 @@
 module rttddft_MD
   use asserts, only: assert
   use constants, only: zone, zzero
-  use MD, only: force, obtain_core_corrections, obtain_force_ext, &
+  use MD, only: MD_input_keys, MD_timing, force, obtain_core_corrections, obtain_force_ext, &
     obtain_Hellmann_Feynman_force, obtain_valence_corrections_part1, &
     val_corr_pt2_given_atom_and_kpt => obtain_valence_corrections_part2
   use mod_atoms, only: atposc, idxas, natoms, natmtot, nspecies, &
@@ -31,7 +31,8 @@ module rttddft_MD
   use precision, only: dp, i32
   use rttddft_GlobalVariables, only: apwalm, efield, &
       & evecfv_time, mathcalH, mathcalB, ham_time, overlap, &
-      & atot, timesecRTTDDFT
+      & atot
+  use rttddft_timings, only: Print_Timings, timesec_RTTDDFT
   use vector_multiplication, only: dot_multiply
   implicit none 
 
@@ -67,28 +68,28 @@ contains
     forall( is = 1:n_species ) charge_val(is) = sum( spocc(:, is), mask=(.not.spcore(:, is)) )
   end subroutine
 
-  subroutine force_rttdft(forces, evaluate_core_corrections, evaluate_valence_corrections, &
-    timeDetail, timeini, timefinal, t1st, t2nd, tftot)
+  subroutine force_rttdft( forces, MD_input, printTimings, t_MD )
+    !> Object that packs information about the total forces
     type(force), intent(inout)      :: forces
-    logical, intent(in)             :: evaluate_core_corrections
-    logical, intent(in)             :: evaluate_valence_corrections
-    logical, intent(in), optional   :: timeDetail
-    real(dp), intent(in), optional  :: timeini
-    real(dp), intent(out), optional :: timefinal
-    real(dp), intent(out), optional :: t1st
-    real(dp), intent(out), optional :: t2nd
-    real(dp), intent(out), optional :: tftot
+    !> Object that contains the inputs keys given in the MD element
+    type(MD_input_keys), intent(in) :: MD_input
+    !> Object that packs information about printing of timings [[Print_Timings]]
+    type(Print_Timings), optional, intent(in) :: printTimings
+    !> Object that packs information about timings spent in MD
+    class(MD_timing), optional, intent(inout)     :: t_MD
 
     integer(i32)     :: is, ia, ias, nr, first_kpt, last_kpt
+    real(dp)         :: fact, ti
     logical          :: tDetail
-    real(dp)         :: fact
-    real(dp)         :: timei, timef
     
 
     ! Check optional (timing) arguments
-    tDetail = .False.
-    if( present(timeDetail) )  tDetail = timeDetail
-    if( tDetail ) timei = timeini
+    tDetail = .false.
+    if( present(printTimings) ) tDetail = printTimings%detailed()
+    if( tDetail ) then
+      call assert( present(t_MD), 't_MD must be present when tDetail is true' )
+      call timesec( ti )
+    end if
 
     call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
     fact = dot_multiply(atot, atot)/2_dp/c**2
@@ -101,30 +102,27 @@ contains
         call obtain_Hellmann_Feynman_force( -spzn(is), spr(1:nr,is), &
           vclmt(:,1:nr,ias), forces%HF(:,ias) )
 
-        if ( evaluate_core_corrections ) &
+        if ( MD_input%core_corrections ) &
           call obtain_core_corrections( spr(1:nr,is), rhocr(1:nr,ias), &
             veffmt(:,1:nr,ias), forces%core(:,ias) )
 
         ! Valence corrections 1: integral of nabla rho_v times (v_KS+A**2/2c**2)
-        if ( evaluate_valence_corrections ) &
+        if ( MD_input%valence_corrections ) &
           call obtain_valence_corrections_part1( spr(1:nr, is), rhocr(1:nr, ias), &
             rhomt(:, 1:nr, ias), veffmt(:,1:nr,ias), fact, forces%val(:,ias) )
       end do ! do ia = 1, natoms (is)
     end do ! do is = 1, nspecies
 
-    if(tDetail) call timesecRTTDDFT(timei,timef,t1st)
+    if( tDetail ) call timesec_RTTDDFT( ti, t_MD%t_MD_1st )
 
     ! Valence corrections: second part
-    if( evaluate_valence_corrections ) &
+    if( MD_input%valence_corrections ) &
       call obtain_valence_corrections_part2( first_kpt, last_kpt, forces%val )
-    if( tDetail ) call timesecRTTDDFT(timei,timef,t2nd)
+    if( tDetail ) call timesec_RTTDDFT( ti, t_MD%t_MD_2nd )
     ! sum all contributions to total force and store it
     call forces%evaluate_total_force()
 
-    if( tDetail ) then
-      call timesecRTTDDFT( timei, timef, tftot )
-      timefinal = timef
-    end if
+    if( tDetail ) call timesec_RTTDDFT( ti, t_MD%t_MD_sumforces )
 
   end subroutine
 
@@ -176,7 +174,7 @@ contains
   end subroutine
 
   subroutine move_ions(forces, forces_old, dt, atoms_velocities, &
-    timeGeneral, timeDetail, timeini, timefinal, tMoveIons, tUpdateBasis)
+    printTimings, t_MD )
     !> Forces acting on each atom at time \( t \)
     real(dp), intent(in)            :: forces(:, :)
     !> Forces acting on each atom at time \( t - \Delta t \)
@@ -185,23 +183,15 @@ contains
     real(dp), intent(in)            :: dt
     !> Velocities of the nuclei at time \( t \)
     real(dp), intent(inout)         :: atoms_velocities(:,:)
-    !> Is general timing desired?
-    logical, intent(in), optional   :: timeGeneral
-    !> Besides general timing, is also detailed timing desired?
-    logical, intent(in), optional   :: timeDetail
-    !> Time (in sec.) when this subroutine was called
-    real(dp), intent(in), optional  :: timeini
-    !> Time (in sec.) when this subroutine finishes
-    real(dp), intent(out), optional :: timefinal
-    !> Time (in sec.) spent to update the positions of the ions
-    real(dp), intent(out), optional :: tMoveIons
-    !> Time (in sec.) spent to update the basis after moving the ions
-    real(dp), intent(out), optional :: tUpdateBasis
+    !> Object that packs information about printing of timings [[Print_Timings]]
+    type(Print_Timings), optional, intent(in) :: printTimings
+    !> Object that packs information about timings spent in MD
+    class(MD_timing), optional, intent(inout)     :: t_MD
   
-    logical                         :: tGen, tDetail
+    logical                         :: tDetail
 
     integer                         :: ia, ias, is, ik, ispn, first_kpt, last_kpt
-    real(dp)                        :: timei, timef
+    real(dp)                        :: ti
 
     call assert( size(forces, 1) == 3, 'forces must have size = 3 along dim = 1' )
     call assert( size(forces_old, 1) == 3, 'forces_old must have size = 3 along dim = 1' )
@@ -211,13 +201,12 @@ contains
     call assert( size(atoms_velocities, 2) == natmtot, 'atoms_velocities must have size = natmtot along dim = 2' )
   
     ! Check optional (timing) arguments
-    tGen = .False.
     tDetail = .False.
-    if ( present(timeGeneral) ) then
-      tGen = timeGeneral
-      if ( present(timeDetail) ) tDetail = timeDetail
+    if ( present(printTimings) ) tDetail = printTimings%detailed()
+    if( tDetail ) then 
+      call assert( present(t_MD), 't_MD must be present when tDetail is true' )
+      call timesec( ti )
     end if
-    if( tGen ) timei = timeini
 
     call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
   
@@ -230,7 +219,7 @@ contains
         ! call r3mv(ainv,atposc(:,ia,is),input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:))
       end do
     end do
-    if ( tDetail ) call timesecRTTDDFT(timei,timef,tMoveIons)
+    if ( tDetail ) call timesec_RTTDDFT( ti, t_MD%t_MD_moveions )
     ! lattice and symmetry set up
     !call findsymcrys ! find the crystal symmetries and shift atomic positions if required
     !call findsymsite ! find the site symmetries
@@ -255,10 +244,8 @@ contains
       call match(ngk(1,ik),gkc(:,1,ik),tpgkc(:,:,1,ik),sfacgk(:,:,1,ik),apwalm(:,:,:,:,ik))
     end do
   
-    if ( tGen ) then
-      call timesec( timefinal )
-      if ( tDetail ) tUpdateBasis = timefinal-timei
-    end if
+    if ( tDetail ) call timesec_RTTDDFT( ti, t_MD%t_MD_updateBasis )
+
   end subroutine
 
   !TODO(Ronaldo): this function can be replaced by findloc( array, condition )

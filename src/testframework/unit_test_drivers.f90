@@ -19,7 +19,6 @@ module unit_test_drivers
    use xgrid_test_drivers, only: xgrid_test_driver
    use gw_test_drivers, only: gw_test_driver
    use xhdf5_test, only: xhdf5_test_driver
-   use gw_test_drivers, only: gw_test_driver
 
    implicit none
    private
