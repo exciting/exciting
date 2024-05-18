@@ -29,7 +29,7 @@ module rttddft_GlobalVariables
     & t0trapcos, trtrapcos, wtrapcos, &
     & nsinsq, dirsinsq, amplsinsq, omegasinsq, phasesinsq, &
     & t0sinsq, tpulsesinsq, pmat, &
-    & mathcalH, mathcalB, B_time, B_past, efield, pmatmt
+    & mathcalH, mathcalB, B_time, B_past, pmatmt
 
   !> Number of time steps \( \Delta t \) required to reach `tend`
   integer                   :: nsteps
@@ -195,8 +195,5 @@ module rttddft_GlobalVariables
   complex(dp), allocatable  :: B_time(:,:,:)
   !> Same as `B_time`, but at the previous time step: \(t-\Delta t\)
   complex(dp), allocatable  :: B_past(:,:,:)
-
-  !> Electric field
-  real(dp)                  :: efield(3)
 
 end module rttddft_GlobalVariables

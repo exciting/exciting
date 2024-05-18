@@ -94,6 +94,7 @@ contains
     real(dp),allocatable    :: nex(:), ngs(:), nt(:)
     real(dp)                :: aindsave(3),pvecsave(3)
     real(dp)                :: jindsave(3),aextsave(3),atotsave(3)
+    real(dp)                :: electric_field(3)
     real(dp)                :: timei, timef, timeiter
     type(MD_out)            :: MD_outputs
 
@@ -136,7 +137,7 @@ contains
     call initialize_rttddft( molecular_dynamics )
     
     if( molecular_dynamics%on ) call init_MD( tstep, timeStepMultiplier, molecular_dynamics, &
-      MD_outputs, atom_positions, atom_velocities, forces )
+      MD_outputs, atom_positions, atom_velocities, electric_field, forces )
     
     call printTimings%set( printTimesGeneral, printTimesDetailed )
 
@@ -249,11 +250,11 @@ contains
         call update_vector_potential( time, atot )
         if( molecular_dynamics%on ) then
           call Calculate_Vector_Potential( time+tstep, aindsave ) ! trick: aindsave is an auxiliary variable
-          efield = obtain_electric_field( 2*tstep, aindsave, atotsave )
+          electric_field = obtain_electric_field( 2*tstep, aindsave, atotsave )
         end if
       else 
         call update_vector_potential( time, atot, aind, aext )
-        if( molecular_dynamics%on ) efield = obtain_electric_field( tstep, atot, atotsave )
+        if( molecular_dynamics%on ) electric_field = obtain_electric_field( tstep, atot, atotsave )
       end if
       if( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%vector_potential )
 
@@ -285,7 +286,7 @@ contains
         if ( predCorrReachedMaxSteps .and. rank == 0 ) &
           write(*,*) 'Problems with convergence (PredCorr), time: ', time
         if ( molecular_dynamics%on .and. (fieldType == 'external')) &
-          efield(:) = (-1d0/c/tstep)*(atot(:)-atotsave(:))
+          electric_field(:) = (-1d0/c/tstep)*(atot(:)-atotsave(:))
         if ( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%pred_corr )
       end if !predictor-corrector
 
@@ -311,7 +312,7 @@ contains
             timing%t_Ehrenfest%MD_was_carried_out = .True.
           end if
           call forces%save_total_force()
-          call force_rttdft( forces, molecular_dynamics, printTimings, timing%t_Ehrenfest )
+          call force_rttdft( forces, electric_field, molecular_dynamics, printTimings, timing%t_Ehrenfest )
           call move_ions( forces%total, forces%total_save, molecular_dynamics%time_step, &
             atom_velocities, printTimings, timing%t_Ehrenfest )
           printforces(iprint) = .True.
@@ -625,7 +626,7 @@ contains
 
   !> Subroutine to initialize all MD related variables
   subroutine init_MD( timeStepRTTDDFT, timeStepMultiplier, molecular_dynamics, &
-      MD_outputs, atom_positions, atom_velocities, forces )
+      MD_outputs, atom_positions, atom_velocities, e_field, forces )
     !> Time step used in the real-time TDDFT calculation
     real(dp), intent(in)               :: timeStepRTTDDFT
     !> Integer ratio between the time step used in MD and `timeStepRTTDDFT`
@@ -638,6 +639,8 @@ contains
     real(dp), allocatable, intent(out) :: atom_positions(:, :) 
     !> velocities of all atoms in cartesian coordinates
     real(dp), allocatable, intent(out) :: atom_velocities(:, :)
+    !> Electric field
+    real(dp), intent(out)              :: e_field(3)
     !> forces acting on all atoms
     type(force), intent(out)           :: forces
 
@@ -649,7 +652,8 @@ contains
     call MD_evaluate_charge_val
     
     call forces%allocate_arrays( natmtot )
-    call force_rttdft( forces, molecular_dynamics )
+    e_field = 0.0_dp
+    call force_rttdft( forces, e_field, molecular_dynamics )
     
     allocate( atom_velocities(3, natmtot) )
     call init_atoms_velocities( atom_velocities )
