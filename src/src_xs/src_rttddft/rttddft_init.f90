@@ -110,13 +110,13 @@ subroutine initialize_rttddft(molecular_dynamics)
   ! Since an XS calculation with Hybrid functionals uses the GS parameters, a one shot GS calculation serves no purpose
   if (.not. hybrids_used()) call gndstateq(voff, '_RTTDDFT.OUT')
 
-  call allocate_globals(first_kpt, last_kpt, ionDynamics=molecular_dynamics%on, &
+  call allocate_globals( first_kpt, last_kpt, ionDynamics=molecular_dynamics%on,&
     allocate_mathcalH=molecular_dynamics%valence_corrections, &
-    allocate_mathcalB=molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative, &
+    allocate_mathcalB=molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative,&
     allocate_pmatmt=molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative, &
-    allocate_B=molecular_dynamics%basis_derivative)
-
-  if (rank == 0) call write_to_info(molecular_dynamics%on)
+    allocate_B=molecular_dynamics%basis_derivative )
+  
+  if ( rank == 0 ) call write_to_info( molecular_dynamics%on )
 
   call read_WF_potential_rttddft(first_kpt, last_kpt)
 
@@ -160,13 +160,10 @@ subroutine initialize_rttddft(molecular_dynamics)
   aext(:) = 0._dp
   aind(:) = 0._dp
   atot(:) = 0._dp
-
   ! Hamiltonian at time t=0
   call UpdateHam( predcorr=.False., calculateOverlap=.True., &
-    update_mathcalH=allocated(mathcalH), &
-    update_mathcalB=allocated(mathcalB), &
-    update_pmat=.False. )
-  ham_past(:, :, :) = ham_time(:, :, :)
+    & update_mathcalH=allocated(mathcalH), update_mathcalB=allocated(mathcalB), update_pmat=.False. )
+  ham_past(:,:,:) = ham_time(:,:,:)
 
   ! Spurious current
   if (input%xs%realTimeTDDFT%subtractJ0) then
@@ -221,7 +218,7 @@ subroutine allocate_globals(first_kpt, last_kpt, ionDynamics, allocate_mathcalH,
 end subroutine
 
 !> Output general information to `RTTDDFT_INFO.OUT`
-subroutine write_to_info(ionDynamics)
+subroutine write_to_info( ionDynamics )
   !> Are we performing an MD calculation?
   logical, intent(in)         :: ionDynamics
 

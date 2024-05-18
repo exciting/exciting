@@ -9,6 +9,9 @@
 
 !> Module that manages what concerns charge density in RT-TDDFT calculations
 module rttddft_Density
+  use asserts, only: assert
+  use rttddft_timings, only: Print_Timings, Timing_RTTDDFT_density, timesec_RTTDDFT
+
   implicit none
 
   private
@@ -20,8 +23,7 @@ contains
   !> It is calculated from the WFs, using the same scheme as in the GS
   !> calcultations (refer to scf_cycle.f90 for the case
   !> input%groundstate%useDensityMatrix .false.)
-  subroutine UpdateDensity( it, timeini, timefinal, timerho, &
-      & timesymrf, timerfmtctof, timerhocr, timecharge, timerhonorm )
+  subroutine UpdateDensity( it, printTimings, t_dens )
     use modmpi, only: mpi_env_k, distribute_loop
     use precision, only: dp
     use modmain, only : iscl
@@ -30,36 +32,30 @@ contains
     use mod_potential_and_density, only: rhomt, rhoir
     use rttddft_GlobalVariables, only: evecfv_time, evecsv
 
-    implicit none
-
     !> number of the current iteration (employed to give possible warnings)
     integer, intent(in)             :: it
-    !> time (in seconds) elapsed since exciting was started (employed for timing)
-    real(dp),intent(in), optional   :: timeini
-    !> time (in seconds) after executing this subroutine
-    real(dp),intent(out), optional  :: timefinal
-    !> time (in seconds) taken to execute `rhovalk` (which generates the 
-    !> valence charge density from the eigenvectors for a certain `k-point` 
-    !> inside the Muffin-Tins),`genrhoir` (which does the same as `rhovalk`, but
-    !> for the interstitial region), and eventually `mpisumrhoandmag` (which 
-    !> sums the charge density of all MPI processes)
-    real(dp),intent(out), optional  :: timerho
-    !> time (in seconds) taken to execute `symrf`
-    real(dp),intent(out), optional  :: timesymrf
-    !> time (in seconds) taken to execute `rfmtctof`
-    real(dp),intent(out), optional  :: timerfmtctof
-    !> time (in seconds) taken to obtain and add the density of core electrons
-    real(dp),intent(out), optional  :: timerhocr
-    !> time (in seconds) taken to execute `charge` 
-    real(dp),intent(out), optional  :: timecharge
-    !> time (in seconds) taken to execute `rhonorm`
-    real(dp),intent(out), optional  :: timerhonorm
+    !> Object that packs information about printing of timings [[Print_Timings]]
+    type(Print_Timings), optional, intent(in) :: printTimings
+    !> Object that packs information about timings to update the electronic density
+    type(Timing_RTTDDFT_density), optional, intent(out) :: t_dens
 
     integer                         :: ik, first_kpt, last_kpt
-    real(dp)                        :: timei,timef
+    real(dp)                        :: ti, tstart 
+    logical                         :: timings_general, timings_detailed
 
+    timings_general = .false.
+    timings_detailed = .false.
+    if( present( printTimings ) ) then
+      call assert( present(t_dens), 'Optional argument t_dens must also be present' )
+      call printTimings%get( timings_general, timings_detailed )
+      if( timings_detailed ) call assert( timings_general, &
+        'timings_general must be true if timings_detailed is true' )
+    end if
+    if( timings_general ) then
+      call timesec( ti )
+      tstart = ti
+    end if
 
-    if( present( timeini ) ) timei = timeini
     rhomt(:,:,:) = 0._dp
     rhoir(:) = 0._dp
 
@@ -73,53 +69,36 @@ contains
 #ifdef MPI
     call mpisumrhoandmag(mpi_env_k)
 #endif
-    if ( present( timerho ) ) then
-      call timesec( timef )
-      timerho = timef - timei
-      timei = timef
-    end if
+
+    if( timings_detailed ) call timesec_RTTDDFT( ti, t_dens%rho )
+
     ! symmetrise the density
     call symrf( input%groundstate%lradstep, rhomt, rhoir )
-    if( present( timesymrf ) ) then
-      call timesec( timef )
-      timesymrf = timef - timei
-      timei = timef
-    end if
+    if( timings_detailed ) call timesec_RTTDDFT( ti, t_dens%symrf )
+
     ! convert the density from a coarse to a fine radial mesh
     call rfmtctof(rhomt)
-    if(present(timerfmtctof)) then
-      call timesec(timef)
-      timerfmtctof = timef-timei
-      timei = timef
-    end if
+    if( timings_detailed ) call timesec_RTTDDFT( ti, t_dens%rfmtctof )
+
     ! generate the core wavefunctions and densities
     !call gencore
     ! add the core density to the total density
     call addrhocr
-    if( present( timerhocr ) ) then
-      call timesec( timef )
-      timerhocr = timef - timei
-      timei = timef
-    end if
+    if( timings_detailed ) call timesec_RTTDDFT( ti, t_dens%addrhocr )
+
     ! calculate the charges
     iscl = it
     call charge
-    if(present(timecharge)) then
-      call timesec(timef)
-      timecharge = timef-timei
-      timei = timef
-    end if
+    if( timings_detailed ) call timesec_RTTDDFT( ti, t_dens%charge )
+
     ! normalise the density
     if ( input%xs%realTimeTDDFT%normalizeWF ) then
       call rhonorm
+      if( timings_detailed ) call timesec_RTTDDFT( ti, t_dens%rhonorm )
     end if
-    if(present(timefinal)) then
-      call timesec(timef)
-      timefinal = timef
-    end if
-    if(input%xs%realTimeTDDFT%normalizeWF .and. present(timerhonorm)) then
-      timerhonorm = timef-timei
-    end if
+    
+    if( timings_general ) call timesec_RTTDDFT( tstart, t_dens%total )
+
   end subroutine updatedensity
 
 end module rttddft_Density
