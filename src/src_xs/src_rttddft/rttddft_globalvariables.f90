@@ -16,10 +16,7 @@ module rttddft_GlobalVariables
 
   private
   ! List of the many global variables can be used publicly
-  public :: nsteps, time, tstep, tend, &
-    & maxstepsPredictorCorrector, predictorCorrector, &
-    & printTimesGeneral, printTimesDetailed, calculateTotalEnergy, calculateNexc, &
-    & method, tolPredCorr, &
+  public :: &
     & apwalm, evecfv_gnd, evecfv_time, evecfv_save, evecsv, &
     & overlap, ham_time, ham_past, ham_predcorr, &
     & aext, aind, atot, pvec, jpara, jparanext, jparaold, jparaspurious, &
@@ -31,37 +28,7 @@ module rttddft_GlobalVariables
     & t0sinsq, tpulsesinsq, pmat, &
     & mathcalH, mathcalB, B_time, B_past, pmatmt
 
-  !> Number of time steps \( \Delta t \) required to reach `tend`
-  integer                   :: nsteps
-  !> Current time \( t \) for the time evolution carried out in RT-TDDFT
-  real(dp)                  :: time
-  !> Size of time step \( \Delta t \) - employed in RT-TDDFT
-  real(dp)                  :: tstep
-  !> Upper limit of time \( t \) - up to which the RT-TDDFT takes place
-  real(dp)                  :: tend
-
   ! Global variables of general purpose
-  !> Maximum number of steps for the predictor-corrector loop
-  integer                   :: maxstepsPredictorCorrector
-  !> Flag that tells if the predictor-corrector scheme is required
-  logical                   :: predictorCorrector
-  !> Flag that sets to print out (general) information about the timing 
-  !> required to execute RT-TDDFT subroutines
-  logical                   :: printTimesGeneral
-  !> Flag that sets to print out detailed information about the timing  
-  !> required to execute RT-TDDFT subroutines
-  logical                   :: printTimesDetailed
-  !> Flag that triggers the calculation of the total energy in RT-TDDFT
-  logical                   :: calculateTotalEnergy
-  !> Flag that triggers the calculation of the number of excited electrons in 
-  !> RT-TDDFT
-  logical                   :: calculateNexc
-  !> method used as propagator
-  character(6)              :: method
-  !> tolerance to escape the predictor-corrector loop
-  real(dp)                  :: tolPredCorr
-
-
   !> Matching coefficients of the (L)APWs
   complex(dp), allocatable  :: apwalm(:,:,:,:,:)
 

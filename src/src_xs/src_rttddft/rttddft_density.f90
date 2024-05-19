@@ -23,23 +23,26 @@ contains
   !> It is calculated from the WFs, using the same scheme as in the GS
   !> calcultations (refer to scf_cycle.f90 for the case
   !> input%groundstate%useDensityMatrix .false.)
-  subroutine UpdateDensity( it, printTimings, t_dens )
+  subroutine UpdateDensity( it, normalize, l_rad_step, printTimings, t_dens )
     use modmpi, only: mpi_env_k, distribute_loop
-    use precision, only: dp
+    use precision, only: dp, i32
     use modmain, only : iscl
-    use modinput, only: input
     use mod_kpoint, only: nkpt
     use mod_potential_and_density, only: rhomt, rhoir
     use rttddft_GlobalVariables, only: evecfv_time, evecsv
 
     !> number of the current iteration (employed to give possible warnings)
     integer, intent(in)             :: it
+    !> If `.true.`, normalize the charge density
+    logical, intent(in)             :: normalize
+    !> radial step length
+    integer(i32), intent(in)        :: l_rad_step
     !> Object that packs information about printing of timings [[Print_Timings]]
     type(Print_Timings), optional, intent(in) :: printTimings
     !> Object that packs information about timings to update the electronic density
     type(Timing_RTTDDFT_density), optional, intent(out) :: t_dens
 
-    integer                         :: ik, first_kpt, last_kpt
+    integer(i32)                    :: ik, first_kpt, last_kpt
     real(dp)                        :: ti, tstart 
     logical                         :: timings_general, timings_detailed
 
@@ -73,7 +76,7 @@ contains
     if( timings_detailed ) call timesec_RTTDDFT( ti, t_dens%rho )
 
     ! symmetrise the density
-    call symrf( input%groundstate%lradstep, rhomt, rhoir )
+    call symrf( l_rad_step, rhomt, rhoir )
     if( timings_detailed ) call timesec_RTTDDFT( ti, t_dens%symrf )
 
     ! convert the density from a coarse to a fine radial mesh
@@ -92,7 +95,7 @@ contains
     if( timings_detailed ) call timesec_RTTDDFT( ti, t_dens%charge )
 
     ! normalise the density
-    if ( input%xs%realTimeTDDFT%normalizeWF ) then
+    if ( normalize ) then
       call rhonorm
       if( timings_detailed ) call timesec_RTTDDFT( ti, t_dens%rhonorm )
     end if

@@ -11,7 +11,7 @@
 module rttddft_Wavefunction
   use asserts, only: assert
   use constants, only: zone, zzero, zi
-  use integration, only: rk4 => ODESolver_RungeKutta4thOrder
+  use integration, only: RungeKutta4thOrder => ODESolver_RungeKutta4thOrder
   use matrix_exp, only: &
       & exp_hermitian => exp_hermitian_matrix_times_vectors, & 
       & exp_general => exp_general_matrix_times_vectors, &
@@ -19,20 +19,65 @@ module rttddft_Wavefunction
   use mod_kpoint, only: nkpt
   use mod_eigensystem, only: nmat
   use mod_eigenvalue_occupancy, only: nstfv
-  use modinput, only: input
   use modmpi
-  use normalize, only: normalizeWF => normalize_vectors
-  use precision, only: dp
+  use normalize, only: normalize_vectors
+  use precision, only: dp, i32
   use rttddft_GlobalVariables, only: ham_time, ham_past, overlap, &
-    & evecfv_time, tstep, method, B_time, B_past, mathcalB
+    & evecfv_time, B_time, B_past, mathcalB
 
   implicit none
 
   private
 
-  public :: UpdateWavefunction, Update_basis_derivative
+  public :: UpdateWavefunction, Update_basis_derivative, propagator_types, propagator_type, &
+            SE, EH
+
+  !> Enum with the solver type for the vector potential
+  enum, bind(C)
+    enumerator :: propagator_types
+    enumerator :: SE, EMR, AETRS, CFM4, EH, EHM, RK4
+  end enum
+
+  type, public :: propagator_keys
+    !> Propagator used
+    integer(kind(propagator_types))         :: name
+    !> Size of time step \( \Delta t \) - employed in RT-TDDFT
+    real(dp)                                :: time_step
+    !> If `.true.`, normalize KS wavefunctions in each step
+    logical                                 :: normalize_WF
+    !> Order of the Taylor expansion
+    integer(i32)                            :: order_taylor
+    !> Tolerance required for diagonalization
+    real(dp)                                :: tol
+  end type
 
 contains
+  !> Get the enum corresponding to the string
+  !> Caution: the default is defined to be SE
+  pure function propagator_type( string ) result( propagator )
+    character(len=*), intent(in) :: string
+    integer(kind(propagator_types)) :: propagator
+
+    select case( trim(string) )
+      case('SE')
+        propagator = SE
+      case('EMR')
+        propagator = EMR
+      case('AETRS')
+        propagator = AETRS
+      case('CFM4')
+        propagator = CFM4
+      case('EH')
+        propagator = EH
+      case('EHM')
+        propagator = EHM
+      case('RK4')
+        propagator = RK4
+      case default
+        propagator = SE
+    end select
+  end function
+
   !> This subroutine updates KS wavefunctions.  
   !> Here, we employ a propagator to evolve the Kohn-Sham wavefunctions.  
   !> Extrapolation scheme for the hamiltonian (predcorr .False.)
@@ -44,30 +89,24 @@ contains
   !> \(\hat{H}(t)\) is stored in `ham_past`, whereas \(\hat{H}(t +\Delta t)\),
   !> in `ham_time` (which comes from a previous iteration in the predictor corrector
   !> loop
-  subroutine UpdateWavefunction( predcorr, atoms_velocities )
+  subroutine UpdateWavefunction( prop, predcorr, atoms_velocities )
+    !> Type that encapsulates the information to propagate WFs
+    type(propagator_keys), intent(in) :: prop
     !> tells if we are in the loop of the predictor-Corrector scheme
     logical, intent(in)       :: predcorr
     !> if present, we need to add corrections due to the nuclei movement (which changes the basis set)
     real(dp), intent(in), optional  :: atoms_velocities(:, :)
-    !> Counter for loops with k-points
-    integer                   :: ik
-    !> Dimension of the Hamiltonian and Overlap matrices (given a k-point)
-    integer                   :: nmatp
-    !> indexes of the first and the last k-points
-    integer                   :: first_kpt, last_kpt
+
+    integer(i32)  :: ik, nmatp, first_kpt, last_kpt
     ! Factors that multiply the hamiltonian in the following propagator:
     ! Commutator-Free Magnus expansion of 4th order
     real(dp), parameter       :: f1 =  0.21132486540518713_dp ! 1/2 - sqrt(3)/6
     real(dp), parameter       :: f2 =  0.78867513459481290_dp ! 1/2 + sqrt(3)/6
     real(dp), parameter       :: a1 = -0.03867513459481287_dp ! 1/4 - sqrt(3)/6
     real(dp), parameter       :: a2 =  0.53867513459481290_dp ! 1/4 + sqrt(3)/6f1, f2, a1, a2
-    !> auxiliary variable to store the overlap and hamiltonian matrices
     complex(dp), allocatable  :: overl(:,:), ham(:,:), hamold(:,:)
     logical                   :: atoms_movement
     procedure(exp_general), pointer      :: exp_operator
-
-
-
 
     call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
 
@@ -75,8 +114,8 @@ contains
     if ( atoms_movement ) then
       call Update_basis_derivative( atoms_velocities, mathcalB, B_time, B_past )
       exp_operator => exp_general
-      call assert( trim(method)/='RK4', 'atoms_movement does not support RK4')
-      call assert( trim(method)/='EH' .and. trim(method)/='EHM', 'atoms_movement does not support EH and EHM')
+      call assert( prop%name /= RK4, 'atoms_movement does not support RK4')
+      call assert( prop%name /= EH .and. prop%name /= EHM, 'atoms_movement does not support EH and EHM')
       call assert( .not. predcorr, 'atoms_movement does not support predictor-corrector')
     else
       exp_operator => exp_hermitian
@@ -84,9 +123,9 @@ contains
 
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(NONE) PRIVATE(ik,nmatp,overl,ham,hamold), &
-!$OMP& SHARED(first_kpt, last_kpt,nstfv,nkpt,method,predcorr), &
-!$OMP& SHARED(input,nmat,tstep,ham_time,ham_past,overlap,evecfv_time) &
-!$OMP& SHARED(B_time, B_past, atoms_movement,exp_operator)
+!$OMP& SHARED(first_kpt, last_kpt,nstfv,nkpt,predcorr), &
+!$OMP& SHARED(prop, nmat, ham_time, ham_past, overlap, evecfv_time) &
+!$OMP& SHARED(B_time, B_past, atoms_movement, exp_operator)
 !$OMP DO
 #endif
     do ik = first_kpt, last_kpt
@@ -96,7 +135,7 @@ contains
       allocate(overl(nmatp,nmatp), source=overlap(1:nmatp,1:nmatp,ik))
       allocate(ham(nmatp,nmatp))
 
-      select case(method)
+      select case(prop%name)
         ! SE (simple exponential)
         ! CN (Crank-Nicolson)
         ! EMR (Exponential at midpoint rule)
@@ -105,110 +144,100 @@ contains
         ! EH (exponential using a basis of the hamiltonian-eigenvectors)
         ! EHM (same as before, but uses the hamiltonian at midpoint)
         ! RK4 (Runge-Kutta of 4th order)
-        case ('SE')
+        case (SE)
           ham(1:nmatp,1:nmatp) = ham_time(1:nmatp,1:nmatp,ik)
           if( atoms_movement ) ham = ham - zi*B_time(1:nmatp,1:nmatp,ik)
-          call exp_operator( &
-              order_taylor=input%xs%realTimeTDDFT%TaylorOrder, &
-              alpha=-zi*tstep, H=ham, S=overl, &
+          call exp_operator( prop%order_taylor, &
+              alpha=-zi*prop%time_step, H=ham, S=overl, &
               vectors=evecfv_time(1:nmatp, :, ik) )
-        case ('EMR')
+        case (EMR)
           if ( .not. predcorr ) then
             ham(1:nmatp,1:nmatp) = 1.5_dp*ham_time(1:nmatp,1:nmatp,ik) -0.5_dp*ham_past(1:nmatp,1:nmatp,ik)
             if( atoms_movement ) ham = ham - zi*( 1.5_dp*B_time(1:nmatp,1:nmatp,ik)-0.5_dp*B_past(1:nmatp,1:nmatp,ik) )
           else
             ham(1:nmatp,1:nmatp) = 0.5_dp*ham_time(1:nmatp,1:nmatp,ik) +0.5_dp*ham_past(1:nmatp,1:nmatp,ik)
           end if
-          call exp_operator( &
-            & order_taylor=input%xs%realTimeTDDFT%TaylorOrder, &
-            & alpha=-zi*tstep, H=ham, S=overl, &
+          call exp_operator( prop%order_taylor, &
+            & alpha=-zi*prop%time_step, H=ham, S=overl, &
             & vectors=evecfv_time(1:nmatp, :, ik) )
-        case ('AETRS')
+        case (AETRS)
           if ( .not. predcorr ) then
             ! 1/2*H(t)
             ham(1:nmatp,1:nmatp) = 0.5_dp*ham_time(1:nmatp,1:nmatp,ik)
             if( atoms_movement ) ham = ham - zi*0.5_dp*B_time(1:nmatp,1:nmatp,ik)
-            call exp_operator( &
-              & order_taylor=input%xs%realTimeTDDFT%TaylorOrder, &
-              & alpha=-zi*tstep, &
+            call exp_operator( prop%order_taylor, &
+              & alpha=-zi*prop%time_step, &
               & H=ham, S=overl, vectors=evecfv_time(1:nmatp, :, ik) )
             ! extrapolated 1/2*H(t+\Delta t) as H(t) - 1/2*H(t-\Delta t)
             ham(1:nmatp,1:nmatp) = ham_time(1:nmatp,1:nmatp,ik)-0.5_dp*ham_past(1:nmatp,1:nmatp,ik)
             if( atoms_movement ) ham = ham - zi*( B_time(1:nmatp,1:nmatp,ik)-0.5_dp*B_past(1:nmatp,1:nmatp,ik) )
-            call exp_operator( &
-              & order_taylor=input%xs%realTimeTDDFT%TaylorOrder, &
-              & alpha=-zi*tstep, &
+            call exp_operator( prop%order_taylor, &
+              & alpha=-zi*prop%time_step, &
               & H=ham, S=overl, vectors=evecfv_time(1:nmatp, :, ik) )
           else
             ham(1:nmatp,1:nmatp) = 0.5_dp*ham_past(1:nmatp,1:nmatp,ik)
-            call exp_hermitian( &
-              & order_taylor=input%xs%realTimeTDDFT%TaylorOrder, &
-              & alpha=-zi*tstep, &
+            call exp_hermitian( prop%order_taylor, &
+              & alpha=-zi*prop%time_step, &
               & H=ham, S=overl, vectors=evecfv_time(1:nmatp, :, ik) )
             ham(1:nmatp,1:nmatp) = 0.5_dp*ham_time(1:nmatp,1:nmatp,ik)
-            call exp_hermitian( &
-              & order_taylor=input%xs%realTimeTDDFT%TaylorOrder, &
-              & alpha=-zi*tstep, &
+            call exp_hermitian( prop%order_taylor, &
+              & alpha=-zi*prop%time_step, &
               & H=ham, S=overl, vectors=evecfv_time(1:nmatp, :, ik) )
           end if
-        case ('CFM4')
+        case (CFM4)
           if ( .not. predcorr ) then
             ham(1:nmatp,1:nmatp) = (a1*(1+f2) + a2*(1+f1))*ham_time(1:nmatp,1:nmatp,ik) &
               -(a1*f2 + a2*f1)*ham_past(1:nmatp,1:nmatp,ik)
             if( atoms_movement ) ham = ham - zi*( (a1*(1+f2) + a2*(1+f1))*B_time(1:nmatp,1:nmatp,ik)&
               -(a1*f2 + a2*f1)*B_past(1:nmatp,1:nmatp,ik) )
-            call exp_operator( &
-              & order_taylor=input%xs%realTimeTDDFT%TaylorOrder, &
-              & alpha=-zi*tstep, &
+            call exp_operator( prop%order_taylor, &
+              & alpha=-zi*prop%time_step, &
               & H=ham, S=overl, vectors=evecfv_time(1:nmatp, :, ik) )
             ham(1:nmatp,1:nmatp) = (a1*(1+f1) + a2*(1+f2))*ham_time(1:nmatp,1:nmatp,ik) &
               -(a1*f1 + a2*f2)*ham_past(1:nmatp,1:nmatp,ik)
             if( atoms_movement ) ham = ham - zi*( (a1*(1+f1) + a2*(1+f2))*B_time(1:nmatp,1:nmatp,ik)&
               -(a1*f1 + a2*f2)*B_past(1:nmatp,1:nmatp,ik) )
-            call exp_operator( &
-              & order_taylor=input%xs%realTimeTDDFT%TaylorOrder, &
-              & alpha=-zi*tstep, &
+            call exp_operator( prop%order_taylor, &
+              & alpha=-zi*prop%time_step, &
               & H=ham, S=overl, vectors=evecfv_time(1:nmatp, :, ik) )
           else
             ham(1:nmatp,1:nmatp) = a1*((1-f2)*ham_past(1:nmatp,1:nmatp,ik)+f2*ham_time(1:nmatp,1:nmatp,ik)) + &
                                    a2*((1-f1)*ham_past(1:nmatp,1:nmatp,ik)+f1*ham_time(1:nmatp,1:nmatp,ik))
-            call exp_hermitian( &
-              & order_taylor=input%xs%realTimeTDDFT%TaylorOrder, &
-              & alpha=-zi*tstep,  &
+            call exp_hermitian( prop%order_taylor, &
+              & alpha=-zi*prop%time_step,  &
               & H=ham, S=overl, vectors=evecfv_time(1:nmatp, :, ik) )
             ham(1:nmatp,1:nmatp) = a1*((1-f1)*ham_past(1:nmatp,1:nmatp,ik)+f1*ham_time(1:nmatp,1:nmatp,ik)) + &
                                    a2*((1-f2)*ham_past(1:nmatp,1:nmatp,ik)+f2*ham_time(1:nmatp,1:nmatp,ik))
-            call exp_hermitian( &
-              & order_taylor=input%xs%realTimeTDDFT%TaylorOrder, &
-              & alpha=-zi*tstep,  &
+            call exp_hermitian( prop%order_taylor, &
+              & alpha=-zi*prop%time_step,  &
               & H=ham, S=overl, vectors=evecfv_time(1:nmatp, :, ik) )
           end if
-        case ('EH')
+        case (EH)
           ham(1:nmatp,1:nmatp) = ham_time(1:nmatp,1:nmatp,ik)
-          call exphouston_propagator( alpha=-zi*tstep, &
+          call exphouston_propagator( alpha=-zi*prop%time_step, &
             & H=ham, S=overl, &
             & vectors=evecfv_time(1:nmatp, :, ik), &
-            & tol=input%groundstate%solver%evaltol)
-        case ('EHM')
+            & tol=prop%tol)
+        case (EHM)
           if ( .not. predcorr ) then
             ham(1:nmatp,1:nmatp) = 1.5_dp*ham_time(1:nmatp,1:nmatp,ik) -0.5_dp*ham_past(1:nmatp,1:nmatp,ik)
           else
             ham(1:nmatp,1:nmatp) = 0.5_dp*ham_time(1:nmatp,1:nmatp,ik) +0.5_dp*ham_past(1:nmatp,1:nmatp,ik)
           end if
-          call exphouston_propagator( alpha=-zi*tstep, H=ham, S=overl, &
+          call exphouston_propagator( alpha=-zi*prop%time_step, H=ham, S=overl, &
             & vectors=evecfv_time(1:nmatp, :, ik), &
-            & tol=input%groundstate%solver%evaltol)
-        case ('RK4')
+            & tol=prop%tol)
+        case (RK4)
           ham(1:nmatp,1:nmatp) = ham_time(1:nmatp,1:nmatp,ik)
           allocate(hamold(1:nmatp,1:nmatp))
           hamold(1:nmatp,1:nmatp) = ham_past(1:nmatp,1:nmatp,ik)
           if( .not. predcorr ) then
-            call rk4( time_step=tstep, alpha=zi, &
+            call RungeKutta4thOrder( time_step=prop%time_step, alpha=zi, &
               & H=ham, H_past=hamold, S=overl, &
               & x=evecfv_time(1:nmatp, :, ik))
           else
             ! Trick: H(t-dt) = 2*H(t)-H(t+dt), where H(t) = hamold, H(t+dt)=ham
-            call rk4( time_step=tstep, alpha=zi, &
+            call RungeKutta4thOrder( time_step=prop%time_step, alpha=zi, &
               & H=hamold, H_past=2_dp*hamold-ham, S=overl, &
               & x=evecfv_time(1:nmatp, :, ik))
           end if
@@ -219,11 +248,7 @@ contains
       ! The propagator operator should be unitary, so this step would be unnecessary
       ! However, numerically this is almost never possible
       ! This normalization may help to avoid numerical issues
-      if ( input%xs%realTimeTDDFT%normalizeWF ) then
-        call normalizeWF( S=overl, &
-          & vectors=evecfv_time(1:nmatp, :, ik) )
-      end if
-
+      if ( prop%normalize_WF ) call normalize_vectors( S=overl, vectors=evecfv_time(1:nmatp, :, ik) )
       deallocate(overl)
       deallocate(ham)
     end do

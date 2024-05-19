@@ -31,6 +31,7 @@ module rttddft_init
   use rttddft_Density, only: updatedensity
   use rttddft_GlobalVariables
   use rttddft_HamiltonianOverlap, only: UpdateHam
+  use rttddft_input, only: pmat_keys
   use rttddft_hybrids, only: hybrids_used, Set_Dimension_mixed_product_basis, set_barecoul_basis
   use rttddft_io, only: file_pmat_exists, read_pmat, write_pmat, &
                         file_pmat_mt_exists, read_pmat_mt, write_pmat_mt, write_file_info, &
@@ -46,14 +47,16 @@ module rttddft_init
 contains
 
 !> This subroutine initializes many global variables in a RT-TDDFT calculation.
-subroutine initialize_rttddft(molecular_dynamics)
+subroutine initialize_rttddft(input_pmat, predictorCorrector, molecular_dynamics)
+  !> Argument that encapsulates the input options of the element pmat
+  type(pmat_keys), intent(in) :: input_pmat
+  !> if `.True`, the predictor corrector loop is employed
+  logical, intent(in) :: predictorCorrector
   !> variable that is an interface to the input keys defined in `input.xml` inside the `MD` block
-  type(MD_input_keys), intent(in)         :: molecular_dynamics
+  type(MD_input_keys), intent(in) :: molecular_dynamics
 
   integer                     :: ik, first_kpt, last_kpt
   character(len=*), parameter :: new_line = achar(13)//achar(10)
-  logical                     :: readPmatFromFile
-  logical                     :: writePmatToFile, forcePmatHermitian
   real(dp)                    :: voff(3)
 
   ! Backup groundstate variables
@@ -78,25 +81,6 @@ subroutine initialize_rttddft(molecular_dynamics)
   ! Interface with input variables
   voff(1:3) = input%xs%vkloff(1:3)
 
-  readPmatFromFile = input%xs%realTimeTDDFT%pmat%readFromFile
-  writePmatToFile = input%xs%realTimeTDDFT%pmat%writeToFile .and. (.not. readPmatFromFile)
-  forcePmatHermitian = input%xs%realTimeTDDFT%pmat%forceHermitian
-
-  method = input%xs%realTimeTDDFT%propagator
-  printTimesGeneral = input%xs%realTimeTDDFT%printTimingGeneral
-  printTimesDetailed = (printTimesGeneral .and. input%xs%realTimeTDDFT%printTimingDetailed)
-  calculateTotalEnergy = input%xs%realTimeTDDFT%calculateTotalEnergy
-  calculateNexc = input%xs%realTimeTDDFT%calculateNExcitedElectrons
-  predictorCorrector = associated(input%xs%realTimeTDDFT%predictorCorrector)
-  if (predictorCorrector) then
-    tolPredCorr = input%xs%realTimeTDDFT%predictorCorrector%tol
-    maxstepsPredictorCorrector = input%xs%realTimeTDDFT%predictorCorrector%maxIterations
-  end if
-  tstep = input%xs%realTimeTDDFT%timeStep
-  tend = input%xs%realTimeTDDFT%endTime
-  nsteps = int(tend/tstep)
-  time = 0._dp
-
   !> Print to RTTDDFT_INFO that we will start the single-shot GS calculation
   if (rank == 0) then
     call write_file_info_fill_line_with_char('=')
@@ -110,13 +94,13 @@ subroutine initialize_rttddft(molecular_dynamics)
   ! Since an XS calculation with Hybrid functionals uses the GS parameters, a one shot GS calculation serves no purpose
   if (.not. hybrids_used()) call gndstateq(voff, '_RTTDDFT.OUT')
 
-  call allocate_globals( first_kpt, last_kpt, ionDynamics=molecular_dynamics%on,&
+  call allocate_globals( first_kpt, last_kpt, molecular_dynamics%on, predictorCorrector, &
     allocate_mathcalH=molecular_dynamics%valence_corrections, &
     allocate_mathcalB=molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative,&
     allocate_pmatmt=molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative, &
     allocate_B=molecular_dynamics%basis_derivative )
   
-  if ( rank == 0 ) call write_to_info( molecular_dynamics%on )
+  if ( rank == 0 ) call write_to_info( molecular_dynamics%on, predictorCorrector )
 
   call read_WF_potential_rttddft(first_kpt, last_kpt)
 
@@ -134,7 +118,7 @@ subroutine initialize_rttddft(molecular_dynamics)
     call match(ngk(1, ik), gkc(:, 1, ik), tpgkc(:, :, 1, ik), sfacgk(:, :, 1, ik), apwalm(:, :, :, :, ik))
   end do
 
-  if( readPmatFromFile ) then 
+  if( input_pmat%read_pmat_from_file ) then 
     call terminate_if_false( file_pmat_exists(), 'File:'//trim( get_filename_pmat() )//' not found')
     call read_pmat( first_kpt, pmat, mpi_env_k )
     if ( molecular_dynamics%on ) then 
@@ -142,9 +126,9 @@ subroutine initialize_rttddft(molecular_dynamics)
       call read_pmat_mt( first_kpt, pmatmt, mpi_env_k )
     end if
   else
-    call Obtain_Pmat_LAPWLOBasis( forcePmatHermitian, molecular_dynamics%on )
+    call Obtain_Pmat_LAPWLOBasis( input_pmat%force_pmat_hermitian, molecular_dynamics%on )
   end if
-  if( writePmatToFile ) then
+  if( input_pmat%write_pmat_to_file ) then
     call write_pmat( first_kpt, pmat, mpi_env_k )
     if ( molecular_dynamics%on ) call write_pmat_mt( first_kpt, pmatmt, mpi_env_k )
   end if
@@ -161,7 +145,7 @@ subroutine initialize_rttddft(molecular_dynamics)
   aind(:) = 0._dp
   atot(:) = 0._dp
   ! Hamiltonian at time t=0
-  call UpdateHam( predcorr=.False., calculateOverlap=.True., &
+  call UpdateHam( predcorr=.False., calculateOverlap=.True., forcePmatHermitian=input_pmat%force_pmat_hermitian, &
     & update_mathcalH=allocated(mathcalH), update_mathcalB=allocated(mathcalB), update_pmat=.False. )
   ham_past(:,:,:) = ham_time(:,:,:)
 
@@ -176,7 +160,7 @@ subroutine initialize_rttddft(molecular_dynamics)
 end subroutine
 
 !> Allocate global arrays
-subroutine allocate_globals(first_kpt, last_kpt, ionDynamics, allocate_mathcalH, &
+subroutine allocate_globals(first_kpt, last_kpt, ionDynamics, predictorCorrector, allocate_mathcalH, &
                             allocate_mathcalB, allocate_pmatmt, allocate_B)
   !> index of the first `k-point` to be considered in the sum
   integer(i32), intent(in)        :: first_kpt
@@ -184,6 +168,8 @@ subroutine allocate_globals(first_kpt, last_kpt, ionDynamics, allocate_mathcalH,
   integer(i32), intent(in)        :: last_kpt
   !> if `.True`, we need to allocate arrays for Ehrenfest molecular dynamics
   logical, intent(in) :: ionDynamics
+  !> if `.True`, we need to allocate arrays for the predictor corrector loop
+  logical, intent(in) :: predictorCorrector
   !> if `.True`, we need to allocate the global array `mathcalH`
   logical, intent(in) :: allocate_mathcalH
   !> if `.True`, we need to allocate the global array `mathcalB`
@@ -218,9 +204,11 @@ subroutine allocate_globals(first_kpt, last_kpt, ionDynamics, allocate_mathcalH,
 end subroutine
 
 !> Output general information to `RTTDDFT_INFO.OUT`
-subroutine write_to_info( ionDynamics )
+subroutine write_to_info( ionDynamics, predictorCorrector )
   !> Are we performing an MD calculation?
   logical, intent(in)         :: ionDynamics
+  !> if `.True`, the predictor corrector loop is employed
+  logical, intent(in) :: predictorCorrector
 
   character(len=100)          :: string
   character(len=*), parameter :: formatMemory = '(A40,F12.1)'

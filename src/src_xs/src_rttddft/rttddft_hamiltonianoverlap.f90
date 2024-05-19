@@ -45,12 +45,14 @@ contains
 
   !> In UpdateHam, we obtain the hamiltonian (and if requested, the overlap) at 
   !> time \( t \).
-  subroutine UpdateHam( predcorr, calculateOverlap, printTimings, t_ham, t_MD, &
+  subroutine UpdateHam( predcorr, calculateOverlap, forcePmatHermitian, printTimings, t_ham, t_MD, &
     & update_mathcalH, update_mathcalB, update_pmat )
     !> tells if we are in the loop of the predictor-Corrector scheme    
     logical, intent(in)               :: predcorr
     !> tells if we need to calculate the overlap
     logical, intent(in)               :: calculateOverlap
+    !> if `.true.`, force pmat to be hermitian
+    logical, intent(in)               :: forcePmatHermitian
     !> Object that packs information about printing of timings [[Print_Timings]]
     type(Print_Timings), optional, intent(in) :: printTimings
     !> Object that packs information about timings to update the Hamiltonian
@@ -67,7 +69,7 @@ contains
     integer               :: ik, nmatp, first_kpt, last_kpt
     real(dp)              :: ti, tf, tStart
     logical               :: tGen, tDetail
-    logical               :: get_mathcalH, get_mathcalB, get_pmat, forcePmatHermitian
+    logical               :: get_mathcalH, get_mathcalB, get_pmat
 
     ! factor that multiplies the overlap matrix (when we compute the hamiltonian)
     fact = dot_product( atot, atot )/(2._dp * c**2)
@@ -85,7 +87,6 @@ contains
     if( present( update_mathcalB ) ) get_mathcalB = update_mathcalB
     get_pmat = .False.
     if( present( update_pmat ) ) get_pmat = update_pmat
-    forcePmatHermitian = input%xs%realTimeTDDFT%pmat%forceHermitian
 
     ! sanity checks
     if( get_mathcalH ) call assert( calculateOverlap , 'The overlap matrix is needed to update mathcalH' )

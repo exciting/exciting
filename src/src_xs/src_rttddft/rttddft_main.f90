@@ -14,7 +14,6 @@
 !> uppot, uprho.
 module rttddft_main
   use asserts, only: assert
-  use errors_warnings, only: terminate_if_false
   use m_getunit, only: getunit
   use MD, only: force, MD_input_keys
   use MD_io, only: MD_out
@@ -26,7 +25,7 @@ module rttddft_main
   use mod_misc, only: filext
   use mod_mpi_env, only: mpiinfo
   use modinput, only: input, input_type
-  use modmpi, only: rank, procs, mpi_env_k, mpiglobal, distribute_loop, barrier
+  use modmpi, only: rank, procs, mpi_env_k, mpiglobal, distribute_loop, barrier, terminate_if_false
   use physical_constants, only: c
   use precision, only: dp, i32
   use rttddft_CurrentDensity, only: Obtain_Paramagnetic_Current_Density
@@ -35,6 +34,7 @@ module rttddft_main
   use rttddft_GlobalVariables
   use rttddft_HamiltonianOverlap, only: UpdateHam
   use rttddft_init, only: initialize_rttddft
+  use rttddft_input, only: rttddft_input_keys
   use rttddft_io, only: open_files_jpa, close_files_jpa, write_jpa, &
     open_file_timing, close_file_timing, write_timing, &
     open_file_nexc, close_file_nexc, write_nexc, &
@@ -49,8 +49,8 @@ module rttddft_main
   use rttddft_screenshot, only: screenshot
   use rttddft_timings, only: Timing_RTTDDFT_and_MD, Timing_RTTDDFT, &
     Timing_RTTDDFT_density, Timing_RTTDDFT_potential, Print_Timings, timesec_RTTDDFT
-  use rttddft_VectorPotential, only: Calculate_Vector_Potential, Evolve_A_ind => Solve_ODE_Vector_Potential
-  use rttddft_Wavefunction, only: UpdateWavefunction, Update_basis_derivative
+  use rttddft_VectorPotential, only: solver_types, Calculate_Vector_Potential, Evolve_A_ind => Solve_ODE_Vector_Potential
+  use rttddft_Wavefunction, only: UpdateWavefunction, Update_basis_derivative, SE, EH, propagator_types
   
   implicit none
 
@@ -72,30 +72,33 @@ contains
   subroutine coordinate_rttddft_calculation()
     ! counter for the number of iterations of real-time
     integer                 :: it
-    ! prints data every nprint steps of the counter "it"
-    integer                 :: nprint
     ! indexes of the first and the last k-points
     integer                 :: first_kpt, last_kpt
-    integer                 :: niter_screenshot
+    ! Number of time steps \( \Delta t \) required to reach `tend`
+    integer                 :: n_steps
 
     integer                 :: iprint
-    integer                 :: is, ia, ias, timeStepMultiplier
+    integer                 :: is, ia, ias, timeStepMultiplier, l_rad_step
     logical                 :: predCorrReachedMaxSteps
 
     character(len=100)      :: string
-    character(len=100)      :: fieldType
-    character(len=100)      :: vectorPotentialSolver
 
     real(dp), allocatable   :: atom_positions(:, :) ! in cartesian coordinates x, y, z
     real(dp), allocatable   :: atom_velocities(:, :) ! in cartesian coordinates x, y, z
     type(force)             :: forces
     type(MD_input_keys)     :: molecular_dynamics
+    type(rttddft_input_keys):: rt
+
+    ! Current time \( t \) for the time evolution carried out in RT-TDDFT
+    real(dp)                :: time
 
     real(dp),allocatable    :: nex(:), ngs(:), nt(:)
     real(dp)                :: aindsave(3),pvecsave(3)
     real(dp)                :: jindsave(3),aextsave(3),atotsave(3)
     real(dp)                :: electric_field(3)
     real(dp)                :: timei, timef, timeiter
+    real(dp)                :: tol
+    real(dp), parameter     :: tol_default = 1e-10_dp
     type(MD_out)            :: MD_outputs
 
     ! Variables to store data and print
@@ -104,7 +107,6 @@ contains
     real(dp),allocatable    :: atposcstore(:,:,:), velstore(:,:,:)
     type(force),allocatable :: forces_store(:)
     logical,allocatable     :: printforces(:)
-    logical                 :: take_screenshots
     logical, allocatable    :: screenshot_was_taken(:)
 
     type(TotalEnergy), allocatable  :: etotstore(:)
@@ -115,18 +117,20 @@ contains
 
     call timesec( timei )
 
-    ! Interface with input parameters
-    nprint = input%xs%realTimeTDDFT%printAfterIterations
-    fieldType = input%xs%realTimeTDDFT%laser%fieldType
-    vectorPotentialSolver = input%xs%realTimeTDDFT%vectorPotentialSolver
-    take_screenshots = associated( input%xs%realTimeTDDFT%screenshots )
-    if( take_screenshots ) niter_screenshot = input%xs%realTimeTDDFT%screenshots%niter
+    ! Sanity check
+    call sanity_checks( input )
 
+    ! Interface with input parameters
+    tol = tol_default
+    if( associated(input%groundstate%solver) ) tol = input%groundstate%solver%evaltol
+    call rt%parse_input( input%xs%realTimeTDDFT, tol )
     call molecular_dynamics%parse_input()
+    time = 0._dp
+    n_steps = int( rt%t_end / rt%propagator%time_step )
+    l_rad_step = input%groundstate%lradstep
+    
     ! we only perform MD in RT-TDDFT if the type is Ehrenfest
     if( molecular_dynamics%on ) molecular_dynamics%on = ( trim(molecular_dynamics%MD_type) == 'Ehrenfest' )
-
-    call sanity_checks( input, nprint, mpiglobal )
     
     ! Outputs general info to RTTDDFT_INFO.OUT 
     if( rank == 0 ) then
@@ -134,27 +138,27 @@ contains
       call write_file_info_header
     end if
 
-    call initialize_rttddft( molecular_dynamics )
+    call initialize_rttddft( rt%pmat, rt%predictor_corrector%on, molecular_dynamics )
     
-    if( molecular_dynamics%on ) call init_MD( tstep, timeStepMultiplier, molecular_dynamics, &
+    if( molecular_dynamics%on ) call init_MD( time, rt%propagator%time_step, timeStepMultiplier, molecular_dynamics, &
       MD_outputs, atom_positions, atom_velocities, electric_field, forces )
     
-    call printTimings%set( printTimesGeneral, printTimesDetailed )
+    call printTimings%set( rt%timings_general, rt%timings_detailed )
 
-    ! Allocate variables to be stored and printed only after nprint steps
-    allocate(timestore(nprint), aindstore(3,nprint), atotstore(3,nprint))
-    allocate(jindstore(3,nprint), pvecstore(3,nprint))
+    ! Allocate variables to be stored and printed only after rt_input%n_print steps
+    allocate(timestore(rt%n_print), aindstore(3,rt%n_print), atotstore(3,rt%n_print))
+    allocate(jindstore(3,rt%n_print), pvecstore(3,rt%n_print))
     if( printTimings%general() ) then
-      allocate( timing_store(nprint) )
-      allocate( screenshot_was_taken(nprint), source=.False. )
+      allocate( timing_store(rt%n_print) )
+      allocate( screenshot_was_taken(rt%n_print), source=.False. )
     end if
-    if( calculateTotalEnergy ) allocate(etotstore(nprint))
-    if( calculateNexc ) allocate(nex(nprint),ngs(nprint),nt(nprint))
+    if( rt%calculate_total_energy ) allocate(etotstore(rt%n_print))
+    if( rt%calculate_n_exc ) allocate(nex(rt%n_print),ngs(rt%n_print),nt(rt%n_print))
     if( molecular_dynamics%on ) then
-      allocate( printforces(nprint), atposcstore(3,natmtot,nprint), velstore(3,natmtot,nprint))
+      allocate( printforces(rt%n_print), atposcstore(3,natmtot,rt%n_print), velstore(3,natmtot,rt%n_print))
       if ( molecular_dynamics%print_all_force_components ) then
-        allocate( forces_store(nprint) )
-        do is = 1, nprint
+        allocate( forces_store(rt%n_print) )
+        do is = 1, rt%n_print
           call forces_store(is)%allocate_arrays( natmtot )
         end do
       end if
@@ -171,7 +175,7 @@ contains
     call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
 
     ! Total energy
-    if ( calculateTotalEnergy ) then
+    if ( rt%calculate_total_energy ) then
       call potcoul
       call potxc
       call obtain_energy_rttddft( first_kpt, last_kpt, ham_time, evecfv_gnd, etotstore(1) )
@@ -184,7 +188,7 @@ contains
     end if
 
     ! Number of excitations
-    if (calculateNexc) then
+    if (rt%calculate_n_exc) then
       call Obtain_number_excitations( first_kpt, last_kpt, evecfv_gnd, &
         & evecfv_time, overlap, nex(1), ngs(1), nt(1) )
       ! Trick: we need an array to call the subroutine print_nexc
@@ -195,7 +199,7 @@ contains
       end if
     end if
 
-    if ( take_screenshots ) call screenshot( 0, first_kpt, last_kpt, overlap, evecfv_gnd, &
+    if ( rt%screenshots%on ) call screenshot( 0, first_kpt, last_kpt, overlap, evecfv_gnd, &
         & evecfv_time, ham_time )
 
     if( printTimings%general() ) then
@@ -209,30 +213,30 @@ contains
     iprint = 1
     timeiter = timef
     ! This is the most important loop (performed for each time step \(\Delta t\)
-    do it = 1, nsteps
+    do it = 1, n_steps
       ! Variable to store the timing of each iteration
       timei = timeiter
 
       ! The "real time" t of our evolution
-      time = time + tstep
+      time = time + rt%propagator%time_step
 
       ! WAVEFUNCTION
-      if ( predictorCorrector ) evecfv_save(:,:,:) = evecfv_time(:,:,:)
+      if ( rt%predictor_corrector%on ) evecfv_save(:,:,:) = evecfv_time(:,:,:)
       if ( molecular_dynamics%on .and. molecular_dynamics%basis_derivative ) then
-        call UpdateWavefunction( .False., atom_velocities )
+        call UpdateWavefunction( rt%propagator, .False., atom_velocities )
       else 
-        call UpdateWavefunction( .False. )
+        call UpdateWavefunction( rt%propagator, .False. )
       end if
       if ( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%wavefunction )
 
       ! Update the paramagnetic component of the induced current density
       call Obtain_Paramagnetic_Current_Density( evecfv_time, pmat, occsv(:, first_kpt:last_kpt), &
         [(1._dp/nkpt, is = first_kpt, last_kpt)], jparanext )
-      if ( input%xs%realTimeTDDFT%subtractJ0 ) jparanext(:) = jparanext(:)-jparaspurious(:)
+      if ( rt%subtract_J0 ) jparanext(:) = jparanext(:)-jparaspurious(:)
       if ( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%current_density )
 
       ! DENSITY
-      call uprho( it, printTimings, timing%t_RTTDDFT%dens )
+      call uprho( it, rt%propagator%normalize_WF, l_rad_step, printTimings, timing%t_RTTDDFT%dens )
 
       ! KS-POTENTIAL
       call uppot( printTimings, timing%t_RTTDDFT%pot )
@@ -240,21 +244,21 @@ contains
       ! VECTOR POTENTIAL
       if( printTimings%general() ) call timesec( timei )
       ! Check if we need to save aind, pvec, atot and aext
-      if( fieldType == 'external' .and. predictorCorrector .and. (vectorPotentialSolver /= 'euler') ) then
+      if( rt%is_field_type_external() .and. rt%predictor_corrector%on .and. ( .not. rt%is_solver_euler() ) ) then
         aindsave(:) = aind(:)
         pvecsave(:) = pvec(:)
         aextsave(:) = aext(:)
       end if
       atotsave = atot
-      if( fieldType == 'total' ) then
-        call update_vector_potential( time, atot )
+      if( rt%is_field_type_total() ) then
+        call update_vector_potential( time, rt%propagator%time_step, rt%vector_potential_solver, atot )
         if( molecular_dynamics%on ) then
-          call Calculate_Vector_Potential( time+tstep, aindsave ) ! trick: aindsave is an auxiliary variable
-          electric_field = obtain_electric_field( 2*tstep, aindsave, atotsave )
+          call Calculate_Vector_Potential( time+rt%propagator%time_step, aindsave ) ! trick: aindsave is an auxiliary variable
+          electric_field = obtain_electric_field( 2*rt%propagator%time_step, aindsave, atotsave )
         end if
       else 
-        call update_vector_potential( time, atot, aind, aext )
-        if( molecular_dynamics%on ) electric_field = obtain_electric_field( tstep, atot, atotsave )
+        call update_vector_potential( time, rt%propagator%time_step, rt%vector_potential_solver, atot, aind, aext )
+        if( molecular_dynamics%on ) electric_field = obtain_electric_field( rt%propagator%time_step, atot, atotsave )
       end if
       if( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%vector_potential )
 
@@ -265,40 +269,39 @@ contains
       jparaold(:) = jpara(:)
       jpara(:) = jparanext(:)
       ! Update the total induced current
-      if ( predictorCorrector .and. (vectorPotentialSolver /= 'euler') ) then
+      if ( rt%predictor_corrector%on .and. ( .not. rt%is_solver_euler() ) ) then
         jindsave(:) = jind(:)
       end if
       jind(:) = jpara(:) + jdia(:)
 
       ! HAMILTONIAN
-      call UpdateHam( predcorr=.False., calculateOverlap=.False., &
+      call UpdateHam( predcorr=.False., calculateOverlap=.False., forcePmatHermitian=rt%pmat%force_pmat_hermitian, &
         printTimings=printTimings, t_ham=timing%t_RTTDDFT%ham, t_MD=timing%t_Ehrenfest, &
         update_mathcalH=.False., update_mathcalB=.False., update_pmat=.False. )
 
       ! Remark: it makes no sense to employ the predictor-corrector method with SE or EH!
-      if ( predictorCorrector .and. (method /= 'SE') .and. (method /= 'EH') ) then
+      if ( rt%predictor_corrector%on .and. (rt%propagator%name /= SE) .and. (rt%propagator%name /= EH) ) then
         if ( printTimings%general() ) call timesec( timei )
-        call loopPredictorCorrector( it, maxstepsPredictorCorrector, &
-          (fieldType == 'external') .and. (vectorPotentialSolver /= 'euler'), &
+        call loopPredictorCorrector( it, time, rt, l_rad_step, rt%is_field_type_external() .and. ( .not. rt%is_solver_euler() ), &
           first_kpt, last_kpt, aindsave, atotsave, aextsave, pvecsave, jindsave, &
           jparaold, predCorrReachedMaxSteps )
         
         if ( predCorrReachedMaxSteps .and. rank == 0 ) &
           write(*,*) 'Problems with convergence (PredCorr), time: ', time
-        if ( molecular_dynamics%on .and. (fieldType == 'external')) &
-          electric_field(:) = (-1d0/c/tstep)*(atot(:)-atotsave(:))
+        if ( molecular_dynamics%on .and. rt%is_field_type_external() ) &
+          electric_field(:) = (-1.0_dp/c/rt%propagator%time_step)*(atot(:)-atotsave(:))
         if ( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%pred_corr )
       end if !predictor-corrector
 
       ! Obtain the total energy, if requested
-      if( calculateTotalEnergy ) then
+      if( rt%calculate_total_energy ) then
         if ( printTimings%detailed() ) call timesec( timei )
         call obtain_energy_rttddft( first_kpt, last_kpt, ham_time, evecfv_time, etotstore(iprint) )
         if ( printTimings%detailed() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%energy )
       end if
 
       ! Obtain the number of excited electrons, if requested
-      if( calculateNexc ) then
+      if( rt%calculate_n_exc ) then
         if ( printTimings%detailed() ) call timesec( timei )
         call Obtain_number_excitations( first_kpt, last_kpt, evecfv_gnd, &
           & evecfv_time, overlap, nex(iprint), ngs(iprint), nt(iprint))
@@ -327,7 +330,7 @@ contains
           ! Update Hamiltonian with the new basis
           if( molecular_dynamics%update_overlap .or. allocated(mathcalH) .or. &
             & allocated(mathcalB) .or. molecular_dynamics%update_pmat ) then
-            call UpdateHam( predcorr=.False., &
+            call UpdateHam( predcorr=.False., forcePmatHermitian=rt%pmat%force_pmat_hermitian, &
               & calculateOverlap=molecular_dynamics%update_overlap, &
               & printTimings=printTimings, t_ham=timing%t_RTTDDFT%ham, t_MD=timing%t_Ehrenfest, &
               & update_mathcalH=allocated(mathcalH), &
@@ -342,8 +345,8 @@ contains
       end if ! if ( molecular_dynamics%on ) then
 
       ! Check if a screenshot has been requested
-      if ( take_screenshots ) then
-        if ( mod( it, niter_screenshot ) == 0 ) then
+      if ( rt%screenshots%on ) then
+        if ( mod( it, rt%screenshots%n_steps ) == 0 ) then
           if( printTimings%general() ) screenshot_was_taken(iprint) = .True.
           if( printTimings%general() ) call timesec(timei)
           call screenshot( it, first_kpt, last_kpt, overlap, evecfv_gnd, &
@@ -362,22 +365,22 @@ contains
       jindstore(:, iprint) = jind(:)
       if( printTimings%general() ) timing_store(iprint) = timing
 
-      ! Print relevant information, every 'nprint' steps
-      if ( iprint == nprint ) then
+      ! Print relevant information, every 'rt_input%n_print' steps
+      if ( iprint == rt%n_print ) then
         ! Update the counter
         iprint = 1
         if( rank == 0 ) then
           call write_jpa( timestore, aindstore, atotstore, label='avec' )
           call write_jpa( timestore, pvecstore, label='pvec' )
           call write_jpa( timestore, jindstore, label='jind' )
-          if ( calculateTotalEnergy ) call write_total_energy( .False., nprint, &
+          if ( rt%calculate_total_energy ) call write_total_energy( .False., rt%n_print, &
             timestore(:), etotstore(:) )
-          if ( calculateNexc ) call write_nexc( .False., nprint, timestore(:), &
+          if ( rt%calculate_n_exc ) call write_nexc( .False., rt%n_print, timestore(:), &
             nex(:), ngs(:), nt(:) )
 
           ! Print forces - if this has been requested
           if( molecular_dynamics%on ) then
-            do iprint = 1, nprint
+            do iprint = 1, rt%n_print
               if( printforces(iprint) ) call write_MD_outputs( timestore(iprint), &
                 atposcstore(:, :, iprint), velstore(:,:,iprint), forces_store(iprint), &
                 molecular_dynamics%print_all_force_components, MD_outputs )
@@ -388,13 +391,14 @@ contains
         ! Update the counter
         iprint = 1
         if( printTimings%general() ) then
-          call timesec_RTTDDFT( timeiter, timing_store(nprint)%t_iteration )
-          call write_timing( it, nprint, timing_store, screenshot_was_taken, molecular_dynamics%on )
+          call timesec_RTTDDFT( timeiter, timing_store(rt%n_print)%t_iteration )
+          call write_timing( it, printTimings%detailed(), rt%calculate_total_energy, &
+            rt%calculate_n_exc, rt%predictor_corrector%on, timing_store, screenshot_was_taken, molecular_dynamics%on )
         end if
-      else ! if ( iprint .eq. nprint ) then
+      else ! if ( iprint .eq. rt_input%n_print ) then
         if( printTimings%general() ) call timesec_RTTDDFT( timeiter, timing_store(iprint)%t_iteration )
         iprint = iprint + 1
-      end if ! if ( iprint == nprint ) 
+      end if ! if ( iprint == rt_input%n_print ) 
       ! Make all the processes wait here: the master alone has been writing the files above
       call barrier( mpi_env_k )
     end do ! do it = 1, nsteps
@@ -403,8 +407,8 @@ contains
       call close_files_jpa
       call write_file_info( 'Real-time TDDFT calculation finished' )
       call close_file_info
-      if( calculateTotalEnergy ) call close_file_etot
-      if( calculateNexc ) call close_file_nexc
+      if( rt%calculate_total_energy ) call close_file_etot
+      if( rt%calculate_n_exc ) call close_file_nexc
       if( printTimings%general() ) call close_file_timing
       if( molecular_dynamics%on ) call MD_outputs%close_files()
     end if
@@ -416,15 +420,19 @@ contains
     if ( rank == 0 ) call writestate
     filext = string
 
-    call deallocate_global_arrays( molecular_dynamics%on )
+    call deallocate_global_arrays( rt%predictor_corrector%on, molecular_dynamics%on )
     
   end subroutine coordinate_rttddft_calculation
 
   !> This is just an interface to call the subroutine `[[UpdateDensity]]`, which
   !> updates the charge density
-  subroutine uprho( iteration_counter, printTimings, timing_dens )
+  subroutine uprho( iteration_counter, normalize, l_rad_step, printTimings, timing_dens )
     !> Tells how many time steps have already been executed
     integer, intent(in) :: iteration_counter
+    !> If `.true.`, normalize the charge density
+    logical, intent(in)             :: normalize
+    !> radial step length
+    integer(i32), intent(in)        :: l_rad_step
     !> Object that packs information about printing of timings [[Print_Timings]]
     type(Print_Timings), optional, intent(in) :: printTimings
     !> Object that packs information about timings to update the electronic density
@@ -432,9 +440,9 @@ contains
 
     if( present(printTimings) ) then
       call assert( present(timing_dens), 'timing_dens must be also present when printTimings is' )
-      call UpdateDensity( iteration_counter, printTimings, timing_dens )
+      call UpdateDensity( iteration_counter, normalize, l_rad_step, printTimings, timing_dens )
     else
-      call UpdateDensity( iteration_counter )
+      call UpdateDensity( iteration_counter, normalize, l_rad_step )
     end if
   end subroutine uprho
 
@@ -474,41 +482,38 @@ contains
   end subroutine uppot
 
   !> (private subroutine) Check if variables given in the input file make sense
-  subroutine sanity_checks( inp, nprint, mpi_env  )
+  subroutine sanity_checks( inp  )
     !> type with the variables given in the input file
     type(input_type):: inp
-    !> Variable that tells after how many iterations the output should be written
-    integer(i32), intent(in) :: nprint
-    !> Variable that encapsulates the MPI communicator that will abort if a sanity test fails
-    type(mpiinfo), intent(inout):: mpi_env
     
-    call terminate_if_false( mpi_env, nprint > 0, &
-      & 'Invalid non-positive number as printAfterIterations' )
-
-    call terminate_if_false( mpi_env, .not. inp%groundstate%solver%packedmatrixstorage, &
+    call terminate_if_false( .not. inp%groundstate%solver%packedmatrixstorage, &
       & 'Error: RT-TDDFT does not work with matrices stored in a packed form.' )
 
     ! Consistency check: check if no spin polarized calculations are requested.
-    call terminate_if_false( mpi_env, .not. inp%groundstate%tevecsv, &
+    call terminate_if_false( .not. inp%groundstate%tevecsv, &
       & 'Error: only spin unpolarised calculations are possible with RT-TDDFT now.' )
 
     ! Consistency check: laser has been defined?
-    call terminate_if_false( mpi_env, associated(inp%xs%realTimeTDDFT%laser), &
+    call terminate_if_false( associated(inp%xs%realTimeTDDFT%laser), &
       & 'Element <laser> in <realTimeTDDFT> not found')
 
     ! Consistency check
-    call terminate_if_false( mpi_env, associated(inp%xs%realTimeTDDFT%pmat), &
+    call terminate_if_false( associated(inp%xs%realTimeTDDFT%pmat), &
       & 'Element <pmat> in <realTimeTDDFT> not found' )
+
     ! Consistency check: MD and predictor corrector?
-    call terminate_if_false( mpi_env, .not. ( associated(inp%xs%realTimeTDDFT%predictorCorrector) &
-      .and. associated(inp%MD) ), &
+    call terminate_if_false( .not. ( associated(inp%xs%realTimeTDDFT%predictorCorrector) .and. associated(inp%MD) ), &
       & 'It is currently not possible to use the predictor corrector method together with molecular dynamics')
 
   end subroutine
 
-  subroutine update_vector_potential( t, A_tot, A_ind, A_ext )
+  subroutine update_vector_potential( t, dt, method, A_tot, A_ind, A_ext )
     !> time \(t\)
     real(dp), intent(in)              :: t
+    !> time step \( \Delta t\)
+    real(dp), intent(in)              :: dt
+    !> Method used to update the vector potential
+    integer(kind(solver_types)), intent(in) :: method
     !> total vector potential: \(A_{tot} = A_{ind} + A_{ext}\)
     real(dp), intent(inout)           :: A_tot(3)
     !> induced vector potential
@@ -522,7 +527,7 @@ contains
     if( all_fields_present ) call assert( present(A_ext), 'If A_ind is present, then A_ext must also be' )
 
     !TODO(Ronaldo): Refactor `Evolve_A_ind` to avoid globals
-    call Evolve_A_ind( .not. all_fields_present )
+    call Evolve_A_ind( t, dt, method, .not. all_fields_present )
     if( all_fields_present ) then
       call Calculate_Vector_Potential( t, A_ext(:) )
       A_tot(:) = A_ind(:) + A_ext(:)
@@ -543,12 +548,16 @@ contains
     E_field = ( -1._dp / c / dt ) * ( A_tot - A_tot_previous )
   end function
 
-  subroutine loopPredictorCorrector( it, maxSteps, evolveA, first_kpt, last_kpt, &
+  subroutine loopPredictorCorrector( it, time, rt, l_rad_step, evolveA, first_kpt, last_kpt, &
     aindsave, atotsave, aextsave, pvecsave, jindsave, jparasave, maxStepsReached )
     !> current iteration number in the RT-TDDFT loop
     integer(i32), intent(in)       :: it
-    !> maximum steps in the predictor corrector scheme
-    integer(i32), intent(in)       :: maxSteps
+    !> time \( t \)
+    real(dp), intent(in)  :: time
+    !> Type that encapsulates the parameters defined in the input file
+    type(rttddft_input_keys), intent(in) :: rt
+    !> radial step length
+    integer(i32), intent(in)        :: l_rad_step
     !> If `.True.`, the vector potential is evolved in each step
     logical, intent(in)            :: evolveA
     !> index of the first `k-point` to be considered in the sum
@@ -573,18 +582,18 @@ contains
     integer(i32) :: i, ik
     real(dp)     :: err
 
-    do i = 1, maxSteps
+    do i = 1, rt%predictor_corrector%max_steps
       ! WAVEFUNCTION
       evecfv_time(:,:,:) = evecfv_save(:,:,:)
-      call UpdateWavefunction( .True. )
+      call UpdateWavefunction( rt%propagator, .True. )
 
       ! Update the paramagnetic component of the induced current density
       call Obtain_Paramagnetic_Current_Density( evecfv_time, pmat, occsv(:, first_kpt:last_kpt), &
         [(1._dp/nkpt, ik = first_kpt, last_kpt)], jparanext )
-      if ( input%xs%realTimeTDDFT%subtractJ0 ) jparanext(:) = jparanext(:)-jparaspurious(:)
+      if ( rt%subtract_J0 ) jparanext(:) = jparanext(:)-jparaspurious(:)
 
       ! DENSITY
-      call uprho( it )
+      call uprho( it, rt%propagator%normalize_WF, l_rad_step )
 
       ! KS-POTENTIAL
       call uppot
@@ -598,8 +607,8 @@ contains
         aext(:) = aextsave(:)
         pvec(:) = pvecsave(:)
         jind(:) = jindsave(:)
-        call update_vector_potential( time, atot, aind, aext )
-        call Evolve_A_ind( .False. )
+        call update_vector_potential( time, rt%propagator%time_step, rt%vector_potential_solver, atot, aind, aext )
+        call Evolve_A_ind( time, rt%propagator%time_step, rt%vector_potential_solver, .False. )
         call Calculate_Vector_Potential( time, aext(:) )
         ! Update the (total) vector potential
         atot(:) = aind(:) + aext(:)
@@ -614,19 +623,21 @@ contains
 
       ! HAMILTONIAN
       ham_predcorr(:,:,:) = ham_time(:,:,:)
-      call UpdateHam( predcorr=.True., calculateOverlap=.False. )
+      call UpdateHam( predcorr=.True., calculateOverlap=.False., forcePmatHermitian=rt%pmat%force_pmat_hermitian )
 
       ! Check the difference between the two hamiltonians
       err = maxval(abs(ham_predcorr(:,:,:)-ham_time(:,:,:)))
-      if ( err <= tolPredCorr ) exit
+      if ( err <= rt%predictor_corrector%tol ) exit
 
     end do
-    maxStepsReached = (i>maxSteps)
+    maxStepsReached = (i>rt%predictor_corrector%max_steps)
   end subroutine 
 
   !> Subroutine to initialize all MD related variables
-  subroutine init_MD( timeStepRTTDDFT, timeStepMultiplier, molecular_dynamics, &
+  subroutine init_MD( t_0, timeStepRTTDDFT, timeStepMultiplier, molecular_dynamics, &
       MD_outputs, atom_positions, atom_velocities, e_field, forces )
+    !> Initial time \( t_0 \)
+    real(dp), intent(in)               :: t_0
     !> Time step used in the real-time TDDFT calculation
     real(dp), intent(in)               :: timeStepRTTDDFT
     !> Integer ratio between the time step used in MD and `timeStepRTTDDFT`
@@ -665,7 +676,7 @@ contains
     
     if ( rank == 0 ) then
       call MD_outputs%open_files( natmtot, molecular_dynamics%print_all_force_components  )
-      call write_MD_outputs( time, atom_positions, atom_velocities, forces, &
+      call write_MD_outputs( t_0, atom_positions, atom_velocities, forces, &
                 molecular_dynamics%print_all_force_components, MD_outputs )
     end if
 
@@ -727,7 +738,9 @@ contains
     end if
   end subroutine
 
-  subroutine deallocate_global_arrays( deallocate_ehrenfest_arrays )
+  subroutine deallocate_global_arrays( predictorCorrector, deallocate_ehrenfest_arrays )
+    !> when `.True.`, also deallocate arrays used in the predictor corrector loop
+    logical, intent(in) :: predictorCorrector
     !> when `.True.`, also deallocate arrays used in Ehrenfest MD
     logical, intent(in) :: deallocate_ehrenfest_arrays
 
@@ -740,18 +753,16 @@ contains
     if ( allocated(ham_past) ) deallocate( ham_past )
     if ( allocated(pmat) ) deallocate( pmat )
     if ( predictorCorrector ) deallocate( ham_predcorr, evecfv_save )
-    if ( associated(input%xs%realTimeTDDFT%laser) ) then
-      if ( nkicks >= 1 ) then
-        deallocate( wkick, dirkick, amplkick, t0kick )
-      end if
-      if ( ntrapcos >= 1 ) then
-        deallocate( dirtrapcos, ampltrapcos, omegatrapcos, phasetrapcos )
-        deallocate( t0trapcos, trtrapcos, wtrapcos )
-      end if
-      if ( nsinsq >= 1 ) then
-        deallocate( dirsinsq, amplsinsq, omegasinsq )
-        deallocate( phasesinsq, t0sinsq, tpulsesinsq )
-      end if
+    if ( nkicks >= 1 ) then
+      deallocate( wkick, dirkick, amplkick, t0kick )
+    end if
+    if ( ntrapcos >= 1 ) then
+      deallocate( dirtrapcos, ampltrapcos, omegatrapcos, phasetrapcos )
+      deallocate( t0trapcos, trtrapcos, wtrapcos )
+    end if
+    if ( nsinsq >= 1 ) then
+      deallocate( dirsinsq, amplsinsq, omegasinsq )
+      deallocate( phasesinsq, t0sinsq, tpulsesinsq )
     end if
     
     if ( deallocate_ehrenfest_arrays ) then
