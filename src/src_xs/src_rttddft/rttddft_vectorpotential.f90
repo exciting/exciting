@@ -9,16 +9,45 @@
 
 !> Module to manage the vector potential \( \mathbf{A} \)
 module rttddft_VectorPotential
-
-  use precision, only: dp
+  use modmpi, only: terminate
+  use precision, only: dp, i32
 
   implicit none
 
-  private :: Delta_Kick, Cossine_with_Trapezoidal_Envelope, &
-    & Cossine_with_Sinsquared_Envelope
-  public  :: Calculate_Vector_Potential, Solve_ODE_Vector_Potential
+  private 
+
+  public  :: Calculate_Vector_Potential, Solve_ODE_Vector_Potential, solver_type, solver_types, euler
+
+  character(len=*), parameter :: solver_euler = 'euler'
+  character(len=*), parameter :: solver_improved_euler = 'improvedeuler'
+  character(len=*), parameter :: solver_midpoint = 'midpoint'
+  character(len=*), parameter :: solver_rk4 = 'rk4'
+
+  !> Enum with the solver type for the vector potential
+  enum, bind(C)
+    enumerator :: solver_types
+    enumerator :: euler, improved_euler, midpoint, rk4
+  end enum
 
 contains
+  function solver_type( solver_name ) result(solver)
+    character(len=*), intent(in) :: solver_name
+    integer(kind(solver_types)) :: solver 
+
+    select case( trim( solver_name ) )
+      case( solver_euler )
+        solver = euler
+      case( solver_improved_euler )
+        solver = improved_euler
+      case( solver_midpoint )
+        solver = midpoint
+      case( solver_rk4 )
+        solver = rk4
+      case default
+        call terminate('unknown solver_type')
+    end select
+  end function
+
   !> Delta Kick function
   !> IMPORTANT: The delta kick is meant for the electric field
   !> \[
@@ -239,18 +268,21 @@ contains
   !> \[
   !>  \frac{d^2\mathbf{A}_{ind}}{dt^2} = 4 \pi c \mathbf{J}(t).
   !>  \]
-  subroutine Solve_ODE_Vector_Potential( TotalFieldIsGiven )
-    use rttddft_GlobalVariables, only: tstep, time, jpara, jparanext, &
+  subroutine Solve_ODE_Vector_Potential( time, dt, method, TotalFieldIsGiven )
+    use rttddft_GlobalVariables, only: jpara, jparanext, &
       & aind, pvec, jind, aext, atot
-    use errors_warnings, only: terminate_if_false
     use constants, only: fourpi, pi
     use physical_constants, only: c
-    use modmpi, only: mpiglobal
     use mod_lattice, only: omega
     use mod_charge_and_moment, only: chgval
-    use modinput, only: input
 
     implicit none
+
+    !> Time \( t \)
+    real(dp), intent(in)      :: time
+    !> Time step \( \Delta t \)
+    real(dp), intent(in)      :: dt
+    integer(kind(solver_types)) :: method
     !> Tells if the total field (`TotalFieldIsGiven` = true) or if the 
     !> external field (`TotalFieldIsGiven` = false) is given by the laser.  
     !> Reminder: \( \mathbf{A} = \mathbf{A}_{ext} + \mathbf{A}_{ind} \)
@@ -264,72 +296,70 @@ contains
 
     beta = chgval/c/omega
     ! Method of integrating the differential equation
-    select case(input%xs%realTimeTDDFT%vectorPotentialSolver)
-      case('euler') ! Euler
-        aind = aind + fourpi*c*tstep*pvec
-        pvec = pvec + tstep*jind
-      case('improvedeuler') ! Improved Euler method
-        aind = aind + fourpi*c*tstep*(pvec + (0.5_dp)*(tstep)*jind)
+    select case( method )
+      case( euler ) ! Euler
+        aind = aind + fourpi*c*dt*pvec
+        pvec = pvec + dt*jind
+      case( improved_euler ) ! Improved Euler method
+        aind = aind + fourpi*c*dt*(pvec + (0.5_dp)*(dt)*jind)
         call Calculate_Vector_Potential( time, aauxnext )
         if ( TotalFieldIsGiven ) then
           jindnext = jparanext - beta*(aauxnext)
         else
           jindnext = jparanext - beta*( aind + aauxnext )
         end if
-        pvec = pvec + (0.5_dp)*tstep*( jind + jindnext )
-      case('midpoint')
+        pvec = pvec + (0.5_dp)*dt*( jind + jindnext )
+      case( midpoint )
         call Calculate_Vector_Potential( time, aauxnext )
         if ( TotalFieldIsGiven ) then
           jindnext = jparanext - beta*( aauxnext )
           jindmid = 0.5_dp*( jind + jindnext )
-          aind = aind + fourpi*c*tstep*( pvec + 0.5_dp*tstep*jindmid )
-          pvec = pvec + tstep*jindmid
+          aind = aind + fourpi*c*dt*( pvec + 0.5_dp*dt*jindmid )
+          pvec = pvec + dt*jindmid
         else
           asave = aind
           jparamid = (0.5_dp)*( jparanext + jpara )
           smid = jparamid(:) - 0.5_dp*beta*( aext + aauxnext )
-          fac = pi*beta*c*(tstep**2)
+          fac = pi*beta*c*(dt**2)
           den = 1_dp + fac
           fac = (1_dp - fac)/den
-          aind = (fourpi*c*tstep/den)*( pvec + 0.5d0*tstep*smid ) + &
+          aind = (fourpi*c*dt/den)*( pvec + 0.5d0*dt*smid ) + &
             & fac*aind(:)
-          pvec = (tstep/den)*(smid - beta*asave ) + fac*pvec
+          pvec = (dt/den)*(smid - beta*asave ) + fac*pvec
         end if
-      case('rk4') ! Runge-Kutta 4th order
+      case( rk4 ) ! Runge-Kutta 4th order
         ! Before we begin with rk4, we need to extrapolate jpara and aext
         jparamid = (0.5_dp)*( jparanext + jpara )
-        call Calculate_Vector_Potential( time-(0.5_dp)*tstep, aauxmid )
+        call Calculate_Vector_Potential( time-(0.5_dp)*dt, aauxmid )
         call Calculate_Vector_Potential( time, aauxnext )
         ! Now, we apply Runge Kutta of 4th order
         if ( TotalFieldIsGiven ) then
           k1(:,1) = jpara(:) - beta*atot(:)
           k1(:,2) = fourpi*c*pvec(:)
           k2(:,1) = jparamid(:) - beta*aauxmid(:)
-          k2(:,2) = fourpi*c*(pvec(:) + (tstep/2._dp)*k1(:,1))
+          k2(:,2) = fourpi*c*(pvec(:) + (dt/2._dp)*k1(:,1))
           k3(:,1) = jparamid(:) - beta*aauxmid(:)
-          k3(:,2) = fourpi*c*(pvec(:) + (tstep/2._dp)*k2(:,1))
+          k3(:,2) = fourpi*c*(pvec(:) + (dt/2._dp)*k2(:,1))
           k4(:,1) = jparanext(:) - beta*aauxnext(:)
-          k4(:,2) = fourpi*c*(pvec(:) + (tstep)*k3(:,1))
+          k4(:,2) = fourpi*c*(pvec(:) + (dt)*k3(:,1))
         else
           k1(:,1) = jpara(:) - beta*(aext(:) + aind(:))
           k1(:,2) = fourpi*c*pvec(:)
-          k2(:,1) = jparamid(:) - beta*(aauxmid(:) + aind(:) + (tstep/2._dp)*k1(:,2) )
-          k2(:,2) = fourpi*c*(pvec(:) + (tstep/2._dp)*k1(:,1))
-          k3(:,1) = jparamid(:) - beta*(aauxmid(:) + aind(:) + (tstep/2._dp)*k2(:,2) )
-          k3(:,2) = fourpi*c*(pvec(:) + (tstep/2._dp)*k2(:,1))
-          k4(:,1) = jparanext(:) - beta*(aauxnext(:) + aind(:) + (tstep)*k3(:,2) )
-          k4(:,2) = fourpi*c*(pvec(:) + (tstep)*k3(:,1))
+          k2(:,1) = jparamid(:) - beta*(aauxmid(:) + aind(:) + (dt/2._dp)*k1(:,2) )
+          k2(:,2) = fourpi*c*(pvec(:) + (dt/2._dp)*k1(:,1))
+          k3(:,1) = jparamid(:) - beta*(aauxmid(:) + aind(:) + (dt/2._dp)*k2(:,2) )
+          k3(:,2) = fourpi*c*(pvec(:) + (dt/2._dp)*k2(:,1))
+          k4(:,1) = jparanext(:) - beta*(aauxnext(:) + aind(:) + (dt)*k3(:,2) )
+          k4(:,2) = fourpi*c*(pvec(:) + (dt)*k3(:,1))
         end if
-        pvec(:) = pvec(:) + (tstep/6._dp)*( &
+        pvec(:) = pvec(:) + (dt/6._dp)*( &
           & k1(:,1) + 2._dp*k2(:,1) + 2._dp*k3(:,1) + k4(:,1) )
-        aind(:) = aind(:) + (tstep/6._dp)*( &
+        aind(:) = aind(:) + (dt/6._dp)*( &
           & k1(:,2) + 2._dp*k2(:,2) + 2._dp*k3(:,2) + k4(:,2) )
       case default
         ! Method not recognized
         ! We need to stop the code
-        call terminate_if_false( mpiglobal, .false., &
-          & 'Error(Solve_ODE_Vector_Potential): method given in &
-          & input%xs%rt_tddft%updateAind is not recognized.' )
+        call terminate( 'Error(Solve_ODE_Vector_Potential): method is not recognized.' )
 
     end select
   end subroutine Solve_ODE_Vector_Potential

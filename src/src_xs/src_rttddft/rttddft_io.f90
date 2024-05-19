@@ -12,9 +12,7 @@ module rttddft_io
 #endif
   use precision, only: dp, i32
   use rttddft_Energy, only: TotalEnergy
-  use rttddft_GlobalVariables, only: calculateNexc, &
-    calculateTotalEnergy, predictorCorrector, printTimesDetailed
-  use rttddft_timings, only: Timing_RTTDDFT_and_MD
+  use rttddft_timings, only: Print_Timings, Timing_RTTDDFT_and_MD
   
   implicit none
 
@@ -325,23 +323,32 @@ contains
   end subroutine
 
   !> Subroutine to output the timings into `TIMING_RTTDDFT.OUT`
-  subroutine write_timing_RTTDDFT_steps( itNumber, n, timing, screenshot_was_taken, molecular_dynamics )
+  subroutine write_timing_RTTDDFT_steps( itNumber, detailed_timings, calculateTotalEnergy, &
+      calculateNexc, predictorCorrector, timing, screenshot_was_taken, molecular_dynamics )
     !> itNumber: The actual number of the counter that tells how many time steps 
     !> have already been executed
-    integer, intent(in)             :: itNumber
-    !> n:  Number of elements of the timing array
-    integer, intent(in)             :: n
+    integer, intent(in)                     :: itNumber
+    !> If `.true.`, print out detailed timings
+    logical, intent(in)                     :: detailed_timings
+    !> If `.true.` and `detailed_timings` too, print out timings of total energy
+    logical, intent(in)                     :: calculateTotalEnergy
+    !> If `.true.` and `detailed_timings` too, print out timings of nexc
+    logical, intent(in)                     :: calculateNexc
+    !> If `.true.`, print out timings spent in the predictor-corrector loop
+    logical, intent(in)                     :: predictorCorrector
     !> timing: Array of timings. Each elements contains information
     !>   about how many seconds (timings) were spent in different parts of code
-    type(Timing_RTTDDFT_and_MD), intent(in) :: timing(n)
+    type(Timing_RTTDDFT_and_MD), intent(in) :: timing(:)
     !> if `.True.`, a screenshot was taken at `itNumber`
-    logical, intent(in)             :: screenshot_was_taken(n)
+    logical, intent(in)                     :: screenshot_was_taken(:)
     !> Does timings about MD need to be printed?
-    logical, intent(in), optional   :: molecular_dynamics
+    logical, intent(in), optional           :: molecular_dynamics
     
+    integer  :: ip, shift, n
+    logical  :: MD
 
-    integer                         :: ip, shift
-    logical                         :: MD
+    n = size( timing )
+    call assert( size(screenshot_was_taken) == n, 'screenshot_was_taken must have n elements' )
 
     shift = itNumber - n
     MD = .False.
@@ -353,7 +360,7 @@ contains
         write(file_time,'(A30,I10)')'Time (sec) spent in iteration:',ip+shift
         write(file_time,format_timing) 'updatewvf:',t_rttddft%wavefunction
         write(file_time,format_timing) 'updatedens:',t_rttddft%dens%total
-        if ( printTimesDetailed ) then
+        if ( detailed_timings ) then
           write(file_time,format_timing) '-- rhovalk and genrhoir:',t_rttddft%dens%rho
           write(file_time,format_timing) '-- symrf:',t_rttddft%dens%symrf
           write(file_time,format_timing) '-- rfmtctof:',t_rttddft%dens%rfmtctof
@@ -362,7 +369,7 @@ contains
           write(file_time,format_timing) '-- rhonorm:',t_rttddft%dens%rhonorm
         end if
         write(file_time,format_timing) 'updatepot:',t_rttddft%pot%total
-        if ( printTimesDetailed ) then
+        if ( detailed_timings ) then
           write(file_time,format_timing) '-- poteff:',t_rttddft%pot%poteff
           write(file_time,format_timing) '-- genveffig:',t_rttddft%pot%genveffig
           write(file_time,format_timing) '-- genmeffig:',t_rttddft%pot%genmeffig
@@ -370,21 +377,21 @@ contains
         write(file_time,format_timing) 'UpdateCurrentDensity:',t_rttddft%current_density
         write(file_time,format_timing) 'ObtainA:',t_rttddft%vector_potential
         write(file_time,format_timing) 'updatehamiltonian:',t_rttddft%ham%total
-        if ( printTimesDetailed ) then
+        if ( detailed_timings ) then
           write(file_time,format_timing) '-- hmlint:',t_rttddft%ham%hmlint
           write(file_time,format_timing) '-- other subs:',t_rttddft%ham%rest
         end if
         if ( predictorCorrector )  &
           & write(file_time,format_timing) 'All cycles of predcorr:',t_rttddft%pred_corr
-        if ( calculateTotalEnergy .and. printTimesDetailed ) write(file_time,format_timing) 'Total Energy:',t_rttddft%energy
-        if ( calculateNexc .and. printTimesDetailed ) write(file_time,format_timing)'nexc:',t_rttddft%n_exc
+        if ( calculateTotalEnergy .and. detailed_timings ) write(file_time,format_timing) 'Total Energy:',t_rttddft%energy
+        if ( calculateNexc .and. detailed_timings ) write(file_time,format_timing)'nexc:',t_rttddft%n_exc
         if ( screenshot_was_taken(ip) ) write(file_time,format_timing) 'Screenshots:',t_rttddft%screenshot
         end associate
         if( MD ) then
           associate( t_MD => timing(ip)%t_Ehrenfest )
           if( t_MD%MD_was_carried_out ) then
             write(file_time,format_timing) 'MD:', t_MD%t_MD_step
-            if( printTimesDetailed ) then
+            if( detailed_timings ) then
               write(file_time,format_timing) '-- 1st part of forces:', t_MD%t_MD_1st
               write(file_time,format_timing) '-- 2nd part of forces:', t_MD%t_MD_2nd
               write(file_time,format_timing) '-- sum forces:', t_MD%t_MD_sumforces 
