@@ -29,7 +29,7 @@ module rttddft_MD
 #endif 
   use physical_constants, only: c
   use precision, only: dp, i32
-  use rttddft_GlobalVariables, only: apwalm, efield, &
+  use rttddft_GlobalVariables, only: apwalm, &
       & evecfv_time, mathcalH, mathcalB, ham_time, overlap, &
       & atot
   use rttddft_timings, only: Print_Timings, timesec_RTTDDFT
@@ -68,9 +68,11 @@ contains
     forall( is = 1:n_species ) charge_val(is) = sum( spocc(:, is), mask=(.not.spcore(:, is)) )
   end subroutine
 
-  subroutine force_rttdft( forces, MD_input, printTimings, t_MD )
+  subroutine force_rttdft( forces, efield, MD_input, printTimings, t_MD )
     !> Object that packs information about the total forces
     type(force), intent(inout)      :: forces
+    !> Electric field
+    real(dp)                  :: efield(3)
     !> Object that contains the inputs keys given in the MD element
     type(MD_input_keys), intent(in) :: MD_input
     !> Object that packs information about printing of timings [[Print_Timings]]
