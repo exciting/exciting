@@ -153,7 +153,7 @@ contains
     complex(dp),allocatable         :: scratch(:,:),occcmplx(:)
 
 
-    allocate(scratch(nmatmax,nmatmax))
+    allocate(scratch(nmatmax,nstfv))
 
     ! contribution of XC and Coulomb potentials, \( v_H \) and \( v_{XC} \), respectively
     rt_tddft_energy%Coulomb = rfinp (1, rhomt, vclmt, rhoir, vclir)
