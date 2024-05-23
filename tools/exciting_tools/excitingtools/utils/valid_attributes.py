@@ -397,7 +397,7 @@ mixbasis_valid_attributes = ["epsmb", "gmb", "lmaxmb"]
 
 barecoul_valid_attributes = ["barcevtol", "basis", "cutofftype", "pwm", "stctol"] 
 
-scrcoul_valid_attributes = ["averaging", "omegap", "q0eps", "scrtype"] 
+scrcoul_valid_attributes = ["averaging", "omegap", "q0eps", "scrtype", "subgrid_q0"] 
 
 taskGroup_valid_attributes = ["outputFormat"] 
 taskGroup_valid_subtrees = ["Coulomb", "epsilon", "invertEpsilon"] 
