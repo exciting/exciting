@@ -224,7 +224,12 @@ subroutine parse_gwinput()
         if (rank==0) then
             write(fgw, *) 'RIM (experimental):'
             write(fgw, *) 'Citation: Yambo code'
-        endif 
+        endif
+      case('low_dim') 
+        if (rank==0) then
+            write(fgw, *) ' Average screened potential using low-dimensional analytical expressions'
+            write(fgw, *) ' Citation: F. Rasmussen, P. Schmidt, K. Winther, and K. Thygesen, PRB 94, 155406 (2016)'
+        end if     
       case default
         write(*,*) 'ERROR(parse_gwinput): Unknown singularity treatment scheme!'
         stop
@@ -308,6 +313,18 @@ subroutine parse_gwinput()
         if (rank==0) write(*,*) '  ppm - Godby-Needs plasmon-pole model'
         call barrier()
         stop
+    end select
+   if (vccut .and. (input%gw%selfenergy%singularity /= 'low_dim' .or. input%gw%scrcoul%averaging /= '2d')) then
+       ! Coulomb potential truncation requires special treatment of singularity
+       call warning('Coulomb cutoff requires special treatment of singularity. Set input%gw%selfenergy%singularity = "low_dim" and averaging = "2d".')
+   end if
+    select case(trim(input%gw%scrcoul%averaging))
+      case('isotropic')
+        if (rank==0) write(fgw,*) '  Isotropic averaging of inverse dielectric function'
+        if (rank==0) write(fgw,*) '  Averaging along q-direction: ', input%gw%scrcoul%q0eps
+      case('2d')
+        if (rank==0) write(fgw,*) '  Averaging screened potential using 2D analytical expressions'
+        if (rank==0) write(fgw,*) '  Subgrid for integration around q=0: ', input%gw%scrcoul%subgrid_q0
     end select
     if (rank==0) call linmsg(fgw,'-','')
 

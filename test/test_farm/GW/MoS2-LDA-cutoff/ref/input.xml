@@ -46,6 +46,8 @@
           gmb="0.8d0"
           lmaxmb="3">
       </mixbasis>
+      <selfenergy singularity="low_dim"/>
+      <scrcoul averaging="2d" subgrid_q0 = "10 10 1"/>
       <barecoul
           pwm="1.0d0"
           basis="pw"

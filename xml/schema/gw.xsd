@@ -174,16 +174,26 @@
                   </xs:documentation></xs:annotation>
                 </xs:attribute>
 
-                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="singularity" default="mpb">
+                <xs:attribute ex:importance="expert" ex:unit="" name="singularity" default="mpb">
                   <xs:annotation><xs:documentation>
                     Treatment of the <inlinemath>\mathbf{q} \rightarrow 0</inlinemath> singularity:
                     <list>
-                      <li><pre>none'</pre>: No special treatment (test purpose only).</li>
-                      <li><pre>mpb'</pre>: Auxiliary function method by S. Massidda, M. Posternak, and A. Baldereschi, PRB 48, 5058 (1993)</li>
-                      <li><pre>crg'</pre>: Auxiliary function method by P. Carrier, S. Rohra, and A. Goerling, PRB 75, 205126 (2007).</li>
+                      <li><pre>none</pre>: No special treatment (test purpose only).</li>
+                      <li><pre>mpb</pre>: Auxiliary function method by S. Massidda, M. Posternak, and A. Baldereschi, PRB 48, 5058 (1993)</li>
+                      <li><pre>crg</pre>: Auxiliary function method by P. Carrier, S. Rohra, and A. Goerling, PRB 75, 205126 (2007).</li>
+                      <li><pre>low_dim</pre>: Special treatment for low-dimensional cutoff by F. Rasmussen, P. Schmidt, K. Winther, and K. Thygesen, PRB 94, 155406 (2016).</li>
                     </list>
                   </xs:documentation></xs:annotation>
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:enumeration value="none"/>
+                      <xs:enumeration value="mpb"/>
+                      <xs:enumeration value="crg"/>
+                      <xs:enumeration value="low_dim"/>
+                    </xs:restriction>
+                  </xs:simpleType>
                 </xs:attribute>
+
 
               </xs:complexType>
             </xs:element>
@@ -289,6 +299,7 @@
                   <xs:simpleType>
                     <xs:restriction base="xs:string">
                       <xs:enumeration value="isotropic"/>
+                      <xs:enumeration value="2d"/>
                     </xs:restriction>
                   </xs:simpleType>
                 </xs:attribute>
@@ -298,6 +309,12 @@
                   Default: (1,1,1)
                   </xs:documentation></xs:annotation>
                 </xs:attribute>
+                <xs:attribute ex:importance="experimental" ex:unit="" name="subgrid_q0" type="integertriple" default="10 10 1">
+                  <xs:annotation><xs:documentation>
+                  Size of the grid around q=0 for numerical integration of the screened coulomb interaction (used for averaging="2d" and averaging="1d")
+                  </xs:documentation></xs:annotation>
+                </xs:attribute>
+
 
               </xs:complexType>
             </xs:element>

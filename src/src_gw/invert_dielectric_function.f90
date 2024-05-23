@@ -117,6 +117,9 @@ contains
    !>where \( \hat{\mathbf{q}}\) is the direction in which the limit is taken, \( L \) a 3x3 tensor and \( \mathbf{s}_\mu, \mathbf{t}_\mu \) are vectors.
    subroutine angular_averaging(iom, symt2, scrcoul, eps, epsw1, epsw2, epsh, eps00)
       use modinput, only: scrcoul_type
+      use scrcoul_low_dim, only: apply_2d_limit
+      use mod_lattice, only: bvec
+      use mod_coulomb_potential, only: rcut
       !>Frequency index
       integer(i32), intent(in) :: iom
       !>Symmetrization tensor
@@ -138,7 +141,11 @@ contains
       select case(trim(scrcoul%averaging))
          case("isotropic")
             call isotropic_averaging(iom, symt2, scrcoul%q0eps, eps, epsw1, epsw2, epsh, eps00)
-   
+
+         case("2d")
+            call apply_2d_limit(bvec, rcut, symt2, eps(:, :), epsh(:, :, iom), epsw1(:, :, iom), epsw2(:, :, iom))
+            !Warning Hack:
+            epsh(1,1,iom) = epsh(1,1,iom)+zone
       end select
 
       end subroutine
