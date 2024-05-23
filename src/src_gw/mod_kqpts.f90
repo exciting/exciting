@@ -7,84 +7,84 @@
 
 module mod_kqpts
     use asserts, only: assert
-    use modinput, only: qpoints_type_array
+    use modinput, only: qpoints_type_array, kpoints_type_array
     ! We need to change internally to `terminate_when_false` to avoid a circular dependency
     use modmpi, only: terminate_when_false => terminate_if_false
-    use precision, only: i32
+    use precision, only: i32, dp
 
     implicit none
     
     !-------------------------------!
     ! tetrahedron method variables  !
     !-------------------------------!
-    integer(4), allocatable :: idikp(:)
-    integer(4), allocatable :: kqid(:,:)
-    integer(4) :: dvq
+    integer(i32), allocatable :: idikp(:)
+    integer(i32), allocatable :: kqid(:,:)
+    integer(i32) :: dvq
 
-    integer(4) :: ntetnr                    ! Total number of tetrahedra
-    integer(4), allocatable :: wtetnr(:)    ! weight of each tetrahedron  for integration
-    integer(4), allocatable :: tnodesnr(:,:)! index of the k-points corresponding to the nodes of each tetrahedra for integration
+    integer(i32) :: ntetnr                    ! Total number of tetrahedra
+    integer(i32), allocatable :: wtetnr(:)    ! weight of each tetrahedron  for integration
+    integer(i32), allocatable :: tnodesnr(:,:)! index of the k-points corresponding to the nodes of each tetrahedra for integration
 
-    integer(4), allocatable :: linkq(:,:)
+    integer(i32), allocatable :: linkq(:,:)
 
     !--------------------------!
     !  Non-reduced G+k arrays  !
     !--------------------------!
     ! number of G+k-vectors for augmented plane waves
-    Integer, Allocatable :: ngknr(:,:)
+    integer(i32), Allocatable :: ngknr(:,:)
     ! index from G+k-vectors to G-vectors
-    Integer, Allocatable :: igkignr(:,:,:)
+    integer(i32), Allocatable :: igkignr(:,:,:)
     ! G+k-vectors in lattice coordinates
-    Real (8), Allocatable :: vgklnr(:,:,:,:)
+    Real (dp), Allocatable :: vgklnr(:,:,:,:)
     ! G+k-vectors in Cartesian coordinates
-    Real (8), Allocatable :: vgkcnr(:,:,:,:)
+    Real (dp), Allocatable :: vgkcnr(:,:,:,:)
     ! length of G+k-vectors
-    Real (8), Allocatable :: gkcnr(:,:,:)
+    Real (dp), Allocatable :: gkcnr(:,:,:)
     ! (theta, phi) coordinates of G+k-vectors
-    Real (8), Allocatable :: tpgkcnr(:,:,:,:)
+    Real (dp), Allocatable :: tpgkcnr(:,:,:,:)
     ! structure factor for the G+k-vectors
-    Complex (8), Allocatable :: sfacgknr(:,:,:,:)
+    Complex (dp), Allocatable :: sfacgknr(:,:,:,:)
 
     !--------------------------------!
     !     Small group of q-vectors   !
     !--------------------------------! 
     ! non-reduced number of q-points
-    integer :: nqptnr
+    integer(i32) :: nqptnr
     ! number of the symmetry operations in the small group of q
-    integer, allocatable :: nsymq(:) 
+    integer(i32), allocatable :: nsymq(:) 
     ! q-dependent k-point weight
-    real(8), allocatable :: wkpq(:,:)
+    real(dp), allocatable :: wkpq(:,:)
     ! number of k-points in IBZ(q)
-    integer, allocatable :: nkptq(:)
+    integer(i32), allocatable :: nkptq(:)
     ! index of the symmetry operation which rotates the k-point into equivalent one
-    integer, allocatable :: iksymq(:,:)
+    integer(i32), allocatable :: iksymq(:,:)
     ! map the k-point index to the corresponding irreducible one
-    integer, allocatable :: indkpq(:,:)
+    integer(i32), allocatable :: indkpq(:,:)
     ! map the irreducible k-point index to the corresponding from the non-reduced set
-    integer, allocatable :: idikpq(:,:)
+    integer(i32), allocatable :: idikpq(:,:)
     ! rotation matrix for ylm's      
-    complex(8), allocatable :: djmm(:,:)
+    complex(dp), allocatable :: djmm(:,:)
       
-    integer, allocatable :: nsymkstar(:,:), isymkstar(:,:,:)
+    integer(i32), allocatable :: nsymkstar(:,:), isymkstar(:,:,:)
     
     
     ! number of G-vectors for the bare coulomb matrix
-    integer, allocatable :: ngbarc(:)
+    integer(i32), allocatable :: ngbarc(:)
       
     ! map from G+q-vectors to G-vectors for the (increased) coulomb Gmax cutoff
-    integer, allocatable :: igqigb(:,:)
+    integer(i32), allocatable :: igqigb(:,:)
       
     ! map from G-vectors to G+q-vectors for the (increased) coulomb Gmax cutoff
-    integer, allocatable :: igigqb(:,:)
+    integer(i32), allocatable :: igigqb(:,:)
     
     
     
     
     ! reduced set of eigenvectors of barcoul matrix after barcevtol
-    complex(8), allocatable :: vbas(:,:)
+    complex(dp), allocatable :: vbas(:,:)
       
     ! transform matrix that diagonalized original bare Coulomb matrix 
-    complex(8), allocatable :: barcvm(:,:)  
+    complex(dp), allocatable :: barcvm(:,:)  
     
     !> Interface to be used for the ranges of k/q-point indexes defined in the input file
     type, private :: ranges_of_indexes
@@ -100,7 +100,9 @@ module mod_kqpts
       type(ranges_of_indexes), allocatable :: sets(:)
       integer(i32), allocatable :: list_of_indexes(:)
     contains 
-      procedure :: parse_input
+      generic, public :: parse_input => parse_input_qpoints, parse_input_kpoints
+      procedure, private :: parse_input_qpoints
+      procedure, private :: parse_input_kpoints
       procedure :: obtain_list_of_indexes
     end type
 
@@ -135,7 +137,7 @@ subroutine parse_first_last( this, first, last, maximum )
 end subroutine
 
 
-subroutine parse_input( this, qpoints_array, n_qpoints_max )
+subroutine parse_input_qpoints( this, qpoints_array, n_qpoints_max )
   class(kpoints_sets), intent(inout) :: this 
   type(qpoints_type_array), pointer, intent(in) :: qpoints_array(:)
   integer(i32), intent(in) :: n_qpoints_max
@@ -146,6 +148,22 @@ subroutine parse_input( this, qpoints_array, n_qpoints_max )
   allocate( this%sets(n) )
   do i = 1, n 
     call this%sets(i)%parse_first_last( qpoints_array(i)%qpoints%qi, qpoints_array(i)%qpoints%qf, n_qpoints_max )
+  end do
+
+end subroutine
+
+
+subroutine parse_input_kpoints( this, kpoints_array, n_kpoints_max )
+  class(kpoints_sets), intent(inout) :: this 
+  type(kpoints_type_array), pointer, intent(in) :: kpoints_array(:)
+  integer(i32), intent(in) :: n_kpoints_max
+
+  integer(i32) :: n, i
+
+  n = size( kpoints_array )
+  allocate( this%sets(n) )
+  do i = 1, n 
+    call this%sets(i)%parse_first_last( kpoints_array(i)%kpoints%ki, kpoints_array(i)%kpoints%kf, n_kpoints_max )
   end do
 
 end subroutine

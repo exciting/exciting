@@ -394,6 +394,23 @@
                     </xs:complexType>
                   </xs:element>
 
+                  <xs:element ex:importance="experimental" ex:unit="" name="sigmac" maxOccurs="1" minOccurs="0">
+                    <xs:annotation>
+                      <xs:documentation>
+                        Setup for the task <pre>"sigmac"</pre>.
+                        The correlation part of the self-energy is calculated for each 
+                        <inlinemath>\mathbf{k}</inlinemath>-point and printed out in 
+                        <pre>SIGMAC_*.OUT</pre>, where <pre>*</pre> is the index of the
+                        <inlinemath>\mathbf{k}</inlinemath>-point.
+                      </xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element ref="kpoints" minOccurs="1" maxOccurs="unbounded"/>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+
                 </xs:all>
                 
                   
