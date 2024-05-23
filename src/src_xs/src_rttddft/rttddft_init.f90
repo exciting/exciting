@@ -188,8 +188,8 @@ subroutine allocate_globals(first_kpt, last_kpt, ionDynamics, predictorCorrector
   allocate (ham_past(nmatmax, nmatmax, first_kpt:last_kpt), source=zzero)
   allocate (pmat(nmatmax, nmatmax, 3, first_kpt:last_kpt))
   if (predictorCorrector) then
-    allocate (ham_predcorr(nmatmax, nmatmax, nkpt), source=zzero)
-    allocate (evecfv_save(nmatmax, nstfv, nkpt))
+    allocate (ham_predcorr(nmatmax, nmatmax, first_kpt:last_kpt), source=zzero)
+    allocate (evecfv_save(nmatmax, nstfv, first_kpt:last_kpt))
   end if
   if (ionDynamics) then
     if (allocate_mathcalH) allocate (mathcalH(nmatmax, nmatmax, 3, natmtot, last_kpt))
