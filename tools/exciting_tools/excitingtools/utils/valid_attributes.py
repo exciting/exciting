@@ -57,6 +57,8 @@ dopart_mandatory_attributes = ["id"]
 
 qpoints_valid_attributes = ["qf", "qi"] 
 
+kpoints_valid_attributes = ["kf", "ki"] 
+
 
 # structure information 
 structure_valid_attributes = ["autormt", "autormtscaling", "cartesian", "epslat", "primcell", "speciespath", "tshift"] 
@@ -400,7 +402,7 @@ barecoul_valid_attributes = ["barcevtol", "basis", "cutofftype", "pwm", "stctol"
 scrcoul_valid_attributes = ["averaging", "omegap", "q0eps", "scrtype"] 
 
 taskGroup_valid_attributes = ["outputFormat"] 
-taskGroup_valid_subtrees = ["Coulomb", "epsilon", "invertEpsilon"] 
+taskGroup_valid_subtrees = ["Coulomb", "epsilon", "invertEpsilon", "sigmac"] 
 
 Coulomb_valid_subtrees = ["qpoints"] 
 Coulomb_mandatory_attributes = ["qpoints"] 
@@ -414,6 +416,10 @@ epsilon_multiple_children = ["qpoints"]
 invertEpsilon_valid_subtrees = ["qpoints"] 
 invertEpsilon_mandatory_attributes = ["qpoints"] 
 invertEpsilon_multiple_children = ["qpoints"] 
+
+sigmac_valid_subtrees = ["kpoints"] 
+sigmac_mandatory_attributes = ["kpoints"] 
+sigmac_multiple_children = ["kpoints"] 
 
 
 # MD information 
