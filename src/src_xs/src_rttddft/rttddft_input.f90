@@ -100,6 +100,8 @@ subroutine rttddft_input_keys_parse_input( this, rt_input, tol )
   this%calculate_total_energy = rt_input%calculateTotalEnergy
   this%calculate_n_exc = rt_input%calculateNExcitedElectrons
   this%subtract_J0 = rt_input%subtractJ0
+  this%timings_general = rt_input%printTimingGeneral
+  this%timings_detailed = this%timings_general .and. rt_input%printTimingDetailed
 
   this%propagator%name = propagator_type( rt_input%propagator )
   this%propagator%time_step = rt_input%timeStep
