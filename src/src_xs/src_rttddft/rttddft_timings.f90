@@ -110,20 +110,20 @@ module rttddft_timings
 
 
 contains
-  subroutine set( this, general, detailed)
+  subroutine set( this, general__, detailed__ )
     class(Print_Timings), intent(inout) :: this
-    logical, intent(in) :: general, detailed
+    logical, intent(in) :: general__, detailed__
 
-    this%general_ = general
-    this%detailed_ = detailed
+    this%general_ = general__
+    this%detailed_ = detailed__
   end subroutine
 
-  subroutine get( this, general, detailed)
+  subroutine get( this, general__, detailed__ )
     class(Print_Timings), intent(in) :: this
-    logical, intent(out) :: general, detailed
+    logical, intent(out) :: general__, detailed__
     
-    general = this%general_
-    detailed = this%detailed_
+    general__ = this%general_
+    detailed__ = this%detailed_
   end subroutine
 
   logical function general( this )
