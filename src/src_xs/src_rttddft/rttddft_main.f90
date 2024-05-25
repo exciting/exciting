@@ -476,7 +476,7 @@ contains
     if( timings_detailed ) call timesec_RTTDDFT( ti, t_pot%genveffig )
     call genmeffig
     if( timings_general ) then
-      call timesec_RTTDDFT( tstart, t_pot%genmeffig )
+      call timesec_RTTDDFT( tstart, t_pot%total )
       if( timings_detailed ) t_pot%genmeffig = tstart-ti
     end if
   end subroutine uppot
