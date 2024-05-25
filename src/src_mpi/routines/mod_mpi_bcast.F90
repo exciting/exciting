@@ -1,5 +1,5 @@
 !> exciting wrappers for mpi_bcast
-!> Every addition to a parallel wrapper als requires a serial overload
+!> Every addition to a parallel wrapper also requires a serial overload
 !> One notes the number of routines could drastically be reduced using assumed-rank
 !> but this has not been used due to limited compiler support.
 module mod_mpi_bcast

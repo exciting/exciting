@@ -61,6 +61,7 @@
 !> </li>
 !> </ol>
 module rttddft_Energy
+  use exciting_mpi, only: mpiinfo, xmpi_allreduce
   use hermitian_matrix_multiplication, only: hermitian_matrix_multiply
   use precision, only: dp
   use vector_multiplication, only: dot_multiply
@@ -116,7 +117,7 @@ contains
 
   !> Subroutine that calculates the total energy for RT-TDDFT calculations
   !> Adapted from `src/energy.f90`
-  subroutine obtain_energy_rttddft(first_kpt, last_kpt, ham, evec, &
+  subroutine obtain_energy_rttddft(first_kpt, last_kpt, ham, evec, mpi_env, &
       & rt_tddft_energy )
     use modinput, only: input
     use mod_kpoint, only: wkpt
@@ -142,6 +143,8 @@ contains
     !> Coefficients of the KS-wavefunctions at time \( t \).
     !> Dimensions: `nmatmax`, `nstfv`, `first_kpt:last_kpt`
     complex(dp), intent(in)         :: evec(:, :, first_kpt:)
+    !> MPI environment
+    type(mpiinfo), intent(in)       :: mpi_env
     !> Type with the total energy and its components
     type(TotalEnergy), intent(out)  :: rt_tddft_energy
 
@@ -204,11 +207,8 @@ contains
 !$OMP END DO NOWAIT
 !$OMP END PARALLEL
 #endif
-#ifdef MPI
-    call MPI_ALLREDUCE(sum(aux), rt_tddft_energy%hamiltonian, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
-#else
     rt_tddft_energy%hamiltonian = sum(aux)
-#endif
+    call xmpi_allreduce( rt_tddft_energy%hamiltonian, mpi_env )
 
     ! Madelung energy
     rt_tddft_energy%madelung = 0._dp

@@ -9,19 +9,16 @@
 
 !> Module that deals with the Current Density in RT-TDDFT calculations
 module rttddft_CurrentDensity
-#ifdef MPI
-  use modmpi, only: MPI_IN_PLACE, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr
-#endif
+  use exciting_mpi, only: mpiinfo, xmpi_allreduce
   use mod_lattice, only: Omega
   use precision, only: dp
-  use constants, only: zzero, zone
   use xlapack, only: dot_multiply, hermitian_matrix_multiply
 
   implicit none
 
   private
 
-  public :: Obtain_Paramagnetic_Current_Density
+  public :: Current_Density_Paramagnetic_Compoment
 
 contains
 
@@ -34,7 +31,7 @@ contains
   !> where \( \Omega \) is the unit cell volume , \( w_{\mathbf{k}} \) is the 
   !> k-point weight and \( f_{j\mathbf{k}} \) is the occupation number of the
   !> corresponding KS state.
-  subroutine Obtain_Paramagnetic_Current_Density( psi, p_mat, occupation, kpt_weight, j_para )
+  function Current_Density_Paramagnetic_Compoment( psi, p_mat, occupation, kpt_weight, mpi_env ) result(j_para)
     !> Basis-expansion coefficients of the KS-wavefunctions at time \( t \)
     complex(dp), intent(in)   :: psi(:, :, :)
     !> Momentum matrix elements
@@ -43,10 +40,13 @@ contains
     real(dp), intent(in)      :: occupation(:, :)
     !> Integration weight of each k-point
     real(dp), intent(in)      :: kpt_weight(:)
+    !> MPI environment
+    type(mpiinfo), intent(in) :: mpi_env
     !> `x`, `y` and `z` components of the parametic current density
-    real(dp), intent(out)     :: j_para(3)
+    real(dp)                  :: j_para(3)
 
     integer                   :: ik, ist, j, last_kpt, n_states, n_basis, n_kpt
+    real(dp)                  :: aux(3)
     real(dp), allocatable     :: acc(:)
     complex(dp), allocatable  :: draft(:, :)
     real(dp), parameter       :: tol_default = 1e-6_dp
@@ -55,11 +55,11 @@ contains
     n_states = size( psi, 2 )
     n_basis = size( psi, 1 )
     allocate( draft(n_basis, n_states), acc(n_states) )
-    j_para = 0._dp
+    aux = 0._dp
 
 #ifdef USEOMP
-!$OMP PARALLEL DO DEFAULT(NONE), PRIVATE(ik, j, ist, draft, acc), REDUCTION(+:j_para), &
-!$OMP& SHARED(n_kpt, n_states, p_mat, psi, occupation, kpt_weight)
+!$OMP PARALLEL DO DEFAULT(NONE), PRIVATE(ik, j, ist, draft, acc), REDUCTION(+:aux), &
+!$OMP& SHARED(n_kpt, n_states, psi, p_mat, occupation, kpt_weight)
 #endif
     do ik = 1, n_kpt
       ! For the x, y, and z components ...
@@ -68,19 +68,15 @@ contains
         do ist = 1, n_states
           acc(ist) = real( dot_multiply( psi(:, ist, ik), draft(:, ist), conjg_a=.true. ), dp )
         end do
-        j_para(j) = j_para(j) - dot_multiply( occupation(:, ik), acc )*kpt_weight(ik)
+        aux(j) = aux(j) - dot_multiply( occupation(:, ik), acc )*kpt_weight(ik)
       end do
     end do
 #ifdef USEOMP
-!$OMP END PARALLEL DO 
+!$OMP END PARALLEL DO
 #endif
     
-    j_para = j_para / Omega
-  
-#ifdef MPI
-    call MPI_ALLREDUCE( MPI_IN_PLACE, j_para, 3, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr )
-#endif
-
-  end subroutine
+    j_para = aux / Omega
+    call xmpi_allreduce( j_para, mpi_env )
+  end function
 
 end module rttddft_CurrentDensity
