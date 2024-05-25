@@ -2,25 +2,19 @@
 !> evaluating the one term (of a sum) corresponding to a given q-point
 subroutine calcselfc(iq, ikp_first, ikp_last)
     use modinput, only: input
-    use modgw, only: time_selfc, kqset, kset, Gkqset, b2mb, ibgw, nbgw, freq, mblksiz, msize
+    use modgw, only: time_selfc, kqset, kset, Gkqset, b2mb, ibgw, nbgw, freq, mblksiz, msize, fdebug
     use mod_APW_LO, only: apwordmax
     use mod_atoms, only: natmtot
-    use mod_bands, only: eveckalm, eveckpalm, eveckp, eveck, nstse
+    use mod_bands, only: eveckalm, eveckpalm, eveckp, eveck, nstse, evalfv
     use mod_core_states, only: ncg
     use mod_eigensystem, only: nmatmax
-    use mod_APW_LO, only: apwordmax
-    use constants,  only: zzero
     use mod_eigenvalue_occupancy, only: nstfv
-    use mod_muffin_tin, only: lmmaxapw
-    use modgw,      only: freq, kset, kqset, fdebug, ibgw, nbgw, mblksiz, b2mb, &
-                          Gkqset, time_selfc, msize
-    use mod_core_states, only: ncg 
-    use mod_bands, only: nstse, eveckalm, eveckpalm, eveck, eveckp, evalfv
-    use mod_selfenergy, only: mwm, freq_selfc, selfec
-    use mod_product_basis, only: minmmat, mbsiz
-    use mod_mpi_gw, only : myrank
-    use precision, only: i32, dp
     use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
+    use mod_muffin_tin, only: lmmaxapw
+    use mod_product_basis, only: minmmat, mbsiz
+    use mod_selfenergy, only: mwm, freq_selfc, selfec
+    use precision, only: i32, dp
+    
     implicit none
 
     !> index of the q-point term to evaluate
@@ -31,10 +25,9 @@ subroutine calcselfc(iq, ikp_first, ikp_last)
     integer(i32), intent(in) :: ikp_last
 
     ! local
-    integer(i32) :: ik, ikp, jk, ispn, ie1, iom
+    integer(i32) :: ik, ikp, jk, ie1, iom
     integer(i32) :: mdim, iblk, nblk, mstart, mend
-    integer(i32) :: fid
-    real(dp) :: tstart, tend, t0, t1
+    real(dp) :: tstart, tend
 
     call timesec(tstart)
 

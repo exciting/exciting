@@ -1,9 +1,9 @@
 
 module mod_selfenergy
+    use constants, only: zzero
     use gw_io, only: build_file_name, read_from_file, write_to_file
     use mod_frequency
     use precision, only: i32, dp
-    use constants, only: zzero
 
     implicit none
 

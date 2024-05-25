@@ -11,6 +11,7 @@ from excitingtools.exciting_dict_parsers.gw_taskgroup_parser import (
     parse_inverse_epsilon,
     parse_polarizability_factor,
     parse_sgi,
+    parse_sigmac,
 )
 
 rectangular_matrix = """ 2
@@ -144,6 +145,17 @@ def test_parse_inverse_epsilon(file_inverse_epsilon_str, reference_inverse_epsil
     inverse_epsilon_file_path.write_text(file_inverse_epsilon_str)
     inverse_epsilon = parse_inverse_epsilon(inverse_epsilon_file_path.as_posix())
     np.testing.assert_allclose(inverse_epsilon["inverse_epsilon_tensor"], reference_inverse_epsilon["array"])
+
+
+@pytest.mark.parametrize(
+    ["file_sigmac_str", "reference_sigmac"],
+    [(square_matrix, reference_square_matrix), (rectangular_matrix, reference_rectangular_matrix)],
+)
+def test_parse_sigmac(file_sigmac_str, reference_sigmac, tmp_path):
+    sigmac_file_path = tmp_path / "SIGMAC_K1.OUT"
+    sigmac_file_path.write_text(file_sigmac_str)
+    sigmac = parse_sigmac(sigmac_file_path.as_posix())
+    np.testing.assert_allclose(sigmac["sigmac_matrix"], reference_sigmac["matrix"])
 
 
 polarizability_factor_str = """ 4

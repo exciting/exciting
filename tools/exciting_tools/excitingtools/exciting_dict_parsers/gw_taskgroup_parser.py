@@ -155,3 +155,13 @@ def parse_inverse_epsilon(file_name: str) -> Dict[str, NDArray[np.complex128]]:
     :return: parsed data as dictionary
     """
     return {"inverse_epsilon_tensor": __parse_file_with_array_of_rank_3(file_name)}
+
+
+def parse_sigmac(file_name: str) -> Dict[str, NDArray[np.complex128]]:
+    """Parser for the files SIGMAC_K*.OUT, where * is an integer
+    These files contain the correlation part of the self-energy.
+
+    :param file_name: name of the file
+    :return: parsed data as dictionary
+    """
+    return {"sigmac_matrix": __parse_file_with_matrix(file_name)}
