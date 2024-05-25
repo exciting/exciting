@@ -28,7 +28,7 @@ module rttddft_main
   use modmpi, only: rank, procs, mpi_env_k, mpiglobal, distribute_loop, barrier, terminate_if_false
   use physical_constants, only: c
   use precision, only: dp, i32
-  use rttddft_CurrentDensity, only: Obtain_Paramagnetic_Current_Density
+  use rttddft_CurrentDensity, only: Current_Density_Paramagnetic_Compoment
   use rttddft_Density, only: UpdateDensity
   use rttddft_Energy, only: TotalEnergy, obtain_energy_rttddft
   use rttddft_GlobalVariables
@@ -178,7 +178,7 @@ contains
     if ( rt%calculate_total_energy ) then
       call potcoul
       call potxc
-      call obtain_energy_rttddft( first_kpt, last_kpt, ham_time, evecfv_gnd, etotstore(1) )
+      call obtain_energy_rttddft( first_kpt, last_kpt, ham_time, evecfv_gnd, mpi_env_k, etotstore(1) )
       ! Trick: we need an array to call the subroutine print_total_energy
       timestore(1) = time
       if( rank == 0 ) then
@@ -190,7 +190,7 @@ contains
     ! Number of excitations
     if (rt%calculate_n_exc) then
       call Obtain_number_excitations( first_kpt, last_kpt, evecfv_gnd, &
-        & evecfv_time, overlap, nex(1), ngs(1), nt(1) )
+        & evecfv_time, overlap, mpi_env_k, nex(1), ngs(1), nt(1) )
       ! Trick: we need an array to call the subroutine print_nexc
       timestore(1) = time
       if( rank == 0 ) then
@@ -230,8 +230,8 @@ contains
       if ( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%wavefunction )
 
       ! Update the paramagnetic component of the induced current density
-      call Obtain_Paramagnetic_Current_Density( evecfv_time, pmat, occsv(:, first_kpt:last_kpt), &
-        [(1._dp/nkpt, is = first_kpt, last_kpt)], jparanext )
+      jparanext = Current_Density_Paramagnetic_Compoment( evecfv_time, pmat, occsv(:, first_kpt:last_kpt), &
+        [(1._dp/nkpt, is = first_kpt, last_kpt)], mpi_env_k )
       if ( rt%subtract_J0 ) jparanext(:) = jparanext(:)-jparaspurious(:)
       if ( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%current_density )
 
@@ -284,7 +284,7 @@ contains
         if ( printTimings%general() ) call timesec( timei )
         call loopPredictorCorrector( it, time, rt, l_rad_step, rt%is_field_type_external() .and. ( .not. rt%is_solver_euler() ), &
           first_kpt, last_kpt, aindsave, atotsave, aextsave, pvecsave, jindsave, &
-          jparaold, predCorrReachedMaxSteps )
+          jparaold, mpi_env_k, predCorrReachedMaxSteps )
         
         if ( predCorrReachedMaxSteps .and. rank == 0 ) &
           write(*,*) 'Problems with convergence (PredCorr), time: ', time
@@ -296,7 +296,7 @@ contains
       ! Obtain the total energy, if requested
       if( rt%calculate_total_energy ) then
         if ( printTimings%detailed() ) call timesec( timei )
-        call obtain_energy_rttddft( first_kpt, last_kpt, ham_time, evecfv_time, etotstore(iprint) )
+        call obtain_energy_rttddft( first_kpt, last_kpt, ham_time, evecfv_time, mpi_env_k, etotstore(iprint) )
         if ( printTimings%detailed() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%energy )
       end if
 
@@ -304,7 +304,7 @@ contains
       if( rt%calculate_n_exc ) then
         if ( printTimings%detailed() ) call timesec( timei )
         call Obtain_number_excitations( first_kpt, last_kpt, evecfv_gnd, &
-          & evecfv_time, overlap, nex(iprint), ngs(iprint), nt(iprint))
+          & evecfv_time, overlap, mpi_env_k, nex(iprint), ngs(iprint), nt(iprint))
         if( printTimings%detailed() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%n_exc )
       end if
 
@@ -549,7 +549,7 @@ contains
   end function
 
   subroutine loopPredictorCorrector( it, time, rt, l_rad_step, evolveA, first_kpt, last_kpt, &
-    aindsave, atotsave, aextsave, pvecsave, jindsave, jparasave, maxStepsReached )
+    aindsave, atotsave, aextsave, pvecsave, jindsave, jparasave, mpi_env, maxStepsReached )
     !> current iteration number in the RT-TDDFT loop
     integer(i32), intent(in)       :: it
     !> time \( t \)
@@ -576,6 +576,8 @@ contains
     real(dp), intent(in)           :: jindsave(3)
     !> Backup of `jpara`
     real(dp), intent(in)           :: jparasave(3)
+    !> MPI environment
+    type(mpiinfo), intent(in)      :: mpi_env
     !> When `.True.`, it informs that the maximum steps have been reached
     logical, intent(out)           :: maxStepsReached
 
@@ -588,8 +590,8 @@ contains
       call UpdateWavefunction( rt%propagator, .True. )
 
       ! Update the paramagnetic component of the induced current density
-      call Obtain_Paramagnetic_Current_Density( evecfv_time, pmat, occsv(:, first_kpt:last_kpt), &
-        [(1._dp/nkpt, ik = first_kpt, last_kpt)], jparanext )
+      jparanext = Current_Density_Paramagnetic_Compoment( evecfv_time, pmat, occsv(:, first_kpt:last_kpt), &
+        [(1._dp/nkpt, ik = first_kpt, last_kpt)], mpi_env )
       if ( rt%subtract_J0 ) jparanext(:) = jparanext(:)-jparaspurious(:)
 
       ! DENSITY

@@ -47,16 +47,15 @@ contains
   !> 	w_\mathbf{k} m_{j\mathbf{k}}(t) = \sum_{j'\mathbf{k}}^{j'\, occ}
   !> 	w_\mathbf{k} m_{j'\mathbf{k}}(t) .
   !> 	\]
-  subroutine Obtain_number_excitations( first_kpt, last_kpt, evec_init, evec_time, overlap, &
+  subroutine Obtain_number_excitations( first_kpt, last_kpt, evec_init, evec_time, overlap, mpi_env, &
       & nex, ngs, nt )
+    use constants, only: zzero, zone
+    use exciting_mpi, only: mpiinfo, xmpi_allreduce
     use mod_kpoint, only: wkpt
     use modinput, only: input
     use mod_eigenvalue_occupancy, only: occsv, nstfv
     use mod_eigensystem, only: nmatmax, nmat
-    use modmpi
-    use constants, only: zzero, zone
-    implicit none
-
+    
     !> index of the first `k-point` to be considered in the sum
     integer,intent(in)        :: first_kpt
     !> index of the last `k-point` considered
@@ -69,6 +68,8 @@ contains
     complex(dp), intent(in)   :: evec_time(:, :, first_kpt:)
     !> overlap matrix, Dimensions: `nmatmax`, `nmatmax`, `first_kpt:last_kpt`
     complex(dp), intent(in)   :: overlap(:, :, first_kpt:)
+    !> MPI environment
+    type(mpiinfo), intent(in) :: mpi_env
     !> number of excited electrons
     real(dp), intent(out)     :: nex
     !> number of electrons on the groundstate state
@@ -77,7 +78,7 @@ contains
     real(dp), intent(out)     :: nt
 
     integer                   :: ik, ist, jst, nmatp
-    real(dp)                  :: aux
+    real(dp)                  :: aux, buffer(3)
     complex(dp), allocatable  :: scratch(:,:),proj(:,:)
 
 
@@ -113,16 +114,9 @@ contains
         end do
       end do
     end do
-#ifdef MPI
-    call MPI_ALLREDUCE(nex, aux, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
-    nex = aux
-    call MPI_ALLREDUCE(ngs, aux, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
-    ngs = aux
-    call MPI_ALLREDUCE(nt, aux, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
-    nt = aux
-#endif
+    buffer = [ nex, ngs, nt ]
+    call xmpi_allreduce( buffer, mpi_env )
+    nex = buffer(1); ngs = buffer(2); nt = buffer(3)
 
-    deallocate(scratch)
-    deallocate(proj)
   end subroutine Obtain_number_excitations
 end module rttddft_NumberExcitations

@@ -27,7 +27,7 @@ module rttddft_init
   use modxs, only: isreadstate0
   use physical_constants, only: c
   use precision, only: dp, i32
-  use rttddft_CurrentDensity, only: Obtain_Paramagnetic_Current_Density
+  use rttddft_CurrentDensity, only: Current_Density_Paramagnetic_Compoment
   use rttddft_Density, only: updatedensity
   use rttddft_GlobalVariables
   use rttddft_HamiltonianOverlap, only: UpdateHam
@@ -151,8 +151,8 @@ subroutine initialize_rttddft(input_pmat, predictorCorrector, molecular_dynamics
 
   ! Spurious current
   if (input%xs%realTimeTDDFT%subtractJ0) then
-    call Obtain_Paramagnetic_Current_Density( evecfv_gnd, pmat, occsv(:, first_kpt:last_kpt), &
-      [(1._dp/nkpt, ik = first_kpt, last_kpt)], jparaspurious )
+    jparaspurious = Current_Density_Paramagnetic_Compoment( evecfv_gnd, pmat, occsv(:, first_kpt:last_kpt), &
+      [(1._dp/nkpt, ik = first_kpt, last_kpt)], mpi_env_k )
   else
     jparaspurious(:) = 0._dp
   end if

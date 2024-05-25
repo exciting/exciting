@@ -7,6 +7,7 @@
 module rttddft_MD
   use asserts, only: assert
   use constants, only: zone, zzero
+  use exciting_mpi, only: mpiinfo, xmpi_allreduce
   use MD, only: MD_input_keys, MD_timing, force, obtain_core_corrections, obtain_force_ext, &
     obtain_Hellmann_Feynman_force, obtain_valence_corrections_part1, &
     val_corr_pt2_given_atom_and_kpt => obtain_valence_corrections_part2
@@ -24,9 +25,6 @@ module rttddft_MD
   use mod_spin, only: nspnfv
   use modinput, only: input
   use modmpi, only: rank, mpi_env_k, distribute_loop
-#ifdef MPI
-  use modmpi, only: MPI_IN_PLACE, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr
-#endif 
   use physical_constants, only: c
   use precision, only: dp, i32
   use rttddft_GlobalVariables, only: apwalm, &
@@ -119,7 +117,7 @@ contains
 
     ! Valence corrections: second part
     if( MD_input%valence_corrections ) &
-      call obtain_valence_corrections_part2( first_kpt, last_kpt, forces%val )
+      call obtain_valence_corrections_part2( first_kpt, last_kpt, mpi_env_k, forces%val )
     if( tDetail ) call timesec_RTTDDFT( ti, t_MD%t_MD_2nd )
     ! sum all contributions to total force and store it
     call forces%evaluate_total_force()
@@ -129,11 +127,13 @@ contains
   end subroutine
 
   !> Wrapper for calling val_corr_pt2_given_atom_and_kpt
-  subroutine obtain_valence_corrections_part2( first_kpt, last_kpt, forces_val )
+  subroutine obtain_valence_corrections_part2( first_kpt, last_kpt, mpi_env, forces_val )
     !> index of the first `k-point` to be considered in the sum
     integer(i32),intent(in)        :: first_kpt
     !> index of the last `k-point` considered
     integer(i32),intent(in)        :: last_kpt
+    !> MPI environment
+    type(mpiinfo), intent(in)      :: mpi_env
     !> valence corrections to the total force
     real(dp), intent(inout)        :: forces_val(:, :)
     
@@ -169,9 +169,7 @@ contains
 !$OMP END PARALLEL
 #endif
       sumaux = sum( aux, dim=3 ) ! sum over kpt
-#ifdef MPI
-      call MPI_ALLREDUCE(MPI_IN_PLACE, sumaux, 3*natmtot, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
-#endif
+      call xmpi_allreduce( sumaux, mpi_env )
       forces_val = forces_val + sumaux
   end subroutine
 
