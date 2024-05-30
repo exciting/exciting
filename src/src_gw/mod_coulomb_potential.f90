@@ -12,7 +12,7 @@ module mod_coulomb_potential
 
     implicit none
 
-    character(len=*), parameter, private :: basename_barc = 'BARC_'
+    character(len=*), parameter, private :: basename_barc = 'BARC_Q'
     
     ! The lattice summations matrix      
     complex(dp), allocatable :: sgm(:,:,:)

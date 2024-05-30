@@ -1,7 +1,7 @@
 !> Module that contains the types and subroutines needed to execute
 !> `taskGroup` in `gw`
 module task_group
-  use modgw, only: kqset
+  use modgw, only: kqset, kset
   use modinput, only: input, gw_type
   use modmpi, only: terminate_if_false
   use mod_coulomb_potential, only: calculate_singularities_coeff
@@ -10,6 +10,7 @@ module task_group
   use task_Coulomb, only: execute_task_Coulomb
   use task_epsilon, only: execute_task_epsilon
   use task_invertEpsilon, only: execute_task_invertEpsilon
+  use task_sigmac, only: execute_task_sigmac
 
   implicit none
   
@@ -28,6 +29,7 @@ module task_group
     logical :: task_Coulomb 
     logical :: task_epsilon 
     logical :: task_invertEpsilon
+    logical :: task_sigmac
   contains
     procedure :: parse_input
   end type
@@ -37,11 +39,12 @@ contains
   !> `taskGroup` element (within `gw`)
   subroutine execute_task_group
     type(task_group_parameters) :: input_parameters
-    integer(i32) :: n_qpoints
+    integer(i32) :: n_qpoints, n_kpoints
 
     call input_parameters%parse_input( input%gw )
     call initialize
     n_qpoints = kqset%nkpt
+    n_kpoints = kset%nkpt
 
     call calculate_singularities_coeff( input_parameters%Coulomb_cutoff_type, &
       input_parameters%selfenergy_singularity_treatment, kqset%nkpt, singc2 )
@@ -55,6 +58,8 @@ contains
     if( input_parameters%task_invertEpsilon ) &
       call execute_task_invertEpsilon( n_qpoints, input_parameters%output_format )
 
+    if( input_parameters%task_sigmac ) &
+      call execute_task_sigmac( n_kpoints, kqset%vqc, input_parameters%output_format )
   end subroutine
 
 
@@ -89,6 +94,7 @@ contains
     this%task_Coulomb = associated( gw_inp%taskGroup%Coulomb )
     this%task_epsilon = associated( gw_inp%taskGroup%epsilon )
     this%task_invertEpsilon = associated( gw_inp%taskGroup%invertEpsilon )
+    this%task_sigmac = associated( gw_inp%taskGroup%sigmac )
 
   end subroutine
 

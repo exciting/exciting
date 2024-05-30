@@ -13,7 +13,7 @@ subroutine init_gw()
     use gw_scf, only: set_gs_solver_threads, thread_consistent_scf
 
     implicit none
-    logical :: reducek, is_task_group, is_task_epsilon, is_task_invertEpsilon
+    logical :: reducek, is_task_group, is_task_epsilon, is_task_invertEpsilon, is_task_sigmac
     integer :: lmax, ik
     real(8) :: t0, t1, tstart, tend
 
@@ -119,14 +119,16 @@ subroutine init_gw()
     if( is_task_group .and. associated( input%gw%taskGroup ) ) then
       is_task_epsilon = associated( input%gw%taskGroup%epsilon )
       is_task_invertEpsilon = associated( input%gw%taskGroup%invertEpsilon )
+      is_task_sigmac = associated( input%gw%taskGroup%sigmac )
     else 
       is_task_epsilon = .false.
       is_task_invertEpsilon = .false.
+      is_task_sigmac = .false.
     end if
 
     if (input%gw%taskname=='g0w0' .or. &
         input%gw%taskname=='emac' .or. &
-        is_task_epsilon .or. is_task_invertEpsilon ) then
+        is_task_epsilon .or. is_task_invertEpsilon .or. is_task_sigmac ) then
       call generate_freqgrid(freq, &
       &                      input%gw%freqgrid%fgrid, &
       &                      input%gw%freqgrid%fconv, &
