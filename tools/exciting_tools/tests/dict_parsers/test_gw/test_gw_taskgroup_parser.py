@@ -50,7 +50,7 @@ reference_square_matrix = {
     [(rectangular_matrix, reference_rectangular_matrix), (square_matrix, reference_square_matrix)],
 )
 def test_parse_barc(barc_file_str, reference_barc, tmp_path):
-    barc_file_path = tmp_path / "BARC_1.OUT"
+    barc_file_path = tmp_path / "BARC_Q1.OUT"
     barc_file_path.write_text(barc_file_str)
     barc = parse_barc(barc_file_path.as_posix())
     A = reference_barc["matrix"]
@@ -63,7 +63,7 @@ def test_parse_barc(barc_file_str, reference_barc, tmp_path):
     [(rectangular_matrix, reference_rectangular_matrix), (square_matrix, reference_square_matrix)],
 )
 def test_parse_sgi(sgi_file_str, reference_sgi, tmp_path):
-    sgi_file_path = tmp_path / "SGI_1.OUT"
+    sgi_file_path = tmp_path / "SGI_Q1.OUT"
     sgi_file_path.write_text(sgi_file_str)
     sgi = parse_sgi(sgi_file_path.as_posix())
     A = reference_sgi["matrix"]

@@ -140,7 +140,7 @@ module mod_product_basis
     complex(8), allocatable :: rotmat(:,:)
 
     !> Name of output file where sgi is written to
-    character(len=*), parameter, private :: basename_sgi = 'SGI_'
+    character(len=*), parameter, private :: basename_sgi = 'SGI_Q'
 
 contains
 

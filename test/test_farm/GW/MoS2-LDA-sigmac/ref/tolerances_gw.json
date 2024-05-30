@@ -1,0 +1,14 @@
+{
+  "SIGMAC_K1.OUT": {
+    "sigmac_matrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "SIGMAC_K2.OUT": {
+    "sigmac_matrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  }
+}

@@ -93,7 +93,7 @@ def __square_matrix(a: NDArray) -> NDArray:
 
 
 def parse_barc(file_name: str) -> Dict[str, NDArray[np.complex128]]:
-    """Parser for BARC_*.OUT, where * is an integer.
+    """Parser for BARC_Q*.OUT, where * is an integer.
 
     The file contains the product: M*(v^1/2), where M is a matrix with
     eigenvectors, and v is a diagonal matrix with the eigenvalues.
@@ -107,7 +107,7 @@ def parse_barc(file_name: str) -> Dict[str, NDArray[np.complex128]]:
 
 
 def parse_sgi(file_name: str) -> Dict[str, NDArray[np.complex128]]:
-    """Parser for SGI_*.OUT, where * is an integer.
+    """Parser for SGI_Q*.OUT, where * is an integer.
 
     This file contains the vectors $\tilde{S_{Gi}}$, defined in Eq. (41) of
     Computer Phys. Comm. 184, 348 (2013).

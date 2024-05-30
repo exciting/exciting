@@ -1,5 +1,4 @@
 module task_invertEpsilon
-  use asserts, only: assert
   use constants, only: zzero
   use exciting_mpi, only: mpiinfo
   use gw_io, only: write_to_gwinfo, write_to_gwinfo_boxmessage
