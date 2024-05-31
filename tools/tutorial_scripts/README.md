@@ -574,6 +574,14 @@ Generate plots of the dielectric function.
 #### <span style="color:#15317E">PLOT-spintext.py</span>
 
 Produce plot of the spin texture.
+#### New version:
+Located at `tools/excitingscripts/excitingscripts/plot/spintext.py`. Call as:
+
+```bash
+python3 -m excitingscripts.plot.spintext -b ib -c context 
+```
+Where <code>ib</code> defines the band index for the plot and <code>context</code> defines the context of the contour
+plot. Choises are <code>energy</code> and <code>spin_z</code>.
 #### Used in:
 * Spin-texture calculation
 </br></br>
