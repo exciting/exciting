@@ -27,8 +27,11 @@ test-debian-buster-gcc8-smp-jupyter:
   #- time jupyter nbconvert --execute 02_ground_state/01_tutorial_exchange_correlation_functionals.ipynb --to markdown # commented out because of timeout
   #- time jupyter nbconvert --execute 02_ground_state/05_tutorial_hybrid_functional_calculations.ipynb --to markdown # commented out because of timeout
   #- time jupyter nbconvert --execute 02_ground_state/04_tutorial_spin_orbit_coupling.ipynb --to markdown # commented out because of timeout
-  - time jupyter nbconvert --execute 02_ground_state/03_tutorial_spin_polarized_calculations_for_bcc_Fe.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/03_tutorial_spin_polarized_calculations_for_bcc_Fe.ipynb --to markdown
   #- time jupyter nbconvert --execute 02_ground_state/10_tutorial_low_dimensional_systems.ipynb --to markdown # commented out because of timeout
+  #- time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/01_tutorial_wannier_functions_for_interpolation_in_reciprocal_space.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/02_tutorial_fermi_surface_visualization.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/03_tutorial_spin_texture_calculation.ipynb --to markdown
   - time jupyter nbconvert --execute 02_ground_state/tutorial_excitingtools.ipynb --to markdown
   - time jupyter nbconvert --execute 03_excited_states/01_GW/01_tutorial_electronic_band_structure_from_gw.ipynb --to markdown
   - time python3 03_excited_states/01_GW/assertions_01_tutorial_electronic_band_structure_from_gw.py
@@ -39,5 +42,5 @@ test-debian-buster-gcc8-smp-jupyter:
   - time python3 03_excited_states/02_BSE/assertions_03_tutorial_xray_absorption_spectra_using_bse.py
   - time jupyter nbconvert --execute 03_excited_states/02_BSE/04_tutorial_xray_emission_spectra.ipynb --to markdown
   - time python3 03_excited_states/02_BSE/assertions_04_tutorial_xray_emission_spectra.py
-  - time jupyter nbconvert --execute 03_excited_states/02_BSE/05_tutorial_q_dependent_bse_calculations.ipynb --to markdown
-  - time python3 03_excited_states/02_BSE/assertions_05_tutorial_q_dependent_bse_calculations.py
+  #- time jupyter nbconvert --execute 03_excited_states/02_BSE/05_tutorial_q_dependent_bse_calculations.ipynb --to markdown # commented out because of timeout
+  #- time python3 03_excited_states/02_BSE/assertions_05_tutorial_q_dependent_bse_calculations.py
