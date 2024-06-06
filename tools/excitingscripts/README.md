@@ -22,10 +22,10 @@ python3 -m pip install --upgrade --force pip
 pip install --upgrade setuptools
 ```
 
-Now you can proceed to install **excitingscripts** from **exciting's**'s root directory:
+Now you can proceed to install **excitingscripts** from `$EXCITINGROOT/tools/excitingscripts`:
 
 ```bash
-python3 -m pip install tools/excitingscripts
+pip3 install -e ../excitingscripts
 ```
 
 Alternatively, you can install it directly from PyPI:
