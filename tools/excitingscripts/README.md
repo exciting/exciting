@@ -338,7 +338,7 @@ python3 -m excitingscripts.plot.spintext -b ib -c context
 Where <code>ib</code> defines the band index for the plot and <code>context</code> defines the context of the contour
 plot. Choises are <code>energy</code> and <code>spin_z</code>.
 
-#### <span style="color:#15317E">PLOT-volumecurves.py</span>
+#### <span style="color:#15317E">plot.volumecurves</span>
 
 Fit energy-vs-volume curves.
 
