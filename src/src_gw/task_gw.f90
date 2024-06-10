@@ -139,7 +139,7 @@ subroutine task_gw()
       !===============================
       ! Calculate \Sigma^{x}_{kn}(q)
       !===============================
-      call calcselfx(iq)
+      call calcselfx( iq, 1, kset%nkpt, .true. )
 
       if (input%gw%taskname /= 'g0w0-x') then
         !========================================

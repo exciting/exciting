@@ -1,49 +1,52 @@
-
-subroutine calcselfx(iq)
-!
-! Calculate the q-dependent self-energy contribution
-!
+!> Calculate the q-dependent self-energy contribution for the given k-points.
+!> Remark: To obtain the complete self-energy, it must be then summed over all q-points
+subroutine calcselfx(iq, ikp_first, ikp_last, evaluate_sqrt_of_bare_Coulomb)
+    use constants, only: zzero, zone, pi, real_zero, fourpi
     use modinput, only: input
-    use mod_atoms, only: idxas, natmtot
-    use mod_eigenvalue_occupancy, only: nstfv
+    use modgw, only: ibgw, nbgw, kset, kqset, Gkqset, fdebug, time_selfx, kiw, ciw
     use mod_APW_LO, only: apwordmax
-    use mod_muffin_tin, only: lmmaxapw
-    use mod_eigensystem, only: nmatmax
-    use mod_bands, only: numin, nomax, eveckalm, eveckpalm, eveck, eveckp, evalfv
-    use mod_product_basis, only: matsiz, mbsiz, minmmat
+    use mod_atoms, only: idxas, natmtot
+    use mod_bands, only: evalfv, eveck, eveckp, eveckalm, eveckpalm, nomax
     use mod_core_states, only: ncg, corind
-    use mod_coulomb_potential, only: barc, vccut, barcev, vmat
-    use mod_misc_gw, only: vi, Gamma
-    use mod_mpi_gw, only : myrank
-    use modgw, only: kset, kqset, Gkqset, ciw, kiw, fdebug, time_selfx
-    use mod_selfenergy, only: singc2, selfex
+    use mod_coulomb_potential, only: barc, barcev, vccut, vmat
+    use mod_eigensystem, only: nmatmax
+    use mod_eigenvalue_occupancy, only: nstfv
 #include "mod_gw_degeneracies.inc"
     use mod_gw_degeneracies, only: get_degenerate_limits_qp_interval_ikp, &
                                    ibgw_including_degeneracy, &
                                    nbgw_including_degeneracy, &
-                                   degenerate_subspaces
+                                   degenerate_subspaces    
+    use mod_misc_gw, only: Gamma, vi
+    use mod_mpi_gw, only : myrank
+    use mod_muffin_tin, only: lmmaxapw
+    use mod_product_basis, only: matsiz, mbsiz, minmmat
+    use mod_selfenergy, only: selfex, singc2
     use precision, only: i32, dp
-    use constants, only: zone, zzero, real_zero, pi, fourpi
 
     implicit none
 
-    ! input/output
+    !> index of the q-point term to evaluate
     integer(i32), intent(in) :: iq
+    !> index of the first k-point (in the reduced BZ) to evaluate the self-energy
+    integer(i32), intent(in) :: ikp_first
+    !> index of the last k-point (in the reduced BZ) to evaluate the self-energy
+    integer(i32), intent(in) :: ikp_last
+    !> if true, evaluate the square root of the matrix with the bare Coulomb potential
+    logical, intent(in) :: evaluate_sqrt_of_bare_Coulomb
 
     ! local
-    integer(i32) :: ik, ikp, jk, i
+    integer(i32) :: ik, ikp, jk
     integer(i32) :: mdim
-    real(dp)    :: tstart, tend, t0, t1
     integer(i32) :: ie1, ie2, im
     integer(i32) :: ia, is, ias, ic, icg
-    real(dp)    :: sxs2, fnk
-    complex(dp) :: sx, vc
-    complex(dp) :: mvm     ! Sum_{ij}{M^i*V^c_{ij}*conjg(M^j)}
-    complex(dp), allocatable :: evecfv(:,:)
-    ! For the averaging over degenerate states
     integer(i32) :: ispace_init, ispace_final, ispace, lowband, upband, size_deg
-  
-    ! external routines
+    real(dp)     :: tstart, tend
+    real(dp)     :: sxs2, fnk
+    complex(dp)  :: sx, vc
+    complex(dp)  :: mvm     ! Sum_ij{M^i*V^c_{ij}*conjg(M^j)}
+    complex(dp), allocatable :: evecfv(:,:)
+
+    ! external routine
     complex(dp), external :: zdotc
 
     call timesec(tstart)
@@ -54,19 +57,21 @@ subroutine calcselfx(iq)
     !----------------------------------------
     ! Set v-diagonal mixed product basis set
     !----------------------------------------
-    if (vccut) then
+    if( evaluate_sqrt_of_bare_Coulomb ) then 
+      if (vccut) then
         sxs2 = real_zero
         mbsiz = matsiz
         if (allocated(barc)) deallocate(barc)
         allocate(barc(matsiz,mbsiz), source=zzero)
         do im = 1, matsiz
-            if (barcev(im) > 0.0_dp) then
-                vc = cmplx(barcev(im), 0.0_dp, kind=dp)
-                barc(:,im) = vmat(:,im) * sqrt(vc)
-            end if
+          if (barcev(im) > real_zero) then
+            vc = cmplx(barcev(im), 0.0_dp, kind=dp)
+            barc(:,im) = vmat(:,im) * sqrt(vc)
+          end if
         end do
-    else
+      else
         call setbarcev(real_zero)
+      end if
     end if
 
     !--------------------------------------------------
@@ -92,7 +97,7 @@ subroutine calcselfx(iq)
     ! loop over irreducible k-points
     !================================
     ! write(*,*)
-    do ikp = 1, kset%nkpt
+    do ikp = ikp_first, ikp_last
       ! write(*,*) 'calcselfx: rank, (iq, ikp):', myrank, iq, ikp
 
       ! k vector
@@ -206,6 +211,5 @@ subroutine calcselfx(iq)
     call timesec(tend)
     time_selfx = time_selfx+tend-tstart
 
-    return
 end subroutine
 !EOC
