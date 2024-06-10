@@ -12,6 +12,7 @@ from excitingtools.exciting_dict_parsers.gw_taskgroup_parser import (
     parse_polarizability_factor,
     parse_sgi,
     parse_sigmac,
+    parse_sigmax,
 )
 
 rectangular_matrix = """ 2
@@ -156,6 +157,50 @@ def test_parse_sigmac(file_sigmac_str, reference_sigmac, tmp_path):
     sigmac_file_path.write_text(file_sigmac_str)
     sigmac = parse_sigmac(sigmac_file_path.as_posix())
     np.testing.assert_allclose(sigmac["sigmac_matrix"], reference_sigmac["matrix"])
+
+
+# Vector with lower bound different from 1
+vector_example_1 = """ 1
+4 7
+(1.01E-4,-5.5E-8) (0.25,0.77)
+(0.35,0.88) (0.000000000000000E+000,0.000000000000000E+000)
+"""
+
+reference_vector_example_1 = {
+    "vector": np.array([complex(1.01e-4, -5.5e-8), complex(0.25, 0.77), complex(0.35, 0.88), complex(0.0, 0.0)])
+}
+
+# Vector with lower bound equal to 1
+vector_example_2 = """ 1
+1 6
+(1.01E-4,-5.5E-8) (0.25,0.77)
+(0.35,0.88) (0.000000000000000E+000,0.000000000000000E+000)
+(-1.01E+004,-5.4E-8) (0.19,0.21)
+"""
+
+reference_vector_example_2 = {
+    "vector": np.array(
+        [
+            complex(1.01e-4, -5.5e-8),
+            complex(0.25, 0.77),
+            complex(0.35, 0.88),
+            complex(0.0, 0.0),
+            complex(-1.01e4, -5.4e-8),
+            complex(0.19, 0.21),
+        ]
+    )
+}
+
+
+@pytest.mark.parametrize(
+    ["file_sigmax_str", "reference_sigmax"],
+    [(vector_example_1, reference_vector_example_1), (vector_example_2, reference_vector_example_2)],
+)
+def test_parse_sigmax(file_sigmax_str, reference_sigmax, tmp_path):
+    sigmax_file_path = tmp_path / "SIGMAX_K1.OUT"
+    sigmax_file_path.write_text(file_sigmax_str)
+    sigmax = parse_sigmax(sigmax_file_path.as_posix())
+    np.testing.assert_allclose(sigmax["sigmax"], reference_sigmax["vector"])
 
 
 polarizability_factor_str = """ 4
