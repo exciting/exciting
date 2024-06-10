@@ -7,6 +7,30 @@ import numpy as np
 from numpy.typing import NDArray
 
 
+def __parse_file_with_vector(file_name: str) -> NDArray[np.complex128]:
+    """Parser for files containing vectors
+    This file looks like:
+     1st line: 1 (rank=1)
+     2nd line: two integers i,m with the ranges: vector[i:m]
+     next lines: vector elements (complex numbers)
+
+    :param file_name: name of the file
+    :return: vector read from file
+    """
+    with open(file_name) as file:
+        dim = int(file.readline().split()[0])
+        m_ini, m_end = (int(x) for x in file.readline().split())
+        assert dim == 1
+        m = m_end - m_ini + 1
+        vector = np.zeros(m, dtype=complex)
+        counter = 0
+        for line in file:
+            for data in line.split():
+                vector[counter] = complex(*literal_eval(data))
+                counter += 1
+    return vector
+
+
 def __parse_file_with_matrix(file_name: str) -> NDArray[np.complex128]:
     """Parser for files containing matrices.
 
@@ -165,3 +189,13 @@ def parse_sigmac(file_name: str) -> Dict[str, NDArray[np.complex128]]:
     :return: parsed data as dictionary
     """
     return {"sigmac_matrix": __parse_file_with_matrix(file_name)}
+
+
+def parse_sigmax(file_name: str) -> Dict[str, NDArray[np.complex128]]:
+    """Parser for the files SIGMAX_K*.OUT, where * is an integer
+    These files contain the exchange part of the self-energy.
+
+    :param file_name: name of the file
+    :return: parsed data as dictionary
+    """
+    return {"sigmax": __parse_file_with_vector(file_name)}
