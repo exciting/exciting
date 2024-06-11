@@ -9,7 +9,8 @@ dependencies = [
     'numpy>=1.14.5', 
     'matplotlib>=2.2.0', 
     'scipy>=1.7.0', 
-    'excitingtools>=1.1.0'
+    'excitingtools>=1.6.3',
+    'typing-extensions==3.10.0.2'
 ]
 
 [build-system]
