@@ -129,6 +129,7 @@ subroutine task_gw()
       !========================================
       matsiz = locmatsiz+Gqset%ngk(1,iq)
       call diagsgi(iq)
+      call write_sgi_to_file(iq, 'text')
       call calcmpwipw(iq)
 
       !======================================
@@ -203,6 +204,9 @@ subroutine task_gw()
     !===============================================================================
 
     if (myrank == 0) then
+      do ik = 1, kset%nkpt
+        call write_selfex_single_kpoint( ik, 'text' )
+      end do
 
       if ((input%gw%taskname /= 'g0w0-x') .and. (input%gw%selfenergy%method == "ac")) then
         ! Analytical continuation of the correlation self-energy from the complex to the real frequency axis

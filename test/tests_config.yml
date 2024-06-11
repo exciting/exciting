@@ -330,6 +330,19 @@ GW/MoS2-LDA-sigmac:
       - "BARC_Q1.OUT"
       - "BARC_Q2.OUT"
 
+GW/MoS2-LDA-sigmax:
+   files_under_test:
+      - "SIGMAX_K1.OUT"
+      - "SIGMAX_K2.OUT"
+   inputs:
+      - "input.xml"
+      - "Mo.xml"
+      - "S.xml"
+      - "SGI_Q1.OUT"
+      - "SGI_Q2.OUT"
+      - "BARC_Q1.OUT"
+      - "BARC_Q2.OUT"
+
 GW/Si-PBE-Coulomb:
    files_under_test:
       - "SGI_Q1.OUT"

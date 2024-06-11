@@ -1,7 +1,7 @@
 !> Module that contains the types and subroutines needed to execute
 !> `taskGroup` in `gw`
 module task_group
-  use modgw, only: kqset, kset
+  use modgw, only: kqset, kset, ibgw, nbgw
   use modinput, only: input, gw_type
   use modmpi, only: terminate_if_false
   use mod_coulomb_potential, only: calculate_singularities_coeff
@@ -11,6 +11,7 @@ module task_group
   use task_epsilon, only: execute_task_epsilon
   use task_invertEpsilon, only: execute_task_invertEpsilon
   use task_sigmac, only: execute_task_sigmac
+  use task_sigmax, only: execute_task_sigmax
 
   implicit none
   
@@ -30,6 +31,7 @@ module task_group
     logical :: task_epsilon 
     logical :: task_invertEpsilon
     logical :: task_sigmac
+    logical :: task_sigmax
   contains
     procedure :: parse_input
   end type
@@ -51,6 +53,9 @@ contains
 
     if( input_parameters%task_Coulomb ) &
       call execute_task_Coulomb( n_qpoints, input_parameters%output_format )
+    
+    if( input_parameters%task_sigmax ) &
+      call execute_task_sigmax( ibgw, nbgw, n_kpoints, kqset%vqc, input_parameters%output_format )
 
     if( input_parameters%task_epsilon ) &
       call execute_task_epsilon( n_qpoints, input_parameters%output_format )
@@ -60,6 +65,7 @@ contains
 
     if( input_parameters%task_sigmac ) &
       call execute_task_sigmac( n_kpoints, kqset%vqc, input_parameters%output_format )
+
   end subroutine
 
 
@@ -95,6 +101,7 @@ contains
     this%task_epsilon = associated( gw_inp%taskGroup%epsilon )
     this%task_invertEpsilon = associated( gw_inp%taskGroup%invertEpsilon )
     this%task_sigmac = associated( gw_inp%taskGroup%sigmac )
+    this%task_sigmax = associated( gw_inp%taskGroup%sigmax )
 
   end subroutine
 
