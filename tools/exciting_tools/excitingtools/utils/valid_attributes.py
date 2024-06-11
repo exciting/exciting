@@ -402,7 +402,7 @@ barecoul_valid_attributes = ["barcevtol", "basis", "cutofftype", "pwm", "stctol"
 scrcoul_valid_attributes = ["averaging", "omegap", "q0eps", "scrtype", "subgrid_q0"] 
 
 taskGroup_valid_attributes = ["outputFormat"] 
-taskGroup_valid_subtrees = ["Coulomb", "epsilon", "invertEpsilon", "sigmac"] 
+taskGroup_valid_subtrees = ["Coulomb", "epsilon", "invertEpsilon", "sigmac", "sigmax"] 
 
 Coulomb_valid_subtrees = ["qpoints"] 
 Coulomb_mandatory_attributes = ["qpoints"] 
@@ -420,6 +420,10 @@ invertEpsilon_multiple_children = ["qpoints"]
 sigmac_valid_subtrees = ["kpoints"] 
 sigmac_mandatory_attributes = ["kpoints"] 
 sigmac_multiple_children = ["kpoints"] 
+
+sigmax_valid_subtrees = ["kpoints"] 
+sigmax_mandatory_attributes = ["kpoints"] 
+sigmax_multiple_children = ["kpoints"] 
 
 
 # MD information 

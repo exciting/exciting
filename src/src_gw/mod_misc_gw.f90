@@ -3,6 +3,8 @@ module mod_misc_gw
     use modinput
     use modmain
     use constants, only: maxatoms, maxspecies, pi
+    use precision, only: dp
+    
     implicit none
 
 ! shortcut for atomic position array
@@ -69,18 +71,18 @@ contains
 
 !-------------------------------------------------------------------------------
 
-    ! TODO(Alex) This function isn't needed (see use case) Replace
-     logical function gammapoint(vec)
-        implicit none
-        real(8), intent(in) :: vec(3)
-        real(8) :: len
-        len = vec(1)*vec(1)+vec(2)*vec(2)+vec(3)*vec(3)
-        if (len > 1.0d-6) then
-          gammapoint = .false.
-        else
-          gammapoint = .true.
-        endif
-        return
+     !> Check if all coordinates of `vec` are close to zero.
+     !> If `vec` is a k-point, that means it can be interpreted as the \(\Gamma\)-point
+     pure logical function gammapoint(vec, tol)
+        real(dp), intent(in) :: vec(3)
+        real(dp), intent(in), optional :: tol
+
+        real(dp), parameter :: default_tol = 1.e-6_dp
+        real(dp) :: tolerance 
+
+        tolerance = default_tol
+        if( present(tol) ) tolerance = tol
+        gammapoint = ( norm2(vec) <= tolerance )
      end function gammapoint
 
 
