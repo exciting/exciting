@@ -1,5 +1,11 @@
-import numpy as np
-from reference_file_tddft import *
+from os.path import dirname
+
+from excitingtools import parser_chooser
+
+from reference_file_01_tutorial_excited_states_from_tddft import *
+
+TUTORIAL_TDDFT_RUNDIR = "run_Ag_tddft"
+
 
 def test_groundstate(converged_results: dict):
     """Test results in main output file INFO.OUT
@@ -144,3 +150,42 @@ def test_dielectric_fxc_ALDA_NLF(dielectric_fxcALDA_nlf: np.ndarray):
         f"Imaginary part of dielectric function not equivalent to reference calculations using the adiabatic LDA (ALDA) for the exchange-correlation kernel when local-field effects are neglected"
     assert np.allclose(dielectric_fxcALDA_nlf[:, 3], ref_real_KKT_dielectric_function_ALDA_NLF),\
         f"Real part of dielectric function (by Kramers-Kronig) not equivalent to reference calculations using the adiabatic LDA (ALDA)for the exchange-correlation kernel when local-field effects are neglected"
+
+    def main():
+        results = parser_chooser(f"{dirname(__file__)}/{TUTORIAL_TDDFT_RUNDIR}/INFO.OUT")
+        max_scf = max([int(i) for i in results['scl'].keys()])
+        assert max_scf <= 14, "Expect max 14 SCF iterations to converge"
+        converged_results = results['scl'][str(max_scf)]
+        test_groundstate(converged_results)
+
+        loss_fxcRPA = np.genfromtxt(f"{dirname(__file__)}/{TUTORIAL_TDDFT_RUNDIR}/LOSS_FXCRPA_OC11_QMT001.OUT")
+        test_loss_fxc_RPA_LF(loss_fxcRPA)
+
+        loss_fxcRPA_nlf = np.genfromtxt(f"{dirname(__file__)}/{TUTORIAL_TDDFT_RUNDIR}/LOSS_NLF_FXCRPA_OC11_QMT001.OUT")
+        test_loss_fxc_RPA_NLF(loss_fxcRPA_nlf)
+
+        loss_fxcALDA = np.genfromtxt(f"{dirname(__file__)}/{TUTORIAL_TDDFT_RUNDIR}/LOSS_FXCALDA_OC11_QMT001.OUT")
+        test_loss_fxc_ALDA_LF(loss_fxcALDA)
+
+        loss_fxcALDA_nlf = np.genfromtxt(f"{dirname(__file__)}/{TUTORIAL_TDDFT_RUNDIR}/"
+                                         f"LOSS_NLF_FXCALDA_OC11_QMT001.OUT")
+        test_loss_fxc_ALDA_NLF(loss_fxcALDA_nlf)
+
+        dielectric_fxcRPA = np.genfromtxt(f"{dirname(__file__)}/{TUTORIAL_TDDFT_RUNDIR}/EPSILON_FXCRPA_OC11_QMT001.OUT")
+        test_dielectric_fxc_RPA_LF(dielectric_fxcRPA)
+
+        dielectric_fxcRPA_nlf = np.genfromtxt(f"{dirname(__file__)}/{TUTORIAL_TDDFT_RUNDIR}/"
+                                              f"EPSILON_NLF_FXCRPA_OC11_QMT001.OUT")
+        test_dielectric_fxc_RPA_NLF(dielectric_fxcRPA_nlf)
+
+        dielectric_fxcALDA = np.genfromtxt(f"{dirname(__file__)}/{TUTORIAL_TDDFT_RUNDIR}/"
+                                           f"EPSILON_FXCALDA_OC11_QMT001.OUT")
+        test_dielectric_fxc_ALDA_LF(dielectric_fxcALDA)
+
+        dielectric_fxcALDA_nlf = np.genfromtxt(f"{dirname(__file__)}/{TUTORIAL_TDDFT_RUNDIR}/"
+                                               f"EPSILON_NLF_FXCALDA_OC11_QMT001.OUT")
+        test_dielectric_fxc_ALDA_NLF(dielectric_fxcALDA_nlf)
+
+
+    if __name__ == "__main__":
+        main()

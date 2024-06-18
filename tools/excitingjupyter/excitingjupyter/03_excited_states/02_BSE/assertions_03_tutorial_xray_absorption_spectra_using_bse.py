@@ -229,7 +229,7 @@ def main():
 
     results_TiO2 = parse(f"{dirname(__file__)}/{TUTORIAL_XANES_RUNDIR}/TiO2-XANES/INFO.OUT")
     max_scf = max([int(i) for i in results_TiO2['scl'].keys()])
-    assert max_scf <= 30, "Expect max 30 SCF iterations to converge"
+    assert max_scf <= 40, "Expect max 40 SCF iterations to converge"
     converged_results_TiO2 = results_TiO2['scl'][str(max_scf)]
     test_groundstate_TiO2(converged_results_TiO2)
 

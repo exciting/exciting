@@ -42,6 +42,8 @@ def option_parser():
         no_scientific
         log_x
         log_y
+        show
+        plot_name
 
     :return input_options: Dictionary of parsed command line arguments
     """
@@ -111,6 +113,10 @@ def option_parser():
     help_log_x = "If present, plots data on the x-axis using a standard logarithmic scale."
 
     help_log_y = "If present, plots data on the y-axis using a standard logarithmic scale."
+
+    help_show = "Opens plot in new window"
+
+    help_plot_name = "If present, saves plot PNG with the given name."
 
     # ---------------------------------------------------------------------------
 
@@ -192,6 +198,10 @@ def option_parser():
 
     p.add_argument('-logy', '--log_y', action='store_true', help=help_log_y)
 
+    p.add_argument('-sh', '--show', action='store_true',  help=help_show)
+
+    p.add_argument('-pn', '--plot_name', type=str, default='PLOT', help=help_plot_name)
+
     # ---------------------------------------------------------------------------
 
     args = p.parse_args()
@@ -201,7 +211,7 @@ def option_parser():
 
     if len(args.files) == 0:
         sys.exit("\n ERROR: At least a filename must be specified:\n\n"
-                 + "        PLOT-files.py -f [FILES [FILES ...]]\n")
+                 + "        python3 -m excitingscripts.plot.files -f [FILES [FILES ...]]\n")
     input_options['files'] = args.files
 
     input_options['legend'] = args.legend_label
@@ -248,6 +258,9 @@ def option_parser():
 
     input_options['log_x'] = args.log_x
     input_options['log_y'] = args.log_y
+
+    input_options['show'] = args.show
+    input_options['plot_name'] = args.plot_name
 
     return input_options
 
@@ -351,6 +364,9 @@ def main(input_options):
 
     log_x = input_options['log_x']
     log_y = input_options['log_y']
+
+    show = input_options['show']
+    plot_name = input_options['plot_name']
 
     # ---------------------------------------------------------------------------
     # Initialize cases
@@ -554,7 +570,10 @@ def main(input_options):
 
     if grid: pyl.grid(True)
 
-    fig.savefig('PLOT.png', format='png', dpi=300, bbox_inches='tight')
+    plt.savefig(f"{plot_name}.png", format='png', dpi=300, bbox_inches='tight')
+
+    if show:
+       plt.show()
 
     sys.exit()
 
