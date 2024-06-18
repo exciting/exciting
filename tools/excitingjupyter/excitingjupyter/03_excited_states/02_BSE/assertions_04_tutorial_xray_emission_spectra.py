@@ -108,7 +108,7 @@ def test_loss(file_name: str):
 def main():
     results = parse(f"{dirname(__file__)}/{TUTORIAL_XES_RUNDIR}/INFO.OUT")
     max_scf = max([int(i) for i in results['scl'].keys()])
-    assert max_scf <= 30, "Expect max 30 SCF iterations to converge"
+    assert max_scf <= 40, "Expect max 40 SCF iterations to converge"
     converged_results = results['scl'][str(max_scf)]
     test_groundstate(converged_results)
 

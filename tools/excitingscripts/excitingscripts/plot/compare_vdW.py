@@ -39,7 +39,6 @@ pyl.grid(True)
 def plot_compare_vdw(plot_file_path : Union[str, pathlib.Path], color_index) -> None:
     """Plot binding energy curve values for a given running directory.
 
-    :param root_directory: Root directory.
     :param plot_file_path: Path to file containing data wanted for plot.
     :param color_index: Index needing for plotting curves with different colors for each calculation.
     """
