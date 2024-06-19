@@ -8,7 +8,7 @@ subroutine task_evalqp()
     use mod_hdf5
     use mod_mpi_gw
     use m_getunit
-    use mod_vxc, only: vxcnn, read_vxcnn
+    use mod_vxc, only: vxcnn, read_vxcnn, deallocate_vxcnn
     implicit none
     ! local variables
     integer :: ikp, ik, ik_, ie, ie_, fid, recl
@@ -37,7 +37,6 @@ subroutine task_evalqp()
 
       ! allocate the arrays
 
-      allocate(vxcnn(ibgw:nbgw,kset%nkpt))
       call init_selfenergy(ibgw,nbgw,kset%nkpt)
 
       ! real frequency grid
@@ -65,7 +64,7 @@ subroutine task_evalqp()
       if (allocated(evalfv)) deallocate(evalfv)
       allocate(evalfv(ibgw:nbgw,kset%nkpt))
       evalfv(ibgw:nbgw,:) = evalks(ibgw:nbgw,:)
-      call read_vxcnn()
+      call read_vxcnn('binary')
       call readselfx()
       call readselfc()
 
@@ -103,8 +102,8 @@ subroutine task_evalqp()
 
       ! clear memory
       deallocate(evalks, evalfv)
-      deallocate(vxcnn)
       call delete_selfenergy
+      call deallocate_vxcnn
 
     end if ! myrank
 

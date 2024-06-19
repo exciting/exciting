@@ -18,8 +18,9 @@ subroutine task_gw()
     use mod_coulomb_potential
     use invert_dielectric_function, only: calcinveps
     use modxs, only: symt2
-    use mod_vxc,               only: vxcnn
+    use mod_vxc,               only: vxcnn, calcvxcnn, write_vxcnn
     use mod_mpi_gw
+    use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
     use m_getunit
 
 !!LOCAL VARIABLES:
@@ -57,7 +58,11 @@ subroutine task_gw()
     !=================================================
     ! it is better to do it here to deallocate cfunir and vxcir arrays
     call timesec(t0)
-    call calcvxcnn
+    call calcvxcnn( ibgw_including_degeneracy, nbgw_including_degeneracy, [(ik, ik=1,kset%nkpt)], kset%vkl, mpiglobal )
+    if (rank==0) then
+      call write_vxcnn( 'binary', ibgw, nbgw )
+      call write_vxcnn( 'text', ibgw, nbgw )
+    end if
     call timesec(t1)
 
     ! clean not used anymore global exciting variables

@@ -28,7 +28,7 @@ subroutine solve_QP_equation()
         case(1)
             ! following Lucia Reining's book
             enk = evalfv(nomax,ikvbm)-efermi
-            sx = enk + selfex(nomax,ikvbm) - vxcnn(nomax,ikvbm)
+            sx = enk + selfex(nomax,ikvbm) - vxcnn%diag_elements(nomax,ikvbm)
             eqp = enk
             eqp_prev = eqp
             converged = .false.
@@ -52,7 +52,7 @@ subroutine solve_QP_equation()
             enk = evalfv(nomax,ikvbm)-efermi
             call get_selfc(freq_selfc%nomeg, freq_selfc%freqs, selfec(nomax,:,ikvbm), &
                         enk, sc, dsigma)
-            de = selfex(nomax,ikvbm) + sc - vxcnn(nomax,ikvbm)
+            de = selfex(nomax,ikvbm) + sc - vxcnn%diag_elements(nomax,ikvbm)
         case default
             write(*,*) 'Non supported values of eshift=', input%gw%selfenergy%eshift
             stop
@@ -80,7 +80,7 @@ subroutine solve_QP_equation()
                                         enk, sigc(ib,ik), dsigma )
                         znk = zone / (zone-dsigma)
                         znorm(ib,ik)  = dble(znk)
-                        eqp = enk + znorm(ib,ik)*dble(selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik)) + &
+                        eqp = enk + znorm(ib,ik)*dble(selfex(ib,ik) + sigc(ib,ik) - vxcnn%diag_elements(ib,ik)) + &
                               (1.d0-znorm(ib,ik))*deltaE
                         converged = .true.
                         exit
@@ -88,7 +88,7 @@ subroutine solve_QP_equation()
                         ! Perturbative solution without renormalization
                         call get_selfc( freq_selfc%nomeg, freq_selfc%freqs, selfec(ib,:,ik), &
                                         enk, sigc(ib,ik), dsigma )
-                        eqp = enk + dble(selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik))
+                        eqp = enk + dble(selfex(ib,ik) + sigc(ib,ik) - vxcnn%diag_elements(ib,ik))
                         znorm(ib,ik)  = 1.d0
                         converged = .true.
                         exit
@@ -96,7 +96,7 @@ subroutine solve_QP_equation()
                         ! Iterative solution
                         call get_selfc( freq_selfc%nomeg, freq_selfc%freqs, selfec(ib,:,ik), &
                                         eqp-deltaE, sigc(ib,ik), dsigma )
-                        eqp = enk + selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik)
+                        eqp = enk + selfex(ib,ik) + sigc(ib,ik) - vxcnn%diag_elements(ib,ik)
                         znorm(ib,ik)  = 1.d0
                     case default
                         write(*,*) 'Error(solve_QP_equation) Non supported value: eqpsolver =', input%gw%selfenergy%eqpsolver

@@ -6,12 +6,15 @@ subroutine gw_main()
     use modgw
     use modmpi
     use mod_mpi_gw
+    use mod_vxc, only: calcvxcnn, write_vxcnn
     use m_getunit
     use mod_hdf5
     use mod_aaa_approximant
+    use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
     use task_group, only: execute_task_group
 
     implicit none
+    integer :: ik
     real(8) :: tstart, tend
 
     !--------------------------------------------
@@ -69,7 +72,11 @@ subroutine gw_main()
         ! Calculate diagonal matrix elements of the exchange-correlation potential
         case('vxc')
             call init_gw()
-            call calcvxcnn()
+            call calcvxcnn( ibgw_including_degeneracy, nbgw_including_degeneracy, [(ik, ik=1,kset%nkpt)], kset%vkl, mpiglobal )
+            if (rank==0) then
+              call write_vxcnn( 'binary', ibgw, nbgw )
+              call write_vxcnn( 'text', ibgw, nbgw )
+            end if
 
         ! Calculate matrix elements of the momentum operator
         case('pmat')
