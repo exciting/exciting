@@ -17,9 +17,9 @@ module gw_io
   !> Default extension
   character(len=*), parameter :: default_file_extension = '.OUT'
   !> Accepted file format = 'text'
-  character(len=*), parameter :: file_format_text = 'text'
+  character(len=*), public, parameter :: file_format_text = 'text'
   !> Accepted file format = 'binary'
-  character(len=*), parameter :: file_format_binary = 'binary'
+  character(len=*), public, parameter :: file_format_binary = 'binary'
   
   public :: open_gwinfo, write_to_gwinfo, write_to_gwinfo_boxmessage, &
     build_file_name, write_to_file, read_from_file

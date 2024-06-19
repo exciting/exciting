@@ -31,7 +31,7 @@ subroutine write_qp_energies(fname)
       egw = evalqp(ie,ikp)
       de = egw-eks
 
-      vxc = dble(vxcnn(ie,ikp))
+      vxc = dble(vxcnn%diag_elements(ie,ikp))
 
       select case(input%gw%taskname)
 

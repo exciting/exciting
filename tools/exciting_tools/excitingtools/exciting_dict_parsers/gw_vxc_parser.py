@@ -34,6 +34,7 @@ def parse_vxnn_vectors(full_file_name: Union[str, pathlib.Path], vkl: dict, n_st
 
     The routine exploits the repeating file structure:
 
+     first_state       last_state        n_kpt : index of first band, index of last band, number of k-points
      ik=   1    vkl=  0.0000  0.0000  0.0000
         1       -2.908349       -0.000000
         2       -2.864103        0.000000
@@ -58,9 +59,12 @@ def parse_vxnn_vectors(full_file_name: Union[str, pathlib.Path], vkl: dict, n_st
     # File formatting
     header_size = 1
     blank_line = 1
+    skip_lines_first_pass = 2
 
     data = {}
-    skip_lines = header_size
+
+    # When first reading the file, skip the first 2 lines
+    skip_lines = skip_lines_first_pass
 
     # Must iterate lowest to highest, else data won't match k-points
     for ik in range(1, len(vkl) + 1):
@@ -73,7 +77,7 @@ def parse_vxnn_vectors(full_file_name: Union[str, pathlib.Path], vkl: dict, n_st
 
 
 def n_states_from_vxcnn(file_string: str) -> NumberOfStates:
-    return n_states_from_file(file_string, n_header=1)
+    return n_states_from_file(file_string, n_header=2)
 
 
 def parse_vxcnn(full_file_name: Union[str, pathlib.Path]) -> dict:
@@ -89,8 +93,13 @@ def parse_vxcnn(full_file_name: Union[str, pathlib.Path]) -> dict:
     except FileNotFoundError:
         raise FileNotFoundError(f"{full_file_name} does not exist")
 
+    data_first_line = file_string.splitlines()[0].split()
+    first_state, last_state, n_kpoints = (int(x) for x in data_first_line[:3])
     states = n_states_from_vxcnn(file_string)
+    assert states.first_state == first_state, "first_state given in the 1st line incompatible with the rest of the file"
+    assert states.last_state == last_state, "last_state given in the 1st line incompatible with the rest of the file"
     vkl = vkl_from_vxc(file_string)
+    assert n_kpoints == len(vkl), "n_kpoints given in the 1st line incompatible with the rest of the file"
     v_xc = parse_vxnn_vectors(full_file_name, vkl, states.n_states)
     assert len(vkl) == len(v_xc), "Should be a vector of Vxc_NN for each k-point"
 
