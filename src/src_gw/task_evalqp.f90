@@ -36,7 +36,6 @@ subroutine task_evalqp()
     if (myrank==0) then
 
       ! allocate the arrays
-
       call init_selfenergy(ibgw,nbgw,kset%nkpt)
 
       ! real frequency grid

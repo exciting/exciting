@@ -13,31 +13,21 @@ subroutine task_gw()
 !
 !!USES:
     use modinput
-    use modmain,               only: zzero, efermi
+    use modmain, only: zzero, efermi
     use modgw
     use mod_coulomb_potential
     use invert_dielectric_function, only: calcinveps
     use modxs, only: symt2
-    use mod_vxc,               only: vxcnn, calcvxcnn, write_vxcnn
+    use mod_vxc, only: calcvxcnn, write_vxcnn
     use mod_mpi_gw
     use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
     use m_getunit
 
 !!LOCAL VARIABLES:
     implicit none
-    integer(4) :: ikp, iq, fid, ik
+    integer(4) :: iq, ik
     real(8)    :: t0, t1
-    integer(4) :: recl
-    integer    :: im
-    complex(8) :: vc
-    integer(4) :: Nk
-    real(8)    :: omega_BZ, Vk, beta, sxdiv
-    character(80) :: frmt
 
-    integer(4) :: iom, ib
-    real(8) :: w, sRe, sIm, div
-    complex(8) :: dsc
-    real(8), allocatable :: sf(:)
 
 !!REVISION HISTORY:
 !

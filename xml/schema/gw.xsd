@@ -428,6 +428,23 @@
                     </xs:complexType>
                   </xs:element>
 
+                  <xs:element ex:importance="experimental" ex:unit="" name="vxc" maxOccurs="1" minOccurs="0">
+                    <xs:annotation>
+                      <xs:documentation>
+                        Setup for the task <pre>"vxc"</pre>.
+                        The diagonal matrix elements of the exchange-correlation potential 
+                        are calculated for each <inlinemath>\mathbf{k}</inlinemath>-point 
+                        and printed out in <pre>VXCNN.OUT</pre> (<pre>VXCNN.DAT</pre>) 
+                        in binary (text) format.
+                      </xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element ref="kpoints" minOccurs="1" maxOccurs="unbounded"/>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+
                 </xs:all>
                 
                   
@@ -466,7 +483,6 @@
                     <li><pre>band</pre> - QP banstructure as obtained by Fourier interpolation</li>
                     <li><pre>dos</pre> - QP density of states</li>
                     <li><pre>emac</pre> - Calculate the macroscopic dielectric function</li>
-                    <li><pre>vxc</pre> - Calculate the diagonal matrix elements of the exchange-correlation potential</li>
                     <li><pre>pmat</pre> - Calculate matrix elements of the momentum operator</li>
                     <li><pre>acon</pre> - Perform analytic continuation of the correlation self-energy from imaginary to real frequency and calculate QP energies</li>
                     <li><pre>taskGroup</pre> - Execute the group of tasks defined in <elementref>taskGroup</elementref>.</li>
