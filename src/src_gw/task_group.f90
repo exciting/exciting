@@ -3,7 +3,7 @@
 module task_group
   use modgw, only: kqset, kset, ibgw, nbgw
   use modinput, only: input, gw_type
-  use modmpi, only: terminate_if_false
+  use modmpi, only: mpiglobal, terminate_if_false
   use mod_coulomb_potential, only: calculate_singularities_coeff
   use mod_selfenergy, only: singc1, singc2
   use precision, only: i32, dp
@@ -12,6 +12,7 @@ module task_group
   use task_invertEpsilon, only: execute_task_invertEpsilon
   use task_sigmac, only: execute_task_sigmac
   use task_sigmax, only: execute_task_sigmax
+  use task_vxc, only: execute_task_vxc
 
   implicit none
   
@@ -32,6 +33,7 @@ module task_group
     logical :: task_invertEpsilon
     logical :: task_sigmac
     logical :: task_sigmax
+    logical :: task_vxc
   contains
     procedure :: parse_input
   end type
@@ -49,7 +51,13 @@ contains
     n_kpoints = kset%nkpt
 
     call calculate_singularities_coeff( input_parameters%Coulomb_cutoff_type, &
-      input_parameters%selfenergy_singularity_treatment, kqset%nkpt, singc2 )
+      input_parameters%selfenergy_singularity_treatment, n_qpoints, singc2 )
+
+    if( input_parameters%task_vxc ) &
+      call execute_task_vxc( ibgw, nbgw, kset%vkl(:, 1:kset%nkpt), input_parameters%output_format, mpiglobal )
+
+    ! clean not used anymore global exciting variables
+    call clean_gndstate
 
     if( input_parameters%task_Coulomb ) &
       call execute_task_Coulomb( n_qpoints, input_parameters%output_format )
@@ -74,9 +82,6 @@ contains
     ! prepare GW global data
     call init_gw
       
-    ! clean not used anymore global exciting variables
-    call clean_gndstate
-  
     call kintw()
     singc1 = 0.0_dp
     singc2 = 0.0_dp
@@ -102,6 +107,7 @@ contains
     this%task_invertEpsilon = associated( gw_inp%taskGroup%invertEpsilon )
     this%task_sigmac = associated( gw_inp%taskGroup%sigmac )
     this%task_sigmax = associated( gw_inp%taskGroup%sigmax )
+    this%task_vxc = associated( gw_inp%taskGroup%vxc )
 
   end subroutine
 

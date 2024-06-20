@@ -45,9 +45,7 @@ module mod_vxc
 
   public :: calcvxcnn, read_vxcnn, write_vxcnn, deallocate_vxcnn
 
-
-  contains
-
+contains
   !> Initialize the components of an object with type `vxc_diagonal_elements`
   subroutine init_components( this, first_band, last_band, kpt_indexes, kpt_lattice_coord, vxcnn_elements )
     class(vxc_diagonal_elements), intent(out) :: this
@@ -161,7 +159,6 @@ module mod_vxc
     close( fid )
 
   end subroutine
-
 
 
   !> Read VXC stored in a file

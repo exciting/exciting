@@ -51,7 +51,7 @@ subroutine sanity_checks( this, gw_inp )
   type(gw_type):: gw_inp
 
   call terminate_if_false( associated(gw_inp%taskGroup%sigmax), &
-    'Element sigmac must be present when executing '//'"'//task_name//'"' )
+    'Element sigmax must be present when executing '//'"'//task_name//'"' )
 
 end subroutine
 

@@ -69,15 +69,6 @@ subroutine gw_main()
         case('emac')
             call task_emac()
 
-        ! Calculate diagonal matrix elements of the exchange-correlation potential
-        case('vxc')
-            call init_gw()
-            call calcvxcnn( ibgw_including_degeneracy, nbgw_including_degeneracy, [(ik, ik=1,kset%nkpt)], kset%vkl, mpiglobal )
-            if (rank==0) then
-              call write_vxcnn( 'binary', ibgw, nbgw )
-              call write_vxcnn( 'text', ibgw, nbgw )
-            end if
-
         ! Calculate matrix elements of the momentum operator
         case('pmat')
             call init_gw()

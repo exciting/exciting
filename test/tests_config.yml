@@ -343,6 +343,14 @@ GW/MoS2-LDA-sigmax:
       - "BARC_Q1.OUT"
       - "BARC_Q2.OUT"
 
+GW/MoS2-LDA-vxc:
+   files_under_test:
+      - "VXCNN.DAT"
+   inputs:
+      - "input.xml"
+      - "Mo.xml"
+      - "S.xml"
+
 GW/Si-PBE-Coulomb:
    files_under_test:
       - "SGI_Q1.OUT"
