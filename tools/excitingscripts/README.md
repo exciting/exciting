@@ -1,37 +1,21 @@
 # excitingscripts
 
-**excitingscripts** is a collection of various python scripts for executing various tasks with the exciting code from
+**excitingscripts** is a collection of various python scripts for executing various tasks with the [`exciting`](https://exciting-code.org) code from
 the command line.
 
 ## Installation
 
-**excitingscripts** can installed from this project's root directory 
-(`$EXCITINGROOT/tools/excitingscripts`).
-
-It is highly recommended to use a virtual environment to manage Python packages.
-To set up a venv, execute the following commands:
-
-```bash
-python3 -m venv excitingvenv
-source excitingvenv/bin/activate
-```
-
-Before installing **excitingscripts**, you should upgrade `pip` and `setuptools`:
-```bash
-python3 -m pip install --upgrade --force pip
-pip install --upgrade setuptools
-```
-
-Now you can proceed to install **excitingscripts** from `$EXCITINGROOT/tools/excitingscripts`:
-
-```bash
-pip3 install -e ../excitingscripts
-```
-
-Alternatively, you can install it directly from PyPI:
+Alternatively, you can be installed directly from PyPI:
 
 ```bash
 pip install excitingscripts
+```
+
+Alternatively, it can be installed from the `exciting` source:
+
+```bash
+cd $EXCITINGROOT/tools/excitingscripts
+pip install -e .
 ```
 
 ## Script Listing
