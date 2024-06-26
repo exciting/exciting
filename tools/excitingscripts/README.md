@@ -5,7 +5,7 @@ the command line.
 
 ## Installation
 
-Alternatively, you can be installed directly from PyPI:
+**excitingscripts** can be installed directly from PyPI:
 
 ```bash
 pip install excitingscripts
