@@ -19,7 +19,7 @@ dependencies = [
 dev = [
     "pytest",
     "ase>=3.20.0",
-    "ruff",
+    "ruff==0.5.0",
 ]
 schemaparsing = ["xmlschema"]
 h5_parsing = ["h5py"]
