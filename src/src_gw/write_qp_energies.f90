@@ -68,7 +68,7 @@ subroutine write_qp_energies(fname)
   close(fid)
 
   1 format('k-point #',i6,':',4f12.6)
-  2 format(' state   E_KS       E_HF       E_GW       Sx         Re(Sc)     Im(Sc)     Vxc        DE_HF      DE_GW      Znk')
+  2 format(' state      E_KS[Ha]         E_HF[Ha]         E_GW[Ha]         Sx[Ha]           Re(Sc)[Ha]       Im(Sc)[Ha]       Vxc[Ha]          DE_HF[Ha]        DE_GW[Ha]        Znk')
   3 format(i4,'  ',f16.8,' ',f16.8,' ',f16.8,' ',f16.8,' ',f16.8,' ',f16.8,' ',f16.8,' ',f16.8,' ',f16.8,' ',f16.8)
 
   return
