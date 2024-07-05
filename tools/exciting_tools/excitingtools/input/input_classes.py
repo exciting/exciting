@@ -134,3 +134,25 @@ class ExcitingKstlistInput(AbstractExcitingInput):
             ElementTree.SubElement(kstlist, "pointstatepair").text = list_to_str(pointstatepair)
 
         return kstlist
+
+
+class ExcitingEtCoeffComponentsInput(AbstractExcitingInput):
+    """
+    Class for exciting EtCoeffComponents Input
+    """
+
+    name = "etCoeffComponents"
+
+    def __init__(self, etcoeffcomponents: Union[np.ndarray, List[int]]):
+        """
+        EtCoeffComponents should be passed either as numpy array or as a list, so either
+        np.array([1, 1]) or [1, 1].
+        """
+        self.etcoeffcomponents = etcoeffcomponents
+
+    def to_xml(self) -> ElementTree.Element:
+        """Special implementation of to_xml for the etCoeffComponents element."""
+        etcoeffcomponents = ElementTree.Element(self.name)
+        etcoeffcomponents.text = list_to_str(self.etcoeffcomponents)
+
+        return etcoeffcomponents

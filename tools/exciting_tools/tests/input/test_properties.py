@@ -190,3 +190,15 @@ def test_class_ExcitingKstlistInput():
     assert pointstatepair[0].items() == []
     assert pointstatepair[0].text == "1 4"
     assert pointstatepair[1].text == "2 5"
+
+
+def test_class_ExcitingEtCoeffComponentsInput():
+    properties = {"boltzequ": {"etCoeffComponents": [[1, 1], [2, 2]]}}
+    properties_input = ExcitingPropertiesInput(**properties)
+    properties_tree = properties_input.to_xml()
+    boltzequ = properties_tree.find("boltzequ")
+    etcoeffcomponents = boltzequ.findall("etCoeffComponents")
+
+    assert len(etcoeffcomponents) == 2
+    assert etcoeffcomponents[0].text == "1 1"
+    assert etcoeffcomponents[1].text == "2 2"

@@ -60,7 +60,7 @@ class AbstractExcitingInput(ABC):
 
 
 class ExcitingXMLInput(AbstractExcitingInput, ABC):
-    """Base class for exciting inputs, with exceptions being title, plan, qpointset and kstlist,
+    """Base class for exciting inputs, with exceptions being title, plan, qpointset, kstlist and etCoeffComponents,
     because they are not passed as a dictionary."""
 
     # Convert python data to string, formatted specifically for exciting
