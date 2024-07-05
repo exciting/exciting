@@ -142,4 +142,5 @@ special_tags_to_parse_map = {
     "qpointset": lambda root: [[float(x) for x in qpoint.text.split()] for qpoint in root],
     "plan": lambda root: [doonly.attrib["task"] for doonly in root],
     "kstlist": lambda root: [[int(x) for x in pointstatepair.text.split()] for pointstatepair in root],
+    "etCoeffComponents": lambda root: [int(x) for x in root.text.split()],
 }
