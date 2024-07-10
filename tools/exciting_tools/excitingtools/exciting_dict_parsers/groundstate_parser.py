@@ -5,6 +5,7 @@ All functions in this module could benefit from refactoring.
 
 import re
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 import numpy as np
 
@@ -21,12 +22,13 @@ def parse_info_out(name: str) -> dict:  # noqa: PLR0912, PLR0915
     Out:
         info     dict       contains the content of the file to parse
     """
-    file = open(name)
-    lines = file.readlines()
-    file.close()
+    lines = Path(name).read_text().split("\n")
 
     nscl = []
     nini = []
+    nstr = []  # For Structure-optimization module
+    nopt = []  # For Optimization step
+    is_already_converged = None
 
     # Get line numbers for SCF iteration blocks
     for i, line in enumerate(lines):
@@ -44,6 +46,21 @@ def parse_info_out(name: str) -> dict:  # noqa: PLR0912, PLR0915
             nini.append(i + 2)
         if "Ending initialization" in line:
             nini.append(i - 2)
+
+        # stores the number of the first and last line of Structure-optimization module into a list
+        if "Structure-optimization module started" in line:
+            nstr.append(i + 2)
+            is_already_converged = False
+        if "Force convergence target achieved" in line:
+            nstr.append(i - 2)
+            is_already_converged = False
+        if "Maximum force target reached already at the initial configuration" in line:
+            nstr.append(i - 2)
+            is_already_converged = True
+
+        # stores the number of the first line of every optimization step into a list
+        if "Optimization step" in line:
+            nopt.append(i)
 
     calculation_failed = True
     for line in reversed(lines):
@@ -135,6 +152,114 @@ def parse_info_out(name: str) -> dict:  # noqa: PLR0912, PLR0915
                 k = k + 1
         INFO["scl"][str(j + 1)] = scls
 
+    if is_already_converged is not None:
+        INFO["str_opt"] = {}
+        # Define the necessary data
+        checks = [
+            "Maximum force",
+            "Center of mass",
+            "Total torque",
+            "Number of total scf iterations",
+            "Total atomic forces",
+            "Total energy",
+            "Atomic positions",
+        ]
+
+        # store the number of atoms
+        num_of_atoms = int(INFO["initialization"]["Total number of atoms per unit cell"])
+        items = {}
+        optimization_step = 0
+
+        if not is_already_converged:
+            # loop over the structure-optimization module
+            i = nstr[0]
+            while i < nstr[-1]:
+                line = lines[i]
+                # note the beginning of each optimization step
+                if i in nopt:
+                    optimization_step = nopt.index(i)
+                    items = {}
+                    if optimization_step == 0:
+                        items["Number of total scf iterations"] = len(INFO["scl"])
+                # stores the lines, which have the format "variable : value" into a list
+                elif ":" in line:
+                    item, values = re.split(":", line, maxsplit=2)
+
+                    # to check if the variable is necessary
+                    item_is_imp = False
+                    for check in checks:
+                        if check.casefold() in item.casefold():
+                            item = check
+                            item_is_imp = True
+                            break
+
+                    if item_is_imp:
+                        items[item] = {}
+                    else:
+                        i = i + 1
+                        continue  # ignore the data
+
+                    # Check if the item has values for each atom like Atomic positions
+                    if values == "":  # The values start from next line
+                        for j in range(1, num_of_atoms + 1):
+                            i = i + 1  # skipping the lines for the next iteration
+                            atom, values = re.split(":", lines[i], maxsplit=2)
+                            values = values.split()[:3]
+                            if len(values) == 1:
+                                values = values[0]
+                            items[item][j] = values  # storing these in the format {j : values} for each atom
+                    else:
+                        values = re.findall(r"[-+]?\d*\.\d+|\d+", values)
+                        if len(values) == 1:
+                            values = values[0]
+                        items[item] = values
+                if optimization_step is not None:
+                    INFO["str_opt"][optimization_step] = items
+                i = i + 1
+        else:
+            #  Maximum force target reached already at the initial configuration
+
+            items["Number of total scf iterations"] = len(INFO["scl"])
+
+            i = nscl[-1]
+            while i < nstr[-1]:
+                line = lines[i]
+
+                # stores the lines, which have the format "variable : value" into a list
+                if ":" in line:
+                    item, values = re.split(":", line, maxsplit=2)
+
+                    # to check if the variable is necessary
+                    item_is_imp = False
+                    for check in checks:
+                        if check.casefold() in item.casefold():
+                            item = check
+                            item_is_imp = True
+                            break
+
+                    if item_is_imp:
+                        items[item] = {}
+                    else:
+                        i = i + 1
+                        continue  # ignore the data
+
+                    # Check if the item has values for each atom like Atomic positions
+                    if values == "":  # The values start from next line
+                        for j in range(1, num_of_atoms + 1):
+                            i = i + 1  # skipping the lines for the next iteration
+                            atom, values = re.split(":", lines[i], maxsplit=2)
+                            values = values.split()[:3]
+                            if len(values) == 1:
+                                values = values[0]
+                            items[item][j] = values  # storing these in the format {j : values} for each atom
+                    else:
+                        values = re.findall(r"[-+]?\d*\.\d+|\d+", values)
+                        if len(values) == 1:
+                            values = values[0]
+                        items[item] = values
+                if optimization_step is not None:
+                    INFO["str_opt"][optimization_step] = items
+                i = i + 1
     return INFO
 
 

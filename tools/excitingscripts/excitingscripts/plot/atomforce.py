@@ -7,6 +7,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import matplotlib.style
 import matplotlib.ticker as ptk
+
 from excitingscripts.utils.utils import sort_lists_by_first_list
 
 if matplotlib.__version__.split(".")[0] == "2":

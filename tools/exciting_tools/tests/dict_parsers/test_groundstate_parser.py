@@ -155,6 +155,121 @@ def test_parse_info_out(tmp_path):
     assert info_out["scl"]["1"] == info_ref["scl"]["1"], "SCF first iteration data consistent"
     assert info_out["scl"]["12"] == info_ref["scl"]["12"], "SCF last iteration data consistent"
 
+    # Testing for the Structure Optimization Module
+    # Only retained first and last SCF keys
+    # Only retained first and last STR_OPT keys
+    relax_info_ref = {
+        "initialization": {
+            "Lattice vectors (cartesian)": [10.0, 0.0, 0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 5.0],
+            "Reciprocal lattice vectors (cartesian)": [
+                0.6283185307,
+                0.0,
+                0.0,
+                0.0,
+                0.6283185307,
+                0.0,
+                0.0,
+                0.0,
+                1.2566370614,
+            ],
+            "Unit cell volume": 500.0,
+            "Brillouin zone volume": 0.4961004269,
+            "Species 1": {
+                "Species symbol": "O",
+                "Species": "1 (O)",
+                "parameters loaded from": "O.xml",
+                "name": "oxygen",
+                "Atomic positions": {"Atom 1": "0.00000000  0.00000000  0.00000000"},
+            },
+            "Species 2": {
+                "Species symbol": "H",
+                "Species": "2 (H)",
+                "parameters loaded from": "H.xml",
+                "name": "hydrogen",
+                "Atomic positions": {
+                    "Atom 1": "2.50000000  0.50000000  0.00000000",
+                    "Atom 2": "0.50000000  2.50000000  0.00000000",
+                },
+            },
+            "Total number of atoms per unit cell": 3,
+            "Spin treatment": "spin-unpolarised",
+            "Number of Bravais lattice symmetries": 16,
+            "Number of crystal symmetries": 4,
+            "k-point grid": "1    1    1",
+            "Total number of k-points": 1,
+            "R^MT_min * |G+k|_max (rgkmax)": 3.0,
+            "G-vector grid sizes": "54    54    27",
+            "Total number of G-vectors": 34597,
+            "Total nuclear charge": -10.0,
+            "Total electronic charge": 10.0,
+            "Number of empty states": 5,
+            "Total number of valence states": 10,
+            "Exchange-correlation type": 3,
+            "Smearing scheme": "Gaussian",
+            "Smearing width": 0.001,
+            "units": {"positions": "cartesian"},
+        },
+        "scl": {
+            "1": {
+                "Total energy": -78.57899369,
+                "Fermi energy": -0.17199772,
+                "DOS at Fermi energy (states/Ha/cell)": 0.0,
+                "Electron charge": ["Core", "leakage"],
+                "Estimated fundamental gap": 0.10500197,
+                "Wall time (seconds)": 2.06,
+            },
+            # ...
+            "14": {
+                "Total energy": -75.68495694,
+                "Fermi energy": -0.09763242,
+                "DOS at Fermi energy (states/Ha/cell)": 0.53544446,
+                "Electron charge": ["Core", "leakage"],
+            },
+        },
+        "str_opt": {
+            0: {
+                "Number of total scf iterations": 14,
+                "Maximum force": [0.08541136, 0.0002],
+                "Total energy": -75.68495694,
+                "Atomic positions": {1: [0.0, 0.0, 0.0], 2: [2.5, 0.5, 0.0], 3: [0.5, 2.5, 0.0]},
+                "Total atomic forces": {
+                    1: [0.11374934, 0.11374934, -0.0],
+                    2: [-0.07719269, -0.03655665, -0.0],
+                    3: [-0.03655665, -0.07719269, 0.0],
+                },
+                "Center of mass": [0.16784752, 0.16784752, 0.0],
+                "Total torque": [0.0, 0.0, -0.0],
+            },
+            # ...
+            8: {
+                "Number of total scf iterations": 13,
+                "Maximum force": [5.82e-06, 0.0002],
+                "Total energy": -75.78640119,
+                "Atomic positions": {
+                    1: [0.0, 0.0, 0.0],
+                    2: [1.85302198, 9.80178632, 0.0],
+                    3: [9.80178632, 1.85302198, 0.0],
+                },
+                "Total atomic forces": {
+                    1: [7.04e-06, 7.04e-06, -0.0],
+                    2: [-5.65e-06, -1.4e-06, 0.0],
+                    3: [-1.4e-06, -5.65e-06, -0.0],
+                },
+                "Center of mass": [0.09258515, 0.09258515, 0.0],
+                "Total torque": [-0.0, -0.0, -0.0],
+            },
+        },
+    }
+
+    file.write_text(LDA_PW_H2O_RELAX_INFO_OUT)
+    assert file.exists(), "INFO.OUT not written to tmp_path"
+
+    relax_info_out = parse_info_out(file.as_posix())
+
+    assert len(relax_info_out["str_opt"]) == 9, "expected 9 relaxation steps"
+    assert relax_info_out["str_opt"][0] == relax_info_ref["str_opt"][0], "Relaxation first step data consistent"
+    assert relax_info_out["str_opt"][8] == relax_info_ref["str_opt"][8], "Relaxation last step data consistent"
+
 
 LDA_VWN_Ar_INFO_OUT = """================================================================================
 | EXCITING NITROGEN-14 started                                                 =
@@ -786,6 +901,617 @@ LDA_VWN_Ar_INFO_OUT = """=======================================================
  Total time spent (seconds)                 :         4.18
 ================================================================================
 | EXCITING NITROGEN-14 stopped                                                 =
+================================================================================
+"""
+
+LDA_PW_H2O_RELAX_INFO_OUT = """================================================================================
+| EXCITING NEON started                                                        =
+| version hash id: 65d681e4e9a82d65818e11a67bb277686daac300                    =
+|                                                                              =
+| compiler: GNU Fortran (Debian 8.3.0-6) 8.3.0                                 =
+|                                                                              =
+|                                                                              =
+| Date (DD-MM-YYYY) : 24-05-2024                                               =
+| Time (hh:mm:ss)   : 11:43:08                                                 =
+|                                                                              =
+| All units are atomic (Hartree, Bohr, etc.)                                   =
+================================================================================
+
+********************************************************************************
+* Structural optimisation starting from atomic densities                       *
+********************************************************************************
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Starting initialization                                                      +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+ Lattice vectors (cartesian) :
+     10.0000000000      0.0000000000      0.0000000000
+      0.0000000000     10.0000000000      0.0000000000
+      0.0000000000      0.0000000000      5.0000000000
+
+ Reciprocal lattice vectors (cartesian) :
+      0.6283185307      0.0000000000      0.0000000000
+      0.0000000000      0.6283185307      0.0000000000
+      0.0000000000      0.0000000000      1.2566370614
+
+ Unit cell volume                           :     500.0000000000
+ Brillouin zone volume                      :       0.4961004269
+
+ Species :    1 (O)
+     parameters loaded from                 :    O.xml
+     name                                   :    oxygen
+
+     atomic positions (cartesian) :
+       1 :   0.00000000  0.00000000  0.00000000
+
+ Species :    2 (H)
+     parameters loaded from                 :    H.xml
+     name                                   :    hydrogen
+
+     atomic positions (cartesian) :
+       1 :   2.50000000  0.50000000  0.00000000
+       2 :   0.50000000  2.50000000  0.00000000
+
+ Total number of atoms per unit cell        :       3
+
+ Spin treatment                             :    spin-unpolarised
+
+ Number of Bravais lattice symmetries       :      16
+ Number of crystal symmetries               :       4
+
+ k-point grid                               :       1    1    1
+ Total number of k-points                   :       1
+ k-point set is reduced with crystal symmetries
+
+ R^MT_min * |G+k|_max (rgkmax)              :       3.00000000
+
+ G-vector grid sizes                        :      54    54    27
+ Total number of G-vectors                  :   34597
+
+ Total nuclear charge                       :     -10.00000000
+ Total electronic charge                    :      10.00000000
+
+ Number of empty states                     :       5
+ Total number of valence states             :      10
+
+ Exchange-correlation type                  :       3
+     Perdew-Wang, Phys. Rev. B 45, 13244 (1992)
+
+ Smearing scheme                            :    Gaussian
+ Smearing width                             :       0.00100000
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Ending initialization                                                        +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+********************************************************************************
+* Groundstate module started                                                   *
+********************************************************************************
+ Output level for this task is set to low
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Self-consistent loop started                                                 +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Density and potential initialised from atomic data
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :    1                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :       -78.57899369
+ _______________________________________________________________
+ Fermi energy                               :        -0.17199772
+ DOS at Fermi energy (states/Ha/cell)       :         0.00000000
+ Electron charge: Core leakage              :         0.00015571
+
+ Estimated fundamental gap                  :         0.10500197
+        valence-band maximum at    1      0.0000  0.0000  0.0000
+     conduction-band minimum at    1      0.0000  0.0000  0.0000
+
+ Wall time (seconds)                        :         2.06
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :    2                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :       -75.91027382
+ _______________________________________________________________
+ Fermi energy                               :        -0.12370214
+ DOS at Fermi energy (states/Ha/cell)       :         0.00000000
+ Electron charge: Core leakage              :         0.00015663
+
+ Estimated fundamental gap                  :         0.04196020
+        valence-band maximum at    1      0.0000  0.0000  0.0000
+     conduction-band minimum at    1      0.0000  0.0000  0.0000
+
+ Wall time (seconds)                        :         3.36
+
+ RMS change in effective potential (target) :  0.229615E-01  ( 0.100000E-05)
+ Absolute change in total energy   (target) :   2.66872      ( 0.100000E-05)
+ Charge distance                   (target) :  0.790693E-01  ( 0.100000E-04)
+ Abs. change in max-nonIBS-force   (target) :  0.418141E-01  ( 0.500000E-04)
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :    3                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :       -75.77423177
+ _______________________________________________________________
+ Fermi energy                               :        -0.11525374
+ DOS at Fermi energy (states/Ha/cell)       :         0.00000000
+ Electron charge: Core leakage              :         0.00015608
+
+ Estimated fundamental gap                  :         0.03015303
+        valence-band maximum at    1      0.0000  0.0000  0.0000
+     conduction-band minimum at    1      0.0000  0.0000  0.0000
+
+ Wall time (seconds)                        :         4.69
+
+ RMS change in effective potential (target) :  0.165558E-01  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.136042      ( 0.100000E-05)
+ Charge distance                   (target) :  0.468368E-02  ( 0.100000E-04)
+ Abs. change in max-nonIBS-force   (target) :  0.274449E-01  ( 0.500000E-04)
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :    4                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :       -75.71447271
+ _______________________________________________________________
+ Fermi energy                               :        -0.09763860
+ DOS at Fermi energy (states/Ha/cell)       :         0.00576810
+ Electron charge: Core leakage              :         0.00015463
+
+ Wall time (seconds)                        :         7.26
+
+ RMS change in effective potential (target) :  0.263203E-02  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.597591E-01  ( 0.100000E-05)
+ Charge distance                   (target) :  0.815183E-02  ( 0.100000E-04)
+ Abs. change in max-nonIBS-force   (target) :  0.130811E-01  ( 0.500000E-04)
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :    5                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :       -75.64649264
+ _______________________________________________________________
+ Fermi energy                               :        -0.09727389
+ DOS at Fermi energy (states/Ha/cell)       :         2.93046521
+ Electron charge: Core leakage              :         0.00015446
+
+ Wall time (seconds)                        :         8.65
+
+ RMS change in effective potential (target) :  0.161339E-02  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.679801E-01  ( 0.100000E-05)
+ Charge distance                   (target) :  0.455893E-02  ( 0.100000E-04)
+ Abs. change in max-nonIBS-force   (target) :  0.604927E-02  ( 0.500000E-04)
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :    6                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :       -75.68863676
+ _______________________________________________________________
+ Fermi energy                               :        -0.09762584
+ DOS at Fermi energy (states/Ha/cell)       :         0.45697789
+ Electron charge: Core leakage              :         0.00015447
+
+ Wall time (seconds)                        :         9.77
+
+ RMS change in effective potential (target) :  0.223804E-03  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.421441E-01  ( 0.100000E-05)
+ Charge distance                   (target) :  0.179484E-02  ( 0.100000E-04)
+ Abs. change in max-nonIBS-force   (target) :  0.439246E-02  ( 0.500000E-04)
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :    7                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :       -75.68797134
+ _______________________________________________________________
+ Fermi energy                               :        -0.09767956
+ DOS at Fermi energy (states/Ha/cell)       :         0.46423109
+ Electron charge: Core leakage              :         0.00015448
+
+ Wall time (seconds)                        :        10.93
+
+ RMS change in effective potential (target) :  0.106267E-03  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.665420E-03  ( 0.100000E-05)
+ Charge distance                   (target) :  0.159597E-03  ( 0.100000E-04)
+ Abs. change in max-nonIBS-force   (target) :  0.125163E-02  ( 0.500000E-04)
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :    8                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :       -75.68495355
+ _______________________________________________________________
+ Fermi energy                               :        -0.09763125
+ DOS at Fermi energy (states/Ha/cell)       :         0.53598377
+ Electron charge: Core leakage              :         0.00015448
+
+ Wall time (seconds)                        :        12.06
+
+ RMS change in effective potential (target) :  0.430409E-05  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.301779E-02  ( 0.100000E-05)
+ Charge distance                   (target) :  0.946456E-04  ( 0.100000E-04)
+ Abs. change in max-nonIBS-force   (target) :  0.773983E-04  ( 0.500000E-04)
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :    9                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :       -75.68494097
+ _______________________________________________________________
+ Fermi energy                               :        -0.09763220
+ DOS at Fermi energy (states/Ha/cell)       :         0.53614420
+ Electron charge: Core leakage              :         0.00015448
+
+ Wall time (seconds)                        :        13.17
+
+ RMS change in effective potential (target) :  0.733676E-06  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.125827E-04  ( 0.100000E-05)
+ Charge distance                   (target) :  0.416156E-05  ( 0.100000E-04)
+ Abs. change in max-nonIBS-force   (target) :  0.380398E-04  ( 0.500000E-04)
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :   10                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :       -75.68495103
+ _______________________________________________________________
+ Fermi energy                               :        -0.09763235
+ DOS at Fermi energy (states/Ha/cell)       :         0.53551437
+ Electron charge: Core leakage              :         0.00015448
+
+ Wall time (seconds)                        :        14.48
+
+ RMS change in effective potential (target) :  0.226552E-06  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.100633E-04  ( 0.100000E-05)
+ Charge distance                   (target) :  0.555919E-06  ( 0.100000E-04)
+ Abs. change in max-nonIBS-force   (target) :  0.319221E-05  ( 0.500000E-04)
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :   11                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :       -75.68495669
+ _______________________________________________________________
+ Fermi energy                               :        -0.09763241
+ DOS at Fermi energy (states/Ha/cell)       :         0.53545372
+ Electron charge: Core leakage              :         0.00015448
+
+ Wall time (seconds)                        :        15.74
+
+ RMS change in effective potential (target) :  0.111702E-07  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.565855E-05  ( 0.100000E-05)
+ Charge distance                   (target) :  0.221398E-06  ( 0.100000E-04)
+ Abs. change in max-nonIBS-force   (target) :  0.375697E-06  ( 0.500000E-04)
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :   12                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :       -75.68495693
+ _______________________________________________________________
+ Fermi energy                               :        -0.09763242
+ DOS at Fermi energy (states/Ha/cell)       :         0.53544477
+ Electron charge: Core leakage              :         0.00015448
+
+ Wall time (seconds)                        :        17.00
+
+ RMS change in effective potential (target) :  0.383891E-09  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.243353E-06  ( 0.100000E-05)
+ Charge distance                   (target) :  0.917031E-08  ( 0.100000E-04)
+ Abs. change in max-nonIBS-force   (target) :  0.107936E-07  ( 0.500000E-04)
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :   13                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :       -75.68495694
+ _______________________________________________________________
+ Fermi energy                               :        -0.09763242
+ DOS at Fermi energy (states/Ha/cell)       :         0.53544434
+ Electron charge: Core leakage              :         0.00015448
+
+ Wall time (seconds)                        :        18.20
+
+ RMS change in effective potential (target) :  0.119770E-09  ( 0.100000E-05)
+ Absolute change in total energy   (target) :  0.483250E-08  ( 0.100000E-05)
+ Charge distance                   (target) :  0.560836E-09  ( 0.100000E-04)
+ Abs. change in max-nonIBS-force   (target) :  0.128180E-08  ( 0.500000E-04)
+                                                                                
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+| Convergency criteria checked for the last 2 iterations                       +
+| Convergence targets achieved. Performing final SCF iteration                 +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :       -75.68495694
+ _______________________________________________________________
+ Fermi energy                               :        -0.09763242
+ DOS at Fermi energy (states/Ha/cell)       :         0.53544446
+ Electron charge: Core leakage              :         0.00015448
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Self-consistent loop stopped                                                 +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ STATE.OUT is written
+
+--------------------------------------------------------------------------------
+- Writing atomic positions and forces                                          -
+--------------------------------------------------------------------------------
+
+ Atomic positions (cartesian) :
+ atom     1   O  :     0.00000000    0.00000000    0.00000000
+ atom     2   H  :     2.50000000    0.50000000    0.00000000
+ atom     3   H  :     0.50000000    2.50000000    0.00000000
+
+ Total atomic forces including IBS (cartesian) + constraints (cartesian) :
+ atom     1   O  :     0.11374934    0.11374934   -0.00000000   T  T  T  
+ atom     2   H  :    -0.07719269   -0.03655665   -0.00000000   F  F  T  
+ atom     3   H  :    -0.03655665   -0.07719269    0.00000000   F  F  T  
+
+ Atomic force components including IBS (cartesian) :
+ atom     1   O  :    -0.07662130   -0.07662130   -0.00000000   HF force
+                 :     0.15092973    0.15092973    0.00000000   core correction
+                 :     0.03944092    0.03944092    0.00000000   IBS correction
+ atom     2   H  :     0.01925792    0.05736338    0.00000000   HF force
+                 :    -0.07546486   -0.07546486    0.00000000   core correction
+                 :    -0.02098575   -0.01845517    0.00000000   IBS correction
+ atom     3   H  :     0.05736338    0.01925792   -0.00000000   HF force
+                 :    -0.07546486   -0.07546486    0.00000000   core correction
+                 :    -0.01845517   -0.02098575    0.00000000   IBS correction
+
+********************************************************************************
+* Groundstate module stopped                                                   *
+********************************************************************************
+
+********************************************************************************
+* Structure-optimization module started                                        *
+********************************************************************************
+ Output level for this task is set to normal
+
+ Maximum displacement tau_BFGS   is         :         0.5000
+ Maximum displacement tau_newton is         :         0.2000
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Use L-BFGS-B method for optimizing atomic positions                          +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+--------------------------------------------------------------------------------
+- Optimization step 0: Initialize optimization                                 -
+--------------------------------------------------------------------------------
+ Maximum force magnitude           (target) :         0.08541136  (  0.00020000)
+ Total energy at this optimization step     :       -75.68495694
+
+ Atomic positions at this step (cartesian) :
+ atom     1   O  :     0.00000000    0.00000000    0.00000000
+ atom     2   H  :     2.50000000    0.50000000    0.00000000
+ atom     3   H  :     0.50000000    2.50000000    0.00000000
+
+ Total atomic forces including IBS (cartesian) + constraints (cartesian) :
+ atom     1   O  :     0.11374934    0.11374934   -0.00000000   T  T  T  
+ atom     2   H  :    -0.07719269   -0.03655665   -0.00000000   F  F  T  
+ atom     3   H  :    -0.03655665   -0.07719269    0.00000000   F  F  T  
+
+ Center of mass  :     0.16784752    0.16784752    0.00000000  (cartesian)
+ Total torque    :     0.00000000    0.00000000   -0.00000000  (cartesian)
+
+--------------------------------------------------------------------------------
+- Optimization step    1    (method = bfgs)                                    -
+--------------------------------------------------------------------------------
+ Number of investigated configurations      :         1
+ Number of total scf iterations             :        19
+ Maximum force magnitude           (target) :         0.08260579  (  0.00020000)
+ Total energy at this optimization step     :       -75.69927763
+
+ Atomic positions at this step (cartesian) :
+ atom     1   O  :     0.00000000    0.00000000    0.00000000
+ atom     2   H  :     2.42280731    0.46344335    0.00000000
+ atom     3   H  :     0.46344335    2.42280731    0.00000000
+
+ Total atomic forces including IBS (cartesian) + constraints (cartesian) :
+ atom     1   O  :     0.11121513    0.11121513    0.00000000   T  T  T  
+ atom     2   H  :    -0.07348652   -0.03772862    0.00000000   F  F  T  
+ atom     3   H  :    -0.03772862   -0.07348652    0.00000000   F  F  T  
+
+ Center of mass  :     0.16148333    0.16148333    0.00000000  (cartesian)
+ Total torque    :     0.00000000    0.00000000    0.00000000  (cartesian)
+
+ Time spent in this optimization step       :        21.12 seconds
+
+--------------------------------------------------------------------------------
+- Optimization step    2    (method = bfgs)                                    -
+--------------------------------------------------------------------------------
+ Number of investigated configurations      :         1
+ Number of total scf iterations             :        16
+ Maximum force magnitude           (target) :         0.04173782  (  0.00020000)
+ Total energy at this optimization step     :       -75.77754003
+
+ Atomic positions at this step (cartesian) :
+ atom     1   O  :     0.00000000    0.00000000    0.00000000
+ atom     2   H  :     2.00000000    0.00000000    0.00000000
+ atom     3   H  :     0.00000000    2.00000000    0.00000000
+
+ Total atomic forces including IBS (cartesian) + constraints (cartesian) :
+ atom     1   O  :     0.05308190    0.05308190    0.00000000   T  T  T  
+ atom     2   H  :    -0.03944834   -0.01363357    0.00000000   F  F  T  
+ atom     3   H  :    -0.01363357   -0.03944834    0.00000000   F  F  T  
+
+ Center of mass  :     0.11189834    0.11189834    0.00000000  (cartesian)
+ Total torque    :     0.00000000    0.00000000    0.00000000  (cartesian)
+
+ Time spent in this optimization step       :        19.26 seconds
+
+--------------------------------------------------------------------------------
+- Optimization step    3    (method = bfgs)                                    -
+--------------------------------------------------------------------------------
+ Number of investigated configurations      :         1
+ Number of total scf iterations             :        18
+ Maximum force magnitude           (target) :         0.03226320  (  0.00020000)
+ Total energy at this optimization step     :       -75.78059284
+
+ Atomic positions at this step (cartesian) :
+ atom     1   O  :     0.00000000    0.00000000    0.00000000
+ atom     2   H  :     1.96055166    9.98636643    0.00000000
+ atom     3   H  :     9.98636643    1.96055166    0.00000000
+
+ Total atomic forces including IBS (cartesian) + constraints (cartesian) :
+ atom     1   O  :     0.04293570    0.04293570   -0.00000000   T  T  T  
+ atom     2   H  :    -0.02918721   -0.01374849   -0.00000000   F  F  T  
+ atom     3   H  :    -0.01374849   -0.02918721    0.00000000   F  F  T  
+
+ Center of mass  :     0.10892846    0.10892846    0.00000000  (cartesian)
+ Total torque    :     0.00000000    0.00000000    0.00000000  (cartesian)
+
+ Time spent in this optimization step       :        19.79 seconds
+
+--------------------------------------------------------------------------------
+- Optimization step    4    (method = bfgs)                                    -
+--------------------------------------------------------------------------------
+ Number of investigated configurations      :         1
+ Number of total scf iterations             :        15
+ Maximum force magnitude           (target) :         0.01961100  (  0.00020000)
+ Total energy at this optimization step     :       -75.78522038
+
+ Atomic positions at this step (cartesian) :
+ atom     1   O  :     0.00000000    0.00000000    0.00000000
+ atom     2   H  :     1.82888799    9.88029496    0.00000000
+ atom     3   H  :     9.88029496    1.82888799    0.00000000
+
+ Total atomic forces including IBS (cartesian) + constraints (cartesian) :
+ atom     1   O  :    -0.00717923   -0.00717923    0.00000000   T  T  T  
+ atom     2   H  :     0.01698403   -0.00980480    0.00000000   F  F  T  
+ atom     3   H  :    -0.00980480    0.01698403    0.00000000   F  F  T  
+
+ Center of mass  :     0.09562737    0.09562737    0.00000000  (cartesian)
+ Total torque    :     0.00000000    0.00000000    0.00000000  (cartesian)
+
+ Time spent in this optimization step       :        15.92 seconds
+
+--------------------------------------------------------------------------------
+- Optimization step    5    (method = bfgs)                                    -
+--------------------------------------------------------------------------------
+ Number of investigated configurations      :         1
+ Number of total scf iterations             :        14
+ Maximum force magnitude           (target) :         0.00610696  (  0.00020000)
+ Total energy at this optimization step     :       -75.78606196
+
+ Atomic positions at this step (cartesian) :
+ atom     1   O  :     0.00000000    0.00000000    0.00000000
+ atom     2   H  :     1.85663579    9.85874660    0.00000000
+ atom     3   H  :     9.85874660    1.85663579    0.00000000
+
+ Total atomic forces including IBS (cartesian) + constraints (cartesian) :
+ atom     1   O  :     0.00327447    0.00327447    0.00000000   T  T  T  
+ atom     2   H  :     0.00235863   -0.00563310    0.00000000   F  F  T  
+ atom     3   H  :    -0.00563310    0.00235863    0.00000000   F  F  T  
+
+ Center of mass  :     0.09597422    0.09597422    0.00000000  (cartesian)
+ Total torque    :     0.00000000    0.00000000    0.00000000  (cartesian)
+
+ Time spent in this optimization step       :        14.27 seconds
+
+--------------------------------------------------------------------------------
+- Optimization step    6    (method = bfgs)                                    -
+--------------------------------------------------------------------------------
+ Number of investigated configurations      :         1
+ Number of total scf iterations             :        14
+ Maximum force magnitude           (target) :         0.00185118  (  0.00020000)
+ Total energy at this optimization step     :       -75.78635670
+
+ Atomic positions at this step (cartesian) :
+ atom     1   O  :     0.00000000    0.00000000    0.00000000
+ atom     2   H  :     1.85845115    9.82032564    0.00000000
+ atom     3   H  :     9.82032564    1.85845115    0.00000000
+
+ Total atomic forces including IBS (cartesian) + constraints (cartesian) :
+ atom     1   O  :     0.00257432    0.00257432    0.00000000   T  T  T  
+ atom     2   H  :    -0.00104916   -0.00152517    0.00000000   F  F  T  
+ atom     3   H  :    -0.00152517   -0.00104916    0.00000000   F  F  T  
+
+ Center of mass  :     0.09392617    0.09392617    0.00000000  (cartesian)
+ Total torque    :     0.00000000    0.00000000    0.00000000  (cartesian)
+
+ Time spent in this optimization step       :        14.14 seconds
+
+--------------------------------------------------------------------------------
+- Optimization step    7    (method = bfgs)                                    -
+--------------------------------------------------------------------------------
+ Number of investigated configurations      :         1
+ Number of total scf iterations             :        14
+ Maximum force magnitude           (target) :         0.00037962  (  0.00020000)
+ Total energy at this optimization step     :       -75.78639967
+
+ Atomic positions at this step (cartesian) :
+ atom     1   O  :     0.00000000    0.00000000    0.00000000
+ atom     2   H  :     1.85405751    9.80287979    0.00000000
+ atom     3   H  :     9.80287979    1.85405751    0.00000000
+
+ Total atomic forces including IBS (cartesian) + constraints (cartesian) :
+ atom     1   O  :     0.00041566    0.00041566    0.00000000   T  T  T  
+ atom     2   H  :    -0.00037772   -0.00003794   -0.00000000   F  F  T  
+ atom     3   H  :    -0.00003794   -0.00037772    0.00000000   F  F  T  
+
+ Center of mass  :     0.09270427    0.09270427    0.00000000  (cartesian)
+ Total torque    :     0.00000000    0.00000000   -0.00000000  (cartesian)
+
+ Time spent in this optimization step       :        14.76 seconds
+
+--------------------------------------------------------------------------------
+- Optimization step    8    (method = bfgs)                                    -
+--------------------------------------------------------------------------------
+ Number of investigated configurations      :         1
+ Number of total scf iterations             :        13
+ Maximum force magnitude           (target) :         0.00000582  (  0.00020000)
+ Total energy at this optimization step     :       -75.78640119
+
+ Atomic positions at this step (cartesian) :
+ atom     1   O  :     0.00000000    0.00000000    0.00000000
+ atom     2   H  :     1.85302198    9.80178632    0.00000000
+ atom     3   H  :     9.80178632    1.85302198    0.00000000
+
+ Total atomic forces including IBS (cartesian) + constraints (cartesian) :
+ atom     1   O  :     0.00000704    0.00000704   -0.00000000   T  T  T  
+ atom     2   H  :    -0.00000565   -0.00000140    0.00000000   F  F  T  
+ atom     3   H  :    -0.00000140   -0.00000565   -0.00000000   F  F  T  
+
+ Center of mass  :     0.09258515    0.09258515    0.00000000  (cartesian)
+ Total torque    :    -0.00000000   -0.00000000   -0.00000000  (cartesian)
+
+ Time spent in this optimization step       :        14.98 seconds
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Force convergence target achieved                                            +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :       -75.78640119
+ _______________________________________________________________
+ Fermi energy                               :        -0.07435889
+
+ DOS at Fermi energy (states/Ha/cell)       :         0.00000000
+ Electron charge: Core leakage              :         0.00015647
+
+ Optimized atomic positions (cartesian) :
+ atom     1   O  :     0.00000000    0.00000000    0.00000000
+ atom     2   H  :     1.85302198    9.80178632    0.00000000
+ atom     3   H  :     9.80178632    1.85302198    0.00000000
+
+ Total atomic forces including IBS (cartesian) + constraints (cartesian) :
+ atom     1   O  :     0.00000704    0.00000704   -0.00000000   T  T  T  
+ atom     2   H  :    -0.00000565   -0.00000140    0.00000000   F  F  T  
+ atom     3   H  :    -0.00000140   -0.00000565   -0.00000000   F  F  T  
+
+ Atomic force components including IBS (cartesian) :
+ atom     1   O  :    -0.24241492   -0.24241492    0.00000000   HF force
+                 :     0.19280958    0.19280958    0.00000000   core correction
+                 :     0.04961239    0.04961239   -0.00000000   IBS correction
+ atom     2   H  :     0.12062339    0.12179153    0.00000000   HF force
+                 :    -0.09640479   -0.09640479    0.00000000   core correction
+                 :    -0.02422425   -0.02538814   -0.00000000   IBS correction
+ atom     3   H  :     0.12179153    0.12062339    0.00000000   HF force
+                 :    -0.09640479   -0.09640479    0.00000000   core correction
+                 :    -0.02538814   -0.02422425    0.00000000   IBS correction
+
+********************************************************************************
+* Structure-optimization module stopped                                        *
+********************************************************************************
+
+ Total time spent (seconds)                 :       151.22
+
+--------------------------------------------------------------------------------
+- CAUTION! Warnings have been written in file WARNING.OUT !                    -
+--------------------------------------------------------------------------------
+================================================================================
+| EXCITING NEON stopped                                                        =
 ================================================================================
 """
 
