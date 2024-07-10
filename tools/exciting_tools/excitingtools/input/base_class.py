@@ -5,7 +5,7 @@ import re
 import warnings
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Iterator, List, Type, Union
+from typing import Any, Dict, Iterator, Type, Union
 from xml.etree import ElementTree
 
 import numpy as np
@@ -94,8 +94,7 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
         check_valid_keys(kwargs.keys(), valid_attributes | set(valid_subtrees), self.name)
 
         # initialise the subtrees
-        class_list = self._class_list_excitingtools()
-        subtree_class_map = {cls.name: cls for cls in class_list}
+        subtree_class_map = self._class_dict_excitingtools()
         subtrees = set(kwargs.keys()) - valid_attributes
         single_subtrees = subtrees - multiple_children
         multiple_subtrees = subtrees - single_subtrees
@@ -109,14 +108,23 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
         # Set attributes from kwargs
         self.__dict__.update(kwargs)
 
-    def __setattr__(self, name: str, value):
+    def __setattr__(self, name: str, value: Any):
         """Overload the attribute setting in python with instance.attr = value to check for validity in the schema.
 
         :param name: name of the attribute
         :param value: new value, can be anything
         """
-        valid_attributes, valid_subtrees, _, _ = self.get_valid_attributes()
+        valid_attributes, valid_subtrees, _, multiple_children = self.get_valid_attributes()
         check_valid_keys({name}, valid_attributes | set(valid_subtrees), self.name)
+        subtree_class_map = self._class_dict_excitingtools()
+
+        # If value is a dictionary, we convert it to the expected input class
+        if isinstance(value, dict):
+            value = subtree_class_map[name](**value)
+        # Handle subtrees that can occur multiple times
+        if isinstance(value, list) and name in multiple_children:
+            value = [self._initialise_subelement_attribute(subtree_class_map[name], x) for x in value]
+
         super().__setattr__(name, value)
 
     def __delattr__(self, name: str):
@@ -138,12 +146,13 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
         yield set(getattr(all_valid_attributes, f"{self.name}_multiple_children", set()))
 
     @staticmethod
-    def _class_list_excitingtools() -> List[Type[AbstractExcitingInput]]:
-        """Find all exciting input classes in own module and excitingtools."""
+    def _class_dict_excitingtools() -> Dict[str, Type[AbstractExcitingInput]]:
+        """Find all exciting input classes in own module and excitingtools. Return dict with name and class."""
         excitingtools_namespace_content = importlib.import_module("excitingtools").__dict__
         input_class_namespace_content = importlib.import_module("excitingtools.input.input_classes").__dict__
         all_contents = {**excitingtools_namespace_content, **input_class_namespace_content}.values()
-        return [cls for cls in all_contents if isinstance(cls, type) and issubclass(cls, AbstractExcitingInput)]
+        class_list = [cls for cls in all_contents if isinstance(cls, type) and issubclass(cls, AbstractExcitingInput)]
+        return {cls.name: cls for cls in class_list}
 
     @staticmethod
     def _initialise_subelement_attribute(xml_class, element):
