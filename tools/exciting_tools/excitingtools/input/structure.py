@@ -152,7 +152,9 @@ class ExcitingStructure(ExcitingXMLInput):
             check_valid_keys(atom_properties.keys(), self._valid_atom_attributes, "Atom properties")
             yield atom_properties
 
-    def _init_species_properties(self, species_properties: Union[dict, None]) -> Iterator[Tuple[str, ExcitingXMLInput]]:
+    def _init_species_properties(
+        self, species_properties: Union[dict, None]
+    ) -> Iterator[Tuple[str, ExcitingSpeciesInput]]:
         """Initialise species_properties.
 
         For species without properties, return empty_properties: {'S': {}, 'Al': {}}.

@@ -13,7 +13,13 @@ be fine.
 import numpy as np
 import pytest
 
-from excitingtools.input.input_classes import ExcitingGroundStateInput, ExcitingKeywordsInput, ExcitingXSInput
+from excitingtools.input.input_classes import (  # pylint: disable=E0611
+    ExcitingBSEInput,
+    ExcitingGroundStateInput,
+    ExcitingKeywordsInput,
+    ExcitingLibxcInput,
+    ExcitingXSInput,
+)
 from excitingtools.input.input_xml import ExcitingInputXML
 from excitingtools.input.structure import ExcitingStructure
 
@@ -276,3 +282,38 @@ def test_from_xml():
     assert input_xml.groundstate.maxscl == 200
     assert input_xml.groundstate.do == "fromscratch"
     assert input_xml.groundstate.xctype == "GGA_PBE"
+
+
+def test_dict_assignment(exciting_input_xml):
+    # test simple dict assignment
+    groundstate = exciting_input_xml.groundstate
+    assert not hasattr(groundstate, "libxc")
+    groundstate.libxc = {"exchange": "XC_GGA_X_PBE", "correlation": "XC_GGA_C_PBE"}
+    assert hasattr(groundstate, "libxc")
+    assert isinstance(groundstate.libxc, ExcitingLibxcInput)
+
+    # test nested dict assignment
+    del exciting_input_xml.xs
+    assert not hasattr(exciting_input_xml, "xs")
+    exciting_input_xml.xs = {"xstype": "BSE", "BSE": {"bsetype": "singlet", "xas": True}}
+    assert hasattr(exciting_input_xml, "xs")
+    assert isinstance(exciting_input_xml.xs, ExcitingXSInput)
+    assert hasattr(exciting_input_xml.xs, "BSE")
+    assert isinstance(exciting_input_xml.xs.BSE, ExcitingBSEInput)
+    assert exciting_input_xml.xs.BSE.bsetype == "singlet"
+    assert exciting_input_xml.xs.BSE.xas
+
+    # test assignment to list of subtrees
+    li_properties = exciting_input_xml.structure.species_properties["Li"]
+    li_properties.dfthalfparam = {"cut": 0, "shell": [{"number": 1}, {"number": 2}]}
+    assert hasattr(li_properties, "dfthalfparam")
+    assert li_properties.dfthalfparam.name == "dfthalfparam"
+    assert li_properties.dfthalfparam.cut == 0
+    assert hasattr(li_properties.dfthalfparam, "shell")
+    shell = li_properties.dfthalfparam.shell
+    assert isinstance(shell, list)
+    assert len(shell) == 2
+    assert shell[0].name == "shell"
+    assert shell[0].number == 1
+    assert shell[1].name == "shell"
+    assert shell[1].number == 2
