@@ -358,6 +358,7 @@ Before doing so, please ensure the semantic versioning is appropriately updated 
 The following people (in alphabetic order by their family names) have contributed to excitingtools:
 
 * Alexander Buccheri
+* Noah Hoffmann
 * Hannah Kleine
 * Martin Kuban
 * Benedikt Maurer

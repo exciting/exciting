@@ -114,13 +114,13 @@ def parse_infoxs_out(name: str, parse_timing: bool = False) -> dict:
     if parse_timing:
         times = parse_times(lines)
         finished_tasks = [task for task in tasks if task["finished"]]
-        assert len(times["cpu"]) == len(finished_tasks), "Numbers of finished tasks and parsed times are not the same."
+        assert len(times["cpu_time"]) == len(
+            finished_tasks
+        ), "Numbers of finished tasks and parsed times are not the same."
 
         for index, task in enumerate(finished_tasks):
-            task["cpu_time"] = float(times["cpu"][index])
-            task["wall_time"] = float(times["wall"][index])
-            task["cpu_time_cum"] = float(times["cpu_cum"][index])
-            task["wall_time_cum"] = float(times["wall_cum"][index])
+            for key in times:
+                task[key] = float(times[key][index])
 
     return {"tasks": tasks, "success": success, "last_finished_task": last_finished_task}
 
@@ -137,9 +137,12 @@ def parse_times(infoxs_string: str) -> dict:
 
     assert len(cpu_times) == len(wall_times), "Numbers of parsed timings are not consistent."
     assert len(cpu_times) == len(cpu_times_cum), "Numbers of parsed timings are not consistent."
-    assert len(cpu_times) == len(wall_times_cum), "Numbers of parsed timings are not consistent."
+    parsed_times = {"cpu_time": cpu_times, "wall_time": wall_times, "cpu_time_cum": cpu_times_cum}
+    if not wall_times_cum:
+        return parsed_times
 
-    return {"cpu": cpu_times, "wall": wall_times, "cpu_cum": cpu_times_cum, "wall_cum": wall_times_cum}
+    assert len(cpu_times) == len(wall_times_cum), "Numbers of parsed timings are not consistent."
+    return {**parsed_times, "wall_time_cum": wall_times_cum}
 
 
 def parse_fastBSE_absorption_spectrum_out(name: str) -> dict:

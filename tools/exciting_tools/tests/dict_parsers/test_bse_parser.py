@@ -208,6 +208,29 @@ infoxs_file_str_fail = """======================================================
 ================================================================================
 """
 
+infoxs_file_str_no_cum_walltime = """================================================================================
+| EXCITING NITROGEN-14 started for task xsgeneigvec (301)                      =
+| version hash id: 1775bff4453c84689fb848894a9224f155377cfc                    =
+|                                                                              =
+| Date (DD-MM-YYYY) : 10-12-2020                                               =
+================================================================================
+     CPU time               : 14.57 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 15 s )
+     wall time              : 2.13 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU time  (cumulative) : 111.58 sec; 0.03 hrs; ( 0 d, 00 h, 01 m, 52 s )
+================================================================================
+= EXCITING NITROGEN-14 stopped for task    301                                 =
+================================================================================
+================================================================================
+| EXCITING NITROGEN-14 started for task writepmatxs (320)                      =
+| Date (DD-MM-YYYY) : 10-12-2020                                               =
+================================================================================
+     CPU time               : 14.57 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 15 s )
+     wall time              : 2.13 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+     CPU time  (cumulative) : 111.58 sec; 0.03 hrs; ( 0 d, 00 h, 01 m, 52 s )
+================================================================================
+= EXCITING NITROGEN-14 stopped for task    320                                 =
+================================================================================
+"""
 
 reference_parsed_infoxs_file_success = {
     "tasks": [
@@ -346,12 +369,36 @@ reference_parsed_infoxs_file_times_fail = {
     "last_finished_task": "scrgeneigvec",
 }
 
+reference_parsed_infoxs_file_no_cum_walltime = {
+    "tasks": [
+        {
+            "name": "xsgeneigvec",
+            "number": 301,
+            "finished": True,
+            "cpu_time": 14.57,
+            "wall_time": 2.13,
+            "cpu_time_cum": 111.58,
+        },
+        {
+            "name": "writepmatxs",
+            "number": 320,
+            "finished": True,
+            "cpu_time": 14.57,
+            "wall_time": 2.13,
+            "cpu_time_cum": 111.58,
+        },
+    ],
+    "success": True,
+    "last_finished_task": "writepmatxs",
+}
+
 
 @pytest.mark.parametrize(
     ["infoxs_file_str", "reference_parsed_dict"],
     [
         (infoxs_file_str_success, reference_parsed_infoxs_file_times_success),
         (infoxs_file_str_fail, reference_parsed_infoxs_file_times_fail),
+        (infoxs_file_str_no_cum_walltime, reference_parsed_infoxs_file_no_cum_walltime),
     ],
 )
 def test_parse_info_xs_out_timing(infoxs_file_str, reference_parsed_dict, tmp_path):

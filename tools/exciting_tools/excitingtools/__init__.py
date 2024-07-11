@@ -8,7 +8,7 @@ from excitingtools.dataclasses import BandData, EigenValues
 # Parsers returning to dicts
 # Questionable whether one should expose this - required for test framework recursive comparisons
 # Typically not the API one wants to expose to the user, as parsed dict keys are subject to change
-from excitingtools.exciting_dict_parsers.parser_factory import parse, parser_chooser
+from excitingtools.exciting_dict_parsers import parse, parser_chooser
 
 # Parsers returning to objects
 from excitingtools.exciting_obj_parsers import parse_band_structure
