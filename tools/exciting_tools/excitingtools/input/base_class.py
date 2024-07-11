@@ -30,6 +30,12 @@ class AbstractExcitingInput(ABC):
     @abstractmethod
     def __init__(self, **kwargs): ...
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__module__}.{self.__class__.__name__}({self.to_xml_str()})"
+
+    def __str__(self) -> str:
+        return self.to_xml_str()
+
     @abstractmethod
     def to_xml(self) -> ElementTree:
         """Convert class attributes to XML ElementTree."""
