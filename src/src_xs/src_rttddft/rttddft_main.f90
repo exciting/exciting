@@ -19,7 +19,8 @@ module rttddft_main
   use MD_io, only: MD_out
   use mod_atoms, only: natmtot, natoms, nspecies, atposc, idxas
   use mod_charge_and_moment, only: chgval
-  use mod_eigenvalue_occupancy, only: occsv
+  use mod_eigenvalue_occupancy, only: occsv, nstfv
+  use mod_eigensystem, only: nmatmax, nmat
   use mod_kpoint, only: nkpt
   use mod_lattice, only: omega
   use mod_misc, only: filext
@@ -223,9 +224,18 @@ contains
       ! WAVEFUNCTION
       if ( rt%predictor_corrector%on ) evecfv_save(:,:,:) = evecfv_time(:,:,:)
       if ( molecular_dynamics%on .and. molecular_dynamics%basis_derivative ) then
-        call UpdateWavefunction( rt%propagator, .False., atom_velocities )
+        call UpdateWavefunction( first_kpt, rt%propagator, .False., &
+        ham_time(:, :, first_kpt : last_kpt), &
+        ham_past(:, :, first_kpt : last_kpt), &
+        evecfv_time(:, :, first_kpt : last_kpt), &
+        overlap(:, :, first_kpt : last_kpt), nmat(1, first_kpt : last_kpt ), &
+        atom_velocities )
       else 
-        call UpdateWavefunction( rt%propagator, .False. )
+        call UpdateWavefunction( first_kpt, rt%propagator, .False., &
+        ham_time(:, :, first_kpt : last_kpt), &
+        ham_past(:, :, first_kpt : last_kpt), &
+        evecfv_time(:, :, first_kpt : last_kpt), &
+        overlap(:, :, first_kpt : last_kpt), nmat(1, first_kpt : last_kpt ) )
       end if
       if ( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%wavefunction )
 
@@ -587,7 +597,11 @@ contains
     do i = 1, rt%predictor_corrector%max_steps
       ! WAVEFUNCTION
       evecfv_time(:,:,:) = evecfv_save(:,:,:)
-      call UpdateWavefunction( rt%propagator, .True. )
+      call UpdateWavefunction( first_kpt, rt%propagator, .True., &
+      ham_time(:, :, first_kpt : last_kpt), &
+      ham_past(:, :, first_kpt : last_kpt), &
+      evecfv_time(:, :, first_kpt : last_kpt), &
+      overlap(:, :, first_kpt : last_kpt), nmat(1, first_kpt : last_kpt ) )
 
       ! Update the paramagnetic component of the induced current density
       jparanext = Current_Density_Paramagnetic_Compoment( evecfv_time, pmat, occsv(:, first_kpt:last_kpt), &
