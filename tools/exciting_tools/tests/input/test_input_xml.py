@@ -317,3 +317,63 @@ def test_dict_assignment(exciting_input_xml):
     assert shell[0].number == 1
     assert shell[1].name == "shell"
     assert shell[1].number == 2
+
+
+def test_input_validation(exciting_input_xml):
+    groundstate = exciting_input_xml.groundstate
+    # check if we can assign different type of lists to ngridk
+    groundstate._check_attribute_type("ngridk", [10, 10, 10])
+    groundstate._check_attribute_type("ngridk", (10, 10, 10))
+    groundstate._check_attribute_type("ngridk", np.array([10, 10, 10]))
+    # check floating point value accepts integers
+    groundstate._check_attribute_type("vkloff", [10, 10, 10])
+    groundstate._check_attribute_type("vkloff", [10, 10.0, 10])
+    groundstate._check_attribute_type("vkloff", (10, 10, 10))
+    groundstate._check_attribute_type("vkloff", np.array([10, 10, 10]))
+    # check TypeErrors are thrown
+    with pytest.raises(
+        TypeError, match="Expected a list, tuple or ndarray for attribute ngridk but got <class 'int'>!"
+    ):
+        groundstate._check_attribute_type("ngridk", 10)
+    with pytest.raises(
+        TypeError,
+        match=r"Expected all elements of the list to be of type \(<class 'int'>, <class 'numpy.integer'>\) but found "
+        r"<class 'numpy.float64'> at index 0!",
+    ):
+        groundstate._check_attribute_type("ngridk", np.array([10.0, 10, 10]))
+    with pytest.raises(
+        TypeError,
+        match=r"Expected all elements of the list to be of type \(<class 'int'>, <class 'numpy.integer'>\) but found "
+        r"<class 'float'> at index 0!",
+    ):
+        groundstate._check_attribute_type("ngridk", [10.0, 10, 10])
+    with pytest.raises(
+        TypeError, match="Expected value for xctype to be of type <class 'str'> but found <class 'int'>!"
+    ):
+        groundstate._check_attribute_type("xctype", 10)
+    with pytest.raises(TypeError, match="Expected a single value for attribute xctype, but found a list or tuple!"):
+        groundstate._check_attribute_type("xctype", [10, 10, 10])
+    # check ValueError is thrown if list has wrong length
+    with pytest.raises(ValueError, match="Expected a list of length 3 for attribute ngridk but got one of length 2!"):
+        groundstate._check_attribute_type("ngridk", [10, 10])
+    # check ValueError is thrown if wrong choice is used
+    with pytest.raises(ValueError, match=r"LDA_PBE is not a valid choice for xctype!\nValid choices are: (\w+(, )?)+"):
+        groundstate._check_attribute_type("xctype", "LDA_PBE")
+    # check boolean values
+    groundstate._check_attribute_type("ExplicitKineticEnergy", True)
+    groundstate._check_attribute_type("ExplicitKineticEnergy", False)
+    with pytest.raises(
+        TypeError,
+        match="Expected value for ExplicitKineticEnergy to be of type <class 'bool'> but found <class 'str'>!",
+    ):
+        groundstate._check_attribute_type("ExplicitKineticEnergy", "true")
+
+    # check assignment to element
+    groundstate.libxc = {"exchange": "XC_GGA_X_PBE"}
+    groundstate.libxc = ExcitingLibxcInput(exchange="XC_GGA_X_PBE")
+    with pytest.raises(
+        TypeError,
+        match="Expected <class 'excitingtools.input.input_classes.ExcitingLibxcInput'> for libxc, "
+        "but got <class 'str'>!",
+    ):
+        groundstate.libxc = "foo"

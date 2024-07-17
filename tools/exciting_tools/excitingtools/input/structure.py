@@ -31,7 +31,7 @@ class ExcitingStructure(ExcitingXMLInput):
     path_type = Union[str, Path]
 
     # Mandatory attribute "coord" taken out because it's specified inside the atoms
-    _valid_atom_attributes = set(valid_attributes.atom_valid_attributes) - {"coord"}
+    _valid_atom_attributes = set(valid_attributes.atom_attribute_types.keys()) - {"coord"}
 
     def __init__(
         self,

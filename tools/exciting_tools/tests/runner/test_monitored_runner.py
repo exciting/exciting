@@ -34,19 +34,19 @@ def test_runner(tmp_path: Path, capsys, python_file: Path):
     """The expected lines looks like (numbers are examples and may vary between runs):
         lines = ["Exciting started!",
         "Iteration 1 (0.0s)",
-        "\033\[FIteration 1 (0.1s)",
-        "\033\[FIteration 1 (0.2s)",
+        "\033[FIteration 1 (0.1s)",
+        "\033[FIteration 1 (0.2s)",
         ...
-        "\033\[FLast finished iteration:   1 (2.9s)",
+        "\033[FLast finished iteration:   1 (2.9s)",
         "Iteration 2 (0.0s)",
-        "\033\[F\033\[FLast finished iteration:   2 (0.1s)",
+        "\033[F\033[FLast finished iteration:   2 (0.1s)",
         "Iteration 3 (0.0s)",
-        "\033\[F\033\[FLast finished iteration:   3 (0.1s)",
+        "\033[F\033[FLast finished iteration:   3 (0.1s)",
         "Iteration 4 (0.0s)",
         "Exciting Finished! (0m3s)"]
         
-        Note: we only have to wait for the first iteration, while we can not access the file, but as soon as the file is
-        readable we can read everything and the program will rapidly finish reading.
+        Note: we only have to wait for the first iteration, because we can not access the file, but as soon as the file
+        is readable we can read everything and the program will rapidly finish reading.
     """
 
     # regex pattern for a line which gets printed for a currently running iteration and for a finished iteration
