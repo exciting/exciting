@@ -7,7 +7,7 @@ from xml.etree import ElementTree
 from excitingtools.parser_utils.parser_decorators import xml_root
 from excitingtools.parser_utils.parser_utils import convert_string_dict, find_element
 from excitingtools.utils import valid_attributes as all_valid_attributes
-from excitingtools.utils.valid_attributes import input_valid_attributes
+from excitingtools.utils.valid_attributes import input_attribute_types as input_valid_attributes
 
 
 @xml_root

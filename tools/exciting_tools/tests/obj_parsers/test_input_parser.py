@@ -10,7 +10,7 @@ reference_input_str = """<?xml version="1.0" encoding="UTF-8"?>
   <title>Lithium Fluoride BSE</title>
   
   <structure speciespath="." autormt="false" epslat="1.0d-6">
-    <crystal scale="1.0" stretch="1.0">
+    <crystal scale="1.0" stretch="1.0 1.0 1.0">
       <basevect>3.80402 3.80402 0.00000</basevect>
       <basevect>3.80402 0.00000 3.80402</basevect>
       <basevect>0.00000 3.80402 3.80402</basevect>

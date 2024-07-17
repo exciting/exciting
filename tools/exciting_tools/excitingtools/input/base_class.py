@@ -110,6 +110,10 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
             kwargs[subtree] = [
                 self._initialise_subelement_attribute(subtree_class_map[subtree], x) for x in kwargs[subtree]
             ]
+        # check attribute types
+        attributes = set(kwargs.keys()) - subtrees
+        for attribute in attributes:
+            self._check_attribute_type(attribute, kwargs[attribute])
 
         # Set attributes from kwargs
         self.__dict__.update(kwargs)
@@ -124,12 +128,21 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
         check_valid_keys({name}, valid_attributes | set(valid_subtrees), self.name)
         subtree_class_map = self._class_dict_excitingtools()
 
+        # check attribute type
+        if name in valid_attributes:
+            self._check_attribute_type(name, value)
         # If value is a dictionary, we convert it to the expected input class
-        if isinstance(value, dict):
+        elif isinstance(value, dict):
             value = subtree_class_map[name](**value)
         # Handle subtrees that can occur multiple times
-        if isinstance(value, list) and name in multiple_children:
+        elif isinstance(value, list) and name in multiple_children:
             value = [self._initialise_subelement_attribute(subtree_class_map[name], x) for x in value]
+        # if we enter this branch, we expect a valid ExcitingElementInput object
+        elif not isinstance(value, subtree_class_map[name]):
+            raise TypeError(
+                f"Expected {subtree_class_map[name]} for {name}, but got {type(value)}!\n"
+                f"Alternatively you can pass a (possible empty) dictionary."
+            )
 
         super().__setattr__(name, value)
 
@@ -146,7 +159,7 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
 
         :return: valid attributes, valid subtrees, mandatory attributes and multiple children
         """
-        yield set(getattr(all_valid_attributes, f"{self.name}_valid_attributes", set()))
+        yield set(getattr(all_valid_attributes, f"{self.name}_attribute_types", set()))
         yield getattr(all_valid_attributes, f"{self.name}_valid_subtrees", [])
         yield set(getattr(all_valid_attributes, f"{self.name}_mandatory_attributes", set()))
         yield set(getattr(all_valid_attributes, f"{self.name}_multiple_children", set()))
@@ -173,6 +186,49 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
             return xml_class(**element)
         # Assume the element type is valid for the class constructor
         return xml_class(element)
+
+    def get_attribute_types(self) -> Dict:
+        """Extract the expected types of the valid attributes from the parsed schema.
+
+        :return: dictionary associating the attribute name with its expected type and number of expected values or its
+        valid choices.
+        """
+        return getattr(all_valid_attributes, f"{self.name}_attribute_types", {})
+
+    def _check_attribute_type(self, name: str, value: Any):
+        """Check if the given attribute name and value are compatible. Raises TypeError or ValueError if a mismatch is
+        detected.
+
+        :param name: name of the attribute
+        :param value: value, which should be assigned to the attribute
+        """
+        expected_type, further_info = self.get_attribute_types()[name]
+        if expected_type is float:
+            # if we expect a float, we also expect int
+            expected_type = (int, float, np.integer, np.floating)
+        elif expected_type is int:
+            expected_type = (int, np.integer)
+        if isinstance(further_info, int) and further_info > 1 and not isinstance(value, (list, tuple, np.ndarray)):
+            raise TypeError(f"Expected a list, tuple or ndarray for attribute {name} but got {type(value)}!")
+        if isinstance(value, (list, tuple, np.ndarray)):
+            if not (isinstance(further_info, int) and further_info > 1):
+                raise TypeError(f"Expected a single value for attribute {name}, but found a list or tuple!")
+            if len(value) != further_info:
+                raise ValueError(
+                    f"Expected a list of length {further_info} for attribute {name} but got one of length {len(value)}!"
+                )
+            for i, v in enumerate(value):
+                if not isinstance(v, expected_type):
+                    raise TypeError(
+                        f"Expected all elements of the list to be of type {expected_type} but found {type(v)}"
+                        f" at index {i}!"
+                    )
+            # if all asserts passes we are done and the list value is valid
+            return
+        if not isinstance(value, expected_type):
+            raise TypeError(f"Expected value for {name} to be of type {expected_type} but found {type(value)}!")
+        if isinstance(further_info, list) and value not in further_info:
+            raise ValueError(f"{value} is not a valid choice for {name}!\nValid choices are: {', '.join(further_info)}")
 
     def to_xml(self) -> ElementTree:
         """Put class attributes into an XML tree, with the element given by self.name.
