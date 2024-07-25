@@ -15,7 +15,10 @@ from typing import Union
 import matplotlib.pyplot as plt
 import matplotlib.style
 import matplotlib.ticker as ptk
-from excitingscripts.utils.utils import get_decimal_decomposition, get_prettified_scientific_notation
+from excitingscripts.utils.utils import (
+    get_decimal_decomposition,
+    get_prettified_scientific_notation,
+)
 
 if matplotlib.__version__.split(".")[0] == "2":
     matplotlib.style.use("classic")
@@ -34,7 +37,9 @@ def find_first_none(inp: list) -> Union[int, None]:
 
 
 def plot_checkderiv(
-    quantity: str = "energy", y_min_arg: Union[float, None] = None, y_max_arg: Union[float, None] = None
+    quantity: str = "energy",
+    y_min_arg: Union[float, None] = None,
+    y_max_arg: Union[float, None] = None,
 ) -> None:
     """Plot the derivative of the energy-vs-displacement or force-vs-displacement curves.
 
@@ -48,7 +53,7 @@ def plot_checkderiv(
         if Path("planar").exists():
             unit = "N/m"
     elif Path("phonon_results.json").exists():
-        unit = r"cm$^-\!$" + "\u00B9"
+        unit = r"cm$^-\!$" + "\u00b9"
         x_label = "Maximum displacement $u$ [alat]"
     else:
         raise ValueError("No tutorial file found.")
@@ -72,12 +77,32 @@ def plot_checkderiv(
     y3 = []
     x_values = []  # could be strain or displacements
 
-    for data in file_content["fits"]:
-        x_values.append(data["max_displacement"])  # TODO: other key here?
-        frequencies = data["frequencies"]
-        y1.append(frequencies[0])
-        y2.append(frequencies[2])
-        y3.append(frequencies[4])
+    if Path("energy-vs-strain").exists():
+        for data in file_content["fits"]:
+            x_values.append(data["max_strain"])
+            frequencies = data["derivatives"]
+
+            try:
+                y1.append(frequencies[0]["value"])
+            except:
+                y1.append(None)
+
+            try:
+                y2.append(frequencies[2]["value"])
+            except:
+                y2.append(None)
+
+            try:
+                y3.append(frequencies[4]["value"])
+            except:
+                y3.append(None)
+    else:
+        for data in file_content["fits"]:
+            x_values.append(data["max_displacement"])  # TODO: other key here?
+            frequencies = data["frequencies"]
+            y1.append(frequencies[0])
+            y2.append(frequencies[2])
+            y3.append(frequencies[4])
 
     y1 = y1[: find_first_none(y1)]
     y2 = y2[: find_first_none(y2)]
@@ -121,20 +146,31 @@ def plot_checkderiv(
         "ytick.major.pad": 4,
         "patch.linewidth": 2.0,
         "axes.linewidth": 2.0,
-        "lines.linewidth": 1.8,
-        "lines.markersize": 8.0,
+        "lines.linewidth": 3.5,
+        "lines.markersize": 12.0,
         "mathtext.fontset": "stixsans",
         "axes.formatter.limits": (-8, 8),
     }
 
     plt.rcParams.update(params)
-    plt.subplots_adjust(left=0.20, right=0.78, bottom=0.18, top=0.88, wspace=None, hspace=None)
+    plt.subplots_adjust(
+        left=0.20, right=0.78, bottom=0.18, top=0.88, wspace=None, hspace=None
+    )
 
     yfmt = ptk.ScalarFormatter(useOffset=True, useMathText=True)
     fig = matplotlib.pyplot.figure(1, figsize=(8, 5.5))
     ax = fig.add_subplot(111)
 
-    ax.text(0.5, -0.17, x_label, size=fontlabel, transform=ax.transAxes, ha="center", va="center", rotation=0)
+    ax.text(
+        0.5,
+        -0.17,
+        x_label,
+        size=fontlabel,
+        transform=ax.transAxes,
+        ha="center",
+        va="center",
+        rotation=0,
+    )
     ax.text(
         0.0,
         1.05,
@@ -150,7 +186,8 @@ def plot_checkderiv(
     ax.text(
         0.62,
         1.033,
-        "m = " + get_prettified_scientific_notation(y_min * exponent_factor + total_y_min),
+        "m = "
+        + get_prettified_scientific_notation(y_min * exponent_factor + total_y_min),
         size=fontlimits,
         color="#00008B",
         transform=ax.transAxes,
@@ -161,7 +198,8 @@ def plot_checkderiv(
     ax.text(
         0.62,
         1.080,
-        "M = " + get_prettified_scientific_notation(y_max * exponent_factor + total_y_min),
+        "M = "
+        + get_prettified_scientific_notation(y_max * exponent_factor + total_y_min),
         size=fontlimits,
         color="#00008B",
         transform=ax.transAxes,
@@ -200,18 +238,25 @@ def plot_checkderiv(
 
 def main() -> None:
     """Parser and function call."""
-    parser = ArgumentParser(description="""Plot the derivative of the energy-vs-displacement or force-vs-displacement 
-                                        curves.""")
+    parser = ArgumentParser(
+        description="""Plot the derivative of the energy-vs-displacement or force-vs-displacement 
+                                        curves."""
+    )
 
     parser.add_argument(
-        "quantity", type=str, help="which quantity to plot, energy, force, or strain.", default="energy"
+        "quantity",
+        type=str,
+        help="which quantity to plot, energy, force, or strain.",
+        default="energy",
     )
-    parser.add_argument("--y_min", type=float, help="minimum value of y axis", default=None)
-    parser.add_argument("--y_max", type=float, help="maximum value of y axis", default=None)
+    parser.add_argument(
+        "--y_min", type=float, help="minimum value of y axis", default=None
+    )
+    parser.add_argument(
+        "--y_max", type=float, help="maximum value of y axis", default=None
+    )
 
-    parser.add_argument("-sh", "--show",
-                        action="store_true",
-                        help="show plot")
+    parser.add_argument("-sh", "--show", action="store_true", help="show plot")
 
     args = parser.parse_args()
 
