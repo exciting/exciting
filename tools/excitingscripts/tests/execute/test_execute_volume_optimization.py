@@ -9,45 +9,6 @@ from excitingtools.utils.test_utils import MockFile
 
 
 @pytest.fixture
-def input_xml_mock(tmp_path) -> MockFile:
-    """ Mock 'input.xml' data.
-    """
-    input_xml_str = """<?xml version="1.0" encoding="UTF-8"?>
-    <input>
-
-       <title>Silver</title>
-    
-       <structure speciespath="$EXCITINGROOT/species">
-    
-          <crystal scale="7.729">
-             <basevect> 0.5     0.5     0.0 </basevect>
-             <basevect> 0.5     0.0     0.5 </basevect>
-             <basevect> 0.0     0.5     0.5 </basevect>
-          </crystal>
-    
-          <species speciesfile="Ag.xml">
-             <atom coord="0.00 0.00 0.00" />
-          </species>
-    
-       </structure>
-    
-       <groundstate
-          ngridk="8 8 8"
-          swidth="0.01"
-          rgkmax="7.5"
-          xctype="GGA_PBE_SOL">
-       </groundstate>
-
-    </input>
-    """
-
-    input_xml_file = tmp_path / "input.xml"
-    input_xml_file.write_text(input_xml_str)
-
-    return MockFile(input_xml_file, input_xml_str)
-
-
-@pytest.fixture
 def info_out_mock(tmp_path) -> Tuple[MockFile, MockFile, MockFile]:
     """ Mock 'INFO.OUT' data.
     """
@@ -247,7 +208,7 @@ def info_out_mock(tmp_path) -> Tuple[MockFile, MockFile, MockFile]:
            MockFile(info_out_vol_3_file, info_out_vol_3_str)
 
 
-def test_execute_volume_optimization(monkeypatch, info_out_mock, input_xml_mock, tmp_path):
+def test_execute_volume_optimization(monkeypatch, info_out_mock, tmp_path):
     number_calculations = 3
 
     def replace_run_exciting(*args, **kwargs):
@@ -261,6 +222,6 @@ def test_execute_volume_optimization(monkeypatch, info_out_mock, input_xml_mock,
                                         [115.42767037, -5314.78069599],
                                         [133.62195691, -5314.78200255]])
 
-    assert np.allclose(execute_volume_optimization(input_xml_mock.full_path, 3, root_directory=tmp_path),
+    assert np.allclose(execute_volume_optimization(3, root_directory=tmp_path),
                        volume_optimization_ref)
 
