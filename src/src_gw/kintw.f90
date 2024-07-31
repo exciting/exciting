@@ -3,7 +3,8 @@ subroutine kintw()
 
     use modinput
     use modmain, only: evalcr, efermi, natmtot, nspecies, natoms, idxas, nstfv
-    use modgw,   only: kiw, ciw, kwfer, metallic, fdebug, kset, kqset, evalfv
+    use modgw,   only: kiw, ciw, kwfer, fdebug, kset, kqset
+    use mod_bands, only: metallic, evalfv
     use mod_core_states, only: ncmax, ncore
     use mod_kpointset
 

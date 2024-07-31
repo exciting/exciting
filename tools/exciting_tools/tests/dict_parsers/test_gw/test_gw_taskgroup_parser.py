@@ -15,6 +15,40 @@ from excitingtools.exciting_dict_parsers.gw_taskgroup_parser import (
     parse_sigmax,
 )
 
+eigenvalues_eigenvectors = """ -1
+2
+1
+1 3
+0.1
+5.2
+7.6
+2
+1 1 3 3
+(0.0,0.0) (0.6,0.0) (0.0,0.8) 
+(0.0,-1.0) (0.0,0.0) (0.0,0.0)
+(0.0,0.0) (-8.0E-1,0.0) (0.0,-6.0E-1)
+"""
+
+reference_eigenvalues = np.array([0.1, 5.2, 7.6])
+reference_eigenvectors = np.array(
+    [
+        [complex(0.0, 0.0), complex(0.0, -1.0), complex(0.0, 0.0)],
+        [complex(0.6, 0.0), complex(0.0, 0.0), complex(-0.8, 0.0)],
+        [complex(0.0, 0.8), complex(0.0, 0.0), complex(0.0, -0.6)],
+    ]
+)
+
+
+def test_parse_barc(tmp_path):
+    barc_file_path = tmp_path / "BARC_Q1.OUT"
+    barc_file_path.write_text(eigenvalues_eigenvectors)
+    barc = parse_barc(barc_file_path.as_posix())
+    np.testing.assert_allclose(barc["eigenvalues"], reference_eigenvalues)
+    np.testing.assert_allclose(
+        barc["bare_coulomb"], reference_eigenvectors @ np.diag(reference_eigenvalues) @ reference_eigenvectors.T.conj()
+    )
+
+
 rectangular_matrix = """ 2
 1 1 2 3
 (1.01E-4,-5.5E-8)
@@ -44,19 +78,6 @@ square_matrix = """ 2
 reference_square_matrix = {
     "matrix": np.array([[complex(1.01e-4, -5.5e-8), complex(5.4e5, -1.1)], [complex(0.0, 0.0), complex(-5.4e5, 1.1)]])
 }
-
-
-@pytest.mark.parametrize(
-    ["barc_file_str", "reference_barc"],
-    [(rectangular_matrix, reference_rectangular_matrix), (square_matrix, reference_square_matrix)],
-)
-def test_parse_barc(barc_file_str, reference_barc, tmp_path):
-    barc_file_path = tmp_path / "BARC_Q1.OUT"
-    barc_file_path.write_text(barc_file_str)
-    barc = parse_barc(barc_file_path.as_posix())
-    A = reference_barc["matrix"]
-    ref = {"CoulombMatrix": np.matmul(A.T.conj(), A)}
-    np.testing.assert_allclose(barc["CoulombMatrix"], ref["CoulombMatrix"])
 
 
 @pytest.mark.parametrize(

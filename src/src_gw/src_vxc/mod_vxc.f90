@@ -75,7 +75,7 @@ contains
 
   end subroutine
 
-
+  
   subroutine deallocate_components( this )
     class(vxc_diagonal_elements), intent(inout) :: this
 

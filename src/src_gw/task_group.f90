@@ -1,18 +1,25 @@
 !> Module that contains the types and subroutines needed to execute
 !> `taskGroup` in `gw`
 module task_group
-  use modgw, only: kqset, kset, ibgw, nbgw
-  use modinput, only: input, gw_type
-  use modmpi, only: mpiglobal, terminate_if_false
+  use modgw, only: kqset, kset, ibgw, nbgw, kiw, ciw, Gset, Gkset, Gqset, Gqbarc, freq, nvelgw, nbandsgw
+  use modinput, only: input, gw_type, isspinorb
+  use modmpi, only: mpiglobal, terminate_if_false, barrier
+  use mod_bands, only: evalfv
   use mod_coulomb_potential, only: calculate_singularities_coeff
-  use mod_selfenergy, only: singc1, singc2
+  use mod_dielectric_function, only: delete_dielectric_function
+  use mod_frequency, only: delete_freqgrid
+  use mod_kpointset, only: delete_k_vectors, delete_kq_vectors, delete_G_vectors, &
+    & delete_Gk_vectors
+  use mod_selfenergy, only: singc1, singc2, evalqp, delete_selfenergy
   use precision, only: i32, dp
+  use scrcoul_low_dim, only: set_singc12
   use task_Coulomb, only: execute_task_Coulomb
   use task_epsilon, only: execute_task_epsilon
   use task_invertEpsilon, only: execute_task_invertEpsilon
   use task_sigmac, only: execute_task_sigmac
   use task_sigmax, only: execute_task_sigmax
   use task_vxc, only: execute_task_vxc
+  use task_QPEigenvalues, only: execute_task_QPEigenvalues
 
   implicit none
   
@@ -34,6 +41,8 @@ module task_group
     logical :: task_sigmac
     logical :: task_sigmax
     logical :: task_vxc
+    logical :: task_QPEigenvalues
+    logical :: analytical_limit
   contains
     procedure :: parse_input
   end type
@@ -62,17 +71,38 @@ contains
     if( input_parameters%task_Coulomb ) &
       call execute_task_Coulomb( n_qpoints, input_parameters%output_format )
     
-    if( input_parameters%task_sigmax ) &
+    if( input_parameters%task_sigmax ) then
+      ! A barrier is necessary to ensure that all processes have completed outputting the bare Coulomb matrix
+      call barrier( mpiglobal )
       call execute_task_sigmax( ibgw, nbgw, n_kpoints, kqset%vqc, input_parameters%output_format )
+    end if
 
-    if( input_parameters%task_epsilon ) &
+    if( input_parameters%task_epsilon ) then
+      ! A barrier is necessary to ensure that all processes have completed outputting the bare Coulomb matrix
+      call barrier( mpiglobal )
       call execute_task_epsilon( n_qpoints, input_parameters%output_format )
+    end if
 
-    if( input_parameters%task_invertEpsilon ) &
+    if( input_parameters%task_invertEpsilon ) then
+      ! A barrier is necessary to ensure that all processes have completed outputting the dielectric matrix
+      call barrier( mpiglobal )
       call execute_task_invertEpsilon( n_qpoints, input_parameters%output_format )
+    end if
 
-    if( input_parameters%task_sigmac ) &
+    if( input_parameters%task_sigmac ) then
+      ! A barrier is necessary to ensure that all processes have completed outputting the inverse of the epsilon
+      call barrier( mpiglobal )
+      if( input_parameters%analytical_limit ) call set_singc12
       call execute_task_sigmac( n_kpoints, kqset%vqc, input_parameters%output_format )
+    end if
+    
+    if( input_parameters%task_QPEigenvalues ) then
+      ! A barrier is necessary to ensure that all processes have completed outputting sigmac
+      call barrier( mpiglobal )
+      call execute_task_QPEigenvalues( ibgw, nbgw, kset, input_parameters%output_format )
+    end if
+
+    call delete_selfenergy
 
   end subroutine
 
@@ -98,6 +128,8 @@ contains
       'Element taskGroup must be present when taskname='//'"'//task_name//'"' )
     call terminate_if_false( associated(gw_inp%barecoul), &
       'Element barecoul must be present when taskname='//'"'//task_name//'"' )
+    call terminate_if_false( .not. isspinorb(), &
+      'Spin-polarized calculations are not currently supported with taskname='//'"'//task_name//'"' )
     this%output_format = trim( gw_inp%taskGroup%outputFormat )
     this%calculate_momentum_matrix = .not. gw_inp%rpmat !rpmat means "read pmat"
     this%Coulomb_cutoff_type = trim( gw_inp%barecoul%cutofftype )
@@ -108,7 +140,25 @@ contains
     this%task_sigmac = associated( gw_inp%taskGroup%sigmac )
     this%task_sigmax = associated( gw_inp%taskGroup%sigmax )
     this%task_vxc = associated( gw_inp%taskGroup%vxc )
+    this%task_QPEigenvalues = associated( gw_inp%taskGroup%QPEigenvalues )
+    this%analytical_limit = ( trim(gw_inp%scrcoul%averaging) == '2d' )
+
+    call deallocate_global_arrays
 
   end subroutine
 
+  !> Deallocate global arrays needed
+  subroutine deallocate_global_arrays
+    call delete_dielectric_function( Gamma=.true. )
+    if (allocated(kiw)) deallocate(kiw)
+    if (allocated(ciw)) deallocate(ciw)
+    if (allocated(evalfv)) deallocate(evalfv)
+    call delete_freqgrid(freq)
+    call delete_k_vectors(kset)
+    call delete_G_vectors(Gset)
+    call delete_Gk_vectors(Gkset)
+    call delete_kq_vectors(kqset)
+    call delete_Gk_vectors(Gqset)
+    call delete_Gk_vectors(Gqbarc)
+  end subroutine
 end module

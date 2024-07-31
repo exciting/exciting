@@ -9,6 +9,7 @@ subroutine calc_vxnl()
     use mod_hybrids
     use modfvsystem
     use modmpi
+    use mod_bands, only: evalfv, nomax, numin, ikvbm, ikcbm, ikvcm, eveck, eveckalm, eveckp, eveckpalm
 !
 ! !DESCRIPTION:
 !   Calculates the non-local exchange potential
@@ -129,7 +130,7 @@ subroutine calc_vxnl()
           ! Calculate the bare Coulomb matrix
           !------------------------------------
           call calcbarcmb(iq)
-          call setbarcev(0.d0)
+          call setbarcev(0.d0, Gamma)
 
           if ((input%groundstate%outputlevelnumber>1) .and.rank==0) then
             write(60,'(a,3i8)')  '    ---> rank, ikp, iq = ', rank, ikp, iq

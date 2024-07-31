@@ -17,11 +17,12 @@ subroutine calcevalqp
 !!USES:
     use modinput
     use modmain, only: efermi, zzero
-    use modgw,   only: ibgw, nbgw, kset, evalfv, evalqp, eferqp, &
+    use modgw,   only: ibgw, nbgw, kset, evalqp, eferqp, &
                        sigc, znorm, selfex, selfec, &
                        nbandsgw, nvelgw, &
                        sigsx, sigch, fgw
     use mod_vxc, only: vxcnn
+    use mod_bands, only: evalfv
     implicit none
     integer :: nb, ie, ik
     real(8) :: egap, df

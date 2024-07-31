@@ -6,7 +6,7 @@ module task_sigmax
   use gw_io, only: write_to_gwinfo, write_to_gwinfo_boxmessage
   use modinput, only: input, gw_type
   use modmpi, only: mpiglobal, distribute_loop, terminate_if_false
-  use mod_coulomb_potential, only: read_coulomb_potential_from_file
+  use mod_coulomb_potential, only: delete_coulomb_potential, read_barcev_vmat_from_file
   use mod_kqpts, only: kpoints_sets
   use mod_misc_gw, only: Gamma, gammapoint
   use mod_product_basis, only: read_sgi_from_file
@@ -97,14 +97,15 @@ subroutine execute_task_sigmax( first_band, last_band, n_kpoints_max, qpoints, f
     if( allocated(selfex) ) deallocate( selfex )
     allocate( selfex(first_band:last_band, ik:ik ) , source=zzero )
     do iq = iq_start, iq_end
-      call read_coulomb_potential_from_file( iq, file_format )
+      call read_barcev_vmat_from_file( iq, file_format )
       call read_sgi_from_file( iq, file_format )
       call calcmpwipw( iq )
       Gamma = gammapoint( qpoints(:, iq), tol=tolerance_zero_vector )
-      call calcselfx( iq, ik, ik, .false. )
+      call calcselfx( iq, ik, ik )
     end do
     call write_selfex_single_kpoint( ik, file_format )
   end do
+  call delete_coulomb_potential
 
 end subroutine
 

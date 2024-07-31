@@ -1,6 +1,6 @@
 
 subroutine task_evalqp()
-
+    use mod_bands, only: evalfv, bandstructure_analysis
     use modinput
     use modmain
     use modgw
@@ -9,9 +9,12 @@ subroutine task_evalqp()
     use mod_mpi_gw
     use m_getunit
     use mod_vxc, only: vxcnn, read_vxcnn, deallocate_vxcnn
+    use quasiparticle_energies, only: write_qp_energies_text_format
+    use precision, only: dp
+    
     implicit none
     ! local variables
-    integer :: ikp, ik, ik_, ie, ie_, fid, recl
+    integer :: ikp, ik, ie
     real(8) :: egap
     character(20) :: s1, s2, v(3)
     logical :: reducek
@@ -73,8 +76,7 @@ subroutine task_evalqp()
       &                   nbandsgw, kset%nkpt, evalks(ibgw:nbgw,:), &
       &                   kset%ntet, kset%tnodes, kset%wtet, kset%tvol, &
       &                   efermi, egap, fermidos)
-      call bandstructure_analysis('KS', ibgw, nbgw, kset%nkpt, &
-                                  evalks(ibgw:nbgw,:), efermi)
+      call bandstructure_analysis('KS', ibgw, evalks(ibgw:nbgw,:), efermi, .true.)
 
       !======================================
       ! Calculate the quasiparticle energies
@@ -86,13 +88,9 @@ subroutine task_evalqp()
       !------------------------------------------------------
       ! Write quasi-particle energies to file
       !------------------------------------------------------
-
-      ! Set KS so Efermi is 0
-      evalks(ibgw:nbgw,:) = evalks(ibgw:nbgw,:) - efermi
-
-      call write_qp_energies('EVALQP.DAT')
-      call bandstructure_analysis('G0W0',ibgw,nbgw,kset%nkpt,&
-      &                            evalqp(ibgw:nbgw,:),eferqp)
+      call write_qp_energies_text_format( [(ik, ik=1,kset%nkpt)], kset%vkl, kset%wkpt, &
+        ibgw, evalks, evalqp, real( vxcnn%diag_elements(ibgw:, :), dp ), selfex, sigc, znorm )
+      call bandstructure_analysis('G0W0',ibgw,evalqp(ibgw:nbgw,:),eferqp, .true.)
 
       !----------------------------------------
       ! Save QP energies into binary file

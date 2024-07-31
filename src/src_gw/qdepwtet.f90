@@ -13,11 +13,12 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
 !
 !
 !!USES:
-    use modinput
+    use mod_bands, only: nomax, numin, evalfv, nstdf
+    use modinput, only: input
     use modmain, only : natmtot, zzero, nspecies, natoms, idxas, &
     &                   evalcr, efermi
-    use modgw,   only : fnm, freq, ncmax, kset, kqset, nomax, numin, &
-    &                   ncg, corind, fdebug, time_bzinit, evalfv, nstdf
+    use modgw,   only : fnm, freq, ncmax, kset, kqset, &
+    &                   ncg, corind, fdebug, time_bzinit
 
 !!INPUT PARAMETERS:
     implicit none

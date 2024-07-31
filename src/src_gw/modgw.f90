@@ -5,7 +5,6 @@ module modgw
     use mod_product_basis
     use mod_gaunt_coefficients
     use mod_misc_gw
-    use mod_bands
     use mod_kpointset
     use mod_frequency
     use mod_dielectric_function

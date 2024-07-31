@@ -5,13 +5,15 @@
 subroutine calcpmatgw
 !
 !!USES:
-    use modinput
-    use modmain
-    use modgw
     use m_getunit
-    use modmpi
-    use mod_pmat
+    use mod_bands, only: nstdf, numin, nomax
     use mod_hdf5
+    use mod_pmat
+    use modinput
+    use modgw
+    use modmain
+    use modmpi
+    
 
 !!DESCRIPTION:
 !   Calculates the momentum matrix elements using routine {\tt genpmat} and

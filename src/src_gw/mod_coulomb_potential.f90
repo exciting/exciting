@@ -4,36 +4,55 @@
 
 module mod_coulomb_potential
     use asserts, only: assert
-    use constants, only: pi, twopi, fourpi
+    use constants, only: pi, twopi, fourpi, real_zero
     use gw_io, only: write_to_file, read_from_file, build_file_name
+    use mod_lattice, only: avec
     use mod_product_basis, only: mbsiz, matsiz
-    use modmain, only: avec
+    use modmpi, only: terminate_if_false
     use precision, only: dp, i32, max_length => str_32
 
     implicit none
 
-    character(len=*), parameter, private :: basename_barc = 'BARC_Q'
+    private
+
+    character(len=*), parameter :: basename_barc = 'BARC_Q'
     
     ! The lattice summations matrix      
-    complex(dp), allocatable :: sgm(:,:,:)
+    complex(dp), allocatable, public :: sgm(:,:,:)
     
     ! The matrix representation of the bare coulomb potential in the mixed basis            
-    complex(dp), allocatable :: barc(:,:)
+    complex(dp), allocatable, public :: barc(:,:)
 
     ! full set of the eigenvalues of barcoul matrix
-    real(dp), allocatable :: barcev(:)
+    real(dp), allocatable, public :: barcev(:)
       
     ! full set of eigenvectors of barcoul matrix        
-    complex(dp), allocatable :: vmat(:,:)
+    complex(dp), allocatable, public :: vmat(:,:)
     
     ! use a truncation technique for the Coulomb potential
-    logical :: vccut
+    logical, public :: vccut
     
     ! spherical integral over the Coulomb singularity
-    real(dp) :: rcut
+    real(dp), public :: rcut
     
     !> Singularity for 0D, 1D and 2D systems
     real(dp), public, protected :: low_dim_singularity
+
+    public :: delete_coulomb_potential, &
+              vcoul_q0_0d, &
+              vcoul_q0_1d, &
+              vcoul_q0_2d, &
+              vcoul_q0_3d, &
+              vcoul_0d, &
+              vcoul_1d, &
+              vcoul_2d, &
+              vcoul_3d, &
+              vcoul_3d_RIM, &
+              calculate_singularities_coeff, &
+              calculate_bare_coulomb, &
+              calculate_sqrt_bare_coulomb, &
+              write_barcev_vmat_to_file, &
+              read_barcev_vmat_from_file
     
 contains
  
@@ -458,7 +477,7 @@ contains
       !> Number of k/q points in the BZ 
       integer, intent(in) :: nkpt
       !> Coefficient for the integration of the self-energy singularity
-      real(dp), intent(out) :: coeff_s2_singularity
+      real(dp), intent(inout) :: coeff_s2_singularity
       
       select case ( trim(cutoff_type) )
         case('0d')
@@ -490,49 +509,71 @@ contains
     end subroutine
 
     !> Matrix with the bare Coulomb potential is calculated. 
-    !> Then, it is diagonalized and finally one takes its square root.
-    !> The result is stored in the global variable `barc`
-    subroutine calculate_sqrt_bare_coulomb( iq, eigenvalue_tol )
+    !> Then, it is diagonalized
+    subroutine calculate_bare_coulomb( iq )
       integer(i32), intent(in) :: iq
-      real(dp), intent(in) :: eigenvalue_tol
       
       ! Get coulomb matrix im MB basis, its eigenvalues and eigenvectors
       call calcbarcmb( iq )
+    end subroutine
+
+    !> Take the square root of the matrix with the bare Coulomb potential
+    !> Filter the results according to `eigenvalue_tol`
+    subroutine calculate_sqrt_bare_coulomb( iq, eigenvalue_tol, remove_g_equal_zero )
+      !> Index of the q-point
+      integer(i32), intent(in) :: iq
+      !> Eigenvalues smaller than `eigenvalue_tol` are discarded
+      real(dp), intent(in) :: eigenvalue_tol
+      !> If `.true.`, remove the eigenvectors closest to `G=0`
+      logical, intent(in) :: remove_g_equal_zero
           
       ! Set v-diagonal MB and reduce its size
-      call sqrt_coulomb_matrix( eigenvalue_tol )
-      call delete_coulomb_potential
+      if( (.not. vccut) .and. remove_g_equal_zero ) call setbarcev( real_zero, remove_g_equal_zero )
+      call setbarcev( eigenvalue_tol, remove_g_equal_zero )
     end subroutine
 
-    subroutine sqrt_coulomb_matrix( eigenvalue_tol )
-      real(dp), intent(in) :: eigenvalue_tol
-    
-      call setbarcev( eigenvalue_tol )
-    end subroutine
 
-    subroutine write_barc_to_file( iq, file_format )
+    subroutine write_barcev_vmat_to_file( iq, file_format, threshold )
       integer(i32), intent(in) :: iq
       !> Format of the output file
       character(len=*), intent(in) :: file_format
+      !> Only write to file the eigenvalues that are >= the threshold (and the corresponding eigenvectors)
+      real(dp), intent(in) :: threshold
 
       character(len=max_length) :: file_name
+      integer(i32) :: idx
 
+      call assert( allocated(vmat), 'vmat must be allocated')
+      call assert( allocated(barcev), 'barcev must be allocated')
       call build_file_name( basename_barc, iq, file_name )
-      call write_to_file( file_name, barc, file_format )
+      idx = index_of_first_element_above_threshold( barcev, threshold )
+      call write_to_file( file_name, barcev(idx:), vmat(:, idx:), file_format )
 
     end subroutine
 
 
-    subroutine read_coulomb_potential_from_file( iq, file_format )
+    subroutine read_barcev_vmat_from_file( iq, file_format )
       integer(i32), intent(in) :: iq
       character(len=*), intent(in) :: file_format
 
       character(len=max_length) :: file_name
 
       call build_file_name( basename_barc, iq, file_name )
-      call read_from_file( file_name, barc, file_format )
-      matsiz = size( barc, 1 )
-      mbsiz = size( barc, 2 )
+      call read_from_file( file_name, barcev, vmat, file_format )
+      matsiz = size( vmat, 1 )
+      mbsiz = size( vmat, 2 )
+      call terminate_if_false( size( barcev ) == mbsiz, 'Different number of eigenvalues and eigenvectors in ' // trim( file_name ) )
+
     end subroutine
+
+    !(private) This can be easily replaced by findloc. But older versions of gfortran do not support it
+    pure integer(i32) function index_of_first_element_above_threshold( array, threshold ) result(idx)
+      !> Array to find the index of the first element >= threshold. It must be sorted in ascending order.
+      real(dp), intent(in) :: array(:)
+      real(dp), intent(in) :: threshold
+
+      idx = count( array < threshold ) + 1
+    end function
+
 
 end module

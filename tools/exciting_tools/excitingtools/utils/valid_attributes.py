@@ -913,8 +913,9 @@ scrcoul_attribute_types = {"averaging": (str, ["2d", "isotropic"]),
                            "subgrid_q0": (int, 3)} 
 
 taskGroup_attribute_types = {"outputFormat": (str, ["binary", "text"])} 
-taskGroup_valid_subtrees = ["Coulomb", "epsilon", "invertEpsilon", "sigmac", "sigmax", "vxc"] 
+taskGroup_valid_subtrees = ["Coulomb", "epsilon", "invertEpsilon", "sigmac", "sigmax", "vxc", "QPEigenvalues"] 
 
+Coulomb_attribute_types = {"eigenvalueThreshold": (float, 1)} 
 Coulomb_valid_subtrees = ["qpoints"] 
 Coulomb_mandatory_attributes = ["qpoints"] 
 Coulomb_multiple_children = ["qpoints"] 
@@ -939,6 +940,10 @@ sigmax_multiple_children = ["kpoints"]
 vxc_valid_subtrees = ["kpoints"] 
 vxc_mandatory_attributes = ["kpoints"] 
 vxc_multiple_children = ["kpoints"] 
+
+QPEigenvalues_valid_subtrees = ["kpoints"] 
+QPEigenvalues_mandatory_attributes = ["kpoints"] 
+QPEigenvalues_multiple_children = ["kpoints"] 
 
 
 # MD information 

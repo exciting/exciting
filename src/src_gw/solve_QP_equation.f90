@@ -2,16 +2,16 @@
 subroutine solve_QP_equation()
     use modinput
     use modmain,        only: efermi
-    use modgw,          only: kset, ibgw, nbgw, nvelgw, nbandsgw, evalqp, eferqp, evalfv
+    use modgw,          only: ibgw, nbgw, nvelgw, nbandsgw, evalqp, eferqp
     use mod_vxc,        only: vxcnn
     use mod_selfenergy, only: selfex, selfec, sigc, znorm, freq_selfc, deltaE
-    use mod_bands,      only: nomax, ikvbm
+    use mod_bands,      only: nomax, ikvbm, evalfv
     use mod_pade
     use m_getunit
     implicit none
     integer(4), parameter :: nitermax = 1000
     real(8),    parameter :: etol = 1.d-4
-    integer(4) :: iter, ik, ib, nz
+    integer(4) :: iter, ik, ib, nz, n_kpoints
     real(8)    :: enk, eqp, eqp_prev, diff, dzf2
     complex(8) :: sx, sc, de
     complex(8) :: dsigma, znk
@@ -21,6 +21,7 @@ subroutine solve_QP_equation()
     ! Alignment of the chemical potential:
     !   ef + de = ef + Sigma(kf, ef + de)
     !------------------------------------------
+    n_kpoints = size( selfec, 3 )
     select case (input%gw%selfenergy%eshift)
         case(0)
             ! no shift
@@ -63,7 +64,7 @@ subroutine solve_QP_equation()
     !--------------------------------------------
     ! Solve QP equation
     !--------------------------------------------
-    do ik = 1, kset%nkpt
+    do ik = 1, n_kpoints
         do ib = ibgw, nbgw
 
             enk = evalfv(ib,ik)-efermi

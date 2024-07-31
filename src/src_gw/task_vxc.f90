@@ -68,7 +68,7 @@ subroutine execute_task_vxc( first_band, last_band, kpt_latt_coord, file_format,
 
   integer(i32) :: n_kpoints_max
   type(task_vxc_parameters) :: input_parameters
-  logical :: my_rank_writes_to_GWINFO
+  logical :: my_rank_writes_outputs
 
   ! kpt_latt_coord should have 3 coordinates for each k-point
   call assert( size( kpt_latt_coord, 1 ) == 3, &
@@ -81,11 +81,12 @@ subroutine execute_task_vxc( first_band, last_band, kpt_latt_coord, file_format,
   call input_parameters%parse_input( input%gw, n_kpoints_max )
   call input_parameters%k_points%obtain_list_of_indexes()
 
-  if( my_rank_writes_to_GWINFO ) call write_to_gwinfo_boxmessage( '=', 'task: ' // task_name )
+  my_rank_writes_outputs = ( mpi_env%rank == mpi_env%root )
+  if( my_rank_writes_outputs ) call write_to_gwinfo_boxmessage( '=', 'task: ' // task_name )
   associate( list => input_parameters%k_points%list_of_indexes )
     call calcvxcnn( ibgw_including_degeneracy, nbgw_including_degeneracy, list, kpt_latt_coord(:, list), mpi_env )
   end associate
-  if( mpi_env%rank == 0 ) call write_vxcnn( file_format, first_band, last_band )
+  if( my_rank_writes_outputs ) call write_vxcnn( file_format, first_band, last_band )
   call deallocate_vxcnn
   
 end subroutine

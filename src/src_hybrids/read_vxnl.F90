@@ -2,7 +2,8 @@
 subroutine read_vxnl()
 
     use modmain,     only: nkpt, nstfv, wkpt
-    use mod_hybrids, only: vxnl, fname_vxnl, nomax
+    use mod_bands,   only: nomax
+    use mod_hybrids, only: vxnl, fname_vxnl
     use modmpi,      only: rank
     use m_getunit
     implicit none

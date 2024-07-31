@@ -4,6 +4,7 @@ subroutine calcwings(ik, iq, iomstart, iomend, ndim, mstart, mend)
     use constants, only: fourpi
     use constants, only: zzero, zone
     use modgw
+    use mod_bands, only: nomax, evalfv
     implicit none
 
     ! input variables

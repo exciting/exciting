@@ -47,14 +47,14 @@
         </invertEpsilon>
       </taskGroup>      
       <mixbasis 
-          epsmb="1d-3"
-          gmb="0.8d0"
-          lmaxmb="3">
+          epsmb="1d-1"
+          gmb="0.5d0"
+          lmaxmb="2">
       </mixbasis>
       <barecoul
-          pwm="1.0d0"
+          pwm="0.7d0"
           basis="pw"
-          barcevtol="0.1d0"
+          barcevtol="0.5d0"
           cutofftype="2d">
       </barecoul>
       <freqgrid

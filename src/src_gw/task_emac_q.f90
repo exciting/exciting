@@ -135,7 +135,7 @@ subroutine task_emac_q()
       !========================================
       ! Set v-diagonal MB and reduce its size
       !========================================
-      call setbarcev(input%gw%barecoul%barcevtol)
+      call setbarcev(input%gw%barecoul%barcevtol, Gamma )
       call delete_coulomb_potential
 
       !===================================

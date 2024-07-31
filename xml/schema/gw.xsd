@@ -345,6 +345,19 @@
                       <xs:sequence>
                         <xs:element ref="qpoints" minOccurs="1" maxOccurs="unbounded"/>
                       </xs:sequence>
+                      <xs:attribute ex:importance="experimental" ex:unit="" name="eigenvalueThreshold" type="fortrandouble" default="0.0d0">
+                        <xs:annotation>
+                          <xs:documentation>
+                            Discard the eigenvalues below this threshold
+                            and the corresponding eigenvectors of the matrix
+                            <inlinemath>v_{ij}(\mathbf{q})</inlinemath> with the Coulomb potential 
+                            (see Computer Physics Communications <b>184</b>, 348 (2013)).
+                            Negative eigenvalues are not expected and can be obtained due to numerical 
+                            issues. It is therefore recommended to set <attref>eigenvalueThreshold</attref> to 
+                            <pre>0d0</pre>, unless there is a valid reason not to do so.
+                          </xs:documentation>
+                        </xs:annotation>
+                      </xs:attribute>
                     </xs:complexType>
                   </xs:element>
 
@@ -366,7 +379,7 @@
                         <xs:annotation>
                           <xs:documentation>When <pre>true</pre>, print the RPA Polarizability factor 
                           <inlinemath>F_{nm}(\mathbf{k},\mathbf{q},\omega)</inlinemath> (please refer to
-                            Computer Physics Communications 184, 348 (2013)).
+                            Computer Physics Communications <b>184</b>, 348 (2013)).
                             The output files are named as <pre>POLARIZABILITY_FACTOR_Q*.OUT</pre>, 
                             where <pre>*</pre> is the index of the
                             <inlinemath>\mathbf{q}</inlinemath>-point.
@@ -435,6 +448,23 @@
                         The diagonal matrix elements of the exchange-correlation potential 
                         are calculated for each <inlinemath>\mathbf{k}</inlinemath>-point 
                         and printed out in <pre>VXCNN.OUT</pre> (<pre>VXCNN.DAT</pre>) 
+                        in binary (text) format.
+                      </xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element ref="kpoints" minOccurs="1" maxOccurs="unbounded"/>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+
+                  <xs:element ex:importance="experimental" ex:unit="" name="QPEigenvalues" maxOccurs="1" minOccurs="0">
+                    <xs:annotation>
+                      <xs:documentation>
+                        Setup for the task <pre>"QPEigenvalues"</pre>.
+                        The QP-corrected eigenvalues are evaluated
+                        for each <inlinemath>\mathbf{k}</inlinemath>-point 
+                        and printed out in <pre>EVALQP.OUT</pre> (<pre>EVALQP.DAT</pre>) 
                         in binary (text) format.
                       </xs:documentation>
                     </xs:annotation>

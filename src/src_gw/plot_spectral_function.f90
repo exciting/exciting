@@ -4,7 +4,8 @@ subroutine plot_spectral_function()
     use modmain,        only: pi, efermi
     use mod_vxc,        only: vxcnn
     use mod_selfenergy, only: selfex, selfec, freq_selfc, deltaE
-    use modgw,          only: ibgw, nbgw, kset, evalfv
+    use modgw,          only: ibgw, nbgw, kset
+    use mod_bands,      only: evalfv
     implicit none
     integer(4) :: ik, ib, iw, n
     real(8) :: w, sRe, sIm, div

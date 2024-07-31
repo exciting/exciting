@@ -1,10 +1,11 @@
 subroutine task_band_specfunc()
 
-    use modinput
+    use modinput, only: input
     use modmain
     use modgw
     use mod_vxc, only: vxcnn, read_vxcnn, deallocate_vxcnn
     use mod_frequency
+    use mod_bands, only: evalfv, bandstructure_analysis
 
     implicit none
     integer(4) :: ik, ib, ib0, ik_path
@@ -65,8 +66,8 @@ subroutine task_band_specfunc()
     &                   kset%ntet, kset%tnodes, kset%wtet,kset%tvol, &
     &                   efermi, egap, fermidos)
     call bandstructure_analysis('KS', &
-                                ibgw, nbgw, kset%nkpt, &
-                                evalks(ibgw:nbgw,:), efermi)
+                                ibgw, &
+                                evalks(ibgw:nbgw,:), efermi, .true.)
 
     ! non-reduced k-points
     call generate_k_vectors(ksetnr, &

@@ -2,6 +2,7 @@ subroutine eptest(ik,jk,iq)
 
     use modmain
     use modgw
+    use mod_bands, only: eveckalm, eveckpalm, eveck, eveckp
 
     implicit none
     integer(4), intent(in) :: ik     ! index of the k-point.

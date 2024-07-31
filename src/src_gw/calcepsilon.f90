@@ -8,6 +8,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
     use modgw
     use mod_mpi_gw, only : myrank
     use modxs,      only : symt2
+    use mod_bands, only: nstdf, nomax, numin, eveckpalm, eveckalm, eveck, eveckp
     
     implicit none
     ! input/output

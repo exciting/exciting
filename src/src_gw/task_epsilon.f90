@@ -2,23 +2,21 @@
 !> task `epsilon`, used as an element of `taskGroup` in `gw`
 module task_epsilon
   use asserts, only: assert
+  use constants, only: real_zero
   use exciting_mpi, only: mpiinfo
-  use gw_io, only: write_to_file, build_file_name, write_to_gwinfo, write_to_gwinfo_boxmessage
+  use gw_io, only: write_to_file, write_to_gwinfo, write_to_gwinfo_boxmessage
   use math_utils, only: all_zero
-  use modgw, only: freq, fgw, kset, kqset, Gset, Gqbarc, Gkset, Gqset, ciw, kiw
+  use modgw, only: kqset
   use modinput, only: input, gw_type
   use modmpi, only: terminate_if_false, mpiglobal, distribute_loop
-  use mod_bands, only: evalfv
-  use mod_coulomb_potential, only: read_coulomb_potential_from_file
+  use mod_coulomb_potential, only: delete_coulomb_potential, read_barcev_vmat_from_file, calculate_sqrt_bare_coulomb
   use mod_dielectric_function, only: write_epsilon_to_file, init_dielectric_function, delete_dielectric_function
-  use mod_frequency, only: delete_freqgrid
-  use mod_kpointset, only: delete_k_vectors, delete_kq_vectors, delete_G_vectors, &
-    & delete_Gk_vectors
   use mod_kqpts, only: kpoints_sets
-  use mod_misc_gw, only: Gamma
-  use mod_product_basis, only: mbsiz, read_sgi_from_file
+  use mod_misc_gw, only: Gamma, gammapoint
+  use mod_product_basis, only: mbsiz, read_sgi_from_file, mpwipw
   use mod_selfenergy, only: singc1, singc2
   use precision, only: dp, i32
+  use to_char_conversion, only: to_char
 
   implicit none
 
@@ -36,8 +34,7 @@ module task_epsilon
     type(kpoints_sets) :: q_points
     integer(i32) :: n_omega
     character(len=max_length) :: output_format
-    character(len=max_length) :: screened_coulomb_model
-    logical :: calculate_momentum_matrix
+    real(dp) :: eigenvalue_cutoff_Coulomb_matrix
   contains
     procedure :: parse_input, sanity_checks
   end type
@@ -54,9 +51,8 @@ subroutine parse_input( this, gw_inp, n_qpt )
   call this%sanity_checks( gw_inp )
   call this%q_points%parse_input( gw_inp%taskGroup%epsilon%qpointsarray, n_qpt )
   this%n_omega = gw_inp%freqgrid%nomeg
-  this%screened_coulomb_model = gw_inp%scrcoul%scrtype
   this%output_format = trim( adjustl( gw_inp%taskGroup%outputFormat ) )
-  this%calculate_momentum_matrix = .not. gw_inp%rpmat !rpmat means "read pmat"
+  this%eigenvalue_cutoff_Coulomb_matrix = gw_inp%barecoul%barcevtol
 end subroutine
 
 
@@ -86,7 +82,7 @@ subroutine execute_task_epsilon( n_qpoints_max, file_format )
 
   integer(i32) :: iq, i, i_start, i_end, omega_i, omega_f
   integer(i32), parameter :: maxlen=60
-  character(len=maxlen) :: string
+  real(dp) :: eigenvalue_cutoff
   type(task_epsilon_parameters) :: input_parameters
   type(mpiinfo) :: mpi_environment_qpoints
   
@@ -99,18 +95,17 @@ subroutine execute_task_epsilon( n_qpoints_max, file_format )
   
   omega_i = 1
   omega_f = input_parameters%n_omega
+  eigenvalue_cutoff = max( real_zero, input_parameters%eigenvalue_cutoff_Coulomb_matrix )
   ! Attention: calcpmatgw makes use of MPI parallelization and calls a mpi_barrier
   if( isGammaInList( kqset%vqc(:,input_parameters%q_points%list_of_indexes) ) ) call calcpmatgw
   do i = i_start, i_end
     iq = input_parameters%q_points%list_of_indexes(i)
-    if( mpiglobal%rank == 0) then
-      write( string, * ) '('//task_name//'): q-point cycle, iq = ', iq
-      call write_to_gwinfo( string )
-    end if
-    call read_coulomb_potential_from_file( iq, file_format )
+    if( mpiglobal%rank == 0) call write_to_gwinfo( '('//task_name//'): q-point cycle, iq = ' // to_char( iq ) )
     call read_sgi_from_file( iq, file_format )
     call calcmpwipw( iq )
-    Gamma = all_zero( kqset%vqc(:,iq), tol=1.e-6_dp )
+    call read_barcev_vmat_from_file( iq, file_format )
+    Gamma = gammapoint( kqset%vqc(:,iq), tol=1.e-6_dp )
+    call calculate_sqrt_bare_coulomb( iq, eigenvalue_cutoff, Gamma )
     call init_dielectric_function( mbsiz, omega_i, omega_f, Gamma )
     call calcepsilon( iq, omega_i, omega_f )
     call write_epsilon_to_file( iq, Gamma, file_format )
@@ -137,16 +132,7 @@ end function
 !> Deallocate global arrays needed to obtain the dielectric matrix
 subroutine deallocate_global_arrays
   call delete_dielectric_function( Gamma=.true. )
-  if (allocated(kiw)) deallocate(kiw)
-  if (allocated(ciw)) deallocate(ciw)
-  if (allocated(evalfv)) deallocate(evalfv)
-  call delete_freqgrid(freq)
-  call delete_k_vectors(kset)
-  call delete_G_vectors(Gset)
-  call delete_Gk_vectors(Gkset)
-  call delete_kq_vectors(kqset)
-  call delete_Gk_vectors(Gqset)
-  call delete_Gk_vectors(Gqbarc)
+  call delete_coulomb_potential
 end subroutine
 
 end module
