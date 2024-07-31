@@ -11,6 +11,7 @@ subroutine task_eps_r
     use m_getunit
     use mod_hdf5
     use mod_rpath
+    use mod_bands, only: evalfv
             
     implicit none
     integer(4) :: ikp, iq, fid, ik
@@ -138,7 +139,7 @@ subroutine task_eps_r
       !========================================
       ! Set v-diagonal MB and reduce its size
       !========================================
-      call setbarcev(input%gw%barecoul%barcevtol)
+      call setbarcev(input%gw%barecoul%barcevtol, Gamma)
       
       !===================================
       ! Calculate the dielectric function

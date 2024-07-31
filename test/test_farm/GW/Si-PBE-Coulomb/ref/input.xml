@@ -18,31 +18,31 @@
 
    <groundstate
       do="fromscratch"
-      rgkmax="6.0"
+      rgkmax="4.0"
       ngridk="2 2 2"
       xctype="GGA_PBE"
       epsengy="1.e-6"
-      gmaxvr="15.0">
+      gmaxvr="8.0">
    </groundstate>
 
    <gw
       taskname="taskGroup"
-      ngridq="2 2 2"
+      ngridq="1 1 2"
       nempty="10"
       ibgw="1"
       nbgw="10"
       coreflag="xal"
       skipgnd="false">
       <taskGroup outputFormat="text">
-        <Coulomb>
+        <Coulomb eigenvalueThreshold="0.01d0">
           <qpoints qi="1" qf="-1"/>
         </Coulomb>
       </taskGroup>
       
       <mixbasis
-        lmaxmb="3"
-        epsmb="1.d-3"
-        gmb="1.0">
+        lmaxmb="2"
+        epsmb="1.d-1"
+        gmb="0.7">
       </mixbasis>
 
       <freqgrid
@@ -57,7 +57,7 @@
       <barecoul
         basis="mb"
 	barcevtol="0.2"
-        pwm="1.0">
+        pwm="0.7">
       </barecoul>
       
       <selfenergy

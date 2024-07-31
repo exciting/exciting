@@ -239,31 +239,21 @@ GW/MoS2-LDA-Coulomb:
       - "Mo.xml"
       - "S.xml"
 
-GW/MoS2-LDA-epsilon:
-   failing_builds:
-      - !Build intel_mpiandsmp 
-      # Results with intel_mpiandsmp are unstable in the pipelines
-      # See Issue #175 and the last comments in the MR !549
+GW/MoS2-LDA-epsilon-sum:
    files_under_test:
       - "EPSH.OUT"
       - "EPSW1.OUT"
       - "EPSW2.OUT"
       - "EPSILON-GW_Q1.OUT"
       - "EPSILON-GW_Q2.OUT"
-      - "EPSILON-GW_Q3.OUT"
-      - "EPSILON-GW_Q4.OUT"
    inputs:
       - "input.xml"
       - "Mo.xml"
       - "S.xml"
       - "SGI_Q1.OUT"
       - "SGI_Q2.OUT"
-      - "SGI_Q3.OUT"
-      - "SGI_Q4.OUT"
       - "BARC_Q1.OUT"
       - "BARC_Q2.OUT"
-      - "BARC_Q3.OUT"
-      - "BARC_Q4.OUT"
 
 GW/MoS2-LDA-epsilon-tet:
    files_under_test:
@@ -272,24 +262,16 @@ GW/MoS2-LDA-epsilon-tet:
       - "EPSW2.OUT"
       - "EPSILON-GW_Q1.OUT"
       - "EPSILON-GW_Q2.OUT"
-      - "EPSILON-GW_Q3.OUT"
-      - "EPSILON-GW_Q4.OUT"
       - "POLARIZABILITY_FACTOR_Q1.OUT"
       - "POLARIZABILITY_FACTOR_Q2.OUT"
-      - "POLARIZABILITY_FACTOR_Q3.OUT"
-      - "POLARIZABILITY_FACTOR_Q4.OUT"
    inputs:
       - "input.xml"
       - "Mo.xml"
       - "S.xml"
       - "SGI_Q1.OUT"
       - "SGI_Q2.OUT"
-      - "SGI_Q3.OUT"
-      - "SGI_Q4.OUT"
       - "BARC_Q1.OUT"
       - "BARC_Q2.OUT"
-      - "BARC_Q3.OUT"
-      - "BARC_Q4.OUT"
 
 GW/MoS2-LDA-invertEpsilon:
    files_under_test:
@@ -351,24 +333,33 @@ GW/MoS2-LDA-vxc:
       - "Mo.xml"
       - "S.xml"
 
+GW/MoS2-LDA-QPEigenvalues:
+   files_under_test:
+      - "EVALQP.DAT"
+   inputs:
+      - "input.xml"
+      - "Mo.xml"
+      - "S.xml"
+      - "VXCNN.DAT"
+      - "SIGMAX_K1.OUT"
+      - "SIGMAX_K2.OUT"
+      - "SIGMAC_K1.OUT"
+      - "SIGMAC_K2.OUT"
+
+GW/MoS2-LDA-taskGroup:
+   files_under_test:
+      - "EVALQP.DAT"
+   inputs:
+      - "input.xml"
+      - "Mo.xml"
+      - "S.xml"
+
 GW/Si-PBE-Coulomb:
    files_under_test:
       - "SGI_Q1.OUT"
       - "SGI_Q2.OUT"
-      - "SGI_Q3.OUT"
-      - "SGI_Q4.OUT"
-      - "SGI_Q5.OUT"
-      - "SGI_Q6.OUT"
-      - "SGI_Q7.OUT"
-      - "SGI_Q8.OUT"
       - "BARC_Q1.OUT"
       - "BARC_Q2.OUT"
-      - "BARC_Q3.OUT"
-      - "BARC_Q4.OUT"
-      - "BARC_Q5.OUT"
-      - "BARC_Q6.OUT"
-      - "BARC_Q7.OUT"
-      - "BARC_Q8.OUT"
    inputs:
       - "input.xml"
       - "Si.xml"

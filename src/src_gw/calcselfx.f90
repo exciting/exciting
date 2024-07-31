@@ -1,6 +1,6 @@
 !> Calculate the q-dependent self-energy contribution for the given k-points.
 !> Remark: To obtain the complete self-energy, it must be then summed over all q-points
-subroutine calcselfx(iq, ikp_first, ikp_last, evaluate_sqrt_of_bare_Coulomb)
+subroutine calcselfx(iq, ikp_first, ikp_last)
     use constants, only: zzero, zone, pi, real_zero, fourpi
     use modinput, only: input
     use modgw, only: ibgw, nbgw, kset, kqset, Gkqset, fdebug, time_selfx, kiw, ciw
@@ -31,8 +31,6 @@ subroutine calcselfx(iq, ikp_first, ikp_last, evaluate_sqrt_of_bare_Coulomb)
     integer(i32), intent(in) :: ikp_first
     !> index of the last k-point (in the reduced BZ) to evaluate the self-energy
     integer(i32), intent(in) :: ikp_last
-    !> if true, evaluate the square root of the matrix with the bare Coulomb potential
-    logical, intent(in) :: evaluate_sqrt_of_bare_Coulomb
 
     ! local
     integer(i32) :: ik, ikp, jk
@@ -53,25 +51,15 @@ subroutine calcselfx(iq, ikp_first, ikp_last, evaluate_sqrt_of_bare_Coulomb)
 
     ! singular term prefactor (q->0)
     sxs2 = fourpi * vi
+    if( vccut ) sxs2 = real_zero
 
     !----------------------------------------
     ! Set v-diagonal mixed product basis set
     !----------------------------------------
-    if( evaluate_sqrt_of_bare_Coulomb ) then 
-      if (vccut) then
-        sxs2 = real_zero
-        mbsiz = matsiz
-        if (allocated(barc)) deallocate(barc)
-        allocate(barc(matsiz,mbsiz), source=zzero)
-        do im = 1, matsiz
-          if (barcev(im) > real_zero) then
-            vc = cmplx(barcev(im), 0.0_dp, kind=dp)
-            barc(:,im) = vmat(:,im) * sqrt(vc)
-          end if
-        end do
-      else
-        call setbarcev(real_zero)
-      end if
+    if (vccut) then
+      call setbarcev( real_zero, .false. )
+    else
+      call setbarcev( real_zero, Gamma )
     end if
 
     !--------------------------------------------------
@@ -90,16 +78,11 @@ subroutine calcselfx(iq, ikp_first, ikp_last, evaluate_sqrt_of_bare_Coulomb)
     allocate(eveckp(nmatmax,nstfv))
 
     allocate(minmmat(mbsiz,ibgw_including_degeneracy:nbgw_including_degeneracy,1:mdim), source=zzero)
-    ! msize = sizeof(minmmat)*b2mb
-    ! write(*,'(" calcselfx: rank, size(minmmat) (Mb):",i4,f12.2)') myrank, msize
 
     !================================
     ! loop over irreducible k-points
     !================================
-    ! write(*,*)
     do ikp = ikp_first, ikp_last
-      ! write(*,*) 'calcselfx: rank, (iq, ikp):', myrank, iq, ikp
-
       ! k vector
       ik = kset%ikp2ik(ikp)
       ! k-q vector

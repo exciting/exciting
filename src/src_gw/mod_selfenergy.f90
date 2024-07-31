@@ -1,59 +1,60 @@
 
 module mod_selfenergy
     use constants, only: zzero
-    use gw_io, only: build_file_name, read_from_file, write_to_file
-    use mod_frequency
+    use gw_io, only: build_file_name, read_from_file, write_to_file, read_bounds_from_file
+    use mod_frequency, only: frequency, generate_freqgrid
     use precision, only: i32, dp
 
     implicit none
 
-    type(frequency) :: freq_selfc
+    private 
+
+    type(frequency), public :: freq_selfc
 
     !--------------!
     ! self-energy  !
     !--------------!
 
     ! The exchange self-energy
-    complex(dp), allocatable :: selfex(:,:)
+    complex(dp), allocatable, public :: selfex(:,:)
 
     ! Sum_ij{M^i*W^c_{ij}*conjg(M^j)}
-    complex(dp), allocatable :: mwm(:,:,:)
-    target mwm
+    complex(dp), allocatable, public, target :: mwm(:,:,:)
 
     ! The correlation self-energy
-    complex(dp), allocatable :: selfeph(:,:,:)
-    complex(dp), allocatable :: selfeph0(:,:)
-    real(dp),    allocatable :: speceph(:,:,:)
-    complex(dp), allocatable :: selfec(:,:,:)
+    complex(dp), allocatable, public :: selfeph(:,:,:)
+    complex(dp), allocatable, public :: selfeph0(:,:)
+    real(dp),    allocatable, public :: speceph(:,:,:)
+    complex(dp), allocatable, public :: selfec(:,:,:)
 
     ! Correction factors for (q^-1) and (q^-2) singularities
-    real(dp) :: singc1
-    real(dp) :: singc2
+    real(dp), public :: singc1
+    real(dp), public :: singc2
 
     !-------------!
     ! QP Energy   !
     !-------------!
 
     ! Original KS energies (evalfv will updated via self-consistent cycle)
-    real(dp) :: eferks
-    real(dp), allocatable :: evalks(:,:)
+    real(dp), public :: eferks
+    real(dp), allocatable, public :: evalks(:,:)
 
     ! QP energies
-    real(dp) :: eferqp
-    real(dp), allocatable :: evalqp(:,:)
+    real(dp), public :: eferqp
+    real(dp), allocatable, public :: evalqp(:,:)
 
     ! Chemical potential alignment
-    real(dp) :: deltaE
+    real(dp), public :: deltaE
 
     ! Linearization (renormalization) factor
-    real(dp),    allocatable :: znorm(:,:)
+    real(dp),    allocatable, public :: znorm(:,:)
 
     ! AC to the real axis of the correlation self-energy (selfec)
-    complex(dp), allocatable :: sigc(:,:)
+    complex(dp), allocatable, public :: sigc(:,:)
 
     ! COHSEX approximation
-    complex(dp), allocatable :: sigsx(:,:) ! Screened exchange
-    complex(dp), allocatable :: sigch(:,:) ! Coulomb hole
+    complex(dp), allocatable, public :: sigsx(:,:) ! Screened exchange
+    complex(dp), allocatable, public :: sigch(:,:) ! Coulomb hole
 
     !----------------------------------------------------------------------
     ! files to store the self-energy
@@ -61,14 +62,19 @@ module mod_selfenergy
     character(len=*), parameter, private :: file_name_sigmax = 'SIGMAX_K'
     character(len=*), parameter, private :: file_name_sigmac = 'SIGMAC_K'
 
+    public :: init_selfenergy, plot_selfc, plot_selfc_iw, &
+              generate_frequency_grid_for_correlation_self_energy, &
+              write_selfec_single_kpoint, write_selfex_single_kpoint, &
+              write_selfenergy_binary, delete_selfenergy, &
+              read_selfec_from_files, read_selfex_from_files
+
 contains
 
     !---------------------------------------------------------------------------
     subroutine init_selfenergy(ibgw,nbgw,nkpt)
         use modinput, only: input
-        implicit none
-        integer, intent(in) :: ibgw, nbgw
-        integer, intent(in) :: nkpt
+        integer(i32), intent(in) :: ibgw, nbgw
+        integer(i32), intent(in) :: nkpt
         ! local
         integer(i32) :: nw
 
@@ -156,13 +162,12 @@ contains
 
     !---------------------------------------------------------------------------
     subroutine write_selfenergy_binary(ibgw,nbgw,nkpt,nw)
-      use modinput
-      implicit none
-      integer, intent(in) :: ibgw, nbgw
-      integer, intent(in) :: nkpt
-      integer, intent(in) :: nw
+      use modinput, only: input
+      integer(i32), intent(in) :: ibgw, nbgw
+      integer(i32), intent(in) :: nkpt
+      integer(i32), intent(in) :: nw
       ! local variables
-      integer :: fid, ie, ik, iom
+      integer(i32) :: fid, ie, ik, iom
       fid = 777
       ! exchange
       open(fid,file='SELFX.OUT',form='UNFORMATTED',status='UNKNOWN')
@@ -186,14 +191,12 @@ contains
     ! NOTE. Not tested - how does it behave when running with MPI w.r.t. ik?
     subroutine write_exchange_selfenergy(ibgw, nbgw, nkpt)
       !> Band limits for which GW correction is applied
-      integer, intent(in) :: ibgw, nbgw
+      integer(i32), intent(in) :: ibgw, nbgw
       !>  Number of k-points 
-      integer, intent(in) :: nkpt     
-      !> Exchange self-energy   
-      !complex(dp), intent(in) :: selfex(:, :)
+      integer(i32), intent(in) :: nkpt
       !> ile ID unit
-      integer :: fid                      
-      integer :: ik, ie
+      integer(i32) :: fid                      
+      integer(i32) :: ik, ie
 
       open(newunit=fid, file='SELFX.DAT', form='FORMATTED', status='UNKNOWN')
       write(fid, *) '# first band, last band, N k-points'
@@ -214,16 +217,14 @@ contains
     ! NOTE. Not tested - how does it behave when running with MPI w.r.t. ik?
     subroutine write_correlation_selfenergy(ibgw, nbgw, nw, nkpt)
       !> Band limits for which GW correction is applied
-      integer, intent(in) :: ibgw, nbgw
+      integer(i32), intent(in) :: ibgw, nbgw
       !>  Number of frequency points 
-      integer, intent(in) :: nw
+      integer(i32), intent(in) :: nw
       !>  Number of k-points 
-      integer, intent(in) :: nkpt     
-      !> Correlation self-energy   
-      !complex(dp), intent(in) :: selfec(:, :, :)
-      !> ile ID unit
-      integer :: fid                      
-      integer :: ik, ie, iom
+      integer(i32), intent(in) :: nkpt
+      
+      integer(i32) :: fid                      
+      integer(i32) :: ik, ie, iom
 
       open(newunit=fid, file='SELFC.DAT', form='FORMATTED', status='UNKNOWN')
       write(fid, *) '# first band, last band, N k-points, N frequencies'
@@ -256,6 +257,30 @@ contains
 
     end subroutine
 
+
+    !> Read the exchange part of the self-energy from files
+    subroutine read_selfec_from_files( kpt_indexes, file_format )
+      !> List of k-point indexes
+      integer(i32), intent(in) :: kpt_indexes(:)
+      !> Format of the file where to print. It can be e.g. 'text' or 'binary'
+      character(len=*), intent(in) :: file_format
+
+      integer(i32) :: i, lbounds(2), ubounds(2)
+      integer(i32), parameter :: maxlen = 30
+      character(len=maxlen) :: file_name
+      
+      call build_file_name( file_name_sigmac, kpt_indexes(1), file_name )
+      call read_bounds_from_file( file_name, file_format, lbounds, ubounds )
+      if( allocated(selfec) ) deallocate(selfec)
+      allocate( selfec(lbounds(1):ubounds(1), lbounds(2):ubounds(2), 1:size(kpt_indexes)) )
+      do i = 1, size( kpt_indexes )
+        call build_file_name( file_name_sigmac, kpt_indexes(i), file_name )
+        call read_from_file( file_name, selfec(:, :, i), lbound(selfec), file_format )
+      end do
+
+    end subroutine
+
+
     !> Write the exchange part of the self-energy for a given k-point
     subroutine write_selfex_single_kpoint( ik, file_format )
       !> Index of the current k-point
@@ -272,9 +297,31 @@ contains
     end subroutine
 
 
+    !> Read the exchange part of the self-energy from files
+    subroutine read_selfex_from_files( kpt_indexes, file_format )
+      !> List of k-point indexes
+      integer(i32), intent(in) :: kpt_indexes(:)
+      !> Format of the file where to print. It can be e.g. 'text' or 'binary'
+      character(len=*), intent(in) :: file_format
+
+      integer(i32) :: i, l_bound(1), u_bound(1)
+      integer(i32), parameter :: maxlen = 30
+      character(len=maxlen) :: file_name 
+      
+      call build_file_name( file_name_sigmax, kpt_indexes(1), file_name )
+      call read_bounds_from_file( file_name, file_format, l_bound, u_bound )
+      if( allocated(selfex) ) deallocate(selfex)
+      allocate( selfex(l_bound(1):u_bound(1), 1:size(kpt_indexes)) )
+      do i = 1, size( kpt_indexes )
+        call build_file_name( file_name_sigmax, kpt_indexes(i), file_name )
+        call read_from_file( file_name, selfex(:, i), l_bound(1), file_format )
+      end do
+
+    end subroutine
+
+
     !---------------------------------------------------------------------------
     subroutine plot_selfc_iw()
-      implicit none
       integer(i32) :: ik, iw, nk, nb
       character(22) :: frmt
       nb = size(selfec,1)
@@ -306,7 +353,6 @@ contains
 
     !---------------------------------------------------------------------------
     subroutine plot_selfc()
-      implicit none
       integer(i32) :: ik, nk, nb, iw
       real(dp) :: w
       character(22) :: frmt

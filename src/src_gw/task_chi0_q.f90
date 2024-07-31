@@ -9,6 +9,7 @@ subroutine task_chi0_q
     use m_getunit
     use mod_hdf5
     use mod_rpath
+    use mod_bands, only: evalfv
             
     implicit none
     integer(4) :: ikp, iq, fid, ik, im, iom, nempty

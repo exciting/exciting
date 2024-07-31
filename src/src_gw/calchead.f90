@@ -5,6 +5,7 @@ subroutine calchead(ik, iomstart, iomend,ndim)
     use modinput
     use modmain, only : zzero, zone, pi, evalcr, idxas
     use modgw
+    use mod_bands, only: numin, nstdf, nomax, evalfv, metallic
     implicit none
 
     ! input/output

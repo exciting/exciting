@@ -14,7 +14,7 @@ subroutine gw_main()
     use task_group, only: execute_task_group
 
     implicit none
-    integer :: ik
+    
     real(8) :: tstart, tend
 
     !--------------------------------------------

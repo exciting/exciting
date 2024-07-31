@@ -12,21 +12,39 @@ subroutine task_gw()
 ! quasiparticle energies.
 !
 !!USES:
-    use modinput
-    use modmain, only: zzero, efermi
-    use modgw
-    use mod_coulomb_potential
+    use constants, only: zzero
     use invert_dielectric_function, only: calcinveps
-    use modxs, only: symt2
-    use mod_vxc, only: calcvxcnn, write_vxcnn
-    use mod_mpi_gw
+    use mod_bands, only: evalfv, occfv, bandstructure_analysis
+    use mod_coulomb_potential, only: barc, delete_coulomb_potential, calculate_singularities_coeff
+    use mod_dielectric_function, only: eps00, epsh, epsw1, epsw2, epsilon, init_dielectric_function, &
+      delete_dielectric_function
+    use mod_frequency, only: delete_freqgrid
     use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
-    use m_getunit
+    use mod_kpointset, only: delete_Gk_vectors, delete_k_vectors, delete_kq_vectors, delete_G_vectors
+    use mod_mpi_gw, only: myrank, myrank_col, nproc_col, myrank_row, mycomm_row, nproc_row, &
+      iomcnt, iomdsp, iomstart, iomend, iqstart, iqend
+#ifdef MPI
+    use mod_mpi_gw, only: set_mpi_group, mpi_set_range, mpi_sum_array
+#endif
+    use mod_misc_gw, only: Gamma, gammapoint
+    use mod_product_basis, only: mpwipw, locmatsiz, mbsiz, matsiz
+    use mod_selfenergy, only: evalks, evalqp, eferks, eferqp, znorm, singc1, singc2, &
+      selfec, selfex, freq_selfc, sigc, sigsx, sigch, plot_selfc, plot_selfc_iw, &
+      init_selfenergy, write_selfenergy_binary, delete_selfenergy
+    use mod_vxc, only: calcvxcnn, write_vxcnn, vxcnn
+    use modinput, only: input, isspinorb
+    use modmpi, only: rank, mpiglobal, barrier
+    use modgw, only: fgw, kset, kqset, Gqset, Gkset, Gset, Gqbarc, ibgw, nbgw, nbandsgw, &
+      ciw, kiw, unw, kcw, freq, time_dfinv
+    use modxs, only: symt2
+    use quasiparticle_energies, only: write_qp_energies_text_format
+    use precision, only: dp, i32
 
 !!LOCAL VARIABLES:
     implicit none
-    integer(4) :: iq, ik
-    real(8)    :: t0, t1
+
+    integer(i32) :: iq, ik
+    real(dp)    :: t0, t1
 
 
 !!REVISION HISTORY:
@@ -48,7 +66,7 @@ subroutine task_gw()
     !=================================================
     ! it is better to do it here to deallocate cfunir and vxcir arrays
     call timesec(t0)
-    call calcvxcnn( ibgw_including_degeneracy, nbgw_including_degeneracy, [(ik, ik=1,kset%nkpt)], kset%vkl, mpiglobal )
+    call calcvxcnn( ibgw_including_degeneracy, nbgw_including_degeneracy, [(ik, ik=1,kset%nkpt)], kset%vkl(:, 1:kset%nkpt), mpiglobal )
     if (rank==0) then
       call write_vxcnn( 'binary', ibgw, nbgw )
       call write_vxcnn( 'text', ibgw, nbgw )
@@ -124,7 +142,6 @@ subroutine task_gw()
       !========================================
       matsiz = locmatsiz+Gqset%ngk(1,iq)
       call diagsgi(iq)
-      call write_sgi_to_file(iq, 'text')
       call calcmpwipw(iq)
 
       !======================================
@@ -135,13 +152,13 @@ subroutine task_gw()
       !===============================
       ! Calculate \Sigma^{x}_{kn}(q)
       !===============================
-      call calcselfx( iq, 1, kset%nkpt, .true. )
+      call calcselfx( iq, 1, kset%nkpt )
 
       if (input%gw%taskname /= 'g0w0-x') then
         !========================================
         ! Set v-diagonal MB and reduce its size
         !========================================
-        call setbarcev(input%gw%barecoul%barcevtol)
+        call setbarcev(input%gw%barecoul%barcevtol, Gamma)
         call delete_coulomb_potential
         !===================================
         ! Calculate the dielectric function
@@ -199,10 +216,6 @@ subroutine task_gw()
     !===============================================================================
 
     if (myrank == 0) then
-      do ik = 1, kset%nkpt
-        call write_selfex_single_kpoint( ik, 'text' )
-      end do
-
       if ((input%gw%taskname /= 'g0w0-x') .and. (input%gw%selfenergy%method == "ac")) then
         ! Analytical continuation of the correlation self-energy from the complex to the real frequency axis
         if (input%gw%printSelfC) call plot_selfc_iw()
@@ -227,7 +240,27 @@ subroutine task_gw()
 
       ! solve QP equation
       call calcevalqp()
-      call write_qp_energies('EVALQP.DAT')
+      ! Write QP energies into an output file
+      select case(input%gw%taskname)
+        case('g0w0')
+          call write_qp_energies_text_format( [(ik, ik=1,kset%nkpt)], kset%vkl(:, 1:kset%nkpt), kset%wkpt, &
+            ibgw, evalks, evalqp, real( vxcnn%diag_elements(ibgw:, :), dp ), selfex, sigc, znorm )
+        
+        case('g0w0-x')
+          if( allocated(sigc) ) deallocate( sigc )
+          allocate( sigc(ibgw:nbgw, kset%nkpt), source=zzero )
+          if( allocated(znorm) ) deallocate( znorm )
+          allocate( znorm(ibgw:nbgw, kset%nkpt), source=0._dp )
+          call write_qp_energies_text_format( [(ik, ik=1,kset%nkpt)], kset%vkl(:, 1:kset%nkpt), kset%wkpt, &
+            ibgw, evalks, evalqp, real( vxcnn%diag_elements(ibgw:, :), dp ), selfex, sigc, znorm )
+
+        case('cohsex')
+          if( allocated(znorm) ) deallocate( znorm )
+          allocate( znorm(ibgw:nbgw, kset%nkpt), source=0._dp )
+          call write_qp_energies_text_format( [(ik, ik=1,kset%nkpt)], kset%vkl(:, 1:kset%nkpt), kset%wkpt, &
+            ibgw, evalks, evalqp, real( vxcnn%diag_elements(ibgw:, :), dp ), sigsx, sigch, znorm )
+      
+      end select
       call putevalqp('EVALQP.OUT', kset, ibgw, nbgw, evalks, eferks, evalqp, eferqp)
 
       if (.not.isspinorb()) then
@@ -242,15 +275,15 @@ subroutine task_gw()
 
           case('g0w0-x')
             call bandstructure_analysis('G0W0-X band structure', &
-                ibgw, nbgw, kset%nkpt, evalqp(ibgw:nbgw,:), eferqp)
+                ibgw, evalqp(ibgw:nbgw,:), eferqp, .true.)
 
           case('cohsex')
             call bandstructure_analysis('COHSEX band structure', &
-                ibgw, nbgw, kset%nkpt, evalqp(ibgw:nbgw,:), eferqp)
+                ibgw, evalqp(ibgw:nbgw,:), eferqp, .true.)
 
           case('g0w0')
             call bandstructure_analysis('G0W0 band structure', &
-                ibgw, nbgw, kset%nkpt, evalqp(ibgw:nbgw,:), eferqp)
+                ibgw, evalqp(ibgw:nbgw,:), eferqp, .true.)
 
         end select
 

@@ -2,6 +2,7 @@ subroutine checkmbrot(iq)
     
     use modmain
     use modgw
+    use mod_bands, only: nomax, numin
     
     implicit none
     integer(4) :: iq, iqp

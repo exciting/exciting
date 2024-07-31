@@ -9,7 +9,7 @@ subroutine init_dft_eigenvalues()
     use mod_eigenvalue_occupancy, only: nstfv, efermi, occmax, fermidos 
     use mod_eigensystem, only: nmat, nmatmax
     use modgw, only: kset, kqset, ibgw, nvelgw, fgw, nbandsgw, nbgw
-    use mod_bands, only: numin, nomax, nstdf, nstse, evalfv, occfv
+    use mod_bands, only: numin, nomax, nstdf, nstse, evalfv, occfv, bandstructure_analysis
     use mod_gw_degeneracies, only: initialize_degeneracy_module, absolute_tolerance_gw_degeneracy, &
                                    relative_tolerance_gw_degeneracy
     use mod_mpi_gw, only : myrank
@@ -137,7 +137,7 @@ subroutine init_dft_eigenvalues()
     !---------------------------------------------------------
     ! Search for the indices of VBM and CBM (nomax and numin)
     !---------------------------------------------------------
-    call bandstructure_analysis('Kohn-Sham band structure', 1, nstfv, kset%nkpt, evalfv, efermi)
+    call bandstructure_analysis('Kohn-Sham band structure', 1, evalfv, efermi, .true.)
 
     !-----------------------------------------------------------------
     ! Check for consistency with specified QP bands range [ibgw,nbgw]

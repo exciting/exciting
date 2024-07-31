@@ -11,11 +11,12 @@
 !Calculate the product of an eigenvector with the corresponding matching coefficients
 !
 !!USES:
-    use modinput
+    use mod_bands, only: eveckalm, eveckpalm, eveck, eveckp
+    use modinput, only: input
     use modmain, only : ngkmax, apwordmax, lmmaxapw, natmtot, &
     &                   nspecies, natoms, idxas, idxlm, apword, nstfv, &
     &                   lsplsymc, isymlat, symlatc
-    use modgw,   only : kqset, Gkqset, eveckalm, eveckpalm, eveck, eveckp
+    use modgw,   only : kqset, Gkqset
 
 !!INPUT PARAMETERS:
     implicit none

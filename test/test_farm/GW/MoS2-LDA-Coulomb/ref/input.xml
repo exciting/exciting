@@ -23,8 +23,8 @@
       xctype="LDA_PW"
       ngridk="2 2 1"
       epsengy="1.0d-8"
-      gmaxvr="10"
-      rgkmax="4"
+      gmaxvr="6"
+      rgkmax="3.5"
       lmaxvr="5"
       lmaxmat="5"
       lmaxapw="5"
@@ -42,17 +42,17 @@
       ibgw="1"
       nbgw="20">
       <taskGroup outputFormat="text">
-        <Coulomb> 
+        <Coulomb eigenvalueThreshold="1.0d0"> 
           <qpoints qi="1" qf="-1"/>
         </Coulomb>
       </taskGroup>      
       <mixbasis 
-          epsmb="1d-3"
+          epsmb="1d-2"
           gmb="0.8d0"
-          lmaxmb="3">
+          lmaxmb="2">
       </mixbasis>
       <barecoul
-          pwm="1.0d0"
+          pwm="0.5d0"
           basis="pw"
           barcevtol="0.1d0"
           cutofftype="2d">

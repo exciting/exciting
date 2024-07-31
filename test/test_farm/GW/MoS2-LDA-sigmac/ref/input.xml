@@ -23,8 +23,8 @@
       xctype="LDA_PW"
       ngridk="2 1 1"
       epsengy="1.0d-8"
-      gmaxvr="10"
-      rgkmax="4"
+      gmaxvr="7"
+      rgkmax="3.5"
       lmaxvr="5"
       lmaxmat="5"
       lmaxapw="5"
@@ -48,12 +48,12 @@
         </sigmac>
       </taskGroup>      
       <mixbasis 
-          epsmb="1d-3"
-          gmb="0.8d0"
+          epsmb="1d-1"
+          gmb="0.5d0"
           lmaxmb="2">
       </mixbasis>
       <barecoul
-          pwm="0.5d0"
+          pwm="0.8d0"
           basis="pw"
           barcevtol="0.5d0"
           cutofftype="2d">
