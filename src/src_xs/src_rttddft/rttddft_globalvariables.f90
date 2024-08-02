@@ -19,14 +19,8 @@ module rttddft_GlobalVariables
   public :: &
     & apwalm, evecfv_gnd, evecfv_time, evecfv_save, evecsv, &
     & overlap, ham_time, ham_past, ham_predcorr, &
-    & aext, aind, atot, pvec, jpara, jparanext, jparaold, jparaspurious, &
-    & jdia, jind, &
-    & nkicks, dirkick, t0kick, wkick, amplkick, &
-    & ntrapcos, dirtrapcos, ampltrapcos, omegatrapcos, phasetrapcos, &
-    & t0trapcos, trtrapcos, wtrapcos, &
-    & nsinsq, dirsinsq, amplsinsq, omegasinsq, phasesinsq, &
-    & t0sinsq, tpulsesinsq, pmat, &
-    & mathcalH, mathcalB, B_time, B_past, pmatmt
+    & pvec, jpara, jparanext, jparaold, jparaspurious, jdia, jind, &
+    & pmat, mathcalH, mathcalB, B_time, B_past, pmatmt
 
   ! Global variables of general purpose
   !> Matching coefficients of the (L)APWs
@@ -51,8 +45,6 @@ module rttddft_GlobalVariables
   !> Auxiliary hamiltonian matrix, for the predictor-corrector loop
   complex(dp),allocatable   :: ham_predcorr(:,:,:)
 
-  ! Fields
-  real(dp)                  :: aext(3), aind(3), atot(3)
   !> Polarization field
   real(dp)                  :: pvec(3)
   !> Paramagnetic component of the current density
@@ -68,69 +60,6 @@ module rttddft_GlobalVariables
   real(dp)                  :: jdia(3)
   !> Total (induced) current density
   real(dp)                  :: jind(3)
-
-
-  ! Applied vector potential
-  ! Parameters of the delta-kicks
-  !> Number of applied impulsive pulses (delta-kicks)
-  integer                   :: nkicks
-  !> Direction (`x`, `y` or `z`) of each impulsive pulse
-  character,allocatable     :: dirkick(:)
-  !> Time \( t_0 \) of each impulsive pulse, see
-  !> [[Delta_Kick]]
-  real(dp), allocatable     :: t0kick(:)
-  !> Broadening of each impulsive pulse, see
-  !> [[Delta_Kick]]
-  real(dp), allocatable     :: wkick(:)
-  !> Amplitude \( -cE_0 \) of each pulse, see [[Delta_Kick]]
-  real(dp), allocatable     :: amplkick(:)
-
-  ! Parameters of cossine pulses modulated by a trapezoidal function
-  !> Number of applied cossine pulses modulated by a trapezoidal function
-  integer                   :: ntrapcos
-  !> Direction (`x`, `y` or `z`) of each cossine pulse modulated by a 
-  !> trapezoidal function
-  character,allocatable     :: dirtrapcos(:)
-  !> Amplitude \( A_0 \) of each pulse, see 
-  !> [[Cossine_with_Trapezoidal_Envelope]]
-  real(dp), allocatable     :: ampltrapcos(:)
-  !> Angular frequency of the cossine function of each pulse,
-  !> see [[Cossine_with_Trapezoidal_Envelope]]
-  real(dp), allocatable     :: omegatrapcos(:)
-  !> Phase of the cossine function of each pulse,
-  !> see [[Cossine_with_Trapezoidal_Envelope]]
-  real(dp), allocatable     :: phasetrapcos(:)
-  !> Time \( t_0 \) of each pulse,
-  !> see [[Cossine_with_Trapezoidal_Envelope]]
-  real(dp), allocatable     :: t0trapcos(:)
-  !> Rise time \( t_r \) of each pulse
-  !> see [[Cossine_with_Trapezoidal_Envelope]]
-  real(dp), allocatable     :: trtrapcos(:)
-  !> Witdh of the trapezoid of each pulse
-  !> see [[Cossine_with_Trapezoidal_Envelope]]
-  real(dp), allocatable     :: wtrapcos(:)
-
-  ! Parameters of cossine pulses modulated by sin squared
-  !> Number of applied cossine pulses modulated by sin squared
-  integer                   :: nsinsq
-  !> Direction (`x`, `y` or `z`) of each cossine pulse modulated by sin squared
-  character,allocatable     :: dirsinsq(:)
-  !> Amplitude \( A_0 \) of each pulse, see
-  !> see [[Cossine_with_Sinsquared_Envelope]]
-  real(dp), allocatable     :: amplsinsq(:)
-  !> Angular frequency of the cossine function of each pulse,
-  !> see [[Cossine_with_Sinsquared_Envelope]]
-  real(dp), allocatable     :: omegasinsq(:)
-  !> Phase of the cossine function of each pulse,
-  !> see [[Cossine_with_Sinsquared_Envelope]]
-  real(dp), allocatable     :: phasesinsq(:)
-  !> Time \( t_0 \) of each pulse,
-  !> see [[Cossine_with_Sinsquared_Envelope]]
-  real(dp), allocatable     :: t0sinsq(:)
-  !> Witdh of the sine squared for each pulse,
-  !> see [[Cossine_with_Sinsquared_Envelope]]
-  real(dp), allocatable     :: tpulsesinsq(:)
-
 
   !> Momentum matrix elements (projected onto the (L)APW+LO basis elements)
   complex(dp), allocatable  :: pmat(:,:,:,:)

@@ -3,30 +3,11 @@ module rttddft_input
   use modmpi, only: terminate
   use precision, only: dp, i32
   use rttddft_Wavefunction, only: propagator_types, propagator_type, propagator_keys
-  use rttddft_VectorPotential, only: solver_types, solver_type, euler
+  use rttddft_VectorPotential, only: Vector_Potential
 
   implicit none
 
   private
-
-  character(len=*), parameter :: field_total = 'total'
-  character(len=*), parameter :: field_external = 'external'
-
-  !> Enum with the type of applied field
-  !> There are 2 possibilities that the applied field can assume: "total" or "external"
-  enum, bind(C)
-    enumerator :: applied_field
-    enumerator :: total, external
-  end enum
-
-  !> Type to encapsulate the elements and attributes defined in the laser element
-  type :: laser_keys
-    !> Type of field used for the vector potential
-    integer(kind(applied_field)), private   :: field_type
-  contains
-    procedure         :: is_field_type_external => laser_is_field_type_external
-    procedure         :: is_field_type_total => laser_is_field_type_total
-  end type
 
   type :: screenshot_keys
     !> If `.true.`, take screenshots during the RT-TDDFT evolution
@@ -52,8 +33,6 @@ module rttddft_input
 
   !> Type to encapsulate the elements and attributes defined in the input file
   type, public :: rttddft_input_keys
-    !> Type to encapsulate the elements and attributes of laser
-    type(laser_keys)                        :: laser
     !> Type to encapsulate the attributes of screenshots
     type(screenshot_keys)                   :: screenshots
     !> Type to encapsulate the attributes of pmat
@@ -66,8 +45,6 @@ module rttddft_input
     integer(i32)                            :: n_print
     !> Upper limit of time \( t \) - up to which the RT-TDDFT takes place
     real(dp)                                :: t_end
-    !> Type of solver used for the vector potential
-    integer(kind(solver_types))             :: vector_potential_solver
     !> If `.true.`, print out general information about the RT-TDDFT timings
     logical                                 :: timings_general
     !> If `.true.`, print out detailed information about the RT-TDDFT timings
@@ -80,23 +57,21 @@ module rttddft_input
     logical                                 :: subtract_J0
   contains
     procedure         :: parse_input => rttddft_input_keys_parse_input
-    procedure         :: is_field_type_external => rttddft_input_is_field_type_external
-    procedure         :: is_field_type_total => rttddft_input_is_field_type_total
-    procedure         :: is_solver_euler => rttddft_input_is_solver_euler
   end type
 
 contains
 
-subroutine rttddft_input_keys_parse_input( this, rt_input, tol )
+subroutine rttddft_input_keys_parse_input( this, rt_input, tol, a_vec )
   class(rttddft_input_keys), intent(inout) :: this
   !> Elements and attributes of RT-TDDFT defined in the input file
   type(realTimeTDDFT_type), intent(in) :: rt_input
   !> Tolerance for the methods that need diagonalization
   real(dp), intent(in) :: tol
+  !> Type to encapsulate the elements and attributes of laser/vector_potential
+  type(Vector_Potential), intent(out) :: a_vec
 
   this%n_print = rt_input%printAfterIterations
   this%t_end = rt_input%endTime
-  this%vector_potential_solver = solver_type( rt_input%vectorPotentialSolver )
   this%calculate_total_energy = rt_input%calculateTotalEnergy
   this%calculate_n_exc = rt_input%calculateNExcitedElectrons
   this%subtract_J0 = rt_input%subtractJ0
@@ -109,7 +84,7 @@ subroutine rttddft_input_keys_parse_input( this, rt_input, tol )
   this%propagator%order_taylor = rt_input%TaylorOrder
   this%propagator%tol = tol
 
-  this%laser%field_type = field_type( rt_input%laser%fieldType )
+  call a_vec%initialize( rt_input%laser, rt_input%vectorPotentialSolver )
   
   this%screenshots%on = associated( rt_input%screenshots )
   if( this%screenshots%on ) this%screenshots%n_steps = rt_input%screenshots%niter
@@ -125,55 +100,5 @@ subroutine rttddft_input_keys_parse_input( this, rt_input, tol )
   end if
 
 end subroutine
-
-
-pure logical function laser_is_field_type_external( this )
-  class(laser_keys), intent(in) :: this
-
-  laser_is_field_type_external = ( this%field_type == external )
-end function
-
-
-pure logical function laser_is_field_type_total( this )
-  class(laser_keys), intent(in) :: this
-
-  laser_is_field_type_total = ( this%field_type == total )
-end function
-
-
-pure logical function rttddft_input_is_field_type_external( this )
-  class(rttddft_input_keys), intent(in) :: this
-
-  rttddft_input_is_field_type_external = this%laser%is_field_type_external()
-end function
-
-
-pure logical function rttddft_input_is_field_type_total( this )
-  class(rttddft_input_keys), intent(in) :: this
-
-  rttddft_input_is_field_type_total = this%laser%is_field_type_total()
-end function
-
-
-pure logical function rttddft_input_is_solver_euler( this )
-  class(rttddft_input_keys), intent(in) :: this
-
-  rttddft_input_is_solver_euler = ( this%vector_potential_solver == euler )
-end function
-
-function field_type( name ) result( field )
-  character(len=*), intent(in) :: name
-  integer(kind(applied_field)) :: field
-
-  select case( trim( name ) )
-    case( field_total )
-      field = total
-    case( field_external )
-      field = external
-    case default
-      call terminate('unknow laser field type')
-  end select
-end function
-
 
 end module

@@ -28,10 +28,11 @@ module rttddft_MD
   use physical_constants, only: c
   use precision, only: dp, i32
   use rttddft_GlobalVariables, only: apwalm, &
-      & evecfv_time, mathcalH, mathcalB, ham_time, overlap, &
-      & atot
+      & evecfv_time, mathcalH, mathcalB, ham_time, overlap
   use rttddft_timings, only: Print_Timings, timesec_RTTDDFT
+  use rttddft_VectorPotential, only: Vector_Potential_Field
   use vector_multiplication, only: dot_multiply
+
   implicit none 
 
   private
@@ -66,11 +67,13 @@ contains
     forall( is = 1:n_species ) charge_val(is) = sum( spocc(:, is), mask=(.not.spcore(:, is)) )
   end subroutine
 
-  subroutine force_rttdft( forces, efield, MD_input, printTimings, t_MD )
+  subroutine force_rttdft( forces, a_tot, e_field, MD_input, printTimings, t_MD )
     !> Object that packs information about the total forces
     type(force), intent(inout)      :: forces
+    !> `x`, `y`, and `z` components of the (total) vector potential
+    type(Vector_Potential_Field), intent(in)  :: a_tot
     !> Electric field
-    real(dp)                  :: efield(3)
+    real(dp)                  :: e_field(3)
     !> Object that contains the inputs keys given in the MD element
     type(MD_input_keys), intent(in) :: MD_input
     !> Object that packs information about printing of timings [[Print_Timings]]
@@ -92,12 +95,12 @@ contains
     end if
 
     call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
-    fact = dot_multiply(atot, atot)/2_dp/c**2
+    fact = dot_multiply(a_tot%components, a_tot%components)/2_dp/c**2
     do is = 1, nspecies
       nr = nrmt(is)
       do ia = 1, natoms(is)
         ias = idxas(ia,is)
-        call obtain_force_ext( charge_val(is), efield(:), forces%EXT(:,ias) )
+        call obtain_force_ext( charge_val(is), e_field(:), forces%EXT(:,ias) )
         ! Z = -spzn(is): Z is negative in species file
         call obtain_Hellmann_Feynman_force( -spzn(is), spr(1:nr,is), &
           vclmt(:,1:nr,ias), forces%HF(:,ias) )
