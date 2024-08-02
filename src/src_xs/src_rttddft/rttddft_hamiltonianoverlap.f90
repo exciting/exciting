@@ -28,25 +28,28 @@ module rttddft_HamiltonianOverlap
   use physical_constants, only: c
   use precision, only: dp
   use rttddft_GlobalVariables, only: ham_time, ham_past, overlap, mathcalH, apwalm, &
-    & atot, pmat, pmatmt, evecfv_time
+    & pmat, pmatmt, evecfv_time
   use rttddft_pmat, only: Obtain_Pmat_LAPWLOBasis
   use rttddft_timings, only: Print_Timings, Timing_RTTDDFT_hamiltonian, &
     Timing_Ehrenfest, timesec_RTTDDFT
+  use rttddft_VectorPotential, only: Vector_Potential_Field
   
   implicit none
 
   private
   public :: UpdateHam
 
-  real(dp)              :: fact
+  real(dp)              :: fact, atot(3)
   type(MTHamiltonianList) :: mt_h
 
 contains
 
   !> In UpdateHam, we obtain the hamiltonian (and if requested, the overlap) at 
   !> time \( t \).
-  subroutine UpdateHam( predcorr, calculateOverlap, forcePmatHermitian, printTimings, t_ham, t_MD, &
+  subroutine UpdateHam( a_tot, predcorr, calculateOverlap, forcePmatHermitian, printTimings, t_ham, t_MD, &
     & update_mathcalH, update_mathcalB, update_pmat )
+    !> Total vector potential
+    type(Vector_Potential_Field), intent(in) :: a_tot
     !> tells if we are in the loop of the predictor-Corrector scheme    
     logical, intent(in)               :: predcorr
     !> tells if we need to calculate the overlap
@@ -72,6 +75,7 @@ contains
     logical               :: get_mathcalH, get_mathcalB, get_pmat
 
     ! factor that multiplies the overlap matrix (when we compute the hamiltonian)
+    atot = a_tot%components
     fact = dot_product( atot, atot )/(2._dp * c**2)
     
 

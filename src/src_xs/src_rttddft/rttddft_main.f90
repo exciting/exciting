@@ -29,7 +29,7 @@ module rttddft_main
   use modmpi, only: rank, procs, mpi_env_k, mpiglobal, distribute_loop, barrier, terminate_if_false
   use physical_constants, only: c
   use precision, only: dp, i32
-  use rttddft_CurrentDensity, only: Current_Density_Paramagnetic_Compoment
+  use rttddft_CurrentDensity, only: Current_Density_Diamagnetic_Component, Current_Density_Paramagnetic_Compoment
   use rttddft_Density, only: UpdateDensity
   use rttddft_Energy, only: TotalEnergy, obtain_energy_rttddft
   use rttddft_GlobalVariables
@@ -48,9 +48,8 @@ module rttddft_main
     MD_evaluate_charge_val => evaluate_charge_val
   use rttddft_NumberExcitations, only: Obtain_number_excitations
   use rttddft_screenshot, only: screenshot
-  use rttddft_timings, only: Timing_RTTDDFT_and_MD, Timing_RTTDDFT, &
-    Timing_RTTDDFT_density, Timing_RTTDDFT_potential, Print_Timings, timesec_RTTDDFT
-  use rttddft_VectorPotential, only: solver_types, Calculate_Vector_Potential, Evolve_A_ind => Solve_ODE_Vector_Potential
+  use rttddft_timings, only: Timing_RTTDDFT_and_MD, Timing_RTTDDFT_density, Timing_RTTDDFT_potential, Print_Timings, timesec_RTTDDFT
+  use rttddft_VectorPotential, only: Vector_Potential, Vector_Potential_Field, update_a_ind_and_p_vec
   use rttddft_Wavefunction, only: UpdateWavefunction, Update_basis_derivative, SE, EH, propagator_types
   
   implicit none
@@ -84,6 +83,9 @@ contains
 
     character(len=100)      :: string
 
+    type(Vector_Potential)  :: vec_pot
+    type(Vector_Potential_Field) :: aindsave, atotsave
+
     real(dp), allocatable   :: atom_positions(:, :) ! in cartesian coordinates x, y, z
     real(dp), allocatable   :: atom_velocities(:, :) ! in cartesian coordinates x, y, z
     type(force)             :: forces
@@ -94,8 +96,8 @@ contains
     real(dp)                :: time
 
     real(dp),allocatable    :: nex(:), ngs(:), nt(:)
-    real(dp)                :: aindsave(3),pvecsave(3)
-    real(dp)                :: jindsave(3),aextsave(3),atotsave(3)
+    real(dp)                :: pvecsave(3)
+    real(dp)                :: jindsave(3)
     real(dp)                :: electric_field(3)
     real(dp)                :: timei, timef, timeiter
     real(dp)                :: tol
@@ -124,7 +126,7 @@ contains
     ! Interface with input parameters
     tol = tol_default
     if( associated(input%groundstate%solver) ) tol = input%groundstate%solver%evaltol
-    call rt%parse_input( input%xs%realTimeTDDFT, tol )
+    call rt%parse_input( input%xs%realTimeTDDFT, tol, vec_pot )
     call molecular_dynamics%parse_input()
     time = 0._dp
     n_steps = int( rt%t_end / rt%propagator%time_step )
@@ -139,9 +141,8 @@ contains
       call write_file_info_header
     end if
 
-    call initialize_rttddft( rt%pmat, rt%predictor_corrector%on, molecular_dynamics )
-    
-    if( molecular_dynamics%on ) call init_MD( time, rt%propagator%time_step, timeStepMultiplier, molecular_dynamics, &
+    call initialize_rttddft( rt%pmat, rt%predictor_corrector%on,  vec_pot, molecular_dynamics )
+    if( molecular_dynamics%on ) call init_MD( time, vec_pot%a_tot, rt%propagator%time_step, timeStepMultiplier, molecular_dynamics, &
       MD_outputs, atom_positions, atom_velocities, electric_field, forces )
     
     call printTimings%set( rt%timings_general, rt%timings_detailed )
@@ -167,7 +168,7 @@ contains
 
     if( rank == 0 ) then
       call open_files_jpa
-      call write_jpa( time, aind, atot, label='avec' )
+      call write_jpa( time, vec_pot%a_ind%components, vec_pot%a_tot%components, label='avec' )
       call write_jpa( time, pvec, label='pvec' )
       call write_jpa( time, jind, label='jind' )
     end if
@@ -254,52 +255,46 @@ contains
       ! VECTOR POTENTIAL
       if( printTimings%general() ) call timesec( timei )
       ! Check if we need to save aind, pvec, atot and aext
-      if( rt%is_field_type_external() .and. rt%predictor_corrector%on .and. ( .not. rt%is_solver_euler() ) ) then
-        aindsave(:) = aind(:)
+      if( vec_pot%is_external_field_given() .and. rt%predictor_corrector%on .and. ( .not. vec_pot%is_solver_euler() ) ) then
+        aindsave = vec_pot%a_ind
         pvecsave(:) = pvec(:)
-        aextsave(:) = aext(:)
       end if
-      atotsave = atot
-      if( rt%is_field_type_total() ) then
-        call update_vector_potential( time, rt%propagator%time_step, rt%vector_potential_solver, atot )
-        if( molecular_dynamics%on ) then
-          call Calculate_Vector_Potential( time+rt%propagator%time_step, aindsave ) ! trick: aindsave is an auxiliary variable
-          electric_field = obtain_electric_field( 2*rt%propagator%time_step, aindsave, atotsave )
+      atotsave = vec_pot%a_tot
+      call update_a_ind_and_p_vec( vec_pot, time, rt%propagator%time_step )
+      call vec_pot%evaluate_a_tot( time )
+      if( molecular_dynamics%on ) then
+        if( vec_pot%is_total_field_given() ) then
+          electric_field = obtain_electric_field( 2*rt%propagator%time_step, Vector_Potential_Field(vec_pot%applied_vector_potential( time+rt%propagator%time_step )), atotsave )
+        else
+          electric_field = obtain_electric_field( rt%propagator%time_step, vec_pot%a_tot, atotsave )
         end if
-      else 
-        call update_vector_potential( time, rt%propagator%time_step, rt%vector_potential_solver, atot, aind, aext )
-        if( molecular_dynamics%on ) electric_field = obtain_electric_field( rt%propagator%time_step, atot, atotsave )
       end if
       if( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%vector_potential )
 
       ! INDUCED CURRENT
       ! Update the diamagnetic component of the induced current density
-      jdia(:) = - atot(:) * chgval / c / omega
+      jdia = Current_Density_Diamagnetic_Component( vec_pot%a_tot, chgval, Omega )
       ! Update the paramagnetic component of the induced current density
-      jparaold(:) = jpara(:)
-      jpara(:) = jparanext(:)
+      jparaold = jpara
+      jpara = jparanext
       ! Update the total induced current
-      if ( rt%predictor_corrector%on .and. ( .not. rt%is_solver_euler() ) ) then
-        jindsave(:) = jind(:)
-      end if
+      if ( rt%predictor_corrector%on .and. ( .not. vec_pot%is_solver_euler() ) ) jindsave(:) = jind(:)
       jind(:) = jpara(:) + jdia(:)
 
       ! HAMILTONIAN
-      call UpdateHam( predcorr=.False., calculateOverlap=.False., forcePmatHermitian=rt%pmat%force_pmat_hermitian, &
+      call UpdateHam( vec_pot%a_tot, predcorr=.False., calculateOverlap=.False., forcePmatHermitian=rt%pmat%force_pmat_hermitian, &
         printTimings=printTimings, t_ham=timing%t_RTTDDFT%ham, t_MD=timing%t_Ehrenfest, &
         update_mathcalH=.False., update_mathcalB=.False., update_pmat=.False. )
 
       ! Remark: it makes no sense to employ the predictor-corrector method with SE or EH!
       if ( rt%predictor_corrector%on .and. (rt%propagator%name /= SE) .and. (rt%propagator%name /= EH) ) then
         if ( printTimings%general() ) call timesec( timei )
-        call loopPredictorCorrector( it, time, rt, l_rad_step, rt%is_field_type_external() .and. ( .not. rt%is_solver_euler() ), &
-          first_kpt, last_kpt, aindsave, atotsave, aextsave, pvecsave, jindsave, &
-          jparaold, mpi_env_k, predCorrReachedMaxSteps )
-        
-        if ( predCorrReachedMaxSteps .and. rank == 0 ) &
-          write(*,*) 'Problems with convergence (PredCorr), time: ', time
-        if ( molecular_dynamics%on .and. rt%is_field_type_external() ) &
-          electric_field(:) = (-1.0_dp/c/rt%propagator%time_step)*(atot(:)-atotsave(:))
+        call loopPredictorCorrector( it, time, rt, l_rad_step, &
+          first_kpt, last_kpt, aindsave, atotsave, pvecsave, jindsave, &
+          jparaold, vec_pot, mpi_env_k, predCorrReachedMaxSteps )
+        if ( predCorrReachedMaxSteps .and. rank == 0 ) write(*,*) 'Problems with convergence (PredCorr), time: ', time
+        if ( molecular_dynamics%on .and. vec_pot%is_external_field_given()) &
+          electric_field = obtain_electric_field( rt%propagator%time_step, vec_pot%a_tot, atotsave )
         if ( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%pred_corr )
       end if !predictor-corrector
 
@@ -325,7 +320,7 @@ contains
             timing%t_Ehrenfest%MD_was_carried_out = .True.
           end if
           call forces%save_total_force()
-          call force_rttdft( forces, electric_field, molecular_dynamics, printTimings, timing%t_Ehrenfest )
+          call force_rttdft( forces, vec_pot%a_tot, electric_field, molecular_dynamics, printTimings, timing%t_Ehrenfest )
           call move_ions( forces%total, forces%total_save, molecular_dynamics%time_step, &
             atom_velocities, printTimings, timing%t_Ehrenfest )
           printforces(iprint) = .True.
@@ -340,7 +335,7 @@ contains
           ! Update Hamiltonian with the new basis
           if( molecular_dynamics%update_overlap .or. allocated(mathcalH) .or. &
             & allocated(mathcalB) .or. molecular_dynamics%update_pmat ) then
-            call UpdateHam( predcorr=.False., forcePmatHermitian=rt%pmat%force_pmat_hermitian, &
+            call UpdateHam( vec_pot%a_tot, predcorr=.False., forcePmatHermitian=rt%pmat%force_pmat_hermitian, &
               & calculateOverlap=molecular_dynamics%update_overlap, &
               & printTimings=printTimings, t_ham=timing%t_RTTDDFT%ham, t_MD=timing%t_Ehrenfest, &
               & update_mathcalH=allocated(mathcalH), &
@@ -369,8 +364,8 @@ contains
 
       ! Store relevant information from this iteration
       timestore(iprint) = time
-      aindstore(:, iprint) = aind(:)
-      atotstore(:, iprint) = atot(:)
+      aindstore(:, iprint) = vec_pot%a_ind%components
+      atotstore(:, iprint) = vec_pot%a_tot%components
       pvecstore(:, iprint) = pvec(:)
       jindstore(:, iprint) = jind(:)
       if( printTimings%general() ) timing_store(iprint) = timing
@@ -517,49 +512,20 @@ contains
 
   end subroutine
 
-  subroutine update_vector_potential( t, dt, method, A_tot, A_ind, A_ext )
-    !> time \(t\)
-    real(dp), intent(in)              :: t
-    !> time step \( \Delta t\)
-    real(dp), intent(in)              :: dt
-    !> Method used to update the vector potential
-    integer(kind(solver_types)), intent(in) :: method
-    !> total vector potential: \(A_{tot} = A_{ind} + A_{ext}\)
-    real(dp), intent(inout)           :: A_tot(3)
-    !> induced vector potential
-    real(dp), intent(inout), optional :: A_ind(3)
-    !> external vector potential
-    real(dp), intent(inout), optional :: A_ext(3)
-
-    logical :: all_fields_present
-
-    all_fields_present = present(A_ind)
-    if( all_fields_present ) call assert( present(A_ext), 'If A_ind is present, then A_ext must also be' )
-
-    !TODO(Ronaldo): Refactor `Evolve_A_ind` to avoid globals
-    call Evolve_A_ind( t, dt, method, .not. all_fields_present )
-    if( all_fields_present ) then
-      call Calculate_Vector_Potential( t, A_ext(:) )
-      A_tot(:) = A_ind(:) + A_ext(:)
-    else
-      call Calculate_Vector_Potential( t, A_tot(:) )
-    end if
-  end subroutine
-
   !> Obtain the electric field as the time derivative of the vector potential
   pure function obtain_electric_field( dt, A_tot, A_tot_previous ) result( E_field )
     !> time step
     real(dp), intent(in)  :: dt
     !> vector potential at time `t`
-    real(dp), intent(in)  :: A_tot(3)
+    type(Vector_Potential_Field), intent(in) :: A_tot
     !> vector potential at time `t-dt`
-    real(dp), intent(in)  :: A_tot_previous(3)
+    type(Vector_Potential_Field), intent(in) :: A_tot_previous
     real(dp) :: E_field(3)
-    E_field = ( -1._dp / c / dt ) * ( A_tot - A_tot_previous )
+    E_field = ( -1._dp / c / dt ) * ( A_tot%components - A_tot_previous%components )
   end function
 
-  subroutine loopPredictorCorrector( it, time, rt, l_rad_step, evolveA, first_kpt, last_kpt, &
-    aindsave, atotsave, aextsave, pvecsave, jindsave, jparasave, mpi_env, maxStepsReached )
+  subroutine loopPredictorCorrector( it, time, rt, l_rad_step, first_kpt, last_kpt, &
+    aindsave, atotsave, pvecsave, jindsave, jparasave, a_vec, mpi_env, maxStepsReached )
     !> current iteration number in the RT-TDDFT loop
     integer(i32), intent(in)       :: it
     !> time \( t \)
@@ -568,24 +534,22 @@ contains
     type(rttddft_input_keys), intent(in) :: rt
     !> radial step length
     integer(i32), intent(in)        :: l_rad_step
-    !> If `.True.`, the vector potential is evolved in each step
-    logical, intent(in)            :: evolveA
     !> index of the first `k-point` to be considered in the sum
     integer(i32),intent(in)        :: first_kpt
     !> index of the last `k-point` considered
     integer(i32),intent(in)        :: last_kpt
     !> Backup of `aind`
-    real(dp), intent(in)           :: aindsave(3)
+    class(Vector_Potential_Field), intent(in) :: aindsave
     !> Backup of `atot`
-    real(dp), intent(in)           :: atotsave(3)
-    !> Backup of `aext`
-    real(dp), intent(in)           :: aextsave(3)
+    class(Vector_Potential_Field), intent(in) :: atotsave
     !> Backup of `pvec`
     real(dp), intent(in)           :: pvecsave(3)
     !> Backup of `jind`
     real(dp), intent(in)           :: jindsave(3)
     !> Backup of `jpara`
     real(dp), intent(in)           :: jparasave(3)
+    !> Structure with the vector potential
+    type(Vector_Potential), intent(inout) :: a_vec
     !> MPI environment
     type(mpiinfo), intent(in)      :: mpi_env
     !> When `.True.`, it informs that the maximum steps have been reached
@@ -616,30 +580,25 @@ contains
 
       ! VECTOR POTENTIAL
       ! Update the induced part of the vector potential
-      if( evolveA ) then
+      if( a_vec%is_external_field_given() ) then
         jpara(:) = jparasave(:) !attention: jparaold saves the value of jpara(t-deltat)
-        aind(:) = aindsave(:)
-        atot(:) = atotsave(:)
-        aext(:) = aextsave(:)
+        call a_vec%set_a_tot_a_ind( atotsave, aindsave )
         pvec(:) = pvecsave(:)
         jind(:) = jindsave(:)
-        call update_vector_potential( time, rt%propagator%time_step, rt%vector_potential_solver, atot, aind, aext )
-        call Evolve_A_ind( time, rt%propagator%time_step, rt%vector_potential_solver, .False. )
-        call Calculate_Vector_Potential( time, aext(:) )
-        ! Update the (total) vector potential
-        atot(:) = aind(:) + aext(:)
+        call update_a_ind_and_p_vec( a_vec, time, rt%propagator%time_step )
+        call a_vec%evaluate_a_tot( time )
       end if
 
       ! INDUCED CURRENT
       ! Update the paramagnetic component of the induced current density
-      jdia(:) = -atot(:)*chgval/c/omega
+      jdia = Current_Density_Diamagnetic_Component( a_vec%a_tot, chgval, Omega )
       ! Update the paramagnetic component of the induced current density
       jpara(:) = jparanext(:)
       jind(:) = jpara(:)+jdia(:)
 
       ! HAMILTONIAN
       ham_predcorr(:,:,:) = ham_time(:,:,:)
-      call UpdateHam( predcorr=.True., calculateOverlap=.False., forcePmatHermitian=rt%pmat%force_pmat_hermitian )
+      call UpdateHam( a_vec%a_tot, predcorr=.True., calculateOverlap=.False., forcePmatHermitian=rt%pmat%force_pmat_hermitian )
 
       ! Check the difference between the two hamiltonians
       err = maxval(abs(ham_predcorr(:,:,:)-ham_time(:,:,:)))
@@ -650,10 +609,12 @@ contains
   end subroutine 
 
   !> Subroutine to initialize all MD related variables
-  subroutine init_MD( t_0, timeStepRTTDDFT, timeStepMultiplier, molecular_dynamics, &
+  subroutine init_MD( t_0, a_tot, timeStepRTTDDFT, timeStepMultiplier, molecular_dynamics, &
       MD_outputs, atom_positions, atom_velocities, e_field, forces )
     !> Initial time \( t_0 \)
     real(dp), intent(in)               :: t_0
+    !> Vector potential (total)
+    class(Vector_Potential_Field), intent(in) :: a_tot
     !> Time step used in the real-time TDDFT calculation
     real(dp), intent(in)               :: timeStepRTTDDFT
     !> Integer ratio between the time step used in MD and `timeStepRTTDDFT`
@@ -680,7 +641,7 @@ contains
     
     call forces%allocate_arrays( natmtot )
     e_field = 0.0_dp
-    call force_rttdft( forces, e_field, molecular_dynamics )
+    call force_rttdft( forces, a_tot, e_field, molecular_dynamics )
     
     allocate( atom_velocities(3, natmtot) )
     call init_atoms_velocities( atom_velocities )
@@ -769,17 +730,6 @@ contains
     if ( allocated(ham_past) ) deallocate( ham_past )
     if ( allocated(pmat) ) deallocate( pmat )
     if ( predictorCorrector ) deallocate( ham_predcorr, evecfv_save )
-    if ( nkicks >= 1 ) then
-      deallocate( wkick, dirkick, amplkick, t0kick )
-    end if
-    if ( ntrapcos >= 1 ) then
-      deallocate( dirtrapcos, ampltrapcos, omegatrapcos, phasetrapcos )
-      deallocate( t0trapcos, trtrapcos, wtrapcos )
-    end if
-    if ( nsinsq >= 1 ) then
-      deallocate( dirsinsq, amplsinsq, omegasinsq )
-      deallocate( phasesinsq, t0sinsq, tpulsesinsq )
-    end if
     
     if ( deallocate_ehrenfest_arrays ) then
       call MD_deallocate_global_arrays

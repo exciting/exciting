@@ -19,8 +19,8 @@ module rttddft_init
   use mod_eigenvalue_occupancy, only: occsv, nstfv, nstsv, efermi
   use mod_gkvector, only: ngk, ngkmax, vgkl, gkc, tpgkc, sfacgk
   use mod_kpoint, only: vkl, nkpt
-  use mod_misc, only: filext
   use mod_muffin_tin, only: lmmaxapw
+  use mod_misc, only: filext
   use modgw, only: kset
   use modinput, only: input, getstructHybrid, emptynode
   use modmpi, only: rank, mpi_env_k, distribute_loop, terminate_if_false
@@ -37,21 +37,26 @@ module rttddft_init
                         file_pmat_mt_exists, read_pmat_mt, write_pmat_mt, write_file_info, &
                         write_file_info_fill_line_with_char, get_filename_pmat, get_filename_pmat_mt
   use rttddft_pmat, only: Obtain_Pmat_LAPWLOBasis
-  
+  use rttddft_io, only: file_pmat_exists, read_pmat, write_pmat, &
+    file_pmat_mt_exists, read_pmat_mt, write_pmat_mt, write_file_info, &
+    write_file_info_fill_line_with_char, get_filename_pmat, get_filename_pmat_mt
+  use rttddft_VectorPotential, only: Vector_Potential
+
   implicit none
-
+  
   private
-
+  
   public :: initialize_rttddft
 
 contains
-
 !> This subroutine initializes many global variables in a RT-TDDFT calculation.
-subroutine initialize_rttddft(input_pmat, predictorCorrector, molecular_dynamics)
+subroutine initialize_rttddft(input_pmat, predictorCorrector, vec_pot, molecular_dynamics)
   !> Argument that encapsulates the input options of the element pmat
   type(pmat_keys), intent(in) :: input_pmat
   !> if `.True`, the predictor corrector loop is employed
   logical, intent(in) :: predictorCorrector
+  !> type that encapsulates the vector potential
+  type(Vector_Potential), intent(in) :: vec_pot
   !> variable that is an interface to the input keys defined in `input.xml` inside the `MD` block
   type(MD_input_keys), intent(in) :: molecular_dynamics
 
@@ -79,7 +84,7 @@ subroutine initialize_rttddft(input_pmat, predictorCorrector, molecular_dynamics
   call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
 
   ! Interface with input variables
-  voff(1:3) = input%xs%vkloff(1:3)
+  voff(1:3) = input%xs%vkloff(1:3) 
 
   !> Print to RTTDDFT_INFO that we will start the single-shot GS calculation
   if (rank == 0) then
@@ -104,11 +109,11 @@ subroutine initialize_rttddft(input_pmat, predictorCorrector, molecular_dynamics
 
   call read_WF_potential_rttddft(first_kpt, last_kpt)
 
-  if (hybrids_used()) then
-    if (input%xs%realTimeTDDFT%calcNonlocalCurrentDensity) then
-      ! In the current implementation, the colomb potential used for the non local potential is calculated in plane wave basis
+  if ( hybrids_used() ) then
+    if ( input%xs%realTimeTDDFT%calcNonlocalCurrentDensity ) then
+      ! In the current implementation, the Coulomb potential used for the non local potential is calculated in plane wave basis
       ! For details, please refer to Eq. 61 in doi:10.1016/j.cpc.2012.09.018
-      call terminate_if_false(input%groundstate%Hybrid%BasisBareCoulomb == "pw", "For RTTDDFT with hybrids only input%hybrid%barecoul%basis=pw is supported")
+      call terminate_if_false( input%groundstate%Hybrid%BasisBareCoulomb == "pw", "For RTTDDFT with hybrids only input%hybrid%barecoul%basis=pw is supported")
       call set_barecoul_basis()
     end if
   end if
@@ -133,19 +138,14 @@ subroutine initialize_rttddft(input_pmat, predictorCorrector, molecular_dynamics
     if ( molecular_dynamics%on ) call write_pmat_mt( first_kpt, pmatmt, mpi_env_k )
   end if
 
-  call init_laser
-
   ! Initialize fields
   pvec(:) = 0._dp
   jpara(:) = 0._dp
   jparaold(:) = 0._dp
   jdia(:) = 0._dp
   jind(:) = 0._dp
-  aext(:) = 0._dp
-  aind(:) = 0._dp
-  atot(:) = 0._dp
   ! Hamiltonian at time t=0
-  call UpdateHam( predcorr=.False., calculateOverlap=.True., forcePmatHermitian=input_pmat%force_pmat_hermitian, &
+  call UpdateHam( vec_pot%a_tot, predcorr=.False., calculateOverlap=.True., forcePmatHermitian=input_pmat%force_pmat_hermitian, &
     & update_mathcalH=allocated(mathcalH), update_mathcalB=allocated(mathcalB), update_pmat=.False. )
   ham_past(:,:,:) = ham_time(:,:,:)
 
@@ -154,7 +154,7 @@ subroutine initialize_rttddft(input_pmat, predictorCorrector, molecular_dynamics
     jparaspurious = Current_Density_Paramagnetic_Compoment( evecfv_gnd, pmat, occsv(:, first_kpt:last_kpt), &
       [(1._dp/nkpt, ik = first_kpt, last_kpt)], mpi_env_k )
   else
-    jparaspurious(:) = 0._dp
+    jparaspurious = 0._dp
   end if
 
 end subroutine
@@ -249,72 +249,11 @@ subroutine write_to_info( ionDynamics, predictorCorrector )
   call write_file_info(': the z components of the induced and the total vector potential.')
 end subroutine
 
-!> Initialize the most important variables related to the vector potential
-!> applied by an external laser
-subroutine init_laser
-
-  integer(i32) :: ik
-
-  if (associated(input%xs%realTimeTDDFT%laser)) then
-      nkicks = size(input%xs%realTimeTDDFT%laser%kickarray)
-      if (nkicks >= 1) then
-        allocate (wkick(nkicks))
-        allocate (dirkick(nkicks))
-        allocate (amplkick(nkicks))
-        allocate (t0kick(nkicks))
-        do ik = 1, nkicks
-            wkick(ik) = input%xs%realTimeTDDFT%laser%kickarray(ik)%kick%width
-            dirkick(ik) = input%xs%realTimeTDDFT%laser%kickarray(ik)%kick%direction
-            amplkick(ik) = -c*(input%xs%realTimeTDDFT%laser%kickarray(ik)%kick%amplitude)
-            t0kick(ik) = input%xs%realTimeTDDFT%laser%kickarray(ik)%kick%t0
-        end do
-      end if
-      ntrapcos = size(input%xs%realTimeTDDFT%laser%trapCosarray)
-      if (ntrapcos >= 1) then
-        allocate (dirtrapcos(ntrapcos))
-        allocate (ampltrapcos(ntrapcos))
-        allocate (omegatrapcos(ntrapcos))
-        allocate (phasetrapcos(ntrapcos))
-        allocate (t0trapcos(ntrapcos))
-        allocate (trtrapcos(ntrapcos))
-        allocate (wtrapcos(ntrapcos))
-        do ik = 1, ntrapcos
-            dirtrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%direction
-            ampltrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%amplitude
-            omegatrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%omega
-            phasetrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%phase
-            t0trapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%t0
-            trtrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%riseTime
-            wtrapcos(ik) = input%xs%realTimeTDDFT%laser%trapCosarray(ik)%trapCos%width
-        end do
-      end if
-      nsinsq = size(input%xs%realTimeTDDFT%laser%sinSqarray)
-      if (nsinsq >= 1) then
-        allocate (dirsinsq(nsinsq))
-        allocate (amplsinsq(nsinsq))
-        allocate (omegasinsq(nsinsq))
-        allocate (phasesinsq(nsinsq))
-        allocate (t0sinsq(nsinsq))
-        allocate (tpulsesinsq(nsinsq))
-        do ik = 1, nsinsq
-            dirsinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%direction
-            amplsinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%amplitude
-            omegasinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%omega
-            phasesinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%phase
-            t0sinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%t0
-            tpulsesinsq(ik) = input%xs%realTimeTDDFT%laser%sinSqarray(ik)%sinSq%pulseLength
-        end do
-      end if
-  end if
-end subroutine
-
 !> checks for consistency between gs hybrid calculation and rttddft and initializes pointer
 subroutine adjustments_for_Hybrid_RTTDDFT()
-  use modinput, only: input
   use rttddft_hybrids, only: hybrids_used
   logical :: is_compatible
-  
-  ! Tetrahedron method is used for Hybrid calculations
+  !> Tetrahedron method is used for Hybrid calculations
   call terminate_if_false(input%groundstate%stypenumber==-1, "stypenumber in the groundstate element must be set to libbzint to use To run RTTDDFT on top of hybrid functional calculations in the xs element")
   call terminate_if_false(hybrids_used(), "The non local current density can be computed only when hybrid functionals are used")
   is_compatible = .false.
@@ -326,10 +265,10 @@ subroutine adjustments_for_Hybrid_RTTDDFT()
 end subroutine
 
 !> For RT-TDDFT with hybrid funcionals, the same parameters for xs and the gs should be taken. This subroutine checks for that
-subroutine is_gs_input_compatible_with_xs(input, is_compatible)
+subroutine is_gs_input_compatible_with_xs( inp, is_compatible)
   use modinput, only: input_type
   !> Information from the input file
-  type(input_type), intent(in) :: input
+  type(input_type), intent(in) :: inp
   !> True, if the input is compatible with rttddft and hybrid functionals (otherwise false)
   logical, intent(out) :: is_compatible
   !> Incompatibility message rttddft and hybrid functionals
@@ -337,15 +276,15 @@ subroutine is_gs_input_compatible_with_xs(input, is_compatible)
 
   is_compatible = .true.
 
-  if (input%xs%nosym .eqv. input%groundstate%nosym) is_compatible = .false.
+  if (inp%xs%nosym .eqv. inp%groundstate%nosym) is_compatible = .false.
   do i = 1, 3
-    if (input%xs%ngridk(i) == input%groundstate%ngridk(i)) is_compatible = .false.
-    if (input%xs%vkloff(i) == input%groundstate%vkloff(i)) is_compatible = .false.
+    if (inp%xs%ngridk(i) == inp%groundstate%ngridk(i)) is_compatible = .false.
+    if (inp%xs%vkloff(i) == inp%groundstate%vkloff(i)) is_compatible = .false.
   end do
-  if (input%xs%reducek .eqv. input%groundstate%reducek) is_compatible = .false.
-  if (input%xs%rgkmax == input%groundstate%rgkmax) is_compatible = .false.
-  if (input%xs%swidth == input%groundstate%swidth) is_compatible = .false.
-  if (input%xs%nempty == input%groundstate%nempty) is_compatible = .false.
+  if (inp%xs%reducek .eqv. inp%groundstate%reducek) is_compatible = .false.
+  if (inp%xs%rgkmax == inp%groundstate%rgkmax) is_compatible = .false.
+  if (inp%xs%swidth == inp%groundstate%swidth) is_compatible = .false.
+  if (inp%xs%nempty == inp%groundstate%nempty) is_compatible = .false.
 
 end subroutine
 
@@ -377,7 +316,7 @@ subroutine read_WF_potential_rttddft(first_kpt, last_kpt)
   call genapwfr         ! generate the APW radial functions
   call genlofr          ! generate the local-orbital radial functions
   call olprad           ! compute the overlap radial integrals
-  if (hybrids_used()) then
+  if ( hybrids_used() ) then
     filext = string
     call energykncr()       ! core kinetic energy
     call init_product_basis()
@@ -401,8 +340,7 @@ subroutine read_WF_potential_rttddft(first_kpt, last_kpt)
 
     ! The matrix sizes of mixed product basis quantities depend on if the core electrons are treated as valence
     ! This code block sets the dimension accordingly and is later read out in UpdateNonlocalCurrentDensity
-    if ((input%gw%coreflag == 'all') .or. &
-        (input%gw%coreflag == 'xal')) then
+    if ((input%gw%coreflag == 'all') .or. (input%gw%coreflag == 'xal')) then
       call Set_Dimension_mixed_product_basis(nomax + ncg)
     else
       call Set_Dimension_mixed_product_basis(nomax)
