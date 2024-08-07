@@ -75,9 +75,9 @@ exciting. Electron. Struct. **3**,
 
 \[5\]: [Accurate all-electron G0W0 quasiparticle energies employing the
 full-potential augmented plane-wave method. Phys. Rev. B **94**, 035118
-(2016).](https://doi.org/10.1103/PhysRevB.%2094.035118)
+(2016).](https://doi.org/10.1103/PhysRevB.94.035118)
 
 \[6\]: [Addressing electron-hole correlation in core excitations of
 solids: An all-electron many- body approach from first principles. Phys.
 Rev. B **95**, 155121
-(2017).](https://doi.org/%2010.1103/PhysRevB.95.155121)
+(2017).](https://doi.org/10.1103/PhysRevB.95.155121)
