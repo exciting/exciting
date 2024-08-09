@@ -169,7 +169,7 @@ module mod_manopt_matrices
       real(8), intent( in) :: x(:,:,:)
       type( complex_matrix):: y
       if( allocated( y%m)) deallocate( y%m)
-      allocate( y%m, source=cmplx( x, 0.d0, 8))
+      allocate( y%m, source=cmplx( x, kind=8))
     end function
     function complex_matrix_from_carray( x) result( y)
       complex(8), intent( in) :: x(:,:,:)
@@ -195,7 +195,7 @@ module mod_manopt_matrices
       select type( x)
         type is( real_matrix)
           if( allocated( y%m)) deallocate( y%m)
-          allocate( y%m, source=cmplx( x%m, 0.d0, 8))
+          allocate( y%m, source=cmplx( x%m, kind=8))
         type is( complex_matrix)
           if( allocated( y%m)) deallocate( y%m)
           allocate( y%m, source=x%m)
