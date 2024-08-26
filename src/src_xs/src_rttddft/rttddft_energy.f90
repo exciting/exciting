@@ -117,7 +117,7 @@ contains
 
   !> Subroutine that calculates the total energy for RT-TDDFT calculations
   !> Adapted from `src/energy.f90`
-  subroutine obtain_energy_rttddft(first_kpt, last_kpt, ham, evec, mpi_env, &
+  subroutine obtain_energy_rttddft(first_kpt, ham, evec, mpi_env, &
       & rt_tddft_energy )
     use modinput, only: input
     use mod_kpoint, only: wkpt
@@ -135,26 +135,25 @@ contains
     !> index of the first `k-point` to be considered in the sum appearing in 
     !> \( E_{ham} \)
     integer,intent(in)        :: first_kpt
-    !> index of the last `k-point` considered
-    integer,intent(in)        :: last_kpt
     !> Hamiltonian matrix at time \( t \). 
     !> Dimensions: `nmatmax`, `nmatmax`, `first_kpt:last_kpt`
-    complex(dp), intent(in)         :: ham(:, :, first_kpt:)
+    complex(dp), intent(in)         :: ham(:, :, first_kpt :)
     !> Coefficients of the KS-wavefunctions at time \( t \).
     !> Dimensions: `nmatmax`, `nstfv`, `first_kpt:last_kpt`
-    complex(dp), intent(in)         :: evec(:, :, first_kpt:)
+    complex(dp), intent(in)         :: evec(:, :, first_kpt :)
     !> MPI environment
     type(mpiinfo), intent(in)       :: mpi_env
     !> Type with the total energy and its components
     type(TotalEnergy), intent(out)  :: rt_tddft_energy
 
 
-    integer                         :: ik, ist, is, ia, ias, nmatp
+    integer                         :: ik, ist, is, ia, ias, nmatp, last_kpt
     real(dp), allocatable           :: aux(:)
     real(dp)                        :: rfinp
     complex(dp)                     :: acc(nstfv)
     complex(dp),allocatable         :: scratch(:,:),occcmplx(:)
 
+    last_kpt = ubound( ham, 3 )
 
     allocate(scratch(nmatmax,nstfv))
 

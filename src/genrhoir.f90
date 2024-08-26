@@ -139,12 +139,13 @@ Subroutine genrhoir (ik, evecfv, evecsv)
       End Do
 
       Deallocate (zfft)
-
+!$OMP CRITICAL
       rhoir (:) = rhoir (:) + rhoir_k (:)
 
       If (associated(input%groundstate%spin)) Then
          magir (:, :) = magir (:, :) + magir_k (:, :)
       End If
+!$OMP END CRITICAL
       Call timesec (ts1)
       timerho = timerho + ts1 - ts0
       Return

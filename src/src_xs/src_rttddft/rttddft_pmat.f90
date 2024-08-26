@@ -20,9 +20,8 @@ module rttddft_pmat
   use mod_muffin_tin, only: idxlm, lmmaxapw
   use modinput, only: input
   use mod_gvector, only: ivg, ivgig, cfunig
-  use rttddft_GlobalVariables, only: pmat, apwalm, pmatmt
   use constants, only: zzero, zone, zi
-  use precision, only: dp
+  use precision, only: dp, i32
 
   implicit none
   private 
@@ -33,12 +32,24 @@ contains
   !> Here, we calculate the momentum matrix elements considering as basis 
   !> (L)APW+lo. We copied most of the code from `/src/src_xs/genpmatxs.F90`, 
   !> but there the basis are the KS-wavefunctions
-  subroutine Obtain_Pmat_LAPWLOBasis( make_hermitian, evaluate_pmat_mt )
+  subroutine Obtain_Pmat_LAPWLOBasis( first_kpt, make_hermitian, evaluate_pmat_mt, &
+    apwalm, pmat, pmatmt )
+    !> The first k point
+    integer(i32), intent(in) :: first_kpt
     !> If .True., for each `ik`, force the x, y, and z components of `pmat` to be hermitian
     logical,intent(in)        :: make_hermitian
     logical,intent(in)        :: evaluate_pmat_mt
+    !> Matching coefficients of the (L)APWs
+    !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
+    complex(dp), intent(in) :: apwalm(:, :, :, :, first_kpt :)
+    !> Momentum matrix elements (projected onto the (L)APW+LO basis elements)
+    !> (nmatmax, nmatmax, 3, first_kpt : last_kpt)
+    complex(dp), intent(out) :: pmat(:, :, :, first_kpt :)
+    !> Muffin-tin part of the Momentum matrix
+    !> (nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt)
+    complex(dp), intent(out)  :: pmatmt(:, :, :, :, first_kpt :)
 
-    integer                   :: ik, first_kpt, last_kpt
+    integer                   :: ik, last_kpt
 
     pmat(:,:,:,:) = zzero
     if ( evaluate_pmat_mt ) pmatmt(:,:,:,:,:) = zzero
@@ -58,7 +69,7 @@ contains
     ! Calculate gradient of radial functions times spherical harmonics
     call pmatrad
 
-    call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
+    last_kpt = ubound( apwalm, 5 )
     
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(NONE), PRIVATE(ik) SHARED(make_hermitian,pmat,pmatmt) &

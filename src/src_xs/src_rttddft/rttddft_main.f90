@@ -70,15 +70,55 @@ contains
   !> desired time step. </li>
   !> </ol>
   subroutine coordinate_rttddft_calculation()
-    ! counter for the number of iterations of real-time
-    integer                 :: it
-    ! indexes of the first and the last k-points
-    integer                 :: first_kpt, last_kpt
-    ! Number of time steps \( \Delta t \) required to reach `tend`
-    integer                 :: n_steps
 
-    integer                 :: iprint
-    integer                 :: is, ia, ias, timeStepMultiplier, l_rad_step
+    ! Basis-expansion coefficients of the groundstate KS-WFs
+    ! (nmatmax, nstfv, first_kpt : last_kpt)
+    complex(dp), allocatable :: evecfv_gnd(:, :, :)
+    ! Basis-expansion coefficients of the KS-WFs at time \(t\)
+    ! (nmatmax, nstfv, first_kpt : last_kpt)
+    complex(dp), allocatable :: evecfv_time(:, :, :) 
+    ! Basis-expansion coefficients of the KS-WFs at time \(t\) - auxiliary 
+    ! variable used in the predictor-corrector loop
+    ! (nmatmax, nstfv, first_kpt : last_kpt)
+    complex(dp), allocatable :: evecfv_save(:, :, :) 
+    ! Basis-expansion coefficients of the KS-WFs: second-variational coefficients
+    ! (nstfv, nstfv, first_kpt : last_kpt)
+    complex(dp), allocatable :: evecsv(:, :, :)
+    ! Overlap matrix (of basis functions)
+    ! (nmatmax, nmatmax, first_kpt : last_kpt)
+    complex(dp), allocatable :: overlap(:, :, :)
+    ! Hamiltonian matrix at current time \(t\)
+    ! (nmatmax, nmatmax, first_kpt : last_kpt)
+    complex(dp), allocatable :: ham_time(:, :, :)
+    ! Hamiltonian matrix at previous time \(t - \Delta t \)
+    ! (nmatmax, nmatmax, first_kpt : last_kpt)
+    complex(dp), allocatable :: ham_past(:, :, :)
+    ! Matching coefficients of the (L)APWs
+    ! (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
+    complex(dp), allocatable :: apwalm(:, :, :, :, :)
+    ! Polarization field
+    real(dp) :: pvec(3)
+    ! Paramagnetic component of the current density
+    real(dp) :: jpara(3)
+    ! Auxiliary variable, used to evolve `jpara`
+    real(dp) :: jparanext(3)
+    ! Auxiliary variable, used to evolve `jpara`
+    real(dp) :: japarasave(3)
+    ! Spurious paramagnetic current density (obtained for \(t=0\) - this should
+    ! ideally be zero for a dense `k-grid` mesh)
+    real(dp) :: jparaspurious(3)
+    ! Diamagnetic component of the current density
+    real(dp) :: jdia(3)
+    ! Total (induced) current density
+    real(dp) :: jind(3)
+
+    ! Momentum matrix elements (projected onto the (L)APW+LO basis elements)
+    complex(dp), allocatable  :: pmat(:, :, :, :)
+    ! Muffin-tin part of the Momentum matrix
+    complex(dp), allocatable  :: pmatmt(:, :, :, :, :)
+
+    integer :: it, first_kpt, last_kpt, n_steps
+    integer :: iprint, is, ia, ias, timeStepMultiplier, l_rad_step
     logical                 :: predCorrReachedMaxSteps
 
     character(len=100)      :: string
@@ -95,14 +135,12 @@ contains
     ! Current time \( t \) for the time evolution carried out in RT-TDDFT
     real(dp)                :: time
 
-    real(dp),allocatable    :: nex(:), ngs(:), nt(:)
-    real(dp)                :: pvecsave(3)
-    real(dp)                :: jindsave(3)
-    real(dp)                :: electric_field(3)
-    real(dp)                :: timei, timef, timeiter
-    real(dp)                :: tol
-    real(dp), parameter     :: tol_default = 1e-10_dp
-    type(MD_out)            :: MD_outputs
+    real(dp), allocatable :: nex(:), ngs(:), nt(:)
+    real(dp) :: pvecsave(3), jindsave(3), electric_field(3)
+    real(dp) :: timei, timef, timeiter
+    real(dp) :: tol
+    real(dp), parameter :: tol_default = 1e-10_dp
+    type(MD_out) :: MD_outputs
 
     ! Variables to store data and print
     real(dp),allocatable    :: timestore(:),aindstore(:,:),atotstore(:,:)
@@ -141,11 +179,21 @@ contains
       call write_file_info_header
     end if
 
-    call initialize_rttddft( rt%pmat, rt%predictor_corrector%on,  vec_pot, molecular_dynamics )
-    if( molecular_dynamics%on ) call init_MD( time, vec_pot%a_tot, rt%propagator%time_step, timeStepMultiplier, molecular_dynamics, &
+    call initialize_rttddft( rt%pmat, rt%predictor_corrector%on, &
+     vec_pot, molecular_dynamics, evecfv_gnd, evecfv_time, evecfv_save, evecsv, &
+    overlap, ham_time, ham_past, apwalm, pmat, jparaspurious, pmatmt )
+    if( molecular_dynamics%on ) call init_MD( time, vec_pot%a_tot, rt%propagator%time_step, &
+      evecfv_time, overlap, ham_time, apwalm, timeStepMultiplier, molecular_dynamics, &
       MD_outputs, atom_positions, atom_velocities, electric_field, forces )
     
     call printTimings%set( rt%timings_general, rt%timings_detailed )
+
+    ! Initialize fields
+    pvec = 0._dp
+    jpara = 0._dp
+    japarasave = 0._dp
+    jdia = 0._dp
+    jind = 0._dp
 
     ! Allocate variables to be stored and printed only after rt_input%n_print steps
     allocate(timestore(rt%n_print), aindstore(3,rt%n_print), atotstore(3,rt%n_print))
@@ -180,7 +228,7 @@ contains
     if ( rt%calculate_total_energy ) then
       call potcoul
       call potxc
-      call obtain_energy_rttddft( first_kpt, last_kpt, ham_time, evecfv_gnd, mpi_env_k, etotstore(1) )
+      call obtain_energy_rttddft( first_kpt, ham_time, evecfv_gnd, mpi_env_k, etotstore(1) )
       ! Trick: we need an array to call the subroutine print_total_energy
       timestore(1) = time
       if( rank == 0 ) then
@@ -191,7 +239,7 @@ contains
 
     ! Number of excitations
     if (rt%calculate_n_exc) then
-      call Obtain_number_excitations( first_kpt, last_kpt, evecfv_gnd, &
+      call Obtain_number_excitations( first_kpt, evecfv_gnd, &
         & evecfv_time, overlap, mpi_env_k, nex(1), ngs(1), nt(1) )
       ! Trick: we need an array to call the subroutine print_nexc
       timestore(1) = time
@@ -201,7 +249,7 @@ contains
       end if
     end if
 
-    if ( rt%screenshots%on ) call screenshot( 0, first_kpt, last_kpt, overlap, evecfv_gnd, &
+    if ( rt%screenshots%on ) call screenshot( 0, first_kpt, overlap, evecfv_gnd, &
         & evecfv_time, ham_time )
 
     if( printTimings%general() ) then
@@ -241,13 +289,14 @@ contains
       if ( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%wavefunction )
 
       ! Update the paramagnetic component of the induced current density
-      jparanext = Current_Density_Paramagnetic_Compoment( evecfv_time, pmat, occsv(:, first_kpt:last_kpt), &
+      jparanext = Current_Density_Paramagnetic_Compoment( evecfv_time, pmat, occsv(:, first_kpt : last_kpt), &
         [(1._dp/nkpt, is = first_kpt, last_kpt)], mpi_env_k )
       if ( rt%subtract_J0 ) jparanext(:) = jparanext(:)-jparaspurious(:)
       if ( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%current_density )
 
       ! DENSITY
-      call uprho( it, rt%propagator%normalize_WF, l_rad_step, printTimings, timing%t_RTTDDFT%dens )
+      call UpdateDensity( first_kpt, evecfv_time(:, :, first_kpt : last_kpt), &
+      evecsv, it, rt%propagator%normalize_WF, l_rad_step, printTimings, timing%t_RTTDDFT%dens )
 
       ! KS-POTENTIAL
       call uppot( printTimings, timing%t_RTTDDFT%pot )
@@ -260,7 +309,7 @@ contains
         pvecsave(:) = pvec(:)
       end if
       atotsave = vec_pot%a_tot
-      call update_a_ind_and_p_vec( vec_pot, time, rt%propagator%time_step )
+      call update_a_ind_and_p_vec( vec_pot, time, rt%propagator%time_step, jind, jpara, jparanext, pvec )
       call vec_pot%evaluate_a_tot( time )
       if( molecular_dynamics%on ) then
         if( vec_pot%is_total_field_given() ) then
@@ -275,23 +324,25 @@ contains
       ! Update the diamagnetic component of the induced current density
       jdia = Current_Density_Diamagnetic_Component( vec_pot%a_tot, chgval, Omega )
       ! Update the paramagnetic component of the induced current density
-      jparaold = jpara
+      japarasave = jpara
       jpara = jparanext
       ! Update the total induced current
       if ( rt%predictor_corrector%on .and. ( .not. vec_pot%is_solver_euler() ) ) jindsave(:) = jind(:)
-      jind(:) = jpara(:) + jdia(:)
+      jind = jpara + jdia
 
       ! HAMILTONIAN
-      call UpdateHam( vec_pot%a_tot, predcorr=.False., calculateOverlap=.False., forcePmatHermitian=rt%pmat%force_pmat_hermitian, &
+      call UpdateHam( first_kpt, vec_pot%a_tot, predcorr=.False., calculateOverlap=.False., forcePmatHermitian=rt%pmat%force_pmat_hermitian, &
+        overlap=overlap, ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, pmat=pmat, pmatmt=pmatmt, &
         printTimings=printTimings, t_ham=timing%t_RTTDDFT%ham, t_MD=timing%t_Ehrenfest, &
         update_mathcalH=.False., update_mathcalB=.False., update_pmat=.False. )
 
       ! Remark: it makes no sense to employ the predictor-corrector method with SE or EH!
       if ( rt%predictor_corrector%on .and. (rt%propagator%name /= SE) .and. (rt%propagator%name /= EH) ) then
         if ( printTimings%general() ) call timesec( timei )
-        call loopPredictorCorrector( it, time, rt, l_rad_step, &
-          first_kpt, last_kpt, aindsave, atotsave, pvecsave, jindsave, &
-          jparaold, vec_pot, mpi_env_k, predCorrReachedMaxSteps )
+        call loopPredictorCorrector( it, time, rt, l_rad_step, first_kpt, &
+        evecfv_time, evecfv_save, evecsv, overlap, ham_time, ham_past, &
+        apwalm, pvec, jpara, jparanext, jparaspurious, jdia, jind, pmat, pmatmt, &
+        aindsave, atotsave, pvecsave, jindsave, japarasave, vec_pot, mpi_env_k, predCorrReachedMaxSteps )
         if ( predCorrReachedMaxSteps .and. rank == 0 ) write(*,*) 'Problems with convergence (PredCorr), time: ', time
         if ( molecular_dynamics%on .and. vec_pot%is_external_field_given()) &
           electric_field = obtain_electric_field( rt%propagator%time_step, vec_pot%a_tot, atotsave )
@@ -301,14 +352,14 @@ contains
       ! Obtain the total energy, if requested
       if( rt%calculate_total_energy ) then
         if ( printTimings%detailed() ) call timesec( timei )
-        call obtain_energy_rttddft( first_kpt, last_kpt, ham_time, evecfv_time, mpi_env_k, etotstore(iprint) )
+        call obtain_energy_rttddft( first_kpt, ham_time, evecfv_time, mpi_env_k, etotstore(iprint) )
         if ( printTimings%detailed() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%energy )
       end if
 
       ! Obtain the number of excited electrons, if requested
       if( rt%calculate_n_exc ) then
         if ( printTimings%detailed() ) call timesec( timei )
-        call Obtain_number_excitations( first_kpt, last_kpt, evecfv_gnd, &
+        call Obtain_number_excitations( first_kpt, evecfv_gnd, &
           & evecfv_time, overlap, mpi_env_k, nex(iprint), ngs(iprint), nt(iprint))
         if( printTimings%detailed() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%n_exc )
       end if
@@ -320,9 +371,10 @@ contains
             timing%t_Ehrenfest%MD_was_carried_out = .True.
           end if
           call forces%save_total_force()
-          call force_rttdft( forces, vec_pot%a_tot, electric_field, molecular_dynamics, printTimings, timing%t_Ehrenfest )
-          call move_ions( forces%total, forces%total_save, molecular_dynamics%time_step, &
-            atom_velocities, printTimings, timing%t_Ehrenfest )
+          call force_rttdft( forces, vec_pot%a_tot, electric_field, molecular_dynamics, &
+          evecfv_time, overlap, ham_time, apwalm, printTimings, timing%t_Ehrenfest )
+          call move_ions( first_kpt, forces%total, forces%total_save, molecular_dynamics%time_step, &
+            atom_velocities, apwalm, printTimings, timing%t_Ehrenfest )
           printforces(iprint) = .True.
           do is = 1, nspecies
             do ia = 1, natoms(is)
@@ -335,12 +387,15 @@ contains
           ! Update Hamiltonian with the new basis
           if( molecular_dynamics%update_overlap .or. allocated(mathcalH) .or. &
             & allocated(mathcalB) .or. molecular_dynamics%update_pmat ) then
-            call UpdateHam( vec_pot%a_tot, predcorr=.False., forcePmatHermitian=rt%pmat%force_pmat_hermitian, &
+            call UpdateHam( first_kpt, vec_pot%a_tot, predcorr=.False., forcePmatHermitian=rt%pmat%force_pmat_hermitian, &
               & calculateOverlap=molecular_dynamics%update_overlap, &
+              overlap=overlap, ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, &
+              pmat=pmat, pmatmt=pmatmt, &
               & printTimings=printTimings, t_ham=timing%t_RTTDDFT%ham, t_MD=timing%t_Ehrenfest, &
               & update_mathcalH=allocated(mathcalH), &
               & update_mathcalB=allocated(mathcalB), &
-              & update_pmat=molecular_dynamics%update_pmat )
+              & update_pmat=molecular_dynamics%update_pmat, &
+              & evaluate_pmat_mt = allocated( pmatmt ) )
           end if
           if( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_Ehrenfest%t_MD_step )
         else ! if ( mod( it, timeStepMultiplier ) == 0 )
@@ -354,7 +409,7 @@ contains
         if ( mod( it, rt%screenshots%n_steps ) == 0 ) then
           if( printTimings%general() ) screenshot_was_taken(iprint) = .True.
           if( printTimings%general() ) call timesec(timei)
-          call screenshot( it, first_kpt, last_kpt, overlap, evecfv_gnd, &
+          call screenshot( it, first_kpt, overlap, evecfv_gnd, &
             & evecfv_time, ham_time )
           if( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%screenshot )
         else 
@@ -366,8 +421,8 @@ contains
       timestore(iprint) = time
       aindstore(:, iprint) = vec_pot%a_ind%components
       atotstore(:, iprint) = vec_pot%a_tot%components
-      pvecstore(:, iprint) = pvec(:)
-      jindstore(:, iprint) = jind(:)
+      pvecstore(:, iprint) = pvec
+      jindstore(:, iprint) = jind
       if( printTimings%general() ) timing_store(iprint) = timing
 
       ! Print relevant information, every 'rt_input%n_print' steps
@@ -425,32 +480,9 @@ contains
     if ( rank == 0 ) call writestate
     filext = string
 
-    call deallocate_global_arrays( rt%predictor_corrector%on, molecular_dynamics%on )
+    call deallocate_global_arrays( molecular_dynamics%on )
     
   end subroutine coordinate_rttddft_calculation
-
-  !> This is just an interface to call the subroutine `[[UpdateDensity]]`, which
-  !> updates the charge density
-  subroutine uprho( iteration_counter, normalize, l_rad_step, printTimings, timing_dens )
-    !> Tells how many time steps have already been executed
-    integer, intent(in) :: iteration_counter
-    !> If `.true.`, normalize the charge density
-    logical, intent(in)             :: normalize
-    !> radial step length
-    integer(i32), intent(in)        :: l_rad_step
-    !> Object that packs information about printing of timings [[Print_Timings]]
-    type(Print_Timings), optional, intent(in) :: printTimings
-    !> Object that packs information about timings to update the electronic density
-    type(Timing_RTTDDFT_density), optional, intent(inout) :: timing_dens
-
-    if( present(printTimings) ) then
-      call assert( present(timing_dens), 'timing_dens must be also present when printTimings is' )
-      call UpdateDensity( iteration_counter, normalize, l_rad_step, printTimings, timing_dens )
-    else
-      call UpdateDensity( iteration_counter, normalize, l_rad_step )
-    end if
-  end subroutine uprho
-
 
   !> This is just an interface to call the subroutines that updates the KS potential
   subroutine uppot( printTimings, t_pot )
@@ -524,7 +556,9 @@ contains
     E_field = ( -1._dp / c / dt ) * ( A_tot%components - A_tot_previous%components )
   end function
 
-  subroutine loopPredictorCorrector( it, time, rt, l_rad_step, first_kpt, last_kpt, &
+  subroutine loopPredictorCorrector( it, time, rt, l_rad_step, first_kpt, &
+    evecfv_time, evecfv_save, evecsv, overlap, ham_time, ham_past, apwalm, &
+    pvec, jpara, jparanext, jparaspurious, jdia, jind, pmat, pmatmt, &
     aindsave, atotsave, pvecsave, jindsave, jparasave, a_vec, mpi_env, maxStepsReached )
     !> current iteration number in the RT-TDDFT loop
     integer(i32), intent(in)       :: it
@@ -536,8 +570,46 @@ contains
     integer(i32), intent(in)        :: l_rad_step
     !> index of the first `k-point` to be considered in the sum
     integer(i32),intent(in)        :: first_kpt
-    !> index of the last `k-point` considered
-    integer(i32),intent(in)        :: last_kpt
+    !> Basis-expansion coefficients of the KS-WFs at time \(t\)
+    !> (nmatmax, nstfv, first_kpt : last_kpt)
+    complex(dp), intent(out) :: evecfv_time(:, :, first_kpt :)
+    !> Basis-expansion coefficients of the KS-WFs at time \(t\) - auxiliary 
+    !> variable used in the predictor-corrector loop
+    !> (nmatmax, nstfv, first_kpt : last_kpt)
+    complex(dp), intent(in) :: evecfv_save(:, :, first_kpt :)
+    !> Basis-expansion coefficients of the KS-WFs: second-variational coefficients
+    !> (nstfv, nstfv, first_kpt : last_kpt)
+    complex(dp), intent(in) :: evecsv(:, :, first_kpt :)
+    !> Overlap matrix (of basis functions)
+    !> (nmatmax, nmatmax, first_kpt : last_kpt)
+    complex(dp), intent(inout) :: overlap(:, :, :)
+    !> Hamiltonian matrix at current time \(t\)
+    !> (nmatmax, nmatmax, first_kpt : last_kpt)
+    complex(dp), intent(inout) :: ham_time(:, :, :)
+    !> Hamiltonian matrix at previous time \(t - \Delta t \)
+    !> (nmatmax, nmatmax, first_kpt : last_kpt)
+    complex(dp), intent(inout) :: ham_past(:, :, :)
+    !> Matching coefficients of the (L)APWs
+    !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
+    complex(dp), intent(in) :: apwalm(:, :, :, :, first_kpt :)
+    !> Polarization field
+    real(dp), intent(out) :: pvec(3)
+    !> Paramagnetic component of the current density
+    real(dp), intent(out) :: jpara(3)
+    !> Auxiliary variable, used to evolve `jpara`
+    real(dp), intent(out) :: jparanext(3)
+    !> Spurious paramagnetic current density (obtained for \(t=0\) - this should
+    !> ideally be zero for a dense `k-grid` mesh)
+    real(dp), intent(in) :: jparaspurious(3)
+    !> Diamagnetic component of the current density
+    real(dp), intent(out) :: jdia(3)
+    !> Total (induced) current density
+    real(dp), intent(out) :: jind(3)
+    !> Momentum matrix elements (projected onto the (L)APW+LO basis elements)
+    complex(dp), intent(inout) :: pmat(:, :, :, :)
+    !> Muffin-tin part of the Momentum matrix
+    complex(dp), intent(inout) :: pmatmt(:, :, :, :, :)
+
     !> Backup of `aind`
     class(Vector_Potential_Field), intent(in) :: aindsave
     !> Backup of `atot`
@@ -555,12 +627,17 @@ contains
     !> When `.True.`, it informs that the maximum steps have been reached
     logical, intent(out)           :: maxStepsReached
 
-    integer(i32) :: i, ik
+    integer(i32) :: i, ik, last_kpt, nham
     real(dp)     :: err
+    complex(dp), allocatable :: ham_predcorr(:, :, :)
+
+    last_kpt = ubound( evecfv_time, 3 )
+    nham = size( ham_time, 1 )
+    allocate( ham_predcorr(nham, nham, first_kpt : last_kpt) )
 
     do i = 1, rt%predictor_corrector%max_steps
       ! WAVEFUNCTION
-      evecfv_time(:,:,:) = evecfv_save(:,:,:)
+      evecfv_time(:, :, :) = evecfv_save(:, :, :)
       call UpdateWavefunction( first_kpt, rt%propagator, .True., &
       ham_time(:, :, first_kpt : last_kpt), &
       ham_past(:, :, first_kpt : last_kpt), &
@@ -573,19 +650,20 @@ contains
       if ( rt%subtract_J0 ) jparanext(:) = jparanext(:)-jparaspurious(:)
 
       ! DENSITY
-      call uprho( it, rt%propagator%normalize_WF, l_rad_step )
+      call UpdateDensity( first_kpt, evecfv_time(:, :, first_kpt : last_kpt), &
+      evecsv, it, rt%propagator%normalize_WF, l_rad_step )
 
       ! KS-POTENTIAL
-      call uppot
+      call uppot()
 
       ! VECTOR POTENTIAL
       ! Update the induced part of the vector potential
       if( a_vec%is_external_field_given() ) then
-        jpara(:) = jparasave(:) !attention: jparaold saves the value of jpara(t-deltat)
+        jpara(:) = jparasave(:) !attention: japarasave saves the value of jpara(t-deltat)
         call a_vec%set_a_tot_a_ind( atotsave, aindsave )
         pvec(:) = pvecsave(:)
         jind(:) = jindsave(:)
-        call update_a_ind_and_p_vec( a_vec, time, rt%propagator%time_step )
+        call update_a_ind_and_p_vec( a_vec, time, rt%propagator%time_step, jind, jpara, jparanext, pvec )
         call a_vec%evaluate_a_tot( time )
       end if
 
@@ -598,7 +676,9 @@ contains
 
       ! HAMILTONIAN
       ham_predcorr(:,:,:) = ham_time(:,:,:)
-      call UpdateHam( a_vec%a_tot, predcorr=.True., calculateOverlap=.False., forcePmatHermitian=rt%pmat%force_pmat_hermitian )
+      call UpdateHam( first_kpt, a_vec%a_tot, predcorr=.True., calculateOverlap=.False., &
+      forcePmatHermitian=rt%pmat%force_pmat_hermitian, overlap=overlap, &
+      ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, pmat=pmat, pmatmt=pmatmt )
 
       ! Check the difference between the two hamiltonians
       err = maxval(abs(ham_predcorr(:,:,:)-ham_time(:,:,:)))
@@ -609,14 +689,22 @@ contains
   end subroutine 
 
   !> Subroutine to initialize all MD related variables
-  subroutine init_MD( t_0, a_tot, timeStepRTTDDFT, timeStepMultiplier, molecular_dynamics, &
-      MD_outputs, atom_positions, atom_velocities, e_field, forces )
+  subroutine init_MD( t_0, a_tot, timeStepRTTDDFT, evecfv_time, overlap, ham_time, apwalm, timeStepMultiplier, &
+    molecular_dynamics, MD_outputs, atom_positions, atom_velocities, e_field, forces )
     !> Initial time \( t_0 \)
     real(dp), intent(in)               :: t_0
     !> Vector potential (total)
     class(Vector_Potential_Field), intent(in) :: a_tot
     !> Time step used in the real-time TDDFT calculation
     real(dp), intent(in)               :: timeStepRTTDDFT
+    !> Basis-expansion coefficients of the KS-WFs at time \(t\)
+    complex(dp), intent(in) :: evecfv_time(:, :, :)
+        !> Overlap matrix (of basis functions)
+    complex(dp), intent(in) :: overlap(:, :, :)
+    !> Hamiltonian matrix at current time \(t\)
+    complex(dp), intent(in) :: ham_time(:, :, :)
+    !> Matching coefficients of the (L)APWs
+    complex(dp), intent(in) :: apwalm(:, :, :, :, :)
     !> Integer ratio between the time step used in MD and `timeStepRTTDDFT`
     integer(i32), intent(out)          :: timeStepMultiplier
     !> variable with interfaces to elements defined in the input file
@@ -641,7 +729,8 @@ contains
     
     call forces%allocate_arrays( natmtot )
     e_field = 0.0_dp
-    call force_rttdft( forces, a_tot, e_field, molecular_dynamics )
+    call force_rttdft( forces, a_tot, e_field, molecular_dynamics, evecfv_time, &
+    overlap, ham_time, apwalm )
     
     allocate( atom_velocities(3, natmtot) )
     call init_atoms_velocities( atom_velocities )
@@ -715,25 +804,12 @@ contains
     end if
   end subroutine
 
-  subroutine deallocate_global_arrays( predictorCorrector, deallocate_ehrenfest_arrays )
-    !> when `.True.`, also deallocate arrays used in the predictor corrector loop
-    logical, intent(in) :: predictorCorrector
+  subroutine deallocate_global_arrays( deallocate_ehrenfest_arrays )
     !> when `.True.`, also deallocate arrays used in Ehrenfest MD
     logical, intent(in) :: deallocate_ehrenfest_arrays
-
-    if ( allocated(apwalm) ) deallocate( apwalm )
-    if ( allocated(evecfv_gnd) ) deallocate( evecfv_gnd )
-    if ( allocated(evecsv) ) deallocate( evecsv )
-    if ( allocated(evecfv_time) ) deallocate( evecfv_time )
-    if ( allocated(overlap) ) deallocate( overlap )
-    if ( allocated(ham_time) ) deallocate( ham_time )
-    if ( allocated(ham_past) ) deallocate( ham_past )
-    if ( allocated(pmat) ) deallocate( pmat )
-    if ( predictorCorrector ) deallocate( ham_predcorr, evecfv_save )
     
     if ( deallocate_ehrenfest_arrays ) then
       call MD_deallocate_global_arrays
-      if ( allocated( pmatmt ) ) deallocate( pmatmt )
       if ( allocated( mathcalH ) ) deallocate( mathcalH )
       if ( allocated( mathcalB ) ) deallocate( mathcalB )
       if ( allocated( B_past ) ) deallocate( B_past )

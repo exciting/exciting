@@ -50,7 +50,9 @@ module rttddft_init
 
 contains
 !> This subroutine initializes many global variables in a RT-TDDFT calculation.
-subroutine initialize_rttddft(input_pmat, predictorCorrector, vec_pot, molecular_dynamics)
+subroutine initialize_rttddft( input_pmat, predictorCorrector, vec_pot, molecular_dynamics, &
+  evecfv_gnd, evecfv_time, evecfv_save, evecsv, &
+  overlap, ham_time, ham_past, apwalm, pmat, jparaspurious, pmatmt )
   !> Argument that encapsulates the input options of the element pmat
   type(pmat_keys), intent(in) :: input_pmat
   !> if `.True`, the predictor corrector loop is employed
@@ -59,6 +61,42 @@ subroutine initialize_rttddft(input_pmat, predictorCorrector, vec_pot, molecular
   type(Vector_Potential), intent(in) :: vec_pot
   !> variable that is an interface to the input keys defined in `input.xml` inside the `MD` block
   type(MD_input_keys), intent(in) :: molecular_dynamics
+  !> Basis-expansion coefficients of the groundstate KS-WFs
+  !> (nmatmax, nstfv, first_kpt : last_kpt)
+  complex(dp), allocatable, intent(out) :: evecfv_gnd(:, :, :)
+  !> Basis-expansion coefficients of the KS-WFs at time \(t\)
+  !> (nmatmax, nstfv, first_kpt : last_kpt)
+  complex(dp), allocatable, intent(out) :: evecfv_time(:, :, :)
+  !> Basis-expansion coefficients of the KS-WFs at time \(t\) - auxiliary 
+  !> variable used in the predictor-corrector loop
+  !> (nmatmax, nstfv, first_kpt : last_kpt)
+  complex(dp), allocatable, intent(out) :: evecfv_save(:, :, :)
+  !> Basis-expansion coefficients of the KS-WFs: second-variational coefficients
+  !> (nstfv, nstfv, first_kpt : last_kpt)
+  complex(dp), allocatable, intent(out) :: evecsv(:, :, :)
+  !> Overlap matrix (of basis functions)
+  !> (nmatmax, nmatmax, first_kpt : last_kpt)
+  complex(dp), allocatable, intent(out) :: overlap(:, :, :)
+  !> Hamiltonian matrix at current time \(t\)
+  !> (nmatmax, nmatmax, first_kpt : last_kpt)
+  complex(dp), allocatable, intent(out) :: ham_time(:, :, :)
+  !> Hamiltonian matrix at previous time \(t - \Delta t \)
+  !> (nmatmax, nmatmax, first_kpt : last_kpt)
+  complex(dp), allocatable, intent(out) :: ham_past(:, :, :)
+  !> Matching coefficients of the (L)APWs
+  !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
+  complex(dp), allocatable, intent(out) :: apwalm(:, :, :, :, :)
+  !> Momentum matrix elements (projected onto the (L)APW+LO basis elements)
+  !> (nmatmax, nmatmax, 3, first_kpt : last_kpt)
+  complex(dp), allocatable, intent(out)  :: pmat(:, :, :, :)
+  !> Spurious paramagnetic current density (obtained for \(t=0\) - this should
+  !> ideally be zero for a dense `k-grid` mesh)
+  real(dp), intent(out) :: jparaspurious(3)
+  !> Muffin-tin part of the Momentum matrix
+  !> (nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt)
+  complex(dp), allocatable, intent(out)  :: pmatmt(:, :, :, :, :)
+
+
 
   integer                     :: ik, first_kpt, last_kpt
   character(len=*), parameter :: new_line = achar(13)//achar(10)
@@ -99,15 +137,32 @@ subroutine initialize_rttddft(input_pmat, predictorCorrector, vec_pot, molecular
   ! Since an XS calculation with Hybrid functionals uses the GS parameters, a one shot GS calculation serves no purpose
   if (.not. hybrids_used()) call gndstateq(voff, '_RTTDDFT.OUT')
 
-  call allocate_globals( first_kpt, last_kpt, molecular_dynamics%on, predictorCorrector, &
+  allocate( evecfv_gnd(nmatmax, nstfv, first_kpt : last_kpt), source = zzero )
+  allocate( evecfv_time(nmatmax, nstfv, first_kpt : last_kpt) )
+  allocate( evecsv(nstsv, nstsv, first_kpt : last_kpt) )
+  allocate( overlap(nmatmax, nmatmax, first_kpt : last_kpt), source = zzero )
+  allocate( ham_time(nmatmax, nmatmax, first_kpt : last_kpt), source = zzero )
+  allocate( ham_past(nmatmax, nmatmax, first_kpt : last_kpt), source = zzero )
+  if ( predictorCorrector ) then
+    allocate( evecfv_save(nmatmax, nstfv, first_kpt : last_kpt) )
+  end if
+  allocate( apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt) )
+  allocate( pmat(nmatmax, nmatmax, 3, first_kpt : last_kpt) )
+  if ( molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative ) &
+  allocate( pmatmt(nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt) )
+
+
+
+  call allocate_globals( first_kpt, last_kpt, molecular_dynamics%on, &
     allocate_mathcalH=molecular_dynamics%valence_corrections, &
     allocate_mathcalB=molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative,&
-    allocate_pmatmt=molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative, &
     allocate_B=molecular_dynamics%basis_derivative )
   
-  if ( rank == 0 ) call write_to_info( molecular_dynamics%on, predictorCorrector )
+  if ( rank == 0 ) call write_to_info( molecular_dynamics%on, &
+  predictorCorrector, evecfv_gnd, evecfv_time, evecfv_save, evecsv, &
+  overlap, ham_time, ham_past, apwalm, pmat, pmatmt )
 
-  call read_WF_potential_rttddft(first_kpt, last_kpt)
+  call read_WF_potential_rttddft( first_kpt, evecfv_gnd, evecfv_time, evecsv )
 
   if ( hybrids_used() ) then
     if ( input%xs%realTimeTDDFT%calcNonlocalCurrentDensity ) then
@@ -131,23 +186,18 @@ subroutine initialize_rttddft(input_pmat, predictorCorrector, vec_pot, molecular
       call read_pmat_mt( first_kpt, pmatmt, mpi_env_k )
     end if
   else
-    call Obtain_Pmat_LAPWLOBasis( input_pmat%force_pmat_hermitian, molecular_dynamics%on )
+    call Obtain_Pmat_LAPWLOBasis( first_kpt, input_pmat%force_pmat_hermitian, molecular_dynamics%on, apwalm, pmat, pmatmt )
   end if
   if( input_pmat%write_pmat_to_file ) then
     call write_pmat( first_kpt, pmat, mpi_env_k )
     if ( molecular_dynamics%on ) call write_pmat_mt( first_kpt, pmatmt, mpi_env_k )
   end if
 
-  ! Initialize fields
-  pvec(:) = 0._dp
-  jpara(:) = 0._dp
-  jparaold(:) = 0._dp
-  jdia(:) = 0._dp
-  jind(:) = 0._dp
   ! Hamiltonian at time t=0
-  call UpdateHam( vec_pot%a_tot, predcorr=.False., calculateOverlap=.True., forcePmatHermitian=input_pmat%force_pmat_hermitian, &
-    & update_mathcalH=allocated(mathcalH), update_mathcalB=allocated(mathcalB), update_pmat=.False. )
-  ham_past(:,:,:) = ham_time(:,:,:)
+  call UpdateHam( first_kpt, vec_pot%a_tot, predcorr=.False., calculateOverlap=.True., forcePmatHermitian=input_pmat%force_pmat_hermitian, &
+    overlap=overlap, ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, pmat=pmat, pmatmt=pmatmt, &
+    update_mathcalH=allocated(mathcalH), update_mathcalB=allocated(mathcalB), update_pmat=.False. )
+  ham_past(:, :, :) = ham_time(:, :, :)
 
   ! Spurious current
   if (input%xs%realTimeTDDFT%subtractJ0) then
@@ -160,41 +210,25 @@ subroutine initialize_rttddft(input_pmat, predictorCorrector, vec_pot, molecular
 end subroutine
 
 !> Allocate global arrays
-subroutine allocate_globals(first_kpt, last_kpt, ionDynamics, predictorCorrector, allocate_mathcalH, &
-                            allocate_mathcalB, allocate_pmatmt, allocate_B)
+subroutine allocate_globals(first_kpt, last_kpt, ionDynamics, allocate_mathcalH, &
+                            allocate_mathcalB, allocate_B)
   !> index of the first `k-point` to be considered in the sum
   integer(i32), intent(in)        :: first_kpt
   !> index of the last `k-point` considered
   integer(i32), intent(in)        :: last_kpt
   !> if `.True`, we need to allocate arrays for Ehrenfest molecular dynamics
   logical, intent(in) :: ionDynamics
-  !> if `.True`, we need to allocate arrays for the predictor corrector loop
-  logical, intent(in) :: predictorCorrector
   !> if `.True`, we need to allocate the global array `mathcalH`
   logical, intent(in) :: allocate_mathcalH
   !> if `.True`, we need to allocate the global array `mathcalB`
   logical, intent(in) :: allocate_mathcalB
-  !> if `.True`, we need to allocate the global array `pmatmt`
-  logical, intent(in) :: allocate_pmatmt
   !> if `.True`, we need to allocate the global arrays `B_time` and `B_past`
   logical, intent(in) :: allocate_B
 
-  allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt:last_kpt))
-  allocate (evecfv_gnd(nmatmax, nstfv, first_kpt:last_kpt), source=zzero)
-  allocate (evecfv_time(nmatmax, nstfv, first_kpt:last_kpt))
-  allocate (evecsv(nstsv, nstsv, first_kpt:last_kpt))
-  allocate (overlap(nmatmax, nmatmax, first_kpt:last_kpt), source=zzero)
-  allocate (ham_time(nmatmax, nmatmax, first_kpt:last_kpt), source=zzero)
-  allocate (ham_past(nmatmax, nmatmax, first_kpt:last_kpt), source=zzero)
-  allocate (pmat(nmatmax, nmatmax, 3, first_kpt:last_kpt))
-  if (predictorCorrector) then
-    allocate (ham_predcorr(nmatmax, nmatmax, first_kpt:last_kpt), source=zzero)
-    allocate (evecfv_save(nmatmax, nstfv, first_kpt:last_kpt))
-  end if
+
   if (ionDynamics) then
     if (allocate_mathcalH) allocate (mathcalH(nmatmax, nmatmax, 3, natmtot, last_kpt))
     if (allocate_mathcalB) allocate (mathcalB(nmatmax, nmatmax, 3, natmtot, first_kpt:last_kpt))
-    if (allocate_pmatmt) allocate (pmatmt(nmatmax, nmatmax, 3, natmtot, first_kpt:last_kpt))
     if (allocate_B) then
       allocate (B_time(nmatmax, nmatmax, first_kpt:last_kpt), source=zzero)
       allocate (B_past(nmatmax, nmatmax, first_kpt:last_kpt), source=zzero)
@@ -204,11 +238,37 @@ subroutine allocate_globals(first_kpt, last_kpt, ionDynamics, predictorCorrector
 end subroutine
 
 !> Output general information to `RTTDDFT_INFO.OUT`
-subroutine write_to_info( ionDynamics, predictorCorrector )
+subroutine write_to_info( ionDynamics, predictorCorrector, evecfv_gnd, &
+  evecfv_time, evecfv_save, evecsv, overlap, ham_time, ham_past, &
+  apwalm, pmat, pmatmt )
   !> Are we performing an MD calculation?
   logical, intent(in)         :: ionDynamics
   !> if `.True`, the predictor corrector loop is employed
   logical, intent(in) :: predictorCorrector
+  !> Basis-expansion coefficients of the groundstate KS-WFs
+  complex(dp), intent(in) :: evecfv_gnd(:, :, :)
+  !> Basis-expansion coefficients of the KS-WFs at time \(t\)
+  complex(dp), intent(in) :: evecfv_time(:, :, :)
+  !> Basis-expansion coefficients of the KS-WFs at time \(t\) - auxiliary 
+  !> variable used in the predictor-corrector loop
+  complex(dp), intent(in) :: evecfv_save(:, :, :)
+  !> Basis-expansion coefficients of the KS-WFs: second-variational coefficients
+  complex(dp), intent(in) :: evecsv(:, :, :)
+    !> Overlap matrix (of basis functions)
+  complex(dp), intent(in) :: overlap(:, :, :)
+  !> Hamiltonian matrix at current time \(t\)
+  complex(dp), intent(in) :: ham_time(:, :, :)
+  !> Hamiltonian matrix at previous time \(t - \Delta t \)
+  complex(dp), intent(in) :: ham_past(:, :, :)
+  !> Matching coefficients of the (L)APWs
+  complex(dp), intent(in) :: apwalm(:, :, :, :, :)
+  !> Momentum matrix elements (projected onto the (L)APW+LO basis elements)
+  !> (nmatmax, nmatmax, 3, first_kpt : last_kpt)
+  complex(dp), intent(in)  :: pmat(:, :, :, :)
+  !> Muffin-tin part of the Momentum matrix
+  !> (nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt)
+  complex(dp), intent(in)  :: pmatmt(:, :, :, :, :)
+
 
   character(len=100)          :: string
   character(len=*), parameter :: formatMemory = '(A40,F12.1)'
@@ -227,7 +287,7 @@ subroutine write_to_info( ionDynamics, predictorCorrector )
   call write_file_info(string)
   if (predictorCorrector) then
     write (string, formatMemory) 'Extra storage (predictor-corrector):', &
-      dble((sizeof(ham_predcorr) + sizeof(evecfv_save))/MB)
+      dble((sizeof(ham_time) + sizeof(evecfv_save))/MB)
     call write_file_info(string)
   end if
   write (string, formatMemory) 'Momentum matrix:', dble((sizeof(pmat))/MB)
@@ -289,16 +349,24 @@ subroutine is_gs_input_compatible_with_xs( inp, is_compatible)
 end subroutine
 
 !> read WF and potential from potential gs run. For hybrid functionals, the parameters are read from the PBE run
-subroutine read_WF_potential_rttddft(first_kpt, last_kpt)
+subroutine read_WF_potential_rttddft( first_kpt, evecfv_gnd, evecfv_time, evecsv )
   !> First k-point treated by this (MPI)rank
   integer, intent(in)         :: first_kpt
-  !> Last k-point treated by this (MPI)rank
-  integer, intent(in)         :: last_kpt
+  !> Basis-expansion coefficients of the groundstate KS-WFs
+  !> (nmatmax, nstfv, first_kpt : last_kpt)
+  complex(dp), intent(out) :: evecfv_gnd(:, :, first_kpt :)
+  !> Basis-expansion coefficients of the KS-WFs at time \(t\)
+  !> (nmatmax, nstfv, first_kpt : last_kpt)
+  complex(dp), intent(out) :: evecfv_time(:, :, first_kpt :) 
+  !> Basis-expansion coefficients of the KS-WFs: second-variational coefficients
+  !> (nstfv, nstfv, first_kpt : last_kpt)
+  complex(dp), intent(out) :: evecsv(:, :, first_kpt :)
 
-  integer                     :: ik
+  integer                     :: ik, last_kpt
   logical                     :: file_exists
   character(len=50)           :: string
 
+  last_kpt = ubound( evecfv_gnd, 3 )
   if (hybrids_used()) then
     inquire (File='STATE_PBE.OUT', Exist=file_exists)
     call terminate_if_false(file_exists, 'ERROR(rttddft_init): Start from GS calculation is not possible, STATE_PBE.OUT is missing!')

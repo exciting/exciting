@@ -22,7 +22,6 @@ contains
   !> during a RT-TDDFT propagation
   !> @param[in]   it          number of the current iteration (to name output files)
   !> @param[in]   first_kpt   first k-point to be considered in the average
-  !> @param[in]   last_kpt    last k-point
   !> @param[in]   overlap     overlap matrix
   !>                          Dimensions: nmatmax, nmatmax, first_kpt:last_kpt
   !> @param[in]   evec_gnd    coefficients of the KS-wavefunctions at t=0
@@ -31,7 +30,7 @@ contains
   !>                          Dimensions: nmatmax, nstfv, first_kpt:last_kpt
   !> @param[in]   ham_time    Hamiltonian matrix at time \( t \). Dimensions
   !>                          assumed for it: nmatmax, nmatmax, first_kpt:last_kpt
-  subroutine screenshot( it, first_kpt, last_kpt, overlap, evecfv_gnd,&
+  subroutine screenshot( it, first_kpt, overlap, evecfv_gnd,&
       & evecfv_time, ham_time )
     use modmpi
     Use modinput, only: input
@@ -49,8 +48,6 @@ contains
     integer, intent(in)       :: it
     !> index of the first `k-point` to be considered in the sum
     integer,intent(in)        :: first_kpt
-    !> index of the last `k-point` considered
-    integer,intent(in)        :: last_kpt
     !> overlap matrix, Dimensions: `nmatmax`, `nmatmax`, `first_kpt:last_kpt`
     complex(dp), intent(in)   :: overlap(:, :, first_kpt:)
     !> Basis-expansion coefficients of the KS-wavefunctions at \( t=0 \).
@@ -67,7 +64,7 @@ contains
     logical                   :: print_abs ! Print just the abs**2 of the projection
     logical                   :: print_occupations, print_eigenvalues
     integer                   :: ik,ist,m,lwork,info,nmatp
-    integer                   :: count, n_eigenvalues, n
+    integer                   :: count, n_eigenvalues, n, last_kpt
     integer,allocatable       :: ifail(:),iwork(:)
     integer                   :: fileout
     character(20)             :: strout
@@ -77,9 +74,12 @@ contains
     real (dp),allocatable     :: w(:,:)
     complex(dp)               :: rwork(7*nmatmax)
     complex(dp)               :: scratch(nmatmax,nstfv)
-    complex(dp)               :: proj_time(nstfv, nstfv, first_kpt:last_kpt )
+    complex(dp), allocatable  :: proj_time(:, :, :)
     complex(dp), allocatable  :: work(:),evecham(:,:),hamcopy(:,:)
     complex(dp), allocatable  :: overlcopy(:,:)
+
+    last_kpt = ubound( ham_time, 3 )
+    allocate( proj_time(nstfv, nstfv, first_kpt : last_kpt) )
 
     ! interface to input definitions
     print_occupations = associated( input%xs%realTimeTDDFT%screenshots%projectionCoefficients )
