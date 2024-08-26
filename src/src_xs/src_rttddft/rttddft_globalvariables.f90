@@ -9,63 +9,15 @@
 
 !> This module contains the global variables for the RT-TDDFT implementation
 module rttddft_GlobalVariables
-  use MD, only: MD_timing
   use precision, only: dp
 
   implicit none
 
   private
   ! List of the many global variables can be used publicly
-  public :: &
-    & apwalm, evecfv_gnd, evecfv_time, evecfv_save, evecsv, &
-    & overlap, ham_time, ham_past, ham_predcorr, &
-    & pvec, jpara, jparanext, jparaold, jparaspurious, jdia, jind, &
-    & pmat, mathcalH, mathcalB, B_time, B_past, pmatmt
+  public :: mathcalH, mathcalB, B_time, B_past
 
   ! Global variables of general purpose
-  !> Matching coefficients of the (L)APWs
-  complex(dp), allocatable  :: apwalm(:,:,:,:,:)
-
-  !> Basis-expansion coefficients of the groundstate KS-WFs 
-  complex(dp),allocatable   :: evecfv_gnd(:,:,:)  
-  !> Basis-expansion coefficients of the KS-WFs at time \(t\)
-  complex(dp),allocatable   :: evecfv_time(:,:,:) 
-  !> Basis-expansion coefficients of the KS-WFs at time \(t\) - auxiliary 
-  !> variable used in the predictor-corrector loop
-  complex(dp),allocatable   :: evecfv_save(:,:,:) 
-  !> Basis-expansion coefficients of the KS-WFs: second-variational coefficients
-  complex(dp), allocatable  :: evecsv(:,:,:)
-
-  !> Overlap matrix (of basis functions)
-  complex(dp),allocatable   :: overlap(:,:,:)
-  !> Hamiltonian matrix at current time \(t\)
-  complex(dp),allocatable   :: ham_time(:,:,:)
-  !> Hamiltonian matrix at previous time \(t - \Delta t \)
-  complex(dp),allocatable   :: ham_past(:,:,:)
-  !> Auxiliary hamiltonian matrix, for the predictor-corrector loop
-  complex(dp),allocatable   :: ham_predcorr(:,:,:)
-
-  !> Polarization field
-  real(dp)                  :: pvec(3)
-  !> Paramagnetic component of the current density
-  real(dp)                  :: jpara(3)
-  !> Auxiliary variable, used to evolve `[[rttddft_GlobalVariables:jpara]]`
-  real(dp)                  :: jparanext(3)
-  !> Auxiliary variable, used to evolve `[[rttddft_GlobalVariables:jpara]]`
-  real(dp)                  :: jparaold(3)
-  !> Spurious paramagnetic current density (obtained for \(t=0\) - this should
-  !> ideally be zero for a dense `k-grid` mesh)
-  real(dp)                  :: jparaspurious(3)
-  !> Diamagnetic component of the current density
-  real(dp)                  :: jdia(3)
-  !> Total (induced) current density
-  real(dp)                  :: jind(3)
-
-  !> Momentum matrix elements (projected onto the (L)APW+LO basis elements)
-  complex(dp), allocatable  :: pmat(:,:,:,:)
-  
-  !> Muffin-tin part of the Momentum matrix
-  complex(dp), allocatable  :: pmatmt(:,:,:,:,:)
 
   !> `mathcalH` gives the impact of an ion displacement on the hamiltonian matrix
   !> \[ \left[ \left\langle 

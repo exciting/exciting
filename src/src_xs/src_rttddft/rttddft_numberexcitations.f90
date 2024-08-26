@@ -47,7 +47,7 @@ contains
   !> 	w_\mathbf{k} m_{j\mathbf{k}}(t) = \sum_{j'\mathbf{k}}^{j'\, occ}
   !> 	w_\mathbf{k} m_{j'\mathbf{k}}(t) .
   !> 	\]
-  subroutine Obtain_number_excitations( first_kpt, last_kpt, evec_init, evec_time, overlap, mpi_env, &
+  subroutine Obtain_number_excitations( first_kpt, evec_init, evec_time, overlap, mpi_env, &
       & nex, ngs, nt )
     use constants, only: zzero, zone
     use exciting_mpi, only: mpiinfo, xmpi_allreduce
@@ -58,16 +58,14 @@ contains
     
     !> index of the first `k-point` to be considered in the sum
     integer,intent(in)        :: first_kpt
-    !> index of the last `k-point` considered
-    integer,intent(in)        :: last_kpt
     !> Basis-expansion coefficients of the KS-wavefunctions at \( t=0 \).
     !> Dimensions: `nmatmax`, `nstfv`, `first_kpt:last_kpt`
-    complex(dp), intent(in)   :: evec_init(:, :,first_kpt:)
+    complex(dp), intent(in)   :: evec_init(:, :, first_kpt :)
     !> Basis-expansion coefficients of the KS-wavefunctions at current time.
     !> Dimensions: `nmatmax`, `nstfv`, `first_kpt:last_kpt`
-    complex(dp), intent(in)   :: evec_time(:, :, first_kpt:)
+    complex(dp), intent(in)   :: evec_time(:, :, first_kpt :)
     !> overlap matrix, Dimensions: `nmatmax`, `nmatmax`, `first_kpt:last_kpt`
-    complex(dp), intent(in)   :: overlap(:, :, first_kpt:)
+    complex(dp), intent(in)   :: overlap(:, :, first_kpt :)
     !> MPI environment
     type(mpiinfo), intent(in) :: mpi_env
     !> number of excited electrons
@@ -77,13 +75,15 @@ contains
     !> total number of electrons obtained as `ngs + nex`
     real(dp), intent(out)     :: nt
 
-    integer                   :: ik, ist, jst, nmatp
+    integer                   :: ik, ist, jst, nmatp, last_kpt
     real(dp)                  :: aux, buffer(3)
     complex(dp), allocatable  :: scratch(:,:),proj(:,:)
 
 
     allocate( scratch(nmatmax, nstfv) )
     allocate( proj(nstfv, nstfv) )
+
+    last_kpt = ubound( evec_init, 3 )
 
     nex = 0._dp
     ngs = 0._dp

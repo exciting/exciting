@@ -27,8 +27,7 @@ module rttddft_MD
   use modmpi, only: rank, mpi_env_k, distribute_loop
   use physical_constants, only: c
   use precision, only: dp, i32
-  use rttddft_GlobalVariables, only: apwalm, &
-      & evecfv_time, mathcalH, mathcalB, ham_time, overlap
+  use rttddft_GlobalVariables, only: mathcalH, mathcalB
   use rttddft_timings, only: Print_Timings, timesec_RTTDDFT
   use rttddft_VectorPotential, only: Vector_Potential_Field
   use vector_multiplication, only: dot_multiply
@@ -67,7 +66,8 @@ contains
     forall( is = 1:n_species ) charge_val(is) = sum( spocc(:, is), mask=(.not.spcore(:, is)) )
   end subroutine
 
-  subroutine force_rttdft( forces, a_tot, e_field, MD_input, printTimings, t_MD )
+  subroutine force_rttdft( forces, a_tot, e_field, MD_input, evecfv_time, overlap, &
+    ham_time, apwalm, printTimings, t_MD )
     !> Object that packs information about the total forces
     type(force), intent(inout)      :: forces
     !> `x`, `y`, and `z` components of the (total) vector potential
@@ -76,6 +76,14 @@ contains
     real(dp)                  :: e_field(3)
     !> Object that contains the inputs keys given in the MD element
     type(MD_input_keys), intent(in) :: MD_input
+    !> Basis-expansion coefficients of the KS-WFs at time \(t\)
+    complex(dp), intent(in) :: evecfv_time(:, :, :)
+    !> Overlap matrix (of basis functions)
+    complex(dp), intent(in) :: overlap(:, :, :)
+    !> Hamiltonian matrix at current time \(t\)
+    complex(dp), intent(in) :: ham_time(:, :, :)
+    !> Matching coefficients of the (L)APWs
+    complex(dp), intent(in) :: apwalm(:, :, :, :, :)
     !> Object that packs information about printing of timings [[Print_Timings]]
     type(Print_Timings), optional, intent(in) :: printTimings
     !> Object that packs information about timings spent in MD
@@ -120,7 +128,8 @@ contains
 
     ! Valence corrections: second part
     if( MD_input%valence_corrections ) &
-      call obtain_valence_corrections_part2( first_kpt, last_kpt, mpi_env_k, forces%val )
+      call obtain_valence_corrections_part2( first_kpt, last_kpt, mpi_env_k, &
+      evecfv_time, overlap, ham_time, apwalm, forces%val )
     if( tDetail ) call timesec_RTTDDFT( ti, t_MD%t_MD_2nd )
     ! sum all contributions to total force and store it
     call forces%evaluate_total_force()
@@ -130,13 +139,26 @@ contains
   end subroutine
 
   !> Wrapper for calling val_corr_pt2_given_atom_and_kpt
-  subroutine obtain_valence_corrections_part2( first_kpt, last_kpt, mpi_env, forces_val )
+  subroutine obtain_valence_corrections_part2( first_kpt, last_kpt, mpi_env, &
+    evecfv_time, overlap, ham_time, apwalm, forces_val )
     !> index of the first `k-point` to be considered in the sum
     integer(i32),intent(in)        :: first_kpt
     !> index of the last `k-point` considered
     integer(i32),intent(in)        :: last_kpt
     !> MPI environment
     type(mpiinfo), intent(in)      :: mpi_env
+    !> Basis-expansion coefficients of the KS-WFs at time \(t\)
+    !> (nmatmax, nstfv, first_kpt : last_kpt)
+    complex(dp), intent(in) :: evecfv_time(:, :, first_kpt :)
+    !> Overlap matrix (of basis functions)
+    !> (nmatmax, nmatmax, first_kpt : last_kpt)
+    complex(dp), intent(in) :: overlap(:, :, first_kpt :)
+    !> Hamiltonian matrix at current time \(t\)
+    !> (nmatmax, nmatmax, first_kpt : last_kpt)
+    complex(dp), intent(in) :: ham_time(:, :, first_kpt :)
+    !> Matching coefficients of the (L)APWs
+    !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
+    complex(dp), intent(in) :: apwalm(:, :, :, :, first_kpt :)
     !> valence corrections to the total force
     real(dp), intent(inout)        :: forces_val(:, :)
     
@@ -176,8 +198,10 @@ contains
       forces_val = forces_val + sumaux
   end subroutine
 
-  subroutine move_ions(forces, forces_old, dt, atoms_velocities, &
+  subroutine move_ions( first_kpt, forces, forces_old, dt, atoms_velocities, apwalm, &
     printTimings, t_MD )
+    !> The first k point
+    integer(i32), intent(in) :: first_kpt
     !> Forces acting on each atom at time \( t \)
     real(dp), intent(in)            :: forces(:, :)
     !> Forces acting on each atom at time \( t - \Delta t \)
@@ -186,6 +210,9 @@ contains
     real(dp), intent(in)            :: dt
     !> Velocities of the nuclei at time \( t \)
     real(dp), intent(inout)         :: atoms_velocities(:,:)
+    !> Matching coefficients of the (L)APWs
+    !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
+    complex(dp), intent(inout) :: apwalm(:, :, :, :, first_kpt :)
     !> Object that packs information about printing of timings [[Print_Timings]]
     type(Print_Timings), optional, intent(in) :: printTimings
     !> Object that packs information about timings spent in MD
@@ -193,7 +220,7 @@ contains
   
     logical                         :: tDetail
 
-    integer                         :: ia, ias, is, ik, ispn, first_kpt, last_kpt
+    integer                         :: ia, ias, is, ik, ispn, last_kpt
     real(dp)                        :: ti
 
     call assert( size(forces, 1) == 3, 'forces must have size = 3 along dim = 1' )
@@ -211,7 +238,7 @@ contains
       call timesec( ti )
     end if
 
-    call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
+    last_kpt = ubound( apwalm, 5 )
   
     do is = 1, nspecies
       do ia = 1, natoms (is)

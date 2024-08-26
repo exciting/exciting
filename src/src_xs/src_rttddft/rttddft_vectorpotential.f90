@@ -17,7 +17,6 @@ module rttddft_VectorPotential
   use modmpi, only: terminate
   use physical_constants, only: c
   use precision, only: dp, i32
-  use rttddft_GlobalVariables, only: jpara, jparanext, pvec, jind
   use rttddft_laser, only: Set_of_Laser_Pulses
 
   implicit none
@@ -130,12 +129,20 @@ contains
   !> \[
   !>  \frac{d^2\mathbf{A}_{ind}}{dt^2} = 4 \pi c \mathbf{J}(t).
   !>  \]
-  subroutine update_a_ind_and_p_vec( this, time, dt )
+  subroutine update_a_ind_and_p_vec( this, time, dt, jind, jpara, jparanext, pvec )
     class(Vector_Potential), intent(inout) :: this
     !> Time \( t \)
     real(dp), intent(in)      :: time
     !> Time step \( \Delta t \)
     real(dp), intent(in)      :: dt
+    !> Total (induced) current density
+    real(dp), intent(in) :: jind(3)
+    !> Paramagnetic component of the current density
+    real(dp), intent(in) :: jpara(3)
+    !> Auxiliary variable, used to evolve `jpara`
+    real(dp), intent(in) :: jparanext(3)
+    !> Polarization field
+    real(dp), intent(inout) :: pvec(3)
 
     real(dp)              :: beta, fac, den
     real(dp)              :: k1(3,2), k2(3,2), k3(3,2), k4(3,2)
