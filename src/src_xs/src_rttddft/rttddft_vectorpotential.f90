@@ -18,13 +18,13 @@ module rttddft_VectorPotential
   use physical_constants, only: c
   use precision, only: dp, i32
   use rttddft_laser, only: Set_of_Laser_Pulses
+  use rttddft_VectorField, only: Uniform_Vector_Field
 
   implicit none
 
   private
 
   public  :: update_a_ind_and_p_vec
-
 
   character(len=*), parameter :: solver_euler = 'euler'
   character(len=*), parameter :: solver_improved_euler = 'improvedeuler'
@@ -37,9 +37,7 @@ module rttddft_VectorPotential
     enumerator :: euler, improved_euler, midpoint, rk4
   end enum
 
-  type, public :: Vector_Potential_Field
-    !> `x`, `y` and `z` components
-    real(dp) :: components(3) = 0._dp
+  type, public, extends(Uniform_Vector_Field) :: Vector_Potential_Field
   end type
 
   type, public, extends(Set_of_Laser_Pulses) :: Vector_Potential
@@ -85,7 +83,6 @@ contains
         call terminate('unknown solver_type')
     end select
   end function
-
 
   !> Initialize the interface to the input variables that define the laser pulses
   subroutine initialize_from_input( this, laser, vectorPotentialSolver )
@@ -154,10 +151,10 @@ contains
     ! Method of integrating the differential equation
     select case( this%vector_potential_solver )
       case( euler ) ! Euler
-        this%a_ind%components = this%a_ind%components + fourpi*c*dt*pvec
+        call this%a_ind%add_vector( fourpi*c*dt*pvec )
         pvec = pvec + dt*jind
       case( improved_euler ) ! Improved Euler method
-        this%a_ind%components = this%a_ind%components + fourpi*c*dt*(pvec + (0.5_dp)*(dt)*jind)
+        call this%a_ind%add_vector( fourpi*c*dt*(pvec + (0.5_dp)*(dt)*jind) )
         aauxnext = this%applied_vector_potential( time )
         if ( this%is_total_field_given() ) then
           jindnext = jparanext - beta*(aauxnext)
@@ -170,7 +167,7 @@ contains
         if ( this%is_total_field_given() ) then
           jindnext = jparanext - beta*( aauxnext )
           jindmid = 0.5_dp*( jind + jindnext )
-          this%a_ind%components = this%a_ind%components + fourpi*c*dt*( pvec + 0.5_dp*dt*jindmid )
+          call this%a_ind%add_vector( fourpi*c*dt*( pvec + 0.5_dp*dt*jindmid ) )
           pvec = pvec + dt*jindmid
         else
           asave = this%a_ind%components
@@ -179,8 +176,7 @@ contains
           fac = pi*beta*c*(dt**2)
           den = 1_dp + fac
           fac = (1_dp - fac)/den
-          this%a_ind%components = (fourpi*c*dt/den)*( pvec + 0.5_dp*dt*smid ) + &
-            & fac*this%a_ind%components
+          this%a_ind%components = (fourpi*c*dt/den)*( pvec + 0.5_dp*dt*smid ) + fac*this%a_ind%components
           pvec = (dt/den)*(smid - beta*asave ) + fac*pvec
         end if
       case( rk4 ) ! Runge-Kutta 4th order
@@ -209,7 +205,7 @@ contains
           k4(:,2) = fourpi*c*(pvec(:) + (dt)*k3(:,1))
         end if
         pvec(:) = pvec(:) + (dt/6._dp)*( k1(:,1) + 2._dp*k2(:,1) + 2._dp*k3(:,1) + k4(:,1) )
-        this%a_ind%components = this%a_ind%components + (dt/6._dp)*( k1(:,2) + 2._dp*k2(:,2) + 2._dp*k3(:,2) + k4(:,2) )
+        call this%a_ind%add_vector( (dt/6._dp)*( k1(:,2) + 2._dp*k2(:,2) + 2._dp*k3(:,2) + k4(:,2) ) )
       case default
         ! Method not recognized
         ! We need to stop the code

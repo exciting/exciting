@@ -5,18 +5,11 @@ module rttddft_laser
   use modinput, only: kick_type_array, trapCos_type_array, sinSq_type_array
   use physical_constants, only: c
   use precision, only: dp, i32
+  use rttddft_VectorField, only: direction, cartesian_direction
   
   implicit none
 
   private
-
-  public :: field_type
-
-  !> Enum with the cartesian direction
-  enum, bind(C)
-    enumerator :: direction
-    enumerator :: x=1, y=2, z=3
-  end enum
 
   character(len=*), parameter :: field_total = 'total'
   character(len=*), parameter :: field_external = 'external'
@@ -116,24 +109,6 @@ module rttddft_laser
 
 contains
 
-  !> Return an enum with the cartesian direction
-  !> Attention: the caller must assure that char is `x`, `y` or `z`
-  pure function cartesian_direction( char ) result( this )
-    !> char to be converted to enum
-    character, intent(in) :: char
-    !> resulting enum
-    integer(kind(direction)) :: this
-
-    select case( char )
-      case('x')
-        this = x
-      case('y')
-        this = y
-      case('z')
-        this = z
-    end select
-  end function
-
   !> Return an enum with the field type
   function field_type( name ) result( field )
     !> String with the name of field type
@@ -164,12 +139,10 @@ contains
     !> Character containing the cartesian direction: must be `x`, `y`, or `z`
     character, intent(in) :: dir
 
-    call assert( dir=='x' .or. dir=='y' .or. dir=='z', 'Invalid direction')
-
     this%t_0 = t_0
     this%width = width
     this%amplitude = -c*amplitude
-    this%direction = cartesian_direction(dir)
+    this%direction = cartesian_direction( dir )
   end subroutine
 
   !> Delta Kick function
@@ -261,8 +234,6 @@ contains
     !> Phase \(\phi\)
     real(dp), intent(in) :: phase
     
-    call assert( dir=='x' .or. dir=='y' .or. dir=='z', 'Invalid direction')
-
     this%t_0 = t_0
     this%width = width
     this%amplitude = amplitude
@@ -349,8 +320,6 @@ contains
     real(dp), intent(in) :: omega
     !> Phase \(\phi\)
     real(dp), intent(in) :: phase
-
-    call assert( dir=='x' .or. dir=='y' .or. dir=='z', 'Invalid direction')
 
     this%t_0 = t_0
     this%width = width
