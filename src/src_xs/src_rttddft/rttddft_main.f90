@@ -29,7 +29,7 @@ module rttddft_main
   use modmpi, only: rank, procs, mpi_env_k, mpiglobal, distribute_loop, barrier, terminate_if_false
   use physical_constants, only: c
   use precision, only: dp, i32
-  use rttddft_CurrentDensity, only: Current_Density_Diamagnetic_Component, Current_Density_Paramagnetic_Compoment
+  use rttddft_CurrentDensity, only: Current_Density, Current_Density_Field
   use rttddft_Density, only: UpdateDensity
   use rttddft_Energy, only: TotalEnergy, obtain_energy_rttddft
   use rttddft_GlobalVariables
@@ -48,8 +48,9 @@ module rttddft_main
     MD_evaluate_charge_val => evaluate_charge_val
   use rttddft_NumberExcitations, only: Obtain_number_excitations
   use rttddft_screenshot, only: screenshot
+  use rttddft_solve_fields, only: update_a_ind_and_p_vec
   use rttddft_timings, only: Timing_RTTDDFT_and_MD, Timing_RTTDDFT_density, Timing_RTTDDFT_potential, Print_Timings, timesec_RTTDDFT
-  use rttddft_VectorPotential, only: Vector_Potential, Vector_Potential_Field, update_a_ind_and_p_vec
+  use rttddft_VectorPotential, only: Vector_Potential, Vector_Potential_Field
   use rttddft_Wavefunction, only: UpdateWavefunction, Update_basis_derivative, SE, EH, propagator_types
   
   implicit none
@@ -98,19 +99,6 @@ contains
     complex(dp), allocatable :: apwalm(:, :, :, :, :)
     ! Polarization field
     real(dp) :: pvec(3)
-    ! Paramagnetic component of the current density
-    real(dp) :: jpara(3)
-    ! Auxiliary variable, used to evolve `jpara`
-    real(dp) :: jparanext(3)
-    ! Auxiliary variable, used to evolve `jpara`
-    real(dp) :: japarasave(3)
-    ! Spurious paramagnetic current density (obtained for \(t=0\) - this should
-    ! ideally be zero for a dense `k-grid` mesh)
-    real(dp) :: jparaspurious(3)
-    ! Diamagnetic component of the current density
-    real(dp) :: jdia(3)
-    ! Total (induced) current density
-    real(dp) :: jind(3)
 
     ! Momentum matrix elements (projected onto the (L)APW+LO basis elements)
     complex(dp), allocatable  :: pmat(:, :, :, :)
@@ -123,8 +111,13 @@ contains
 
     character(len=100)      :: string
 
-    type(Vector_Potential)  :: vec_pot
-    type(Vector_Potential_Field) :: aindsave, atotsave
+    type(Vector_Potential)        :: vec_pot
+    type(Vector_Potential_Field)  :: aindsave, atotsave
+
+    type(Current_Density)          :: j_ind, j_ind_save
+    ! Spurious paramagnetic current density (obtained for \(t=0\) - this should
+    ! ideally be zero for a dense `k-grid` mesh)
+    type(Current_Density_Field)    :: j_para_spurious
 
     real(dp), allocatable   :: atom_positions(:, :) ! in cartesian coordinates x, y, z
     real(dp), allocatable   :: atom_velocities(:, :) ! in cartesian coordinates x, y, z
@@ -135,12 +128,13 @@ contains
     ! Current time \( t \) for the time evolution carried out in RT-TDDFT
     real(dp)                :: time
 
-    real(dp), allocatable :: nex(:), ngs(:), nt(:)
-    real(dp) :: pvecsave(3), jindsave(3), electric_field(3)
-    real(dp) :: timei, timef, timeiter
-    real(dp) :: tol
-    real(dp), parameter :: tol_default = 1e-10_dp
-    type(MD_out) :: MD_outputs
+    real(dp),allocatable    :: nex(:), ngs(:), nt(:)
+    real(dp)                :: pvecsave(3)
+    real(dp)                :: electric_field(3)
+    real(dp)                :: timei, timef, timeiter
+    real(dp)                :: tol
+    real(dp), parameter     :: tol_default = 1e-10_dp
+    type(MD_out)            :: MD_outputs
 
     ! Variables to store data and print
     real(dp),allocatable    :: timestore(:),aindstore(:,:),atotstore(:,:)
@@ -155,7 +149,6 @@ contains
     type(Timing_RTTDDFT_and_MD)     :: timing
     type(Timing_RTTDDFT_and_MD), allocatable :: timing_store(:)
 
-
     call timesec( timei )
 
     ! Sanity check
@@ -169,6 +162,7 @@ contains
     time = 0._dp
     n_steps = int( rt%t_end / rt%propagator%time_step )
     l_rad_step = input%groundstate%lradstep
+    pvec = 0._dp
     
     ! we only perform MD in RT-TDDFT if the type is Ehrenfest
     if( molecular_dynamics%on ) molecular_dynamics%on = ( trim(molecular_dynamics%MD_type) == 'Ehrenfest' )
@@ -180,20 +174,21 @@ contains
     end if
 
     call initialize_rttddft( rt%pmat, rt%predictor_corrector%on, &
-     vec_pot, molecular_dynamics, evecfv_gnd, evecfv_time, evecfv_save, evecsv, &
-    overlap, ham_time, ham_past, apwalm, pmat, jparaspurious, pmatmt )
+      vec_pot, molecular_dynamics, evecfv_gnd, evecfv_time, evecfv_save, evecsv, &
+      overlap, ham_time, ham_past, apwalm, pmat, pmatmt )
     if( molecular_dynamics%on ) call init_MD( time, vec_pot%a_tot, rt%propagator%time_step, &
       evecfv_time, overlap, ham_time, apwalm, timeStepMultiplier, molecular_dynamics, &
       MD_outputs, atom_positions, atom_velocities, electric_field, forces )
+    if ( rt%subtract_J0 ) then
+      call j_ind%evaluate_paramagnetic( evecfv_gnd, pmat, occsv(:, first_kpt:last_kpt), &
+        [(1._dp/nkpt, it = first_kpt, last_kpt)], mpi_env_k )
+      j_para_spurious = j_ind%paramagnetic
+    end if
     
     call printTimings%set( rt%timings_general, rt%timings_detailed )
 
     ! Initialize fields
     pvec = 0._dp
-    jpara = 0._dp
-    japarasave = 0._dp
-    jdia = 0._dp
-    jind = 0._dp
 
     ! Allocate variables to be stored and printed only after rt_input%n_print steps
     allocate(timestore(rt%n_print), aindstore(3,rt%n_print), atotstore(3,rt%n_print))
@@ -218,7 +213,7 @@ contains
       call open_files_jpa
       call write_jpa( time, vec_pot%a_ind%components, vec_pot%a_tot%components, label='avec' )
       call write_jpa( time, pvec, label='pvec' )
-      call write_jpa( time, jind, label='jind' )
+      call write_jpa( time, j_ind%total(), label='jind' )
     end if
 
     ! Initialize integers that contain the first and last k-point
@@ -289,9 +284,10 @@ contains
       if ( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%wavefunction )
 
       ! Update the paramagnetic component of the induced current density
-      jparanext = Current_Density_Paramagnetic_Compoment( evecfv_time, pmat, occsv(:, first_kpt : last_kpt), &
+      j_ind_save = j_ind
+      call j_ind%evaluate_paramagnetic( evecfv_time, pmat, occsv(:, first_kpt:last_kpt), &
         [(1._dp/nkpt, is = first_kpt, last_kpt)], mpi_env_k )
-      if ( rt%subtract_J0 ) jparanext(:) = jparanext(:)-jparaspurious(:)
+      if ( rt%subtract_J0 ) call j_ind%paramagnetic%add_vector( -j_para_spurious%components )
       if ( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%current_density )
 
       ! DENSITY
@@ -309,7 +305,7 @@ contains
         pvecsave(:) = pvec(:)
       end if
       atotsave = vec_pot%a_tot
-      call update_a_ind_and_p_vec( vec_pot, time, rt%propagator%time_step, jind, jpara, jparanext, pvec )
+      call update_a_ind_and_p_vec( vec_pot, pvec, time, rt%propagator%time_step, j_ind_save, j_ind%paramagnetic )
       call vec_pot%evaluate_a_tot( time )
       if( molecular_dynamics%on ) then
         if( vec_pot%is_total_field_given() ) then
@@ -322,13 +318,9 @@ contains
 
       ! INDUCED CURRENT
       ! Update the diamagnetic component of the induced current density
-      jdia = Current_Density_Diamagnetic_Component( vec_pot%a_tot, chgval, Omega )
-      ! Update the paramagnetic component of the induced current density
-      japarasave = jpara
-      jpara = jparanext
+      call j_ind%evaluate_diamagnetic( chgval/Omega, vec_pot%a_tot )
       ! Update the total induced current
-      if ( rt%predictor_corrector%on .and. ( .not. vec_pot%is_solver_euler() ) ) jindsave(:) = jind(:)
-      jind = jpara + jdia
+      if ( rt%predictor_corrector%on .and. ( .not. vec_pot%is_solver_euler() ) ) j_ind_save = j_ind
 
       ! HAMILTONIAN
       call UpdateHam( first_kpt, vec_pot%a_tot, predcorr=.False., calculateOverlap=.False., forcePmatHermitian=rt%pmat%force_pmat_hermitian, &
@@ -340,9 +332,10 @@ contains
       if ( rt%predictor_corrector%on .and. (rt%propagator%name /= SE) .and. (rt%propagator%name /= EH) ) then
         if ( printTimings%general() ) call timesec( timei )
         call loopPredictorCorrector( it, time, rt, l_rad_step, first_kpt, &
-        evecfv_time, evecfv_save, evecsv, overlap, ham_time, ham_past, &
-        apwalm, pvec, jpara, jparanext, jparaspurious, jdia, jind, pmat, pmatmt, &
-        aindsave, atotsave, pvecsave, jindsave, japarasave, vec_pot, mpi_env_k, predCorrReachedMaxSteps )
+          evecfv_time, evecfv_save, evecsv, overlap, ham_time, ham_past, &
+          apwalm, pmat, pmatmt, &
+          aindsave, atotsave, pvecsave, j_ind_save, j_para_spurious, &
+          vec_pot, pvec, j_ind, mpi_env_k, predCorrReachedMaxSteps )
         if ( predCorrReachedMaxSteps .and. rank == 0 ) write(*,*) 'Problems with convergence (PredCorr), time: ', time
         if ( molecular_dynamics%on .and. vec_pot%is_external_field_given()) &
           electric_field = obtain_electric_field( rt%propagator%time_step, vec_pot%a_tot, atotsave )
@@ -422,7 +415,7 @@ contains
       aindstore(:, iprint) = vec_pot%a_ind%components
       atotstore(:, iprint) = vec_pot%a_tot%components
       pvecstore(:, iprint) = pvec
-      jindstore(:, iprint) = jind
+      jindstore(:, iprint) = j_ind%total()
       if( printTimings%general() ) timing_store(iprint) = timing
 
       ! Print relevant information, every 'rt_input%n_print' steps
@@ -556,20 +549,21 @@ contains
     E_field = ( -1._dp / c / dt ) * ( A_tot%components - A_tot_previous%components )
   end function
 
+  !> Loop used in the predictor-corrector method
   subroutine loopPredictorCorrector( it, time, rt, l_rad_step, first_kpt, &
-    evecfv_time, evecfv_save, evecsv, overlap, ham_time, ham_past, apwalm, &
-    pvec, jpara, jparanext, jparaspurious, jdia, jind, pmat, pmatmt, &
-    aindsave, atotsave, pvecsave, jindsave, jparasave, a_vec, mpi_env, maxStepsReached )
+    evecfv_time, evecfv_save, evecsv, overlap, ham_time, ham_past, apwalm, pmat, pmatmt, &
+    a_ind_t_minus_dt, a_tot_t_minus_dt, p_vec_t_minus_dt, j_t_minus_dt, j_para_spurious,&
+    a_t, p_vec, j_t, mpi_env, maxStepsReached )
     !> current iteration number in the RT-TDDFT loop
-    integer(i32), intent(in)       :: it
+    integer(i32), intent(in) :: it
     !> time \( t \)
-    real(dp), intent(in)  :: time
+    real(dp), intent(in) :: time
     !> Type that encapsulates the parameters defined in the input file
     type(rttddft_input_keys), intent(in) :: rt
     !> radial step length
-    integer(i32), intent(in)        :: l_rad_step
+    integer(i32), intent(in) :: l_rad_step
     !> index of the first `k-point` to be considered in the sum
-    integer(i32),intent(in)        :: first_kpt
+    integer(i32),intent(in) :: first_kpt
     !> Basis-expansion coefficients of the KS-WFs at time \(t\)
     !> (nmatmax, nstfv, first_kpt : last_kpt)
     complex(dp), intent(out) :: evecfv_time(:, :, first_kpt :)
@@ -592,40 +586,30 @@ contains
     !> Matching coefficients of the (L)APWs
     !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
     complex(dp), intent(in) :: apwalm(:, :, :, :, first_kpt :)
-    !> Polarization field
-    real(dp), intent(out) :: pvec(3)
-    !> Paramagnetic component of the current density
-    real(dp), intent(out) :: jpara(3)
-    !> Auxiliary variable, used to evolve `jpara`
-    real(dp), intent(out) :: jparanext(3)
-    !> Spurious paramagnetic current density (obtained for \(t=0\) - this should
-    !> ideally be zero for a dense `k-grid` mesh)
-    real(dp), intent(in) :: jparaspurious(3)
-    !> Diamagnetic component of the current density
-    real(dp), intent(out) :: jdia(3)
-    !> Total (induced) current density
-    real(dp), intent(out) :: jind(3)
     !> Momentum matrix elements (projected onto the (L)APW+LO basis elements)
     complex(dp), intent(inout) :: pmat(:, :, :, :)
     !> Muffin-tin part of the Momentum matrix
     complex(dp), intent(inout) :: pmatmt(:, :, :, :, :)
-
-    !> Backup of `aind`
-    class(Vector_Potential_Field), intent(in) :: aindsave
-    !> Backup of `atot`
-    class(Vector_Potential_Field), intent(in) :: atotsave
-    !> Backup of `pvec`
-    real(dp), intent(in)           :: pvecsave(3)
-    !> Backup of `jind`
-    real(dp), intent(in)           :: jindsave(3)
-    !> Backup of `jpara`
-    real(dp), intent(in)           :: jparasave(3)
+    !> `aind` at time \( t-\Delta t\) 
+    class(Vector_Potential_Field), intent(in) :: a_ind_t_minus_dt
+    !> `atot` at time \( t-\Delta t\) 
+    class(Vector_Potential_Field), intent(in) :: a_tot_t_minus_dt
+    !> `pvec` at time \( t-\Delta t\) 
+    real(dp), intent(in) :: p_vec_t_minus_dt(3)
+    !> Current density at time \( t-\Delta t\) 
+    class(Current_Density), intent(in) :: j_t_minus_dt
+    !> Spurious paramagnetic current density (obtained at \(t=0\))
+    class(Current_Density_Field), intent(in) :: j_para_spurious
     !> Structure with the vector potential
-    type(Vector_Potential), intent(inout) :: a_vec
+    type(Vector_Potential), intent(inout) :: a_t
+    !> `pvec` at time \( t \)
+    real(dp), intent(inout) :: p_vec(3)
+    !> Current density at time \( t) 
+    type(Current_Density), intent(inout) :: j_t
     !> MPI environment
-    type(mpiinfo), intent(in)      :: mpi_env
+    type(mpiinfo), intent(in)  :: mpi_env
     !> When `.True.`, it informs that the maximum steps have been reached
-    logical, intent(out)           :: maxStepsReached
+    logical, intent(out) :: maxStepsReached
 
     integer(i32) :: i, ik, last_kpt, nham
     real(dp)     :: err
@@ -645,9 +629,10 @@ contains
       overlap(:, :, first_kpt : last_kpt), nmat(1, first_kpt : last_kpt ) )
 
       ! Update the paramagnetic component of the induced current density
-      jparanext = Current_Density_Paramagnetic_Compoment( evecfv_time, pmat, occsv(:, first_kpt:last_kpt), &
+      j_t = j_t_minus_dt
+      call j_t%evaluate_paramagnetic( evecfv_time, pmat, occsv(:, first_kpt:last_kpt), &
         [(1._dp/nkpt, ik = first_kpt, last_kpt)], mpi_env )
-      if ( rt%subtract_J0 ) jparanext(:) = jparanext(:)-jparaspurious(:)
+      if ( rt%subtract_J0 ) call j_t%paramagnetic%add_vector( -j_para_spurious%components )
 
       ! DENSITY
       call UpdateDensity( first_kpt, evecfv_time(:, :, first_kpt : last_kpt), &
@@ -658,27 +643,22 @@ contains
 
       ! VECTOR POTENTIAL
       ! Update the induced part of the vector potential
-      if( a_vec%is_external_field_given() ) then
-        jpara(:) = jparasave(:) !attention: japarasave saves the value of jpara(t-deltat)
-        call a_vec%set_a_tot_a_ind( atotsave, aindsave )
-        pvec(:) = pvecsave(:)
-        jind(:) = jindsave(:)
-        call update_a_ind_and_p_vec( a_vec, time, rt%propagator%time_step, jind, jpara, jparanext, pvec )
-        call a_vec%evaluate_a_tot( time )
+      if( a_t%is_external_field_given() ) then
+        call a_t%set_a_tot_a_ind( a_tot_t_minus_dt, a_ind_t_minus_dt )
+        p_vec = p_vec_t_minus_dt
+        call update_a_ind_and_p_vec( a_t, p_vec, time, rt%propagator%time_step, j_t_minus_dt, j_t%paramagnetic )
+        call a_t%evaluate_a_tot( time )
       end if
 
       ! INDUCED CURRENT
       ! Update the paramagnetic component of the induced current density
-      jdia = Current_Density_Diamagnetic_Component( a_vec%a_tot, chgval, Omega )
-      ! Update the paramagnetic component of the induced current density
-      jpara(:) = jparanext(:)
-      jind(:) = jpara(:)+jdia(:)
+      call j_t%evaluate_diamagnetic( chgval/Omega, a_t%a_tot )
 
       ! HAMILTONIAN
       ham_predcorr(:,:,:) = ham_time(:,:,:)
-      call UpdateHam( first_kpt, a_vec%a_tot, predcorr=.True., calculateOverlap=.False., &
-      forcePmatHermitian=rt%pmat%force_pmat_hermitian, overlap=overlap, &
-      ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, pmat=pmat, pmatmt=pmatmt )
+      call UpdateHam( first_kpt, a_t%a_tot, predcorr=.True., calculateOverlap=.False., &
+        forcePmatHermitian=rt%pmat%force_pmat_hermitian, overlap=overlap, &
+        ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, pmat=pmat, pmatmt=pmatmt )
 
       ! Check the difference between the two hamiltonians
       err = maxval(abs(ham_predcorr(:,:,:)-ham_time(:,:,:)))

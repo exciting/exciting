@@ -10,20 +10,60 @@
 !> Module that deals with the Current Density in RT-TDDFT calculations
 module rttddft_CurrentDensity
   use exciting_mpi, only: mpiinfo, xmpi_allreduce
-  use mod_lattice, only: Omega
+  !use modinput, only: input
+  !use modmpi
+  use mod_eigenvalue_occupancy, only: occsv, nstfv
+  use mod_eigensystem, only: nmat, nmatmax
+  use mod_lattice, only: omega
   use physical_constants, only: c
   use precision, only: dp
-  use xlapack, only: dot_multiply, hermitian_matrix_multiply
+  use rttddft_VectorField, only: Uniform_Vector_Field
   use rttddft_VectorPotential, only: Vector_Potential_Field
+  use xlapack, only: dot_multiply, hermitian_matrix_multiply
 
   implicit none
 
   private
 
-  public :: Current_Density_Diamagnetic_Component, &
-            Current_Density_Paramagnetic_Compoment
+  !> Type to store any component of current density as a vector with `x`, `y`, and `z` components
+  type, public, extends(Uniform_Vector_Field) :: Current_Density_Field
+  end type
+
+  !> Current density stored as a vector with the components along `x`, `y`, and `z`
+  type, public :: Current_Density
+    !> diagmagnetic part of the current density
+    !> \(\mathbf{J}_{dia} = -\frac{N}{c\Omega}\mathbf{A}\)
+    type(Current_Density_Field) :: diamagnetic
+    !> paramagnetic part of the current density
+    type(Current_Density_Field) :: paramagnetic
+  contains
+    procedure, public :: total
+    procedure, public :: evaluate_paramagnetic
+    procedure, public :: evaluate_diamagnetic
+  end type
 
 contains
+  !> Total current density = paramagnetic + diamagnetic
+  pure function total( this ) result( r )
+    class(Current_Density), intent(in) :: this
+    real(dp) :: r(3)
+
+    r = this%paramagnetic%components + this%diamagnetic%components
+  end function
+
+  !> Evaluate the diamagnetic current density as
+  !> \[ \mathbf{J}_{ind}(t) = - \frac{N_{val} \mathbf{A}_{tot}(t)}{\Omega c} \]
+  !> \(N_{val}\) is the number of valence electrons, \(c\) is the light speed, and
+  !> \(\Omega\) is the unit cell volume
+  pure subroutine evaluate_diamagnetic( this, Nel_per_volume, a_tot )
+    class(Current_Density), intent(inout) :: this
+    !> Number of valence electrons per volume
+    real(dp), intent(in) :: Nel_per_volume
+    !> Vector potential
+    class(Vector_Potential_Field), intent(in) :: a_tot
+
+    this%diamagnetic%components = ( -Nel_per_volume / c )*a_tot%components 
+  end subroutine
 
   !> Calculate the paramagnetic part of the current density at time \( t \) as:
   !> \[
@@ -34,7 +74,8 @@ contains
   !> where \( \Omega \) is the unit cell volume , \( w_{\mathbf{k}} \) is the 
   !> k-point weight and \( f_{j\mathbf{k}} \) is the occupation number of the
   !> corresponding KS state.
-  function Current_Density_Paramagnetic_Compoment( psi, p_mat, occupation, kpt_weight, mpi_env ) result(j_para)
+  subroutine evaluate_paramagnetic( this, psi, p_mat, occupation, kpt_weight, mpi_env )
+    class(Current_Density), intent(inout) :: this
     !> Basis-expansion coefficients of the KS-wavefunctions at time \( t \)
     complex(dp), intent(in)   :: psi(:, :, :)
     !> Momentum matrix elements
@@ -45,8 +86,6 @@ contains
     real(dp), intent(in)      :: kpt_weight(:)
     !> MPI environment
     type(mpiinfo), intent(in) :: mpi_env
-    !> `x`, `y` and `z` components of the parametic current density
-    real(dp)                  :: j_para(3)
 
     integer                   :: ik, ist, j, n_states, n_basis, n_kpt
     real(dp)                  :: aux(3)
@@ -78,24 +117,8 @@ contains
 !$OMP END PARALLEL DO
 #endif
     
-    j_para = aux / Omega
-    call xmpi_allreduce( j_para, mpi_env )
-  end function
-
-  !> Evaluate the diamagnetic current density as
-  !> \[ \mathbf{J}_{ind}(t) = - \frac{N_{val} \mathbf{A}_{tot}(t)}{\Omega c} \]
-  !> \(N_{val}\) is the number of valence electrons, \(c\) is the light speed, and
-  !> \(\Omega\) is the unit cell volume
-  pure function Current_Density_Diamagnetic_Component( a_tot, valence_charge, unit_cell_volume ) result(j_dia)
-    type(Vector_Potential_Field), intent(in) :: a_tot
-    !> Number of valence electrons
-    real(dp), intent(in) :: valence_charge
-    !> Unit cell volume
-    real(dp), intent(in) :: unit_cell_volume
-    !> `x`, `y` and `z` components of the diamagnetic current density
-    real(dp) :: j_dia(3)
-    
-    j_dia = ( -valence_charge )*( a_tot%components )/( c * unit_cell_volume )
-  end function
+    this%paramagnetic%components = aux / Omega
+    call xmpi_allreduce( this%paramagnetic%components, mpi_env )
+  end subroutine  
 
 end module rttddft_CurrentDensity

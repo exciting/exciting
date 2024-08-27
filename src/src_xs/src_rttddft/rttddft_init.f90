@@ -25,11 +25,8 @@ module rttddft_init
   use modinput, only: input, getstructHybrid, emptynode
   use modmpi, only: rank, mpi_env_k, distribute_loop, terminate_if_false
   use modxs, only: isreadstate0
-  use physical_constants, only: c
   use precision, only: dp, i32
-  use rttddft_CurrentDensity, only: Current_Density_Paramagnetic_Compoment
-  use rttddft_Density, only: updatedensity
-  use rttddft_GlobalVariables
+  use rttddft_GlobalVariables, only: B_past, B_time, mathcalH, mathcalB
   use rttddft_HamiltonianOverlap, only: UpdateHam
   use rttddft_input, only: pmat_keys
   use rttddft_hybrids, only: hybrids_used, Set_Dimension_mixed_product_basis, set_barecoul_basis
@@ -37,9 +34,6 @@ module rttddft_init
                         file_pmat_mt_exists, read_pmat_mt, write_pmat_mt, write_file_info, &
                         write_file_info_fill_line_with_char, get_filename_pmat, get_filename_pmat_mt
   use rttddft_pmat, only: Obtain_Pmat_LAPWLOBasis
-  use rttddft_io, only: file_pmat_exists, read_pmat, write_pmat, &
-    file_pmat_mt_exists, read_pmat_mt, write_pmat_mt, write_file_info, &
-    write_file_info_fill_line_with_char, get_filename_pmat, get_filename_pmat_mt
   use rttddft_VectorPotential, only: Vector_Potential
 
   implicit none
@@ -52,7 +46,7 @@ contains
 !> This subroutine initializes many global variables in a RT-TDDFT calculation.
 subroutine initialize_rttddft( input_pmat, predictorCorrector, vec_pot, molecular_dynamics, &
   evecfv_gnd, evecfv_time, evecfv_save, evecsv, &
-  overlap, ham_time, ham_past, apwalm, pmat, jparaspurious, pmatmt )
+  overlap, ham_time, ham_past, apwalm, pmat, pmatmt )
   !> Argument that encapsulates the input options of the element pmat
   type(pmat_keys), intent(in) :: input_pmat
   !> if `.True`, the predictor corrector loop is employed
@@ -89,9 +83,6 @@ subroutine initialize_rttddft( input_pmat, predictorCorrector, vec_pot, molecula
   !> Momentum matrix elements (projected onto the (L)APW+LO basis elements)
   !> (nmatmax, nmatmax, 3, first_kpt : last_kpt)
   complex(dp), allocatable, intent(out)  :: pmat(:, :, :, :)
-  !> Spurious paramagnetic current density (obtained for \(t=0\) - this should
-  !> ideally be zero for a dense `k-grid` mesh)
-  real(dp), intent(out) :: jparaspurious(3)
   !> Muffin-tin part of the Momentum matrix
   !> (nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt)
   complex(dp), allocatable, intent(out)  :: pmatmt(:, :, :, :, :)
@@ -198,14 +189,6 @@ subroutine initialize_rttddft( input_pmat, predictorCorrector, vec_pot, molecula
     overlap=overlap, ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, pmat=pmat, pmatmt=pmatmt, &
     update_mathcalH=allocated(mathcalH), update_mathcalB=allocated(mathcalB), update_pmat=.False. )
   ham_past(:, :, :) = ham_time(:, :, :)
-
-  ! Spurious current
-  if (input%xs%realTimeTDDFT%subtractJ0) then
-    jparaspurious = Current_Density_Paramagnetic_Compoment( evecfv_gnd, pmat, occsv(:, first_kpt:last_kpt), &
-      [(1._dp/nkpt, ik = first_kpt, last_kpt)], mpi_env_k )
-  else
-    jparaspurious = 0._dp
-  end if
 
 end subroutine
 
