@@ -37,14 +37,24 @@ module rttddft_CurrentDensity
     !> paramagnetic part of the current density
     type(Current_Density_Field) :: paramagnetic
   contains
-    procedure, public :: total
+    procedure, public :: total, total_components
     procedure, public :: evaluate_paramagnetic
     procedure, public :: evaluate_diamagnetic
   end type
 
 contains
   !> Total current density = paramagnetic + diamagnetic
+  !> Result is an object of type `Current_Density_Field`
   pure function total( this ) result( r )
+    class(Current_Density), intent(in) :: this
+    type(Current_Density_Field) :: r
+
+    r%components = this%paramagnetic%components + this%diamagnetic%components
+  end function
+
+  !> Total current density = paramagnetic + diamagnetic
+  !> Result is an array with the components
+  pure function total_components( this ) result( r )
     class(Current_Density), intent(in) :: this
     real(dp) :: r(3)
 
