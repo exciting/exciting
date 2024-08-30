@@ -7,7 +7,7 @@ module rttddft_VectorField
 
   private
 
-  public :: cartesian_direction, direction
+  public :: cartesian_direction, direction, x, y, z
 
   !> Generic type for vector fields
   type, abstract, public :: Uniform_Vector_Field

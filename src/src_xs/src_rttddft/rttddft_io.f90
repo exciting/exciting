@@ -12,7 +12,11 @@ module rttddft_io
 #endif
   use precision, only: dp, i32
   use rttddft_Energy, only: TotalEnergy
+  use rttddft_CurrentDensity, only: Current_Density_Field
+  use rttddft_Polarization, only: Polarization
   use rttddft_timings, only: Print_Timings, Timing_RTTDDFT_and_MD
+  use rttddft_VectorField, only: Uniform_Vector_Field, x, y, z
+  use rttddft_VectorPotential, only: Vector_Potential_Field
   
   implicit none
 
@@ -29,19 +33,19 @@ module rttddft_io
             write_wavefunction
 
   !> Number of the unit to print timings
-  integer                   :: file_time
+  integer(i32)                   :: file_time
   !> number of the unit to write the vector potential
-  integer                   :: file_avec
+  integer(i32)                   :: file_avec
   !> number of the unit to write the polarization field
-  integer                   :: file_pvec
+  integer(i32)                   :: file_pvec
   !> number of the unit to write the current density
-  integer                   :: file_jind
+  integer(i32)                   :: file_jind
   !> number of the unit to write the number of excited electrons (per unit cell) 
-  integer                   :: file_nexc
+  integer(i32)                   :: file_nexc
   !> number of the unit to write total energy
-  integer                   :: file_etot
+  integer(i32)                   :: file_etot
   !> number of the unit to write general information about the RT-TDDFT calculation
-  integer                   :: file_info
+  integer(i32)                   :: file_info
   !> Format of the timing outputs in RT-TDDFT
   character(len=*), parameter :: format_timing = '(A30,F12.6)'
   !> Format of the outputs: `JIND` and `PVEC`
@@ -73,11 +77,6 @@ module rttddft_io
     module procedure :: write_timing_RTTDDFT_steps
   end interface
 
-  interface write_jpa
-    module procedure :: write_jpa_single_line
-    module procedure :: write_jpa_multiple_lines
-  end interface
-
 contains 
   !> (private) add the default extension (usually .OUT) to the base file name
   pure function add_default_extension( file_name )
@@ -100,72 +99,46 @@ contains
 
   !> Prints the current density \(\mathbf{J}\), or the polarization 
   !> \(\mathbf{P}\), or the vector potential \(\mathbf{A}\)
-  subroutine write_jpa_multiple_lines( times, first, second, label )
+  subroutine write_jpa( times, first, second )
     !> Array with the values of time \( t \)
     real(dp), intent(in) :: times(:)
     !> Array with the \( x, y, z \) components of \(\mathbf{J}\) , 
     !> \(\mathbf{P}\) or \(\mathbf{A}\) for each time \( t \)
-    real(dp), intent(in) :: first(:, :)
+    class(Uniform_Vector_Field), intent(in) :: first(:)
     !> Same as before, but for the second array - usually \(\mathbf{A}\)
-    real(dp), intent(in), optional :: second(:, :)
-    !> String used to select the unit, where the data is printed out
-    character(len=*), intent(in) :: label
+    class(Uniform_Vector_Field), optional :: second(:)
 
-    integer :: i, n
+    integer(i32) :: i, n, unit
     logical :: twoArrays
 
     twoArrays = present( second )
     n = size( times )
-    call assert( size(first, 2) == n, 'first array must have size = n along dim = 2')
-    if ( twoArrays ) then 
-      call assert( size(second, 2) == n, 'second array must have size = n along dim = 2')
-    end if
+
+    call assert( size(first) == n, 'first array must have size = n')
+    if( twoArrays ) call assert( size(second) == n, 'second array must have size = n')
+    
+    select type(first)
+      type is( Vector_Potential_Field )
+        unit = file_avec
+        call assert( twoArrays, '2nd argument must be passed for the case of Vector_Field')
+        call assert( same_type_as( first, second ), '2nd argument must be of type(Vector_Field)')
+      type is( Polarization )
+        unit = file_pvec
+      type is( Current_Density_Field )
+        unit = file_jind
+      class default
+        call assert( .false., 'unrecognized type passed to write_jpa')
+    end select
+
     if( twoArrays ) then
       do i = 1, n
-        call write_jpa_single_line( times(i), first(:,i), second(:,i), label )
+        write( unit, '(F9.3,6F20.12)' ) times(i), first(i)%components(x), second(i)%components(x), &
+          & first(i)%components(y), second(i)%components(y), first(i)%components(z), second(i)%components(z)
       end do
     else 
       do i = 1, n
-        call write_jpa_single_line( times(i), first(:,i), label=label )
+        write( unit, '(F9.3,3F20.12)' ) times(i), first(i)%components(x), first(i)%components(y), first(i)%components(z)
       end do
-    end if
-  end subroutine 
-
-  !> Prints the current density \(\mathbf{J}\), or the polarization 
-  !> \(\mathbf{P}\), or the vector potential \(\mathbf{A}\)
-  subroutine write_jpa_single_line( time, first, second, label )
-    !> time \( t \)
-    real(dp), intent(in) :: time
-    !> Array with the \( x, y, z \) components of \(\mathbf{J}\) , 
-    !> \(\mathbf{P}\) or \(\mathbf{A}\) for each time \( t \)
-    real(dp), intent(in) :: first(:)
-    !> Same as before, but for the second array - usually \(\mathbf{A}\)
-    real(dp), intent(in), optional :: second(:)
-    !> String used to select the unit, where the data is printed out
-    character(len=*), intent(in) :: label
-
-    integer :: unit
-
-    call assert( trim(label)=='avec' .or. trim(label)=='pvec' .or. trim(label)=='jind', &
-      'label must be one of the following strings: avec, pvec or jind' )
-    call assert( size(first) == 3, 'first array must have size = 3')
-
-    select case( trim(label) )
-      case('avec') 
-        unit = file_avec
-        call assert( present( second ), '2 arrays must be passed for the case avec')
-        call assert( size( second ) == 3, 'second array must have size = 3')
-      case('pvec') 
-        unit = file_pvec
-      case('jind') 
-        unit = file_jind
-    end select
-
-    if( present( second ) ) then
-      write( unit, '(F9.3,6F20.12)' ) time, first(1), second(1), &
-        & first(2), second(2), first(3), second(3)
-    else
-      write( unit, '(F9.3,3F20.12)' ) time, first(1), first(2), first(3)
     end if
   end subroutine 
 

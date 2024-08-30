@@ -47,6 +47,7 @@ module rttddft_main
     MD_deallocate_global_arrays => deallocate_global_arrays, &
     MD_evaluate_charge_val => evaluate_charge_val
   use rttddft_NumberExcitations, only: Obtain_number_excitations
+  use rttddft_Polarization, only: Polarization
   use rttddft_screenshot, only: screenshot
   use rttddft_solve_fields, only: update_a_ind_and_p_vec
   use rttddft_timings, only: Timing_RTTDDFT_and_MD, Timing_RTTDDFT_density, Timing_RTTDDFT_potential, Print_Timings, timesec_RTTDDFT
@@ -111,9 +112,9 @@ contains
 
     character(len=100)      :: string
 
-    type(Vector_Potential)        :: vec_pot
-    type(Vector_Potential_Field)  :: aindsave, atotsave
-
+    type(Vector_Potential)         :: vec_pot
+    type(Vector_Potential_Field)   :: a_ind_save, a_tot_save
+    type(Polarization)             :: p_vec, p_vec_save
     type(Current_Density)          :: j_ind, j_ind_save
     ! Spurious paramagnetic current density (obtained for \(t=0\) - this should
     ! ideally be zero for a dense `k-grid` mesh)
@@ -129,7 +130,6 @@ contains
     real(dp)                :: time
 
     real(dp),allocatable    :: nex(:), ngs(:), nt(:)
-    real(dp)                :: pvecsave(3)
     real(dp)                :: electric_field(3)
     real(dp)                :: timei, timef, timeiter
     real(dp)                :: tol
@@ -137,11 +137,13 @@ contains
     type(MD_out)            :: MD_outputs
 
     ! Variables to store data and print
-    real(dp),allocatable    :: timestore(:),aindstore(:,:),atotstore(:,:)
-    real(dp),allocatable    :: jindstore(:,:), pvecstore(:,:)
+    real(dp),allocatable    :: time_store(:)
+    type(Vector_Potential_Field), allocatable :: a_ind_store(:), a_tot_store(:)
+    type(Current_Density_Field), allocatable   :: j_ind_store(:)
+    type(Polarization), allocatable :: p_vec_store(:)
     real(dp),allocatable    :: atposcstore(:,:,:), velstore(:,:,:)
     type(force),allocatable :: forces_store(:)
-    logical,allocatable     :: printforces(:)
+    logical,allocatable     :: print_forces(:)
     logical, allocatable    :: screenshot_was_taken(:)
 
     type(TotalEnergy), allocatable  :: etotstore(:)
@@ -191,8 +193,8 @@ contains
     pvec = 0._dp
 
     ! Allocate variables to be stored and printed only after rt_input%n_print steps
-    allocate(timestore(rt%n_print), aindstore(3,rt%n_print), atotstore(3,rt%n_print))
-    allocate(jindstore(3,rt%n_print), pvecstore(3,rt%n_print))
+    allocate( time_store(rt%n_print), a_ind_store(rt%n_print), a_tot_store(rt%n_print))
+    allocate( j_ind_store(rt%n_print), p_vec_store(rt%n_print) )
     if( printTimings%general() ) then
       allocate( timing_store(rt%n_print) )
       allocate( screenshot_was_taken(rt%n_print), source=.False. )
@@ -200,7 +202,7 @@ contains
     if( rt%calculate_total_energy ) allocate(etotstore(rt%n_print))
     if( rt%calculate_n_exc ) allocate(nex(rt%n_print),ngs(rt%n_print),nt(rt%n_print))
     if( molecular_dynamics%on ) then
-      allocate( printforces(rt%n_print), atposcstore(3,natmtot,rt%n_print), velstore(3,natmtot,rt%n_print))
+      allocate( print_forces(rt%n_print), atposcstore(3,natmtot,rt%n_print), velstore(3,natmtot,rt%n_print))
       if ( molecular_dynamics%print_all_force_components ) then
         allocate( forces_store(rt%n_print) )
         do is = 1, rt%n_print
@@ -211,9 +213,9 @@ contains
 
     if( rank == 0 ) then
       call open_files_jpa
-      call write_jpa( time, vec_pot%a_ind%components, vec_pot%a_tot%components, label='avec' )
-      call write_jpa( time, pvec, label='pvec' )
-      call write_jpa( time, j_ind%total(), label='jind' )
+      call write_jpa( [time], [vec_pot%a_ind], [vec_pot%a_tot] )
+      call write_jpa( [time], [p_vec] )
+      call write_jpa( [time], [j_ind%total()] )
     end if
 
     ! Initialize integers that contain the first and last k-point
@@ -225,10 +227,10 @@ contains
       call potxc
       call obtain_energy_rttddft( first_kpt, ham_time, evecfv_gnd, mpi_env_k, etotstore(1) )
       ! Trick: we need an array to call the subroutine print_total_energy
-      timestore(1) = time
+      time_store(1) = time
       if( rank == 0 ) then
         call open_file_etot
-        call write_total_energy( .True., 1, timestore(1), etotstore(1) )
+        call write_total_energy( .True., 1, time_store(1), etotstore(1) )
       end if
     end if
 
@@ -237,10 +239,10 @@ contains
       call Obtain_number_excitations( first_kpt, evecfv_gnd, &
         & evecfv_time, overlap, mpi_env_k, nex(1), ngs(1), nt(1) )
       ! Trick: we need an array to call the subroutine print_nexc
-      timestore(1) = time
+      time_store(1) = time
       if( rank == 0 ) then
         call open_file_nexc
-        call write_nexc( .True., 1, timestore(1), nex(1), ngs(1), nt(1) )
+        call write_nexc( .True., 1, time_store(1), nex(1), ngs(1), nt(1) )
       end if
     end if
 
@@ -301,17 +303,17 @@ contains
       if( printTimings%general() ) call timesec( timei )
       ! Check if we need to save aind, pvec, atot and aext
       if( vec_pot%is_external_field_given() .and. rt%predictor_corrector%on .and. ( .not. vec_pot%is_solver_euler() ) ) then
-        aindsave = vec_pot%a_ind
-        pvecsave(:) = pvec(:)
+        a_ind_save = vec_pot%a_ind
+        p_vec_save = p_vec
       end if
-      atotsave = vec_pot%a_tot
-      call update_a_ind_and_p_vec( vec_pot, pvec, time, rt%propagator%time_step, j_ind_save, j_ind%paramagnetic )
+      a_tot_save = vec_pot%a_tot
+      call update_a_ind_and_p_vec( time, rt%propagator%time_step, j_ind_save, j_ind%paramagnetic, vec_pot, p_vec )
       call vec_pot%evaluate_a_tot( time )
       if( molecular_dynamics%on ) then
         if( vec_pot%is_total_field_given() ) then
-          electric_field = obtain_electric_field( 2*rt%propagator%time_step, Vector_Potential_Field(vec_pot%applied_vector_potential( time+rt%propagator%time_step )), atotsave )
+          electric_field = obtain_electric_field( 2*rt%propagator%time_step, Vector_Potential_Field(vec_pot%applied_vector_potential( time+rt%propagator%time_step )), a_tot_save )
         else
-          electric_field = obtain_electric_field( rt%propagator%time_step, vec_pot%a_tot, atotsave )
+          electric_field = obtain_electric_field( rt%propagator%time_step, vec_pot%a_tot, a_tot_save )
         end if
       end if
       if( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%vector_potential )
@@ -334,11 +336,11 @@ contains
         call loopPredictorCorrector( it, time, rt, l_rad_step, first_kpt, &
           evecfv_time, evecfv_save, evecsv, overlap, ham_time, ham_past, &
           apwalm, pmat, pmatmt, &
-          aindsave, atotsave, pvecsave, j_ind_save, j_para_spurious, &
-          vec_pot, pvec, j_ind, mpi_env_k, predCorrReachedMaxSteps )
+          a_ind_save, a_tot_save, p_vec_save, j_ind_save, j_para_spurious, &
+          vec_pot, p_vec, j_ind, mpi_env_k, predCorrReachedMaxSteps )
         if ( predCorrReachedMaxSteps .and. rank == 0 ) write(*,*) 'Problems with convergence (PredCorr), time: ', time
         if ( molecular_dynamics%on .and. vec_pot%is_external_field_given()) &
-          electric_field = obtain_electric_field( rt%propagator%time_step, vec_pot%a_tot, atotsave )
+          electric_field = obtain_electric_field( rt%propagator%time_step, vec_pot%a_tot, a_tot_save )
         if ( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%pred_corr )
       end if !predictor-corrector
 
@@ -365,10 +367,10 @@ contains
           end if
           call forces%save_total_force()
           call force_rttdft( forces, vec_pot%a_tot, electric_field, molecular_dynamics, &
-          evecfv_time, overlap, ham_time, apwalm, printTimings, timing%t_Ehrenfest )
+            evecfv_time, overlap, ham_time, apwalm, printTimings, timing%t_Ehrenfest )
           call move_ions( first_kpt, forces%total, forces%total_save, molecular_dynamics%time_step, &
             atom_velocities, apwalm, printTimings, timing%t_Ehrenfest )
-          printforces(iprint) = .True.
+          print_forces(iprint) = .True.
           do is = 1, nspecies
             do ia = 1, natoms(is)
               ias = idxas(ia,is)
@@ -392,7 +394,7 @@ contains
           end if
           if( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_Ehrenfest%t_MD_step )
         else ! if ( mod( it, timeStepMultiplier ) == 0 )
-          printforces(iprint) = .False.
+          print_forces(iprint) = .False.
           if ( printTimings%general() ) timing%t_Ehrenfest%MD_was_carried_out = .False.
         end if ! if ( mod( it, timeStepMultiplier ) == 0 )
       end if ! if ( molecular_dynamics%on ) then
@@ -411,11 +413,11 @@ contains
       end if
 
       ! Store relevant information from this iteration
-      timestore(iprint) = time
-      aindstore(:, iprint) = vec_pot%a_ind%components
-      atotstore(:, iprint) = vec_pot%a_tot%components
-      pvecstore(:, iprint) = pvec
-      jindstore(:, iprint) = j_ind%total()
+      time_store(iprint) = time
+      a_ind_store(iprint) = vec_pot%a_ind
+      a_tot_store(iprint) = vec_pot%a_tot
+      p_vec_store(iprint) = p_vec
+      j_ind_store(iprint) = j_ind%total()
       if( printTimings%general() ) timing_store(iprint) = timing
 
       ! Print relevant information, every 'rt_input%n_print' steps
@@ -423,18 +425,18 @@ contains
         ! Update the counter
         iprint = 1
         if( rank == 0 ) then
-          call write_jpa( timestore, aindstore, atotstore, label='avec' )
-          call write_jpa( timestore, pvecstore, label='pvec' )
-          call write_jpa( timestore, jindstore, label='jind' )
+          call write_jpa( time_store, a_ind_store, a_tot_store )
+          call write_jpa( time_store, p_vec_store )
+          call write_jpa( time_store, j_ind_store )
           if ( rt%calculate_total_energy ) call write_total_energy( .False., rt%n_print, &
-            timestore(:), etotstore(:) )
-          if ( rt%calculate_n_exc ) call write_nexc( .False., rt%n_print, timestore(:), &
+            time_store(:), etotstore(:) )
+          if ( rt%calculate_n_exc ) call write_nexc( .False., rt%n_print, time_store(:), &
             nex(:), ngs(:), nt(:) )
 
           ! Print forces - if this has been requested
           if( molecular_dynamics%on ) then
             do iprint = 1, rt%n_print
-              if( printforces(iprint) ) call write_MD_outputs( timestore(iprint), &
+              if( print_forces(iprint) ) call write_MD_outputs( time_store(iprint), &
                 atposcstore(:, :, iprint), velstore(:,:,iprint), forces_store(iprint), &
                 molecular_dynamics%print_all_force_components, MD_outputs )
             end do
@@ -594,16 +596,16 @@ contains
     class(Vector_Potential_Field), intent(in) :: a_ind_t_minus_dt
     !> `atot` at time \( t-\Delta t\) 
     class(Vector_Potential_Field), intent(in) :: a_tot_t_minus_dt
-    !> `pvec` at time \( t-\Delta t\) 
-    real(dp), intent(in) :: p_vec_t_minus_dt(3)
+    !> Polarization at time \( t-\Delta t\) 
+    type(Polarization) :: p_vec_t_minus_dt
     !> Current density at time \( t-\Delta t\) 
     class(Current_Density), intent(in) :: j_t_minus_dt
     !> Spurious paramagnetic current density (obtained at \(t=0\))
     class(Current_Density_Field), intent(in) :: j_para_spurious
     !> Structure with the vector potential
     type(Vector_Potential), intent(inout) :: a_t
-    !> `pvec` at time \( t \)
-    real(dp), intent(inout) :: p_vec(3)
+    !> Polarization at time \( t \)
+    type(Polarization), intent(inout) :: p_vec
     !> Current density at time \( t) 
     type(Current_Density), intent(inout) :: j_t
     !> MPI environment
@@ -646,7 +648,7 @@ contains
       if( a_t%is_external_field_given() ) then
         call a_t%set_a_tot_a_ind( a_tot_t_minus_dt, a_ind_t_minus_dt )
         p_vec = p_vec_t_minus_dt
-        call update_a_ind_and_p_vec( a_t, p_vec, time, rt%propagator%time_step, j_t_minus_dt, j_t%paramagnetic )
+        call update_a_ind_and_p_vec( time, rt%propagator%time_step, j_t_minus_dt, j_t%paramagnetic, a_t, p_vec )
         call a_t%evaluate_a_tot( time )
       end if
 
