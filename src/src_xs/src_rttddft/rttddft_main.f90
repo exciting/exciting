@@ -327,7 +327,7 @@ contains
 
       ! HAMILTONIAN
       call UpdateHam( first_kpt, vec_pot%a_tot, predcorr=.False., calculateOverlap=.False., forcePmatHermitian=rt%pmat%force_pmat_hermitian, &
-        overlap=overlap, ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, pmat=pmat, pmatmt=pmatmt, &
+        overlap=overlap, ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, pmat=pmat, &
         printTimings=printTimings, t_ham=timing%t_RTTDDFT%ham, t_MD=timing%t_Ehrenfest, &
         update_mathcalH=.False., update_mathcalB=.False., update_pmat=.False. )
 
@@ -335,8 +335,7 @@ contains
       if ( rt%predictor_corrector%on .and. (rt%propagator%name /= SE) .and. (rt%propagator%name /= EH) ) then
         if ( printTimings%general() ) call timesec( timei )
         call loopPredictorCorrector( it, time, rt, l_rad_step, first_kpt, &
-          evecfv_time, evecfv_save, evecsv, overlap, ham_time, ham_past, &
-          apwalm, pmat, pmatmt, &
+          evecfv_time, evecfv_save, evecsv, overlap, ham_time, ham_past, apwalm, pmat, &
           a_ind_save, a_tot_save, p_vec_save, j_ind_save, j_para_spurious, &
           vec_pot, p_vec, j_ind, mpi_env_k, predCorrReachedMaxSteps )
         if ( predCorrReachedMaxSteps .and. rank == 0 ) write(*,*) 'Problems with convergence (PredCorr), time: ', time
@@ -390,8 +389,7 @@ contains
               & printTimings=printTimings, t_ham=timing%t_RTTDDFT%ham, t_MD=timing%t_Ehrenfest, &
               & update_mathcalH=allocated(mathcalH), &
               & update_mathcalB=allocated(mathcalB), &
-              & update_pmat=molecular_dynamics%update_pmat, &
-              & evaluate_pmat_mt = allocated( pmatmt ) )
+              & update_pmat=molecular_dynamics%update_pmat )
           end if
           if( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_Ehrenfest%t_MD_step )
         else ! if ( mod( it, timeStepMultiplier ) == 0 )
@@ -542,7 +540,7 @@ contains
 
   !> Loop used in the predictor-corrector method
   subroutine loopPredictorCorrector( it, time, rt, l_rad_step, first_kpt, &
-    evecfv_time, evecfv_save, evecsv, overlap, ham_time, ham_past, apwalm, pmat, pmatmt, &
+    evecfv_time, evecfv_save, evecsv, overlap, ham_time, ham_past, apwalm, pmat, &
     a_ind_t_minus_dt, a_tot_t_minus_dt, p_vec_t_minus_dt, j_t_minus_dt, j_para_spurious,&
     a_t, p_vec, j_t, mpi_env, maxStepsReached )
     !> current iteration number in the RT-TDDFT loop
@@ -557,30 +555,28 @@ contains
     integer(i32),intent(in) :: first_kpt
     !> Basis-expansion coefficients of the KS-WFs at time \(t\)
     !> (nmatmax, nstfv, first_kpt : last_kpt)
-    complex(dp), intent(out) :: evecfv_time(:, :, first_kpt :)
+    complex(dp), intent(out) :: evecfv_time(:, :, first_kpt:)
     !> Basis-expansion coefficients of the KS-WFs at time \(t\) - auxiliary 
     !> variable used in the predictor-corrector loop
     !> (nmatmax, nstfv, first_kpt : last_kpt)
-    complex(dp), intent(in) :: evecfv_save(:, :, first_kpt :)
+    complex(dp), intent(in) :: evecfv_save(:, :, first_kpt:)
     !> Basis-expansion coefficients of the KS-WFs: second-variational coefficients
     !> (nstfv, nstfv, first_kpt : last_kpt)
-    complex(dp), intent(in) :: evecsv(:, :, first_kpt :)
+    complex(dp), intent(in) :: evecsv(:, :, first_kpt:)
     !> Overlap matrix (of basis functions)
     !> (nmatmax, nmatmax, first_kpt : last_kpt)
-    complex(dp), intent(inout) :: overlap(:, :, :)
+    complex(dp), intent(inout) :: overlap(:, :, first_kpt:)
     !> Hamiltonian matrix at current time \(t\)
     !> (nmatmax, nmatmax, first_kpt : last_kpt)
-    complex(dp), intent(inout) :: ham_time(:, :, :)
+    complex(dp), intent(inout) :: ham_time(:, :, first_kpt:)
     !> Hamiltonian matrix at previous time \(t - \Delta t \)
     !> (nmatmax, nmatmax, first_kpt : last_kpt)
-    complex(dp), intent(inout) :: ham_past(:, :, :)
+    complex(dp), intent(inout) :: ham_past(:, :, first_kpt:)
     !> Matching coefficients of the (L)APWs
     !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
-    complex(dp), intent(in) :: apwalm(:, :, :, :, first_kpt :)
+    complex(dp), intent(in) :: apwalm(:, :, :, :, first_kpt:)
     !> Momentum matrix elements (projected onto the (L)APW+LO basis elements)
-    complex(dp), intent(inout) :: pmat(:, :, :, :)
-    !> Muffin-tin part of the Momentum matrix
-    complex(dp), intent(inout) :: pmatmt(:, :, :, :, :)
+    complex(dp), intent(inout) :: pmat(:, :, :, first_kpt:)
     !> `aind` at time \( t-\Delta t\) 
     class(Vector_Potential_Field), intent(in) :: a_ind_t_minus_dt
     !> `atot` at time \( t-\Delta t\) 
@@ -608,16 +604,13 @@ contains
 
     last_kpt = ubound( evecfv_time, 3 )
     nham = size( ham_time, 1 )
-    allocate( ham_predcorr(nham, nham, first_kpt : last_kpt) )
+    allocate( ham_predcorr(nham, nham, first_kpt:last_kpt) )
 
     do i = 1, rt%predictor_corrector%max_steps
       ! WAVEFUNCTION
       evecfv_time(:, :, :) = evecfv_save(:, :, :)
       call UpdateWavefunction( first_kpt, rt%propagator, .True., &
-      ham_time(:, :, first_kpt : last_kpt), &
-      ham_past(:, :, first_kpt : last_kpt), &
-      evecfv_time(:, :, first_kpt : last_kpt), &
-      overlap(:, :, first_kpt : last_kpt), nmat(1, first_kpt : last_kpt ) )
+        ham_time, ham_past, evecfv_time, overlap, nmat(1, first_kpt:last_kpt) )
 
       ! Update the paramagnetic component of the induced current density
       j_t = j_t_minus_dt
@@ -626,8 +619,7 @@ contains
       if ( rt%subtract_J0 ) call j_t%paramagnetic%add_vector( -j_para_spurious%components )
 
       ! DENSITY
-      call UpdateDensity( first_kpt, evecfv_time(:, :, first_kpt : last_kpt), &
-      evecsv, it, rt%propagator%normalize_WF, l_rad_step )
+      call UpdateDensity( first_kpt, evecfv_time, evecsv, it, rt%propagator%normalize_WF, l_rad_step )
 
       ! KS-POTENTIAL
       call uppot()
@@ -649,7 +641,7 @@ contains
       ham_predcorr(:,:,:) = ham_time(:,:,:)
       call UpdateHam( first_kpt, a_t%a_tot, predcorr=.True., calculateOverlap=.False., &
         forcePmatHermitian=rt%pmat%force_pmat_hermitian, overlap=overlap, &
-        ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, pmat=pmat, pmatmt=pmatmt )
+        ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, pmat=pmat )
 
       ! Check the difference between the two hamiltonians
       err = maxval(abs(ham_predcorr(:,:,:)-ham_time(:,:,:)))
