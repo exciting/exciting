@@ -31,6 +31,7 @@ module rttddft_main
   use precision, only: dp, i32
   use rttddft_CurrentDensity, only: Current_Density, Current_Density_Field
   use rttddft_Density, only: UpdateDensity
+  use rttddft_electric_field, only: Electric_Field, obtain_electric_field
   use rttddft_Energy, only: TotalEnergy, obtain_energy_rttddft
   use rttddft_GlobalVariables
   use rttddft_HamiltonianOverlap, only: UpdateHam
@@ -119,6 +120,7 @@ contains
     ! Spurious paramagnetic current density (obtained for \(t=0\) - this should
     ! ideally be zero for a dense `k-grid` mesh)
     type(Current_Density_Field)    :: j_para_spurious
+    type(Electric_Field)           :: e_field
 
     real(dp), allocatable   :: atom_positions(:, :) ! in cartesian coordinates x, y, z
     real(dp), allocatable   :: atom_velocities(:, :) ! in cartesian coordinates x, y, z
@@ -130,7 +132,6 @@ contains
     real(dp)                :: time
 
     real(dp),allocatable    :: nex(:), ngs(:), nt(:)
-    real(dp)                :: electric_field(3)
     real(dp)                :: timei, timef, timeiter
     real(dp)                :: tol
     real(dp), parameter     :: tol_default = 1e-10_dp
@@ -180,7 +181,7 @@ contains
       overlap, ham_time, ham_past, apwalm, pmat, pmatmt )
     if( molecular_dynamics%on ) call init_MD( time, vec_pot%a_tot, rt%propagator%time_step, &
       evecfv_time, overlap, ham_time, apwalm, timeStepMultiplier, molecular_dynamics, &
-      MD_outputs, atom_positions, atom_velocities, electric_field, forces )
+      MD_outputs, atom_positions, atom_velocities, e_field, forces )
     if ( rt%subtract_J0 ) then
       call j_ind%evaluate_paramagnetic( evecfv_gnd, pmat, occsv(:, first_kpt:last_kpt), &
         [(1._dp/nkpt, it = first_kpt, last_kpt)], mpi_env_k )
@@ -311,9 +312,9 @@ contains
       call vec_pot%evaluate_a_tot( time )
       if( molecular_dynamics%on ) then
         if( vec_pot%is_total_field_given() ) then
-          electric_field = obtain_electric_field( 2*rt%propagator%time_step, Vector_Potential_Field(vec_pot%applied_vector_potential( time+rt%propagator%time_step )), a_tot_save )
+          call e_field%obtain_electric_field( 2*rt%propagator%time_step, Vector_Potential_Field(vec_pot%applied_vector_potential( time+rt%propagator%time_step )), a_tot_save )
         else
-          electric_field = obtain_electric_field( rt%propagator%time_step, vec_pot%a_tot, a_tot_save )
+          call e_field%obtain_electric_field( rt%propagator%time_step, vec_pot%a_tot, a_tot_save )
         end if
       end if
       if( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%vector_potential )
@@ -340,7 +341,7 @@ contains
           vec_pot, p_vec, j_ind, mpi_env_k, predCorrReachedMaxSteps )
         if ( predCorrReachedMaxSteps .and. rank == 0 ) write(*,*) 'Problems with convergence (PredCorr), time: ', time
         if ( molecular_dynamics%on .and. vec_pot%is_external_field_given()) &
-          electric_field = obtain_electric_field( rt%propagator%time_step, vec_pot%a_tot, a_tot_save )
+          call e_field%obtain_electric_field( rt%propagator%time_step, vec_pot%a_tot, a_tot_save )
         if ( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%pred_corr )
       end if !predictor-corrector
 
@@ -366,7 +367,7 @@ contains
             timing%t_Ehrenfest%MD_was_carried_out = .True.
           end if
           call forces%save_total_force()
-          call force_rttdft( forces, vec_pot%a_tot, electric_field, molecular_dynamics, &
+          call force_rttdft( forces, vec_pot%a_tot, e_field, molecular_dynamics, &
             evecfv_time, overlap, ham_time, apwalm, printTimings, timing%t_Ehrenfest )
           call move_ions( first_kpt, forces%total, forces%total_save, molecular_dynamics%time_step, &
             atom_velocities, apwalm, printTimings, timing%t_Ehrenfest )
@@ -539,18 +540,6 @@ contains
 
   end subroutine
 
-  !> Obtain the electric field as the time derivative of the vector potential
-  pure function obtain_electric_field( dt, A_tot, A_tot_previous ) result( E_field )
-    !> time step
-    real(dp), intent(in)  :: dt
-    !> vector potential at time `t`
-    type(Vector_Potential_Field), intent(in) :: A_tot
-    !> vector potential at time `t-dt`
-    type(Vector_Potential_Field), intent(in) :: A_tot_previous
-    real(dp) :: E_field(3)
-    E_field = ( -1._dp / c / dt ) * ( A_tot%components - A_tot_previous%components )
-  end function
-
   !> Loop used in the predictor-corrector method
   subroutine loopPredictorCorrector( it, time, rt, l_rad_step, first_kpt, &
     evecfv_time, evecfv_save, evecsv, overlap, ham_time, ham_past, apwalm, pmat, pmatmt, &
@@ -698,7 +687,7 @@ contains
     !> velocities of all atoms in cartesian coordinates
     real(dp), allocatable, intent(out) :: atom_velocities(:, :)
     !> Electric field
-    real(dp), intent(out)              :: e_field(3)
+    type(Electric_Field), intent(in)   :: e_field
     !> forces acting on all atoms
     type(force), intent(out)           :: forces
 
@@ -710,9 +699,8 @@ contains
     call MD_evaluate_charge_val
     
     call forces%allocate_arrays( natmtot )
-    e_field = 0.0_dp
     call force_rttdft( forces, a_tot, e_field, molecular_dynamics, evecfv_time, &
-    overlap, ham_time, apwalm )
+      overlap, ham_time, apwalm )
     
     allocate( atom_velocities(3, natmtot) )
     call init_atoms_velocities( atom_velocities )

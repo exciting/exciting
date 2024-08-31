@@ -8,7 +8,7 @@ module rttddft_MD
   use asserts, only: assert
   use constants, only: zone, zzero
   use exciting_mpi, only: mpiinfo, xmpi_allreduce
-  use MD, only: MD_input_keys, MD_timing, force, obtain_core_corrections, obtain_force_ext, &
+  use MD, only: MD_input_keys, MD_timing, force, obtain_core_corrections, force_ext, &
     obtain_Hellmann_Feynman_force, obtain_valence_corrections_part1, &
     val_corr_pt2_given_atom_and_kpt => obtain_valence_corrections_part2
   use mod_atoms, only: atposc, idxas, natoms, natmtot, nspecies, &
@@ -27,6 +27,7 @@ module rttddft_MD
   use modmpi, only: rank, mpi_env_k, distribute_loop
   use physical_constants, only: c
   use precision, only: dp, i32
+  use rttddft_electric_field, only: Electric_Field
   use rttddft_GlobalVariables, only: mathcalH, mathcalB
   use rttddft_timings, only: Print_Timings, timesec_RTTDDFT
   use rttddft_VectorPotential, only: Vector_Potential_Field
@@ -73,7 +74,7 @@ contains
     !> `x`, `y`, and `z` components of the (total) vector potential
     type(Vector_Potential_Field), intent(in)  :: a_tot
     !> Electric field
-    real(dp)                  :: e_field(3)
+    type(Electric_Field), intent(in) :: e_field
     !> Object that contains the inputs keys given in the MD element
     type(MD_input_keys), intent(in) :: MD_input
     !> Basis-expansion coefficients of the KS-WFs at time \(t\)
@@ -108,7 +109,7 @@ contains
       nr = nrmt(is)
       do ia = 1, natoms(is)
         ias = idxas(ia,is)
-        call obtain_force_ext( charge_val(is), e_field(:), forces%EXT(:,ias) )
+        forces%EXT(:,ias) = force_ext( charge_val(is), e_field )
         ! Z = -spzn(is): Z is negative in species file
         call obtain_Hellmann_Feynman_force( -spzn(is), spr(1:nr,is), &
           vclmt(:,1:nr,ias), forces%HF(:,ias) )
