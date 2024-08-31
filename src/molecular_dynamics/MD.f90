@@ -3,7 +3,9 @@ module MD
   use constants, only: y00
   use hermitian_matrix_multiplication, only: hermitian_matrix_multiply
   use modinput, only: input
+  use rttddft_electric_field, only: Electric_Field
   use precision, only: dp, i32
+  
   implicit none
 
   private 
@@ -11,7 +13,7 @@ module MD
   public :: force, MD_input_keys, MD_timing
   ! Procedures
   public :: obtain_core_corrections, &
-            obtain_force_ext, &
+            force_ext, &
             obtain_Hellmann_Feynman_force, &
             obtain_valence_corrections_part1, &
             obtain_valence_corrections_part2
@@ -148,16 +150,15 @@ module MD
 
   !> Obtain force_ext due to an electric field as 
   !> \( \mathbf{F}_{ext} = q\mathbf{E} \)
-  subroutine obtain_force_ext( charge, e_field, force_ext )
+  pure function force_ext( charge, e_field )
     !> Particle charge
     real(dp), intent(in)  :: charge
     !> Electric field with its x, y, and z components
-    real(dp), intent(in)  :: e_field(3)
-    !> Force due to the electric field
-    real(dp), intent(out) :: force_ext(3)
+    type(Electric_Field), intent(in)  :: e_field
+    real(dp) :: force_ext(3)
     
-    force_ext = charge * e_field
-  end subroutine
+    force_ext = charge * e_field%components
+  end function
 
   !> Obtain the Hellmann-Feynman force acting on a specific atom
   !> \[ \mathbf{F}_{HF} = Z\lim_{\mathbf{r}\to 0} \nabla V_C(\mathbf{r}) \]
