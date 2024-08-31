@@ -16,7 +16,6 @@ module rttddft_Wavefunction
       & exp_hermitian => exp_hermitian_matrix_times_vectors, & 
       & exp_general => exp_general_matrix_times_vectors, &
       & exphouston_propagator => exphouston_hermitian_matrix_times_vectors
-  use modmpi
   use normalize, only: normalize_vectors
   use precision, only: dp, i32
   use rttddft_GlobalVariables, only: B_time, B_past, mathcalB

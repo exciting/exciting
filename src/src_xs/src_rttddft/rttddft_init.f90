@@ -177,7 +177,11 @@ subroutine initialize_rttddft( input_pmat, predictorCorrector, vec_pot, molecula
       call read_pmat_mt( first_kpt, pmatmt, mpi_env_k )
     end if
   else
-    call Obtain_Pmat_LAPWLOBasis( first_kpt, input_pmat%force_pmat_hermitian, molecular_dynamics%on, apwalm, pmat, pmatmt )
+    if( allocated(pmatmt) ) then 
+      call Obtain_Pmat_LAPWLOBasis( first_kpt, input_pmat%force_pmat_hermitian, apwalm, pmat, pmatmt )
+    else
+      call Obtain_Pmat_LAPWLOBasis( first_kpt, input_pmat%force_pmat_hermitian, apwalm, pmat )
+    end if
   end if
   if( input_pmat%write_pmat_to_file ) then
     call write_pmat( first_kpt, pmat, mpi_env_k )
@@ -234,7 +238,7 @@ subroutine write_to_info( ionDynamics, predictorCorrector, evecfv_gnd, &
   complex(dp), intent(in) :: evecfv_time(:, :, :)
   !> Basis-expansion coefficients of the KS-WFs at time \(t\) - auxiliary 
   !> variable used in the predictor-corrector loop
-  complex(dp), intent(in) :: evecfv_save(:, :, :)
+  complex(dp), allocatable, intent(in) :: evecfv_save(:, :, :)
   !> Basis-expansion coefficients of the KS-WFs: second-variational coefficients
   complex(dp), intent(in) :: evecsv(:, :, :)
     !> Overlap matrix (of basis functions)
@@ -247,10 +251,10 @@ subroutine write_to_info( ionDynamics, predictorCorrector, evecfv_gnd, &
   complex(dp), intent(in) :: apwalm(:, :, :, :, :)
   !> Momentum matrix elements (projected onto the (L)APW+LO basis elements)
   !> (nmatmax, nmatmax, 3, first_kpt : last_kpt)
-  complex(dp), intent(in)  :: pmat(:, :, :, :)
+  complex(dp), intent(in) :: pmat(:, :, :, :)
   !> Muffin-tin part of the Momentum matrix
   !> (nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt)
-  complex(dp), intent(in)  :: pmatmt(:, :, :, :, :)
+  complex(dp), allocatable, intent(in) :: pmatmt(:, :, :, :, :)
 
 
   character(len=100)          :: string

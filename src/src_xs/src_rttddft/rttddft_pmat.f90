@@ -32,13 +32,11 @@ contains
   !> Here, we calculate the momentum matrix elements considering as basis 
   !> (L)APW+lo. We copied most of the code from `/src/src_xs/genpmatxs.F90`, 
   !> but there the basis are the KS-wavefunctions
-  subroutine Obtain_Pmat_LAPWLOBasis( first_kpt, make_hermitian, evaluate_pmat_mt, &
-    apwalm, pmat, pmatmt )
+  subroutine Obtain_Pmat_LAPWLOBasis( first_kpt, make_hermitian, apwalm, pmat, pmatmt )
     !> The first k point
     integer(i32), intent(in) :: first_kpt
     !> If .True., for each `ik`, force the x, y, and z components of `pmat` to be hermitian
-    logical,intent(in)        :: make_hermitian
-    logical,intent(in)        :: evaluate_pmat_mt
+    logical, intent(in)        :: make_hermitian
     !> Matching coefficients of the (L)APWs
     !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
     complex(dp), intent(in) :: apwalm(:, :, :, :, first_kpt :)
@@ -47,11 +45,13 @@ contains
     complex(dp), intent(out) :: pmat(:, :, :, first_kpt :)
     !> Muffin-tin part of the Momentum matrix
     !> (nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt)
-    complex(dp), intent(out)  :: pmatmt(:, :, :, :, first_kpt :)
+    complex(dp), optional, intent(out) :: pmatmt(:, :, :, :, first_kpt :)
 
-    integer                   :: ik, last_kpt
+    integer :: ik, last_kpt
+    logical :: evaluate_pmat_mt
 
     pmat(:,:,:,:) = zzero
+    evaluate_pmat_mt = present( pmatmt )
     if ( evaluate_pmat_mt ) pmatmt(:,:,:,:,:) = zzero
 
 

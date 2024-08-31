@@ -45,7 +45,7 @@ contains
   !> time \( t \).
   subroutine UpdateHam( first_kpt, a_tot, predcorr, calculateOverlap, forcePmatHermitian, &
     overlap, ham_time, ham_past, apwalm, pmat, pmatmt, printTimings, t_ham, t_MD, &
-    & update_mathcalH, update_mathcalB, update_pmat, evaluate_pmat_mt )
+    & update_mathcalH, update_mathcalB, update_pmat )
     !> The first k point
     integer(i32), intent(in) :: first_kpt
     !> Total vector potential
@@ -70,7 +70,7 @@ contains
     complex(dp), intent(inout) :: pmat(:, :, :, first_kpt :)
     !> Muffin-tin part of the Momentum matrix
     !> (nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt)
-    complex(dp), intent(inout) :: pmatmt(:, :, :, :, first_kpt :)
+    complex(dp), optional, intent(inout) :: pmatmt(:, :, :, :, first_kpt :)
     !> Object that packs information about printing of timings [[Print_Timings]]
     type(Print_Timings), optional, intent(in) :: printTimings
     !> Object that packs information about timings to update the Hamiltonian
@@ -83,8 +83,6 @@ contains
     logical, intent(in), optional     :: update_mathcalB
     !> if `.True.`, update `pmat`
     logical, intent(in), optional     :: update_pmat
-    !> if `.True.`, evaluate `pmatmt`
-    logical, intent(in), optional :: evaluate_pmat_mt
     
 
     integer               :: ik, nmatp, last_kpt
@@ -111,8 +109,7 @@ contains
     if( present( update_mathcalB ) ) get_mathcalB = update_mathcalB
     get_pmat = .False.
     if( present( update_pmat ) ) get_pmat = update_pmat
-    get_pmat_mt = .False.
-    if ( present( evaluate_pmat_mt ) ) get_pmat_mt = evaluate_pmat_mt
+    get_pmat_mt = present( pmatmt )
 
     ! sanity checks
     if( get_mathcalH ) call assert( calculateOverlap , 'The overlap matrix is needed to update mathcalH' )
@@ -126,8 +123,11 @@ contains
     end if
 
     if( get_pmat ) then
-      call Obtain_Pmat_LAPWLOBasis( first_kpt, forcePmatHermitian, get_pmat_mt, &
-      apwalm, pmat, pmatmt )
+      if( get_pmat_mt ) then
+        call Obtain_Pmat_LAPWLOBasis( first_kpt, forcePmatHermitian, apwalm, pmat, pmatmt )
+      else
+        call Obtain_Pmat_LAPWLOBasis( first_kpt, forcePmatHermitian, apwalm, pmat )
+      end if
       if( tDetail .and. present(t_MD) ) call timesec_RTTDDFT( ti, t_MD%pmat )
     end if
 
@@ -150,8 +150,13 @@ contains
       nmatp = nmat(1, ik)
       call hamsetup( ik, ham_time(:, :, ik), apwalm(:, :, :, :, ik), nmatp, get_mathcalH )
       if ( calculateOverlap ) then
-        call overlapsetup( ik, overlap(:, :, ik), apwalm(:, :, :, :, ik), &
-        nmatp, get_mathcalB, get_mathcalH, pmatmt(:, :, :, :, ik) )
+        if ( get_mathcalB .or. get_mathcalH ) then
+          call overlapsetup( ik, overlap(:, :, ik), apwalm(:, :, :, :, ik), &
+            nmatp, get_mathcalB, get_mathcalH, pmatmt(:, :, :, :, ik) )
+        else
+          call overlapsetup( ik, overlap(:, :, ik), apwalm(:, :, :, :, ik), &
+            nmatp, get_mathcalB, get_mathcalH )
+        end if
       end if
 
       ! Include the part of the vector potential in the hamiltonian
@@ -379,8 +384,6 @@ end subroutine UpdateHam
     use physical_constants, only: alpha
     use rttddft_GlobalVariables, only: mathcalB, mathcalH
 
-    implicit none
-
     !> ik: the index of the k-point considered
     integer, intent(in)       :: ik
     !> Overlap matrix (of basis functions) at the current k-point
@@ -399,8 +402,8 @@ end subroutine UpdateHam
     logical, intent(in)       :: calculate_mathcalB
     logical, intent(in)       :: calculate_mathcalH
     !> Muffin-tin part of the Momentum matrix
-    !> (nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt)
-    complex(dp), intent(in) :: pmatmt(:, :, :, :)
+    !> (nmatmax, nmatmax, 3, natmtot)
+    complex(dp), intent(in), optional :: pmatmt(:, :, :, :)
 
     integer                   :: i, is, ia, ias, if3, ig, j, j1, j2, igprime
     integer                   :: l, lm1, lm2, l3, m3, lm3
@@ -412,6 +415,7 @@ end subroutine UpdateHam
     complex (dp), allocatable :: overlcopy(:, :), aux(:, :)
     complex (dp), allocatable :: apwi(:,:), zm(:,:), apwi2(:,:)
 
+    if ( calculate_mathcalB .or. calculate_mathcalH ) call assert( present(pmatmt), 'pmatmt must be passed as argument')
     if ( calculate_mathcalB ) mathcalB(:,:,:,:,ik) = -zi*pmatmt(:,:,:,:)
 
     ngp = ngk(1,ik)
