@@ -1,6 +1,5 @@
 module rttddft_io
   use asserts, only: assert
-  use m_getunit, only: getunit
   use mod_misc, only: filext, versionname, githash
   use modinput, only: input
   use modmpi, only: rank, procs, barrier
@@ -94,8 +93,8 @@ contains
     integer, intent(out) :: unit
     !> name of file to open
     character(len=*), intent(in) :: file_name
-    call getunit( unit )
-    open( unit, file=trim(file_name), status='replace' )
+    
+    open( newunit=unit, file=trim(file_name), status='replace' )
   end subroutine
 
   !> Prints the current density \(\mathbf{J}\), or the polarization 
@@ -307,8 +306,7 @@ contains
   end subroutine
 
   subroutine open_file_timing
-    call getunit( file_time )
-    open( file_time, file=trim(add_default_extension(filename_timing)), status='replace' )
+    call open_file_generic( file_time, add_default_extension(filename_timing) )
   end subroutine
 
   subroutine close_file_timing
