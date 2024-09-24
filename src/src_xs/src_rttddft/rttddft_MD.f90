@@ -68,7 +68,7 @@ contains
   end subroutine
 
   subroutine force_rttdft( forces, a_tot, e_field, MD_input, evecfv_time, overlap, &
-    ham_time, apwalm, printTimings, t_MD )
+    ham_time, printTimings, t_MD )
     !> Object that packs information about the total forces
     type(force), intent(inout)      :: forces
     !> `x`, `y`, and `z` components of the (total) vector potential
@@ -83,8 +83,6 @@ contains
     complex(dp), intent(in) :: overlap(:, :, :)
     !> Hamiltonian matrix at current time \(t\)
     complex(dp), intent(in) :: ham_time(:, :, :)
-    !> Matching coefficients of the (L)APWs
-    complex(dp), intent(in) :: apwalm(:, :, :, :, :)
     !> Object that packs information about printing of timings [[Print_Timings]]
     type(Print_Timings), optional, intent(in) :: printTimings
     !> Object that packs information about timings spent in MD
@@ -130,7 +128,7 @@ contains
     ! Valence corrections: second part
     if( MD_input%valence_corrections ) &
       call obtain_valence_corrections_part2( first_kpt, last_kpt, mpi_env_k, &
-      evecfv_time, overlap, ham_time, apwalm, forces%val )
+        evecfv_time, overlap, ham_time, forces%val )
     if( tDetail ) call timesec_RTTDDFT( ti, t_MD%t_MD_2nd )
     ! sum all contributions to total force and store it
     call forces%evaluate_total_force()
@@ -141,7 +139,7 @@ contains
 
   !> Wrapper for calling val_corr_pt2_given_atom_and_kpt
   subroutine obtain_valence_corrections_part2( first_kpt, last_kpt, mpi_env, &
-    evecfv_time, overlap, ham_time, apwalm, forces_val )
+    evecfv_time, overlap, ham_time, forces_val )
     !> index of the first `k-point` to be considered in the sum
     integer(i32),intent(in)        :: first_kpt
     !> index of the last `k-point` considered
@@ -157,9 +155,6 @@ contains
     !> Hamiltonian matrix at current time \(t\)
     !> (nmatmax, nmatmax, first_kpt : last_kpt)
     complex(dp), intent(in) :: ham_time(:, :, first_kpt :)
-    !> Matching coefficients of the (L)APWs
-    !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
-    complex(dp), intent(in) :: apwalm(:, :, :, :, first_kpt :)
     !> valence corrections to the total force
     real(dp), intent(inout)        :: forces_val(:, :)
     
