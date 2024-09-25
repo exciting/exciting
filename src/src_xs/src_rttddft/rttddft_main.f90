@@ -180,7 +180,7 @@ contains
       vec_pot, molecular_dynamics, evecfv_gnd, evecfv_time, evecfv_save, evecsv, &
       overlap, ham_time, ham_past, apwalm, pmat, pmatmt )
     if( molecular_dynamics%on ) call init_MD( time, vec_pot%a_tot, rt%propagator%time_step, &
-      evecfv_time, overlap, ham_time, apwalm, timeStepMultiplier, molecular_dynamics, &
+      evecfv_time, overlap, ham_time, timeStepMultiplier, molecular_dynamics, &
       MD_outputs, atom_positions, atom_velocities, e_field, forces )
     if ( rt%subtract_J0 ) then
       call j_ind%evaluate_paramagnetic( evecfv_gnd, pmat, occsv(:, first_kpt:last_kpt), &
@@ -367,7 +367,7 @@ contains
           end if
           call forces%save_total_force()
           call force_rttdft( forces, vec_pot%a_tot, e_field, molecular_dynamics, &
-            evecfv_time, overlap, ham_time, apwalm, printTimings, timing%t_Ehrenfest )
+            evecfv_time, overlap, ham_time, printTimings, timing%t_Ehrenfest )
           call move_ions( first_kpt, forces%total, forces%total_save, molecular_dynamics%time_step, &
             atom_velocities, apwalm, printTimings, timing%t_Ehrenfest )
           print_forces(iprint) = .True.
@@ -652,7 +652,7 @@ contains
   end subroutine 
 
   !> Subroutine to initialize all MD related variables
-  subroutine init_MD( t_0, a_tot, timeStepRTTDDFT, evecfv_time, overlap, ham_time, apwalm, timeStepMultiplier, &
+  subroutine init_MD( t_0, a_tot, timeStepRTTDDFT, evecfv_time, overlap, ham_time, timeStepMultiplier, &
     molecular_dynamics, MD_outputs, atom_positions, atom_velocities, e_field, forces )
     !> Initial time \( t_0 \)
     real(dp), intent(in)               :: t_0
@@ -666,8 +666,6 @@ contains
     complex(dp), intent(in) :: overlap(:, :, :)
     !> Hamiltonian matrix at current time \(t\)
     complex(dp), intent(in) :: ham_time(:, :, :)
-    !> Matching coefficients of the (L)APWs
-    complex(dp), intent(in) :: apwalm(:, :, :, :, :)
     !> Integer ratio between the time step used in MD and `timeStepRTTDDFT`
     integer(i32), intent(out)          :: timeStepMultiplier
     !> variable with interfaces to elements defined in the input file
@@ -692,7 +690,7 @@ contains
     
     call forces%allocate_arrays( natmtot )
     call force_rttdft( forces, a_tot, e_field, molecular_dynamics, evecfv_time, &
-      overlap, ham_time, apwalm )
+      overlap, ham_time )
     
     allocate( atom_velocities(3, natmtot) )
     call init_atoms_velocities( atom_velocities )
