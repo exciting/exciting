@@ -3,6 +3,7 @@ module rttddft_input
   use modmpi, only: terminate
   use precision, only: dp, i32
   use rttddft_Wavefunction, only: propagator_types, propagator_type, propagator_keys
+  use rttddft_timings, only: Print_Timings
   use rttddft_VectorPotential, only: Vector_Potential
 
   implicit none
@@ -45,10 +46,8 @@ module rttddft_input
     integer(i32)                            :: n_print
     !> Upper limit of time \( t \) - up to which the RT-TDDFT takes place
     real(dp)                                :: t_end
-    !> If `.true.`, print out general information about the RT-TDDFT timings
-    logical                                 :: timings_general
-    !> If `.true.`, print out detailed information about the RT-TDDFT timings
-    logical                                 :: timings_detailed
+    !> Type that encapsulates if general/detailed information about the RT-TDDFT timings must be printed out
+    type(Print_Timings)                     :: printTimings
     !> If `.true.`, calculate of the total energy
     logical                                 :: calculate_total_energy
     !> If `.true.`, calculate of the number of excited electrons
@@ -75,8 +74,7 @@ subroutine rttddft_input_keys_parse_input( this, rt_input, tol, a_vec )
   this%calculate_total_energy = rt_input%calculateTotalEnergy
   this%calculate_n_exc = rt_input%calculateNExcitedElectrons
   this%subtract_J0 = rt_input%subtractJ0
-  this%timings_general = rt_input%printTimingGeneral
-  this%timings_detailed = this%timings_general .and. rt_input%printTimingDetailed
+  call this%printTimings%set( rt_input%printTimingGeneral, rt_input%printTimingGeneral .and. rt_input%printTimingDetailed )
 
   this%propagator%name = propagator_type( rt_input%propagator )
   this%propagator%time_step = rt_input%timeStep

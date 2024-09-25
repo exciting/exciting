@@ -148,7 +148,6 @@ contains
     logical, allocatable    :: screenshot_was_taken(:)
 
     type(TotalEnergy), allocatable  :: etotstore(:)
-    type(Print_Timings)             :: printTimings
     type(Timing_RTTDDFT_and_MD)     :: timing
     type(Timing_RTTDDFT_and_MD), allocatable :: timing_store(:)
 
@@ -188,15 +187,13 @@ contains
       j_para_spurious = j_ind%paramagnetic
     end if
     
-    call printTimings%set( rt%timings_general, rt%timings_detailed )
-
     ! Initialize fields
     pvec = 0._dp
 
     ! Allocate variables to be stored and printed only after rt_input%n_print steps
     allocate( time_store(rt%n_print), a_ind_store(rt%n_print), a_tot_store(rt%n_print))
     allocate( j_ind_store(rt%n_print), p_vec_store(rt%n_print) )
-    if( printTimings%general() ) then
+    if( rt%printTimings%general() ) then
       allocate( timing_store(rt%n_print) )
       allocate( screenshot_was_taken(rt%n_print), source=.False. )
     end if
@@ -250,7 +247,7 @@ contains
     if ( rt%screenshots%on ) call screenshot( 0, first_kpt, overlap, evecfv_gnd, &
         & evecfv_time, ham_time )
 
-    if( printTimings%general() ) then
+    if( rt%printTimings%general() ) then
       call timesec( timef )
       if( rank == 0 ) then 
         call open_file_timing
@@ -284,24 +281,24 @@ contains
         evecfv_time(:, :, first_kpt : last_kpt), &
         overlap(:, :, first_kpt : last_kpt), nmat(1, first_kpt : last_kpt ) )
       end if
-      if ( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%wavefunction )
+      if ( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%wavefunction )
 
       ! Update the paramagnetic component of the induced current density
       j_ind_save = j_ind
       call j_ind%evaluate_paramagnetic( evecfv_time, pmat, occsv(:, first_kpt:last_kpt), &
         [(1._dp/nkpt, is = first_kpt, last_kpt)], mpi_env_k )
       if ( rt%subtract_J0 ) call j_ind%paramagnetic%add_vector( -j_para_spurious%components )
-      if ( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%current_density )
+      if ( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%current_density )
 
       ! DENSITY
       call UpdateDensity( first_kpt, evecfv_time(:, :, first_kpt : last_kpt), &
-      evecsv, it, rt%propagator%normalize_WF, l_rad_step, printTimings, timing%t_RTTDDFT%dens )
+      evecsv, it, rt%propagator%normalize_WF, l_rad_step, rt%printTimings, timing%t_RTTDDFT%dens )
 
       ! KS-POTENTIAL
-      call uppot( printTimings, timing%t_RTTDDFT%pot )
+      call uppot( rt%printTimings, timing%t_RTTDDFT%pot )
 
       ! VECTOR POTENTIAL
-      if( printTimings%general() ) call timesec( timei )
+      if( rt%printTimings%general() ) call timesec( timei )
       ! Check if we need to save aind, pvec, atot and aext
       if( vec_pot%is_external_field_given() .and. rt%predictor_corrector%on .and. ( .not. vec_pot%is_solver_euler() ) ) then
         a_ind_save = vec_pot%a_ind
@@ -317,7 +314,7 @@ contains
           call e_field%obtain_electric_field( rt%propagator%time_step, vec_pot%a_tot, a_tot_save )
         end if
       end if
-      if( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%vector_potential )
+      if( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%vector_potential )
 
       ! INDUCED CURRENT
       ! Update the diamagnetic component of the induced current density
@@ -328,12 +325,12 @@ contains
       ! HAMILTONIAN
       call UpdateHam( first_kpt, vec_pot%a_tot, predcorr=.False., calculateOverlap=.False., forcePmatHermitian=rt%pmat%force_pmat_hermitian, &
         overlap=overlap, ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, pmat=pmat, &
-        printTimings=printTimings, t_ham=timing%t_RTTDDFT%ham, t_MD=timing%t_Ehrenfest, &
+        printTimings=rt%printTimings, t_ham=timing%t_RTTDDFT%ham, t_MD=timing%t_Ehrenfest, &
         update_mathcalH=.False., update_mathcalB=.False., update_pmat=.False. )
 
       ! Remark: it makes no sense to employ the predictor-corrector method with SE or EH!
       if ( rt%predictor_corrector%on .and. (rt%propagator%name /= SE) .and. (rt%propagator%name /= EH) ) then
-        if ( printTimings%general() ) call timesec( timei )
+        if ( rt%printTimings%general() ) call timesec( timei )
         call loopPredictorCorrector( it, time, rt, l_rad_step, first_kpt, &
           evecfv_time, evecfv_save, evecsv, overlap, ham_time, ham_past, apwalm, pmat, &
           a_ind_save, a_tot_save, p_vec_save, j_ind_save, j_para_spurious, &
@@ -341,35 +338,35 @@ contains
         if ( predCorrReachedMaxSteps .and. rank == 0 ) write(*,*) 'Problems with convergence (PredCorr), time: ', time
         if ( molecular_dynamics%on .and. vec_pot%is_external_field_given()) &
           call e_field%obtain_electric_field( rt%propagator%time_step, vec_pot%a_tot, a_tot_save )
-        if ( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%pred_corr )
+        if ( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%pred_corr )
       end if !predictor-corrector
 
       ! Obtain the total energy, if requested
       if( rt%calculate_total_energy ) then
-        if ( printTimings%detailed() ) call timesec( timei )
+        if ( rt%printTimings%detailed() ) call timesec( timei )
         call obtain_energy_rttddft( first_kpt, ham_time, evecfv_time, mpi_env_k, etotstore(iprint) )
-        if ( printTimings%detailed() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%energy )
+        if ( rt%printTimings%detailed() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%energy )
       end if
 
       ! Obtain the number of excited electrons, if requested
       if( rt%calculate_n_exc ) then
-        if ( printTimings%detailed() ) call timesec( timei )
+        if ( rt%printTimings%detailed() ) call timesec( timei )
         call Obtain_number_excitations( first_kpt, evecfv_gnd, &
           & evecfv_time, overlap, mpi_env_k, nex(iprint), ngs(iprint), nt(iprint))
-        if( printTimings%detailed() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%n_exc )
+        if( rt%printTimings%detailed() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%n_exc )
       end if
 
       if ( molecular_dynamics%on ) then
         if ( mod( it, timeStepMultiplier ) == 0 ) then
-          if ( printTimings%general() ) then 
+          if ( rt%printTimings%general() ) then 
             call timesec( timei )
             timing%t_Ehrenfest%MD_was_carried_out = .True.
           end if
           call forces%save_total_force()
           call force_rttdft( forces, vec_pot%a_tot, e_field, molecular_dynamics, &
-            evecfv_time, overlap, ham_time, printTimings, timing%t_Ehrenfest )
+            evecfv_time, overlap, ham_time, rt%printTimings, timing%t_Ehrenfest )
           call move_ions( first_kpt, forces%total, forces%total_save, molecular_dynamics%time_step, &
-            atom_velocities, apwalm, printTimings, timing%t_Ehrenfest )
+            atom_velocities, apwalm, rt%printTimings, timing%t_Ehrenfest )
           print_forces(iprint) = .True.
           do is = 1, nspecies
             do ia = 1, natoms(is)
@@ -386,28 +383,28 @@ contains
               & calculateOverlap=molecular_dynamics%update_overlap, &
               overlap=overlap, ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, &
               pmat=pmat, pmatmt=pmatmt, &
-              & printTimings=printTimings, t_ham=timing%t_RTTDDFT%ham, t_MD=timing%t_Ehrenfest, &
+              & printTimings=rt%printTimings, t_ham=timing%t_RTTDDFT%ham, t_MD=timing%t_Ehrenfest, &
               & update_mathcalH=allocated(mathcalH), &
               & update_mathcalB=allocated(mathcalB), &
               & update_pmat=molecular_dynamics%update_pmat )
           end if
-          if( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_Ehrenfest%t_MD_step )
+          if( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_Ehrenfest%t_MD_step )
         else ! if ( mod( it, timeStepMultiplier ) == 0 )
           print_forces(iprint) = .False.
-          if ( printTimings%general() ) timing%t_Ehrenfest%MD_was_carried_out = .False.
+          if ( rt%printTimings%general() ) timing%t_Ehrenfest%MD_was_carried_out = .False.
         end if ! if ( mod( it, timeStepMultiplier ) == 0 )
       end if ! if ( molecular_dynamics%on ) then
 
       ! Check if a screenshot has been requested
       if ( rt%screenshots%on ) then
         if ( mod( it, rt%screenshots%n_steps ) == 0 ) then
-          if( printTimings%general() ) screenshot_was_taken(iprint) = .True.
-          if( printTimings%general() ) call timesec(timei)
+          if( rt%printTimings%general() ) screenshot_was_taken(iprint) = .True.
+          if( rt%printTimings%general() ) call timesec(timei)
           call screenshot( it, first_kpt, overlap, evecfv_gnd, &
             & evecfv_time, ham_time )
-          if( printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%screenshot )
+          if( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%screenshot )
         else 
-          if( printTimings%general() ) screenshot_was_taken(iprint) = .False.
+          if( rt%printTimings%general() ) screenshot_was_taken(iprint) = .False.
         end if
       end if
 
@@ -417,7 +414,7 @@ contains
       a_tot_store(iprint) = vec_pot%a_tot
       p_vec_store(iprint) = p_vec
       j_ind_store(iprint) = j_ind%total()
-      if( printTimings%general() ) timing_store(iprint) = timing
+      if( rt%printTimings%general() ) timing_store(iprint) = timing
 
       ! Print relevant information, every 'rt_input%n_print' steps
       if ( iprint == rt%n_print ) then
@@ -444,13 +441,13 @@ contains
 
         ! Update the counter
         iprint = 1
-        if( printTimings%general() ) then
+        if( rt%printTimings%general() ) then
           call timesec_RTTDDFT( timeiter, timing_store(rt%n_print)%t_iteration )
-          call write_timing( it, printTimings%detailed(), rt%calculate_total_energy, &
+          call write_timing( it, rt%printTimings%detailed(), rt%calculate_total_energy, &
             rt%calculate_n_exc, rt%predictor_corrector%on, timing_store, screenshot_was_taken, molecular_dynamics%on )
         end if
       else ! if ( iprint .eq. rt_input%n_print ) then
-        if( printTimings%general() ) call timesec_RTTDDFT( timeiter, timing_store(iprint)%t_iteration )
+        if( rt%printTimings%general() ) call timesec_RTTDDFT( timeiter, timing_store(iprint)%t_iteration )
         iprint = iprint + 1
       end if ! if ( iprint == rt_input%n_print ) 
       ! Make all the processes wait here: the master alone has been writing the files above
@@ -463,7 +460,7 @@ contains
       call close_file_info
       if( rt%calculate_total_energy ) call close_file_etot
       if( rt%calculate_n_exc ) call close_file_nexc
-      if( printTimings%general() ) call close_file_timing
+      if( rt%printTimings%general() ) call close_file_timing
       if( molecular_dynamics%on ) call MD_outputs%close_files()
     end if
 
