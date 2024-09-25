@@ -10,11 +10,7 @@
 !> Module that deals with the Current Density in RT-TDDFT calculations
 module rttddft_CurrentDensity
   use exciting_mpi, only: mpiinfo, xmpi_allreduce
-  !use modinput, only: input
-  !use modmpi
-  use mod_eigenvalue_occupancy, only: occsv, nstfv
-  use mod_eigensystem, only: nmat, nmatmax
-  use mod_lattice, only: omega
+  use mod_lattice, only: Omega
   use physical_constants, only: c
   use precision, only: dp
   use rttddft_VectorField, only: Uniform_Vector_Field
