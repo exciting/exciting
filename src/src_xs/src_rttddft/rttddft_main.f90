@@ -108,7 +108,7 @@ contains
     complex(dp), allocatable  :: pmatmt(:, :, :, :, :)
 
     integer :: it, first_kpt, last_kpt, n_steps
-    integer :: iprint, is, ia, ias, timeStepMultiplier, l_rad_step
+    integer :: i_print, is, ia, ias, timeStepMultiplier, l_rad_step
     logical                 :: predCorrReachedMaxSteps
 
     character(len=100)      :: string
@@ -255,7 +255,7 @@ contains
       end if
     end if
 
-    iprint = 1
+    i_print = 1
     timeiter = timef
     ! This is the most important loop (performed for each time step \(\Delta t\)
     do it = 1, n_steps
@@ -344,7 +344,7 @@ contains
       ! Obtain the total energy, if requested
       if( rt%calculate_total_energy ) then
         if ( rt%printTimings%detailed() ) call timesec( timei )
-        call obtain_energy_rttddft( first_kpt, ham_time, evecfv_time, mpi_env_k, etotstore(iprint) )
+        call obtain_energy_rttddft( first_kpt, ham_time, evecfv_time, mpi_env_k, etotstore(i_print) )
         if ( rt%printTimings%detailed() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%energy )
       end if
 
@@ -352,7 +352,7 @@ contains
       if( rt%calculate_n_exc ) then
         if ( rt%printTimings%detailed() ) call timesec( timei )
         call Obtain_number_excitations( first_kpt, evecfv_gnd, &
-          & evecfv_time, overlap, mpi_env_k, nex(iprint), ngs(iprint), nt(iprint))
+          & evecfv_time, overlap, mpi_env_k, nex(i_print), ngs(i_print), nt(i_print))
         if( rt%printTimings%detailed() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%n_exc )
       end if
 
@@ -367,15 +367,15 @@ contains
             evecfv_time, overlap, ham_time, rt%printTimings, timing%t_Ehrenfest )
           call move_ions( first_kpt, forces%total, forces%total_save, molecular_dynamics%time_step, &
             atom_velocities, apwalm, rt%printTimings, timing%t_Ehrenfest )
-          print_forces(iprint) = .True.
+          print_forces(i_print) = .True.
           do is = 1, nspecies
             do ia = 1, natoms(is)
               ias = idxas(ia,is)
-              atposcstore(1:3, ias, iprint) = atposc(1:3, ia, is)
+              atposcstore(1:3, ias, i_print) = atposc(1:3, ia, is)
             end do
           end do
-          velstore(:,:,iprint) = atom_velocities(:,:)
-          forces_store(iprint) = forces
+          velstore(:,:,i_print) = atom_velocities(:,:)
+          forces_store(i_print) = forces
           ! Update Hamiltonian with the new basis
           if( molecular_dynamics%update_overlap .or. allocated(mathcalH) .or. &
             & allocated(mathcalB) .or. molecular_dynamics%update_pmat ) then
@@ -390,7 +390,7 @@ contains
           end if
           if( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_Ehrenfest%t_MD_step )
         else ! if ( mod( it, timeStepMultiplier ) == 0 )
-          print_forces(iprint) = .False.
+          print_forces(i_print) = .False.
           if ( rt%printTimings%general() ) timing%t_Ehrenfest%MD_was_carried_out = .False.
         end if ! if ( mod( it, timeStepMultiplier ) == 0 )
       end if ! if ( molecular_dynamics%on ) then
@@ -398,28 +398,28 @@ contains
       ! Check if a screenshot has been requested
       if ( rt%screenshots%on ) then
         if ( mod( it, rt%screenshots%n_steps ) == 0 ) then
-          if( rt%printTimings%general() ) screenshot_was_taken(iprint) = .True.
+          if( rt%printTimings%general() ) screenshot_was_taken(i_print) = .True.
           if( rt%printTimings%general() ) call timesec(timei)
           call screenshot( it, first_kpt, overlap, evecfv_gnd, &
             & evecfv_time, ham_time )
           if( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%screenshot )
         else 
-          if( rt%printTimings%general() ) screenshot_was_taken(iprint) = .False.
+          if( rt%printTimings%general() ) screenshot_was_taken(i_print) = .False.
         end if
       end if
 
       ! Store relevant information from this iteration
-      time_store(iprint) = time
-      a_ind_store(iprint) = vec_pot%a_ind
-      a_tot_store(iprint) = vec_pot%a_tot
-      p_vec_store(iprint) = p_vec
-      j_ind_store(iprint) = j_ind%total()
-      if( rt%printTimings%general() ) timing_store(iprint) = timing
+      time_store(i_print) = time
+      a_ind_store(i_print) = vec_pot%a_ind
+      a_tot_store(i_print) = vec_pot%a_tot
+      p_vec_store(i_print) = p_vec
+      j_ind_store(i_print) = j_ind%total()
+      if( rt%printTimings%general() ) timing_store(i_print) = timing
 
       ! Print relevant information, every 'rt_input%n_print' steps
-      if ( iprint == rt%n_print ) then
+      if ( i_print == rt%n_print ) then
         ! Update the counter
-        iprint = 1
+        i_print = 1
         if( rank == 0 ) then
           call write_jpa( time_store, a_ind_store, a_tot_store )
           call write_jpa( time_store, p_vec_store )
@@ -431,24 +431,24 @@ contains
 
           ! Print forces - if this has been requested
           if( molecular_dynamics%on ) then
-            do iprint = 1, rt%n_print
-              if( print_forces(iprint) ) call write_MD_outputs( time_store(iprint), &
-                atposcstore(:, :, iprint), velstore(:,:,iprint), forces_store(iprint), &
+            do i_print = 1, rt%n_print
+              if( print_forces(i_print) ) call write_MD_outputs( time_store(i_print), &
+                atposcstore(:, :, i_print), velstore(:,:,i_print), forces_store(i_print), &
                 molecular_dynamics%print_all_force_components, MD_outputs )
             end do
           end if ! if( molecular_dynamics%on )
         end if
 
         ! Update the counter
-        iprint = 1
+        i_print = 1
         if( rt%printTimings%general() ) then
           call timesec_RTTDDFT( timeiter, timing_store(rt%n_print)%t_iteration )
           call write_timing( it, rt%printTimings%detailed(), rt%calculate_total_energy, &
             rt%calculate_n_exc, rt%predictor_corrector%on, timing_store, screenshot_was_taken, molecular_dynamics%on )
         end if
       else ! if ( iprint .eq. rt_input%n_print ) then
-        if( rt%printTimings%general() ) call timesec_RTTDDFT( timeiter, timing_store(iprint)%t_iteration )
-        iprint = iprint + 1
+        if( rt%printTimings%general() ) call timesec_RTTDDFT( timeiter, timing_store(i_print)%t_iteration )
+        i_print = i_print + 1
       end if ! if ( iprint == rt_input%n_print ) 
       ! Make all the processes wait here: the master alone has been writing the files above
       call barrier( mpi_env_k )
