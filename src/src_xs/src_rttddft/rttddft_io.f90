@@ -290,7 +290,7 @@ contains
     !> Time taken to initialize RT-TDDFT
     real(dp), intent(in) :: timing_init
 
-    if( rank == 0 ) write( file_time, format_timing ) 'Initialization (sec):',timing_init
+    write( file_time, format_timing ) 'Initialization (sec):',timing_init
   end subroutine
 
   !> Subroutine to output the timings into `TIMING_RTTDDFT.OUT`
@@ -325,58 +325,56 @@ contains
     MD = .False.
     if( present(molecular_dynamics) ) MD = molecular_dynamics
 
-    if ( rank == 0 ) then
-      do ip = 1, n
-        associate( t_rttddft => timing(ip)%t_RTTDDFT )
-        write(file_time,'(A30,I10)')'Time (sec) spent in iteration:',ip+shift
-        write(file_time,format_timing) 'updatewvf:',t_rttddft%wavefunction
-        write(file_time,format_timing) 'updatedens:',t_rttddft%dens%total
-        if ( detailed_timings ) then
-          write(file_time,format_timing) '-- rhovalk and genrhoir:',t_rttddft%dens%rho
-          write(file_time,format_timing) '-- symrf:',t_rttddft%dens%symrf
-          write(file_time,format_timing) '-- rfmtctof:',t_rttddft%dens%rfmtctof
-          write(file_time,format_timing) '-- addrhocr:',t_rttddft%dens%addrhocr
-          write(file_time,format_timing) '-- charge:',t_rttddft%dens%charge
-          write(file_time,format_timing) '-- rhonorm:',t_rttddft%dens%rhonorm
-        end if
-        write(file_time,format_timing) 'updatepot:',t_rttddft%pot%total
-        if ( detailed_timings ) then
-          write(file_time,format_timing) '-- poteff:',t_rttddft%pot%poteff
-          write(file_time,format_timing) '-- genveffig:',t_rttddft%pot%genveffig
-          write(file_time,format_timing) '-- genmeffig:',t_rttddft%pot%genmeffig
-        end if
-        write(file_time,format_timing) 'UpdateCurrentDensity:',t_rttddft%current_density
-        write(file_time,format_timing) 'ObtainA:',t_rttddft%vector_potential
-        write(file_time,format_timing) 'updatehamiltonian:',t_rttddft%ham%total
-        if ( detailed_timings ) then
-          write(file_time,format_timing) '-- hmlint:',t_rttddft%ham%hmlint
-          write(file_time,format_timing) '-- other subs:',t_rttddft%ham%rest
-        end if
-        if ( predictorCorrector )  &
-          & write(file_time,format_timing) 'All cycles of predcorr:',t_rttddft%pred_corr
-        if ( calculateTotalEnergy .and. detailed_timings ) write(file_time,format_timing) 'Total Energy:',t_rttddft%energy
-        if ( calculateNexc .and. detailed_timings ) write(file_time,format_timing)'nexc:',t_rttddft%n_exc
-        if ( screenshot_was_taken(ip) ) write(file_time,format_timing) 'Screenshots:',t_rttddft%screenshot
-        end associate
-        if( MD ) then
-          associate( t_MD => timing(ip)%t_Ehrenfest )
-          if( t_MD%MD_was_carried_out ) then
-            write(file_time,format_timing) 'MD:', t_MD%t_MD_step
-            if( detailed_timings ) then
-              write(file_time,format_timing) '-- 1st part of forces:', t_MD%t_MD_1st
-              write(file_time,format_timing) '-- 2nd part of forces:', t_MD%t_MD_2nd
-              write(file_time,format_timing) '-- sum forces:', t_MD%t_MD_sumforces 
-              write(file_time,format_timing) '-- move ions:', t_MD%t_MD_moveions
-              write(file_time,format_timing) '-- update basis:', t_MD%t_MD_updateBasis
-              write(file_time,format_timing) '-- update H, S:', t_MD%hamoverl
-              write(file_time,format_timing) '-- update pmat:', t_MD%pmat
-            end if
+    do ip = 1, n
+      associate( t_rttddft => timing(ip)%t_RTTDDFT )
+      write(file_time,'(A30,I10)')'Time (sec) spent in iteration:',ip+shift
+      write(file_time,format_timing) 'updatewvf:',t_rttddft%wavefunction
+      write(file_time,format_timing) 'updatedens:',t_rttddft%dens%total
+      if ( detailed_timings ) then
+        write(file_time,format_timing) '-- rhovalk and genrhoir:',t_rttddft%dens%rho
+        write(file_time,format_timing) '-- symrf:',t_rttddft%dens%symrf
+        write(file_time,format_timing) '-- rfmtctof:',t_rttddft%dens%rfmtctof
+        write(file_time,format_timing) '-- addrhocr:',t_rttddft%dens%addrhocr
+        write(file_time,format_timing) '-- charge:',t_rttddft%dens%charge
+        write(file_time,format_timing) '-- rhonorm:',t_rttddft%dens%rhonorm
+      end if
+      write(file_time,format_timing) 'updatepot:',t_rttddft%pot%total
+      if ( detailed_timings ) then
+        write(file_time,format_timing) '-- poteff:',t_rttddft%pot%poteff
+        write(file_time,format_timing) '-- genveffig:',t_rttddft%pot%genveffig
+        write(file_time,format_timing) '-- genmeffig:',t_rttddft%pot%genmeffig
+      end if
+      write(file_time,format_timing) 'UpdateCurrentDensity:',t_rttddft%current_density
+      write(file_time,format_timing) 'ObtainA:',t_rttddft%vector_potential
+      write(file_time,format_timing) 'updatehamiltonian:',t_rttddft%ham%total
+      if ( detailed_timings ) then
+        write(file_time,format_timing) '-- hmlint:',t_rttddft%ham%hmlint
+        write(file_time,format_timing) '-- other subs:',t_rttddft%ham%rest
+      end if
+      if ( predictorCorrector )  &
+        & write(file_time,format_timing) 'All cycles of predcorr:',t_rttddft%pred_corr
+      if ( calculateTotalEnergy .and. detailed_timings ) write(file_time,format_timing) 'Total Energy:',t_rttddft%energy
+      if ( calculateNexc .and. detailed_timings ) write(file_time,format_timing)'nexc:',t_rttddft%n_exc
+      if ( screenshot_was_taken(ip) ) write(file_time,format_timing) 'Screenshots:',t_rttddft%screenshot
+      end associate
+      if( MD ) then
+        associate( t_MD => timing(ip)%t_Ehrenfest )
+        if( t_MD%MD_was_carried_out ) then
+          write(file_time,format_timing) 'MD:', t_MD%t_MD_step
+          if( detailed_timings ) then
+            write(file_time,format_timing) '-- 1st part of forces:', t_MD%t_MD_1st
+            write(file_time,format_timing) '-- 2nd part of forces:', t_MD%t_MD_2nd
+            write(file_time,format_timing) '-- sum forces:', t_MD%t_MD_sumforces 
+            write(file_time,format_timing) '-- move ions:', t_MD%t_MD_moveions
+            write(file_time,format_timing) '-- update basis:', t_MD%t_MD_updateBasis
+            write(file_time,format_timing) '-- update H, S:', t_MD%hamoverl
+            write(file_time,format_timing) '-- update pmat:', t_MD%pmat
           end if
-          end associate
         end if
-        write(file_time,format_timing) 'time per iteration:',timing(ip)%t_iteration
-      end do
-    end if
+        end associate
+      end if
+      write(file_time,format_timing) 'time per iteration:',timing(ip)%t_iteration
+    end do
   end subroutine
 
   logical function file_pmat_exists()

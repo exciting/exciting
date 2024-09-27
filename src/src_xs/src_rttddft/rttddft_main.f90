@@ -109,7 +109,7 @@ contains
 
     integer :: it, first_kpt, last_kpt, n_steps
     integer :: i_print, is, ia, ias, timeStepMultiplier, l_rad_step
-    logical                 :: predCorrReachedMaxSteps
+    logical :: predCorrReachedMaxSteps, my_rank_writes_to_output
 
     character(len=100)      :: string
 
@@ -169,8 +169,9 @@ contains
     ! we only perform MD in RT-TDDFT if the type is Ehrenfest
     if( molecular_dynamics%on ) molecular_dynamics%on = ( trim(molecular_dynamics%MD_type) == 'Ehrenfest' )
     
-    ! Outputs general info to RTTDDFT_INFO.OUT 
-    if( rank == 0 ) then
+    ! Output general info to RTTDDFT_INFO.OUT
+    my_rank_writes_to_output = ( rank == 0 ) 
+    if( my_rank_writes_to_output ) then
       call open_file_info
       call write_file_info_header
     end if
@@ -209,7 +210,7 @@ contains
       end if
     end if
 
-    if( rank == 0 ) then
+    if( my_rank_writes_to_output ) then
       call open_files_jpa
       call write_jpa( [time], [vec_pot%a_ind], [vec_pot%a_tot] )
       call write_jpa( [time], [p_vec] )
@@ -226,7 +227,7 @@ contains
       call obtain_energy_rttddft( first_kpt, ham_time, evecfv_gnd, mpi_env_k, etotstore(1) )
       ! Trick: we need an array to call the subroutine print_total_energy
       time_store(1) = time
-      if( rank == 0 ) then
+      if( my_rank_writes_to_output ) then
         call open_file_etot
         call write_total_energy( .True., 1, time_store(1), etotstore(1) )
       end if
@@ -238,7 +239,7 @@ contains
         & evecfv_time, overlap, mpi_env_k, nex(1), ngs(1), nt(1) )
       ! Trick: we need an array to call the subroutine print_nexc
       time_store(1) = time
-      if( rank == 0 ) then
+      if( my_rank_writes_to_output ) then
         call open_file_nexc
         call write_nexc( .True., 1, time_store(1), nex(1), ngs(1), nt(1) )
       end if
@@ -249,7 +250,7 @@ contains
 
     if( rt%printTimings%general() ) then
       call timesec( timef )
-      if( rank == 0 ) then 
+      if( my_rank_writes_to_output ) then 
         call open_file_timing
         call write_timing( timef-timei ) !write time for initialization
       end if
@@ -335,7 +336,7 @@ contains
           evecfv_time, evecfv_save, evecsv, overlap, ham_time, ham_past, apwalm, pmat, &
           a_ind_save, a_tot_save, p_vec_save, j_ind_save, j_para_spurious, &
           vec_pot, p_vec, j_ind, mpi_env_k, predCorrReachedMaxSteps )
-        if ( predCorrReachedMaxSteps .and. rank == 0 ) write(*,*) 'Problems with convergence (PredCorr), time: ', time
+        if ( predCorrReachedMaxSteps .and. my_rank_writes_to_output ) write(*,*) 'Problems with convergence (PredCorr), time: ', time
         if ( molecular_dynamics%on .and. vec_pot%is_external_field_given()) &
           call e_field%obtain_electric_field( rt%propagator%time_step, vec_pot%a_tot, a_tot_save )
         if ( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%pred_corr )
@@ -416,11 +417,11 @@ contains
       j_ind_store(i_print) = j_ind%total()
       if( rt%printTimings%general() ) timing_store(i_print) = timing
 
-      ! Print relevant information, every 'rt_input%n_print' steps
+      ! Print relevant information, every 'rt%n_print' steps
       if ( i_print == rt%n_print ) then
         ! Update the counter
         i_print = 1
-        if( rank == 0 ) then
+        if( my_rank_writes_to_output ) then
           call write_jpa( time_store, a_ind_store, a_tot_store )
           call write_jpa( time_store, p_vec_store )
           call write_jpa( time_store, j_ind_store )
@@ -454,7 +455,7 @@ contains
       call barrier( mpi_env_k )
     end do ! do it = 1, nsteps
 
-    if ( rank == 0 ) then
+    if ( my_rank_writes_to_output ) then
       call close_files_jpa
       call write_file_info( 'Real-time TDDFT calculation finished' )
       call close_file_info
@@ -468,7 +469,7 @@ contains
     string = filext
     filext = '_RTTDDFT'//trim(filext)
     call write_wavefunction( first_kpt, evecfv_time )
-    if ( rank == 0 ) call writestate
+    if ( my_rank_writes_to_output ) call writestate
     filext = string
 
     call deallocate_global_arrays( molecular_dynamics%on )
