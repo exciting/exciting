@@ -10,6 +10,8 @@ build:exciting-debian-buster-documentation:
    - cp build/platforms/make.inc.gfortran8-9 build/make.inc
    # exciting input documentation
    - make doc
+   # Update ford: the version installed in the container is outdated
+   - pip3 install --upgrade ford
    # Ford documentation without graphical dependencies (which is slow)
    - make ford
  artifacts:

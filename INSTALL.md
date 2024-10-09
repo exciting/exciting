@@ -125,8 +125,8 @@ PDF documents are built in their respective `doc/` subfolders. All documentation
 through LaTex and requires the user to have a Tex distribution installed. 
 
 exciting's source code documentation is in the process of migrating to FORD. At present, only
-select excited-state modules are documented. These are specified in [docs/ford_settings.md](docs/ford_settings.md) 
-under the `src_dir` tag. 
+the modules specified in [docs/ford_settings.md](docs/ford_settings.md) 
+under the `src_dir` tag are documented.
 
 FORD is available as a python package and can be installed with pip. To install FORD, type:
 
