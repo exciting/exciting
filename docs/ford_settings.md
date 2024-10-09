@@ -13,7 +13,8 @@ graph: false
 warn: false  
 search: false  
 proc_internals: false  
-src_dir: ../src/src_gw  
+src_dir: ../src/
+         ../src/src_gw  
          ../src/src_hybrids
          ../src/input
          ../src/testframework
