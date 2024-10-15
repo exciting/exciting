@@ -116,7 +116,7 @@ contains
     call assert( size(first) == n, 'first array must have size = n')
     if( twoArrays ) call assert( size(second) == n, 'second array must have size = n')
     
-    select type(first)
+    select type( first )
       type is( Vector_Potential_Field )
         unit = file_avec
         call assert( twoArrays, '2nd argument must be passed for the case of Vector_Field')

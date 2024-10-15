@@ -200,9 +200,9 @@ end subroutine
 subroutine allocate_globals(first_kpt, last_kpt, ionDynamics, allocate_mathcalH, &
                             allocate_mathcalB, allocate_B)
   !> index of the first `k-point` to be considered in the sum
-  integer(i32), intent(in)        :: first_kpt
+  integer(i32), intent(in) :: first_kpt
   !> index of the last `k-point` considered
-  integer(i32), intent(in)        :: last_kpt
+  integer(i32), intent(in) :: last_kpt
   !> if `.True`, we need to allocate arrays for Ehrenfest molecular dynamics
   logical, intent(in) :: ionDynamics
   !> if `.True`, we need to allocate the global array `mathcalH`

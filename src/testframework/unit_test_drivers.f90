@@ -19,6 +19,7 @@ module unit_test_drivers
    use xgrid_test_drivers, only: xgrid_test_driver
    use gw_test_drivers, only: gw_test_driver
    use xhdf5_test, only: xhdf5_test_driver
+   use rttddft_test_drivers, only: rttddft_test_driver
 
    implicit none
    private
@@ -114,6 +115,10 @@ contains
 
       if (run%xhdf5 .or. run%all) then
          call xhdf5_test_driver(mpiglobal, kill_on_failure)
+      end if
+
+      if (run%rttddft .or. run%all) then
+         call rttddft_test_driver(mpiglobal, kill_on_failure)
       end if
    end subroutine unit_test_driver
 

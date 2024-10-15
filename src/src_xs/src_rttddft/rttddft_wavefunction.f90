@@ -11,330 +11,18 @@
 module rttddft_Wavefunction
   use asserts, only: assert
   use constants, only: zone, zzero, zi
-  use integration, only: RungeKutta4thOrder => ODESolver_RungeKutta4thOrder
-  use matrix_exp, only: &
-      & exp_hermitian => exp_hermitian_matrix_times_vectors, & 
-      & exp_general => exp_general_matrix_times_vectors, &
-      & exphouston_propagator => exphouston_hermitian_matrix_times_vectors
   use normalize, only: normalize_vectors
   use precision, only: dp, i32
-  use rttddft_GlobalVariables, only: B_time, B_past, mathcalB
 
   implicit none
 
   private
 
-  public :: UpdateWavefunction, Update_basis_derivative, propagator_types, &
-  propagator_type, SE, EH
+  public :: normalize_wavefunctions, Update_basis_derivative
 
-  !> Enum with the solver type for the vector potential
-  enum, bind(C)
-    enumerator :: propagator_types
-    enumerator :: SE, EMR, AETRS, CFM4, EH, EHM, RK4
-  end enum
-
-  type, public :: propagator_keys
-    !> Propagator used
-    integer(kind(propagator_types))         :: name
-    !> Size of time step \( \Delta t \) - employed in RT-TDDFT
-    real(dp)                                :: time_step
-    !> If `.true.`, normalize KS wavefunctions in each step
-    logical                                 :: normalize_WF
-    !> Order of the Taylor expansion
-    integer(i32)                            :: order_taylor
-    !> Tolerance required for diagonalization
-    real(dp)                                :: tol
-  end type
+  
 
 contains
-  !> Get the enum corresponding to the string
-  !> Caution: the default is defined to be SE
-  pure function propagator_type( string ) result( propagator )
-    character(len=*), intent(in) :: string
-    integer(kind(propagator_types)) :: propagator
-
-    select case( trim(string) )
-      case('SE')
-        propagator = SE
-      case('EMR')
-        propagator = EMR
-      case('AETRS')
-        propagator = AETRS
-      case('CFM4')
-        propagator = CFM4
-      case('EH')
-        propagator = EH
-      case('EHM')
-        propagator = EHM
-      case('RK4')
-        propagator = RK4
-      case default
-        propagator = SE
-    end select
-  end function
-
-  !> This subroutine updates KS wavefunctions.  
-  !> Here, we employ a propagator to evolve the Kohn-Sham wavefunctions.  
-  !> Extrapolation scheme for the hamiltonian (predcorr .False.)
-  !> \[ \hat{H}(t+f\Delta t) = (1+f)\hat{H}(t) - f\hat{H}(t-\Delta t). \]
-  !> \(\hat{H}(t)\) is stored in `ham_time`, whereas \(\hat{H}(t -\Delta t)\),
-  !> in `ham_past`
-  !> Extrapolation scheme for the hamiltonian (predcorr .True.)
-  !> \[ \hat{H}(t+f\Delta t) = f\hat{H}(t + \Delta t) + (1-f)\hat{H}(t). \]
-  !> \(\hat{H}(t)\) is stored in `ham_past`, whereas \(\hat{H}(t +\Delta t)\),
-  !> in `ham_time` (which comes from a previous iteration in the predictor corrector
-  !> loop
-  subroutine UpdateWavefunction( first_kpt, prop, predcorr, ham_time, &
-    ham_past, wavefunctions, overlap, dimensions, atoms_velocities )
-    !> The first k point
-    integer(i32), intent(in) :: first_kpt
-    !> Type that encapsulates the information to propagate WFs
-    type(propagator_keys), intent(in) :: prop
-    !> tells if we are in the loop of the predictor-Corrector scheme
-    logical, intent(in)       :: predcorr
-    !> Hamiltonian H(t) (n, n, first_kpt : last_kpt)
-    complex(dp), intent(in) :: ham_time(:, :, first_kpt : )
-    !> Hamiltonian H(t - dt) (n, n, first_kpt : last_kpt)
-    complex(dp), intent(in) :: ham_past(:, :, first_kpt : )
-    !> Vectors to propagate C(t) (n, numberOfStates, first_kpt : last_kpt)
-    complex(dp), intent(inout) :: wavefunctions(:, :, first_kpt : )
-    !> Overlap matrix if needed (n, n, first_kpt : last_kpt)
-    complex(dp), intent(in), optional :: overlap(:, :, first_kpt : )
-    !> k point-dependent dimensions (first_kpt : last_kpt)
-    integer(i32), intent(in), optional :: dimensions(first_kpt : )
-    !> if present, we need to add corrections due to the nuclei movement 
-    !> (which changes the basis set) (3, natoms)
-    real(dp), intent(in), optional  :: atoms_velocities(:, :)
-
-    integer(i32)  :: i, ik, kDimension
-    integer(i32) :: last_kpt, maxDimension
-    ! Factors that multiply the hamiltonian in the following propagator:
-    ! Commutator-Free Magnus expansion of 4th order
-    real(dp), parameter :: f1 =  0.21132486540518713_dp ! 1/2 - sqrt(3)/6
-    real(dp), parameter :: f2 =  0.78867513459481290_dp ! 1/2 + sqrt(3)/6
-    real(dp), parameter :: a1 = -0.03867513459481287_dp ! 1/4 - sqrt(3)/6
-    real(dp), parameter :: a2 =  0.53867513459481290_dp ! 1/4 + sqrt(3)/6
-    complex(dp), allocatable :: overl(:, :), ham(:, :), hamold(:, :), unity(:, :)
-    logical :: atoms_movement
-    procedure(exp_general), pointer :: exp_operator
-
-    atoms_movement = present( atoms_velocities )
-    if ( atoms_movement ) then
-      call Update_basis_derivative( atoms_velocities, mathcalB, B_time, B_past )
-      exp_operator => exp_general
-      call assert( prop%name /= RK4, 'atoms_movement does not support RK4')
-      call assert( prop%name /= EH .and. prop%name /= EHM, 'atoms_movement does not support EH and EHM')
-      call assert( .not. predcorr, 'atoms_movement does not support predictor-corrector')
-    else
-      exp_operator => exp_hermitian
-    end if
-
-    ! get and check arrays' dimensions
-    last_kpt = ubound( ham_time, 3 )
-    maxDimension = size( ham_time, 1 )
-
-    call assert( size( ham_time, 1 ) == size( ham_time, 2 ), &
-    'ham_time must have same size along 1st and 2nd dim' )
-    call assert( size( ham_past, 1 ) == size( ham_past, 2 ), &
-    'ham_past must have same size along 1st and 2nd dim' )
-    call assert( size( ham_past, 1 ) == size( ham_time, 1 ), &
-    'ham_past and ham_time must have same size' )
-    call assert( size( ham_time, 1 ) == size( wavefunctions, 1 ), &
-    'ham_time and wavefunctions must have same size along 1st dim')
-    if ( present( overlap ) ) then
-      call assert( size( overlap, 1 ) == size( overlap, 2 ), &
-      'overlap must have same size along 1st and 2nd dim' )
-      call assert( size( ham_past, 1 ) == size( overlap, 1 ), &
-      'ham_past and overlap must have same size' )
-    end if
-
-    if ( .not. present( overlap ) ) then
-      allocate( unity(maxDimension, maxDimension), source = zzero )
-      do i = 1, maxDimension
-        unity(i, i) = zone
-      enddo
-    end if
-
-
-#ifdef USEOMP
-!$OMP PARALLEL DEFAULT(NONE) PRIVATE(ik, kDimension, overl, ham, hamold), &
-!$OMP& SHARED(first_kpt, last_kpt, predcorr, maxDimension, unity), &
-!$OMP& SHARED(prop, ham_time, ham_past, overlap, wavefunctions, dimensions) &
-!$OMP& SHARED(B_time, B_past, atoms_movement, exp_operator)
-!$OMP DO
-#endif
-    do ik = first_kpt, last_kpt
-      ! Dimension of the Hamiltonian and Overlap matrices for the current k-point
-      if ( present( dimensions ) ) then
-        kDimension = dimensions(ik)
-      else
-        kDimension = maxDimension
-      end if
-
-      if ( present( overlap ) ) then
-        allocate( overl(kDimension, kDimension), source = &
-        overlap(1 : kDimension, 1 : kDimension, ik) )
-      else
-        allocate( overl(kDimension, kDimension), source = &
-        unity(1 : kDimension, 1 : kDimension) )
-      end if
-
-      allocate( ham(kDimension, kDimension) )
-
-      select case(prop%name)
-        ! SE (simple exponential)
-        ! CN (Crank-Nicolson)
-        ! EMR (Exponential at midpoint rule)
-        ! AETRS (approximate enforced time-reversal symmetry)
-        ! CFM4 (Commutator-Free Magnus expansion of 4th order)
-        ! EH (exponential using a basis of the hamiltonian-eigenvectors)
-        ! EHM (same as before, but uses the hamiltonian at midpoint)
-        ! RK4 (Runge-Kutta of 4th order)
-        case (SE)
-          ham = ham_time(1 : kDimension, 1 : kDimension, ik)
-          if( atoms_movement ) ham = ham - zi * &
-          B_time(1 : kDimension, 1 : kDimension, ik)
-          call exp_operator( prop%order_taylor, &
-              alpha = - zi * prop%time_step, H = ham, S = overl, &
-              vectors = wavefunctions(1 : kDimension, :, ik) )
-        case (EMR)
-          if ( .not. predcorr ) then
-            ham = 1.5_dp * ham_time(1 : kDimension, 1 : kDimension, ik) - &
-            0.5_dp * ham_past(1 : kDimension, 1 : kDimension, ik)
-            if( atoms_movement ) ham = ham - zi * (1.5_dp * &
-            B_time(1 : kDimension, 1 : kDimension, ik) - 0.5_dp * &
-            B_past(1 : kDimension, 1 : kDimension, ik))
-          else
-            ham = 0.5_dp * ham_time(1 : kDimension, 1 : kDimension, ik) &
-            + 0.5_dp * ham_past(1 : kDimension, 1 : kDimension, ik)
-          end if
-          call exp_operator( prop%order_taylor, &
-            & alpha = -zi * prop%time_step, H = ham, S = overl, &
-            & vectors = wavefunctions(1 : kDimension, :, ik) )
-        case (AETRS)
-          if ( .not. predcorr ) then
-            ! 1/2*H(t)
-            ham = 0.5_dp * ham_time(1 : kDimension, 1 : kDimension, ik)
-            if( atoms_movement ) ham = ham - zi * 0.5_dp * &
-            B_time(1 : kDimension, 1 : kDimension, ik)
-            call exp_operator( prop%order_taylor, &
-              & alpha = -zi * prop%time_step, &
-              & H = ham, S = overl, &
-              vectors = wavefunctions(1 : kDimension, :, ik) )
-            ! extrapolated 1/2*H(t+\Delta t) as H(t) - 1/2*H(t-\Delta t)
-            ham = ham_time(1 : kDimension, 1 : kDimension, ik) - 0.5_dp * &
-            ham_past(1 : kDimension, 1 : kDimension, ik)
-            if( atoms_movement ) ham = ham - zi * &
-            ( B_time(1 : kDimension, 1 : kDimension, ik) - 0.5_dp * &
-            B_past(1 : kDimension, 1 : kDimension, ik) )
-            call exp_operator( prop%order_taylor, &
-              & alpha = -zi * prop%time_step, &
-              & H = ham, S = overl, &
-              vectors = wavefunctions(1 : kDimension, :, ik) )
-          else
-            ham = 0.5_dp*ham_past(1 : kDimension, 1 : kDimension, ik)
-            call exp_hermitian( prop%order_taylor, &
-              & alpha = -zi * prop%time_step, &
-              & H = ham, S = overl, &
-              vectors = wavefunctions(1 : kDimension, :, ik) )
-            ham = 0.5_dp*ham_time(1 : kDimension, 1 : kDimension, ik)
-            call exp_hermitian( prop%order_taylor, &
-              & alpha = -zi * prop%time_step, &
-              & H = ham, S = overl, &
-              vectors = wavefunctions(1 : kDimension, :, ik) )
-          end if
-        case (CFM4)
-          if ( .not. predcorr ) then
-            ham = (a1 * (1 + f2) + a2 * (1 + f1)) * &
-            ham_time(1 : kDimension, 1 : kDimension, ik) - (a1 * f2 + a2 * f1) &
-            * ham_past(1 : kDimension, 1 : kDimension, ik)
-            if( atoms_movement ) ham = ham - zi * &
-            ((a1 * (1 + f2) + a2 * (1 + f1)) * &
-            B_time(1 : kDimension, 1 : kDimension, ik) - (a1 * f2 + a2 * f1) * &
-            B_past(1 : kDimension, 1 : kDimension, ik))
-            call exp_operator( prop%order_taylor, &
-              & alpha = -zi * prop%time_step, &
-              & H = ham, S = overl, &
-              vectors = wavefunctions(1 : kDimension, :, ik) )
-            ham = (a1 * (1 + f1) + a2 * (1 + f2)) * &
-            ham_time(1 : kDimension, 1 : kDimension, ik) - (a1 * f1 + a2 * f2) &
-            * ham_past(1 : kDimension, 1 : kDimension, ik)
-            if( atoms_movement ) ham = ham - zi * &
-            ((a1 * (1 + f1) + a2 * (1 + f2)) * &
-            B_time(1 : kDimension, 1 : kDimension, ik) - (a1 * f1 + a2 * f2) * &
-            B_past(1 : kDimension, 1 : kDimension, ik) )
-            call exp_operator( prop%order_taylor, &
-              & alpha = -zi * prop%time_step, &
-              & H = ham, S = overl, &
-              vectors = wavefunctions(1 : kDimension, :, ik) )
-          else
-            ham = a1 * ((1 - f2) * &
-            ham_past(1 : kDimension, 1 : kDimension, ik) + f2 * &
-            ham_time(1 : kDimension, 1 : kDimension, ik)) + a2 * ((1 - f1) * &
-            ham_past(1 : kDimension, 1 : kDimension, ik) + f1 * &
-            ham_time(1 : kDimension, 1 : kDimension, ik))
-            call exp_hermitian( prop%order_taylor, &
-              & alpha = -zi * prop%time_step,  &
-              & H = ham, S = overl, &
-              vectors = wavefunctions(1 : kDimension, :, ik) )
-            ham = a1 * ((1 - f1) * &
-            ham_past(1 : kDimension, 1 : kDimension, ik) + &
-            f1 * ham_time(1 : kDimension, 1 : kDimension, ik)) + &
-            a2 * ((1 - f2) * ham_past(1 : kDimension, 1 : kDimension, ik) + &
-            f2 * ham_time(1 : kDimension, 1 : kDimension, ik))
-            call exp_hermitian( prop%order_taylor, &
-              & alpha = -zi * prop%time_step,  &
-              & H = ham, S = overl, &
-              vectors = wavefunctions(1 : kDimension, :, ik) )
-          end if
-        case (EH)
-          ham = ham_time(1 : kDimension, 1 : kDimension, ik)
-          call exphouston_propagator( alpha = -zi * prop%time_step, &
-            & H = ham, S = overl, &
-            & vectors = wavefunctions(1 : kDimension, :, ik), &
-            & tol = prop%tol)
-        case (EHM)
-          if ( .not. predcorr ) then
-            ham = 1.5_dp * ham_time(1 : kDimension, 1 : kDimension, ik) - &
-            0.5_dp * ham_past(1 : kDimension, 1 : kDimension, ik)
-          else
-            ham = 0.5_dp * ham_time(1 : kDimension, 1 : kDimension, ik) + &
-            0.5_dp * ham_past(1 : kDimension, 1 : kDimension, ik)
-          end if
-          call exphouston_propagator( alpha = -zi * prop%time_step, H = ham, &
-          S = overl, vectors = wavefunctions(1 : kDimension, :, ik), &
-            & tol = prop%tol)
-        case (RK4)
-          ham = ham_time(1 : kDimension, 1 : kDimension, ik)
-          allocate(hamold(1 : kDimension, 1 : kDimension))
-          hamold(1 : kDimension, 1 : kDimension) = &
-          ham_past(1 : kDimension, 1 : kDimension, ik)
-          if( .not. predcorr ) then
-            call RungeKutta4thOrder( time_step = prop%time_step, alpha = zi, &
-              & H = ham, H_past = hamold, S = overl, &
-              & x = wavefunctions(1 : kDimension, :, ik))
-          else
-            ! Trick: H(t-dt) = 2*H(t)-H(t+dt), where H(t) = hamold, H(t+dt)=ham
-            call RungeKutta4thOrder( time_step = prop%time_step, alpha = zi, &
-              & H = hamold, H_past = 2_dp * hamold - ham, S = overl, &
-              & x = wavefunctions(1 : kDimension, :, ik))
-          end if
-          deallocate(hamold)
-      end select
-
-      ! Normalize WFs, if this is the case
-      ! The propagator operator should be unitary, so this step would be unnecessary
-      ! However, numerically this is almost never possible
-      ! This normalization may help to avoid numerical issues
-      if ( prop%normalize_WF ) call normalize_vectors( overl, wavefunctions(1 : kDimension, :, ik) )
-      deallocate( overl, ham )
-    end do
-#ifdef USEOMP
-!$OMP END DO NOWAIT
-!$OMP END PARALLEL
-#endif
-
-  end subroutine UpdateWavefunction
 
   !> Update \(B_k\) as
   !> \[ B_\mathbf{k}(t) = \sum_J \dot{\mathbf{R}_J}\cdot 
@@ -386,4 +74,21 @@ contains
 #endif
   end subroutine
 
+  !> Normalize the wavefunctions \(|\Psi_{i\mathbf{k}}\rangle\)
+  !> It is essentially a wrapper to the subroutine [[normalize_vectors]]
+  subroutine normalize_wavefunctions( overlap_matrices, wavefunctions )
+    !> List of overlap matrices. The 1st and 2nd indexes refers to the matrix elements,
+    !> the 3rd index refers to the k-points
+    complex(dp), intent(in)    :: overlap_matrices(:, :, :)
+    !> List of wavefunctions \(|\Psi_{i\mathbf{k}}\rangle\). The 1st index refers to LAPW basis, 
+    !> the 2nd index, to the number of states, and 
+    !> the 3rd index, to the k-points
+    complex(dp), intent(inout) :: wavefunctions(:, :, :)
+
+    integer(i32) :: ik
+
+    do ik = 1, size( wavefunctions, 3 )
+      call normalize_vectors( S=overlap_matrices(:, :, ik), vectors=wavefunctions(:, :, ik) )
+    end do
+  end subroutine
 end module rttddft_Wavefunction
