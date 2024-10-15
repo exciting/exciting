@@ -11,7 +11,7 @@
 !> //TODO(Ronaldo): Refactor to reduce the number of global variables
 module rttddft_HamiltonianOverlap
   use asserts, only: assert
-  use constants, only: fourpi, zi
+  use constants, only: fourpi, zi, zone, zzero
   use mod_APW_LO, only: apword, nlorb, lorbl
   use mod_atoms, only: nspecies, natoms, idxas, atposc
   use mod_eigensystem, only: nmat, idxlo, h1aa, h1loa, h1lolo, &
@@ -408,7 +408,7 @@ end subroutine UpdateHam
     integer                   :: i, is, ia, ias, if3, ig, j, j1, j2, igprime
     integer                   :: l, lm1, lm2, l3, m3, lm3
     integer                   :: io, io1, io2, maxaa, maxnlo, ilo, ilo1, ilo2
-    integer                   :: ngp, iv(3)
+    integer                   :: nmatmax, ngp, iv(3)
     real (dp)                 :: t1
     real (dp), parameter      :: a2=0.5_dp*alpha**2
     complex (dp)              :: zt
@@ -423,9 +423,9 @@ end subroutine UpdateHam
     maxnlo = mt_h%maxnlo
     allocate(apwi(maxaa,ngp))
     allocate(apwi2(ngp, maxaa) )
-    allocate( overlcopy(nmatp, nmatp) )
+    allocate( overlcopy(nmatp, nmatp), source=zzero )
     allocate( aux(nmatp, nmatp) )
-    overlcopy(:,:) = zzero
+    overlap = zzero
     do is = 1, nspecies
       do ia = 1, natoms(is)
   ! APW-APW part
@@ -584,8 +584,12 @@ end subroutine UpdateHam
       end do ! do j = 1, ngp
     endif
 
-    overlap(1 : nmatp, 1 : nmatp) = overlcopy(1 : nmatp, 1 : nmatp)
-    deallocate(apwi,apwi2)
+    nmatmax = size( overlap, 1 )
+    overlap(1:nmatp, 1:nmatp) = overlcopy(1:nmatp, 1:nmatp)
+    ! Fill other elements, so that the rest of overlap is the identity matrix
+    do concurrent( i = nmatp+1:nmatmax )
+      overlap(i, i) = zone
+    end do
 
   end subroutine overlapsetup
 

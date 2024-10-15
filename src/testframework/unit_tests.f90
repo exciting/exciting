@@ -29,6 +29,7 @@ module unit_tests
       logical :: phonon = .false.
       logical :: raman = .false.
       logical :: rdmft = .false.
+      logical :: rttddft = .false.
       logical :: stm = .false.
       logical :: sym = .false.
       logical :: vdw = .false.
@@ -133,6 +134,8 @@ contains
          run%raman = .true.
       case ('rdmft')
          run%rdmft = .true.
+      case ('rttddft')
+          run%rttddft = .true.
       case ('stm')
          run%stm = .true.
       case ('sym')
