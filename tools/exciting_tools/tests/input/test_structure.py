@@ -511,3 +511,22 @@ def test_get_bandstructure_input_from_exciting_structure(lattice_and_atoms_H20):
     point8 = path_xml[7]
     assert point8.get("coord") == "0.5 0.5 0.5", 'Invalid value for "coord" attribute of point 8'
     assert point8.get("label") == "R", 'Invalid value for "label" attribute of point 8'
+
+
+def test_preserve_species_ordering(lattice_and_atoms_H20):
+    """Older implementation ordered the species alphabetically. Now it's written like its defined."""
+    cubic_lattice, atoms = lattice_and_atoms_H20
+    new_order_atoms = [atoms[1], atoms[0], atoms[2]]
+    structure = ExcitingStructure(new_order_atoms, cubic_lattice, "./")
+    assert structure.species == ["O", "H", "H"], "Species list differs from lattice_and_atoms_H20"
+
+    elements = list(structure.to_xml())
+    assert len(elements) == 3, "Expect structure tree to have 3 sub-elements"
+
+    species_o_xml = elements[1]
+    assert species_o_xml.tag == "species", "Second subtree is species"
+    assert species_o_xml.items() == [("speciesfile", "O.xml")], "species is inconsistent"
+
+    species_h_xml = elements[2]
+    assert species_h_xml.tag == "species", "Third subtree is species"
+    assert species_h_xml.items() == [("speciesfile", "H.xml")], "species is inconsistent"
