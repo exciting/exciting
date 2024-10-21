@@ -36,15 +36,15 @@ def test_convert_container_data_type():
     output = container_converter(input)
 
     for elem1, elem2 in zip(output.values(), expected.values()):
-        assert type(elem1) == type(elem2)
+        assert type(elem1) is type(elem2)
     for elem, elem2 in zip(output["c"].values(), expected["c"].values()):
-        assert type(elem) == type(elem2)
+        assert type(elem) is type(elem2)
     for elem, elem2 in zip(output["b"], expected["b"]):
-        assert type(elem) == type(elem2)
+        assert type(elem) is type(elem2)
     for elem, elem2 in zip(output["e"], expected["e"]):
-        assert type(elem) == type(elem2)
+        assert type(elem) is type(elem2)
     for elem, elem2 in zip(output["e"][0], expected["e"][0]):
-        assert type(elem) == type(elem2)
+        assert type(elem) is type(elem2)
 
     assert output == expected, "Output is consistent with the expected dictionary"
 
