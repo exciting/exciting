@@ -90,7 +90,7 @@ class ExcitingStructure(ExcitingXMLInput):
             self.lattice, self.species, self.positions = self._init_lattice_species_positions_from_ase_atoms(atoms)
             self.atom_properties = [{}] * len(self.species)
 
-        self.unique_species = sorted(set(self.species))
+        self.unique_species = list(dict.fromkeys(self.species))  # preserve order, e.g. 'xasspecies' needs it
 
         # Optional properties
         self.crystal_properties = self._initialise_subelement_attribute(ExcitingCrystalInput, crystal_properties or {})
