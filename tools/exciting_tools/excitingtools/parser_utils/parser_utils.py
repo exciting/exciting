@@ -39,8 +39,8 @@ def convert_single_entry(input_str: str):
 
     if len(result) == 1:
         return result[0]
-    if len(list(filter(lambda x: isinstance(x, str), result))) == len(result):
-        return " ".join(result)
+    if any(isinstance(x, str) for x in result):
+        return input_str
     return result
 
 

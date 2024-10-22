@@ -23,7 +23,7 @@ reference_input_str = """<?xml version="1.0" encoding="UTF-8"?>
     </species>
   </structure>
   
-  <groundstate xctype="GGA_PBE" ngridk="4 4 4" epsengy="1d-7" outputlevel="high"/>
+  <groundstate xctype="GGA_PBE" ngridk="4 4 4" epsengy="1d-7" outputlevel="high" stype="Methfessel-Paxton 2"/>
 
   <xs xstype="BSE" 
    ngridq="3 3 3"
