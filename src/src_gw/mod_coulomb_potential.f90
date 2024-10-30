@@ -52,7 +52,8 @@ module mod_coulomb_potential
               calculate_bare_coulomb, &
               calculate_sqrt_bare_coulomb, &
               write_barcev_vmat_to_file, &
-              read_barcev_vmat_from_file
+              read_barcev_vmat_from_file, &
+              index_of_first_element_above_threshold
     
 contains
  

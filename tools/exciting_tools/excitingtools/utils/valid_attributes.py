@@ -913,21 +913,27 @@ scrcoul_attribute_types = {"averaging": (str, ["2d", "isotropic"]),
                            "subgrid_q0": (int, 3)} 
 
 taskGroup_attribute_types = {"outputFormat": (str, ["binary", "text"])} 
-taskGroup_valid_subtrees = ["Coulomb", "epsilon", "invertEpsilon", "sigmac", "sigmax", "vxc", "QPEigenvalues"] 
+taskGroup_valid_subtrees = ["Coulomb", "epsilon", "invertEpsilon", "irreducibleMapping", "sigmac", "sigmax", "vxc",
+                            "QPEigenvalues"] 
 
 Coulomb_attribute_types = {"eigenvalueThreshold": (float, 1)} 
 Coulomb_valid_subtrees = ["qpoints"] 
 Coulomb_mandatory_attributes = ["qpoints"] 
 Coulomb_multiple_children = ["qpoints"] 
 
-epsilon_attribute_types = {"printPolarizabilityFactor": (bool, 1)} 
+epsilon_attribute_types = {"printPolarizabilityFactor": (bool, 1), "usingIrreducibleWedge": (bool, 1)} 
 epsilon_valid_subtrees = ["qpoints"] 
 epsilon_mandatory_attributes = ["qpoints"] 
 epsilon_multiple_children = ["qpoints"] 
 
+invertEpsilon_attribute_types = {"usingIrreducibleWedge": (bool, 1)} 
 invertEpsilon_valid_subtrees = ["qpoints"] 
 invertEpsilon_mandatory_attributes = ["qpoints"] 
 invertEpsilon_multiple_children = ["qpoints"] 
+
+irreducibleMapping_valid_subtrees = ["qpoints"] 
+irreducibleMapping_mandatory_attributes = ["qpoints"] 
+irreducibleMapping_multiple_children = ["qpoints"] 
 
 sigmac_valid_subtrees = ["kpoints"] 
 sigmac_mandatory_attributes = ["kpoints"] 

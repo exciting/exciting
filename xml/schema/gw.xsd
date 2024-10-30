@@ -377,13 +377,21 @@
                       </xs:sequence>
                       <xs:attribute ex:importance="experimental" ex:unit="" name="printPolarizabilityFactor" type="xs:boolean" default="false">
                         <xs:annotation>
-                          <xs:documentation>When <pre>true</pre>, print the RPA Polarizability factor 
+                          <xs:documentation>When <pre>true</pre>, print the RPA Polarizability factor
                           <inlinemath>F_{nm}(\mathbf{k},\mathbf{q},\omega)</inlinemath> (please refer to
                             Computer Physics Communications <b>184</b>, 348 (2013)).
-                            The output files are named as <pre>POLARIZABILITY_FACTOR_Q*.OUT</pre>, 
+                            The output files are named as <pre>POLARIZABILITY_FACTOR_Q*.OUT</pre>,
                             where <pre>*</pre> is the index of the
                             <inlinemath>\mathbf{q}</inlinemath>-point.
                             Useful to debug the code.
+                          </xs:documentation>
+                        </xs:annotation>
+                      </xs:attribute>
+                      <xs:attribute ex:importance="experimental" ex:unit="" name="usingIrreducibleWedge" type="xs:boolean" default="false">
+                        <xs:annotation>
+			  <xs:documentation>When <pre>true</pre>, only computes the dielectric matrices at the irreducible wedge points.
+			  Additionally, when <pre>true</pre> <pre>EPSILON-GW_Q*.OUT</pre> are renamed to <pre>EPSILON-GW_IQ*.OUT</pre>, 
+			  being in this case <pre>*</pre> the index of the irreducible <inlinemath>\mathbf{q}</inlinemath>-point.
                           </xs:documentation>
                         </xs:annotation>
                       </xs:attribute>
@@ -398,6 +406,31 @@
                         <inlinemath>\mathbf{q}</inlinemath>-point and printed out in 
                         <pre>INVERSE-EPSILON_Q*.OUT</pre>, where <pre>*</pre> is the index of the
                         <inlinemath>\mathbf{q}</inlinemath>-point.
+                      </xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element ref="qpoints" minOccurs="1" maxOccurs="unbounded"/>
+                      </xs:sequence>
+                      <xs:attribute ex:importance="experimental" ex:unit="" name="usingIrreducibleWedge" type="xs:boolean" default="false">
+                        <xs:annotation>
+			  <xs:documentation>When <pre>true</pre>, only computes the inverse dielectric matrices at the irreducible wedge points.
+			  Additionally, when <pre>true</pre> <pre>INVERSE-EPSILON_Q*.OUT</pre> are renamed to <pre>INVERSE-EPSILON_IQ*.OUT</pre>,
+                          being in this case <pre>*</pre> the index of the irreducible <inlinemath>\mathbf{q}</inlinemath>-point.
+                          </xs:documentation>
+                        </xs:annotation>
+                      </xs:attribute>
+                    </xs:complexType>
+                  </xs:element>
+
+                  <xs:element ex:importance="experimental" ex:unit="" name="irreducibleMapping" maxOccurs="1" minOccurs="0">
+                    <xs:annotation>
+                      <xs:documentation>
+                        Setup for the task <pre>="irreducibleMapping"</pre>.
+                        The inverse dielectric matrix is regenerated from the irreducible wedge files (<pre>INVERSE-EPSILON_IQ*.OUT</pre>),
+                        and printed out in <pre>INVERSE-EPSILON_Q*.OUT</pre>, where <pre>*</pre> is the index of the
+			<inlinemath>\mathbf{q}</inlinemath>-point; in order to save storage memory for representative points 
+			a symbolic from <pre>INVERSE-EPSILON_IQ*.OUT</pre> to <pre>INVERSE-EPSILON_Q*.OUT</pre> is created instead. 
                       </xs:documentation>
                     </xs:annotation>
                     <xs:complexType>

@@ -3,7 +3,7 @@ module math_utils
   use iso_fortran_env, only: error_unit
   use, intrinsic :: ISO_C_BINDING
 
-  use precision, only: sp, dp
+  use precision, only: sp, dp, i32
   use constants, only: pi, zzero, zone, zi, fourpi, twopi, real_zero, real_one
   use asserts, only: assert
   use seed_generation, only: set_seed
@@ -36,10 +36,13 @@ module math_utils
             integer_part, &
             random_units, &
             plane_wave_in_spherical_harmonics, &
-            get_degeneracies
+            get_degeneracies, &
+            is_close, &
+            get_integer_indexes
+
 
   !> Default tolerance
-  real(dp), parameter :: default_tol = 1e-10
+  real(dp), parameter :: default_tol = 1e-10_dp
 
   !>  Return the diagonal of a 2D array
   interface diag
@@ -1917,7 +1920,7 @@ contains
     j = 0 
     e = -huge( real_one )
     do i = 1, n
-      if( isclose(eval(i), e, reltol_local, abstol) .and. abstol > real_zero ) then
+      if( is_close(eval(i), e, reltol_local, abstol) .and. abstol > real_zero ) then
         deg(2, j) = i
         deg(3, j) = deg(3, j) + 1
       else
@@ -1929,23 +1932,41 @@ contains
 
     deg = deg(:, 1:j) 
   
-  contains
-    
-    !> For the checking of degeneracies we also use relative tolerance
-    !> It mimics Python's math.isclose()
-    elemental logical function isclose(a, b, rtol, atol)
-      !> numbers to compare
-      real(dp), intent(in) :: a, b 
-      !> Relative tolerance
-      real(dp), intent(in) :: rtol
-      !> Absolute tolerance
-      real(dp), intent(in) :: atol
-
-      isclose = abs(a - b) <= max(rtol * max(abs(a), abs(b)), atol)
-    
-    end function isclose
-  
   end function get_degeneracies
+
+  !> For the checking of degeneracies we also use relative tolerance
+  !> It mimics Python's math.isclose()
+  elemental logical function is_close(a, b, rtol, atol)
+    !> numbers to compare
+    real(dp), intent(in) :: a, b 
+    !> Relative tolerance
+    real(dp), intent(in) :: rtol
+    !> Absolute tolerance
+    real(dp), intent(in) :: atol
+
+    is_close = abs(a - b) <= max(rtol * max(abs(a), abs(b)), atol)
+
+  end function is_close
+
+
+  !> Given points in reduced coordinates it return the corresponding integer indexes
+  !> correspoding to a cell in [0,1). This operation is the safest option as it does 
+  !> not rely into any eps but on integers arithmetics, which is exact.
+  pure function get_integer_indexes(reduced_point, mesh_offset, mesh_size) result(integer_indexes)
+
+    !> Point in reduced coordinates
+    real(dp), intent(in)     :: reduced_point(3)
+    !> Offset of the mesh
+    real(dp), intent(in)     :: mesh_offset(3)
+    !> Size of the mesh
+    integer(i32), intent(in) :: mesh_size(3)
+    !> Integer indexes
+    integer(i32)             :: integer_indexes(3)
+
+    integer_indexes = nint((reduced_point - mesh_offset) * mesh_size)
+    integer_indexes = modulo(integer_indexes, mesh_size)
+
+  end function get_integer_indexes
 
 end module math_utils
 

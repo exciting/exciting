@@ -1,0 +1,520 @@
+{
+  "EVALQP.DAT": {
+    "energies": {
+      "tol": 5e-05,
+      "unit": "Hartree"
+    },
+    "k_point": {
+      "tol": 1e-07,
+      "unit": "null"
+    },
+    "weight": {
+      "tol": 1e-07,
+      "unit": "null"
+    }
+  },
+  "INVERSE-EPSH.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "INVERSE-EPSW1.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "INVERSE-EPSW2.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "INVERSE-EPSILON_Q1.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "INVERSE-EPSILON_Q2.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "INVERSE-EPSILON_Q3.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "INVERSE-EPSILON_Q4.OUT": {
+    "epsilon_tensor": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "INVERSE-EPSILON_Q5.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q6.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q7.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q8.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q9.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q10.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q11.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q12.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q13.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q14.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q15.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q16.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q17.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q18.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q19.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q20.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q21.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q22.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q23.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q24.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q25.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q26.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q27.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q28.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q29.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q30.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q31.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q32.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q33.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q34.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q35.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q36.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q37.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q38.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q39.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q40.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q41.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q42.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q43.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q44.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q45.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q46.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q47.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q48.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q49.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q50.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q51.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q52.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q53.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q54.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q55.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q56.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q57.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q58.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q59.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q60.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q61.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q62.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q63.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q64.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q65.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q66.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q67.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q68.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q69.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q70.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q71.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q72.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q73.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q74.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q75.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q76.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q77.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q78.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q79.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q80.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  },                          
+  "INVERSE-EPSILON_Q81.OUT": { 
+    "epsilon_tensor": {      
+      "tol": 1e-6,           
+      "unit": "null"         
+    }                        
+  }
+}  
