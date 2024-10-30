@@ -146,6 +146,10 @@ groundstate/PBE-SOC-useDensityMatrix_false-realspace_false-svlo_true-GaAs:
 
 groundstate/PBE-SOC-useDensityMatrix_false-realspace_true-svlo_true-GaAs:
 
+groundstate/PBE-SOC-useDensityMatrix_false-realspace_false-svlo_false-GaAs:
+
+groundstate/PBE-SOC-useDensityMatrix_false-realspace_true-svlo_false-GaAs:
+
 groundstate/LDA_PW-davidson-wo-matrix-CO:
 
 groundstate/LDA_PW-davidson-w-matrix-CO:

@@ -1,121 +1,97 @@
 /*
  Copyright (C) 2006-2007 M.A.L. Marques
 
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU Lesser General Public License as published by
- the Free Software Foundation; either version 3 of the License, or
- (at your option) any later version.
-  
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Lesser General Public License for more details.
-  
- You should have received a copy of the GNU Lesser General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this
+ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
 #include "util.h"
 
 #define XC_GGA_X_SOGGA11        151 /* Second-order generalized gradient approximation 2011 */
 #define XC_HYB_GGA_X_SOGGA11_X  426 /* Hybrid based on SOGGA11 form */
 
-static void 
-gga_x_sogga11_init(XC(func_type) *p)
+typedef struct{
+  double kappa, mu, a[6], b[6];
+} gga_x_sogga11_params;
+
+#define N_PAR_PURE 14
+static const char  *pure_names[N_PAR_PURE]  = {
+  "_kappa", "_mu", "_a0", "_a1", "_a2", "_a3", "_a4",
+  "_a5", "_b0", "_b1", "_b2", "_b3", "_b4", "_b5"
+};
+static const char  *pure_desc[N_PAR_PURE]   = {
+  "kappa", "mu", "a0", "a1", "a2", "a3", "a4",
+  "a5", "b0", "b1", "b2", "b3", "b4", "b5"
+};
+
+#define N_PAR_HYB 15
+static const char  *hyb_names[N_PAR_HYB]  = {
+  "_kappa", "_mu", "_a0", "_a1", "_a2", "_a3", "_a4",
+  "_a5", "_b0", "_b1", "_b2", "_b3", "_b4", "_b5", "_cx"
+};
+static const char  *hyb_desc[N_PAR_HYB]   = {
+  "kappa", "mu", "a0", "a1", "a2", "a3", "a4",
+  "a5", "b0", "b1", "b2", "b3", "b4", "b5",
+  "Fraction of exact exchange"
+};
+
+static const double par_sogga11[N_PAR_PURE] = {
+  0.552, MU_GE,
+  0.50000, -2.95535,  15.7974, -91.1804,  96.2030,  0.18683,
+  0.50000,  3.50743, -12.9523,  49.7870, -33.2545, -11.1396
+};
+
+/* These coefficients include the factor (1-X) in the functional definition. */
+static const double par_sogga11_x[N_PAR_HYB] = {
+  0.552, MU_GE,
+  0.29925,  3.21638, -3.55605,  7.65852, -11.2830, 5.25813,
+  0.29925, -2.88595,  3.23617, -2.45393, -3.75495,  3.96613,
+  0.4015
+};
+
+static void
+gga_x_sogga11_init(xc_func_type *p)
 {
-  switch(p->info->number){
-  case XC_GGA_X_SOGGA11:
-    p->func = 0;
-    break;
-  case XC_HYB_GGA_X_SOGGA11_X:
-    p->func = 1;
-    p->cam_alpha = 0.4015;
-    break;
-  default:
-    fprintf(stderr, "Internal error in gga_x_sogga11\n");
-    exit(1);
-  }
+  assert(p!=NULL && p->params == NULL);
+  p->params = libxc_malloc(sizeof(gga_x_sogga11_params));
+
+  if(p->info->number == XC_HYB_GGA_X_SOGGA11_X)
+    xc_hyb_init_hybrid(p, 0.0);
 }
 
-void XC(gga_x_sogga11_enhance)
-  (const XC(func_type) *p, int order, FLOAT x, 
-   FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2)
-{
-  const FLOAT kappa = 0.552;
-  const FLOAT mu = 10.0/81.0;
-  const FLOAT alpha = mu*X2S*X2S/kappa;
-  const FLOAT aa[][6] = {
-    {0.50000, -2.95535,  15.7974, -91.1804,  96.2030, 0.18683},   /* SOGGA11   */
-    {0.50000,  5.37406, -5.94160,  12.7962, -18.8521, 8.78551}    /* SOGGA11-X */
-  };
-  const FLOAT bb[][6] = {
-    {0.50000,  3.50743, -12.9523,  49.7870, -33.2545, -11.1396},  /* SOGGA11   */
-    {0.50000, -4.82197,   5.40713, -4.10014, -6.27393,  6.62678}  /* SOGGA11-X */
-  };
-    
-  FLOAT f0, df0, d2f0, den0, den1, t0, t1, f1, df1, d2f1;
-
-  den0 = -1.0/(1.0 + alpha*x*x);
-  f0   =  1.0 + den0;
-  den1 = -exp(-alpha*x*x);
-  f1   =  1.0 + den1;
-
-  *f = aa[p->func][0] + f0*(aa[p->func][1] + f0*(aa[p->func][2] + f0*(aa[p->func][3] + f0*(aa[p->func][4] + f0*aa[p->func][5]))))
-    +  bb[p->func][0] + f1*(bb[p->func][1] + f1*(bb[p->func][2] + f1*(bb[p->func][3] + f1*(bb[p->func][4] + f1*bb[p->func][5]))));
-
-  if(order < 1) return;
-
-  df0 =  2.0*alpha*x*den0*den0;
-  df1 = -2.0*alpha*x*den1;
-
-  t0  = aa[p->func][1] + f0*(2.0*aa[p->func][2] + f0*(3.0*aa[p->func][3] + f0*(4.0*aa[p->func][4] + f0*5.0*aa[p->func][5])));
-  t1  = bb[p->func][1] + f1*(2.0*bb[p->func][2] + f1*(3.0*bb[p->func][3] + f1*(4.0*bb[p->func][4] + f1*5.0*bb[p->func][5])));
-
-  *dfdx = df0*t0 + df1*t1;
-
-  if(order < 2) return;
-
-  d2f0 = 2.0*alpha*(3.0*alpha*x*x - 1.0)*den0*den0*den0;
-  d2f1 = 2.0*alpha*(2.0*alpha*x*x - 1.0)*den1;
-
-  *d2fdx2 = d2f0*t0 + d2f1*t1 +
-    df0*df0*(2.0*aa[p->func][2] + f0*(6.0*aa[p->func][3] + f0*(12.0*aa[p->func][4] + f0*20.0*aa[p->func][5]))) +
-    df1*df1*(2.0*bb[p->func][2] + f1*(6.0*bb[p->func][3] + f1*(12.0*bb[p->func][4] + f1*20.0*bb[p->func][5])));
-}
+#include "maple2c/gga_exc/gga_x_sogga11.c"
+#include "work_gga.c"
 
 
-#define func XC(gga_x_sogga11_enhance)
-#include "work_gga_x.c"
-
-
-const XC(func_info_type) XC(func_info_gga_x_sogga11) = {
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_x_sogga11 = {
   XC_GGA_X_SOGGA11,
   XC_EXCHANGE,
   "Second-order generalized gradient approximation 2011",
   XC_FAMILY_GGA,
-  "R Peverati, Y Zhao, and DG Truhlar, J. Phys. Chem. Lett. 2, 1911-1997 (2011)\n"
-  "http://comp.chem.umn.edu/mfm/index.html",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-31, 1e-32, 0.0, 1e-32,
-  gga_x_sogga11_init, 
-  NULL, NULL,
-  work_gga_x
+  {&xc_ref_Peverati2011_1991, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-15,
+  {N_PAR_PURE, pure_names, pure_desc, par_sogga11, set_ext_params_cpy},
+  gga_x_sogga11_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_hyb_gga_x_sogga11_x) = {
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_hyb_gga_x_sogga11_x = {
   XC_HYB_GGA_X_SOGGA11_X,
   XC_EXCHANGE,
   "Hybrid based on SOGGA11 form",
   XC_FAMILY_HYB_GGA,
-  "R Peverati and DG Truhlar, J. Chem. Phys. 135, 191102 (2011)\n"
-  "http://comp.chem.umn.edu/mfm/index.html",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-31, 1e-32, 0.0, 1e-32,
-  gga_x_sogga11_init, 
-  NULL, NULL,
-  work_gga_x
+  {&xc_ref_Peverati2011_191102, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-15,
+  {N_PAR_HYB, hyb_names, hyb_desc, par_sogga11_x, set_ext_params_cpy_exx},
+  gga_x_sogga11_init, NULL,
+  NULL, &work_gga, NULL
 };

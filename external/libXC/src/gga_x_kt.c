@@ -1,124 +1,148 @@
 /*
  Copyright (C) 2006-2007 M.A.L. Marques
 
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU Lesser General Public License as published by
- the Free Software Foundation; either version 3 of the License, or
- (at your option) any later version.
-  
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Lesser General Public License for more details.
-  
- You should have received a copy of the GNU Lesser General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this
+ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
 #include "util.h"
+#include "xc_funcs.h"
 
-#define XC_GGA_X_KT1          145 /* Keal and Tozer version 1             */
-#define XC_GGA_XC_KT2         146 /* Keal and Tozer version 2             */
-
-#define HEADER 3
+#define XC_GGA_X_KT1          145 /* Exchange part of Keal and Tozer version 1 */
+#define XC_GGA_XC_KT1         167 /* Keal and Tozer version 1                  */
+#define XC_GGA_XC_KT2         146 /* Keal and Tozer version 2                  */
+#define XC_GGA_XC_KT3         587 /* Keal and Tozer version 3                  */
 
 typedef struct{
-  FLOAT gamma, delta;
+  double gamma, delta;
 } gga_x_kt_params;
 
-
-static void 
-gga_x_kt_init(XC(func_type) *p)
-{
-  gga_x_kt_params *params;
-
-  assert(p!=NULL && p->params == NULL);
-  p->params = malloc(sizeof(gga_x_kt_params));
-
-  XC(gga_x_kt_set_params)(p, -0.006, 0.1);
-}
-
-
-void 
-XC(gga_x_kt_set_params)(XC(func_type) *p, FLOAT gamma, FLOAT delta)
-{
-  gga_x_kt_params *params;
-
-  assert(p != NULL && p->params != NULL);
-  params = (gga_x_kt_params *) (p->params);
-
-  params->gamma = gamma;
-  params->delta = delta;
-}
-
-
-static inline void 
-func(const XC(func_type) *p, int order, FLOAT x, FLOAT ds,
-     FLOAT *f, FLOAT *dfdx, FLOAT *lvrho)
-{
-  FLOAT dd, n13, n43;
-  gga_x_kt_params *params;
-
-  assert(p != NULL && p->params != NULL);
-  params = (gga_x_kt_params *) (p->params);
-
-  n13 = CBRT(ds);
-  n43 = ds*n13;
-  dd  = 1.0/(n43 + params->delta);
- 
-  *f = 1.0 - params->gamma/X_FACTOR_C * x*x * n43*dd;
-
-  if(order < 1) return;
-
-  *dfdx  = - params->gamma/X_FACTOR_C * 2.0*x * n43*dd;
-  *lvrho = - params->gamma/X_FACTOR_C * x*x * (4.0/3.0)*n13 * params->delta * dd*dd;
-
-  if(order < 2) return;
-
-  /* to be done */
-}
-
-
-#include "work_gga_x.c"
-
 static void
-gga_xc_kt2_init(XC(func_type) *p)
+gga_x_kt_init(xc_func_type *p)
 {
-  static int   funcs_id  [3] = {XC_LDA_X, XC_GGA_X_KT1, XC_LDA_C_VWN};
-  static FLOAT funcs_coef[3] = {1.07173 - 1.0, 1.0, 0.576727};
-
-  XC(mix_init)(p, 3, funcs_id, funcs_coef);  
+  assert(p!=NULL && p->params == NULL);
+  p->params = libxc_malloc(sizeof(gga_x_kt_params));
 }
 
+#include "maple2c/gga_exc/gga_x_kt.c"
+#include "work_gga.c"
 
-const XC(func_info_type) XC(func_info_gga_x_kt1) = {
+#define KT_N_PAR 2
+static const char  *kt_names[KT_N_PAR]  = {"_gamma", "_delta"};
+static const char  *kt_desc[KT_N_PAR]   = {
+  "gamma",
+  "delta"};
+static const double kt_values[KT_N_PAR] =
+  {-0.006, 0.1};
+
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_x_kt1 = {
   XC_GGA_X_KT1,
   XC_EXCHANGE,
-  "Keal and Tozer, version 1",
+  "Exchange part of Keal and Tozer version 1",
   XC_FAMILY_GGA,
-  "TW Keal and DJ Tozer, J. Chem. Phys. 119, 3015 (2003)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC,
-  1e-32, 1e-32, 0.0, 1e-32,
-  gga_x_kt_init, 
-  NULL, NULL,
-  work_gga_x
+  {&xc_ref_Keal2003_3015, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-15,
+  {KT_N_PAR, kt_names, kt_desc, kt_values, set_ext_params_cpy},
+  gga_x_kt_init, NULL,
+  NULL, &work_gga, NULL
 };
 
 
-const XC(func_info_type) XC(func_info_gga_xc_kt2) = {
-  XC_GGA_XC_KT2,
+static void
+gga_xc_kt1_init(xc_func_type *p)
+{
+  static int   funcs_id  [2] = {XC_GGA_X_KT1, XC_LDA_C_VWN};
+  static double funcs_coef[2] = {1.0, 1.0};
+
+  xc_mix_init(p, 2, funcs_id, funcs_coef);
+}
+
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_xc_kt1 = {
+  XC_GGA_XC_KT1,
   XC_EXCHANGE_CORRELATION,
-  "Keal and Tozer, version 2",
+  "Keal and Tozer, version 1",
   XC_FAMILY_GGA,
-  "TW Keal and DJ Tozer, J. Chem. Phys. 119, 3015 (2003)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC,
-  1e-32, 1e-32, 0.0, 1e-32,
-  gga_xc_kt2_init, 
+  {&xc_ref_Keal2003_3015, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-15,
+  {0, NULL, NULL, NULL, NULL},
+  gga_xc_kt1_init, NULL,
   NULL, NULL, NULL
 };
 
 
+static void
+gga_xc_kt2_init(xc_func_type *p)
+{
+  static int   funcs_id  [3] = {XC_LDA_X, XC_GGA_X_KT1, XC_LDA_C_VWN};
+  static double funcs_coef[3] = {1.07173 - 1.0, 1.0, 0.576727};
+
+  xc_mix_init(p, 3, funcs_id, funcs_coef);
+}
+
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_xc_kt2 = {
+  XC_GGA_XC_KT2,
+  XC_EXCHANGE_CORRELATION,
+  "Keal and Tozer, version 2",
+  XC_FAMILY_GGA,
+  {&xc_ref_Keal2003_3015, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-15,
+  {0, NULL, NULL, NULL, NULL},
+  gga_xc_kt2_init, NULL,
+  NULL, NULL, NULL
+};
+
+
+static void
+gga_xc_kt3_init(xc_func_type *p)
+{
+  static int   funcs_id  [4] = {XC_LDA_X, XC_GGA_C_LYP, XC_GGA_X_KT1, XC_GGA_X_OPTX};
+  double funcs_coef[4];
+
+  /* Equation (2) */
+  static const double alpha = 1.092; /* full E_x^Dirac */
+  static const double beta  = 0.864409; /* full E_c^LYP */
+  static const double par_kt[2] = {-0.004, 0.1}; /* parameters gamma and delta of KT1 gradient term */
+  static const double eps = +0.925452; /* gradient part of E_x^OPTX; changed to include the minus sign! */
+
+  /* The OPTX part is given in terms of the OPTX gradient part */
+  static const double a_optx = 1.05151; /* Coefficient of LDA term in OPTX */
+  static const double b_optx = 1.43169; ///X_FACTOR_C; /* Coefficient of GGA term in OPTX */
+
+  /* Total LDA weight: substract doubly counted part in KT1 and OPTX */
+  funcs_coef[0] = alpha - eps*a_optx/b_optx - 1.0;
+  funcs_coef[1] = beta; /* LYP */
+  funcs_coef[2] = 1.0; /* KT1; gamma is already included by the parameter! */
+  funcs_coef[3] = eps/b_optx; /* OPTX */
+
+  xc_mix_init(p, 4, funcs_id, funcs_coef);
+  xc_func_set_ext_params(p->func_aux[2], par_kt); /* kt parameters */
+}
+
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_xc_kt3 = {
+  XC_GGA_XC_KT3,
+  XC_EXCHANGE_CORRELATION,
+  "Keal and Tozer, version 3",
+  XC_FAMILY_GGA,
+  {&xc_ref_Keal2004_5654, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | XC_FLAGS_I_HAVE_ALL,
+  1e-15,
+  {0, NULL, NULL, NULL, NULL},
+  gga_xc_kt3_init, NULL,
+  NULL, NULL, NULL
+};

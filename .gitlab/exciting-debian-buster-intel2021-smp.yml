@@ -19,6 +19,8 @@ build:debian-buster-Intel2021-smp:
     - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
     - module load intel/oneapi-2021.3
   script:
+    - apt-get update
+    - apt-get -y install automake
     - cp build/platforms/make.inc.ifort build/make.inc
     - make smp -j 2
   artifacts:

@@ -2,40 +2,24 @@
 
 ## Copyright (C) 2002 M. Marques, A. Castro, A. Rubio, G. Bertsch
 ##
-## This program is free software; you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation; either version 2, or (at your option)
-## any later version.
+## This Source Code Form is subject to the terms of the Mozilla Public
+## License, v. 2.0. If a copy of the MPL was not distributed with this
+## file, You can obtain one at http://mozilla.org/MPL/2.0/.
 ##
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-##
-## You should have received a copy of the GNU Lesser General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
-## 02111-1307, USA.
-##
-## $Id: Makefile.am 9690 2012-11-26 13:02:28Z micael $
 
 ACLOCAL_AMFLAGS = -I m4
-SUBDIRS = build src testsuite
+SUBDIRS = pkgconfig scripts maple src testsuite cmake pylibxc
 
-include_HEADERS = xc_version.h
-EXTRA_DIST = ChangeLog PACKAGING TODO
+include_HEADERS = xc_version.h libxc.bib
+EXTRA_DIST = ChangeLog.md PACKAGING setup.py config.h.cmake.in CMakeLists.txt CITATION
 
-DISTCLEANFILES = ChangeLog
 CLEANFILES = *~ *.bak
 
-.PHONY: ChangeLog
-
-ChangeLog:
-	(svn2cl -i -o .changelog.tmp \$(top_srcdir) && \
-	mv .changelog.tmp ChangeLog) || (rm -f .changelog.tmp; touch ChangeLog; \
-	echo 'svn2cl command not found: installing possibly empty changelog.' >&2)
-
-dist-hook: ChangeLog
+# These files are in the repository, and the command below should be run 
+# to update them whenever references are changed.
+# references.c references.h: get_references.py ../libxc.bib
+references:
+	(cd $(srcdir)/src && ../scripts/get_references.py ../libxc.bib)
 
 rpm: dist
 	@topdir=`rpmbuild --showrc | @GREP@ ': *_topdir' | cut -f 2`; \

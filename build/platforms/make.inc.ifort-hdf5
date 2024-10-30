@@ -3,7 +3,7 @@
 # Compiler, flags and preprocessing variables 
 F90 = h5pfc # Wrapper for ifort --> export /path/to/hdf5/bin/h5pfc
 F90_OPTS = -O3 -ip -unroll -scalar-rep -no-wrap-margin -I"${MKLROOT}/include" 
-CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DIFORT -DFFTW -D_HDF5_
+CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DIFORT -DLIBXC_HAS_FUNC_MOD -DFFTW -D_HDF5_
 F77 = $(F90)
 F77_OPTS = -O3
 # Required for libXC compilation 
