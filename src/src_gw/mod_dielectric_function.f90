@@ -48,6 +48,7 @@ module mod_dielectric_function
     ! files to store the dielectric function
     !----------------------------------------------------------------------
     character(len=*), parameter, private :: file_name_epsilon = 'EPSILON-GW_Q'
+    character(len=*), parameter, private :: file_name_epsilon_irreducible = 'EPSILON-GW_IQ'
     character(len=*), parameter, private :: file_name_epsilon_head = 'EPSH'
     character(len=*), parameter, private :: file_name_epsilon_wings1 = 'EPSW1'
     character(len=*), parameter, private :: file_name_epsilon_wings2 = 'EPSW2'
@@ -56,9 +57,11 @@ module mod_dielectric_function
     ! files to store the inverse of the dielectric function
     !----------------------------------------------------------------------
     character(len=*), parameter, private :: file_name_inverse_epsilon = 'INVERSE-EPSILON_Q'
+    character(len=*), parameter, private :: file_name_inverse_epsilon_irreducible = 'INVERSE-EPSILON_IQ'
     character(len=*), parameter, private :: file_name_inverse_epsilon_head = 'INVERSE-EPSH'
     character(len=*), parameter, private :: file_name_inverse_epsilon_wings1 = 'INVERSE-EPSW1'
     character(len=*), parameter, private :: file_name_inverse_epsilon_wings2 = 'INVERSE-EPSW2'
+    
 
 
     integer(i32), parameter   :: max_string_length = 40
@@ -107,14 +110,28 @@ contains
     end subroutine
 
 
-    subroutine write_epsilon_to_file( iq, is_Gamma_point, file_format )
+    subroutine write_epsilon_to_file( iq, is_Gamma_point, file_format, irreducible )
       integer(i32), intent(in)  :: iq 
       logical, intent(in)       :: is_Gamma_point
       character(len=*), intent(in) :: file_format
+      logical, intent(in), optional :: irreducible
     
       character(len=max_string_length) :: file_name
-    
-      call build_file_name( file_name_epsilon, iq, file_name )
+
+      logical :: irreducible_local 
+
+      if (present(irreducible)) then
+        irreducible_local = irreducible
+      else
+        irreducible_local = .false.
+      end if
+
+      if (irreducible_local) then 
+        call build_file_name( file_name_epsilon_irreducible, iq, file_name )
+      else
+        call build_file_name( file_name_epsilon, iq, file_name )
+      end if
+
       call write_to_file( file_name, epsilon, file_format )
       if( is_Gamma_point ) then
           call build_file_name( file_name_epsilon_head, file_name )
@@ -128,14 +145,28 @@ contains
   end subroutine
 
 
-  subroutine read_epsilon_from_file( iq, is_Gamma_point, file_format )
+  subroutine read_epsilon_from_file( iq, is_Gamma_point, file_format, irreducible )
       integer(i32), intent(in)  :: iq 
       logical, intent(in)       :: is_Gamma_point
       character(len=*), intent(in) :: file_format
+      logical, intent(in), optional :: irreducible
     
       character(len=max_string_length) :: file_name
 
-      call build_file_name( file_name_epsilon, iq, file_name )
+      logical :: irreducible_local 
+
+      if (present(irreducible)) then
+        irreducible_local = irreducible
+      else
+        irreducible_local = .false.
+      end if
+
+      if (irreducible_local) then
+        call build_file_name( file_name_epsilon_irreducible, iq, file_name )
+      else 
+        call build_file_name( file_name_epsilon, iq, file_name )
+      end if
+
       call read_from_file( file_name, epsilon, file_format )
       if( is_Gamma_point ) then
           call build_file_name( file_name_epsilon_head, file_name )
@@ -151,18 +182,32 @@ contains
   !> Write the inverse of epsilon into files
   !> Attention: actually exciting stores the inverse of epsilon in
   !> the same matrices as the dielectric matrix
-  subroutine write_inverse_epsilon_to_file( iq, is_Gamma_point, file_format )
+  subroutine write_inverse_epsilon_to_file( iq, is_Gamma_point, file_format, irreducible )
     !> q-point index
     integer(i32), intent(in)  :: iq 
     !> When true, it is the \(\Gamma\) point
     logical, intent(in)       :: is_Gamma_point
     !> Format of output file
     character(len=*), intent(in) :: file_format
+    !> Using irreducible points indexing
+    logical, intent(in), optional :: irreducible
   
     integer(i32), parameter   :: max_length = 40
     character(len=max_length) :: file_name
+    logical :: irreducible_local 
+
+    if (present(irreducible)) then
+      irreducible_local = irreducible
+    else
+      irreducible_local = .false.
+    end if
   
-    call build_file_name( file_name_inverse_epsilon, iq, file_name )
+    if (irreducible_local) then
+      call build_file_name( file_name_inverse_epsilon_irreducible, iq, file_name )
+    else
+      call build_file_name( file_name_inverse_epsilon, iq, file_name )
+    end if
+
     call write_to_file( file_name, epsilon, file_format )
     if( is_Gamma_point ) then
         call build_file_name( file_name_inverse_epsilon_head, file_name )
@@ -179,18 +224,32 @@ contains
   !> Read the inverse of epsilon from files
   !> Attention: actually exciting stores the inverse of epsilon in
   !> the same matrices as the dielectric matrix
-  subroutine read_inverse_epsilon_from_file( iq, is_Gamma_point, file_format )
+  subroutine read_inverse_epsilon_from_file( iq, is_Gamma_point, file_format, irreducible )
     !> q-point index
     integer(i32), intent(in)  :: iq 
     !> If true, the actual q-point refers to the \( \Gamma \) point
     logical, intent(in)       :: is_Gamma_point
     !> File format used in the files where the inverse of epsilon is stored
     character(len=*), intent(in) :: file_format
+    !> Using irreducible points indexing
+    logical, intent(in), optional :: irreducible
   
     integer(i32), parameter   :: max_length = 40
     character(len=max_length) :: file_name
+    logical :: irreducible_local 
+
+    if (present(irreducible)) then
+      irreducible_local = irreducible
+    else
+      irreducible_local = .false.
+    end if
   
-    call build_file_name( file_name_inverse_epsilon, iq, file_name )
+    if (irreducible_local) then
+      call build_file_name( file_name_inverse_epsilon_irreducible, iq, file_name )
+    else
+      call build_file_name( file_name_inverse_epsilon, iq, file_name )
+    end if
+
     call read_from_file( file_name, epsilon, file_format )
     if( is_Gamma_point ) then
         call build_file_name( file_name_inverse_epsilon_head, file_name )

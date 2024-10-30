@@ -16,6 +16,7 @@ module task_group
   use task_Coulomb, only: execute_task_Coulomb
   use task_epsilon, only: execute_task_epsilon
   use task_invertEpsilon, only: execute_task_invertEpsilon
+  use task_irreducibleMapping, only: execute_task_irreducibleMapping
   use task_sigmac, only: execute_task_sigmac
   use task_sigmax, only: execute_task_sigmax
   use task_vxc, only: execute_task_vxc
@@ -36,8 +37,11 @@ module task_group
     character(len=20) :: Coulomb_cutoff_type
     character(len=20) :: selfenergy_singularity_treatment
     logical :: task_Coulomb 
+    logical :: usingIrreducibleWedge_in_task_epsilon = .false.
     logical :: task_epsilon 
     logical :: task_invertEpsilon
+    logical :: usingIrreducibleWedge_in_task_invertEpsilon = .false.
+    logical :: task_irreducibleMapping
     logical :: task_sigmac
     logical :: task_sigmax
     logical :: task_vxc
@@ -53,11 +57,13 @@ contains
   subroutine execute_task_group
     type(task_group_parameters) :: input_parameters
     integer(i32) :: n_qpoints, n_kpoints
+    integer(i32) :: n_qpoints_epsilon 
+    integer(i32) :: n_qpoints_invertepsilon 
 
     call input_parameters%parse_input( input%gw )
     call initialize
-    n_qpoints = kqset%nkpt
-    n_kpoints = kset%nkpt
+    n_qpoints         = kqset%nkpt
+    n_kpoints         = kset%nkpt
 
     call calculate_singularities_coeff( input_parameters%Coulomb_cutoff_type, &
       input_parameters%selfenergy_singularity_treatment, n_qpoints, singc2 )
@@ -78,19 +84,46 @@ contains
     end if
 
     if( input_parameters%task_epsilon ) then
+      
       ! A barrier is necessary to ensure that all processes have completed outputting the bare Coulomb matrix
       call barrier( mpiglobal )
-      call execute_task_epsilon( n_qpoints, input_parameters%output_format )
+      
+      ! The number of points for the epsilon task depend on the use of symmetry
+      ! TODO: There must be a better way than using kset%nkpt
+      if (input_parameters%usingIrreducibleWedge_in_task_epsilon) then
+        n_qpoints_epsilon = kset%nkpt ! Reduced points
+      else
+        n_qpoints_epsilon = kqset%nkpt
+      end if
+
+      call execute_task_epsilon( n_qpoints_epsilon, input_parameters%output_format )
     end if
 
     if( input_parameters%task_invertEpsilon ) then
       ! A barrier is necessary to ensure that all processes have completed outputting the dielectric matrix
       call barrier( mpiglobal )
-      call execute_task_invertEpsilon( n_qpoints, input_parameters%output_format )
+      
+      ! The number of points for the invert epsilon task depend on the use of symmetry
+      ! TODO: See previous comment
+      if (input_parameters%usingIrreducibleWedge_in_task_invertEpsilon) then
+        n_qpoints_invertepsilon = kset%nkpt ! Reduced points
+      else
+        n_qpoints_invertepsilon = kqset%nkpt
+      end if
+
+      call execute_task_invertEpsilon( n_qpoints_invertepsilon, input_parameters%output_format )
+    end if
+
+    if ( input_parameters%task_irreducibleMapping ) then
+      ! A barrier is necessary to ensure that all processes have completed outputting the inverse dielectric matrix
+      ! in the irreducible wedge
+      call barrier( mpiglobal )
+      call execute_task_irreducibleMapping(n_kpoints, input_parameters%output_format)
     end if
 
     if( input_parameters%task_sigmac ) then
       ! A barrier is necessary to ensure that all processes have completed outputting the inverse of the epsilon
+      ! in the full BZ
       call barrier( mpiglobal )
       if( input_parameters%analytical_limit ) call set_singc12
       call execute_task_sigmac( n_kpoints, kqset%vqc, input_parameters%output_format )
@@ -136,7 +169,10 @@ contains
     this%selfenergy_singularity_treatment = trim( gw_inp%selfenergy%singularity )
     this%task_Coulomb = associated( gw_inp%taskGroup%Coulomb )
     this%task_epsilon = associated( gw_inp%taskGroup%epsilon )
+    if (this%task_epsilon) this%usingIrreducibleWedge_in_task_epsilon = gw_inp%taskGroup%epsilon%usingIrreducibleWedge
     this%task_invertEpsilon = associated( gw_inp%taskGroup%invertEpsilon )
+    if (this%task_invertEpsilon) this%usingIrreducibleWedge_in_task_invertEpsilon = gw_inp%taskGroup%invertEpsilon%usingIrreducibleWedge
+    this%task_irreducibleMapping = associated( gw_inp%taskGroup%irreducibleMapping )
     this%task_sigmac = associated( gw_inp%taskGroup%sigmac )
     this%task_sigmax = associated( gw_inp%taskGroup%sigmax )
     this%task_vxc = associated( gw_inp%taskGroup%vxc )
