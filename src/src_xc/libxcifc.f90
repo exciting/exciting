@@ -4,10 +4,15 @@
 
 module libxcifc
 #ifdef LIBXC
-   use xc_f90_lib_m
+   use xc_f03_lib_m
+#ifdef LIBXC_HAS_FUNC_MOD
+   use xc_f03_funcs_m
 #endif
-   use precision, only: dp
+#endif
+   use precision, only: dp, long_int
    use asserts, only: assert
+   use iso_c_binding, only: c_int
+   use modmpi, only: terminate
 
    implicit none
    private
@@ -33,7 +38,7 @@ contains
       !> Id of functional
       integer, intent(in) :: id
       !> Number of points
-      integer, intent(in) :: n
+      integer(long_int), intent(in) :: n
       !> Spin-unpolarised charge density
       real(dp), intent(in) :: rho(:)
       !> Exchange correlation energy density
@@ -42,8 +47,8 @@ contains
       real(dp), intent(out) :: vxc(:)
 
 #ifdef LIBXC
-      type(xc_f90_pointer_t) :: p
-      type(xc_f90_pointer_t) :: info
+      type(xc_f03_func_t) :: p
+      integer(c_int)      :: ierr
       integer :: family_id 
 
       if (id == 0) then 
@@ -52,13 +57,15 @@ contains
          return
       end if 
 
-      family_id = xc_f90_family_from_id(id)
+      family_id = xc_f03_family_from_id(id)
       call assert(family_id == XC_FAMILY_LDA, "Error(libxcifc): Id of functional has & 
                   to belong to the family of LDA functionals.")
       call assert(id > 0, message="Id for xc functional has to be greater than zero.")
 
-      call xc_f90_func_init(p, info, id, XC_UNPOLARIZED)
-      call xc_f90_lda_exc_vxc(p, n, rho(1), exc(1), vxc(1))
+      call xc_f03_func_init(p, id, XC_UNPOLARIZED, ierr)
+      if (ierr /= 0) call terminate("Error(libxc_lda_pot_spin_unpolarized): error in calling xc_f03_func_init")
+
+      call xc_f03_lda_exc_vxc(p, int(n, long_int), rho(1:), exc(1:), vxc(1:))
 #endif
    end subroutine
 
@@ -68,7 +75,7 @@ contains
       !> Id of functional
       integer, intent(in) :: id
       !> Number of points
-      integer, intent(in) :: n
+      integer(long_int), intent(in) :: n
       !> Spin-polarised charge density spin up
       real(dp), intent(in) :: rhoup(:)
       !> Spin-polarised charge density spin dn
@@ -86,9 +93,8 @@ contains
       real(dp) :: v_total(2)
 
 #ifdef LIBXC
-      type(xc_f90_pointer_t) :: p
-      type(xc_f90_pointer_t) :: info
-      integer :: i
+      type(xc_f03_func_t) :: p
+      integer :: i, ierr
       integer :: family_id 
 
       if (id == 0) then 
@@ -98,17 +104,20 @@ contains
          return
       end if 
 
-      family_id = xc_f90_family_from_id(id)
+      family_id = xc_f03_family_from_id(id)
       call assert(family_id == XC_FAMILY_LDA, "Error(libxcifc): Id of functional has & 
                   to belong to the family of LDA functionals.")
       call assert(id > 0, message="Id for xc functional has to be greater than zero.")
 
-      call xc_f90_func_init(p, info, id, XC_POLARIZED)
+      call xc_f03_func_init(p, id, XC_POLARIZED, ierr)
+
+      if (ierr /= 0) call terminate("Error(libxc_lda_pot_spin_polarized): error in calling xc_f03_func_init")
+
       do i = 1, n
          !TODO: pack density (see MR !330)
          rho_total(1) = rhoup(i)
          rho_total(2) = rhodn(i)
-         call xc_f90_lda_exc_vxc(p, 1, rho_total(1), exc(i), v_total(1))
+         call xc_f03_lda_exc_vxc(p, 1_long_int, rho_total, exc(i:), v_total)
          !TODO: unpack potential
          vxcup(i) = v_total(1)
          vxcdn(i) = v_total(2)
@@ -122,7 +131,7 @@ contains
       !> Id of functional
       integer, intent(in) :: id
       !> Number of points
-      integer, intent(in) :: n
+      integer(long_int), intent(in) :: n
       !> Spin-unpolarised charge density
       real(dp), intent(in) :: rho(:)
       !> Gradient Density squared |grad rho|^2
@@ -135,8 +144,8 @@ contains
       real(dp), intent(out) :: dxcdg2(:)
 
 #ifdef LIBXC
-      type(xc_f90_pointer_t) :: p
-      type(xc_f90_pointer_t) :: info
+      type(xc_f03_func_t) :: p
+      integer(c_int)      :: ierr
       integer :: family_id 
 
       if (id .eq. 0) then  
@@ -146,13 +155,16 @@ contains
          return
       end if 
 
-      family_id = xc_f90_family_from_id(id)
+      family_id = xc_f03_family_from_id(id)
       call assert((family_id == XC_FAMILY_GGA) .or. (family_id == XC_FAMILY_HYB_GGA), & 
                   "Error(libxcifc): Id of functional has to belong to the family of GGA functionals.")
       call assert(id > 0, message="Id for xc functional has to be greater than zero.")
 
-      call xc_f90_func_init(p, info, id, XC_UNPOLARIZED)
-      call xc_f90_gga_exc_vxc(p, n, rho(1), grho2(1), exc(1), vxc(1), dxcdg2(1))
+      call xc_f03_func_init(p, id, XC_UNPOLARIZED, ierr)
+
+      if (ierr /= 0) call terminate("Error(libxc_gga_pot_spin_unpolarized): error in calling xc_f03_func_init")
+
+      call xc_f03_gga_exc_vxc(p, n, rho, grho2, exc, vxc, dxcdg2)
 #endif
    end subroutine
 
@@ -163,7 +175,7 @@ contains
       !> Id of functional
       integer, intent(in) :: id
       !> Number of points
-      integer, intent(in) :: n
+      integer(long_int), intent(in) :: n
       !> Spin-polarised charge density spin up
       real(dp), intent(in) :: rhoup(:)
       !> Spin-polarised charge density spin down
@@ -197,9 +209,9 @@ contains
       real(dp) :: vsigma(3)
 
 #ifdef LIBXC
-      type(xc_f90_pointer_t) :: p
-      type(xc_f90_pointer_t) :: info
+      type(xc_f03_func_t) :: p
       integer :: i
+      integer(c_int)      :: ierr
       integer :: family_id
 
       if (id .eq. 0) then  
@@ -212,21 +224,24 @@ contains
          return
       end if 
 
-      family_id = xc_f90_family_from_id(id)
+      family_id = xc_f03_family_from_id(id)
       family_id = 32
       call assert((family_id == XC_FAMILY_GGA) .or. (family_id == XC_FAMILY_HYB_GGA), & 
                   "Error(libxcifc): Id of functional has to belong to the family of GGA functionals.")
       call assert(id > 0, message="Id for xc functional has to be greater than zero.")
 
-      call xc_f90_func_init(p, info, id, XC_POLARIZED)
+      call xc_f03_func_init(p, id, XC_POLARIZED, ierr)
+
+      if (ierr /= 0) call terminate("Error(libxc_gga_pot_spin_polarized): error in calling xc_f03_func_init")
+
       do i = 1, n
          !TODO: pack density
          rho_total(1) = rhoup(i)
          rho_total(2) = rhodn(i)
-         sigma(1) = gup2(i)
+         sigma(1:) = gup2(i)
          sigma(2) = gupdn(i)
          sigma(3) = gdn2(i)
-         call xc_f90_gga_exc_vxc(p, 1, rho_total(1), sigma(1), exc(i), v_total(1), vsigma(1))
+         call xc_f03_gga_exc_vxc(p, 1_long_int, rho_total, sigma, exc(i:), v_total, vsigma)
          !TODO: unpack potential
          vxcup(i) = v_total(1)
          vxcdn(i) = v_total(2)
@@ -252,8 +267,8 @@ real(dp), intent(out) :: ex_coef
 ! local variables
 integer xcf,id,k
 character(256) name
-type(xc_f90_pointer_t) p
-type(xc_f90_pointer_t) info
+type(xc_f03_func_t) p
+type(xc_f03_func_info_t) info
 ! unknown spin polarisation
 xcspin=-1
 ! no gradients by default
@@ -261,30 +276,33 @@ xcgrad=0
 do k=2,3
   id=xctype(k)
   if (id.gt.0) then
-    xcf=xc_f90_family_from_id(id)
+    xcf=xc_f03_family_from_id(id)
     select case(xcf)
     case(XC_FAMILY_LDA)
       if (id.eq.XC_LDA_X) then
-        call xc_f90_func_init(p,info,id,XC_UNPOLARIZED)!,3,XC_NON_RELATIVISTIC)
+        call xc_f03_func_init(p,id,XC_UNPOLARIZED)!,3,XC_NON_RELATIVISTIC)
       else if (id.eq.XC_LDA_C_XALPHA) then
-        call xc_f90_func_init(p,info,id,XC_UNPOLARIZED)!,3,1.d0)
+        call xc_f03_func_init(p,id,XC_UNPOLARIZED)!,3,1.d0)
       else
-        call xc_f90_func_init(p,info,id,XC_UNPOLARIZED)
+        call xc_f03_func_init(p,id,XC_UNPOLARIZED)
       end if
-      call xc_f90_info_name(info,name)
-      call xc_f90_func_end(p)
+      info = xc_f03_func_get_info(p)
+      name = xc_f03_func_info_get_name(info)
+      call xc_f03_func_end(p)
     case(XC_FAMILY_GGA)
-      call xc_f90_func_init(p,info,id,XC_UNPOLARIZED)
-      call xc_f90_info_name(info,name)
-      call xc_f90_func_end(p)
+      call xc_f03_func_init(p,id,XC_UNPOLARIZED)
+      info = xc_f03_func_get_info(p)
+      name = xc_f03_func_info_get_name(info)
+      call xc_f03_func_end(p)
 ! post-processed gradients required
       xcgrad=2
     case(XC_FAMILY_HYB_GGA)
-      call xc_f90_func_init(p,info,id,XC_UNPOLARIZED)
-      call xc_f90_info_name(info,name)
+      call xc_f03_func_init(p,id,XC_UNPOLARIZED)
+      info = xc_f03_func_get_info(p)
+      name = xc_f03_func_info_get_name(info)
 ! get mixing coefficient for exchange
-      call xc_f90_hyb_exx_coef(p, ex_coef) 
-      call xc_f90_func_end(p)
+      ex_coef = xc_f03_hyb_exx_coef(p) 
+      call xc_f03_func_end(p)
 ! post-processed gradients required
       xcgrad=2
     case default

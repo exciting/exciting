@@ -4,7 +4,7 @@
 module dfpt_density_potential
   use dfpt_variables
 
-  use precision, only: dp
+  use precision, only: dp, long_int
   use asserts, only: assert
   use modmpi, only: terminate_if_false
   use mod_kpointset, only: G_set
@@ -537,7 +537,10 @@ module dfpt_density_potential
       use mod_atoms, only: natmtot, nspecies, natoms, idxas, spr
       use mod_symmetry, only: nsymcrys, symmetrize_real_mt, symmetrize_real_ir
 #ifdef LIBXC
-      use xc_f90_lib_m
+      use xc_f03_lib_m
+#ifdef LIBXC_HAS_FUNC_MOD
+      use xc_f03_funcs_m
+#endif
 #endif
       !> muffin-tin density as real spherical harmonics expansion
       real(dp), intent(in) :: rhomt(:,:,:)
@@ -548,7 +551,8 @@ module dfpt_density_potential
       !> (parts of) interstitial xc kernel on real space FFT grid
       real(dp), allocatable, intent(out) :: xc_kernel_ir(:,:)
 
-      integer :: i, j, k, np, nr
+      integer :: i, j, k, nr
+      integer(long_int) :: np
       integer :: is, ia, ias, ig, ifg
       integer :: xctype_libxc(2), xcf
 
@@ -557,8 +561,8 @@ module dfpt_density_potential
       complex(dp), allocatable :: zfft(:,:)
       
 #ifdef LIBXC
-      type(xc_f90_pointer_t) :: xct
-      type(xc_f90_pointer_t) :: info
+      type(xc_f03_func_t) :: xct
+      type(xc_f03_func_info_t) :: info
 #else
       call terminate_if_false( .false., '(gen_xc_kernel) &
         LIBXC library not available.' )
@@ -618,7 +622,7 @@ module dfpt_density_potential
       do i = 1, 2
         if( xctype_libxc(i) == 0 ) cycle
         ! get the xc functional family (LDA or GGA)
-        xcf = xc_f90_family_from_id( xctype_libxc(i) )
+        xcf = xc_f03_family_from_id( xctype_libxc(i) )
         select case( xcf )
           case( XC_FAMILY_LDA )
             k = 1 ! only one part for LDA
@@ -675,19 +679,19 @@ module dfpt_density_potential
           do i = 1, 2
             if( xctype_libxc(i) == 0 ) cycle
             ! initialize the xc-functional
-            call xc_f90_func_init( xct, info, xctype_libxc(i), XC_UNPOLARIZED )
+            call xc_f03_func_init( xct, xctype_libxc(i), XC_UNPOLARIZED )
             ! get the xc functional family (LDA or GGA)
-            xcf = xc_f90_family_from_id(xctype_libxc(i))
+            xcf = xc_f03_family_from_id(xctype_libxc(i))
             select case( xcf )
               case( XC_FAMILY_LDA )
-                call xc_f90_lda_fxc( xct, np, rhomt2(1, 1), fxc(1, 1) )
+                call xc_f03_lda_fxc( xct, np, rhomt2(1, 1), fxc(1, 1) )
                 where( isnan( fxc(:, 1) ) ) fxc(:, 1) = 1.0_dp
                 xc_kernel_mt(:, :, ias, 1) = xc_kernel_mt(:, :, ias, 1) + reshape( fxc(:, 1), [prod_lmmax, nrmtmax] )
               case( XC_FAMILY_GGA, XC_FAMILY_HYB_GGA )
-                call xc_f90_gga_vxc( xct, np, rhomt2(1, 1), grho2(1), fxc(1, 1), fxc(1, 2) )
+                call xc_f03_gga_vxc( xct, np, rhomt2(1, 1), grho2(1), fxc(1, 1), fxc(1, 2) )
                 where( isnan( fxc(:, 2) ) ) fxc(:, 2) = 0.0_dp
                 xc_kernel_mt(:, :, ias, 4) = xc_kernel_mt(:, :, ias, 4) + reshape( fxc(:, 2), [prod_lmmax, nrmtmax] )
-                call xc_f90_gga_fxc( xct, np, rhomt2(1, 1), grho2(1), fxc(1, 1), fxc(1, 2), fxc(1, 3) )
+                call xc_f03_gga_fxc( xct, np, rhomt2(1, 1), grho2(1), fxc(1, 1), fxc(1, 2), fxc(1, 3) )
                 where( isnan( fxc(:, 1) ) ) fxc(:, 1) = 1.0_dp
                 xc_kernel_mt(:, :, ias, 1) = xc_kernel_mt(:, :, ias, 1) + reshape( fxc(:, 1), [prod_lmmax, nrmtmax] )
                 where( isnan( fxc(:, 2) ) ) fxc(:, 2) = 0.0_dp
@@ -748,19 +752,19 @@ module dfpt_density_potential
       do i = 1, 2
         if( xctype_libxc(i) == 0 ) cycle
         ! initialize the xc-functional
-        call xc_f90_func_init( xct, info, xctype_libxc(i), XC_UNPOLARIZED )
+        call xc_f03_func_init( xct, xctype_libxc(i), XC_UNPOLARIZED )
         ! get the xc functional family (LDA or GGA)
-        xcf = xc_f90_family_from_id( xctype_libxc(i) )
+        xcf = xc_f03_family_from_id( xctype_libxc(i) )
         select case( xcf )
           case( XC_FAMILY_LDA )
-            call xc_f90_lda_fxc( xct, np, rhoir2(1), fxc(1, 1) )
+            call xc_f03_lda_fxc( xct, np, rhoir2(1), fxc(1, 1) )
             where( isnan( fxc(:, 1) ) ) fxc(:, 1) = 1.0_dp
             xc_kernel_ir(:, 1) = xc_kernel_ir(:, 1) + fxc(:, 1)
           case( XC_FAMILY_GGA, XC_FAMILY_HYB_GGA )
-            call xc_f90_gga_vxc( xct, np, rhoir2(1), grho2(1), fxc(1, 1), fxc(1, 2) )
+            call xc_f03_gga_vxc( xct, np, rhoir2(1), grho2(1), fxc(1, 1), fxc(1, 2) )
             where( isnan( fxc(:, 2) ) ) fxc(:, 2) = 0.0_dp
             xc_kernel_ir(:, 4) = xc_kernel_ir(:, 4) + fxc(:, 2)
-            call xc_f90_gga_fxc( xct, np, rhoir2(1), grho2(1), fxc(1, 1), fxc(1, 2), fxc(1, 3) )
+            call xc_f03_gga_fxc( xct, np, rhoir2(1), grho2(1), fxc(1, 1), fxc(1, 2), fxc(1, 3) )
             where( isnan( fxc(:, 1) ) ) fxc(:, 1) = 1.0_dp
             xc_kernel_ir(:, 1) = xc_kernel_ir(:, 1) + fxc(:, 1)
             where( isnan( fxc(:, 2) ) ) fxc(:, 2) = 0.0_dp

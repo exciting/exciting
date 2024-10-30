@@ -1,24 +1,11 @@
 /*
  Copyright (C) 2006-2007 M.A.L. Marques
 
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU Lesser General Public License as published by
- the Free Software Foundation; either version 3 of the License, or
- (at your option) any later version.
-  
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Lesser General Public License for more details.
-  
- You should have received a copy of the GNU Lesser General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this
+ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
 #include "util.h"
 
 #define XC_GGA_K_DK          516 /* DePristo and Kress                    */
@@ -28,196 +15,126 @@
 #define XC_GGA_K_ERNZERHOF   520 /* Ernzerhof */
 
 typedef struct{
-  FLOAT aa[5], bb[5];
+  double aa[5], bb[5];
 } gga_k_dk_params;
 
-static void 
-gga_k_dk_init(XC(func_type) *p)
+#define N_PAR 10
+static const char  *names[N_PAR]  = {
+  "_a0", "_a1", "_a2", "_a3", "_a4", "_b0", "_b1", "_b2", "_b3", "_b4"
+};
+static const char  *desc[N_PAR]   = {
+  "constant term in numerator",
+  "coefficient for x^2 in numerator",
+  "coefficient for x^4 in numerator",
+  "coefficient for x^6 in numerator",
+  "coefficient for x^8 in numerator",
+  "constant term in denominator",
+  "coefficient for x^2 in denominator",
+  "coefficient for x^4 in denominator",
+  "coefficient for x^6 in denominator",
+  "coefficient for x^8 in denominator"
+};
+
+static void
+gga_k_dk_init(xc_func_type *p)
 {
-  int i;
-  FLOAT ff, *aa, *bb;
-
-  assert(p->params == NULL);
-  p->params = malloc(sizeof(gga_k_dk_params));
-
-  /* shortcuts for a and b */
-  aa  = ((gga_k_dk_params *) (p->params))->aa;
-  bb  = ((gga_k_dk_params *) (p->params))->bb;
-
-  /* initialize parameters to zero */
-  for(i=0; i<5; i++){
-    aa[i] = 0.0;
-    bb[i] = 0.0;
-  }
-
-  switch(p->info->number){
-  case XC_GGA_K_DK:
-    ff = 5.0*X2S*X2S/27.0; /* = t2/t0 = 1.0/(72.0*K_FACTOR_C) */
-
-    bb[0] =  1.0;
-    bb[1] = -0.05   *ff;
-    bb[2] =  9.99802*(ff*ff);
-    bb[3] =  2.96085*(ff*ff*ff);
-
-    aa[0] =   1.0;
-    aa[1] =   0.95   *ff;
-    aa[2] =  14.28111*(ff*ff);
-    aa[3] = -19.57962*(ff*ff*ff);
-    aa[4] =   9.0*bb[3]*ff;
-
-    break;
-
-  case XC_GGA_K_PERDEW:
-    ff = X2S*X2S;
-
-    bb[0] =  1.0;
-    bb[1] = 88.3960*ff;
-    bb[2] = 16.3683*(ff*ff);
-
-    aa[0] =   1.0;
-    aa[1] =  88.2108*ff;
-
-    break;
-
-  case XC_GGA_K_VSK:
-    ff = 5.0*X2S*X2S/27.0; /* = t2/t0 = 1.0/(72.0*K_FACTOR_C) */
-
-    bb[0] =  1.0;
-    bb[1] = -0.05     *ff;
-    bb[2] =  0.396    *(ff*ff);
-
-    aa[0] =  1.0;
-    aa[1] =  0.95     *ff;
-    aa[3] =  9.0*bb[2]*ff;
-
-    break;
-
-  case XC_GGA_K_VJKS:
-    ff = X2S*X2S;
-
-    bb[0] =  1.0;
-    bb[1] =  0.6511 *ff;
-    bb[2] =  0.0431 *(ff*ff);
-
-    aa[0] =  1.0;
-    aa[1] =  0.8944 *ff;
-    aa[3] = -bb[2]  *ff;
-
-    break;
-
-  case XC_GGA_K_ERNZERHOF:
-    ff = X2S*X2S;
-
-    bb[0] =  135.0;
-    bb[1] =    3.0*ff;
-
-    aa[0] =  135.0;
-    aa[1] =   28.0*ff;
-    aa[2] =    5.0*(ff*ff);
-
-    break;
-  }
+  assert(p != NULL && p->params == NULL);
+  p->params = libxc_malloc(sizeof(gga_k_dk_params));
 }
 
+#define KINS (X2S*X2S) /* conversion to s^2 */
+#define KINX (5.0/27.0*KINS) /* conversion to x = (5/27 * s^2) */
 
-static inline void 
-func(const XC(func_type) *p, int order, FLOAT x, 
-     FLOAT *f, FLOAT *dfdx, FLOAT *d2fdx2)
-{
-  FLOAT xx2, xx4, num, denom, dnum, ddenom, d2num, d2denom;
-  FLOAT *aa, *bb;
+/* DK is written in the x variable */
+static const double par_dk[N_PAR] = {1.0, 0.95*KINX, 14.281111*KINX*KINX, -19.57962*KINX*KINX*KINX, 26.64765*KINX*KINX*KINX*KINX, 1.0, -0.05*KINX, 9.99802*KINX*KINX, 2.96805*KINX*KINX*KINX, 0.0};
+/* Perdew is written in the s variable */
+static const double par_perdew[N_PAR] = {1.0, 88.3960*KINS, 16.3683*KINS*KINS, 0.0, 0.0, 1.0, 88.2108*KINS, 0.0, 0.0, 0.0};
+/* VSK is written in x */
+static const double par_vsk[N_PAR] = {1.0, 0.95*KINX, 0.0, 9*0.396*KINX*KINX*KINX, 0.0, 1.0, -0.05*KINX, 0.396*KINX*KINX, 0.0, 0.0};
+/* VJKS is written in s */
+static const double par_vjks[N_PAR] = {1.0, 0.8944*KINS, 0.0, -0.0431*KINS*KINS*KINS, 0.0, 1.0, 0.6511*KINS, 0.0431*KINS*KINS, 0.0, 0.0};
+/* Ernzerhof is written in s */
+static const double par_ernzerhof[N_PAR] = {135.0, 28.0*KINS, 5.0*KINS*KINS, 0.0, 0.0, 135.0, 3.0*KINS, 0.0, 0.0, 0.0};
 
-  assert(p->params != NULL);
-  aa  = ((gga_k_dk_params *) (p->params))->aa;
-  bb  = ((gga_k_dk_params *) (p->params))->bb;
+#include "maple2c/gga_exc/gga_k_dk.c"
+#include "work_gga.c"
 
-  xx2 = x*x;
-  xx4 = xx2*xx2;
-
-  num   = aa[0] + aa[1]*xx2 + aa[2]*xx4 + aa[3]*xx2*xx4 + aa[4]*xx4*xx4;
-  denom = bb[0] + bb[1]*xx2 + bb[2]*xx4 + bb[3]*xx2*xx4 + bb[4]*xx4*xx4;
-
-  *f = num/denom;
-
-  if(order < 1) return;
-
-  dnum   = 2.0*aa[1]*x + 4.0*aa[2]*x*xx2 + 6.0*aa[3]*x*xx4 + 8.0*aa[4]*x*xx2*xx4;
-  ddenom = 2.0*bb[1]*x + 4.0*bb[2]*x*xx2 + 6.0*bb[3]*x*xx4 + 8.0*bb[4]*x*xx2*xx4;
-
-  *dfdx  = (dnum*denom - num*ddenom)/(denom*denom);
-  
-  if(order < 2) return;
-
-  d2num   = 2.0*aa[1] + 4.0*3.0*aa[2]*xx2 + 6.0*5.0*aa[3]*xx4 + 8.0*7.0*aa[4]*xx2*xx4;
-  d2denom = 2.0*bb[1] + 4.0*3.0*bb[2]*xx2 + 6.0*5.0*bb[3]*xx4 + 8.0*7.0*bb[4]*xx2*xx4;
-
-  *d2fdx2  = ((d2num*denom - num*d2denom)*denom - 2.0*ddenom*(dnum*denom - ddenom*num))/(denom*denom*denom);
-}
-
-#define XC_KINETIC_FUNCTIONAL
-#include "work_gga_x.c"
-
-const XC(func_info_type) XC(func_info_gga_k_dk) = {
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_k_dk = {
   XC_GGA_K_DK,
   XC_KINETIC,
   "DePristo and Kress",
   XC_FAMILY_GGA,
-  "AE DePristo and JD Kress, Phys. Rev. A 35, 438-441 (1987)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
-  gga_k_dk_init,
-  NULL, NULL,
-  work_gga_k
+  {&xc_ref_DePristo1987_438, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {N_PAR, names, desc, par_dk, set_ext_params_cpy},
+  gga_k_dk_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_k_perdew) = {
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_k_perdew = {
   XC_GGA_K_PERDEW,
   XC_KINETIC,
   "Perdew",
   XC_FAMILY_GGA,
-  "JP Perdew, Phys. Lett. A 165, 79 (1992)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
-  gga_k_dk_init,
-  NULL, NULL,
-  work_gga_k
+  {&xc_ref_Perdew1992_79, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {N_PAR, names, desc, par_perdew, set_ext_params_cpy},
+  gga_k_dk_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_k_vsk) = {
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_k_vsk = {
   XC_GGA_K_VSK,
   XC_KINETIC,
   "Vitos, Skriver, and Kollar",
   XC_FAMILY_GGA,
-  "L Vitos, HL Skriver, and J. Kollár, Phys. Rev. B 57, 12611-12615 (1998)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
-  gga_k_dk_init,
-  NULL, NULL,
-  work_gga_k
+  {&xc_ref_Vitos1998_12611, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {N_PAR, names, desc, par_vsk, set_ext_params_cpy},
+  gga_k_dk_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_k_vjks) = {
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_k_vjks = {
   XC_GGA_K_VJKS,
   XC_KINETIC,
   "Vitos, Johansson, Kollar, and Skriver",
   XC_FAMILY_GGA,
-  "L Vitos, B Johansson, J. Kollár, and HL Skriver, Phys. Rev. A 61, 052511 (2000)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
-  gga_k_dk_init,
-  NULL, NULL,
-  work_gga_k
+  {&xc_ref_Vitos2000_052511, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {N_PAR, names, desc, par_vjks, set_ext_params_cpy},
+  gga_k_dk_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_k_ernzerhof) = {
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_k_ernzerhof = {
   XC_GGA_K_ERNZERHOF,
   XC_KINETIC,
   "Ernzerhof",
   XC_FAMILY_GGA,
-  "M Ernzerhof, J. Mol. Struct.:THEOCHEM 501-502, 59 (2000)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
-  gga_k_dk_init,
-  NULL, NULL,
-  work_gga_k
+  {&xc_ref_Ernzerhof2000_59, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {N_PAR, names, desc, par_ernzerhof, set_ext_params_cpy},
+  gga_k_dk_init, NULL,
+  NULL, &work_gga, NULL
 };

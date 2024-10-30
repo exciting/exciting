@@ -3,7 +3,7 @@
 # Compiler, flags and preprocessing variables
 F90 = gfortran
 F90_OPTS = -O3 -march=native -ffree-line-length-0 -fallow-argument-mismatch
-CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC
+CPP_ON_OPTS = -cpp -DXS -DISO -DLIBXC -DLIBXC_HAS_FUNC_MOD
 F77 = $(F90)
 F77_OPTS = -O3 -fallow-argument-mismatch
 # Required for compilation of LibXC 

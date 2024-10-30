@@ -74,8 +74,6 @@ SOURCEDIRS=	\
 		
 GeneratedFiles = ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90
 
-LIBXCMOD = ../../external/libXC/src/libxc.f90 ../../external/libXC/src/libxc_funcs.f90
-
 # ---------------------------------------------------------
 # Main Build Command
 # 
@@ -88,7 +86,7 @@ LIBXCMOD = ../../external/libXC/src/libxc.f90 ../../external/libXC/src/libxc_fun
 # Copy executable and append suffix
 # ---------------------------------------------------------
 
-bin::../make.inc libs $(GeneratedFiles) $(LIBXCMOD)
+bin::../make.inc libs $(GeneratedFiles)
 	perl ../../build/utilities/versionstamp.pl 
 	../../build/utilities/mkmf -t ./template -f -m Makefile.mkmf\
          -p exciting $(SOURCEDIRS) $(LIBXCMOD) ../../src/mainxml/\
@@ -152,19 +150,23 @@ endif
 libxc.a:lib/libxc.a
 
 ifeq ($(HLRN),true)
-lib/libxc.a: 
+lib/libxc.a:
 	cd ../../external/libXC/ && \
 	module swap craype-$(CNODE_ARCH) craype-$(LNODE_ARCH) && \
-	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPTS)" CC=$(CC) FCCPP=$(FCCPP) --enable-static=yes --enable-shared=no &&\
+	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPTS)" CC=$(CC) FCCPP=$(FCCPP) --enable-static=yes --enable-shared=no --prefix=$(PWD)/install-libXC && \
 	module swap craype-$(LNODE_ARCH) craype-$(CNODE_ARCH) && \
-	make 
-	cp -r ../../external/libXC/src/.libs/libxc.a ./lib/libxc.a
+	make && make install
+        ln -s ../install-libXC/lib/libxc.a ./lib/libxc.a && \
+        ln -s ../install-libXC/lib/libxcf03.a ./lib/libxcf03.a && \
+        ln -s install-libXC/include/xc_f03_* .
 else
-lib/libxc.a: 
+lib/libxc.a:
 	cd ../../external/libXC/ && \
-	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPTS)" CC=$(CC) FCCPP=$(FCCPP) --enable-static=yes --enable-shared=no &&\
-	make 
-	cp -r ../../external/libXC/src/.libs/libxc.a ./lib/libxc.a
+	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPTS)" CC=$(CC) FCCPP=$(FCCPP) --enable-static=yes --enable-shared=no --prefix=$(PWD)/install-libXC && \
+	make && make install
+	ln -s ../install-libXC/lib/libxc.a ./lib/libxc.a && \
+	ln -s ../install-libXC/lib/libxcf03.a ./lib/libxcf03.a && \
+	ln -s install-libXC/include/xc_f03_* .
 endif
 
 leblaiklib.a::
@@ -224,7 +226,7 @@ clean:
 
 cleanlibs:
 	rm -f *.a
-	rm -rf lib finclude
+	rm -rf lib finclude install-libXC
 	-cd ../../external/libXC/ && make clean
 	-cd ../../external/FoX && make clean
 	-cd ../../external/leblaiklib && make clean

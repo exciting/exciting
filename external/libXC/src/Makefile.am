@@ -2,145 +2,191 @@
 
 ## Copyright (C) 2002 M. Marques, A. Castro, A. Rubio, G. Bertsch
 ##
-## This program is free software; you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation; either version 2, or (at your option)
-## any later version.
+## This Source Code Form is subject to the terms of the Mozilla Public
+## License, v. 2.0. If a copy of the MPL was not distributed with this
+## file, You can obtain one at http://mozilla.org/MPL/2.0/.
 ##
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-##
-## You should have received a copy of the GNU Lesser General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
-## 02111-1307, USA.
-##
-## $Id: Makefile.am 2433 2006-09-28 11:06:54Z marques $
+
+SUBDIRS = maple2c
+
+if HAVE_CUDA
+#this is a hack for nvcc, this should be improved.
+CC+="-dc"
+endif
+
+bin_PROGRAMS = xc-info
+noinst_PROGRAMS = genwiki xc-sanity xc-threshold
+
+xc_info_SOURCES = xc-info.c
+xc_info_LDADD = libxc.la -lm
+xc_info_LDFLAGS =
+
+xc_threshold_SOURCES = xc-threshold.c
+xc_threshold_LDADD = libxc.la -lm
+xc_threshold_LDFLAGS =
+
+genwiki_SOURCES = genwiki.c
+genwiki_LDADD = libxc.la -lm
+genwiki_LDFLAGS =
+
+xc_sanity_SOURCES = xc-sanity.c
+xc_sanity_LDADD = libxc.la -lm
+xc_sanity_LDFLAGS =
 
 lib_LTLIBRARIES = libxc.la
 
 libxc_la_FUNC_SOURCES = \
-	special_functions.c bessel.c expint_e1.c integrate.c util.c mix_func.c functionals.c \
-	version.c \
-	lda.c lda_x.c lda_x_1d.c lda_x_2d.c \
-	lda_c_wigner.c lda_c_gombas.c lda_c_rpa.c lda_c_hl.c \
-	lda_c_vwn.c lda_c_pz.c lda_c_pw.c lda_c_ml1.c lda_c_rc04.c lda_xc_teter93.c \
-	lda_c_1d_csc.c lda_c_1d_loos.c \
-	lda_c_2d_amgb.c lda_c_2d_prm.c stoll.c \
-	lda_k_tf.c \
+	special_functions.c bessel.c expint_e1.c faddeeva.c integrate.c		\
+	math_brent.c util.c mix_func.c deorbitalize_func.c func_info.c functionals.c hybrids.c \
+	version.c func_reference.c \
+	lda.c \
+	lda_x.c lda_x_2d.c lda_c_wigner.c lda_c_gombas.c lda_c_rpa.c	\
+	lda_c_hl.c lda_c_vwn.c lda_c_vwn_1.c lda_c_vwn_2.c		\
+	lda_c_vwn_3.c lda_c_vwn_4.c lda_c_vwn_rpa.c lda_c_pz.c		\
+	lda_c_pw.c lda_c_pk09.c lda_c_lp96.c lda_c_ml1.c lda_c_rc04.c	\
+	lda_xc_teter93.c lda_c_1d_csc.c lda_c_1d_loos.c			\
+	lda_c_2d_amgb.c lda_c_2d_prm.c lda_k_tf.c lda_xc_zlp.c		\
+	lda_xc_ksdt.c lda_c_chachiyo.c lda_c_chachiyo_mod.c		\
+	lda_xc_1d_ehwlrg.c lda_x_rel.c lda_x_erf.c lda_k_zlp.c		\
+	lda_c_gk72.c hyb_lda_xc_bn05.c lda_c_pmgb06.c			\
+	lda_k_gds08_worker.c lda_xc_tih.c lda_x_1d_exponential.c	\
+	lda_x_1d_soft.c hyb_lda_xc_cam_lda0.c lda_x_sloc.c		\
+	lda_c_w20.c lda_x_yukawa.c lda_c_pw_erf.c lda_c_epc17.c		\
+	lda_c_epc18.c \
 	gga.c \
-	gga_x_lg93.c gga_x_pbe.c gga_x_rpbe.c gga_x_pbea.c gga_x_mpbe.c gga_x_herman.c gga_x_b86.c gga_x_b86_mgc.c \
-	gga_x_b88.c gga_x_g96.c gga_x_pw86.c gga_x_pw91.c gga_x_optx.c gga_x_airy.c gga_x_c09x.c \
-	gga_x_dk87.c gga_x_ft97.c gga_x_wc.c gga_x_am05.c gga_x_bayesian.c gga_x_kt.c gga_x_htbs.c \
-	gga_c_pbe.c gga_c_lyp.c gga_c_p86.c gga_c_pw91.c gga_c_am05.c gga_c_lm.c gga_c_wl.c gga_c_wi.c \
-	gga_x_lb.c gga_xc_b97.c gga_xc_edf1.c gga_xc_1w.c gga_c_optc.c gga_c_tca.c gga_x_bpccac.c \
-	gga_x_sogga11.c gga_c_sogga11.c gga_xc_th.c gga_x_wpbeh.c gga_x_hjs.c gga_x_ityh.c \
-	gga_x_ssb_sw.c gga_c_ft97.c gga_c_op.c \
-	gga_x_2d_b86.c gga_x_2d_b86_mgc.c gga_x_2d_b88.c gga_x_2d_pbe.c \
-	gga_k_tflw.c gga_k_pearson.c gga_k_ol1.c gga_k_ol2.c gga_k_dk.c \
-	hyb_gga_xc_b3lyp.c hyb_gga_xc_o3lyp.c hyb_gga_xc_pbeh.c hyb_gga_xc_b1wc.c \
-	hyb_gga_xc_b97.c hyb_gga_xc_hse.c hyb_gga_xc_cam_b3lyp.c \
+	gga_x_lg93.c gga_x_pbe.c gga_x_rpbe.c gga_x_pbea.c		\
+	gga_x_mpbe.c gga_x_b86.c gga_x_b88.c		\
+	gga_x_g96.c gga_x_pw86.c gga_x_pw91.c gga_x_optx.c		\
+	gga_x_airy.c gga_x_c09x.c gga_x_dk87.c gga_x_ft97.c		\
+	gga_x_wc.c gga_x_am05.c gga_x_bayesian.c gga_x_kt.c		\
+	gga_x_htbs.c gga_c_pbe.c gga_c_lyp.c gga_c_p86.c gga_c_pw91.c	\
+	gga_c_am05.c gga_c_lm.c gga_c_wl.c gga_c_wi.c gga_x_lb.c	\
+	gga_xc_b97.c gga_xc_edf1.c gga_xc_1w.c gga_c_optc.c		\
+	gga_c_tca.c gga_x_bpccac.c gga_x_sogga11.c gga_c_sogga11.c	\
+	gga_xc_th1.c gga_x_wpbeh.c gga_x_hjs.c gga_x_ityh.c		\
+	gga_x_sfat.c gga_x_sfat_pbe.c gga_x_ev93.c gga_x_ak13.c		\
+	gga_x_q1d.c gga_x_q2d.c gga_c_q2d.c gga_x_ssb_sw.c		\
+	gga_c_ft97.c gga_x_n12.c gga_x_lv_rpw86.c gga_x_2d_b86.c	\
+	gga_k_llp.c gga_x_2d_b86_mgc.c gga_x_2d_b88.c gga_x_2d_pbe.c	\
+	gga_x_lspbe.c gga_x_lsrpbe.c gga_k_tflw.c gga_k_pearson.c	\
+	gga_x_ol2.c gga_k_ol1.c gga_k_ol2.c gga_k_dk.c gga_k_meyer.c	\
+	gga_x_vmt.c gga_x_hcth_a.c gga_x_cap.c gga_x_beefvdw.c		\
+	gga_x_sg4.c gga_x_gg99.c gga_x_pbepow.c		\
+	gga_k_thakkar.c gga_xc_oblyp_d.c hyb_gga_xc_b3lyp.c		\
+	hyb_gga_xc_o3lyp.c gga_x_pbeint.c gga_x_rge2.c gga_x_vmt84.c	\
+	gga_x_hjs_b88_v2.c gga_c_revtca.c gga_c_acgga.c			\
+	gga_c_acggap.c gga_c_zpbeint.c gga_c_pbeloc.c gga_c_sg4.c	\
+	gga_c_regtpss.c gga_c_scan_e0.c gga_xc_th2.c gga_xc_th3.c	\
+	gga_c_hcth_a.c hyb_gga_xc_wb97.c gga_c_bmk.c gga_c_gapc.c	\
+	gga_c_gaploc.c gga_c_zvpbeint.c gga_c_w94.c gga_c_cs1.c		\
+	gga_c_op_xalpha.c gga_c_op_b88.c gga_c_op_pbe.c			\
+	gga_c_op_g96.c gga_c_op_pw91.c gga_x_pbetrans.c			\
+	gga_k_apbeint.c gga_x_chachiyo.c gga_k_gds08.c gga_k_exp4.c	\
+	hyb_gga_xc_pbeh.c hyb_gga_xc_b1wc.c hyb_gga_xc_hse.c		\
+	hyb_gga_xc_cam_b3lyp.c gga_k_lc94.c gga_c_zvpbeloc.c		\
+	hyb_gga_xc_camy_blyp.c hyb_gga_xc_camy_b3lyp.c			\
+	hyb_gga_xc_lcy_pbe.c hyb_gga_xc_lcy_blyp.c gga_xc_vv10.c	\
+	hyb_gga_xc_edf2.c gga_k_pw86.c gga_k_mpbe.c gga_k_apbe.c	\
+	gga_x_fd_lb94.c gga_x_ncap.c gga_c_chachiyo.c			\
+	hyb_gga_xc_lc_blyp.c gga_c_pbe_vwn.c gga_x_s12.c		\
+	gga_k_lkt.c gga_k_lgap.c gga_k_vt84f.c gga_k_lgap_ge.c		\
+	gga_c_ccdf.c gga_k_rational_p.c gga_k_pg.c gga_c_p86vwn.c	\
+	gga_x_ityh_optx.c hyb_gga_xc_cam_o3lyp.c gga_x_ityh_pbe.c	\
+	gga_c_lypr.c hyb_gga_x_cam_s12.c		\
+	hyb_gga_xc_case21.c gga_x_pbe_erf_gws.c gga_c_pbe_erf_gws.c     \
+	gga_x_bkl.c \
 	mgga.c \
-	mgga_x_lta.c mgga_x_tpss.c mgga_x_br89.c mgga_x_gvt4.c mgga_x_m06l.c mgga_x_tau_hcth.c \
-	mgga_x_2d_prhg07.c mgga_x_pkzb.c mgga_x_m05.c mgga_x_m08.c \
-	mgga_c_vsxc.c mgga_c_pkzb.c mgga_c_bc95.c \
-	hyb_mgga_xc_m05.c
+	mgga_x_lta.c mgga_x_tpss.c mgga_x_br89.c mgga_x_gvt4.c		\
+	mgga_x_m06l.c mgga_x_tau_hcth.c mgga_x_2d_prhg07.c		\
+	mgga_x_2d_prp10.c mgga_x_pkzb.c hyb_mgga_x_m05.c mgga_x_m08.c	\
+	mgga_x_ms.c mgga_x_mn12.c mgga_c_vsxc.c mgga_c_pkzb.c		\
+	mgga_c_bc95.c mgga_c_m08.c mgga_xc_cc06.c mgga_c_cs.c		\
+	mgga_xc_otpss_d.c mgga_xc_zlp.c hyb_mgga_xc_b88b95.c		\
+	mgga_x_mbeef.c mgga_xc_b97mv.c mgga_x_scan.c mgga_c_scan.c	\
+	hyb_mgga_xc_tpssh.c mgga_x_mvs.c hyb_mgga_x_mvsh.c		\
+	mgga_x_tm.c mgga_x_vt84.c mgga_x_sa_tpss.c mgga_k_pc07.c	\
+	mgga_x_mbeefvdw.c mgga_x_m11.c mgga_x_m11_l.c			\
+	hyb_mgga_xc_wb97mv.c mgga_c_m05.c mgga_c_m06l.c			\
+	hyb_mgga_x_dldf.c mgga_c_tpss.c mgga_c_revtpss.c		\
+	mgga_c_tpssloc.c mgga_xc_hle17.c mgga_c_kcis.c mgga_xc_lp90.c	\
+	hyb_mgga_xc_kcis.c mgga_c_b88.c mgga_x_gx.c mgga_x_pbe_gx.c	\
+	mgga_c_revscan.c mgga_x_br89_explicit.c mgga_xc_b98.c		\
+	mgga_x_rtpss.c mgga_x_msb.c mgga_x_mvsb.c mgga_x_regtpss.c	\
+	mgga_x_rscan.c mgga_c_rscan.c mgga_x_2d_js17.c mgga_x_tb09.c	\
+	mgga_x_edmgga.c mgga_x_gdme.c mgga_x_rlda.c mgga_x_revtm.c	\
+	mgga_x_scanl.c mgga_c_scanl.c hyb_mgga_x_js18.c			\
+	hyb_mgga_x_pjs18.c mgga_x_mbrxh_bg.c mgga_x_mbrxc_bg.c		\
+	mgga_x_task.c mgga_x_mggac.c mgga_x_th.c mgga_x_mbr.c		\
+	mgga_c_ltapw.c mgga_x_jk.c mgga_x_r2scan.c mgga_c_r2scan.c	\
+	mgga_c_b94.c mgga_k_lk.c mgga_k_rda.c mgga_k_gea2.c		\
+	mgga_k_gea4.c mgga_k_csk.c mgga_k_csk_loc.c mgga_x_r2scanl.c	\
+	mgga_c_r2scanl.c mgga_k_pgslb.c mgga_c_kcisk.c mgga_x_regtm.c	\
+	mgga_c_rregtm.c mgga_x_mcml.c mgga_c_rmggac.c			\
+	mgga_x_rppscan.c mgga_c_rppscan.c mgga_x_r4scan.c		\
+	mgga_x_ft98.c hyb_mgga_xc_br3p86.c mgga_x_vcml.c mgga_c_cc.c	\
+	mgga_c_ccalda.c hyb_mgga_xc_gas22.c hyb_mgga_xc_r2scan.c	\
+	mgga_x_ktbm.c mgga_x_eel.c mgga_x_lak.c mgga_x_mspbel.c	 \
+	mgga_x_msrpbel.c mgga_x_msb86bl.c
 
-libxc_la_FUNC_SINGLE_SOURCES = $(libxc_la_FUNC_SOURCES:.c=_s.c)
-
-libxc_la_SOURCES = $(libxc_la_FUNC_SOURCES)
-
-if COMPILE_FORTRAN
-  libxc_la_SOURCES += xc_f.c libxc_funcs.f90 libxc.f90
-endif
-if COMPILE_SINGLE
-  nodist_libxc_la_SOURCES = $(libxc_la_FUNC_SINGLE_SOURCES)
-if COMPILE_FORTRAN
-    nodist_libxc_la_SOURCES += xc_f_s.c libxc_s.f90
-endif
-endif
-
-# libtool stuff
+libxc_la_SOURCES = references.c $(libxc_la_FUNC_SOURCES)
 libxc_la_LDFLAGS = -version-info $(XC_LT_VERSION)
-# this is a hack to go around buggy libtool/automake versions
-libxc_la_LIBTOOLFLAGS = --tag=F77
-LTFCCOMPILE = $(LIBTOOL) --mode=compile --tag=F77 $(FC) $(AM_FCFLAGS) $(FCFLAGS)
-FCLINK = $(LIBTOOL) --mode=link --tag=F77 $(FCLD) $(AM_FCFLAGS) $(FCFLAGS) \
-        $(AM_LDFLAGS) $(LDFLAGS) -o $@
 
+if COMPILE_FORTRAN
+  lib_LTLIBRARIES += libxcf03.la
 
-dist_noinst_SCRIPTS = get_funcs.pl
+  libxcf03_la_SOURCES = libxcf03.f90
+
+  # libtool stuff
+  libxcf03_la_LDFLAGS = -version-info $(XC_LT_VERSION)
+  libxcf03_la_LIBADD = libxc.la
+endif
 
 noinst_HEADERS = \
-	string_f.h util.h work_lda.c \
-	work_gga_x.c work_gga_c.c \
-	work_mgga_x.c work_mgga_c.c \
-	libxc_master.F90
-include_HEADERS = xc.h xc_config.h
-nodist_include_HEADERS = xc_funcs.h
-
-if COMPILE_SINGLE
-  include_HEADERS += xc_s.h
-endif
-
-BUILT_SOURCES = xc_funcs.h
+	string_f.h references.h util.h \
+	work_lda.c work_lda_inc.c work_gga.c work_gga_inc.c	\
+	work_mgga.c work_mgga_inc.c \
+	libxc_master.F90 \
+        funcs_lda.c funcs_hyb_lda.c funcs_gga.c funcs_hyb_gga.c funcs_mgga.c funcs_hyb_mgga.c funcs_key.c \
+	libxc_inc.f90
+include_HEADERS = xc.h xc_funcs.h xc_funcs_removed.h xc_funcs_worker.h
 
 ## declare fortran modules so they are installed
+fmoddir = @FMODDIR@
+fmod_DATA =
+
 if COMPILE_FORTRAN
 
+# Double precision modules are always compiled
 if F90_MOD_UPPERCASE
-  LIBFUNCMOD = LIBXC_FUNCS_M.@ax_cv_f90_modext@
+  XCF03LIBMODS = XC_F03_LIB_M.@ax_cv_f90_modext@ XC_F03_FUNCS_M.@ax_cv_f90_modext@
 else
-  LIBFUNCMOD = libxc_funcs_m.@ax_cv_f90_modext@
+  XCF03LIBMODS = xc_f03_lib_m.@ax_cv_f90_modext@ xc_f03_funcs_m.@ax_cv_f90_modext@
 endif
-nodist_include_HEADERS += $(LIBFUNCMOD)
+fmod_DATA += $(XCF03LIBMODS)
 
-if COMPILE_SINGLE
+endif # COMPILE_FORTRAN
 
-if F90_MOD_UPPERCASE
-  XCLIBMODS_S = XC_S_F90_LIB_M.@ax_cv_f90_modext@ XC_S_F90_TYPES_M.@ax_cv_f90_modext@
-else
-  XCLIBMODS_S = xc_s_f90_lib_m.@ax_cv_f90_modext@ xc_s_f90_types_m.@ax_cv_f90_modext@
-endif
-nodist_include_HEADERS += $(XCLIBMODS_S)
 
-else
+CLEANFILES = *~ *.bak *.mod *.il *.d *.pc* ifc*
 
-if F90_MOD_UPPERCASE
-  XCLIBMODS = XC_F90_LIB_M.@ax_cv_f90_modext@ XC_F90_TYPES_M.@ax_cv_f90_modext@
-else
-  XCLIBMODS = xc_f90_lib_m.@ax_cv_f90_modext@ xc_f90_types_m.@ax_cv_f90_modext@
-endif
-nodist_include_HEADERS += $(XCLIBMODS)
+xc_f.o : xc_f_inc.c
 
-endif
+funcs: $(srcdir)/../scripts/get_functional_info.py
+	$(srcdir)/../scripts/get_functional_info.py --srcdir=$(srcdir)
 
-endif
+LTPREF = $(subst xc_f.lo,,$(firstword $(am_libxcf03_la_OBJECTS)))
+# Surprisingly, libtool/automake do not seem to provide a macro or variable for what the object names will be,
+# so we have to extract it ourselves. LTPREF=libxcf03_la-, or blank for older libtool/automake versions.
+# Produces these warnings on some systems. Does not seem to matter.
+#src/Makefile.am:140: subst xc_f.lo,,$(firstword $(am_libxcf03_la_OBJECTS: non-POSIX variable name
+#src/Makefile.am:140: (probably a GNU make extension)
 
-SUFFIXES = _s.c
-.c_s.c:
-	@CPP@ -D SINGLE_PRECISION=1 @CPPFLAGS@ $(INCLUDES) $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $< > $*_s.c
-
-CLEANFILES = *~ *.bak *.mod *.il *.d *.pc* ifc* funcs_*.c funcs.h \
-	libxc.f90 libxc_funcs.f90 xc_funcs.h *_s.c *_s.f90
-
-xc_funcs.h libxc_funcs.f90: get_funcs.pl
-	$(srcdir)/get_funcs.pl $(srcdir) $(top_builddir)
-
-$(LIBFUNCMOD):
-	$(MAKE) libxc_funcs.o
-
-libxc.f90 $(XCLIBMODS): libxc_master.F90 libxc_funcs.o
-	@FCCPP@ @CPPFLAGS@ $(AM_CPPFLAGS) $(srcdir)/libxc_master.F90 > $(top_builddir)/src/libxc.f90
+LTPREF03 = $(subst libxcf03.lo,,$(firstword $(libxcf03_la_OBJECTS)))
+libxcf03.f90 : libxc_master.F90 libxc_inc.f90
+	@FCCPP@ @CPPFLAGS@ $(AM_CPPFLAGS) -I$(top_builddir)/src $(srcdir)/libxc_master.F90 > $(top_builddir)/src/libxcf03.f90
 	@if [ "@F90_ACCEPTS_LINE_NUMBERS@" = "no" ]; then \
-		grep -v "^#" $(top_builddir)/src/libxc.f90 > $(top_builddir)/src/libxc.f91; \
-		mv -f $(top_builddir)/src/libxc.f91 $(top_builddir)/src/libxc.f90; \
+		grep -v "^#" $(top_builddir)/src/libxcf03.f90 > $(top_builddir)/src/libxcf03.f91; \
+		mv -f $(top_builddir)/src/libxcf03.f91 $(top_builddir)/src/libxcf03.f90; \
 	fi
-libxc_s.f90 $(XCLIBMODS_S): libxc_master.F90 libxc_funcs.o
-	@FCCPP@ -D SINGLE_PRECISION=1 @CPPFLAGS@ $(AM_CPPFLAGS) $(srcdir)/libxc_master.F90 > $(top_builddir)/src/libxc_s.f90
-	@if [ "@F90_ACCEPTS_LINE_NUMBERS@" = "no" ]; then \
-		grep -v "^#" $(top_builddir)/src/libxc_s.f90 > $(top_builddir)/src/libxc_s.f91; \
-		mv -f $(top_builddir)/src/libxc_s.f91 $(top_builddir)/src/libxc_s.f90; \
-	fi
+
+$(XCF03LIBMODS) : $(LTPREF03)libxcf03.lo

@@ -1,19 +1,9 @@
 /*
  Copyright (C) 2006-2007 M.A.L. Marques
 
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU Lesser General Public License as published by
- the Free Software Foundation; either version 3 of the License, or
- (at your option) any later version.
-  
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Lesser General Public License for more details.
-  
- You should have received a copy of the GNU Lesser General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this
+ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
 #include <stdio.h>
@@ -22,6 +12,7 @@
 #include <string.h>
 
 #include <xc.h>
+#include <xc_funcs.h>
 
 static double xc_trial_points[][5] = {
   /* rhoa      rhob    sigmaaa   sigmaab   sigmabb */
@@ -78,7 +69,6 @@ double get_point(xc_func_type *func, double point[5], double *e, double der[5], 
       xc_lda_exc_vxc(func, 1, &(point[0]), e, &(der[0]));
       break;
     case XC_FAMILY_GGA:
-    case XC_FAMILY_HYB_GGA:
       xc_gga_exc_vxc(func, 1, &(point[0]), &(point[2]),
 		     e, &(der[0]), &(der[2]));
       break;
@@ -116,7 +106,6 @@ void get_fxc(xc_func_type *func, double point[5], double der[5][5])
       xc_lda_fxc(func, 1, &(point[0]), v2rho);
       break;
     case XC_FAMILY_GGA:
-    case XC_FAMILY_HYB_GGA:
       xc_gga_fxc(func, 1, &(point[0]), &(point[2]),
 		 v2rho, v2rhosigma, v2sigma);
       break;
@@ -217,10 +206,10 @@ void second_derivatives(xc_func_type *func, double point[5], double der[5][5])
 }
 
 
-void print_error(char *type, char *what, double diff, xc_func_type *func, double *p)
+void print_error(const char *type, const char *what, double diff, xc_func_type *func, double *p)
 {
-  static char *red="\033[31;1m", *norm="\033[0m";
-  char *color;
+  static const char *red="\033[31;1m", *norm="\033[0m";
+  const char *color;
 
   color = (diff > 5e-4) ? red : norm;
   
@@ -281,6 +270,7 @@ void print_error(char *type, char *what, double diff, xc_func_type *func, double
 }
 
 #if defined(HAVE_FEENABLEEXCEPT)
+#define __USE_GNU
 #define _GNU_SOURCE         /* See feature_test_macros(7) */
 #include <fenv.h>
 #endif
@@ -304,9 +294,11 @@ void test_functional(int functional)
 
   info = func.info;
 
-  if(functional == XC_LDA_C_2D_PRM)
-    xc_lda_c_2d_prm_set_params(&func, 10.0);
-  
+  if(functional == XC_LDA_C_2D_PRM){
+    static double lda_c_2d_prm_params[1] = {10.0};
+    xc_func_set_ext_params(&func, lda_c_2d_prm_params);
+  }  
+
   for(k=0; k<6; k++)
     for(j=0; j<5; j++){
       avg_diff[k][j] = 0.0;
@@ -331,9 +323,9 @@ void test_functional(int functional)
 
     if(info->flags & XC_FLAGS_HAVE_FXC){
       /* initialize */
-      for(i=0; i<5; i++)
+      for(k=0; k<5; k++)
 	for(j=0; j<5; j++)
-	  f_an[i][j] = f_fd[i][j] = 0.0;
+	  f_an[k][j] = f_fd[k][j] = 0.0;
 
       /* now get the second derivatives */
       second_derivatives(&func, val, f_fd);
@@ -406,27 +398,27 @@ void test_functional(int functional)
       print_error("Max.", "v2rho2", max_diff[i][j], &func, val);
 
       if(info->family > XC_FAMILY_LDA){
-	diff = avg_diff[3][0] + avg_diff[4][0] + avg_diff[5][0] + avg_diff[3][1] + avg_diff[4][1] + avg_diff[5][1];
-	diff = diff/6.0;
-	print_error("Avg.", "v2rhosig", diff, NULL, NULL);
-	if(max_diff[3][0] > max_diff[4][0]) {i=3; j=0;} else {i=4; j=0;}
-	if(max_diff[5][0] > max_diff[i][j]) {i=5; j=0;}
-	if(max_diff[3][1] > max_diff[i][j]) {i=3; j=1;}
-	if(max_diff[4][1] > max_diff[i][j]) {i=4; j=1;}
-	if(max_diff[5][1] > max_diff[i][j]) {i=5; j=1;}
-	get_val(xc_trial_points[p_max[i][j]], val);
-	print_error("Max.", "v2rhosig", max_diff[i][j], &func, val);
-
-	diff = avg_diff[3][2] + avg_diff[4][2] + avg_diff[5][2] + avg_diff[4][3] + avg_diff[5][3] + avg_diff[5][4];
-	diff = diff/6.0;
-	print_error("Avg.", "v2sig2", diff, NULL, NULL);
-	if(max_diff[3][2] > max_diff[4][2]) {i=3; j=2;} else {i=4; j=2;}
-	if(max_diff[5][2] > max_diff[i][j]) {i=5; j=2;}
-	if(max_diff[4][3] > max_diff[i][j]) {i=4; j=3;}
-	if(max_diff[5][3] > max_diff[i][j]) {i=5; j=3;}
-	if(max_diff[5][4] > max_diff[i][j]) {i=5; j=4;}
-	get_val(xc_trial_points[p_max[i][j]], val);
-	print_error("Max.", "v2sig2", max_diff[i][j], &func, val);
+        diff = avg_diff[3][0] + avg_diff[4][0] + avg_diff[5][0] + avg_diff[3][1] + avg_diff[4][1] + avg_diff[5][1];
+        diff = diff/6.0;
+        print_error("Avg.", "v2rhosig", diff, NULL, NULL);
+        if(max_diff[3][0] > max_diff[4][0]) {i=3; j=0;} else {i=4; j=0;}
+        if(max_diff[5][0] > max_diff[i][j]) {i=5; j=0;}
+        if(max_diff[3][1] > max_diff[i][j]) {i=3; j=1;}
+        if(max_diff[4][1] > max_diff[i][j]) {i=4; j=1;}
+        if(max_diff[5][1] > max_diff[i][j]) {i=5; j=1;}
+        get_val(xc_trial_points[p_max[i][j]], val);
+        print_error("Max.", "v2rhosig", max_diff[i][j], &func, val);
+        
+        diff = avg_diff[3][2] + avg_diff[4][2] + avg_diff[5][2] + avg_diff[4][3] + avg_diff[5][3] + avg_diff[5][4];
+        diff = diff/6.0;
+        print_error("Avg.", "v2sig2", diff, NULL, NULL);
+        if(max_diff[3][2] > max_diff[4][2]) {i=3; j=2;} else {i=4; j=2;}
+        if(max_diff[5][2] > max_diff[i][j]) {i=5; j=2;}
+        if(max_diff[4][3] > max_diff[i][j]) {i=4; j=3;}
+        if(max_diff[5][3] > max_diff[i][j]) {i=5; j=3;}
+        if(max_diff[5][4] > max_diff[i][j]) {i=5; j=4;}
+        get_val(xc_trial_points[p_max[i][j]], val);
+        print_error("Max.", "v2sig2", max_diff[i][j], &func, val);
       }
     }
   }

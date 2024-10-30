@@ -1,22 +1,9 @@
 /*
  Copyright (C) 2003 M. Marques, A. Castro, A. Rubio, G. Bertsch
 
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU Lesser General Public License as published by
- the Free Software Foundation; either version 2, or (at your option)
- any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Lesser General Public License for more details.
-
- You should have received a copy of the GNU Lesser General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
- 02111-1307, USA.
-
- $Id: string_f.h 3341 2007-10-12 15:47:30Z marques $
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this
+ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
 /* --------------------- Fortran to C string compatibility ---------------------- */
@@ -30,7 +17,7 @@
   fc = _fcdtocp(f);                                         \
   for(slen=_fcdlen(f)-1; slen>=0 && fc[slen]==' '; slen--); \
   slen++;                                                   \
-  c = (char *)malloc(slen+1);                               \
+  c = (char *)libxc_malloc(slen+1);                               \
   strncpy(c, _fcdtocp(f), slen);                            \
   c[slen] = '\0';                                           \
 }
@@ -65,7 +52,7 @@
   for(ll--; ll>=0; ll--)                   \
     if(f[ll] != ' ') break;                \
   ll++;                                    \
-  c = (char *)malloc((ll+1)*sizeof(char)); \
+  c = (char *)libxc_malloc((ll+1)*sizeof(char)); \
   for(i=0; i<ll; i++) c[i] = f[i];         \
   c[i] = '\0';                             \
 }

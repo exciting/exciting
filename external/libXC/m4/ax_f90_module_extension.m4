@@ -10,7 +10,7 @@ dnl @version 2005-06-17
 dnl @license AllPermissive
 
 AC_DEFUN([AX_F90_MODULE_EXTENSION],[
-AC_CACHE_CHECK([fortran 90 modules extension],
+AC_CACHE_CHECK([Fortran 90 modules extension],
 ax_cv_f90_modext,
 [AC_LANG_PUSH(Fortran)
 ax_f90_mod_uppercase=no
@@ -27,11 +27,13 @@ AC_COMPILE_IFELSE([module conftest_module
    end subroutine conftest_routine
    end module conftest_module
   ],
-  [ax_cv_f90_modext=`ls | sed -n 's,conftest_module\.,,p'`
-   if test x$ax_cv_f90_modext = x ; then
+  [
+dnl prune out 'submodule' file .smod from gcc version 6 and later
+   ax_cv_f90_modext=`ls | grep -v smod | sed -n 's,conftest_module\.,,p'`
+   if test x"$ax_cv_f90_modext" = x ; then
 dnl Some F90 compilers put module filename in uppercase letters
-     ax_cv_f90_modext=`ls | sed -n 's,CONFTEST_MODULE\.,,p'`
-     if test x$ax_cv_f90_modext = x ; then
+     ax_cv_f90_modext=`ls | grep -v SMOD | sed -n 's,CONFTEST_MODULE\.,,p'`
+     if test x"$ax_cv_f90_modext" = x ; then
        ax_cv_f90_modext=unknown
      else
        ax_f90_mod_uppercase=yes
