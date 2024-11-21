@@ -19,6 +19,8 @@ F77_DEBUGOPTS = $(F90_DEBUGOPTS)
 
 #Libraries
 export USE_SYS_LAPACK=true
+# Use internal libXC
+export USE_EXTERNAL_LIBXC=false
 LIB_LPK = -mkl=parallel
 LIB_FFT = fftlib.a
 LIB_BZINT = libbzint.a
