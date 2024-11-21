@@ -59,8 +59,15 @@ $(error SIRIUS_ROOT must be set in the environment or hard-coded in make.inc)
 endif
 SIRIUS_CPP_FLAGS=-DSIRIUS -I$(SIRIUS_ROOT)/include/sirius
 
+ifeq ($(LIBXC_ROOT),)
+$(error LIBXC_ROOT must be set in the environment or hard-coded in make.inc)
+endif
+
 # Note, CPP_ON_OPTS is used for all libs, but unnecessary options get ignored
-CPP_ON_OPTS = -cpp -DXS -DISO $(SIRIUS_CPP_FLAGS)
+# Notice that if LIBXC is 7 or higher you need to add -DLIBXC_HAS_FUNC_MOD to the CPP_ON_OPTS
+CPP_ON_OPTS = -cpp -DXS -DISO $(SIRIUS_CPP_FLAGS) -DLIBXC -I$(LIBXC_ROOT)/include/
+# Notice that we need to use the libXC SIRIUS is installed with
+export USE_EXTERNAL_LIBXC=true 
 
 F90_DEBUGOPTS = -g -O0 -DUSE_ASSERT -fbounds-check -fbacktrace -Wall -Wextra -ffree-line-length-0 -fcheck=all -finit-integer=2147483647 -finit-real=snan \
 -frecord-gcc-switches -finit-character=42 -finit-loical=true -ffpe-trap=invalid,zero,overflow -fdump-core -fstack-protector-all -pipe

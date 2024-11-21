@@ -107,13 +107,21 @@ tidy::
 # --------------------------------
 
 ifeq ($(USE_SYS_LAPACK), true)
-libs:: libfox libbzint.a fftlib.a libmsec.a leblaiklib.a libxc.a liblbfgs.a #libfftw3x_cdft.a
+  ifeq ($(USE_EXTERNAL_LIBXC), false)
+    libs:: libfox libbzint.a fftlib.a libmsec.a leblaiklib.a libxc.a liblbfgs.a
+  else
+    libs:: libfox libbzint.a fftlib.a libmsec.a leblaiklib.a liblbfgs.a
+  endif
+else
+  ifeq ($(USE_EXTERNAL_LIBXC), false)
+    libs:: libfox libbzint.a libblas.a liblapack.a fftlib.a libmsec.a \
+            leblaiklib.a libxc.a liblbfgs.a
+  else
+    libs:: libfox libbzint.a libblas.a liblapack.a fftlib.a libmsec.a \
+            leblaiklib.a liblbfgs.a
+  endif
 endif
 
-ifeq ($(USE_SYS_LAPACK), false)
-libs:: libfox libbzint.a libblas.a liblapack.a fftlib.a libmsec.a \
-	leblaiklib.a libxc.a liblbfgs.a
-endif
 
 # --------------------------------
 # External libraries
@@ -149,25 +157,30 @@ endif
 
 libxc.a:lib/libxc.a
 
+ifeq ($(USE_EXTERNAL_LIBXC),false)
 ifeq ($(HLRN),true)
 lib/libxc.a:
-	cd ../../external/libXC/ && \
+	cd ../../external/libXC/ && touch aclocal.m4 configure Makefile.am Makefile.in && \
 	module swap craype-$(CNODE_ARCH) craype-$(LNODE_ARCH) && \
-	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPTS)" CC=$(CC) FCCPP=$(FCCPP) --enable-static=yes --enable-shared=no --prefix=$(PWD)/install-libXC && \
+	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPTS)" CC=$(CC) FCCPP=$(FCCPP) \
+				--enable-static=yes --enable-shared=no --prefix=$(PWD)/install-libXC && \
 	module swap craype-$(LNODE_ARCH) craype-$(CNODE_ARCH) && \
-	make && make install
-        ln -s ../install-libXC/lib/libxc.a ./lib/libxc.a && \
-        ln -s ../install-libXC/lib/libxcf03.a ./lib/libxcf03.a && \
-        ln -s install-libXC/include/xc_f03_* .
+	make && make install && \
+        ln -s $(PWD)/install-libXC/lib/libxc.a $(PWD)/lib/ && \
+        ln -s $(PWD)/install-libXC/lib/libxcf03.a $(PWD)/lib/ && \
+        ln -s $(PWD)/install-libXC/include/xc_f03_* $(PWD)/
 else
 lib/libxc.a:
-	cd ../../external/libXC/ && \
-	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPTS)" CC=$(CC) FCCPP=$(FCCPP) --enable-static=yes --enable-shared=no --prefix=$(PWD)/install-libXC && \
-	make && make install
-	ln -s ../install-libXC/lib/libxc.a ./lib/libxc.a && \
-	ln -s ../install-libXC/lib/libxcf03.a ./lib/libxcf03.a && \
-	ln -s install-libXC/include/xc_f03_* .
+	cd ../../external/libXC/ && touch aclocal.m4 configure Makefile.am Makefile.in && \
+	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPTS)" CC=$(CC) FCCPP=$(FCCPP) \
+				--enable-static=yes --enable-shared=no --prefix=$(PWD)/install-libXC && \
+	make && make install && \
+	ln -s $(PWD)/install-libXC/lib/libxc.a $(PWD)/lib/ && \
+	ln -s $(PWD)/install-libXC/lib/libxcf03.a $(PWD)/lib/ && \
+	ln -s $(PWD)/install-libXC/include/xc_f03_* $(PWD)/
 endif
+endif
+
 
 leblaiklib.a::
 	cd ../../external/leblaiklib && make
@@ -176,12 +189,6 @@ leblaiklib.a::
 liblbfgs.a::
 	cd ../../external/Lbfgsb.3.0 && make
 	cp ../../external/Lbfgsb.3.0/liblbfgs.a ./
-
-#libfftw3x_cdft.a::
-#	cd "$(MKLROOT)"/interfaces/fftw3x_cdft && \
-#	$(MAKE) libintel64 INSTALL_DIR="$(THISDIR)/lib/intel64" mpi=intelmpi compiler=intel INSTALL_LIBNAME="libfftw3x_cdft" \
-#  TARGET_ARCH="-lmkl_cdft_core -lmkl_intel_ilp64"
-
 
 # --------------------------------
 # Internal libraries
@@ -231,3 +238,4 @@ cleanlibs:
 	-cd ../../external/FoX && make clean
 	-cd ../../external/leblaiklib && make clean
 	-cd ../../external/Lbfgsb.3.0 && make clean
+

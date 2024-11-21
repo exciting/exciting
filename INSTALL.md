@@ -157,7 +157,7 @@ such as Exciting, Elk and Quantum ESPRESSO.
 Compiling exciting with SIRIUS is complex. To simplify the procecss of building dependencies, SIRIUS can be
 completely installed with the python package manager [spack](https://spack.readthedocs.io/en/latest/getting_started.html).
 
-As of exciting Flurine, only a CPU build chain using GCC on Ubuntu Focal is regularly tested in exciting's 
+As of exciting Neon, only a CPU build chain using GCC on Ubuntu Focal is regularly tested in exciting's 
 CI. This is provided in [build/utilities/docker/Dockerfile_ci_sirius](build/utilities/docker/Dockerfile_ci_sirius). 
 
 ```shell
@@ -202,6 +202,11 @@ cp build/platforms/make.inc.sirius build/make.inc
 # to be consistent with the user's own installation path:
 # emacs build/make.inc
 # SIRIUS_ROOT=<ADD ME>
+# Note that exciting and SIRIUS need to be linked to the same libXC version.
+# If the version is 7 or higher, the option `-DLIBXC_HAS_FUNC_MOD` is required.
+# If SIRIUS is built with SPACK set `SIRIUS_ROOT` to the output of `spack location -i sirius` 
+# and LIBXC_ROOT to `spack location -i libxc`.
+
 
 spack build-env ${SPEC} -- make mpiandsmp -j 4
 ```
@@ -215,7 +220,7 @@ cd test/
 #   NONE: False
 #   SLOW_TESTS: False
 #   GW: False
-#   LIBXC: False
+#   LIBXC: True
 #   SIRIUS: True
 python3 runtest.py -e exciting_mpismp -t sirius
 ```
@@ -236,7 +241,6 @@ SIRIUS Gotchas
 * On some architectures, sirius will install to `$SIRIUS_ROOT/lib64`, not `$SIRIUS_ROOT/lib`. This will be
   clear at the linking step, where exciting fails to find sirius, and requires one to manually edit the
   `make.inc` file to point to the correct directory.
-
 
 fastBSE
 ------------------
@@ -298,9 +302,9 @@ exciting requires an F2008-compliant compiler. exciting is known to compile with
 
 Compliant but not tested:
 
-* Intel: 2022
+* Intel ifort: 2022
 
-* GCC: 11
+* GCC: 11, 14, 15
 
 
 Known Issues
