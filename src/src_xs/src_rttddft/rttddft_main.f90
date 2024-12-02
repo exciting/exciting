@@ -111,7 +111,9 @@ contains
 
     integer :: it, first_kpt, last_kpt, n_steps
     integer :: i_print, is, timeStepMultiplier, l_rad_step
-    logical :: predCorrReachedMaxSteps, my_rank_writes_to_output
+    logical :: predCorrReachedMaxSteps, my_rank_writes_to_output, &
+    density_needed, evolve_H0
+    complex(dp), allocatable :: ham_init(:, :, :)
 
     character(len=100)      :: string
 
@@ -242,6 +244,13 @@ contains
       if( my_rank_writes_to_output ) call write_timing( timef-timei ) !write time for initialization
     end if
 
+    ! whether explicitly field-independent Hamiltonian should be evolved in time
+    evolve_H0 = .false.
+    if ( molecular_dynamics%on .or. ( .not. rt%eeInteraction%ipa ) ) evolve_H0 = .true.
+    if ( .not. evolve_H0  ) allocate( ham_init, source = ham_time )
+
+    ! We may need charge density on some steps
+    density_needed = ( .not. rt%eeInteraction%ipa )
     i_print = 1
     timeiter = timef
     ! This is the most important loop (performed for each time step \(\Delta t\)
@@ -271,11 +280,11 @@ contains
       if ( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%current_density )
 
       ! DENSITY
-      call UpdateDensity( first_kpt, evecfv_time(:, :, first_kpt : last_kpt), &
+      if ( density_needed ) call UpdateDensity( first_kpt, evecfv_time(:, :, first_kpt : last_kpt), &
         evecsv, it, rt%normalize_WF, l_rad_step, rt%printTimings, timing%t_RTTDDFT%dens )
 
       ! KS-POTENTIAL
-      call uppot( rt%printTimings, timing%t_RTTDDFT%pot )
+      if ( .not. rt%eeInteraction%ipa ) call uppot( rt%printTimings, timing%t_RTTDDFT%pot )
 
       ! VECTOR POTENTIAL
       if( rt%printTimings%general() ) call timesec( timei )
@@ -304,10 +313,11 @@ contains
 
       ! HAMILTONIAN
       ham_past = ham_time
-      call UpdateHam( first_kpt, vec_pot%a_tot, predcorr=.False., calculateOverlap=.False., forcePmatHermitian=rt%pmat%force_pmat_hermitian, &
+      call UpdateHam( first_kpt, vec_pot%a_tot, predcorr=.False., calculateOverlap=.False., &
+        calculateH0=evolve_H0, forcePmatHermitian=rt%pmat%force_pmat_hermitian, &
         overlap=overlap, ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, pmat=pmat, &
         printTimings=rt%printTimings, t_ham=timing%t_RTTDDFT%ham, t_MD=timing%t_Ehrenfest, &
-        update_mathcalH=.False., update_mathcalB=.False., update_pmat=.False. )
+        update_mathcalH=.False., update_mathcalB=.False., update_pmat=.False., ham_init=ham_init )
 
       if ( rt%predictor_corrector%on ) then
         if ( rt%printTimings%general() ) call timesec( timei )
@@ -354,13 +364,13 @@ contains
             ham_past = ham_time  
             call UpdateHam( first_kpt, vec_pot%a_tot, predcorr=.False., &
               & forcePmatHermitian=rt%pmat%force_pmat_hermitian, &
-              & calculateOverlap=molecular_dynamics%update_overlap, &
+              & calculateOverlap=molecular_dynamics%update_overlap, calculateH0=evolve_H0, &
               & overlap=overlap, ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, &
               & pmat=pmat, pmatmt=pmatmt, &
               & printTimings=rt%printTimings, t_ham=timing%t_RTTDDFT%ham, t_MD=timing%t_Ehrenfest, &
               & update_mathcalH=allocated(mathcalH), &
               & update_mathcalB=allocated(mathcalB), &
-              & update_pmat=molecular_dynamics%update_pmat )
+              & update_pmat=molecular_dynamics%update_pmat, ham_init=ham_init )
           end if
           if( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_Ehrenfest%t_MD_step )
         else ! if ( mod( it, timeStepMultiplier ) == 0 )
@@ -410,8 +420,8 @@ contains
         end if
         if( rt%printTimings%general() ) then
           call timesec_RTTDDFT( timeiter, timing_store(rt%n_print)%t_iteration )
-          if( my_rank_writes_to_output ) call write_timing( it, rt%printTimings%detailed(), rt%calculate_total_energy, &
-            rt%calculate_n_exc, rt%predictor_corrector%on, timing_store, screenshot_was_taken, molecular_dynamics%on )
+          if( my_rank_writes_to_output ) call write_timing( it, timing_store, &
+          screenshot_was_taken, molecular_dynamics%on )
         end if
         i_print = 0
       else ! if ( iprint == rt%n_print ) 
@@ -529,6 +539,9 @@ contains
       ! Consistency check: predictor corrector method cannot be used with propagators SE and EH
       call terminate_if_false( trim(inp%xs%realTimeTDDFT%propagator)/='SE' .and. trim(inp%xs%realTimeTDDFT%propagator)/='EH', &
         & 'EH and SE methods are not compatible with predictor-corrector' )
+      ! Consistency check: predictor corrector method should not be used with frozen ee interaction
+      call terminate_if_false( trim( inp%xs%realTimeTDDFT%eeInteraction ) /= "IPA", &
+        & 'Predictor corrector method should not be used together with IPA approximation')
     end if
 
   end subroutine
@@ -618,7 +631,6 @@ contains
 
       ! DENSITY
       call UpdateDensity( first_kpt, evecfv_time, evecsv, it, rt%normalize_WF, l_rad_step )
-
       ! KS-POTENTIAL
       call uppot()
 
@@ -638,8 +650,9 @@ contains
       ! HAMILTONIAN
       ham_predcorr = ham_time
       call UpdateHam( first_kpt, a_t%a_tot, predcorr=.True., calculateOverlap=.False., &
-        forcePmatHermitian=rt%pmat%force_pmat_hermitian, overlap=overlap, &
-        ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, pmat=pmat )
+        calculateH0=.true., forcePmatHermitian=rt%pmat%force_pmat_hermitian, &
+        overlap=overlap, ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, &
+        pmat=pmat )
 
       ! Check the difference between the two hamiltonians
       err = maxval( abs(ham_predcorr - ham_time) )

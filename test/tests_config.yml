@@ -650,6 +650,26 @@ RT-TDDFT/GGA_PBE-C-trapCos-EHM-predictorCorrector:
       - "input.xml"
       - "C.xml"
 
+RT-TDDFT/GGA_PBE-C-trapCos-EHM-IPA:
+    files_under_test:
+      - "atoms.xml"
+      - "eigval.xml"
+      - "evalcore.xml"
+      - "JIND.OUT"
+      - "NEXC.OUT"
+      - "ETOT_RTTDDFT.OUT"
+      - "EIGVAL_0.OUT"
+      - "EIGVAL_5.OUT"
+      - "EIGVAL_10.OUT"
+      - "EIGVAL_15.OUT"
+      - "PROJ_0.OUT"
+      - "PROJ_5.OUT"
+      - "PROJ_10.OUT"
+      - "PROJ_15.OUT"
+    inputs:
+      - "input.xml"
+      - "C.xml"
+
 RT-TDDFT/LDA_PW-C-kick-RK4:
 
 RT-TDDFT/LDA_PW-Ehrenfest-C:

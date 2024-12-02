@@ -15,7 +15,7 @@ module rttddft_HamiltonianOverlap
   use mod_APW_LO, only: apword, nlorb, lorbl
   use mod_atoms, only: nspecies, natoms, idxas, atposc
   use mod_eigensystem, only: nmat, idxlo, h1aa, h1loa, h1lolo, &
-    oalo, ololo, MTHamiltonianList, MTInitAll, MTNullify, MTRelease
+    oalo, ololo, MTHamiltonianList, MTInitAll, MTNullify
   use mod_gkvector, only: ngk, vgkc, igkig
   use mod_gvector, only: ivg, ivgig, cfunig, ngvec
   use mod_lattice, only: omega
@@ -43,19 +43,21 @@ contains
 
   !> In UpdateHam, we obtain the hamiltonian (and if requested, the overlap) at 
   !> time \( t \).
-  subroutine UpdateHam( first_kpt, a_tot, predcorr, calculateOverlap, forcePmatHermitian, &
-    overlap, ham_time, ham_past, apwalm, pmat, pmatmt, printTimings, t_ham, t_MD, &
-    & update_mathcalH, update_mathcalB, update_pmat )
+  subroutine UpdateHam( first_kpt, a_tot, predcorr, calculateOverlap, calculateH0, &
+    forcePmatHermitian, overlap, ham_time, ham_past, apwalm, pmat, pmatmt, printTimings, &
+    t_ham, t_MD, update_mathcalH, update_mathcalB, update_pmat, ham_init )
     !> The first k point
     integer(i32), intent(in) :: first_kpt
     !> Total vector potential
     type(Vector_Potential_Field), intent(in) :: a_tot
     !> tells if we are in the loop of the predictor-Corrector scheme    
-    logical, intent(in)               :: predcorr
+    logical, intent(in) :: predcorr
     !> tells if we need to calculate the overlap
-    logical, intent(in)               :: calculateOverlap
+    logical, intent(in) :: calculateOverlap
+    !> tells if we need to calculate the external field-independent Hamiltonian
+    logical, intent(in) :: calculateH0
     !> if `.true.`, force pmat to be hermitian
-    logical, intent(in)               :: forcePmatHermitian
+    logical, intent(in) :: forcePmatHermitian
     !> Overlap matrix (of basis functions) (nmatmax, nmatmax, first_kpt : last_kpt)
     complex(dp), intent(inout) :: overlap(:, :, first_kpt :)
     !> Hamiltonian matrix at current time \(t\) (nmatmax, nmatmax, first_kpt : last_kpt)
@@ -78,20 +80,22 @@ contains
     !> Object that packs information about timings related to MD
     type(Timing_Ehrenfest), optional, intent(out) :: t_MD
     !> if `.True.`, update `mathcalH`
-    logical, intent(in), optional     :: update_mathcalH
+    logical, intent(in), optional :: update_mathcalH
     !> if `.True.`, update `mathcalB`
-    logical, intent(in), optional     :: update_mathcalB
+    logical, intent(in), optional :: update_mathcalB
     !> if `.True.`, update `pmat`
-    logical, intent(in), optional     :: update_pmat
+    logical, intent(in), optional :: update_pmat
+    !> Hamiltonian matrix at time \(t = 0 \) (nmatmax, nmatmax, first_kpt : last_kpt)
+    complex(dp), intent(in), optional :: ham_init(:, :, first_kpt :)
     
 
-    integer               :: ik, nmatp, last_kpt
-    real(dp)              :: ti, tf, tStart
-    logical               :: tGen, tDetail
-    logical               :: get_mathcalH, get_mathcalB, get_pmat, get_pmat_mt
+    integer :: ik, nmatp, last_kpt
+    real(dp) :: ti, tf, tStart
+    logical :: tGen, tDetail
+    logical :: get_mathcalH, get_mathcalB, get_pmat, get_pmat_mt
 
     last_kpt = ubound( ham_time, 3 )
-
+  
     ! factor that multiplies the overlap matrix (when we compute the hamiltonian)
     atot = a_tot%components
     fact = dot_product( atot, atot ) / (2._dp * c**2)
@@ -116,6 +120,7 @@ contains
     if( tGen ) call assert( present(t_ham) .or. present(t_MD), &
       't_ham or t_MD must be present when general timing is desired' )
     if( tDetail ) call assert( tGen, 'tGen must be true if tDetail is true')
+    if ( .not. calculateH0 ) call assert( present( ham_init ), 'ham_init is needed to avoid H0 recalculation' )
 
     if( tGen ) then 
       call timesec( ti )
@@ -131,24 +136,33 @@ contains
       if( tDetail .and. present(t_MD) ) call timesec_RTTDDFT( ti, t_MD%pmat )
     end if
 
-    call MTNullify(mt_h)
-    call MTInitAll(mt_h)
-    call hmlint(mt_h)
+    if ( calculateH0 ) then
+      call mt_h%release()
+      call MTNullify(mt_h)
+      call MTInitAll(mt_h)
+      call hmlint(mt_h)
+      if ( tDetail .and. present( t_ham ) ) call timesec_RTTDDFT( ti, t_ham%hmlint )
+    end if
 
-    if ( tDetail .and. present(t_ham) ) call timesec_RTTDDFT( ti, t_ham%hmlint )
-
-    if ( .not. predcorr ) ham_past(:, :, :) = ham_time(:, :, :)
+    if ( .not. predcorr ) ham_past = ham_time
 
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(NONE), PRIVATE(ik, nmatp), &
-!$OMP& SHARED(first_kpt, last_kpt, calculateOverlap), &
+!$OMP& SHARED(first_kpt, last_kpt, calculateOverlap, ham_init), &
 !$OMP& SHARED(fact, atot, pmat, ham_time, apwalm, pmatmt), &
-!$OMP& SHARED(overlap, nmat, get_mathcalH, get_mathcalB)
+!$OMP& SHARED(overlap, nmat, get_mathcalH, get_mathcalB, calculateH0)
 !$OMP DO
 #endif
     do ik = first_kpt, last_kpt
+
       nmatp = nmat(1, ik)
-      call hamsetup( ik, ham_time(:, :, ik), apwalm(:, :, :, :, ik), nmatp, get_mathcalH )
+
+      if ( calculateH0 ) then
+        call hamsetup( ik, ham_time(:, :, ik), apwalm(:, :, :, :, ik), nmatp, get_mathcalH )
+      else
+        ham_time(:, :, ik) = ham_init(:, :, ik)
+      end if
+
       if ( calculateOverlap ) then
         if ( get_mathcalB .or. get_mathcalH ) then
           call overlapsetup( ik, overlap(:, :, ik), apwalm(:, :, :, :, ik), &
@@ -171,8 +185,6 @@ contains
 !$OMP END DO NOWAIT
 !$OMP END PARALLEL
 #endif
-    
-    call mt_h%release()
 
     if ( get_mathcalH ) call obtain_interstitial_contribution_mathcalH( &
       & first_kpt, last_kpt )
@@ -243,7 +255,6 @@ end subroutine UpdateHam
 !>                     to the auxiliary matrix mathcalH
   subroutine hamsetup( ik, ham_time, apwalm, nmatp, calculate_mathcalH )
     use constants, only: zzero, zone, zi
-    use rttddft_GlobalVariables, only: mathcalH
 
     implicit none
     !> ik: the index of the k-point considered
@@ -382,7 +393,7 @@ end subroutine UpdateHam
   subroutine overlapsetup( ik, overlap, apwalm, nmatp, calculate_mathcalB, calculate_mathcalH, pmatmt )
     use constants, only: zzero, zone, zi
     use physical_constants, only: alpha
-    use rttddft_GlobalVariables, only: mathcalB, mathcalH
+    use rttddft_GlobalVariables, only: mathcalB
 
     !> ik: the index of the k-point considered
     integer, intent(in)       :: ik

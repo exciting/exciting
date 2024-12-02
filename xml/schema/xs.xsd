@@ -824,6 +824,22 @@
               </xs:simpleType>
             </xs:attribute>
 
+            <xs:attribute ex:importance="expert" ex:unit="" name="eeInteraction" default="aDFT">
+              <xs:annotation>
+                <xs:documentation> Approximation used for the time-dependent interelectronic interaction. 
+                Possible choices are: aDFT (adiabatic density functional theory),
+                      IPA (independent particles approximation: time-dependent Hamiltonian 
+                      <inlinemath>H(t) = H(t = 0) + V_{\rm ext}(t)</inlinemath>, where 
+                      <inlinemath>V_{\rm ext}(t)</inlinemath> describes only the interaction with external fields). </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="aDFT"/>
+                  <xs:enumeration value="IPA"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
           </xs:complexType>
         </xs:element>
 
