@@ -32,6 +32,11 @@ module rttddft_input
     real(dp)                  :: tol
   end type
 
+  type :: eeInteraction_keys
+    !> Flag that tells if IPA should be invoked
+    logical :: ipa
+  end type
+
   !> Type to encapsulate the elements and attributes defined in the input file
   type, public :: rttddft_input_keys
     !> Type to encapsulate the attributes of screenshots
@@ -42,6 +47,8 @@ module rttddft_input
     type(predictorCorrector_keys)           :: predictor_corrector
     !> Type to encapsulate the elements related to the WF propagation
     type(propagator_input_elements)         :: propagator_input
+    !> Type to encapsulate eeInteraction-related propagation parameters
+    type(eeInteraction_keys) :: eeInteraction
     !> Wether the KS wavefunctions must be normalized in each step 
     logical                                 :: normalize_WF
     !> Print output data every `n_print` steps
@@ -93,6 +100,8 @@ subroutine rttddft_input_keys_parse_input( this, rt_input, tol, a_vec )
     this%predictor_corrector%tol = rt_input%predictorCorrector%tol
     this%predictor_corrector%max_steps = rt_input%predictorCorrector%maxIterations
   end if
+
+  this%eeInteraction%ipa = ( trim( rt_input%eeInteraction ) == "IPA" )
 
 end subroutine
 

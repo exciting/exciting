@@ -290,30 +290,22 @@ contains
     !> Time taken to initialize RT-TDDFT
     real(dp), intent(in) :: timing_init
 
-    write( file_time, format_timing ) 'Initialization (sec):',timing_init
+    call write_nonzero_timing( 'Initialization (sec):', timing_init )
   end subroutine
 
   !> Subroutine to output the timings into `TIMING_RTTDDFT.OUT`
-  subroutine write_timing_RTTDDFT_steps( itNumber, detailed_timings, calculateTotalEnergy, &
-      calculateNexc, predictorCorrector, timing, screenshot_was_taken, molecular_dynamics )
+  subroutine write_timing_RTTDDFT_steps( itNumber, timing, &
+    screenshot_was_taken, molecular_dynamics )
     !> itNumber: The actual number of the counter that tells how many time steps 
     !> have already been executed
-    integer, intent(in)                     :: itNumber
-    !> If `.true.`, print out detailed timings
-    logical, intent(in)                     :: detailed_timings
-    !> If `.true.` and `detailed_timings` too, print out timings of total energy
-    logical, intent(in)                     :: calculateTotalEnergy
-    !> If `.true.` and `detailed_timings` too, print out timings of nexc
-    logical, intent(in)                     :: calculateNexc
-    !> If `.true.`, print out timings spent in the predictor-corrector loop
-    logical, intent(in)                     :: predictorCorrector
+    integer, intent(in) :: itNumber
     !> timing: Array of timings. Each elements contains information
     !>   about how many seconds (timings) were spent in different parts of code
     type(Timing_RTTDDFT_and_MD), intent(in) :: timing(:)
     !> if `.True.`, a screenshot was taken at `itNumber`
-    logical, intent(in)                     :: screenshot_was_taken(:)
+    logical, intent(in) :: screenshot_was_taken(:)
     !> Does timings about MD need to be printed?
-    logical, intent(in), optional           :: molecular_dynamics
+    logical, intent(in), optional :: molecular_dynamics
     
     integer  :: ip, shift, n
     logical  :: MD
@@ -327,53 +319,44 @@ contains
 
     do ip = 1, n
       associate( t_rttddft => timing(ip)%t_RTTDDFT )
-      write(file_time,'(A30,I10)')'Time (sec) spent in iteration:',ip+shift
-      write(file_time,format_timing) 'updatewvf:',t_rttddft%wavefunction
-      write(file_time,format_timing) 'updatedens:',t_rttddft%dens%total
-      if ( detailed_timings ) then
-        write(file_time,format_timing) '-- rhovalk and genrhoir:',t_rttddft%dens%rho
-        write(file_time,format_timing) '-- symrf:',t_rttddft%dens%symrf
-        write(file_time,format_timing) '-- rfmtctof:',t_rttddft%dens%rfmtctof
-        write(file_time,format_timing) '-- addrhocr:',t_rttddft%dens%addrhocr
-        write(file_time,format_timing) '-- charge:',t_rttddft%dens%charge
-        write(file_time,format_timing) '-- rhonorm:',t_rttddft%dens%rhonorm
-      end if
-      write(file_time,format_timing) 'updatepot:',t_rttddft%pot%total
-      if ( detailed_timings ) then
-        write(file_time,format_timing) '-- poteff:',t_rttddft%pot%poteff
-        write(file_time,format_timing) '-- genveffig:',t_rttddft%pot%genveffig
-        write(file_time,format_timing) '-- genmeffig:',t_rttddft%pot%genmeffig
-      end if
-      write(file_time,format_timing) 'UpdateCurrentDensity:',t_rttddft%current_density
-      write(file_time,format_timing) 'ObtainA:',t_rttddft%vector_potential
-      write(file_time,format_timing) 'updatehamiltonian:',t_rttddft%ham%total
-      if ( detailed_timings ) then
-        write(file_time,format_timing) '-- hmlint:',t_rttddft%ham%hmlint
-        write(file_time,format_timing) '-- other subs:',t_rttddft%ham%rest
-      end if
-      if ( predictorCorrector )  &
-        & write(file_time,format_timing) 'All cycles of predcorr:',t_rttddft%pred_corr
-      if ( calculateTotalEnergy .and. detailed_timings ) write(file_time,format_timing) 'Total Energy:',t_rttddft%energy
-      if ( calculateNexc .and. detailed_timings ) write(file_time,format_timing)'nexc:',t_rttddft%n_exc
-      if ( screenshot_was_taken(ip) ) write(file_time,format_timing) 'Screenshots:',t_rttddft%screenshot
+      write( file_time, '(A30,I10)' ) 'Time (sec) spent in iteration:', ip + shift
+      call write_nonzero_timing( 'updatewvf:', t_rttddft%wavefunction )
+      call write_nonzero_timing( 'updatedens:', t_rttddft%dens%total )
+      call write_nonzero_timing( '-- rhovalk and genrhoir:', t_rttddft%dens%rho )
+      call write_nonzero_timing( '-- symrf:', t_rttddft%dens%symrf )
+      call write_nonzero_timing( '-- rfmtctof:', t_rttddft%dens%rfmtctof )
+      call write_nonzero_timing( '-- addrhocr:', t_rttddft%dens%addrhocr )
+      call write_nonzero_timing( '-- charge:', t_rttddft%dens%charge )
+      call write_nonzero_timing( '-- rhonorm:', t_rttddft%dens%rhonorm )
+      call write_nonzero_timing( 'updatepot:', t_rttddft%pot%total )
+      call write_nonzero_timing( '-- poteff:', t_rttddft%pot%poteff )
+      call write_nonzero_timing( '-- genveffig:', t_rttddft%pot%genveffig )
+      call write_nonzero_timing( '-- genmeffig:', t_rttddft%pot%genmeffig )
+      call write_nonzero_timing( 'UpdateCurrentDensity:', t_rttddft%current_density )
+      call write_nonzero_timing( 'ObtainA:', t_rttddft%vector_potential )
+      call write_nonzero_timing( 'updatehamiltonian:', t_rttddft%ham%total )
+      call write_nonzero_timing( '-- hmlint:', t_rttddft%ham%hmlint )
+      call write_nonzero_timing( '-- other subs:', t_rttddft%ham%rest )
+      call write_nonzero_timing( 'All cycles of predcorr:', t_rttddft%pred_corr )
+      call write_nonzero_timing( 'Total Energy:', t_rttddft%energy )
+      call write_nonzero_timing( 'nexc:', t_rttddft%n_exc )
+      call write_nonzero_timing( 'Screenshots:', t_rttddft%screenshot )
       end associate
       if( MD ) then
         associate( t_MD => timing(ip)%t_Ehrenfest )
         if( t_MD%MD_was_carried_out ) then
-          write(file_time,format_timing) 'MD:', t_MD%t_MD_step
-          if( detailed_timings ) then
-            write(file_time,format_timing) '-- 1st part of forces:', t_MD%t_MD_1st
-            write(file_time,format_timing) '-- 2nd part of forces:', t_MD%t_MD_2nd
-            write(file_time,format_timing) '-- sum forces:', t_MD%t_MD_sumforces 
-            write(file_time,format_timing) '-- move ions:', t_MD%t_MD_moveions
-            write(file_time,format_timing) '-- update basis:', t_MD%t_MD_updateBasis
-            write(file_time,format_timing) '-- update H, S:', t_MD%hamoverl
-            write(file_time,format_timing) '-- update pmat:', t_MD%pmat
-          end if
+          call write_nonzero_timing( 'MD:', t_MD%t_MD_step )
+          call write_nonzero_timing( '-- 1st part of forces:', t_MD%t_MD_1st )
+          call write_nonzero_timing( '-- 2nd part of forces:', t_MD%t_MD_2nd )
+          call write_nonzero_timing( '-- sum forces:', t_MD%t_MD_sumforces )
+          call write_nonzero_timing( '-- move ions:', t_MD%t_MD_moveions )
+          call write_nonzero_timing( '-- update basis:', t_MD%t_MD_updateBasis )
+          call write_nonzero_timing( '-- update H, S:', t_MD%hamoverl )
+          call write_nonzero_timing( '-- update pmat:', t_MD%pmat )
         end if
         end associate
       end if
-      write(file_time,format_timing) 'time per iteration:',timing(ip)%t_iteration
+      write( file_time, format_timing ) 'time per iteration:', timing(ip)%t_iteration
     end do
   end subroutine
 
@@ -461,6 +444,19 @@ contains
       end if
       call barrier()
     end do
+  end subroutine
+
+    !> Write timing only if it is nonzero (> tol)
+  subroutine write_nonzero_timing( description, timing )
+    !> Action name
+    character(len = *), intent(in) :: description
+    !> Action duration
+    real(dp), intent(in) :: timing
+
+    real(dp), parameter :: tol = 1.0e-7_dp
+
+    if ( timing > tol ) write( file_time, format_timing ) description, timing
+
   end subroutine
 
 end module

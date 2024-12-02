@@ -189,7 +189,8 @@ subroutine initialize_rttddft( input_pmat, predictorCorrector, vec_pot, molecula
   end if
 
   ! Hamiltonian at time t=0
-  call UpdateHam( first_kpt, vec_pot%a_tot, predcorr=.False., calculateOverlap=.True., forcePmatHermitian=input_pmat%force_pmat_hermitian, &
+  call UpdateHam( first_kpt, vec_pot%a_tot, predcorr=.False., calculateOverlap=.True., &
+    calculateH0=.true., forcePmatHermitian=input_pmat%force_pmat_hermitian, &
     overlap=overlap, ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, pmat=pmat, pmatmt=pmatmt, &
     update_mathcalH=allocated(mathcalH), update_mathcalB=allocated(mathcalB), update_pmat=.False. )
   ham_past(:, :, :) = ham_time(:, :, :)
