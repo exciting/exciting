@@ -21,6 +21,35 @@ module diagonalization_interfaces
         integer,   intent(out)   :: info
       end subroutine dstedc
 
+      ! Real generalized symmetric-definite eigenvalue problem
+      subroutine dsygvx(itype, jobz, range, uplo, n, A, lda, B, ldb, vl, vu, il, iu, abstol, m, w, z, ldz, work, lwork, iwork, ifail, info)
+        import :: dp
+        implicit none
+        integer,   intent(in)    :: itype
+        character, intent(in)    :: jobz
+        character, intent(in)    :: range
+        character, intent(in)    :: uplo
+        integer,   intent(in)    :: n
+        real(dp),  intent(inout) :: A(lda, *)
+        integer,   intent(in)    :: lda
+        real(dp),  intent(inout) :: B(ldb, *)
+        integer,   intent(in)    :: ldb
+        real(dp),  intent(in)    :: vl
+        real(dp),  intent(in)    :: vu
+        integer,   intent(in)    :: il
+        integer,   intent(in)    :: iu
+        real(dp),  intent(in)    :: abstol
+        integer,   intent(out)   :: m
+        real(dp),  intent(out)   :: w(*)
+        real(dp),  intent(out)   :: z(ldz, *)
+        integer,   intent(in)    :: ldz
+        real(dp),  intent(out)   :: work(*)
+        integer,   intent(in)    :: lwork
+        integer,   intent(out)   :: iwork(*)
+        integer,   intent(out)   :: ifail(*)
+        integer,   intent(out)   :: info
+      end subroutine dsygvx
+
   end interface
 
 end module diagonalization_interfaces
