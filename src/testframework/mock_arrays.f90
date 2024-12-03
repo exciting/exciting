@@ -65,6 +65,14 @@ module mock_arrays
                                                                               0.69501014_dp, &
                                                                             -34.00535404_dp,  28.19186526_dp,  24.58347956_dp,   0.69501014_dp, &
                                                                             -28.44893406_dp], [5, 5]))
+  !> Real symmetric positive-definite 5 x 5 matrix
+  real(dp), parameter, public :: real_symmetric_positive_definite_matrix_5x5(5, 5) = transpose(reshape([  5.49671415_dp, -0.18620063_dp, 0.09213542_dp, &
+                                                                                              0.48037116_dp, 0.61574770_dp, -0.18620063_dp, 6.57921282_dp, &
+                                                                                              0.15085249_dp, -0.74115275_dp, 0.15839187_dp, 0.09213542_dp, &
+                                                                                              0.15085249_dp, 5.24196227_dp, -0.79951646_dp, -0.82869481_dp, &
+                                                                                              0.48037116_dp, -0.74115275_dp, -0.79951646_dp, 4.09197592_dp, &
+                                                                                             -1.41852594_dp, 0.61574770_dp, 0.15839187_dp, -0.82869481_dp, &
+                                                                                             -1.41852594_dp, 4.45561728_dp], [5, 5]))
   !> Real 5 x 5 orthogonal matrix
   real(dp), parameter, public :: real_orthogonal_matrix_5x5(5, 5) = transpose(reshape([ 0.63806971_dp, -0.63857815_dp, -0.34365517_dp,  0.00522444_dp, -0.25876403_dp, &
                                                                             -0.26043362_dp,  0.3436803_dp , -0.72155634_dp,  0.11296424_dp, -0.52976759_dp, & 
