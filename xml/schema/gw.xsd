@@ -431,6 +431,9 @@
                         and printed out in <pre>INVERSE-EPSILON_Q*.OUT</pre>, where <pre>*</pre> is the index of the
 			<inlinemath>\mathbf{q}</inlinemath>-point; in order to save storage memory for representative points 
 			a symbolic from <pre>INVERSE-EPSILON_IQ*.OUT</pre> to <pre>INVERSE-EPSILON_Q*.OUT</pre> is created instead. 
+			If using tetrahedron method for the integration we recommend to also set <pre>="enforceCrystalSymmetryTetrahedron"</pre> 
+			to <pre>true</pre>. This last is because current tetrahedron method implementation breaks crystal symmetry, so that a special
+			treatment---i.e., averaging over the equivalence class---is required to ensure it. 
                       </xs:documentation>
                     </xs:annotation>
                     <xs:complexType>
@@ -711,6 +714,13 @@
             <xs:annotation><xs:documentation>
                 When <pre>enforceDegeneracy</pre> is <pre>true</pre>, this controls the relative tolerance for considering two states degenerate.
                 Systems with degenerate flat bands might require lower values.
+	          </xs:documentation></xs:annotation>
+          </xs:attribute>
+
+          <xs:attribute ex:importance="expert" ex:unit="" name="enforceCrystalSymmetryTetrahedron" type="xs:boolean" default="false" use="optional">
+             <xs:annotation><xs:documentation>
+		     When <pre>true</pre> it enforces crystal symmetry for the tetrahedron method. It should be used when crystal symmetry is 
+		     used to restrict the computation of the dielectric matrix to the irreducible wedge.
 	          </xs:documentation></xs:annotation>
           </xs:attribute>
 

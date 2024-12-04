@@ -33,6 +33,9 @@
       real(8), dimension(3,20) :: intnodes ! the coordinates of the 
 !                                             intersections of the planes
 
+      ! Make all module variables thread-safe through OpenMP THREADPRIVATE
+      !$OMP THREADPRIVATE(nnod, ntype, pl, index, ef, e, f, nodes, intnodes)
+
       end module polyhedron
       
 !EOP      
