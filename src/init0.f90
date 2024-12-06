@@ -385,7 +385,7 @@ Subroutine init0
       ! Check for ylmg and sfacg, which will become an issue
       ! if running sirius with many MPI instances per node,
       ! for large systems
-      call warn_array_sizes_sirius(lmmaxvr, ngvec)
+      if (associated(input%groundstate%sirius)) call warn_array_sizes_sirius(lmmaxvr, ngvec)
 
       call genylmg
 
