@@ -743,6 +743,7 @@ contains
     !> Number of G-vectors with G < gmaxvr
     integer, intent(in) :: ngvec
 
+#ifdef SIRIUS
     real(dp) :: mb, ylmg_mb, sfacg_mb
 
     integer :: sirius_warning_unit
@@ -761,6 +762,7 @@ contains
         write(sirius_warning_unit,*) 'Warning: large sfacg array of ',sfacg_mb, 'Mb'
         close(sirius_warning_unit)
     end if
+#endif
 
   end subroutine
 
