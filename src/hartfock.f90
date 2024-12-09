@@ -13,6 +13,7 @@ Subroutine hartfock
 ! !USES:
       Use modmain
       Use modinput
+      use total_energy, only: energy
 ! !DESCRIPTION:
 !  Computes the self-consistent Hartree Fock ground state.
 !
@@ -23,7 +24,7 @@ Subroutine hartfock
       Implicit None
 ! local variables
       Logical :: exist
-      Integer :: ik, is, ia, idm, Recl
+      Integer :: ik, idm, Recl
       Real(8) :: etp, de
       character*(77) :: string
 ! allocatable arrays

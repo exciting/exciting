@@ -40,6 +40,16 @@
 #
 # ---------------------------------------------------------------------------------------------------------------
 
+groundstate/LDA_PW-cdft-N2:
+    inputs:
+      - "input.xml"
+      - "N.xml"
+      - "EXC"
+    files_under_test:
+      - "INFO_CDFT.OUT"
+      - "evalcore.xml"
+      - "eigval.xml"
+      - "atoms.xml"
 
 # TODO(Alex) Issue 101. Also see Issue #75
 groundstate/LDA_PW-collinear-Fe:

@@ -32,6 +32,7 @@ from excitingtools.exciting_dict_parsers import (
 # Note: more specific names should be higher, as the search will go through this map top-down
 _file_to_parser = {
     "INFO.OUT": groundstate_parser.parse_info_out,
+    "INFO_CDFT.OUT": groundstate_parser.parse_info_out,
     "info.xml": groundstate_parser.parse_info_xml,
     "input.xml": input_parser.parse_input_xml,
     "species.xml": species_parser.parse_species_xml,

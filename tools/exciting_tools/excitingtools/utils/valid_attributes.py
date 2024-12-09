@@ -177,8 +177,9 @@ groundstate_attribute_types = {"APWprecision": (float, 1),
                                           ["EXX", "GGA_AC_PBE", "GGA_AM05", "GGA_PBE", "GGA_PBE_R", "GGA_PBE_SOL",
                                            "GGA_PBE_SR", "GGA_WC", "HYB_HSE", "HYB_LDA0", "HYB_PBE0", "LDA_PW",
                                            "LDA_PZ", "LDA_XALPHA", "LDA_vBH", "none"])} 
-groundstate_valid_subtrees = ["DFTD2parameters", "TSvdWparameters", "spin", "HartreeFock", "dfthalf", "Hybrid",
-                              "sirius", "solver", "OEP", "RDMFT", "output", "libxc", "xsLO", "lorecommendation"] 
+groundstate_valid_subtrees = ["DFTD2parameters", "TSvdWparameters", "spin", "HartreeFock", "constrainedDFT", "dfthalf",
+                              "Hybrid", "sirius", "solver", "OEP", "RDMFT", "output", "libxc", "xsLO",
+                              "lorecommendation"] 
 
 DFTD2parameters_attribute_types = {"cutoff": (float, 1), "d": (float, 1), "s6": (float, 1), "sr6": (float, 1)} 
 
@@ -200,6 +201,12 @@ spin_attribute_types = {"bfieldc": (float, 3),
                         "svlo": (bool, 1),
                         "taufsm": (float, 1),
                         "vqlss": (float, 3)} 
+
+constrainedDFT_attribute_types = {"fileName": (str, 1),
+                                  "skipgnd": (bool, 1),
+                                  "startDensityAndPotentialFromFile": (bool, 1),
+                                  "useExcitonCoefficients": (bool, 1),
+                                  "useExternalFile": (bool, 1)} 
 
 dfthalf_attribute_types = {"printVSfile": (bool, 1)} 
 

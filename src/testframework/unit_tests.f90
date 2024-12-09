@@ -20,6 +20,7 @@ module unit_tests
       logical :: advanced = .false.
       logical :: eigensystem = .false.
       logical :: fermisurfdx = .false.
+      logical :: groundstate = .false.
       logical :: gw = .false.
       logical :: hybrids = .false.
       logical :: LDAU = .false.
@@ -116,6 +117,8 @@ contains
          run%eigensystem = .true.
       case ('fermisurfdx')
          run%fermisurfdx = .true.
+      case ('groundstate')
+         run%groundstate = .true.
       case ('gw')
          run%gw = .true.
       case ('hybrids')

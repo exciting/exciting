@@ -10,7 +10,7 @@
 ! !INTERFACE:
 !
 !
-Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
+Subroutine seceqnfv(ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   ! !USES:
       Use modmpi,                    only: mpiglobal
       Use modinput,                  only: input
@@ -27,6 +27,7 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       !use m_plotmat
       Use constants, only: zzero, zone
 
+      
   ! !INPUT/OUTPUT PARAMETERS:
   !   nmatp  : order of overlap and Hamiltonian matrices (in,integer)
   !   ngp    : number of G+k-vectors for augmented plane waves (in,integer)
@@ -43,12 +44,10 @@ Subroutine seceqnfv(ispn, ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   !
   ! !REVISION HISTORY:
   !   Created March 2004 (JKD)
-  !   Revised Aug 2020 (Ronaldo)
   !EOP
   !BOC
       Implicit None
   ! arguments
-      Integer, Intent (In) :: ispn
       Integer, Intent (In) :: ik
       Integer, Intent (In) :: nmatp
       Integer, Intent (In) :: ngp
