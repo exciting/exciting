@@ -14,8 +14,11 @@ subroutine scf_cycle(verbosity)
     use sirius_api,    only: set_radial_functions_sirius, solve_seceqn_sirius, get_eval_sirius, get_evec_sirius, &
                              put_occ_sirius, generate_density_sirius, get_periodic_function_sirius
     use mod_potential_and_density, only: generate_density_and_magnetization
+    use cdft, only: cdft_input_keys, ExcitonCoefficients, file_extension_GS, occupy_cdft
+    use precision, only: dp
     use lo_recommendation, only: recommend_local_orbital_trial_energies
     use trial_energy_selection, only: select_apw_trial_energies, select_local_orbital_trial_energies
+    use total_energy, only: energy
 !
 
 ! !DESCRIPTION:
@@ -36,14 +39,18 @@ subroutine scf_cycle(verbosity)
     !Integer :: i,j, ias
     Real(8), Allocatable :: v(:),forcesum(:,:)
     Real(8) :: timetot, ts0, ts1, tin1, tin0, ta,tb
+    
     character*(77) :: string, acoord
 
     Real (8), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
     Real (8), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
-
-    Type (apw_lo_basis_type) :: mt_basis
+    Real (8), Allocatable :: occsv_gs(:, :)
+    type(cdft_input_keys) :: cdft_calculation
+    logical :: spin_polarization
+    type (ExcitonCoefficients) :: a_lvck
 
     acoord = "lattice"
+    spin_polarization = associated( input%groundstate%spin )
     if (input%structure%cartesian) acoord = "cartesian"
 
     If ((verbosity>-1).and.(rank==0)) Then
@@ -122,12 +129,28 @@ subroutine scf_cycle(verbosity)
     timeinit = timeinit+ts1-ts0
 !! TIME - End of initialisation segment
 
+!-----------------------------------------------------
+! CDFT
+    call cdft_calculation%read_input_keys( input%groundstate )
+    if( cdft_calculation%is_on() ) then
+      string = filext
+      filext = file_extension_GS
+      do ik = 1, nkpt
+        call getoccsv( vkl(:, ik), occsv(:, ik) )
+      end do
+      occsv_gs = occsv
+      if( cdft_calculation%read_density_potential_from_file() ) call readstate
+      filext = string
+      call a_lvck%get_from_file( cdft_calculation%file_name )
+      call a_lvck%sanity_check( occsv_gs )
+    end if
+
 !----------------------------------------------------
 !! TIME - Mixer segment
     Call timesec (ts0)
     ! size of mixing vector
     n = lmmaxvr*nrmtmax*natmtot+ngrtot
-    If (associated(input%groundstate%spin)) n = n*(1+ndmag)
+    If (spin_polarization) n = n*(1+ndmag)
     If (ldapu .Ne. 0) n = n + 2*lmmaxlu*lmmaxlu*nspinor*nspinor*natmtot
     ! allocate mixing arrays
     Allocate (v(n))
@@ -291,7 +314,7 @@ subroutine scf_cycle(verbosity)
 
 !__________________________________________________________
 ! solve the first- and second-variational secular equations
-                call seceqn (ik, evalfv, evecfv, evecsv)
+                call seceqn (ik, evalfv, evecfv, evecsv )
 
                 call timesec(ts0)
 
@@ -326,7 +349,13 @@ subroutine scf_cycle(verbosity)
 !-----------------------------------------------
 ! find the occupation numbers and Fermi energy
 !-----------------------------------------------
-        Call occupy
+        if( cdft_calculation%is_on() ) then
+          occsv = occsv_gs
+          call occupy_cdft( a_lvck, wkpt, occsv )
+        else 
+          call occupy
+        end if 
+
         If (rank==0) Then
 ! write out the eigenvalues and occupation numbers
             Call writeeval
@@ -377,7 +406,7 @@ subroutine scf_cycle(verbosity)
 ! symmetrise the density
           call symrf(input%groundstate%lradstep, rhomt, rhoir)
 ! symmetrise the magnetisation
-          If (associated(input%groundstate%spin)) Call symrvf(input%groundstate%lradstep, magmt, magir)
+          If (spin_polarization) Call symrvf(input%groundstate%lradstep, magmt, magir)
 ! convert the density from a coarse to a fine radial mesh
           call rfmtctof (rhomt)
 ! convert the magnetisation from a coarse to a fine radial mesh
@@ -391,7 +420,7 @@ subroutine scf_cycle(verbosity)
 ! calculate the charges
         Call charge
 ! calculate the moments
-        If (associated(input%groundstate%spin)) Call moment
+        If (spin_polarization) Call moment
 ! normalise the density
         Call rhonorm
         call stopwatch("exciting:rhomag", 0)
@@ -447,7 +476,7 @@ subroutine scf_cycle(verbosity)
         If (getfixspinnumber() .Ne. 0) Call fsmfield
         Call genmeffig
 ! reduce the external magnetic fields if required
-        If (associated(input%groundstate%spin)) Then
+        If (spin_polarization) Then
             If (input%groundstate%spin%reducebf .Lt. 1.d0) Then
                 input%groundstate%spin%bfieldc(:) = &
                &  input%groundstate%spin%bfieldc(:) * input%groundstate%spin%reducebf
@@ -498,7 +527,7 @@ subroutine scf_cycle(verbosity)
 ! output charges and moments
             Call writechg (60,input%groundstate%outputlevelnumber)
 ! write total moment to MOMENT.OUT and flush
-            If (associated(input%groundstate%spin)) Then
+            If (spin_polarization) Then
                 Write (63, '(3G18.10)') momtot (1:ndmag)
                 Call flushifc (63)
             End If
@@ -507,7 +536,9 @@ subroutine scf_cycle(verbosity)
 ! output forces to INFO.OUT
 !            if (input%groundstate%tforce) call writeforce(60,input%relax%outputlevelnumber)
 ! write band-gap if the dos at the Fermi energy is smaller than the given threshold
-            if (fermidos<1.0d-4) call printbandgap(60)
+            if ( .not. cdft_calculation%is_on() ) then
+              if ( fermidos < 1.0d-4 ) call printbandgap(60)
+            end if
 ! check for WRITE file
             Inquire (File='WRITE', Exist=exist)
             If (exist) Then
@@ -518,7 +549,7 @@ subroutine scf_cycle(verbosity)
                 Close (50, Status='DELETE')
             End If
             Call scl_iter_xmlout ()
-            If (associated(input%groundstate%spin)) Call scl_xml_write_moments()
+            If (spin_polarization) Call scl_xml_write_moments()
             Call scl_xml_out_write()
         End If
 ! write STATE.OUT file if required
@@ -739,7 +770,7 @@ subroutine scf_cycle(verbosity)
     If ((verbosity>-1).and.(rank==0)) Then
 ! add blank line to TOTENERGY.OUT, FERMIDOS.OUT, MOMENT.OUT and RMSDVEFF.OUT
 !      Write (62,*)
-      If (associated(input%groundstate%spin)) write (63,*)
+      If (spin_polarization) write (63,*)
 ! add blank line to DTOTENERGY.OUT, DFORCEMAX.OUT, CHGDIST.OUT and PCHARGE.OUT
 !      Write (66,*)
 !      If (input%groundstate%tforce) Write (67,*)

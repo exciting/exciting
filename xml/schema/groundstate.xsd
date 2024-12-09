@@ -307,6 +307,67 @@
           </xs:complexType>
 
           </xs:element>
+
+        <xs:element ex:importance="experimental" ex:unit="" name="constrainedDFT" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>
+              This elements triggers a <bf>constrained DFT</bf> (CDFT) calculation, with the occupations
+              of each KS level constrained by the user. The occupations obtained in a DFT calculation 
+              must be provided through the file <pre>OCCSV.OUT</pre>.
+            </xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="skipgnd" type="xs:boolean"
+                  default="true">
+              <xs:annotation>
+                <xs:documentation> 
+                  If <pre>"true"</pre>, skip a groundstate calculation that 
+                  can be performed before the actual CDFT calculation.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="startDensityAndPotentialFromFile" 
+                  type="xs:boolean" default="true">
+              <xs:annotation>
+                <xs:documentation> 
+                  To initiate the SCF cycle in a CDFT calculation, the electron density and the KS potential 
+                  can be started from a guess based on the atoms, or from a previous DFT calculation.
+                  If <attref>startDensityAndPotentialFromFile</attref> is <pre>"true"</pre>, 
+                  then the initial guess for the electron density and the KS potential is 
+                  read from <pre>STATE.OUT</pre>.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="useExcitonCoefficients" type="xs:boolean"
+                  default="true">
+              <xs:annotation>
+                <xs:documentation> 
+                  If <pre>"true"</pre>, use exciton coefficients to build the occupation of KS 
+                  states in the CDFT calculation.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="useExternalFile" type="xs:boolean"
+                  default="true">
+              <xs:annotation>
+                <xs:documentation> 
+                  If <pre>"true"</pre>, read the new occupations or the exciton 
+                  coefficients from an external file.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="fileName" type="xs:string"
+                default="EXC">
+              <xs:annotation>
+                <xs:documentation> 
+                  When <attref>useExternalFile</attref> is <pre>"true"</pre>, this is the 
+                  name of the file that must be read.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+
                 <xs:element ex:importance="expert" ex:unit="" name="dfthalf" minOccurs="0" maxOccurs="1">
 			<xs:annotation>
 			  <xs:documentation>The presence of this element triggers <bf>DFT-1/2</bf> calculations.</xs:documentation>

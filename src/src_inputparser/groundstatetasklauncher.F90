@@ -4,11 +4,22 @@
 ! See the file COPYING for license details.
 
 Subroutine groundstatetasklauncher
+    use cdft, only: file_extension_CDFT, file_extension_GS, set_status_to_finished_CDFT, set_status_to_running_CDFT
     Use modinput
     Use modmain,     only: task, xctype
     Use inputdom
     use modmpi
+    use mod_misc, only: filext
+
     Implicit None
+
+    character(len=:), allocatable :: string
+    logical :: is_cdft_calculation, skip_gnd_in_cdft_calculation
+
+    ! Interface to input elements defined for a constrained DFT calculation
+    is_cdft_calculation = associated(input%groundstate%constrainedDFT)
+    skip_gnd_in_cdft_calculation = .false.
+    if ( is_cdft_calculation ) skip_gnd_in_cdft_calculation = input%groundstate%constrainedDFT%skipgnd
 
     call delete_warnings
     splittfile= .true.
@@ -61,6 +72,18 @@ Subroutine groundstatetasklauncher
                 Else
                     Call gndstate
                 End If
+        ! Constrained DFT calculation
+        Else If ( is_cdft_calculation ) Then
+            string = filext
+            if ( .not. skip_gnd_in_cdft_calculation ) then
+                filext = file_extension_GS
+                call gndstate
+            end if
+            filext = file_extension_CDFT
+            call set_status_to_running_CDFT
+            call gndstate
+            call set_status_to_finished_CDFT
+            filext = string
         Else
             Call gndstate
         End If

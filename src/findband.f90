@@ -46,7 +46,7 @@ Subroutine findband (findlinentype, l, k, nr, r, vr, de0, etol, e0, tfnd)
   ! local variables
   ! maximum number of steps
       Integer, Parameter :: maxstp = 1000
-      Character * 4, Parameter :: emain = 'continue'
+      Character(len=*), Parameter :: emain = 'continue'
       Real (8), Parameter :: etoolow = - 1000.d0
       Real (8), Parameter :: ecutlow = - 100.d0
       Real (8), Parameter :: efermibands = 0.5d0
