@@ -65,14 +65,14 @@ module mock_arrays
                                                                               0.69501014_dp, &
                                                                             -34.00535404_dp,  28.19186526_dp,  24.58347956_dp,   0.69501014_dp, &
                                                                             -28.44893406_dp], [5, 5]))
-  !> Real symmetric positive-definite 5 x 5 matrix
-  real(dp), parameter, public :: real_symmetric_positive_definite_matrix_5x5(5, 5) = transpose(reshape([  5.49671415_dp, -0.18620063_dp, 0.09213542_dp, &
-                                                                                              0.48037116_dp, 0.61574770_dp, -0.18620063_dp, 6.57921282_dp, &
-                                                                                              0.15085249_dp, -0.74115275_dp, 0.15839187_dp, 0.09213542_dp, &
-                                                                                              0.15085249_dp, 5.24196227_dp, -0.79951646_dp, -0.82869481_dp, &
-                                                                                              0.48037116_dp, -0.74115275_dp, -0.79951646_dp, 4.09197592_dp, &
-                                                                                             -1.41852594_dp, 0.61574770_dp, 0.15839187_dp, -0.82869481_dp, &
-                                                                                             -1.41852594_dp, 4.45561728_dp], [5, 5]))
+  !> Real (symmetric) positive-definite 5 x 5 matrix
+  real(dp), parameter, public :: real_positive_definite_matrix_5x5(5, 5) = &
+    transpose(reshape([  5.49671415_dp, -0.18620063_dp,  0.09213542_dp,  0.48037116_dp,  0.61574770_dp, &
+                        -0.18620063_dp,  6.57921282_dp,  0.15085249_dp, -0.74115275_dp,  0.15839187_dp, &
+                         0.09213542_dp,  0.15085249_dp,  5.24196227_dp, -0.79951646_dp, -0.82869481_dp, &
+                         0.48037116_dp, -0.74115275_dp, -0.79951646_dp,  4.09197592_dp, -1.41852594_dp, &
+                         0.61574770_dp,  0.15839187_dp, -0.82869481_dp, -1.41852594_dp,  4.45561728_dp], [5, 5]))
+                         
   !> Real 5 x 5 orthogonal matrix
   real(dp), parameter, public :: real_orthogonal_matrix_5x5(5, 5) = transpose(reshape([ 0.63806971_dp, -0.63857815_dp, -0.34365517_dp,  0.00522444_dp, -0.25876403_dp, &
                                                                             -0.26043362_dp,  0.3436803_dp , -0.72155634_dp,  0.11296424_dp, -0.52976759_dp, & 
@@ -217,6 +217,20 @@ module mock_arrays
                                                                                           2.2229102_dp,  10.65927965_dp,          0.0_dp,   34.28279495_dp, &
                                                                                         23.20913956_dp, -30.48337625_dp,  -8.38358035_dp,  -34.28279495_dp, &
                                                                                                 0.0_dp], kind=dp), [5, 5]))
+
+  !> Complex positive-definite 5 x 5 matrix
+  complex(dp), parameter, public :: complex_positive_definite_matrix_5x5(5, 5) = &
+        transpose(reshape( cmplx( [ 53.6764_dp,  54.7824_dp,  47.3528_dp,  31.1708_dp,  20.0872_dp,  &
+                                    54.7824_dp,  56.7384_dp,  50.3348_dp,  35.0828_dp,  25.2152_dp,  &
+                                    47.3528_dp,  50.3348_dp,  54.6008_dp,  53.6228_dp,  54.3952_dp,  &
+                                    31.1708_dp,  35.0828_dp,  53.6228_dp,  77.8148_dp,  96.2032_dp,  &
+                                    20.0872_dp,  25.2152_dp,  54.3952_dp,  96.2032_dp, 168.1132_dp],  &
+                                  [   0.000_dp,   -0.700_dp,  -16.548_dp,  -45.024_dp,  -81.032_dp,  &
+                                      0.700_dp,    0.000_dp,  -16.338_dp,  -45.654_dp,  -82.222_dp,  &
+                                     16.548_dp,   16.338_dp,    0.000_dp,  -29.106_dp,  -61.180_dp,  &
+                                     45.024_dp,   45.654_dp,   29.106_dp,    0.000_dp,  -23.786_dp,  &
+                                     81.032_dp,   82.222_dp,   61.180_dp,   23.786_dp,    0.000_dp], kind=dp), [5, 5]))
+
   !> Complex unitary 5 x 5 matrix
   complex(dp), parameter, public :: complex_unitary_matrix_5x5(5, 5) = transpose(reshape(cmplx([-0.33365437_dp, -0.21756134_dp,  0.07501474_dp, -0.28585794_dp,  0.10201445_dp, &
                                                                                      -0.4171256_dp ,  0.1862851_dp , -0.09447265_dp, -0.32270405_dp, -0.10475249_dp, &

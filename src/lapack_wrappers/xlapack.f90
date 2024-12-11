@@ -10,7 +10,7 @@ module xlapack
   use qr_factorization, only: qr_column_pivot, xgeqp3, xorgqr, extract_R
   ! diagonalization
   use diagonalize_tridiagonal, only: diagonalize_symtridiag
-  use generalized_symmetric_eigenproblem, only: solve_generalized_symmetric_eigenproblem
+  use generalized_hermitian_eigenproblem, only: solve_generalized_hermitian_eigenproblem
   ! utils
   use matrix_rank, only: matrix_rank_SVD
   use determinant, only: determinant_LU

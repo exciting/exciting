@@ -1,13 +1,14 @@
 !> Math utilities and functions
 module math_utils
+  use asserts, only: assert
+  use constants, only: pi, zzero, zone, zi, fourpi, twopi, real_zero, real_one
   use iso_fortran_env, only: error_unit
   use, intrinsic :: ISO_C_BINDING
-
+  use lapack_f95_interfaces, only: dsyev, zheev
   use precision, only: sp, dp, i32
-  use constants, only: pi, zzero, zone, zi, fourpi, twopi, real_zero, real_one
-  use asserts, only: assert
   use seed_generation, only: set_seed
-
+  use to_char_conversion, only: to_char
+  
   implicit none
 
   private
@@ -58,6 +59,11 @@ module math_utils
   interface is_hermitian
     module procedure is_symmetric_real_dp, is_hermitian_complex_dp
   end interface is_hermitian
+
+  !> Check if a matrix is positive definite
+  interface is_positive_definite
+    module procedure is_positive_definite_complex_dp, is_positive_definite_real_dp
+  end interface
 
   !> Check if a matrix is unitary (orthogonal), such that
   !> \[
@@ -1637,39 +1643,67 @@ contains
 
   !> Check if a hermitian matrix is positive-definite. This is done by checking
   !> if all the eigenvalues are positive
-  logical function is_positive_definite( A, tol )
+  logical function is_positive_definite_complex_dp( A, tol )
     !> Matrix to be checked
-    complex(dp), intent(in)   :: A(:, :)
+    complex(dp), contiguous, intent(in) :: A(:, :)
     !> Tolerance
     real(dp), intent(in), optional :: tol
 
-    integer                   :: dim, info, lwork
+    integer                   :: n, info, lwork
     real(dp), allocatable     :: rwork(:), eigenvalues(:)
     complex(dp), allocatable  :: A_copy(:, :), work(:)
-    character(200)            :: error_msg
     real(dp)                  :: tolerance 
 
     tolerance = default_tol
     if( present(tol) ) tolerance = tol
 
     call assert( is_hermitian( A, tolerance ), 'A is not hermitian' )
-    ! TODO Issue #25: Lapack wrapper for ZHEEV needed
-    dim = size( A, 1 )
-    allocate( A_copy(dim, dim), eigenvalues(dim), rwork(3*dim-2) )
+    n = size( A, 1 )
+    allocate( A_copy(n, n), eigenvalues(n), rwork(3*n-2) )
     A_copy = A
     ! Obtain the optimum lwork
-    allocate( work(2) )
+    allocate( work(1) )
     lwork = -1
-    call ZHEEV( 'N', 'U', dim, A_copy, dim, eigenvalues, work, lwork, rwork, &
-      & info )
+    call ZHEEV( 'N', 'U', n, A_copy, n, eigenvalues, work, lwork, rwork, info )
     lwork = work(1)
     deallocate( work )
     allocate( work(lwork) )
     ! Obtain the eigenvalues of A
-    call ZHEEV( 'N', 'U', dim, A_copy, dim, eigenvalues, work, lwork, rwork, info )
-    write(error_msg,*) 'Error(is_positive_definite): ZHEEV returned info = ', info
-    call assert( info==0, error_msg )
-    is_positive_definite = all( eigenvalues > tolerance )
+    call ZHEEV( 'N', 'U', n, A_copy, n, eigenvalues, work, lwork, rwork, info )
+    call assert( info==0, 'Error(is_positive_definite): ZHEEV returned info = ' // to_char(info) )
+    is_positive_definite_complex_dp = all( eigenvalues > tolerance )
+  end function
+
+  !> Same as [[is_positive_definite_complex_dp]] for a real matrix
+  logical function is_positive_definite_real_dp( A, tol )
+    !> See [[is_positive_definite_complex_dp]]
+    real(dp), contiguous, intent(in) :: A(:, :)
+    !> See [[is_positive_definite_complex_dp]]
+    real(dp), intent(in), optional :: tol
+
+    integer(i32)              :: n, info, lwork
+    real(dp), allocatable     :: eigenvalues(:)
+    real(dp), allocatable     :: A_copy(:, :), work(:)
+    real(dp)                  :: tolerance 
+
+    tolerance = default_tol
+    if( present(tol) ) tolerance = tol
+
+    call assert( is_hermitian( A, tolerance ), 'A is not hermitian' )
+    n = size( A, 1 )
+    allocate( A_copy, source=A )
+    allocate( eigenvalues(n) )
+    ! Obtain the optimum lwork
+    allocate( work(1) )
+    lwork = -1
+    call DSYEV( 'N', 'U', n, A_copy, n, eigenvalues, work, lwork, info )
+    lwork = work(1)
+    deallocate( work )
+    allocate( work(lwork) )
+    ! Obtain the eigenvalues of A
+    call DSYEV( 'N', 'U', n, A_copy, n, eigenvalues, work, lwork, info )
+    call assert( info==0, 'Error(is_positive_definite): DSYEV returned info = ' // to_char(info) )
+    is_positive_definite_real_dp = all( eigenvalues > tolerance )
   end function
 
 

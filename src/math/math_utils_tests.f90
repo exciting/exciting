@@ -1,7 +1,7 @@
 !> Module for unit tests for the functions in math_utils.
 
 module math_utils_test
-  use precision, only: dp
+  use precision, only: dp, i32
   use constants, only: zone, zzero
   use modmpi, only: mpiinfo
   use unit_test_framework, only : unit_test_type
@@ -11,6 +11,7 @@ module math_utils_test
                         diag, &
                         is_square, &
                         is_hermitian, &
+                        is_positive_definite, &
                         is_unitary, &
                         kronecker_product, &
                         determinant, &
@@ -31,9 +32,11 @@ module math_utils_test
                          real_orthogonal_matrix_5x5, &
                          real_matrix_5x7, &
                          real_rank_4_matrix_5x7, &
+                         real_positive_definite_matrix_5x5, &
                          complex_hermitian_matrix_5x5, &
                          complex_unitary_matrix_5x5, &
-                         complex_matrix_5x7
+                         complex_matrix_5x7, &
+                         complex_positive_definite_matrix_5x5
 
 
   implicit none
@@ -55,8 +58,11 @@ contains
     logical, optional :: kill_on_failure
     !> Test report object
     type(unit_test_type) :: test_report
+
+    integer(i32), parameter :: n_assertions_test_is_positive_definite = 4
     !> Number of assertions
-    integer, parameter :: n_assertions = 124
+    integer(i32), parameter :: n_assertions = 124 + &
+                                              n_assertions_test_is_positive_definite
 
     ! Initialize test object
     call test_report%init(n_assertions, mpiglobal)
@@ -101,6 +107,7 @@ contains
 
     call test_get_degeneracies(test_report)
 
+    call test_is_positive_definite(test_report)
 
     ! report results
     if (present(kill_on_failure)) then
@@ -899,4 +906,22 @@ contains
     call test_report%assert( all( deg == ref ), &
       'Result does not equal reference.' )
   end subroutine test_get_degeneracies
+
+  !> Test [[is_positive_definite]].
+  subroutine test_is_positive_definite(test_report)
+    !> Unit test report
+    type(unit_test_type), intent(inout) :: test_report
+
+    ! Test true cases
+    call test_report%assert( is_positive_definite(real_positive_definite_matrix_5x5), &
+      'Wrong result: real matrix tested must be positive definite' )
+    call test_report%assert( is_positive_definite(complex_positive_definite_matrix_5x5), &
+      'Wrong result: complex matrix tested must be positive definite' )
+
+    ! Test false cases
+    call test_report%assert( .not. is_positive_definite(complex_unitary_matrix_5x5), &
+      'Wrong result: complex matrix tested must not be positive definite' )
+    call test_report%assert( .not. is_positive_definite(real_orthogonal_matrix_5x5), &
+      'Wrong result: real matrix tested must not be positive definite' )
+  end subroutine
 end module math_utils_test
