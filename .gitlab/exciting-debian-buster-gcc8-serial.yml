@@ -16,6 +16,8 @@ build:debian-buster-GCC8-serial:
  tags:
    - docker
  script:
+   - apt-get update
+   - apt-get install -y autogen autoconf libtool automake
    - cp build/platforms/make.inc.gfortran8-9 build/make.inc
    - make serial -j 2
  artifacts:
