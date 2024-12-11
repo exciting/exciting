@@ -11,7 +11,7 @@ module lapack_wrappers_test_drivers
   use qr_factorization_test, only: qr_factorization_test_driver
   ! diagonalization
   use diagonalize_tridiagonal_test, only: diagonalize_tridiagonal_test_driver
-  use generalized_symmetric_eigenproblem_test, only: solve_generalized_symmetric_eigenproblem_test_driver
+  use generalized_hermitian_eigenproblem_test, only: solve_generalized_hermitian_eigenproblem_test_driver
   ! utils
   use matrix_rank_test, only: matrix_rank_test_driver
   use determinant_test, only: determinant_test_driver
@@ -43,7 +43,7 @@ contains
     call qr_factorization_test_driver(mpiglobal, kill_on_failure)
     ! Diagonalization wrappers
     call diagonalize_tridiagonal_test_driver(mpiglobal, kill_on_failure)
-    call solve_generalized_symmetric_eigenproblem_test_driver(mpiglobal, kill_on_failure)
+    call solve_generalized_hermitian_eigenproblem_test_driver(mpiglobal, kill_on_failure)
     ! utils
     call matrix_rank_test_driver(mpiglobal, kill_on_failure)
     call determinant_test_driver(mpiglobal, kill_on_failure)
