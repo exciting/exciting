@@ -34,6 +34,8 @@ build:debian-buster-Intel2019-mpiandsmp:
    - module load intel/oneapi-2021.3
    - apt-get install -y libfabric1 libfabric-dev
  script:
+   - apt-get update
+   - apt-get install -y autogen autoconf libtool automake
    - cp build/platforms/make.inc.ifort.profiler build/make.inc
    - mkdir docs/profiling
    - make mpiandsmp -j 2

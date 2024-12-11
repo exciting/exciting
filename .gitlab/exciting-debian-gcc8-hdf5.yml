@@ -14,6 +14,8 @@ build:debian-buster-GCC8-mpiandsmp-hdf5:
  tags:
    - docker
  script:
+   - apt-get update
+   - apt-get install -y autogen autoconf libtool automake
    - cp build/platforms/make.inc.gfortran_hdf5 build/make.inc
    - make mpiandsmp -j 2
  artifacts:

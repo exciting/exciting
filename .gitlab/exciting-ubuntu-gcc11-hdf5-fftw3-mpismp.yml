@@ -19,6 +19,8 @@ build:ubuntu-GCC11-hdf5-fftw3-mpiandsmp:
  tags:
    - docker
  script:
+   - apt-get update
+   - apt-get install -y autogen autoconf libtool automake
    - cp build/platforms/make.inc.gfortran10+.hdf5.fftw3 build/make.inc
    - make mpiandsmp -j 2
  artifacts:
