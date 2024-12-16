@@ -1,5 +1,5 @@
 module rttddft_input
-  use modinput, only: realTimeTDDFT_type
+  use modinput, only: realTimeTDDFT_type, plot3d_type
   use modmpi, only: terminate
   use precision, only: dp, i32
   use propagators, only: propagator_input_elements
@@ -15,6 +15,12 @@ module rttddft_input
     logical :: on
     !> Take a screenshot every `n_steps` number of steps
     integer(i32) :: n_steps
+    !> If `.true.`, calculate and print real-time density
+    logical :: print_density
+    !> Grid data fot 3D density plots
+    type(plot3d_type), pointer :: plot3d => null()
+  contains
+    final :: destructor_screenshot_keys
   end type
 
   type, public :: pmat_keys
@@ -89,7 +95,24 @@ subroutine rttddft_input_keys_parse_input( this, rt_input, tol, a_vec )
   call a_vec%initialize( rt_input%laser, rt_input%vectorPotentialSolver )
   
   this%screenshots%on = associated( rt_input%screenshots )
-  if( this%screenshots%on ) this%screenshots%n_steps = rt_input%screenshots%niter
+  if ( this%screenshots%on ) then
+    this%screenshots%n_steps = rt_input%screenshots%niter
+    this%screenshots%print_density = associated( rt_input%screenshots%density )
+    if ( this%screenshots%print_density ) then
+
+      allocate( this%screenshots%plot3d )
+      allocate( this%screenshots%plot3d%box )
+      allocate( this%screenshots%plot3d%box%origin )
+      allocate( this%screenshots%plot3d%box%pointarray(3) )
+      allocate( this%screenshots%plot3d%box%pointarray(1)%point )
+      allocate( this%screenshots%plot3d%box%pointarray(2)%point )
+      allocate( this%screenshots%plot3d%box%pointarray(3)%point )
+      this%screenshots%plot3d = rt_input%screenshots%density%plot3d
+  
+    end if
+  else
+    this%screenshots%print_density = .false.
+  end if
 
   this%pmat%read_pmat_from_file = rt_input%pmat%readFromFile
   this%pmat%write_pmat_to_file = rt_input%pmat%writeToFile .and. (.not. this%pmat%read_pmat_from_file)
@@ -103,6 +126,30 @@ subroutine rttddft_input_keys_parse_input( this, rt_input, tol, a_vec )
 
   this%eeInteraction%ipa = ( trim( rt_input%eeInteraction ) == "IPA" )
 
+
 end subroutine
+
+impure elemental subroutine destructor_screenshot_keys( this )
+  type(screenshot_keys), intent(inout) :: this
+
+  integer :: i
+
+  if ( associated( this%plot3d ) ) then
+    if ( associated( this%plot3d%box ) ) then
+      if ( associated( this%plot3d%box%origin ) ) then
+        if ( associated( this%plot3d%box%pointarray ) ) then
+          do i = 1, 3
+            if ( associated( this%plot3d%box%pointarray(i)%point ) ) &
+            deallocate( this%plot3d%box%pointarray(i)%point )
+          end do
+          deallocate( this%plot3d%box%pointarray )
+        end if
+        deallocate( this%plot3d%box%origin )
+      end if
+      deallocate( this%plot3d%box )
+    end if
+    deallocate( this%plot3d )
+  end if
+end subroutine 
 
 end module

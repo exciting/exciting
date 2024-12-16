@@ -326,6 +326,7 @@
                   <li>eigenvalues (see <elementRef>eigenvalues</elementRef>) </li>
                   <li>projection coefficients (see <elementRef>projectionCoefficients</elementRef>)</li>
                   <li>occupations ()</li>
+                  <li>charge density (see <elementRef>density</elementRef>)</li>
                 </ul>
               </xs:documentation>
             </xs:annotation>
@@ -412,7 +413,21 @@
                       </xs:annotation>
                     </xs:attribute>
                   </xs:complexType>
-                </xs:element>        
+                </xs:element>
+
+                <xs:element ex:importance="expert" ex:unit="" name="density" minOccurs="0" maxOccurs="1">
+                 <xs:annotation>
+                  <xs:documentation> Store changes in the valence charge density in 
+                   <pre>delta-density3d-[iteration_number].xsf</pre>. 
+                   The initial total charge density is saved to <pre>density3d-0.xsf</pre>
+                  </xs:documentation>
+                 </xs:annotation>
+                 <xs:complexType>
+                  <xs:all>
+                   <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0" maxOccurs="1"/>
+                  </xs:all>
+                 </xs:complexType>
+               </xs:element>        
               </xs:all>    
               
               <xs:attribute ex:importance="expert" ex:unit="" name="niter" type="xs:integer"

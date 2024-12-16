@@ -43,7 +43,7 @@ module rttddft_main
     open_file_nexc, close_file_nexc, write_nexc, &
     open_file_etot, close_file_etot, write_total_energy, &
     open_file_info, close_file_info, write_file_info, write_file_info_header, &
-    write_wavefunction
+    write_wavefunction, write_real_function_xsf, transform_real_function_to_rgrid
   use rttddft_MD, only: force_rttdft, move_ions, &
     MD_allocate_global_arrays => allocate_global_arrays, &
     MD_deallocate_global_arrays => deallocate_global_arrays, &
@@ -56,6 +56,8 @@ module rttddft_main
   use rttddft_VectorPotential, only: Vector_Potential, Vector_Potential_Field
   use rttddft_Wavefunction, only: Update_basis_derivative, normalize_wavefunctions
   use to_char_conversion, only: to_char
+  use mod_rgrid, only: rgrid, gen_3d_rgrid
+  use mod_potential_and_density, only: rhomt, rhoir
   
   implicit none
 
@@ -110,10 +112,14 @@ contains
     complex(dp), allocatable  :: pmatmt(:, :, :, :, :)
 
     integer :: it, first_kpt, last_kpt, n_steps
-    integer :: i_print, is, timeStepMultiplier, l_rad_step
+    integer :: i_print, is, timeStepMultiplier, l_rad_step, lmax_dens
     logical :: predCorrReachedMaxSteps, my_rank_writes_to_output, &
-    density_needed, evolve_H0
+    density_needed, evolve_H0, take_screenshot
     complex(dp), allocatable :: ham_init(:, :, :)
+    real(dp), allocatable :: rhoir_init(:), rhomt_init(:, :, :), rho_rgrid(:)
+    type(rgrid) :: grid_for_density_3D
+    character(len=*), parameter :: file_name_with_initial_density = 'density3d'
+    character(len=*), parameter :: file_name_with_density_changes = 'delta-density3d'
 
     character(len=100)      :: string
 
@@ -150,7 +156,6 @@ contains
     real(dp),allocatable    :: atposcstore(:,:,:), velstore(:,:,:)
     type(force),allocatable :: forces_store(:)
     logical,allocatable     :: print_forces(:)
-    logical, allocatable    :: screenshot_was_taken(:)
 
     type(TotalEnergy), allocatable  :: etotstore(:)
     type(Timing_RTTDDFT_and_MD)     :: timing
@@ -198,7 +203,6 @@ contains
     allocate( j_ind_store(rt%n_print), p_vec_store(rt%n_print) )
     if( rt%printTimings%general() ) then
       allocate( timing_store(rt%n_print) )
-      allocate( screenshot_was_taken(rt%n_print), source=.False. )
     end if
     if( rt%calculate_total_energy ) allocate(etotstore(rt%n_print))
     if( rt%calculate_n_exc ) allocate(nex(rt%n_print),ngs(rt%n_print),nt(rt%n_print))
@@ -236,30 +240,64 @@ contains
       if( my_rank_writes_to_output ) call write_nexc( .True., 1, [time], nex(1), ngs(1), nt(1) )
     end if
 
-    if ( rt%screenshots%on ) call screenshot( 0, first_kpt, overlap, evecfv_gnd, &
-        & evecfv_time, ham_time )
+    if ( rt%screenshots%on ) then
+
+      call screenshot( 0, first_kpt, overlap, evecfv_gnd, evecfv_time, ham_time )
+
+      if ( rt%screenshots%print_density ) then
+
+        call UpdateDensity( first_kpt, evecfv_time(:, :, first_kpt : last_kpt), &
+        evecsv, it, rt%normalize_WF, l_rad_step, rt%printTimings, timing%t_RTTDDFT%dens )
+  
+        grid_for_density_3D = gen_3d_rgrid( rt%screenshots%plot3d, 0 )
+        allocate( rho_rgrid(grid_for_density_3D%npt) )
+
+        lmax_dens = input%groundstate%lmaxvr
+
+        call transform_real_function_to_rgrid( grid_for_density_3D, lmax_dens, &
+        rhomt, rhoir, rho_rgrid )
+        
+        if ( my_rank_writes_to_output ) call write_real_function_xsf( grid_for_density_3D, &
+        0, rho_rgrid, file_name_with_initial_density )
+        ! Make all the processes wait here: the master alone has been writing the file above
+        call barrier( mpi_env_k )
+  
+        allocate( rhomt_init, source = rhomt )
+        allocate( rhoir_init, source = rhoir )
+      end if ! rt%screenshots%print_density
+
+    end if ! rt%screenshots%on
 
     if( rt%printTimings%general() ) then
       call timesec( timef )
       if( my_rank_writes_to_output ) call write_timing( timef-timei ) !write time for initialization
     end if
 
+
     ! whether explicitly field-independent Hamiltonian should be evolved in time
     evolve_H0 = .false.
     if ( molecular_dynamics%on .or. ( .not. rt%eeInteraction%ipa ) ) evolve_H0 = .true.
     if ( .not. evolve_H0  ) allocate( ham_init, source = ham_time )
 
-    ! We may need charge density on some steps
-    density_needed = ( .not. rt%eeInteraction%ipa )
     i_print = 1
     timeiter = timef
     ! This is the most important loop (performed for each time step \(\Delta t\)
     do it = 1, n_steps
+
+      call timing%reset()
       ! Variable to store the timing of each iteration
       timei = timeiter
 
       ! The "real time" t of our evolution
       time = time + dt
+
+      ! Shall the screenshot be taken on the current step
+      take_screenshot = .false.
+      if ( rt%screenshots%on ) take_screenshot = ( mod( it, rt%screenshots%n_steps ) == 0 )
+        
+      ! We may need to update charge density on some steps
+      density_needed = ( .not. rt%eeInteraction%ipa )
+      if ( take_screenshot ) density_needed = density_needed .or. rt%screenshots%print_density
 
       ! WAVEFUNCTION
       if ( rt%predictor_corrector%on ) evecfv_save = evecfv_time
@@ -348,7 +386,6 @@ contains
         if ( mod( it, timeStepMultiplier ) == 0 ) then
           if ( rt%printTimings%general() ) then 
             call timesec( timei )
-            timing%t_Ehrenfest%MD_was_carried_out = .True.
           end if
           call forces%save_total_force()
           call force_rttdft( forces, vec_pot%a_tot, e_field, molecular_dynamics, evecfv_time, overlap, ham_time, rt%printTimings, timing%t_Ehrenfest )
@@ -375,20 +412,27 @@ contains
           if( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_Ehrenfest%t_MD_step )
         else ! if ( mod( it, timeStepMultiplier ) == 0 )
           print_forces(i_print) = .False.
-          if ( rt%printTimings%general() ) timing%t_Ehrenfest%MD_was_carried_out = .False.
         end if ! if ( mod( it, timeStepMultiplier ) == 0 )
       end if ! if ( molecular_dynamics%on ) then
 
       ! Check if a screenshot has been requested
-      if ( rt%screenshots%on ) then
-        if ( mod( it, rt%screenshots%n_steps ) == 0 ) then
-          if( rt%printTimings%general() ) screenshot_was_taken(i_print) = .True.
-          if( rt%printTimings%general() ) call timesec(timei)
-          call screenshot( it, first_kpt, overlap, evecfv_gnd, evecfv_time, ham_time )
-          if( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%screenshot )
-        else 
-          if( rt%printTimings%general() ) screenshot_was_taken(i_print) = .False.
-        end if
+      if ( take_screenshot ) then
+        if( rt%printTimings%general() ) call timesec( timei )
+        call screenshot( it, first_kpt, overlap, evecfv_gnd, evecfv_time, ham_time )
+        if ( rt%screenshots%print_density ) then
+          rhomt = rhomt - rhomt_init
+          rhoir = rhoir - rhoir_init
+          
+          call transform_real_function_to_rgrid( grid_for_density_3D, &
+          lmax_dens, rhomt, rhoir, rho_rgrid )
+          
+          if ( my_rank_writes_to_output ) call write_real_function_xsf( grid_for_density_3D, &
+          it, rho_rgrid, file_name_with_density_changes )
+          ! Make all the processes wait here: the master alone has been writing the file above
+          call barrier( mpi_env_k )
+
+        end if      
+        if( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%screenshot )
       end if
 
       ! Store relevant information from this iteration
@@ -418,10 +462,11 @@ contains
             end do
           end if ! if( molecular_dynamics%on )
         end if
+
         if( rt%printTimings%general() ) then
           call timesec_RTTDDFT( timeiter, timing_store(rt%n_print)%t_iteration )
           if( my_rank_writes_to_output ) call write_timing( it, timing_store, &
-          screenshot_was_taken, molecular_dynamics%on )
+          molecular_dynamics%on )
         end if
         i_print = 0
       else ! if ( iprint == rt%n_print ) 
@@ -541,7 +586,13 @@ contains
         & 'EH and SE methods are not compatible with predictor-corrector' )
       ! Consistency check: predictor corrector method should not be used with frozen ee interaction
       call terminate_if_false( trim( inp%xs%realTimeTDDFT%eeInteraction ) /= "IPA", &
-        & 'Predictor corrector method should not be used together with IPA approximation')
+        & 'Predictor corrector method should not be used together with IP approximation')
+    end if
+
+    if ( inp%xs%realTimeTDDFT%calculateTotalEnergy ) then
+      ! Consistency check: real-time total energy is ill-defined with frozen ee interaction
+      call terminate_if_false( trim( inp%xs%realTimeTDDFT%eeInteraction ) /= "IPA", &
+        & 'Real-time total energy should not be eveluated with IP approximation')
     end if
 
   end subroutine

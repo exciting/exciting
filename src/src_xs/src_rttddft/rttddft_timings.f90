@@ -24,13 +24,12 @@ module rttddft_timings
 
   !> Type to store timings for Ehrenfest MD
   type, public, extends (MD_timing) :: Timing_Ehrenfest
-    !> if `.True.`, it means that an MD step was conducted
-    !> This is needed since the time step for MD is a multiple of the time step for RT-TDDFT
-    logical  :: MD_was_carried_out
     !> time to recalculate `pmat` in an Ehrenfest MD step
     real(dp) :: pmat
     !> time to recalculate the hamiltonian and overlap matrices in an Ehrenfest MD step
     real(dp) :: hamoverl
+  contains
+    procedure :: reset => reset_Timing_Ehrenfest
   end type
 
   !> Type to store timings related to the update of the density in RT-TDDFT
@@ -50,6 +49,8 @@ module rttddft_timings
     real(dp) :: charge
     !> timing: execution of `rhonorm`, see [[UpdateDensity]]
     real(dp) :: rhonorm
+  contains
+    procedure :: reset => reset_Timing_RTTDDFT_density
   end type 
 
   !> Type to store timings related to the update of the density in RT-TDDFT
@@ -62,6 +63,8 @@ module rttddft_timings
     real(dp) :: genveffig
     !> timing: execution of `genmeffig`, see [[uppot]]
     real(dp) :: genmeffig
+  contains
+    procedure :: reset => reset_Timing_RTTDDFT_potential
   end type 
 
   !> Type to store timings related to the update of the Hamiltonian
@@ -73,6 +76,8 @@ module rttddft_timings
     !> timing: time spent after executing `hmlint` until the update of the 
     !> hamiltonian has been concluded, see [[UpdateHam]]
     real(dp) :: rest
+  contains
+    procedure :: reset => reset_Timing_RTTDDFT_hamiltonian
   end type 
 
   !> This type stores the time (in seconds) spent in the procedures of RT-TDDFT
@@ -97,15 +102,19 @@ module rttddft_timings
     real(dp) :: n_exc
     !> timing: time for obtaining a screenshot
     real(dp) :: screenshot
+  contains
+    procedure :: reset => reset_Timing_RTTDDFT
   end type
 
   type, public :: Timing_RTTDDFT_and_MD
     !> type that contains timings for RT-TDDFT (for evolving KS wavefunctions)
-    type(Timing_RTTDDFT)   :: t_RTTDDFT
+    type(Timing_RTTDDFT) :: t_RTTDDFT
     !> type that contains timings in an Ehrenfest MD
     type(Timing_Ehrenfest) :: t_Ehrenfest
     !> timing: time of each iteration (RT-TDDFT plus MD)
     real(dp) :: t_iteration
+  contains
+    procedure, public :: reset => reset_Timing_RTTDDFT_and_MD
   end type 
 
 
@@ -136,6 +145,73 @@ contains
     detailed = this%detailed_
   end function
 
+  !> Set every timing value to zero
+  pure subroutine reset_Timing_RTTDDFT_and_MD( this )
+    class(Timing_RTTDDFT_and_MD), intent(inout) :: this
+
+    call this%t_RTTDDFT%reset()
+    call this%t_Ehrenfest%reset()
+    this%t_iteration = 0._dp
+
+  end subroutine reset_Timing_RTTDDFT_and_MD
+
+  pure subroutine reset_Timing_RTTDDFT( this )
+    class(Timing_RTTDDFT), intent(inout) :: this
+
+    call this%dens%reset()
+    call this%pot%reset()
+    call this%ham%reset()
+    this%wavefunction = 0._dp
+    this%current_density = 0._dp
+    this%vector_potential = 0._dp
+    this%pred_corr = 0._dp
+    this%energy = 0._dp
+    this%n_exc = 0._dp
+    this%screenshot = 0._dp
+
+  end subroutine reset_Timing_RTTDDFT
+
+  pure subroutine reset_Timing_Ehrenfest( this )
+    class(Timing_Ehrenfest), intent(inout) :: this
+
+    call this%reset_MD_timing()
+    this%pmat = 0._dp
+    this%hamoverl = 0._dp
+
+  end subroutine reset_Timing_Ehrenfest
+
+  pure subroutine reset_Timing_RTTDDFT_density( this )
+    class(Timing_RTTDDFT_density), intent(inout) :: this
+  
+    this%total = 0._dp
+    this%rho = 0._dp
+    this%symrf = 0._dp
+    this%rfmtctof = 0._dp
+    this%addrhocr = 0._dp
+    this%charge = 0._dp
+    this%rhonorm = 0._dp
+  
+  end subroutine reset_Timing_RTTDDFT_density
+
+  pure subroutine reset_Timing_RTTDDFT_potential( this )
+    class(Timing_RTTDDFT_potential), intent(inout) :: this
+
+    this%total = 0._dp
+    this%poteff = 0._dp
+    this%genveffig = 0._dp
+    this%genmeffig = 0._dp
+
+  end subroutine reset_Timing_RTTDDFT_potential
+
+  pure subroutine reset_Timing_RTTDDFT_hamiltonian( this )
+    class(Timing_RTTDDFT_hamiltonian), intent(inout) :: this
+
+    this%total = 0._dp
+    this%hmlint = 0._dp
+    this%rest = 0._dp
+
+  end subroutine reset_Timing_RTTDDFT_hamiltonian
+
   !> Check the clock (current execution time, in seconds) and store the 
   !> difference between the current time and `ti` (passed as `inout` argument).  
   subroutine timesec_RTTDDFT(ti, duration )
@@ -143,7 +219,7 @@ contains
     !> Out: current time in sec
     real(dp),intent(inout) :: ti
     !> Duration, measured as the current time minus `ti`
-    real(dp),intent(out)   :: duration
+    real(dp),intent(out) :: duration
 
     real(dp) :: tf
 

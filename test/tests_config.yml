@@ -670,14 +670,13 @@ RT-TDDFT/GGA_PBE-C-trapCos-EHM-predictorCorrector:
       - "input.xml"
       - "C.xml"
 
-RT-TDDFT/GGA_PBE-C-trapCos-EHM-IPA:
+RT-TDDFT/GGA_PBE-C-trapCos-EHM-IPA-printDensity:
     files_under_test:
       - "atoms.xml"
       - "eigval.xml"
       - "evalcore.xml"
       - "JIND.OUT"
       - "NEXC.OUT"
-      - "ETOT_RTTDDFT.OUT"
       - "EIGVAL_0.OUT"
       - "EIGVAL_5.OUT"
       - "EIGVAL_10.OUT"
@@ -686,6 +685,9 @@ RT-TDDFT/GGA_PBE-C-trapCos-EHM-IPA:
       - "PROJ_5.OUT"
       - "PROJ_10.OUT"
       - "PROJ_15.OUT"
+      - "delta-density3d-5.xsf"
+      - "delta-density3d-10.xsf"
+      - "delta-density3d-15.xsf"
     inputs:
       - "input.xml"
       - "C.xml"
