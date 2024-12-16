@@ -698,8 +698,7 @@
                      exchange-correlation potential are evaluated, to allow for performing an average over degenerate subspaces. </li>
                 </list>
                 Unless there is a good reason, it is not generally advisable to set <attref>enforceDegeneracy</attref> to <pre>false</pre>. 
-                For details, refer to Section 6 and Appendix A of <a href="https://doi.org/10.1016/j.cpc.2011.12.006"> this </a> and
-                <a href="https://doi.org/10.1103/PhysRevB.35.5585">this</a> papers, respectively.
+                For details, refer to Section 6 and Appendix A of this (https://doi.org/10.1016/j.cpc.2011.12.006) and this (https://doi.org/10.1103/PhysRevB.35.5585) papers, respectively.
 	          </xs:documentation></xs:annotation>
           </xs:attribute>
 

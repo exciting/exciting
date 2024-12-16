@@ -79,9 +79,24 @@ module MD
     real(dp) :: t_MD_moveions
     !> Time spent to update the basis after moving the ions
     real(dp) :: t_MD_updateBasis
+  contains
+    procedure :: reset_MD_timing
   end type 
 
-  contains 
+  contains
+  
+  pure subroutine reset_MD_timing( this )
+    class(MD_timing), intent(inout) :: this
+
+    this%t_MD_step = 0._dp
+    this%t_MD_1st = 0._dp
+    this%t_MD_2nd = 0._dp
+    this%t_MD_sumforces = 0._dp
+    this%t_MD_moveions = 0._dp
+    this%t_MD_updateBasis = 0._dp
+
+  end subroutine reset_MD_timing
+
   subroutine force_allocate_arrays( this, n_atoms )
     class(force), intent(inout) :: this
     integer, intent(in) :: n_atoms

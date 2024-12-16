@@ -662,13 +662,15 @@ realTimeTDDFT_mandatory_attributes = ["pmat"]
 predictorCorrector_attribute_types = {"maxIterations": (int, 1), "tol": (float, 1)} 
 
 screenshots_attribute_types = {"niter": (int, 1)} 
-screenshots_valid_subtrees = ["eigenvalues", "projectionCoefficients", "occupations"] 
+screenshots_valid_subtrees = ["eigenvalues", "projectionCoefficients", "occupations", "density"] 
 
 eigenvalues_attribute_types = {"nEigenvalues": (int, 1), "tolerance": (float, 1)} 
 
 projectionCoefficients_attribute_types = {"format": (str, 1), "printAbsoluteValue": (bool, 1)} 
 
 occupations_attribute_types = {"format": (str, 1)} 
+
+density_valid_subtrees = ["plot3d"] 
 
 laser_attribute_types = {"fieldType": (str, ["external", "total"])} 
 laser_valid_subtrees = ["kick", "trapCos", "sinSq"] 

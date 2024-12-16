@@ -44,9 +44,8 @@
             endTime="4.0d0"
             printTimingGeneral="true"
             printTimingDetailed="true"
-            calculateTotalEnergy="true"
             calculateNExcitedElectrons="true"
-            printAfterIterations="1"
+            printAfterIterations="4"
             vectorPotentialSolver="improvedeuler"
             eeInteraction="IPA">
             <pmat readFromFile="false" writeToFile="false" forceHermitian="true" />
@@ -57,7 +56,18 @@
             <screenshots niter="5">
               <eigenvalues nEigenvalues="-1" tolerance="1d-14" />
               <projectionCoefficients printAbsoluteValue="true" format="F10.5" />
+             <density> 
+                 <plot3d>
+                   <box grid="8 8 8">
+                      <origin coord=" 0.0 0.0 0.0"/>
+                      <point  coord=" -1.0  1.0  0.0"/>
+                      <point  coord=" 1.0  -1.0  1.0"/>
+                      <point  coord=" 1.0  1.0  -1.0"/>
+                   </box>
+                </plot3d>
+             </density>
             </screenshots>
+
           </realTimeTDDFT>
 
         </xs>

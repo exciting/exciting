@@ -29,7 +29,7 @@ module rttddft_io
             open_file_timing, close_file_timing, write_timing, &
             file_pmat_exists, read_pmat, write_pmat, get_filename_pmat, &
             file_pmat_mt_exists, read_pmat_mt, write_pmat_mt, get_filename_pmat_mt, &
-            write_wavefunction
+            write_wavefunction, write_real_function_xsf, transform_real_function_to_rgrid
 
   !> Number of the unit to print timings
   integer(i32)                   :: file_time
@@ -294,16 +294,13 @@ contains
   end subroutine
 
   !> Subroutine to output the timings into `TIMING_RTTDDFT.OUT`
-  subroutine write_timing_RTTDDFT_steps( itNumber, timing, &
-    screenshot_was_taken, molecular_dynamics )
+  subroutine write_timing_RTTDDFT_steps( itNumber, timing, molecular_dynamics )
     !> itNumber: The actual number of the counter that tells how many time steps 
     !> have already been executed
     integer, intent(in) :: itNumber
     !> timing: Array of timings. Each elements contains information
     !>   about how many seconds (timings) were spent in different parts of code
     type(Timing_RTTDDFT_and_MD), intent(in) :: timing(:)
-    !> if `.True.`, a screenshot was taken at `itNumber`
-    logical, intent(in) :: screenshot_was_taken(:)
     !> Does timings about MD need to be printed?
     logical, intent(in), optional :: molecular_dynamics
     
@@ -311,7 +308,6 @@ contains
     logical  :: MD
 
     n = size( timing )
-    call assert( size(screenshot_was_taken) == n, 'screenshot_was_taken must have n elements' )
 
     shift = itNumber - n
     MD = .False.
@@ -344,16 +340,14 @@ contains
       end associate
       if( MD ) then
         associate( t_MD => timing(ip)%t_Ehrenfest )
-        if( t_MD%MD_was_carried_out ) then
-          call write_nonzero_timing( 'MD:', t_MD%t_MD_step )
-          call write_nonzero_timing( '-- 1st part of forces:', t_MD%t_MD_1st )
-          call write_nonzero_timing( '-- 2nd part of forces:', t_MD%t_MD_2nd )
-          call write_nonzero_timing( '-- sum forces:', t_MD%t_MD_sumforces )
-          call write_nonzero_timing( '-- move ions:', t_MD%t_MD_moveions )
-          call write_nonzero_timing( '-- update basis:', t_MD%t_MD_updateBasis )
-          call write_nonzero_timing( '-- update H, S:', t_MD%hamoverl )
-          call write_nonzero_timing( '-- update pmat:', t_MD%pmat )
-        end if
+        call write_nonzero_timing( 'MD:', t_MD%t_MD_step )
+        call write_nonzero_timing( '-- 1st part of forces:', t_MD%t_MD_1st )
+        call write_nonzero_timing( '-- 2nd part of forces:', t_MD%t_MD_2nd )
+        call write_nonzero_timing( '-- sum forces:', t_MD%t_MD_sumforces )
+        call write_nonzero_timing( '-- move ions:', t_MD%t_MD_moveions )
+        call write_nonzero_timing( '-- update basis:', t_MD%t_MD_updateBasis )
+        call write_nonzero_timing( '-- update H, S:', t_MD%hamoverl )
+        call write_nonzero_timing( '-- update pmat:', t_MD%pmat )
         end associate
       end if
       write( file_time, format_timing ) 'time per iteration:', timing(ip)%t_iteration
@@ -458,5 +452,53 @@ contains
     if ( timing > tol ) write( file_time, format_timing ) description, timing
 
   end subroutine
+
+  !> Write real-valued coordinate-space-defined 3d function in xsf file
+  subroutine write_real_function_xsf( grid, iteration, function_rgrid, label )
+    use mod_xsf_format, only: write_structure_xsf, write_3d_xsf
+    use mod_rgrid, only: rgrid
+
+    implicit none
+    !> Pre-generated grid
+    type(rgrid), intent(in) :: grid
+    !> Iteration number used in the filename
+    integer, intent(in) :: iteration
+    !> Real-valued function on the grid (grid%npt)
+    real(dp), intent(in) :: function_rgrid(:)
+    !> User-defined function label (e.g. observable name)
+    character(len = *), intent(in) :: label
+  
+    character(80) :: fname
+    
+    write( fname, '("-",i5,".xsf")' ) iteration
+    fname = trim( label )//fname
+    call str_strip( fname )
+    call write_structure_xsf( fname )
+    call write_3d_xsf( fname, label, grid%boxl(1 : 4, :), grid%ngrid, &
+    grid%npt, function_rgrid )
+
+  end subroutine
+
+  !> Convert real-valued coordinate-space-defined 3d function from the 
+  !> IR-MT representation to the coordinate representation
+  subroutine transform_real_function_to_rgrid( grid, lmax, function_mt, function_ir, function_rgrid )
+    use mod_rgrid, only: rgrid
+
+    implicit none
+    !> Pre-generated grid
+    type(rgrid), intent(in) :: grid
+    !> Maximum value of l used for the MT expansions
+    integer, intent(in) :: lmax
+    !> Real-valued function in MT (lmmaxvr, nrmtmax, natmtot)
+    real(dp), intent(in) :: function_mt(:, :, :)
+    !> Real-valued function in IR region (ngrtot)
+    real(dp), intent(in) :: function_ir(:)
+    !> Real-valued function on the grid (grid%npt)
+    real(dp), intent(out) :: function_rgrid(:)
+
+    call rfarray( lmax, size( function_mt, 1 ), function_mt, &
+    function_ir, grid%npt, grid%vpl, function_rgrid )
+
+  end subroutine 
 
 end module
