@@ -90,18 +90,23 @@ contains
     real(dp), intent(in) :: abstol
     !> See [[solve_gen_sym_eigenproblem_real_dp]]
     real(dp), intent(out), contiguous:: eigenvalues(:)
-    !> Array containing eigenvectors.
-    complex(dp), intent(out), contiguous :: eigenvectors(:,:)
+    !> Array containing eigenvectors. If not present, only the eigenvalues are calculated
+    complex(dp), intent(out), optional, contiguous :: eigenvectors(:,:)
 
     integer :: il, num_eigenvalues
     real(dp) :: vl, vu
     real(dp), allocatable :: eigenvalues_tmp(:)
+    complex(dp) :: eigenvectors_fake(1, 1)
 
     num_eigenvalues = size(eigenvalues)
 
     vl = 0._dp; vu = 0._dp; il = 1
 
-    call xhegvx(1, 'V', 'I', 'U', A, B, vl, vu, il, num_eigenvalues, abstol, eigenvalues_tmp, eigenvectors)
+    if( present(eigenvectors) ) then
+      call xhegvx(1, 'V', 'I', 'U', A, B, vl, vu, il, num_eigenvalues, abstol, eigenvalues_tmp, eigenvectors)
+    else
+      call xhegvx(1, 'N', 'I', 'U', A, B, vl, vu, il, num_eigenvalues, abstol, eigenvalues_tmp, eigenvectors_fake)
+    end if
     eigenvalues = eigenvalues_tmp(1:num_eigenvalues)
   end subroutine
 
@@ -218,7 +223,7 @@ contains
     real(dp), intent(in) :: abstol
     !> See [[dsygvx_wrapper]]
     real(dp), intent(out), allocatable :: eigenvalues(:)
-    !> Array containing eigenvectors.
+    !> Array containing eigenvectors. 
     complex(dp), intent(out), contiguous :: eigenvectors(:,:)
     !> See [[dsygvx_wrapper]]
     integer(i32), intent(in), optional :: lwork_in
