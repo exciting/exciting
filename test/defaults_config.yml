@@ -34,6 +34,7 @@ default_files_under_test:
       - "NEXC.OUT"
       - "ETOT_RTTDDFT.OUT"
       - "EIGVAL_??.OUT"
+      - "OCCSV_TXT_??.OUT"
       - "PROJ_??.OUT"
    xanes:
       - "EPSILON_??.OUT"

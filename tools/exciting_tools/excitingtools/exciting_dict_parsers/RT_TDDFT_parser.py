@@ -175,6 +175,27 @@ def parse_proj_screenshots(name: str) -> dict:
     return data
 
 
+def parse_occupations(file_name: str) -> dict:
+    """
+    Parser for OCCSV_TXT_*.OUT
+    """
+
+    with open(file_name) as f:
+        lines = f.readlines()
+
+    data = {"ik": [], "occupations": []}
+    for line in lines:
+        if "ik" in line:
+            ik = int(line.split()[-1])
+            data["ik"].append(ik)
+            aux = []
+        elif not line.split():
+            data["occupations"].append(np.array(aux))
+        else:
+            aux.append(float(line.split()[1]))
+    return data
+
+
 def parse_atom_position_velocity_force(name: str) -> dict:
     """Parser for ATOM_????.OUT
     :param str name: name of file to parse
