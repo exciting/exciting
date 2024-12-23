@@ -27,7 +27,7 @@ module generalized_hermitian_eigenproblem_test
     type(unit_test_type) :: test_report
     !> Number of assertions
     integer(i32), parameter :: n_assertions_test_solve_gen_sym_eigenproblem_real_dp = 2
-    integer(i32), parameter :: n_assertions_test_solve_gen_sym_eigenproblem_complex_dp = 2
+    integer(i32), parameter :: n_assertions_test_solve_gen_sym_eigenproblem_complex_dp = 3
     integer(i32), parameter :: n_assertions = n_assertions_test_solve_gen_sym_eigenproblem_complex_dp + &
                                               n_assertions_test_solve_gen_sym_eigenproblem_real_dp
 
@@ -91,6 +91,7 @@ module generalized_hermitian_eigenproblem_test
     integer(i32) ::  N
     complex(dp) :: A(5, 5), B(5, 5), eigenvectors(5, 4)
     real(dp) :: eigenvalues(4)
+    real(dp), allocatable :: eigenvalues_ref(:)
 
     A = complex_hermitian_matrix_5x5
     B = complex_positive_definite_matrix_5x5
@@ -110,6 +111,11 @@ module generalized_hermitian_eigenproblem_test
     fullfills_eigenvalue_eq = all_close(matmul(A, eigenvectors), matmul(B,  spread(eigenvalues, 1, N) * eigenvectors), tol_test)
     call test_report%assert(fullfills_eigenvalue_eq, '(hermitian_eigenproblem) Eigenvalue equation is not fulfilled (A * X_i = lambda_i * B * X_i). Diff = ' // &
       to_char( maxval( abs(matmul(A, eigenvectors) - matmul(B,  spread(eigenvalues, 1, N) * eigenvectors)) ) ) )
+
+    ! Obtain only the eigenvalues
+    eigenvalues_ref = eigenvalues
+    call solve_generalized_hermitian_eigenproblem(A, B, tol_solver, eigenvalues)
+    call test_report%assert( all_close(eigenvalues, eigenvalues_ref, tol=tol_test), '(hermitian_eigenproblem) Eigenvalues are not equal to the reference')
 
   end subroutine
 
