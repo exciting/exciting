@@ -13,6 +13,7 @@ Tolerances in default_tolerances cover files
   * NEXC.OUT
   * ETOT_RTTDDFT.OUT
   * EIGVAL_*.OUT
+  * OCCSV_TXT_*.OUT
   * PROJ_*.OUT
   * ATOM_????.OUT
   * FCR_????.OUT
@@ -30,7 +31,6 @@ from ..tol_classes import DefaultTolerances, Tol
 default = DefaultTolerances(integer=Tol(0),
                             float=Tol(1.e-8),
                             energy=Tol(1.e-8, Unit.hartree),
-                            oscillator_strength=Tol(1.e-8, Unit.null),
                             time=Tol(1e-8, Unit.au),               # Which would be hbar / E_H
                             current_density=Tol(1e-8, Unit.au),    # Which would be  (e * E_H) / (hbar * a0)
                             length=Tol(1e-8, Unit.bohr),
@@ -69,6 +69,11 @@ rt_tddft_eigval = {
     'eigenvalues': default.energy,
 }
 
+rt_tddft_occupations = {
+    'ik': default.integer,
+    'occupations': default.float
+}
+
 rt_tddft_proj = {
     'ik': default.integer,
     'projection': default.float
@@ -98,6 +103,7 @@ rt_tddft_tolerances = {'JIND.OUT': rt_tddft_jind,
                        'NEXC.OUT': rt_tddft_nexc,
                        'ETOT_RTTDDFT.OUT': rt_tddft_etot,
                        'EIGVAL_??.OUT': rt_tddft_eigval,
+                       'OCCSV_TXT_??.OUT': rt_tddft_occupations,
                        'PROJ_??.OUT': rt_tddft_proj,
                        'ATOM_????.OUT': rt_tddft_atom,
                        'FCR': rt_tddft_force,

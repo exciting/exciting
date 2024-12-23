@@ -96,6 +96,7 @@ _file_to_parser = {
     "ETOT_RTTDDFT.OUT": RT_TDDFT_parser.parse_etot,
     "EIGVAL_*": RT_TDDFT_parser.parse_eigval_screenshots,
     "PROJ_*": RT_TDDFT_parser.parse_proj_screenshots,
+    "OCCSV_TXT_*.OUT": RT_TDDFT_parser.parse_occupations,
     "ATOM_*": RT_TDDFT_parser.parse_atom_position_velocity_force,
     "FCR_*": RT_TDDFT_parser.parse_force,
     "FEXT_*": RT_TDDFT_parser.parse_force,
