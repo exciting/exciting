@@ -160,22 +160,22 @@ libxc.a:lib/libxc.a
 ifeq ($(USE_EXTERNAL_LIBXC),false)
 ifeq ($(HLRN),true)
 lib/libxc.a:
-	cd ../../external/libXC/ && \
-	module swap craype-$(CNODE_ARCH) craype-$(LNODE_ARCH) && autoreconf --install --force && \
-	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPTS)" CC=$(CC) FCCPP=$(FCCPP) --enable-static=yes --enable-shared=no --prefix=$(PWD)/install-libXC && \
+        mkdir -p build-libXC && cd build-libXC && \
+	module swap craype-$(CNODE_ARCH) craype-$(LNODE_ARCH) && \
+         FC=$(F90) FCFLAGS="$(CPP_ON_OPTS)" CC=$(CC) FCCPP=$(FCCPP) ../../../external/cmake-3.31.3-linux-x86_64/bin/cmake -DBUILD_TESTING=OFF -DENABLE_FORTRAN=ON ../../../external/libXC/ && \
 	module swap craype-$(LNODE_ARCH) craype-$(CNODE_ARCH) && \
-	make && make install && \
-    ln -s ../install-libXC/lib/libxc.a ./lib/libxc.a && \
-	ln -s ../install-libXC/lib/libxcf03.a ./lib/libxcf03.a && \
-	ln -s install-libXC/include/xc_f03_* .
+        make
+        ln -s ../build-libXC/libxc.a ./lib/libxc.a && \
+        ln -s ../build-libXC/libxcf03.a ./lib/libxcf03.a && \
+        ln -s build-libXC/xc_f03_* .
 else
 lib/libxc.a:
-	cd ../../external/libXC/ && autoreconf --install --force && \
-	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPTS)" CC=$(CC) FCCPP=$(FCCPP) --enable-static=yes --enable-shared=no --prefix=$(PWD)/install-libXC && \
-	make && make install
-	ln -s ../install-libXC/lib/libxc.a ./lib/libxc.a && \
-	ln -s ../install-libXC/lib/libxcf03.a ./lib/libxcf03.a && \
-	ln -s install-libXC/include/xc_f03_* .
+	mkdir -p build-libXC && cd build-libXC && \
+	FC=$(F90) FCFLAGS="$(CPP_ON_OPTS)" CC=$(CC) FCCPP=$(FCCPP) ../../../external/cmake-3.31.3-linux-x86_64/bin/cmake -DBUILD_TESTING=OFF -DENABLE_FORTRAN=ON ../../../external/libXC/ && \
+	make 
+	ln -s ../build-libXC/libxc.a ./lib/libxc.a && \
+	ln -s ../build-libXC/libxcf03.a ./lib/libxcf03.a && \
+	ln -s build-libXC/xc_f03_* .
 endif
 endif
 

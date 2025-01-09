@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>CMP0175 &mdash; CMake 3.31.3 Documentation</title>
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
+    <link rel="stylesheet" type="text/css" href="../_static/cmake.css?v=3e562cf9" />
+    
+    <script src="../_static/documentation_options.js?v=9b7126ab"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="icon" href="../_static/cmake-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="CMP0174" href="CMP0174.html" />
+    <link rel="prev" title="CMP0176" href="CMP0176.html" />
+ 
+
+  </head><body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="CMP0174.html" title="CMP0174"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="CMP0176.html" title="CMP0176"
+             accesskey="P">previous</a> |</li>
+  <li>
+    <img src="../_static/cmake-logo-16.png" alt=""
+         style="vertical-align: middle; margin-top: -2px" />
+  </li>
+  <li>
+    <a href="https://cmake.org/">CMake</a> &#187;
+  </li>
+  <li>
+    <a href="../index.html">3.31.3 Documentation</a> &#187;
+  </li>
+
+          <li class="nav-item nav-item-1"><a href="../manual/cmake-policies.7.html" accesskey="U">cmake-policies(7)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">CMP0175</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="cmp0175">
+<span id="policy:CMP0175"></span><h1>CMP0175<a class="headerlink" href="#cmp0175" title="Link to this heading">¶</a></h1>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 3.31.</span></p>
+</div>
+<p><span class="target" id="index-0-command:add_custom_command"></span><a class="reference internal" href="../command/add_custom_command.html#command:add_custom_command" title="add_custom_command"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">add_custom_command()</span></code></a> rejects invalid arguments.</p>
+<p>CMake 3.30 and earlier silently ignored unsupported keywords and missing or
+invalid arguments for the different forms of the <span class="target" id="index-1-command:add_custom_command"></span><a class="reference internal" href="../command/add_custom_command.html#command:add_custom_command" title="add_custom_command"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">add_custom_command()</span></code></a>
+command. CMake 3.31 implements more rigorous argument checking and will flag
+invalid or missing arguments as errors.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">OLD</span></code> behavior of this policy will accept the same invalid keywords or
+arguments as CMake 3.30 and earlier. The <code class="docutils literal notranslate"><span class="pre">NEW</span></code> behavior will flag the
+following as errors that previously went unreported:</p>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">OUTPUT</span></code> form does not accept <code class="docutils literal notranslate"><span class="pre">PRE_BUILD</span></code>, <code class="docutils literal notranslate"><span class="pre">PRE_LINK</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">POST_BUILD</span></code> keywords.</p></li>
+<li><p>When the <code class="docutils literal notranslate"><span class="pre">APPEND</span></code> keyword is given, the <code class="docutils literal notranslate"><span class="pre">OUTPUT</span></code> form also does not
+accept <code class="docutils literal notranslate"><span class="pre">BYPRODUCTS</span></code>, <code class="docutils literal notranslate"><span class="pre">COMMAND_EXPAND_LISTS</span></code>, <code class="docutils literal notranslate"><span class="pre">DEPENDS_EXPLICIT_ONLY</span></code>,
+<code class="docutils literal notranslate"><span class="pre">DEPFILE</span></code>, <code class="docutils literal notranslate"><span class="pre">JOB_POOL</span></code>, <code class="docutils literal notranslate"><span class="pre">JOB_SERVER_AWARE</span></code>, <code class="docutils literal notranslate"><span class="pre">USES_TERMINAL</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">VERBATIM</span></code> keywords.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">TARGET</span></code> form requires exactly one of <code class="docutils literal notranslate"><span class="pre">PRE_BUILD</span></code>, <code class="docutils literal notranslate"><span class="pre">PRE_LINK</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">POST_BUILD</span></code> to be given.  Previously, if none were given, <code class="docutils literal notranslate"><span class="pre">POST_BUILD</span></code>
+was assumed, or if multiple keywords were given, the last one was used.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">TARGET</span></code> form does not accept <code class="docutils literal notranslate"><span class="pre">DEPENDS</span></code>, <code class="docutils literal notranslate"><span class="pre">DEPENDS_EXPLICIT_ONLY</span></code>,
+<code class="docutils literal notranslate"><span class="pre">DEPFILE</span></code>, <code class="docutils literal notranslate"><span class="pre">IMPLICIT_DEPENDS</span></code>, <code class="docutils literal notranslate"><span class="pre">MAIN_DEPENDENCY</span></code>, <code class="docutils literal notranslate"><span class="pre">JOB_POOL</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">JOB_SERVER_AWARE</span></code> keywords.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">TARGET</span></code> form now requires at least one <code class="docutils literal notranslate"><span class="pre">COMMAND</span></code> to be given.</p></li>
+<li><p>If a keyword expects a value to be given after it, but no value is provided,
+that was previously treated as though the keyword was not given at all.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">COMMENT</span></code> keyword expects exactly one value after it.  If multiple
+values are given, or if the <code class="docutils literal notranslate"><span class="pre">COMMENT</span></code> keyword is given more than once,
+this is an error.</p></li>
+</ul>
+<p>This policy was introduced in CMake version 3.31.
+It may be set by <span class="target" id="index-0-command:cmake_policy"></span><a class="reference internal" href="../command/cmake_policy.html#command:cmake_policy" title="cmake_policy"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cmake_policy()</span></code></a> or <span class="target" id="index-0-command:cmake_minimum_required"></span><a class="reference internal" href="../command/cmake_minimum_required.html#command:cmake_minimum_required" title="cmake_minimum_required"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cmake_minimum_required()</span></code></a>.
+If it is not set, CMake warns, and uses <code class="docutils literal notranslate"><span class="pre">OLD</span></code> behavior.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">OLD</span></code> behavior of a policy is
+<span class="target" id="index-0-manual:cmake-policies(7)"></span><a class="reference internal" href="../manual/cmake-policies.7.html#manual:cmake-policies(7)" title="cmake-policies(7)"><code class="xref cmake cmake-manual docutils literal notranslate"><span class="pre">deprecated</span> <span class="pre">by</span> <span class="pre">definition</span></code></a>
+and may be removed in a future version of CMake.</p>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="CMP0176.html"
+                          title="previous chapter">CMP0176</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="CMP0174.html"
+                          title="next chapter">CMP0174</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/policy/CMP0175.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="CMP0174.html" title="CMP0174"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="CMP0176.html" title="CMP0176"
+             >previous</a> |</li>
+  <li>
+    <img src="../_static/cmake-logo-16.png" alt=""
+         style="vertical-align: middle; margin-top: -2px" />
+  </li>
+  <li>
+    <a href="https://cmake.org/">CMake</a> &#187;
+  </li>
+  <li>
+    <a href="../index.html">3.31.3 Documentation</a> &#187;
+  </li>
+
+          <li class="nav-item nav-item-1"><a href="../manual/cmake-policies.7.html" >cmake-policies(7)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">CMP0175</a></li> 
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2000-2024 Kitware, Inc. and Contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    </div>
+  </body>
+</html>
