@@ -24,13 +24,13 @@ build/mpiandsmp/exciting
 build/debug/exciting
 build/debugmpi/exciting
 build/debugmpiandsmp/exciting
-build/serial/install-libXC/
-build/smp/install-libXC/
-build/mpi/install-libXC/
-build/mpiandsmp/install-libXC/
-build/debug/install-libXC/
-build/debugmpi/install-libXC/
-build/debugmpiandsmp/install-libXC/
+build/serial/build-libXC/
+build/smp/build-libXC/
+build/mpi/build-libXC/
+build/mpiandsmp/build-libXC/
+build/debug/build-libXC/
+build/debugmpi/build-libXC/
+build/debugmpiandsmp/build-libXC/
 # Bin directory, covering all executables
 /bin/
 
