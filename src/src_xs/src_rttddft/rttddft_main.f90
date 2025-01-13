@@ -14,7 +14,6 @@
 module rttddft_main
   use asserts, only: assert
   use constants, only: zi
-  use m_getunit, only: getunit
   use MD, only: force, MD_input_keys
   use MD_io, only: MD_out
   use mod_atoms, only: natmtot, natoms, nspecies, atposc, idxas
@@ -25,6 +24,7 @@ module rttddft_main
   use mod_lattice, only: omega
   use mod_misc, only: filext
   use mod_mpi_env, only: mpiinfo
+  use mod_potential_and_density, only: rhomt, rhoir
   use modinput, only: input, input_type
   use modmpi, only: rank, mpi_env_k, distribute_loop, barrier, terminate_if_false
   use propagators, only: create_propagator, propagator_type => propagator
@@ -43,7 +43,7 @@ module rttddft_main
     open_file_nexc, close_file_nexc, write_nexc, &
     open_file_etot, close_file_etot, write_total_energy, &
     open_file_info, close_file_info, write_file_info, write_file_info_header, &
-    write_wavefunction, write_real_function_xsf, transform_real_function_to_rgrid
+    write_wavefunction
   use rttddft_MD, only: force_rttdft, move_ions, &
     MD_allocate_global_arrays => allocate_global_arrays, &
     MD_deallocate_global_arrays => deallocate_global_arrays, &
@@ -56,8 +56,6 @@ module rttddft_main
   use rttddft_VectorPotential, only: Vector_Potential, Vector_Potential_Field
   use rttddft_Wavefunction, only: Update_basis_derivative, normalize_wavefunctions
   use to_char_conversion, only: to_char
-  use mod_rgrid, only: rgrid, gen_3d_rgrid
-  use mod_potential_and_density, only: rhomt, rhoir
   
   implicit none
 
@@ -112,15 +110,11 @@ contains
     complex(dp), allocatable  :: pmatmt(:, :, :, :, :)
 
     integer :: it, first_kpt, last_kpt, n_steps
-    integer :: i_print, is, timeStepMultiplier, l_rad_step, lmax_dens
+    integer :: i_print, is, timeStepMultiplier, l_rad_step
     logical :: predCorrReachedMaxSteps, my_rank_writes_to_output, &
-    density_needed, evolve_H0, take_screenshot
+      density_needed, evolve_H0, take_screenshot
     complex(dp), allocatable :: ham_init(:, :, :)
-    real(dp), allocatable :: rhoir_init(:), rhomt_init(:, :, :), rho_rgrid(:)
-    type(rgrid) :: grid_for_density_3D
-    character(len=*), parameter :: file_name_with_initial_density = 'density3d'
-    character(len=*), parameter :: file_name_with_density_changes = 'delta-density3d'
-
+    real(dp), allocatable :: rhoir_init(:), rhomt_init(:, :, :)
     character(len=100)      :: string
 
     type(Vector_Potential)         :: vec_pot
@@ -241,31 +235,13 @@ contains
     end if
 
     if ( rt%screenshots%on ) then
-
-      call screenshot( 0, first_kpt, overlap, evecfv_gnd, evecfv_time, ham_time )
-
-      if ( rt%screenshots%print_density ) then
-
+      if ( rt%screenshots%density%on ) then
         call UpdateDensity( first_kpt, evecfv_time(:, :, first_kpt : last_kpt), &
-        evecsv, it, rt%normalize_WF, l_rad_step, rt%printTimings, timing%t_RTTDDFT%dens )
-  
-        grid_for_density_3D = gen_3d_rgrid( rt%screenshots%plot3d, 0 )
-        allocate( rho_rgrid(grid_for_density_3D%npt) )
-
-        lmax_dens = input%groundstate%lmaxvr
-
-        call transform_real_function_to_rgrid( grid_for_density_3D, lmax_dens, &
-        rhomt, rhoir, rho_rgrid )
-        
-        if ( my_rank_writes_to_output ) call write_real_function_xsf( grid_for_density_3D, &
-        0, rho_rgrid, file_name_with_initial_density )
-        ! Make all the processes wait here: the master alone has been writing the file above
-        call barrier( mpi_env_k )
-  
-        allocate( rhomt_init, source = rhomt )
-        allocate( rhoir_init, source = rhoir )
-      end if ! rt%screenshots%print_density
-
+          evecsv, it, rt%normalize_WF, l_rad_step, rt%printTimings, timing%t_RTTDDFT%dens )
+        rhomt_init = rhomt
+        rhoir_init = rhoir
+      end if
+      call screenshot( 0, rt%screenshots, overlap, evecfv_gnd, evecfv_time, ham_time, nmat(1, first_kpt:last_kpt), occsv(:, first_kpt:last_kpt), rhomt, rhoir, mpi_env=mpi_env_k )
     end if ! rt%screenshots%on
 
     if( rt%printTimings%general() ) then
@@ -297,7 +273,7 @@ contains
         
       ! We may need to update charge density on some steps
       density_needed = ( .not. rt%eeInteraction%ipa )
-      if ( take_screenshot ) density_needed = density_needed .or. rt%screenshots%print_density
+      if ( take_screenshot ) density_needed = density_needed .or. rt%screenshots%density%on
 
       ! WAVEFUNCTION
       if ( rt%predictor_corrector%on ) evecfv_save = evecfv_time
@@ -383,10 +359,9 @@ contains
       end if
 
       if ( molecular_dynamics%on ) then
+        print_forces(i_print) = .False.
         if ( mod( it, timeStepMultiplier ) == 0 ) then
-          if ( rt%printTimings%general() ) then 
-            call timesec( timei )
-          end if
+          if ( rt%printTimings%general() ) call timesec( timei )
           call forces%save_total_force()
           call force_rttdft( forces, vec_pot%a_tot, e_field, molecular_dynamics, evecfv_time, overlap, ham_time, rt%printTimings, timing%t_Ehrenfest )
           call move_ions( first_kpt, forces%total, forces%total_save, molecular_dynamics%time_step, &
@@ -410,28 +385,14 @@ contains
               & update_pmat=molecular_dynamics%update_pmat, ham_init=ham_init )
           end if
           if( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_Ehrenfest%t_MD_step )
-        else ! if ( mod( it, timeStepMultiplier ) == 0 )
-          print_forces(i_print) = .False.
         end if ! if ( mod( it, timeStepMultiplier ) == 0 )
       end if ! if ( molecular_dynamics%on ) then
 
       ! Check if a screenshot has been requested
       if ( take_screenshot ) then
         if( rt%printTimings%general() ) call timesec( timei )
-        call screenshot( it, first_kpt, overlap, evecfv_gnd, evecfv_time, ham_time )
-        if ( rt%screenshots%print_density ) then
-          rhomt = rhomt - rhomt_init
-          rhoir = rhoir - rhoir_init
-          
-          call transform_real_function_to_rgrid( grid_for_density_3D, &
-          lmax_dens, rhomt, rhoir, rho_rgrid )
-          
-          if ( my_rank_writes_to_output ) call write_real_function_xsf( grid_for_density_3D, &
-          it, rho_rgrid, file_name_with_density_changes )
-          ! Make all the processes wait here: the master alone has been writing the file above
-          call barrier( mpi_env_k )
-
-        end if      
+        call screenshot( it, rt%screenshots, overlap, evecfv_gnd, evecfv_time, ham_time, nmat(1, first_kpt:last_kpt), &
+          occsv(:, first_kpt:last_kpt), rhomt, rhoir, rhomt_init, rhoir_init, mpi_env_k )
         if( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%screenshot )
       end if
 

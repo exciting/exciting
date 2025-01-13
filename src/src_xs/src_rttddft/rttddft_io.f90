@@ -1,9 +1,11 @@
 module rttddft_io
   use asserts, only: assert
   use mod_misc, only: filext, versionname, githash
-  use modinput, only: input
+  use modinput, only: input, plot3d_type
   use modmpi, only: rank, procs, barrier
   use mod_mpi_env, only: mpiinfo
+  use mod_rgrid, only: rgrid, gen_3d_rgrid
+  use mod_xsf_format, only: add_xsf_extension, write_real_function_xsf
 #ifdef MPI
   use rttddft_io_parallel, only: read_array, write_array
 #else
@@ -16,6 +18,7 @@ module rttddft_io
   use rttddft_timings, only: Print_Timings, Timing_RTTDDFT_and_MD
   use rttddft_VectorField, only: Uniform_Vector_Field, x, y, z
   use rttddft_VectorPotential, only: Vector_Potential_Field
+  use to_char_conversion, only: to_char
   
   implicit none
 
@@ -29,7 +32,8 @@ module rttddft_io
             open_file_timing, close_file_timing, write_timing, &
             file_pmat_exists, read_pmat, write_pmat, get_filename_pmat, &
             file_pmat_mt_exists, read_pmat_mt, write_pmat_mt, get_filename_pmat_mt, &
-            write_wavefunction, write_real_function_xsf, transform_real_function_to_rgrid
+            write_projection_coefficients, write_eigenvalues, write_occupations, &
+            write_wavefunction, write_density_to_file
 
   !> Number of the unit to print timings
   integer(i32)                   :: file_time
@@ -69,6 +73,16 @@ module rttddft_io
   character(len=*), parameter :: filename_pmat = 'PMATBASIS'
   !> Default name of the file where `pmat_mt` is printed out
   character(len=*), parameter :: filename_pmat_mt = 'PMATMTBASIS'
+  !> Default name of the file where the projection coefficients are printed out
+  character(len=*), parameter :: filename_projection_coefficients = 'PROJ_'
+  !> Default name of the file where the eigenvalues are printed out
+  character(len=*), parameter :: filename_eigenvalues = 'EIGVAL_'
+  !> Default name of the file where the occupation factors are printed out
+  character(len=*), parameter :: filename_occupations = 'OCCSV_TXT_'
+  !> Default name of the file where the (initial) electron density is printed out
+  character(len=*), parameter :: filename_density = 'density3d'
+  !> Default name of the file where the changes in electron density are printed out
+  character(len=*), parameter :: filename_density_changes = 'delta-density3d'
   
 
   interface write_timing
@@ -77,7 +91,7 @@ module rttddft_io
   end interface
 
 contains 
-  !> (private) add the default extension (usually .OUT) to the base file name
+  !> (private) add the default extension (usually `.OUT`) to the base file name
   pure function add_default_extension( file_name )
     !> base file name
     character(len=*), intent(in)  :: file_name
@@ -440,7 +454,7 @@ contains
     end do
   end subroutine
 
-    !> Write timing only if it is nonzero (> tol)
+  !> Write timing only if it is nonzero (> tol)
   subroutine write_nonzero_timing( description, timing )
     !> Action name
     character(len = *), intent(in) :: description
@@ -453,38 +467,212 @@ contains
 
   end subroutine
 
-  !> Write real-valued coordinate-space-defined 3d function in xsf file
-  subroutine write_real_function_xsf( grid, iteration, function_rgrid, label )
-    use mod_xsf_format, only: write_structure_xsf, write_3d_xsf
-    use mod_rgrid, only: rgrid
+  !> (Private) Get `filename_projection_coefficients` including the iteration number
+  function get_filename_projection_coefficient( it ) result(name)
+    !> Iteration number
+    integer(i32), intent(in) :: it
+    !> File name (to return)
+    character(len=:), allocatable :: name
 
-    implicit none
-    !> Pre-generated grid
-    type(rgrid), intent(in) :: grid
-    !> Iteration number used in the filename
-    integer, intent(in) :: iteration
-    !> Real-valued function on the grid (grid%npt)
-    real(dp), intent(in) :: function_rgrid(:)
-    !> User-defined function label (e.g. observable name)
-    character(len = *), intent(in) :: label
-  
-    character(80) :: fname
+    name = add_default_extension( filename_projection_coefficients // to_char( it ) )
+  end function
+
+  !> Output projection coefficients to a text file
+  subroutine write_projection_coefficients( it, print_absolute_value, print_format, proj_coeff )
+    !> Iteration number
+    integer(i32), intent(in) :: it
+    !> If `.true.`, print `abs**2` of each projection coefficient instead of the complex number
+    logical, intent(in) :: print_absolute_value
+    !> Fortran format of a real number
+    character(len=*), intent(in) :: print_format
+    !> Projection coefficients
+    complex(dp), contiguous, intent(in) :: proj_coeff(:, :, :)
+
+    character(len=:), allocatable :: format_lines
+    character(len=*), parameter :: format_header_line = '(A5,I10)'
+    integer(i32) :: unit, ist, ik, n_states_gnd, last_kpt
+
+    last_kpt = ubound( proj_coeff, 3 )
+    n_states_gnd = size( proj_coeff, 1 )
+    format_lines = '(' // trim( adjustl( to_char( merge( n_states_gnd, 2*n_states_gnd, print_absolute_value ) ) ) ) // trim( print_format ) // ')'
+
+    open( newunit=unit, file = get_filename_projection_coefficient( it ), action = 'write' )
+    do ik = 1, size( proj_coeff, 3 )
+      write( unit, format_header_line) 'ik: ', ik
+      do ist = 1, size( proj_coeff, 2 )
+        if( print_absolute_value ) then
+          write( unit, format_lines ) abs( proj_coeff(:, ist, ik) )**2
+        else
+          write( unit, format_lines ) proj_coeff(:, ist, ik)
+        end if
+      end do
+    end do
+    close( unit )
+  end subroutine
+
+  !> (Private) Get `filename_eigenvalues` including the iteration number
+  function get_filename_eigenvalues( it ) result(name)
+    !> Iteration number
+    integer(i32), intent(in) :: it
+    !> File name (to return)
+    character(len=:), allocatable :: name
+
+    name = add_default_extension( filename_eigenvalues // to_char( it ) )
+  end function
+
+  !> Output eigenvalues to a text file
+  subroutine write_eigenvalues( it, eigenvalues, dimensions )
+    !> Iteration number
+    integer(i32), intent(in) :: it
+    !> KS eigenvalues
+    real(dp), contiguous, intent(in) :: eigenvalues(:, :)
+    !> Size of eigenvalues (along 1st dim.) to be printed out
+    integer(i32), contiguous, intent(in) :: dimensions(:)
+
+    call write_array_along_states_and_kpoints( get_filename_eigenvalues( it ), eigenvalues, dimensions )
+  end subroutine
+
+  !> (Private) Get `filename_occupations` including the iteration number
+  function get_filename_occupations( it ) result(name)
+    !> Iteration number
+    integer(i32), intent(in) :: it
+    !> File name (to return)
+    character(len=:), allocatable :: name
+
+    name = add_default_extension( filename_occupations // to_char( it ) )
+  end function
+
+  !> Output eigenvalues to text and/or binary file(s)
+  subroutine write_occupations( it, occupations, write_txt, write_binary, print_format )
+    !> Iteration number
+    integer(i32), intent(in) :: it
+    !> Occupation factors
+    real(dp), contiguous, intent(in) :: occupations(:, :)
+    !> If `.true.`, write an output with text format
+    logical, intent(in) :: write_txt
+    !> If `.true.`, write an output with binary format
+    logical, intent(in) :: write_binary
+    !> Fortran format of a real number
+    character(len=*), intent(in) :: print_format
+
+    integer(i32) :: ik
+    character(len=:), allocatable :: backup
+
+    if( write_binary ) then
+      backup = filext
+      filext = "_" // to_char(it) // filext
+      do ik = 1, size( occupations, 2 )
+        call putoccsv(ik, occupations(:, ik))
+      end do
+      filext = backup
+    end if
+    if( write_txt ) call write_array_along_states_and_kpoints( get_filename_occupations(it), &
+      occupations, real_number_format=print_format )
+  end subroutine
+
+  !> (Private) Auxiliary function to write eigenvalues and occupations
+  subroutine write_array_along_states_and_kpoints( file_name, array, dimensions, real_number_format )
+    !> File name
+    character(len=*), intent(in) :: file_name
+    !> Array to be printed out
+    real(dp), contiguous, intent(in) :: array(:, :)
+    !> List with sizes of `array` (along 1st dim.) to print out
+    integer(i32), contiguous, optional, intent(in) :: dimensions(:)
+    !> Format of a real number. When absent, `real_number_format_default` is used
+    character(len=*), optional, intent(in) :: real_number_format
     
-    write( fname, '("-",i5,".xsf")' ) iteration
-    fname = trim( label )//fname
-    call str_strip( fname )
-    call write_structure_xsf( fname )
-    call write_3d_xsf( fname, label, grid%boxl(1 : 4, :), grid%ngrid, &
-    grid%npt, function_rgrid )
+    integer(i32) :: unit, ik, ist, m, n
+    integer(i32), allocatable :: dims(:)
+    character(len=*), parameter :: integer_format = 'I7'
+    character(len=*), parameter :: real_number_format_default = 'F20.12'
+    character(len=*), parameter :: format_header_line = '(A5,' // integer_format // ')'
+    character(len=:), allocatable :: format_lines
+    
+    m = size( array, 1 )
+    n = size( array, 2 )
+    if( present(dimensions) ) then
+      call assert( size(dimensions) == n, "dimensions must have size n")
+      call assert( all( dimensions <= m ), "each element in dimensions must be <= m" )
+      dims = dimensions
+    else 
+      allocate( dims(n), source=m )
+    end if
 
+    if( present(real_number_format) ) then
+      format_lines = '(' // integer_format // ',' // trim(real_number_format) // ')'
+    else
+      format_lines = '(' // integer_format // ',' // trim(real_number_format_default) // ')'
+    end if
+    
+    open( newunit = unit, file = file_name, action = 'write' )
+    do ik = 1, n
+      write( unit, format_header_line ) 'ik = ', ik
+      do ist = 1, dims(ik)
+        write( unit, format_lines ) ist, array(ist, ik)
+      end do
+      write( unit, * ) ''
+    end do
+    close(unit)
+  end subroutine
+
+
+  !> Return a label, indicating `density` or `delta-density`
+  pure function get_density_label( delta_rho ) result(label)
+    !> If `.true.`, select `delta-density`
+    logical, intent(in) :: delta_rho
+    !> File name (to return)
+    character(len=:), allocatable :: label
+
+    if( delta_rho ) then
+      label = filename_density_changes
+    else 
+      label = filename_density
+    end if
+  end function
+
+  !> (Private) Return the output name where the density will be stored
+  function get_filename_density( it, delta_rho ) result(name)
+    !> Iteration number
+    integer(i32), intent(in) :: it
+    !> If `.true.`, select `delta-density`
+    logical, intent(in) :: delta_rho
+    !> File name (to return)
+    character(len=:), allocatable :: name
+
+    name = add_xsf_extension( get_density_label( delta_rho ) // "-" // to_char( it )  )
+  end function
+
+  !> Write the electron density (or changes in electron density) to an output file
+  subroutine write_density_to_file( it, rho_MT, rho_interstitial, delta_rho, plot3d, my_rank_writes )
+    !> Iteration number
+    integer, intent(in) :: it
+    !> Real-valued function in MT (lmmaxvr, nrmtmax, natmtot): it can be \(n\) or \(\Delta n\)
+    real(dp), contiguous, intent(in) :: rho_MT(:, :, :)
+    !> Real-valued function in IR region (ngrtot): it can be \(n\) or \(\Delta n\)
+    real(dp), contiguous, intent(in) :: rho_interstitial(:)
+    !> If `.true.`, `rho_MT` and `rho_insterstitial` refer to \(\Delta n\), instead of \(n\)
+    logical, intent(in) :: delta_rho
+    !> Grid data fot 3D density plots
+    type(plot3d_type), intent(in), pointer :: plot3d
+    !> If `.true.`, my MPI rank is supposed to write outputs
+    logical, intent(in) :: my_rank_writes
+
+    integer(i32) :: l_max, lm_max
+    real(dp), allocatable :: rho_rgrid(:)
+    type(rgrid) :: grid_3D
+
+    grid_3D = gen_3d_rgrid( plot3d, 0 )
+    allocate( rho_rgrid(grid_3D%npt) )
+    lm_max = size( rho_MT, 1 )
+    l_max = int( sqrt( real(lm_max, dp) ), i32 ) - 1
+    ! Attention, this function has an MPI collective call
+    call transform_real_function_to_rgrid( grid_3D, l_max, rho_MT, rho_interstitial, rho_rgrid )
+    if( my_rank_writes ) call write_real_function_xsf( grid_3D, rho_rgrid, get_density_label( delta_rho ) , get_filename_density( it, delta_rho ))
   end subroutine
 
   !> Convert real-valued coordinate-space-defined 3d function from the 
   !> IR-MT representation to the coordinate representation
   subroutine transform_real_function_to_rgrid( grid, lmax, function_mt, function_ir, function_rgrid )
-    use mod_rgrid, only: rgrid
-
-    implicit none
     !> Pre-generated grid
     type(rgrid), intent(in) :: grid
     !> Maximum value of l used for the MT expansions
@@ -496,9 +684,7 @@ contains
     !> Real-valued function on the grid (grid%npt)
     real(dp), intent(out) :: function_rgrid(:)
 
-    call rfarray( lmax, size( function_mt, 1 ), function_mt, &
-    function_ir, grid%npt, grid%vpl, function_rgrid )
-
+    call rfarray( lmax, size( function_mt, 1 ), function_mt, function_ir, grid%npt, grid%vpl, function_rgrid )
   end subroutine 
 
 end module

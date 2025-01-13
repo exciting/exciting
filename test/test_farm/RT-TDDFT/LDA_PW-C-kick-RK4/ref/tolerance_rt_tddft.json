@@ -83,6 +83,16 @@
       "unit": "Ha"
     }
   },
+  "OCCSV_TXT_??.OUT": {
+    "ik": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "occupations": {
+      "tol": 1e-06,
+      "unit": "null"
+    }
+  },
   "PROJ_??.OUT": {
     "ik": {
       "tol": 0,

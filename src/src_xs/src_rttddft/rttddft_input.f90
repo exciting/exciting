@@ -1,6 +1,6 @@
 module rttddft_input
-  use modinput, only: realTimeTDDFT_type, plot3d_type
-  use modmpi, only: terminate
+  use modinput, only: density_type, eigenvalues_type, occupations_type, plot3d_type, &
+    projectionCoefficients_type, realTimeTDDFT_type, screenshots_type
   use precision, only: dp, i32
   use propagators, only: propagator_input_elements
   use rttddft_timings, only: Print_Timings
@@ -10,17 +10,66 @@ module rttddft_input
 
   private
 
-  type :: screenshot_keys
+  type :: screenshot_eigenvalues_keys
+    !> If `.true.`, evaluate the eigenvalues when taking a screenshot
+    logical :: on
+    !> Number of eigenvalues to be evaluated 
+    integer(i32) :: n_eigenvalues
+    !> Tolerance for evaluating the eigenvalues 
+    real(dp) :: tol
+  contains
+    procedure, private :: parse_input => screenshot_eigenvalues_keys_parse
+  end type
+
+  type :: screenshot_projectionCoefficients_keys
+    !> If `.true.`, obtain the projection coefficients when taking a screenshot
+    logical :: on
+    !> Encapsulate the attribute `printAbsoluteValue` in `projectionCoefficients`
+    logical :: print_absolute_value
+    !> Encapsulate the attribute `format` in `projectionCoefficients`
+    character(len=:), allocatable :: output_format
+  contains
+    procedure, private :: parse_input => screenshot_projectionCoefficients_keys_parse
+  end type
+
+  type :: screenshot_occupations_keys
+    !> If `.true.`, evaluate occupation numbers when taking a screenshot
+    logical :: on
+    !> Encapsulate the attribute `format` in `occupations`
+    character(len=:), allocatable :: output_format
+    !> Encapsulate the attribute `textFormat`
+    logical :: output_text_format
+    !> Encapsulate the attribute `binaryFormat`
+    logical :: output_binary_format
+  contains
+    procedure, private :: parse_input => screenshot_occupations_keys_parse
+  end type
+
+  type :: screenshot_density_keys
+    !> If `.true.`, print out the electron density when taking a screenshot
+    logical :: on
+    !> Grid data fot 3D density plots
+    type(plot3d_type), pointer :: plot3d => null()
+  contains
+    procedure, private :: parse_input => screenshot_density_keys_parse
+    final :: destructor_screenshot_density_keys
+  end type
+
+  type, public :: screenshot_keys
     !> If `.true.`, take screenshots during the RT-TDDFT evolution
     logical :: on
     !> Take a screenshot every `n_steps` number of steps
     integer(i32) :: n_steps
-    !> If `.true.`, calculate and print real-time density
-    logical :: print_density
-    !> Grid data fot 3D density plots
-    type(plot3d_type), pointer :: plot3d => null()
+    !> Type to encapsulate the attributes of `eigenvalues` inside an `screenshots` element
+    type(screenshot_eigenvalues_keys) :: eigenvalues
+    !> Type to encapsulate the attributes of `projectionCoefficients` inside an `screenshots` element
+    type(screenshot_projectionCoefficients_keys) :: projection_coefficients
+    !> Type to encapsulate the attributes of `occupations` inside an `screenshots` element
+    type(screenshot_occupations_keys) :: occupations
+    !> Type to encapsulate the attributes of `density` inside an `screenshots` element
+    type(screenshot_density_keys) :: density
   contains
-    final :: destructor_screenshot_keys
+    procedure, private :: parse_input => screenshot_input_keys_parse_input
   end type
 
   type, public :: pmat_keys
@@ -95,24 +144,7 @@ subroutine rttddft_input_keys_parse_input( this, rt_input, tol, a_vec )
   call a_vec%initialize( rt_input%laser, rt_input%vectorPotentialSolver )
   
   this%screenshots%on = associated( rt_input%screenshots )
-  if ( this%screenshots%on ) then
-    this%screenshots%n_steps = rt_input%screenshots%niter
-    this%screenshots%print_density = associated( rt_input%screenshots%density )
-    if ( this%screenshots%print_density ) then
-
-      allocate( this%screenshots%plot3d )
-      allocate( this%screenshots%plot3d%box )
-      allocate( this%screenshots%plot3d%box%origin )
-      allocate( this%screenshots%plot3d%box%pointarray(3) )
-      allocate( this%screenshots%plot3d%box%pointarray(1)%point )
-      allocate( this%screenshots%plot3d%box%pointarray(2)%point )
-      allocate( this%screenshots%plot3d%box%pointarray(3)%point )
-      this%screenshots%plot3d = rt_input%screenshots%density%plot3d
-  
-    end if
-  else
-    this%screenshots%print_density = .false.
-  end if
+  if( this%screenshots%on ) call this%screenshots%parse_input( rt_input%screenshots )
 
   this%pmat%read_pmat_from_file = rt_input%pmat%readFromFile
   this%pmat%write_pmat_to_file = rt_input%pmat%writeToFile .and. (.not. this%pmat%read_pmat_from_file)
@@ -129,8 +161,87 @@ subroutine rttddft_input_keys_parse_input( this, rt_input, tol, a_vec )
 
 end subroutine
 
-impure elemental subroutine destructor_screenshot_keys( this )
-  type(screenshot_keys), intent(inout) :: this
+
+!> Parse the input keys defined in the `screenshots` element
+subroutine screenshot_input_keys_parse_input( this, screenshots_input )
+  class(screenshot_keys), intent(inout) :: this
+  !> Elements and attributes of `screenshots` defined in the input file
+  type(screenshots_type), intent(in) :: screenshots_input
+
+  this%n_steps = screenshots_input%niter
+  
+  this%eigenvalues%on = associated( screenshots_input%eigenvalues )
+  if( this%eigenvalues%on ) call this%eigenvalues%parse_input( screenshots_input%eigenvalues )
+  
+  this%projection_coefficients%on = associated( screenshots_input%projectionCoefficients )
+  if( this%projection_coefficients%on ) call this%projection_coefficients%parse_input( screenshots_input%projectionCoefficients )
+  
+  this%occupations%on = associated( screenshots_input%occupations )
+  if( this%occupations%on ) call this%occupations%parse_input( screenshots_input%occupations )
+
+  this%density%on = associated( screenshots_input%density )
+  if( this%density%on ) call this%density%parse_input( screenshots_input%density )
+
+  ! Turn off screenshots if no property is required
+  if( .not. ( this%eigenvalues%on .or. this%projection_coefficients%on .or. this%occupations%on .or. this%density%on ) ) this%on = .false.
+end subroutine
+
+
+!> Parse the input keys defined in the `eigenvalues` element
+pure subroutine screenshot_eigenvalues_keys_parse( this, eigenvalues_input )
+  class(screenshot_eigenvalues_keys), intent(inout) :: this
+  !> Elements and attributes of `eigenvalues` defined in the input file
+  type(eigenvalues_type), intent(in) :: eigenvalues_input
+
+  this%n_eigenvalues = eigenvalues_input%nEigenvalues
+  this%tol = eigenvalues_input%tolerance
+end subroutine
+
+
+!> Parse the input keys defined in the `projectionCoefficients` element
+pure subroutine screenshot_projectionCoefficients_keys_parse( this, projectionCoefficients_input )
+  class(screenshot_projectionCoefficients_keys), intent(inout) :: this
+  !> Elements and attributes of `eigenvalues` defined in the input file
+  type(projectionCoefficients_type), intent(in) :: projectionCoefficients_input
+
+  this%print_absolute_value = projectionCoefficients_input%printAbsoluteValue
+  this%output_format = projectionCoefficients_input%format
+end subroutine
+
+
+!> Parse the input keys defined in the `occupations` element
+pure subroutine screenshot_occupations_keys_parse( this, occupations_input )
+  class(screenshot_occupations_keys), intent(inout) :: this
+  !> Elements and attributes of `occupations` defined in the input file
+  type(occupations_type), intent(in) :: occupations_input
+
+  this%output_format = occupations_input%format
+  this%output_text_format = occupations_input%textFormat
+  this%output_binary_format = occupations_input%binaryFormat
+  ! turn off occupations if both attributes are false
+  if( (.not. this%output_text_format) .and. (.not. this%output_binary_format) ) this%on = .false.
+end subroutine
+
+
+!> Parse the input keys defined in the `density` element
+subroutine screenshot_density_keys_parse( this, density_input )
+  class(screenshot_density_keys), intent(inout) :: this
+  !> Elements and attributes of `density` defined in the input file
+  type(density_type), intent(in) :: density_input
+
+  allocate( this%plot3d )
+  allocate( this%plot3d%box )
+  allocate( this%plot3d%box%origin )
+  allocate( this%plot3d%box%pointarray(3) )
+  allocate( this%plot3d%box%pointarray(1)%point )
+  allocate( this%plot3d%box%pointarray(2)%point )
+  allocate( this%plot3d%box%pointarray(3)%point )
+  this%plot3d = density_input%plot3d
+end subroutine
+
+
+impure elemental subroutine destructor_screenshot_density_keys( this )
+  type(screenshot_density_keys), intent(inout) :: this
 
   integer :: i
 
@@ -138,9 +249,9 @@ impure elemental subroutine destructor_screenshot_keys( this )
     if ( associated( this%plot3d%box ) ) then
       if ( associated( this%plot3d%box%origin ) ) then
         if ( associated( this%plot3d%box%pointarray ) ) then
-          do i = 1, 3
+          do i = 1, size(this%plot3d%box%pointarray)
             if ( associated( this%plot3d%box%pointarray(i)%point ) ) &
-            deallocate( this%plot3d%box%pointarray(i)%point )
+              deallocate( this%plot3d%box%pointarray(i)%point )
           end do
           deallocate( this%plot3d%box%pointarray )
         end if

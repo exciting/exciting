@@ -33,11 +33,10 @@
         <xs
           xstype ="RT-TDDFT"
           ngridk="3 3 3"
-	  vkloff="0.097 0.273 0.493"
+	        vkloff="0.097 0.273 0.493"
           nosym="true"
-	  reducek="false"
+	        reducek="false"
           nempty="20">
-
           <realTimeTDDFT
             propagator="RK4"                                                                                                                                              
             timeStep="0.25d0"                                                                                                                                                
@@ -55,6 +54,7 @@
             <screenshots niter="20">
               <eigenvalues nEigenvalues="-1" tolerance="1d-14" />
               <projectionCoefficients printAbsoluteValue="true" format="F10.5" />
+              <occupations format="F15.8" textFormat="true" binaryFormat="true" />
             </screenshots>
           </realTimeTDDFT>
 

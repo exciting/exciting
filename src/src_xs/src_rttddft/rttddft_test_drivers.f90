@@ -1,6 +1,7 @@
 module rttddft_test_drivers
   use modmpi, only: mpiinfo
   use propagators_test, only: propagators_test_driver
+  use rttddft_Wavefunction_test, only: rttddft_Wavefunction_test_driver
 
   implicit none
   
@@ -25,5 +26,6 @@ contains
 
     ! Call test drivers here
     call propagators_test_driver( mpiglobal, kill_on_failure_ )
+    call rttddft_Wavefunction_test_driver( mpiglobal, kill_on_failure_ )
   end subroutine
 end module

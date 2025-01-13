@@ -403,12 +403,32 @@
                     </xs:documentation>
                   </xs:annotation>
                   <xs:complexType>
-                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="format"
+                    <xs:attribute ex:importance="expert" ex:unit="" name="format"
                       type="xs:string" default="F10.5">
                       <xs:annotation>
                         <xs:documentation> 
                           Determine the Fortran format used to print the occupation 
                           numbers.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ex:importance="expert" ex:unit="" name="textFormat"
+                      type="xs:boolean" default="true">
+                      <xs:annotation>
+                        <xs:documentation> 
+                          If <pre>true</pre>, print an output in text format: 
+                          <pre>OCCSV_TXT_i.OUT</pre>, where <pre>i</pre> is an integer 
+                          that encapsulates the number of time steps for the current output.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ex:importance="expert" ex:unit="" name="binaryFormat"
+                      type="xs:boolean" default="true">
+                      <xs:annotation>
+                        <xs:documentation> 
+                          If <pre>true</pre>, print an output in binary format:
+                          <pre>OCCSV_i.OUT</pre>; see <attref>textFormat</attref> 
+                          for the meaning of <pre>i</pre>.
                         </xs:documentation>
                       </xs:annotation>
                     </xs:attribute>
