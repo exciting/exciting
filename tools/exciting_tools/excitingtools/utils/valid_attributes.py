@@ -668,7 +668,7 @@ eigenvalues_attribute_types = {"nEigenvalues": (int, 1), "tolerance": (float, 1)
 
 projectionCoefficients_attribute_types = {"format": (str, 1), "printAbsoluteValue": (bool, 1)} 
 
-occupations_attribute_types = {"format": (str, 1)} 
+occupations_attribute_types = {"binaryFormat": (bool, 1), "format": (str, 1), "textFormat": (bool, 1)} 
 
 density_valid_subtrees = ["plot3d"] 
 

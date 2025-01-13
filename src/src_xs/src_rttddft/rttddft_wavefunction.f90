@@ -13,12 +13,15 @@ module rttddft_Wavefunction
   use constants, only: zone, zzero, zi
   use normalize, only: normalize_vectors
   use precision, only: dp, i32
+  use projection, only: project_y_onto_x
+  use to_char_conversion, only: to_char
+  use xlapack, only: hermitian_matrix_multiply, matrix_multiply
 
   implicit none
 
   private
 
-  public :: normalize_wavefunctions, Update_basis_derivative
+  public :: normalize_wavefunctions, obtain_occupations, obtain_projection_coefficients, Update_basis_derivative
 
   
 
@@ -90,5 +93,70 @@ contains
     do ik = 1, size( wavefunctions, 3 )
       call normalize_vectors( S=overlap_matrices(:, :, ik), vectors=wavefunctions(:, :, ik) )
     end do
+  end subroutine
+
+  !> Project the wavefunctions `y` onto `x` and store the projection coefficients.   
+  !> For each `k-point` (3rd dimension), the projection `p` is calculated as
+  !> \[ p_k = x_k^\dagger S_k y_k \]
+  subroutine obtain_projection_coefficients( x, S, y, proj_coeff )
+    !> Wavefunctions onto which the projection is carried out
+    complex(dp), contiguous, intent(in) :: x(:, :, :)
+    !> Overlap matrix
+    complex(dp), contiguous, intent(in) :: S(:, :, :)
+    !> Wavefunctions to be projected
+    complex(dp), contiguous, intent(in) :: y(:, :, :)
+    !> Projection coefficients
+    complex(dp), allocatable, intent(out) :: proj_coeff(:, :, :)
+
+    integer(i32) :: ik
+    complex(dp), allocatable :: aux(:, :)
+
+    associate( mx => size( x, 2 ), my => size( y, 1 ), n => size( y, 2 ), k => size( y, 3 ))
+      call assert( size(S, 3) == k, 'S and y must have same size along 3rd dim.')
+      call assert( size(x, 3) == k, 'x and y must have same size along 3rd dim.')
+
+      allocate( aux(my, n) )
+      allocate( proj_coeff(mx, n, k) )
+      do ik = 1, k
+        call project_y_onto_x( y(:, :, ik), x(:, :, ik), S(:, :, ik), proj_coeff(:, :, ik), aux )
+      end do
+    end associate
+  end subroutine
+
+
+  !> Obtain the occupation factors given the projections onto a reference basis set
+  !> Given the projection coefficients \(p_{ijk}\) of \(|\Psi_{jk}\rangle\) onto
+  !> \(|\phi^0_{ik}\rangle\) as
+  !> \[ |\Psi_{jk}\rangle = \sum_{i=1}^m p_{ijk} |\phi^0_{ik}\rangle, \quad j = 1, \ldots, n. \]
+  !> The occupation factors \(f_{ik}\) are obtained as
+  !> \[ f_{ik} = \sum_{j=1}^n f^0_{jk}|p_{ijk}|^2, \quad i = 1, \ldots, m, \]
+  !> where \(f^0_{jk}\) are the original occupation factors of \(|\phi^0_{ik}\rangle\) usually taken for \(t=0\)
+  subroutine obtain_occupations( proj, occ_gnd, occ )
+    !> List of projection coefficients. Each set of projection coefficients is a rank-2 array
+    complex(dp), contiguous, intent(in) :: proj(:, :, :)
+    !> List of occupations at \(t=0\). Each set of occupations is a rank-1 array
+    real(dp), contiguous, intent(in) :: occ_gnd(:, :)
+    !> List of new occupations. Each set of occupations is a rank-1 array
+    real(dp), allocatable, intent(out) :: occ(:, :)
+
+    integer(i32) :: ik
+    real(dp), parameter :: tol = 1.e-8_dp
+    
+    associate( m => size(proj, 1), n => size(proj, 2), dim_k => size(proj, 3))
+      call assert( size( occ_gnd, 2) == dim_k , 'occ_gnd and proj must have compatible dimensions' )
+      call assert( size( occ_gnd, 1) == m , 'occ_gnd and proj must have compatible dimensions' )
+      call assert( n <= m , 'n must be <= m' )
+      do ik = 1, dim_k
+        ! \sum_{i=1}^m |p_{ijk}|^2 must be <= 1 (is equal to 1 only if the basis |\phi^0_{ik}\rangle is complete)
+        call assert( maxval( sum(abs(proj(:, :, ik))**2, dim=1) ) <= 1._dp + tol , &
+          'proj cannot represent projection factors along ik = ' // to_char(ik) )
+      end do
+
+      allocate( occ(m, dim_k) )
+      
+      do ik = 1, dim_k
+        call matrix_multiply( abs(proj(:, :, ik))**2, occ_gnd(1:n, ik), occ(:, ik) )
+      end do
+    end associate
   end subroutine
 end module rttddft_Wavefunction
