@@ -215,31 +215,29 @@ contains
   end subroutine
 
   !> Prints the number of excitations
-  subroutine write_nexc( printHeader, nArrayElements, &
-    & timeArray, nex, ngs, ntot )
-    !> Number of lines to printed = number of elements of the arrays:
-    !> `nex`, `ngs` and `ntot`.
-    integer, intent(in)   :: nArrayElements
+  subroutine write_nexc( print_header, time_array, n_exc_array, n_gs_array )
     !> printHeader: If we need to print a header (useful when we open the file for the 1st time)
-    logical, intent(in)   :: printHeader
-    !> timeArray         array with the values of time \( t \)
-    real(dp), intent(in)  :: timeArray(nArrayElements)
-    !> nex               Number of electrons which were excited
-    real(dp), intent(in)  :: nex(nArrayElements)
-    !> ngs               Number of electrons on the groundstate
-    real(dp), intent(in)  :: ngs(nArrayElements)
-    !> ntot              Sum of ngs and nex
-    real(dp), intent(in)  :: ntot(nArrayElements)
+    logical, intent(in)   :: print_header
+    !> Array with the values of time \( t \)
+    real(dp), intent(in)  :: time_array(:)
+    !> Number of electrons which were excited
+    real(dp), intent(in)  :: n_exc_array(:)
+    !> Number of electrons on the groundstate
+    real(dp), intent(in)  :: n_gs_array(:)
 
-    integer :: i
+    integer(i32) :: i, n
+    character(len=*), parameter :: format_time = 'F9.3'
+    character(len=*), parameter :: format_n = 'F20.10'
+    character(len=*), parameter :: format_header = '(A9,3A20)'
+    character(len=*), parameter :: format_line = '(' // format_time // ',3' // format_n // ')'
 
-    if ( printHeader ) then
-      write( file_nexc,'(A9,3A20)' ) 'Time','N.Elec.GS', &
-        & 'N.XS', 'Sum'
-    end if
-    do i = 1, nArrayElements
-      write( file_nexc, '(F9.3,3F20.10)' ) timeArray(i), &
-        & ngs(i), nex(i), ntot(i)
+    n = size( time_array )
+    call assert( size( n_exc_array ) == n, 'n_exc_array must have n elements')
+    call assert( size( n_gs_array ) == n, 'n_gs_array must have n elements')
+
+    if ( print_header ) write( file_nexc, format_header ) 'Time','N.Elec.GS', 'N.XS', 'Sum'
+    do i = 1, n
+      write( file_nexc, format_line ) time_array(i), n_gs_array(i), n_exc_array(i), n_gs_array(i)+n_exc_array(i)
     end do
   end subroutine
 

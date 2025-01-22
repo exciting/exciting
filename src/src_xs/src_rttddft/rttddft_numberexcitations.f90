@@ -5,12 +5,16 @@
 ! HISTORY
 ! Created: July 2019 (Ronaldo)
 ! Improved documentation: July 2021 (Ronaldo)
+! Refactored: January 2025 (Ronaldo)
 ! Reference: https://doi.org/10.1088/2516-1075/ac0c26
 
 !> Module to obtain the number of excitations. 
 module rttddft_NumberExcitations
-  use precision, only: dp
-
+  use asserts, only: assert
+  use exciting_mpi, only: mpiinfo, xmpi_allreduce
+  use precision, only: dp, i32
+  use rttddft_Wavefunction, only: obtain_occupations, obtain_projection_coefficients
+  
   implicit none
 
   private
@@ -47,76 +51,47 @@ contains
   !> 	w_\mathbf{k} m_{j\mathbf{k}}(t) = \sum_{j'\mathbf{k}}^{j'\, occ}
   !> 	w_\mathbf{k} m_{j'\mathbf{k}}(t) .
   !> 	\]
-  subroutine Obtain_number_excitations( first_kpt, evec_init, evec_time, overlap, mpi_env, &
-      & nex, ngs, nt )
-    use constants, only: zzero, zone
-    use exciting_mpi, only: mpiinfo, xmpi_allreduce
-    use mod_kpoint, only: wkpt
-    use modinput, only: input
-    use mod_eigenvalue_occupancy, only: occsv, nstfv
-    use mod_eigensystem, only: nmatmax, nmat
-    
-    !> index of the first `k-point` to be considered in the sum
-    integer,intent(in)        :: first_kpt
+  subroutine Obtain_number_excitations( psi_gnd, psi, overlap, eps_occ, occ_gnd, wkpt, mpi_env, &
+      & n_exc, n_gs )
     !> Basis-expansion coefficients of the KS-wavefunctions at \( t=0 \).
-    !> Dimensions: `nmatmax`, `nstfv`, `first_kpt:last_kpt`
-    complex(dp), intent(in)   :: evec_init(:, :, first_kpt :)
-    !> Basis-expansion coefficients of the KS-wavefunctions at current time.
-    !> Dimensions: `nmatmax`, `nstfv`, `first_kpt:last_kpt`
-    complex(dp), intent(in)   :: evec_time(:, :, first_kpt :)
-    !> overlap matrix, Dimensions: `nmatmax`, `nmatmax`, `first_kpt:last_kpt`
-    complex(dp), intent(in)   :: overlap(:, :, first_kpt :)
+    complex(dp), contiguous, intent(in)   :: psi_gnd(:, :, :)
+    !> Basis-expansion coefficients of the KS-wavefunctions at current time \(t\).
+    complex(dp), contiguous, intent(in)   :: psi(:, :, :)
+    !> Overlap matrices
+    complex(dp), contiguous, intent(in)   :: overlap(:, :, :)
+    !> Occupation threshold above which a state is considered occupied
+    real(dp), intent(in) :: eps_occ
+    !> List of occupations at \(t=0\)
+    real(dp), contiguous, intent(in) :: occ_gnd(:, :)
+    !> k-point integration weights
+    real(dp), contiguous, intent(in) :: wkpt(:)
     !> MPI environment
     type(mpiinfo), intent(in) :: mpi_env
     !> number of excited electrons
-    real(dp), intent(out)     :: nex
+    real(dp), intent(out)     :: n_exc
     !> number of electrons on the groundstate state
-    real(dp), intent(out)     :: ngs
-    !> total number of electrons obtained as `ngs + nex`
-    real(dp), intent(out)     :: nt
+    real(dp), intent(out)     :: n_gs
 
-    integer                   :: ik, ist, jst, nmatp, last_kpt
-    real(dp)                  :: aux, buffer(3)
-    complex(dp), allocatable  :: scratch(:,:),proj(:,:)
+    integer(i32) :: ik, n_kpt
+    real(dp) :: buffer(2)
+    real(dp), allocatable :: occ(:, :), aux_tot(:), aux_exc(:)
+    complex(dp), allocatable  :: proj(:, :, :)
+    
+    n_kpt = size( psi, 3 )
+    call assert( size(wkpt) == n_kpt, 'wkpt must have n_kpt elements')
 
-
-    allocate( scratch(nmatmax, nstfv) )
-    allocate( proj(nstfv, nstfv) )
-
-    last_kpt = ubound( evec_init, 3 )
-
-    nex = 0._dp
-    ngs = 0._dp
-    nt  = 0._dp
-    do ik = first_kpt, last_kpt
-      nmatp = nmat(1,ik)
-      ! C := alpha*A*B + beta*C, A hermitian
-      ! ZHEMM(SIDE,UPLO,M,N,ALPHA,A,LDA,B,LDB,BETA,C,LDC)
-      ! scratch = overlap*evect_time
-      call ZHEMM( 'L', 'U', nmatp, nstfv, zone, overlap(:,:,ik), nmatmax, &
-        & evec_time(:,:,ik), nmatmax, zzero, scratch, nmatmax )
-      ! Matrix multiplication: proj = (evec_init**H)*scratch
-      call ZGEMM( 'C', 'N', nstfv, nstfv, nmatp, zone, evec_init(:,:,ik), nmatmax, &
-        & scratch(:,:), nmatmax, zzero, proj(:,:), nstfv )
-      do ist = 1, nstfv
-        do jst = 1, nstfv
-          ! If the occupation is small, we assume that the current and
-          ! all other states with higher "jst" will be unoccupied
-          if ( occsv(jst, ik)  <= input%groundstate%epsocc ) exit
-          ! If the state "jst" is occupied, then we follow
-          aux = wkpt(ik) * occsv(jst, ik) * ( abs( proj(ist, jst) )**2 )
-          nt = nt + aux
-          if ( occsv(ist, ik)  <= input%groundstate%epsocc ) then
-            nex = nex + aux
-          else
-            ngs = ngs + aux
-          endif
-        end do
-      end do
+    allocate( aux_tot(n_kpt), aux_exc(n_kpt) )
+    call obtain_projection_coefficients( psi_gnd, overlap, psi, proj )
+    call obtain_occupations( proj, occ_gnd, occ )
+    do concurrent (ik = 1:n_kpt)
+      aux_tot(ik) = sum( occ(:, ik) )
+      aux_exc(ik) = sum( occ(:, ik), occ_gnd(:, ik) <= eps_occ )
     end do
-    buffer = [ nex, ngs, nt ]
+    n_exc = dot_product(wkpt, aux_exc)
+    n_gs = dot_product(wkpt, aux_tot) - n_exc
+    buffer = [ n_exc, n_gs ]
     call xmpi_allreduce( buffer, mpi_env )
-    nex = buffer(1); ngs = buffer(2); nt = buffer(3)
+    n_exc = buffer(1); n_gs = buffer(2)
 
   end subroutine Obtain_number_excitations
 end module rttddft_NumberExcitations
