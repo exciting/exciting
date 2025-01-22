@@ -136,9 +136,9 @@ contains
     ! Current time \( t \) for the time evolution carried out in RT-TDDFT
     real(dp)                :: time
 
-    real(dp), allocatable   :: nex(:), ngs(:), nt(:)
+    real(dp), allocatable   :: n_exc(:), n_gs(:)
     real(dp)                :: timei, timef, timeiter, dt
-    real(dp)                :: tol
+    real(dp)                :: tol, eps_occ
     real(dp), parameter     :: tol_default = 1e-10_dp
     type(MD_out)            :: MD_outputs
 
@@ -181,6 +181,7 @@ contains
     dt = rt%propagator_input%dt()
     n_steps = int( rt%t_end / dt )
     l_rad_step = input%groundstate%lradstep
+    eps_occ = input%groundstate%epsocc
     call initialize_rttddft( rt%pmat, rt%predictor_corrector%on, &
       vec_pot, molecular_dynamics, evecfv_gnd, evecfv_time, evecfv_save, evecsv, &
       overlap, ham_time, ham_past, apwalm, pmat, pmatmt )
@@ -199,7 +200,7 @@ contains
       allocate( timing_store(rt%n_print) )
     end if
     if( rt%calculate_total_energy ) allocate(etotstore(rt%n_print))
-    if( rt%calculate_n_exc ) allocate(nex(rt%n_print),ngs(rt%n_print),nt(rt%n_print))
+    if( rt%calculate_n_exc ) allocate( n_exc(rt%n_print), n_gs(rt%n_print) )
     if( molecular_dynamics%on ) then
       allocate( print_forces(rt%n_print), atposcstore(3,natmtot,rt%n_print), velstore(3,natmtot,rt%n_print))
       if ( molecular_dynamics%print_all_force_components ) then
@@ -229,9 +230,9 @@ contains
 
     ! Number of excitations
     if (rt%calculate_n_exc) then
-      call Obtain_number_excitations( first_kpt, evecfv_gnd, &
-        & evecfv_time, overlap, mpi_env_k, nex(1), ngs(1), nt(1) )
-      if( my_rank_writes_to_output ) call write_nexc( .True., 1, [time], nex(1), ngs(1), nt(1) )
+      call Obtain_number_excitations( evecfv_gnd, evecfv_time, overlap, eps_occ, &
+        & occsv(:, first_kpt:last_kpt), wkpt(first_kpt:last_kpt), mpi_env_k, n_exc(1), n_gs(1) )
+      if( my_rank_writes_to_output ) call write_nexc( .True., [time], [n_exc(1)], [n_gs(1)] )
     end if
 
     if ( rt%screenshots%on ) then
@@ -289,7 +290,7 @@ contains
       ! Update the paramagnetic component of the induced current density
       j_ind_save = j_ind
       call j_ind%evaluate_paramagnetic( evecfv_time, pmat, occsv(:, first_kpt:last_kpt), &
-        [(1._dp/nkpt, is = first_kpt, last_kpt)], mpi_env_k )
+        wkpt(first_kpt:last_kpt), mpi_env_k )
       if ( rt%subtract_J0 ) call j_ind%paramagnetic%add_vector( -j_para_spurious%components )
       if ( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%current_density )
 
@@ -353,8 +354,8 @@ contains
       ! Obtain the number of excited electrons, if requested
       if( rt%calculate_n_exc ) then
         if ( rt%printTimings%detailed() ) call timesec( timei )
-        call Obtain_number_excitations( first_kpt, evecfv_gnd, &
-          & evecfv_time, overlap, mpi_env_k, nex(i_print), ngs(i_print), nt(i_print))
+        call Obtain_number_excitations( evecfv_gnd, evecfv_time, overlap, eps_occ, &
+          & occsv(:, first_kpt:last_kpt), wkpt(first_kpt:last_kpt), mpi_env_k, n_exc(i_print), n_gs(i_print))
         if( rt%printTimings%detailed() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%n_exc )
       end if
 
@@ -412,8 +413,7 @@ contains
           call write_jpa( time_store, j_ind_store )
           if ( rt%calculate_total_energy ) call write_total_energy( .False., rt%n_print, &
             time_store(:), etotstore(:) )
-          if ( rt%calculate_n_exc ) call write_nexc( .False., rt%n_print, time_store(:), &
-            nex(:), ngs(:), nt(:) )
+          if ( rt%calculate_n_exc ) call write_nexc( .False., time_store(:), n_exc(:), n_gs(:) )
 
           if( molecular_dynamics%on ) then
             do i_print = 1, rt%n_print
@@ -638,7 +638,7 @@ contains
       ! Update the paramagnetic component of the induced current density
       j_t = j_t_minus_dt
       call j_t%evaluate_paramagnetic( evecfv_time, pmat, occsv(:, first_kpt:last_kpt), &
-        [(1._dp/nkpt, ik = first_kpt, last_kpt)], mpi_env )
+        wkpt(first_kpt:last_kpt), mpi_env )
       if ( rt%subtract_J0 ) call j_t%paramagnetic%add_vector( -j_para_spurious%components )
 
       ! DENSITY
