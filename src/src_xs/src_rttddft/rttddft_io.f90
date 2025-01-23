@@ -1,17 +1,18 @@
 module rttddft_io
   use asserts, only: assert
+  use file_utils, only: delete_file
   use mod_misc, only: filext, versionname, githash
-  use modinput, only: input, plot3d_type
-  use modmpi, only: rank, procs, barrier
   use mod_mpi_env, only: mpiinfo
   use mod_rgrid, only: rgrid, gen_3d_rgrid
   use mod_xsf_format, only: add_xsf_extension, write_real_function_xsf
+  use modinput, only: input, plot3d_type
+  use modmpi, only: procs, rank, barrier, terminate
 #ifdef MPI
   use rttddft_io_parallel, only: read_array, write_array
 #else
   use rttddft_io_serial, only: read_array, write_array
 #endif
-  use precision, only: dp, i32
+  use precision, only: dp, i32, str_256
   use rttddft_Energy, only: TotalEnergy
   use rttddft_CurrentDensity, only: Current_Density_Field
   use rttddft_Polarization, only: Polarization
@@ -24,7 +25,7 @@ module rttddft_io
 
   private
   ! procedures
-  public :: open_files_jpa, close_files_jpa, write_jpa, &
+  public :: open_files_jpa, close_files_jpa, read_jpa, write_jpa, delete_jpa_files, &
             open_file_etot, close_file_etot, write_total_energy, &
             open_file_nexc, close_file_nexc, write_nexc, &
             open_file_info, close_file_info, write_file_info, &
@@ -100,15 +101,143 @@ contains
     add_default_extension = trim(file_name)//filext
   end function
 
+  !> (private) Function to return the status of a file to open given the information if it is new or old
+  pure function get_status_from_logical( new ) result(status)
+    !> If `.true.`, a new file is created (overwriting an exisiting one, if this is the case)
+    logical, intent(in) :: new
+    character(len=:), allocatable :: status
+    character(len=*), parameter :: status_new = "replace"
+    character(len=*), parameter :: status_old = "old"
+
+    if( new ) then
+      status = status_new
+    else
+      status = status_old
+    end if
+  end function
+
+  !> (private) Function to return the position of a file to open given the information if it is new or old
+  pure function get_position_from_logical( new ) result(position)
+    !> If `.true.`, a new file is created (overwriting an exisiting one, if this is the case)
+    logical, intent(in) :: new
+    character(len=:), allocatable :: position
+    character(len=*), parameter :: position_new = "rewind"
+    character(len=*), parameter :: position_old = "append"
+
+    if( new ) then
+      position = position_new
+    else
+      position = position_old
+    end if
+  end function
+
   !> (private) generic subroutine to open a file
-  subroutine open_file_generic( unit, file_name )
+  subroutine open_file_generic( unit, file_name, status, position, action )
     !> unit number of file to open
     integer, intent(out) :: unit
     !> name of file to open
     character(len=*), intent(in) :: file_name
+    !> status of file to open
+    character(len=*), optional, intent(in) :: status
+    !> position of the file for sequential access
+    character(len=*), optional, intent(in) :: position
+    !> action = read, write
+    character(len=*), optional, intent(in) :: action
     
-    open( newunit=unit, file=trim(file_name), status='replace' )
+    character(len=*), parameter :: status_default = "replace"
+    character(len=*), parameter :: position_default = "rewind"
+    character(len=*), parameter :: action_default = "write"
+
+    character(len=:), allocatable :: status_, position_, action_
+
+    status_ = status_default
+    if( present(status) ) status_ = status
+    position_ = position_default
+    if( present(position) ) position_ = position
+    action_ = action_default
+    if( present(action) ) action_ = action
+
+    open( newunit=unit, file=trim(file_name), status=status_, position=position_, action=action_ )
   end subroutine
+
+  !> Read the last line, and if required the penultimate line too, of files with \(\mathbf{J}\), or the polarization 
+  !> \(\mathbf{P}\), or the vector potential \(\mathbf{A}\)
+  subroutine read_jpa( time, field_t, field_t_minus_dt, a_tot_t, a_tot_t_minus_dt )
+    !> Time \(t\) contained in the last line
+    real(dp), intent(out) :: time
+    !> \(\mathbf{J}\) , \(\mathbf{P}\) or \(\mathbf{A}_{ind}\) at time \( t \)
+    class(Uniform_Vector_Field), intent(out) :: field_t
+    !> \(\mathbf{J}\) , \(\mathbf{P}\) or \(\mathbf{A}_{ind}\) at time \( t - \Delta t\)
+    class(Uniform_Vector_Field), optional, intent(out) :: field_t_minus_dt
+    !> Usually \(\mathbf{A}_{tot}\) at time \( t \)
+    class(Vector_Potential_Field), optional, intent(out) :: a_tot_t
+    !> \(\mathbf{J}\) , \(\mathbf{P}\) or \(\mathbf{A}\) at time \( t - \Delta t\)
+    class(Vector_Potential_Field), optional, intent(out) :: a_tot_t_minus_dt
+
+    character(len=str_256) :: last_line, penultimate_line, file_name
+    select type( field_t )
+      type is( Vector_Potential_Field )
+        file_name = filename_avec
+        call assert( present(a_tot_t), "a_tot_t must be passed" )
+        if( present(field_t_minus_dt) ) then 
+          call assert( present(a_tot_t_minus_dt), "a_tot_t_minus_dt must be passed")
+          call assert( same_type_as( field_t, field_t_minus_dt ), '2nd argument must be of type(Vector_Field)')
+        end if
+      type is( Polarization )
+        file_name = filename_pvec
+      type is( Current_Density_Field )
+        file_name = filename_jind
+      class default
+        call assert( .false., 'unrecognized type passed to read_jpa' )
+    end select
+
+    call read_last_and_penultimate_lines_from_file( add_default_extension(file_name), last_line, penultimate_line )
+    
+    if( present(field_t_minus_dt) ) then
+      associate( v0 => field_t_minus_dt%components )
+        if( present(a_tot_t_minus_dt) ) then
+          associate( a0 => a_tot_t_minus_dt%components )
+            read( penultimate_line, * ) time, v0(x), a0(x), v0(y), a0(y), v0(z), a0(z)
+          end associate
+        else
+          read( penultimate_line, * ) time, v0
+        end if
+      end associate
+    end if
+    associate( v => field_t%components )
+      if( present(a_tot_t) ) then
+        associate( a => a_tot_t%components )
+          read( last_line, * ) time, v(x), a(x), v(y), a(y), v(z), a(z)
+        end associate
+      else
+        read( last_line, * ) time, v
+      end if
+    end associate
+  end subroutine
+
+  !> Read a file and store the content of the last and penultiname lines
+  subroutine read_last_and_penultimate_lines_from_file( file_name, last_line, penultimate_line )
+    !> File name
+    character(len=*), intent(in) :: file_name
+    !> Last line
+    character(len=*), intent(out) :: last_line
+    !> Penultimate line
+    character(len=*), intent(out) :: penultimate_line
+  
+    character(len=str_256) :: line
+    integer(i32) :: unit, ios
+  
+    last_line = "empty"; penultimate_line = "empty"
+    call open_file_generic(unit, file_name, status="old", action="read")
+    do 
+      read( unit, '(A)', iostat=ios ) line
+      if ( ios /= 0 ) exit
+      penultimate_line = last_line
+      last_line = line
+    end do
+    if( trim(penultimate_line) == "empty" ) call terminate( "Error: file " // file_name // " has less than two lines" )
+    close( unit )
+  end subroutine  
 
   !> Prints the current density \(\mathbf{J}\), or the polarization 
   !> \(\mathbf{P}\), or the vector potential \(\mathbf{A}\)
@@ -156,10 +285,14 @@ contains
   end subroutine 
 
   !> Open files for writing jind, pvec and avec
-  subroutine open_files_jpa
-    call open_file_generic( file_jind, add_default_extension(filename_jind) )
-    call open_file_generic( file_pvec, add_default_extension(filename_pvec) )
-    call open_file_generic( file_avec, add_default_extension(filename_avec) )
+  subroutine open_files_jpa( new )
+    !> If `.true.`, open new files (rewriting old ones).
+    !> If `.false.`, append to existing files
+    logical, intent(in) :: new
+
+    call open_file_generic( file_jind, add_default_extension(filename_jind), get_status_from_logical( new ), get_position_from_logical( new ) )
+    call open_file_generic( file_pvec, add_default_extension(filename_pvec), get_status_from_logical( new ), get_position_from_logical( new ) )
+    call open_file_generic( file_avec, add_default_extension(filename_avec), get_status_from_logical( new ), get_position_from_logical( new ) )
   end subroutine
 
   subroutine close_files_jpa
@@ -168,8 +301,18 @@ contains
     close( file_avec )
   end subroutine
 
-  subroutine open_file_etot
-    call open_file_generic( file_etot, add_default_extension(filename_etot) )
+  subroutine delete_jpa_files
+    integer(i32) :: i_error
+    call delete_file( add_default_extension(filename_jind), i_error )
+    call delete_file( add_default_extension(filename_pvec), i_error )
+    call delete_file( add_default_extension(filename_avec), i_error )
+  end subroutine
+
+  subroutine open_file_etot( new )
+    !> If `.true.`, open new files (rewriting old ones).
+    !> If `.false.`, append to existing files
+    logical, intent(in) :: new
+    call open_file_generic( file_etot, add_default_extension(filename_etot), get_status_from_logical( new ), get_position_from_logical( new ) )
   end subroutine
 
   subroutine close_file_etot
@@ -177,37 +320,39 @@ contains
   end subroutine
 
   !> Print out the total energy
-  subroutine write_total_energy( printHeader, nArrayElements, &
-    & timeArray, etotArray )
-    !> Number of lines to printed = number of elements of the arrays:
-    !> `timeArray` and `etotArray`.
-    integer, intent(in) :: nArrayElements
+  subroutine write_total_energy( print_header, time_array, e_tot_array )
     !> Tells if a header must be printed (useful when the file is opened for 
     !> the 1st time)
-    logical, intent(in) :: printHeader
+    logical, intent(in) :: print_header
     !> Array with the values of time \( t \)
-    real(8), intent(in) :: timeArray(nArrayElements)
+    real(dp), intent(in) :: time_array(:)
     !> Array with the energies (total energy, XC, Madelung, etc.)
-    type(TotalEnergy), intent(in) :: etotArray(nArrayElements)
+    type(TotalEnergy), intent(in) :: e_tot_array(:)
 
-    integer :: i
+    integer(i32) :: i
 
-    if ( printHeader ) then
+    if ( print_header ) then
       write(file_etot,'(A9,8A20)') 'Time','ETOT','Madelung','Eigenvalues-Core',&
         & 'Eigenvalues-Valence','Exchange','Correlation','XC-potential',&
         & 'Coulomb pot. energy'
     end if
-    do i = 1, nArrayElements
-      write(file_etot,'(F9.3,8F20.10)') timeArray(i), &
-        & etotArray(i)%total_energy, etotArray(i)%madelung, &
-        & etotArray(i)%eigenvalues_core, etotArray(i)%hamiltonian,&
-        & etotArray(i)%exchange, etotArray(i)%correlation, &
-        & etotArray(i)%integral_vxc_times_density, etotArray(i)%Coulomb
-    end do
+    associate( n => size(time_array) )
+      call assert( size(e_tot_array) == n, 'e_tot_array must contain n elements')
+      do i = 1, n
+        write(file_etot,'(F9.3,8F20.10)') time_array(i), &
+          & e_tot_array(i)%total_energy, e_tot_array(i)%madelung, &
+          & e_tot_array(i)%eigenvalues_core, e_tot_array(i)%hamiltonian,&
+          & e_tot_array(i)%exchange, e_tot_array(i)%correlation, &
+          & e_tot_array(i)%integral_vxc_times_density, e_tot_array(i)%Coulomb
+      end do
+    end associate
   end subroutine
 
-  subroutine open_file_nexc
-    call open_file_generic( file_nexc, add_default_extension(filename_nexc) )
+  subroutine open_file_nexc( new )
+    !> If `.true.`, open new files (rewriting old ones).
+    !> If `.false.`, append to existing files
+    logical, intent(in) :: new
+    call open_file_generic( file_nexc, add_default_extension(filename_nexc), get_status_from_logical( new ), get_position_from_logical( new ) )
   end subroutine
 
   subroutine close_file_nexc
@@ -290,8 +435,11 @@ contains
     call write_file_info( 'All units are atomic (Hartree, Bohr, etc.)' )
   end subroutine
 
-  subroutine open_file_timing
-    call open_file_generic( file_time, add_default_extension(filename_timing) )
+  subroutine open_file_timing( new )
+    !> If `.true.`, open new files (rewriting old ones).
+    !> If `.false.`, append to existing files
+    logical, intent(in) :: new
+    call open_file_generic( file_time, add_default_extension(filename_timing), get_status_from_logical( new ), get_position_from_logical( new ) )
   end subroutine
 
   subroutine close_file_timing
