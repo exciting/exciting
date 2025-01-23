@@ -38,7 +38,7 @@ module rttddft_main
   use rttddft_HamiltonianOverlap, only: UpdateHam
   use rttddft_init, only: initialize_rttddft
   use rttddft_input, only: rttddft_input_keys
-  use rttddft_io, only: open_files_jpa, close_files_jpa, write_jpa, &
+  use rttddft_io, only: open_files_jpa, close_files_jpa, read_jpa, write_jpa, &
     open_file_timing, close_file_timing, write_timing, &
     open_file_nexc, close_file_nexc, write_nexc, &
     open_file_etot, close_file_etot, write_total_energy, &
@@ -110,7 +110,7 @@ contains
     complex(dp), allocatable  :: pmatmt(:, :, :, :, :)
 
     integer :: it, first_kpt, last_kpt, n_steps
-    integer :: i_print, is, timeStepMultiplier, l_rad_step
+    integer :: i_print, timeStepMultiplier, l_rad_step
     logical :: predCorrReachedMaxSteps, my_rank_writes_to_output, &
       density_needed, evolve_H0, take_screenshot
     complex(dp), allocatable :: ham_init(:, :, :)
@@ -211,11 +211,8 @@ contains
       end if
     end if
 
-    if( my_rank_writes_to_output ) then
-      call write_jpa( [time], [vec_pot%a_ind], [vec_pot%a_tot] )
-      call write_jpa( [time], [p_vec] )
-      call write_jpa( [time], [j_ind%total()] )
-    end if
+    if( my_rank_writes_to_output ) call write_fields( [time], [vec_pot%a_ind], [vec_pot%a_tot], & 
+      [p_vec], [j_ind%total()] )
 
     ! Initialize integers that contain the first and last k-point
     call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
@@ -225,7 +222,7 @@ contains
       call potcoul
       call potxc
       call obtain_energy_rttddft( first_kpt, ham_time, evecfv_gnd, mpi_env_k, etotstore(1) )
-      if( my_rank_writes_to_output ) call write_total_energy( .True., 1, [time], etotstore(1) )
+      if( my_rank_writes_to_output ) call write_total_energy( .True., [time], [etotstore(1)] )
     end if
 
     ! Number of excitations
@@ -408,12 +405,9 @@ contains
       ! Print relevant information, every 'rt%n_print' steps
       if ( i_print == rt%n_print ) then
         if( my_rank_writes_to_output ) then
-          call write_jpa( time_store, a_ind_store, a_tot_store )
-          call write_jpa( time_store, p_vec_store )
-          call write_jpa( time_store, j_ind_store )
-          if ( rt%calculate_total_energy ) call write_total_energy( .False., rt%n_print, &
-            time_store(:), etotstore(:) )
-          if ( rt%calculate_n_exc ) call write_nexc( .False., time_store(:), n_exc(:), n_gs(:) )
+          call write_fields( time_store, a_ind_store, a_tot_store, p_vec_store, j_ind_store )
+          if ( rt%calculate_total_energy ) call write_total_energy( .False., time_store, etotstore )
+          if ( rt%calculate_n_exc ) call write_nexc( .False., time_store, n_exc, n_gs )
 
           if( molecular_dynamics%on ) then
             do i_print = 1, rt%n_print
@@ -461,11 +455,11 @@ contains
     !> Type that encapsulates the input keywords
     type(rttddft_input_keys), intent(in) :: rt_input
 
-    call open_files_jpa
+    call open_files_jpa( new=.True. )
     call open_file_info
-    if( rt_input%calculate_total_energy ) call open_file_etot
-    if( rt_input%calculate_n_exc ) call open_file_nexc
-    if( rt_input%printTimings%general() ) call open_file_timing
+    if( rt_input%calculate_total_energy ) call open_file_etot( new=.True. )
+    if( rt_input%calculate_n_exc ) call open_file_nexc( new=.True. )
+    if( rt_input%printTimings%general() ) call open_file_timing( new=.True.)
 
   end subroutine
 
@@ -482,7 +476,40 @@ contains
 
   end subroutine
 
+  !> (private) Read time and fields stored in the corresponding files
+  subroutine read_time_and_fields( t, p_vec, a_t, a_ind_t_minus_dt, a_tot_t_minus_dt )
+    !> Time \(t\)
+    real(dp), intent(out) :: t
+    !> Polarization vector
+    type(Polarization), intent(out) :: p_vec
+    !> Vector potential at time \(t\)
+    type(Vector_Potential), intent(inout) :: a_t
+    !> \(\mathbf{A}_{ind}) at time \(t-\Delta t\)
+    type(Vector_Potential_Field), intent(out) :: a_ind_t_minus_dt
+    !> \(\mathbf{A}_{tot}) at time \(t-\Delta t\)
+    type(Vector_Potential_Field), intent(out) :: a_tot_t_minus_dt
 
+    call read_jpa( t, p_vec )
+    call read_jpa( t, a_t%a_ind, a_ind_t_minus_dt, a_t%a_tot, a_tot_t_minus_dt)
+  end subroutine
+
+  !> Wrapper to call [[write_jpa]]
+  subroutine write_fields( time_array, a_ind_array, a_tot_array, p_vec_array, j_ind_array )
+    !> Array with times
+    real(dp), intent(in) :: time_array(:)
+    !> Array with the induced vector fields
+    type(Vector_Potential_Field), intent(in) :: a_ind_array(:)
+    !> Array with the total vector fields
+    type(Vector_Potential_Field), intent(in) :: a_tot_array(:)
+    !> Array with the polarization fields
+    type(Polarization), intent(in) :: p_vec_array(:)
+    !> Array with the current density field
+    type(Current_Density_Field), intent(in) :: j_ind_array(:)
+
+    call write_jpa( time_array, a_ind_array, a_tot_array )
+    call write_jpa( time_array, p_vec_array )
+    call write_jpa( time_array, j_ind_array )
+  end subroutine
 
   !> This is just an interface to call the subroutines that updates the KS potential
   subroutine uppot( printTimings, t_pot )
@@ -620,7 +647,7 @@ contains
     !> When `.True.`, it informs that the maximum steps have been reached
     logical, intent(out) :: maxStepsReached
 
-    integer(i32) :: i, ik, last_kpt, nham
+    integer(i32) :: i, last_kpt, nham
     real(dp)     :: err, dt
     complex(dp), allocatable :: ham_predcorr(:, :, :)
 
