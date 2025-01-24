@@ -6,7 +6,7 @@ module rttddft_io
   use mod_rgrid, only: rgrid, gen_3d_rgrid
   use mod_xsf_format, only: add_xsf_extension, write_real_function_xsf
   use modinput, only: input, plot3d_type
-  use modmpi, only: procs, rank, barrier, terminate
+  use modmpi, only: procs, terminate
 #ifdef MPI
   use rttddft_io_parallel, only: read_array, write_array
 #else
@@ -31,10 +31,12 @@ module rttddft_io
             open_file_info, close_file_info, write_file_info, &
             write_file_info_header, write_file_info_fill_line_with_char, &
             open_file_timing, close_file_timing, write_timing, &
-            file_pmat_exists, read_pmat, write_pmat, get_filename_pmat, &
-            file_pmat_mt_exists, read_pmat_mt, write_pmat_mt, get_filename_pmat_mt, &
+            file_pmat_exists, read_pmat, write_pmat, delete_pmat_file, get_filename_pmat, &
+            file_pmat_mt_exists, read_pmat_mt, write_pmat_mt, delete_pmat_mt_file, get_filename_pmat_mt, &
             write_projection_coefficients, write_eigenvalues, write_occupations, &
-            write_wavefunction, write_density_to_file
+            write_wavefunction, read_wavefunction, delete_wavefunction_file, &
+            groundstate, t, t_minus_dt, &
+            write_density_to_file
 
   !> Number of the unit to print timings
   integer(i32)                   :: file_time
@@ -62,14 +64,10 @@ module rttddft_io
   character(len=*), parameter :: filename_pvec = 'PVEC'
   !> Default name of the file where the current density is printed out
   character(len=*), parameter :: filename_jind = 'JIND'
-  !> Default name of the file where the total energy is printed out
-  character(len=*), parameter :: filename_etot = 'ETOT_RTTDDFT'
   !> Default name of the file where the number of excited electrons is printed out
   character(len=*), parameter :: filename_nexc = 'NEXC'
   !> Default name of the file with general information about the RT-TDDFT calculation
   character(len=*), parameter :: filename_info = 'RTTDDFT_INFO'
-  !> Default name of the file where timigs are printed out
-  character(len=*), parameter :: filename_timing = 'TIMING_RTTDDFT'
   !> Default name of the file where `pmat` is printed out
   character(len=*), parameter :: filename_pmat = 'PMATBASIS'
   !> Default name of the file where `pmat_mt` is printed out
@@ -84,12 +82,44 @@ module rttddft_io
   character(len=*), parameter :: filename_density = 'density3d'
   !> Default name of the file where the changes in electron density are printed out
   character(len=*), parameter :: filename_density_changes = 'delta-density3d'
-  
+  !> Typical suffix to differentiate RT-TDDFDT files from ground state files
+  character(len=*), public, parameter :: RTDDFT_suffix = "_RTTDDFT"
+  !> Suffix referring to groundstate
+  character(len=*), public, parameter :: GND_sufix = "_GND"
+  !> Suffix used when performing single-shot ground state calculation (before RT-TDDFDT)
+  character(len=*), public, parameter :: RTDDFT_GND_sufix = RTDDFT_suffix // GND_sufix
+  !> Default name of the file where there wavefunction coefficients are printed out
+  character(len=*), parameter :: filename_wavefunction = 'EVECFV' 
+  !> Suffix for file where there wavefunction coefficients \(\psi(t-\Delta t)\) are printed out
+  character(len=*), parameter :: suffix_wavefunction_t = RTDDFT_suffix
+  !> Suffix for file where there wavefunction coefficients \(\psi(t-\Delta t)\) are printed out
+  character(len=*), parameter :: suffix_wavefunction_t_minus_dt = '_PREVIOUS' // RTDDFT_suffix
+  !> Suffix for where there groundstate wavefunction coefficients are printed out
+  character(len=*), parameter :: suffix_wavefunction_gnd = RTDDFT_GND_sufix
+  !> Default name of the file where timigs are printed out
+  character(len=*), parameter :: filename_timing = 'TIMING' // RTDDFT_suffix
+  !> Default name of the file where the total energy is printed out
+  character(len=*), parameter :: filename_etot = 'ETOT' // RTDDFT_suffix
 
   interface write_timing
     module procedure :: write_timing_initialization
     module procedure :: write_timing_RTTDDFT_steps
   end interface
+
+  interface read_wavefunction
+    module procedure :: read_wavefunction_non_spin_polarized
+    module procedure :: read_wavefunction_spin_polarized
+  end interface
+
+  interface write_wavefunction
+    module procedure :: write_wavefunction_non_spin_polarized
+    module procedure :: write_wavefunction_spin_polarized
+  end interface
+
+  enum, bind(C)
+    enumerator :: wavefunction_case
+    enumerator :: groundstate, t, t_minus_dt
+  end enum
 
 contains 
   !> (private) add the default extension (usually `.OUT`) to the base file name
@@ -535,9 +565,9 @@ contains
     !> Momentum matrix elements
     complex(dp), intent(out)  :: pmat(:, :, :, first_kpt:)
     !> MPI environment (needed to write in parallel over MPI procs.)
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     
-    call read_array(add_default_extension( filename_pmat ), first_kpt, pmat, mpi_env )
+    call read_array(add_default_extension( filename_pmat ), first_kpt, pmat, mpi_env=mpi_env )
   end subroutine
 
   !> Write the momentum matrix elements to file
@@ -547,9 +577,14 @@ contains
     !> Momentum matrix elements
     complex(dp), intent(in)   :: pmat(:, :, :, first_kpt:)
     !> MPI environment (needed to write in parallel over MPI procs.)
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     
-    call write_array(add_default_extension( filename_pmat ), first_kpt, pmat, mpi_env )
+    call write_array(add_default_extension( filename_pmat ), first_kpt, pmat, mpi_env=mpi_env )
+  end subroutine
+
+  subroutine delete_pmat_file( )
+    integer(i32) :: i_error
+    call delete_file( add_default_extension( filename_pmat ), i_error )
   end subroutine
 
   !> Check if file with `pmat_mt` exists
@@ -564,7 +599,7 @@ contains
     !> Muffin-tin part of the momentum matrix
     complex(dp), intent(out)  :: pmat_mt(:, :, :, :, first_kpt:)
     !> MPI environment (needed to write in parallel over MPI procs.)
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
 
     call read_array( add_default_extension( filename_pmat_mt ), first_kpt, pmat_mt, mpi_env )
   end subroutine
@@ -576,28 +611,144 @@ contains
     !> Muffin-tin part of the momentum matrix
     complex(dp), intent(in)   :: pmat_mt(:, :, :, :, first_kpt:)
     !> MPI environment (needed to write in parallel over MPI procs.)
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     
     call write_array( add_default_extension( filename_pmat_mt ), first_kpt, pmat_mt, mpi_env )
   end subroutine
 
-  subroutine write_wavefunction( first_kpt, wavefunction )
-    !> index of the first `k-point` to be considered in the sum
-    integer,intent(in)        :: first_kpt
-    !> wavefunction coefficients
-    complex(dp), intent(in)   :: wavefunction(:, :, first_kpt:)
-    
-    integer(i32) :: count, ik, last_kpt
+  subroutine delete_pmat_mt_file( )
+    integer(i32) :: i_error
+    call delete_file( add_default_extension( filename_pmat_mt ), i_error )
+  end subroutine
 
-    last_kpt = ubound( wavefunction, 3 )
-    do count = 1, procs
-      if ( rank == count-1 ) then
-        do ik = first_kpt, last_kpt
-          call putevecfv( ik, wavefunction(:,:,ik) )
-        end do
-      end if
-      call barrier()
-    end do
+  !> (Private) Return `suffix_wavefunction_t`, `suffix_wavefunction_t_minus_dt` or `suffix_wavefunction_gnd`
+  pure function get_suffix_filename_wavefunction( psi_case ) result(suffix)
+    !> Enum containing telling if `psi` refers to \(t\), \(t-\Delta t\), or to groundstate
+    integer(kind(wavefunction_case)), intent(in) :: psi_case
+    !> File name (to return)
+    character(len=:), allocatable :: suffix
+
+    select case( psi_case )
+      case ( t )
+        suffix = suffix_wavefunction_t
+      case ( t_minus_dt)
+        suffix = suffix_wavefunction_t_minus_dt
+      case ( groundstate )
+        suffix = suffix_wavefunction_gnd
+      case default
+        suffix = suffix_wavefunction_t
+    end select
+  end function
+
+  !> (Private) Return `filename_wavefunction_previous`, `filename_wavefunction` or `filename_wavefunction_gnd`
+  pure function get_filename_wavefunction( psi_case ) result(name)
+    !> Enum containing telling if `psi` refers to \(t\), \(t-\Delta t\), or to groundstate
+    integer(kind(wavefunction_case)), intent(in) :: psi_case
+    !> File name (to return)
+    character(len=:), allocatable :: name
+
+    name = add_default_extension( filename_wavefunction // get_suffix_filename_wavefunction(psi_case) )
+  end function
+
+  !> Read wavefunction coefficients from file. Similar to [[getevecfv]], but 
+  !> does not need to split files and can be used by multiple MPI procs simultaneously.
+  subroutine read_wavefunction_non_spin_polarized( psi_case, first_kpt, kpt_latt, psi, mpi_env )
+    !> Enum telling if `psi` refers to \(t\), \(t-\Delta t\), or to groundstate
+    integer(kind(wavefunction_case)) :: psi_case
+    !> First k-point treated by this (MPI)rank
+    integer(i32), intent(in) :: first_kpt
+    !> k-points in lattice coordinates
+    real(dp), intent(in) :: kpt_latt(:, first_kpt:)
+    !> Basis-expansion coefficients of the (spin-unpolarized) KS-WFs
+    complex(dp), contiguous, target, intent(out) :: psi(:, :, first_kpt:)
+    !> MPI environment (needed to read in parallel over MPI procs.)
+    type(mpiinfo), intent(in) :: mpi_env
+
+    integer(i32), parameter :: n_spin = 1
+    complex(dp), contiguous, pointer :: ptr(:, :, :, :)
+
+    ! Map wavefunction to spin-polarized wavefunction
+    associate( m => size(psi, 1), n => size(psi, 2), last_kpt => ubound( psi, 3 ) )
+      ptr(1:m, 1:n, 1:n_spin, first_kpt:last_kpt) => psi
+    end associate
+    call read_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, ptr, mpi_env )
+  end subroutine
+
+  !!> Same as [[read_wavefunction_non_spin_polarized]], but for the spin polarized case
+  subroutine read_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, psi, mpi_env )
+    !> Enum containing telling if `psi` refers to \(t\), \(t-\Delta t\), or to groundstate
+    integer(kind(wavefunction_case)) :: psi_case
+    !> First k-point treated by this (MPI)rank
+    integer(i32), intent(in) :: first_kpt
+    !> k-points in lattice coordinates
+    real(dp), contiguous, intent(in) :: kpt_latt(:, first_kpt:)
+    !> Basis-expansion coefficients of the (spin-polarized) KS-WFs
+    complex(dp), contiguous, intent(out) :: psi(:, :, :, first_kpt:)
+    !> MPI environment (needed to read in parallel over MPI procs.)
+    type(mpiinfo), intent(in) :: mpi_env
+
+    integer(i32), parameter :: n_cartesian_coords = 3, n_spin_max = 2
+
+    associate( n_spin => size(psi, 3) )
+      call assert( n_spin <= n_spin_max, "psi has more spin polarizations than allowed")
+      call assert( size(kpt_latt, 1) == n_cartesian_coords, to_char(n_cartesian_coords) // " cartesian components are expected" )
+      call assert( size(kpt_latt, 2) == size(psi, 4), "kpt_latt and psi must be compatible.")
+      call read_array( get_filename_wavefunction(psi_case), first_kpt, psi, kpt_latt, mpi_env )
+    end associate
+  end subroutine
+  
+  !> Write the wavefunction coefficients to file. Similar to [[putevecfv]], but 
+  !> does not need to split files and can be used by multiple MPI procs simultaneously.
+  subroutine write_wavefunction_non_spin_polarized( psi_case, first_kpt, kpt_latt, psi, mpi_env )
+    !> Enum containing telling if `psi` refers to \(t\), \(t-\Delta t\), or to groundstate
+    integer(kind(wavefunction_case)) :: psi_case
+    !> index of the first `k-point` to be considered in the sum
+    integer(i32), intent(in) :: first_kpt
+    !> k-points in lattice coordinates
+    real(dp), contiguous, intent(in) :: kpt_latt(:, first_kpt:)
+    !> wavefunction coefficients
+    complex(dp), contiguous, target, intent(in) :: psi(:, :, first_kpt:)
+    !> MPI environment (needed to write in parallel over MPI procs.)
+    type(mpiinfo), intent(in) :: mpi_env
+    
+    complex(dp), contiguous, pointer :: ptr(:, :, :, :)
+    integer(i32), parameter :: n_spin = 1
+
+    ! Map wavefunction to spin-polarized wavefunction
+    associate( m => size(psi, 1), n => size(psi, 2), last_kpt => ubound( psi, 3 ) )
+      ptr(1:m, 1:n, 1:n_spin, first_kpt:last_kpt) => psi
+    end associate
+    call write_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, ptr, mpi_env )
+  end subroutine
+
+  !> Same as [[write_wavefunction_non_spin_polarized]], but for the spin polarized case
+  subroutine write_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, psi, mpi_env )
+    !> Enum containing telling if `psi` refers to \(t\), \(t-\Delta t\), or to groundstate
+    integer(kind(wavefunction_case)) :: psi_case
+    !> index of the first `k-point` to be considered in the sum
+    integer(i32), intent(in) :: first_kpt
+    !> k-points in lattice coordinates
+    real(dp), contiguous, intent(in) :: kpt_latt(:, first_kpt:)
+    !> wavefunction coefficients
+    complex(dp), contiguous, intent(in) :: psi(:, :, :, first_kpt:)
+    !> MPI environment (needed to write in parallel over MPI procs.)
+    type(mpiinfo), intent(in) :: mpi_env
+
+    integer(i32), parameter :: n_spin_max = 2, n_cartesian_coords = 3
+
+    associate( n_spin => size(psi, 3) )
+      call assert( n_spin <= n_spin_max, "psi has more spin polarizations than allowed")
+      call assert( size(kpt_latt, 1) == n_cartesian_coords, "kpt_latt must have size 3 along 1st dim.")
+      call assert( size(kpt_latt, 2) == size(psi, 4), "kpt_latt and psi must be compatible.")
+      call write_array( get_filename_wavefunction(psi_case), first_kpt, psi, kpt_latt, mpi_env=mpi_env )
+    end associate
+  end subroutine
+
+  subroutine delete_wavefunction_file( psi_case )
+    !> Enum containing telling if `psi` refers to \(t\), \(t-\Delta t\), or to groundstate
+    integer(kind(wavefunction_case)) :: psi_case
+    integer(i32) :: i_error
+    call delete_file( get_filename_wavefunction( psi_case ), i_error )
   end subroutine
 
   !> Write timing only if it is nonzero (> tol)
@@ -760,7 +911,6 @@ contains
     end do
     close(unit)
   end subroutine
-
 
   !> Return a label, indicating `density` or `delta-density`
   pure function get_density_label( delta_rho ) result(label)

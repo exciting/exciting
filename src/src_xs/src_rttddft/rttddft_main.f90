@@ -20,7 +20,7 @@ module rttddft_main
   use mod_charge_and_moment, only: chgval
   use mod_eigenvalue_occupancy, only: occsv
   use mod_eigensystem, only: nmat
-  use mod_kpoint, only: nkpt, wkpt
+  use mod_kpoint, only: nkpt, wkpt, kpt_latt => vkl
   use mod_lattice, only: omega
   use mod_misc, only: filext
   use mod_mpi_env, only: mpiinfo
@@ -43,7 +43,7 @@ module rttddft_main
     open_file_nexc, close_file_nexc, write_nexc, &
     open_file_etot, close_file_etot, write_total_energy, &
     open_file_info, close_file_info, write_file_info, write_file_info_header, &
-    write_wavefunction
+    write_wavefunction, t, RTDDFT_suffix
   use rttddft_MD, only: force_rttdft, move_ions, &
     MD_allocate_global_arrays => allocate_global_arrays, &
     MD_deallocate_global_arrays => deallocate_global_arrays, &
@@ -439,9 +439,9 @@ contains
     end if
 
     ! write wavefunction, and potential and density with _RTTDDFT.OUT as suffix
+    call write_wavefunction( t, first_kpt, kpt_latt(:, first_kpt:last_kpt), evecfv_time, mpi_env_k )
     string = filext
-    filext = '_RTTDDFT'//trim(filext)
-    call write_wavefunction( first_kpt, evecfv_time )
+    filext = RTDDFT_suffix // trim( filext )
     if ( my_rank_writes_to_output ) call writestate
     filext = string
 

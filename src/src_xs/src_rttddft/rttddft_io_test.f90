@@ -1,10 +1,13 @@
 module rttddft_io_test
+  use constants, only: zi
   use exciting_mpi, only: mpiinfo
   use math_utils, only: all_close
-  use mock_arrays, only: real_matrix_5x7
+  use mock_arrays, only: real_matrix_5x7, complex_matrix_5x7
   use modmpi, only: barrier
   use precision, only: dp, i32
-  use rttddft_io, only: open_files_jpa, close_files_jpa, read_jpa, write_jpa, delete_jpa_files
+  use rttddft_io, only: open_files_jpa, close_files_jpa, read_jpa, write_jpa, &
+    delete_jpa_files, write_wavefunction, read_wavefunction, t, t_minus_dt, delete_wavefunction_file, &
+    read_pmat, write_pmat, delete_pmat_file, read_pmat_mt, write_pmat_mt, delete_pmat_mt_file
   use rttddft_CurrentDensity, only: Current_Density_Field
   use rttddft_Polarization, only: Polarization
   use rttddft_VectorPotential, only: Vector_Potential_Field
@@ -30,7 +33,13 @@ contains
     
     type(unit_test_type) :: test_report
     integer(i32), parameter :: n_assertions_test_read_write_jpa = 18
-    integer(i32), parameter :: n_assertions = n_assertions_test_read_write_jpa
+    integer(i32), parameter :: n_assertions_test_read_write_wavefunction = 2
+    integer(i32), parameter :: n_assertions_test_read_write_pmat = 1
+    integer(i32), parameter :: n_assertions_test_read_write_pmat_mt = 1
+    integer(i32), parameter :: n_assertions = n_assertions_test_read_write_jpa + &
+                                              n_assertions_test_read_write_wavefunction + &
+                                              n_assertions_test_read_write_pmat + &
+                                              n_assertions_test_read_write_pmat_mt
 
     character(len=*), parameter :: module_tested = 'rttddft_io'
 
@@ -39,6 +48,9 @@ contains
 
     ! Run and assert tests
     call test_read_write_jpa( mpiglobal, test_report )
+    call test_read_write_pmat( mpiglobal, test_report )
+    call test_read_write_pmat_mt( mpiglobal, test_report )
+    call test_read_write_wavefunction( mpiglobal, test_report )
 
     ! report results
     if ( present( kill_on_failure ) ) then
@@ -52,7 +64,6 @@ contains
 
   end subroutine
 
-  
   subroutine test_read_write_jpa( mpiglobal, test_report )
     !> mpi information
     type(mpiinfo), intent(in) :: mpiglobal
@@ -149,6 +160,111 @@ contains
 
     call barrier
     if( my_rank_writes ) call delete_jpa_files
+  end subroutine
+
+  subroutine test_read_write_wavefunction( mpiglobal, test_report )
+    !> mpi information
+    type(mpiinfo), intent(in) :: mpiglobal
+    !> Our test object
+    type(unit_test_type), intent(inout) :: test_report
+
+    character(len=*), parameter :: test_id = "test_read_write_wavefunction"
+    character(len=*), parameter :: tested_array = "psi"
+    integer(i32) :: i, m, n, n_spin
+    integer(i32) :: n_kpt, n_kpt_per_proc, first_kpt, last_kpt, test_counter
+    real(dp), allocatable :: kpt_latt(:, :)
+    complex(dp), allocatable :: psi(:, :, :), psi_ref(:, :, :)
+    complex(dp), allocatable :: psi_spin(:, :, :, :), psi_spin_ref(:, :, :, :)
+    
+    n_kpt_per_proc = 2
+    n_kpt = n_kpt_per_proc*mpiglobal%procs
+    first_kpt = (mpiglobal%rank)*n_kpt_per_proc + 1
+    last_kpt = first_kpt + n_kpt_per_proc - 1
+    allocate( kpt_latt(3, n_kpt) )
+    do i = 1, n_kpt
+      kpt_latt(:, i) = [0._dp, 0._dp, real(i, dp)/n_kpt]
+    end do
+
+    test_counter = 1
+    m = 3; n = 2; n_spin = 1;
+    allocate( psi(m, n, first_kpt:last_kpt), source=reshape( complex_matrix_5x7, [m, n, n_kpt_per_proc] ) )
+    psi(1, 1, first_kpt) = psi(1, 1, first_kpt) + (mpiglobal%rank)*zi
+    psi_ref = psi
+    call write_wavefunction(t, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi, mpiglobal)
+    call read_wavefunction(t, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi, mpiglobal )
+    call test_report%assert( all_close( psi , psi_ref, tol ), report_message( test_id, tested_array, test_counter) )
+    call barrier
+    if( mpiglobal%is_root ) call delete_wavefunction_file( t )
+
+    test_counter = 2
+    m = 3; n = 2; n_spin = 2;
+    allocate( psi_spin(m, n, n_spin, first_kpt:last_kpt), source=reshape( complex_matrix_5x7, [m, n, n_spin, n_kpt_per_proc] ) )
+    psi_spin(1, 1, 1, first_kpt) = psi_spin(1, 1, 1, first_kpt) + (mpiglobal%rank)*zi
+    psi_spin(1, 1, 2, first_kpt) = psi_spin(1, 1, 2, first_kpt)**2 - (mpiglobal%rank)*zi
+    psi_spin_ref = psi_spin
+    call write_wavefunction(t_minus_dt, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi_spin, mpiglobal)
+    call read_wavefunction(t_minus_dt, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi_spin, mpiglobal )
+    call test_report%assert( all_close( psi_spin , psi_spin_ref, tol ), report_message( test_id, tested_array // ' spin', test_counter) )
+    call barrier
+    if( mpiglobal%is_root ) call delete_wavefunction_file( t_minus_dt )
+  end subroutine
+
+  subroutine test_read_write_pmat( mpiglobal, test_report )
+    !> mpi information
+    type(mpiinfo), intent(in) :: mpiglobal
+    !> Our test object
+    type(unit_test_type), intent(inout) :: test_report
+
+    character(len=*), parameter :: test_id = "test_read_write_pmat"
+    character(len=*), parameter :: tested_array = "pmat"
+    integer(i32) :: n_kpt, n_kpt_per_proc, first_kpt, last_kpt
+    integer(i32), parameter :: n_cart = 3, m = 3, n = 2, test_counter = 1
+    complex(dp), allocatable :: pmat(:, :, :, :), pmat_ref(:, :, :, :)
+    
+    n_kpt_per_proc = 2
+    n_kpt = n_kpt_per_proc*mpiglobal%procs
+    first_kpt = (mpiglobal%rank)*n_kpt_per_proc + 1
+    last_kpt = first_kpt + n_kpt_per_proc - 1
+
+    allocate( pmat(m, n, n_cart, first_kpt:last_kpt), &
+              source=reshape( [complex_matrix_5x7, complex_matrix_5x7], &
+                              [m, n, n_cart, n_kpt_per_proc] ) )
+    pmat(1, 1, 1, first_kpt) = pmat(1, 1, 1, first_kpt) + (mpiglobal%rank)*zi
+    pmat_ref = pmat
+    call write_pmat( first_kpt, pmat, mpiglobal )
+    call read_pmat( first_kpt, pmat, mpiglobal )
+    call test_report%assert( all_close( pmat , pmat_ref, tol ), report_message( test_id, tested_array, test_counter) )
+    call barrier
+    if( mpiglobal%is_root ) call delete_pmat_file()
+  end subroutine
+
+  subroutine test_read_write_pmat_mt( mpiglobal, test_report )
+    !> mpi information
+    type(mpiinfo), intent(in) :: mpiglobal
+    !> Our test object
+    type(unit_test_type), intent(inout) :: test_report
+
+    character(len=*), parameter :: test_id = "test_read_write_pmat_mt"
+    character(len=*), parameter :: tested_array = "pmat_mt"
+    integer(i32) :: n_kpt, n_kpt_per_proc, first_kpt, last_kpt
+    integer(i32), parameter :: n_cart = 3, n_atoms = 4, m = 2, n = 1, test_counter = 1
+    complex(dp), allocatable :: pmat_mt(:, :, :, :, :), pmat_mt_ref(:, :, :, :, :)
+    
+    n_kpt_per_proc = 2
+    n_kpt = n_kpt_per_proc*mpiglobal%procs
+    first_kpt = (mpiglobal%rank)*n_kpt_per_proc + 1
+    last_kpt = first_kpt + n_kpt_per_proc - 1
+
+    allocate( pmat_mt(m, n, n_cart, n_atoms, first_kpt:last_kpt), &
+              source=reshape( [complex_matrix_5x7, complex_matrix_5x7], &
+                              [m, n, n_cart, n_atoms, n_kpt_per_proc] ) )
+    pmat_mt(1, 1, 1, 1, first_kpt) = pmat_mt(1, 1, 1, 1, first_kpt)**2 + (mpiglobal%rank)*zi
+    pmat_mt_ref = pmat_mt
+    call write_pmat_mt( first_kpt, pmat_mt, mpiglobal )
+    call read_pmat_mt( first_kpt, pmat_mt, mpiglobal )
+    call test_report%assert( all( abs(pmat_mt-pmat_mt_ref) <= tol ), report_message( test_id, tested_array, test_counter) )
+    call barrier
+    if( mpiglobal%is_root ) call delete_pmat_mt_file()
   end subroutine
 
   !> (private) generates a report message, given a test case and test number
