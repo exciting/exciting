@@ -169,7 +169,7 @@ module mod_symmetry
       allocate( zf(ngrtot), szf(ngrtot))
 
       ! transform function to reciprocal space
-      zf = cmplx( f, 0._dp, dp)
+      zf(1:ngrtot) = cmplx( f(1:ngrtot), 0._dp, kind=dp)
       call zfftifc( 3, ngrid, -1, zf)
 
       ! loop over symmetries
