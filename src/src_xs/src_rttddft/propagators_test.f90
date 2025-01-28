@@ -7,6 +7,11 @@ module propagators_test
     & exp_hermitian => exp_hermitian_matrix_times_vectors, & 
     & exp_general => exp_general_matrix_times_vectors, &
     & exp_houston => exphouston_hermitian_matrix_times_vectors
+  use mock_arrays, only: herm => complex_hermitian_matrix_5x5, &
+                         pos => complex_positive_definite_matrix_5x5, &
+                         c5x7 => complex_matrix_5x7, &
+                         c5x5 => complex_matrix_5x5, &
+                         c7x5 => complex_matrix_7x5
   use precision, only: dp, i32
   use propagators, only: propagator, create_propagator, &
     & input_params => propagator_input_elements
@@ -18,26 +23,27 @@ module propagators_test
 
   public :: propagators_test_driver
 
-  real(dp), parameter :: tol = 1e-10_dp
-  real(dp), parameter :: dt = 1.0_dp
-  integer(i32), parameter :: order_Taylor = 2
+  real(dp), parameter :: tol = 1e-12_dp
+  real(dp), parameter :: dt = 0.1_dp
+  integer(i32), parameter :: order_Taylor = 4
   integer(i32), parameter :: dim = 2 ! Effective dimension to take into account
   integer(i32), parameter :: n_states = 2
-  integer(i32), parameter :: n_kpoints = 1
-  logical, parameter :: normalize_WF = .false.
-
+  integer(i32), parameter :: n_kpoints = 2
   
+  complex(dp), parameter :: H_minus_dt_hermitian(dim+1, dim+1, n_kpoints) = &
+    reshape( [0.6_dp*herm(1:dim+1, 1:dim+1), 2*herm(1:dim+1, 1:dim+1)], [dim+1, dim+1, n_kpoints] )
   complex(dp), parameter :: H_0_hermitian(dim+1, dim+1, n_kpoints) = &
-    reshape( [zone, zi, zzero, -zi, zzero, zzero, zzero, zzero, zzero ], [dim+1, dim+1, n_kpoints] )
+    reshape( [herm(1:dim+1, 1:dim+1), herm(1:dim+1, 1:dim+1)], [dim+1, dim+1, n_kpoints] )
   complex(dp), parameter :: H_dt_hermitian(dim+1, dim+1, n_kpoints) = &
-    reshape( [zone, 2*zi, zzero, -2*zi, zzero, zzero, zzero, zzero, zzero ], [dim+1, dim+1, n_kpoints] )
+    reshape( [1.4_dp*herm(1:dim+1, 1:dim+1), 0*herm(1:dim+1, 1:dim+1)], [dim+1, dim+1, n_kpoints] )
   complex(dp), parameter :: H_0_nonhermitian(dim+1, dim+1, n_kpoints) = &
-    reshape( [zone, zi+zone, zzero, -zi, zzero, zzero, zzero, zzero, zzero ], [dim+1, dim+1, n_kpoints] )
-  complex(dp), parameter :: H_dt_nonhermitian(dim+1, dim+1, n_kpoints) = zi
+    reshape( c5x7, [dim+1, dim+1, n_kpoints] )
+  complex(dp), parameter :: H_dt_nonhermitian(dim+1, dim+1, n_kpoints) = &
+    reshape( c7x5, [dim+1, dim+1, n_kpoints] )
   complex(dp), parameter :: S(dim+1, dim+1, n_kpoints) = &
-    reshape( [ zone, zzero, zzero, zzero, 2*zone, zzero, zzero, zzero, zone ], [dim+1, dim+1, n_kpoints] )
+    reshape( [pos(1:dim+1, 1:dim+1), pos(1:dim+1, 1:dim+1)], [dim+1, dim+1, n_kpoints] )
   complex(dp), parameter :: x_0(dim+1, n_states, n_kpoints) = &
-    reshape( [ zi, zzero, zzero, zone, zone, zzero, zone, zone, zi ], [dim+1, n_states, n_kpoints] )
+    reshape( 0.1_dp*c5x5, [dim+1, n_states, n_kpoints] )
 
 contains
 
@@ -49,13 +55,13 @@ contains
     logical, optional, intent(in) :: kill_on_failure
     
     type(unit_test_type) :: test_report
-    integer(i32), parameter :: n_assertions_test_SE_propagator = 2
-    integer(i32), parameter :: n_assertions_test_EMR_propagator = 2
-    integer(i32), parameter :: n_assertions_test_AETRS_propagator = 2
-    integer(i32), parameter :: n_assertions_test_CFM4_propagator = 2
-    integer(i32), parameter :: n_assertions_test_RK4_propagator = 1
-    integer(i32), parameter :: n_assertions_test_EH_propagator = 1
-    integer(i32), parameter :: n_assertions_test_EHM_propagator = 1
+    integer(i32), parameter :: n_assertions_test_SE_propagator = 3
+    integer(i32), parameter :: n_assertions_test_EMR_propagator = 3
+    integer(i32), parameter :: n_assertions_test_AETRS_propagator = 3
+    integer(i32), parameter :: n_assertions_test_CFM4_propagator = 3
+    integer(i32), parameter :: n_assertions_test_RK4_propagator = 2
+    integer(i32), parameter :: n_assertions_test_EH_propagator = 2
+    integer(i32), parameter :: n_assertions_test_EHM_propagator = 2
     integer(i32), parameter :: n_assertions = n_assertions_test_SE_propagator + &
                                               n_assertions_test_EMR_propagator + &
                                               n_assertions_test_AETRS_propagator + &
@@ -101,22 +107,31 @@ contains
     complex(dp), allocatable :: psi(:, :, :)
     complex(dp) :: x_expected(dim+1, n_states, n_kpoints)
     integer(i32), parameter :: dims(n_kpoints) = spread( dim, dim=1, ncopies=n_kpoints )
-
+    integer(i32) :: ik
 
     test_identifier = 'test_' // method //'_propagator'
 
-    ! 1st test: Hermitian
+    ! 1st test: Hermitian, given H_0 and H_dt
     call create_propagator( prop, input_params( method, dt, order_Taylor, tol ), .true. )
 
     psi = x_0
     x_expected = x_0
-    call prop%evolve( H_dt_hermitian, H_0_hermitian, S, psi, dims )
-    call propagator_method_to_test( method, .true., H_dt_hermitian(:, :, 1), H_0_hermitian(:, :, 1), x_expected(:, :, 1) )
+    call prop%evolve( list_of_H_dt=H_dt_hermitian, list_of_H_0=H_0_hermitian, list_of_S=S, psi=psi, dims=dims )
+    do ik = 1, n_kpoints
+      call propagator_method_to_test( method, .true., H_dt_hermitian(:, :, ik), H_0_hermitian(:, :, ik), x_expected(:, :, ik) )
+    end do
+    call test_report%assert( all_close( psi , x_expected, tol ), test_identifier//' - 1st test failed.')
 
-    call test_report%assert( all_close( a=psi , b=x_expected, tol=tol ), &
-      message=test_identifier//' - 1st test failed.')
+    ! 2nd test: Hermitian, given H_0 and H_minus_dt
+    psi = x_0
+    x_expected = x_0
+    call prop%evolve( list_of_H_minus_dt=H_minus_dt_hermitian, list_of_H_0=H_0_hermitian, list_of_S=S, psi=psi, dims=dims )
+    do ik = 1, n_kpoints
+      call propagator_method_to_test( method, .true., H_dt_hermitian(:, :, ik), H_0_hermitian(:, :, ik), x_expected(:, :, ik) )
+    end do
+    call test_report%assert( all_close( psi , x_expected, tol ), test_identifier//' - 2nd test failed.')
 
-    ! 2nd test: non-Hermitian
+    ! 3rd test: non-Hermitian
     ! only for methods based on Taylor expansion
     select case( trim( method ) ) 
       case( 'SE', 'EMR', 'AETRS', 'CFM4' )
@@ -125,11 +140,13 @@ contains
 
         psi = x_0
         x_expected = x_0
-        call prop%evolve( H_dt_nonhermitian, H_0_nonhermitian, S, psi, dims )
-        call propagator_method_to_test( method, .false., H_dt_nonhermitian(:, :, 1), H_0_nonhermitian(:, :, 1), x_expected(:, :, 1) )
+        call prop%evolve( list_of_H_dt=H_dt_nonhermitian, list_of_H_0=H_0_nonhermitian, list_of_S=S, psi=psi, dims=dims )
+        do ik = 1, n_kpoints
+          call propagator_method_to_test( method, .false., H_dt_nonhermitian(:, :, ik), H_0_nonhermitian(:, :, ik), x_expected(:, :, ik) )
+        end do
 
         call test_report%assert( all_close( a=psi , b=x_expected, tol=tol ), &
-          message=test_identifier//' - 2nd test failed.')
+          message=test_identifier//' - 3rd test failed.')
     end select
   end subroutine
 

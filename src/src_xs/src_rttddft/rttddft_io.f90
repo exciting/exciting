@@ -575,7 +575,7 @@ contains
     !> Index of the first `k-point` to be considered in the sum
     integer,intent(in)        :: first_kpt
     !> Momentum matrix elements
-    complex(dp), intent(in)   :: pmat(:, :, :, first_kpt:)
+    complex(dp), intent(inout)   :: pmat(:, :, :, first_kpt:)
     !> MPI environment (needed to write in parallel over MPI procs.)
     type(mpiinfo), intent(in) :: mpi_env
     
@@ -705,9 +705,9 @@ contains
     !> index of the first `k-point` to be considered in the sum
     integer(i32), intent(in) :: first_kpt
     !> k-points in lattice coordinates
-    real(dp), contiguous, intent(in) :: kpt_latt(:, first_kpt:)
+    real(dp), contiguous, intent(inout) :: kpt_latt(:, first_kpt:)
     !> wavefunction coefficients
-    complex(dp), contiguous, target, intent(in) :: psi(:, :, first_kpt:)
+    complex(dp), contiguous, target, intent(inout) :: psi(:, :, first_kpt:)
     !> MPI environment (needed to write in parallel over MPI procs.)
     type(mpiinfo), intent(in) :: mpi_env
     
@@ -728,9 +728,9 @@ contains
     !> index of the first `k-point` to be considered in the sum
     integer(i32), intent(in) :: first_kpt
     !> k-points in lattice coordinates
-    real(dp), contiguous, intent(in) :: kpt_latt(:, first_kpt:)
+    real(dp), contiguous, intent(inout) :: kpt_latt(:, first_kpt:)
     !> wavefunction coefficients
-    complex(dp), contiguous, intent(in) :: psi(:, :, :, first_kpt:)
+    complex(dp), contiguous, intent(inout) :: psi(:, :, :, first_kpt:)
     !> MPI environment (needed to write in parallel over MPI procs.)
     type(mpiinfo), intent(in) :: mpi_env
 

@@ -170,13 +170,13 @@ contains
     !> first index along 4th dim (needed to determine offsets)
     integer(i32), intent(in) :: first
     !> array to be written to binary file
-    complex(dp), contiguous, intent(in) :: array(:, :, :, first:)
+    complex(dp), contiguous, intent(inout) :: array(:, :, :, first:)
     !> descriptors to be written as part of the header
-    real(dp), contiguous, optional, intent(in) :: descriptors(:, first:)
+    real(dp), contiguous, optional, intent(inout) :: descriptors(:, first:)
     !> MPI environment. The corresponding MPI processes will read from file
     type(mpiinfo), intent(in):: mpi_env 
 
-    integer(i32) :: i, bytes, ierr
+    integer(i32) :: i, bytes, ierr, dims(3)
     integer(MPI_OFFSET_KIND), allocatable :: offset(:)
     type(MPI_FILE) :: unit
 
@@ -189,8 +189,9 @@ contains
       call file_offset( first, last, bytes, offset )
       call mpi_open_file( file_name, mpi_env, unit, write_mode )
       do i = first, last
-        if( present( descriptors ) ) then                  
-          call mpi_write_data( unit, offset(i), descriptors(:, i), [size(array, 1), size(array, 2), size(array, 3)], array(:, :, :, i) )
+        if( present( descriptors ) ) then
+          dims = [size(array, 1), size(array, 2), size(array, 3)]
+          call mpi_write_data( unit, offset(i), descriptors(:, i), dims, array(:, :, :, i) )
         else
           call mpi_write_data( unit, offset(i), array(:, :, :, i) )
         end if
@@ -279,7 +280,8 @@ contains
   subroutine mpi_write_data_complex_dp( unit, offset, data_block )
     type(MPI_FILE), intent(in) :: unit
     integer(MPI_OFFSET_KIND) :: offset
-    complex(dp), contiguous, asynchronous, intent(in)  :: data_block(..)
+    !> N.B. intent(inout) is required by `call mpi_f_sync_reg( data_block )`
+    complex(dp), contiguous, asynchronous, intent(inout)  :: data_block(..)
 
     integer(i32) :: ierr
     type(MPI_REQUEST) :: request
@@ -295,7 +297,7 @@ contains
   subroutine mpi_write_data_real_dp( unit, offset, data_block )
     type(MPI_FILE), intent(in) :: unit
     integer(MPI_OFFSET_KIND) :: offset
-    real(dp), contiguous, asynchronous, intent(in)  :: data_block(..)
+    real(dp), contiguous, asynchronous, intent(inout)  :: data_block(..)
 
     integer(i32) :: ierr
     type(MPI_REQUEST) :: request
@@ -311,7 +313,7 @@ contains
   subroutine mpi_write_data_integer_i32( unit, offset, data_block )
     type(MPI_FILE), intent(in) :: unit
     integer(MPI_OFFSET_KIND) :: offset
-    integer(i32), contiguous, asynchronous, intent(in)  :: data_block(..)
+    integer(i32), contiguous, asynchronous, intent(inout)  :: data_block(..)
 
     integer(i32) :: ierr
     type(MPI_REQUEST) :: request
@@ -328,9 +330,9 @@ contains
   subroutine mpi_write_data_with_header( unit, offset, descriptor_block, dims_block, data_block )
     type(MPI_FILE), intent(in) :: unit
     integer(MPI_OFFSET_KIND) :: offset
-    real(dp), contiguous, asynchronous, intent(in) :: descriptor_block(..)
-    integer(i32), contiguous, asynchronous, intent(in) :: dims_block(..)
-    complex(dp), contiguous, asynchronous, intent(in)  :: data_block(..)
+    real(dp), contiguous, asynchronous, intent(inout) :: descriptor_block(..)
+    integer(i32), contiguous, asynchronous, intent(inout) :: dims_block(..)
+    complex(dp), contiguous, asynchronous, intent(inout)  :: data_block(..)
 
     call mpi_write_data( unit, offset, descriptor_block )
     call mpi_write_data( unit, offset + n_bytes(descriptor_block), dims_block )

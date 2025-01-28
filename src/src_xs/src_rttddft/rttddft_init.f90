@@ -44,13 +44,15 @@ module rttddft_init
 
 contains
 !> This subroutine initializes many global variables in a RT-TDDFT calculation.
-subroutine initialize_rttddft( input_pmat, predictorCorrector, vec_pot, molecular_dynamics, &
+subroutine initialize_rttddft( input_pmat, predictorCorrector, ham_past_needed, vec_pot, molecular_dynamics, &
   evecfv_gnd, evecfv_time, evecfv_save, evecsv, &
   overlap, ham_time, ham_past, apwalm, pmat, pmatmt )
   !> Argument that encapsulates the input options of the element pmat
   type(pmat_keys), intent(in) :: input_pmat
   !> if `.True`, the predictor corrector loop is employed
   logical, intent(in) :: predictorCorrector
+  !> if `.True`, `ham_past` must be allocated and initiliazed
+  logical, intent(in) :: ham_past_needed
   !> type that encapsulates the vector potential
   type(Vector_Potential), intent(in) :: vec_pot
   !> variable that is an interface to the input keys defined in `input.xml` inside the `MD` block
@@ -133,10 +135,8 @@ subroutine initialize_rttddft( input_pmat, predictorCorrector, vec_pot, molecula
   allocate( evecsv(nstsv, nstsv, first_kpt : last_kpt) )
   allocate( overlap(nmatmax, nmatmax, first_kpt : last_kpt), source = zzero )
   allocate( ham_time(nmatmax, nmatmax, first_kpt : last_kpt), source = zzero )
-  allocate( ham_past(nmatmax, nmatmax, first_kpt : last_kpt), source = zzero )
-  if ( predictorCorrector ) then
-    allocate( evecfv_save(nmatmax, nstfv, first_kpt : last_kpt) )
-  end if
+  if ( ham_past_needed ) allocate( ham_past(nmatmax, nmatmax, first_kpt : last_kpt), source = zzero )
+  if ( predictorCorrector ) allocate( evecfv_save(nmatmax, nstfv, first_kpt : last_kpt) )
   allocate( apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt) )
   allocate( pmat(nmatmax, nmatmax, 3, first_kpt : last_kpt) )
   if ( molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative ) &
@@ -189,11 +189,11 @@ subroutine initialize_rttddft( input_pmat, predictorCorrector, vec_pot, molecula
   end if
 
   ! Hamiltonian at time t=0
-  call UpdateHam( first_kpt, vec_pot%a_tot, predcorr=.False., calculateOverlap=.True., &
+  call UpdateHam( first_kpt, vec_pot%a_tot, calculateOverlap=.True., &
     calculateH0=.true., forcePmatHermitian=input_pmat%force_pmat_hermitian, &
-    overlap=overlap, ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, pmat=pmat, pmatmt=pmatmt, &
+    overlap=overlap, ham_time=ham_time, apwalm=apwalm, pmat=pmat, pmatmt=pmatmt, &
     update_mathcalH=allocated(mathcalH), update_mathcalB=allocated(mathcalB), update_pmat=.False. )
-  ham_past(:, :, :) = ham_time(:, :, :)
+  if( ham_past_needed ) ham_past = ham_time
 
 end subroutine
 
@@ -247,7 +247,7 @@ subroutine write_to_info( ionDynamics, predictorCorrector, evecfv_gnd, &
   !> Hamiltonian matrix at current time \(t\)
   complex(dp), intent(in) :: ham_time(:, :, :)
   !> Hamiltonian matrix at previous time \(t - \Delta t \)
-  complex(dp), intent(in) :: ham_past(:, :, :)
+  complex(dp), allocatable, intent(in) :: ham_past(:, :, :)
   !> Matching coefficients of the (L)APWs
   complex(dp), intent(in) :: apwalm(:, :, :, :, :)
   !> Momentum matrix elements (projected onto the (L)APW+LO basis elements)

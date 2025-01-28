@@ -182,7 +182,7 @@ contains
     n_steps = int( rt%t_end / dt )
     l_rad_step = input%groundstate%lradstep
     eps_occ = input%groundstate%epsocc
-    call initialize_rttddft( rt%pmat, rt%predictor_corrector%on, &
+    call initialize_rttddft( rt%pmat, rt%predictor_corrector%on, propagator%extrapolation_needed(), &
       vec_pot, molecular_dynamics, evecfv_gnd, evecfv_time, evecfv_save, evecsv, &
       overlap, ham_time, ham_past, apwalm, pmat, pmatmt )
     if( molecular_dynamics%on ) call init_MD( time, vec_pot%a_tot, dt, &
@@ -279,8 +279,7 @@ contains
         call Update_basis_derivative( atom_velocities, mathcalB, B_time, B_past )
         ham_time = ham_time - zi*B_time
       end if
-      ! H(t + dt) is approximated here as H(t) + (H(t) - H(t - dt))
-      call propagator%evolve( 2*ham_time-ham_past, ham_time, overlap, evecfv_time, nmat(i_spin, first_kpt:last_kpt) )
+      call propagator%evolve( list_of_H_minus_dt=ham_past, list_of_H_0=ham_time, list_of_S=overlap, psi=evecfv_time, dims=nmat(i_spin, first_kpt:last_kpt) )
       if ( rt%normalize_WF ) call normalize_wavefunctions( overlap, evecfv_time )
       if ( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%wavefunction )
 
@@ -324,10 +323,10 @@ contains
       if ( rt%predictor_corrector%on .and. ( .not. vec_pot%is_solver_euler() ) ) j_ind_save = j_ind
 
       ! HAMILTONIAN
-      ham_past = ham_time
-      call UpdateHam( first_kpt, vec_pot%a_tot, predcorr=.False., calculateOverlap=.False., &
+      if( propagator%extrapolation_needed() ) ham_past = ham_time
+      call UpdateHam( first_kpt, vec_pot%a_tot, calculateOverlap=.False., &
         calculateH0=evolve_H0, forcePmatHermitian=rt%pmat%force_pmat_hermitian, &
-        overlap=overlap, ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, pmat=pmat, &
+        overlap=overlap, ham_time=ham_time, apwalm=apwalm, pmat=pmat, &
         printTimings=rt%printTimings, t_ham=timing%t_RTTDDFT%ham, t_MD=timing%t_Ehrenfest, &
         update_mathcalH=.False., update_mathcalB=.False., update_pmat=.False., ham_init=ham_init )
 
@@ -371,12 +370,11 @@ contains
           ! Update Hamiltonian with the new basis
           if( molecular_dynamics%update_overlap .or. allocated(mathcalH) .or. &
             & allocated(mathcalB) .or. molecular_dynamics%update_pmat ) then
-            ham_past = ham_time  
-            call UpdateHam( first_kpt, vec_pot%a_tot, predcorr=.False., &
+            if( propagator%extrapolation_needed() ) ham_past = ham_time  
+            call UpdateHam( first_kpt, vec_pot%a_tot, &
               & forcePmatHermitian=rt%pmat%force_pmat_hermitian, &
               & calculateOverlap=molecular_dynamics%update_overlap, calculateH0=evolve_H0, &
-              & overlap=overlap, ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, &
-              & pmat=pmat, pmatmt=pmatmt, &
+              & overlap=overlap, ham_time=ham_time, apwalm=apwalm, pmat=pmat, pmatmt=pmatmt, &
               & printTimings=rt%printTimings, t_ham=timing%t_RTTDDFT%ham, t_MD=timing%t_Ehrenfest, &
               & update_mathcalH=allocated(mathcalH), &
               & update_mathcalB=allocated(mathcalB), &
@@ -659,7 +657,7 @@ contains
     do i = 1, rt%predictor_corrector%max_steps
       ! WAVEFUNCTION
       evecfv_time = evecfv_save
-      call propagator%evolve( ham_time, ham_past, overlap, evecfv_time, nmat(i_spin, first_kpt:last_kpt) )
+      call propagator%evolve( list_of_H_dt=ham_time, list_of_H_0=ham_past, list_of_S=overlap, psi=evecfv_time, dims=nmat(i_spin, first_kpt:last_kpt) )
       if ( rt%normalize_WF ) call normalize_wavefunctions( overlap, evecfv_time )
 
       ! Update the paramagnetic component of the induced current density
@@ -688,9 +686,10 @@ contains
 
       ! HAMILTONIAN
       ham_predcorr = ham_time
-      call UpdateHam( first_kpt, a_t%a_tot, predcorr=.True., calculateOverlap=.False., &
+      ham_time = ham_past
+      call UpdateHam( first_kpt, a_t%a_tot, calculateOverlap=.False., &
         calculateH0=.true., forcePmatHermitian=rt%pmat%force_pmat_hermitian, &
-        overlap=overlap, ham_time=ham_time, ham_past=ham_past, apwalm=apwalm, &
+        overlap=overlap, ham_time=ham_time, apwalm=apwalm, &
         pmat=pmat )
 
       ! Check the difference between the two hamiltonians

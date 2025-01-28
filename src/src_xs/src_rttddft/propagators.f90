@@ -47,6 +47,7 @@ module propagators
     procedure, public :: evolve => propagate_list_of_arrays
     procedure(propagate_single_array_), private, deferred :: propagate_single_array
     procedure(initialize_), public, deferred :: initialize
+    procedure, public :: extrapolation_needed => propagator_requires_extrapolation
   end type
 
   !> Abstract type for propagators that employ a Taylor expansion
@@ -117,15 +118,17 @@ module propagators
   end type 
 
   abstract interface
-    subroutine propagate_single_array_( self, dim, H_dt, H_0, S, x )
+    subroutine propagate_single_array_( self, dim, H_dt, H_0, H_minus_dt, S, x )
       import :: propagator, dp, i32
       class(propagator) :: self      
       !> Actual dimensions of each matrix: `H_dt`, `H_0`, and `S`
       integer(i32), intent(in) :: dim
       !> Hamiltonian matrix \(H\) at time \(\Delta t\)
-      complex(dp), contiguous, intent(in) :: H_dt(:, :)
+      complex(dp), contiguous, optional, intent(in) :: H_dt(:, :)
       !> Hamiltonian matrix \(H\) at time \(0\)
       complex(dp), contiguous, intent(in) :: H_0(:, :)
+      !> Hamiltonian matrix \(H\) at time \(-\Delta t\)
+      complex(dp), contiguous, optional, intent(in) :: H_minus_dt(:, :)
       !> Overlap matrix \(S\)
       complex(dp), contiguous, intent(in) :: S(:, :)
       !> In: wavefunction \(\psi(0)\). Out: wavefunction \(\psi(\Delta t)\)
@@ -169,6 +172,20 @@ contains
         method = RK4
       case default
         call assert( .false., 'Unrecognized propagator method' )
+    end select
+  end function
+
+  !> Return `.true.` if a propagator requires extrapolation of \(H(t)\)
+  pure logical function propagator_requires_extrapolation( this ) result(check)
+    class(propagator), intent(in) :: this
+    
+    select type( this )
+      type is (SE_propagator)
+        check = .false.
+      type is (EH_propagator)
+        check = .false.
+      class default
+        check = .true.
     end select
   end function
 
@@ -281,54 +298,79 @@ contains
   end subroutine
 
   !> Propagate a list of arrays. The 3rd dimension goes, usually, over the various k-points.
-  subroutine propagate_list_of_arrays( self, list_of_H_dt, list_of_H_0, list_of_S, psi, dims_ )
+  subroutine propagate_list_of_arrays( self, list_of_H_dt, list_of_H_0, list_of_H_minus_dt, list_of_S, psi, dims )
     class(propagator) :: self
     !> The list of \( H \) matrices at time \(\Delta t\)
-    complex(dp), contiguous, intent(in) :: list_of_H_dt(:, :, :)
+    complex(dp), contiguous, optional, intent(in) :: list_of_H_dt(:, :, :)
     !> The list of \( H \) matrices at time \(0\)
     complex(dp), contiguous, intent(in) :: list_of_H_0(:, :, :)
+    !> The list of \( H \) matrices at time \(-\Delta t\)
+    complex(dp), contiguous, optional, intent(in) :: list_of_H_minus_dt(:, :, :)
     !> The list of overlap matrices \(S\)
     complex(dp), contiguous, intent(in) :: list_of_S(:, :, :)
     !> The list of wavefunctions to be propagated
     complex(dp), contiguous, intent(inout) :: psi(:, :, :)
     !> Actual dimensions of each matrix in `list_of_H_dt`, `list_of_H_0`, and `list_of_S`
-    integer(i32), intent(in), optional :: dims_(:)
+    integer(i32), intent(in), optional :: dims(:)
 
-    integer(i32) :: i, m, dim
-    integer(i32), allocatable :: dims(:)
+    integer(i32) :: i, m, case_H
+    integer(i32), allocatable :: dims_(:)
 
-    m = size( list_of_H_dt, 3 )
-    call assert( size(list_of_H_0, 3) == m, 'matrix has 3rd dim different from m' )
+    enum, bind(C)
+      enumerator :: H0_only, H0_and_Hdt, H0_and_Hminusdt
+    end enum
+    
+    m = size( list_of_H_0, 3 )
+    case_H = H0_only
+    if( present(list_of_H_dt) ) then
+      case_H = H0_and_Hdt
+      call assert( size(list_of_H_dt, 3) == m, 'matrix has 3rd dim different from m' )
+      call assert( .not. present(list_of_H_minus_dt), "both H_dt and H_minus_dt cannot be passed at the same time")
+    end if
+    if( present(list_of_H_minus_dt) ) then
+      case_H = H0_and_Hminusdt
+      call assert( size(list_of_H_minus_dt, 3) == m, 'matrix has 3rd dim different from m' )
+    end if
     call assert( size(list_of_S, 3) == m, 'matrix has 3rd dim different from m' )
     call assert( size(psi, 3) == m, 'matrix has 3rd dim different from m' )
-    if( present(dims_) ) then
-      call assert( size(dims_) == m, 'array must have n elements')
-      dims = dims_
+    if( present(dims) ) then
+      call assert( size(dims) == m, 'array must have m elements')
+      dims_ = dims
     else
-      dims = spread( size( list_of_H_dt, 1 ), dim=1, ncopies=m )
+      dims_ = spread( size( list_of_H_0, 1 ), dim=1, ncopies=m )
     end if
-#ifdef USEOMP
-!$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(i, dim) &
-!$OMP& SHARED(m, self, psi, list_of_H_dt, list_of_H_0, list_of_S, dims)
-#endif
-    do i = 1, m
-      dim = dims(i)
-      call self%propagate_single_array( dim, list_of_H_dt(:, :, i), list_of_H_0(:, :, i), &
-        list_of_S(:, :, i), psi(:, :, i) )
-    end do
-#ifdef USEOMP
+    select case(case_H)
+      case(H0_and_Hminusdt)
+!$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(i) SHARED(m, self, psi, list_of_H_dt, list_of_H_minus_dt, list_of_H_0, list_of_S, dims_)
+      do i = 1, m
+        call self%propagate_single_array( dims_(i), H_0=list_of_H_0(:, :, i), H_minus_dt=list_of_H_minus_dt(:, :, i), S=list_of_S(:, :, i), x=psi(:, :, i) )
+      end do
 !$OMP END PARALLEL DO
-#endif
+      case(H0_only)
+!$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(i) SHARED(m, self, psi, list_of_H_dt, list_of_H_minus_dt, list_of_H_0, list_of_S, dims_)
+      do i = 1, m
+        call self%propagate_single_array( dims_(i), H_0=list_of_H_0(:, :, i), S=list_of_S(:, :, i), x=psi(:, :, i) )
+      end do
+!$OMP END PARALLEL DO
+      case(H0_and_Hdt)
+!$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(i) SHARED(m, self, psi, list_of_H_dt, list_of_H_minus_dt, list_of_H_0, list_of_S, dims_)
+      do i = 1, m
+        call self%propagate_single_array( dims_(i), H_dt=list_of_H_dt(:, :, i), H_0=list_of_H_0(:, :, i), S=list_of_S(:, :, i), x=psi(:, :, i) )
+      end do
+!$OMP END PARALLEL DO
+    end select
+    
   end subroutine
 
   !> Propagate a single KS wavefunction according to the propagator [[SE]]
   !> \[ \psi(\Delta t) = \mathrm{exp}(-\mathrm{i}\Delta t S^{-1}H(0)) \psi(0).\]
   !> The arguments are documented in [[propagate_single_array_]]
-  subroutine propagate_single_array_with_SE( self, dim, H_dt, H_0, S, x )
+  subroutine propagate_single_array_with_SE( self, dim, H_dt, H_0, H_minus_dt, S, x )
     class(SE_propagator) :: self
     integer(i32), intent(in) :: dim
-    complex(dp), contiguous, intent(in) :: H_dt(:, :)
+    complex(dp), contiguous, optional, intent(in) :: H_dt(:, :)
     complex(dp), contiguous, intent(in) :: H_0(:, :)
+    complex(dp), contiguous, optional, intent(in) :: H_minus_dt(:, :)
     complex(dp), contiguous, intent(in) :: S(:, :)
     complex(dp), contiguous, intent(inout) :: x(:, :)
     
@@ -340,42 +382,57 @@ contains
   !> \[ \psi(\Delta t) = \mathrm{exp}(-\mathrm{i}\Delta t S^{-1}H(\Delta t/2)) \psi(0).\]
   !> \(H(\Delta t/2)\) is estimated as
   !> \[ H(\Delta t/2) = \frac{1}{2}\left[ H(\Delta t) + H(0)\right].\]
+  !> or as
+  !> \[ H(\Delta t/2) = H(0) + \frac{1}{2}\left[ H(0) - H(-\Delta t)\right].\]
   !> The arguments are documented in [[propagate_single_array_]]
-  subroutine propagate_single_array_with_EMR( self, dim, H_dt, H_0, S, x )
+  subroutine propagate_single_array_with_EMR( self, dim, H_dt, H_0, H_minus_dt, S, x )
     class(EMR_propagator) :: self
     integer(i32), intent(in) :: dim
-    complex(dp), contiguous, intent(in) :: H_dt(:, :)
+    complex(dp), contiguous, optional, intent(in) :: H_dt(:, :)
     complex(dp), contiguous, intent(in) :: H_0(:, :)
+    complex(dp), contiguous, optional, intent(in) :: H_minus_dt(:, :)
     complex(dp), contiguous, intent(in) :: S(:, :)
     complex(dp), contiguous, intent(inout) :: x(:, :)
     
     complex(dp), allocatable :: H_aux(:, :)
 
+    call assert( present(H_dt) .neqv. present(H_minus_dt), "only one optional argument must be present" )
     call assert( associated(self%exp_matrix), 'exp_matrix not associated')
-    allocate( H_aux, source=H_0 )
-    H_aux = 0.5_dp*( H_aux + H_dt )
+    if( present(H_dt) ) then
+      H_aux = 0.5_dp*( H_dt + H_0 )
+    else
+      H_aux = 0.5_dp * (3._dp * H_0 - H_minus_dt)
+    end if
     call self%exp_matrix( self%order_Taylor, -zi*self%dt, H_aux, S, x)
   end subroutine
 
   !> Propagate a single KS wavefunction according to the propagator [[AETRS]]
-  !> \[ \psi(\Delta t) = \mathrm{exp}(-\mathrm{i}\Delta t S^{-1}H(\Delta)/2)
+  !> \[ \psi(\Delta t) = \mathrm{exp}(-\mathrm{i}\Delta t S^{-1}H(\Delta t)/2)
   !> \mathrm{exp}(-\mathrm{i}\Delta t S^{-1}H(0)/2) \psi(0).\]
+  !> If needed, \(H(\Delta t)\) is obtained as
+  !> \[H(\Delta t) = H(0) + (H(0)-H(-\Delta t))\]
   !> The arguments are documented in [[propagate_single_array_]]
-  subroutine propagate_single_array_with_AETRS( self, dim, H_dt, H_0, S, x )
+  subroutine propagate_single_array_with_AETRS( self, dim, H_dt, H_0, H_minus_dt, S, x )
     class(AETRS_propagator) :: self
     integer(i32), intent(in) :: dim
-    complex(dp), contiguous, intent(in) :: H_dt(:, :)
+    complex(dp), contiguous, optional, intent(in) :: H_dt(:, :)
     complex(dp), contiguous, intent(in) :: H_0(:, :)
+    complex(dp), contiguous, optional, intent(in) :: H_minus_dt(:, :)
     complex(dp), contiguous, intent(in) :: S(:, :)
     complex(dp), contiguous, intent(inout) :: x(:, :)
 
     complex(dp), allocatable :: H_aux(:, :)
 
+    call assert( present(H_dt) .neqv. present(H_minus_dt), "only one optional argument must be present" )
     call assert( associated(self%exp_matrix), 'exp_matrix not associated')
     allocate( H_aux, mold=H_0 )
     H_aux = 0.5_dp*H_0
     call self%exp_matrix( self%order_Taylor, -zi*self%dt, H_aux, S, x)
-    H_aux = 0.5_dp*H_dt
+    if( present(H_dt) ) then
+      H_aux = 0.5_dp*H_dt
+    else
+      H_aux = H_0 - 0.5_dp*H_minus_dt
+    end if
     call self%exp_matrix( self%order_Taylor, -zi*self%dt, H_aux, S, x)
   end subroutine
 
@@ -388,38 +445,53 @@ contains
   !> \(\Delta t_1 = f_1 \Delta t \), \(\Delta t_2 = f_2 \Delta t \), where 
   !> \( f_1 = 1/2 - \sqrt{3}/6 \) and \( f_2 = 1/2 + \sqrt{3}/6\). Furthermore
   !> \(H(f\Delta t)\) is estimated as
-  !> \[ H(f\Delta t) = fH(\Delta t) + (1-f)H(0).\]
+  !> \[ H(f\Delta t) = fH(\Delta t) + (1-f)H(0)\]
+  !> or as
+  !> \[ H(f\Delta t) = H(0) + f[H(0)-H(-\Delta t)] = (1+f)H(0)-fH(-\Delta t)\]
   !> The arguments are documented in [[propagate_single_array_]]
-  subroutine propagate_single_array_with_CFM4( self, dim, H_dt, H_0, S, x )
+  subroutine propagate_single_array_with_CFM4( self, dim, H_dt, H_0, H_minus_dt, S, x )
     class(CFM4_propagator) :: self
     integer(i32), intent(in) :: dim
-    complex(dp), contiguous, intent(in) :: H_dt(:, :)
+    complex(dp), contiguous, optional, intent(in) :: H_dt(:, :)
     complex(dp), contiguous, intent(in) :: H_0(:, :)
+    complex(dp), contiguous, optional, intent(in) :: H_minus_dt(:, :)
     complex(dp), contiguous, intent(in) :: S(:, :)
     complex(dp), contiguous, intent(inout) :: x(:, :)
 
     ! Factors that multiply the hamiltonian in the following propagator:
     ! Commutator-Free Magnus expansion of 4th order
-    real(dp), parameter       :: f1 =  0.21132486540518713_dp ! 1/2 - sqrt(3)/6
-    real(dp), parameter       :: f2 =  0.78867513459481290_dp ! 1/2 + sqrt(3)/6
-    real(dp), parameter       :: a1 = -0.03867513459481287_dp ! 1/4 - sqrt(3)/6
-    real(dp), parameter       :: a2 =  0.53867513459481290_dp ! 1/4 + sqrt(3)/6
+    real(dp), parameter       :: f1 =  0.5_dp - sqrt(3._dp) / 6._dp ! 1/2 - sqrt(3)/6
+    real(dp), parameter       :: f2 =  0.5_dp + sqrt(3._dp) / 6._dp ! 1/2 + sqrt(3)/6
+    real(dp), parameter       :: a1 =  0.25_dp - sqrt(3._dp) / 6._dp ! 1/4 - sqrt(3)/6
+    real(dp), parameter       :: a2 =  0.25_dp + sqrt(3._dp) / 6._dp ! 1/4 + sqrt(3)/6
     real(dp), parameter       :: b_0 = a1*(1-f2) + a2*(1-f1)
     real(dp), parameter       :: b_dt = a1*f2 + a2*f1
     real(dp), parameter       :: c_0 = a1*(1-f1) + a2*(1-f2)
     real(dp), parameter       :: c_dt = a1*f1 + a2*f2
-
+    real(dp), parameter       :: d_0 = a1*(1+f2) + a2*(1+f1)
+    real(dp), parameter       :: d_minus_dt = - (a1*f2 + a2*f1)
+    real(dp), parameter       :: e_0 = a1*(1+f1) + a2*(1+f2)
+    real(dp), parameter       :: e_minus_dt = -(a1*f1 + a2*f2)
     
     complex(dp), allocatable :: H_aux(:, :)
 
+    call assert( present(H_dt) .neqv. present(H_minus_dt), "only one optional argument must be present" )
     call assert( associated(self%exp_matrix), 'exp_matrix not associated')
-    allocate( H_aux, mold=H_0 )
-    ! a1*( (1-f2)*H_0 + f2*H_dt ) + a2*( (1-f1)*H_0 + f1*H_dt )
-    H_aux = b_0*H_0 + b_dt*H_dt
-    call self%exp_matrix( self%order_Taylor, -zi*self%dt, H_aux, S, x)
-    ! a1*( (1-f1)*H_0 + f1*H_dt ) + a2*( (1-f2)*H_0 + f2*H_dt )
-    H_aux = c_0*H_0 + c_dt*H_dt
-    call self%exp_matrix( self%order_Taylor, -zi*self%dt, H_aux, S, x)
+    if( present(H_dt) ) then
+      ! a1*( (1-f2)*H_0 + f2*H_dt ) + a2*( (1-f1)*H_0 + f1*H_dt )
+      H_aux = b_0*H_0 + b_dt*H_dt
+      call self%exp_matrix( self%order_Taylor, -zi*self%dt, H_aux, S, x)
+      ! a1*( (1-f1)*H_0 + f1*H_dt ) + a2*( (1-f2)*H_0 + f2*H_dt )
+      H_aux = c_0*H_0 + c_dt*H_dt
+      call self%exp_matrix( self%order_Taylor, -zi*self%dt, H_aux, S, x)
+    else
+      ! a1*( (1+f2)*H_0 - f2*H_minus_dt ) + a2*( (1+f1)*H_0 - f1*H_minus_dt )
+      H_aux = d_0*H_0 + d_minus_dt*H_minus_dt
+      call self%exp_matrix( self%order_Taylor, -zi*self%dt, H_aux, S, x)
+      ! a1*( (1+f1)*H_0 - f1*H_minus_dt ) + a2*( (1+f2)*H_0 - f2*H_minus_dt )
+      H_aux = e_0*H_0 + e_minus_dt*H_minus_dt
+      call self%exp_matrix( self%order_Taylor, -zi*self%dt, H_aux, S, x)
+    end if
   end subroutine
 
   !> Propagate a single KS wavefunction according to the propagator [[RK4]], 
@@ -427,29 +499,32 @@ contains
   !> \(H(-\Delta t)\) is evaluated as
   !> \[H(-\Delta t) = H(0) - [H(\Delta t)-H(0)].\]
   !> The arguments are documented in [[propagate_single_array_]]
-  subroutine propagate_single_array_with_RK4( self, dim, H_dt, H_0, S, x )
+  subroutine propagate_single_array_with_RK4( self, dim, H_dt, H_0, H_minus_dt, S, x )
     class(RK4_propagator) :: self
     integer(i32), intent(in) :: dim
-    complex(dp), contiguous, intent(in) :: H_dt(:, :)
+    complex(dp), contiguous, optional, intent(in) :: H_dt(:, :)
     complex(dp), contiguous, intent(in) :: H_0(:, :)
+    complex(dp), contiguous, optional, intent(in) :: H_minus_dt(:, :)
     complex(dp), contiguous, intent(in) :: S(:, :)
     complex(dp), contiguous, intent(inout) :: x(:, :)
     
-    complex(dp), allocatable :: H_aux(:, :)
-
-    allocate( H_aux, source=H_0 )
-    H_aux = 2*H_aux - H_dt
-    call RungeKutta4thOrder( self%dt, zi, H_0, H_aux, S, x )
+    call assert( present(H_dt) .neqv. present(H_minus_dt), "only one optional argument must be present" )
+    if( present(H_minus_dt) ) then
+      call RungeKutta4thOrder( self%dt, zi, H_0, H_minus_dt, S, x )
+    else
+      call RungeKutta4thOrder( self%dt, zi, H_0, 2*H_0 - H_dt, S, x )
+    end if
   end subroutine
 
   !> Propagate a single KS wavefunction according to the propagator [[EH]],
   !> see documentation of the subroutine `exphouston_propagator` for the details.
   !> The arguments are documented in [[propagate_single_array_]]
-  subroutine propagate_single_array_with_EH( self, dim, H_dt, H_0, S, x )
+  subroutine propagate_single_array_with_EH( self, dim, H_dt, H_0, H_minus_dt, S, x )
     class(EH_propagator) :: self
     integer(i32), intent(in) :: dim
-    complex(dp), contiguous, intent(in) :: H_dt(:, :)
+    complex(dp), contiguous, optional, intent(in) :: H_dt(:, :)
     complex(dp), contiguous, intent(in) :: H_0(:, :)
+    complex(dp), contiguous, optional, intent(in) :: H_minus_dt(:, :)
     complex(dp), contiguous, intent(in) :: S(:, :)
     complex(dp), contiguous, intent(inout) :: x(:, :)
 
@@ -459,21 +534,28 @@ contains
   !> Propagate a single KS wavefunction according to the propagator [[EHM]]
   !> see documentation of the subroutine `exphouston_propagator` for the details.
   !> \(H(\Delta t/2)\) is estimated as
-  !> \[ H(\Delta t/2) = \frac{1}{2}\left[ H(\Delta t) + H(0)\right].\]
+  !> \[ H(\Delta t/2) = \frac{1}{2}\left[ H(\Delta t) + H(0)\right]\]
+  !> or as
+  !> \[ H(\Delta t/2) = H(0) + \frac{1}{2}\left[ H(0) - H(-\Delta t) \right]\]
   !> The arguments are documented in [[propagate_single_array_]]
-  subroutine propagate_single_array_with_EHM( self, dim, H_dt, H_0, S, x )
+  subroutine propagate_single_array_with_EHM( self, dim, H_dt, H_0, H_minus_dt, S, x )
     class(EHM_propagator) :: self
     integer(i32), intent(in) :: dim
-    complex(dp), contiguous, intent(in) :: H_dt(:, :)
+    complex(dp), contiguous, optional, intent(in) :: H_dt(:, :)
     complex(dp), contiguous, intent(in) :: H_0(:, :)
+    complex(dp), contiguous, optional, intent(in) :: H_minus_dt(:, :)
     complex(dp), contiguous, intent(in) :: S(:, :)
     complex(dp), contiguous, intent(inout) :: x(:, :)
 
     complex(dp), allocatable :: H_aux(:, :)
 
-    allocate( H_aux, source=H_0 )
-    H_aux = 0.5_dp*( H_aux + H_dt )
-    call exphouston_propagator( -zi*self%dt, H_aux(1:dim, 1:dim), S(1:dim, 1:dim), x(1:dim, :), self%tol )
+    call assert( present(H_dt) .neqv. present(H_minus_dt), "only one optional argument must be present" )
+    if( present(H_dt) ) then
+      H_aux = 0.5_dp*( H_0(1:dim, 1:dim) + H_dt(1:dim, 1:dim) )
+    else
+      H_aux = 0.5_dp*( 3*H_0(1:dim, 1:dim) - H_minus_dt(1:dim, 1:dim) )
+    end if
+    call exphouston_propagator( -zi*self%dt, H_aux, S(1:dim, 1:dim), x(1:dim, :), self%tol )
   end subroutine
 
 end module
