@@ -43,15 +43,13 @@ contains
 
   !> In UpdateHam, we obtain the hamiltonian (and if requested, the overlap) at 
   !> time \( t \).
-  subroutine UpdateHam( first_kpt, a_tot, predcorr, calculateOverlap, calculateH0, &
-    forcePmatHermitian, overlap, ham_time, ham_past, apwalm, pmat, pmatmt, printTimings, &
+  subroutine UpdateHam( first_kpt, a_tot, calculateOverlap, calculateH0, &
+    forcePmatHermitian, overlap, ham_time, apwalm, pmat, pmatmt, printTimings, &
     t_ham, t_MD, update_mathcalH, update_mathcalB, update_pmat, ham_init )
     !> The first k point
     integer(i32), intent(in) :: first_kpt
     !> Total vector potential
     type(Vector_Potential_Field), intent(in) :: a_tot
-    !> tells if we are in the loop of the predictor-Corrector scheme    
-    logical, intent(in) :: predcorr
     !> tells if we need to calculate the overlap
     logical, intent(in) :: calculateOverlap
     !> tells if we need to calculate the external field-independent Hamiltonian
@@ -62,8 +60,6 @@ contains
     complex(dp), intent(inout) :: overlap(:, :, first_kpt :)
     !> Hamiltonian matrix at current time \(t\) (nmatmax, nmatmax, first_kpt : last_kpt)
     complex(dp), intent(inout) :: ham_time(:, :, first_kpt :)
-    !> Hamiltonian matrix at previous time \(t - \Delta t \) (nmatmax, nmatmax, first_kpt : last_kpt)
-    complex(dp), intent(inout) :: ham_past(:, :, first_kpt :)
     !> Matching coefficients of the (L)APWs
     !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
     complex(dp), intent(in) :: apwalm(:, :, :, :, first_kpt :)
@@ -143,8 +139,6 @@ contains
       call hmlint(mt_h)
       if ( tDetail .and. present( t_ham ) ) call timesec_RTTDDFT( ti, t_ham%hmlint )
     end if
-
-    if ( .not. predcorr ) ham_past = ham_time
 
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(NONE), PRIVATE(ik, nmatp), &
