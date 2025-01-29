@@ -14,7 +14,7 @@ Subroutine rhovalk (ik, evecfv, evecsv)
 ! !USES:
       Use modinput
       Use modmain
-      Use svlo, only: get_num_of_basis_funs_sv
+      Use svlo, only: get_num_of_basis_functions_sv
 ! !INPUT/OUTPUT PARAMETERS:
 !   ik     : k-point number (in,integer)
 !   evecfv : first-variational eigenvectors (in,complex(nmatmax,nstfv,nspnfv))
@@ -48,7 +48,7 @@ Subroutine rhovalk (ik, evecfv, evecsv)
       Real (8) :: ts0, ts1
       Complex (8) zt1, zt2, zt3
       Integer :: ilo, l, m, lm, nr ! loop variables for local orbitals, needed for svlo
-      Integer :: num_of_basis_funs_sv
+      Integer :: num_of_basis_functions_sv
 ! allocatable arrays
       Logical, Allocatable :: done (:, :)
       Real (8), Allocatable :: rflm (:, :)
@@ -65,7 +65,7 @@ Subroutine rhovalk (ik, evecfv, evecsv)
 
       Call timesec (ts0)
 
-      num_of_basis_funs_sv = get_num_of_basis_funs_sv()
+      num_of_basis_functions_sv = get_num_of_basis_functions_sv()
       
       rhoir_k (:) = 0.d0
       magir_k (:, :) = 0.d0
@@ -80,13 +80,13 @@ Subroutine rhovalk (ik, evecfv, evecsv)
       Else
          nsd = 1
       End If
-      Allocate (done(num_of_basis_funs_sv, nspnfv))
+      Allocate (done(num_of_basis_functions_sv, nspnfv))
       Allocate (rflm(lmmaxvr, nsd))
       Allocate (rfmt(lmmaxvr, nrcmtmax, nsd))
       Allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
       Allocate (wfmt1(lmmaxvr, nrcmtmax))
       If (input%groundstate%tevecsv) allocate (wfmt2(lmmaxvr, nrcmtmax, &
-     & num_of_basis_funs_sv, nspnfv))
+     & num_of_basis_functions_sv, nspnfv))
       Allocate (wfmt3(lmmaxvr, nrcmtmax, nspinor))
 
 ! find the matching coefficients
@@ -116,7 +116,7 @@ Subroutine rhovalk (ik, evecfv, evecsv)
                            jspn = 1
                         End If
                         Do ist = 1, nstfv
-                           i = (ispn-1)*num_of_basis_funs_sv + ist
+                           i = (ispn-1)*num_of_basis_functions_sv + ist
                            zt1 = evecsv (i, j)
                            If (Abs(dble(zt1))+Abs(aimag(zt1)) .Gt. &
                           & input%groundstate%epsocc) Then
@@ -156,7 +156,7 @@ Subroutine rhovalk (ik, evecfv, evecsv)
                                  Do m= -l,l
                                     lm=idxlm(l,m)
                                     ist = nstfv + idxlo (lm, ilo, ias)
-                                    i = (ispn-1)*num_of_basis_funs_sv + ist
+                                    i = (ispn-1)*num_of_basis_functions_sv + ist
                                     zt1 = evecsv (i, j)
                                     If (Abs(dble(zt1))+Abs(aimag(zt1)) .Gt. &
                                          & input%groundstate%epsocc) Then

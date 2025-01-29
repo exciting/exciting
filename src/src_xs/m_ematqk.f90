@@ -6,7 +6,7 @@ module m_ematqk
   use constants, only: pi, fourpi, zzero, zone, zil, zi
   implicit none
 
-  logical :: emat_ccket
+  logical, public :: emat_ccket=.false.
 
   contains
 
