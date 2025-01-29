@@ -14,7 +14,7 @@ Subroutine genrhoir (ik, evecfv, evecsv)
 ! !USES:
       Use modinput
       Use modmain
-      Use svlo, only: get_num_of_basis_funs_sv
+      Use svlo, only: get_num_of_basis_functions_sv
 ! !INPUT/OUTPUT PARAMETERS:
 !   ik     : k-point number (in,integer)
 !   evecfv : first-variational eigenvectors (in,complex(nmatmax,nstfv,nspnfv))
@@ -47,7 +47,7 @@ Subroutine genrhoir (ik, evecfv, evecsv)
       Real (8) :: t1, t2, t3, t4
       Real (8) :: ts0, ts1
       Complex (8) zt1, zt2, zt3
-      Integer :: num_of_basis_funs_sv
+      Integer :: num_of_basis_functions_sv
 ! allocatable arrays
       Complex (8), Allocatable :: zfft (:, :)
 !addidional arrays to make truncationerrors predictable
@@ -56,7 +56,7 @@ Subroutine genrhoir (ik, evecfv, evecsv)
 
       Call timesec (ts0)
 
-      num_of_basis_funs_sv = get_num_of_basis_funs_sv()
+      num_of_basis_functions_sv = get_num_of_basis_functions_sv()
       
       rhoir_k (:) = 0
       magir_k (:, :) = 0
@@ -87,7 +87,7 @@ Subroutine genrhoir (ik, evecfv, evecsv)
                      jspn = 1
                   End If
                   Do ist = 1, nstfv
-                     i = (ispn - 1) * num_of_basis_funs_sv + ist
+                     i = (ispn - 1) * num_of_basis_functions_sv + ist
                      zt1 = evecsv (i, j)
                      If (Abs(dble(zt1))+Abs(aimag(zt1)) .Gt. &
                     & input%groundstate%epsocc) Then
