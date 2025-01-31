@@ -1,14 +1,23 @@
 module rttddft_input
+  use asserts, only: assert
   use modinput, only: density_type, eigenvalues_type, occupations_type, plot3d_type, &
-    projectionCoefficients_type, realTimeTDDFT_type, screenshots_type
+    projectionCoefficients_type, screenshots_type, input_type
   use precision, only: dp, i32
   use propagators, only: propagator_input_elements
+  use rttddft_io, only: restart_format, binary, hdf5, file_handler
   use rttddft_timings, only: Print_Timings
   use rttddft_VectorPotential, only: Vector_Potential
+  use xhdf5_error_handling, only: abort_if_not_hdf5
 
   implicit none
 
   private
+
+  !> Enum with start mode
+  enum, bind(C)
+    enumerator :: start_mode
+    enumerator :: fromscratch, fromfile
+  end enum
 
   type :: screenshot_eigenvalues_keys
     !> If `.true.`, evaluate the eigenvalues when taking a screenshot
@@ -108,6 +117,8 @@ module rttddft_input
     logical                                 :: normalize_WF
     !> Print output data every `n_print` steps
     integer(i32)                            :: n_print
+    !> Radial step length (used to update the electron density)
+    integer(i32)                            :: l_rad_step
     !> Upper limit of time \( t \) - up to which the RT-TDDFT takes place
     real(dp)                                :: t_end
     !> Type that encapsulates if general/detailed information about the RT-TDDFT timings must be printed out
@@ -118,49 +129,113 @@ module rttddft_input
     logical                                 :: calculate_n_exc
     !> If `.true.`, subtract the current density of \(t=0\)
     logical                                 :: subtract_J0
+    !> If `.true.`, write a restart file every `n_print` steps
+    logical, private                        :: save_state
+    !> Identify if which start mode is desired (see [[start_mode]])
+    integer(kind(start_mode)), private      :: start_mode
+    !> Format handler of the checkpoint (restart) files
+    type(file_handler)                      :: restart_file_handler
   contains
     procedure :: parse_input => rttddft_input_keys_parse_input
+    procedure :: write_restart => rttddft_input_keys_write_restart
+    procedure :: restart_previous_calculation => rttddft_input_keys_restart_previous_calculation
+    procedure :: do_from_scratch => rttddft_input_keys_do_from_scratch
   end type
 
 contains
 
-subroutine rttddft_input_keys_parse_input( this, rt_input, tol, a_vec )
+subroutine rttddft_input_keys_parse_input( this, inp, tol, a_vec )
   class(rttddft_input_keys), intent(inout) :: this
-  !> Elements and attributes of RT-TDDFT defined in the input file
-  type(realTimeTDDFT_type), intent(in) :: rt_input
+  !> Elements and attributes defined in the input file
+  type(input_type), intent(in) :: inp
   !> Tolerance for the methods that need diagonalization
   real(dp), intent(in) :: tol
   !> Type to encapsulate the elements and attributes of laser/vector_potential
   type(Vector_Potential), intent(inout) :: a_vec
 
-  this%normalize_WF = rt_input%normalizeWF
-  this%n_print = rt_input%printAfterIterations
-  this%t_end = rt_input%endTime
-  this%calculate_total_energy = rt_input%calculateTotalEnergy
-  this%calculate_n_exc = rt_input%calculateNExcitedElectrons
-  this%subtract_J0 = rt_input%subtractJ0
-  call this%printTimings%set( rt_input%printTimingGeneral, rt_input%printTimingGeneral .and. rt_input%printTimingDetailed )
-  call this%propagator_input%initialize( rt_input%propagator, rt_input%timeStep, rt_input%TaylorOrder, tol )
-  call a_vec%initialize( rt_input%laser, rt_input%vectorPotentialSolver )
-  
-  this%screenshots%on = associated( rt_input%screenshots )
-  if( this%screenshots%on ) call this%screenshots%parse_input( rt_input%screenshots )
+  associate( rt_input => inp%xs%realTimeTDDFT )
+    this%normalize_WF = rt_input%normalizeWF
+    this%n_print = rt_input%printAfterIterations
+    this%t_end = rt_input%endTime
+    this%calculate_total_energy = rt_input%calculateTotalEnergy
+    this%calculate_n_exc = rt_input%calculateNExcitedElectrons
+    this%subtract_J0 = rt_input%subtractJ0
+    call this%printTimings%set( rt_input%printTimingGeneral, rt_input%printTimingGeneral .and. rt_input%printTimingDetailed )
+    call this%propagator_input%initialize( rt_input%propagator, rt_input%timeStep, rt_input%TaylorOrder, tol )
+    call a_vec%initialize( rt_input%laser, rt_input%vectorPotentialSolver )
+    
+    this%screenshots%on = associated( rt_input%screenshots )
+    if( this%screenshots%on ) call this%screenshots%parse_input( rt_input%screenshots )
 
-  this%pmat%read_pmat_from_file = rt_input%pmat%readFromFile
-  this%pmat%write_pmat_to_file = rt_input%pmat%writeToFile .and. (.not. this%pmat%read_pmat_from_file)
-  this%pmat%force_pmat_hermitian = rt_input%pmat%forceHermitian
+    this%pmat%read_pmat_from_file = rt_input%pmat%readFromFile
+    this%pmat%write_pmat_to_file = rt_input%pmat%writeToFile .and. (.not. this%pmat%read_pmat_from_file)
+    this%pmat%force_pmat_hermitian = rt_input%pmat%forceHermitian
 
-  this%predictor_corrector%on = associated( rt_input%predictorCorrector )
-  if ( this%predictor_corrector%on ) then
-    this%predictor_corrector%tol = rt_input%predictorCorrector%tol
-    this%predictor_corrector%max_steps = rt_input%predictorCorrector%maxIterations
-  end if
+    this%predictor_corrector%on = associated( rt_input%predictorCorrector )
+    if ( this%predictor_corrector%on ) then
+      this%predictor_corrector%tol = rt_input%predictorCorrector%tol
+      this%predictor_corrector%max_steps = rt_input%predictorCorrector%maxIterations
+    end if
 
-  this%eeInteraction%ipa = ( trim( rt_input%eeInteraction ) == "IPA" )
-
-
+    this%eeInteraction%ipa = ( trim( rt_input%eeInteraction ) == "IPA" )
+    this%save_state = rt_input%saveState
+    this%start_mode = string_to_start_mode( rt_input%do )
+    this%restart_file_handler%file_format = string_to_restart_format( rt_input%restartFilesFormat )
+  end associate
+  if( this%restart_file_handler%file_format == hdf5 ) call abort_if_not_hdf5( &
+    message="exciting needs to be compiled with HDF5 to use the RT-TDDFT restart feature with HDF5" )
+  this%restart_file_handler%file_name = trim( inp%xs%h5fname )
+  this%restart_file_handler%path = trim( inp%xs%h5gname )
+  this%l_rad_step = inp%groundstate%lradstep
 end subroutine
 
+pure logical function rttddft_input_keys_restart_previous_calculation(this) result(check)
+  class(rttddft_input_keys), intent(in) :: this
+  check = ( this%start_mode == fromfile )
+end function
+
+pure logical function rttddft_input_keys_do_from_scratch(this) result(check)
+  class(rttddft_input_keys), intent(in) :: this
+  check = ( this%start_mode == fromscratch )
+end function
+
+!> (private) Given a string, get the corresponding [[start_mode]]
+function string_to_start_mode(string) result(r)
+  !> String containing the start mode name
+  character(len=*), intent(in) :: string
+  integer(kind(start_mode)) :: r
+
+  select case ( trim(string) )
+    case ("fromscratch")
+      r = fromscratch
+    case ("fromfile")
+      r = fromfile
+    case default
+      call assert( .false., "Unrecognized string")
+  end select
+end function
+
+!> (private) Given a string, get the corresponding [[restart_format]]
+function string_to_restart_format(string) result(r)
+  !> String containing the start mode name
+  character(len=*), intent(in) :: string
+  integer(kind(restart_format)) :: r
+
+  select case ( trim(string) )
+    case ("binary")
+      r = binary
+    case ("hdf5")
+      r = hdf5
+    case default
+      call assert( .false., "Unrecognized string")
+  end select
+end function
+
+!> Returns `.true.`, if a restart output must be written during the RT-TDDFT evolution
+pure logical function rttddft_input_keys_write_restart(this) result(r)
+  class(rttddft_input_keys), intent(in) :: this
+  r = this%save_state
+end function
 
 !> Parse the input keys defined in the `screenshots` element
 subroutine screenshot_input_keys_parse_input( this, screenshots_input )

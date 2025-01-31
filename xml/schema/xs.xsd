@@ -325,7 +325,7 @@
                 <ul>
                   <li>eigenvalues (see <elementRef>eigenvalues</elementRef>) </li>
                   <li>projection coefficients (see <elementRef>projectionCoefficients</elementRef>)</li>
-                  <li>occupations ()</li>
+                  <li>occupations (see <elementRef>occupations</elementRef>)</li>
                   <li>charge density (see <elementRef>density</elementRef>)</li>
                 </ul>
               </xs:documentation>
@@ -728,12 +728,10 @@
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="expert" ex:unit=""
-              name="calculateTotalEnergy" type="xs:boolean"
-              default="false">
+            <xs:attribute ex:importance="expert" ex:unit="" name="calculateTotalEnergy" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation> The total energy is calculated at each
-                  time-step and outputed in the file ETOT_RTTDDFT.OUT
+                  time-step and outputed in the file <pre>ETOT_RTTDDFT.OUT</pre>
 		            </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -743,7 +741,7 @@
               <xs:annotation>
                 <xs:documentation> Calculates the number of
                   excited electrons (per unit cell) at each time-step.
-                  Output: NEXC.OUT
+                  Output: <pre>NEXC.OUT</pre>
 		            </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -782,7 +780,7 @@
                 <xs:documentation> Subtracts a residual current. This term
                   ideally should be zero, actually
                   it tends to zero when the number of k-points is increased.
-                  Subtracting J0 might help to eliminate
+                  Subtracting <inlinemath>J_0</inlinemath> might help to eliminate
                   numerical inaccuracies for not-so-dense k-grids.
 		            </xs:documentation>
               </xs:annotation>
@@ -812,6 +810,35 @@
               </xs:simpleType>
             </xs:attribute>
 
+            <xs:attribute ex:importance="expert" ex:unit="" name="do" default="fromscratch">
+              <xs:annotation>
+                <xs:documentation>Define if the calculation starts from scratch (<pre>do="fromscratch"</pre>),
+                or if it continues a previous calculation (<pre>do="fromfile"</pre>).</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="fromscratch"/>
+                  <xs:enumeration value="fromfile"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="restartFilesFormat" default="binary">
+              <xs:annotation>
+                <xs:documentation>Define the format of output or restart (checkpoint) files. 
+                When using (<pre>do="fromfile"</pre>), the same format must as in the 
+                previous calculation must be adhered to. 
+                <b>N.B.:</b> Output files in text format (<i>e.g.</i> <pre>JIND.OUT</pre>)
+                are not affected.</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="binary"/>
+                  <xs:enumeration value="hdf5"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
             <xs:attribute ex:importance="expert" ex:unit="" name="TaylorOrder" type="xs:integer"
               default="4">
               <xs:annotation>
@@ -833,12 +860,22 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="atomic units" name="printAfterIterations"
-              type="xs:integer" default="50">
+            <xs:attribute ex:importance="expert" ex:unit="atomic units" name="saveState"
+              type="xs:boolean" default="true">
               <xs:annotation>
-                <xs:documentation> Sets a number which determines how frequently data
-                  are printed to file. It means that the relevant data (JIND, AVEC, etc.)
-                  are accumulated and then printed at once.
+                <xs:documentation> If <pre>"true"</pre>, print out a restart file every 
+                  <attref>printAfterIterations</attref> steps.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="printAfterIterations"
+              type="xs:integer" default="50"> 
+              <xs:annotation>
+                <xs:documentation> Determine how frequently data
+                  are printed to file. Information regarding the fields (JIND, AVEC, etc.)
+                  is accumulated and then printed at once. If <attref>saveState</attref> is <pre>"true"</pre>, 
+                  a restart file is also printed out every 
+                  <attref>printAfterIterations</attref> steps.
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>

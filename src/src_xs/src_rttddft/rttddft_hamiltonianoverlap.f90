@@ -23,10 +23,10 @@ module rttddft_HamiltonianOverlap
   use mod_potential_and_density, only: veffig, meffig, m2effig
   use modinput, only: input
   use modmpi
-  use physical_constants, only: c
+  use physical_constants, only: alpha, c
   use precision, only: dp, i32
-  use rttddft_GlobalVariables, only: mathcalH
-  use rttddft_pmat, only: Obtain_Pmat_LAPWLOBasis
+  use rttddft_GlobalVariables, only: mathcalH, mathcalB
+  use rttddft_pmat, only: obtain_pmat_LAPWLOBasis
   use rttddft_timings, only: Print_Timings, Timing_RTTDDFT_hamiltonian, &
     Timing_Ehrenfest, timesec_RTTDDFT
   use rttddft_VectorPotential, only: Vector_Potential_Field
@@ -43,32 +43,28 @@ contains
 
   !> In UpdateHam, we obtain the hamiltonian (and if requested, the overlap) at 
   !> time \( t \).
-  subroutine UpdateHam( first_kpt, a_tot, calculateOverlap, calculateH0, &
-    forcePmatHermitian, overlap, ham_time, apwalm, pmat, pmatmt, printTimings, &
-    t_ham, t_MD, update_mathcalH, update_mathcalB, update_pmat, ham_init )
+  subroutine UpdateHam( first_kpt, a_tot, calculateOverlap, &
+    overlap, ham_time, apwalm, pmat, pmatmt, printTimings, &
+    t_ham, t_MD, update_mathcalH, update_mathcalB, ham_init )
     !> The first k point
     integer(i32), intent(in) :: first_kpt
     !> Total vector potential
     type(Vector_Potential_Field), intent(in) :: a_tot
     !> tells if we need to calculate the overlap
     logical, intent(in) :: calculateOverlap
-    !> tells if we need to calculate the external field-independent Hamiltonian
-    logical, intent(in) :: calculateH0
-    !> if `.true.`, force pmat to be hermitian
-    logical, intent(in) :: forcePmatHermitian
     !> Overlap matrix (of basis functions) (nmatmax, nmatmax, first_kpt : last_kpt)
-    complex(dp), intent(inout) :: overlap(:, :, first_kpt :)
+    complex(dp), contiguous, intent(inout) :: overlap(:, :, first_kpt :)
     !> Hamiltonian matrix at current time \(t\) (nmatmax, nmatmax, first_kpt : last_kpt)
-    complex(dp), intent(inout) :: ham_time(:, :, first_kpt :)
+    complex(dp), contiguous, intent(inout) :: ham_time(:, :, first_kpt :)
     !> Matching coefficients of the (L)APWs
     !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
-    complex(dp), intent(in) :: apwalm(:, :, :, :, first_kpt :)
+    complex(dp), contiguous, intent(in) :: apwalm(:, :, :, :, first_kpt :)
     !> Momentum matrix elements (projected onto the (L)APW+LO basis elements)
     !> (nmatmax, nmatmax, 3, first_kpt : last_kpt)
-    complex(dp), intent(inout) :: pmat(:, :, :, first_kpt :)
+    complex(dp), contiguous, intent(inout) :: pmat(:, :, :, first_kpt :)
     !> Muffin-tin part of the Momentum matrix
     !> (nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt)
-    complex(dp), optional, intent(inout) :: pmatmt(:, :, :, :, first_kpt :)
+    complex(dp), contiguous, optional, intent(inout) :: pmatmt(:, :, :, :, first_kpt :)
     !> Object that packs information about printing of timings [[Print_Timings]]
     type(Print_Timings), optional, intent(in) :: printTimings
     !> Object that packs information about timings to update the Hamiltonian
@@ -79,23 +75,19 @@ contains
     logical, intent(in), optional :: update_mathcalH
     !> if `.True.`, update `mathcalB`
     logical, intent(in), optional :: update_mathcalB
-    !> if `.True.`, update `pmat`
-    logical, intent(in), optional :: update_pmat
-    !> Hamiltonian matrix at time \(t = 0 \) (nmatmax, nmatmax, first_kpt : last_kpt)
+    !> Hamiltonian matrix at time \(t = 0 \)
     complex(dp), intent(in), optional :: ham_init(:, :, first_kpt :)
-    
 
     integer :: ik, nmatp, last_kpt
     real(dp) :: ti, tf, tStart
     logical :: tGen, tDetail
-    logical :: get_mathcalH, get_mathcalB, get_pmat, get_pmat_mt
+    logical :: get_mathcalH, get_mathcalB, calculate_H0
 
     last_kpt = ubound( ham_time, 3 )
   
     ! factor that multiplies the overlap matrix (when we compute the hamiltonian)
     atot = a_tot%components
     fact = dot_product( atot, atot ) / (2._dp * c**2)
-    
 
     ! Check optional arguments
     tGen = .False.
@@ -107,32 +99,20 @@ contains
     if( present( update_mathcalH ) ) get_mathcalH = update_mathcalH
     get_mathcalB = .False.
     if( present( update_mathcalB ) ) get_mathcalB = update_mathcalB
-    get_pmat = .False.
-    if( present( update_pmat ) ) get_pmat = update_pmat
-    get_pmat_mt = present( pmatmt )
 
     ! sanity checks
     if( get_mathcalH ) call assert( calculateOverlap , 'The overlap matrix is needed to update mathcalH' )
     if( tGen ) call assert( present(t_ham) .or. present(t_MD), &
       't_ham or t_MD must be present when general timing is desired' )
     if( tDetail ) call assert( tGen, 'tGen must be true if tDetail is true')
-    if ( .not. calculateH0 ) call assert( present( ham_init ), 'ham_init is needed to avoid H0 recalculation' )
+    calculate_H0 = .not. present( ham_init )
 
     if( tGen ) then 
       call timesec( ti )
       tStart = ti
     end if
 
-    if( get_pmat ) then
-      if( get_pmat_mt ) then
-        call Obtain_Pmat_LAPWLOBasis( first_kpt, forcePmatHermitian, apwalm, pmat, pmatmt )
-      else
-        call Obtain_Pmat_LAPWLOBasis( first_kpt, forcePmatHermitian, apwalm, pmat )
-      end if
-      if( tDetail .and. present(t_MD) ) call timesec_RTTDDFT( ti, t_MD%pmat )
-    end if
-
-    if ( calculateH0 ) then
+    if ( calculate_H0 ) then
       call mt_h%release()
       call MTNullify(mt_h)
       call MTInitAll(mt_h)
@@ -144,14 +124,14 @@ contains
 !$OMP PARALLEL DEFAULT(NONE), PRIVATE(ik, nmatp), &
 !$OMP& SHARED(first_kpt, last_kpt, calculateOverlap, ham_init), &
 !$OMP& SHARED(fact, atot, pmat, ham_time, apwalm, pmatmt), &
-!$OMP& SHARED(overlap, nmat, get_mathcalH, get_mathcalB, calculateH0)
+!$OMP& SHARED(overlap, nmat, get_mathcalH, get_mathcalB, calculate_H0)
 !$OMP DO
 #endif
     do ik = first_kpt, last_kpt
 
       nmatp = nmat(1, ik)
 
-      if ( calculateH0 ) then
+      if ( calculate_H0 ) then
         call hamsetup( ik, ham_time(:, :, ik), apwalm(:, :, :, :, ik), nmatp, get_mathcalH )
       else
         ham_time(:, :, ik) = ham_init(:, :, ik)
@@ -385,10 +365,6 @@ end subroutine UpdateHam
   !> Subroutine to calculate the overlap matrix for a given k-point.
   !> Based on `src/src_eigensystem/overlapsetup.f90`. 
   subroutine overlapsetup( ik, overlap, apwalm, nmatp, calculate_mathcalB, calculate_mathcalH, pmatmt )
-    use constants, only: zzero, zone, zi
-    use physical_constants, only: alpha
-    use rttddft_GlobalVariables, only: mathcalB
-
     !> ik: the index of the k-point considered
     integer, intent(in)       :: ik
     !> Overlap matrix (of basis functions) at the current k-point

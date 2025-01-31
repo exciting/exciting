@@ -19,7 +19,7 @@ module rttddft_NumberExcitations
 
   private
 
-  public :: Obtain_number_excitations
+  public :: obtain_number_excitations
 
 contains
 
@@ -51,7 +51,7 @@ contains
   !> 	w_\mathbf{k} m_{j\mathbf{k}}(t) = \sum_{j'\mathbf{k}}^{j'\, occ}
   !> 	w_\mathbf{k} m_{j'\mathbf{k}}(t) .
   !> 	\]
-  subroutine Obtain_number_excitations( psi_gnd, psi, overlap, eps_occ, occ_gnd, wkpt, mpi_env, &
+  subroutine obtain_number_excitations( psi_gnd, psi, overlap, eps_occ, occ_gnd, wkpt, mpi_env, &
       & n_exc, n_gs )
     !> Basis-expansion coefficients of the KS-wavefunctions at \( t=0 \).
     complex(dp), contiguous, intent(in)   :: psi_gnd(:, :, :)
@@ -93,5 +93,5 @@ contains
     call xmpi_allreduce( buffer, mpi_env )
     n_exc = buffer(1); n_gs = buffer(2)
 
-  end subroutine Obtain_number_excitations
+  end subroutine obtain_number_excitations
 end module rttddft_NumberExcitations

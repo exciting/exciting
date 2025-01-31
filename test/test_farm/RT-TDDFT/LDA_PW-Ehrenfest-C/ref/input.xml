@@ -43,7 +43,7 @@
             printTimingGeneral="true"
             printTimingDetailed="true"
             calculateNExcitedElectrons="false"
-            printAfterIterations="1"
+            printAfterIterations="30"
             vectorPotentialSolver="improvedeuler">
             <pmat readFromFile="false" forceHermitian="true"/>
             <laser fieldType="total">

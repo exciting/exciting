@@ -649,6 +649,21 @@ properties/PBE_SOL-core_overlap-BN:
       - "coreoverlap.xml"
 
 properties/LDA_PW-wfplot-Si:
+
+RT-TDDFT/GGA_PBE-BN-kick-EH-restart:
+    group: !Group HDF5
+    files_under_test:
+      - "EIGVAL_20.OUT"
+      - "PROJ_20.OUT"
+      - "OCCSV_TXT_20.OUT"
+    inputs:
+      - "input.xml"
+      - "B.xml"
+      - "N.xml"
+      - "JIND.OUT"
+      - "PVEC.OUT"
+      - "AVEC.OUT"
+      - "rt.h5"
   
 RT-TDDFT/GGA_PBE-C-trapCos-EHM-predictorCorrector:
     files_under_test:

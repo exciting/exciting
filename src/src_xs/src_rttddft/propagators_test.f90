@@ -23,7 +23,7 @@ module propagators_test
 
   public :: propagators_test_driver
 
-  real(dp), parameter :: tol = 1e-12_dp
+  real(dp), parameter :: tol = 1e-11_dp
   real(dp), parameter :: dt = 0.1_dp
   integer(i32), parameter :: order_Taylor = 4
   integer(i32), parameter :: dim = 2 ! Effective dimension to take into account

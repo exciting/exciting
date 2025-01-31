@@ -1,13 +1,15 @@
 module rttddft_io_test
   use constants, only: zi
   use exciting_mpi, only: mpiinfo
+  use file_utils, only: delete_file
   use math_utils, only: all_close
   use mock_arrays, only: real_matrix_5x7, complex_matrix_5x7
   use modmpi, only: barrier
   use precision, only: dp, i32
   use rttddft_io, only: open_files_jpa, close_files_jpa, read_jpa, write_jpa, &
     delete_jpa_files, write_wavefunction, read_wavefunction, t, t_minus_dt, delete_wavefunction_file, &
-    read_pmat, write_pmat, delete_pmat_file, read_pmat_mt, write_pmat_mt, delete_pmat_mt_file
+    read_pmat, write_pmat, delete_pmat_file, read_pmat_mt, write_pmat_mt, delete_pmat_mt_file, &
+    file_handler, binary, hdf5
   use rttddft_CurrentDensity, only: Current_Density_Field
   use rttddft_Polarization, only: Polarization
   use rttddft_VectorPotential, only: Vector_Potential_Field
@@ -33,7 +35,7 @@ contains
     
     type(unit_test_type) :: test_report
     integer(i32), parameter :: n_assertions_test_read_write_jpa = 18
-    integer(i32), parameter :: n_assertions_test_read_write_wavefunction = 2
+    integer(i32), parameter :: n_assertions_test_read_write_wavefunction = 4
     integer(i32), parameter :: n_assertions_test_read_write_pmat = 1
     integer(i32), parameter :: n_assertions_test_read_write_pmat_mt = 1
     integer(i32), parameter :: n_assertions = n_assertions_test_read_write_jpa + &
@@ -170,11 +172,13 @@ contains
 
     character(len=*), parameter :: test_id = "test_read_write_wavefunction"
     character(len=*), parameter :: tested_array = "psi"
-    integer(i32) :: i, m, n, n_spin
+    character(len=*), parameter :: fake_message = "Built without support to HDF5. Nothing to test here."
+    integer(i32) :: i, m, n, n_spin, i_err
     integer(i32) :: n_kpt, n_kpt_per_proc, first_kpt, last_kpt, test_counter
     real(dp), allocatable :: kpt_latt(:, :)
     complex(dp), allocatable :: psi(:, :, :), psi_ref(:, :, :)
     complex(dp), allocatable :: psi_spin(:, :, :, :), psi_spin_ref(:, :, :, :)
+    type(file_handler) :: hdf5_handler
     
     n_kpt_per_proc = 2
     n_kpt = n_kpt_per_proc*mpiglobal%procs
@@ -185,6 +189,7 @@ contains
       kpt_latt(:, i) = [0._dp, 0._dp, real(i, dp)/n_kpt]
     end do
 
+    ! Spin-unpolarized case, format: binary
     test_counter = 1
     m = 3; n = 2; n_spin = 1;
     allocate( psi(m, n, first_kpt:last_kpt), source=reshape( complex_matrix_5x7, [m, n, n_kpt_per_proc] ) )
@@ -192,21 +197,54 @@ contains
     psi_ref = psi
     call write_wavefunction(t, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi, mpiglobal)
     call read_wavefunction(t, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi, mpiglobal )
-    call test_report%assert( all_close( psi , psi_ref, tol ), report_message( test_id, tested_array, test_counter) )
+    call test_report%assert( all_close( psi , psi_ref, tol ), report_message( test_id, tested_array // ' binary format ', test_counter) )
     call barrier
     if( mpiglobal%is_root ) call delete_wavefunction_file( t )
-
+    call barrier
+    
+    ! Spin-unpolarized case, format: HDF5
     test_counter = 2
+    hdf5_handler%file_format = hdf5
+    hdf5_handler%file_name = "rt.h5"
+    hdf5_handler%path = "./"
+#ifdef _HDF5_    
+    call write_wavefunction( t_minus_dt, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi, mpiglobal, hdf5_handler, n_kpt )
+    call read_wavefunction( t_minus_dt, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi, mpiglobal, hdf5_handler )
+    call test_report%assert( all_close( psi , psi_ref, tol ), report_message( test_id, tested_array // ' HDF5 format ', test_counter) )
+    call barrier
+    if( mpiglobal%is_root ) call delete_file( hdf5_handler%file_name, i_err )
+    call barrier
+#else
+    ! fake_message will never be printed - it serves as a hint to developers
+    call test_report%assert( .true., fake_message )
+#endif    
+
+    ! Spin-polarized case, format: binary
+    test_counter = 3
     m = 3; n = 2; n_spin = 2;
     allocate( psi_spin(m, n, n_spin, first_kpt:last_kpt), source=reshape( complex_matrix_5x7, [m, n, n_spin, n_kpt_per_proc] ) )
     psi_spin(1, 1, 1, first_kpt) = psi_spin(1, 1, 1, first_kpt) + (mpiglobal%rank)*zi
     psi_spin(1, 1, 2, first_kpt) = psi_spin(1, 1, 2, first_kpt)**2 - (mpiglobal%rank)*zi
     psi_spin_ref = psi_spin
-    call write_wavefunction(t_minus_dt, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi_spin, mpiglobal)
-    call read_wavefunction(t_minus_dt, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi_spin, mpiglobal )
-    call test_report%assert( all_close( psi_spin , psi_spin_ref, tol ), report_message( test_id, tested_array // ' spin', test_counter) )
+    call write_wavefunction( t_minus_dt, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi_spin, mpiglobal )
+    call read_wavefunction( t_minus_dt, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi_spin, mpiglobal )
+    call test_report%assert( all_close( psi_spin , psi_spin_ref, tol ), report_message( test_id, tested_array // ' binary format - spin', test_counter) )
     call barrier
     if( mpiglobal%is_root ) call delete_wavefunction_file( t_minus_dt )
+    call barrier
+
+    ! Spin-polarized case, format: HDF5
+    test_counter = 4
+#ifdef _HDF5_     
+    call write_wavefunction( t, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi_spin, mpiglobal, hdf5_handler, n_kpt )
+    call read_wavefunction( t, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi_spin, mpiglobal, hdf5_handler )
+    call test_report%assert( all_close( psi_spin , psi_spin_ref, tol ), report_message( test_id, tested_array // ' HDF5 format - spin', test_counter) )
+    call barrier
+    if( mpiglobal%is_root ) call delete_file( hdf5_handler%file_name, i_err )
+    call barrier
+#else
+    call test_report%assert( .true., fake_message )
+#endif    
   end subroutine
 
   subroutine test_read_write_pmat( mpiglobal, test_report )
