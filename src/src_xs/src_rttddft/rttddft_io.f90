@@ -12,6 +12,7 @@ module rttddft_io
 #else
   use rttddft_io_serial, only: read_array, write_array
 #endif
+  use rttddft_io_hdf5, only: read_array_hdf5, write_array_hdf5
   use precision, only: dp, i32, str_256
   use rttddft_Energy, only: TotalEnergy
   use rttddft_CurrentDensity, only: Current_Density_Field
@@ -35,7 +36,7 @@ module rttddft_io
             file_pmat_mt_exists, read_pmat_mt, write_pmat_mt, delete_pmat_mt_file, get_filename_pmat_mt, &
             write_projection_coefficients, write_eigenvalues, write_occupations, &
             write_wavefunction, read_wavefunction, delete_wavefunction_file, &
-            groundstate, t, t_minus_dt, &
+            groundstate, t, t_minus_dt, restart_format, binary, hdf5, &
             write_density_to_file
 
   !> Number of the unit to print timings
@@ -90,6 +91,8 @@ module rttddft_io
   character(len=*), public, parameter :: RTDDFT_GND_sufix = RTDDFT_suffix // GND_sufix
   !> Default name of the file where there wavefunction coefficients are printed out
   character(len=*), parameter :: filename_wavefunction = 'EVECFV' 
+  !> Descriptors name used to write wavefunctions into an output file
+  character(len=*), parameter :: kpt_latt_name = "kpoints_lattice_coord"
   !> Suffix for file where there wavefunction coefficients \(\psi(t-\Delta t)\) are printed out
   character(len=*), parameter :: suffix_wavefunction_t = RTDDFT_suffix
   !> Suffix for file where there wavefunction coefficients \(\psi(t-\Delta t)\) are printed out
@@ -120,6 +123,20 @@ module rttddft_io
     enumerator :: wavefunction_case
     enumerator :: groundstate, t, t_minus_dt
   end enum
+
+  enum, bind(C)
+    enumerator :: restart_format
+    enumerator :: binary, hdf5
+  end enum
+
+  type, public :: file_handler
+    !> File format, according to the enum [[restart_format]]
+    integer(kind(restart_format)) :: file_format
+    !> HDF5 file name
+    character(len=:), allocatable :: file_name
+    !> HDF5 path
+    character(len=:), allocatable :: path
+  end type
 
 contains 
   !> (private) add the default extension (usually `.OUT`) to the base file name
@@ -652,7 +669,7 @@ contains
 
   !> Read wavefunction coefficients from file. Similar to [[getevecfv]], but 
   !> does not need to split files and can be used by multiple MPI procs simultaneously.
-  subroutine read_wavefunction_non_spin_polarized( psi_case, first_kpt, kpt_latt, psi, mpi_env )
+  subroutine read_wavefunction_non_spin_polarized( psi_case, first_kpt, kpt_latt, psi, mpi_env, handler )
     !> Enum telling if `psi` refers to \(t\), \(t-\Delta t\), or to groundstate
     integer(kind(wavefunction_case)) :: psi_case
     !> First k-point treated by this (MPI)rank
@@ -663,6 +680,8 @@ contains
     complex(dp), contiguous, target, intent(out) :: psi(:, :, first_kpt:)
     !> MPI environment (needed to read in parallel over MPI procs.)
     type(mpiinfo), intent(in) :: mpi_env
+    !> File handler
+    type(file_handler), optional, intent(in) :: handler
 
     integer(i32), parameter :: n_spin = 1
     complex(dp), contiguous, pointer :: ptr(:, :, :, :)
@@ -671,11 +690,15 @@ contains
     associate( m => size(psi, 1), n => size(psi, 2), last_kpt => ubound( psi, 3 ) )
       ptr(1:m, 1:n, 1:n_spin, first_kpt:last_kpt) => psi
     end associate
-    call read_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, ptr, mpi_env )
+    if( present( handler ) ) then
+      call read_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, ptr, mpi_env, handler )
+    else
+      call read_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, ptr, mpi_env )
+    end if
   end subroutine
 
   !!> Same as [[read_wavefunction_non_spin_polarized]], but for the spin polarized case
-  subroutine read_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, psi, mpi_env )
+  subroutine read_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, psi, mpi_env, handler )
     !> Enum containing telling if `psi` refers to \(t\), \(t-\Delta t\), or to groundstate
     integer(kind(wavefunction_case)) :: psi_case
     !> First k-point treated by this (MPI)rank
@@ -686,20 +709,37 @@ contains
     complex(dp), contiguous, intent(out) :: psi(:, :, :, first_kpt:)
     !> MPI environment (needed to read in parallel over MPI procs.)
     type(mpiinfo), intent(in) :: mpi_env
+    !> File handler
+    type(file_handler), optional, intent(in) :: handler
 
     integer(i32), parameter :: n_cartesian_coords = 3, n_spin_max = 2
+    integer(kind(restart_format)) :: file_format
 
+    if( present(handler) ) then
+      file_format = handler%file_format
+    else
+      file_format = binary
+    end if
     associate( n_spin => size(psi, 3) )
       call assert( n_spin <= n_spin_max, "psi has more spin polarizations than allowed")
       call assert( size(kpt_latt, 1) == n_cartesian_coords, to_char(n_cartesian_coords) // " cartesian components are expected" )
       call assert( size(kpt_latt, 2) == size(psi, 4), "kpt_latt and psi must be compatible.")
-      call read_array( get_filename_wavefunction(psi_case), first_kpt, psi, kpt_latt, mpi_env )
     end associate
+    select case(file_format)
+      case( binary )
+        call read_array( get_filename_wavefunction(psi_case), first_kpt, psi, kpt_latt, mpi_env )
+      case( hdf5 )
+        call assert( allocated( handler%file_name ), "string must be allocated" )
+        call assert( allocated( handler%path ), "string must be allocated" )
+        call read_array_hdf5( handler%file_name, handler%path, get_filename_wavefunction(psi_case), first_kpt, psi, kpt_latt, kpt_latt_name, mpi_env )
+      case default
+        call assert( .false., "Unreconized format" )
+    end select
   end subroutine
   
   !> Write the wavefunction coefficients to file. Similar to [[putevecfv]], but 
   !> does not need to split files and can be used by multiple MPI procs simultaneously.
-  subroutine write_wavefunction_non_spin_polarized( psi_case, first_kpt, kpt_latt, psi, mpi_env )
+  subroutine write_wavefunction_non_spin_polarized( psi_case, first_kpt, kpt_latt, psi, mpi_env, handler, n_kpt )
     !> Enum containing telling if `psi` refers to \(t\), \(t-\Delta t\), or to groundstate
     integer(kind(wavefunction_case)) :: psi_case
     !> index of the first `k-point` to be considered in the sum
@@ -710,19 +750,27 @@ contains
     complex(dp), contiguous, target, intent(inout) :: psi(:, :, first_kpt:)
     !> MPI environment (needed to write in parallel over MPI procs.)
     type(mpiinfo), intent(in) :: mpi_env
+    !> File handler
+    type(file_handler), optional, intent(in) :: handler
+    integer(i32), optional, intent(in) :: n_kpt
     
     complex(dp), contiguous, pointer :: ptr(:, :, :, :)
     integer(i32), parameter :: n_spin = 1
-
+    
     ! Map wavefunction to spin-polarized wavefunction
     associate( m => size(psi, 1), n => size(psi, 2), last_kpt => ubound( psi, 3 ) )
       ptr(1:m, 1:n, 1:n_spin, first_kpt:last_kpt) => psi
     end associate
-    call write_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, ptr, mpi_env )
+    if( present( handler ) ) then
+      call assert( present(n_kpt), "n_kpt must be passed when handler is present")
+      call write_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, ptr, mpi_env, handler, n_kpt )
+    else
+      call write_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, ptr, mpi_env )
+    end if
   end subroutine
 
   !> Same as [[write_wavefunction_non_spin_polarized]], but for the spin polarized case
-  subroutine write_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, psi, mpi_env )
+  subroutine write_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, psi, mpi_env, handler, n_kpt )
     !> Enum containing telling if `psi` refers to \(t\), \(t-\Delta t\), or to groundstate
     integer(kind(wavefunction_case)) :: psi_case
     !> index of the first `k-point` to be considered in the sum
@@ -733,14 +781,34 @@ contains
     complex(dp), contiguous, intent(inout) :: psi(:, :, :, first_kpt:)
     !> MPI environment (needed to write in parallel over MPI procs.)
     type(mpiinfo), intent(in) :: mpi_env
+    !> File handler
+    type(file_handler), optional, intent(in) :: handler
+    integer(i32), optional, intent(in) :: n_kpt
 
     integer(i32), parameter :: n_spin_max = 2, n_cartesian_coords = 3
+    integer(kind(restart_format)) :: file_format
 
+    if( present(handler) ) then
+      call assert( present(n_kpt), "n_kpt must be passed when handler is present")
+      file_format = handler%file_format
+    else
+      file_format = binary
+    end if
     associate( n_spin => size(psi, 3) )
       call assert( n_spin <= n_spin_max, "psi has more spin polarizations than allowed")
       call assert( size(kpt_latt, 1) == n_cartesian_coords, "kpt_latt must have size 3 along 1st dim.")
       call assert( size(kpt_latt, 2) == size(psi, 4), "kpt_latt and psi must be compatible.")
-      call write_array( get_filename_wavefunction(psi_case), first_kpt, psi, kpt_latt, mpi_env=mpi_env )
+      select case(file_format)
+        case( binary )
+          call write_array( get_filename_wavefunction(psi_case), first_kpt, psi, kpt_latt, mpi_env=mpi_env )
+        case( hdf5 )
+          call assert( allocated( handler%file_name ), "string must be allocated" )
+          call assert( allocated( handler%path ), "string must be allocated" )
+          call write_array_hdf5( handler%file_name, handler%path, get_filename_wavefunction(psi_case), &
+            psi, first_kpt, n_kpt, kpt_latt, kpt_latt_name, mpi_env )
+        case default
+          call assert( .false., "Unreconized format" )
+      end select
     end associate
   end subroutine
 

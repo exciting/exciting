@@ -185,12 +185,12 @@ contains
       if( present( descriptors ) ) then
         call assert( ubound( descriptors, 2 ) == last, "descriptors has incompatible dim. with array")
         bytes = bytes + n_bytes( descriptors(:, first) ) + 3*bytes_int_i32
+        dims = [size(array, 1), size(array, 2), size(array, 3)]
       end if
       call file_offset( first, last, bytes, offset )
       call mpi_open_file( file_name, mpi_env, unit, write_mode )
       do i = first, last
-        if( present( descriptors ) ) then
-          dims = [size(array, 1), size(array, 2), size(array, 3)]
+        if( present( descriptors ) ) then                  
           call mpi_write_data( unit, offset(i), descriptors(:, i), dims, array(:, :, :, i) )
         else
           call mpi_write_data( unit, offset(i), array(:, :, :, i) )

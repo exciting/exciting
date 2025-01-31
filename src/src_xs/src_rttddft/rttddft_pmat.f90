@@ -26,13 +26,13 @@ module rttddft_pmat
   implicit none
   private 
 
-  public :: Obtain_Pmat_LAPWLOBasis
+  public :: obtain_pmat_LAPWLOBasis
 contains
 
   !> Here, we calculate the momentum matrix elements considering as basis 
   !> (L)APW+lo. We copied most of the code from `/src/src_xs/genpmatxs.F90`, 
   !> but there the basis are the KS-wavefunctions
-  subroutine Obtain_Pmat_LAPWLOBasis( first_kpt, make_hermitian, apwalm, pmat, pmatmt )
+  subroutine obtain_pmat_LAPWLOBasis( first_kpt, make_hermitian, apwalm, pmat, pmatmt )
     !> The first k point
     integer(i32), intent(in) :: first_kpt
     !> If .True., for each `ik`, force the x, y, and z components of `pmat` to be hermitian
@@ -96,7 +96,7 @@ contains
       deallocate(riplolo)
     end if
 
-  end subroutine Obtain_Pmat_LAPWLOBasis
+  end subroutine obtain_pmat_LAPWLOBasis
 
   !> Obtain the momentum matrix elements for a given a `k-point`
   subroutine generate_pmat_ik(ik, apwalmk, make_hermitian, pmatk, pmat_mt)

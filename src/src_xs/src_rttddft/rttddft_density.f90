@@ -16,27 +16,23 @@ module rttddft_Density
 
   private
 
-  public :: UpdateDensity
+  public :: update_density
 
 contains
-  !> In UpdateDensity, we obtain the charge density at time t
+  !> In `update_density`, we obtain the charge density at time \(t\). 
   !> It is calculated from the WFs, using the same scheme as in the GS
-  !> calcultations (refer to scf_cycle.f90 for the case
-  !> input%groundstate%useDensityMatrix .false.)
-  subroutine UpdateDensity( first_kpt, wavefunctions, wavefunctions_sv, &
-    it, normalize, l_rad_step, printTimings, t_dens )
-    use modmpi, only: mpi_env_k, distribute_loop
+  !> calcultations (refer to `scf_cycle.f90` for the case
+  !> `input%groundstate%useDensityMatrix` `.false.`)
+  subroutine update_density( first_kpt, wavefunctions, it, normalize, l_rad_step, printTimings, t_dens )
+    use modmpi, only: mpi_env_k
     use precision, only: dp, i32
     use modmain, only : iscl
-    use mod_kpoint, only: nkpt
     use mod_potential_and_density, only: rhomt, rhoir
 
     !> The first k point
     integer(i32), intent(in) :: first_kpt
     !> Wavefunctions in LAPW basis (nmatmax, nstfv, first_kpt : last_kpt)
     complex(dp), intent(in) :: wavefunctions(:, :, first_kpt :)
-    !> '2nd variation' wavefunctions (nstsv, nstsv, first_kpt : last_kpt)
-    complex(dp), intent(in) :: wavefunctions_sv(:, :, first_kpt :)
     !> number of the current iteration (employed to give possible warnings)
     integer, intent(in)             :: it
     !> If `.true.`, normalize the charge density
@@ -48,9 +44,10 @@ contains
     !> Object that packs information about timings to update the electronic density
     type(Timing_RTTDDFT_density), optional, intent(out) :: t_dens
 
-    integer(i32)                    :: ik, last_kpt
-    real(dp)                        :: ti, tstart 
-    logical                         :: timings_general, timings_detailed
+    integer(i32) :: ik, last_kpt
+    real(dp) :: ti, tstart 
+    logical  :: timings_general, timings_detailed
+    complex(dp), allocatable :: fake_evecsv(:, :)
 
     timings_general = .false.
     timings_detailed = .false.
@@ -68,16 +65,17 @@ contains
     rhomt(:, :, :) = 0._dp
     rhoir(:) = 0._dp
     last_kpt = ubound( wavefunctions, 3 )
+    allocate( fake_evecsv(size(wavefunctions, 2), size(wavefunctions, 2)) )
     
     ! rhovalk has omp critical inside, and we use reduction for rhoir
 #ifdef USEOMP
     !$OMP PARALLEL DEFAULT(NONE) PRIVATE(ik) &
-    !$OMP SHARED(first_kpt, last_kpt, wavefunctions, wavefunctions_sv)
+    !$OMP SHARED(first_kpt, last_kpt, wavefunctions, fake_evecsv)
     !$OMP DO
 #endif
     do ik = first_kpt, last_kpt
-      call rhovalk( ik, wavefunctions(:, :, ik), wavefunctions_sv(:, :, ik) )
-      call genrhoir( ik, wavefunctions(:, :, ik), wavefunctions_sv(:, :, ik) )
+      call rhovalk( ik, wavefunctions(:, :, ik), fake_evecsv )
+      call genrhoir( ik, wavefunctions(:, :, ik), fake_evecsv )
     end do
 #ifdef USEOMP
     !$OMP END PARALLEL
@@ -116,6 +114,6 @@ contains
     
     if( timings_general ) call timesec_RTTDDFT( tstart, t_dens%total )
 
-  end subroutine updatedensity
+  end subroutine update_density
 
 end module rttddft_Density

@@ -45,7 +45,7 @@
             printTimingDetailed="true"
             calculateTotalEnergy="true"
             calculateNExcitedElectrons="true"
-            printAfterIterations="1"
+            printAfterIterations="25"
             vectorPotentialSolver="improvedeuler">
             <pmat readFromFile="false" forceHermitian="false" />
             <laser fieldType="total">

@@ -4,7 +4,7 @@ module rttddft_NumberExcitations_test
   use math_utils, only: all_close
   use mock_arrays, only: complex_positive_definite_matrix_5x5, complex_hermitian_matrix_5x5
   use precision, only: dp, i32
-  use rttddft_NumberExcitations, only: Obtain_number_excitations
+  use rttddft_NumberExcitations, only: obtain_number_excitations
   use unit_test_framework, only : unit_test_type
   use xlapack, only: solve_generalized_hermitian_eigenproblem
 

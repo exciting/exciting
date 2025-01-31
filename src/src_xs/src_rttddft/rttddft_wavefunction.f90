@@ -21,7 +21,7 @@ module rttddft_Wavefunction
 
   private
 
-  public :: normalize_wavefunctions, obtain_occupations, obtain_projection_coefficients, Update_basis_derivative
+  public :: normalize_wavefunctions, obtain_occupations, obtain_projection_coefficients, update_basis_derivative
 
   
 
@@ -31,7 +31,7 @@ contains
   !> \[ B_\mathbf{k}(t) = \sum_J \dot{\mathbf{R}_J}\cdot 
   !> \mathcal{B}_{J\mathbf{k}}(t) \]
   !> where \(J\) indexes the atoms
-  subroutine Update_basis_derivative( atoms_velocities, mathcal_B, B_now, B_old )
+  subroutine update_basis_derivative( atoms_velocities, mathcal_B, B_now, B_old )
     !> the velocities (in cartesian coordinates) of all atoms
     real(dp), intent(in)       :: atoms_velocities(:, :)
     !> `mathcalB` measures how the ions displacements affect overlap elements
