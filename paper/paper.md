@@ -101,8 +101,8 @@ u^*_{o'\mathbf k'}(\mathbf{r}_\nu^V)
 $$
 where we first compute the sums over $o'$, $u'$, and $\mathbf{k}'$ to get a term that depends only on $\mathbf{r}_\nu^V$ with a complexity of $\mathcal{O}(N_\mu^V(N_o N_u N_{\bf k} + N_uN_{\bf k})$. The remaining sums can be computed with $\mathcal{O}((N_\mu^V)^2 N_\mu^V N_o N_u N_{\bf k})$, so the complexity of computing $V\cdot X$ is bounded by $\mathbf{O}((N_\mu^V)^2 + N_\mu N_o N_u N_{\bf k})$.
 Applying the screened kernel to $X$, after reordering the sums, we get
-$$
-\begin{aligned}
+
+\begin{align*}
 [W \cdot X]_{ou\mathbf k} = \frac{1} {N_k} \sum_{\nu=1}^{N_\mu^{W_o}}
 u_{o\mathbf k}(\mathbf r_\nu^{W_o}) \left\{ \sum_{\mu=1}^{N_\mu^{W_u}}
 u^*_{u\mathbf k}(\mathbf r_\mu^{W_u})
@@ -110,13 +110,13 @@ u^*_{u\mathbf k}(\mathbf r_\mu^{W_u})
 \sum_{\mathbf{k'}}
 \tilde{W}_{\mu\nu, \mathbf{k-k'}}
 \left(\sum_{u'}
-u_{u'\mathbf k'}(\mathbf r_\mu^{W_u})
+u_{u'\mathbf k'}&(\mathbf r_\mu^{W_u})
 \left[\sum_{o'} \\
-u^*_{o'\mathbf{k'}}(\mathbf{r}_\nu^{W_o}) 
+&u^*_{o'\mathbf{k'}}(\mathbf{r}_\nu^{W_o}) 
 X_{ o' u' \mathbf{k'}}
 \right]\right)\right]\right\} \:.
-\end{aligned}
-$$
+\end{align*}
+
 Here we exploit the separable structure of the decomposition so that the terms depending on ${\bf k}$ and ${\bf k'}$ are on the left and right of $\tilde{W}_{\mu\nu, \mathbf{k-k'}}$. The evaluation of the two innermost sums over $o'$ and $u'$ to $A^{\bf k'}_{\mu\nu}$ scales with $\mathcal{O}(N^{W_u}_\mu N_o N_u N_\mathbf{k} + N^{W_o}_\mu N_\mu^{W_u} N_u N_\mathbf{k})$. Then the sum over ${\bf k'}$ reads as a discrete convolution
 $$
 \sum_{\mathbf{k}'}W_{\mathbf{k}-\mathbf{k}'} A^{\bf k'}_{\mu\nu} \:,
