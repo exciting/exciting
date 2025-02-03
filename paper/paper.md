@@ -103,20 +103,23 @@ where we first compute the sums over $o'$, $u'$, and $\mathbf{k}'$ to get a term
 Applying the screened kernel to $X$, after reordering the sums, we get
 
 
-$$\displaylines{
+$$
+
 [W \cdot X]_{ou\mathbf k} = \frac{1} {N_k} \sum_{\nu=1}^{N_\mu^{W_o}}
-u_{o\mathbf k}(\mathbf r_\nu^{W_o}) 
+u_{o\mathbf k}(\mathbf r_\nu^{W_o})
 \left\{ \sum_{\mu=1}^{N_\mu^{W_u}}
 u^*_{u\mathbf k}(\mathbf r_\mu^{W_u})
 \left[
 \sum_{\mathbf{k'}}
 \tilde{W}_{\mu\nu, \mathbf{k-k'}}
 \left(\sum_{u'}
-u_{u'\mathbf k'}&(\mathbf r_\mu^{W_u})
-\left[\sum_{o'} \right. \right.\right.\right. \\
-&u^*_{o'\mathbf{k'}}(\mathbf{r}_\nu^{W_o}) 
+u_{u'\mathbf k'}(\mathbf r_\mu^{W_u})
+\left[\sum_{o'} \right. \right.\right.\right. 
+$$
+$$
+u^*_{o'\mathbf{k'}}(\mathbf{r}_\nu^{W_o})
 X_{ o' u' \mathbf{k'}}
-\left.\left.\left.\left.\right]\right)\right]\right\} \:.}
+\left.\left.\left.\left.\right]\right)\right]\right\} \:.
 $$
 
 Here we exploit the separable structure of the decomposition so that the terms depending on ${\bf k}$ and ${\bf k'}$ are on the left and right of $\tilde{W}_{\mu\nu, \mathbf{k-k'}}$. The evaluation of the two innermost sums over $o'$ and $u'$ to $A^{\bf k'}_{\mu\nu}$ scales with $\mathcal{O}(N^{W_u}_\mu N_o N_u N_\mathbf{k} + N^{W_o}_\mu N_\mu^{W_u} N_u N_\mathbf{k})$. Then the sum over ${\bf k'}$ reads as a discrete convolution
