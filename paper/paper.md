@@ -113,12 +113,11 @@ u^*_{u\mathbf k}(\mathbf r_\mu^{W_u})
 \tilde{W}_{\mu\nu, \mathbf{k-k'}}
 \left(\sum_{u'}
 u_{u'\mathbf k'}(\mathbf r_\mu^{W_u})
-\left[\sum_{o'} \right. \right.\right.\right. 
-$$
-$$
+\left[\sum_{o'} % \right. \right.\right.\right. 
 u^*_{o'\mathbf{k'}}(\mathbf{r}_\nu^{W_o})
 X_{ o' u' \mathbf{k'}}
-\left.\left.\left.\left.\right]\right)\right]\right\} \:.
+%\left.\left.\left.\left.
+\right]\right)\right]\right\} \:.
 $$
 
 Here we exploit the separable structure of the decomposition so that the terms depending on ${\bf k}$ and ${\bf k'}$ are on the left and right of $\tilde{W}_{\mu\nu, \mathbf{k-k'}}$. The evaluation of the two innermost sums over $o'$ and $u'$ to $A^{\bf k'}_{\mu\nu}$ scales with $\mathcal{O}(N^{W_u}_\mu N_o N_u N_\mathbf{k} + N^{W_o}_\mu N_\mu^{W_u} N_u N_\mathbf{k})$. Then the sum over ${\bf k'}$ reads as a discrete convolution
