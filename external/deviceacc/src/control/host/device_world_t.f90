@@ -19,9 +19,7 @@
 module m_device_world_t
     
     use iso_c_binding
-    use omp_lib
     use m_device_host_register_fortran, only: device_host_register
-    use mpi
 
     implicit none
 
@@ -39,13 +37,16 @@ module m_device_world_t
         !> Device queue for MAGMA
         type(c_ptr), private  :: queue = c_null_ptr
         !> The number of teams in the device
-        integer, private :: num_teams
+        integer, private :: num_teams = 1
         !> The maximum number of threads per team
-        integer, private :: num_threads
+        integer, private :: num_threads = 1 
         !> Device host register
         type(device_host_register) :: register
+        !> Flag to indicate if CPU-only backend is used
+        logical, private :: cpu_backend = .true.
     contains
-        procedure, public :: init, finish, is_queue_set, get_queue, syncronize, get_device, get_num_teams
+        procedure, public :: init, finish, is_queue_set, get_queue, syncronize, get_device, get_num_teams, using_cpu_backend, &
+                             get_num_threads, simd_size, get_linalg_stream
     end type device_world_t
 
 contains
@@ -110,5 +111,32 @@ contains
         integer :: num_teams
         num_teams = this%num_teams
     end function get_num_teams
+
+        !> This provides the number of threads
+    !> @param[in] this - return the number of teams of the device
+    pure function get_num_threads(this) result(num_threads)
+        class(device_world_t), intent(in) :: this
+        integer :: num_threads
+        num_threads = this%num_threads
+    end function get_num_threads
+
+    !> Returns .true. if using the CPU backend
+    pure logical function using_cpu_backend(this)
+        class(device_world_t), intent(in) :: this
+        using_cpu_backend = this%cpu_backend
+    end function using_cpu_backend
+
+    !> Returns the size for SIMD in the device
+    pure integer function simd_size(this)
+        class(device_world_t), intent(in) :: this
+        simd_size = 1
+    end function simd_size
+
+    !> Returns the underlying stream that handles linear algebra
+    !> for Intel returns nothing
+    type(c_ptr) function get_linalg_stream(this)
+        class(device_world_t), intent(in) :: this
+        get_linalg_stream = c_null_ptr
+    end function get_linalg_stream
 
 end module m_device_world_t

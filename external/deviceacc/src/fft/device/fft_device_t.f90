@@ -15,7 +15,7 @@
 !> @file
 !> This file contains a type to perform FFT using device accelearted
 !> routines. The user does not need to take care of the device vendor
-!> Supported vendors include NVIDIA, and AMD
+!> Supported vendors include NVIDIA, Intel, and AMD
 module m_fft_device
     
     use omp_lib
@@ -355,17 +355,15 @@ contains
             ! Depending on the kindo of data fill one or the other pointer
             if (this%is_double) then
                 call c_f_pointer(df, fortran_df_double, [df_size])
-                !$omp target data
-                !$omp dispatch
+                !$omp target variant dispatch use_device_ptr(fortran_df_double)
                 error = dfti_compute_forward_z_cpu(this%descriptor, fortran_df_double)
-                !$omp end target data
+                !$omp end target variant dispatch
                 nullify(fortran_df_double)
             else 
                 call c_f_pointer(df, fortran_df_single, [df_size])
-                !$omp target data
-                !$omp dispatch
+                !$omp target variant dispatch use_device_ptr(fortran_df_single)
                 error = dfti_compute_forward_c_cpu(this%descriptor, fortran_df_single)
-                !$omp end target data
+                !$omp end target variant dispatch
                 nullify(fortran_df_single)
             end if
 
@@ -377,17 +375,15 @@ contains
             ! Depending on the kindo of data fill one or the other pointer 
             if (this%is_double) then
                 call c_f_pointer(df, fortran_df_double, [df_size])
-                !$omp target data
-                !$omp dispatch
+                !$omp target variant dispatch use_device_ptr(fortran_df_double)
                 error = dfti_compute_backward_z_cpu(this%descriptor, fortran_df_double)
-                !$omp end target data
+                !$omp end target variant dispatch
                 nullify(fortran_df_double)
             else 
                 call c_f_pointer(df, fortran_df_single, [df_size])
-                !$omp target data
-                !$omp dispatch
+                !$omp target variant dispatch use_device_ptr(fortran_df_single)
                 error = dfti_compute_backward_c_cpu(this%descriptor, fortran_df_single)
-                !$omp end target data
+                !$omp end target variant dispatch
                 nullify(fortran_df_single)
             end if
             

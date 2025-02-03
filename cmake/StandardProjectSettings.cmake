@@ -1,11 +1,13 @@
 
 # Check compiler is supported
 if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
-  if (NOT ${CMAKE_Fortran_COMPILER_VERSION} VERSION_GREATER "6.9.9" )
-    message(FATAL_ERROR "The minimum supported version of GCC is 7.0.0")
+  if (NOT ${CMAKE_Fortran_COMPILER_VERSION} VERSION_GREATER "9.9.9" )
+    message(FATAL_ERROR "The minimum supported version of GCC is 10.0.0")
   endif()
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
-  #TODO(Alex) Add minimum version for Intel
+  if (NOT ${CMAKE_Fortran_COMPILER_VERSION} VERSION_GREATER "2021.0.0" )
+    message(FATAL_ERROR "The minimum supported version of Intel compiler is 2021")
+  endif()
 endif()
 
 # Set default build type if none was specified

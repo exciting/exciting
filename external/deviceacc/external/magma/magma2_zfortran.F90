@@ -116,6 +116,22 @@ interface
         type(c_ptr),                value :: queue  !! queue_t
     end subroutine
 
+    complex(c_double_complex) function magma_zdotc( &
+        n, dx, incx, dy, incy, queue) bind(C, name="magma_zdotc")
+        import
+        integer(c_int),             value :: n, incx, incy
+        type(c_ptr),                value :: dx, dy
+        type(c_ptr),                value :: queue  !! queue_t
+    end function magma_zdotc
+
+    complex(c_double_complex) function magma_zdotu( &
+        n, dx, incx, dy, incy, queue) bind(C, name="magma_zdotu")
+        import
+        integer(c_int),             value :: n, incx, incy
+        type(c_ptr),                value :: dx, dy
+        type(c_ptr),                value :: queue  !! queue_t
+    end function magma_zdotu
+
     subroutine magma_zgemv( &
         transA, m, n, &
         alpha, dA, lda, &

@@ -24,8 +24,13 @@ module device_linalg_common_interface
     use iso_c_binding
     use iso_fortran_env,  only: i32=>int32, r32=>real32, r64=>real64
     use m_device_world_t, only: device_world_t
+    
+    implicit none
 
-implicit none
+    private 
+    public :: cgemm_gpu, cdotc_gpu, cdotu_gpu, cgetrf_gpu, cgetri_gpu, get_cgetri_nb_gpu, &
+              zgemm_gpu, zdotc_gpu, zdotu_gpu, zgetrf_gpu, zgetri_gpu, get_zgetri_nb_gpu, &
+              caxpy_gpu, zaxpy_gpu
 
 contains
 
@@ -42,7 +47,7 @@ contains
     subroutine cgetrf_gpu(m, n, dA, lda, ipiv, info, world)
         integer(i32), intent(in)                        :: m
         integer(i32), intent(in)                        :: n
-        type(C_ptr),  intent(inout)                     :: dA
+        type(C_ptr),  value                             :: dA
         integer(i32), intent(in)                        :: lda
         integer(i32), contiguous, target, intent(inout) :: ipiv(:)
         integer(i32), intent(out)                       :: info
@@ -66,11 +71,11 @@ contains
     !> @param[in,out] world - the device-host handler. CPU backend.
     subroutine cgetri_gpu(n, dA, lda, ipiv, dwork, lwork, info, world)
         integer(i32), intent(in)                        :: n
-        type(C_ptr),  intent(inout)                     :: dA
+        type(C_ptr),  value                             :: dA
         integer(i32), intent(in)                        :: lda
         integer(i32), contiguous, target, intent(inout) :: ipiv(:)
         integer(i32), intent(out)                       :: info
-        type(C_ptr),  intent(inout)                     :: dwork
+        type(C_ptr),  value                             :: dwork
         integer(i32), intent(in)                        :: lwork
         type(device_world_t), intent(inout)             :: world
 
@@ -113,12 +118,12 @@ contains
         integer(i32), intent(in)            :: n
         integer(i32), intent(in)            :: k
         complex(r32), intent(in)            :: alpha
-        type(c_ptr),  intent(in)            :: da
+        type(c_ptr),  value                 :: da
         integer(i32), intent(in)            :: lda
-        type(c_ptr),  intent(in)            :: db
+        type(c_ptr),  value                 :: db
         integer(i32), intent(in)            :: ldb
         complex(r32), intent(in)            :: beta
-        type(c_ptr),  intent(inout)         :: dc
+        type(c_ptr),  value                 :: dc
         integer(i32), intent(in)            :: ldc
         type(device_world_t), intent(inout) :: world
 
@@ -144,6 +149,82 @@ contains
 
     end subroutine cgemm_gpu
 
+    !> Complex single precision dot product (unconjugated) of vectors x and y; \( x^T y \).
+    !> @param[in] n - number of elements in vector x and y
+    !> @param[in] dx - C-pointer to the x vector. Host pointer
+    !> @param[in] incx - Stride between consecutive elements of dx
+    !> @param[in] dy - C-pointer to the y vector. Host pointer
+    !> @param[in] incy - Stride between consecutive elements of dy
+    !> @param[in,out] world - device-host handler.
+    complex(r32) function cdotu_gpu(n, dx, incx, dy, incy, world)
+        integer(i32), intent(in)            :: n
+        type(c_ptr),  value                 :: dx
+        integer(i32), intent(in)            :: incx
+        type(c_ptr),  value                 :: dy
+        integer(i32), intent(in)            :: incy
+        type(device_world_t), intent(inout) :: world
+
+        complex(r32), external :: cdotu
+ 
+        complex(r32), pointer :: x(:), y(:)
+
+        call c_f_pointer(dx, x, [n])
+        call c_f_pointer(dy, y, [n])
+        cdotu_gpu = cdotu(n, x, incx, y, incy)
+        nullify(x, y)
+    end function cdotu_gpu
+
+    !> Complex single precision dot product (conjugated) of vectors x and y; \( x^H y \).
+    !> @param[in] n - number of elements in vector x and y
+    !> @param[in] dx - C-pointer to the x vector. Host pointer
+    !> @param[in] incx - Stride between consecutive elements of dx
+    !> @param[in] dy - C-pointer to the y vector. Host pointer
+    !> @param[in] incy - Stride between consecutive elements of dy
+    !> @param[in,out] world - device-host handler.
+    complex(r32) function cdotc_gpu(n, dx, incx, dy, incy, world)
+        integer(i32), intent(in)            :: n
+        type(c_ptr),  value                 :: dx
+        integer(i32), intent(in)            :: incx
+        type(c_ptr),  value                 :: dy
+        integer(i32), intent(in)            :: incy
+        type(device_world_t), intent(inout) :: world
+
+        complex(r32), external :: cdotc
+        
+        complex(r32), pointer :: x(:), y(:)
+        
+        call c_f_pointer(dx, x, [n])
+        call c_f_pointer(dy, y, [n])
+        cdotc_gpu = cdotc(n, x, incx, y, incy)
+        nullify(x, y)
+
+    end function cdotc_gpu
+
+    !> Complex single precision constant times a vector plus a vector; \( y = \alpha x + y \). 
+    !> @param[in]    	n	        - Number of elements in vectors x and y. n >= 0.
+    !> @param[in]	    alpha	    - Scalar \( \alpha \)
+    !> @param[in]	    dx	        - Host pointer to x. The n element vector x of dimension (1 + (n-1)*incx).
+    !> @param[in]	    incx	    - Stride between consecutive elements of dx. incx != 0.
+    !> @param[in,out]	dy	        - Host pointer to y. The n element vector y of dimension (1 + (n-1)*incy).
+    !> @param[in]	    incy	    - Stride between consecutive elements of dy. incy != 0.
+    !> @param[in,out]   world	    - the device-host handler (CPU-backend)
+    subroutine caxpy_gpu(n, alpha, dx, incx, dy, incy, world)
+        integer(i32), intent(in)                        :: n
+        complex(r32), intent(in)                        :: alpha
+        type(C_ptr),  value                             :: dx
+        integer(i32), intent(in)                        :: incx
+        type(C_ptr),  value                             :: dy
+        integer(i32), intent(in)                        :: incy
+        type(device_world_t), intent(inout)             :: world
+
+        complex(r32), pointer :: x(:), y(:)
+
+        call c_f_pointer(dx, x, [1 + (n-1)*incx])
+        call c_f_pointer(dy, y, [1 + (n-1)*incy])
+        call caxpy(n, alpha, dx, incx, dy, incy)
+
+    end subroutine caxpy_gpu
+
     !> Complex double precision LU decomposition.
     !> @param[in] m - The number of rows of the matrix A
     !> @param[in] n - The number of columns of the matrix A
@@ -155,7 +236,7 @@ contains
     subroutine zgetrf_gpu(m, n, dA, lda, ipiv, info, world)
         integer(i32), intent(in)                        :: m
         integer(i32), intent(in)                        :: n
-        type(C_ptr),  intent(inout)                     :: dA
+        type(C_ptr),  value                             :: dA
         integer(i32), intent(in)                        :: lda
         integer(i32), contiguous, target, intent(inout) :: ipiv(:)
         integer(i32), intent(out)                       :: info
@@ -177,11 +258,11 @@ contains
     !> @param[in,out] world - the device-host handler. CPU backend.
     subroutine zgetri_gpu(n, dA, lda, ipiv, dwork, lwork, info, world)
         integer(i32), intent(in)                        :: n
-        type(C_ptr),  intent(inout)                     :: dA
+        type(C_ptr),  value                             :: dA
         integer(i32), intent(in)                        :: lda
         integer(i32), contiguous, target, intent(inout) :: ipiv(:)
         integer(i32), intent(out)                       :: info
-        type(C_ptr),  intent(inout)                     :: dwork
+        type(C_ptr),  value                             :: dwork
         integer(i32), intent(in)                        :: lwork
         type(device_world_t), intent(inout)             :: world
 
@@ -224,12 +305,12 @@ contains
         integer(i32), intent(in)            :: n
         integer(i32), intent(in)            :: k
         complex(r64), intent(in)            :: alpha
-        type(c_ptr),  intent(inout)         :: da
+        type(c_ptr),  value                 :: da
         integer(i32), intent(in)            :: lda
-        type(c_ptr),  intent(inout)         :: db
+        type(c_ptr),  value                 :: db
         integer(i32), intent(in)            :: ldb
         complex(r64), intent(in)            :: beta
-        type(c_ptr),  intent(inout)         :: dc
+        type(c_ptr),  value                 :: dc
         integer(i32), intent(in)            :: ldc
         type(device_world_t), intent(inout) :: world
 
@@ -254,5 +335,83 @@ contains
         nullify(A, B, C)
 
     end subroutine zgemm_gpu
+
+
+    !> Complex double precision dot product (unconjugated) of vectors x and y; \( x^T y \).
+    !> @param[in] n - number of elements in vector x and y
+    !> @param[in] dx - C-pointer to the x vector. Device pointer
+    !> @param[in] incx - Stride between consecutive elements of dx
+    !> @param[in] dy - C-pointer to the y vector. Device pointer
+    !> @param[in] incy - Stride between consecutive elements of dy
+    !> @param[in,out] world - device-host handler.
+    complex(r64) function zdotu_gpu(n, dx, incx, dy, incy, world)
+        integer(i32), intent(in)            :: n
+        type(c_ptr),  value                 :: dx
+        integer(i32), intent(in)            :: incx
+        type(c_ptr),  value                 :: dy
+        integer(i32), intent(in)            :: incy
+        type(device_world_t), intent(inout) :: world
+ 
+        complex(r64), external :: zdotu
+
+        complex(r64), pointer :: x(:), y(:)
+        
+        call c_f_pointer(dx, x, [n])
+        call c_f_pointer(dy, y, [n])
+        zdotu_gpu = zdotu(n, x, incx, y, incy)
+        nullify(x, y)
+
+    end function zdotu_gpu
+
+    !> Complex double precision dot product (conjugated) of vectors x and y; \( x^H y \).
+    !> @param[in] n - number of elements in vector x and y
+    !> @param[in] dx - C-pointer to the x vector. Device pointer
+    !> @param[in] incx - Stride between consecutive elements of dx
+    !> @param[in] dy - C-pointer to the y vector. Device pointer
+    !> @param[in] incy - Stride between consecutive elements of dy
+    !> @param[in,out] world - device-host handler.
+    complex(r64) function zdotc_gpu(n, dx, incx, dy, incy, world)
+        integer(i32), intent(in)            :: n
+        type(c_ptr),  value                 :: dx
+        integer(i32), intent(in)            :: incx
+        type(c_ptr),  value                 :: dy
+        integer(i32), intent(in)            :: incy
+        type(device_world_t), intent(inout) :: world
+        
+        complex(r64), external :: zdotc
+
+        complex(r64), pointer :: x(:), y(:)
+        
+        call c_f_pointer(dx, x, [n])
+        call c_f_pointer(dy, y, [n])
+        zdotc_gpu = zdotc(n, x, incx, y, incy)
+        nullify(x, y)
+
+    end function zdotc_gpu
+
+    !> Complex double precision constant times a vector plus a vector; \( y = \alpha x + y \). 
+    !> @param[in]    	n	        - Number of elements in vectors x and y. n >= 0.
+    !> @param[in]	    alpha	    - Scalar \( \alpha \)
+    !> @param[in]	    dx	        - Host pointer to x. The n element vector x of dimension (1 + (n-1)*incx).
+    !> @param[in]	    incx	    - Stride between consecutive elements of dx. incx != 0.
+    !> @param[in,out]	dy	        - Host pointer to y. The n element vector y of dimension (1 + (n-1)*incy).
+    !> @param[in]	    incy	    - Stride between consecutive elements of dy. incy != 0.
+    !> @param[in,out]   world	    - the device-host handler (CPU-backend)
+    subroutine zaxpy_gpu(n, alpha, dx, incx, dy, incy, world)
+        integer(i32), intent(in)                        :: n
+        complex(r64), intent(in)                        :: alpha
+        type(C_ptr),  value                             :: dx
+        integer(i32), intent(in)                        :: incx
+        type(C_ptr),  value                             :: dy
+        integer(i32), intent(in)                        :: incy
+        type(device_world_t), intent(inout)             :: world
+        
+        complex(r64), pointer :: x(:), y(:)
+
+        call c_f_pointer(dx, x, [1 + (n-1)*incx])
+        call c_f_pointer(dy, y, [1 + (n-1)*incy])
+        call zaxpy(n, alpha, dx, incx, dy, incy)
+
+    end subroutine zaxpy_gpu
 
 end module device_linalg_common_interface

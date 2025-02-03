@@ -28,6 +28,13 @@
        -warn all     # Enables all warning messages except errors and stderrors
       )
 
+   # This sets compiler output to: Error, Warning, Caution, Note, and Comment   
+   set(CRAY_WARNINGS
+      -m 0)
+
+   set(FLANG_WARNINGS
+       -Wall)
+
    option(WARNINGS_AS_ERRORS "Treat compiler warnings as error" FALSE)
    if (WARNINGS_AS_ERRORS)
      set(GCC_WARNINGS ${GCC_WARNINGS} -Werror)
@@ -42,6 +49,10 @@
       set(COMPILER_WARNINGS ${GCC_WARNINGS})
    elseif (CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
       set(COMPILER_WARNINGS ${INTEL_WARNINGS})
+   elseif (CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
+      set(COMPILER_WARNINGS ${CRAY_WARNINGS})
+   elseif (CMAKE_Fortran_COMPILER_ID MATCHES "LLVMFlang")
+      set(COMPILER_WARNINGS ${FLANG_WARNINGS})
    else ()
      message(SEND_ERROR "Warning flags have not been defined for this compiler: \
             ${CMAKE_Fortran_COMPILER_ID}")

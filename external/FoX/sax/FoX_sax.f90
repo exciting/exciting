@@ -11,6 +11,7 @@ module FoX_sax
   public :: close_xml_t
   public :: parse
   public :: stop_parser
+  public :: SAX_OPEN_ERROR 
 
   public :: xml_t
 

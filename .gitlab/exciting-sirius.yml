@@ -43,8 +43,8 @@ test-ubuntu-focal-sirius-gcc9-mpich-3.3.2-mkl:
      - "tools/exciting_tools/*"
   dependencies:
     - build:ubuntu-focal-sirius-gcc9-mpich-3.3.2-mkl
-    - python:excitingtools-python-3.7
-    - python:regressionframework-python-3.7
+    - python:excitingtools-python3
+    - python:regressionframework-python3
   tags:
     - docker
   script:

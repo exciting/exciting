@@ -2,31 +2,90 @@
 # CMake will append CMAKE_Fortran_FLAGS with CMAKE_Fortran_FLAGS_BUILDTYPE
 # CMAKE_Fortran_FLAGS_BUILDTYPE may also have predefined values, hence initialise it
 
-# Standard flags to use in all modern fortran source
-set(STD_FFLAGS
-    -std=f2008              # Fortran standard set to 2008
-    -fimplicit-none         # Specify that no implicit typing is allowed
-    -ffree-line-length-0    # No fixed line length
-    -march=native           # Produces code optimized for the local machine under the constraints of the
-                            # selected instruction set (hence the result might not run on different machines).
-   )
+# Function to check if the CPU is from Intel by parsing /proc/cpuinfo
+function(CheckIfIntelCPU result_var)
+    # Use file(READ) to read the content of /proc/cpuinfo
+    file(READ "/proc/cpuinfo" CPUINFO_CONTENTS)
+
+    # Check if the "vendor_id" field contains "GenuineIntel"
+    if(CPUINFO_CONTENTS MATCHES "vendor_id.*GenuineIntel")
+        set(${result_var} TRUE PARENT_SCOPE)
+    else()
+        set(${result_var} FALSE PARENT_SCOPE)
+    endif()
+endfunction()
+
+
+# Function to check if AVX-512 is supported by parsing /proc/cpuinfo
+function(CheckForAVX512Support result_var)
+    # Use file(READ) to read the content of /proc/cpuinfo
+    file(READ "/proc/cpuinfo" CPUINFO_CONTENTS)
+
+    # Check if the "flags" field contains any AVX-512-related feature
+    if(CPUINFO_CONTENTS MATCHES "avx512")
+        set(${result_var} TRUE PARENT_SCOPE)
+    else()
+        set(${result_var} FALSE PARENT_SCOPE)
+    endif()
+endfunction()
+
+# Function to check if AVX-2 is supported by parsing /proc/cpuinfo
+function(CheckForAVX2Support result_var)
+    # Use file(READ) to read the content of /proc/cpuinfo
+    file(READ "/proc/cpuinfo" CPUINFO_CONTENTS)
+
+    # Check if the "flags" field contains any AVX-512-related feature
+    if(CPUINFO_CONTENTS MATCHES "avx2")
+        set(${result_var} TRUE PARENT_SCOPE)
+    else()
+        set(${result_var} FALSE PARENT_SCOPE)
+    endif()
+endfunction()
+
+# Intel compilers might fail to detect non Intel machines. Here we perform few tests.
+set(ARCH_MARCH "native")
+CheckIfIntelCPU(IS_INTEL_CPU)
+CheckForAVX512Support(AVX512_SUPPORTED)
+CheckForAVX2Support(AVX2_SUPPORTED)
+set(INTEL_CODE_NAME "None" CACHE STRING "Code name for Intel processors")
+if(INTEL_CODE_NAME MATCHES "None")
+    if(AVX512_SUPPORTED)
+        set(INTEL_CODE_NAME "CORE-AVX512")
+    elseif(AVX2_SUPPORTED)
+	set(INTEL_CODE_NAME "CORE-AVX2")
+    else()
+	set(INTEL_CODE_NAME "SSE4.2")
+    endif()
+endif()
+message(STATUS "Compiling for an Intel CPU: ${IS_INTEL_CPU} (Intel code name: ${INTEL_CODE_NAME})")
+message(STATUS "CPU intruction support for AVX2: ${AVX2_SUPPORTED}")
+message(STATUS "CPU intruction support for AVX512: ${AVX512_SUPPORTED}")
 
 # GCC
+set(GCC_COMMON -march=${ARCH_MARCH} -fPIC -cpp -ffree-line-length-0 -fallow-argument-mismatch -fallow-invalid-boz )
+
 set(GCC_DEBUG
      -g               # Generate symbols
      -fbacktrace      # symbolic stack traceback
+     -fPIC            # Code independent position
      -ffpe-trap=invalid,zero,overflow,underflow   # control over floating-point exception
      -finit-real=nan  #  All real scalars are initialised to NaN
      -fcheck=all      # Enable all run-time test of -fcheck: array-temps, bits, bounds, do, mem, pointer, recursion
+     ${GCC_COMMON}
     )
 # More debug flags to consider:
 # -finit-integer=2147483647 -finit-real=snan \
 # -frecord-gcc-switches -finit-character=42 -finit-logical=true -fdump-core -fstack-protector-all -pipe
 
-set(GCC_RELEASE -O3)  # Level 3 optimisation. Could also consider -fpack-derived
+set(GCC_RELEASE -g -O3 ${GCC_COMMON})  # Level 3 optimisation. Could also consider -fpack-derived
 
 # Intel
 set(INTEL_DEBUG
+    -O0
+    -g
+    -fPIC
+    -fpp                   # Use preprocessor
+    -allow fpp_comments    # Preprocessor option
     -g            # Generate symbols
     -traceback    # symbolic stack traceback
     -fp           # Disables the ebp register in optimizations and sets the ebp register to be used as the frame pointer.
@@ -37,32 +96,94 @@ set(INTEL_DEBUG
     -fpe3         # control over floating-point exception (divide by zero, overflow, invalid operation, underflow, denormalized number, positive infinity, negative infinity or a NaN)
     )
 
-# -g -O0 -DUSE_ASSERT -debug all -implicitnone -warn unused \
-#   -fp-stack-check -heap-arrays -ftrapuv -check pointers \
-#   -check bounds -check all -check noarg_temp_created -traceback -I"${MKLROOT}/include"
+set(INTEL_RELEASE -O3 -g -fPIC -fpp -allow nofpp_comments -save-temps -no-wrap-margin -fp-model source )
 
-set(INTEL_RELEASE
-    -O3           # Optimsation level 3
-    -no-prec-div  # Heurisitics to improves precision of floating-point divides: enables optimizations that give slightly less precise results than full IEEE division.
-    -fp-model fast=2 # Semantics of floating-point calculations: Enables more aggressive optimizations on floating-point data.
-    -foptimize-sibling-calls # Optimise tail recursive calls.
-   )
+# Cray compiler
+set(CRAY_RELEASE -O2 -ef -craype-verbose -e Z -dC -s real64 -s integer32 -fPIC -hipa0 -h flex_mp=strict -hnopattern)
+set(CRAY_DEBUG   -O0 -ef -g -fsanitize=thread -craype-verbose -e Z -dC -s real64 -s integer32 -fPIC -hipa0 -h flex_mp=strict -hnopattern)
+
+# Flang compiler
+set(FLANG_RELEASE    -cpp -fno-fast-math -flto)
+set(FLANG_DEBUG   -g -cpp -fno-fast-math -flto)
 
 if (CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
    set(FF_DEBUG ${GCC_DEBUG})
    set(FF_RELEASE ${GCC_RELEASE})
 
+   if(OMP)
+      set(FF_DEBUG "${GCC_DEBUG} ${OpenMP_Fortran_FLAGS}")
+      set(FF_RELEASE "${GCC_RELEASE} ${OpenMP_Fortran_FLAGS}")
+   endif()
+
 elseif (CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
-   set(FF_DEBUG ${INTEL_DEBUG})
-   set(FF_RELEASE ${INTEL_RELEASE})
+
+   # It is little tricky for Intel compilers to work with non-Intel CPUs
+   # Here we select the proper instruction set based on the supported instruction sets
+   if(CMAKE_Fortran_COMPILER_ID MATCHES "IntelLLVM")
+      if(OMP)
+         set(IFX_IPO "-ipo")
+      else()
+	 set(IFX_IPO "")
+      endif()
+      if (IS_INTEL_CPU AND AVX512_SUPPORTED)
+	 set(INTEL_OPTIMIZATION "-xHost ${IFX_IPO} -mprefer-vector-width=512 -ax${INTEL_CODE_NAME}")
+      elseif(IS_INTEL_CPU AND NOT AVX512_SUPPORTED)
+         set(INTEL_OPTIMIZATION "-xHost ${IFX_IPO} -ax${INTEL_CODE_NAME}")
+      elseif(NOT IS_INTEL_CPU AND AVX512_SUPPORTED)
+         set(INTEL_OPTIMIZATION "-march=x86-64-v4")
+      elseif(NOT IS_INTEL_CPU AND NOT AVX512_SUPPORTED AND AVX2_SUPPORTED)
+         set(INTEL_OPTIMIZATION "-march=x86-64-v3")
+      else()
+         set(INTEL_OPTIMIZATION "-march=x86-64-v2")
+      endif()
+   else()
+      if (IS_INTEL_CPU)
+         set(INTEL_OPTIMIZATION "-march=native")
+      elseif(NOT IS_INTEL_CPU AND AVX2_SUPPORTED)
+         set(INTEL_OPTIMIZATION "-march=core-avx2")
+      else()
+         set(INTEL_OPTIMIZATION "-march=sse4.2")
+      endif()
+   endif()
+
+   set(FF_DEBUG ${INTEL_DEBUG} ${INTEL_OPTIMIZATION})
+   set(FF_RELEASE ${INTEL_RELEASE} ${INTEL_OPTIMIZATION})
+
+   if(OMP)
+      set(FF_DEBUG "${INTEL_DEBUG} ${OpenMP_Fortran_FLAGS} -qmkl=parallel")
+      set(FF_RELEASE "${INTEL_RELEASE} ${OpenMP_Fortran_FLAGS} -qmkl=parallel")
+   endif()
+
+elseif (CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
+
+   set(FF_DEBUG ${CRAY_DEBUG})
+   set(FF_RELEASE ${CRAY_RELEASE})
+
+   set(ENV{FORMAT_TYPE_CHECKING} "RELAXED")
+
+   if(OMP)
+      set(FF_DEBUG "${CRAY_DEBUG} ${OpenMP_Fortran_FLAGS}")
+      set(FF_RELEASE "${CRAY_RELEASE} ${OpenMP_Fortran_FLAGS}")
+   endif()
+
+elseif (CMAKE_Fortran_COMPILER_ID MATCHES "LLVMFlang")
+
+   set(FF_DEBUG ${FLANG_DEBUG})
+   set(FF_RELEASE ${FLANG_RELEASE})
+
+   if(OMP)
+      set(FF_DEBUG "${FLANG_DEBUG} ${OpenMP_Fortran_FLAGS} -fopenmp-version=51")
+      set(FF_RELEASE "${FLANG_RELEASE} ${OpenMP_Fortran_FLAGS} -fopenmp-version=51")
+   endif()
 
 else ()
-     message(SEND_ERROR "flags have not been defined for this compiler: \
-            ${CMAKE_Fortran_COMPILER_ID}")
+     message(STATUS "Unrecognized compiler: only Intel, GNU, Cray, Flang (new) compilers are supported")
+     message(FATAL_ERROR "Compiler id: ${CMAKE_Fortran_COMPILER_ID}")
 endif()
 
 string(REPLACE ";" " " FF_DEBUG "${FF_DEBUG}")
 string(REPLACE ";" " " FF_RELEASE "${FF_RELEASE}")
+string(REPLACE ";" " " STD_FFLAGS "${STD_FFLAGS}")
 
 # Initialise BUILDTYPE flags so we completely define/control
 # the compiler settings

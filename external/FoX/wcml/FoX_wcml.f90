@@ -12,6 +12,7 @@ module FoX_wcml
   use m_wcml_parameter
   use m_wcml_property
   use m_wcml_stml
+  use m_wcml_inputdec
 
   implicit none
   private
@@ -71,5 +72,10 @@ module FoX_wcml
   public :: cmlEndKPointList
 
   public :: cmlAddSymmetry
+
+  public :: wcmlDumpDec
+  public :: wcmlStartDecList, wcmlEndDecList
+  public :: wcmlStartDec, wcmlEndDec
+  public :: wcmlAddDecLine
 
 end module FoX_wcml

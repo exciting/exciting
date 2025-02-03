@@ -2,14 +2,14 @@
 # * excitingtools 
 # * Regression testing framework
 
-python:excitingtools-python-3.7:
-  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8-April2022
+python:excitingtools-python3:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:fedora-GCC14-hdf5-fftw-scalapack-mpich
   stage: python
   tags:
     - docker
   before_script:
     - python3 -m pip install -U pip setuptools
-    - python3 -m pip install --upgrade --force pylint coverage
+    - python3 -m pip install --upgrade --force pylint coverage numpy contourpy matplotlib
   script:
     - cd tools/exciting_tools && python3 -m pip install -e .[dev,schemaparsing,h5_parsing]
     # run ruff and check the files (includes some pylint, see also README.MD section Code 'Checking and Formatting')
@@ -31,8 +31,8 @@ python:excitingtools-python-3.7:
         coverage_format: cobertura
         path: tools/exciting_tools/excitingtools_testcov.xml
 
-python:regressionframework-python-3.7:
-  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8-April2022
+python:regressionframework-python3:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:fedora-GCC14-hdf5-fftw-scalapack-mpich
   stage: python
   tags:
     - docker
@@ -42,6 +42,10 @@ python:regressionframework-python-3.7:
     - python3 -m pip install -U pip setuptools
     - python3 -m pip install coverage
     - python3 -m pip install h5py
+    - python3 -m pip install pytest
+    - python3 -m pip install pyyaml
+    - python3 -m pip install termcolor
+    - python3 -m pip install --upgrade numpy scipy
     - python3 -m pip install tools/exciting_tools
   script:
     - cd test/ && coverage run -m pytest test_functions/
@@ -55,7 +59,7 @@ variables:
   PYPI_TOKEN: $excitingtools_pypi
 
 deploy:excitingtools-pypi:
-  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8-April2022
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:fedora-GCC14-hdf5-fftw-scalapack-mpich
   stage: deploy
   tags:
     - docker

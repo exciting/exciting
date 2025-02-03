@@ -5,6 +5,9 @@ module fox_m_fsys_abort_flush
   public :: pxfflush
   public :: pxfabort
   public :: pure_pxfabort
+  ! status values to write to stderr on termination
+  integer, public, parameter :: STDERR_SUCCESS_STATUS = 0
+  integer, public, parameter :: STDERR_FAILURE_STATUS = 1
 
   ! pxf.F90 - assortment of Fortran wrappers to various
   ! unix-y system calls.
@@ -43,7 +46,11 @@ CONTAINS
 #ifdef __NAG__
     use f90_unix_io, only : flush
 #endif
+#ifdef __INTEL_COMPILER
+    use ifport, only : flush
+#endif
     integer, intent(in) :: unit
+    integer :: i
 
 #if defined(F2003)
     flush(unit)
@@ -52,6 +59,7 @@ CONTAINS
 #elif defined (FC_HAVE_FLUSH)
     call flush(unit)
 #else
+    i= unit ! pacify compiler
     continue
 #endif
 
@@ -74,6 +82,9 @@ CONTAINS
 #ifdef __NAG__
     use f90_unix_proc, only : abort
 #endif
+#ifdef __INTEL_COMPILER
+    use ifport, only : abort
+#endif
 #ifdef F2003
     interface
       subroutine abort() bind(c)
@@ -94,12 +105,16 @@ CONTAINS
     call abort("")
 #else
     call abort()
-#endif ! FC_ABORT_TYPE
+#endif
 #else
     i=>null()
     Print*,i
-#endif ! FC_HAVE_ABORT
-    stop
+#endif
+#if __GNUC__ == 4 && __GNUC_MINOR__ < 6 
+    stop 1  ! needed for gfortran < 4.6 to compile
+#else
+    stop STDERR_FAILURE_STATUS
+#endif
 
   end subroutine pxfabort
 

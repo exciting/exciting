@@ -89,7 +89,7 @@ contains
                         n=this%dims, &
                         in=fortran_df_double, &
                         out=fortran_df_double, &
-                        fft_sign=this%fft_sign, &
+                        sign=this%fft_sign, &
                         flags=FFTW_ESTIMATE)
             nullify(fortran_df_double)
         else
@@ -99,7 +99,7 @@ contains
                     n=this%dims, &
                     in=fortran_df_single, &
                     out=fortran_df_single, &
-                    fft_sign=this%fft_sign, &
+                    sign=this%fft_sign, &
                     flags=FFTW_ESTIMATE)
             nullify(fortran_df_single)
         end if

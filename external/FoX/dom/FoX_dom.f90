@@ -236,6 +236,7 @@ module FoX_dom
   public :: getParameter
   public :: setParameter
   public :: canSetParameter
+  public :: getParameterNames
   
   ! FoX-only interfaces
   public :: newDOMConfig

@@ -118,7 +118,8 @@ contains
   end subroutine cmlEndMolecule
 
   subroutine cmlAddMoleculesp(xf, elements, atomRefs, coords, occupancies, atomIds, style, fmt &
-,dictRef,convention,title,id,ref,formula,chirality,role)
+,dictRef,convention,title,id,ref,formula,chirality,role , &
+bondAtom1Refs, bondAtom2Refs, bondOrders, bondIds, nobondcheck)
     type(xmlf_t), intent(inout) :: xf
     real(kind=sp), intent(in)              :: coords(:, :)
     character(len=*), intent(in)           :: elements(:)
@@ -139,20 +140,39 @@ contains
 
 
 
+    character(len=*), intent(in), optional :: bondAtom1Refs(:)
+    character(len=*), intent(in), optional :: bondAtom2Refs(:)
+    character(len=*), intent(in), optional :: bondOrders(:)
+    character(len=*), intent(in), optional :: bondIds(:)
+    logical, intent(in), optional          :: nobondcheck
+
 #ifndef DUMMYLIB
 
     call cmlStartMolecule(xf &
 ,dictRef,convention,title,id,ref,formula,chirality,role)
     call cmlAddAtoms(xf, elements, atomRefs, coords, occupancies, atomIds, style, fmt)
+    if (present(bondAtom1Refs)) then
+      if (present(bondAtom2Refs).and.present(bondOrders)) then
+        if (present(atomIds)) then
+          call checkBondIdRefs(atomIds, bondAtom1Refs, bondAtom2Refs, nobondcheck)
+          call addBondArray(xf, bondAtom1Refs, bondAtom2Refs, bondOrders, bondIds)
+        else
+          call FoX_error("AtomIds must be provided to add bonds")
+        endif
+      else
+        call FoX_error("Two AtomRefs arrays and a bondOrder array must be provided to add bonds")
+      endif
+    endif
     call cmlEndMolecule(xf)
 
-#endif DUMMYLIB
+#endif
 
   end subroutine cmlAddMoleculesp
 
 
   subroutine cmlAddMoleculesp_sh(xf, natoms, elements, atomRefs, coords, occupancies, atomIds, style, fmt &
-,dictRef,convention,title,id,ref,formula,chirality,role)
+,dictRef,convention,title,id,ref,formula,chirality,role , &
+bondAtom1Refs, bondAtom2Refs, bondOrders, bondIds, nobondcheck)
     type(xmlf_t), intent(inout) :: xf
     integer, intent(in) :: natoms
     real(kind=sp), intent(in)              :: coords(3, natoms)
@@ -174,10 +194,29 @@ contains
 
 
 
+    character(len=*), intent(in), optional :: bondAtom1Refs(:)
+    character(len=*), intent(in), optional :: bondAtom2Refs(:)
+    character(len=*), intent(in), optional :: bondOrders(:)
+    character(len=*), intent(in), optional :: bondIds(:)
+    logical, intent(in), optional :: nobondcheck
+
 #ifndef DUMMYLIB
     call cmlStartMolecule(xf &
 ,dictRef,convention,title,id,ref,formula,chirality,role)
     call cmlAddAtoms(xf, natoms, elements, atomRefs, coords, occupancies, atomIds, style, fmt)
+    if (present(bondAtom1Refs)) then
+      if (present(bondAtom2Refs).and.present(bondOrders)) then
+        if (present(atomIds)) then
+          call checkBondIdRefs(atomIds, bondAtom1Refs, bondAtom2Refs, nobondcheck)
+          call addBondArray(xf, bondAtom1Refs, bondAtom2Refs, bondOrders, bondIds)
+        else
+          call FoX_error("AtomIds must be provided to add bonds")
+        endif
+        call addBondArray(xf, bondAtom1Refs, bondAtom2Refs, bondOrders, bondIds)
+      else
+        call FoX_error("Two AtomRefs arrays and a bondOrder array must be provided to add bonds")
+      endif
+    endif
     call cmlEndMolecule(xf)
 #endif
 
@@ -185,7 +224,8 @@ contains
 
 
   subroutine cmlAddMolecule_3_sp(xf, elements, x, y, z, atomRefs, occupancies, atomIds, style, fmt &
-,dictRef,convention,title,id,ref,formula,chirality,role)
+,dictRef,convention,title,id,ref,formula,chirality,role , &
+bondAtom1Refs, bondAtom2Refs, bondOrders, bondIds, nobondcheck)
     type(xmlf_t), intent(inout) :: xf
     real(kind=sp), intent(in)              :: x(:)
     real(kind=sp), intent(in)              :: y(:)
@@ -208,10 +248,29 @@ contains
 
 
 
+    character(len=*), intent(in), optional :: bondAtom1Refs(:)
+    character(len=*), intent(in), optional :: bondAtom2Refs(:)
+    character(len=*), intent(in), optional :: bondOrders(:)
+    character(len=*), intent(in), optional :: bondIds(:)
+    logical, intent(in), optional :: nobondcheck
+
 #ifndef DUMMYLIB
     call cmlStartMolecule(xf &
 ,dictRef,convention,title,id,ref,formula,chirality,role)
     call cmlAddAtoms(xf, elements, x, y, z, atomRefs, occupancies, atomIds, style, fmt)
+    if (present(bondAtom1Refs)) then
+      if (present(bondAtom2Refs).and.present(bondOrders)) then
+        if (present(atomIds)) then
+          call checkBondIdRefs(atomIds, bondAtom1Refs, bondAtom2Refs, nobondcheck)
+          call addBondArray(xf, bondAtom1Refs, bondAtom2Refs, bondOrders, bondIds)
+        else
+          call FoX_error("AtomIds must be provided to add bonds")
+        endif
+        call addBondArray(xf, bondAtom1Refs, bondAtom2Refs, bondOrders, bondIds)
+      else
+        call FoX_error("Two AtomRefs arrays and a bondOrder array must be provided to add bonds")
+      endif
+    endif
     call cmlEndMolecule(xf)
 #endif
 
@@ -219,7 +278,8 @@ contains
 
 
   subroutine cmlAddMolecule_3_sp_sh(xf, natoms, elements, x, y, z, atomRefs, occupancies, atomIds, style, fmt &
-,dictRef,convention,title,id,ref,formula,chirality,role)
+,dictRef,convention,title,id,ref,formula,chirality,role , &
+bondAtom1Refs, bondAtom2Refs, bondOrders, bondIds, nobondcheck)
     type(xmlf_t), intent(inout) :: xf
     integer, intent(in) :: natoms
     real(kind=sp), intent(in)              :: x(natoms)
@@ -243,10 +303,28 @@ contains
 
 
 
+    character(len=*), intent(in), optional :: bondAtom1Refs(:)
+    character(len=*), intent(in), optional :: bondAtom2Refs(:)
+    character(len=*), intent(in), optional :: bondOrders(:)
+    character(len=*), intent(in), optional :: bondIds(:)
+    logical, intent(in), optional :: nobondcheck
+
 #ifndef DUMMYLIB
     call cmlStartMolecule(xf &
 ,dictRef,convention,title,id,ref,formula,chirality,role)
     call cmlAddAtoms(xf, natoms, elements, x, y, z, atomRefs, occupancies, atomIds, style, fmt)
+    if (present(bondAtom1Refs)) then
+      if (present(bondAtom2Refs).and.present(bondOrders)) then
+        if (present(atomIds)) then
+          call checkBondIdRefs(atomIds, bondAtom1Refs, bondAtom2Refs, nobondcheck)
+          call addBondArray(xf, bondAtom1Refs, bondAtom2Refs, bondOrders, bondIds)
+        else
+          call FoX_error("AtomIds must be provided to add bonds")
+        endif
+      else
+        call FoX_error("Two AtomRefs arrays and a bondOrder array must be provided to add bonds")
+      endif
+    endif
     call cmlEndMolecule(xf)
 #endif
 
@@ -284,8 +362,8 @@ contains
       call xml_AddAttribute(xf, "elementType", trim(elements(i)))
       call cmlAddCoords(xf, coords=coords(:,i), style=style, fmt=fmt)
       if (present(occupancies)) call xml_AddAttribute(xf, "occupancy", occupancies(i))
-      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", atomRefs(i))
-      if (present(atomIds)) call xml_AddAttribute(xf, "id", atomIds(i))
+      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", trim(atomRefs(i)))
+      if (present(atomIds)) call xml_AddAttribute(xf, "id", trim(atomIds(i)))
       call xml_EndElement(xf, "atom")
      enddo
 
@@ -327,8 +405,8 @@ contains
       call xml_AddAttribute(xf, "elementType", trim(elements(i)))
       call cmlAddCoords(xf, coords=coords(:,i), style=style, fmt=fmt)
       if (present(occupancies)) call xml_AddAttribute(xf, "occupancy", occupancies(i))
-      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", atomRefs(i))
-      if (present(atomIds)) call xml_AddAttribute(xf, "id", atomIds(i))
+      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", trim(atomRefs(i)))
+      if (present(atomIds)) call xml_AddAttribute(xf, "id", trim(atomIds(i)))
       call xml_EndElement(xf, "atom")
      enddo
 
@@ -372,8 +450,8 @@ contains
       call xml_AddAttribute(xf, "elementType", trim(elements(i)))
       call cmlAddCoords(xf, coords=(/x(i),y(i),z(i)/), style=style, fmt=fmt)
       if (present(occupancies)) call xml_AddAttribute(xf, "occupancy", occupancies(i))
-      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", atomRefs(i))
-      if (present(atomIds)) call xml_AddAttribute(xf, "id", atomIds(i))
+      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", trim(atomRefs(i)))
+      if (present(atomIds)) call xml_AddAttribute(xf, "id", trim(atomIds(i)))
       call xml_EndElement(xf, "atom")
      enddo
 
@@ -418,8 +496,8 @@ contains
       call xml_AddAttribute(xf, "elementType", trim(elements(i)))
       call cmlAddCoords(xf, coords=(/x(i),y(i),z(i)/), style=style, fmt=fmt)
       if (present(occupancies)) call xml_AddAttribute(xf, "occupancy", occupancies(i))
-      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", atomRefs(i))
-      if (present(atomIds)) call xml_AddAttribute(xf, "id", atomIds(i))
+      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", trim(atomRefs(i)))
+      if (present(atomIds)) call xml_AddAttribute(xf, "id", trim(atomIds(i)))
       call xml_EndElement(xf, "atom")
      enddo
 
@@ -461,8 +539,8 @@ contains
       if (present(elements)) call xml_AddAttribute(xf, "elementType", trim(elements(i)))
       call cmlAddCoords(xf, coords=coords(:,i), style=style, fmt=fmt)
       if (present(occupancies)) call xml_AddAttribute(xf, "occupancy", occupancies(i))
-      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", atomRefs(i))
-      if (present(atomIds)) call xml_AddAttribute(xf, "id", atomIds(i))
+      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", trim(atomRefs(i)))
+      if (present(atomIds)) call xml_AddAttribute(xf, "id", trim(atomIds(i)))
       call xml_EndElement(xf, "particle")
      enddo
 
@@ -504,8 +582,8 @@ contains
       if (present(elements)) call xml_AddAttribute(xf, "elementType", trim(elements(i)))
       call cmlAddCoords(xf, coords=coords(:,i), style=style, fmt=fmt)
       if (present(occupancies)) call xml_AddAttribute(xf, "occupancy", occupancies(i))
-      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", atomRefs(i))
-      if (present(atomIds)) call xml_AddAttribute(xf, "id", atomIds(i))
+      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", trim(atomRefs(i)))
+      if (present(atomIds)) call xml_AddAttribute(xf, "id", trim(atomIds(i)))
       call xml_EndElement(xf, "particle")
      enddo
 
@@ -549,8 +627,8 @@ contains
       if (present(elements)) call xml_AddAttribute(xf, "elementType", trim(elements(i)))
       call cmlAddCoords(xf, coords=(/x(i),y(i),z(i)/), style=style, fmt=fmt)
       if (present(occupancies)) call xml_AddAttribute(xf, "occupancy", occupancies(i))
-      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", atomRefs(i))
-      if (present(atomIds)) call xml_AddAttribute(xf, "id", atomIds(i))
+      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", trim(atomRefs(i)))
+      if (present(atomIds)) call xml_AddAttribute(xf, "id", trim(atomIds(i)))
       call xml_EndElement(xf, "particle")
      enddo
 
@@ -595,8 +673,8 @@ contains
       if (present(elements)) call xml_AddAttribute(xf, "elementType", trim(elements(i)))
       call cmlAddCoords(xf, coords=(/x(i),y(i),z(i)/), style=style, fmt=fmt)
       if (present(occupancies)) call xml_AddAttribute(xf, "occupancy", occupancies(i))
-      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", atomRefs(i))
-      if (present(atomIds)) call xml_AddAttribute(xf, "id", atomIds(i))
+      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", trim(atomRefs(i)))
+      if (present(atomIds)) call xml_AddAttribute(xf, "id", trim(atomIds(i)))
       call xml_EndElement(xf, "particle")
      enddo
 
@@ -751,12 +829,14 @@ contains
     enddo
     call xml_EndElement(xf, "matrix")
   end subroutine addDlpolyMatrix_3_sp
+
 #endif
 
 
 
   subroutine cmlAddMoleculedp(xf, elements, atomRefs, coords, occupancies, atomIds, style, fmt &
-,dictRef,convention,title,id,ref,formula,chirality,role)
+,dictRef,convention,title,id,ref,formula,chirality,role , &
+bondAtom1Refs, bondAtom2Refs, bondOrders, bondIds, nobondcheck)
     type(xmlf_t), intent(inout) :: xf
     real(kind=dp), intent(in)              :: coords(:, :)
     character(len=*), intent(in)           :: elements(:)
@@ -777,20 +857,39 @@ contains
 
 
 
+    character(len=*), intent(in), optional :: bondAtom1Refs(:)
+    character(len=*), intent(in), optional :: bondAtom2Refs(:)
+    character(len=*), intent(in), optional :: bondOrders(:)
+    character(len=*), intent(in), optional :: bondIds(:)
+    logical, intent(in), optional          :: nobondcheck
+
 #ifndef DUMMYLIB
 
     call cmlStartMolecule(xf &
 ,dictRef,convention,title,id,ref,formula,chirality,role)
     call cmlAddAtoms(xf, elements, atomRefs, coords, occupancies, atomIds, style, fmt)
+    if (present(bondAtom1Refs)) then
+      if (present(bondAtom2Refs).and.present(bondOrders)) then
+        if (present(atomIds)) then
+          call checkBondIdRefs(atomIds, bondAtom1Refs, bondAtom2Refs, nobondcheck)
+          call addBondArray(xf, bondAtom1Refs, bondAtom2Refs, bondOrders, bondIds)
+        else
+          call FoX_error("AtomIds must be provided to add bonds")
+        endif
+      else
+        call FoX_error("Two AtomRefs arrays and a bondOrder array must be provided to add bonds")
+      endif
+    endif
     call cmlEndMolecule(xf)
 
-#endif DUMMYLIB
+#endif
 
   end subroutine cmlAddMoleculedp
 
 
   subroutine cmlAddMoleculedp_sh(xf, natoms, elements, atomRefs, coords, occupancies, atomIds, style, fmt &
-,dictRef,convention,title,id,ref,formula,chirality,role)
+,dictRef,convention,title,id,ref,formula,chirality,role , &
+bondAtom1Refs, bondAtom2Refs, bondOrders, bondIds, nobondcheck)
     type(xmlf_t), intent(inout) :: xf
     integer, intent(in) :: natoms
     real(kind=dp), intent(in)              :: coords(3, natoms)
@@ -812,10 +911,29 @@ contains
 
 
 
+    character(len=*), intent(in), optional :: bondAtom1Refs(:)
+    character(len=*), intent(in), optional :: bondAtom2Refs(:)
+    character(len=*), intent(in), optional :: bondOrders(:)
+    character(len=*), intent(in), optional :: bondIds(:)
+    logical, intent(in), optional :: nobondcheck
+
 #ifndef DUMMYLIB
     call cmlStartMolecule(xf &
 ,dictRef,convention,title,id,ref,formula,chirality,role)
     call cmlAddAtoms(xf, natoms, elements, atomRefs, coords, occupancies, atomIds, style, fmt)
+    if (present(bondAtom1Refs)) then
+      if (present(bondAtom2Refs).and.present(bondOrders)) then
+        if (present(atomIds)) then
+          call checkBondIdRefs(atomIds, bondAtom1Refs, bondAtom2Refs, nobondcheck)
+          call addBondArray(xf, bondAtom1Refs, bondAtom2Refs, bondOrders, bondIds)
+        else
+          call FoX_error("AtomIds must be provided to add bonds")
+        endif
+        call addBondArray(xf, bondAtom1Refs, bondAtom2Refs, bondOrders, bondIds)
+      else
+        call FoX_error("Two AtomRefs arrays and a bondOrder array must be provided to add bonds")
+      endif
+    endif
     call cmlEndMolecule(xf)
 #endif
 
@@ -823,7 +941,8 @@ contains
 
 
   subroutine cmlAddMolecule_3_dp(xf, elements, x, y, z, atomRefs, occupancies, atomIds, style, fmt &
-,dictRef,convention,title,id,ref,formula,chirality,role)
+,dictRef,convention,title,id,ref,formula,chirality,role , &
+bondAtom1Refs, bondAtom2Refs, bondOrders, bondIds, nobondcheck)
     type(xmlf_t), intent(inout) :: xf
     real(kind=dp), intent(in)              :: x(:)
     real(kind=dp), intent(in)              :: y(:)
@@ -846,10 +965,29 @@ contains
 
 
 
+    character(len=*), intent(in), optional :: bondAtom1Refs(:)
+    character(len=*), intent(in), optional :: bondAtom2Refs(:)
+    character(len=*), intent(in), optional :: bondOrders(:)
+    character(len=*), intent(in), optional :: bondIds(:)
+    logical, intent(in), optional :: nobondcheck
+
 #ifndef DUMMYLIB
     call cmlStartMolecule(xf &
 ,dictRef,convention,title,id,ref,formula,chirality,role)
     call cmlAddAtoms(xf, elements, x, y, z, atomRefs, occupancies, atomIds, style, fmt)
+    if (present(bondAtom1Refs)) then
+      if (present(bondAtom2Refs).and.present(bondOrders)) then
+        if (present(atomIds)) then
+          call checkBondIdRefs(atomIds, bondAtom1Refs, bondAtom2Refs, nobondcheck)
+          call addBondArray(xf, bondAtom1Refs, bondAtom2Refs, bondOrders, bondIds)
+        else
+          call FoX_error("AtomIds must be provided to add bonds")
+        endif
+        call addBondArray(xf, bondAtom1Refs, bondAtom2Refs, bondOrders, bondIds)
+      else
+        call FoX_error("Two AtomRefs arrays and a bondOrder array must be provided to add bonds")
+      endif
+    endif
     call cmlEndMolecule(xf)
 #endif
 
@@ -857,7 +995,8 @@ contains
 
 
   subroutine cmlAddMolecule_3_dp_sh(xf, natoms, elements, x, y, z, atomRefs, occupancies, atomIds, style, fmt &
-,dictRef,convention,title,id,ref,formula,chirality,role)
+,dictRef,convention,title,id,ref,formula,chirality,role , &
+bondAtom1Refs, bondAtom2Refs, bondOrders, bondIds, nobondcheck)
     type(xmlf_t), intent(inout) :: xf
     integer, intent(in) :: natoms
     real(kind=dp), intent(in)              :: x(natoms)
@@ -881,10 +1020,28 @@ contains
 
 
 
+    character(len=*), intent(in), optional :: bondAtom1Refs(:)
+    character(len=*), intent(in), optional :: bondAtom2Refs(:)
+    character(len=*), intent(in), optional :: bondOrders(:)
+    character(len=*), intent(in), optional :: bondIds(:)
+    logical, intent(in), optional :: nobondcheck
+
 #ifndef DUMMYLIB
     call cmlStartMolecule(xf &
 ,dictRef,convention,title,id,ref,formula,chirality,role)
     call cmlAddAtoms(xf, natoms, elements, x, y, z, atomRefs, occupancies, atomIds, style, fmt)
+    if (present(bondAtom1Refs)) then
+      if (present(bondAtom2Refs).and.present(bondOrders)) then
+        if (present(atomIds)) then
+          call checkBondIdRefs(atomIds, bondAtom1Refs, bondAtom2Refs, nobondcheck)
+          call addBondArray(xf, bondAtom1Refs, bondAtom2Refs, bondOrders, bondIds)
+        else
+          call FoX_error("AtomIds must be provided to add bonds")
+        endif
+      else
+        call FoX_error("Two AtomRefs arrays and a bondOrder array must be provided to add bonds")
+      endif
+    endif
     call cmlEndMolecule(xf)
 #endif
 
@@ -922,8 +1079,8 @@ contains
       call xml_AddAttribute(xf, "elementType", trim(elements(i)))
       call cmlAddCoords(xf, coords=coords(:,i), style=style, fmt=fmt)
       if (present(occupancies)) call xml_AddAttribute(xf, "occupancy", occupancies(i))
-      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", atomRefs(i))
-      if (present(atomIds)) call xml_AddAttribute(xf, "id", atomIds(i))
+      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", trim(atomRefs(i)))
+      if (present(atomIds)) call xml_AddAttribute(xf, "id", trim(atomIds(i)))
       call xml_EndElement(xf, "atom")
      enddo
 
@@ -965,8 +1122,8 @@ contains
       call xml_AddAttribute(xf, "elementType", trim(elements(i)))
       call cmlAddCoords(xf, coords=coords(:,i), style=style, fmt=fmt)
       if (present(occupancies)) call xml_AddAttribute(xf, "occupancy", occupancies(i))
-      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", atomRefs(i))
-      if (present(atomIds)) call xml_AddAttribute(xf, "id", atomIds(i))
+      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", trim(atomRefs(i)))
+      if (present(atomIds)) call xml_AddAttribute(xf, "id", trim(atomIds(i)))
       call xml_EndElement(xf, "atom")
      enddo
 
@@ -1010,8 +1167,8 @@ contains
       call xml_AddAttribute(xf, "elementType", trim(elements(i)))
       call cmlAddCoords(xf, coords=(/x(i),y(i),z(i)/), style=style, fmt=fmt)
       if (present(occupancies)) call xml_AddAttribute(xf, "occupancy", occupancies(i))
-      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", atomRefs(i))
-      if (present(atomIds)) call xml_AddAttribute(xf, "id", atomIds(i))
+      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", trim(atomRefs(i)))
+      if (present(atomIds)) call xml_AddAttribute(xf, "id", trim(atomIds(i)))
       call xml_EndElement(xf, "atom")
      enddo
 
@@ -1056,8 +1213,8 @@ contains
       call xml_AddAttribute(xf, "elementType", trim(elements(i)))
       call cmlAddCoords(xf, coords=(/x(i),y(i),z(i)/), style=style, fmt=fmt)
       if (present(occupancies)) call xml_AddAttribute(xf, "occupancy", occupancies(i))
-      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", atomRefs(i))
-      if (present(atomIds)) call xml_AddAttribute(xf, "id", atomIds(i))
+      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", trim(atomRefs(i)))
+      if (present(atomIds)) call xml_AddAttribute(xf, "id", trim(atomIds(i)))
       call xml_EndElement(xf, "atom")
      enddo
 
@@ -1099,8 +1256,8 @@ contains
       if (present(elements)) call xml_AddAttribute(xf, "elementType", trim(elements(i)))
       call cmlAddCoords(xf, coords=coords(:,i), style=style, fmt=fmt)
       if (present(occupancies)) call xml_AddAttribute(xf, "occupancy", occupancies(i))
-      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", atomRefs(i))
-      if (present(atomIds)) call xml_AddAttribute(xf, "id", atomIds(i))
+      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", trim(atomRefs(i)))
+      if (present(atomIds)) call xml_AddAttribute(xf, "id", trim(atomIds(i)))
       call xml_EndElement(xf, "particle")
      enddo
 
@@ -1142,8 +1299,8 @@ contains
       if (present(elements)) call xml_AddAttribute(xf, "elementType", trim(elements(i)))
       call cmlAddCoords(xf, coords=coords(:,i), style=style, fmt=fmt)
       if (present(occupancies)) call xml_AddAttribute(xf, "occupancy", occupancies(i))
-      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", atomRefs(i))
-      if (present(atomIds)) call xml_AddAttribute(xf, "id", atomIds(i))
+      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", trim(atomRefs(i)))
+      if (present(atomIds)) call xml_AddAttribute(xf, "id", trim(atomIds(i)))
       call xml_EndElement(xf, "particle")
      enddo
 
@@ -1187,8 +1344,8 @@ contains
       if (present(elements)) call xml_AddAttribute(xf, "elementType", trim(elements(i)))
       call cmlAddCoords(xf, coords=(/x(i),y(i),z(i)/), style=style, fmt=fmt)
       if (present(occupancies)) call xml_AddAttribute(xf, "occupancy", occupancies(i))
-      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", atomRefs(i))
-      if (present(atomIds)) call xml_AddAttribute(xf, "id", atomIds(i))
+      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", trim(atomRefs(i)))
+      if (present(atomIds)) call xml_AddAttribute(xf, "id", trim(atomIds(i)))
       call xml_EndElement(xf, "particle")
      enddo
 
@@ -1233,8 +1390,8 @@ contains
       if (present(elements)) call xml_AddAttribute(xf, "elementType", trim(elements(i)))
       call cmlAddCoords(xf, coords=(/x(i),y(i),z(i)/), style=style, fmt=fmt)
       if (present(occupancies)) call xml_AddAttribute(xf, "occupancy", occupancies(i))
-      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", atomRefs(i))
-      if (present(atomIds)) call xml_AddAttribute(xf, "id", atomIds(i))
+      if (present(atomRefs)) call xml_AddAttribute(xf, "ref", trim(atomRefs(i)))
+      if (present(atomIds)) call xml_AddAttribute(xf, "id", trim(atomIds(i)))
       call xml_EndElement(xf, "particle")
      enddo
 
@@ -1389,8 +1546,101 @@ contains
     enddo
     call xml_EndElement(xf, "matrix")
   end subroutine addDlpolyMatrix_3_dp
+
 #endif
 
 
+
+#ifndef DUMMYLIB
+  subroutine addBondArray(xf, atom1Refs, atom2Refs, orders, bondIds)
+    type(xmlf_t), intent(inout)            :: xf
+    character(len=*), intent(in)           :: atom1Refs(:)
+    character(len=*), intent(in)           :: atom2Refs(:)
+    character(len=*), intent(in)           :: orders(:)
+    character(len=*), intent(in), optional :: bondIds(:)
+    integer                                :: nbonds
+    integer                                :: i
+
+    nbonds = size(atom1Refs)
+    ! Basic argument verification
+    if (size(atom2Refs).ne.nbonds) &
+      call FoX_error("Length of atomRef arrays must match in WCML addBondArray")
+    if (size(orders).ne.nbonds) &
+      call FoX_error("Length of atomRef and order arrays must match in WCML addBondArray")
+    if (present(bondIds)) then
+      if (size(bondIds).ne.nbonds) &
+        call FoX_error("Length of atomRef and bondId arrays must match in WCML addBondArray")
+    endif
+
+    ! Add the bond array
+    call xml_NewElement(xf, "bondArray")
+       do i = 1, nbonds
+         call xml_NewElement(xf, "bond")
+             call xml_AddAttribute(xf, "atomRefs2", trim(atom1Refs(i))//" "//trim(atom2Refs(i)))
+             call xml_AddAttribute(xf, "order", orders(i))
+             if (present(bondIds)) & 
+               call xml_AddAttribute(xf, "id", trim(bondIds(i))) 
+         call xml_EndElement(xf, "bond")
+       enddo 
+    call xml_EndElement(xf, "bondArray")
+
+  end subroutine addBondArray
+
+  subroutine checkBondIdRefs(atomArrayIds, bondAtom1Refs, bondAtom2Refs, nobondcheck)
+    character(len=*), intent(in)           :: atomArrayIds(:)
+    character(len=*), intent(in)           :: bondAtom1Refs(:)
+    character(len=*), intent(in)           :: bondAtom2Refs(:)
+    logical, intent(in), optional          :: nobondcheck
+    logical                                :: bondmatrix(size(atomArrayIds),size(atomArrayIds))
+    integer                                :: nbonds
+    integer                                :: natoms
+    integer                                :: i
+    integer                                :: j
+    logical                                :: bond1OK
+    logical                                :: bond2OK
+    integer                                :: atom1num
+    integer                                :: atom2num
+
+    if (present(nobondcheck)) then
+      if (nobondcheck) return ! skip all checks
+    endif
+
+    atom1num = -1 ! Supress bogus gfortran warning
+    atom2num = -1
+    bondmatrix = .false.
+    natoms = size(atomArrayIds)
+    nbonds = size(bondAtom1Refs)
+    if (size(bondAtom2Refs).ne.nbonds) &
+      call FoX_error("Length of atomRef arrays must match in WCML checkBondIdRefs")
+
+    do i = 1, nbonds
+      if (trim(bondAtom1Refs(i)).eq.trim(bondAtom2Refs(i))) &
+        call FoX_error("The two atomRefs in a bond must be different")
+      bond1OK = .false.
+      bond2OK = .false.
+      do j = 1, natoms
+        if (trim(bondAtom1Refs(i)).eq.trim(atomArrayIds(j))) &
+          bond1OK = .true.
+          atom1num = j
+        if (trim(bondAtom2Refs(i)).eq.trim(atomArrayIds(j))) &
+          bond2OK = .true.
+          atom2num = j
+        if (bond1OK.and.bond2OK) exit
+      enddo
+      if (.not.bond1OK) call FoX_error(bondAtom1Refs(i) // " not found in checkBondIdRefs")
+      if (.not.bond2OK) call FoX_error(bondAtom2Refs(i) // " not found in checkBondIdRefs")
+      ! Both atoms bust have been found to get here...
+      if (bondmatrix(atom1num,atom2num)) then
+        ! Seen this bond before
+        call FoX_error("A bond cannot be added twice.")
+      else
+        ! We've seen this bond (both ways) - so don't forget
+        bondmatrix(atom1num,atom2num) = .true.
+        bondmatrix(atom2num,atom1num) = .true.
+      endif
+    enddo
+
+  end subroutine checkBondIdRefs
+#endif
 
 end module m_wcml_molecule

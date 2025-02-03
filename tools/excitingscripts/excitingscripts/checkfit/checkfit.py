@@ -15,6 +15,12 @@ from excitingscripts.utils.utils import sort_lists_by_first_list
 warnings.filterwarnings("error")
 invcm2hz = physical_constants["hertz-inverse meter relationship"][0] / 100
 
+try:
+    # Check if np.RankWarning exists directly
+    numpy_RankWarning = np.RankWarning
+except AttributeError:
+    # If not, fall back to np.exceptions.RankWarning
+    numpy_RankWarning = np.exceptions.RankWarning
 
 def arg_parser(quantity: str) -> ArgumentParser:
     """Get the arg parser for checkfit scripts.
@@ -49,7 +55,7 @@ def fit(order: int, x: List[float], y: List[float], order_of_derivative: int) ->
     """
     try:
         fit_coefficient = np.polyfit(x, y, order)
-    except np.RankWarning:
+    except numpy_RankWarning:
         return None
     return math.factorial(order_of_derivative) * fit_coefficient[order - order_of_derivative]
 

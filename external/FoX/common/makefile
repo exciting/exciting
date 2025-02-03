@@ -16,6 +16,8 @@ INCFLAGS=$(MOD_PREFIX)../objs/finclude
 #
 include ../arch.make
 
+.m4.F90:
+	m4 -I ../m4 $< > $@
 
 # Uncomment one of the following lines for debugging/profiling support
 #
@@ -33,7 +35,7 @@ install: $(OBJFILES)
       	    $(CP) $$i $(MOD_DIR); done
 #
 check:
-	(cd test; make) | tee -a ../check.out
+	(cd test; make) | tee -a ../common_lib_check.out
 #
 clean:
 	rm -f *.$(OBJEXT)  *.$(MOD_EXT) $(LIBRARY)

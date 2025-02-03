@@ -21,7 +21,7 @@ def run_exciting(root_directory: str=os.getcwd(),
             "EXCITINGROOT is not defined as an environment variable in the shell.\n"
             "If using bash please type: `export EXCITINGROOT=<path-to-exciting_smp>`")
 
-    binary = pathlib.Path(excitingroot) / "bin/exciting_smp"
+    binary = pathlib.Path(excitingroot) / "install/bin/exciting_smp"
     n_threads = os.cpu_count()
     n_threads = 4 if n_threads is None else n_threads
     runner = BinaryRunner(binary, omp_num_threads=n_threads, time_out=timeout, directory=root_directory, args=[filename])

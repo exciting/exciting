@@ -896,10 +896,6 @@ contains
     ref(:, 5) = [9, 9, 1]
 
     deg = get_degeneracies( eval, tol )
-    
-    do i = 1, size(deg, 2)
-        write(*,*) i, deg(:,i)
-    end do
 
     call test_report%assert( all( shape(deg) == shape(ref) ), &
       'Shape does not match reference shape.' )

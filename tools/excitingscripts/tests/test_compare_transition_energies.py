@@ -1,5 +1,6 @@
 import sys; print(sys.executable)
 
+import numpy as np
 import pytest
 from excitingscripts.compare_transition_energies import determine_transition_energies
 from excitingtools.utils.test_utils import MockFile
@@ -41,4 +42,5 @@ def eigval_xml_mock(tmp_path) -> MockFile:
     return MockFile(eigval_xml_file, eigval_xml_str)
 
 def test_determine_transition_energies(eigval_xml_mock, tmp_path):
-    assert determine_transition_energies(root_directory=tmp_path) == (7.121367508015419, 6.120261919200727)
+    assert np.allclose( np.array(determine_transition_energies(root_directory=tmp_path)), 
+                        np.array([7.121367508015419, 6.120261919200727]))

@@ -35,8 +35,7 @@ Contains
             sclDoc => createDocument (getImplementation(), "", "info", &
            & null())
             configo => getDomConfig (sclDoc)
-            Call setParameter (getDomConfig(sclDoc), "format-pretty-pri&
-           &nt", .True.)
+            Call setParameter (getDomConfig(sclDoc), "invalid-pretty-print", .True.)
             root => getDocumentElement (sclDoc)
             xst => createProcessingInstruction (sclDoc, "xml-stylesheet&
            &", 'href="'//trim(input%xsltpath)//'/info.xsl" type="text/x&

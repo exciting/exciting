@@ -2,6 +2,8 @@
 add_subdirectory(control)
 add_subdirectory(linalg)
 add_subdirectory(fft)
+add_subdirectory(memory)
+add_subdirectory(macros)
 
 # Compile
 message(STATUS "FILES: ${SRC}")
@@ -17,7 +19,7 @@ add_library(deviceacc_objects OBJECT ${SRC})
 if(NOT CPUBACKEND)
     # Add symbols to the static library so we only need to link against it and not its dependencies
     if (NVIDIA)
-        add_library(deviceacc STATIC $<TARGET_OBJECTS:deviceacc_objects>)
+	add_library(deviceacc STATIC $<TARGET_OBJECTS:deviceacc_objects>)
         set(LINKS ${devacc_link_libs} ${MAGMA_DIR}/lib/libmagma.so CUDA::cufft CUDA::cudart)
     elseif(AMD)
         add_library(deviceacc STATIC $<TARGET_OBJECTS:deviceacc_objects>)
@@ -38,9 +40,13 @@ if(NOT CPUBACKEND)
     endif()
 
 else()
+    add_library(deviceacc STATIC $<TARGET_OBJECTS:deviceacc_objects>)
     set(LINKS ${devacc_link_libs})
     target_link_libraries(deviceacc PUBLIC ${LINKS})
 endif()
+
+set_property(TARGET deviceacc_objects PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
+set_property(TARGET deviceacc PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
 
 install(DIRECTORY ${MOD_DIR}
         DESTINATION ${INSTALL_DIR}
@@ -51,5 +57,5 @@ install(DIRECTORY ${MOD_DIR}
                          GROUP_READ
                          WORLD_READ
         )
-
+install(FILES ${MACROS} DESTINATION ${INSTALL_DIR}/include/)
 install(TARGETS deviceacc DESTINATION ${INSTALL_DIR}/lib)

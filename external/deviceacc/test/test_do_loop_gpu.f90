@@ -21,8 +21,9 @@ program test_do_loop_gpu
    use iso_fortran_env,         only: i32=>int32, r32=> real32, r64=>real64
    use iso_c_binding
    use m_device_world_t,        only: device_world_t
+#if defined(DEVICEOFFLOAD)
    use mpi
-
+#endif
    implicit none
 
    integer(i32), parameter :: n = 6000
@@ -33,9 +34,11 @@ program test_do_loop_gpu
    real(r32)               :: rdiff
    real(r32), parameter    :: tolerance = 1.0e-06_r64
 
+#if defined(DEVICEOFFLOAD)
    ! Init MPI world
    call mpi_init(err)
    mpi_world = MPI_COMM_WORLD
+#endif
 
    ! Init GPU stuff
     call device_world%init(mpi_world)
@@ -67,7 +70,9 @@ program test_do_loop_gpu
       stop 1
    end if
 
+#if defined(DEVICEOFFLOAD)
    call mpi_finalize(err)
+#endif
 
 contains
 

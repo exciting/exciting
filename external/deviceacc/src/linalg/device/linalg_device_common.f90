@@ -36,6 +36,12 @@ module device_linalg_common_interface
 
     implicit none
 
+    private 
+    public :: cgemm_gpu, cdotc_gpu, cdotu_gpu, cgetrf_gpu, cgetri_gpu, get_cgetri_nb_gpu, &
+              zgemm_gpu, zdotc_gpu, zdotu_gpu, zgetrf_gpu, zgetri_gpu, get_zgetri_nb_gpu, &
+              caxpy_gpu, zaxpy_gpu
+              
+
 contains
 
     !!!!!!!!!!!!!!!  SINGLE PRECISION !!!!!!!!!!!!!!
@@ -51,7 +57,7 @@ contains
     subroutine cgetrf_gpu(m, n, dA, lda, ipiv, info, world)
         integer(i32), intent(in)                        :: m
         integer(i32), intent(in)                        :: n
-        type(C_ptr),  intent(inout)                     :: dA
+        type(C_ptr),  value                             :: dA
         integer(i32), intent(in)                        :: lda
         integer(i32), contiguous, target, intent(inout) :: ipiv(:)
         integer(i32), intent(out)                       :: info
@@ -69,8 +75,9 @@ contains
         call c_f_pointer(dA, A, [lda,n])
 
         !$omp target data map(tofrom: info, ipiv)
-        !$omp dispatch
+        !$omp target variant dispatch use_device_ptr(A)
         call cgetrf(m, n, A, lda, ipiv, info)
+        !$omp end target variant dispatch
         !$omp end target data
 
         nullify(A)
@@ -86,11 +93,11 @@ contains
     !> @param[in,out] world - the device-host handler
     subroutine cgetri_gpu(n, dA, lda, ipiv, dwork, lwork, info, world)
         integer(i32), intent(in)                        :: n
-        type(C_ptr),  intent(inout)                     :: dA
+        type(C_ptr),  value                             :: dA
         integer(i32), intent(in)                        :: lda
         integer(i32), contiguous, target, intent(inout) :: ipiv(:)
         integer(i32), intent(out)                       :: info
-        type(C_ptr),  intent(inout)                     :: dwork
+        type(C_ptr),  value                             :: dwork
         integer(i32), intent(in)                        :: lwork
         type(device_world_t), intent(inout)             :: world
 
@@ -105,8 +112,9 @@ contains
         call c_f_pointer(dwork, work, [lwork])
 
         !$omp target data map(tofrom: info, ipiv)
-        !$omp dispatch
+        !$omp target variant dispatch use_device_ptr(A)
         call cgetri(n, A, lda, ipiv, work, lwork, info)
+        !$omp end target variant dispatch
         !$omp end target data
 
         nullify(A, work)
@@ -152,12 +160,12 @@ contains
         integer(i32), intent(in)      :: n
         integer(i32), intent(in)      :: k
         complex(r32), intent(in)      :: alpha
-        type(c_ptr),  intent(in)      :: da
+        type(c_ptr),  value           :: da
         integer(i32), intent(in)      :: lda
-        type(c_ptr),  intent(in)      :: db
+        type(c_ptr),  value           :: db
         integer(i32), intent(in)      :: ldb
         complex(r32), intent(in)      :: beta
-        type(c_ptr),  intent(inout)   :: dc
+        type(c_ptr),  value           :: dc
         integer(i32), intent(in)      :: ldc
         type(device_world_t), intent(in) :: world
 
@@ -192,15 +200,115 @@ contains
         call c_f_pointer(db, B, [ldb,kb])
         call c_f_pointer(dc, C, [ldc,n])
 
-        !$omp target data
-        !$omp dispatch
+        !$omp target variant dispatch use_device_ptr(A,B,C)
         call cgemm(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc)
-        !$omp end target data
+        !$omp end target variant dispatch
 
         nullify(A, B, C)
 
 #endif
     end subroutine cgemm_gpu
+
+    !> Complex single precision dot product (unconjugated) of vectors x and y; \( x^T y \).
+    !> @param[in] n - number of elements in vector x and y
+    !> @param[in] dx - C-pointer to the x vector. Device pointer
+    !> @param[in] incx - Stride between consecutive elements of dx
+    !> @param[in] dy - C-pointer to the y vector. Device pointer
+    !> @param[in] incy - Stride between consecutive elements of dy
+    !> @param[in,out] world - device-host handler.
+    complex(r32) function cdotu_gpu(n, dx, incx, dy, incy, world)
+        integer(i32), intent(in)            :: n
+        type(c_ptr),  value                 :: dx
+        integer(i32), intent(in)            :: incx
+        type(c_ptr),  value                 :: dy
+        integer(i32), intent(in)            :: incy
+        type(device_world_t), intent(inout) :: world
+ 
+#if defined(NVIDIAGPU) || defined(AMDGPU)
+        cdotu_gpu = magma_cdotu(n, dx, incx, dy, incy, world%get_queue())
+#endif
+#if defined(INTELGPU)
+        complex(r32), pointer :: x(:), y(:)
+        call c_f_pointer(dx, x, [n])
+        call c_f_pointer(dy, y, [n])
+        !$omp target data
+        !$omp target variant dispatch
+        cdotu_gpu = cdotu(n, x, incx, y, incy)
+        !$omp end target variant dispatch
+        !$omp end target data
+        nullify(x, y)
+#endif 
+    end function cdotu_gpu
+
+    !> Complex single precision dot product (conjugated) of vectors x and y; \( x^H y \).
+    !> @param[in] n - number of elements in vector x and y
+    !> @param[in] dx - C-pointer to the x vector. Device pointer
+    !> @param[in] incx - Stride between consecutive elements of dx
+    !> @param[in] dy - C-pointer to the y vector. Device pointer
+    !> @param[in] incy - Stride between consecutive elements of dy
+    !> @param[in,out] world - device-host handler.
+    complex(r32) function cdotc_gpu(n, dx, incx, dy, incy, world)
+        integer(i32), intent(in)            :: n
+        type(c_ptr),  value                 :: dx
+        integer(i32), intent(in)            :: incx
+        type(c_ptr),  value                 :: dy
+        integer(i32), intent(in)            :: incy
+        type(device_world_t), intent(inout) :: world
+        
+#if defined(NVIDIAGPU) || defined(AMDGPU)
+        cdotc_gpu = magma_cdotc(n, dx, incx, dy, incy, world%get_queue())
+#endif
+#if defined(INTELGPU)
+        complex(r32), pointer :: x(:), y(:)
+        call c_f_pointer(dx, x, [n])
+        call c_f_pointer(dy, y, [n])
+        
+        !$omp target variant dispatch use_device_ptr(x,y)
+        cdotc_gpu = cdotc(n, x, incx, y, incy)
+        !$omp end target variant dispatch
+        
+        nullify(x, y)
+#endif 
+    end function cdotc_gpu
+
+    !> Complex single precision constant times a vector plus a vector; \( y = \alpha x + y \). 
+    !> @param[in]	n	- Number of elements in vectors x and y. n >= 0.
+    !> @param[in]	alpha	- Scalar \( \alpha \)
+    !> @param[in]	dx	- Device pointer to x. The n element vector x of dimension (1 + (n-1)*incx).
+    !> @param[in]	incx	- Stride between consecutive elements of dx. incx != 0.
+    !> @param[in,out]	dy	- Device pointer to y. The n element vector y of dimension (1 + (n-1)*incy).
+    !> @param[in]	incy	- Stride between consecutive elements of dy. incy != 0.
+    !> @param[in,out]   world	- the device-host handler
+    subroutine caxpy_gpu(n, alpha, dx, incx, dy, incy, world)
+        integer(i32), intent(in)                        :: n
+        complex(r32), intent(in)                        :: alpha
+        type(C_ptr),  value                             :: dx
+        integer(i32), intent(in)                        :: incx
+        type(C_ptr),  value                             :: dy
+        integer(i32), intent(in)                        :: incy
+        type(device_world_t), intent(inout)             :: world
+
+#if defined(NVIDIAGPU) || defined(AMDGPU)
+        call magma_caxpy(n, alpha, dx, incx, dy, incy, world%get_queue())
+#endif
+#if defined(INTELGPU)
+
+        complex(r32), pointer :: x(:), y(:)
+
+        call c_f_pointer(dx, x, [1 + (n-1)*incx])
+        call c_f_pointer(dy, y, [1 + (n-1)*incy])
+
+        !$omp target variant dispatch use_device_ptr(x,y)
+        call caxpy(n, alpha, x, incx, y, incy)
+        !$omp end target variant dispatch
+
+        nullify(x,y)
+
+#endif 
+
+    end subroutine caxpy_gpu
+
+    !!!!!!!!!!!!!!!  DOUBLE PRECISION !!!!!!!!!!!!!!
 
     !> Complex double precision LU decomposition.
     !> @param[in] m - The number of rows of the matrix A
@@ -213,11 +321,11 @@ contains
     subroutine zgetrf_gpu(m, n, dA, lda, ipiv, info, world)
         integer(i32), intent(in)                        :: m
         integer(i32), intent(in)                        :: n
-        type(C_ptr),  intent(inout)                     :: dA
+        type(C_ptr),  value                             :: dA
         integer(i32), intent(in)                        :: lda
         integer(i32), contiguous, target, intent(inout) :: ipiv(:)
         integer(i32), intent(out)                       :: info
-        type(device_world_t), intent(inout)                :: world
+        type(device_world_t), intent(inout)             :: world
 
 #if defined(NVIDIAGPU) || defined(AMDGPU)
         call magma_zgetrf_gpu(m, n, dA, lda, ipiv, info)
@@ -230,8 +338,9 @@ contains
         call c_f_pointer(dA, A, [lda,n])
 
         !$omp target data map(tofrom: info, ipiv)
-        !$omp dispatch
+        !$omp target variant dispatch use_device_ptr(A)
         call zgetrf(m, n, A, lda, ipiv, info)
+        !$omp end target variant dispatch
         !$omp end target data
 
         nullify(A)
@@ -247,11 +356,11 @@ contains
     !> @param[in,out] world - the device-host handler
     subroutine zgetri_gpu(n, dA, lda, ipiv, dwork, lwork, info, world)
         integer(i32), intent(in)                        :: n
-        type(C_ptr),  intent(inout)                     :: dA
+        type(C_ptr),  value                             :: dA
         integer(i32), intent(in)                        :: lda
         integer(i32), contiguous, target, intent(inout) :: ipiv(:)
         integer(i32), intent(out)                       :: info
-        type(C_ptr),  intent(inout)                     :: dwork
+        type(C_ptr),  value                             :: dwork
         integer(i32), intent(in)                        :: lwork
         type(device_world_t), intent(inout)             :: world
 
@@ -265,8 +374,9 @@ contains
         call c_f_pointer(dwork, work, [lwork])
 
         !$omp target data map(tofrom: info, ipiv)
-        !$omp dispatch
+        !$omp target variant dispatch use_device_ptr(A)
         call zgetri(n, A, lda, ipiv, work, lwork, info)
+        !$omp end target variant dispatch
         !$omp end target data
 
         nullify(A, work)
@@ -312,12 +422,12 @@ contains
         integer(i32), intent(in)         :: n
         integer(i32), intent(in)         :: k
         complex(r64), intent(in)         :: alpha
-        type(c_ptr),  intent(inout)      :: da
+        type(c_ptr),  value              :: da
         integer(i32), intent(in)         :: lda
-        type(c_ptr),  intent(inout)      :: db
+        type(c_ptr),  value              :: db
         integer(i32), intent(in)         :: ldb
         complex(r64), intent(in)         :: beta
-        type(c_ptr),  intent(inout)      :: dc
+        type(c_ptr),  value              :: dc
         integer(i32), intent(in)         :: ldc
         type(device_world_t), intent(in) :: world
 
@@ -352,14 +462,112 @@ contains
         call c_f_pointer(db, B, [ldb,kb])
         call c_f_pointer(dc, C, [ldc,n])
 
-        !$omp target data
-        !$omp dispatch
+        !$omp target variant dispatch use_device_ptr(a,b,c) 
         call zgemm(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc)
-        !$omp end target data
+        !$omp end target variant dispatch
 
         nullify(A, B, C)
 
 #endif
     end subroutine zgemm_gpu
+
+    !> Complex double precision dot product (unconjugated) of vectors x and y; \( x^T y \).
+    !> @param[in] n - number of elements in vector x and y
+    !> @param[in] dx - C-pointer to the x vector. Device pointer
+    !> @param[in] incx - Stride between consecutive elements of dx
+    !> @param[in] dy - C-pointer to the y vector. Device pointer
+    !> @param[in] incy - Stride between consecutive elements of dy
+    !> @param[in,out] world - device-host handler.
+    complex(r64) function zdotu_gpu(n, dx, incx, dy, incy, world)
+        integer(i32), intent(in)            :: n
+        type(c_ptr),  value                 :: dx
+        integer(i32), intent(in)            :: incx
+        type(c_ptr),  value                 :: dy
+        integer(i32), intent(in)            :: incy
+        type(device_world_t), intent(inout) :: world
+ 
+#if defined(NVIDIAGPU) || defined(AMDGPU)
+        zdotu_gpu = magma_zdotu(n, dx, incx, dy, incy, world%get_queue())
+#endif
+#if defined(INTELGPU)
+        complex(r64), pointer :: x(:), y(:)
+        call c_f_pointer(dx, x, [n])
+        call c_f_pointer(dy, y, [n])
+        !$omp target data
+        !$omp target variant dispatch
+        zdotu_gpu = zdotu(n, x, incx, y, incy)
+        !$omp end target variant dispatch
+        !$omp end target data
+        nullify(x, y)
+#endif 
+    end function zdotu_gpu
+
+    !> Complex double precision dot product (conjugated) of vectors x and y; \( x^H y \).
+    !> @param[in] n - number of elements in vector x and y
+    !> @param[in] dx - C-pointer to the x vector. Device pointer
+    !> @param[in] incx - Stride between consecutive elements of dx
+    !> @param[in] dy - C-pointer to the y vector. Device pointer
+    !> @param[in] incy - Stride between consecutive elements of dy
+    !> @param[in,out] world - device-host handler.
+    complex(r64) function zdotc_gpu(n, dx, incx, dy, incy, world)
+        integer(i32), intent(in)            :: n
+        type(c_ptr),  value                 :: dx
+        integer(i32), intent(in)            :: incx
+        type(c_ptr),  value                 :: dy
+        integer(i32), intent(in)            :: incy
+        type(device_world_t), intent(inout) :: world
+        
+#if defined(NVIDIAGPU) || defined(AMDGPU)
+        zdotc_gpu = magma_zdotc(n, dx, incx, dy, incy, world%get_queue())
+#endif
+#if defined(INTELGPU)
+        complex(r64), pointer :: x(:), y(:)
+        call c_f_pointer(dx, x, [n])
+        call c_f_pointer(dy, y, [n])
+        
+        !$omp target variant dispatch use_device_ptr(x,y)
+        zdotc_gpu = zdotc(n, x, incx, y, incy)
+        !$omp end target variant dispatch
+        
+        nullify(x, y)
+#endif 
+    end function zdotc_gpu
+
+    !> Complex double precision constant times a vector plus a vector; \( y = \alpha x + y \). 
+    !> @param[in]	n	- Number of elements in vectors x and y. n >= 0.
+    !> @param[in]	alpha	- Scalar \( \alpha \)
+    !> @param[in]	dx	- Device pointer to x. The n element vector x of dimension (1 + (n-1)*incx).
+    !> @param[in]	incx	- Stride between consecutive elements of dx. incx != 0.
+    !> @param[in,out]	dy	- Device pointer to y. The n element vector y of dimension (1 + (n-1)*incy).
+    !> @param[in]	incy	- Stride between consecutive elements of dy. incy != 0.
+    !> @param[in,out]   world	- the device-host handler
+    subroutine zaxpy_gpu(n, alpha, dx, incx, dy, incy, world)
+        integer(i32), intent(in)                        :: n
+        complex(r64), intent(in)                        :: alpha
+        type(C_ptr),  value                             :: dx
+        integer(i32), intent(in)                        :: incx
+        type(C_ptr),  value                             :: dy
+        integer(i32), intent(in)                        :: incy
+        type(device_world_t), intent(inout)             :: world
+
+#if defined(NVIDIAGPU) || defined(AMDGPU)
+        call magma_zaxpy(n, alpha, dx, incx, dy, incy, world%get_queue())
+#endif
+#if defined(INTELGPU)
+
+        complex(r64), pointer :: x(:), y(:)
+
+        call c_f_pointer(dx, x, [incx*n])
+        call c_f_pointer(dy, y, [incy*n])
+
+        !$omp target variant dispatch use_device_ptr(x,y)
+        call zaxpy(n, alpha, x, incx, y, incy)
+        !$omp end target variant dispatch
+
+        nullify(x,y)
+
+#endif 
+
+    end subroutine zaxpy_gpu
 
 end module device_linalg_common_interface

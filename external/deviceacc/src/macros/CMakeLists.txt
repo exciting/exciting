@@ -1,0 +1,5 @@
+if(NOT CPUBACKEND)
+    set(MACROS ${CMAKE_CURRENT_SOURCE_DIR}/device/offload.fpp PARENT_SCOPE)
+else()
+    set(MACROS ${CMAKE_CURRENT_SOURCE_DIR}/host/offload.fpp PARENT_SCOPE)
+endif()

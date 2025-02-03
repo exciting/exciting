@@ -63,6 +63,12 @@ def option_parser(settings: Defaults):
                    default=settings.binary_smp,
                    choices=settings.binary_names)
 
+    p.add_argument('-r',
+                   metavar='--exciting-root',
+                   help="The root directory in which exciting is installed",
+                   type=str,
+                   default=settings.exe_dir)
+
     p.add_argument('-np',
                    metavar='--NP',
                    help="Number of cores for MPI run. Can only be used in combination with exciting_mpi or "
@@ -116,14 +122,15 @@ def option_parser(settings: Defaults):
                      'run_failing_tests': args.run_failing_tests,
                      'repeat_tests': args.repeat_tests
                      }
-
+    
     if args.make_test:
         return set_up_make_test(settings, input_options)
-
+    
     build_type = set_build_type(args, settings)
+    input_options['exec_dir'] = args.r 
     input_options['np'] = args.np if args.np is not None else settings.default_np[build_type]
     input_options['omp'] = str(args.omp) if args.omp is not None else str(settings.default_threads[build_type])
-    input_options['executable'] = set_execution_str(build_type, input_options['np'], settings)
+    input_options['executable'] = set_execution_str(build_type, input_options['np'], settings, input_options['exec_dir'])
     input_options['mkl_threads'] = set_mkl_threads_from_env()
 
     return input_options
@@ -195,16 +202,20 @@ def set_mpi_command() -> str:
     return mpi_cmd
 
 
-def set_execution_str(build_type: BuildType, np: int, settings: Defaults) -> str:
+def set_execution_str(build_type: BuildType, np: int, settings: Defaults, exec_dir: str) -> str:
     """
     Set the execution string.
 
     :param BuildType build_type: Build type of program binary
     :param int np: Number of MPI processes.
     :param Defaults settings: Default exciting settings. Used to obtain valid build types and executable location.
+    :param exec_dir: contains an alternative install root directory
     :return str executable_string: Execution string.
     """
-    executable_string = os.path.join(settings.exe_dir, build_type_enum_to_str[build_type])
+    if exec_dir is None:
+        executable_string = os.path.join(settings.exe_dir, build_type_enum_to_str[build_type])
+    else:
+        executable_string = os.path.join(exec_dir, build_type_enum_to_str[build_type])
 
     if not os.path.isfile(executable_string):
         raise FileNotFoundError(f'Could not find an exciting binary in {settings.exe_dir}')
@@ -242,7 +253,7 @@ def set_up_make_test(settings: Defaults, input_options: dict) -> dict:
     :return dict input_options: Inputs, with appropriate defaults overwritten according to the binary selected.
     """
     compiled_binaries = []
-    for x in next(os.walk('../bin/'))[2]:
+    for x in next(os.walk(input_options['exec_dir']))[2]:
         try:
             compiled_binaries.append(build_type_str_to_enum[x])
         except KeyError:
