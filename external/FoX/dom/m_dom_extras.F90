@@ -268,6 +268,7 @@ subroutine extractDataContentChSca(arg, data, separator, csv, num, iostat, ex)
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentChSca", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -459,6 +460,7 @@ subroutine extractDataContentChArr(arg, data, separator, csv, num, iostat, ex)
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentChArr", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -650,6 +652,7 @@ subroutine extractDataContentChMat(arg, data, separator, csv, num, iostat, ex)
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentChMat", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -913,6 +916,7 @@ subroutine extractDataAttributeChSca(arg, name, data, separator, csv, num, iosta
   call throw_exception(FoX_NODE_IS_NULL, "extractDataAttributeChSca", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -923,6 +927,7 @@ endif
   call throw_exception(FoX_INVALID_NODE, "extractDataAttributeChSca", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -1188,6 +1193,7 @@ subroutine extractDataAttributeChArr(arg, name, data, separator, csv, num, iosta
   call throw_exception(FoX_NODE_IS_NULL, "extractDataAttributeChArr", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -1198,6 +1204,7 @@ endif
   call throw_exception(FoX_INVALID_NODE, "extractDataAttributeChArr", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -1463,6 +1470,7 @@ subroutine extractDataAttributeChMat(arg, name, data, separator, csv, num, iosta
   call throw_exception(FoX_NODE_IS_NULL, "extractDataAttributeChMat", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -1473,6 +1481,7 @@ endif
   call throw_exception(FoX_INVALID_NODE, "extractDataAttributeChMat", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -1750,6 +1759,7 @@ subroutine extractDataAttNSChSca(arg, namespaceURI, localName, data, separator, 
   call throw_exception(FoX_NODE_IS_NULL, "extractDataAttNSChSca", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -1760,6 +1770,7 @@ endif
   call throw_exception(FoX_INVALID_NODE, "extractDataAttNSChSca", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -2039,6 +2050,7 @@ subroutine extractDataAttNSChArr(arg, namespaceURI, localName, data, separator, 
   call throw_exception(FoX_NODE_IS_NULL, "extractDataAttNSChArr", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -2049,6 +2061,7 @@ endif
   call throw_exception(FoX_INVALID_NODE, "extractDataAttNSChArr", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -2328,6 +2341,7 @@ subroutine extractDataAttNSChMat(arg, namespaceURI, localName, data, separator, 
   call throw_exception(FoX_NODE_IS_NULL, "extractDataAttNSChMat", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -2338,6 +2352,7 @@ endif
   call throw_exception(FoX_INVALID_NODE, "extractDataAttNSChMat", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif

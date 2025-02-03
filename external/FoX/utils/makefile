@@ -22,7 +22,7 @@ clean:
 	rm -f *.$(OBJEXT)  *.$(MOD_EXT) $(LIBRARY)
 #
 check:
-	(cd test; make) | tee -a ../check.out
+	(cd test; make) | tee -a ../utils_lib_check.out
 # DO NOT DELETE THIS LINE - used by make depend
 FoX_utils.$(OBJEXT): fox_m_utils_uuid.$(OBJEXT) fox_m_utils_uri.$(OBJEXT)
 fox_m_utils_uuid.$(OBJEXT): fox_m_utils_mtprng.$(OBJEXT)

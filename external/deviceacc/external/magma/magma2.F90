@@ -153,6 +153,18 @@ interface
         type(c_ptr), value :: queue  !! queue_t
     end function
 
+    type(c_ptr) function magma_queue_get_cuda_stream( queue ) &
+    bind(C, name="magma_queue_get_cuda_stream")
+        import
+        type(c_ptr), value :: queue  !! queue_t
+    end function
+
+    type(c_ptr) function magma_queue_get_hip_stream( queue ) &
+    bind(C, name="magma_queue_get_hip_stream")
+        import
+        type(c_ptr), value :: queue  !! queue_t
+    end function
+
     !! -------------------------------------------------------------------------
     !! offsets pointers -- 1D vectors with inc
     !! see offset.c

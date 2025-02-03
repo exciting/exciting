@@ -5,7 +5,7 @@ module m_dom_parse
   use m_common_attrs, only: hasKey, getValue, getIndex, getIsId, getBase,      &
     add_item_to_dict
   use m_common_entities, only: entity_t, size, getEntityByIndex
-  use m_common_error, only: FoX_error
+  use m_common_error, only: FoX_error, in_error
   use m_common_struct, only: xml_doc_state
   use FoX_common, only: dictionary_t, getLength
   use FoX_common, only: getQName, getValue, getURI, isSpecified
@@ -535,6 +535,8 @@ endif
     if (present(iostat)) then
       iostat = iostat_
       if (iostat/=0) return
+    elseif (in_error(fxml%fx%error_stack)) then
+      call FoX_error(str_vs(fxml%fx%error_stack%stack(1)%msg))
     elseif (iostat_/=0) then
       call FoX_error("Cannot open file")
     endif

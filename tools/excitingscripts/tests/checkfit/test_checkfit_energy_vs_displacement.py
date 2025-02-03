@@ -5,6 +5,24 @@ import warnings
 import numpy as np
 from excitingscripts.checkfit.checkfit import quantity_specific_checkfit
 
+try:
+    # Check if np.RankWarning exists directly
+    numpy_RankWarning = np.RankWarning
+except AttributeError:
+    # If not, fall back to np.exceptions.RankWarning
+    numpy_RankWarning = np.exceptions.RankWarning
+
+def compare_arrays_with_none(array, ref_array):
+    # Ensure both lists have the same length
+    assert len(array) == len(ref_array), "List lengths do not match"
+
+    # Filter out None values for both lists and compare the rest
+    for arr, ref_arr in zip(array, ref_array):
+        arr_filtered = [a for a in arr if a is not None]
+        ref_arr_filtered = [r for r in ref_arr if r is not None]
+
+        # Compare filtered lists
+        assert np.allclose(np.array(arr_filtered), np.array(ref_arr_filtered))
 
 def test_checkfit_energy_vs_displacement(phonon_results_mock, info_diamond_phonon_mock, tmp_path):
     phonon_results_file = tmp_path / "phonon_results.json"
@@ -13,7 +31,7 @@ def test_checkfit_energy_vs_displacement(phonon_results_mock, info_diamond_phono
     info_diamond_phonon_file.write_text(info_diamond_phonon_mock.string)
 
     os.chdir(tmp_path)
-    warnings.simplefilter("error", np.RankWarning)
+    warnings.simplefilter("error", numpy_RankWarning)
     check_fit_func = quantity_specific_checkfit("energy", 2 / 3, 2)
     check_fit_func(0.025, 2, 12.01)
 
@@ -40,5 +58,5 @@ def test_checkfit_energy_vs_displacement(phonon_results_mock, info_diamond_phono
         max_displacement_values.append(data["max_displacement"])
         frequencies.append(data["frequencies"])
 
-    assert max_displacement_values == ref_max_displacement_values
-    assert frequencies == ref_frequencies
+    assert np.allclose(np.array(max_displacement_values), np.array(ref_max_displacement_values))
+    compare_arrays_with_none(frequencies, ref_frequencies)

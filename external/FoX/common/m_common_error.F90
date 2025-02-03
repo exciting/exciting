@@ -11,7 +11,11 @@ module m_common_error
   integer, parameter :: ERR_WARNING = 1
   integer, parameter :: ERR_ERROR = 2
   integer, parameter :: ERR_FATAL = 3
+#endif  
+  logical, save :: errors_are_fatal = .false.
+  logical, save :: warnings_are_fatal = .false.
 
+#ifndef DUMMYLIB
   type error_t
     integer :: severity = ERR_NULL
     integer :: error_code = 0
@@ -56,15 +60,28 @@ module m_common_error
   public :: add_error
   public :: in_error
 
+#endif
+  public :: FoX_set_fatal_errors
+  public :: FoX_get_fatal_errors
+  public :: FoX_set_fatal_warnings
+  public :: FoX_get_fatal_warnings
+
 contains
+#ifndef DUMMYLIB
 
   subroutine FoX_warning_base(msg)
     ! Emit warning, but carry on.
     character(len=*), intent(in) :: msg
 
+    if (warnings_are_fatal) then
+        write(0,'(a)') 'FoX warning  made fatal'
+        call FoX_fatal_base(msg)
+    endif
+#if !defined(SUPPRESS_WARNINGS)
     write(0,'(a)') 'WARNING(FoX)'
     write(0,'(a)')  msg
     call pxfflush(0)
+#endif
 
   end subroutine FoX_warning_base
 
@@ -74,6 +91,11 @@ contains
     ! No clean up is done here, but this can
     ! be overridden to include clean-up routines
     character(len=*), intent(in) :: msg
+
+    if (errors_are_fatal) then
+        write(0,'(a)') 'FoX error made fatal'
+        call FoX_fatal_base(msg)
+    endif
 
     write(0,'(a)') 'ERROR(FoX)'
     write(0,'(a)')  msg
@@ -167,4 +189,25 @@ contains
   end function in_error
 
 #endif
+  subroutine FoX_set_fatal_errors(newvalue)
+    logical, intent(in) :: newvalue
+    errors_are_fatal = newvalue
+  end subroutine FoX_set_fatal_errors
+
+  function  FoX_get_fatal_errors()
+      logical :: FoX_get_fatal_errors
+      FoX_get_fatal_errors = errors_are_fatal
+  end function FoX_get_fatal_errors
+
+  subroutine  FoX_set_fatal_warnings(newvalue)
+    logical, intent(in) :: newvalue
+    warnings_are_fatal = newvalue
+  end subroutine FoX_set_fatal_warnings
+
+  function FoX_get_fatal_warnings()
+    logical :: FoX_get_fatal_warnings
+    FoX_get_fatal_warnings = warnings_are_fatal
+  end function FoX_get_fatal_warnings
+
 end module m_common_error
+    

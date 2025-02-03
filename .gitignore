@@ -17,22 +17,10 @@
 # Exciting binaries 
 # Found in the respective build folder
 # Kept paths as 'exciting' is quite a general name 
-build/serial/exciting
-build/smp/exciting
-build/mpi/exciting
-build/mpiandsmp/exciting
-build/debug/exciting
-build/debugmpi/exciting
-build/debugmpiandsmp/exciting
-build/serial/build-libXC/
-build/smp/build-libXC/
-build/mpi/build-libXC/
-build/mpiandsmp/build-libXC/
-build/debug/build-libXC/
-build/debugmpi/build-libXC/
-build/debugmpiandsmp/build-libXC/
+/build/
+/build-cmake/
 # Bin directory, covering all executables
-/bin/
+/install/
 
 # Binaries from standalone builds 
 # Kept paths as 'species' and 'spacegroup' are very general names 

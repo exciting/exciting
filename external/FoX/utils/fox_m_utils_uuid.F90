@@ -51,6 +51,14 @@ contains
 
 
     if (.not.initialized) then
+      ! Use the current date and time to init mtprng
+      ! but this gives limited varaibility, so mix 
+      ! the result up.  Can we do better? In any
+      ! case, this gets passed through a quick 
+      ! generator inside mtprng_init.
+      call date_and_time(values=values)
+      values(7) = values(7)*1000+values(5)*100+values(3)*10+values(1)
+      values(8) = values(2)*1000+values(4)*100+values(6)*10+values(8)
       call mtprng_init(int(values(7)*10000+values(8), i4b), rng_state)
       clock_seq = int(mtprng_rand64(rng_state), i4b)
       initialized = .true.

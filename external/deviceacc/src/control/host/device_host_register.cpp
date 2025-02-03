@@ -26,7 +26,6 @@
 #include <string>
 #include <stdexcept>
 #include <iostream>
-#include <omp.h>
 
 /// @brief for: {Device id, size, host_ptr, device_ptr}
 using ref_info      = std::tuple<std::size_t, std::size_t, void*, void*>;
@@ -78,7 +77,7 @@ public:
             throw std::runtime_error("Error in alloc_device: " + id + " is already in use");
         }
 
-        rg[id] = {device_id, size, nullptr, nullptr};
+        rg[id] = ref_info(device_id, size, nullptr, nullptr);
     }
 
     /// Associates a host pointer to a device pointer

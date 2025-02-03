@@ -1,0 +1,15 @@
+abstract: "Electronic structure calculations based on many-body perturbation theory (e.g. and random-phase approximation ()) involve manipulating functions of time and frequency in the complex plane, like inhomogeneous Fourier transforms and analytic continuation from imaginary axis to real axis. The time-frequency component of the GreenX library has the aim to provide such tools, in a coherent package."
+authors:
+  - name: "GreenX library"
+  - family-names : Azizi
+    given-names : Maryam
+    orcid : 0000-0001-9089-1043
+cff-version: 1.2.0
+contact: contact@nomad-lab.eu
+preferred-citation:
+  - doi: (to be given when JOSS paper available  - example : 10.1016/J.cpc.2019.107042)
+license: 
+  - Apache-2.0
+message: "If you use this software, please cite the article from preferred-citation DOI containt in this CITATION.cff file."
+repository-code: "https://github.com/nomad-coe/greenX/tree/main/GX-TimeFrequency"
+title: "Time-frequency component of the GreenX library"

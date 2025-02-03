@@ -93,7 +93,7 @@ class TestErrorFinderReferenceWithTarget(unittest.TestCase):
 
     def test_ignored_tolerance_keys(self):
         data = {'a': 1, 'b': 1.1}
-        tolerance = {'a': 0, 'b': 1.e-10, 'c': np.infty}
+        tolerance = {'a': 0, 'b': 1.e-10, 'c': np.inf}
         result = ErrorFinder(data, data, tolerance)
         self.assertEqual(result.unused_tol_keys, ['c'], msg="Keys of unevaluated tolerances")
         self.assertEqual(result.errors, [], msg="Expect errors to be empty")

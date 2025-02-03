@@ -1,9 +1,0 @@
-include ../make.inc
-include ../libraries.inc
-
-FC = $(F90)
-FFLAGS = $(F90_OPTS) $(CPP_ON_OPTS) -I./finclude $(INCL)
-LD = $(FC)
-LDFLAGS = $(INCL) $(INTERNALLIBS) $(LIBS) 
-TMPFILES = *.mod
-SUFFIX=ser

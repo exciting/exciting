@@ -1,0 +1,21 @@
+# Intel 2025 GPU aware build.
+
+build:fedora-buster-Intel2025-gpu:
+   image: gitdocker.physik.hu-berlin.de/sol/exciting:fedora_inteloneapi2025
+   stage: build
+   tags:
+     - docker
+   before_script:
+     - source /opt/intel/oneapi/setvars.sh
+   script:
+     - mkdir build-cmake && cd build-cmake
+     - FC=ifx CC=icx CXX=icpx ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DINTEL=ON -DMKL=ON ..
+     - make -j 4 -l 4
+     - make install
+   artifacts:
+     paths:
+       - install/lib
+       - install/bin/exciting_mpismp
+       - src/version.inc
+     expire_in: 5 hrs
+

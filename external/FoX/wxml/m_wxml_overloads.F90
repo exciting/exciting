@@ -105,7 +105,8 @@ contains
     if (present(fmt)) then
       call xml_AddCharacters(xf=xf, chars=str(chars, fmt))
     else
-      call xml_AddCharacters(xf=xf, chars=str(chars))
+      ! Add empty optional fmt arg to str to avoid PGI bug: 
+      call xml_AddCharacters(xf=xf, chars=str(chars, ""))
     endif
 #endif
   end subroutine CharactersScalarCmplxDp
@@ -122,7 +123,8 @@ contains
     if (present(fmt)) then
       call xml_AddCharacters(xf=xf, chars=str(chars, fmt))
     else
-      call xml_AddCharacters(xf=xf, chars=str(chars))
+      ! Add empty optional fmt arg to str to avoid PGI bug: 
+      call xml_AddCharacters(xf=xf, chars=str(chars, ""))
     endif
 #endif
   end subroutine CharactersScalarCmplxSp
@@ -199,7 +201,8 @@ contains
     if (present(fmt)) then
       call xml_AddCharacters(xf=xf, chars=str(chars, fmt), ws_significant=.false.)
     else
-      call xml_AddCharacters(xf=xf, chars=str(chars), ws_significant=.false.)
+      ! Add empty optional fmt arg to str to avoid PGI bug: 
+      call xml_AddCharacters(xf=xf, chars=str(chars, ""), ws_significant=.false.)
     endif
 #endif
   end subroutine CharactersArrayCmplxDp
@@ -216,7 +219,8 @@ contains
     if (present(fmt)) then
       call xml_AddCharacters(xf=xf, chars=str(chars, fmt), ws_significant=.false.)
     else
-      call xml_AddCharacters(xf=xf, chars=str(chars), ws_significant=.false.)
+      ! Add empty optional fmt arg to str to avoid PGI bug: 
+      call xml_AddCharacters(xf=xf, chars=str(chars, ""), ws_significant=.false.)
     endif
 #endif
   end subroutine CharactersArrayCmplxSp
@@ -304,7 +308,8 @@ contains
     if (present(fmt)) then
       call xml_AddCharacters(xf=xf, chars=str(chars, fmt), ws_significant=.false.)
     else
-      call xml_AddCharacters(xf=xf, chars=str(chars), ws_significant=.false.)
+      ! Add empty optional fmt arg to str to avoid PGI bug: 
+      call xml_AddCharacters(xf=xf, chars=str(chars, ""), ws_significant=.false.)
     endif
 #endif
   end subroutine CharactersMatrixCmplxDp
@@ -321,7 +326,8 @@ contains
     if (present(fmt)) then
       call xml_AddCharacters(xf=xf, chars=str(chars, fmt), ws_significant=.false.)
     else
-      call xml_AddCharacters(xf=xf, chars=str(chars), ws_significant=.false.)
+      ! Add empty optional fmt arg to str to avoid PGI bug: 
+      call xml_AddCharacters(xf=xf, chars=str(chars, ""), ws_significant=.false.)
     endif
 #endif
   end subroutine CharactersMatrixCmplxSp
@@ -411,7 +417,8 @@ contains
     if (present(fmt)) then
       call xml_AddAttribute(xf=xf, name=name, value=str(value, fmt))
     else
-      call xml_AddAttribute(xf=xf, name=name, value=str(value))
+      ! Add empty optional fmt arg to str to avoid PGI bug: 
+      call xml_AddAttribute(xf=xf, name=name, value=str(value, ""))
     endif
 #endif
   end subroutine AttributeScalarCmplxDp
@@ -428,7 +435,8 @@ contains
     if (present(fmt)) then
       call xml_AddAttribute(xf=xf, name=name, value=str(value, fmt))
     else
-      call xml_AddAttribute(xf=xf, name=name, value=str(value))
+      ! Add empty optional fmt arg to str to avoid PGI bug: 
+      call xml_AddAttribute(xf=xf, name=name, value=str(value, ""))
     endif
 #endif
   end subroutine AttributeScalarCmplxSp
@@ -504,7 +512,8 @@ contains
     if (present(fmt)) then
       call xml_AddAttribute(xf=xf, name=name, value=str(value, fmt), ws_significant=.false.)
     else
-      call xml_AddAttribute(xf=xf, name=name, value=str(value), ws_significant=.false.)
+      ! Add empty optional fmt arg to str to avoid PGI bug: 
+      call xml_AddAttribute(xf=xf, name=name, value=str(value, ""), ws_significant=.false.)
     endif
 #endif
   end subroutine AttributeArrayCmplxDp
@@ -521,7 +530,8 @@ contains
     if (present(fmt)) then
       call xml_AddAttribute(xf=xf, name=name, value=str(value, fmt), ws_significant=.false.)
     else
-      call xml_AddAttribute(xf=xf, name=name, value=str(value), ws_significant=.false.)
+      ! Add empty optional fmt arg to str to avoid PGI bug: 
+      call xml_AddAttribute(xf=xf, name=name, value=str(value, ""), ws_significant=.false.)
     endif
 #endif
   end subroutine AttributeArrayCmplxSp
@@ -609,7 +619,8 @@ contains
     if (present(fmt)) then
       call xml_AddAttribute(xf=xf, name=name, value=str(value, fmt), ws_significant=.false.)
     else
-      call xml_AddAttribute(xf=xf, name=name, value=str(value), ws_significant=.false.)
+      ! Add empty optional fmt arg to str to avoid PGI bug: 
+      call xml_AddAttribute(xf=xf, name=name, value=str(value, ""), ws_significant=.false.)
     endif
 #endif
   end subroutine AttributeMatrixCmplxDp
@@ -626,7 +637,8 @@ contains
     if (present(fmt)) then
       call xml_AddAttribute(xf=xf, name=name, value=str(value, fmt), ws_significant=.false.)
     else
-      call xml_AddAttribute(xf=xf, name=name, value=str(value), ws_significant=.false.)
+      ! Add empty optional fmt arg to str to avoid PGI bug: 
+      call xml_AddAttribute(xf=xf, name=name, value=str(value, ""), ws_significant=.false.)
     endif
 #endif
   end subroutine AttributeMatrixCmplxSp
@@ -715,7 +727,8 @@ contains
     if (present(fmt)) then
       call xml_AddPseudoAttribute(xf=xf, name=name, value=str(value, fmt))
     else
-      call xml_AddPseudoAttribute(xf=xf, name=name, value=str(value))
+      ! Add empty optional fmt arg to str to avoid PGI bug: 
+      call xml_AddPseudoAttribute(xf=xf, name=name, value=str(value, ""))
     endif
 #endif
   end subroutine PseudoAttributeScalarCmplxDp
@@ -732,7 +745,8 @@ contains
     if (present(fmt)) then
       call xml_AddPseudoAttribute(xf=xf, name=name, value=str(value, fmt))
     else
-      call xml_AddPseudoAttribute(xf=xf, name=name, value=str(value))
+      ! Add empty optional fmt arg to str to avoid PGI bug: 
+      call xml_AddPseudoAttribute(xf=xf, name=name, value=str(value, ""))
     endif
 #endif
   end subroutine PseudoAttributeScalarCmplxSp
@@ -808,7 +822,8 @@ contains
     if (present(fmt)) then
       call xml_AddPseudoAttribute(xf=xf, name=name, value=str(value, fmt), ws_significant=.false.)
     else
-      call xml_AddPseudoAttribute(xf=xf, name=name, value=str(value), ws_significant=.false.)
+      ! Add empty optional fmt arg to str to avoid PGI bug: 
+      call xml_AddPseudoAttribute(xf=xf, name=name, value=str(value, ""), ws_significant=.false.)
     endif
 #endif
   end subroutine PseudoAttributeArrayCmplxDp
@@ -825,7 +840,8 @@ contains
     if (present(fmt)) then
       call xml_AddPseudoAttribute(xf=xf, name=name, value=str(value, fmt), ws_significant=.false.)
     else
-      call xml_AddPseudoAttribute(xf=xf, name=name, value=str(value), ws_significant=.false.)
+      ! Add empty optional fmt arg to str to avoid PGI bug: 
+      call xml_AddPseudoAttribute(xf=xf, name=name, value=str(value, ""), ws_significant=.false.)
     endif
 #endif
   end subroutine PseudoAttributeArrayCmplxSp
@@ -913,7 +929,8 @@ contains
     if (present(fmt)) then
       call xml_AddPseudoAttribute(xf=xf, name=name, value=str(value, fmt), ws_significant=.false.)
     else
-      call xml_AddPseudoAttribute(xf=xf, name=name, value=str(value), ws_significant=.false.)
+      ! Add empty optional fmt arg to str to avoid PGI bug: 
+      call xml_AddPseudoAttribute(xf=xf, name=name, value=str(value, ""), ws_significant=.false.)
     endif
 #endif
   end subroutine PseudoAttributeMatrixCmplxDp
@@ -930,7 +947,8 @@ contains
     if (present(fmt)) then
       call xml_AddPseudoAttribute(xf=xf, name=name, value=str(value, fmt), ws_significant=.false.)
     else
-      call xml_AddPseudoAttribute(xf=xf, name=name, value=str(value), ws_significant=.false.)
+      ! Add empty optional fmt arg to str to avoid PGI bug: 
+      call xml_AddPseudoAttribute(xf=xf, name=name, value=str(value, ""), ws_significant=.false.)
     endif
 #endif
   end subroutine PseudoAttributeMatrixCmplxSp

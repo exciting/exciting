@@ -1,22 +1,38 @@
-cmake_minimum_required(VERSION 3.20.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.27.0 FATAL_ERROR)
 
-#Some options
+# Compile options
 option(NVIDIA "NVIDIA GPU" OFF)
 option(AMD "AMD GPU" OFF)
+option(AMD_HIPSETVALIDDEVICE_SUPPORTED "Turn ON if besides defined, hipSetValidDevices is supported by the driver" OFF)
 option(INTEL "INTEL GPU" OFF)
-option(CPUBACKEND "If enabled activates the CPU backend so GPU accelerated routines are replaced by their CPU backend" OFF)
+if(NVIDIA OR AMD OR INTEL)
+    option(CPUBACKEND "If enabled activates the CPU backend so GPU accelerated routines are replaced by their CPU backend" OFF)
+else()
+    option(CPUBACKEND "If enabled activates the CPU backend so GPU accelerated routines are replaced by their CPU backend" ON)
+endif()
 
 project(deviceacc Fortran CXX)
 
+add_compile_definitions(DEVICEACC)
+
+# In case we want device supported compilation
+# find and properly set libraries
 if(NOT CPUBACKEND)
+  # Set a general compiler option to protect
+  add_compile_definitions(DEVICEOFFLOAD)
   # Now select the vendor
   if(NVIDIA)
     message(STATUS "GPU :  NVIDIA")
     add_compile_definitions(NVIDIAGPU)
+    set(NVIDIAARCH "89" CACHE STRING "NVIDIA architecture (e.g. 80, 89)")
+    message(STATUS "NVIDIA architecture : ${NVIDIAARCH}")
   elseif(AMD)
     message(STATUS "GPU :  AMD")
     add_compile_definitions(AMDGPU)
-    set(AMDTARGET "None" CACHE PATH "Target march for AMD")
+    set(AMDTARGET "None" CACHE STRING "Target march for AMD")
+    if(AMDTARGET MATCHES "None")
+        message(FATAL_ERROR "For AMD GPU the march of the target device is needed.")
+    endif()
     message(STATUS "AMD target : ${AMDTARGET}")
   elseif(INTEL)
     message(STATUS "GPU :  INTEL")
@@ -102,20 +118,70 @@ if(NOT CPUBACKEND)
 
   elseif(AMD)
     # Find rocFFT
-    find_library(rocfftlib NAMES rocfft librocfft REQUIRED)
+    find_package(rocfft REQUIRED)
+    set(rocfftlib ${ROCFFT_LIBRARIES})
     message(STATUS "rocFFT found : ${rocfftlib}")
+    
+    message(STATUS "ROCM include directory: ${ROCFFT_INCLUDE_DIRS}")
+    file(READ ${ROCFFT_INCLUDE_DIRS}/rocm-core/rocm_version.h FILE_CONTENT)
+
+    # Use regular expressions to extract version numbers
+    string(REGEX MATCH "#define ROCM_VERSION_MAJOR[ \t]+([0-9]+)" _major_match "${FILE_CONTENT}")
+    string(REGEX MATCH "#define ROCM_VERSION_MINOR[ \t]+([0-9]+)" _minor_match "${FILE_CONTENT}")
+    string(REGEX MATCH "#define ROCM_VERSION_PATCH[ \t]+([0-9]+)" _patch_match "${FILE_CONTENT}")
+
+    # If not found, default to 0
+    if(_major_match)
+        string(REGEX REPLACE "#define ROCM_VERSION_MAJOR[ \t]+([0-9]+)" "\\1" ROCM_VERSION_MAJOR "${_major_match}")
+    else()
+        set(ROCM_VERSION_MAJOR 0)
+    endif()
+
+    if(_minor_match)
+        string(REGEX REPLACE "#define ROCM_VERSION_MINOR[ \t]+([0-9]+)" "\\1" ROCM_VERSION_MINOR "${_minor_match}")
+    else()
+        set(ROCM_VERSION_MINOR 0)
+    endif()
+
+    if(_patch_match)
+        string(REGEX REPLACE "#define ROCM_VERSION_PATCH[ \t]+([0-9]+)" "\\1" ROCM_VERSION_PATCH "${_patch_match}")
+    else()
+        set(ROCM_VERSION_PATCH 0)
+    endif()
+
+    if ((ROCM_VERSION_MAJOR EQUAL 0) AND (ROCM_VERSION_MINOR EQUAL 0) AND (ROCM_VERSION_PATCH EQUAL 0))
+        message(FATAL_ERROR "ROCm version not found")
+    else()
+	message(STATUS "ROCM version : ${ROCM_VERSION_MAJOR}.${ROCM_VERSION_MINOR}.${ROCM_VERSION_PATCH}")
+    endif()
+
+    set(ROCM_VERSION_NUM ${ROCM_VERSION_MAJOR}.${ROCM_VERSION_MINOR}${ROCM_VERSION_PATCH})
+
+    if (ROCM_VERSION_NUM GREATER_EQUAL 6.22)
+	if (AMD_HIPSETVALIDDEVICE_SUPPORTED)
+	    message(STATUS "ROCM defines and supports setting valid devices")
+            add_compile_definitions(AMD_CAN_SET_VALID_DEVICES)
+	else()
+	    message(STATUS "ROCM defines but don't supports setting valid devices")
+	endif()
+    else()
+	message(STATUS "ROCM does not support setting valid devices")
+    endif()
+
   elseif(INTEL)
     find_package(MKL REQUIRED)
     include_directories(${MKL_INCLUDE_DIRS})
   else()
-    message(FATAL_ERROR "Should not be here")
+    message(FATAL_ERROR "Only NVIDIA, AMD, or INTEL GPUs are supported. This part of the code 
+            is unreachable by construction. Consequently, this error indicates some
+	    catastrophic CMake configuration step.")
   endif()
 
-  # Select compilers: Intel or GNU compilers
-  if(CMAKE_Fortran_COMPILER MATCHES "ifx")
+  # Few compiler options
+  if (CMAKE_Fortran_COMPILER_ID MATCHES "IntelLLVM")
       message(STATUS "Intel compilers")
       if (NOT INTEL)
-        message(FATAL_ERROR "For non Intel cards please use GNU compilers. Exiting.")
+          message(FATAL_ERROR "For non Intel cards please use GNU/Cray compilers. Exiting.")
       endif()
 
       set(CMAKE_CXX_COMPILER "icpx")
@@ -130,7 +196,8 @@ if(NOT CPUBACKEND)
                               -no-wrap-margin -fp-model source -fiopenmp \
                               -fopenmp-targets=spir64 -qmkl=parallel -fsycl -fpp -free")
       set(devacc_link_libs "${MKL_LIBRARIES}")
-  elseif(CMAKE_Fortran_COMPILER MATCHES "gfortran")
+
+  elseif (CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
       message(STATUS "GNU compilers")
       set(CMAKE_CXX_COMPILER "g++")
       set(CMAKE_Fortran_COMPILER "mpif90")
@@ -143,18 +210,57 @@ if(NOT CPUBACKEND)
                               -ffree-line-length-512 -fopenmp -fopenmp-allocators  \
                               -foffload-options=-march=${AMDTARGET}")
       else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto -O3 -fPIC -fopenmp \
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fPIC -fopenmp \
                               -foffload-options=-lm ")
-        set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp -flto -O3 -fPIC \
+        set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp -O3 -fPIC \
                                   -ffree-line-length-512 -fopenmp -fopenmp-allocators  \
                                   -foffload-options=-lgfortran -foffload-options=-lm")
       endif()
-      set(devacc_link_libs "openblasp")
+
+      # Find FFTW3 library
+      find_library(FFTW3_LIBRARIES NAMES fftw3)
+      find_library(FFTW3F_LIBRARIES NAMES fftw3f)
+      find_library(FFTW3_LIBRARIES_OMP NAMES fftw3_omp)
+      find_library(FFTW3F_LIBRARIES_OMP NAMES fftw3f_omp)
+      find_path(FFTW3_INCLUDE_DIR NAMES "fftw3.h")
+      include_directories(${FFTW3_INCLUDE_DIR})
+
+      if (NOT FFTW3_LIBRARIES)
+        message(FATAL_ERROR "FFTW3 not found. FTTW3 is required for GNU/Cray build of deviceacc.")
+      endif()
+
+      set(devacc_link_libs "${LINALG_LIBRARY};${FFTW3_LIBRARIES};${FFTW3F_LIBRARIES};${FFTW3_LIBRARIES_OMP};${FFTW3F_LIBRARIES_OMP}")
+
+  elseif (CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
+      if(NOT NVIDIA AND NOT AMD)
+        message(FATAL_ERROR "For Intel cards please use Intel compilers. Exiting.")
+      endif()
+      # Cray should find the proper targets with the acceleration modules
+      set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -fPIC -fopenmp")
+      set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} -fopenmp")
+      set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -fPIC -fopenmp")
+      set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fopenmp")
+
+
+      # Find FFTW3 library
+      find_library(FFTW3_LIBRARIES NAMES fftw3)
+      find_library(FFTW3F_LIBRARIES NAMES fftw3f)
+      find_library(FFTW3_LIBRARIES_OMP NAMES fftw3_omp)
+      find_library(FFTW3F_LIBRARIES_OMP NAMES fftw3f_omp)
+      find_path(FFTW3_INCLUDE_DIR NAMES "fftw3.h")
+      include_directories(${FFTW3_INCLUDE_DIR})
+
+      if (NOT FFTW3_LIBRARIES)
+        message(FATAL_ERROR "FFTW3 not found. FTTW3 is required for GNU/Cray build of deviceacc.")
+      endif()
+
+      set(devacc_link_libs "${LINALG_LIBRARY};${FFTW3_LIBRARIES};${FFTW3F_LIBRARIES};${FFTW3_LIBRARIES_OMP};${FFTW3F_LIBRARIES_OMP}")
+
   else()
       message(FATAL_ERROR "Compiler is not recognized: only GNU and Intel (ifx) compilers are supported")
   endif()
 else()
-  if(CMAKE_Fortran_COMPILER MATCHES "ifx")
+  if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
       message(STATUS "Intel compilers")
       set(CMAKE_CXX_COMPILER "icpx")
       set(CMAKE_Fortran_COMPILER "mpiifx")
@@ -165,18 +271,57 @@ else()
       find_package(MKL REQUIRED)
       include_directories(${MKL_INCLUDE_DIRS})
       set(devacc_link_libs "${MKL_LIBRARIES}")
-  elseif(CMAKE_Fortran_COMPILER MATCHES "gfortran")
+  elseif(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
       message(STATUS "GNU compilers")
       set(CMAKE_CXX_COMPILER "g++")
       set(CMAKE_Fortran_COMPILER "mpif90")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -flto  -fPIC -fopenmp")
-      set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -flto -cpp -O3 -fPIC \
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fPIC -fopenmp")
+      set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp -O3 -fPIC \
                                 -ffree-line-length-512 -fopenmp")
-      find_package(FFTW3 REQUIRED)
-      include_directories(${FFTW3_INCLUDE_DIRS})                 
-      set(devacc_link_libs "-lopenblasp -lfftw3 -lfftw3f")
+      # Find linear algebra
+      find_library(LINALG_LIBRARY REQUIRED NAMES openblasp openblas_mp openblas_omp openblas)
+      if (NOT ${LINALG_LIBRARY})
+        message(FATAL_ERROR "OpenBLAS not found. OpenBLAS is required for GNU/Cray build of deviceacc.")
+      endif()
+
+      # Find FFTW3 library
+      find_library(FFTW3_LIBRARIES NAMES fftw3)
+      find_library(FFTW3F_LIBRARIES NAMES fftw3f)
+      find_library(FFTW3_LIBRARIES_OMP NAMES fftw3_omp)
+      find_library(FFTW3F_LIBRARIES_OMP NAMES fftw3f_omp)
+      find_path(FFTW3_INCLUDE_DIR NAMES "fftw3.h")
+      include_directories(${FFTW3_INCLUDE_DIR})
+
+      if (NOT FFTW3_LIBRARIES)
+        message(FATAL_ERROR "FFTW3 not found. FTTW3 is required for GNU/Cray build of deviceacc.")
+      endif()
+
+      set(devacc_link_libs "${LINALG_LIBRARY};${FFTW3_LIBRARIES};${FFTW3F_LIBRARIES};${FFTW3_LIBRARIES_OMP};${FFTW3F_LIBRARIES_OMP}")
+
+  elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
+      set(CMAKE_CXX_COMPILER "CC")
+      set(CMAKE_Fortran_COMPILER "mpiftn")
+      set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -fPIC -fopenmp")
+      set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} -fopenmp")
+      set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -fPIC -fopenmp")
+      set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fopenmp")
+
+      # Find FFTW3 library
+      find_library(FFTW3_LIBRARIES NAMES fftw3)
+      find_library(FFTW3F_LIBRARIES NAMES fftw3f)
+      find_library(FFTW3_LIBRARIES_OMP NAMES fftw3_omp)
+      find_library(FFTW3F_LIBRARIES_OMP NAMES fftw3f_omp)
+      find_path(FFTW3_INCLUDE_DIR NAMES "fftw3.h")
+      include_directories(${FFTW3_INCLUDE_DIR})
+
+      if (NOT FFTW3_LIBRARIES)
+        message(FATAL_ERROR "FFTW3 not found. FTTW3 is required for GNU/Cray build of deviceacc.")
+      endif()
+
+      set(devacc_link_libs "${LINALG_LIBRARY};${FFTW3_LIBRARIES};${FFTW3F_LIBRARIES};${FFTW3_LIBRARIES_OMP};${FFTW3F_LIBRARIES_OMP}")
+
   else()
-      message(FATAL_ERROR "Compiler is not recognized: only GNU and Intel (ifx) compilers are supported")
+      message(FATAL_ERROR "Compiler is not recognized: only GNU, Intel, Cray, and LLVMFlang compilers are supported")
   endif()
 
 endif()

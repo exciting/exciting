@@ -11,6 +11,7 @@ module m_wcml_core
   use FoX_wxml, only: xml_NewElement, xml_AddAttribute
   use FoX_wxml, only: xml_EndElement, xml_DeclareNamespace
   use FoX_wxml, only: xmlf_Name, xmlf_OpenTag
+  use FoX_wxml, only: xmlf_GetExtendedData, xmlf_SetExtendedData
 
   use m_wcml_metadata, only: cmlAddMetadata
 #endif
@@ -69,7 +70,7 @@ contains
   end subroutine cmlAddNamespace
 
 
-  subroutine cmlStartCml(xf, id, title, convention, dictref, fileId, version)
+  subroutine cmlStartCml(xf, id, title, convention, dictref, fileId, version, compchem)
     type(xmlf_t), intent(inout) :: xf
     character(len=*), intent(in), optional :: id
     character(len=*), intent(in), optional :: title
@@ -77,6 +78,7 @@ contains
     character(len=*), intent(in), optional :: dictref
     character(len=*), intent(in), optional :: fileId
     character(len=*), intent(in), optional :: version
+    logical, intent(in), optional          :: compchem
 
 #ifndef DUMMYLIB
     call xml_DeclareNamespace(xf, 'http://www.xml-cml.org/schema')
@@ -87,6 +89,13 @@ contains
     call xml_DeclareNamespace(xf, 'http://www.xml-cml.org/units/units', 'cmlUnits')
     call xml_DeclareNamespace(xf, 'http://www.xml-cml.org/units/siUnits', 'siUnits')
     call xml_DeclareNamespace(xf, 'http://www.xml-cml.org/units/atomic', 'atomicUnits')
+    if (present(compchem)) then
+      if (compchem) then
+        call xmlf_SetExtendedData(xf, 20)
+        call xml_DeclareNamespace(xf, 'http://www.xml-cml.org/convention/', 'convention')
+        call xml_DeclareNamespace(xf, 'http://www.xml-cml.org/dictionary/compchem/', 'compchem')
+      endif
+    endif
 ! FIXME TOHW we may want other namespaces in here - particularly for units
 ! once PMR has stabilized that.
 
@@ -96,6 +105,8 @@ contains
     if (present(dictref)) call xml_AddAttribute(xf, 'dictRef', dictref)
     if (present(convention)) then
       call xml_AddAttribute(xf, 'convention', convention)
+    elseif (xmlf_GetExtendedData(xf).eq.20) then
+      call xml_AddAttribute(xf, 'convention', 'convention:compchem')
     else
       call xml_AddAttribute(xf, 'convention', 'CMLComp')
     endif
@@ -108,7 +119,11 @@ contains
       call xml_AddAttribute(xf, 'version', version)
     endif
 
-    call cmlAddMetadata(xf, name='UUID', content=generate_uuid(1))
+    if (xmlf_GetExtendedData(xf).eq.20) then
+      call cmlAddMetadata(xf, name='compchem:UUID', content=generate_uuid(1))
+    else
+      call cmlAddMetadata(xf, name='UUID', content=generate_uuid(1))
+    endif
 #endif
 
   end subroutine cmlStartCml
@@ -118,7 +133,7 @@ contains
     type(xmlf_t), intent(inout) :: xf
 
 #ifndef DUMMYLIB
-    call cmlAddMetadata(xf, name='dc:contributor', content='FoX-'//FoX_version//' (http://www.uszla.me.uk/FoX)')
+    call cmlAddMetadata(xf, name='dc:contributor', content='FoX-'//FoX_version//' (http://www1.gly.bris.ac.uk/~walker/FoX)')
     call xml_EndElement(xf, 'cml')
 #endif
 
