@@ -113,7 +113,7 @@ u^*_{u\mathbf k}(\mathbf r_\mu^{W_u})
 \tilde{W}_{\mu\nu, \mathbf{k-k'}}
 \left(\sum_{u'}
 u_{u'\mathbf k'}(\mathbf r_\mu^{W_u})
-\left[\sum_{o'} % \right. \right.\right.\right. 
+\left[\sum_{o'} \\\\ % \right. \right.\right.\right. 
 u^*_{o'\mathbf{k'}}(\mathbf{r}_\nu^{W_o})
 X_{ o' u' \mathbf{k'}}
 %\left.\left.\left.\left.
