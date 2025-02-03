@@ -104,7 +104,6 @@ Applying the screened kernel to $X$, after reordering the sums, we get
 
 
 $$
-
 [W \cdot X]_{ou\mathbf k} = \frac{1} {N_k} \sum_{\nu=1}^{N_\mu^{W_o}}
 u_{o\mathbf k}(\mathbf r_\nu^{W_o})
 \left\{ \sum_{\mu=1}^{N_\mu^{W_u}}
