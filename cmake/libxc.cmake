@@ -23,7 +23,7 @@ if (USE_INTERNAL_LIBXC)
   message("-- LibXC 7.0.0 will be installed to ${libXCInstallDir}")
 
   if (CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
-    set(FORTRAN_FLAGS_XC "-O2 -e f -g -e Z -dC -s real64 -s integer32 -fPIC -h flex_mp=strict")
+    set(FORTRAN_FLAGS_XC "-O0 -ef -g -e Z -dC -s real64 -s integer32 -fPIC -h flex_mp=strict")
   else()
     set(FORTRAN_FLAGS_XC "-cpp ")
   endif()
@@ -43,8 +43,8 @@ if (USE_INTERNAL_LIBXC)
 		      -DCMAKE_INSTALL_LIBDIR=lib
                       -DENABLE_FORTRAN=ON
 		      -DCMAKE_Fortran_FLAGS=${FORTRAN_FLAGS_XC}
-    BUILD_COMMAND   make clean && make
-    INSTALL_COMMAND make install
+    BUILD_COMMAND   $(MAKE) clean && $(MAKE)
+    INSTALL_COMMAND $(MAKE) install
   )
 
   include_directories(${libXCInstallDir}/include)

@@ -120,7 +120,7 @@ contains
       convun = 0
       if( input%properties%wannier%grouparray( wf_group)%group%writeconv) then
         call getunit( convun)
-        write( convfname, '("dis_conv_",i3.3,".dat")'), wf_group
+        write( convfname, '("dis_conv_",i3.3,".dat")') wf_group
         open( convun, file=trim( convfname), action='write', form='formatted')
       end if
 

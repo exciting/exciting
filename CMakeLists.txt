@@ -106,15 +106,11 @@ include(external/deviceacc/include.cmake)
 # Create files needed for CMake compilation
 include(cmake/create_files.cmake)
 
-# Get exiciting source folders
-include(cmake/manage_exciting_source.cmake)
-
-
-# Option controling if we build exciting
+# Option controling if we build exciting and needed libraries
+# Useful if we only want to build the documentation
 option(BUILD_EXCITING "Do we build exciting" ON)
 
 if (BUILD_EXCITING)
-
     # Compile the needed parts of greenX
     add_subdirectory(external/greenX)
     # External libs, packaged with source
@@ -126,6 +122,7 @@ if (BUILD_EXCITING)
 
     # Build libBZINT
     include(cmake/libbzint.cmake)
+
     # Location of exciting's CMakeLists
     add_subdirectory(src)
 
@@ -135,7 +132,6 @@ if (BUILD_EXCITING)
 
     # Testing CMake instructions are found in test folder
     add_subdirectory(test)
-
 endif()
 
 # Documentation

@@ -265,6 +265,8 @@ module m_dom_dom
   public :: lookupPrefix
   public :: getTextContent
   public :: setTextContent
+  public :: getTextContent_len
+  public :: internal_getTextContent 
 
   public :: getNodePath
 
@@ -1037,7 +1039,7 @@ endif
 
     select case(np%nodeType)
     case (ATTRIBUTE_NODE)
-      c = getTextContent(np)
+      call internal_getTextContent(np, c)
     case (CDATA_SECTION_NODE, COMMENT_NODE, PROCESSING_INSTRUCTION_NODE, TEXT_NODE)
       c = str_vs(np%nodeValue)
     case default
@@ -4065,13 +4067,13 @@ endif
     endif
   end function getTextContent_len
 
-  function getTextContent(arg, ex)result(c) 
+  subroutine internal_getTextContent(arg, c, ex)
     type(DOMException), intent(out), optional :: ex
-    type(Node), pointer :: arg
+    type(Node), intent(inout), pointer :: arg
 #ifdef RESTRICTED_ASSOCIATED_BUG
-    character(len=getTextContent_len(arg, .true.)) :: c
+    character(len=getTextContent_len(arg, .true.)), intent(out) :: c
 #else
-    character(len=getTextContent_len(arg, associated(arg))) :: c
+    character(len=getTextContent_len(arg, associated(arg))), intent(out) :: c
 #endif
 
     type(Node), pointer :: this, treeroot
@@ -4080,7 +4082,7 @@ endif
 
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
-  call throw_exception(FoX_NODE_IS_NULL, "getTextContent", ex)
+  call throw_exception(FoX_NODE_IS_NULL, "internal_getTextContent", ex)
   if (present(ex)) then
     if (inException(ex)) then
        return
@@ -4089,7 +4091,7 @@ endif
 endif
 
     endif
-    
+
     if (len(c) == 0) then
       c = ""
       return
@@ -4172,6 +4174,18 @@ endif
     enddo
 
 
+     nullify(treeroot)
+  end subroutine internal_getTextContent
+
+  function getTextContent(arg, ex)result(c) 
+    type(DOMException), intent(out), optional :: ex
+    type(Node), intent(inout), pointer :: arg
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
+    call internal_getTextContent(arg, c, ex)
   end function getTextContent
 
   subroutine setTextContent(arg, textContent, ex)
@@ -9207,7 +9221,7 @@ endif
     if (len(c)>0) then
       do i = 1, arg%elExtras%attributes%length
         if (str_vs(arg%elExtras%attributes%nodes(i)%this%nodeName)==name) then
-          c = getTextContent(arg%elExtras%attributes%nodes(i)%this)
+          call internal_getTextContent(arg%elExtras%attributes%nodes(i)%this, c)
           exit
         endif
       enddo
@@ -9607,7 +9621,7 @@ endif
         if ((str_vs(arg%elExtras%attributes%nodes(i)%this%elExtras%localName)==localname &
           .and. str_vs(arg%elExtras%attributes%nodes(i)%this%elExtras%namespaceURI)==namespaceURI) &
           .or. (namespaceURI=="".and.str_vs(arg%elExtras%attributes%nodes(i)%this%nodeName)==localname)) then
-          c = getTextContent(arg%elExtras%attributes%nodes(i)%this)
+          call internal_getTextContent(arg%elExtras%attributes%nodes(i)%this, c)
           exit
         endif
       enddo
@@ -10404,7 +10418,7 @@ endif
 
     endif
 
-    c = getTextContent(arg, ex)
+    call internal_getTextContent(arg, c, ex)
 
   end function getValue_DOM
 

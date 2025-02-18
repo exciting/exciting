@@ -4,6 +4,7 @@ module to_char_conversion_test
   use asserts, only: assert
   use modmpi, only: mpiinfo
   use precision, only: sp, dp
+  use math_utils, only: transpose_reshape
   use unit_test_framework, only: unit_test_type
 
   use to_char_conversion, only: to_char
@@ -139,9 +140,9 @@ module to_char_conversion_test
                       [3.500000000000000,50.0000000000000],&
                       [5.00000000000000,3.50000000000000]]".')
 
-    call test_report%assert(to_char(transpose(reshape([cmplx(3._dp, 2._dp, dp),  cmplx(3.4_dp, -0.1_dp, dp), &
+    call test_report%assert(to_char(transpose_reshape([cmplx(3._dp, 2._dp, dp),  cmplx(3.4_dp, -0.1_dp, dp), &
                                                        cmplx(0._dp, 50._dp, dp), cmplx(3.5_dp, 0.5_dp, dp)], &
-                                                        [2, 2]))) ==&
+                                                        [2, 2])) ==&
                     "[[3.00000000000000E+00+2.00000000000000E+00i,0.00000000000000E+00+5.00000000000000E+01i],&
                       [3.40000000000000E+00-1.00000000000000E-01i,3.50000000000000E+00+5.00000000000000E-01i]]", &
             'Test t_char for double complex matrix. Expected: &

@@ -45,7 +45,7 @@ module putgeteps0
       !> Filename
       character(*), intent(in), optional :: fname
       !> Debug mode
-      logical, intent(in), optional :: debug
+      logical(i32), intent(in), optional :: debug
       
       !> Name of subroutine
       character(*), parameter :: thisnam = 'puteps0_zero_q'
@@ -60,7 +60,7 @@ module putgeteps0
       !> Number of (G+q)-points for current q-point
       integer(i32) :: numgq
       !> Local debug mode
-      logical :: debug_local
+      logical(i32) :: debug_local
 
       numgq = size(eps0, dim=1)
 
@@ -154,7 +154,7 @@ module putgeteps0
       !> Filename
       character(*), intent(in), optional :: fname
       !> Debug mode
-      logical, intent(in), optional :: debug
+      logical(i32), intent(in), optional :: debug
       
       !> Name of subroutine
       character(*), parameter :: thisnam = 'puteps0_finite_q'
@@ -169,7 +169,7 @@ module putgeteps0
       !> Number of (G+q)-points for current q-point
       integer(i32) :: numgq
       !> Local debug mode
-      logical :: debug_local
+      logical(i32) :: debug_local
 
       numgq = size(eps0, dim=1)
 
@@ -259,7 +259,7 @@ module putgeteps0
       !> Filename
       character(*), intent(in), optional :: fname
       !> Debug mode
-      logical, intent(in), optional :: debug
+      logical(i32), intent(in), optional :: debug
       !> Number of (G+q)-points for current q-point
       integer(i32) :: numgq
       !> Routine name
@@ -283,9 +283,9 @@ module putgeteps0
       real(dp) ::  w_read
       !> Tolerance for  comparing of requested and read data
       real(dp), parameter :: tol=1.e-8_dp
-      logical :: existent
+      logical(i32) :: existent
       !> Local debug mode
-      logical :: debug_local
+      logical(i32) :: debug_local
 
 
       ! Generate q dependent file name
@@ -405,7 +405,7 @@ module putgeteps0
       !> Filename
       character(*), intent(in), optional :: fname
       !> Debug mode
-      logical, intent(in), optional :: debug
+      logical(i32), intent(in), optional :: debug
 
       !> Number of (G+q)-points for current q-point
       integer(i32) :: numgq
@@ -431,9 +431,9 @@ module putgeteps0
       real(dp) ::  w_read
       !> Tolerance for  comparing of requested and read data
       real(dp), parameter :: tol=1.e-8_dp
-      logical :: existent
+      logical(i32) :: existent
       !> Local debug mode
-      logical :: debug_local
+      logical(i32) :: debug_local
 
       ! Generate q dependent file name
       if(present(fname)) then 
@@ -523,3 +523,4 @@ module putgeteps0
     end subroutine geteps0_finite_q
 
 end module putgeteps0
+

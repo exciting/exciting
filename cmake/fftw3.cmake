@@ -11,12 +11,28 @@ set(FFTW3_ROOT "None" CACHE STRING "Root directory for non-standard locations fo
 if(MKL)
     # If MKL is specified but not found, search for it
     if (NOT MKL_FOUND)
-	set(MKL_INTERFACE "lp64")
-	if (NOT ${OMP})
-            set(MKL_THREADING "sequential")
+        # Attempt to find the MKL package using CMake's find_package command.
+        # The CONFIG keyword ensures that CMake looks for a pre-configured MKL package.
+        find_package(MKL CONFIG)
+
+        # If MKL is not found, try looking in the default MKLROOT path
+        # This solve issues in old MKL installations that do not 
+        # load the proper path to CMAKE_PREFIX_PATH.
+        if (NOT MKL_FOUND AND DEFINED ENV{MKLROOT})
+            set(MKL_ROOT_DIR "$ENV{MKLROOT}/lib/cmake/mkl")
+            if (EXISTS "${MKL_ROOT_DIR}")
+                list(APPEND CMAKE_PREFIX_PATH "${MKL_ROOT_DIR}")
+                find_package(MKL CONFIG REQUIRED)
+            else()
+                message(FATAL_ERROR "CMake configuration file for MKL cannot be found. Please check your MKL configuration.")
+            endif()
         endif()
-	find_package(MKL CONFIG REQUIRED)
-        message(STATUS "MKL found (DIR)  : ${MKL_DIR}")
+        # Print information regarding MKL 
+        if (MKL_FOUND)
+            message(STATUS "MKL found (DIR): ${MKL_DIR}")
+        else()
+            message(FATAL_ERROR "Intel MKL could not be found. Please check your MKL installation.")
+        endif()
     endif()
 
     # Indicate that FFTW3 is being used with MKL

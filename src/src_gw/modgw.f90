@@ -196,9 +196,7 @@ contains
         write(fgw, '("     - calcminc", T45,": ", F12.2)') time_minc
         write(fgw, '("     - calcminm", T45,": ", F12.2)') time_minm
         
-        if (input%gw%reduceq) then
-          write(fgw, '("     - genmbrotmat", T45,": ", F12.2)') time_rotmb
-        end if
+        write(fgw, '("     - symmetry", T45,": ", F12.2)') time_rotmb
         
         write(fgw, '("     Self-energy", T45,": ", F12.2)') &
         &  time_selfx+time_selfc

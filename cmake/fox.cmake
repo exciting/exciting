@@ -8,7 +8,7 @@ message(STATUS "FoX (version 2012) will be installed to ${FoXInstallDir}")
 
 # Set compiler-specific flags
 if (CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
-    set(FORTRAN_FLAGS_FOX "-O2 -ef -hipa0 -g -e Z -dC -s real64 -s integer32 -fPIC -h flex_mp=strict")
+    set(FORTRAN_FLAGS_FOX "-O0 -ef -hipa0 -g -e Z -dC -s real64 -s integer32 -fPIC -h flex_mp=strict")
 else()
     set(FORTRAN_FLAGS_FOX "-fPIC")
 endif()
@@ -27,8 +27,8 @@ ExternalProject_Add(INTERNAL_FOX
                     -DCMAKE_INSTALL_LIBDIR=lib
                     -DFoX_ENABLE_WKML=OFF
                     -DCMAKE_Fortran_FLAGS=${FORTRAN_FLAGS_XC}
-  BUILD_COMMAND   make clean && make
-  INSTALL_COMMAND make install
+  BUILD_COMMAND   $(MAKE) clean && $(MAKE)
+  INSTALL_COMMAND $(MAKE) install
 )
 
 # Add FoX include and library directories

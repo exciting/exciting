@@ -1,8 +1,6 @@
 # Top-level Gitlab Continuous Integration Config File for exciting
-#
-# Notes
-# --------
-# Missing build and test for Intel + HDF5
+
+# Notice Cray CI is deactivated as it requires of extra permissions
 
 stages:
   - build
@@ -15,6 +13,7 @@ include:
   - local: '/.gitlab/python-libs.yml'
   - local: '/.gitlab/docs.yml'
   - local: '/.gitlab/jupyter-exciting-python3-gnu-smp.yml'
+  #- local: '/.gitlab/exciting-fedora-buster-cray.yml'
   - local: '/.gitlab/exciting-fedora-buster-gnu-serial.yml'
   - local: '/.gitlab/exciting-fedora-buster-gnu-smp.yml'
   - local: '/.gitlab/exciting-fedora-buster-gnu-mpismp.yml'

@@ -1,7 +1,7 @@
 !> Module for unit tests of the functions in [[matrix_exp]]
 module normalize_test
   use normalize
-  use math_utils, only: all_close
+  use math_utils, only: all_close, transpose_reshape
   use precision, only: dp
   use unit_test_framework, only : unit_test_type
   implicit none
@@ -57,18 +57,19 @@ module normalize_test
     real(dp), parameter                 :: tol = 1.e-10_dp
 
     ! Test a normal case
-    vectors = transpose( reshape([ &
+    vectors = transpose_reshape([ &
       & zone,                       3._dp*zone, &
-      & zi,                        -4._dp*zi], shape=[2,2] ) )
-    call normalize_vectors( S=transpose(reshape([ &
+      & zi,                        -4._dp*zi], [2,2] ) 
+    call normalize_vectors( S=transpose_reshape([ &
       & zone,                      -2._dp*zi, &
-      & 2._dp*zi,                  5._dp*zone ],shape=[2,2] )),&
+      & 2._dp*zi,                  5._dp*zone ],[2,2] ),&
       & vectors=vectors )
-    expected = transpose( reshape( [&
+    expected = transpose_reshape( [&
       & 0.316227766016838_dp*zone,  0.468521285665818_dp*zone, &
-      & 0.316227766016838_dp*zi,   -0.624695047554424_dp*zi ], shape=[2,2] ) )
+      & 0.316227766016838_dp*zi,   -0.624695047554424_dp*zi ], [2,2] ) 
     call test_report%assert( all_close( a=vectors, b=expected, &
       & tol=tol ), message='test_normalize_vectors failed.' )
   end subroutine test_normalize_vectors    
 
 end module
+

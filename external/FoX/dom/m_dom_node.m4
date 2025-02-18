@@ -32,6 +32,8 @@ TOHW_m_dom_publics(`
   public :: lookupPrefix
   public :: getTextContent
   public :: setTextContent
+  public :: getTextContent_len
+  public :: internal_getTextContent 
 
   public :: getNodePath
 
@@ -78,7 +80,7 @@ TOHW_m_dom_get(DOMString, nodeName, np%nodeName)
 
     select case(np%nodeType)
     case (ATTRIBUTE_NODE)
-      c = getTextContent(np)
+      call internal_getTextContent(np, c)
     case (CDATA_SECTION_NODE, COMMENT_NODE, PROCESSING_INSTRUCTION_NODE, TEXT_NODE)
       c = str_vs(np%nodeValue)
     case default
@@ -1344,12 +1346,12 @@ TOHW_m_dom_treewalk(`
     endif
   end function getTextContent_len
 
-  TOHW_function(getTextContent, (arg), c)
-    type(Node), pointer :: arg
+  TOHW_subroutine(internal_getTextContent, (arg, c))
+    type(Node), intent(inout), pointer :: arg
 #ifdef RESTRICTED_ASSOCIATED_BUG
-    character(len=getTextContent_len(arg, .true.)) :: c
+    character(len=getTextContent_len(arg, .true.)), intent(out) :: c
 #else
-    character(len=getTextContent_len(arg, associated(arg))) :: c
+    character(len=getTextContent_len(arg, associated(arg))), intent(out) :: c
 #endif
 
     type(Node), pointer :: this, treeroot
@@ -1359,7 +1361,7 @@ TOHW_m_dom_treewalk(`
     if (.not.associated(arg)) then
       TOHW_m_dom_throw_error(FoX_NODE_IS_NULL)
     endif
-    
+
     if (len(c) == 0) then
       c = ""
       return
@@ -1383,6 +1385,17 @@ TOHW_m_dom_treewalk(`
         endif
       end select
 '`')
+     nullify(treeroot)
+  end subroutine internal_getTextContent
+
+  TOHW_function(getTextContent, (arg), c)
+    type(Node), intent(inout), pointer :: arg
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
+    call internal_getTextContent(arg, c, ex)
   end function getTextContent
 
   TOHW_subroutine(setTextContent, (arg, textContent))

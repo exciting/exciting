@@ -4,10 +4,11 @@ subroutine putvxnl()
   use modmain
   use mod_hybrids
   use modmpi
+  use precision, only: i32, long_int, dp
 
   implicit none
-  integer(8) :: recl
-  integer    :: ik, ikfirst, iklast
+  integer(long_int) :: recl
+  integer(i32)      :: ik, ikfirst, iklast
 
 !$OMP CRITICAL
 
@@ -33,3 +34,4 @@ subroutine putvxnl()
 
   return
 end subroutine
+

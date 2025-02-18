@@ -41,7 +41,7 @@ module bse_transitions
     integer, intent(in) :: band_idx(:, :)
     integer, intent(in) :: allowed(:)
 
-    this%allowed = allowed
+    this%allowed = (allowed /= 0)
 
     this%o_first = band_idx(of, :)
     this%o_last = band_idx(ol, :)

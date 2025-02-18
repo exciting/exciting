@@ -1,3 +1,11 @@
+
+! Cray 18.0.1 has a bug with the spread function marking it as inpure function
+#if _CRAYFTN 
+#define PURE_CRAY_BUG
+#else  
+#define PURE_CRAY_BUG pure
+#endif
+
 !> Math utilities and functions
 module math_utils
   use asserts, only: assert
@@ -41,7 +49,8 @@ module math_utils
             get_degeneracies, &
             is_close, &
             get_integer_indexes, &
-            fill_random
+            fill_random, &
+            transpose_reshape
 
 
   !> Default tolerance
@@ -1779,7 +1788,7 @@ end subroutine fill_random_rank2_complex_dp
 
 
   !> Calculate the fractional part of a matrix. See [[fractional_part_scalar(function)]].
-  pure function fractional_part_matrix(X_in, C_in, tol) result(X_out)
+  PURE_CRAY_BUG function fractional_part_matrix(X_in, C_in, tol) result(X_out)
     !> Matrix to map to the intervall
     real(dp), intent(in) :: X_in(:, :)
     !> Offset. It is expected that it has at least the same dimension as rank 1 of [[X]].
@@ -1851,7 +1860,7 @@ end subroutine fill_random_rank2_complex_dp
 
 
   !> Calculate the integer part of a matrix. See [[integer_part_scalar(function)]].
-  pure function integer_part_matrix(X_in, C_in, tol) result(I_out)
+  PURE_CRAY_BUG function integer_part_matrix(X_in, C_in, tol) result(I_out)
     !> Matrix to map to the intervall
     real(dp), intent(in) :: X_in(:, :)
     !> Offset. It is expected that it has at least the same dimension as rank 1 of [[X]].
@@ -2039,6 +2048,27 @@ end subroutine fill_random_rank2_complex_dp
     integer_indexes = modulo(integer_indexes, mesh_size)
 
   end function get_integer_indexes
+
+  !> This function combines transpose after reshape
+  !> Cray compiler (17.0.1 and 18.0.1) fail to do that onfly for complex numbers.
+  !> This function overcomes this issue with barely no cost, as compiler 
+  !> inlines it, and uses copy elision for reshaped_array.
+  !> 
+  !> To be used whenever the use case is not a parameter. 
+  !>
+  pure function transpose_reshape(flattened_array, N) result(reshaped_array)
+      !> The flattened array to reshape and transpose
+      complex(dp), intent(in)  :: flattened_array(:)
+      !> The new shape of the output array
+      integer,     intent(in)  :: N(2)
+      !> The new array with [N(2),N(1)]
+      complex(dp), allocatable :: reshaped_array(:,:)
+      if (size(flattened_array) /= product(N)) then
+          error stop "Error(transpose_reshape): the data size does not match the shape"
+      endif
+      reshaped_array = reshape(flattened_array, N)
+      reshaped_array = transpose(reshaped_array)
+  end function transpose_reshape
 
 end module math_utils
 

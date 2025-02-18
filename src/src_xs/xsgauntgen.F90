@@ -2,9 +2,18 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 !
+
+! TODO: Check the validity xasgauntgen when emat_ccket is .true.
+!       The code has been modified to compile in Cray while respecting the
+!       old (and maybe incorrect) IFORT behaviour
 module m_xsgauntgen
 
+  use precision, only: i32, dp
+
   implicit none
+
+  private
+  public :: xsgauntgen, xasgauntgen
 
 contains
 
@@ -15,11 +24,11 @@ contains
     implicit none
 
     ! Arguments
-    integer, intent(in) :: lmax1, lmax2, lmax3
+    integer(i32), intent(in) :: lmax1, lmax2, lmax3
 
     ! Local variables
-    integer :: l1, l2, l3, m1, m2, m3
-    integer :: lm1, lm2, lm3, lmmax1, lmmax2, lmmax3
+    integer(i32) :: l1, l2, l3, m1, m2, m3
+    integer(i32) :: lm1, lm2, lm3, lmmax1, lmmax2, lmmax3
 
     ! Allocate and generate complex gaunt coefficient array
     lmmax1 = (lmax1+1) ** 2
@@ -48,25 +57,28 @@ contains
   end subroutine xsgauntgen
 
   subroutine xasgauntgen (lmax2, lmax3)
+    use ieee_arithmetic, only: ieee_quiet_nan, ieee_value
     use modinput, only:input
     use modxs, only: xsgntou, xsgntuo, xsgntoo, xsgntousv, xsgntuosv
     use modxas, only: nxas, lxas, xasstart, xasstop, preml, mj2ml, spj, mj
     use mod_muffin_tin, only: idxlm
     use m_ematqk, only: emat_ccket
     use wigner3j_symbol, only: gaunt_yyy
-    Implicit None
+    
+    implicit None
+    
     ! arguments
-    Integer, Intent (In) :: lmax2, lmax3
+    integer, intent(in) :: lmax2, lmax3
     ! local variables
     Integer :: n1, n2, l2, l3, m2, m3, lm1, lm2, lm3, &
       & lmmax2, lmmax3, nsp 
-    Real (8) :: prefac
+    real(dp) :: prefac
     
     if (.not. (input%groundstate%tevecsv)) then
       ! allocate and generate complex Gaunt coefficient array
       lmmax2 = (lmax2+1) ** 2
       lmmax3 = (lmax3+1) ** 2
-      prefac=1.0d0/sqrt(2.0d0)
+      prefac=1.0_dp/sqrt(2.0_dp)
       If (allocated(xsgntou)) deallocate (xsgntou)
       If (allocated(xsgntuo)) deallocate (xsgntuo)
       If  (allocated(xsgntoo)) deallocate (xsgntoo)
@@ -105,9 +117,15 @@ contains
                     & (n1+xasstart-1),2)*gaunt_yyy(l3, l2, lxas, m3, m2, mj2ml(lxas,-mj(n1+xasstart-1)&
                     & ,2))
                   ! time-reversal prefactor
-                  xsgntuo(n1,lm2,lm3)=(-1.0d0)**(lxas+0.5d0-spj(n1+xasstart-1))*(-1.0d0)**&
-                    & (-mj(n1+xasstart-1))*xsgntuo(n1,lm2,lm3)
-                  xsgntou(n1,lm2,lm3)=(-1.0d0)**(m3)*xsgntou(n1,lm2,lm3)
+                  ! MRM: ifort behaviour safe for Cray compiler
+                  !      I believe that mj(n1+xasstart-1) is always fractional
+                  if (abs(mod(-mj(n1+xasstart-1), 1.0_dp)) > 1.0e-6_dp) then 
+                    xsgntuo(n1,lm2,lm3) = ieee_value(xsgntuo(n1,lm2,lm3), ieee_quiet_nan)
+                  else
+                    xsgntuo(n1,lm2,lm3)=(-1.0_dp)**nint(lxas+0.5_dp-spj(n1+xasstart-1))*(-1.0_dp)**&
+                      & nint(-mj(n1+xasstart-1))*xsgntuo(n1,lm2,lm3)
+                    xsgntou(n1,lm2,lm3)=(-1.0_dp)**(m3)*xsgntou(n1,lm2,lm3)
+                  end if
                 end if
               End Do
             End Do
@@ -126,8 +144,14 @@ contains
                   & (lxas,spj(n1+xasstart-1),mj(n1+xasstart-1),2)*preml(lxas,spj(n2+xasstart&
                   &-1), -mj(n2+xasstart-1),2)*gaunt_yyy(lxas, l2, lxas, mj2ml(lxas,mj(n1+xasstart-1),&
                   & 2), m2,mj2ml(lxas,-mj(n2+xasstart-1),2))
-                xsgntoo(n1,lm2,n2)=(-1.0d0)**(lxas+0.5d0-spj(n2+xasstart-1))*(-1.0d0)**&
-                  & (-mj(n2+xasstart-1))*xsgntoo(n1,lm2,n2)
+                ! MRM: ifort behaviour safe for Cray compiler
+                !      I believe that mj(n2+xasstart-1) is always fractional
+                if (abs(mod(-mj(n2+xasstart-1), 1.0_dp)) > 1.0e-6_dp) then
+                  xsgntoo(n1,lm2,n2) = ieee_value(xsgntoo(n1,lm2,n2), ieee_quiet_nan)
+                else
+                  xsgntoo(n1,lm2,n2) = (-1.0_dp)**nint(lxas+0.5_dp-spj(n2+xasstart-1))*(-1.0_dp)**&
+                    & nint(-mj(n2+xasstart-1))*xsgntoo(n1,lm2,n2)
+                endif
               end if
             End Do
           End Do
@@ -168,10 +192,17 @@ contains
                     ! anti-resonant
                     xsgntuosv (n1, lm2, lm3, nsp) = preml(lxas,spj(n1+xasstart-1),-mj(n1+&
                       & xasstart-1),nsp)*gaunt_yyy (l3, l2, lxas, m3, m2,&
-                      & mj2ml(lxas,-mj(n1+xasstart-1),nsp))                    ! time-reversal prefactor
-                    xsgntuosv(n1,lm2,lm3,nsp)=(-1.0d0)**(lxas+0.5d0-spj(n1+xasstart-1))*(-1.0d0)**&
-                      & (-mj(n1+xasstart-1))*xsgntuosv(n1,lm2,lm3,nsp)
-                    xsgntousv(n1,lm2,lm3,nsp)=(-1.0d0)**(m3)*xsgntousv(n1,lm2,lm3,nsp)
+                      & mj2ml(lxas,-mj(n1+xasstart-1),nsp))                    
+                    ! time-reversal prefactor
+                    ! MRM: ifort behaviour safe for Cray compiler
+                    !      I believe that mj(n1+xasstart-1) is always fractional
+                    if (abs(mod(-mj(n1+xasstart-1), 1.0_dp)) > 1.0e-6_dp) then
+                      xsgntuosv(n1,lm2,lm3,nsp) = ieee_value(xsgntuosv(n1,lm2,lm3,nsp), ieee_quiet_nan)
+                    else
+                      xsgntuosv(n1,lm2,lm3,nsp)=(-1.0_dp)**nint(lxas+0.5_dp-spj(n1+xasstart-1))*(-1.0_dp)**&
+                        & nint(-mj(n1+xasstart-1))*xsgntuosv(n1,lm2,lm3,nsp)
+                      xsgntousv(n1,lm2,lm3,nsp)=(-1.0_dp)**(m3)*xsgntousv(n1,lm2,lm3,nsp)
+                    end if
                   end if
                 End Do
               End Do
@@ -191,8 +222,14 @@ contains
                   & (lxas,spj(n1+xasstart-1),mj(n1+xasstart-1),2)*preml(lxas,spj(n2+xasstart&
                   &-1), -mj(n2+xasstart-1),2)*gaunt_yyy(lxas, l2, lxas, mj2ml(lxas,mj(n1+xasstart-1),&
                   & 2), m2,mj2ml(lxas,-mj(n2+xasstart-1),2))
-                xsgntoo(n1,lm2,n2)=(-1.0d0)**(lxas+0.5d0-spj(n2+xasstart-1))*(-1.0d0)**&
-                  & (-mj(n2+xasstart-1))*xsgntoo(n1,lm2,n2)
+                ! MRM: ifort behaviour safe for Cray compiler
+                !      I believe that mj(n2+xasstart-1) is always fractional
+                if (abs(mod(-mj(n2+xasstart-1), 1.0_dp)) > 1.0e-6_dp) then
+                  xsgntoo(n1,lm2,n2) = ieee_value(xsgntoo(n1,lm2,n2), ieee_quiet_nan)
+                else
+                  xsgntoo(n1,lm2,n2)=(-1.0_dp)**nint(lxas+0.5_dp-spj(n2+xasstart-1))*(-1.0_dp)**&
+                    & nint(-mj(n2+xasstart-1))*xsgntoo(n1,lm2,n2)
+                end if
               end if
             End Do
           End Do
