@@ -56,7 +56,7 @@ TOHW_m_dom_get(Node, ownerElement, np%elExtras%ownerElement, (ATTRIBUTE_NODE))
       TOHW_m_dom_throw_error(FoX_INVALID_NODE)
     endif
 
-    c = getTextContent(arg, ex)
+    call internal_getTextContent(arg, c, ex)
 
   end function getValue_DOM
 

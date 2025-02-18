@@ -1,3 +1,6 @@
+! MRM (2025) For Cray compiler we need 64 bits integers. This have 
+! the side effect on affecting the logical default to 64 bit.
+! Therefore, we need to indicate the size of logical.
 module rttddft_io_serial
   use asserts, only: assert
   use math_utils, only: all_close
@@ -42,16 +45,17 @@ contains
     real(dp), allocatable :: descriptors_in_file(:, :)
     real(dp), parameter :: tol = 1.0e-7_dp
 
-    associate( m => size(array, 1), n => size(array, 2), k => size(array, 3), last => ubound( array, 4 ) )
+    associate( m => size(array, 1, kind=i32), n => size(array, 2, kind=i32), &
+               k => size(array, 3, kind=i32), last => ubound(array, 4, kind=i32) )
       if( present(descriptors) ) then
-        call assert( ubound( descriptors, 2 ) == last, "incompatible descriptors and array")
+        call assert( logical(ubound( descriptors, 2, kind=i32 ) == last, kind=i32) , "incompatible descriptors and array")
         allocate( descriptors_in_file(size(descriptors, 1), first:last), dims(3, first:last) )
         inquire( ioLength=size_block ) descriptors(:, first), dims(:, first), array(:, :, :, first)
       else
         inquire( ioLength=size_block ) array(:, :, :, first)
       end if
       open( newunit=unit, file=trim(file_name), action='READ', form='UNFORMATTED', access='DIRECT', recl=size_block, iostat=iostat )
-      call terminate_if_false( iostat == 0, "Error opening file: " //trim(file_name) )
+      call terminate_if_false( logical(iostat == 0, kind=i32), "Error opening file: " //trim(file_name) )
       do i = first, last
         if( present(descriptors) ) then
           read( unit, rec=i ) descriptors_in_file(:, i), dims(:, i), array(:, :, :, i)               
@@ -62,7 +66,8 @@ contains
       close( unit )
       if( present(descriptors) ) then
         call terminate_if_false( all_close(descriptors_in_file, descriptors, tol), "Descriptors is incongruent with what is stored in file " // file_name )
-        call terminate_if_false( all( dims == spread([m, n, k], dim=2, ncopies=size(array, 4) ) ), "Dims is incongruent with what is stored in file " // file_name )
+        call terminate_if_false( all( logical(dims == spread([m, n, k], dim=2, ncopies=size(array, 4, kind=i32)), kind=i32)), &
+                                 "Dims is incongruent with what is stored in file " // file_name )
       end if
     end associate
   end subroutine
@@ -83,7 +88,7 @@ contains
     complex(dp), contiguous, pointer :: ptr_rank4(:, :, :, :)
 
     call map_array_to_pointer( first, array, ptr_rank4 )
-    call read_array_rank4( file_name, lbound(ptr_rank4, 4), ptr_rank4, mpi_env=mpi_env )
+    call read_array_rank4( file_name, lbound(ptr_rank4, 4, kind=i32), ptr_rank4, mpi_env=mpi_env )
   end subroutine
 
   !> Write an array of rank=4 by chuncks, including headers if `descriptors` is present
@@ -102,15 +107,16 @@ contains
     integer(i32) :: i, unit, iostat
     integer(long_int) :: size_block
 
-    associate( m => size(array, 1), n => size(array, 2), k => size(array, 3), last => ubound( array, 4 ) )
+    associate( m => size(array, 1, kind=i32), n => size(array, 2, kind=i32), &
+               k => size(array, 3, kind=i32), last => ubound( array, 4, kind=i32) )
       if( present(descriptors) ) then
-        call assert( ubound( descriptors, 2 ) == last, "incompatible descriptors and array")
+        call assert( logical(ubound( descriptors, 2, kind=i32 ) == last, kind=i32), "incompatible descriptors and array")
         inquire( ioLength=size_block ) descriptors(:, first), m, n, k, array(:, :, :, first)
       else
         inquire( ioLength=size_block ) array(:, :, :, first)
       end if
       open( newunit=unit, file=trim(file_name), action='WRITE', form='UNFORMATTED', access='DIRECT', recl=size_block, iostat=iostat)
-      call terminate_if_false( iostat == 0, "Error opening file: " //trim(file_name) )
+      call terminate_if_false( logical(iostat == 0, kind=i32), "Error opening file: " //trim(file_name) )
       do i = first, last
         if( present(descriptors) ) then
           write( unit, rec=i ) descriptors(:, i), m, n, k, array(:, :, :, i)
@@ -138,7 +144,7 @@ contains
     complex(dp), contiguous, pointer :: ptr_rank4(:, :, :, :)
 
     call map_array_to_pointer( first, array, ptr_rank4 )
-    call write_array_rank4( file_name, lbound(ptr_rank4, 4), ptr_rank4, mpi_env=mpi_env )
+    call write_array_rank4( file_name, lbound(ptr_rank4, 4, kind=i32), ptr_rank4, mpi_env=mpi_env )
   end subroutine
 
 end module

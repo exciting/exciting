@@ -60,7 +60,7 @@ module xyaml
       return
     
     else if (this%is_initialized) then
-      open(unit=this%file_unit, file=this%file_name, iostat=ios, access='APPEND')
+      open(unit=this%file_unit, file=this%file_name, iostat=ios, action='write', position='APPEND')
 
     else
       call assert(present(file_unit), 'file_unit is not given for uninitialized yaml file.')

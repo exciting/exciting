@@ -83,7 +83,7 @@ module mod_wannier_maxloc
       convun = 0
       if( input%properties%wannier%grouparray( wf_group)%group%writeconv) then
         call getunit( convun)
-        write( convfname, '("maxloc_conv_",i3.3,".dat")'), wf_group
+        write( convfname, '("maxloc_conv_",i3.3,".dat")') wf_group
         open( convun, file=trim( convfname), action='write', form='formatted')
       end if
       if( input%properties%wannier%grouparray( wf_group)%group%optim .eq. 'cg') then

@@ -4,7 +4,7 @@
 Requirements
 ------------------
 exciting requires `xsltproc` to preprocess its XML schema into code.
-Additionally, the code requires the installation of FFTW3 (such as oneMKL, AOCL-FFTW, FFTW3, Cray-FFTW, etc.) and a BLAS/LAPACK implementation (such as oneMKL, BLIS+libFLAME, OpenBLAS, LibSci, etc.) to compile. Be aware, of using an multithreading-aware version of BLAS/LAPACK libraries.
+Additionally, the code requires the installation of FFTW3 (such as oneMKL, AOCL-FFTW, FFTW3, Cray-FFTW, etc.) and a BLAS/LAPACK implementation (such as oneMKL, BLIS+libFLAME, OpenBLAS, LibSci, etc.) to compile. Be aware, of using a multithreading-aware version of BLAS/LAPACK libraries.
 **PLEASE** ensure you have these libraries and binaries installed before proceeding.
 
 exciting comes with the following external libraries required to compile the code:
@@ -26,60 +26,111 @@ exciting can be built using CMake.
 Compiling (CMake)
 ------------------
 
-The code can be compiled using CMake. Be aware that only Intel (classic and LLVM), GNU, Cray and LLVM-Flang-based compilers are supported. Note that LLVM-Flang-based compilers need to support the Fortran2018 standard.
+The `exciting` code can be compiled using CMake. The following compilers are supported:
+- Intel Classic (ifort): 2021.0.3, 2021.13.1
+- Intel LLVM (ifx): 2025.0.0 
+- GNU: 10, 12, 14, 15
+- Cray: 17.0.1, 18.0.1
+- LLVM-Flang-based compilers (must support Fortran2018 standard)
 
-To compile exciting using CMake run in exciting root directory:
+### Compilation Steps
+
+To compile `exciting` using CMake, run the following commands from the `exciting` root directory (**Note that the following is not a working example, for these go to the next section**):
 ```shell
   mkdir build
   cd build
-  ../external/cmake-3.31.3-linux-x86_64/bin/cmake [OPTIONS] ..
+  FC=[SERIAL_FORTRAN_COMPILER] CC=[SERIAL_C_COMPILER] CXX=[SERIAL_C++_COMPILER] ../external/cmake-3.31.3-linux-x86_64/bin/cmake [OPTIONS] ..
   make -j N -l N exciting_NAME
   make install
 ```
-Where `exciting_NAME` is determined by CMake on configuration step depending on the options: `exciting_serial` (-DOMP=OFF -DMPI=OFF), `exciting_smp` (-DOMP=ON -DMPI=OFF), or `exciting_mpismp` (-DOMP=ON -DMPI=ON). Notice that we provide a bundled version of cmake with exciting `external/external/cmake-3.31.3-linux-x86_64/bin/cmake` for the build. Be aware that this version is only valid for `x86_64` systems.
+#### Notes:
+- `exciting_NAME` is determined by CMake during configuration, depending on the selected options:
+  - `exciting_serial` (`-DOMP=OFF -DMPI=OFF`)
+  - `exciting_smp` (`-DOMP=ON -DMPI=OFF`)
+  - `exciting_mpismp` (`-DOMP=ON -DMPI=ON`)
+- We provide a bundled version of CMake located at `external/external/cmake-3.31.3-linux-x86_64/bin/cmake`.
+  **Note:** This version is only valid for `x86_64` systems.
+- The `[SERIAL_FORTRAN_COMPILER]`, `[SERIAL_C_COMPILER]`, and `[SERIAL_C++_COMPILER]` must be adjusted to the compilers to use.
+- The `[OPTIONS]` section must be adjusted based on your processor, compilers, and/or required features.
 
-CMake installation can be tuned with the following options:
-* _MPI_: controls the MPI support (default: ON).
-* _OMP_: controls the OpenMP support (default: ON)
-* _HDF5_: enables the HDF5 support (default: OFF)
-* _MKL_: use MKL for linear algebra and FFT (default: OFF)
-* _OPENBLAS_: use OpenBLAS for linear algebra, as oposed to normal call this will look for accelerated versions (default: OFF)
-* _AMDLINALG_: use AMD linear algebra libraries, i.e. BLIS and FLAME (default: OFF).
-* _OTHERLINALG_: use another linear algebra library, as AMD (BLIS + libFLAME) or Cray libsci. We do not officially support exciting reliability with these libs; indeed some libsci versions are known to produce garbage results in exciting for multithreading (default: OFF)
-* _LINALGLIB_: If _OTHERLINALG_ is ON, this option should contain the full path to the desired linear algebra libraries (default: None)
-* _FFTW3\_ROOT_ : For non-standard compilation provide a PATH to the install directory of FFTW3 (default: None). 
-* _SCALAPACK_ : Build exciting with scalapack support (default: OFF).
-* _SCALAPACK\_ROOT_ : For non-standard compilation provide a PATH to the install directory of scalapack (default: None).
-* _CRAY\_SCALAPACK_: Indicates we are using the scalapack functions from Cray LibSci library (default: OFF).
-* _USE\_INTERNAL\_LIBXC_ : Use the libXC version bundled with exciting (default: ON).
-* _LIBXC\_ROOT_ : For non-standard compilation provide a PATH to the install directory of libxc (default: None).
-* _SIRIUS_ : compile exciting with SIRIUS (default: OFF). 
-* _NVIDIA_: activate GPU support for NVIDIA GPUs (default: OFF)
-* _NVIDIAARCH_: set the proper NVIDIA architecture (default: 89)
-* _AMD_: activate GPU support for AMD GPUs (default: OFF)
-* _AMDTARGET_: provides info about the AMD GPU; e.g. gfx90a (default: None)
-* _AMD\_HIPSETVALIDDEVICE\_SUPPORTED_: set ON if hipSetValidDevices is supported; only after ROCm 6.2.0 (default: OFF)
-* _INTEL_: activate GPU support for INTEL GPUs (default: OFF)
-* _CPUBACKEND_: CPU-only build (default: ON)
-* _MAGMA\_DIR_: If _AMD_ or _NVIDIA_ are ON, this option provides the path to MAGMA's install directory (default: None)
-* _INTEL\_CODE\_NAME_: For Intel processors this can be modified to mach the processor name, so ifx can generate code paths specific for that processor. If not set the build suit will select generic Intel subset based on the presence of AVX512 and/or AVX2 instructions. Do not modify for non-Intel machines. (default: None)
-* _DOCUMENTATION_: Controls if the documentation is built or not. (default: None).
-* _UNIT\_TESTS_: Activate the unit tests for the build system. Requires python3 in the system (default: ON).
-* _REGRESSION\_TESTS_: Activate the regression tests for the build system  (default: ON).
-* _BUILD\_EXCITING_: Build exciting (default: ON).
+### Example Configurations
 
-### CMake build examples
+#### Intel Machines:
+- **Classic Intel Compilers:**
+```shell
+mkdir build
+cd build
+FC=ifort CC=icc CXX=icpc ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DMKL=ON ..
+make -j`nproc` -l`nproc` exciting_mpismp
+make install
+```
+- **Intel LLVM Compilers with a processor supported by `-ax` (e.g., Intel(R) Xeon(R) Platinum 8480L, code name SAPPHIRERAPIDS):**
+```shell
+mkdir build
+cd build
+FC=ifx CC=icx CXX=icpx ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DMKL=ON -DINTEL_CODE_NAME=SAPPHIRERAPIDS ..
+make -j`nproc` -l`nproc` exciting_mpismp
+make install
+```
+- **Intel LLVM Compilers with an unsupported processor name:**
+```shell
+mkdir build
+cd build
+FC=ifx CC=icx CXX=icpx ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DMKL=ON ..
+make -j`nproc` -l`nproc` exciting_mpismp
+make install
+```
+#### AMD-Based Machines:
+- **With OpenBLAS and ScaLAPACK:**
+```shell
+mkdir build
+cd build
+FC=gfortran CC=gcc CXX=gcc ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DOPENBLAS=ON -DSCALAPACK=ON ..
+make -j`nproc` -l`nproc` exciting_mpismp
+make install
+```
+- **With AOCL-FFTW and BLIS + libFLAME:**
+```shell
+mkdir build
+cd build
+FC=gfortran CC=gcc CXX=gcc ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DAMDLINALG=ON ..
+make -j`nproc` -l`nproc` exciting_mpismp
+make install
+```
+A full list of options is provided in the following subsection.
 
-Notice that the following examples assume the required modules/libraries to be loaded, and that the used `cmake` is 
-the one bundled with `exciting`, i.e. `external/cmake-3.31.3-linux-x86_64/bin/cmake`. In all cases, the command is run after 
-executing `mkdir -p build; cd build`.
+### CMake Options
 
-* Intel machine (Classic Intel Compilers): `FC=ifort CC=icc CXX=icpc cmake -DMKL=ON .. `
-* Intel machine with processor name supported by `-ax` option (e.g. Intel(R) Xeon(R) Platinum 8480L is SAPPHIRERAPIDS) 
-  (Intel LLVM Compilers): `FC=ifx CC=icx CXX=icpx cmake -DMKL=ON -DINTEL_CODE_NAME=SAPPHIRERAPIDS .. `
-* Intel machine with processor name not supported by `-ax` option (Intel LLVM Compilers): `FC=ifx CC=icx CXX=icpx cmake -DMKL=ON ..`
-* AMD-based machines with `openBLAS` and `scaLAPACK`: `FC=gfortran CC=gcc CXX=gcc cmake -DOPENBLAS=ON -DSCALAPACK=ON ..`
-* AMD-based machine with `AOCL-FFTW` and `BLIS`+`libFLAME`: `FC=gfortran CC=gcc CXX=gcc cmake -DAMDLINALG=ON ..`
+CMake installation can be customized using the following options (**Notice that in CMake options are writen as -DOPTION=OPTION_VALUE**):
+
+- **_MPI_**: Controls MPI support (default: ON).
+- **_OMP_**: Controls OpenMP support (default: ON).
+- **_HDF5_**: Enables HDF5 support (default: OFF).
+- **_MKL_**: Uses MKL for linear algebra and FFT (default: OFF).
+- **_OPENBLAS_**: Uses OpenBLAS for linear algebra (default: OFF).
+- **_AMDLINALG_**: Uses AMD linear algebra libraries (BLIS and FLAME) (default: OFF).
+- **_CRAYLIBSCI_**: Uses Cray LibSci for linear algebra and, if required, ScaLAPACK (default: OFF).
+- **_OTHERLINALG_**: Uses another linear algebra library (not officially supported) (default: OFF).
+- **_LINALGLIB_**: If `OTHERLINALG` is ON, specify the full path to the desired linear algebra libraries (default: None).
+- **_FFTW3_ROOT_**: For non-standard compilation, provide the install directory of FFTW3 (default: None).
+- **_SCALAPACK_**: Enables ScaLAPACK support (default: OFF).
+- **_SCALAPACK_ROOT_**: For non-standard compilation, provide the install directory of ScaLAPACK (default: None).
+- **_USE_INTERNAL_LIBXC_**: Uses the bundled libXC version (default: ON).
+- **_LIBXC_ROOT_**: For non-standard compilation, provide the install directory of libXC (default: None).
+- **_SIRIUS_**: Compiles EXCITING with SIRIUS (default: OFF).
+- **_NVIDIA_**: Enables GPU support for NVIDIA GPUs (default: OFF).
+- **_NVIDIAARCH_**: Sets the NVIDIA architecture (default: 89).
+- **_AMD_**: Enables GPU support for AMD GPUs (default: OFF).
+- **_AMDTARGET_**: Specifies the AMD GPU target (e.g., gfx90a) (default: None).
+- **_AMD_HIPSETVALIDDEVICE_SUPPORTED_**: Set to ON if `hipSetValidDevices` is supported (after ROCm 6.2.0) (default: OFF).
+- **_INTEL_**: Enables GPU support for Intel GPUs (default: OFF).
+- **_CPUBACKEND_**: Enables a CPU-only build (default: ON).
+- **_MAGMA_DIR_**: If `AMD` or `NVIDIA` are ON, provide the path to MAGMA's install directory (default: None).
+- **_INTEL_CODE_NAME_**: For Intel processors, this can be modified to match the processor name, allowing `ifx` to generate optimized code paths. If not set, the build system will select a generic Intel subset based on AVX512 and/or AVX2 instructions. **Do not modify for non-Intel machines.** (default: None).
+- **_DOCUMENTATION_**: Controls whether documentation is built (default: None).
+- **_UNIT_TESTS_**: Enables unit tests (requires Python 3) (default: ON).
+- **_REGRESSION_TESTS_**: Enables regression tests (default: ON).
+- **_BUILD_EXCITING_**: Builds EXCITING (default: ON).
 
 ### Mac OS
 
@@ -211,20 +262,6 @@ After a successful installation, update the PATH variable with the location of t
 
 Please note that this code is not executable as-is; it provides instructions for setting up the fastBSE environment. 
 Make sure to adjust the paths and options according to your system and requirements.
-
-
-Compiler Support
-------------------
-
-exciting requires an Fortran2018-compliant compiler. exciting is known to compile with:
-
-* Intel ifort: 2021
-
-* Intel ifx: 2025.0.0
-  
-* GNU gfortran: 10, 12, 14, 15
-  
-* Crayftn: 18.0.1
 
 Known Issues
 ------------------

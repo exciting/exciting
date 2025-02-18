@@ -39,7 +39,6 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel" AND NOT CMAKE_Fortran_COMPILER_ID M
    endif()
 endif()
 
-
 # In case we want device supported compilation
 # find and properly set libraries
 if(NOT CPUBACKEND)
@@ -212,7 +211,7 @@ if(NOT CPUBACKEND)
       SET(CMAKE_AR ${CMAKE_CXX_COMPILER_AR} CACHE PATH "AR" FORCE)
       SET(CMAKE_RANLIB ${CMAKE_CXX_COMPILER_RANLIB} CACHE PATH "RANLIB" FORCE)
 
-      set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -ax -O3 -fPIC -fiopenmp -fopenmp-targets=spir64 -qmkl=parallel -fsycl")
+      set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 -fPIC -fiopenmp -fopenmp-targets=spir64 -qmkl=parallel -fsycl")
       set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} -fopenmp-targets=spir64 -fsycl -fpp")
       set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -fPIC -fiopenmp -fopenmp-targets=spir64 -qmkl=parallel -fsycl")
       set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fopenmp-targets=spir64 -fsycl -fpp")
@@ -256,6 +255,7 @@ else()
    if(NOT BLAS_LIBRARIES AND NOT MKL)
        message(FATAL_ERROR "Deviceacc requires BLAS and LAPACK routines. Library not found.")
    endif()
+   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -fPIC")
    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -fPIC")
    set(devacc_link_libs "${BLAS_LIBRARIES};${FFTW3_LIBRARIES}")
 endif()

@@ -364,6 +364,8 @@ contains
    subroutine test_fft_frequencies(test_report)
       !> Unit test report
       type(unit_test_type), intent(inout) :: test_report
+      !> Grid size
+      integer  :: N(3) = [4, 2, 3]
       !> reference
       real(dp) :: ref(3, 24) = reshape([0.0_dp, 0.0_dp, 0.0_dp, &
                                         1.0_dp, 0.0_dp, 0.0_dp, &
@@ -390,7 +392,7 @@ contains
                                         -2.0_dp, -1.0_dp, -1.0_dp, &
                                         -1.0_dp, -1.0_dp, -1.0_dp], [3, 24])
 
-      call test_report%assert(all_close(fft_frequencies([4, 2, 3]), ref), &
+      call test_report%assert(all_close(fft_frequencies(N), ref), &
                       'Test fft_frequencies for a 3D grid with [4, 2, 3] numbers of points per dimension. &
                       Expected output: 3 x 24 element array with the fast fourier freqencies corresponding to the grid &
                       in correct order.')

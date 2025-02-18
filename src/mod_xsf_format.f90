@@ -109,7 +109,7 @@ contains
       call r3mv(input%structure%crystal%basevect, boxl(i,:), boxc(i,:))
     end do
 
-    open(80,file=trim(fname),status='Unknown',action='Write',access='Append')
+    open(80,file=trim(fname),status='Unknown',action='Write',position='Append')
     write(80,*) 'BEGIN_BLOCK_DATAGRID_2D'
     write(80,*) trim(label)
     write(80,*) 'BEGIN_DATAGRID_2D'
@@ -146,7 +146,7 @@ contains
       call r3mv(input%structure%crystal%basevect, boxl(i,:), boxc(i,:))
     end do
 
-    open(80,file=trim(fname),status='Unknown',action='Write',access='Append')
+    open(80,file=trim(fname),status='Unknown',action='Write',position='Append')
     write(80,*) 'BEGIN_BLOCK_DATAGRID_3D'
     write(80,*) trim(label)
     write(80,*) 'BEGIN_DATAGRID_3D'

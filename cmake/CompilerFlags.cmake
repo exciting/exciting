@@ -99,7 +99,7 @@ set(INTEL_DEBUG
 set(INTEL_RELEASE -O3 -g -fPIC -fpp -allow nofpp_comments -save-temps -no-wrap-margin -fp-model source )
 
 # Cray compiler
-set(CRAY_RELEASE -O2 -ef -craype-verbose -e Z -dC -s real64 -s integer32 -fPIC -hipa0 -h flex_mp=strict -hnopattern)
+set(CRAY_RELEASE -O2 -ef -g -craype-verbose -e Z -dC -s real64 -s integer32 -fPIC -hipa0 -h flex_mp=strict -hnopattern -hlist=m -h keepfiles)
 set(CRAY_DEBUG   -O0 -ef -g -fsanitize=thread -craype-verbose -e Z -dC -s real64 -s integer32 -fPIC -hipa0 -h flex_mp=strict -hnopattern)
 
 # Flang compiler

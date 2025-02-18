@@ -21,8 +21,12 @@ ifelse(`$1', `Ch', `
     logical, intent(in), optional :: csv
     character, intent(in), optional :: separator')
     integer, intent(out), optional :: num, iostat
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
 dnl
-
     if (.not.associated(arg)) then
 ifelse(`$1', `Ch', 
 `      TOHW_m_dom_throw_error(FoX_NODE_IS_NULL, `', `data = ""')',
@@ -30,16 +34,18 @@ ifelse(`$1', `Ch',
     endif
 ifelse(`$1', `Ch', `dnl
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, separator, csv, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, separator, csv, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, separator, csv, num, iostat)
 ', `
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, num, iostat)
 ')
   end subroutine extractDataContent$1$2
 ')`'dnl
@@ -143,7 +149,8 @@ module m_dom_extras
   use m_dom_error, only: DOMException, inException, throw_exception,           &
     FoX_NODE_IS_NULL, FoX_INVALID_NODE
   use m_dom_dom, only: Node, ELEMENT_NODE,                                     &
-    getAttribute, getAttributeNS, getTextContent, getNodeType, getFoX_checks
+    getAttribute, getAttributeNS, internal_getTextContent, getNodeType, getFoX_checks, &
+    getTextContent_len
 
   implicit none
   private

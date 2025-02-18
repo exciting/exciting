@@ -276,7 +276,9 @@ contains
     call matrix_multiply( eigvecs, aux, proj, 'C')
 
     ! Now, scale each eigenvector by the exponential of alpha*eigvals
-    forall( i = 1:n_vectors ) aux(:, i) = zexp( alpha*eigvals(i) )*eigvecs(:, i)
+    ! MRM: FORALL is marked as obsolescent in Fortran 2018. I leave this in case it becomes deleted
+    !      from the standard.
+    forall( i = 1:n_vectors ) aux(:, i) = exp( alpha*eigvals(i) )*eigvecs(:, i)
 
     call matrix_multiply( aux, proj, vectors )
 

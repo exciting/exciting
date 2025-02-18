@@ -1039,7 +1039,7 @@ module mod_wannier_util
             !write(77,'(2f16.6)') grid%vpd(ip), wkpt(ik)*nkptnr*abs(zdata(ip))**2
           end do
           close(77)
-          write(*,'(" 1D Wannier function written to wannier1d-",i4.4,".dat")'), ist
+          write(*,'(" 1D Wannier function written to wannier1d-",i4.4,".dat")') ist
           write(*,'(" real part range: ",2f13.6)') rrange( :, ist)
           write(*,'(" imag part range: ",2f13.6)') irange( :, ist)
           write(*,*)
@@ -1060,7 +1060,7 @@ module mod_wannier_util
           call write_2d_xsf(fname, 'module squared',   grid( ist)%boxl(1:3,:), grid( ist)%ngrid, grid( ist)%npt, abs(zdatatot( :, ist))**2)
           call write_2d_xsf(fname, 'real',             grid( ist)%boxl(1:3,:), grid( ist)%ngrid, grid( ist)%npt, dble(zdatatot( :, ist)))
           call write_2d_xsf(fname, 'imaginary',        grid( ist)%boxl(1:3,:), grid( ist)%ngrid, grid( ist)%npt, aimag(zdatatot( :, ist)))
-          write(*,'(" 2D Wannier function written to wannier2d-",i4.4,".xsf")'), ist
+          write(*,'(" 2D Wannier function written to wannier2d-",i4.4,".xsf")') ist
           write(*,'(" real part range: ",2f13.6)') rrange( :, ist)
           write(*,'(" imag part range: ",2f13.6)') irange( :, ist)
           write(*,*)
@@ -1081,7 +1081,7 @@ module mod_wannier_util
           call write_3d_xsf(fname, 'squared modulus', grid( ist)%boxl(1:4,:), grid( ist)%ngrid, grid( ist)%npt, abs(zdatatot( :, ist))**2)
           call write_3d_xsf(fname, 'real',            grid( ist)%boxl(1:4,:), grid( ist)%ngrid, grid( ist)%npt, dble(zdatatot( :, ist)))
           call write_3d_xsf(fname, 'imaginary',       grid( ist)%boxl(1:4,:), grid( ist)%ngrid, grid( ist)%npt, aimag(zdatatot( :, ist)))
-          write(*,'(" 3D Wannier function written to wannier3d-",i4.4,".xsf")'), ist
+          write(*,'(" 3D Wannier function written to wannier3d-",i4.4,".xsf")') ist
           write(*,'(" real part range: ",2f13.6)') rrange( :, ist)
           write(*,'(" imag part range: ",2f13.6)') irange( :, ist)
           write(*,*)
