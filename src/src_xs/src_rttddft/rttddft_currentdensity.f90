@@ -1,3 +1,4 @@
+
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 ! Copyright (C) Exciting Code, SOL group. 2020
@@ -16,6 +17,7 @@ module rttddft_CurrentDensity
   use rttddft_VectorField, only: Uniform_Vector_Field
   use rttddft_VectorPotential, only: Vector_Potential_Field
   use xlapack, only: dot_multiply, hermitian_matrix_multiply
+  use rttddft_Wavefunction, only: wavefunction_set
 
   implicit none
 
@@ -83,45 +85,41 @@ contains
   subroutine evaluate_paramagnetic( this, psi, p_mat, occupation, kpt_weight, mpi_env )
     class(Current_Density), intent(inout) :: this
     !> Basis-expansion coefficients of the KS-wavefunctions at time \( t \)
-    complex(dp), intent(in)   :: psi(:, :, :)
+    class(wavefunction_set), intent(in) :: psi
     !> Momentum matrix elements
-    complex(dp), intent(in)   :: p_mat(:, :, :, :)
+    complex(dp), intent(in) :: p_mat(:, :, :, :)
     !> Occupation of each KS state
-    real(dp), intent(in)      :: occupation(:, :)
+    real(dp), intent(in) :: occupation(:, :)
     !> Integration weight of each k-point
-    real(dp), intent(in)      :: kpt_weight(:)
+    real(dp), intent(in) :: kpt_weight(:)
     !> MPI environment
     type(mpiinfo), intent(in) :: mpi_env
 
-    integer                   :: ik, ist, j, n_states, n_basis, n_kpt
-    real(dp)                  :: aux(3)
-    real(dp), allocatable     :: acc(:)
-    complex(dp), allocatable  :: draft(:, :)
-    real(dp), parameter       :: tol_default = 1e-6_dp
+    integer :: ik, ist, j, n_states, n_basis, first_active
+    real(dp) :: aux(3)
+    real(dp), allocatable :: acc(:)
+    complex(dp), allocatable :: draft(:, :)
+    real(dp), parameter :: tol_default = 1e-6_dp
 
-    n_kpt = size( psi, 3 )
-    n_states = size( psi, 2 )
-    n_basis = size( psi, 1 )
+    first_active = psi%first_active()
+    n_states = psi%n_active()
+    n_basis = psi%n_basis()
     allocate( draft(n_basis, n_states), acc(n_states) )
     aux = 0._dp
 
-#ifdef USEOMP
-!$OMP PARALLEL DO DEFAULT(NONE), PRIVATE(ik, j, ist, draft, acc), REDUCTION(+:aux), &
-!$OMP& SHARED(n_kpt, n_states, psi, p_mat, occupation, kpt_weight)
-#endif
-    do ik = 1, n_kpt
+    !$OMP PARALLEL DO DEFAULT(NONE), PRIVATE(ik, j, ist, draft, acc), REDUCTION(+:aux), &
+    !$OMP& SHARED(n_states, psi, p_mat, occupation, kpt_weight, first_active)
+    do ik = 1, psi%n_kpts()
       ! For the x, y, and z components ...
       do j = 1, 3
-        call hermitian_matrix_multiply( p_mat(:, :, j, ik), psi(:, :, ik), draft, 'U', 'L', tol_default )
+        call hermitian_matrix_multiply( p_mat(:, :, j, ik), psi%active(:, :, ik), draft, 'U', 'L', tol_default )
         do ist = 1, n_states
-          acc(ist) = real( dot_multiply( psi(:, ist, ik), draft(:, ist), conjg_a=.true. ), dp )
+          acc(ist) = real( dot_multiply( psi%active(:, ist, ik), draft(:, ist), conjg_a=.true. ), dp )
         end do
-        aux(j) = aux(j) - dot_multiply( occupation(:, ik), acc )*kpt_weight(ik)
+        aux(j) = aux(j) - dot_multiply( occupation(first_active:, ik), acc )*kpt_weight(ik)
       end do
     end do
-#ifdef USEOMP
-!$OMP END PARALLEL DO
-#endif
+    !$OMP END PARALLEL DO
     
     this%paramagnetic%components = aux / Omega
     call xmpi_allreduce( this%paramagnetic%components, mpi_env )

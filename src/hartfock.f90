@@ -14,6 +14,7 @@ Subroutine hartfock
       Use modmain
       Use modinput
       use total_energy, only: energy
+      use mod_rhovalk, only: rhovalk
 ! !DESCRIPTION:
 !  Computes the self-consistent Hartree Fock ground state.
 !
@@ -138,7 +139,7 @@ Subroutine hartfock
             Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
             Call getevecsv (vkl(:, ik), evecsv)
 ! add to the density and magnetisation
-            Call rhovalk (ik, evecfv, evecsv)
+            Call rhovalk (ik, evecfv, occsv(:, ik), rhomt, magmt, evecsv)
             Deallocate (evecfv, evecsv)
          End Do
 !$OMP END DO

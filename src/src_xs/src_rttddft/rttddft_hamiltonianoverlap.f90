@@ -25,7 +25,7 @@ module rttddft_HamiltonianOverlap
   use modmpi
   use physical_constants, only: alpha, c
   use precision, only: dp, i32
-  use rttddft_GlobalVariables, only: mathcalH, mathcalB
+  use rttddft_GlobalMDVariables, only: mathcalH, mathcalB
   use rttddft_pmat, only: obtain_pmat_LAPWLOBasis
   use rttddft_timings, only: Print_Timings, Timing_RTTDDFT_hamiltonian, &
     Timing_Ehrenfest, timesec_RTTDDFT
@@ -34,16 +34,16 @@ module rttddft_HamiltonianOverlap
   implicit none
 
   private
-  public :: UpdateHam
+  public :: update_ham
 
   real(dp)              :: fact, atot(3)
   type(MTHamiltonianList) :: mt_h
 
 contains
 
-  !> In UpdateHam, we obtain the hamiltonian (and if requested, the overlap) at 
+  !> In update_ham, we obtain the hamiltonian (and if requested, the overlap) at 
   !> time \( t \).
-  subroutine UpdateHam( first_kpt, a_tot, calculateOverlap, &
+  subroutine update_ham( first_kpt, a_tot, calculateOverlap, &
     overlap, ham_time, apwalm, pmat, pmatmt, printTimings, &
     t_ham, t_MD, update_mathcalH, update_mathcalB, ham_init )
     !> The first k point
@@ -170,7 +170,7 @@ contains
       if( tDetail .and. present( t_MD ) ) t_MD%hamoverl = tf - ti
     end if
 
-end subroutine UpdateHam
+end subroutine update_ham
   !> Subroutine to calculate the interstitial contribution to `mathcalH` (used to
   !> obtain the forces on the ions in Ehrenfest Dynamics)
   subroutine obtain_interstitial_contribution_mathcalH( first_kpt, last_kpt )

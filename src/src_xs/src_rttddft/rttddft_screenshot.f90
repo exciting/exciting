@@ -11,7 +11,7 @@
 !> propagation
 module rttddft_screenshot
   use asserts, only: assert
-  use constants, only: real_zero
+  use constants, only: real_zero, zzero
   use exciting_mpi, only: mpiinfo, xmpi_gatherv
   use precision, only: dp, i32
   use rttddft_input, only: screenshot_keys
@@ -19,7 +19,7 @@ module rttddft_screenshot
                         out_eigs => write_eigenvalues, &
                         out_occs => write_occupations, &
                         out_proj => write_projection_coefficients
-  use rttddft_Wavefunction, only: obtain_occupations, obtain_projection_coefficients
+  use rttddft_Wavefunction, only: obtain_occupations, obtain_projection_coefficients, wavefunction_set
   use xlapack, only: solve_generalized_hermitian_eigenproblem
 
 
@@ -32,18 +32,16 @@ module rttddft_screenshot
 contains
 
   !> subroutine that takes "screenshots" during a RT-TDDFT propagation
-  subroutine screenshot( it, input_keys, overlap, evecfv_gnd, evecfv_time, ham_time, &
-      dimensions, occupations_gnd, rho_MT, rho_interstitial, rho_MT_0, rho_interstitial_0, mpi_env )
+  subroutine screenshot( it, input_keys, overlap, psi, ham_time, dimensions, &
+    occupations_gnd, rho_MT, rho_interstitial, rho_MT_0, rho_interstitial_0, mpi_env )
     !> number of the current iteration (to name output files)
     integer(i32), intent(in) :: it
     !> Type that encapsulates the elements/attributes defined inside `screenshots` (in the input file)
     type(screenshot_keys), intent(in) :: input_keys
     !> overlap matrix
     complex(dp), contiguous, intent(in) :: overlap(:, :, :)
-    !> Basis-expansion coefficients of the KS-wavefunctions at \( t=0 \).
-    complex(dp), contiguous, intent(in) :: evecfv_gnd(:, :, :)
-    !> Basis-expansion coefficients of the KS-wavefunctions at current time.
-    complex(dp), contiguous, intent(in) :: evecfv_time(:, :, :)
+    !> Basis-expansion coefficients of the KS-wavefunctions.
+    class(wavefunction_set), intent(in) :: psi
     !> Hamiltonian matrix at time \( t \). 
     complex(dp), contiguous, intent(in) :: ham_time(:, :, :)
     !> Actual dimensions of `overlap`, `ham_time` along each k-point
@@ -59,12 +57,13 @@ contains
     !> electron density in the interstitial region at \( t=0 \)
     real(dp), contiguous, optional, intent(in) :: rho_interstitial_0(:)
     !> MPI environment
-    type(mpiinfo), intent(in)  :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
 
-    integer(i32) :: dim_k, m, n_states, n_states_gnd
+    integer(i32) :: dim_k, m
     integer(i32), allocatable :: dimensions_buffer(:)
     real(dp), allocatable :: eigenvalues(:, :), occupations(:, :), buffer(:, :)
     complex(dp), allocatable :: proj_time(:, :, :), proj_buffer(:, :, :)
+    complex(dp), allocatable :: complete_set(:, :, :)
     logical :: my_rank_writes
 
     my_rank_writes = mpi_env%is_root
@@ -72,10 +71,12 @@ contains
 
     associate( p => input_keys%projection_coefficients, occ => input_keys%occupations )
       if( p%on .or. occ%on ) then
-        n_states_gnd = size( evecfv_gnd, 2 )
-        n_states = size( evecfv_time, 2 )
+
+        allocate( complete_set, source = psi%groundstate )
+        complete_set(:, psi%first_active():, :) = psi%active
+
         ! Project the current WFs onto the ground-state ones
-        call obtain_projection_coefficients( evecfv_gnd, overlap, evecfv_time, proj_time )
+        call obtain_projection_coefficients( psi%groundstate, overlap, complete_set, proj_time )
         if( p%on ) then
           ! Send results to root rank, storing in the buffer
           call xmpi_gatherv( mpi_env, proj_time, proj_buffer )

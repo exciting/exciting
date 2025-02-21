@@ -28,7 +28,7 @@ module rttddft_MD
   use physical_constants, only: c
   use precision, only: dp, i32
   use rttddft_electric_field, only: Electric_Field
-  use rttddft_GlobalVariables, only: mathcalH, mathcalB
+  use rttddft_GlobalMDVariables, only: mathcalH, mathcalB
   use rttddft_timings, only: Print_Timings, timesec_RTTDDFT
   use rttddft_VectorPotential, only: Vector_Potential_Field
   use vector_multiplication, only: dot_multiply
