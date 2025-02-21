@@ -8,7 +8,7 @@
 ! Reference: https://doi.org/10.1088/2516-1075/ac0c26
 
 !> This module contains the global variables for the RT-TDDFT implementation
-module rttddft_GlobalVariables
+module rttddft_GlobalMDVariables
   use precision, only: dp
 
   implicit none
@@ -44,4 +44,4 @@ module rttddft_GlobalVariables
   !> Same as `B_time`, but at the previous time step: \(t-\Delta t\)
   complex(dp), allocatable  :: B_past(:,:,:)
 
-end module rttddft_GlobalVariables
+end module rttddft_GlobalMDVariables

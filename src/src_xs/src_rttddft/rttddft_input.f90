@@ -114,27 +114,29 @@ module rttddft_input
     !> Type to encapsulate eeInteraction-related propagation parameters
     type(eeInteraction_keys) :: eeInteraction
     !> Wether the KS wavefunctions must be normalized in each step 
-    logical                                 :: normalize_WF
+    logical :: normalize_WF
+    !> Number of low-lying states which will not be evolved
+    integer :: n_frozen
     !> Print output data every `n_print` steps
-    integer(i32)                            :: n_print
+    integer(i32) :: n_print
     !> Radial step length (used to update the electron density)
-    integer(i32)                            :: l_rad_step
+    integer(i32) :: l_rad_step
     !> Upper limit of time \( t \) - up to which the RT-TDDFT takes place
-    real(dp)                                :: t_end
+    real(dp) :: t_end
     !> Type that encapsulates if general/detailed information about the RT-TDDFT timings must be printed out
-    type(Print_Timings)                     :: printTimings
+    type(Print_Timings) :: printTimings
     !> If `.true.`, calculate of the total energy
-    logical                                 :: calculate_total_energy
+    logical :: calculate_total_energy
     !> If `.true.`, calculate of the number of excited electrons
-    logical                                 :: calculate_n_exc
+    logical :: calculate_n_exc
     !> If `.true.`, subtract the current density of \(t=0\)
-    logical                                 :: subtract_J0
+    logical :: subtract_J0
     !> If `.true.`, write a restart file every `n_print` steps
-    logical, private                        :: save_state
+    logical, private :: save_state
     !> Identify if which start mode is desired (see [[start_mode]])
-    integer(kind(start_mode)), private      :: start_mode
+    integer(kind(start_mode)), private :: start_mode
     !> Format handler of the checkpoint (restart) files
-    type(file_handler)                      :: restart_file_handler
+    type(file_handler) :: restart_file_handler
   contains
     procedure :: parse_input => rttddft_input_keys_parse_input
     procedure :: write_restart => rttddft_input_keys_write_restart
@@ -155,6 +157,7 @@ subroutine rttddft_input_keys_parse_input( this, inp, tol, a_vec )
 
   associate( rt_input => inp%xs%realTimeTDDFT )
     this%normalize_WF = rt_input%normalizeWF
+    this%n_frozen = rt_input%numberOfFrozenStates
     this%n_print = rt_input%printAfterIterations
     this%t_end = rt_input%endTime
     this%calculate_total_energy = rt_input%calculateTotalEnergy

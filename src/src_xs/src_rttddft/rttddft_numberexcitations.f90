@@ -13,7 +13,7 @@ module rttddft_NumberExcitations
   use asserts, only: assert
   use exciting_mpi, only: mpiinfo, xmpi_allreduce
   use precision, only: dp, i32
-  use rttddft_Wavefunction, only: obtain_occupations, obtain_projection_coefficients
+  use rttddft_Wavefunction, only: obtain_occupations, obtain_projection_coefficients, wavefunction_set
   
   implicit none
 
@@ -51,14 +51,12 @@ contains
   !> 	w_\mathbf{k} m_{j\mathbf{k}}(t) = \sum_{j'\mathbf{k}}^{j'\, occ}
   !> 	w_\mathbf{k} m_{j'\mathbf{k}}(t) .
   !> 	\]
-  subroutine obtain_number_excitations( psi_gnd, psi, overlap, eps_occ, occ_gnd, wkpt, mpi_env, &
+  subroutine obtain_number_excitations( psi, overlap, eps_occ, occ_gnd, wkpt, mpi_env, &
       & n_exc, n_gs )
-    !> Basis-expansion coefficients of the KS-wavefunctions at \( t=0 \).
-    complex(dp), contiguous, intent(in)   :: psi_gnd(:, :, :)
-    !> Basis-expansion coefficients of the KS-wavefunctions at current time \(t\).
-    complex(dp), contiguous, intent(in)   :: psi(:, :, :)
+    !> Basis-expansion coefficients of the KS-wavefunctions.
+    class(wavefunction_set), intent(in) :: psi
     !> Overlap matrices
-    complex(dp), contiguous, intent(in)   :: overlap(:, :, :)
+    complex(dp), contiguous, intent(in) :: overlap(:, :, :)
     !> Occupation threshold above which a state is considered occupied
     real(dp), intent(in) :: eps_occ
     !> List of occupations at \(t=0\)
@@ -68,27 +66,29 @@ contains
     !> MPI environment
     type(mpiinfo), intent(in) :: mpi_env
     !> number of excited electrons
-    real(dp), intent(out)     :: n_exc
+    real(dp), intent(out) :: n_exc
     !> number of electrons on the groundstate state
-    real(dp), intent(out)     :: n_gs
+    real(dp), intent(out) :: n_gs
 
     integer(i32) :: ik, n_kpt
     real(dp) :: buffer(2)
     real(dp), allocatable :: occ(:, :), aux_tot(:), aux_exc(:)
-    complex(dp), allocatable  :: proj(:, :, :)
+    complex(dp), allocatable :: proj(:, :, :)
     
-    n_kpt = size( psi, 3 )
-    call assert( size(wkpt) == n_kpt, 'wkpt must have n_kpt elements')
+    n_kpt = psi%n_kpts()
+    call assert( size( wkpt ) == n_kpt, 'wkpt must have n_kpt elements')
 
     allocate( aux_tot(n_kpt), aux_exc(n_kpt) )
-    call obtain_projection_coefficients( psi_gnd, overlap, psi, proj )
-    call obtain_occupations( proj, occ_gnd, occ )
+    call obtain_projection_coefficients( psi%groundstate, overlap, psi%active, proj )
+    call obtain_occupations( proj, occ_gnd(psi%first_active():, :), occ )
+    if ( psi%has_frozen() ) occ(1 : psi%n_frozen(), :) = occ(1 : psi%n_frozen(), :) + &
+     occ_gnd(1 : psi%n_frozen(), :)
     do concurrent (ik = 1:n_kpt)
       aux_tot(ik) = sum( occ(:, ik) )
       aux_exc(ik) = sum( occ(:, ik), occ_gnd(:, ik) <= eps_occ )
     end do
-    n_exc = dot_product(wkpt, aux_exc)
-    n_gs = dot_product(wkpt, aux_tot) - n_exc
+    n_exc = dot_product( wkpt, aux_exc )
+    n_gs = dot_product( wkpt, aux_tot ) - n_exc
     buffer = [ n_exc, n_gs ]
     call xmpi_allreduce( buffer, mpi_env )
     n_exc = buffer(1); n_gs = buffer(2)

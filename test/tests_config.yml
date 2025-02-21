@@ -758,7 +758,7 @@ RT-TDDFT/GGA_PBE-C-trapCos-EHM-IPA-printDensity:
       - "input.xml"
       - "C.xml"
 
-RT-TDDFT/LDA_PW-C-kick-RK4:
+RT-TDDFT/LDA_PW-C-kick-RK4-frozen:
 
 RT-TDDFT/LDA_PW-Ehrenfest-C:
    repeat: False

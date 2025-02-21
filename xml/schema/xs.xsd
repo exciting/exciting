@@ -774,6 +774,16 @@
               </xs:annotation>
             </xs:attribute>
 
+            <xs:attribute ex:importance="expert" ex:unit="" name="numberOfFrozenStates"
+              type="xs:integer" default="0">
+              <xs:annotation>
+                <xs:documentation> <pre>numberOfFrozenStates</pre> of the lowest-lying 
+                states will remain in the ground state and not evolve in time. 
+                This number is the same for each k point.
+		            </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
             <xs:attribute ex:importance="expert" ex:unit="" name="subtractJ0"
               type="xs:boolean" default="false">
               <xs:annotation>

@@ -11,6 +11,8 @@ Subroutine stm
   Use modmain
   Use modinput
   use modplotlabels
+  use mod_rhoir, only: genrhoir
+  use mod_rhovalk, only: rhovalk
   Implicit None
   ! local variables
   Integer :: ik
@@ -87,8 +89,8 @@ Subroutine stm
      ! get the eigenvectors from file
      Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
      Call getevecsv (vkl(:, ik), evecsv)
-     Call rhovalk (ik, evecfv, evecsv)
-     Call genrhoir (ik, evecfv, evecsv)
+     Call rhovalk (ik, evecfv, occsv(:, ik), rhomt, magmt, evecsv)
+     Call genrhoir (ik, evecfv, occsv(:, ik), rhoir, magir, evecsv)
   End Do
   ! symmetrise the density for the STM plot
   Call symrf (input%groundstate%lradstep, rhomt, rhoir)

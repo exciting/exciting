@@ -341,19 +341,19 @@ contains
     end if
     select case(case_H)
       case(H0_and_Hminusdt)
-!$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(i) SHARED(m, self, psi, list_of_H_dt, list_of_H_minus_dt, list_of_H_0, list_of_S, dims_)
+!$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(i) SHARED(m, self, psi, list_of_H_minus_dt, list_of_H_0, list_of_S, dims_)
       do i = 1, m
         call self%propagate_single_array( dims_(i), H_0=list_of_H_0(:, :, i), H_minus_dt=list_of_H_minus_dt(:, :, i), S=list_of_S(:, :, i), x=psi(:, :, i) )
       end do
 !$OMP END PARALLEL DO
       case(H0_only)
-!$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(i) SHARED(m, self, psi, list_of_H_dt, list_of_H_minus_dt, list_of_H_0, list_of_S, dims_)
+!$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(i) SHARED(m, self, psi, list_of_H_0, list_of_S, dims_)
       do i = 1, m
         call self%propagate_single_array( dims_(i), H_0=list_of_H_0(:, :, i), S=list_of_S(:, :, i), x=psi(:, :, i) )
       end do
 !$OMP END PARALLEL DO
       case(H0_and_Hdt)
-!$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(i) SHARED(m, self, psi, list_of_H_dt, list_of_H_minus_dt, list_of_H_0, list_of_S, dims_)
+!$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(i) SHARED(m, self, psi, list_of_H_dt, list_of_H_0, list_of_S, dims_)
       do i = 1, m
         call self%propagate_single_array( dims_(i), H_dt=list_of_H_dt(:, :, i), H_0=list_of_H_0(:, :, i), S=list_of_S(:, :, i), x=psi(:, :, i) )
       end do

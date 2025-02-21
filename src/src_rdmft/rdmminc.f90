@@ -10,6 +10,7 @@ Subroutine rdmminc
 ! minimises the total energy w.r.t. evecsv using steepest descent
       Use modinput
       Use modmain
+      use mod_rhovalk, only: rhovalk
       Implicit None
       Integer :: it, ik, idm
       Real (8) :: sum, sp, ds
@@ -49,7 +50,7 @@ Subroutine rdmminc
             Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
             Call getevecsv (vkl(:, ik), evecsv)
 ! calculate the density
-            Call rhovalk (ik, evecfv, evecsv)
+            Call rhovalk (ik, evecfv, occsv(:, ik), rhomt, magmt, evecsv)
          End Do
 ! symmetrise the density
          Call symrf (input%groundstate%lradstep, rhomt, rhoir)

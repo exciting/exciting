@@ -46,7 +46,8 @@
             calculateTotalEnergy="true"
             calculateNExcitedElectrons="true"
             printAfterIterations="25"
-            vectorPotentialSolver="improvedeuler">
+            vectorPotentialSolver="improvedeuler"
+            numberOfFrozenStates="1">
             <pmat readFromFile="false" forceHermitian="false" />
             <laser fieldType="total">
               <kick t0="1.d0" width="0d0" amplitude="0.01d0" direction="z"/>
