@@ -208,13 +208,10 @@ if(NOT CPUBACKEND)
           message(FATAL_ERROR "For non Intel cards please use GNU/Cray compilers. Exiting.")
       endif()
 
-      SET(CMAKE_AR ${CMAKE_CXX_COMPILER_AR} CACHE PATH "AR" FORCE)
-      SET(CMAKE_RANLIB ${CMAKE_CXX_COMPILER_RANLIB} CACHE PATH "RANLIB" FORCE)
-
       set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 -fPIC -fiopenmp -fopenmp-targets=spir64 -qmkl=parallel -fsycl")
-      set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} -fopenmp-targets=spir64 -fsycl -fpp")
-      set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -fPIC -fiopenmp -fopenmp-targets=spir64 -qmkl=parallel -fsycl")
-      set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fopenmp-targets=spir64 -fsycl -fpp")
+      set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} -fopenmp-targets=spir64=\"-fp-model=precise\" -fsycl -fpp -free")
+      set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -ax -fPIC -fiopenmp -fopenmp-targets=spir64 -qmkl=parallel -fsycl")
+      set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fopenmp-targets=spir64=\"-fp-model=precise\" -fsycl -fpp -free")
 
       set(devacc_link_libs "${MKL_LIBRARIES}")
 
@@ -241,10 +238,13 @@ if(NOT CPUBACKEND)
         message(FATAL_ERROR "For Intel cards please use Intel compilers. Exiting.")
       endif()
       # Cray should find the proper targets with the acceleration modules
+      # While for small problems the acc options will reduce the performace, this model
+      # is the only one working for larger chunks as those required by full-band G0W0
+      # calculations 
       set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -fPIC -fopenmp")
-      set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} -fopenmp")
+      set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} -fopenmp -h acc_model=auto_async_none:no_fast_addr:deep_copy ")
       set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -fPIC -fopenmp")
-      set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fopenmp")
+      set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fopenmp -h acc_model=auto_async_none:no_fast_addr:deep_copy")
   else()
       message(FATAL_ERROR "Compiler is not recognized: only GNU, Intel (ifx) and Cray compilers are supported")
   endif()
@@ -279,7 +279,8 @@ if(NOT CPUBACKEND)
     endif()
     set(SRC_DEVICEACC_FFT ${SRC_DEVICEACC_FFT} ${DEVICEACC_SRC_DIR}/fft/device/fft_device_t.f90)
     # Allocation
-    set(SRC_DEVICEACC_MEMORY ${DEVICEACC_SRC_DIR}/memory/common/memory_device.f90)
+    set(SRC_DEVICEACC_MEMORY ${DEVICEACC_SRC_DIR}/memory/common/memory_device.f90
+	                     ${DEVICEACC_SRC_DIR}/memory/common/memory_device.cpp)
     set(SRC_DEVICEACC_MEMORY ${SRC_DEVICEACC_MEMORY} ${DEVICEACC_SRC_DIR}/memory/device/s_memory_device.f90)
     # Macros
     set(DEVICEACC_MACROS ${DEVICEACC_SRC_DIR}/macros/device/offload.fpp)
@@ -291,6 +292,7 @@ else()
     set(SRC_DEVICEACC_LINALG ${DEVICEACC_SRC_DIR}/linalg/host/linalg_device_common.f90)
     set(SRC_DEVICEACC_FFT ${SRC_DEVICEACC_FFT} ${DEVICEACC_SRC_DIR}/fft/host/fft_device_t.f90)
     set(SRC_DEVICEACC_MEMORY ${DEVICEACC_SRC_DIR}/memory/common/memory_device.f90)
+    set(SRC_DEVICEACC_MEMORY ${SRC_DEVICEACC_MEMORY} ${DEVICEACC_SRC_DIR}/memory/common/memory_device.cpp)
     set(SRC_DEVICEACC_MEMORY ${SRC_DEVICEACC_MEMORY} ${DEVICEACC_SRC_DIR}/memory/host/s_memory_device.f90)
     set(DEVICEACC_MACROS ${DEVICEACC_SRC_DIR}/macros/host/offload.fpp)
     include_directories(${DEVICEACC_SRC_DIR}/macros/host/)

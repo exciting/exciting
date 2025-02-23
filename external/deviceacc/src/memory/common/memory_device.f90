@@ -45,12 +45,12 @@ module m_memory_device
               bytes_double_real, &
               bytes_single_complex, &
               bytes_double_complex, &
-              get_pointer_alignment
-
+              get_pointer_alignment, &
+              generate_batched_array
 
     !> The bit size of a bytes
     integer(c_size_t), parameter :: bit_size = storage_size('1', kind=c_size_t)
-    !> The size in bytes of an integer 
+    !> The size in bytes of a short integer 
     integer(c_size_t), parameter :: bytes_short           = c_sizeof(1_c_short)
     !> The size in bytes of an integer 
     integer(c_size_t), parameter :: bytes_int             = c_sizeof(1_c_int)
@@ -88,7 +88,7 @@ interface
 
     !> Given data in the host it provides the C_ptr in the device for device backend
     !> otherwise it is equivalent to c_loc
-    !> @param[inout] memory - he allocated memory
+    !> @param[in]  host_data - the allocated memory in host for which the associated device ptr is searched
     !> @param[in]  device_id - the device id in which the allocation will happen
     !> @result device_c_ptr to the mapped data in the device or c_loc(host_data) in the CPU backend
     module type(c_ptr) function get_device_pointer(host_data, device_id)
@@ -96,11 +96,36 @@ interface
         integer, intent(in) :: device_id
     end function get_device_pointer
 
+
+    !  @brief Fortran interface for C++ function `generate_batched_array`.
+    !
+    !  This subroutine serves as a Fortran wrapper for the C++ function
+    !  `generate_batched_array`, which generates pointers to batched data
+    !  segments stored in a contiguous memory block. The batched data layout
+    !  is assumed to have the batch identifier as the slowest varying index.
+    !
+    !  @param[in] data            Base address of the contiguous data block.
+    !  @param[in] nbatch          Number of batches.
+    !  @param[in] batch_byte_size Size (in bytes) of each batch.
+    !  @param[out] batched_ptr    Array of pointers where each entry points
+    !                             to the start of a batch within `data`.
+    ! -----------------------------------------------------------------------------
+    subroutine generate_batched_array(data, nbatch, batch_byte_size, batched_ptr) &
+        bind(C, name="generate_batched_array")
+        use, intrinsic :: iso_c_binding, only: c_ptr, c_size_t
+        implicit none
+        ! Arguments
+        type(c_ptr), value       :: data              ! Base address of the data
+        integer(c_size_t), value :: nbatch            ! Number of batches
+        integer(c_size_t), value :: batch_byte_size   ! Byte size of each batch
+        type(c_ptr)              :: batched_ptr(*)    ! Array of batch pointers
+    end subroutine generate_batched_array
+
 end interface
 
 contains
 
-    !> Returns the size in bytes for an arbitary kind
+    !> Returns the size in bytes for an arbitrary kind
     !> @param[in] data - the data from which the size in bytes is retrieved 
     !> @return : bytes in memory of data object
     IFORT_BUG_SAFE_PURE integer(c_size_t) function bytes_size(data)

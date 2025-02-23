@@ -86,7 +86,7 @@ program test_lu_inversion
 
     deallocate(ipiv)
 
-    call device_world%syncronize()
+    call device_world%synchronize()
 
     ! Checking the results
     write(*,*) '[TEST : test_lu_inversion]' 

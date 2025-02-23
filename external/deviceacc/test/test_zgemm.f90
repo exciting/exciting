@@ -81,7 +81,7 @@ program test_zgemm
     call zgemm_gpu('t', 'c', n, n, n, zone, dA_ptr, n, dB_ptr, n, zzero, dC_ptr, n, device_world)
 
     ! Not needed but example of sync
-    call device_world%syncronize()
+    call device_world%synchronize()
 
     ! Retrieve C from the device, and free there the A, B, C space
     call device_world%register%from_device("C")

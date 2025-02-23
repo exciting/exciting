@@ -16,7 +16,7 @@
 !> Contains the device backend to allocations
 submodule(m_memory_device) sm_memory_device
 
-    use omp_lib
+    use omp_lib, only: omp_target_alloc, omp_target_free, omp_get_mapped_ptr
 
     implicit none
 

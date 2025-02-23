@@ -45,8 +45,8 @@ module m_device_world_t
         !> Flag to indicate if CPU-only backend is used
         logical, private :: cpu_backend = .true.
     contains
-        procedure, public :: init, finish, is_queue_set, get_queue, syncronize, get_device, get_num_teams, using_cpu_backend, &
-                             get_num_threads, simd_size, get_linalg_stream
+        procedure, public :: init, finish, is_queue_set, get_queue, synchronize, get_device, get_num_teams, using_cpu_backend, &
+                             get_num_threads, simd_size, get_stream
     end type device_world_t
 
 contains
@@ -75,7 +75,7 @@ contains
 
     !> This function returns true if the queue is inited
     !> @param[in] this - the world to check if has inited queue
-    pure function is_queue_set(this) result(answer)
+    function is_queue_set(this) result(answer)
         class(device_world_t), intent(in) :: this
         logical :: answer
         answer = .false.
@@ -85,16 +85,16 @@ contains
     !> @param[in] this - the world object from which the queue is retrieved
     function get_queue(this) result(queue)
         class(device_world_t), target, intent(in) :: this
-        type(C_ptr), pointer :: queue
+        type(c_ptr) :: queue
         queue = c_null_ptr
     end function get_queue
 
-    !> This syncronizes the world (in a very agresive way)
+    !> This synchronizes the world (in a very agresive way)
     !> @param[in] this - the device which we want to sync with
-    subroutine syncronize(this)
+    subroutine synchronize(this)
         class(device_world_t), target, intent(in) :: this
         !$omp barrier
-    end subroutine syncronize
+    end subroutine synchronize
 
     !> This provides device id
     !> @param[in] this - return the associated device id
@@ -132,11 +132,10 @@ contains
         simd_size = 1
     end function simd_size
 
-    !> Returns the underlying stream that handles linear algebra
-    !> for Intel returns nothing
-    type(c_ptr) function get_linalg_stream(this)
+    !> Returns the underlying stream, or object for depend clauses
+    type(c_ptr) function get_stream(this)
         class(device_world_t), intent(in) :: this
-        get_linalg_stream = c_null_ptr
-    end function get_linalg_stream
+        get_stream = c_null_ptr
+    end function get_stream
 
 end module m_device_world_t
