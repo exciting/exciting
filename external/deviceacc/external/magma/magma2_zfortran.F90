@@ -101,6 +101,17 @@ interface
         type(c_ptr),    value  :: queue
     end subroutine
 
+    subroutine magma_zgemm_batched(transA, transB, m, n, k, alpha, dA, lda, &
+                                   dB, ldb, beta,  dC, ldc, batchCount, queue) &
+    bind(C, name="magma_zgemm_batched")
+        import
+        integer(c_int),             value :: transA, transB, m, n, k, lda, ldb, ldc, batchCount
+        complex(c_double_complex),  value :: alpha, beta
+        type(c_ptr),                value :: dA, dB, dC
+        type(c_ptr),                value :: queue  !! queue_t
+    end subroutine
+
+
     !! -------------------------------------------------------------------------
     !! BLAS (matrices in GPU memory)
     subroutine magma_zaxpy( &
@@ -114,6 +125,24 @@ interface
         complex(c_double_complex),  value :: alpha
         type(c_ptr),                value :: dx, dy
         type(c_ptr),                value :: queue  !! queue_t
+    end subroutine
+
+    subroutine magma_zgeru(m, n, alpha, dx, incx, dy, incy, da, ldda, queue ) &
+    bind(C, name="magma_zgeru")
+        import
+        integer(c_int),             value :: m, n, incx, incy, ldda
+        complex(c_double_complex),  value :: alpha
+        type(c_ptr),                value :: dx, dy, da
+        type(c_ptr),                value :: queue  !! queue_t
+    end subroutine
+
+    subroutine magma_zgerc(m, n, alpha, dx, incx, dy, incy, da, ldda, queue ) &
+        bind(C, name="magma_zgerc")
+            import
+            integer(c_int),             value :: m, n, incx, incy, ldda
+            complex(c_double_complex),  value :: alpha
+            type(c_ptr),                value :: dx, dy, da
+            type(c_ptr),                value :: queue  !! queue_t
     end subroutine
 
     complex(c_double_complex) function magma_zdotc( &
@@ -157,6 +186,38 @@ interface
         integer(c_int),             value :: transA, transB, m, n, k, lda, ldb, ldc
         complex(c_double_complex),  value :: alpha, beta
         type(c_ptr),                value :: dA, dB, dC
+        type(c_ptr),                value :: queue  !! queue_t
+    end subroutine
+
+    subroutine magma_zhemm( &
+        side, uplo, m, n,   &
+        alpha, dA, lda, &
+               dB, ldb, &
+        beta,  dC, ldc, &
+        queue ) &
+    bind(C, name="magma_zhemm")
+        import
+        integer(c_int),             value :: side, uplo, m, n, lda, ldb, ldc
+        complex(c_double_complex),  value :: alpha, beta
+        type(c_ptr),                value :: dA, dB, dC
+        type(c_ptr),                value :: queue  !! queue_t
+    end subroutine
+
+    subroutine magmablas_zgeadd2(m, n, alpha, dA, lda, beta, dB, ldb, queue) &
+    bind(C, name="magmablas_zgeadd2")
+        import
+        integer(c_int),             value :: m, n, lda, ldb
+        complex(c_double_complex),  value :: alpha, beta
+        type(c_ptr),                value :: dA, dB
+        type(c_ptr),                value :: queue  !! queue_t
+    end subroutine
+
+    subroutine magma_zhemv(uplo, n, alpha, dA, lda, dx, incx, beta, dy, incy, queue ) &
+    bind(C, name="magma_zhemv")
+        import
+        integer(c_int),             value :: uplo, n, lda, incx, incy
+        complex(c_double_complex),  value :: alpha, beta
+        type(c_ptr),                value :: dA, dx, dy
         type(c_ptr),                value :: queue  !! queue_t
     end subroutine
 
@@ -223,5 +284,19 @@ contains
                 __FILE__ // c_null_char, &
                 __LINE__ )
     end subroutine
+
+    !! -----------------------------------------------------------------------------
+    !! Copy
+    subroutine magma_zcopyvector_async(n, dx_src, incx, dy_dst, incy, queue)
+        integer(c_int), value :: n, incx, incy
+        type(c_ptr), value :: dx_src, dy_dst, queue
+
+        call magma_copyvector_async_internal(n, int(sizeof_complex16), dx_src, incx, &
+                                             dy_dst, incy, queue, &
+                                             "magma_zcopyvector_async" // c_null_char, &
+                                              __FILE__ // c_null_char, &
+                                              __LINE__ )
+
+    end subroutine magma_zcopyvector_async
 
 end module

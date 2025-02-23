@@ -27,6 +27,37 @@ integer(c_size_t), parameter :: &
 interface
 
     !! -------------------------------------------------------------------------
+    !! magma_memset
+    function magma_memset(ptr, value, count) bind(c, name="magma_memset")
+        import
+        type(c_ptr), value :: ptr
+        integer(c_int), value :: value
+        integer(c_size_t), value :: count
+        integer(c_int) :: magma_memset
+    end function magma_memset
+
+    function magma_memset_async(ptr, value, count, queue) bind(c, name="magma_memset_async")
+        import
+        type(c_ptr), value :: ptr
+        integer(c_int), value :: value
+        integer(c_size_t), value :: count
+        type(c_ptr), value :: queue
+        integer(c_int) :: magma_memset_async
+    end function magma_memset_async
+
+    !! -------------------------------------------------------------------------
+    !! magma_copy
+    subroutine magma_copyvector_async_internal(n, elemSize, dx_src, incx, &
+                                              dy_dst, incy, queue, func, file, line) &
+                                              bind(c, name="magma_copyvector_async_internal")
+        import 
+        integer(c_int), value :: n, elemSize, incx, incy
+        type(c_ptr), value :: dx_src, dy_dst, queue
+        character(c_char), value  :: func, file
+        integer(c_int),    value  :: line
+    end subroutine magma_copyvector_async_internal
+
+    !! -------------------------------------------------------------------------
     !! magma_malloc (GPU memory)
     integer(c_int) function magma_malloc( ptr, bytes ) &
     bind(C, name="magma_malloc")

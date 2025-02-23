@@ -13,23 +13,28 @@
 ! permissions and limitations under the License.
 
 !> @file
-!> This file contains a type to perform FFT using device accelearted
+!> This file contains a type to perform FFT using device accelerated
 !> routines. The user does not need to take care of the device vendor
-!> Supported vendors include NVIDIA, Intel, and AMD
+!> Supported vendors include NVIDIA, Intel, and AMD. CPU-only backend.
 module m_fft_device
     
-    use omp_lib
-    use iso_c_binding
+    use iso_c_binding,    only: c_f_pointer, c_int, c_ptr, c_float_complex, c_loc, &
+                                c_double_complex, c_size_t, c_null_ptr 
     use iso_fortran_env,  only: i32=>int32, r32=>real32, r64=>real64
     use m_device_world_t, only: device_world_t
 
 #if defined(AMDGPU)
-    use hipfort_rocfft
+    use hipfort_rocfft, only: rocfft_precision_double, rocfft_precision_single, &
+                              rocfft_transform_type_complex_forward, rocfft_transform_type_complex_inverse, &
+                              rocfft_placement_inplace, rocfft_plan_create, rocfft_status_success, &
+                              rocfft_execution_info_create, rocfft_execution_info_set_stream, &
+                              rocfft_execute, rocfft_execution_info_destroy, rocfft_plan_destroy
 #endif 
 #if defined(INTELGPU)
-    use iso_c_binding
-    use mkl_dft_type
-    use mkl_dfti_omp_offload
+    use mkl_dft_type, only: dfti_descriptor, DFTI_DOUBLE, DFTI_SINGLE, DFTI_FORWARD_SCALE, DFTI_COMPLEX 
+    use mkl_dfti_omp_offload, only: dfti_create_descriptor_highd, dfti_compute_forward_z_cpu, &
+                                    dfti_compute_backward_z_cpu, dfti_compute_forward_c_cpu, &
+                                    dfti_compute_backward_c_cpu, DftiFreeDescriptor, DftiSetValue
 #endif
 
     implicit none
@@ -142,7 +147,16 @@ interface
             integer(c_int) :: info
         end function  cufftXtExec
 
+        !> Associates a plan to a stream
+        function cufftSetStream(plan, stream) result(info) bind(c, name="cufftSetStream")
+            import
+            integer(c_int), value :: plan
+            type(c_ptr), value    :: stream
+            integer(c_int) :: info
+        end function cufftSetStream
+
 end interface
+! END if defined(NVIDIAGPU)
 #endif
 
 contains 
@@ -168,14 +182,19 @@ contains
         integer(c_size_t), allocatable, target :: amd_dims(:)
 
         this%rank   = int(size(dims), kind = c_int)
+#if defined(NVIDIA) || defined(AMDGPU)
         this%dims   = int(dims(this%rank:1:-1), kind = c_int) ! Used libraries expect C-order
+#endif
+#if defined(INTELGPU)
+        this%dims = int(dims, kind = c_int) 
+#endif
         this%fft_sign   = fft_sign
         this%is_double = is_double
         this%world  => world
 
         ! Some sanity check
         if (this%fft_sign /= -1 .and. this%fft_sign /= 1) then
-            error stop "fft_type%initialize: The only accepted fft_signs are -1 (forward) and 1 (backward)."
+            error stop "fft_device_t%initialize: The only accepted fft_signs are -1 (forward) and 1 (backward)."
         end if
 
 #if defined(NVIDIAGPU)
@@ -194,13 +213,19 @@ contains
         case(3)
             error = cufftPlan3d(this%plan, this%dims(1), this%dims(2), this%dims(3), fft_precision)
         case default
-            error stop "fft_type%initialize: cuFFT does only support 1, 2 and 3D FFT."
+            error stop "fft_device_t%initialize: cuFFT does only support 1, 2 and 3D FFT."
         end select
 
         if (error /= 0) then
-            error stop "Error(fft_type%initialize): CUDA FFT failed to create a plan"
+            error stop "Error(fft_device_t%initialize): CUDA FFT failed to create a plan"
         end if
 
+        ! Now associate the plan with the stream
+        error = cufftSetStream(this%plan, this%world%get_stream())
+        if (error /= 0) then
+            error stop "Error(fft_device_t%initialize): CUDA FFT failed to associate stream to the plan"
+        end if
+! END if defined(NVIDIAGPU)
 #endif
 #if defined(AMDGPU)
         ! AMD needs to know the precision in each plan
@@ -229,8 +254,9 @@ contains
                                    c_null_ptr)
 
         if (error /= rocfft_status_success) then
-            error stop "Error(fft_type%initialize): rocfft_plan_create failed"
+            error stop "Error(fft_device_t%initialize): rocfft_plan_create failed"
         end if
+! END if defined(AMDGPU)
 #endif
 
 #if defined(INTELGPU)
@@ -245,7 +271,7 @@ contains
         error = dfti_create_descriptor_highd(this%descriptor, fft_precision, DFTI_COMPLEX, this%rank, this%dims)
         ! Checking 
         if (error /= 0) then
-            error stop "Error(fft_type%initialize): dfti_create_descriptor_highd failed"
+            error stop "Error(fft_device_t%initialize): dfti_create_descriptor_highd failed"
         end if
 #endif
 
@@ -253,56 +279,77 @@ contains
 
     !> Executes the plan
     !> @param[in,out]      this - the fft_device_t for which to execute the plan
-    !> @param[in,out]  df   - the data over which to perform the plan (device ptr). In exit contains the result.
+    !> @param[in,out]  df   - the data over which to perform the plan (device ptr). On exit contains the result.
     !> @param[in]      rescale_forward - rescale the FFT in case of forward FFT
-    !> @param[in]      syncronize - force syncronization after the execution of the plan
-    subroutine execute(this, df, rescale_forward, syncronize)
+    !> @param[in]      synchronize - force syncronization after the execution of the plan
+    subroutine execute(this, df, rescale_forward, synchronize)
 
         class(fft_device_t), intent(in)      :: this
         type(c_ptr), intent(inout)           :: df
         logical, optional, intent(in)        :: rescale_forward
-        logical, optional, intent(in)        :: syncronize 
+        logical, optional, intent(in)        :: synchronize 
 
-        logical   :: rescale_forward_local, syncronize_local
+        logical   :: rescale_forward_local, synchronize_local
         integer   :: i, df_size 
         real(r64) :: norm_cnt
         complex(c_double_complex), pointer :: fortran_df_double(:)
         complex(c_float_complex),  pointer :: fortran_df_single(:)
         integer(c_int) :: error
         complex(r64), target, allocatable :: tin(:), tout(:)
+        type(c_ptr) :: execution_info
         
         rescale_forward_local = .true.
-        syncronize_local      = .true.
+        synchronize_local      = .true.
+
+        if (present(rescale_forward)) rescale_forward_local = rescale_forward
+        if (present(synchronize)) synchronize_local = synchronize
 
         ! Execute the plan
 #if defined(AMDGPU)
-        error = rocfft_execute(this%plan, df, c_null_ptr, c_null_ptr)
+        ! We will associate the execution to the current stream
+        error = rocfft_execution_info_create(execution_info)
         if (error /= rocfft_status_success) then
-            error stop "Error(fft_type%execute): rocfft_execute failed"
+            error stop "Error(fft_device_t%execute): rocfft_execution_info_create failed"
         end if
+ 
+        error = rocfft_execution_info_set_stream(execution_info, this%world%get_stream())
+        if (error /= rocfft_status_success) then
+            error stop "Error(fft_device_t%execute): rocfft_execution_info_set_stream failed"
+        end if
+
+        error = rocfft_execute(this%plan, df, c_null_ptr, execution_info)
+        if (error /= rocfft_status_success) then
+            error stop "Error(fft_device_t%execute): rocfft_execute failed"
+        end if
+
+        error = rocfft_execution_info_destroy(execution_info)
+        if (error /= rocfft_status_success) then
+            error stop "Error(fft_device_t%execute): rocfft_execution_info_destroy failed"
+        end if
+
 #endif 
 
 #if defined(NVIDIAGPU)
         ! Notice that we do it inplace
         error = cufftXtExec(this%plan, df, df, int(this%fft_sign, kind = c_int))
         if (error /= 0) then
-            error stop "Error(fft_type%execute): cufftXtExec"
+            error stop "Error(fft_device_t%execute): cufftXtExec"
         end if
 #endif
         ! In the case of NVIDIA and AMD we use an offloaded 
-        ! do loop to rescale within the device the quatities if asked 
+        ! do loop to rescale within the device the quantities if asked 
 #if defined(NVIDIAGPU) || defined(AMDGPU)
         ! Syncronize the host and the device 
-        if (syncronize_local) then 
-            call this%world%syncronize()
+        if (synchronize_local) then 
+            call this%world%synchronize()
         end if
 
         ! Rescale, be aware that the rescale is done in the device data 
         if (this%fft_sign == -1 .and. rescale_forward_local) then
             
             ! We need an explicit check regarding if FFT is done 
-            if (.not. syncronize_local) then 
-                call this%world%syncronize()
+            if (.not. synchronize_local) then 
+                call this%world%synchronize()
             end if
 
             df_size  = product(this%dims)
@@ -330,6 +377,7 @@ contains
                 nullify(fortran_df_single) 
             end if
         end if
+! END if defined(NVIDIAGPU) || defined(AMDGPU)
 #endif
         
 #if defined(INTELGPU)
@@ -349,52 +397,49 @@ contains
             ! MKL DFTI rescaling during the execution
             if (this%fft_sign == -1 .and. rescale_forward_local) then
                 error = DftiSetValue(this%descriptor, DFTI_FORWARD_SCALE, norm_cnt)
-                error stop "Error(fft_type%execute): DftiSetValue failed"
+                error stop "Error(fft_device_t%execute): DftiSetValue failed"
             end if
 
-            ! Depending on the kindo of data fill one or the other pointer
+            ! Depending on the kind of data fill one or the other pointer
             if (this%is_double) then
                 call c_f_pointer(df, fortran_df_double, [df_size])
-                !$omp target variant dispatch use_device_ptr(fortran_df_double)
+                !$omp dispatch is_device_ptr(fortran_df_double)
                 error = dfti_compute_forward_z_cpu(this%descriptor, fortran_df_double)
-                !$omp end target variant dispatch
                 nullify(fortran_df_double)
             else 
                 call c_f_pointer(df, fortran_df_single, [df_size])
-                !$omp target variant dispatch use_device_ptr(fortran_df_single)
+                !$omp dispatch is_device_ptr(fortran_df_single)
                 error = dfti_compute_forward_c_cpu(this%descriptor, fortran_df_single)
-                !$omp end target variant dispatch
                 nullify(fortran_df_single)
             end if
 
             if (error /= 0) then
-                error stop "Error(fft_type%execute): DftiComputeForward failed"
+                error stop "Error(fft_device_t%execute): DftiComputeForward failed"
             end if
 
         else            
-            ! Depending on the kindo of data fill one or the other pointer 
+            ! Depending on the kind of data fill one or the other pointer 
             if (this%is_double) then
                 call c_f_pointer(df, fortran_df_double, [df_size])
-                !$omp target variant dispatch use_device_ptr(fortran_df_double)
+                !$omp dispatch is_device_ptr(fortran_df_double)
                 error = dfti_compute_backward_z_cpu(this%descriptor, fortran_df_double)
-                !$omp end target variant dispatch
                 nullify(fortran_df_double)
             else 
                 call c_f_pointer(df, fortran_df_single, [df_size])
-                !$omp target variant dispatch use_device_ptr(fortran_df_single)
+                !$omp dispatch is_device_ptr(fortran_df_single)
                 error = dfti_compute_backward_c_cpu(this%descriptor, fortran_df_single)
-                !$omp end target variant dispatch
                 nullify(fortran_df_single)
             end if
             
             if (error /= 0) then
-                error stop "Error(fft_type%execute): DftiComputeBackward failed"
+                error stop "Error(fft_device_t%execute): DftiComputeBackward failed"
             end if
 
         end if
 
         ! Syncronize the host and the device 
-        if (syncronize_local) call this%world%syncronize()
+        if (synchronize_local) call this%world%synchronize()
+! END if defined(INTELGPU)
 #endif
 
     end subroutine execute
@@ -409,13 +454,13 @@ contains
 #if defined(AMDGPU)
         error = rocfft_plan_destroy(this%plan)
         if (error /= rocfft_status_success) then
-            error stop "Error(fft_type%delete): rocfft_plan_destroy failed"
+            error stop "Error(fft_device_t%delete): rocfft_plan_destroy failed"
         end if
 #endif
 #if defined(NVIDIAGPU)
         error = cufftDestroy(this%plan)
         if (error /= 0) then
-            error stop "Error(fft_type%delete): cufftDestroy failed"
+            error stop "Error(fft_device_t%delete): cufftDestroy failed"
         end if
 #endif
 #if defined(INTELGPU)
