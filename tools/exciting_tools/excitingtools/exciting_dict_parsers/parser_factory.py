@@ -23,6 +23,7 @@ from excitingtools.exciting_dict_parsers import (
     gw_vxc_parser,
     hdf5_parser,
     input_parser,
+    phonon_parser,
     properties_parser,
     species_parser,
     state_parser,
@@ -109,6 +110,7 @@ _file_to_parser = {
     "fastBSE_absorption_spectrum.out": bse_parser.parse_fastBSE_absorption_spectrum_out,
     "fastBSE_exciton_energies.out": bse_parser.parse_fastBSE_exciton_energies_out,
     "fastBSE_oscillator_strengths.out": bse_parser.parse_fastBSE_oscillator_strength_out,
+    "PHONON.OUT": phonon_parser.parse_phonon_out,
 }
 
 
