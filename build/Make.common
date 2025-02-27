@@ -144,7 +144,7 @@ lib/libFoX_common.a:
 else
 lib/libFoX_common.a:
 	cd ../../external/FoX/ && \
-	./configure FC=$(F90) &&\
+	./configure FC=$(F90) LIBS="" && \
 	make 
 	cp -r ../../external/FoX/objs/* ./
 endif
@@ -162,7 +162,7 @@ lib/libxc.a:
 else
 lib/libxc.a: 
 	cd ../../external/libXC/ && \
-	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPTS)" CC=$(CC) FCCPP=$(FCCPP) --enable-static=yes --enable-shared=no &&\
+	./configure FC=$(F90) LIBS="" FCFLAGS="$(CPP_ON_OPTS)" CC=$(CC) FCCPP=$(FCCPP) --enable-static=yes --enable-shared=no &&\
 	make 
 	cp -r ../../external/libXC/src/.libs/libxc.a ./lib/libxc.a
 endif
