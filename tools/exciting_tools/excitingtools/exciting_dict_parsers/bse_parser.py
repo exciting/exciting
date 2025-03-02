@@ -73,11 +73,11 @@ def parse_infoxs_out(name: str, parse_timing: bool = False) -> dict:
         'EXCITING <version> stopped for task <tasknumber>'
     See example file: exciting/test/test_farm/BSE/PBE_SOL-LiF/ref/INFOXS.OUT
     If a started task is found, it gets stored with name, number and status.
-    If the task is found to be finished afterwards, the status finished is set to True.
+    If the task is found to be finished afterward, the status finished is set to True.
 
     For success, the last started tasks has to be finished after that (in the file).
-    Last finished task is the last task if calculation was successful, the task before that
-    if it finished, else None.
+    Last finished task is the last task if calculation was successful, the first task before
+    that which finshed (in reversed order), else None if no task finished.
     :param name: path of the file to parse
     :param parse_timing: parse also timing information for the tasks. By default this is set to
                          False. If the task has not finished None is returned as timing.
@@ -93,6 +93,7 @@ def parse_infoxs_out(name: str, parse_timing: bool = False) -> dict:
     all_tasks = re.findall(
         r"EXCITING .* (started) for task (.*) \( ?(\d+)\)|EXCITING .* stopped for task .* (\d+)", lines
     )
+    last_finished_task = None
 
     for task in all_tasks:
         if task[0] == "started":
@@ -103,13 +104,9 @@ def parse_infoxs_out(name: str, parse_timing: bool = False) -> dict:
             assert tasks, "No tasks started!"
             assert tasks[current_task]["number"] == int(task[3]), "Wrong task stopped."
             tasks[current_task]["finished"] = True
+            last_finished_task = tasks[current_task]["name"]
 
     success = tasks[-1]["finished"]
-    last_finished_task = None
-    if success:
-        last_finished_task = tasks[-1]["name"]
-    elif len(tasks) > 1 and tasks[-2]["finished"]:
-        last_finished_task = tasks[-2]["name"]
 
     if parse_timing:
         times = parse_times(lines)
