@@ -160,8 +160,11 @@ contains
   !> it. This can be done by taking into account an auxiliary basis formed by
   !> the eigenvectors of \( \hat{H} \). This means that we solve
   !> \( \hat{H}| \psi^0_{i\mathbf{k}}\rangle =
-  !>       \varepsilon_{i\mathbf{k}}| \psi^0_{i\mathbf{k}}\rangle\), which in
-  !> practice is carried out solving:
+  !>       \varepsilon_{i\mathbf{k}}| \psi^0_{i\mathbf{k}}\rangle\). Here
+  !> \( i \) runs from 1 to \( N \leq \) dim( \( \hat{H} \) ). Then the exponential 
+  !> can be expanded as \( \exp(\alpha \hat{H}) = \sum_{i = 1}^{N} | \psi^0_{i\mathbf{k}}\rangle  
+  !> \exp(\alpha \varepsilon_{i\mathbf{k}}) \langle \psi^0_{i\mathbf{k}} | \). In
+  !> practice, we solve
   !>  \[
   !>       H_{\mathbf{k}} C^0_{i\mathbf{k}} =
   !>       \varepsilon_{i\mathbf{k}} S_{\mathbf{k}} C^0_{i\mathbf{k}},
@@ -206,39 +209,36 @@ contains
   !>          \mathrm{e}^{\alpha\varepsilon_{i\mathbf{k}}}
   !>           C^0_{i\mathbf{k}}\).
   subroutine exphouston_hermitian_matrix_times_vectors( alpha, &
-      & H, S, vectors, tol )
+      & H, S, vectors, tol, n_expansion )
     !> Complex prefactor
-    complex(dp), intent(in)   :: alpha
+    complex(dp), intent(in) :: alpha
     !> Hermitian matrix \( H_{\mathbf{k}} \)
-    complex(dp),intent(in)    :: H(:, :)
+    complex(dp),intent(in) :: H(:, :)
     !> Overlap matrix: must be positive definite
-    complex(dp),intent(in)    :: S(:, :)
+    complex(dp),intent(in) :: S(:, :)
     !> Refer to [[exp_hermitian_matrix_times_vectors]]
     complex(dp),intent(inout) :: vectors(:, :)
     !> Tolerance for checking if the matrices are hermitian
-    real(dp), intent(in), optional :: tol
+    real(dp), optional, intent(in) :: tol
+    !> Number \( N \) of the lowest-lying eigenstates used for the operator expansion
+    integer, optional, intent(in) :: n_expansion
 
-    integer                   :: i, lwork, info, n_eigvals_found
-    integer                   :: n_vectors, dim
-    integer, allocatable      :: ifail(:), iwork(:)
-    real(dp)                  :: tolerance
-    real(dp)                  :: vl, vu
-    real(dp), allocatable     :: eigvals(:)
-    complex(dp), allocatable  :: rwork(:), work(:)
-    complex(dp), allocatable  :: eigvecs(:, :), proj(:, :), aux(:, :)
-    complex(dp), allocatable  :: S_copy(:, :), H_copy(:, :)
+    integer :: i, lwork, info, n_eigvals_found, n_vectors, matrix_dim, n_expansion_local
+    integer, allocatable :: ifail(:), iwork(:)
+    real(dp) :: tolerance
+    real(dp), allocatable :: eigvals(:)
+    complex(dp), allocatable :: eigvecs(:, :), proj(:, :), aux(:, :), auxe(:, :)
+    complex(dp), allocatable :: rwork(:), work(:), S_copy(:, :), H_copy(:, :)
 
     tolerance = tol_default
     if( present(tol) ) tolerance = tol
-    dim = size( H, 1 )
+    matrix_dim = size( H, 1 )
+    n_expansion_local = matrix_dim
+    if ( present( n_expansion ) ) n_expansion_local = n_expansion
     n_vectors = size( vectors, 2 )
-    allocate( eigvecs(dim, n_vectors), aux(dim, n_vectors) )
-    allocate( proj(n_vectors, n_vectors) )
-    allocate( S_copy, source=S ) 
-    allocate( H_copy, source=H )
-    allocate( ifail(dim), iwork(5*dim), eigvals(dim), rwork(7*dim) )
 
     ! Sanity checks
+    call assert( n_expansion_local <= matrix_dim, 'more then matrix_dim eigvectors requested' )
     ! Check if H is hermitian
     call assert( is_hermitian( H, tolerance ), 'H is not hermitian' )
     ! Check if H and vectors have compatible size
@@ -248,14 +248,18 @@ contains
     ! Check if S and vectors have compatible size
     call assert( size( S, 1 ) == size( vectors, 1 ), 'S and vectors have incompatible sizes.' )
 
-    vl = 0._dp
-    vu = 0._dp
+    allocate( eigvecs(matrix_dim, n_expansion_local), aux(matrix_dim, n_vectors), &
+      auxe( matrix_dim, n_expansion_local ) )
+    allocate( proj(n_expansion_local, n_vectors) )
+    allocate( S_copy, source = S ) 
+    allocate( H_copy, source = H )
+    allocate( ifail(matrix_dim), iwork(5 * matrix_dim), eigvals(matrix_dim), rwork(7 * matrix_dim) )
 
     ! Obtain the optimum lwork
     lwork = -1
     allocate( work(2) )
-    call ZHEGVX( 1, 'V', 'I', 'U', dim, H_copy, dim, S_copy, dim, vl, &
-      & vu, 1, n_vectors, tol, n_eigvals_found, eigvals, eigvecs, dim, &
+    call ZHEGVX( 1, 'V', 'I', 'U', matrix_dim, H_copy, matrix_dim, S_copy, matrix_dim, 0._dp, &
+      & 0._dp, 1, n_expansion_local, tol, n_eigvals_found, eigvals, eigvecs, matrix_dim, &
       & work, lwork, rwork, iwork, ifail, info )
     lwork = int( work(1) )
     deallocate( work )
@@ -263,24 +267,26 @@ contains
 
     ! Solve the generalized eigenvalue/eigenvector problem: H*x = lambda*S*x
     ! We use H_copy and S_copy because ZHEGVX overwrites these matrices
-    call ZHEGVX( 1, 'V', 'I', 'U', dim, H_copy, dim, S_copy, dim, vl, &
-      & vu, 1, n_vectors, tol, n_eigvals_found, eigvals, eigvecs, dim, &
+    call ZHEGVX( 1, 'V', 'I', 'U', matrix_dim, H_copy, matrix_dim, S_copy, matrix_dim, 0._dp, &
+      & 0._dp, 1, n_expansion_local, tol, n_eigvals_found, eigvals, eigvecs, matrix_dim, &
       & work, lwork, rwork, iwork, ifail, info )
 
     ! Check if there were problems with the diagonalization
-    call assert( info==0, 'exphouston_hermitianmatrix_times_vectors: problems &
+    call assert( info == 0, 'exphouston_hermitianmatrix_times_vectors: problems &
       & with ZHEGVX, info not zero' )
+    call assert( n_eigvals_found < n_expansion_local, 'exphouston_hermitianmatrix_times_vectors: problems &
+      & n_eigvals_found < n_eigvals_requested' )
 
     ! Project vectors onto the eigenvectors
     call hermitian_matrix_multiply( S, vectors, aux, tol=tolerance )
     call matrix_multiply( eigvecs, aux, proj, 'C')
 
     ! Now, scale each eigenvector by the exponential of alpha*eigvals
-    ! MRM: FORALL is marked as obsolescent in Fortran 2018. I leave this in case it becomes deleted
-    !      from the standard.
-    forall( i = 1:n_vectors ) aux(:, i) = exp( alpha*eigvals(i) )*eigvecs(:, i)
+    do i = 1, n_expansion_local
+      auxe(:, i) = exp( alpha * eigvals(i) ) * eigvecs(:, i)
+    end do
 
-    call matrix_multiply( aux, proj, vectors )
+    call matrix_multiply( auxe, proj, vectors )
 
   end subroutine 
 

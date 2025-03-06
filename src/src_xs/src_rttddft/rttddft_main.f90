@@ -27,7 +27,7 @@ module rttddft_main
   use mod_potential_and_density, only: rhomt, rhoir
   use modinput, only: input, input_type
   use modmpi, only: rank, mpi_env_k, distribute_loop, barrier, terminate_if_false
-  use propagators, only: create_propagator, propagator_type => propagator
+  use propagators, only: propagator_type => propagator
   use precision, only: dp, i32
   use rttddft_CurrentDensity, only: Current_Density, Current_Density_Field
   use rttddft_Density, only: update_density, groundstate
@@ -160,7 +160,6 @@ contains
     call molecular_dynamics%parse_input()
     ! we only perform MD in RT-TDDFT if the type is Ehrenfest
     if( molecular_dynamics%on ) molecular_dynamics%on = ( trim(molecular_dynamics%MD_type) == 'Ehrenfest' )
-    call create_propagator( propagator, rt%propagator_input, .not. molecular_dynamics%on )
     
     ! Output general info to RTTDDFT_INFO.OUT
     my_rank_writes_to_output = ( rank == 0 ) 
@@ -176,13 +175,13 @@ contains
       time = 0._dp
     end if
     dt = rt%propagator_input%dt()
-    first_step = int( time / dt, kind=i32 ) + 1
-    last_step = int( rt%t_end / dt, kind=i32 )
+    first_step = int( time / dt, kind = i32 ) + 1
+    last_step = int( rt%t_end / dt, kind = i32 )
     eps_occ = input%groundstate%epsocc
     
-    call initialize_rttddft( rt, propagator%extrapolation_needed(), vec_pot, a_tot_save, &
+    call initialize_rttddft( rt, propagator, vec_pot, a_tot_save, &
         molecular_dynamics, psi, overlap, ham_init, ham_time, ham_past, apwalm, &
-        pmat, pmatmt, rhomt_frozen, rhoir_frozen )
+        pmat, pmatmt, rhomt_frozen, rhoir_frozen, eps_occ )
     call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
     if( molecular_dynamics%on ) call init_MD( time, vec_pot%a_tot, dt, &
         psi%active, overlap, ham_time, timeStepMultiplier, molecular_dynamics, &

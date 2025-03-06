@@ -29,6 +29,7 @@ module propagators_test
   integer(i32), parameter :: dim = 2 ! Effective dimension to take into account
   integer(i32), parameter :: n_states = 2
   integer(i32), parameter :: n_kpoints = 2
+  integer(i32), parameter :: n_eigvecs_houston = 2
   
   complex(dp), parameter :: H_minus_dt_hermitian(dim+1, dim+1, n_kpoints) = &
     reshape( [0.6_dp*herm(1:dim+1, 1:dim+1), 2*herm(1:dim+1, 1:dim+1)], [dim+1, dim+1, n_kpoints] )
@@ -112,7 +113,7 @@ contains
     test_identifier = 'test_' // method //'_propagator'
 
     ! 1st test: Hermitian, given H_0 and H_dt
-    call create_propagator( prop, input_params( method, dt, order_Taylor, tol ), .true. )
+    call create_propagator( prop, input_params( method, dt, order_Taylor, tol, n_eigvecs_houston ), .true. )
 
     psi = x_0
     x_expected = x_0
@@ -136,7 +137,7 @@ contains
     select case( trim( method ) ) 
       case( 'SE', 'EMR', 'AETRS', 'CFM4' )
         deallocate( prop )
-        call create_propagator( prop, input_params( method, dt, order_Taylor, tol ), .false. )
+        call create_propagator( prop, input_params( method, dt, order_Taylor, tol, n_eigvecs_houston ), .false. )
 
         psi = x_0
         x_expected = x_0
@@ -194,9 +195,9 @@ contains
       case( 'RK4' )
         call rk4( dt, zi, H_0, 2*H_0-H_dt, S(:, :, 1), x )
       case( 'EH' )
-        call exp_houston( -zi*dt, H_0(1:dim, 1:dim), S(1:dim, 1:dim, 1), x(1:dim, :), tol )
+        call exp_houston( -zi*dt, H_0(1:dim, 1:dim), S(1:dim, 1:dim, 1), x(1:dim, :), tol, n_eigvecs_houston )
       case( 'EHM' )
-        call exp_houston( -zi*dt, 0.5_dp*( H_0(1:dim, 1:dim) + H_dt(1:dim, 1:dim) ), S(1:dim, 1:dim, 1), x(1:dim, :), tol )
+        call exp_houston( -zi*dt, 0.5_dp*( H_0(1:dim, 1:dim) + H_dt(1:dim, 1:dim) ), S(1:dim, 1:dim, 1), x(1:dim, :), tol, n_eigvecs_houston )
     end select
   end subroutine
 

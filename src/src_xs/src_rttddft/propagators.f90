@@ -26,13 +26,15 @@ module propagators
   type :: propagator_input_elements
     private
     !> Propagator method used
-    integer(kind(propagator_methods))       :: method
+    integer(kind( propagator_methods )) :: method
     !> Time step \( \Delta t \) employed in RT-TDDFT
-    real(dp)                                :: dt_
+    real(dp) :: dt_
     !> Order of the Taylor expansion
-    integer(i32)                            :: order_taylor
+    integer(i32) :: order_taylor
     !> Tolerance required for diagonalization
-    real(dp)                                :: tol_diagonalization
+    real(dp) :: tol_diagonalization
+    !> Number of eigenvectors used in the Houston propagator expansion
+    integer(i32) :: n_eigvecs_houston
   contains
     procedure, public :: initialize => initialize_propagator_input_elements
     procedure, public :: dt => propagator_input_elements_dt
@@ -48,6 +50,7 @@ module propagators
     procedure(propagate_single_array_), private, deferred :: propagate_single_array
     procedure(initialize_), public, deferred :: initialize
     procedure, public :: extrapolation_needed => propagator_requires_extrapolation
+    procedure, public :: update_and_check => set_and_check_n_eigvecs_houston
   end type
 
   !> Abstract type for propagators that employ a Taylor expansion
@@ -101,6 +104,8 @@ module propagators
     private
     !> Tolerance used to diagonalize the matrix to be exponentiated
     real(dp) :: tol
+    !> Number of eigenvectors used in the Houston propagator expansion
+    integer(i32) :: n_eigvecs_houston
   contains
     procedure, public :: initialize => initialize_Houston
   end type
@@ -190,7 +195,7 @@ contains
   end function
 
   !> Subroutine to initialize the components of [[propagator_input_elements]]
-  subroutine initialize_propagator_input_elements( self, method, dt, order_Taylor, tol )
+  subroutine initialize_propagator_input_elements( self, method, dt, order_Taylor, tol, n_eigvecs_houston )
     class(propagator_input_elements), intent(inout) :: self
     !> String containing the name of the propagator following [[propagator_type]]
     character(len=*), intent(in) :: method
@@ -200,11 +205,41 @@ contains
     integer(i32), intent(in) :: order_Taylor
     !> Tolerance used in the diagonalization
     real(dp), intent(in) :: tol
+    !> Number of eigenvectors used in the Houston propagator expansion
+    integer(i32) :: n_eigvecs_houston
 
     self%method = propagator_type( method )
     self%dt_ = dt
     self%order_Taylor = order_Taylor
     self%tol_diagonalization = tol
+    self%n_eigvecs_houston = n_eigvecs_houston
+  end subroutine
+
+  !> Subroutine to set the value of n_eigvecs_houston to the default one 
+  !> in case negative value is provided by user, and checks whether it 
+  !> lies in range from  n_eigvecs_houston_min to n_eigvecs_houston_max. Returns 
+  !> success = .True. if the check was succsessful.
+  subroutine set_and_check_n_eigvecs_houston( self, n_eigvecs_houston_min, &
+    n_eigvecs_houston_max, n_eigvecs_houston_default, success )
+    class(propagator), intent(inout) :: self
+    !> Minimal adequate value of n_eigvecs_houston
+    integer(i32), intent(in) :: n_eigvecs_houston_min
+    !> Maximal adequate value of n_eigvecs_houston
+    integer(i32), intent(in) :: n_eigvecs_houston_max
+    !> Default value of n_eigvecs_houston which should be used if a user provides 
+    !> n_eigvecs_houston < 0
+    integer(i32), intent(in) :: n_eigvecs_houston_default
+    !> If .true., propagation parameters are consistent with each other
+    logical, intent(out) :: success
+
+    success = .true.
+    select type( self )
+    class is ( Houston_propagator )
+      if ( self%n_eigvecs_houston < 0 ) self%n_eigvecs_houston = n_eigvecs_houston_default
+      if ( self%n_eigvecs_houston < n_eigvecs_houston_min .or. &
+        self%n_eigvecs_houston > n_eigvecs_houston_max ) success = .false.
+    end select
+
   end subroutine
 
   !> Return the component `dt_` of [[propagator_input_elements]]
@@ -215,7 +250,7 @@ contains
 
   !> Return a variable of type [[propagator_input_elements]], using all its attributes.
   !> This is a trick to mimic a C++ constructor (applied here to the type [[propagator_input_elements]])
-  function constructor_propagator_input_elements( method, dt, order_Taylor, tol ) result(params)
+  function constructor_propagator_input_elements( method, dt, order_Taylor, tol, n_eigvecs_houston ) result(params)
     type(propagator_input_elements) :: params
     !> String containing the propagator method to be used
     character(len=*), intent(in) :: method
@@ -225,8 +260,10 @@ contains
     integer(i32), intent(in) :: order_Taylor
     !> Tolerance required for diagonalization
     real(dp), intent(in) :: tol
+    !> Number of eigenvectors used in the Houston propagator expansion
+    integer(i32) :: n_eigvecs_houston
 
-    call params%initialize( method, dt, order_Taylor, tol )
+    call params%initialize( method, dt, order_Taylor, tol, n_eigvecs_houston )
   end function
 
   !> Initializes the propagator class ([[propagator]])
@@ -295,6 +332,7 @@ contains
 
     this%dt = input_parameters%dt_
     this%tol = input_parameters%tol_diagonalization
+    this%n_eigvecs_houston = input_parameters%n_eigvecs_houston
   end subroutine
 
   !> Propagate a list of arrays. The 3rd dimension goes, usually, over the various k-points.
@@ -528,7 +566,7 @@ contains
     complex(dp), contiguous, intent(in) :: S(:, :)
     complex(dp), contiguous, intent(inout) :: x(:, :)
 
-    call exphouston_propagator( -zi*self%dt, H_0(1:dim, 1:dim), S(1:dim, 1:dim), x(1:dim, :), self%tol )
+    call exphouston_propagator( -zi*self%dt, H_0(1:dim, 1:dim), S(1:dim, 1:dim), x(1:dim, :), self%tol, self%n_eigvecs_houston )
   end subroutine
 
   !> Propagate a single KS wavefunction according to the propagator [[EHM]]
@@ -555,7 +593,7 @@ contains
     else
       H_aux = 0.5_dp*( 3*H_0(1:dim, 1:dim) - H_minus_dt(1:dim, 1:dim) )
     end if
-    call exphouston_propagator( -zi*self%dt, H_aux, S(1:dim, 1:dim), x(1:dim, :), self%tol )
+    call exphouston_propagator( -zi*self%dt, H_aux, S(1:dim, 1:dim), x(1:dim, :), self%tol, self%n_eigvecs_houston )
   end subroutine
 
 end module

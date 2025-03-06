@@ -856,6 +856,15 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="nEigenvectorsEH" type="xs:integer"
+              default="-1">
+              <xs:annotation>
+                <xs:documentation> Number of eigenvectors used as auxiliary basis by the propagators: 
+                <pre>EH</pre> and <pre>EHM</pre>. If a different propagator is employed, this attribute is disregarded. 
+                A negative number is interpreted as: all occupied states + <pre>nempty</pre>.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="atomic units" name="timeStep" type="fortrandouble"
               default="0d1">
               <xs:annotation>
