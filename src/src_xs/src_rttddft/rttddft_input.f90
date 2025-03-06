@@ -89,11 +89,11 @@ module rttddft_input
 
   type :: predictorCorrector_keys
     !> Maximum number of steps for the predictor-corrector loop
-    integer                   :: max_steps
+    integer(i32) :: max_steps
     !> Flag that tells if the predictor-corrector scheme is required
-    logical                   :: on
+    logical :: on
     !> tolerance to escape the predictor-corrector loop
-    real(dp)                  :: tol
+    real(dp) :: tol
   end type
 
   type :: eeInteraction_keys
@@ -104,19 +104,19 @@ module rttddft_input
   !> Type to encapsulate the elements and attributes defined in the input file
   type, public :: rttddft_input_keys
     !> Type to encapsulate the attributes of screenshots
-    type(screenshot_keys)                   :: screenshots
+    type(screenshot_keys) :: screenshots
     !> Type to encapsulate the attributes of pmat
-    type(pmat_keys)                         :: pmat
+    type(pmat_keys) :: pmat
     !> Type to encapsulate the attributes of predictorCorrector
-    type(predictorCorrector_keys)           :: predictor_corrector
+    type(predictorCorrector_keys) :: predictor_corrector
     !> Type to encapsulate the elements related to the WF propagation
-    type(propagator_input_elements)         :: propagator_input
+    type(propagator_input_elements) :: propagator_input
     !> Type to encapsulate eeInteraction-related propagation parameters
     type(eeInteraction_keys) :: eeInteraction
     !> Wether the KS wavefunctions must be normalized in each step 
     logical :: normalize_WF
     !> Number of low-lying states which will not be evolved
-    integer :: n_frozen
+    integer(i32) :: n_frozen
     !> Print output data every `n_print` steps
     integer(i32) :: n_print
     !> Radial step length (used to update the electron density)
@@ -164,7 +164,7 @@ subroutine rttddft_input_keys_parse_input( this, inp, tol, a_vec )
     this%calculate_n_exc = rt_input%calculateNExcitedElectrons
     this%subtract_J0 = rt_input%subtractJ0
     call this%printTimings%set( rt_input%printTimingGeneral, rt_input%printTimingGeneral .and. rt_input%printTimingDetailed )
-    call this%propagator_input%initialize( rt_input%propagator, rt_input%timeStep, rt_input%TaylorOrder, tol )
+    call this%propagator_input%initialize( rt_input%propagator, rt_input%timeStep, rt_input%TaylorOrder, tol, rt_input%nEigenvectorsEH )
     call a_vec%initialize( rt_input%laser, rt_input%vectorPotentialSolver )
     
     this%screenshots%on = associated( rt_input%screenshots )
@@ -222,7 +222,7 @@ end function
 function string_to_restart_format(string) result(r)
   !> String containing the start mode name
   character(len=*), intent(in) :: string
-  integer(kind(restart_format)) :: r
+  integer(kind( restart_format )) :: r
 
   select case ( trim(string) )
     case ("binary")
@@ -321,7 +321,7 @@ end subroutine
 impure elemental subroutine destructor_screenshot_density_keys( this )
   type(screenshot_density_keys), intent(inout) :: this
 
-  integer :: i
+  integer(i32) :: i
 
   if ( associated( this%plot3d ) ) then
     if ( associated( this%plot3d%box ) ) then

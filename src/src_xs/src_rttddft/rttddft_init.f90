@@ -15,7 +15,7 @@ module rttddft_init
   use mod_atoms, only: natmtot
   use mod_bands, only: evalfv, nomax, numin, ikcbm, ikvbm, ikvcm
   use mod_core_states, only: ncg
-  use mod_eigensystem, only: nmatmax
+  use mod_eigensystem, only: nmatmax, nmat
   use mod_eigenvalue_occupancy, only: occsv, nstfv, nstsv, efermi
   use mod_gkvector, only: ngk, ngkmax, gkc, tpgkc, sfacgk
   use mod_kpoint, only: vkl, nkpt
@@ -40,6 +40,7 @@ module rttddft_init
   use rttddft_potential, only: update_potential
   use rttddft_VectorPotential, only: Vector_Potential, Vector_Potential_Field
   use rttddft_Wavefunction, only: wavefunction_set
+  use propagators, only: create_propagator, propagator_type => propagator
 
   implicit none
   
@@ -49,12 +50,12 @@ module rttddft_init
 
 contains
 !> This subroutine initializes many global variables in a RT-TDDFT calculation.
-subroutine initialize_rttddft( rt_inp, propagator_needs_extrapolation, vec_pot, a_tot_t_minus_dt, molecular_dynamics, psi, &
-    overlap, ham_init, ham_time, ham_past, apwalm, pmat, pmatmt, rhomt_frozen, rhoir_frozen )
+subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, molecular_dynamics, psi, &
+    overlap, ham_init, ham_time, ham_past, apwalm, pmat, pmatmt, rhomt_frozen, rhoir_frozen, occs_tol )
   !> Argument that encapsulates the input options of rttddft
   type(rttddft_input_keys), intent(in) :: rt_inp
-  !> If `.true.`, propagator needs to extrapolate \(H\)
-  logical, intent(in) :: propagator_needs_extrapolation
+  !> Argument that encapsulates the propagator
+  class(propagator_type), allocatable, intent(out) :: propagator
   !> type that encapsulates the vector potential
   type(Vector_Potential), intent(in) :: vec_pot
   !> \(\mathbf{A}_{tot}\) at time \( t-\Delta t\) 
@@ -81,10 +82,12 @@ subroutine initialize_rttddft( rt_inp, propagator_needs_extrapolation, vec_pot, 
   real(dp), allocatable, intent(out) :: rhomt_frozen(:, :, :)
   !> Frozen part of the IR density (to be allocated in `array_allocation` block)
   real(dp), allocatable, intent(out) :: rhoir_frozen(:)
+  !> Minimal value of occupation for the state to be 'occupied'
+  real(dp), intent(in) :: occs_tol
 
   real(dp), parameter :: epsilon_rgkmax = 1e-14_dp
-  integer(i32) :: ik, first_kpt, last_kpt
-  logical :: evolve_H0, my_rank_writes_to_output
+  integer(i32) :: ik, first_kpt, last_kpt, n_occupied, last_occupied
+  logical :: evolve_H0, my_rank_writes_to_output, success
   real(dp) :: voff(3)
   type(Vector_Potential_Field) :: a_aux
   complex(dp), allocatable :: psi_gnd_lapwlo(:, :, :)
@@ -122,10 +125,11 @@ subroutine initialize_rttddft( rt_inp, propagator_needs_extrapolation, vec_pot, 
   ! One-shot GS calculation
   ! Since an XS calculation with Hybrid functionals uses the GS parameters, a one shot GS calculation serves no purpose
   if (.not. hybrids_used()) call gndstateq( voff, RTDDFT_GND_sufix//filext )
-
+  call create_propagator( propagator, rt_inp%propagator_input, .not. molecular_dynamics%on )
+  
   array_allocation: block
     allocate( psi_gnd_lapwlo(nmatmax, nstfv, first_kpt : last_kpt), source = zzero )
-    if ( propagator_needs_extrapolation ) then
+    if ( propagator%extrapolation_needed() ) then
       allocate( ham_past(nmatmax, nmatmax, first_kpt : last_kpt), source = zzero )
     end if
     allocate( overlap(nmatmax, nmatmax, first_kpt : last_kpt), source = zzero )
@@ -146,7 +150,24 @@ subroutine initialize_rttddft( rt_inp, propagator_needs_extrapolation, vec_pot, 
     allocate_B=molecular_dynamics%basis_derivative )
   
   call read_WF_potential_rttddft( first_kpt, psi_gnd_lapwlo )
-  call psi%initialize( propagator_needs_extrapolation, rt_inp%n_frozen, psi_gnd_lapwlo )
+  call psi%initialize( propagator%extrapolation_needed(), rt_inp%n_frozen, psi_gnd_lapwlo )
+  
+  ! n_occupied determination will be replaced by call psi%n_filled() in the next MR
+  n_occupied = -1
+  do ik = first_kpt, last_kpt
+    do last_occupied = 1, nstfv
+      if ( occsv(last_occupied, ik) < occs_tol ) exit
+    end do
+    last_occupied = last_occupied - 1
+    if ( last_occupied > n_occupied ) n_occupied = last_occupied
+  end do
+  ! A special case of an input parameter for the EH and EHM propagators:
+  ! first, n_eigvecs_houston can be < 0 and should be redefined as soon as nstfv is known
+  ! second, n_eigvecs_houston should be at least n_occupied, and not larger than basis size
+  ! The routine does nothing if different propagator is used
+  call propagator%update_and_check( n_occupied, minval( nmat(1, first_kpt : last_kpt) ), nstfv, success )
+  call terminate_if_false( success, &
+    'Error: Provided value of nEigenvectorsEH is either smaller than the number of occupied states or larger than basis size.' )
 
   if ( my_rank_writes_to_output ) call write_to_info( molecular_dynamics%on, &
     rt_inp%predictor_corrector%on, psi, overlap, ham_time, ham_past, apwalm, pmat, pmatmt )
@@ -154,7 +175,7 @@ subroutine initialize_rttddft( rt_inp, propagator_needs_extrapolation, vec_pot, 
   if( rt_inp%restart_previous_calculation() ) then
     call read_wavefunction( t, first_kpt, vkl(:, first_kpt:last_kpt), &
       psi%active, mpi_env_k, rt_inp%restart_file_handler )
-    if( propagator_needs_extrapolation ) &
+    if( propagator%extrapolation_needed() ) &
       call read_wavefunction( t_minus_dt, first_kpt, vkl(:, first_kpt:last_kpt), &
         psi%active_save, mpi_env_k, rt_inp%restart_file_handler )
   end if
@@ -209,7 +230,7 @@ subroutine initialize_rttddft( rt_inp, propagator_needs_extrapolation, vec_pot, 
   end if
 
   if( rt_inp%restart_previous_calculation() ) then
-    if( propagator_needs_extrapolation ) then
+    if( propagator%extrapolation_needed() ) then
       call update_density( first_kpt, psi, 0, rt_inp%normalize_WF, &
         rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, dens_case=save_and_frozen )
       call update_potential()
@@ -223,7 +244,7 @@ subroutine initialize_rttddft( rt_inp, propagator_needs_extrapolation, vec_pot, 
   if( evolve_H0 .or. rt_inp%restart_previous_calculation() ) &
     call update_ham( first_kpt, vec_pot%a_tot, .True., overlap, ham_time, apwalm, pmat, pmatmt, &
       update_mathcalH=allocated(mathcalH), update_mathcalB=allocated(mathcalB), ham_init=ham_init )
-  if( rt_inp%do_from_scratch() .and. propagator_needs_extrapolation ) ham_past = ham_time
+  if( rt_inp%do_from_scratch() .and. propagator%extrapolation_needed() ) ham_past = ham_time
 
 end subroutine
 

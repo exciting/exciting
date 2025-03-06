@@ -50,7 +50,8 @@
             calculateNExcitedElectrons="false"
             calculateTotalEnergy="false"
             printAfterIterations="1"
-            vectorPotentialSolver="midpoint">
+            vectorPotentialSolver="midpoint"
+            nEigenvectorsEH="8">
             <pmat readFromFile="false" forceHermitian="true" />
             <laser fieldType="total">
               <kick t0="1.d0" width="0d0" amplitude="0.1d0" direction="y"/>
