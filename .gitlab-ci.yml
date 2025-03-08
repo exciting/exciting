@@ -22,4 +22,3 @@ include:
   - local: '/.gitlab/exciting-debian-buster-intel2021-smp.yml'
   - local: '/.gitlab/exciting-fedora-buster-intel2025-serial.yml'
   - local: '/.gitlab/exciting-fedora-buster-intel2025-gpu.yml'
-
