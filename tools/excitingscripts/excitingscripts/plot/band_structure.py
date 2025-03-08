@@ -669,7 +669,7 @@ def main(input_options):
          (len(legend)>0) ):       
         leg=ax1.legend(loc=leg_pos,borderaxespad=0.5,
                        framealpha=0.9,fancybox=True)
-        leg.get_frame().set_linewidth(axes_thickness)
+        leg.get_frame().set_linewidth(float(axes_thickness))
         leg.get_frame().set_edgecolor("grey")
         leg.draw_frame(True)
 
