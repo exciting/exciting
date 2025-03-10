@@ -80,7 +80,7 @@ contains
 
     allocate( aux_tot(n_kpt), aux_exc(n_kpt) )
     call obtain_projection_coefficients( psi%groundstate, overlap, psi%active, proj )
-    call obtain_occupations( proj, occ_gnd(psi%first_active():, :), occ )
+    call obtain_occupations( proj, occ_gnd(psi%first_active(): psi%n_occupied(), :), occ )
     if ( psi%has_frozen() ) occ(1 : psi%n_frozen(), :) = occ(1 : psi%n_frozen(), :) + &
      occ_gnd(1 : psi%n_frozen(), :)
     do concurrent (ik = 1:n_kpt)

@@ -8,13 +8,15 @@
 
 !> Module implementing general initializations for RT-TDDFT
 module rttddft_init
-  use constants, only: zzero
+  use constants, only: zzero, real_zero
   use m_gndstateq, only: gndstateq
-  use MD, only: force, MD_input_keys
+  use MD, only: MD_input_keys
   use mod_APW_LO, only: apwordmax
   use mod_atoms, only: natmtot
   use mod_bands, only: evalfv, nomax, numin, ikcbm, ikvbm, ikvcm
   use mod_core_states, only: ncg
+  use mod_eigensystem, only: nmatmax
+  use mod_eigenvalue_occupancy, only: nstfv, efermi
   use mod_eigensystem, only: nmatmax, nmat
   use mod_eigenvalue_occupancy, only: occsv, nstfv, nstsv, efermi
   use mod_gkvector, only: ngk, ngkmax, gkc, tpgkc, sfacgk
@@ -51,7 +53,7 @@ module rttddft_init
 contains
 !> This subroutine initializes many global variables in a RT-TDDFT calculation.
 subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, molecular_dynamics, psi, &
-    overlap, ham_init, ham_time, ham_past, apwalm, pmat, pmatmt, rhomt_frozen, rhoir_frozen, occs_tol )
+    overlap, ham_init, ham_time, ham_past, apwalm, pmat, pmatmt, rhomt_frozen, rhoir_frozen, occupations, occs_tol )
   !> Argument that encapsulates the input options of rttddft
   type(rttddft_input_keys), intent(in) :: rt_inp
   !> Argument that encapsulates the propagator
@@ -82,11 +84,13 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   real(dp), allocatable, intent(out) :: rhomt_frozen(:, :, :)
   !> Frozen part of the IR density (to be allocated in `array_allocation` block)
   real(dp), allocatable, intent(out) :: rhoir_frozen(:)
+  !> State occupations array (to be allocated in `array_allocation` block)
+  real(dp), allocatable, intent(out) :: occupations(:, :)
   !> Minimal value of occupation for the state to be 'occupied'
   real(dp), intent(in) :: occs_tol
 
   real(dp), parameter :: epsilon_rgkmax = 1e-14_dp
-  integer(i32) :: ik, first_kpt, last_kpt, n_occupied, last_occupied
+  integer(i32) :: ik, first_kpt, last_kpt
   logical :: evolve_H0, my_rank_writes_to_output, success
   real(dp) :: voff(3)
   type(Vector_Potential_Field) :: a_aux
@@ -129,6 +133,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   
   array_allocation: block
     allocate( psi_gnd_lapwlo(nmatmax, nstfv, first_kpt : last_kpt), source = zzero )
+    allocate( occupations(nstfv, first_kpt : last_kpt), source = real_zero )
     if ( propagator%extrapolation_needed() ) then
       allocate( ham_past(nmatmax, nmatmax, first_kpt : last_kpt), source = zzero )
     end if
@@ -149,23 +154,15 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
     allocate_mathcalB=molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative,&
     allocate_B=molecular_dynamics%basis_derivative )
   
-  call read_WF_potential_rttddft( first_kpt, psi_gnd_lapwlo )
-  call psi%initialize( propagator%extrapolation_needed(), rt_inp%n_frozen, psi_gnd_lapwlo )
+  call read_WF_potential_rttddft( first_kpt, psi_gnd_lapwlo, occupations )
+  call psi%initialize( propagator%extrapolation_needed(), rt_inp%n_frozen, &
+    psi_gnd_lapwlo, occupations, occs_tol )
   
-  ! n_occupied determination will be replaced by call psi%n_filled() in the next MR
-  n_occupied = -1
-  do ik = first_kpt, last_kpt
-    do last_occupied = 1, nstfv
-      if ( occsv(last_occupied, ik) < occs_tol ) exit
-    end do
-    last_occupied = last_occupied - 1
-    if ( last_occupied > n_occupied ) n_occupied = last_occupied
-  end do
   ! A special case of an input parameter for the EH and EHM propagators:
   ! first, n_eigvecs_houston can be < 0 and should be redefined as soon as nstfv is known
   ! second, n_eigvecs_houston should be at least n_occupied, and not larger than basis size
   ! The routine does nothing if different propagator is used
-  call propagator%update_and_check( n_occupied, minval( nmat(1, first_kpt : last_kpt) ), nstfv, success )
+  call propagator%update_and_check( psi%n_occupied(), minval( nmat(1, first_kpt : last_kpt) ), nstfv, success )
   call terminate_if_false( success, &
     'Error: Provided value of nEigenvectorsEH is either smaller than the number of occupied states or larger than basis size.' )
 
@@ -203,7 +200,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
       call read_pmat_mt( first_kpt, pmatmt, mpi_env_k )
     end if
   else
-    if( allocated(pmatmt) ) then 
+    if( allocated( pmatmt ) ) then 
       call obtain_pmat_LAPWLOBasis( first_kpt, rt_inp%pmat%force_pmat_hermitian, apwalm, pmat, pmatmt )
     else
       call obtain_pmat_LAPWLOBasis( first_kpt, rt_inp%pmat%force_pmat_hermitian, apwalm, pmat )
@@ -224,20 +221,20 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   end if
 
   if ( psi%has_frozen() ) then
-    call update_density( first_kpt, psi, -1, .false., rt_inp%l_rad_step, dens_case=frozen )
+    call update_density( first_kpt, psi, occupations, -1, .false., rt_inp%l_rad_step, dens_case=frozen )
     rhomt_frozen = rhomt
     rhoir_frozen = rhoir
   end if
 
   if( rt_inp%restart_previous_calculation() ) then
     if( propagator%extrapolation_needed() ) then
-      call update_density( first_kpt, psi, 0, rt_inp%normalize_WF, &
+      call update_density( first_kpt, psi, occupations, 0, rt_inp%normalize_WF, &
         rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, dens_case=save_and_frozen )
       call update_potential()
       call update_ham( first_kpt, a_tot_t_minus_dt, .True., overlap, ham_past, apwalm, pmat, pmatmt, &
         update_mathcalH=allocated(mathcalH), update_mathcalB=allocated(mathcalB), ham_init=ham_init )
     end if
-    call update_density( first_kpt, psi, 0, rt_inp%normalize_WF, rt_inp%l_rad_step, &
+    call update_density( first_kpt, psi, occupations, 0, rt_inp%normalize_WF, rt_inp%l_rad_step, &
       rhomt_frozen, rhoir_frozen )
     call update_potential()
   end if
@@ -383,11 +380,13 @@ subroutine is_gs_input_compatible_with_xs( inp, is_compatible)
 end subroutine
 
 !> read WF and potential from potential gs run. For hybrid functionals, the parameters are read from the PBE run
-subroutine read_WF_potential_rttddft( first_kpt, evecfv_gnd )
+subroutine read_WF_potential_rttddft( first_kpt, evecfv_gnd, occupations )
   !> First k-point treated by this (MPI)rank
   integer(i32), intent(in) :: first_kpt
   !> Basis-expansion coefficients of the groundstate KS-WFs
   complex(dp), intent(out) :: evecfv_gnd(:, :, first_kpt :)
+  !> Initial occupations array
+  real(dp), intent(out) :: occupations(:, first_kpt :)
 
   integer(i32) :: ik, last_kpt
   logical :: file_exists
@@ -451,7 +450,7 @@ subroutine read_WF_potential_rttddft( first_kpt, evecfv_gnd )
 
   ! Get the eigenvectors and occupations from file
   do ik = first_kpt, last_kpt
-    call getoccsv(vkl(:, ik), occsv(:, ik))
+    call getoccsv(vkl(:, ik), occupations(:, ik))
   end do
 
   filext = string

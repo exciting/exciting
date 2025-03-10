@@ -94,8 +94,8 @@ contains
         occ_gnd(i_CBm, ik) = occ_gnd(i_CBm, ik) + real(ik, dp)/n_kpt
       end if
     end do
-    call psi%initialize( .false., n_frozen, psi_gnd )
-    psi%active(:, 1 : n_states, :) = psi_t(:, n_frozen + 1:, :)
+    call psi%initialize( .false., n_frozen, psi_gnd, occ_gnd, tol )
+    psi%active = psi_t(:, n_frozen + 1:, :)
 
     ! Obtain ref
     n_exc_ref = 0._dp; n_gs_ref = 0._dp
@@ -115,7 +115,7 @@ contains
     call test_report%assert( all_close( n_gs, n_gs_ref, tol ), test_identifier//' - calculated n_gs does not match reference.' )
 
     ! Test case with no excited states
-    psi%active = psi%groundstate(:, psi%first_active():, :)
+    psi%active = psi%groundstate(:, psi%first_active(): psi%n_occupied(), :)
     call obtain_number_excitations( psi, overlap(:, :, first_k:last_k), tol, &
       occ_gnd(:, first_k:last_k), wkpt(first_k:last_k), mpiglobal, n_exc, n_gs )
     
@@ -123,8 +123,8 @@ contains
     call test_report%assert( all_close( n_gs, sum(occ_gnd(:, 1)), tol ), test_identifier//' - calculated n_gs does not match reference.' )
 
     ! Test case with no frozen states
-    call psi_no_frozen%initialize( .false., 0, psi_gnd )
-    psi_no_frozen%active(:, 1 : n_states, :) = psi_t(:, 1 : n_states, :)
+    call psi_no_frozen%initialize( .false., 0, psi_gnd, occ_gnd, tol )
+    psi_no_frozen%active = psi_t(:, 1 : n_states, :)
 
     ! Obtain ref
     n_exc_ref = 0._dp; n_gs_ref = 0._dp
