@@ -116,7 +116,7 @@ contains
         do ist = 1, n_states
           acc(ist) = real( dot_multiply( psi%active(:, ist, ik), draft(:, ist), conjg_a=.true. ), dp )
         end do
-        aux(j) = aux(j) - dot_multiply( occupation(first_active:, ik), acc )*kpt_weight(ik)
+        aux(j) = aux(j) - dot_multiply( occupation(first_active: first_active + n_states - 1, ik), acc )*kpt_weight(ik)
       end do
     end do
     !$OMP END PARALLEL DO

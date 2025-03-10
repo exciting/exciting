@@ -63,7 +63,7 @@ contains
     integer(i32), allocatable :: dimensions_buffer(:)
     real(dp), allocatable :: eigenvalues(:, :), occupations(:, :), buffer(:, :)
     complex(dp), allocatable :: proj_time(:, :, :), proj_buffer(:, :, :)
-    complex(dp), allocatable :: complete_set(:, :, :)
+    complex(dp), allocatable :: complete_filled_set(:, :, :)
     logical :: my_rank_writes
 
     my_rank_writes = mpi_env%is_root
@@ -72,11 +72,12 @@ contains
     associate( p => input_keys%projection_coefficients, occ => input_keys%occupations )
       if( p%on .or. occ%on ) then
 
-        allocate( complete_set, source = psi%groundstate )
-        complete_set(:, psi%first_active():, :) = psi%active
+        allocate( complete_filled_set( psi%n_basis(), psi%n_occupied(), psi%n_kpts() ) )
+        complete_filled_set(:, psi%first_active(): psi%n_occupied(), :) = psi%active
+        if ( psi%has_frozen() ) complete_filled_set(:, 1: psi%n_frozen() , :) = psi%frozen
 
         ! Project the current WFs onto the ground-state ones
-        call obtain_projection_coefficients( psi%groundstate, overlap, complete_set, proj_time )
+        call obtain_projection_coefficients( psi%groundstate, overlap, complete_filled_set, proj_time )
         if( p%on ) then
           ! Send results to root rank, storing in the buffer
           call xmpi_gatherv( mpi_env, proj_time, proj_buffer )
@@ -84,7 +85,7 @@ contains
           if( my_rank_writes ) call out_proj( it, p%print_absolute_value, p%output_format, proj_buffer )
         end if
         if( occ%on ) then
-          call obtain_occupations( proj_time, occupations_gnd, occupations )
+          call obtain_occupations( proj_time, occupations_gnd(1 : psi%n_occupied(), : ), occupations )
           ! Send results to root rank, storing in the buffer
           call xmpi_gatherv( mpi_env, occupations, buffer )
           ! Write to output

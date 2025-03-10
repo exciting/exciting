@@ -15,7 +15,6 @@ module rttddft_MD
     spcore, spmass, spocc, spr, spzn
   use mod_corestate, only: rhocr
   use mod_eigensystem, only: nmat, nmatmax
-  use mod_eigenvalue_occupancy, only: occsv
   use mod_gkvector, only: ngk, ngkmax, gkc, tpgkc, sfacgk, vgkc
   use mod_gvector, only: ngvec, vgc, sfacg
   use mod_kpoint, only: nkpt, wkpt
@@ -67,8 +66,8 @@ contains
     forall( is = 1:n_species ) charge_val(is) = sum( spocc(:, is), mask=(.not.spcore(:, is)) )
   end subroutine
 
-  subroutine force_rttdft( forces, a_tot, e_field, MD_input, evecfv_time, overlap, &
-    ham_time, printTimings, t_MD )
+  subroutine force_rttdft( forces, a_tot, e_field, MD_input, evecfv_time, occupations, &
+      overlap, ham_time, printTimings, t_MD )
     !> Object that packs information about the total forces
     type(force), intent(inout)      :: forces
     !> `x`, `y`, and `z` components of the (total) vector potential
@@ -79,6 +78,8 @@ contains
     type(MD_input_keys), intent(in) :: MD_input
     !> Basis-expansion coefficients of the KS-WFs at time \(t\)
     complex(dp), intent(in) :: evecfv_time(:, :, :)
+    !> State occupations array
+    real(dp), intent(in) :: occupations(:, :)
     !> Overlap matrix (of basis functions)
     complex(dp), intent(in) :: overlap(:, :, :)
     !> Hamiltonian matrix at current time \(t\)
@@ -127,8 +128,8 @@ contains
 
     ! Valence corrections: second part
     if( MD_input%valence_corrections ) &
-      call obtain_valence_corrections_part2( first_kpt, last_kpt, mpi_env_k, &
-        evecfv_time, overlap, ham_time, forces%val )
+      call obtain_valence_corrections_part2( first_kpt, mpi_env_k, &
+        evecfv_time, occupations, overlap, ham_time, forces%val )
     if( tDetail ) call timesec_RTTDDFT( ti, t_MD%t_MD_2nd )
     ! sum all contributions to total force and store it
     call forces%evaluate_total_force()
@@ -138,17 +139,17 @@ contains
   end subroutine
 
   !> Wrapper for calling val_corr_pt2_given_atom_and_kpt
-  subroutine obtain_valence_corrections_part2( first_kpt, last_kpt, mpi_env, &
-    evecfv_time, overlap, ham_time, forces_val )
+  subroutine obtain_valence_corrections_part2( first_kpt, mpi_env, &
+    evecfv_time, occupations, overlap, ham_time, forces_val )
     !> index of the first `k-point` to be considered in the sum
-    integer(i32),intent(in)        :: first_kpt
-    !> index of the last `k-point` considered
-    integer(i32),intent(in)        :: last_kpt
+    integer(i32),intent(in) :: first_kpt
     !> MPI environment
-    type(mpiinfo), intent(in)      :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     !> Basis-expansion coefficients of the KS-WFs at time \(t\)
-    !> (nmatmax, nstfv, first_kpt : last_kpt)
+    !> (nmatmax, nstates, first_kpt : last_kpt)
     complex(dp), intent(in) :: evecfv_time(:, :, first_kpt :)
+    !> State occupations array (nstates, first_kpt : last_kpt)
+    real(dp), intent(in) :: occupations(:, first_kpt :)
     !> Overlap matrix (of basis functions)
     !> (nmatmax, nmatmax, first_kpt : last_kpt)
     complex(dp), intent(in) :: overlap(:, :, first_kpt :)
@@ -156,39 +157,39 @@ contains
     !> (nmatmax, nmatmax, first_kpt : last_kpt)
     complex(dp), intent(in) :: ham_time(:, :, first_kpt :)
     !> valence corrections to the total force
-    real(dp), intent(inout)        :: forces_val(:, :)
+    real(dp), intent(inout) :: forces_val(:, :)
     
-    integer   :: ik, nmatp, last_occupied, ias
-    real(dp)  :: aux(3, natmtot, first_kpt:last_kpt )
-    real(dp)  :: sumaux(3, natmtot)
+    integer :: ik, nmatp, last_occupied, ias, last_kpt
+    real(dp), allocatable :: aux(:, :, :)
+    real(dp) :: sumaux(3, natmtot)
     complex(dp), allocatable :: mathcalS(:, :, :, :)
 
     call assert( size(forces_val, 1) == 3, 'forces_val must have size = 3 along 1st dim' )
     call assert( size(forces_val, 2) == natmtot, 'forces_val must have size = natmtot along 2nd dim' )
-    
+
+    last_kpt = ubound( evecfv_time, 3 )
+    allocate( aux(3, natmtot, first_kpt : last_kpt) )
     allocate( mathcalS(nmatmax, nmatmax, 3, natmtot) )
     aux = 0._dp
-#ifdef USEOMP
-!$OMP PARALLEL DEFAULT(NONE), &
-!$OMP& PRIVATE(ik,ias,nmatp,last_occupied,mathcalS), SHARED(nmat,mathcalH,mathcalB), &
-!$OMP& SHARED(natmtot,wkpt,evecfv_time,occsv,aux,first_kpt,last_kpt,overlap,ham_time)
-!$OMP DO
-#endif
-      do ik = first_kpt, last_kpt
-        nmatp = nmat(1, ik)
-        call obtain_mathcalS( mathcalS, mathcalB(:,:,:,:,ik), overlap(:,:,ik), ham_time(:,:,ik), nmatp )
-        last_occupied = first_match( occsv(:, ik) < 1e-4_dp, .true. ) -1
-        do ias = 1, natmtot
-          call val_corr_pt2_given_atom_and_kpt( mathcalH(1:nmatp,1:nmatp,:,ias,ik), &
-            mathcalS(1:nmatp,1:nmatp,:,ias), evecfv_time(1:nmatp,1:last_occupied,ik), &
-            occsv(1:last_occupied,ik), aux(:, ias, ik) )
-        end do ! do ias = 1, natmtot
-        aux(:, :, ik) = -wkpt(ik)*aux(:, :, ik)
-      end do ! do ik = 1,nkpt
-#ifdef USEOMP
-!$OMP END DO
-!$OMP END PARALLEL
-#endif
+
+    !$OMP PARALLEL DEFAULT(NONE), &
+    !$OMP& PRIVATE(ik,ias,nmatp,last_occupied,mathcalS), SHARED(nmat,mathcalH,mathcalB), &
+    !$OMP& SHARED(natmtot,wkpt,evecfv_time,occupations,aux,first_kpt,last_kpt,overlap,ham_time)
+    !$OMP DO
+    do ik = first_kpt, last_kpt
+      nmatp = nmat(1, ik)
+      call obtain_mathcalS( mathcalS, mathcalB(:,:,:,:,ik), overlap(:,:,ik), ham_time(:,:,ik), nmatp )
+      last_occupied = first_match( occupations(:, ik) < 1e-4_dp, .true. ) -1
+      do ias = 1, natmtot
+        call val_corr_pt2_given_atom_and_kpt( mathcalH(1:nmatp,1:nmatp,:,ias,ik), &
+          mathcalS(1:nmatp,1:nmatp,:,ias), evecfv_time(1:nmatp,1:last_occupied,ik), &
+          occupations(1:last_occupied,ik), aux(:, ias, ik) )
+      end do ! do ias = 1, natmtot
+      aux(:, :, ik) = -wkpt(ik)*aux(:, :, ik)
+    end do ! do ik = 1,nkpt
+    !$OMP END DO
+    !$OMP END PARALLEL
+
       sumaux = sum( aux, dim=3 ) ! sum over kpt
       call xmpi_allreduce( sumaux, mpi_env )
       forces_val = forces_val + sumaux

@@ -18,7 +18,6 @@ module rttddft_main
   use MD_io, only: MD_out
   use mod_atoms, only: natmtot, natoms, nspecies, atposc, idxas
   use mod_charge_and_moment, only: chgval
-  use mod_eigenvalue_occupancy, only: occsv
   use mod_eigensystem, only: nmat
   use mod_misc, only: filext
   use mod_kpoint, only: nkpt, wkpt, kpt_latt => vkl
@@ -64,7 +63,7 @@ module rttddft_main
   
   integer(i32), parameter :: i_spin = 1
 
-  public  :: coordinate_rttddft_calculation
+  public :: coordinate_rttddft_calculation
 
 contains
 
@@ -105,9 +104,11 @@ contains
     real(dp), allocatable :: rhomt_frozen(:, :, :)
     ! Frozen part of the IR density (ngrtot)
     real(dp), allocatable :: rhoir_frozen(:)
+    ! Initial occupations array (nstates, first_kpt : last_kpt)
+    real(dp), allocatable :: occupations(:, :)
 
     integer(i32) :: it, first_kpt, last_kpt, first_step, last_step
-    integer(i32) :: i_print, timeStepMultiplier, first_active
+    integer(i32) :: i_print, timeStepMultiplier
     logical :: pred_corr_reached_max_steps, my_rank_writes_to_output, &
       density_needed, evolve_H0, take_screenshot
     character(len=:), allocatable :: string
@@ -165,7 +166,7 @@ contains
     my_rank_writes_to_output = ( rank == 0 ) 
     if( my_rank_writes_to_output ) then
       call open_rttddft_outputs( rt )
-      call write_file_info_header
+      call write_file_info_header()
     end if
 
     ! Initialization
@@ -181,17 +182,17 @@ contains
     
     call initialize_rttddft( rt, propagator, vec_pot, a_tot_save, &
         molecular_dynamics, psi, overlap, ham_init, ham_time, ham_past, apwalm, &
-        pmat, pmatmt, rhomt_frozen, rhoir_frozen, eps_occ )
+        pmat, pmatmt, rhomt_frozen, rhoir_frozen, occupations, eps_occ )
     call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
     if( molecular_dynamics%on ) call init_MD( time, vec_pot%a_tot, dt, &
-        psi%active, overlap, ham_time, timeStepMultiplier, molecular_dynamics, &
+        psi%active, occupations, overlap, ham_time, timeStepMultiplier, molecular_dynamics, &
         MD_outputs, atom_positions, atom_velocities, e_field, forces )
     if ( rt%subtract_J0 ) then
-      call j_ind%evaluate_paramagnetic( psi, pmat, occsv(:, first_kpt:last_kpt), wkpt(first_kpt:last_kpt), mpi_env_k )
+      call j_ind%evaluate_paramagnetic( psi, pmat, occupations, wkpt(first_kpt:last_kpt), mpi_env_k )
       j_para_spurious = j_ind%paramagnetic
     end if
     if( rt%restart_previous_calculation() ) then
-      call j_ind%evaluate_paramagnetic( psi, pmat, occsv(:, first_kpt:last_kpt), wkpt(first_kpt:last_kpt), mpi_env_k )
+      call j_ind%evaluate_paramagnetic( psi, pmat, occupations, wkpt(first_kpt:last_kpt), mpi_env_k )
       call j_ind%evaluate_diamagnetic( chgval/Omega, vec_pot%a_tot )
     end if
 
@@ -216,29 +217,30 @@ contains
 
     ! Total energy
     if ( rt%calculate_total_energy .and. rt%do_from_scratch() ) then
-      if ( psi%has_frozen() ) call update_density( first_kpt, psi, 0, .false., rt%l_rad_step, rhomt_frozen, rhoir_frozen )
+      if ( psi%has_frozen() ) call update_density( first_kpt, psi, occupations, 0, &
+        .false., rt%l_rad_step, rhomt_frozen, rhoir_frozen )
       call potcoul()
       call potxc()
-      call obtain_energy_rttddft( first_kpt, ham_time, psi, mpi_env_k, etotstore(1) )
+      call obtain_energy_rttddft( first_kpt, ham_time, psi, occupations, mpi_env_k, etotstore(1) )
       if( my_rank_writes_to_output ) call write_total_energy( .True., [time], [etotstore(1)] )
     end if
 
     ! Number of excitations
     if ( rt%calculate_n_exc .and. rt%do_from_scratch() ) then
       call obtain_number_excitations( psi, overlap, eps_occ, &
-        & occsv(:, first_kpt:last_kpt), wkpt(first_kpt:last_kpt), mpi_env_k, n_exc(1), n_gs(1) )
+        & occupations, wkpt(first_kpt:last_kpt), mpi_env_k, n_exc(1), n_gs(1) )
       if( my_rank_writes_to_output ) call write_nexc( .True., [time], [n_exc(1)], [n_gs(1)] )
     end if
 
     if ( rt%screenshots%on ) then
       if ( rt%screenshots%density%on ) then
-        call update_density( first_kpt, psi, 0, rt%normalize_WF, rt%l_rad_step, &
+        call update_density( first_kpt, psi, occupations, 0, rt%normalize_WF, rt%l_rad_step, &
           rhomt_frozen, rhoir_frozen, dens_case=groundstate )
         rhomt_init = rhomt
         rhoir_init = rhoir
       end if
       if( rt%do_from_scratch() ) call screenshot( 0, rt%screenshots, overlap, psi, &
-        ham_time, nmat(1, first_kpt:last_kpt), occsv(:, first_kpt:last_kpt), rhomt, rhoir, mpi_env=mpi_env_k )
+        ham_time, nmat(1, first_kpt:last_kpt), occupations, rhomt, rhoir, mpi_env=mpi_env_k )
     end if ! rt%screenshots%on
 
     if( rt%printTimings%general() ) then
@@ -277,16 +279,17 @@ contains
       end if
       call propagator%evolve( list_of_H_minus_dt=ham_past, list_of_H_0=ham_time, list_of_S=overlap, psi=psi%active, dims=nmat(i_spin, first_kpt:last_kpt) )
       if ( rt%normalize_WF ) call psi%normalize( overlap )
+
       if ( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%wavefunction )
 
       ! Update the paramagnetic component of the induced current density
       j_ind_save = j_ind
-      call j_ind%evaluate_paramagnetic( psi, pmat, occsv(:, first_kpt:last_kpt), wkpt(first_kpt:last_kpt), mpi_env_k )
+      call j_ind%evaluate_paramagnetic( psi, pmat, occupations, wkpt(first_kpt:last_kpt), mpi_env_k )
       if ( rt%subtract_J0 ) call j_ind%paramagnetic%add_vector( -j_para_spurious%components )
       if ( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%current_density )
 
       ! DENSITY
-      if ( density_needed ) call update_density( first_kpt, psi, it, rt%normalize_WF, &
+      if ( density_needed ) call update_density( first_kpt, psi, occupations, it, rt%normalize_WF, &
         rt%l_rad_step, rhomt_frozen, rhoir_frozen, rt%printTimings, timing%t_RTTDDFT%dens )
       
       ! KS-POTENTIAL
@@ -325,10 +328,10 @@ contains
 
       if ( rt%predictor_corrector%on ) then
         if ( rt%printTimings%general() ) call timesec( timei )
-        call loop_predictor_corrector( it, time, rt, first_kpt, psi, overlap, &
+        call loop_predictor_corrector( it, time, rt, first_kpt, psi, occupations, overlap, &
           ham_time, ham_past, apwalm, pmat, a_ind_save, a_tot_save, &
           p_vec_save, j_ind_save, j_para_spurious, propagator, vec_pot, p_vec, j_ind, &
-          mpi_env_k, pred_corr_reached_max_steps, first_active, rhomt_frozen, rhoir_frozen )
+          mpi_env_k, pred_corr_reached_max_steps, rhomt_frozen, rhoir_frozen )
         if ( pred_corr_reached_max_steps .and. my_rank_writes_to_output ) &
           call warning( 'Problems with convergence (PredCorr), time: ' //  to_char(time) )
         if ( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%pred_corr )
@@ -337,7 +340,7 @@ contains
       ! Obtain the total energy, if requested
       if( rt%calculate_total_energy ) then
         if ( rt%printTimings%detailed() ) call timesec( timei )
-        call obtain_energy_rttddft( first_kpt, ham_time, psi, mpi_env_k, etotstore(i_print) )
+        call obtain_energy_rttddft( first_kpt, ham_time, psi, occupations, mpi_env_k, etotstore(i_print) )
         if ( rt%printTimings%detailed() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%energy )
       end if
 
@@ -345,7 +348,7 @@ contains
       if( rt%calculate_n_exc ) then
         if ( rt%printTimings%detailed() ) call timesec( timei )
         call obtain_number_excitations( psi, overlap, eps_occ, &
-          & occsv(:, first_kpt:last_kpt), wkpt(first_kpt:last_kpt), mpi_env_k, n_exc(i_print), n_gs(i_print))
+          & occupations, wkpt(first_kpt:last_kpt), mpi_env_k, n_exc(i_print), n_gs(i_print))
         if( rt%printTimings%detailed() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%n_exc )
       end if
 
@@ -355,7 +358,7 @@ contains
           if ( rt%printTimings%general() ) call timesec( timei )
           call forces%save_total_force()
           call force_rttdft( forces, vec_pot%a_tot, e_field, molecular_dynamics, &
-            psi%active, overlap, ham_time, rt%printTimings, timing%t_Ehrenfest )
+            psi%active, occupations, overlap, ham_time, rt%printTimings, timing%t_Ehrenfest )
           call move_ions( first_kpt, forces%total, forces%total_save, molecular_dynamics%time_step, &
             atom_velocities, apwalm, rt%printTimings, timing%t_Ehrenfest )
           print_forces(i_print) = .True.
@@ -385,7 +388,7 @@ contains
       if ( take_screenshot ) then
         if( rt%printTimings%general() ) call timesec( timei )
         call screenshot( it, rt%screenshots, overlap, psi, ham_time, nmat(1, first_kpt:last_kpt), &
-          occsv(:, first_kpt:last_kpt), rhomt, rhoir, rhomt_init, rhoir_init, mpi_env_k )
+          occupations, rhomt, rhoir, rhomt_init, rhoir_init, mpi_env_k )
         if( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%screenshot )
       end if
 
@@ -593,10 +596,10 @@ contains
   end subroutine
 
   !> Loop used in the predictor-corrector method
-  subroutine loop_predictor_corrector( it, time, rt, first_kpt, psi, &
+  subroutine loop_predictor_corrector( it, time, rt, first_kpt, psi, occupations, &
     overlap, ham_time, ham_past, apwalm, pmat, &
     a_ind_t_minus_dt, a_tot_t_minus_dt, p_vec_t_minus_dt, j_t_minus_dt, j_para_spurious,&
-    propagator, a_t, p_vec, j_t, mpi_env, max_steps_reached, first_active, rhomt_frozen, rhoir_frozen )
+    propagator, a_t, p_vec, j_t, mpi_env, max_steps_reached, rhomt_frozen, rhoir_frozen )
     !> current iteration number in the RT-TDDFT loop
     integer(i32), intent(in) :: it
     !> time \( t \)
@@ -605,8 +608,10 @@ contains
     type(rttddft_input_keys), intent(in) :: rt
     !> index of the first `k-point` to be considered in the sum
     integer(i32), intent(in) :: first_kpt
-    ! Basis-expansion coefficients of the KS-WFs
+    !> Basis-expansion coefficients of the KS-WFs
     class(wavefunction_set), intent(inout) :: psi
+    !> Initial occupations array
+    real(dp), intent(in) :: occupations(:, first_kpt:)
     !> Overlap matrix (of basis functions)
     complex(dp), contiguous, intent(inout) :: overlap(:, :, first_kpt:)
     !> Hamiltonian matrix at current time \(t\)
@@ -636,19 +641,17 @@ contains
     !> Current density at time \( t) 
     type(Current_Density), intent(inout) :: j_t
     !> MPI environment
-    type(mpiinfo), intent(in)  :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     !> When `.True.`, it informs that the maximum steps have been reached
     logical, intent(out) :: max_steps_reached
-    !> First active state
-    integer(i32), intent(in) :: first_active
     !> Frozen part of the muffin-tin density (lmmaxvr, nrmtmax, natmtot)
     real(dp), allocatable, intent(in), optional :: rhomt_frozen(:, :, :)
     !> Frozen part of the IR density (ngrtot)
     real(dp), allocatable, intent(in), optional :: rhoir_frozen(:)
 
     integer(i32) :: i, last_kpt, nham
-    real(dp)     :: err, dt
-    complex(dp), allocatable :: ham_predcorr(:, :, :), evecfv_active(:, :, :)
+    real(dp) :: err, dt
+    complex(dp), allocatable :: ham_predcorr(:, :, :)
 
     dt = rt%propagator_input%dt()
     last_kpt = ubound( ham_time, 3 )
@@ -663,12 +666,12 @@ contains
 
       ! Update the paramagnetic component of the induced current density
       j_t = j_t_minus_dt
-      call j_t%evaluate_paramagnetic( psi, pmat, occsv(:, first_kpt:last_kpt), &
+      call j_t%evaluate_paramagnetic( psi, pmat, occupations, &
         wkpt(first_kpt:last_kpt), mpi_env )
       if ( rt%subtract_J0 ) call j_t%paramagnetic%add_vector( -j_para_spurious%components )
 
       ! DENSITY
-      call update_density( first_kpt, psi, it, rt%normalize_WF, rt%l_rad_step, &
+      call update_density( first_kpt, psi, occupations, it, rt%normalize_WF, rt%l_rad_step, &
         rhomt_frozen, rhoir_frozen )
       ! KS-POTENTIAL
       call update_potential()
@@ -700,34 +703,36 @@ contains
   end subroutine 
 
   !> Subroutine to initialize all MD related variables
-  subroutine init_MD( t_0, a_tot, timeStepRTTDDFT, evecfv_time, overlap, ham_time, timeStepMultiplier, &
-    molecular_dynamics, MD_outputs, atom_positions, atom_velocities, e_field, forces )
+  subroutine init_MD( t_0, a_tot, timeStepRTTDDFT, evecfv_time, occupations, overlap, ham_time, &
+      timeStepMultiplier, molecular_dynamics, MD_outputs, atom_positions, atom_velocities, e_field, forces )
     !> Initial time \( t_0 \)
-    real(dp), intent(in)               :: t_0
+    real(dp), intent(in) :: t_0
     !> Vector potential (total)
     class(Vector_Potential_Field), intent(in) :: a_tot
     !> Time step used in the real-time TDDFT calculation
-    real(dp), intent(in)               :: timeStepRTTDDFT
+    real(dp), intent(in) :: timeStepRTTDDFT
     !> Basis-expansion coefficients of the KS-WFs at time \(t\)
     complex(dp), intent(in) :: evecfv_time(:, :, :)
-        !> Overlap matrix (of basis functions)
+    !> State occupations array
+    real(dp), intent(in) :: occupations(:, :)
+    !> Overlap matrix (of basis functions)
     complex(dp), intent(in) :: overlap(:, :, :)
     !> Hamiltonian matrix at current time \(t\)
     complex(dp), intent(in) :: ham_time(:, :, :)
     !> Integer ratio between the time step used in MD and `timeStepRTTDDFT`
-    integer(i32), intent(out)          :: timeStepMultiplier
+    integer(i32), intent(out) :: timeStepMultiplier
     !> variable with interfaces to elements defined in the input file
     type(MD_input_keys), intent(inout) :: molecular_dynamics
     !> variable with interfaces to MD outputs
-    type(MD_out), intent(inout)        :: MD_outputs
+    type(MD_out), intent(inout) :: MD_outputs
     !> positions of all atoms in cartesian coordinates
     real(dp), allocatable, intent(out) :: atom_positions(:, :) 
     !> velocities of all atoms in cartesian coordinates
     real(dp), allocatable, intent(out) :: atom_velocities(:, :)
     !> Electric field
-    type(Electric_Field), intent(in)   :: e_field
+    type(Electric_Field), intent(in) :: e_field
     !> forces acting on all atoms
-    type(force), intent(out)           :: forces
+    type(force), intent(out) :: forces
 
 
     timeStepMultiplier = int( molecular_dynamics%time_step/timeStepRTTDDFT )
@@ -738,7 +743,7 @@ contains
     
     call forces%allocate_arrays( natmtot )
     call force_rttdft( forces, a_tot, e_field, molecular_dynamics, evecfv_time, &
-      overlap, ham_time )
+      occupations, overlap, ham_time )
     
     allocate( atom_velocities(3, natmtot) )
     call init_atoms_velocities( atom_velocities )
@@ -794,15 +799,15 @@ contains
     !> time \(t\)
     real(dp), intent(in) :: t
     !> Positions of the nuclei at time \( t  \)
-    real(dp), intent(in)         :: at_positions(:,:)
+    real(dp), intent(in) :: at_positions(:,:)
     !> Velocities of the nuclei at time \( t \)
-    real(dp), intent(in)         :: at_velocities(:,:)
+    real(dp), intent(in) :: at_velocities(:,:)
     !> forces acting on all atoms
-    type(force), intent(in)      :: forces
+    type(force), intent(in) :: forces
     !> if `.True.`, print out all contributions to the total force
-    logical, intent(in)          :: print_all_force_components
+    logical, intent(in) :: print_all_force_components
     !> variable with interfaces to MD outputs
-    type(MD_out), intent(inout)  :: MD_outputs
+    type(MD_out), intent(inout) :: MD_outputs
     
     if ( print_all_force_components ) then
       call MD_outputs%write_to_files( t, at_positions, at_velocities, forces%total, &

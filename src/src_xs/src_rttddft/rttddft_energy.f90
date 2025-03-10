@@ -118,11 +118,11 @@ contains
 
   !> Subroutine that calculates the total energy for RT-TDDFT calculations
   !> Adapted from `src/energy.f90`
-  subroutine obtain_energy_rttddft(first_kpt, ham, psi, mpi_env, &
+  subroutine obtain_energy_rttddft(first_kpt, ham, psi, occupations, mpi_env, &
       & rt_tddft_energy )
     use modinput, only: input
     use mod_kpoint, only: wkpt
-    use mod_eigenvalue_occupancy, only: occsv, nstfv, evalsv
+    use mod_eigenvalue_occupancy, only: evalsv
     use mod_eigensystem, only: nmatmax, nmat
     use mod_atoms, only: idxas, natoms, spzn, spnst, nspecies, spcore, spocc
     use mod_potential_and_density, &
@@ -141,13 +141,15 @@ contains
     complex(dp), intent(in) :: ham(:, :, :)
     !> Basis-expansion coefficients of the KS-wavefunctions at time \( t \)
     class(wavefunction_set), intent(in) :: psi
+    !> Initial occupations array
+    real(dp), intent(in) :: occupations(:, :)
     !> MPI environment
     type(mpiinfo), intent(in) :: mpi_env
     !> Type with the total energy and its components
     type(TotalEnergy), intent(out) :: rt_tddft_energy
 
 
-    integer(i32) :: ik, ist, is, ia, ias, nmatp, real_kpt, n_kpt, first_active, n_states, n_basis
+    integer(i32) :: ik, ist, is, ia, ias, nmatp, real_kpt, n_kpt, first_active, n_states, n_basis, n_frozen
     real(dp), allocatable :: aux(:)
     real(dp) :: rfinp
     complex(dp), allocatable :: acc(:), scratch(:, :), occcmplx(:)
@@ -156,6 +158,9 @@ contains
     n_states = psi%n_active()
     n_basis = psi%n_basis()
     first_active = psi%first_active()
+    n_frozen = psi%n_frozen()
+
+    call assert( n_kpt == size( occupations, 2 ), 'psi and occupations have different nkpts' )
 
     allocate( scratch(n_basis, n_states) )
     allocate( acc(n_states) )
@@ -187,7 +192,7 @@ contains
     allocate( occcmplx(n_states) )
     !$OMP PARALLEL DEFAULT(NONE), &
     !$OMP& PRIVATE(ik, ist, occcmplx, scratch, acc, nmatp, real_kpt), &
-    !$OMP& SHARED(first_kpt,aux,first_active,nstfv,nmat,ham,psi,occsv,wkpt,input, n_kpt, n_states, evalsv)
+    !$OMP& SHARED(first_kpt,aux,first_active,nmat,ham,psi,occupations,wkpt,input, n_kpt, n_states, evalsv, n_frozen)
     !$OMP DO
     do ik = 1, n_kpt
       real_kpt = ik + first_kpt - 1
@@ -197,13 +202,13 @@ contains
       do ist = 1, n_states
         ! If the occupation is small, we assume that the current and
         ! all other states with higher "ist" will be unoccupied
-        if ( occsv(first_active + ist - 1, real_kpt) <= input%groundstate%epsocc ) exit
+        if ( occupations(n_frozen + ist, ik) <= input%groundstate%epsocc ) exit
         acc(ist) = dot_multiply( psi%active(1:nmatp, ist, ik), scratch(1:nmatp, ist), conjg_a=.true. )
       end do
-      occcmplx = occsv(first_active:, real_kpt)
+      occcmplx = occupations(first_active : n_frozen + n_states, ik)
       aux(ik) = wkpt(real_kpt) * real( dot_multiply( occcmplx(1:ist - 1), acc(1:ist - 1) ), dp )
       if ( psi%has_frozen() ) aux(ik) = aux(ik) + wkpt(real_kpt) * &
-        dot_multiply( occsv(1 : psi%n_frozen(), real_kpt), evalsv(1 : psi%n_frozen(), real_kpt) )
+        dot_multiply( occupations(1 : n_frozen, ik), evalsv(1 : n_frozen, real_kpt) )
     end do
     !$OMP END DO NOWAIT
     !$OMP END PARALLEL

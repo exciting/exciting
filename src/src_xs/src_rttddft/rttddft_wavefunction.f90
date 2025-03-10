@@ -45,12 +45,14 @@ module rttddft_Wavefunction
       procedure :: first_active
       procedure :: n_frozen
       procedure :: n_basis
+      procedure :: n_empty
+      procedure :: n_occupied
   end type
 
 contains
 
   !> Initialize the set from the ground state WFs expanded in LAWPlo basis
-  subroutine initialize( this, save_needed, n_frozen_, complete_gnd_set )
+  subroutine initialize( this, save_needed, n_frozen_, complete_gnd_set, occupations, occs_tol )
     class(wavefunction_set), intent(inout) :: this
     !> If `True`, active_save component should be accolated
     logical, intent(in) :: save_needed
@@ -58,12 +60,31 @@ contains
     integer(i32), intent(in) :: n_frozen_
     !> Initial wavefunction set, (n_basis, n_states, n_kpt)
     complex(dp), contiguous, intent(in) :: complete_gnd_set(:, :, :)
+    !> State occupations array (n_states, n_kpt)
+    real(dp), contiguous, intent(in) :: occupations(:, :)
+    !> Minimal value of occupation for the state to be 'occupied'
+    real(dp), intent(in) :: occs_tol
+
+    integer :: last_occupied_for_current_rank, last_occupied, ik
 
     call assert( n_frozen_ <= size( complete_gnd_set, 2 ), &
       'n_frozen_ > n_states')
+    call assert( size( complete_gnd_set, 2 ) == size( occupations, 1 ), &
+      'complete_gnd_set and occupations have different n_states')
+    call assert( size( complete_gnd_set, 3 ) == size( occupations, 2 ), &
+      'complete_gnd_set and occupations have different n_kpts')
 
-    allocate( this%active, source = complete_gnd_set(:, n_frozen_ + 1:, :) )
+    last_occupied_for_current_rank = -1
+    do ik = 1, size( occupations, 2 )
+      do last_occupied = 1, size( occupations, 1 )
+        if ( occupations(last_occupied, ik) < occs_tol ) exit
+      end do
+      last_occupied = last_occupied - 1
+      if ( last_occupied > last_occupied_for_current_rank ) last_occupied_for_current_rank = last_occupied
+    end do
+
     allocate( this%groundstate, source = complete_gnd_set )
+    allocate( this%active, source = complete_gnd_set(:, n_frozen_ + 1 : last_occupied_for_current_rank, :) )
     if ( save_needed ) allocate( this%active_save, source = this%active )
     if ( n_frozen_ > 0 ) allocate( this%frozen, source = complete_gnd_set(:, 1 : n_frozen_, :) )
 
@@ -91,7 +112,6 @@ contains
     complex(dp), intent(in) :: overlap_matrices(:, :, :)
     !> If `True`, frozen, save, and ground components are also normalized
     logical, optional, intent(in) :: normalize_all
-
 
     integer(i32) :: ik, nkpts
     logical :: normalize_all_
@@ -138,6 +158,20 @@ contains
 
     n_frozen = 0
     if ( this%has_frozen() ) n_frozen = size( this%frozen, 2 )
+  end function
+
+  !> Returns the number of empty states
+  pure integer function n_empty( this )
+    class(wavefunction_set), intent(in) :: this
+    
+    n_empty = size( this%groundstate, 2 ) - this%n_occupied()
+  end function
+
+  !> Returns the number of occupied states
+  pure integer function n_occupied( this )
+    class(wavefunction_set), intent(in) :: this
+    
+    n_occupied = this%n_frozen() + this%n_active()
   end function
 
   !> Returns the number of active states
