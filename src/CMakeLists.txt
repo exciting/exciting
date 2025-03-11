@@ -21,6 +21,19 @@ set(EXCLUDE_SRC_FILES
     # Add more files to exclude as needed
 )
 
+if (CMAKE_Fortran_COMPILER_ID MATCHES "Intel" AND NOT CMAKE_Fortran_COMPILER_ID MATCHES "IntelLLVM")
+    message(STATUS "Classic Intel: using old GW files due to c_f_pointer bug.")
+    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/calcminm2.f90")
+    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/calcepsilon.f90")
+    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/calcmwm.f90")
+    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/expand_products.f90")
+else()
+    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/calcminm2_ifort.f90")
+    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/calcepsilon_ifort.f90")
+    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/calcmwm_ifort.f90")
+    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/expand_products_ifort.f90")
+endif()
+
 # We need special treatment of files containing INQUIRE so that it compiles using the Cray compiler 
 # Developers, please add here anycase of INQUIRE using not the default integer
 # TODO: remove when Cray compiler allows for arbitrary precision recl 
@@ -123,6 +136,7 @@ if (CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
     # We create an MARK_FLAGS
     set(MARK_FLAGS "-hlist=a ")
     set_source_files_properties(${MARK_FILES} PROPERTIES COMPILE_FLAGS ${MARK_FLAGS})
+
 endif()
 
 # Developers: uncomment that to check if the source files that you
@@ -173,6 +187,12 @@ add_executable(${exciting_name} "${CMAKE_CURRENT_SOURCE_DIR}/mainxml/main.f90")
 # Linking 
 target_link_directories(${exciting_name} PUBLIC ${CMAKE_Fortran_LIB_DIRECTORY})
 target_link_libraries(${exciting_name} PUBLIC excitingLib)
+
+# Sometimes GNU do not resolve the dependency on C++
+if (CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
+    target_link_libraries(${exciting_name} PRIVATE stdc++)
+endif()
+
 
 # For Intel and GNU indicate that exciting has the objects available for LTO
 # In the rest of compilers this is done with compiler flags or for Cray is fully deactivated

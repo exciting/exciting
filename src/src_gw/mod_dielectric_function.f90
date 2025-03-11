@@ -5,6 +5,7 @@
 module mod_dielectric_function
     use gw_io, only: build_file_name, write_to_file, read_from_file
     use precision, only: i32, dp
+#include "offload.fpp"
 
     implicit none
 
@@ -73,13 +74,18 @@ module mod_dielectric_function
 contains
 
     subroutine init_dielectric_function(mbsiz,iomstart,iomend,Gamma)
+        use constants, only: zzero
+        implicit none
         integer, intent(in) :: mbsiz
         integer, intent(in) :: iomstart, iomend
         logical, intent(in) :: Gamma
         ! q-dependent dielectric function
-        if (allocated(epsilon)) deallocate(epsilon)
-        allocate(epsilon(mbsiz,mbsiz,iomstart:iomend))
-        epsilon(:,:,:) = 0.d0
+        if (allocated(epsilon)) then 
+          DEVICE_MAP_DELETE(epsilon)
+          deallocate(epsilon)
+        end if
+        allocate(epsilon(mbsiz,mbsiz,iomstart:iomend), source=zzero)
+        DEVICE_MAP_TO(epsilon)
         ! head and wings of the dielectric function when q->0
         if (Gamma) then
           if (allocated(epsh)) deallocate(epsh)
@@ -100,7 +106,10 @@ contains
 
     subroutine delete_dielectric_function(Gamma)
         logical, intent(in) :: Gamma
-        if (allocated(epsilon)) deallocate(epsilon)
+        if (allocated(epsilon)) then 
+          DEVICE_MAP_DELETE(epsilon)
+          deallocate(epsilon)
+        end if
         if (Gamma) then
           if (allocated(epsh)) deallocate(epsh)
           if (allocated(epsw1)) deallocate(epsw1)

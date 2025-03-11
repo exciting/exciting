@@ -1,6 +1,9 @@
-
+!> This contains all elements related to the product basis
 module mod_product_basis
+
     use gw_io, only: read_from_file, write_to_file, build_file_name
+    use precision, only: dp, i32
+#include "offload.fpp"
 
     implicit none
     
@@ -8,47 +11,47 @@ module mod_product_basis
     !     mixed basis (general)  !
     !----------------------------!
     ! Size of the mixed basis
-    integer(4) :: matsiz, matsizmax, mbsiz
+    integer(i32) :: matsiz, matsizmax, mbsiz
  
     ! Matrix elements M^i_nm and \tilde{M}^i_nm
-    complex(8), allocatable :: minmmat(:,:,:)
+    complex(dp), allocatable :: minmmat(:,:,:)
       
     ! Matrix elements M^i_cm and \tilde{M}^i_cm
-    complex(8), allocatable :: micmmat(:,:,:)
+    complex(dp), allocatable :: micmmat(:,:,:)
       
     ! Matrix elements M^i_nc and \tilde{M}^i_nc
-    complex(8), allocatable :: mincmat(:,:,:)
+    complex(dp), allocatable :: mincmat(:,:,:)
       
     ! Matrix elements between mixed functions and planewaves
-    complex(8), allocatable :: mpwmix(:,:)
+    complex(dp), allocatable :: mpwmix(:,:)
     
     !--------------------------------------!
     !     mixed basis (Muffin-Tins)        !
     !--------------------------------------!
     
     ! Upper size limit estimate of the number of possible radial function products
-    integer(4) :: maxnup
+    integer(i32) :: maxnup
     
     ! Actual number of radial function products (per atom)
-    integer(4) :: nup
+    integer(i32) :: nup
         
     ! Radial product functions (per atom)
-    real(8), allocatable :: uprod(:,:)
+    real(dp), allocatable :: uprod(:,:)
     
     ! l,l' pairs of the product functions (per atom)
-    integer(4), allocatable :: eles(:,:)
+    integer(i32), allocatable :: eles(:,:)
     
     ! Overlap matrix of the product functions (per atom)
-    real(8), allocatable :: umat(:,:)
+    real(dp), allocatable :: umat(:,:)
     
     ! Size of the local part of the mixed basis including LM combinations
-    integer(4) :: locmatsiz
+    integer(i32) :: locmatsiz
     
     ! maximum number of mixed functions per atom
-    integer(4) :: lmixmax
+    integer(i32) :: lmixmax
     
     ! indexes of the local mixed basis functions
-    integer(4), allocatable :: locmixind(:,:)
+    integer(i32), allocatable :: locmixind(:,:)
     
     ! Combined aNLM index of Mixed Product Basis functions
     ! mbindex(I,1) = is
@@ -56,88 +59,88 @@ module mod_product_basis
     ! mbindex(I,3) = N 
     ! mbindex(I,4) = L
     ! mbindex(I,5) = M
-    integer(4), allocatable :: mbindex(:,:)    
+    integer(i32), allocatable :: mbindex(:,:)
  
     !--------------
 
     ! Number of mixed radial functions per atom
-    integer(4), allocatable :: nmix(:)
+    integer(i32), allocatable :: nmix(:)
     
     ! Maximum number of radial functions per atom
-    integer(4) :: maxnmix
+    integer(i32) :: maxnmix
     
     ! Maximum L of the mixed functions
-    integer(4) :: maxbigl
+    integer(i32) :: maxbigl
     
     ! Radial mixed functions
-    real(8), pointer :: umix(:,:,:)
+    real(dp), pointer :: umix(:,:,:)
     
     ! L quantum number of the mixed functions
-    integer(4), pointer :: bigl(:,:)
+    integer(i32), pointer :: bigl(:,:)
     
     ! Maximum L of the mixed functions per atom
-    integer(4), allocatable :: mbl(:)
+    integer(i32), allocatable :: mbl(:)
 
     !--------------
       
     ! <umix(L)|ucore(l1)u(l2)> integrals
-    real(8), allocatable :: bradketc(:,:,:,:,:,:)
+    real(dp), allocatable :: bradketc(:,:,:,:,:,:)
     
     ! <umix(L)|u(l1)u(l2)> integrals
-    real(8), allocatable :: bradketa(:,:,:,:,:,:,:)
+    real(dp), allocatable :: bradketa(:,:,:,:,:,:,:)
     
     ! <umix(L)|ulo(l1)u(l2)> integrals
-    real(8), allocatable :: bradketlo(:,:,:,:,:,:)
+    real(dp), allocatable :: bradketlo(:,:,:,:,:,:)
     
     ! <umix(L)|u_core> integrals
-    real(8), allocatable :: umbucor(:,:,:)
+    real(dp), allocatable :: umbucor(:,:,:)
     ! <umix(L)|u_apw> integrals
-    real(8), allocatable :: umbuapw(:,:,:)
+    real(dp), allocatable :: umbuapw(:,:,:)
     ! <umix(L)|u_lo> integrals
-    real(8), allocatable :: umbulor(:,:,:)
+    real(dp), allocatable :: umbulor(:,:,:)
     
     ! the gaunt coefficients
-    real(8), allocatable :: cgcoef(:)
+    real(dp), allocatable :: cgcoef(:)
 
     ! <umix(l)|r^(l+2)> integrals     
-    real(8), allocatable :: rtl(:,:)
+    real(dp), allocatable :: rtl(:,:)
     
     ! <umix(l1)|r^(l1)/r^(l2+1)|umix(l2)> integrals
-    real(8), allocatable :: rrint(:,:)
+    real(dp), allocatable :: rrint(:,:)
     
     !---------------------------------!
     !     mixed basis (Interstitial)  !
     !---------------------------------!
     
     !  number of G+q-vectors for the mixed basis
-    integer(4), allocatable :: ngq(:)
+    integer(i32), allocatable :: ngq(:)
     
     ! maximum number of G+q-vectors over all q-points
     integer ngqmax
     
     ! index from G+q-vectors to G-vectors
-    integer, allocatable :: igqig(:,:)
+    integer(i32), allocatable :: igqig(:,:)
     
     ! index from G-vectors to G+q-vectors
-    integer, allocatable :: igigq(:,:)
+    integer(i32), allocatable :: igigq(:,:)
     
     ! G+q-vectors in lattice coordinates
-    real(8), allocatable :: vgql(:,:,:)
+    real(dp), allocatable :: vgql(:,:,:)
     
     ! G+q-vectors in Cartesian coordinates
-    real(8), allocatable :: vgqc(:,:,:)
+    real(dp), allocatable :: vgqc(:,:,:)
     
     ! Transformation matrix between IPW's and OIPW's
-    complex(8), allocatable :: sgi(:,:)
-    complex(8), allocatable :: sgi_fft(:,:)
+    complex(dp), allocatable :: sgi(:,:)
+    complex(dp), allocatable :: sgi_fft(:,:)
     
     ! Matrix element between IPW's and PW's       
-    complex(8), allocatable :: mpwipw(:,:)
+    complex(dp), allocatable :: mpwipw(:,:)
 
     !---------------------------------------------------------------!
     ! Matrix representation of the symmetry operations in MB basis  !
     !---------------------------------------------------------------!
-    complex(8), allocatable :: rotmat(:,:)
+    complex(dp), allocatable :: rotmat(:,:)
 
     !> Name of output file where sgi is written to
     character(len=*), parameter :: basename_sgi = 'SGI_Q'
@@ -152,12 +155,30 @@ contains
         if (associated(bigl)) deallocate(bigl)
         if (allocated(mbl)) deallocate(mbl)
         !------------------------------------
-        if (allocated(bradketc)) deallocate(bradketc)
-        if (allocated(bradketa)) deallocate(bradketa)
-        if (allocated(bradketlo)) deallocate(bradketlo)
         if (allocated(cgcoef)) deallocate(cgcoef)
         if (allocated(rtl)) deallocate(rtl)
         if (allocated(rrint)) deallocate(rrint)
+        !------------------------------------
+        if (allocated(bradketc)) then
+          DEVICE_MAP_DELETE(bradketc)
+          deallocate(bradketc)
+        end if
+
+        if (allocated(bradketa)) then
+          DEVICE_MAP_DELETE(bradketa)
+          deallocate(bradketa)
+        end if
+
+        if (allocated(bradketlo)) then
+          DEVICE_MAP_DELETE(bradketlo)
+          deallocate(bradketlo)
+        end if
+
+        if (allocated(mbindex)) then
+          DEVICE_MAP_DELETE(mbindex)
+          deallocate(mbindex)
+        end if
+
         return
     end subroutine
 

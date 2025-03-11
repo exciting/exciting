@@ -5,11 +5,25 @@
 !
 subroutine calc_vxnl()
 ! !USES:
-    use modmain
-    use mod_hybrids
-    use modfvsystem
+    use mod_atoms, only: idxas, natmtot
+    use mod_misc_gw, only: vi, gammapoint, Gamma
+    use mod_core_states, only: ncg, corind
+    use modinput, only: input
+    use constants, only: pi, zzero
+    use mod_product_basis, only: mpwipw, locmatsiz, mbsiz, matsiz
+    use modgw, only: kset, kqset, Gqset, Gkqset, b2mb, mblksiz, kiw, ciw
+    use mod_selfenergy, only: singc2
+    use mod_hybrids, only: vxnl, exnl, vnlmat
+    use mod_coulomb_potential, only: barc
+    use mod_APW_LO, only: apwordmax
+    use mod_muffin_tin, only: lmmaxapw
+    use mod_eigensystem, only: nmatmax
+    use mod_eigenvalue_occupancy, only: efermi, nstfv
+    use mod_coulomb_potential, only: delete_coulomb_potential
     use modmpi
     use mod_bands, only: evalfv, nomax, numin, ikvbm, ikcbm, ikvcm, eveck, eveckalm, eveckp, eveckpalm
+    use precision, only: i32, dp
+#include "offload.fpp"
 !
 ! !DESCRIPTION:
 !   Calculates the non-local exchange potential
@@ -19,22 +33,20 @@ subroutine calc_vxnl()
 !BOC
     implicit none
 
-    integer(4) :: ikp, ik, jk, iq, ikq
-    integer(4) :: ie12, ie12tot, ie1, ie2, ie3, icg
-    integer(4) :: ist, l, im
-    integer(4) :: i, j, k, jst, ispn
-    integer(4) :: is, ia, ias, ic
-    integer(4) :: n, nmdim, m, mdim
-    integer(4) :: iblk, nblk, mstart, mend
-    real(8)    :: tstart, tend, sxs2
-    complex(8) :: mvm, zt1, vc
-    integer    :: ikfirst, iklast
+    integer(i32) :: ikp, ik, jk, iq, ikq
+    integer(i32) :: ie12, ie12tot, ie1, ie2, ie3, icg
+    integer(i32) :: ist, l, im
+    integer(i32) :: i, j, k, jst, ispn
+    integer(i32) :: is, ia, ias, ic
+    integer(i32) :: n, nmdim, m, mdim
+    integer(i32) :: iblk, nblk, mstart, mend
+    real(dp)     :: tstart, tend, sxs2, msize
+    complex(dp)  :: mvm
+    integer(i32) :: ikfirst, iklast
 
-    integer(4), allocatable :: idxpair(:,:)
-    complex(8), allocatable :: minm(:,:,:)
-    complex(8), allocatable :: evecsv(:,:)
-
-    complex(8), external :: zdotc
+    integer(i32), allocatable :: idxpair(:,:)
+    complex(dp), allocatable :: minm(:,:,:)
+    complex(dp), allocatable :: evecsv(:,:)
 
     call cpu_time(tstart)
 
@@ -43,8 +55,8 @@ subroutine calc_vxnl()
     !----------------------------------------
     if (allocated(evalfv)) deallocate(evalfv)
     allocate(evalfv(nstfv,kset%nkpt))
-    evalfv(:,:) = 0.d0
-    do ik = 1, nkpt
+    evalfv(:,:) = 0.0_dp
+    do ik = 1, kset%nkpt
       call getevalfv(kset%vkl(:,ik), evalfv(:,ik))
     end do
 
@@ -57,7 +69,7 @@ subroutine calc_vxnl()
     deallocate(evalfv)
 
     ! singular term prefactor
-    sxs2 = 4.d0*pi*vi*singc2*kqset%nkpt
+    sxs2 = 4.0_dp*pi*vi*singc2*kqset%nkpt
 
     if ((input%gw%coreflag=='all').or. &
         (input%gw%coreflag=='xal')) then
@@ -70,6 +82,10 @@ subroutine calc_vxnl()
     allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveck(nmatmax,nstfv))
     allocate(eveckp(nmatmax,nstfv))
+    DEVICE_MAP_ALLOC(eveckalm)
+    DEVICE_MAP_ALLOC(eveckpalm)
+    DEVICE_MAP_ALLOC(eveck)
+    DEVICE_MAP_ALLOC(eveckp)
 
     !------------------------------------------!
     ! Matrix elements of non-local potential   !
@@ -78,7 +94,7 @@ subroutine calc_vxnl()
     allocate(vxnl(nstfv,nstfv,kset%nkpt))
     vxnl(:,:,:) = zzero
 
-    ie12tot = 0.5d0*nstfv*(nstfv+1)
+    ie12tot = nstfv*(nstfv+1)/2
     allocate(idxpair(2,ie12tot))
     ie12 = 0
     do ie1 = 1, nstfv
@@ -98,7 +114,7 @@ subroutine calc_vxnl()
       nblk = mdim / mblksiz
       if (mod(mdim, mblksiz) /= 0) nblk = nblk+1
     end if
-    if ((input%groundstate%outputlevelnumber>1) .and.rank==0) then
+    if ((input%groundstate%outputlevelnumber>1) .and. (rank==0)) then
       write(60,*) 'Info(calc_vxnl):'
       write(60,'(a,3i8)') '    mdim, nblk, mblksiz: ', mdim, nblk, mblksiz
     end if
@@ -130,9 +146,9 @@ subroutine calc_vxnl()
           ! Calculate the bare Coulomb matrix
           !------------------------------------
           call calcbarcmb(iq)
-          call setbarcev(0.d0, Gamma)
+          call setbarcev(0.0_dp, Gamma)
 
-          if ((input%groundstate%outputlevelnumber>1) .and.rank==0) then
+          if ((input%groundstate%outputlevelnumber>1) .and. (rank==0)) then
             write(60,'(a,3i8)')  '    ---> rank, ikp, iq = ', rank, ikp, iq
             write(60,'(a,4i8)') '    locmatsiz, ngk, matsiz, mbsiz:', &
                                 locmatsiz, Gqset%ngk(1,iq), matsiz, mbsiz
@@ -146,6 +162,10 @@ subroutine calc_vxnl()
           call getevecfv(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), eveck)
           call expand_evec(ik,'t')
           call expand_evec(jk,'c')
+          DEVICE_UPDATE_TO(eveckalm)
+          DEVICE_UPDATE_TO(eveckpalm)
+          DEVICE_UPDATE_TO(eveck)
+          DEVICE_UPDATE_TO(eveckp)
 
           !=================================
           ! Loop over m-blocks in M^i_{nm}
@@ -156,9 +176,10 @@ subroutine calc_vxnl()
             mend = min(mdim, mstart+mblksiz-1)
 
             ! m-block M^i_{nm}
-            allocate(minmmat(mbsiz,1:nstfv,mstart:mend))
-            if ((input%groundstate%outputlevelnumber>1) .and.rank==0) then
-              msize = sizeof(minmmat)*b2mb
+            allocate(minm(mbsiz,1:nstfv,mstart:mend))
+            DEVICE_MAP_ALLOC(minm)
+            if ((input%groundstate%outputlevelnumber>1) .and. (rank==0)) then
+              msize = sizeof(minm)*b2mb
               write(60,'(a,3i8,f14.2)') '    iblk, mstart, mend, size(minm) (Mb):', &
                                         iblk, mstart, mend, msize
             end if
@@ -166,7 +187,8 @@ subroutine calc_vxnl()
             !---------------------
             ! Calculate M^i_{nm}
             !---------------------
-            call expand_products(ik, iq, 1, nstfv, -1, mstart, mend, nomax, minmmat)
+            call expand_products(ik, iq, 1, nstfv, -1, mstart, mend, nomax, minm)
+            DEVICE_UPDATE_FROM(minm)
 
             ! sum over occupied states
             do ie3 = mstart, mend
@@ -175,10 +197,18 @@ subroutine calc_vxnl()
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ie12, ie1, ie2, mvm)
 !$OMP DO SCHEDULE(DYNAMIC)
 #endif
+                ! TODO (mrm): 
+                !
+                ! Port this to the device. Please use the following partition scheme:
+                ! - ie3 and ie12 : teams as they operate on non-contiguous memory
+                ! - dot_product  : use internal execution unit paralellism here (i.e. do parallel). 
+                ! See src_gw/calcminm2.f90 MT loop for further inspiration on how to fully port
+                ! calc_vxnl to the device, beyond the "expand_products" and "calcminm2".
+                ! 
                 do ie12 = 1, ie12tot
                   ie1 = idxpair(1,ie12)
                   ie2 = idxpair(2,ie12)
-                  mvm = zdotc(mbsiz, minmmat(:,ie1,ie3), 1, minmmat(:,ie2,ie3), 1)
+                  mvm = dot_product(minm(1:mbsiz,ie1,ie3), minm(1:mbsiz,ie2,ie3))
                   vxnl(ie1,ie2,ikp) = vxnl(ie1,ie2,ikp) - kiw(ie3,jk)*mvm
                 end do
 #ifdef USEOMP
@@ -199,7 +229,7 @@ subroutine calc_vxnl()
                 do ie12 = 1, ie12tot
                   ie1 = idxpair(1,ie12)
                   ie2 = idxpair(2,ie12)
-                  mvm = zdotc(mbsiz, minmmat(:,ie1,ie3), 1, minmmat(:,ie2,ie3), 1)
+                  mvm = dot_product(minm(1:mbsiz,ie1,ie3), minm(1:mbsiz,ie2,ie3))
                   vxnl(ie1,ie2,ikp) = vxnl(ie1,ie2,ikp) - ciw(ic,ias)*mvm
                 end do
 #ifdef USEOMP
@@ -209,7 +239,8 @@ subroutine calc_vxnl()
               end if ! core
             end do ! ie3
 
-            deallocate(minmmat)
+            DEVICE_MAP_DELETE(minm)
+            deallocate(minm)
 
           end do ! iblk
 
@@ -231,11 +262,26 @@ subroutine calc_vxnl()
     end do ! ikp
 
     ! clear memory
+    DEVICE_MAP_DELETE(eveckalm)
+    DEVICE_MAP_DELETE(eveckpalm)
+    DEVICE_MAP_DELETE(eveck)
+    DEVICE_MAP_DELETE(eveckp)
     deallocate(eveck)
     deallocate(eveckp)
     deallocate(eveckalm)
     deallocate(eveckpalm)
     deallocate(idxpair)
+
+    !! We need to free those for the device accelerated
+    !! version.
+    if (allocated(mpwipw)) then
+      DEVICE_MAP_DELETE(mpwipw)
+      deallocate(mpwipw)
+    end if
+    if (allocated(barc)) then
+      DEVICE_MAP_DELETE(barc)
+      deallocate(barc)
+    end if
 
 #ifdef MPI
     call MPI_ALLREDUCE(MPI_IN_PLACE, vxnl, nstfv*nstfv*kset%nkpt,  &

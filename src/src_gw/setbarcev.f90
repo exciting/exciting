@@ -10,6 +10,7 @@ subroutine setbarcev(eig_tol, remove_g_equal_zero)
     use modinput, only: input
     use precision, only: dp, i32
     use xlapack, only: matrix_multiply
+#include "offload.fpp"
 
     implicit none
 
@@ -64,7 +65,10 @@ subroutine setbarcev(eig_tol, remove_g_equal_zero)
 
     ! Build the trasformation matrix
     mbsiz = count( keep )
-    if ( allocated(barc) ) deallocate( barc )
+    if (allocated(barc)) then
+        DEVICE_MAP_DELETE(barc)
+        deallocate(barc)
+    end if
     allocate( barc(matsiz, mbsiz), source=zzero )
 
     i = 0
@@ -74,5 +78,8 @@ subroutine setbarcev(eig_tol, remove_g_equal_zero)
         barc(:, i) = vmat(:, j)*sqrt( cmplx( barcev(j), kind=dp ) )
       end if
     end do
+
+    DEVICE_MAP_TO(barc)
+
 end subroutine
 !EOC

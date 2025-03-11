@@ -15,12 +15,15 @@ subroutine init_product_basis()
     use mod_mpi_gw,            only: myrank, nproc_tot
     use modmpi,                only: mpi_allgatherv_ifc, barrier
     use reallocate
+    use precision,             only: i32, dp
+#include "offload.fpp"
+
     implicit none
 
-    integer(4) :: is, ia, ias
-    integer(4) :: irm, im, imix
-    integer(4) :: l, m, lm
-    integer(4) :: ndim, nrwf
+    integer(i32) :: is, ia, ias
+    integer(i32) :: irm, im, imix
+    integer(i32) :: l, m, lm
+    integer(i32) :: ndim, nrwf
 
 !_______________________________________________________________________________
 ! Generate Kohn-Sham radial functions
@@ -35,7 +38,7 @@ subroutine init_product_basis()
     call genlofr
 
     ! initialize core states
-    if (dabs(chgcr)>1.d-6) then
+    if (dabs(chgcr)>1.0e-6_dp) then
       call init_core_states
     else
       input%gw%coreflag = "vab"
@@ -49,20 +52,16 @@ subroutine init_product_basis()
     &          (input%gw%MixBasis%lmaxmb+nlomax+1)
 
     if (allocated(nmix)) deallocate(nmix)
-    allocate(nmix(natmtot))
-    nmix(:) = 0
+    allocate(nmix(natmtot), source=0_i32)
 
     if (associated(umix)) deallocate(umix)
-    allocate(umix(nrmtmax,maxnup,natmtot))
-    umix(:,:,:) = 0.d0
+    allocate(umix(nrmtmax,maxnup,natmtot), source = 0.0_dp)
 
     if (associated(bigl)) deallocate(bigl)
-    allocate(bigl(maxnup,natmtot))
-    bigl(:,:) = 0
+    allocate(bigl(maxnup,natmtot), source=0_i32)
 
     if (allocated(mbl)) deallocate(mbl)
-    allocate(mbl(natmtot))
-    mbl(:) = 0
+    allocate(mbl(natmtot), source=0_i32)
 
     ! loop over atoms
     do is = 1, nspecies
@@ -96,27 +95,22 @@ subroutine init_product_basis()
     ! pre-calculate radial integrals
     !--------------------------------
     if (allocated(rtl)) deallocate(rtl)
-    allocate(rtl(maxnmix,natmtot))
-    rtl(:,:) = 0.0d0
+    allocate(rtl(maxnmix,natmtot), source = 0.0_dp)
 
     if (allocated(rrint)) deallocate(rrint)
-    allocate(rrint(maxnmix*(maxnmix+1)/2,natmtot))
-    rrint(:,:) = 0.0d0
+    allocate(rrint(maxnmix*(maxnmix+1)/2,natmtot), source = 0.0_dp)
 
     nrwf = max(spnstmax,input%groundstate%lmaxapw,nlomax)
 
     if (allocated(bradketc)) deallocate(bradketc)
-    allocate(bradketc(3,maxnmix,spnstmax,0:nrwf,apwordmax,natmtot))
-    bradketc = 0.d0
+    allocate(bradketc(3,maxnmix,spnstmax,0:nrwf,apwordmax,natmtot), source=0.0_dp)
 
     if (allocated(bradketa)) deallocate(bradketa)
     allocate(bradketa(3,maxnmix,0:input%groundstate%lmaxapw, &
-    &                 apwordmax,0:nrwf,apwordmax,natmtot))
-    bradketa = 0.d0
+    &                 apwordmax,0:nrwf,apwordmax,natmtot), source=0.0_dp)
 
     if (allocated(bradketlo)) deallocate(bradketlo)
-    allocate(bradketlo(3,maxnmix,nlomax,0:nrwf,apwordmax,natmtot))
-    bradketlo = 0.d0
+    allocate(bradketlo(3,maxnmix,nlomax,0:nrwf,apwordmax,natmtot), source=0.0_dp)
 
     ! loop over atoms
     do is = 1, nspecies
@@ -153,8 +147,7 @@ subroutine init_product_basis()
     ! for a given mixed function of a given atom
     !-------------------------------------------------------------------
     if (allocated(locmixind)) deallocate(locmixind)
-    allocate(locmixind(natmtot,lmixmax))
-    locmixind(:,:) = 0
+    allocate(locmixind(natmtot,lmixmax), source=0_i32)
 
     im = 0
     do is = 1, nspecies
@@ -179,8 +172,8 @@ subroutine init_product_basis()
     ! mapping: MB function index -> (aNLM)
     !-------------------------------------------------------------------
     if (allocated(mbindex)) deallocate(mbindex)
-    allocate(mbindex(locmatsiz,5))
-    mbindex(:,:) = 0
+    allocate(mbindex(locmatsiz,5), source=0_i32)
+    
     im = 0
     do is = 1, nspecies
       do ia = 1, natoms(is)
@@ -204,5 +197,14 @@ subroutine init_product_basis()
     !----------------------------------------------------------------------
     call calctildeg(2*(input%gw%MixBasis%lmaxmb+1))
 
+    !----------------------------------------------------------------------
+    ! Map elements to the device
+    !----------------------------------------------------------------------
+    DEVICE_MAP_TO(bradketa)
+    DEVICE_MAP_TO(bradketc)
+    DEVICE_MAP_TO(bradketlo)
+    DEVICE_MAP_TO(mbindex)
+
     return
 end subroutine
+

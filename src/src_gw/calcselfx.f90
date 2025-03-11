@@ -1,27 +1,32 @@
 !> Calculate the q-dependent self-energy contribution for the given k-points.
 !> Remark: To obtain the complete self-energy, it must be then summed over all q-points
 subroutine calcselfx(iq, ikp_first, ikp_last)
+    
     use constants, only: zzero, zone, pi, real_zero, fourpi
     use modinput, only: input
-    use modgw, only: ibgw, nbgw, kset, kqset, Gkqset, fdebug, time_selfx, kiw, ciw
-    use mod_APW_LO, only: apwordmax
     use mod_atoms, only: idxas, natmtot
-    use mod_bands, only: evalfv, eveck, eveckp, eveckalm, eveckpalm, nomax
+    use mod_bands, only: evalfv, eveck, eveckp, eveckalm, eveckpalm, numin, nomax
     use mod_core_states, only: ncg, corind
-    use mod_coulomb_potential, only: barc, barcev, vccut, vmat
+    use mod_coulomb_potential, only: barc, barcev, vccut, vmat 
     use mod_eigensystem, only: nmatmax
     use mod_eigenvalue_occupancy, only: nstfv
+    use mod_APW_LO, only: apwordmax
+    use mod_muffin_tin, only: lmmaxapw
+    use mod_product_basis, only: matsiz, mbsiz, minmmat
+    use mod_misc_gw, only: vi, Gamma
+    use mod_mpi_gw, only : myrank
+    use modgw, only: kset, kqset, Gkqset, ciw, kiw, fdebug, time_selfx
+    use mod_selfenergy, only: singc2, selfex
+    
 #include "mod_gw_degeneracies.inc"
+
     use mod_gw_degeneracies, only: get_degenerate_limits_qp_interval_ikp, &
                                    ibgw_including_degeneracy, &
                                    nbgw_including_degeneracy, &
-                                   degenerate_subspaces    
-    use mod_misc_gw, only: Gamma, vi
-    use mod_mpi_gw, only : myrank
-    use mod_muffin_tin, only: lmmaxapw
-    use mod_product_basis, only: matsiz, mbsiz, minmmat
-    use mod_selfenergy, only: selfex, singc2
+                                   degenerate_subspaces
     use precision, only: i32, dp
+
+#include "offload.fpp"
 
     implicit none
 
@@ -42,7 +47,6 @@ subroutine calcselfx(iq, ikp_first, ikp_last)
     real(dp)     :: sxs2, fnk
     complex(dp)  :: sx, vc
     complex(dp)  :: mvm     ! Sum_ij{M^i*V^c_{ij}*conjg(M^j)}
-    complex(dp), allocatable :: evecfv(:,:)
 
     ! external routine
     complex(dp), external :: zdotc
@@ -76,6 +80,10 @@ subroutine calcselfx(iq, ikp_first, ikp_last)
     allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveck(nmatmax,nstfv))
     allocate(eveckp(nmatmax,nstfv))
+    DEVICE_MAP_ALLOC(eveckalm)
+    DEVICE_MAP_ALLOC(eveckpalm)
+    DEVICE_MAP_ALLOC(eveck)
+    DEVICE_MAP_ALLOC(eveckp)
 
     allocate(minmmat(mbsiz,ibgw_including_degeneracy:nbgw_including_degeneracy,1:mdim), source=zzero)
 
@@ -89,21 +97,17 @@ subroutine calcselfx(iq, ikp_first, ikp_last)
       jk = kqset%kqid(ik,iq)
 
       ! get KS eigenvectors
-      allocate(evecfv(nmatmax,nstfv))
-      call get_evec_gw(kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), evecfv)
-      eveckp = conjg(evecfv)
-      call get_evec_gw(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
-      call move_alloc(evecfv, eveck)
+      call get_evec_gw(kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), eveckp)
+      eveckp = conjg(eveckp)
+      call get_evec_gw(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), eveck)
+      DEVICE_UPDATE_TO(eveck)
+      DEVICE_UPDATE_TO(eveckp)
 
       call expand_evec(ik, 't')
       call expand_evec(jk, 'c')
-
-      ! Obtain the limits for degenerate subspaces for the irreducible point
-      call get_degenerate_limits_qp_interval_ikp(ikp, ispace_init, ispace_final)
-
-      ! Calculate M^i_{nm}+M^i_{cm}
-      call expand_products(ik, iq, ibgw_including_degeneracy, nbgw_including_degeneracy, -1, 1, mdim, nomax, minmmat)
-
+      DEVICE_UPDATE_TO(eveckalm)
+      DEVICE_UPDATE_TO(eveckpalm)
+      
       !========================================================
       ! Calculate the contribution to the exchange self-energy
       !========================================================
@@ -115,12 +119,18 @@ subroutine calcselfx(iq, ikp_first, ikp_last)
       ! First we compute indices of the subspaces we are interested in
       call get_degenerate_limits_qp_interval_ikp(ikp, ispace_init, ispace_final)
 
+      ! Calculate M^i_{nm}+M^i_{cm}
+      DEVICE_MAP_ALLOC(minmmat)
+      call expand_products(ik, iq, ibgw_including_degeneracy, nbgw_including_degeneracy, -1, 1, mdim, nomax, minmmat)
+      DEVICE_UPDATE_FROM(minmmat)
+      DEVICE_MAP_DELETE(minmmat)
+
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(NONE) PRIVATE(ie1,ie2,mvm,icg,is,ia,ias,ic,fnk,sx,lowband,upband,size_deg), & 
-!$OMP SHARED(ispace_init,ispace_final,degenerate_subspaces,ikp,mdim,nomax,mbsiz,minmmat,kiw,corind,idxas), &
-!$OMP SHARED(ciw,Gamma,kqset,singc2,selfex,ibgw,nbgw,jk,ik,sxs2)
+!$omp parallel default(none) private(ie1,ie2,mvm,icg,is,ia,ias,ic,fnk,sx,lowband,upband,size_deg), & 
+!$omp shared(ispace_init,ispace_final,degenerate_subspaces,ikp,mdim,nomax,mbsiz,minmmat,kiw,corind,idxas), &
+!$omp shared(ciw,Gamma,kqset,singc2,selfex,ibgw,nbgw,jk,ik,sxs2)
 ! The different subspaces can have different sizes, and thus different computational cost. Therefore, the scheduler is set dynamic
-!$OMP DO SCHEDULE(DYNAMIC)
+!$omp do schedule(dynamic)
 #endif
       do ispace = ispace_init, ispace_final
 
@@ -162,14 +172,14 @@ subroutine calcselfx(iq, ikp_first, ikp_last)
         end do 
         ! That ensures we are in the proper range (in that way states out of
         ! the print range are taken into account for degeneracy stuff, but 
-        ! they are not printed). Macro defined in mod_gw_degeneracies.inc
+        ! they are not printed). Macro defined in mod_gw_degeneracies.inc (uses ibgw,nbgw)
         selfex(QP_ADJUST_RANGE(lowband,upband),ikp) = &
             selfex(QP_ADJUST_RANGE(lowband,upband),ikp) + sx / size_deg
 
       end do
 #ifdef USEOMP
-!$OMP END DO
-!$OMP END PARALLEL
+!$omp end do
+!$omp end parallel
 #endif
 
       ! debugging info
@@ -185,6 +195,12 @@ subroutine calcselfx(iq, ikp_first, ikp_last)
     end do ! ikp
 
     deallocate(minmmat)
+
+    DEVICE_MAP_DELETE(eveck)
+    DEVICE_MAP_DELETE(eveckp)
+    DEVICE_MAP_DELETE(eveckalm)
+    DEVICE_MAP_DELETE(eveckpalm)
+
     deallocate(eveck)
     deallocate(eveckp)
     deallocate(eveckalm)
