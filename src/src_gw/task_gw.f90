@@ -14,12 +14,13 @@ subroutine task_gw()
 !!USES:
     use constants, only: zzero
     use invert_dielectric_function, only: calcinveps
-    use mod_bands, only: evalfv, occfv, bandstructure_analysis
+    use mod_bands, only: evalfv, occfv, bandstructure_analysis, delete_bands
     use mod_coulomb_potential, only: barc, delete_coulomb_potential, calculate_singularities_coeff
     use mod_dielectric_function, only: eps00, epsh, epsw1, epsw2, epsilon, init_dielectric_function, &
       delete_dielectric_function
     use mod_frequency, only: delete_freqgrid
     use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
+    use mod_gaunt_coefficients, only: delete_gaunt_coefficients
     use mod_kpointset, only: delete_Gk_vectors, delete_k_vectors, delete_kq_vectors, delete_G_vectors
     use mod_mpi_gw, only: myrank, myrank_col, nproc_col, myrank_row, mycomm_row, nproc_row, &
       iomcnt, iomdsp, iomstart, iomend, iqstart, iqend
@@ -27,7 +28,7 @@ subroutine task_gw()
     use mod_mpi_gw, only: set_mpi_group, mpi_set_range, mpi_sum_array
 #endif
     use mod_misc_gw, only: Gamma, gammapoint
-    use mod_product_basis, only: mpwipw, locmatsiz, mbsiz, matsiz
+    use mod_product_basis, only: mpwipw, locmatsiz, mbsiz, matsiz, delete_product_basis
     use mod_selfenergy, only: evalks, evalqp, eferks, eferqp, znorm, singc1, singc2, &
       selfec, selfex, freq_selfc, sigc, sigsx, sigch, plot_selfc, plot_selfc_iw, &
       init_selfenergy, write_selfenergy_binary, delete_selfenergy
@@ -38,8 +39,13 @@ subroutine task_gw()
       ciw, kiw, unw, kcw, freq, time_dfinv
     use modxs, only: symt2
     use quasiparticle_energies, only: write_qp_energies_text_format
+    use mod_APW_LO, only: lorbl, nlorb, apword
+    use mod_atoms, only: idxas
+    use mod_eigensystem, only: idxlo
+    use mod_muffin_tin, only: idxlm
     use precision, only: dp, i32
-
+#include "offload.fpp"
+    
 !!LOCAL VARIABLES:
     implicit none
 
@@ -189,9 +195,15 @@ subroutine task_gw()
       end if
 
       ! clean unused data
-      if (allocated(mpwipw)) deallocate(mpwipw)
-      if (allocated(barc)) deallocate(barc)
-
+      if (allocated(mpwipw)) then
+        DEVICE_MAP_DELETE(mpwipw)
+        deallocate(mpwipw)
+      end if
+      if (allocated(barc)) then
+          DEVICE_MAP_DELETE(barc)
+          deallocate(barc)
+      end if
+      !call omp_set_num_threads(nthreads)
     end do ! iq
 
     if (allocated(kiw)) deallocate(kiw)
@@ -314,6 +326,16 @@ subroutine task_gw()
     call delete_kq_vectors(kqset)
     call delete_Gk_vectors(Gqset)
     call delete_Gk_vectors(Gqbarc)
+    call delete_bands()
+    call delete_gaunt_coefficients()
+    call delete_product_basis()
+
+    DEVICE_MAP_DELETE(idxas)
+    DEVICE_MAP_DELETE(idxlo)
+    DEVICE_MAP_DELETE(idxlm)
+    DEVICE_MAP_DELETE(lorbl)
+    DEVICE_MAP_DELETE(apword)
+    DEVICE_MAP_DELETE(nlorb)
 
     return
 end subroutine

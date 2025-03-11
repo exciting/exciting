@@ -1,60 +1,64 @@
 
 MODULE mod_kpointset
-    use precision, only: dp
-
+    use precision, only: i32, dp, str_256
+    use mod_device_offload, only: device_world
+    use m_memory_device, only: bytes_size
+#include "offload.fpp"
     implicit none
 
 !-------------------------------------------------------------------------------
     type k_set
         ! k-points
-        integer(4) :: nkptnr                ! total (non-reduced) number of k-points (in case symmetry is used)
-        integer(4) :: nkpt                  ! number of k-points
+        integer(i32) :: nkptnr                ! total (non-reduced) number of k-points (in case symmetry is used)
+        integer(i32) :: nkpt                  ! number of k-points
         logical :: isreduced                ! Symmetry was used in construction
         logical :: usedlibzint              ! Was build with libzint
-        real(8) :: bvec(3,3)                ! Reciprocal lattice basis
-        real(8) :: vkloff(3)                ! Offset of k-grid in k-coordinates
-        integer(4) :: ngridk(3)             ! Number of k-points along [0,1) in each lattice direction
+        real(dp) :: bvec(3,3)                ! Reciprocal lattice basis
+        real(dp) :: vkloff(3)                ! Offset of k-grid in k-coordinates
+        integer(i32) :: ngridk(3)             ! Number of k-points along [0,1) in each lattice direction
 
         ! Reduced quantities
-        integer(4), allocatable :: ivk(:,:) ! 3d integer index of k points
-        real(8), allocatable :: vkl(:,:)    ! lattice coordinates
-        real(8), allocatable :: vkc(:,:)    ! cartesian coordinates
-        real(8), allocatable :: wkpt(:)     ! weight of k-point
+        integer(i32), allocatable :: ivk(:,:) ! 3d integer index of k points
+        real(dp), allocatable :: vkl(:,:)    ! lattice coordinates
+        real(dp), allocatable :: vkc(:,:)    ! cartesian coordinates
+        real(dp), allocatable :: wkpt(:)     ! weight of k-point
 
         ! Non reduced quantities (created only if no libzint is used)
-        integer(4), allocatable :: ivknr(:,:)
-        real(8), allocatable :: vklnr(:,:)
-        real(8), allocatable :: vkcnr(:,:)
-        real(8), allocatable :: wkptnr(:)
+        integer(i32), allocatable :: ivknr(:,:)
+        real(dp), allocatable :: vklnr(:,:)
+        real(dp), allocatable :: vkcnr(:,:)
+        real(dp), allocatable :: wkptnr(:)
 
         ! 3D index maps
-        integer(4), allocatable ::  ikmap(:,:,:)   ! non-reduced 3d index -> 1d reduced index
-        integer(4), allocatable ::  ikmapnr(:,:,:) ! non-reduced 3d index -> 1d non-reduced index
+        integer(i32), allocatable ::  ikmap(:,:,:)   ! non-reduced 3d index -> 1d reduced index
+        integer(i32), allocatable ::  ikmapnr(:,:,:) ! non-reduced 3d index -> 1d non-reduced index
 
         ! 1D index maps
-        integer(4), allocatable :: ik2ikp(:)   ! 1d non-reduced index -> 1d reduced k-point index
-        integer(4), allocatable :: ikp2ik(:)   ! 1d reduced index -> 1d non-reduced k-point index
+        integer(i32), allocatable :: ik2ikp(:)   ! 1d non-reduced index -> 1d reduced k-point index
+        integer(i32), allocatable :: ikp2ik(:)   ! 1d reduced index -> 1d non-reduced k-point index
 
         ! tetrahedron integration method related data
-        integer(4) :: ntet                     ! number of tetrahedra
-        integer(4), allocatable :: tnodes(:,:) ! coordinates of tetrahedron
-        integer(4), allocatable :: wtet(:)     ! weight of each tetrahedron
-        real(8) :: tvol                     ! volume of the tetrahedra relative to the BZ volume
+        integer(i32) :: ntet                     ! number of tetrahedra
+        integer(i32), allocatable :: tnodes(:,:) ! coordinates of tetrahedron
+        integer(i32), allocatable :: wtet(:)     ! weight of each tetrahedron
+        real(dp) :: tvol                     ! volume of the tetrahedra relative to the BZ volume
 
+        contains
+          procedure, public :: map_to_device => map_to_device_kset, map_delete_device => map_delete_device_kset
     end type k_set
 
 !-------------------------------------------------------------------------------
     type G_set
         ! grid parameters
-        real(8) :: gmaxvr     ! Maximum G vector length
-        real(8) :: bvec(3,3)  ! Lattice basis vectors
+        real(dp) :: gmaxvr     ! Maximum G vector length
+        real(dp) :: bvec(3,3)  ! Lattice basis vectors
         integer :: ngrtot     ! total number of grid points
         integer :: intgv(3,2) ! integer grid size
-        real(8) :: voff(3)    ! offset for G+p vectors
+        real(dp) :: voff(3)    ! offset for G+p vectors
         ! G-points
         integer :: ngvec                  ! number of G-points
-        real(8), allocatable :: vgc(:,:)  ! Cartesian coodinates of lattice
-        real(8), allocatable :: gc(:)     ! Length of G vector
+        real(dp), allocatable :: vgc(:,:)  ! Cartesian coodinates of lattice
+        real(dp), allocatable :: gc(:)     ! Length of G vector
         integer, allocatable :: ivg(:,:)  ! integer coordinates
         integer, allocatable :: ivgig(:,:,:) ! integer coordinates -> 1d index
         ! FFT-points
@@ -74,75 +78,80 @@ MODULE mod_kpointset
           procedure :: change_set_real => Gset_change_set_real
           procedure :: change_set_complex => Gset_change_set_complex
           generic :: change_set => change_set_real, change_set_complex
+          ! This is to map to the device
+          procedure, public :: map_to_device => map_to_device_Gset, map_delete_device => map_delete_device_Gset
     end type G_set
 
 !-------------------------------------------------------------------------------
     type Gk_set
 
         ! Cutoff for G+k length
-        real(8) :: gkmax
+        real(dp) :: gkmax
 
         ! Reduced (potentially) quantities
         integer :: ngkmax
         integer, allocatable :: ngk(:,:)      ! number of G+k-vectors for augmented plane waves
         integer, allocatable :: igkig(:,:,:)  ! index from G+k-vectors to G-vectors
         integer, allocatable :: igigk(:,:,:)  ! index from G-vectors to G+k-vectors
-        real(8), allocatable :: vgkl(:,:,:,:) ! G+k-vectors in lattice coordinates
-        real(8), allocatable :: vgkc(:,:,:,:) ! G+k-vectors in Cartesian coordinates
-        real(8), allocatable :: gkc(:,:,:)    ! length of G+k-vectors
-        real(8), allocatable :: tpgkc(:,:,:,:)! (theta, phi) coordinates of G+k-vectors
-        complex(8), allocatable :: sfacgk(:,:,:,:) ! structure factor for the G+k-vectors
+        real(dp), allocatable :: vgkl(:,:,:,:) ! G+k-vectors in lattice coordinates
+        real(dp), allocatable :: vgkc(:,:,:,:) ! G+k-vectors in Cartesian coordinates
+        real(dp), allocatable :: gkc(:,:,:)    ! length of G+k-vectors
+        real(dp), allocatable :: tpgkc(:,:,:,:)! (theta, phi) coordinates of G+k-vectors
+        complex(dp), allocatable :: sfacgk(:,:,:,:) ! structure factor for the G+k-vectors
 
         ! Non-reduced quantities (created if k set was build without libzint)
         integer :: ngknrmax
         integer, allocatable :: ngknr(:,:)      ! number of G+k-vectors for augmented plane waves
         integer, allocatable :: igknrig(:,:,:)  ! index from G+k-vectors to G-vectors
         integer, allocatable :: igigknr(:,:,:)  ! index from G-vectors to G+k-vectors
-        real(8), allocatable :: vgknrl(:,:,:,:) ! G+k-vectors in lattice coordinates
-        real(8), allocatable :: vgknrc(:,:,:,:) ! G+k-vectors in Cartesian coordinates
-        real(8), allocatable :: gknrc(:,:,:)    ! length of G+k-vectors
-        real(8), allocatable :: tpgknrc(:,:,:,:)! (theta, phi) coordinates of G+k-vectors
-        complex(8), allocatable :: sfacgknr(:,:,:,:) ! structure factor for the G+k-vectors
-
+        real(dp), allocatable :: vgknrl(:,:,:,:) ! G+k-vectors in lattice coordinates
+        real(dp), allocatable :: vgknrc(:,:,:,:) ! G+k-vectors in Cartesian coordinates
+        real(dp), allocatable :: gknrc(:,:,:)    ! length of G+k-vectors
+        real(dp), allocatable :: tpgknrc(:,:,:,:)! (theta, phi) coordinates of G+k-vectors
+        complex(dp), allocatable :: sfacgknr(:,:,:,:) ! structure factor for the G+k-vectors
+        contains
+          procedure, public :: map_to_device => map_to_device_Gkset, map_delete_device => map_delete_device_Gkset
     end type Gk_set
 
 !-------------------------------------------------------------------------------
     type kq_set
         ! k-points
         integer :: nkpt                     ! number of k/q-points
-        real(8), allocatable :: vkl(:,:)    ! lattice coordinates
-        real(8), allocatable :: vkc(:,:)    ! cartesian coordinates
-        real(8), allocatable :: vql(:,:)    ! lattice coordinates
-        real(8), allocatable :: vqc(:,:)    ! cartesian coordinates
+        real(dp), allocatable :: vkl(:,:)    ! lattice coordinates
+        real(dp), allocatable :: vkc(:,:)    ! cartesian coordinates
+        real(dp), allocatable :: vql(:,:)    ! lattice coordinates
+        real(dp), allocatable :: vqc(:,:)    ! cartesian coordinates
         ! tetrahedron integration method related data
         integer :: ntet                     ! number of tetrahedra
         integer, allocatable :: tnodes(:,:) ! coordinates of tetrahedron
         integer, allocatable :: wtet(:)     ! weight of each tetrahedron
         integer, allocatable :: kqid(:,:)   ! k-dependent weight of each q-point
         integer, allocatable :: linkq(:,:)  ! number of the tetrahedra linked to by the corresponding q vector
-        real(8) :: tvol                     ! volume of the tetrahedra relative to the BZ volume
+        real(dp) :: tvol                     ! volume of the tetrahedra relative to the BZ volume
         ! small group of q-vector (symmetry feature)
         integer, allocatable :: nsymq(:)    ! number of the symmetry operations in the small group of q
         integer, allocatable :: nkptq(:)    ! number of k-points in IBZ(q)
-        real(8), allocatable :: wkptq(:,:)  ! q-dependent k-point weight
+        real(dp), allocatable :: wkptq(:,:)  ! q-dependent k-point weight
         integer, allocatable :: iksymq(:,:) ! index of the symmetry operation which rotates the k-point into equivalent one
         integer, allocatable :: ik2ikpq(:,:) ! map the k-point index to the corresponding irreducible one
         integer, allocatable :: ikp2ikq(:,:) ! map the irreducible k-point index to the corresponding from the non-reduced set
         integer, allocatable :: nsymkstar(:,:)   ! number of symmetry operations which form the star
         integer, allocatable :: isymkstar(:,:,:) ! index of the symmetry operations
+        contains
+          procedure, public :: map_to_device => map_to_device_kqset, map_delete_device => map_delete_device_kqset
     end type kq_set
 
 !-------------------------------------------------------------------------------
     type kkqmt_set
         ! Momentum transfer Q-vector Q = q_Q + G_Q
-        real(8), allocatable :: vqmtl(:)      ! Lattice coordinates
-        real(8), allocatable :: vqmtc(:)      ! Cartesian coordinates
+        real(dp), allocatable :: vqmtl(:)      ! Lattice coordinates
+        real(dp), allocatable :: vqmtc(:)      ! Cartesian coordinates
         !   Unit cell part
-        real(8), allocatable :: vqmtl_q(:)    ! Lattice coordinates
-        real(8), allocatable :: vqmtc_q(:)    ! Cartesian coordinates
+        real(dp), allocatable :: vqmtl_q(:)    ! Lattice coordinates
+        real(dp), allocatable :: vqmtc_q(:)    ! Cartesian coordinates
         !   Lattice vector part
-        integer(4), allocatable :: vqmtl_g(:) ! Lattice coordinates
-        real(8), allocatable :: vqmtc_g(:)    ! Cartesian coordinates
+        integer(i32), allocatable :: vqmtl_g(:) ! Lattice coordinates
+        real(dp), allocatable :: vqmtc_g(:)    ! Cartesian coordinates
         ! k-points
         type(k_set) :: kset
         ! k+qmt-points
@@ -154,19 +163,19 @@ MODULE mod_kpointset
 
         ! Reduced
         !   ik --> ik'
-        integer(4), allocatable :: ik2ikqmt(:)
+        integer(i32), allocatable :: ik2ikqmt(:)
         !   ik --> ig
-        integer(4), allocatable :: ik2ig(:)
+        integer(i32), allocatable :: ik2ig(:)
         !   ik' --> ik
-        integer(4), allocatable :: ikqmt2ik(:)
+        integer(i32), allocatable :: ikqmt2ik(:)
 
         ! Non-reduced
         !   ik --> ik'
-        integer(4), allocatable :: ik2ikqmt_nr(:)
+        integer(i32), allocatable :: ik2ikqmt_nr(:)
         !   ik --> ig
-        integer(4), allocatable :: ik2ig_nr(:)
+        integer(i32), allocatable :: ik2ig_nr(:)
         !   ik' --> ik
-        integer(4), allocatable :: ikqmt2ik_nr(:)
+        integer(i32), allocatable :: ikqmt2ik_nr(:)
 
     end type kkqmt_set
 
@@ -179,10 +188,10 @@ MODULE mod_kpointset
       type(k_set) :: kset
 
       ! Index mapping between k-grid and -k-grid
-      integer(4), allocatable :: ik2ikm(:)
-      integer(4), allocatable :: ikm2ik(:)
-      integer(4), allocatable :: ik2ikm_nr(:)
-      integer(4), allocatable :: ikm2ik_nr(:)
+      integer(i32), allocatable :: ik2ikm(:)
+      integer(i32), allocatable :: ikm2ik(:)
+      integer(i32), allocatable :: ik2ikm_nr(:)
+      integer(i32), allocatable :: ikm2ik_nr(:)
 
     end type km_set
 
@@ -194,19 +203,19 @@ MODULE mod_kpointset
         ! Non-reduced maps from k'-k combinations to q grid
         ! k'-k = q + G, where k',k and q are in [0,1) unit cell
         ! iknr,iknr' --> iqnr + ig
-        integer(4), allocatable :: ikikp2iq_nr(:,:)
-        integer(4), allocatable :: ikikp2ig_nr(:,:)
+        integer(i32), allocatable :: ikikp2iq_nr(:,:)
+        integer(i32), allocatable :: ikikp2ig_nr(:,:)
         ! iknr,iqnr --> iknr' + ig
-        integer(4), allocatable :: ikiq2ikp_nr(:,:)
-        integer(4), allocatable :: ikiq2ig_nr(:,:)
+        integer(i32), allocatable :: ikiq2ikp_nr(:,:)
+        integer(i32), allocatable :: ikiq2ig_nr(:,:)
 
         ! 1d index mapping  ikkpnr --> iqnr + ig for iknr' >= iknr
-        integer(4), allocatable :: ikkp2iq_nr(:)
-        integer(4), allocatable :: ikkp2ig_nr(:)
+        integer(i32), allocatable :: ikkp2iq_nr(:)
+        integer(i32), allocatable :: ikkp2ig_nr(:)
 
         ! ikkp with ik' >= ik ordered according to corresponding
         ! iq value
-        integer(4), allocatable :: ikkp_qordered(:)
+        integer(i32), allocatable :: ikkp_qordered(:)
 
     end type q_set
 
@@ -218,11 +227,11 @@ MODULE mod_kpointset
         ! Non-reduced maps from -(k'+k) combinations to p grid
         ! -(k'+k) = p + G, where k',k and p are in [0,1) unit cell
         ! iknr,iknr' --> ipnr + ig
-        integer(4), allocatable :: ikikp2ip_nr(:,:)
-        integer(4), allocatable :: ikikp2ig_nr(:,:)
+        integer(i32), allocatable :: ikikp2ip_nr(:,:)
+        integer(i32), allocatable :: ikikp2ig_nr(:,:)
         ! iknr,ipnr --> iknr' + ig
-        integer(4), allocatable :: ikip2ikp_nr(:,:)
-        integer(4), allocatable :: ikip2ig_nr(:,:)
+        integer(i32), allocatable :: ikip2ikp_nr(:,:)
+        integer(i32), allocatable :: ikip2ig_nr(:,:)
 
     end type p_set
 
@@ -242,16 +251,16 @@ CONTAINS
         ! Created July 2008 by Sagmeister
         !-------------------------------------------------------
         implicit none
-        real(8),    intent(In)  :: x(3)
-        integer(4), intent(Out) :: k(3)
-        integer(4), intent(Out) :: div
+        real(dp),    intent(In)  :: x(3)
+        integer(i32), intent(Out) :: k(3)
+        integer(i32), intent(Out) :: div
         integer :: maxint
-        real(8) :: dx
-        real(8) :: eps = 1.0d-5
-        maxint = nint(1.d0/eps)
+        real(dp) :: dx
+        real(dp) :: eps = 1.0e-5_dp
+        maxint = nint(1.0_dp/eps)
         do div = 1, maxint
-          k(:) = nint(dble(div)*x(:))
-          dx = maxval(Abs(dble(k)/dble(div)-x))
+          k(:) = nint(real(div, kind=dp) * x(:))
+          dx = maxval(abs(real(k, kind = dp)/ real(div, kind=dp) - x))
           if (dx < eps) exit
         end do
         if (dx >= eps) then
@@ -270,25 +279,25 @@ CONTAINS
         use modmain, only: nsymcrys, symlat, lsplsymc
         implicit none
         type(k_set), intent(OUT) :: self
-        real(8), intent(IN) :: bvec(3,3)
+        real(dp), intent(IN) :: bvec(3,3)
         integer, intent(IN) :: ngridk(3)
-        real(8), intent(IN) :: vkloff(3)
+        real(dp), intent(IN) :: vkloff(3)
         logical, intent(IN) :: reduce ! apply symmetry to reduce k-set
         logical, intent(IN), optional :: uselibzint
         ! local variables
-        integer(4) :: dvk
-        integer(4) :: mnd
-        integer(4) :: ikloff(3)
-        integer(4) :: dkloff
-        integer(4) :: i1, i2, i3, ik, nsym, isym, lspl
-        integer(4), allocatable :: symmat(:,:,:)
-        integer(4), allocatable :: ivk(:,:)
-        integer(4), allocatable :: iwkp(:)
-        integer(4) :: iv(3)
+        integer(i32) :: dvk
+        integer(i32) :: mnd
+        integer(i32) :: ikloff(3)
+        integer(i32) :: dkloff
+        integer(i32) :: i1, i2, i3, ik, nsym, isym, lspl
+        integer(i32), allocatable :: symmat(:,:,:)
+        integer(i32), allocatable :: ivk(:,:)
+        integer(i32), allocatable :: iwkp(:)
+        integer(i32) :: iv(3)
 
         logical :: uselz
-        real(8), parameter :: epslat=1.d-6
-        real(8) :: boxl(3,4)
+        real(dp), parameter :: epslat=1.0e-6_dp
+        real(dp) :: boxl(3,4)
 
         ! Check optional input
         if(present(uselibzint)) then
@@ -303,7 +312,7 @@ CONTAINS
 
         self%bvec = bvec
 
-        if(any(abs(vkloff) > 1.0d0) .or. any(vkloff < 0.0d0)) then
+        if(any(abs(vkloff) > 1.0_dp) .or. any(vkloff < 0.0_dp)) then
           write(*,*) "Warning(generate_k_vectors): vkloff mapped back to first k-parallelepiped"
           write(*,*) "vkloff",vkloff
           call r3frac(epslat, vkloff, iv)
@@ -353,7 +362,7 @@ CONTAINS
         allocate(self%tnodes(4,self%ntet))
         if (allocated(self%wtet)) deallocate(self%wtet)
         allocate(self%wtet(self%ntet))
-        self%tvol = 0.d0
+        self%tvol = 0.0_dp
 
         if(uselz) then
 
@@ -391,9 +400,9 @@ CONTAINS
 
           ! fractional and cartesian coordinates, and k-point weight
           do ik = 1, self%nkpt
-              self%vkl(:,ik) = dble(ivk(:,ik))/dble(dvk)
+              self%vkl(:,ik) = real(ivk(:,ik), kind=dp)/real(dvk, kind=dp)
               call r3mv(bvec,self%vkl(:,ik),self%vkc(:,ik))
-              self%wkpt(ik) = dble(iwkp(ik))/dble(self%nkptnr)
+              self%wkpt(ik) = real(iwkp(ik), kind=dp)/real(self%nkptnr, kind=dp)
           enddo ! ik
 
           ! ikmap (added May 2018, SeTi)
@@ -414,13 +423,13 @@ CONTAINS
         else
 
           ! Set up k grid box
-          boxl(:, 1) = self%vkloff(:) / dble(self%ngridk(:))
+          boxl(:, 1) = self%vkloff(:) / real(self%ngridk(:), kind=dp)
           boxl(:, 2) = boxl(:, 1)
           boxl(:, 3) = boxl(:, 1)
           boxl(:, 4) = boxl(:, 1)
-          boxl(1, 2) = boxl(1, 2) + 1.d0
-          boxl(2, 3) = boxl(2, 3) + 1.d0
-          boxl(3, 4) = boxl(3, 4) + 1.d0
+          boxl(1, 2) = boxl(1, 2) + 1.0_dp
+          boxl(2, 3) = boxl(2, 3) + 1.0_dp
+          boxl(3, 4) = boxl(3, 4) + 1.0_dp
 
           call genppts(.false., .false., &
           &            self%ngridk, boxl, self%nkptnr, &
@@ -447,7 +456,8 @@ CONTAINS
 
 !-------------------------------------------------------------------------------
     subroutine delete_k_vectors(self)
-        type(k_set), intent(INOUT) :: self
+        type(k_set), intent(inout) :: self
+
         if (allocated(self%ivk)) deallocate(self%ivk)
         if (allocated(self%vkl)) deallocate(self%vkl)
         if (allocated(self%vkc)) deallocate(self%vkc)
@@ -543,22 +553,22 @@ CONTAINS
         use sorting, only: sortidx
         implicit none
         type(G_set), intent(OUT) :: self
-        real(8), intent(IN) :: bvec(3,3)
+        real(dp), intent(IN) :: bvec(3,3)
         integer, intent(IN) :: intgv(3,2) ! integer ranges for G-grid
-        real(8), intent(IN) :: gmaxvr
-        real(8), optional, intent(IN) :: vpl(3) ! offset for G+p vectors
+        real(dp), intent(IN) :: gmaxvr
+        real(dp), optional, intent(IN) :: vpl(3) ! offset for G+p vectors
         logical, optional, intent(IN) :: auto_intgv ! auto determine `intgv` based on `gmaxvr` (default: `.false.`)
 
         ! local variables
         integer :: ig, i1, i2, i3, k
-        real(8) :: avec(3,3), voff(3), v(3), t1
+        real(dp) :: avec(3,3), voff(3), v(3), t1
 
         ! allocatable arrays
         integer, allocatable :: idx(:)
         integer, allocatable :: iar(:)
-        real(8), allocatable :: rar(:)
+        real(dp), allocatable :: rar(:)
 
-        self%voff = 0.d0
+        self%voff = 0.0_dp
         if( present( vpl)) self%voff = vpl
 
         ! Reciprocal lattice basis
@@ -572,7 +582,7 @@ CONTAINS
           if( auto_intgv) then
             call r3minv( bvec, avec)
             do i1 = 1, 3
-              self%ngrid(i1) = int( 2.d0*gmaxvr*norm2( avec(i1,:))) + 1
+              self%ngrid(i1) = int( 2.0_dp*gmaxvr*norm2( avec(i1,:))) + 1
               call nfftifc( self%ngrid(i1))
               self%intgv(i1,1) = self%ngrid(i1)/2 - self%ngrid(i1) + 1
               self%intgv(i1,2) = self%ngrid(i1)/2
@@ -617,7 +627,9 @@ CONTAINS
         do i1 = self%intgv(1,1), self%intgv(1,2)
           do i2 = self%intgv(2,1), self%intgv(2,2)
             do i3 = self%intgv(3,1), self%intgv(3,2)
-              v(:) = dble(i1+self%voff(1))*bvec(:,1)+dble(i2+self%voff(2))*bvec(:,2)+dble(i3+self%voff(3))*bvec(:,3)
+              v(:) = real(i1+self%voff(1), kind=dp)*bvec(:,1) + &
+                     real(i2+self%voff(2), kind=dp)*bvec(:,2) + &
+                     real(i3+self%voff(3), kind=dp)*bvec(:,3)
               t1 = v(1)**2+v(2)**2+v(3)**2
               ig = ig+1
               ! map from G-vector to (i1,i2,i3) index
@@ -658,7 +670,9 @@ CONTAINS
           ! map from (i1,i2,i3) index to G-vector
           self%ivgig(i1,i2,i3) = ig
           ! assign G-vectors to global array
-          self%vgc(:,ig) = dble(i1+self%voff(1))*bvec(:,1)+dble(i2+self%voff(2))*bvec(:,2)+dble(i3+self%voff(3))*bvec(:,3)
+          self%vgc(:,ig) = real(i1+self%voff(1), kind=dp)*bvec(:,1) + &
+                           real(i2+self%voff(2), kind=dp)*bvec(:,2) + &
+                           real(i3+self%voff(3), kind=dp)*bvec(:,3)
         end do
 
         ! Find the number of vectors with G < gmaxvr
@@ -682,6 +696,7 @@ CONTAINS
 !-------------------------------------------------------------------------------
     subroutine delete_G_vectors(self)
         type(G_set), intent(INOUT) :: self
+
         if (allocated(self%vgc)) deallocate(self%vgc)
         if (allocated(self%gc)) deallocate(self%gc)
         if (allocated(self%ivg)) deallocate(self%ivg)
@@ -729,7 +744,7 @@ CONTAINS
       !> maximum |G| to consider (default: infinity)
       real(dp), optional, intent(in) :: gmax
 
-      real(dp), parameter :: eps = 1.d-12
+      real(dp), parameter :: eps = 1.0e-12_dp
 
       integer :: i, ig, n
       real(dp) :: gm
@@ -770,7 +785,7 @@ CONTAINS
       !> maximum |G| to consider (default: infinity)
       real(dp), optional, intent(in) :: gmax
 
-      real(dp), parameter :: eps = 1.d-12
+      real(dp), parameter :: eps = 1.0e-12_dp
 
       integer :: i, ig, n
       real(dp) :: gm
@@ -813,7 +828,7 @@ CONTAINS
       ! maximum |G| to consider (default: infinity)
       real(dp), optional, intent(in) :: gmax
 
-      real(dp), parameter :: eps = 1.d-12
+      real(dp), parameter :: eps = 1.0e-12_dp
 
       integer :: i, ig, n
       real(dp) :: gm
@@ -854,7 +869,7 @@ CONTAINS
       ! maximum |G| to consider (default: infinity)
       real(dp), optional, intent(in) :: gmax
 
-      real(dp), parameter :: eps = 1.d-12
+      real(dp), parameter :: eps = 1.0e-12_dp
 
       integer :: i, ig, n
       real(dp) :: gm
@@ -905,7 +920,7 @@ CONTAINS
       !> maximum |G| to consider (default: infinity)
       real(dp), optional, intent(in) :: gmax
 
-      real(dp), parameter :: eps = 1.d-12
+      real(dp), parameter :: eps = 1.0e-12_dp
 
       integer :: i, ig, n, ivg(3)
       real(dp) :: gm
@@ -977,7 +992,7 @@ CONTAINS
       !> maximum |G| to consider (default: infinity)
       real(dp), optional, intent(in) :: gmax
 
-      real(dp), parameter :: eps = 1.d-12
+      real(dp), parameter :: eps = 1.0e-12_dp
 
       integer :: i, ig, n, ivg(3)
       real(dp) :: gm
@@ -1037,12 +1052,12 @@ CONTAINS
         type(Gk_set), intent(OUT) :: self
         type(k_set),  intent(IN)  :: kset
         type(G_set),  intent(IN)  :: Gset
-        real(8),      intent(IN)  :: gkmax
+        real(dp),      intent(IN)  :: gkmax
 
         ! local variables
         integer :: ispn, ik, ig, igp, igmax
         logical :: fg0
-        real(8) :: v(3), t1
+        real(dp) :: v(3), t1
         integer, allocatable :: igk2ig(:,:,:), ig2igk(:,:,:)
 
         ! Reset self
@@ -1054,7 +1069,7 @@ CONTAINS
         ! If gkmax == 0, then instead of no vectors construct
         ! those for G=0 only
         fg0 = .false.
-        if(gkmax <= 0.0d0) fg0 = .true.
+        if(gkmax <= 0.0_dp) fg0 = .true.
 
         !!  Reduced (potentially) k-set
 
@@ -1131,7 +1146,7 @@ CONTAINS
               ! index to G-vector
               self%igkig(igp,ispn,ik) = ig
               ! G+k-vector in lattice coordinates
-              self%vgkl(:,igp,ispn,ik) = dble(Gset%ivg(:,ig))+kset%vkl(:,ik)
+              self%vgkl(:,igp,ispn,ik) = real(Gset%ivg(:,ig), kind=dp) + kset%vkl(:,ik)
               ! G+k-vector in Cartesian coordinates
               self%vgkc(:,igp,ispn,ik) = Gset%vgc(:,ig)+kset%vkc(:,ik)
               ! G+k-vector length and (theta, phi) coordinates
@@ -1197,10 +1212,10 @@ CONTAINS
           allocate(self%igknrig(self%ngknrmax,nspnfv,kset%nkptnr), source=0)
 
           ! Lattice coordinates of G+k(ig(iknr), ispin, iknr)
-          allocate(self%vgknrl(3,self%ngknrmax,nspnfv,kset%nkptnr), source=0._dp)
+          allocate(self%vgknrl(3,self%ngknrmax,nspnfv,kset%nkptnr), source=0.0_dp)
 
           ! Cartesian coordinates of G+knr(ig(iknr), ispin, iknr)
-          allocate(self%vgknrc(3,self%ngknrmax,nspnfv,kset%nkptnr), source=0._dp)
+          allocate(self%vgknrc(3,self%ngknrmax,nspnfv,kset%nkptnr), source=0.0_dp)
 
           ! Length of G+k vector
           allocate(self%gknrc(self%ngknrmax,nspnfv,kset%nkptnr))
@@ -1222,7 +1237,7 @@ CONTAINS
                 ! index to G-vector
                 self%igknrig(igp,ispn,ik) = ig
                 ! G+k-vector in lattice coordinates
-                self%vgknrl(:,igp,ispn,ik) = dble(gset%ivg(:,ig))+kset%vklnr(:,ik)
+                self%vgknrl(:,igp,ispn,ik) = real(gset%ivg(:,ig), kind=dp) + kset%vklnr(:,ik)
                 ! G+k-vector in Cartesian coordinates
                 self%vgknrc(:,igp,ispn,ik) = gset%vgc(:,ig)+kset%vkcnr(:,ik)
                 ! G+k-vector length and (theta, phi) coordinates
@@ -1324,18 +1339,18 @@ CONTAINS
     subroutine generate_kq_vectors(self,bvec,ngridk,vkloff,reduce,uselibzint)
         implicit none
         type(kq_set), intent(OUT) :: self
-        real(8), intent(IN) :: bvec(3,3)
+        real(dp), intent(IN) :: bvec(3,3)
         integer, intent(IN) :: ngridk(3)
-        real(8), intent(IN) :: vkloff(3)
+        real(dp), intent(IN) :: vkloff(3)
         logical, intent(IN) :: reduce
         logical, intent(IN), optional :: uselibzint
 
         ! local variables
-        integer(4) :: ikloff(3)
-        integer(4) :: dkloff
-        integer(4) :: ik
-        integer(4) :: dvk, dvq
-        integer(4), allocatable :: ivk(:,:), ivq(:,:)
+        integer(i32) :: ikloff(3)
+        integer(i32) :: dkloff
+        integer(i32) :: ik
+        integer(i32) :: dvk, dvq
+        integer(i32), allocatable :: ivk(:,:), ivq(:,:)
         logical :: uselz
 
         ! Check optional input
@@ -1361,7 +1376,7 @@ CONTAINS
         allocate(self%wtet(self%ntet))
         allocate(self%kqid(self%nkpt,self%nkpt))
         allocate(self%linkq(self%ntet,self%nkpt))
-        self%tvol = 0.d0
+        self%tvol = 0.0_dp
 
         ! k-mesh shift
         !call factorize(3,vkloff,ikloff,dkloff) !<-- Libbzint routine
@@ -1385,9 +1400,9 @@ CONTAINS
         !
         ! fractional and cartesian coordinates
         do ik = 1, self%nkpt
-          self%vkl(:,ik) = dble(ivk(:,ik))/dble(dvk)
+          self%vkl(:,ik) = real(ivk(:,ik), kind=dp)  / real(dvk, kind=dp)
           call r3mv(bvec,self%vkl(:,ik),self%vkc(:,ik))
-          self%vql(:,ik) = dble(ivq(:,ik))/dble(dvq)
+          self%vql(:,ik) = real(ivq(:,ik), kind=dp) / real(dvq, kind=dp)
           call r3mv(bvec,self%vql(:,ik),self%vqc(:,ik))
         end do ! ik
         deallocate(ivk,ivq)
@@ -1402,23 +1417,23 @@ CONTAINS
         use modmain, only: nsymcrys, symlat, lsplsymc
         implicit none
         type(kq_set), intent(InOut) :: self
-        real(8), intent(IN) :: bvec(3,3)
+        real(dp), intent(IN) :: bvec(3,3)
         integer, intent(IN) :: ngridk(3)
-        real(8), intent(IN) :: vkloff(3)
+        real(dp), intent(IN) :: vkloff(3)
         logical,      intent(In)    :: reduce
         ! local variables
         integer :: iqp, ikp  ! q-, k-point indexes for IBZ
         integer :: ik, nqpt, nkptnr
         integer :: ip, jp, iv(3)
         integer :: isym, lspl, nsym
-        real(8) :: s(3,3), v1(3), v2(3), t1
-        real(8), allocatable :: vklq(:,:)
+        real(dp) :: s(3,3), v1(3), v2(3), t1
+        real(dp), allocatable :: vklq(:,:)
         integer, allocatable :: scmapq(:)
         integer, allocatable :: ivwrapq(:,:)
         integer, allocatable :: iwkpq(:)
         type(k_set) :: qpt
-        real(8), external :: r3taxi
-        real(8), parameter :: epslat=1.d-6
+        real(dp), external :: r3taxi
+        real(dp), parameter :: epslat=1.0e-6_dp
         ! total non-reduced number of k-points (shortcut)
         nkptnr = self%nkpt
         ! generate q-point set
@@ -1440,7 +1455,7 @@ CONTAINS
         self%nkptq(:) = 0
         if (allocated(self%wkptq)) deallocate(self%wkptq)
         allocate(self%wkptq(nkptnr,nqpt))
-        self%wkptq(:,:) = 0.d0
+        self%wkptq(:,:) = 0.0_dp
         if (allocated(self%ik2ikpq)) deallocate(self%ik2ikpq)
         allocate(self%ik2ikpq(nkptnr,nqpt))
         self%ik2ikpq(:,:) = 0
@@ -1484,7 +1499,7 @@ CONTAINS
             ! determine if this point is equivalent to that already in the set
             do isym = 1, self%nsymq(iqp)
               lspl = lsplsymc(scmapq(isym))
-              s(:,:) = dble(symlat(:,:,lspl))
+              s(:,:) = real(symlat(:,:,lspl), kind=dp)
               call r3mtv(s,v1,v2)
               call r3frac(epslat,v2,iv)
               do jp = 1, ip
@@ -1512,7 +1527,7 @@ CONTAINS
           !
           ! q-dependent k-point weight
           do ik = 1, self%nkptq(iqp)
-            self%wkptq(ik,iqp)=dble(iwkpq(ik))/dble(nkptnr)
+            self%wkptq(ik,iqp)=real(iwkpq(ik), kind=dp)/real(nkptnr, kind=dp)
           end do
           !
           ! Determine the index of the irreducible point in the non-reduced set
@@ -1546,6 +1561,7 @@ CONTAINS
 !-------------------------------------------------------------------------------
     subroutine delete_kq_vectors(self)
         type(kq_set), intent(INOUT) :: self
+
         if (allocated(self%vkl)) deallocate(self%vkl)
         if (allocated(self%vkc)) deallocate(self%vkc)
         if (allocated(self%vql)) deallocate(self%vql)
@@ -1574,11 +1590,11 @@ CONTAINS
         write(funit,*) 'Total number of k/q-points:', self%nkpt
         write(funit,*) 'k-vectors list:  < ik    vkl    vkc    weight >'
         do ik = 1, self%nkpt
-          write(funit,104) ik, self%vkl(1:3,ik), self%vkc(1:3,ik), 1.d0/dble(self%nkpt)
+          write(funit,104) ik, self%vkl(1:3,ik), self%vkc(1:3,ik), 1.0_dp/real(self%nkpt, kind=dp)
         enddo
         write(funit,*) 'q-vectors list:  < iq    vql    vqc    weight >'
         do ik = 1, self%nkpt
-          write(funit,104) ik, self%vql(1:3,ik), self%vqc(1:3,ik), 1.d0/dble(self%nkpt)
+          write(funit,104) ik, self%vql(1:3,ik), self%vqc(1:3,ik), 1.0_dp/real(self%nkpt, kind=dp)
         enddo
         104 format(i4,4x,3f8.4,4x,3f8.4,4x,f8.4)
         write(funit,*)
@@ -1643,15 +1659,15 @@ CONTAINS
         use sorting, only: sortidx
         type(kkqmt_set), intent(OUT) :: self
         type(g_set), intent(in) :: gset
-        real(8), intent(IN) :: bvec(3,3)
+        real(dp), intent(IN) :: bvec(3,3)
         integer, intent(IN) :: ngridk(3)
-        real(8), intent(IN) :: vkloff(3)
+        real(dp), intent(IN) :: vkloff(3)
         logical, intent(IN) :: reduce ! apply symmetry to reduce k-set
-        real(8), intent(IN) :: veclqmt(3)
+        real(dp), intent(IN) :: veclqmt(3)
         logical, intent(IN), optional :: uselibzint
 
-        real(8), parameter :: epslat=1.d-6
-        real(8) :: v1(3), vkloff_kqmt(3)
+        real(dp), parameter :: epslat=1.0e-6_dp
+        real(dp) :: v1(3), vkloff_kqmt(3)
         integer :: iv(3), idxnr, ik
         logical :: uselz
 
@@ -1686,7 +1702,7 @@ CONTAINS
         call r3frac(epslat, self%vqmtl_q, self%vqmtl_g)
         ! Get Cartesian coordinates
         call r3mv(bvec, self%vqmtl_q, self%vqmtc_q)
-        call r3mv(bvec, dble(self%vqmtl_g), self%vqmtc_g)
+        call r3mv(bvec, real(self%vqmtl_g, kind=dp), self%vqmtc_g)
 
         ! Generate k-set
         call generate_k_vectors(self%kset, bvec, ngridk, vkloff, reduce, uselibzint=uselz)
@@ -1698,7 +1714,7 @@ CONTAINS
         ! Check origin of shifted k-grid
         !   Shifted k-grid origin vector is outside [0,1) unit cell
         v1 = vkloff/ngridk + self%vqmtl_q
-        if(any(v1 .ge. 1.d0)) then
+        if(any(v1 .ge. 1.0_dp)) then
           ! Replace v1 with corresponding vector in unit cell
           ! and discard shifting G vector
           call r3frac(epslat, v1, iv)
@@ -1706,12 +1722,12 @@ CONTAINS
           vkloff_kqmt = v1*ngridk
           ! Get corresponding vector in first k-parallelepiped
           ! (The components of vkloff should be in [0,1) )
-          if(any(vkloff_kqmt .ge. 1.d0)) then
+          if(any(vkloff_kqmt .ge. 1.0_dp)) then
             call r3frac(epslat, vkloff_kqmt, iv)
           end if
         !   Shifted k-grid origin vector is inside [0,1) unit cell
         !   but not within first k-parallelepiped
-        else if(any(v1*ngridk .ge. 1.d0)) then
+        else if(any(v1*ngridk .ge. 1.0_dp)) then
           vkloff_kqmt = v1*ngridk
           call r3frac(epslat, vkloff_kqmt, iv)
         !   Shifted k-grid origin vector is inside first k-parallelepiped
@@ -1744,7 +1760,7 @@ CONTAINS
 
         ! Build map ikqnr --> iknr
         allocate(self%ikqmt2ik_nr(self%kqmtset%nkptnr))
-        call sortidx(self%kqmtset%nkptnr, dble(self%ik2ikqmt_nr),self%ikqmt2ik_nr)
+        call sortidx(self%kqmtset%nkptnr, real(self%ik2ikqmt_nr, kind=dp),self%ikqmt2ik_nr)
 
         ! Build map ik --> ikq
         allocate(self%ik2ikqmt(self%kset%nkpt))
@@ -1846,8 +1862,8 @@ CONTAINS
         type(km_set), intent(OUT) :: self
         type(k_set), intent(IN) :: kset
 
-        real(8), parameter :: epslat=1.d-6
-        real(8) :: v1(3), vkloff_km(3)
+        real(dp), parameter :: epslat=1.0e-6_dp
+        real(dp) :: v1(3), vkloff_km(3)
         integer :: iv(3), idxnr, idxr, ik
 
         ! Clear self
@@ -1864,7 +1880,7 @@ CONTAINS
 
         ! Check origin of shifted k-grid
         !   Shifted k-grid origin vector is outside [0,1) unit cell
-        if(any(v1 .ge. 1.d0)) then
+        if(any(v1 .ge. 1.0_dp)) then
           ! Replace v1 with corresponding vector in unit cell
           ! and discard shifting G vector
           call r3frac(epslat, v1, iv)
@@ -1872,12 +1888,12 @@ CONTAINS
           vkloff_km = v1*kset%ngridk
           ! Get corresponding vector in first k-parallelepiped
           ! (The components of vkloff should be in [0,1) )
-          if(any(vkloff_km .ge. 1.d0)) then
+          if(any(vkloff_km .ge. 1.0_dp)) then
             call r3frac(epslat, vkloff_km, iv)
           end if
         !   Shifted k-grid origin vector is inside [0,1) unit cell
         !   but not within first k-parallelepiped
-        else if(any(v1*kset%ngridk .ge. 1.d0)) then
+        else if(any(v1*kset%ngridk .ge. 1.0_dp)) then
           vkloff_km = v1*kset%ngridk
           call r3frac(epslat, vkloff_km, iv)
         !   Shifted k-grid origin vector is inside first k-parallelepiped
@@ -1908,7 +1924,7 @@ CONTAINS
 
         ! Build map ikmnr --> iknr
         allocate(self%ikm2ik_nr(self%kset%nkptnr))
-        call sortidx(self%kset%nkptnr, dble(self%ik2ikm_nr),self%ikm2ik_nr)
+        call sortidx(self%kset%nkptnr, real(self%ik2ikm_nr, kind=dp),self%ikm2ik_nr)
 
         ! Build map ik --> ikm
         allocate(self%ik2ikm(kset%nkpt))
@@ -1984,9 +2000,9 @@ CONTAINS
         type(g_set), intent(IN) :: gset
         logical, intent(IN) :: reduceq
 
-        real(8) :: delta_vkloff(3), vql(3), vkpl(3)
-        real(8), parameter :: epslat=1.d-6
-        integer(4) :: ivg(3), iv(3), ik, ikp, iq, nkkp, ikkp
+        real(dp) :: delta_vkloff(3), vql(3), vkpl(3)
+        real(dp), parameter :: epslat=1.0e-6_dp
+        integer(i32) :: ivg(3), iv(3), ik, ikp, iq, nkkp, ikkp
 
         ! Libzint not supported rigth now
         if(kpset%usedlibzint .eqv. .true. .or. kset%usedlibzint .eqv. .true.) then
@@ -2085,7 +2101,7 @@ CONTAINS
 
         ! Make q-ordered ikkp list
         allocate(self%ikkp_qordered(nkkp))
-        call sortidx(nkkp, dble(self%ikkp2iq_nr), self%ikkp_qordered)
+        call sortidx(nkkp, real(self%ikkp2iq_nr, kind=dp), self%ikkp_qordered)
 
     end subroutine generate_q_vectors
 
@@ -2118,9 +2134,9 @@ CONTAINS
         type(q_set), intent(in) :: self
         type(k_set), intent(in) :: kset, kpset
         type(g_set), intent(in) :: gset
-        integer(4), intent(in) :: funit
+        integer(i32), intent(in) :: funit
 
-        integer(4) :: ik, ikp, iq, ikkp, nkkp, i
+        integer(i32) :: ik, ikp, iq, ikkp, nkkp, i
 
         ! Sanity checks
         if(self%qset%nkptnr /= kset%nkptnr .or. self%qset%nkptnr /= kpset%nkptnr) then
@@ -2225,9 +2241,9 @@ CONTAINS
         type(g_set), intent(IN) :: gset
         logical, intent(IN) :: reducep
 
-        real(8) :: delta_vkloff(3), vpl(3), vkpl(3)
-        real(8), parameter :: epslat=1.d-6
-        integer(4) :: ivg(3), iv(3), ik, ikp, ip
+        real(dp) :: delta_vkloff(3), vpl(3), vkpl(3)
+        real(dp), parameter :: epslat=1.0e-6_dp
+        integer(i32) :: ivg(3), iv(3), ik, ikp, ip
 
         ! Libzint not supported right now
         if(kpset%usedlibzint .eqv. .true. .or. kset%usedlibzint .eqv. .true.) then
@@ -2337,9 +2353,9 @@ CONTAINS
         type(p_set), intent(in) :: self
         type(k_set), intent(in) :: kset, kpset
         type(g_set), intent(in) :: gset
-        integer(4), intent(in) :: funit
+        integer(i32), intent(in) :: funit
 
-        integer(4) :: ik, ikp, ip
+        integer(i32) :: ik, ikp, ip
 
         ! Sanity checks
         if(self%pset%nkptnr /= kset%nkptnr .or. self%pset%nkptnr /= kpset%nkptnr) then
@@ -2398,12 +2414,12 @@ CONTAINS
     subroutine igkshift(gkset, gset, ik, igshift, igk2igkp)
       type(Gk_set), intent(in) :: gkset
       type(G_set), intent(in) :: gset
-      integer(4), intent(in) :: ik, igshift
-      integer(4), intent(out) :: igk2igkp(:)
+      integer(i32), intent(in) :: ik, igshift
+      integer(i32), intent(out) :: igk2igkp(:)
 
-      integer(4) :: ivgshift(3), igk, igkp, ig, igp, ivg(3), ivgp(3)
-      integer(4) :: igmax, nkmax, igigkmax
-      integer(4), parameter :: ispin = 1
+      integer(i32) :: ivgshift(3), igk, igkp, ig, igp, ivg(3), ivgp(3)
+      integer(i32) :: igmax, nkmax, igigkmax
+      integer(i32), parameter :: ispin = 1
 
       igmax = size(gset%ivg,2)
       igigkmax = size(gkset%igigk,1)
@@ -2478,17 +2494,17 @@ CONTAINS
     subroutine ikpik2iqivgnr(fplus, ikpnr, iknr, vkploff, vkloff, ngridk, iqnr, ivg)
 
       logical, intent(in) :: fplus
-      integer(4), intent(in) :: ikpnr, iknr
-      real(8), intent(in) :: vkploff(3), vkloff(3)
-      integer(4), intent(in) :: ngridk(3)
+      integer(i32), intent(in) :: ikpnr, iknr
+      real(dp), intent(in) :: vkploff(3), vkloff(3)
+      integer(i32), intent(in) :: ngridk(3)
 
-      integer(4), intent(out) :: iqnr, ivg(3)
+      integer(i32), intent(out) :: iqnr, ivg(3)
 
-      integer(4) :: j
-      integer(4) :: ivknr(3), ivkpnr(3), ivqnr(3)
-      integer(4) :: ishift(3)
-      real(8) :: vqloff(3)
-      real(8), parameter :: epslat=1.d-6
+      integer(i32) :: j
+      integer(i32) :: ivknr(3), ivkpnr(3), ivqnr(3)
+      integer(i32) :: ishift(3)
+      real(dp) :: vqloff(3)
+      real(dp), parameter :: epslat=1.0e-6_dp
 
       ! Note: vkloff and vkploff are assumed to be given in k-coordinates,
       !       positive and smaller than 1 elementwise.
@@ -2536,10 +2552,10 @@ CONTAINS
       contains
 
         pure function i3dnr(i, n)
-          integer(4) :: i3dnr(3)
-          integer(4), intent(in) :: i
-          integer(4), intent(in) :: n(3)
-          integer(4) :: t
+          integer(i32) :: i3dnr(3)
+          integer(i32), intent(in) :: i
+          integer(i32), intent(in) :: n(3)
+          integer(i32) :: t
           t = i-1
           i3dnr(3) = t/(n(2)*n(1))
           t = t-i3dnr(3)*n(2)*n(1)
@@ -2548,14 +2564,456 @@ CONTAINS
         end function i3dnr
 
         pure function i1dnr(iv, n)
-          integer(4) :: i1dnr
-          integer(4), intent(in) :: iv(3)
-          integer(4), intent(in) :: n(3)
-          i1dnr = iv(1) + iv(2)*n(1) + iv(3)*n(2)*n(3) + 1
+          integer(i32) :: i1dnr
+          integer(i32), intent(in) :: iv(3)
+          integer(i32), intent(in) :: n(3)
+          i1dnr = iv(1) + iv(2)*n(1) + iv(3)*n(2)*n(1) + 1
         end function i1dnr
 
     end subroutine ikpik2iqivgnr
 
+    subroutine map_to_device_kset(this)
 
+      use mod_device_offload, only: device_world
+      use iso_c_binding,   only: c_loc, c_intptr_t
+
+      class(k_set), target, intent(inout) :: this
+      integer(c_intptr_t)                 :: address
+      character(str_256)                  :: address_tag
+
+      address = int(loc(this), kind = c_intptr_t)
+      write(address_tag, *) address
+
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%nkptnr"     , bytes_size(this%nkptnr     ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%nkpt"       , bytes_size(this%nkpt       ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%isreduced"  , bytes_size(this%isreduced  ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%usedlibzint", bytes_size(this%usedlibzint), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%bvec"       , bytes_size(this%bvec       ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%vkloff"     , bytes_size(this%vkloff     ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%ngridk"     , bytes_size(this%ngridk     ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%ivk"        , bytes_size(this%ivk        ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%vkl"        , bytes_size(this%vkl        ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%vkc"        , bytes_size(this%vkc        ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%wkpt"       , bytes_size(this%wkpt       ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%ivknr"      , bytes_size(this%ivknr      ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%vklnr"      , bytes_size(this%vklnr      ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%vkcnr"      , bytes_size(this%vkcnr      ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%wkptnr"     , bytes_size(this%wkptnr     ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%ikmap"      , bytes_size(this%ikmap      ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%ikmapnr"    , bytes_size(this%ikmapnr    ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%ik2ikp"     , bytes_size(this%ik2ikp     ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%ikp2ik"     , bytes_size(this%ikp2ik     ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%ntet"       , bytes_size(this%ntet       ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%tnodes"     , bytes_size(this%tnodes     ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%wtet"       , bytes_size(this%wtet       ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%tvol"       , bytes_size(this%tvol       ), device_world%get_device())
+
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%nkptnr"     ,  c_loc(this%nkptnr     ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%nkpt"       ,  c_loc(this%nkpt       ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%isreduced"  ,  c_loc(this%isreduced  ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%usedlibzint",  c_loc(this%usedlibzint))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%bvec"       ,  c_loc(this%bvec       ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%vkloff"     ,  c_loc(this%vkloff     ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%ngridk"     ,  c_loc(this%ngridk     ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%ivk"        ,  c_loc(this%ivk        ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%vkl"        ,  c_loc(this%vkl        ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%vkc"        ,  c_loc(this%vkc        ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%wkpt"       ,  c_loc(this%wkpt       ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%ivknr"      ,  c_loc(this%ivknr      ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%vklnr"      ,  c_loc(this%vklnr      ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%vkcnr"      ,  c_loc(this%vkcnr      ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%wkptnr"     ,  c_loc(this%wkptnr     ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%ikmap"      ,  c_loc(this%ikmap      ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%ikmapnr"    ,  c_loc(this%ikmapnr    ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%ik2ikp"     ,  c_loc(this%ik2ikp     ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%ikp2ik"     ,  c_loc(this%ikp2ik     ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%ntet"       ,  c_loc(this%ntet       ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%tnodes"     ,  c_loc(this%tnodes     ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%wtet"       ,  c_loc(this%wtet       ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%tvol"       ,  c_loc(this%tvol       ))
+
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%nkptnr"     )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%nkpt"       )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%isreduced"  )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%usedlibzint")
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%bvec"       )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%vkloff"     )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%ngridk"     )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%ivk"        )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%vkl"        )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%vkc"        )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%wkpt"       )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%ivknr"      )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%vklnr"      )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%vkcnr"      )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%wkptnr"     )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%ikmap"      )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%ikmapnr"    )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%ik2ikp"     )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%ikp2ik"     )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%ntet"       )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%tnodes"     )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%wtet"       )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%tvol"       )
+
+  end subroutine map_to_device_kset
+
+  subroutine map_delete_device_kset(this)
+
+      use mod_device_offload, only: device_world
+      use iso_c_binding,   only: c_intptr_t
+
+      class(k_set), target, intent(inout) :: this
+      integer(c_intptr_t)                 :: address
+      character(str_256)                  :: address_tag
+
+      address = int(loc(this), kind = c_intptr_t)
+      write(address_tag, *) address
+
+      call device_world%register%remove(trim(adjustl(address_tag))//"%nkptnr"     )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%nkpt"       )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%isreduced"  )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%usedlibzint")
+      call device_world%register%remove(trim(adjustl(address_tag))//"%bvec"       )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%vkloff"     )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%ngridk"     )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%ivk"        )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%vkl"        )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%vkc"        )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%wkpt"       )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%ivknr"      )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%vklnr"      )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%vkcnr"      )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%wkptnr"     )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%ikmap"      )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%ikmapnr"    )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%ik2ikp"     )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%ikp2ik"     )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%ntet"       )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%tnodes"     )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%wtet"       )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%tvol"       )
+
+  end subroutine map_delete_device_kset
+
+  subroutine map_to_device_Gset(this)
+
+      use mod_device_offload, only: device_world
+      use iso_c_binding,   only: c_intptr_t, c_loc
+
+      class(G_set), target, intent(inout) :: this
+      integer(c_intptr_t)                 :: address
+      character(str_256)                  :: address_tag
+
+      address = int(loc(this), kind = c_intptr_t)
+      write(address_tag, *) address
+
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%gmaxvr" , bytes_size(this%gmaxvr ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%bvec"   , bytes_size(this%bvec   ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%ngrtot" , bytes_size(this%ngrtot ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%intgv"  , bytes_size(this%intgv  ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%voff"   , bytes_size(this%voff   ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%ngvec"  , bytes_size(this%ngvec  ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%vgc"    , bytes_size(this%vgc    ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%gc"     , bytes_size(this%gc     ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%ivg"    , bytes_size(this%ivg    ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%ivgig"  , bytes_size(this%ivgig  ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%ngrid"  , bytes_size(this%ngrid  ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%igfft"  , bytes_size(this%igfft  ), device_world%get_device())
+
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%gmaxvr" , c_loc(this%gmaxvr ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%bvec"   , c_loc(this%bvec   ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%ngrtot" , c_loc(this%ngrtot ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%intgv"  , c_loc(this%intgv  ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%voff"   , c_loc(this%voff   ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%ngvec"  , c_loc(this%ngvec  ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%vgc"    , c_loc(this%vgc    ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%gc"     , c_loc(this%gc     ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%ivg"    , c_loc(this%ivg    ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%ivgig"  , c_loc(this%ivgig  ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%ngrid"  , c_loc(this%ngrid  ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%igfft"  , c_loc(this%igfft  ))
+
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%gmaxvr" )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%bvec"   )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%ngrtot" )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%intgv"  )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%voff"   )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%ngvec"  )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%vgc"    )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%gc"     )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%ivg"    )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%ivgig"  )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%ngrid"  )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%igfft"  )
+
+  end subroutine map_to_device_Gset
+
+  subroutine map_delete_device_Gset(this)
+
+      use mod_device_offload, only: device_world
+      use iso_c_binding,   only: c_intptr_t, c_loc
+
+      class(G_set), target, intent(inout) :: this
+      integer(c_intptr_t)                 :: address
+      character(str_256)                  :: address_tag
+
+      address = int(loc(this), kind = c_intptr_t)
+      write(address_tag, *) address
+
+      call device_world%register%remove(trim(adjustl(address_tag))//"%gmaxvr" )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%bvec"   )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%ngrtot" )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%intgv"  )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%voff"   )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%ngvec"  )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%vgc"    )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%gc"     )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%ivg"    )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%ivgig"  )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%ngrid"  )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%igfft"  )
+
+  end subroutine map_delete_device_Gset
+
+  subroutine map_to_device_Gkset(this)
+
+      use mod_device_offload, only: device_world
+      use iso_c_binding,   only: c_intptr_t, c_loc
+
+      class(Gk_set), target, intent(inout) :: this
+      integer(c_intptr_t)                 :: address
+      character(str_256)                  :: address_tag
+
+      address = int(loc(this), kind = c_intptr_t)
+      write(address_tag, *) address
+
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%gkmax"   ,  bytes_size(this%gkmax    ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%ngkmax"  ,  bytes_size(this%ngkmax   ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%ngk"     ,  bytes_size(this%ngk      ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%igkig"   ,  bytes_size(this%igkig    ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%igigk"   ,  bytes_size(this%igigk    ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%vgkl"    ,  bytes_size(this%vgkl     ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%vgkc"    ,  bytes_size(this%vgkc     ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%gkc"     ,  bytes_size(this%gkc      ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%tpgkc"   ,  bytes_size(this%tpgkc    ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%sfacgk"  ,  bytes_size(this%sfacgk   ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%ngknrmax",  bytes_size(this%ngknrmax ), device_world%get_device())
+
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%gkmax"   ,  c_loc(this%gkmax    ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%ngkmax"  ,  c_loc(this%ngkmax   ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%ngk"     ,  c_loc(this%ngk      ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%igkig"   ,  c_loc(this%igkig    ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%igigk"   ,  c_loc(this%igigk    ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%vgkl"    ,  c_loc(this%vgkl     ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%vgkc"    ,  c_loc(this%vgkc     ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%gkc"     ,  c_loc(this%gkc      ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%tpgkc"   ,  c_loc(this%tpgkc    ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%sfacgk"  ,  c_loc(this%sfacgk   ))
+
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%gkmax"   )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%ngkmax"  )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%ngk"     )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%igkig"   )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%igigk"   )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%vgkl"    )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%vgkc"    )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%gkc"     )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%tpgkc"   )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%sfacgk"  )
+
+      ! If non-reduced quantities exist map them
+      if (allocated(this%ngknr)) then
+
+          call device_world%register%alloc(trim(adjustl(address_tag))//"%ngknr"   ,  bytes_size(this%ngknr    ), device_world%get_device())
+          call device_world%register%alloc(trim(adjustl(address_tag))//"%igknrig" ,  bytes_size(this%igknrig  ), device_world%get_device())
+          call device_world%register%alloc(trim(adjustl(address_tag))//"%igigknr" ,  bytes_size(this%igigknr  ), device_world%get_device())
+          call device_world%register%alloc(trim(adjustl(address_tag))//"%vgknrl"  ,  bytes_size(this%vgknrl   ), device_world%get_device())
+          call device_world%register%alloc(trim(adjustl(address_tag))//"%vgknrc"  ,  bytes_size(this%vgknrc   ), device_world%get_device())
+          call device_world%register%alloc(trim(adjustl(address_tag))//"%gknrc"   ,  bytes_size(this%gknrc    ), device_world%get_device())
+          call device_world%register%alloc(trim(adjustl(address_tag))//"%tpgknrc" ,  bytes_size(this%tpgknrc  ), device_world%get_device())
+          call device_world%register%alloc(trim(adjustl(address_tag))//"%sfacgknr",  bytes_size(this%sfacgknr ), device_world%get_device())
+
+          call device_world%register%assoc(trim(adjustl(address_tag))//"%ngknrmax",  c_loc(this%ngknrmax ))
+          call device_world%register%assoc(trim(adjustl(address_tag))//"%ngknr"   ,  c_loc(this%ngknr    ))
+          call device_world%register%assoc(trim(adjustl(address_tag))//"%igknrig" ,  c_loc(this%igknrig  ))
+          call device_world%register%assoc(trim(adjustl(address_tag))//"%igigknr" ,  c_loc(this%igigknr  ))
+          call device_world%register%assoc(trim(adjustl(address_tag))//"%vgknrl"  ,  c_loc(this%vgknrl   ))
+          call device_world%register%assoc(trim(adjustl(address_tag))//"%vgknrc"  ,  c_loc(this%vgknrc   ))
+          call device_world%register%assoc(trim(adjustl(address_tag))//"%gknrc"   ,  c_loc(this%gknrc    ))
+          call device_world%register%assoc(trim(adjustl(address_tag))//"%tpgknrc" ,  c_loc(this%tpgknrc  ))
+          call device_world%register%assoc(trim(adjustl(address_tag))//"%sfacgknr",  c_loc(this%sfacgknr ))
+
+          call device_world%register%to_device(trim(adjustl(address_tag))//"%ngknrmax")
+          call device_world%register%to_device(trim(adjustl(address_tag))//"%ngknr"   )
+          call device_world%register%to_device(trim(adjustl(address_tag))//"%igknrig" )
+          call device_world%register%to_device(trim(adjustl(address_tag))//"%igigknr" )
+          call device_world%register%to_device(trim(adjustl(address_tag))//"%vgknrl"  )
+          call device_world%register%to_device(trim(adjustl(address_tag))//"%vgknrc"  )
+          call device_world%register%to_device(trim(adjustl(address_tag))//"%gknrc"   )
+          call device_world%register%to_device(trim(adjustl(address_tag))//"%tpgknrc" )
+          call device_world%register%to_device(trim(adjustl(address_tag))//"%sfacgknr")
+
+      end if
+
+  end subroutine map_to_device_Gkset
+
+  subroutine map_delete_device_Gkset(this)
+
+      use mod_device_offload, only: device_world
+      use iso_c_binding,   only: c_intptr_t
+
+      class(Gk_set), target, intent(inout) :: this
+      integer(c_intptr_t)                  :: address
+      character(str_256)                   :: address_tag
+
+      address = int(loc(this), kind = c_intptr_t)
+      write(address_tag, *) address
+
+      call device_world%register%remove(trim(adjustl(address_tag))//"%gkmax"   )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%ngkmax"  )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%ngk"     )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%igkig"   )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%igigk"   )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%vgkl"    )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%vgkc"    )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%gkc"     )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%tpgkc"   )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%sfacgk"  )
+
+      if (allocated(this%ngknr)) then
+
+        call device_world%register%remove(trim(adjustl(address_tag))//"%ngknrmax")
+        call device_world%register%remove(trim(adjustl(address_tag))//"%ngknr"   )
+        call device_world%register%remove(trim(adjustl(address_tag))//"%igknrig" )
+        call device_world%register%remove(trim(adjustl(address_tag))//"%igigknr" )
+        call device_world%register%remove(trim(adjustl(address_tag))//"%vgknrl"  )
+        call device_world%register%remove(trim(adjustl(address_tag))//"%vgknrc"  )
+        call device_world%register%remove(trim(adjustl(address_tag))//"%gknrc"   )
+        call device_world%register%remove(trim(adjustl(address_tag))//"%tpgknrc" )
+        call device_world%register%remove(trim(adjustl(address_tag))//"%sfacgknr")
+
+      end if
+
+  end subroutine map_delete_device_Gkset
+
+  subroutine map_to_device_kqset(this)
+
+      use mod_device_offload, only: device_world
+      use iso_c_binding,   only: c_intptr_t, c_loc
+
+      class(kq_set), target, intent(inout) :: this
+      integer(c_intptr_t)                  :: address
+      character(str_256)                   :: address_tag
+
+      address = int(loc(this), kind = c_intptr_t)
+      write(address_tag, *) address
+
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%nkpt"     , bytes_size(this%nkpt     ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%vkl"      , bytes_size(this%vkl      ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%vkc"      , bytes_size(this%vkc      ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%vql"      , bytes_size(this%vql      ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%vqc"      , bytes_size(this%vqc      ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%ntet"     , bytes_size(this%ntet     ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%tnodes"   , bytes_size(this%tnodes   ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%wtet"     , bytes_size(this%wtet     ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%kqid"     , bytes_size(this%kqid     ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%linkq"    , bytes_size(this%linkq    ), device_world%get_device())
+      call device_world%register%alloc(trim(adjustl(address_tag))//"%tvol"     , bytes_size(this%tvol     ), device_world%get_device())
+      
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%nkpt"     , c_loc(this%nkpt     ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%vkl"      , c_loc(this%vkl      ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%vkc"      , c_loc(this%vkc      ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%vql"      , c_loc(this%vql      ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%vqc"      , c_loc(this%vqc      ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%ntet"     , c_loc(this%ntet     ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%tnodes"   , c_loc(this%tnodes   ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%wtet"     , c_loc(this%wtet     ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%kqid"     , c_loc(this%kqid     ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%linkq"    , c_loc(this%linkq    ))
+      call device_world%register%assoc(trim(adjustl(address_tag))//"%tvol"     , c_loc(this%tvol     ))
+      
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%nkpt"     )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%vkl"      )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%vkc"      )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%vql"      )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%vqc"      )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%ntet"     )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%tnodes"   )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%wtet"     )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%kqid"     )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%linkq"    )
+      call device_world%register%to_device(trim(adjustl(address_tag))//"%tvol"     )
+
+      ! If symmetry reduced also map the reduced elements
+      if (allocated(this%nsymq)) then
+
+          call device_world%register%alloc(trim(adjustl(address_tag))//"%nsymq"    , bytes_size(this%nsymq    ), device_world%get_device())
+          call device_world%register%alloc(trim(adjustl(address_tag))//"%nkptq"    , bytes_size(this%nkptq    ), device_world%get_device())
+          call device_world%register%alloc(trim(adjustl(address_tag))//"%wkptq"    , bytes_size(this%wkptq    ), device_world%get_device())
+          call device_world%register%alloc(trim(adjustl(address_tag))//"%iksymq"   , bytes_size(this%iksymq   ), device_world%get_device())
+          call device_world%register%alloc(trim(adjustl(address_tag))//"%ik2ikpq"  , bytes_size(this%ik2ikpq  ), device_world%get_device())
+          call device_world%register%alloc(trim(adjustl(address_tag))//"%ikp2ikq"  , bytes_size(this%ikp2ikq  ), device_world%get_device())
+          call device_world%register%alloc(trim(adjustl(address_tag))//"%nsymkstar", bytes_size(this%nsymkstar), device_world%get_device())
+          call device_world%register%alloc(trim(adjustl(address_tag))//"%isymkstar", bytes_size(this%isymkstar), device_world%get_device())
+
+          call device_world%register%assoc(trim(adjustl(address_tag))//"%nsymq"    , c_loc(this%nsymq    ))
+          call device_world%register%assoc(trim(adjustl(address_tag))//"%nkptq"    , c_loc(this%nkptq    ))
+          call device_world%register%assoc(trim(adjustl(address_tag))//"%wkptq"    , c_loc(this%wkptq    ))
+          call device_world%register%assoc(trim(adjustl(address_tag))//"%iksymq"   , c_loc(this%iksymq   ))
+          call device_world%register%assoc(trim(adjustl(address_tag))//"%ik2ikpq"  , c_loc(this%ik2ikpq  ))
+          call device_world%register%assoc(trim(adjustl(address_tag))//"%ikp2ikq"  , c_loc(this%ikp2ikq  ))
+          call device_world%register%assoc(trim(adjustl(address_tag))//"%nsymkstar", c_loc(this%nsymkstar))
+          call device_world%register%assoc(trim(adjustl(address_tag))//"%isymkstar", c_loc(this%isymkstar))
+
+          call device_world%register%to_device(trim(adjustl(address_tag))//"%nsymq"    )
+          call device_world%register%to_device(trim(adjustl(address_tag))//"%nkptq"    )
+          call device_world%register%to_device(trim(adjustl(address_tag))//"%wkptq"    )
+          call device_world%register%to_device(trim(adjustl(address_tag))//"%iksymq"   )
+          call device_world%register%to_device(trim(adjustl(address_tag))//"%ik2ikpq"  )
+          call device_world%register%to_device(trim(adjustl(address_tag))//"%ikp2ikq"  )
+          call device_world%register%to_device(trim(adjustl(address_tag))//"%nsymkstar")
+          call device_world%register%to_device(trim(adjustl(address_tag))//"%isymkstar")
+      end if
+
+  end subroutine map_to_device_kqset
+
+  subroutine map_delete_device_kqset(this)
+
+      use mod_device_offload, only: device_world
+      use iso_c_binding,   only: c_intptr_t
+
+      class(kq_set), target, intent(inout) :: this
+      integer(c_intptr_t)                  :: address
+      character(str_256)                   :: address_tag
+
+      address = int(loc(this), kind = c_intptr_t)
+      write(address_tag, *) address
+
+      call device_world%register%remove(trim(adjustl(address_tag))//"%nkpt"     )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%vkl"      )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%vkc"      )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%vql"      )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%vqc"      )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%ntet"     )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%tnodes"   )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%wtet"     )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%kqid"     )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%linkq"    )
+      call device_world%register%remove(trim(adjustl(address_tag))//"%tvol"     )
+      
+      ! If symmetry reduced also map the reduced elements
+      if (allocated(this%nsymq)) then
+        call device_world%register%remove(trim(adjustl(address_tag))//"%nsymq"    )
+        call device_world%register%remove(trim(adjustl(address_tag))//"%nkptq"    )
+        call device_world%register%remove(trim(adjustl(address_tag))//"%wkptq"    )
+        call device_world%register%remove(trim(adjustl(address_tag))//"%iksymq"   )
+        call device_world%register%remove(trim(adjustl(address_tag))//"%ik2ikpq"  )
+        call device_world%register%remove(trim(adjustl(address_tag))//"%ikp2ikq"  )
+        call device_world%register%remove(trim(adjustl(address_tag))//"%nsymkstar")
+        call device_world%register%remove(trim(adjustl(address_tag))//"%isymkstar")
+      end if
+
+  end subroutine map_delete_device_kqset
 
 END MODULE

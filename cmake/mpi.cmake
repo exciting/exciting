@@ -94,6 +94,18 @@ if(MPI)
             ERROR_VARIABLE  MPI_CONFIG_TEST_LOG_STR
     )
 
+    # If using spack, depending on the configuration one might require mpirun
+    # for the code to run
+    if (MPI_TEST_COMPILE_RESULT EQUAL 0 AND NOT MPI_TEST_RUN_RESULT EQUAL 0)
+        execute_process(
+                COMMAND mpirun -np 1 ./test_mpi_check
+                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/config_tests
+                RESULT_VARIABLE MPI_TEST_RUN_RESULT
+                OUTPUT_VARIABLE MPI_CONFIG_TEST_LOG_STR
+                ERROR_VARIABLE  MPI_CONFIG_TEST_LOG_STR
+        )
+    endif()
+
     # Save log
     file(APPEND "${MPI_CONFIG_TEST_LOG}" "${MPI_CONFIG_TEST_LOG_STR}\n")
 
