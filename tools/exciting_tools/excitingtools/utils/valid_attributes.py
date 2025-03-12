@@ -737,6 +737,8 @@ screening_attribute_types = {"do": (str, ["fromscratch", "skip"]),
                              "reducek": (bool, 1),
                              "rgkmax": (float, 1),
                              "screentype": (str, ["diag", "full", "longrange", "noinvdiag"]),
+                             "skipdoneq": (bool, 1),
+                             "terminate_if_size_is_wrong": (bool, 1),
                              "tr": (bool, 1),
                              "vkloff": (float, 3)} 
 

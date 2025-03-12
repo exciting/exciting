@@ -1367,6 +1367,22 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
+            
+            <xs:attribute ex:importance="experimental" ex:unit="" name="skipdoneq" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation> Set to <pre>"true"</pre> to skip the calculation for done q points.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="terminate_if_size_is_wrong" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation> If <attref>skipdoneq</attref> is <pre>"true"</pre> and <attref>terminate_if_size_is_wrong</attref> set to <pre>"true"</pre> and  exciting terminates 
+                with an error message if the size of the dielectric matrix file of a done q-point is not as expected. Else the q-point is recalculated and the file is overwritten.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
         

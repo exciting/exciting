@@ -223,7 +223,6 @@ subroutine dfq(iq)
      & procs=procs, rank=rank, filnam=fnchi0_t)
   end if
 
-
   ! Calculate k+q and G+k+q related variables
   ! by setting the offset generated from vkloff and the q point
   ! and then calling init1
