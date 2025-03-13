@@ -51,7 +51,7 @@ if(MKL AND SCALAPACK AND NOT CRAYLIBSCI)
     include_directories(${MKL_ROOT}/include/)
 
     # Find the SCALAPACK library provided by MKL.
-    find_library(SCALAPACK_LIB NAMES mkl_scalapack_lp64 HINTS ${MKL_ROOT}/lib)
+    find_library(SCALAPACK_LIB NAMES mkl_scalapack_lp64 HINTS ${MKL_ROOT}/lib ${MKL_ROOT}/lib/intel64/)
     message(STATUS "Using SCALAPACK from Intel MKL: ${SCALAPACK_LIB}")
 
     # Define a preprocessor macro to signal that SCALAPACK is enabled.

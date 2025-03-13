@@ -28,7 +28,9 @@ set(CMAKE_Fortran_LIB_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/modules)
 
 # Set install directory
-set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/install")
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set_property(CACHE CMAKE_INSTALL_PREFIX PROPERTY VALUE "${PROJECT_SOURCE_DIR}/install")
+endif()
 message(STATUS "Install directory: ${CMAKE_INSTALL_PREFIX}")
 
 # Option set if recompile the external projects

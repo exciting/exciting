@@ -77,7 +77,7 @@ elseif(OPENBLAS)
 elseif(CRAYLIBSCI)
     
     # Warning for LibSci. Some versions are unstable.
-    message(WARNING "Some versions  of multithreaded LibSci are known to produce garbage results. Please proceed with caution, and run the regression tests for exciting.")
+    message(WARNING "Some versions of multithreaded LibSci are known to produce garbage results. Please proceed with caution, and run the regression tests for exciting.")
     
     # Configure for AMD libraries
     if(NOT OMP AND NOT SCALAPACK)
