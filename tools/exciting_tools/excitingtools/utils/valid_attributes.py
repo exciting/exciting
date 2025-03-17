@@ -643,6 +643,7 @@ hole_valid_subtrees = ["plot1d", "plot2d", "plot3d"]
 electron_valid_subtrees = ["plot1d", "plot2d", "plot3d"] 
 
 realTimeTDDFT_attribute_types = {"TaylorOrder": (int, 1),
+                                 "basis": (str, ["LAPWlo", "unperturbedKS"]),
                                  "calcNonlocalCurrentDensity": (bool, 1),
                                  "calculateNExcitedElectrons": (bool, 1),
                                  "calculateTotalEnergy": (bool, 1),

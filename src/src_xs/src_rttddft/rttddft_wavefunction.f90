@@ -21,10 +21,10 @@ module rttddft_Wavefunction
 
   private
 
-  public :: obtain_occupations, obtain_projection_coefficients, update_basis_derivative
+  public :: initialize_wavefunction_set, obtain_occupations, obtain_projection_coefficients, update_basis_derivative
   
   !> Type for the set of wavefunctions expanded on a basis set
-  type, public :: wavefunction_set
+  type, public, abstract :: wavefunction_set
     !> Basis expansion coefficients of the frozen states
     complex(dp), allocatable :: frozen(:, :, :)
     !> Initial basis expansion coefficients of all states
@@ -35,9 +35,9 @@ module rttddft_Wavefunction
     complex(dp), allocatable :: active_save(:, :, :)
 
     contains
-      procedure :: initialize
+      procedure(initialize_), public, deferred :: initialize
       procedure :: normalize => normalize_wavefunctions
-      procedure :: has_frozen 
+      procedure :: has_frozen
       procedure :: save => save_wavefunctions
       procedure :: restore => restore_wavefunctions
       procedure :: n_kpts
@@ -47,46 +47,132 @@ module rttddft_Wavefunction
       procedure :: n_basis
       procedure :: n_empty
       procedure :: n_occupied
+      procedure :: expanded_in_lapwlo
   end type
+
+  !> Type to encapsulate the wavefunction set expanded in the LAPW+lo basis
+  type, extends (wavefunction_set) :: wavefunction_set_lapwlo_basis
+  contains
+    procedure :: initialize => initialize_set_in_lapwlo_basis
+  end type
+
+  !> Type to encapsulate the wavefunction set expanded in the KS basis
+  type, extends (wavefunction_set) :: wavefunction_set_ks_basis
+  contains
+    procedure :: initialize => initialize_set_in_ks_basis
+  end type
+
+  abstract interface
+    subroutine initialize_( this, save_needed, n_frozen_, complete_gnd_set_lapwlo, &
+        occupations, occs_tol )
+      import :: wavefunction_set, i32, dp
+      class(wavefunction_set), intent(inout) :: this
+      !> If `.true.`, active_save component should be allocated
+      logical, intent(in) :: save_needed
+      !> Number of the frozen states
+      integer(i32), intent(in) :: n_frozen_
+      !> Initial wavefunction set in the LAPW+lo basis, (n_basis, n_states, n_kpt)
+      complex(dp), contiguous, intent(in) :: complete_gnd_set_lapwlo(:, :, :)
+      !> State occupations array (n_states, n_kpt)
+      real(dp), contiguous, intent(in) :: occupations(:, :)
+      !> Minimal value of occupation for the state to be 'occupied'
+      real(dp), intent(in) :: occs_tol
+    end subroutine
+  end interface
 
 contains
 
-  !> Initialize the set from the ground state WFs expanded in LAWPlo basis
-  subroutine initialize( this, save_needed, n_frozen_, complete_gnd_set, occupations, occs_tol )
-    class(wavefunction_set), intent(inout) :: this
-    !> If `True`, active_save component should be accolated
+  !> Initializes the wavefunction set class ([[wavefunction_set]])
+  !> with a concrete type, depending on the basis set
+  subroutine initialize_wavefunction_set( psi, use_lapwo_basis, save_needed, n_frozen_, &
+      complete_gnd_set_lapwlo, occupations, occs_tol )
+    class(wavefunction_set), allocatable, intent(out) :: psi
+    !> Whether the LAPW+lo basis should be used
+    logical, intent(in) :: use_lapwo_basis
+    !> If `.true.`, active_save component should be allocated
     logical, intent(in) :: save_needed
     !> Number of the frozen states
     integer(i32), intent(in) :: n_frozen_
-    !> Initial wavefunction set, (n_basis, n_states, n_kpt)
-    complex(dp), contiguous, intent(in) :: complete_gnd_set(:, :, :)
+    !> Initial wavefunction set in the LAPW+lo basis, (n_basis, n_states, n_kpt)
+    complex(dp), contiguous, intent(in) :: complete_gnd_set_lapwlo(:, :, :)
     !> State occupations array (n_states, n_kpt)
     real(dp), contiguous, intent(in) :: occupations(:, :)
     !> Minimal value of occupation for the state to be 'occupied'
     real(dp), intent(in) :: occs_tol
 
-    integer :: last_occupied_for_current_rank, last_occupied, ik
+    if ( use_lapwo_basis ) then
+      allocate( wavefunction_set_lapwlo_basis :: psi )
+    else
+      allocate( wavefunction_set_ks_basis :: psi )      
+    end if
+    call psi%initialize( save_needed, n_frozen_, complete_gnd_set_lapwlo, occupations, occs_tol )
+  end subroutine
 
-    call assert( n_frozen_ <= size( complete_gnd_set, 2 ), &
+  !> Initialize the set from the ground state WFs expanded in LAWP+lo basis
+  subroutine initialize_set_in_lapwlo_basis( this, save_needed, n_frozen_, complete_gnd_set_lapwlo, &
+      occupations, occs_tol )
+    class(wavefunction_set_lapwlo_basis), intent(inout) :: this
+    !> If `.true.`, active_save component should be allocated
+    logical, intent(in) :: save_needed
+    !> Number of the frozen states
+    integer(i32), intent(in) :: n_frozen_
+    !> Initial wavefunction set in the LAPW+lo basis, (n_basis, n_states, n_kpt)
+    complex(dp), contiguous, intent(in) :: complete_gnd_set_lapwlo(:, :, :)
+    !> State occupations array (n_states, n_kpt)
+    real(dp), contiguous, intent(in) :: occupations(:, :)
+    !> Minimal value of occupation for the state to be 'occupied'
+    real(dp), intent(in) :: occs_tol
+
+    call assert( n_frozen_ <= size( complete_gnd_set_lapwlo, 2 ), &
       'n_frozen_ > n_states')
-    call assert( size( complete_gnd_set, 2 ) == size( occupations, 1 ), &
-      'complete_gnd_set and occupations have different n_states')
-    call assert( size( complete_gnd_set, 3 ) == size( occupations, 2 ), &
-      'complete_gnd_set and occupations have different n_kpts')
+    call assert( size( complete_gnd_set_lapwlo, 2 ) == size( occupations, 1 ), &
+      'complete_gnd_set_lapwlo and occupations have different n_states')
+    call assert( size( complete_gnd_set_lapwlo, 3 ) == size( occupations, 2 ), &
+      'complete_gnd_set_lapwlo and occupations have different n_kpts')
 
-    last_occupied_for_current_rank = -1
-    do ik = 1, size( occupations, 2 )
-      do last_occupied = 1, size( occupations, 1 )
-        if ( occupations(last_occupied, ik) < occs_tol ) exit
-      end do
-      last_occupied = last_occupied - 1
-      if ( last_occupied > last_occupied_for_current_rank ) last_occupied_for_current_rank = last_occupied
+    allocate( this%groundstate, source = complete_gnd_set_lapwlo )
+    allocate( this%active, source = complete_gnd_set_lapwlo(:, n_frozen_ + 1 : &
+      last_occupied_for_current_rank( occupations, occs_tol ), :) )
+    if ( save_needed ) allocate( this%active_save, source = this%active )
+    if ( n_frozen_ > 0 ) allocate( this%frozen, source = complete_gnd_set_lapwlo(:, 1 : n_frozen_, :) )
+
+  end subroutine
+
+  !> Initialize the set from the ground state WFs expanded in LAWP+lo basis
+  subroutine initialize_set_in_ks_basis( this, save_needed, n_frozen_, complete_gnd_set_lapwlo, &
+      occupations, occs_tol )
+    class(wavefunction_set_ks_basis), intent(inout) :: this
+    !> If `.true.`, active_save component should be allocated
+    logical, intent(in) :: save_needed
+    !> Number of the frozen states
+    integer(i32), intent(in) :: n_frozen_
+    !> Initial wavefunction set in the LAPW+lo basis, (n_basis, n_states, n_kpt)
+    complex(dp), contiguous, intent(in) :: complete_gnd_set_lapwlo(:, :, :)
+    !> State occupations array (n_states, n_kpt)
+    real(dp), contiguous, intent(in) :: occupations(:, :)
+    !> Minimal value of occupation for the state to be 'occupied'
+    real(dp), intent(in) :: occs_tol
+
+    integer :: n_gnd_states, i
+
+    n_gnd_states = size( complete_gnd_set_lapwlo, 2 )
+
+    call assert( n_frozen_ <= n_gnd_states, 'n_frozen_ > n_states')
+    call assert( n_gnd_states == size( occupations, 1 ), &
+      'complete_gnd_set_lapwlo and occupations have different n_states')
+    call assert( size( complete_gnd_set_lapwlo, 3 ) == size( occupations, 2 ), &
+      'complete_gnd_set_lapwlo and occupations have different n_kpts')
+
+    allocate( this%groundstate( n_gnd_states, n_gnd_states, &
+      size( complete_gnd_set_lapwlo, 3 ) ), source = zzero )
+    do i = 1, n_gnd_states
+      this%groundstate(i, i, :) = zone
     end do
 
-    allocate( this%groundstate, source = complete_gnd_set )
-    allocate( this%active, source = complete_gnd_set(:, n_frozen_ + 1 : last_occupied_for_current_rank, :) )
+    allocate( this%active, source = this%groundstate(:, n_frozen_ + 1 : &
+      last_occupied_for_current_rank( occupations, occs_tol ), :) )
     if ( save_needed ) allocate( this%active_save, source = this%active )
-    if ( n_frozen_ > 0 ) allocate( this%frozen, source = complete_gnd_set(:, 1 : n_frozen_, :) )
+    if ( n_frozen_ > 0 ) allocate( this%frozen, source = this%groundstate(:, 1 : n_frozen_, :) )
 
   end subroutine
 
@@ -110,7 +196,7 @@ contains
     class(wavefunction_set), intent(inout) :: this
     !> Overlap matrices of the basis functions
     complex(dp), intent(in) :: overlap_matrices(:, :, :)
-    !> If `True`, frozen, save, and ground components are also normalized
+    !> If `.true.`, frozen, save, and ground components are also normalized
     logical, optional, intent(in) :: normalize_all
 
     integer(i32) :: ik, nkpts
@@ -125,7 +211,7 @@ contains
     end do
 
     if ( normalize_all_ ) then
-
+      
       do ik = 1, nkpts
         call normalize_vectors( S=overlap_matrices(:, :, ik), vectors=this%groundstate(:, :, ik) )
       end do
@@ -144,6 +230,21 @@ contains
 
     end if
   end subroutine
+
+  !> Tells whether the set is expanded over the LAPW+lo basis
+  logical function expanded_in_lapwlo( this )
+    class(wavefunction_set), intent(in) :: this
+    
+    select type( this )
+    type is( wavefunction_set_lapwlo_basis )
+    expanded_in_lapwlo = .true.
+    type is( wavefunction_set_ks_basis )
+    expanded_in_lapwlo = .false.
+    class default
+      call assert( .false., 'unrecognized type passed to expanded_in_lapwlo' )
+    end select
+  end function
+
 
   !> Tells whether there are frozen states
   pure logical function has_frozen( this )
@@ -322,4 +423,23 @@ contains
       end do
     end associate
   end subroutine
+
+  !> Returns the index of the last occupied state for the current rank
+  pure integer function last_occupied_for_current_rank( occupations, occs_tol )
+    !> State occupations array (n_states, n_kpt)
+    real(dp), contiguous, intent(in) :: occupations(:, :)
+    !> Minimal value of occupation for the state to be 'occupied'
+    real(dp), intent(in) :: occs_tol
+
+    integer(i32) :: ik, i
+
+    last_occupied_for_current_rank = -1
+    do ik = 1, size( occupations, 2 )
+      do i = size( occupations, 1 ), 1, -1
+        if ( occupations(i, ik) > occs_tol ) exit
+      end do
+      if ( i > last_occupied_for_current_rank ) last_occupied_for_current_rank = i
+    end do
+
+  end function
 end module rttddft_Wavefunction

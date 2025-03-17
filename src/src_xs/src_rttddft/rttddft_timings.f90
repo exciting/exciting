@@ -1,6 +1,7 @@
 module rttddft_timings
   use MD, only: MD_timing
   use precision, only: dp
+  use asserts, only: assert
 
   implicit none
 
@@ -49,6 +50,8 @@ module rttddft_timings
     real(dp) :: charge
     !> timing: execution of `rhonorm`, see [[UpdateDensity]]
     real(dp) :: rhonorm
+    !> timing: execution of `from_ks_to_lapw`, see [[UpdateDensity]]
+    real(dp) :: basis
   contains
     procedure :: reset => reset_Timing_RTTDDFT_density
   end type 
@@ -76,6 +79,8 @@ module rttddft_timings
     !> timing: time spent after executing `hmlint` until the update of the 
     !> hamiltonian has been concluded, see [[UpdateHam]]
     real(dp) :: rest
+    !> timing: update of the overlap via execution of `update_overlap_lapw`, see [[UpdateHam]]
+    real(dp) :: overlap
   contains
     procedure :: reset => reset_Timing_RTTDDFT_hamiltonian
   end type 
@@ -102,6 +107,8 @@ module rttddft_timings
     real(dp) :: n_exc
     !> timing: time for obtaining a screenshot
     real(dp) :: screenshot
+    !> timing: time for print operations
+    real(dp) :: t_print
   contains
     procedure :: reset => reset_Timing_RTTDDFT
   end type
@@ -119,10 +126,11 @@ module rttddft_timings
 
 
 contains
-  pure subroutine set( this, general__, detailed__ )
+  subroutine set( this, general__, detailed__ )
     class(Print_Timings), intent(inout) :: this
     logical, intent(in) :: general__, detailed__
 
+    if ( detailed__ ) call assert( general__, "detailed timing requested with no general one" )
     this%general_ = general__
     this%detailed_ = detailed__
   end subroutine
@@ -168,6 +176,7 @@ contains
     this%energy = 0._dp
     this%n_exc = 0._dp
     this%screenshot = 0._dp
+    this%t_print = 0._dp
 
   end subroutine reset_Timing_RTTDDFT
 
@@ -190,6 +199,7 @@ contains
     this%addrhocr = 0._dp
     this%charge = 0._dp
     this%rhonorm = 0._dp
+    this%basis = 0._dp
   
   end subroutine reset_Timing_RTTDDFT_density
 
@@ -209,6 +219,7 @@ contains
     this%total = 0._dp
     this%hmlint = 0._dp
     this%rest = 0._dp
+    this%overlap = 0._dp
 
   end subroutine reset_Timing_RTTDDFT_hamiltonian
 

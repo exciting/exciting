@@ -196,7 +196,11 @@ contains
     !$OMP DO
     do ik = 1, n_kpt
       real_kpt = ik + first_kpt - 1
-      nmatp = nmat(1, real_kpt)
+      if ( psi%expanded_in_lapwlo() ) then
+        nmatp = nmat(1, real_kpt)
+      else
+        nmatp = psi%n_basis()
+      end if
       call hermitian_matrix_multiply( ham(:, :, ik), psi%active(:, :, ik), scratch, side='L', uplo='U' )
 
       do ist = 1, n_states
