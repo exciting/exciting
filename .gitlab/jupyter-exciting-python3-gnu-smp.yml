@@ -29,7 +29,7 @@ test-fedora-buster-gnu-smp-jupyter:
   - time jupyter nbconvert --execute 01_getting_started/03_tutorial_electronic_band_structure_and_density_of_states.ipynb --to markdown
   - time jupyter nbconvert --execute 01_getting_started/04_tutorial_understanding_the_exciting_species_files.ipynb --to markdown 
   - time jupyter nbconvert --execute 02_ground_state/01_Methods/01_tutorial_exchange_correlation_functionals.ipynb --to markdown
-  - time jupyter nbconvert --execute 02_ground_state/01_Methods/02_how_to_visualize_kohn_sham_states.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/02_tutorial_how_to_visualize_kohn_sham_states.ipynb --to markdown
   - time jupyter nbconvert --execute 02_ground_state/01_Methods/05_tutorial_hybrid_functional_calculations.ipynb --to markdown
   - time jupyter nbconvert --execute 02_ground_state/01_Methods/04_tutorial_spin_orbit_coupling.ipynb --to markdown
   - time jupyter nbconvert --execute 02_ground_state/01_Methods/03_tutorial_spin_polarized_calculations_for_bcc_Fe.ipynb --to markdown
