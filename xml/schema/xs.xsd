@@ -322,12 +322,12 @@
             <xs:annotation>
               <xs:documentation> 
                 'Screenshots' of the time evolution: these can be 
-                <ul>
+                <list>
                   <li>eigenvalues (see <elementRef>eigenvalues</elementRef>) </li>
                   <li>projection coefficients (see <elementRef>projectionCoefficients</elementRef>)</li>
                   <li>occupations (see <elementRef>occupations</elementRef>)</li>
                   <li>charge density (see <elementRef>density</elementRef>)</li>
-                </ul>
+                </list>
               </xs:documentation>
             </xs:annotation>
             <xs:complexType>
@@ -927,6 +927,25 @@
                 <xs:restriction base="xs:string">
                   <xs:enumeration value="aDFT"/>
                   <xs:enumeration value="IPA"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="basis" default="LAPWlo">
+              <xs:annotation>
+                <xs:documentation> Basis set used for expansion of the time-dependent Kohn-Sham 
+                  orbitals. Possible choices are:
+                  <list>
+                    <li>LAPWlo: global exciting basis;</li>
+                    <li>unperturbedKS: basis defined by the ground-state Kohn-Sham eigenfunctions (its size is 
+                    controlled by <attref parent="xs">nempty</attref> inside <elementRef>xs</elementRef>).</li>
+                  </list>
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="LAPWlo"/>
+                  <xs:enumeration value="unperturbedKS"/>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>

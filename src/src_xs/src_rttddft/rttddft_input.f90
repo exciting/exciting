@@ -19,6 +19,12 @@ module rttddft_input
     enumerator :: fromscratch, fromfile
   end enum
 
+  !> Enum with basis set
+  enum, bind(C)
+    enumerator :: basis_set
+    enumerator :: lapwlo, ks
+  end enum
+
   type :: screenshot_eigenvalues_keys
     !> If `.true.`, evaluate the eigenvalues when taking a screenshot
     logical :: on
@@ -133,8 +139,10 @@ module rttddft_input
     logical :: subtract_J0
     !> If `.true.`, write a restart file every `n_print` steps
     logical, private :: save_state
+    !> Identify which basis set will be used for the propagation (see [[basis_set]])
+    integer(kind( basis_set )), private :: basis_set
     !> Identify if which start mode is desired (see [[start_mode]])
-    integer(kind(start_mode)), private :: start_mode
+    integer(kind( start_mode )), private :: start_mode
     !> Format handler of the checkpoint (restart) files
     type(file_handler) :: restart_file_handler
   contains
@@ -142,6 +150,8 @@ module rttddft_input
     procedure :: write_restart => rttddft_input_keys_write_restart
     procedure :: restart_previous_calculation => rttddft_input_keys_restart_previous_calculation
     procedure :: do_from_scratch => rttddft_input_keys_do_from_scratch
+    procedure :: use_ks_basis => rttddft_input_keys_use_ks_basis
+    procedure :: use_lapwlo_basis => rttddft_input_keys_use_lapwlo_basis
   end type
 
 contains
@@ -182,6 +192,7 @@ subroutine rttddft_input_keys_parse_input( this, inp, tol, a_vec )
 
     this%eeInteraction%ipa = ( trim( rt_input%eeInteraction ) == "IPA" )
     this%save_state = rt_input%saveState
+    this%basis_set = string_to_basis_set( rt_input%basis )
     this%start_mode = string_to_start_mode( rt_input%do )
     this%restart_file_handler%file_format = string_to_restart_format( rt_input%restartFilesFormat )
   end associate
@@ -192,11 +203,41 @@ subroutine rttddft_input_keys_parse_input( this, inp, tol, a_vec )
   this%l_rad_step = inp%groundstate%lradstep
 end subroutine
 
+!> Check whether the ks basis will be used for time propagation
+pure logical function rttddft_input_keys_use_ks_basis(this) result(check)
+  class(rttddft_input_keys), intent(in) :: this
+  check = ( this%basis_set == ks )
+end function
+
+!> Check whether the LAPW+lo basis will be used for time propagation
+pure logical function rttddft_input_keys_use_lapwlo_basis(this) result(check)
+  class(rttddft_input_keys), intent(in) :: this
+  check = ( this%basis_set == lapwlo )
+end function
+
+!> (private) Given a string, get the corresponding [[start_mode]]
+function string_to_basis_set(string) result(r)
+  !> String containing the start mode name
+  character(len=*), intent(in) :: string
+  integer(kind( basis_set )) :: r
+
+  select case ( trim( string ) )
+    case ("LAPWlo")
+      r = lapwlo
+    case ("unperturbedKS")
+      r = ks
+    case default
+      call assert( .false., "Unrecognized basis set")
+  end select
+end function
+
+!> Check whether the RT-TDDFT calculation will run from file
 pure logical function rttddft_input_keys_restart_previous_calculation(this) result(check)
   class(rttddft_input_keys), intent(in) :: this
   check = ( this%start_mode == fromfile )
 end function
 
+!> Check whether the RT-TDDFT calculation will run from scratch
 pure logical function rttddft_input_keys_do_from_scratch(this) result(check)
   class(rttddft_input_keys), intent(in) :: this
   check = ( this%start_mode == fromscratch )

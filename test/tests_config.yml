@@ -715,6 +715,24 @@ RT-TDDFT/GGA_PBE-BN-kick-EH-restart:
       - "PVEC.OUT"
       - "AVEC.OUT"
       - "rt.h5"
+
+RT-TDDFT/LDA_PW-SiC-trapCos-AETRS-uKS-frozen-restart:
+    files_under_test:
+      - "EIGVAL_40.OUT"
+      - "EIGVAL_60.OUT"
+      - "OCCSV_TXT_40.OUT"
+      - "OCCSV_TXT_60.OUT"
+      - "PROJ_40.OUT"
+      - "PROJ_60.OUT"
+    inputs:
+      - "input.xml"
+      - "C.xml"
+      - "Si.xml"
+      - "JIND.OUT"
+      - "PVEC.OUT"
+      - "AVEC.OUT"
+      - "EVECFV_RTTDDFT.OUT"
+      - "EVECFV_PREVIOUS_RTTDDFT.OUT"
   
 RT-TDDFT/GGA_PBE-C-trapCos-EHM-predictorCorrector:
     files_under_test:
@@ -808,11 +826,6 @@ RT-TDDFT/LDA_PW-Si-sinSq-CFM4:
       - "NEXC.OUT"
       - "ETOT_RTTDDFT.OUT"
 
-RT-TDDFT/LDA_PW-SiC-trapCos-AETRS:
-   files_under_test:
-      - "JIND.OUT"
-      - "NEXC.OUT"
-      - "ETOT_RTTDDFT.OUT"
 
 # Test with ifx 2025.0.0 give too large errors, but almost within tolerance.
 TDDFT/PBE-LiF:

@@ -8,20 +8,20 @@
 
 !> Module implementing general initializations for RT-TDDFT
 module rttddft_init
-  use constants, only: zzero, real_zero
+  use constants, only: zzero, real_zero, zone
   use m_gndstateq, only: gndstateq
   use MD, only: MD_input_keys
-  use mod_APW_LO, only: apwordmax
-  use mod_atoms, only: natmtot
+  use mod_APW_LO, only: apwordmax, apword, nlorb, lorbl, lofr, apwfr
+  use mod_atoms, only: natmtot, spr, nspecies
   use mod_bands, only: evalfv, nomax, numin, ikcbm, ikvbm, ikvcm
   use mod_core_states, only: ncg
   use mod_eigensystem, only: nmatmax
   use mod_eigenvalue_occupancy, only: nstfv, efermi
   use mod_eigensystem, only: nmatmax, nmat
-  use mod_eigenvalue_occupancy, only: occsv, nstfv, nstsv, efermi
-  use mod_gkvector, only: ngk, ngkmax, gkc, tpgkc, sfacgk
+  use mod_eigenvalue_occupancy, only: nstfv, efermi, evalsv
+  use mod_gkvector, only: ngk, ngkmax, gkc, tpgkc, sfacgk, gkmax
   use mod_kpoint, only: vkl, nkpt
-  use mod_muffin_tin, only: lmmaxapw
+  use mod_muffin_tin, only: lmmaxapw, nrmt
   use mod_potential_and_density, only: rhomt, rhoir
   use mod_misc, only: filext
   use modgw, only: kset
@@ -31,18 +31,24 @@ module rttddft_init
   use precision, only: dp, i32
   use rttddft_Density, only: update_density, save_and_frozen, frozen
   use rttddft_GlobalMDVariables, only: B_past, B_time, mathcalH, mathcalB
-  use rttddft_HamiltonianOverlap, only: update_ham
+  use rttddft_HamiltonianOverlap, only: update_hamiltonian_without_pa_term_lapw, update_overlap_lapw, &
+    update_hamiltonian_without_pa_term_ks, add_external_coupling_vgauge
   use rttddft_hybrids, only: hybrids_used, Set_Dimension_mixed_product_basis, set_barecoul_basis
   use rttddft_input, only: rttddft_input_keys
-  use rttddft_io, only: file_pmat_exists, read_pmat, write_pmat, &
-                        file_pmat_mt_exists, read_pmat_mt, write_pmat_mt, write_file_info, &
-                        write_file_info_fill_line_with_char, get_filename_pmat, get_filename_pmat_mt, &
-                        RTDDFT_GND_sufix, read_wavefunction, groundstate, t, t_minus_dt
-  use rttddft_pmat, only: obtain_pmat_LAPWLOBasis
+  use rttddft_io, only: file_pmat_exists, read_pmat, write_pmat, file_pmat_mt_exists, &
+    read_pmat_mt, write_pmat_mt, write_file_info, write_file_info_fill_line_with_char, &
+    get_filename_pmat, get_filename_pmat_mt, RTDDFT_GND_sufix, read_wavefunction, groundstate, t, t_minus_dt
+  use rttddft_pmat, only: obtain_pmat_LAPWloBasis, obtain_pmat_KSBasis
   use rttddft_potential, only: update_potential
   use rttddft_VectorPotential, only: Vector_Potential, Vector_Potential_Field
-  use rttddft_Wavefunction, only: wavefunction_set
-  use propagators, only: create_propagator, propagator_type => propagator
+  use rttddft_Wavefunction, only: wavefunction_set, initialize_wavefunction_set
+  use mod_kpointset, only: G_set, generate_G_vectors, k_set, &
+    generate_k_vectors, Gk_set, generate_Gk_vectors
+  use muffin_tin_basis, only: mt_basis_type
+  use mod_lattice, only: bvec
+  use mod_gvector, only: intgv
+  use matrix_elements, only: me_init
+  use propagators, only: propagator_type => propagator, create_propagator
 
   implicit none
   
@@ -52,8 +58,10 @@ module rttddft_init
 
 contains
 !> This subroutine initializes many global variables in a RT-TDDFT calculation.
-subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, molecular_dynamics, psi, &
-    overlap, ham_init, ham_time, ham_past, apwalm, pmat, pmatmt, rhomt_frozen, rhoir_frozen, occupations, occs_tol )
+subroutine initialize_rttddft( rt_inp, propagator, vec_pot, &
+    a_tot_t_minus_dt, molecular_dynamics, psi, overlap, ham_init, ham_time, ham_past, effective_potential_init, &
+    apwalm, pmat, pmatmt, rhomt_frozen, rhoir_frozen, occupations, k_dependent_dims, &
+    occs_tol, Gkset, Gset, psi_gnd_lapwlo )
   !> Argument that encapsulates the input options of rttddft
   type(rttddft_input_keys), intent(in) :: rt_inp
   !> Argument that encapsulates the propagator
@@ -65,7 +73,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   !> variable that is an interface to the input keys defined in `input.xml` inside the `MD` block
   type(MD_input_keys), intent(in) :: molecular_dynamics
   !> Basis-expansion coefficients of the KS-WFs
-  class(wavefunction_set), intent(out) :: psi
+  class(wavefunction_set), allocatable, intent(out) :: psi
   !> Overlap matrix (of basis functions, to be allocated in `array_allocation` block)
   complex(dp), allocatable, intent(out) :: overlap(:, :, :)
   !> Hamiltonian matrix at time \(t = 0 \) (to be allocated in `array_allocation` block)
@@ -74,9 +82,11 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   complex(dp), allocatable, intent(out) :: ham_time(:, :, :)  
   !> Hamiltonian matrix at previous time \(t - \Delta t \) (to be allocated in `array_allocation` block)
   complex(dp), allocatable, intent(out) :: ham_past(:, :, :)
+  !> Effective potential matrix at time \(t = 0 \) (to be allocated in `array_allocation` block)
+  complex(dp), allocatable, intent(out) :: effective_potential_init(:, :, :)
   !> Matching coefficients of the (L)APWs (to be allocated in `array_allocation` block)
   complex(dp), allocatable, intent(out) :: apwalm(:, :, :, :, :)
-  !> Momentum matrix elements (projected onto the (L)APW+LO basis elements) (to be allocated in `array_allocation` block)
+  !> Momentum matrix elements (to be allocated in `array_allocation` block)
   complex(dp), allocatable, intent(out) :: pmat(:, :, :, :)
   !> Muffin-tin part of the momentum matrix (to be allocated in `array_allocation` block)
   complex(dp), allocatable, intent(out) :: pmatmt(:, :, :, :, :)
@@ -86,15 +96,23 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   real(dp), allocatable, intent(out) :: rhoir_frozen(:)
   !> State occupations array (to be allocated in `array_allocation` block)
   real(dp), allocatable, intent(out) :: occupations(:, :)
+  !> k-dependent Hamiltonian dimensions array (to be allocated in `array_allocation` block)
+  integer(i32), allocatable, intent(out) :: k_dependent_dims(:)
   !> Minimal value of occupation for the state to be 'occupied'
   real(dp), intent(in) :: occs_tol
+  !> Set of G+k vectors used for the matrix elements evaluation
+  type(Gk_set), intent(out) :: Gkset
+  !> Set of G vectors used for the matrix elements evaluation
+  type(G_set), intent(out) :: Gset
+  !> KS-LAPW+lo transition matrix (ground state set in the LAPW+lo basis)
+  complex(dp), allocatable, intent(out) :: psi_gnd_lapwlo(:, :, :)
 
   real(dp), parameter :: epsilon_rgkmax = 1e-14_dp
-  integer(i32) :: ik, first_kpt, last_kpt
+  integer(i32) :: ik, first_kpt, last_kpt, ham_dimension, i
   logical :: evolve_H0, my_rank_writes_to_output, success
   real(dp) :: voff(3)
   type(Vector_Potential_Field) :: a_aux
-  complex(dp), allocatable :: psi_gnd_lapwlo(:, :, :)
+  type(k_set) :: kset
 
   ! Backup groundstate variables
   call backup0()
@@ -128,26 +146,40 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
 
   ! One-shot GS calculation
   ! Since an XS calculation with Hybrid functionals uses the GS parameters, a one shot GS calculation serves no purpose
-  if (.not. hybrids_used()) call gndstateq( voff, RTDDFT_GND_sufix//filext )
+  if ( .not. hybrids_used() ) call gndstateq( voff, RTDDFT_GND_sufix//filext )
   call create_propagator( propagator, rt_inp%propagator_input, .not. molecular_dynamics%on )
   
+  if ( rt_inp%use_ks_basis() ) then
+    ham_dimension = nstfv
+  else
+    ham_dimension = nmatmax
+  end if
+  evolve_H0 = ( molecular_dynamics%on .or. ( .not. rt_inp%eeInteraction%ipa ) )
   array_allocation: block
     allocate( psi_gnd_lapwlo(nmatmax, nstfv, first_kpt : last_kpt), source = zzero )
     allocate( occupations(nstfv, first_kpt : last_kpt), source = real_zero )
-    if ( propagator%extrapolation_needed() ) then
-      allocate( ham_past(nmatmax, nmatmax, first_kpt : last_kpt), source = zzero )
-    end if
-    allocate( overlap(nmatmax, nmatmax, first_kpt : last_kpt), source = zzero )
-    allocate( ham_time(nmatmax, nmatmax, first_kpt : last_kpt), source = zzero )
     allocate( apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt) )
-    allocate( pmat(nmatmax, nmatmax, 3, first_kpt : last_kpt) )
+    allocate( overlap(ham_dimension, ham_dimension, first_kpt : last_kpt), source = zzero )
+    allocate( ham_time, source = overlap )
+    allocate( pmat(ham_dimension, ham_dimension, 3, first_kpt : last_kpt) )
     if ( molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative ) &
       allocate( pmatmt(nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt) )
     if ( rt_inp%n_frozen > 0 ) then
       allocate( rhomt_frozen, source = rhomt )
       allocate( rhoir_frozen, source = rhoir )
     end if
+    if ( propagator%extrapolation_needed() ) allocate( ham_past, source = overlap )
+    allocate( k_dependent_dims(first_kpt : last_kpt) )
+    if ( (.not. evolve_H0) .or. rt_inp%use_ks_basis() ) &
+      allocate( ham_init, source = overlap )
+    if ( rt_inp%use_ks_basis() ) allocate( effective_potential_init, source = overlap )
   end block array_allocation
+
+  if ( rt_inp%use_ks_basis() ) then
+    k_dependent_dims = ham_dimension
+  else
+    k_dependent_dims = nmat(1, first_kpt : last_kpt)
+  end if
 
   call allocate_MD_globals( first_kpt, last_kpt, molecular_dynamics%on, &
     allocate_mathcalH=molecular_dynamics%valence_corrections, &
@@ -155,9 +187,9 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
     allocate_B=molecular_dynamics%basis_derivative )
   
   call read_WF_potential_rttddft( first_kpt, psi_gnd_lapwlo, occupations )
-  call psi%initialize( propagator%extrapolation_needed(), rt_inp%n_frozen, &
-    psi_gnd_lapwlo, occupations, occs_tol )
-  
+  call initialize_wavefunction_set( psi, rt_inp%use_lapwlo_basis(), propagator%extrapolation_needed(), &
+    rt_inp%n_frozen, psi_gnd_lapwlo, occupations, occs_tol )
+
   ! A special case of an input parameter for the EH and EHM propagators:
   ! first, n_eigvecs_houston can be < 0 and should be redefined as soon as nstfv is known
   ! second, n_eigvecs_houston should be at least n_occupied, and not larger than basis size
@@ -167,7 +199,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
     'Error: Provided value of nEigenvectorsEH is either smaller than the number of occupied states or larger than basis size.' )
 
   if ( my_rank_writes_to_output ) call write_to_info( molecular_dynamics%on, &
-    rt_inp%predictor_corrector%on, psi, overlap, ham_time, ham_past, apwalm, pmat, pmatmt )
+  rt_inp%predictor_corrector%on, psi, overlap, ham_time, ham_past, ham_init, apwalm, pmat, pmatmt )
 
   if( rt_inp%restart_previous_calculation() ) then
     call read_wavefunction( t, first_kpt, vkl(:, first_kpt:last_kpt), &
@@ -200,28 +232,53 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
       call read_pmat_mt( first_kpt, pmatmt, mpi_env_k )
     end if
   else
-    if( allocated( pmatmt ) ) then 
-      call obtain_pmat_LAPWLOBasis( first_kpt, rt_inp%pmat%force_pmat_hermitian, apwalm, pmat, pmatmt )
+    if ( rt_inp%use_ks_basis() ) then
+      call obtain_pmat_KSBasis( first_kpt, rt_inp%pmat%force_pmat_hermitian, apwalm, psi_gnd_lapwlo, pmat )
     else
-      call obtain_pmat_LAPWLOBasis( first_kpt, rt_inp%pmat%force_pmat_hermitian, apwalm, pmat )
+      call obtain_pmat_LAPWloBasis( first_kpt, rt_inp%pmat%force_pmat_hermitian, apwalm, pmat, pmatmt )
     end if
   end if
   if( rt_inp%pmat%write_pmat_to_file ) then
     call write_pmat( first_kpt, pmat, mpi_env_k )
     if ( molecular_dynamics%on ) call write_pmat_mt( first_kpt, pmatmt, mpi_env_k )
   end if
+  
+  if ( rt_inp%use_ks_basis() ) then
+    ham_init = zzero
+    effective_potential_init = zzero
+    overlap = zzero
+    if ( evolve_H0 ) then
+      call init_me_evaluation( Gkset, Gset, kset )
+      ! at t = 0 update_hamiltonian_without_pa_term_ks only evaluates the effective potential 
+      ! matrix elements and store them in `ham_time`
+      call update_hamiltonian_without_pa_term_ks( first_kpt, input%groundstate%lmaxvr, &
+        ham_time, apwalm, psi_gnd_lapwlo, effective_potential_init, ham_init, Gkset )
+      effective_potential_init = ham_time
+    end if
+    do ik = first_kpt, last_kpt
+      do i = 1, ham_dimension
+        ham_init(i, i, ik) = cmplx( evalsv(i, ik), real_zero, kind = dp )
+      end do
+    end do
+    do ik = first_kpt, last_kpt
+      do i = 1, ham_dimension
+        overlap(i, i, ik) = zone
+      end do
+    end do
+  end if
 
-  evolve_H0 = ( molecular_dynamics%on .or. ( .not. rt_inp%eeInteraction%ipa ) )
-  if ( .not. evolve_H0  ) then 
+  if ( .not. evolve_H0 .and. rt_inp%use_lapwlo_basis() ) then ! obtain H_0 with the GS density and KS potential
     a_aux%components = 0._dp
-    call update_ham( first_kpt, a_aux, calculateOverlap=.True., &
-      overlap=overlap, ham_time=ham_time, apwalm=apwalm, pmat=pmat, pmatmt=pmatmt, &
-      update_mathcalH=allocated(mathcalH), update_mathcalB=allocated(mathcalB) )
+    call update_overlap_lapw( first_kpt, a_aux, overlap, apwalm, pmatmt, &
+    update_mathcalH=allocated( mathcalH ), update_mathcalB=allocated( mathcalB ) )
+    call update_hamiltonian_without_pa_term_lapw( first_kpt, a_aux, ham_time, apwalm, &
+    update_mathcalH=allocated( mathcalH ) )
     ham_init = ham_time
   end if
 
   if ( psi%has_frozen() ) then
-    call update_density( first_kpt, psi, occupations, -1, .false., rt_inp%l_rad_step, dens_case=frozen )
+    call update_density( first_kpt, psi, occupations, -1, .false., rt_inp%l_rad_step, &
+    ks_lapwo_transition_matrix=psi_gnd_lapwlo, dens_case=frozen )
     rhomt_frozen = rhomt
     rhoir_frozen = rhoir
   end if
@@ -229,18 +286,47 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   if( rt_inp%restart_previous_calculation() ) then
     if( propagator%extrapolation_needed() ) then
       call update_density( first_kpt, psi, occupations, 0, rt_inp%normalize_WF, &
-        rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, dens_case=save_and_frozen )
+        rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, psi_gnd_lapwlo, dens_case=save_and_frozen )
       call update_potential()
-      call update_ham( first_kpt, a_tot_t_minus_dt, .True., overlap, ham_past, apwalm, pmat, pmatmt, &
-        update_mathcalH=allocated(mathcalH), update_mathcalB=allocated(mathcalB), ham_init=ham_init )
+
+      if ( rt_inp%use_lapwlo_basis() ) then
+        call update_overlap_lapw( first_kpt, a_tot_t_minus_dt, overlap, apwalm, pmatmt, &
+          update_mathcalH=allocated( mathcalH ), update_mathcalB=allocated( mathcalB ) )
+      end if
+
+      if ( evolve_H0 ) then
+        if ( rt_inp%use_lapwlo_basis() ) then
+          call update_hamiltonian_without_pa_term_lapw( first_kpt, a_tot_t_minus_dt, ham_past, apwalm, &
+            update_mathcalH=allocated( mathcalH ) )
+        else
+          call update_hamiltonian_without_pa_term_ks( first_kpt, input%groundstate%lmaxvr, ham_past, apwalm, psi_gnd_lapwlo, &
+            effective_potential_init, ham_init, Gkset )
+        end if
+      else
+        ham_past = ham_init
+      end if
+
+      call add_external_coupling_vgauge( a_tot_t_minus_dt, overlap, ham_past, pmat, k_dependent_dims )
     end if
-    call update_density( first_kpt, psi, occupations, 0, rt_inp%normalize_WF, rt_inp%l_rad_step, &
-      rhomt_frozen, rhoir_frozen )
-    call update_potential()
+    
+    call update_density( first_kpt, psi, occupations, 0, rt_inp%normalize_WF, &
+      rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, psi_gnd_lapwlo )
+    call update_potential()  
   end if
-  if( evolve_H0 .or. rt_inp%restart_previous_calculation() ) &
-    call update_ham( first_kpt, vec_pot%a_tot, .True., overlap, ham_time, apwalm, pmat, pmatmt, &
-      update_mathcalH=allocated(mathcalH), update_mathcalB=allocated(mathcalB), ham_init=ham_init )
+
+  if( evolve_H0 .or. rt_inp%restart_previous_calculation() ) then
+    if ( rt_inp%use_lapwlo_basis() ) then
+      call update_overlap_lapw( first_kpt, vec_pot%a_tot, overlap, apwalm, pmatmt, &
+        update_mathcalH=allocated( mathcalH ), update_mathcalB=allocated( mathcalB ) )
+      call  update_hamiltonian_without_pa_term_lapw( first_kpt, vec_pot%a_tot, ham_time, apwalm, &
+      update_mathcalH=allocated( mathcalH ) )
+    else
+      call update_hamiltonian_without_pa_term_ks( first_kpt, input%groundstate%lmaxvr, ham_time, apwalm, psi_gnd_lapwlo, &
+      effective_potential_init, ham_init, Gkset )
+    end if
+    call add_external_coupling_vgauge( vec_pot%a_tot, overlap, ham_time, pmat, k_dependent_dims )
+  end if
+
   if( rt_inp%do_from_scratch() .and. propagator%extrapolation_needed() ) ham_past = ham_time
 
 end subroutine
@@ -272,14 +358,39 @@ subroutine allocate_MD_globals(first_kpt, last_kpt, ionDynamics, allocate_mathca
 
 end subroutine
 
+!> Generates the G+K and G vectors sets needed for the 
+!> matrix elements evaluation and calls the mt_init subroutine
+subroutine init_me_evaluation( Gkset, Gset, kset )
+
+  !> set of G+k vectors for LAPW expansion
+  type(Gk_set), intent(out) :: Gkset
+  !> set of G vectors for LAPW expansion
+  type(G_set), intent(out) :: Gset
+  !> set of k vectors for LAPW expansion
+  type(k_set), intent(out) :: kset
+  
+  type(mt_basis_type) :: me_basis
+
+  call generate_G_vectors( Gset, bvec, intgv, input%groundstate%gmaxvr )
+  call generate_k_vectors( kset, bvec, input%groundstate%ngridk, &
+  input%xs%vkloff, .false., .false. )
+  call generate_Gk_vectors( Gkset, kset, Gset, gkmax )
+
+  me_basis = mt_basis_type( spr(:, 1 : nspecies), nrmt(1 : nspecies), apwfr, lofr, &
+    input%groundstate%lmaxapw, apword(:, 1 : nspecies), nlorb(1 : nspecies), lorbl(:, 1 : nspecies) )
+
+  call me_init( me_basis, input%groundstate%lmaxvr, Gset )
+  
+end subroutine init_me_evaluation
+
 !> Output general information about the RT-TDDFT calculation using [[write_file_info]]
-subroutine write_to_info( ionDynamics, predictorCorrector, psi, &
-    overlap, ham_time, ham_past, apwalm, pmat, pmatmt )
+subroutine write_to_info( ionDynamics, predictor_corrector, psi, overlap, ham_time, ham_past, &
+    ham_init, apwalm, pmat, pmatmt )
   
   !> Are we performing an MD calculation?
   logical, intent(in) :: ionDynamics
   !> if `.True`, the predictor corrector loop is employed
-  logical, intent(in) :: predictorCorrector
+  logical, intent(in) :: predictor_corrector
   !> Basis-expansion coefficients of the KS-WFs
   class(wavefunction_set), intent(in) :: psi
   !> Overlap matrix (of basis functions)
@@ -288,6 +399,8 @@ subroutine write_to_info( ionDynamics, predictorCorrector, psi, &
   complex(dp), intent(in) :: ham_time(:, :, :)
   !> Hamiltonian matrix at previous time \(t - \Delta t \)
   complex(dp), intent(in), optional :: ham_past(:, :, :)
+  !> Hamiltonian matrix at \(t = 0 \)
+  complex(dp), intent(in), optional :: ham_init(:, :, :)
   !> Matching coefficients of the (L)APWs
   complex(dp), intent(in) :: apwalm(:, :, :, :, :)
   !> Momentum matrix elements (projected onto the (L)APW+LO basis elements)
@@ -303,8 +416,9 @@ subroutine write_to_info( ionDynamics, predictorCorrector, psi, &
   integer(i32), parameter :: MB = 1048576
   real(dp) :: aux
 
-  aux = real( sizeof(overlap) + sizeof(ham_time), dp )/MB
-  if( present( ham_past ) ) aux = aux + real( sizeof(ham_past), dp )/MB
+  aux = real( sizeof( overlap ) + sizeof( ham_time ), dp ) / MB
+  if( present( ham_past ) ) aux = aux + real( sizeof( ham_past ), dp ) / MB
+  if( present( ham_init ) ) aux = aux + real( sizeof( ham_init ), dp ) / MB
 
   call write_file_info( 'Non-self-consistent GS for TDDFT calculations - finished' )
   call write_file_info_fill_line_with_char( '=' )
@@ -312,15 +426,20 @@ subroutine write_to_info( ionDynamics, predictorCorrector, psi, &
   write (string, formatMemory) 'Coefficients to match LAPW functions:', real( sizeof(apwalm), dp )/MB
   call write_file_info( string )
   write ( string, formatMemory ) 'Wavefunctions:', real( sizeof( psi%frozen ) + &
-  sizeof( psi%active ) + sizeof( psi%groundstate ), dp ) / MB
+    sizeof( psi%active ) + sizeof( psi%groundstate ), dp ) / MB
   call write_file_info( string )
   write (string, formatMemory) 'Hamiltonian and Overlap matrices:', aux
   call write_file_info( string )
-  if (predictorCorrector) then
-    write (string, formatMemory) 'Extra storage (predictor-corrector):', &
-      real( sizeof( ham_time ) + sizeof( psi%active_save ), dp ) / MB
+  if ( allocated( psi%active_save ) ) then
+    write (string, formatMemory) 'Extra storage (WFs save):', &
+      real( sizeof( psi%active_save ), dp ) / MB
     call write_file_info( string )
   end if
+  if ( predictor_corrector ) then
+    write (string, formatMemory) 'Extra storage (predictor-corrector):', &
+      real( sizeof( ham_time ), dp ) / MB
+    call write_file_info( string )
+  end if 
   write (string, formatMemory) 'Momentum matrix:', real( (sizeof(pmat)), dp )/MB
   call write_file_info( string )
   if (ionDynamics) then

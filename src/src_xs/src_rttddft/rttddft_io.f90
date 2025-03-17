@@ -531,6 +531,7 @@ contains
       call write_nonzero_timing( '-- addrhocr:', t_rttddft%dens%addrhocr )
       call write_nonzero_timing( '-- charge:', t_rttddft%dens%charge )
       call write_nonzero_timing( '-- rhonorm:', t_rttddft%dens%rhonorm )
+      call write_nonzero_timing( '-- basis:', t_rttddft%dens%basis )
       call write_nonzero_timing( 'updatepot:', t_rttddft%pot%total )
       call write_nonzero_timing( '-- poteff:', t_rttddft%pot%poteff )
       call write_nonzero_timing( '-- genveffig:', t_rttddft%pot%genveffig )
@@ -538,12 +539,14 @@ contains
       call write_nonzero_timing( 'UpdateCurrentDensity:', t_rttddft%current_density )
       call write_nonzero_timing( 'ObtainA:', t_rttddft%vector_potential )
       call write_nonzero_timing( 'updatehamiltonian:', t_rttddft%ham%total )
+      call write_nonzero_timing( '-- overlap:', t_rttddft%ham%overlap )
       call write_nonzero_timing( '-- hmlint:', t_rttddft%ham%hmlint )
       call write_nonzero_timing( '-- other subs:', t_rttddft%ham%rest )
       call write_nonzero_timing( 'All cycles of predcorr:', t_rttddft%pred_corr )
       call write_nonzero_timing( 'Total Energy:', t_rttddft%energy )
       call write_nonzero_timing( 'nexc:', t_rttddft%n_exc )
       call write_nonzero_timing( 'Screenshots:', t_rttddft%screenshot )
+      call write_nonzero_timing( 'Print:', t_rttddft%t_print )
       end associate
       if( MD ) then
         associate( t_MD => timing(ip)%t_Ehrenfest )
@@ -578,9 +581,9 @@ contains
   !> Read the momentum matrix elements from file
   subroutine read_pmat( first_kpt, pmat, mpi_env )
     !> Index of the first `k-point` to be considered
-    integer,intent(in)        :: first_kpt
+    integer,intent(in) :: first_kpt
     !> Momentum matrix elements
-    complex(dp), intent(out)  :: pmat(:, :, :, first_kpt:)
+    complex(dp), intent(out) :: pmat(:, :, :, first_kpt:)
     !> MPI environment (needed to write in parallel over MPI procs.)
     type(mpiinfo), intent(in) :: mpi_env
     

@@ -7,7 +7,7 @@ module rttddft_NumberExcitations_test
   use rttddft_NumberExcitations, only: obtain_number_excitations
   use unit_test_framework, only : unit_test_type
   use xlapack, only: solve_generalized_hermitian_eigenproblem
-  use rttddft_Wavefunction, only: wavefunction_set
+  use rttddft_Wavefunction, only: wavefunction_set, initialize_wavefunction_set
 
   implicit none
 
@@ -69,7 +69,7 @@ contains
     real(dp), allocatable :: wkpt(:), occ_gnd(:, :), occ(:)
     complex(dp), allocatable :: H_gnd(:, :), H(:, :), S(:, :), overlap(:, :, :)
     complex(dp), allocatable :: psi_gnd(:, :, :), tmp(:, :), proj(:, :), psi_t(:, :, :)
-    type(wavefunction_set) :: psi, psi_no_frozen
+    class(wavefunction_set), allocatable :: psi, psi_no_frozen
 
     ! Initialization
     n_kpt_per_rank = 2
@@ -94,7 +94,7 @@ contains
         occ_gnd(i_CBm, ik) = occ_gnd(i_CBm, ik) + real(ik, dp)/n_kpt
       end if
     end do
-    call psi%initialize( .false., n_frozen, psi_gnd, occ_gnd, tol )
+    call initialize_wavefunction_set( psi, .true., .false., n_frozen, psi_gnd, occ_gnd, tol )
     psi%active = psi_t(:, n_frozen + 1:, :)
 
     ! Obtain ref
@@ -123,7 +123,7 @@ contains
     call test_report%assert( all_close( n_gs, sum(occ_gnd(:, 1)), tol ), test_identifier//' - calculated n_gs does not match reference.' )
 
     ! Test case with no frozen states
-    call psi_no_frozen%initialize( .false., 0, psi_gnd, occ_gnd, tol )
+    call initialize_wavefunction_set( psi_no_frozen, .true., .false., 0, psi_gnd, occ_gnd, tol )
     psi_no_frozen%active = psi_t(:, 1 : n_states, :)
 
     ! Obtain ref
