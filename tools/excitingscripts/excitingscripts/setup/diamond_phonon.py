@@ -2,6 +2,7 @@
 
 import json
 import shutil
+import sys
 from argparse import ArgumentParser
 from pathlib import Path
 from typing import Callable, Union
@@ -10,7 +11,10 @@ import numpy as np
 from excitingtools import ExcitingInputXML
 from numpy.testing import assert_allclose
 from numpy.typing import NDArray
-from typing_extensions import Protocol
+if sys.version_info >= (3, 8):
+    from typing import Protocol
+else:
+    from typing_extensions import Protocol
 
 
 class SetupFunc(Protocol):
