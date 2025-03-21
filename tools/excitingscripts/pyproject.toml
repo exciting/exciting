@@ -6,11 +6,11 @@ version = "0.0.1"
 requires-python = ">=3.6"
 
 dependencies = [
-    'numpy>=1.14.5', 
-    'matplotlib>=2.2.0', 
-    'scipy>=1.7.0', 
+    'numpy>=1.14.5',
+    'matplotlib>=2.2.0',
+    'scipy>=1.7.0',
     'excitingtools>=1.6.3',
-    'typing-extensions==4.12.2'
+    'typing-extensions; python_version <= "3.7"'
 ]
 
 [build-system]
