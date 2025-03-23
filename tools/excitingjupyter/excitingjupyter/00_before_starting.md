@@ -6,15 +6,17 @@
 ## Compilation of exciting
 
 Before starting, be sure that **`exciting`** is already compiled according to the procedure reported in 
-**[<span style="color:#D79922">Download and compile exciting</span>](http://exciting.wikidot.com/neon-download-and-compile-exciting)**. 
+**[<span style="color:#D79922">Download and compile exciting</span>](https://exciting-code.org/uploads/exciting/tutorial_notebooks/00_tutorial_download_and_compile_exciting.html)**. 
 This is also documented in exciting's `INSTALL` file in the repository root.
 
-## Running the Wikidot Tutorial Scripts
+## Setting Environment Variables 
 
-In order to run the scripts used in the **`exciting`** tutorials it is important that the relevant environment variables 
-are already defined in your **~/.bashrc** file as specified in **[<span style="color:#D79922">How to set environment 
-variables for tutorials scripts</span>](http://exciting.wikidot.com/neon-tutorial-scripts-and-environment-variables)**. 
-However, this is not necessary for running the tutorials inside Jupyter Notebooks.
+Before running the tutorials, it is important to set the necessary environment variables.
+To do this, move to the exciting root directory and run the following commands:
+```bash
+cd tools/excitingjupyter
+source set_env_vars.sh
+```
 
 ## Installing the excitingJupyter Package
 
@@ -76,9 +78,10 @@ In order to add the layout style designed for the Jupyter tutorials, type the fo
 ```bash
 # Find path for custom CSS file:
 path=$(python -c "import notebook; print(notebook.__file__)")
-notebookpath=${path::-11}
-csspath="${notebookpath}static/custom/."
+notebookpath=${path::-20}
+csspath="${notebookpath}nbclassic/static/custom/."
 # Add custom CSS style:
+rm -f $csspath/custom.css
 cp excitingjupyter/custom.css "$csspath"
 cp ../../docs/logo/logotransp.png "$csspath"
 ```
