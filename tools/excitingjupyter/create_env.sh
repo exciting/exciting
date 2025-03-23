@@ -15,8 +15,8 @@ pip3 install -e .
 python3 -m ipykernel install --user --name=excitingjupyter
 # Find path for custom CSS file:
 path=$(python -c "import notebook; print(notebook.__file__)")
-notebookpath=${path::-11}
-csspath="${notebookpath}custom/."
+notebookpath=${path::-20}
+csspath="${notebookpath}nbclassic/static/custom/."
 # Add custom CSS style:
 rm -f $csspath/custom.css
 cp excitingjupyter/custom.css "$csspath"
