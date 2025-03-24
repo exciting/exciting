@@ -1,5 +1,4 @@
 import os
-import time
 from argparse import ArgumentParser
 from os.path import join
 
@@ -24,19 +23,10 @@ def execute_volume_optimization(
     volume_values = []
 
     for i_v in range(0, number_volume_values):
-        print(
-            f'SCF calculation of "volume-{i_v + 1}" starts --------------------------------'
-        )
-        start_time = time.time()
         run_dir = join(root_directory, f"volume-{i_v + 1}")
         infofile = join(run_dir, "INFO.OUT")
 
         run_exciting(run_dir, excitingroot)
-
-        elapsed_time = time.time() - start_time
-        minutes = int(elapsed_time // 60)
-        seconds = int(elapsed_time % 60)
-        print(f"   Elapsed time = {minutes}m{seconds}s\n")
 
         results = parse(infofile)
         max_scf = max([int(i) for i in results["scl"].keys()])
