@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import copy
 import enum
 import os
 import shutil
@@ -12,7 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
-from excitingtools.utils.jobflow_utils import special_serialization_attrs
+from excitingtools.utils.serialization_utils import deserialize_object, special_serialization_attrs
 
 
 class RunnerCode(enum.Enum):
@@ -95,13 +94,7 @@ class BinaryRunner:
 
     @classmethod
     def from_dict(cls, d: dict):
-        my_dict = copy.deepcopy(d)
-        # Remove key value pairs needed for workflow programs
-        # call function on class to get only the keys (values not needed)
-        serialise_keys = special_serialization_attrs(cls)
-        for key in serialise_keys:
-            my_dict.pop(key, None)
-        return cls(**my_dict)
+        return deserialize_object(cls, d)
 
     def _check_mpi_processes(self):
         """Check whether mpi is specified and if yes that the number of MPI processes specified is valid."""

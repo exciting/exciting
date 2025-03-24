@@ -165,9 +165,9 @@ def test_parse_frequency_grid(zro2_gw_info_out_mock):
     assert len(ref_frequencies) == 32, "Require 32 reference frequency points"
     assert len(ref_weights) == 32, "Require 32 reference weights"
 
-    assert np.allclose(
-        f_grid[0, :], ref_frequencies
-    ), "Frequency points parsed from gw_info_out disagree with reference"
+    assert np.allclose(f_grid[0, :], ref_frequencies), (
+        "Frequency points parsed from gw_info_out disagree with reference"
+    )
     assert np.allclose(f_grid[1, :], ref_weights), "Weights parsed from gw_info_out disagree with reference"
 
 
@@ -371,6 +371,6 @@ def test_parse_gw_timings(zro2_gw_info_out_mock):
         "Total": {"Total": 7555.78},
     }
 
-    assert (
-        parse_gw_timings(zro2_gw_info_out_mock.string) == ref
-    ), "Parsed timings do not agree with reference dictionary"
+    assert parse_gw_timings(zro2_gw_info_out_mock.string) == ref, (
+        "Parsed timings do not agree with reference dictionary"
+    )

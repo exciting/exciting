@@ -49,21 +49,21 @@ def test_parse_value_regex():
       Direct Bandgap at k(CBm) (eV):            5.9646
     """
 
-    assert parse_value_regex(test_string, "Fermi energy:") == {
-        "Fermi energy": 0.0
-    }, "Expect to match first string instance and return {key:float}"
+    assert parse_value_regex(test_string, "Fermi energy:") == {"Fermi energy": 0.0}, (
+        "Expect to match first string instance and return {key:float}"
+    )
 
-    assert parse_value_regex(test_string, "Indirect BandGap \\(eV\\):") == {
-        "Indirect BandGap (eV)": 3.3206
-    }, "Expect to match first string instance and return {key:float}"
+    assert parse_value_regex(test_string, "Indirect BandGap \\(eV\\):") == {"Indirect BandGap (eV)": 3.3206}, (
+        "Expect to match first string instance and return {key:float}"
+    )
 
-    assert parse_value_regex(test_string, "Energy range:") == {
-        "Energy range": [-14.6863, 1030.7919]
-    }, "Expect to match first string instance and return {key:List[float]}"
+    assert parse_value_regex(test_string, "Energy range:") == {"Energy range": [-14.6863, 1030.7919]}, (
+        "Expect to match first string instance and return {key:List[float]}"
+    )
 
-    assert parse_value_regex(test_string, "Type: < fgrid >") == {
-        "Type: < fgrid >": "gauleg2"
-    }, "Expect to match first string instance and return {key:str}"
+    assert parse_value_regex(test_string, "Type: < fgrid >") == {"Type: < fgrid >": "gauleg2"}, (
+        "Expect to match first string instance and return {key:str}"
+    )
 
 
 @pytest.mark.xfail

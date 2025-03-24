@@ -67,7 +67,7 @@ class ExcitingStructure(ExcitingXMLInput):
         :param species_properties: Optional species properties, defined as:
         {'species1': {'rmt': rmt_value}, 'species2': {'rmt': rmt_value}}
         and with subtrees as:
-        {'species1': {'rmt': rmt_value, 'LDAplusU': {'J': J, 'U': U, 'l': l}}, species2: ... }
+        {'species1': {'rmt': rmt_value, 'LDAplusU': {'J': J, 'U': U, 'l': l}}, 'species2': ... }
         :param kwargs: Optional structure properties. Passed as kwargs.
         """
         if isinstance(species_path, Path):
