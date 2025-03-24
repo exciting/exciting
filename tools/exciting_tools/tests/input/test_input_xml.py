@@ -33,8 +33,18 @@ def exciting_structure() -> ExcitingStructure:
         {"species": "Li", "position": [1.0, 0.0, 0.0]},
         {"species": "F", "position": [2.0, 0.0, 0.0]},
     ]
+    crystal_properties = {"stretch": [0.6, 0.7, 0.8]}
+    species_properties = {
+        "Li": {
+            "rmt": 1.2,
+            "LDAplusU": {"J": 0.4, "U": 1.3, "l": -2},
+            "dfthalfparam": {"ampl": 1.2, "shell": [{"number": 2}, {"number": 3}, {"number": 4}]},
+        }
+    }
 
-    return ExcitingStructure(arbitrary_atoms, cubic_lattice, ".")
+    return ExcitingStructure(
+        arbitrary_atoms, cubic_lattice, ".", crystal_properties, species_properties, autormtscaling=0.9
+    )
 
 
 @pytest.fixture
@@ -96,7 +106,7 @@ def test_exciting_input_xml_structure_and_gs_and_xs(exciting_input_xml: Exciting
 
     structure_xml = subelements[1]
     assert structure_xml.tag == "structure"
-    assert structure_xml.keys() == ["speciespath"]
+    assert structure_xml.keys() == ["speciespath", "autormtscaling"]
     assert len(list(structure_xml)) == 3
 
     groundstate_xml = subelements[2]
@@ -200,25 +210,64 @@ def test_attribute_modification(exciting_input_xml: ExcitingInputXML):
     assert energywindow_xml.get("points") == "4000"
 
 
+ref_dict = {
+    "groundstate": {
+        "do": "fromscratch",
+        "ngridk": [6, 6, 6],
+        "nosource": False,
+        "rgkmax": 8.0,
+        "tforce": True,
+        "vkloff": [0, 0, 0],
+        "xctype": "GGA_PBE_SOL",
+    },
+    "keywords": "keyword1 keyword2 keyword3",
+    "sharedfs": True,
+    "structure": {
+        "atoms": [
+            {"position": [0.0, 0.0, 0.0], "species": "Li"},
+            {"position": [1.0, 0.0, 0.0], "species": "Li"},
+            {"position": [2.0, 0.0, 0.0], "species": "F"},
+        ],
+        "autormtscaling": 0.9,
+        "crystal_properties": {"stretch": [0.6, 0.7, 0.8]},
+        "lattice": [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+        "species_path": ".",
+        "species_properties": {
+            "F": {},
+            "Li": {
+                "LDAplusU": {"J": 0.4, "U": 1.3, "l": -2},
+                "dfthalfparam": {"ampl": 1.2, "shell": [{"number": 2}, {"number": 3}, {"number": 4}]},
+                "rmt": 1.2,
+            },
+        },
+    },
+    "title": "Test Case",
+    "xs": {
+        "BSE": {"bsetype": "singlet", "xas": True},
+        "broad": 0.32,
+        "energywindow": {"intv": [5.8, 8.3], "points": 5000},
+        "ngridk": [8, 8, 8],
+        "plan": ["screen", "bse"],
+        "qpointset": [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]],
+        "screening": {"nempty": 15, "screentype": "full"},
+        "xstype": "BSE",
+    },
+}
+
+
 @pytest.mark.usefixtures("mock_env_jobflow_missing")
 def test_as_dict(exciting_input_xml: ExcitingInputXML):
     dict_representation = exciting_input_xml.as_dict()
-    assert set(dict_representation.keys()) == {"xml_string"}
-    # check only that the xml string starts with the correct first lines:
-    assert dict_representation["xml_string"].startswith(
-        '<?xml version="1.0" ?>\n<input sharedfs="true">\n\t<title>Test Case</title>\n\t<structure'
-    )
+    assert set(dict_representation.keys()) == {"groundstate", "structure", "sharedfs", "keywords", "xs", "title"}
+    assert dict_representation == ref_dict
 
 
 @pytest.mark.usefixtures("mock_env_jobflow")
 def test_as_dict_jobflow(exciting_input_xml: ExcitingInputXML):
     dict_representation = exciting_input_xml.as_dict()
-    xml_string = dict_representation.pop("xml_string")
-    assert dict_representation == {"@class": "ExcitingInputXML", "@module": "excitingtools.input.input_xml"}
-    # check only that the xml string starts with the correct first lines:
-    assert xml_string.startswith(
-        '<?xml version="1.0" ?>\n<input sharedfs="true">\n\t<title>Test Case</title>\n\t<structure'
-    )
+    assert dict_representation.pop("@class") == "ExcitingInputXML"
+    assert dict_representation.pop("@module") == "excitingtools.input.input_xml"
+    assert dict_representation == ref_dict
 
 
 @pytest.mark.usefixtures("mock_env_jobflow_missing")

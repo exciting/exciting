@@ -233,13 +233,9 @@ def test_parse_evalqp(evalqp_mock):
     }
 
     output = parse_evalqp(evalqp_mock.full_path)
-    assert set(output.keys()) == {
-        "state_range",
-        "column_labels",
-        1,
-        2,
-        3,
-    }, "Key include state range, columns and k-indices"
+    assert set(output.keys()) == {"state_range", "column_labels", 1, 2, 3}, (
+        "Key include state range, columns and k-indices"
+    )
 
     del output["state_range"]
     del output["column_labels"]

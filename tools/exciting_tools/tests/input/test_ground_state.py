@@ -114,7 +114,7 @@ def test_invalid_input():
 def test_as_dict():
     ref_rgkmax = 8.5
     gs_input = ExcitingGroundStateInput(rgkmax=ref_rgkmax)
-    ref_dict = {"xml_string": f'<groundstate rgkmax="{ref_rgkmax}"> </groundstate>'}
+    ref_dict = {"rgkmax": ref_rgkmax}
     assert gs_input.as_dict() == ref_dict, "expected different dict representation"
 
 
@@ -125,14 +125,14 @@ def test_as_dict_jobflow():
     ref_dict = {
         "@class": "ExcitingGroundStateInput",
         "@module": "excitingtools.input.input_classes",
-        "xml_string": f'<groundstate rgkmax="{ref_rgkmax}"> </groundstate>',
+        "rgkmax": ref_rgkmax,
     }
     assert gs_input.as_dict() == ref_dict, "expected different dict representation"
 
 
 def test_from_dict():
     ref_rgkmax = 8.5
-    ref_dict = {"xml_string": f'<groundstate rgkmax="{ref_rgkmax}"> </groundstate>'}
+    ref_dict = {"rgkmax": 8.5}
     gs_input = ExcitingGroundStateInput.from_dict(ref_dict)
 
     assert gs_input.name == "groundstate"

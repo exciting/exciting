@@ -60,7 +60,7 @@ def test_runner(tmp_path: Path, capsys, python_file: Path):
         match = running_iteration.match(line) or finished_iteration.match(line)
         assert match is not None, f"{line!r} does not match expected output!"
         assert current_iteration == int(match.group(1)), (
-            "Iteration number mismatch! " f"Expected {current_iteration}, got {int(match.group(1))}"
+            f"Iteration number mismatch! Expected {current_iteration}, got {int(match.group(1))}"
         )
         if "finished" in line:
             current_iteration += 1

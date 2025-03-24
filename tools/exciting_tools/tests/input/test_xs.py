@@ -28,25 +28,21 @@ def test_class_ExcitingXSInput_xstype_missing():
 @pytest.mark.usefixtures("mock_env_jobflow_missing")
 def test_ExcitingXSInput_as_dict():
     xs_input = ExcitingXSInput(xstype="BSE")
-    ref_dict = {"xml_string": '<xs xstype="BSE"> </xs>'}
+    ref_dict = {"xstype": "BSE"}
     assert xs_input.as_dict() == ref_dict, "expected different dict representation"
 
 
 @pytest.mark.usefixtures("mock_env_jobflow")
 def test_ExcitingXSInput_as_dict_jobflow():
     xs_input = ExcitingXSInput(xstype="BSE")
-    ref_dict = {
-        "@class": "ExcitingXSInput",
-        "@module": "excitingtools.input.input_classes",
-        "xml_string": '<xs xstype="BSE"> </xs>',
-    }
+    ref_dict = {"@class": "ExcitingXSInput", "@module": "excitingtools.input.input_classes", "xstype": "BSE"}
     assert xs_input.as_dict() == ref_dict, "expected different dict representation"
 
 
 def test_ExcitingXSInput_from_dict():
-    ref_dict = {"xml_string": '<xs xstype="BSE"> </xs>'}
+    ref_dict = {"xstype": "BSE"}
     recreated_xs = ExcitingXSInput.from_dict(ref_dict)
-    assert recreated_xs.to_xml_str() == ref_dict["xml_string"]
+    assert recreated_xs.xstype == "BSE"
 
 
 def test_class_ExcitingXSInput_xs():
