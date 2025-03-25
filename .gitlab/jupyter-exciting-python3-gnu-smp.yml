@@ -24,7 +24,7 @@ test-fedora-buster-gnu-smp-jupyter:
   - python3 -m pytest -vv ../excitingscripts/tests
   - cd excitingjupyter
   - time jupyter nbconvert --execute 01_getting_started/how_to_start_an_exciting_calculation.ipynb --to markdown
-  - time python3 01_getting_started/assertions_how_to_start_an_exciting_calculation.py
+  - time python3 01_getting_started/assertions/assertions_how_to_start_an_exciting_calculation.py
   - time jupyter nbconvert --execute 01_getting_started/simple_convergence_tests.ipynb --to markdown
   - time jupyter nbconvert --execute 01_getting_started/electronic_band_structure_and_density_of_states.ipynb --to markdown
   - time jupyter nbconvert --execute 01_getting_started/understanding_the_exciting_species_files.ipynb --to markdown

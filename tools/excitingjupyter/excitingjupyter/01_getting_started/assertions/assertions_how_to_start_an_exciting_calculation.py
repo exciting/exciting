@@ -4,7 +4,7 @@ import numpy as np
 
 from excitingtools import parse
 
-TUTORIAL_HOW_TO_START_AN_EXCITING_CALCULATION_RUNDIR = "run_tutorial_start_exciting_calculation"
+TUTORIAL_HOW_TO_START_AN_EXCITING_CALCULATION_RUNDIR = "../run_tutorial_start_exciting_calculation"
 
 def test_tutorial1(converged_results):
     """Automatically test results of 01_getting_started notebook, diamond bulk calculation.
