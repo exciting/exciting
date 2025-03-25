@@ -15,7 +15,7 @@ c.NbConvertApp.notebooks = [
     os.path.join(NB_ROOT, "01_getting_started", "*_tutorial_*.ipynb"),
     os.path.join(NB_ROOT, "02_ground_state", "*_tutorial_*.ipynb")
     # for fast testing use, e.g., (because it has images etc.):
-    # os.path.join(NB_ROOT, "01_getting_started", "03_tutorial_electronic_band_structure_and_density_of_states.ipynb")
+    # os.path.join(NB_ROOT, "01_getting_started", "electronic_band_structure_and_density_of_states.ipynb")
 ]
 c.NbConvertApp.export_format = "html"
 

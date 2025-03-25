@@ -23,18 +23,18 @@ test-fedora-buster-gnu-smp-jupyter:
   - python3 -m pip install --upgrade --force pylint coverage numpy contourpy matplotlib scipy
   - python3 -m pytest -vv ../excitingscripts/tests
   - cd excitingjupyter
-  - time jupyter nbconvert --execute 01_getting_started/01_tutorial_how_to_start_an_exciting_calculation.ipynb --to markdown
+  - time jupyter nbconvert --execute 01_getting_started/how_to_start_an_exciting_calculation.ipynb --to markdown
   - time python3 01_getting_started/assertions_how_to_start_an_exciting_calculation.py
-  - time jupyter nbconvert --execute 01_getting_started/02_tutorial_simple_convergence_tests.ipynb --to markdown 
-  - time jupyter nbconvert --execute 01_getting_started/03_tutorial_electronic_band_structure_and_density_of_states.ipynb --to markdown
-  - time jupyter nbconvert --execute 01_getting_started/04_tutorial_understanding_the_exciting_species_files.ipynb --to markdown 
-  - time jupyter nbconvert --execute 02_ground_state/01_Methods/01_tutorial_exchange_correlation_functionals.ipynb --to markdown
-  - time jupyter nbconvert --execute 02_ground_state/01_Methods/02_tutorial_how_to_visualize_kohn_sham_states.ipynb --to markdown
-  - time jupyter nbconvert --execute 02_ground_state/01_Methods/05_tutorial_hybrid_functional_calculations.ipynb --to markdown
-  - time jupyter nbconvert --execute 02_ground_state/01_Methods/04_tutorial_spin_orbit_coupling.ipynb --to markdown
-  - time jupyter nbconvert --execute 02_ground_state/01_Methods/03_tutorial_spin_polarized_calculations_for_bcc_Fe.ipynb --to markdown
-  - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/02_tutorial_fermi_surface_visualization.ipynb --to markdown
-  - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/03_tutorial_spin_texture_calculation.ipynb --to markdown
+  - time jupyter nbconvert --execute 01_getting_started/simple_convergence_tests.ipynb --to markdown
+  - time jupyter nbconvert --execute 01_getting_started/electronic_band_structure_and_density_of_states.ipynb --to markdown
+  - time jupyter nbconvert --execute 01_getting_started/understanding_the_exciting_species_files.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/exchange_correlation_functionals.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/how_to_visualize_kohn_sham_states.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/hybrid_functional_calculations.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/spin_orbit_coupling.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/spin_polarized_calculations_for_bcc_Fe.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/fermi_surface_visualization.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/spin_texture_calculation.ipynb --to markdown
   - time jupyter nbconvert --execute 02_ground_state/tutorial_excitingtools.ipynb --to markdown
   - time jupyter nbconvert --execute 03_excited_states/01_GW/01_tutorial_electronic_band_structure_from_gw.ipynb --to markdown
   - time python3 03_excited_states/01_GW/assertions_01_tutorial_electronic_band_structure_from_gw.py
