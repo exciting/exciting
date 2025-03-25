@@ -48,11 +48,11 @@ test-fedora-buster-gnu-smp-jupyter:
   - time python3 03_excited_states/02_BSE/assertions/q_dependent_bse_calculations.py
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/excited_states_from_tddft.ipynb --to markdown
   - time python3 03_excited_states/03_TDDFT/assertions/excited_states_from_tddft.py
-  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/02_tutorial_real_time_tddft.ipynb --to markdown
-  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/03_tutorial_q_dependent_tddft.ipynb --to markdown
-  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/04_tutorial_many_body_kernels_for_tddft_calculations.ipynb --to markdown
-  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/05_tutorial_simulating_pump_probe_spectroscopy_with_rt_tddft.ipynb --to markdown
-  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/06_tutorial_studying_higher_harmonics_generation_using_rt_tddft.ipynb --to markdown
-  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/07_tutorial_real_time_tddft_combined_with_molecular_dynamics.ipynb --to markdown
+  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/real_time_tddft.ipynb --to markdown
+  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/q_dependent_tddft.ipynb --to markdown
+  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/many_body_kernels_for_tddft_calculations.ipynb --to markdown
+  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/simulating_pump_probe_spectroscopy_with_rt_tddft.ipynb --to markdown
+  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/studying_higher_harmonics_generation_using_rt_tddft.ipynb --to markdown
+  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/real_time_tddft_combined_with_molecular_dynamics.ipynb --to markdown
  rules:
     - if: '$CI_COMMIT_BRANCH == "development"'
