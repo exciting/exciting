@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib.style
 import matplotlib.ticker as ptk
 import numpy as np
+from excitingscripts.plot.pbirch import print_info_to_stdout
 from excitingscripts.utils.utils import (
     sort_lists_by_first_list,
     parse_energy_vs_volume,
@@ -154,53 +155,6 @@ def fit_pressure_vs_volume(
         lattice_const,
         chi,
     )
-
-
-def print_info_to_stdout(
-    dmin: List[float],
-    lattice_const: Dict,
-    bulk_modulus: List[float],
-    bulk_modulus_pressure_deriv: List[float],
-    chi: float,
-) -> None:
-    """Print information onto the screen
-
-    :param dmin: minima of the fit.
-    :param lattice_const: lattice constant for the given lattice symmetry code
-    :param bulk_modulus: bulk modulus
-    :param bulk_modulus_pressure_deriv: derivative of bulk modulus with respect to pressure
-    :param chi: chi-squared value indicating the goodness of fit
-    """
-    if len(dmin) > 1:
-        print("##############################################\n")
-        print("WARNING: Multiple minima are found!\n")
-        print("##############################################\n")
-
-    if len(dmin) == 0:
-        print("##############################################\n")
-        print("WARNING: No minimum in the given xrange!\n")
-        print("##############################################\n")
-
-    print(
-        "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-    )
-    print(
-        "     V0        B0         Bp        a-sc       a-bcc      a-fcc     log(chi)"
-    )
-    for i, eq_vol in enumerate(dmin):
-        print(
-            fmt % eq_vol,
-            bmt % (bulk_modulus[i]),
-            bmt % (bulk_modulus_pressure_deriv[i]),
-            amt % (lattice_const[1][i]),
-            amt % (lattice_const[2][i]),
-            amt % (lattice_const[3][i]),
-            lmt % (np.log10(chi)),
-        )
-    print(
-        "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-    )
-
 
 def findindex(x: float, y: List[float], dymax=1e10) -> int:
     """Finds the index of given value in the list upto specified tolerance

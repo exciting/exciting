@@ -69,9 +69,9 @@ def test_serialise_dict_values():
     # Object nested in a list, and within a dictionary within a list
     input = {"a": [1, 2, Mock(3, 4), {"b": Mock(5, 6)}]}
     output = serialise_dict_values(input)
-    assert output == {
-        "a": [1, 2, {"a": 3, "b": 4}, {"b": {"a": 5, "b": 6}}]
-    }, "Convert nested object values into dicts, where the top-level container value is a list"
+    assert output == {"a": [1, 2, {"a": 3, "b": 4}, {"b": {"a": 5, "b": 6}}]}, (
+        "Convert nested object values into dicts, where the top-level container value is a list"
+    )
 
 
 def test_serialise_dict_value_is_tuple():

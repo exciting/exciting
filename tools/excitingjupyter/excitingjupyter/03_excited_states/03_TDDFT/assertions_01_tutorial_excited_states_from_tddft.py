@@ -1,6 +1,6 @@
 from os.path import dirname
 
-from excitingtools import parser_chooser
+from excitingtools.exciting_dict_parsers.groundstate_parser import parse_info_out
 
 from reference_file_01_tutorial_excited_states_from_tddft import *
 
@@ -152,7 +152,7 @@ def test_dielectric_fxc_ALDA_NLF(dielectric_fxcALDA_nlf: np.ndarray):
         f"Real part of dielectric function (by Kramers-Kronig) not equivalent to reference calculations using the adiabatic LDA (ALDA)for the exchange-correlation kernel when local-field effects are neglected"
 
     def main():
-        results = parser_chooser(f"{dirname(__file__)}/{TUTORIAL_TDDFT_RUNDIR}/INFO.OUT")
+        results = parse_info_out(f"{dirname(__file__)}/{TUTORIAL_TDDFT_RUNDIR}/INFO.OUT")
         max_scf = max([int(i) for i in results['scl'].keys()])
         assert max_scf <= 14, "Expect max 14 SCF iterations to converge"
         converged_results = results['scl'][str(max_scf)]

@@ -7,7 +7,6 @@ REQUIREMENTS. Parser function must:
  b) return a dictionary.
 """
 
-import warnings
 from fnmatch import fnmatch
 from pathlib import Path
 from typing import Callable, Union
@@ -132,27 +131,11 @@ def parse(full_file_name: str) -> dict:
     file_name = full_file_path.name
 
     parser: Union[Callable[[str], dict], None] = None
-    for pattern in _file_to_parser:
+    for pattern, parser in _file_to_parser.items():
         if fnmatch(file_name, pattern):
-            parser = _file_to_parser[pattern]
             break
 
     if not parser:
         raise KeyError(f"File does not have a parser: {file_name}")
 
     return parser(full_file_path.as_posix())
-
-
-def parser_chooser(full_file_name: str) -> dict:
-    """Old API. Selects parser according to the name of the input file then returns the result of the parser.
-
-    :param full_file_name: file name prepended by full path
-    :return: parsed data
-    """
-    warnings.warn(
-        "Deprecated API. Use 'excitingtools.parse' instead. "
-        "Support for this API will be removed in excitingtools 1.8.0",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return parse(full_file_name)

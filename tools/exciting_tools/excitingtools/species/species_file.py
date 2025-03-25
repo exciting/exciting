@@ -3,7 +3,6 @@ Provides functionality to read in a species file, add high energy local orbitals
 write the updated XML structures back to file.
 """
 
-import copy
 import warnings
 from collections import defaultdict
 from dataclasses import dataclass
@@ -13,7 +12,7 @@ from xml.etree import ElementTree
 
 from excitingtools.exciting_dict_parsers.species_parser import parse_species_xml
 from excitingtools.input.xml_utils import xml_tree_to_pretty_str
-from excitingtools.utils.jobflow_utils import special_serialization_attrs
+from excitingtools.utils.serialization_utils import deserialize_object, special_serialization_attrs
 
 
 @dataclass
@@ -51,13 +50,7 @@ class SpeciesFile:
 
     @classmethod
     def from_dict(cls, d: dict):
-        my_dict = copy.deepcopy(d)
-        # Remove key value pairs needed for workflow programs
-        # call function on class to get only the keys (values not needed)
-        serialise_keys = special_serialization_attrs(cls)
-        for key in serialise_keys:
-            my_dict.pop(key, None)
-        return cls(**my_dict)
+        return deserialize_object(cls, d)
 
     def get_first_helo_n(self, l: int) -> int:
         """Returns the first principle quantum number 'n' for which additional High Energy Local
@@ -258,9 +251,9 @@ class SpeciesFile:
         :param ns: tuple of principal quantum number n
         :param matching_orders: tuple of matching orders
         """
-        assert len(ns) == len(
-            matching_orders
-        ), "Number of principal quantum numbers n must equal the number of given matching orders."
+        assert len(ns) == len(matching_orders), (
+            "Number of principal quantum numbers n must equal the number of given matching orders."
+        )
 
         if matching_orders[0] >= 3:
             warnings.warn("Maximum matchingOrder reached; cannot add new local orbital.")

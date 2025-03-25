@@ -119,9 +119,9 @@ def test_class_species_file_basis_to_xml(species_C):
         wf_elements = loState.findall("wf")
         ref_wf_attribs = ref_attribs["lo"][i]["wf"]
         for j, wfState in enumerate(wf_elements):
-            assert (
-                wfState.attrib == ref_wf_attribs[j]
-            ), f"Mismatch in wf attributes at index {j} of loState at index {i}"
+            assert wfState.attrib == ref_wf_attribs[j], (
+                f"Mismatch in wf attributes at index {j} of loState at index {i}"
+            )
 
 
 def test_check_matching_orders(species_C):
@@ -270,9 +270,9 @@ def test_add_helos(species_C):
 
 def test_get_valence_semicore_atomicstate_ns_per_l(species_C):
     ref_states = {0: {2}, 1: {2}}
-    assert ref_states == species_C.get_atomicstates_ns_per_l(
-        lambda x: not x["core"]
-    ), "Failed to get valence/semicore states"
+    assert ref_states == species_C.get_atomicstates_ns_per_l(lambda x: not x["core"]), (
+        "Failed to get valence/semicore states"
+    )
 
     species_C.atomic_states = [
         {"core": False, "kappa": 1, "l": 0, "n": 1, "occ": 2.0},
@@ -281,9 +281,9 @@ def test_get_valence_semicore_atomicstate_ns_per_l(species_C):
         {"core": False, "kappa": 2, "l": 1, "n": 2, "occ": 1.0},
     ]
     ref_states = {0: {1, 2}, 1: {2}}
-    assert ref_states == species_C.get_atomicstates_ns_per_l(
-        lambda x: not x["core"]
-    ), "Failed to get valence/semicore states"
+    assert ref_states == species_C.get_atomicstates_ns_per_l(lambda x: not x["core"]), (
+        "Failed to get valence/semicore states"
+    )
 
 
 def test_get_valence_and_semicore_atomicstate_ns_per_l(species_C):

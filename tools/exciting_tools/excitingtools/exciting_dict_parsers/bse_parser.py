@@ -111,9 +111,9 @@ def parse_infoxs_out(name: str, parse_timing: bool = False) -> dict:
     if parse_timing:
         times = parse_times(lines)
         finished_tasks = [task for task in tasks if task["finished"]]
-        assert len(times["cpu_time"]) == len(
-            finished_tasks
-        ), "Numbers of finished tasks and parsed times are not the same."
+        assert len(times["cpu_time"]) == len(finished_tasks), (
+            "Numbers of finished tasks and parsed times are not the same."
+        )
 
         for index, task in enumerate(finished_tasks):
             for key in times:

@@ -13,7 +13,7 @@ import numpy as np
 from excitingtools.exciting_dict_parsers.input_parser import parse_element_xml
 from excitingtools.utils import valid_attributes as all_valid_attributes
 from excitingtools.utils.dict_utils import check_valid_keys
-from excitingtools.utils.jobflow_utils import special_serialization_attrs
+from excitingtools.utils.serialization_utils import deserialize_object, special_serialization_attrs
 from excitingtools.utils.utils import flatten_list, list_to_str
 
 path_type = Union[str, Path]
@@ -47,7 +47,8 @@ class AbstractExcitingInput(ABC):
     def as_dict(self) -> dict:
         """Convert attributes to dictionary."""
         serialise_attrs = special_serialization_attrs(self)
-        return {**serialise_attrs, "xml_string": self.to_xml_str()}
+        inp_d = parse_element_xml(self.to_xml())
+        return {**serialise_attrs, **inp_d}
 
     @classmethod
     def from_xml(cls, xml_string: path_type):
@@ -60,9 +61,12 @@ class AbstractExcitingInput(ABC):
         return cls(**parse_element_xml(xml_string, tag=cls.name))
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict):
         """Recreates class instance from dictionary."""
-        return cls.from_xml(d["xml_string"])
+        # Keep backward compatibility with version 1.7.x and prior
+        if "xml_string" in d:
+            return cls.from_xml(d["xml_string"])
+        return deserialize_object(cls, d)
 
 
 class ExcitingXMLInput(AbstractExcitingInput, ABC):

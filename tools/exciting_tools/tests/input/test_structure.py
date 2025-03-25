@@ -143,12 +143,9 @@ def test_optional_atom_attributes_xml(xml_structure_CdS):
     # Cd
     atoms_cd = list(species_cd_xml)
     assert len(atoms_cd) == 1, "Wrong number of Cd atoms"
-    assert set(atoms_cd[0].keys()) == {
-        "coord",
-        "bfcmt",
-        "mommtfix",
-        "lockxyz",
-    }, "Cd contains all mandatory and optional atom properties"
+    assert set(atoms_cd[0].keys()) == {"coord", "bfcmt", "mommtfix", "lockxyz"}, (
+        "Cd contains all mandatory and optional atom properties"
+    )
     assert ("coord", "0.0 0.0 0.0") in atoms_cd[0].items()
     assert ("bfcmt", "1.0 1.0 1.0") in atoms_cd[0].items()
     assert ("mommtfix", "2.0 2.0 2.0") in atoms_cd[0].items()
@@ -184,9 +181,9 @@ def test_optional_structure_attributes_xml(lattice_and_atoms_CdS):
     optional = set(structure_attributes)
 
     assert xml_structure.tag == "structure"
-    assert (
-        set(xml_structure.keys()) == mandatory | optional
-    ), "Should contain mandatory speciespath plus all optional attributes"
+    assert set(xml_structure.keys()) == mandatory | optional, (
+        "Should contain mandatory speciespath plus all optional attributes"
+    )
     assert xml_structure.get("speciespath") == "./", "species path should be ./"
     assert xml_structure.get("autormt") == "true"
     assert xml_structure.get("cartesian") == "false"
@@ -280,10 +277,11 @@ def test_optional_species_attributes_xml(lattice_and_atoms_CdS):
 
 
 ref_dict = {
-    "xml_string": '<structure speciespath="./"> <crystal> <basevect>1.0 0.0 0.0</basevect>'
-    "<basevect>0.0 1.0 0.0</basevect><basevect>0.0 0.0 1.0</basevect></crystal>"
-    '<species speciesfile="Cd.xml"> <atom coord="0.0 0.0 0.0"> </atom></species>'
-    '<species speciesfile="S.xml"> <atom coord="1.0 0.0 0.0"> </atom></species></structure>'
+    "atoms": [{"position": [0.0, 0.0, 0.0], "species": "Cd"}, {"position": [1.0, 0.0, 0.0], "species": "S"}],
+    "crystal_properties": {},
+    "lattice": [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+    "species_path": "./",
+    "species_properties": {"Cd": {}, "S": {}},
 }
 
 
@@ -313,9 +311,9 @@ def test_from_dict(lattice_and_atoms_CdS):
     cubic_lattice, arbitrary_atoms = lattice_and_atoms_CdS
     structure = ExcitingStructure.from_dict(ref_dict)
 
-    assert np.allclose(structure.lattice, np.array(cubic_lattice))
-    assert structure.species == [d["species"] for d in arbitrary_atoms]
-    assert structure.positions == [d["position"] for d in arbitrary_atoms]
+    assert np.allclose(structure.lattice, np.array(cubic_lattice))  # pylint: disable=no-member
+    assert structure.species == [d["species"] for d in arbitrary_atoms]  # pylint: disable=no-member
+    assert structure.positions == [d["position"] for d in arbitrary_atoms]  # pylint: disable=no-member
     assert structure.speciespath == "./"  # pylint: disable=no-member
 
 

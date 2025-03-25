@@ -47,9 +47,9 @@ def band_data():
 
     band_data = BandData(ref_bands, ref_k_points, ref_e_fermi, ref_flattened_k_points, ref_vertices)
 
-    assert (
-        band_data.n_k_points == band_data.bands.shape[0]
-    ), "First dim of bands array equals the number of k-sampling points in the band structure"
+    assert band_data.n_k_points == band_data.bands.shape[0], (
+        "First dim of bands array equals the number of k-sampling points in the band structure"
+    )
     assert band_data.n_k_points == 6, "sampling points per band"
     assert band_data.n_bands == 2, "band_structure_xml contains two bands"
     assert np.allclose(band_data.k_points, ref_k_points, atol=1.0e-8)

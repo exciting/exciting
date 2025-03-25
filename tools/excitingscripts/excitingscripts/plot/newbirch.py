@@ -121,7 +121,7 @@ def main() -> None:
 
     yfmt = ptk.ScalarFormatter(useOffset=True, useMathText=True)
 
-    figure = plt.figure(1, figsize=(8, 5.5))
+    figure = plt.figure(figsize=(8, 5.5))
     ax = figure.add_subplot(111)
     ax.set_xlabel(xlabel, labelpad=10, fontsize=fontlabel)
     ax.set_ylabel(ylabel, labelpad=10, fontsize=fontlabel)

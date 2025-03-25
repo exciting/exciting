@@ -10,7 +10,7 @@ dependencies = [
     'matplotlib>=2.2.0',
     'scipy>=1.7.0',
     'excitingtools>=1.6.3',
-    'typing-extensions; python_version <= "3.7"'
+    'typing-extensions>=3.7'
 ]
 
 [build-system]
