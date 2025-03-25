@@ -3,7 +3,7 @@ from os.path import dirname
 import numpy as np
 from excitingtools import parse
 
-TUTORIAL_BSE_Q_RUNDIR = "run_LiF_BSE_q"
+TUTORIAL_BSE_Q_RUNDIR = "../run_LiF_BSE_q"
 REFERENCE_DIR = "reference_q_dependent_bse_calculations"
 
 
@@ -73,7 +73,7 @@ def test_dielectric_optical_bse(file_name: str):
     """
 
     epsilon_optical_bse_reference = parse(f"{dirname(__file__)}/{REFERENCE_DIR}/BSE_optical/{file_name}")
-    epsilon_optical_bse_results = parse(f"{dirname(__file__)}/../{TUTORIAL_BSE_Q_RUNDIR}/BSE/EPSILON/{file_name}")
+    epsilon_optical_bse_results = parse(f"{dirname(__file__)}/{TUTORIAL_BSE_Q_RUNDIR}/BSE/EPSILON/{file_name}")
 
     assert np.allclose(epsilon_optical_bse_results['frequency'], epsilon_optical_bse_reference['frequency']), \
         f"Frequency grid not equivalent to reference calculation in optical BSE dielectric function calculations"
@@ -97,7 +97,7 @@ def test_loss_optical_bse(file_name: str):
     """
 
     loss_optical_bse_reference = parse(f"{dirname(__file__)}/{REFERENCE_DIR}/BSE_optical/{file_name}")
-    loss_optical_bse_results = parse(f"{dirname(__file__)}/../{TUTORIAL_BSE_Q_RUNDIR}/BSE/LOSS/{file_name}")
+    loss_optical_bse_results = parse(f"{dirname(__file__)}/{TUTORIAL_BSE_Q_RUNDIR}/BSE/LOSS/{file_name}")
 
     assert np.allclose(loss_optical_bse_results['frequency'], loss_optical_bse_reference['frequency']), \
         f"Frequency grid not equivalent to reference calculation in optical BSE loss function calculations"
@@ -116,7 +116,7 @@ def test_dielectric_xray_bse(file_name: str):
     """
 
     epsilon_xray_bse_reference = parse(f"{dirname(__file__)}/{REFERENCE_DIR}/BSE_xray/{file_name}")
-    epsilon_xray_bse_results = parse(f"{dirname(__file__)}/../{TUTORIAL_BSE_Q_RUNDIR}/NRIXS/EPSILON/{file_name}")
+    epsilon_xray_bse_results = parse(f"{dirname(__file__)}/{TUTORIAL_BSE_Q_RUNDIR}/NRIXS/EPSILON/{file_name}")
 
     assert np.allclose(epsilon_xray_bse_results['frequency'], epsilon_xray_bse_reference['frequency']), \
         f"Frequency grid not equivalent to reference calculation in X-ray BSE dielectric function calculations"
@@ -140,7 +140,7 @@ def test_loss_xray_bse(file_name: str):
     """
 
     loss_xray_bse_reference = parse(f"{dirname(__file__)}/{REFERENCE_DIR}/BSE_xray/{file_name}")
-    loss_xray_bse_results = parse(f"{dirname(__file__)}/../{TUTORIAL_BSE_Q_RUNDIR}/NRIXS/LOSS/{file_name}")
+    loss_xray_bse_results = parse(f"{dirname(__file__)}/{TUTORIAL_BSE_Q_RUNDIR}/NRIXS/LOSS/{file_name}")
 
     assert np.allclose(loss_xray_bse_results['frequency'], loss_xray_bse_reference['frequency']), \
         f"Frequency grid not equivalent to reference calculation in X-ray BSE loss function calculations"
@@ -154,7 +154,7 @@ def test_loss_xray_bse(file_name: str):
         f"Imaginary part of loss function not equivalent to reference calculation in X-ray BSE calculations"
 
 def main():
-    results = parse(f"{dirname(__file__)}/../{TUTORIAL_BSE_Q_RUNDIR}/GS/INFO.OUT")
+    results = parse(f"{dirname(__file__)}/{TUTORIAL_BSE_Q_RUNDIR}/GS/INFO.OUT")
     max_scf = max([int(i) for i in results['scl'].keys()])
     assert max_scf <= 40, "Expect max 40 SCF iterations to converge"
     converged_results = results['scl'][str(max_scf)]

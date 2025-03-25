@@ -2,9 +2,9 @@ from os.path import dirname
 
 from excitingtools.exciting_dict_parsers.groundstate_parser import parse_info_out
 
-from reference_file_01_tutorial_excited_states_from_tddft import *
+from reference_file_excited_states_from_tddft import *
 
-TUTORIAL_TDDFT_RUNDIR = "run_Ag_tddft"
+TUTORIAL_TDDFT_RUNDIR = "../run_Ag_tddft"
 
 
 def test_groundstate(converged_results: dict):

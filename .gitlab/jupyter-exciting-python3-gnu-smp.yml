@@ -46,8 +46,8 @@ test-fedora-buster-gnu-smp-jupyter:
   - time python3 03_excited_states/02_BSE/assertions/xray_emission_spectra.py
   - time jupyter nbconvert --execute 03_excited_states/02_BSE/q_dependent_bse_calculations.ipynb --to markdown
   - time python3 03_excited_states/02_BSE/assertions/q_dependent_bse_calculations.py
-  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/01_tutorial_excited_states_from_tddft.ipynb --to markdown
-  - time python3 03_excited_states/03_TDDFT/assertions_01_tutorial_excited_states_from_tddft.py
+  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/excited_states_from_tddft.ipynb --to markdown
+  - time python3 03_excited_states/03_TDDFT/assertions/excited_states_from_tddft.py
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/02_tutorial_real_time_tddft.ipynb --to markdown
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/03_tutorial_q_dependent_tddft.ipynb --to markdown
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/04_tutorial_many_body_kernels_for_tddft_calculations.ipynb --to markdown

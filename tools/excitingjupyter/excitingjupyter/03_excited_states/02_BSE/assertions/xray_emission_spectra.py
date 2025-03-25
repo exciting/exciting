@@ -3,7 +3,7 @@ from os.path import dirname
 import numpy as np
 from excitingtools import parse
 
-TUTORIAL_XES_RUNDIR = "run_LiF_XES"
+TUTORIAL_XES_RUNDIR = "../run_LiF_XES"
 REFERENCE_DIR = "reference_xray_emission_spectra"
 
 
@@ -73,7 +73,7 @@ def test_dielectric(file_name: str):
     """
 
     epsilon_reference = parse(f"{dirname(__file__)}/{REFERENCE_DIR}/{file_name}")
-    epsilon_results = parse(f"{dirname(__file__)}/../{TUTORIAL_XES_RUNDIR}/EPSILON/{file_name}")
+    epsilon_results = parse(f"{dirname(__file__)}/{TUTORIAL_XES_RUNDIR}/EPSILON/{file_name}")
 
     assert np.allclose(epsilon_results['frequency'], epsilon_reference['frequency']), \
         f"Frequency grid not equivalent to reference calculation for dielectric function calculations"
@@ -94,7 +94,7 @@ def test_loss(file_name: str):
     """
 
     loss_reference = parse(f"{dirname(__file__)}/{REFERENCE_DIR}/{file_name}")
-    loss_results = parse(f"{dirname(__file__)}/../{TUTORIAL_XES_RUNDIR}/LOSS/{file_name}")
+    loss_results = parse(f"{dirname(__file__)}/{TUTORIAL_XES_RUNDIR}/LOSS/{file_name}")
 
     assert np.allclose(loss_results['frequency'], loss_reference['frequency']), \
         f"Frequency grid not equivalent to reference calculation for loss function calculations"
@@ -106,7 +106,7 @@ def test_loss(file_name: str):
         f"Imaginary part of loss function not equivalent to reference calculation"
 
 def main():
-    results = parse(f"{dirname(__file__)}/../{TUTORIAL_XES_RUNDIR}/INFO.OUT")
+    results = parse(f"{dirname(__file__)}/{TUTORIAL_XES_RUNDIR}/INFO.OUT")
     max_scf = max([int(i) for i in results['scl'].keys()])
     assert max_scf <= 40, "Expect max 40 SCF iterations to converge"
     converged_results = results['scl'][str(max_scf)]
