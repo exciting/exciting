@@ -4,7 +4,7 @@ import numpy as np
 from excitingtools import parse
 
 TUTORIAL_XANES_RUNDIR = "run_XANES"
-REFERENCE_DIR = "reference_03_tutorial_xray_absorption_spectra_using_bse"
+REFERENCE_DIR = "reference_xray_absorption_spectra_using_bse"
 
 def test_groundstate_BN(converged_results_BN: dict):
     """Test results (for cubic boron-nitride) in main output file INFO.OUT
@@ -73,7 +73,7 @@ def test_dielectric_BN(file_name: str):
     """
 
     epsilon_reference_BN = parse(f"{dirname(__file__)}/{REFERENCE_DIR}/BN/{file_name}")
-    epsilon_results_BN = parse(f"{dirname(__file__)}/{TUTORIAL_XANES_RUNDIR}/BN-XANES/EPSILON/{file_name}")
+    epsilon_results_BN = parse(f"{dirname(__file__)}/../{TUTORIAL_XANES_RUNDIR}/BN-XANES/EPSILON/{file_name}")
 
     assert np.allclose(epsilon_results_BN['frequency'], epsilon_reference_BN['frequency']), \
         f"Frequency grid not equivalent to reference calculation for dielectric function calculations for cubic" \

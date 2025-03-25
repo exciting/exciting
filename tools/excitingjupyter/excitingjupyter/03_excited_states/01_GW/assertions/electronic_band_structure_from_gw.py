@@ -4,7 +4,7 @@ import numpy as np
 from excitingtools import parse
 
 TUTORIAL_GW_RUNDIR = "run_Si_GW"
-REFERENCE_DIR = "reference_01_tutorial_electronic_band_structure_from_gw"
+REFERENCE_DIR = "reference_electronic_band_structure_from_gw"
 
 
 def test_groundstate(converged_results: dict):
@@ -73,7 +73,7 @@ def test_band_ks(file_name: str):
     """
 
     reference_band_ks = np.genfromtxt(f"{dirname(__file__)}/{REFERENCE_DIR}/{file_name}")
-    band_results = np.genfromtxt(f"{dirname(__file__)}/{TUTORIAL_GW_RUNDIR}/{file_name}")
+    band_results = np.genfromtxt(f"{dirname(__file__)}/../{TUTORIAL_GW_RUNDIR}/{file_name}")
 
     assert np.allclose(band_results[:, 0], reference_band_ks[:, 0]), \
         f"K-grid of the Kohn-Sham (KS) electronic band-structure calculation along high-symmetry lines in the" \
@@ -89,7 +89,7 @@ def test_dos_ks(file_name: str):
     """
 
     reference_dos_ks = np.genfromtxt(f"{dirname(__file__)}/{REFERENCE_DIR}/{file_name}")
-    dos_results = np.genfromtxt(f"{dirname(__file__)}/{TUTORIAL_GW_RUNDIR}/{file_name}")
+    dos_results = np.genfromtxt(f"{dirname(__file__)}/../{TUTORIAL_GW_RUNDIR}/{file_name}")
 
     assert np.allclose(dos_results[:, 0], reference_dos_ks[:, 0]), \
         f"Energy values the Kohn-Sham (KS) density of states calculation not equivalent to reference calculation."
@@ -102,7 +102,7 @@ def test_dos_ks(file_name: str):
 # and the calculation does not start from STATE.OUT. While this is physically small, it prevents testing the results
 
 def main():
-    results = parse(f"{dirname(__file__)}/{TUTORIAL_GW_RUNDIR}/INFO.OUT")
+    results = parse(f"{dirname(__file__)}/../{TUTORIAL_GW_RUNDIR}/INFO.OUT")
     max_scf = max([int(i) for i in results['scl'].keys()])
     assert max_scf <= 12, "Expect max 12 SCF iterations to converge"
     converged_results = results['scl'][str(max_scf)]

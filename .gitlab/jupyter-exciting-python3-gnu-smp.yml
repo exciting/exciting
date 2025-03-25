@@ -36,16 +36,16 @@ test-fedora-buster-gnu-smp-jupyter:
   - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/fermi_surface_visualization.ipynb --to markdown
   - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/spin_texture_calculation.ipynb --to markdown
   - time jupyter nbconvert --execute 02_ground_state/tutorial_excitingtools.ipynb --to markdown
-  - time jupyter nbconvert --execute 03_excited_states/01_GW/01_tutorial_electronic_band_structure_from_gw.ipynb --to markdown
-  - time python3 03_excited_states/01_GW/assertions_01_tutorial_electronic_band_structure_from_gw.py
-  - time jupyter nbconvert --execute 03_excited_states/02_BSE/01_tutorial_excited_states_from_bse.ipynb --to markdown
-  - time jupyter nbconvert --execute 03_excited_states/02_BSE/02_tutorial_exciton_analysis_and_visualization.ipynb --to markdown
-  - time jupyter nbconvert --execute 03_excited_states/02_BSE/03_tutorial_xray_absorption_spectra_using_bse.ipynb --to markdown
-  - time python3 03_excited_states/02_BSE/assertions_03_tutorial_xray_absorption_spectra_using_bse.py
-  - time jupyter nbconvert --execute 03_excited_states/02_BSE/04_tutorial_xray_emission_spectra.ipynb --to markdown
-  - time python3 03_excited_states/02_BSE/assertions_04_tutorial_xray_emission_spectra.py
-  - time jupyter nbconvert --execute 03_excited_states/02_BSE/05_tutorial_q_dependent_bse_calculations.ipynb --to markdown
-  - time python3 03_excited_states/02_BSE/assertions_05_tutorial_q_dependent_bse_calculations.py
+  - time jupyter nbconvert --execute 03_excited_states/01_GW/electronic_band_structure_from_gw.ipynb --to markdown
+  - time python3 03_excited_states/01_GW/assertions/electronic_band_structure_from_gw.py
+  - time jupyter nbconvert --execute 03_excited_states/02_BSE/excited_states_from_bse.ipynb --to markdown
+  - time jupyter nbconvert --execute 03_excited_states/02_BSE/exciton_analysis_and_visualization.ipynb --to markdown
+  - time jupyter nbconvert --execute 03_excited_states/02_BSE/xray_absorption_spectra_using_bse.ipynb --to markdown
+  - time python3 03_excited_states/02_BSE/assertions/xray_absorption_spectra_using_bse.py
+  - time jupyter nbconvert --execute 03_excited_states/02_BSE/xray_emission_spectra.ipynb --to markdown
+  - time python3 03_excited_states/02_BSE/assertions/xray_emission_spectra.py
+  - time jupyter nbconvert --execute 03_excited_states/02_BSE/q_dependent_bse_calculations.ipynb --to markdown
+  - time python3 03_excited_states/02_BSE/assertions/q_dependent_bse_calculations.py
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/01_tutorial_excited_states_from_tddft.ipynb --to markdown
   - time python3 03_excited_states/03_TDDFT/assertions_01_tutorial_excited_states_from_tddft.py
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/02_tutorial_real_time_tddft.ipynb --to markdown

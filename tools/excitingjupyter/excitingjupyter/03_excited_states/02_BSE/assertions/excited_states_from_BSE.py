@@ -4,14 +4,14 @@ import numpy as np
 from excitingtools import parse
 
 TUTORIAL_EXCITED_STATES_FROM_BSE_RUNDIR = "run_LiF_BSE/BSE/EPSILON"
-REFERENCE_DIR = "reference_01_tutorial_excited_states_from_BSE/EPSILON"
+REFERENCE_DIR = "reference_excited_states_from_BSE/EPSILON"
 
 def test_tutorial_excited_states_from_bse(file_name: str):
     """Automatically test results of tutorial_excited_states_from_bse notebook, LiF bulk calculation.
     """
     
     epsilon_reference = parse(f"{dirname(__file__)}/{REFERENCE_DIR}/{file_name}")
-    epsilon_result = parse(f"{dirname(__file__)}/{TUTORIAL_EXCITED_STATES_FROM_BSE_RUNDIR}/{file_name}")
+    epsilon_result = parse(f"{dirname(__file__)}/../{TUTORIAL_EXCITED_STATES_FROM_BSE_RUNDIR}/{file_name}")
 
     assert np.allclose(epsilon_result['frequency'],
                        epsilon_reference['frequency'], atol=2e-6), (
