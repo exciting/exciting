@@ -63,7 +63,7 @@ def plot_atomforce() -> None:
     plt.subplots_adjust(left=0.21, right=0.93, bottom=0.18, top=0.88, wspace=None, hspace=None)
 
     yfmt = ptk.ScalarFormatter(useOffset=True, useMathText=True)
-    fig = plt.figure(1, figsize=(8, 5.5))
+    fig = plt.figure(figsize=(8, 5.5))
     ax = fig.add_subplot(111)
     y_label = "Atomic force [Ha/Bohr]"
     x_label = "Displacement $u$ [alat]"

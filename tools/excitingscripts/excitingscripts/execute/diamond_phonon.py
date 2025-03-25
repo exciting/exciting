@@ -2,17 +2,17 @@
 
 import json
 import os
-import time
 from argparse import ArgumentParser
 from pathlib import Path
 from typing import Union, Dict
 from xml.etree import ElementTree
+import numpy as np
 
 from excitingscripts.execute.single import run_exciting
 
 
 def execute_diamond_phonon(
-    work_dir: Union[Path, str] = "workdir", excitingroot: str = os.getenv("EXCITINGROOT")
+        work_dir: Union[Path, str] = "workdir", excitingroot: str = os.getenv("EXCITINGROOT")
 ) -> Dict[str, Union[str, Dict[float, Dict[str, float]]]]:
     """Executes a series of exciting diamond calculations to get phonons.
 
@@ -32,12 +32,7 @@ def execute_diamond_phonon(
 
     for run_dir in run_directories:
         dir_name = run_dir.name
-        print(f"Now running exciting for run_dir: {dir_name}")
-
-        start_time = time.time()
         run_exciting(run_dir.as_posix(), excitingroot)
-        print(f" Finished exciting run. Elapsed time: {time.time() - start_time:.2} seconds.")
-
         # can't use excitingtools parser here because it doesn't capture forces
         info_xml = run_dir / "info.xml"
         info = ElementTree.fromstring(info_xml.read_text())
@@ -45,8 +40,11 @@ def execute_diamond_phonon(
 
         energy = float(scl_info.findall("iter")[-1].find("energies").get("totalEnergy"))
 
-        force = scl_info.find("structure").find("species").findall("atom")[1].find("forces").find("totalforce")
-        force = round(float(force.get("x")), 10)
+        try:
+            force = scl_info.find("structure").find("species").findall("atom")[1].find("forces").find("totalforce")
+            force = round(float(force.get("x")), 10)
+        except AttributeError:
+            force = None
 
         displacement = float(dir_name[6:])
         results[displacement] = {"energy": energy, "force": force}
@@ -76,6 +74,29 @@ def main() -> None:
 
     with open(f"{args.work_directory}/phonon_results.json", "w") as f:
         json.dump(results, f, indent=4)
+
+    inpf = f"{args.work_directory}/phonon_results.json"
+    with open(inpf) as fid:
+        results: dict = json.load(fid)["results"]
+
+    displ = []
+    energy = []
+    force = []
+
+    for displacement_string, result in results.items():
+        displ.append(float(displacement_string))
+        energy.append(result["energy"])
+        force.append(result["force"])
+
+    displ = np.array(displ)
+    energy = np.array(energy)
+    force = np.array(force)
+
+    with open(f"{args.work_directory}/energy-vs-displacement", "w") as f:
+         np.savetxt(f, np.vstack((displ, energy)).T, fmt="%15.8f %15.10f")
+
+    with open(f"{args.work_directory}/energy-vs-force", "w") as f:
+         np.savetxt(f, np.vstack((displ, force)).T, fmt="%15.8f %15.10f")
 
 
 if __name__ == "__main__":
