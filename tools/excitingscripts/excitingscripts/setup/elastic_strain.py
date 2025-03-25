@@ -90,9 +90,7 @@ def setup_deformed_structures(
     deformation_code: int,
     workdir=os.getcwd(),
 ) -> None:
-    """Create input files with a series volume values for structures generated at equally spaced intervals of the
-    lattice constant with a variation of between -5% and +5% from the reference lattice constant and save them in
-    corresponding directories.
+    """Create input files with a series volume values for different strain values.
 
     :param input_file: Input file.
     :param maximum_strain:
@@ -156,7 +154,6 @@ def setup_deformed_structures(
     delta = number_strain_values - 1
     convert = 1
     if number_strain_values <= 1:
-        strain_points = 1
         convert = -1
         delta = 1
 
@@ -189,10 +186,12 @@ def setup_deformed_structures(
         with open(join(rundir, f"strain-{i+1}"), "w") as output_str:
             output_str.write(f"{eta:11.8f}")
 
+    parsed_input.write(join(workdir, "source.xml"))
+
 
 def main() -> None:
     parser = ArgumentParser(
-        description="Python script for generating strained structures."
+        description="Python script for generating input files for different strain values."
     )
 
     parser.add_argument(

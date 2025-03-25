@@ -2,6 +2,7 @@
 number during the SCF loop.
 """
 
+import os
 from argparse import ArgumentParser
 from pathlib import Path
 from typing import Union
@@ -56,7 +57,7 @@ def plot_status(run_dir: Union[str, Path]) -> None:
 
     plt.subplots_adjust(left=0.20, right=0.93, bottom=0.18, top=0.88, wspace=None, hspace=None)
     yfmt = ptk.ScalarFormatter(useOffset=True, useMathText=True)
-    fig = matplotlib.pyplot.figure(1, figsize=(8, 5.5))
+    fig = matplotlib.pyplot.figure(figsize=(8, 5.5))
     ax = fig.add_subplot(111)
 
     x_label = "Iteration number"
@@ -115,7 +116,11 @@ def main() -> None:
         " as a function of the iteration number during the SCF loop."
     )
 
-    parser.add_argument("run_directory", type=str, help="run directory")
+    parser.add_argument("--run-directory", "-r",
+                        default=os.getcwd(),
+                        nargs=1,
+                        dest="run_directory",
+                        help="root path for files that are created by this script")
 
     parser.add_argument("-sh", "--show",
                         action="store_true",

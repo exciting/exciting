@@ -1,14 +1,16 @@
 """Python visualization tool for the maximum amplitude of the force on the atoms during relaxation."""
 
-from os.path import join
-import numpy as np
 import math
+import os
 from argparse import ArgumentParser
+from os.path import join
 from typing import List
-from excitingscripts.utils.utils import get_structure_optimizations_properties
+
 import matplotlib.pyplot as plt
 import matplotlib.style
 import matplotlib.ticker as ptk
+import numpy as np
+from excitingscripts.utils.utils import get_structure_optimizations_properties
 
 if matplotlib.__version__.split(".")[0] == "2":
     matplotlib.style.use('classic')
@@ -27,7 +29,7 @@ def plot_forces(forces: List[List], run_dir: str, show: bool, dpi: int):
         'figure.figsize': (10, 7.5),
         'axes.linewidth': 4.0,
         'lines.markersize': 10,
-        'lines.linewidth': 2.0,
+        'lines.linewidth': 3.0,
         'grid.linewidth': 1.0,
         'xtick.labelsize': 16,
         'ytick.labelsize': 16,
@@ -72,7 +74,7 @@ def plot_forces(forces: List[List], run_dir: str, show: bool, dpi: int):
     # Setting the y-axis limits between order(goal for convergence) - 1 order(initial max_force) + 1
     order_upper = math.floor(max(math.log(goal, 10), math.log(max_forces[0], 10)))
     order_bottom = math.ceil(min(math.log(goal, 10), math.log(max_forces[-1], 10)))
-    ax.set_ylim(10 ** (order_bottom - 1), 10 ** (order_upper + 1))
+    ax.set_ylim(10 ** (order_bottom - 1), 10 ** (order_upper + 1.5))
     ax.set_yscale('log')
 
     # Add legend
@@ -92,10 +94,11 @@ def main() -> None:
     parser = ArgumentParser(
         description="Python visualization tool for the maximum amplitude of the force on the atoms during relaxation.")
 
-    # Define command line arguments
-    parser.add_argument("directory",
-                        type=str,
-                        help="Directory where exciting runs")
+    parser.add_argument("--run-directory", "-r",
+                        default=os.getcwd(),
+                        nargs=1,
+                        dest="run_directory",
+                        help="root path for files that are created by this script")
 
     parser.add_argument("-sh", "--show",
                         action="store_true",
@@ -107,13 +110,13 @@ def main() -> None:
                         help="Resolution in DPI for saved plot")
 
     args = parser.parse_args()
-    run_dir = args.directory
+    run_dir = args.run_directory
 
     forces = get_structure_optimizations_properties(run_dir, "Maximum force")
 
-    # Plot max forces and goal
     plot_forces(forces, run_dir, args.show, args.dpi)
 
 
 if __name__ == "__main__":
     main()
+

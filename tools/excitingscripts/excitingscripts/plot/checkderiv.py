@@ -158,7 +158,7 @@ def plot_checkderiv(
     )
 
     yfmt = ptk.ScalarFormatter(useOffset=True, useMathText=True)
-    fig = matplotlib.pyplot.figure(1, figsize=(8, 5.5))
+    fig = matplotlib.pyplot.figure(figsize=(8, 5.5))
     ax = fig.add_subplot(111)
 
     ax.text(
