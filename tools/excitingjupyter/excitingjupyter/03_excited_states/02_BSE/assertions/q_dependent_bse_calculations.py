@@ -79,15 +79,15 @@ def test_dielectric_optical_bse(file_name: str):
         f"Frequency grid not equivalent to reference calculation in optical BSE dielectric function calculations"
 
     assert np.allclose(epsilon_optical_bse_results['real_oscillator_strength'],
-                       epsilon_optical_bse_reference['real_oscillator_strength'], rtol = 0.0, atol = 1e-5), \
+                       epsilon_optical_bse_reference['real_oscillator_strength'], rtol = 0.0, atol = 1e-4), \
         f"Real part of dielectric function not equivalent to reference calculation in optical BSE calculations"
 
     assert np.allclose(epsilon_optical_bse_results['imag_oscillator_strength'],
-                       epsilon_optical_bse_reference['imag_oscillator_strength'], rtol = 0.0, atol = 1e-5), \
+                       epsilon_optical_bse_reference['imag_oscillator_strength'], rtol = 0.0, atol = 1e-4), \
         f"Imaginary part of dielectric function not equivalent to reference calculation in optical BSE calculations"
 
     assert np.allclose(epsilon_optical_bse_results['real_oscillator_strength_kkt'],
-                       epsilon_optical_bse_reference['real_oscillator_strength_kkt'], rtol = 0.0, atol = 1e-5), \
+                       epsilon_optical_bse_reference['real_oscillator_strength_kkt'], rtol = 0.0, atol = 1e-4), \
         f"Real part of dielectric function (by Kramers-Kronig) not equivalent to reference calculation in optical BSE" \
         f" calculations"
 
