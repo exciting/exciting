@@ -33,9 +33,13 @@ test-fedora-buster-gnu-smp-jupyter:
   - time jupyter nbconvert --execute 02_ground_state/01_Methods/hybrid_functional_calculations.ipynb --to markdown
   - time jupyter nbconvert --execute 02_ground_state/01_Methods/spin_orbit_coupling.ipynb --to markdown
   - time jupyter nbconvert --execute 02_ground_state/01_Methods/spin_polarized_calculations_for_bcc_Fe.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/dft_0.5.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/dipole_correction_for_surface_calculations.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/exact_exchange_calculations.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/low_dimensional_systems.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/van_der_waals_corrections.ipynb --to markdown
   - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/fermi_surface_visualization.ipynb --to markdown
   - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/spin_texture_calculation.ipynb --to markdown
-  - time jupyter nbconvert --execute 02_ground_state/tutorial_excitingtools.ipynb --to markdown
   - time jupyter nbconvert --execute 03_excited_states/01_GW/electronic_band_structure_from_gw.ipynb --to markdown
   - time python3 03_excited_states/01_GW/assertions/electronic_band_structure_from_gw.py
   - time jupyter nbconvert --execute 03_excited_states/02_BSE/excited_states_from_bse.ipynb --to markdown
