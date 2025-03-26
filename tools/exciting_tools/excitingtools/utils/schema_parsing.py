@@ -264,13 +264,8 @@ def main():
         schema_dict = read_schema_to_dict(schema)
         info += write_schema_info(schema, schema_dict)
 
-    # Handle special case for 'xs' to handle the valid plan entries
-    xs_schema_dict = read_schema_to_dict("xs")
-    info += "\n# valid entries for the xs subtree 'plan'\n"
-    info += variable_to_pretty_str("valid_plan_entries", sorted(xs_schema_dict["doonly"]["plan"])) + " \n"
-
     with open(filename, "w") as fid:
-        fid.write(info)
+        fid.write(info[:-1])
 
     for file in tmp_files:
         file.unlink()
