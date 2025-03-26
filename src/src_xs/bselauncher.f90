@@ -6,7 +6,8 @@ subroutine bselauncher
   use modmpi
   use modscl
   use modxs, only: unitout
-  use modinput, only: input
+  use modinput, only: input, input_type
+
 ! !DESCRIPTION:
 !   Launches the construction and solving of the Bethe-Salpeter Hamiltonian
 !   for the specified $\vec{Q}_\text{mt}$ momentum transfer and approximation
@@ -30,7 +31,9 @@ subroutine bselauncher
   integer(4) :: idir, iqmt, iqmti, iqmtf, nqmt, nqmtselected, iq1, iq2
   real(8) :: ts0, ts1
   real(8) :: vqmt(3)
-
+  integer :: bse_type_index
+  character(len=256), allocatable :: bsetypelist(:) 
+  
   !---------------------------------------------------------------------------!
   ! Init0,1,2 General inits
   !---------------------------------------------------------------------------!
@@ -192,30 +195,49 @@ subroutine bselauncher
 
   !---------------------------------------------------------------------------!
   ! Assemble and solve BSE for each Q-point in range
-  !---------------------------------------------------------------------------!
-  do iqmt = iqmti+iq1-1, iqmti+iq2-1
+  !---------------------------------------------------------------------------
+  call setup_bse_type_list(input, bsetypelist)
+  do bse_type_index = 1, size(bsetypelist)
+    input%xs%bse%bsetype = trim(adjustl(bsetypelist(bse_type_index)))
 
-    ! Get full Q vector for info out
-    vqmt(:) = input%xs%qpointset%qpoint(:, iqmt)
+    write(unitout, '("Info(",a,"):", a, a)') trim(thisname),&
+      & " BSE type: ", trim(adjustl(input%xs%bse%bsetype))
+    call printline(unitout, "+")
+    do iqmt = iqmti+iq1-1, iqmti+iq2-1
+  
+      ! Get full Q vector for info out
+      vqmt(:) = input%xs%qpointset%qpoint(:, iqmt)
+  
+      ! Info out
+      call printline(unitout, "-")
+      write(unitout, '("Info(",a,"):", a, i3)') trim(thisname),&
+        & " Momentum transfer list index: iqmt=", iqmt
+      write(unitout, '("Info(",a,"):", a, 3f8.3)') trim(thisname),&
+        & " Momentum transfer: vqmtl=", vqmt(1:3)
+      call printline(unitout, "-")
+  
+      
+      call bse(iqmt)
+  
+      ! Info out
+      call printline(unitout, "-")
+      write(unitout, '("Info(",a,"): Spectrum finished for iqmt=", i3)')&
+        &trim(thisname), iqmt
+      call printline(unitout, "-")
+  
+     end do
+     write(unitout, '("Info(",a,"): All done for BSE type ", a)')&
+       &trim(thisname), trim(adjustl(input%xs%bse%bsetype))
+     if(bse_type_index < size(bsetypelist)) then
+       call printline(unitout, " ")
+       call printline(unitout, "+")
+       call printline(unitout, "+")
+       call printline(unitout, " ")
+     end if
 
-    ! Info out
-    call printline(unitout, "-")
-    write(unitout, '("Info(",a,"):", a, i3)') trim(thisname),&
-      & " Momentum transfer list index: iqmt=", iqmt
-    write(unitout, '("Info(",a,"):", a, 3f8.3)') trim(thisname),&
-      & " Momentum transfer: vqmtl=", vqmt(1:3)
-    call printline(unitout, "-")
+   end do
 
-    ! Assemble and solve BSE
-    call bse(iqmt)
 
-    ! Info out
-    call printline(unitout, "-")
-    write(unitout, '("Info(",a,"): Spectrum finished for iqmt=", i3)')&
-      &trim(thisname), iqmt
-    call printline(unitout, "-")
-
-  end do
   !---------------------------------------------------------------------------!
 
   if(iq2<0) then
@@ -232,6 +254,30 @@ subroutine bselauncher
   call exitblacs(bi2d)
   call exitblacs(bi1d)
   call exitblacs(bi0d)
+  
+  contains
+
+    subroutine setup_bse_type_list(input, bse_type_list)
+      type(input_type), intent(in) :: input
+      character(len=256), allocatable, intent(out) :: bse_type_list(:)
+
+      integer :: idx_bse_type
+
+      if (.not. associated(input%xs%BseTypeSet)) then
+        bse_type_list = [ input%xs%bse%bsetype ]
+      else
+        call terminate_if_false(size(input%xs%BseTypeSet%typearray)>0, "BseTypeSet is present but no type is defined.")
+        allocate(bse_type_list(size(input%xs%BseTypeSet%typearray)))
+        do idx_bse_type = 1, size(input%xs%BseTypeSet%typearray)
+          bse_type_list(idx_bse_type) = trim(adjustl(input%xs%BseTypeSet%typearray(idx_bse_type)%type%name))
+        end do
+        do idx_bse_type = 1, size(bse_type_list)
+            call terminate_if_false(count(bse_type_list == bse_type_list(idx_bse_type)) == 1, thisname//": More than one bsetype &
+                    element with name "// trim(adjustl(bse_type_list(idx_bse_type)))//".")
+        end do 
+      end if
+
+    end subroutine setup_bse_type_list
 
 end subroutine bselauncher
 !EOC

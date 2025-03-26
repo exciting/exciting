@@ -600,7 +600,7 @@ xs_attribute_types = {"bfieldc": (float, 3),
                       "xstype": (str, ["BSE", "RT-TDDFT", "TDDFT", "fastBSE"])} 
 xs_valid_subtrees = ["storeexcitons", "pwelements", "writeexcitons", "writekpathweights", "excitonPlot",
                      "realTimeTDDFT", "tddft", "screening", "phonon_screening", "expand_eps", "BSE", "fastBSE",
-                     "transitions", "qpointset", "tetra", "energywindow", "plan"] 
+                     "transitions", "qpointset", "tetra", "energywindow", "BseTypeSet", "plan"] 
 xs_mandatory_attributes = ["xstype"] 
 
 storeexcitons_attribute_types = {"MaxEnergyExcitons": (float, 1),
@@ -843,6 +843,13 @@ tetra_attribute_types = {"cw1k": (bool, 1),
                          "tetradf": (bool, 1),
                          "tetraocc": (bool, 1)} 
 
+BseTypeSet_valid_subtrees = ["type"] 
+BseTypeSet_mandatory_attributes = ["type"] 
+BseTypeSet_multiple_children = ["type"] 
+
+type_attribute_types = {"name": (str, ["IP", "RPA", "singlet", "triplet"])} 
+type_mandatory_attributes = ["name"] 
+
 plan_valid_subtrees = ["doonly"] 
 plan_multiple_children = ["doonly"] 
 
@@ -1004,16 +1011,3 @@ SpectralFunctionPloteph_attribute_types = {"axis": (str, 1),
                                            "nwgrid": (int, 1),
                                            "wmax": (float, 1),
                                            "wmin": (float, 1)} 
-
-
-# valid entries for the xs subtree 'plan'
-valid_plan_entries = ["bse", "bsegenspec", "bsesurvey", "df", "df2", "dielectric", "emattest", "exccoulint",
-                      "excitonWavefunction", "expand_add_eps", "fastBSE_groundstate_properties",
-                      "fastBSE_human_readable_output", "fastBSE_isdf_cvt", "fastBSE_main", "fxc_alda_check", "idf",
-                      "kernxc_bse", "kernxc_bse3", "phonon_screening", "planewave_elements", "pmatxs2orig",
-                      "portstate(-1)", "portstate(-2)", "portstate(1)", "portstate(2)", "scrcoulint", "screen",
-                      "scrgeneigvec", "scrtetcalccw", "scrwritepmat", "testmain", "testxs", "tetcalccw",
-                      "write_dielectric_matrix", "write_pmat_hdf5_xs", "write_screen", "write_screened_coulomb",
-                      "writebandgapgrid", "writebevec", "writeemat", "writeematasc", "writekpathweights",
-                      "writeoverlapxs", "writepmat", "writepmatasc", "writepmatxs", "writepwmat", "x0toasc", "x0tobin",
-                      "xsestimate", "xsgeneigvec"] 

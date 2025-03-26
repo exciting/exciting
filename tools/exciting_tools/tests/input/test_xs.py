@@ -210,6 +210,31 @@ def test_class_ExcitingPlanInput():
     assert doonlys[2].items() == [("task", "bsegenspec")]
 
 
+def test_class_ExcitingBseTypeSetInput():
+    bsetypeset_input = ["IP", "RPA", "singlet"]
+
+    xs_input = ExcitingXSInput(xstype="BSE", BseTypeSet=bsetypeset_input)
+
+    xs_xml = xs_input.to_xml()
+    assert xs_xml.tag == "xs"
+
+    elements = list(xs_xml)
+    assert len(elements) == 1
+
+    bsetypeset_xml = elements[0]
+    assert bsetypeset_xml.tag == "BseTypeSet"
+    assert bsetypeset_xml.items() == []
+
+    types = list(bsetypeset_xml)
+    assert len(types) == 3
+    assert types[0].tag == "type"
+    assert types[0].items() == [("name", "IP")]
+    assert types[1].tag == "type"
+    assert types[1].items() == [("name", "RPA")]
+    assert types[2].tag == "type"
+    assert types[2].items() == [("name", "singlet")]
+
+
 def test_class_ExcitingPlanInput_wrong_plan():
     plan_input = ["screen", "bse", "bsegenspec", "falseplan"]
 
