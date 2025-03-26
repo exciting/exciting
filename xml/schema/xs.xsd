@@ -1386,7 +1386,6 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
-            
             <xs:attribute ex:importance="experimental" ex:unit="" name="skipdoneq" type="xs:boolean"
               default="false">
               <xs:annotation>
@@ -1858,6 +1857,7 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
+            
             <xs:attribute ex:importance="expert" ex:unit="" name="cuttype" default="none">
               <xs:annotation>
                 <xs:documentation>Defines how the Coulomb potential is to be truncated. Used for lower dimentional
@@ -1897,7 +1897,6 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            
           </xs:complexType>
         </xs:element>
 
@@ -2178,6 +2177,7 @@
             </xs:all>
           </xs:complexType>
         </xs:element>
+
         <xs:element ex:importance="expert" ex:unit="" ref="qpointset" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation> Finite momentum transfer <inlinemath>{ \bf G}+{ \bf q}</inlinemath>\
@@ -2187,6 +2187,7 @@
             </xs:appinfo>
           </xs:annotation>
         </xs:element>
+
         <xs:element ex:importance="expert" ex:unit="" name="tetra" maxOccurs="1" minOccurs="0">
           <xs:complexType>
             <xs:attribute ex:importance="expert" ex:unit="" name="tetraocc" type="xs:boolean"
@@ -2228,6 +2229,71 @@
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" ref="energywindow" maxOccurs="1" minOccurs="0"> </xs:element>
+
+
+      <xs:element ex:importance="expert" ex:unit="" name="BseTypeSet" minOccurs="0" maxOccurs="1">
+	  <xs:annotation>
+            <xs:documentation> Define a set of BSE types that are calculated in one run of the <attref>bse</attref> task
+            in the <attref>plan</attref> element. This element has no effect on any other tasks.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element ex:importance="expert" ex:unit="" name="type" minOccurs="1"
+                maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:attribute ex:importance="expert" ex:unit="" name="name" use="required">
+		    <xs:annotation>
+		      <xs:documentation>Define the BSE type.</xs:documentation>
+                      <xs:appinfo>
+                        <oldname>noreplace</oldname>
+                      </xs:appinfo>
+                    </xs:annotation>
+                    <xs:simpleType>
+                      <xs:restriction base="xs:string">
+                        <xs:enumeration value="IP">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>1</oldnr>
+                            </xs:appinfo>
+			    <xs:documentation>Calculate independent particle approximation.
+		            </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>         
+                        <xs:enumeration value="RPA">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>2</oldnr>
+                            </xs:appinfo>
+			    <xs:documentation>Calculate random phase approximation.
+		            </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+			<xs:enumeration value="singlet">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>3</oldnr>
+                            </xs:appinfo>
+			    <xs:documentation>Solve BSE for singlet spin configuration.
+		            </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>         
+                        <xs:enumeration value="triplet">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>4</oldnr>
+                            </xs:appinfo>
+			    <xs:documentation>Solve BSE for triplet spin configuration.
+		            </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+                      </xs:restriction>
+                    </xs:simpleType>
+                  </xs:attribute>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
 	<xs:element ex:importance="expert" ex:unit="" name="plan" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:sequence>

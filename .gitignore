@@ -205,3 +205,6 @@ external/libXC/ltmain.sh
 external/libXC/missing
 external/libXC/test-driver
 external/libXC/INSTALL
+
+# FoX files
+external/FoX/ut
