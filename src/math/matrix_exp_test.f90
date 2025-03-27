@@ -241,7 +241,7 @@ module matrix_exp_test
       & S=transpose_reshape([& 
           &     zone,    -2._dp*zi, &
           & 2._dp*zi,   4.2_dp*zone ], [2,2] ), &
-      & vectors=vectors_to_test, tol=tol, n_expansion = 1)
+      & vectors=vectors_to_test, tol=tol, n_eigs = 1)
     call test_report%assert( all_close( a=vectors_to_test, &
       & b= expected_result, tol=tol ) , &
       & message='exphouston_hermitian_matrix_times_vectors does not return the&
