@@ -8,7 +8,7 @@ from excitingtools.runner.runner import BinaryRunner, RunnerCode
 def run_exciting(root_directory: str=os.getcwd(), 
                  excitingroot: str=os.getenv("EXCITINGROOT"), 
                  filename: str="input.xml", 
-                 timeout: int=1200) -> None:
+                 timeout: int=3000) -> None:
     """Execute an exciting calculation in a given running directory.
 
     :param root_directory: Root directory.
