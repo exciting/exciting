@@ -43,7 +43,7 @@ test-fedora-buster-gnu-smp-jupyter:
   - time jupyter nbconvert --execute 02_ground_state/03_Lattice_Optimization/general_lattice_optimization.ipynb --to markdown
   - time jupyter nbconvert --execute 02_ground_state/03_Lattice_Optimization/simple_examples_of_structure_optimization.ipynb --to markdown
   - time jupyter nbconvert --execute 02_ground_state/03_Lattice_Optimization/volume_optimization_for_cubic_systems.ipynb --to markdown
-  - time jupyter nbconvert --execute 02_ground_state/04_Molecules/volume_optimization_for_cubic_systems.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/04_Molecules/how_to_run_calculations_for_simple_molecules.ipynb --to markdown
   - time jupyter nbconvert --execute 03_excited_states/01_GW/electronic_band_structure_from_gw.ipynb --to markdown
   - time python3 03_excited_states/01_GW/assertions/electronic_band_structure_from_gw.py
   - time jupyter nbconvert --execute 03_excited_states/02_BSE/excited_states_from_bse.ipynb --to markdown
