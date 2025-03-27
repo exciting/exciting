@@ -51,6 +51,7 @@ test-fedora-buster-gnu-smp-jupyter:
   - time jupyter nbconvert --execute 02_ground_state/01_Methods/van_der_waals_corrections.ipynb --to markdown
   - time python3 02_ground_state/01_Methods/assertions/van_der_waals_corrections.py
   - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/fermi_surface_visualization.ipynb --to markdown
+  - time python3 02_ground_state/02_Electronic_Properties/assertions/fermi_surface_visualization.py
   - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/spin_texture_calculation.ipynb --to markdown
   - time jupyter nbconvert --execute 02_ground_state/03_Lattice_Optimization/general_lattice_optimization.ipynb --to markdown
   - time jupyter nbconvert --execute 02_ground_state/03_Lattice_Optimization/simple_examples_of_structure_optimization.ipynb --to markdown
