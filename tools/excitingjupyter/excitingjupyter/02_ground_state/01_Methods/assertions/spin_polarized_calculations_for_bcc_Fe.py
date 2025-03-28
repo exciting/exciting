@@ -13,9 +13,11 @@ def test_bandstructure_spin_polarized():
         f"{dirname(__file__)}/{TUTORIAL_RUNDIR}/SPIN/bandstructure.xml")
 
     assert np.allclose(bandstructure_spin_results["k_points_along_band"],
-                       bandstructure_spin_reference["k_points_along_band"], atol=1.0e-8)
+                       bandstructure_spin_reference["k_points_along_band"], atol=1.0e-8),(
+                       "Spin k-point values not equivalent to reference calculation")
     assert np.allclose(bandstructure_spin_results["band_energies"],
-                       bandstructure_spin_reference["band_energies"], atol=1.0e-8)
+                       bandstructure_spin_reference["band_energies"], atol=1.0e-8),(
+                       "Spin band energies not equivalent to reference calculation")
 
     bandstructure_afm_reference = parse_band_structure_xml(
         f"{dirname(__file__)}/{REFERENCE_DIR}/bandstructure_afm.xml")
@@ -23,20 +25,24 @@ def test_bandstructure_spin_polarized():
         f"{dirname(__file__)}/{TUTORIAL_RUNDIR}/AFM-B_4.0/bandstructure.xml")
 
     assert np.allclose(bandstructure_afm_results["k_points_along_band"],
-                       bandstructure_afm_reference["k_points_along_band"], atol=1.0e-8)
+                       bandstructure_afm_reference["k_points_along_band"], atol=1.0e-8),(
+                       "AFM k-point values not equivalent to reference calculation")
     assert np.allclose(bandstructure_afm_results["band_energies"],
-                       bandstructure_afm_reference["band_energies"], atol=1.0e-8)
+                       bandstructure_afm_reference["band_energies"], atol=1.0e-8),(
+                       "AFM band energies not equivalent to reference calculation")
 
 def test_dos_spin_polarized():
     dos_spin_reference = np.loadtxt(f"{dirname(__file__)}/{REFERENCE_DIR}/TDOS_spin.OUT")
     dos_spin_results = np.loadtxt(f"{dirname(__file__)}/{TUTORIAL_RUNDIR}/SPIN/TDOS.OUT")
 
-    assert np.allclose(dos_spin_results, dos_spin_reference, atol=1.0e-8)
+    assert np.allclose(dos_spin_results, dos_spin_reference, atol=1.0e-8),(
+                       "Spin DOS not equivalent to reference calculation")
 
     dos_afm_reference = np.loadtxt(f"{dirname(__file__)}/{REFERENCE_DIR}/TDOS_afm.OUT")
     dos_afm_results = np.loadtxt(f"{dirname(__file__)}/{TUTORIAL_RUNDIR}/AFM-B_4.0/TDOS.OUT")
 
-    assert np.allclose(dos_afm_results, dos_afm_reference, atol=1.0e-8)
+    assert np.allclose(dos_afm_results, dos_afm_reference, atol=1.0e-8),(
+                       "AFM DOS not equivalent to reference calculation")
 
 def main():
     test_bandstructure_spin_polarized()

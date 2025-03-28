@@ -13,9 +13,11 @@ def test_bandstructure_exact_exchange():
         f"{dirname(__file__)}/{TUTORIAL_RUNDIR}/LDA/bandstructure.xml")
 
     assert np.allclose(bandstructure_LDA_results["k_points_along_band"],
-                       bandstructure_LDA_reference["k_points_along_band"], atol=1.0e-8)
+                       bandstructure_LDA_reference["k_points_along_band"], atol=1.0e-8),(
+                       "LDA k-point values not equivalent to reference calculation")
     assert np.allclose(bandstructure_LDA_results["band_energies"],
-                       bandstructure_LDA_reference["band_energies"], atol=1.0e-8)
+                       bandstructure_LDA_reference["band_energies"], atol=1.0e-8),(
+                       "LDA band energies not equivalent to reference calculation")
 
     bandstructure_EXX_reference = parse_band_structure_xml(
         f"{dirname(__file__)}/{REFERENCE_DIR}/bandstructure_EXX.xml")
@@ -23,9 +25,11 @@ def test_bandstructure_exact_exchange():
         f"{dirname(__file__)}/{TUTORIAL_RUNDIR}/EXX/bandstructure.xml")
 
     assert np.allclose(bandstructure_EXX_results["k_points_along_band"],
-                       bandstructure_EXX_reference["k_points_along_band"], atol=1.0e-8)
+                       bandstructure_EXX_reference["k_points_along_band"], atol=1.0e-8),(
+                       "EXX k-point values not equivalent to reference calculation")
     assert np.allclose(bandstructure_EXX_results["band_energies"],
-                       bandstructure_EXX_reference["band_energies"], atol=1.0e-8)
+                       bandstructure_EXX_reference["band_energies"], atol=1.0e-8),(
+                       "EXX band energies not equivalent to reference calculation")
 
 
 def main():

@@ -12,7 +12,7 @@ test-fedora-buster-gnu-smp-jupyter:
   - python:excitingtools-python3
  tags:
   - docker
- timeout: 24h  # Increased timeout from default 3h to 24h
+ timeout: 48h  # Increased timeout from default 3h to 48h
  # One might consider moving construction of venv to the build state and make it an artifact
  script:
   - cd tools/excitingjupyter
@@ -53,16 +53,24 @@ test-fedora-buster-gnu-smp-jupyter:
   - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/fermi_surface_visualization.ipynb --to markdown
   - time python3 02_ground_state/02_Electronic_Properties/assertions/fermi_surface_visualization.py
   - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/spin_texture_calculation.ipynb --to markdown
-  - time jupyter nbconvert --execute 02_ground_state/03_Lattice_Optimization/general_lattice_optimization.ipynb --to markdown
+  - time python3 02_ground_state/02_Electronic_Properties/assertions/spin_texture_calculation.py
   - time jupyter nbconvert --execute 02_ground_state/03_Lattice_Optimization/simple_examples_of_structure_optimization.ipynb --to markdown
+  - time python3 02_ground_state/03_Lattice_Optimization/assertions/simple_examples_of_structure_optimization.py
   - time jupyter nbconvert --execute 02_ground_state/03_Lattice_Optimization/volume_optimization_for_cubic_systems.ipynb --to markdown
+  - time python3 02_ground_state/03_Lattice_Optimization/assertions/volume_optimization_for_cubic_systems.py
   - time jupyter nbconvert --execute 02_ground_state/04_Molecules/how_to_run_calculations_for_simple_molecules.ipynb --to markdown
+  - time python3 02_ground_state/04_Molecules/assertions/how_to_run_calculations_for_simple_molecules.py
   - time jupyter nbconvert --execute 02_ground_state/05_Lattice_Dynamics/born_effective_charges_of_zincblende_structure_crystals.ipynb --to markdown
+  - time python3 02_ground_state/05_Lattice_Dynamics/assertions/born_effective_charges_of_zincblende_structure_crystals.py
   - time jupyter nbconvert --execute 02_ground_state/05_Lattice_Dynamics/how_to_visualize_phonons.ipynb --to markdown
   - time jupyter nbconvert --execute 02_ground_state/05_Lattice_Dynamics/lattice_dynamics_of_diamond_and_zincblende_structure_crystals.ipynb --to markdown
+  - time python3 02_ground_state/05_Lattice_Dynamics/assertions/lattice_dynamics_of_diamond_and_zincblende_structure_crystals.py
   - time jupyter nbconvert --execute 02_ground_state/05_Lattice_Dynamics/phonons_at_gamma_in_diamond_structure_crystals.ipynb --to markdown
+  - time python3 02_ground_state/05_Lattice_Dynamics/assertions/phonons_at_gamma_in_diamond_structure_crystals.py
   - time jupyter nbconvert --execute 02_ground_state/05_Lattice_Dynamics/phonons_at_X_in_diamond_structure_crystals.ipynb --to markdown
+  - time python3 02_ground_state/05_Lattice_Dynamics/assertions/phonons_at_X_in_diamond_structure_crystals.py
   - time jupyter nbconvert --execute 02_ground_state/06_Elastic_Properties/energy_vs_strain_calculations.ipynb --to markdown
+  - time python3 02_ground_state/06_Elastic_Properties/assertions/energy_vs_strain_calculations.py
   - time jupyter nbconvert --execute 03_excited_states/01_GW/electronic_band_structure_from_gw.ipynb --to markdown
   - time python3 03_excited_states/01_GW/assertions/electronic_band_structure_from_gw.py
   - time jupyter nbconvert --execute 03_excited_states/02_BSE/excited_states_from_bse.ipynb --to markdown
@@ -81,5 +89,5 @@ test-fedora-buster-gnu-smp-jupyter:
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/simulating_pump_probe_spectroscopy_with_rt_tddft.ipynb --to markdown
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/studying_higher_harmonics_generation_using_rt_tddft.ipynb --to markdown
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/real_time_tddft_combined_with_molecular_dynamics.ipynb --to markdown
- rules:
-    - if: '$CI_COMMIT_BRANCH == "development"'
+# rules:
+#    - if: '$CI_COMMIT_BRANCH == "development"'

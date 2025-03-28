@@ -21,7 +21,8 @@ def test_dft_half():
                     [3.9, 1.1841189830],
                     [4.0, 1.1691102708],
                     [4.5, 1.0394795805],
-                    [5.0, 0.8522698691]])
+                    [5.0, 0.8522698691]]), (
+                    "bandgap values not equivalent to reference calculation")
 
     assert np.allclose(bandgap_results, bandgap_reference,  atol=1.0e-8)
 

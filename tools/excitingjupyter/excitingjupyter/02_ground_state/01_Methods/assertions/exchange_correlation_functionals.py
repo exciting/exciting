@@ -19,7 +19,8 @@ def test_xc_functionals():
                                               [303.8149141567, -579.01500868],
                                               [312.6633441916, -579.01225445]])
 
-    assert np.allclose(energy_vs_volume_GGA_results, energy_vs_volume_GGA_reference,  atol=1.0e-8)
+    assert np.allclose(energy_vs_volume_GGA_results, energy_vs_volume_GGA_reference,  atol=1.0e-8),(
+                       "GGA energy vs volume values not equivalent to reference calculation")
 
     energy_vs_volume_LDA_results = np.loadtxt(f"{dirname(__file__)}/{TUTORIAL_RUNDIR}/LDA_PW/energy-vs-volume")
     energy_vs_volume_LDA_reference = np.array([[231.5687158849, -578.07161516],
@@ -34,7 +35,8 @@ def test_xc_functionals():
                                               [303.8149141567, -578.07400722],
                                               [312.6633441916, -578.07091053]])
 
-    assert np.allclose(energy_vs_volume_LDA_results, energy_vs_volume_LDA_reference, atol=1.0e-8)
+    assert np.allclose(energy_vs_volume_LDA_results, energy_vs_volume_LDA_reference, atol=1.0e-8),(
+                       "LDA energy vs volume values not equivalent to reference calculation")
 
     energy_vs_volume_libxc_results = np.loadtxt(f"{dirname(__file__)}/{TUTORIAL_RUNDIR}/libxc_functional/energy-vs-volume")
     energy_vs_volume_libxc_reference = np.array([[231.5687158849, -580.05681318],
@@ -49,7 +51,8 @@ def test_xc_functionals():
                                                 [303.8149141567, -580.06815775],
                                                 [312.6633441916, -580.06586460]])
 
-    assert np.allclose(energy_vs_volume_libxc_results, energy_vs_volume_libxc_reference, atol=1.0e-8)
+    assert np.allclose(energy_vs_volume_libxc_results, energy_vs_volume_libxc_reference, atol=1.0e-8),(
+                       "libxc energy vs volume values not equivalent to reference calculation")
 
 
 def main():

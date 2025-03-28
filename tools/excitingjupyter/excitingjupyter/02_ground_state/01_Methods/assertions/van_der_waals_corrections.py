@@ -19,7 +19,8 @@ def test_van_der_waals():
                                                 [8.00000000, -152.42367094],
                                                 [20.00000000, -152.41932763]])
 
-    assert np.allclose(energy_vs_strain_DFTD2_results, energy_vs_strain_DFTD2_reference,  atol=1.0e-8)
+    assert np.allclose(energy_vs_strain_DFTD2_results, energy_vs_strain_DFTD2_reference,  atol=1.0e-8),(
+                       "DFTD2 energy vs strain values not equivalent to reference calculation")
 
     energy_vs_strain_PBE_results = np.loadtxt(f"{dirname(__file__)}/{TUTORIAL_RUNDIR}/PBE-uncorrected/energy-vs-strain")
     energy_vs_strain_PBE_reference = np.array([[5.00000000, -152.38457377],
@@ -34,7 +35,8 @@ def test_van_der_waals():
                                               [8.00000000, -152.41167557],
                                               [20.00000000, -152.41126582]])
 
-    assert np.allclose(energy_vs_strain_PBE_results, energy_vs_strain_PBE_reference, atol=1.0e-8)
+    assert np.allclose(energy_vs_strain_PBE_results, energy_vs_strain_PBE_reference, atol=1.0e-8),(
+                       "PBE energy vs strain values not equivalent to reference calculation")
 
     energy_vs_strain_TSvdW_results = np.loadtxt(f"{dirname(__file__)}/{TUTORIAL_RUNDIR}/TSvdW/energy-vs-strain")
     energy_vs_strain_TSvdW_reference = np.array([[5.00000000, -152.40996062],
@@ -49,7 +51,8 @@ def test_van_der_waals():
                                                 [8.00000000, -152.42449556],
                                                 [20.00000000, -152.41818978]])
 
-    assert np.allclose(energy_vs_strain_TSvdW_results, energy_vs_strain_TSvdW_reference, atol=1.0e-8)
+    assert np.allclose(energy_vs_strain_TSvdW_results, energy_vs_strain_TSvdW_reference, atol=1.0e-8),(
+                       "TSvdW energy vs strain values not equivalent to reference calculation")
 
 
 def main():
