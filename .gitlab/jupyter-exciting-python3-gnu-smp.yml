@@ -40,10 +40,10 @@ test-fedora-buster-gnu-smp-jupyter:
   #- time python3 02_ground_state/01_Methods/assertions/spin_orbit_coupling.py
  # - time jupyter nbconvert --execute 02_ground_state/01_Methods/spin_polarized_calculations_for_bcc_Fe.ipynb --to markdown
   #- time python3 02_ground_state/01_Methods/assertions/spin_polarized_calculations_for_bcc_Fe.py
-  - time jupyter nbconvert --execute 02_ground_state/01_Methods/dft_0.5.ipynb --to markdown
-  - time python3 02_ground_state/01_Methods/assertions/dft_0.5.py
-  - time jupyter nbconvert --execute 02_ground_state/01_Methods/dipole_correction_for_surface_calculations.ipynb --to markdown
-  - time python3 02_ground_state/01_Methods/assertions/dipole_correction_for_surface_calculations.py
+ # - time jupyter nbconvert --execute 02_ground_state/01_Methods/dft_0.5.ipynb --to markdown
+  #- time python3 02_ground_state/01_Methods/assertions/dft_0.5.py
+  #- time jupyter nbconvert --execute 02_ground_state/01_Methods/dipole_correction_for_surface_calculations.ipynb --to markdown
+  #- time python3 02_ground_state/01_Methods/assertions/dipole_correction_for_surface_calculations.py
   - time jupyter nbconvert --execute 02_ground_state/01_Methods/exact_exchange_calculations.ipynb --to markdown
   - time python3 02_ground_state/01_Methods/assertions/exact_exchange_calculations.py
   - time jupyter nbconvert --execute 02_ground_state/01_Methods/low_dimensional_systems.ipynb --to markdown

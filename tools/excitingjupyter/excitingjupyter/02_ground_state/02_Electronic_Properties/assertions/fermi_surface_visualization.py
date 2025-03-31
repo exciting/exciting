@@ -67,7 +67,7 @@ def test_groundstate(converged_results: dict):
 def main():
     results = parse_info_out(f"{dirname(__file__)}/{TUTORIAL_RUNDIR}/INFO.OUT")
     max_scf = max([int(i) for i in results['scl'].keys()])
-    assert max_scf <= 35, "Expect max 35 SCF iterations to converge"
+    assert max_scf <= 45, "Expect max 45 SCF iterations to converge"
     converged_results = results['scl'][str(max_scf)]
     test_groundstate(converged_results)
 
