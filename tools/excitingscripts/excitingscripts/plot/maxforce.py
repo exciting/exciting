@@ -110,7 +110,7 @@ def main() -> None:
                         help="Resolution in DPI for saved plot")
 
     args = parser.parse_args()
-    run_dir = args.run_directory
+    run_dir = args.run_directory[0]
 
     forces = get_structure_optimizations_properties(run_dir, "Maximum force")
 

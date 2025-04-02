@@ -15,36 +15,36 @@ def input_xml_mock(tmp_path):
     <input>
 
        <title>Be: Lattice optimization</title>
-    
+
        <structure speciespath="/home/exciting/species">
-    
+
           <crystal scale="4.300">
              <basevect>  1.00000000  0.00000000  0.00000000 </basevect>
              <basevect> -0.50000000  0.86602540  0.00000000 </basevect>
              <basevect>  0.00000000  0.00000000  1.50000000 </basevect>
           </crystal>
-    
+
           <species speciesfile="Be.xml" rmt="1.95">
              <atom coord="0.66666667 0.33333333 0.75000000"/>
              <atom coord="0.33333333 0.66666667 0.25000000"/>
           </species>
-    
+
        </structure>
-    
+
        <groundstate 
           ngridk="6 6 4"
           xctype="GGA_PBE_SOL">
        </groundstate>
-    
+
        <relax/>
-    
+
     </input>
     """
     input_xml_file = tmp_path / "Be_opt.xml"
     input_xml_file.write_text(input_xml_str)
     return MockFile(input_xml_file, input_xml_str)
 
-
+@pytest.mark.skip(reason="depends on sgroup software, so fails in CI test.")
 def test_setup_optimize_lattice(input_xml_mock, tmp_path):
     run_directory = tmp_path
     max_strain = 0.03
