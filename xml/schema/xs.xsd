@@ -384,7 +384,7 @@
                       type="xs:string" default="F10.5">
                       <xs:annotation>
                         <xs:documentation> 
-                          Determine the Fortran format used to print the projection coefficients.
+                          Fortran format used to print the projection coefficients.
                         </xs:documentation>
                       </xs:annotation>
                     </xs:attribute>
@@ -407,8 +407,7 @@
                       type="xs:string" default="F10.5">
                       <xs:annotation>
                         <xs:documentation> 
-                          Determine the Fortran format used to print the occupation 
-                          numbers.
+                          Fortran format used to print the occupation numbers.
                         </xs:documentation>
                       </xs:annotation>
                     </xs:attribute>
@@ -743,6 +742,22 @@
                   excited electrons (per unit cell) at each time-step.
                   Output: <pre>NEXC.OUT</pre>
 		            </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="restartExtension" type="xs:string" default="">
+              <xs:annotation>
+                <xs:documentation> 
+                  When restarting a calculation, append the specified string 
+                  (as extension) to the following files: <pre>JIND.OUT</pre>, 
+                  <pre>PVEC.OUT</pre>, <pre>AVEC.OUT</pre>, 
+                  <pre>NEXC.OUT</pre>, and <pre>ETOT_RTTDDFT.OUT</pre>.  
+                  Instead of reading from the default file name 
+                  <pre>fname.OUT</pre>, the program will read from 
+                  <pre>fname.OUT.string</pre>, where <pre>string</pre> corresponds 
+                  to the value assigned to <attref>restartExtension</attref>.
+                  This functionality is primarily designed for testing purposes.
+                </xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
