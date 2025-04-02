@@ -8,6 +8,7 @@ import matplotlib.style
 import matplotlib.ticker as ptk
 import numpy as np
 import pylab as pyl
+from excitingscripts.utils.utils import sort_lists_by_first_list
 
 if matplotlib.__version__.split(".")[0] == "2":
     matplotlib.style.use("classic")
@@ -47,7 +48,7 @@ def main() -> None:
 
     strain = energy_volume_data[:, 0] ** (-2 / 3)
     energy = energy_volume_data[:, 1]
-    strain, energy = sortstrain(strain, energy)
+    strain, energy = sort_lists_by_first_list(strain, energy)
 
     bohr_radius = 0.529177
     joule2hartree = 4.3597482
