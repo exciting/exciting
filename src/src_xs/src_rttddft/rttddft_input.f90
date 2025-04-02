@@ -145,6 +145,10 @@ module rttddft_input
     integer(kind( start_mode )), private :: start_mode
     !> Format handler of the checkpoint (restart) files
     type(file_handler) :: restart_file_handler
+    !> When restarting a calculation, append this string as extension to the files
+    !> `JIND.OUT`, `PVEC.OUT`, `AVEC.OUT`, `NEXC.OUT`, and `ETOT_RTTDDFT.OUT`.
+    !> E.g. if `restart_extension=".END"`, the vector potential is read from `AVEC.OUT.SAVE`
+    character(len=:), allocatable :: restart_extension
   contains
     procedure :: parse_input => rttddft_input_keys_parse_input
     procedure :: write_restart => rttddft_input_keys_write_restart
@@ -195,6 +199,7 @@ subroutine rttddft_input_keys_parse_input( this, inp, tol, a_vec )
     this%basis_set = string_to_basis_set( rt_input%basis )
     this%start_mode = string_to_start_mode( rt_input%do )
     this%restart_file_handler%file_format = string_to_restart_format( rt_input%restartFilesFormat )
+    this%restart_extension = trim( rt_input%restartExtension )
   end associate
   if( this%restart_file_handler%file_format == hdf5 ) call abort_if_not_hdf5( &
     message="exciting needs to be compiled with HDF5 to use the RT-TDDFT restart feature with HDF5" )

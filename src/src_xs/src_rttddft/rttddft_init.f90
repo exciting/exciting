@@ -37,7 +37,7 @@ module rttddft_init
   use rttddft_input, only: rttddft_input_keys
   use rttddft_io, only: file_pmat_exists, read_pmat, write_pmat, file_pmat_mt_exists, &
     read_pmat_mt, write_pmat_mt, write_file_info, write_file_info_fill_line_with_char, &
-    get_filename_pmat, get_filename_pmat_mt, RTDDFT_GND_sufix, read_wavefunction, groundstate, t, t_minus_dt
+    get_filename_pmat, get_filename_pmat_mt, RTTDDFT_GND_sufix, read_wavefunction, groundstate, t, t_minus_dt
   use rttddft_pmat, only: obtain_pmat_LAPWloBasis, obtain_pmat_KSBasis
   use rttddft_potential, only: update_potential
   use rttddft_VectorPotential, only: Vector_Potential, Vector_Potential_Field
@@ -146,7 +146,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, &
 
   ! One-shot GS calculation
   ! Since an XS calculation with Hybrid functionals uses the GS parameters, a one shot GS calculation serves no purpose
-  if ( .not. hybrids_used() ) call gndstateq( voff, RTDDFT_GND_sufix//filext )
+  if ( .not. hybrids_used() ) call gndstateq( voff, RTTDDFT_GND_sufix//filext )
   call create_propagator( propagator, rt_inp%propagator_input, .not. molecular_dynamics%on )
   
   if ( rt_inp%use_ks_basis() ) then
@@ -521,7 +521,7 @@ subroutine read_WF_potential_rttddft( first_kpt, evecfv_gnd, occupations )
     filext = '_PBE.OUT'
   else
     string = filext
-    filext = RTDDFT_GND_sufix // filext
+    filext = RTTDDFT_GND_sufix // filext
   end if
   call readstate()        ! read the density and potentials from file
   call gencore()          ! generate the core wavefunctions and densities

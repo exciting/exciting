@@ -41,7 +41,7 @@ module rttddft_main
     open_file_nexc, close_file_nexc, write_nexc, &
     open_file_etot, close_file_etot, write_total_energy, &
     open_file_info, close_file_info, write_file_info, write_file_info_header, &
-    write_wavefunction, t, t_minus_dt, RTDDFT_suffix
+    write_wavefunction, t, t_minus_dt, RTTDDFT_suffix, copy_files
   use rttddft_MD, only: force_rttdft, move_ions, &
     MD_allocate_global_arrays => allocate_global_arrays, &
     MD_deallocate_global_arrays => deallocate_global_arrays, &
@@ -157,21 +157,25 @@ contains
     ! we only perform MD in RT-TDDFT if the type is Ehrenfest
     if( molecular_dynamics%on ) molecular_dynamics%on = ( trim(molecular_dynamics%MD_type) == 'Ehrenfest' )
     
-    ! Output general info to RTTDDFT_INFO.OUT
     my_rank_writes_to_output = ( rank == 0 ) 
-    if( my_rank_writes_to_output ) then
-      call open_rttddft_outputs( rt )
-      call write_file_info_header()
-    end if
-
-    ! Initialization
     if( rt%restart_previous_calculation() ) then
+      if( rt%restart_extension /= "" ) then
+        ! Copy files: sources are files ending with `rt%restart_extension`, dest. are to the default file names
+        if( my_rank_writes_to_output ) call copy_files( rt%restart_extension, rt%calculate_n_exc, rt%calculate_total_energy )
+        ! Before reading, ensure that copying has been finished
+        call barrier
+      end if
       call read_time_and_fields( time, p_vec, vec_pot, a_ind_save, a_tot_save )
     else
       time = 0._dp
     end if
     dt = rt%propagator_input%dt()
     eps_occ = input%groundstate%epsocc
+
+    if( my_rank_writes_to_output ) then
+      call open_rttddft_outputs( rt )
+      call write_file_info_header()
+    end if
     
     call initialize_rttddft( rt, propagator, vec_pot, a_tot_save, &
       molecular_dynamics, psi, overlap, ham_init, ham_time, ham_past, effective_potential_init, apwalm, &
@@ -468,7 +472,7 @@ contains
     end if
     ! write potential and density using `RTDDFT_suffix` combined with `filext` as suffix
     string = filext
-    filext = RTDDFT_suffix // trim( filext )
+    filext = RTTDDFT_suffix // trim( filext )
     if ( my_rank_writes_to_output ) call writestate
     filext = string
     call deallocate_global_arrays( molecular_dynamics%on )
