@@ -13,6 +13,18 @@ c = get_config()  # type:ignore # pylint: disable=E0602
 c.NbConvertApp.notebooks = [
     # Convert all tutorials in 01_getting_started (may be slow if combined with the --execute flag)
     os.path.join(NB_ROOT, "01_getting_started", "*.ipynb"),
+    os.path.join(NB_ROOT, "02_ground_state/01_Methods", "*.ipynb"),
+    os.path.join(NB_ROOT, "02_ground_state/02_Electronic_Properties", "*.ipynb"),
+    os.path.join(NB_ROOT, "02_ground_state/03_Lattice_Optimization", "*.ipynb"),
+    os.path.join(NB_ROOT, "02_ground_state/04_Molecules", "*.ipynb"),
+    os.path.join(NB_ROOT, "02_ground_state/05_Lattice_Dynamics", "*.ipynb"),
+    os.path.join(NB_ROOT, "02_ground_state/06_Elastic_Properties", "*.ipynb"),
+    os.path.join(NB_ROOT, "03_excited_states/01_GW", "*.ipynb"),
+    os.path.join(NB_ROOT, "03_excited_states/02_BSE", "*.ipynb"),
+    os.path.join(NB_ROOT, "03_excited_states/03_TDDFT", "*.ipynb"),
+    os.path.join(NB_ROOT, "03_excited_states/04_Others", "*.ipynb"),
+    os.path.join(NB_ROOT, "04_additional_features", "*.ipynb"),
+    os.path.join(NB_ROOT, "05_tools_and_packages", "*.ipynb"),
     # for fast testing use, e.g., (because it has images etc.):
     # os.path.join(NB_ROOT, "01_getting_started", "electronic_band_structure_and_density_of_states.ipynb")
 ]

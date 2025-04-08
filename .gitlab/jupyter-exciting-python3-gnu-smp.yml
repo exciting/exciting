@@ -12,8 +12,10 @@ test-fedora-buster-gnu-smp-jupyter:
   - python:excitingtools-python3
  tags:
   - docker
- timeout: 48h  # Increased timeout from default 3h to 48h
+ timeout: 24h  # Increased timeout from default 3h to 24h
  # One might consider moving construction of venv to the build state and make it an artifact
+ # Several tutorials are commented out, as they take a very long time to be executed in the CI.
+ # One should investigate if the execution can be sped up.
  script:
   - cd tools/excitingjupyter
   - source set_env_vars.sh
@@ -23,33 +25,26 @@ test-fedora-buster-gnu-smp-jupyter:
   - python3 -m pip install --upgrade --force pylint coverage numpy contourpy matplotlib scipy
   - python3 -m pytest -vv ../excitingscripts/tests
   - cd excitingjupyter
-  #- time jupyter nbconvert --execute 01_getting_started/how_to_start_an_exciting_calculation.ipynb --to markdown
-  #- time python3 01_getting_started/assertions/how_to_start_an_exciting_calculation.py
-  #- time jupyter nbconvert --execute 01_getting_started/simple_convergence_tests.ipynb --to markdown
-  #- time python3 01_getting_started/assertions/simple_convergence_tests.py
-  #- time jupyter nbconvert --execute 01_getting_started/electronic_band_structure_and_density_of_states.ipynb --to markdown
-  #- time python3 01_getting_started/assertions/electronic_band_structure_and_density_of_states.py
-  #- time jupyter nbconvert --execute 01_getting_started/understanding_the_exciting_species_files.ipynb --to markdown
-  #- time jupyter nbconvert --execute 02_ground_state/01_Methods/exchange_correlation_functionals.ipynb --to markdown
-  #- time python3 02_ground_state/01_Methods/assertions/exchange_correlation_functionals.py
-  #- time jupyter nbconvert --execute 02_ground_state/01_Methods/how_to_visualize_kohn_sham_states.ipynb --to markdown
-  #- time python3 02_ground_state/01_Methods/assertions/how_to_visualize_kohn_sham_states.py
-  #- time jupyter nbconvert --execute 02_ground_state/01_Methods/hybrid_functional_calculations.ipynb --to markdown
-  #- time python3 02_ground_state/01_Methods/assertions/hybrid_functional_calculations.py
-  #- time jupyter nbconvert --execute 02_ground_state/01_Methods/spin_orbit_coupling.ipynb --to markdown
-  #- time python3 02_ground_state/01_Methods/assertions/spin_orbit_coupling.py
+  - time jupyter nbconvert --execute 01_getting_started/how_to_start_an_exciting_calculation.ipynb --to markdown
+  - time python3 01_getting_started/assertions/how_to_start_an_exciting_calculation.py
+ # - time jupyter nbconvert --execute 01_getting_started/simple_convergence_tests.ipynb --to markdown
+  - time jupyter nbconvert --execute 01_getting_started/electronic_band_structure_and_density_of_states.ipynb --to markdown
+  - time jupyter nbconvert --execute 01_getting_started/understanding_the_exciting_species_files.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/exchange_correlation_functionals.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/how_to_visualize_kohn_sham_states.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/hybrid_functional_calculations.ipynb --to markdown
+ # - time jupyter nbconvert --execute 02_ground_state/01_Methods/spin_orbit_coupling.ipynb --to markdown
  # - time jupyter nbconvert --execute 02_ground_state/01_Methods/spin_polarized_calculations_for_bcc_Fe.ipynb --to markdown
-  #- time python3 02_ground_state/01_Methods/assertions/spin_polarized_calculations_for_bcc_Fe.py
   - time jupyter nbconvert --execute 02_ground_state/01_Methods/dft_0.5.ipynb --to markdown
   - time python3 02_ground_state/01_Methods/assertions/dft_0.5.py
   - time jupyter nbconvert --execute 02_ground_state/01_Methods/dipole_correction_for_surface_calculations.ipynb --to markdown
   - time python3 02_ground_state/01_Methods/assertions/dipole_correction_for_surface_calculations.py
-  - time jupyter nbconvert --execute 02_ground_state/01_Methods/exact_exchange_calculations.ipynb --to markdown
-  - time python3 02_ground_state/01_Methods/assertions/exact_exchange_calculations.py
-  - time jupyter nbconvert --execute 02_ground_state/01_Methods/low_dimensional_systems.ipynb --to markdown
-  - time python3 02_ground_state/01_Methods/assertions/low_dimensional_systems.py
-  - time jupyter nbconvert --execute 02_ground_state/01_Methods/van_der_waals_corrections.ipynb --to markdown
-  - time python3 02_ground_state/01_Methods/assertions/van_der_waals_corrections.py
+ # - time jupyter nbconvert --execute 02_ground_state/01_Methods/exact_exchange_calculations.ipynb --to markdown
+ # - time python3 02_ground_state/01_Methods/assertions/exact_exchange_calculations.py
+ # - time jupyter nbconvert --execute 02_ground_state/01_Methods/low_dimensional_systems.ipynb --to markdown
+ # - time python3 02_ground_state/01_Methods/assertions/low_dimensional_systems.py
+ # - time jupyter nbconvert --execute 02_ground_state/01_Methods/van_der_waals_corrections.ipynb --to markdown
+ # - time python3 02_ground_state/01_Methods/assertions/van_der_waals_corrections.py
   - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/fermi_surface_visualization.ipynb --to markdown
   - time python3 02_ground_state/02_Electronic_Properties/assertions/fermi_surface_visualization.py
   - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/spin_texture_calculation.ipynb --to markdown

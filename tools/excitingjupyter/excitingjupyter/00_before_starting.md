@@ -92,7 +92,7 @@ in a terminal shell is not sufficient as each Jupyter cell creates a new shell i
 are present is to add them to your `.bashrc`. For example, the SOL group uses the TCL module system so one would add:
 
 ```bash
-module load intel/2019
+module load intel-oneapi/2021.3
 ```
 
 to the `.bashrc` (which loads everything required). **Please take an equivalent approach on your platform.**
@@ -115,7 +115,7 @@ jupyter-notebook
 
 This will open your browser, where you can select the tutorial you want to work on.
 To start, _e.g._, with the first tutorials, click on the folder **01_getting_started**,
-and select the notebook: **tutorial_how_to_start_an_exciting_calculation.ipynb**.
+and select the notebook: **how_to_start_an_exciting_calculation.ipynb**.
 
 This should launch an executable version of the notebook in a new tab of your browser.
 

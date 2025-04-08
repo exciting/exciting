@@ -6,7 +6,7 @@ module rttddft_io
   use mod_rgrid, only: rgrid, gen_3d_rgrid
   use mod_xsf_format, only: add_xsf_extension, write_real_function_xsf
   use modinput, only: input, plot3d_type
-  use modmpi, only: procs, terminate
+  use modmpi, only: procs, terminate, terminate_if_false
 #ifdef MPI
   use rttddft_io_parallel, only: read_array, write_array
 #else
@@ -37,7 +37,7 @@ module rttddft_io
             write_projection_coefficients, write_eigenvalues, write_occupations, &
             write_wavefunction, read_wavefunction, delete_wavefunction_file, &
             groundstate, t, t_minus_dt, restart_format, binary, hdf5, &
-            write_density_to_file
+            write_density_to_file, copy_files
 
   !> Number of the unit to print timings
   integer(i32)                   :: file_time
@@ -84,25 +84,25 @@ module rttddft_io
   !> Default name of the file where the changes in electron density are printed out
   character(len=*), parameter :: filename_density_changes = 'delta-density3d'
   !> Typical suffix to differentiate RT-TDDFDT files from ground state files
-  character(len=*), public, parameter :: RTDDFT_suffix = "_RTTDDFT"
+  character(len=*), public, parameter :: RTTDDFT_suffix = "_RTTDDFT"
   !> Suffix referring to groundstate
   character(len=*), public, parameter :: GND_sufix = "_GND"
   !> Suffix used when performing single-shot ground state calculation (before RT-TDDFDT)
-  character(len=*), public, parameter :: RTDDFT_GND_sufix = RTDDFT_suffix // GND_sufix
+  character(len=*), public, parameter :: RTTDDFT_GND_sufix = RTTDDFT_suffix // GND_sufix
   !> Default name of the file where there wavefunction coefficients are printed out
   character(len=*), parameter :: filename_wavefunction = 'EVECFV' 
   !> Descriptors name used to write wavefunctions into an output file
   character(len=*), parameter :: kpt_latt_name = "kpoints_lattice_coord"
   !> Suffix for file where there wavefunction coefficients \(\psi(t-\Delta t)\) are printed out
-  character(len=*), parameter :: suffix_wavefunction_t = RTDDFT_suffix
+  character(len=*), parameter :: suffix_wavefunction_t = RTTDDFT_suffix
   !> Suffix for file where there wavefunction coefficients \(\psi(t-\Delta t)\) are printed out
-  character(len=*), parameter :: suffix_wavefunction_t_minus_dt = '_PREVIOUS' // RTDDFT_suffix
+  character(len=*), parameter :: suffix_wavefunction_t_minus_dt = '_PREVIOUS' // RTTDDFT_suffix
   !> Suffix for where there groundstate wavefunction coefficients are printed out
-  character(len=*), parameter :: suffix_wavefunction_gnd = RTDDFT_GND_sufix
+  character(len=*), parameter :: suffix_wavefunction_gnd = RTTDDFT_GND_sufix
   !> Default name of the file where timigs are printed out
-  character(len=*), parameter :: filename_timing = 'TIMING' // RTDDFT_suffix
+  character(len=*), parameter :: filename_timing = 'TIMING' // RTTDDFT_suffix
   !> Default name of the file where the total energy is printed out
-  character(len=*), parameter :: filename_etot = 'ETOT' // RTDDFT_suffix
+  character(len=*), parameter :: filename_etot = 'ETOT' // RTTDDFT_suffix
 
   interface write_timing
     module procedure :: write_timing_initialization
@@ -145,7 +145,7 @@ contains
     character(len=*), intent(in)  :: file_name
     !> file name with default extension
     character(len=:), allocatable :: add_default_extension
-    add_default_extension = trim(file_name)//filext
+    add_default_extension = trim( file_name )//trim( filext )
   end function
 
   !> (private) Function to return the status of a file to open given the information if it is new or old
@@ -285,6 +285,59 @@ contains
     if( trim(penultimate_line) == "empty" ) call terminate( "Error: file " // file_name // " has less than two lines" )
     close( unit )
   end subroutine  
+
+  !> (private) Copy files, from source to destination, line by line. It only works for text files
+  subroutine copy_file_generic( source_name, destination_name )
+    !> Name of the source file
+    character(len=*), intent(in) :: source_name
+    !> Name of the destination file
+    character(len=*), intent(in) :: destination_name
+
+    integer(i32) :: unit_source, unit_dest, ios
+    character(len=str_256) :: line
+    logical :: file_exists
+
+    inquire( file=trim(source_name), exist=file_exists )
+    call terminate_if_false( file_exists, "Error: File " // trim(source_name) // " not found" )
+    call open_file_generic( unit_source, source_name, "old", "rewind", "read" )
+    call open_file_generic( unit_dest, destination_name, "replace", "rewind", "write" )
+    do 
+      read( unit_source, '(A)', iostat=ios ) line
+      if ( ios /= 0 ) exit
+      write( unit_dest, '(A)' ) trim( line )
+    end do
+    close( unit_source )
+    close( unit_dest )
+  end subroutine
+
+  !> Copy files. Sources are files with name `fname` appended with [[add_default_extension]]
+  !> and with an `extra_extension`. `fname` can be [[filename_avec]], [[filename_pvec]],
+  !> [[filename_jind]], [[filename_nexc]] (if `nexc` is `.true.`), and 
+  !> [[filename_etot]] (if `etot` is `.true.`)
+  subroutine copy_files( extra_extension, nexc, etot )
+    !> Extension of source files
+    character(len=*), intent(in) :: extra_extension
+    !> If `.true.`, copy [[filename_nexc]]
+    logical, intent(in) :: nexc
+    !> If `.true.`, copy [[filename_etot]]
+    logical, intent(in) :: etot
+    
+    call wrapper_copy_file_generic( filename_avec, extra_extension )
+    call wrapper_copy_file_generic( filename_pvec, extra_extension )
+    call wrapper_copy_file_generic( filename_jind, extra_extension )
+    if( nexc ) call wrapper_copy_file_generic( filename_nexc, extra_extension )
+    if( etot ) call wrapper_copy_file_generic( filename_etot, extra_extension )
+  contains
+    subroutine wrapper_copy_file_generic( file_name, src_extra_extension )
+      !> File name
+      character(len=*), intent(in) :: file_name
+      !> Extension of source files
+      character(len=*), intent(in) :: src_extra_extension
+
+      call copy_file_generic( source_name=add_default_extension(file_name)//trim(src_extra_extension), &
+        destination_name=add_default_extension(file_name) )
+    end subroutine
+  end subroutine
 
   !> Prints the current density \(\mathbf{J}\), or the polarization 
   !> \(\mathbf{P}\), or the vector potential \(\mathbf{A}\)
