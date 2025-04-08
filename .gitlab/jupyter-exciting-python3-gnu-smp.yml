@@ -69,18 +69,25 @@ test-fedora-buster-gnu-smp-jupyter:
   - time jupyter nbconvert --execute 03_excited_states/01_GW/electronic_band_structure_from_gw.ipynb --to markdown
   - time python3 03_excited_states/01_GW/assertions/electronic_band_structure_from_gw.py
   - time jupyter nbconvert --execute 03_excited_states/02_BSE/excited_states_from_bse.ipynb --to markdown
+  - time python3 03_excited_states/02_BSE/assertions/excited_states_from_bse.py
   - time jupyter nbconvert --execute 03_excited_states/02_BSE/exciton_analysis_and_visualization.ipynb --to markdown
+  - time python3 03_excited_states/02_BSE/assertions/exciton_analysis_and_visualization.py
   - time jupyter nbconvert --execute 03_excited_states/02_BSE/xray_absorption_spectra_using_bse.ipynb --to markdown
   - time python3 03_excited_states/02_BSE/assertions/xray_absorption_spectra_using_bse.py
   - time jupyter nbconvert --execute 03_excited_states/02_BSE/xray_emission_spectra.ipynb --to markdown
   - time python3 03_excited_states/02_BSE/assertions/xray_emission_spectra.py
   - time jupyter nbconvert --execute 03_excited_states/02_BSE/q_dependent_bse_calculations.ipynb --to markdown
   - time python3 03_excited_states/02_BSE/assertions/q_dependent_bse_calculations.py
+  - time jupyter nbconvert --execute 03_excited_states/02_BSE/optical_spectra_from_fastBSE.ipynb --to markdown
+  - time python3 03_excited_states/02_BSE/assertions/optical_spectra_from_fastBSE.py
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/excited_states_from_tddft.ipynb --to markdown
   - time python3 03_excited_states/03_TDDFT/assertions/excited_states_from_tddft.py
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/real_time_tddft.ipynb --to markdown
+  - time python3 03_excited_states/03_TDDFT/assertions/real_time_tddft.py
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/q_dependent_tddft.ipynb --to markdown
+  - time python3 03_excited_states/03_TDDFT/assertions/q_dependent_tddft.py
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/many_body_kernels_for_tddft_calculations.ipynb --to markdown
+  - time python3 03_excited_states/03_TDDFT/assertions/many_body_kernels_for_tddft_calculations.py
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/simulating_pump_probe_spectroscopy_with_rt_tddft.ipynb --to markdown
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/studying_higher_harmonics_generation_using_rt_tddft.ipynb --to markdown
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/real_time_tddft_combined_with_molecular_dynamics.ipynb --to markdown
