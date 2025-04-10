@@ -216,7 +216,7 @@ def parse_n_q_point_cycles(file_string: str) -> int:
     :return int n_q_cycles:  maximum nunber of q iterations performed
     """
     matches = re.findall("\\(task_gw\\): q-point cycle, iq =" + "(.+?)\n", file_string)
-    n_q_cycles = max(int(string.strip()) for string in matches)
+    n_q_cycles = 0 if not (matches) else max(int(string.strip()) for string in matches)
     return n_q_cycles
 
 
@@ -323,7 +323,7 @@ def parse_band_structure_info(file_string: str, bs_type: str) -> dict:
 
     elif bs_type == "gw":
         # Find G0W0 band structure in the file, then start parsing from there
-        gw_header = "G0W0 band structure "
+        gw_header = "G0W0 band structure"
         index = file_string.find(gw_header)
         file_string = file_string[index:]
 
