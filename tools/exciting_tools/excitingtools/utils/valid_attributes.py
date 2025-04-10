@@ -973,6 +973,7 @@ vxc_valid_subtrees = ["kpoints"]
 vxc_mandatory_attributes = ["kpoints"] 
 vxc_multiple_children = ["kpoints"] 
 
+QPEigenvalues_attribute_types = {"FermiLevel": (str, ["from_DFT_VBM_CBM_indexes", "from_QP_Eigenvalues"])} 
 QPEigenvalues_valid_subtrees = ["kpoints"] 
 QPEigenvalues_mandatory_attributes = ["kpoints"] 
 QPEigenvalues_multiple_children = ["kpoints"] 

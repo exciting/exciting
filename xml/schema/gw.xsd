@@ -508,6 +508,30 @@
                       <xs:sequence>
                         <xs:element ref="kpoints" minOccurs="1" maxOccurs="unbounded"/>
                       </xs:sequence>
+                      <xs:attribute ex:importance="experimental" ex:unit="" name="FermiLevel" default="from_DFT_VBM_CBM_indexes">
+                        <xs:annotation>
+                          <xs:documentation>
+                            Determine how the Fermi level should be calculated. 
+                            The option <pre>from_QP_Eigenvalues</pre> can only be 
+                            used if all <pre>k-points</pre> are included in the 
+                            <pre>"QPEigenvalues"</pre> task.
+                            <list>
+                              <li><pre>from_DFT_VBM_CBM_indexes</pre>: determine 
+                                the Fermi level based on the valence band maximum 
+                                (VBM) and conduction band minimum (CBM) indexes 
+                                from the underlying DFT calculation.</li>
+                              <li><pre>from_QP_Eigenvalues</pre>: employ <pre>LibBZInt</pre> 
+                                to solve <inlinemath>N( E_Fermi ) = N_{el}</inlinemath>.</li>
+                            </list>
+                          </xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                            <xs:enumeration value="from_DFT_VBM_CBM_indexes"/>
+                            <xs:enumeration value="from_QP_Eigenvalues"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                      </xs:attribute>
                     </xs:complexType>
                   </xs:element>
 
