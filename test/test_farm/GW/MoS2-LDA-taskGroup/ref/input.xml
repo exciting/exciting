@@ -61,7 +61,7 @@
         <vxc>
           <kpoints ki="1" kf="-1"/>
         </vxc>
-        <QPEigenvalues>
+        <QPEigenvalues FermiLevel="from_QP_Eigenvalues">
           <kpoints ki="1" kf="-1"/>
         </QPEigenvalues>
       </taskGroup>      

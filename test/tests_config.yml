@@ -401,6 +401,7 @@ GW/MoS2-LDA-QPEigenvalues:
 GW/MoS2-LDA-taskGroup:
    files_under_test:
       - "EVALQP.DAT"
+      - "GW_INFO.OUT"
    inputs:
       - "input.xml"
       - "Mo.xml"
