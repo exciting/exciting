@@ -14,7 +14,7 @@ test-fedora-buster-gnu-smp-jupyter:
   - docker
  timeout: 24h  # Increased timeout from default 3h to 24h
  # One might consider moving construction of venv to the build state and make it an artifact
- # Several tutorials are commented out, as they take a very long time to be executed in the CI.
+ # Several tutorials are commented out, as they take a very long time to be executed in the CI (~10h each).
  # One should investigate if the execution can be sped up.
  script:
   - cd tools/excitingjupyter
@@ -45,8 +45,8 @@ test-fedora-buster-gnu-smp-jupyter:
  # - time python3 02_ground_state/01_Methods/assertions/low_dimensional_systems.py
  # - time jupyter nbconvert --execute 02_ground_state/01_Methods/van_der_waals_corrections.ipynb --to markdown
  # - time python3 02_ground_state/01_Methods/assertions/van_der_waals_corrections.py
-  - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/fermi_surface_visualization.ipynb --to markdown
-  - time python3 02_ground_state/02_Electronic_Properties/assertions/fermi_surface_visualization.py
+ # - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/fermi_surface_visualization.ipynb --to markdown
+ # - time python3 02_ground_state/02_Electronic_Properties/assertions/fermi_surface_visualization.py
   - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/spin_texture_calculation.ipynb --to markdown
   - time python3 02_ground_state/02_Electronic_Properties/assertions/spin_texture_calculation.py
   - time jupyter nbconvert --execute 02_ground_state/03_Lattice_Optimization/simple_examples_of_structure_optimization.ipynb --to markdown
@@ -89,7 +89,19 @@ test-fedora-buster-gnu-smp-jupyter:
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/many_body_kernels_for_tddft_calculations.ipynb --to markdown
   - time python3 03_excited_states/03_TDDFT/assertions/many_body_kernels_for_tddft_calculations.py
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/simulating_pump_probe_spectroscopy_with_rt_tddft.ipynb --to markdown
+  - time python3 03_excited_states/03_TDDFT/assertions/simulating_pump_probe_spectroscopy_with_rt_tddft.py
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/studying_higher_harmonics_generation_using_rt_tddft.ipynb --to markdown
+  - time python3 03_excited_states/03_TDDFT/assertions/studying_higher_harmonics_generation_using_rt_tddft.py
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/real_time_tddft_combined_with_molecular_dynamics.ipynb --to markdown
+  - time python3 03_excited_states/03_TDDFT/assertions/real_time_tddft_combined_with_molecular_dynamics.py
+  - time jupyter nbconvert --execute 03_excited_states/04_Others/graphene_from_ground_state_to_excitations.ipynb --to markdown
+  - time python3 03_excited_states/04_Others/assertions/graphene_from_ground_state_to_excitations.py
+  - time jupyter nbconvert --execute 04_additional_features/magneto_optical_kerr_effect_(moke).ipynb --to markdown
+  - time python3 04_additional_features/assertions/magneto_optical_kerr_effect.py
+  - time jupyter nbconvert --execute 04_additional_features/second_harmonic_generation.ipynb --to markdown
+  - time python3 04_additional_features/assertions/second_harmonic_generation.py
+  - time jupyter nbconvert --execute 04_additional_features/transport_properties_using_the_boltzmann_equation.ipynb --to markdown
+  - time python3 04_additional_features/assertions/transport_properties_using_the_boltzmann_equation.py
+  - time jupyter nbconvert --execute 05_tools_and_packages/tutorial_excitingtools.ipynb --to markdown
 # rules:
 #    - if: '$CI_COMMIT_BRANCH == "development"'
