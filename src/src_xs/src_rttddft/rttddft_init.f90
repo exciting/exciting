@@ -278,7 +278,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, &
 
   if ( psi%has_frozen() ) then
     call update_density( first_kpt, psi, occupations, -1, .false., rt_inp%l_rad_step, &
-    ks_lapwo_transition_matrix=psi_gnd_lapwlo, dens_case=frozen )
+    ks_lapwlo_transition_matrix=psi_gnd_lapwlo, dens_case=frozen )
     rhomt_frozen = rhomt
     rhoir_frozen = rhoir
   end if

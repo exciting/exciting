@@ -84,11 +84,11 @@ contains
 
   !> Initializes the wavefunction set class ([[wavefunction_set]])
   !> with a concrete type, depending on the basis set
-  subroutine initialize_wavefunction_set( psi, use_lapwo_basis, save_needed, n_frozen_, &
+  subroutine initialize_wavefunction_set( psi, use_lapwlo_basis, save_needed, n_frozen_, &
       complete_gnd_set_lapwlo, occupations, occs_tol )
     class(wavefunction_set), allocatable, intent(out) :: psi
     !> Whether the LAPW+lo basis should be used
-    logical, intent(in) :: use_lapwo_basis
+    logical, intent(in) :: use_lapwlo_basis
     !> If `.true.`, active_save component should be allocated
     logical, intent(in) :: save_needed
     !> Number of the frozen states
@@ -100,7 +100,7 @@ contains
     !> Minimal value of occupation for the state to be 'occupied'
     real(dp), intent(in) :: occs_tol
 
-    if ( use_lapwo_basis ) then
+    if ( use_lapwlo_basis ) then
       allocate( wavefunction_set_lapwlo_basis :: psi )
     else
       allocate( wavefunction_set_ks_basis :: psi )      
