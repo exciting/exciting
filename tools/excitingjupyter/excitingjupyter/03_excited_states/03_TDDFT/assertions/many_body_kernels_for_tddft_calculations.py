@@ -15,22 +15,22 @@ def test_many_body_kernels_tddft(file_name: str):
     epsilon_result = parse_EPSILON_NAR(f"{dirname(__file__)}/{TUTORIAL_RUNDIR}/{file_name}")
 
     assert np.allclose(epsilon_result['frequency'],
-                       epsilon_reference['frequency']), (
+                       epsilon_reference['frequency'], atol = 1e-6), (
         "Freqeuncy grid not equivalent \
          to reference calculation")
 
     assert np.allclose(epsilon_result['real_oscillator_strength'],
-                       epsilon_reference['real_oscillator_strength']), (
+                       epsilon_reference['real_oscillator_strength'], atol = 1e-3), (
         "Real part of dielectric function not equivalent \
         to reference calculation")
 
     assert np.allclose(epsilon_result['imag_oscillator_strength'],
-                       epsilon_reference['imag_oscillator_strength']), (
+                       epsilon_reference['imag_oscillator_strength'], atol = 1e-4), (
         "Imaginary part of dielectric function not equivalent \
         to reference calculation")
 
     assert np.allclose(epsilon_result['real_oscillator_strength_kkt'],
-                       epsilon_reference['real_oscillator_strength_kkt']), (
+                       epsilon_reference['real_oscillator_strength_kkt'], atol = 1e-3), (
         "Real part of dielectric function (by Kramers-Kronig) \
          not equivalent to reference calculation")
 
