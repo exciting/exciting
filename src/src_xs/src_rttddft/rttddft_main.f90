@@ -102,7 +102,7 @@ contains
     ! k-dependent Hamiltonian's dimensions array (first_kpt : last_kpt)
     integer(i32), allocatable :: k_dependent_dims(:)
     ! KS-LAPW+lo transition matrix (nmatmax, nstfv, first_kpt : last_kpt)
-    complex(dp), allocatable :: ks_lapwo_transition_matrix(:, :, :)
+    complex(dp), allocatable :: ks_lapwlo_transition_matrix(:, :, :)
 
     integer(i32) :: it, first_kpt, last_kpt, first_step, last_step, i_print, &
       time_step_multiplier, lmax_potential
@@ -179,7 +179,7 @@ contains
     
     call initialize_rttddft( rt, propagator, vec_pot, a_tot_save, &
       molecular_dynamics, psi, overlap, ham_init, ham_time, ham_past, effective_potential_init, apwalm, &
-      pmat, pmatmt, rhomt_frozen, rhoir_frozen, occupations, k_dependent_dims, eps_occ, Gkset, Gset, ks_lapwo_transition_matrix )
+      pmat, pmatmt, rhomt_frozen, rhoir_frozen, occupations, k_dependent_dims, eps_occ, Gkset, Gset, ks_lapwlo_transition_matrix )
     call distribute_loop( mpi_env_k, nkpt, first_kpt, last_kpt )
     if( molecular_dynamics%on ) call init_MD( time, vec_pot%a_tot, dt, &
       psi%active, occupations, overlap, ham_time, time_step_multiplier, molecular_dynamics, &
@@ -217,7 +217,7 @@ contains
     ! Total energy
     if ( rt%calculate_total_energy .and. rt%do_from_scratch() ) then
       if ( psi%has_frozen() ) call update_density( first_kpt, psi, occupations, 0, &
-        .false., rt%l_rad_step, rhomt_frozen, rhoir_frozen, ks_lapwo_transition_matrix )
+        .false., rt%l_rad_step, rhomt_frozen, rhoir_frozen, ks_lapwlo_transition_matrix )
       call potcoul()
       call potxc()
       call obtain_energy_rttddft( first_kpt, ham_time, psi, occupations, mpi_env_k, etotstore(1) )
@@ -234,7 +234,7 @@ contains
     if ( rt%screenshots%on ) then
       if ( rt%screenshots%density%on ) then
         call update_density( first_kpt, psi, occupations, 0, rt%normalize_WF, rt%l_rad_step, &
-          rhomt_frozen, rhoir_frozen, ks_lapwo_transition_matrix, dens_case=groundstate )
+          rhomt_frozen, rhoir_frozen, ks_lapwlo_transition_matrix, dens_case=groundstate )
         rhomt_init = rhomt
         rhoir_init = rhoir
       end if
@@ -293,7 +293,7 @@ contains
 
       ! DENSITY
       if ( density_needed ) call update_density( first_kpt, psi, occupations, it, rt%normalize_WF, &
-        rt%l_rad_step, rhomt_frozen, rhoir_frozen, ks_lapwo_transition_matrix, rt%printTimings, timing%t_RTTDDFT%dens )
+        rt%l_rad_step, rhomt_frozen, rhoir_frozen, ks_lapwlo_transition_matrix, rt%printTimings, timing%t_RTTDDFT%dens )
       
       ! KS-POTENTIAL
       if ( .not. rt%eeInteraction%ipa ) call update_potential( rt%printTimings, timing%t_RTTDDFT%pot )
@@ -332,7 +332,7 @@ contains
           call update_hamiltonian_without_pa_term_lapw( first_kpt, vec_pot%a_tot, ham_time, apwalm, &
           rt%printTimings, timing%t_RTTDDFT%ham )
         else
-          call update_hamiltonian_without_pa_term_ks( first_kpt, lmax_potential, ham_time, apwalm, ks_lapwo_transition_matrix, &
+          call update_hamiltonian_without_pa_term_ks( first_kpt, lmax_potential, ham_time, apwalm, ks_lapwlo_transition_matrix, &
           effective_potential_init, ham_init, Gkset, rt%printTimings, timing%t_RTTDDFT%ham )
         end if 
       end if
@@ -344,7 +344,7 @@ contains
           ham_time, ham_past, k_dependent_dims, apwalm, pmat, a_ind_save, a_tot_save, &
           p_vec_save, j_ind_save, j_para_spurious, propagator, vec_pot, p_vec, j_ind, &
           mpi_env_k, pred_corr_reached_max_steps, lmax_potential, Gkset, &
-          ks_lapwo_transition_matrix, effective_potential_init, ham_init, rhomt_frozen, rhoir_frozen )
+          ks_lapwlo_transition_matrix, effective_potential_init, ham_init, rhomt_frozen, rhoir_frozen )
         if ( pred_corr_reached_max_steps .and. my_rank_writes_to_output ) &
           call warning( 'Problems with convergence (PredCorr), time: ' //  to_char(time) )
         if ( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%pred_corr )
@@ -621,7 +621,7 @@ contains
     overlap, ham_time, ham_past, k_dependent_dims, apwalm, pmat, &
     a_ind_t_minus_dt, a_tot_t_minus_dt, p_vec_t_minus_dt, j_t_minus_dt, j_para_spurious,&
     propagator, a_t, p_vec, j_t, mpi_env, max_steps_reached, lmax_potential, Gkset, &
-    ks_lapwo_transition_matrix, effective_potential_init, ham_init, rhomt_frozen, rhoir_frozen )
+    ks_lapwlo_transition_matrix, effective_potential_init, ham_init, rhomt_frozen, rhoir_frozen )
     !> current iteration number in the RT-TDDFT loop
     integer(i32), intent(in) :: it
     !> time \( t \)
@@ -673,7 +673,7 @@ contains
     !> Set of G+k vectors used for the matrix elements evaluation
     type(Gk_set), intent(in) :: Gkset
     ! KS-LAPW+lo transition matrix (nmatmax, nstfv, first_kpt : last_kpt)
-    complex(dp), optional, intent(in) :: ks_lapwo_transition_matrix(:, :, :)
+    complex(dp), optional, intent(in) :: ks_lapwlo_transition_matrix(:, :, :)
     !> Effective potential matrix at time \(t = 0 \) 
     complex(dp), optional, intent(in) :: effective_potential_init(:, :, :)
     !> Hamiltonian matrix at time \(t = 0 \)
@@ -705,7 +705,7 @@ contains
 
       ! DENSITY
       call update_density( first_kpt, psi, occupations, it, rt%normalize_WF, rt%l_rad_step, &
-        rhomt_frozen, rhoir_frozen, ks_lapwo_transition_matrix )
+        rhomt_frozen, rhoir_frozen, ks_lapwlo_transition_matrix )
       ! KS-POTENTIAL
       call update_potential()
 
@@ -727,7 +727,7 @@ contains
       if ( rt%use_lapwlo_basis() ) then
         call update_hamiltonian_without_pa_term_lapw( first_kpt, a_t%a_tot, ham_time, apwalm )
       else
-        call update_hamiltonian_without_pa_term_ks( first_kpt, lmax_potential, ham_time, apwalm, ks_lapwo_transition_matrix, &
+        call update_hamiltonian_without_pa_term_ks( first_kpt, lmax_potential, ham_time, apwalm, ks_lapwlo_transition_matrix, &
         effective_potential_init, ham_init, Gkset )
       end if
       call add_external_coupling_vgauge( a_t%a_tot, overlap, ham_time, pmat, k_dependent_dims )      

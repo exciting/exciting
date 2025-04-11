@@ -213,7 +213,7 @@ contains
   !> is time-independent. \( V_{\rm eff}(t) \) is time-dependent through the 
   !> time-dependent charge density.
   subroutine update_hamiltonian_without_pa_term_ks( first_kpt, lmaxvr, ham_time, apwalm, &
-      ks_lapwo_transition_matrix, effective_potential_init, ham_init, Gkset, printTimings, t_ham )
+      ks_lapwlo_transition_matrix, effective_potential_init, ham_init, Gkset, printTimings, t_ham )
     !> The first k point
     integer(i32), intent(in) :: first_kpt
     !> Maximal value of l in spherical harmonics expansion of DFT potential
@@ -224,7 +224,7 @@ contains
     !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
     complex(dp), contiguous, intent(in) :: apwalm(:, :, :, :, first_kpt :)
     !> KS-LAPW+lo transition matrix (nmatmax, n_basis_ks, first_kpt : last_kpt)
-    complex(dp), contiguous, intent(in) :: ks_lapwo_transition_matrix(:, :, first_kpt :)
+    complex(dp), contiguous, intent(in) :: ks_lapwlo_transition_matrix(:, :, first_kpt :)
     !> Initial effective potential \( V_{\rm eff}(t = 0) \) (n_basis, n_basis, first_kpt : last_kpt)
     complex(dp), contiguous, intent(in) :: effective_potential_init(:, :, first_kpt :)
     !> Hamiltonian matrix \( H_{\rm init} \) obtained at time \(t = 0 \)
@@ -281,16 +281,16 @@ contains
           ias = idxas(ia, is)
                
           call me_mt_mat( is, ias, ngp, ngp, apwalm(1 : ngp, :, :, ias, ik), &
-            apwalm(1 : ngp, :, :, ias, ik), ks_lapwo_transition_matrix(1 : nmatp, :, ik), &
-            ks_lapwo_transition_matrix(1 : nmatp, :, ik), zone, mt_contribution(:, :, ias), &
+            apwalm(1 : ngp, :, :, ias, ik), ks_lapwlo_transition_matrix(1 : nmatp, :, ik), &
+            ks_lapwlo_transition_matrix(1 : nmatp, :, ik), zone, mt_contribution(:, :, ias), &
             zone, local_effective_potential )
 
         end do ! natoms
       end do ! nspecies
 
       ! ir contribution
-      call me_ir_mat( Gkset, ik, Gkset, ik, ks_lapwo_transition_matrix(1 : nmatp, :, ik), &
-        ks_lapwo_transition_matrix(1 : nmatp, :, ik), zone, veffig, zone, local_effective_potential )
+      call me_ir_mat( Gkset, ik, Gkset, ik, ks_lapwlo_transition_matrix(1 : nmatp, :, ik), &
+        ks_lapwlo_transition_matrix(1 : nmatp, :, ik), zone, veffig, zone, local_effective_potential )
 
       ham_time(:, :, ik) = ham_init(:, :, ik) + local_effective_potential - effective_potential_init(:, :, ik)
 
