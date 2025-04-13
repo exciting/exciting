@@ -13,8 +13,8 @@
 ! ***************************************************************************************************
 module minimax_tau
 #include "gx_common.h"
-  use kinds,          only: dp
-  use error_handling, only: register_exc
+  use gx_kinds,          only: dp
+  use gx_error_handling, only: register_exc
   use minimax_utils,  only: er_aw_aux
   implicit none
 

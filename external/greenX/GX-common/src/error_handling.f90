@@ -1,5 +1,5 @@
-module error_handling
-   use constants, only: ch10, err_len
+module gx_error_handling
+   use gx_constants, only: ch10, err_len
    implicit none
    private
 
@@ -42,4 +42,4 @@ contains
 
    end subroutine register_exc
 
-end module error_handling
+end module gx_error_handling

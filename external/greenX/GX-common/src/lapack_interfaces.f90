@@ -5,13 +5,13 @@
 ! **************************************************************************************************
 !> \brief Declare interfaces for BLAS/LAPACK subroutines
 ! **************************************************************************************************
-module lapack_interfaces
+module gx_lapack_interfaces
   implicit none
 
 
   interface blas3
      subroutine dgemm(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc)
-       use kinds, only: dp
+       use gx_kinds, only: dp
        implicit none
        integer                      :: len
        character(len=1), intent(in) :: transa, transb
@@ -24,7 +24,7 @@ module lapack_interfaces
 
   interface svd
      subroutine dgesdd(jobz, m, n, a, lda, s, u, ldu, vt, ldvt, work, lwork, iwork, info)
-       use kinds, only: dp
+       use gx_kinds, only: dp
        implicit none
        integer                      :: len
        character(len=1), intent(in) :: jobz
@@ -46,7 +46,7 @@ module lapack_interfaces
   interface diag
      subroutine dsyevx(jobz, range, uplo, n, a, lda, vl, vu, il, iu, abstol, &
                             m, w, z, ldz, work, lwork, iwork, ifail, info) 
-       use kinds, only: dp     
+       use gx_kinds, only: dp     
        implicit none
        character(len=1), intent(in) :: jobz, range, uplo
        integer, intent(in)          :: il, iu, lda, ldz, lwork, m, n
@@ -58,4 +58,4 @@ module lapack_interfaces
      end subroutine dsyevx
   end interface
 
-end module lapack_interfaces 
+end module gx_lapack_interfaces 

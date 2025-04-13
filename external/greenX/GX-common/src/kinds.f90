@@ -1,5 +1,5 @@
-!> Precision constants
-module kinds
+!> Precision gx_constants
+module gx_kinds
    implicit none
 
    !> Single precision
@@ -11,4 +11,4 @@ module kinds
    !> Long length character
    integer, parameter, public :: long_char = 200
 
-end module kinds
+end module gx_kinds

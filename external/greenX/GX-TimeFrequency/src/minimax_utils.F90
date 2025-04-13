@@ -7,7 +7,7 @@
 ! ***************************************************************************************************
 module minimax_utils
 #include "gx_common.h"
-  use kinds, only: dp
+  use gx_kinds, only: dp
   implicit none
 
   private
