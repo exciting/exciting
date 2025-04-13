@@ -156,6 +156,7 @@ add_library(excitingLib_objects OBJECT ${SRC_DEVICEACC} ${EXCITINGLIB_SRC_FILES}
 include_directories(${CMAKE_Fortran_MODULE_DIRECTORY})
 # Check exciting has all dependencies compiled
 add_dependencies(excitingLib_objects XC FoX_dom FoX_sax FoX_utils FoX_wcml FoX_wxml FoX_fsys FoX_common)
+target_include_directories(excitingLib_objects PRIVATE ${GX_MODULES})
 
 # Here create exciting library
 if (CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
