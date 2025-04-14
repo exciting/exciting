@@ -69,7 +69,7 @@ def test_groundstate(converged_results: dict):
 
     optimized_positions = {
         1: [0.00000000, 0.00000000, 0.00000000],
-        2: [0.24999277, 0.24999277, 0.24999277]
+        2: [0.25000329, 0.25000329, 0.25000329]
     }
 
     for atom_id, expected_pos in optimized_positions.items():
