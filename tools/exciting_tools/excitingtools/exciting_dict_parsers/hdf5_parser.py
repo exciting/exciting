@@ -1,9 +1,14 @@
 """Parsers for HDF5 files."""
 
+from pathlib import Path
+from typing import Union
+
 import numpy as np
 
+path_type = Union[Path, str]
 
-def parse_hdf5_file_as_dict(fname: str) -> dict:
+
+def parse_hdf5_file_as_dict(fname: path_type) -> dict:
     """Parse the content of an hdf5 file as dictionary.
     Use this function only for small files.
 
@@ -42,10 +47,8 @@ def parse_hdf5_file_as_dict(fname: str) -> dict:
             elif isinstance(value, dict):
                 convert_one_element_arrays(value)
 
-    file = h5py.File(fname)
-    h5_file_content = recursive_unpack(file, {})
-    if file:
-        file.close()
+    with h5py.File(fname) as file:
+        h5_file_content = recursive_unpack(file, {})
 
     convert_one_element_arrays(h5_file_content)
 

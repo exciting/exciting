@@ -53,7 +53,6 @@ ignore = [
     "COM812",  # problems with linter
     "ISC001",  # problems with linter, see https://github.com/astral-sh/ruff/issues/8272
     "RET504",  # Unnecessary assignment
-    "SIM115",  # context handler not used for opening files
     "PLR2004",  # magic values, maybe reintroduce at some point
 ]
 extend-select = [

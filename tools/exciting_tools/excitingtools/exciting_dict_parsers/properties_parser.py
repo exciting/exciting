@@ -2,23 +2,26 @@
 
 import os
 import xml.etree.ElementTree as ET
-from typing import Dict
+from pathlib import Path
+from typing import Dict, Union
 from xml.etree.ElementTree import ParseError
 
 import numpy as np
 
 from excitingtools.parser_utils.parser_decorators import set_return_values, xml_root
 
+path_type = Union[Path, str]
+
 
 @set_return_values
-def parse_plot_3d(name: str) -> dict:
+def parse_plot_3d(file: path_type) -> dict:
     """
     Parser for RHO3D.xml, VCL3D.xml, VXC3D.xml, WF3D.xml, ELF3D.xml, EF3D.xmlit
 
-    :param str name: File name
+    :param str file: File name
     :return dict output: Parsed data
     """
-    root = ET.parse(name)
+    root = ET.parse(file)
     plot_3d = {"title": root.find("title").text}
     grid = root.find("grid").attrib
     axis = [ax.attrib for ax in root.find("grid").findall("axis")]
@@ -54,14 +57,14 @@ def parse_plot_3d(name: str) -> dict:
 
 
 @set_return_values
-def parse_lsj(name: str) -> dict:
+def parse_lsj(file: path_type) -> dict:
     """
     Parser for LSJ.xml
 
-    :param str name: File name
+    :param str file: File name
     :return dict output: Parsed data
     """
-    root = ET.parse(name).getroot()
+    root = ET.parse(file).getroot()
     LSJ = {}
     species = []
     for node in root.findall("species"):
@@ -86,7 +89,7 @@ def parse_lsj(name: str) -> dict:
     return LSJ
 
 
-def parse_efg(name: str) -> dict:
+def parse_efg(name: path_type) -> dict:
     """
     Parser for EFG.xml
 
@@ -128,14 +131,14 @@ def parse_efg(name: str) -> dict:
 
 
 @set_return_values
-def parse_mossbauer(name: str) -> dict:
+def parse_mossbauer(file: path_type) -> dict:
     """
     Parser for mossbauer.xml
 
-    :param str name: File name
+    :param str file: File name
     :return dict output: Parsed data
     """
-    root = ET.parse(name).getroot()
+    root = ET.parse(file).getroot()
     mossbauer = {}
     species = []
     for node in root.findall("species"):
@@ -155,14 +158,14 @@ def parse_mossbauer(name: str) -> dict:
 
 
 @set_return_values
-def parse_expiqr(name: str) -> dict:
+def parse_expiqr(file: path_type) -> dict:
     """
     Parser for expiqr.xml
 
-    :param str name: File name
+    :param str file: File name
     :return dict output: Parsed data
     """
-    root = ET.parse(name).getroot()
+    root = ET.parse(file).getroot()
     expiqr = {}
     expiqr["q-vector"] = root.find("q-vector").attrib
     kgrid = {}
@@ -189,14 +192,14 @@ def parse_expiqr(name: str) -> dict:
 
 
 @set_return_values
-def parse_effmass(name: str) -> dict:
+def parse_effmass(file: path_type) -> dict:
     """
     Parser for effmass.xml
 
-    :param str name: File name
+    :param str file: File name
     :return dict output: Parsed data
     """
-    root = ET.parse(name).getroot()
+    root = ET.parse(file).getroot()
     effmass = {}
     effmass["k-point"] = root.find("k-point").attrib
     state = []
@@ -226,16 +229,16 @@ def parse_effmass(name: str) -> dict:
 # TODO(Hannah). Issue 138. Ensure test cases work with `parse_bandstructure` and remove `parse_bandstructure_depreciated`
 # This parser is depreciated. Please do not use.
 @set_return_values
-def parse_bandstructure_depreciated(name: str) -> dict:
+def parse_bandstructure_depreciated(file: path_type) -> dict:
     """
     Parser for bandstructure.xml.
 
     Used for parsing in the test framework, as returns a dict.
 
-    :param str name: File name
+    :param str file: File name
     :return dict output: Parsed data
     """
-    root = ET.parse(name).getroot()
+    root = ET.parse(file).getroot()
     bandstructure = {}
     bandstructure["title"] = root.find("title").text
     bands = []
@@ -310,7 +313,7 @@ def parse_band_structure_xml(root) -> dict:
     }
 
 
-def parse_band_structure_dat(name: str) -> dict:
+def parse_band_structure_dat(name: path_type) -> dict:
     """Parser for bandstructure.dat
 
     :param str name: File name
@@ -342,14 +345,14 @@ def parse_band_structure_dat(name: str) -> dict:
 
 
 @set_return_values
-def parse_dos(name: str) -> dict:
+def parse_dos(file: path_type) -> dict:
     """
     Parser for dos.xml
 
-    :param str name: File name
+    :param str file: File name
     :return dict output: Parsed data
     """
-    root = ET.parse(name).getroot()
+    root = ET.parse(file).getroot()
     dos = {}
     dos["title"] = root.find("title").text
     totaldos = root.find("totaldos").attrib
@@ -385,7 +388,7 @@ def parse_charge_density(root) -> np.ndarray:
     return rho
 
 
-def parse_kerr(name: str) -> dict:
+def parse_kerr(name: path_type) -> dict:
     """
     Parser for KERR.OUT
 
@@ -402,7 +405,7 @@ def parse_kerr(name: str) -> dict:
     return out
 
 
-def parse_epsilon(name: str) -> dict:
+def parse_epsilon(name: path_type) -> dict:
     """
     Parser for EPSILON_ij.OUT
 
@@ -417,7 +420,7 @@ def parse_epsilon(name: str) -> dict:
     return out
 
 
-def parse_chi(name: str) -> dict:
+def parse_chi(name: path_type) -> dict:
     """
     Parser for CHI_111.OUT
 
@@ -432,7 +435,7 @@ def parse_chi(name: str) -> dict:
     return out
 
 
-def parse_elnes(name: str) -> dict:
+def parse_elnes(name: path_type) -> dict:
     """
     Parser for ELNES.OUT
 
@@ -447,7 +450,7 @@ def parse_elnes(name: str) -> dict:
     return out
 
 
-def parse_seebeck(name: str) -> dict:
+def parse_seebeck(name: path_type) -> dict:
     """
     Parser for SEEBECK_11.OUT
 
@@ -463,7 +466,7 @@ def parse_seebeck(name: str) -> dict:
     return out
 
 
-def parse_ldos(name: str) -> dict:
+def parse_ldos(name: path_type) -> dict:
     """
     Parser for ldos.out
 
@@ -479,7 +482,7 @@ def parse_ldos(name: str) -> dict:
     return out
 
 
-def parse_band_edges(name: str) -> dict:
+def parse_band_edges(name: path_type) -> dict:
     """
     Parser for band_edges.out
 
@@ -501,7 +504,7 @@ def parse_band_edges(name: str) -> dict:
     return out
 
 
-def parse_spintext(name: str) -> dict:
+def parse_spintext(name: path_type) -> dict:
     """
     Parse spintext.xml
 
@@ -538,24 +541,20 @@ def parse_spintext(name: str) -> dict:
 
 
 @set_return_values
-def parse_polarization(name: str) -> dict:
+def parse_polarization(name: path_type) -> dict:
     """
     Parser for POLARIZATION.OUT
 
     :param str name: File name
     :return dict output: Parsed data
     """
-    file = open(name)
-    lines = []
-    for _ in range(len(open(name).readlines())):
-        line = next(file)
-        if "#" not in line:
-            lines.append(line.split())
+    with open(name) as file:
+        lines = [line.split() for line in file if "#" not in line]
     polarization = {"total": lines[0], "electronic": lines[1], "ionic": lines[2]}
     return polarization
 
 
-def parse_tdos_wannier(name: str) -> dict:
+def parse_tdos_wannier(name: path_type) -> dict:
     """
     Parser for TDOS_WANNIER.OUT
 
@@ -571,31 +570,30 @@ def parse_tdos_wannier(name: str) -> dict:
     return out
 
 
-def parse_wannier_info(name: str) -> dict:
+def parse_wannier_info(name: path_type) -> dict:
     """
     Parser for WANNIER_INFO.OUT
 
     :param str name: File name
     :return dict output: Parsed data
     """
-    file = open(name)
 
     # Extract data
     lines = []
     data = []
     total = []
     start = False
-    for i, line in enumerate(file.readlines()):
-        if "* Wannier functions" in line:
-            start = True
-        if start:
-            lines.append(line)
+    with open(name) as file:
+        for line in file:
+            if "* Wannier functions" in line:
+                start = True
+            if start:
+                lines.append(line)
     for i, line in enumerate(lines):
         if line.strip().startswith("1") or line.strip().startswith("5"):
             data.extend(lines[i + j].split() for j in range(4))
         elif line.strip().startswith("total"):
             total.append(line.split())
-    file.close()
 
     # Package data into dictionary
     n_wannier = len(data)
@@ -623,7 +621,7 @@ def parse_wannier_info(name: str) -> dict:
     return wannier
 
 
-def parse_core_overlap(name: str) -> dict:
+def parse_core_overlap(name: path_type) -> dict:
     """
     Parser for coreoverlap.xml
 
@@ -676,7 +674,7 @@ def parse_core_overlap(name: str) -> dict:
     return core_overlap
 
 
-def parse_lossfunction(fname: str) -> tuple:
+def parse_lossfunction(fname: path_type) -> tuple:
     """
     Parses files containing loss function
     e.g. LOSS_FXCRPA_OC11_QMT001.OUT
@@ -685,19 +683,18 @@ def parse_lossfunction(fname: str) -> tuple:
     """
     xdata = []
     ydata = []
-    file = open(fname)
-    for lines in file:
-        if "Frequency" in lines:
-            break
-    for lines in file:
-        data = lines.split()
-        xdata.append(float(data[0]))
-        ydata.append(float(data[1]))
-    file.close()
+    with open(fname) as file:
+        for lines in file:
+            if "Frequency" in lines:
+                break
+        for lines in file:
+            data = lines.split()
+            xdata.append(float(data[0]))
+            ydata.append(float(data[1]))
     return xdata, ydata
 
 
-def parse_wf1d(fname: str) -> dict:
+def parse_wf1d(fname: path_type) -> dict:
     """
     Parses files containing one dimensional wave function plot as saved in
     the files, _e.g._, wf1d-0001-0001.dat, where the first 0001 indicates the k-point
@@ -717,7 +714,7 @@ def parse_wf1d(fname: str) -> dict:
     return output
 
 
-def parse_wf2d(fname: str) -> dict:
+def parse_wf2d(fname: path_type) -> dict:
     """
     Parses files containing the two dimensional wave function plot as saved in the files,
     _e.g._, wf2d-0001-0001.xsf, where the first 0001 indicates the k-point
@@ -728,8 +725,8 @@ def parse_wf2d(fname: str) -> dict:
     :param str fname: name of the file
     """
 
-    file = open(fname)
-    lines = file.readlines()
+    with open(fname) as file:
+        lines = file.readlines()
     output = {}
 
     i = 0
@@ -768,7 +765,7 @@ def parse_wf2d(fname: str) -> dict:
     return output
 
 
-def parse_wf3d(fname: str) -> dict:
+def parse_wf3d(fname: path_type) -> dict:
     """
     Parses files containing the two dimensional wave function plot as saved in the files,
     _e.g._, wf3d-0001-0001.xsf, where the first 0001 indicates the k-point
@@ -779,8 +776,8 @@ def parse_wf3d(fname: str) -> dict:
     :param str fname: name of the file
     """
 
-    file = open(fname)
-    lines = file.readlines()
+    with open(fname) as file:
+        lines = file.readlines()
     output = {}
 
     i = 0
@@ -823,7 +820,7 @@ def parse_wf3d(fname: str) -> dict:
     return output
 
 
-def parse_cube(fname: str) -> dict:
+def parse_cube(fname: path_type) -> dict:
     """
     Parses .cube files. These files contain data calculated on a regular grid in a box.
     All vectors are given in cartesian coordinates. `output['cube_data']` contains the data.
@@ -832,8 +829,8 @@ def parse_cube(fname: str) -> dict:
     :param str fname: name of the file
     """
 
-    file = open(fname)
-    lines = file.readlines()
+    with open(fname) as file:
+        lines = file.readlines()
     output = {}
 
     output["title"] = str(lines[0])

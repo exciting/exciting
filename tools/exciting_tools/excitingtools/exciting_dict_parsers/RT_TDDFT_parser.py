@@ -2,15 +2,18 @@
 Parsers for real-time TDDFT output files
 """
 
-from typing import List
+from pathlib import Path
+from typing import List, Union
 from xml.etree.ElementTree import ParseError
 
 import numpy as np
 
 from excitingtools.parser_utils.grep_parser import grep
 
+path_type = Union[Path, str]
 
-def parse_nexc(name, skiprows=1):
+
+def parse_nexc(name: path_type, skiprows=1):
     """
     Parser for NEXC.OUT
     """
@@ -28,7 +31,7 @@ def parse_nexc(name, skiprows=1):
     return out
 
 
-def parse_jind(name, skiprows=0):
+def parse_jind(name: path_type, skiprows=0):
     """
     Parser for JIND.OUT
     """
@@ -41,7 +44,7 @@ def parse_jind(name, skiprows=0):
     return out
 
 
-def parse_etot(name):
+def parse_etot(name: path_type):
     """
     Parser for ETOT_RTTDDFT.OUT
     """
@@ -64,12 +67,12 @@ def parse_etot(name):
     return out
 
 
-def parse_eigval_screenshots(name: str) -> dict:
+def parse_eigval_screenshots(name: path_type) -> dict:
     """
     Parser for EIGVAL_*.OUT.
     """
 
-    def get_k_point_blocks(name: str, fortran_index=False) -> List[dict]:
+    def get_k_point_blocks(name: path_type, fortran_index=False) -> List[dict]:
         """
         Parse the k point blocks.
 
@@ -105,7 +108,8 @@ def parse_eigval_screenshots(name: str) -> dict:
             offset = 0
             k_point_lines = [int(i) - 1 for i in k_point_lines]
 
-        n_lines = sum(1 for line in open(name)) + offset
+        with open(name) as file:
+            n_lines = len(file.readlines()) + offset
 
         k_blocks = []
         k_start = 0 + offset
@@ -140,7 +144,7 @@ def parse_eigval_screenshots(name: str) -> dict:
     return data
 
 
-def parse_proj_screenshots(name: str) -> dict:
+def parse_proj_screenshots(name: path_type) -> dict:
     """
     Parser for PROJ_*.OUT.
 
@@ -150,7 +154,8 @@ def parse_proj_screenshots(name: str) -> dict:
 
     raw_k_point_lines = grep("ik", name, options={"n": ""}).splitlines()
     k_point_lines = [int(line.split(":")[0]) - 1 for line in raw_k_point_lines]
-    last_line = sum(1 for line in open(name))
+    with open(name) as file:
+        last_line = len(file.readlines())
 
     k_blocks = []
     k_start = 0
@@ -175,7 +180,7 @@ def parse_proj_screenshots(name: str) -> dict:
     return data
 
 
-def parse_occupations(file_name: str) -> dict:
+def parse_occupations(file_name: path_type) -> dict:
     """
     Parser for OCCSV_TXT_*.OUT
     """
@@ -196,7 +201,7 @@ def parse_occupations(file_name: str) -> dict:
     return data
 
 
-def parse_atom_position_velocity_force(name: str) -> dict:
+def parse_atom_position_velocity_force(name: path_type) -> dict:
     """Parser for ATOM_????.OUT
     :param str name: name of file to parse
     :return dict out: each dict key corresponds to time, position (3 columns), velocity (3 columns), total force (3 columns).
@@ -222,7 +227,7 @@ def parse_atom_position_velocity_force(name: str) -> dict:
     return out
 
 
-def parse_force(name, skiprows=0):
+def parse_force(name: path_type, skiprows=0):
     """
     Parser for X_????.OUT, where X can be:
     - FCR: core corrections to forces

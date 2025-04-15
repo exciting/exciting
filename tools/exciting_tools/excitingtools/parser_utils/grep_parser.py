@@ -2,10 +2,13 @@
 
 import subprocess
 import warnings
+from pathlib import Path
 from typing import Optional, Union
 
+path_type = Union[Path, str]
 
-def grep(string: str, fname: str, options: Optional[dict] = None) -> Union[str, None]:
+
+def grep(string: str, fname: path_type, options: Optional[dict] = None) -> Union[str, None]:
     """
     Wrapper for command-line grep.
 
@@ -21,7 +24,7 @@ def grep(string: str, fname: str, options: Optional[dict] = None) -> Union[str, 
         for key, value in options.items():
             opts += "-" + key + " " + str(value) + " "
 
-    grep_str = "grep " + opts + " '" + string + "' " + fname
+    grep_str = "grep " + opts + " '" + string + "' " + str(fname)
 
     try:
         output = subprocess.check_output(grep_str, shell=True).decode("utf-8")

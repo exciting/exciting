@@ -2,14 +2,17 @@
 
 import os
 from pathlib import Path
+from typing import Union
 
 import numpy as np
 
 from excitingtools.dataclasses.band_structure import BandData
 from excitingtools.exciting_dict_parsers.properties_parser import parse_band_structure_dat, parse_band_structure_xml
 
+path_type = Union[Path, str]
 
-def parse_band_structure(file_name: str) -> BandData:
+
+def parse_band_structure(file_name: path_type) -> BandData:
     """High-level parser for KS band structure. Calls dictionary parsers to parse information from both
     "bandstructure.xml" and "bandstructure.dat" files.
 
