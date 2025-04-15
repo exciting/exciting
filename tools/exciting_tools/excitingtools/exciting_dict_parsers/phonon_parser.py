@@ -3,8 +3,10 @@
 from pathlib import Path
 from typing import Union
 
+path_type = Union[Path, str]
 
-def parse_phonon_out(filename: Union[str, Path]) -> dict:
+
+def parse_phonon_out(filename: path_type) -> dict:
     """Parse the phonon output file to extract phonon data for each q-point and mode.
 
     :param filename: Path to PHONON.OUT file.

@@ -2,6 +2,7 @@
 
 import enum
 import os
+from pathlib import Path
 from typing import Dict, List, Optional, Union
 
 import numpy as np
@@ -10,6 +11,8 @@ from excitingtools.dataclasses.data_structs import NumberOfStates
 from excitingtools.dataclasses.density_of_states import DOS
 from excitingtools.dataclasses.eigenvalues import EigenValues
 from excitingtools.exciting_dict_parsers.gw_eigenvalues_parser import _file_name, parse_evalqp, parse_gw_dos
+
+path_type = Union[Path, str]
 
 
 class NitrogenEvalQPColumns(enum.Enum):
@@ -49,7 +52,7 @@ return_type = Union[EigenValues, Dict[enum.Enum, EigenValues]]
 
 
 def gw_eigenvalue_parser(
-    input_file_path: str, columns: Optional[columns_type] = OxygenEvalQPColumns.E_GW
+    input_file_path: path_type, columns: Optional[columns_type] = OxygenEvalQPColumns.E_GW
 ) -> return_type:
     """High-level Parser for GW eigenvalues file.
 

@@ -28,6 +28,8 @@ from excitingtools.exciting_dict_parsers import (
     state_parser,
 )
 
+path_type = Union[Path, str]
+
 # Map file name to parser function
 # Note: more specific names should be higher, as the search will go through this map top-down
 _file_to_parser = {
@@ -113,7 +115,7 @@ _file_to_parser = {
 }
 
 
-def parse(full_file_name: str) -> dict:
+def parse(full_file_name: path_type) -> dict:
     """Selects parser according to the name of the input file then returns the result of the parser.
 
     REQUIREMENTS. Parser function must:
@@ -124,7 +126,7 @@ def parse(full_file_name: str) -> dict:
     :return: parsed data
     """
 
-    full_file_path = Path(full_file_name.rstrip())
+    full_file_path = Path(full_file_name.rstrip()) if isinstance(full_file_name, str) else full_file_name
     if not full_file_path.exists():
         raise FileNotFoundError(f"File not found: {full_file_path}")
 
@@ -138,4 +140,4 @@ def parse(full_file_name: str) -> dict:
     if not parser:
         raise KeyError(f"File does not have a parser: {file_name}")
 
-    return parser(full_file_path.as_posix())
+    return parser(full_file_path)

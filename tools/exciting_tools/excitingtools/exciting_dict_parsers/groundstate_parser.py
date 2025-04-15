@@ -6,15 +6,18 @@ All functions in this module could benefit from refactoring.
 import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from typing import Union
 
 import numpy as np
 
 from excitingtools.parser_utils.erroneous_file_error import ErroneousFileError
 from excitingtools.parser_utils.parser_decorators import set_return_values, xml_root
 
+path_type = Union[Path, str]
+
 
 @set_return_values
-def parse_info_out(name: str) -> dict:  # noqa: PLR0912, PLR0915
+def parse_info_out(name: path_type) -> dict:  # noqa: PLR0912, PLR0915
     """
     Parser exciting INFO.OUT into a dictionary.
     In:
@@ -39,7 +42,11 @@ def parse_info_out(name: str) -> dict:  # noqa: PLR0912, PLR0915
             or ("Reached self-consistent loops maximum" in line)
         ):
             nscl.append(i)
-        if ("Convergency criteria checked for the last" in line) or ("Self-consistent loop stopped" in line):
+        if (
+            ("Convergency criteria checked for the last" in line)
+            or ("Self-consistent loop stopped" in line)
+            or ("Convergence target is reached" in line)
+        ):
             nscl.append(i)
         # stores the number of the first and last line of the initialization into a list
         if "Starting initialization" in line:
@@ -78,6 +85,7 @@ def parse_info_out(name: str) -> dict:  # noqa: PLR0912, PLR0915
     k = 0
     speci = 0  # variable to detect different species in INFO.OUT
 
+    unit = None
     # loops through all lines of the initialization
     for i in range(nini[0], nini[1]):
         # stores the lines, which have the format "variable : value" into a list
@@ -140,13 +148,9 @@ def parse_info_out(name: str) -> dict:  # noqa: PLR0912, PLR0915
         # loops through all lines of the scl
         for i in range(nscl[j], nscl[j + 1]):
             # stores the lines, which have the format "variable : value" into a list
-            if (":" in lines[i]) and ("+" not in lines[i]) and ("(target)" not in lines[i]):
-                lines[i] = lines[i].split(":")
-                scl.append(lines[i])
-                scl[k][0] = scl[k][0].strip()
-                scl[k][1] = scl[k][1].strip()
-                if " " in scl[k][1]:
-                    scl[k][1] = scl[k][1].split()
+            match = re.match(r"\s*(\w.+?\S)\s*(?:\(target\))?\s*:\s*(-?\d+\.\d+(?:E-?\d+)?)", lines[i])
+            if match:
+                scl.append([match.group(1), match.group(2)])
                 # stores variable-value pairs in a dictionary
                 scls.update({scl[k][0]: scl[k][1]})
                 k = k + 1
@@ -264,16 +268,16 @@ def parse_info_out(name: str) -> dict:  # noqa: PLR0912, PLR0915
 
 
 @set_return_values
-def parse_info_xml(name) -> dict:
+def parse_info_xml(file: path_type) -> dict:
     """
     Parser exciting info.xml into a python dictionary.
     In:
-        name     string     path of the file to parse
+        file     string     path of the file to parse
     Out:
         info     dict       contains the content of the file to parse
     """
     try:
-        root = ET.parse(name)
+        root = ET.parse(file)
     except AttributeError:
         raise ErroneousFileError
 
@@ -331,16 +335,16 @@ def parse_info_xml(name) -> dict:
 
 
 @set_return_values
-def parse_atoms(name) -> dict:
+def parse_atoms(file: path_type) -> dict:
     """
     Parser exciting atoms.xml into a python dictionary.
     In:
-        name     string     path of the file to parse
+        file     string     path of the file to parse
     Out:
         info     dict       contains the content of the file to parse
     """
 
-    root = ET.parse(name)
+    root = ET.parse(file)
     atoms = {}
     atoms["Hamiltonian"] = root.find("Hamiltonian").attrib
     atom = []
@@ -397,16 +401,16 @@ def parse_eigval(root) -> dict:
 
 
 @set_return_values
-def parse_evalcore(name) -> dict:
+def parse_evalcore(file: path_type) -> dict:
     """
     Parser exciting evalcore.xml into a python dictionary.
     In:
-        name     string     path of the file to parse
+        file     string     path of the file to parse
     Out:
         info     dict       contains the content of the file to parse
     """
 
-    root = ET.parse(name).getroot()
+    root = ET.parse(file).getroot()
     evalcore = root.attrib
 
     speciess = []
@@ -438,16 +442,16 @@ def parse_evalcore(name) -> dict:
 
 
 @set_return_values
-def parse_geometry(name) -> dict:
+def parse_geometry(file: path_type) -> dict:
     """
     Parser exciting geometry.xml into a python dictionary.
     In:
-        name     string     path of the file to parse
+        file     string     path of the file to parse
     Out:
         info     dict       contains the content of the file to parse
     """
 
-    root = ET.parse(name).getroot()
+    root = ET.parse(file).getroot()
     structure = root.find("structure").attrib
     crystal = root.find("structure").find("crystal").attrib
     geometry = {"structure": structure}
@@ -487,7 +491,7 @@ def parse_geometry(name) -> dict:
 
 
 @set_return_values
-def parse_linengy(name: str) -> dict:
+def parse_linengy(name: path_type) -> dict:
     """
     Parser for: LINENGY.OUT
 
@@ -524,7 +528,7 @@ def parse_linengy(name: str) -> dict:
 
 
 @set_return_values
-def parse_lo_recommendation(name: str) -> dict:
+def parse_lo_recommendation(name: path_type) -> dict:
     """
     Parser for: LO_RECOMMENDATION.OUT
 

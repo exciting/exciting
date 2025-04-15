@@ -91,7 +91,6 @@ def test_parse_info_out(tmp_path):
                 "Coulomb potential energy": -796.81322609,
                 "DOS at Fermi energy (states/Ha/cell)": 0.0,
                 "Effective potential energy": -835.64023227,
-                "Electron charges": "",
                 "Electron-nuclear energy": -1208.12684923,
                 "Estimated fundamental gap": 0.36071248,
                 "Exchange energy": -27.93377198,
@@ -104,7 +103,6 @@ def test_parse_info_out(tmp_path):
                 "Total energy": -527.82493279,
                 "Wall time (seconds)": 1.05,
                 "atom     1    Ar": 17.99816103,
-                "charge in muffin-tin spheres": "",
                 "core": 10.0,
                 "core leakage": 0.0,
                 "interstitial": 0.00183897,
@@ -113,6 +111,36 @@ def test_parse_info_out(tmp_path):
                 "valence": 8.0,
                 "xc potential energy": -38.82700618,
             },
+            "11": {
+                "Total energy": -527.81796101,
+                "Fermi energy": -0.20044598,
+                "Kinetic energy": 530.57303096,
+                "Coulomb energy": -1029.02642037,
+                "Exchange energy": -27.93372809,
+                "Correlation energy": -1.43084350,
+                "Sum of eigenvalues": -305.07413840,
+                "Effective potential energy": -835.64716936,
+                "Coulomb potential energy": -796.82023455,
+                "xc potential energy": -38.82693481,
+                "Hartree energy": 205.65454603,
+                "Electron-nuclear energy": -1208.12932661,
+                "Nuclear-nuclear energy": -26.55163980,
+                "Madelung energy": -630.61630310,
+                "Core-electron kinetic energy": 0.00000000,
+                "DOS at Fermi energy (states/Ha/cell)": 0.00000000,
+                "core": 10.00000000,
+                "core leakage": -0.00000000,
+                "valence": 8.00000000,
+                "interstitial": 0.00184037,
+                "atom     1    Ar": 17.99815963,
+                "total charge in muffin-tins": 17.99815963,
+                "total charge": 18.00000000,
+                "Estimated fundamental gap": 0.36095838,
+                "Wall time (seconds)": 4.95,
+                "RMS change in effective potential": 0.141030e-10,
+                "Absolute change in total energy": 0.662567e-09,
+                "Charge distance": 0.430772e-11,
+            },
             "12": {
                 "Core-electron kinetic energy": 0.0,
                 "Correlation energy": -1.4308435,
@@ -120,7 +148,6 @@ def test_parse_info_out(tmp_path):
                 "Coulomb potential energy": -796.82023455,
                 "DOS at Fermi energy (states/Ha/cell)": 0.0,
                 "Effective potential energy": -835.64716936,
-                "Electron charges": "",
                 "Electron-nuclear energy": -1208.12932661,
                 "Estimated fundamental gap": 0.36095838,
                 "Exchange energy": -27.93372809,
@@ -132,7 +159,6 @@ def test_parse_info_out(tmp_path):
                 "Sum of eigenvalues": -305.0741384,
                 "Total energy": -527.81796101,
                 "atom     1    Ar": 17.99815963,
-                "charge in muffin-tin spheres": "",
                 "core": 10.0,
                 "core leakage": 0.0,
                 "interstitial": 0.00184037,
@@ -153,6 +179,7 @@ def test_parse_info_out(tmp_path):
     assert info_out["initialization"] == info_ref["initialization"], "Initialization data consistent"
     assert len(info_out["scl"]) == 12, "expected 12 SCF steps"
     assert info_out["scl"]["1"] == info_ref["scl"]["1"], "SCF first iteration data consistent"
+    assert info_out["scl"]["11"] == info_ref["scl"]["11"], "SCF 11th iteration data consistent"
     assert info_out["scl"]["12"] == info_ref["scl"]["12"], "SCF last iteration data consistent"
 
     # Testing for the Structure Optimization Module

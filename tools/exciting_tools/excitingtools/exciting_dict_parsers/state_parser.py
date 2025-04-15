@@ -2,8 +2,12 @@
 
 import struct
 import sys
+from pathlib import Path
+from typing import Union
 
 import numpy as np
+
+path_type = Union[Path, str]
 
 
 def get_byteorder_format_char(byteorder) -> str:
@@ -75,7 +79,7 @@ def read_integers(file, integers, dest, byteorder):
         assert num_bytes == read_int(file, byteorder)
 
 
-def parse_state_out(path, byteorder=sys.byteorder) -> dict:
+def parse_state_out(path: path_type, byteorder=sys.byteorder) -> dict:
     """Parser for: STATE.OUT
 
     STATE.OUT is a binary file. For every 'Write' (in Fortran) there are 4 leading bytes, which are an integer

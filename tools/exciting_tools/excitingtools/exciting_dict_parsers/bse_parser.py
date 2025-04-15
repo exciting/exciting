@@ -1,12 +1,15 @@
 """Parsers for BSE output files."""
 
 import re
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Union
 
 import numpy as np
 
+path_type = Union[Path, str]
 
-def numpy_gen_from_txt(name: str, skip_header: Optional[int] = 0) -> np.ndarray:
+
+def numpy_gen_from_txt(name: path_type, skip_header: Optional[int] = 0) -> np.ndarray:
     """Numpy genfromtxt, dressed in try/expect.
 
     Not worth generalising, as would need to support genfromtxt's API.
@@ -22,7 +25,7 @@ def numpy_gen_from_txt(name: str, skip_header: Optional[int] = 0) -> np.ndarray:
     return data
 
 
-def parse_EPSILON_NAR(name: str) -> dict:
+def parse_EPSILON_NAR(name: path_type) -> dict:
     """Parser for:
     EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC.OUT.xml,
     EPSILON_NAR_FXCMB1_OC_QMT001.OUT.xml,
@@ -39,7 +42,7 @@ def parse_EPSILON_NAR(name: str) -> dict:
     return out
 
 
-def parse_LOSS_NAR(name):
+def parse_LOSS_NAR(name: path_type):
     """Parser for:
     LOSS_NAR_FXCMB1_OC_QMT001.OUT.xml,
     LOSS_NAR_NLF_FXCMB1_OC_QMT001.OUT.xml
@@ -50,7 +53,7 @@ def parse_LOSS_NAR(name):
     return out
 
 
-def parse_EXCITON_NAR_BSE(name):
+def parse_EXCITON_NAR_BSE(name: path_type):
     """Parser for EXCITON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC.OUT"""
     data = numpy_gen_from_txt(name, skip_header=14)
     out = {}
@@ -64,7 +67,7 @@ def parse_EXCITON_NAR_BSE(name):
     return out
 
 
-def parse_infoxs_out(name: str, parse_timing: bool = False) -> dict:
+def parse_infoxs_out(name: path_type, parse_timing: bool = False) -> dict:
     """
     Parser for INFOXS.OUT file. Parses only the started and stopped tasks.
     Searches for lines like:
@@ -142,7 +145,7 @@ def parse_times(infoxs_string: str) -> dict:
     return {**parsed_times, "wall_time_cum": wall_times_cum}
 
 
-def parse_fastBSE_absorption_spectrum_out(name: str) -> dict:
+def parse_fastBSE_absorption_spectrum_out(name: path_type) -> dict:
     """Parser for fastBSE_absorption_spectrum.out file.
 
     :param name: path of the file to parse
@@ -170,7 +173,7 @@ def parse_fastBSE_absorption_spectrum_out(name: str) -> dict:
     return {"energy_unit": energy_unit, "broadening": broadening, "frequency": data[:, 0], "imag_epsilon": data[:, 1:4]}
 
 
-def parse_fastBSE_exciton_energies_out(name: str) -> dict:
+def parse_fastBSE_exciton_energies_out(name: path_type) -> dict:
     """Parser for fastBSE_exciton_energies.out and fastBSE_gauss_quadrature_energies.out files.
 
     :param name: path of the file to parse
@@ -200,7 +203,7 @@ def parse_fastBSE_exciton_energies_out(name: str) -> dict:
     }
 
 
-def parse_fastBSE_oscillator_strength_out(name: str) -> dict:
+def parse_fastBSE_oscillator_strength_out(name: path_type) -> dict:
     """Parser for fastBSE_gauss_quadrature_oscillator_strengths.out.out file.
 
     :param name: path of the file to parse
