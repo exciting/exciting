@@ -4,7 +4,7 @@
 !
 ! **************************************************************************************************
 module api_utilites
-    use error_handling, only: error_message__
+    use gx_error_handling, only: error_message__
     use minimax_omega,    only : omega_npoints_supported
     use minimax_tau, only : tau_npoints_supported
     implicit none

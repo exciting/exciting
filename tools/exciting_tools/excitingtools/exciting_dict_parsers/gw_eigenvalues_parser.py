@@ -6,16 +6,20 @@ import enum
 import os
 import re
 from itertools import count
+from pathlib import Path
+from typing import Union
 
 import numpy as np
 
 from excitingtools.dataclasses.data_structs import NumberOfStates
 
+path_type = Union[Path, str]
+
 # GW eigenvalue file name
 _file_name = "EVALQP.DAT"
 
 
-def parse_efermi_gw(name: str) -> dict:
+def parse_efermi_gw(name: path_type) -> dict:
     """Parser for EFERMI_GW.OUT.
 
     :param name: File name
@@ -79,7 +83,7 @@ def n_states_from_file(file_string: str, n_header: int) -> NumberOfStates:
     return NumberOfStates(first_state, last_state)
 
 
-def parse_evalqp_blocks(full_file_name: str, k_points: dict, n_states: int) -> dict:
+def parse_evalqp_blocks(full_file_name: path_type, k_points: dict, n_states: int) -> dict:
     """Parse energy information from EVALQP.dat.
 
     The function expects k-points of the form:
@@ -130,7 +134,7 @@ def parse_evalqp_blocks(full_file_name: str, k_points: dict, n_states: int) -> d
     return data
 
 
-def parse_evalqp(full_file_name: str) -> dict:
+def parse_evalqp(full_file_name: path_type) -> dict:
     """Parse GW output file EVALQP.DAT
 
     Parse  and return data of the form:
@@ -186,7 +190,7 @@ def parse_column_labels(file_string: str) -> enum.Enum:
     return enum.Enum(value="EvalQPColumns", names=zip(column_labels, count()))
 
 
-def parse_gw_dos(full_file_name: str) -> dict:
+def parse_gw_dos(full_file_name: path_type) -> dict:
     """Parser for GW DOS files.
 
     :param full_file_name: Path + file name

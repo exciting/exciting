@@ -1,13 +1,15 @@
 """VXCNN.DAT Parser."""
 
-import pathlib
 import re
+from pathlib import Path
 from typing import Union
 
 import numpy as np
 
 from excitingtools.dataclasses.data_structs import NumberOfStates
 from excitingtools.exciting_dict_parsers.gw_eigenvalues_parser import n_states_from_file
+
+path_type = Union[Path, str]
 
 
 def vkl_from_vxc(file_string: str) -> dict:
@@ -29,7 +31,7 @@ def vkl_from_vxc(file_string: str) -> dict:
     return vkl
 
 
-def parse_vxnn_vectors(full_file_name: Union[str, pathlib.Path], vkl: dict, n_states: int) -> dict:
+def parse_vxnn_vectors(full_file_name: path_type, vkl: dict, n_states: int) -> dict:
     """Parse VXC diagonal matrix elements from VXCNN.DAT.
 
     The routine exploits the repeating file structure:
@@ -80,7 +82,7 @@ def n_states_from_vxcnn(file_string: str) -> NumberOfStates:
     return n_states_from_file(file_string, n_header=2)
 
 
-def parse_vxcnn(full_file_name: Union[str, pathlib.Path]) -> dict:
+def parse_vxcnn(full_file_name: path_type) -> dict:
     """Parser for VXCNN.DAT.
 
     :param str full_file_name: Path + file name

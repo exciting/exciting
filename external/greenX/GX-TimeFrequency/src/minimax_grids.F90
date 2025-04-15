@@ -15,13 +15,13 @@
 
 module minimax_grids
 #include "gx_common.h"
-  use kinds,             only: dp
-  use error_handling,    only: register_exc
-  use constants,         only: pi
-  use minimax_tau,       only: get_points_weights_tau
-  use minimax_omega,     only: get_points_weights_omega
-  use minimax_utils,     only: cosine_wt, cosine_tw, sine_tw
-  use lapack_interfaces, only: dgemm, dgesdd
+  use gx_kinds,             only: dp
+  use gx_error_handling,    only: register_exc
+  use gx_constants,         only: pi
+  use minimax_tau,          only: get_points_weights_tau
+  use minimax_omega,        only: get_points_weights_omega
+  use minimax_utils,        only: cosine_wt, cosine_tw, sine_tw
+  use gx_lapack_interfaces, only: dgemm, dgesdd
 
   implicit none
 

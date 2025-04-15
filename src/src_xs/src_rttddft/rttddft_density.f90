@@ -41,7 +41,7 @@ contains
   !> and put it in global `rho_mt` and `rho_ir` arrays. This routine 
   !> manages calls of `get_density_from_lapwlo_set` with appropriate arguments.
   subroutine update_density( first_kpt, psi, occupations, it, normalize, l_rad_step, &
-      rhomt_frozen, rhoir_frozen, ks_lapwo_transition_matrix, printTimings, t_dens, dens_case )
+      rhomt_frozen, rhoir_frozen, ks_lapwlo_transition_matrix, printTimings, t_dens, dens_case )
     !> The first k point
     integer(i32), intent(in) :: first_kpt
     !> Set of KS wavefunctions
@@ -59,7 +59,7 @@ contains
     !> Frozen part of the IR density (ngrtot)
     real(dp), optional, intent(in) :: rhoir_frozen(:)
     !> KS-LAPW+lo transition matrix (nmatmax, nstfv, first_kpt : last_kpt)
-    complex(dp), optional, intent(in):: ks_lapwo_transition_matrix(:, :, :)
+    complex(dp), optional, intent(in):: ks_lapwlo_transition_matrix(:, :, :)
     !> Object that packs information about printing of timings
     type(Print_Timings), optional, intent(in) :: printTimings
     !> Object that packs information about timings to update the electronic density
@@ -102,7 +102,7 @@ contains
         'frozen density requested with no frozen wavefunctions' )
     end if
     call assert( psi%n_kpts() == size( occupations, 2 ), 'psi and occupations have different n_kpts' )
-    if ( .not. psi%expanded_in_lapwlo() ) call assert( present( ks_lapwo_transition_matrix ), 'ks_lapwo_transition_matrix is needed with KS basis' )
+    if ( .not. psi%expanded_in_lapwlo() ) call assert( present( ks_lapwlo_transition_matrix ), 'ks_lapwlo_transition_matrix is needed with KS basis' )
 
     rhomt = real_zero
     rhoir = real_zero
@@ -110,19 +110,19 @@ contains
     select case ( dens_case_ )
     case( active_and_frozen )
       allocate( occupations_slice, source = occupations(psi%first_active() : psi%n_occupied(), :) )
-      if ( .not. psi%expanded_in_lapwlo() ) call from_ks_to_lapw( ks_lapwo_transition_matrix, nmat(1, first_kpt : last_kpt), &
+      if ( .not. psi%expanded_in_lapwlo() ) call from_ks_to_lapw( ks_lapwlo_transition_matrix, nmat(1, first_kpt : last_kpt), &
         psi%active, local_lapw_set, printTimings, t_dens )
     case( save_and_frozen )
       allocate( occupations_slice, source = occupations(psi%first_active() : psi%n_occupied(), :) )
-      if ( .not. psi%expanded_in_lapwlo() ) call from_ks_to_lapw( ks_lapwo_transition_matrix, nmat(1, first_kpt : last_kpt), &
+      if ( .not. psi%expanded_in_lapwlo() ) call from_ks_to_lapw( ks_lapwlo_transition_matrix, nmat(1, first_kpt : last_kpt), &
         psi%active_save, local_lapw_set, printTimings, t_dens )
     case( frozen )
       allocate( occupations_slice, source = occupations(1 : psi%n_frozen(), :) )
-      if ( .not. psi%expanded_in_lapwlo() ) call from_ks_to_lapw( ks_lapwo_transition_matrix, nmat(1, first_kpt : last_kpt), &
+      if ( .not. psi%expanded_in_lapwlo() ) call from_ks_to_lapw( ks_lapwlo_transition_matrix, nmat(1, first_kpt : last_kpt), &
         psi%frozen, local_lapw_set, printTimings, t_dens )
     case( groundstate )
       allocate( occupations_slice, source = occupations )
-      if ( .not. psi%expanded_in_lapwlo() ) call from_ks_to_lapw( ks_lapwo_transition_matrix, nmat(1, first_kpt : last_kpt), &
+      if ( .not. psi%expanded_in_lapwlo() ) call from_ks_to_lapw( ks_lapwlo_transition_matrix, nmat(1, first_kpt : last_kpt), &
         psi%groundstate, local_lapw_set, printTimings, t_dens )
     case default
       call assert( .false., 'unknown dens_case_' )

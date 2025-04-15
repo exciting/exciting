@@ -11,8 +11,8 @@
 !> (Web Version 8.0). Database developed by J. Baker, M. Douma, and S. Kotochigova.
 !> Available at http://physics.nist.gov/constants,
 !> National Institute of Standards and Technology, Gaithersburg, MD 20899.
-module constants
-    use kinds, only: dp
+module gx_constants
+    use gx_kinds, only: dp
     implicit none
     private
 
@@ -23,4 +23,4 @@ module constants
     !> Arbitrary error length
     integer, parameter, public :: err_len = 1024
 
-end module constants
+end module gx_constants
