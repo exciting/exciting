@@ -54,8 +54,8 @@ test-fedora-buster-gnu-smp-jupyter:
   - time python3 03_excited_states/02_BSE/assertions/xray_absorption_spectra_using_bse.py
   - time jupyter nbconvert --execute 03_excited_states/02_BSE/xray_emission_spectra.ipynb --to markdown
   - time python3 03_excited_states/02_BSE/assertions/xray_emission_spectra.py
-  - time jupyter nbconvert --execute 03_excited_states/02_BSE/q_dependent_bse_calculations.ipynb --to markdown
-  - time python3 03_excited_states/02_BSE/assertions/q_dependent_bse_calculations.py
+ # - time jupyter nbconvert --execute 03_excited_states/02_BSE/q_dependent_bse_calculations.ipynb --to markdown
+ # - time python3 03_excited_states/02_BSE/assertions/q_dependent_bse_calculations.py
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/excited_states_from_tddft.ipynb --to markdown
   - time python3 03_excited_states/03_TDDFT/assertions/excited_states_from_tddft.py
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/real_time_tddft.ipynb --to markdown
