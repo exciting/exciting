@@ -21,19 +21,6 @@ set(EXCLUDE_SRC_FILES
     # Add more files to exclude as needed
 )
 
-if (CMAKE_Fortran_COMPILER_ID MATCHES "Intel" AND NOT CMAKE_Fortran_COMPILER_ID MATCHES "IntelLLVM")
-    message(STATUS "Classic Intel: using old GW files due to c_f_pointer bug.")
-    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/calcminm2.f90")
-    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/calcepsilon.f90")
-    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/calcmwm.f90")
-    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/expand_products.f90")
-else()
-    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/calcminm2_ifort.f90")
-    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/calcepsilon_ifort.f90")
-    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/calcmwm_ifort.f90")
-    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/expand_products_ifort.f90")
-endif()
-
 # We need special treatment of files containing INQUIRE so that it compiles using the Cray compiler 
 # Developers, please add here anycase of INQUIRE using not the default integer
 # TODO: remove when Cray compiler allows for arbitrary precision recl 

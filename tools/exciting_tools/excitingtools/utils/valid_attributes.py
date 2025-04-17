@@ -869,7 +869,8 @@ doonly_mandatory_attributes = ["task"]
 
 
 # gw information 
-gw_attribute_types = {"at1": (int, 1),
+gw_attribute_types = {"GBatchCount": (int, 1),
+                      "at1": (int, 1),
                       "at2": (int, 1),
                       "coreflag": (str, 1),
                       "debug": (bool, 1),
