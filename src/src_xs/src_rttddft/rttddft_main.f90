@@ -29,6 +29,7 @@ module rttddft_main
   use precision, only: dp, i32
   use rttddft_CurrentDensity, only: Current_Density, Current_Density_Field
   use rttddft_Density, only: update_density, groundstate
+  use rttddft_file_names, only: RTTDDFT_suffix
   use rttddft_electric_field, only: Electric_Field, obtain_electric_field
   use rttddft_Energy, only: TotalEnergy, obtain_energy_rttddft
   use rttddft_GlobalMDVariables
@@ -41,7 +42,7 @@ module rttddft_main
     open_file_nexc, close_file_nexc, write_nexc, &
     open_file_etot, close_file_etot, write_total_energy, &
     open_file_info, close_file_info, write_file_info, write_file_info_header, &
-    write_wavefunction, t, t_minus_dt, RTTDDFT_suffix, copy_files
+    write_wavefunction, t, t_minus_dt, copy_files
   use rttddft_MD, only: force_rttdft, move_ions, &
     MD_allocate_global_arrays => allocate_global_arrays, &
     MD_deallocate_global_arrays => deallocate_global_arrays, &
@@ -426,9 +427,8 @@ contains
 
           if( molecular_dynamics%on ) then
             do i_print = 1, rt%n_print
-              if( print_forces(i_print) ) call write_MD_outputs( time_store(i_print), &
-                atposcstore(:, :, i_print), velstore(:,:,i_print), forces_store(i_print), &
-                molecular_dynamics%print_all_force_components, MD_outputs )
+              if( print_forces(i_print) ) call MD_outputs%write_to_files( time_store(i_print), &
+                atposcstore(:, :, i_print), velstore(:,:,i_print), forces_store(i_print) )
             end do
           end if
         end if
@@ -460,9 +460,8 @@ contains
           if ( rt%calculate_n_exc ) call write_nexc( .False., time_store(1:n), n_exc(1:n), n_gs(1:n) )
           if( molecular_dynamics%on ) then
             do it = 1, n
-              if( print_forces(it) ) call write_MD_outputs( time_store(it), &
-                atposcstore(:, :, it), velstore(:, :, it), forces_store(it), &
-                molecular_dynamics%print_all_force_components, MD_outputs )
+              if( print_forces(it) ) call MD_outputs%write_to_files( time_store(it), &
+                atposcstore(:, :, it), velstore(:, :, it), forces_store(it) )
             end do
           end if
         end associate
@@ -793,8 +792,7 @@ contains
     
     if ( rank == 0 ) then
       call MD_outputs%open_files( natmtot, molecular_dynamics%print_all_force_components  )
-      call write_MD_outputs( t_0, atom_positions, atom_velocities, forces, &
-                molecular_dynamics%print_all_force_components, MD_outputs )
+      call MD_outputs%write_to_files( t_0, atom_positions, atom_velocities, forces )
     end if
 
   end subroutine
@@ -831,28 +829,6 @@ contains
         at_positions(1:3, ias) = atposc(1:3, ia, is)
       end do
     end do
-  end subroutine
-
-  subroutine write_MD_outputs( t, at_positions, at_velocities, forces, print_all_force_components, MD_outputs )
-    !> time \(t\)
-    real(dp), intent(in) :: t
-    !> Positions of the nuclei at time \( t  \)
-    real(dp), intent(in) :: at_positions(:,:)
-    !> Velocities of the nuclei at time \( t \)
-    real(dp), intent(in) :: at_velocities(:,:)
-    !> forces acting on all atoms
-    type(force), intent(in) :: forces
-    !> if `.True.`, print out all contributions to the total force
-    logical, intent(in) :: print_all_force_components
-    !> variable with interfaces to MD outputs
-    type(MD_out), intent(inout) :: MD_outputs
-    
-    if ( print_all_force_components ) then
-      call MD_outputs%write_to_files( t, at_positions, at_velocities, forces%total, &
-        forces )
-    else 
-      call MD_outputs%write_to_files( t, at_positions, at_velocities, forces%total )
-    end if
   end subroutine
 
   subroutine deallocate_global_arrays( deallocate_ehrenfest_arrays )

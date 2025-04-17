@@ -39,7 +39,7 @@ module to_char_conversion
 
   ! Basic type conversion
   !> Convert **logical** to **character**
-  function convert_logical(bool) result(char)
+  pure function convert_logical(bool) result(char)
     !> **logical** to convert
     logical, intent(in) :: bool
 
@@ -53,7 +53,7 @@ module to_char_conversion
   end function convert_logical
 
   !> Convert **integer** to **character**
-  function convert_integer(i) result(char)
+  pure function convert_integer(i) result(char)
     !> **integer** to convert
     integer(sp), intent(in) :: i
 
@@ -68,7 +68,7 @@ module to_char_conversion
   !> Convert **real(sp)** to **character**
   !> 
   !> The output format is given such that `13.352 --> "1.335200E+01"`
-  function convert_real_sp(x) result(char)
+  pure function convert_real_sp(x) result(char)
     !> **real(sp)** to convert.
     real(sp), intent(in) :: x
     character(:), allocatable :: char
@@ -83,7 +83,7 @@ module to_char_conversion
   !> Convert **real(dp)** to **character**
   !>
   !> The output format is given such that `13.352 --> "1.33520000000000E+01"`.
-  function convert_real_dp(d) result(char)
+  pure function convert_real_dp(d) result(char)
     !> **real(dp)** to convert.
     real(dp), intent(in) :: d
     character(:), allocatable :: char

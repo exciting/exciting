@@ -30,6 +30,7 @@ module rttddft_init
   use modxs, only: isreadstate0
   use precision, only: dp, i32
   use rttddft_Density, only: update_density, save_and_frozen, frozen
+  use rttddft_file_names, only: RTTDDFT_GND_sufix
   use rttddft_GlobalMDVariables, only: B_past, B_time, mathcalH, mathcalB
   use rttddft_HamiltonianOverlap, only: update_hamiltonian_without_pa_term_lapw, update_overlap_lapw, &
     update_hamiltonian_without_pa_term_ks, add_external_coupling_vgauge
@@ -37,7 +38,7 @@ module rttddft_init
   use rttddft_input, only: rttddft_input_keys
   use rttddft_io, only: file_pmat_exists, read_pmat, write_pmat, file_pmat_mt_exists, &
     read_pmat_mt, write_pmat_mt, write_file_info, write_file_info_fill_line_with_char, &
-    get_filename_pmat, get_filename_pmat_mt, RTTDDFT_GND_sufix, read_wavefunction, groundstate, t, t_minus_dt
+    get_filename_pmat, get_filename_pmat_mt, read_wavefunction, groundstate, t, t_minus_dt
   use rttddft_pmat, only: obtain_pmat_LAPWloBasis, obtain_pmat_KSBasis
   use rttddft_potential, only: update_potential
   use rttddft_VectorPotential, only: Vector_Potential, Vector_Potential_Field
