@@ -1,21 +1,24 @@
 module rttddft_io
   use asserts, only: assert
-  use file_utils, only: delete_file
+  use file_utils, only: add_default_extension, copy_text_file, delete_file, read_last_and_penultimate_lines_from_file
+  use mod_atoms, only: atposc
+  use mod_corestate, only: rhocr
   use mod_misc, only: filext, versionname, githash
   use mod_mpi_env, only: mpiinfo
   use mod_rgrid, only: rgrid, gen_3d_rgrid
   use mod_xsf_format, only: add_xsf_extension, write_real_function_xsf
   use modinput, only: input, plot3d_type
   use modmpi, only: procs, terminate, terminate_if_false
+  use precision, only: dp, i32, str_256
+  use rttddft_CurrentDensity, only: Current_Density_Field
+  use rttddft_Energy, only: TotalEnergy
+  use rttddft_file_names
 #ifdef MPI
   use rttddft_io_parallel, only: read_array, write_array
 #else
   use rttddft_io_serial, only: read_array, write_array
 #endif
   use rttddft_io_hdf5, only: read_array_hdf5, write_array_hdf5
-  use precision, only: dp, i32, str_256
-  use rttddft_Energy, only: TotalEnergy
-  use rttddft_CurrentDensity, only: Current_Density_Field
   use rttddft_Polarization, only: Polarization
   use rttddft_timings, only: Print_Timings, Timing_RTTDDFT_and_MD
   use rttddft_VectorField, only: Uniform_Vector_Field, x, y, z
@@ -59,50 +62,6 @@ module rttddft_io
   character(len=*), parameter :: format_j_p = '(F12.4,3F20.12)'
   !> Format of the output: `AVEC`
   character(len=*), parameter :: format_avec = '(F12.4,6F20.12)'
-  !> Default name of the file where the vector potential is printed out
-  character(len=*), parameter :: filename_avec = 'AVEC'
-  !> Default name of the file where the polarization is printed out
-  character(len=*), parameter :: filename_pvec = 'PVEC'
-  !> Default name of the file where the current density is printed out
-  character(len=*), parameter :: filename_jind = 'JIND'
-  !> Default name of the file where the number of excited electrons is printed out
-  character(len=*), parameter :: filename_nexc = 'NEXC'
-  !> Default name of the file with general information about the RT-TDDFT calculation
-  character(len=*), parameter :: filename_info = 'RTTDDFT_INFO'
-  !> Default name of the file where `pmat` is printed out
-  character(len=*), parameter :: filename_pmat = 'PMATBASIS'
-  !> Default name of the file where `pmat_mt` is printed out
-  character(len=*), parameter :: filename_pmat_mt = 'PMATMTBASIS'
-  !> Default name of the file where the projection coefficients are printed out
-  character(len=*), parameter :: filename_projection_coefficients = 'PROJ_'
-  !> Default name of the file where the eigenvalues are printed out
-  character(len=*), parameter :: filename_eigenvalues = 'EIGVAL_'
-  !> Default name of the file where the occupation factors are printed out
-  character(len=*), parameter :: filename_occupations = 'OCCSV_TXT_'
-  !> Default name of the file where the (initial) electron density is printed out
-  character(len=*), parameter :: filename_density = 'density3d'
-  !> Default name of the file where the changes in electron density are printed out
-  character(len=*), parameter :: filename_density_changes = 'delta-density3d'
-  !> Typical suffix to differentiate RT-TDDFDT files from ground state files
-  character(len=*), public, parameter :: RTTDDFT_suffix = "_RTTDDFT"
-  !> Suffix referring to groundstate
-  character(len=*), public, parameter :: GND_sufix = "_GND"
-  !> Suffix used when performing single-shot ground state calculation (before RT-TDDFDT)
-  character(len=*), public, parameter :: RTTDDFT_GND_sufix = RTTDDFT_suffix // GND_sufix
-  !> Default name of the file where there wavefunction coefficients are printed out
-  character(len=*), parameter :: filename_wavefunction = 'EVECFV' 
-  !> Descriptors name used to write wavefunctions into an output file
-  character(len=*), parameter :: kpt_latt_name = "kpoints_lattice_coord"
-  !> Suffix for file where there wavefunction coefficients \(\psi(t-\Delta t)\) are printed out
-  character(len=*), parameter :: suffix_wavefunction_t = RTTDDFT_suffix
-  !> Suffix for file where there wavefunction coefficients \(\psi(t-\Delta t)\) are printed out
-  character(len=*), parameter :: suffix_wavefunction_t_minus_dt = '_PREVIOUS' // RTTDDFT_suffix
-  !> Suffix for where there groundstate wavefunction coefficients are printed out
-  character(len=*), parameter :: suffix_wavefunction_gnd = RTTDDFT_GND_sufix
-  !> Default name of the file where timigs are printed out
-  character(len=*), parameter :: filename_timing = 'TIMING' // RTTDDFT_suffix
-  !> Default name of the file where the total energy is printed out
-  character(len=*), parameter :: filename_etot = 'ETOT' // RTTDDFT_suffix
 
   interface write_timing
     module procedure :: write_timing_initialization
@@ -139,28 +98,15 @@ module rttddft_io
   end type
 
 contains 
-  !> (private) add the default extension (usually `.OUT`) to the base file name
-  pure function add_default_extension( file_name )
-    !> base file name
-    character(len=*), intent(in)  :: file_name
-    !> file name with default extension
-    character(len=:), allocatable :: add_default_extension
-    add_default_extension = trim( file_name )//trim( filext )
-  end function
-
   !> (private) Function to return the status of a file to open given the information if it is new or old
   pure function get_status_from_logical( new ) result(status)
     !> If `.true.`, a new file is created (overwriting an exisiting one, if this is the case)
     logical, intent(in) :: new
     character(len=:), allocatable :: status
     character(len=*), parameter :: status_new = "replace"
-    character(len=*), parameter :: status_old = "old"
+    character(len=*), parameter :: status_old = "old    "
 
-    if( new ) then
-      status = status_new
-    else
-      status = status_old
-    end if
+    status = trim( merge( status_new, status_old, new ) )
   end function
 
   !> (private) Function to return the position of a file to open given the information if it is new or old
@@ -171,44 +117,11 @@ contains
     character(len=*), parameter :: position_new = "rewind"
     character(len=*), parameter :: position_old = "append"
 
-    if( new ) then
-      position = position_new
-    else
-      position = position_old
-    end if
+    position = merge( position_new, position_old, new )
   end function
 
-  !> (private) generic subroutine to open a file
-  subroutine open_file_generic( unit, file_name, status, position, action )
-    !> unit number of file to open
-    integer, intent(out) :: unit
-    !> name of file to open
-    character(len=*), intent(in) :: file_name
-    !> status of file to open
-    character(len=*), optional, intent(in) :: status
-    !> position of the file for sequential access
-    character(len=*), optional, intent(in) :: position
-    !> action = read, write
-    character(len=*), optional, intent(in) :: action
-    
-    character(len=*), parameter :: status_default = "replace"
-    character(len=*), parameter :: position_default = "rewind"
-    character(len=*), parameter :: action_default = "write"
-
-    character(len=:), allocatable :: status_, position_, action_
-
-    status_ = status_default
-    if( present(status) ) status_ = status
-    position_ = position_default
-    if( present(position) ) position_ = position
-    action_ = action_default
-    if( present(action) ) action_ = action
-
-    open( newunit=unit, file=trim(file_name), status=status_, position=position_, action=action_ )
-  end subroutine
-
-  !> Read the last line, and if required the penultimate line too, of files with \(\mathbf{J}\), or the polarization 
-  !> \(\mathbf{P}\), or the vector potential \(\mathbf{A}\)
+  !> Read the last line, and if required the penultimate line too, of files with 
+  !> the current \(\mathbf{J}\), or the polarization \(\mathbf{P}\), or the vector potential \(\mathbf{A}\)
   subroutine read_jpa( time, field_t, field_t_minus_dt, a_tot_t, a_tot_t_minus_dt )
     !> Time \(t\) contained in the last line
     real(dp), intent(out) :: time
@@ -262,54 +175,6 @@ contains
     end associate
   end subroutine
 
-  !> Read a file and store the content of the last and penultiname lines
-  subroutine read_last_and_penultimate_lines_from_file( file_name, last_line, penultimate_line )
-    !> File name
-    character(len=*), intent(in) :: file_name
-    !> Last line
-    character(len=*), intent(out) :: last_line
-    !> Penultimate line
-    character(len=*), intent(out) :: penultimate_line
-  
-    character(len=str_256) :: line
-    integer(i32) :: unit, ios
-  
-    last_line = "empty"; penultimate_line = "empty"
-    call open_file_generic(unit, file_name, status="old", action="read")
-    do 
-      read( unit, '(A)', iostat=ios ) line
-      if ( ios /= 0 ) exit
-      penultimate_line = last_line
-      last_line = line
-    end do
-    if( trim(penultimate_line) == "empty" ) call terminate( "Error: file " // file_name // " has less than two lines" )
-    close( unit )
-  end subroutine  
-
-  !> (private) Copy files, from source to destination, line by line. It only works for text files
-  subroutine copy_file_generic( source_name, destination_name )
-    !> Name of the source file
-    character(len=*), intent(in) :: source_name
-    !> Name of the destination file
-    character(len=*), intent(in) :: destination_name
-
-    integer(i32) :: unit_source, unit_dest, ios
-    character(len=str_256) :: line
-    logical :: file_exists
-
-    inquire( file=trim(source_name), exist=file_exists )
-    call terminate_if_false( file_exists, "Error: File " // trim(source_name) // " not found" )
-    call open_file_generic( unit_source, source_name, "old", "rewind", "read" )
-    call open_file_generic( unit_dest, destination_name, "replace", "rewind", "write" )
-    do 
-      read( unit_source, '(A)', iostat=ios ) line
-      if ( ios /= 0 ) exit
-      write( unit_dest, '(A)' ) trim( line )
-    end do
-    close( unit_source )
-    close( unit_dest )
-  end subroutine
-
   !> Copy files. Sources are files with name `fname` appended with [[add_default_extension]]
   !> and with an `extra_extension`. `fname` can be [[filename_avec]], [[filename_pvec]],
   !> [[filename_jind]], [[filename_nexc]] (if `nexc` is `.true.`), and 
@@ -322,19 +187,19 @@ contains
     !> If `.true.`, copy [[filename_etot]]
     logical, intent(in) :: etot
     
-    call wrapper_copy_file_generic( filename_avec, extra_extension )
-    call wrapper_copy_file_generic( filename_pvec, extra_extension )
-    call wrapper_copy_file_generic( filename_jind, extra_extension )
-    if( nexc ) call wrapper_copy_file_generic( filename_nexc, extra_extension )
-    if( etot ) call wrapper_copy_file_generic( filename_etot, extra_extension )
+    call wrapper_copy_file( filename_avec, extra_extension )
+    call wrapper_copy_file( filename_pvec, extra_extension )
+    call wrapper_copy_file( filename_jind, extra_extension )
+    if( nexc ) call wrapper_copy_file( filename_nexc, extra_extension )
+    if( etot ) call wrapper_copy_file( filename_etot, extra_extension )
   contains
-    subroutine wrapper_copy_file_generic( file_name, src_extra_extension )
+    subroutine wrapper_copy_file( file_name, src_extra_extension )
       !> File name
       character(len=*), intent(in) :: file_name
       !> Extension of source files
       character(len=*), intent(in) :: src_extra_extension
 
-      call copy_file_generic( source_name=add_default_extension(file_name)//trim(src_extra_extension), &
+      call copy_text_file( source_name=add_default_extension(file_name)//trim(src_extra_extension), &
         destination_name=add_default_extension(file_name) )
     end subroutine
   end subroutine
@@ -390,9 +255,9 @@ contains
     !> If `.false.`, append to existing files
     logical, intent(in) :: new
 
-    call open_file_generic( file_jind, add_default_extension(filename_jind), get_status_from_logical( new ), get_position_from_logical( new ) )
-    call open_file_generic( file_pvec, add_default_extension(filename_pvec), get_status_from_logical( new ), get_position_from_logical( new ) )
-    call open_file_generic( file_avec, add_default_extension(filename_avec), get_status_from_logical( new ), get_position_from_logical( new ) )
+    open( newunit=file_jind, file=add_default_extension(filename_jind), status=get_status_from_logical( new ), position=get_position_from_logical( new ) )
+    open( newunit=file_pvec, file=add_default_extension(filename_pvec), status=get_status_from_logical( new ), position=get_position_from_logical( new ) )
+    open( newunit=file_avec, file=add_default_extension(filename_avec), status=get_status_from_logical( new ), position=get_position_from_logical( new ) )
   end subroutine
 
   subroutine close_files_jpa
@@ -412,7 +277,7 @@ contains
     !> If `.true.`, open new files (rewriting old ones).
     !> If `.false.`, append to existing files
     logical, intent(in) :: new
-    call open_file_generic( file_etot, add_default_extension(filename_etot), get_status_from_logical( new ), get_position_from_logical( new ) )
+    open( newunit=file_etot, file=add_default_extension(filename_etot), status=get_status_from_logical( new ), position=get_position_from_logical( new ) )
   end subroutine
 
   subroutine close_file_etot
@@ -452,7 +317,7 @@ contains
     !> If `.true.`, open new files (rewriting old ones).
     !> If `.false.`, append to existing files
     logical, intent(in) :: new
-    call open_file_generic( file_nexc, add_default_extension(filename_nexc), get_status_from_logical( new ), get_position_from_logical( new ) )
+    open( newunit=file_nexc, file=add_default_extension(filename_nexc), status=get_status_from_logical( new ), position=get_position_from_logical( new ) )
   end subroutine
 
   subroutine close_file_nexc
@@ -487,7 +352,7 @@ contains
   end subroutine
 
   subroutine open_file_info
-    call open_file_generic( file_info, add_default_extension(filename_info) )
+    open( newunit=file_info, file=add_default_extension(filename_info), status="replace", action="write" )
   end subroutine
 
   subroutine close_file_info
@@ -539,7 +404,7 @@ contains
     !> If `.true.`, open new files (rewriting old ones).
     !> If `.false.`, append to existing files
     logical, intent(in) :: new
-    call open_file_generic( file_time, add_default_extension(filename_timing), get_status_from_logical( new ), get_position_from_logical( new ) )
+    open( newunit=file_time, file=add_default_extension(filename_timing), status=get_status_from_logical( new ), position=get_position_from_logical( new ) )
   end subroutine
 
   subroutine close_file_timing
@@ -746,11 +611,7 @@ contains
     associate( m => size(psi, 1), n => size(psi, 2), last_kpt => ubound( psi, 3 ) )
       ptr(1:m, 1:n, 1:n_spin, first_kpt:last_kpt) => psi
     end associate
-    if( present( handler ) ) then
-      call read_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, ptr, mpi_env, handler )
-    else
-      call read_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, ptr, mpi_env )
-    end if
+    call read_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, ptr, mpi_env, handler )
   end subroutine
 
   !!> Same as [[read_wavefunction_non_spin_polarized]], but for the spin polarized case
@@ -771,11 +632,8 @@ contains
     integer(i32), parameter :: n_cartesian_coords = 3, n_spin_max = 2
     integer(kind(restart_format)) :: file_format
 
-    if( present(handler) ) then
-      file_format = handler%file_format
-    else
-      file_format = binary
-    end if
+    file_format = binary
+    if( present(handler) ) file_format = handler%file_format
     associate( n_spin => size(psi, 3) )
       call assert( n_spin <= n_spin_max, "psi has more spin polarizations than allowed")
       call assert( size(kpt_latt, 1) == n_cartesian_coords, to_char(n_cartesian_coords) // " cartesian components are expected" )
@@ -817,12 +675,8 @@ contains
     associate( m => size(psi, 1), n => size(psi, 2), last_kpt => ubound( psi, 3 ) )
       ptr(1:m, 1:n, 1:n_spin, first_kpt:last_kpt) => psi
     end associate
-    if( present( handler ) ) then
-      call assert( present(n_kpt), "n_kpt must be passed when handler is present")
-      call write_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, ptr, mpi_env, handler, n_kpt )
-    else
-      call write_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, ptr, mpi_env )
-    end if
+    call assert( present(n_kpt) .eqv. present(handler), "n_kpt must be passed when handler is present")
+    call write_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, ptr, mpi_env, handler, n_kpt )
   end subroutine
 
   !> Same as [[write_wavefunction_non_spin_polarized]], but for the spin polarized case
@@ -844,12 +698,9 @@ contains
     integer(i32), parameter :: n_spin_max = 2, n_cartesian_coords = 3
     integer(kind(restart_format)) :: file_format
 
-    if( present(handler) ) then
-      call assert( present(n_kpt), "n_kpt must be passed when handler is present")
-      file_format = handler%file_format
-    else
-      file_format = binary
-    end if
+    call assert( present(n_kpt) .eqv. present(handler), "n_kpt must be passed when handler is present")
+    file_format = binary
+    if( present(handler) ) file_format = handler%file_format
     associate( n_spin => size(psi, 3) )
       call assert( n_spin <= n_spin_max, "psi has more spin polarizations than allowed")
       call assert( size(kpt_latt, 1) == n_cartesian_coords, "kpt_latt must have size 3 along 1st dim.")

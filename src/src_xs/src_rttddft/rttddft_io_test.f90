@@ -173,8 +173,11 @@ contains
     character(len=*), parameter :: test_id = "test_read_write_wavefunction"
     character(len=*), parameter :: tested_array = "psi"
     character(len=*), parameter :: fake_message = "Built without support to HDF5. Nothing to test here."
-    integer(i32) :: i, m, n, n_spin, i_err
+    integer(i32) :: i, m, n, n_spin
     integer(i32) :: n_kpt, n_kpt_per_proc, first_kpt, last_kpt, test_counter
+#ifdef _HDF5_
+    integer(i32) :: i_err
+#endif
     real(dp), allocatable :: kpt_latt(:, :)
     complex(dp), allocatable :: psi(:, :, :), psi_ref(:, :, :)
     complex(dp), allocatable :: psi_spin(:, :, :, :), psi_spin_ref(:, :, :, :)
