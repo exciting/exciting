@@ -8,7 +8,7 @@ module rttddft_MD
   use asserts, only: assert
   use constants, only: zone, zzero
   use exciting_mpi, only: mpiinfo, xmpi_allreduce
-  use MD, only: MD_input_keys, MD_timing, force, obtain_core_corrections, force_ext, &
+  use MD, only: trajectory, MD_input_keys, MD_timing, force, obtain_core_corrections, force_ext, &
     obtain_Hellmann_Feynman_force, obtain_valence_corrections_part1, &
     val_corr_pt2_given_atom_and_kpt => obtain_valence_corrections_part2
   use mod_atoms, only: atposc, idxas, natoms, natmtot, nspecies, &
@@ -27,7 +27,7 @@ module rttddft_MD
   use physical_constants, only: c
   use precision, only: dp, i32
   use rttddft_electric_field, only: Electric_Field
-  use rttddft_GlobalMDVariables, only: mathcalH, mathcalB
+  use rttddft_GlobalMDVariables, only: mathcalH, mathcalB, update_exciting_globals_for_new_ions_positions
   use rttddft_timings, only: Print_Timings, timesec_RTTDDFT
   use rttddft_VectorPotential, only: Vector_Potential_Field
   use vector_multiplication, only: dot_multiply
@@ -36,8 +36,12 @@ module rttddft_MD
 
   private
 
-  public :: force_rttdft, move_ions, allocate_global_arrays, deallocate_global_arrays, &
-    evaluate_charge_val
+  public :: allocate_global_arrays, &
+            deallocate_global_arrays, &
+            evaluate_charge_val, &
+            force_rttdft, &
+            move_ions, &
+            update_basis_derivative
 
   !> valence charge of each species
   real(dp), allocatable :: charge_val(:)
@@ -195,37 +199,37 @@ contains
       forces_val = forces_val + sumaux
   end subroutine
 
-  subroutine move_ions( first_kpt, forces, forces_old, dt, atoms_velocities, apwalm, &
+  subroutine move_ions( first_kpt, forces, forces_old, dt, nuclei_motion, apwalm, &
     printTimings, t_MD )
     !> The first k point
     integer(i32), intent(in) :: first_kpt
     !> Forces acting on each atom at time \( t \)
-    real(dp), intent(in)            :: forces(:, :)
+    real(dp), contiguous, intent(in) :: forces(:, :)
     !> Forces acting on each atom at time \( t - \Delta t \)
-    real(dp), intent(in)            :: forces_old(:, :)
+    real(dp), contiguous, intent(in) :: forces_old(:, :)
     !> Time step for the molecular dynamics
-    real(dp), intent(in)            :: dt
-    !> Velocities of the nuclei at time \( t \)
-    real(dp), intent(inout)         :: atoms_velocities(:,:)
+    real(dp), intent(in) :: dt
+    !> This argument packs nuclei positions and velocities at time \(t\)
+    class(trajectory), intent(inout) :: nuclei_motion
     !> Matching coefficients of the (L)APWs
     !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
-    complex(dp), intent(inout) :: apwalm(:, :, :, :, first_kpt :)
+    complex(dp), contiguous, intent(inout) :: apwalm(:, :, :, :, first_kpt :)
     !> Object that packs information about printing of timings [[Print_Timings]]
     type(Print_Timings), optional, intent(in) :: printTimings
     !> Object that packs information about timings spent in MD
-    class(MD_timing), optional, intent(inout)     :: t_MD
+    class(MD_timing), optional, intent(inout) :: t_MD
   
     logical                         :: tDetail
 
-    integer                         :: ia, ias, is, ik, ispn, last_kpt
+    integer                         :: ia, ias, is
     real(dp)                        :: ti
 
     call assert( size(forces, 1) == 3, 'forces must have size = 3 along dim = 1' )
     call assert( size(forces_old, 1) == 3, 'forces_old must have size = 3 along dim = 1' )
-    call assert( size(atoms_velocities, 1) == 3, 'atoms_velocities must have size = 3 along dim = 1' )
     call assert( size(forces, 2) == natmtot, 'forces must have size = natmtot along dim = 2' )
     call assert( size(forces_old, 2) == natmtot, 'forces_old must have size = natmtot along dim = 2' )
-    call assert( size(atoms_velocities, 2) == natmtot, 'atoms_velocities must have size = natmtot along dim = 2' )
+    call assert( size(nuclei_motion%velocities, 2) == natmtot, 'velocities must have size = natmtot along dim = 2' )
+    call nuclei_motion%assert_consistency( )
   
     ! Check optional (timing) arguments
     tDetail = .False.
@@ -235,42 +239,16 @@ contains
       call timesec( ti )
     end if
 
-    last_kpt = ubound( apwalm, 5 )
-  
     do is = 1, nspecies
       do ia = 1, natoms (is)
         ias = idxas (ia, is)
-        call update_position_velocity( dt, forces(:,ias)/spmass(is), &
-          forces_old(:,ias)/spmass(is), atoms_velocities(:, ias), atposc(:, ia, is) )
-        ! obtain the lattice coordinates with the new positions of the ions
-        ! call r3mv(ainv,atposc(:,ia,is),input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:))
+        call update_position_velocity( dt, forces(:,ias)/spmass(is), forces_old(:,ias)/spmass(is), nuclei_motion%velocities(:, ias), nuclei_motion%positions(:, ias) )
       end do
     end do
+    call nuclei_motion%update_globals( )
+
     if ( tDetail ) call timesec_RTTDDFT( ti, t_MD%t_MD_moveions )
-    ! lattice and symmetry set up
-    !call findsymcrys ! find the crystal symmetries and shift atomic positions if required
-    !call findsymsite ! find the site symmetries
-    call checkmt     ! check for overlapping muffin-tins
-    call gencfun     ! generate the characteristic function
-    call energynn    ! determine the nuclear-nuclear energy
-    ! generate structure factors for G and G+k-vectors
-    call gensfacgp (ngvec, vgc, ngvec, sfacg)
-    do ik = first_kpt, last_kpt
-      do ispn = 1, nspnfv
-        call gensfacgp (ngk(ispn, ik), vgkc(:, :, ispn, ik), ngkmax, sfacgk(:, :, ispn, ik))
-      end do
-    end do
-    call gencore          ! generate the core wavefunctions and densities
-    call linengy          ! find the new linearization energies
-    if (rank == 0) call writelinen
-    call genapwfr         ! generate the APW radial functions
-    call genlofr          ! generate the local-orbital radial functions
-    call olprad
-    ! Matching coefficients (apwalm)
-    do ik = first_kpt, last_kpt
-      call match(ngk(1,ik),gkc(:,1,ik),tpgkc(:,:,1,ik),sfacgk(:,:,1,ik),apwalm(:,:,:,:,ik))
-    end do
-  
+    call update_exciting_globals_for_new_ions_positions( first_kpt, apwalm )
     if ( tDetail ) call timesec_RTTDDFT( ti, t_MD%t_MD_updateBasis )
 
   end subroutine
@@ -297,6 +275,7 @@ contains
     real(dp), intent(inout) :: position(3)
 
     real(dp) :: v_save(3)
+
     v_save = v
     v = v + 0.5*dt*( a + a_past )
     position = position + 0.5*dt*(v + v_save)
@@ -355,6 +334,51 @@ contains
       end do
     end do ! do ias = 1, natmtot
   
+  end subroutine
+
+  !> Update \(B_k\) as
+  !> \[ B_\mathbf{k}(t) = \sum_J \dot{\mathbf{R}_J}\cdot 
+  !> \mathcal{B}_{J\mathbf{k}}(t) \]
+  !> where \(J\) indexes the atoms
+  subroutine update_basis_derivative( atoms_velocities, mathcal_B, B_now, B_old )
+    !> the velocities (in cartesian coordinates) of all atoms
+    real(dp), intent(in) :: atoms_velocities(:, :)
+    !> `mathcalB` measures how the ions displacements affect overlap elements
+    !> \[ \mathcal{B}_{J\mu'\mu}^{\mathbf{k}} = \left \langle
+    !> \phi_{\mu'}^{\mathbf{k}}\bigg| \frac{\partial}{\partial \mathbf{R}_J}
+    !> \phi_{\mu}^{\mathbf{k}} \right\rangle \]
+    complex(dp), intent(in) :: mathcal_B(:, :, :, :, :)
+    !> on entry: \(B\) at time \(t-\Delta t\), on exit: \(B\) at time \(t\)
+    complex(dp), intent(inout) :: B_now(:, :, :)
+    !> on exit: \(B\) at time \(t-\Delta t\)
+    complex(dp), intent(out) :: B_old(:, :, :)
+    
+    integer :: i, ias, ik, n_atoms, n_kpt
+
+    n_kpt = size( mathcal_B, 5)
+    n_atoms = size( atoms_velocities, 2 )
+
+    call assert( size( atoms_velocities, 1 ) == 3, 'atoms_velocities must have size = 3 along dim = 1' )
+    call assert( size( atoms_velocities, 2 ) == size( mathcal_B, 4 ), 'size(atoms_velocities,2) and size(mathcal_B,4) must be equal' )
+    call assert( all( shape( B_now ) == shape( B_old ) ), 'B_now and B_old must have same shape' )
+    call assert( size( B_now, 1 ) == size( mathcal_B, 1 ), 'B_now and mathcal_B must have same size along 1st dim' )
+    call assert( size( B_now, 2 ) == size( mathcal_B, 2 ), 'B_now and mathcal_B must have same size along 2nd dim' )
+    call assert( size( B_now, 3 ) == n_kpt, 'B_now must have size=n_kpt along 3rd dim' )
+    
+    B_old = B_now
+    B_now = zzero
+    !$OMP PARALLEL DEFAULT(NONE) PRIVATE(i,ik,ias), &
+    !$OMP& SHARED(n_kpt,n_atoms,B_now,atoms_velocities,mathcal_B)
+    !$OMP DO COLLAPSE(3)
+    do ik = 1, n_kpt
+      do ias = 1, n_atoms
+        do i = 1, 3
+          B_now(:, :, ik) = B_now(:, :, ik) + atoms_velocities(i, ias) * mathcal_B(:, :, i, ias, ik)
+        end do
+      end do
+    end do
+    !$OMP END DO NOWAIT
+    !$OMP END PARALLEL
   end subroutine
 
 end module rttddft_MD

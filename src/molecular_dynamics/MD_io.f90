@@ -2,7 +2,7 @@ module MD_io
   use asserts, only: assert
   use file_utils, only: add_default_extension, copy_text_file, read_last_and_penultimate_lines_from_file
   use math_utils, only: all_zero
-  use MD, only: force
+  use MD, only: force, trajectory
   use mod_misc, only: filext
   use modmpi, only: terminate_if_false
   use precision, only: dp, i32, str_64, str_128, str_256
@@ -45,6 +45,8 @@ module MD_io
   character(len=*), parameter :: basic_name_F_EXT = 'FEXT_'
   character(len=*), parameter :: basic_name_F_HF = 'FHF_'
   character(len=*), parameter :: basic_name_F_val = 'FVAL_'
+
+  character(len=*), parameter :: filename_trajectory = 'TRAJECTORY'
 
   character(len=*), parameter :: format_default = 'F20.10'
   character(len=*), parameter :: format_time = 'F12.4'
@@ -113,11 +115,12 @@ module MD_io
     end if
   end subroutine
 
-  subroutine write_to_MD_outs( this, time, atom_positions, atom_velocities, forces )
+  subroutine write_to_MD_outs( this, time, nuclei_motion, forces )
     class(MD_out), intent(in) :: this
+    !> Time \( t \)
     real(dp), intent(in) :: time
-    real(dp), intent(in) :: atom_positions(:, :)
-    real(dp), intent(in) :: atom_velocities(:, :)
+    !> This argument packs nuclei positions and velocities at time \( t \)
+    class(trajectory), intent(inout) :: nuclei_motion
     !> Forces on each atom
     type(force), intent(in) :: forces
     
@@ -126,19 +129,18 @@ module MD_io
     character(len=str_256) :: string
 
     n = size( this%positions_velocities_forces, 1 )
-    call assert( size(atom_positions, 1) == 3, 'atom_positions must have 3 coordinates' )
-    call assert( size(atom_velocities, 1) == 3, 'atom_velocities must have 3 coordinates' )
-    call assert( size(forces%total, 1) == 3, 'forces%total must have 3 coordinates' )
-    call assert( size(atom_positions, 2) == n, 'atom_positions must have n elements' )
-    call assert( size(atom_velocities, 2) == n, 'atom_velocities must have n elements' )
-    call assert( size(forces%total, 2) == n, 'forces%total must have n elements' )
+    call nuclei_motion%assert_consistency( )
+    call assert( size(nuclei_motion%velocities, 2) == n, 'velocities must have n elements' )
+    call assert( size(forces%total, 1) == 3, 'atom_forces must have 3 coordinates' )
+    call assert( size(forces%total, 2) == n, 'atom_forces must have n elements' )
     
     do i = 1, n
       format_string = '('//trim(format_time)// &
         ',3'//trim(format_position)// &
         ',3'//trim(format_velocity)// &
         ',3'//trim(format_force)//')'
-      write( string, format_string ) time, atom_positions(:, i), atom_velocities(:, i), forces%total(:, i)
+      write( string, format_string ) time, nuclei_motion%positions(:, i), &
+        nuclei_motion%velocities(:, i), forces%total(:, i)
       call this%positions_velocities_forces(i)%write_to_file( string )
     end do
 
