@@ -1,23 +1,27 @@
-"""Generate bandstructure input from atoms."""
+"""Generate bandstructure input from atoms using ase functionalities."""
 
 from __future__ import annotations
 
 import re
-from typing import List
+from typing import TYPE_CHECKING
 
-import ase.dft
 import numpy as np
-from ase import Atoms
 from ase.cell import Cell
 
 from excitingtools import ExcitingStructure
 from excitingtools.input.input_classes import ExcitingBandStructureInput
 
+if TYPE_CHECKING:
+    from typing import List
+
+    from ase import Atoms
+    from ase.dft.kpoints import BandPath
+
 _default_steps = 100
 
 
 def band_structure_input_from_cell_or_bandpath(
-    cell_or_bandpath: Cell | ase.dft.kpoints.BandPath, steps: int = _default_steps
+    cell_or_bandpath: Cell | BandPath, steps: int = _default_steps
 ) -> ExcitingBandStructureInput:
     """Get band path from ASE lattice cell or ASE bandpath object.
 
