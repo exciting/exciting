@@ -21,7 +21,6 @@ or
 import numpy as np
 import pytest
 
-from excitingtools.input.bandstructure import get_bandstructure_input_from_exciting_structure
 from excitingtools.input.structure import ExcitingStructure
 
 
@@ -462,9 +461,10 @@ def test_structure_input_with_integers():
 
 def test_get_bandstructure_input_from_exciting_structure(lattice_and_atoms_H20):
     pytest.importorskip("ase")
+    bandstructure_module = pytest.importorskip("excitingtools.input.bandstructure")
     cubic_lattice, atoms = lattice_and_atoms_H20
     structure = ExcitingStructure(atoms, cubic_lattice, "./")
-    bandstructure = get_bandstructure_input_from_exciting_structure(structure)
+    bandstructure = bandstructure_module.get_bandstructure_input_from_exciting_structure(structure)
     bs_xml = bandstructure.to_xml()
 
     assert bs_xml.tag == "bandstructure", 'Root tag should be "bandstructure"'

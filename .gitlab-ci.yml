@@ -3,8 +3,8 @@
 # Notice Cray CI is deactivated as it requires of extra permissions
 
 stages:
-  - build
   - python
+  - build
   - test
   - deploy
 

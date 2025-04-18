@@ -2,12 +2,38 @@
 
 import pathlib
 import re
+from pprint import pformat
 from typing import Any, Callable, Iterable, Iterator, List, Optional, Union
 
 
 def get_excitingtools_root() -> pathlib.Path:
     """Get the root directory of excitingtools."""
     return pathlib.Path(__file__).parents[2]
+
+
+def variable_to_pretty_str(name: str, content: Union[list, dict], max_length: int = 120) -> str:
+    """Given a list or a dictionary, produces a python formatted string containing the definition of the item
+    given by the name:
+        name = ['entry1', 'entry2', ...]
+        or
+        name = {'key1': 'value1',
+                'key2': ...}
+    Makes use of pformat to have a pretty formatted string, which will not exceed the given maximum line length.
+
+    :param name: the name of the set in the final string representing the definition
+    :param content: the list to write to string as a set (list because of consistent ordering)
+    :param max_length: the maximum line length
+    :return: the formatted string with fixed line length
+    """
+    start_string = f"{name} = "
+    start_whitespace = "\n" + " " * len(start_string)
+    formatted_string = (
+        pformat(content, width=max_length - len(start_string), compact=True)
+        .replace("\n", start_whitespace)  # replace simple newline character with the correct indentation
+        .replace("'", '"')  # use double-quotes instead of single-quotes
+    )
+
+    return start_string + formatted_string
 
 
 def can_be_float(value) -> bool:

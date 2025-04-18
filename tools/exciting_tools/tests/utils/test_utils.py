@@ -1,6 +1,13 @@
 """Tests for utils."""
 
-from excitingtools.utils.utils import can_be_float, convert_to_literal, flatten_list, get_new_line_indices
+from excitingtools.utils.utils import (
+    can_be_float,
+    convert_to_literal,
+    flatten_list,
+    get_excitingtools_root,
+    get_new_line_indices,
+    variable_to_pretty_str,
+)
 
 
 def test_can_be_float():
@@ -38,3 +45,41 @@ def test_flatten_list():
     input_list = [[1, 2, 3], 4, 5, [6, [7, 8]], {"9": 9, "10": 10}]
     ref_list = [1, 2, 3, 4, 5, 6, 7, 8, {"9": 9, "10": 10}]
     assert list(flatten_list(input_list)) == ref_list
+
+
+def test_get_exciting_root():
+    assert get_excitingtools_root().name == "exciting_tools"
+
+
+def test_set_string_line_limit():
+    properties_valid_subtrees = [
+        "DFTD2",
+        "EFG",
+        "LSJ",
+        "TSvdW",
+        "bandstructure",
+        "boltzequ",
+        "chargedensityplot",
+        "momentummatrix",
+        "mossbauer",
+        "mvecfield",
+        "polarization",
+        "raman",
+        "shg",
+        "spintext",
+        "stm",
+        "wannier",
+        "wanniergap",
+        "wannierplot",
+        "wfplot",
+        "xcmvecfield",
+    ]
+    reference_string = (
+        'properties_valid_subtrees = ["DFTD2", "EFG", "LSJ", "TSvdW", '
+        '"bandstructure", "boltzequ", "chargedensityplot",\n'
+        '                             "momentummatrix", "mossbauer", "mvecfield", '
+        '"polarization", "raman", "shg", "spintext",\n'
+        '                             "stm", "wannier", "wanniergap", "wannierplot", '
+        '"wfplot", "xcmvecfield"]'
+    )
+    assert variable_to_pretty_str("properties_valid_subtrees", properties_valid_subtrees) == reference_string
