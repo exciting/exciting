@@ -38,7 +38,7 @@ subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
 
     DEVICE_BEGIN_BLOCK
     ! IFX 2025.0.0 is not able to perform it efficiently except if a kernel is used
-    ! Cray compiler generates a run error if using the kernel for the loop
+    ! Cray compiler generates a runtime error if using the kernel for the loop.
     ! GNU allows the latter so we go for it.
     ! For core states, we keep the Cray way for all cases, as the number
     ! of core states is always small in comparison with valence states
