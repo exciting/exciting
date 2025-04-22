@@ -44,4 +44,7 @@ if (SIRIUS)
     # Include the directory of the Fortran module for compilation.
     include_directories(${SIRIUS_MOD_DIR})
 
+    # Added SIRIUS definition
+    add_compile_definitions(SIRIUS) 
+
 endif()

@@ -50,7 +50,7 @@ use omp_lib
 #define DEVICE_UPDATE_FROM(X) !$omp target update from(X)
 
 ! This returns the team number
-#define DEVICE_GET_TEAM_ID omp_get_team_num() + 1
+#define DEVICE_GET_TEAM_ID omp_get_team_num()
 
 ! This macro inits the target block, that is offloadable 
 #define DEVICE_BEGIN_BLOCK !$omp target
@@ -95,10 +95,10 @@ use omp_lib
 #define DEVICE_OMP_KERNELS_SYNCHRONIZE !$omp taskwait
 
 ! This macro is a safe do simd 
-#define DEVICE_BEGIN_THREAD_WORK !$omp do simd
+#define DEVICE_BEGIN_THREAD_WORK !$omp parallel do simd
 
 ! This macro is a safe end do simd
-#define DEVICE_END_THREAD_WORK !$omp end do simd
+#define DEVICE_END_THREAD_WORK !$omp end parallel do simd
 
 ! This macro is to add safely add conditionals to the macros
 #define WHEN(X) if(X)

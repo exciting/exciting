@@ -2,10 +2,6 @@
 ! See the file COPYING for license details.
 ! Copyright (C) Exciting Code, SOL group. 2020
 
-! HISTORY
-! Created Apr 2019 (Ronaldo)
-! Improved documentation: July 2021 (Ronaldo)
-! Cleaned May 2023 (Ronaldo)
 ! Reference: https://doi.org/10.1088/2516-1075/ac0c26
 
 !> This module is the kernel of a RT-TDDFT calculation.
@@ -14,11 +10,10 @@
 module rttddft_main
   use asserts, only: assert
   use constants, only: zi
-  use MD, only: force, MD_input_keys
+  use MD, only: force, MD_input_keys, trajectory
   use MD_io, only: MD_out
   use mod_atoms, only: natmtot, natoms, nspecies, atposc, idxas
   use mod_charge_and_moment, only: chgval
-  use mod_misc, only: filext
   use mod_kpoint, only: nkpt, wkpt, kpt_latt => vkl
   use mod_lattice, only: omega
   use mod_mpi_env, only: mpiinfo
@@ -29,6 +24,7 @@ module rttddft_main
   use precision, only: dp, i32
   use rttddft_CurrentDensity, only: Current_Density, Current_Density_Field
   use rttddft_Density, only: update_density, groundstate
+  use rttddft_file_names, only: RTTDDFT_suffix
   use rttddft_electric_field, only: Electric_Field, obtain_electric_field
   use rttddft_Energy, only: TotalEnergy, obtain_energy_rttddft
   use rttddft_GlobalMDVariables
@@ -41,8 +37,8 @@ module rttddft_main
     open_file_nexc, close_file_nexc, write_nexc, &
     open_file_etot, close_file_etot, write_total_energy, &
     open_file_info, close_file_info, write_file_info, write_file_info_header, &
-    write_wavefunction, t, t_minus_dt, RTTDDFT_suffix, copy_files
-  use rttddft_MD, only: force_rttdft, move_ions, &
+    write_wavefunction, t, t_minus_dt, copy_files
+  use rttddft_MD, only: force_rttdft, move_ions, update_basis_derivative, &
     MD_allocate_global_arrays => allocate_global_arrays, &
     MD_deallocate_global_arrays => deallocate_global_arrays, &
     MD_evaluate_charge_val => evaluate_charge_val
@@ -55,7 +51,7 @@ module rttddft_main
   use rttddft_timings, only: Timing_RTTDDFT_and_MD, Timing_RTTDDFT_density, &
     Timing_RTTDDFT_potential, Print_Timings, timesec_RTTDDFT
   use rttddft_VectorPotential, only: Vector_Potential, Vector_Potential_Field
-  use rttddft_Wavefunction, only: initialize_wavefunction_set, update_basis_derivative, wavefunction_set
+  use rttddft_Wavefunction, only: initialize_wavefunction_set, wavefunction_set
   use to_char_conversion, only: to_char
   use mod_kpointset, only: Gk_set, G_set
   use matrix_elements, only: me_finit
@@ -82,14 +78,12 @@ contains
   !>    3. using these wavefunctions, determine the density, the potential, and the hamiltonian.
   !> 4. Evolve the wavefunctions, the density and the hamiltonian using the desired time step.
   subroutine coordinate_rttddft_calculation()
-
     ! Basis-expansion coefficients of the KS-WFs
     class(wavefunction_set), allocatable :: psi
     ! Overlap and Hamiltonian matrices (nmatmax, nmatmax, first_kpt : last_kpt)
     complex(dp), allocatable :: overlap(:, :, :), ham_time(:, :, :), &
       ham_past(:, :, :), ham_init(:, :, :), effective_potential_init(:, :, :)
-    ! Matching coefficients of the (L)APWs
-    ! (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
+    ! Matching coefficients of the (L)APWs: (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
     complex(dp), allocatable :: apwalm(:, :, :, :, :)
     ! Momentum matrix elements (ham_dimension, ham_dimension, 3, first_kpt : last_kpt)
     ! and (nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt)
@@ -108,17 +102,15 @@ contains
       time_step_multiplier, lmax_potential
     logical :: pred_corr_reached_max_steps, my_rank_writes_to_output, &
       density_needed, evolve_H0, take_screenshot
-    character(len=:), allocatable :: string
     type(Vector_Potential) :: vec_pot
     type(Vector_Potential_Field) :: a_ind_save, a_tot_save
     type(Polarization) :: p_vec, p_vec_save
     type(Current_Density) :: j_ind, j_ind_save
-    ! Spurious paramagnetic current density (obtained for \(t=0\) - this should
-    ! ideally be zero for a dense `k-grid` mesh)
+    ! Spurious paramagnetic current density (obtained at \(t=0\) - it should ideally be zero for a dense `k-grid` mesh)
     type(Current_Density_Field) :: j_para_spurious
     type(Electric_Field) :: e_field
 
-    real(dp), allocatable :: atom_positions(:, :), atom_velocities(:, :) ! in cartesian coordinates x, y, z
+    type(trajectory) :: nuclei_motion
     type(force) :: forces
     type(MD_input_keys) :: molecular_dynamics
     type(rttddft_input_keys) :: rt
@@ -129,16 +121,17 @@ contains
     ! evaluation points to it implicitly
     type(G_set) :: Gset
 
-    real(dp) :: time, timei, timef, timeaux, timeiter, dt, tol, eps_occ
+    real(dp) :: time, timei, timef, time_aux, timeiter, dt, tol, eps_occ
     real(dp), allocatable :: n_exc(:), n_gs(:)
     real(dp), parameter :: tol_default = 1e-10_dp
     type(MD_out) :: MD_outputs
     ! Variables to store data and print
-    real(dp), allocatable :: time_store(:), atposcstore(:, :, :), velstore(:, :, :)
+    real(dp), allocatable :: time_store(:)
     type(Vector_Potential_Field), allocatable :: a_ind_store(:), a_tot_store(:)
     type(Current_Density_Field), allocatable :: j_ind_store(:)
     type(Polarization), allocatable :: p_vec_store(:)
     type(force), allocatable :: forces_store(:)
+    type(trajectory), allocatable :: nuclei_motion_store(:)
     logical, allocatable :: print_forces(:)
     type(TotalEnergy), allocatable :: etotstore(:)
     type(Timing_RTTDDFT_and_MD) :: timing
@@ -163,7 +156,7 @@ contains
         ! Copy files: sources are files ending with `rt%restart_extension`, dest. are to the default file names
         if( my_rank_writes_to_output ) call copy_files( rt%restart_extension, rt%calculate_n_exc, rt%calculate_total_energy )
         ! Before reading, ensure that copying has been finished
-        call barrier
+        call barrier()
       end if
       call read_time_and_fields( time, p_vec, vec_pot, a_ind_save, a_tot_save )
     else
@@ -181,10 +174,14 @@ contains
       molecular_dynamics, psi, overlap, ham_init, ham_time, ham_past, effective_potential_init, apwalm, &
       pmat, pmatmt, rhomt_frozen, rhoir_frozen, occupations, k_dependent_dims, eps_occ, Gkset, Gset, ks_lapwlo_transition_matrix )
     call distribute_loop( mpi_env_k, nkpt, first_kpt, last_kpt )
-    if( molecular_dynamics%on ) call init_MD( time, vec_pot%a_tot, dt, &
-      psi%active, occupations, overlap, ham_time, time_step_multiplier, molecular_dynamics, &
-      MD_outputs, atom_positions, atom_velocities, e_field, forces )
+    if( molecular_dynamics%on ) then
+      call init_MD( time, vec_pot%a_tot, dt, &
+        psi%active, occupations, overlap, ham_time, time_step_multiplier, molecular_dynamics, &
+        MD_outputs, nuclei_motion, e_field, forces )
+    end if
+    
     if ( rt%subtract_J0 ) then
+      ! TODO(Ronaldo) This must be evaluated with psi_gnd
       call j_ind%evaluate_paramagnetic( psi, pmat, occupations, wkpt(first_kpt:last_kpt), mpi_env_k )
       j_para_spurious = j_ind%paramagnetic
     end if
@@ -202,7 +199,11 @@ contains
     if( rt%calculate_total_energy ) allocate( etotstore(rt%n_print) )
     if( rt%calculate_n_exc ) allocate( n_exc(rt%n_print), n_gs(rt%n_print) )
     if( molecular_dynamics%on ) then
-      allocate( print_forces(rt%n_print), atposcstore(3,natmtot,rt%n_print), velstore(3,natmtot,rt%n_print))
+      allocate( print_forces(rt%n_print) )
+      allocate( nuclei_motion_store(rt%n_print) )
+      do i_print = 1, rt%n_print
+        call nuclei_motion_store(i_print)%allocate_arrays( natmtot )
+      end do
       if ( molecular_dynamics%print_all_force_components ) then
         allocate( forces_store(rt%n_print) )
         do i_print = 1, rt%n_print
@@ -275,13 +276,12 @@ contains
       ! WAVEFUNCTION
       if ( save_wavefunction( rt, i_print, it, last_step, propagator ) ) call psi%save()
       if ( molecular_dynamics%on .and. molecular_dynamics%basis_derivative ) then
-        call update_basis_derivative( atom_velocities, mathcalB, B_time, B_past )
+        call update_basis_derivative( nuclei_motion%velocities, mathcalB, B_time, B_past )
         ham_time = ham_time - zi*B_time
       end if
       call propagator%evolve( list_of_H_minus_dt=ham_past, list_of_H_0=ham_time, &
         list_of_S=overlap, psi=psi%active, dims=k_dependent_dims )
       if ( rt%normalize_WF ) call psi%normalize( overlap )
-
 
       if ( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%wavefunction )
 
@@ -373,18 +373,17 @@ contains
           call force_rttdft( forces, vec_pot%a_tot, e_field, molecular_dynamics, &
             psi%active, occupations, overlap, ham_time, rt%printTimings, timing%t_Ehrenfest )
           call move_ions( first_kpt, forces%total, forces%total_save, molecular_dynamics%time_step, &
-            atom_velocities, apwalm, rt%printTimings, timing%t_Ehrenfest )
+            nuclei_motion, apwalm, rt%printTimings, timing%t_Ehrenfest )
           print_forces(i_print) = .True.
-          call get_atoms_positions( atposcstore(:, :, i_print) )
-          velstore(:, :, i_print) = atom_velocities
+          nuclei_motion_store(i_print) = nuclei_motion
           forces_store(i_print) = forces
           ! Update Hamiltonian with the new basis
           if( molecular_dynamics%update_overlap .or. allocated(mathcalH) .or. &
             & allocated(mathcalB) .or. molecular_dynamics%update_pmat ) then
               if( molecular_dynamics%update_pmat ) then
-                if( rt%printTimings%detailed() ) call timesec( timeaux )
+                if( rt%printTimings%detailed() ) call timesec( time_aux )
                 call obtain_pmat_LAPWLOBasis( first_kpt, rt%pmat%force_pmat_hermitian, apwalm, pmat, pmatmt )
-                if( rt%printTimings%detailed() ) call timesec_RTTDDFT( timeaux, timing%t_Ehrenfest%pmat )
+                if( rt%printTimings%detailed() ) call timesec_RTTDDFT( time_aux, timing%t_Ehrenfest%pmat )
               end if
             if( propagator%extrapolation_needed() ) ham_past = ham_time  
 
@@ -426,9 +425,8 @@ contains
 
           if( molecular_dynamics%on ) then
             do i_print = 1, rt%n_print
-              if( print_forces(i_print) ) call write_MD_outputs( time_store(i_print), &
-                atposcstore(:, :, i_print), velstore(:,:,i_print), forces_store(i_print), &
-                molecular_dynamics%print_all_force_components, MD_outputs )
+              if( print_forces(i_print) ) call MD_outputs%write_to_files( &
+                time_store(i_print), nuclei_motion_store(i_print), forces_store(i_print) )
             end do
           end if
         end if
@@ -460,9 +458,7 @@ contains
           if ( rt%calculate_n_exc ) call write_nexc( .False., time_store(1:n), n_exc(1:n), n_gs(1:n) )
           if( molecular_dynamics%on ) then
             do it = 1, n
-              if( print_forces(it) ) call write_MD_outputs( time_store(it), &
-                atposcstore(:, :, it), velstore(:, :, it), forces_store(it), &
-                molecular_dynamics%print_all_force_components, MD_outputs )
+              if( print_forces(it) ) call MD_outputs%write_to_files( time_store(it), nuclei_motion_store(it), forces_store(it) )
             end do
           end if
         end associate
@@ -470,11 +466,6 @@ contains
       call write_wavefunction( t, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi%active, mpi_env_k, rt%restart_file_handler, nkpt )
       if( propagator%extrapolation_needed() ) call write_wavefunction( t_minus_dt, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi%active_save, mpi_env_k, rt%restart_file_handler, nkpt )
     end if
-    ! write potential and density using `RTDDFT_suffix` combined with `filext` as suffix
-    string = filext
-    filext = RTTDDFT_suffix // trim( filext )
-    if ( my_rank_writes_to_output ) call writestate
-    filext = string
     call deallocate_global_arrays( molecular_dynamics%on )
     if( .not. psi%expanded_in_lapwlo() ) call me_finit()
 
@@ -499,7 +490,7 @@ contains
     !> Propagator used
     class(propagator_type), intent(in) :: prop
 
-    logical :: is_print_step, is_last_step, print_wavefunction_now, store_to_print_output
+    logical :: is_print_step, is_last_step, print_wavefunction_now
 
     is_print_step = ( i_print == rt_inp%n_print )
     is_last_step = ( it == last_step )
@@ -598,7 +589,7 @@ contains
         & 'Predictor corrector method should not be used together with IP approximation')
     end if
 
-    ! No restart currently possible for MD calculations
+    ! MD calculations
     if( associated( inp%MD ) ) then
       call terminate_if_false( trim( inp%xs%realTimeTDDFT%do ) == "fromscratch", &
         "No restart currently possible for MD calculations" )
@@ -742,7 +733,7 @@ contains
 
   !> Subroutine to initialize all MD related variables
   subroutine init_MD( t_0, a_tot, timeStepRTTDDFT, evecfv_time, occupations, overlap, ham_time, &
-      time_step_multiplier, molecular_dynamics, MD_outputs, atom_positions, atom_velocities, e_field, forces )
+      time_step_multiplier, molecular_dynamics, MD_outputs, nuclei_motion, e_field, forces )
     !> Initial time \( t_0 \)
     real(dp), intent(in) :: t_0
     !> Vector potential (total)
@@ -763,96 +754,33 @@ contains
     type(MD_input_keys), intent(inout) :: molecular_dynamics
     !> variable with interfaces to MD outputs
     type(MD_out), intent(inout) :: MD_outputs
-    !> positions of all atoms in cartesian coordinates
-    real(dp), allocatable, intent(out) :: atom_positions(:, :) 
-    !> velocities of all atoms in cartesian coordinates
-    real(dp), allocatable, intent(out) :: atom_velocities(:, :)
+    !> This argument packs nuclei positions and velocities
+    class(trajectory), intent(inout) :: nuclei_motion
     !> Electric field
     type(Electric_Field), intent(in) :: e_field
     !> forces acting on all atoms
-    type(force), intent(out) :: forces
+    type(force), intent(inout) :: forces
 
 
     time_step_multiplier = int( molecular_dynamics%time_step/timeStepRTTDDFT )
     molecular_dynamics%time_step = time_step_multiplier*timeStepRTTDDFT
     
     call MD_allocate_global_arrays( nspecies )
-    call MD_evaluate_charge_val
+    call MD_evaluate_charge_val( )
     
     call forces%allocate_arrays( natmtot )
+    
     call force_rttdft( forces, a_tot, e_field, molecular_dynamics, evecfv_time, &
       occupations, overlap, ham_time )
-    
-    allocate( atom_velocities(3, natmtot) )
-    call init_atoms_velocities( atom_velocities )
-
-    allocate( atom_positions(3, natmtot) )
-    call get_atoms_positions( atom_positions )
-    
-    if( molecular_dynamics%basis_derivative ) call update_basis_derivative( atom_velocities, mathcalB, B_time, B_past )
+    call nuclei_motion%allocate_arrays( natmtot )
+    call nuclei_motion%initialize( input%structure )
+    if( molecular_dynamics%basis_derivative ) call update_basis_derivative( nuclei_motion%velocities, mathcalB, B_time, B_past )
     
     if ( rank == 0 ) then
       call MD_outputs%open_files( natmtot, molecular_dynamics%print_all_force_components  )
-      call write_MD_outputs( t_0, atom_positions, atom_velocities, forces, &
-                molecular_dynamics%print_all_force_components, MD_outputs )
+      call MD_outputs%write_to_files( t_0, nuclei_motion, forces )
     end if
 
-  end subroutine
-
-  !> Initialize the velocities of each atom (needed for Ehrenfest MD)
-  subroutine init_atoms_velocities(at_velocities)
-    !> Velocities of the nuclei at time \( t = 0 \)
-    real(dp), intent(inout)         :: at_velocities(:,:)
-    integer(i32) :: is, ia, ias
-
-    call assert( size(at_velocities, 1) == 3, 'at_velocities must have size = 3 along dim = 1' )
-    call assert( size(at_velocities, 2) == natmtot, 'at_velocities must have size = natmtot along dim = 2' )
-
-    do is = 1, nspecies
-      do ia = 1, natoms(is)
-        ias = idxas(ia, is)
-        at_velocities(1:3,ias) = input%structure%speciesarray(is)%species%atomarray(ia)%atom%velocity(1:3)
-      end do
-    end do
-  end subroutine
-
-  !> Obtain the positions of each atom from the global variable `atposc`. 
-  !> Needed for Ehrenfest MD
-  subroutine get_atoms_positions(at_positions)
-    !> Positions of the nuclei at time \( t = 0 \)
-    real(dp), intent(inout)         :: at_positions(:,:)
-    integer(i32) :: is, ia, ias
-
-    call assert( size(at_positions, 1) == 3, 'at_positions must have size = 3 along dim = 1' )
-    call assert( size(at_positions, 2) == natmtot, 'at_positions must have size = natmtot along dim = 2' )
-    do is = 1, nspecies
-      do ia = 1, natoms(is)
-        ias = idxas(ia,is)
-        at_positions(1:3, ias) = atposc(1:3, ia, is)
-      end do
-    end do
-  end subroutine
-
-  subroutine write_MD_outputs( t, at_positions, at_velocities, forces, print_all_force_components, MD_outputs )
-    !> time \(t\)
-    real(dp), intent(in) :: t
-    !> Positions of the nuclei at time \( t  \)
-    real(dp), intent(in) :: at_positions(:,:)
-    !> Velocities of the nuclei at time \( t \)
-    real(dp), intent(in) :: at_velocities(:,:)
-    !> forces acting on all atoms
-    type(force), intent(in) :: forces
-    !> if `.True.`, print out all contributions to the total force
-    logical, intent(in) :: print_all_force_components
-    !> variable with interfaces to MD outputs
-    type(MD_out), intent(inout) :: MD_outputs
-    
-    if ( print_all_force_components ) then
-      call MD_outputs%write_to_files( t, at_positions, at_velocities, forces%total, &
-        forces )
-    else 
-      call MD_outputs%write_to_files( t, at_positions, at_velocities, forces%total )
-    end if
   end subroutine
 
   subroutine deallocate_global_arrays( deallocate_ehrenfest_arrays )

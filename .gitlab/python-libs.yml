@@ -11,7 +11,7 @@ python:excitingtools-python3:
     - python3 -m pip install -U pip setuptools
     - python3 -m pip install --upgrade --force pylint coverage numpy contourpy matplotlib
   script:
-    - cd tools/exciting_tools && python3 -m pip install -e .[dev,schemaparsing,h5_parsing]
+    - cd tools/exciting_tools && python3 -m pip install -e .[dev,schemaparsing,h5_parsing,serialisation]
     # run ruff and check the files (includes some pylint, see also README.MD section Code 'Checking and Formatting')
     - ruff check
     - ruff format --diff
@@ -30,6 +30,19 @@ python:excitingtools-python3:
       coverage_report:
         coverage_format: cobertura
         path: tools/exciting_tools/excitingtools_testcov.xml
+
+# test pure excitingtools without extensions and for lowest supported python version
+python:excitingtools-python3.7:
+  image: python:3.7
+  stage: python
+  tags:
+    - docker
+  before_script:
+    - python3 -m pip install --upgrade pip setuptools pytest
+  script:
+    - cd tools/exciting_tools && python3 -m pip install .
+    - python3 -m pytest
+
 
 python:regressionframework-python3:
   image: gitdocker.physik.hu-berlin.de/sol/exciting:fedora-GCC14-hdf5-fftw-scalapack-mpich

@@ -78,7 +78,7 @@ else()
     message(FATAL_ERROR "exciting does only support libxc version 5.0.0 or higher.")
   endif()
   get_filename_component(Libxc_libdir ${LIBXC_LIB} DIRECTORY)
-  set(xcf03 ${Libxc_libdir}/libxcf03.a)
+  find_library(xcf03 NAMES xcf03 HINTS ${LIBXC_ROOT}/lib/)
   message(STATUS "Libxc external libs: ${LIBXC_LIB}:${xcf03}")
   get_filename_component(Libxc_includes ${LIBXC_VERSION_FILE} DIRECTORY)
   include_directories(${Libxc_includes})
@@ -97,7 +97,7 @@ else()
   endif()
 
   add_library(XC INTERFACE)
-  target_link_libraries(XC INTERFACE ${Libxc_libdir}/libxcf03.a ${Libxc_libdir}/libxc.a)
+  target_link_libraries(XC INTERFACE ${xcf03} ${LIBXC_LIB})
   add_dependencies(XC INTERNAL_LIBXC)
   
   # For libXC 7.0.0 there was an API change. Internally we control those changes using pragmas.
