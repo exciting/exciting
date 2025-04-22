@@ -254,7 +254,7 @@ contains
     call sirius_set_equivalent_atoms(sctx, icls)
 
     ! XC functional
-    if (mpiglobal%rank == 0) open(newunit=sirius_warning_unit, file=sirius_warning_file_name, status='new', action='write', form='formatted')
+    if (mpiglobal%rank == 0) open(newunit=sirius_warning_unit, file=sirius_warning_file_name, status='replace', action='write', form='formatted')
     if (associated(input%groundstate%libxc)) then
       if (input%groundstate%libxc%exchange .ne. 'none') then
         call sirius_add_xc_functional(sctx, trim(input%groundstate%libxc%exchange))

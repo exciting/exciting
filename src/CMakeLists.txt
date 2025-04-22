@@ -183,15 +183,14 @@ endif()
 
 
 # For Intel and GNU indicate that exciting has the objects available for LTO
-# In the rest of compilers this is done with compiler flags or for Cray is fully deactivated
+# In the rest of compilers this is done with compiler flags or for Cray it is fully deactivated
 if (CMAKE_Fortran_COMPILER_ID MATCHES "GNU" OR CMAKE_Fortran_COMPILER_ID MATCHES "IntelLLVM")
     set_property(TARGET ${exciting_name} PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
 endif()
 # Set the linker to Fortran, otherwise C++ linker is used
 set_property(TARGET ${exciting_name} PROPERTY LINKER_LANGUAGE Fortran)
 
-# Ensure libraries are found
-
+# Ensure that the libraries are found
 if(MAGMA_DIR)
     set_target_properties(${exciting_name} PROPERTIES
                 INSTALL_RPATH "${MAGMA_DIR}/lib/libmagma.so"
