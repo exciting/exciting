@@ -1,10 +1,13 @@
 module rttddft_io
   use asserts, only: assert
   use file_utils, only: add_default_extension, copy_text_file, delete_file, read_last_and_penultimate_lines_from_file
+  use MD, only: trajectory
+  use MD_io, only: read_trajectory, write_trajectory
   use mod_atoms, only: atposc
   use mod_corestate, only: rhocr
   use mod_misc, only: filext, versionname, githash
   use mod_mpi_env, only: mpiinfo
+  use mod_potential_and_density, only: vxcir, vxcmt, rhoir, rhomt, vclir, vclmt, veffir, veffmt, veffig, meffig
   use mod_rgrid, only: rgrid, gen_3d_rgrid
   use mod_xsf_format, only: add_xsf_extension, write_real_function_xsf
   use modinput, only: input, plot3d_type
@@ -40,7 +43,8 @@ module rttddft_io
             write_projection_coefficients, write_eigenvalues, write_occupations, &
             write_wavefunction, read_wavefunction, delete_wavefunction_file, &
             groundstate, t, t_minus_dt, restart_format, binary, hdf5, &
-            write_density_to_file, copy_files
+            write_density_to_file, copy_files, &
+            write_state_Ehrenfest_MD, read_state_Ehrenfest_MD
 
   !> Number of the unit to print timings
   integer(i32)                   :: file_time
@@ -194,9 +198,7 @@ contains
     if( etot ) call wrapper_copy_file( filename_etot, extra_extension )
   contains
     subroutine wrapper_copy_file( file_name, src_extra_extension )
-      !> File name
       character(len=*), intent(in) :: file_name
-      !> Extension of source files
       character(len=*), intent(in) :: src_extra_extension
 
       call copy_text_file( source_name=add_default_extension(file_name)//trim(src_extra_extension), &
@@ -204,7 +206,7 @@ contains
     end subroutine
   end subroutine
 
-  !> Prints the current density \(\mathbf{J}\), or the polarization 
+  !> Print the current density \(\mathbf{J}\), or the polarization 
   !> \(\mathbf{P}\), or the vector potential \(\mathbf{A}\)
   subroutine write_jpa( times, first, second )
     !> Array with the values of time \( t \)
@@ -724,6 +726,54 @@ contains
     integer(kind(wavefunction_case)) :: psi_case
     integer(i32) :: i_error
     call delete_file( get_filename_wavefunction( psi_case ), i_error )
+  end subroutine
+
+  !> Write current state
+  subroutine write_state_Ehrenfest_MD( nuclei_motion )
+    !> This argument packs nuclei positions and velocities
+    class(trajectory), intent(inout) :: nuclei_motion
+
+    character(len=:), allocatable :: string
+
+    string = trim( filext )
+    filext = RTTDDFT_suffix // trim( filext )
+    call write_rho_ks( )
+    call write_trajectory( nuclei_motion )
+    filext = string
+  end subroutine
+
+  !> Read current state
+  subroutine read_state_Ehrenfest_MD( nuclei_motion )
+    !> This argument packs nuclei positions and velocities
+    class(trajectory), intent(inout) :: nuclei_motion
+
+    character(len=:), allocatable :: string
+
+    string = trim( filext )
+    filext = RTTDDFT_suffix // trim( filext )
+    call read_rho_vks( )
+    call read_trajectory( nuclei_motion )
+    filext = string
+  end subroutine
+
+  !> Write the core and valence densities and the KS potential
+  subroutine write_rho_ks( )
+    integer(i32) :: unit
+
+    open( newunit=unit, file=add_default_extension( filename_rho_vks ), action="write", form="unformatted", access="stream" )
+    write( unit ) rhocr, rhomt, rhoir
+    write( unit ) vclmt, vclir, vxcmt, vxcir, veffmt, veffir, veffig, meffig
+    close( unit )
+  end subroutine
+
+  !> Read the core and valence densities and the KS potential
+  subroutine read_rho_vks( )
+    integer(i32) :: unit
+
+    open( newunit=unit, file=add_default_extension( filename_rho_vks ), action="read", form="unformatted", access="stream" )
+    read( unit ) rhocr, rhomt, rhoir
+    read( unit ) vclmt, vclir, vxcmt, vxcir, veffmt, veffir, veffig, meffig
+    close( unit )
   end subroutine
 
   !> Write timing only if it is nonzero (> tol)

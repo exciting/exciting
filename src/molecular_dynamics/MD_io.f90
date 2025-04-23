@@ -10,6 +10,7 @@ module MD_io
   
   implicit none
   private
+  public :: read_trajectory, write_trajectory
 
   type :: basic_io
   private
@@ -36,6 +37,8 @@ module MD_io
     procedure, public :: write_to_files => write_to_MD_outs
     procedure, public :: open_files => open_MD_outs
     procedure, public :: close_files => close_MD_outs
+    procedure, public :: copy_files => copy_MD_outs
+    procedure, public :: read_time_and_forces_from_files => read_last_time_and_forces
   end type
 
   integer(i32), parameter :: n_cartesian = 3
@@ -64,13 +67,25 @@ module MD_io
   end subroutine  
 
   !> Open file
-  subroutine basic_io_open_file( this, name )
+  subroutine basic_io_open_file( this, name, is_new )
     class(basic_io), intent(inout) :: this
     !> Name to be given to the file
     character(len=*), intent(in)    :: name
+    !> If `.true.`, a new file should be created, erasing old ones (if they exist).   
+    !> If `.false.`, append to an existing file
+    logical, intent(in) :: is_new
+
+    character(len=*), parameter :: status_new = "replace"
+    character(len=*), parameter :: status_old = "old"
+    character(len=*), parameter :: position_new = "rewind"
+    character(len=*), parameter :: position_old = "append"
 
     call this%set_name( name )
-    open( newunit=this%file_unit, file=trim( this%name ), status='replace' )
+    if( is_new ) then
+      open( newunit=this%file_unit, file=trim( name ), status=status_new, position=position_new )
+    else
+      open( newunit=this%file_unit, file=trim( name ), status=status_old, position=position_old )
+    end if
   end subroutine
 
   !> Write string to file
@@ -86,8 +101,11 @@ module MD_io
     close( this%file_unit )
   end subroutine
 
-  subroutine open_MD_outs( this, n, all_force_contributions )
+  !> Open standard MD output files
+  subroutine open_MD_outs( this, new, n, all_force_contributions )
     class(MD_out), intent(inout) :: this
+    !> Same meaning as in [[basic_io_open_file]]
+    logical, intent(in) :: new 
     !> Number of files in each member class
     integer(i32), intent(in)     :: n
     !> Output the individual contributions to the total force
@@ -99,7 +117,7 @@ module MD_io
 
     do i = 1, n
       call this%positions_velocities_forces(i)%open_file( &
-        add_integer_and_extension_to_filename(basic_name_pos_vel_forces, i ) )
+        add_integer_and_extension_to_filename(basic_name_pos_vel_forces, i ), new )
     end do
 
     this%all_force_contributions = all_force_contributions
@@ -107,14 +125,15 @@ module MD_io
     if( all_force_contributions ) then
       allocate( this%F_core(n), this%F_EXT(n), this%F_HF(n), this%F_val(n) )
       do i = 1, n
-        call this%F_core(i)%open_file( add_integer_and_extension_to_filename( basic_name_F_core, i ) )
-        call this%F_EXT(i)%open_file( add_integer_and_extension_to_filename( basic_name_F_EXT, i ) )
-        call this%F_HF(i)%open_file( add_integer_and_extension_to_filename( basic_name_F_HF, i ) )
-        call this%F_val(i)%open_file( add_integer_and_extension_to_filename( basic_name_F_val, i ) )
+        call this%F_core(i)%open_file( add_integer_and_extension_to_filename( basic_name_F_core, i ), new )
+        call this%F_EXT(i)%open_file( add_integer_and_extension_to_filename( basic_name_F_EXT, i ), new )
+        call this%F_HF(i)%open_file( add_integer_and_extension_to_filename( basic_name_F_HF, i ), new )
+        call this%F_val(i)%open_file( add_integer_and_extension_to_filename( basic_name_F_val, i ), new )
       end do
     end if
   end subroutine
 
+  !> Write to standard MD output files
   subroutine write_to_MD_outs( this, time, nuclei_motion, forces )
     class(MD_out), intent(in) :: this
     !> Time \( t \)
@@ -159,9 +178,10 @@ module MD_io
     end if
   end subroutine
 
+  !> Close standard MD output files
   subroutine close_MD_outs( this )
     class(MD_out), intent(in) :: this
-    ! Local variables
+    
     integer(i32) :: i, n
     
     n = size( this%positions_velocities_forces, 1 )
@@ -177,6 +197,127 @@ module MD_io
       end do
     end if
   end subroutine
+
+  !> Read the last line of each file that stores positions, velocities, and forces
+  subroutine read_last_time_and_forces( this, time, forces )
+    class(MD_out), intent(in) :: this
+    !> Time \(t\) to be read from the last line
+    real(dp), intent(out) :: time
+    !> Force on each atom, to be read from last and penultimate lines
+    class(force), intent(inout) :: forces
+
+    integer(i32) :: i, n
+    character(len=str_256) :: last_line, penultimate_line
+    real(dp) :: positions_ignore(n_cartesian), velocities_ignore(n_cartesian), t_aux
+    real(dp), allocatable :: t(:), dt(:)
+
+    n = find_number_of_files( basic_name_pos_vel_forces )
+    if( allocated( forces%total ) ) deallocate( forces%total )
+    if( allocated( forces%total_save ) ) deallocate( forces%total_save )
+    allocate( forces%total(n_cartesian, n), forces%total_save(n_cartesian, n), t(n), dt(n) )
+    do i = 1, n
+      call read_last_and_penultimate_lines_from_file( add_integer_and_extension_to_filename( basic_name_pos_vel_forces, i ), &
+        last_line, penultimate_line )
+      read( last_line, * ) t(i), positions_ignore, velocities_ignore, forces%total(:, i)
+      read( penultimate_line, * ) t_aux, positions_ignore, velocities_ignore, forces%total_save(:, i)
+      dt(i) = t(i) - t_aux
+    end do
+    call terminate_if_false( all_zero( t-t(1) ), "Last time is not the same across the multiple output files")
+    call terminate_if_false( all_zero( dt-dt(1) ), "Time step is not the same across the multiple output files")
+    time = t(1)
+  end subroutine
+
+  !> Copy standard MD output files that have the additional extension `source_additional_extension`
+  !> to files with the same base name but without the extension.
+  subroutine copy_MD_outs( this, source_additional_extension, all_force_contributions )
+    class(MD_out), intent(in) :: this
+    !> Additional extension of source files (used to differentiate them from destination files)
+    character(len=*), intent(in) :: source_additional_extension
+    !> Output the individual contributions to the total force
+    logical, intent(in)          :: all_force_contributions
+
+    integer(i32) :: i, n
+
+    n = find_number_of_files( basic_name_pos_vel_forces, source_additional_extension )
+    do i = 1, n
+      call wrapper_copy_txt_file_generic( basic_name_pos_vel_forces, i, source_additional_extension )
+    end do
+
+    if( all_force_contributions ) then
+      do i = 1, n
+        call wrapper_copy_txt_file_generic( basic_name_F_core, i, source_additional_extension )
+        call wrapper_copy_txt_file_generic( basic_name_F_EXT, i, source_additional_extension )
+        call wrapper_copy_txt_file_generic( basic_name_F_HF, i, source_additional_extension )
+        call wrapper_copy_txt_file_generic( basic_name_F_val, i, source_additional_extension )
+      end do
+    end if
+  contains
+    subroutine wrapper_copy_txt_file_generic( file_name, m, src_extra_extension )
+      character(len=*), intent(in) :: file_name
+      integer(i32), intent(in) :: m
+      character(len=*), intent(in) :: src_extra_extension
+
+      call copy_text_file( source_name=add_integer_and_extension_to_filename( file_name, m ) // trim( src_extra_extension ), &
+        destination_name=add_integer_and_extension_to_filename( file_name, m ) )
+    end subroutine
+  end subroutine
+
+  !> Write positions and velocities to an output file
+  subroutine write_trajectory( nuclei_motion )
+    !> This argument packs nuclei positions and velocities
+    class(trajectory), intent(in) :: nuclei_motion
+
+    integer(i32) :: unit
+
+    call nuclei_motion%assert_consistency()
+
+    open( newunit=unit, file=add_default_extension( filename_trajectory ), action="write", form="unformatted", access="stream" )
+    write( unit ) nuclei_motion%positions, nuclei_motion%velocities
+    close( unit )
+  end subroutine
+
+  !> Read positions and velocities to an output file
+  subroutine read_trajectory( nuclei_motion )
+    !> This argument packs nuclei positions and velocities
+    class(trajectory), intent(inout) :: nuclei_motion
+
+    integer(i32) :: unit
+
+    call nuclei_motion%assert_consistency()
+
+    open( newunit=unit, file=add_default_extension( filename_trajectory ), action="read", form="unformatted", access="stream" )
+    read( unit ) nuclei_motion%positions, nuclei_motion%velocities
+    close( unit )
+  end subroutine
+
+  !> Find the number of files in the current directory with name matching the pattern: 
+  !> `add_integer_and_extension_to_filename( base_name, n )`.
+  !> If `additional_extension` is present, then search for 
+  !> `add_integer_and_extension_to_filename( base_name, n ) // trim( additional_extension )`
+  integer(i32) function find_number_of_files( base_name, additional_extension ) result(n)
+    !> Base name of the files to find
+    character(len=*), intent(in) :: base_name
+    !> Additional extension of the files to find
+    character(len=*), optional, intent(in) :: additional_extension
+
+    logical :: file_exists
+    character(len=*), parameter :: no_ending = ""
+    character(len=:), allocatable :: ending
+    
+    if( present( additional_extension ) ) then
+      ending = trim( additional_extension )
+    else
+      ending = no_ending
+    end if
+
+    file_exists = .true.
+    n = 0
+    do while ( file_exists )
+      n = n + 1
+      inquire( file=add_integer_and_extension_to_filename( base_name, n ) // ending, exist=file_exists)
+    end do
+    n = n - 1
+  end function
 
   !> Return a string made up from `file_name` and the integer `i`
   pure function combine_string_and_int( file_name, i ) result( name )

@@ -103,17 +103,23 @@ contains
 
   end subroutine reset_MD_timing
 
-  subroutine force_allocate_arrays( this, n_atoms )
+  !> Allocate force arrays
+  subroutine force_allocate_arrays( this, n_atoms, allocate_total )
     class(force), intent(inout) :: this
     !> Number of atoms
     integer(i32), intent(in) :: n_atoms
+    !> If `.true.`, also allocate the `total` and `total_save` components.  
+    !> `.false.` is the right option when restarting and old calculation
+    logical, intent(in) :: allocate_total
 
-    allocate( this%EXT(n_cartesian, n_atoms), source = 0._dp )
-    allocate( this%HF(n_cartesian, n_atoms), source = 0._dp )
-    allocate( this%core(n_cartesian, n_atoms), source = 0._dp )
-    allocate( this%val(n_cartesian, n_atoms), source = 0._dp )
-    allocate( this%total(n_cartesian, n_atoms), source = 0._dp )
-    allocate( this%total_save(n_cartesian, n_atoms), source = 0._dp )
+    allocate( this%EXT(3, n_atoms), source = 0._dp )
+    allocate( this%HF(3, n_atoms), source = 0._dp )
+    allocate( this%core(3, n_atoms), source = 0._dp )
+    allocate( this%val(3, n_atoms), source = 0._dp )
+    if( allocate_total ) then
+      allocate( this%total(3, n_atoms), source = 0._dp )
+      allocate( this%total_save(3, n_atoms), source = 0._dp )
+    end if
   end subroutine
 
   subroutine force_deallocate_arrays( this )

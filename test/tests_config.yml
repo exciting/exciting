@@ -803,7 +803,7 @@ RT-TDDFT/LDA_PW-Ehrenfest-C:
       - "input.xml"
       - "C.xml"
 
-RT-TDDFT/LDA_PW-Ehrenfest-BN:
+RT-TDDFT/LDA_PW-Ehrenfest-BN-restart:
    repeat: False
    files_under_test:
       - "JIND.OUT"
@@ -822,6 +822,22 @@ RT-TDDFT/LDA_PW-Ehrenfest-BN:
       - "input.xml"
       - "B.xml"
       - "N.xml"
+      - "ATOM_0001.OUT.SAVE"
+      - "ATOM_0002.OUT.SAVE"
+      - "FCR_0001.OUT.SAVE"
+      - "FCR_0002.OUT.SAVE"
+      - "FEXT_0001.OUT.SAVE"
+      - "FEXT_0002.OUT.SAVE"
+      - "FHF_0001.OUT.SAVE"
+      - "FHF_0002.OUT.SAVE"
+      - "FVAL_0001.OUT.SAVE"
+      - "FVAL_0002.OUT.SAVE"
+      - "JIND.OUT.SAVE"
+      - "PVEC.OUT.SAVE"
+      - "AVEC.OUT.SAVE"
+      - "EVECFV_RTTDDFT.OUT"
+      - "RHO_VKS_RTTDDFT.OUT"
+      - "TRAJECTORY_RTTDDFT.OUT"
 
 RT-TDDFT/LDA_PW-Si-sinSq-CFM4:
    files_under_test:
