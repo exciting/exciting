@@ -37,7 +37,7 @@ module rttddft_main
     open_file_nexc, close_file_nexc, write_nexc, &
     open_file_etot, close_file_etot, write_total_energy, &
     open_file_info, close_file_info, write_file_info, write_file_info_header, &
-    write_wavefunction, t, t_minus_dt, copy_files
+    write_wavefunction, t, t_minus_dt, copy_files, write_state_Ehrenfest_MD, read_state_Ehrenfest_MD
   use rttddft_MD, only: force_rttdft, move_ions, update_basis_derivative, &
     MD_allocate_global_arrays => allocate_global_arrays, &
     MD_deallocate_global_arrays => deallocate_global_arrays, &
@@ -154,11 +154,18 @@ contains
     if( rt%restart_previous_calculation() ) then
       if( rt%restart_extension /= "" ) then
         ! Copy files: sources are files ending with `rt%restart_extension`, dest. are to the default file names
-        if( my_rank_writes_to_output ) call copy_files( rt%restart_extension, rt%calculate_n_exc, rt%calculate_total_energy )
+        if( my_rank_writes_to_output ) then 
+          call copy_files( rt%restart_extension, rt%calculate_n_exc, rt%calculate_total_energy )
+          if( molecular_dynamics%on ) call MD_outputs%copy_files( rt%restart_extension, molecular_dynamics%print_all_force_components )
+        end if
         ! Before reading, ensure that copying has been finished
         call barrier()
       end if
       call read_time_and_fields( time, p_vec, vec_pot, a_ind_save, a_tot_save )
+      if( molecular_dynamics%on ) then
+        call MD_outputs%read_time_and_forces_from_files( time_aux, forces )
+        call terminate_if_false( time == time_aux, "Last time t is not the same across RT-TDDFT and MD output files")
+      end if
     else
       time = 0._dp
     end if
@@ -175,9 +182,25 @@ contains
       pmat, pmatmt, rhomt_frozen, rhoir_frozen, occupations, k_dependent_dims, eps_occ, Gkset, Gset, ks_lapwlo_transition_matrix )
     call distribute_loop( mpi_env_k, nkpt, first_kpt, last_kpt )
     if( molecular_dynamics%on ) then
-      call init_MD( time, vec_pot%a_tot, dt, &
+      call init_MD( rt%do_from_scratch(), time, vec_pot%a_tot, dt, &
         psi%active, occupations, overlap, ham_time, time_step_multiplier, molecular_dynamics, &
         MD_outputs, nuclei_motion, e_field, forces )
+      if( rt%restart_previous_calculation() ) then
+        call nuclei_motion%allocate_arrays( natmtot )
+        call read_state_Ehrenfest_MD( nuclei_motion )
+        call nuclei_motion%update_globals( )
+        call update_exciting_globals_for_new_ions_positions( first_kpt, apwalm )
+        if( molecular_dynamics%update_overlap .or. allocated(mathcalH) .or. &
+            & allocated(mathcalB) .or. molecular_dynamics%update_pmat ) then
+          if( molecular_dynamics%update_pmat ) &
+            call obtain_pmat_LAPWLOBasis( first_kpt, rt%pmat%force_pmat_hermitian, apwalm, pmat, pmatmt )
+          if( molecular_dynamics%update_overlap ) call update_overlap_lapw( first_kpt, vec_pot%a_tot, overlap, &
+            apwalm, pmatmt, update_mathcalH=allocated( mathcalH ), update_mathcalB=allocated( mathcalB ) )
+          if( propagator%extrapolation_needed() ) ham_past = ham_time  
+          call update_hamiltonian_without_pa_term_lapw( first_kpt, vec_pot%a_tot, ham_time, apwalm, update_mathcalH=allocated( mathcalH ) )
+          call add_external_coupling_vgauge( vec_pot%a_tot, overlap, ham_time, pmat, k_dependent_dims )
+        end if
+      end if
     end if
     
     if ( rt%subtract_J0 ) then
@@ -207,7 +230,7 @@ contains
       if ( molecular_dynamics%print_all_force_components ) then
         allocate( forces_store(rt%n_print) )
         do i_print = 1, rt%n_print
-          call forces_store(i_print)%allocate_arrays( natmtot )
+          call forces_store(i_print)%allocate_arrays( natmtot, .true. )
         end do
       end if
     end if
@@ -434,6 +457,7 @@ contains
           call write_wavefunction( t, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi%active, mpi_env_k, rt%restart_file_handler, nkpt )
           if( propagator%extrapolation_needed() ) &
             call write_wavefunction( t_minus_dt, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi%active_save, mpi_env_k, rt%restart_file_handler, nkpt )
+          if( molecular_dynamics%on .and. my_rank_writes_to_output ) call write_state_Ehrenfest_MD( nuclei_motion )
         end if
         if( rt%printTimings%general() ) then
           call timesec_RTTDDFT( timei, timing_store(rt%n_print)%t_RTTDDFT%t_print )
@@ -466,7 +490,10 @@ contains
       call write_wavefunction( t, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi%active, mpi_env_k, rt%restart_file_handler, nkpt )
       if( propagator%extrapolation_needed() ) call write_wavefunction( t_minus_dt, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi%active_save, mpi_env_k, rt%restart_file_handler, nkpt )
     end if
-    call deallocate_global_arrays( molecular_dynamics%on )
+    if ( molecular_dynamics%on ) then 
+      if( my_rank_writes_to_output ) call write_state_Ehrenfest_MD( nuclei_motion )
+      call deallocate_global_arrays
+    end if
     if( .not. psi%expanded_in_lapwlo() ) call me_finit()
 
     if ( my_rank_writes_to_output ) then
@@ -591,8 +618,13 @@ contains
 
     ! MD calculations
     if( associated( inp%MD ) ) then
-      call terminate_if_false( trim( inp%xs%realTimeTDDFT%do ) == "fromscratch", &
-        "No restart currently possible for MD calculations" )
+      if( trim( inp%xs%realTimeTDDFT%do ) /= "fromscratch" ) then 
+        call terminate_if_false( trim( inp%xs%realTimeTDDFT%propagator ) == "SE" .or. trim( inp%xs%realTimeTDDFT%propagator ) == "EH", &
+          "Restart for Ehrenfest MD is currently only implemented for the SE and EH propagators" )
+        call terminate_if_false( inp%xs%realTimeTDDFT%timeStep == inp%MD%timeStep, &
+          "Restart for Ehrenfest MD is currently only implemented when the RT-TDDFT and MD timesteps are the same")
+      end if
+
       call terminate_if_false( inp%xs%realTimeTDDFT%numberOfFrozenStates == 0, &
         "No state freezing currently possible for MD calculations" )
       call terminate_if_false( trim( inp%xs%realTimeTDDFT%basis ) == "LAPWlo", &
@@ -732,8 +764,10 @@ contains
   end subroutine 
 
   !> Subroutine to initialize all MD related variables
-  subroutine init_MD( t_0, a_tot, timeStepRTTDDFT, evecfv_time, occupations, overlap, ham_time, &
+  subroutine init_MD( from_scratch, t_0, a_tot, timeStepRTTDDFT, evecfv_time, occupations, overlap, ham_time, &
       time_step_multiplier, molecular_dynamics, MD_outputs, nuclei_motion, e_field, forces )
+    !> If `.true.`, this calculation is done from scratch (i.e. it is not restarting a previous calculation)
+    logical, intent(in) :: from_scratch
     !> Initial time \( t_0 \)
     real(dp), intent(in) :: t_0
     !> Vector potential (total)
@@ -768,31 +802,29 @@ contains
     call MD_allocate_global_arrays( nspecies )
     call MD_evaluate_charge_val( )
     
-    call forces%allocate_arrays( natmtot )
+    call forces%allocate_arrays( natmtot, from_scratch )
     
-    call force_rttdft( forces, a_tot, e_field, molecular_dynamics, evecfv_time, &
-      occupations, overlap, ham_time )
-    call nuclei_motion%allocate_arrays( natmtot )
-    call nuclei_motion%initialize( input%structure )
-    if( molecular_dynamics%basis_derivative ) call update_basis_derivative( nuclei_motion%velocities, mathcalB, B_time, B_past )
+    if( from_scratch ) then
+      call force_rttdft( forces, a_tot, e_field, molecular_dynamics, evecfv_time, &
+        occupations, overlap, ham_time )
+      call nuclei_motion%allocate_arrays( natmtot )
+      call nuclei_motion%initialize( input%structure )
+      if( molecular_dynamics%basis_derivative ) call update_basis_derivative( nuclei_motion%velocities, mathcalB, B_time, B_past )
+    end if
     
     if ( rank == 0 ) then
-      call MD_outputs%open_files( natmtot, molecular_dynamics%print_all_force_components  )
-      call MD_outputs%write_to_files( t_0, nuclei_motion, forces )
+      call MD_outputs%open_files( from_scratch, natmtot, molecular_dynamics%print_all_force_components  )
+      if( from_scratch ) call MD_outputs%write_to_files( t_0, nuclei_motion, forces )
     end if
 
   end subroutine
 
-  subroutine deallocate_global_arrays( deallocate_ehrenfest_arrays )
-    !> when `.True.`, also deallocate arrays used in Ehrenfest MD
-    logical, intent(in) :: deallocate_ehrenfest_arrays
-    
-    if ( deallocate_ehrenfest_arrays ) then
-      call MD_deallocate_global_arrays
-      if ( allocated( mathcalH ) ) deallocate( mathcalH )
-      if ( allocated( mathcalB ) ) deallocate( mathcalB )
-      if ( allocated( B_past ) ) deallocate( B_past )
-      if ( allocated( B_time ) ) deallocate( B_time )
-    end if
+  !> Deallocate global arrays
+  subroutine deallocate_global_arrays( )
+    call MD_deallocate_global_arrays
+    if ( allocated( mathcalH ) ) deallocate( mathcalH )
+    if ( allocated( mathcalB ) ) deallocate( mathcalB )
+    if ( allocated( B_past ) ) deallocate( B_past )
+    if ( allocated( B_time ) ) deallocate( B_time )
   end subroutine
 end module rttddft_main

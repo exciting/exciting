@@ -367,8 +367,8 @@ contains
     
     B_old = B_now
     B_now = zzero
-    !$OMP PARALLEL DEFAULT(NONE) PRIVATE(i,ik,ias), &
-    !$OMP& SHARED(n_kpt,n_atoms,B_now,atoms_velocities,mathcal_B)
+    !$OMP PARALLEL DEFAULT(NONE) PRIVATE(i,ik,ias) REDUCTION(+:B_now) &
+    !$OMP& SHARED(n_kpt,n_atoms,atoms_velocities,mathcal_B)
     !$OMP DO COLLAPSE(3)
     do ik = 1, n_kpt
       do ias = 1, n_atoms
