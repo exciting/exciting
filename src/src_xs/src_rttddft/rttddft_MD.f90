@@ -17,7 +17,6 @@ module rttddft_MD
   use mod_eigensystem, only: nmat, nmatmax
   use mod_gkvector, only: ngk, ngkmax, gkc, tpgkc, sfacgk, vgkc
   use mod_gvector, only: ngvec, vgc, sfacg
-  use mod_kpoint, only: nkpt, wkpt
   use mod_lattice, only: ainv
   use mod_muffin_tin, only: nrmt
   use mod_potential_and_density, only: vclmt, veffmt, rhomt
@@ -71,9 +70,9 @@ contains
   end subroutine
 
   subroutine force_rttdft( forces, a_tot, e_field, MD_input, evecfv_time, occupations, &
-      overlap, ham_time, printTimings, t_MD )
+      overlap, ham_time, k_weights, printTimings, t_MD )
     !> Object that packs information about the total forces
-    type(force), intent(inout)      :: forces
+    type(force), intent(inout) :: forces
     !> `x`, `y`, and `z` components of the (total) vector potential
     type(Vector_Potential_Field), intent(in)  :: a_tot
     !> Electric field
@@ -88,14 +87,16 @@ contains
     complex(dp), intent(in) :: overlap(:, :, :)
     !> Hamiltonian matrix at current time \(t\)
     complex(dp), intent(in) :: ham_time(:, :, :)
+    !> k point integration weights
+    real(dp), intent(in) :: k_weights(:)
     !> Object that packs information about printing of timings [[Print_Timings]]
     type(Print_Timings), optional, intent(in) :: printTimings
     !> Object that packs information about timings spent in MD
-    class(MD_timing), optional, intent(inout)     :: t_MD
+    class(MD_timing), optional, intent(inout) :: t_MD
 
-    integer(i32)     :: is, ia, ias, nr, first_kpt, last_kpt
-    real(dp)         :: fact, ti
-    logical          :: tDetail
+    integer(i32) :: is, ia, ias, nr, first_kpt, last_kpt, n_kpt
+    real(dp) :: fact, ti
+    logical :: tDetail
     
 
     ! Check optional (timing) arguments
@@ -105,8 +106,9 @@ contains
       call assert( present(t_MD), 't_MD must be present when tDetail is true' )
       call timesec( ti )
     end if
-
-    call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
+    
+    n_kpt = size( k_weights )
+    call distribute_loop(mpi_env_k, n_kpt, first_kpt, last_kpt)
     fact = dot_multiply(a_tot%components, a_tot%components)/2_dp/c**2
     do is = 1, nspecies
       nr = nrmt(is)
@@ -133,7 +135,7 @@ contains
     ! Valence corrections: second part
     if( MD_input%valence_corrections ) &
       call obtain_valence_corrections_part2( first_kpt, mpi_env_k, &
-        evecfv_time, occupations, overlap, ham_time, forces%val )
+        evecfv_time, occupations, overlap, ham_time, k_weights(first_kpt:last_kpt), forces%val )
     if( tDetail ) call timesec_RTTDDFT( ti, t_MD%t_MD_2nd )
     ! sum all contributions to total force and store it
     call forces%evaluate_total_force()
@@ -144,7 +146,7 @@ contains
 
   !> Wrapper for calling val_corr_pt2_given_atom_and_kpt
   subroutine obtain_valence_corrections_part2( first_kpt, mpi_env, &
-    evecfv_time, occupations, overlap, ham_time, forces_val )
+    evecfv_time, occupations, overlap, ham_time, k_weights, forces_val )
     !> index of the first `k-point` to be considered in the sum
     integer(i32),intent(in) :: first_kpt
     !> MPI environment
@@ -160,6 +162,8 @@ contains
     !> Hamiltonian matrix at current time \(t\)
     !> (nmatmax, nmatmax, first_kpt : last_kpt)
     complex(dp), intent(in) :: ham_time(:, :, first_kpt :)
+    !> k point integration weights
+    real(dp), intent(in) :: k_weights(first_kpt :)
     !> valence corrections to the total force
     real(dp), intent(inout) :: forces_val(:, :)
     
@@ -178,7 +182,7 @@ contains
 
     !$OMP PARALLEL DEFAULT(NONE), &
     !$OMP& PRIVATE(ik,ias,nmatp,last_occupied,mathcalS), SHARED(nmat,mathcalH,mathcalB), &
-    !$OMP& SHARED(natmtot,wkpt,evecfv_time,occupations,aux,first_kpt,last_kpt,overlap,ham_time)
+    !$OMP& SHARED(natmtot,k_weights,evecfv_time,occupations,aux,first_kpt,last_kpt,overlap,ham_time)
     !$OMP DO
     do ik = first_kpt, last_kpt
       nmatp = nmat(1, ik)
@@ -189,7 +193,7 @@ contains
           mathcalS(1:nmatp,1:nmatp,:,ias), evecfv_time(1:nmatp,1:last_occupied,ik), &
           occupations(1:last_occupied,ik), aux(:, ias, ik) )
       end do ! do ias = 1, natmtot
-      aux(:, :, ik) = -wkpt(ik)*aux(:, :, ik)
+      aux(:, :, ik) = -k_weights(ik)*aux(:, :, ik)
     end do ! do ik = 1,nkpt
     !$OMP END DO
     !$OMP END PARALLEL

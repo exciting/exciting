@@ -119,9 +119,8 @@ contains
   !> Subroutine that calculates the total energy for RT-TDDFT calculations
   !> Adapted from `src/energy.f90`
   subroutine obtain_energy_rttddft(first_kpt, ham, psi, occupations, mpi_env, &
-      & rt_tddft_energy )
+      & kpt_weights, rt_tddft_energy )
     use modinput, only: input
-    use mod_kpoint, only: wkpt
     use mod_eigenvalue_occupancy, only: evalsv
     use mod_eigensystem, only: nmatmax, nmat
     use mod_atoms, only: idxas, natoms, spzn, spnst, nspecies, spcore, spocc
@@ -145,6 +144,8 @@ contains
     real(dp), intent(in) :: occupations(:, :)
     !> MPI environment
     type(mpiinfo), intent(in) :: mpi_env
+    !> k points weights array
+    real(dp), intent(in) :: kpt_weights(:)
     !> Type with the total energy and its components
     type(TotalEnergy), intent(out) :: rt_tddft_energy
 
@@ -190,10 +191,11 @@ contains
     rt_tddft_energy%hamiltonian = 0._dp
     allocate( aux(n_kpt), source = real_zero )
     allocate( occcmplx(n_states) )
-    !$OMP PARALLEL DEFAULT(NONE), &
-    !$OMP& PRIVATE(ik, ist, occcmplx, scratch, acc, nmatp, real_kpt), &
-    !$OMP& SHARED(first_kpt,aux,first_active,nmat,ham,psi,occupations,wkpt,input, n_kpt, n_states, evalsv, n_frozen)
-    !$OMP DO
+    !$omp parallel default(none), &
+    !$omp private(ik, ist, occcmplx, scratch, acc, nmatp, real_kpt), &
+    !$omp shared(first_kpt, aux, first_active, nmat, ham, psi, occupations, &
+    !$omp kpt_weights, input, n_kpt, n_states, evalsv, n_frozen)
+    !$omp do
     do ik = 1, n_kpt
       real_kpt = ik + first_kpt - 1
       if ( psi%expanded_in_lapwlo() ) then
@@ -210,12 +212,11 @@ contains
         acc(ist) = dot_multiply( psi%active(1:nmatp, ist, ik), scratch(1:nmatp, ist), conjg_a=.true. )
       end do
       occcmplx = occupations(first_active : n_frozen + n_states, ik)
-      aux(ik) = wkpt(real_kpt) * real( dot_multiply( occcmplx(1:ist - 1), acc(1:ist - 1) ), dp )
-      if ( psi%has_frozen() ) aux(ik) = aux(ik) + wkpt(real_kpt) * &
+      aux(ik) = kpt_weights(ik) * real( dot_multiply( occcmplx(1:ist - 1), acc(1:ist - 1) ), dp )
+      if ( psi%has_frozen() ) aux(ik) = aux(ik) + kpt_weights(ik) * &
         dot_multiply( occupations(1 : n_frozen, ik), evalsv(1 : n_frozen, real_kpt) )
     end do
-    !$OMP END DO NOWAIT
-    !$OMP END PARALLEL
+    !$omp end parallel
     rt_tddft_energy%hamiltonian = sum( aux )
 
     call xmpi_allreduce( rt_tddft_energy%hamiltonian, mpi_env )

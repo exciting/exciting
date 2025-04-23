@@ -13,7 +13,6 @@ module rttddft_pmat
   use modmpi
   use modxs, only: ripaa, ripalo, riploa, riplolo, apwcmt, locmt
   use mod_gkvector, only: ngk, ngkmax, gkc, vgkc, igkig
-  use mod_kpoint, only: nkpt
   use mod_eigensystem, only: nmat, nmatmax, idxlo
   use mod_atoms, only: nspecies, natoms, idxas, natmtot
   use mod_APW_LO, only: apword, apwordmax, nlorb, lorbl, nlotot, nlomax, lolmax
