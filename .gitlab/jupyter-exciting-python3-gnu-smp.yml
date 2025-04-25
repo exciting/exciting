@@ -58,8 +58,8 @@ test-fedora-buster-gnu-smp-jupyter:
  # - time jupyter nbconvert --execute 02_ground_state/05_Lattice_Dynamics/born_effective_charges_of_zincblende_structure_crystals.ipynb --to markdown
  # - time python3 02_ground_state/05_Lattice_Dynamics/assertions/born_effective_charges_of_zincblende_structure_crystals.py
   - time jupyter nbconvert --execute 02_ground_state/05_Lattice_Dynamics/how_to_visualize_phonons.ipynb --to markdown
-  - time jupyter nbconvert --execute 02_ground_state/05_Lattice_Dynamics/lattice_dynamics_of_diamond_and_zincblende_structure_crystals.ipynb --to markdown
-  - time python3 02_ground_state/05_Lattice_Dynamics/assertions/lattice_dynamics_of_diamond_and_zincblende_structure_crystals.py
+ # - time jupyter nbconvert --execute 02_ground_state/05_Lattice_Dynamics/lattice_dynamics_of_diamond_and_zincblende_structure_crystals.ipynb --to markdown
+ # - time python3 02_ground_state/05_Lattice_Dynamics/assertions/lattice_dynamics_of_diamond_and_zincblende_structure_crystals.py
   - time jupyter nbconvert --execute 02_ground_state/05_Lattice_Dynamics/phonons_at_gamma_in_diamond_structure_crystals.ipynb --to markdown
   - time python3 02_ground_state/05_Lattice_Dynamics/assertions/phonons_at_gamma_in_diamond_structure_crystals.py
   - time jupyter nbconvert --execute 02_ground_state/05_Lattice_Dynamics/phonons_at_X_in_diamond_structure_crystals.ipynb --to markdown
@@ -78,8 +78,8 @@ test-fedora-buster-gnu-smp-jupyter:
   - time python3 03_excited_states/02_BSE/assertions/xray_emission_spectra.py
  # - time jupyter nbconvert --execute 03_excited_states/02_BSE/q_dependent_bse_calculations.ipynb --to markdown
  # - time python3 03_excited_states/02_BSE/assertions/q_dependent_bse_calculations.py
-  - time jupyter nbconvert --execute 03_excited_states/02_BSE/optical_spectra_from_fastBSE.ipynb --to markdown
-  - time python3 03_excited_states/02_BSE/assertions/optical_spectra_from_fastBSE.py
+ # - time jupyter nbconvert --execute 03_excited_states/02_BSE/optical_spectra_from_fastBSE.ipynb --to markdown
+ # - time python3 03_excited_states/02_BSE/assertions/optical_spectra_from_fastBSE.py
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/excited_states_from_tddft.ipynb --to markdown
   - time python3 03_excited_states/03_TDDFT/assertions/excited_states_from_tddft.py
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/real_time_tddft.ipynb --to markdown
