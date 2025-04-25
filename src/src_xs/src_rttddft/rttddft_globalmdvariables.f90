@@ -1,23 +1,18 @@
-! This file is distributed under the terms of the GNU General Public License.
-! See the file COPYING for license details.
-! Copyright (C) Exciting Code, SOL group. 2020
-
-! REVISION HISTORY:
-! Created July 2019 (Ronaldo Rodrigues Pela)
-! Improved documentation: July 2021 (Ronaldo)
-! Reference: https://doi.org/10.1088/2516-1075/ac0c26
-
-!> This module contains the global variables for the RT-TDDFT implementation
+!> This module contains the global variables for the RT-TDDFT implementation. 
+!> For details, refer to the reference with DOI: 10.1088/2516-1075/ac7afc
 module rttddft_GlobalMDVariables
-  use precision, only: dp
+  use mod_gkvector, only: ngk, ngkmax, gkc, tpgkc, sfacgk, vgkc
+  use mod_gvector, only: ngvec, vgc, sfacg
+  use mod_spin, only: nspnfv
+  use precision, only: dp, i32
 
   implicit none
 
   private
-  ! List of the many global variables can be used publicly
+  ! variables
   public :: mathcalH, mathcalB, B_time, B_past
-
-  ! Global variables of general purpose
+  ! subroutines
+  public :: update_exciting_globals_for_new_ions_positions
 
   !> `mathcalH` gives the impact of an ion displacement on the hamiltonian matrix
   !> \[ \left[ \left\langle 
@@ -43,5 +38,39 @@ module rttddft_GlobalMDVariables
   complex(dp), allocatable  :: B_time(:,:,:)
   !> Same as `B_time`, but at the previous time step: \(t-\Delta t\)
   complex(dp), allocatable  :: B_past(:,:,:)
+
+contains
+
+subroutine update_exciting_globals_for_new_ions_positions( first_kpt, apwalm )
+  !> index of the first k-point
+  integer(i32), intent(in) :: first_kpt
+  !> Matching coefficients of the (L)APWs
+  !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
+  complex(dp), contiguous, intent(inout) :: apwalm(:, :, :, :, first_kpt :)
+
+  integer(i32) :: ik, i_spin, last_kpt
+
+  last_kpt = ubound( apwalm, 5 )
+
+  call checkmt     ! check for overlapping muffin-tins
+  call gencfun     ! generate the characteristic function
+  call energynn    ! determine the nuclear-nuclear energy
+  ! generate structure factors for G and G+k-vectors
+  call gensfacgp (ngvec, vgc, ngvec, sfacg)
+  do ik = first_kpt, last_kpt
+    do i_spin = 1, nspnfv
+      call gensfacgp (ngk(i_spin, ik), vgkc(:, :, i_spin, ik), ngkmax, sfacgk(:, :, i_spin, ik))
+    end do
+  end do
+  call gencore( )       ! generate the core wavefunctions and densities
+  call linengy( )       ! find the new linearization energies
+  call genapwfr( )      ! generate the APW radial functions
+  call genlofr( )       ! generate the local-orbital radial functions
+  call olprad( )
+  ! Matching coefficients (apwalm)
+  do ik = first_kpt, last_kpt
+    call match( ngk(1,ik), gkc(:,1,ik), tpgkc(:,:,1,ik), sfacgk(:,:,1,ik), apwalm(:,:,:,:,ik) )
+  end do
+end subroutine
 
 end module rttddft_GlobalMDVariables

@@ -21,19 +21,6 @@ set(EXCLUDE_SRC_FILES
     # Add more files to exclude as needed
 )
 
-if (CMAKE_Fortran_COMPILER_ID MATCHES "Intel" AND NOT CMAKE_Fortran_COMPILER_ID MATCHES "IntelLLVM")
-    message(STATUS "Classic Intel: using old GW files due to c_f_pointer bug.")
-    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/calcminm2.f90")
-    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/calcepsilon.f90")
-    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/calcmwm.f90")
-    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/expand_products.f90")
-else()
-    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/calcminm2_ifort.f90")
-    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/calcepsilon_ifort.f90")
-    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/calcmwm_ifort.f90")
-    list(APPEND EXCLUDE_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/expand_products_ifort.f90")
-endif()
-
 # We need special treatment of files containing INQUIRE so that it compiles using the Cray compiler 
 # Developers, please add here anycase of INQUIRE using not the default integer
 # TODO: remove when Cray compiler allows for arbitrary precision recl 
@@ -196,15 +183,14 @@ endif()
 
 
 # For Intel and GNU indicate that exciting has the objects available for LTO
-# In the rest of compilers this is done with compiler flags or for Cray is fully deactivated
+# In the rest of compilers this is done with compiler flags or for Cray it is fully deactivated
 if (CMAKE_Fortran_COMPILER_ID MATCHES "GNU" OR CMAKE_Fortran_COMPILER_ID MATCHES "IntelLLVM")
     set_property(TARGET ${exciting_name} PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
 endif()
 # Set the linker to Fortran, otherwise C++ linker is used
 set_property(TARGET ${exciting_name} PROPERTY LINKER_LANGUAGE Fortran)
 
-# Ensure libraries are found
-
+# Ensure that the libraries are found
 if(MAGMA_DIR)
     set_target_properties(${exciting_name} PROPERTIES
                 INSTALL_RPATH "${MAGMA_DIR}/lib/libmagma.so"

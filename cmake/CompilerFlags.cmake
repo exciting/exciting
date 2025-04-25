@@ -42,6 +42,75 @@ function(CheckForAVX2Support result_var)
     endif()
 endfunction()
 
+# Function to check if the Compiler supports pointer remapping
+function(CheckPointerRemapping)
+   file(WRITE ${CMAKE_BINARY_DIR}/config_tests/test_pointer_remapping.f90 "
+       program check_pointer_remapping
+           implicit none
+
+           real, allocatable, target :: a(:)
+           real, pointer, contiguous :: b(:,:)
+
+           integer :: i, j
+
+           allocate(a(100), source = 4.0)
+
+           b(1:10,1:10) => a(:)
+           b(0:9,0:9) => b(:,:)
+
+           do i = 0,9
+              do j = 0, 9
+                 if (b(j,i) /= 4.0) error stop 'Bad value'
+              end do
+           end do
+
+       end program check_pointer_remapping
+   ")
+   # Create a log file for the config test
+    set(REMAPPING_CONFIG_TEST_LOG "${CMAKE_BINARY_DIR}/config_tests/remapping_test_log.txt")
+    file(WRITE "${REMAPPING_CONFIG_TEST_LOG}" "Compilation Log:\n")
+    set(REMAPPING_CONFIG_TEST_LOG_STR "")
+
+    # Try to compile and run the Fortran test program during configuration.
+    execute_process(
+            COMMAND ${CMAKE_Fortran_COMPILER} -o test_pointer_remapping test_pointer_remapping.f90
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/config_tests
+            RESULT_VARIABLE REMAPPING_TEST_COMPILE_RESULT
+            OUTPUT_VARIABLE REMAPPING_CONFIG_TEST_LOG_STR
+            ERROR_VARIABLE  REMAPPING_CONFIG_TEST_LOG_STR
+    )
+
+    # Append the compilation log to the log file
+    file(APPEND "${REMAPPING_CONFIG_TEST_LOG}" "${REMAPPING_CONFIG_TEST_LOG_STR}\n")
+
+    execute_process(
+            COMMAND ./test_pointer_remapping
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/config_tests
+            RESULT_VARIABLE REMAPPING_TEST_RUN_RESULT
+            OUTPUT_VARIABLE REMAPPING_CONFIG_TEST_LOG_STR
+            ERROR_VARIABLE  REMAPPING_CONFIG_TEST_LOG_STR
+    )
+
+    # Append the compilation log to the log file
+    file(APPEND "${REMAPPING_CONFIG_TEST_LOG}" "${REMAPPING_CONFIG_TEST_LOG_STR}\n")
+
+    if(NOT REMAPPING_TEST_COMPILE_RESULT EQUAL 0)
+       message(FATAL_ERROR "Your Fortran compiler does not support pointer remapping. This is required.")
+    endif()
+
+    if(NOT REMAPPING_TEST_RUN_RESULT EQUAL 0)
+        message(STATUS "Fortran compiler check (pointer remapping) : fails")
+        message(STATUS "Pointer remapping is bugged; setting REMAPPING_BUG to activate workarounds.")
+        add_compile_definitions(REMAPPING_BUG)
+        if(AMD OR NVIDIA OR INTEL)
+            message(FATAL_ERROR "GPU compilation requires pointer remapping.")
+        endif()
+    else()
+        message(STATUS "Fortran compiler check (pointer remapping) : works")
+    endif()
+
+endfunction()
+
 # Intel compilers might fail to detect non Intel machines. Here we perform few tests.
 set(ARCH_MARCH "native")
 CheckIfIntelCPU(IS_INTEL_CPU)
@@ -117,6 +186,11 @@ if (CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
 
 elseif (CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
 
+    # In case of Intel also add
+    # TODO(mrm): check if ifx also requires this
+    add_compile_definitions(IFORT)
+
+
    # It is little tricky for Intel compilers to work with non-Intel CPUs
    # Here we select the proper instruction set based on the supported instruction sets
    if(CMAKE_Fortran_COMPILER_ID MATCHES "IntelLLVM")
@@ -190,3 +264,7 @@ string(REPLACE ";" " " STD_FFLAGS "${STD_FFLAGS}")
 # Note, these flags are GLOBALS and will apply to ALL libs/executables built by CMake
 set(CMAKE_Fortran_FLAGS_DEBUG "${FF_DEBUG}")
 set(CMAKE_Fortran_FLAGS_RELEASE "${FF_RELEASE}")
+
+
+# Here test compiler bugs
+CheckPointerRemapping()

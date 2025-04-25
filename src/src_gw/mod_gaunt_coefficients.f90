@@ -5,7 +5,7 @@ module mod_gaunt_coefficients
     use precision, only: i32, dp
 #include "offload.fpp"
     private
-    public  :: calcgauntcoef, getgauntcoef, delete_gaunt_coefficients
+    public  :: calcgauntcoef, getgauntcoef, delete_gaunt_coefficients, epsangint
 
     real(dp), parameter :: epsangint = 1.0e-8_dp
 

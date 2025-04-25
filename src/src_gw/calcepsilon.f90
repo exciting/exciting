@@ -9,33 +9,44 @@ subroutine calcepsilon(iq,iomstart,iomend)
     use mod_mpi_gw, only : myrank
     use modxs,      only : symt2
     use mod_bands, only: nstdf, nomax, numin, eveckpalm, eveckalm, eveck, eveckp
+    use precision,  only : i32, dp, long_int
+    use iso_c_binding,         only: c_ptr, c_loc, c_f_pointer, c_sizeof, c_size_t
+    use mod_device_offload,    only: device_world
+    use mod_pointer_remapping, only: remap_fortran_pointer 
+    use device_linalg_common_interface, only: zgemm_gpu
+    use m_memory_device,       only: allocate_device_memory, deallocate_device_memory, &
+                                     bytes_double_complex, bytes_int, get_device_pointer
+#include "offload.fpp"
     
     implicit none
     ! input/output
-    integer(4), intent(in) :: iq
-    integer(4), intent(in) :: iomstart, iomend
+    integer(i32), intent(in) :: iq
+    integer(i32), intent(in) :: iomstart, iomend
     ! local
-    integer(4) :: ie1, ie2
-    integer(4) :: iom
-    integer(4) :: ik, jk, ispn
-    integer(4) :: im, iop, jop
-    integer(4) :: ndim, mdim, nmdim
-    integer(4) :: nblk, iblk, mstart, mend
-    integer(8) :: recl
-    real(8)    :: tstart, tend
-    real(8)    :: wto, wlo
-    complex(8) :: head(3,3), f, w
-    complex(8), allocatable :: minm(:,:,:)
-    complex(8), allocatable :: evecfv(:,:)
+    integer(i32) :: ie1, ie2, ibasis
+    integer(i32) :: iom
+    integer(i32) :: ik, jk, ispn
+    integer(i32) :: im, iop, jop
+    integer(i32) :: ndim, mdim, nmdim
+    integer(i32) :: nblk, iblk, mstart, mend
+    integer(long_int) :: recl
+    real(dp)    :: tstart, tend
+    real(dp)    :: wto, wlo
+    complex(dp) :: head(3,3), f, w
+    type(c_ptr) :: minm_cptr
+    complex(dp), pointer, contiguous :: minm(:,:,:)
+    complex(dp), allocatable :: evecfv(:,:)
     logical :: print_Polarizability
-
-    external zgemm
+    integer(i32) :: my_device
 
     call timesec(tstart)
 
     !=============================
     ! Initialization
     !=============================
+
+    ! Get device id
+    my_device = device_world%get_device()
 
     ! total number of states including the core ones
     if (input%gw%coreflag=='all') then
@@ -44,7 +55,6 @@ subroutine calcepsilon(iq,iomstart,iomend)
         ndim = nomax
     end if
     mdim = nstdf-numin+1
-    nmdim = ndim*mdim
 
     ! block size
     if (mblksiz >= mdim) then
@@ -59,6 +69,10 @@ subroutine calcepsilon(iq,iomstart,iomend)
     allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveck(nmatmax,nstfv))
     allocate(eveckp(nmatmax,nstfv))
+    DEVICE_MAP_ALLOC(eveckalm)
+    DEVICE_MAP_ALLOC(eveckpalm)
+    DEVICE_MAP_ALLOC(eveck)
+    DEVICE_MAP_ALLOC(eveckp)
 
     !==================================================
     ! Calculate the q-dependent BZ integration weights
@@ -99,10 +113,14 @@ subroutine calcepsilon(iq,iomstart,iomend)
         call get_evec_gw(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
         eveck = evecfv
         deallocate(evecfv)
+        DEVICE_UPDATE_TO(eveck)
+        DEVICE_UPDATE_TO(eveckp)
 
         ! compute products \sum_G C_{k}n * A_{lm}
         call expand_evec(ik,'t')
         call expand_evec(jk,'c')
+        DEVICE_UPDATE_TO(eveckalm)
+        DEVICE_UPDATE_TO(eveckpalm)
 
         !=================================================
         ! Loop over m-blocks in M^i_{nm}(\vec{k},\vec{q})
@@ -114,6 +132,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
             nmdim  = ndim * (mend-mstart+1)
 
             allocate(minmmat(mbsiz,ndim,mstart:mend))
+            DEVICE_MAP_ALLOC(minmmat)
             msize = sizeof(minmmat)*b2mb
 
             ! compute M^i_{nm}+M^i_{cm}
@@ -121,24 +140,41 @@ subroutine calcepsilon(iq,iomstart,iomend)
 
             if (Gamma) then
                 ! wings of the dielectric matrix
+                DEVICE_UPDATE_FROM(minmmat)
                 call calcwings(ik, iq, iomstart, iomend, ndim, mstart, mend)
             end if
 
             ! Body
-            allocate(minm(mbsiz,ndim,mstart:mend))
+            call allocate_device_memory(minm_cptr, mbsiz*nmdim*bytes_double_complex, my_device)
+            call c_f_pointer(minm_cptr, minm, int([mbsiz,ndim,(mend-mstart+1)],kind=c_size_t))
+            ! Remapping the pointer boundaries from Fortran default
+            ! TODO(mrm): When supported use lower for c_f_pointer introduced in Fortran 2023
+            call remap_fortran_pointer(minm, int([1, 1, mstart], kind=i32), int([mbsiz, ndim, mend], kind=i32))
+
             do iom = iomstart, iomend
+                DEVICE_MAP_TO(fnm(:,mstart:mend,iom,ik))
+                DEVICE_BEGIN_BLOCK_HAS_DEVICE_ADDR(minm)
+                !$omp teams distribute parallel do collapse(3) default(none) private(ie1,ie2,ibasis) &
+                !$omp shared(mstart,mend,ndim,mbsiz,minm,fnm,minmmat,iom,ik)
                 do ie2 = mstart, mend
                     do ie1 = 1, ndim
-                        minm(1:mbsiz,ie1,ie2) = fnm(ie1,ie2,iom,ik) * &
-                                                minmmat(1:mbsiz,ie1,ie2)
+                        do ibasis = 1, mbsiz
+                            minm(ibasis,ie1,ie2) = fnm(ie1,ie2,iom,ik) * &
+                                                   minmmat(ibasis,ie1,ie2)
+                        end do
                     end do ! ie1
                 end do ! ie2
-                call zgemm( 'n', 'c', mbsiz, mbsiz, nmdim, &
-                            zone, minm, mbsiz, minmmat, mbsiz, &
-                            zone, epsilon(:,:,iom), mbsiz)
+                !$omp end teams distribute parallel do
+                DEVICE_END_BLOCK
+                DEVICE_MAP_DELETE(fnm(:,mstart:mend,iom,ik))
+                call zgemm_gpu( 'n', 'c', mbsiz, mbsiz, nmdim, &
+                            zone, minm_cptr, mbsiz, get_device_pointer(minmmat,my_device), mbsiz, &
+                            zone, get_device_pointer(epsilon(1,1,iom),my_device), mbsiz, device_world)
+                call device_world%synchronize()
             end do ! iom
-            deallocate(minm)
-
+            nullify(minm)
+            call deallocate_device_memory(minm_cptr,my_device)
+            DEVICE_MAP_DELETE(minmmat)
             deallocate(minmmat)
 
         end do ! iblk
@@ -153,6 +189,13 @@ subroutine calcepsilon(iq,iomstart,iomend)
         deallocate(pmatvv)
         if (input%gw%coreflag=='all') deallocate(pmatcv)
     end if
+
+    DEVICE_UPDATE_FROM(epsilon)
+
+    DEVICE_MAP_DELETE(eveck)
+    DEVICE_MAP_DELETE(eveckp)
+    DEVICE_MAP_DELETE(eveckalm)
+    DEVICE_MAP_DELETE(eveckpalm)
     deallocate(eveck)
     deallocate(eveckp)
     deallocate(eveckalm)

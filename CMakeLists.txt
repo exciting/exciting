@@ -54,10 +54,6 @@ message(STATUS "Build kind : ${CMAKE_BUILD_TYPE}")
 
 # Set some basic definitions
 add_compile_definitions(XS ISO LIBXC)
-# In case of Intel also add
-if (CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
-    add_compile_definitions(IFORT)
-endif()
 
 # Set up MPI
 include(cmake/mpi.cmake)

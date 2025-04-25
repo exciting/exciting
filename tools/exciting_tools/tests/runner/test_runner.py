@@ -1,12 +1,16 @@
 """Tests for the binary runner."""
 
+import importlib
 import shutil
 from pathlib import Path
 from typing import Any
+from unittest import mock
 
 import pytest
 
-from excitingtools.runner.runner import BinaryRunner, RunnerCode
+import excitingtools.base
+from excitingtools.runner.runner import BinaryRunner
+from excitingtools.utils.test_utils import import_error_monty
 
 mock_binary = "false_exciting_binary"
 
@@ -79,23 +83,12 @@ def runner(tmp_path: Path, exciting_mpismp: str) -> BinaryRunner:
     return BinaryRunner(exciting_mpismp, ["mpirun", "-np", "3"], 4, 260, run_dir.as_posix(), [">", "std.out"])
 
 
-@pytest.mark.usefixtures("mock_env_jobflow_missing")
-def test_as_dict(tmp_path: Path, runner: BinaryRunner):
-    assert runner.as_dict() == {
-        "args": [">", "std.out"],
-        "binary": (tmp_path / "exciting_mpismp").as_posix(),
-        "directory": (tmp_path / "ab/de").as_posix(),
-        "omp_num_threads": 4,
-        "run_cmd": ["mpirun", "-np", "3"],
-        "time_out": 260,
-    }
-
-
-@pytest.mark.usefixtures("mock_env_jobflow")
 def test_as_dict_jobflow(tmp_path: Path, runner: BinaryRunner):
+    pytest.importorskip("monty", reason="Serialisation requires monty.")
     assert runner.as_dict() == {
         "@class": "BinaryRunner",
         "@module": "excitingtools.runner.runner",
+        "@version": excitingtools.__version__,
         "args": [">", "std.out"],
         "binary": (tmp_path / "exciting_mpismp").as_posix(),
         "directory": (tmp_path / "ab/de").as_posix(),
@@ -106,9 +99,32 @@ def test_as_dict_jobflow(tmp_path: Path, runner: BinaryRunner):
 
 
 def test_from_dict(tmp_path: Path, runner):
+    pytest.importorskip("monty", reason="Serialisation requires monty.")
     new_runner = BinaryRunner.from_dict(runner.as_dict())
     assert new_runner.binary == (tmp_path / "exciting_mpismp").as_posix()
     assert new_runner.time_out == 260
+
+
+def test_runner_without_monty():
+    with mock.patch("builtins.__import__", side_effect=import_error_monty):
+        importlib.reload(excitingtools.base.serialisation)
+        importlib.reload(excitingtools.base)  # as it comes from the __init__
+        new_runner_module = importlib.reload(excitingtools.runner.runner)
+
+    my_runner = new_runner_module.BinaryRunner("abc")
+    assert not hasattr(my_runner, "as_dict")  # Should not be an MSONable
+
+
+def test_runner_explicitly_no_monty(monkeypatch):
+    pytest.importorskip("monty", reason="Serialisation requires monty.")
+    monkeypatch.setenv("USE_MONTY", "false")
+
+    importlib.reload(excitingtools.base.serialisation)  # reload as the env var has changed
+    importlib.reload(excitingtools.base)  # as it comes from the __init__
+    new_runner_module = importlib.reload(excitingtools.runner.runner)
+
+    my_runner = new_runner_module.BinaryRunner("abc")
+    assert not hasattr(my_runner, "as_dict")  # Should not be an MSONable
 
 
 def test_run_with_bash_command(tmp_path: Path):
@@ -131,6 +147,11 @@ def test_timeout_with_bash_command(tmp_path: Path):
 
     Test a simple sleep command to get a timeout.
     """
+    from excitingtools.runner.runner import RunnerCode  # needed as the runner was reloaded
+    # the mocking from the other test clashes with that test here, since the runner module was reloaded and
+    # the isinstance check fails. I don't fully understand how and if the original imported BinaryRunner
+    # changes upon mocking that was imported at the top of the file
+
     time_out = 1
     binary = tmp_path / "sleep.sh"
     binary.write_text(f"sleep {time_out + 0.1}")

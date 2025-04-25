@@ -21,7 +21,7 @@ module rttddft_Wavefunction
 
   private
 
-  public :: initialize_wavefunction_set, obtain_occupations, obtain_projection_coefficients, update_basis_derivative
+  public :: initialize_wavefunction_set, obtain_occupations, obtain_projection_coefficients
   
   !> Type for the set of wavefunctions expanded on a basis set
   type, public, abstract :: wavefunction_set
@@ -311,53 +311,6 @@ contains
     
     first_active = this%n_frozen() + 1
   end function
-
-  !> Update \(B_k\) as
-  !> \[ B_\mathbf{k}(t) = \sum_J \dot{\mathbf{R}_J}\cdot 
-  !> \mathcal{B}_{J\mathbf{k}}(t) \]
-  !> where \(J\) indexes the atoms
-  subroutine update_basis_derivative( atoms_velocities, mathcal_B, B_now, B_old )
-    !> the velocities (in cartesian coordinates) of all atoms
-    real(dp), intent(in) :: atoms_velocities(:, :)
-    !> `mathcalB` measures how the ions displacements affect overlap elements
-    !> \[ \mathcal{B}_{J\mu'\mu}^{\mathbf{k}} = \left \langle
-    !> \phi_{\mu'}^{\mathbf{k}}\bigg| \frac{\partial}{\partial \mathbf{R}_J}
-    !> \phi_{\mu}^{\mathbf{k}} \right\rangle \]
-    complex(dp), intent(in) :: mathcal_B(:, :, :, :, :)
-    !> on entry: \(B\) at time \(t-\Delta t\), on exit: \(B\) at time \(t\)
-    complex(dp), intent(inout) :: B_now(:, :, :)
-    !> on exit: \(B\) at time \(t-\Delta t\)
-    complex(dp), intent(out) :: B_old(:, :, :)
-    
-    integer :: ias, ik, n_atoms, n_kpt
-
-    call assert( size( atoms_velocities, 1 ) == 3, 'atoms_velocities must have size = 3 along dim = 1' )
-    call assert( size( atoms_velocities, 2 ) == size( mathcal_B, 4 ), &
-      'size(atoms_velocities,2) and size(mathcal_B,4) must be equal' )
-    call assert( size( atoms_velocities, 2 ) == size( mathcal_B, 4 ), &
-      'size(atoms_velocities,2) and size(mathcal_B,4) must be equal' )
-    call assert( size( atoms_velocities, 2 ) == size( mathcal_B, 4 ), &
-      'size(atoms_velocities,2) and size(mathcal_B,4) must be equal' )
-
-    n_kpt = size( mathcal_B, 5)
-    n_atoms = size( atoms_velocities, 2 )
-    B_old = B_now
-    B_now = zzero
-    !$OMP PARALLEL DEFAULT(NONE) PRIVATE(ik,ias), &
-    !$OMP& SHARED(n_kpt,n_atoms,B_now,atoms_velocities,mathcal_B)
-    !$OMP DO
-    do ik = 1, n_kpt
-      do ias = 1, n_atoms
-        B_now(:, :, ik) = B_now(:, :, ik) + &
-          & atoms_velocities(1, ias) * mathcal_B(:, :, 1,ias, ik) + &
-          & atoms_velocities(2, ias) * mathcal_B(:, :, 2,ias, ik) + &
-          & atoms_velocities(3, ias) * mathcal_B(:, :, 3,ias, ik)
-      end do
-    end do
-    !$OMP END DO NOWAIT
-    !$OMP END PARALLEL
-  end subroutine
-
 
   !> Project the wavefunctions `y` onto `x` and store the projection coefficients.   
   !> For each `k-point` (3rd dimension), the projection `p` is calculated as

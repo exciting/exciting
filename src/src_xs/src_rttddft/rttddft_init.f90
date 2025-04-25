@@ -8,28 +8,37 @@
 
 !> Module implementing general initializations for RT-TDDFT
 module rttddft_init
+  use asserts, only: assert
   use constants, only: zzero, real_zero, zone
   use m_gndstateq, only: gndstateq
+  use matrix_elements, only: me_init
   use MD, only: MD_input_keys
   use mod_APW_LO, only: apwordmax, apword, nlorb, lorbl, lofr, apwfr
   use mod_atoms, only: natmtot, spr, nspecies
   use mod_bands, only: evalfv, nomax, numin, ikcbm, ikvbm, ikvcm
   use mod_core_states, only: ncg
+  use mod_corestate, only: rhocr, evalcr
   use mod_eigensystem, only: nmatmax
   use mod_eigenvalue_occupancy, only: nstfv, efermi
   use mod_eigensystem, only: nmatmax, nmat
   use mod_eigenvalue_occupancy, only: nstfv, efermi, evalsv
-  use mod_gkvector, only: ngk, ngkmax, gkc, tpgkc, sfacgk, gkmax
-  use mod_kpoint, only: vkl, nkpt
+  use mod_gvector, only: intgv, ngvec, sfacg, vgc
+  use mod_gkvector, only: ngk, ngkmax, gkc, tpgkc, sfacgk, gkmax, vgkc
+  use mod_kpointset, only: G_set, generate_G_vectors, k_set, &
+    generate_k_vectors, Gk_set, generate_Gk_vectors
+  use mod_lattice, only: bvec
+  use mod_misc, only: filext
   use mod_muffin_tin, only: lmmaxapw, nrmt
   use mod_potential_and_density, only: rhomt, rhoir
-  use mod_misc, only: filext
-  use modgw, only: kset
+  use mod_spin, only: nspnfv
   use modinput, only: input, getstructHybrid, emptynode
   use modmpi, only: rank, mpi_env_k, distribute_loop, terminate_if_false
   use modxs, only: isreadstate0
+  use muffin_tin_basis, only: mt_basis_type
   use precision, only: dp, i32
+  use propagators, only: propagator_type => propagator, create_propagator
   use rttddft_Density, only: update_density, save_and_frozen, frozen
+  use rttddft_file_names, only: RTTDDFT_GND_sufix
   use rttddft_GlobalMDVariables, only: B_past, B_time, mathcalH, mathcalB
   use rttddft_HamiltonianOverlap, only: update_hamiltonian_without_pa_term_lapw, update_overlap_lapw, &
     update_hamiltonian_without_pa_term_ks, add_external_coupling_vgauge
@@ -37,18 +46,12 @@ module rttddft_init
   use rttddft_input, only: rttddft_input_keys
   use rttddft_io, only: file_pmat_exists, read_pmat, write_pmat, file_pmat_mt_exists, &
     read_pmat_mt, write_pmat_mt, write_file_info, write_file_info_fill_line_with_char, &
-    get_filename_pmat, get_filename_pmat_mt, RTTDDFT_GND_sufix, read_wavefunction, groundstate, t, t_minus_dt
+    get_filename_pmat, get_filename_pmat_mt, read_wavefunction, groundstate, t, t_minus_dt
   use rttddft_pmat, only: obtain_pmat_LAPWloBasis, obtain_pmat_KSBasis
   use rttddft_potential, only: update_potential
   use rttddft_VectorPotential, only: Vector_Potential, Vector_Potential_Field
   use rttddft_Wavefunction, only: wavefunction_set, initialize_wavefunction_set
-  use mod_kpointset, only: G_set, generate_G_vectors, k_set, &
-    generate_k_vectors, Gk_set, generate_Gk_vectors
-  use muffin_tin_basis, only: mt_basis_type
-  use mod_lattice, only: bvec
-  use mod_gvector, only: intgv
-  use matrix_elements, only: me_init
-  use propagators, only: propagator_type => propagator, create_propagator
+  use to_char_conversion, only: to_char
 
   implicit none
   
@@ -61,7 +64,7 @@ contains
 subroutine initialize_rttddft( rt_inp, propagator, vec_pot, &
     a_tot_t_minus_dt, molecular_dynamics, psi, overlap, ham_init, ham_time, ham_past, effective_potential_init, &
     apwalm, pmat, pmatmt, rhomt_frozen, rhoir_frozen, occupations, k_dependent_dims, &
-    occs_tol, Gkset, Gset, psi_gnd_lapwlo )
+    occs_tol, kset_rttddft, Gkset, Gset, psi_gnd_lapwlo )
   !> Argument that encapsulates the input options of rttddft
   type(rttddft_input_keys), intent(in) :: rt_inp
   !> Argument that encapsulates the propagator
@@ -100,6 +103,8 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, &
   integer(i32), allocatable, intent(out) :: k_dependent_dims(:)
   !> Minimal value of occupation for the state to be 'occupied'
   real(dp), intent(in) :: occs_tol
+  !> Set of k vectors used throughout the module
+  type(k_set), intent(out) :: kset_rttddft
   !> Set of G+k vectors used for the matrix elements evaluation
   type(Gk_set), intent(out) :: Gkset
   !> Set of G vectors used for the matrix elements evaluation
@@ -107,20 +112,19 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, &
   !> KS-LAPW+lo transition matrix (ground state set in the LAPW+lo basis)
   complex(dp), allocatable, intent(out) :: psi_gnd_lapwlo(:, :, :)
 
-  real(dp), parameter :: epsilon_rgkmax = 1e-14_dp
+  real(dp), parameter :: eps_rgkmax = 1.e-14_dp
   integer(i32) :: ik, first_kpt, last_kpt, ham_dimension, i
   logical :: evolve_H0, my_rank_writes_to_output, success
   real(dp) :: voff(3)
   type(Vector_Potential_Field) :: a_aux
-  type(k_set) :: kset
 
   ! Backup groundstate variables
   call backup0()
   call backup1()
-  !--------------------------------------------!
-  !     map xs parameters associated to gs     !
-  !--------------------------------------------!
-  if ( input%xs%rgkmax < epsilon_rgkmax ) input%xs%rgkmax = input%groundstate%rgkmax
+  if ( input%xs%rgkmax < eps_rgkmax ) input%xs%rgkmax = input%groundstate%rgkmax
+  call ensure_valid_kpt_offset( input%xs%vkloff )
+  voff = input%xs%vkloff
+
   if ( hybrids_used() ) call adjustments_for_Hybrid_RTTDDFT()
   call mapxsparameters()
   ! Initialize universal variables
@@ -130,10 +134,8 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, &
 
   if ( hybrids_used() ) call init_hybrids()
   my_rank_writes_to_output = (rank == 0)
-  call distribute_loop( mpi_env_k, nkpt, first_kpt, last_kpt )
-
-  ! Interface with input variables
-  voff = input%xs%vkloff
+  call generate_k_vectors( kset_rttddft, bvec, input%groundstate%ngridk, voff, .false., .false. )
+  call distribute_loop( mpi_env_k, kset_rttddft%nkpt, first_kpt, last_kpt )
 
   !> Print to RTTDDFT_INFO that we will start the single-shot GS calculation
   if ( my_rank_writes_to_output ) then
@@ -148,7 +150,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, &
   ! Since an XS calculation with Hybrid functionals uses the GS parameters, a one shot GS calculation serves no purpose
   if ( .not. hybrids_used() ) call gndstateq( voff, RTTDDFT_GND_sufix//filext )
   call create_propagator( propagator, rt_inp%propagator_input, .not. molecular_dynamics%on )
-  
+
   if ( rt_inp%use_ks_basis() ) then
     ham_dimension = nstfv
   else
@@ -181,12 +183,11 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, &
     k_dependent_dims = nmat(1, first_kpt : last_kpt)
   end if
 
-  call allocate_MD_globals( first_kpt, last_kpt, molecular_dynamics%on, &
-    allocate_mathcalH=molecular_dynamics%valence_corrections, &
-    allocate_mathcalB=molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative,&
-    allocate_B=molecular_dynamics%basis_derivative )
+  if( molecular_dynamics%on ) call allocate_MD_globals( first_kpt, last_kpt, &
+    allocate_mathcalH=molecular_dynamics%valence_corrections, allocate_B=molecular_dynamics%basis_derivative, &
+    allocate_mathcalB=molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative )
   
-  call read_WF_potential_rttddft( first_kpt, psi_gnd_lapwlo, occupations )
+  call read_WF_potential_rttddft( first_kpt, kset_rttddft, psi_gnd_lapwlo, occupations )
   call initialize_wavefunction_set( psi, rt_inp%use_lapwlo_basis(), propagator%extrapolation_needed(), &
     rt_inp%n_frozen, psi_gnd_lapwlo, occupations, occs_tol )
 
@@ -199,13 +200,13 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, &
     'Error: Provided value of nEigenvectorsEH is either smaller than the number of occupied states or larger than basis size.' )
 
   if ( my_rank_writes_to_output ) call write_to_info( molecular_dynamics%on, &
-  rt_inp%predictor_corrector%on, psi, overlap, ham_time, ham_past, ham_init, apwalm, pmat, pmatmt )
+    rt_inp%predictor_corrector%on, psi, overlap, ham_time, ham_past, ham_init, apwalm, pmat, pmatmt )
 
   if( rt_inp%restart_previous_calculation() ) then
-    call read_wavefunction( t, first_kpt, vkl(:, first_kpt:last_kpt), &
+    call read_wavefunction( t, first_kpt, kset_rttddft%vkl(:, first_kpt:last_kpt), &
       psi%active, mpi_env_k, rt_inp%restart_file_handler )
     if( propagator%extrapolation_needed() ) &
-      call read_wavefunction( t_minus_dt, first_kpt, vkl(:, first_kpt:last_kpt), &
+      call read_wavefunction( t_minus_dt, first_kpt, kset_rttddft%vkl(:, first_kpt:last_kpt), &
         psi%active_save, mpi_env_k, rt_inp%restart_file_handler )
   end if
 
@@ -248,7 +249,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, &
     effective_potential_init = zzero
     overlap = zzero
     if ( evolve_H0 ) then
-      call init_me_evaluation( Gkset, Gset, kset )
+      call init_me_evaluation( kset_rttddft, Gkset, Gset )
       ! at t = 0 update_hamiltonian_without_pa_term_ks only evaluates the effective potential 
       ! matrix elements and store them in `ham_time`
       call update_hamiltonian_without_pa_term_ks( first_kpt, input%groundstate%lmaxvr, &
@@ -308,7 +309,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, &
 
       call add_external_coupling_vgauge( a_tot_t_minus_dt, overlap, ham_past, pmat, k_dependent_dims )
     end if
-    
+
     call update_density( first_kpt, psi, occupations, 0, rt_inp%normalize_WF, &
       rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, psi_gnd_lapwlo )
     call update_potential()  
@@ -318,7 +319,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, &
     if ( rt_inp%use_lapwlo_basis() ) then
       call update_overlap_lapw( first_kpt, vec_pot%a_tot, overlap, apwalm, pmatmt, &
         update_mathcalH=allocated( mathcalH ), update_mathcalB=allocated( mathcalB ) )
-      call  update_hamiltonian_without_pa_term_lapw( first_kpt, vec_pot%a_tot, ham_time, apwalm, &
+      call update_hamiltonian_without_pa_term_lapw( first_kpt, vec_pot%a_tot, ham_time, apwalm, &
       update_mathcalH=allocated( mathcalH ) )
     else
       call update_hamiltonian_without_pa_term_ks( first_kpt, input%groundstate%lmaxvr, ham_time, apwalm, psi_gnd_lapwlo, &
@@ -332,14 +333,12 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, &
 end subroutine
 
 !> Allocate global MD arrays
-subroutine allocate_MD_globals(first_kpt, last_kpt, ionDynamics, allocate_mathcalH, &
+subroutine allocate_MD_globals(first_kpt, last_kpt, allocate_mathcalH, &
                             allocate_mathcalB, allocate_B)
   !> index of the first `k-point` to be considered in the sum
   integer(i32), intent(in) :: first_kpt
   !> index of the last `k-point` considered
   integer(i32), intent(in) :: last_kpt
-  !> if `.True`, we need to allocate arrays for Ehrenfest molecular dynamics
-  logical, intent(in) :: ionDynamics
   !> if `.True`, we need to allocate the global array `mathcalH`
   logical, intent(in) :: allocate_mathcalH
   !> if `.True`, we need to allocate the global array `mathcalB`
@@ -347,38 +346,33 @@ subroutine allocate_MD_globals(first_kpt, last_kpt, ionDynamics, allocate_mathca
   !> if `.True`, we need to allocate the global arrays `B_time` and `B_past`
   logical, intent(in) :: allocate_B
 
-  if ( ionDynamics ) then
-    if ( allocate_mathcalH ) allocate (mathcalH(nmatmax, nmatmax, 3, natmtot, last_kpt))
-    if ( allocate_mathcalB ) allocate (mathcalB(nmatmax, nmatmax, 3, natmtot, first_kpt:last_kpt))
-    if ( allocate_B ) then
-      allocate ( B_time(nmatmax, nmatmax, first_kpt:last_kpt), source = zzero )
-      allocate ( B_past(nmatmax, nmatmax, first_kpt:last_kpt), source = zzero )
-    end if
+  if ( allocate_mathcalH ) allocate (mathcalH(nmatmax, nmatmax, 3, natmtot, first_kpt:last_kpt))
+  if ( allocate_mathcalB ) allocate (mathcalB(nmatmax, nmatmax, 3, natmtot, first_kpt:last_kpt))
+  if ( allocate_B ) then
+    allocate ( B_time(nmatmax, nmatmax, first_kpt:last_kpt), source = zzero )
+    allocate ( B_past(nmatmax, nmatmax, first_kpt:last_kpt), source = zzero )
   end if
 
 end subroutine
 
-!> Generates the G+K and G vectors sets needed for the 
-!> matrix elements evaluation and calls the mt_init subroutine
-subroutine init_me_evaluation( Gkset, Gset, kset )
+!> Generates the \( \mathbf{G} + \mathbf{k} \) and \( \mathbf{G} \) vectors sets 
+!> needed for the matrix elements evaluation and calls the mt_init subroutine
+subroutine init_me_evaluation( kset_rttddft, Gkset, Gset )
 
-  !> set of G+k vectors for LAPW expansion
+  !> Set of \( \mathbf{k} \) vectors
+  type(k_set), intent(in) :: kset_rttddft
+  !> Set of \( \mathbf{G} + \mathbf{k} \) vectors for LAPW expansion
   type(Gk_set), intent(out) :: Gkset
-  !> set of G vectors for LAPW expansion
+  !> Set of \( \mathbf{G} \) vectors for LAPW expansion
   type(G_set), intent(out) :: Gset
-  !> set of k vectors for LAPW expansion
-  type(k_set), intent(out) :: kset
   
   type(mt_basis_type) :: me_basis
 
   call generate_G_vectors( Gset, bvec, intgv, input%groundstate%gmaxvr )
-  call generate_k_vectors( kset, bvec, input%groundstate%ngridk, &
-  input%xs%vkloff, .false., .false. )
-  call generate_Gk_vectors( Gkset, kset, Gset, gkmax )
+  call generate_Gk_vectors( Gkset, kset_rttddft, Gset, gkmax )
 
   me_basis = mt_basis_type( spr(:, 1 : nspecies), nrmt(1 : nspecies), apwfr, lofr, &
     input%groundstate%lmaxapw, apword(:, 1 : nspecies), nlorb(1 : nspecies), lorbl(:, 1 : nspecies) )
-
   call me_init( me_basis, input%groundstate%lmaxvr, Gset )
   
 end subroutine init_me_evaluation
@@ -499,9 +493,12 @@ subroutine is_gs_input_compatible_with_xs( inp, is_compatible)
 end subroutine
 
 !> read WF and potential from potential gs run. For hybrid functionals, the parameters are read from the PBE run
-subroutine read_WF_potential_rttddft( first_kpt, evecfv_gnd, occupations )
+subroutine read_WF_potential_rttddft( first_kpt, kset_rttddft, evecfv_gnd, occupations )
+  use modgw, only: kset
   !> First k-point treated by this (MPI)rank
   integer(i32), intent(in) :: first_kpt
+  !> k set used in the RT-TDDFT module
+  type(k_set), intent(in) :: kset_rttddft
   !> Basis-expansion coefficients of the groundstate KS-WFs
   complex(dp), intent(out) :: evecfv_gnd(:, :, first_kpt :)
   !> Initial occupations array
@@ -509,7 +506,7 @@ subroutine read_WF_potential_rttddft( first_kpt, evecfv_gnd, occupations )
 
   integer(i32) :: ik, last_kpt
   logical :: file_exists
-  character(len=50) :: string
+  character(len=:), allocatable :: string
 
   last_kpt = ubound( evecfv_gnd, 3 )
   if ( hybrids_used() ) then
@@ -569,13 +566,28 @@ subroutine read_WF_potential_rttddft( first_kpt, evecfv_gnd, occupations )
 
   ! Get the eigenvectors and occupations from file
   do ik = first_kpt, last_kpt
-    call getoccsv(vkl(:, ik), occupations(:, ik))
+    call getoccsv(kset_rttddft%vkl(:, ik), occupations(:, ik))
   end do
 
   filext = string
 
-  call read_wavefunction( groundstate, first_kpt, vkl(:, first_kpt:last_kpt), evecfv_gnd, mpi_env_k )
+  call read_wavefunction( groundstate, first_kpt, kset_rttddft%vkl(:, first_kpt:last_kpt), evecfv_gnd, mpi_env_k )
 
 end subroutine
 
+!> Shift kpt_offset to the first parallelepiped if the input one is not there
+!> for consistency with type(k_set)
+subroutine ensure_valid_kpt_offset( kpt_offset )
+  !> Shift of the \( \mathbf{k} \)-grid
+  real(dp), intent(inout) :: kpt_offset(3)
+
+  real(dp), parameter :: eps_lattice = 1.e-6_dp
+  integer(i32) :: iv(3)
+
+  if( any( abs( kpt_offset ) > 1.0_dp ) .or. any( kpt_offset < 0.0_dp ) ) then
+    call r3frac( eps_lattice, kpt_offset, iv )
+    call warning( 'Warning(initialize_rttddft): input%xs%vkloff mapped back to first k-parallelepiped: ' &
+      // to_char( kpt_offset ) )
+  end if
+end subroutine
 end module rttddft_init

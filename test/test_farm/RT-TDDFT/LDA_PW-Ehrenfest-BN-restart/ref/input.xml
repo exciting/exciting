@@ -1,6 +1,6 @@
 <input>
         <title>C</title>
-        <structure speciespath="./">
+        <structure speciespath="./" epslat="1.0d-10" tshift="false">
                 <crystal scale="6.833">
                         <basevect>0.0 0.5 0.5 </basevect>
                         <basevect>0.5 0.0 0.5 </basevect>
@@ -39,17 +39,19 @@
           reducek="false"
           nempty="2">
           <realTimeTDDFT
+            do="fromfile"
+            restartExtension=".SAVE"
             propagator="SE"
             timeStep="0.2d0"
             endTime="5.0d0"
-            printTimingGeneral="true"
-            printTimingDetailed="true"
+            printTimingGeneral="false"
+            printTimingDetailed="false"
             calculateNExcitedElectrons="false"
             printAfterIterations="1"
             vectorPotentialSolver="improvedeuler">
             <pmat readFromFile="false"/>
             <laser fieldType="total">
-	            <sinSq amplitude="10.d0" omega="0.1d0" phase="0.d0" t0="0.d0" pulseLength="16.d0" direction="z"/>
+              <sinSq amplitude="10.d0" omega="0.1d0" phase="0.d0" t0="0.d0" pulseLength="16.d0" direction="z"/>
               <sinSq amplitude="10.d0" omega="0.1d0" phase="0.d0" t0="0.d0" pulseLength="16.d0" direction="y"/>
               <sinSq amplitude="10.d0" omega="0.1d0" phase="0.d0" t0="0.d0" pulseLength="16.d0" direction="x"/>
             </laser>
