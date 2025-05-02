@@ -51,6 +51,7 @@ _file_to_parser = {
     "expiqr.xml": properties_parser.parse_expiqr,
     "effmass.xml": properties_parser.parse_effmass,
     "bandstructure.xml": properties_parser.parse_bandstructure_depreciated,
+    "bandstructure-qp.xml": properties_parser.parse_bandstructure_depreciated,
     "dos.xml": properties_parser.parse_dos,
     "KERR.OUT": properties_parser.parse_kerr,
     "EPSILON_??.OUT": properties_parser.parse_epsilon,
