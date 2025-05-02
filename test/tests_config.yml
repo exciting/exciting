@@ -266,6 +266,14 @@ GW/ZnO-PBESOL-nodeg:
       - "Zn.xml"
       - "O.xml"
 
+GW/graphite-PBE-band:
+   files_under_test:
+      - "bandstructure-qp.xml"
+   inputs:
+      - "input.xml"
+      - "C.xml"
+      - "EVALQP.OUT"
+
 GW/MoS2-LDA-cutoff:
    files_under_test:
       - "GW_INFO.OUT"

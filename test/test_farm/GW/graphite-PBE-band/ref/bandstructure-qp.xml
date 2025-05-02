@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="http://xml.exciting-code.org/visualizationtemplates/bandstructure2html.xsl" type="text/xsl"?>
+<bandstructure>
+  <title>Graphite</title>
+  <band>
+    <point distance="0.000000000" eval="-0.4627048890"/>
+    <point distance="0.9006214158" eval="-0.7304445815"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="-0.4667988634"/>
+    <point distance="0.9006214158" eval="-0.7353908716"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="-0.4667988616"/>
+    <point distance="0.9006214158" eval="-0.2977597289"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="-0.4561281393"/>
+    <point distance="0.9006214158" eval="-0.2152290213"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="-0.3633853933"/>
+    <point distance="0.9006214158" eval="-0.7416457141E-01"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="-0.3633853915"/>
+    <point distance="0.9006214158" eval="-0.7416454451E-01"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="0.2716498039E-01"/>
+    <point distance="0.9006214158" eval="-0.7235327550E-01"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="-0.2716498084E-01"/>
+    <point distance="0.9006214158" eval="-0.7235324150E-01"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="-0.2716497974E-01"/>
+    <point distance="0.9006214158" eval="0.1719509010"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="0.8704768625E-01"/>
+    <point distance="0.9006214158" eval="0.3989014578"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="0.4630591292"/>
+    <point distance="0.9006214158" eval="0.3989016317"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="0.4630591317"/>
+    <point distance="0.9006214158" eval="0.4082882438"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="0.5077818907"/>
+    <point distance="0.9006214158" eval="0.4082884076"/>
+  </band>
+  <band>
+    <point distance="0.000000000" eval="0.5127039030"/>
+    <point distance="0.9006214158" eval="0.4511295863"/>
+  </band>
+</bandstructure>

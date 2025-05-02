@@ -188,13 +188,18 @@ contains
       !idx_degeneracies is allocated/deallocated inside the get_degeneracies procedure 
       integer(i32), allocatable :: idx_degeneracies(:,:)
       logical, allocatable      :: degeneracies(:,:)
+      logical :: my_rank_writes_to_output
 
+
+      my_rank_writes_to_output = ( myrank == 0 )
       ! Here we check that we are not working with the full space (i.e. the maximum number
       ! of states available)
       if (ntruncation <= nstfv .and. minval(nmat(1,:)) /= nstfv) then
-        write(fgw,*)
-        call boxmsg(fgw,'-',"Checking for possible degenerate subspace truncation")
-        write(fgw,*) "   -Initial band truncation was ", ntruncation
+        if( my_rank_writes_to_output ) then
+          write(fgw,*)
+          call boxmsg(fgw,'-',"Checking for possible degenerate subspace truncation")
+          write(fgw,*) "   -Initial band truncation was ", ntruncation
+        end if
 
         ! Get a complete list of the degenerate states
         ! So degeneracies(ib,ik) is true if the ib-th state of ik-th kpoint
@@ -229,14 +234,18 @@ contains
         deallocate(degeneracies, idx_degeneracies)
 
         ! Print new truncation
-        write(fgw,*) "   -Final band truncation has been adjusted to prevent the cutting of the degenerate subspaces to ", ntruncation
-        write(fgw,*)
+        if( my_rank_writes_to_output ) then
+          write(fgw,*) "   -Final band truncation has been adjusted to prevent the cutting of the degenerate subspaces to ", ntruncation
+          write(fgw,*)
+        end if
       else
         ! We are working with the full space, so no correction is needed.
-        write(fgw,*)
-        call boxmsg(fgw,'-',"Checking for possible degenerate subspace truncation")
-        write(fgw,*) "   -Working with the maximum of our space, nothing to check."
-        write(fgw,*)
+        if( my_rank_writes_to_output ) then
+          write(fgw,*)
+          call boxmsg(fgw,'-',"Checking for possible degenerate subspace truncation")
+          write(fgw,*) "   -Working with the maximum of our space, nothing to check."
+          write(fgw,*)
+        end if
       end if
 
     end subroutine check_degenerate_subspaces
