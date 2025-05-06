@@ -123,6 +123,22 @@ interface
 
 end interface
 
+! Interfaces to C routines
+interface
+    ! Interface for malloc function
+    function c_malloc(size) bind(C, name="malloc")
+        import :: c_size_t, c_ptr
+        type(c_ptr) :: c_malloc
+        integer(c_size_t), value :: size
+    end function c_malloc
+
+    ! Interface for free function
+    subroutine c_free(ptr) bind(C, name="free")
+        import :: c_ptr
+        type(c_ptr), value :: ptr
+    end subroutine c_free
+end interface
+
 contains
 
     !> Returns the size in bytes for an arbitrary kind

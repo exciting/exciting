@@ -200,10 +200,7 @@ subroutine init_product_basis()
     !----------------------------------------------------------------------
     ! Map elements to the device
     !----------------------------------------------------------------------
-    DEVICE_MAP_TO(bradketa)
-    DEVICE_MAP_TO(bradketc)
-    DEVICE_MAP_TO(bradketlo)
-    DEVICE_MAP_TO(mbindex)
+    OMP_OFFLOAD target enter data map(always, to: bradketa, bradketc, bradketlo, mbindex)
 
     return
 end subroutine

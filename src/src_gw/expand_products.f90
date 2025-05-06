@@ -36,7 +36,7 @@ subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
     dim1 = mbsiz
     my_device = device_world%get_device()
 
-    DEVICE_BEGIN_BLOCK
+    OMP_OFFLOAD target
     ! IFX 2025.0.0 is not able to perform it efficiently except if a kernel is used
     ! Cray compiler generates a runtime error if using the kernel for the loop.
     ! GNU allows the latter so we go for it.
@@ -59,7 +59,7 @@ subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
 #else
     minm(:,:,:) = zzero
 #endif
-    DEVICE_END_BLOCK
+    OMP_OFFLOAD end target
 
     if ((nsplit>0).and.(msplit<=0)) then
 
@@ -90,7 +90,7 @@ subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
 
             call expand_products_block(ik,iq,nstart,nend,mstart,mend,minm_valence_cptr,iflag)
 
-            DEVICE_BEGIN_BLOCK_HAS_DEVICE_ADDR(minm_valence)
+            OMP_OFFLOAD target has_device_addr(minm_valence)
 #if __INTEL_COMPILER
             !$omp teams distribute parallel do collapse(3) private(im,ie1,ie2)
             do ie2 = mstart, mend
@@ -104,7 +104,7 @@ subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
 #else
             minm(:,nstart:nend,mstart:mend) = minm_valence(:,nstart:nend,mstart:mend)
 #endif
-            DEVICE_END_BLOCK
+            OMP_OFFLOAD end target
 
             nullify(minm_valence)
             call deallocate_device_memory(minm_valence_cptr, my_device)
@@ -122,9 +122,9 @@ subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
 
             call expand_products_block(ik,iq,cstart,cend,mstart,mend,minm_core_cptr,iflag)
 
-            DEVICE_BEGIN_BLOCK_HAS_DEVICE_ADDR(minm_core)
+            OMP_OFFLOAD target has_device_addr(minm_core)
             minm(:,nstart:nend,mstart:mend) = minm_core(:,:,:)
-            DEVICE_END_BLOCK
+            OMP_OFFLOAD end target
 
             nullify(minm_core)
             call deallocate_device_memory(minm_core_cptr, my_device)
@@ -146,7 +146,7 @@ subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
 
             call expand_products_block(ik,iq,nstart,nsplit,mstart,mend,minm_valence_cptr,iflag)
 
-            DEVICE_BEGIN_BLOCK_HAS_DEVICE_ADDR(minm_valence)
+            OMP_OFFLOAD target has_device_addr(minm_valence)
 #if __INTEL_COMPILER
             !$omp teams distribute parallel do collapse(3) private(im,ie1,ie2)
             do ie2 = mstart, mend
@@ -160,7 +160,7 @@ subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
 #else
             minm(:,nstart:nsplit,mstart:mend) = minm_valence(:,nstart:nsplit,mstart:mend)
 #endif
-            DEVICE_END_BLOCK
+            OMP_OFFLOAD end target
 
             nullify(minm_valence)
             call deallocate_device_memory(minm_valence_cptr, my_device)
@@ -176,9 +176,9 @@ subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
 
             call expand_products_block(ik,iq,cstart,cend,mstart,mend,minm_core_cptr,iflag)
 
-            DEVICE_BEGIN_BLOCK_HAS_DEVICE_ADDR(minm_core)
+            OMP_OFFLOAD target has_device_addr(minm_core)
             minm(:,nsplit+cstart:nend,mstart:mend) = minm_core(:,:,:)
-            DEVICE_END_BLOCK
+            OMP_OFFLOAD end target
 
             nullify(minm_core)
             call deallocate_device_memory(minm_core_cptr, my_device)
@@ -214,7 +214,7 @@ subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
 
         call expand_products_block(ik,iq,nstart,nend,mstart,mend,minm_valence_cptr,iflag)
 
-        DEVICE_BEGIN_BLOCK_HAS_DEVICE_ADDR(minm_valence)
+        OMP_OFFLOAD target has_device_addr(minm_valence)
 #if __INTEL_COMPILER
         !$omp teams distribute parallel do collapse(3) private(im,ie1,ie2)
         do ie2 = mstart, mend
@@ -228,7 +228,7 @@ subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
 #else
         minm(:,nstart:nend,mstart:mend) = minm_valence(:,nstart:nend,mstart:mend)
 #endif
-        DEVICE_END_BLOCK
+        OMP_OFFLOAD end target
 
         nullify(minm_valence)
         call deallocate_device_memory(minm_valence_cptr, my_device)
@@ -247,9 +247,9 @@ subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
 
         call expand_products_block(ik,iq,nstart,nend,cstart,cend,minm_core_cptr,iflag)
 
-        DEVICE_BEGIN_BLOCK_HAS_DEVICE_ADDR(minm_core)
+        OMP_OFFLOAD target has_device_addr(minm_core)
         minm(:,nstart:nend,mstart:mend) = minm_core(:,:,:)
-        DEVICE_END_BLOCK
+        OMP_OFFLOAD end target
 
         nullify(minm_core)
         call deallocate_device_memory(minm_core_cptr, my_device)
@@ -270,7 +270,7 @@ subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
 
         call expand_products_block(ik,iq,nstart,nend,mstart,msplit,minm_valence_cptr,iflag)
 
-        DEVICE_BEGIN_BLOCK_HAS_DEVICE_ADDR(minm_valence)
+        OMP_OFFLOAD target has_device_addr(minm_valence)
 #if __INTEL_COMPILER
         !$omp teams distribute parallel do collapse(3) private(im,ie1,ie2)
         do ie2 = mstart, msplit
@@ -284,7 +284,7 @@ subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
 #else
         minm(:,nstart:nend,mstart:msplit) = minm_valence(:,nstart:nend,mstart:msplit)
 #endif
-        DEVICE_END_BLOCK
+        OMP_OFFLOAD end target
 
         nullify(minm_valence)
         call deallocate_device_memory(minm_valence_cptr, my_device)
@@ -300,9 +300,9 @@ subroutine expand_products(ik,iq,nstart,nend,nsplit,mstart,mend,msplit,minm)
 
         call expand_products_block(ik,iq,nstart,nend,cstart,cend,minm_core_cptr,iflag)
 
-        DEVICE_BEGIN_BLOCK_HAS_DEVICE_ADDR(minm_core)
+        OMP_OFFLOAD target has_device_addr(minm_core)
         minm(:,nstart:nend,msplit+cstart:mend) = minm_core(:,:,:)
-        DEVICE_END_BLOCK
+        OMP_OFFLOAD end target
 
         nullify(minm_core)
         call deallocate_device_memory(minm_core_cptr, my_device)
@@ -352,7 +352,7 @@ contains
             ! Valence contribution
             ! calculate v^{1/2}*M^i_{nm}
             allocate(minm_(matsiz,nstart:nend,mstart:mend))
-            DEVICE_MAP_ALLOC(minm_)
+            OMP_OFFLOAD target data map(alloc: minm_)
             call calcminm2(ik,iq,nstart,nend,mstart,mend,minm_)
             call zgemm_gpu('c','n', &
                        mbsiz,nmdim,matsiz, &
@@ -361,7 +361,7 @@ contains
                        get_device_pointer(minm_,my_device),matsiz, &
                        zzero,minm_cptr,mbsiz,device_world)
             call device_world%synchronize()
-            DEVICE_MAP_DELETE(minm_)
+            OMP_OFFLOAD end target data
             deallocate(minm_)
 
           case(2)
@@ -369,7 +369,7 @@ contains
             ! calculate v^{1/2}*M^i_{cm}
             allocate(minm_(locmatsiz,nstart:nend,mstart:mend))
             call calcmicm(ik,iq,nstart,nend,mstart,mend,minm_)
-            DEVICE_MAP_TO(minm_)
+            OMP_OFFLOAD target data map(alloc: minm_)
             call zgemm_gpu('c','n', &
                        mbsiz,nmdim,locmatsiz, &
                        zone, &
@@ -377,7 +377,7 @@ contains
                        get_device_pointer(minm_,my_device),locmatsiz, &
                        zzero,minm_cptr,mbsiz,device_world)
             call device_world%synchronize()
-            DEVICE_MAP_DELETE(minm_)
+            OMP_OFFLOAD end target data
             deallocate(minm_)
 
           case(3)
@@ -385,7 +385,7 @@ contains
             ! calculate v^{1/2}*M^i_{nc}
             allocate(minm_(locmatsiz,nstart:nend,mstart:mend))
             call calcminc(ik,iq,nstart,nend,mstart,mend,minm_)
-            DEVICE_MAP_TO(minm_)
+            OMP_OFFLOAD target data map(alloc: minm_)
             call zgemm_gpu('c','n', &
                        mbsiz,nmdim,locmatsiz, &
                        zone, &
@@ -393,7 +393,7 @@ contains
                        get_device_pointer(minm_,my_device),locmatsiz, &
                        zzero,minm_cptr,mbsiz,device_world)
             call device_world%synchronize()
-            DEVICE_MAP_DELETE(minm_)
+            OMP_OFFLOAD end target data
             deallocate(minm_)
 
           case default

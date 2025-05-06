@@ -164,12 +164,7 @@ subroutine init_gw()
     time_initeval = time_initeval+t1-t0
     
     ! Upload GS globals to the devices
-    DEVICE_MAP_TO(idxas)
-    DEVICE_MAP_TO(idxlo)
-    DEVICE_MAP_TO(idxlm)
-    DEVICE_MAP_TO(lorbl)
-    DEVICE_MAP_TO(apword)
-    DEVICE_MAP_TO(nlorb)
+    OMP_OFFLOAD target enter data map(always, to: idxas, idxlo, idxlm, lorbl, apword, nlorb)
 
     ! timing
     call timesec(tend)

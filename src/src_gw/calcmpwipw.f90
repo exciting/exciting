@@ -45,7 +45,7 @@ subroutine calcmpwipw(iq)
     ngq = Gqset%ngk(1,iq)
         
     if (allocated(mpwipw)) then
-      DEVICE_MAP_DELETE(mpwipw)
+      OMP_OFFLOAD target exit data map(delete: mpwipw)
       deallocate(mpwipw)
     end if 
     allocate(mpwipw(ngq,npw))
@@ -83,7 +83,7 @@ subroutine calcmpwipw(iq)
     &           tmat,ngq, &
     &           zzero,mpwipw,ngq)
 
-    DEVICE_MAP_TO(mpwipw)
+    OMP_OFFLOAD target enter data map(always, to: mpwipw)
     
     ! FFT of S^{*}_{Gi}
     !if (allocated(sgi_fft)) deallocate(sgi_fft)

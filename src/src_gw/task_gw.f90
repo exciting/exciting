@@ -35,7 +35,7 @@ subroutine task_gw()
     use mod_vxc, only: calcvxcnn, write_vxcnn, vxcnn
     use modinput, only: input, isspinorb
     use modmpi, only: rank, mpiglobal, barrier
-    use modgw, only: fgw, kset, kqset, Gqset, Gkset, Gset, Gqbarc, ibgw, nbgw, nbandsgw, &
+    use modgw, only: fgw, kset, kqset, Gqset, Gkset, Gkqset, Gset, Gqbarc, ibgw, nbgw, nbandsgw, &
       ciw, kiw, unw, kcw, freq, time_dfinv
     use modxs, only: symt2
     use quasiparticle_energies, only: write_qp_energies_text_format
@@ -196,11 +196,11 @@ subroutine task_gw()
 
       ! clean unused data
       if (allocated(mpwipw)) then
-        DEVICE_MAP_DELETE(mpwipw)
+        OMP_OFFLOAD target exit data map(delete: mpwipw)
         deallocate(mpwipw)
       end if
       if (allocated(barc)) then
-          DEVICE_MAP_DELETE(barc)
+          OMP_OFFLOAD target exit data map(delete: barc)
           deallocate(barc)
       end if
       !call omp_set_num_threads(nthreads)
@@ -319,10 +319,13 @@ subroutine task_gw()
     if (allocated(occfv)) deallocate(occfv)
     call delete_selfenergy
 
+    OMP_OFFLOAD target exit data map(delete: kset, Gset, Gkset, Gkqset, Gqset, Gqbarc, kqset) 
+
     call delete_freqgrid(freq)
     call delete_k_vectors(kset)
     call delete_G_vectors(Gset)
     call delete_Gk_vectors(Gkset)
+    call delete_Gk_vectors(Gkqset)
     call delete_kq_vectors(kqset)
     call delete_Gk_vectors(Gqset)
     call delete_Gk_vectors(Gqbarc)
@@ -330,12 +333,7 @@ subroutine task_gw()
     call delete_gaunt_coefficients()
     call delete_product_basis()
 
-    DEVICE_MAP_DELETE(idxas)
-    DEVICE_MAP_DELETE(idxlo)
-    DEVICE_MAP_DELETE(idxlm)
-    DEVICE_MAP_DELETE(lorbl)
-    DEVICE_MAP_DELETE(apword)
-    DEVICE_MAP_DELETE(nlorb)
+    OMP_OFFLOAD target exit data map(delete: idxas, idxlo, idxlm, lorbl, apword, nlorb)
 
     return
 end subroutine

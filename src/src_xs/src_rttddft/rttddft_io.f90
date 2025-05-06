@@ -110,7 +110,12 @@ contains
     character(len=*), parameter :: status_new = "replace"
     character(len=*), parameter :: status_old = "old    "
 
-    status = trim( merge( status_new, status_old, new ) )
+    ! Cray 18 fails to concatenate trim to merge
+    ! While status = trim( merge( status_new, status_old, new ) ) is valid
+    ! we separate them
+    status = merge( status_new, status_old, new )
+    status = trim( status)
+
   end function
 
   !> (private) Function to return the position of a file to open given the information if it is new or old

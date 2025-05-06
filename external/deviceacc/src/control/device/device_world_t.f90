@@ -30,7 +30,6 @@ module m_device_world_t
     use magma2
     use hipfort_rocfft
 #endif
-    use m_device_host_register_fortran, only: device_host_register
     use mpi
 
     implicit none
@@ -52,8 +51,6 @@ module m_device_world_t
         integer, private :: num_teams
         !> The maximum number of threads per team
         integer, private :: num_threads
-        !> Device host register
-        type(device_host_register) :: register
         !> Flag to indicate if CPU-only backend is used
         logical, private :: cpu_backend = .false.
     contains
@@ -271,9 +268,6 @@ contains
 
         this%num_teams   = num_teams
         this%num_threads = num_threads
-        
-        ! Init register
-        call this%register%init()
 
         ! Print info
         call mpi_comm_size(world, nprocs, ierr)
@@ -325,9 +319,6 @@ contains
         ! Deallocate queue array
         deallocate(this%queue)
 
-        ! Clean register
-        call this%register%finish()
-    
     end subroutine finish
 
     !> This function returns true if the queue is inited

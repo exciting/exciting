@@ -19,7 +19,6 @@
 module m_device_world_t
     
     use iso_c_binding
-    use m_device_host_register_fortran, only: device_host_register
 
     implicit none
 
@@ -40,8 +39,6 @@ module m_device_world_t
         integer, private :: num_teams = 1
         !> The maximum number of threads per team
         integer, private :: num_threads = 1 
-        !> Device host register
-        type(device_host_register) :: register
         !> Flag to indicate if CPU-only backend is used
         logical, private :: cpu_backend = .true.
     contains
@@ -61,16 +58,12 @@ contains
     subroutine init(this, world)
         class(device_world_t), target, intent(inout) :: this
         integer(C_int), intent(in) :: world
-        ! Init register
-        call this%register%init()
     end subroutine init
 
     !> This subroutine finishes the device handler
     !> @param[in] this - the device handler to finish
     subroutine finish(this)
         class(device_world_t), intent(inout) :: this
-        ! Clean register
-        call this%register%finish()
     end subroutine finish
 
     !> This function returns true if the queue is inited

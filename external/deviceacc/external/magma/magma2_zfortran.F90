@@ -101,16 +101,16 @@ interface
         type(c_ptr),    value  :: queue
     end subroutine
 
-    subroutine magma_zgemm_batched(transA, transB, m, n, k, alpha, dA, lda, &
-                                   dB, ldb, beta,  dC, ldc, batchCount, queue) &
-    bind(C, name="magma_zgemm_batched")
+    subroutine magma_zgemm_batched_strided(transA, transB, m, n, k, alpha, dA, lda, strideA, &
+                                   dB, ldb, strideB, beta, dC, ldc, strideC, batchCount, queue) &
+    bind(C, name="magmablas_zgemm_batched_strided")
         import
         integer(c_int),             value :: transA, transB, m, n, k, lda, ldb, ldc, batchCount
+        integer(c_int),             value :: strideA, strideB, strideC
         complex(c_double_complex),  value :: alpha, beta
         type(c_ptr),                value :: dA, dB, dC
         type(c_ptr),                value :: queue  !! queue_t
     end subroutine
-
 
     !! -------------------------------------------------------------------------
     !! BLAS (matrices in GPU memory)

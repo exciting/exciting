@@ -44,7 +44,7 @@ extern "C" {
     ///
     void generate_batched_array(void* data, std::size_t nbatch, std::size_t batch_byte_size, void** batched_ptr) {
         for (std::size_t ibatch = 0; ibatch < nbatch; ++ibatch) {
-            batched_ptr[ibatch] = reinterpret_cast<char*>(data) + ibatch * batch_byte_size;
+            batched_ptr[ibatch] = reinterpret_cast<unsigned char*>(data) + ibatch * batch_byte_size;
         }
     }
 }
