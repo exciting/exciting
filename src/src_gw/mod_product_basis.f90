@@ -160,22 +160,22 @@ contains
         if (allocated(rrint)) deallocate(rrint)
         !------------------------------------
         if (allocated(bradketc)) then
-          DEVICE_MAP_DELETE(bradketc)
+          OMP_OFFLOAD target exit data map(delete: bradketc)
           deallocate(bradketc)
         end if
 
         if (allocated(bradketa)) then
-          DEVICE_MAP_DELETE(bradketa)
+          OMP_OFFLOAD target exit data map(delete: bradketa)
           deallocate(bradketa)
         end if
 
         if (allocated(bradketlo)) then
-          DEVICE_MAP_DELETE(bradketlo)
+          OMP_OFFLOAD target exit data map(delete: bradketlo)
           deallocate(bradketlo)
         end if
 
         if (allocated(mbindex)) then
-          DEVICE_MAP_DELETE(mbindex)
+          OMP_OFFLOAD target exit data map(delete: mbindex)
           deallocate(mbindex)
         end if
 

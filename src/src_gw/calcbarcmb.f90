@@ -48,7 +48,7 @@ subroutine calcbarcmb(iq)
 !===============================================================================
 
     if (allocated(barc)) then
-        DEVICE_MAP_DELETE(barc)
+        OMP_OFFLOAD target exit data map(delete: barc)
         deallocate(barc)
     end if
     allocate(barc(matsiz,matsiz), source = zzero)

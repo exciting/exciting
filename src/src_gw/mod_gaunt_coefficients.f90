@@ -13,14 +13,14 @@ module mod_gaunt_coefficients
     real(dp), allocatable :: gauntcoef(:)
 
     ! Declare here all elements for device exposure
-    DECLARE_IN_DEVICE(gauntcoef)
+    OMP_OFFLOAD declare target(gauntcoef)
 
 contains
     
 !---------------------------------------------------------------------------
     subroutine delete_gaunt_coefficients
         if (allocated(gauntcoef)) then 
-          DEVICE_MAP_DELETE(gauntcoef)
+          OMP_OFFLOAD target exit data map(delete: gauntcoef)
           deallocate(gauntcoef)
         end if
     end subroutine
@@ -106,7 +106,7 @@ contains
           end do
         end do
 
-        DEVICE_MAP_TO(gauntcoef)
+        OMP_OFFLOAD target enter data map(always, to: gauntcoef)
 
         return
     end subroutine
@@ -161,7 +161,7 @@ contains
         logical :: trcond
 
 !! For GPU aware compilation this function is compiled also for the device
-        DECLARE_THIS_IN_DEVICE 
+        OMP_OFFLOAD declare target
 
 !!REVISION HISTORY:
 !

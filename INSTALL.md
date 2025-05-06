@@ -29,8 +29,8 @@ Compiling (CMake)
 The `exciting` code can be compiled using CMake. The following compilers are supported:
 - Intel Classic (ifort): 2021.0.3, 2021.13.1
 - Intel LLVM (ifx): 2025.0.0 
-- GNU: 10, 12, 14, 15
-- Cray: 17.0.1, 18.0.1
+- GNU: 11, 12, 14, 15
+- Cray: 18.0.1, 19.0.1
 - LLVM-Flang-based compilers (must support Fortran2018 standard)
 
 ### Compilation Steps
@@ -97,6 +97,42 @@ FC=gfortran CC=gcc CXX=gcc ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DAMD
 make -j`nproc` -l`nproc` exciting_mpismp
 make install
 ```
+- **With OpenBLAS+SIRIUS+HDF5**
+```shell
+mkdir build
+cd build
+FC=gfortran CC=gcc CXX=gcc ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DOPENBLAS=ON -DSIRIUS=ON -DHDF5=ON ..
+make -j`nproc` -l`nproc` exciting_mpismp
+make install
+```
+- **GPU accelerated: AMD GPU MI250**
+AMD GPU acceleration requires of MAGMA library. Assuming it is installed in _MAGMA\_INSTALL\_DIR_
+```shell
+mkdir build
+cd build
+FC=ftn CC=cc CXX=CC ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DOPENBLAS=ON -DAMD=ON -DAMDTARGET=gfx90a -DMAGMA_DIR=MAGMA_INSTALL_DIR ..
+make -j`nproc` -l`nproc` exciting_mpismp
+make install
+```
+- **GPU accelerated with USM -  MI300A**
+Note that MI300A is an APU and thus the RAM is physically shared between the GPU and CPU. _USM_ option is mandatory in those cases.
+AMD GPU acceleration requires of MAGMA library. Assuming it is installed in _MAGMA_INSTALL_DIR_
+```shell
+mkdir build
+cd build
+FC=ftn CC=cc CXX=CC ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DOPENBLAS=ON -DUSM=ON -DAMD=ON -DAMDTARGET=gfx942 -DMAGMA_DIR=MAGMA_INSTALL_DIR ..
+make -j`nproc` -l`nproc` exciting_mpismp
+make install
+```
+- **GPU accelerated: Intel PVC with Intel Sapphire Rapids**
+```shell
+mkdir build
+cd build
+FC=ifx CC=icx CXX=icpx ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DMKL=ON -DINTEL=ON -DINTEL_CODE_NAME=SAPPHIRERAPIDS ..
+make -j`nproc` -l`nproc` exciting_mpismp
+make install
+```
+
 A full list of options is provided in the following subsection.
 
 ### CMake Options
@@ -124,6 +160,7 @@ CMake installation can be customized using the following options (**Notice that 
 - **_AMDTARGET_**: Specifies the AMD GPU target (e.g., gfx90a) (default: None).
 - **_AMD_HIPSETVALIDDEVICE_SUPPORTED_**: Set to ON if `hipSetValidDevices` is supported (after ROCm 6.2.0) (default: OFF).
 - **_INTEL_**: Enables GPU support for Intel GPUs (default: OFF).
+- **_USM_**: Enables a optimized compilation for CPU-GPU systems with USM; i.e. physically shared RAM (default: OFF).
 - **_CPUBACKEND_**: Enables a CPU-only build (default: ON).
 - **_MAGMA_DIR_**: If `AMD` or `NVIDIA` are ON, provide the path to MAGMA's install directory (default: None).
 - **_INTEL_CODE_NAME_**: For Intel processors, this can be modified to match the processor name, allowing `ifx` to generate optimized code paths. If not set, the build system will select a generic Intel subset based on AVX512 and/or AVX2 instructions. **Do not modify for non-Intel machines.** (default: None).
@@ -132,6 +169,10 @@ CMake installation can be customized using the following options (**Notice that 
 - **_REGRESSION_TESTS_**: Enables regression tests (default: ON).
 - **_BUILD_EXCITING_**: Builds EXCITING (default: ON).
 
+On top of the specific options for _exciting_, the following CMake default options can be modified to tune your installation:
+- **_CMAKE_INSTALL_PREFIX_**: controls the installation directory (default: **install** in the excitng root directory).
+- **_CMAKE_BUILD_TYPE_**: controls the installation type, it can be: Debug or Release (default: Release).
+- **_CMAKE_Fortran_FLAGS_**: string to add extra compiler options for the Fortran compiler. Note that this affects the whole compilation, and that the default flags are generating high performant executable for the _Release_ build.
 ### Mac OS
 
 exciting can be compiled on mac OS, but it is complicated by nonstandard installation

@@ -3,6 +3,10 @@
 !! for n and m being valence and conduction states.
 !!-----------------------------------------------------------------------------------
 subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
+#if _CRAYFTN
+! Instruct the Cray compiler to use aggressive optimization for this file
+!DIR$ OPTIMIZE(-haggress)
+#endif
   use modinput
   use modmain,                only : nspecies, natmtot, natoms, idxas, idxlm, idxlo, &
                                     intgv, apword, nlorb, lorbl, &
@@ -65,9 +69,6 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
   type(c_ptr) :: temp_int_cptr, temp2_int_cptr, mnn_cptr, eveck_int_cptr, eveckp_int_cptr
   complex(dp), contiguous, pointer :: temp_int(:,:,:), temp2_int(:,:,:), mnn(:,:,:), eveck_int(:,:),  eveckp_int(:,:)
 
-  integer(i32), contiguous, pointer :: Gkqset_ngk(:,:), Gset_ivg(:,:), Gkqset_igkig(:,:,:)
-  integer(i32), contiguous, pointer :: Gset_intgv(:,:), Gset_ivgig(:,:,:), Gqbarc_igigk(:,:,:)
-
   integer(i32) :: nblocks_ngq, ngq_block_counter, igq_start, igq_end, igq_block, ngq_max_block_size, igq, ngq
 
   integer(i32) :: my_device
@@ -87,7 +88,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
   !
   ! TODO: Check future IFX compiler to see if this is improved.
   !
-  DEVICE_BEGIN_BLOCK
+  OMP_OFFLOAD target
 #if __INTEL_COMPILER
   !$omp teams distribute parallel do collapse(3) default(none) &
   !$omp shared(matsiz,nstart,nend,mstart,mend,minm) private(imix,ie1,ie2)
@@ -102,7 +103,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
 #else
   minm(:,:,:) = zzero
 #endif
-  DEVICE_END_BLOCK
+  OMP_OFFLOAD end target
 
   ! index ranges
   ndim = nend-nstart+1
@@ -173,9 +174,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
   ! The remapping is to prevent integer arithmetics in the loops
   call remap_fortran_pointer(veckp, int([mstart, 1],kind=i32), int([mend, locmatsiz],kind=i32))
 
-  DEVICE_MAP_TO(lok)
-  DEVICE_MAP_TO(lokp)
-  DEVICE_MAP_TO(phase)
+  OMP_OFFLOAD target enter data map(always, to: lok, lokp, phase)
 
   !> Computing now the actual MT contribution
   !> \[
@@ -190,8 +189,6 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
   !             not properly handled by the GPUs. Also, keep innermost loops over 
   !             memory contiguous slices.
 
-#if defined(DEVICEOFFLOAD)  
-
   ! For GPU aware compilation
 
   ! First partition our workspace so that teams process groups of mixed functions
@@ -199,16 +196,13 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
   ! excution units sharing different fast memory.
   ! The threads of each team will take care of teams internal loops, in particular those involving bands, which
   ! consume most of the time (indeed the outer products consume 80% of the loop time in the CPU). These operate on
-  ! contiguous data, as they share fast access memory. Those are invoked with DEVICE_BEGIN_THREAD_WORK
-
-  !$omp target has_device_addr(tmat, veckp)
-  !$omp teams distribute &
-#else
+  ! contiguous data, as they share fast access memory. Those are invoked with OMP_OFFLOAD parallel do
 
   ! For CPU-only compilation the mixed basis in the MT are scattered across OpenMP threads
 
-  !$omp parallel do schedule(dynamic) &
-#endif
+  OMP_OFFLOAD target has_device_addr(tmat, veckp)
+  OMP_OFFLOAD teams distribute &
+  OMP_NO_OFFLOAD parallel do schedule(dynamic) &
   !$omp default(none) private(imix,ie2,ie1,is,ia,irm,bl,bm,ias,arg,phs,l1,m1,l1m1,l2min,l2max) &
   !$omp private(l2,m2,l2m2,angint,io1,io2,ilo2,idxlo1,ilo1,idxlo2,bk) &
   !$omp shared(locmatsiz,mstart,mend,nstart,nend,mbindex,idxas,l_max_apw,idxlm,apword,bradketa,eveckpalm) &
@@ -227,16 +221,16 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     phs = phase(ias)
 
     ! Set tmat for the given mixed basis to zero. 
-    ! DEVICE_BEGIN_THREAD_WORK: In device divide the job among the threads within a execution unit.
+    ! OMP_OFFLOAD parallel do: In device divide the job among the threads within a execution unit.
     ! In the rest of the imix loop these sections mean the
     ! same parallelization level.
-    DEVICE_BEGIN_THREAD_WORK schedule(static,1) collapse(2)
+    OMP_OFFLOAD parallel do schedule(static,1) collapse(2)
     do ie2 = mstart, mend
       do ie1 = nstart, nend
         tmat(ie1,ie2,imix) = zzero
       end do
     end do
-    DEVICE_END_THREAD_WORK
+    OMP_OFFLOAD end parallel do
 
     ! Sum over l1m1 and l2m2
     ! Notice the index of the summation
@@ -259,19 +253,19 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
               !======
               ! APW-APW
               !======
-              DEVICE_BEGIN_THREAD_WORK schedule(static,1)
+              OMP_OFFLOAD parallel do schedule(static,1)
               do ie2 = mstart, mend
                 veckp(ie2, imix) = zzero
               end do
-              DEVICE_END_THREAD_WORK
+              OMP_OFFLOAD end parallel do
 
               do io2 = 1, apword(l2,is) !! sum over \zeta_2
                 bk = angint*bradketa(2,irm,l1,io1,l2,io2,ias)
-                DEVICE_BEGIN_THREAD_WORK schedule(static,1)
+                OMP_OFFLOAD parallel do schedule(static,1)
                 do ie2 = mstart, mend
                   veckp(ie2, imix)=veckp(ie2, imix)+bk*eveckpalm(ie2,io2,l2m2,ias)
                 end do
-                DEVICE_END_THREAD_WORK
+                OMP_OFFLOAD end parallel do
               end do
               !======
               ! APW-LO
@@ -280,22 +274,22 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
                 if (lorbl(ilo2,is)==l2) then
                   idxlo2 = idxlo(l2m2,ilo2,ias)
                   bk = angint*bradketa(3,irm,l1,io1,ilo2,1,ias)
-                  DEVICE_BEGIN_THREAD_WORK schedule(static,1)
+                  OMP_OFFLOAD parallel do schedule(static,1)
                   do ie2 = mstart, mend
                     veckp(ie2,imix)=veckp(ie2,imix)+bk*lokp(ie2,idxlo2)
                   end do
-                  DEVICE_END_THREAD_WORK
+                  OMP_OFFLOAD end parallel do
                 end if
               end do ! ilo2
 
               ! Outer product (Computationally intensive part of the loop)
-              DEVICE_BEGIN_THREAD_WORK collapse(2) schedule(static,1)
+              OMP_OFFLOAD parallel do collapse(2) schedule(static,1)
               do ie2 = mstart, mend
                 do ie1 = nstart, nend
                   tmat(ie1,ie2,imix) = tmat(ie1,ie2,imix) + eveckalm(ie1,io1,l1m1,ias) * veckp(ie2,imix)
                 end do ! ie1
               end do ! ie2
-              DEVICE_END_THREAD_WORK
+              OMP_OFFLOAD end parallel do
 
             end do ! io1
 
@@ -306,18 +300,18 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
                 !======
                 ! LO-A
                 !======
-                DEVICE_BEGIN_THREAD_WORK schedule(static,1)
+                OMP_OFFLOAD parallel do schedule(static,1)
                 do ie2 = mstart, mend
                   veckp(ie2, imix) = zzero
                 end do
-                DEVICE_END_THREAD_WORK
+                OMP_OFFLOAD end parallel do
                 do io2 = 1, apword(l2,is) !! sum over \zeta_2
                   bk = angint*bradketlo(2,irm,ilo1,l2,io2,ias)
-                  DEVICE_BEGIN_THREAD_WORK schedule(static,1)
+                  OMP_OFFLOAD parallel do schedule(static,1)
                   do ie2 = mstart, mend
                     veckp(ie2,imix)=veckp(ie2,imix)+bk*eveckpalm(ie2,io2,l2m2,ias)
                   end do
-                  DEVICE_END_THREAD_WORK
+                  OMP_OFFLOAD end parallel do
                 end do ! io2
                 !======
                 ! LO-LO
@@ -326,22 +320,22 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
                   if (lorbl(ilo2,is)==l2) then
                     idxlo2 = idxlo(l2m2,ilo2,ias)
                     bk = angint*bradketlo(3,irm,ilo1,ilo2,1,ias)
-                    DEVICE_BEGIN_THREAD_WORK schedule(static,1)
+                    OMP_OFFLOAD parallel do schedule(static,1)
                     do ie2 = mstart, mend
                       veckp(ie2,imix)=veckp(ie2,imix)+bk*lokp(ie2,idxlo2)
                     end do
-                    DEVICE_END_THREAD_WORK
+                    OMP_OFFLOAD end parallel do
                   end if
                 end do ! ilo2
 
                 ! Outer product (Computationally intensive part of the loop)
-                DEVICE_BEGIN_THREAD_WORK collapse(2) schedule(static,1)
+                OMP_OFFLOAD parallel do collapse(2) schedule(static,1)
                 do ie2 = mstart, mend
                   do ie1 = nstart, nend
                     tmat(ie1,ie2,imix) = tmat(ie1,ie2,imix) + lok(ie1,idxlo1) * veckp(ie2,imix)
                   end do ! ie1
                 end do ! ie2
-                DEVICE_END_THREAD_WORK
+                OMP_OFFLOAD end parallel do
 
               end if
             end do ! ilo1
@@ -352,24 +346,22 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
       end do ! m1
     end do ! l1
 
-    DEVICE_BEGIN_THREAD_WORK schedule(static,1) collapse(2)
+    OMP_OFFLOAD parallel do schedule(static,1) collapse(2)
     do ie2 = mstart, mend
       do ie1 = nstart, nend
         tmat(ie1,ie2,imix) = phs * tmat(ie1,ie2,imix)
       end do ! ie1
     end do ! ie2
-    DEVICE_END_THREAD_WORK
+    OMP_OFFLOAD end parallel do
 
   end do ! imix
-#if defined(DEVICEOFFLOAD)
-  !$omp end teams distribute
-  !$omp end target
-#else
-  !$omp end parallel do
-#endif
+  OMP_OFFLOAD end teams distribute
+  OMP_OFFLOAD end target
+  OMP_NO_OFFLOAD end parallel do
+
 
   ! Now copy the the matrix in the proper order
-  DEVICE_BEGIN_BLOCK_HAS_DEVICE_ADDR(tmat)
+  OMP_OFFLOAD target has_device_addr(tmat)
   !$omp teams distribute parallel do collapse(3) &
   !$omp shared(locmatsiz,nstart,nend,mstart,mend,tmat,minm) &
   !$omp private(imix,ie1,ie2)
@@ -381,16 +373,14 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     end do
   end do
   !$omp end teams distribute parallel do
-  DEVICE_END_BLOCK
+  OMP_OFFLOAD end target
 
   ! Free memory
   nullify(tmat, veckp)
   call deallocate_device_memory(veckp_cptr, my_device)
   call deallocate_device_memory(tmat_cptr, my_device)
 
-  DEVICE_MAP_DELETE(lokp)
-  DEVICE_MAP_DELETE(lok)
-  DEVICE_MAP_DELETE(phase)
+  OMP_OFFLOAD target exit data map(delete: lokp, lok, phase)
   deallocate(lok, lokp, phase)
 
   !======================
@@ -404,40 +394,25 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
   call allocate_device_memory(igqk12_cptr, ngk1 * ngk2 * bytes_int, my_device)
   call c_f_pointer(igqk12_cptr, igqk12, [int(ngk1,kind=c_size_t), int(ngk2,kind=c_size_t)])
 
-  ! We only support OpenMP that do not allow to use derived types in all their glory
-  call c_f_pointer(get_device_pointer(Gset%ivg,my_device), Gset_ivg, shape(Gset%ivg))
-  call c_f_pointer(get_device_pointer(Gkqset%igkig,my_device), Gkqset_igkig, shape(Gkqset%igkig))
-  call c_f_pointer(get_device_pointer(Gset%intgv,my_device), Gset_intgv, shape(Gset%intgv))
-  call c_f_pointer(get_device_pointer(Gset%ivgig,my_device),Gset_ivgig, shape(Gset%ivgig))
-  call c_f_pointer(get_device_pointer(Gqbarc%igigk,my_device), Gqbarc_igigk, shape(Gqbarc%igigk))
-  ! We are remapping the boundaries of a pointer with default Fortran lower bound 
-  ! TODO(mrm): In Fortran2023 the lower is added to CALL C_F_POINTER(cptr, fptr [, shape, lower])
-  !            this removes the need of remapping
-  ! call c_f_pointer(get_device_pointer(Gset%ivgig,my_device),Gset_ivgig, shape(Gset%ivgig), lbound(Gset%ivgig))
-  ! The remapping is to prevent integer arithmetics in the loops
-  call remap_fortran_pointer(Gset_ivgig, lbound(Gset%ivgig), ubound(Gset%ivgig))
-
-  DEVICE_BEGIN_BLOCK map(to: ig0) has_device_addr(igqk12,Gset_ivg,Gkqset_igkig,Gset_intgv,Gset_ivgig,Gqbarc_igigk)
+  OMP_OFFLOAD target map(to: ig0) has_device_addr(igqk12)
   !$omp teams distribute parallel do collapse(2) &
-  !$omp default(NONE) shared(ik,jk,iq,ngk2,ngk1,Gset_ivg,Gkqset_igkig,ig0) &
-  !$omp shared(Gset_intgv,Gset_ivgig,igqk12,Gqbarc_igigk) &
+  !$omp default(NONE) shared(ik,jk,iq,ngk2,ngk1,Gset,Gkqset,ig0) &
+  !$omp shared(igqk12,Gqbarc) &
   !$omp private(igk2,igk1,ikv,ig)
   do igk2 = 1, ngk2 ! loop over G
     do igk1 = 1, ngk1 ! loop over G'
-      ikv(1:3) = Gset_ivg(1:3,Gkqset_igkig(igk1,1,ik)) - &
-                 Gset_ivg(1:3,Gkqset_igkig(igk2,1,jk)) + ig0(1:3)
-      if( all( ikv >= Gset_intgv(:, 1) ) .and. all( ikv <= Gset_intgv(:, 2) ) ) then
-        ig = Gset_ivgig(ikv(1),ikv(2),ikv(3))
-        igqk12(igk1,igk2) = Gqbarc_igigk(ig,1,iq)
+      ikv(1:3) = Gset%ivg(1:3,Gkqset%igkig(igk1,1,ik)) - &
+                 Gset%ivg(1:3,Gkqset%igkig(igk2,1,jk)) + ig0(1:3)
+      if( all( ikv >= Gset%intgv(:, 1) ) .and. all( ikv <= Gset%intgv(:, 2) ) ) then
+        ig = Gset%ivgig(ikv(1),ikv(2),ikv(3))
+        igqk12(igk1,igk2) = Gqbarc%igigk(ig,1,iq)
       else
         igqk12(igk1,igk2) = -1
       end if
     end do ! igk2
   end do ! igk1
   !$omp end teams distribute parallel do
-  DEVICE_END_BLOCK
-
-  nullify(Gset_ivg,Gkqset_igkig,Gset_intgv,Gset_ivgig,Gqbarc_igigk)
+  OMP_OFFLOAD end target
 
   ngq_max_block_size = merge(Gqset%ngk(1,iq), min(input%gw%GBatchCount, Gqset%ngk(1,iq)), input%gw%GBatchCount == 0)
   nblocks_ngq        = ceiling(real(Gqset%ngk(1,iq), kind = dp) /  ngq_max_block_size)
@@ -451,10 +426,10 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
   call c_f_pointer(eveck_int_cptr, eveck_int, int([ngk1,ndim],c_size_t))
   call c_f_pointer(eveckp_int_cptr, eveckp_int, int([ngk2,mdim],c_size_t))
 
-  DEVICE_BEGIN_BLOCK has_device_addr(eveck_int, eveckp_int)
+  OMP_OFFLOAD target has_device_addr(eveck_int, eveckp_int)
   eveck_int(:,:)  = eveck(1:ngk1, nstart:nend)
   eveckp_int(:,:) = eveckp(1:ngk2, mstart:mend)
-  DEVICE_END_BLOCK
+  OMP_OFFLOAD end target
 
   ! We iterate over batches of plane waves, because for 
   ! systems with very large number of planes waves operating 
@@ -478,7 +453,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
     call remap_fortran_pointer(temp_int, int([1, 1, igq_start],kind=i32), int([ngk2, ngk1, igq_end],kind=i32))
     call remap_fortran_pointer(mnn, int([mstart,nstart,igq_start],kind=i32), int([mend, nend, igq_end],kind=i32))
 
-    DEVICE_BEGIN_BLOCK has_device_addr(igqk12,temp_int)
+    OMP_OFFLOAD target has_device_addr(igqk12,temp_int)
     !$omp teams distribute parallel do collapse(3) &
     !$omp default(NONE) private(igq,igk1,igk2) &
     !$omp shared(ngk1,ngk2,mpwipw,temp_int,igqk12,igq_start,igq_end)
@@ -494,7 +469,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
       end do ! igk1
     end do
     !$omp end teams distribute parallel do
-    DEVICE_END_BLOCK
+    OMP_OFFLOAD end target
 
     ! Matrix-matrix product either in the device or in the host depending on the compilation
     ! NVIDIA and AMD: calls magma zgemm
@@ -510,7 +485,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
                   temp2_int_cptr, ngk2, zzero, mnn_cptr, mdim, ngq, device_world, stridea=0_i32)
     call device_world%synchronize()
 
-    DEVICE_BEGIN_BLOCK_HAS_DEVICE_ADDR(mnn)
+    OMP_OFFLOAD target has_device_addr(mnn)
     !$omp teams distribute parallel do collapse(3) &
     !$omp default(NONE) private(igq,ie2,ie1) shared(mstart,mend,nstart,nend,locmatsiz,igq_start,igq_end,minm,mnn)
     do igq = igq_start, igq_end
@@ -521,7 +496,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
       end do ! ie1
     end do ! igq
     !$omp end teams distribute parallel do
-    DEVICE_END_BLOCK
+    OMP_OFFLOAD end target
 
     nullify(temp_int, temp2_int, mnn)
 

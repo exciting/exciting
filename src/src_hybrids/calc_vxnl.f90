@@ -82,10 +82,7 @@ subroutine calc_vxnl()
     allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveck(nmatmax,nstfv))
     allocate(eveckp(nmatmax,nstfv))
-    DEVICE_MAP_ALLOC(eveckalm)
-    DEVICE_MAP_ALLOC(eveckpalm)
-    DEVICE_MAP_ALLOC(eveck)
-    DEVICE_MAP_ALLOC(eveckp)
+    OMP_OFFLOAD target enter data map(alloc: eveckalm, eveckpalm, eveck, eveckp)
 
     !------------------------------------------!
     ! Matrix elements of non-local potential   !
@@ -162,10 +159,8 @@ subroutine calc_vxnl()
           call getevecfv(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), eveck)
           call expand_evec(ik,'t')
           call expand_evec(jk,'c')
-          DEVICE_UPDATE_TO(eveckalm)
-          DEVICE_UPDATE_TO(eveckpalm)
-          DEVICE_UPDATE_TO(eveck)
-          DEVICE_UPDATE_TO(eveckp)
+          
+          OMP_OFFLOAD target update to(eveckalm, eveckpalm, eveck, eveckp)
 
           !=================================
           ! Loop over m-blocks in M^i_{nm}
@@ -177,7 +172,7 @@ subroutine calc_vxnl()
 
             ! m-block M^i_{nm}
             allocate(minm(mbsiz,1:nstfv,mstart:mend))
-            DEVICE_MAP_ALLOC(minm)
+            OMP_OFFLOAD target enter data map(alloc: minm)
             if ((input%groundstate%outputlevelnumber>1) .and. (rank==0)) then
               msize = sizeof(minm)*b2mb
               write(60,'(a,3i8,f14.2)') '    iblk, mstart, mend, size(minm) (Mb):', &
@@ -188,7 +183,7 @@ subroutine calc_vxnl()
             ! Calculate M^i_{nm}
             !---------------------
             call expand_products(ik, iq, 1, nstfv, -1, mstart, mend, nomax, minm)
-            DEVICE_UPDATE_FROM(minm)
+            OMP_OFFLOAD target update from(minm)
 
             ! sum over occupied states
             do ie3 = mstart, mend
@@ -239,7 +234,7 @@ subroutine calc_vxnl()
               end if ! core
             end do ! ie3
 
-            DEVICE_MAP_DELETE(minm)
+            OMP_OFFLOAD target exit data map(delete: minm)
             deallocate(minm)
 
           end do ! iblk
@@ -262,10 +257,7 @@ subroutine calc_vxnl()
     end do ! ikp
 
     ! clear memory
-    DEVICE_MAP_DELETE(eveckalm)
-    DEVICE_MAP_DELETE(eveckpalm)
-    DEVICE_MAP_DELETE(eveck)
-    DEVICE_MAP_DELETE(eveckp)
+    OMP_OFFLOAD target exit data map(delete: eveckalm, eveckpalm, eveck, eveckp)
     deallocate(eveck)
     deallocate(eveckp)
     deallocate(eveckalm)
@@ -275,11 +267,11 @@ subroutine calc_vxnl()
     !! We need to free those for the device accelerated
     !! version.
     if (allocated(mpwipw)) then
-      DEVICE_MAP_DELETE(mpwipw)
+      OMP_OFFLOAD target exit data map(delete: mpwipw)
       deallocate(mpwipw)
     end if
     if (allocated(barc)) then
-      DEVICE_MAP_DELETE(barc)
+      OMP_OFFLOAD target exit data map(delete: barc)
       deallocate(barc)
     end if
 

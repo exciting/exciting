@@ -81,11 +81,11 @@ contains
         logical, intent(in) :: Gamma
         ! q-dependent dielectric function
         if (allocated(epsilon)) then 
-          DEVICE_MAP_DELETE(epsilon)
+          OMP_OFFLOAD target exit data map(delete: epsilon)
           deallocate(epsilon)
         end if
         allocate(epsilon(mbsiz,mbsiz,iomstart:iomend), source=zzero)
-        DEVICE_MAP_TO(epsilon)
+        OMP_OFFLOAD target enter data map(always, to: epsilon)
         ! head and wings of the dielectric function when q->0
         if (Gamma) then
           if (allocated(epsh)) deallocate(epsh)
@@ -107,7 +107,7 @@ contains
     subroutine delete_dielectric_function(Gamma)
         logical, intent(in) :: Gamma
         if (allocated(epsilon)) then 
-          DEVICE_MAP_DELETE(epsilon)
+          OMP_OFFLOAD target exit data map(delete: epsilon)
           deallocate(epsilon)
         end if
         if (Gamma) then

@@ -154,7 +154,7 @@ set(INTEL_DEBUG
     -g
     -fPIC
     -fpp                   # Use preprocessor
-    -allow fpp_comments    # Preprocessor option
+    -allow nofpp_comments  # Preprocessor option
     -g            # Generate symbols
     -traceback    # symbolic stack traceback
     -fp           # Disables the ebp register in optimizations and sets the ebp register to be used as the frame pointer.
@@ -167,8 +167,8 @@ set(INTEL_DEBUG
 
 set(INTEL_RELEASE -O3 -g -fPIC -fpp -allow nofpp_comments -save-temps -no-wrap-margin -fp-model source )
 
-# Cray compiler
-set(CRAY_RELEASE -O2 -ef -g -craype-verbose -e Z -dC -s real64 -s integer32 -fPIC -hipa0 -h flex_mp=strict -hnopattern -hlist=m -h keepfiles)
+# Cray compiler (add -hlist=m -h keepfiles to save the temporary files)
+set(CRAY_RELEASE -O2 -ef -g -craype-verbose -e Z -dC -s real64 -s integer32 -fPIC -hipa0 -h flex_mp=strict -hnopattern)
 set(CRAY_DEBUG   -O0 -ef -g -fsanitize=thread -craype-verbose -e Z -dC -s real64 -s integer32 -fPIC -hipa0 -h flex_mp=strict -hnopattern)
 
 # Flang compiler
@@ -262,8 +262,8 @@ string(REPLACE ";" " " STD_FFLAGS "${STD_FFLAGS}")
 # Initialise BUILDTYPE flags so we completely define/control
 # the compiler settings
 # Note, these flags are GLOBALS and will apply to ALL libs/executables built by CMake
-set(CMAKE_Fortran_FLAGS_DEBUG "${FF_DEBUG}")
-set(CMAKE_Fortran_FLAGS_RELEASE "${FF_RELEASE}")
+set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS} ${FF_DEBUG}")
+set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS} ${FF_RELEASE}")
 
 
 # Here test compiler bugs

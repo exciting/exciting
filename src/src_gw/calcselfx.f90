@@ -80,10 +80,8 @@ subroutine calcselfx(iq, ikp_first, ikp_last)
     allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveck(nmatmax,nstfv))
     allocate(eveckp(nmatmax,nstfv))
-    DEVICE_MAP_ALLOC(eveckalm)
-    DEVICE_MAP_ALLOC(eveckpalm)
-    DEVICE_MAP_ALLOC(eveck)
-    DEVICE_MAP_ALLOC(eveckp)
+    
+    OMP_OFFLOAD target enter data map(alloc: eveckalm, eveckpalm, eveck, eveckp)
 
     allocate(minmmat(mbsiz,ibgw_including_degeneracy:nbgw_including_degeneracy,1:mdim), source=zzero)
 
@@ -100,13 +98,11 @@ subroutine calcselfx(iq, ikp_first, ikp_last)
       call get_evec_gw(kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), eveckp)
       eveckp = conjg(eveckp)
       call get_evec_gw(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), eveck)
-      DEVICE_UPDATE_TO(eveck)
-      DEVICE_UPDATE_TO(eveckp)
 
       call expand_evec(ik, 't')
       call expand_evec(jk, 'c')
-      DEVICE_UPDATE_TO(eveckalm)
-      DEVICE_UPDATE_TO(eveckpalm)
+
+      OMP_OFFLOAD target update to(eveck, eveckp, eveckalm, eveckpalm)
       
       !========================================================
       ! Calculate the contribution to the exchange self-energy
@@ -120,10 +116,10 @@ subroutine calcselfx(iq, ikp_first, ikp_last)
       call get_degenerate_limits_qp_interval_ikp(ikp, ispace_init, ispace_final)
 
       ! Calculate M^i_{nm}+M^i_{cm}
-      DEVICE_MAP_ALLOC(minmmat)
+      OMP_OFFLOAD target data map(alloc: minmmat)
       call expand_products(ik, iq, ibgw_including_degeneracy, nbgw_including_degeneracy, -1, 1, mdim, nomax, minmmat)
-      DEVICE_UPDATE_FROM(minmmat)
-      DEVICE_MAP_DELETE(minmmat)
+      OMP_OFFLOAD target update from(minmmat)
+      OMP_OFFLOAD end target data
 
 #ifdef USEOMP
 !$omp parallel default(none) private(ie1,ie2,mvm,icg,is,ia,ias,ic,fnk,sx,lowband,upband,size_deg), & 
@@ -196,10 +192,7 @@ subroutine calcselfx(iq, ikp_first, ikp_last)
 
     deallocate(minmmat)
 
-    DEVICE_MAP_DELETE(eveck)
-    DEVICE_MAP_DELETE(eveckp)
-    DEVICE_MAP_DELETE(eveckalm)
-    DEVICE_MAP_DELETE(eveckpalm)
+    OMP_OFFLOAD target exit data map(delete: eveck, eveckp, eveckalm, eveckpalm)
 
     deallocate(eveck)
     deallocate(eveckp)

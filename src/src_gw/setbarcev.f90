@@ -66,7 +66,7 @@ subroutine setbarcev(eig_tol, remove_g_equal_zero)
     ! Build the trasformation matrix
     mbsiz = count( keep )
     if (allocated(barc)) then
-        DEVICE_MAP_DELETE(barc)
+        OMP_OFFLOAD target exit data map(delete: barc)
         deallocate(barc)
     end if
     allocate( barc(matsiz, mbsiz), source=zzero )
@@ -79,7 +79,7 @@ subroutine setbarcev(eig_tol, remove_g_equal_zero)
       end if
     end do
 
-    DEVICE_MAP_TO(barc)
+    OMP_OFFLOAD target enter data map(always, to: barc)
 
 end subroutine
 !EOC
