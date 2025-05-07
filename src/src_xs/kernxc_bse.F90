@@ -9,7 +9,7 @@
 subroutine kernxc_bse
 ! !USES:
   use modmpi
-  use modinput
+  use modinput, only: issvlo   
   use mod_APW_LO, only: lolmax
   use mod_qpoint, only: nqpt
   use mod_kpoint, only: nkptnr
@@ -287,7 +287,7 @@ subroutine kernxc_bse
     bc%il2 = istl2
     bc%iu1 = istu1
     bc%iu2 = istu2
-    call ematqk(iqmt, iknr, xiou, bc)
+    call ematqk(iqmt, iknr, xiou, bc, issvlo())
 
     ! Get uo
     if(allocated(xiuo)) deallocate(xiuo)
@@ -298,7 +298,7 @@ subroutine kernxc_bse
     bc%il2 = istl4
     bc%iu1 = istu3
     bc%iu2 = istu4
-    call ematqk(iqmt, iknr, xiuo, bc)
+    call ematqk(iqmt, iknr, xiuo, bc, issvlo())
 
     emat(:, :, :, iknr) = xiou(:, :, :)
     emata(:, :, :, iknr) = xiuo(:, :, :)

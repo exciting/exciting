@@ -14,21 +14,17 @@
       <atom coord="      0.66666661        0.33333332        0.73249995"/>
     </species>
   </structure>
-  <groundstate ngridk="3 3 2" outputlevel="normal" rgkmax="8" gmaxvr="12" do="fromscratch" useDensityMatrix="false" nempty="30" xctype="GGA_PBE">
+  <groundstate ngridk="2 2 2" outputlevel="normal" rgkmax="5.5" gmaxvr="8" do="fromscratch" useDensityMatrix="false" nempty="10" xctype="GGA_PBE">
     <spin spinorb="true" svlo="true" realspace="false"/>
   </groundstate>
-  <xs xstype="BSE" ngridk="3 3 2" vkloff="0.001 0.002 0.003" ngridq="3 3 2" nempty="50" gqmax="2.5" broad="0.0036" scissor="0" tappinfo="true" tevout="true">
+  <xs xstype="BSE" ngridk="2 2 2" vkloff="0.001 0.002 0.003" ngridq="2 2 2" nempty="30" gqmax="0.8" broad="0.0036" scissor="0" tappinfo="true" tevout="true">
     <energywindow intv="0.0 1.0" points="1200"/>
-    <screening screentype="full" nempty="0"/>
-    <BSE bsetype="IP" nstlbse="55 66 1 10"/>
+    <screening screentype="full" nempty="50"/>
+    <BSE bsetype="singlet" nstlbse="55 66 1 10"/>
     <qpointset>
       <qpoint>0.0 0.0 0.0</qpoint>
     </qpointset>
-       <plan>
-         <doonly task="xsgeneigvec"/>
-         <doonly task="writepmatxs"/>   
-         <doonly task="bse"/>
-      </plan>
   </xs>
 </input>
+
 

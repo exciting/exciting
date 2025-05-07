@@ -11,7 +11,7 @@ subroutine exccoulint(iqmt)
   use constants, only: zone, zzero
   use mod_APW_LO, only: lolmax
   use mod_lattice, only: omega
-  use modinput, only: input
+  use modinput, only: input, issvlo
   use modmpi, only: rank, barrier, mpi_allgatherv_ifc
   use modxs, only: xsgnt, unitout,&
                  & ngq, nqmt,&
@@ -553,7 +553,7 @@ subroutine exccoulint(iqmt)
 
       else
         if (.not. (input%groundstate%tevecsv)) then ! 1st variation
-          call ematqk(iqmt, ikmnr, muo, ematbc)
+          call ematqk(iqmt, ikmnr, muo, ematbc, issvlo())
         else                                        ! 2nd variation 
           call ematqk_sv(iqmt, ikmnr, muo, ematbc)  
         end if
