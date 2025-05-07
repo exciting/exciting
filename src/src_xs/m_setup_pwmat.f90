@@ -207,7 +207,7 @@ module m_setup_pwmat
           call ematqk_core(iqmt, ikmnr, muo(1:inu,1:ino,:),ematbc,'uo')
         else
           if (.not. (input%groundstate%tevecsv)) then
-            call ematqk(iqmt, ikmnr, muo(1:inu,1:ino,:), ematbc)
+            call ematqk(iqmt, ikmnr, muo(1:inu,1:ino,:), ematbc, issvlo())
           else
             call ematqk_sv(iqmt, ikmnr, muo(1:inu,1:ino,:), ematbc)
           end if
