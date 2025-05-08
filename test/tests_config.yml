@@ -51,6 +51,30 @@ groundstate/LDA_PW-cdft-N2:
       - "eigval.xml"
       - "atoms.xml"
 
+groundstate/PBE-cdft-LiF:
+    inputs:
+      - "input.xml"
+      - "Li.xml"
+      - "F.xml"
+      - "EXC"
+    files_under_test:
+      - "INFO_CDFT.OUT"
+      - "evalcore.xml"
+      - "eigval.xml"
+      - "atoms.xml"
+
+hybrid/HSE-cdft-LiF:
+    inputs:
+      - "input.xml"
+      - "Li.xml"
+      - "F.xml"
+      - "EXC"
+    files_under_test:
+      - "INFO_CDFT.OUT"
+      - "evalcore.xml"
+      - "eigval.xml"
+      - "atoms.xml"
+
 # TODO(Alex) Issue 101. Also see Issue #75
 groundstate/LDA_PW-collinear-Fe:
    group: !Group NONE
