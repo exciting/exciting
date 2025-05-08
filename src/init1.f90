@@ -313,6 +313,24 @@ Subroutine init1
          &            ikmap, ivk, vkl, vkc, wkpt)
          nkpt_ptr => nkpt
 
+         ! TODO(Ronaldo): this is only a temporary print
+        !  write (*,*), 'Map: reducible to irreducible kpoints'
+        !  write (*,*), 'In each of following lines, there are:'
+        !  write (*,*), '- 3 integers: indexes along b1, b2 and b3 (reciprocal lattice vectors)'
+        !  write (*,*), '- 1 integer: index of a reducible kpoint'
+        !  write (*,*), '- 3 float numbers: coordinates the reducible kpoint (in terms of lattice vectors)'
+        !  write (*,*), '- 1 integer: index of an irreducible kpoint'
+        !  write (*,*), '- 3 float numbers: coordinates the irreducible kpoint (in terms of lattice vectors)'
+        !  do n1 = 0, input%groundstate%ngridk(1)-1
+        !    do n2 = 0, input%groundstate%ngridk(2)-1
+        !      do n3 = 0, input%groundstate%ngridk(3)-1
+        !        write (*,'(3I6,I6,3F10.6,I6,3F10.6)') n1, n2, n3, &
+        !          & ikmapnr(n1,n2,n3), vklnr(1:3,ikmapnr(n1,n2,n3)), &
+        !          & ikmap(n1,n2,n3), vkl(1:3,ikmap(n1,n2,n3))
+        !      end do
+        !    end do
+        !  end do
+
 #ifdef TETRA
   ! call to module routine
          If (associated(input%xs)) Then

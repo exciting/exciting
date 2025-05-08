@@ -1,0 +1,39 @@
+<input>
+        <title>N2</title>
+        <structure speciespath="./" cartesian="true">
+                <crystal scale="1">
+                        <basevect>    13.0     0.000000000     0.000000000 </basevect>
+                        <basevect>    0.000000000    10.000000000     0.000000000 </basevect>
+                        <basevect>    0.000000000     0.000000000    10.000000000 </basevect>
+                </crystal>
+                <species speciesfile="N.xml" rmt="0.9">
+                        <atom coord="     0.000000000     0.000000000     0.000000000"/>
+                        <atom coord="     2.5     0.000000000     0.000000000"/>
+                </species>
+        </structure>
+        <groundstate ngridk="1 1 1"
+          maxscl="200"
+          do="fromscratch"
+          mixerswitch="2"
+          mixer="msec"
+          frozencore="false"
+          outputlevel="high"
+          nempty="10"
+          xctype="LDA_PW"
+          ValenceRelativity="none"
+          rgkmax="2.0"
+          gmaxvr="14.0"
+          epsengy="1e-04"
+          radialgridtype="cubic"
+          lmaxmat="5"
+          lmaxapw="5"
+          lmaxvr="5">
+          <constrainedDFT 
+            useExcitonCoefficients="true"
+            useExternalFile="true"
+            fileName="EXC" 
+            startDensityAndPotentialFromFile="false"
+            MaximumOverlapMethod="true" 
+            skipgnd="false" />
+        </groundstate>
+</input>

@@ -5,50 +5,80 @@
 !
 subroutine scf_cycle(verbosity)
 ! !USES:
-    use modinput
-    use modmain
-    use modmpi
-    use scl_xml_out_Module
-    use TS_vdW_module, only: C6ab, R0_eff_ab
-    use sirius_init,   only: sirius_options
+    use cdft, only: cdft_input_keys, deallocate_cdft_global_arrays, ExcitonCoefficients, &
+      file_extension_GS, initialize_cdft_global_arrays, occupy_cdft, update_occupations_with_the_maximum_overlap_method
+    use exciting_mpi, only: xmpi_bcast, xmpi_allreduce
+    use lo_recommendation, only: recommend_local_orbital_trial_energies
+    use mod_APW_LO, only: apwn, apwe0, lorbe0, lorbl, lorbord, lorbn, maxapword, maxlapw, nlorb
+    use mod_atoms, only: atposc, idxas, natoms, natmtot, nspecies, spr, spsymb
+    use mod_charge_and_moment, only: chgdst, chgpart, momtot
+    use mod_convergence, only: currentconvergence, vchgdst, vcurrentconvergence, vdeltae
+    use mod_eigenvalue_occupancy, only: evalsv, fermidos, occsv, nstfv, nstsv
+    use mod_eigensystem, only: mt_hscf, MTInitAll, MTNullify, nmatmax
+    use mod_energy, only: engytot, engyknst
+    use mod_force, only: forcemax, forcetot
+    use mod_Gvector, only: ngrid, ngrtot
+    use mod_Gkvector, only: vgkl
+    use mod_kpoint, only: nkpt, vkl, wkpt
+    use mod_LDA_LU, only: ldapu, lmmaxlu
+    use mod_misc, only: filext, task, tlast, tstop
+    use mod_muffin_tin, only: lmmaxvr, nrmt, nrmtmax
+    use mod_OEP_HF, only: resoep
+    use mod_potential_and_density, only: generate_density_and_magnetization, m2effig, magir, magmt, meffig, rhomt, rhoir, veffmt
+    use mod_spin, only: ndmag, nspinor, nspnfv
+    use mod_timing, only: stopwatch, time_density_init, time_pot_init, timefor, timefv, &
+      timeinit, timeio, timemat, timemixer, timemt, timepot, timerho, timesv
+    use modinput, only: input, getfixspinnumber
+    use modmpi, only: barrier, firstofset, ierr, lastofset, mpiglobal, mpi_allgatherv_ifc, &
+      procs, rank, splittfile
+    use precision, only: dp, i32
+    use scl_xml_out_Module, only: deltae, dforcemax, iscl, scl_iter_xmlout, scl_xml_out_write, scl_xml_write_moments
+    use secular_equation, only: seceqn
     use sirius_api,    only: set_radial_functions_sirius, solve_seceqn_sirius, get_eval_sirius, get_evec_sirius, &
                              put_occ_sirius, generate_density_sirius, get_periodic_function_sirius
-    use mod_potential_and_density, only: generate_density_and_magnetization
-    use cdft, only: cdft_input_keys, ExcitonCoefficients, file_extension_GS, occupy_cdft
-    use precision, only: dp
-    use lo_recommendation, only: recommend_local_orbital_trial_energies
-    use trial_energy_selection, only: select_apw_trial_energies, select_local_orbital_trial_energies
+    use sirius_init,   only: sirius_options
     use total_energy, only: energy
+    use trial_energy_selection, only: select_apw_trial_energies, select_local_orbital_trial_energies
+    use TS_vdW_module, only: C6ab, R0_eff_ab
+    
+    
 !
 
 ! !DESCRIPTION:
 !
 ! !REVISION HISTORY:
 !   Created February 2013 (DIN)
+!   Modified December 2024 (Ronaldo)
 !EOP
 !BOC
     Implicit None
-    integer, intent(IN) :: verbosity
-    Real(8) :: et, fm
-    Real(8), Allocatable :: evalfv(:, :)
-    Complex (8), Allocatable :: evecfv(:, :, :)
-    Complex (8), Allocatable :: evecsv(:, :)
-    Logical :: exist
-    Integer :: ik, is, ia, idm, id, lmax, nodesmax
-    Integer :: n, nwork
-    !Integer :: i,j, ias
-    Real(8), Allocatable :: v(:),forcesum(:,:)
-    Real(8) :: timetot, ts0, ts1, tin1, tin0, ta,tb
-    
-    character*(77) :: string, acoord
 
-    Real (8), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
-    Real (8), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
-    Real (8), Allocatable :: occsv_gs(:, :)
+    integer(i32), intent(IN) :: verbosity
+    Real(dp) :: et, fm
+    Real(dp), Allocatable :: evalfv(:, :)
+    Complex(dp), Allocatable :: evecfv(:, :, :)
+    Complex(dp), Allocatable :: evecsv(:, :)
+    Logical :: exist
+    Integer(i32) :: ik, is, ia, idm, id, lmax, nodesmax
+    Integer(i32) :: n, nwork
+    Real(dp), Allocatable :: v(:)
+    Real(dp) :: timetot, ts0, ts1, tin1, tin0, ta,tb
+    
+    character(len=77) :: string, acoord
+
+    Real(dp), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
+    Real(dp), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
+
     type(cdft_input_keys) :: cdft_calculation
     logical :: spin_polarization
+    integer(i32) :: first_k, last_k
+    integer(i32) :: nv, nc
+    complex (dp), allocatable :: evecfv_store(:, :, :)
+    real (dp), allocatable :: occsv_gs(:, :)
     type (ExcitonCoefficients) :: a_lvck
 
+    first_k = firstofset(rank, nkpt)
+    last_k = lastofset(rank, nkpt)
     acoord = "lattice"
     spin_polarization = associated( input%groundstate%spin )
     if (input%structure%cartesian) acoord = "cartesian"
@@ -139,10 +169,20 @@ subroutine scf_cycle(verbosity)
         call getoccsv( vkl(:, ik), occsv(:, ik) )
       end do
       occsv_gs = occsv
-      if( cdft_calculation%read_density_potential_from_file() ) call readstate
+      if ( cdft_calculation%read_density_potential_from_file() ) call readstate
+      if ( cdft_calculation%use_external_file() ) then
+        call a_lvck%get_from_file( cdft_calculation%file_name )
+        call a_lvck%sanity_check( occsv_gs )
+      end if
+      if ( cdft_calculation%is_maximum_overlap_method_required() ) then
+        allocate( evecfv_store(nmatmax, nstfv, first_k:last_k) )
+        splittfile = .false.
+        do ik = first_k, last_k
+          call getevecfv( vkl(:, ik), vgkl(:, :, :, ik), evecfv_store(:, :, ik) )
+        end do
+        call initialize_cdft_global_arrays( evecfv_store, first_k )
+      end if
       filext = string
-      call a_lvck%get_from_file( cdft_calculation%file_name )
-      call a_lvck%sanity_check( occsv_gs )
     end if
 
 !----------------------------------------------------
@@ -287,13 +327,14 @@ subroutine scf_cycle(verbosity)
 ! start k-point loop
 #ifdef MPI
             call barrier()
-            If (rank == 0) Call delevec()
+            If (rank == 0) then 
+              if( input%groundstate%solver%type /= 'Davidson' .or. procs > 1 ) Call delevec()
+            end if
             splittfile = .True.
-            Do ik = firstofset(rank,nkpt), lastofset(rank,nkpt)
 #else
             splittfile = .False.
-            Do ik = 1, nkpt
 #endif
+            Do ik = first_k, last_k
 
 !____________________________________________
 ! every thread should allocate its own arrays
@@ -314,7 +355,7 @@ subroutine scf_cycle(verbosity)
 
 !__________________________________________________________
 ! solve the first- and second-variational secular equations
-                call seceqn (ik, evalfv, evecfv, evecsv )
+                call seceqn (ik, evalfv, evecfv, evecsv, cdft_calculation%is_maximum_overlap_method_required() )
 
                 call timesec(ts0)
 
@@ -327,6 +368,12 @@ subroutine scf_cycle(verbosity)
                 Call putevecsv (ik, evecsv)
 
 !__________________________
+! store evecfv for the case of maximum overlap in cdft
+                if ( cdft_calculation%is_maximum_overlap_method_required() &
+                    .and. (ik >= first_k) .and. (ik<=last_k) ) &
+                    evecfv_store(1:nmatmax, 1:nstfv, ik) = evecfv(1:nmatmax, 1:nstfv, 1)
+
+!__________________________
 ! calculate partial charges
                 if (input%groundstate%tpartcharges) call genpchgs(ik,evecfv,evecsv)
                 deallocate (evalfv, evecfv, evecsv)
@@ -334,11 +381,8 @@ subroutine scf_cycle(verbosity)
             End Do ! ik
 
 ! end k-point loop -------------------------------------------------------------
-
-#ifdef MPI
             call mpi_allgatherv_ifc(nkpt, inplace=.False., rlen=nstsv, rbuf=evalsv)
             if (task==7) call mpi_allgatherv_ifc(nkpt, inplace=.False., rlen=nstfv, rbuf=engyknst)
-#endif
         end if
 
         call timesec(tb)
@@ -352,6 +396,8 @@ subroutine scf_cycle(verbosity)
         if( cdft_calculation%is_on() ) then
           occsv = occsv_gs
           call occupy_cdft( a_lvck, wkpt, occsv )
+          if ( cdft_calculation%is_maximum_overlap_method_required() ) &
+            call update_occupations_with_the_maximum_overlap_method( evecfv_store, occsv(:, first_k:) )
         else 
           call occupy
         end if 
@@ -363,11 +409,7 @@ subroutine scf_cycle(verbosity)
             Call writefermi
         End If
 !write the occupancies to file
-#ifdef MPI
-        Do ik = firstofset(rank,nkpt), lastofset(rank,nkpt)
-#else
-        Do ik = 1, nkpt
-#endif
+        Do ik = first_k, last_k
             Call putoccsv (ik, occsv(:, ik))
         End Do
         if ( associated(input%groundstate%sirius) ) then
@@ -386,7 +428,7 @@ subroutine scf_cycle(verbosity)
           call get_periodic_function_sirius(rhoir, ngrid)
           call timesec(ts0)
         else
-          call generate_density_and_magnetization()
+          call generate_density_and_magnetization
           call timesec(ts0)
 #ifdef MPI
         ! EXX case
@@ -462,9 +504,8 @@ subroutine scf_cycle(verbosity)
            vcurrentconvergence(input%groundstate%niterconvcheck) = currentconvergence
 
         End If
-#ifdef MPI
-        Call MPI_bcast (v(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-#endif
+        call xmpi_bcast(mpiglobal, v)
+
 ! unpack potential and field
         Call packeff (.False., n, v)
 !---------------
@@ -685,10 +726,9 @@ subroutine scf_cycle(verbosity)
 
         End If ! iscl>2
 
-#ifdef MPI
-        Call MPI_bcast (tstop, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
-        Call MPI_bcast (tlast, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
-#endif
+        call xmpi_bcast(mpiglobal, tstop)
+        call xmpi_bcast(mpiglobal, tlast)
+
         call timesec(ts1)
         timeio = ts1 - ts0 + timeio
 !! TIME - End of fourth IO segment
@@ -725,15 +765,11 @@ subroutine scf_cycle(verbosity)
 !------------------
     If (( .Not. tstop) .And. (input%groundstate%tforce)) Then
         Call force(input%groundstate%tfibs)
-#ifdef MPI
 ! For whatever reason each MPI process may produce very slightly different forces.
 ! At this spot, we equalise them, so that we do not end up with a different geometry
 ! for every process.
-        allocate(forcesum(3,natmtot))
-        call MPI_ALLREDUCE(forcetot, forcesum, natmtot*3, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
-        forcetot(1:3,1:natmtot)=forcesum(1:3,1:natmtot)/dble(procs)
-        deallocate(forcesum)
-#endif
+        call xmpi_allreduce( forcetot, mpiglobal )
+        forcetot(1:3,1:natmtot)=forcetot(1:3,1:natmtot)/dble(procs)
 ! output forces to INFO.OUT
         if ((verbosity>-1).and.(rank==0)) then
            call printbox(60,"-","Writing atomic positions and forces")
@@ -766,6 +802,7 @@ subroutine scf_cycle(verbosity)
 
     if (allocated(rhomtref)) deallocate(rhomtref)
     if (allocated(rhoirref)) deallocate(rhoirref)
+    if( cdft_calculation%is_on() )  call deallocate_cdft_global_arrays()
 
     If ((verbosity>-1).and.(rank==0)) Then
 ! add blank line to TOTENERGY.OUT, FERMIDOS.OUT, MOMENT.OUT and RMSDVEFF.OUT

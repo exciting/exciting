@@ -202,7 +202,8 @@ spin_attribute_types = {"bfieldc": (float, 3),
                         "taufsm": (float, 1),
                         "vqlss": (float, 3)} 
 
-constrainedDFT_attribute_types = {"fileName": (str, 1),
+constrainedDFT_attribute_types = {"MaximumOverlapMethod": (bool, 1),
+                                  "fileName": (str, 1),
                                   "skipgnd": (bool, 1),
                                   "startDensityAndPotentialFromFile": (bool, 1),
                                   "useExcitonCoefficients": (bool, 1),
