@@ -10,6 +10,7 @@ Subroutine gendmatmt (ik, evecfv, evecsv)
       Use modmain
       use constants, only: zzero
       use modmpi
+      use precision, only: dp
 ! !INPUT/OUTPUT PARAMETERS:
 !   ik     : k-point number (in,integer)
 !   evecfv : first-variational eigenvectors (in,complex(nmatmax,nstfv,nspnfv))
@@ -19,7 +20,7 @@ Subroutine gendmatmt (ik, evecfv, evecsv)
 !
 ! !REVISION HISTORY:
 !   Created May 2014 (Andris)
-!   Revised Aug 2020 (Ronaldo)
+!   Revised October 2024 (Ronaldo)
 !EOP
 !BOC
       Implicit None
@@ -34,7 +35,7 @@ Subroutine gendmatmt (ik, evecfv, evecsv)
       integer , pointer :: losize(:)
       Real (8) :: t1, t2
       Real (8) :: ts0, ts1
-      Complex (8) weight
+      Complex (8) :: weight
 ! allocatable arrays
       Complex (8), Allocatable :: apwalm (:, :, :, :, :),apwi(:,:)
       Complex (8), pointer :: wf1(:,:), wf2prime(:,:), wfalpha(:,:),wfbeta(:,:)
@@ -56,7 +57,7 @@ Subroutine gendmatmt (ik, evecfv, evecsv)
 !      nst=ist ! last properly occupied level
 !      nst=nstsv
 
-      weight=dcmplx(wkpt(ik),0d0)
+      weight = cmplx( wkpt(ik), 0._dp, dp )
       ngp=ngk(1, ik)
       ispn=1
       maxaa=mt_dm%maxaa

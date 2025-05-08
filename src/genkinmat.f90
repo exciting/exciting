@@ -11,6 +11,7 @@ Subroutine genkinmat
       Use modinput
       Use modmain
       use constants, only : zzero
+      use secular_equation, only: seceqn
       Implicit None
 ! local variables
       Integer :: is, ia, ias, idm

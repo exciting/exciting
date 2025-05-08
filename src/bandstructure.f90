@@ -42,6 +42,8 @@ subroutine bandstr
   use FoX_wxml, only: xmlf_t, xml_AddAttribute, xml_AddCharacters, xml_AddXMLPI, xml_Close, &
                       xml_EndElement, xml_NewElement, xml_OpenFile
   use m_write_hdf5, only: hdf5_bandstructure_output
+  use precision, only: dp 
+  use secular_equation, only: seceqn
 
   Integer(i32) :: lmax, lmmax, l, m, lm
   Integer(i32) :: ik, ispn, is, ia, ias, iv, ist
