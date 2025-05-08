@@ -37,7 +37,7 @@ def remove_untested_keys(data: dict, full_file_name: str, keys_to_remove: dict) 
     file_name = os.path.basename(full_file_name)
 
     # Remove all scf loops except for the last one
-    if file_name == 'INFO.OUT':
+    if file_name in ('INFO.OUT', 'INFO_CDFT.OUT'):
         try:
             scl_indices = [int(item) for item in list(data['scl'].keys())]
             last_scl = max(scl_indices)
@@ -46,7 +46,6 @@ def remove_untested_keys(data: dict, full_file_name: str, keys_to_remove: dict) 
             raise KeyError("Expected tolerances for INFO.OUT but no key 'scl' can be found.\n"
                            "Either tolerances are not for INFO.OUT, INFO.OUT's parser has changed, or "
                            "the 'scl' key has already been removed")
-
     # Remove untested keys
     try:
         for key_chain in keys_to_remove[file_name]:

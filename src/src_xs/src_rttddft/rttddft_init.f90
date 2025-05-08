@@ -51,6 +51,7 @@ module rttddft_init
   use rttddft_potential, only: update_potential
   use rttddft_VectorPotential, only: Vector_Potential, Vector_Potential_Field
   use rttddft_Wavefunction, only: wavefunction_set, initialize_wavefunction_set
+  use general_find_vbm_cbm, only: find_vbm_cbm
   use to_char_conversion, only: to_char
 
   implicit none

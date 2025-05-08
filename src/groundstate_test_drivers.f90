@@ -1,6 +1,7 @@
 !> Module with the unit tests related to groundstate
 module groundstate_test_drivers
   use cdft_tests, only: run_cdft_test_driver
+  use general_find_vbm_cbm_test, only: general_find_vbm_cbm_test_driver
   use modmpi, only: mpiinfo
 
   implicit none
@@ -26,7 +27,7 @@ subroutine groundstate_test_driver(mpiglobal, kill_on_failure)
   
   ! Call test drivers here
   call run_cdft_test_driver( mpiglobal, kill_if_fails )
-  
+  call general_find_vbm_cbm_test_driver( mpiglobal, kill_if_fails )
 end subroutine
 
 end module

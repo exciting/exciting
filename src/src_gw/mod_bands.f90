@@ -10,6 +10,7 @@ module mod_bands
     use modmpi, only : rank, terminate
     use precision, only: i32, dp, str_64
     use to_char_conversion, only: to_char
+    use general_find_vbm_cbm, only: find_vbm_cbm
 
     implicit none
 

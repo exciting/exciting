@@ -1,0 +1,36 @@
+<input>
+   <title>LiF-unit</title>
+ 
+   <structure speciespath="./">
+	   <crystal scale="7.716560794">
+		   <basevect>0.5 0.5 0.0</basevect>
+		   <basevect>0.5 0.0 0.5</basevect>
+		   <basevect>0.0 0.5 0.5</basevect>
+	   </crystal>
+	   <species speciesfile="Li.xml">		   
+		 <atom coord="0.00000   0.00000   0.00000" />
+       </species>
+	   <species speciesfile="F.xml">
+                 <atom coord="0.50000   0.50000   0.50000" />
+           </species>
+   </structure>
+ 
+   <groundstate
+      ngridk="2 2 2"
+      rgkmax="6"
+      maxscl="200"
+      nempty="10"
+      stype="libbzint"
+      xctype="HYB_HSE">
+    <Hybrid 
+	excoeff="0.25" 
+	omega="0.11"/>
+    <constrainedDFT
+            useExcitonCoefficients="true"
+            useExternalFile="true"
+            fileName="EXC" 
+            startDensityAndPotentialFromFile="false"
+            skipgnd="false" />
+    </groundstate>
+
+</input>

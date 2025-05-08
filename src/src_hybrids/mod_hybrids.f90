@@ -7,7 +7,9 @@ module mod_hybrids
     use modgw
     use mod_coulomb_potential, only: delete_coulomb_potential
     use mod_misc_gw, only : gammapoint
+    use mod_kpointset, only: delete_Gk_vectors, delete_k_vectors, delete_kq_vectors, delete_G_vectors
     use modmpi, only: rank
+#include "offload.fpp"
 
     implicit none
 
@@ -43,6 +45,18 @@ contains
         ! deallocate mixed-basis stuff
         call delete_product_basis
         call delete_core_states
+
+        ! Deallocate all the reciprocal space meshes
+
+        OMP_OFFLOAD target exit data map(delete: kset, Gset, Gkset, Gkqset, Gqset, Gqbarc, kqset)
+       
+        call delete_k_vectors(kset)
+        call delete_G_vectors(Gset)
+        call delete_Gk_vectors(Gkset)
+        call delete_Gk_vectors(Gkqset)
+        call delete_Gk_vectors(Gqset)
+        call delete_Gk_vectors(Gqbarc)
+        call delete_kq_vectors(kqset)
 
         nullify(input%gw%MixBasis)
         nullify(input%gw%BareCoul)
