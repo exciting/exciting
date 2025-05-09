@@ -69,10 +69,8 @@ subroutine calcepsilon(iq,iomstart,iomend)
     allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveck(nmatmax,nstfv))
     allocate(eveckp(nmatmax,nstfv))
-    DEVICE_MAP_ALLOC(eveckalm)
-    DEVICE_MAP_ALLOC(eveckpalm)
-    DEVICE_MAP_ALLOC(eveck)
-    DEVICE_MAP_ALLOC(eveckp)
+
+    OMP_OFFLOAD target enter data map(alloc: eveckalm, eveckpalm, eveck, eveckp)
 
     !==================================================
     ! Calculate the q-dependent BZ integration weights
@@ -113,14 +111,13 @@ subroutine calcepsilon(iq,iomstart,iomend)
         call get_evec_gw(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
         eveck = evecfv
         deallocate(evecfv)
-        DEVICE_UPDATE_TO(eveck)
-        DEVICE_UPDATE_TO(eveckp)
 
         ! compute products \sum_G C_{k}n * A_{lm}
         call expand_evec(ik,'t')
         call expand_evec(jk,'c')
-        DEVICE_UPDATE_TO(eveckalm)
-        DEVICE_UPDATE_TO(eveckpalm)
+        
+        OMP_OFFLOAD target update to(eveck, eveckp, eveckalm, eveckpalm)
+
 
         !=================================================
         ! Loop over m-blocks in M^i_{nm}(\vec{k},\vec{q})
@@ -132,7 +129,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
             nmdim  = ndim * (mend-mstart+1)
 
             allocate(minmmat(mbsiz,ndim,mstart:mend))
-            DEVICE_MAP_ALLOC(minmmat)
+            OMP_OFFLOAD target enter data map(alloc: minmmat)
             msize = sizeof(minmmat)*b2mb
 
             ! compute M^i_{nm}+M^i_{cm}
@@ -140,7 +137,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
 
             if (Gamma) then
                 ! wings of the dielectric matrix
-                DEVICE_UPDATE_FROM(minmmat)
+                OMP_OFFLOAD target update from(minmmat)
                 call calcwings(ik, iq, iomstart, iomend, ndim, mstart, mend)
             end if
 
@@ -152,8 +149,8 @@ subroutine calcepsilon(iq,iomstart,iomend)
             call remap_fortran_pointer(minm, int([1, 1, mstart], kind=i32), int([mbsiz, ndim, mend], kind=i32))
 
             do iom = iomstart, iomend
-                DEVICE_MAP_TO(fnm(:,mstart:mend,iom,ik))
-                DEVICE_BEGIN_BLOCK_HAS_DEVICE_ADDR(minm)
+                OMP_OFFLOAD target data map(to: fnm(:,mstart:mend,iom,ik))
+                OMP_OFFLOAD target has_device_addr(minm)
                 !$omp teams distribute parallel do collapse(3) default(none) private(ie1,ie2,ibasis) &
                 !$omp shared(mstart,mend,ndim,mbsiz,minm,fnm,minmmat,iom,ik)
                 do ie2 = mstart, mend
@@ -165,8 +162,8 @@ subroutine calcepsilon(iq,iomstart,iomend)
                     end do ! ie1
                 end do ! ie2
                 !$omp end teams distribute parallel do
-                DEVICE_END_BLOCK
-                DEVICE_MAP_DELETE(fnm(:,mstart:mend,iom,ik))
+                OMP_OFFLOAD end target
+                OMP_OFFLOAD end target data
                 call zgemm_gpu( 'n', 'c', mbsiz, mbsiz, nmdim, &
                             zone, minm_cptr, mbsiz, get_device_pointer(minmmat,my_device), mbsiz, &
                             zone, get_device_pointer(epsilon(1,1,iom),my_device), mbsiz, device_world)
@@ -174,7 +171,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
             end do ! iom
             nullify(minm)
             call deallocate_device_memory(minm_cptr,my_device)
-            DEVICE_MAP_DELETE(minmmat)
+            OMP_OFFLOAD target exit data map(delete: minmmat)
             deallocate(minmmat)
 
         end do ! iblk
@@ -190,12 +187,10 @@ subroutine calcepsilon(iq,iomstart,iomend)
         if (input%gw%coreflag=='all') deallocate(pmatcv)
     end if
 
-    DEVICE_UPDATE_FROM(epsilon)
+    OMP_OFFLOAD target update from(epsilon)
 
-    DEVICE_MAP_DELETE(eveck)
-    DEVICE_MAP_DELETE(eveckp)
-    DEVICE_MAP_DELETE(eveckalm)
-    DEVICE_MAP_DELETE(eveckpalm)
+    OMP_OFFLOAD target exit data map(delete: eveck, eveckp, eveckalm, eveckpalm)
+
     deallocate(eveck)
     deallocate(eveckp)
     deallocate(eveckalm)

@@ -10,8 +10,9 @@
 ! !INTERFACE:
 !
 !
-Subroutine seceqnfv(ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
-  ! !USES:
+Subroutine seceqnfv(ik, nmatp, ngp, igpig, vgpc, apwalm, cdft_maximum_overlap, evalfv, evecfv)
+      Use cdft,                      only: set_overlap_times_psi_gs
+      Use constants,                 only: zzero, zone
       Use modmpi,                    only: mpiglobal
       Use modinput,                  only: input
       Use mod_Gkvector,              only: ngkmax
@@ -24,9 +25,6 @@ Subroutine seceqnfv(ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       Use modfvsystem,               only: evsystem, newsystem, deletesystem, solvewithlapack
       Use mod_hybrids,               only: vnlmat
       use mod_misc,                  only: task
-      !use m_plotmat
-      Use constants, only: zzero, zone
-
       
   ! !INPUT/OUTPUT PARAMETERS:
   !   nmatp  : order of overlap and Hamiltonian matrices (in,integer)
@@ -44,6 +42,7 @@ Subroutine seceqnfv(ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   !
   ! !REVISION HISTORY:
   !   Created March 2004 (JKD)
+  !   Revised Oct 2024 (Ronaldo)
   !EOP
   !BOC
       Implicit None
@@ -55,6 +54,10 @@ Subroutine seceqnfv(ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
       Real (8), Intent (In) :: vgpc (3, ngkmax)
       Complex (8), Intent (In) :: apwalm (ngkmax, apwordmax, lmmaxapw, &
      & natmtot)
+      !> If .true., then a constrained DFT calculation with the maximum overlap method
+      !> is performed. In this case, the product of the overlap matrix with the GS wavefunctions
+      !> must be evaluated and saved
+      logical, intent(in) :: cdft_maximum_overlap
       Real (8), Intent (Out) :: evalfv (nstfv)
       Complex (8), Intent (Out) :: evecfv (nmatmax, nstfv)
   ! local variables
@@ -80,6 +83,9 @@ Subroutine seceqnfv(ik, nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
         call MTRedirect(mt_hscf%main,mt_hscf%spinless)
         Call hamiltonsetup (system, ngp, apwalm, igpig, vgpc)
         Call overlapsetup (system, ngp, apwalm, igpig, vgpc)
+
+        ! If the maximum overlap method is used in a CDFT calculation
+        if( cdft_maximum_overlap ) call set_overlap_times_psi_gs( ik, system%overlap%za )
 
   !------------------------------------------------------------------------!
   !   If Hybrid potential is used apply the non-local exchange potential !

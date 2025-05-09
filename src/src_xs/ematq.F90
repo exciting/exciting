@@ -4,7 +4,7 @@
 !
 !
 subroutine ematq(iq)
-  use modinput
+  use modinput, only: issvlo, input
   use modmpi
   use mod_misc, only: filext
   use modxs, only: fnemat, fnemat_t, unitout,&
@@ -95,7 +95,7 @@ subroutine ematq(iq)
     bc%iu2 = istu2
     ikmapikq_ptr => ikmapikq
     call setptr01
-    call ematqk(iq, ik, xiou, bc)
+    call ematqk(iq, ik, xiou, bc, issvlo())
 
     ! Get uo
     if(allocated(xiuo)) deallocate(xiuo)
@@ -108,7 +108,7 @@ subroutine ematq(iq)
     bc%iu2 = istu4
     ikmapikq_ptr => ikmapikq
     call setptr01
-    call ematqk(iq, ik, xiuo, bc)
+    call ematqk(iq, ik, xiuo, bc, issvlo())
 
     ! Store to file
     call putemat(iq, ik, .True.,&

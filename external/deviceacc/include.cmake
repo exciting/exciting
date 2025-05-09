@@ -1,14 +1,18 @@
 # Include this file in your build to use the tools.
-# This needs to be done in this way because of the limitiation of the linker 
+# This is necessary because of the linker’s limitations 
 # and offload table in GNU compilers.
 # For ifx and Cray this problem does not exist, so technically a simple link should do the magic.
 # TODO: Check new flang compiler once is usable and with OpenMP support
+
+# Protect the file against double inclusion
+include_guard(GLOBAL)
 
 # Compile options
 option(NVIDIA "NVIDIA GPU" OFF)
 option(AMD "AMD GPU" OFF)
 option(AMD_HIPSETVALIDDEVICE_SUPPORTED "Turn ON if besides defined, hipSetValidDevices is supported by the driver" OFF)
 option(INTEL "INTEL GPU" OFF)
+option(USM "Turn on if your GPU and CPU share physical memory")
 if(NVIDIA OR AMD OR INTEL)
     option(CPUBACKEND "If enabled activates the CPU backend so GPU accelerated routines are replaced by their CPU backend" OFF)
 else()
@@ -18,8 +22,6 @@ endif()
 if(NOT DEVICEACC_SOURCE_DIR)
     message(FATAL_ERROR "Set DEVICEACC_SOURCE_DIR in your CMake to the path where this file is located")
 endif()
-
-add_compile_definitions(DEVICEACC)
 
 # Classic intel compiler has small bug, here we tackle it
 if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel" AND NOT CMAKE_Fortran_COMPILER_ID MATCHES "IntelLLVM")
@@ -63,6 +65,13 @@ if(NOT CPUBACKEND)
     add_compile_definitions(INTELGPU)
   else()
     message(FATAL_ERROR "GPU vendor has not been selected, supported GPUs are: AMD, NVIDIA, and INTEL")
+  endif()
+
+  if (USM)
+    message(STATUS "GPU-CPU (Unified Shared Memory) : ON")
+    add_compile_definitions(_USM_)
+  else()
+    message(STATUS "GPU-CPU (Unified Shared Memory) : OFF")
   endif()
 
   if(NVIDIA OR AMD)
@@ -145,7 +154,7 @@ if(NOT CPUBACKEND)
     find_package(rocfft REQUIRED)
     set(rocfftlib ${ROCFFT_LIBRARIES})
     message(STATUS "rocFFT found : ${rocfftlib}")
-    
+
     message(STATUS "ROCM include directory: ${ROCFFT_INCLUDE_DIRS}")
     file(READ ${ROCFFT_INCLUDE_DIRS}/rocm-core/rocm_version.h FILE_CONTENT)
 
@@ -196,7 +205,7 @@ if(NOT CPUBACKEND)
     find_package(MKL REQUIRED)
     include_directories(${MKL_INCLUDE_DIRS})
   else()
-    message(FATAL_ERROR "Only NVIDIA, AMD, or INTEL GPUs are supported. This part of the code 
+    message(FATAL_ERROR "Only NVIDIA, AMD, or INTEL GPUs are supported. This part of the code
             is unreachable by construction. Consequently, this error indicates some
 	    catastrophic CMake configuration step.")
   endif()
@@ -237,14 +246,15 @@ if(NOT CPUBACKEND)
       if(NOT NVIDIA AND NOT AMD)
         message(FATAL_ERROR "For Intel cards please use Intel compilers. Exiting.")
       endif()
+      # For Cray add this instruction whenever USM is required
+      if (USM)
+        set(USM_FLAGS "-fopenmp-force-usm")
+      endif()
       # Cray should find the proper targets with the acceleration modules
-      # While for small problems the acc options will reduce the performace, this model
-      # is the only one working for larger chunks as those required by full-band G0W0
-      # calculations 
       set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -fPIC -fopenmp")
-      set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} -fopenmp -h acc_model=auto_async_none:no_fast_addr:deep_copy ")
+      set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} -fopenmp -h acc_model=auto_async_none:no_fast_addr:deep_copy ${USM_FLAGS}")
       set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -fPIC -fopenmp")
-      set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fopenmp -h acc_model=auto_async_none:no_fast_addr:deep_copy")
+      set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fopenmp -h acc_model=auto_async_none:no_fast_addr:deep_copy ${USM_FLAGS}")
   else()
       message(FATAL_ERROR "Compiler is not recognized: only GNU, Intel (ifx) and Cray compilers are supported")
   endif()
@@ -267,9 +277,7 @@ set(DEVICEACC_SRC_DIR "${DEVICEACC_SOURCE_DIR}/src")
 # Depend on the backend
 if(NOT CPUBACKEND)
     # Control
-    set(SRC_DEVICEACC_CONTROL ${DEVICEACC_SRC_DIR}/control/device/device_host_register.cpp
-        ${DEVICEACC_SRC_DIR}/control/common/device_host_register.f90
-        ${DEVICEACC_SRC_DIR}/control/device/device_world_t.f90)
+    set(SRC_DEVICEACC_CONTROL ${DEVICEACC_SRC_DIR}/control/device/device_world_t.f90)
     #Linear algebra
     set(SRC_DEVICEACC_LINALG ${DEVICEACC_SRC_DIR}/linalg/device/linalg_device_common.f90)
     # FFT
@@ -286,22 +294,20 @@ if(NOT CPUBACKEND)
     set(DEVICEACC_MACROS ${DEVICEACC_SRC_DIR}/macros/device/offload.fpp)
     include_directories(${DEVICEACC_SRC_DIR}/macros/device/)
 else()
-    set(SRC_DEVICEACC_CONTROL ${DEVICEACC_SRC_DIR}/control/host/device_host_register.cpp
-        ${DEVICEACC_SRC_DIR}/control/common/device_host_register.f90
-        ${DEVICEACC_SRC_DIR}/control/host/device_world_t.f90)
-    set(SRC_DEVICEACC_LINALG ${DEVICEACC_SRC_DIR}/linalg/host/linalg_device_common.f90)
-    set(SRC_DEVICEACC_FFT ${SRC_DEVICEACC_FFT} ${DEVICEACC_SRC_DIR}/fft/host/fft_device_t.f90)
-    set(SRC_DEVICEACC_MEMORY ${DEVICEACC_SRC_DIR}/memory/common/memory_device.f90)
-    set(SRC_DEVICEACC_MEMORY ${SRC_DEVICEACC_MEMORY} ${DEVICEACC_SRC_DIR}/memory/common/memory_device.cpp)
-    set(SRC_DEVICEACC_MEMORY ${SRC_DEVICEACC_MEMORY} ${DEVICEACC_SRC_DIR}/memory/host/s_memory_device.f90)
-    set(DEVICEACC_MACROS ${DEVICEACC_SRC_DIR}/macros/host/offload.fpp)
+    set(SRC_DEVICEACC_CONTROL ${DEVICEACC_SRC_DIR}/control/host/device_world_t.f90)
+    set(SRC_DEVICEACC_LINALG  ${DEVICEACC_SRC_DIR}/linalg/host/linalg_device_common.f90)
+    set(SRC_DEVICEACC_FFT     ${SRC_DEVICEACC_FFT} ${DEVICEACC_SRC_DIR}/fft/host/fft_device_t.f90)
+    set(SRC_DEVICEACC_MEMORY  ${DEVICEACC_SRC_DIR}/memory/common/memory_device.f90)
+    set(SRC_DEVICEACC_MEMORY  ${SRC_DEVICEACC_MEMORY} ${DEVICEACC_SRC_DIR}/memory/common/memory_device.cpp)
+    set(SRC_DEVICEACC_MEMORY  ${SRC_DEVICEACC_MEMORY} ${DEVICEACC_SRC_DIR}/memory/host/s_memory_device.f90)
+    set(DEVICEACC_MACROS      ${DEVICEACC_SRC_DIR}/macros/host/offload.fpp)
     include_directories(${DEVICEACC_SRC_DIR}/macros/host/)
 endif()
 
 # Create deviceacc object
-set(SRC_DEVICEACC ${SRC_MAGMA_F90} 
-                  ${SRC_DEVICEACC_CONTROL} 
-                  ${SRC_DEVICEACC_LINALG} 
+set(SRC_DEVICEACC ${SRC_MAGMA_F90}
+                  ${SRC_DEVICEACC_CONTROL}
+                  ${SRC_DEVICEACC_LINALG}
                   ${SRC_DEVICEACC_FFT}
                   ${SRC_DEVICEACC_MEMORY})
 
@@ -320,12 +326,3 @@ if(NOT CPUBACKEND)
 else()
     set(LINKS_DEVICEACC ${devacc_link_libs})
 endif()
-
-# MRM: I leave this info as it is essential for the toolchain in 
-#      GNU compilers (The flexibility of the linker should be checked in every release).
-# LTO this library but not others by default.
-# This is important for GNU compilers to properly build the offload table
-# see https://gcc.gnu.org/wiki/Offloading#Address_mapping_tables for further information
-# on how and why this is done.
-# For Intel compilers the build process is more simple
-# For Cray the library should be static for the offload.

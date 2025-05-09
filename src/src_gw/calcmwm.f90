@@ -24,7 +24,7 @@ subroutine calcmwm(nstart, nend, mstart, mend, minm)
     ! local variables
     integer(i32) :: iom
     integer(i32) :: ndim, mdim, nmdim, nomeg
-    integer(i32) :: ie1, ie2, iemin, iemax, ieg, imixcb
+    integer(i32) :: ie1, ie2, iemin, iemax, ieg
     integer(i32) :: my_device
     real(dp)     :: vi4pi, wkq
     complex(dp)  :: coefs1, coefs2
@@ -67,9 +67,8 @@ subroutine calcmwm(nstart, nend, mstart, mend, minm)
                       zzero, wm_cptr, mbsiz, device_world)
       call device_world%synchronize()
 
-      ! Performing the dot_product in parallel. When device it throws low intensity kernels in an
-      ! synchronous concurrent way; that is each thread launches their kernels in a synchronous way.
-      DEVICE_BEGIN_BLOCK_HAS_DEVICE_ADDR(wm)
+      ! Performing the batch of dot_products in parallel. 
+      OMP_OFFLOAD target has_device_addr(wm)
       !$omp teams distribute parallel do collapse(2) default(none) private(ie2, ie1)&
       !$omp shared(mstart, mend, nstart, nend, mwm, wkq, minm, wm, iom)
       do ie2 = mstart, mend
@@ -78,9 +77,9 @@ subroutine calcmwm(nstart, nend, mstart, mend, minm)
         end do
       end do
       !$omp end teams distribute parallel do
-      DEVICE_END_BLOCK
+      OMP_OFFLOAD end target
 
-      DEVICE_UPDATE_FROM(mwm(nstart:nend,mstart:mend,iom))
+      OMP_OFFLOAD target update from(mwm(nstart:nend,mstart:mend,iom))
 
     end do ! iom
 

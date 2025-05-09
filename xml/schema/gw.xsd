@@ -717,7 +717,7 @@
                 When <pre>true</pre>, enforce a special treatment of degeneracy by:
                 <list>
                 <li> Adjusting the number of unoccupied bands downward to prevent truncating 
-                    degenerate subspacess when computing the dielectric function and correlation self-energy. </li>
+                    degenerate subspaces when computing the dielectric function and correlation self-energy. </li>
                 <li> Internally enlarging the range of KS states over which the diagonal elements of the self-energy elements and
                      exchange-correlation potential are evaluated, to allow for performing an average over degenerate subspaces. </li>
                 </list>
@@ -770,6 +770,14 @@
           <xs:attribute ex:importance="experimental" type="fortrandouble" ex:unit="" name="rmax" default="100.0" use="optional">
             <xs:annotation><xs:documentation>
               Fourier interpolation basis set cutoff used to visualize the QP bandstructure with task <attref>taskname</attref>=<pre>band</pre>.
+            </xs:documentation></xs:annotation>
+          </xs:attribute>
+
+          <xs:attribute ex:importance="expert" ex:unit="" name="symmetryBandstructure" type="xs:boolean" default="true" use="optional">
+            <xs:annotation><xs:documentation>
+              When <pre>true</pre>, symmetry operations are taken into account during 
+              the Fourier interpolation used to construct the quasiparticle (QP) bandstructure 
+              (for <attref>taskname</attref>="<pre>band</pre>").
             </xs:documentation></xs:annotation>
           </xs:attribute>
 

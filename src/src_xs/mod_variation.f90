@@ -118,7 +118,6 @@ subroutine ematqk_sv(iq, ik, emat, bc)
   use mod_eigenvalue_occupancy, only: nstfv, nstsv
   use modxs, only: bcbs, ngq
   use precision, only: dp
-  use precision, only: dp
   use mod_ematptr, only: ikmapikq_ptr
   use m_ematqk, only: ematqk,emat_ccket
   use constants, only :zi, zone, zzero
@@ -127,6 +126,7 @@ subroutine ematqk_sv(iq, ik, emat, bc)
   use m_getgrst, only: getevecsv0, getevecsv1
   use svlo, only: get_num_of_basis_functions_sv
   use matrix_contraction, only: contract_A_and_C_with_B_complex_dp
+  use modinput, only: issvlo
   implicit none
 
   integer, intent(in) :: iq, ik
@@ -142,6 +142,8 @@ subroutine ematqk_sv(iq, ik, emat, bc)
   ! find ik+q
   ikq = ikmapikq_ptr(ik, iq)
 
+  num_of_basis_functions_sv = get_num_of_basis_functions_sv()
+
   ! first var band range
   bc_%n1 = nstfv
   bc_%il1=1
@@ -151,38 +153,19 @@ subroutine ematqk_sv(iq, ik, emat, bc)
   bc_%iu2=nstfv
 
   ! allocate
-  allocate(emat_(nstfv, nstfv, ngq(iq)))
-  call ematqk(iq, ik, emat_, bc_)
+  allocate(emat_(num_of_basis_functions_sv,num_of_basis_functions_sv,ngq(iq)),source=zzero)
+  call ematqk(iq, ik, emat_, bc_, issvlo())
 
-  ! second variational eigenstates
   ! second variational eigenstates
   call getevecsv0(ik, evecsvt0)
   call getevecsv1(ikq, evecsvt1)
-  num_of_basis_functions_sv = get_num_of_basis_functions_sv()
 
   ! loop over igq
-  do igq = 1, ngq(iq)
-     endA = bc%il1 + bc%n1 - 1
-     endB = bc%il2 + bc%n2 - 1
-
-       if (emat_ccket) then
-          call contract_A_and_C_with_B_complex_dp( &
-               evecsvt0(:, bc%il1:endA),           &
-               emat_(:,:,igq),                    &
-               conjg(evecsvt1(:, bc%il2:endB)),   &
-               emat(:,:,igq),                     &
-               factor_a = zi, factor_b = -zi      )
-       else
-          call contract_A_and_C_with_B_complex_dp( &
-               evecsvt0(:, bc%il1:endA),     &
-               emat_(:,:,igq),              &
-               evecsvt1(:, bc%il2:endB),    &
-               emat(:,:,igq)                )
-       end if
-  end do
-
-  ! deallocate
-  deallocate(emat_)
+  Do igq=1,ngq(iq)
+        call variation_multiplication(evecsvt0,emat_(:,:,igq),evecsvt1,emat(:,:,igq),&
+        & bc%n1, bc%n2, bc%il1, bc%il2)
+  end Do
+      deallocate(emat_)
 end subroutine ematqk_sv
  !--------------------------------------------------------------------------------
 end module

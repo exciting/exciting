@@ -10,7 +10,7 @@
 subroutine scrcoulint(iqmt, fra)
   use precision, only: sp, dp
   use mod_misc, only: filext
-  use modinput, only: input
+  use modinput, only: input, issvlo
   use modmpi
   use exciting_mpi, only: xmpi_bcast
   use constants, only: zzero, zone
@@ -979,7 +979,7 @@ subroutine scrcoulint(iqmt, fra)
         call ematqk_core(iq, ikpnr, moo, ematbc, 'oo')
       else
         if (.not. (input%groundstate%tevecsv)) then 
-          call ematqk(iq, ikpnr, moo, ematbc)
+          call ematqk(iq, ikpnr, moo, ematbc, issvlo())
         else
           call ematqk_sv(iq, ikpnr, moo, ematbc)
         end if
@@ -1030,7 +1030,7 @@ subroutine scrcoulint(iqmt, fra)
       call setptr00()
       ! Calculate M_{u1u2,G} at fixed (k, q)
       if (.not. (input%groundstate%tevecsv)) then
-        call ematqk(iq, ikmnr, muu, ematbc)
+        call ematqk(iq, ikmnr, muu, ematbc, issvlo())
       else
         call ematqk_sv(iq, ikmnr, muu, ematbc)
       end if
@@ -1097,7 +1097,7 @@ subroutine scrcoulint(iqmt, fra)
       ! Calculate N_{ou,G} at fixed (k, q)
       if (.not. (input%xs%bse%xas .or. input%xs%bse%xes)) then
         if (.not. (input%groundstate%tevecsv)) then
-          call ematqk(iq, ikpnr, mou, ematbc)
+          call ematqk(iq, ikpnr, mou, ematbc, issvlo())
         else
           call ematqk_sv(iq, ikpnr, mou, ematbc)
 
@@ -1153,7 +1153,7 @@ subroutine scrcoulint(iqmt, fra)
       ! Calculate N_{uo,G} at fixed (k, q)
       if (.not. (input%xs%bse%xas .or. input%xs%bse%xes)) then
         if (.not. (input%groundstate%tevecsv)) then
-          call ematqk(iq, ikmnr, muo, ematbc)
+          call ematqk(iq, ikmnr, muo, ematbc, issvlo())
         else
           call ematqk_sv(iq,ikmnr, muo,ematbc)
         end if

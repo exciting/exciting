@@ -1,0 +1,30 @@
+<input>
+  <title>PbI2  J.Phys.Cond.Matt. (1990),2,5285-5295, ICSD database</title>
+  <structure speciespath=".">
+    <crystal scale="1.889725989">
+      <basevect>      4.55800009        0.00000000        0.00000000</basevect>
+      <basevect>     -2.27900004        3.94734387        0.00000000</basevect>
+      <basevect>      0.00000000        0.00000000        6.98600006</basevect>
+    </crystal>
+    <species speciesfile="Pb.xml" rmt="2.9">
+      <atom coord="      0.00000000        0.00000000        0.00000000"/>
+    </species>
+    <species speciesfile="I.xml" rmt="2.9">
+      <atom coord="      0.33333335        0.66666670        0.26750001"/>
+      <atom coord="      0.66666661        0.33333332        0.73249995"/>
+    </species>
+  </structure>
+  <groundstate ngridk="2 2 2" outputlevel="normal" rgkmax="5.5" gmaxvr="8" do="fromscratch" useDensityMatrix="false" nempty="10" xctype="GGA_PBE">
+    <spin spinorb="true" svlo="true" realspace="false"/>
+  </groundstate>
+  <xs xstype="BSE" ngridk="2 2 2" vkloff="0.001 0.002 0.003" ngridq="2 2 2" nempty="30" gqmax="0.8" broad="0.0036" scissor="0" tappinfo="true" tevout="true">
+    <energywindow intv="0.0 1.0" points="1200"/>
+    <screening screentype="full" nempty="50"/>
+    <BSE bsetype="singlet" nstlbse="55 66 1 10"/>
+    <qpointset>
+      <qpoint>0.0 0.0 0.0</qpoint>
+    </qpointset>
+  </xs>
+</input>
+
+

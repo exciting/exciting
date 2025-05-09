@@ -1,9 +1,16 @@
 !> Module that contains the CDFT unit tests
 module cdft_tests
   use constants, only: zi, zone, zzero
-  use cdft, only: ExcitonCoefficients, occupy_cdft
+  use cdft, only: deallocate_cdft_global_arrays, &
+                  ExcitonCoefficients, &
+                  initialize_cdft_global_arrays, &
+                  occupy_cdft, &
+                  set_overlap_times_psi_gs, &
+                  update_occupations_with_the_maximum_overlap_method
+  use file_utils, only: delete_file
   use math_utils, only: all_close
   use modmpi, only: mpiinfo
+  use mock_arrays, only: complex_unitary_matrix_5x5
   use precision, only: i32, dp
   use to_char_conversion, only: to_char
   use unit_test_framework, only : unit_test_type
@@ -23,10 +30,12 @@ subroutine run_cdft_test_driver( mpiglobal, kill_on_failure )
   logical, optional :: kill_on_failure
   
   type(unit_test_type) :: test_report
-  integer, parameter :: n_assertions_test_get_ExcitonCoefficients_from_file = 5
-  integer, parameter :: n_assertions_test_occupy_cdft = 2
-  integer, parameter :: n_assertions = n_assertions_test_get_ExcitonCoefficients_from_file + &
-                                       n_assertions_test_occupy_cdft 
+  integer(i32), parameter :: n_assertions_test_get_ExcitonCoefficients_from_file = 5
+  integer(i32), parameter :: n_assertions_test_occupy_cdft = 2
+  integer(i32), parameter :: n_assertions_test_occupy_update_occupations_max_overl_meth = 1
+  integer(i32), parameter :: n_assertions = n_assertions_test_get_ExcitonCoefficients_from_file + &
+                                            n_assertions_test_occupy_cdft + &
+                                            n_assertions_test_occupy_update_occupations_max_overl_meth
   character(len=*), parameter :: test_driver_name = "cdft"
 
   call test_report%init( n_assertions, mpiglobal )
@@ -34,13 +43,9 @@ subroutine run_cdft_test_driver( mpiglobal, kill_on_failure )
   ! Run and assert tests
   call test_ExcitonCoefficients_get_from_file( test_report, mpiglobal )
   call test_occupy_cdft( test_report )
+  call test_occupy_update_occupations_max_overl_meth( test_report )
   
-  if (present(kill_on_failure)) then
-    call test_report%report( test_driver_name, kill_on_failure )
-  else
-    call test_report%report( test_driver_name )
-  end if
-
+  call test_report%report( test_driver_name, kill_on_failure )
   call test_report%finalise()
 
 end subroutine
@@ -60,7 +65,7 @@ subroutine test_ExcitonCoefficients_get_from_file( test_report, mpiglobal )
   character(len=*), parameter :: fake_name = "test"
   complex(dp), parameter :: weights_ref(n_non_zero_ref) = [ zzero, zi, zone, zi + zone ]
   real(dp), parameter :: tol = 1e-8_dp
-  integer(i32) :: i, unit
+  integer(i32) :: i, unit, i_err
   character(len=:), allocatable :: file_name
   integer(i32), allocatable :: idx_vb(:), idx_cb(:), idx_kpt(:)
   complex(dp), allocatable :: coeffs(:)
@@ -84,7 +89,7 @@ subroutine test_ExcitonCoefficients_get_from_file( test_report, mpiglobal )
   call test_report%assert( all( idx_cb == idx_cb_ref ), "conduction-band indexes do not match" )
   call test_report%assert( all_close(coeffs, weights_ref, tol), "exciton do not match" )
   
-  call delete_file( file_name )
+  call delete_file( file_name, i_err )
 end subroutine
 
 !> Unit tests for [[occupy_cdft]]
@@ -149,21 +154,50 @@ subroutine test_occupy_cdft( test_report )
 
 end subroutine
 
-!> Delete a file, if it exists
-subroutine delete_file( file_name )
-  !> File name to delete
-  character(len=*), intent(in) :: file_name
-
-  integer(i32) :: unit
-  logical :: file_exists
-
-  ! Delete test file
-  inquire( file=trim(file_name), exist=file_exists )
-  if( file_exists ) then
-    open( newunit=unit, file=trim(file_name), status='old' )
-    close( unit, status='delete' )
-  end if
+!> Unit tests for [[update_occupations_with_the_maximum_overlap_method]]
+subroutine test_occupy_update_occupations_max_overl_meth( test_report )
+  !> Unit test report
+  type(unit_test_type) :: test_report
+  real(dp), parameter :: tol = 1e-8_dp
+  integer(i32), parameter :: n_kpt = 1
+  integer(i32), parameter :: first_kpt = 1
+  integer(i32), parameter :: n_basis = size( complex_unitary_matrix_5x5, 1 )
+  integer(i32), parameter :: n_val = 3
+  integer(i32), parameter :: n_states = size( complex_unitary_matrix_5x5, 2 )
+  integer(i32) :: i, ik
+  integer(i32), allocatable :: indexes(:)
+  real(dp), allocatable :: occ_gs(: , :), occ_expected(:, :)
+  complex(dp), allocatable :: psi_gs(:, :, :), psi(:, :, :), S(:, :)
   
+  ! Initialization
+  allocate( psi_gs(n_basis, n_states, n_kpt), occ_gs(n_states, n_kpt) )
+  do ik = 1, n_kpt
+    psi_gs(:, :, ik) = complex_unitary_matrix_5x5
+    occ_gs(:, ik) = [ ( merge(2._dp, 0._dp, i<=n_val), i = 1, n_states) ]
+  end do
+
+  ! Identity matrix
+  allocate( S(n_basis, n_basis), source=zzero )
+  do i = 1, n_basis
+    S(i, i) = zone
+  end do
+
+  ! Exchange states
+  allocate( indexes(n_states), psi(n_basis, n_states, n_kpt), occ_expected(n_states, n_kpt) )
+  do ik = 1, n_kpt
+    indexes = [ (modulo(n_states - i + ik, n_states) + 1, i = 1, n_states) ]
+    occ_expected(:, ik) = occ_gs(indexes, ik)
+    psi(:, :, ik) = psi_gs(:, indexes, ik)
+  end do
+
+  call initialize_cdft_global_arrays( psi_gs, first_kpt )
+  do ik = 1, n_kpt
+    call set_overlap_times_psi_gs( ik, S )
+  end do
+  call update_occupations_with_the_maximum_overlap_method( psi, occ_gs )
+  call deallocate_cdft_global_arrays( )
+  call test_report%assert( all_close(occ_expected, occ_gs, tol), &
+    "cdft: occupations do not match; max. diff = " // to_char( maxval( abs(occ_expected-occ_gs) ) ) )
 end subroutine
 
 end module

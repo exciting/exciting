@@ -27,10 +27,10 @@ module device_linalg_common_interface
                       magma_get_zgetri_nb, magma_zgemm, magma_get_cgetri_nb, &
                       magma_zdotu, magma_cdotu, magma_zdotc, magma_cdotc, &
                       magma_cgerc, magma_caxpy, magmablas_cgeadd2, magma_cgetri_gpu, &
-                      magmablas_zgeadd2, magma_zgemm_batched, magma_zhemv, magma_chemv, &
+                      magmablas_zgeadd2, magma_zgemm_batched_strided, magma_zhemv, magma_chemv, &
                       magma_chemm, magma_ccopyvector_async, magma_zgeru, magma_zcopyvector_async, &
                       magma_zhemm, magma_cgetrf_gpu, magma_chemv, magma_zgerc, &
-                      magma_zgetrf_gpu, magma_cgeru, magma_cgemm_batched, magma_zgetri_gpu, &
+                      magma_zgetrf_gpu, magma_cgeru, magma_cgemm_batched_strided, magma_zgetri_gpu, &
                       magma_zaxpy, magma_cgemm
 #endif
 #if defined(INTELGPU)
@@ -43,9 +43,7 @@ module device_linalg_common_interface
                                               mkl_zomatadd_batch_strided, ccopy, zcopy
 #endif
     use iso_fortran_env,  only: i32=>int32, r32=>real32, r64=>real64
-    use m_memory_device,  only: bytes_single_complex, bytes_double_complex, &
-                                generate_batched_array, get_device_pointer
- 
+    use m_memory_device,  only: bytes_single_complex, bytes_double_complex
     use m_device_world_t, only: device_world_t
 
     implicit none
@@ -288,7 +286,7 @@ contains
         if (present(stridec)) stridec_local = stridec
 
 #if defined(NVIDIAGPU) || defined(AMDGPU)
-
+        
         if (transa == 'N' .or. transa == 'n') opA = MagmaNoTrans
         if (transa == 'T' .or. transa == 't') opA = MagmaTrans
         if (transa == 'C' .or. transa == 'c') opA = MagmaConjTrans
@@ -297,16 +295,10 @@ contains
         if (transb == 'T' .or. transb == 't') opB = MagmaTrans
         if (transb == 'C' .or. transb == 'c') opB = MagmaConjTrans
 
-        call generate_batched_array(dA, int(batchcount,kind=c_size_t), int(stridea_local,kind=c_size_t)*bytes_single_complex, dA_array)
-        call generate_batched_array(dB, int(batchcount,kind=c_size_t), int(strideb_local,kind=c_size_t)*bytes_single_complex, dB_array)
-        call generate_batched_array(dC, int(batchcount,kind=c_size_t), int(stridec_local,kind=c_size_t)*bytes_single_complex, dC_array)
-
-        !$omp target data map(to: dA_array, dB_array, dC_array)
-        call magma_cgemm_batched(opA, opB, m, n, k, alpha, get_device_pointer(dA_array,world%get_device()), &
-                                 lda, get_device_pointer(dB_array,world%get_device()), &
-                                 ldb, beta, get_device_pointer(dC_array,world%get_device()), &
-                                 ldc, batchcount, world%get_queue())
-        !$omp end target data
+        call magma_cgemm_batched_strided(opA, opB, m, n, k, alpha, dA, lda, stridea_local, &
+                                         dB, ldb, strideb_local, &
+                                         beta, dC, ldc, stridec_local, &
+                                         batchcount, world%get_queue())
 
 #endif
 #if defined(INTELGPU)
@@ -937,7 +929,7 @@ contains
         if (present(stridec)) stridec_local = stridec
 
 #if defined(NVIDIAGPU) || defined(AMDGPU)
-
+        
         if (transa == 'N' .or. transa == 'n') opA = MagmaNoTrans
         if (transa == 'T' .or. transa == 't') opA = MagmaTrans
         if (transa == 'C' .or. transa == 'c') opA = MagmaConjTrans
@@ -946,16 +938,11 @@ contains
         if (transb == 'T' .or. transb == 't') opB = MagmaTrans
         if (transb == 'C' .or. transb == 'c') opB = MagmaConjTrans
 
-        call generate_batched_array(dA, int(batchcount,kind=c_size_t), int(stridea_local,kind=c_size_t)*bytes_double_complex, dA_array)
-        call generate_batched_array(dB, int(batchcount,kind=c_size_t), int(strideb_local,kind=c_size_t)*bytes_double_complex, dB_array)
-        call generate_batched_array(dC, int(batchcount,kind=c_size_t), int(stridec_local,kind=c_size_t)*bytes_double_complex, dC_array)
+        call magma_zgemm_batched_strided(opA, opB, m, n, k, alpha, dA, lda, stridea_local, &
+                                         dB, ldb, strideb_local, &
+                                         beta, dC, ldc, stridec_local, &
+                                         batchcount, world%get_queue())
 
-        !$omp target data map(to: dA_array, dB_array, dC_array)
-        call magma_zgemm_batched(opA, opB, m, n, k, alpha, get_device_pointer(dA_array,world%get_device()), &
-                                 lda, get_device_pointer(dB_array,world%get_device()), &
-                                 ldb, beta, get_device_pointer(dC_array,world%get_device()), &
-                                 ldc, batchcount, world%get_queue())
-        !$omp end target data
 
 #endif
 #if defined(INTELGPU)

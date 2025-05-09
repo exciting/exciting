@@ -2,8 +2,11 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 module m_ematqk
+  use precision,  only: dp
   use mod_ematptr
   use constants, only: pi, fourpi, zzero, zone, zil, zi
+  ! use lapack_f95_interfaces
+
   implicit none
 
   logical, public :: emat_ccket=.false.
@@ -13,7 +16,7 @@ module m_ematqk
     !BOP
     ! !ROUTINE: ematqk
     ! !INTERFACE:
-    subroutine ematqk(iq, ik, emat, bc)
+    subroutine ematqk(iq, ik, emat, bc, issvlo)
     ! !USES:
       use modinput, only: input
       use mod_misc, only: task, filext
@@ -53,43 +56,42 @@ module m_ematqk
     !   Added to documentation scheme. (Aurich)
     !   Substituted the modxs:xiou reference with the pointer modxs:emat that
     !   can point to any of the modxs:xiXY.
-    !EOP
-    !BOC
 
       implicit none
           
       ! Arguments
       integer, intent(in) :: iq, ik
       type(bcbs), intent(in) :: bc
-      complex(8), intent(inout) :: emat(:,:,:)
+      complex(dp), intent(inout) :: emat(:,:,:)
 
       ! Local variables
       character(*), parameter :: thisnam = 'ematqk'
       ! Allocatable arrays
-      complex(8), allocatable :: evecfvo0(:, :)
-      complex(8), allocatable :: evecfvu(:, :)
-      complex(8), allocatable :: evecfvo20(:, :)
-      complex(8), allocatable :: evecfvu2(:, :)
-      complex(8), allocatable :: zfft0(:, :), zfft(:), zfftres(:), zfftcf(:)
-      complex(8), allocatable :: xihir(:, :)
+      complex(dp), allocatable :: evecfvo0(:, :)
+      complex(dp), allocatable :: evecfvu(:, :)
+      complex(dp), allocatable :: evecfvo20(:, :)
+      complex(dp), allocatable :: evecfvu2(:, :)
+      complex(dp), allocatable :: zfft0(:, :), zfft(:), zfftres(:), zfftcf(:)
+      complex(dp), allocatable :: xihir(:, :)
       ! Expansion coefficients of apw and lo functions
-      complex(8), allocatable :: integrals(:, :, :)
+      complex(dp), allocatable :: integrals(:, :, :)
       integer :: ikq, igq, n, n0, is, l, m, io, naug, ia, ias, lm, ilo
       integer :: whichthread, ig, igk, igs, ist2, ist1
-      real(8) :: cpuini, cpuread, cpumain, cpuwrite, cpuall
-      real(8) :: cpugnt, cpumt, cpuir, cpufft
-      real(8) :: cpumalores, cpumloares
-      real(8) :: cpumlolores, cpumirres, cpudbg
-      real(8) :: cpu0, cpu1, cpu00, cpu01, cpugntlocal, cpumtlocal
-      real(8) :: vkkpq(3)
+      real(dp) :: cpuini, cpuread, cpumain, cpuwrite, cpuall
+      real(dp) :: cpugnt, cpumt, cpuir, cpufft
+      real(dp) :: cpumalores, cpumloares
+      real(dp) :: cpumlolores, cpumirres, cpudbg
+      real(dp) :: cpu0, cpu1, cpu00, cpu01, cpugntlocal, cpumtlocal
+      real(dp) :: vkkpq(3)
       integer :: shift(3), iv(3)
       type(fftmap_type) :: fftmap
-      real(8) :: emat_gmax
+      real(dp) :: emat_gmax
       character(256) :: filename
-      real(8), parameter :: epslat = 1.0d-6
+      real(dp), parameter :: epslat = 1.0d-6
 
       integer :: i
       logical :: shiftcheck
+      logical, intent(in) :: issvlo
 
       ! If task 330 is 'writeemat'
       if(task .eq. 330) then
@@ -108,18 +110,18 @@ module m_ematqk
       !call xschkstop
 
       ! Timing variables
-      cpumtaa = 0.d0
-      cpumtalo = 0.d0
-      cpumtloa = 0.d0
-      cpumtlolo = 0.d0
-      cpugnt = 0.d0
-      cpumt = 0.d0
-      cpuir = 0.d0
-      cpumalores = 0.d0
-      cpumloares = 0.d0
-      cpumlolores = 0.d0
-      cpumirres = 0.d0
-      cpudbg = 0.d0
+      cpumtaa = 0.0_dp
+      cpumtalo = 0.0_dp
+      cpumtloa = 0.0_dp
+      cpumtlolo = 0.0_dp
+      cpugnt = 0.0_dp
+      cpumt = 0.0_dp
+      cpuir = 0.0_dp
+      cpumalores = 0.0_dp
+      cpumloares = 0.0_dp
+      cpumlolores = 0.0_dp
+      cpumirres = 0.0_dp
+      cpudbg = 0.0_dp
 
       ! Get number of G+k and G+k' vectors
       n0 = ngk0_ptr(1, ik)
@@ -298,8 +300,8 @@ module m_ematqk
       whichthread=0
 
       ! Loop over G+q vectors
-      cpugntlocal=0.0d0
-      cpumtlocal=0.0d0
+      cpugntlocal=0.0_dp
+      cpumtlocal=0.0_dp
 
 #ifdef USEOMP
     !$omp parallel default(shared) private(igq, integrals, cpu00, cpu01, whichthread)
@@ -319,7 +321,7 @@ module m_ematqk
         if(whichthread.eq.0) cpugnt = cpugnt + cpu01 - cpu00
 
         ! Muffin-tin contribution
-        call ematqkgmt(iq, ik, igq, integrals, emat(:,:,igq), bc)
+        call ematqkgmt(iq, ik, igq, integrals, emat(:,:,igq), bc, issvlo)
         call timesec(cpu00)
 
         if(whichthread.eq.0) cpumt = cpumt + cpu00 - cpu01
@@ -368,12 +370,12 @@ module m_ematqk
           if(.not. emat_ccket) then
             ! emat_{m,n}(G+q) =
             !   emat_{m,n}(G+q) + \sum{G1,G2} (C0_{G1,m})^H \Theta_{G1,G2} C1_{G2,n}
-            call doublesummation_simple_cz(emat(:, :, igq), evecfvo20,&
+            call doublesummation_simple_cz(emat(1:bc%n1, 1:bc%n2, igq), evecfvo20,&
               & xihir, evecfvu2, zone, zone, .true.)
           else
             ! emat_{m,n}(G+q) =
             !   emat_{m,n}(G+q) + \sum{G1,G2} (C0_{G1,m})^H \Theta'_{G1,G2} C1^*_{G2,n}
-            call doublesummation_simple_cz(emat(:, :, igq), evecfvo20,&
+            call doublesummation_simple_cz(emat(1:bc%n1, 1:bc%n2, igq), evecfvo20,&
               & xihir, conjg(evecfvu2), zone, zone, .true.)
           end if
 
@@ -643,15 +645,13 @@ module m_ematqk
     !   Added to documentation scheme. (Aurich)
     !   Substituted the modxs:xiou reference with the pointer modxs:emat that
     !   can point to any of the modxs:xiXY.
-    !EOP
-    !BOC
-
+  
       implicit none
           
       ! Arguments
       integer, intent(in) :: iq, ik
       type(bcbs), intent(in) :: bc
-      complex(8), intent(inout) :: emat(:,:,:)
+      complex(dp), intent(inout) :: emat(:,:,:)
       character(2), intent(in) :: flag
 
       ! Local variables
@@ -659,19 +659,19 @@ module m_ematqk
       ! Allocatable arrays
       integer :: ikq, igq, n, n0
       ! Allocatable arrays
-      complex(8), allocatable :: evecfvo0(:, :)
-      complex(8), allocatable :: evecfvu(:, :)
-      complex(8), allocatable :: integral(:,:,:,:,:)
+      complex(dp), allocatable :: evecfvo0(:, :)
+      complex(dp), allocatable :: evecfvu(:, :)
+      complex(dp), allocatable :: integral(:,:,:,:,:)
       Complex (8), Allocatable :: apwalmt (:, :, :, :), apwalmt0 (:, :, :, :)
-      complex(8)               :: evecsvt0(nstsv,nstsv), evecsvt1(nstsv,nstsv)
+      complex(dp)               :: evecsvt0(nstsv,nstsv), evecsvt1(nstsv,nstsv)
       integer :: whichthread
-      real(8) :: cpuini, cpuread, cpumain, cpuwrite, cpuall
-      real(8) :: cpugnt, cpumt, cpuir, cpufft
-      real(8) :: cpumalores, cpumloares
-      real(8) :: cpumlolores, cpumirres, cpudbg
-      real(8) :: cpu0, cpu1, cpu00, cpu01, cpugntlocal, cpumtlocal
+      real(dp) :: cpuini, cpuread, cpumain, cpuwrite, cpuall
+      real(dp) :: cpugnt, cpumt, cpuir, cpufft
+      real(dp) :: cpumalores, cpumloares
+      real(dp) :: cpumlolores, cpumirres, cpudbg
+      real(dp) :: cpu0, cpu1, cpu00, cpu01, cpugntlocal, cpumtlocal
       integer(4):: ngkmax_save
-      real(8), parameter :: epslat = 1.0d-6
+      real(dp), parameter :: epslat = 1.0d-6
       integer (4):: inter1, inter2, inter3, inter4
       integer :: i
 
@@ -691,18 +691,18 @@ module m_ematqk
       !call xschkstop
 
       ! Timing variables
-      cpumtaa = 0.d0
-      cpumtalo = 0.d0
-      cpumtloa = 0.d0
-      cpumtlolo = 0.d0
-      cpugnt = 0.d0
-      cpumt = 0.d0
-      cpuir = 0.d0
-      cpumalores = 0.d0
-      cpumloares = 0.d0
-      cpumlolores = 0.d0
-      cpumirres = 0.d0
-      cpudbg = 0.d0
+      cpumtaa = 0.0_dp
+      cpumtalo = 0.0_dp
+      cpumtloa = 0.0_dp
+      cpumtlolo = 0.0_dp
+      cpugnt = 0.0_dp
+      cpumt = 0.0_dp
+      cpuir = 0.0_dp
+      cpumalores = 0.0_dp
+      cpumloares = 0.0_dp
+      cpumlolores = 0.0_dp
+      cpumirres = 0.0_dp
+      cpudbg = 0.0_dp
 
       ! Get number of G+k and G+k' vectors
       n0 = ngk0_ptr(1, ik)
@@ -754,8 +754,8 @@ module m_ematqk
       whichthread=0
 
       ! Loop over G+q vectors
-      cpugntlocal=0.0d0
-      cpumtlocal=0.0d0
+      cpugntlocal=0.0_dp
+      cpumtlocal=0.0_dp
        
 #ifdef USEOMP
     !$omp parallel default(shared) private(igq, cpu00, cpu01, whichthread,integral)
@@ -820,79 +820,201 @@ module m_ematqk
       cpuall = cpuini + cpuread + cpumain + cpuwrite
 
     end subroutine ematqk_core
-    !EOC
 
-    subroutine ematqkgmt(iq, ik, igq, integrals, emat, bc)
-      use modinput, only: input
-      use mod_atoms, only: natmtot, nspecies, natoms, idxas
-      use modxs, only: bcbs, apwmaxsize, lomaxsize, &
-                     & sfacgq,&
-                     & apwsize, losize, cmtfun, cmtfun0,&
-                     & cpumtaa
-#ifdef USEOMP
-    use omp_lib
-#endif
+    !> Dispatch muffin-tin matrix assembly to either normal SV or SVLO routines.
+    subroutine ematqkgmt(iq, ik, igq, integrals, emat, bc, issvlo)
+      use modxs, only: bcbs
 
       implicit none
 
+     ! Argument
+     !> Index referencing the q-point
+     integer, intent(in) :: iq
+     !> Index referencing the k-vector 
+     integer, intent(in) :: ik
+     !> Index referencing the (G+q)-vector
+     integer, intent(in) :: igq
+     !> integrals: Array of precomputed integrals needed to build E_{ij}.
+     complex(dp), intent(in) :: integrals(:,:,:)
+     !> emat: Plane-wave matrix to be constructed.
+     complex(dp), intent(inout) :: emat(:,:)
+     !> bc: Derived type holding basis size and offset info for the second variation.
+     type(bcbs), intent(in) :: bc
+     logical, intent(in) :: issvlo
+
+      if (issvlo) then
+        call ematqkgmt_svlo(iq, ik, igq, integrals, emat, bc)
+      else
+        call ematqkgmt_sv(iq, ik, igq, integrals, emat, bc)
+      end if
+    end subroutine ematqkgmt
+
+    subroutine ematqkgmt_sv(iq, ik, igq, integrals, emat, bc)
+      use modinput, only: input
+      use mod_atoms, only: natmtot, nspecies, natoms, idxas
+      use modxs, only: bcbs, apwmaxsize, lomaxsize, sfacgq, apwsize, losize, cmtfun, cmtfun0
+      use constants, only: zone, zzero, fourpi
+      use precision, only: dp
+    
+      implicit none
+
       ! Arguments
-      integer, intent(in) :: iq, ik, igq
+      !> Index referencing the q-point
+      integer, intent(in) :: iq
+      !> Index referencing the k-vector
+      integer, intent(in) :: ik
+      !> Index referencing the (G+q)-vector
+      integer, intent(in) :: igq
+      !> integrals: 3D array with integral data over APW+LO basis.
+      complex(dp), intent(in) :: integrals(apwmaxsize+lomaxsize, &
+                                       apwmaxsize+lomaxsize, natmtot)
+      !> emat: The final plane-wave matrix to be filled.
+      complex(dp), intent(inout) :: emat(:,:)
+      !> bc: Holds basis cutoffs/dimensions.
       type(bcbs), intent(in) :: bc
-      complex(8), intent(inout) :: emat(:,:)
 
-      complex(8) :: integrals(apwmaxsize+lomaxsize,apwmaxsize+lomaxsize,natmtot)
+  ! Local variables
+    integer :: is, ia, ias
+    complex(dp), allocatable :: zm(:,:)
+    complex(dp) :: prefactor
+    integer :: zmsize
 
-      ! Local variables
-      character(*), parameter :: thisnam = 'ematqkgmt'
-      integer :: is, ia, ias
-      integer :: lmax1, lmax3, ikt, zmsize, whichthread
-      complex(8), allocatable :: zm(:,:)
-      complex(8) :: prefactor
-      real(8) :: cmt0, cmt1
-
-#ifdef USEOMP
-      whichthread=omp_get_thread_num()
-#else
-      whichthread=0
-#endif
-
-      ikt = ik
-      lmax1 = input%xs%lmaxapwwf
-      lmax3 = lmax1
-      zmsize=apwmaxsize+lomaxsize
-
-      allocate(zm(1:bc%iu2-bc%il2+1,zmsize))
+    zmsize = apwmaxsize+lomaxsize
+    allocate(zm(bc%n2, zmsize))
 
       emat(:, :) = zzero
 
       ! Loop over species and atoms
       do is = 1, nspecies
         do ia = 1, natoms(is)
-
           ias = idxas(ia, is)
-          call timesec(cmt0)
-          !---------------------------!
-          !     apw-apw contribution  !
-          !---------------------------!
-          prefactor=fourpi*conjg(sfacgq(igq, ias, iq))
 
+          prefactor = fourpi * conjg(sfacgq(igq, ias, iq))
+
+          ! apw-apw contribution 
           call zgemm('n', 'n', bc%n2, apwsize(is)+losize(is), apwsize(is)+losize(is),&
             & zone, cmtfun(1,1,ias), bc%n2, integrals(1,1,ias), apwmaxsize+lomaxsize,&
             & zzero, zm, bc%n2)
           call zgemm('n', 't', bc%n1, bc%n2, apwsize(is)+losize(is),&
             & prefactor, cmtfun0(1,1,ias), bc%n1, zm, bc%n2, zone, emat, bc%n1)
+        end do
+      end do
 
-          call timesec(cmt1)
-          if(whichthread.eq.0) then
-            cpumtaa = cpumtaa + cmt1 - cmt0
-          endif
+    deallocate(zm)
+    end subroutine ematqkgmt_sv
 
-        ! End loop over species and atoms
-        end do ! ia
-      end do ! is
+  !> This routine calculates the matrix elements of the plane-wave operator 
+  !> \(\exp\Bigl[-\,i(\mathbf{G}+\mathbf{q})\cdot\mathbf{r}\Bigr]\) between two states
+  !> \(\Psi_{i,\mathbf{k}}\) and \(\Psi_{j,\mathbf{k}}\) according to the formula:
+  !>
+  !> \[
+  !>   \mathbf{O}(\mathbf{k})_{ij} \;=\; \biggl\langle \Psi_{i,\mathbf{k}} \,\biggm|\,
+  !>         \exp\Bigl[-\,i(\mathbf{G}+\mathbf{q})\cdot\mathbf{r}\Bigr]
+  !>         \,\biggm|\; \Psi_{j,\mathbf{k}} \biggr\rangle \,.
+  !> \]
+  !>
+  !> \note This routine is dedicated to computing the matrix elements for the
+  !>       above plane-wave operator and does \textbf{not} compute matrix elements
+  !>       for an arbitrary local operator.
+  !>
+  !> In the svlo (Second Variational Local Orbital) method, the overall matrix is 
+  !> naturally partitioned into three contributions:
+  !>  - \emph{fv-fv}: Contributions from the first-variational (APW) parts for both 
+  !>               bra and ket states.
+  !>  - \emph{fv-lo}: Cross contributions between the first-variational (APW) and local 
+  !>               orbital (LO) parts.
+  !>  - \emph{lo-lo}: Contributions from the local orbital (LO) parts for both bra and ket states.
+  !>
+  !> Both muffin-tin (APW+LO) and interstitial regions are taken into account.
+  !> The individual blocks are computed by combining the appropriate radial integrals,
+  !> matching coefficients, and eigenvector data through BLAS routines (e.g., \texttt{zgemm}).
+  !> These blocks are then assembled into the final matrix \(\mathbf{O}(\mathbf{k})_{ij}\),
+  !> which is stored in the array \texttt{emat}.
+  subroutine ematqkgmt_svlo(iq, ik, igq, integrals, emat, bc)
+    use modinput, only: input
+    use mod_atoms, only: natmtot, nspecies, natoms, idxas
+    use modxs, only: bcbs, apwmaxsize, lomaxsize, sfacgq, apwsize, losize, cmtfun, cmtfun0
+    use svlo, only: get_num_of_basis_functions_sv
+    use constants, only: zone, zzero, fourpi
+    use precision, only: dp
+    
+  implicit none
+  !> Index referencing the q-point
+  integer, intent(in) :: iq
+  !> Index referencing the k-vector
+  integer, intent(in) :: ik
+  !> Index referencing the (G+q)-vector
+  integer, intent(in) :: igq
+  !> integrals: Integral data for basis products
+  complex(dp), intent(in) :: integrals(:,:,:)
+  !> emat: Plane-wave matrix to fill (output)
+  complex(dp), intent(inout) :: emat(:,:)
+  type(bcbs), intent(in) :: bc
 
-      deallocate(zm)
-    end subroutine ematqkgmt
+    ! Local variables
+    integer :: is, ia, ias
+    complex(dp), allocatable :: zm(:,:)
+    complex(dp) :: prefactor
+    integer :: zmsize
+    integer :: first_lo_index
+    integer :: emat_lo_index_dim1_start, emat_lo_index_dim1_end
+    integer :: emat_lo_index_dim2_start, emat_lo_index_dim2_end
+    integer :: integrals_lo_index_start, integrals_lo_index_end
+    integer :: num_of_basis_functions_sv
+
+    zmsize = apwmaxsize+lomaxsize
+    allocate(zm(bc%n2, zmsize))
+
+    emat(:, :) = zzero
+    first_lo_index = 0
+
+    num_of_basis_functions_sv = get_num_of_basis_functions_sv()
+
+    do is = 1, nspecies
+      do ia = 1, natoms(is)
+        ias = idxas(ia, is)
+
+        prefactor = fourpi * conjg(sfacgq(igq, ias, iq))
+
+        ! fv-fv contribution 
+        call zgemm('n', 'n', bc%n2, apwsize(is), apwsize(is),&
+             & zone, cmtfun(1,1,ias), bc%n2, integrals(1,1,ias), apwmaxsize+lomaxsize,&
+             & zzero, zm, bc%n2)
+        call zgemm('n', 't', bc%n1, bc%n2, apwsize(is),&
+             & prefactor, cmtfun0(1,1,ias), bc%n1, zm, bc%n2, zone, emat, num_of_basis_functions_sv)
+        
+        ! fv-lo contribution
+        call zgemm('n', 't', bc%n1, losize(is), apwsize(is),&
+             & prefactor, cmtfun0(1,1,ias), bc%n1, integrals(apwsize(is) + 1, 1, ias), apwmaxsize+lomaxsize, &
+             & zzero, emat(1,bc%n2+first_lo_index+1), num_of_basis_functions_sv)
+        
+        ! lo-fv contribution     
+        call zgemm('t', 't', losize(is), bc%n2, apwsize(is),&
+             & prefactor, integrals(1, apwsize(is)+1, ias), apwmaxsize+lomaxsize, cmtfun(1,1,ias), bc%n2, &
+             & zzero, emat(bc%n1+first_lo_index+1,1), num_of_basis_functions_sv)
+        
+        ! lo-lo contribution
+        emat_lo_index_dim1_start = bc%n1 + first_lo_index + 1
+        emat_lo_index_dim1_end   = bc%n1 + first_lo_index + losize(is)
+        emat_lo_index_dim2_start = bc%n2 + first_lo_index + 1
+        emat_lo_index_dim2_end   = bc%n2 + first_lo_index + losize(is)
+        integrals_lo_index_start = apwsize(is) + 1
+        integrals_lo_index_end   = apwsize(is) + losize(is)
+        emat(emat_lo_index_dim1_start:emat_lo_index_dim1_end, &
+             emat_lo_index_dim2_start:emat_lo_index_dim2_end) = prefactor * &
+             transpose(integrals(integrals_lo_index_start:integrals_lo_index_end, &
+                       integrals_lo_index_start:integrals_lo_index_end, &
+                       ias))
+        
+        first_lo_index = sum(losize(:is))
+      end do
+    end do
+
+    deallocate(zm)
+  end subroutine ematqkgmt_svlo
+
+
+
 
     subroutine ematgntsum(iq, igq, integrals)
       use modinput, only: input
@@ -913,7 +1035,7 @@ module m_ematqk
 
       ! Arguments
       integer, intent(in) :: iq, igq
-      complex(8) :: integrals(apwmaxsize+lomaxsize, apwmaxsize+lomaxsize, natmtot)
+      complex(dp) :: integrals(apwmaxsize+lomaxsize, apwmaxsize+lomaxsize, natmtot)
 
       ! Local variables
       integer :: is, ia, ias, iaug1, iaug2
@@ -922,7 +1044,7 @@ module m_ematqk
       integer :: lmax1, lmax2, lmax3, lmmax1, lmmax2, lmmax3
       integer :: u1, u2, u3, u4
       integer :: m1, m3, lm1, lm3, cl1, cm1, cl2, cm2, cl3, cm3
-      complex(8), dimension(:,:,:,:), allocatable :: intrgaa, intrgloa, intrglolo, intrgalo
+      complex(dp), dimension(:,:,:,:), allocatable :: intrgaa, intrgloa, intrglolo, intrgalo
 
       ! Set lm related local variables
       lmax1 = max(input%xs%lmaxapwwf, lolmax)
@@ -1455,14 +1577,14 @@ module m_ematqk
 
       ! Arguments
       integer, intent(in) :: iq, ik, igq, n0,n
-      complex(8), intent(out) :: xihir(n0,n) 
+      complex(dp), intent(out) :: xihir(n0,n) 
 
       ! Local variables
       character(*), parameter :: thisnam = 'ematqkgir'
       integer :: ikq, ig, ig1, ig2, ig3, igk0, igk, iv(3), iv1(3), iv3(3), shift(3)
       integer, allocatable :: aigk0(:), aigk(:)
-      real(8) :: vkkpq(3)
-      real(8), parameter :: epslat = 1.0d-6
+      real(dp) :: vkkpq(3)
+      real(dp), parameter :: epslat = 1.0d-6
       
       ! What is done here:
       !
@@ -1713,8 +1835,8 @@ module m_ematqk
           Implicit none
           Integer, Intent (In) :: ik, iq, igq
           integer, intent(in)     :: ngp
-          complex(8), intent(in)  :: apwalm(ngkmax1_ptr,apwordmax,lmmaxapw,natmtot)
-          complex(8), intent(in)  :: evecfvo(nmatmax1_ptr,nstfv)
+          complex(dp), intent(in)  :: apwalm(ngkmax1_ptr,apwordmax,lmmaxapw,natmtot)
+          complex(dp), intent(in)  :: evecfvo(nmatmax1_ptr,nstfv)
           Type(bcbs), intent (in) :: bcs 
           Complex(8), intent (out) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n1,2)
           ! local variables
@@ -1723,7 +1845,7 @@ module m_ematqk
 	        Real (8), Allocatable :: jl (:, :), jhelp (:)
 	        Real (8) :: r2 (nrmtmax), fr2 (nrcmtmax), fr3(nrcmtmax), gr (nrcmtmax), cf (3,nrcmtmax)
     	    Real (8), allocatable :: fr1(:,:,:)
-          complex(8), allocatable :: wfmt(:,:,:,:), evecsvt(:,:)
+          complex(dp), allocatable :: wfmt(:,:,:,:), evecsvt(:,:)
           lmax2 = input%xs%lmaxemat
           is=input%xs%bse%xasspecies
           ia=input%xs%bse%xasatom
@@ -1883,9 +2005,9 @@ module m_ematqk
           Implicit none
           Integer, Intent (In) :: ik, iq, igq
           integer, intent(in)     :: ngp
-          complex(8), intent(in)  :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
-          complex(8), intent(in)  :: evecfvo(nmatmax0_ptr,nstfv)
-          complex(8), intent(in)  :: evecsvt(nstsv, nstsv)
+          complex(dp), intent(in)  :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
+          complex(dp), intent(in)  :: evecfvo(nmatmax0_ptr,nstfv)
+          complex(dp), intent(in)  :: evecsvt(nstsv, nstsv)
           Type(bcbs), intent (in) :: bcs 
           Complex(8), intent (out) :: integral(input%xs%lmaxemat+1,lmmaxapw,nxas,bcs%n1,2)
           ! local variables
@@ -1894,7 +2016,7 @@ module m_ematqk
 	        Real (8), Allocatable :: jl (:, :), jhelp (:)
 	        Real (8) :: r2 (nrmtmax), fr2 (nrcmtmax), fr3(nrcmtmax), gr (nrcmtmax), cf (3,nrcmtmax)
     	    Real (8), allocatable :: fr1(:,:,:)
-          complex(8), allocatable :: wfmt(:,:,:,:)
+          complex(dp), allocatable :: wfmt(:,:,:,:)
           lmax2 = input%xs%lmaxemat
           is=input%xs%bse%xasspecies
           ia=input%xs%bse%xasatom

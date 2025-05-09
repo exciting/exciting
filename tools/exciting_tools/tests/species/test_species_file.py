@@ -313,16 +313,10 @@ def test_add_number_los_for_all_valence_semicore_states(species_C):
             ],
         },
         {"l": 1, "wf": [{"matchingOrder": 0, "n": 3, "searchE": True}, {"matchingOrder": 1, "n": 3, "searchE": False}]},
-        {
-            "l": 0,
-            "wf": [{"matchingOrder": 2, "searchE": False, "n": 2}, {"matchingOrder": 3, "searchE": False, "n": 2}],
-        },
-        {
-            "l": 1,
-            "wf": [{"matchingOrder": 0, "searchE": False, "n": 2}, {"matchingOrder": 1, "searchE": False, "n": 2}],
-        },
+        {"l": 0, "wf": [{"matchingOrder": 2, "searchE": True, "n": 2}, {"matchingOrder": 3, "searchE": True, "n": 2}]},
+        {"l": 1, "wf": [{"matchingOrder": 0, "searchE": True, "n": 2}, {"matchingOrder": 1, "searchE": True, "n": 2}]},
     ]
-    species_C.add_number_los_for_all_valence_semicore_states(1)
+    species_C.add_number_los_for_all_valence_semicore_states(1, search_e=True)
     assert ref_los == species_C.basis["lo"], "add_number_los_for_all_valence_semicore_states failed"
 
 
@@ -346,7 +340,7 @@ def test_add_basic_lo_all_semicore_states(species_C):
         {"core": False, "kappa": 1, "l": 1, "n": 2, "occ": 1.0},
         {"core": False, "kappa": 2, "l": 1, "n": 2, "occ": 1.0},
     ]
-    species_C.add_basic_lo_all_semicore_states()
+    species_C.add_basic_lo_all_semicore_states(search_e=True)
     ref_los = [
         {
             "l": 0,
@@ -356,10 +350,7 @@ def test_add_basic_lo_all_semicore_states(species_C):
             ],
         },
         {"l": 1, "wf": [{"matchingOrder": 0, "n": 3, "searchE": True}, {"matchingOrder": 1, "n": 3, "searchE": False}]},
-        {
-            "l": 0,
-            "wf": [{"matchingOrder": 0, "searchE": False, "n": 2}, {"matchingOrder": 0, "searchE": False, "n": 1}],
-        },
+        {"l": 0, "wf": [{"matchingOrder": 0, "searchE": True, "n": 2}, {"matchingOrder": 0, "searchE": True, "n": 1}]},
     ]
     assert ref_los == species_C.basis["lo"], "add_basic_lo_all_semicore_states failed"
 
@@ -367,21 +358,18 @@ def test_add_basic_lo_all_semicore_states(species_C):
 def test_add_default(species_C):
     species_C.basis = {}
     species_C.basis.setdefault("default", [])
-    species_C.add_default(trial_energy=0.2, default_type="lapw")
+    species_C.add_default(trial_energy=0.2, default_type="lapw", search_e=True)
 
-    ref_default = [{"type": "lapw", "trialEnergy": 0.2, "searchE": False}]
+    ref_default = [{"type": "lapw", "trialEnergy": 0.2, "searchE": True}]
     assert ref_default == species_C.basis["default"], "Adding a default element failed"
 
 
 def test_add_custom_for_all_valence_states(species_C):
     species_C.basis = {}
     species_C.basis.setdefault("custom", [])
-    species_C.add_custom_for_all_valence_states(custom_type="lapw")
+    species_C.add_custom_for_all_valence_states(custom_type="lapw", search_e=True)
 
-    ref_custom = [
-        {"l": 0, "n": 2, "searchE": False, "type": "lapw"},
-        {"l": 1, "n": 2, "searchE": False, "type": "lapw"},
-    ]
+    ref_custom = [{"l": 0, "n": 2, "searchE": True, "type": "lapw"}, {"l": 1, "n": 2, "searchE": True, "type": "lapw"}]
 
     assert ref_custom == species_C.basis["custom"], "Adding a custom element for all valence states failed"
 
@@ -439,7 +427,7 @@ def test_add_lo_higher_matching_order(species_C):
     ]
     assert ref_los == species_C.basis["lo"], "Adding lo for higher matchingOrder failed for l=1, n=3"
 
-    species_C.add_lo_higher_matching_order(l=1, n=2, raise_exception=False)
+    species_C.add_lo_higher_matching_order(l=1, n=2, raise_exception=False, search_e=True)
     ref_los = [
         {
             "l": 0,
@@ -457,10 +445,7 @@ def test_add_lo_higher_matching_order(species_C):
             "l": 1,
             "wf": [{"matchingOrder": 1, "searchE": False, "n": 3}, {"matchingOrder": 2, "searchE": False, "n": 3}],
         },
-        {
-            "l": 1,
-            "wf": [{"matchingOrder": 0, "searchE": False, "n": 2}, {"matchingOrder": 1, "searchE": False, "n": 2}],
-        },
+        {"l": 1, "wf": [{"matchingOrder": 0, "searchE": True, "n": 2}, {"matchingOrder": 1, "searchE": True, "n": 2}]},
     ]
     assert ref_los == species_C.basis["lo"], "Adding lo for higher matchingOrder failed for l=1, n=2"
 
@@ -486,7 +471,7 @@ def test_add_lo(species_C):
     species_C.add_lo(l=0, ns=(2, 2), matching_orders=(3, 4), raise_exception=False)
     assert ref_los == species_C.basis["lo"], "Adding lo failed for l=1 for n=2 with m0 = [3, 4]"
 
-    species_C.add_lo(l=3, ns=(4, 4), matching_orders=(0, 1), raise_exception=False)
+    species_C.add_lo(l=3, ns=(4, 4), matching_orders=(0, 1), raise_exception=False, search_e=True)
     ref_los = [
         {
             "l": 0,
@@ -500,10 +485,7 @@ def test_add_lo(species_C):
             "l": 1,
             "wf": [{"matchingOrder": 0, "searchE": False, "n": 2}, {"matchingOrder": 1, "searchE": False, "n": 2}],
         },
-        {
-            "l": 3,
-            "wf": [{"matchingOrder": 0, "searchE": False, "n": 4}, {"matchingOrder": 1, "searchE": False, "n": 4}],
-        },
+        {"l": 3, "wf": [{"matchingOrder": 0, "searchE": True, "n": 4}, {"matchingOrder": 1, "searchE": True, "n": 4}]},
     ]
     assert ref_los == species_C.basis["lo"], "Adding lo failed for l=3 for n=4 with m0 = [0, 1]"
 

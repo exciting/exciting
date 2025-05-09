@@ -18,22 +18,6 @@ submodule(m_memory_device) sm_memory_device
 
     implicit none
 
-! Interfaces to C routines
-interface
-    ! Interface for malloc function
-    function c_malloc(size) bind(C, name="malloc")
-        import :: c_size_t, c_ptr
-        type(c_ptr) :: c_malloc
-        integer(c_size_t), value :: size
-    end function c_malloc
-
-    ! Interface for free function
-    subroutine c_free(ptr) bind(C, name="free")
-        import :: c_ptr
-        type(c_ptr), value :: ptr
-    end subroutine c_free
-end interface
-
 contains
 
     module subroutine allocate_device_memory(memory, memsize, device_id)

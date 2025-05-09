@@ -40,10 +40,45 @@
 #
 # ---------------------------------------------------------------------------------------------------------------
 
+groundstate/LDA_PW-cdft-maximumOverlapMethod-N2:
+    inputs:
+      - "input.xml"
+      - "N.xml"
+      - "EXC"
+    files_under_test:
+      - "INFO_CDFT.OUT"
+      - "evalcore.xml"
+      - "eigval.xml"
+      - "atoms.xml"
+
 groundstate/LDA_PW-cdft-N2:
     inputs:
       - "input.xml"
       - "N.xml"
+      - "EXC"
+    files_under_test:
+      - "INFO_CDFT.OUT"
+      - "evalcore.xml"
+      - "eigval.xml"
+      - "atoms.xml"
+
+groundstate/PBE-cdft-LiF:
+    inputs:
+      - "input.xml"
+      - "Li.xml"
+      - "F.xml"
+      - "EXC"
+    files_under_test:
+      - "INFO_CDFT.OUT"
+      - "evalcore.xml"
+      - "eigval.xml"
+      - "atoms.xml"
+
+hybrid/HSE-cdft-LiF:
+    inputs:
+      - "input.xml"
+      - "Li.xml"
+      - "F.xml"
       - "EXC"
     files_under_test:
       - "INFO_CDFT.OUT"
@@ -235,6 +270,27 @@ BSE/PBE_SOL-diamond-brixshdf5:
       - !Build intelLLVM_serial
       - !Build intelLLVM_smp
 
+# Note that we observe more numerical noise for BSE with SVLO than without it.
+# Hence differences in the energy below 6.0e-6 eV and in the oscillator strength 
+# below 8.0e-4 can not interpreted as a physical result.
+
+BSE/PBE-PbI2-emat_with_BSE:
+  files_under_test:
+    - "EPSILON_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT"
+    - "EPSILON_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT"
+    - "EPSILON_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT"
+    - "EXCITON_BSE-singlet-TDA-BAR_SCR-full_OC11.OUT"
+    - "EXCITON_BSE-singlet-TDA-BAR_SCR-full_OC22.OUT"
+    - "EXCITON_BSE-singlet-TDA-BAR_SCR-full_OC33.OUT"
+  inputs:
+    - "input.xml"
+    - "Pb.xml"
+    - "I.xml"
+  failing_builds:
+     - !Build intel_mpiandsmp
+     - !Build gcc_mpiandsmp
+     - !Build intelLLVM_mpiandsmp
+     
       
 GW/ZnO-PBESOL:
    files_under_test:
@@ -265,6 +321,14 @@ GW/ZnO-PBESOL-nodeg:
       - "input.xml"
       - "Zn.xml"
       - "O.xml"
+
+GW/graphite-PBE-band:
+   files_under_test:
+      - "bandstructure-qp.xml"
+   inputs:
+      - "input.xml"
+      - "C.xml"
+      - "EVALQP.OUT"
 
 GW/MoS2-LDA-cutoff:
    files_under_test:

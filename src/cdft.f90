@@ -9,14 +9,19 @@ module cdft
   use modmpi, only: terminate_if_false
   use precision, only: dp, i32
   use to_char_conversion, only: to_char
+  use xlapack, only: hermitian_matrix_multiply, matrix_multiply
 
   implicit none
 
   private
 
-  public :: occupy_cdft, &
+  public :: deallocate_cdft_global_arrays, &
+            initialize_cdft_global_arrays, &
+            occupy_cdft, &
+            set_overlap_times_psi_gs, &
             set_status_to_finished_CDFT, &
-            set_status_to_running_CDFT
+            set_status_to_running_CDFT, &
+            update_occupations_with_the_maximum_overlap_method
 
   !> Type that encapsulates the exciton coefficients
   !> as a structure of arrays
@@ -49,22 +54,28 @@ module cdft
     private
     !> If `.true.`, a constrained DFT calculation should be performed
     logical :: on = .false.
+    !> If `.true.`, employ the maximum overlap method in the CDFT calculation
+    logical :: maximum_overlap_method
     !> If `.true.`, read `STATE.OUT` for the initial guess regarding the electron density and the KS potential
     logical :: start_density_potential_from_file = .false.
     !> If `.true.`, employ the exciton coefficients to occupy the KS states
     logical :: use_exciton_coefficients
     !> If `.true.`, read the occupation numbers or the exciton coefficients from an external file
-    logical :: use_external_file
+    logical :: employ_external_file
     !> Name of the file containing the exciton coefficients or the occupation numbers
     character(len=:), allocatable, public :: file_name
   contains
     procedure :: read_input_keys => cdft_input_keys_initialize
     procedure :: is_on => cdft_is_on
+    procedure :: is_maximum_overlap_method_required => cdft_maximum_overlap_method
     procedure :: read_density_potential_from_file => cdft_start_density_potential_from_file
+    procedure :: use_external_file => cdft_use_external_file
     procedure, private :: sanity_check => cdft_sanity_checks
   end type
 
   integer(kind(status_CDFT_calculation)), save :: status = running_GS
+  complex(dp), public, protected, allocatable :: prod(:, :, :)
+  complex(dp), public, protected, allocatable :: evecfv_gs(:, :, :)
   
   !> When running CDFT calculation, this file extension should be used in a (previous) 
   !> groundstate calculation to differentiate it from CDFT
@@ -93,12 +104,26 @@ pure logical function cdft_is_on( cdft_input ) result( is_on )
 end function
 
 
+!> Returns `.true.`, when the maximum overlap method is employed
+pure logical function cdft_maximum_overlap_method(this) result(check)
+  class(cdft_input_keys), intent(in) :: this
+
+  check = this%is_on()
+  if( check ) check = this%maximum_overlap_method
+end function
+
+
 !> Returns `.true.`, if a CDFT calculation is running and `start_density_potential_from_file` is `.true.`
 pure logical function cdft_start_density_potential_from_file( cdft_input ) result( check )
   class(cdft_input_keys), intent(in) :: cdft_input
   check = ( cdft_input%is_on() ) .and. ( cdft_input%start_density_potential_from_file ) 
 end function
 
+!> Returns `.true.`, if a CDFT calculation is running and `use_external_file` is `.true.`
+pure logical function cdft_use_external_file( cdft_input ) result( check )
+class(cdft_input_keys), intent(in) :: cdft_input
+  check = ( cdft_input%is_on() ) .and. ( cdft_input%employ_external_file ) 
+end function
 
 !> Initialize the components of the type [[cdft_input_keys]]
 subroutine cdft_input_keys_initialize( this, input_gs )
@@ -108,9 +133,10 @@ subroutine cdft_input_keys_initialize( this, input_gs )
 
   this%on = associated( input_gs%constrainedDFT )
   if( this%on ) then
+    this%maximum_overlap_method = input_gs%constrainedDFT%MaximumOverlapMethod
     this%start_density_potential_from_file = input_gs%constrainedDFT%startDensityAndPotentialFromFile
     this%use_exciton_coefficients = input_gs%constrainedDFT%useExcitonCoefficients
-    this%use_external_file = input_gs%constrainedDFT%useExternalFile
+    this%employ_external_file = input_gs%constrainedDFT%useExternalFile
     this%file_name = trim( input_gs%constrainedDFT%fileName )
     call this%sanity_check( input_gs )
   end if
@@ -129,7 +155,7 @@ subroutine cdft_sanity_checks( this, input_gs )
     "Constrained DFT currently only implemented for solver " // compatible_solver )
   call terminate_if_false( this%use_exciton_coefficients, &
     "Constrained DFT currently only implemented for useExcitonCoefficients true" )
-  call terminate_if_false( this%use_external_file, &
+  call terminate_if_false( this%employ_external_file, &
     "Constrained DFT currently only implemented for useExternalFile true" )
 end subroutine
 
@@ -203,6 +229,39 @@ subroutine ExcitonCoefficients_get_from_file( exc_coeffs, file_name )
 end subroutine
 
 
+subroutine initialize_cdft_global_arrays( psi_gs, first_k )
+  !> index of the first k-point
+  integer(i32), intent(in) :: first_k
+  !> Groundstate KS wavefunctions
+  complex(dp), contiguous, intent(in) :: psi_gs(:, :, first_k:)
+
+  call deallocate_cdft_global_arrays()
+  associate( n_basis => size( psi_gs, 1 ), n_states => size( psi_gs, 2 ), last_k => ubound( psi_gs, 3 ) )
+    allocate( prod(n_basis, n_states, first_k:last_k), source=zzero )
+    allocate( evecfv_gs(n_basis, n_states, first_k:last_k), source=psi_gs )
+  end associate
+end subroutine
+
+
+subroutine set_overlap_times_psi_gs( ik, S )
+  integer(i32), intent(in) :: ik
+  complex(dp), contiguous, intent(in) :: S(:, :)
+
+  integer(i32) :: n
+
+  n = size( S , 1 )
+  call assert( size( evecfv_gs, 1 ) >= n, "S is not compatible with evecfv_gs" )
+  call hermitian_matrix_multiply(S, evecfv_gs(1:n, :, ik), prod(1:n, :, ik))
+end subroutine
+
+
+!> Deallocate the global arrays defined in this module
+subroutine deallocate_cdft_global_arrays()
+  if( allocated( prod ) ) deallocate( prod )
+  if( allocated( evecfv_gs) ) deallocate( evecfv_gs )
+end subroutine
+
+
 !> Sanity checks for the exciton coefficients
 subroutine ExcitonCoefficients_sanity_check( exc, occupations_GS )
   !> Array with the exciton coefficients
@@ -263,6 +322,35 @@ subroutine occupy_cdft( exc, wkpt, occupation_factors )
 
 end subroutine
 
+
+!> Update the occupation numbers following the maximum overlap method
+subroutine update_occupations_with_the_maximum_overlap_method( psi, occupation_factors )
+  !> Wavefunction coefficients (in terms of the LAPW+LO basis)
+  complex(dp), intent(in) :: psi(:, :, :)
+  !> Occupation factors
+  real(dp), intent(inout) :: occupation_factors(:, :)
+
+  integer(i32) :: ik, first_k, last_k, i, idx_max, n_states
+  real(dp), allocatable :: occ_save(:)
+  complex(dp), allocatable :: projection(:, :)
+  logical, allocatable :: search(:)
+
+  first_k = lbound( prod, 3 ) 
+  n_states = size( psi, 2 )
+  call assert( size(occupation_factors, 1) == n_states, "occupation_factors must have n_states elements along 1st dim")
+  call assert( size(psi, 3) == size(occupation_factors, 2), "occupation_factors and psi have incompatible size")
+  allocate( projection(n_states, n_states), occ_save(n_states), search(n_states) )
+  do ik = 1, size( psi, 3 )
+    call matrix_multiply( prod(:, :, ik+first_k-1), psi(:, :, ik), projection, 'C', 'N' )
+    occ_save = occupation_factors(:, ik)
+    search = .true.
+    do i = 1, n_states
+      idx_max = maxloc( abs(projection(:, i)), mask=search, dim=1 )
+      search(idx_max) = .false.
+      occupation_factors(i, ik) = occ_save(idx_max)
+    end do 
+  end do 
+end subroutine
 
 ! (private subroutine)
 pure subroutine change_occupations( index_vb, index_cb, delta, occ )

@@ -18,12 +18,15 @@ subroutine calc_vxnl()
     use mod_APW_LO, only: apwordmax
     use mod_muffin_tin, only: lmmaxapw
     use mod_eigensystem, only: nmatmax
-    use mod_eigenvalue_occupancy, only: efermi, nstfv
+    use mod_eigenvalue_occupancy, only: efermi, nstfv, occsv
     use mod_coulomb_potential, only: delete_coulomb_potential
     use modmpi
     use mod_bands, only: evalfv, nomax, numin, ikvbm, ikcbm, ikvcm, eveck, eveckalm, eveckp, eveckpalm
+    use cdft, only: cdft_input_keys
+    use general_find_vbm_cbm, only: find_vbm_cbm
     use precision, only: i32, dp
 #include "offload.fpp"
+
 !
 ! !DESCRIPTION:
 !   Calculates the non-local exchange potential
@@ -33,7 +36,7 @@ subroutine calc_vxnl()
 !BOC
     implicit none
 
-    integer(i32) :: ikp, ik, jk, iq, ikq
+    integer(i32) :: ikp, ik, jk, iq, ikq, jkp
     integer(i32) :: ie12, ie12tot, ie1, ie2, ie3, icg
     integer(i32) :: ist, l, im
     integer(i32) :: i, j, k, jst, ispn
@@ -47,6 +50,8 @@ subroutine calc_vxnl()
     integer(i32), allocatable :: idxpair(:,:)
     complex(dp), allocatable :: minm(:,:,:)
     complex(dp), allocatable :: evecsv(:,:)
+    type(cdft_input_keys) :: cdft_calculation
+    real(dp), parameter :: tolerance = 1.0e-8_dp
 
     call cpu_time(tstart)
 
@@ -60,9 +65,13 @@ subroutine calc_vxnl()
       call getevalfv(kset%vkl(:,ik), evalfv(:,ik))
     end do
 
-    ! VB / CB state index
-    call find_vbm_cbm(1, nstfv, kset%nkpt, evalfv, efermi, nomax, numin, ikvbm, ikcbm, ikvcm)
-    ! write(*,*) 'calc_vxnl: ', nomax, numin, efermi
+    call cdft_calculation%read_input_keys( input%groundstate )
+    if (cdft_calculation%is_on()) then
+      call find_vbm_cbm(1, nstfv, kset%nkpt, occsv, evalfv, nomax, numin, ikvbm, ikcbm, ikvcm)
+    else
+      ! VB / CB state index in ground state
+      call find_vbm_cbm(1, nstfv, kset%nkpt, evalfv, efermi, nomax, numin, ikvbm, ikcbm, ikvcm)
+    end if
 
     ! BZ integration weights
     call kintw()
@@ -82,10 +91,7 @@ subroutine calc_vxnl()
     allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveck(nmatmax,nstfv))
     allocate(eveckp(nmatmax,nstfv))
-    DEVICE_MAP_ALLOC(eveckalm)
-    DEVICE_MAP_ALLOC(eveckpalm)
-    DEVICE_MAP_ALLOC(eveck)
-    DEVICE_MAP_ALLOC(eveckp)
+    OMP_OFFLOAD target enter data map(alloc: eveckalm, eveckpalm, eveck, eveckp)
 
     !------------------------------------------!
     ! Matrix elements of non-local potential   !
@@ -131,6 +137,7 @@ subroutine calc_vxnl()
         Gamma = gammapoint(kqset%vqc(:,iq))
         ik  = kset%ikp2ik(ikp)
         jk  = kqset%kqid(ik,iq)
+        jkp = kset%ik2ikp(jk)
 
         !=======================================
         ! distribute (k,q)-pair over processors
@@ -162,10 +169,8 @@ subroutine calc_vxnl()
           call getevecfv(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), eveck)
           call expand_evec(ik,'t')
           call expand_evec(jk,'c')
-          DEVICE_UPDATE_TO(eveckalm)
-          DEVICE_UPDATE_TO(eveckpalm)
-          DEVICE_UPDATE_TO(eveck)
-          DEVICE_UPDATE_TO(eveckp)
+          
+          OMP_OFFLOAD target update to(eveckalm, eveckpalm, eveck, eveckp)
 
           !=================================
           ! Loop over m-blocks in M^i_{nm}
@@ -177,7 +182,7 @@ subroutine calc_vxnl()
 
             ! m-block M^i_{nm}
             allocate(minm(mbsiz,1:nstfv,mstart:mend))
-            DEVICE_MAP_ALLOC(minm)
+            OMP_OFFLOAD target enter data map(alloc: minm)
             if ((input%groundstate%outputlevelnumber>1) .and. (rank==0)) then
               msize = sizeof(minm)*b2mb
               write(60,'(a,3i8,f14.2)') '    iblk, mstart, mend, size(minm) (Mb):', &
@@ -188,7 +193,7 @@ subroutine calc_vxnl()
             ! Calculate M^i_{nm}
             !---------------------
             call expand_products(ik, iq, 1, nstfv, -1, mstart, mend, nomax, minm)
-            DEVICE_UPDATE_FROM(minm)
+            OMP_OFFLOAD target update from(minm)
 
             ! sum over occupied states
             do ie3 = mstart, mend
@@ -209,7 +214,12 @@ subroutine calc_vxnl()
                   ie1 = idxpair(1,ie12)
                   ie2 = idxpair(2,ie12)
                   mvm = dot_product(minm(1:mbsiz,ie1,ie3), minm(1:mbsiz,ie2,ie3))
-                  vxnl(ie1,ie2,ikp) = vxnl(ie1,ie2,ikp) - kiw(ie3,jk)*mvm
+                  if (cdft_calculation%is_on()) then
+                    ! 1/kqset%nkpt needs to be replaced by weight of kq point in the future.
+                    vxnl(ie1,ie2,ikp) = vxnl(ie1,ie2,ikp) - 0.5_dp*mvm*occsv(ie3,jkp)/kqset%nkpt
+                  else
+                    vxnl(ie1,ie2,ikp) = vxnl(ie1,ie2,ikp) - kiw(ie3,jk)*mvm
+                  end if
                 end do
 #ifdef USEOMP
 !$OMP END DO
@@ -239,7 +249,7 @@ subroutine calc_vxnl()
               end if ! core
             end do ! ie3
 
-            DEVICE_MAP_DELETE(minm)
+            OMP_OFFLOAD target exit data map(delete: minm)
             deallocate(minm)
 
           end do ! iblk
@@ -249,7 +259,11 @@ subroutine calc_vxnl()
           !--------------------------
           if (Gamma) then
             do ie1 = 1, nomax
-              vxnl(ie1,ie1,ikp) = vxnl(ie1,ie1,ikp) - sxs2*kiw(ie1,ik)
+              if (cdft_calculation%is_on()) then
+                vxnl(ie1,ie1,ikp) = vxnl(ie1,ie1,ikp) - 0.5_dp*sxs2*occsv(ie1,ikp)/kqset%nkpt
+              else
+                vxnl(ie1,ie1,ikp) = vxnl(ie1,ie1,ikp) - sxs2*kiw(ie1,ik)
+              end if
             end do
           end if
 
@@ -262,10 +276,7 @@ subroutine calc_vxnl()
     end do ! ikp
 
     ! clear memory
-    DEVICE_MAP_DELETE(eveckalm)
-    DEVICE_MAP_DELETE(eveckpalm)
-    DEVICE_MAP_DELETE(eveck)
-    DEVICE_MAP_DELETE(eveckp)
+    OMP_OFFLOAD target exit data map(delete: eveckalm, eveckpalm, eveck, eveckp)
     deallocate(eveck)
     deallocate(eveckp)
     deallocate(eveckalm)
@@ -275,11 +286,11 @@ subroutine calc_vxnl()
     !! We need to free those for the device accelerated
     !! version.
     if (allocated(mpwipw)) then
-      DEVICE_MAP_DELETE(mpwipw)
+      OMP_OFFLOAD target exit data map(delete: mpwipw)
       deallocate(mpwipw)
     end if
     if (allocated(barc)) then
-      DEVICE_MAP_DELETE(barc)
+      OMP_OFFLOAD target exit data map(delete: barc)
       deallocate(barc)
     end if
 
@@ -296,8 +307,8 @@ subroutine calc_vxnl()
           vxnl(ie2,ie1,ikp) = conjg(vxnl(ie1,ie2,ikp))
         end do
       end do
-      do ie1 = 1, nomax
-        exnl = exnl + kset%wkpt(ikp)*vxnl(ie1,ie1,ikp)
+      do ie1 = 1, nstfv
+        exnl = exnl + 0.5_dp*kset%wkpt(ikp)*occsv(ie1,ikp)*vxnl(ie1,ie1,ikp)
       end do
     end do ! ikp
 

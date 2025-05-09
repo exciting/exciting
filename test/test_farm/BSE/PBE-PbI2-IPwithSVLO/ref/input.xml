@@ -1,6 +1,6 @@
 <input>
   <title>PbI2  J.Phys.Cond.Matt. (1990),2,5285-5295, ICSD database</title>
-  <structure speciespath="/home/seohong/test/">
+  <structure speciespath=".">
     <crystal scale="1.889725989">
       <basevect>      4.55800009        0.00000000        0.00000000</basevect>
       <basevect>     -2.27900004        3.94734387        0.00000000</basevect>

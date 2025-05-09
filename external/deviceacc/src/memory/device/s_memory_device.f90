@@ -27,7 +27,11 @@ contains
         integer(c_size_t), intent(in) :: memsize
         integer, intent(in) :: device_id
 
+#if !defined(_USM_)
         memory = omp_target_alloc(memsize, device_id)
+#else
+        memory = c_malloc(memsize)
+#endif
 
         if (.not. c_associated(memory)) error stop "Error(allocate_device_memory) : returned null pointer"
 
@@ -39,15 +43,23 @@ contains
 
         if (.not. c_associated(memory)) error stop "Error(deallocate_device_memory) : cannot free a null pointer"
 
+#if !defined(_USM_)
         call omp_target_free(memory, device_id)
+#else
+        call c_free(memory)
+#endif
 
     end subroutine deallocate_device_memory
 
     module type(c_ptr) function get_device_pointer(host_data, device_id)
         type(*), target, intent(in) :: host_data(..)
         integer, intent(in) :: device_id
-        
+
+#if !defined(_USM_)
         get_device_pointer = omp_get_mapped_ptr(c_loc(host_data), device_id)
+#else
+        get_device_pointer = c_loc(host_data)
+#endif
         
         if (.not. c_associated(get_device_pointer)) error stop "Error(get_device_pointer) : returned null pointer"
     
