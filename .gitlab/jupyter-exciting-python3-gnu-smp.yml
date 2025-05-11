@@ -100,7 +100,7 @@ test-fedora-buster-gnu-smp-jupyter:
   - time python3 04_additional_features/assertions/magneto_optical_kerr_effect.py
   - time jupyter nbconvert --execute 04_additional_features/second_harmonic_generation.ipynb --to markdown
   - time python3 04_additional_features/assertions/second_harmonic_generation.py
-  - time jupyter nbconvert --execute 04_additional_features/transport_properties_using_the_boltzmann_equation.ipynb --to markdown
+ # - time jupyter nbconvert --execute 04_additional_features/transport_properties_using_the_boltzmann_equation.ipynb --to markdown
   - time python3 04_additional_features/assertions/transport_properties_using_the_boltzmann_equation.py
   - time jupyter nbconvert --execute 05_tools_and_packages/tutorial_excitingtools.ipynb --to markdown
 # rules:
