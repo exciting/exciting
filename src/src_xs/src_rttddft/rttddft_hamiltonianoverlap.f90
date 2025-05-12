@@ -22,11 +22,9 @@ module rttddft_HamiltonianOverlap
   use mod_muffin_tin, only: idxlm, rmt
   use mod_potential_and_density, only: veffig, meffig, m2effig, veffmt
   use modinput, only: input
-  use modmpi
   use physical_constants, only: alpha, c
   use precision, only: dp, i32
   use rttddft_GlobalMDVariables, only: mathcalH, mathcalB
-  use rttddft_pmat, only: obtain_pmat_LAPWLOBasis
   use rttddft_timings, only: Print_Timings, Timing_RTTDDFT_hamiltonian, &
     Timing_Ehrenfest, timesec_RTTDDFT
   use rttddft_VectorPotential, only: Vector_Potential_Field
@@ -37,8 +35,9 @@ module rttddft_HamiltonianOverlap
 
   private
   public :: update_hamiltonian_without_pa_term_lapw, update_overlap_lapw, &
-    update_hamiltonian_without_pa_term_ks, add_external_coupling_vgauge
-
+    add_external_coupling_length_gauge, update_hamiltonian_without_pa_term_ks, &
+    add_external_coupling_vgauge
+    
   real(dp) :: fact, atot(3)
   type(MTHamiltonianList) :: mt_h
 
@@ -47,7 +46,7 @@ contains
   !> In `update_overlap_lapw`, we obtain the overlap of the (L)APWs at time \( t \).
   subroutine update_overlap_lapw( first_kpt, a_tot, overlap, apwalm, pmatmt, printTimings, &
     t_ham, t_MD, update_mathcalH, update_mathcalB )
-    !> The first k point
+    !> The first \( \mathbf{k} \) point
     integer(i32), intent(in) :: first_kpt
     !> Total vector potential
     type(Vector_Potential_Field), intent(in) :: a_tot
@@ -70,7 +69,7 @@ contains
     !> if `.True.`, update `mathcalB`
     logical, intent(in), optional :: update_mathcalB
 
-    integer(i32) :: ik, nmatp, last_kpt
+    integer(i32) :: ik, last_kpt
     real(dp) :: ti, tf
     logical :: timings_general, timings_detailed, get_mathcalH, get_mathcalB
 
@@ -97,23 +96,22 @@ contains
 
     if( timings_general ) call timesec( ti ) 
 
-    !$OMP PARALLEL DEFAULT(NONE), PRIVATE(ik, nmatp), &
-    !$OMP& SHARED(first_kpt, last_kpt, apwalm, pmatmt), &
-    !$OMP& SHARED(overlap, nmat, get_mathcalH, get_mathcalB)
-    !$OMP DO
+    !$omp parallel default(none), private(ik), &
+    !$omp& shared(first_kpt, last_kpt, apwalm, pmatmt), &
+    !$omp& shared(overlap, nmat, get_mathcalH, get_mathcalB)
+    !$omp do
     do ik = first_kpt, last_kpt
-      nmatp = nmat(1, ik)
       
       if ( get_mathcalB .or. get_mathcalH ) then
         call overlapsetup( ik, overlap(:, :, ik), apwalm(:, :, :, :, ik), &
-          nmatp, get_mathcalB, get_mathcalH, pmatmt(:, :, :, :, ik) )
+          nmat(1, ik), get_mathcalB, get_mathcalH, pmatmt(:, :, :, :, ik) )
       else
         call overlapsetup( ik, overlap(:, :, ik), apwalm(:, :, :, :, ik), &
-          nmatp, get_mathcalB, get_mathcalH )
+          nmat(1, ik), get_mathcalB, get_mathcalH )
       end if
 
     end do
-    !$OMP END PARALLEL
+    !$omp end parallel
 
     if( timings_general ) then
       call timesec( tf )
@@ -128,7 +126,7 @@ contains
   !> field-free hamiltonian at time \( t \) in the LAPW+lo basis.
   subroutine update_hamiltonian_without_pa_term_lapw( first_kpt, a_tot, ham_time, apwalm, &
     printTimings, t_ham, t_MD, update_mathcalH )
-    !> The first k point
+    !> The first \( \mathbf{k} \) point
     integer(i32), intent(in) :: first_kpt
     !> Total vector potential
     type(Vector_Potential_Field), intent(in) :: a_tot
@@ -180,14 +178,14 @@ contains
     call hmlint( mt_h )
     if ( timings_detailed .and. present( t_ham ) ) call timesec_RTTDDFT( ti, t_ham%hmlint )
 
-    !$OMP PARALLEL DEFAULT(NONE), PRIVATE(ik), &
-    !$OMP& SHARED(first_kpt, last_kpt, ham_time, apwalm, nmat, get_mathcalH)
-    !$OMP DO
+    !$omp parallel default(none), private(ik), &
+    !$omp& shared(first_kpt, last_kpt, ham_time, apwalm, nmat, get_mathcalH)
+    !$omp do
     do ik = first_kpt, last_kpt
       call hamsetup( ik, ham_time(:, :, ik), apwalm(:, :, :, :, ik), nmat(1, ik), get_mathcalH )
     end do
-    !$OMP END DO NOWAIT
-    !$OMP END PARALLEL
+    !$omp end do 
+    !$omp end parallel
 
     if ( get_mathcalH ) call obtain_interstitial_contribution_mathcalH( &
       & first_kpt, last_kpt )
@@ -214,7 +212,7 @@ contains
   !> time-dependent charge density.
   subroutine update_hamiltonian_without_pa_term_ks( first_kpt, lmaxvr, ham_time, apwalm, &
       ks_lapwlo_transition_matrix, effective_potential_init, ham_init, Gkset, printTimings, t_ham )
-    !> The first k point
+    !> The first \( \mathbf{k} \) point
     integer(i32), intent(in) :: first_kpt
     !> Maximal value of l in spherical harmonics expansion of DFT potential
     integer(i32), intent(in) :: lmaxvr
@@ -299,6 +297,31 @@ contains
     if( timings_general ) call timesec_RTTDDFT( ti, t_ham%total )
 
   end subroutine
+  
+  !> Add the pre-calculated length gauge interaction term to the Hamiltonian
+  subroutine add_external_coupling_length_gauge( external_coupling_length_gauge, ham_time, dims )
+    !> Length gauge interaction matrix (n_basis, n_basis, n_kpts)
+    complex(dp), contiguous, intent(in) :: external_coupling_length_gauge(:, :, :)
+    !> Hamiltonian matrix at current time \(t\) (n_basis, n_basis, n_kpts)
+    complex(dp), contiguous, intent(inout) :: ham_time(:, :, :)
+    !> Used dimensions of `external_coupling_length_gauge` and `ham_time` matrices
+    integer(i32), intent(in) :: dims(:)
+
+    integer(i32) :: ik
+
+    call assert( all( shape( external_coupling_length_gauge ) == shape( ham_time ) ), &
+      'external_coupling_length_gauge and ham_time have incompatible dimensions' )
+
+    !$omp parallel default(none), private(ik), &
+    !$omp& shared(ham_time, external_coupling_length_gauge, dims)
+    !$omp do
+    do ik = 1, size( ham_time, 3 )
+      ham_time(1 : dims(ik), 1 : dims(ik), ik) = ham_time(1 : dims(ik), 1 : dims(ik), ik) + &
+        external_coupling_length_gauge(1 : dims(ik), 1 : dims(ik), ik)
+    end do
+    !$omp end parallel
+
+  end subroutine
 
   !> Add the velocity gauge interaction term \( {\bf p} \cdot {\bf A}(t) / c \) to 
   !> the Hamiltonian at time \( t \).
@@ -328,9 +351,9 @@ contains
     call assert( size( overlap, 3 ) == n_kpts, "overlap and ham_time have different n_kpts" )
     call assert( size( pmat, 4 ) == n_kpts, "pmat and ham_time have different n_kpts" )
 
-    !$OMP PARALLEL DEFAULT(NONE), PRIVATE(ik, i), &
-    !$OMP& SHARED(fact, a_scaled, pmat, ham_time, n_kpts, overlap, dims)
-    !$OMP DO
+    !$omp parallel default(none), private(ik, i), &
+    !$omp& shared(fact, a_scaled, pmat, ham_time, n_kpts, overlap, dims)
+    !$omp do
     do ik = 1, n_kpts
 
       ham_time(1 : dims(ik), 1 : dims(ik), ik) = ham_time(1 : dims(ik), 1 : dims(ik), ik) + &
@@ -341,7 +364,7 @@ contains
       end do
 
     end do
-    !$OMP END PARALLEL
+    !$omp end parallel
 
   end subroutine
 
@@ -354,11 +377,11 @@ contains
     real(dp)    :: t1, t2, t3, t4, g(3)
     complex(dp) :: t5
 
-    !$OMP PARALLEL DEFAULT(NONE), PRIVATE(ik,ngp,is,ia,ias,ig,igl,g,t1,t2,t3,t4,t5), &
-    !$OMP& SHARED(first_kpt,last_kpt,natoms), &
-    !$OMP& SHARED(nspecies,rmt,omega,atposc,idxas,atot), &
-    !$OMP& SHARED(ngk,nmat,vgkc,igkig,mathcalH)
-    !$OMP DO
+    !$omp parallel default(none), private(ik,ngp,is,ia,ias,ig,igl,g,t1,t2,t3,t4,t5), &
+    !$omp& shared(first_kpt,last_kpt,natoms), &
+    !$omp& shared(nspecies,rmt,omega,atposc,idxas,atot), &
+    !$omp& shared(ngk,nmat,vgkc,igkig,mathcalH)
+    !$omp do
     do ik = first_kpt, last_kpt
       ngp = ngk(1,ik)
       ! Loop over atoms
@@ -387,8 +410,8 @@ contains
         end do ! do ia = 1, natoms(is)
       end do ! do is = 1, nspecies
     end do
-    !$OMP END DO NOWAIT
-    !$OMP END PARALLEL
+    !$omp end do 
+    !$omp end parallel
   end subroutine obtain_interstitial_contribution_mathcalH
 
   !> Subroutine to calculate the Hamiltonian matrix in the LAPW+lo basis for a given k-point
@@ -740,6 +763,5 @@ contains
     end do
 
   end subroutine overlapsetup
-
 
 end module rttddft_HamiltonianOverlap

@@ -675,7 +675,7 @@
             </xs:complexType>
           </xs:element>
           
-          <xs:element ex:importance="expert" ex:unit="" name="pmat" minOccurs="1" maxOccurs="1">
+          <xs:element ex:importance="expert" ex:unit="" name="pmat" minOccurs="0" maxOccurs="1">
             <xs:annotation>
               <xs:documentation> 
                 This element defines some details needed in the evaluation of
@@ -961,6 +961,26 @@
                 <xs:restriction base="xs:string">
                   <xs:enumeration value="LAPWlo"/>
                   <xs:enumeration value="unperturbedKS"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="gauge" default="velocity">
+              <xs:annotation>
+                <xs:documentation> Gauge employed for the potential <inlinemath>V^{\rm ext}(t)</inlinemath> describing 
+                  the coupling with the external field. Possible choices are:
+                  <list>
+                    <li>velocity: <inlinemath>V^{\rm ext}(t) = \frac{\mathbf{p} \cdot \mathbf{A}(t)}{c} + 
+                    \frac{\mathbf{A}^2(t)}{2c^2} </inlinemath>;</li>
+                    <li>length: <inlinemath>V^{\rm ext}(t) </inlinemath> is constructed using the dynamical Berry phase approach 
+                      (see [Phys. Rev. B 69, 085106 (2004)], [Phys. Rev. B 88, 235113 (2013)]).</li>
+                  </list>
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="velocity"/>
+                  <xs:enumeration value="length"/>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>

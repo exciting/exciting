@@ -13,6 +13,7 @@ module rttddft_laser
 
   character(len=*), parameter :: field_total = 'total'
   character(len=*), parameter :: field_external = 'external'
+  real(dp), parameter :: eps_kick_width = 1.e-14_dp
 
   !> Enum with the type of applied field
   !> There are 2 possibilities that the applied field can assume: "total" or "external"
@@ -150,18 +151,18 @@ contains
   !> \[
   !>    \mathbf{E} = -\frac{1}{c}\frac{d\mathbf{A}}{dt}
   !> \]
-  !> The Vector potential is, therefore, a step function
+  !> The Vector potential is, therefore, a step function.
   !> If we consider strictly a delta kick, we have
   !> \[
-  !>    \mathbf{E} = \mathbf{E}_0 \delta(t-t_0)
+  !>    \mathbf{E} = \mathbf{E}_0 \delta(t - t_0).
   !> \]
-  !> this means width \( w = 0 \). However, it is possible to broaden it as
+  !> It is possible to broaden it as
   !> \[
   !>    \mathbf{E}(t) = \mathbf{E}_0 \frac{15}{16}
   !>     \left( \frac{t-t_0}{w} +1 \right)^2 \left( \frac{t-t_0}{w} -1 \right)^2
   !> \]
   !> for \( t \) between \( t_0 - w \) and \( t_0 + w \), and zero otherwise.
-  !> This function is smooth, and has a maximum on \( t_0 \).
+  !> This function is smooth, and has a maximum value of \( \frac{15 \mathbf{E}_0 }{16 w} \)  on \( t_0 \).
   !> The resulting vector potential is
   !> \[
   !>    \mathbf{A}(t) = -c\mathbf{E}_0 \frac{1}{16}
@@ -171,6 +172,7 @@ contains
   !> \]
   !> for \( t \) between \( t_0 - w \) and \( t_0 + w \),
   !> zero for \( t < t_0 - w \) and \( -c\mathbf{E}_0 \) for \( t > t_0 + w \).
+  !> If \(w = 0 \), the vector potential is zero for \( t < t_0 \) and \( -c\mathbf{E}_0 \) for \( t > t_0 \)
   pure function evaluate_delta( this, t ) result(a)
     class(Delta_Kick), intent(in) :: this
     !> time \( t \)
@@ -178,9 +180,9 @@ contains
     !> the calculated vector potential at time \( t \)
     real(dp) :: a
 
-    real(dp)              :: tsh
+    real(dp) :: tsh
 
-    if ( this%width /= 0._dp ) then
+    if ( abs( this%width ) > eps_kick_width ) then
       tsh = ( t - this%t_0 )/this%width
       if( tsh >= 1._dp ) then
         a = this%amplitude
@@ -202,17 +204,20 @@ contains
   pure function evaluate_derivative_delta( this, t ) result( a )
     class(Delta_Kick), intent(in) :: this
     !> time \( t \)
-    real(dp), intent(in)  :: t
+    real(dp), intent(in) :: t
     !> the derivative of the vector potential at time \( t \)
     real(dp) :: a
 
-    real(dp)              :: t_aux
+    real(dp) :: t_aux
 
     a = 0._dp
-    t_aux = ( t - this%t_0 )/this%width
-    if( ( t_aux >= -1._dp) .and. ( t_aux <= 1._dp ) ) then
-      a = (15._dp/16) * this%amplitude * &
-        & ( t_aux + 1 )**2*( t_aux - 1 )**2
+    if ( abs( this%width ) > eps_kick_width ) then
+      t_aux = ( t - this%t_0 ) / this%width
+      if( ( t_aux >= -1._dp) .and. ( t_aux <= 1._dp ) ) then
+        a = (15._dp/16._dp) * this%amplitude * ( t_aux + 1 )**2*( t_aux - 1 )**2
+      end if
+    else
+      if ( t == this%t_0 ) a = huge( 1._dp )
     end if
   end function
 

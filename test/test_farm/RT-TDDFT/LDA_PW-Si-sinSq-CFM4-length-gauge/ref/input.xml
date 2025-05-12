@@ -49,8 +49,10 @@
             calculateTotalEnergy="true"
             calculateNExcitedElectrons="true"
             printAfterIterations="1"
-            vectorPotentialSolver="improvedeuler">
-            <pmat readFromFile="false" forceHermitian="false" />
+            vectorPotentialSolver="improvedeuler"
+            gauge="length"
+            basis="unperturbedKS">
+            <pmat />
             <laser fieldType="total">
 		    <sinSq t0="0.5d0" omega="1.d0" phase="0.d0" amplitude="1.0d0" pulseLength="5.d0"
 			    direction="y"/>

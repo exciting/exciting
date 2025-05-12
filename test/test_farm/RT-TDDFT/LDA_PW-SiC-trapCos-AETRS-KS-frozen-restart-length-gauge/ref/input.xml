@@ -53,8 +53,8 @@
       numberOfFrozenStates="1"
       saveState="true"
       restartExtension=".SAVE"
-      do="fromfile">
-      <pmat readFromFile="false" forceHermitian="false" />
+      do="fromfile"
+      gauge="length">
       <laser fieldType="total">
         <trapCos amplitude='1.d0' omega='4.d0' phase='0.d0' t0='0.1d0' riseTime='1.d0'
                  width='7.d0' direction='x'/>
