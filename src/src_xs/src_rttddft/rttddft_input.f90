@@ -25,6 +25,12 @@ module rttddft_input
     enumerator :: lapwlo, ks
   end enum
 
+  !> Enum with gauge
+  enum, bind(C)
+    enumerator :: gauge
+    enumerator :: velocity, length
+  end enum
+
   type :: screenshot_eigenvalues_keys
     !> If `.true.`, evaluate the eigenvalues when taking a screenshot
     logical :: on
@@ -141,6 +147,8 @@ module rttddft_input
     logical, private :: save_state
     !> Identify which basis set will be used for the propagation (see [[basis_set]])
     integer(kind( basis_set )), private :: basis_set
+    !> Identify which gauge will be used for the coupling with external field (see [[gauge]])
+    integer(kind( gauge )), private :: gauge
     !> Identify if which start mode is desired (see [[start_mode]])
     integer(kind( start_mode )), private :: start_mode
     !> Format handler of the checkpoint (restart) files
@@ -156,6 +164,8 @@ module rttddft_input
     procedure :: do_from_scratch => rttddft_input_keys_do_from_scratch
     procedure :: use_ks_basis => rttddft_input_keys_use_ks_basis
     procedure :: use_lapwlo_basis => rttddft_input_keys_use_lapwlo_basis
+    procedure :: use_velocity_gauge => rttddft_input_keys_use_velocity_gauge
+    procedure :: use_length_gauge => rttddft_input_keys_use_length_gauge
   end type
 
 contains
@@ -184,9 +194,11 @@ subroutine rttddft_input_keys_parse_input( this, inp, tol, a_vec )
     this%screenshots%on = associated( rt_input%screenshots )
     if( this%screenshots%on ) call this%screenshots%parse_input( rt_input%screenshots )
 
-    this%pmat%read_pmat_from_file = rt_input%pmat%readFromFile
-    this%pmat%write_pmat_to_file = rt_input%pmat%writeToFile .and. (.not. this%pmat%read_pmat_from_file)
-    this%pmat%force_pmat_hermitian = rt_input%pmat%forceHermitian
+    if ( associated( rt_input%pmat ) ) then
+      this%pmat%read_pmat_from_file = rt_input%pmat%readFromFile
+      this%pmat%write_pmat_to_file = rt_input%pmat%writeToFile .and. (.not. this%pmat%read_pmat_from_file)
+      this%pmat%force_pmat_hermitian = rt_input%pmat%forceHermitian
+    end if
 
     this%predictor_corrector%on = associated( rt_input%predictorCorrector )
     if ( this%predictor_corrector%on ) then
@@ -197,6 +209,7 @@ subroutine rttddft_input_keys_parse_input( this, inp, tol, a_vec )
     this%eeInteraction%ipa = ( trim( rt_input%eeInteraction ) == "IPA" )
     this%save_state = rt_input%saveState
     this%basis_set = string_to_basis_set( rt_input%basis )
+    this%gauge = string_to_gauge( rt_input%gauge )
     this%start_mode = string_to_start_mode( rt_input%do )
     this%restart_file_handler%file_format = string_to_restart_format( rt_input%restartFilesFormat )
     this%restart_extension = trim( rt_input%restartExtension )
@@ -207,6 +220,34 @@ subroutine rttddft_input_keys_parse_input( this, inp, tol, a_vec )
   this%restart_file_handler%path = trim( inp%xs%h5gname )
   this%l_rad_step = inp%groundstate%lradstep
 end subroutine
+
+!> Check whether the velocity gauge will be used for the coupling with external field
+pure logical function rttddft_input_keys_use_velocity_gauge( this ) result( check )
+  class(rttddft_input_keys), intent(in) :: this
+  check = ( this%gauge == velocity )
+end function
+
+!> Check whether the length gauge will be used for the coupling with external field
+pure logical function rttddft_input_keys_use_length_gauge( this ) result( check )
+  class(rttddft_input_keys), intent(in) :: this
+  check = ( this%gauge == length )
+end function
+
+!> (private) Given a string, get the corresponding [[gauge]]
+function string_to_gauge(string) result(r)
+  !> String containing the start mode name
+  character(len=*), intent(in) :: string
+  integer(kind( gauge )) :: r
+
+  select case ( trim( string ) )
+    case ("velocity")
+      r = velocity
+    case ("length")
+      r = length
+    case default
+      call assert( .false., "Unrecognized gauge")
+  end select
+end function
 
 !> Check whether the ks basis will be used for time propagation
 pure logical function rttddft_input_keys_use_ks_basis(this) result(check)

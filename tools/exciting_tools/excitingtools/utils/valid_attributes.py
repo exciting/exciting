@@ -651,6 +651,7 @@ realTimeTDDFT_attribute_types = {"TaylorOrder": (int, 1),
                                  "do": (str, ["fromfile", "fromscratch"]),
                                  "eeInteraction": (str, ["IPA", "aDFT"]),
                                  "endTime": (float, 1),
+                                 "gauge": (str, ["length", "velocity"]),
                                  "nEigenvectorsEH": (int, 1),
                                  "normalizeWF": (bool, 1),
                                  "numberOfFrozenStates": (int, 1),
@@ -665,7 +666,6 @@ realTimeTDDFT_attribute_types = {"TaylorOrder": (int, 1),
                                  "timeStep": (float, 1),
                                  "vectorPotentialSolver": (str, ["euler", "improvedeuler", "midpoint", "rk4"])} 
 realTimeTDDFT_valid_subtrees = ["predictorCorrector", "screenshots", "laser", "pmat"] 
-realTimeTDDFT_mandatory_attributes = ["pmat"] 
 
 predictorCorrector_attribute_types = {"maxIterations": (int, 1), "tol": (float, 1)} 
 

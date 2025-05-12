@@ -5,6 +5,8 @@ module rttddft_file_names
 
   !> Default name of the file where the vector potential is printed out
   character(len=*), public, parameter :: filename_avec = 'AVEC'
+  !> Default name of the file where the external electric field strength is printed out
+  character(len=*), public, parameter :: filename_evec = 'ELECTRIC_FIELD'
   !> Default name of the file where the polarization is printed out
   character(len=*), public, parameter :: filename_pvec = 'PVEC'
   !> Default name of the file where the current density is printed out
@@ -49,4 +51,6 @@ module rttddft_file_names
   character(len=*), public, parameter :: filename_timing = 'TIMING' // RTTDDFT_suffix
   !> Default name of the file where the total energy is printed out
   character(len=*), public, parameter :: filename_etot = 'ETOT' // RTTDDFT_suffix
+  !> Default name of the file where the string phases are printed out
+  character(len=*), public, parameter :: filename_phases = 'PHASES' // RTTDDFT_suffix
 end module

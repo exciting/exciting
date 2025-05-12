@@ -97,6 +97,8 @@ module rttddft_timings
     real(dp) :: current_density
     !> timing: update of the vector potential
     real(dp) :: vector_potential
+    !> timing: evaluation of the time-dependent overlap and berry phase coupling term
+    real(dp) :: td_berry
     !> object to store timings spent in the update of the KS potential
     type(Timing_RTTDDFT_hamiltonian) :: ham
     !> timing: predictor-corrector loop
@@ -172,6 +174,7 @@ contains
     this%wavefunction = 0._dp
     this%current_density = 0._dp
     this%vector_potential = 0._dp
+    this%td_berry = 0._dp
     this%pred_corr = 0._dp
     this%energy = 0._dp
     this%n_exc = 0._dp

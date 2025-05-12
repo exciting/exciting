@@ -12,7 +12,7 @@ module rttddft_io
   use mod_xsf_format, only: add_xsf_extension, write_real_function_xsf
   use modinput, only: input, plot3d_type
   use modmpi, only: procs, terminate, terminate_if_false
-  use precision, only: dp, i32, str_256
+  use precision, only: dp, i32, str_16, str_128, str_256
   use rttddft_CurrentDensity, only: Current_Density_Field
   use rttddft_Energy, only: TotalEnergy
   use rttddft_file_names
@@ -26,6 +26,7 @@ module rttddft_io
   use rttddft_timings, only: Print_Timings, Timing_RTTDDFT_and_MD
   use rttddft_VectorField, only: Uniform_Vector_Field, x, y, z
   use rttddft_VectorPotential, only: Vector_Potential_Field
+  use rttddft_electric_field, only: Electric_Field
   use to_char_conversion, only: to_char
   
   implicit none
@@ -43,23 +44,25 @@ module rttddft_io
             write_projection_coefficients, write_eigenvalues, write_occupations, &
             write_wavefunction, read_wavefunction, delete_wavefunction_file, &
             groundstate, t, t_minus_dt, restart_format, binary, hdf5, &
-            write_density_to_file, copy_files, &
+            write_density_to_file, copy_files, read_phases, write_phases, &
             write_state_Ehrenfest_MD, read_state_Ehrenfest_MD
 
   !> Number of the unit to print timings
-  integer(i32)                   :: file_time
+  integer(i32) :: file_time
   !> number of the unit to write the vector potential
-  integer(i32)                   :: file_avec
+  integer(i32) :: file_avec
+  !> number of the unit to write the electric field
+  integer(i32) :: file_evec
   !> number of the unit to write the polarization field
-  integer(i32)                   :: file_pvec
+  integer(i32) :: file_pvec
   !> number of the unit to write the current density
-  integer(i32)                   :: file_jind
+  integer(i32) :: file_jind
   !> number of the unit to write the number of excited electrons (per unit cell) 
-  integer(i32)                   :: file_nexc
+  integer(i32) :: file_nexc
   !> number of the unit to write total energy
-  integer(i32)                   :: file_etot
+  integer(i32) :: file_etot
   !> number of the unit to write general information about the RT-TDDFT calculation
-  integer(i32)                   :: file_info
+  integer(i32) :: file_info
   !> Format of the timing outputs in RT-TDDFT
   character(len=*), parameter :: format_timing = '(A30,F12.6)'
   !> Format of the outputs: `JIND` and `PVEC`
@@ -130,7 +133,8 @@ contains
   end function
 
   !> Read the last line, and if required the penultimate line too, of files with 
-  !> the current \(\mathbf{J}\), or the polarization \(\mathbf{P}\), or the vector potential \(\mathbf{A}\)
+  !> the current \(\mathbf{J}\), or the polarization \(\mathbf{P}\), the electric field 
+  !> \(\mathbf{E}\), or the vector potential \(\mathbf{A}\)
   subroutine read_jpa( time, field_t, field_t_minus_dt, a_tot_t, a_tot_t_minus_dt )
     !> Time \(t\) contained in the last line
     real(dp), intent(out) :: time
@@ -144,23 +148,27 @@ contains
     class(Vector_Potential_Field), optional, intent(out) :: a_tot_t_minus_dt
 
     character(len=str_256) :: last_line, penultimate_line, file_name
+    if( present( field_t_minus_dt ) ) then 
+      call assert( same_type_as( field_t, field_t_minus_dt ), '2nd argument must be of type(Vector_Field)')
+    end if
     select type( field_t )
       type is( Vector_Potential_Field )
         file_name = filename_avec
-        call assert( present(a_tot_t), "a_tot_t must be passed" )
-        if( present(field_t_minus_dt) ) then 
-          call assert( present(a_tot_t_minus_dt), "a_tot_t_minus_dt must be passed")
-          call assert( same_type_as( field_t, field_t_minus_dt ), '2nd argument must be of type(Vector_Field)')
+        call assert( present( a_tot_t ), "a_tot_t must be passed" )
+        if( present( field_t_minus_dt ) ) then 
+          call assert( present( a_tot_t_minus_dt ), "a_tot_t_minus_dt must be passed")
         end if
       type is( Polarization )
         file_name = filename_pvec
       type is( Current_Density_Field )
         file_name = filename_jind
+      type is( Electric_Field )
+        file_name = filename_evec
       class default
         call assert( .false., 'unrecognized type passed to read_jpa' )
     end select
 
-    call read_last_and_penultimate_lines_from_file( add_default_extension(file_name), last_line, penultimate_line )
+    call read_last_and_penultimate_lines_from_file( add_default_extension( file_name), last_line, penultimate_line )
     
     if( present(field_t_minus_dt) ) then
       associate( v0 => field_t_minus_dt%components )
@@ -186,7 +194,7 @@ contains
 
   !> Copy files. Sources are files with name `fname` appended with [[add_default_extension]]
   !> and with an `extra_extension`. `fname` can be [[filename_avec]], [[filename_pvec]],
-  !> [[filename_jind]], [[filename_nexc]] (if `nexc` is `.true.`), and 
+  !> [[filename_jind]], [[filename_evec]], [[filename_nexc]] (if `nexc` is `.true.`), and 
   !> [[filename_etot]] (if `etot` is `.true.`)
   subroutine copy_files( extra_extension, nexc, etot )
     !> Extension of source files
@@ -197,6 +205,7 @@ contains
     logical, intent(in) :: etot
     
     call wrapper_copy_file( filename_avec, extra_extension )
+    call wrapper_copy_file( filename_evec, extra_extension )
     call wrapper_copy_file( filename_pvec, extra_extension )
     call wrapper_copy_file( filename_jind, extra_extension )
     if( nexc ) call wrapper_copy_file( filename_nexc, extra_extension )
@@ -211,13 +220,14 @@ contains
     end subroutine
   end subroutine
 
-  !> Print the current density \(\mathbf{J}\), or the polarization 
-  !> \(\mathbf{P}\), or the vector potential \(\mathbf{A}\)
+  !> Prints the current density \(\mathbf{J}\), or the polarization 
+  !> \(\mathbf{P}\), or the vector potential \(\mathbf{A}\), or the electric 
+  !> field \(\mathbf{E}\)
   subroutine write_jpa( times, first, second )
     !> Array with the values of time \( t \)
     real(dp), intent(in) :: times(:)
     !> Array with the \( x, y, z \) components of \(\mathbf{J}\) , 
-    !> \(\mathbf{P}\) or \(\mathbf{A}\) for each time \( t \)
+    !> \(\mathbf{P}\), \(\mathbf{E}\) or \(\mathbf{A}\) for each time \( t \)
     class(Uniform_Vector_Field), intent(in) :: first(:)
     !> Same as before, but for the second array - usually \(\mathbf{A}\)
     class(Uniform_Vector_Field), optional :: second(:)
@@ -228,8 +238,8 @@ contains
     twoArrays = present( second )
     n = size( times )
 
-    call assert( size(first) == n, 'first array must have size = n')
-    if( twoArrays ) call assert( size(second) == n, 'second array must have size = n')
+    call assert( size( first ) == n, 'first array must have size = n')
+    if( twoArrays ) call assert( size( second ) == n, 'second array must have size = n')
     
     select type( first )
       type is( Vector_Potential_Field )
@@ -240,6 +250,8 @@ contains
         unit = file_pvec
       type is( Current_Density_Field )
         unit = file_jind
+      type is( Electric_Field )
+        unit = file_evec
       class default
         call assert( .false., 'unrecognized type passed to write_jpa')
     end select
@@ -265,29 +277,33 @@ contains
     open( newunit=file_jind, file=add_default_extension(filename_jind), status=get_status_from_logical( new ), position=get_position_from_logical( new ) )
     open( newunit=file_pvec, file=add_default_extension(filename_pvec), status=get_status_from_logical( new ), position=get_position_from_logical( new ) )
     open( newunit=file_avec, file=add_default_extension(filename_avec), status=get_status_from_logical( new ), position=get_position_from_logical( new ) )
+    open( newunit=file_evec, file=add_default_extension(filename_evec), status=get_status_from_logical( new ), position=get_position_from_logical( new ) )
   end subroutine
 
-  subroutine close_files_jpa
+  subroutine close_files_jpa()
     close( file_jind )
     close( file_pvec )
     close( file_avec )
+    close( file_evec )
   end subroutine
 
-  subroutine delete_jpa_files
+  subroutine delete_jpa_files()
     integer(i32) :: i_error
-    call delete_file( add_default_extension(filename_jind), i_error )
-    call delete_file( add_default_extension(filename_pvec), i_error )
-    call delete_file( add_default_extension(filename_avec), i_error )
+    call delete_file( add_default_extension( filename_jind ), i_error )
+    call delete_file( add_default_extension( filename_pvec ), i_error )
+    call delete_file( add_default_extension( filename_avec ), i_error )
+    call delete_file( add_default_extension( filename_evec ), i_error )
   end subroutine
 
   subroutine open_file_etot( new )
     !> If `.true.`, open new files (rewriting old ones).
     !> If `.false.`, append to existing files
     logical, intent(in) :: new
-    open( newunit=file_etot, file=add_default_extension(filename_etot), status=get_status_from_logical( new ), position=get_position_from_logical( new ) )
+    open( newunit=file_etot, file=add_default_extension(filename_etot), &
+      status=get_status_from_logical( new ), position=get_position_from_logical( new ) )
   end subroutine
 
-  subroutine close_file_etot
+  subroutine close_file_etot()
     close( file_etot )
   end subroutine
 
@@ -327,7 +343,7 @@ contains
     open( newunit=file_nexc, file=add_default_extension(filename_nexc), status=get_status_from_logical( new ), position=get_position_from_logical( new ) )
   end subroutine
 
-  subroutine close_file_nexc
+  subroutine close_file_nexc()
     close( file_nexc )
   end subroutine
 
@@ -358,11 +374,11 @@ contains
     end do
   end subroutine
 
-  subroutine open_file_info
-    open( newunit=file_info, file=add_default_extension(filename_info), status="replace", action="write" )
+  subroutine open_file_info()
+    open( newunit=file_info, file=add_default_extension( filename_info ), status="replace", action="write" )
   end subroutine
 
-  subroutine close_file_info
+  subroutine close_file_info()
     close( file_info )
   end subroutine
 
@@ -383,21 +399,21 @@ contains
 
   subroutine write_file_info_fill_line_with_char( ch )
     character, intent(in) :: ch
-    call printline(file_info, ch)
+    call printline( file_info, ch )
   end subroutine
 
-  subroutine write_file_info_header
-    character(len=100)      :: string
-    character(10)           :: dat, tim
+  subroutine write_file_info_header()
+    character(len=str_128) :: string
+    character(len=str_16) :: dat, tim
 
     call write_file_info( 'Real-time TDDFT calculation started' )
-    call write_file_info( 'EXCITING '//trim(versionname)//' started' ) 
-    if (len(trim(githash)) > 0) call write_file_info('version hash id: '//trim(githash))
+    call write_file_info( 'EXCITING '//trim( versionname )//' started' ) 
+    if ( len( trim( githash ) ) > 0 ) call write_file_info( 'version hash id: '//trim( githash ) )
 #ifdef MPI
     write( string, '(A,I6,A)') 'MPI version using ', procs, ' processor(s)'
     call write_file_info( string )
 #endif
-    call date_and_time(date=dat, time=tim)
+    call date_and_time( date=dat, time=tim )
     write( string, '("Date (DD-MM-YYYY) : ", A2, "-", A2, "-", A4)') &
     &  dat (7:8), dat (5:6), dat (1:4)
     call write_file_info( string )
@@ -411,10 +427,11 @@ contains
     !> If `.true.`, open new files (rewriting old ones).
     !> If `.false.`, append to existing files
     logical, intent(in) :: new
-    open( newunit=file_time, file=add_default_extension(filename_timing), status=get_status_from_logical( new ), position=get_position_from_logical( new ) )
+    open( newunit=file_time, file=add_default_extension(filename_timing), &
+      status=get_status_from_logical( new ), position=get_position_from_logical( new ) )
   end subroutine
 
-  subroutine close_file_timing
+  subroutine close_file_timing()
     close( file_time )
   end subroutine
 
@@ -463,6 +480,7 @@ contains
       call write_nonzero_timing( '-- genmeffig:', t_rttddft%pot%genmeffig )
       call write_nonzero_timing( 'UpdateCurrentDensity:', t_rttddft%current_density )
       call write_nonzero_timing( 'ObtainA:', t_rttddft%vector_potential )
+      call write_nonzero_timing( 'Berry-phase related:', t_rttddft%td_berry )
       call write_nonzero_timing( 'updatehamiltonian:', t_rttddft%ham%total )
       call write_nonzero_timing( '-- overlap:', t_rttddft%ham%overlap )
       call write_nonzero_timing( '-- hmlint:', t_rttddft%ham%hmlint )
@@ -490,7 +508,7 @@ contains
   end subroutine
 
   logical function file_pmat_exists()
-    inquire( file=trim(add_default_extension(filename_pmat)), exist=file_pmat_exists )
+    inquire( file=trim(add_default_extension( filename_pmat)), exist=file_pmat_exists )
   end function
 
   function get_filename_pmat() result(name)
@@ -534,7 +552,7 @@ contains
 
   !> Check if file with `pmat_mt` exists
   logical function file_pmat_mt_exists()
-    inquire( file=trim(add_default_extension(filename_pmat_mt)), exist=file_pmat_mt_exists )
+    inquire( file=trim(add_default_extension( filename_pmat_mt)), exist=file_pmat_mt_exists )
   end function
 
   !> Read the muffin-tin part of the momentum matrix (`pmat_mt`) from file
@@ -731,6 +749,32 @@ contains
     integer(kind(wavefunction_case)) :: psi_case
     integer(i32) :: i_error
     call delete_file( get_filename_wavefunction( psi_case ), i_error )
+  end subroutine
+
+  !> Write current phases
+  subroutine write_phases( phases_to_match )
+    !> Phases needed for matching in the MTP polarization calculation
+    real(dp), intent(in) :: phases_to_match(:, :)
+
+    integer(i32) :: unit
+    
+    open( newunit=unit, file=add_default_extension( filename_phases ), action="write", &
+      form="unformatted", access="stream" )
+    write( unit ) phases_to_match
+    close( unit )
+  end subroutine
+
+  !> Read current phases
+  subroutine read_phases( phases_to_match )
+    !> Phases needed for matching in the MTP polarization calculation
+    real(dp), intent(out) :: phases_to_match(:, :)
+
+    integer(i32) :: unit
+
+    open( newunit=unit, file=add_default_extension( filename_phases ), action="read", &
+      form="unformatted", access="stream" )
+    read( unit ) phases_to_match
+    close( unit )
   end subroutine
 
   !> Write current state
