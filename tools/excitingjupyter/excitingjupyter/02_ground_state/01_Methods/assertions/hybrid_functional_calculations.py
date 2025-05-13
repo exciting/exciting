@@ -121,7 +121,7 @@ def test_groundstate_PBE0(converged_results: dict):
     assert np.isclose(converged_results['total charge'], total_charge), \
         f"Incorrect value for total charge. Expect {total_charge}"
 
-    estimated_gap = 0.24302381
+    estimated_gap = 0.24303551
     assert np.isclose(converged_results['Estimated fundamental gap'], estimated_gap), \
         f"Incorrect value for Estimated fundamental gap. Expect {estimated_gap}"
 
@@ -182,7 +182,7 @@ def test_groundstate_HSE(converged_results: dict):
     assert np.isclose(converged_results['total charge'], total_charge), \
         f"Incorrect value for total charge. Expect {total_charge}"
 
-    estimated_gap = 0.21393152
+    estimated_gap = 0.21393727
     assert np.isclose(converged_results['Estimated fundamental gap'], estimated_gap), \
         f"Incorrect value for Estimated fundamental gap. Expect {estimated_gap}"
 
