@@ -347,7 +347,10 @@ phonondos_attribute_types = {"inttype": (str, ["sum", "tetra"]),
 phonondispplot_valid_subtrees = ["plot1d"] 
 phonondispplot_mandatory_attributes = ["plot1d"] 
 
-interpolate_attribute_types = {"ngridq": (int, 3), "vqloff": (float, 3), "writeeigenvectors": (bool, 1)} 
+interpolate_attribute_types = {"ngridq": (int, 3),
+                               "reduceq": (bool, 1),
+                               "vqloff": (float, 3),
+                               "writeeigenvectors": (bool, 1)} 
 interpolate_mandatory_attributes = ["ngridq"] 
 
 
