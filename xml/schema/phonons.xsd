@@ -191,6 +191,13 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="reduceq" type="xs:boolean" default="true">
+              <xs:annotation>
+                <xs:documentation>
+                  Interpolate phonons on reduced q-grid.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
 
