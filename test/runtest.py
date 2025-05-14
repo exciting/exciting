@@ -68,6 +68,12 @@ def option_parser(settings: Defaults):
                    help="The root directory in which exciting is installed",
                    type=str,
                    default=settings.exe_dir)
+    
+    p.add_argument('-mpirun',
+                   metavar='--mpi-command',
+                   help="The command used to launch MPI processes (e.g. mpirun)",
+                   type=str,
+                   default=settings.mpi_command)
 
     p.add_argument('-np',
                    metavar='--NP',
@@ -130,7 +136,9 @@ def option_parser(settings: Defaults):
     input_options['exec_dir'] = args.r 
     input_options['np'] = args.np if args.np is not None else settings.default_np[build_type]
     input_options['omp'] = str(args.omp) if args.omp is not None else str(settings.default_threads[build_type])
-    input_options['executable'] = set_execution_str(build_type, input_options['np'], settings, input_options['exec_dir'])
+    input_options['mpirun'] = args.mpirun
+    input_options['executable'] = set_execution_str(build_type, input_options['np'], settings, 
+                                                    input_options['exec_dir'], input_options['mpirun'])
     input_options['mkl_threads'] = set_mkl_threads_from_env()
 
     return input_options
@@ -188,21 +196,22 @@ def set_test_names_from_cmd_line(test_farm: str, input_tests: List[str]) -> List
     return tests_to_run
 
 
-def set_mpi_command() -> str:
+def set_mpi_command(mpi_command: str) -> str:
     """ Set the MPI command.
 
     mpirun (at least for openMPI) cannot automatically run as root.
     Docker executes commands as root, so one needs to append a flag to mpirun.
 
+    :param mpi_command: the command used to launch MPI processes (e.g., mpirun)
     :return mpi_cmd: mpi run command.
     """
-    mpi_cmd = "mpirun"
+    mpi_cmd = mpi_command
     if os.getenv('OPENMPI_IN_DOCKER') is not None:
         mpi_cmd += " --allow-run-as-root"
     return mpi_cmd
 
 
-def set_execution_str(build_type: BuildType, np: int, settings: Defaults, exec_dir: str) -> str:
+def set_execution_str(build_type: BuildType, np: int, settings: Defaults, exec_dir: str, mpi_command: str) -> str:
     """
     Set the execution string.
 
@@ -210,6 +219,7 @@ def set_execution_str(build_type: BuildType, np: int, settings: Defaults, exec_d
     :param int np: Number of MPI processes.
     :param Defaults settings: Default exciting settings. Used to obtain valid build types and executable location.
     :param exec_dir: contains an alternative install root directory
+    :param mpi_command: the command used to launch MPI processes (e.g., mpirun)
     :return str executable_string: Execution string.
     """
     if exec_dir is None:
@@ -221,7 +231,7 @@ def set_execution_str(build_type: BuildType, np: int, settings: Defaults, exec_d
         raise FileNotFoundError(f'Could not find an exciting binary in {settings.exe_dir}')
 
     if build_type in [settings.binary_purempi, settings.binary_mpismp]:
-        mpi_cmd = set_mpi_command()
+        mpi_cmd = set_mpi_command(mpi_command)
         executable_string = f'{mpi_cmd} -np {np} {executable_string}'
 
     return executable_string
@@ -279,7 +289,7 @@ def set_up_make_test(settings: Defaults, input_options: dict) -> dict:
 
     input_options['np'] = settings.default_np[build_type]
     input_options['omp'] = settings.default_threads[build_type]
-    input_options['executable'] = set_execution_str(build_type, input_options['np'], settings)
+    input_options['executable'] = set_execution_str(build_type, input_options['np'], settings, settings['mpi_command'])
     input_options['mkl_threads'] = set_mkl_threads_from_env()
 
     return input_options

@@ -1,5 +1,27 @@
-# Compiling exciting
+- [Compiling exciting](#compiling-exciting)
+  - [Requirements](#requirements)
+  - [Compiling (CMake)](#compiling-cmake)
+    - [Compilation Steps](#compilation-steps)
+      - [Notes](#notes)
+    - [Example Configurations](#example-configurations)
+      - [Intel Machines](#intel-machines)
+      - [AMD-Based Machines](#amd-based-machines)
+    - [CMake Options](#cmake-options)
+    - [Mac OS](#mac-os)
+  - [Documentation](#documentation)
+  - [Using apptainer containers](#using-apptainer-containers)
+    - [Containers based on Intel oneapi](#containers-based-on-intel-oneapi)
+      - [Building the container image](#building-the-container-image)
+      - [Compiling exciting after the image has been built](#compiling-exciting-after-the-image-has-been-built)
+      - [Running the test suite](#running-the-test-suite)
+  - [Compiling exciting with SIRIUS](#compiling-exciting-with-sirius)
+  - [SIRIUS Gotchas](#sirius-gotchas)
+  - [fastBSE](#fastbse)
+  - [Known Issues](#known-issues)
+    - [Intel MPI](#intel-mpi)
+    - [FORD Fails to Find Graphviz](#ford-fails-to-find-graphviz)
 
+# Compiling exciting
 
 Requirements
 ------------------
@@ -15,9 +37,9 @@ exciting comes with the following external libraries required to compile the cod
 	
 * [BSPLINE-FORTRAN](https://github.com/jacobwilliams/bspline-fortran) Multidimensional B-Spline interpolation of data on a regular grid.
 
-Compilation for fully parallel execution requires an MPI library, such as open MPI, MPICH or Intel MPI library and optionally, a version of Scalapack. These can be installed with a package manager such as 
-APT, Conda, Spack or EasyBuild, or built manually from source. Some limited spack recipes for 
-installing external libraries, compiled with GCC and Intel, are provided in the [repository](build/utilities/spack). 
+Compilation for fully parallel execution requires an MPI library, such as Open MPI, MPICH or Intel MPI library, and optionally a version of ScaLAPACK. These can be installed with package managers such as 
+APT, Conda, Spack or EasyBuild, via a containerized environment, or built manually from source. A limited set of Spack recipes for 
+installing external libraries, compiled with GCC and Intel compilers, is provided in the [repository](build/utilities/spack). 
 
 Test suite dependencies are specified in [test/README](test/README).  
 
@@ -208,7 +230,91 @@ on its [Github page](https://github.com/Fortran-FOSS-Programmers/ford), and addi
 installation of dependencies can be found under 'Known Issues', below. 
 
 
-Compiling with exciting with SIRIUS
+## Using apptainer containers
+
+### Containers based on Intel oneapi
+
+#### Building the container image
+This section illustrates how to install `exciting` using an `apptainer` container 
+based on the Intel `oneapi-hpckit:2025.1.0-0-devel-ubuntu24.04` Docker image.
+
+First, ensure that [`apptainer`](https://apptainer.org/) is installed on your system.
+Then, create the definition file `my-container.def` with the following contents:
+```bash
+Bootstrap: docker
+From: intel/oneapi-hpckit:2025.1.0-0-devel-ubuntu24.04
+
+%post
+    apt-get update && apt-get install -y xsltproc python3-dev python3-pytest python3-numpy
+```
+
+To build the container, run:
+```bash
+apptainer build my-container.sif my-container.def --tmpdir $HOME/temp/
+```
+Sometimes, the default temporary working space (typically `/tmp`) may not have
+enough space to accomodate the full uncompressed container image with other 
+temporary files generated during the build process. This can cause the build to fail 
+with an error indicating insufficient disk space. 
+
+To work around this, you can specify a custom temporary directory with sufficient 
+space:
+```bash
+mkdir -p $HOME/temp/
+apptainer build --tmpdir $HOME/temp/ my-container.sif my-container.def
+```
+After the build is complete, you may remove the temporary directory if it is no 
+longer needed: 
+```bash
+rm -rf $HOME/temp/
+```
+
+#### Compiling exciting after the image has been built
+To compile `exciting`, follow the steps below. These instructions assume: 
+  1. The container file `my-container.sif` is located in your `home` directory.
+  2. The `exciting` source code is located in `$HOME/exciting`, and
+  3. The build and install directories are `$HOME/build-farm/build-$branch` and 
+  `$HOME/build-farm/install-$branch`, respectively, where `$branch` can be used 
+  to represent the `git` branch being compiled.
+
+If your setup differs, please adjust the paths accordingly.
+```bash
+export container="$HOME/my-container.sif"
+export exciting_dir="$HOME/exciting"
+export branch="mybranch"
+export build_dir="$HOME/build-farm/build-$branch"
+export install_dir="$HOME/build-farm/install-$branch"
+cd $exciting_dir
+apptainer exec $container cmake \
+  -DCMAKE_Fortran_COMPILER=ifx \
+  -DMPI_Fortran_COMPILER=mpiifx \
+  -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx \
+  -DMKL=ON -DMPI=ON -DOMP=ON \
+  -S $exciting_dir \
+  -B $build_dir \
+  -DCMAKE_INSTALL_PREFIX=$install_dir \
+  --trace --fresh
+apptainer exec $container cmake --build $build_dir -j 4
+apptainer exec $container cmake --install $build_dir
+```
+
+Finally, if the installation completes successfully, you can execute `exciting` using:
+```bash
+apptainer exec $container mpirun -np 4 $install_dir/bin/exciting_mpismp
+```
+where the `-np` argument specifies the number of MPI processes to launch.
+
+#### Running the test suite
+```bash
+python3 -m venv $HOME/.excitingvenv
+source $HOME/.excitingvenv/bin/activate
+pip install pyyaml
+pip install -e $exciting_dir/tools/exciting_tools/
+cd $exciting_dir/test
+python runtest.py -np 2 -omp 2 -mpirun "apptainer exec $container mpirun" -r $install_dir/bin -e exciting_mpismp
+```
+
+Compiling exciting with SIRIUS
 -----------------------------------
 
 [SIRIUS](https://github.com/electronic-structure/SIRIUS) is a domain specific library for electronic 
@@ -244,6 +350,7 @@ spack install $SPEC
 spack load sirius
 
 # Compile it with SIRIUS options (-DSIRIUS=ON -DUSE_INTERNAL_LIBXC=OFF). Notice that we need to compile exciting with the same libXC version than SIRIUS. 
+```
 
 SIRIUS Gotchas
 ------------------
