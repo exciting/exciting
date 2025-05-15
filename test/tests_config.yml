@@ -772,15 +772,20 @@ RT-TDDFT/GGA_PBE-BN-kick-EH-restart:
       - "EIGVAL_20.OUT"
       - "PROJ_20.OUT"
       - "OCCSV_TXT_20.OUT"
+      - "JIND.OUT"
+      - "NEXC.OUT"
+      - "ETOT_RTTDDFT.OUT"
     inputs:
       - "input.xml"
       - "B.xml"
       - "N.xml"
-      - "JIND.OUT"
-      - "PVEC.OUT"
-      - "AVEC.OUT"
+      - "JIND.OUT.SAVE"
+      - "PVEC.OUT.SAVE"
+      - "AVEC.OUT.SAVE"
+      - "ELECTRIC_FIELD.OUT.SAVE"
+      - "NEXC.OUT.SAVE"
+      - "ETOT_RTTDDFT.OUT.SAVE"
       - "rt.h5"
-      - "ELECTRIC_FIELD.OUT"
 
 RT-TDDFT/LDA_PW-SiC-trapCos-AETRS-KS-frozen-restart-length-gauge:
     files_under_test:
