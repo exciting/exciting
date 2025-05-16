@@ -847,9 +847,9 @@ RT-TDDFT/GGA_PBE-C-trapCos-EHM-IPA-printDensity:
       - "PROJ_5.OUT"
       - "PROJ_10.OUT"
       - "PROJ_15.OUT"
-      - "delta-density3d-5.xsf"
-      - "delta-density3d-10.xsf"
-      - "delta-density3d-15.xsf"
+      - "DELTARHO3D_5.xsf"
+      - "DELTARHO3D_10.xsf"
+      - "DELTARHO3D_15.xsf"
     inputs:
       - "input.xml"
       - "C.xml"
