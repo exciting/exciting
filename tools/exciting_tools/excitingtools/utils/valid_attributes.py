@@ -208,6 +208,13 @@ constrainedDFT_attribute_types = {"MaximumOverlapMethod": (bool, 1),
                                   "startDensityAndPotentialFromFile": (bool, 1),
                                   "useExcitonCoefficients": (bool, 1),
                                   "useExternalFile": (bool, 1)} 
+constrainedDFT_valid_subtrees = ["occupationChanges"] 
+
+occupationChanges_valid_subtrees = ["newOccupation"] 
+occupationChanges_mandatory_attributes = ["newOccupation"] 
+occupationChanges_multiple_children = ["newOccupation"] 
+
+newOccupation_attribute_types = {"kPointIndex": (int, 1), "occupation": (float, 1), "stateIndex": (int, 1)} 
 
 dfthalf_attribute_types = {"printVSfile": (bool, 1)} 
 

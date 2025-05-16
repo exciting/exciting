@@ -171,6 +171,16 @@ groundstate/PBE-msec-Al:
 
 groundstate/PBE-pulay-Al:
 
+groundstate/PBE-spin-cdft-diamond:
+    inputs:
+      - "input.xml"
+      - "C.xml"
+    files_under_test:
+      - "INFO_CDFT.OUT"
+      - "evalcore.xml"
+      - "eigval.xml"
+      - "atoms.xml"
+
 groundstate/PBE_SOL-Al:
 
 groundstate/GGA_PBE_SOL-automatic_trial_energies-NaCl:
