@@ -26,9 +26,9 @@ module rttddft_file_names
   !> Default name of the file where the occupation factors are printed out
   character(len=*), public, parameter :: filename_occupations = 'OCCSV_TXT_'
   !> Default name of the file where the (initial) electron density is printed out
-  character(len=*), public, parameter :: filename_density = 'density3d'
+  character(len=*), public, parameter :: filename_density = 'RHO3D'
   !> Default name of the file where the changes in electron density are printed out
-  character(len=*), public, parameter :: filename_density_changes = 'delta-density3d'
+  character(len=*), public, parameter :: filename_density_changes = 'DELTARHO3D'
   !> Default name of the file to store the core and valence densities and the KS potential
   character(len=*), public, parameter :: filename_rho_vks = "RHO_VKS"
   !> Typical suffix to differentiate RT-TDDFDT files from ground state files

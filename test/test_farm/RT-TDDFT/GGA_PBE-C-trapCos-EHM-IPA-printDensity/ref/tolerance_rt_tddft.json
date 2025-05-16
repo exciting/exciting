@@ -138,7 +138,7 @@
       "unit": "null"
     }
   },
-  "delta-density3d-5.xsf": {
+  "DELTARHO3D_5.xsf": {
     "grid": {
       "tol": 1e-05,
       "unit": "a.u."
@@ -159,12 +159,12 @@
       "tol": 1e-05,
       "unit": "a.u."
     },
-    "delta-density3d": {
+    "DELTARHO3D": {
       "tol": 1e-05,
       "unit": "a.u."
     }
   },
-  "delta-density3d-10.xsf": {
+  "DELTARHO3D_10.xsf": {
     "grid": {
       "tol": 1e-05,
       "unit": "a.u."
@@ -185,12 +185,12 @@
       "tol": 1e-05,
       "unit": "a.u."
     },
-    "delta-density3d": {
+    "DELTARHO3D": {
       "tol": 1e-05,
       "unit": "a.u."
     }
   },
-  "delta-density3d-15.xsf": {
+  "DELTARHO3D_15.xsf": {
     "grid": {
       "tol": 1e-05,
       "unit": "a.u."
@@ -211,7 +211,7 @@
       "tol": 1e-05,
       "unit": "a.u."
     },
-    "delta-density3d": {
+    "DELTARHO3D": {
       "tol": 1e-05,
       "unit": "a.u."
     }

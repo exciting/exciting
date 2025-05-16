@@ -1009,7 +1009,7 @@ contains
     !> File name (to return)
     character(len=:), allocatable :: name
 
-    name = add_xsf_extension( get_density_label( delta_rho ) // "-" // to_char( it )  )
+    name = add_xsf_extension( get_density_label( delta_rho ) // "_" // to_char( it )  )
   end function
 
   !> Write the electron density (or changes in electron density) to an output file

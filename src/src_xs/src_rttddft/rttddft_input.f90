@@ -1,6 +1,6 @@
 module rttddft_input
   use asserts, only: assert
-  use modinput, only: density_type, eigenvalues_type, occupations_type, plot3d_type, &
+  use modinput, only: deltadensityplot_type, eigenvalues_type, occupations_type, plot3d_type, &
     projectionCoefficients_type, screenshots_type, input_type
   use precision, only: dp, i32
   use propagators, only: propagator_input_elements
@@ -344,8 +344,8 @@ subroutine screenshot_input_keys_parse_input( this, screenshots_input )
   this%occupations%on = associated( screenshots_input%occupations )
   if( this%occupations%on ) call this%occupations%parse_input( screenshots_input%occupations )
 
-  this%density%on = associated( screenshots_input%density )
-  if( this%density%on ) call this%density%parse_input( screenshots_input%density )
+  this%density%on = associated( screenshots_input%deltadensityplot )
+  if( this%density%on ) call this%density%parse_input( screenshots_input%deltadensityplot )
 
   ! Turn off screenshots if no property is required
   if( .not. ( this%eigenvalues%on .or. this%projection_coefficients%on .or. this%occupations%on .or. this%density%on ) ) this%on = .false.
@@ -388,11 +388,11 @@ pure subroutine screenshot_occupations_keys_parse( this, occupations_input )
 end subroutine
 
 
-!> Parse the input keys defined in the `density` element
+!> Parse the input keys defined in the `deltadensityplot` element
 subroutine screenshot_density_keys_parse( this, density_input )
   class(screenshot_density_keys), intent(inout) :: this
-  !> Elements and attributes of `density` defined in the input file
-  type(density_type), intent(in) :: density_input
+  !> Elements and attributes of `deltadensityplot` defined in the input file
+  type(deltadensityplot_type), intent(in) :: density_input
 
   allocate( this%plot3d )
   allocate( this%plot3d%box )
