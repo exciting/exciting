@@ -1,0 +1,44 @@
+<input>
+  <title>C</title>
+  <structure speciespath="./">
+    <crystal scale="6.7407">
+      <basevect>0.0 0.5 0.5 </basevect>
+      <basevect>0.5 0.0 0.5 </basevect>
+      <basevect>0.5 0.5 0.0 </basevect>
+    </crystal>
+    <species speciesfile="C.xml" rmt="1.4">
+      <atom coord="0.00 0.00 0.00"/>
+      <atom coord="0.25 0.25 0.25"/>
+    </species>
+  </structure>
+  <groundstate
+    ngridk="2 2 2"
+    rgkmax="5.0"
+    gmaxvr="12.0"
+    epsengy="1e-6"
+    do="fromscratch"
+    mixerswitch="1"
+    mixer="msec"
+    findlinentype="Wigner_Seitz"
+    frozencore="false"
+    outputlevel="high"
+    nempty="3"
+    useDensityMatrix="true"
+    radialgridtype="cubic"
+    xctype="GGA_PBE">
+    <constrainedDFT 
+      useExcitonCoefficients="false"
+      useExternalFile="false"
+      startDensityAndPotentialFromFile="false"
+      skipgnd="false">
+      <occupationChanges>
+        <newOccupation kPointIndex="1" stateIndex="2" occupation="0.666666666667"/>
+        <newOccupation kPointIndex="1" stateIndex="3" occupation="0.666666666667"/>
+        <newOccupation kPointIndex="1" stateIndex="4" occupation="0.666666666667"/>
+        <newOccupation kPointIndex="3" stateIndex="5" occupation="0.5"/>
+        <newOccupation kPointIndex="3" stateIndex="6" occupation="0.5"/>
+      </occupationChanges>
+    </constrainedDFT>
+    <spin bfieldc="0. 0. 1." reducebf="0.5" spinorb="false" />
+  </groundstate>
+</input>

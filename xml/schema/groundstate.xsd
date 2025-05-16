@@ -317,6 +317,54 @@
             </xs:documentation>
           </xs:annotation>
           <xs:complexType>
+            <xs:all>
+              <xs:element ex:importance="experimental" ex:unit="" name="occupationChanges" 
+                  minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                  <xs:documentation> 
+                    When present, this element implicitly implies 
+                    <attref>useExternalFile</attref>=<pre>"false"</pre> and
+                    <attref>useExcitonCoefficients</attref>=<pre>"false"</pre>
+                    It provides the list of occupation changes for KS states
+                    relative to the ground-state configuration.
+                  </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element ex:importance="expert" ex:unit="" name="newOccupation" minOccurs="1" maxOccurs="unbounded">
+                      <xs:annotation>
+                        <xs:documentation> 
+                          The attributes of this element specify the updated occupation value.
+                        </xs:documentation>
+                      </xs:annotation>
+                      <xs:complexType>
+                        <xs:attribute ex:importance="expert" name="kPointIndex" type="xs:integer" default="0">
+                          <xs:annotation>
+                            <xs:documentation> 
+                              Index of the k-point to which the modified occupation is assigned.
+                            </xs:documentation>
+                          </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute ex:importance="expert" name="stateIndex" type="xs:integer" default="0">
+                          <xs:annotation>
+                            <xs:documentation> 
+                              Index of the KS state to which the modified occupation is assigned.
+                            </xs:documentation>
+                          </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute ex:importance="expert" name="occupation" type="fortrandouble" default="0d0">
+                          <xs:annotation>
+                            <xs:documentation> 
+                              New occupation to be assigned.
+                            </xs:documentation>
+                          </xs:annotation>
+                        </xs:attribute>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:all>
             <xs:attribute ex:importance="experimental" ex:unit="" name="skipgnd" type="xs:boolean"
                   default="true">
               <xs:annotation>
