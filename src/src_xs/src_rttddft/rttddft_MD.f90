@@ -8,6 +8,7 @@ module rttddft_MD
   use asserts, only: assert
   use constants, only: zone, zzero
   use exciting_mpi, only: mpiinfo, xmpi_allreduce
+  use linear_system_positive_definite, only: positive_definite_solve
   use MD, only: trajectory, MD_input_keys, MD_timing, force, obtain_core_corrections, force_ext, &
     obtain_Hellmann_Feynman_force, obtain_valence_corrections_part1, &
     val_corr_pt2_given_atom_and_kpt => obtain_valence_corrections_part2
@@ -323,8 +324,7 @@ contains
     allocate(aux(nmatp,nmatp), source=S(1:nmatp,1:nmatp))
     allocate(prod(nmatp,nmatp), source=H(1:nmatp,1:nmatp))
     mathcalS = zzero
-    ! prod = ((S)**-1)*(H)
-    call ZPOSV( 'U', nmatp, nmatp, aux, nmatp, prod, nmatp, info )
+    call positive_definite_solve( aux, prod ) ! prod = ((S)**-1)*(H)
     do ias = 1, n_atoms
       ! Loop over x,y,z components
       do j = 1, 3

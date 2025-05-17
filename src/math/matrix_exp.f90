@@ -5,6 +5,7 @@ module matrix_exp
   use math_utils, only: is_hermitian, is_positive_definite
   use general_matrix_multiplication, only: matrix_multiply
   use hermitian_matrix_multiplication, only: hermitian_matrix_multiply
+  use linear_system_positive_definite, only: positive_definite_solve
   use precision, only: dp, i32
   use xlapack, only: solve_generalized_hermitian_eigenproblem
 
@@ -54,14 +55,13 @@ contains
     real(dp), intent(in), optional :: tol
 
     integer(i32)                  :: it, info, dim_H, n_vectors
-    complex(dp), allocatable      :: x(:, :), y(:, :), S_copy(:, :)
+    complex(dp), allocatable      :: x(:, :), y(:, :)
     real(dp)                      :: tolerance
 
     n_vectors = size( vectors, 2 )
     dim_H = size( H, 1 )
     allocate( x, source = vectors )
     allocate( y(dim_H, n_vectors) )
-    allocate( S_copy, source=S )
 
     ! Optional arguments
     tolerance = tol_default
@@ -77,9 +77,7 @@ contains
       ! Matrix multiplication: y = H*x
       call hermitian_matrix_multiply( H, x, y, tol=tolerance )
       ! Obtain (S^(-1))*y for positive definite S (y will store the solution)
-      call ZPOSV( 'U', dim_H, n_vectors, S_copy, dim_H, y, dim_H, info )
-      ! Restores S_copy to its original value, after being modified by ZPOSV
-      S_copy = S
+      call positive_definite_solve( S, y )
       x = ( alpha/it )*y
       vectors = vectors + x
     end do
@@ -105,7 +103,7 @@ contains
 
     integer(i32)                  :: it, info
     integer(i32)                  :: dim_H, n_vectors
-    complex(dp), allocatable      :: x(:, :), y(:, :), S_copy(:, :)
+    complex(dp), allocatable      :: x(:, :), y(:, :)
     real(dp)                      :: tolerance
 
     ! Allocate arrays
@@ -113,7 +111,6 @@ contains
     dim_H = size( H, 1 )
     allocate( x, source = vectors )
     allocate( y(dim_H, n_vectors) )
-    allocate( S_copy, source=S )
 
     ! Optional arguments
     tolerance = tol_default
@@ -129,9 +126,7 @@ contains
       ! Matrix multiplication: y = H*x
       call matrix_multiply( H, x, y )
       ! Obtain (S^(-1))*y for positive definite S (y will store the solution)
-      call ZPOSV( 'U', dim_H, n_vectors, S_copy, dim_H, y, dim_H, info )
-      ! Restores S_copy to its original value, after being modified by ZPOSV
-      S_copy = S
+      call positive_definite_solve( S, y )
       x = ( alpha/it )*y
       vectors = vectors + x
     end do
