@@ -2,6 +2,7 @@ module integration
   use asserts, only: assert
   use constants, only: zone, zzero
   use hermitian_matrix_multiplication, only: hermitian_matrix_multiply
+  use linear_system_positive_definite, only: positive_definite_solve
   use math_utils, only: is_hermitian, is_positive_definite
   use precision, only: dp
 
@@ -60,7 +61,7 @@ module integration
     integer                       :: i, info
     integer                       :: dim, n_vectors
     complex(dp)                   :: prefactor
-    complex(dp), allocatable      :: k(:, :, :), y(:, :), H_aux(:, :), S_aux(:, :)
+    complex(dp), allocatable      :: k(:, :, :), y(:, :), H_aux(:, :)
     real(dp)                      :: tolerance
   
   
@@ -84,7 +85,6 @@ module integration
     allocate( k(dim, n_vectors, 4) )
     allocate( y, source=x )
     allocate( H_aux, source=H )
-    allocate( S_aux, source=S )
   
     ! Initiliaze
     prefactor = time_step/alpha
@@ -94,9 +94,7 @@ module integration
       ! k(:, :, i) = prefactor*H_aux*y, H_aux must be hermitian
       call hermitian_matrix_multiply( H_aux, prefactor*y, k(:, :, i), tol=tolerance )
       ! Obtain (S^(-1))*k(:, :, i) for positive definite S (k will store the solution)
-      call ZPOSV( 'U', dim, n_vectors, S_aux, dim, k(:, :, i), dim, info )
-      ! Restores S_aux to its original value, after being modified by ZPOSV
-      S_aux = S
+      call positive_definite_solve( S, k(:, :, i) )
   
       select case( i )
         case( 1 )

@@ -3,4 +3,5 @@ module lapack_f95_interfaces
   use multiplication_interfaces
   use decomposition_interfaces
   use diagonalization_interfaces
+  use linear_system_interfaces
 end module lapack_f95_interfaces
