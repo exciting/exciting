@@ -1,10 +1,12 @@
 !> Module that contains the CDFT unit tests
 module cdft_tests
   use constants, only: zi, zone, zzero
-  use cdft, only: deallocate_cdft_global_arrays, &
+  use cdft, only: cdft_input_keys, &
+                  deallocate_cdft_global_arrays, &
+                  determine_cdft_occupations, &
                   ExcitonCoefficients, &
                   initialize_cdft_global_arrays, &
-                  occupy_cdft, &
+                  Occupations, &
                   set_overlap_times_psi_gs, &
                   update_occupations_with_the_maximum_overlap_method
   use file_utils, only: delete_file
@@ -21,6 +23,8 @@ module cdft_tests
 
   public :: run_cdft_test_driver
 
+  character(len=*), parameter :: warnings = "WARNINGS.OUT"
+
 contains 
 !> Run the CDFT unit tests
 subroutine run_cdft_test_driver( mpiglobal, kill_on_failure )
@@ -31,10 +35,12 @@ subroutine run_cdft_test_driver( mpiglobal, kill_on_failure )
   
   type(unit_test_type) :: test_report
   integer(i32), parameter :: n_assertions_test_get_ExcitonCoefficients_from_file = 5
-  integer(i32), parameter :: n_assertions_test_occupy_cdft = 2
+  integer(i32), parameter :: n_assertions_test_Occupations_get_from_file = 4
+  integer(i32), parameter :: n_assertions_test_determine_cdft_occupations = 3
   integer(i32), parameter :: n_assertions_test_occupy_update_occupations_max_overl_meth = 1
   integer(i32), parameter :: n_assertions = n_assertions_test_get_ExcitonCoefficients_from_file + &
-                                            n_assertions_test_occupy_cdft + &
+                                            n_assertions_test_Occupations_get_from_file + &
+                                            n_assertions_test_determine_cdft_occupations + &
                                             n_assertions_test_occupy_update_occupations_max_overl_meth
   character(len=*), parameter :: test_driver_name = "cdft"
 
@@ -42,14 +48,13 @@ subroutine run_cdft_test_driver( mpiglobal, kill_on_failure )
 
   ! Run and assert tests
   call test_ExcitonCoefficients_get_from_file( test_report, mpiglobal )
-  call test_occupy_cdft( test_report )
+  call test_Occupations_get_from_file( test_report, mpiglobal )
+  call test_determine_cdft_occupations( test_report, mpiglobal )
   call test_occupy_update_occupations_max_overl_meth( test_report )
   
   call test_report%report( test_driver_name, kill_on_failure )
   call test_report%finalise()
-
 end subroutine
-
 
 !> Unit tests for [[cdft(module):ExcitonCoefficients_get_from_file(subroutine)]]
 subroutine test_ExcitonCoefficients_get_from_file( test_report, mpiglobal )
@@ -90,12 +95,56 @@ subroutine test_ExcitonCoefficients_get_from_file( test_report, mpiglobal )
   call test_report%assert( all_close(coeffs, weights_ref, tol), "exciton do not match" )
   
   call delete_file( file_name, i_err )
+  if( mpiglobal%is_root ) call delete_file( warnings, i_err )
 end subroutine
 
-!> Unit tests for [[occupy_cdft]]
-subroutine test_occupy_cdft( test_report )
+!> Unit tests for [[cdft(module):Occupations_get_from_file(subroutine)]]
+subroutine test_Occupations_get_from_file( test_report, mpiglobal )
   !> Unit test report
   type(unit_test_type) :: test_report
+  !> mpi information
+  type(mpiinfo), intent(in) :: mpiglobal
+
+  character(len=*), parameter :: test_name = "test_Occupations_get_from_file: "
+  integer(i32), parameter :: n_non_zero_ref = 4
+  integer(i32), parameter :: idx_states_ref(n_non_zero_ref) = [4, 3, 8, 9] 
+  integer(i32), parameter :: idx_kpt_ref(n_non_zero_ref) = [1, 1, 7, 9] 
+  character(len=*), parameter :: fake_name = "test"
+  real(dp), parameter :: occ_ref(n_non_zero_ref) = [ 1.8_dp, 1.7_dp, 0.4_dp, 0.1_dp]
+  real(dp), parameter :: tol = 1e-8_dp
+  integer(i32) :: i, unit, i_err
+  character(len=:), allocatable :: file_name
+  integer(i32), allocatable :: idx_states(:), idx_kpt(:)
+  real(dp), allocatable :: occ_factors(:)
+  type(Occupations) :: occ
+
+  ! Each MPI rank reads/writes its own file
+  file_name = fake_name // to_char( mpiglobal%rank )
+  ! Write to file
+  open( newunit = unit, file = trim(file_name), action = 'write' )
+  write( unit, * ) n_non_zero_ref
+  do i = 1, n_non_zero_ref
+    write( unit, '(2I6, F18.10)' ) idx_states_ref(i), idx_kpt_ref(i), occ_ref(i)
+  end do
+  close( unit )
+
+  call occ%get_from_file( file_name )
+  call occ%get_attributes( idx_kpt, idx_states, occ_factors )
+  call test_report%assert( n_non_zero_ref == size( occ_factors ), test_name // "Wrong number of occupation factors" )
+  call test_report%assert( all( idx_kpt == idx_kpt_ref ), test_name // "k-point indexes do not match" )
+  call test_report%assert( all( idx_states == idx_states_ref ), test_name // "state indexes do not match" )
+  call test_report%assert( all_close(occ_factors, occ_ref, tol), test_name // "occupation factors do not match" )
+
+  call delete_file( file_name, i_err )
+  if( mpiglobal%is_root ) call delete_file( warnings, i_err )
+end subroutine
+
+!> Unit tests for [[cdft(module):determine_cdft_occupations(subroutine)]]
+subroutine test_determine_cdft_occupations( test_report, mpiglobal )
+  !> Unit test report
+  type(unit_test_type) :: test_report
+  !> mpi information
+  type(mpiinfo), intent(in) :: mpiglobal
 
   real(dp), parameter :: tol = 1e-8_dp
   integer(i32), parameter :: n_exc = 3
@@ -104,11 +153,14 @@ subroutine test_occupy_cdft( test_report )
   integer(i32), parameter :: n_conduction_states = 4
   integer(i32), parameter :: n_states = n_valence_states + n_conduction_states
   logical :: spin_polarization
-  integer(i32) :: i, iv(n_exc), ic(n_exc), ik(n_exc)
+  integer(i32) :: i, iv(n_exc), ic(n_exc), ik(n_exc), is(n_exc), i_err
   complex(dp), parameter :: z(n_exc) = [ (0.17_dp, 0.26_dp), (0.4_dp, 0.0_dp), (0.0_dp, 0.7_dp) ]
+  real(dp) :: occupation_changed(n_exc)
   real(dp) :: occupation_factors(n_states, n_kpt), occupation_factors_ref(n_states, n_kpt), wkpt(n_kpt)
   real(dp) :: occupation_factors_spin(2*n_states, n_kpt), occupation_factors_spin_ref(2*n_states, n_kpt)
+  type(cdft_input_keys) :: cdft_inp
   type(ExcitonCoefficients) :: exc
+  type(Occupations) :: occ
 
   ! 1st test (spin unpolarized)
   spin_polarization = .false.  
@@ -123,7 +175,8 @@ subroutine test_occupy_cdft( test_report )
   do i = 1, n_exc
     call change_occupation( iv(i), ic(i), abs(z(i))**2/wkpt(ik(i)), occupation_factors_ref(:, ik(i)) )
   end do
-  call occupy_cdft( exc, wkpt, occupation_factors )
+  call cdft_inp%mock( exc )
+  call determine_cdft_occupations( cdft_inp, wkpt, occupation_factors )
   call test_report%assert( all_close(occupation_factors, occupation_factors_ref, tol), "Wrong occupation factors in test 1" )
 
   ! 2nd test (spin polarized)
@@ -139,8 +192,25 @@ subroutine test_occupy_cdft( test_report )
   do i = 1, n_exc
     call change_occupation( iv(i), ic(i), abs(z(i))**2/wkpt(ik(i)), occupation_factors_spin_ref(:, ik(i)) )
   end do
-  call occupy_cdft( exc, wkpt, occupation_factors_spin )
+  call cdft_inp%mock( exc )
+  call determine_cdft_occupations( cdft_inp, wkpt, occupation_factors_spin )
   call test_report%assert( all_close(occupation_factors_spin, occupation_factors_spin_ref, tol), "Wrong occupation factors in test 2" )
+
+  ! 3rd test (Occupations)
+  occupation_factors_ref = 0._dp
+  occupation_factors_ref(1:n_valence_states, 1:n_kpt) = 2._dp
+  occupation_factors = occupation_factors_ref
+  ik = [1, 2, 1]
+  is = [1, 2, 5]
+  occupation_changed = [1.5_dp, 1.7_dp, 0.8_dp]
+  call occ%set_attributes( ik, is, occupation_changed )
+  call cdft_inp%mock( occ )
+  call determine_cdft_occupations( cdft_inp, wkpt, occupation_factors )
+  do i = 1, n_exc
+    occupation_factors_ref(is(i), ik(i)) = occupation_changed(i)
+  end do
+  call test_report%assert( all_close(occupation_factors, occupation_factors_ref, tol), "Wrong occupation factors in test 3" )
+  if( mpiglobal%is_root ) call delete_file( warnings, i_err )
 
   contains 
     pure subroutine change_occupation( i_sub, i_add, delta, occupation )

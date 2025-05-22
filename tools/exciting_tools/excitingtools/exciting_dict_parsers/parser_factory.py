@@ -105,7 +105,7 @@ _file_to_parser = {
     "FEXT_*": RT_TDDFT_parser.parse_force,
     "FHF_*": RT_TDDFT_parser.parse_force,
     "FVAL_*": RT_TDDFT_parser.parse_force,
-    "delta-density3d-*.xsf": properties_parser.parse_wf3d,
+    "DELTARHO3D_*.xsf": properties_parser.parse_wf3d,
     "STATE.OUT": state_parser.parse_state_out,
     "bse_output.h5": hdf5_parser.parse_hdf5_file_as_dict,
     "fastBSE_output.h5": hdf5_parser.parse_hdf5_file_as_dict,

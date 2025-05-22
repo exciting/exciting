@@ -1,12 +1,6 @@
-!BOP
-! !ROUTINE: scf_cycle
-! !INTERFACE:
-!
-!
 subroutine scf_cycle(verbosity)
-! !USES:
-    use cdft, only: cdft_input_keys, deallocate_cdft_global_arrays, ExcitonCoefficients, &
-      file_extension_GS, initialize_cdft_global_arrays, occupy_cdft, update_occupations_with_the_maximum_overlap_method
+    use cdft, only: cdft_input_keys, deallocate_cdft_global_arrays, determine_cdft_occupations, &
+      file_extension_GS, initialize_cdft_global_arrays, update_occupations_with_the_maximum_overlap_method
     use exciting_mpi, only: xmpi_bcast, xmpi_allreduce
     use lo_recommendation, only: recommend_local_orbital_trial_energies
     use mod_APW_LO, only: apwn, apwe0, lorbe0, lorbl, lorbord, lorbn, maxapword, maxlapw, nlorb
@@ -29,7 +23,7 @@ subroutine scf_cycle(verbosity)
     use mod_timing, only: stopwatch, time_density_init, time_pot_init, timefor, timefv, &
       timeinit, timeio, timemat, timemixer, timemt, timepot, timerho, timesv
     use modinput, only: input, getfixspinnumber
-    use modmpi, only: barrier, firstofset, ierr, lastofset, mpiglobal, mpi_allgatherv_ifc, &
+    use modmpi, only: barrier, firstofset, lastofset, mpiglobal, mpi_allgatherv_ifc, &
       procs, rank, splittfile
     use precision, only: dp, i32
     use scl_xml_out_Module, only: deltae, dforcemax, iscl, scl_iter_xmlout, scl_xml_out_write, scl_xml_write_moments
@@ -40,17 +34,6 @@ subroutine scf_cycle(verbosity)
     use total_energy, only: energy
     use trial_energy_selection, only: select_apw_trial_energies, select_local_orbital_trial_energies
     use TS_vdW_module, only: C6ab, R0_eff_ab
-    
-    
-!
-
-! !DESCRIPTION:
-!
-! !REVISION HISTORY:
-!   Created February 2013 (DIN)
-!   Modified December 2024 (Ronaldo)
-!EOP
-!BOC
     Implicit None
 
     integer(i32), intent(IN) :: verbosity
@@ -72,10 +55,8 @@ subroutine scf_cycle(verbosity)
     type(cdft_input_keys) :: cdft_calculation
     logical :: spin_polarization
     integer(i32) :: first_k, last_k
-    integer(i32) :: nv, nc
     complex (dp), allocatable :: evecfv_store(:, :, :)
-    real (dp), allocatable :: occsv_gs(:, :)
-    type (ExcitonCoefficients) :: a_lvck
+    real (dp), allocatable :: occsv_ref(:, :)
 
     first_k = firstofset(rank, nkpt)
     last_k = lastofset(rank, nkpt)
@@ -168,13 +149,10 @@ subroutine scf_cycle(verbosity)
       do ik = 1, nkpt
         call getoccsv( vkl(:, ik), occsv(:, ik) )
       end do
-      occsv_gs = occsv
       if ( cdft_calculation%read_density_potential_from_file() ) call readstate
-      if ( cdft_calculation%use_external_file() ) then
-        call a_lvck%get_from_file( cdft_calculation%file_name )
-        call a_lvck%sanity_check( occsv_gs )
-      end if
+      call determine_cdft_occupations( cdft_calculation, wkpt, occsv )
       if ( cdft_calculation%is_maximum_overlap_method_required() ) then
+        occsv_ref = occsv
         allocate( evecfv_store(nmatmax, nstfv, first_k:last_k) )
         splittfile = .false.
         do ik = first_k, last_k
@@ -394,10 +372,10 @@ subroutine scf_cycle(verbosity)
 ! find the occupation numbers and Fermi energy
 !-----------------------------------------------
         if( cdft_calculation%is_on() ) then
-          occsv = occsv_gs
-          call occupy_cdft( a_lvck, wkpt, occsv )
-          if ( cdft_calculation%is_maximum_overlap_method_required() ) &
+          if ( cdft_calculation%is_maximum_overlap_method_required() ) then
+            occsv = occsv_ref
             call update_occupations_with_the_maximum_overlap_method( evecfv_store, occsv(:, first_k:) )
+          end if
         else 
           call occupy
         end if 

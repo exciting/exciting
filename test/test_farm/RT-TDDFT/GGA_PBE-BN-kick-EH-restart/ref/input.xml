@@ -47,8 +47,9 @@
             do="fromfile"
             printTimingGeneral="false"
             printTimingDetailed="false"
-            calculateNExcitedElectrons="false"
-            calculateTotalEnergy="false"
+            calculateNExcitedElectrons="true"
+            calculateTotalEnergy="true"
+            restartExtension=".SAVE"
             printAfterIterations="1"
             vectorPotentialSolver="midpoint"
             nEigenvectorsEH="8">

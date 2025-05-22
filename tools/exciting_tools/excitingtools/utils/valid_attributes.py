@@ -208,6 +208,13 @@ constrainedDFT_attribute_types = {"MaximumOverlapMethod": (bool, 1),
                                   "startDensityAndPotentialFromFile": (bool, 1),
                                   "useExcitonCoefficients": (bool, 1),
                                   "useExternalFile": (bool, 1)} 
+constrainedDFT_valid_subtrees = ["occupationChanges"] 
+
+occupationChanges_valid_subtrees = ["newOccupation"] 
+occupationChanges_mandatory_attributes = ["newOccupation"] 
+occupationChanges_multiple_children = ["newOccupation"] 
+
+newOccupation_attribute_types = {"kPointIndex": (int, 1), "occupation": (float, 1), "stateIndex": (int, 1)} 
 
 dfthalf_attribute_types = {"printVSfile": (bool, 1)} 
 
@@ -347,7 +354,10 @@ phonondos_attribute_types = {"inttype": (str, ["sum", "tetra"]),
 phonondispplot_valid_subtrees = ["plot1d"] 
 phonondispplot_mandatory_attributes = ["plot1d"] 
 
-interpolate_attribute_types = {"ngridq": (int, 3), "vqloff": (float, 3), "writeeigenvectors": (bool, 1)} 
+interpolate_attribute_types = {"ngridq": (int, 3),
+                               "reduceq": (bool, 1),
+                               "vqloff": (float, 3),
+                               "writeeigenvectors": (bool, 1)} 
 interpolate_mandatory_attributes = ["ngridq"] 
 
 
@@ -651,6 +661,7 @@ realTimeTDDFT_attribute_types = {"TaylorOrder": (int, 1),
                                  "do": (str, ["fromfile", "fromscratch"]),
                                  "eeInteraction": (str, ["IPA", "aDFT"]),
                                  "endTime": (float, 1),
+                                 "gauge": (str, ["length", "velocity"]),
                                  "nEigenvectorsEH": (int, 1),
                                  "normalizeWF": (bool, 1),
                                  "numberOfFrozenStates": (int, 1),
@@ -665,12 +676,11 @@ realTimeTDDFT_attribute_types = {"TaylorOrder": (int, 1),
                                  "timeStep": (float, 1),
                                  "vectorPotentialSolver": (str, ["euler", "improvedeuler", "midpoint", "rk4"])} 
 realTimeTDDFT_valid_subtrees = ["predictorCorrector", "screenshots", "laser", "pmat"] 
-realTimeTDDFT_mandatory_attributes = ["pmat"] 
 
 predictorCorrector_attribute_types = {"maxIterations": (int, 1), "tol": (float, 1)} 
 
 screenshots_attribute_types = {"niter": (int, 1)} 
-screenshots_valid_subtrees = ["eigenvalues", "projectionCoefficients", "occupations", "density"] 
+screenshots_valid_subtrees = ["eigenvalues", "projectionCoefficients", "occupations", "deltadensityplot"] 
 
 eigenvalues_attribute_types = {"nEigenvalues": (int, 1), "tolerance": (float, 1)} 
 
@@ -678,7 +688,7 @@ projectionCoefficients_attribute_types = {"format": (str, 1), "printAbsoluteValu
 
 occupations_attribute_types = {"binaryFormat": (bool, 1), "format": (str, 1), "textFormat": (bool, 1)} 
 
-density_valid_subtrees = ["plot3d"] 
+deltadensityplot_valid_subtrees = ["plot3d"] 
 
 laser_attribute_types = {"fieldType": (str, ["external", "total"])} 
 laser_valid_subtrees = ["kick", "trapCos", "sinSq"] 

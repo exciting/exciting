@@ -16,12 +16,30 @@ module cdft
   private
 
   public :: deallocate_cdft_global_arrays, &
+            determine_cdft_occupations, &
             initialize_cdft_global_arrays, &
-            occupy_cdft, &
             set_overlap_times_psi_gs, &
             set_status_to_finished_CDFT, &
             set_status_to_running_CDFT, &
             update_occupations_with_the_maximum_overlap_method
+
+  !> Type that encapsulates the occupations in a CDFT calculation that have changed w.r.t. a DFT calculation
+  type, public :: Occupations
+    private
+    !> k-point indexes
+    integer(i32), allocatable :: i_kpoint(:) 
+    !> KS state indexes
+    integer(i32), allocatable :: i_state(:)
+    !> occupation factors
+    real(dp), allocatable :: occ_factor(:)
+  contains
+    private
+    procedure :: allocate_arrays => Occupations_allocate_arrays
+    procedure, public :: get_attributes => Occupations_get_attributes
+    procedure, public :: get_from_file => Occupations_get_from_file
+    procedure :: sanity_checks => Occupations_sanity_checks
+    procedure, public :: set_attributes => Occupations_set_attributes
+  end type
 
   !> Type that encapsulates the exciton coefficients
   !> as a structure of arrays
@@ -36,11 +54,12 @@ module cdft
     !> Coefficients \(A^{\lambda}_{\mathbf{k}vc}\)
     complex(dp), allocatable  :: coeffs(:) 
   contains
-    procedure :: set_attributes => ExcitonCoefficients_set_attributes
-    procedure :: get_attributes => ExcitonCoefficients_get_attributes
-    procedure :: get_from_file => ExcitonCoefficients_get_from_file
+    private
+    procedure, public :: set_attributes => ExcitonCoefficients_set_attributes
+    procedure, public :: get_attributes => ExcitonCoefficients_get_attributes
+    procedure, public :: get_from_file => ExcitonCoefficients_get_from_file
     procedure :: sanity_check => ExcitonCoefficients_sanity_check
-    procedure, private :: get_norm => ExcitonCoefficients_get_normalization
+    procedure :: get_norm => ExcitonCoefficients_get_normalization
   end type
 
   !> Enum with the status of a CDFT calculation
@@ -61,16 +80,22 @@ module cdft
     !> If `.true.`, employ the exciton coefficients to occupy the KS states
     logical :: use_exciton_coefficients
     !> If `.true.`, read the occupation numbers or the exciton coefficients from an external file
-    logical :: employ_external_file
+    logical :: use_external_file
     !> Name of the file containing the exciton coefficients or the occupation numbers
-    character(len=:), allocatable, public :: file_name
+    character(len=:), allocatable :: file_name
+    !> Exciton coefficients
+    type(ExcitonCoefficients) :: exc
+    !> Occupations to be updated (that differ from GS)
+    type(Occupations) :: occ
   contains
-    procedure :: read_input_keys => cdft_input_keys_initialize
-    procedure :: is_on => cdft_is_on
-    procedure :: is_maximum_overlap_method_required => cdft_maximum_overlap_method
-    procedure :: read_density_potential_from_file => cdft_start_density_potential_from_file
-    procedure :: use_external_file => cdft_use_external_file
-    procedure, private :: sanity_check => cdft_sanity_checks
+    private
+    procedure, public :: read_input_keys => cdft_input_keys_initialize
+    procedure, public :: is_on => cdft_is_on
+    procedure, public :: is_maximum_overlap_method_required => cdft_maximum_overlap_method
+    procedure, public :: read_density_potential_from_file => cdft_start_density_potential_from_file
+    procedure :: cdft_input_keys_mock_with_ExcitonCoefficients, cdft_input_keys_mock_with_Occupations
+    generic, public :: mock => cdft_input_keys_mock_with_ExcitonCoefficients, cdft_input_keys_mock_with_Occupations
+    procedure :: sanity_check => cdft_sanity_checks
   end type
 
   integer(kind(status_CDFT_calculation)), save :: status = running_GS
@@ -90,19 +115,16 @@ subroutine set_status_to_running_CDFT()
   status = running_CDFT
 end subroutine
 
-
 !> Set the private variable `status` to the value `finished_CDFT`
 subroutine set_status_to_finished_CDFT()
   status = finished_CDFT
 end subroutine
-
 
 !> Returns `.true.`, when a CDFT calculation is running
 pure logical function cdft_is_on( cdft_input ) result( is_on )
   class(cdft_input_keys), intent(in) :: cdft_input
   is_on = ( ( cdft_input%on ) .and. ( status == running_CDFT ) )
 end function
-
 
 !> Returns `.true.`, when the maximum overlap method is employed
 pure logical function cdft_maximum_overlap_method(this) result(check)
@@ -112,18 +134,31 @@ pure logical function cdft_maximum_overlap_method(this) result(check)
   if( check ) check = this%maximum_overlap_method
 end function
 
-
 !> Returns `.true.`, if a CDFT calculation is running and `start_density_potential_from_file` is `.true.`
 pure logical function cdft_start_density_potential_from_file( cdft_input ) result( check )
   class(cdft_input_keys), intent(in) :: cdft_input
   check = ( cdft_input%is_on() ) .and. ( cdft_input%start_density_potential_from_file ) 
 end function
 
-!> Returns `.true.`, if a CDFT calculation is running and `use_external_file` is `.true.`
-pure logical function cdft_use_external_file( cdft_input ) result( check )
-class(cdft_input_keys), intent(in) :: cdft_input
-  check = ( cdft_input%is_on() ) .and. ( cdft_input%employ_external_file ) 
-end function
+!> Mock cdft_input_keys using ExcitonCoefficients for testing purposes
+subroutine cdft_input_keys_mock_with_ExcitonCoefficients( this, exc )
+  class(cdft_input_keys), intent(inout) :: this
+  !> Exciton coefficients used to build `this`
+  type(ExcitonCoefficients), intent(in) :: exc
+
+  this%use_exciton_coefficients = .true.
+  this%exc = exc
+end subroutine
+
+!> Mock cdft_input_keys using for testing purposes
+subroutine cdft_input_keys_mock_with_Occupations( this, occ )
+  class(cdft_input_keys), intent(inout) :: this
+  !> Occupations used to build `this`
+  type(Occupations), intent(in) :: occ
+
+  this%use_exciton_coefficients = .false.
+  this%occ = occ
+end subroutine
 
 !> Initialize the components of the type [[cdft_input_keys]]
 subroutine cdft_input_keys_initialize( this, input_gs )
@@ -131,17 +166,36 @@ subroutine cdft_input_keys_initialize( this, input_gs )
   !> Elements and attributes of groundstate defined in the input file
   type(groundstate_type), intent(in) :: input_gs
 
+  integer(i32) :: i
+
   this%on = associated( input_gs%constrainedDFT )
   if( this%on ) then
     this%maximum_overlap_method = input_gs%constrainedDFT%MaximumOverlapMethod
     this%start_density_potential_from_file = input_gs%constrainedDFT%startDensityAndPotentialFromFile
-    this%use_exciton_coefficients = input_gs%constrainedDFT%useExcitonCoefficients
-    this%employ_external_file = input_gs%constrainedDFT%useExternalFile
-    this%file_name = trim( input_gs%constrainedDFT%fileName )
+    if( associated( input_gs%constrainedDFT%occupationChanges ) ) then
+      this%use_exciton_coefficients = .false.
+      this%use_external_file = .false.
+      call this%occ%allocate_arrays( size( input_gs%constrainedDFT%occupationChanges%newOccupationarray ) )
+      do i = 1, size( this%occ%i_kpoint )
+        this%occ%i_kpoint(i) = input_gs%constrainedDFT%occupationChanges%newOccupationarray(i)%newOccupation%kPointIndex
+        this%occ%i_state(i) = input_gs%constrainedDFT%occupationChanges%newOccupationarray(i)%newOccupation%stateIndex
+        this%occ%occ_factor(i) = input_gs%constrainedDFT%occupationChanges%newOccupationarray(i)%newOccupation%occupation
+      end do
+    else
+      this%use_exciton_coefficients = input_gs%constrainedDFT%useExcitonCoefficients
+      this%use_external_file = input_gs%constrainedDFT%useExternalFile
+      this%file_name = trim( input_gs%constrainedDFT%fileName )
+      if( this%use_external_file ) then
+        if( this%use_exciton_coefficients ) then
+          call this%exc%get_from_file( this%file_name )
+        else
+          call this%occ%get_from_file( this%file_name )
+        end if
+      end if
+    end if
     call this%sanity_check( input_gs )
   end if
 end subroutine
-
 
 !> Sanity checks for CDFT calculations
 subroutine cdft_sanity_checks( this, input_gs )
@@ -153,12 +207,89 @@ subroutine cdft_sanity_checks( this, input_gs )
 
   call terminate_if_false( trim( input_gs%solver%type ) == compatible_solver, &
     "Constrained DFT currently only implemented for solver " // compatible_solver )
-  call terminate_if_false( this%use_exciton_coefficients, &
-    "Constrained DFT currently only implemented for useExcitonCoefficients true" )
-  call terminate_if_false( this%employ_external_file, &
-    "Constrained DFT currently only implemented for useExternalFile true" )
+  call terminate_if_false( associated(input_gs%constrainedDFT%occupationChanges) .or. this%use_external_file, &
+    "Constrained DFT must have the element occupationChanges or use an external file")
 end subroutine
 
+!> Allocate arrays of [[Occupations]]
+subroutine Occupations_allocate_arrays( this, n )
+  class(Occupations), intent(inout) :: this
+  !> Size of arrays
+  integer(i32), intent(in) :: n
+
+  call assert( n>0, "n must be positive" )
+  allocate( this%i_kpoint(n), this%i_state(n), this%occ_factor(n) )
+end subroutine
+
+!> Get each attribute of [[Occupations]]
+pure subroutine Occupations_get_attributes( occ, kpoint_indexes, state_indexes, occ_factors )
+  class(Occupations), intent(in) :: occ
+  !> k-point indexes
+  integer(i32), allocatable, intent(out) :: kpoint_indexes(:) 
+  !> KS state indexes
+  integer(i32), allocatable, intent(out) :: state_indexes(:)
+  !> occupation factors
+  real(dp), allocatable, intent(out) :: occ_factors(:)
+
+  kpoint_indexes = occ%i_kpoint
+  state_indexes = occ%i_state
+  occ_factors = occ%occ_factor
+end subroutine
+
+!> Read a file containing the occupations
+subroutine Occupations_get_from_file( this, file_name )
+  class(Occupations), intent(inout) :: this
+  !> Name of the file to read
+  character(len=*), intent(in) :: file_name
+
+  integer(i32) :: i, unit, n_occupations
+
+  open( newunit = unit, file = trim(file_name), action = 'read' )
+  read( unit = unit, fmt = * ) n_occupations ! number of (nonzero) exciton coefficients
+  call this%allocate_arrays( n_occupations )
+  do i = 1, n_occupations
+    read( unit=unit, fmt = * ) this%i_state(i), this%i_kpoint(i), this%occ_factor(i)
+  end do
+  close( unit = unit )
+end subroutine
+
+!> Sanity checks
+subroutine Occupations_sanity_checks( this, occupation_factors_GS )
+  class(Occupations), intent(in) :: this
+  !> Occupation factors in ground state
+  real(dp), contiguous, intent(in) :: occupation_factors_GS(:, :)
+
+  integer(i32) :: n_kpt, n_states
+
+  n_states = size( occupation_factors_GS, 1 )
+  n_kpt = size( occupation_factors_GS, 2 )
+  call terminate_if_false( all( this%i_kpoint <= n_kpt ), "Error: trying to force CDFT occupation to k-point out of borders")
+  call terminate_if_false( all( this%i_state <= n_states ), "Error: trying to force CDFT occupation to KS state with index out of borders")
+  if( any(this%occ_factor < 0._dp ) ) call warning("Forcing negative occupation")
+  if( any(this%occ_factor > maxval(occupation_factors_GS) ) ) call warning("Forcing occupations that may be too large")
+end subroutine
+
+!> Set each attribute of [[Occupations]]
+subroutine Occupations_set_attributes( occ, kpoint_indexes, state_indexes, occ_factor )
+  class(Occupations), intent(inout) :: occ
+  !> k-point indexes
+  integer(i32), contiguous, intent(in) :: kpoint_indexes(:)
+  !> state indexes
+  integer(i32), contiguous, intent(in) :: state_indexes(:)
+  !> array with the occupation factors
+  real(dp), contiguous, intent(in) :: occ_factor(:)
+
+  integer(i32) :: n_coeffs
+
+  n_coeffs = size( kpoint_indexes )
+
+  call assert( n_coeffs == size( state_indexes ), "state_indexes must have n_coeffs elements")
+  call assert( n_coeffs == size( occ_factor ), "occ_factor must have n_coeffs elements")
+  
+  occ%i_kpoint = kpoint_indexes
+  occ%i_state = state_indexes
+  occ%occ_factor = occ_factor
+end subroutine
 
 !> Set each attribute of [[ExcitonCoefficient]]
 subroutine ExcitonCoefficients_set_attributes( exc_coeff, kpoint_indexes, valence_indexes, conduction_indexes, coeffs )
@@ -186,7 +317,6 @@ subroutine ExcitonCoefficients_set_attributes( exc_coeff, kpoint_indexes, valenc
   exc_coeff%coeffs = coeffs
 end subroutine
 
-
 !> Get each attribute of [[ExcitonCoefficient]]
 pure subroutine ExcitonCoefficients_get_attributes( exc_coeff, kpoint_indexes, valence_indexes, conduction_indexes, coeffs )
   class(ExcitonCoefficients), intent(in) :: exc_coeff
@@ -204,7 +334,6 @@ pure subroutine ExcitonCoefficients_get_attributes( exc_coeff, kpoint_indexes, v
   conduction_indexes = exc_coeff%i_cb
   coeffs = exc_coeff%coeffs
 end subroutine
-
 
 !> Read a file containing the exciton coefficients
 subroutine ExcitonCoefficients_get_from_file( exc_coeffs, file_name )
@@ -299,12 +428,29 @@ end subroutine
 pure real(dp) function ExcitonCoefficients_get_normalization( exc ) result( x )
   class(ExcitonCoefficients), intent(in) :: exc
 
-  x = sqrt( dot_product( exc%coeffs, exc%coeffs ) )
+  x = sqrt( real( dot_product( exc%coeffs, exc%coeffs ), kind=dp ) )
 end function
 
+!> Determine the occupations to be constrained during the SCF cycle
+subroutine determine_cdft_occupations( cdft_inp, kpt_weights, occupation_factors )
+  !> CDFT input keys 
+  type(cdft_input_keys), intent(in) :: cdft_inp
+  !> k-point weights
+  real(dp), contiguous, intent(in) :: kpt_weights(:)
+  !> occupation factors
+  real(dp), contiguous, intent(inout) :: occupation_factors(:, :)
 
-!> Evaluate the occupation factors in a CDFT calculation
-subroutine occupy_cdft( exc, wkpt, occupation_factors )
+  if( cdft_inp%use_exciton_coefficients ) then
+    call cdft_inp%exc%sanity_check( occupation_factors )
+    call occupy_cdft_from_exc_coeff( cdft_inp%exc, kpt_weights, occupation_factors )
+  else
+    call cdft_inp%occ%sanity_checks( occupation_factors )
+    call occupy_cdft_from_forced_occs( cdft_inp%occ, occupation_factors )
+  end if
+end subroutine
+
+!> Determine the occupation factors in a CDFT calculation using exciton coefficients
+pure subroutine occupy_cdft_from_exc_coeff( exc, wkpt, occupation_factors )
   !> Type with exciton coefficients
   type(ExcitonCoefficients), intent(in)  :: exc
   !> The weight of each k-point
@@ -319,9 +465,24 @@ subroutine occupy_cdft( exc, wkpt, occupation_factors )
     ik = exc%i_kpoint(i)
     call change_occupations( exc%i_vb(i), exc%i_cb(i), ( abs( exc%coeffs(i) ) ** 2 )/wkpt(ik), occupation_factors(:, ik) )
   end do
-
 end subroutine
 
+!> Determine the occupation factors in a CDFT calculation using constrained occupation factors
+pure subroutine occupy_cdft_from_forced_occs( occ, occupation_factors )
+  !> Type containing occupations to constrain
+  type(Occupations), intent(in)  :: occ
+  !> Occupation factors of each KS state and each k-point
+  real(dp), contiguous, intent(inout) :: occupation_factors(:, :)
+
+  integer(i32)          :: i, ik, is, number_elements
+
+  number_elements = size( occ%i_kpoint )
+  do i = 1, number_elements
+    ik = occ%i_kpoint(i)
+    is = occ%i_state(i)
+    occupation_factors(is, ik) = occ%occ_factor(i)
+  end do
+end subroutine
 
 !> Update the occupation numbers following the maximum overlap method
 subroutine update_occupations_with_the_maximum_overlap_method( psi, occupation_factors )
@@ -330,7 +491,7 @@ subroutine update_occupations_with_the_maximum_overlap_method( psi, occupation_f
   !> Occupation factors
   real(dp), intent(inout) :: occupation_factors(:, :)
 
-  integer(i32) :: ik, first_k, last_k, i, idx_max, n_states
+  integer(i32) :: ik, first_k, i, idx_max, n_states
   real(dp), allocatable :: occ_save(:)
   complex(dp), allocatable :: projection(:, :)
   logical, allocatable :: search(:)

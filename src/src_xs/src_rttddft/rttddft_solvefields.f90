@@ -26,9 +26,9 @@ contains
 !>  \]
 subroutine update_a_ind_and_p_vec( t, dt, j_t_minus_dt, j_para_t, vec_pot, p_vec )
   !> Time \( t \)
-  real(dp), intent(in)      :: t
+  real(dp), intent(in) :: t
   !> Time step \( \Delta t \)
-  real(dp), intent(in)      :: dt
+  real(dp), intent(in) :: dt
   !> Current density at time \(t-\Delta t\)
   class(Current_Density), intent(in) :: j_t_minus_dt
   !> Current density at time \(t\)
@@ -40,10 +40,8 @@ subroutine update_a_ind_and_p_vec( t, dt, j_t_minus_dt, j_para_t, vec_pot, p_vec
   !> Out: Polarization vector at time \(t\)
   class(Polarization), intent(inout) :: p_vec
 
-  real(dp)              :: beta, fac, den
-  real(dp)              :: k1(3,2), k2(3,2), k3(3,2), k4(3,2)
-  real(dp)              :: j_para_mid(3), j_ind_mid(3), j_ind_t(3)
-  real(dp)              :: a_mid(3), smid(3), a_applied_t(3), a_save(3), a_ext_t_minus_t(3)
+  real(dp) :: beta, fac, den, k1(3,2), k2(3,2), k3(3,2), k4(3,2), j_para_mid(3), &
+    j_ind_mid(3), j_ind_t(3), a_mid(3), smid(3), a_applied_t(3), a_save(3), a_ext_t_minus_t(3)
 
   beta = chgval / c / omega
   select case( vec_pot%vector_potential_solver )

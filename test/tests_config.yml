@@ -171,6 +171,16 @@ groundstate/PBE-msec-Al:
 
 groundstate/PBE-pulay-Al:
 
+groundstate/PBE-spin-cdft-diamond:
+    inputs:
+      - "input.xml"
+      - "C.xml"
+    files_under_test:
+      - "INFO_CDFT.OUT"
+      - "evalcore.xml"
+      - "eigval.xml"
+      - "atoms.xml"
+
 groundstate/PBE_SOL-Al:
 
 groundstate/GGA_PBE_SOL-automatic_trial_energies-NaCl:
@@ -772,16 +782,22 @@ RT-TDDFT/GGA_PBE-BN-kick-EH-restart:
       - "EIGVAL_20.OUT"
       - "PROJ_20.OUT"
       - "OCCSV_TXT_20.OUT"
+      - "JIND.OUT"
+      - "NEXC.OUT"
+      - "ETOT_RTTDDFT.OUT"
     inputs:
       - "input.xml"
       - "B.xml"
       - "N.xml"
-      - "JIND.OUT"
-      - "PVEC.OUT"
-      - "AVEC.OUT"
+      - "JIND.OUT.SAVE"
+      - "PVEC.OUT.SAVE"
+      - "AVEC.OUT.SAVE"
+      - "ELECTRIC_FIELD.OUT.SAVE"
+      - "NEXC.OUT.SAVE"
+      - "ETOT_RTTDDFT.OUT.SAVE"
       - "rt.h5"
 
-RT-TDDFT/LDA_PW-SiC-trapCos-AETRS-uKS-frozen-restart:
+RT-TDDFT/LDA_PW-SiC-trapCos-AETRS-KS-frozen-restart-length-gauge:
     files_under_test:
       - "EIGVAL_40.OUT"
       - "EIGVAL_60.OUT"
@@ -803,6 +819,8 @@ RT-TDDFT/LDA_PW-SiC-trapCos-AETRS-uKS-frozen-restart:
       - "ETOT_RTTDDFT.OUT.SAVE"
       - "EVECFV_RTTDDFT.OUT"
       - "EVECFV_PREVIOUS_RTTDDFT.OUT"
+      - "ELECTRIC_FIELD.OUT.SAVE"
+      - "PHASES_RTTDDFT.OUT"
   
 RT-TDDFT/GGA_PBE-C-trapCos-EHM-predictorCorrector:
     files_under_test:
@@ -839,9 +857,9 @@ RT-TDDFT/GGA_PBE-C-trapCos-EHM-IPA-printDensity:
       - "PROJ_5.OUT"
       - "PROJ_10.OUT"
       - "PROJ_15.OUT"
-      - "delta-density3d-5.xsf"
-      - "delta-density3d-10.xsf"
-      - "delta-density3d-15.xsf"
+      - "DELTARHO3D_5.xsf"
+      - "DELTARHO3D_10.xsf"
+      - "DELTARHO3D_15.xsf"
     inputs:
       - "input.xml"
       - "C.xml"
@@ -902,8 +920,9 @@ RT-TDDFT/LDA_PW-Ehrenfest-BN-restart:
       - "EVECFV_RTTDDFT.OUT"
       - "RHO_VKS_RTTDDFT.OUT"
       - "TRAJECTORY_RTTDDFT.OUT"
+      - "ELECTRIC_FIELD.OUT.SAVE"
 
-RT-TDDFT/LDA_PW-Si-sinSq-CFM4:
+RT-TDDFT/LDA_PW-Si-sinSq-CFM4-length-gauge:
    files_under_test:
       - "atoms.xml"
       - "eigval.xml"
