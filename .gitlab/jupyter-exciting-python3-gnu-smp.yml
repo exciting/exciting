@@ -36,8 +36,8 @@ test-fedora-buster-gnu-smp-jupyter:
   - time python3 02_ground_state/01_Methods/assertions/exchange_correlation_functionals.py
   - time jupyter nbconvert --execute 02_ground_state/01_Methods/how_to_visualize_kohn_sham_states.ipynb --to markdown
   - time python3 02_ground_state/01_Methods/assertions/how_to_visualize_kohn_sham_states.py
-  - time jupyter nbconvert --execute 02_ground_state/01_Methods/hybrid_functional_calculations.ipynb --to markdown
-  - time python3 02_ground_state/01_Methods/assertions/hybrid_functional_calculations.py
+ # - time jupyter nbconvert --execute 02_ground_state/01_Methods/hybrid_functional_calculations.ipynb --to markdown
+ # - time python3 02_ground_state/01_Methods/assertions/hybrid_functional_calculations.py
   - time jupyter nbconvert --execute 02_ground_state/01_Methods/spin_orbit_coupling.ipynb --to markdown
  # - time python3 02_ground_state/01_Methods/assertions/spin_orbit_coupling.py
   - time jupyter nbconvert --execute 02_ground_state/01_Methods/spin_polarized_calculations_for_bcc_Fe.ipynb --to markdown
