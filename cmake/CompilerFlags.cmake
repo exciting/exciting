@@ -160,7 +160,7 @@ set(INTEL_DEBUG
     -fp           # Disables the ebp register in optimizations and sets the ebp register to be used as the frame pointer.
     -check all    # Checks for all runtime failures.
     -check bounds # Generates code to perform runtime checks on array subscript and character substring expressions.
-    -check-uninit #  Enables runtime checking for uninitialized variables.
+    -check nouninit #  Disables runtime checking for uninitialized variables (necessary for ifx 2025.1.1)
     -ftrapuv      #  Set unassigned scalars as a very large integer or an invalid address
     -fpe3         # control over floating-point exception (divide by zero, overflow, invalid operation, underflow, denormalized number, positive infinity, negative infinity or a NaN)
     )
