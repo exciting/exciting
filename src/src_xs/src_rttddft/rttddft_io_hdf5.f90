@@ -4,6 +4,7 @@ module rttddft_io_hdf5
   use math_utils, only: all_close
   use mod_mpi_env, only: mpiinfo
   use modmpi, only: terminate_if_false
+  use os_utils, only: join_paths, path_exists
   use precision, only: dp, i32
   use rttddft_arrays_utils, only: map_array_to_pointer
   use xhdf5, only: xhdf5_type
@@ -12,14 +13,18 @@ module rttddft_io_hdf5
 
   private
 
-  public :: read_array_hdf5, write_array_hdf5
+  public :: dataset_exists, read_array_hdf5, write_array_hdf5
 
   interface read_array_hdf5
+    module procedure :: read_array_real_dp
+    module procedure :: read_array_complex_dp
     module procedure :: read_array_rank4
     module procedure :: read_array_rank5
   end interface
 
   interface write_array_hdf5
+    module procedure :: write_array_complex_dp
+    module procedure :: write_array_real_dp
     module procedure :: write_array_rank4
     module procedure :: write_array_rank5
   end interface
@@ -27,7 +32,69 @@ module rttddft_io_hdf5
   character(len=*), parameter :: dims_file_name = 'dimensions'
 
 contains
-!> Read an array of rank=4 stored in HDF5 format
+!> Return `.true.` if the dataset exists
+logical function dataset_exists( h5file, h5path, dataset_name, mpi_env )
+  !> Name of the HDF5 file to read from.
+  character(*), intent(in) :: h5file
+  !> Path in the HDF5 file to read from.
+  character(*), intent(in) :: h5path
+  !> Dataset name
+  character(len=*), intent(in) :: dataset_name
+  !> MPI environment
+  type(mpiinfo), intent(in):: mpi_env
+
+  type(xhdf5_type) :: h5
+
+  dataset_exists = path_exists( h5file )
+  if( dataset_exists ) then
+    call h5%initialize( h5file, mpi_env )
+    dataset_exists = h5%exists( join_paths( h5path, dataset_name ) )
+    call h5%finalize( )
+  end if
+end function
+
+!> Read a real-dp array. All MPI ranks will read the entire array
+subroutine read_array_real_dp( h5file, h5path, dataset_name, array, mpi_env )
+  !> Name of the HDF5 file to read from
+  character(*), intent(in) :: h5file
+  !> Path in the HDF5 file to read from
+  character(*), intent(in) :: h5path
+  !> Dataset name
+  character(len=*), intent(in) :: dataset_name
+  !> Array to read from file
+  real(dp), contiguous, intent(out) :: array(..)
+  !> MPI environment
+  type(mpiinfo), intent(in) :: mpi_env
+
+  type(xhdf5_type) :: h5
+
+  call h5%initialize( h5file, mpi_env )
+  call h5%read( h5path, trim(dataset_name), array )
+  call h5%finalize( )
+end subroutine
+
+!> Read a complex-dp array. All MPI ranks read the entire array
+subroutine read_array_complex_dp( h5file, h5path, dataset_name, array, mpi_env )
+  !> Name of the HDF5 file to read from
+  character(*), intent(in) :: h5file
+  !> Path in the HDF5 file to read from
+  character(*), intent(in) :: h5path
+  !> Dataset name
+  character(len=*), intent(in) :: dataset_name
+  !> Array to read from file
+  complex(dp), contiguous, intent(out) :: array(..)
+  !> MPI environment
+  type(mpiinfo), intent(in) :: mpi_env
+
+  type(xhdf5_type) :: h5
+
+  call h5%initialize( h5file, mpi_env )
+  call h5%read( h5path, trim(dataset_name), array )
+  call h5%finalize( )
+end subroutine
+
+!> Read an array of rank=4, with each MPI rank reading its correspondent chunk. 
+!> The chunk is determined by the offset `[1, 1, 1, first]`, where `first` is rank-dependent
 subroutine read_array_rank4( h5file, h5path, dataset_name, first, array, descriptors, descriptors_name, mpi_env )
   !> Name of the HDF5 file to read from.
   character(*), intent(in) :: h5file
@@ -92,6 +159,62 @@ subroutine read_array_rank5( h5file, h5path, dataset_name, first, array, mpi_env
   call read_array_rank4( h5file, h5path, trim(dataset_name), lbound(ptr_rank4, 4), ptr_rank4, mpi_env=mpi_env )
 end subroutine
 
+!> Write a complex-dp array (currently only in serial mode, see issue #231)
+subroutine write_array_complex_dp( h5file, h5path, dataset_name, array, mpi_env, serial_access )
+  !> Name of the HDF5 file to write in.
+  character(*), intent(in) :: h5file
+  !> Path in the HDF5 file to write in.
+  character(*), intent(in) :: h5path
+  !> Dataset name
+  character(len=*), intent(in) :: dataset_name
+  !> Array to be written to file
+  complex(dp), contiguous, intent(in) :: array(..)
+  !> MPI environment
+  type(mpiinfo), intent(in) :: mpi_env
+  !> If `.true.`, write in serial mode within the current MPI environment
+  logical, optional, intent(in) :: serial_access
+
+  logical :: serial_access_local
+  type(xhdf5_type) :: h5
+
+  serial_access_local = .false.
+  if( present(serial_access) ) serial_access_local = serial_access
+  call assert( serial_access_local, "write_array_complex_dp currently only works in serial mode" )
+  if( mpi_env%is_root ) then
+    call h5%initialize( h5file, mpi_env, serial_access_local )
+    call h5%write( h5path, trim( dataset_name ), array )
+    call h5%finalize( )
+  end if
+end subroutine
+
+!> Write a real-dp array (currently only in serial mode, see issue #231)
+subroutine write_array_real_dp( h5file, h5path, dataset_name, array, mpi_env, serial_access )
+  !> Name of the HDF5 file to write in
+  character(len=*), intent(in) :: h5file
+  !> Path in the HDF5 file to write in
+  character(len=*), intent(in) :: h5path
+  !> Dataset name
+  character(len=*), intent(in) :: dataset_name
+  !> Array to be written to file
+  real(dp), contiguous, intent(in) :: array(..)
+  !> MPI environment
+  type(mpiinfo), intent(in) :: mpi_env
+  !> If `.true.`, write in serial mode within the current MPI environment
+  logical, optional, intent(in) :: serial_access
+
+  logical :: serial_access_local
+  type(xhdf5_type) :: h5
+
+  serial_access_local = .true.
+  if( present(serial_access) ) serial_access_local = serial_access
+  call assert( serial_access_local, "write_array_real_dp currently only works in serial mode" )
+  if( mpi_env%is_root ) then
+    call h5%initialize( h5file, mpi_env, serial_access_local )
+    call h5%write( h5path, trim( dataset_name ), array )
+    call h5%finalize( )
+  end if
+end subroutine
+
 !> Write an array of rank=4 in HDF5 format
 subroutine write_array_rank4( h5file, h5path, dataset_name, array, first, global_size, descriptors, &
     descriptors_name, mpi_env )
@@ -127,7 +250,7 @@ subroutine write_array_rank4( h5file, h5path, dataset_name, array, first, global
       call h5%write(h5path, trim(dataset_name) // trim(dims_file_name), dims, [1, first], [3, global_size] )
     end if
   end associate
-  call h5%finalize()
+  call h5%finalize( )
 end subroutine
 
 !> Remap an array of rank 5 to an array of rank 4 using a pointer
@@ -147,7 +270,7 @@ subroutine write_array_rank5( h5file, h5path, dataset_name, array, first, global
   integer(i32), intent(in) :: global_size
   !> MPI environment
   type(mpiinfo), intent(in) :: mpi_env
-  ! Local variables
+  
   complex(dp), contiguous, pointer :: ptr_rank4(:, :, :, :)
 
   call map_array_to_pointer( first, array, ptr_rank4 )

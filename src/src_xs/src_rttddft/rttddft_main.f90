@@ -20,7 +20,7 @@ module rttddft_main
   use mod_mpi_env, only: mpiinfo
   use mod_potential_and_density, only: rhomt, rhoir
   use modinput, only: input, input_type
-  use modmpi, only: rank, mpi_env_k, distribute_loop, barrier, terminate_if_false
+  use modmpi, only: mpiglobal, mpi_env_k, distribute_loop, barrier, terminate_if_false
   use physical_constants, only: c
   use precision, only: dp, i32, sp
   use propagators, only: propagator_type => propagator
@@ -36,7 +36,7 @@ module rttddft_main
     add_external_coupling_vgauge, add_external_coupling_length_gauge
   use rttddft_init, only: initialize_rttddft
   use rttddft_input, only: rttddft_input_keys
-  use rttddft_io, only: open_files_jpa, close_files_jpa, read_jpa, write_jpa, &
+  use rttddft_io, only: open_files_vector_fields, close_files_vector_fields, read_vector_field, write_vector_field, &
     open_file_timing, close_file_timing, write_timing, &
     open_file_nexc, close_file_nexc, write_nexc, &
     open_file_etot, close_file_etot, write_total_energy, &
@@ -160,7 +160,7 @@ contains
     ! we only perform MD in RT-TDDFT if the type is Ehrenfest
     if( molecular_dynamics%on ) molecular_dynamics%on = ( trim(molecular_dynamics%MD_type) == 'Ehrenfest' )
     
-    my_rank_writes_to_output = ( rank == 0 ) 
+    my_rank_writes_to_output = mpiglobal%is_root 
     if( rt%restart_previous_calculation() ) then
       if( rt%restart_extension /= "" ) then
         ! Copy files: sources are files ending with `rt%restart_extension`, dest. are to the default file names
@@ -201,7 +201,7 @@ contains
         MD_outputs, nuclei_motion, e_vec, forces )
       if( rt%restart_previous_calculation() ) then
         call nuclei_motion%allocate_arrays( natmtot )
-        call read_state_Ehrenfest_MD( nuclei_motion )
+        call read_state_Ehrenfest_MD( nuclei_motion, rt%restart_file_handler, mpi_env_k )
         call nuclei_motion%update_globals( )
         call update_exciting_globals_for_new_ions_positions( first_kpt, apwalm )
         if( molecular_dynamics%update_overlap .or. allocated(mathcalH) .or. &
@@ -487,9 +487,9 @@ contains
           if( propagator%extrapolation_needed() ) &
             call write_wavefunction( t_minus_dt, first_kpt, kset%vkl(:, first_kpt:last_kpt), &
               psi%active_save, mpi_env_k, rt%restart_file_handler, kset%nkpt )
-          if( molecular_dynamics%on .and. my_rank_writes_to_output ) call write_state_Ehrenfest_MD( nuclei_motion )
+          if( molecular_dynamics%on ) call write_state_Ehrenfest_MD( nuclei_motion, rt%restart_file_handler, mpi_env_k )
           if ( rt%use_length_gauge() ) then
-            if ( my_rank_writes_to_output ) call write_phases( prev_phases )
+            if ( my_rank_writes_to_output ) call write_phases( prev_phases, rt%restart_file_handler, mpi_env_k )
           end if
         end if
         if( rt%printTimings%general() ) then
@@ -525,11 +525,11 @@ contains
       if( propagator%extrapolation_needed() ) call write_wavefunction( t_minus_dt, first_kpt, &
         kset%vkl(:, first_kpt:last_kpt), psi%active_save, mpi_env_k, rt%restart_file_handler, kset%nkpt )
       if ( rt%use_length_gauge() ) then
-        if ( my_rank_writes_to_output ) call write_phases( prev_phases )
+        if ( my_rank_writes_to_output ) call write_phases( prev_phases, rt%restart_file_handler, mpi_env_k )
       end if
     end if
     if ( molecular_dynamics%on ) then 
-      if( my_rank_writes_to_output ) call write_state_Ehrenfest_MD( nuclei_motion )
+      call write_state_Ehrenfest_MD( nuclei_motion, rt%restart_file_handler, mpi_env_k )
       call deallocate_global_arrays()
     end if
     if( .not. psi%expanded_in_lapwlo() ) call me_finit()
@@ -568,7 +568,7 @@ contains
     !> Type that encapsulates the input keywords
     type(rttddft_input_keys), intent(in) :: rt_input
 
-    call open_files_jpa( new=rt_input%do_from_scratch() )
+    call open_files_vector_fields( new=rt_input%do_from_scratch() )
     call open_file_info()
     if( rt_input%calculate_total_energy ) call open_file_etot( new=rt_input%do_from_scratch() )
     if( rt_input%calculate_n_exc ) call open_file_nexc( new=rt_input%do_from_scratch() )
@@ -580,7 +580,7 @@ contains
     !> Type that encapsulates the input keywords
     type(rttddft_input_keys), intent(in) :: rt_input
 
-    call close_files_jpa()
+    call close_files_vector_fields()
     call close_file_info()
     if( rt_input%calculate_total_energy ) call close_file_etot()
     if( rt_input%calculate_n_exc ) call close_file_nexc()
@@ -605,12 +605,12 @@ contains
     !> Electric field at time \(t-\Delta t\)
     type(Electric_Field), intent(out) :: e_vec_t_minus_dt
 
-    call read_jpa( t, p_vec_t )
-    call read_jpa( t, e_vec_t, e_vec_t_minus_dt )
-    call read_jpa( t, a_t%a_ind, a_ind_t_minus_dt, a_t%a_tot, a_tot_t_minus_dt )
+    call read_vector_field( t, p_vec_t )
+    call read_vector_field( t, e_vec_t, e_vec_t_minus_dt )
+    call read_vector_field( t, a_t%a_ind, a_ind_t_minus_dt, a_t%a_tot, a_tot_t_minus_dt )
   end subroutine
 
-  !> Wrapper to call [[write_jpa]]
+  !> Wrapper to call [[write_vector_field]]
   subroutine write_fields( time_array, a_ind_array, a_tot_array, p_vec_array, j_ind_array, e_vec_array )
     !> Array with times
     real(dp), intent(in) :: time_array(:)
@@ -625,10 +625,10 @@ contains
     !> Array with the external electric field
     type(Electric_Field), intent(in) :: e_vec_array(:)
 
-    call write_jpa( time_array, a_ind_array, a_tot_array )
-    call write_jpa( time_array, p_vec_array )
-    call write_jpa( time_array, j_ind_array )
-    call write_jpa( time_array, e_vec_array )
+    call write_vector_field( time_array, a_ind_array, a_tot_array )
+    call write_vector_field( time_array, p_vec_array )
+    call write_vector_field( time_array, j_ind_array )
+    call write_vector_field( time_array, e_vec_array )
   end subroutine
 
   !> (private subroutine) Check if variables given in the input file make sense
@@ -901,7 +901,7 @@ contains
       if( molecular_dynamics%basis_derivative ) call update_basis_derivative( nuclei_motion%velocities, mathcalB, B_time, B_past )
     end if
     
-    if ( rank == 0 ) then
+    if ( mpiglobal%is_root ) then
       call MD_outputs%open_files( from_scratch, natmtot, molecular_dynamics%print_all_force_components  )
       if( from_scratch ) call MD_outputs%write_to_files( t_0, nuclei_motion, forces )
     end if

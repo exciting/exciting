@@ -854,11 +854,13 @@
 
             <xs:attribute ex:importance="expert" ex:unit="" name="restartFilesFormat" default="binary">
               <xs:annotation>
-                <xs:documentation>Define the format of output or restart (checkpoint) files. 
-                When using (<pre>do="fromfile"</pre>), the same format must as in the 
-                previous calculation must be adhered to. 
-                <b>N.B.:</b> Output files in text format (<i>e.g.</i> <pre>CURRENT.OUT</pre>)
-                are not affected.</xs:documentation>
+                <xs:documentation>Define the format used for output or restart (checkpoint) files. 
+                When setting (<pre>do="fromfile"</pre>), please ensure that the format matches 
+                that of the previous calculation. Although current support for 
+                <pre>HDF5</pre> is in a late beta stage, it is expected to become the 
+                preferred format in future releases.
+                <b>N.B.:</b> Output files in plain text format (<i>e.g.</i>, <pre>CURRENT.OUT</pre>)
+                are not affected by this setting.</xs:documentation>
               </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:string">

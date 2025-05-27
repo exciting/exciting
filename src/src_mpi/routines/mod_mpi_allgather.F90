@@ -16,7 +16,7 @@ module mod_mpi_allgather
   !> Wrappers for mpi_allgether.
   interface xmpi_allgather
     module procedure :: &
-      mpi_allgather_integer_i32_rank_0_inplace
+      mpi_allgather_integer_i32
   end interface
 
   !> Wrappers for mpi_allgetherv.
@@ -29,7 +29,7 @@ contains
 
   !> Wrapper for mpi_allgather for an `integer(i32)` scalar.
   !> Gather data from all tasks and send combined data to all tasks.
-  subroutine mpi_allgather_integer_i32_rank_0_inplace( mpi_env, send_buffer, receive_buffer )
+  subroutine mpi_allgather_integer_i32( mpi_env, send_buffer, receive_buffer )
     !> MPI environment
     type(mpiinfo), intent(inout) :: mpi_env
     !> Integer to be send by the current rank.
@@ -42,8 +42,10 @@ contains
     receive_buffer( mpi_env%rank + 1) = send_buffer
     call mpi_allgather( send_buffer, 1, MPI_INTEGER, receive_buffer, 1, MPI_INTEGER, &
       mpi_comm( mpi_env%comm ), mpi_env%ierr )
+#else
+    allocate( receive_buffer(1), source=send_buffer )
 #endif
-  end subroutine mpi_allgather_integer_i32_rank_0_inplace
+  end subroutine mpi_allgather_integer_i32
 
 
   !> Wrapper for mpi_allgatherv for a `complex(dp)` array.
