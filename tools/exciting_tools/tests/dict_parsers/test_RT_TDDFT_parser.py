@@ -77,7 +77,7 @@ reference_parsed_proj_rectangular_matrices = {
     ],
 )
 def test_parse_proj_screenshots(proj_file_str, reference_parsed_dict, tmp_path) -> None:
-    proj_file_path = tmp_path / "PROJ_0.OUT"
+    proj_file_path = tmp_path / "PROJECTION_COEFFS_0.OUT"
     proj_file_path.write_text(proj_file_str)
     proj_out = parse_proj_screenshots(proj_file_path.as_posix())
     is_equal = proj_out["ik"] == reference_parsed_dict["ik"]

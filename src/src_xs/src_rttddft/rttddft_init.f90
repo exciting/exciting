@@ -45,7 +45,7 @@ module rttddft_init
   use rttddft_CurrentDensity, only: Current_Density, Current_Density_Field
   use rttddft_Density, only: update_density, save_and_frozen, frozen
   use rttddft_electric_field, only: Electric_Field
-  use rttddft_file_names, only: RTTDDFT_GND_sufix
+  use rttddft_file_names, only: filename_avec, filename_evec, filename_jind, filename_pvec, RTTDDFT_GND_sufix
   use rttddft_GlobalMDVariables, only: B_past, B_time, mathcalH, mathcalB
   use rttddft_HamiltonianOverlap, only: update_hamiltonian_without_pa_term_lapw, &
     update_overlap_lapw, update_hamiltonian_without_pa_term_ks, &
@@ -146,7 +146,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   logical :: evolve_H0, my_rank_writes_to_output, success
   type(Vector_Potential_Field) :: a_aux
   type(Current_Density) :: j_aux
-  type(Electric_Field) :: f_aux
+  type(Electric_Field) :: e_aux
   complex(dp), allocatable :: psi_gnd_lapwlo_copy(:, :, :)
   integer(i32), allocatable :: ik_to_array_position(:), k_shifts(:, :, :), shift_positions(:)
   real(dp), allocatable :: dk_vec(:, :, :)
@@ -332,8 +332,8 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
       j_para_spurious = j_aux%paramagnetic
     end if
   else
-    f_aux%components = real_zero
-    call get_td_overlap_det_and_length_gauge_term( first_kpt, f_aux, pws_for_length_gauge, psi, kset_rttddft, k_ptrs, td_overlap_det, length_gauge_term )
+    e_aux%components = real_zero
+    call get_td_overlap_det_and_length_gauge_term( first_kpt, e_aux, pws_for_length_gauge, psi, kset_rttddft, k_ptrs, td_overlap_det, length_gauge_term )
     call p_vec_init%get_with_mtp( td_overlap_det, kset_rttddft%ngridk, kset_rttddft%ikmap, avec, prev_phases, .false. )
   end if
 
@@ -496,6 +496,7 @@ subroutine estimate_memory_and_write_to_info( ionDynamics, predictor_corrector, 
   character(len=*), parameter :: formatMemory = '(A40,F12.1)'
   real(dp), parameter :: MB = 1048576._dp
   real(dp) :: aux_h, aux_w, aux_add, aux_td
+  character(len=:), allocatable :: out_suffix
 
   aux_h = real( sizeof( overlap ) + sizeof( ham_time ), dp ) / MB
   if( present( ham_past ) ) aux_h = aux_h + real( sizeof( ham_past ), dp ) / MB
@@ -558,15 +559,19 @@ subroutine estimate_memory_and_write_to_info( ionDynamics, predictor_corrector, 
     call write_file_info( string )
   end if
   call write_file_info_fill_line_with_char('=')
+  out_suffix = trim( filext )
   ! General info to be printed to RTTDDFT_INFO
-  call write_file_info( 'Important output files: AVEC.OUT, PVEC.OUT, JIND.OUT, ELECTRIC_FIELD.OUT.' )
-  call write_file_info( 'JIND.OUT contains the x, y, and z components of the current density.' )
-  call write_file_info( 'PVEC.OUT contains the x, y, and z components of the polarization vector.' )
-  call write_file_info( 'AVEC.OUT contains in each line 6 elements:' )
+  call write_file_info( 'Important output files: ' // filename_avec // out_suffix // ', ' &
+                                                   // filename_pvec // out_suffix // ', ' &
+                                                   // filename_jind // out_suffix // ', ' &
+                                                   // filename_evec // out_suffix )
+  call write_file_info( filename_jind // out_suffix // ' contains the x, y, and z components of the current density.' )
+  call write_file_info( filename_pvec // out_suffix // ' contains the x, y, and z components of the polarization vector.' )
+  call write_file_info( filename_avec // out_suffix // ' contains in each line 6 elements:' )
   call write_file_info( ': the x components of the induced and the total vector potential.' )
   call write_file_info( ': the y components of the induced and the total vector potential.' )
   call write_file_info( ': the z components of the induced and the total vector potential.' )
-  call write_file_info( 'ELECTRIC_FIELD.OUT contains the x, y, and z components of the external electric field.' )
+  call write_file_info( filename_evec // out_suffix // ' contains the x, y, and z components of the external electric field.' )
 end subroutine
 
 !> checks for consistency between gs hybrid calculation and rttddft and initializes pointer

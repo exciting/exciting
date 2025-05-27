@@ -65,9 +65,9 @@ module rttddft_io
   integer(i32) :: file_info
   !> Format of the timing outputs in RT-TDDFT
   character(len=*), parameter :: format_timing = '(A30,F12.6)'
-  !> Format of the outputs: `JIND` and `PVEC`
+  !> Format of the outputs: `CURRENT` and `POLARIZATION`
   character(len=*), parameter :: format_j_p = '(F12.4,3F20.12)'
-  !> Format of the output: `AVEC`
+  !> Format of the output: `VECTOR_POTENTIAL`
   character(len=*), parameter :: format_avec = '(F12.4,6F20.12)'
 
   interface write_timing

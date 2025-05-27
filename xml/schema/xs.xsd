@@ -734,7 +734,7 @@
             <xs:attribute ex:importance="expert" ex:unit="" name="calculateTotalEnergy" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation> The total energy is calculated at each
-                  time-step and outputed in the file <pre>ETOT_RTTDDFT.OUT</pre>
+                  time-step and outputed in the file <pre>TOTENERGY_RTTDDFT.OUT</pre>
 		            </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -744,7 +744,7 @@
               <xs:annotation>
                 <xs:documentation> Calculates the number of
                   excited electrons (per unit cell) at each time-step.
-                  Output: <pre>NEXC.OUT</pre>
+                  Output: <pre>N_EXCITATIONS.OUT</pre>
 		            </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -753,12 +753,12 @@
               <xs:annotation>
                 <xs:documentation> 
                   When restarting a calculation, append the specified string 
-                  (as extension) to the following files: <pre>JIND.OUT</pre>, 
-                  <pre>PVEC.OUT</pre>, <pre>AVEC.OUT</pre>, 
-                  <pre>NEXC.OUT</pre>, and <pre>ETOT_RTTDDFT.OUT</pre>.  
-                  Instead of reading from the default file name 
-                  <pre>fname.OUT</pre>, the program will read from 
-                  <pre>fname.OUT.string</pre>, where <pre>string</pre> corresponds 
+                  (as extension) to the following files: <pre>CURRENT.OUT</pre>, 
+                  <pre>POLARIZATION.OUT</pre>, <pre>VECTOR_POTENTIAL.OUT</pre>, 
+                  <pre>ELECTRIC_FIELD.OUT</pre>, <pre>N_EXCITATIONS.OUT</pre>, and 
+                  <pre>TOTENERGY_RTTDDFT.OUT</pre>. Instead of reading from the default 
+                  file name <pre>fname.OUT</pre>, the program will read from 
+                  <pre>fname.OUTstring</pre>, where <pre>string</pre> corresponds 
                   to the value assigned to <attref>restartExtension</attref>.
                   This functionality is primarily designed for testing purposes.
                 </xs:documentation>
@@ -857,7 +857,7 @@
                 <xs:documentation>Define the format of output or restart (checkpoint) files. 
                 When using (<pre>do="fromfile"</pre>), the same format must as in the 
                 previous calculation must be adhered to. 
-                <b>N.B.:</b> Output files in text format (<i>e.g.</i> <pre>JIND.OUT</pre>)
+                <b>N.B.:</b> Output files in text format (<i>e.g.</i> <pre>CURRENT.OUT</pre>)
                 are not affected.</xs:documentation>
               </xs:annotation>
               <xs:simpleType>
