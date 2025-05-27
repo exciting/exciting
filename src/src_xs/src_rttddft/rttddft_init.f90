@@ -274,11 +274,13 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
 
   if ( rt_inp%use_velocity_gauge() ) then
     if( rt_inp%pmat%read_pmat_from_file ) then 
-      call terminate_if_false( file_pmat_exists(), 'File:'//trim( get_filename_pmat() )//' not found')
-      call read_pmat( first_kpt, pmat, mpi_env_k )
+      call terminate_if_false( file_pmat_exists( rt_inp%restart_file_handler, mpi_env_k ), &
+        'File:'//trim( get_filename_pmat() )//' not found')
+      call read_pmat( first_kpt, pmat, mpi_env_k, rt_inp%restart_file_handler )
       if ( molecular_dynamics%on ) then 
-        call terminate_if_false( file_pmat_mt_exists(), 'File:'//trim( get_filename_pmat_mt() )//' not found')
-        call read_pmat_mt( first_kpt, pmatmt, mpi_env_k )
+        call terminate_if_false( file_pmat_mt_exists( rt_inp%restart_file_handler, mpi_env_k ), &
+          'File:'//trim( get_filename_pmat_mt() )//' not found')
+        call read_pmat_mt( first_kpt, pmatmt, mpi_env_k, rt_inp%restart_file_handler )
       end if
     else
       if ( rt_inp%use_ks_basis() ) then
@@ -288,8 +290,8 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
       end if
     end if
     if( rt_inp%pmat%write_pmat_to_file ) then
-      call write_pmat( first_kpt, pmat, mpi_env_k )
-      if ( molecular_dynamics%on ) call write_pmat_mt( first_kpt, pmatmt, mpi_env_k )
+      call write_pmat( first_kpt, pmat, mpi_env_k, rt_inp%restart_file_handler, kset_rttddft%nkpt )
+      if ( molecular_dynamics%on ) call write_pmat_mt( first_kpt, pmatmt, mpi_env_k, rt_inp%restart_file_handler, kset_rttddft%nkpt )
     end if
   end if
   
@@ -346,7 +348,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
 
   if( rt_inp%restart_previous_calculation() ) then
     call read_wavefunction( t, first_kpt, kset_rttddft%vkl(:, first_kpt:last_kpt), &
-    psi%active, mpi_env_k, rt_inp%restart_file_handler )
+      psi%active, mpi_env_k, rt_inp%restart_file_handler )
     if( propagator%extrapolation_needed() ) call read_wavefunction( t_minus_dt, first_kpt, &
       kset_rttddft%vkl(:, first_kpt:last_kpt), psi%active_save, mpi_env_k, rt_inp%restart_file_handler )
     if( propagator%extrapolation_needed() ) then
@@ -384,7 +386,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
       rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, psi_gnd_lapwlo )
     call update_potential()
 
-    if ( rt_inp%use_length_gauge() ) call read_phases( prev_phases )
+    if ( rt_inp%use_length_gauge() ) call read_phases( prev_phases, rt_inp%restart_file_handler, mpi_env_k )
   end if
 
   if( evolve_H0 .or. rt_inp%restart_previous_calculation() ) then

@@ -864,6 +864,42 @@ RT-TDDFT/GGA_PBE-C-trapCos-EHM-IPA-printDensity:
       - "input.xml"
       - "C.xml"
 
+RT-TDDFT/GGA_PBE-Ehrenfest-Si-restart:
+    group: !Group HDF5
+    files_under_test:
+      - "INFO.OUT"
+      - "CURRENT.OUT"
+      - "TOTENERGY_RTTDDFT.OUT"
+      - "ATOM_0001.OUT"
+      - "ATOM_0002.OUT"
+      - "FCR_0001.OUT"
+      - "FCR_0002.OUT"
+      - "FEXT_0001.OUT"
+      - "FEXT_0002.OUT"
+      - "FHF_0001.OUT"
+      - "FHF_0002.OUT"
+      - "FVAL_0001.OUT"
+      - "FVAL_0002.OUT"
+    inputs:
+      - "input.xml"
+      - "Si.xml"
+      - "CURRENT.OUT.SAVE"
+      - "POLARIZATION.OUT.SAVE"
+      - "VECTOR_POTENTIAL.OUT.SAVE"
+      - "ELECTRIC_FIELD.OUT.SAVE"
+      - "TOTENERGY_RTTDDFT.OUT.SAVE"
+      - "ATOM_0001.OUT.SAVE"
+      - "ATOM_0002.OUT.SAVE"
+      - "FCR_0001.OUT.SAVE"
+      - "FCR_0002.OUT.SAVE"
+      - "FEXT_0001.OUT.SAVE"
+      - "FEXT_0002.OUT.SAVE"
+      - "FHF_0001.OUT.SAVE"
+      - "FHF_0002.OUT.SAVE"
+      - "FVAL_0001.OUT.SAVE"
+      - "FVAL_0002.OUT.SAVE"
+      - "rt.h5"
+
 RT-TDDFT/LDA_PW-C-kick-RK4-frozen:
 
 RT-TDDFT/LDA_PW-Ehrenfest-C:

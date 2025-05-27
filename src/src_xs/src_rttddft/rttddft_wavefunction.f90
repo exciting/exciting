@@ -11,6 +11,8 @@
 module rttddft_Wavefunction
   use asserts, only: assert
   use constants, only: zone, zzero, zi
+  use exciting_mpi, only: xmpi_allgather
+  use modmpi, only: mpiglobal
   use normalize, only: normalize_vectors
   use precision, only: dp, i32
   use projection, only: project_y_onto_x
@@ -123,16 +125,21 @@ contains
     !> Minimal value of occupation for the state to be 'occupied'
     real(dp), intent(in) :: occs_tol
 
-    call assert( n_frozen_ <= size( complete_gnd_set_lapwlo, 2 ), &
-      'n_frozen_ > n_states')
+    integer(i32) :: n_active_states
+    integer(i32), allocatable :: buffer(:)
+
+    call assert( n_frozen_ <= size( complete_gnd_set_lapwlo, 2 ), 'n_frozen_ > n_states')
     call assert( size( complete_gnd_set_lapwlo, 2 ) == size( occupations, 1 ), &
       'complete_gnd_set_lapwlo and occupations have different n_states')
     call assert( size( complete_gnd_set_lapwlo, 3 ) == size( occupations, 2 ), &
       'complete_gnd_set_lapwlo and occupations have different n_kpts')
 
     allocate( this%groundstate, source = complete_gnd_set_lapwlo )
-    allocate( this%active, source = complete_gnd_set_lapwlo(:, n_frozen_ + 1 : &
-      last_occupied_for_current_rank( occupations, occs_tol ), :) )
+    n_active_states = last_occupied_for_current_rank( occupations, occs_tol )
+    ! Force the same number of active states over all MPI ranks
+    call xmpi_allgather( mpiglobal, n_active_states, buffer )
+    n_active_states = maxval( buffer )
+    allocate( this%active, source = complete_gnd_set_lapwlo(:, n_frozen_ + 1 : n_active_states, :) )
     if ( save_needed ) allocate( this%active_save, source = this%active )
     if ( n_frozen_ > 0 ) allocate( this%frozen, source = complete_gnd_set_lapwlo(:, 1 : n_frozen_, :) )
 

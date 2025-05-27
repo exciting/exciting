@@ -1,11 +1,15 @@
 module MD_io
   use asserts, only: assert
+  use exciting_mpi, only: mpiinfo
   use file_utils, only: add_default_extension, copy_text_file, read_last_and_penultimate_lines_from_file
   use math_utils, only: all_zero
   use MD, only: force, trajectory
   use mod_misc, only: filext
   use modmpi, only: terminate_if_false
+  use os_utils, only: join_paths
   use precision, only: dp, i32, str_64, str_128, str_256
+  use rttddft_file_formats, only: file_handler, hdf5, binary
+  use rttddft_io_hdf5, only: read_array_hdf5, write_array_hdf5
   use to_char_conversion, only: to_char
   
   implicit none
@@ -263,31 +267,62 @@ module MD_io
   end subroutine
 
   !> Write positions and velocities to an output file
-  subroutine write_trajectory( nuclei_motion )
+  subroutine write_trajectory( nuclei_motion, handler, mpi_env )
     !> This argument packs nuclei positions and velocities
     class(trajectory), intent(in) :: nuclei_motion
+    !> File handler
+    type(file_handler), intent(in) :: handler
+    !> MPI environment
+    type(mpiinfo), intent(in) :: mpi_env
 
     integer(i32) :: unit
 
     call nuclei_motion%assert_consistency()
 
-    open( newunit=unit, file=add_default_extension( filename_trajectory ), action="write", form="unformatted", access="stream" )
-    write( unit ) nuclei_motion%positions, nuclei_motion%velocities
-    close( unit )
+    select case( handler%file_format )
+      case( binary )
+        if( mpi_env%is_root ) then
+          open( newunit=unit, file=add_default_extension( filename_trajectory ), action="write", form="unformatted", access="stream" )
+          write( unit ) nuclei_motion%positions, nuclei_motion%velocities
+          close( unit )
+        end if
+      case( hdf5 )
+        call handler%assert_consistency( )
+        call write_array_hdf5( handler%file_name, handler%path, filename_trajectory // "-" // add_default_extension("nuclei_positions"), &
+          nuclei_motion%positions, mpi_env, serial_access=.true. )
+        call write_array_hdf5( handler%file_name, handler%path, filename_trajectory // "-" // add_default_extension("nuclei_velocities"), &
+          nuclei_motion%velocities, mpi_env, serial_access=.true. )
+      case default
+        call assert( .false., "Unrecognized format" )
+    end select
   end subroutine
 
   !> Read positions and velocities to an output file
-  subroutine read_trajectory( nuclei_motion )
+  subroutine read_trajectory( nuclei_motion, handler, mpi_env )
     !> This argument packs nuclei positions and velocities
     class(trajectory), intent(inout) :: nuclei_motion
+    !> File handler
+    type(file_handler), intent(in) :: handler
+    !> MPI environment
+    type(mpiinfo), intent(in) :: mpi_env
 
     integer(i32) :: unit
 
     call nuclei_motion%assert_consistency()
 
-    open( newunit=unit, file=add_default_extension( filename_trajectory ), action="read", form="unformatted", access="stream" )
-    read( unit ) nuclei_motion%positions, nuclei_motion%velocities
-    close( unit )
+    select case( handler%file_format )
+      case( binary )
+        open( newunit=unit, file=add_default_extension( filename_trajectory ), action="read", form="unformatted", access="stream" )
+        read( unit ) nuclei_motion%positions, nuclei_motion%velocities
+        close( unit )
+      case( hdf5 )
+        call handler%assert_consistency( )
+        call read_array_hdf5( handler%file_name, handler%path, filename_trajectory // "-" // add_default_extension("nuclei_positions"), &
+          nuclei_motion%positions, mpi_env )
+        call read_array_hdf5( handler%file_name, handler%path, filename_trajectory // "-" // add_default_extension("nuclei_velocities"), &
+          nuclei_motion%velocities, mpi_env )
+      case default
+    end select
   end subroutine
 
   !> Find the number of files in the current directory with name matching the pattern: 
