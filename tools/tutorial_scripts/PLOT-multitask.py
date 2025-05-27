@@ -234,10 +234,10 @@ def parse_input():
     parser.add_argument('--fourier', required=False, action='store_true')
     parser.add_argument('--wcut', required=False, nargs = 1, default=[0.0],
         type = float, action='store')
-    # get_efield: calculates the electric field using AVEC.OUT, the file with
+    # get_efield: calculates the electric field using VECTOR_POTENTIAL.OUT, the file with
     #       the vector potential
     parser.add_argument('--get_efield', required=False, action='store_true')
-    # get_eps: obtain the dielectric function, using AVEC.OUT and JIND.OUT
+    # get_eps: obtain the dielectric function, using VECTOR_POTENTIAL.OUT and CURRENT.OUT
     parser.add_argument('--get_eps', required=False, action='store_true')
     # the next options are for the tensor components of the dielectric function
     parser.add_argument('--xx', required=False, action='store_true')
@@ -340,8 +340,8 @@ def set_implicit_options( options ):
         # Special case (get_eps)
         else:
             # xx, xy, ..., zz: first component tells which column
-            # of JIND.OUT is to be read; the second component,
-            # the one of AVEC.OUT
+            # of CURRENT.OUT is to be read; the second component,
+            # the one of VECTOR_POTENTIAL.OUT
             options['columns'] = [[0,2],[0,1]]
             if( options['xx'] ):
                 options['columns'] = [[0,2],[0,1]]

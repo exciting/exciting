@@ -153,9 +153,8 @@ module rttddft_input
     integer(kind( start_mode )), private :: start_mode
     !> Format handler of the checkpoint (restart) files
     type(file_handler) :: restart_file_handler
-    !> When restarting a calculation, append this string as extension to the files
-    !> `JIND.OUT`, `PVEC.OUT`, `AVEC.OUT`, `NEXC.OUT`, and `ETOT_RTTDDFT.OUT`.
-    !> E.g. if `restart_extension=".END"`, the vector potential is read from `AVEC.OUT.SAVE`
+    !> When restarting a calculation, append this string as extension to the common output files
+    !> E.g. if `restart_extension=".SAVE"`, the vector potential is read from `VECTOR_POTENTIAL.OUT.SAVE`
     character(len=:), allocatable :: restart_extension
   contains
     procedure :: parse_input => rttddft_input_keys_parse_input

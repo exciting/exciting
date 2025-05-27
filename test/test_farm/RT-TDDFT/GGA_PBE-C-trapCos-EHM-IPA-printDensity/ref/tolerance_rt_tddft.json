@@ -82,7 +82,7 @@
       "unit": "Hartree"
     }
   },
-  "JIND.OUT": {
+  "CURRENT.OUT": {
     "Time": {
       "tol": 1e-08,
       "unit": "a.u."
@@ -100,7 +100,7 @@
       "unit": "a.u."
     }
   },
-  "NEXC.OUT": {
+  "N_EXCITATIONS.OUT": {
     "Time": {
       "tol": 1e-08,
       "unit": "a.u."
@@ -128,7 +128,7 @@
       "unit": "Ha"
     }
   },
-  "PROJ_??.OUT": {
+  "PROJECTION_COEFFS_??.OUT": {
     "ik": {
       "tol": 0,
       "unit": "null"

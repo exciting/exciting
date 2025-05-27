@@ -4,15 +4,15 @@ module rttddft_file_names
   private
 
   !> Default name of the file where the vector potential is printed out
-  character(len=*), public, parameter :: filename_avec = 'AVEC'
+  character(len=*), public, parameter :: filename_avec = 'VECTOR_POTENTIAL'
   !> Default name of the file where the external electric field strength is printed out
   character(len=*), public, parameter :: filename_evec = 'ELECTRIC_FIELD'
   !> Default name of the file where the polarization is printed out
-  character(len=*), public, parameter :: filename_pvec = 'PVEC'
+  character(len=*), public, parameter :: filename_pvec = 'POLARIZATION'
   !> Default name of the file where the current density is printed out
-  character(len=*), public, parameter :: filename_jind = 'JIND'
+  character(len=*), public, parameter :: filename_jind = 'CURRENT'
   !> Default name of the file where the number of excited electrons is printed out
-  character(len=*), public, parameter :: filename_nexc = 'NEXC'
+  character(len=*), public, parameter :: filename_nexc = 'N_EXCITATIONS'
   !> Default name of the file with general information about the RT-TDDFT calculation
   character(len=*), public, parameter :: filename_info = 'RTTDDFT_INFO'
   !> Default name of the file where `pmat` is printed out
@@ -20,7 +20,7 @@ module rttddft_file_names
   !> Default name of the file where `pmat_mt` is printed out
   character(len=*), public, parameter :: filename_pmat_mt = 'PMATMTBASIS'
   !> Default name of the file where the projection coefficients are printed out
-  character(len=*), public, parameter :: filename_projection_coefficients = 'PROJ_'
+  character(len=*), public, parameter :: filename_projection_coefficients = 'PROJECTION_COEFFS_'
   !> Default name of the file where the eigenvalues are printed out
   character(len=*), public, parameter :: filename_eigenvalues = 'EIGVAL_'
   !> Default name of the file where the occupation factors are printed out
@@ -50,7 +50,7 @@ module rttddft_file_names
   !> Default name of the file where timigs are printed out
   character(len=*), public, parameter :: filename_timing = 'TIMING' // RTTDDFT_suffix
   !> Default name of the file where the total energy is printed out
-  character(len=*), public, parameter :: filename_etot = 'ETOT' // RTTDDFT_suffix
+  character(len=*), public, parameter :: filename_etot = 'TOTENERGY' // RTTDDFT_suffix
   !> Default name of the file where the string phases are printed out
   character(len=*), public, parameter :: filename_phases = 'PHASES' // RTTDDFT_suffix
 end module

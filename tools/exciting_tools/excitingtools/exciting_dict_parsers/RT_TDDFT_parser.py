@@ -15,7 +15,7 @@ path_type = Union[Path, str]
 
 def parse_nexc(name: path_type, skiprows=1):
     """
-    Parser for NEXC.OUT
+    Parser for N_EXCITATIONS.OUT
     """
     try:
         data = np.genfromtxt(name, skip_header=skiprows)
@@ -33,7 +33,7 @@ def parse_nexc(name: path_type, skiprows=1):
 
 def parse_jind(name: path_type, skiprows=0):
     """
-    Parser for JIND.OUT
+    Parser for CURRENT.OUT
     """
     try:
         data = np.genfromtxt(name, skip_header=skiprows)
@@ -46,7 +46,7 @@ def parse_jind(name: path_type, skiprows=0):
 
 def parse_etot(name: path_type):
     """
-    Parser for ETOT_RTTDDFT.OUT
+    Parser for TOTENERGY_RTTDDFT.OUT
     """
     try:
         data = np.genfromtxt(name, skip_header=1)
@@ -146,7 +146,7 @@ def parse_eigval_screenshots(name: path_type) -> dict:
 
 def parse_proj_screenshots(name: path_type) -> dict:
     """
-    Parser for PROJ_*.OUT.
+    Parser for PROJECTION_COEFFS_*.OUT.
 
     Effectively the same code as parse_eigval_screenshots, but the whitespace
     between blocks differs by 1.

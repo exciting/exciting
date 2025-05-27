@@ -539,7 +539,7 @@ subroutine scf_cycle(verbosity)
 ! output energy components
             call writeengy(60)
             if (verbosity>0) Write (60,*)
-            Write (60, '(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F18.8)') fermidos
+            Write (60, '(" DOS at Fermi energy (states/Ha/cell)",T45, ": ", F18.8)') fermidos
 ! write DOS at Fermi energy to FERMIDOS.OUT and flush
 !            Write (62, '(G18.10)') fermidos
 !            Call flushifc (62)
@@ -602,7 +602,7 @@ subroutine scf_cycle(verbosity)
         timetot = timeinit+timemat+timefv+timesv+timerho+timepot+timefor+timeio+timemt+timemixer
         if ((verbosity>-1).and.(rank==0)) then
             write(60,*)
-            write(60, '(" Wall time (seconds)",T45 ": ", F12.2)') timetot
+            write(60, '(" Wall time (seconds)",T45, ": ", F12.2)') timetot
         end if
 
 ! write TOTENERGY.OUT
