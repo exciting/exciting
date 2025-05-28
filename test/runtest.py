@@ -1,8 +1,8 @@
 """
 Parser command-line arguments and run the test suite.
 
-To run all tests in smp, type `python3 runtest.py`
-To run all tests in mpi and smp, type `python3 runtest.py -e exciting_mpismp`
+To run all tests in mpi and smp, type `python3 runtest.py`
+To run all tests in smp, type `python3 runtest.py -e exciting_smp`
 For more details, type `python3 runtest.py --help`
 """
 import argparse as ap
@@ -53,19 +53,19 @@ def option_parser(settings: Defaults):
                       + "'exciting_serial' for the serial binary; " \
                       + "'exciting_smp' for the shared-memory version; " \
                       + "'exciting_purempi' for the binary with MPI parallelisation, only; " \
-                      + "'exciting_mpismp for the binary with MPI amd SMP parallelisation;" \
-                      + "Default is exciting_smp"
+                      + "'exciting_mpismp' for the binary with MPI amd SMP parallelisation;" \
+                      + "Default is exciting_mpismp"
 
     p.add_argument('-e',
                    metavar='--executable',
                    help=help_executable,
                    type=str,
-                   default=settings.binary_smp,
+                   default=settings.binary_mpismp,
                    choices=settings.binary_names)
 
-    p.add_argument('-r',
-                   metavar='--exciting-root',
-                   help="The root directory in which exciting is installed",
+    p.add_argument('-bp',
+                   metavar='--exciting-binpath',
+                   help="The absolute path in which the exciting binary is located",
                    type=str,
                    default=settings.exe_dir)
 
@@ -127,7 +127,7 @@ def option_parser(settings: Defaults):
         return set_up_make_test(settings, input_options)
     
     build_type = set_build_type(args, settings)
-    input_options['exec_dir'] = args.r 
+    input_options['exec_dir'] = args.bp 
     input_options['np'] = args.np if args.np is not None else settings.default_np[build_type]
     input_options['omp'] = str(args.omp) if args.omp is not None else str(settings.default_threads[build_type])
     input_options['executable'] = set_execution_str(build_type, input_options['np'], settings, input_options['exec_dir'])

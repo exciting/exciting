@@ -50,4 +50,4 @@ test-debian-buster-Intel2021-smp:
     - python3 -m pip install -e tools/exciting_tools
     # Run exciting app tests
     # TODO(Alex) Remove MKL_NUM_THREADS
-    - cd test/ && export MKL_NUM_THREADS=1 && python3 runtest.py -r $PWD/../install/bin/ -e exciting_smp -repeat-tests 2
+    - cd test/ && export MKL_NUM_THREADS=1 && python3 runtest.py -bp $PWD/../install/bin/ -e exciting_smp -repeat-tests 2

@@ -53,4 +53,4 @@ test-debian-buster-Intel2021-serial:
     # Install test framework parsers
      - python3 -m pip install -e tools/exciting_tools
     # Run exciting app tests
-     - cd test/ && python3 runtest.py -r $PWD/../install/bin/ -e exciting_serial -repeat-tests 2
+     - cd test/ && python3 runtest.py -bp $PWD/../install/bin/ -e exciting_serial -repeat-tests 2

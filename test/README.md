@@ -35,54 +35,49 @@ python3 runtest.py
 
 ## Running the Test Suite:
 
-    python3 runtest.py (-a <action> -t <tests> -e <executable> -np <NP> -omp <OMP>)
-        -h   --help          optional    show a help message and exit
+python3 runtest.py -t <tests> -e <executable> -np <NP> -omp <omp>
+-handle-errors -run-failing-tests -repeat-tests <N>
 
-        -a   --action        optional    Defines what action is done. That can be:
-                                         'run'   - running tests 
-                                         'ref'   - running references
-                                                   References are always running with exciting_smp.
-                                                   WARNING: This should only be done for NEW test cases or 
-                                                   if all tests SUCCEEDED for the current version of the code.
-                                         Default is 'run'.
-
-        -t   --tests         optional    Test(s) to run. 
-                                         This can be some partial string match,
-                                         such as `PBE`, or a full path `groundstate/LDA_PW-
-                                         PbTiO3`. The test suite will run any test which
-                                         contain the substring in its name. 
-                                         Omit this option to run all tests.
-
-        -e   --executable    optional    exciting executable.
-                                         'exciting_serial'  - for the serial binary;
-                                         'exciting_smp'     - for the binary with SMP (default);
-                        	             'exciting_mpi'     - for the binary with MPI parallisation, only
-                                         'exciting_mpismp'  - for the binary with MPI and SMP parallisation
-                                         Default is 'exciting_smp'.
-
-        -np  --NP            optional    Number of cores for MPI run. Can only be used in
-                                         combination with exciting_mpi or exciting_mpismp as
-                                         executable. Default is 2 for MPI and MPI+OMP
-                                         calculations, and 1 for serial or pure OMP.
-
-        -omp --ompthreads    optional    Number of threads for open MP parallelisation. Default is 2. 
-
-        -handle-errors       optional    Allow testing to continue if a test assertion fails. 
-
-        -run-failing-tests   optional    Run tests tagged as failing in src/exciting_settings/failing_tests.py
-                                         Failing tests are not run by default. 
-
-        -make-test           optional    Run tests from Makefile. If this option is set, all
-                                         other options will be ignored and the test suite will
-                                         run all tests with default settings. 
-                                         The executable will be chosen from the compiled binaries
-                                         with the following hierarchy: 
-                                         1. exciting_mpismp 
-                                         2. exciting_smp
-                                         3. exciting_mpi
-                                         4. exciting_serial
-                                         If excitingtools is not installed, the test suite will provide 
-                                         instructions on how to install the package.
+optional arguments:
+  -h, --help            show this help message and exit
+  -t --tests [--tests ...]
+                        Tests to run. This can be some partial string match,
+                        such as `PBE`, or a full path `groundstate/LDA_PW-
+                        PbTiO3`. The test suite will run any test which
+                        contain this string in its name. Typing 'all' will run
+                        all test cases, and is the default behaviour.
+  -e --executable       exciting executables. 'exciting_serial' for the serial
+                        binary; 'exciting_smp' for the shared-memory version;
+                        'exciting_purempi' for the binary with MPI
+                        parallelisation, only; 'exciting_mpismp' for the binary
+                        with MPI amd SMP parallelisation;Default is
+                        exciting_mpismp
+  -bp --exciting-binpath
+                        The absolute path in which the exciting binary is
+                        located
+  -np --NP              Number of cores for MPI run. Can only be used in
+                        combination with exciting_mpi or exciting_mpismp as
+                        executable. Default is 2 for MPI and MPI+OMP
+                        calculations, and 1 for serial or pure OMP
+  -omp --ompthreads     Number of OMP threads. Default is 2 for OMP and
+                        MPI+OMP calculations, and 1 for serial or pure MPI
+  -handle-errors        Allow assertion failures to propagate to the end of
+                        the test suite. If the option is excluded, the default
+                        is to not allow error propagation
+  -run-failing-tests    Run tests tagged as failing.If the option is excluded,
+                        the default is not to run failing tests
+  -repeat-tests REPEAT_TESTS
+                        Number of times to repeat any test specified in
+                        failing_tests.py/repeat_tests list.Primarily intended
+                        for flakey tests running in the CI
+  -make-test            Run tests from Makefile. If this option is set, all
+                        other options will be ignored and the test suite will
+                        run all tests with default settings. The executable
+                        will be chosen from the compiled binaries with the
+                        following hierarchy: exciting_mpismp > exciting_smp >
+                        exciting_mpi > exciting_serial .If excitingtools is
+                        not installed, the test suite will provide
+                        instructions on how to install the package.
 
 ## Environment Variables.
 
@@ -235,7 +230,7 @@ mv tolerance_method.py test_farm/method/test_case/ref/.
 # Run test
 cd test_farm/method/test_case/
 export OMP_NUM_THREADS= 2
-./$EXCITINGROOT/bin/exciting_smp
+./$EXCITINGROOT/install/bin/exciting_smp
 
 # Remove outputs that will not be tested
 rm <IRRELEVANT_OUPUTS> 
@@ -253,7 +248,7 @@ is done straightforwardly from the terminal:
 ```bash
 cd test_farm/method/test_case/ref
 export OMP_NUM_THREADS= 2
-./$EXCITINGROOT/bin/exciting_smp
+./$EXCITINGROOT/install/bin/exciting_smp
 ```
 
 The command:
