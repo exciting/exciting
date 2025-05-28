@@ -42,4 +42,4 @@ test-fedora-buster-gnu-mpismp-complete:
      # In this case, ONLY run tests with GROUPS tag: HDF5 FASTBSE
      - python3 set_groups.py -file defaults_config.yml -groups HDF5 FASTBSE NONE LIBXC 
      # Run exciting app tests
-     - export OMP_NUM_THREADS=2 && python3 runtest.py -r $PWD/../install/bin/ -e exciting_mpismp -repeat-tests 2
+     - export OMP_NUM_THREADS=2 && python3 runtest.py -bp $PWD/../install/bin/ -e exciting_mpismp -repeat-tests 2

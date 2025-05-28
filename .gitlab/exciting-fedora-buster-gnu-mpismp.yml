@@ -38,4 +38,4 @@ test-fedora-buster-gnu-mpismp:
     # Install test framework parsers
      - pip3 install -e tools/exciting_tools
     # Run exciting app tests
-     - cd test/ && export OMP_NUM_THREADS=2 && python3 runtest.py -r $PWD/../install/bin/ -e exciting_mpismp -repeat-tests 2
+     - cd test/ && export OMP_NUM_THREADS=2 && python3 runtest.py -bp $PWD/../install/bin/ -e exciting_mpismp -repeat-tests 2
