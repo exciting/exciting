@@ -26,7 +26,7 @@ module rttddft_main
   use propagators, only: propagator_type => propagator
   use rttddft_berry, only: get_td_overlap_det_and_length_gauge_term
   use rttddft_CurrentDensity, only: Current_Density, Current_Density_Field
-  use rttddft_Density, only: update_density, groundstate
+  use rttddft_Density, only: update_density, ground_state
   use rttddft_file_names, only: RTTDDFT_suffix
   use rttddft_electric_field, only: Electric_Field, obtain_electric_field
   use rttddft_Energy, only: TotalEnergy, obtain_energy_rttddft
@@ -266,7 +266,7 @@ contains
     if ( rt%screenshots%on ) then
       if ( rt%screenshots%density%on ) then
         call update_density( first_kpt, psi, occupations, 0, rt%normalize_WF, rt%l_rad_step, &
-          rhomt_frozen, rhoir_frozen, ks_lapwlo_transition_matrix, dens_case=groundstate )
+          rhomt_frozen, rhoir_frozen, ks_lapwlo_transition_matrix, dens_case = ground_state )
         rhomt_init = rhomt
         rhoir_init = rhoir
       end if
