@@ -25,10 +25,10 @@ module rttddft_input
     enumerator :: lapwlo, ks
   end enum
 
-  !> Enum with gauge
+  !> Enum with field coupling
   enum, bind(C)
-    enumerator :: gauge
-    enumerator :: velocity, length
+    enumerator :: field_coupling
+    enumerator :: velocity_gauge, berry_phase
   end enum
 
   type :: screenshot_eigenvalues_keys
@@ -147,8 +147,8 @@ module rttddft_input
     logical, private :: save_state
     !> Identify which basis set will be used for the propagation (see [[basis_set]])
     integer(kind( basis_set )), private :: basis_set
-    !> Identify which gauge will be used for the coupling with external field (see [[gauge]])
-    integer(kind( gauge )), private :: gauge
+    !> Identify which operator will be used for the coupling with external field (see [[field_coupling]])
+    integer(kind( field_coupling )), private :: field_coupling
     !> Identify if which start mode is desired (see [[start_mode]])
     integer(kind( start_mode )), private :: start_mode
     !> Format handler of the checkpoint (restart) files
@@ -164,7 +164,7 @@ module rttddft_input
     procedure :: use_ks_basis => rttddft_input_keys_use_ks_basis
     procedure :: use_lapwlo_basis => rttddft_input_keys_use_lapwlo_basis
     procedure :: use_velocity_gauge => rttddft_input_keys_use_velocity_gauge
-    procedure :: use_length_gauge => rttddft_input_keys_use_length_gauge
+    procedure :: use_berry_phase => rttddft_input_keys_use_berry_phase
   end type
 
 contains
@@ -208,7 +208,7 @@ subroutine rttddft_input_keys_parse_input( this, inp, tol, a_vec )
     this%eeInteraction%ipa = ( trim( rt_input%eeInteraction ) == "IPA" )
     this%save_state = rt_input%saveState
     this%basis_set = string_to_basis_set( rt_input%basis )
-    this%gauge = string_to_gauge( rt_input%gauge )
+    this%field_coupling = string_to_field_coupling( rt_input%fieldCoupling )
     this%start_mode = string_to_start_mode( rt_input%do )
     this%restart_file_handler%file_format = string_to_restart_format( rt_input%restartFilesFormat )
     this%restart_extension = trim( rt_input%restartExtension )
@@ -223,28 +223,28 @@ end subroutine
 !> Check whether the velocity gauge will be used for the coupling with external field
 pure logical function rttddft_input_keys_use_velocity_gauge( this ) result( check )
   class(rttddft_input_keys), intent(in) :: this
-  check = ( this%gauge == velocity )
+  check = ( this%field_coupling == velocity_gauge )
 end function
 
-!> Check whether the length gauge will be used for the coupling with external field
-pure logical function rttddft_input_keys_use_length_gauge( this ) result( check )
+!> Check whether the dynamical Berry phase approach will be used for the coupling with external field
+pure logical function rttddft_input_keys_use_berry_phase( this ) result( check )
   class(rttddft_input_keys), intent(in) :: this
-  check = ( this%gauge == length )
+  check = ( this%field_coupling == berry_phase )
 end function
 
-!> (private) Given a string, get the corresponding [[gauge]]
-function string_to_gauge(string) result(r)
+!> (private) Given a string, get the corresponding [[field_coupling]]
+function string_to_field_coupling(string) result(r)
   !> String containing the start mode name
   character(len=*), intent(in) :: string
-  integer(kind( gauge )) :: r
+  integer(kind( field_coupling )) :: r
 
   select case ( trim( string ) )
-    case ("velocity")
-      r = velocity
-    case ("length")
-      r = length
+    case ("velocityGauge")
+      r = velocity_gauge
+    case ("berryPhase")
+      r = berry_phase
     case default
-      call assert( .false., "Unrecognized gauge")
+      call assert( .false., "Unrecognized field_coupling")
   end select
 end function
 

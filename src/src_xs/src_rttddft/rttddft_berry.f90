@@ -1,5 +1,5 @@
 !> This module handles all Berry-phase-related calculations required for RT-TDDFT 
-!> using the length gauge to describe the interaction with the external field.
+!> using the dynamical Berry phase approach to describe the interaction with the external field.
 module rttddft_berry
   use asserts, only: assert
   use constants, only: zone, zzero, zi, fourpi
@@ -17,7 +17,7 @@ module rttddft_berry
   implicit none
 
   private
-  public :: get_td_overlap_det_and_length_gauge_term
+  public :: get_td_overlap_det_and_berry_coupling_term
 
   !> Number of cartesian directions
   integer(i32), parameter :: n_cartesian = 3
@@ -31,16 +31,16 @@ contains
   !> Then, [[get_jumps_array]] is called to determine how many Cartesian directions
   !> and jumps are active, based on the external field and the \( \mathbf{k} \)-grid dimensions.
   !> Next, the time-dependent overlap is computed in [[build_td_overlap_and_det]].
-  !> Finally, the length-gauge interaction term is obtained via [[get_length_gauge_term]].
+  !> Finally, the interaction term is obtained via [[get_berry_coupling_term]].
   !> For further details, please refer to the documentation of the respective routines.
-  subroutine get_td_overlap_det_and_length_gauge_term( first_kpt, e_vec, pws_for_length_gauge, psi, &
-      kset, k_ptrs, td_overlap_det, length_gauge_term, use_save )
+  subroutine get_td_overlap_det_and_berry_coupling_term( first_kpt, e_vec, pws_for_berry_phase, psi, &
+      kset, k_ptrs, td_overlap_det, berry_coupling_term, use_save )
     !> The first \( \mathbf{k} \) point
     integer(i32), intent(in) :: first_kpt
     !> Electric field \( \mathbf{E} (t) \)
     type(Electric_Field), intent(in) :: e_vec
     !> Time-independent matrix \( W^{\mathbf{k} \mathbf{k}_{\alpha}^{\sigma}}_{pr} \)
-    complex(dp), contiguous, intent(in) :: pws_for_length_gauge(:, :, :, :, :)
+    complex(dp), contiguous, intent(in) :: pws_for_berry_phase(:, :, :, :, :)
     !> Basis-expansion coefficients of the KS-WFs
     class(wavefunction_set), intent(in) :: psi
     !> Set of \( \mathbf{k} \) points used throughout the module
@@ -50,8 +50,8 @@ contains
     !> Determinants of the time-dependent overlap matrices gathered from all MPI procs, 
     !> det \( S^{\mathbf{k} \mathbf{k}_{\alpha}^{+}} \) (3, nkpt)
     complex(dp), contiguous, intent(out) :: td_overlap_det(:, :)
-    !> Resulting length gauge interaction term
-    complex(dp), contiguous, intent(out) :: length_gauge_term(:, :, :)
+    !> Resulting interaction term
+    complex(dp), contiguous, intent(out) :: berry_coupling_term(:, :, :)
     !> If `.true.`, `active_save` wavefunction component should be used instead of `active` one
     logical, optional, intent(in) :: use_save
 
@@ -63,10 +63,10 @@ contains
     use_save_local = .false.
     if ( present( use_save ) ) use_save_local = use_save
 
-    call assert( psi%n_basis() == size( length_gauge_term, 1 ), "n_basis is different for psi and length_gauge_term" )
-    call assert( psi%n_basis() == size( pws_for_length_gauge, 1 ), "n_basis is different for psi and pws_for_length_gauge" )
+    call assert( psi%n_basis() == size( berry_coupling_term, 1 ), "n_basis is different for psi and berry_coupling_term" )
+    call assert( psi%n_basis() == size( pws_for_berry_phase, 1 ), "n_basis is different for psi and pws_for_berry_phase" )
     call assert( size( k_ptrs, 1) == size( td_overlap_det, 2), "n_kpt is different for k_ptrs and td_overlap_det" )
-    call assert( psi%n_kpts() == size( length_gauge_term, 3 ), "n_kpt is different for psi and length_gauge_term" )
+    call assert( psi%n_kpts() == size( berry_coupling_term, 3 ), "n_kpt is different for psi and berry_coupling_term" )
 
     allocate( td_overlap(psi%n_occupied(), psi%n_occupied(), first_kpt : last_kpt, n_cartesian, 4) )
     allocate( all_active_states(psi%n_basis(), psi%n_active(), kset%nkpt), source = zzero )
@@ -82,9 +82,9 @@ contains
 
     call get_jumps_array( kset%ngridk, e_vec, max_jumps )
     call build_td_overlap_and_det( first_kpt, all_active_states, &
-      pws_for_length_gauge, k_ptrs, max_jumps, td_overlap, td_overlap_det )
-    call get_length_gauge_term( first_kpt, all_active_states, pws_for_length_gauge, e_vec, &
-      k_ptrs, kset%ngridk, max_jumps, td_overlap, length_gauge_term )
+      pws_for_berry_phase, k_ptrs, max_jumps, td_overlap, td_overlap_det )
+    call get_berry_coupling_term( first_kpt, all_active_states, pws_for_berry_phase, e_vec, &
+      k_ptrs, kset%ngridk, max_jumps, td_overlap, berry_coupling_term )
 
   end subroutine
 
@@ -153,14 +153,14 @@ contains
   !> is the matrix pre-evaluated in the [[calc_pw_mes]] from periodic parts 
   !> \( u_{\mathbf{k} p} \) of the unperturbed KS states. After construction of the 
   !> overlap, evaluate det \( S^{\mathbf{k} \mathbf{k}_{\alpha}^{+}} \).
-  subroutine build_td_overlap_and_det( first_kpt, active_states, pws_for_length_gauge, &
+  subroutine build_td_overlap_and_det( first_kpt, active_states, pws_for_berry_phase, &
       k_ptrs, max_jumps, td_overlap, td_overlap_det )
     !> The first \( \mathbf{k} \) point
     integer(i32), intent(in) :: first_kpt
     !> Active states expansion coefficients \( c_{\mathbf{k}} \) from all MPI procs
     complex(dp), contiguous, intent(in) :: active_states(:, :, :)
     !> Time-independent matrix \( W^{\mathbf{k} \mathbf{k}_{\alpha}^{\sigma}}_{pr} \)
-    complex(dp), contiguous, intent(in) :: pws_for_length_gauge(:, :, first_kpt:, :, :)
+    complex(dp), contiguous, intent(in) :: pws_for_berry_phase(:, :, first_kpt:, :, :)
     !> Pointers to the neighbouring \( \mathbf{k} \) points (nkpt, 3, 4)
     integer(i32), contiguous, intent(in) :: k_ptrs(:, :, :)
     !> Max jumps array (3)
@@ -175,17 +175,17 @@ contains
     integer(i32) :: k_dir, k_jump, k_left, k_right, last_kpt, n_frozen
     complex(dp), allocatable :: g_matrix(:, :, :)
 
-    last_kpt = ubound( pws_for_length_gauge, 3 )
+    last_kpt = ubound( pws_for_berry_phase, 3 )
     ! n_frozen = n_occupied - n_active:
     n_frozen = size( td_overlap, 1 ) - size( active_states, 2 )
     
-    allocate( g_matrix(size( pws_for_length_gauge, 1 ), size( active_states, 2 ), 4) )
+    allocate( g_matrix(size( pws_for_berry_phase, 1 ), size( active_states, 2 ), 4) )
     td_overlap = zzero
     td_overlap_det(:, first_kpt : last_kpt) = zone
     
     !$omp parallel default(none) private(k_left, k_dir, g_matrix, k_jump, k_right), &
     !$omp shared(first_kpt, last_kpt, max_jumps, n_frozen, td_overlap_det, &
-    !$omp active_states, pws_for_length_gauge, td_overlap, k_ptrs)
+    !$omp active_states, pws_for_berry_phase, td_overlap, k_ptrs)
     !$omp do
     do k_left = first_kpt, last_kpt
       do k_dir = 1, n_cartesian
@@ -196,19 +196,19 @@ contains
           if ( n_frozen > 0 ) then
             ! time-independent frozen part (n_frozen x n_frozen):
             td_overlap(1 : n_frozen, 1 : n_frozen, k_left, k_dir, k_jump) = &
-              pws_for_length_gauge(1 : n_frozen, 1 : n_frozen, k_left, k_dir, k_jump)
+              pws_for_berry_phase(1 : n_frozen, 1 : n_frozen, k_left, k_dir, k_jump)
             ! top part (n_frozen x n_active):
-            call matrix_multiply( pws_for_length_gauge(1 : n_frozen , :, &
+            call matrix_multiply( pws_for_berry_phase(1 : n_frozen , :, &
               k_left, k_dir, k_jump), active_states(:, :, k_right), &
               td_overlap(1 : n_frozen, n_frozen + 1 :, k_left, k_dir, k_jump) )
             ! bot part (n_active x n_frozen):
             call matrix_multiply( active_states(:, :, k_left), &
-              pws_for_length_gauge(:, 1 : n_frozen, k_left, k_dir, k_jump), &
+              pws_for_berry_phase(:, 1 : n_frozen, k_left, k_dir, k_jump), &
               td_overlap(n_frozen + 1 :, 1 : n_frozen, k_left, k_dir, k_jump), trans_A = 'C' )
           end if
 
           ! g_matrix(n_basis x n_active):
-          call matrix_multiply( pws_for_length_gauge(:, :, k_left, k_dir, k_jump), &
+          call matrix_multiply( pws_for_berry_phase(:, :, k_left, k_dir, k_jump), &
             active_states(:, :, k_right), g_matrix(:, :, k_jump) )
           ! active part (n_active x n_active):
           call matrix_multiply( active_states(:, :, k_left), g_matrix(:, :, k_jump), &
@@ -225,7 +225,7 @@ contains
     call xmpi_allgatherv( mpi_env_k, td_overlap_det, size( td_overlap_det, 1 ) * (last_kpt - first_kpt + 1) )
   end subroutine
 
-  !> Evaluate the time-dependent field coupling matrix in length gauge
+  !> Evaluate the time-dependent field coupling matrix
   !> \[
   !> \frac{i f}{4 \pi} \sum_{\alpha = 1}^3 (\mathbf{a}_{\alpha} \cdot \mathbf{E} (t) ) N_{\mathbf{k}_{\alpha}} 
   !> \sum_{\sigma = \pm} \sigma \Bigg\{ \sum_{n = n_{\rm frozen} + 1}^{n_{\rm occupied}} c^*_{\mathbf{k} mn} (t) 
@@ -252,15 +252,15 @@ contains
   !> \]
   !> is the matrix pre-evaluated in the [[calc_pw_mes]] from periodic parts 
   !> \( u_{\mathbf{k} p} \) of the unperturbed KS states.
-  subroutine get_length_gauge_term( first_kpt, active_states, pws_for_length_gauge, e_vec, &
-      k_ptrs, k_grid_size, max_jumps, td_overlap, length_gauge_term )
+  subroutine get_berry_coupling_term( first_kpt, active_states, pws_for_berry_phase, e_vec, &
+      k_ptrs, k_grid_size, max_jumps, td_overlap, berry_coupling_term )
 
     !> The first \( \mathbf{k} \) point
     integer(i32), intent(in) :: first_kpt
     !> Active states expansion coefficients \( c_{\mathbf{k}} \) from all MPI procs
     complex(dp), contiguous, intent(in) :: active_states(:, :, :)
     !> Time-independent initial PW MEs \( W^{\mathbf{k} \mathbf{k}_{\alpha}^{\sigma}} \)
-    complex(dp), contiguous, intent(in) :: pws_for_length_gauge(:, :, first_kpt :, :, :)
+    complex(dp), contiguous, intent(in) :: pws_for_berry_phase(:, :, first_kpt :, :, :)
     !> Electric field \( \mathbf{E} (t) \)
     type(Electric_Field), intent(in) :: e_vec
     !> Pointers to the neighbouring \( \mathbf{k} \) points (nkpt, 3, 4)
@@ -271,8 +271,8 @@ contains
     integer(i32), contiguous, intent(in) :: max_jumps(:)
     !> Time-dependent overlap matrix \( S^{\mathbf{k} \mathbf{k}_{\alpha}^{\sigma}} \) (n_occupied, n_occupied, :, 3, 4)
     complex(dp), contiguous, intent(in) :: td_overlap(:, :, first_kpt : ,:, :)
-    !> Resulting length gauge interaction term
-    complex(dp), contiguous, intent(out) :: length_gauge_term(:, :, first_kpt :)
+    !> Resulting interaction term
+    complex(dp), contiguous, intent(out) :: berry_coupling_term(:, :, first_kpt :)
 
     real(dp), parameter :: four_over_three = 4._dp/3._dp, one_over_six = 1._dp/6._dp, &
       spin_degeneracy = 2._dp
@@ -283,11 +283,11 @@ contains
       tmp_n_basis_n_ac(:, :)
     real(dp) :: factor(n_cartesian)
 
-    length_gauge_term = zzero
+    berry_coupling_term = zzero
     if ( dot_product( e_vec%components, e_vec%components ) < eps_field ) return
 
-    last_kpt = ubound( pws_for_length_gauge, 3 )
-    n_basis = size( pws_for_length_gauge, 1 )
+    last_kpt = ubound( pws_for_berry_phase, 3 )
+    n_basis = size( pws_for_berry_phase, 1 )
     n_active = size( active_states, 2 )
     n_occupied = size( td_overlap, 1 )
     n_frozen = n_occupied - n_active
@@ -310,7 +310,7 @@ contains
     !$omp g_matrix, k_jump, k_right, td_overlap_inv, sigma_term, tmp_n_basis_n_fr, &
     !$omp aux_n_basis_n_ac, tmp_n_basis_n_ac), &
     !$omp shared(first_kpt, last_kpt, max_jumps, k_grid_size, n_frozen, active_states, &
-    !$omp pws_for_length_gauge, length_gauge_term, k_ptrs, td_overlap, factor)
+    !$omp pws_for_berry_phase, berry_coupling_term, k_ptrs, td_overlap, factor)
     !$omp do
     do k_left = first_kpt, last_kpt
 
@@ -323,7 +323,7 @@ contains
           k_right = k_ptrs(k_left, k_dir, k_jump)
 
           ! W^{\mathbf{k} \mathbf{k}_{\alpha}^{\sigma}} x C = G^{\mathbf{k} \mathbf{k}_{\alpha}^{\sigma}} (n_basis x n_active):
-          call matrix_multiply( pws_for_length_gauge(:, :, k_left, k_dir, k_jump), &
+          call matrix_multiply( pws_for_berry_phase(:, :, k_left, k_dir, k_jump), &
             active_states(:, :, k_right), g_matrix )
           
           ! G^{\mathbf{k} \mathbf{k}_{\alpha}^{\sigma}} x S^-1[active-active]
@@ -332,7 +332,7 @@ contains
 
           if ( n_frozen > 0 ) then
             ! W^{\mathbf{k} \mathbf{k}_{\alpha}^{\sigma}} x S^-1[frozen-active]
-            call matrix_multiply( pws_for_length_gauge(:, 1 : n_frozen, k_left, k_dir, k_jump), &
+            call matrix_multiply( pws_for_berry_phase(:, 1 : n_frozen, k_left, k_dir, k_jump), &
               td_overlap_inv(1 : n_frozen, n_frozen + 1 :), tmp_n_basis_n_ac )
             aux_n_basis_n_ac = aux_n_basis_n_ac + tmp_n_basis_n_ac
           end if
@@ -342,7 +342,7 @@ contains
 
           if ( n_frozen > 0 ) then
             ! W^{\mathbf{k} \mathbf{k}_{\alpha}^{\sigma}} x S^-1[frozen-frozen]
-            call matrix_multiply( pws_for_length_gauge(:, 1 : n_frozen, k_left, k_dir, k_jump), &
+            call matrix_multiply( pws_for_berry_phase(:, 1 : n_frozen, k_left, k_dir, k_jump), &
               td_overlap_inv(1 : n_frozen, 1 : n_frozen), tmp_n_basis_n_fr )
             sigma_term(:, 1 : n_frozen, k_jump) = sigma_term(:, 1 : n_frozen, k_jump) + tmp_n_basis_n_fr
 
@@ -368,10 +368,10 @@ contains
         end if
       end do ! cycle over 3 lattice k directions, k_dir
       
-      length_gauge_term(:, :, k_left) = zi * spin_degeneracy / fourpi * dir_sum
+      berry_coupling_term(:, :, k_left) = zi * spin_degeneracy / fourpi * dir_sum
       ! make the matrix hermitian
-      length_gauge_term(:, :, k_left) = length_gauge_term(:, :, k_left) + &
-        conjg( transpose( length_gauge_term(:, :, k_left) ) )
+      berry_coupling_term(:, :, k_left) = berry_coupling_term(:, :, k_left) + &
+        conjg( transpose( berry_coupling_term(:, :, k_left) ) )
 
     end do ! cycle over k points, k_left
     !$omp end parallel

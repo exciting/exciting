@@ -53,7 +53,7 @@
       calculateNExcitedElectrons="false"
       printAfterIterations="5"
       vectorPotentialSolver="improvedeuler"
-      gauge="velocity"
+      fieldCoupling="velocityGauge"
       basis="LAPWlo">
       <pmat writeToFile="false" forceHermitian="true"/>
       <laser fieldType="total">

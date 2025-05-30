@@ -35,8 +35,8 @@ module rttddft_HamiltonianOverlap
 
   private
   public :: update_hamiltonian_without_pa_term_lapw, update_overlap_lapw, &
-    add_external_coupling_length_gauge, update_hamiltonian_without_pa_term_ks, &
-    add_external_coupling_vgauge
+    add_external_coupling_berry_phase, update_hamiltonian_without_pa_term_ks, &
+    add_external_coupling_velocity_gauge
     
   real(dp) :: fact, atot(3)
   type(MTHamiltonianList) :: mt_h
@@ -299,7 +299,7 @@ contains
   end subroutine
   
   !> Add the pre-calculated length gauge interaction term to the Hamiltonian
-  subroutine add_external_coupling_length_gauge( external_coupling_length_gauge, ham_time, dims )
+  subroutine add_external_coupling_berry_phase( external_coupling_length_gauge, ham_time, dims )
     !> Length gauge interaction matrix (n_basis, n_basis, n_kpts)
     complex(dp), contiguous, intent(in) :: external_coupling_length_gauge(:, :, :)
     !> Hamiltonian matrix at current time \(t\) (n_basis, n_basis, n_kpts)
@@ -326,7 +326,7 @@ contains
   !> Add the velocity gauge interaction term \( {\bf p} \cdot {\bf A}(t) / c \) to 
   !> the Hamiltonian at time \( t \).
   ! TODO: is the space-uniform A^2 term needed here?
-  subroutine add_external_coupling_vgauge( a_tot, overlap, ham_time, pmat, dims )
+  subroutine add_external_coupling_velocity_gauge( a_tot, overlap, ham_time, pmat, dims )
     !> Total vector potential
     type(Vector_Potential_Field), intent(in) :: a_tot
     !> Overlap matrix (of basis functions) (n_basis, n_basis, n_kpts)

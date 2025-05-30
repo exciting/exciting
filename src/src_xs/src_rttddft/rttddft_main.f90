@@ -24,7 +24,7 @@ module rttddft_main
   use physical_constants, only: c
   use precision, only: dp, i32, sp
   use propagators, only: propagator_type => propagator
-  use rttddft_berry, only: get_td_overlap_det_and_length_gauge_term
+  use rttddft_berry, only: get_td_overlap_det_and_berry_coupling_term
   use rttddft_CurrentDensity, only: Current_Density, Current_Density_Field
   use rttddft_Density, only: update_density, ground_state
   use rttddft_file_names, only: RTTDDFT_suffix
@@ -33,7 +33,7 @@ module rttddft_main
   use rttddft_GlobalMDVariables
   use rttddft_HamiltonianOverlap, only: update_hamiltonian_without_pa_term_lapw, &
     update_overlap_lapw, update_hamiltonian_without_pa_term_ks, &
-    add_external_coupling_vgauge, add_external_coupling_length_gauge
+    add_external_coupling_velocity_gauge, add_external_coupling_berry_phase
   use rttddft_init, only: initialize_rttddft
   use rttddft_input, only: rttddft_input_keys
   use rttddft_io, only: open_files_vector_fields, close_files_vector_fields, read_vector_field, write_vector_field, &
@@ -84,7 +84,7 @@ contains
     ! Basis-expansion coefficients of the KS-WFs
     class(wavefunction_set), allocatable :: psi
     ! Overlap and Hamiltonian matrices (nmatmax, nmatmax, first_kpt : last_kpt)
-    complex(dp), allocatable :: overlap(:, :, :), ham_time(:, :, :), length_gauge_term(:, :, :), &
+    complex(dp), allocatable :: overlap(:, :, :), ham_time(:, :, :), berry_coupling_term(:, :, :), &
       ham_past(:, :, :), ham_init(:, :, :), effective_potential_init(:, :, :)
     ! Matching coefficients of the (L)APWs: (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
     complex(dp), allocatable :: apwalm(:, :, :, :, :)
@@ -101,7 +101,7 @@ contains
     ! KS-LAPW+lo transition matrix (nmatmax, nstfv, first_kpt : last_kpt)
     complex(dp), allocatable :: ks_lapwlo_transition_matrix(:, :, :)
     ! Planewave matrix elements between neighbouring k points
-    complex(dp), allocatable :: pws_for_length_gauge(:, :, :, :, :)
+    complex(dp), allocatable :: pws_for_berry_phase(:, :, :, :, :)
     ! Indices of the neighbouring k points
     integer(i32), allocatable :: k_ptrs(:, :, :)
 
@@ -192,8 +192,8 @@ contains
     call initialize_rttddft( rt, propagator, vec_pot, a_tot_save, molecular_dynamics, &
       psi, overlap, ham_init, ham_time, ham_past, effective_potential_init, &
       apwalm, pmat, pmatmt, rhomt_frozen, rhoir_frozen, occupations, k_dependent_dims, &
-      eps_occ, kset, Gkset, Gset, ks_lapwlo_transition_matrix, pws_for_length_gauge, k_ptrs, &
-      td_overlap_det, length_gauge_term, prev_phases, e_vec, e_vec_save, j_para_spurious, p_vec_init )
+      eps_occ, kset, Gkset, Gset, ks_lapwlo_transition_matrix, pws_for_berry_phase, k_ptrs, &
+      td_overlap_det, berry_coupling_term, prev_phases, e_vec, e_vec_save, j_para_spurious, p_vec_init )
     call distribute_loop( mpi_env_k, kset%nkpt, first_kpt, last_kpt )
     if( molecular_dynamics%on ) then
       call init_MD( rt%do_from_scratch(), time, vec_pot%a_tot, dt, psi%active, &
@@ -211,8 +211,9 @@ contains
           if( molecular_dynamics%update_overlap ) call update_overlap_lapw( first_kpt, vec_pot%a_tot, overlap, &
             apwalm, pmatmt, update_mathcalH=allocated( mathcalH ), update_mathcalB=allocated( mathcalB ) )
           if( propagator%extrapolation_needed() ) ham_past = ham_time  
-          call update_hamiltonian_without_pa_term_lapw( first_kpt, vec_pot%a_tot, ham_time, apwalm, update_mathcalH=allocated( mathcalH ) )
-          call add_external_coupling_vgauge( vec_pot%a_tot, overlap, ham_time, pmat, k_dependent_dims )
+          call update_hamiltonian_without_pa_term_lapw( first_kpt, vec_pot%a_tot, &
+            ham_time, apwalm, update_mathcalH=allocated( mathcalH ) )
+          call add_external_coupling_velocity_gauge( vec_pot%a_tot, overlap, ham_time, pmat, k_dependent_dims )
         end if
       end if
     end if
@@ -326,7 +327,8 @@ contains
         call j_ind%evaluate_paramagnetic( psi, pmat, occupations, kset%wkpt(first_kpt:last_kpt), mpi_env_k )
         if ( rt%subtract_J0 ) call j_ind%paramagnetic%add_vector( -j_para_spurious%components )
       else
-        call get_td_overlap_det_and_length_gauge_term( first_kpt, e_vec, pws_for_length_gauge, psi, kset, k_ptrs, td_overlap_det, length_gauge_term )
+        call get_td_overlap_det_and_berry_coupling_term( first_kpt, e_vec, pws_for_berry_phase, &
+          psi, kset, k_ptrs, td_overlap_det, berry_coupling_term )
         call p_vec%get_with_mtp( td_overlap_det, kset%ngridk, kset%ikmap, avec, prev_phases, .true. )
         call p_vec%add_vector( - p_vec_init%components )
         if ( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%td_berry )
@@ -380,9 +382,9 @@ contains
         end if 
       end if
       if ( rt%use_velocity_gauge() ) then
-        call add_external_coupling_vgauge( vec_pot%a_tot, overlap, ham_time, pmat, k_dependent_dims )
+        call add_external_coupling_velocity_gauge( vec_pot%a_tot, overlap, ham_time, pmat, k_dependent_dims )
       else
-        call add_external_coupling_length_gauge( length_gauge_term, ham_time, k_dependent_dims )
+        call add_external_coupling_berry_phase( berry_coupling_term, ham_time, k_dependent_dims )
       end if
 
       if ( rt%predictor_corrector%on ) then
@@ -391,7 +393,7 @@ contains
           ham_time, ham_past, k_dependent_dims, apwalm, pmat, a_ind_save, a_tot_save, &
           p_vec_save, j_ind_save, j_para_spurious, propagator, vec_pot, p_vec, j_ind, &
           mpi_env_k, pred_corr_reached_max_steps, lmax_potential, kset, Gkset, &
-          pws_for_length_gauge, k_ptrs, td_overlap_det, length_gauge_term, ks_lapwlo_transition_matrix, &
+          pws_for_berry_phase, k_ptrs, td_overlap_det, berry_coupling_term, ks_lapwlo_transition_matrix, &
           effective_potential_init, ham_init, rhomt_frozen, rhoir_frozen )
         if ( pred_corr_reached_max_steps .and. my_rank_writes_to_output ) &
           call warning( 'Problems with convergence (PredCorr), time: ' //  to_char(time) )
@@ -443,7 +445,7 @@ contains
 
             call update_hamiltonian_without_pa_term_lapw( first_kpt, vec_pot%a_tot, ham_time, apwalm, &
               rt%printTimings, timing%t_RTTDDFT%ham, timing%t_Ehrenfest, update_mathcalH=allocated( mathcalH ) )
-            call add_external_coupling_vgauge( vec_pot%a_tot, overlap, ham_time, pmat, k_dependent_dims )
+            call add_external_coupling_velocity_gauge( vec_pot%a_tot, overlap, ham_time, pmat, k_dependent_dims )
           end if
           if( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_Ehrenfest%t_MD_step )
         end if ! if ( mod( it, time_step_multiplier ) == 0 )
@@ -488,7 +490,7 @@ contains
             call write_wavefunction( t_minus_dt, first_kpt, kset%vkl(:, first_kpt:last_kpt), &
               psi%active_save, mpi_env_k, rt%restart_file_handler, kset%nkpt )
           if( molecular_dynamics%on ) call write_state_Ehrenfest_MD( nuclei_motion, rt%restart_file_handler, mpi_env_k )
-          if ( rt%use_length_gauge() ) then
+          if ( rt%use_berry_phase() ) then
             if ( my_rank_writes_to_output ) call write_phases( prev_phases, rt%restart_file_handler, mpi_env_k )
           end if
         end if
@@ -524,7 +526,7 @@ contains
         mpi_env_k, rt%restart_file_handler, kset%nkpt )
       if( propagator%extrapolation_needed() ) call write_wavefunction( t_minus_dt, first_kpt, &
         kset%vkl(:, first_kpt:last_kpt), psi%active_save, mpi_env_k, rt%restart_file_handler, kset%nkpt )
-      if ( rt%use_length_gauge() ) then
+      if ( rt%use_berry_phase() ) then
         if ( my_rank_writes_to_output ) call write_phases( prev_phases, rt%restart_file_handler, mpi_env_k )
       end if
     end if
@@ -662,11 +664,11 @@ contains
         & 'Predictor corrector method should not be used together with IP approximation')
     end if
 
-    if ( trim( inp%xs%realTimeTDDFT%gauge ) == "length" ) then
+    if ( trim( inp%xs%realTimeTDDFT%fieldCoupling ) == "berryPhase" ) then
       call terminate_if_false( trim( inp%xs%realTimeTDDFT%basis ) == "unperturbedKS", &
-        "Length gauge coupling is only available with the KS basis" )
+        "Berry phase coupling is currently available only with the KS basis" )
       call terminate_if_false( trim( inp%xs%realTimeTDDFT%laser%fieldType ) == "total", &
-        "Length gauge coupling is only available with total field given" )
+        "Berry phase coupling is currently available only with total field given" )
     else
       call terminate_if_false( associated( inp%xs%realTimeTDDFT%pmat ), &
       & 'Element <pmat> in <realTimeTDDFT> not found' )
@@ -710,7 +712,7 @@ contains
     overlap, ham_time, ham_past, k_dependent_dims, apwalm, pmat, &
     a_ind_t_minus_dt, a_tot_t_minus_dt, p_vec_t_minus_dt, j_t_minus_dt, j_para_spurious,&
     propagator, a_t, p_vec, j_t, mpi_env, max_steps_reached, lmax_potential, kset, Gkset, &
-    pws_for_length_gauge, k_ptrs, td_overlap_det, length_gauge_term, ks_lapwlo_transition_matrix, &
+    pws_for_berry_phase, k_ptrs, td_overlap_det, berry_coupling_term, ks_lapwlo_transition_matrix, &
     effective_potential_init, ham_init, rhomt_frozen, rhoir_frozen )
     !> current iteration number in the RT-TDDFT loop
     integer(i32), intent(in) :: it
@@ -765,13 +767,13 @@ contains
     !> Set of G+k vectors used for the matrix elements evaluation
     type(Gk_set), intent(in) :: Gkset
     !> Planewave matrix elements between neighbouring \( \mathbf{k} \) points
-    complex(dp), contiguous, intent(in) :: pws_for_length_gauge(:, :, :, :, :)
+    complex(dp), contiguous, intent(in) :: pws_for_berry_phase(:, :, :, :, :)
     !> Array containing indices of the neighbouring \( \mathbf{k} \) points
     integer(i32), contiguous, intent(in) :: k_ptrs(:, :, :)
     !> Determinants of the time-dependent overlaps of the periodic parts of the KS-Bloch states
     complex(dp), contiguous, intent(out) :: td_overlap_det(:, :)
-    !> Field coupling with the external field in length gauge
-    complex(dp), contiguous, intent(out) :: length_gauge_term(:, :, :)
+    !> Field coupling with the external field constructed with dynamical Berry phase approach
+    complex(dp), contiguous, intent(out) :: berry_coupling_term(:, :, :)
     ! KS-LAPW+lo transition matrix (nmatmax, nstfv, first_kpt : last_kpt)
     complex(dp), contiguous, optional, intent(in) :: ks_lapwlo_transition_matrix(:, :, :)
     !> Effective potential matrix at time \(t = 0 \) 
@@ -805,7 +807,8 @@ contains
         if ( rt%subtract_J0 ) call j_t%paramagnetic%add_vector( -j_para_spurious%components )
       else
         e_vec%components = - a_t%get_dA_dt( time ) / c
-        call get_td_overlap_det_and_length_gauge_term( first_kpt, e_vec, pws_for_length_gauge, psi, kset, k_ptrs, td_overlap_det, length_gauge_term )
+        call get_td_overlap_det_and_berry_coupling_term( first_kpt, e_vec, pws_for_berry_phase, &
+          psi, kset, k_ptrs, td_overlap_det, berry_coupling_term )
       end if
 
       ! DENSITY
@@ -838,9 +841,9 @@ contains
           apwalm, ks_lapwlo_transition_matrix, effective_potential_init, ham_init, Gkset )
       end if
       if ( rt%use_velocity_gauge() ) then
-        call add_external_coupling_vgauge( a_t%a_tot, overlap, ham_time, pmat, k_dependent_dims )
+        call add_external_coupling_velocity_gauge( a_t%a_tot, overlap, ham_time, pmat, k_dependent_dims )
       else
-        call add_external_coupling_length_gauge( length_gauge_term, ham_time, k_dependent_dims )
+        call add_external_coupling_berry_phase( berry_coupling_term, ham_time, k_dependent_dims )
       end if
 
       ! Check the difference between the two hamiltonians

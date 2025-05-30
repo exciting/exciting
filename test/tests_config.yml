@@ -797,7 +797,7 @@ RT-TDDFT/GGA_PBE-BN-kick-EH-restart:
       - "TOTENERGY_RTTDDFT.OUT.SAVE"
       - "rt.h5"
 
-RT-TDDFT/LDA_PW-SiC-trapCos-AETRS-KS-frozen-restart-length-gauge:
+RT-TDDFT/LDA_PW-SiC-trapCos-AETRS-KS-frozen-restart-berry-phase:
     files_under_test:
       - "EIGVAL_40.OUT"
       - "EIGVAL_60.OUT"
@@ -958,7 +958,7 @@ RT-TDDFT/LDA_PW-Ehrenfest-BN-restart:
       - "TRAJECTORY_RTTDDFT.OUT"
       - "ELECTRIC_FIELD.OUT.SAVE"
 
-RT-TDDFT/LDA_PW-Si-sinSq-CFM4-length-gauge:
+RT-TDDFT/LDA_PW-Si-sinSq-CFM4-berry-phase:
    files_under_test:
       - "atoms.xml"
       - "eigval.xml"
