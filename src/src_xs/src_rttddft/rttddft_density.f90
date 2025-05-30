@@ -26,14 +26,14 @@ module rttddft_Density
 
   private
 
-  public :: update_density, save_and_frozen, groundstate, frozen
+  public :: update_density, save_and_frozen, ground_state, frozen
 
   !> Enum with the density evaluation mode
   !> There are 4 options available: get density from `active` and `frozen` states, 
   !> `save` and `frozen` states, just `frozen` states, or all the unperturbed states.
   enum, bind(C)
     enumerator :: density_case
-    enumerator :: active_and_frozen, save_and_frozen, frozen, groundstate
+    enumerator :: active_and_frozen, save_and_frozen, frozen, ground_state
   end enum
 
 contains
@@ -93,7 +93,7 @@ contains
       call assert( present( rhomt_frozen ) .and. present( rhoir_frozen ), &
         'Both contributions to frozen density should be provided to update_density' )
       ! for the ground state it is convenient to ignore precalculated frozen density
-      add_frozen = ( .not. ( dens_case_ == groundstate ) )
+      add_frozen = ( .not. ( dens_case_ == ground_state ) )
     end if
     if ( dens_case_ == frozen ) then
       call assert( .not. add_frozen, &
@@ -120,7 +120,7 @@ contains
       allocate( occupations_slice, source = occupations(1 : psi%n_frozen(), :) )
       if ( .not. psi%expanded_in_lapwlo() ) call from_ks_to_lapw( ks_lapwlo_transition_matrix, nmat(1, first_kpt : last_kpt), &
         psi%frozen, local_lapw_set, printTimings, t_dens )
-    case( groundstate )
+    case( ground_state )
       allocate( occupations_slice, source = occupations )
       if ( .not. psi%expanded_in_lapwlo() ) call from_ks_to_lapw( ks_lapwlo_transition_matrix, nmat(1, first_kpt : last_kpt), &
         psi%groundstate, local_lapw_set, printTimings, t_dens )
@@ -142,7 +142,7 @@ contains
       case( frozen )
         call get_density_from_lapwlo_set( first_kpt, psi%frozen, occupations_slice, it, &
           normalize, l_rad_step, add_frozen, rhomt_frozen, rhoir_frozen, printTimings, t_dens )
-      case( groundstate )
+      case( ground_state )
         call get_density_from_lapwlo_set( first_kpt, psi%groundstate, occupations_slice, it, &
           normalize, l_rad_step, add_frozen, rhomt_frozen, rhoir_frozen, printTimings, t_dens )
       end select

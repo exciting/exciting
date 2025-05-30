@@ -43,7 +43,7 @@ module rttddft_init
   use propagators, only: propagator_type => propagator, create_propagator
   use rttddft_berry, only: get_td_overlap_det_and_length_gauge_term
   use rttddft_CurrentDensity, only: Current_Density, Current_Density_Field
-  use rttddft_Density, only: update_density, save_and_frozen, frozen
+  use rttddft_Density, only: update_density, save_and_frozen, frozen, ground_state
   use rttddft_electric_field, only: Electric_Field
   use rttddft_file_names, only: filename_avec, filename_evec, filename_jind, filename_pvec, RTTDDFT_GND_sufix
   use rttddft_GlobalMDVariables, only: B_past, B_time, mathcalH, mathcalB
@@ -194,8 +194,8 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
     if ( molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative ) &
       allocate( pmatmt(nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt) )
     if ( rt_inp%n_frozen > 0 ) then
-      allocate( rhomt_frozen, source = rhomt )
-      allocate( rhoir_frozen, source = rhoir )
+      allocate( rhomt_frozen, mold = rhomt )
+      allocate( rhoir_frozen, mold = rhoir )
     end if
     if ( propagator%extrapolation_needed() ) allocate( ham_past, source = overlap )
     allocate( k_dependent_dims(first_kpt : last_kpt) )
@@ -245,6 +245,14 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
     propagator%extrapolation_needed() .or. rt_inp%restart_previous_calculation() , &
     rt_inp%n_frozen, psi_gnd_lapwlo, occupations, occs_tol )
   if ( rt_inp%use_lapwlo_basis() ) deallocate( psi_gnd_lapwlo )
+
+  ! In general, non-physical parameters (such as the k-grid) can differ between the GS
+  ! and RT modules, which can result in e.g. different XC potential calculated from 
+  ! the same electron density. For consistency, we generate the initial density and potential
+  ! at step 0 the same way as during the time propagation. 
+  call update_density( first_kpt, psi, occupations, -1, rt_inp%normalize_WF, &
+    rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, psi_gnd_lapwlo, dens_case = ground_state )
+  call update_potential()
 
   ! A special case of an input parameter for the EH and EHM propagators:
   ! first, n_eigvecs_houston can be < 0 and should be redefined as soon as nstfv is known
