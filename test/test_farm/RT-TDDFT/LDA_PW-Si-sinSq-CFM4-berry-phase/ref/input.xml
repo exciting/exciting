@@ -50,7 +50,7 @@
             calculateNExcitedElectrons="true"
             printAfterIterations="1"
             vectorPotentialSolver="improvedeuler"
-            gauge="length"
+            fieldCoupling="berryPhase"
             basis="unperturbedKS">
             <pmat />
             <laser fieldType="total">

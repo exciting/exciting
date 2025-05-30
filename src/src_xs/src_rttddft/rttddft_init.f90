@@ -41,7 +41,7 @@ module rttddft_init
   use muffin_tin_basis, only: mt_basis_type
   use precision, only: dp, i32, str_128
   use propagators, only: propagator_type => propagator, create_propagator
-  use rttddft_berry, only: get_td_overlap_det_and_length_gauge_term
+  use rttddft_berry, only: get_td_overlap_det_and_berry_coupling_term
   use rttddft_CurrentDensity, only: Current_Density, Current_Density_Field
   use rttddft_Density, only: update_density, save_and_frozen, frozen, ground_state
   use rttddft_electric_field, only: Electric_Field
@@ -49,7 +49,7 @@ module rttddft_init
   use rttddft_GlobalMDVariables, only: B_past, B_time, mathcalH, mathcalB
   use rttddft_HamiltonianOverlap, only: update_hamiltonian_without_pa_term_lapw, &
     update_overlap_lapw, update_hamiltonian_without_pa_term_ks, &
-    add_external_coupling_vgauge, add_external_coupling_length_gauge
+    add_external_coupling_velocity_gauge, add_external_coupling_berry_phase
   use rttddft_hybrids, only: hybrids_used, Set_Dimension_mixed_product_basis, set_barecoul_basis
   use rttddft_input, only: rttddft_input_keys
   use rttddft_io, only: file_pmat_exists, read_pmat, write_pmat, file_pmat_mt_exists, &
@@ -75,8 +75,8 @@ contains
 subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, molecular_dynamics, &
     psi, overlap, ham_init, ham_time, ham_past, effective_potential_init, apwalm, &
     pmat, pmatmt, rhomt_frozen, rhoir_frozen, occupations, k_dependent_dims, &
-    occs_tol, kset_rttddft, Gkset, Gset, psi_gnd_lapwlo, pws_for_length_gauge, k_ptrs, &
-    td_overlap_det, length_gauge_term, prev_phases, e_vec, e_vec_save, j_para_spurious, p_vec_init )
+    occs_tol, kset_rttddft, Gkset, Gset, psi_gnd_lapwlo, pws_for_berry_phase, k_ptrs, &
+    td_overlap_det, berry_coupling_term, prev_phases, e_vec, e_vec_save, j_para_spurious, p_vec_init )
   !> Argument that encapsulates the input options of rttddft
   type(rttddft_input_keys), intent(in) :: rt_inp
   !> Argument that encapsulates the propagator
@@ -124,14 +124,14 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   !> KS-LAPW+lo transition matrix (ground state set in the LAPW+lo basis) (to be allocated in `array_allocation` block)
   complex(dp), allocatable, intent(out) :: psi_gnd_lapwlo(:, :, :)
   !> Planewave matrix elements between neighbouring \( \mathbf{k} \) points (to be allocated in `array_allocation` block)
-  complex(dp), allocatable, intent(out) :: pws_for_length_gauge(:, :, :, :, :)
+  complex(dp), allocatable, intent(out) :: pws_for_berry_phase(:, :, :, :, :)
   !> Array containing indices of the neighbouring \( \mathbf{k} \) points (to be allocated in `array_allocation` block)
   integer(i32), allocatable, intent(out) :: k_ptrs(:, :, :)
   !> Determinants of the time-dependent overlaps of the periodic parts of the KS-Bloch states (to be allocated in `array_allocation` block)
   complex(dp), allocatable, intent(out) :: td_overlap_det(:, :)
-  !> Field coupling with the external field in length gauge
-  complex(dp), allocatable, intent(out) :: length_gauge_term(:, :, :)
-  !> When using length gauge, phases used for the MTP polarization evaluation
+  !> Field coupling with the external field constructed with dynamical Berry phase approach
+  complex(dp), allocatable, intent(out) :: berry_coupling_term(:, :, :)
+  !> When using dynamical Berry phase approach, phases used for the MTP polarization evaluation
   real(dp), allocatable, intent(out) :: prev_phases(:, :)
   !> \(\mathbf{E}\) at time \( t = t_{\rm start} \) 
   type(Electric_Field), intent(in) :: e_vec
@@ -170,13 +170,13 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   call distribute_loop( mpi_env_k, kset_rttddft%nkpt, first_kpt, last_kpt )
   
   evolve_H0 = ( molecular_dynamics%on .or. ( .not. rt_inp%eeInteraction%ipa ) )
-  if ( (rt_inp%use_ks_basis() .and. evolve_H0) .or. rt_inp%use_length_gauge() ) &
+  if ( (rt_inp%use_ks_basis() .and. evolve_H0) .or. rt_inp%use_berry_phase() ) &
     call init_me_evaluation( kset_rttddft, Gkset, Gset )
   
   ! Neighbour is a k point from another MPI rank, which is reachable in 1 or 2 jumps
   ! by one of the k points controlled by the current MPI rank
   kgrid_neighbours = 0
-  if ( rt_inp%use_length_gauge() ) call get_kgrid_neighbours_info( first_kpt, last_kpt, &
+  if ( rt_inp%use_berry_phase() ) call get_kgrid_neighbours_info( first_kpt, last_kpt, &
     kset_rttddft, Gset, k_ptrs, dk_vec, k_needed, proc_needed, kgrid_neighbours, &
     shift_positions, k_shifts )
 
@@ -202,10 +202,10 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
     if ( (.not. evolve_H0) .or. rt_inp%use_ks_basis() ) &
       allocate( ham_init, source = overlap )
     if ( rt_inp%use_ks_basis() ) allocate( effective_potential_init, source = overlap )
-    if ( rt_inp%use_length_gauge() ) then
-      allocate( pws_for_length_gauge(nstfv, nstfv, first_kpt : last_kpt, 3, 4), source = zzero )
+    if ( rt_inp%use_berry_phase() ) then
+      allocate( pws_for_berry_phase(nstfv, nstfv, first_kpt : last_kpt, 3, 4), source = zzero )
       allocate( td_overlap_det(3, kset_rttddft%nkpt), source = zzero )
-      allocate( length_gauge_term, mold = ham_time )
+      allocate( berry_coupling_term, mold = ham_time )
       allocate( prev_phases(maxval( kset_rttddft%ngridk )**2, 3), source = real_zero )
     end if
   end block array_allocation
@@ -219,12 +219,12 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
     call match( ngk(1, ik), gkc(:, 1, ik), tpgkc(:, :, 1, ik), sfacgk(:, :, 1, ik), apwalm(:, :, :, :, ik) )
   end do
   ! get apwalm and initiall states from processes with the neighbouring \( \mathbf{k} \) points
-  if ( rt_inp%use_length_gauge() ) then
+  if ( rt_inp%use_berry_phase() ) then
     call get_data_from_neighbours( first_kpt, last_kpt, kset_rttddft%nkpt, proc_needed, &
       k_needed, apwalm, psi_gnd_lapwlo, ik_to_array_position )
 
     call calc_planewave_matrix_elements( first_kpt, k_ptrs, dk_vec, apwalm, psi_gnd_lapwlo, &
-      pws_for_length_gauge, ik_to_array_position, Gkset, Gset, shift_positions, k_shifts )
+      pws_for_berry_phase, ik_to_array_position, Gkset, Gset, shift_positions, k_shifts )
     
     if ( kgrid_neighbours > 0 ) then
       ! extended versions of apwalm and psi_gnd_lapwlo are not needed anymore
@@ -239,7 +239,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
         call match(ngk(1, ik), gkc(:, 1, ik), tpgkc(:, :, 1, ik), sfacgk(:, :, 1, ik), apwalm(:, :, :, :, ik))
       end do
     end if
-  end if ! length_gauge
+  end if ! dynamical Berry phase approach
 
   call initialize_wavefunction_set( psi, rt_inp%use_lapwlo_basis(), &
     propagator%extrapolation_needed() .or. rt_inp%restart_previous_calculation() , &
@@ -268,7 +268,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   
   if ( my_rank_writes_to_output ) call estimate_memory_and_write_to_info( molecular_dynamics%on, &
     rt_inp%predictor_corrector%on, psi, overlap, ham_time, ham_past, ham_init, &
-    apwalm, kgrid_neighbours, kset_rttddft%nkpt, pmat, pmatmt, psi_gnd_lapwlo, pws_for_length_gauge, length_gauge_term )
+    apwalm, kgrid_neighbours, kset_rttddft%nkpt, pmat, pmatmt, psi_gnd_lapwlo, pws_for_berry_phase, berry_coupling_term )
 
   if ( hybrids_used() ) then
     if ( input%xs%realTimeTDDFT%calcNonlocalCurrentDensity ) then
@@ -343,7 +343,8 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
     end if
   else
     e_aux%components = real_zero
-    call get_td_overlap_det_and_length_gauge_term( first_kpt, e_aux, pws_for_length_gauge, psi, kset_rttddft, k_ptrs, td_overlap_det, length_gauge_term )
+    call get_td_overlap_det_and_berry_coupling_term( first_kpt, e_aux, pws_for_berry_phase, &
+      psi, kset_rttddft, k_ptrs, td_overlap_det, berry_coupling_term )
     call p_vec_init%get_with_mtp( td_overlap_det, kset_rttddft%ngridk, kset_rttddft%ikmap, avec, prev_phases, .false. )
   end if
 
@@ -382,11 +383,11 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
       end if
       
       if ( rt_inp%use_velocity_gauge() ) then
-        call add_external_coupling_vgauge( a_tot_t_minus_dt, overlap, ham_past, pmat, k_dependent_dims )
+        call add_external_coupling_velocity_gauge( a_tot_t_minus_dt, overlap, ham_past, pmat, k_dependent_dims )
       else
-        call get_td_overlap_det_and_length_gauge_term( first_kpt, e_vec_save, pws_for_length_gauge, psi, &
-          kset_rttddft, k_ptrs, td_overlap_det, length_gauge_term, .true. )
-        call add_external_coupling_length_gauge( length_gauge_term, ham_past, k_dependent_dims )
+        call get_td_overlap_det_and_berry_coupling_term( first_kpt, e_vec_save, pws_for_berry_phase, psi, &
+          kset_rttddft, k_ptrs, td_overlap_det, berry_coupling_term, .true. )
+        call add_external_coupling_berry_phase( berry_coupling_term, ham_past, k_dependent_dims )
       end if
     end if ! propagator%extrapolation_needed()
 
@@ -394,7 +395,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
       rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, psi_gnd_lapwlo )
     call update_potential()
 
-    if ( rt_inp%use_length_gauge() ) call read_phases( prev_phases, rt_inp%restart_file_handler, mpi_env_k )
+    if ( rt_inp%use_berry_phase() ) call read_phases( prev_phases, rt_inp%restart_file_handler, mpi_env_k )
   end if
 
   if( evolve_H0 .or. rt_inp%restart_previous_calculation() ) then
@@ -408,11 +409,11 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
       effective_potential_init, ham_init, Gkset )
     end if
     if ( rt_inp%use_velocity_gauge() ) then
-      call add_external_coupling_vgauge( vec_pot%a_tot, overlap, ham_time, pmat, k_dependent_dims )
+      call add_external_coupling_velocity_gauge( vec_pot%a_tot, overlap, ham_time, pmat, k_dependent_dims )
     else
-      call get_td_overlap_det_and_length_gauge_term( first_kpt, e_vec, pws_for_length_gauge, &
-        psi, kset_rttddft, k_ptrs, td_overlap_det, length_gauge_term )
-      call add_external_coupling_length_gauge( length_gauge_term, ham_time, k_dependent_dims )
+      call get_td_overlap_det_and_berry_coupling_term( first_kpt, e_vec, pws_for_berry_phase, &
+        psi, kset_rttddft, k_ptrs, td_overlap_det, berry_coupling_term )
+      call add_external_coupling_berry_phase( berry_coupling_term, ham_time, k_dependent_dims )
     end if
   end if
 
@@ -468,7 +469,7 @@ end subroutine init_me_evaluation
 !> Output general information about the RT-TDDFT calculation using [[write_file_info]]
 subroutine estimate_memory_and_write_to_info( ionDynamics, predictor_corrector, psi, &
     overlap, ham_time, ham_past, ham_init, apwalm, kgrid_neighbours, n_kpt, pmat, pmatmt, &
-    psi_gnd_lapwlo, pws_for_length_gauge, length_gauge_term )
+    psi_gnd_lapwlo, pws_for_berry_phase, berry_coupling_term )
   !> Are we performing an MD calculation?
   logical, intent(in) :: ionDynamics
   !> if `.True`, the predictor corrector loop is employed
@@ -498,9 +499,9 @@ subroutine estimate_memory_and_write_to_info( ionDynamics, predictor_corrector, 
   !> KS-LAPW+lo transition matrix (ground state set in the LAPW+lo basis)
   complex(dp), intent(in), optional :: psi_gnd_lapwlo(:, :, :)
   !> Planewave matrix elements between neighbouring \( \mathbf{k} \) points
-  complex(dp), intent(in), optional :: pws_for_length_gauge(:, :, :, :, :)
-  !> Coupling with the external field in length gauge
-  complex(dp), intent(in), optional :: length_gauge_term(:, :, :)
+  complex(dp), intent(in), optional :: pws_for_berry_phase(:, :, :, :, :)
+  !> Coupling with the external field through dynamical Berry phase approach
+  complex(dp), intent(in), optional :: berry_coupling_term(:, :, :)
 
   character(len = str_128) :: string
   character(len=*), parameter :: formatMemory = '(A40,F12.1)'
@@ -511,13 +512,13 @@ subroutine estimate_memory_and_write_to_info( ionDynamics, predictor_corrector, 
   aux_h = real( sizeof( overlap ) + sizeof( ham_time ), dp ) / MB
   if( present( ham_past ) ) aux_h = aux_h + real( sizeof( ham_past ), dp ) / MB
   if( present( ham_init ) ) aux_h = aux_h + real( sizeof( ham_init ), dp ) / MB
-  if( present( length_gauge_term ) ) aux_h = aux_h + real( sizeof( length_gauge_term ), dp ) / MB
+  if( present( berry_coupling_term ) ) aux_h = aux_h + real( sizeof( berry_coupling_term ), dp ) / MB
   aux_w = real( sizeof( psi%frozen ) + sizeof( psi%active ) + sizeof( psi%groundstate ), dp ) / MB
 
   if ( kgrid_neighbours > 0 ) then
     aux_add = real( kgrid_neighbours, dp ) / real( kgrid_neighbours + psi%n_kpts(), dp ) &
     * real( sizeof( apwalm ) + sizeof( psi_gnd_lapwlo ), dp )
-    ! Estimate memory to be allocated in [[get_td_overlap_det_and_length_gauge_term]]
+    ! Estimate memory to be allocated in [[get_td_overlap_det_and_berry_coupling_term]]
     aux_td = real( sizeof( psi%active ), dp ) * &
     real( n_kpt, dp ) / real( psi%n_kpts(), dp ) / MB + real( psi%n_occupied() * psi%n_occupied() * &
       psi%n_kpts() * 12._dp * sizeof( zzero ), dp ) / MB
@@ -563,9 +564,9 @@ subroutine estimate_memory_and_write_to_info( ionDynamics, predictor_corrector, 
       real( sizeof(pmatmt) + sizeof(mathcalH) + sizeof(mathcalB) + sizeof(B_time) + sizeof(B_past), dp )/MB
     call write_file_info( string )
   end if
-  if ( present( pws_for_length_gauge ) ) then
-    write ( string, formatMemory ) 'PW MEs for length gauge:', &
-      real( sizeof( pws_for_length_gauge ), dp ) / MB
+  if ( present( pws_for_berry_phase ) ) then
+    write ( string, formatMemory ) 'PW MEs for dynamical Berry phase approach:', &
+      real( sizeof( pws_for_berry_phase ), dp ) / MB
     call write_file_info( string )
   end if
   call write_file_info_fill_line_with_char('=')
@@ -790,7 +791,7 @@ end subroutine get_data_from_neighbours
 !> \]
 !> where \( s = \pm 1 \), and \( \mathbf{b}_{\alpha} \) is the reciprocal lattice vector. 
 subroutine calc_planewave_matrix_elements( first_kpt, k_ptrs, dk_vec, apwalm_extended, &
-    psi_gnd_lapwlo_extended, pws_for_length_gauge, ik_to_array, Gkset, Gset, shift_positions, k_shifts )
+    psi_gnd_lapwlo_extended, pws_for_berry_phase, ik_to_array, Gkset, Gset, shift_positions, k_shifts )
   !> First \( \mathbf{k} \) point
   integer(i32), intent(in) :: first_kpt
   !> Array containing indices of the neighbouring \( \mathbf{k} \) points
@@ -804,7 +805,7 @@ subroutine calc_planewave_matrix_elements( first_kpt, k_ptrs, dk_vec, apwalm_ext
   complex(dp), contiguous, intent(in) :: psi_gnd_lapwlo_extended(:, :, first_kpt :)
   !> Planewave matrix elements between neighbouring \( \mathbf{k} \) points
   !> (n_states, n_states, first_kpt : last_kpt, 3, 4)
-  complex(dp), contiguous, intent(out) :: pws_for_length_gauge(:, :, first_kpt : , :, :)
+  complex(dp), contiguous, intent(out) :: pws_for_berry_phase(:, :, first_kpt : , :, :)
   !> positions of local + neighbouring \( \mathbf{k} \) points in apwalm array
   integer(i32), intent(in) :: ik_to_array(:)
   !> set of \( \mathbf{G} + \mathbf{k} \) vectors for LAPW expansion
@@ -825,9 +826,9 @@ subroutine calc_planewave_matrix_elements( first_kpt, k_ptrs, dk_vec, apwalm_ext
 
   ! get the arrrays' dimensions
   n_states = size( psi_gnd_lapwlo_extended, 2 )
-  last_kpt = ubound( pws_for_length_gauge, 3 )
+  last_kpt = ubound( pws_for_berry_phase, 3 )
 
-  pws_for_length_gauge = zzero
+  pws_for_berry_phase = zzero
 
   call me_mt_alloc( mt_contribution )
 
@@ -890,7 +891,7 @@ subroutine calc_planewave_matrix_elements( first_kpt, k_ptrs, dk_vec, apwalm_ext
               apwalm_extended(1 : ngk(1, k_right), :, :, ias, ik_to_array(k_right)), &
               psi_gnd_lapwlo_extended(1 : nmat(1, k_left), :, ik_to_array(k_left)), &
               psi_gnd_lapwlo_extended(1 : nmat(1, k_right), :, ik_to_array(k_right)), &
-              zone, mt_part(:, :, ias, k_direction, k_jump), zone, pws_for_length_gauge(:, :, k_left, k_direction, k_jump) )
+              zone, mt_part(:, :, ias, k_direction, k_jump), zone, pws_for_berry_phase(:, :, k_left, k_direction, k_jump) )
 
           end do ! natoms
         end do ! nspecies
@@ -900,7 +901,7 @@ subroutine calc_planewave_matrix_elements( first_kpt, k_ptrs, dk_vec, apwalm_ext
           psi_gnd_lapwlo_extended(1 : nmat(1, k_left), :, ik_to_array(k_left)), &
           psi_gnd_lapwlo_extended(1 : nmat(1, k_right), :, ik_to_array(k_right)), &
           zone, ir_pw(:, k_shifts(k_left, k_direction, k_jump)), zone, &
-          pws_for_length_gauge(:, :, k_left, k_direction, k_jump) )
+          pws_for_berry_phase(:, :, k_left, k_direction, k_jump) )
 
       end do ! k_jump
     end do ! k_direction
