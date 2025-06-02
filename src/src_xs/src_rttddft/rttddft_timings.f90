@@ -38,19 +38,19 @@ module rttddft_timings
     !> timing: total time spent to update the density
     real(dp) :: total
     !> timing: time spent to execute `rhovalk`, `genrhoir`, and eventually 
-    !> `mpisumrhoandmag`, see [[UpdateDensity]]
+    !> `mpisumrhoandmag`, see [[update_density]]
     real(dp) :: rho
-    !> timing: execution of `symrf`, see [[UpdateDensity]]
+    !> timing: execution of `symrf`, see [[update_density]]
     real(dp) :: symrf
-    !> timing: execution of `rfmtctof`, see [[UpdateDensity]]
+    !> timing: execution of `rfmtctof`, see [[update_density]]
     real(dp) :: rfmtctof
-    !> timing: execution of `addrhocr`, see [[UpdateDensity]]
+    !> timing: execution of `addrhocr`, see [[update_density]]
     real(dp) :: addrhocr
-    !> timing: execution of `charge`, see [[UpdateDensity]]
+    !> timing: execution of `charge`, see [[update_density]]
     real(dp) :: charge
-    !> timing: execution of `rhonorm`, see [[UpdateDensity]]
+    !> timing: execution of `rhonorm`, see [[update_density]]
     real(dp) :: rhonorm
-    !> timing: execution of `from_ks_to_lapw`, see [[UpdateDensity]]
+    !> timing: execution of `from_ks_to_lapw`, see [[update_density]]
     real(dp) :: basis
   contains
     procedure :: reset => reset_Timing_RTTDDFT_density
@@ -60,11 +60,11 @@ module rttddft_timings
   type, public :: Timing_RTTDDFT_potential
     !> timing: total time spent to update the KS potential
     real(dp) :: total
-    !> timing: execution of `poteff`, see [[uppot]]
+    !> timing: execution of `poteff`, see [[update_potential]]
     real(dp) :: poteff
-    !> timing: execution of `genveffig`, see [[uppot]]
+    !> timing: execution of `genveffig`, see [[update_potential]]
     real(dp) :: genveffig
-    !> timing: execution of `genmeffig`, see [[uppot]]
+    !> timing: execution of `genmeffig`, see [[update_potential]]
     real(dp) :: genmeffig
   contains
     procedure :: reset => reset_Timing_RTTDDFT_potential
@@ -74,12 +74,12 @@ module rttddft_timings
   type, public :: Timing_RTTDDFT_hamiltonian
     !> timing: update the hamiltonian
     real(dp) :: total
-    !> timing: execution of `hmlint`, see [[UpdateHam]]
+    !> timing: execution of `hmlint`, see [[update_hamiltonian_without_pa_term_lapw]]
     real(dp) :: hmlint
     !> timing: time spent after executing `hmlint` until the update of the 
-    !> hamiltonian has been concluded, see [[UpdateHam]]
+    !> hamiltonian has been concluded, see [[update_hamiltonian_without_pa_term_lapw]]
     real(dp) :: rest
-    !> timing: update of the overlap via execution of `update_overlap_lapw`, see [[UpdateHam]]
+    !> timing: update of the overlap via execution of `update_overlap_lapw`, see [[update_overlap_lapw]]
     real(dp) :: overlap
   contains
     procedure :: reset => reset_Timing_RTTDDFT_hamiltonian

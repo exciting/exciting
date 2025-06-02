@@ -31,6 +31,12 @@ module rttddft_input
     enumerator :: velocity_gauge, berry_phase
   end enum
 
+  !> Enum with the level of account for interelectronic interaction 
+  enum, bind(C)
+    enumerator :: ee_interaction
+    enumerator :: ipa, tdh, adft
+  end enum
+
   type :: screenshot_eigenvalues_keys
     !> If `.true.`, evaluate the eigenvalues when taking a screenshot
     logical :: on
@@ -109,8 +115,14 @@ module rttddft_input
   end type
 
   type :: eeInteraction_keys
-    !> Flag that tells if IPA should be invoked
-    logical :: ipa
+    !> Flag that tells if the adiabatic XC part of the effective should be evolved
+    logical, private :: evolve_adiabatic_xc
+    !> Flag that tells if effective potential w/o XC part should be evolved
+    logical, private :: evolve_coulomb
+    contains
+      procedure :: use_ipa => eeInteraction_use_ipa, &
+                   coulomb_only => eeInteraction_coulomb_only
+      procedure, private :: eeInteraction_init_from_string
   end type
 
   !> Type to encapsulate the elements and attributes defined in the input file
@@ -205,7 +217,7 @@ subroutine rttddft_input_keys_parse_input( this, inp, tol, a_vec )
       this%predictor_corrector%max_steps = rt_input%predictorCorrector%maxIterations
     end if
 
-    this%eeInteraction%ipa = ( trim( rt_input%eeInteraction ) == "IPA" )
+    call this%eeInteraction%eeInteraction_init_from_string( rt_input%eeInteraction )
     this%save_state = rt_input%saveState
     this%basis_set = string_to_basis_set( rt_input%basis )
     this%field_coupling = string_to_field_coupling( rt_input%fieldCoupling )
@@ -247,6 +259,57 @@ function string_to_field_coupling(string) result(r)
       call assert( .false., "Unrecognized field_coupling")
   end select
 end function
+
+!> (private) Given a string, get the corresponding [[ee_interaction]]
+function string_to_ee_interaction( string ) result( r )
+  !> String containing the approximation name
+  character(len=*), intent(in) :: string
+  integer(kind( ee_interaction )) :: r
+
+  select case ( trim( string ) )
+    case ("IPA")
+      r = ipa
+    case ("aDFT")
+      r = adft
+    case ("tdH")
+      r = tdh
+    case default
+      call assert( .false., "Unrecognized ee interaction")
+  end select
+end function
+
+!> Check whether IPA is used
+pure logical function eeInteraction_use_ipa( this ) result( check )
+  class(eeInteraction_keys), intent(in) :: this
+  check = .not. ( this%evolve_coulomb .or. this%evolve_adiabatic_xc )
+end function
+
+!> Check whether only Coulomb potential should be evolved
+pure logical function eeInteraction_coulomb_only( this ) result( check )
+  class(eeInteraction_keys), intent(in) :: this
+  check = this%evolve_coulomb .and. (.not. this%evolve_adiabatic_xc) 
+end function
+
+!> Initialize [[eeInteraction_keys]] flags from string 
+subroutine eeInteraction_init_from_string( this, string )
+  class(eeInteraction_keys), intent(inout) :: this
+  !> String containing the approximation name
+  character(len=*), intent(in) :: string
+
+  select case( string_to_ee_interaction( string ) )
+  case(ipa)
+    this%evolve_adiabatic_xc = .false.
+    this%evolve_coulomb = .false.
+  case(adft)
+    this%evolve_adiabatic_xc = .true.
+    this%evolve_coulomb = .true.
+  case(tdh)
+    this%evolve_adiabatic_xc = .false.
+    this%evolve_coulomb = .true.
+  case default
+    call assert( .false., "Unrecognized ee interaction")
+  end select
+end subroutine
 
 !> Check whether the ks basis will be used for time propagation
 pure logical function rttddft_input_keys_use_ks_basis(this) result(check)

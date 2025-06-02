@@ -281,7 +281,7 @@ contains
     end if
 
     ! whether explicitly field-independent Hamiltonian should be evolved in time
-    evolve_H0 = ( molecular_dynamics%on .or. ( .not. rt%eeInteraction%ipa ) )
+    evolve_H0 = ( molecular_dynamics%on .or. ( .not. rt%eeInteraction%use_ipa() ) )
     lmax_potential = input%groundstate%lmaxvr
 
     i_print = 1
@@ -300,7 +300,7 @@ contains
       if ( rt%screenshots%on ) take_screenshot = ( mod( it, rt%screenshots%n_steps ) == 0 ) .or. ( it == last_step )
         
       ! We may need to update charge density on some steps
-      density_needed = ( .not. rt%eeInteraction%ipa )
+      density_needed = ( .not. rt%eeInteraction%use_ipa() )
       if ( take_screenshot ) density_needed = density_needed .or. rt%screenshots%density%on
 
       ! WAVEFUNCTION
@@ -341,7 +341,7 @@ contains
         rt%l_rad_step, rhomt_frozen, rhoir_frozen, ks_lapwlo_transition_matrix, rt%printTimings, timing%t_RTTDDFT%dens )
       
       ! KS-POTENTIAL
-      if ( .not. rt%eeInteraction%ipa ) call update_potential( rt%printTimings, timing%t_RTTDDFT%pot )
+      if ( .not. rt%eeInteraction%use_ipa() ) call update_potential( rt%printTimings, timing%t_RTTDDFT%pot, rt%eeInteraction%coulomb_only() )
       
       if( rt%printTimings%general() ) call timesec( timei )
       ! Check if we need to save aind, pvec, atot and aext
@@ -815,7 +815,7 @@ contains
       call update_density( first_kpt, psi, occupations, it, rt%normalize_WF, rt%l_rad_step, &
         rhomt_frozen, rhoir_frozen, ks_lapwlo_transition_matrix )
       ! KS-POTENTIAL
-      call update_potential()
+      call update_potential( coulomb_only = rt%eeInteraction%coulomb_only() )
 
       if ( rt%use_velocity_gauge() ) then
         ! VECTOR POTENTIAL
