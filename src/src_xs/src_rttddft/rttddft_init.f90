@@ -11,6 +11,7 @@ module rttddft_init
   use asserts, only: assert
   use constants, only: zzero, real_zero, zone, zi
   use exciting_mpi, only: xmpi_bcast, xmpi_allreduce
+  use general_find_vbm_cbm, only: find_vbm_cbm
   use m_gndstateq, only: gndstateq
   use math_utils, only: plane_wave_in_spherical_harmonics
   use matrix_elements, only: me_init, me_mt_prepare, me_ir_alloc, me_ir_prepare, &
@@ -21,10 +22,8 @@ module rttddft_init
   use mod_bands, only: evalfv, nomax, numin, ikcbm, ikvbm, ikvcm
   use mod_core_states, only: ncg
   use mod_corestate, only: rhocr, evalcr
-  use mod_eigensystem, only: nmatmax
-  use mod_eigenvalue_occupancy, only: nstfv, efermi
   use mod_eigensystem, only: nmatmax, nmat
-  use mod_eigenvalue_occupancy, only: nstfv, efermi, evalsv
+  use mod_eigenvalue_occupancy, only: nstfv, efermi
   use mod_gvector, only: intgv, ngvec, sfacg, vgc
   use mod_gkvector, only: ngk, ngkmax, gkc, tpgkc, sfacgk, gkmax, vgkc
   use mod_kpointset, only: G_set, generate_G_vectors, k_set, &
@@ -61,7 +60,6 @@ module rttddft_init
   use rttddft_potential, only: update_potential
   use rttddft_VectorPotential, only: Vector_Potential, Vector_Potential_Field
   use rttddft_Wavefunction, only: wavefunction_set, initialize_wavefunction_set
-  use general_find_vbm_cbm, only: find_vbm_cbm
   use to_char_conversion, only: to_char
 
   implicit none
@@ -74,7 +72,7 @@ contains
 !> This subroutine initializes many variables used in a RT-TDDFT calculation.
 subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, molecular_dynamics, &
     psi, overlap, ham_init, ham_time, ham_past, effective_potential_init, apwalm, &
-    pmat, pmatmt, rhomt_frozen, rhoir_frozen, occupations, k_dependent_dims, &
+    pmat, pmatmt, rhomt_frozen, rhoir_frozen, occupations, initial_ks_energies, k_dependent_dims, &
     occs_tol, kset_rttddft, Gkset, Gset, psi_gnd_lapwlo, pws_for_berry_phase, k_ptrs, &
     td_overlap_det, berry_coupling_term, prev_phases, e_vec, e_vec_save, j_para_spurious, p_vec_init )
   !> Argument that encapsulates the input options of rttddft
@@ -111,6 +109,8 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   real(dp), allocatable, intent(out) :: rhoir_frozen(:)
   !> State occupations array (to be allocated in `array_allocation` block)
   real(dp), allocatable, intent(out) :: occupations(:, :)
+  !> Initial eigenvalues array (to be allocated in `array_allocation` block)
+  real(dp), allocatable, intent(out) :: initial_ks_energies(:, :)
   !> k-dependent Hamiltonian dimensions array (to be allocated in `array_allocation` block)
   integer(i32), allocatable, intent(out) :: k_dependent_dims(:)
   !> Minimal value of occupation for the state to be 'occupied'
@@ -187,6 +187,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   array_allocation: block
     allocate( psi_gnd_lapwlo(nmatmax, nstfv, first_kpt : last_kpt + kgrid_neighbours), source = zzero )
     allocate( occupations(nstfv, first_kpt : last_kpt), source = real_zero )
+    allocate( initial_ks_energies, source = occupations )
     allocate( apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt + kgrid_neighbours) )
     allocate( overlap(ham_dimension, ham_dimension, first_kpt : last_kpt), source = zzero )
     allocate( ham_time, source = overlap )
@@ -213,7 +214,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   k_dependent_dims = nmat(1, first_kpt : last_kpt)
   if ( rt_inp%use_ks_basis() ) k_dependent_dims = ham_dimension
 
-  call read_WF_potential_rttddft( first_kpt, kset_rttddft, psi_gnd_lapwlo(:, :, first_kpt : last_kpt), occupations )
+  call read_WF_potential_rttddft( first_kpt, kset_rttddft, psi_gnd_lapwlo(:, :, first_kpt : last_kpt), occupations, initial_ks_energies )
   do ik = first_kpt, last_kpt
     ! Matching coefficients (apwalm)
     call match( ngk(1, ik), gkc(:, 1, ik), tpgkc(:, :, 1, ik), sfacgk(:, :, 1, ik), apwalm(:, :, :, :, ik) )
@@ -316,7 +317,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
     end if
     do ik = first_kpt, last_kpt
       do i = 1, ham_dimension
-        ham_init(i, i, ik) = cmplx( evalsv(i, ik), real_zero, kind = dp )
+        ham_init(i, i, ik) = cmplx( initial_ks_energies(i, ik), real_zero, kind = dp )
       end do
     end do
     do ik = first_kpt, last_kpt
@@ -625,7 +626,7 @@ subroutine is_gs_input_compatible_with_xs( inp, is_compatible)
 end subroutine
 
 !> read WF and potential from potential gs run. For hybrid functionals, the parameters are read from the PBE run
-subroutine read_WF_potential_rttddft( first_kpt, kset_rttddft, evecfv_gnd, occupations )
+subroutine read_WF_potential_rttddft( first_kpt, kset_rttddft, evecfv_gnd, occupations, initial_ks_energies )
   use modgw, only: kset
   !> First k-point treated by this (MPI)rank
   integer(i32), intent(in) :: first_kpt
@@ -635,6 +636,8 @@ subroutine read_WF_potential_rttddft( first_kpt, kset_rttddft, evecfv_gnd, occup
   complex(dp), intent(out) :: evecfv_gnd(:, :, first_kpt :)
   !> Initial occupations array
   real(dp), intent(out) :: occupations(:, first_kpt :)
+  !> Initial eigenvalues array
+  real(dp), intent(out) :: initial_ks_energies(:, first_kpt :)
 
   integer(i32) :: ik, last_kpt
   logical :: file_exists
@@ -696,11 +699,13 @@ subroutine read_WF_potential_rttddft( first_kpt, kset_rttddft, evecfv_gnd, occup
 
   end if
 
-  ! Get the eigenvectors and occupations from file
+  ! Get the occupations, eigenvalues and eigenvectors from file
   do ik = first_kpt, last_kpt
-    call getoccsv(kset_rttddft%vkl(:, ik), occupations(:, ik))
+    call getoccsv( kset_rttddft%vkl(:, ik), occupations(:, ik) )
   end do
-
+  do ik = first_kpt, last_kpt
+    call getevalsv( kset_rttddft%vkl(:, ik), initial_ks_energies(:, ik) )
+  end do
   filext = string
 
   call read_wavefunction( groundstate, first_kpt, kset_rttddft%vkl(:, first_kpt:last_kpt), evecfv_gnd, mpi_env_k )

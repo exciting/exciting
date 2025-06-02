@@ -61,11 +61,19 @@
 !> </li>
 !> </ol>
 module rttddft_Energy
+  use asserts, only: assert
+  use constants, only: real_zero
   use exciting_mpi, only: mpiinfo, xmpi_allreduce
   use hermitian_matrix_multiplication, only: hermitian_matrix_multiply
+  use modinput, only: input
+  use mod_atoms, only: idxas, natoms, spzn, spnst, nspecies, spcore, spocc
+  use mod_corestate, only: evalcr
+  use mod_eigensystem, only: nmatmax, nmat
+  use mod_potential_and_density, only: rhomt, rhoir, vclmt, vclir, vxcmt, &
+    vxcir, exmt, exir, ecmt, ecir, vmad  
   use precision, only: dp, i32
-  use vector_multiplication, only: dot_multiply
   use rttddft_Wavefunction, only: wavefunction_set
+  use vector_multiplication, only: dot_multiply
 
   implicit none
 
@@ -118,17 +126,8 @@ contains
 
   !> Subroutine that calculates the total energy for RT-TDDFT calculations
   !> Adapted from `src/energy.f90`
-  subroutine obtain_energy_rttddft(first_kpt, ham, psi, occupations, mpi_env, &
-      & kpt_weights, rt_tddft_energy )
-    use modinput, only: input
-    use mod_eigenvalue_occupancy, only: evalsv
-    use mod_eigensystem, only: nmatmax, nmat
-    use mod_atoms, only: idxas, natoms, spzn, spnst, nspecies, spcore, spocc
-    use mod_potential_and_density, &
-      only: rhomt,rhoir,vclmt,vclir,vxcmt,vxcir,exmt,exir,ecmt,ecir, vmad
-    use modmpi
-    use constants, only: zzero, zone, real_zero
-    use mod_corestate, only: evalcr
+  subroutine obtain_energy_rttddft(first_kpt, ham, psi, occupations, initial_ks_energies, &
+      mpi_env, kpt_weights, rt_tddft_energy )
 
     implicit none
 
@@ -142,6 +141,8 @@ contains
     class(wavefunction_set), intent(in) :: psi
     !> Initial occupations array
     real(dp), intent(in) :: occupations(:, :)
+    !> Initial KS energies array
+    real(dp), intent(in) :: initial_ks_energies(:, :)
     !> MPI environment
     type(mpiinfo), intent(in) :: mpi_env
     !> k points weights array
@@ -194,7 +195,7 @@ contains
     !$omp parallel default(none), &
     !$omp private(ik, ist, occcmplx, scratch, acc, nmatp, real_kpt), &
     !$omp shared(first_kpt, aux, first_active, nmat, ham, psi, occupations, &
-    !$omp kpt_weights, input, n_kpt, n_states, evalsv, n_frozen)
+    !$omp kpt_weights, input, n_kpt, n_states, initial_ks_energies, n_frozen)
     !$omp do
     do ik = 1, n_kpt
       real_kpt = ik + first_kpt - 1
@@ -214,7 +215,7 @@ contains
       occcmplx = occupations(first_active : n_frozen + n_states, ik)
       aux(ik) = kpt_weights(ik) * real( dot_multiply( occcmplx(1:ist - 1), acc(1:ist - 1) ), dp )
       if ( psi%has_frozen() ) aux(ik) = aux(ik) + kpt_weights(ik) * &
-        dot_multiply( occupations(1 : n_frozen, ik), evalsv(1 : n_frozen, real_kpt) )
+        dot_multiply( occupations(1 : n_frozen, ik), initial_ks_energies(1 : n_frozen, ik) )
     end do
     !$omp end parallel
     rt_tddft_energy%hamiltonian = sum( aux )
