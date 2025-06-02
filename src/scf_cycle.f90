@@ -97,7 +97,7 @@ subroutine scf_cycle(verbosity)
         Call timesec(tin1)
         time_density_init=tin1-tin0
         Call timesec(tin0)
-        Call poteff
+        Call poteff( .true. )
         Call genveffig
         Call timesec(tin1)
         time_pot_init=tin1-tin0
@@ -467,7 +467,7 @@ subroutine scf_cycle(verbosity)
 !-----------------------------------
 ! Compute the effective potential
 !-----------------------------------
-        Call poteff
+        Call poteff( .true. )
 !---------------
 ! Mixing
 !---------------

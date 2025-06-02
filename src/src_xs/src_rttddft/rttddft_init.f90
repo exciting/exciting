@@ -137,9 +137,9 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   type(Electric_Field), intent(in) :: e_vec
   !> \(\mathbf{E}\) at time \( t = t_{\rm start} - \Delta t \) 
   type(Electric_Field), intent(in) :: e_vec_save
-  !> Spurious paramagnetic current density (obtained at \( t = 0 \)
+  !> Spurious paramagnetic current density obtained at \( t = 0 \)
   type(Current_Density_Field), intent(out) :: j_para_spurious
-  !> GS polarization (obtained at \( t = 0 \)
+  !> GS polarization obtained at \( t = 0 \)
   type(Polarization), intent(out) :: p_vec_init
 
   integer(i32) :: ik, first_kpt, last_kpt, ham_dimension, i, kgrid_neighbours
@@ -169,7 +169,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   call generate_k_vectors( kset_rttddft, bvec, input%groundstate%ngridk, input%xs%vkloff, .false., .false. )
   call distribute_loop( mpi_env_k, kset_rttddft%nkpt, first_kpt, last_kpt )
   
-  evolve_H0 = ( molecular_dynamics%on .or. ( .not. rt_inp%eeInteraction%ipa ) )
+  evolve_H0 = ( molecular_dynamics%on .or. ( .not. rt_inp%eeInteraction%use_ipa() ) )
   if ( (rt_inp%use_ks_basis() .and. evolve_H0) .or. rt_inp%use_berry_phase() ) &
     call init_me_evaluation( kset_rttddft, Gkset, Gset )
   
@@ -363,7 +363,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
     if( propagator%extrapolation_needed() ) then
       call update_density( first_kpt, psi, occupations, 0, rt_inp%normalize_WF, &
         rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, psi_gnd_lapwlo, dens_case=save_and_frozen )
-      call update_potential()
+      call update_potential( coulomb_only =  rt_inp%eeInteraction%coulomb_only() )
 
       if ( rt_inp%use_lapwlo_basis() ) then
         call update_overlap_lapw( first_kpt, a_tot_t_minus_dt, overlap, apwalm, pmatmt, &
@@ -393,7 +393,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
 
     call update_density( first_kpt, psi, occupations, 0, rt_inp%normalize_WF, &
       rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, psi_gnd_lapwlo )
-    call update_potential()
+    call update_potential( coulomb_only = rt_inp%eeInteraction%coulomb_only() )
 
     if ( rt_inp%use_berry_phase() ) call read_phases( prev_phases, rt_inp%restart_file_handler, mpi_env_k )
   end if

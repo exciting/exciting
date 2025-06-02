@@ -900,7 +900,7 @@ RT-TDDFT/GGA_PBE-Ehrenfest-Si-restart:
       - "FVAL_0002.OUT.SAVE"
       - "rt.h5"
 
-RT-TDDFT/LDA_PW-C-kick-RK4-frozen:
+RT-TDDFT/LDA_PW-C-kick-RK4-frozen-tdH:
 
 RT-TDDFT/LDA_PW-Ehrenfest-C:
    repeat: False

@@ -1,87 +1,61 @@
-!
-!
-!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
-!BOP
-! !ROUTINE: poteff
-! !INTERFACE:
-!
-!
-Subroutine poteff
-! !USES:
-      Use modmain
-! !DESCRIPTION:
-!   Computes the effective potential by adding together the Coulomb and
-!   exchange-correlation potentials. See routines {\tt potcoul} and {\tt potxc}.
-!
-! !REVISION HISTORY:
-!   Created April 2003 (JKD)
-!EOP
-!BOC
-      Implicit None
-! local variables
-      Integer :: is, ia, ias, ir, lm, lmmax
-      real (8) :: shift
-      Real (8) :: ts0, ts1, ta, tb
+! Created April 2003 (JKD)
 
-      call stopwatch("exciting:poteff", 1)
-      
-      Call timesec (ts0)
-      
-!---------------------------------------------
-! compute the exchange-correlation potential
-!---------------------------------------------
-      Call potxc
+!> Computes the effective potential by adding together the Coulomb and
+!> exchange-correlation potentials. See routines [[potcoul]] and [[potxc]].
+subroutine poteff( calc_xc )
+  use constants, only: y00
+  use mod_atoms, only: nspecies, natoms, idxas
+  use mod_muffin_tin, only: nrmt, lmmaxvr, lmmaxinr, nrmtinr
+  use mod_potential_and_density, only: veffmt, veffir, vhalfmt, vhalfir, vclmt, &
+    vclir, vxcmt, vxcir
+  use mod_timing, only: stopwatch, timepot
+  use modinput, only: input
+  use precision, only: i32, dp
 
-!---------------------------------
-! compute the Coulomb potential
-!---------------------------------
-      Call potcoul
-      shift=input%groundstate%energyref
+  implicit none
+  !> If `.true.`, XC part of the effective potential should be obtained
+  logical, intent(in) :: calc_xc
 
-!----------------------------------------------------------
-! add Coulomb and exchange-correlation potentials together
-!----------------------------------------------------------
-      
-      ! muffin-tin part
-      vclmt(1,:,:) = vclmt(1,:,:)+shift/y00
-      Do is = 1, nspecies
-         Do ia = 1, natoms (is)
-            ias = idxas (ia, is)
-            lmmax = lmmaxinr
-            Do ir = 1, nrmt (is)
-               If (ir .Gt. nrmtinr(is)) lmmax = lmmaxvr
-               Do lm = 1, lmmax
-                  if (associated(input%groundstate%dfthalf)) then
-                    veffmt(lm,ir,ias) = vclmt(lm,ir,ias) + vxcmt(lm,ir,ias) + vhalfmt (lm, ir, ias)
-                  else
-                    veffmt(lm,ir,ias) = vclmt(lm,ir,ias) + vxcmt(lm,ir,ias)
-                  endif
-               End Do
-               Do lm = lmmax + 1, lmmaxvr
-                  veffmt(lm,ir,ias) = 0.d0
-               End Do
-            End Do
-         End Do
-      End Do
-      
-      ! interstitial part
-      vclir(:) = vclir(:) + shift
-      
-      if (associated(input%groundstate%dfthalf)) then
-        veffir(:) = vclir(:) + vxcir(:) + vhalfir(:)
-      else
-        veffir(:) = vclir(:) + vxcir(:)
-      endif
-      
-      Call timesec (ts1)
-      timepot = timepot + ts1 - ts0
+  integer(i32) :: is, ia, ias, ir, lmmax
+  real(dp) :: shift, ts0, ts1
+  logical :: dfthalf_on
 
-      call stopwatch("exciting:poteff", 0)
-      
-      Return
-End Subroutine
-!EOC
+  call stopwatch( "exciting:poteff", 1 ) 
+  call timesec ( ts0 )
+
+  shift = input%groundstate%energyref
+  dfthalf_on = associated( input%groundstate%dfthalf )
+
+  veffmt = 0._dp
+  veffir = 0._dp
+  
+  ! compute the exchange-correlation potential
+  if ( calc_xc ) call potxc()
+  ! compute the Coulomb potential
+  call potcoul()
+
+  ! add Coulomb and exchange-correlation potentials together
+  ! muffin-tin part
+  vclmt(1, :, :) = vclmt(1, :, :) + shift / y00
+  do is = 1, nspecies
+    do ia = 1, natoms(is)
+      ias = idxas (ia, is)
+      lmmax = lmmaxinr
+      do ir = 1, nrmt (is)
+        if ( ir > nrmtinr(is) ) lmmax = lmmaxvr
+        veffmt(1 : lmmax, ir, ias) = vclmt(1 : lmmax, ir, ias) + vxcmt(1 : lmmax, ir, ias)
+        if ( dfthalf_on ) veffmt(1 : lmmax, ir, ias) = veffmt(1 : lmmax, ir, ias) + vhalfmt (1 : lmmax, ir, ias)
+      end do
+    end do
+  end do
+  ! interstitial part
+  veffir = vclir + vxcir + shift
+  if ( dfthalf_on ) veffir = veffir + vhalfir
+  
+  call timesec ( ts1 )
+  timepot = timepot + ts1 - ts0
+  call stopwatch( "exciting:poteff", 0)
+end subroutine

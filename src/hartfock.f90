@@ -58,7 +58,7 @@ Subroutine hartfock
 ! read the charge density and potentials from file
       Call readstate
 ! compute the effective potential
-      Call poteff
+      Call poteff( .true. )
 ! Fourier transform effective potential to G-space
       Call genveffig
       Call genmeffig
