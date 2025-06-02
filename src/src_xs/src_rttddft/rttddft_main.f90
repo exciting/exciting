@@ -94,8 +94,8 @@ contains
     ! Electron density (lmmaxvr, nrmtmax, natmtot) and (ngrtot)
     real(dp), allocatable :: rhomt_frozen(:, :, :), rhomt_init(:, :, :), &
       rhoir_frozen(:), rhoir_init(:)
-    ! Initial occupations array (nstates, first_kpt : last_kpt)
-    real(dp), allocatable :: occupations(:, :)
+    ! Initial occupations and energies array (nstates, first_kpt : last_kpt)
+    real(dp), allocatable :: occupations(:, :), initial_ks_energies(:, :)
     ! k-dependent Hamiltonian's dimensions array (first_kpt : last_kpt)
     integer(i32), allocatable :: k_dependent_dims(:)
     ! KS-LAPW+lo transition matrix (nmatmax, nstfv, first_kpt : last_kpt)
@@ -191,7 +191,7 @@ contains
     
     call initialize_rttddft( rt, propagator, vec_pot, a_tot_save, molecular_dynamics, &
       psi, overlap, ham_init, ham_time, ham_past, effective_potential_init, &
-      apwalm, pmat, pmatmt, rhomt_frozen, rhoir_frozen, occupations, k_dependent_dims, &
+      apwalm, pmat, pmatmt, rhomt_frozen, rhoir_frozen, occupations, initial_ks_energies, k_dependent_dims, &
       eps_occ, kset, Gkset, Gset, ks_lapwlo_transition_matrix, pws_for_berry_phase, k_ptrs, &
       td_overlap_det, berry_coupling_term, prev_phases, e_vec, e_vec_save, j_para_spurious, p_vec_init )
     call distribute_loop( mpi_env_k, kset%nkpt, first_kpt, last_kpt )
@@ -252,8 +252,8 @@ contains
         .false., rt%l_rad_step, rhomt_frozen, rhoir_frozen, ks_lapwlo_transition_matrix )
       call potcoul()
       call potxc()
-      call obtain_energy_rttddft( first_kpt, ham_time, psi, occupations, mpi_env_k, &
-        kset%wkpt(first_kpt:last_kpt), etotstore(1) )
+      call obtain_energy_rttddft( first_kpt, ham_time, psi, occupations, &
+        initial_ks_energies, mpi_env_k, kset%wkpt(first_kpt:last_kpt), etotstore(1) )
       if( my_rank_writes_to_output ) call write_total_energy( .True., [time], [etotstore(1)] )
     end if
 
@@ -403,7 +403,7 @@ contains
       ! Obtain the total energy, if requested
       if( rt%calculate_total_energy ) then
         if ( rt%printTimings%detailed() ) call timesec( timei )
-        call obtain_energy_rttddft( first_kpt, ham_time, psi, occupations, mpi_env_k, &
+        call obtain_energy_rttddft( first_kpt, ham_time, psi, occupations, initial_ks_energies, mpi_env_k, &
         kset%wkpt(first_kpt:last_kpt), etotstore(i_print) )
         if ( rt%printTimings%detailed() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%energy )
       end if
