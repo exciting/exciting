@@ -1,23 +1,24 @@
 !> Obtain the correlation part of the self energy for the given k-points, 
 !> evaluating the one term (of a sum) corresponding to a given q-point
 subroutine calcselfc(iq, ikp_first, ikp_last)
-    use modinput, only: input
-    use modgw, only: time_selfc, kqset, kset, Gkqset, b2mb, ibgw, nbgw, freq, mblksiz, msize, fdebug
+    use constants,  only: zzero
     use mod_APW_LO, only: apwordmax
     use mod_atoms, only: natmtot
     use mod_bands, only: eveckalm, eveckpalm, eveckp, eveck, nstse, evalfv
     use mod_core_states, only: ncg
     use mod_eigensystem, only: nmatmax
-    use constants,  only: zzero
     use mod_eigenvalue_occupancy, only: nstfv
+    use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
     use mod_muffin_tin, only: lmmaxapw
     use mod_misc_gw, only: Gamma
     use mod_selfenergy, only: mwm, freq_selfc, selfec
     use mod_product_basis, only: minmmat, mbsiz
     use mod_dielectric_function, only: epsilon
-    use mod_mpi_gw, only : myrank
+    use modinput, only: input
+    use modgw, only: time_selfc, kqset, kset, Gkqset, b2mb, ibgw, nbgw, freq, mblksiz, msize, fdebug
+    use modmpi, only: rank
     use precision, only: i32, dp
-    use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
+    
 #include "offload.fpp"
 
     implicit none

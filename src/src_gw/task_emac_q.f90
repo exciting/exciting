@@ -3,6 +3,7 @@ subroutine task_emac_q()
 
     use modinput
     use modmain
+    use modmpi, only: mpi_allgatherv_ifc, rank, firstofset, lastofset, barrier, terminate, mpiglobal
     use modgw
     use mod_coulomb_potential, only: barc, delete_coulomb_potential
     use invert_dielectric_function, only: calcinveps
@@ -28,9 +29,6 @@ subroutine task_emac_q()
     !==========================
     ! Perform initialization
     !==========================
-
-    ! initialize local GW MPI environment
-    call init_mpi_gw
 
     ! prepare GW global data
     call init_gw
@@ -197,7 +195,7 @@ subroutine task_emac_q()
       vq_path(i) = v2(1)**2+v2(2)**2+v2(3)**2
     end do
 
-    if (myrank==0) then
+    if (rank==0) then
       write(fgw,*)
       write(fgw,*) 'Info(task_emac_q): '
       write(fgw,*) '  Averaged macroscopic dielectric function with and without local field'
@@ -213,7 +211,7 @@ subroutine task_emac_q()
       end do
       close(fid)
       10 format(7F12.4)
-    end if ! myrank
+    end if ! rank
 
     deallocate(iq_path)
     deallocate(vq_path)

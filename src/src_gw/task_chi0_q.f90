@@ -3,6 +3,7 @@ subroutine task_chi0_q
 
     use modinput
     use modmain,               only: zzero, efermi
+    use modmpi, only: rank
     use modgw
     use mod_coulomb_potential
     use mod_mpi_gw

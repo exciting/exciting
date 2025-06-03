@@ -3,6 +3,7 @@ subroutine task_emac()
 
     use modinput
     use modmain
+    use modmpi, only: rank
     use modgw
     use mod_coulomb_potential
     use invert_dielectric_function, only: calcinveps
@@ -19,9 +20,6 @@ subroutine task_emac()
     !==========================
     ! Perform initialization
     !==========================
-
-    ! initialize local GW MPI environment
-    call init_mpi_gw()
 
     ! prepare GW global data
     call init_gw()
@@ -87,7 +85,7 @@ subroutine task_emac()
     if (allocated(mpwipw)) deallocate(mpwipw)
     if (allocated(barc)) deallocate(barc)
 
-    if (myrank==0) then
+    if (rank==0) then
       call getunit(fid)
       open(fid, File='EPSMACRO.OUT', Form='Formatted', Action='Write', Status='Replace')
       write(fid,'(a)')'# frequency       eps_{00} (diag)            eps_{00}+LFE (diag)            <eps_{00}^{-1}>'
@@ -99,7 +97,7 @@ subroutine task_emac()
       end do
       close(fid)
       10 format(f12.6,4x,2G12.4,4x,2G12.4,4x,2G12.4)
-    end if ! myrank
+    end if ! rank
 
     call delete_dielectric_function(Gamma)
 

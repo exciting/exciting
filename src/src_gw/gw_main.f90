@@ -37,11 +37,6 @@ subroutine gw_main()
         end if
     end if
 
-    !----------------------------------------------
-    ! initialize GW MPI environment
-    !----------------------------------------------
-    call init_mpi_gw
-
     !-----------------------------------------------------------
     ! Parse and check the validity of some GW input parameters
     !-----------------------------------------------------------

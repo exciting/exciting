@@ -3,11 +3,11 @@
 subroutine setbarcev(eig_tol, remove_g_equal_zero)
     use asserts, only: assert
     use constants, only: zzero
-    use modgw, only: fdebug
     use mod_coulomb_potential, only: barc, barcev, vmat
-    use mod_mpi_gw, only: myrank
     use mod_product_basis, only: mbsiz, matsiz
     use modinput, only: input
+    use modgw, only: fdebug
+    use modmpi, only: rank
     use precision, only: dp, i32
     use xlapack, only: matrix_multiply
 #include "offload.fpp"
@@ -45,7 +45,7 @@ subroutine setbarcev(eig_tol, remove_g_equal_zero)
       ! find the index of the diagonalized barc eigenvector that has maximal
       ! overlap with G=0 (constant) plane wave
       imax = maxloc( abs(wi0new), dim=1 )
-      if (input%gw%debug .and. myrank==0) then
+      if (input%gw%debug .and. rank==0) then
         write(fdebug,*)'- Maximum singular eigenvector ###'
         write(fdebug,'("immax, max(wi0new), barcev(immax): ",i4,4x,f12.6,4x,f12.6)') imax, abs(wi0new(imax))**2, barcev(imax)
       end if
@@ -55,7 +55,7 @@ subroutine setbarcev(eig_tol, remove_g_equal_zero)
 
     if (input%gw%debug) then
       if (mbsiz < matsiz) then
-        if (myrank==0) then
+        if (rank==0) then
           write(fdebug,*) "Info(setbarcev): Product basis size has been changed"
           write(fdebug,*) " - Old basis set size =", matsiz
           write(fdebug,*) " - New basis set size =", mbsiz
