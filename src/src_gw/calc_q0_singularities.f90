@@ -7,13 +7,13 @@ subroutine calc_q0_singularities
     use modinput
     use modmain
     use modgw
-    use mod_mpi_gw, only : myrank
+    use modmpi, only : rank
 
     ! local variables
     integer :: iq, nz
     real(8) :: f, sum1, sumf2, intf1, intf2
     
-    if (myrank==0) then
+    if (rank==0) then
       write(*,*)
       write(*,*) 'Use the auxiliary function by Carrier et al. (2007)'
       write(*,*)

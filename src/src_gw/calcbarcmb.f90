@@ -11,11 +11,11 @@ subroutine calcbarcmb(iq)
 !This subroutine calculates the matrix of the bare coulomb potential
 !
 !!USES:
+    use mod_coulomb_potential
     use modinput
     use modgw
-    use mod_coulomb_potential
-    use mod_mpi_gw, only: myrank
     use modmain
+    use modmpi, only: rank
     use precision, only: i32, dp, str_256
 #include "offload.fpp"
 !!INPUT PARAMETERS:
@@ -139,7 +139,7 @@ subroutine calcbarcmb(iq)
 
     if (input%gw%debug) then
       msize = sizeof(barcev)*b2mb+sizeof(vmat)*b2mb
-      write(fdebug,'("calcbarcmb: rank, size(Coulomb potential) (Mb):",i4,f12.2)') myrank, msize
+      write(fdebug,'("calcbarcmb: rank, size(Coulomb potential) (Mb):",i4,f12.2)') rank, msize
       write(fdebug,*) "### barcev ###"
       do imix = 1, matsiz
         write(fdebug,'(i5,e16.6)') imix, barcev(imix)

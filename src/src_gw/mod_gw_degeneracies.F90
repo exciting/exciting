@@ -13,7 +13,7 @@
 module mod_gw_degeneracies
 
     use precision, only: i32, dp
-    use mod_mpi_gw, only: terminate
+    use modmpi, only: terminate
 
     implicit none 
 

@@ -6,6 +6,7 @@ module exciting_mpi
   use mod_mpi_allreduce, only: xmpi_allreduce
   use mod_mpi_bcast, only: xmpi_bcast
   use mod_mpi_gather, only: xmpi_gather, xmpi_gatherv
+  use mod_mpi_reduce, only: xmpi_reduce
   
   implicit none
   public 

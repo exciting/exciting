@@ -14,9 +14,9 @@ subroutine calcselfx(iq, ikp_first, ikp_last)
     use mod_muffin_tin, only: lmmaxapw
     use mod_product_basis, only: matsiz, mbsiz, minmmat
     use mod_misc_gw, only: vi, Gamma
-    use mod_mpi_gw, only : myrank
-    use modgw, only: kset, kqset, Gkqset, ciw, kiw, fdebug, time_selfx
     use mod_selfenergy, only: singc2, selfex
+    use modgw, only: kset, kqset, Gkqset, ciw, kiw, fdebug, time_selfx
+    use modmpi, only: rank
     
 #include "mod_gw_degeneracies.inc"
 

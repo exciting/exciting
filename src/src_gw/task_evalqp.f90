@@ -1,14 +1,13 @@
 
 subroutine task_evalqp()
     use mod_bands, only: evalfv, bandstructure_analysis
-    use modinput
-    use modmain
-    use modgw
     use mod_frequency
     use mod_hdf5
-    use mod_mpi_gw
-    use m_getunit
     use mod_vxc, only: vxcnn, read_vxcnn, deallocate_vxcnn
+    use modinput
+    use modgw
+    use modmain
+    use modmpi, only: rank
     use quasiparticle_energies, only: write_qp_energies_text_format
     use precision, only: dp
     
@@ -36,7 +35,7 @@ subroutine task_evalqp()
     &                      input%gw%freqgrid%freqmin, &
     &                      input%gw%freqgrid%freqmax)
 
-    if (myrank==0) then
+    if (rank==0) then
 
       ! allocate the arrays
       call init_selfenergy(ibgw,nbgw,kset%nkpt)
@@ -102,7 +101,7 @@ subroutine task_evalqp()
       call delete_selfenergy
       call deallocate_vxcnn
 
-    end if ! myrank
+    end if ! rank
 
     return
 end subroutine

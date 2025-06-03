@@ -3,6 +3,7 @@ subroutine task_chi0_r
 
     use modinput
     use modmain,               only : zzero, efermi
+    use modmpi, only: distribute_loop, mpiglobal, rank
     use modgw
     use mod_mpi_gw
     use m_getunit
@@ -65,16 +66,7 @@ subroutine task_chi0_r
     ! Main loop: BZ integration
     !===========================================================================    
 
-#ifdef MPI
-    call set_mpi_group(kqset%nkpt)
-    call mpi_set_range(nproc_row, &
-    &                  myrank_row, &
-    &                  kqset%nkpt, 1, &
-    &                  iqstart, iqend)
-#else
-    iqstart = 1
-    iqend = kqset%nkpt
-#endif
+    call distribute_loop( mpiglobal, kqset%nkpt, iqstart, iqend )
     iomstart = 1
     iomend = freq%nomeg
 
@@ -114,7 +106,7 @@ subroutine task_chi0_r
     allocate(chi0_r(npt))
     chi0_r(:) = 0.d0
 
-    if (myrank==0) then
+    if (rank==0) then
       call boxmsg(fgw,'=','q-point cycle')
       call flushifc(fgw)
     end if
@@ -197,7 +189,7 @@ subroutine task_chi0_r
     deallocate(tvec,wfmb)
     
 #ifdef MPI
-    call mpi_sum_array(0,chi0_r,npt,mycomm_row)
+    call mpi_sum_array( chi0_r, mpiglobal, .false. )
 #endif
 
     if (rank==0) then

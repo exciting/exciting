@@ -22,11 +22,7 @@ subroutine task_gw()
     use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
     use mod_gaunt_coefficients, only: delete_gaunt_coefficients
     use mod_kpointset, only: delete_Gk_vectors, delete_k_vectors, delete_kq_vectors, delete_G_vectors
-    use mod_mpi_gw, only: myrank, myrank_col, nproc_col, myrank_row, mycomm_row, nproc_row, &
-      iomcnt, iomdsp, iomstart, iomend, iqstart, iqend
-#ifdef MPI
-    use mod_mpi_gw, only: set_mpi_group, mpi_set_range, mpi_sum_array
-#endif
+    use mod_mpi_gw, only: iomstart, iomend, iqstart, iqend, mpi_sum_array
     use mod_misc_gw, only: Gamma, gammapoint
     use mod_product_basis, only: mpwipw, locmatsiz, mbsiz, matsiz, delete_product_basis
     use mod_selfenergy, only: evalks, evalqp, eferks, eferqp, znorm, singc1, singc2, &
@@ -34,7 +30,7 @@ subroutine task_gw()
       init_selfenergy, write_selfenergy_binary, delete_selfenergy
     use mod_vxc, only: calcvxcnn, write_vxcnn, vxcnn
     use modinput, only: input, isspinorb
-    use modmpi, only: rank, mpiglobal, barrier
+    use modmpi, only: barrier, distribute_loop, mpiglobal, rank
     use modgw, only: fgw, kset, kqset, Gqset, Gkset, Gkqset, Gset, Gqbarc, ibgw, nbgw, nbandsgw, &
       ciw, kiw, unw, kcw, freq, time_dfinv
     use modxs, only: symt2
@@ -108,35 +104,16 @@ subroutine task_gw()
     !===========================================================================
     ! Main loop: BZ integration
     !===========================================================================
-
-#ifdef MPI
-    call set_mpi_group(kqset%nkpt)
-    call mpi_set_range(nproc_row, &
-    &                  myrank_row, &
-    &                  kqset%nkpt, 1, &
-    &                  iqstart, iqend)
-    call mpi_set_range(nproc_col, &
-    &                  myrank_col, &
-    &                  freq%nomeg, 1, &
-    &                  iomstart, iomend, &
-    &                  iomcnt, iomdsp)
-    ! write(*,*) "myrank_row, iqstart, iqend =", myrank_row, iqstart, iqend
-    ! write(*,*) "myrank_col, iomstart, iomend =", myrank_col, iomstart, iomend
-    ! write(*,*) 'iomcnt: ', iomcnt(0:nproc_col-1)
-    ! write(*,*) 'iomdsp: ', iomdsp(0:nproc_col-1)
-#else
-    iqstart = 1
-    iqend = kqset%nkpt
+    call distribute_loop( mpiglobal, kqset%nkpt, iqstart, iqend )
     iomstart = 1
     iomend = freq%nomeg
-#endif
 
-    if (myrank==0) call boxmsg(fgw,'=','GW cycle')
+    if (rank==0) call boxmsg(fgw,'=','GW cycle')
 
     ! each process does a subset
     do iq = iqstart, iqend
 
-      if (myrank==0) then
+      if (rank==0) then
         write(fgw,*) '(task_gw): q-point cycle, iq = ', iq
         call flushifc(fgw)
       end if
@@ -209,25 +186,21 @@ subroutine task_gw()
     if (allocated(kiw)) deallocate(kiw)
     if (allocated(ciw)) deallocate(ciw)
 
-#ifdef MPI
-    if ((nproc_row>1) .and. (myrank_col==0)) then
-      call mpi_sum_array(0, selfex, nbandsgw, kset%nkpt, mycomm_row)
-      if (input%gw%taskname /= 'g0w0-x') then
-        ! G0W0
-        call mpi_sum_array(0, selfec, nbandsgw, freq_selfc%nomeg, kset%nkpt, mycomm_row)
-        if (input%gw%taskname == 'cohsex') then
-          call mpi_sum_array(0, sigsx, nbandsgw, kset%nkpt, mycomm_row)
-          call mpi_sum_array(0, sigch, nbandsgw, kset%nkpt, mycomm_row)
-        end if
-      end if ! selfec
-    endif
-#endif
+    call mpi_sum_array( selfex, mpiglobal, .false. )
+    if (input%gw%taskname /= 'g0w0-x') then
+      ! G0W0
+      call mpi_sum_array( selfec, mpiglobal, .false. )
+      if (input%gw%taskname == 'cohsex') then
+        call mpi_sum_array( sigsx, mpiglobal, .false. )
+        call mpi_sum_array( sigch, mpiglobal, .false. )
+      end if
+    end if ! selfec
 
     !===============================================================================
     ! output block
     !===============================================================================
 
-    if (myrank == 0) then
+    if (rank == 0) then
       if ((input%gw%taskname /= 'g0w0-x') .and. (input%gw%selfenergy%method == "ac")) then
         ! Analytical continuation of the correlation self-energy from the complex to the real frequency axis
         if (input%gw%printSelfC) call plot_selfc_iw()
@@ -303,7 +276,7 @@ subroutine task_gw()
 
 !$OMP end critical
 
-    end if ! myrank
+    end if ! rank
     call barrier() ! synchronize all threads
 
     !-----------------------------------------
@@ -312,7 +285,7 @@ subroutine task_gw()
     if (isspinorb()) then
       call init0()
       call readstate()
-      if (myrank==0) call task_second_variation()
+      if (rank==0) call task_second_variation()
     end if
 
     if (allocated(evalfv)) deallocate(evalfv)

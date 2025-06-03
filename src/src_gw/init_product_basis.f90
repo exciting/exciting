@@ -12,8 +12,7 @@ subroutine init_product_basis()
     &                                bradketc, bradketa, bradketlo, &
     &                                lmixmax, locmatsiz, locmixind, mbindex, &
     &                                rtl, rrint
-    use mod_mpi_gw,            only: myrank, nproc_tot
-    use modmpi,                only: mpi_allgatherv_ifc, barrier
+    use modmpi,                only: mpi_allgatherv_ifc, barrier, rank
     use reallocate
     use precision,             only: i32, dp
 #include "offload.fpp"

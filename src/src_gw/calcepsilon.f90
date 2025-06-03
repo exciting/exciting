@@ -5,8 +5,8 @@ subroutine calcepsilon(iq,iomstart,iomend)
 !
     use modinput
     use modmain, only : zone, zzero, zi
+    use modmpi, only: rank
     use modgw
-    use mod_mpi_gw, only : myrank
     use modxs,      only : symt2
     use mod_bands, only: nstdf, nomax, numin, eveckpalm, eveckalm, eveck, eveckp
     use precision,  only : i32, dp, long_int
@@ -225,7 +225,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
 
     ! Compute contributions due to polar phonons
     if (Gamma) then
-        if (myrank == 0) call writedielt('EPS00', iomend-iomstart+1, freq%freqs(iomstart:iomend), epsh(:,:,iomstart:iomend), 1)
+        if (rank == 0) call writedielt('EPS00', iomend-iomstart+1, freq%freqs(iomstart:iomend), epsh(:,:,iomstart:iomend), 1)
         if (input%gw%eph == 'polar') then
             ! call eph_polar(iomend-iomstart+1, cmplx(0.d0,freq%freqs(iomstart:iomend),8), epsh(:,:,iomstart:iomend))
             wlo = input%gw%wlo
@@ -236,7 +236,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
                 f = wlo**2 / wto**2
                 epsh(:,:,iom) = epsh(:,:,iom)*f
             end do
-            if (myrank == 0) call writedielt('EPS00+LAT', iomend-iomstart+1, freq%freqs(iomstart:iomend), epsh(:,:,iomstart:iomend), 1)
+            if (rank == 0) call writedielt('EPS00+LAT', iomend-iomstart+1, freq%freqs(iomstart:iomend), epsh(:,:,iomstart:iomend), 1)
         end if
     end if
 
