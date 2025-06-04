@@ -5,7 +5,7 @@ import re
 import warnings
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict, Iterator, Type, Union
+from typing import Any, Dict, Iterator, Type, TypeVar, Union
 from xml.etree import ElementTree
 
 import numpy as np
@@ -17,6 +17,7 @@ from excitingtools.utils.serialization_utils import deserialize_object, special_
 from excitingtools.utils.utils import flatten_list, list_to_str
 
 path_type = Union[str, Path]
+ExcitingInputType = TypeVar("ExcitingInputType", bound="AbstractExcitingInput")
 
 
 class AbstractExcitingInput(ABC):
@@ -51,7 +52,7 @@ class AbstractExcitingInput(ABC):
         return {**serialise_attrs, **inp_d}
 
     @classmethod
-    def from_xml(cls, xml_string: path_type):
+    def from_xml(cls: Type[ExcitingInputType], xml_string: path_type) -> ExcitingInputType:
         """Initialise class instance from XML-formatted string.
 
         Example Usage
@@ -61,7 +62,7 @@ class AbstractExcitingInput(ABC):
         return cls(**parse_element_xml(xml_string, tag=cls.name))
 
     @classmethod
-    def from_dict(cls, d: dict):
+    def from_dict(cls: Type[ExcitingInputType], d: dict) -> ExcitingInputType:
         """Recreates class instance from dictionary."""
         # Keep backward compatibility with version 1.7.x and prior
         if "xml_string" in d:

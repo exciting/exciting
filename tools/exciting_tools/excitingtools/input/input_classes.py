@@ -124,12 +124,12 @@ class ExcitingBseTypeSetInput(AbstractExcitingInput):
             ['IP', 'singlet', ...]
         """
         check_valid_keys(bsetypeset, type_attribute_types["name"][1], self.name)
-        self.plan = bsetypeset
+        self.bsetypeset = bsetypeset
 
     def to_xml(self) -> ElementTree.Element:
         """Special implementation of to_xml for the bsetypeset element."""
         bsetypeset = ElementTree.Element(self.name)
-        for bsetype in self.plan:
+        for bsetype in self.bsetypeset:
             ElementTree.SubElement(bsetypeset, "type", name=bsetype)
 
         return bsetypeset
