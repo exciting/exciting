@@ -16,6 +16,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
     use device_linalg_common_interface, only: zgemm_gpu
     use m_memory_device,       only: allocate_device_memory, deallocate_device_memory, &
                                      bytes_double_complex, bytes_int, get_device_pointer
+    use mod_expand_products, only: expand_products_generic
 #include "offload.fpp"
     
     implicit none
@@ -133,7 +134,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
             msize = sizeof(minmmat)*b2mb
 
             ! compute M^i_{nm}+M^i_{cm}
-            call expand_products(ik, iq, 1, ndim, nomax, mstart, mend, -1, minmmat)
+            call expand_products_generic(ik, iq, 1, nomax, 1, ndim-nomax, mstart, mend, 1, 0, minmmat, .true.)
 
             if (Gamma) then
                 ! wings of the dielectric matrix

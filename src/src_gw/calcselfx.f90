@@ -25,6 +25,7 @@ subroutine calcselfx(iq, ikp_first, ikp_last)
                                    nbgw_including_degeneracy, &
                                    degenerate_subspaces
     use precision, only: i32, dp
+    use mod_expand_products, only: expand_products_generic
 
 #include "offload.fpp"
 
@@ -117,7 +118,7 @@ subroutine calcselfx(iq, ikp_first, ikp_last)
 
       ! Calculate M^i_{nm}+M^i_{cm}
       OMP_OFFLOAD target data map(alloc: minmmat)
-      call expand_products(ik, iq, ibgw_including_degeneracy, nbgw_including_degeneracy, -1, 1, mdim, nomax, minmmat)
+      call expand_products_generic(ik, iq, ibgw_including_degeneracy, nbgw_including_degeneracy, 1, 0, 1, nomax, 1, mdim-nomax, minmmat, .true.)
       OMP_OFFLOAD target update from(minmmat)
       OMP_OFFLOAD end target data
 

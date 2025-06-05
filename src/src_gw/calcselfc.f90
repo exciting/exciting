@@ -18,7 +18,9 @@ subroutine calcselfc(iq, ikp_first, ikp_last)
     use modgw, only: time_selfc, kqset, kset, Gkqset, b2mb, ibgw, nbgw, freq, mblksiz, msize, fdebug
     use modmpi, only: rank
     use precision, only: i32, dp
-    
+    use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
+    use mod_expand_products, only: expand_products_generic, split_interval
+
 #include "offload.fpp"
 
     implicit none
@@ -33,6 +35,7 @@ subroutine calcselfc(iq, ikp_first, ikp_last)
     ! local
     integer(i32) :: ik, ikp, jk, ie1, iom
     integer(i32) :: mdim, iblk, nblk, mstart, mend
+    integer(i32) :: m_val_start, m_val_end, m_core_start, m_core_end
     real(dp) :: tstart, tend
 
     call timesec(tstart)
@@ -103,7 +106,8 @@ subroutine calcselfc(iq, ikp_first, ikp_last)
         allocate(minmmat(mbsiz,ibgw_including_degeneracy:nbgw_including_degeneracy,mstart:mend))
         msize = sizeof(minmmat)*b2mb
         OMP_OFFLOAD target data map(alloc: minmmat)
-        call expand_products(ik, iq, ibgw_including_degeneracy, nbgw_including_degeneracy, -1, mstart, mend, nstse, minmmat)
+        call split_interval( mstart, mend, nstse, m_val_start, m_val_end, m_core_start, m_core_end)
+        call expand_products_generic(ik, iq, ibgw_including_degeneracy, nbgw_including_degeneracy, 1, 0,  m_val_start, m_val_end, m_core_start, m_core_end, minmmat, .true.)
         ! For Gamma we retrieve the minmmat from the device
         ! because MWM corrections for head and wings are computed 
         ! in the host. This is because their memory layout is not
