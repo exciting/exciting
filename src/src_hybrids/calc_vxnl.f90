@@ -25,6 +25,7 @@ subroutine calc_vxnl()
     use cdft, only: cdft_input_keys
     use general_find_vbm_cbm, only: find_vbm_cbm
     use precision, only: i32, dp
+    use mod_expand_products, only: expand_products_generic, split_interval
 #include "offload.fpp"
 
 !
@@ -50,6 +51,8 @@ subroutine calc_vxnl()
     integer(i32), allocatable :: idxpair(:,:)
     complex(dp), allocatable :: minm(:,:,:)
     complex(dp), allocatable :: evecsv(:,:)
+    
+    integer(i32) :: m_val_start, m_val_end, m_core_start, m_core_end
     type(cdft_input_keys) :: cdft_calculation
     real(dp), parameter :: tolerance = 1.0e-8_dp
 
@@ -192,7 +195,8 @@ subroutine calc_vxnl()
             !---------------------
             ! Calculate M^i_{nm}
             !---------------------
-            call expand_products(ik, iq, 1, nstfv, -1, mstart, mend, nomax, minm)
+            call split_interval( mstart, mend, nomax, m_val_start, m_val_end, m_core_start, m_core_end)
+            call expand_products_generic(ik, iq, 1, nstfv, 1, 0,  m_val_start, m_val_end, m_core_start, m_core_end, minm, .true.)
             OMP_OFFLOAD target update from(minm)
 
             ! sum over occupied states
