@@ -5,7 +5,7 @@ module mod_mpi_allgather
 
 #ifdef MPI
   use mpi_f08, only: MPI_INTEGER, MPI_DOUBLE_COMPLEX, mpi_allgather, mpi_allgatherv, &
-    mpi_in_place, MPI_DATATYPE_NULL, mpi_comm
+    mpi_in_place, MPI_DATATYPE_NULL, mpi_comm, MPI_DOUBLE_PRECISION
 #endif
 
   implicit none 
@@ -22,7 +22,8 @@ module mod_mpi_allgather
   !> Wrappers for mpi_allgetherv.
   interface xmpi_allgatherv
     module procedure :: &
-      mpi_allgatherv_in_place_complex_dp
+      mpi_allgatherv_in_place_complex_dp, &
+      mpi_allgatherv_in_place_real_dp
   end interface
 
 contains
@@ -68,6 +69,27 @@ contains
       displacements, MPI_DOUBLE_COMPLEX, mpi_comm( mpi_env%comm ), mpi_env%ierr )
 #endif
   end subroutine mpi_allgatherv_in_place_complex_dp
+
+  !> Wrapper for mpi_allgatherv for a `real(dp)` array.
+  !> Gather data from all tasks and send combined data to all tasks.
+  subroutine mpi_allgatherv_in_place_real_dp( mpi_env, buffer, chunk_size )
+    !> MPI environment
+    type(mpiinfo), intent(inout) :: mpi_env
+    !> Buffer. On input, contains the data of the current rank
+    !> On output, contains the data of all ranks.
+    real(dp), intent(inout) :: buffer(..)
+    !> Number of elements handled by the current rank.
+    integer(i32), intent(in) :: chunk_size
+#ifdef MPI
+    integer(i32), allocatable :: receive_counts(:), displacements(:)
+
+    call xmpi_allgather( mpi_env, chunk_size, receive_counts )
+    call calculate_displacements( mpi_env, receive_counts, displacements )
+    
+    call mpi_allgatherv( mpi_in_place, 0, MPI_DATATYPE_NULL, buffer, receive_counts, &
+      displacements, MPI_DOUBLE_PRECISION, mpi_comm( mpi_env%comm ), mpi_env%ierr )
+#endif
+  end subroutine mpi_allgatherv_in_place_real_dp
 
 
   !> Calculate the number of elements, the data chunk of each rank is displaced by.

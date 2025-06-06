@@ -37,7 +37,6 @@ module propagators
     integer(i32) :: n_eigvecs_houston
   contains
     procedure, public :: initialize => initialize_propagator_input_elements
-    procedure, public :: dt => propagator_input_elements_dt
   end type
 
   !> Abstract type that should be extended by any concrete propagator
@@ -51,6 +50,7 @@ module propagators
     procedure(initialize_), public, deferred :: initialize
     procedure, public :: extrapolation_needed => propagator_requires_extrapolation
     procedure, public :: update_and_check => set_and_check_n_eigvecs_houston
+    procedure, public :: time_step => propagator_time_step
   end type
 
   !> Abstract type for propagators that employ a Taylor expansion
@@ -242,10 +242,10 @@ contains
 
   end subroutine
 
-  !> Return the component `dt_` of [[propagator_input_elements]]
-  pure real(dp) function propagator_input_elements_dt( self ) result(dt)
-    class(propagator_input_elements), intent(in) :: self
-    dt = self%dt_
+  !> Return the component `dt` of [[propagator]]
+  pure real(dp) function propagator_time_step( self ) result( time_step )
+    class(propagator), intent(in) :: self
+    time_step = self%dt
   end function
 
   !> Return a variable of type [[propagator_input_elements]], using all its attributes.

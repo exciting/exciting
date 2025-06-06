@@ -10,7 +10,7 @@
 module rttddft_init
   use asserts, only: assert
   use constants, only: zzero, real_zero, zone, zi
-  use exciting_mpi, only: xmpi_bcast, xmpi_allreduce
+  use exciting_mpi, only: xmpi_bcast, xmpi_allreduce, xmpi_allgatherv
   use general_find_vbm_cbm, only: find_vbm_cbm
   use m_gndstateq, only: gndstateq
   use math_utils, only: plane_wave_in_spherical_harmonics
@@ -38,7 +38,7 @@ module rttddft_init
     procofindex, firstk, lastk
   use modxs, only: isreadstate0
   use muffin_tin_basis, only: mt_basis_type
-  use precision, only: dp, i32, str_128
+  use precision, only: dp, i32, str_128, sp
   use propagators, only: propagator_type => propagator, create_propagator
   use rttddft_berry, only: get_td_overlap_det_and_berry_coupling_term
   use rttddft_CurrentDensity, only: Current_Density, Current_Density_Field
@@ -74,7 +74,8 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
     psi, overlap, ham_init, ham_time, ham_past, effective_potential_init, apwalm, &
     pmat, pmatmt, rhomt_frozen, rhoir_frozen, occupations, initial_ks_energies, k_dependent_dims, &
     occs_tol, kset_rttddft, Gkset, Gset, psi_gnd_lapwlo, pws_for_berry_phase, k_ptrs, &
-    td_overlap_det, berry_coupling_term, prev_phases, e_vec, e_vec_save, j_para_spurious, p_vec_init )
+    td_overlap_det, berry_coupling_term, prev_phases, e_vec, e_vec_save, j_para_spurious, p_vec_init, &
+    energy_gap )
   !> Argument that encapsulates the input options of rttddft
   type(rttddft_input_keys), intent(in) :: rt_inp
   !> Argument that encapsulates the propagator
@@ -141,6 +142,8 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   type(Current_Density_Field), intent(out) :: j_para_spurious
   !> GS polarization obtained at \( t = 0 \)
   type(Polarization), intent(out) :: p_vec_init
+  !> Energy gap
+  real(dp), intent(out) :: energy_gap
 
   integer(i32) :: ik, first_kpt, last_kpt, ham_dimension, i, kgrid_neighbours
   logical :: evolve_H0, my_rank_writes_to_output, success
@@ -262,6 +265,8 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   call propagator%update_and_check( psi%n_occupied(), minval( nmat(1, first_kpt : last_kpt) ), nstfv, success )
   call terminate_if_false( success, &
     'Error: Provided value of nEigenvectorsEH is either smaller than the number of occupied states or larger than basis size.' )
+
+  call get_energy_gap( first_kpt, initial_ks_energies, occupations, kset_rttddft%nkpt, energy_gap )
 
   if( molecular_dynamics%on ) call allocate_MD_globals( first_kpt, last_kpt, &
     allocate_mathcalH=molecular_dynamics%valence_corrections, allocate_B=molecular_dynamics%basis_derivative, &
@@ -425,9 +430,9 @@ end subroutine
 !> Allocate global MD arrays
 subroutine allocate_MD_globals(first_kpt, last_kpt, allocate_mathcalH, &
                             allocate_mathcalB, allocate_B)
-  !> index of the first `k-point` to be considered in the sum
+  !> Index of the first \( \mathbf{k} \) point treated by the current (MPI) rank
   integer(i32), intent(in) :: first_kpt
-  !> index of the last `k-point` considered
+  !> Index of the last \( \mathbf{k} \) point treated by the current (MPI) rank
   integer(i32), intent(in) :: last_kpt
   !> if `.True`, we need to allocate the global array `mathcalH`
   logical, intent(in) :: allocate_mathcalH
@@ -628,7 +633,7 @@ end subroutine
 !> read WF and potential from potential gs run. For hybrid functionals, the parameters are read from the PBE run
 subroutine read_WF_potential_rttddft( first_kpt, kset_rttddft, evecfv_gnd, occupations, initial_ks_energies )
   use modgw, only: kset
-  !> First k-point treated by this (MPI)rank
+  !> Index of the first \( \mathbf{k} \) point treated by the current (MPI) rank
   integer(i32), intent(in) :: first_kpt
   !> k set used in the RT-TDDFT module
   type(k_set), intent(in) :: kset_rttddft
@@ -717,7 +722,7 @@ end subroutine
 !> from the processes containing information about neighbouring \( \mathbf{k} \) points
 subroutine get_data_from_neighbours( first_kpt, last_kpt, n_kpt, proc_needed, k_needed, &
   apwalm_extended, psi_gnd_lapwlo_extended, ik_to_array_position )
-  !> First \( \mathbf{k} \) point for the current rank
+  !> Index of the first \( \mathbf{k} \) point treated by the current (MPI) rank
   integer(i32), intent(in) :: first_kpt
   !> Last \( \mathbf{k} \) point for the current rank
   integer(i32), intent(in) :: last_kpt
@@ -797,7 +802,7 @@ end subroutine get_data_from_neighbours
 !> where \( s = \pm 1 \), and \( \mathbf{b}_{\alpha} \) is the reciprocal lattice vector. 
 subroutine calc_planewave_matrix_elements( first_kpt, k_ptrs, dk_vec, apwalm_extended, &
     psi_gnd_lapwlo_extended, pws_for_berry_phase, ik_to_array, Gkset, Gset, shift_positions, k_shifts )
-  !> First \( \mathbf{k} \) point
+  !> Index of the first \( \mathbf{k} \) point treated by the current (MPI) rank
   integer(i32), intent(in) :: first_kpt
   !> Array containing indices of the neighbouring \( \mathbf{k} \) points
   integer(i32), intent(in) :: k_ptrs(:, :, :)
@@ -918,9 +923,9 @@ end subroutine calc_planewave_matrix_elements
 !> \( \mathbf{k} \) grid and MPI \( \mathbf{k} \)-sets
 subroutine get_kgrid_neighbours_info( first_kpt, last_kpt, kset_rttddft, Gset, k_ptrs, dk_vec, &
     k_needed, proc_needed, kgrid_neighbours, shift_positions, k_shifts )
-  !> First \( \mathbf{k} \) point for the current rank
+  !> Index of the first \( \mathbf{k} \) point treated by the current (MPI) rank
   integer(i32), intent(in) :: first_kpt
-  !> Last \( \mathbf{k} \) point for the current rank
+  !> Index of the last \( \mathbf{k} \) point treated by the current (MPI) rank
   integer(i32), intent(in) :: last_kpt
   !> Set of all \( \mathbf{k} \) points
   type(k_set), intent(in) :: kset_rttddft
@@ -1038,7 +1043,7 @@ subroutine ensure_valid_kpt_offset( kpt_offset )
   if( any( abs( kpt_offset ) > 1.0_dp ) .or. any( kpt_offset < 0.0_dp ) ) then
     call r3frac( eps_lattice, kpt_offset, iv )
     call warning( 'Warning(initialize_rttddft): input%xs%vkloff mapped back to first k-parallelepiped: ' &
-      // to_char( kpt_offset ) ) 
+      // to_char( real( kpt_offset, sp ) ) ) 
   end if
 end subroutine
 
@@ -1062,4 +1067,44 @@ subroutine adjust_input_and_init_exciting_globals( global_input )
   if ( hybrids_used() ) call init_hybrids()
 
 end subroutine
+
+!> Get the energy gap using the KS energies and occupations array
+subroutine get_energy_gap( first_kpt, ks_energies, occupations, n_kpt, energy_gap )
+  !> Index of the first \( \mathbf{k} \) point treated by the current (MPI) rank
+  integer(i32), intent(in) :: first_kpt
+  !> Initial KS energies array (n_ks_states, n_kpt_this_proc)
+  real(dp), contiguous, intent(in) :: ks_energies(:, first_kpt:)
+  !> State occupations array (n_ks_states, n_kpt_this_proc)
+  real(dp), contiguous, intent(in) :: occupations(:, first_kpt:)
+  !> Total number of \( \mathbf{k} \) points
+  integer(i32), intent(in) :: n_kpt
+  !> Energy gap value 
+  real(dp), intent(out) :: energy_gap
+
+  real(dp), allocatable :: ks_energies_all_procs(:, :), occupations_all_procs(:, :)
+  integer(i32) :: vbm_band_ind, cbm_band_ind, vbm_kpt_ind, cbm_kpt_ind, &
+    gap_min_kpt_ind, last_kpt
+
+  
+  call assert( all( shape( ks_energies ) == shape( occupations ) ), "Incompatible energies &
+    and occupations arrays provided to get_energy_gap." )
+  last_kpt = ubound( ks_energies, 2 )
+
+  allocate( ks_energies_all_procs( size( ks_energies, 1 ), n_kpt ), source = real_zero )
+  ks_energies_all_procs(:, first_kpt : last_kpt) = ks_energies
+  call xmpi_allgatherv( mpi_env_k, ks_energies_all_procs, size( ks_energies ) )
+
+  allocate( occupations_all_procs, source = ks_energies_all_procs )
+  occupations_all_procs(:, first_kpt : last_kpt) = occupations
+  call xmpi_allgatherv( mpi_env_k, occupations_all_procs, size( occupations ) )
+
+  call find_vbm_cbm( 1, size( ks_energies_all_procs, 1 ), size( ks_energies_all_procs, 2 ), &
+    occupations_all_procs, ks_energies_all_procs, vbm_band_ind, cbm_band_ind, vbm_kpt_ind, &
+    cbm_kpt_ind, gap_min_kpt_ind )
+
+  energy_gap = ks_energies_all_procs( cbm_band_ind, cbm_kpt_ind ) - ks_energies_all_procs( vbm_band_ind, vbm_kpt_ind )
+  if ( cbm_band_ind < vbm_band_ind ) energy_gap = 0._dp
+
+end subroutine
+
 end module rttddft_init

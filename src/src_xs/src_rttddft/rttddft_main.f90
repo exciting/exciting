@@ -51,6 +51,7 @@ module rttddft_main
   use rttddft_Polarization, only: Polarization
   use rttddft_pmat, only: obtain_pmat_LAPWLOBasis
   use rttddft_potential, only: update_potential
+  use rttddft_sanity_checks, only: check_rttddft_input, check_rttddft_setup
   use rttddft_screenshot, only: screenshot
   use rttddft_solve_fields, only: update_a_ind_and_p_vec
   use rttddft_timings, only: Timing_RTTDDFT_and_MD, Timing_RTTDDFT_density, &
@@ -130,7 +131,7 @@ contains
     type(G_set) :: Gset
     complex(dp), allocatable :: td_overlap_det(:, :)
 
-    real(dp) :: time, timei, timef, time_aux, timeiter, dt, tol, eps_occ
+    real(dp) :: time, timei, timef, time_aux, timeiter, dt, tol, eps_occ, energy_gap
     real(dp), allocatable :: n_exc(:), n_gs(:), prev_phases(:, :)
     real(dp), parameter :: tol_default = 1e-10_dp
     type(MD_out) :: MD_outputs
@@ -150,7 +151,7 @@ contains
     call timesec( timei )
 
     ! Input sanity check
-    call sanity_checks( input )
+    call check_rttddft_input( input )
 
     ! Interface with input parameters
     tol = tol_default
@@ -181,7 +182,7 @@ contains
       e_vec%components = real_zero
       p_vec%components = real_zero
     end if
-    dt = rt%propagator_input%dt()
+    
     eps_occ = input%groundstate%epsocc
 
     if( my_rank_writes_to_output ) then
@@ -193,8 +194,12 @@ contains
       psi, overlap, ham_init, ham_time, ham_past, effective_potential_init, &
       apwalm, pmat, pmatmt, rhomt_frozen, rhoir_frozen, occupations, initial_ks_energies, k_dependent_dims, &
       eps_occ, kset, Gkset, Gset, ks_lapwlo_transition_matrix, pws_for_berry_phase, k_ptrs, &
-      td_overlap_det, berry_coupling_term, prev_phases, e_vec, e_vec_save, j_para_spurious, p_vec_init )
+      td_overlap_det, berry_coupling_term, prev_phases, e_vec, e_vec_save, j_para_spurious, p_vec_init, energy_gap )
+    call check_rttddft_setup( propagator%time_step(), initial_ks_energies, rt%use_berry_phase(), &
+      vec_pot, time, rt%t_end, avec, kset%ngridk, energy_gap )
+    
     call distribute_loop( mpi_env_k, kset%nkpt, first_kpt, last_kpt )
+    dt = propagator%time_step()
     if( molecular_dynamics%on ) then
       call init_MD( rt%do_from_scratch(), time, vec_pot%a_tot, dt, psi%active, &
         occupations, overlap, ham_time, kset, time_step_multiplier, molecular_dynamics, &
@@ -633,80 +638,7 @@ contains
     call write_vector_field( time_array, e_vec_array )
   end subroutine
 
-  !> (private subroutine) Check if variables given in the input file make sense
-  subroutine sanity_checks( inp )
-    !> type with the variables given in the input file
-    type(input_type):: inp
-
-    real(dp), parameter :: eps_kick_width = 1.e-14_dp
-    integer(i32) :: i
-    
-    call terminate_if_false( .not. inp%groundstate%solver%packedmatrixstorage, &
-      & 'Error: RT-TDDFT does not work with matrices stored in a packed form.' )
-
-    ! Consistency check: check if no spin polarized calculations are requested.
-    call terminate_if_false( .not. inp%groundstate%tevecsv, &
-      & 'Error: only spin unpolarised calculations are possible with RT-TDDFT now.' )
-
-    ! Consistency check: laser has been defined?
-    call terminate_if_false( associated( inp%xs%realTimeTDDFT%laser ), &
-      & 'Element <laser> in <realTimeTDDFT> not found')
-
-    if( associated(inp%xs%realTimeTDDFT%predictorCorrector) ) then
-      ! Consistency check: MD and predictor corrector?
-      call terminate_if_false( .not. associated( inp%MD ), &
-        & 'It is currently not possible to use the predictor corrector method together with molecular dynamics')
-      ! Consistency check: predictor corrector method cannot be used with propagators SE and EH
-      call terminate_if_false( trim( inp%xs%realTimeTDDFT%propagator )/='SE' .and. trim( inp%xs%realTimeTDDFT%propagator )/='EH', &
-        & 'EH and SE methods are not compatible with predictor-corrector' )
-      ! Consistency check: predictor corrector method should not be used with frozen ee interaction
-      call terminate_if_false( trim( inp%xs%realTimeTDDFT%eeInteraction ) /= "IPA", &
-        & 'Predictor corrector method should not be used together with IP approximation')
-    end if
-
-    if ( trim( inp%xs%realTimeTDDFT%fieldCoupling ) == "berryPhase" ) then
-      call terminate_if_false( trim( inp%xs%realTimeTDDFT%basis ) == "unperturbedKS", &
-        "Berry phase coupling is currently available only with the KS basis" )
-      call terminate_if_false( trim( inp%xs%realTimeTDDFT%laser%fieldType ) == "total", &
-        "Berry phase coupling is currently available only with total field given" )
-    else
-      call terminate_if_false( associated( inp%xs%realTimeTDDFT%pmat ), &
-      & 'Element <pmat> in <realTimeTDDFT> not found' )
-    end if
-
-    ! No restart currently possible for MD calculations
-    if( associated( inp%MD ) ) then
-      if( trim( inp%xs%realTimeTDDFT%do ) /= "fromscratch" ) then 
-        call terminate_if_false( trim( inp%xs%realTimeTDDFT%propagator ) == "SE" .or. trim( inp%xs%realTimeTDDFT%propagator ) == "EH", &
-          "Restart for Ehrenfest MD is currently only implemented for the SE and EH propagators" )
-        call terminate_if_false( inp%xs%realTimeTDDFT%timeStep == inp%MD%timeStep, &
-          "Restart for Ehrenfest MD is currently only implemented when the RT-TDDFT and MD timesteps are the same")
-      end if
-
-      call terminate_if_false( inp%xs%realTimeTDDFT%numberOfFrozenStates == 0, &
-        "No state freezing currently possible for MD calculations" )
-      call terminate_if_false( trim( inp%xs%realTimeTDDFT%basis ) == "LAPWlo", &
-        "Usage of the KS basis set is currently unavailable for MD calculations" )
-    end if
-
-    if ( inp%xs%realTimeTDDFT%calculateTotalEnergy ) then
-      ! Consistency check: real-time total energy is ill-defined with frozen ee interaction
-      call terminate_if_false( trim( inp%xs%realTimeTDDFT%eeInteraction ) /= "IPA", &
-        & 'Real-time total energy should not be evaluated with IP approximation')
-    end if
-
-    if (  associated( inp%xs%realTimeTDDFT%laser%kickarray ) ) then
-      associate( kick_array => inp%xs%realTimeTDDFT%laser%kickarray )
-        do i = 1, size( kick_array )
-          if ( abs( kick_array(i)%kick%width ) < eps_kick_width ) &
-          call warning( 'Warning: electric field is ill-defined at time ' // &
-            to_char( real( kick_array(i)%kick%t0, sp) ) // ' for the kick number ' // to_char( i ) )
-        end do
-      end associate
-    end if
-
-  end subroutine
-
+  
   !> Loop used in the predictor-corrector method
   subroutine loop_predictor_corrector( it, time, rt, first_kpt, psi, occupations, &
     overlap, ham_time, ham_past, k_dependent_dims, apwalm, pmat, &
@@ -790,7 +722,7 @@ contains
     complex(dp), allocatable :: ham_predcorr(:, :, :)
     type(Electric_Field) :: e_vec
 
-    dt = rt%propagator_input%dt()
+    dt = propagator%time_step()
     last_kpt = first_kpt + size( ham_time, 3 ) - 1
     allocate( ham_predcorr, mold = ham_time )
 

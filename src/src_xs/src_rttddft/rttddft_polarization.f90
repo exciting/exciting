@@ -44,7 +44,7 @@ contains
   !> where \( V \) is the unit cell volume, \( N_{\mathbf{k}_{\alpha}^{\perp}} \) is the number of \( \mathbf{k} \) points 
   !> in a plane orthogonal (in the lattice coordinates) to direction \( \alpha \), and \( f \) is the spin degeneracy factor.
   pure subroutine get_with_mtp( this, td_overlap_det, k_grid_dimensions, k_3d_to_1d_map, &
-      avec, prev_phases, match_phases_with_prev )
+      lattice_vectors, prev_phases, match_phases_with_prev )
     class(Polarization), intent(inout) :: this
     !> Determinants of the overlap matrix \( S^{\mathbf{k}_i, \mathbf{k}_{i \alpha}^+} \) 
     !> between the states corresponding to the neighbouring k points (3, nkpt)
@@ -54,7 +54,7 @@ contains
     !> Array which maps 3D integer k point index to the 1D one
     integer(i32), intent(in) :: k_3d_to_1d_map(:, :, :)
     !> Set of the unit cell vectors \( \mathbf{a}_{\alpha} \)
-    real(dp), intent(in) :: avec(:, :)
+    real(dp), intent(in) :: lattice_vectors(:, :)
     !> String phases evaluated at the previous time step. Used to 
     !> make sure the corect logarithm branch is being used (max_n_ort_plane, 3)
     real(dp), intent(inout) :: prev_phases(:, :)
@@ -70,7 +70,7 @@ contains
 
     this%components = real_zero
     pvec_lattice = real_zero
-    unit_cell_volume = triple_product( avec )
+    unit_cell_volume = triple_product( lattice_vectors )
 
     allocate( phases(size( prev_phases, 1 )) )
     ! cycle over lattice directions
@@ -125,7 +125,7 @@ contains
     ! transform to cartesian
     do direction = 1, n_cartesian
       this%components(direction) = this%components(direction) + &
-      dot_product( pvec_lattice, avec(direction, :) )
+      dot_product( pvec_lattice, lattice_vectors(direction, :) )
     end do
 
   end subroutine
