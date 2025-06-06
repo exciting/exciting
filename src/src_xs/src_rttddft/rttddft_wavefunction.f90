@@ -160,7 +160,8 @@ contains
     !> Minimal value of occupation for the state to be 'occupied'
     real(dp), intent(in) :: occs_tol
 
-    integer :: n_gnd_states, i
+    integer(i32) :: n_gnd_states, i, n_active_states
+    integer(i32), allocatable :: buffer(:)
 
     n_gnd_states = size( complete_gnd_set_lapwlo, 2 )
 
@@ -176,8 +177,11 @@ contains
       this%groundstate(i, i, :) = zone
     end do
 
-    allocate( this%active, source = this%groundstate(:, n_frozen_ + 1 : &
-      last_occupied_for_current_rank( occupations, occs_tol ), :) )
+    n_active_states = last_occupied_for_current_rank( occupations, occs_tol )
+    ! Force the same number of active states over all MPI ranks
+    call xmpi_allgather( mpiglobal, n_active_states, buffer )
+    n_active_states = maxval( buffer )
+    allocate( this%active, source = this%groundstate(:, n_frozen_ + 1 : n_active_states, :) )
     if ( save_needed ) allocate( this%active_save, source = this%active )
     if ( n_frozen_ > 0 ) allocate( this%frozen, source = this%groundstate(:, 1 : n_frozen_, :) )
 
