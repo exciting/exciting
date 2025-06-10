@@ -50,11 +50,11 @@ module muffin_tin_basis
     !> (L)APW radial functions \(u^\alpha_{l,\xi}(r)\),
     !> The index order is `apw_rad_fun(ir, d, o, l, ias)` with radial grid point `ir`, radial derivative order `d`, 
     !> linearisation order \(\xi=\)`o`, angular momentum \(l=\)`l` and atom index \(\alpha=\)`ias`.
-    real(dp), allocatable :: apw_rad_fun(:,:,:,:,:)
+    real(dp), public, allocatable :: apw_rad_fun(:,:,:,:,:)
     !> LO radial functions \(f^L(r)\),
     !> The index order is `lo_rad_fun(ir, d, ilo, ias)` with radial grid point `ir`, radial derivative order `d`, 
     !> local orbital index \(L=\)`ilo` and atom index \(\alpha=\)`ias`.
-    real(dp), allocatable :: lo_rad_fun(:,:,:,:)
+    real(dp), public, allocatable :: lo_rad_fun(:,:,:,:)
     !> radial grids on which the radial functions are given for each species
     real(dp), public, allocatable :: rad_grid(:,:)
     !> number of radial grid points for each species

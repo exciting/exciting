@@ -45,6 +45,7 @@ src_dir: ../src/
          ../src/src_xs/fastBSE/
          ../src/src_xs/fastBSE/BSH/
          ../src/src_xs/fastBSE/utils/
+         ../src/kinetic_energy_density
 
 [//]: # "Note, ford commands can not be separated by whitelines."  
 [//]: # "More information on ford's project file options can be found at:"  
