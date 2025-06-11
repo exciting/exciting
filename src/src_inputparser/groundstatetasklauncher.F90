@@ -28,7 +28,7 @@ Subroutine groundstatetasklauncher
         input%groundstate%Hybrid => getstructHybrid(emptynode)
     End If
     ! EXX-OEP-based hybrid functionals
-    If (is_hybrid_calculation) Then
+    If (associated(input%groundstate%Hybrid)) Then
         If (input%groundstate%Hybrid%exchangetypenumber .Eq. 2) Then
             If (.not.associated(input%groundstate%OEP)) Then
                input%groundstate%OEP => getstructOEP (emptynode)
