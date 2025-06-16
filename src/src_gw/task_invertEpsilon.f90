@@ -1,7 +1,7 @@
 module task_invertEpsilon
   use constants, only: zzero
   use exciting_mpi, only: mpiinfo
-  use gw_io, only: write_to_gwinfo, write_to_gwinfo_boxmessage
+  use gw_info, only: write_to_gwinfo, write_to_gwinfo_boxmessage
   use invert_dielectric_function, only: calcinveps
   use modinput, only: input, gw_type
   use modgw, only: freq, kqset, kset, time_dfinv

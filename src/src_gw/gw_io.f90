@@ -2,31 +2,27 @@
 module gw_io
   use asserts, only: assert
   use modmpi, only: terminate_if_false
+  use mod_mpi_gw, only: indexes_parallelization
   use m_getunit, only: getunit
-  use precision, only: dp, i32
+  use precision, only: dp, i32, str_128
   use to_char_conversion, only: to_char
 
   implicit none
 
   private
+  
 
   !> Number written to the header of a file to indicate that the file stores multiple arrays
   integer(i32), parameter :: indicator_file_with_multiple_arrays = -1
-
-  !> Unit used for the general GW output file (`GW_INFO.OUT`)
-  integer(i32), public, protected :: fgw
-  !> Default name of the general GW output file
-  character(len=*), parameter :: filename_gwinfo = 'GW_INFO.OUT'
   !> Default extension
   character(len=*), parameter :: default_file_extension = '.OUT'
   !> Accepted file format = 'text'
   character(len=*), public, parameter :: file_format_text = 'text'
   !> Accepted file format = 'binary'
   character(len=*), public, parameter :: file_format_binary = 'binary'
-  
-  public :: open_gwinfo, write_to_gwinfo, write_to_gwinfo_boxmessage, &
-    build_file_name, write_to_file, read_from_file, &
-    read_bounds_from_file
+
+  public :: build_file_name, write_to_file, read_from_file, read_bounds_from_file, &
+            open_file
   
   interface write_to_file
     module procedure write_vector_to_file
@@ -52,42 +48,19 @@ module gw_io
     module procedure read_matrix_from_file
     module procedure read_matrix_from_file_without_allocating
     module procedure read_tensor_of_rank_3_from_file
+    module procedure read_tensor_of_rank_4_from_file
   end interface
 
+  interface open_file
+    module procedure open_file_generic
+  end interface
+  
   interface write_header_to_file
     module procedure write_header_to_file_complex_array
     module procedure write_header_to_file_real_array
   end interface
 
 contains
-
-!> Open the `GW_INFO.OUT`
-subroutine open_gwinfo( )
-  
-  call open_text_file( filename_gwinfo , 'write', fgw )
-
-end subroutine
-
-
-!> Write a string into `GW_INFO.OUT`
-subroutine write_to_gwinfo( string )
-  character(len=*), intent(in) :: string
-
-  write( fgw, * ) string
-
-end subroutine
-
-
-!> Write a string surrounded by a box of characters into `GW_INFO.OUT`
-subroutine write_to_gwinfo_boxmessage( char, string )
-  character, intent(in) :: char
-  character(len=*), intent(in) :: string
-
-  call BoxMSG( fgw, char, string )
-
-end subroutine
-
-
 !> Append an integer to a string together with the default extension, and 
 !> store the result in `file_name`
 subroutine build_file_name_with_integer( base_name, int, file_name )
@@ -677,6 +650,45 @@ subroutine read_tensor_of_rank_3_from_file( file_name, tensor, file_format )
       do i = lbounds(3), ubounds(3) 
         do j = lbounds(2), ubounds(2)
           read( unit ) tensor(:, j, i)
+        end do
+      end do
+  end select 
+  close( unit )
+
+end subroutine
+
+
+!> Read a tensor of rank 4 stored in a file
+subroutine read_tensor_of_rank_4_from_file( file_name, tensor, file_format )
+  !> Name of the file to read
+  character(len=*), intent(in)          :: file_name
+  !> Tensor to store the data read from the file
+  complex(dp), intent(out), allocatable :: tensor(:, :, :, :)
+  !> Format of the file
+  character(len=*), intent(in)          :: file_format
+
+  integer(i32) :: unit, i, j, k, read_rank, lbounds(4), ubounds(4)
+  integer(i32), parameter :: expected_rank = 4 !rank of tensor
+
+  call open_file_generic( file_name, 'read', file_format, unit )
+  call read_header_of_file( unit, file_format, read_rank, lbounds, ubounds )
+  call terminate_if_false( read_rank==expected_rank, 'The file ' // trim(file_name) // ' contains no tensor of rank 4' )
+  allocate( tensor(lbounds(1):ubounds(1), lbounds(2):ubounds(2), lbounds(3):ubounds(3), lbounds(4):ubounds(4)) )
+  select case( trim(file_format) )
+    case( file_format_text )
+      do i = lbounds(4), ubound( tensor, 4 )
+        do j = lbounds(3), ubound( tensor, 3 )
+          do k = lbounds(2), ubound( tensor, 2 )
+            read( unit, * ) tensor(:, k, j, i)
+          end do
+        end do
+      end do
+    case( file_format_binary )
+      do i = lbounds(4), ubound( tensor, 4 )
+        do j = lbounds(3), ubound( tensor, 3 )
+          do k = lbounds(2), ubound( tensor, 2 )
+            read( unit ) tensor(:, k, j, i)
+          end do
         end do
       end do
   end select 

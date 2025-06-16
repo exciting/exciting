@@ -6,20 +6,19 @@ subroutine calcselfc(iq, ikp_first, ikp_last)
     use mod_atoms, only: natmtot
     use mod_bands, only: eveckalm, eveckpalm, eveckp, eveck, nstse, evalfv
     use mod_core_states, only: ncg
+    use mod_dielectric_function, only: epsilon
     use mod_eigensystem, only: nmatmax
     use mod_eigenvalue_occupancy, only: nstfv
+    use mod_expand_products, only: expand_products_generic, split_interval
     use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
-    use mod_muffin_tin, only: lmmaxapw
     use mod_misc_gw, only: Gamma
-    use mod_selfenergy, only: mwm, freq_selfc, selfec
+    use mod_muffin_tin, only: lmmaxapw
     use mod_product_basis, only: minmmat, mbsiz
-    use mod_dielectric_function, only: epsilon
+    use mod_selfenergy, only: mwm, freq_selfc, selfec
     use modinput, only: input
     use modgw, only: time_selfc, kqset, kset, Gkqset, b2mb, ibgw, nbgw, freq, mblksiz, msize, fdebug
     use modmpi, only: rank
     use precision, only: i32, dp
-    use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
-    use mod_expand_products, only: expand_products_generic, split_interval
 
 #include "offload.fpp"
 

@@ -2,7 +2,7 @@
 module task_QPEigenvalues
   use constants, only: zzero
   use exciting_mpi, only: mpiinfo
-  use gw_io, only: write_to_gwinfo, write_to_gwinfo_boxmessage
+  use gw_info, only: write_to_gwinfo, write_to_gwinfo_boxmessage
   use mod_bands, only: evalfv, bandstructure_analysis
   use mod_eigenvalue_occupancy, only: efermi
   use mod_kpointset, only: k_set

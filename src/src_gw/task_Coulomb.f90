@@ -2,7 +2,7 @@
 !> task `Coulomb`, used as an element of `taskGroup` in `gw`
 module task_Coulomb
   use exciting_mpi, only: mpiinfo
-  use gw_io, only: write_to_gwinfo, write_to_gwinfo_boxmessage
+  use gw_info, only: write_to_gwinfo, write_to_gwinfo_boxmessage
   use modgw, only: fgw, kqset, Gqset
   use modinput, only: input, gw_type
   use modmpi, only: terminate_if_false, mpiglobal, distribute_loop

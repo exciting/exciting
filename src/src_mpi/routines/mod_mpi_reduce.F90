@@ -2,7 +2,6 @@
 module mod_mpi_reduce
   use iso_c_binding, only: c_f_pointer, c_loc
   use mod_mpi_env, only: mpiinfo
-  use modmpi, only: terminate
 #ifdef MPI
   ! Remark(Ronaldo): using mpi instead of mpi_f08 leads to a seg. fault when using
   ! assumed rank arrays in calls to openmpi-MPI subroutines.

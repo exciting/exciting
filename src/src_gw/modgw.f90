@@ -1,6 +1,6 @@
 
 module modgw
-    use gw_io, only: fgw
+    use gw_info, only: fgw
     use mod_core_states
     use mod_product_basis
     use mod_gaunt_coefficients

@@ -5,7 +5,7 @@
 
 module mod_bands
     use asserts, only: assert
-    use gw_io, only: write_to_gwinfo, write_to_gwinfo_boxmessage
+    use gw_info, only: write_to_gwinfo, write_to_gwinfo_boxmessage
     use modgw, only : kset, fgw, hatree_2_eV => hev
     use modmpi, only : rank, terminate
     use precision, only: i32, dp, str_64
