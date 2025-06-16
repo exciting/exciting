@@ -69,7 +69,7 @@ contains
 
     use mod_symmetry,    only: symlat, lsplsymc, nsymcrys, find_equivalent_wavevectors
     use mod_gw_symmetry, only: rotate_from_qa_to_qb_matrices
-    use gw_io,           only: write_to_gwinfo, write_to_gwinfo_boxmessage
+    use gw_info,         only: write_to_gwinfo, write_to_gwinfo_boxmessage
     use mod_dielectric_function, only: epsilon, read_inverse_epsilon_from_file, write_inverse_epsilon_to_file
 
     !> The number of points in the irreducible wedge

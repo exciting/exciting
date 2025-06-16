@@ -2,7 +2,7 @@ module task_sigmac
   use asserts, only: assert
   use constants, only: zzero, real_zero
   use exciting_mpi, only: mpiinfo
-  use gw_io, only: write_to_gwinfo, write_to_gwinfo_boxmessage
+  use gw_info, only: write_to_gwinfo, write_to_gwinfo_boxmessage
   use math_utils, only: all_zero
   use modinput, only: input, gw_type
   use modgw, only: freq, ibgw, nbgw

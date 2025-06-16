@@ -3,7 +3,7 @@ module task_sigmax
   use asserts, only: assert 
   use constants, only: zzero
   use exciting_mpi, only: mpiinfo
-  use gw_io, only: write_to_gwinfo, write_to_gwinfo_boxmessage
+  use gw_info, only: write_to_gwinfo, write_to_gwinfo_boxmessage
   use modinput, only: input, gw_type
   use modmpi, only: mpiglobal, distribute_loop, terminate_if_false
   use mod_coulomb_potential, only: delete_coulomb_potential, read_barcev_vmat_from_file

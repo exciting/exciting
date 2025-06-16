@@ -4,7 +4,8 @@ module task_epsilon
   use asserts, only: assert
   use constants, only: real_zero
   use exciting_mpi, only: mpiinfo
-  use gw_io, only: write_to_file, write_to_gwinfo, write_to_gwinfo_boxmessage
+  use gw_info, only: write_to_gwinfo, write_to_gwinfo_boxmessage
+  use gw_io, only: write_to_file
   use math_utils, only: all_zero
   use modgw, only: kqset, kset
   use modinput, only: input, gw_type

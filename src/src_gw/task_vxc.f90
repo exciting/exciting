@@ -2,7 +2,7 @@
 module task_vxc
   use asserts, only: assert
   use exciting_mpi, only: mpiinfo
-  use gw_io, only: write_to_gwinfo_boxmessage
+  use gw_info, only: write_to_gwinfo_boxmessage
   use mod_kqpts, only: kpoints_sets
   use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
   use mod_vxc, only: calcvxcnn, write_vxcnn, deallocate_vxcnn

@@ -1,6 +1,6 @@
 
 subroutine gw_main()
-    use gw_io, only: fgw, open_gwinfo
+    use gw_info, only: fgw, open_gwinfo
     use modinput
     use modmain
     use modgw

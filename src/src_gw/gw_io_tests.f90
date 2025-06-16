@@ -27,7 +27,7 @@ subroutine run_gw_io_test_driver( mpiglobal, kill_on_failure )
   logical, optional :: kill_on_failure
   
   type(unit_test_type) :: test_report
-  integer, parameter :: n_assertions = 2+11+8
+  integer, parameter :: n_assertions = 2+13+8
 
   call test_report%init( n_assertions, mpiglobal )
 
@@ -86,7 +86,8 @@ subroutine test_write_read( test_report, mpiglobal )
   real(dp), parameter :: tol = 1.0e-8_dp
   real(dp), allocatable :: real_vector(:)
   complex(dp), allocatable :: vector(:), matrix(:, :), matrix_ref(:, :)
-  complex(dp), allocatable :: tensor_ref(:, :, :), tensor(:, :, :)
+  complex(dp), allocatable :: tensor_rank3_ref(:, :, :), tensor_rank3(:, :, :)
+  complex(dp), allocatable :: tensor_rank4_ref(:, :, :, :), tensor_rank4(:, :, :, :)
 
   ! Each MPI rank reads/writes its own file
   write( file_name, * ) mpiglobal%rank
@@ -132,11 +133,18 @@ subroutine test_write_read( test_report, mpiglobal )
   call test_report%assert( all_close(matrix, matrix_ref, tol=tol), 'Vector read from text file differs from reference' )
 
   ! Write/read tensor in binary format
-  tensor_ref = reshape( complex_matrix_5x7, [2, 3, 4])
-  call write_to_file( file_name, tensor_ref, lbound( tensor_ref ), binary_format )
-  call read_from_file( file_name, tensor, binary_format )
-  call test_report%assert( all_close(tensor, tensor_ref, tol=tol), 'Tensor read from binary file differs from reference' )
-  call test_report%assert( all(lbound(tensor)==lbound(tensor_ref)), 'Tensor has wrong lbound' )
+  tensor_rank3_ref = reshape( complex_matrix_5x7, [2, 3, 4])
+  call write_to_file( file_name, tensor_rank3_ref, lbound( tensor_rank3_ref ), binary_format )
+  call read_from_file( file_name, tensor_rank3, binary_format )
+  call test_report%assert( all_close(tensor_rank3, tensor_rank3_ref, tol=tol), 'Tensor read from binary file differs from reference' )
+  call test_report%assert( all(lbound(tensor_rank3)==lbound(tensor_rank3_ref)), 'Tensor has wrong lbound' )
+
+  ! Write/read tensor of rank 4 in binary format
+  tensor_rank4_ref = reshape( complex_matrix_5x7, [2, 3, 2, 2])
+  call write_to_file( file_name, tensor_rank4_ref, lbound( tensor_rank4_ref ), binary_format )
+  call read_from_file( file_name, tensor_rank4, binary_format )
+  call test_report%assert( all_close(tensor_rank4, tensor_rank4_ref, tol=tol), 'Tensor read from binary file differs from reference' )
+  call test_report%assert( all(lbound(tensor_rank4)==lbound(tensor_rank4_ref)), 'Tensor has wrong lbound' )
 
   call delete_file( file_name )
 
