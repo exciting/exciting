@@ -20,5 +20,5 @@ include:
   - local: '/.gitlab/exciting-fedora-buster-gnu-mpismp-scalapack-hdf5.yml'
   - local: '/.gitlab/exciting-debian-buster-intel2021-serial.yml'
   - local: '/.gitlab/exciting-debian-buster-intel2021-smp.yml'
-  - local: '/.gitlab/exciting-fedora-buster-intel2025-serial.yml'
-  - local: '/.gitlab/exciting-fedora-buster-intel2025-gpu.yml'
+  - local: '/.gitlab/exciting-debian-buster-intel2025-serial.yml'
+  - local: '/.gitlab/exciting-debian-buster-intel2025-gpu.yml'
