@@ -348,10 +348,12 @@ End Subroutine bandstr
 !> This subroutine interpolate function \(f1_n( k )\) defined on the kmesh 1, to kmesh 2
 !> using 3D Smooth Fourier transform according to PRB 38, 2721 (1988).
 subroutine fourintp(f1, nk1, kvecs1, f2, nk2, kvecs2, nb)
-  use constants, only: zone
-  use fouri, only: nrr, nst, rbas, rindex, rst, setrindex_done
+  use constants,    only: zone
+  use modmpi,       only: terminate_if_false
+  use linear_system_ill_defined_safe, only: ill_defined_safe_solve
+  use fouri,        only: nrr, nst, rbas, rindex, rst, setrindex_done
   use mod_symmetry, only: nsymcrys
-  use xlapack, only: matrix_multiply
+  use xlapack,      only: matrix_multiply
 
   integer(i32), intent(in) :: nk1,nk2,nb
   real(dp),    intent(in) :: kvecs1(3,nk1),kvecs2(3,nk2)
@@ -359,8 +361,12 @@ subroutine fourintp(f1, nk1, kvecs1, f2, nk2, kvecs2, nb)
   complex(dp), intent(out):: f2(nk2,1:nb) 
     
   integer(i32) :: i, ist, ib, ik, jk, ir
-  integer(i32) :: info
-  integer(i32), allocatable  :: ipiv(:)
+  integer(i32) :: info, rank, lwork, lrwork, liwork
+  real(dp), parameter   :: zero_tolerance = 1.0e-6_dp
+  real(dp), allocatable :: singular_values(:)
+  complex(dp), allocatable :: work(:)
+  real(dp), allocatable :: rwork(:)
+  integer(i32), allocatable :: iwork(:)
     
   real(dp) :: den, pref, kdotr
   real(dp) :: rmin,rlen,x2,x6,c1,c2
@@ -402,15 +408,15 @@ subroutine fourintp(f1, nk1, kvecs1, f2, nk2, kvecs2, nb)
   c2 = 0.25_dp
 
   allocate(smat1(nk1,nst), &
-  &        smat2(nk2,nst), &
-  &        rho(nst),       &
-  &        coef(nst,nb),   &
-  &        ipiv(1:nk1-1),  &
-  &        sm2(1:nk1-1,1:nst), &
-  &        h(1:nk1-1,1:nk1-1), &
-  &        dele(1:nk1-1,1:nb))
+           smat2(nk2,nst), &
+           rho(nst),       &
+           coef(nst,nb),   &
+           singular_values(1:nk1-1),  &
+           sm2(1:nk1-1,1:nst), &
+           h(1:nk1-1,1:nk1-1), &
+           dele(1:nk1-1,1:nb))
   
-  den = dble(nsymcrys)
+  den = real(nsymcrys, kind=dp)
 
   ! Calculate the star expansion function at each irreducible k-point
   smat1(1:nk1,1:nst) = zzero
@@ -418,8 +424,8 @@ subroutine fourintp(f1, nk1, kvecs1, f2, nk2, kvecs2, nb)
     kvec(1:3) = kvecs1(1:3,ik)
     do ir = 2, nrr
       ist = rst(1,ir)
-      pref = dble(rst(2,ir))
-      r(1:3) = dble(rindex(1:3,ir))
+      pref = real(rst(2,ir), kind=dp)
+      r(1:3) = real(rindex(1:3,ir), kind=dp)
       kdotr = twopi*sum( r(1:3)*kvec(1:3) ) 
       expkr = cmplx( cos(kdotr), sin(kdotr), kind=dp )
       smat1(ik,ist) = smat1(ik,ist)+pref*expkr/den
@@ -431,20 +437,20 @@ subroutine fourintp(f1, nk1, kvecs1, f2, nk2, kvecs2, nb)
   ! In such cases, the corresponding rows (and thus some k-points) must be discarded.
   
   ! Calculate the curvature function (rho) for each star
-  rho(1:nst) = 0.0d0
+  rho(1:nst) = 0.0_dp
   ist = 1
   do ir = 2, nrr
-    if (rst(1,ir).ne.ist) then
+    if (rst(1,ir) /= ist) then
       ist = rst(1,ir)
-      r(1:3) = dble(rindex(1:3,ir))
+      r(1:3) = real(rindex(1:3,ir), kind=dp)
       do i = 1, 3
         rvec(i) = r(1)*rbas(i,1)+r(2)*rbas(i,2)+r(3)*rbas(i,3)
       enddo
       rlen = sum(rvec(1:3)*rvec(1:3))
-      if (ist.eq.2) rmin = rlen
+      if (ist == 2) rmin = rlen
       x2 = rlen/rmin
       x6 = x2*x2*x2
-      rho(ist) = (1.0d0-c1*x2)*(1.0d0-c1*x2)+c2*x6
+      rho(ist) = (1.0_dp-c1*x2)*(1.0_dp-c1*x2)+c2*x6
     endif
   enddo
   
@@ -469,12 +475,9 @@ subroutine fourintp(f1, nk1, kvecs1, f2, nk2, kvecs2, nb)
   enddo
   
   ! Solve the Linear equations for the Lagrange multipliers
-  call zgetrf(nk1-1,nk1-1,h,nk1-1,ipiv,info)
-  call errmsg(info.ne.0,"fourintp","error when calling zgetrf")
+  ! We use SVD to properly manage ill-conditioned H
+  call ill_defined_safe_solve(h, dele, threshold=zero_tolerance)
 
-  call zgetrs('n',nk1-1,nb,h,nk1-1,ipiv,dele,nk1-1,info)
-  call errmsg(info.ne.0,"fourintp","error when calling zgetrs")
-  
   ! Calculate the coefficients of the Star expansion
   coef(1,1:nb) = f1(nk1,1:nb)
   do ist = 2, nst
