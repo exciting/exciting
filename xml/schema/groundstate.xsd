@@ -571,6 +571,126 @@
           </xs:complexType>
         </xs:element>
 
+        <xs:element  ex:importance="expert" maxOccurs="1" minOccurs="0" name="mgga">
+          <xs:annotation>
+            <xs:documentation>Options for mGGA functionals.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+
+           <xs:attribute default="none" name="xc" use="optional">
+              <xs:annotation>
+                <xs:documentation> Combined functionals. If set it overrides the exchange and the
+                  correlation attributes.</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  
+                  <xs:enumeration value="none">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr>0</oldnr>
+                      </xs:appinfo>
+                    </xs:annotation>
+                   </xs:enumeration>
+
+                  <xs:enumeration value="XC_MGGA_XC_HLE17">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 288 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Teter 93 parametrization </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+
+                </xs:restriction>
+              </xs:simpleType>
+          </xs:attribute>
+
+          <xs:attribute default="XC_MGGA_X_R2SCAN" name="exchange" use="optional">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                  <xs:enumeration value="XC_MGGA_X_SCAN">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 263 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> SCAN exchange of Sun, Ruzsinszky, and Perdew </xs:documentation>
+                    </xs:annotation>
+                    </xs:enumeration>
+                  <xs:enumeration value="XC_MGGA_X_R2SCAN">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 497 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> SCAN exchange of Sun, Ruzsinszky, and Perdew </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_MGGA_X_TASK">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 707 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> TASK exchange of Aschebrock and Kuemmel </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_MGGA_X_TPSS">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 202 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> SCAN exchange of Sun, Ruzsinszky, and Perdew </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                </xs:restriction>
+              </xs:simpleType> 
+            </xs:attribute>
+
+          <xs:attribute default="XC_MGGA_C_R2SCAN" name="correlation" use="optional">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                  <xs:enumeration value="XC_MGGA_C_SCAN">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 267 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> SCAN correlation of Sun, Ruzsinszky, and Perdew </xs:documentation>
+                    </xs:annotation>
+                    </xs:enumeration>
+                  <xs:enumeration value="XC_MGGA_C_R2SCAN">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 498 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> SCAN correlation of Sun, Ruzsinszky, and Perdew </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_LDA_C_PW">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 12 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> Perdew &amp; Wang </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_MGGA_C_TPSS">
+                     <xs:annotation>
+                       <xs:appinfo>
+                         <oldnr> 231 </oldnr>
+                       </xs:appinfo>
+                       <xs:documentation> SCAN correlation of Sun, Ruzsinszky, and Perdew </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
+       
+
+          </xs:complexType>
+        </xs:element>
+
+
+
         <xs:element ex:importance="expert" ex:unit="" name="sirius" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation> Element for specifying details how the SIRIUS library is used.
@@ -1002,6 +1122,14 @@
                     <xs:annotation>
                       <xs:appinfo>
                         <oldnr> 116 </oldnr>
+                      </xs:appinfo>
+                      <xs:documentation> Perdew, Burke &amp; Ernzerhof exchange (solids) </xs:documentation>
+                    </xs:annotation>
+                  </xs:enumeration>
+                  <xs:enumeration value="XC_GGA_X_LSRPBE">
+                    <xs:annotation>
+                      <xs:appinfo>
+                        <oldnr> 169 </oldnr>
                       </xs:appinfo>
                       <xs:documentation> Perdew, Burke &amp; Ernzerhof exchange (solids) </xs:documentation>
                     </xs:annotation>
