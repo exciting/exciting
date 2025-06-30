@@ -178,7 +178,7 @@ groundstate_attribute_types = {"APWprecision": (float, 1),
                                            "GGA_PBE_SR", "GGA_WC", "HYB_HSE", "HYB_LDA0", "HYB_PBE0", "LDA_PW",
                                            "LDA_PZ", "LDA_XALPHA", "LDA_vBH", "none"])} 
 groundstate_valid_subtrees = ["DFTD2parameters", "TSvdWparameters", "spin", "HartreeFock", "constrainedDFT", "dfthalf",
-                              "Hybrid", "sirius", "solver", "OEP", "RDMFT", "output", "libxc", "xsLO",
+                              "Hybrid", "mgga", "sirius", "solver", "OEP", "RDMFT", "output", "libxc", "xsLO",
                               "lorecommendation"] 
 
 DFTD2parameters_attribute_types = {"cutoff": (float, 1), "d": (float, 1), "s6": (float, 1), "sr6": (float, 1)} 
@@ -231,6 +231,10 @@ Hybrid_attribute_types = {"BasisBareCoulomb": (str, 1),
                           "omega": (float, 1),
                           "updateRadial": (bool, 1)} 
 
+mgga_attribute_types = {"correlation": (str, ["XC_LDA_C_PW", "XC_MGGA_C_R2SCAN", "XC_MGGA_C_SCAN", "XC_MGGA_C_TPSS"]),
+                        "exchange": (str, ["XC_MGGA_X_R2SCAN", "XC_MGGA_X_SCAN", "XC_MGGA_X_TASK", "XC_MGGA_X_TPSS"]),
+                        "xc": (str, ["XC_MGGA_XC_HLE17", "none"])} 
+
 sirius_attribute_types = {"cfun": (bool, 1),
                           "density": (bool, 1),
                           "densityinit": (bool, 1),
@@ -279,13 +283,14 @@ libxc_attribute_types = {"correlation": (str,
                                        "XC_GGA_X_C09X", "XC_GGA_X_DK87_R1", "XC_GGA_X_DK87_R2", "XC_GGA_X_FT97_A",
                                        "XC_GGA_X_FT97_B", "XC_GGA_X_G96", "XC_GGA_X_HERMAN", "XC_GGA_X_HTBS",
                                        "XC_GGA_X_KT1", "XC_GGA_X_LAG", "XC_GGA_X_LB", "XC_GGA_X_LBM", "XC_GGA_X_LG93",
-                                       "XC_GGA_X_MB88", "XC_GGA_X_MPBE", "XC_GGA_X_MPW91", "XC_GGA_X_OL2",
-                                       "XC_GGA_X_OPTB88_VDW", "XC_GGA_X_OPTPBE_VDW", "XC_GGA_X_OPTX", "XC_GGA_X_PBE",
-                                       "XC_GGA_X_PBEA", "XC_GGA_X_PBEK1_VDW", "XC_GGA_X_PBE_JSJR", "XC_GGA_X_PBE_R",
-                                       "XC_GGA_X_PBE_SOL", "XC_GGA_X_PW86", "XC_GGA_X_PW91", "XC_GGA_X_RGE2",
-                                       "XC_GGA_X_RPBE", "XC_GGA_X_RPW86", "XC_GGA_X_SOGGA", "XC_GGA_X_SOGGA11",
-                                       "XC_GGA_X_SSB", "XC_GGA_X_SSB_D", "XC_GGA_X_SSB_SW", "XC_GGA_X_WC",
-                                       "XC_GGA_X_XPBE", "XC_LDA_X", "XC_LDA_X_1D", "XC_LDA_X_2D", "none"]),
+                                       "XC_GGA_X_LSRPBE", "XC_GGA_X_MB88", "XC_GGA_X_MPBE", "XC_GGA_X_MPW91",
+                                       "XC_GGA_X_OL2", "XC_GGA_X_OPTB88_VDW", "XC_GGA_X_OPTPBE_VDW", "XC_GGA_X_OPTX",
+                                       "XC_GGA_X_PBE", "XC_GGA_X_PBEA", "XC_GGA_X_PBEK1_VDW", "XC_GGA_X_PBE_JSJR",
+                                       "XC_GGA_X_PBE_R", "XC_GGA_X_PBE_SOL", "XC_GGA_X_PW86", "XC_GGA_X_PW91",
+                                       "XC_GGA_X_RGE2", "XC_GGA_X_RPBE", "XC_GGA_X_RPW86", "XC_GGA_X_SOGGA",
+                                       "XC_GGA_X_SOGGA11", "XC_GGA_X_SSB", "XC_GGA_X_SSB_D", "XC_GGA_X_SSB_SW",
+                                       "XC_GGA_X_WC", "XC_GGA_X_XPBE", "XC_LDA_X", "XC_LDA_X_1D", "XC_LDA_X_2D",
+                                       "none"]),
                          "xc": (str,
                                 ["XC_GGA_XC_B97", "XC_GGA_XC_B97_1", "XC_GGA_XC_B97_2", "XC_GGA_XC_B97_3",
                                  "XC_GGA_XC_B97_D", "XC_GGA_XC_B97_GGA1", "XC_GGA_XC_B97_K", "XC_GGA_XC_EDF1",

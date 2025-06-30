@@ -19,8 +19,8 @@ contains
 ! g3up,g3dn,grho2,gup2,gdn2,gupdn,ex,ec,vx,vc,vxup,vxdn,vcup,vcdn,dxdg2,dxdgu2, &
 ! dxdgd2,dxdgud,dcdg2,dcdgu2,dcdgd2,dcdgud)
 subroutine xcifc(xctype,n,rho,rhoup,rhodn,grho,gup,gdn,g2rho,g2up,g2dn,g3rho, &
- g3up,g3dn,grho2,gup2,gdn2,gupdn,ex,ec,exsr,vx,vc,vxsr,vxsrup,vxsrdn,v2xsr,v2xsrup,v2xsrdn,vxup,vxdn,vcup,vcdn,dxdg2,&
- dxdgu2,dxdgd2,dxdgud,dcdg2,dcdgu2,dcdgd2,dcdgud)
+ g3up,g3dn,grho2,gup2,gdn2,gupdn,tau,tauup,taudn,ex,ec,exsr,vx,vc,vxsr,vxsrup,vxsrdn,v2xsr,v2xsrup,v2xsrdn,vxup,vxdn,vcup,vcdn,dxdg2,&
+ dxdgu2,dxdgd2,dxdgud,dxdl,dxdlup,dxdldn,dxdtau,dxdtauup,dxdtaudn,dcdg2,dcdgu2,dcdgd2,dcdgud,dcdl,dcdlup,dcdldn,dcdtau,dcdtauup,dcdtaudn)
 ! !INPUT/OUTPUT PARAMETERS:
 !   xctype : type of exchange-correlation functional (in,integer(3))
 !   n      : number of density points (in,integer)
@@ -87,6 +87,9 @@ real(dp), optional, intent(in) :: grho2(:)
 real(dp), optional, intent(in) :: gup2(:)
 real(dp), optional, intent(in) :: gdn2(:)
 real(dp), optional, intent(in) :: gupdn(:)
+real(dp), optional, intent(in) :: tau(:)
+real(dp), optional, intent(in) :: tauup(:)
+real(dp), optional, intent(in) :: taudn(:)
 real(dp), optional, intent(out) :: ex(:)
 real(dp), optional, intent(out) :: ec(:)
 real(dp), optional, intent(out) :: vx(:)
@@ -106,10 +109,22 @@ real(dp), optional, intent(out) :: dxdg2(:)
 real(dp), optional, intent(out) :: dxdgu2(:)
 real(dp), optional, intent(out) :: dxdgd2(:)
 real(dp), optional, intent(out) :: dxdgud(:)
+real(dp), optional, intent(out) :: dxdl(:)
+real(dp), optional, intent(out) :: dxdlup(:)
+real(dp), optional, intent(out) :: dxdldn(:)
+real(dp), optional, intent(out) :: dxdtau(:)
+real(dp), optional, intent(out) :: dxdtauup(:)
+real(dp), optional, intent(out) :: dxdtaudn(:)
 real(dp), optional, intent(out) :: dcdg2(:)
 real(dp), optional, intent(out) :: dcdgu2(:)
 real(dp), optional, intent(out) :: dcdgd2(:)
 real(dp), optional, intent(out) :: dcdgud(:)
+real(dp), optional, intent(out) :: dcdl(:)
+real(dp), optional, intent(out) :: dcdlup(:)
+real(dp), optional, intent(out) :: dcdldn(:)
+real(dp), optional, intent(out) :: dcdtau(:)
+real(dp), optional, intent(out) :: dcdtauup(:)
+real(dp), optional, intent(out) :: dcdtaudn(:)
 ! local variables
 real(dp) kappa,mu,beta
 ! local variable for PBE short-range (hybrid HSE)
@@ -361,6 +376,17 @@ case(100)
     .and.present(vcdn)) then
     call libxc_lda_potential(exchange_id, int(n, long_int), rhoup, rhodn, ex, vxup, vxdn)
     call libxc_lda_potential(correlation_id, int(n, long_int), rhoup, rhodn, ec, vcup, vcdn)
+  ! libxc spin-unpolarised mGGA potential
+  else if (present(rho).and.present(grho2).and.present(g2rho).and.present(tau).and.present(ex).and.present(ec) &
+    .and.present(vx).and.present(vc).and.present(dxdg2).and.present(dcdg2) & 
+    .and.present(dxdl).and.present(dcdl).and.present(dxdtau).and.present(dcdtau)) then 
+    call libxc_mgga_potential(exchange_id, int(n, long_int), rho, grho2, g2rho, tau, ex, vx, dxdg2, dxdl, dxdtau) 
+    call libxc_mgga_potential(correlation_id, int(n, long_int), rho, grho2, g2rho, tau, ec, vc, dcdg2, dcdl, dcdtau)
+  ! libxc spin-unpolarised TASK functional
+  else if (present(rho).and.present(grho2).and.present(g2rho).and.present(tau).and.present(ex).and.present(ec) &
+    .and.present(vx).and.present(vc).and.present(dxdg2).and.present(dxdl).and.present(dxdtau)) then  
+    call libxc_mgga_potential(exchange_id, int(n, long_int), rho, grho2, g2rho, tau, ex, vx, dxdg2, dxdl, dxdtau) 
+    call libxc_lda_potential(correlation_id, int(n, long_int), rho, ec, vc)
   ! libxc spin-unpolarised GGA potential
   else if (present(rho).and.present(grho2).and.present(ex).and.present(ec) &
     .and.present(vx).and.present(vc).and.present(dxdg2).and.present(dcdg2)) then
