@@ -5,12 +5,8 @@
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="false"/>
     <atomicState n="2" l="0" kappa="1" occ="1.00000" core="false"/>
     <basis>
-      <default>
-        <wf matchingOrder="0" trialEnergy="0.1500" searchE="false"/>
-      </default>
-      <custom l="0">
-        <wf matchingOrder="0" trialEnergy="1.0425" searchE="true"/>
-      </custom>
+      <default type="apw" trialEnergy="0.1500" searchE="false"/>
+      <custom l="0" type="apw" trialEnergy="1.0425" searchE="true"/>
       <lo l="0">
         <wf matchingOrder="0" trialEnergy="1.0425" searchE="true"/>
         <wf matchingOrder="1" trialEnergy="1.0425" searchE="true"/>
@@ -21,8 +17,5 @@
         <wf matchingOrder="0" trialEnergy="-1.5297" searchE="true"/>
       </lo>
     </basis>
-    <!-- This file was automatically generated-->
-    <!-- Default linearization energies have been replaced by that -->
-    <!-- found using findlinentype='Wigner_Seitz' method -->
   </sp>
 </spdb>
