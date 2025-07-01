@@ -12,7 +12,7 @@
 !
 !> Module with a subroutine to evaluate the total energy in DFT calculations
 module total_energy
-  use constants, only: zone, zzero
+  use constants, only: zone, zzero, y00
   use mod_atoms, only: idxas, natoms, natmtot, nspecies, spcore, spocc, spnst, spr, spzn
   use mod_charge_and_moment, only: mommt, momtot
   use mod_convergence, only: iscl
@@ -28,9 +28,16 @@ module total_energy
   use mod_OEP_HF, only: kinmatc
   use mod_potential_and_density, only: bxcmt, bxcir, ecir, ecmt, ec_coef, ex_coef, &
     exir, exmt, magmt, magir, rhoir, rhomt, vclir, vclmt, vhalfir, vhalfmt, vmad, vxcir, vxcmt
+  use mod_corestate, only: rhocr
   use mod_spin, only: ndmag, ncmag
   use mod_timing, only: stopwatch
   use modinput, only: input
+  use kinetic_energy_density
+  use mgga_poteff 
+  use mgga_potxc
+  use precision, only: dp
+  use mod_muffin_tin, only: lmmaxvr, nrmtmax, nrmt
+
 
   implicit none
 
@@ -125,7 +132,7 @@ subroutine energy
   !   Created Jun 2013
   !EOP
   !BOC
-        Integer :: is, ia, ias, ik, ist, idm, jdm
+        Integer :: is, ia, ias, ik, ist, idm, jdm, ir
   ! fine structure constant
         Real (8), Parameter :: alpha = 1.d0 / 137.03599911d0
   ! electron g factor
@@ -138,12 +145,50 @@ subroutine energy
   ! external functions
         Real(8),    external :: rfmtinp, rfinp, rfint
         Complex(8), external :: zdotc
+        real(dp), allocatable :: rfmt(:, :)
         call stopwatch("exciting:energy", 1)
   
   !-----------------------------------------------!
   !     exchange-correlation potential energy     !
   !-----------------------------------------------!
-        engyvxc = rfinp (1, rhomt, vxcmt, rhoir, vxcir)
+        if ( associated(input%groundstate%mgga) ) then 
+            allocate (rfmt(lmmaxvr, nrmtmax), source = 0.0_dp)
+            engyvxc = 0.0d0
+            Do is = 1, nspecies
+                  Do ia = 1, natoms (is)
+                        ias = idxas (ia, is)
+                        ! core part
+                        if ( any(spcore(:, is)) ) then
+                        do ir = 1, nrmt (is)
+                              rfmt (1, ir) = rhocr (ir, ias) / y00
+                        end do 
+                        engyvxc = engyvxc + rfmtinp (1, 0, nrmt(is), spr(:, is), &
+                                          & lmmaxvr, rfmt, vxcmt_gga(:, :, ias))
+
+                        
+                        ! remove core 
+                        rhomt (1, 1:nrmt(is), ias) = rhomt (1, 1:nrmt(is), ias) - rhocr (1:nrmt(is), ias) / y00
+                        ked_mt(1:lmmaxvr, 1:nrmt(is), ias) = ked_mt(1:lmmaxvr, 1:nrmt(is), ias) - ked_cr(1:lmmaxvr, 1:nrmt(is), ias)
+                        end if
+                  end do 
+            end do 
+            ! valence part
+            engyvxc = engyvxc + rfinp (1, rhomt, vxcmt, rhoir, vxcir)
+            ! valence non-multiplicative part
+            engyvxc = engyvxc + rfinp (1, ked_mt, vxcmt_mgga_nonmult, ked_ir, vxcir_mgga_nonmult)
+            
+            !add core again (todo, do it differently )
+            Do is = 1, nspecies
+                  Do ia = 1, natoms (is)
+                        ias = idxas (ia, is)
+                        rhomt (1, 1:nrmt(is), ias) = rhomt (1, 1:nrmt(is), ias) + rhocr (1:nrmt(is), ias) / y00
+                        ked_mt(1:lmmaxvr, 1:nrmt(is), ias) = ked_mt(1:lmmaxvr, 1:nrmt(is), ias) + ked_cr(1:lmmaxvr, 1:nrmt(is), ias)
+                  end do 
+            end do 
+
+      else
+            engyvxc = rfinp (1, rhomt, vxcmt, rhoir, vxcir)
+     end if 
   !-----------------------------------------------------!
   !     exchange-correlation effective field energy     !
   !-----------------------------------------------------!

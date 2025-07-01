@@ -29,6 +29,7 @@ Subroutine init0
       Use errors_warnings, only: terminate_if_false
       Use vx_enums, only: HYB_PBE0, HYB_HSE
       Use APW_basis_size, only: determine_rgkmax, determine_APWprecision
+      Use mgga_init, only: xctype_mgga, xcdescr_mgga, set_mgga_potential
       ! TODO(ALEX) Once everyone has done their refactor
       ! initialisation routines should be moved from tmp_mod_init0
       ! and tmp_mod_init0 should be deleted.
@@ -160,7 +161,8 @@ Subroutine init0
       If ((task .Eq. 5) .Or. (task .Eq. 6) .Or. (task .Eq. 300)) &
      & input%groundstate%tevecsv = .True.
 
-     call initialise_xc_mixing_coefficients(input%groundstate, xctype, xcdescr, xcspin, xcgrad, ex_coef, ec_coef)
+     if ( associated(input%groundstate%mgga) ) call set_mgga_potential()
+     call initialise_xc_mixing_coefficients(input%groundstate, xctype, xcdescr, xcspin, xcgrad, ex_coef, ec_coef, xctype_mgga, xcdescr_mgga)
 
 ! reset input%groundstate%Hybrid%excoeff to ex_coef
 ! in case of libxc: overwritten by ex_coef as defined by libxc

@@ -10,6 +10,8 @@ module mgga_init
     integer, public :: xctype_mgga(3)
     !> number of GGA iterations 
     logical, public :: mgga_read_in
+    !> mgga exchange-correlation functional description
+    character (len=512), public :: xcdescr_mgga
 
     public :: init_mgga, set_mgga_potential
     
@@ -24,7 +26,6 @@ module mgga_init
 
             call ked_var_init
             call allocate_ked
-            call set_mgga_potential
             call init_poteff_gga
             call init_potxc_non_mult_mgga
         end subroutine 

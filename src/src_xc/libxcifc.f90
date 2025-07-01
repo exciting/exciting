@@ -475,6 +475,13 @@ do k=2,3
       call xc_f03_func_end(p)
 ! post-processed gradients required
       xcgrad=2
+    case(XC_FAMILY_MGGA)
+      call xc_f03_func_init(p,id,XC_UNPOLARIZED)
+      info = xc_f03_func_get_info(p)
+      name = xc_f03_func_info_get_name(info)
+      call xc_f03_func_end(p)
+! post-processed gradients required
+      xcgrad=2
     case default
       write(*,*)
       write(*,'("Error(xcdata_libxc): unsupported libxc functional family : ",&

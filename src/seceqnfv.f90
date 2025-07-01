@@ -25,6 +25,7 @@ Subroutine seceqnfv(ik, nmatp, ngp, igpig, vgpc, apwalm, cdft_maximum_overlap, e
       Use modfvsystem,               only: evsystem, newsystem, deletesystem, solvewithlapack
       Use mod_hybrids,               only: vnlmat
       use mod_misc,                  only: task
+			use mGGA_eigensystem, 				 only: gen_mGGA_H_and_S, mGGA_H, mGGA_S
       
   ! !INPUT/OUTPUT PARAMETERS:
   !   nmatp  : order of overlap and Hamiltonian matrices (in,integer)
@@ -75,9 +76,11 @@ Subroutine seceqnfv(ik, nmatp, ngp, igpig, vgpc, apwalm, cdft_maximum_overlap, e
 
       packed = input%groundstate%solver%packedmatrixstorage
 
-
-
-      if ((input%groundstate%solver%type.ne.'Davidson').or.(input%groundstate%solver%constructHS)) then
+      if ( associated(input%groundstate%mgga)) then 
+          Call newsystem (system, packed, nmatp)
+          call gen_mGGA_H_and_S( ik, system%hamilton%za, system%overlap%za )
+          
+      else if ((input%groundstate%solver%type.ne.'Davidson').or.(input%groundstate%solver%constructHS)) then
         Call newsystem (system, packed, nmatp)
         h1on=(input%groundstate%ValenceRelativity.eq.'iora*')
         call MTRedirect(mt_hscf%main,mt_hscf%spinless)

@@ -80,7 +80,8 @@ contains
     !>
     !> Check mod_potential_and_density for declarations
     subroutine initialise_xc_mixing_coefficients(gs_input, xctype, xcdescr, xcspin, &
-                                                           xcgrad, ex_coef, ec_coef)
+                                                           xcgrad, ex_coef, ec_coef, & 
+                                                           xctype_mgga, xcdescr_mgga)
         use modxcifc, only: getxcdata
         use vx_enums, only: HYB_PBE0, HYB_HSE
         !> Ground state input XML object
@@ -97,6 +98,10 @@ contains
         real(dp), intent(out) :: ex_coef
         !> correlation mixing parameter for hybrid functionals
         real(dp), intent(out) :: ec_coef
+        !> mgga functional
+        integer, intent(out) :: xctype_mgga(3)
+        !> mgga exchange-correlation functional description
+        character (len=512) , intent(out) :: xcdescr_mgga
 
         if  (associated(gs_input%HartreeFock) .and. associated(gs_input%OEP)) then
            write (*,*)
@@ -107,6 +112,7 @@ contains
         endif
 
         call getxcdata(xctype, xcdescr, xcspin, xcgrad, ex_coef)
+        if ( associated(gs_input%mgga) ) call getxcdata(xctype_mgga, xcdescr_mgga, xcspin, xcgrad, ex_coef)
 
         if (isspinorb()) then
             if (xctype(1)==HYB_PBE0 .or. xctype(1)==HYB_HSE) then

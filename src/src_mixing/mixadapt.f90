@@ -10,6 +10,7 @@
 !
 Subroutine mixadapt (iscl, beta0, betainc, betadec, n, nu, mu, beta, f, &
 & d)
+      use modinput      
 ! !INPUT/OUTPUT PARAMETERS:
 !   iscl    : self-consistent loop number (in,integer)
 !   beta0   : initial value for mixing parameter (in,real)
@@ -58,6 +59,7 @@ Subroutine mixadapt (iscl, beta0, betainc, betadec, n, nu, mu, beta, f, &
 ! local variables
       Integer :: i
       Real (8) :: t1
+      integer :: iscl_temp
 !
       d = 0.d0
       Do i = 1, n
@@ -65,7 +67,13 @@ Subroutine mixadapt (iscl, beta0, betainc, betadec, n, nu, mu, beta, f, &
       End Do
       d = Sqrt (d/dble(n))
 !
-      If (iscl .Lt. 1) Then
+      if (associated(input%groundstate%mgga)) then 
+          iscl_temp = iscl - 1
+      else 
+          iscl_temp = iscl 
+      end if 
+
+      If (iscl_temp .Lt. 1) Then
          mu (:) = nu (:)
          f (:) = 0.d0
          beta (:) = beta0

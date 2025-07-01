@@ -225,6 +225,8 @@ groundstate/LDA_PW-davidson-w-matrix-BN:
 
 groundstate/LDA_PW-lapack-BN:
 
+groundstate/mGGA_TPSS-Si:
+
 # Test with ifx 2025.0.0 give too large errors, but almost within tolerance.
 BSE/PBE_SOL-LiF:
     failing_builds:

@@ -14,6 +14,8 @@ Subroutine genapwfr
 ! !USES:
       Use modinput
       Use modmain
+      use mgga_poteff, only: veffmt_gga
+      use modmain, only: iscl
 ! !DESCRIPTION:
 !   Generates the APW radial functions. This is done by integrating the scalar
 !   relativistic Schr\"{o}dinger equation (or its energy deriatives) at the
@@ -48,7 +50,11 @@ Subroutine genapwfr
          nr = nrmt (is)
          Do ia = 1, natoms (is)
             ias = idxas (ia, is)
-            vr (1:nr) = veffmt (1, 1:nr, ias) * y00
+            if (associated(input%groundstate%mgga) .and. iscl > 1) then 
+                  vr(1:nr) = veffmt_gga(1, 1:nr, ias) * y00
+            else 
+               vr (1:nr) = veffmt (1, 1:nr, ias) * y00
+            end if 
             Do l = 0, input%groundstate%lmaxapw
                Do io1 = 1, apword (l, is)
 ! integrate the radial Schrodinger equation

@@ -18,7 +18,7 @@ subroutine scf_cycle(verbosity)
     use mod_misc, only: filext, task, tlast, tstop
     use mod_muffin_tin, only: lmmaxvr, nrmt, nrmtmax
     use mod_OEP_HF, only: resoep
-    use mod_potential_and_density, only: generate_density_and_magnetization, m2effig, magir, magmt, meffig, rhomt, rhoir, veffmt
+    use mod_potential_and_density, only: generate_density_and_magnetization, m2effig, magir, magmt, meffig, rhomt, rhoir, veffmt, veffir, vxcmt, vxcir, exmt, exir, ecmt, ecir, xctype
     use mod_spin, only: ndmag, nspinor, nspnfv
     use mod_timing, only: stopwatch, time_density_init, time_pot_init, timefor, timefv, &
       timeinit, timeio, timemat, timemixer, timemt, timepot, timerho, timesv
@@ -34,6 +34,12 @@ subroutine scf_cycle(verbosity)
     use total_energy, only: energy
     use trial_energy_selection, only: select_apw_trial_energies, select_local_orbital_trial_energies
     use TS_vdW_module, only: C6ab, R0_eff_ab
+    use kinetic_energy_density, only: gen_ked, ked_mt, ked_cr, ked_ir, ked_magmt, ked_magir
+    use kinetic_energy_density_vars, only: ked_var_init, ked_var_free, timeked
+    use mgga_potxc
+    use mgga_poteff
+    use mgga_init
+    use mGGA_eigensystem
     Implicit None
 
     integer(i32), intent(IN) :: verbosity
@@ -53,7 +59,7 @@ subroutine scf_cycle(verbosity)
     Real(dp), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
 
     type(cdft_input_keys) :: cdft_calculation
-    logical :: spin_polarization
+    logical :: spin_polarization, use_mGGA
     integer(i32) :: first_k, last_k
     complex (dp), allocatable :: evecfv_store(:, :, :)
     real (dp), allocatable :: occsv_ref(:, :)
@@ -96,8 +102,14 @@ subroutine scf_cycle(verbosity)
         Call rhoinit
         Call timesec(tin1)
         time_density_init=tin1-tin0
-        Call timesec(tin0)
-        Call poteff( .true. )
+        call timesec(tin0)
+        if ( associated(input%groundstate%mgga) ) then 
+            call init_mgga()
+            call calc_poteff_gga(veffmt, veffir, 2, xctype, rhomt, rhoir, vxcmt, vxcir, & 
+                                 exmt, ecmt, ecir, exir)                
+        else 
+            call poteff( .true. )
+        end if 
         Call genveffig
         Call timesec(tin1)
         time_pot_init=tin1-tin0
@@ -165,22 +177,26 @@ subroutine scf_cycle(verbosity)
 
 !----------------------------------------------------
 !! TIME - Mixer segment
-    Call timesec (ts0)
-    ! size of mixing vector
-    n = lmmaxvr*nrmtmax*natmtot+ngrtot
-    If (spin_polarization) n = n*(1+ndmag)
-    If (ldapu .Ne. 0) n = n + 2*lmmaxlu*lmmaxlu*nspinor*nspinor*natmtot
-    ! allocate mixing arrays
-    Allocate (v(n))
-    ! call mixing array allocation functions by setting
-    nwork = -1
-    ! and call interface
-    iscl = 0
-    Call packeff (.True., n, v)
-    If (rank .Eq. 0) Call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, nwork)
-    Call packeff (.False., n, v)
-    Call timesec (ts1)
-    timemixer = ts1-ts0+timemixer
+    if ( associated(input%groundstate%mgga) ) then
+        iscl = 0 
+    else 
+        Call timesec (ts0)
+        ! size of mixing vector
+        n = lmmaxvr*nrmtmax*natmtot+ngrtot
+        If (spin_polarization) n = n*(1+ndmag)
+        If (ldapu .Ne. 0) n = n + 2*lmmaxlu*lmmaxlu*nspinor*nspinor*natmtot
+        ! allocate mixing arrays
+        Allocate (v(n))
+        ! call mixing array allocation functions by setting
+        nwork = -1
+        ! and call interface
+        iscl = 0
+        Call packeff (.True., n, v)
+        If (rank .Eq. 0) Call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, nwork)
+        Call packeff (.False., n, v)
+        Call timesec (ts1)
+        timemixer = ts1-ts0+timemixer
+    end if 
 !! TIME - End of mixer segment
 !----------------------------------------------------
 
@@ -272,8 +288,17 @@ subroutine scf_cycle(verbosity)
 ! Effective Hamiltonian Setup: Radial and Angular integrals
 !------------------------------------------------------------
         call stopwatch("exciting:rad_int", 1)
-        call MTInitAll(mt_hscf)
-        call hmlint(mt_hscf)
+        if ( associated(input%groundstate%mgga) ) then
+            use_mGGA = ( ((task == 1) .or. (task == 3)) .and. mgga_read_in ) .or. (iscl >= 2)
+            if (use_mGGA) then
+                call mGGA_eig_init(veffmt, veffir, vxcmt_mgga_nonmult, vxcir_mgga_nonmult)
+            else
+                call mGGA_eig_init(veffmt, veffir)
+            end if
+        else 
+            call MTInitAll(mt_hscf) 
+            call hmlint(mt_hscf)
+        end if 
         call stopwatch("exciting:rad_int", 0)
 !________________
 ! partial charges
@@ -464,28 +489,56 @@ subroutine scf_cycle(verbosity)
         rhoirref(:)=rhoir(:)
         rhomtref(:,:,:)=rhomt(:,:,:)
 
+! compute kinetic energy density 
+        if ( associated(input%groundstate%mgga)  ) then 
+            call timesec (ts0)
+            call gen_ked()
+ 
+            ! symmetrise the kinetic energy density
+            call symrf(input%groundstate%lradstep, ked_mt, ked_ir)
+            ! convert the density from a coarse to a fine radial mesh
+            call rfmtctof (ked_mt)
+            if (associated(input%groundstate%spin)) Call symrvf(input%groundstate%lradstep, ked_magmt, ked_magir)
+            call timesec (ts1)
+            timeked = timeked + ts1-ts0
+        end if 
+
 !-----------------------------------
 ! Compute the effective potential
 !-----------------------------------
-        Call poteff( .true. )
+        call timesec (ts0)
+        if ( associated(input%groundstate%mgga)) then 
+            call calc_poteff_mgga(veffmt, veffir, 3, xctype_mgga, rhomt, rhoir, exmt, ecmt, ecir, exir, &
+                                vxcmt, vxcmt_mgga_nonmult, vxcir, vxcir_mgga_nonmult, ked_ir, ked_mt)
+            call calc_poteff_gga(veffmt_gga, veffir_gga, 2, xctype, rhomt, rhoir, vxcmt_gga, vxcir_gga, &
+                                exmt_gga, ecmt_gga, ecir_gga, exir_gga)
+        else 
+            call poteff( .true. )
+        end if 
+        call timesec (ts1)
+        timepot = ts1-ts0+timepot
+
 !---------------
 ! Mixing
 !---------------
-! pack interstitial and muffin-tin effective potential and field into one array
-        Call packeff (.True., n, v)
-! mix in the old potential and field with the new
-        If (rank .Eq. 0) Then
-           Call mixerifc (input%groundstate%mixernumber, n, v, currentconvergence, nwork)
-           do id=1, input%groundstate%niterconvcheck-1
-              vcurrentconvergence(id) = vcurrentconvergence(id+1)
-           end do
-           vcurrentconvergence(input%groundstate%niterconvcheck) = currentconvergence
-
-        End If
+        if ( associated(input%groundstate%mgga) ) then  
+            call mgga_mixer(iscl, v, nwork, currentconvergence, vcurrentconvergence)
+        else 
+            Call timesec (ts1)
+            ! pack interstitial and muffin-tin effective potential and field into one array
+            Call packeff (.True., n, v)
+            ! mix in the old potential and field with the new
+            If (rank .Eq. 0) Then
+                Call mixerifc (input%groundstate%mixernumber, n, v, currentconvergence, nwork)
+                do id=1, input%groundstate%niterconvcheck-1
+                    vcurrentconvergence(id) = vcurrentconvergence(id+1)
+                end do
+                vcurrentconvergence(input%groundstate%niterconvcheck) = currentconvergence
+            End If
         call xmpi_bcast(mpiglobal, v)
-
-! unpack potential and field
-        Call packeff (.False., n, v)
+            ! unpack potential and field
+            Call packeff (.False., n, v)
+        end if 
 !---------------
 ! Fourier transform effective potential to G-space
         Call genveffig
@@ -600,6 +653,7 @@ subroutine scf_cycle(verbosity)
 
 ! output the current total time
         timetot = timeinit+timemat+timefv+timesv+timerho+timepot+timefor+timeio+timemt+timemixer
+        if ( associated(input%groundstate%mgga) ) timetot = timetot + timeked
         if ((verbosity>-1).and.(rank==0)) then
             write(60,*)
             write(60, '(" Wall time (seconds)",T45, ": ", F12.2)') timetot
