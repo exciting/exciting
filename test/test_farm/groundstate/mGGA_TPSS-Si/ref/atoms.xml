@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<atomlist>
+  <Hamiltonian RelativityModel="dirac" xctype="3"/>
+  <atom chemicalSymbol="Si" species="Si.xml">
+    <NumericalSetup TotalNumberOfGridPoints="797" NumberOfMTGridPoints="350" GridType="cubic" rmin="1.000000000000e-6" rmt="2.110700000000e0" rmax="2.504316668032e1"/>
+    <spectrum>
+      <state n="1" l="0" kappa="1" energy="-65.3520527931"/>
+      <state n="2" l="0" kappa="1" energy="-5.09800653421"/>
+      <state n="2" l="1" kappa="1" energy="-3.52865042245"/>
+      <state n="2" l="1" kappa="2" energy="-3.50489096740"/>
+      <state n="3" l="0" kappa="1" energy="-0.399635387572"/>
+      <state n="3" l="1" kappa="1" energy="-0.153659685914"/>
+      <state n="3" l="1" kappa="2" energy="-0.152458706560"/>
+    </spectrum>
+  </atom>
+</atomlist>

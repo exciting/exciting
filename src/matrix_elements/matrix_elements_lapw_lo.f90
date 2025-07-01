@@ -37,7 +37,7 @@ module matrix_elements_lapw_lo
   integer, allocatable :: cg_num(:,:,:)
   !> \((l',m')\) pair of non-zero Clebsch-Gordan coefficients for a given \((l,m)\) pair
   integer, allocatable :: cg_lm(:,:,:,:)
-  !> value non-zero Clebsch-Gordan coefficients for a given \((l,m)\) pair
+  !> value of non-zero Clebsch-Gordan coefficients for a given \((l,m)\) pair
   complex(dp), allocatable :: cg_val(:,:,:,:)
 
   ! INTERSTITIAL BASIS
@@ -132,6 +132,7 @@ module matrix_elements_lapw_lo
       if( allocated( lm_join ) ) deallocate( lm_join )
       if( allocated( lm_split ) ) deallocate( lm_split )
       if( allocated( cg_num ) ) deallocate( cg_num )
+      if( allocated( cg_lm ) ) deallocate( cg_lm )
       if( allocated( cg_val ) ) deallocate( cg_val )
       if( allocated( cfunr ) ) deallocate( cfunr )
       if( associated( Gset ) ) nullify( Gset )
@@ -169,6 +170,8 @@ module matrix_elements_lapw_lo
     !> Whether to use the basis functions \(\phi^\alpha_\lambda({\bf r})\) or one of the Cartesian components 
     !> of their gradients \({\bf \nabla}_i \phi^\alpha_\lambda({\bf r})\)
     !> is determined by the arguments `left_gradient` and `right_gradient`.
+    !> Use the optional argument `gradient_product` to use
+    !> \({\bf \nabla}^\top \phi^{\alpha\ast}_{\lambda_1}({\bf r}) \cdot {\bf \nabla} \phi^\alpha_{\lambda_2}({\bf r})\) instead.
     !> For more details on gradients see [[muffin_tin_basis(module):get_gradient_rad_fun(function)]].
     !>
     !> This routine computes
@@ -185,7 +188,7 @@ module matrix_elements_lapw_lo
     !> @endnote
     subroutine me_lapwlo_mt_rignt( is, ias, lmax_op, alpha, rfun, beta, rignt, &
         left_radial_derivative, right_radial_derivative, &
-        left_gradient, right_gradient, surface_integral, real_expansion )
+        left_gradient, right_gradient, surface_integral, gradient_product, real_expansion )
       !> index of the species of the MT \(\alpha\)
       integer, intent(in) :: is
       !> index of the atom of the MT \(\alpha\)
@@ -212,6 +215,8 @@ module matrix_elements_lapw_lo
       integer, intent(in) :: right_gradient
       !> Cartesian component (1, 2, or 3) of surface normal for surface integrals. 0, if volume integral should be computed.
       integer, intent(in) :: surface_integral
+      !> Use scalar product of gradients on both sides (default: `.false.`)
+      logical, intent(in) :: gradient_product
       !> if `.true.`, operator is given as an real spherical harmonics expansion
       logical, intent(in) :: real_expansion
 
@@ -250,12 +255,12 @@ module matrix_elements_lapw_lo
 
       ! set number of gradient terms
       ng1 = 1; lg1 = 0
-      if( left_gradient > 0 ) then
+      if( left_gradient > 0 .or. gradient_product ) then
         ng1 = 2
         lg1(1) = -1; lg1(2) = 1
       end if
       ng2 = 1; lg2 = 0
-      if( right_gradient > 0 ) then
+      if( right_gradient > 0 .or. gradient_product ) then
         ng2 = 2
         lg2(1) = -1; lg2(2) = 1
       end if
@@ -296,7 +301,7 @@ module matrix_elements_lapw_lo
                       idx2 = basis%idx_basis_fun(lm2, lam2, is)
 
                       ! sum over Gaunt coefficients from basis functions and operator
-                      call me_lapwlo_mt_gaunt_sum( lmax, lm1, lm2, lam1, lam2, lg1(ig1), lg2(ig2), left_gradient, right_gradient, real_expansion, zri, rignt(idx1, idx2) )
+                      call me_lapwlo_mt_gaunt_sum( lmax, lm1, lm2, lam1, lam2, lg1(ig1), lg2(ig2), left_gradient, right_gradient, gradient_product, real_expansion, zri, rignt(idx1, idx2) )
 
                     end do
                   end do
@@ -660,9 +665,7 @@ module matrix_elements_lapw_lo
     !> given in [[muffin_tin_basis(module):get_gradient_rad_fun(function)]] and is 
     !> given by the input parameters `g1` and `g2`, respectively, and \(i\) is the Cartesian direction
     !> of the gradient, given by `left_gradient` and `right_gradient`, respectively.
-    subroutine me_lapwlo_mt_gaunt_sum( lmax_op, lm1, lm2, lam1, lam2, g1, g2, left_gradient, right_gradient, real_expansion, ri, rignt )
-      use constants, only: sqrt_two,zzero
-      use wigner3j_symbol, only: clebsch_gordan
+    subroutine me_lapwlo_mt_gaunt_sum( lmax_op, lm1, lm2, lam1, lam2, g1, g2, left_gradient, right_gradient, gradient_product, real_expansion, ri, rignt )
       use gaunt
       !> maximum \(l\) for operator expansion
       integer, intent(in) :: lmax_op
@@ -678,6 +681,8 @@ module matrix_elements_lapw_lo
       integer, intent(in) :: left_gradient
       !> gradient direction on the right (1,2,3 for gradient, 0 if no gradient)
       integer, intent(in) :: right_gradient
+      !> Use scalar product of gradients on both sides (default: `.false.`)
+      logical, intent(in) :: gradient_product
       !> `.true.` if operator is expanded in real spherical harmonics
       logical, intent(in) :: real_expansion
       !> radial integrals \(R^\alpha_{\tilde{\lambda}_1 \tilde{\lambda}_2, lm}(l_1, l_2)\)
@@ -685,39 +690,53 @@ module matrix_elements_lapw_lo
       !> radial integrals times gaunt coefficients \(O^\alpha_{\lambda_1 \lambda_2}\)
       complex(dp), intent(inout) :: rignt
 
-      integer :: i, j, k, lm, lmmax, lmm1, lmm2
+      integer :: i, j, k, ip, np, lm, lmmax, lmm1, lmm2, lg(3), rg(3)
       complex(dp) :: cg1, cg2, z1
       type(non_zero_gaunt_real), pointer :: gntr
       type(non_zero_gaunt_complex), pointer :: gntz
 
       lmmax = (lmax_op + 1)**2
 
-      do i = 1, cg_num(left_gradient, g1, lm1)
-        lmm1 = cg_lm(i, left_gradient, g1, lm1)
-        cg1 = cg_val(i, left_gradient, g1, lm1)
-        do j = 1, cg_num(right_gradient, g2, lm2)
-          lmm2 = cg_lm(j, right_gradient, g2, lm2)
-          cg2 = cg_val(j, right_gradient, g2, lm2)
+      if (gradient_product) then
+        np = 3
+        lg = [1, 2, 3]
+        rg = [1, 2, 3]
+      else
+        np = 1
+        lg(1) = left_gradient
+        rg(1) = right_gradient
+      end if
 
-          if( real_expansion ) then
-            gntz => gaunt_coeff_yry
-            do k = 1, gntz%num(lmm1, lmm2)
-              lm = gntz%lm2(k, lmm1, lmm2)
-              if( lm > lmmax ) exit
-              z1 = conjg( cg1 ) * cg2 * gntz%val(k, lmm1, lmm2)
-              rignt = rignt + z1 * ri(lam1, lam2, lm)
-            end do
-          else
-            gntr => gaunt_coeff_yyy
-            do k = 1, gntr%num(lmm1, lmm2)
-              lm = gntr%lm2(k, lmm1, lmm2)
-              if( lm > lmmax ) exit
-              z1 = conjg( cg1 ) * cg2 * gntr%val(k, lmm1, lmm2)
-              rignt = rignt + z1 * ri(lam1, lam2, lm)
-            end do
-          end if
-
+      do ip = 1, np
+        
+        do i = 1, cg_num(lg(ip), g1, lm1)
+          lmm1 = cg_lm(i, lg(ip), g1, lm1)
+          cg1 = cg_val(i, lg(ip), g1, lm1)
+          do j = 1, cg_num(rg(ip), g2, lm2)
+            lmm2 = cg_lm(j, rg(ip), g2, lm2)
+            cg2 = cg_val(j, rg(ip), g2, lm2)
+        
+            if( real_expansion ) then
+              gntz => gaunt_coeff_yry
+              do k = 1, gntz%num(lmm1, lmm2)
+                lm = gntz%lm2(k, lmm1, lmm2)
+                if( lm > lmmax ) exit
+                z1 = conjg( cg1 ) * cg2 * gntz%val(k, lmm1, lmm2)
+                rignt = rignt + z1 * ri(lam1, lam2, lm)
+              end do
+            else
+              gntr => gaunt_coeff_yyy
+              do k = 1, gntr%num(lmm1, lmm2)
+                lm = gntr%lm2(k, lmm1, lmm2)
+                if( lm > lmmax ) exit
+                z1 = conjg( cg1 ) * cg2 * gntr%val(k, lmm1, lmm2)
+                rignt = rignt + z1 * ri(lam1, lam2, lm)
+              end do
+            end if
+        
+          end do
         end do
+        
       end do
     end subroutine me_lapwlo_mt_gaunt_sum
 
@@ -1073,6 +1092,9 @@ module matrix_elements_lapw_lo
     !> Use the optional arguments `left_gradient` and `right_gradient` to use gradient components
     !> \({\bf \nabla}_i \chi({\bf r})\) instead.
     !>
+    !> Use the optional argument `gradient_product` to use
+    !> \({\bf \nabla}^\top \chi_\mu({\bf r}) \cdot {\bf \nabla} \chi_\nu({\bf r})\) instead.
+    !>
     !> Use the optional argument `G_shift` to use \(\hat{O}_\Theta({\bf G}_1 - {\bf G}_2 + {\bf G}_0)\) instead,
     !> which is equivalent to a multiplication of the operator with \({\rm e}^{{\rm i}{\bf G}_0\cdot{\bf r}}\).
     !>
@@ -1094,7 +1116,7 @@ module matrix_elements_lapw_lo
     !> @endnote
     subroutine me_lapwlo_ir_mat( Gpset1, ip1, Gpset2, ip2, Gset_op, alpha, opig, beta, mat, &
         left_evec, right_evec, diagonal_only, G_shift, &
-        left_gradient, right_gradient, non_reduced_p1, non_reduced_p2 )
+        left_gradient, right_gradient, gradient_product, non_reduced_p1, non_reduced_p2 )
       use mod_kpointset, only: Gk_set
       !> set of \({\bf G+p}\) vectors for basis functions on the left
       type(Gk_set), intent(in) :: Gpset1
@@ -1129,6 +1151,8 @@ module matrix_elements_lapw_lo
       integer, optional, intent(in) :: left_gradient
       !> Cartesian component (1, 2, or 3) of gradient for right basis functions (default: 0 - no gradient)
       integer, optional, intent(in) :: right_gradient
+      !> Use scalar product of gradients on both sides (default: `.false.`)
+      logical, optional, intent(in) :: gradient_product
       !> `ip1` is the index of a non-reduced \({\bf p}\)-point (default: `.false.`)
       logical, optional, intent(in) :: non_reduced_p1
       !> `ip2` is the index of a non-reduced \({\bf p}\)-point (default: `.false.`)
@@ -1136,7 +1160,7 @@ module matrix_elements_lapw_lo
 
       integer :: dimm(2), dimv1(2), dimv2(2), lgrad, rgrad
       integer :: igp1, igp2, ivg0(3), ivg(3), ig, i, n1, n2, ngp1, ngp2
-      logical :: diag, nr1, nr2
+      logical :: gprod, diag, nr1, nr2
 
       integer, allocatable :: igpig1(:), igpig2(:)
       real(dp), allocatable :: vgpc1(:,:), vgpc2(:,:)
@@ -1155,6 +1179,7 @@ module matrix_elements_lapw_lo
       diag = .false.; if( present( diagonal_only ) ) diag = diagonal_only
       lgrad = 0; if( present( left_gradient ) ) lgrad = left_gradient
       rgrad = 0; if( present( right_gradient ) ) rgrad = right_gradient
+      gprod = .false.; if( present( gradient_product ) ) gprod = gradient_product
       ivg0 = 0; if( present( G_shift ) ) ivg0 = G_shift
       nr1 = .false.; if( present( non_reduced_p1 ) ) nr1 = non_reduced_p1
       nr2 = .false.; if( present( non_reduced_p2 ) ) nr2 = non_reduced_p2
@@ -1221,10 +1246,14 @@ module matrix_elements_lapw_lo
             auxmat1(igp1, 1) = zzero
           else
             auxmat1(igp1, 1) = opig(ig)
-            if( lgrad > 0 ) &
-              auxmat1(igp1, 1) = auxmat1(igp1, 1) * cmplx( 0.0_dp, -vgpc1(lgrad, igp1), dp )
-            if( rgrad > 0 ) &
-              auxmat1(igp1, 1) = auxmat1(igp1, 1) * cmplx( 0.0_dp,  vgpc2(rgrad, igp1), dp )
+            if (gprod) then
+              auxmat1(igp1, 1) = auxmat1(igp1, 1) * dot_product( vgpc1(:, igp1), vgpc2(:, igp1) ) 
+            else
+              if( lgrad > 0 ) &
+                auxmat1(igp1, 1) = auxmat1(igp1, 1) * cmplx( 0.0_dp, -vgpc1(lgrad, igp1), dp )
+              if( rgrad > 0 ) &
+                auxmat1(igp1, 1) = auxmat1(igp1, 1) * cmplx( 0.0_dp,  vgpc2(rgrad, igp1), dp )
+            end if
           end if
         end do
 !$omp end do
@@ -1245,10 +1274,14 @@ module matrix_elements_lapw_lo
               auxmat1(igp1, igp2) = zzero
             else
               auxmat1(igp1, igp2) = opig(ig)
-              if( lgrad > 0 ) &
-                auxmat1(igp1, igp2) = auxmat1(igp1, igp2) * cmplx( 0.0_dp, -vgpc1(lgrad, igp1), dp )
-              if( rgrad > 0 ) &
-                auxmat1(igp1, igp2) = auxmat1(igp1, igp2) * cmplx( 0.0_dp,  vgpc2(rgrad, igp2), dp )
+              if (gprod) then
+                auxmat1(igp1, igp2) = auxmat1(igp1, igp2) * dot_product( vgpc1(:, igp1), vgpc2(:, igp2) ) 
+              else
+                if( lgrad > 0 ) &
+                  auxmat1(igp1, igp2) = auxmat1(igp1, igp2) * cmplx( 0.0_dp, -vgpc1(lgrad, igp1), dp )
+                if( rgrad > 0 ) &
+                  auxmat1(igp1, igp2) = auxmat1(igp1, igp2) * cmplx( 0.0_dp,  vgpc2(rgrad, igp2), dp )
+              end if
             end if
           end do
         end do

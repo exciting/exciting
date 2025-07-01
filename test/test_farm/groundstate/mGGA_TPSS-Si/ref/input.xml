@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<input>
+	<title>Bulk Silicon: Plot example</title>
+	<structure autormt="true" speciespath=".">
+		<crystal scale="10.26221367">
+			<basevect>0.5 0.5 0.0</basevect>
+			<basevect>0.5 0.0 0.5</basevect>
+			<basevect>0.0 0.5 0.5</basevect>
+		</crystal>
+		<species speciesfile="Si.xml">
+			<atom coord="0.0 0.0 0.0"> </atom>
+			<atom coord="0.25 0.25 0.25"> </atom>
+		</species>
+	</structure>
+	<groundstate
+	   ngridk="4 4 4"
+		rgkmax="6">
+		                <libxc correlation="XC_GGA_C_PBE" exchange="XC_GGA_X_PBE"> </libxc>
+		<mgga correlation="XC_MGGA_C_TPSS" exchange="XC_MGGA_X_TPSS"> </mgga>
+	</groundstate>
+</input>

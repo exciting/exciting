@@ -98,10 +98,13 @@ module matrix_elements
   !> \(\frac{{\rm d}^k}{{\rm d}r^k} g^\alpha_\tilde{\lambda}(r)\) instead.
   !>
   !> Use the optional arguments `left_gradient` and `right_gradient` to use 
-  !> \({\bf \nabla}_i \phi^\alpha_\lambda({\bf r})\) instead.
+  !> \(\nabla_i \phi^\alpha_\lambda({\bf r})\) instead.
   !>
   !> Use the optional argument `surface_integral` to compute integrals over the muffin-tin surface
   !> element \({\rm d}\mathcal{D}=\hat{\bf e}_i {\rm d}S\) instead.
+  !>
+  !> Use the optional argument `gradient_product` to use
+  !> \({\bf \nabla}^\top \phi^{\alpha\ast}_{\lambda_1}({\bf r}) \cdot {\bf \nabla} \phi^\alpha_{\lambda_2}({\bf r})\) instead.
   !>
   !> This routine computes
   !> \[ O^{\alpha,{\rm out}}_{\lambda_1 \lambda_2} = 
@@ -110,7 +113,7 @@ module matrix_elements
   !> The interface is
   !> `me_mt_prepare( is, ias, lmax, a, rfun, b, rignt 
   !>   [, left_radial_derivative, right_radial_derivative, left_gradient, right_gradient, 
-  !>    surface integral] )`, 
+  !>    surface_integral, gradient_product] )`, 
   !> where `rfun` and `rignt` can be real or complex valued.
   !>
   !> @note Fore more flexible use, employ [[me_lapwlo_mt_rignt(subroutine)]] directly. @endnote
@@ -198,7 +201,10 @@ module matrix_elements
   !> Use the optional argument `diagonal_only` to compute only diagonal matrix elements \(M^\alpha_{\mu \mu}\).
   !>
   !> Use the optional arguments `left_gradient` and `right_gradient` to use 
-  !> \({\bf \nabla}_i \chi_\mu({\bf r})\) instead.
+  !> \({\bf \nabla}_i \chi({\bf r})\) instead.
+  !>
+  !> Use the optional argument `gradient_product` to use
+  !> \({\bf \nabla}^\top \chi_\mu({\bf r}) \cdot {\bf \nabla} \chi_\nu({\bf r})\) instead.
   !>
   !> @note For more flexible usage, employ [[me_lapwlo_ir_mat(subroutine)]] directly. @endnote
   interface me_ir_mat
@@ -306,7 +312,7 @@ module matrix_elements
 
     !> See [[me_mt_prepare]].
     subroutine mt_rignt_real( is, ias, lmax, alpha, rrfun, beta, zrignt, &
-        left_radial_derivative, right_radial_derivative, left_gradient, right_gradient, surface_integral )
+        left_radial_derivative, right_radial_derivative, left_gradient, right_gradient, surface_integral, gradient_product )
       use matrix_elements_lapw_lo, only: me_lapwlo_mt_rignt
       !> index of the species of the MT
       integer, intent(in) :: is
@@ -333,21 +339,25 @@ module matrix_elements
       integer, optional, intent(in) :: right_gradient
       !> Cartesian component (1, 2, or 3) of surface normal for surface integrals (default: 0 - volume integral)
       integer, optional, intent(in) :: surface_integral
+      !> Use scalar product of gradients on both sides (default: `.false.`)
+      logical, optional, intent(in) :: gradient_product
 
       integer :: lr, rr, lg, rg, sf
+      logical :: gp
 
       lr = 0; if( present( left_radial_derivative ) ) lr = left_radial_derivative
       rr = 0; if( present( right_radial_derivative ) ) rr = right_radial_derivative
       lg = 0; if( present( left_gradient ) ) lg = left_gradient
       rg = 0; if( present( right_gradient ) ) rg = right_gradient
       sf = 0; if( present( surface_integral ) ) sf = surface_integral
+      gp = .false.; if (present( gradient_product )) gp = gradient_product
 
-      call me_lapwlo_mt_rignt( is, ias, lmax, alpha, rrfun, beta, zrignt, lr, rr, lg, rg, sf, .true. )
+      call me_lapwlo_mt_rignt( is, ias, lmax, alpha, rrfun, beta, zrignt, lr, rr, lg, rg, sf, gp, .true. )
     end subroutine mt_rignt_real
 
     !> See [[me_mt_prepare]].
     subroutine mt_rignt_complex( is, ias, lmax, alpha, zrfun, beta, zrignt, &
-        left_radial_derivative, right_radial_derivative, left_gradient, right_gradient, surface_integral, real_expansion )
+        left_radial_derivative, right_radial_derivative, left_gradient, right_gradient, surface_integral, gradient_product, real_expansion )
       use matrix_elements_lapw_lo, only: me_lapwlo_mt_rignt
       !> index of the species of the MT
       integer, intent(in) :: is
@@ -374,20 +384,23 @@ module matrix_elements
       integer, optional, intent(in) :: right_gradient
       !> Cartesian component (1, 2, or 3) of surface normal for surface integrals (default: 0 - volume integral)
       integer, optional, intent(in) :: surface_integral
+      !> Use scalar product of gradients on both sides (default: `.false.`)
+      logical, optional, intent(in) :: gradient_product
       !> operator is given as an real spherical harmonics expansion (default: `.false.`)
       logical, optional, intent(in) :: real_expansion
 
       integer :: lr, rr, lg, rg, sf
-      logical :: real
+      logical :: gp, real
 
       lr = 0; if( present( left_radial_derivative ) ) lr = left_radial_derivative
       rr = 0; if( present( right_radial_derivative ) ) rr = right_radial_derivative
       lg = 0; if( present( left_gradient ) ) lg = left_gradient
       rg = 0; if( present( right_gradient ) ) rg = right_gradient
       sf = 0; if( present( surface_integral ) ) sf = surface_integral
+      gp = .false.; if (present( gradient_product )) gp = gradient_product
       real = .false.; if( present( real_expansion ) ) real = real_expansion
 
-      call me_lapwlo_mt_rignt( is, ias, lmax, alpha, zrfun, beta, zrignt, lr, rr, lg, rg, sf, real )
+      call me_lapwlo_mt_rignt( is, ias, lmax, alpha, zrfun, beta, zrignt, lr, rr, lg, rg, sf, gp, real )
     end subroutine mt_rignt_complex
 
     ! END INTERFACE ME_MT_PREPARE
@@ -784,7 +797,7 @@ module matrix_elements
     
     !> See [[me_ir_mat]].
     subroutine ir_mat_basis( Gpset1, ip1, Gpset2, ip2, alpha, opig, beta, mat, &
-        Gset_op, diagonal_only, left_gradient, right_gradient )
+        Gset_op, diagonal_only, left_gradient, right_gradient, gradient_product )
       use matrix_elements_lapw_lo, only: me_lapwlo_ir_mat, Gset
       use mod_kpointset, only: G_set, Gk_set
       !> set of \({\bf G+p}\) vectors for basis functions on the left
@@ -811,26 +824,29 @@ module matrix_elements
       integer, optional, intent(in) :: left_gradient
       !> Cartesian component (1, 2, or 3) of gradient for right basis functions (default: 0 - no gradient)
       integer, optional, intent(in) :: right_gradient
+      !> Use scalar product of gradients on both sides (default: `.false.`)
+      logical, optional, intent(in) :: gradient_product
 
-      logical :: diag
+      logical :: diag, gprod
       integer :: lg, rg
 
       diag = .false.; if( present( diagonal_only ) ) diag = diagonal_only
       lg = 0; if( present( left_gradient ) ) lg = left_gradient
       rg = 0; if( present( right_gradient ) ) rg = right_gradient
+      gprod = .false.; if( present( gradient_product ) ) gprod = gradient_product
 
       if( present( Gset_op ) ) then
         call me_lapwlo_ir_mat( Gpset1, ip1, Gpset2, ip2, Gset_op, alpha, opig, beta, mat, &
-          diagonal_only=diag, left_gradient=lg, right_gradient=rg )
+          diagonal_only=diag, left_gradient=lg, right_gradient=rg, gradient_product=gprod )
       else
         call me_lapwlo_ir_mat( Gpset1, ip1, Gpset2, ip2, Gset, alpha, opig, beta, mat, &
-          diagonal_only=diag, left_gradient=lg, right_gradient=rg )
+          diagonal_only=diag, left_gradient=lg, right_gradient=rg, gradient_product=gprod )
       end if
     end subroutine ir_mat_basis
 
     !> See [[me_ir_mat]].
     subroutine ir_mat_evec( Gpset1, ip1, Gpset2, ip2, evec1, evec2, alpha, opig, beta, mat, &
-        Gset_op, diagonal_only, left_gradient, right_gradient )
+        Gset_op, diagonal_only, left_gradient, right_gradient, gradient_product )
       use matrix_elements_lapw_lo, only: me_lapwlo_ir_mat, Gset
       use mod_kpointset, only: G_set, Gk_set
       !> set of \({\bf G+p}\) vectors for basis functions on the left
@@ -861,26 +877,29 @@ module matrix_elements
       integer, optional, intent(in) :: left_gradient
       !> Cartesian component (1, 2, or 3) of gradient for right basis functions (default: 0 - no gradient)
       integer, optional, intent(in) :: right_gradient
+      !> Use scalar product of gradients on both sides (default: `.false.`)
+      logical, optional, intent(in) :: gradient_product
 
-      logical :: diag
+      logical :: diag, gprod
       integer :: lg, rg
 
       diag = .false.; if( present( diagonal_only ) ) diag = diagonal_only
       lg = 0; if( present( left_gradient ) ) lg = left_gradient
       rg = 0; if( present( right_gradient ) ) rg = right_gradient
+      gprod = .false.; if( present( gradient_product ) ) gprod = gradient_product
 
       if( present( Gset_op ) ) then
         call me_lapwlo_ir_mat( Gpset1, ip1, Gpset2, ip2, Gset_op, alpha, opig, beta, mat, &
-               left_evec=evec1, right_evec=evec2, diagonal_only=diag, left_gradient=lg, right_gradient=rg )
+               left_evec=evec1, right_evec=evec2, diagonal_only=diag, left_gradient=lg, right_gradient=rg, gradient_product=gprod )
       else
         call me_lapwlo_ir_mat( Gpset1, ip1, Gpset2, ip2, Gset, alpha, opig, beta, mat, &
-               left_evec=evec1, right_evec=evec2, diagonal_only=diag, left_gradient=lg, right_gradient=rg )
+               left_evec=evec1, right_evec=evec2, diagonal_only=diag, left_gradient=lg, right_gradient=rg, gradient_product=gprod )
       end if
     end subroutine ir_mat_evec
 
     !> See [[me_ir_mat]].
     subroutine ir_mat_basis_single( Gpset, ip, alpha, opig, beta, mat, &
-        Gset_op, diagonal_only, left_gradient, right_gradient )
+        Gset_op, diagonal_only, left_gradient, right_gradient, gradient_product )
       use matrix_elements_lapw_lo, only: me_lapwlo_ir_mat, Gset
       use mod_kpointset, only: G_set, Gk_set
       !> set of \({\bf G+p}\) vectors for basis functions
@@ -903,26 +922,29 @@ module matrix_elements
       integer, optional, intent(in) :: left_gradient
       !> Cartesian component (1, 2, or 3) of gradient for right basis functions (default: 0 - no gradient)
       integer, optional, intent(in) :: right_gradient
+      !> Use scalar product of gradients on both sides (default: `.false.`)
+      logical, optional, intent(in) :: gradient_product
 
-      logical :: diag
+      logical :: diag, gprod
       integer :: lg, rg
 
       diag = .false.; if( present( diagonal_only ) ) diag = diagonal_only
       lg = 0; if( present( left_gradient ) ) lg = left_gradient
       rg = 0; if( present( right_gradient ) ) rg = right_gradient
+      gprod = .false.; if( present( gradient_product ) ) gprod = gradient_product
 
       if( present( Gset_op ) ) then
         call me_lapwlo_ir_mat( Gpset, ip, Gpset, ip, Gset_op, alpha, opig, beta, mat, &
-          diagonal_only=diag, left_gradient=lg, right_gradient=rg )
+          diagonal_only=diag, left_gradient=lg, right_gradient=rg, gradient_product=gprod )
       else
         call me_lapwlo_ir_mat( Gpset, ip, Gpset, ip, Gset, alpha, opig, beta, mat, &
-          diagonal_only=diag, left_gradient=lg, right_gradient=rg )
+          diagonal_only=diag, left_gradient=lg, right_gradient=rg, gradient_product=gprod )
       end if
     end subroutine ir_mat_basis_single
 
     !> See [[me_ir_mat]].
     subroutine ir_mat_evec_single( Gpset, ip, evec, alpha, opig, beta, mat, &
-        Gset_op, diagonal_only, left_gradient, right_gradient )
+        Gset_op, diagonal_only, left_gradient, right_gradient, gradient_product )
       use matrix_elements_lapw_lo, only: me_lapwlo_ir_mat, Gset
       use mod_kpointset, only: G_set, Gk_set
       !> set of \({\bf G+p}\) vectors for basis functions
@@ -947,20 +969,23 @@ module matrix_elements
       integer, optional, intent(in) :: left_gradient
       !> Cartesian component (1, 2, or 3) of gradient for right basis functions (default: 0 - no gradient)
       integer, optional, intent(in) :: right_gradient
+      !> Use scalar product of gradients on both sides (default: `.false.`)
+      logical, optional, intent(in) :: gradient_product
 
-      logical :: diag
+      logical :: diag, gprod
       integer :: lg, rg
 
       diag = .false.; if( present( diagonal_only ) ) diag = diagonal_only
       lg = 0; if( present( left_gradient ) ) lg = left_gradient
       rg = 0; if( present( right_gradient ) ) rg = right_gradient
+      gprod = .false.; if( present( gradient_product ) ) gprod = gradient_product
 
       if( present( Gset_op ) ) then
         call me_lapwlo_ir_mat( Gpset, ip, Gpset, ip, Gset_op, alpha, opig, beta, mat, &
-               left_evec=evec, right_evec=evec, diagonal_only=diag, left_gradient=lg, right_gradient=rg )
+               left_evec=evec, right_evec=evec, diagonal_only=diag, left_gradient=lg, right_gradient=rg, gradient_product=gprod )
       else
         call me_lapwlo_ir_mat( Gpset, ip, Gpset, ip, Gset, alpha, opig, beta, mat, &
-               left_evec=evec, right_evec=evec, diagonal_only=diag, left_gradient=lg, right_gradient=rg )
+               left_evec=evec, right_evec=evec, diagonal_only=diag, left_gradient=lg, right_gradient=rg, gradient_product=gprod )
       end if
     end subroutine ir_mat_evec_single
 

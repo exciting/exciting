@@ -22,6 +22,8 @@ Subroutine gencore
       use constants, only: y00, fourpi
       use mod_corestate, only: rhocr, rwfcr, evalcr
       use mod_timing, only: stopwatch
+      use mgga_poteff, only: veffmt_gga
+      use modmain, only: iscl
       !Use modmain
 ! !DESCRIPTION:
 !   Computes the core radial wavefunctions, eigenvalues and densities. The
@@ -52,13 +54,21 @@ Subroutine gencore
          Do ia = 1, natoms (is)
             If ( .Not. done(ia)) Then
                ias = idxas (ia, is)
-               vr (1:nrmt(is)) = veffmt (1, 1:nrmt(is), ias) * y00
+               if (associated(input%groundstate%mgga)) then 
+                  vr(1:nrmt(is)) = veffmt_gga(1, 1:nrmt(is), ias) * y00
+               else 
+                  vr (1:nrmt(is)) = veffmt (1, 1:nrmt(is), ias) * y00
+               end if 
                If (input%groundstate%frozencore) Then
 ! use atomic potential for the frozen core approximation
                   vr (1:nrmt(is)) = spvr (1:nrmt(is), is)
                Else
 ! else use the spherical part of the crystal effective potential
-                  vr (1:nrmt(is)) = veffmt (1, 1:nrmt(is), ias) * y00
+                  if (associated(input%groundstate%mgga) .and. iscl > 1) then 
+                     vr(1:nrmt(is)) = veffmt_gga(1, 1:nrmt(is), ias) * y00
+                  else
+                     vr (1:nrmt(is)) = veffmt (1, 1:nrmt(is), ias) * y00
+                  end if 
                End If
 ! append the effective potential from the atomic calculation
                t1 = vr (nrmt(is)) - spvr (nrmt(is), is)

@@ -16,7 +16,8 @@ Subroutine linengy
       Use modmain
       Use scl_xml_out_Module
       use trial_energy_selection, only: select_local_orbital_trial_energies, select_apw_trial_energies
-
+      use mgga_poteff, only: veffmt_gga
+      use modmain, only: iscl
 ! !DESCRIPTION:
 !   Calculates the new linearisation energies for both the APW and local-orbital
 !   radial functions. See the routine {\tt findband}.
@@ -86,7 +87,11 @@ Subroutine linengy
          Do ia = 1, natoms (is)
             If ( .Not. done(ia)) Then
                ias = idxas (ia, is)
-               vr (1:nrmt(is)) = veffmt (1, 1:nrmt(is), ias) * y00
+               if (associated(input%groundstate%mgga) .and. iscl > 1) then 
+                     vr(1:nrmt(is)) = veffmt_gga(1, 1:nrmt(is), ias) * y00
+               else
+                     vr (1:nrmt(is)) = veffmt (1, 1:nrmt(is), ias) * y00
+               end if 
 !-----------------------!
 !     APW functions     !
 !-----------------------!
