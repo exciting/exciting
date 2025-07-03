@@ -1,828 +1,863 @@
 <xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd"
-    xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
-    <xs:include id="common" schemaLocation="common.xsd"/>
+	   xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd"
+	   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	   xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
+  <xs:include id="common" schemaLocation="common.xsd"/>
+  <xs:annotation>
+    <xs:appinfo>
+      <parent>/input</parent>
+      <root>gw</root>
+    </xs:appinfo>
+  </xs:annotation>
+
+  <xs:element ex:importance="expert" ex:unit="" name="gw">
     <xs:annotation>
-        <xs:appinfo>
-            <parent>/input</parent>
-            <root>gw</root>
-        </xs:appinfo>
+      <xs:documentation>G0W0 calculation setup.</xs:documentation>
     </xs:annotation>
+    <xs:complexType>
+      <xs:all>
 
-    <xs:element ex:importance="expert" ex:unit="" name="gw">
-        <xs:annotation>
-            <xs:documentation>G0W0 calculation setup.</xs:documentation>
-        </xs:annotation>
-        <xs:complexType>
-          <xs:all>
+        <!-- ================ List of elements ===================== -->
 
-            <!-- ================ List of elements ===================== -->
+        <xs:element ex:importance="experimental" ex:unit="" ref="plot1d" minOccurs="0"/>
 
-            <xs:element ex:importance="experimental" ex:unit="" ref="plot1d" minOccurs="0"/>
-
-            <xs:element ex:importance="expert" ex:unit="" name="freqgrid" maxOccurs="1" minOccurs="0">
-              <xs:annotation>
-                <xs:documentation>
-                   Frequency grid setup used for computing <inlinemath>W(q,omega)</inlinemath>
-                   and <inlinemath>Sigma(k,omega)</inlinemath>.
-                </xs:documentation>
-              </xs:annotation>
-              <xs:complexType>
-                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="fconv" default="imfreq">
-                  <xs:annotation><xs:documentation>
-                  Frequency convolution type:
-                    <list>
-                      <li><pre>nofreq</pre> - skip frequency dependency (testing option).</li>
-                      <li><pre>refreq</pre> - real frequency formalism (only for response functions).</li>
-                      <li><pre>imfreq</pre> - imaginary frequency formalism.</li>
-                    </list>
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="fgrid" default="gauleg2">
-                  <xs:annotation><xs:documentation>
-                    Grid types (listed only the recommended ones, for more grids see the source subroutine mod_frequency.f90):
-                      <list>
-                        <li><pre>eqdist</pre> - Equidistant grid from <attref>freqmin</attref> to <attref>freqmax</attref>.</li>
-                        <li><pre>gaulag</pre> - Grid for the Gauss-Laguerre quadrature rule from 0 to <inlinemath>\infty</inlinemath>.</li>
-                        <li><pre>gauleg</pre> - Grid for the Gauss-Lagendre quadrature rule from 0 to <inlinemath>\infty</inlinemath>.</li>
-                        <li><pre>gauleg2</pre> - Grid for the double Gauss-Lagendre quadrature rule from 0 to <attref>freqmax</attref> and <attref>freqmax</attref> to <inlinemath>\infty</inlinemath>.</li>
-                        <li><pre>clencurt2</pre> - Grid for the Clenshaw-Curtis quadrature rule from 0 to <inlinemath>\infty</inlinemath>. <attref>freqmax</attref> can be used to rescale the frequencies.</li>
-                      </list>
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="nomeg" default="16">
-                  <xs:annotation><xs:documentation>
-                  Number of grid points.
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="freqmin" default="0.0d0">
-                  <xs:annotation><xs:documentation>
-                  Lower limit for the grid interval.
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="freqmax" default="1.0d0">
-                  <xs:annotation><xs:documentation>
-                  Upper limit for the grid interval.
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="eta" default="1.0d-3">
-                  <xs:annotation><xs:documentation>
-                  Numerical (complex) smearing parameter used for the real frequency convolution and <attref>qdepw</attref>=<pre>sum</pre>.
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-              </xs:complexType>
-            </xs:element>
-
-            <xs:element ex:importance="expert" ex:unit="" name="selfenergy" maxOccurs="1" minOccurs="0">
-              <xs:annotation>
-                <xs:documentation>
-                  Correlation self-energy setup.
-                </xs:documentation>
-              </xs:annotation>
-              <xs:complexType>
-                <xs:all>
-                  <xs:element ex:importance="expert" ex:unit="" name="wgrid" minOccurs="0" maxOccurs="1">
-                    <xs:annotation>
-                      <xs:documentation>
-                        The real frequency grid (output) setup for computing and visualizing the correlation self-energy and the spectral function.
-                        For more detailed description see <elementref>freqgrid</elementref>.
-                      </xs:documentation>
-                    </xs:annotation>
-                    <xs:complexType>
-                      <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="type" default="eqdist">
-                        <xs:annotation><xs:documentation>
-                          Grid type.
-                        </xs:documentation></xs:annotation>
-                      </xs:attribute>
-                      <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="size" default="1000">
-                        <xs:annotation><xs:documentation>
-                          Number of grid points.
-                        </xs:documentation></xs:annotation>
-                      </xs:attribute>
-                      <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="wmin" default="-1.0d0">
-                        <xs:annotation><xs:documentation>
-                          Lower limit for the grid interval.
-                        </xs:documentation></xs:annotation>
-                      </xs:attribute>
-                      <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="wmax" default="1.0d0">
-                        <xs:annotation><xs:documentation>
-                          Upper limit for the grid interval.
-                        </xs:documentation></xs:annotation>
-                      </xs:attribute>
-                    </xs:complexType>
-                  </xs:element>
-                </xs:all>
-
-                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="method" default="ac">
-                  <xs:annotation><xs:documentation>
-                    Technique to compute the frequency convolution integral:
-                    <list>
-                      <li><pre>ac</pre> - Analytical continuation</li>
-                      <li><pre>cd</pre> - Contour deformation</li>
-                    </list>
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-
-                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="nempty" default="0">
-                  <xs:annotation><xs:documentation>
-                    Number of empty states to calculate the correlation self energy (different from default).
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-
-                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="eqpsolver" default="0">
-                  <xs:annotation><xs:documentation>
-                    Schemes to solve the quasiparticle (non-linear) equation:
-                    <list>
-                      <li>0 - Perturbative solution.</li>
-                      <li>1 - Z=1 calculations.</li>
-                      <li>2 - Iterative solution.</li>
-                    </list>
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-
-                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="eshift" default="0">
-                  <xs:annotation><xs:documentation>
-                    Alignment of the chemical potential:
-                    <list>
-                      <li>0 - No alignment.</li>
-                      <li>1 - Self-consistency at the Fermi level (iteratively).</li>
-                      <li>2 - Self-consistency at the Fermi level (perturbatively).</li>
-                    </list>
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-
-                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="actype" default="pade">
-                  <xs:annotation><xs:documentation>
-                    Analytical continuation scheme:
-                    <list>
-                      <li><pre>pade</pre> - Pade's approximant (by H. J. Vidberg and J. W. Serence, J. Low Temp. Phys. 29, 179 (1977)).</li>
-                      <li><pre>aaa</pre> - Y. Nakatsukasa, O. Sete, L. N. Trefethen, "The AAA algorithm for rational approximation", SIAM J. Sci. Comp. 40 (2018), A1494-A1522.</li>
-                    </list>
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-
-                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="tol" default="1.0d-12">
-                  <xs:annotation><xs:documentation>
-                    Tolerance factor used for generating support points in AAA-interpolation.
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-
-                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="swidth" default="1.0d-4">
-                  <xs:annotation><xs:documentation>
-                    Smearing parameter for visualizing the spectral function.
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-
-                <xs:attribute ex:importance="expert" ex:unit="" name="singularity" default="mpb">
-                  <xs:annotation><xs:documentation>
-                    Treatment of the <inlinemath>\mathbf{q} \rightarrow 0</inlinemath> singularity:
-                    <list>
-                      <li><pre>none</pre>: No special treatment (test purpose only).</li>
-                      <li><pre>mpb</pre>: Auxiliary function method by S. Massidda, M. Posternak, and A. Baldereschi, PRB 48, 5058 (1993)</li>
-                      <li><pre>crg</pre>: Auxiliary function method by P. Carrier, S. Rohra, and A. Goerling, PRB 75, 205126 (2007).</li>
-                      <li><pre>low_dim</pre>: Special treatment for low-dimensional cutoff by F. Rasmussen, P. Schmidt, K. Winther, and K. Thygesen, PRB 94, 155406 (2016).</li>
-                    </list>
-                  </xs:documentation></xs:annotation>
-                  <xs:simpleType>
-                    <xs:restriction base="xs:string">
-                      <xs:enumeration value="none"/>
-                      <xs:enumeration value="mpb"/>
-                      <xs:enumeration value="crg"/>
-                      <xs:enumeration value="low_dim"/>
-                    </xs:restriction>
-                  </xs:simpleType>
-                </xs:attribute>
-
-
-              </xs:complexType>
-            </xs:element>
-
-            <xs:element ex:importance="expert" ex:unit="" name="mixbasis" maxOccurs="1" minOccurs="0">
-              <xs:annotation>
-                <xs:documentation>
-                    Mixed-product basis setup.
-                 </xs:documentation>
-              </xs:annotation>
-              <xs:complexType>
-                <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="lmaxmb" default="3">
-                  <xs:annotation><xs:documentation>
-                  Maximal angular momentum: controls construction of the radial part of the mixed-product basis.
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="epsmb" default="1.0d-4">
-                  <xs:annotation><xs:documentation>
-                  Linear dependence tolerance factor: controls construction of the radial part of the mixed-product basis.
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="gmb" default="1.0">
-                  <xs:annotation><xs:documentation>
-                  Plane-wave energy cutoff (in units of <inlinemath>G_{max}^{LAPW}</inlinemath>): controls construction of the plane-wave part of the mixed-product basis.
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-              </xs:complexType>
-            </xs:element>
-
-            <xs:element ex:importance="expert" ex:unit="" name="barecoul" maxOccurs="1" minOccurs="0">
+        <xs:element ex:importance="expert" ex:unit="" name="freqgrid" maxOccurs="1" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>
+              Frequency grid setup used for computing <inlinemath>W(q,omega)</inlinemath>
+              and <inlinemath>Sigma(k,omega)</inlinemath>.
+            </xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="fconv" default="imfreq">
               <xs:annotation><xs:documentation>
-                  The bare Coulomb potential setup.
-                </xs:documentation></xs:annotation>
-              <xs:complexType>
-                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="pwm" default="2.0d0">
-                  <xs:annotation><xs:documentation>
-                  Plane-wave energy cutoff (in units of <attref>gmaxvr</attref>*<attref>gmb</attref>) for computing the plane-wave part of the Coulomb potential.
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="stctol" default="1.0d-15">
-                  <xs:annotation><xs:documentation>
-                  Tolerance factor for computing the structure factor in Ewald summation scheme.
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-                <xs:attribute ex:importance="expert" ex:unit="" name="barcevtol" type="fortrandouble" default="0.1d0">
-                  <xs:annotation><xs:documentation>
-                  Matrix elements of the polarizability, the screened Coulomb potential, and the self-energy are computed in
-                  the basis that diagonalize the bare Coulomb potential. This tolerance factor is used to reduce the size of the
-                  <inlinemath>V_c</inlinemath>-diagonal product basis when computing the screened Coulomb potential and the correlation self-energy.
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="cutofftype" default="none">
-                  <xs:annotation><xs:documentation>
-                  Trigger the usage of the Coulomb potential truncation technique
-                  (S. Ismail-Beigi, "Truncation of Periodic Image Interactions for Confined Systems. Phys. Rev. B 73, 233103 (2006)).
-                  <list>
-                    <li><pre>none</pre> - 3D periodic crystal.</li>
-                    <li><pre>0d</pre> - Isolated atom or molecule.</li>
-                    <li><pre>1d</pre> - 1D chain (periodicity along z-axis)</li>
-                    <li><pre>2d</pre> - 2D surface (vacuum separation along z-direction)</li>
-                  </list>
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-                <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="basis" default="mb">
-                  <xs:annotation><xs:documentation>
-                  Two approaches to compute the bare Coulomb potential:
-                    <list>
-                      <li><pre>mb</pre> - The Coulomb potential is computed in the mixed-product basis.</li>
-                      <li><pre>pw</pre> - The Coulomb potential is computed in the plane-wave basis and then converted into the mixed-product basis.
-                      This option is used only when the potential truncation technique <attref>cutofftype</attref> is employed. From practical point,
-                      usage of this approach requires to set a higher value of <attref>pwm</attref> (typically = 4.0)</li>.
-                    </list>
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-              </xs:complexType>
-            </xs:element>
+                Frequency convolution type:
+                <list>
+                  <li><pre>nofreq</pre> - skip frequency dependency (testing option).</li>
+                  <li><pre>refreq</pre> - real frequency formalism (only for response functions).</li>
+                  <li><pre>imfreq</pre> - imaginary frequency formalism.</li>
+                </list>
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="fgrid" default="gauleg2">
+              <xs:annotation><xs:documentation>
+                Grid types (listed only the recommended ones, for more grids see the source subroutine mod_frequency.f90):
+                <list>
+                  <li><pre>eqdist</pre> - Equidistant grid from <attref>freqmin</attref> to <attref>freqmax</attref>.</li>
+                  <li><pre>gaulag</pre> - Grid for the Gauss-Laguerre quadrature rule from 0 to <inlinemath>\infty</inlinemath>.</li>
+                  <li><pre>gauleg</pre> - Grid for the Gauss-Lagendre quadrature rule from 0 to <inlinemath>\infty</inlinemath>.</li>
+                  <li><pre>gauleg2</pre> - Grid for the double Gauss-Lagendre quadrature rule from 0 to <attref>freqmax</attref> and <attref>freqmax</attref> to <inlinemath>\infty</inlinemath>.</li>
+                  <li><pre>clencurt2</pre> - Grid for the Clenshaw-Curtis quadrature rule from 0 to <inlinemath>\infty</inlinemath>. <attref>freqmax</attref> can be used to rescale the frequencies.</li>
+                </list>
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="nomeg" default="16">
+              <xs:annotation><xs:documentation>
+                Number of grid points.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="freqmin" default="0.0d0">
+              <xs:annotation><xs:documentation>
+                Lower limit for the grid interval.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="freqmax" default="1.0d0">
+              <xs:annotation><xs:documentation>
+                Upper limit for the grid interval.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="eta" default="1.0d-3">
+              <xs:annotation><xs:documentation>
+                Numerical (complex) smearing parameter used for the real frequency convolution and <attref>qdepw</attref>=<pre>sum</pre>.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
 
-            <xs:element ex:importance="expert" ex:unit="" name="scrcoul" maxOccurs="1" minOccurs="0">
-              <xs:annotation>
-                <xs:documentation>
-                    Dynamically screened Coulomb potential setup.
-                </xs:documentation>
-              </xs:annotation>
-              <xs:complexType>
-                <xs:attribute ex:importance="expert" type="xs:string" name="scrtype" default="rpa">
-                  <xs:annotation><xs:documentation>
-                  Approximation:
-                    <list>
-                      <li><pre>rpa</pre> - Full-frequency Random-Phase Approximation.</li>
-                      <li><pre>ppm</pre> - Godby-Needs plasmon-pole model.</li>
-                    </list>
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-                <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="omegap" default="1.0d0">
-                  <xs:annotation><xs:documentation>
-                    Plasmon-pole frequency (fitting parameter).
+        <xs:element ex:importance="expert" ex:unit="" name="selfenergy" maxOccurs="1" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>
+              Correlation self-energy setup.
+            </xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:all>
+              <xs:element ex:importance="expert" ex:unit="" name="wgrid" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                  <xs:documentation>
+                    The real frequency grid (output) setup for computing and visualizing the correlation self-energy and the spectral function.
+                    For more detailed description see <elementref>freqgrid</elementref>.
+                  </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="type" default="eqdist">
+                    <xs:annotation><xs:documentation>
+                      Grid type.
                     </xs:documentation></xs:annotation>
                   </xs:attribute>
-                <xs:attribute ex:importance="expert" ex:unit="" name="averaging" default="isotropic">
-                  <xs:annotation><xs:documentation>
-                  Averaging of the inverse dielectric function in the q <inlinemath>\to</inlinemath> 0 limit.
-                  </xs:documentation></xs:annotation>
-                  <xs:simpleType>
-                    <xs:restriction base="xs:string">
-                      <xs:enumeration value="isotropic"/>
-                      <xs:enumeration value="2d"/>
-                    </xs:restriction>
-                  </xs:simpleType>
-                </xs:attribute>
-                <xs:attribute ex:importance="expert" ex:unit="" name="q0eps" type="vect3d" default="1.0d0 1.0d0 1.0d0">
-                  <xs:annotation><xs:documentation>
-                  q0eps - averaging direction q <inlinemath>\to</inlinemath> 0.
-                  Default: (1,1,1)
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
-                <xs:attribute ex:importance="experimental" ex:unit="" name="subgrid_q0" type="integertriple" default="10 10 1">
-                  <xs:annotation><xs:documentation>
-                  Size of the grid around q=0 for numerical integration of the screened coulomb interaction (used for averaging="2d" and averaging="1d")
-                  </xs:documentation></xs:annotation>
-                </xs:attribute>
+                  <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="size" default="1000">
+                    <xs:annotation><xs:documentation>
+                      Number of grid points.
+                    </xs:documentation></xs:annotation>
+                  </xs:attribute>
+                  <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="wmin" default="-1.0d0">
+                    <xs:annotation><xs:documentation>
+                      Lower limit for the grid interval.
+                    </xs:documentation></xs:annotation>
+                  </xs:attribute>
+                  <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="wmax" default="1.0d0">
+                    <xs:annotation><xs:documentation>
+                      Upper limit for the grid interval.
+                    </xs:documentation></xs:annotation>
+                  </xs:attribute>
+                </xs:complexType>
+              </xs:element>
+            </xs:all>
+
+            <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="method" default="ac">
+              <xs:annotation><xs:documentation>
+                Technique to compute the frequency convolution integral:
+                <list>
+                  <li><pre>ac</pre> - Analytical continuation</li>
+                  <li><pre>cd</pre> - Contour deformation</li>
+                </list>
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="nempty" default="0">
+              <xs:annotation><xs:documentation>
+                Number of empty states to calculate the correlation self energy (different from default).
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="eqpsolver" default="0">
+              <xs:annotation><xs:documentation>
+                Schemes to solve the quasiparticle (non-linear) equation:
+                <list>
+                  <li>0 - Perturbative solution.</li>
+                  <li>1 - Z=1 calculations.</li>
+                  <li>2 - Iterative solution.</li>
+                </list>
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="eshift" default="0">
+              <xs:annotation><xs:documentation>
+                Alignment of the chemical potential:
+                <list>
+                  <li>0 - No alignment.</li>
+                  <li>1 - Self-consistency at the Fermi level (iteratively).</li>
+                  <li>2 - Self-consistency at the Fermi level (perturbatively).</li>
+                </list>
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="actype" default="pade">
+              <xs:annotation><xs:documentation>
+                Analytical continuation scheme:
+                <list>
+                  <li><pre>pade</pre> - Pade's approximant (by H. J. Vidberg and J. W. Serence, J. Low Temp. Phys. 29, 179 (1977)).</li>
+                  <li><pre>aaa</pre> - Y. Nakatsukasa, O. Sete, L. N. Trefethen, "The AAA algorithm for rational approximation", SIAM J. Sci. Comp. 40 (2018), A1494-A1522.</li>
+                </list>
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="tol" default="1.0d-12">
+              <xs:annotation><xs:documentation>
+                Tolerance factor used for generating support points in AAA-interpolation.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="swidth" default="1.0d-4">
+              <xs:annotation><xs:documentation>
+                Smearing parameter for visualizing the spectral function.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="singularity" default="mpb">
+              <xs:annotation><xs:documentation>
+                Treatment of the <inlinemath>\mathbf{q} \rightarrow 0</inlinemath> singularity:
+                <list>
+                  <li><pre>none</pre>: No special treatment (test purpose only).</li>
+                  <li><pre>mpb</pre>: Auxiliary function method by S. Massidda, M. Posternak, and A. Baldereschi, PRB 48, 5058 (1993)</li>
+                  <li><pre>crg</pre>: Auxiliary function method by P. Carrier, S. Rohra, and A. Goerling, PRB 75, 205126 (2007).</li>
+                  <li><pre>low_dim</pre>: Special treatment for low-dimensional cutoff by F. Rasmussen, P. Schmidt, K. Winther, and K. Thygesen, PRB 94, 155406 (2016).</li>
+                </list>
+              </xs:documentation></xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="none"/>
+                  <xs:enumeration value="mpb"/>
+                  <xs:enumeration value="crg"/>
+                  <xs:enumeration value="low_dim"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
 
 
-              </xs:complexType>
-            </xs:element>
+          </xs:complexType>
+        </xs:element>
 
-            <xs:element ex:importance="experimental" ex:unit="" name="taskGroup" maxOccurs="1" minOccurs="0">
+        <xs:element ex:importance="expert" ex:unit="" name="mixbasis" maxOccurs="1" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>
+              Mixed-product basis setup.
+            </xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="lmaxmb" default="3">
+              <xs:annotation><xs:documentation>
+                Maximal angular momentum: controls construction of the radial part of the mixed-product basis.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="epsmb" default="1.0d-4">
+              <xs:annotation><xs:documentation>
+                Linear dependence tolerance factor: controls construction of the radial part of the mixed-product basis.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="gmb" default="1.0">
+              <xs:annotation><xs:documentation>
+                Plane-wave energy cutoff (in units of <inlinemath>G_{max}^{LAPW}</inlinemath>): controls construction of the plane-wave part of the mixed-product basis.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element ex:importance="expert" ex:unit="" name="barecoul" maxOccurs="1" minOccurs="0">
+          <xs:annotation><xs:documentation>
+            The bare Coulomb potential setup.
+          </xs:documentation></xs:annotation>
+          <xs:complexType>
+            <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="pwm" default="2.0d0">
+              <xs:annotation><xs:documentation>
+                Plane-wave energy cutoff (in units of <attref>gmaxvr</attref>*<attref>gmb</attref>) for computing the plane-wave part of the Coulomb potential.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="stctol" default="1.0d-15">
+              <xs:annotation><xs:documentation>
+                Tolerance factor for computing the structure factor in Ewald summation scheme.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="barcevtol" type="fortrandouble" default="0.1d0">
+              <xs:annotation><xs:documentation>
+                Matrix elements of the polarizability, the screened Coulomb potential, and the self-energy are computed in
+                the basis that diagonalize the bare Coulomb potential. This tolerance factor is used to reduce the size of the
+                <inlinemath>V_c</inlinemath>-diagonal product basis when computing the screened Coulomb potential and the correlation self-energy.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="cutofftype" default="none">
+              <xs:annotation><xs:documentation>
+                Trigger the usage of the Coulomb potential truncation technique
+                (S. Ismail-Beigi, "Truncation of Periodic Image Interactions for Confined Systems. Phys. Rev. B 73, 233103 (2006)).
+                <list>
+                  <li><pre>none</pre> - 3D periodic crystal.</li>
+                  <li><pre>0d</pre> - Isolated atom or molecule.</li>
+                  <li><pre>1d</pre> - 1D chain (periodicity along z-axis)</li>
+                  <li><pre>2d</pre> - 2D surface (vacuum separation along z-direction)</li>
+                </list>
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" type="xs:string" ex:unit="" name="basis" default="mb">
+              <xs:annotation><xs:documentation>
+                Two approaches to compute the bare Coulomb potential:
+                <list>
+                  <li><pre>mb</pre> - The Coulomb potential is computed in the mixed-product basis.</li>
+                  <li><pre>pw</pre> - The Coulomb potential is computed in the plane-wave basis and then converted into the mixed-product basis.
+                  This option is used only when the potential truncation technique <attref>cutofftype</attref> is employed. From practical point,
+                  usage of this approach requires to set a higher value of <attref>pwm</attref> (typically = 4.0)</li>.
+                </list>
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element ex:importance="expert" ex:unit="" name="scrcoul" maxOccurs="1" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>
+              Dynamically screened Coulomb potential setup.
+            </xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:attribute ex:importance="expert" type="xs:string" name="scrtype" default="rpa">
+              <xs:annotation><xs:documentation>
+                Approximation:
+                <list>
+                  <li><pre>rpa</pre> - Full-frequency Random-Phase Approximation.</li>
+                  <li><pre>ppm</pre> - Godby-Needs plasmon-pole model.</li>
+                </list>
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" type="fortrandouble" ex:unit="" name="omegap" default="1.0d0">
+              <xs:annotation><xs:documentation>
+                Plasmon-pole frequency (fitting parameter).
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="averaging" default="isotropic">
+              <xs:annotation><xs:documentation>
+                Averaging of the inverse dielectric function in the q <inlinemath>\to</inlinemath> 0 limit.
+              </xs:documentation></xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="isotropic"/>
+                  <xs:enumeration value="2d"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="q0eps" type="vect3d" default="1.0d0 1.0d0 1.0d0">
+              <xs:annotation><xs:documentation>
+                q0eps - averaging direction q <inlinemath>\to</inlinemath> 0.
+                Default: (1,1,1)
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="subgrid_q0" type="integertriple" default="10 10 1">
+              <xs:annotation><xs:documentation>
+                Size of the grid around q=0 for numerical integration of the screened coulomb interaction (used for averaging="2d" and averaging="1d")
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+
+
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element ex:importance="experimental" ex:unit="" name="taskGroup" maxOccurs="1" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>
+              When <attref>taskname</attref><pre>="taskGroup"</pre>,
+              execute the group of tasks defined by the elements present here.
+              This splits <inlinemath>G_0W_0</inlinemath> into smaller calculations,
+              allowing for a restart.
+            </xs:documentation>
+          </xs:annotation>
+
+          <xs:complexType>
+            <xs:all>
+              <xs:element ex:importance="experimental" ex:unit="" name="Coulomb" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                  <xs:documentation>
+                    Setup for the Setup for the task <pre>="Coulomb"</pre>.
+                    The bare Coulomb matrix is calculated for each 
+                    <inlinemath>\mathbf{q}</inlinemath>-point and printed out in 
+                    <pre>BARC_*.OUT</pre>, where <pre>*</pre> is the index of the
+                    <inlinemath>\mathbf{q}</inlinemath>-point.
+                  </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element ref="qpoints" minOccurs="1" maxOccurs="unbounded"/>
+                  </xs:sequence>
+                  <xs:attribute ex:importance="experimental" ex:unit="" name="eigenvalueThreshold" type="fortrandouble" default="0.0d0">
+                    <xs:annotation>
+                      <xs:documentation>
+                        Discard the eigenvalues below this threshold
+                        and the corresponding eigenvectors of the matrix
+                        <inlinemath>v_{ij}(\mathbf{q})</inlinemath> with the Coulomb potential 
+                        (see Computer Physics Communications <b>184</b>, 348 (2013)).
+                        Negative eigenvalues are not expected and can be obtained due to numerical 
+                        issues. It is therefore recommended to set <attref>eigenvalueThreshold</attref> to 
+                        <pre>0d0</pre>, unless there is a valid reason not to do so.
+                      </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                </xs:complexType>
+              </xs:element>
+
+              <xs:element ex:importance="experimental" ex:unit="" name="polarizability" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                  <xs:documentation>
+                    Setup for the task <pre>="polarizability"</pre>.
+                    The polarizability matrix is calculated for each
+                    <inlinemath>\mathbf{q}</inlinemath>-point and printed out in
+                    <pre>POLARIZABILITY-GW_Q*.OUT</pre>, where <pre>*</pre> is the index of the
+                    <inlinemath>\mathbf{q}</inlinemath>-point.
+                  </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element ref="qpoints" minOccurs="1" maxOccurs="unbounded"/>
+                  </xs:sequence>
+                  <xs:attribute ex:importance="experimental" ex:unit="" name="usingIrreducibleWedge" type="xs:boolean" default="false">
+                    <xs:annotation>
+                      <xs:documentation>When <pre>true</pre>, only computes the polarizability matrices at the irreducible wedge points.
+                      Additionally, when <pre>true</pre> <pre>POLARIZABILITY_Q*.OUT</pre> are renamed to <pre>POLARIZABILITY_IQ*.OUT</pre>,
+                      being in this case <pre>*</pre> the index of the irreducible <inlinemath>\mathbf{q}</inlinemath>-point.
+                      </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                </xs:complexType>
+              </xs:element>
+
+              <xs:element ex:importance="experimental" ex:unit="" name="epsilon" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                  <xs:documentation>
+                    Setup for the task <pre>="epsilon"</pre>.
+                    The dielectric matrix is calculated for each 
+                    <inlinemath>\mathbf{q}</inlinemath>-point and printed out in 
+                    <pre>EPSILON-GW_Q*.OUT</pre>, where <pre>*</pre> is the index of the
+                    <inlinemath>\mathbf{q}</inlinemath>-point.
+                  </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element ref="qpoints" minOccurs="1" maxOccurs="unbounded"/>
+                  </xs:sequence>
+                  <xs:attribute ex:importance="experimental" ex:unit="" name="printPolarizabilityFactor" type="xs:boolean" default="false">
+                    <xs:annotation>
+                      <xs:documentation>When <pre>true</pre>, print the RPA Polarizability factor
+                      <inlinemath>F_{nm}(\mathbf{k},\mathbf{q},\omega)</inlinemath> (please refer to
+                      Computer Physics Communications <b>184</b>, 348 (2013)).
+                      The output files are named as <pre>POLARIZABILITY_FACTOR_Q*.OUT</pre>,
+                      where <pre>*</pre> is the index of the
+                      <inlinemath>\mathbf{q}</inlinemath>-point.
+                      Useful to debug the code.
+                      </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                  <xs:attribute ex:importance="experimental" ex:unit="" name="buildFromPolarizability" type="xs:boolean" default="false">
+                    <xs:annotation>
+                      <xs:documentation>When <pre>true</pre>, only computes the dielectric matrices from the polarizability files contained at
+                      <pre>POLARIZABILITY-GW_Q*.OUT</pre> being in this case <pre>*</pre> the index of the <inlinemath>\mathbf{q}</inlinemath>-point.
+                      When used together with <pre>usingIrreducibleWedge</pre>, it will read the files <pre>POLARIZABILITY-GW_IQ*.OUT</pre> instead, where
+                      <pre>*</pre> is now the index of the irreducible <inlinemath>\mathbf{q}</inlinemath>-point. Additionally, for <inlinemath>\Gamma</inlinemath>
+                      it also reads the wings of the Coulomb-less dielectric matrix, so that the computation of the expansion coefficients is avoided.
+                      </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                  <xs:attribute ex:importance="experimental" ex:unit="" name="usingIrreducibleWedge" type="xs:boolean" default="false">
+                    <xs:annotation>
+                      <xs:documentation>When <pre>true</pre>, only computes the dielectric matrices at the irreducible wedge points.
+                      Additionally, when <pre>true</pre> <pre>EPSILON-GW_Q*.OUT</pre> are renamed to <pre>EPSILON-GW_IQ*.OUT</pre>,
+                      being in this case <pre>*</pre> the index of the irreducible <inlinemath>\mathbf{q}</inlinemath>-point.
+                      </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                </xs:complexType>
+              </xs:element>
+
+              <xs:element ex:importance="experimental" ex:unit="" name="invertEpsilon" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                  <xs:documentation>
+                    Setup for the task <pre>="epsilon"</pre>.
+                    The dielectric matrix is inverted for each 
+                    <inlinemath>\mathbf{q}</inlinemath>-point and printed out in 
+                    <pre>INVERSE-EPSILON_Q*.OUT</pre>, where <pre>*</pre> is the index of the
+                    <inlinemath>\mathbf{q}</inlinemath>-point.
+                  </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element ref="qpoints" minOccurs="1" maxOccurs="unbounded"/>
+                  </xs:sequence>
+                  <xs:attribute ex:importance="experimental" ex:unit="" name="usingIrreducibleWedge" type="xs:boolean" default="false">
+                    <xs:annotation>
+                      <xs:documentation>When <pre>true</pre>, only computes the inverse dielectric matrices at the irreducible wedge points.
+                      Additionally, when <pre>true</pre> <pre>INVERSE-EPSILON_Q*.OUT</pre> are renamed to <pre>INVERSE-EPSILON_IQ*.OUT</pre>,
+                      being in this case <pre>*</pre> the index of the irreducible <inlinemath>\mathbf{q}</inlinemath>-point.
+                      </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                </xs:complexType>
+              </xs:element>
+
+              <xs:element ex:importance="experimental" ex:unit="" name="irreducibleMapping" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                  <xs:documentation>
+                    Setup for the task <pre>="irreducibleMapping"</pre>.
+                    The inverse dielectric matrix is regenerated from the irreducible wedge files (<pre>INVERSE-EPSILON_IQ*.OUT</pre>),
+                    and printed out in <pre>INVERSE-EPSILON_Q*.OUT</pre>, where <pre>*</pre> is the index of the
+                    <inlinemath>\mathbf{q}</inlinemath>-point; in order to save storage memory for representative points
+                    a symbolic from <pre>INVERSE-EPSILON_IQ*.OUT</pre> to <pre>INVERSE-EPSILON_Q*.OUT</pre> is created instead.
+                    If using tetrahedron method for the integration we recommend to also set <pre>="enforceCrystalSymmetryTetrahedron"</pre>
+                    to <pre>true</pre>. This last is because current tetrahedron method implementation breaks crystal symmetry, so that a special
+                    treatment---i.e., averaging over the equivalence class---is required to ensure it.
+                  </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element ref="qpoints" minOccurs="1" maxOccurs="unbounded"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+
+              <xs:element ex:importance="experimental" ex:unit="" name="sigmac" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                  <xs:documentation>
+                    Setup for the task <pre>"sigmac"</pre>.
+                    The correlation part of the self-energy is calculated for each 
+                    <inlinemath>\mathbf{k}</inlinemath>-point and printed out in 
+                    <pre>SIGMAC_K*.OUT</pre>, where <pre>*</pre> is the index of the
+                    <inlinemath>\mathbf{k}</inlinemath>-point.
+                  </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element ref="kpoints" minOccurs="1" maxOccurs="unbounded"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+
+              <xs:element ex:importance="experimental" ex:unit="" name="sigmax" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                  <xs:documentation>
+                    Setup for the task <pre>"sigmax"</pre>.
+                    The exchange part of the self-energy is calculated for each 
+                    <inlinemath>\mathbf{k}</inlinemath>-point and printed out in 
+                    <pre>SIGMAX_K*.OUT</pre>, where <pre>*</pre> is the index of the
+                    <inlinemath>\mathbf{k}</inlinemath>-point.
+                  </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element ref="kpoints" minOccurs="1" maxOccurs="unbounded"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+
+              <xs:element ex:importance="experimental" ex:unit="" name="vxc" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                  <xs:documentation>
+                    Setup for the task <pre>"vxc"</pre>.
+                    The diagonal matrix elements of the exchange-correlation potential 
+                    are calculated for each <inlinemath>\mathbf{k}</inlinemath>-point 
+                    and printed out in <pre>VXCNN.OUT</pre> (<pre>VXCNN.DAT</pre>) 
+                    in binary (text) format.
+                  </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element ref="kpoints" minOccurs="1" maxOccurs="unbounded"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+
+              <xs:element ex:importance="experimental" ex:unit="" name="QPEigenvalues" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                  <xs:documentation>
+                    Setup for the task <pre>"QPEigenvalues"</pre>.
+                    The QP-corrected eigenvalues are evaluated
+                    for each <inlinemath>\mathbf{k}</inlinemath>-point 
+                    and printed out in <pre>EVALQP.OUT</pre> (<pre>EVALQP.DAT</pre>) 
+                    in binary (text) format.
+                  </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element ref="kpoints" minOccurs="1" maxOccurs="unbounded"/>
+                  </xs:sequence>
+                  <xs:attribute ex:importance="experimental" ex:unit="" name="FermiLevel" default="from_DFT_VBM_CBM_indexes">
+                    <xs:annotation>
+                      <xs:documentation>
+                        Determine how the Fermi level should be calculated. 
+                        The option <pre>from_QP_Eigenvalues</pre> can only be 
+                        used if all <pre>k-points</pre> are included in the 
+                        <pre>"QPEigenvalues"</pre> task.
+                        <list>
+                          <li><pre>from_DFT_VBM_CBM_indexes</pre>: determine 
+                          the Fermi level based on the valence band maximum 
+                          (VBM) and conduction band minimum (CBM) indexes 
+                          from the underlying DFT calculation.</li>
+                          <li><pre>from_QP_Eigenvalues</pre>: employ <pre>LibBZInt</pre> 
+                          to solve <inlinemath>N( E_Fermi ) = N_{el}</inlinemath>.</li>
+                        </list>
+                      </xs:documentation>
+                    </xs:annotation>
+                    <xs:simpleType>
+                      <xs:restriction base="xs:string">
+                        <xs:enumeration value="from_DFT_VBM_CBM_indexes"/>
+                        <xs:enumeration value="from_QP_Eigenvalues"/>
+                      </xs:restriction>
+                    </xs:simpleType>
+                  </xs:attribute>
+                </xs:complexType>
+              </xs:element>
+
+            </xs:all>
+            
+            
+
+            <xs:attribute ex:importance="experimental" ex:unit="" name="outputFormat" default="binary">
               <xs:annotation>
                 <xs:documentation>
-                  When <attref>taskname</attref><pre>="taskGroup"</pre>,
-                  execute the group of tasks defined by the elements present here.
-                  This splits <inlinemath>G_0W_0</inlinemath> into smaller calculations,
-                  allowing for a restart.
+                  Format to print the outputs: <pre>binary</pre> or <pre>text</pre>.
+                  The option <pre>text</pre> is inefficient and should be 
+                  used only for testing.
                 </xs:documentation>
               </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="binary"/>
+                  <xs:enumeration value="text"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
 
-              <xs:complexType>
-                <xs:all>
-                  <xs:element ex:importance="experimental" ex:unit="" name="Coulomb" maxOccurs="1" minOccurs="0">
-                    <xs:annotation>
-                      <xs:documentation>
-                        Setup for the Setup for the task <pre>="Coulomb"</pre>.
-                        The bare Coulomb matrix is calculated for each 
-                        <inlinemath>\mathbf{q}</inlinemath>-point and printed out in 
-                        <pre>BARC_*.OUT</pre>, where <pre>*</pre> is the index of the
-                        <inlinemath>\mathbf{q}</inlinemath>-point.
-                      </xs:documentation>
-                    </xs:annotation>
-                    <xs:complexType>
-                      <xs:sequence>
-                        <xs:element ref="qpoints" minOccurs="1" maxOccurs="unbounded"/>
-                      </xs:sequence>
-                      <xs:attribute ex:importance="experimental" ex:unit="" name="eigenvalueThreshold" type="fortrandouble" default="0.0d0">
-                        <xs:annotation>
-                          <xs:documentation>
-                            Discard the eigenvalues below this threshold
-                            and the corresponding eigenvectors of the matrix
-                            <inlinemath>v_{ij}(\mathbf{q})</inlinemath> with the Coulomb potential 
-                            (see Computer Physics Communications <b>184</b>, 348 (2013)).
-                            Negative eigenvalues are not expected and can be obtained due to numerical 
-                            issues. It is therefore recommended to set <attref>eigenvalueThreshold</attref> to 
-                            <pre>0d0</pre>, unless there is a valid reason not to do so.
-                          </xs:documentation>
-                        </xs:annotation>
-                      </xs:attribute>
-                    </xs:complexType>
-                  </xs:element>
+          </xs:complexType>
+        </xs:element>
 
-                  <xs:element ex:importance="experimental" ex:unit="" name="epsilon" maxOccurs="1" minOccurs="0">
-                    <xs:annotation>
-                      <xs:documentation>
-                        Setup for the task <pre>="epsilon"</pre>.
-                        The dielectric matrix is calculated for each 
-                        <inlinemath>\mathbf{q}</inlinemath>-point and printed out in 
-                        <pre>EPSILON-GW_Q*.OUT</pre>, where <pre>*</pre> is the index of the
-                        <inlinemath>\mathbf{q}</inlinemath>-point.
-                      </xs:documentation>
-                    </xs:annotation>
-                    <xs:complexType>
-                      <xs:sequence>
-                        <xs:element ref="qpoints" minOccurs="1" maxOccurs="unbounded"/>
-                      </xs:sequence>
-                      <xs:attribute ex:importance="experimental" ex:unit="" name="printPolarizabilityFactor" type="xs:boolean" default="false">
-                        <xs:annotation>
-                          <xs:documentation>When <pre>true</pre>, print the RPA Polarizability factor
-                          <inlinemath>F_{nm}(\mathbf{k},\mathbf{q},\omega)</inlinemath> (please refer to
-                            Computer Physics Communications <b>184</b>, 348 (2013)).
-                            The output files are named as <pre>POLARIZABILITY_FACTOR_Q*.OUT</pre>,
-                            where <pre>*</pre> is the index of the
-                            <inlinemath>\mathbf{q}</inlinemath>-point.
-                            Useful to debug the code.
-                          </xs:documentation>
-                        </xs:annotation>
-                      </xs:attribute>
-                      <xs:attribute ex:importance="experimental" ex:unit="" name="usingIrreducibleWedge" type="xs:boolean" default="false">
-                        <xs:annotation>
-			  <xs:documentation>When <pre>true</pre>, only computes the dielectric matrices at the irreducible wedge points.
-			  Additionally, when <pre>true</pre> <pre>EPSILON-GW_Q*.OUT</pre> are renamed to <pre>EPSILON-GW_IQ*.OUT</pre>, 
-			  being in this case <pre>*</pre> the index of the irreducible <inlinemath>\mathbf{q}</inlinemath>-point.
-                          </xs:documentation>
-                        </xs:annotation>
-                      </xs:attribute>
-                    </xs:complexType>
-                  </xs:element>
+      </xs:all>
 
-                  <xs:element ex:importance="experimental" ex:unit="" name="invertEpsilon" maxOccurs="1" minOccurs="0">
-                    <xs:annotation>
-                      <xs:documentation>
-                        Setup for the task <pre>="epsilon"</pre>.
-                        The dielectric matrix is inverted for each 
-                        <inlinemath>\mathbf{q}</inlinemath>-point and printed out in 
-                        <pre>INVERSE-EPSILON_Q*.OUT</pre>, where <pre>*</pre> is the index of the
-                        <inlinemath>\mathbf{q}</inlinemath>-point.
-                      </xs:documentation>
-                    </xs:annotation>
-                    <xs:complexType>
-                      <xs:sequence>
-                        <xs:element ref="qpoints" minOccurs="1" maxOccurs="unbounded"/>
-                      </xs:sequence>
-                      <xs:attribute ex:importance="experimental" ex:unit="" name="usingIrreducibleWedge" type="xs:boolean" default="false">
-                        <xs:annotation>
-			  <xs:documentation>When <pre>true</pre>, only computes the inverse dielectric matrices at the irreducible wedge points.
-			  Additionally, when <pre>true</pre> <pre>INVERSE-EPSILON_Q*.OUT</pre> are renamed to <pre>INVERSE-EPSILON_IQ*.OUT</pre>,
-                          being in this case <pre>*</pre> the index of the irreducible <inlinemath>\mathbf{q}</inlinemath>-point.
-                          </xs:documentation>
-                        </xs:annotation>
-                      </xs:attribute>
-                    </xs:complexType>
-                  </xs:element>
+      <!-- ================ List of attributes ===================== -->
 
-                  <xs:element ex:importance="experimental" ex:unit="" name="irreducibleMapping" maxOccurs="1" minOccurs="0">
-                    <xs:annotation>
-                      <xs:documentation>
-                        Setup for the task <pre>="irreducibleMapping"</pre>.
-                        The inverse dielectric matrix is regenerated from the irreducible wedge files (<pre>INVERSE-EPSILON_IQ*.OUT</pre>),
-                        and printed out in <pre>INVERSE-EPSILON_Q*.OUT</pre>, where <pre>*</pre> is the index of the
-			<inlinemath>\mathbf{q}</inlinemath>-point; in order to save storage memory for representative points 
-			a symbolic from <pre>INVERSE-EPSILON_IQ*.OUT</pre> to <pre>INVERSE-EPSILON_Q*.OUT</pre> is created instead. 
-			If using tetrahedron method for the integration we recommend to also set <pre>="enforceCrystalSymmetryTetrahedron"</pre> 
-			to <pre>true</pre>. This last is because current tetrahedron method implementation breaks crystal symmetry, so that a special
-			treatment---i.e., averaging over the equivalence class---is required to ensure it. 
-                      </xs:documentation>
-                    </xs:annotation>
-                    <xs:complexType>
-                      <xs:sequence>
-                        <xs:element ref="qpoints" minOccurs="1" maxOccurs="unbounded"/>
-                      </xs:sequence>
-                    </xs:complexType>
-                  </xs:element>
+      <xs:attribute ex:importance="expert" ex:unit="" name="taskname" type="xs:string" default="g0w0">
+        <xs:annotation>
+          <xs:documentation>
+            Tasks launcher:
+            <list>
+              <li><pre>g0w0</pre> - G0W0 calculations</li>
+              <li><pre>g0w0-x</pre> - Exchange only G0W0 calculations</li>
+              <li><pre>cohsex</pre> - Coulomb-hole and screened-exchange (COHSEX) approximation</li>
+              <li><pre>band</pre> - QP banstructure as obtained by Fourier interpolation</li>
+              <li><pre>dos</pre> - QP density of states</li>
+              <li><pre>emac</pre> - Calculate the macroscopic dielectric function</li>
+              <li><pre>pmat</pre> - Calculate matrix elements of the momentum operator</li>
+              <li><pre>acon</pre> - Perform analytic continuation of the correlation self-energy from imaginary to real frequency and calculate QP energies</li>
+              <li><pre>taskGroup</pre> - Execute the group of tasks defined in <elementref>taskGroup</elementref>.</li>
+              <!--li><pre>epsilon</pre> - Calculate and store the 
+                  <inlinemath>(q,\omega)</inlinemath>-dependent dielectric function. 
+                  See <elementref>epsilon</elementref>.</li-->
+            </list>
+  	  </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
 
-                  <xs:element ex:importance="experimental" ex:unit="" name="sigmac" maxOccurs="1" minOccurs="0">
-                    <xs:annotation>
-                      <xs:documentation>
-                        Setup for the task <pre>"sigmac"</pre>.
-                        The correlation part of the self-energy is calculated for each 
-                        <inlinemath>\mathbf{k}</inlinemath>-point and printed out in 
-                        <pre>SIGMAC_K*.OUT</pre>, where <pre>*</pre> is the index of the
-                        <inlinemath>\mathbf{k}</inlinemath>-point.
-                      </xs:documentation>
-                    </xs:annotation>
-                    <xs:complexType>
-                      <xs:sequence>
-                        <xs:element ref="kpoints" minOccurs="1" maxOccurs="unbounded"/>
-                      </xs:sequence>
-                    </xs:complexType>
-                  </xs:element>
+      <xs:attribute ex:importance="experimental" ex:unit="" name="iik" type="xs:integer" use="optional" default="1">
+        <xs:annotation>
+          <xs:documentation>Lower bound for the k-point number (used in tests).</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
 
-                  <xs:element ex:importance="experimental" ex:unit="" name="sigmax" maxOccurs="1" minOccurs="0">
-                    <xs:annotation>
-                      <xs:documentation>
-                        Setup for the task <pre>"sigmax"</pre>.
-                        The exchange part of the self-energy is calculated for each 
-                        <inlinemath>\mathbf{k}</inlinemath>-point and printed out in 
-                        <pre>SIGMAX_K*.OUT</pre>, where <pre>*</pre> is the index of the
-                        <inlinemath>\mathbf{k}</inlinemath>-point.
-                      </xs:documentation>
-                    </xs:annotation>
-                    <xs:complexType>
-                      <xs:sequence>
-                        <xs:element ref="kpoints" minOccurs="1" maxOccurs="unbounded"/>
-                      </xs:sequence>
-                    </xs:complexType>
-                  </xs:element>
+      <xs:attribute ex:importance="experimental" ex:unit="" name="jjk" type="xs:integer" use="optional" default="1">
+        <xs:annotation>
+          <xs:documentation>Upper bound for the k-point number (used in tests).</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
 
-                  <xs:element ex:importance="experimental" ex:unit="" name="vxc" maxOccurs="1" minOccurs="0">
-                    <xs:annotation>
-                      <xs:documentation>
-                        Setup for the task <pre>"vxc"</pre>.
-                        The diagonal matrix elements of the exchange-correlation potential 
-                        are calculated for each <inlinemath>\mathbf{k}</inlinemath>-point 
-                        and printed out in <pre>VXCNN.OUT</pre> (<pre>VXCNN.DAT</pre>) 
-                        in binary (text) format.
-                      </xs:documentation>
-                    </xs:annotation>
-                    <xs:complexType>
-                      <xs:sequence>
-                        <xs:element ref="kpoints" minOccurs="1" maxOccurs="unbounded"/>
-                      </xs:sequence>
-                    </xs:complexType>
-                  </xs:element>
+      <xs:attribute ex:importance="experimental" ex:unit="" name="igmin" type="xs:integer" use="optional" default="1">
+        <xs:annotation>
+          <xs:documentation>Lower bound for the G-vector number (used in tests).</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
 
-                  <xs:element ex:importance="experimental" ex:unit="" name="QPEigenvalues" maxOccurs="1" minOccurs="0">
-                    <xs:annotation>
-                      <xs:documentation>
-                        Setup for the task <pre>"QPEigenvalues"</pre>.
-                        The QP-corrected eigenvalues are evaluated
-                        for each <inlinemath>\mathbf{k}</inlinemath>-point 
-                        and printed out in <pre>EVALQP.OUT</pre> (<pre>EVALQP.DAT</pre>) 
-                        in binary (text) format.
-                      </xs:documentation>
-                    </xs:annotation>
-                    <xs:complexType>
-                      <xs:sequence>
-                        <xs:element ref="kpoints" minOccurs="1" maxOccurs="unbounded"/>
-                      </xs:sequence>
-                      <xs:attribute ex:importance="experimental" ex:unit="" name="FermiLevel" default="from_DFT_VBM_CBM_indexes">
-                        <xs:annotation>
-                          <xs:documentation>
-                            Determine how the Fermi level should be calculated. 
-                            The option <pre>from_QP_Eigenvalues</pre> can only be 
-                            used if all <pre>k-points</pre> are included in the 
-                            <pre>"QPEigenvalues"</pre> task.
-                            <list>
-                              <li><pre>from_DFT_VBM_CBM_indexes</pre>: determine 
-                                the Fermi level based on the valence band maximum 
-                                (VBM) and conduction band minimum (CBM) indexes 
-                                from the underlying DFT calculation.</li>
-                              <li><pre>from_QP_Eigenvalues</pre>: employ <pre>LibBZInt</pre> 
-                                to solve <inlinemath>N( E_Fermi ) = N_{el}</inlinemath>.</li>
-                            </list>
-                          </xs:documentation>
-                        </xs:annotation>
-                        <xs:simpleType>
-                          <xs:restriction base="xs:string">
-                            <xs:enumeration value="from_DFT_VBM_CBM_indexes"/>
-                            <xs:enumeration value="from_QP_Eigenvalues"/>
-                          </xs:restriction>
-                        </xs:simpleType>
-                      </xs:attribute>
-                    </xs:complexType>
-                  </xs:element>
+      <xs:attribute ex:importance="experimental" ex:unit="" name="igmax" type="xs:integer" use="optional" default="1">
+        <xs:annotation>
+          <xs:documentation>Upper bound for the G-vector number (used in tests).</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
 
-                </xs:all>
-                
-                  
+      <xs:attribute ex:importance="experimental" ex:unit="" name="ibmin" type="xs:integer" use="optional" default="1">
+        <xs:annotation>
+          <xs:documentation>Lower bound for the band number (used in tests).</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
 
-                <xs:attribute ex:importance="experimental" ex:unit="" name="outputFormat" default="binary">
-                  <xs:annotation>
-                    <xs:documentation>
-                      Format to print the outputs: <pre>binary</pre> or <pre>text</pre>.
-                      The option <pre>text</pre> is inefficient and should be 
-                      used only for testing.
-                    </xs:documentation>
-                  </xs:annotation>
-                  <xs:simpleType>
-                    <xs:restriction base="xs:string">
-                      <xs:enumeration value="binary"/>
-                      <xs:enumeration value="text"/>
-                    </xs:restriction>
-                  </xs:simpleType>
-                </xs:attribute>
+      <xs:attribute ex:importance="experimental" ex:unit="" name="ibmax" type="xs:integer" use="optional" default="1">
+        <xs:annotation>
+          <xs:documentation>Upper bound for the band number (used in tests).</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
 
-              </xs:complexType>
-            </xs:element>
+      <xs:attribute ex:importance="experimental" ex:unit="" name="ibmin2" type="xs:integer" use="optional" default="1">
+        <xs:annotation>
+          <xs:documentation>Lower bound for the band number (used in tests).</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
 
-          </xs:all>
+      <xs:attribute ex:importance="experimental" ex:unit="" name="ibmax2" type="xs:integer" use="optional" default="1">
+        <xs:annotation>
+          <xs:documentation>Upper bound for the band number (used in tests).</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
 
-          <!-- ================ List of attributes ===================== -->
+      <xs:attribute ex:importance="experimental" ex:unit="" name="at1" type="xs:integer" use="optional" default="1">
+        <xs:annotation>
+          <xs:documentation>First atom number (used in tests)</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="expert" ex:unit="" name="taskname" type="xs:string" default="g0w0">
-            <xs:annotation>
-              <xs:documentation>
-                  Tasks launcher:
-                  <list>
-                    <li><pre>g0w0</pre> - G0W0 calculations</li>
-                    <li><pre>g0w0-x</pre> - Exchange only G0W0 calculations</li>
-                    <li><pre>cohsex</pre> - Coulomb-hole and screened-exchange (COHSEX) approximation</li>
-                    <li><pre>band</pre> - QP banstructure as obtained by Fourier interpolation</li>
-                    <li><pre>dos</pre> - QP density of states</li>
-                    <li><pre>emac</pre> - Calculate the macroscopic dielectric function</li>
-                    <li><pre>pmat</pre> - Calculate matrix elements of the momentum operator</li>
-                    <li><pre>acon</pre> - Perform analytic continuation of the correlation self-energy from imaginary to real frequency and calculate QP energies</li>
-                    <li><pre>taskGroup</pre> - Execute the group of tasks defined in <elementref>taskGroup</elementref>.</li>
-                    <!--li><pre>epsilon</pre> - Calculate and store the 
-                      <inlinemath>(q,\omega)</inlinemath>-dependent dielectric function. 
-                      See <elementref>epsilon</elementref>.</li-->
-                  </list>
-  	          </xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="experimental" ex:unit="" name="at2" type="xs:integer" use="optional" default="1">
+        <xs:annotation>
+          <xs:documentation>Second atom number (used in tests).</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="experimental" ex:unit="" name="iik" type="xs:integer" use="optional" default="1">
-            <xs:annotation>
-              <xs:documentation>Lower bound for the k-point number (used in tests).</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="experimental" ex:unit="" name="rpath" type="xs:string" use="optional" default="atoms">
+        <xs:annotation>
+          <xs:documentation>
+            Type of the 1d real space path: "atoms" - connecting atoms specified in at1 and at2; "rad" - radial grid path in MT of at1; "azi" - azimuthal path in MT of at1 (used in tests).
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="experimental" ex:unit="" name="jjk" type="xs:integer" use="optional" default="1">
-            <xs:annotation>
-              <xs:documentation>Upper bound for the k-point number (used in tests).</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="essential" ex:unit="" name="nempty" type="xs:integer" use="optional" default="0">
+        <xs:annotation><xs:documentation>
+          Number of empty states to compute both the screened Coulomb potential and the self-energy.
+        </xs:documentation></xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="experimental" ex:unit="" name="igmin" type="xs:integer" use="optional" default="1">
-            <xs:annotation>
-              <xs:documentation>Lower bound for the G-vector number (used in tests).</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="essential" ex:unit="" name="ibgw" type="xs:integer" use="optional" default="1">
+        <xs:annotation><xs:documentation>
+          QP corrections are computed for states in the interval [<attref>ibgw</attref>, <attref>nbgw</attref>].
+        </xs:documentation></xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="experimental" ex:unit="" name="igmax" type="xs:integer" use="optional" default="1">
-            <xs:annotation>
-              <xs:documentation>Upper bound for the G-vector number (used in tests).</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="essential" ex:unit="" name="nbgw" type="xs:integer" use="optional" default="0">
+        <xs:annotation><xs:documentation>
+          QP corrections are computed for states in the interval [<attref>ibgw</attref>, <attref>nbgw</attref>].
+        </xs:documentation></xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="experimental" ex:unit="" name="ibmin" type="xs:integer" use="optional" default="1">
-            <xs:annotation>
-              <xs:documentation>Lower bound for the band number (used in tests).</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="essential" ex:unit="" name="coreflag" type="xs:string" use="optional" default="all">
+        <xs:annotation><xs:documentation>
+          Option for treating core states in GW:
+          <list>
+            <li><pre>all</pre> - All-electron treatment.</li>
+            <li><pre>xal</pre> - Both core and valence states are used to compute the exchange self-energy and only valence electrons for computing the correlation self-energy.</li>
+            <li><pre>val</pre> - Valence-electron treatment.</li>
+            <li><pre>vab</pre> - Valence-electron treatment where core states are also excluded from the construction of the mixed-product basis.</li>
+          </list>
+        </xs:documentation></xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="experimental" ex:unit="" name="ibmax" type="xs:integer" use="optional" default="1">
-            <xs:annotation>
-              <xs:documentation>Upper bound for the band number (used in tests).</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="experimental" ex:unit="" name="reduceq" type="xs:boolean" default="false">
+        <xs:annotation><xs:documentation>
+	  Crystal symmetry is used in for computing the response functions and the self-energy (not yet implemented).
+	</xs:documentation></xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="experimental" ex:unit="" name="ibmin2" type="xs:integer" use="optional" default="1">
-            <xs:annotation>
-             <xs:documentation>Lower bound for the band number (used in tests).</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="experimental" ex:unit="" name="debug" type="xs:boolean" default="false">
+        <xs:annotation><xs:documentation>
+	  Print debugging information.
+	</xs:documentation></xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="experimental" ex:unit="" name="ibmax2" type="xs:integer" use="optional" default="1">
-            <xs:annotation>
-              <xs:documentation>Upper bound for the band number (used in tests).</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="essential" ex:unit="" name="ngridq" type="integertriple" default="0 0 0" use="optional">
+        <xs:annotation><xs:documentation>
+          Size of the <inlinemath>\mathbf{k/q}</inlinemath>-point grids.
+        </xs:documentation></xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="experimental" ex:unit="" name="at1" type="xs:integer" use="optional" default="1">
-            <xs:annotation>
-              <xs:documentation>First atom number (used in tests)</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="essential" ex:unit="" name="vqloff" type="vect3d" default="0.0d0 0.0d0 0.0d0" use="optional">
+        <xs:annotation><xs:documentation>
+          The <inlinemath>\mathbf{k/q}</inlinemath>-point offset vector in lattice coordinates.
+        </xs:documentation></xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="experimental" ex:unit="" name="at2" type="xs:integer" use="optional" default="1">
-            <xs:annotation>
-              <xs:documentation>Second atom number (used in tests).</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="skipgnd" type="xs:boolean" default="false" use="optional">
+        <xs:annotation><xs:documentation>
+	  Skip the recalculation of KS eigenvalues and eigenvectors for the specified k/q-point grids (restart option).
+	</xs:documentation></xs:annotation>
+      </xs:attribute>
+      
+      <xs:attribute ex:importance="expert" ex:unit="" name="enforceDegeneracy" type="xs:boolean" default="true" use="optional">
+        <xs:annotation><xs:documentation>
+          When <pre>true</pre>, enforce a special treatment of degeneracy by:
+          <list>
+            <li> Adjusting the number of unoccupied bands downward to prevent truncating 
+            degenerate subspaces when computing the dielectric function and correlation self-energy. </li>
+            <li> Internally enlarging the range of KS states over which the diagonal elements of the self-energy elements and
+            exchange-correlation potential are evaluated, to allow for performing an average over degenerate subspaces. </li>
+          </list>
+          Unless there is a good reason, it is not generally advisable to set <attref>enforceDegeneracy</attref> to <pre>false</pre>. 
+          For details, refer to Section 6 and Appendix A of this (https://doi.org/10.1016/j.cpc.2011.12.006) and this (https://doi.org/10.1103/PhysRevB.35.5585) papers, respectively.
+	</xs:documentation></xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="experimental" ex:unit="" name="rpath" type="xs:string" use="optional" default="atoms">
-            <xs:annotation>
-              <xs:documentation>
-                Type of the 1d real space path: "atoms" - connecting atoms specified in at1 and at2; "rad" - radial grid path in MT of at1; "azi" - azimuthal path in MT of at1 (used in tests).
-              </xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="degeneracyAbsoluteTolerance" type="fortrandouble" default="1.0d-8" use="optional">
+        <xs:annotation><xs:documentation>
+          When <pre>enforceDegeneracy</pre> is <pre>true</pre>, this controls the absolute tolerance for considering two states degenerate.
+          Systems with flat bands and/or bunch of degenerate states in the vicinity of the Fermi level might require lower values.
+	</xs:documentation></xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="essential" ex:unit="" name="nempty" type="xs:integer" use="optional" default="0">
-            <xs:annotation><xs:documentation>
-              Number of empty states to compute both the screened Coulomb potential and the self-energy.
-            </xs:documentation></xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="degeneracyRelativeTolerance" type="fortrandouble" default="1.0d-5" use="optional">
+        <xs:annotation><xs:documentation>
+          When <pre>enforceDegeneracy</pre> is <pre>true</pre>, this controls the relative tolerance for considering two states degenerate.
+          Systems with degenerate flat bands might require lower values.
+	</xs:documentation></xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="essential" ex:unit="" name="ibgw" type="xs:integer" use="optional" default="1">
-            <xs:annotation><xs:documentation>
-              QP corrections are computed for states in the interval [<attref>ibgw</attref>, <attref>nbgw</attref>].
-            </xs:documentation></xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="enforceCrystalSymmetryTetrahedron" type="xs:boolean" default="false" use="optional">
+        <xs:annotation><xs:documentation>
+	  When <pre>true</pre> it enforces crystal symmetry for the tetrahedron method. It should be used when crystal symmetry is 
+	  used to restrict the computation of the dielectric matrix to the irreducible wedge.
+	</xs:documentation></xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="essential" ex:unit="" name="nbgw" type="xs:integer" use="optional" default="0">
-            <xs:annotation><xs:documentation>
-              QP corrections are computed for states in the interval [<attref>ibgw</attref>, <attref>nbgw</attref>].
-            </xs:documentation></xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="mblksiz" type="xs:integer" default="0" use="optional">
+        <xs:annotation><xs:documentation>
+	  To reduce the memory usage, in summations over unoccupied states, big matrices are considered to be in a block form with a size of <attref>mblksiz</attref>.
+	</xs:documentation></xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="essential" ex:unit="" name="coreflag" type="xs:string" use="optional" default="all">
-            <xs:annotation><xs:documentation>
-              Option for treating core states in GW:
-              <list>
-                <li><pre>all</pre> - All-electron treatment.</li>
-                <li><pre>xal</pre> - Both core and valence states are used to compute the exchange self-energy and only valence electrons for computing the correlation self-energy.</li>
-                <li><pre>val</pre> - Valence-electron treatment.</li>
-                <li><pre>vab</pre> - Valence-electron treatment where core states are also excluded from the construction of the mixed-product basis.</li>
-              </list>
-            </xs:documentation></xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="GBatchCount" type="xs:integer" default="0" use="optional">
+        <xs:annotation><xs:documentation>
+	  During the computation of expansion coefficients, operations on the interstitial part are processed in batches over <b>G</b> vectors for improved performance.
+          For large unit cells or systems with significant vacuum, memory usage can become excessive. To reduce RAM pressure,
+          the batch size can be limited from the full set of <b>G</b> vectors to a smaller value, defined by <attref>GBatchCount</attref>.
+	</xs:documentation></xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="experimental" ex:unit="" name="reduceq" type="xs:boolean" default="false">
-            <xs:annotation><xs:documentation>
-	            Crystal symmetry is used in for computing the response functions and the self-energy (not yet implemented).
-	          </xs:documentation></xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="rpmat" type="xs:boolean" default="false" use="optional">
+        <xs:annotation><xs:documentation>
+	  Skip calculation of the momentum matrix elements, instead read them from files PMATVV.OUT and PMATCV.OUT (restart option).
+	</xs:documentation></xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="experimental" ex:unit="" name="debug" type="xs:boolean" default="false">
-            <xs:annotation><xs:documentation>
-	            Print debugging information.
-	          </xs:documentation></xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="experimental" type="fortrandouble" ex:unit="" name="rmax" default="100.0" use="optional">
+        <xs:annotation><xs:documentation>
+          Fourier interpolation basis set cutoff used to visualize the QP bandstructure with task <attref>taskname</attref>=<pre>band</pre>.
+        </xs:documentation></xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="essential" ex:unit="" name="ngridq" type="integertriple" default="0 0 0" use="optional">
-            <xs:annotation><xs:documentation>
-                Size of the <inlinemath>\mathbf{k/q}</inlinemath>-point grids.
-            </xs:documentation></xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="symmetryBandstructure" type="xs:boolean" default="true" use="optional">
+        <xs:annotation><xs:documentation>
+          When <pre>true</pre>, symmetry operations are taken into account during 
+          the Fourier interpolation used to construct the quasiparticle (QP) bandstructure 
+          (for <attref>taskname</attref>="<pre>band</pre>").
+        </xs:documentation></xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="essential" ex:unit="" name="vqloff" type="vect3d" default="0.0d0 0.0d0 0.0d0" use="optional">
-            <xs:annotation><xs:documentation>
-                The <inlinemath>\mathbf{k/q}</inlinemath>-point offset vector in lattice coordinates.
-             </xs:documentation></xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="qdepw" type="xs:string" default="tet">
+        <xs:annotation><xs:documentation>
+          Method to compute k/q and frequency dependent weights in the expression for polarizability:
+          <list>
+            <li><pre>tet</pre> - Using the tetrahedron method as implemented in LibBZInt library</li>
+            <li><pre>sum</pre> - Direct summation employing a smearing parameter <attref>eta</attref> of <elementref>freqgrid</elementref></li>
+          </list>
+        </xs:documentation></xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="expert" ex:unit="" name="skipgnd" type="xs:boolean" default="false" use="optional">
-            <xs:annotation><xs:documentation>
-	              Skip the recalculation of KS eigenvalues and eigenvectors for the specified k/q-point grids (restart option).
-	          </xs:documentation></xs:annotation>
-          </xs:attribute>
-          
-          <xs:attribute ex:importance="expert" ex:unit="" name="enforceDegeneracy" type="xs:boolean" default="true" use="optional">
-            <xs:annotation><xs:documentation>
-                When <pre>true</pre>, enforce a special treatment of degeneracy by:
-                <list>
-                <li> Adjusting the number of unoccupied bands downward to prevent truncating 
-                    degenerate subspaces when computing the dielectric function and correlation self-energy. </li>
-                <li> Internally enlarging the range of KS states over which the diagonal elements of the self-energy elements and
-                     exchange-correlation potential are evaluated, to allow for performing an average over degenerate subspaces. </li>
-                </list>
-                Unless there is a good reason, it is not generally advisable to set <attref>enforceDegeneracy</attref> to <pre>false</pre>. 
-                For details, refer to Section 6 and Appendix A of this (https://doi.org/10.1016/j.cpc.2011.12.006) and this (https://doi.org/10.1103/PhysRevB.35.5585) papers, respectively.
-	          </xs:documentation></xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="experimental" ex:unit="" name="eph" type="xs:string" default="none">
+        <xs:annotation>
+          <xs:documentation>(experimental) Include the electron-phonon coupling.</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute ex:importance="experimental" type="fortrandouble" ex:unit="" name="wlo" default="0.0">
+        <xs:annotation>
+          <xs:documentation>
+            (experimental) The LO phonon frequency for the polar electron-phonon coupling.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute ex:importance="experimental" type="fortrandouble" ex:unit="" name="wto" default="0.0">
+        <xs:annotation>
+          <xs:documentation>
+            (experimental) The TO phonon frequency for the polar electron-phonon coupling.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="expert" ex:unit="" name="degeneracyAbsoluteTolerance" type="fortrandouble" default="1.0d-8" use="optional">
-            <xs:annotation><xs:documentation>
-                When <pre>enforceDegeneracy</pre> is <pre>true</pre>, this controls the absolute tolerance for considering two states degenerate.
-                Systems with flat bands and/or bunch of degenerate states in the vicinity of the Fermi level might require lower values.
-	          </xs:documentation></xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="printSpectralFunction" type="xs:boolean" default="false" use="optional">
+        <xs:annotation><xs:documentation>
+	  Compute and output the spectral function.
+	</xs:documentation></xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="expert" ex:unit="" name="degeneracyRelativeTolerance" type="fortrandouble" default="1.0d-5" use="optional">
-            <xs:annotation><xs:documentation>
-                When <pre>enforceDegeneracy</pre> is <pre>true</pre>, this controls the relative tolerance for considering two states degenerate.
-                Systems with degenerate flat bands might require lower values.
-	          </xs:documentation></xs:annotation>
-          </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="printSelfC" type="xs:boolean" default="false" use="optional">
+        <xs:annotation><xs:documentation>
+	  Output the correlation self-energy.
+	</xs:documentation></xs:annotation>
+      </xs:attribute>
 
-          <xs:attribute ex:importance="expert" ex:unit="" name="enforceCrystalSymmetryTetrahedron" type="xs:boolean" default="false" use="optional">
-             <xs:annotation><xs:documentation>
-		     When <pre>true</pre> it enforces crystal symmetry for the tetrahedron method. It should be used when crystal symmetry is 
-		     used to restrict the computation of the dielectric matrix to the irreducible wedge.
-	          </xs:documentation></xs:annotation>
-          </xs:attribute>
-
-          <xs:attribute ex:importance="expert" ex:unit="" name="mblksiz" type="xs:integer" default="0" use="optional">
-            <xs:annotation><xs:documentation>
-	              To reduce the memory usage, in summations over unoccupied states, big matrices are considered to be in a block form with a size of <attref>mblksiz</attref>.
-	          </xs:documentation></xs:annotation>
-          </xs:attribute>
-
-          <xs:attribute ex:importance="expert" ex:unit="" name="GBatchCount" type="xs:integer" default="0" use="optional">
-            <xs:annotation><xs:documentation>
-	              During the computation of expansion coefficients, operations on the interstitial part are processed in batches over <b>G</b> vectors for improved performance.
-                  For large unit cells or systems with significant vacuum, memory usage can become excessive. To reduce RAM pressure,
-                  the batch size can be limited from the full set of <b>G</b> vectors to a smaller value, defined by <attref>GBatchCount</attref>.
-	          </xs:documentation></xs:annotation>
-          </xs:attribute>
-
-          <xs:attribute ex:importance="expert" ex:unit="" name="rpmat" type="xs:boolean" default="false" use="optional">
-            <xs:annotation><xs:documentation>
-	            Skip calculation of the momentum matrix elements, instead read them from files PMATVV.OUT and PMATCV.OUT (restart option).
-	          </xs:documentation></xs:annotation>
-          </xs:attribute>
-
-          <xs:attribute ex:importance="experimental" type="fortrandouble" ex:unit="" name="rmax" default="100.0" use="optional">
-            <xs:annotation><xs:documentation>
-              Fourier interpolation basis set cutoff used to visualize the QP bandstructure with task <attref>taskname</attref>=<pre>band</pre>.
-            </xs:documentation></xs:annotation>
-          </xs:attribute>
-
-          <xs:attribute ex:importance="expert" ex:unit="" name="symmetryBandstructure" type="xs:boolean" default="true" use="optional">
-            <xs:annotation><xs:documentation>
-              When <pre>true</pre>, symmetry operations are taken into account during 
-              the Fourier interpolation used to construct the quasiparticle (QP) bandstructure 
-              (for <attref>taskname</attref>="<pre>band</pre>").
-            </xs:documentation></xs:annotation>
-          </xs:attribute>
-
-          <xs:attribute ex:importance="expert" ex:unit="" name="qdepw" type="xs:string" default="tet">
-            <xs:annotation><xs:documentation>
-                  Method to compute k/q and frequency dependent weights in the expression for polarizability:
-                  <list>
-                    <li><pre>tet</pre> - Using the tetrahedron method as implemented in LibBZInt library</li>
-                    <li><pre>sum</pre> - Direct summation employing a smearing parameter <attref>eta</attref> of <elementref>freqgrid</elementref></li>
-                  </list>
-            </xs:documentation></xs:annotation>
-          </xs:attribute>
-
-          <xs:attribute ex:importance="experimental" ex:unit="" name="eph" type="xs:string" default="none">
-            <xs:annotation>
-              <xs:documentation>(experimental) Include the electron-phonon coupling.</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
-          <xs:attribute ex:importance="experimental" type="fortrandouble" ex:unit="" name="wlo" default="0.0">
-            <xs:annotation>
-              <xs:documentation>
-                (experimental) The LO phonon frequency for the polar electron-phonon coupling.
-              </xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
-          <xs:attribute ex:importance="experimental" type="fortrandouble" ex:unit="" name="wto" default="0.0">
-            <xs:annotation>
-              <xs:documentation>
-                (experimental) The TO phonon frequency for the polar electron-phonon coupling.
-              </xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
-
-          <xs:attribute ex:importance="expert" ex:unit="" name="printSpectralFunction" type="xs:boolean" default="false" use="optional">
-            <xs:annotation><xs:documentation>
-	            Compute and output the spectral function.
-	          </xs:documentation></xs:annotation>
-          </xs:attribute>
-
-          <xs:attribute ex:importance="expert" ex:unit="" name="printSelfC" type="xs:boolean" default="false" use="optional">
-            <xs:annotation><xs:documentation>
-	            Output the correlation self-energy.
-	          </xs:documentation></xs:annotation>
-          </xs:attribute>
-
-        </xs:complexType>
-    </xs:element>
+    </xs:complexType>
+  </xs:element>
 </xs:schema>

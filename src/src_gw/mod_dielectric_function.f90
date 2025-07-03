@@ -51,8 +51,8 @@ module mod_dielectric_function
     character(len=*), parameter, private :: file_name_epsilon = 'EPSILON-GW_Q'
     character(len=*), parameter, private :: file_name_epsilon_irreducible = 'EPSILON-GW_IQ'
     character(len=*), parameter, private :: file_name_epsilon_head = 'EPSH'
-    character(len=*), parameter, private :: file_name_epsilon_wings1 = 'EPSW1'
-    character(len=*), parameter, private :: file_name_epsilon_wings2 = 'EPSW2'
+    character(len=*), parameter, private  :: file_name_epsilon_wings1 = 'EPSW1'
+    character(len=*), parameter, private  :: file_name_epsilon_wings2 = 'EPSW2'
 
     !----------------------------------------------------------------------
     ! files to store the inverse of the dielectric function
@@ -89,18 +89,18 @@ contains
         ! head and wings of the dielectric function when q->0
         if (Gamma) then
           if (allocated(epsh)) deallocate(epsh)
-          allocate(epsh(3,3,iomstart:iomend))
-          epsh(:,:,:) = 0.d0
+          allocate(epsh(3,3,iomstart:iomend), source=zzero)
+          
           if (allocated(epsw1)) deallocate(epsw1)
-          allocate(epsw1(mbsiz,3,iomstart:iomend))
-          epsw1(:,:,:) = 0.d0
+          allocate(epsw1(mbsiz,3,iomstart:iomend), source=zzero)
+          
           if (allocated(epsw2)) deallocate(epsw2)
-          allocate(epsw2(mbsiz,3,iomstart:iomend))
-          epsw2(:,:,:) = 0.d0
+          allocate(epsw2(mbsiz,3,iomstart:iomend), source=zzero)
+          
           ! macroscopic dielectric tensor
           if (allocated(eps00)) deallocate(eps00)
-          allocate(eps00(3,3,iomstart:iomend))
-          eps00(:,:,:) = 0.d0
+          allocate(eps00(3,3,iomstart:iomend), source=zzero)
+
         end if ! Gamma
     end subroutine
 

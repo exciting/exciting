@@ -85,6 +85,14 @@ contains
     integer(i32)      :: ie1,ie2,im
     integer(i32)      :: dim_n, dim_n_val, dim_n_core
     integer(i32)      :: dim_m, dim_m_val, dim_m_core
+    integer(i32)      :: basis_size
+
+    !> Determine the basis size. It differs between mbsiz and matsiz depending on the 
+    !> application or not of the bare Coulomb potential
+    basis_size = size(minm,1)
+    !> If apply_barc is true, then the first dimension of minm should be mbsiz
+    call assert(basis_size == mbsiz .or. (.not. apply_barc), &
+         'First dimension of minm must equal mbsiz, if v-diagonal basis is used.')
 
     !> Determine minm bounds
     nstart = lbound(minm,2); nend   = ubound(minm,2)
@@ -98,9 +106,6 @@ contains
     dim_m_val  = max(m_val_end - m_val_start + 1, 0)
     dim_m_core = max(m_core_end - m_core_start + 1, 0)
 
-    !> If apply_barc is true, then the first dimension of minm should be mbsiz
-    call assert(size(minm,1) == mbsiz .or. (.not. apply_barc), &
-         'First dimension of minm must equal mbsiz')
     call assert( dim_n_val + dim_n_core == dim_n, &
          'Dimension mismatch for n in M^i_{nm}' )
     call assert( dim_m_val + dim_m_core == dim_m, &
@@ -110,7 +115,7 @@ contains
     OMP_OFFLOAD target
 #if __INTEL_COMPILER
     !$omp teams distribute parallel do collapse(3)
-    do ie2 = mstart, mend; do ie1 = nstart, nend; do im = 1,mbsiz
+    do ie2 = mstart, mend; do ie1 = nstart, nend; do im = 1,basis_size
        minm(im,ie1,ie2) = zzero
     end do; end do; end do
     !$omp end teams distribute parallel do
@@ -163,7 +168,7 @@ contains
 
     dev = device_world%get_device()
 
-    d1 = mbsiz
+    d1 = size(minm,1)
     d2 = n2-n1+1
     d3 = m2-m1+1
     num_of_elements = int(d1, kind=c_size_t) * int(d2, kind=c_size_t) * int(d3, kind=c_size_t)
@@ -178,12 +183,12 @@ contains
     ! The remapping is to prevent integer arithmetics in the loops
     call remap_fortran_pointer(buf, int([1,n1,m1],i32), int([d1,n2,m2],i32))
 
-    call expand_products_block(ik,iq,n1,n2,m1,m2,buf_cptr,flag, apply_barc)
+    call expand_products_block(ik, iq, n1, n2, m1, m2, buf_cptr, flag, apply_barc)
 
     OMP_OFFLOAD target has_device_addr(buf)
 #if __INTEL_COMPILER
     !$omp teams distribute parallel do collapse(3)
-    do ie2 = m1,m2; do ie1 = n1,n2; do im = 1,mbsiz
+    do ie2 = m1,m2; do ie1 = n1,n2; do im = 1,d1
        minm(im,n_offset+ie1,m_offset+ie2) = buf(im,ie1,ie2)
     end do; end do; end do
     !$omp end teams distribute parallel do
@@ -219,11 +224,7 @@ contains
     dev   = device_world%get_device()
     nmdim = (nend-nstart+1)*(mend-mstart+1)
 
-    if(flag==FLAG_VV) then
-       nloc = matsiz
-    else
-       nloc = locmatsiz
-    end if
+    nloc = merge(matsiz, locmatsiz, flag==FLAG_VV)
 
     allocate(tmp(nloc,nstart:nend,mstart:mend))
     OMP_OFFLOAD target data map(alloc:tmp)
@@ -269,6 +270,7 @@ contains
        ! and resources doing a copy
        call c_f_pointer(buf_cptr, buf, shape(tmp))
        call remap_fortran_pointer(buf, lbound(tmp), ubound(tmp))
+       
        OMP_OFFLOAD target has_device_addr(buf)
 #if __INTEL_COMPILER
        !$omp teams distribute parallel do collapse(3)
@@ -280,6 +282,7 @@ contains
        buf(:,nstart:nend,mstart:mend) = tmp(:,nstart:nend,mstart:mend)
 #endif
        OMP_OFFLOAD end target
+       nullify(buf)
     end if
     call device_world%synchronize()
     OMP_OFFLOAD end target data
