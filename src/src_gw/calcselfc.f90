@@ -19,7 +19,6 @@ subroutine calcselfc(iq, ikp_first, ikp_last)
     use modgw, only: time_selfc, kqset, kset, Gkqset, b2mb, ibgw, nbgw, freq, mblksiz, msize, fdebug
     use modmpi, only: rank
     use precision, only: i32, dp
-
 #include "offload.fpp"
 
     implicit none

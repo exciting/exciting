@@ -19,6 +19,7 @@ module task_group
   use task_irreducibleMapping, only: execute_task_irreducibleMapping
   use task_sigmac, only: execute_task_sigmac
   use task_sigmax, only: execute_task_sigmax
+  use task_polarizability, only: execute_task_polarizability
   use task_vxc, only: execute_task_vxc
   use task_QPEigenvalues, only: execute_task_QPEigenvalues
 
@@ -37,6 +38,8 @@ module task_group
     character(len=20) :: Coulomb_cutoff_type
     character(len=20) :: selfenergy_singularity_treatment
     logical :: task_Coulomb 
+    logical :: usingIrreducibleWedge_in_task_polarizability = .false.
+    logical :: task_polarizability
     logical :: usingIrreducibleWedge_in_task_epsilon = .false.
     logical :: task_epsilon 
     logical :: task_invertEpsilon
@@ -81,6 +84,21 @@ contains
       ! A barrier is necessary to ensure that all processes have completed outputting the bare Coulomb matrix
       call barrier( mpiglobal )
       call execute_task_sigmax( ibgw, nbgw, n_kpoints, kqset%vqc, input_parameters%output_format )
+    end if
+
+    if (input_parameters%task_polarizability) then
+      ! A barrier is necessary to ensure that all processes have completed outputting the bare Coulomb matrix
+      call barrier( mpiglobal )
+      
+      ! The number of points for the polarizability task depend on the use of symmetry
+      ! TODO: There must be a better way than using kset%nkpt
+      if (input_parameters%usingIrreducibleWedge_in_task_polarizability) then
+        n_qpoints_epsilon = kset%nkpt ! Reduced points
+      else
+        n_qpoints_epsilon = kqset%nkpt
+      end if
+
+      call execute_task_polarizability( n_qpoints_epsilon, input_parameters%output_format )
     end if
 
     if( input_parameters%task_epsilon ) then
@@ -168,6 +186,8 @@ contains
     this%Coulomb_cutoff_type = trim( gw_inp%barecoul%cutofftype )
     this%selfenergy_singularity_treatment = trim( gw_inp%selfenergy%singularity )
     this%task_Coulomb = associated( gw_inp%taskGroup%Coulomb )
+    this%task_polarizability = associated( gw_inp%taskGroup%polarizability)
+    if (this%task_polarizability) this%usingIrreducibleWedge_in_task_polarizability = gw_inp%taskGroup%polarizability%usingIrreducibleWedge 
     this%task_epsilon = associated( gw_inp%taskGroup%epsilon )
     if (this%task_epsilon) this%usingIrreducibleWedge_in_task_epsilon = gw_inp%taskGroup%epsilon%usingIrreducibleWedge
     this%task_invertEpsilon = associated( gw_inp%taskGroup%invertEpsilon )

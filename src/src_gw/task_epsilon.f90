@@ -14,8 +14,9 @@ module task_epsilon
   use mod_dielectric_function, only: write_epsilon_to_file, init_dielectric_function, delete_dielectric_function
   use mod_kqpts, only: kpoints_sets
   use mod_misc_gw, only: Gamma, gammapoint
-  use mod_product_basis, only: mbsiz, read_sgi_from_file, mpwipw
+  use mod_product_basis, only: mbsiz, matsiz, read_sgi_from_file, mpwipw
   use mod_selfenergy, only: singc1, singc2
+  use mod_polarizability, only: init_polarizability, from_polarizability_to_epsilon, read_polarizability_from_file, delete_polarizability
   use precision, only: dp, i32
   use to_char_conversion, only: to_char
 
@@ -34,6 +35,7 @@ module task_epsilon
     private
     type(kpoints_sets) :: q_points
     logical :: usingIrreducibleWedge
+    logical :: buildFromPolarizability
     integer(i32) :: n_omega
     character(len=max_length) :: output_format
     real(dp) :: eigenvalue_cutoff_Coulomb_matrix
@@ -53,6 +55,7 @@ subroutine parse_input( this, gw_inp, n_qpt )
   call this%sanity_checks( gw_inp )
   call this%q_points%parse_input( gw_inp%taskGroup%epsilon%qpointsarray, n_qpt )
   this%usingIrreducibleWedge = gw_inp%taskGroup%epsilon%usingIrreducibleWedge
+  this%buildFromPolarizability = gw_inp%taskGroup%epsilon%buildFromPolarizability
   this%n_omega = gw_inp%freqgrid%nomeg
   this%output_format = trim( adjustl( gw_inp%taskGroup%outputFormat ) )
   this%eigenvalue_cutoff_Coulomb_matrix = gw_inp%barecoul%barcevtol
@@ -83,7 +86,7 @@ subroutine execute_task_epsilon( n_qpoints_max, file_format )
   integer(i32), intent(in) :: n_qpoints_max
   character(len=*), intent(in) :: file_format
 
-  integer(i32) :: iq, iq_reducible, iq_output
+  integer(i32) :: iq, iq_reducible, iq_io
   integer(i32) :: i, i_start, i_end
   integer(i32) :: omega_i, omega_f
   real(dp) :: eigenvalue_cutoff
@@ -102,17 +105,21 @@ subroutine execute_task_epsilon( n_qpoints_max, file_format )
   eigenvalue_cutoff = max( real_zero, input_parameters%eigenvalue_cutoff_Coulomb_matrix )
   
   ! Attention: calcpmatgw makes use of MPI parallelization and calls a mpi_barrier
-  if( isGammaInList( kqset%vqc(:,input_parameters%q_points%list_of_indexes) ) ) call calcpmatgw
+  ! In the case of building the dielectric matrix from polarizability
+  ! the momentum transfer matrix elements should already be present in the folder, 
+  ! as they are required by the polarizability task 
+  if( isGammaInList( kqset%vqc(:,input_parameters%q_points%list_of_indexes) ) .and. & 
+    .not. input_parameters%buildFromPolarizability ) call calcpmatgw
   do i = i_start, i_end
     iq = input_parameters%q_points%list_of_indexes(i) ! This refers always to the list either full or irreducible
     if (input_parameters%usingIrreducibleWedge) then
       if( mpiglobal%rank == 0) call write_to_gwinfo( '('//task_name//'): q-point cycle, iq (irreducible) = ' // to_char(iq) )
       iq_reducible = kset%ikp2ik(iq) ! iq is the index of the irreducible q-point; iq_reducible is the index in the reducible q-point list
-      iq_output = iq ! We are outputing the files with the irreducible wedge numbering
+      iq_io = iq ! We are outputing the files with the irreducible wedge numbering
     else
       if( mpiglobal%rank == 0) call write_to_gwinfo( '('//task_name//'): q-point cycle, iq = ' // to_char(iq) )
       iq_reducible = iq ! iq is the index in the full BZ
-      iq_output = iq_reducible ! We are outputing files with full BZ numbering
+      iq_io = iq_reducible ! We are outputing files with full BZ numbering
     end if
 
     call read_sgi_from_file( iq_reducible, file_format )
@@ -121,8 +128,15 @@ subroutine execute_task_epsilon( n_qpoints_max, file_format )
     Gamma = gammapoint( kqset%vqc(:, iq_reducible), tol=1.e-6_dp )
     call calculate_sqrt_bare_coulomb( iq_reducible, eigenvalue_cutoff, Gamma )
     call init_dielectric_function( mbsiz, omega_i, omega_f, Gamma )
-    call calcepsilon( iq_reducible, omega_i, omega_f )
-    call write_epsilon_to_file( iq_output, Gamma, file_format, input_parameters%usingIrreducibleWedge)
+    if (.not. input_parameters%buildFromPolarizability ) then
+      call calcepsilon( iq_reducible, omega_i, omega_f )
+    else
+      call init_polarizability( matsiz, omega_i, omega_f, .false.)
+      call read_polarizability_from_file(iq_io, Gamma, file_format, input_parameters%usingIrreducibleWedge)
+      call from_polarizability_to_epsilon(iq_reducible, Gamma, omega_i, omega_f)
+      call delete_polarizability()
+    endif
+    call write_epsilon_to_file( iq_io, Gamma, file_format, input_parameters%usingIrreducibleWedge)
   end do
 
   call deallocate_global_arrays

@@ -8,6 +8,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
     use modmpi, only: rank
     use modgw
     use modxs,      only : symt2
+    use mod_head_and_wings, only: calcwings, calchead
     use mod_bands, only: nstdf, nomax, numin, eveckpalm, eveckalm, eveck, eveckp
     use precision,  only : i32, dp, long_int
     use iso_c_binding,         only: c_ptr, c_loc, c_f_pointer, c_sizeof, c_size_t
@@ -102,7 +103,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
             ! read the momentum matrix elements
             call getpmatkgw(ik)
             ! and compute the head of the dielectric function
-            call calchead(ik, iomstart, iomend, ndim)
+            call calchead(ik, iomstart, iomend, ndim, epsh)
         end if
 
         ! get KS eigenvectors
@@ -118,7 +119,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
         call expand_evec(jk,'c')
         
         OMP_OFFLOAD target update to(eveck, eveckp, eveckalm, eveckpalm)
-
+        OMP_OFFLOAD target enter data map(always, to: epsw1, epsw2) if(Gamma)
 
         !=================================================
         ! Loop over m-blocks in M^i_{nm}(\vec{k},\vec{q})
@@ -138,8 +139,7 @@ subroutine calcepsilon(iq,iomstart,iomend)
 
             if (Gamma) then
                 ! wings of the dielectric matrix
-                OMP_OFFLOAD target update from(minmmat)
-                call calcwings(ik, iq, iomstart, iomend, ndim, mstart, mend)
+                call calcwings(ik, iq, iomstart, iomend, ndim, mstart, mend, mbsiz, minmmat, epsw1, epsw2)
             end if
 
             ! Body
@@ -189,13 +189,16 @@ subroutine calcepsilon(iq,iomstart,iomend)
     end if
 
     OMP_OFFLOAD target update from(epsilon)
+    OMP_OFFLOAD target update from(epsw1, epsw2) if(Gamma)
 
+    OMP_OFFLOAD target exit data map(delete: epsw1, epsw2) if(Gamma)
     OMP_OFFLOAD target exit data map(delete: eveck, eveckp, eveckalm, eveckpalm)
 
     deallocate(eveck)
     deallocate(eveckp)
     deallocate(eveckalm)
     deallocate(eveckpalm)
+    deallocate(fnm)
 
     if (Gamma) then
         ! symmetrize \eps_{00} (head)

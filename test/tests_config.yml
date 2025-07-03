@@ -611,6 +611,12 @@ GW/MoS2-symmetry:
       - "Mo.xml"
       - "S.xml"
 
+GW/Si-polarizability:
+   files_under_test:
+      - "EVALQP.DAT"
+   inputs:
+      - "input.xml"
+      - "Si.xml"
 GW/Si-PBE-Coulomb:
    files_under_test:
       - "SGI_Q1.OUT"
