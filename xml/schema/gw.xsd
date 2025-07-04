@@ -515,19 +515,26 @@
 
               <xs:element ex:importance="experimental" ex:unit="" name="sigmax" maxOccurs="1" minOccurs="0">
                 <xs:annotation>
-                  <xs:documentation>
-                    Setup for the task <pre>"sigmax"</pre>.
-                    The exchange part of the self-energy is calculated for each 
-                    <inlinemath>\mathbf{k}</inlinemath>-point and printed out in 
-                    <pre>SIGMAX_K*.OUT</pre>, where <pre>*</pre> is the index of the
-                    <inlinemath>\mathbf{k}</inlinemath>-point.
-                  </xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                  <xs:sequence>
-                    <xs:element ref="kpoints" minOccurs="1" maxOccurs="unbounded"/>
-                  </xs:sequence>
-                </xs:complexType>
+                      <xs:documentation>
+                        Setup for the task <pre>"sigmax"</pre>.
+                        The exchange part of the self-energy is calculated for each 
+                        <inlinemath>\mathbf{k}</inlinemath>-point and printed out in 
+                        <pre>SIGMAX_K*.OUT</pre>, where <pre>*</pre> is the index of the
+                        <inlinemath>\mathbf{k}</inlinemath>-point.
+                        Parallelization strategy: the MPI processes are splitted first into 
+                        <attref>MPIDomainsKpoints</attref> Domains.
+                      </xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element ref="kpoints" minOccurs="1" maxOccurs="unbounded"/>
+                      </xs:sequence>
+                      <xs:attribute ex:importance="experimental" ex:unit="" name="MPIDomainsKpoints" type="xs:integer" default="1">
+                        <xs:annotation>
+                          <xs:documentation>Number of MPI Domains used over <inlinemath>\mathbf{k}</inlinemath>-points.</xs:documentation>
+                        </xs:annotation>
+                      </xs:attribute>
+                    </xs:complexType>
               </xs:element>
 
               <xs:element ex:importance="experimental" ex:unit="" name="vxc" maxOccurs="1" minOccurs="0">
