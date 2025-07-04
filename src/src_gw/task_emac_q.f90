@@ -1,6 +1,6 @@
 
 subroutine task_emac_q()
-
+    use calculate_dielectric_function, only: calcepsilon, epsilon_indexes
     use modinput
     use modmain
     use modmpi, only: mpi_allgatherv_ifc, rank, firstofset, lastofset, barrier, terminate, mpiglobal
@@ -9,7 +9,9 @@ subroutine task_emac_q()
     use invert_dielectric_function, only: calcinveps
     use modxs, only: symt2
     use mod_mpi_gw
+    use modmpi, only: mpi_allgatherv_ifc, rank, firstofset, lastofset, barrier, terminate, mpiglobal
     use m_getunit
+    use mod_bands, only: numin, nstdf
 
     implicit none
     integer :: iq, iom, iop, fid, im
@@ -148,7 +150,11 @@ subroutine task_emac_q()
           call calcepsilon_ppm(iq,iomstart,iomend)
 
         case default
-          call calcepsilon(iq,iomstart,iomend)
+          call calcepsilon(iq, epsilon_indexes( &
+                          indexes_parallelization( 1, kqset%nkpt, 1, kqset%nkpt ), &
+                          indexes_parallelization( numin, nstdf, numin, nstdf ), &
+                          indexes_parallelization( iomstart, iomend, iomstart, iomend ) ) &
+                          )
           !================================
           ! Invert the dielectric function
           !================================
@@ -175,7 +181,6 @@ subroutine task_emac_q()
 
       ! clean unused data
       call delete_dielectric_function(Gamma)
-      if (allocated(fnm)) deallocate(fnm)
       if (allocated(mpwipw)) deallocate(mpwipw)
       if (allocated(barc)) deallocate(barc)
 

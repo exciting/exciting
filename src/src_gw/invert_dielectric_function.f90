@@ -238,7 +238,7 @@ contains
       complex(dp) :: L(3,3), L_diag(3), dtns(3,3)
       complex(dp), allocatable :: s(:,:), t(:,:)
       !> Tolerance for zero
-      real(dp), parameter :: tol = 1.e-8
+      real(dp), parameter :: tol = 1.e-8_dp
 
       call assert(.not. all_zero(q0eps), "q0eps should not be zero")
 

@@ -1,6 +1,8 @@
 !> This module contains procedures to store and manipulate the polarizability
 module mod_polarizability
+    use constants, only: zzero
     use gw_io, only: build_file_name, write_to_file, read_from_file
+    use modmpi, only: terminate
     use precision, only: i32, dp
 #include "offload.fpp"
 
@@ -168,7 +170,7 @@ contains
       use mod_atoms, only: natmtot
       use mod_muffin_tin, only: lmmaxapw
       use mod_core_states,   only: ncg
-      use modgw, only: kqset, fnm, mblksiz, b2mb, gkqset, msize
+      use modgw, only: kqset, fnm, fnm_tet, fnm_sum, mblksiz, b2mb, gkqset, msize
       use mod_product_basis, only: matsiz, minmmat
       use mod_bands, only: nstdf, nomax, numin, eveckpalm, eveckalm, eveck, eveckp
       use mod_eigenvalue_occupancy, only: nstfv
@@ -199,6 +201,7 @@ contains
       complex(dp), pointer, contiguous :: minm(:,:,:)
       complex(dp), allocatable :: evecfv(:,:)
       integer(i32) :: my_device
+      logical :: tetrahedron_method
 
       !=============================
       ! Initialization
@@ -235,19 +238,27 @@ contains
       ! Calculate the q-dependent BZ integration weights
       !==================================================
       select case (trim(input%gw%qdepw))
-      case('sum')
-          call qdepwsum(iq, iomstart, iomend, ndim)
-      case('tet')
+        case('sum')
+          tetrahedron_method = .false.
+          allocate( fnm_sum(ndim, numin:nstdf, iomstart:iomend), source=zzero )
+        case('tet')
+          tetrahedron_method = .true.
+          allocate( fnm_tet(ndim, numin:nstdf, iomstart:iomend, kqset%nkpt), source=zzero )
           call qdepwtet(iq, iomstart, iomend, ndim)
-      case default
-          stop "Error(calcepsilon): Unknown qdepw method!"
+        case default
+          call terminate( "Error(compute_polarizability_at_q): Unknown qdepw method!" )
       end select
-
-
+  
       !=================
       ! BZ integration
       !=================
       do ik = 1, kqset%nkpt
+        if( tetrahedron_method ) then 
+          fnm(1:ndim, numin:nstdf, iomstart:iomend) => fnm_tet(:, :, :, ik)
+        else
+          call qdepwsum(iq, ik, iomstart, iomend, ndim)
+          fnm(1:ndim, numin:nstdf, iomstart:iomend) => fnm_sum
+        end if
 
         ! k-q point
         jk = kqset%kqid(ik, iq)
@@ -299,14 +310,14 @@ contains
             call remap_fortran_pointer(minm, int([1, 1, mstart], kind=i32), int([matsiz, ndim, mend], kind=i32))
 
             do iom = iomstart, iomend
-                OMP_OFFLOAD target data map(to: fnm(:,mstart:mend,iom,ik))
+                OMP_OFFLOAD target data map(to: fnm(:,mstart:mend,iom))
                 OMP_OFFLOAD target has_device_addr(minm)
                 !$omp teams distribute parallel do collapse(3) default(none) private(ie1,ie2,ibasis) &
-                !$omp shared(mstart,mend,ndim,matsiz,minm,fnm,minmmat,iom,ik)
+                !$omp shared(mstart,mend,ndim,matsiz,minm,fnm,minmmat,iom)
                 do ie2 = mstart, mend
                     do ie1 = 1, ndim
                         do ibasis = 1, matsiz
-                            minm(ibasis,ie1,ie2) = fnm(ie1,ie2,iom,ik) * &
+                            minm(ibasis,ie1,ie2) = fnm(ie1,ie2,iom) * &
                                                    minmmat(ibasis,ie1,ie2)
                         end do
                     end do ! ie1
@@ -347,7 +358,9 @@ contains
     deallocate(eveckp)
     deallocate(eveckalm)
     deallocate(eveckpalm)
-    deallocate(fnm)
+    if( allocated(fnm_sum) ) deallocate( fnm_sum )
+    if( allocated(fnm_tet) ) deallocate( fnm_tet )
+    if( associated(fnm) ) nullify( fnm )
 
   end subroutine compute_polarizability_at_q
 
@@ -361,9 +374,9 @@ contains
       use mod_head_and_wings, only: calchead
       use mod_dielectric_function, only: pmatvv, pmatcv, epsh, epsw1, epsw2, epsilon
       use mod_core_states,   only: ncg
-      use modgw, only: kqset, fnm, freq
+      use modgw, only: kqset, fnm, fnm_sum, fnm_tet, freq
       use mod_product_basis, only: matsiz, mbsiz
-      use mod_bands, only: nomax, numin
+      use mod_bands, only: nomax, numin, nstdf
       use mod_coulomb_potential, only: barc
       use iso_c_binding,         only: c_ptr, c_loc, c_f_pointer, c_sizeof, c_size_t
       use mod_device_offload,    only: device_world
@@ -372,7 +385,6 @@ contains
       use m_memory_device,       only: allocate_device_memory, deallocate_device_memory, &
                                        bytes_double_complex, bytes_int, get_device_pointer
 
-      implicit none
       ! input/output
       integer(i32), intent(in) :: iq
       logical, intent(in)      :: Gamma
@@ -389,6 +401,7 @@ contains
       complex(dp), allocatable :: evecfv(:,:)
       type(c_ptr) :: temp_vcpol_cptr
       integer(i32) :: my_device
+      logical :: tetrahedron_method
 
       my_device = device_world%get_device()
 
@@ -404,27 +417,37 @@ contains
 
         ! Calculate the q-dependent BZ integration weights
         select case (trim(input%gw%qdepw))
-        case('sum')
-            call qdepwsum(iq, iomstart, iomend, ndim)
-        case('tet')
+          case('sum')
+            tetrahedron_method = .false.
+            allocate( fnm_sum(ndim, numin:nstdf, iomstart:iomend), source=zzero )
+          case('tet')
+            tetrahedron_method = .true.
+            allocate( fnm_tet(ndim, numin:nstdf, iomstart:iomend, kqset%nkpt), source=zzero )
             call qdepwtet(iq, iomstart, iomend, ndim)
-        case default
-            stop "Error(calcepsilon): Unknown qdepw method!"
+          case default
+            call terminate( "Error(compute_polarizability_at_q): Unknown qdepw method!" )
         end select
 
         do ik = 1, kqset%nkpt
-
+            if( tetrahedron_method ) then 
+              fnm(1:ndim, numin:nstdf, iomstart:iomend) => fnm_tet(:, :, :, ik)
+            else
+              call qdepwsum(iq, ik, iomstart, iomend, ndim)
+              fnm(1:ndim, numin:nstdf, iomstart:iomend) => fnm_sum
+            end if
             ! Read the momentum matrix elements
             call getpmatkgw(ik)
             ! Compute the head of the dielectric function
-            call calchead(ik, iomstart, iomend, ndim, epsh)
+            call calchead(ik, numin, nstdf, iomstart, iomend, ndim, epsh)
 
         end do
 
         ! Clear memory
         deallocate(pmatvv)
         if (input%gw%coreflag=='all') deallocate(pmatcv)
-        deallocate(fnm)
+        if( allocated(fnm_sum) ) deallocate( fnm_sum )
+        if( allocated(fnm_tet) ) deallocate( fnm_tet )
+        if( associated(fnm) ) nullify( fnm )
 
 
         ! Compute the wings of the dielectric matrix

@@ -13,7 +13,7 @@ contains
     !> Computes the head.
     !> Note: this procedure does not reset the head to zero.
     !> It accumulates contributions over all k-points.
-    subroutine calchead(ik, iomstart, iomend, ndim, head)
+    subroutine calchead(ik, first_empty_band, last_empty_band, iomstart, iomend, ndim, head)
 
         use modinput,  only: input
         use modmain,   only:  evalcr, idxas
@@ -25,6 +25,10 @@ contains
 
         ! input/output
         integer(i32), intent(in) :: ik
+        !> Index of the first unoccupied state
+        integer(i32), intent(in) :: first_empty_band
+        !> Index of the last unoccupied state
+        integer(i32), intent(in) :: last_empty_band
         integer(i32), intent(in) :: iomstart, iomend
         integer(i32), intent(in) :: ndim
         complex(dp), intent(inout) :: head(3,3,iomstart:iomend)
@@ -39,6 +43,7 @@ contains
         real(dp) :: tstart, tend
         complex(dp) :: coefh
         complex(dp) :: pnm, zsum
+        real(dp), parameter :: tol = 1.e-6_dp
 
         if (input%gw%debug) write(fdebug,*) ' ---- calchead started ----'
         call timesec(tstart)
@@ -58,14 +63,14 @@ contains
 
                 ! Inter-band contribution
                 zsum = zzero
-                do ie2 = numin, nstdf
-                do ie1 = 1, ndim
+                do ie2 = first_empty_band, last_empty_band
+                  do ie1 = 1, ndim
                     if (ie1 <= nomax) then
                         ! valence-valence
                         edif = evalfv(ie2,ikp)-evalfv(ie1,ikp)
                         if (abs(edif) > 1.0e-6_dp) then
                             pnm = pmatvv(ie1,ie2,iop)*conjg(pmatvv(ie1,ie2,jop))
-                            zsum = zsum + fnm(ie1,ie2,iom,ik)*pnm/(edif*edif)
+                            zsum = zsum + fnm(ie1,ie2,iom)*pnm/(edif*edif)
                         end if
                     else
                         ! core-valence
@@ -75,12 +80,12 @@ contains
                         ias  = idxas(ia,is)
                         ic   = corind(icg,3)
                         edif = evalfv(ie2,ikp) - evalcr(ic,ias)
-                        if (abs(edif) > 1.0e-6_dp) then
+                        if (abs(edif) > tol) then
                             pnm = pmatcv(icg,ie2,iop)*conjg(pmatcv(icg,ie2,jop))
-                            zsum = zsum + fnm(ie1,ie2,iom,ik)*pnm/(edif*edif)
+                            zsum = zsum + fnm(ie1,ie2,iom)*pnm/(edif*edif)
                         end if
                     end if
-                end do ! ie2
+                  end do ! ie2
                 end do ! ie1
                 head(iop,jop,iom) = head(iop,jop,iom) + coefh*zsum
 
@@ -89,7 +94,7 @@ contains
                 !-------------------------
                 if (metallic) then
                     zsum = zzero
-                    do ie1 = numin, nomax
+                    do ie1 = first_empty_band, min(nomax, last_empty_band)
                         pnm = pmatvv(ie1,ie1,iop)*conjg(pmatvv(ie1,ie1,jop))
                         zsum = zsum + kwfer(ie1,ik)*pnm
                     enddo
@@ -229,16 +234,16 @@ contains
         ! tmat1 and tmat2
         OMP_OFFLOAD target data map(tofrom: wing1, wing2)
         do iom = iomstart, iomend
-            OMP_OFFLOAD target has_device_addr(tmat1, tmat2) map(to: fnm(:,:,iom,ik))
+            OMP_OFFLOAD target has_device_addr(tmat1, tmat2) map(to: fnm(:,:,iom))
             !$omp teams distribute parallel do collapse(3) &
             !$omp default(none) private(ie2,ie1,imix) &
             !$omp shared(mstart,mend,ndim,mbsiz,tmat1,tmat2,fnm,minmmat,ik,iom)
             do ie2 = mstart, mend
                 do ie1 = 1, ndim
                     do imix = 1, mbsiz
-                        tmat1(imix,ie1,ie2) = fnm(ie1,ie2,iom,ik)* &
+                        tmat1(imix,ie1,ie2) = fnm(ie1,ie2,iom)* &
                                                 minmmat(imix,ie1,ie2)
-                        tmat2(imix,ie1,ie2) = fnm(ie1,ie2,iom,ik) * &
+                        tmat2(imix,ie1,ie2) = fnm(ie1,ie2,iom) * &
                                                 conjg(minmmat(imix,ie1,ie2))
                     end do
                 end do

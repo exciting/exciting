@@ -42,7 +42,7 @@
       ibgw="1"
       nbgw="20">
       <taskGroup outputFormat="text">
-        <epsilon>
+        <epsilon printPolarizabilityFactor="false">
           <qpoints qi="1" qf="-1"/>
         </epsilon>
       </taskGroup>      

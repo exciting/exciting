@@ -1,6 +1,6 @@
       
 subroutine task_eps_r
-
+    use calculate_dielectric_function, only: calcepsilon, epsilon_indexes
     use modinput
     use modmain
     use modgw
@@ -12,7 +12,7 @@ subroutine task_eps_r
     use m_getunit
     use mod_hdf5
     use mod_rpath
-    use mod_bands, only: evalfv
+    use mod_bands, only: evalfv, numin, nstdf
             
     implicit none
     integer(4) :: ikp, iq, fid, ik
@@ -138,8 +138,12 @@ subroutine task_eps_r
       !===================================
       call init_dielectric_function(mbsiz,iomstart,iomend,Gamma)
 
-      ! dielectric matrix      
-      call calcepsilon(iq,iomstart,iomend)
+      ! dielectric matrix   
+      call calcepsilon(iq, epsilon_indexes( &
+                      indexes_parallelization( 1, kqset%nkpt, 1, kqset%nkpt ), &
+                      indexes_parallelization( numin, nstdf, numin, nstdf ), &
+                      indexes_parallelization( iomstart, iomend, iomstart, iomend ) ) &
+                      )
 
       ! e = (1-vP) - 1
       do im = 1, mbsiz

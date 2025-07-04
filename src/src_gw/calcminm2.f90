@@ -514,6 +514,5 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
   call timesec(tend)
   time_minm = time_minm + tend - tstart
 
-  return
 end subroutine calcminm2
 
