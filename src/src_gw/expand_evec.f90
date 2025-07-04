@@ -29,9 +29,8 @@
     integer(4) :: ist
     integer(4) :: l, m, lm, m1
     integer(4) :: igk, ngk
-    integer(4) :: isym, lspl, ilspl 
-    real(8)    :: c(3,3)
-    complex(8), allocatable :: apwalm(:,:,:,:), alm(:,:,:,:)
+    integer(4) :: isym, lspl, ilspl, first_state, last_state
+    complex(8), allocatable :: apwalm(:,:,:,:)
     
  
 !!EXTERNAL ROUTINES: 
@@ -47,7 +46,6 @@
 !EOP  
 !BOC
     ! find matching coefficients
-    allocate(alm(ngkmax,apwordmax,lmmaxapw,natmtot))
     allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
     
     ngk = Gkqset%ngk(1,ik)
@@ -60,6 +58,8 @@
     select case (trans)
     
     case ('t','T')
+      first_state = lbound( eveck, 2 )
+      last_state = ubound( eveck, 2 )
       do is = 1, nspecies
         do ia = 1, natoms(is)
           ias = idxas(ia,is)
@@ -67,7 +67,7 @@
             do m = -l, l
               lm = idxlm(l,m)
               do io = 1, apword(l,is)
-                do ist = 1, nstfv
+                do ist = first_state, last_state
                   eveckalm(ist,io,lm,ias) = &
                   &  zdotu(ngk,  &
                   &        eveck(1:ngk,ist),1, &
@@ -80,6 +80,8 @@
       enddo !is
       
     case ('c','C')
+      first_state = lbound( eveckp, 2 )
+      last_state = ubound( eveckp, 2 )
       do is = 1, nspecies
         do ia = 1, natoms(is)
           ias = idxas(ia,is)
@@ -87,7 +89,7 @@
             do m = -l, l
               lm = idxlm(l,m)
               do io = 1, apword(l,is)
-                do ist = 1, nstfv
+                do ist = first_state, last_state
                   eveckpalm(ist,io,lm,ias) = &
                   &  zdotc(ngk, &
                   &        apwalm(1:ngk,io,lm,ias),1, &
@@ -106,8 +108,5 @@
       stop 
     end select
     
-    deallocate(alm,apwalm)
-
-    return
 end subroutine
 !EOC      

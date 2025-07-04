@@ -259,13 +259,11 @@ contains
     !> Perform MPI_Allreduce, if `all_reduce` is true, or MPI_Reduce, if false.
     logical, intent(in) :: all_reduce
 
-#ifdef MPI
     if ( all_reduce ) then
       call xmpi_allreduce( array, mpi_env )
     else
       call xmpi_reduce( array, mpi_env )
     end if
-#endif
   end subroutine
 
 end module

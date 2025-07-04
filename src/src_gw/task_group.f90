@@ -4,7 +4,7 @@ module task_group
   use modgw, only: kqset, kset, ibgw, nbgw, kiw, ciw, Gset, Gkset, Gqset, Gqbarc, freq, nvelgw, nbandsgw
   use modinput, only: input, gw_type, isspinorb
   use modmpi, only: mpiglobal, terminate_if_false, barrier
-  use mod_bands, only: evalfv
+  use mod_bands, only: evalfv, numin, nstdf
   use mod_coulomb_potential, only: calculate_singularities_coeff
   use mod_dielectric_function, only: delete_dielectric_function
   use mod_frequency, only: delete_freqgrid
@@ -59,9 +59,8 @@ contains
   !> `taskGroup` element (within `gw`)
   subroutine execute_task_group
     type(task_group_parameters) :: input_parameters
-    integer(i32) :: n_qpoints, n_kpoints
-    integer(i32) :: n_qpoints_epsilon 
-    integer(i32) :: n_qpoints_invertepsilon 
+    integer(i32) :: n_qpoints, n_kpoints, first_empty_state, last_empty_state
+    integer(i32) :: n_qpoints_invertepsilon, n_qpoints_epsilon, i
 
     call input_parameters%parse_input( input%gw )
     call initialize
@@ -101,20 +100,16 @@ contains
       call execute_task_polarizability( n_qpoints_epsilon, input_parameters%output_format )
     end if
 
+    first_empty_state = numin
+    last_empty_state = nstdf
     if( input_parameters%task_epsilon ) then
-      
       ! A barrier is necessary to ensure that all processes have completed outputting the bare Coulomb matrix
       call barrier( mpiglobal )
-      
-      ! The number of points for the epsilon task depend on the use of symmetry
-      ! TODO: There must be a better way than using kset%nkpt
       if (input_parameters%usingIrreducibleWedge_in_task_epsilon) then
-        n_qpoints_epsilon = kset%nkpt ! Reduced points
+        call execute_task_epsilon( kqset%vqc, kset%ikp2ik(1:kset%nkpt), kqset%nkpt, first_empty_state, last_empty_state, input_parameters%output_format )
       else
-        n_qpoints_epsilon = kqset%nkpt
+        call execute_task_epsilon( kqset%vqc, [(i, i = 1, kqset%nkpt)], kqset%nkpt, first_empty_state, last_empty_state, input_parameters%output_format )
       end if
-
-      call execute_task_epsilon( n_qpoints_epsilon, input_parameters%output_format )
     end if
 
     if( input_parameters%task_invertEpsilon ) then

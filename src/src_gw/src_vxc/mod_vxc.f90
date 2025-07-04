@@ -241,11 +241,11 @@ contains
     use mod_eigensystem, only: nmatmax
     use mod_eigenvalue_occupancy, only: nstfv
     use mod_gw_degeneracies, only: get_degenerate_limits_qp_interval_ikp, &
-                                   degenerate_subspaces
+                                   degenerate_subspaces                               
     use mod_hybrids, only: hybridhf, vxnl
     use mod_misc, only: filext
     use mod_muffin_tin, only: lmmaxapw, lmmaxvr
-    use modgw, only: Gkqset, Gkset, kset, kqset
+    use modgw, only: Gkqset, Gkset, kset, kqset, time_vxc
     use modmpi, only: barrier, mpi_allgatherv_ifc, distribute_loop
     use modxs, only: isreadstate0
     use vector_multiplication, only: dot_multiply
@@ -382,6 +382,7 @@ contains
     end do
     
     call timesec(tend)
+    time_vxc = time_vxc + tend - tstart
   end subroutine
 
 

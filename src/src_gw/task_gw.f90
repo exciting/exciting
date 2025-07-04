@@ -12,9 +12,10 @@ subroutine task_gw()
 ! quasiparticle energies.
 !
 !!USES:
+    use calculate_dielectric_function, only: calcepsilon, epsilon_indexes
     use constants, only: zzero
     use invert_dielectric_function, only: calcinveps
-    use mod_bands, only: evalfv, occfv, bandstructure_analysis, delete_bands
+    use mod_bands, only: bandstructure_analysis, delete_bands, evalfv, nstdf, numin, occfv
     use mod_coulomb_potential, only: barc, delete_coulomb_potential, calculate_singularities_coeff
     use mod_dielectric_function, only: eps00, epsh, epsw1, epsw2, epsilon, init_dielectric_function, &
       delete_dielectric_function
@@ -22,7 +23,7 @@ subroutine task_gw()
     use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
     use mod_gaunt_coefficients, only: delete_gaunt_coefficients
     use mod_kpointset, only: delete_Gk_vectors, delete_k_vectors, delete_kq_vectors, delete_G_vectors
-    use mod_mpi_gw, only: iomstart, iomend, iqstart, iqend, mpi_sum_array
+    use mod_mpi_gw, only: iomstart, iomend, iqstart, iqend, mpi_sum_array, indexes_parallelization
     use mod_misc_gw, only: Gamma, gammapoint
     use mod_product_basis, only: mpwipw, locmatsiz, mbsiz, matsiz, delete_product_basis
     use mod_selfenergy, only: evalks, evalqp, eferks, eferqp, znorm, singc1, singc2, &
@@ -151,7 +152,11 @@ subroutine task_gw()
           case('ppm','PPM')
             call calcepsilon_ppm(iq, iomstart, iomend)
           case default
-            call calcepsilon(iq, iomstart, iomend)
+            call calcepsilon(iq, epsilon_indexes( &
+                            indexes_parallelization( 1, kqset%nkpt, 1, kqset%nkpt ), &
+                            indexes_parallelization( numin, nstdf, numin, nstdf ), &
+                            indexes_parallelization( iomstart, iomend, iomstart, iomend ) ) &
+                            )
             !==========================================
             ! Calculate the screened Coulomb potential
             !==========================================

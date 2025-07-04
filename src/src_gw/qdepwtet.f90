@@ -4,7 +4,7 @@
 !
 !!INTERFACE:
 !
-subroutine qdepwtet(iq,iomstart,iomend,ndim)
+subroutine qdepwtet(iq, iomstart, iomend, ndim)
 !
 !!DESCRIPTION:
 !
@@ -13,30 +13,32 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
 !
 !
 !!USES:
-    use precision, only: i32, dp
+    use constants, only: zzero
+    use mod_atoms, only: idxas
+    use mod_bands, only: nomax, numin, evalfv, nstdf
+    use mod_corestate, only: evalcr
+    use mod_eigenvalue_occupancy, only: efermi
+    use mod_lattice, only: bvec, binv
     use mod_symmetry, only: symlat, lsplsymc, nsymcrys, symlatc, & 
                             find_equivalent_wavevectors, get_equivalent_qpairs
-    use constants, only: zzero
-    use mod_bands, only: nomax, numin, evalfv, nstdf
     use modinput, only: input
-    use mod_lattice,  only: bvec, binv
-    use modmain, only : natmtot, nspecies, natoms, idxas, &
-                        evalcr, efermi
-    use modgw,   only : fnm, freq, ncmax, kset, kqset, &
-                        ncg, corind, fdebug, time_bzinit
+    use modgw,   only : fnm_tet, freq, ncmax, kset, kqset, &
+    &                   ncg, corind, fdebug, time_bzinit
+        use precision, only: i32, dp
 
-!!INPUT PARAMETERS:
     implicit none
+
     integer(i32), intent(in) :: iq
     integer(i32), intent(in) :: iomstart, iomend
     integer(i32), intent(in) :: ndim
+    
 
 !!LOCAL VARIABLES:
-    integer(i32) :: ik, ikp, ib, ic, icg, neq
-    integer(i32) :: ia, is, ias
-    integer(i32) :: iom, n, m
+    integer(i32) :: ik, ikp, ib, ic, icg
+    integer(i32) :: ia, is, ias, ie1, ie2
+    integer(i32) :: iom
     integer(i32) :: fflg, sgw
-    integer(i32) :: ie1, ie2
+    integer(i32) :: mini, mend
 
     real(dp) :: emaxb ! maximum energy of the second band
     real(dp) :: edif, edsq, omsq
@@ -57,22 +59,19 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
     integer(i32), allocatable :: iqeq_list(:), isymeq_list(:)
 
     ! Index for iq equivalence
-    integer(i32) :: isym, iqeq, nsym, neqpairs
+    integer(i32) :: isym, iqeq, nsym, neq, neqpairs
     integer(i32), allocatable :: point_pairs(:,:)
 
 !EOP
 !BOC
     call timesec(tstart)
+    mini = lbound( fnm_tet, 2 )
+    mend = ubound( fnm_tet, 2 )
 
     !---------------------------------------------------------------------
     ! Initialization
     !---------------------------------------------------------------------
-    if (allocated(fnm)) deallocate(fnm)
-    allocate(fnm(1:ndim,numin:nstdf,iomstart:iomend,kqset%nkpt), source=zzero)
-
-    ! Symmetry 
     nsym = merge(nsymcrys, 1_i32, input%gw%enforceCrystalSymmetryTetrahedron)
-
     allocate(fnm_equiv(kqset%nkpt,nsym), source=zzero)
 
     ! Find equivalent q-points
@@ -104,7 +103,6 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
       eval(1:nstdf,ik) = evalfv(1:nstdf,ikp)
     end do
 
-
     allocate(cwpar(2,2,kqset%nkpt))
     if (is_realfreq) allocate(cwparsurf(2,2,kqset%nkpt))
 
@@ -112,13 +110,13 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
     allocate(point_pairs(2,nsym))
 
     !$omp parallel do collapse(3) default(none) schedule(dynamic) &
-    !$omp shared(iq, iomstart, iomend, numin, nstdf, ndim, nomax, corind, idxas, eval, evalcr) &
-    !$omp shared(efermi, sgw, freq, neq, iqeq_list, kqset, fflg, is_realfreq, fnm, nsym, lsplsymc, symlatc, bvec) &
-    !$omp shared(binv, input) &
+    !$omp shared(iq, iomstart, iomend, mini, mend, ndim, nomax, corind, idxas, eval, evalcr) &
+    !$omp shared(efermi, sgw, freq, neq, iqeq_list, kqset, fflg, is_realfreq, fnm_tet, nsym) &
+    !$omp shared(lsplsymc, symlatc, bvec, binv, input) &
     !$omp private(iom, ie2, ie1, is_core, icg, is, ia, ic, ias, emaxb, omsq, isym, iqeq, ik, edif, edsq, neqpairs) &
     !$omp firstprivate(eval_pair, point_pairs, cwpar, cwparsurf, fnm_equiv) 
     do iom = iomstart, iomend
-      do ie2 = numin, nstdf
+      do ie2 = mini, mend
         do ie1 = 1, ndim
 
           eval_pair(2,:) = eval(ie2,:)
@@ -195,13 +193,13 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
               neqpairs = nsym - count(point_pairs(1,:) == -1)
               do isym = 1, nsym
                 if (point_pairs(1,isym) == -1) cycle ! If the symmetry operation do not map the points to valid ones, cycle
-                fnm(ie1,ie2,iom,ik) = fnm(ie1,ie2,iom,ik) + fnm_equiv(point_pairs(2,isym),isym)
+                fnm_tet(ie1,ie2,iom,ik) = fnm_tet(ie1,ie2,iom,ik) + fnm_equiv(point_pairs(2,isym),isym)
               end do
               ! Apply the approapiate weight to the summation over the equivalent pairs
-              fnm(ie1,ie2,iom,ik) = fnm(ie1,ie2,iom,ik) / neqpairs
+              fnm_tet(ie1,ie2,iom,ik) = fnm_tet(ie1,ie2,iom,ik) / neqpairs
             end do
           else
-            fnm(ie1,ie2,iom,:) = fnm_equiv(:,1)
+            fnm_tet(ie1,ie2,iom,:) = fnm_equiv(:,1)
           end if
 
         end do !ie1
@@ -211,8 +209,7 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
 
     ! spin degeneracy: I'm not sure about this prefactor for core states
     sfact = 2.0_dp
-    
-    fnm(:,:,:,:) = sfact * fnm(:,:,:,:)
+    fnm_tet = sfact*fnm_tet
 
     !-------------------------
     ! Debugging info
@@ -224,9 +221,9 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
       write(fdebug,*)
       iom = 1
       do ik = 1, kqset%nkpt
-        do ic = 1, ndim
-        do ib = numin, nstdf
-          write(fdebug,1) ic, ib, iom, ik, fnm(ic,ib,iom,ik)
+      do ic = 1, ndim
+        do ib = mini, mend
+          write(fdebug,1) ic, ib, iom, ik, fnm_tet(ic,ib,iom,ik)
         end do
         end do
       end do

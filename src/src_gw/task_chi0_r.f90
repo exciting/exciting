@@ -1,16 +1,17 @@
       
 subroutine task_chi0_r
-
+    use calculate_dielectric_function, only: calcepsilon, epsilon_indexes
     use modinput
     use modmain,               only : zzero, efermi
     use modmpi, only: distribute_loop, mpiglobal, rank
     use modgw
     use mod_mpi_gw
+    use modmpi, only: rank, mpiglobal, barrier
     use m_getunit
     use mod_hdf5
     use mod_rpath
     use mod_coulomb_potential, only: barc
-    use mod_bands, only: evalfv
+    use mod_bands, only: evalfv, numin, nstdf
             
     implicit none
     integer(4) :: ikp, iq, fid, ik
@@ -141,7 +142,11 @@ subroutine task_chi0_r
       ! Calculate the chi0 function
       !===================================
       call init_dielectric_function(mbsiz,iomstart,iomend,Gamma)
-      call calcepsilon(iq,iomstart,iomend)
+      call calcepsilon(iq, epsilon_indexes( &
+                      indexes_parallelization( 1, kqset%nkpt, 1, kqset%nkpt ), &
+                      indexes_parallelization( numin, nstdf, numin, nstdf ), &
+                      indexes_parallelization( iomstart, iomend, iomstart, iomend ) ) &
+                      )
       do im = 1, mbsiz
         epsilon(im,im,iomstart:iomend) = epsilon(im,im,iomstart:iomend)-zone
       end do

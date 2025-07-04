@@ -1,6 +1,6 @@
 
 subroutine task_emac()
-
+    use calculate_dielectric_function, only: calcepsilon, epsilon_indexes
     use modinput
     use modmain
     use modmpi, only: rank
@@ -9,7 +9,9 @@ subroutine task_emac()
     use invert_dielectric_function, only: calcinveps
     use modxs, only: symt2
     use mod_mpi_gw
+    use modmpi, only: rank, mpiglobal
     use m_getunit
+    use mod_bands, only: numin, nstdf
 
     implicit none
     integer :: iq, iom, fid
@@ -74,14 +76,17 @@ subroutine task_emac()
         call calcepsilon_ppm(iq, 1, freq%nomeg)
 
       case default
-        call calcepsilon(iq, 1, freq%nomeg)
+        call calcepsilon(iq, epsilon_indexes( &
+                        indexes_parallelization( 1, kqset%nkpt, 1, kqset%nkpt ), &
+                        indexes_parallelization( numin, nstdf, numin, nstdf ), &
+                        indexes_parallelization( 1, freq%nomeg, 1, freq%nomeg ) ) &
+                        )
         call calcinveps(1, freq%nomeg, gamma, input%gw%scrcoul, freq%fconv, symt2,&
                         &epsilon, epsw1, epsw2, epsh, eps00, time_dfinv)
 
     end select
 
     ! clean unused data
-    if (allocated(fnm)) deallocate(fnm)
     if (allocated(mpwipw)) deallocate(mpwipw)
     if (allocated(barc)) deallocate(barc)
 

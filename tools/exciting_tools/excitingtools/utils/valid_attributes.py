@@ -971,7 +971,9 @@ polarizability_valid_subtrees = ["qpoints"]
 polarizability_mandatory_attributes = ["qpoints"] 
 polarizability_multiple_children = ["qpoints"] 
 
-epsilon_attribute_types = {"buildFromPolarizability": (bool, 1),
+epsilon_attribute_types = {"MPIDomainsKpoints": (int, 1),
+                           "MPIDomainsQpoints": (int, 1),
+                           "buildFromPolarizability": (bool, 1),
                            "printPolarizabilityFactor": (bool, 1),
                            "usingIrreducibleWedge": (bool, 1)} 
 epsilon_valid_subtrees = ["qpoints"] 
