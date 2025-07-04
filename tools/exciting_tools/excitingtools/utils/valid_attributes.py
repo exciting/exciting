@@ -993,6 +993,7 @@ sigmac_valid_subtrees = ["kpoints"]
 sigmac_mandatory_attributes = ["kpoints"] 
 sigmac_multiple_children = ["kpoints"] 
 
+sigmax_attribute_types = {"MPIDomainsKpoints": (int, 1)} 
 sigmax_valid_subtrees = ["kpoints"] 
 sigmax_mandatory_attributes = ["kpoints"] 
 sigmax_multiple_children = ["kpoints"] 
