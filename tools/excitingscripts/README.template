@@ -1,0 +1,21 @@
+# excitingscripts
+
+`excitingscripts` is a collection of various Python scripts for executing various tasks with the [exciting](https://exciting-code.org) code from the command line.
+
+## Installation
+
+`excitingscripts` can be installed directly from PyPI:
+
+```bash
+pip install excitingscripts
+```
+
+Alternatively, it can be installed from the [exciting source][https://github.com/exciting/exciting]:
+
+```bash
+cd $EXCITINGROOT/tools/excitingscripts
+pip install -e .
+```
+
+## Script Listing
+

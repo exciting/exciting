@@ -62,7 +62,7 @@ def parse_energy_vs_strain(
     data_file = join(directory, "energy-vs-strain")
 
     if not os.path.exists(data_file):
-        raise FileNotFoundError(f"energy-vs-strain not found")
+        raise FileNotFoundError("energy-vs-strain not found")
 
     with open(data_file, "r") as input_energy:
         for line in input_energy:

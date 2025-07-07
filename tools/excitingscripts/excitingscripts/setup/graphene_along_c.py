@@ -43,7 +43,7 @@ def setup_displaced_structures(input_file: Union[str, pathlib.Path], eta_strain:
 
         # Write strain value to file
         with open(join(workdir, "displ"), "w") as output_str:
-            output_str.write(f"0.00")
+            output_str.write("0.00")
 
         print("Single un-displaced calculation\n")
         return
@@ -125,7 +125,7 @@ def setup_displaced_structures(input_file: Union[str, pathlib.Path], eta_strain:
         os.makedirs(rundir, exist_ok=True)
 
         # Write deformed structure to file
-        parsed_input.write(join(rundir, f"input.xml"))
+        parsed_input.write(join(rundir, "input.xml"))
 
 
 
